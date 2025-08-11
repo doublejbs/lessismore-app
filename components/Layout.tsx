@@ -1,5 +1,6 @@
 import { FC, ReactNode } from 'react';
-import { SafeAreaView, View, ViewStyle } from 'react-native';
+import { View, ViewStyle } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LogInView from './login/LogInView';
 import app from '@/model/app/App';
 import { observer } from 'mobx-react-lite';
@@ -29,7 +30,6 @@ const containerStyle: ViewStyle = {
     flexDirection: 'column',
     width: '100%',
     paddingHorizontal: 20,
-    paddingBottom: 20,
     position: 'relative',
   };
 

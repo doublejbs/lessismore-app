@@ -19,6 +19,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
+      "googleServicesFile": "./google-services.json",
       "package": "com.doublejbs.useless"
     },
     "web": {
@@ -41,6 +42,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "24aefc8a-2fb8-40f2-9d1b-5361537863a5"
+      }
     }
   }
 }

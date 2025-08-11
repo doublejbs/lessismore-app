@@ -56,6 +56,7 @@ class Warehouse {
 
   public async initialize() {
     if (this.isLoggedIn()) {
+        console.log('initialize');
       this.order.initialize();
       await this.getList();
     }

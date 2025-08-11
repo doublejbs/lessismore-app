@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
 import { HapticTab } from '@/components/HapticTab';
+import { NoAnimationTab } from '@/components/NoAnimationTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 
@@ -12,7 +13,10 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: 'black',
         headerShown: false,
-        tabBarButton: HapticTab,
+        tabBarButton: Platform.select({
+          ios: HapticTab,
+          android: NoAnimationTab,
+        }),
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: {

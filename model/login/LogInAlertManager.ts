@@ -3,8 +3,8 @@ import Firebase from '../firebase/Firebase';
 import app from '../app/App';
 
 class LogInAlertManager {
-  public static new() {
-    return new LogInAlertManager(app.getFirebase());
+  public static new(firebase: Firebase) {
+    return new LogInAlertManager(firebase);
   }
 
   private visible = false;

@@ -1,8 +1,13 @@
-import { FC, useEffect } from 'react';
+import React, { FC, useEffect } from 'react';
+import { View, Text, ScrollView, StyleSheet, Platform } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import Layout from '@/components/Layout';
 import Warehouse from '@/model/warehouse/Warehouse';
 import WarehouseEmptyView from '@/components/warehouse/WarehouseEmptyView';
+import app from '@/model/app/App';
+import WarehouseFiltersView from '@/components/warehouse/WarehouseFiltersView';
+import WarehouseGearView from '@/components/warehouse/WarehouseGearView';
+import AddButtonView from '@/components/warehouse/AddButtonView';
 
 interface Props {
   warehouse: Warehouse;
@@ -11,67 +16,73 @@ interface Props {
 const WarehouseView: FC<Props> = ({ warehouse }) => {
   const gears = warehouse.getGears();
   const isEmpty = warehouse.isEmpty();
+  const isLoggedIn = app.getFirebase().isLoggedIn();
 
   useEffect(() => {
-    warehouse.initialize();
-  }, []);
+    if (isLoggedIn) {
+      warehouse.initialize();
+    }
+  }, [isLoggedIn]);
+  
+  console.log(isLoggedIn);
 
   if (isEmpty) {
     return <WarehouseEmptyView />;
-  } else {
-    // return (
-    //   <Layout>
-    //     <div style={{ position: 'absolute', top: 20, right: 16, zIndex: 10 }}>
-    //       <UserMenu />
-    //     </div>
-    //     <div
-    //       style={{
-    //         display: 'flex',
-    //         flexDirection: 'column',
-    //         gap: '16px',
-    //         marginTop: '8px',
-    //         marginBottom: '16px',
-    //       }}
-    //     >
-    //       <div
-    //         style={{
-    //           fontWeight: '1000',
-    //           fontSize: '48px',
-    //           textAlign: 'center',
-    //           display: 'inline-block',
-    //           lineHeight: 1,
-    //           letterSpacing: '-4.5px',
-    //         }}
-    //       >
-    //         useless
-    //       </div>
-    //       <WarehouseFiltersView warehouse={warehouse} />
-    //     </div>
-    //     <div
-    //       style={{
-    //         width: '100%',
-    //         height: '100%',
-    //         paddingBottom: '53px',
-    //       }}
-    //     >
-    //       <ul
-    //         style={{
-    //           width: '100%',
-    //           display: 'flex',
-    //           flexDirection: 'column',
-    //           gap: '4px',
-    //         }}
-    //       >
-    //         {gears.map((gear) => (
-    //           <WarehouseGearView key={gear.getId()} gear={gear} warehouse={warehouse} />
-    //         ))}
-    //         </ul>
-    //       </div>
-    //     <AddButtonView />
-    //     <WarehouseEditWrapperView />
-    //   </Layout>
-    // );
   }
+
+  return (
+    <Layout>
+      <View style={styles.headerContainer}>
+        <Text style={styles.titleText}>useless</Text>
+        <WarehouseFiltersView warehouse={warehouse} />
+      </View>
+      
+      <View style={styles.contentContainer}>
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {gears.map((gear) => (
+            <WarehouseGearView key={gear.getId()} gear={gear} warehouse={warehouse} />
+          ))}
+        </ScrollView>
+      </View>
+      <AddButtonView />
+    </Layout>
+  );
 };
+
+const styles = StyleSheet.create({
+  headerContainer: {
+    flexDirection: 'column',
+    gap: 16,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  titleText: {
+    fontWeight: '900',
+    fontSize: 48,
+    textAlign: 'center',
+    lineHeight: 48,
+    letterSpacing: -4.5,
+  },
+  contentContainer: {
+    flex: 1,
+    width: '100%',
+    ...Platform.select({
+      ios: {
+        paddingBottom: 50,
+      },
+    }),
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexDirection: 'column',
+    gap: 4,
+  },
+});
 
 export default observer(WarehouseView);

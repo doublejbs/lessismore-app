@@ -2,17 +2,19 @@ import { initializeApp } from 'firebase/app';
 import {
   Auth,
   createUserWithEmailAndPassword,
-  getAuth,
   GoogleAuthProvider,
   signInWithEmailAndPassword,
-  signInWithPopup,
   signOut,
   User,
+  initializeAuth,
+  getReactNativePersistence,
+  signInWithCredential,
 } from 'firebase/auth';
 import { makeAutoObservable } from 'mobx';
 import { doc, Firestore, getDoc, getFirestore, setDoc, updateDoc } from 'firebase/firestore';
 import { FirebaseStorage, getStorage } from 'firebase/storage';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 class Firebase {
   private static readonly config = {
@@ -40,12 +42,21 @@ class Firebase {
 
   public async initialize() {
     const fireBaseApp = initializeApp(Firebase.config);
-    GoogleSignin.configure();
-    this.auth = getAuth(fireBaseApp);
+    
+    // Google Sign-in 설정
+    GoogleSignin.configure({
+      webClientId: '434364025032-9ocqi7g8s57pu88dmr5lvds5id8a8ent.apps.googleusercontent.com',
+      offlineAccess: true,
+      hostedDomain: '',
+      forceCodeForRefreshToken: true,
+      iosClientId: '434364025032-ng7gpn2bks9128u8n2pg5qu47gqhuq43.apps.googleusercontent.com',
+    });
+    
+    this.auth = initializeAuth(fireBaseApp, {
+        persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+    });
     this.store = getFirestore(fireBaseApp);
     this.storage = getStorage(fireBaseApp);
-    await this.auth.authStateReady();
-    await this.checkLoggedIn();
     this.setInitialized(true);
 
     this.auth.onAuthStateChanged(async (user: User | null) => {
@@ -54,6 +65,7 @@ class Firebase {
       } else {
         this.setUserId('');
         this.setHasAgreedToTerms(false);
+        this.setLoggedIn(false);
       }
     });
   }
@@ -67,6 +79,12 @@ class Firebase {
       await this.checkTermsAgreement();
       this.setLoggedIn(true);
     }
+  }
+
+  private async checkGoogleSignIn() {
+    const user = await GoogleSignin.getCurrentUser();
+    const googleCredential = GoogleAuthProvider.credential(user?.idToken);
+    await signInWithCredential(this.auth, googleCredential);
   }
 
   /**
@@ -156,9 +174,16 @@ class Firebase {
       const response = await GoogleSignin.signIn();
 
       console.log(response);
-      // await signInWithPopup(this.auth, this.googleProvider);
+      
+      if (response.data?.idToken) {
+        const googleCredential = GoogleAuthProvider.credential(response.data.idToken, response.data.serverAuthCode);
+        await signInWithCredential(this.auth, googleCredential);
+      } else {
+        throw new Error('Google 로그인 실패: idToken을 받을 수 없습니다. Google 설정을 확인해주세요.');
+      }
     } catch (error) {
-      console.error(error);
+      console.error('Google 로그인 오류:', error);
+      throw error;
     }
   }
 

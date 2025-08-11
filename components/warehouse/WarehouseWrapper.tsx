@@ -9,7 +9,7 @@ interface Props {}
 
 const WarehouseWrapper: FC<Props> = () => {
   const [warehouse] = useState(() =>
-    Warehouse.from(WarehouseDispatcher.new(), app.getToastManager(), app.getFirebase())
+    Warehouse.from(WarehouseDispatcher.new(), app.getToastManager()!, app.getFirebase())
   );
 
   return <WarehouseScreen warehouse={warehouse} />;

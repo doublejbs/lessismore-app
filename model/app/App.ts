@@ -10,12 +10,12 @@ import LogInAlertManager from '../login/LogInAlertManager';
 
 class App {
   private readonly firebase = new Firebase();
-  private gearStore!: GearStore;
-  private bagStore!: BagStore;
-  private searchStore!: SearchStore;
-  private alertManager!: AlertManager;
+  private gearStore: GearStore | null = null;
+  private bagStore: BagStore | null = null;
+  private searchStore: SearchStore | null = null;
+  private alertManager: AlertManager | null = null;
   private logInAlertManager: LogInAlertManager | null = null;
-  private toastManager!: ToastManager;
+  private toastManager: ToastManager | null = null;
   private initialized = false;
 
   public constructor() {
@@ -29,7 +29,7 @@ class App {
     this.searchStore = new SearchStore(this.firebase);
     this.alertManager = AlertManager.new();
     this.toastManager = ToastManager.new();
-    this.logInAlertManager = LogInAlertManager.new();
+    this.logInAlertManager = LogInAlertManager.new(this.firebase);
     this.setInitialized(true);
   }
 

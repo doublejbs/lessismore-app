@@ -82,16 +82,16 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   title: {
-    fontWeight: '900',
+    fontFamily: 'Pretendard-Bold',
     fontSize: 48,
     textAlign: 'center',
     lineHeight: 48,
     letterSpacing: -4.5,
   },
   subtitle: {
+    fontFamily: 'Pretendard-Bold',
     textAlign: 'center',
     fontSize: 16,
-    fontWeight: 'bold',
   },
   buttonContainer: {
     alignItems: 'center',
@@ -111,9 +111,9 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   loginButtonText: {
+    fontFamily: 'Pretendard-Bold',
     color: 'white',
     fontSize: 16,
-    fontWeight: 'bold',
   },
 });
 

@@ -7,7 +7,7 @@ import WarehouseDispatcherType from './WarehouseDispatcherType';
 
 class WarehouseDispatcher implements WarehouseDispatcherType {
   public static new() {
-    return new WarehouseDispatcher(app.getGearStore());
+    return new WarehouseDispatcher(app.getGearStore()!);
   }
 
   private constructor(private readonly gearStore: GearStore) {}
