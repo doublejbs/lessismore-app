@@ -12,6 +12,7 @@ import {
 import { makeAutoObservable } from 'mobx';
 import { doc, Firestore, getDoc, getFirestore, setDoc, updateDoc } from 'firebase/firestore';
 import { FirebaseStorage, getStorage } from 'firebase/storage';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 class Firebase {
   private static readonly config = {
@@ -39,6 +40,10 @@ class Firebase {
 
   public async initialize() {
     const fireBaseApp = initializeApp(Firebase.config);
+    GoogleSignin.configure({
+      webClientId: '1:434364025032:web:a8c458d1ee31b0e14dbdfd',
+      iosClientId: '434364025032-ng7gpn2bks9128u8n2pg5qu47gqhuq43.apps.googleusercontent.com',
+    });
     this.auth = getAuth(fireBaseApp);
     this.store = getFirestore(fireBaseApp);
     this.storage = getStorage(fireBaseApp);
@@ -150,7 +155,14 @@ class Firebase {
   }
 
   public async logInWithGoogle() {
-    await signInWithPopup(this.auth, this.googleProvider);
+    try {
+      const response = await GoogleSignin.signIn();
+
+      console.log(response);
+      // await signInWithPopup(this.auth, this.googleProvider);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   public getStore() {

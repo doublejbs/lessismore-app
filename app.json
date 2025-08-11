@@ -9,14 +9,17 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "bundleIdentifier": "com.doublejbs.lessismoreapp"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.doublejbs.lessismoreapp"
     },
     "web": {
       "bundler": "metro",
@@ -32,6 +35,12 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.434364025032-ng7gpn2bks9128u8n2pg5qu47gqhuq43"
         }
       ]
     ],
