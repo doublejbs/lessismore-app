@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "googleServicesFile": "./GoogleService-Info.plist",
-      "bundleIdentifier": "com.doublejbs.lessismoreapp"
+      "bundleIdentifier": "com.doublejbs.useless"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +19,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.doublejbs.lessismoreapp"
+      "package": "com.doublejbs.useless"
     },
     "web": {
       "bundler": "metro",
@@ -27,6 +27,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "@react-native-google-signin/google-signin",
       "expo-router",
       [
         "expo-splash-screen",
@@ -35,12 +36,6 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
-        }
-      ],
-      [
-        "@react-native-google-signin/google-signin",
-        {
-          "iosUrlScheme": "com.googleusercontent.apps.434364025032-ng7gpn2bks9128u8n2pg5qu47gqhuq43"
         }
       ]
     ],

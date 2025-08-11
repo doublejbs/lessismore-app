@@ -8,27 +8,27 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		298F4FDD3C0D4FE6B29CD5D2 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8AC03C5561274CA984EE5888 /* GoogleService-Info.plist */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		449473763743B4F33BB12777 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4771070F459944ED9DD78874 /* ExpoModulesProvider.swift */; };
-		B42B257B6267638FD1EC3424 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B28F51C02D81869B4E13BB73 /* PrivacyInfo.xcprivacy */; };
+		AB72C45994F7ED6A7C483197 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 068ED31E2F6E9BC2A583F7E7 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		DBD789FF83EE443D89C0DCAC /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = BBED774E581B493F9D8E2C46 /* GoogleService-Info.plist */; };
+		ED1D0F95572F8D983762D9EA /* libPods-lessismoreapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BDCE794A9B73DF8CD92613D9 /* libPods-lessismoreapp.a */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
-		FF69777E950497681D3209CB /* libPods-lessismoreapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B0E9824B5B2CD22D051DBE77 /* libPods-lessismoreapp.a */; };
+		F96BFF3173295A9D38C92E75 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B7AB6758B4BE125C1D699AB /* ExpoModulesProvider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		068ED31E2F6E9BC2A583F7E7 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = lessismoreapp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* lessismoreapp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = lessismoreapp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = lessismoreapp/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = lessismoreapp/Info.plist; sourceTree = "<group>"; };
-		4771070F459944ED9DD78874 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-lessismoreapp/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		8AC03C5561274CA984EE5888 /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "lessismoreapp/GoogleService-Info.plist"; sourceTree = "<group>"; };
-		9801954298D9A6B29D340572 /* Pods-lessismoreapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-lessismoreapp.release.xcconfig"; path = "Target Support Files/Pods-lessismoreapp/Pods-lessismoreapp.release.xcconfig"; sourceTree = "<group>"; };
+		1B7AB6758B4BE125C1D699AB /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-lessismoreapp/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		21BEC523CAABD65CEA96190A /* Pods-lessismoreapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-lessismoreapp.release.xcconfig"; path = "Target Support Files/Pods-lessismoreapp/Pods-lessismoreapp.release.xcconfig"; sourceTree = "<group>"; };
+		81807AFEF17ECCDC091AD391 /* Pods-lessismoreapp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-lessismoreapp.debug.xcconfig"; path = "Target Support Files/Pods-lessismoreapp/Pods-lessismoreapp.debug.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = lessismoreapp/SplashScreen.storyboard; sourceTree = "<group>"; };
-		B0E9824B5B2CD22D051DBE77 /* libPods-lessismoreapp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-lessismoreapp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		B28F51C02D81869B4E13BB73 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = lessismoreapp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		BF7E7B98D4CBAA8A98643D37 /* Pods-lessismoreapp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-lessismoreapp.debug.xcconfig"; path = "Target Support Files/Pods-lessismoreapp/Pods-lessismoreapp.debug.xcconfig"; sourceTree = "<group>"; };
+		BBED774E581B493F9D8E2C46 /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "lessismoreapp/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		BDCE794A9B73DF8CD92613D9 /* libPods-lessismoreapp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-lessismoreapp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = lessismoreapp/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* lessismoreapp-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "lessismoreapp-Bridging-Header.h"; path = "lessismoreapp/lessismoreapp-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -39,13 +39,21 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF69777E950497681D3209CB /* libPods-lessismoreapp.a in Frameworks */,
+				ED1D0F95572F8D983762D9EA /* libPods-lessismoreapp.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0C910F4AD773A459266C47E5 /* lessismoreapp */ = {
+			isa = PBXGroup;
+			children = (
+				1B7AB6758B4BE125C1D699AB /* ExpoModulesProvider.swift */,
+			);
+			name = lessismoreapp;
+			sourceTree = "<group>";
+		};
 		13B07FAE1A68108700A75B9A /* lessismoreapp */ = {
 			isa = PBXGroup;
 			children = (
@@ -55,35 +63,37 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				8AC03C5561274CA984EE5888 /* GoogleService-Info.plist */,
-				B28F51C02D81869B4E13BB73 /* PrivacyInfo.xcprivacy */,
+				BBED774E581B493F9D8E2C46 /* GoogleService-Info.plist */,
+				068ED31E2F6E9BC2A583F7E7 /* PrivacyInfo.xcprivacy */,
 			);
 			name = lessismoreapp;
-			sourceTree = "<group>";
-		};
-		14A24347E4099C4B57BD8DD9 /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				5DCB5541DA35BAD2830BD13C /* lessismoreapp */,
-			);
-			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				B0E9824B5B2CD22D051DBE77 /* libPods-lessismoreapp.a */,
+				BDCE794A9B73DF8CD92613D9 /* libPods-lessismoreapp.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		5DCB5541DA35BAD2830BD13C /* lessismoreapp */ = {
+		36D5CF1556E7D0AED7547529 /* ExpoModulesProviders */ = {
 			isa = PBXGroup;
 			children = (
-				4771070F459944ED9DD78874 /* ExpoModulesProvider.swift */,
+				0C910F4AD773A459266C47E5 /* lessismoreapp */,
 			);
-			name = lessismoreapp;
+			name = ExpoModulesProviders;
+			sourceTree = "<group>";
+		};
+		5934E19E3527EF92EAAA9DA9 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				81807AFEF17ECCDC091AD391 /* Pods-lessismoreapp.debug.xcconfig */,
+				21BEC523CAABD65CEA96190A /* Pods-lessismoreapp.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -100,8 +110,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				F3D7000B970FDC09E327A60A /* Pods */,
-				14A24347E4099C4B57BD8DD9 /* ExpoModulesProviders */,
+				5934E19E3527EF92EAAA9DA9 /* Pods */,
+				36D5CF1556E7D0AED7547529 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -125,16 +135,6 @@
 			path = lessismoreapp/Supporting;
 			sourceTree = "<group>";
 		};
-		F3D7000B970FDC09E327A60A /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				BF7E7B98D4CBAA8A98643D37 /* Pods-lessismoreapp.debug.xcconfig */,
-				9801954298D9A6B29D340572 /* Pods-lessismoreapp.release.xcconfig */,
-			);
-			name = Pods;
-			path = Pods;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -143,13 +143,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "lessismoreapp" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				D0D820C0F25A039D72BF6F78 /* [Expo] Configure project */,
+				F4B94A4EBAB759F0A35DF6C3 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				669D3E2E87AB69384518D34F /* [CP] Embed Pods Frameworks */,
+				D9E3A93FFBC08B9581B5CD68 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -199,8 +199,8 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				298F4FDD3C0D4FE6B29CD5D2 /* GoogleService-Info.plist in Resources */,
-				B42B257B6267638FD1EC3424 /* PrivacyInfo.xcprivacy in Resources */,
+				DBD789FF83EE443D89C0DCAC /* GoogleService-Info.plist in Resources */,
+				AB72C45994F7ED6A7C483197 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,24 +242,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		669D3E2E87AB69384518D34F /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-lessismoreapp/Pods-lessismoreapp-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-lessismoreapp/Pods-lessismoreapp-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
@@ -312,7 +294,25 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-lessismoreapp/Pods-lessismoreapp-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		D0D820C0F25A039D72BF6F78 /* [Expo] Configure project */ = {
+		D9E3A93FFBC08B9581B5CD68 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-lessismoreapp/Pods-lessismoreapp-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-lessismoreapp/Pods-lessismoreapp-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		F4B94A4EBAB759F0A35DF6C3 /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -339,7 +339,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				449473763743B4F33BB12777 /* ExpoModulesProvider.swift in Sources */,
+				F96BFF3173295A9D38C92E75 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -348,7 +348,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = BF7E7B98D4CBAA8A98643D37 /* Pods-lessismoreapp.debug.xcconfig */;
+			baseConfigurationReference = 81807AFEF17ECCDC091AD391 /* Pods-lessismoreapp.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -372,7 +372,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.doublejbs.lessismoreapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.doublejbs.useless;
 				PRODUCT_NAME = lessismoreapp;
 				SWIFT_OBJC_BRIDGING_HEADER = "lessismoreapp/lessismoreapp-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -384,7 +384,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 9801954298D9A6B29D340572 /* Pods-lessismoreapp.release.xcconfig */;
+			baseConfigurationReference = 21BEC523CAABD65CEA96190A /* Pods-lessismoreapp.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -403,7 +403,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.doublejbs.lessismoreapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.doublejbs.useless;
 				PRODUCT_NAME = lessismoreapp;
 				SWIFT_OBJC_BRIDGING_HEADER = "lessismoreapp/lessismoreapp-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;

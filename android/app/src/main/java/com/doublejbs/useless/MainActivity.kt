@@ -1,4 +1,4 @@
-package com.doublejbs.lessismoreapp
+package com.doublejbs.useless
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

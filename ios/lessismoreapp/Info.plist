@@ -28,7 +28,7 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>lessismoreapp</string>
-          <string>com.doublejbs.lessismoreapp</string>
+          <string>com.doublejbs.useless</string>
         </array>
       </dict>
       <dict>
