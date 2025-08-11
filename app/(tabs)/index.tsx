@@ -1,5 +1,5 @@
-import WarehouseScreen from '@/components/WarehouseScreen';
+import WarehouseWrapper from '@/components/warehouse/WarehouseWrapper';
 
 export default function WarehouseTabPage() {
-  return <WarehouseScreen />;
+  return <WarehouseWrapper />;
 }

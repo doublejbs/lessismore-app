@@ -1,15 +1,46 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import app from '@/model/app/App';
+import { useEffect } from 'react';
+import { observer } from 'mobx-react-lite';
 
-export default function RootLayout() {
+const RootLayout = () => {
   const colorScheme = useColorScheme();
+  const router = useRouter();
+  const pathname = usePathname();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+  const firebase = app.getFirebase();
+  const isInitialized = app.isInitialized();
+  const isLoggedIn = firebase.isLoggedIn();
+  const hasAgreed = firebase.hasUserAgreedToTerms();
+
+  useEffect(() => {
+    if (isInitialized) {
+      if (isLoggedIn) {
+        if (hasAgreed) {
+          if (
+            pathname === '/login' ||
+            pathname === '/' ||
+            pathname === '/terms-agreement'
+          ) {
+            router.replace('/warehouse');
+          }
+        } else {
+          if (pathname !== '/terms-agreement') {
+            // router.replace('/terms-agreement');
+          }
+        }
+      }
+    } else {
+      app.initialize();
+    }
+  }, [isLoggedIn, isInitialized, pathname, hasAgreed, router]);
 
   if (!loaded) {
     // Async font loading only occurs in development.
@@ -25,4 +56,6 @@ export default function RootLayout() {
       <StatusBar style="auto" />
     </ThemeProvider>
   );
-}
+};
+
+export default observer(RootLayout);
