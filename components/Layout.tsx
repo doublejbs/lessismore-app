@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LogInView from './login/LogInView';
 import app from '@/model/app/App';
 import { observer } from 'mobx-react-lite';
+import AlertView from './alert/AlertView';
+import ToastView from './toast/ToastView';
 
 interface Props {
   children: ReactNode;
@@ -12,10 +14,16 @@ interface Props {
 const Layout: FC<Props> = ({ children }) => {
   return (
     <SafeAreaView style={safeAreaStyle}>
-      <View style={containerStyle}>
-        {children}
-      </View>
-      {app.getLogInAlertManager() && <LogInView logInAlertManager={app.getLogInAlertManager()!} />}
+      <View style={containerStyle}>{children}</View>
+      {app.getLogInAlertManager() && (
+        <LogInView logInAlertManager={app.getLogInAlertManager()!} />
+      )}
+      {app.getAlertManager() && (
+        <AlertView alertManager={app.getAlertManager()!} />
+      )}
+      {app.getToastManager() && (
+        <ToastView toastManager={app.getToastManager()!} bottom={100} />
+      )}
     </SafeAreaView>
   );
 };
@@ -26,11 +34,11 @@ const safeAreaStyle: ViewStyle = {
 };
 
 const containerStyle: ViewStyle = {
-    flex: 1,
-    flexDirection: 'column',
-    width: '100%',
-    paddingHorizontal: 20,
-    position: 'relative',
-  };
+  flex: 1,
+  flexDirection: 'column',
+  width: '100%',
+  paddingHorizontal: 20,
+  position: 'relative',
+};
 
 export default observer(Layout);

@@ -33,6 +33,10 @@ abstract class AbstractGearEdit extends FileUpload {
 
   protected abstract hide(): void;
 
+  protected generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
+
   @action
   public setName(value: string) {
     this.name = value;
@@ -120,6 +124,9 @@ abstract class AbstractGearEdit extends FileUpload {
   @action
   private setErrorMessage(value: string) {
     this.errorMessage = value;
+    setTimeout(() => {
+      this.errorMessage = '';
+    }, 3000);
   }
 
   public getErrorMessage() {

@@ -18,7 +18,6 @@ const GearEditConfirmView: FC<Props> = ({ gearEdit }) => {
   return (
     <View
       style={{
-        position: 'absolute',
         bottom: 16,
         left: 0,
         right: 0,
@@ -27,21 +26,23 @@ const GearEditConfirmView: FC<Props> = ({ gearEdit }) => {
         gap: 16,
       }}
     >
-      <View
-        style={{
-          width: '100%',
-          alignItems: 'center',
-        }}
-      >
-        <PretendardText
+      {errorMessage && (
+        <View
           style={{
-            color: 'red',
-            fontSize: 14,
+            width: '100%',
+            alignItems: 'center',
           }}
         >
-          {errorMessage}
-        </PretendardText>
-      </View>
+          <PretendardText
+            style={{
+              color: 'red',
+              fontSize: 14,
+            }}
+          >
+            {errorMessage}
+          </PretendardText>
+        </View>
+      )}
       <TouchableOpacity
         style={{
           width: '100%',

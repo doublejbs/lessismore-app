@@ -74,7 +74,6 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse }) => {
       confirmText: '삭제하기',
       onConfirm: async () => {
         await warehouse.remove(gear);
-        app.getToastManager()?.show({ message: '삭제되었습니다.' });
       },
     });
   };

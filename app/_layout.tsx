@@ -76,6 +76,19 @@ const RootLayout = () => {
               ),
             }}
           />
+          <Stack.Screen
+            name='custom'
+            options={{
+              headerShown: true,
+              headerTitle: '직접 작성하기',
+              headerTintColor: 'black',
+              headerLeft: () => (
+                <TouchableOpacity onPress={() => router.back()}>
+                  <Ionicons name='chevron-back' size={24} color='black' />
+                </TouchableOpacity>
+              ),
+            }}
+          />
           <Stack.Screen name='+not-found' />
         </Stack>
         <StatusBar style='auto' />

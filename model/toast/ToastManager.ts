@@ -1,4 +1,5 @@
 import { makeAutoObservable } from 'mobx';
+import { Platform, ToastAndroid, Alert } from 'react-native';
 
 class ToastManager {
   public static new() {
@@ -13,11 +14,35 @@ class ToastManager {
   }
 
   public show({ message }: { message: string }) {
-    this.setMessage(message);
-    this.setVisible(true);
-    setTimeout(() => {
-      this.hide();
-    }, 2000);
+    if (Platform.OS === 'android') {
+      // Android 네이티브 토스트 사용
+      ToastAndroid.show(message, ToastAndroid.SHORT);
+    } else {
+      // 웹이나 다른 플랫폼에서는 커스텀 토스트 사용
+      this.setMessage(message);
+      this.setVisible(true);
+      setTimeout(() => {
+        this.hide();
+      }, 2000);
+    }
+  }
+
+  // Android에서 긴 토스트 표시
+  public showLong({ message }: { message: string }) {
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(message, ToastAndroid.LONG);
+    } else {
+      this.show({ message });
+    }
+  }
+
+  // iOS에서 제목 없는 간단한 토스트 (Alert 사용)
+  public showSimple(message: string) {
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(message, ToastAndroid.SHORT);
+    } else {
+      this.show({ message });
+    }
   }
 
   public hide() {

@@ -1,10 +1,13 @@
-import React, { FC } from 'react';
+import React, { FC, useRef, useEffect, useState } from 'react';
 import {
   View,
   ScrollView,
   TouchableOpacity,
   TextInput,
   SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +25,16 @@ interface Props {
 }
 
 const GearEditView: FC<Props> = ({ gearEdit }) => {
+  const scrollViewRef = useRef<ScrollView>(null);
+  const nameInputRef = useRef<TextInput>(null);
+  const companyInputRef = useRef<TextInput>(null);
+  const weightInputRef = useRef<TextInput>(null);
+  const [focusedInput, setFocusedInput] = useState<
+    'name' | 'company' | 'weight' | null
+  >(null);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
   const name = gearEdit.getName();
   const company = gearEdit.getCompany();
   const isLoading = gearEdit.isLoading();
@@ -35,6 +48,64 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
     gearEdit.setCompany(text);
   };
 
+  const scrollToInput = (inputRef: React.RefObject<TextInput | null>) => {
+    if (inputRef.current && scrollViewRef.current) {
+      setTimeout(() => {
+        inputRef.current?.measureLayout(
+          scrollViewRef.current as any,
+          (x, y) => {
+            scrollViewRef.current?.scrollTo({
+              y: Math.max(0, y - 100), // 입력 필드 위쪽에 여백 제공
+              animated: true,
+            });
+          },
+          () => {}
+        );
+      }, 300); // 키보드 애니메이션 완료 후 스크롤
+    }
+  };
+
+  useEffect(() => {
+    const keyboardWillShowListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      e => {
+        setIsKeyboardVisible(true);
+        setKeyboardHeight(e.endCoordinates.height);
+      }
+    );
+
+    const keyboardWillHideListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setIsKeyboardVisible(false);
+        setFocusedInput(null);
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      keyboardWillShowListener?.remove();
+      keyboardWillHideListener?.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isKeyboardVisible && focusedInput) {
+      let inputRef;
+      if (focusedInput === 'name') {
+        inputRef = nameInputRef;
+      } else if (focusedInput === 'company') {
+        inputRef = companyInputRef;
+      } else if (focusedInput === 'weight') {
+        inputRef = weightInputRef;
+      }
+
+      if (inputRef) {
+        scrollToInput(inputRef);
+      }
+    }
+  }, [isKeyboardVisible, focusedInput]);
+
   const handleClickSelectFilter = (filter: WarehouseFilter) => {
     gearEdit.selectFilter(filter);
   };
@@ -46,10 +117,11 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
         backgroundColor: 'white',
       }}
     >
-      <View
+      <KeyboardAvoidingView
         style={{
           flex: 1,
         }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         {isLoading && (
           <View
@@ -66,6 +138,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
           </View>
         )}
         <ScrollView
+          ref={scrollViewRef}
           style={{
             flex: 1,
           }}
@@ -107,6 +180,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                 제품명
               </PretendardText>
               <TextInput
+                ref={nameInputRef}
                 style={{
                   borderRadius: 10,
                   backgroundColor: '#F6F6F6',
@@ -118,6 +192,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                 onChangeText={handleChangeName}
                 value={name}
                 placeholderTextColor='#999'
+                onFocus={() => setFocusedInput('name')}
               />
             </View>
             <View
@@ -135,6 +210,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                 브랜드
               </PretendardText>
               <TextInput
+                ref={companyInputRef}
                 style={{
                   borderRadius: 10,
                   backgroundColor: '#F6F6F6',
@@ -146,6 +222,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                 onChangeText={handleChangeCompany}
                 value={company}
                 placeholderTextColor='#999'
+                onFocus={() => setFocusedInput('company')}
               />
             </View>
             <GearEditColorView gearEdit={gearEdit} />
@@ -197,11 +274,23 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                 })}
               </View>
             </View>
-            {isInitialized && <GearEditWeightView gearEdit={gearEdit} />}
+            {isInitialized && (
+              <GearEditWeightView
+                ref={weightInputRef}
+                gearEdit={gearEdit}
+                onFocus={() => setFocusedInput('weight')}
+              />
+            )}
           </View>
         </ScrollView>
-        <GearEditConfirmView gearEdit={gearEdit} />
-      </View>
+        <View
+          style={{
+            paddingBottom: isKeyboardVisible ? keyboardHeight - 190 : 16,
+          }}
+        >
+          <GearEditConfirmView gearEdit={gearEdit} />
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
