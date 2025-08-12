@@ -1,5 +1,5 @@
-import BagScreen from '@/components/BagScreen';
+import BagView from '@/components/bag/BagView';
 
 export default function BagTabPage() {
-  return <BagScreen />;
+  return <BagView />;
 }

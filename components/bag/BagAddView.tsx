@@ -1,0 +1,242 @@
+import React, { FC, useState } from 'react';
+import {
+  View,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+  StyleSheet,
+  Alert,
+  ScrollView,
+  Dimensions,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Bag from '@/model/bag/Bag';
+import dayjs from 'dayjs';
+import BagAddDateView from './BagAddDateView';
+import app from '@/model/app/App';
+import PretendardText from '@/components/PretendardText';
+
+interface Props {
+  bag: Bag;
+}
+
+const BagAddView: FC<Props> = ({ bag }) => {
+  const [shouldShowAdd, setShouldShowAdd] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  const [startDate, setStartDate] = useState<dayjs.Dayjs | null>(dayjs());
+  const [endDate, setEndDate] = useState<dayjs.Dayjs | null>(
+    dayjs().add(1, 'day')
+  );
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  const showAdd = () => {
+    if (app.getFirebase()?.isLoggedIn()) {
+      setShouldShowAdd(true);
+    } else {
+      app.getLogInAlertManager()?.show();
+    }
+  };
+
+  const handleChange = (text: string) => {
+    setInputValue(text);
+  };
+
+  const handleClickConfirm = async () => {
+    if (!startDate || !endDate) {
+      Alert.alert('오류', '날짜를 선택해주세요');
+      return;
+    }
+    const bagID = await bag.add(inputValue, startDate, endDate);
+
+    if (bagID) {
+      setInputValue('');
+      setShouldShowAdd(false);
+      setStartDate(dayjs());
+      setEndDate(dayjs());
+      // router.push(`/bag/${bagID}`);
+    }
+  };
+
+  const handleClickCancel = () => {
+    setInputValue('');
+    setShouldShowAdd(false);
+  };
+
+  const handleStartDateChange = (date: dayjs.Dayjs) => {
+    setStartDate(date);
+  };
+
+  const handleEndDateChange = (date: dayjs.Dayjs | null) => {
+    setEndDate(date);
+  };
+  return (
+    <>
+      <TouchableOpacity
+        style={styles.floatingButton}
+        onPress={showAdd}
+        activeOpacity={0.8}
+      >
+        <PretendardText style={styles.plusIcon}>+</PretendardText>
+        <PretendardText style={styles.buttonText}>배낭 추가</PretendardText>
+      </TouchableOpacity>
+      <Modal
+        visible={shouldShowAdd}
+        transparent={true}
+        onRequestClose={handleClickCancel}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          onPress={handleClickCancel}
+          activeOpacity={1}
+        >
+          <View
+            style={[
+              styles.modalContent,
+              { paddingBottom: Math.max(16, insets.bottom) },
+            ]}
+          >
+            <ScrollView
+              style={styles.scrollView}
+              showsVerticalScrollIndicator={false}
+              bounces={false}
+            >
+              <View style={styles.inputSection}>
+                <PretendardText style={styles.inputLabel}>
+                  배낭 이름
+                </PretendardText>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder='배낭 이름을 입력해주세요'
+                  value={inputValue}
+                  onChangeText={handleChange}
+                  placeholderTextColor='#999'
+                />
+              </View>
+              <BagAddDateView
+                startDate={startDate}
+                endDate={endDate}
+                onStartDateChange={handleStartDateChange}
+                onEndDateChange={handleEndDateChange}
+              />
+            </ScrollView>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleClickCancel}
+                activeOpacity={0.7}
+              >
+                <PretendardText style={styles.cancelButtonText}>
+                  취소
+                </PretendardText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.confirmButton}
+                onPress={handleClickConfirm}
+                activeOpacity={0.7}
+              >
+                <PretendardText style={styles.confirmButtonText}>
+                  확인
+                </PretendardText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </>
+  );
+};
+
+const { height: screenHeight } = Dimensions.get('window');
+
+const styles = StyleSheet.create({
+  floatingButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: 80,
+    borderRadius: 32,
+    borderWidth: 1,
+    borderColor: 'black',
+    height: 48,
+    backgroundColor: 'black',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    width: 127,
+    gap: 8,
+  },
+  plusIcon: {
+    color: 'white',
+    fontSize: 20,
+    fontFamily: 'Pretendard-Bold',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontFamily: 'Pretendard-Regular',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    padding: 16,
+    maxHeight: screenHeight * 0.8, // 화면 높이의 80%로 제한
+  },
+  scrollView: {
+    flexGrow: 0,
+    marginBottom: 16,
+  },
+  inputSection: {
+    flexDirection: 'column',
+    gap: 8,
+  },
+  inputLabel: {
+    fontFamily: 'Pretendard-Bold',
+    fontSize: 20,
+  },
+  textInput: {
+    borderRadius: 10,
+    backgroundColor: '#EEEEEE',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 16,
+    fontFamily: 'Pretendard-Regular',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: '#EEEEEE',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    color: '#000',
+    fontFamily: 'Pretendard-Regular',
+  },
+  confirmButton: {
+    flex: 1,
+    backgroundColor: 'black',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  confirmButtonText: {
+    fontSize: 16,
+    color: 'white',
+    fontFamily: 'Pretendard-Regular',
+  },
+});
+
+export default BagAddView;
