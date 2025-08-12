@@ -89,6 +89,12 @@ const RootLayout = () => {
               ),
             }}
           />
+          <Stack.Screen
+            name='search'
+            options={{
+              presentation: 'modal',
+            }}
+          />
           <Stack.Screen name='+not-found' />
         </Stack>
         <StatusBar style='auto' />

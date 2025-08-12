@@ -61,7 +61,7 @@ const AddButtonView: FC = () => {
 
   const handleClickSearch = () => {
     setShowMenu(false);
-    // router.push('/search');
+    router.push('/search');
   };
 
   const handleClickCustom = () => {

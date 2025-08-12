@@ -1,13 +1,13 @@
 import { makeAutoObservable } from 'mobx';
 import OrderType from './OrderType';
 import OrderOption from './OrderOption';
-
+import LocalStorageManager from '../storage/LocalStorageManager';
 
 class Order {
   public static new(key: string) {
     return new Order(key);
   }
-  
+
   private showOrderOptions = false;
   private orderOptions: OrderOption[] = [
     {
@@ -26,7 +26,7 @@ class Order {
       name: '최근 추가순',
       order: OrderType.CreatedDesc,
     },
-  ].map((option) => OrderOption.from(option.name, option.order));
+  ].map(option => OrderOption.from(option.name, option.order));
 
   private constructor(private readonly key: string) {
     makeAutoObservable(this);
@@ -38,17 +38,19 @@ class Order {
     return `selectedOrderType_${this.key}`;
   }
 
-  public initialize() {
-    //todo: 로컬스토리지 대응
-    // const saved = LocalStorageManager.get<OrderType>(this.getStorageKey());
-    // if (saved) {
-    //   const option = this.orderOptions.find(opt => opt.getOrder() === saved);
-    //   if (option) {
-    //     this.setOrderOption(option);
-    //     return;
-    //   }
-    // }
-    this.orderOptions[0].select();
+  public async initialize() {
+    const saved = await LocalStorageManager.get<OrderType>(
+      this.getStorageKey()
+    );
+    if (saved) {
+      const option = this.orderOptions.find(opt => opt.getOrder() === saved);
+      if (option) {
+        this.setOrderOption(option);
+        return;
+      }
+    } else {
+      this.orderOptions[0].select();
+    }
   }
 
   public isShowOrderOptions() {
@@ -64,23 +66,30 @@ class Order {
   }
 
   public getSelectedOrderName() {
-    return this.orderOptions.find((option) => option.isSelected())?.getName();
+    return this.orderOptions.find(option => option.isSelected())?.getName();
   }
 
   public mapOrderOptions<R>(callback: (option: OrderOption) => R) {
     return this.orderOptions.map(callback);
   }
 
+  public selectLastOrderOption() {
+    this.setOrderOption(this.getLastOrderOption());
+  }
+
   public setOrderOption(orderOption: OrderOption) {
-    this.orderOptions.forEach((option) => option.deselect());
-    this.orderOptions.find((option) => option.equals(orderOption))?.select();
+    this.orderOptions.forEach(option => option.deselect());
+    this.orderOptions.find(option => option.equals(orderOption))?.select();
     this.setShowOrderOptions(false);
-    //todo: 로컬스토리지 대응
-    // LocalStorageManager.set(this.getStorageKey(), orderOption.getOrder());
+    LocalStorageManager.set(this.getStorageKey(), orderOption.getOrder());
   }
 
   public getSelectedOrderType() {
-    return this.orderOptions.find((option) => option.isSelected())?.getOrder();
+    return this.orderOptions.find(option => option.isSelected())?.getOrder();
+  }
+
+  private getLastOrderOption() {
+    return this.orderOptions[this.orderOptions.length - 1];
   }
 }
 

@@ -10,7 +10,7 @@ import WarehouseDispatcherType from './WarehouseDispatcherType';
 import WarehouseFilter from './WarehouseFilter';
 
 class Warehouse {
-  private static readonly ORDER_KEY = 'warehouse';
+  public static readonly ORDER_KEY = 'warehouse';
 
   public static from(
     dispatcher: WarehouseDispatcher,
@@ -56,7 +56,7 @@ class Warehouse {
 
   public async initialize() {
     if (this.isLoggedIn()) {
-      this.order.initialize();
+      await this.order.initialize();
       await this.getList();
     }
   }
