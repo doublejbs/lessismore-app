@@ -1,4 +1,8 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -8,6 +12,8 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import app from '@/model/app/App';
 import { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
+import { TouchableOpacity } from 'react-native';
+import Ionicons from '@expo/vector-icons/build/Ionicons';
 
 const RootLayout = () => {
   const colorScheme = useColorScheme();
@@ -55,11 +61,24 @@ const RootLayout = () => {
   return (
     <SafeAreaProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+          <Stack.Screen
+            name='gear-edit'
+            options={{
+              headerShown: true,
+              headerTitle: '수정하기',
+              headerTintColor: 'black',
+              headerLeft: () => (
+                <TouchableOpacity onPress={() => router.back()}>
+                  <Ionicons name='chevron-back' size={24} color='black' />
+                </TouchableOpacity>
+              ),
+            }}
+          />
+          <Stack.Screen name='+not-found' />
         </Stack>
-        <StatusBar style="auto" /> 
+        <StatusBar style='auto' />
       </ThemeProvider>
     </SafeAreaProvider>
   );

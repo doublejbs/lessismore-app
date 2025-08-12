@@ -33,7 +33,9 @@ class GearStore {
   public constructor(private readonly firebase: Firebase) {}
 
   public async getGear(id: string): Promise<Gear> {
-    const docData = await getDoc(doc(this.getStore(), 'users', this.getUserId(), 'gears', id));
+    const docData = await getDoc(
+      doc(this.getStore(), 'users', this.getUserId(), 'gears', id)
+    );
 
     if (docData.exists()) {
       const {
@@ -72,7 +74,10 @@ class GearStore {
     }
   }
 
-  public async getList(filters: GearFilter[], order: OrderType): Promise<Gear[]> {
+  public async getList(
+    filters: GearFilter[],
+    order: OrderType
+  ): Promise<Gear[]> {
     const filterQuery =
       filters.length === 1 && filters[0] === GearFilter.All
         ? query(
@@ -87,7 +92,7 @@ class GearStore {
     const gears = (await getDocs(filterQuery)).docs;
 
     if (!!gears?.length) {
-      return gears.map((doc) => {
+      return gears.map(doc => {
         const {
           id,
           name,
@@ -150,9 +155,13 @@ class GearStore {
       const batch = writeBatch(this.getStore());
 
       for (const gear of value) {
-        const gearRef = doc(this.getStore(), 'users', this.getUserId(), 'gears', gear.getId());
-
-        console.log(gear.getData());
+        const gearRef = doc(
+          this.getStore(),
+          'users',
+          this.getUserId(),
+          'gears',
+          gear.getId()
+        );
 
         if ((await getDoc(gearRef)).exists()) {
         } else {
@@ -168,7 +177,13 @@ class GearStore {
 
   public async update(gear: Gear) {
     try {
-      const gearRef = doc(this.getStore(), 'users', this.getUserId(), 'gears', gear.getId());
+      const gearRef = doc(
+        this.getStore(),
+        'users',
+        this.getUserId(),
+        'gears',
+        gear.getId()
+      );
       await setDoc(gearRef, gear.getData());
     } catch (error) {
       console.error('Error updating gear:', error);
@@ -178,7 +193,13 @@ class GearStore {
   public async updateGears(gears: Gear[]) {
     const batch = writeBatch(this.getStore());
     for (const gear of gears) {
-      const gearRef = doc(this.getStore(), 'users', this.getUserId(), 'gears', gear.getId());
+      const gearRef = doc(
+        this.getStore(),
+        'users',
+        this.getUserId(),
+        'gears',
+        gear.getId()
+      );
       batch.update(gearRef, gear.getData());
     }
     await batch.commit();
@@ -186,7 +207,13 @@ class GearStore {
 
   public async remove(gear: Gear) {
     try {
-      const gearRef = doc(this.getStore(), 'users', this.getUserId(), 'gears', gear.getId());
+      const gearRef = doc(
+        this.getStore(),
+        'users',
+        this.getUserId(),
+        'gears',
+        gear.getId()
+      );
       const gearSnap = await getDoc(gearRef);
 
       if (!gearSnap.exists()) {

@@ -56,10 +56,13 @@ class Warehouse {
 
   public async initialize() {
     if (this.isLoggedIn()) {
-        console.log('initialize');
       this.order.initialize();
       await this.getList();
     }
+  }
+
+  public clear() {
+    this.setGears([]);
   }
 
   public async getList() {
@@ -113,7 +116,7 @@ class Warehouse {
 
   public async updateGear(gear: Gear) {
     this.setGears(
-      this.gears.map((currentGear) => {
+      this.gears.map(currentGear => {
         if (currentGear.isSame(gear)) {
           return gear;
         } else {
@@ -124,7 +127,11 @@ class Warehouse {
   }
 
   public isEmpty() {
-    return this.gears.length === 0 && this.filterManager.isAllFilterSelected() && !this.isLoading();
+    return (
+      this.gears.length === 0 &&
+      this.filterManager.isAllFilterSelected() &&
+      !this.isLoading()
+    );
   }
 
   private setLoading(value: boolean) {

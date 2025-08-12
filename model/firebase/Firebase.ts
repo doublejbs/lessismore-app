@@ -11,7 +11,14 @@ import {
   signInWithCredential,
 } from 'firebase/auth';
 import { makeAutoObservable } from 'mobx';
-import { doc, Firestore, getDoc, getFirestore, setDoc, updateDoc } from 'firebase/firestore';
+import {
+  doc,
+  Firestore,
+  getDoc,
+  getFirestore,
+  setDoc,
+  updateDoc,
+} from 'firebase/firestore';
 import { FirebaseStorage, getStorage } from 'firebase/storage';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
@@ -43,18 +50,23 @@ class Firebase {
 
   public async initialize() {
     const fireBaseApp = initializeApp(Firebase.config);
-    
+
     // Google Sign-in 설정
     GoogleSignin.configure({
-      webClientId: '434364025032-9ocqi7g8s57pu88dmr5lvds5id8a8ent.apps.googleusercontent.com',
+      webClientId:
+        '434364025032-9ocqi7g8s57pu88dmr5lvds5id8a8ent.apps.googleusercontent.com',
       offlineAccess: true,
       hostedDomain: '',
       forceCodeForRefreshToken: true,
-      iosClientId: '434364025032-ng7gpn2bks9128u8n2pg5qu47gqhuq43.apps.googleusercontent.com',
+      iosClientId:
+        '434364025032-ng7gpn2bks9128u8n2pg5qu47gqhuq43.apps.googleusercontent.com',
     });
-    
+
     this.auth = initializeAuth(fireBaseApp, {
-        persistence: Platform.OS === 'ios' || Platform.OS === 'android' ? getReactNativePersistence(ReactNativeAsyncStorage) : undefined
+      persistence:
+        Platform.OS === 'ios' || Platform.OS === 'android'
+          ? getReactNativePersistence(ReactNativeAsyncStorage)
+          : undefined,
     });
     this.store = getFirestore(fireBaseApp);
     this.storage = getStorage(fireBaseApp);
@@ -109,7 +121,9 @@ class Firebase {
       smsAgreed: smsAgreed,
       agreedAt: new Date(),
     });
-    this.setHasAgreedToTerms(termsAgreed && privacyAgreed && personalInfoAgreed && over14Agreed);
+    this.setHasAgreedToTerms(
+      termsAgreed && privacyAgreed && personalInfoAgreed && over14Agreed
+    );
   }
 
   private async initializeStore() {
@@ -174,13 +188,16 @@ class Firebase {
     try {
       const response = await GoogleSignin.signIn();
 
-      console.log(response);
-      
       if (response.data?.idToken) {
-        const googleCredential = GoogleAuthProvider.credential(response.data.idToken, response.data.serverAuthCode);
+        const googleCredential = GoogleAuthProvider.credential(
+          response.data.idToken,
+          response.data.serverAuthCode
+        );
         await signInWithCredential(this.auth, googleCredential);
       } else {
-        throw new Error('Google 로그인 실패: idToken을 받을 수 없습니다. Google 설정을 확인해주세요.');
+        throw new Error(
+          'Google 로그인 실패: idToken을 받을 수 없습니다. Google 설정을 확인해주세요.'
+        );
       }
     } catch (error) {
       console.error('Google 로그인 오류:', error);

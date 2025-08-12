@@ -21,10 +21,10 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
   useEffect(() => {
     if (isLoggedIn) {
       warehouse.initialize();
+    } else {
+      warehouse.clear();
     }
   }, [isLoggedIn]);
-  
-  console.log(isLoggedIn);
 
   if (isEmpty) {
     return <WarehouseEmptyView />;
@@ -36,15 +36,19 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
         <Text style={styles.titleText}>useless</Text>
         <WarehouseFiltersView warehouse={warehouse} />
       </View>
-      
+
       <View style={styles.contentContainer}>
-        <ScrollView 
+        <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {gears.map((gear) => (
-            <WarehouseGearView key={gear.getId()} gear={gear} warehouse={warehouse} />
+          {gears.map(gear => (
+            <WarehouseGearView
+              key={gear.getId()}
+              gear={gear}
+              warehouse={warehouse}
+            />
           ))}
         </ScrollView>
       </View>
