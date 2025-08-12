@@ -15,6 +15,7 @@ import { doc, Firestore, getDoc, getFirestore, setDoc, updateDoc } from 'firebas
 import { FirebaseStorage, getStorage } from 'firebase/storage';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 class Firebase {
   private static readonly config = {
@@ -53,7 +54,7 @@ class Firebase {
     });
     
     this.auth = initializeAuth(fireBaseApp, {
-        persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+        persistence: Platform.OS === 'ios' || Platform.OS === 'android' ? getReactNativePersistence(ReactNativeAsyncStorage) : undefined
     });
     this.store = getFirestore(fireBaseApp);
     this.storage = getStorage(fireBaseApp);

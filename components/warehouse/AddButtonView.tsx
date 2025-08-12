@@ -150,6 +150,7 @@ const styles = StyleSheet.create({
     bottom: Platform.select({
       ios: 80,
       android: 0,
+      web: 40
     }),
   },
   addButtonText: {
