@@ -81,7 +81,6 @@ abstract class AbstractGearEdit extends FileUpload {
       this.setLoading(false);
       this.hide();
     } catch (e) {
-      console.log(e);
       this.setLoading(false);
     }
   }

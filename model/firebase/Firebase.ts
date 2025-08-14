@@ -43,6 +43,8 @@ class Firebase {
   private storage!: FirebaseStorage;
   private hasAgreedToTerms = false;
   private loggedIn = false;
+  private idToken: string | null = null;
+  private accessToken: string | null = null;
 
   public constructor() {
     makeAutoObservable(this);
@@ -68,6 +70,7 @@ class Firebase {
           ? getReactNativePersistence(ReactNativeAsyncStorage)
           : undefined,
     });
+
     this.store = getFirestore(fireBaseApp);
     this.storage = getStorage(fireBaseApp);
     this.setInitialized(true);
@@ -87,6 +90,11 @@ class Firebase {
     const userId = this.auth.currentUser;
 
     if (userId) {
+      const tokens = await GoogleSignin.getTokens();
+
+      this.idToken = tokens.idToken;
+      this.accessToken = tokens.accessToken;
+
       this.setUserId(userId.uid);
       await this.initializeStore();
       await this.checkTermsAgreement();
@@ -227,6 +235,28 @@ class Firebase {
 
   private setLoggedIn(value: boolean) {
     this.loggedIn = value;
+  }
+
+  public getIdToken(): string | null {
+    return this.idToken;
+  }
+
+  public getAccessToken() {
+    return this.accessToken;
+  }
+
+  public async getIdTokenResult() {
+    if (this.auth.currentUser) {
+      return await GoogleSignin.getTokens();
+    }
+    return null;
+  }
+
+  /**
+   * 현재 사용자 정보를 가져옵니다.
+   */
+  public getCurrentUser() {
+    return this.auth.currentUser;
   }
 }
 
