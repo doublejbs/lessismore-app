@@ -80,7 +80,7 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse }) => {
 
   const handlePressDetail = () => {
     setShowMenu(false);
-    // router.push(`/warehouse/detail/${gear.getId()}`);
+    router.push(`/gear-detail/${gear.getId()}`);
   };
 
   const handlePressEdit = () => {

@@ -8,6 +8,7 @@ import {
   Alert,
   ScrollView,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -55,7 +56,7 @@ const BagAddView: FC<Props> = ({ bag }) => {
       setShouldShowAdd(false);
       setStartDate(dayjs());
       setEndDate(dayjs());
-      // router.push(`/bag/${bagID}`);
+      router.push(`/bag/${bagID}`);
     }
   };
 
@@ -154,7 +155,11 @@ const styles = StyleSheet.create({
   floatingButton: {
     position: 'absolute',
     right: 20,
-    bottom: 80,
+    bottom: Platform.select({
+      ios: 80,
+      android: 0,
+      default: 80,
+    }),
     borderRadius: 32,
     borderWidth: 1,
     borderColor: 'black',
@@ -162,20 +167,25 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
     width: 127,
-    gap: 8,
+    gap: 6,
   },
   plusIcon: {
     color: 'white',
     fontSize: 20,
     fontFamily: 'Pretendard-Bold',
+    lineHeight: 20,
+    textAlignVertical: 'center',
   },
   buttonText: {
     color: 'white',
     fontSize: 16,
     fontFamily: 'Pretendard-Regular',
+    lineHeight: 20,
+    textAlignVertical: 'center',
   },
   modalOverlay: {
     flex: 1,

@@ -1,21 +1,20 @@
 import React, { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
 import PretendardText from '@/components/PretendardText';
+import { useRouter } from 'expo-router';
 
 interface Props {
   bagItem: BagItem;
   bag: Bag;
 }
 const BagItemView: FC<Props> = ({ bagItem, bag }) => {
-  const router = useRouter();
-  const id = bagItem.getID();
   const date = bagItem.getDate();
+  const router = useRouter();
 
   const handleClick = () => {
-    // router.push(`/bag/${id}`);
+    router.push(`/bag/${bagItem.getID()}`);
   };
 
   const handleClickDelete = () => {

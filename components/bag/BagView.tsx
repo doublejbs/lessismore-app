@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, ScrollView, StyleSheet, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import BagItemView from './BagItemView';
@@ -111,10 +111,18 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   bottomSpacer: {
-    minHeight: 52,
+    minHeight: Platform.select({
+      ios: 20,
+      android: 0,
+      default: 20,
+    }),
   },
   addButtonSpacer: {
-    minHeight: 106,
+    minHeight: Platform.select({
+      ios: 80,
+      android: 0,
+      default: 80,
+    }),
   },
 });
 

@@ -59,7 +59,7 @@ class Firebase {
         '434364025032-9ocqi7g8s57pu88dmr5lvds5id8a8ent.apps.googleusercontent.com',
       offlineAccess: true,
       hostedDomain: '',
-      forceCodeForRefreshToken: true,
+      forceCodeForRefreshToken: false,
       iosClientId:
         '434364025032-ng7gpn2bks9128u8n2pg5qu47gqhuq43.apps.googleusercontent.com',
     });
@@ -243,6 +243,18 @@ class Firebase {
 
   public getAccessToken() {
     return this.accessToken;
+  }
+
+  public async refreshTokens() {
+    if (this.accessToken) {
+      await GoogleSignin.signInSilently();
+      await GoogleSignin.clearCachedAccessToken(this.accessToken);
+    }
+    const { idToken, accessToken } = await GoogleSignin.getTokens();
+
+    this.idToken = idToken;
+    this.accessToken = accessToken;
+    return { idToken, accessToken };
   }
 
   public async getIdTokenResult() {
