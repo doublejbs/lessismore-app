@@ -85,9 +85,7 @@ const RootLayout = () => {
           <Stack.Screen
             name='custom'
             options={{
-              headerShown: true,
-              headerTitle: '직접 작성하기',
-              headerTintColor: 'black',
+              headerShown: false,
               presentation: 'modal',
             }}
           />

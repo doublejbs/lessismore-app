@@ -20,6 +20,7 @@ class LogInAlertManager {
 
   public hide() {
     this.setVisible(false);
+    this.setLoading(false);
   }
 
   private setVisible(visible: boolean) {

@@ -15,13 +15,13 @@ const Layout: FC<Props> = ({ children }) => {
   return (
     <SafeAreaView style={safeAreaStyle}>
       <View style={containerStyle}>{children}</View>
-      {app.getLogInAlertManager() && (
+      {app.getLogInAlertManager()?.isVisible() && (
         <LogInView logInAlertManager={app.getLogInAlertManager()!} />
       )}
-      {app.getAlertManager() && (
+      {app.getAlertManager()?.isVisible() && (
         <AlertView alertManager={app.getAlertManager()!} />
       )}
-      {app.getToastManager() && (
+      {app.getToastManager()?.isVisible() && (
         <ToastView toastManager={app.getToastManager()!} bottom={100} />
       )}
     </SafeAreaView>

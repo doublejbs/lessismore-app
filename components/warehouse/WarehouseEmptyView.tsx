@@ -2,18 +2,31 @@ import { FC } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Layout from '@/components/Layout';
 import AddButtonView from '@/components/warehouse/AddButtonView';
+import Warehouse from '@/model/warehouse/Warehouse';
+import LoadingIconView from '../ui/LoadingIconView';
+import { observer } from 'mobx-react-lite';
 
-const WarehouseEmptyView: FC = () => {
+interface Props {
+  warehouse: Warehouse;
+}
+
+const WarehouseEmptyView: FC<Props> = ({ warehouse }) => {
+  const isLoading = warehouse.isLoading();
+
   return (
     <Layout>
       <View style={styles.headerContainer}>
-        <Text style={styles.title}>
-          useless
-        </Text>
+        <Text style={styles.title}>useless</Text>
       </View>
-      <View style={styles.messageContainer}>
-        <Text style={styles.message}>장비를 추가해 주세요</Text>
-      </View>
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <LoadingIconView />
+        </View>
+      ) : (
+        <View style={styles.messageContainer}>
+          <Text style={styles.message}>장비를 추가해 주세요</Text>
+        </View>
+      )}
       <AddButtonView />
     </Layout>
   );
@@ -46,6 +59,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
 
-export default WarehouseEmptyView;
+export default observer(WarehouseEmptyView);

@@ -73,8 +73,7 @@ class Firebase {
 
     this.store = getFirestore(fireBaseApp);
     this.storage = getStorage(fireBaseApp);
-    this.setInitialized(true);
-
+    await this.auth.authStateReady();
     this.auth.onAuthStateChanged(async (user: User | null) => {
       if (user?.uid) {
         await this.checkLoggedIn();
@@ -83,6 +82,7 @@ class Firebase {
         this.setHasAgreedToTerms(false);
         this.setLoggedIn(false);
       }
+      this.setInitialized(true);
     });
   }
 
@@ -100,12 +100,6 @@ class Firebase {
       await this.checkTermsAgreement();
       this.setLoggedIn(true);
     }
-  }
-
-  private async checkGoogleSignIn() {
-    const user = await GoogleSignin.getCurrentUser();
-    const googleCredential = GoogleAuthProvider.credential(user?.idToken);
-    await signInWithCredential(this.auth, googleCredential);
   }
 
   /**
@@ -269,6 +263,10 @@ class Firebase {
    */
   public getCurrentUser() {
     return this.auth.currentUser;
+  }
+
+  public isInitialized() {
+    return this.initialized;
   }
 }
 

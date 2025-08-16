@@ -11,9 +11,10 @@ import { useEffect, useState } from 'react';
 interface Props {
   uri: string;
   header: boolean;
+  modal?: boolean;
 }
 
-const WebViewWrapper = ({ uri, header }: Props) => {
+const WebViewWrapper = ({ uri, header, modal = false }: Props) => {
   const router = useRouter();
   const firebase = app.getFirebase();
   // WebViewManager 인스턴스 생성 (router 전달)
@@ -51,6 +52,9 @@ const WebViewWrapper = ({ uri, header }: Props) => {
       style={styles.container}
       edges={['top', 'left', 'right', 'bottom']}
     >
+      {/* 드래그 바 (모달일 때만 표시) */}
+      {modal && <View style={styles.dragBar} />}
+
       {/* 헤더 */}
       {header && (
         <View style={styles.header}>
@@ -92,6 +96,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  dragBar: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#D1D5DB',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 8,
   },
   header: {
     height: 50,

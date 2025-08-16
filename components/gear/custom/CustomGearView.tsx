@@ -124,6 +124,15 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
           <LoadingIconView />
         </View>
       )}
+
+      {/* 드래그 바 (iOS만) */}
+      {Platform.OS === 'ios' && <View style={styles.dragBar} />}
+
+      {/* 헤더 */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>직접 작성하기</Text>
+      </View>
+
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -300,6 +309,28 @@ const styles = StyleSheet.create({
   },
   filterButtonTextSelected: {
     color: 'white',
+  },
+  dragBar: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#D1D5DB',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+    backgroundColor: 'white',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'black',
+    textAlign: 'center',
   },
 });
 

@@ -123,7 +123,6 @@ const InfoView: FC = () => {
         <View style={styles.header}>
           <Text style={styles.headerText}>내 정보</Text>
         </View>
-
         {isLoggedIn ? (
           <TouchableOpacity
             style={[styles.button, styles.buttonMargin]}

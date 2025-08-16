@@ -16,6 +16,12 @@ const BagView = () => {
   const bags = bag.getBags();
   const isEmpty = bag.isEmpty();
 
+  useFocusEffect(
+    useCallback(() => {
+      bag.getList();
+    }, [bag])
+  );
+
   const render = () => {
     switch (true) {
       case isLoading: {
@@ -57,12 +63,6 @@ const BagView = () => {
       }
     }
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      bag.getList();
-    }, [bag])
-  );
 
   return (
     <SafeAreaView style={styles.container}>

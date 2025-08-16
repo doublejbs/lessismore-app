@@ -1,13 +1,13 @@
-import React, { FC, useEffect } from 'react';
+import React, { FC, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, Platform } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import Layout from '@/components/Layout';
 import Warehouse from '@/model/warehouse/Warehouse';
-import WarehouseEmptyView from '@/components/warehouse/WarehouseEmptyView';
-import app from '@/model/app/App';
 import WarehouseFiltersView from '@/components/warehouse/WarehouseFiltersView';
 import WarehouseGearView from '@/components/warehouse/WarehouseGearView';
 import AddButtonView from '@/components/warehouse/AddButtonView';
+import { useFocusEffect } from '@react-navigation/native';
+import WarehouseSkeletonView from '@/components/warehouse/WarehouseSkeletonView';
 
 interface Props {
   warehouse: Warehouse;
@@ -16,28 +16,25 @@ interface Props {
 const WarehouseView: FC<Props> = ({ warehouse }) => {
   const gears = warehouse.getGears();
   const isEmpty = warehouse.isEmpty();
-  const isLoggedIn = app.getFirebase().isLoggedIn();
+  const isLoading = warehouse.isLoading();
 
-  useEffect(() => {
-    if (isLoggedIn) {
-      warehouse.initialize();
+  useFocusEffect(
+    useCallback(() => {
+      warehouse.refresh();
+    }, [warehouse])
+  );
+
+  const renderGears = () => {
+    if (isLoading) {
+      return <WarehouseSkeletonView />;
+    } else if (isEmpty) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>장비를 추가해 주세요</Text>
+        </View>
+      );
     } else {
-      warehouse.clear();
-    }
-  }, [isLoggedIn]);
-
-  if (isEmpty) {
-    return <WarehouseEmptyView />;
-  }
-
-  return (
-    <Layout>
-      <View style={styles.headerContainer}>
-        <Text style={styles.titleText}>useless</Text>
-        <WarehouseFiltersView warehouse={warehouse} />
-      </View>
-
-      <View style={styles.contentContainer}>
+      return (
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
@@ -51,7 +48,17 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
             />
           ))}
         </ScrollView>
+      );
+    }
+  };
+
+  return (
+    <Layout>
+      <View style={styles.headerContainer}>
+        <Text style={styles.titleText}>useless</Text>
+        {!warehouse.isEmpty() && <WarehouseFiltersView warehouse={warehouse} />}
       </View>
+      <View style={styles.contentContainer}>{renderGears()}</View>
       <AddButtonView />
     </Layout>
   );
@@ -86,6 +93,17 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexDirection: 'column',
     gap: 4,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#666',
   },
 });
 

@@ -28,6 +28,7 @@ class Warehouse {
 
   private gears: Gear[] = [];
   private loading = false;
+  private initialized = false;
   private disposeReaction: () => void;
   private disposeLoginReaction: () => void;
 
@@ -43,21 +44,33 @@ class Warehouse {
     this.disposeReaction = reaction(
       () => this.order.getSelectedOrderType(),
       async () => {
-        await this.getList();
+        await this.refresh();
       }
     );
     this.disposeLoginReaction = reaction(
       () => this.firebase.isLoggedIn(),
       async () => {
-        await this.getList();
+        await this.initialize();
       }
     );
   }
 
   public async initialize() {
     if (this.isLoggedIn()) {
-      await this.order.initialize();
       await this.getList();
+    } else {
+      this.clear();
+    }
+    this.setInitialized(true);
+  }
+
+  public async refresh() {
+    if (this.isInitialized()) {
+      if (this.isLoggedIn()) {
+        await this.getList();
+      } else {
+        this.clear();
+      }
     }
   }
 
@@ -66,12 +79,19 @@ class Warehouse {
   }
 
   public async getList() {
-    this.setGears(
-      await this.dispatcher.getList(
-        this.filterManager.getSelectedFilters(),
-        this.order.getSelectedOrderType() ?? OrderType.NameAsc
-      )
-    );
+    this.setLoading(true);
+    if (this.isLoggedIn()) {
+      await this.order.initialize();
+      this.setGears(
+        await this.dispatcher.getList(
+          this.filterManager.getSelectedFilters(),
+          this.order.getSelectedOrderType() ?? OrderType.NameAsc
+        )
+      );
+    } else {
+      this.clear();
+    }
+    this.setLoading(false);
   }
 
   public async remove(value: Gear) {
@@ -129,7 +149,7 @@ class Warehouse {
   public isEmpty() {
     return (
       this.gears.length === 0 &&
-      this.filterManager.isAllFilterSelected() &&
+      // this.filterManager.isAllFilterSelected() &&
       !this.isLoading()
     );
   }
@@ -138,7 +158,7 @@ class Warehouse {
     this.loading = value;
   }
 
-  private isLoading() {
+  public isLoading() {
     return this.loading;
   }
 
@@ -154,6 +174,18 @@ class Warehouse {
 
   private isLoggedIn() {
     return this.firebase.isLoggedIn();
+  }
+
+  private setInitialized(value: boolean) {
+    this.initialized = value;
+  }
+
+  public isInitialized() {
+    return this.initialized;
+  }
+
+  public isFirebaseInitialized() {
+    return this.firebase.isInitialized();
   }
 }
 

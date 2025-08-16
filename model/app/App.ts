@@ -7,7 +7,6 @@ import AlertManager from '../alert/AlertManager';
 import ToastManager from '../toast/ToastManager';
 import LogInAlertManager from '../login/LogInAlertManager';
 
-
 class App {
   private readonly firebase = new Firebase();
   private gearStore: GearStore | null = null;

@@ -28,9 +28,13 @@ class Bag {
   }
 
   public async getList() {
-    this.setLoading(true);
-    this.setBags(await this.bagStore.getList());
-    this.setLoading(false);
+    if (this.firebase.isLoggedIn()) {
+      this.setLoading(true);
+      this.setBags(await this.bagStore.getList());
+      this.setLoading(false);
+    } else {
+      this.setBags([]);
+    }
   }
 
   private setBags(value: BagItem[]) {
