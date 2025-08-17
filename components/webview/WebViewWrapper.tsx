@@ -4,21 +4,23 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import WebView from 'react-native-webview';
 import app from '@/model/app/App';
-import WebViewManager from '@/model/webview/WebViewManager';
+import WebViewManager, {
+  WebViewManagerCallback,
+} from '@/model/webview/WebViewManager';
 import { WEBVIEW_BRIDGE_SCRIPT } from '@/model/webview/WebViewBridge';
 import { useEffect, useState } from 'react';
 
 interface Props {
   uri: string;
   header: boolean;
+  callback?: WebViewManagerCallback;
   modal?: boolean;
 }
 
-const WebViewWrapper = ({ uri, header, modal = false }: Props) => {
+const WebViewWrapper = ({ uri, header, callback, modal = false }: Props) => {
   const router = useRouter();
   const firebase = app.getFirebase();
-  // WebViewManager 인스턴스 생성 (router 전달)
-  const webViewManager = WebViewManager.getInstance(router);
+  const webViewManager = WebViewManager.getInstance(router, callback);
   const [tokens, setTokens] = useState<{
     idToken: string | null;
     accessToken: string | null;

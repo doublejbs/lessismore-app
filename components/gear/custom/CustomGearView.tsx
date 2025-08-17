@@ -6,12 +6,13 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   Keyboard,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
+import { Ionicons } from '@expo/vector-icons';
 import ImageUploadView from '@/components/gear/ImageUploadView';
 import CustomGearConfirmView from '@/components/gear/custom/CustomGearConfirmView';
 import CustomGear from '@/model/gear/custom/CustomGear';
@@ -40,6 +41,8 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
   // 키보드 상태 감지
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  // 스크롤 위치 저장
+  const [savedScrollPosition, setSavedScrollPosition] = useState(0);
 
   const scrollToInput = (inputRef: React.RefObject<TextInput | null>) => {
     if (inputRef.current && scrollViewRef.current) {
@@ -74,6 +77,20 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
         setIsKeyboardVisible(false);
         setKeyboardHeight(0);
         setFocusedInput(null);
+
+        // 안드로이드에서 레이아웃 변경 후 스크롤 위치 복원
+        if (
+          Platform.OS === 'android' &&
+          scrollViewRef.current &&
+          savedScrollPosition > 0
+        ) {
+          setTimeout(() => {
+            scrollViewRef.current?.scrollTo({
+              y: savedScrollPosition,
+              animated: false,
+            });
+          }, 50);
+        }
       }
     );
 
@@ -82,7 +99,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
       keyboardWillShowListener?.remove();
       keyboardWillHideListener?.remove();
     };
-  }, []);
+  }, [savedScrollPosition]);
 
   useEffect(() => {
     if (isKeyboardVisible && focusedInput) {
@@ -130,13 +147,29 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
 
       {/* 헤더 */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>직접 작성하기</Text>
+        {Platform.OS === 'android' && (
+          <TouchableOpacity onPress={handleClickHide} style={styles.backButton}>
+            <Ionicons name='chevron-back' size={24} color='black' />
+          </TouchableOpacity>
+        )}
+        <Text
+          style={[
+            styles.headerTitle,
+            Platform.OS === 'android' && styles.headerTitleWithBackButton,
+          ]}
+        >
+          직접 작성하기
+        </Text>
+        {Platform.OS === 'android' && (
+          <View style={styles.backButtonPlaceholder} />
+        )}
       </View>
 
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        enabled={Platform.OS === 'ios'}
       >
         <ScrollView
           ref={scrollViewRef}
@@ -148,6 +181,12 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
           keyboardShouldPersistTaps='handled'
           showsVerticalScrollIndicator={false}
           keyboardDismissMode='interactive'
+          onScroll={e => {
+            if (Platform.OS === 'android') {
+              setSavedScrollPosition(e.nativeEvent.contentOffset.y);
+            }
+          }}
+          scrollEventThrottle={16}
         >
           <View style={styles.imageSection}>
             <ImageUploadView fileUpload={customGear} />
@@ -212,7 +251,10 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
           style={[
             styles.confirmButtonContainer,
             {
-              paddingBottom: isKeyboardVisible ? keyboardHeight - 180 : 16,
+              paddingBottom:
+                Platform.OS === 'ios' && isKeyboardVisible
+                  ? keyboardHeight - 180
+                  : 16,
             },
           ]}
         >
@@ -325,12 +367,29 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
     backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -12,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: 'black',
     textAlign: 'center',
+    flex: 1,
+  },
+  headerTitleWithBackButton: {
+    textAlign: 'center',
+  },
+  backButtonPlaceholder: {
+    width: 44,
+    height: 44,
   },
 });
 

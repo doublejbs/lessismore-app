@@ -7,6 +7,8 @@ import Firebase from '@/model/firebase/Firebase';
 import LogInAlertManager from '@/model/login/LogInAlertManager';
 import AbstractGearEdit from '../AbstractGearEdit';
 import { Router } from 'expo-router';
+import Order from '@/model/order/Order';
+import Warehouse from '@/model/warehouse/Warehouse';
 
 class CustomGear extends AbstractGearEdit {
   public static new(navigate: Router) {
@@ -15,6 +17,7 @@ class CustomGear extends AbstractGearEdit {
       app.getGearStore()!,
       app.getFirebase(),
       app.getLogInAlertManager()!,
+      Order.new(Warehouse.ORDER_KEY),
       CustomGearCategory.new().selectFirst(),
       '',
       '',
@@ -28,6 +31,7 @@ class CustomGear extends AbstractGearEdit {
     private readonly gearStore: GearStore,
     private readonly firebase: Firebase,
     private readonly logInAlertManager: LogInAlertManager,
+    private readonly warehouseOrder: Order,
     category: CustomGearCategory,
     name: string,
     company: string,
@@ -63,7 +67,7 @@ class CustomGear extends AbstractGearEdit {
     );
 
     await this.gearStore.register([gear]);
-
+    this.warehouseOrder.selectLastOrderOption();
     return gear;
   }
 

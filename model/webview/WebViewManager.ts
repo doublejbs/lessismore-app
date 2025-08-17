@@ -11,17 +11,29 @@ interface WebViewMessageEvent {
   };
 }
 
+export interface WebViewManagerCallback {
+  onUpdateData: (data: any) => void;
+}
+
 class WebViewManager {
   private static instance: WebViewManager;
 
-  private constructor(private readonly router: Router) {}
-
-  public static getInstance(router: Router): WebViewManager {
+  public static getInstance(
+    router: Router,
+    callback: WebViewManagerCallback = {
+      onUpdateData: () => {},
+    }
+  ): WebViewManager {
     if (!WebViewManager.instance) {
-      WebViewManager.instance = new WebViewManager(router);
+      WebViewManager.instance = new WebViewManager(router, callback);
     }
     return WebViewManager.instance;
   }
+
+  private constructor(
+    private readonly router: Router,
+    private readonly callback: WebViewManagerCallback
+  ) {}
 
   /**
    * WebView에서 보낸 메시지를 처리하는 메소드
@@ -77,8 +89,7 @@ class WebViewManager {
    * 데이터 업데이트 요청 처리
    */
   private handleUpdateData = (data?: any): void => {
-    // TODO: 실제 구현 필요
-    console.log('데이터 업데이트 요청:', data);
+    this.callback.onUpdateData(data);
   };
 
   /**
