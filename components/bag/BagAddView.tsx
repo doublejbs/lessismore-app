@@ -192,8 +192,8 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: 'white',
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     padding: 16,
     maxHeight: screenHeight * 0.8, // 화면 높이의 80%로 제한
   },
