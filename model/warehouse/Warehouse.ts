@@ -66,11 +66,7 @@ class Warehouse {
 
   public async refresh() {
     if (this.isInitialized()) {
-      if (this.isLoggedIn()) {
-        await this.getList();
-      } else {
-        this.clear();
-      }
+      await this.refreshList();
     }
   }
 
@@ -78,8 +74,13 @@ class Warehouse {
     this.setGears([]);
   }
 
-  public async getList() {
+  private async getList() {
     this.setLoading(true);
+    await this.refreshList();
+    this.setLoading(false);
+  }
+
+  private async refreshList() {
     if (this.isLoggedIn()) {
       await this.order.initialize();
       this.setGears(
@@ -91,7 +92,6 @@ class Warehouse {
     } else {
       this.clear();
     }
-    this.setLoading(false);
   }
 
   public async remove(value: Gear) {

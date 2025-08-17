@@ -20,8 +20,6 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
   const isVisible = logInAlertManager.isVisible();
   const isLoading = logInAlertManager.isLoading();
 
-  //   usePreventScroll(isVisible, false);
-
   const handleClickCancel = () => {
     logInAlertManager.hide();
   };
@@ -29,6 +27,10 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
   const handleClickConfirm = () => {
     logInAlertManager.confirm();
   };
+
+  if (!isVisible) {
+    return null;
+  }
 
   return (
     <Modal

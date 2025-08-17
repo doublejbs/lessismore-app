@@ -5,10 +5,7 @@ const BagEditWrapper = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   return (
-    <WebViewWrapper
-      uri={`http://localhost:5173/bag/${id}/edit`}
-      header={false}
-    />
+    <WebViewWrapper uri={`https://useless.my/bag/${id}/edit`} header={false} />
   );
 };
 

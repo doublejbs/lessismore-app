@@ -4,6 +4,7 @@ import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
 import PretendardText from '@/components/PretendardText';
 import { useRouter } from 'expo-router';
+import { IconSymbol } from '@/components/ui/IconSymbol';
 
 interface Props {
   bagItem: BagItem;
@@ -22,7 +23,7 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
   };
 
   const handleClickUseless = () => {
-    // router.push(`/bag/${id}/useless`);
+    router.push(`/useless/${bagItem.getID()}`);
   };
 
   return (
@@ -48,7 +49,7 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
           onPress={handleClickDelete}
           activeOpacity={0.7}
         >
-          <PretendardText style={styles.deleteIcon}>🗑️</PretendardText>
+          <IconSymbol name='trash.fill' size={18} color='#666' />
         </TouchableOpacity>
       </View>
       <TouchableOpacity
@@ -107,10 +108,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  deleteIcon: {
-    fontFamily: 'Pretendard-Regular',
-    fontSize: 16,
   },
   uselessButton: {
     backgroundColor: '#F5F7FB',

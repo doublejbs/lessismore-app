@@ -20,6 +20,10 @@ const AlertView: FC<Props> = ({ alertManager }) => {
     alertManager.confirm();
   };
 
+  if (!isVisible) {
+    return null;
+  }
+
   return (
     <Modal
       visible={isVisible}

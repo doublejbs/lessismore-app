@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 const SearchPage = () => {
   return (
     <WebViewWrapper
-      uri={`http://localhost:5173/search`}
+      uri={`https://useless.my/search`}
       header={false}
       modal={Platform.OS === 'ios'}
     />

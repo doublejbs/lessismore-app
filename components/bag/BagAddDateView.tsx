@@ -17,14 +17,12 @@ const BagAddDateView = ({
   onEndDateChange,
 }: Props) => {
   return (
-    <View>
-      <DateRangeCalendar
-        startDate={startDate}
-        endDate={endDate}
-        onStartDateChange={onStartDateChange}
-        onEndDateChange={onEndDateChange}
-      />
-    </View>
+    <DateRangeCalendar
+      startDate={startDate}
+      endDate={endDate}
+      onStartDateChange={onStartDateChange}
+      onEndDateChange={onEndDateChange}
+    />
   );
 };
 

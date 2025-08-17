@@ -79,7 +79,6 @@ const BagAddView: FC<Props> = ({ bag }) => {
         onPress={showAdd}
         activeOpacity={0.8}
       >
-        <PretendardText style={styles.plusIcon}>+</PretendardText>
         <PretendardText style={styles.buttonText}>배낭 추가</PretendardText>
       </TouchableOpacity>
       <Modal
@@ -184,7 +183,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontFamily: 'Pretendard-Regular',
-    lineHeight: 20,
     textAlignVertical: 'center',
   },
   modalOverlay: {
@@ -206,6 +204,7 @@ const styles = StyleSheet.create({
   inputSection: {
     flexDirection: 'column',
     gap: 8,
+    marginBottom: 24,
   },
   inputLabel: {
     fontFamily: 'Pretendard-Bold',

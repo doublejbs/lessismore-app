@@ -233,9 +233,9 @@ const styles = StyleSheet.create({
   },
   dateDisplay: {
     backgroundColor: 'rgb(238, 238, 238)',
-    paddingVertical: 8,
+    paddingVertical: 12,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: 10,
   },
   dateText: {
     fontSize: 14,
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   },
   weekdaysRow: {
     flexDirection: 'row',
-    marginBottom: 5,
+    marginBottom: 12,
   },
   weekdayCell: {
     flex: 1,

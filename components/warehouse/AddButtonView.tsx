@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Svg, { Path, G, Defs, ClipPath, Rect } from 'react-native-svg';
 import app from '@/model/app/App';
+import PretendardText from '../PretendardText';
 
 const AddButtonView: FC = () => {
   const [showMenu, setShowMenu] = useState(false);
@@ -76,7 +77,7 @@ const AddButtonView: FC = () => {
   return (
     <View>
       <TouchableOpacity style={styles.addButton} onPress={handleClick}>
-        <Text style={styles.addButtonText}>장비 추가</Text>
+        <PretendardText style={styles.addButtonText}>장비 추가</PretendardText>
       </TouchableOpacity>
 
       <Modal
@@ -153,20 +154,24 @@ const AddButtonView: FC = () => {
 const styles = StyleSheet.create({
   addButton: {
     position: 'absolute',
-    width: 127,
-    height: 48,
-    backgroundColor: 'black',
-    borderRadius: 24,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    right: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    right: 0,
     bottom: Platform.select({
       ios: 80,
       android: 0,
-      web: 40,
+      default: 80,
     }),
+    borderRadius: 32,
+    borderWidth: 1,
+    borderColor: 'black',
+    height: 48,
+    backgroundColor: 'black',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    width: 127,
+    gap: 6,
   },
   addButtonText: {
     fontSize: 16,

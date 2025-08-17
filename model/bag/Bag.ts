@@ -5,18 +5,25 @@ import BagStore from '@/model/store/BagStore';
 import { Dayjs } from 'dayjs';
 import Firebase from '@/model/firebase/Firebase';
 import { Alert } from 'react-native';
+import AlertManager from '@/model/alert/AlertManager';
 
 class Bag {
   public static new() {
-    return new Bag(app.getBagStore()!, app.getFirebase());
+    return new Bag(
+      app.getBagStore()!,
+      app.getFirebase(),
+      app.getAlertManager()!
+    );
   }
 
   private bags: BagItem[] = [];
   private loading = false;
   private disposeLoginReaction: () => void;
+
   private constructor(
     private readonly bagStore: BagStore,
-    private readonly firebase: Firebase
+    private readonly firebase: Firebase,
+    private readonly alertManager: AlertManager
   ) {
     makeAutoObservable(this);
     this.disposeLoginReaction = reaction(
@@ -53,8 +60,14 @@ class Bag {
   }
 
   public async delete(bagItem: BagItem) {
-    await this.bagStore.delete(bagItem.getID());
-    await this.getList();
+    this.alertManager.show({
+      message: `${bagItem.getName()} 배낭을 삭제할까요?`,
+      confirmText: '삭제',
+      onConfirm: async () => {
+        await this.bagStore.delete(bagItem.getID());
+        await this.getList();
+      },
+    });
   }
 
   public getBags() {

@@ -47,6 +47,7 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
               warehouse={warehouse}
             />
           ))}
+          <View style={styles.bottomSpacing} />
         </ScrollView>
       );
     }
@@ -104,6 +105,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     color: '#666',
+  },
+  bottomSpacing: {
+    height: 100,
   },
 });
 

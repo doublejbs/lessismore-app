@@ -19,7 +19,7 @@ class BagItem {
   }
 
   public getWeight() {
-    return Number(this.weight) / 1000;
+    return Number((Number(this.weight) / 1000).toFixed(2));
   }
 
   public getEditDate() {
@@ -30,7 +30,9 @@ class BagItem {
     if (this.startDate.isSame(this.endDate, 'day')) {
       return this.startDate.format('YYYY.MM.DD');
     } else {
-      return `${this.startDate.format('YYYY.MM.DD')} ~ ${this.endDate.format('YYYY.MM.DD')}`;
+      return `${this.startDate.format('YYYY.MM.DD')} ~ ${this.endDate.format(
+        'YYYY.MM.DD'
+      )}`;
     }
   }
 

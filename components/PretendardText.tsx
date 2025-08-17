@@ -5,22 +5,19 @@ interface PretendardTextProps extends TextProps {
   weight?: 'regular' | 'medium' | 'semibold' | 'bold';
 }
 
-export const PretendardText: React.FC<PretendardTextProps> = ({ 
-  style, 
+const PretendardText: React.FC<PretendardTextProps> = ({
+  style,
   weight = 'regular',
-  ...props 
+  ...props
 }) => {
   const fontFamily = getFontFamily(weight);
-  
-  return (
-    <Text 
-      style={[{ fontFamily }, style]} 
-      {...props} 
-    />
-  );
+
+  return <Text style={[{ fontFamily }, style]} {...props} />;
 };
 
-const getFontFamily = (weight: 'regular' | 'medium' | 'semibold' | 'bold'): string => {
+const getFontFamily = (
+  weight: 'regular' | 'medium' | 'semibold' | 'bold'
+): string => {
   switch (weight) {
     case 'medium':
       return 'Pretendard-Medium';

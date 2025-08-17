@@ -101,6 +101,12 @@ const RootLayout = () => {
               headerShown: false,
             }}
           />
+          <Stack.Screen
+            name='useless'
+            options={{
+              headerShown: false,
+            }}
+          />
           <Stack.Screen name='+not-found' />
         </Stack>
         <StatusBar style='auto' />
