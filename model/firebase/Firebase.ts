@@ -5,10 +5,10 @@ import {
   GoogleAuthProvider,
   signInWithEmailAndPassword,
   signOut,
-  User,
   initializeAuth,
   getReactNativePersistence,
   signInWithCredential,
+  User,
 } from 'firebase/auth';
 import { makeAutoObservable } from 'mobx';
 import {
@@ -37,7 +37,6 @@ class Firebase {
 
   private auth!: Auth;
   private userId = '';
-  private googleProvider = new GoogleAuthProvider();
   private initialized = false;
   private store!: Firestore;
   private storage!: FirebaseStorage;
@@ -70,35 +69,51 @@ class Firebase {
           ? getReactNativePersistence(ReactNativeAsyncStorage)
           : undefined,
     });
-
     this.store = getFirestore(fireBaseApp);
     this.storage = getStorage(fireBaseApp);
+
     await this.auth.authStateReady();
+    await this.checkLoggedIn();
+    this.setInitialized(true);
     this.auth.onAuthStateChanged(async (user: User | null) => {
       if (user?.uid) {
-        await this.checkLoggedIn();
+        if (user.uid === this.getUserId()) {
+          return;
+        } else {
+          await this.checkLoggedIn();
+        }
       } else {
-        this.setUserId('');
-        this.setHasAgreedToTerms(false);
-        this.setLoggedIn(false);
+        this.clear();
       }
-      this.setInitialized(true);
     });
   }
 
+  private clear() {
+    this.setUserId('');
+    this.setHasAgreedToTerms(false);
+    this.setIdToken(null);
+    this.setAccessToken(null);
+    this.setLoggedIn(false);
+  }
+
   private async checkLoggedIn() {
-    const userId = this.auth.currentUser;
+    try {
+      const userId = this.auth.currentUser;
 
-    if (userId) {
-      const tokens = await GoogleSignin.getTokens();
+      if (userId) {
+        this.setUserId(userId.uid);
+        await this.initializeStore();
+        await this.checkTermsAgreement();
+        await GoogleSignin.signInSilently();
 
-      this.idToken = tokens.idToken;
-      this.accessToken = tokens.accessToken;
+        const tokens = await GoogleSignin.getTokens();
 
-      this.setUserId(userId.uid);
-      await this.initializeStore();
-      await this.checkTermsAgreement();
-      this.setLoggedIn(true);
+        this.setIdToken(tokens.idToken);
+        this.setAccessToken(tokens.accessToken);
+        this.setLoggedIn(true);
+      }
+    } catch (error) {
+      console.error('checkLoggedIn error', error);
     }
   }
 
@@ -176,6 +191,7 @@ class Firebase {
 
   public async logout() {
     await signOut(this.auth);
+    await GoogleSignin.signOut();
   }
 
   public getUserId() {
@@ -183,7 +199,7 @@ class Firebase {
   }
 
   public isLoggedIn() {
-    return this.initialized && !!this.userId && this.loggedIn;
+    return this.loggedIn;
   }
 
   public async logInWithGoogle() {
@@ -267,6 +283,14 @@ class Firebase {
 
   public isInitialized() {
     return this.initialized;
+  }
+
+  private setIdToken(value: string | null) {
+    this.idToken = value;
+  }
+
+  private setAccessToken(value: string | null) {
+    this.accessToken = value;
   }
 }
 

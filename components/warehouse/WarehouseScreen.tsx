@@ -1,4 +1,4 @@
-import React, { FC, useCallback } from 'react';
+import React, { FC, useCallback, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, Platform } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import Layout from '@/components/Layout';
@@ -23,6 +23,10 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
       warehouse.refresh();
     }, [warehouse])
   );
+
+  useEffect(() => {
+    warehouse.initialize();
+  }, []);
 
   const renderGears = () => {
     if (isLoading) {

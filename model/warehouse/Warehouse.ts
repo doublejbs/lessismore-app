@@ -39,8 +39,6 @@ class Warehouse {
     private readonly order: Order,
     private readonly firebase: Firebase
   ) {
-    makeAutoObservable(this);
-
     this.disposeReaction = reaction(
       () => this.order.getSelectedOrderType(),
       async () => {
@@ -50,9 +48,11 @@ class Warehouse {
     this.disposeLoginReaction = reaction(
       () => this.firebase.isLoggedIn(),
       async () => {
-        await this.initialize();
+        await this.refreshWithLoading();
       }
     );
+
+    makeAutoObservable(this);
   }
 
   public async initialize() {
@@ -62,6 +62,12 @@ class Warehouse {
       this.clear();
     }
     this.setInitialized(true);
+  }
+
+  private async refreshWithLoading() {
+    this.setLoading(true);
+    await this.refresh();
+    this.setLoading(false);
   }
 
   public async refresh() {
@@ -167,7 +173,7 @@ class Warehouse {
   }
 
   // 객체 소멸 시 reaction 정리
-  public dispose() {
+  private dispose() {
     this.disposeReaction();
     this.disposeLoginReaction();
   }
