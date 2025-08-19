@@ -52,6 +52,10 @@
     sendMessage('UPDATE_DATA', data);
   }
 
+  function navigateToLogin() {
+    sendMessage('NAVIGATE_TO_LOGIN');
+  }
+
   /**
    * 에러 리포트
    * @param {string} message - 에러 메시지
@@ -79,6 +83,7 @@
     sendCustomMessage,
     // 직접 사용할 수도 있도록 노출
     sendMessage,
+    navigateToLogin,
   };
 
   // 페이지가 로드되었음을 알림

@@ -62,7 +62,12 @@ const AddButtonView: FC = () => {
 
   const handleClickSearch = () => {
     setShowMenu(false);
-    router.push('/search');
+
+    if (app.getFirebase().isLoggedIn()) {
+      router.push('/search');
+    } else {
+      router.push('/not-login-search');
+    }
   };
 
   const handleClickCustom = () => {
