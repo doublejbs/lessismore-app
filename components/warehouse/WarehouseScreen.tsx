@@ -8,6 +8,7 @@ import WarehouseGearView from '@/components/warehouse/WarehouseGearView';
 import AddButtonView from '@/components/warehouse/AddButtonView';
 import { useFocusEffect } from '@react-navigation/native';
 import WarehouseSkeletonView from '@/components/warehouse/WarehouseSkeletonView';
+import { josa } from 'josa';
 
 interface Props {
   warehouse: Warehouse;
@@ -35,6 +36,16 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
       return (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>장비를 추가해 주세요</Text>
+        </View>
+      );
+    } else if (gears.length === 0) {
+      const selectedFilter = warehouse.getSelectedFilter();
+
+      return (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>
+            {josa(`${selectedFilter.getName()}#{가}`)} 없습니다
+          </Text>
         </View>
       );
     } else {

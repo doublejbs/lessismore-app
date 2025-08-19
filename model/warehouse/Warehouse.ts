@@ -91,7 +91,7 @@ class Warehouse {
       await this.order.initialize();
       this.setGears(
         await this.dispatcher.getList(
-          this.filterManager.getSelectedFilters(),
+          [this.filterManager.getSelectedFilter().getFilter()],
           this.order.getSelectedOrderType() ?? OrderType.NameAsc
         )
       );
@@ -155,7 +155,7 @@ class Warehouse {
   public isEmpty() {
     return (
       this.gears.length === 0 &&
-      // this.filterManager.isAllFilterSelected() &&
+      this.filterManager.isAllFilterSelected() &&
       !this.isLoading()
     );
   }
@@ -192,6 +192,10 @@ class Warehouse {
 
   public isFirebaseInitialized() {
     return this.firebase.isInitialized();
+  }
+
+  public getSelectedFilter() {
+    return this.filterManager.getSelectedFilter();
   }
 }
 

@@ -65,19 +65,23 @@ class FilterManager {
   }
 
   public initializeWithSelectedGears(selectedGears: Gear[]) {
-    selectedGears.forEach((gear) => {
+    selectedGears.forEach(gear => {
       this.filters
-        .find((currentFilter) => currentFilter.getFilter() === gear.getCategory())
+        .find(currentFilter => currentFilter.getFilter() === gear.getCategory())
         ?.plusCount();
     });
   }
 
   public addFilterCount(filter: GearFilter) {
-    this.filters.find((currentFilter) => currentFilter.getFilter() === filter)?.plusCount();
+    this.filters
+      .find(currentFilter => currentFilter.getFilter() === filter)
+      ?.plusCount();
   }
 
   public minusFilterCount(filter: GearFilter) {
-    this.filters.find((currentFilter) => currentFilter.getFilter() === filter)?.minusCount();
+    this.filters
+      .find(currentFilter => currentFilter.getFilter() === filter)
+      ?.minusCount();
   }
 
   public getFilters() {
@@ -85,7 +89,7 @@ class FilterManager {
   }
 
   private selectAllFilter() {
-    this.filters.forEach((currentFilter) => {
+    this.filters.forEach(currentFilter => {
       if (currentFilter.getFilter() === GearFilter.All) {
         currentFilter.select();
       } else {
@@ -94,8 +98,8 @@ class FilterManager {
     });
   }
 
-  public getSelectedFilters() {
-    return this.filters.filter((filter) => filter.isSelected()).map((filter) => filter.getFilter());
+  public getSelectedFilter() {
+    return this.filters.find(filter => filter.isSelected()) ?? this.filters[0];
   }
 
   public isAllFilterSelected() {
@@ -110,7 +114,7 @@ class FilterManager {
   public deselectFilter(filter: WarehouseFilter) {
     filter.deselect();
 
-    if (this.getSelectedFilters().length === 0) {
+    if (!this.getSelectedFilter()) {
       this.selectAllFilter();
     }
   }
@@ -119,16 +123,8 @@ class FilterManager {
     return this.filters.map(callback);
   }
 
-  public hasFilter(filter: GearFilter) {
-    if (this.isAllFilterSelected()) {
-      return true;
-    } else {
-      return this.getSelectedFilters().some((currentFilter) => currentFilter === filter);
-    }
-  }
-
   private deselectAll() {
-    this.filters.forEach((currentFilter) => {
+    this.filters.forEach(currentFilter => {
       if (currentFilter.isSelected()) {
         currentFilter.deselect();
       }
