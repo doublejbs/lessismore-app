@@ -11,7 +11,7 @@ const SearchPage = () => {
 
   return (
     <WebViewWrapper
-      uri={`https://useless.my/search`}
+      uri={'http://localhost:5173/search'}
       header={false}
       modal={Platform.OS === 'ios'}
       callback={{

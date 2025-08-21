@@ -107,6 +107,27 @@ const RootLayout = () => {
               headerShown: false,
             }}
           />
+          <Stack.Screen
+            name='log-in'
+            options={{
+              headerShown: false,
+              presentation: 'transparentModal', // 전체 딤드 및 알럿 형태로 표시
+              contentStyle: {
+                backgroundColor: 'rgba(0,0,0,0.5)', // 딤드 효과
+                justifyContent: 'center',
+                alignItems: 'center',
+              },
+              animation: 'fade',
+              gestureEnabled: true,
+            }}
+          />
+          <Stack.Screen
+            name='not-login-search'
+            options={{
+              headerShown: false,
+              presentation: 'modal',
+            }}
+          />
           <Stack.Screen name='+not-found' />
         </Stack>
         <StatusBar style='auto' />

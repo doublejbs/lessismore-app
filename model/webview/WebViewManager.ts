@@ -56,6 +56,9 @@ class WebViewManager {
         case 'UPDATE_DATA':
           this.handleUpdateData(message.data);
           break;
+        case 'NAVIGATE_TO_LOGIN':
+          this.handleNavigateToLogin(message.data);
+          break;
         case 'PAGE_LOADED':
           this.handlePageLoaded(message.data);
           break;
@@ -90,6 +93,15 @@ class WebViewManager {
    */
   private handleUpdateData = (data?: any): void => {
     this.callback.onUpdateData(data);
+  };
+
+  /**
+   * 로그인 페이지 이동 처리
+  /**
+   * 로그인 페이지 이동 처리
+   */
+  private handleNavigateToLogin = (data?: any): void => {
+    this.router.push('/log-in');
   };
 
   /**

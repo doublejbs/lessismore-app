@@ -58,6 +58,10 @@ export const WEBVIEW_BRIDGE_SCRIPT = `
     sendMessage('UPDATE_DATA', data);
   }
 
+  function navigateToLogin() {
+    sendMessage('NAVIGATE_TO_LOGIN');
+  }
+
   /**
    * 에러 리포트
    * @param {string} message - 에러 메시지
@@ -84,7 +88,8 @@ export const WEBVIEW_BRIDGE_SCRIPT = `
     reportError,
     sendCustomMessage,
     // 직접 사용할 수도 있도록 노출
-    sendMessage
+    sendMessage,
+    navigateToLogin,
   };
 
   // 페이지가 로드되었음을 알림
@@ -133,6 +138,7 @@ export interface NativeBridge {
   reportError: (message: string, details?: any) => void;
   sendCustomMessage: (type: string, data?: any) => void;
   sendMessage: (type: string, data?: any) => void;
+  navigateToLogin: () => void;
 }
 
 // 전역 타입 확장
