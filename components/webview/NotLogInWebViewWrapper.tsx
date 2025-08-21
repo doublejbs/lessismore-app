@@ -29,7 +29,6 @@ const NotLogInWebViewWrapper: FC<Props> = ({
   const webViewManager = WebViewManager.getInstance(router, callback);
   const accessToken = app.getFirebase().getAccessToken();
   const idToken = app.getFirebase().getIdToken();
-  const isLoggedIn = app.getFirebase().isLoggedIn();
 
   const handleGoBack = () => {
     router.back();
@@ -37,23 +36,20 @@ const NotLogInWebViewWrapper: FC<Props> = ({
 
   useEffect(() => {
     if (accessToken && idToken && webViewRef.current) {
-      webViewRef.current.postMessage(
-        JSON.stringify({
+      webViewRef.current.injectJavaScript(
+        `if (window.onMessageFromReactNative) {
+        window.onMessageFromReactNative(${JSON.stringify({
           type: 'AUTH_TOKENS',
           data: {
             accessToken,
             idToken,
           },
-        })
+        })});
+      }
+      true;`
       );
     }
   }, [accessToken, idToken, webViewRef.current]);
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      router.back();
-    }
-  }, [isLoggedIn]);
 
   return (
     <SafeAreaView
