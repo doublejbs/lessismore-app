@@ -12,8 +12,6 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import app from '@/model/app/App';
 import { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { TouchableOpacity } from 'react-native';
-import Ionicons from '@expo/vector-icons/build/Ionicons';
 
 const RootLayout = () => {
   const colorScheme = useColorScheme();
@@ -64,25 +62,6 @@ const RootLayout = () => {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
           <Stack.Screen
-            name='gear-edit'
-            options={{
-              headerShown: true,
-              headerTitle: '수정하기',
-              headerTintColor: 'black',
-              headerLeft: () => (
-                <TouchableOpacity onPress={() => router.back()}>
-                  <Ionicons name='chevron-back' size={24} color='black' />
-                </TouchableOpacity>
-              ),
-            }}
-          />
-          <Stack.Screen
-            name='gear-detail'
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
             name='custom'
             options={{
               headerShown: false,
@@ -93,18 +72,6 @@ const RootLayout = () => {
             name='search'
             options={{
               presentation: 'modal',
-            }}
-          />
-          <Stack.Screen
-            name='bag'
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name='useless'
-            options={{
-              headerShown: false,
             }}
           />
           <Stack.Screen
