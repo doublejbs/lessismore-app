@@ -2,13 +2,12 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import WebView from 'react-native-webview';
 import app from '@/model/app/App';
 import WebViewManager, {
   WebViewManagerCallback,
 } from '@/model/webview/WebViewManager';
-import { WEBVIEW_BRIDGE_SCRIPT } from '@/model/webview/WebViewBridge';
 import { useEffect, useState } from 'react';
+import WebViewContentView from './WebViewContentView';
 
 interface Props {
   uri: string;
@@ -69,24 +68,10 @@ const WebViewWrapper = ({ uri, header, callback, modal = false }: Props) => {
       {/* 웹뷰 컨텐츠 영역 */}
       <View style={styles.webViewContainer}>
         {tokens.idToken && tokens.accessToken && (
-          <WebView
-            source={{
-              uri: `${uri}?token=${encodeURIComponent(
-                tokens.idToken
-              )}&accessToken=${encodeURIComponent(tokens.accessToken)}`,
-            }}
-            style={{ flex: 1 }}
-            javaScriptEnabled={true}
-            domStorageEnabled={true}
-            startInLoadingState={true}
-            scalesPageToFit={true}
-            // 쿠키 및 세션 공유 설정
-            sharedCookiesEnabled={true}
-            thirdPartyCookiesEnabled={true}
-            cacheEnabled={true}
-            // WebView 브릿지 설정
-            injectedJavaScript={WEBVIEW_BRIDGE_SCRIPT}
-            onMessage={webViewManager.handleMessage}
+          <WebViewContentView
+            uri={uri}
+            tokens={tokens}
+            webViewManager={webViewManager}
           />
         )}
       </View>
