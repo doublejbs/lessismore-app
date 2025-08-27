@@ -1,14 +1,12 @@
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import WebView from 'react-native-webview';
 import app from '@/model/app/App';
 import WebViewManager, {
   WebViewManagerCallback,
 } from '@/model/webview/WebViewManager';
-import { WEBVIEW_BRIDGE_SCRIPT } from '@/model/webview/WebViewBridge';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import WebViewContentView from './WebViewContentView';
 
 interface Props {
@@ -29,8 +27,6 @@ const WebViewWrapper = ({ uri, header, callback, modal = false }: Props) => {
     idToken: null,
     accessToken: null,
   });
-  const webViewRef = useRef<WebView>(null);
-  const [loaded, setLoaded] = useState(false);
 
   const handleGoBack = () => {
     router.back();

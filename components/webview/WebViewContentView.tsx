@@ -1,8 +1,8 @@
 import WebViewManager from '@/model/webview/WebViewManager';
 import { WEBVIEW_BRIDGE_SCRIPT } from '@/model/webview/WebViewBridge';
-import { useCallback, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { WebView } from 'react-native-webview';
-import { useFocusEffect } from 'expo-router';
+import { useNavigation } from 'expo-router';
 
 interface Props {
   uri: string;
@@ -13,11 +13,11 @@ interface Props {
 const WebViewContentView = ({ uri, tokens, webViewManager }: Props) => {
   const webViewRef = useRef<WebView>(null);
   const [loaded, setLoaded] = useState(false);
+  const navigation = useNavigation();
 
-  useFocusEffect(
-    useCallback(() => {
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
       if (webViewRef.current && loaded) {
-        console.log('조건 만족 - injectJavaScript 실행');
         webViewRef.current.injectJavaScript(
           `if (window.onRefreshFromReactNative) {
           window.onRefreshFromReactNative();
@@ -25,8 +25,14 @@ const WebViewContentView = ({ uri, tokens, webViewManager }: Props) => {
         true;`
         );
       }
-    }, [loaded])
-  );
+    });
+
+    return unsubscribe;
+  }, [navigation, loaded]);
+
+  if (!tokens.idToken || !tokens.accessToken) {
+    return null;
+  }
 
   return (
     <WebView
