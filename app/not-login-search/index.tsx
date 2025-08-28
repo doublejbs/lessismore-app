@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { Platform } from 'react-native';
 
 const NotLoginSearchPage = () => {
-  const uri = `http://localhost:5173/search`;
+  const uri = `https://useless.my/search`;
 
   return (
     <NotLogInWebViewWrapper
