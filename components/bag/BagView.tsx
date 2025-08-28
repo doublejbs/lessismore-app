@@ -11,6 +11,7 @@ import PretendardText from '@/components/PretendardText';
 import { useFocusEffect } from '@react-navigation/native';
 import LogInView from '../login/LogInView';
 import app from '@/model/app/App';
+import AlertView from '../alert/AlertView';
 
 const BagView = () => {
   const [bag] = useState(() => Bag.new());
@@ -63,6 +64,7 @@ const BagView = () => {
               ))}
               <View style={styles.bottomSpacer} />
             </ScrollView>
+            <AlertView alertManager={app.getAlertManager()!} />
           </>
         );
       }
