@@ -9,6 +9,7 @@ import {
   DocumentData,
   getDoc,
   getDocs,
+  deleteDoc,
   orderBy,
   query,
   QuerySnapshot,
@@ -19,14 +20,11 @@ import Gear from '../gear/Gear';
 import OrderType from '../order/OrderType';
 import GearFilter from '../gear/GearFilter';
 import Firebase from '../firebase/Firebase';
-import GearStore, { GearData } from './GearStore';
+import { GearData } from './GearStore';
 import BagItem from '../bag/BagItem';
 
 class BagStore {
-  public constructor(
-    private readonly firebase: Firebase,
-    private readonly gearStore: GearStore
-  ) {}
+  public constructor(private readonly firebase: Firebase) {}
 
   public async getList(): Promise<BagItem[]> {
     try {
@@ -53,10 +51,23 @@ class BagStore {
     }
   }
 
-  public async getSharedBag(id: string, filters: GearFilter[], order: OrderType) {
+  public async getSharedBag(
+    id: string,
+    filters: GearFilter[],
+    order: OrderType
+  ) {
     const bag = await getDoc(doc(this.getStore(), 'bag', id));
     if (bag.exists()) {
-      const { name, weight, editDate, startDate, endDate, shared, gears, userId } = bag.data();
+      const {
+        name,
+        weight,
+        editDate,
+        startDate,
+        endDate,
+        shared,
+        gears,
+        userId,
+      } = bag.data();
 
       if (!shared) {
         alert('공유되지 않은 배낭입니다.');
@@ -82,12 +93,14 @@ class BagStore {
           )
         );
         const warehouseGears = warehouseSnapshot.docs
-          .filter((doc) =>
+          .filter(doc =>
             filters.length === 1 && filters[0] === GearFilter.All
               ? true
-              : filters.some((filter) => (doc.data() as GearData).category.includes(filter))
+              : filters.some(filter =>
+                  (doc.data() as GearData).category.includes(filter)
+                )
           )
-          .map((doc) => ({
+          .map(doc => ({
             ...(doc.data() as GearData),
             id: doc.id,
           }));
@@ -186,12 +199,14 @@ class BagStore {
         )
       );
       const warehouseGears = warehouseSnapshot.docs
-        .filter((doc) =>
+        .filter(doc =>
           filters.length === 1 && filters[0] === GearFilter.All
             ? true
-            : filters.some((filter) => (doc.data() as GearData).category.includes(filter))
+            : filters.some(filter =>
+                (doc.data() as GearData).category.includes(filter)
+              )
         )
-        .map((doc) => ({
+        .map(doc => ({
           ...(doc.data() as GearData),
           id: doc.id,
         }));
@@ -263,11 +278,18 @@ class BagStore {
 
   private convertToArray(data: QuerySnapshot<DocumentData, DocumentData>) {
     const result: BagItem[] = [];
-    data.forEach((doc) => {
+    data.forEach(doc => {
       const { name, weight, editDate, startDate, endDate } = doc.data();
 
       result.push(
-        new BagItem(doc.id, name, weight, dayjs(editDate), dayjs(startDate), dayjs(endDate))
+        new BagItem(
+          doc.id,
+          name,
+          weight,
+          dayjs(editDate),
+          dayjs(startDate),
+          dayjs(endDate)
+        )
       );
     });
     return result;
@@ -292,11 +314,16 @@ class BagStore {
     return docRef.id;
   }
 
-  public async save(id: string, toAddGears: Gear[], toRemoveGears: Gear[], allGears: Gear[]) {
+  public async save(
+    id: string,
+    toAddGears: Gear[],
+    toRemoveGears: Gear[],
+    allGears: Gear[]
+  ) {
     const bagRef = doc(this.getStore(), 'bag', id);
 
     try {
-      await runTransaction(this.getStore(), async (transaction) => {
+      await runTransaction(this.getStore(), async transaction => {
         // 1. 모든 읽기 작업을 먼저 수행
         const bagSnap = await transaction.get(bagRef);
         if (!bagSnap.exists()) {
@@ -304,15 +331,27 @@ class BagStore {
         }
 
         // toAddGears 문서 읽기
-        const addGearSnapPromises = toAddGears.map((gear) => {
-          const gearRef = doc(this.getStore(), 'users', this.getUserID(), 'gears', gear.getId());
+        const addGearSnapPromises = toAddGears.map(gear => {
+          const gearRef = doc(
+            this.getStore(),
+            'users',
+            this.getUserID(),
+            'gears',
+            gear.getId()
+          );
           return transaction.get(gearRef);
         });
         const addGearSnaps = await Promise.all(addGearSnapPromises);
 
         // toRemoveGears 문서 읽기
-        const removeGearSnapPromises = toRemoveGears.map((gear) => {
-          const gearRef = doc(this.getStore(), 'users', this.getUserID(), 'gears', gear.getId());
+        const removeGearSnapPromises = toRemoveGears.map(gear => {
+          const gearRef = doc(
+            this.getStore(),
+            'users',
+            this.getUserID(),
+            'gears',
+            gear.getId()
+          );
           return transaction.get(gearRef);
         });
         const removeGearSnaps = await Promise.all(removeGearSnapPromises);
@@ -320,21 +359,30 @@ class BagStore {
         // 2. 데이터 처리
         const gears = bagSnap.data()?.gears || [];
         const gearsSet = new Set(gears);
-        toAddGears.forEach((gear) => gearsSet.add(gear.getId()));
-        toRemoveGears.forEach((gear) => gearsSet.delete(gear.getId()));
+        toAddGears.forEach(gear => gearsSet.add(gear.getId()));
+        toRemoveGears.forEach(gear => gearsSet.delete(gear.getId()));
 
         // 3. 모든 쓰기 작업 수행
         // Update bag document
         transaction.update(bagRef, {
           gears: Array.from(gearsSet),
-          weight: allGears.reduce((acc, gear) => acc + parseInt(gear.getWeight() || '0'), 0),
+          weight: allGears.reduce(
+            (acc, gear) => acc + parseInt(gear.getWeight() || '0'),
+            0
+          ),
         });
 
         // Update toAddGears documents
         addGearSnaps.forEach((gearSnap, index) => {
           if (gearSnap.exists()) {
             const gear = toAddGears[index];
-            const gearRef = doc(this.getStore(), 'users', this.getUserID(), 'gears', gear.getId());
+            const gearRef = doc(
+              this.getStore(),
+              'users',
+              this.getUserID(),
+              'gears',
+              gear.getId()
+            );
             transaction.update(gearRef, {
               bags: arrayUnion(id),
             });
@@ -345,7 +393,13 @@ class BagStore {
         removeGearSnaps.forEach((gearSnap, index) => {
           if (gearSnap.exists()) {
             const gear = toRemoveGears[index];
-            const gearRef = doc(this.getStore(), 'users', this.getUserID(), 'gears', gear.getId());
+            const gearRef = doc(
+              this.getStore(),
+              'users',
+              this.getUserID(),
+              'gears',
+              gear.getId()
+            );
             transaction.update(gearRef, {
               bags: arrayRemove(id),
               used: arrayRemove(id),
@@ -361,9 +415,42 @@ class BagStore {
   }
 
   public async delete(id: string) {
-    await updateDoc(doc(this.getStore(), 'users', this.getUserID()), {
-      bags: arrayRemove(id),
-    });
+    try {
+      const bagRef = doc(this.getStore(), 'bag', id);
+      const bagSnap = await getDoc(bagRef);
+
+      if (bagSnap.exists()) {
+        const bagData = bagSnap.data();
+        const gears: string[] = bagData.gears || [];
+
+        if (gears.length > 0) {
+          const batch = writeBatch(this.getStore());
+
+          for (const gearId of gears) {
+            const gearRef = doc(
+              this.getStore(),
+              'users',
+              this.getUserID(),
+              'gears',
+              gearId
+            );
+            batch.update(gearRef, {
+              bags: arrayRemove(id),
+              useless: arrayRemove(id),
+              used: arrayRemove(id),
+            });
+          }
+          await batch.commit();
+        }
+      }
+      await deleteDoc(bagRef);
+      await updateDoc(doc(this.getStore(), 'users', this.getUserID()), {
+        bags: arrayRemove(id),
+      });
+    } catch (e) {
+      console.error('배낭 삭제 중 오류 발생:', e);
+      throw e;
+    }
   }
 
   private getStore() {
@@ -377,7 +464,12 @@ class BagStore {
   public async getBags(bagIDs: string[]) {
     if (bagIDs.length) {
       return this.convertToArray(
-        await getDocs(query(collection(this.getStore(), 'bag'), where('__name__', 'in', bagIDs)))
+        await getDocs(
+          query(
+            collection(this.getStore(), 'bag'),
+            where('__name__', 'in', bagIDs)
+          )
+        )
       );
     } else {
       return [];
@@ -386,7 +478,7 @@ class BagStore {
 
   public async updateBagsWeight(bags: string[], weight: number) {
     const batch = writeBatch(this.getStore());
-    bags.forEach((bag) => {
+    bags.forEach(bag => {
       const bagRef = doc(this.getStore(), 'bag', bag);
       batch.update(bagRef, { weight });
     });
@@ -402,9 +494,9 @@ class BagStore {
   }
 
   public async updateDates(id: string, startDate: string, endDate: string) {
-    await updateDoc(doc(this.getStore(), 'bag', id), { 
-      startDate, 
-      endDate 
+    await updateDoc(doc(this.getStore(), 'bag', id), {
+      startDate,
+      endDate,
     });
   }
 }

@@ -20,33 +20,33 @@ const GearImageView: FC<Props> = ({ imageUrl }) => {
     setError(true);
   };
 
-  if (!imageUrl || !String(imageUrl).includes('.com')) {
-    return null;
-  }
-
   if (error) {
     return null;
   }
 
-  return (
-    <View style={styles.container}>
-      {loading && (
-        <View style={styles.loadingContainer}>
-          <LoadingIconView />
-        </View>
-      )}
-      <Image
-        source={{ uri: imageUrl }}
-        onLoad={handleLoad}
-        onError={handleError}
-        style={[
-          styles.image,
-          { opacity: loading ? 0 : 1 }
-        ]}
-        resizeMode="cover"
-      />
-    </View>
-  );
+  if (
+    !!imageUrl &&
+    (String(imageUrl).includes('.com') || String(imageUrl).includes('.net'))
+  ) {
+    return (
+      <View style={styles.container}>
+        {loading && (
+          <View style={styles.loadingContainer}>
+            <LoadingIconView />
+          </View>
+        )}
+        <Image
+          source={{ uri: imageUrl }}
+          onLoad={handleLoad}
+          onError={handleError}
+          style={[styles.image, { opacity: loading ? 0 : 1 }]}
+          resizeMode='cover'
+        />
+      </View>
+    );
+  } else {
+    return null;
+  }
 };
 
 const styles = StyleSheet.create({
