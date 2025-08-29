@@ -26,6 +26,7 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="lessismoreapp"/>
+        <data android:scheme="exp+lessismore-app"/>
       </intent-filter>
     </activity>
   </application>
