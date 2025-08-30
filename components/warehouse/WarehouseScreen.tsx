@@ -1,5 +1,12 @@
 import React, { FC, useCallback, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Platform,
+  Image,
+} from 'react-native';
 import { observer } from 'mobx-react-lite';
 import Layout from '@/components/Layout';
 import Warehouse from '@/model/warehouse/Warehouse';
@@ -71,7 +78,13 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
   return (
     <Layout>
       <View style={styles.headerContainer}>
-        <Text style={styles.titleText}>useless</Text>
+        <View style={{ alignItems: 'center', marginBottom: 8 }}>
+          <Image
+            source={require('../../assets/images/logo.png')}
+            style={{ width: '100%', height: 48 }}
+            resizeMode='contain'
+          />
+        </View>
         {!warehouse.isEmpty() && <WarehouseFiltersView warehouse={warehouse} />}
       </View>
       <View style={styles.contentContainer}>{renderGears()}</View>

@@ -12,6 +12,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import app from '@/model/app/App';
 import { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
+import SplashLoadingView from '@/components/ui/SplashLoadingView';
 
 const RootLayout = () => {
   const colorScheme = useColorScheme();
@@ -53,7 +54,7 @@ const RootLayout = () => {
 
   if (!loaded || !isInitialized) {
     // Async font loading only occurs in development.
-    return null;
+    return <SplashLoadingView />;
   }
 
   return (
