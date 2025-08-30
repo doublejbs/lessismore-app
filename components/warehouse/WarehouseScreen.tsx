@@ -81,7 +81,7 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
         <View style={{ alignItems: 'center', marginBottom: 8 }}>
           <Image
             source={require('../../assets/images/logo.png')}
-            style={{ width: '100%', height: 48 }}
+            style={{ width: '100%', height: 32 }}
             resizeMode='contain'
           />
         </View>
