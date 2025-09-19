@@ -8,15 +8,23 @@ import WebViewManager, {
 } from '@/model/webview/WebViewManager';
 import { useEffect, useState } from 'react';
 import WebViewContentView from './WebViewContentView';
+import { Image } from 'react-native';
 
 interface Props {
   uri: string;
   header: boolean;
+  mainHeader?: boolean;
   callback?: WebViewManagerCallback;
   modal?: boolean;
 }
 
-const WebViewWrapper = ({ uri, header, callback, modal = false }: Props) => {
+const WebViewWrapper = ({
+  uri,
+  header,
+  mainHeader = false,
+  callback,
+  modal = false,
+}: Props) => {
   const router = useRouter();
   const firebase = app.getFirebase();
   const webViewManager = WebViewManager.getInstance(router, callback);
@@ -65,6 +73,18 @@ const WebViewWrapper = ({ uri, header, callback, modal = false }: Props) => {
         </View>
       )}
 
+      {mainHeader && (
+        <View style={styles.mainHeaderContainer}>
+          <View style={{ alignItems: 'center' }}>
+            <Image
+              source={require('../../assets/images/logo.png')}
+              style={{ width: '100%', height: 32 }}
+              resizeMode='contain'
+            />
+          </View>
+        </View>
+      )}
+
       {/* 웹뷰 컨텐츠 영역 */}
       <View style={styles.webViewContainer}>
         {tokens.idToken && tokens.accessToken && (
@@ -80,6 +100,11 @@ const WebViewWrapper = ({ uri, header, callback, modal = false }: Props) => {
 };
 
 const styles = StyleSheet.create({
+  mainHeaderContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',

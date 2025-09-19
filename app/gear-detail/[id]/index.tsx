@@ -6,8 +6,8 @@ const GearDetailWrapper = () => {
 
   return (
     <WebViewWrapper
-      uri={`https://useless.my/warehouse/detail/${id}`}
-      header={true}
+      uri={`http://localhost:5173/warehouse/detail/${id}`}
+      header={false}
     />
   );
 };
