@@ -1,0 +1,47 @@
+import { FC } from 'react';
+import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import BagDetail from '@/model/bag-detail/BagDetail';
+
+interface Props {
+  bagDetail: BagDetail;
+}
+
+const BagDetailAddButtonView: FC<Props> = ({ bagDetail }) => {
+  const handlePressAdd = () => {
+    bagDetail.goToEdit();
+  };
+
+  return (
+    <View style={styles.container}>
+      <TouchableOpacity style={styles.button} onPress={handlePressAdd}>
+        <Text style={styles.buttonText}>장비 추가하기</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 12,
+    paddingHorizontal: 24,
+    backgroundColor: 'white',
+  },
+  button: {
+    backgroundColor: 'black',
+    width: '100%',
+    padding: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+});
+
+export default BagDetailAddButtonView;

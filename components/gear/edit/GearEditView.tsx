@@ -10,7 +10,6 @@ import {
   Keyboard,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
-import { Ionicons } from '@expo/vector-icons';
 import GearEdit from '@/model/gear/edit/GearEdit';
 import ImageUploadView from '@/components/gear/ImageUploadView';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';

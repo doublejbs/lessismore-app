@@ -1,0 +1,126 @@
+import { FC } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import GearImageView from '../warehouse/GearImageView';
+import Gear from '../../model/gear/Gear';
+import { observer } from 'mobx-react-lite';
+import { Ionicons } from '@expo/vector-icons';
+
+interface Props {
+  gear: Gear;
+}
+
+const WarehouseDetailInformationView: FC<Props> = ({ gear }) => {
+  const imageUrl = gear.getImageUrl();
+  const company = gear.getCompany();
+  const name = gear.getName();
+  const weight = gear.getWeight();
+  const usedCount = gear.getUsedCount();
+  const uselessCount = gear.getUselessCount();
+  const color = gear.getColor();
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.imageContainer}>
+        {imageUrl ? (
+          <View style={styles.imageWrapper}>
+            <GearImageView imageUrl={imageUrl} />
+          </View>
+        ) : (
+          <Ionicons name='camera-outline' size={24} color='black' />
+        )}
+      </View>
+      <View style={styles.contentContainer}>
+        <View style={styles.infoSection}>
+          <View style={styles.productInfo}>
+            <Text style={styles.companyText}>{company}</Text>
+            <Text style={styles.nameText}>{name}</Text>
+            <Text style={styles.colorText}>{color}</Text>
+          </View>
+          <View style={styles.weightContainer}>
+            <Text style={styles.weightText}>{weight}g</Text>
+          </View>
+        </View>
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>USED</Text>
+            <Text style={styles.statValue}>{`${usedCount}회`}</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>USELESS</Text>
+            <Text style={styles.statValue}>{`${uselessCount}회`}</Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'column',
+    gap: 24,
+    paddingBottom: 36,
+  },
+  imageContainer: {
+    width: '100%',
+    height: 180,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageWrapper: {
+    height: 180,
+    width: '100%',
+  },
+  contentContainer: {
+    flexDirection: 'column',
+    gap: 24,
+  },
+  infoSection: {
+    flexDirection: 'column',
+    gap: 22,
+  },
+  productInfo: {
+    flexDirection: 'column',
+  },
+  companyText: {
+    fontSize: 13,
+    color: '#505967',
+  },
+  nameText: {
+    fontWeight: 'bold',
+    fontSize: 20,
+  },
+  colorText: {
+    fontSize: 16,
+  },
+  weightContainer: {
+    // 무게 컨테이너 스타일
+  },
+  weightText: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  statsContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statItem: {
+    padding: 16,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flex: 1,
+    backgroundColor: '#F3F3F3',
+    borderRadius: 10,
+  },
+  statLabel: {
+    fontSize: 14,
+  },
+  statValue: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
+});
+
+export default observer(WarehouseDetailInformationView);
