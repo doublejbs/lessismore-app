@@ -5,6 +5,7 @@ import { observer } from 'mobx-react-lite';
 import Gear from '@/model/gear/Gear';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import BagDetailImageView from './BagDetailImageView';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
   gear: Gear;
@@ -15,6 +16,7 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
   const imageUrl = gear.getImageUrl();
   const isUseless = bagDetail.isUseless(gear);
   const [showMenu, setShowMenu] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const handlePressMenu = () => {
     setShowMenu(true);
@@ -76,7 +78,6 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
       </View>
       <Modal
         visible={showMenu}
-        animationType='slide'
         transparent={true}
         onRequestClose={handleCloseModal}
       >
@@ -85,7 +86,9 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
           onPress={handleCloseModal}
           activeOpacity={1}
         >
-          <View style={styles.modalContent}>
+          <View
+            style={[styles.modalContent, { paddingBottom: 12 + insets.bottom }]}
+          >
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={styles.actionButton}

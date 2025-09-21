@@ -8,11 +8,12 @@ import {
   Modal,
   StyleSheet,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
-// TODO: DateRangeCalendar 컴포넌트를 React Native로 변환 필요
-// import DateRangeCalendar from '../bag/component/DateRangeCalendar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import DateRangeCalendarView from '../bag/DateRangeCalendarView';
 
 interface Props {
   bagDetail: BagDetail;
@@ -23,6 +24,7 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
   const [startDate, setStartDate] = useState<dayjs.Dayjs | null>(null);
   const [endDate, setEndDate] = useState<dayjs.Dayjs | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const handleDatePress = () => {
     setStartDate(bagDetail.getStartDate());
@@ -76,7 +78,6 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
 
       <Modal
         visible={isModalOpen}
-        animationType='slide'
         transparent={true}
         onRequestClose={handleCancel}
       >
@@ -85,22 +86,27 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
           onPress={handleCancel}
           activeOpacity={1}
         >
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>여행 날짜 수정</Text>
-            <Text style={styles.modalDescription}>
-              여행 시작일과 종료일을 선택해주세요
-            </Text>
-
-            <View style={styles.calendarContainer}>
-              <Text style={styles.calendarPlaceholder}>
-                {/* TODO: DateRangeCalendar를 React Native로 변환 후 사용 */}
-                시작일:{' '}
-                {startDate ? startDate.format('YYYY.MM.DD') : '선택해주세요'}
-                {'\n'}
-                종료일:{' '}
-                {endDate ? endDate.format('YYYY.MM.DD') : '선택해주세요'}
+          <View
+            style={[styles.modalContent, { paddingBottom: 12 + insets.bottom }]}
+          >
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              style={styles.scrollContainer}
+              contentContainerStyle={styles.scrollContentContainer}
+            >
+              <Text style={styles.modalTitle}>여행 날짜 수정</Text>
+              <Text style={styles.modalDescription}>
+                여행 시작일과 종료일을 선택해주세요
               </Text>
-            </View>
+              <View style={styles.calendarContainer}>
+                <DateRangeCalendarView
+                  startDate={startDate}
+                  endDate={endDate}
+                  onStartDateChange={setStartDate}
+                  onEndDateChange={setEndDate}
+                />
+              </View>
+            </ScrollView>
 
             <View style={styles.buttonContainer}>
               <TouchableOpacity
@@ -160,7 +166,14 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     padding: 24,
-    maxHeight: '90%',
+    maxHeight: '95%',
+    minHeight: '70%',
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContentContainer: {
+    paddingBottom: 20,
   },
   modalTitle: {
     fontSize: 18,
@@ -175,10 +188,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   calendarContainer: {
-    marginBottom: 20,
-    padding: 20,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
+    marginBottom: 10,
     alignItems: 'center',
   },
   calendarPlaceholder: {

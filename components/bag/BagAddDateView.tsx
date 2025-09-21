@@ -1,5 +1,4 @@
 import React from 'react';
-import { View } from 'react-native';
 import dayjs from 'dayjs';
 import DateRangeCalendar from './DateRangeCalendarView';
 
