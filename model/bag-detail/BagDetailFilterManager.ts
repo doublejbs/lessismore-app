@@ -83,6 +83,10 @@ class BagDetailFilterManager {
     filter.deselect();
   }
 
+  public deselectAll() {
+    this.filters.forEach(filter => filter.deselect());
+  }
+
   public groupGearsByCategory(gears: Gear[]) {
     return this.filters
       .map(filter => ({
@@ -101,6 +105,10 @@ class BagDetailFilterManager {
     return this.filters.filter(filter =>
       gears.some(gear => gear.getCategory() === filter.getFilter())
     );
+  }
+
+  public selectFirstFilter() {
+    this.filters[0].select();
   }
 }
 

@@ -40,7 +40,9 @@ class BagDetail {
   private startDate = dayjs();
   private endDate = dayjs();
   private shared = false;
-  private categoryRefs: Map<string, HTMLDivElement> = new Map();
+  private categoryRefs: Map<string, any> = new Map();
+  private scrollViewRef: any = null;
+  private isScrollingSyncFilter = false;
 
   private constructor(
     private readonly router: Router,
@@ -57,6 +59,7 @@ class BagDetail {
   public async initialize() {
     this.order.initialize();
     await this.getData();
+    this.filterManager.selectFirstFilter();
     this.setInitialized(true);
   }
 
@@ -307,12 +310,15 @@ class BagDetail {
 
   public async unshare() {
     await this.bagStore.updateShared(this.id, this.firebase.getUserId(), false);
-    window.alert('공유가 취소되었습니다.');
+    // React Native Alert을 컴포넌트에서 호출하도록 변경
     this.setShared(false);
   }
 
   public getUrl() {
-    return `${window.location.origin}/bag-share/${this.id}`;
+    // React Native에서는 환경변수나 상수를 사용
+    const baseUrl =
+      process.env.EXPO_PUBLIC_BASE_URL || 'https://your-domain.com';
+    return `${baseUrl}/bag-share/${this.id}`;
   }
 
   public setActiveFilterByCategory(categoryFilter: GearFilter) {
@@ -331,26 +337,88 @@ class BagDetail {
     this.filterManager.mapFilters(filter => filter.deselect());
   }
 
-  public setCategoryRefs(refs: Map<string, HTMLDivElement>) {
+  public setCategoryRefs(refs: Map<string, any>) {
     this.categoryRefs = refs;
+  }
+
+  public setScrollViewRef(ref: any) {
+    this.scrollViewRef = ref;
   }
 
   public scrollToCategory(categoryFilter: GearFilter) {
     const element = this.categoryRefs.get(categoryFilter);
-    if (element) {
-      const y =
-        element.getBoundingClientRect().top + window.pageYOffset - 170.5;
 
-      window.scrollTo({
-        top: y,
-        behavior: 'smooth',
-      });
+    if (element && this.scrollViewRef) {
+      // 프로그래밍 방식의 스크롤 동안 필터 동기화 비활성화
+      this.isScrollingSyncFilter = true;
+
+      try {
+        element.measureLayout(
+          this.scrollViewRef,
+          (_x: number, y: number) => {
+            // sticky header 높이를 고려한 오프셋 적용
+            const stickyHeaderHeight = 46; // gearHeader 높이 (text + filters, 패딩 제외)
+            const categoryTitleHeight = 30; // categoryTitle 높이 (fontSize 18 + marginBottom 12)
+            const additionalMargin = 20;
+
+            const totalOffset =
+              stickyHeaderHeight + categoryTitleHeight + additionalMargin;
+            const adjustedY = Math.max(0, y - totalOffset);
+
+            this.scrollViewRef.scrollTo({
+              y: adjustedY,
+              animated: true,
+            });
+
+            // 스크롤 애니메이션 완료 후 필터 동기화 재활성화
+            setTimeout(() => {
+              this.isScrollingSyncFilter = false;
+            }, 500);
+          },
+          () => {
+            // 측정 실패시 폴백 - measureInWindow 사용
+            const isFirstCategory = categoryFilter === GearFilter.Backpack;
+            const fallbackOffset = isFirstCategory ? 250 : 230;
+            element.measureInWindow((_x: number, y: number) => {
+              this.scrollViewRef.scrollTo({
+                y: Math.max(0, y - fallbackOffset),
+                animated: true,
+              });
+
+              // 스크롤 애니메이션 완료 후 필터 동기화 재활성화
+              setTimeout(() => {
+                this.isScrollingSyncFilter = false;
+              }, 500);
+            });
+          }
+        );
+      } catch (error) {
+        // 에러 발생시 기본 measureInWindow 사용
+        const isFirstCategory = categoryFilter === GearFilter.Backpack;
+        const fallbackOffset = isFirstCategory ? 250 : 230;
+        element.measureInWindow((_x: number, y: number) => {
+          this.scrollViewRef.scrollTo({
+            y: Math.max(0, y - fallbackOffset),
+            animated: true,
+          });
+
+          // 스크롤 애니메이션 완료 후 필터 동기화 재활성화
+          setTimeout(() => {
+            this.isScrollingSyncFilter = false;
+          }, 500);
+        });
+      }
     }
   }
 
   public toggleFilterWithScroll(filter: WarehouseFilter) {
     // 필터를 선택하고 해당 카테고리로 스크롤
-    this.selectFilter(filter);
+    console.log('filter toggle', filter);
+    if (!filter.isSelected()) {
+      this.filterManager.deselectAll();
+      this.selectFilter(filter);
+    }
+
     this.scrollToCategory(filter.getFilter());
   }
 
@@ -380,6 +448,72 @@ class BagDetail {
   public goToUseless() {
     this.router.push(`/useless/${this.getId()}`);
   }
+
+  public handleScroll(event: any) {
+    if (this.isScrollingSyncFilter) return;
+
+    const currentOffset = event.nativeEvent.contentOffset.y;
+    const stickyHeaderHeight = 46;
+
+    this.syncFilterByScrollPosition(currentOffset, stickyHeaderHeight);
+  }
+
+  private syncFilterByScrollPosition(
+    scrollY: number,
+    stickyHeaderHeight: number
+  ) {
+    const categories = this.getGearsByCategory();
+    const visibleTop = scrollY + stickyHeaderHeight;
+    let firstVisibleCategory: GearFilter | null = null;
+    let processedCount = 0;
+    const totalCategories = categories.length;
+
+    // 각 카테고리의 위치를 확인하여 완전히 보이는 첫 번째 카테고리 찾기
+    for (const { category } of categories) {
+      const element = this.categoryRefs.get(category.getFilter());
+      if (element) {
+        element.measureLayout(
+          this.scrollViewRef,
+          (_x: number, y: number, _width: number, height: number) => {
+            processedCount++;
+
+            // 카테고리가 헤더에 전혀 가려지지 않는 경우
+            if (y >= visibleTop && !firstVisibleCategory) {
+              firstVisibleCategory = category.getFilter();
+            }
+
+            // 모든 카테고리 처리 완료 후 필터 설정
+            if (processedCount === totalCategories && firstVisibleCategory) {
+              this.setActiveFilterByScrollPosition(firstVisibleCategory);
+            }
+          },
+          () => {
+            processedCount++;
+            // measureLayout 실패시에도 카운트 증가
+          }
+        );
+      } else {
+        processedCount++;
+      }
+    }
+  }
+
+  private setActiveFilterByScrollPosition = (categoryFilter: GearFilter) => {
+    // 현재 선택된 필터가 이미 맞다면 변경하지 않음
+    const currentSelected = this.filterManager
+      .mapFilters(f => (f.isSelected() ? f.getFilter() : null))
+      .find(f => f !== null);
+
+    if (currentSelected === categoryFilter) return;
+
+    // 모든 필터 해제 후 해당 카테고리 필터만 선택
+    this.filterManager.deselectAll();
+    this.filterManager.mapFilters(filter => {
+      if (filter.isSame(categoryFilter)) {
+        filter.select();
+      }
+    });
+  };
 }
 
 export default BagDetail;

@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Gear from '@/model/gear/Gear';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
@@ -9,11 +9,25 @@ interface Props {
   category: WarehouseFilter;
   gears: Gear[];
   bagDetail: BagDetail;
+  onRefReady?: (categoryFilter: string, ref: View | null) => void;
 }
 
-const BagDetailCategoryView: FC<Props> = ({ category, gears, bagDetail }) => {
+const BagDetailCategoryView: FC<Props> = ({
+  category,
+  gears,
+  bagDetail,
+  onRefReady,
+}) => {
+  const categoryRef = useRef<View>(null);
+
+  useEffect(() => {
+    if (categoryRef.current && onRefReady) {
+      onRefReady(category.getFilter(), categoryRef.current);
+    }
+  }, [category, onRefReady]);
+
   return (
-    <View style={styles.container}>
+    <View ref={categoryRef} style={styles.container}>
       <Text style={styles.categoryTitle}>{category.getName()}</Text>
       <View style={styles.gearList}>
         {gears.map(gear => (

@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // TODO: Install expo-clipboard package
 // import * as Clipboard from 'expo-clipboard';
 import BagDetail from '@/model/bag-detail/BagDetail';
@@ -20,6 +21,7 @@ interface Props {
 const ShareButtonView: FC<Props> = ({ bagDetail }) => {
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const insets = useSafeAreaInsets();
   const shared = bagDetail.isShared();
   const url = bagDetail.getUrl();
 
@@ -33,6 +35,7 @@ const ShareButtonView: FC<Props> = ({ bagDetail }) => {
     try {
       if (shared) {
         await bagDetail.unshare();
+        Alert.alert('알림', '공유가 취소되었습니다.');
       } else {
         await bagDetail.share();
 
@@ -78,7 +81,9 @@ const ShareButtonView: FC<Props> = ({ bagDetail }) => {
           onPress={() => setShowModal(false)}
           activeOpacity={1}
         >
-          <View style={styles.modalContent}>
+          <View
+            style={[styles.modalContent, { paddingBottom: 12 + insets.bottom }]}
+          >
             <Text style={styles.modalTitle}>
               {shared ? '배낭 공유 중' : '배낭 공유하기'}
             </Text>

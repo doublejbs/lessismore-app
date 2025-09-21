@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useLayoutEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -24,14 +24,31 @@ interface Props {
 
 const BagDetailView: FC<Props> = ({ bagDetail }) => {
   const initialized = bagDetail.isInitialized();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const categoryRefsMap = useRef<Map<string, any>>(new Map());
 
   const handlePressBack = () => {
     bagDetail.back();
   };
 
+  const handleCategoryRefReady = (categoryFilter: string, ref: any) => {
+    categoryRefsMap.current.set(categoryFilter, ref);
+    bagDetail.setCategoryRefs(categoryRefsMap.current);
+  };
+
+  const handleScroll = (event: any) => {
+    bagDetail.handleScroll(event);
+  };
+
   useEffect(() => {
     bagDetail.initialize();
   }, []);
+
+  useLayoutEffect(() => {
+    if (initialized && scrollViewRef.current) {
+      bagDetail.setScrollViewRef(scrollViewRef.current);
+    }
+  }, [initialized]);
 
   if (initialized) {
     const weight = bagDetail.getWeight();
@@ -53,8 +70,12 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
         </View>
 
         <ScrollView
+          ref={scrollViewRef}
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
+          stickyHeaderIndices={[4]}
+          onScroll={handleScroll}
+          scrollEventThrottle={100}
         >
           <View style={styles.infoSection}>
             <View style={styles.nameSection}>
@@ -62,12 +83,9 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
             </View>
             <BagDetailDateView bagDetail={bagDetail} />
           </View>
-
           <BagDetailUselessDescriptionView bagDetail={bagDetail} />
           <BagDetailChartView bagDetail={bagDetail} />
-
           <View style={styles.separator} />
-
           <View style={styles.gearHeader}>
             <View style={styles.gearHeaderContent}>
               <Text style={styles.gearCountText}>
@@ -76,7 +94,6 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
             </View>
             <BagDetailFiltersView bagDetail={bagDetail} />
           </View>
-
           <View style={styles.gearListContainer}>
             <View style={styles.gearList}>
               {bagDetail.getGearsByCategory().map(({ category, gears }) => (
@@ -85,12 +102,13 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                   category={category}
                   bagDetail={bagDetail}
                   gears={gears}
+                  onRefReady={handleCategoryRefReady}
                 />
               ))}
+              <View style={styles.dummy} />
             </View>
           </View>
         </ScrollView>
-
         <BagDetailAddButtonView bagDetail={bagDetail} />
       </View>
     );
@@ -170,6 +188,9 @@ const styles = StyleSheet.create({
   loading: {
     flex: 1,
     backgroundColor: 'white',
+  },
+  dummy: {
+    height: 200,
   },
 });
 

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
   bagDetail: BagDetail;
@@ -20,6 +21,7 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const handleNamePress = () => {
     setInputValue(bagDetail.getName());
@@ -63,7 +65,6 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
 
       <Modal
         visible={isModalOpen}
-        animationType='slide'
         transparent={true}
         onRequestClose={handleCancel}
       >
@@ -72,7 +73,9 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
           onPress={handleCancel}
           activeOpacity={1}
         >
-          <View style={styles.modalContent}>
+          <View
+            style={[styles.modalContent, { paddingBottom: 12 + insets.bottom }]}
+          >
             <Text style={styles.modalTitle}>배낭 이름 수정</Text>
             <Text style={styles.modalDescription}>
               새로운 배낭 이름을 입력해주세요

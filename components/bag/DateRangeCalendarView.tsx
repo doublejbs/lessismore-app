@@ -1,9 +1,8 @@
 import dayjs from 'dayjs';
 import { FC, useEffect, useState } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import PretendardText from '@/components/PretendardText';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-interface DateRangeCalendarProps {
+interface Props {
   startDate: dayjs.Dayjs | null;
   endDate: dayjs.Dayjs | null;
   onStartDateChange: (date: dayjs.Dayjs) => void;
@@ -11,7 +10,7 @@ interface DateRangeCalendarProps {
   initialMonth?: dayjs.Dayjs;
 }
 
-const DateRangeCalendar: FC<DateRangeCalendarProps> = ({
+const DateRangeCalendarView: FC<Props> = ({
   startDate,
   endDate,
   onStartDateChange,
@@ -104,50 +103,49 @@ const DateRangeCalendar: FC<DateRangeCalendarProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.dateRangeHeader}>
+      <View style={styles.dateSelectionContainer}>
         <View style={styles.dateSection}>
-          <PretendardText style={styles.dateLabel}>시작일</PretendardText>
+          <Text style={styles.dateLabel}>시작일</Text>
           <View style={styles.dateDisplay}>
-            <PretendardText style={styles.dateText}>
+            <Text style={styles.dateText}>
               {startDate ? startDate.format('YYYY.MM.DD') : '선택 안됨'}
-            </PretendardText>
+            </Text>
           </View>
         </View>
 
         <View style={styles.dateSection}>
-          <PretendardText style={styles.dateLabel}>종료일</PretendardText>
+          <Text style={styles.dateLabel}>종료일</Text>
           <View style={styles.dateDisplay}>
-            <PretendardText style={styles.dateText}>
+            <Text style={styles.dateText}>
               {endDate ? endDate.format('YYYY.MM.DD') : '선택 안됨'}
-            </PretendardText>
+            </Text>
           </View>
         </View>
       </View>
-      <View style={styles.monthNavigation}>
+
+      <View style={styles.navigationContainer}>
         <TouchableOpacity
           onPress={navigateToPreviousMonth}
-          style={styles.navButton}
-          activeOpacity={0.7}
+          style={styles.navigationButton}
         >
-          <PretendardText style={styles.navIcon}>‹</PretendardText>
+          <Text style={styles.navigationArrow}>‹</Text>
         </TouchableOpacity>
-        <PretendardText style={styles.monthTitle}>
+        <Text style={styles.monthTitle}>
           {currentMonth.format('YYYY년 M월')}
-        </PretendardText>
+        </Text>
         <TouchableOpacity
           onPress={navigateToNextMonth}
-          style={styles.navButton}
-          activeOpacity={0.7}
+          style={styles.navigationButton}
         >
-          <PretendardText style={styles.navIcon}>›</PretendardText>
+          <Text style={styles.navigationArrow}>›</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.calendarContainer}>
-        <View style={styles.weekdaysRow}>
+        <View style={styles.weekdaysContainer}>
           {weekdays.map((day, index) => (
             <View key={index} style={styles.weekdayCell}>
-              <PretendardText
+              <Text
                 style={[
                   styles.weekdayText,
                   index === 0 && styles.sundayText,
@@ -155,58 +153,56 @@ const DateRangeCalendar: FC<DateRangeCalendarProps> = ({
                 ]}
               >
                 {day}
-              </PretendardText>
+              </Text>
             </View>
           ))}
         </View>
 
-        <View style={styles.calendarGrid}>
-          {Array.from({ length: 6 }).map((_, rowIndex) => (
-            <View key={rowIndex} style={styles.calendarRow}>
-              {calendarDays
-                .slice(rowIndex * 7, (rowIndex + 1) * 7)
-                .map((day, colIndex) => {
-                  const index = rowIndex * 7 + colIndex;
-                  const isStart = isSelectedStart(day);
-                  const isEnd = isSelectedEnd(day);
-                  const isSelected = isStart || isEnd;
-                  const isRange = isInRange(day);
+        <View style={styles.daysContainer}>
+          {calendarDays.map((day, index) => {
+            const isStart = isSelectedStart(day);
+            const isEnd = isSelectedEnd(day);
+            const isSelected = isStart || isEnd;
+            const isRange = isInRange(day);
 
-                  return (
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => handleDateClick(day)}
-                      style={styles.dayCell}
-                      activeOpacity={0.7}
-                    >
-                      <View
-                        style={[
-                          styles.dayButton,
-                          isSelected && styles.selectedDay,
-                          isRange && !isSelected && styles.rangeDay,
-                        ]}
-                      >
-                        <PretendardText
-                          style={[
-                            styles.dayText,
-                            !isCurrentMonth(day) && styles.otherMonthText,
-                            isSelected && styles.selectedDayText,
-                            index % 7 === 0 && styles.sundayText,
-                            index % 7 === 6 && styles.saturdayText,
-                            (isToday(day) || isSelected) && styles.boldText,
-                          ]}
-                        >
-                          {day.date()}
-                        </PretendardText>
-                      </View>
-                      {isToday(day) && !isSelected && (
-                        <View style={styles.todayIndicator} />
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-            </View>
-          ))}
+            return (
+              <TouchableOpacity
+                key={index}
+                onPress={() => handleDateClick(day)}
+                style={styles.dayContainer}
+              >
+                <View
+                  style={[
+                    styles.dayCell,
+                    isSelected && styles.selectedDay,
+                    isRange && !isSelected && styles.rangeDay,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.dayText,
+                      !isCurrentMonth(day) && styles.otherMonthText,
+                      isSelected && styles.selectedDayText,
+                      index % 7 === 0 &&
+                        isCurrentMonth(day) &&
+                        !isSelected &&
+                        styles.sundayText,
+                      index % 7 === 6 &&
+                        isCurrentMonth(day) &&
+                        !isSelected &&
+                        styles.saturdayText,
+                      (isToday(day) || isSelected) && styles.boldText,
+                    ]}
+                  >
+                    {day.date()}
+                  </Text>
+                </View>
+                {isToday(day) && !isSelected && (
+                  <View style={styles.todayIndicator} />
+                )}
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
     </View>
@@ -217,53 +213,51 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
   },
-  dateRangeHeader: {
+  dateSelectionContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 10,
   },
   dateSection: {
-    flexDirection: 'column',
-    gap: 5,
     flex: 1,
+    gap: 5,
   },
   dateLabel: {
     fontSize: 20,
-    fontFamily: 'Pretendard-Bold',
+    fontWeight: 'bold',
   },
   dateDisplay: {
     backgroundColor: 'rgb(238, 238, 238)',
-    paddingVertical: 12,
+    paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 10,
+    borderRadius: 8,
   },
   dateText: {
-    fontSize: 14,
-    fontFamily: 'Pretendard-Regular',
+    textAlign: 'center',
   },
-  monthNavigation: {
+  navigationContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 10,
   },
-  navButton: {
-    padding: 8,
+  navigationButton: {
+    padding: 10,
   },
-  navIcon: {
+  navigationArrow: {
     fontSize: 24,
-    fontFamily: 'Pretendard-Bold',
+    fontWeight: 'bold',
   },
   monthTitle: {
-    fontFamily: 'Pretendard-Bold',
+    fontWeight: 'bold',
     fontSize: 18,
   },
   calendarContainer: {
     flex: 1,
   },
-  weekdaysRow: {
+  weekdaysContainer: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: 5,
   },
   weekdayCell: {
     flex: 1,
@@ -271,8 +265,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   weekdayText: {
-    fontFamily: 'Pretendard-Bold',
-    fontSize: 14,
+    fontWeight: 'bold',
   },
   sundayText: {
     color: '#FF5252',
@@ -280,20 +273,19 @@ const styles = StyleSheet.create({
   saturdayText: {
     color: '#2196F3',
   },
-  calendarGrid: {
+  daysContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     height: 240,
   },
-  calendarRow: {
-    flexDirection: 'row',
-    flex: 1,
-  },
-  dayCell: {
-    flex: 1,
+  dayContainer: {
+    width: '14.28%', // 100% / 7 days
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
   },
-  dayButton: {
+  dayCell: {
     width: 36,
     height: 36,
     justifyContent: 'center',
@@ -307,8 +299,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(238, 238, 238)',
   },
   dayText: {
-    fontSize: 14,
-    fontFamily: 'Pretendard-Regular',
+    textAlign: 'center',
   },
   otherMonthText: {
     color: '#BDBDBD',
@@ -317,7 +308,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   boldText: {
-    fontFamily: 'Pretendard-Bold',
+    fontWeight: 'bold',
   },
   todayIndicator: {
     position: 'absolute',
@@ -329,4 +320,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DateRangeCalendar;
+export default DateRangeCalendarView;
