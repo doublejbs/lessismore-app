@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   Modal,
   StyleSheet,
   Alert,
+  Platform,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
@@ -21,7 +23,24 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    const keyboardWillShowListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      e => setKeyboardHeight(e.endCoordinates.height)
+    );
+    const keyboardWillHideListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setKeyboardHeight(0)
+    );
+
+    return () => {
+      keyboardWillShowListener.remove();
+      keyboardWillHideListener.remove();
+    };
+  }, []);
 
   const handleNamePress = () => {
     setInputValue(bagDetail.getName());
@@ -68,13 +87,20 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
         transparent={true}
         onRequestClose={handleCancel}
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          onPress={handleCancel}
-          activeOpacity={1}
-        >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            onPress={handleCancel}
+            activeOpacity={1}
+          />
           <View
-            style={[styles.modalContent, { paddingBottom: 12 + insets.bottom }]}
+            style={[
+              styles.modalContent,
+              {
+                marginBottom:
+                  keyboardHeight > 0 ? keyboardHeight : insets.bottom,
+              },
+            ]}
           >
             <Text style={styles.modalTitle}>배낭 이름 수정</Text>
             <Text style={styles.modalDescription}>
@@ -88,6 +114,7 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
               style={styles.textInput}
               autoFocus
               onSubmitEditing={handleSave}
+              returnKeyType='done'
             />
 
             <View style={styles.buttonContainer}>
@@ -116,7 +143,7 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
               </TouchableOpacity>
             </View>
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
     </>
   );
@@ -139,14 +166,22 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
+  },
+  modalBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     backgroundColor: 'white',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     padding: 24,
+    paddingBottom: 12,
   },
   modalTitle: {
     fontSize: 18,
