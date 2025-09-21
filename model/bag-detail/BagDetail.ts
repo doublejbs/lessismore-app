@@ -413,7 +413,6 @@ class BagDetail {
 
   public toggleFilterWithScroll(filter: WarehouseFilter) {
     // 필터를 선택하고 해당 카테고리로 스크롤
-    console.log('filter toggle', filter);
     if (!filter.isSelected()) {
       this.filterManager.deselectAll();
       this.selectFilter(filter);
