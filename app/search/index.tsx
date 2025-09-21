@@ -1,24 +1,14 @@
 import { observer } from 'mobx-react-lite';
-import WebViewWrapper from '@/components/webview/WebViewWrapper';
-import { Platform } from 'react-native';
-import Order from '@/model/order/Order';
-import Warehouse from '@/model/warehouse/Warehouse';
+import SearchWarehouseView from '@/components/search/SearchWarehouseView';
+import { useState } from 'react';
+import SearchWarehouse from '@/model/search/SearchWarehouse';
+import { useRouter } from 'expo-router';
 
 const SearchPage = () => {
-  const handleUpdateData = () => {
-    Order.new(Warehouse.ORDER_KEY).selectLastOrderOption();
-  };
+  const router = useRouter();
+  const [searchWarehouse] = useState(() => SearchWarehouse.new(router));
 
-  return (
-    <WebViewWrapper
-      uri={'https://useless.my/search'}
-      header={false}
-      modal={Platform.OS === 'ios'}
-      callback={{
-        onUpdateData: handleUpdateData,
-      }}
-    />
-  );
+  return <SearchWarehouseView searchWarehouse={searchWarehouse} />;
 };
 
 export default observer(SearchPage);
