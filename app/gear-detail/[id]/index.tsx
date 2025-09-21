@@ -1,15 +1,7 @@
-import { useLocalSearchParams } from 'expo-router';
-import WebViewWrapper from '@/components/webview/WebViewWrapper';
+import WarehouseDetailWrapper from '@/components/warehouse-detail/WarehouseDetailWrapper';
 
 const GearDetailWrapper = () => {
-  const { id } = useLocalSearchParams<{ id: string }>();
-
-  return (
-    <WebViewWrapper
-      uri={`https://useless.my/warehouse/detail/${id}`}
-      header={true}
-    />
-  );
+  return <WarehouseDetailWrapper />;
 };
 
 export default GearDetailWrapper;
