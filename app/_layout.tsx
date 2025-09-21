@@ -11,8 +11,11 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import app from '@/model/app/App';
 import { useEffect } from 'react';
-import { observer } from 'mobx-react-lite';
 import SplashLoadingView from '@/components/ui/SplashLoadingView';
+import { View } from 'react-native';
+import { Text } from 'react-native';
+import { HotUpdater, getUpdateSource } from '@hot-updater/react-native';
+import { observer } from 'mobx-react-lite';
 
 const RootLayout = () => {
   const colorScheme = useColorScheme();
@@ -104,4 +107,37 @@ const RootLayout = () => {
   );
 };
 
-export default observer(RootLayout);
+export default HotUpdater.wrap({
+  source: getUpdateSource(
+    'https://hot-updater-7llz3bz5aq-du.a.run.app/api/check-update',
+    {
+      updateStrategy: 'appVersion', // or "fingerprint"
+    }
+  ),
+  requestHeaders: {
+    // if you want to use the request headers, you can add them here
+  },
+  fallbackComponent: ({ progress, status }) => (
+    <View
+      style={{
+        flex: 1,
+        padding: 20,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      }}
+    >
+      {/* You can put a splash image here. */}
+
+      <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
+        {status === 'UPDATING' ? 'Updating...' : 'Checking for Update...'}
+      </Text>
+      {progress > 0 ? (
+        <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
+          {Math.round(progress * 100)}%
+        </Text>
+      ) : null}
+    </View>
+  ),
+})(observer(RootLayout));
