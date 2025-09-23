@@ -75,12 +75,9 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
           contentContainerStyle={styles.scrollContent}
           stickyHeaderIndices={[4]}
           onScroll={handleScroll}
-          scrollEventThrottle={100}
         >
           <View style={styles.infoSection}>
-            <View style={styles.nameSection}>
-              <BagDetailNameView bagDetail={bagDetail} />
-            </View>
+            <BagDetailNameView bagDetail={bagDetail} />
             <BagDetailDateView bagDetail={bagDetail} />
           </View>
           <BagDetailUselessDescriptionView bagDetail={bagDetail} />
@@ -112,9 +109,9 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
         <BagDetailAddButtonView bagDetail={bagDetail} />
       </View>
     );
+  } else {
+    return <View style={styles.loading} />;
   }
-
-  return <View style={styles.loading} />;
 };
 
 const styles = StyleSheet.create({
@@ -153,9 +150,6 @@ const styles = StyleSheet.create({
   infoSection: {
     backgroundColor: 'white',
     paddingTop: 8,
-  },
-  nameSection: {
-    position: 'relative',
   },
   separator: {
     width: '100%',
