@@ -1,5 +1,4 @@
-import { observer } from 'mobx-react-lite';
-import { FC, useState, useEffect } from 'react';
+import React, { FC, useState } from 'react';
 import {
   View,
   Text,
@@ -8,12 +7,14 @@ import {
   Modal,
   StyleSheet,
   Alert,
+  ScrollView,
+  Dimensions,
   Platform,
-  Keyboard,
+  KeyboardAvoidingView,
 } from 'react-native';
+import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
   bagDetail: BagDetail;
@@ -23,24 +24,6 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const insets = useSafeAreaInsets();
-
-  useEffect(() => {
-    const keyboardWillShowListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      e => setKeyboardHeight(e.endCoordinates.height)
-    );
-    const keyboardWillHideListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => setKeyboardHeight(0)
-    );
-
-    return () => {
-      keyboardWillShowListener.remove();
-      keyboardWillHideListener.remove();
-    };
-  }, []);
 
   const handleNamePress = () => {
     setInputValue(bagDetail.getName());
@@ -87,67 +70,82 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
         transparent={true}
         onRequestClose={handleCancel}
       >
-        <View style={styles.modalOverlay}>
-          <TouchableOpacity
-            style={styles.modalBackdrop}
-            onPress={handleCancel}
-            activeOpacity={1}
-          />
-          <View
-            style={[
-              styles.modalContent,
-              {
-                marginBottom:
-                  keyboardHeight > 0 ? keyboardHeight : insets.bottom,
-              },
-            ]}
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          onPress={handleCancel}
+          activeOpacity={1}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ flex: 1, justifyContent: 'flex-end' }}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
           >
-            <Text style={styles.modalTitle}>배낭 이름 수정</Text>
-            <Text style={styles.modalDescription}>
-              새로운 배낭 이름을 입력해주세요
-            </Text>
-
-            <TextInput
-              value={inputValue}
-              onChangeText={setInputValue}
-              placeholder='배낭 이름을 입력하세요'
-              style={styles.textInput}
-              autoFocus
-              onSubmitEditing={handleSave}
-              returnKeyType='done'
-            />
-
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                onPress={handleCancel}
-                disabled={isUpdating}
-                style={[styles.cancelButton, { opacity: isUpdating ? 0.6 : 1 }]}
+            <TouchableOpacity
+              style={styles.modalContent}
+              activeOpacity={1}
+              onPress={e => e.stopPropagation()}
+            >
+              <ScrollView
+                style={styles.scrollView}
+                showsVerticalScrollIndicator={false}
+                bounces={false}
               >
-                <Text style={styles.cancelButtonText}>취소</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handleSave}
-                disabled={isUpdating || inputValue.trim() === ''}
-                style={[
-                  styles.saveButton,
-                  {
-                    backgroundColor:
-                      isUpdating || inputValue.trim() === '' ? '#666' : 'black',
-                  },
-                ]}
-              >
-                <Text style={styles.saveButtonText}>
-                  {isUpdating ? '저장 중...' : '저장'}
+                <Text style={styles.modalTitle}>배낭 이름 수정</Text>
+                <Text style={styles.modalDescription}>
+                  새로운 배낭 이름을 입력해주세요
                 </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+
+                <TextInput
+                  value={inputValue}
+                  onChangeText={setInputValue}
+                  placeholder='배낭 이름을 입력하세요'
+                  style={styles.textInput}
+                  autoFocus
+                  onSubmitEditing={handleSave}
+                  returnKeyType='done'
+                />
+              </ScrollView>
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  onPress={handleCancel}
+                  disabled={isUpdating}
+                  style={[
+                    styles.cancelButton,
+                    { opacity: isUpdating ? 0.6 : 1 },
+                  ]}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.cancelButtonText}>취소</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handleSave}
+                  disabled={isUpdating || inputValue.trim() === ''}
+                  style={[
+                    styles.saveButton,
+                    {
+                      backgroundColor:
+                        isUpdating || inputValue.trim() === ''
+                          ? '#666'
+                          : 'black',
+                    },
+                  ]}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.saveButtonText}>
+                    {isUpdating ? '저장 중...' : '저장'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </KeyboardAvoidingView>
+        </TouchableOpacity>
       </Modal>
     </>
   );
 };
+
+const { height: screenHeight } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   nameContainer: {
@@ -166,22 +164,19 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     justifyContent: 'flex-end',
-  },
-  modalBackdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     backgroundColor: 'white',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    padding: 24,
-    paddingBottom: 12,
+    padding: 16,
+    maxHeight: screenHeight * 0.7, // 화면 높이의 70%로 제한 (키보드 공간 확보)
+  },
+  scrollView: {
+    flexGrow: 0,
+    marginBottom: 16,
   },
   modalTitle: {
     fontSize: 18,
@@ -196,7 +191,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   textInput: {
-    width: '100%',
     padding: 12,
     borderWidth: 1,
     borderColor: '#ddd',

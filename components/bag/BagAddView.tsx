@@ -9,9 +9,9 @@ import {
   ScrollView,
   Dimensions,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Bag from '@/model/bag/Bag';
 import dayjs from 'dayjs';
 import BagAddDateView from './BagAddDateView';
@@ -30,7 +30,6 @@ const BagAddView: FC<Props> = ({ bag }) => {
     dayjs().add(1, 'day')
   );
   const router = useRouter();
-  const insets = useSafeAreaInsets();
 
   const showAdd = () => {
     if (app.getFirebase()?.isLoggedIn()) {
@@ -72,6 +71,7 @@ const BagAddView: FC<Props> = ({ bag }) => {
   const handleEndDateChange = (date: dayjs.Dayjs | null) => {
     setEndDate(date);
   };
+
   return (
     <>
       <TouchableOpacity
@@ -91,57 +91,62 @@ const BagAddView: FC<Props> = ({ bag }) => {
           onPress={handleClickCancel}
           activeOpacity={1}
         >
-          <View
-            style={[
-              styles.modalContent,
-              { paddingBottom: Math.max(16, insets.bottom) },
-            ]}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'height' : 'height'}
+            style={{ flex: 1, justifyContent: 'flex-end' }}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
           >
-            <ScrollView
-              style={styles.scrollView}
-              showsVerticalScrollIndicator={false}
-              bounces={false}
+            <TouchableOpacity
+              style={styles.modalContent}
+              activeOpacity={1}
+              onPress={e => e.stopPropagation()}
             >
-              <View style={styles.inputSection}>
-                <PretendardText style={styles.inputLabel}>
-                  배낭 이름
-                </PretendardText>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder='배낭 이름을 입력해주세요'
-                  value={inputValue}
-                  onChangeText={handleChange}
-                  placeholderTextColor='#999'
+              <ScrollView
+                style={styles.scrollView}
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+              >
+                <View style={styles.inputSection}>
+                  <PretendardText style={styles.inputLabel}>
+                    배낭 이름
+                  </PretendardText>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder='배낭 이름을 입력해주세요'
+                    value={inputValue}
+                    onChangeText={handleChange}
+                    placeholderTextColor='#999'
+                  />
+                </View>
+                <BagAddDateView
+                  startDate={startDate}
+                  endDate={endDate}
+                  onStartDateChange={handleStartDateChange}
+                  onEndDateChange={handleEndDateChange}
                 />
+              </ScrollView>
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={handleClickCancel}
+                  activeOpacity={0.7}
+                >
+                  <PretendardText style={styles.cancelButtonText}>
+                    취소
+                  </PretendardText>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.confirmButton}
+                  onPress={handleClickConfirm}
+                  activeOpacity={0.7}
+                >
+                  <PretendardText style={styles.confirmButtonText}>
+                    확인
+                  </PretendardText>
+                </TouchableOpacity>
               </View>
-              <BagAddDateView
-                startDate={startDate}
-                endDate={endDate}
-                onStartDateChange={handleStartDateChange}
-                onEndDateChange={handleEndDateChange}
-              />
-            </ScrollView>
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={handleClickCancel}
-                activeOpacity={0.7}
-              >
-                <PretendardText style={styles.cancelButtonText}>
-                  취소
-                </PretendardText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.confirmButton}
-                onPress={handleClickConfirm}
-                activeOpacity={0.7}
-              >
-                <PretendardText style={styles.confirmButtonText}>
-                  확인
-                </PretendardText>
-              </TouchableOpacity>
-            </View>
-          </View>
+            </TouchableOpacity>
+          </KeyboardAvoidingView>
         </TouchableOpacity>
       </Modal>
     </>
@@ -195,10 +200,10 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     padding: 16,
-    maxHeight: screenHeight * 0.8, // 화면 높이의 80%로 제한
+    maxHeight: screenHeight * 0.7, // 화면 높이의 70%로 제한 (키보드 공간 확보)
   },
   scrollView: {
-    flexGrow: 0,
+    flexGrow: 1,
     marginBottom: 16,
   },
   inputSection: {
