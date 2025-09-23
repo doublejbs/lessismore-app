@@ -54,7 +54,6 @@ const BagDetailUselessDescriptionView: FC<Props> = ({ bagDetail }) => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
     paddingHorizontal: 20,
     paddingBottom: 8,
     backgroundColor: 'white',

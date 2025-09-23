@@ -22,12 +22,8 @@ const BagDetailAddButtonView: FC<Props> = ({ bagDetail }) => {
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 12,
-    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingHorizontal: 20,
     backgroundColor: 'white',
   },
   button: {

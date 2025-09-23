@@ -12,7 +12,7 @@ import BagDetailFilterManager from '@/model/bag-detail/BagDetailFilterManager';
 import { Router } from 'expo-router';
 
 class BagDetail {
-  private static readonly ORDER_KEY = 'bag';
+  public static readonly ORDER_KEY = 'bag';
 
   public static from(router: Router, id: string) {
     return new BagDetail(

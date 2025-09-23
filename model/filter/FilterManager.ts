@@ -65,10 +65,17 @@ class FilterManager {
   }
 
   public initializeWithSelectedGears(selectedGears: Gear[]) {
+    this.clearFilterCounts();
     selectedGears.forEach(gear => {
       this.filters
         .find(currentFilter => currentFilter.getFilter() === gear.getCategory())
         ?.plusCount();
+    });
+  }
+
+  private clearFilterCounts() {
+    this.filters.forEach(filter => {
+      filter.resetCount();
     });
   }
 

@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react';
 import { View, ScrollView, StyleSheet, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import BagItemView from './BagItemView';
 import BagAddView from './BagAddView';
@@ -11,7 +10,7 @@ import PretendardText from '@/components/PretendardText';
 import { useFocusEffect } from '@react-navigation/native';
 import LogInView from '../login/LogInView';
 import app from '@/model/app/App';
-import AlertView from '../alert/AlertView';
+import Layout from '../Layout';
 
 const BagView = () => {
   const [bag] = useState(() => Bag.new());
@@ -64,7 +63,6 @@ const BagView = () => {
               ))}
               <View style={styles.bottomSpacer} />
             </ScrollView>
-            <AlertView alertManager={app.getAlertManager()!} />
           </>
         );
       }
@@ -72,13 +70,11 @@ const BagView = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.contentContainer}>
-        {render()}
-        <View style={styles.addButtonSpacer} />
-        <BagAddView bag={bag} />
-      </View>
-    </SafeAreaView>
+    <Layout>
+      {render()}
+      <View style={styles.addButtonSpacer} />
+      <BagAddView bag={bag} />
+    </Layout>
   );
 };
 
@@ -91,7 +87,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     flexDirection: 'column',
-    paddingHorizontal: 20,
   },
   emptyContainer: {
     flex: 1,
