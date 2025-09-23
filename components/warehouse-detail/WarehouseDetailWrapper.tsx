@@ -4,8 +4,7 @@ import WarehouseDetailView from './WarehouseDetailView';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import WarehouseDispatcher from '../../model/warehouse/WarehouseDispatcher';
-import AlertView from '../alert/AlertView';
-import app from '@/model/app/App';
+import Layout from '../Layout';
 
 interface Props {}
 
@@ -23,10 +22,9 @@ const WarehouseDetailWrapper: FC<Props> = ({}) => {
 
   if (initialized) {
     return (
-      <>
+      <Layout>
         <WarehouseDetailView warehouseDetail={warehouseDetail} />
-        <AlertView alertManager={app.getAlertManager()!} />
-      </>
+      </Layout>
     );
   } else {
     return null;

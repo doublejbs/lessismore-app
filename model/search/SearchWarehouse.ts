@@ -9,6 +9,7 @@ import SearchDispatcher from '@/model/search/SearchDispatcher';
 import { InteractionManager } from 'react-native';
 import Order from '../order/Order';
 import Warehouse from '../warehouse/Warehouse';
+import BagDetail from '../bag-detail/BagDetail';
 
 class SearchWarehouse {
   public static new(router: Router) {
@@ -17,7 +18,8 @@ class SearchWarehouse {
       router,
       app.getFirebase(),
       app.getLogInAlertManager()!,
-      Order.new(Warehouse.ORDER_KEY)
+      Order.new(Warehouse.ORDER_KEY),
+      Order.new(BagDetail.ORDER_KEY)
     );
   }
 
@@ -34,7 +36,8 @@ class SearchWarehouse {
     private readonly navigation: Router,
     private readonly firebase: Firebase,
     private readonly logInAlertManager: LogInAlertManager,
-    private readonly warehouseLocalStorage: Order
+    private readonly warehouseOrder: Order,
+    private readonly bagDetailOrder: Order
   ) {
     makeObservable(this);
     this.disposeLoginReaction = reaction(
@@ -211,7 +214,8 @@ class SearchWarehouse {
 
   public async register() {
     await this.searchDispatcher.register(this.selected);
-    this.warehouseLocalStorage.selectLastOrderOption();
+    await this.warehouseOrder.saveLastOrderOption();
+    await this.bagDetailOrder.saveLastOrderOption();
     this.back(this.selected);
   }
 

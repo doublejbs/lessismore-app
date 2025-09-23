@@ -222,8 +222,6 @@ const BagDetailChartView: FC<Props> = ({ bagDetail }) => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 8,
-    paddingHorizontal: 20,
     paddingBottom: 16,
     backgroundColor: 'white',
   },
@@ -233,6 +231,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 6,
     padding: 8,
+    paddingHorizontal: 20,
   },
   headerTitle: {
     fontSize: 17,

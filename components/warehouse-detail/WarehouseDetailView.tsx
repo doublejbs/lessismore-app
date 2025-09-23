@@ -36,45 +36,40 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
 
   if (gear) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <TouchableOpacity
-              onPress={handlePressClose}
-              style={styles.backButton}
-            >
-              <Ionicons name='chevron-back' size={24} color='#191F28' />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView style={styles.content}>
-            <WarehouseDetailInformationView gear={gear} />
-            <WarehouseDetailBagRecordView
-              gear={gear}
-              warehouseDetail={warehouseDetail}
-            />
-          </ScrollView>
-
-          <View style={styles.bottomButtons}>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={handlePressDelete}
-            >
-              <Text style={styles.deleteButtonText}>삭제하기</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={handlePressEdit}
-            >
-              <Text style={styles.editButtonText}>수정하기</Text>
-            </TouchableOpacity>
-          </View>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={handlePressClose}
+            style={styles.backButton}
+          >
+            <Ionicons name='chevron-back' size={24} color='#191F28' />
+          </TouchableOpacity>
         </View>
-      </SafeAreaView>
-    );
-  }
 
-  return null;
+        <ScrollView style={styles.content}>
+          <WarehouseDetailInformationView gear={gear} />
+          <WarehouseDetailBagRecordView
+            gear={gear}
+            warehouseDetail={warehouseDetail}
+          />
+        </ScrollView>
+
+        <View style={styles.bottomButtons}>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handlePressDelete}
+          >
+            <Text style={styles.deleteButtonText}>삭제하기</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.editButton} onPress={handlePressEdit}>
+            <Text style={styles.editButtonText}>수정하기</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  } else {
+    return null;
+  }
 };
 
 const styles = StyleSheet.create({
@@ -87,11 +82,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingVertical: 7,
-    paddingHorizontal: 20,
-    position: 'absolute',
-    top: 0,
-    zIndex: 1,
+
     backgroundColor: 'white',
   },
   backButton: {
@@ -99,20 +90,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flexDirection: 'column',
-    paddingHorizontal: 20,
-    marginTop: 46,
-    paddingBottom: 100,
   },
   bottomButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 16,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    gap: 0,
     backgroundColor: 'white',
   },
   deleteButton: {
@@ -121,7 +103,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 18,
     alignItems: 'center',
-    marginRight: 8,
   },
   deleteButtonText: {
     color: 'black',

@@ -77,6 +77,13 @@ class Order {
     this.setOrderOption(this.getLastOrderOption());
   }
 
+  public async saveLastOrderOption() {
+    await LocalStorageManager.set(
+      this.getStorageKey(),
+      this.getLastOrderOption().getOrder()
+    );
+  }
+
   public setOrderOption(orderOption: OrderOption) {
     this.orderOptions.forEach(option => option.deselect());
     this.orderOptions.find(option => option.equals(orderOption))?.select();

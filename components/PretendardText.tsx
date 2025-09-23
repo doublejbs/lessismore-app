@@ -1,8 +1,8 @@
 import React from 'react';
-import { Text, TextProps, StyleSheet } from 'react-native';
+import { Text, TextProps } from 'react-native';
 
 interface PretendardTextProps extends TextProps {
-  weight?: 'regular' | 'medium' | 'semibold' | 'bold';
+  weight?: 'regular' | 'medium' | 'semibold' | 'bold' | 'extraBold';
 }
 
 const PretendardText: React.FC<PretendardTextProps> = ({
@@ -16,7 +16,7 @@ const PretendardText: React.FC<PretendardTextProps> = ({
 };
 
 const getFontFamily = (
-  weight: 'regular' | 'medium' | 'semibold' | 'bold'
+  weight: 'regular' | 'medium' | 'semibold' | 'bold' | 'extraBold'
 ): string => {
   switch (weight) {
     case 'medium':
@@ -25,6 +25,8 @@ const getFontFamily = (
       return 'Pretendard-SemiBold';
     case 'bold':
       return 'Pretendard-Bold';
+    case 'extraBold':
+      return 'Pretendard-ExtraBold';
     default:
       return 'Pretendard-Regular';
   }

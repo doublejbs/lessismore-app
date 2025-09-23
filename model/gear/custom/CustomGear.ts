@@ -9,6 +9,7 @@ import AbstractGearEdit from '../AbstractGearEdit';
 import { Router } from 'expo-router';
 import Order from '@/model/order/Order';
 import Warehouse from '@/model/warehouse/Warehouse';
+import BagDetail from '@/model/bag-detail/BagDetail';
 
 class CustomGear extends AbstractGearEdit {
   public static new(navigate: Router) {
@@ -18,6 +19,7 @@ class CustomGear extends AbstractGearEdit {
       app.getFirebase(),
       app.getLogInAlertManager()!,
       Order.new(Warehouse.ORDER_KEY),
+      Order.new(BagDetail.ORDER_KEY),
       CustomGearCategory.new().selectFirst(),
       '',
       '',
@@ -32,6 +34,7 @@ class CustomGear extends AbstractGearEdit {
     private readonly firebase: Firebase,
     private readonly logInAlertManager: LogInAlertManager,
     private readonly warehouseOrder: Order,
+    private readonly bagDetailOrder: Order,
     category: CustomGearCategory,
     name: string,
     company: string,
@@ -67,7 +70,8 @@ class CustomGear extends AbstractGearEdit {
     );
 
     await this.gearStore.register([gear]);
-    this.warehouseOrder.selectLastOrderOption();
+    await this.warehouseOrder.saveLastOrderOption();
+    await this.bagDetailOrder.saveLastOrderOption();
     return gear;
   }
 

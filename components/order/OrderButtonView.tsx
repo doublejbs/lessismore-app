@@ -22,25 +22,25 @@ const OrderButtonView = ({ order }: Props) => {
   };
 
   const UpArrowIcon = () => (
-    <Svg width={25} height={24} viewBox="0 0 25 24" fill="none">
+    <Svg width={25} height={24} viewBox='0 0 25 24' fill='none'>
       <Path
-        d="M7.5 14L12.5008 9.42L17.5 14"
-        stroke="#0A090B"
+        d='M7.5 14L12.5008 9.42L17.5 14'
+        stroke='#0A090B'
         strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        strokeLinecap='round'
+        strokeLinejoin='round'
       />
     </Svg>
   );
 
   const DownArrowIcon = () => (
-    <Svg width={25} height={24} viewBox="0 0 25 24" fill="none">
+    <Svg width={25} height={24} viewBox='0 0 25 24' fill='none'>
       <Path
-        d="M7.5 10L12.5008 14.58L17.5 10"
-        stroke="#0A090B"
+        d='M7.5 10L12.5008 14.58L17.5 10'
+        stroke='#0A090B'
         strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        strokeLinecap='round'
+        strokeLinejoin='round'
       />
     </Svg>
   );
@@ -54,7 +54,7 @@ const OrderButtonView = ({ order }: Props) => {
 
       {showOrderOptions && (
         <View style={styles.dropdown}>
-          {order.mapOrderOptions((option) => (
+          {order.mapOrderOptions(option => (
             <TouchableOpacity
               key={option.getOrder()}
               style={styles.dropdownItem}
@@ -63,7 +63,11 @@ const OrderButtonView = ({ order }: Props) => {
               <Text
                 style={[
                   styles.dropdownText,
-                  { color: option.isSelected() ? 'rgb(204, 241, 36)' : '#505967' }
+                  {
+                    color: option.isSelected()
+                      ? 'rgb(204, 241, 36)'
+                      : '#505967',
+                  },
                 ]}
               >
                 {option.getName()}
@@ -79,11 +83,11 @@ const OrderButtonView = ({ order }: Props) => {
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
-    height: 44,
+    height: 32,
   },
   button: {
     height: '100%',
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 4,
     flexDirection: 'row',
     justifyContent: 'center',
@@ -91,16 +95,16 @@ const styles = StyleSheet.create({
     gap: 0,
   },
   buttonText: {
-    fontSize: 16,
+    fontSize: 14,
     color: 'black',
     fontWeight: 'bold',
-    lineHeight: 24,
+    lineHeight: 16,
     includeFontPadding: false,
     textAlignVertical: 'center',
   },
   dropdown: {
     position: 'absolute',
-    top: 48,
+    top: 36,
     right: 0,
     backgroundColor: 'white',
     shadowColor: 'rgba(0, 0, 0, 0.1)',

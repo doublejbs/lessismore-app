@@ -1,5 +1,11 @@
 import React, { FC } from 'react';
-import { View, ScrollView, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import {
+  View,
+  ScrollView,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+} from 'react-native';
 import Warehouse from '@/model/warehouse/Warehouse';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import { observer } from 'mobx-react-lite';
@@ -24,21 +30,21 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
-        {warehouse.mapFilters((filter) => {
+        {warehouse.mapFilters(filter => {
           const isSelected = filter.isSelected();
           return (
             <TouchableOpacity
               key={filter.getName()}
               style={[
                 styles.filterButton,
-                { backgroundColor: isSelected ? 'black' : '#EBEBEB' }
+                { backgroundColor: isSelected ? 'black' : '#EBEBEB' },
               ]}
               onPress={() => handleClick(filter)}
             >
               <Text
                 style={[
                   styles.filterButtonText,
-                  { color: isSelected ? 'white' : 'black' }
+                  { color: isSelected ? 'white' : 'black' },
                 ]}
               >
                 {filter.getName()}
@@ -71,15 +77,15 @@ const styles = StyleSheet.create({
   },
   filterButton: {
     height: 40,
-    borderRadius: 20,
-    paddingVertical: 10,
+    borderRadius: 22,
+    paddingVertical: 8,
     paddingHorizontal: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
   filterButtonText: {
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: 16,
     includeFontPadding: false,
     textAlignVertical: 'center',
   },
