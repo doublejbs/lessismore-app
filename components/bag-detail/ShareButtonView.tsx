@@ -144,7 +144,6 @@ const ShareButtonView: FC<Props> = ({ bagDetail }) => {
 
 const styles = StyleSheet.create({
   shareButton: {
-    padding: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -64,10 +64,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     backgroundColor: 'white',
-    zIndex: 10,
   },
   scrollView: {
-    height: 40,
+    height: 32,
     flex: 1,
   },
   scrollContent: {
@@ -76,7 +75,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   filterButton: {
-    height: 40,
+    height: 32,
     borderRadius: 22,
     paddingVertical: 8,
     paddingHorizontal: 16,
@@ -88,6 +87,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     includeFontPadding: false,
     textAlignVertical: 'center',
+    textAlign: 'center',
   },
 });
 

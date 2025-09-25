@@ -245,10 +245,10 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     height: 48,
-    backgroundColor: '#F2F4F6',
     borderRadius: 8,
     flexDirection: 'row',
     marginVertical: 16,
+    paddingHorizontal: 20,
   },
   chartBar: {
     height: '100%',
@@ -256,6 +256,7 @@ const styles = StyleSheet.create({
   },
   legendContainer: {
     gap: 8,
+    paddingHorizontal: 20,
   },
   legendItem: {
     flexDirection: 'row',
@@ -294,7 +295,6 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     height: 48,
-    backgroundColor: '#F2F4F6',
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',

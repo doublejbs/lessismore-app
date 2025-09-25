@@ -24,7 +24,7 @@ class App {
   public async initialize() {
     await this.firebase.initialize();
     this.gearStore = new GearStore(this.firebase);
-    this.setBagStore(new BagStore(this.firebase, this.gearStore));
+    this.setBagStore(new BagStore(this.firebase));
     this.searchStore = new SearchStore(this.firebase);
     this.alertManager = AlertManager.new();
     this.toastManager = ToastManager.new();

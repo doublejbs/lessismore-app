@@ -6,7 +6,6 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
@@ -19,6 +18,8 @@ import BagDetailUselessDescriptionView from './BagDetailUselessDescriptionView';
 import BagDetailAddButtonView from './BagDetailAddButtonView';
 import ShareButtonView from './ShareButtonView';
 import { useFocusEffect } from 'expo-router';
+import BagDetailSkeletonView from './BagDetailSkeletonView';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Props {
   bagDetail: BagDetail;
@@ -112,7 +113,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
       </SafeAreaView>
     );
   } else {
-    return <View style={styles.loading} />;
+    return <BagDetailSkeletonView />;
   }
 };
 

@@ -18,7 +18,6 @@ const AddButtonView: FC = () => {
   const [showMenu, setShowMenu] = useState(false);
   const router = useRouter();
   const insets = useSafeAreaInsets();
-
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(300)).current;
 
@@ -212,6 +211,7 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     fontSize: 16,
+    lineHeight: 18,
     color: 'black',
   },
   closeSection: {
