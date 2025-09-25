@@ -12,8 +12,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import app from '@/model/app/App';
 import { useEffect } from 'react';
 import SplashLoadingView from '@/components/ui/SplashLoadingView';
-import { View } from 'react-native';
-import { Text } from 'react-native';
+import { View, Text } from 'react-native';
 import { HotUpdater, getUpdateSource } from '@hot-updater/react-native';
 import { observer } from 'mobx-react-lite';
 
@@ -37,17 +36,8 @@ const RootLayout = () => {
     if (isInitialized) {
       if (isLoggedIn) {
         if (hasAgreed) {
-          if (
-            pathname === '/login' ||
-            pathname === '/' ||
-            pathname === '/terms-agreement'
-          ) {
-            // router.replace('/warehouse');
-          }
         } else {
-          if (pathname !== '/terms-agreement') {
-            // router.replace('/terms-agreement');
-          }
+          router.replace('/terms-agreement');
         }
       }
     } else {

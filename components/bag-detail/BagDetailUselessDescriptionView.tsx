@@ -57,13 +57,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 8,
     backgroundColor: 'white',
+    marginVertical: 8,
   },
   touchableContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderRadius: 6,
-    padding: 8,
   },
   textContainer: {
     gap: 4,
