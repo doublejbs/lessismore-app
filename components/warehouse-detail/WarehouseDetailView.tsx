@@ -5,13 +5,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
 } from 'react-native';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import WarehouseDetailInformationView from './WarehouseDetailInformationView';
 import WarehouseDetailBagRecordView from './WarehouseDetailBagRecordView';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
+import WarehouseDetailReviewSectionView from './WarehouseDetailReviewSectionView';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -45,13 +45,13 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
             <Ionicons name='chevron-back' size={24} color='#191F28' />
           </TouchableOpacity>
         </View>
-
         <ScrollView style={styles.content}>
           <WarehouseDetailInformationView gear={gear} />
           <WarehouseDetailBagRecordView
             gear={gear}
             warehouseDetail={warehouseDetail}
           />
+          <WarehouseDetailReviewSectionView warehouseDetail={warehouseDetail} />
         </ScrollView>
 
         <View style={styles.bottomButtons}>
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-
+    paddingHorizontal: 20,
     backgroundColor: 'white',
   },
   backButton: {
@@ -91,11 +91,17 @@ const styles = StyleSheet.create({
   content: {
     flexDirection: 'column',
   },
+  separator: {
+    width: '100%',
+    height: 10,
+    backgroundColor: '#F2F4F6',
+  },
   bottomButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 0,
     backgroundColor: 'white',
+    paddingHorizontal: 20,
   },
   deleteButton: {
     flex: 1,

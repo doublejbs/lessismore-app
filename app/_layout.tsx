@@ -12,8 +12,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import app from '@/model/app/App';
 import { useEffect } from 'react';
 import SplashLoadingView from '@/components/ui/SplashLoadingView';
-import { View, Text } from 'react-native';
-import { HotUpdater, getUpdateSource } from '@hot-updater/react-native';
+import { View, Text, Platform } from 'react-native';
 import { observer } from 'mobx-react-lite';
 
 const RootLayout = () => {
@@ -97,37 +96,57 @@ const RootLayout = () => {
   );
 };
 
-export default HotUpdater.wrap({
-  source: getUpdateSource(
-    'https://hot-updater-7llz3bz5aq-du.a.run.app/api/check-update',
-    {
-      updateStrategy: 'appVersion', // or "fingerprint"
-    }
-  ),
-  requestHeaders: {
-    // if you want to use the request headers, you can add them here
-  },
-  fallbackComponent: ({ progress, status }) => (
-    <View
-      style={{
-        flex: 1,
-        padding: 20,
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      }}
-    >
-      {/* You can put a splash image here. */}
+const createAppComponent = () => {
+  if (Platform.OS === 'web') {
+    return observer(RootLayout);
+  } else {
+    // 네이티브 환경에서만 HotUpdater import
+    const {
+      HotUpdater,
+      getUpdateSource,
+    } = require('@hot-updater/react-native');
 
-      <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
-        {status === 'UPDATING' ? 'Updating...' : 'Checking for Update...'}
-      </Text>
-      {progress > 0 ? (
-        <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
-          {Math.round(progress * 100)}%
-        </Text>
-      ) : null}
-    </View>
-  ),
-})(observer(RootLayout));
+    return HotUpdater.wrap({
+      source: getUpdateSource(
+        'https://hot-updater-7llz3bz5aq-du.a.run.app/api/check-update',
+        {
+          updateStrategy: 'appVersion', // or "fingerprint"
+        }
+      ),
+      requestHeaders: {
+        // if you want to use the request headers, you can add them here
+      },
+      fallbackComponent: ({
+        progress,
+        status,
+      }: {
+        progress: number;
+        status: string;
+      }) => (
+        <View
+          style={{
+            flex: 1,
+            padding: 20,
+            borderRadius: 10,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          }}
+        >
+          {/* You can put a splash image here. */}
+
+          <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
+            {status === 'UPDATING' ? 'Updating...' : 'Checking for Update...'}
+          </Text>
+          {progress > 0 ? (
+            <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
+              {Math.round(progress * 100)}%
+            </Text>
+          ) : null}
+        </View>
+      ),
+    })(observer(RootLayout));
+  }
+};
+
+export default createAppComponent();

@@ -6,7 +6,6 @@ import { Router } from 'expo-router';
 import app from '@/model/app/App';
 import SearchDispatcherType from '@/model/search/SearchDispatcherType';
 import SearchDispatcher from '@/model/search/SearchDispatcher';
-import { InteractionManager } from 'react-native';
 import Order from '../order/Order';
 import Warehouse from '../warehouse/Warehouse';
 import BagDetail from '../bag-detail/BagDetail';
@@ -30,6 +29,7 @@ class SearchWarehouse {
   @observable private hasMore = false;
   private page = 0;
   private disposeLoginReaction: () => void;
+  private debounceTimer: NodeJS.Timeout | null = null;
 
   protected constructor(
     private readonly searchDispatcher: SearchDispatcherType,
@@ -50,17 +50,24 @@ class SearchWarehouse {
 
   public dispose() {
     this.disposeLoginReaction();
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
   }
 
   public changeKeyword(keyword: string) {
     this.setLoading(true);
     this.setKeyword(keyword);
     this.setResult([]);
-    InteractionManager.runAfterInteractions(() => {
-      setTimeout(() => {
-        this.executeSearch();
-      }, 300);
-    });
+
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
+
+    this.debounceTimer = setTimeout(() => {
+      this.executeSearch();
+    }, 300) as unknown as NodeJS.Timeout;
   }
 
   @action
