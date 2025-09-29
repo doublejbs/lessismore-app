@@ -8,12 +8,15 @@ import ToastManager from '../toast/ToastManager';
 import Gear from '../gear/Gear';
 import BagItem from '../bag/BagItem';
 import app from '../app/App';
+import ReplyStore from '../store/ReplyStore';
+import ReplyItem from '../reply/ReplyItem';
 
 class WarehouseDetail {
   public static new(router: Router, dispatcher: WarehouseDispatcherType) {
     return new WarehouseDetail(
       app.getBagStore()!,
       app.getGearStore()!,
+      app.getReplyStore()!,
       router,
       dispatcher,
       app.getAlertManager()!,
@@ -23,12 +26,14 @@ class WarehouseDetail {
 
   private gear: Gear | null = null;
   private bags: BagItem[] = [];
+  private replies: ReplyItem[] = [];
   private initialized = false;
   private id: string = '';
 
   private constructor(
     private readonly bagStore: BagStore,
     private readonly gearStore: GearStore,
+    private readonly replyStore: ReplyStore,
     private readonly router: Router,
     private readonly dispatcher: WarehouseDispatcherType,
     private readonly alertManager: AlertManager,
@@ -52,6 +57,7 @@ class WarehouseDetail {
     const gear = await this.gearStore.getGear(this.id);
     this.setGear(gear);
     this.setBags(await this.bagStore.getBags(this.getGear()?.getBags() ?? []));
+    await this.fetchReplies();
   }
 
   public edit() {
@@ -110,6 +116,36 @@ class WarehouseDetail {
 
   public goToBag(bag: BagItem) {
     this.router.push(`/bag/${bag.getID()}`);
+  }
+
+  public async fetchReplies() {
+    const data = await this.replyStore.getReplies(this.id);
+
+    this.setReplies(
+      data.map((item: any) =>
+        ReplyItem.new(item.id, item.content, item.createDate)
+      )
+    );
+  }
+
+  private setReplies(value: ReplyItem[]) {
+    this.replies = value;
+  }
+
+  public getReplies() {
+    return this.replies;
+  }
+
+  public hasReplies() {
+    return this.replies.length > 0;
+  }
+
+  public replyCount() {
+    return this.replies.length;
+  }
+
+  public getId() {
+    return this.id;
   }
 }
 
