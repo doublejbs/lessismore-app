@@ -5,6 +5,7 @@ import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import SeperaterView from '../ui/SeperaterView';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import ReplyItem from '@/model/reply/ReplyItem';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -26,9 +27,31 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
         <Text style={styles.title}>리뷰 {replyCount}개</Text>
         <View style={styles.repliesContainer}>
           {hasReplies ? (
-            replies.map(reply => (
-              <Text key={reply.getID()}>{reply.getContent()}</Text>
-            ))
+            <>
+              {replies.map(reply => (
+                <TouchableOpacity
+                  key={reply.getID()}
+                  style={styles.replyItem}
+                  onPress={handleAddReviewPress}
+                >
+                  <View style={styles.replyContent}>
+                    <Text style={styles.replyName}>{reply.getContent()}</Text>
+                    <Text style={styles.replyDate}>
+                      {reply.getCreateDate()}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity
+                onPress={handleAddReviewPress}
+                style={styles.moreReviewButton}
+              >
+                <Text style={styles.moreReviewButtonText}>
+                  더 많은 의견 보기
+                </Text>
+                <Ionicons name='chevron-forward' size={14} color='#000000' />
+              </TouchableOpacity>
+            </>
           ) : (
             <TouchableOpacity
               style={styles.addReviewButton}
@@ -75,6 +98,37 @@ const styles = StyleSheet.create({
   addReviewButtonText: {
     fontSize: 14,
     color: '#000000',
+  },
+  moreReviewButtonText: {
+    fontSize: 14,
+    color: '#000000',
+  },
+  moreReviewButton: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    width: '100%',
+  },
+  replyItem: {
+    padding: 14,
+    paddingHorizontal: 20,
+    backgroundColor: '#F3F3F3',
+    borderRadius: 12,
+    width: '100%',
+  },
+  replyContent: {
+    flexDirection: 'column',
+  },
+  replyName: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  replyDate: {
+    fontSize: 10,
+    color: '#757C86',
   },
 });
 

@@ -10,6 +10,7 @@ import BagItem from '../bag/BagItem';
 import app from '../app/App';
 import ReplyStore from '../store/ReplyStore';
 import ReplyItem from '../reply/ReplyItem';
+import dayjs from 'dayjs';
 
 class WarehouseDetail {
   public static new(router: Router, dispatcher: WarehouseDispatcherType) {
@@ -119,13 +120,17 @@ class WarehouseDetail {
   }
 
   public async fetchReplies() {
-    const data = await this.replyStore.getReplies(this.id);
+    try {
+      const data = await this.replyStore.getLatestComment(this.id);
 
-    this.setReplies(
-      data.map((item: any) =>
-        ReplyItem.new(item.id, item.content, item.createDate)
-      )
-    );
+      if (data) {
+        this.setReplies([
+          ReplyItem.new(data.id, data.content, dayjs(data.createdAt)),
+        ]);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   private setReplies(value: ReplyItem[]) {
