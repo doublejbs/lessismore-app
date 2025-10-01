@@ -39,6 +39,7 @@ class Firebase {
 
   private auth!: Auth;
   private userId = '';
+  private nickname = '';
   private initialized = false;
   private store!: Firestore;
   private storage!: FirebaseStorage;
@@ -167,6 +168,7 @@ class Firebase {
         privacyAgreed: false,
         marketingAgreed: false,
         createdAt: new Date(),
+        nickname: `hiker${Math.floor(Math.random() * 10000)}`,
       });
     }
   }
@@ -184,6 +186,7 @@ class Firebase {
           userData.personalInfoAgreed === true &&
           userData.over14Agreed === true
       );
+      this.setNickname(userData.nickname);
     } else {
       this.setHasAgreedToTerms(false);
     }
@@ -334,6 +337,28 @@ class Firebase {
 
   private setAccessToken(value: string | null) {
     this.accessToken = value;
+  }
+
+  private setNickname(value: string) {
+    this.nickname = value;
+  }
+
+  public getNickname() {
+    return this.nickname;
+  }
+
+  public async createNickname() {
+    if (!!this.getNickname()) {
+      return;
+    }
+
+    const userDocRef = doc(this.getStore(), 'users', this.getUserId());
+    const nickname = `hiker${Math.floor(Math.random() * 10000)}`;
+
+    await updateDoc(userDocRef, {
+      nickname: nickname,
+    });
+    this.setNickname(nickname);
   }
 }
 

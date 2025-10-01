@@ -52,6 +52,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
             warehouseDetail={warehouseDetail}
           />
           <WarehouseDetailReviewSectionView warehouseDetail={warehouseDetail} />
+          <View style={styles.bottomSpacing} />
         </ScrollView>
 
         <View style={styles.bottomButtons}>
@@ -127,6 +128,9 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '500',
+  },
+  bottomSpacing: {
+    height: 100,
   },
 });
 

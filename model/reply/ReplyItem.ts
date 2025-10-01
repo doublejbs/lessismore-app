@@ -20,7 +20,7 @@ class ReplyItem {
   }
 
   public getCreateDate() {
-    return this.createDate.format('YYYY.MM.DD HH:mm');
+    return this.createDate.format('YYYY.MM.DD');
   }
 }
 

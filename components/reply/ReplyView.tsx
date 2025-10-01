@@ -1,11 +1,21 @@
 import Reply from '@/model/reply/Reply';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '../PretendardText';
+import ReplyInputButtonView from './ReplyInputButtonView';
+import { observer } from 'mobx-react-lite';
+import ReplyItemView from './ReplyItemView';
 
 const ReplyView = ({ reply }: { reply: Reply }) => {
   const router = useRouter();
+  const count = reply.getCount();
 
   const handlePressBack = () => {
     router.back();
@@ -22,9 +32,21 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
           <View style={styles.placeholder} />
         </View>
       </View>
-      <View style={styles.content}>
-        <Text>{reply.getGearId()}</Text>
-      </View>
+      <ScrollView>
+        <View style={styles.replyHeader}>
+          <Text style={styles.replyHeaderText}>리뷰 {count}개</Text>
+        </View>
+        <View style={styles.content}>
+          {reply.getComments().map(comment => (
+            <ReplyItemView
+              key={comment.id}
+              gearId={reply.getGearId()}
+              comment={comment}
+            />
+          ))}
+        </View>
+      </ScrollView>
+      <ReplyInputButtonView reply={reply} />
     </View>
   );
 };
@@ -36,9 +58,7 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: 'white',
-    paddingVertical: 4,
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingHorizontal: 20,
   },
   headerContent: {
     flexDirection: 'row',
@@ -60,6 +80,15 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 20,
   },
+  replyHeader: {
+    paddingTop: 20,
+    paddingHorizontal: 20,
+  },
+  replyHeaderText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#191F28',
+  },
 });
 
-export default ReplyView;
+export default observer(ReplyView);
