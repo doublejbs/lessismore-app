@@ -12,6 +12,8 @@ interface Comment {
   readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly deletedAt?: Date;
+  readonly mentionedUserName?: string;
+  readonly mentionedUserId?: string;
 }
 
 interface GearCommentSummary {
@@ -26,6 +28,8 @@ interface GearCommentSummary {
 interface CommentCreateRequest {
   readonly content: string;
   readonly parentId?: string;
+  readonly mentionedUserName?: string;
+  readonly mentionedUserId?: string;
 }
 
 interface CommentUpdateRequest {

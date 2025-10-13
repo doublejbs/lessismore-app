@@ -1,6 +1,5 @@
 import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { router } from 'expo-router';
 import PretendardText from '@/components/PretendardText';
 import Reply from '@/model/reply/Reply';
 

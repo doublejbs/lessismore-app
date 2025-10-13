@@ -5,7 +5,6 @@ import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import SeperaterView from '../ui/SeperaterView';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import ReplyItem from '@/model/reply/ReplyItem';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -14,7 +13,6 @@ interface Props {
 const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
   const replies = warehouseDetail.getReplies();
   const hasReplies = warehouseDetail.hasReplies();
-  const replyCount = warehouseDetail.replyCount();
 
   const handleAddReviewPress = () => {
     router.push(`/reply/${warehouseDetail.getId()}`);
@@ -24,7 +22,7 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
     <>
       <SeperaterView />
       <View style={styles.container}>
-        <Text style={styles.title}>리뷰 {replyCount}개</Text>
+        <Text style={styles.title}>리뷰</Text>
         <View style={styles.repliesContainer}>
           {hasReplies ? (
             <>
