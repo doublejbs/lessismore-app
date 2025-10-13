@@ -141,6 +141,8 @@ class ReplyStore {
         createdAt: data.createdAt.toDate(),
         updatedAt: data.updatedAt.toDate(),
         deletedAt: data.deletedAt?.toDate(),
+        mentionedUserName: data.mentionedUserName,
+        mentionedUserId: data.mentionedUserId,
       });
     });
 
@@ -189,6 +191,8 @@ class ReplyStore {
         createdAt: data.createdAt.toDate(),
         updatedAt: data.updatedAt.toDate(),
         deletedAt: data.deletedAt?.toDate(),
+        mentionedUserName: data.mentionedUserName,
+        mentionedUserId: data.mentionedUserId,
       });
     });
 
@@ -286,6 +290,8 @@ class ReplyStore {
         createdAt: now,
         updatedAt: now,
         deletedAt: null,
+        mentionedUserName: request.mentionedUserName || null,
+        mentionedUserId: request.mentionedUserId || null,
       };
 
       transaction.set(newCommentRef, commentData);
@@ -555,11 +561,54 @@ class ReplyStore {
       createdAt: data.createdAt.toDate(),
       updatedAt: data.updatedAt.toDate(),
       deletedAt: data.deletedAt?.toDate(),
+      mentionedUserName: data.mentionedUserName,
+      mentionedUserId: data.mentionedUserId,
     };
+  }
+
+  // 특정 댓글 조회
+  public async getComment(
+    gearId: string,
+    commentId: string
+  ): Promise<Comment | null> {
+    try {
+      const { commentRef } = await this.findCommentLocation(gearId, commentId);
+      const commentSnap = await getDoc(commentRef);
+
+      if (!commentSnap.exists()) {
+        return null;
+      }
+
+      const data = commentSnap.data();
+      return {
+        id: commentSnap.id,
+        content: data.content,
+        authorId: data.authorId,
+        authorName: data.authorName,
+        authorProfileUrl: data.authorProfileUrl,
+        parentId: data.parentId,
+        depth: data.depth,
+        isDeleted: data.isDeleted,
+        likeCount: data.likeCount,
+        replyCount: data.replyCount,
+        createdAt: data.createdAt.toDate(),
+        updatedAt: data.updatedAt.toDate(),
+        deletedAt: data.deletedAt?.toDate(),
+        mentionedUserName: data.mentionedUserName,
+        mentionedUserId: data.mentionedUserId,
+      };
+    } catch (error) {
+      console.error('댓글 조회 실패:', error);
+      return null;
+    }
   }
 
   private getStore() {
     return this.firebase.getStore();
+  }
+
+  public getFirebase() {
+    return this.firebase;
   }
 }
 

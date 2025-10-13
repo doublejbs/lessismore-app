@@ -34,7 +34,7 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
       </View>
       <ScrollView>
         <View style={styles.replyHeader}>
-          <Text style={styles.replyHeaderText}>리뷰 {count}개</Text>
+          <Text style={styles.replyHeaderText}>리뷰</Text>
         </View>
         <View style={styles.content}>
           {reply.getComments().map(comment => (
