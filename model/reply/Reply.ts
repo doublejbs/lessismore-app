@@ -4,6 +4,7 @@ import ReplyStore from '../store/ReplyStore';
 import { CommentCreateRequest } from './Comment';
 import Comment from './Comment';
 import { makeAutoObservable } from 'mobx';
+import app from '../app/App';
 
 class Reply {
   public static of(gearId: string, firebase: Firebase, replyStore: ReplyStore) {
@@ -11,6 +12,7 @@ class Reply {
   }
 
   private comments: Comment[] = [];
+  private commentLikesMap: Map<string, boolean> = new Map();
 
   private constructor(
     private readonly gearId: string,
@@ -24,8 +26,24 @@ class Reply {
     const data = await this.replyStore.getParentComments(this.gearId);
 
     if (data.comments) {
-      this.setComments(data.comments);
+      const activeComments = data.comments.filter(c => !c.isDeleted);
+      this.setComments(activeComments);
+      await this.loadLikeStates();
     }
+  }
+
+  private async loadLikeStates() {
+    const userId = this.firebase.getUserId();
+    if (!userId) return;
+
+    for (const comment of this.comments) {
+      const isLiked = await this.replyStore.isCommentLiked(comment.id, userId);
+      this.setCommentLikesMap(comment.id, isLiked);
+    }
+  }
+
+  private setCommentLikesMap(commentId: string, isLiked: boolean) {
+    this.commentLikesMap.set(commentId, isLiked);
   }
 
   public getGearId() {
@@ -81,6 +99,83 @@ class Reply {
 
   public getCount() {
     return this.comments.length;
+  }
+
+  public isCommentLiked(commentId: string): boolean {
+    return this.commentLikesMap.get(commentId) || false;
+  }
+
+  public async toggleLike(commentId: string) {
+    const userId = this.firebase.getUserId();
+    if (!userId) {
+      router.push('/log-in');
+      return;
+    }
+
+    const comment = this.comments.find(c => c.id === commentId);
+    if (!comment) return;
+
+    const currentLikeState = this.commentLikesMap.get(commentId) || false;
+    const newLikeState = !currentLikeState;
+    const likeCountDelta = newLikeState ? 1 : -1;
+
+    // 낙관적 업데이트
+    this.commentLikesMap.set(commentId, newLikeState);
+    const updatedComments = this.comments.map(c =>
+      c.id === commentId ? { ...c, likeCount: c.likeCount + likeCountDelta } : c
+    );
+    this.setComments(updatedComments);
+
+    try {
+      await this.replyStore.toggleCommentLike(this.gearId, commentId, userId);
+    } catch (error) {
+      // 실패 시 롤백
+      this.commentLikesMap.set(commentId, currentLikeState);
+      const rolledBackComments = this.comments.map(c =>
+        c.id === commentId
+          ? { ...c, likeCount: c.likeCount - likeCountDelta }
+          : c
+      );
+      this.setComments(rolledBackComments);
+      console.error('좋아요 토글 실패:', error);
+    }
+  }
+
+  public showDeleteConfirm(commentId: string) {
+    app.getAlertManager()?.show({
+      message: '정말 삭제하시겠습니까?',
+      confirmText: '삭제',
+      onConfirm: async () => {
+        try {
+          await this.deleteComment(commentId);
+        } catch (error) {
+          app.getAlertManager()?.show({
+            message: '댓글 삭제에 실패했습니다.',
+            confirmText: '확인',
+            onConfirm: async () => {},
+          });
+        }
+      },
+    });
+  }
+
+  private async deleteComment(commentId: string) {
+    const userId = this.firebase.getUserId();
+
+    if (!userId) {
+      router.push('/log-in');
+      return;
+    }
+
+    await this.replyStore.deleteComment(this.gearId, commentId, userId);
+
+    // 댓글 목록 새로고침
+    const data = await this.replyStore.getParentComments(this.gearId);
+    if (data.comments) {
+      const activeComments = data.comments.filter(c => !c.isDeleted);
+      this.setComments(activeComments);
+      await this.loadLikeStates();
+    }
   }
 }
 

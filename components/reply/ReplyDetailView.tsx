@@ -29,7 +29,10 @@ const ReplyDetailView = ({ replyDetail, originalComment }: Props) => {
         </TouchableOpacity>
       </View>
       <ScrollView style={styles.scrollView} ref={scrollViewRef}>
-        <ReplyDetailOriginalView comment={originalComment} />
+        <ReplyDetailOriginalView
+          comment={originalComment}
+          replyDetail={replyDetail}
+        />
         {replyDetail.getReplies().map(reply => (
           <ReplyDetailCommentView
             key={reply.id}
