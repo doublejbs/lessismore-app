@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import PretendardText from '@/components/PretendardText';
 import ReplyDetail from '@/model/reply/ReplyDetail';
-import useKeyboard from '@/hooks/useKeyboard';
 import { observer } from 'mobx-react-lite';
 
 interface Props {
@@ -26,7 +25,6 @@ const ReplyDetailInputView: FC<Props> = observer(
     const [text, setText] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const inputRef = useRef<TextInput>(null);
-    const { isKeyboardVisible, keyboardHeight } = useKeyboard();
     const replyTarget = replyDetail.getReplyTarget();
 
     useEffect(() => {
@@ -54,7 +52,6 @@ const ReplyDetailInputView: FC<Props> = observer(
       setIsInputMode(true);
       setTimeout(() => {
         inputRef.current?.focus();
-        // inputRef.current?.focus() 아래에 키보드가 올라왔을 때 키보드 높이만큼 스크롤을 추가로 이동시킵니다.
       }, 100);
     };
 
@@ -95,20 +92,9 @@ const ReplyDetailInputView: FC<Props> = observer(
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 76 : 0}
       >
-        <View
-          style={[
-            styles.container,
-            {
-              paddingBottom: isKeyboardVisible
-                ? Platform.OS === 'ios'
-                  ? keyboardHeight - 260
-                  : 12
-                : 12,
-            },
-          ]}
-        >
+        <View style={[styles.container]}>
           <View style={styles.content}>
             <TouchableOpacity
               style={styles.authorButton}

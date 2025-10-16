@@ -15,7 +15,6 @@ import ReplyItemView from './ReplyItemView';
 
 const ReplyView = ({ reply }: { reply: Reply }) => {
   const router = useRouter();
-  const count = reply.getCount();
 
   const handlePressBack = () => {
     router.back();
@@ -42,6 +41,7 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
               key={comment.id}
               gearId={reply.getGearId()}
               comment={comment}
+              reply={reply}
             />
           ))}
         </View>

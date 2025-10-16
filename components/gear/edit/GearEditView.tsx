@@ -91,6 +91,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
         backgroundColor: 'white',
       }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 96 : 0}
     >
       {isLoading && (
         <View
@@ -255,7 +256,6 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
       </ScrollView>
       <View
         style={{
-          paddingBottom: isKeyboardVisible ? keyboardHeight - 240 : 16,
           backgroundColor: 'transparent',
         }}
       >
