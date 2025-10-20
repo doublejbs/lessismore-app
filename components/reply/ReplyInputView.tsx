@@ -54,6 +54,7 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 76 : 0}
     >
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -74,14 +75,7 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
           editable={!isLoading}
         />
       </View>
-      <View
-        style={[
-          styles.buttonContainer,
-          {
-            paddingBottom: isKeyboardVisible ? keyboardHeight - 260 : 16,
-          },
-        ]}
-      >
+      <View style={[styles.buttonContainer]}>
         <TouchableOpacity
           style={[
             styles.completeButton,
