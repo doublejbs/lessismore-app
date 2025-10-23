@@ -5,8 +5,6 @@ import SearchWarehouse from '@/model/search/SearchWarehouse';
 import SearchBarView from './SearchBarView';
 import SearchBottomView from './SearchBottomView';
 import SearchResultView from './SearchResultView';
-import LogInView from '../login/LogInView';
-import app from '@/model/app/App';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
@@ -19,7 +17,6 @@ const SearchWarehouseView: FC<Props> = ({ searchWarehouse }) => {
       <SearchBarView searchWarehouse={searchWarehouse} />
       <SearchResultView searchWarehouse={searchWarehouse} />
       <SearchBottomView searchWarehouse={searchWarehouse} />
-      <LogInView logInAlertManager={app.getLogInAlertManager()!} />
     </View>
   );
 };
