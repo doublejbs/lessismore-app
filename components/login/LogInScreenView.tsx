@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Pressable,
+  Image,
 } from 'react-native';
 import { Svg, Path } from 'react-native-svg';
 import LoadingView from '@/components/ui/LoadingView';
@@ -31,7 +32,11 @@ const LogInScreenView: FC<Props> = ({ logInAlertManager, onDimPress }) => {
   return (
     <View style={styles.container}>
       <Pressable style={styles.modal} onPress={handleModalPress}>
-        <Text style={styles.title}>useless</Text>
+        <Image
+          source={require('@/assets/images/logo.png')}
+          style={styles.logo}
+          resizeMode='contain'
+        />
         <Text style={styles.subtitle}>로그인 후 이용 가능합니다</Text>
         <View style={styles.buttonContainer}>
           {isLoading ? (
@@ -87,12 +92,10 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     gap: 24,
   },
-  title: {
-    fontFamily: 'Pretendard-Bold',
-    fontSize: 48,
-    textAlign: 'center',
-    lineHeight: 48,
-    letterSpacing: -4.5,
+  logo: {
+    width: '100%',
+    height: 80,
+    alignSelf: 'center',
   },
   subtitle: {
     fontFamily: 'Pretendard-Bold',

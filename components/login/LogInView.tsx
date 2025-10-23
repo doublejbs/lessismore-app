@@ -7,6 +7,7 @@ import {
   Modal,
   StyleSheet,
   Pressable,
+  Image,
 } from 'react-native';
 import { Svg, Path } from 'react-native-svg';
 import LoadingView from '@/components/ui/LoadingView';
@@ -40,7 +41,11 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
     >
       <Pressable style={styles.overlay} onPress={handleClickCancel}>
         <View style={styles.modal}>
-          <Text style={styles.title}>useless</Text>
+          <Image
+            source={require('@/assets/images/logo.png')}
+            style={styles.logo}
+            resizeMode='contain'
+          />
           <Text style={styles.subtitle}>로그인 후 이용 가능합니다</Text>
           <View style={styles.buttonContainer}>
             {isLoading ? (
@@ -97,6 +102,11 @@ const styles = StyleSheet.create({
     padding: 24,
     paddingBottom: 20,
     gap: 24,
+  },
+  logo: {
+    width: '100%',
+    height: 32,
+    alignSelf: 'center',
   },
   title: {
     fontFamily: 'Pretendard-Bold',
