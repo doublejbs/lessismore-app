@@ -8,6 +8,7 @@ export function NoAnimationTab(props: BottomTabBarButtonProps) {
   return (
     <PlatformPressable
       {...props}
+      android_ripple={{ color: 'transparent' }}
       onPressIn={ev => {
         if (Platform.OS === 'ios') {
           // Add a soft haptic feedback when pressing down on the tabs.

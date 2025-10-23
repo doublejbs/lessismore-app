@@ -8,8 +8,6 @@ import LoadingView from '@/components/ui/LoadingView';
 import BagItem from '@/model/bag/BagItem';
 import PretendardText from '@/components/PretendardText';
 import { useFocusEffect } from '@react-navigation/native';
-import LogInView from '../login/LogInView';
-import app from '@/model/app/App';
 import Layout from '../Layout';
 
 const BagView = () => {
@@ -31,14 +29,11 @@ const BagView = () => {
       }
       case isEmpty: {
         return (
-          <>
-            <View style={styles.emptyContainer}>
-              <PretendardText style={styles.emptyText}>
-                아직 등록한{'\n'}배낭이 없어요:(
-              </PretendardText>
-            </View>
-            <LogInView logInAlertManager={app.getLogInAlertManager()!} />
-          </>
+          <View style={styles.emptyContainer}>
+            <PretendardText style={styles.emptyText}>
+              아직 등록한{'\n'}배낭이 없어요:(
+            </PretendardText>
+          </View>
         );
       }
       default: {

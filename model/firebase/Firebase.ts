@@ -201,7 +201,12 @@ class Firebase {
   }
 
   public async login(email: string, password: string) {
-    await signInWithEmailAndPassword(this.auth, email, password);
+    const result = await signInWithEmailAndPassword(this.auth, email, password);
+
+    if (result.user) {
+    } else {
+      throw new Error('이메일 또는 비밀번호가 올바르지 않습니다.');
+    }
   }
 
   public async logout() {
