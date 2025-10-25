@@ -72,7 +72,9 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
       >
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.name}>{comment.authorName}</Text>
+            <Text style={[styles.name, isMyComment && { color: '#9CCC65' }]}>
+              {comment.authorName}
+            </Text>
             <Text style={styles.date}>
               {dayjs(comment.createdAt).format('YYYY.MM.DD')}
             </Text>

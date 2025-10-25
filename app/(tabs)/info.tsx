@@ -6,10 +6,17 @@ import {
   ScrollView,
   StyleSheet,
   Linking,
+  TextInput,
+  Modal,
+  Platform,
+  KeyboardAvoidingView,
+  Dimensions,
 } from 'react-native';
 import Layout from '@/components/Layout';
 import app from '@/model/app/App';
 import { observer } from 'mobx-react-lite';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 const privacyPolicyText = `Useless(이하 '회사'라 한다)는 개인정보 보호법 제30조에 따라 정보 주체의 개인정보를 보호하고 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 하기 위하여 다음과 같이 개인정보 처리지침을 수립, 공개합니다.
 
@@ -101,9 +108,13 @@ const privacyPolicyText = `Useless(이하 '회사'라 한다)는 개인정보 �
 
 const InfoView: FC = () => {
   const [open, setOpen] = useState(false);
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [editedNickname, setEditedNickname] = useState('');
   const firebase = app.getFirebase();
   const isLoggedIn = firebase.isLoggedIn();
+  const nickname = firebase.getNickname();
   const logInAlertManager = app.getLogInAlertManager();
+  const router = useRouter();
 
   const handleLogout = async () => {
     await firebase.logout();
@@ -117,11 +128,63 @@ const InfoView: FC = () => {
     Linking.openURL('http://pf.kakao.com/_VJwSn');
   };
 
+  const handleEditNickname = () => {
+    setEditedNickname(nickname || '');
+    setIsEditingNickname(true);
+  };
+
+  const handleSaveNickname = async () => {
+    if (editedNickname.trim() === '') {
+      setIsEditingNickname(false);
+      return;
+    }
+
+    if (editedNickname === nickname) {
+      setIsEditingNickname(false);
+      return;
+    }
+
+    try {
+      await firebase.updateNickname(editedNickname.trim());
+      setIsEditingNickname(false);
+    } catch (error) {
+      console.error('Failed to update nickname:', error);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingNickname(false);
+    setEditedNickname('');
+  };
+
   return (
     <Layout>
       <ScrollView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerText}>내 정보</Text>
+          {isLoggedIn && !nickname ? (
+            <TouchableOpacity
+              style={styles.setNicknameButton}
+              onPress={handleEditNickname}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.setNicknameButtonText}>닉네임 설정하기</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.nicknameContainer}>
+              <Text style={styles.headerText}>
+                {isLoggedIn && nickname ? nickname : '내 정보'}
+              </Text>
+              {isLoggedIn && nickname && (
+                <TouchableOpacity
+                  style={styles.editIconButton}
+                  onPress={handleEditNickname}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name='create-outline' size={20} color='#666' />
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
         </View>
         {isLoggedIn ? (
           <TouchableOpacity
@@ -170,10 +233,95 @@ const InfoView: FC = () => {
             )}
           </View>
         </View>
+        {isLoggedIn && (
+          <View style={styles.deleteAccountContainer}>
+            <TouchableOpacity
+              onPress={() => router.push('/info/delete')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.deleteAccountText}>탈퇴하기</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
+
+      <Modal
+        visible={isEditingNickname}
+        transparent={true}
+        onRequestClose={handleCancelEdit}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          onPress={handleCancelEdit}
+          activeOpacity={1}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ flex: 1, justifyContent: 'flex-end' }}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          >
+            <TouchableOpacity
+              style={styles.modalContent}
+              activeOpacity={1}
+              onPress={e => e.stopPropagation()}
+            >
+              <ScrollView
+                style={styles.modalScrollView}
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+              >
+                <Text style={styles.modalTitle}>
+                  {nickname ? '닉네임 수정' : '닉네임 설정'}
+                </Text>
+                <Text style={styles.modalDescription}>
+                  {nickname
+                    ? '새로운 닉네임을 입력해주세요'
+                    : '사용하실 닉네임을 입력해주세요'}
+                </Text>
+
+                <TextInput
+                  value={editedNickname}
+                  onChangeText={setEditedNickname}
+                  placeholder='닉네임을 입력하세요'
+                  style={styles.textInput}
+                  autoFocus
+                  onSubmitEditing={handleSaveNickname}
+                  returnKeyType='done'
+                />
+              </ScrollView>
+              <View style={styles.modalButtonContainer}>
+                <TouchableOpacity
+                  onPress={handleCancelEdit}
+                  style={styles.modalCancelButton}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.modalCancelButtonText}>취소</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handleSaveNickname}
+                  disabled={editedNickname.trim() === ''}
+                  style={[
+                    styles.modalSaveButton,
+                    {
+                      backgroundColor:
+                        editedNickname.trim() === '' ? '#666' : 'black',
+                    },
+                  ]}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.modalSaveButtonText}>저장</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </KeyboardAvoidingView>
+        </TouchableOpacity>
+      </Modal>
     </Layout>
   );
 };
+
+const { height: screenHeight } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
@@ -185,6 +333,23 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  nicknameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  editIconButton: {
+    padding: 4,
+  },
+  setNicknameButton: {
+    paddingVertical: 4,
+    alignSelf: 'flex-start',
+  },
+  setNicknameButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
   },
   button: {
     width: '100%',
@@ -222,6 +387,81 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     color: '#000',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 16,
+    maxHeight: screenHeight * 0.7,
+  },
+  modalScrollView: {
+    flexGrow: 0,
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  modalDescription: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  textInput: {
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  modalCancelButton: {
+    flex: 1,
+    backgroundColor: 'white',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    alignItems: 'center',
+  },
+  modalCancelButtonText: {
+    color: '#666',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  modalSaveButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalSaveButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  deleteAccountContainer: {
+    alignItems: 'center',
+    marginTop: 16,
+    paddingBottom: 16,
+  },
+  deleteAccountText: {
+    fontSize: 12,
+    color: '#666',
+    textDecorationLine: 'underline',
   },
 });
 

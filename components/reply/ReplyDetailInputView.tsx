@@ -96,12 +96,6 @@ const ReplyDetailInputView: FC<Props> = observer(
       >
         <View style={[styles.container]}>
           <View style={styles.content}>
-            <TouchableOpacity
-              style={styles.authorButton}
-              onPress={handlePressAuthor}
-            >
-              <PretendardText style={styles.authorText}>작</PretendardText>
-            </TouchableOpacity>
             {!isInputMode ? (
               <TouchableOpacity
                 style={styles.inputButton}

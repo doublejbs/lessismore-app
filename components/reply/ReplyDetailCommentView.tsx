@@ -68,7 +68,9 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
         <View style={styles.content}>
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <Text style={styles.name}>{comment.authorName}</Text>
+              <Text style={[styles.name, isMyComment && { color: '#9CCC65' }]}>
+                {comment.authorName}
+              </Text>
               <Text style={styles.date}>
                 {dayjs(comment.createdAt).format('YYYY. M. D')}
               </Text>

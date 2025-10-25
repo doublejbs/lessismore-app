@@ -12,7 +12,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import app from '@/model/app/App';
 import { useEffect } from 'react';
 import SplashLoadingView from '@/components/ui/SplashLoadingView';
-import { View, Text, Platform } from 'react-native';
+import { View, Text, Platform, Image } from 'react-native';
 import { observer } from 'mobx-react-lite';
 
 const RootLayout = () => {
@@ -116,13 +116,16 @@ const createAppComponent = () => {
             borderRadius: 10,
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backgroundColor: '#151515',
           }}
         >
-          {/* You can put a splash image here. */}
-
+          <Image
+            source={require('../assets/images/splash-icon.png')}
+            style={{ width: 200, height: 200 }}
+            resizeMode='contain'
+          />
           <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
-            {status === 'UPDATING' ? 'Updating...' : 'Checking for Update...'}
+            {status === 'UPDATING' ? '업데이트 중...' : '업데이트 확인 중...'}
           </Text>
           {progress > 0 ? (
             <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
