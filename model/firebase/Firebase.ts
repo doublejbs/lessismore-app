@@ -9,8 +9,9 @@ import {
   getReactNativePersistence,
   signInWithCredential,
   User,
-  signInWithPopup,
   getAuth,
+  deleteUser,
+  reauthenticateWithCredential,
 } from 'firebase/auth';
 import { makeAutoObservable } from 'mobx';
 import {
@@ -20,6 +21,9 @@ import {
   getFirestore,
   setDoc,
   updateDoc,
+  collection,
+  getDocs,
+  writeBatch,
 } from 'firebase/firestore';
 import { FirebaseStorage, getStorage } from 'firebase/storage';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -244,10 +248,10 @@ class Firebase {
           );
         }
       } else {
-        // 웹에서는 signInWithPopup 사용
-
+        // 웹에서는 signInWithPopup 사용 (동적 import)
+        const firebaseAuth = await import('firebase/auth');
+        const signInWithPopup = (firebaseAuth as any).signInWithPopup;
         const provider = new GoogleAuthProvider();
-
         await signInWithPopup(this.auth, provider);
       }
     } catch (error) {
@@ -364,6 +368,118 @@ class Firebase {
       nickname: nickname,
     });
     this.setNickname(nickname);
+  }
+
+  public async updateNickname(nickname: string) {
+    const userDocRef = doc(this.getStore(), 'users', this.getUserId());
+
+    await updateDoc(userDocRef, {
+      nickname: nickname,
+    });
+    this.setNickname(nickname);
+  }
+
+  /**
+   * 회원 탈퇴 - 사용자 재인증 후 계정 삭제
+   */
+  public async deleteUserAccount() {
+    const user = this.auth.currentUser;
+
+    if (!user) {
+      throw new Error('로그인된 사용자가 없습니다.');
+    }
+
+    // 재인증 수행
+    try {
+      if (Platform.OS === 'ios' || Platform.OS === 'android') {
+        // 네이티브: Google 재인증
+        const response = await GoogleSignin.signIn();
+
+        if (response.data?.idToken) {
+          const googleCredential = GoogleAuthProvider.credential(
+            response.data.idToken,
+            response.data.serverAuthCode
+          );
+          await reauthenticateWithCredential(user, googleCredential);
+        } else {
+          throw new Error('재인증에 실패했습니다.');
+        }
+      } else {
+        // 웹: signInWithPopup으로 재인증 (동적 import)
+        const firebaseAuth = await import('firebase/auth');
+        const signInWithPopup = (firebaseAuth as any).signInWithPopup;
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(this.auth, provider);
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        if (credential) {
+          await reauthenticateWithCredential(user, credential);
+        } else {
+          throw new Error('재인증에 실패했습니다.');
+        }
+      }
+    } catch (error: any) {
+      console.error('재인증 실패:', error);
+      throw error;
+    }
+
+    // Firestore 데이터 삭제
+    try {
+      await this.deleteUserData(user.uid);
+    } catch (error) {
+      console.error('사용자 데이터 삭제 실패:', error);
+      // 데이터 삭제 실패해도 계정 삭제는 진행
+    }
+
+    // Firebase Auth 계정 삭제
+    await deleteUser(user);
+
+    // 네이티브 앱에서만 GoogleSignin 로그아웃
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      await GoogleSignin.signOut();
+    }
+
+    // 로컬 상태 초기화
+    this.clear();
+  }
+
+  /**
+   * Firestore에서 사용자 관련 데이터 삭제
+   */
+  private async deleteUserData(userId: string) {
+    const batch = writeBatch(this.store);
+
+    // users 컬렉션에서 사용자 문서 삭제
+    const userDocRef = doc(this.store, 'users', userId);
+    batch.delete(userDocRef);
+
+    // bags 컬렉션에서 사용자의 배낭 삭제
+    const bagsRef = collection(this.store, 'bags');
+    const bagsSnapshot = await getDocs(bagsRef);
+    bagsSnapshot.forEach(doc => {
+      if (doc.data().userId === userId) {
+        batch.delete(doc.ref);
+      }
+    });
+
+    // gears 컬렉션에서 사용자의 장비 삭제
+    const gearsRef = collection(this.store, 'gears');
+    const gearsSnapshot = await getDocs(gearsRef);
+    gearsSnapshot.forEach(doc => {
+      if (doc.data().userId === userId) {
+        batch.delete(doc.ref);
+      }
+    });
+
+    // replies 컬렉션에서 사용자의 댓글 삭제
+    const repliesRef = collection(this.store, 'replies');
+    const repliesSnapshot = await getDocs(repliesRef);
+    repliesSnapshot.forEach(doc => {
+      if (doc.data().userId === userId) {
+        batch.delete(doc.ref);
+      }
+    });
+
+    await batch.commit();
   }
 }
 
