@@ -59,7 +59,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
     gap: 24,
-    paddingBottom: 36,
+    marginBottom: 20,
+    paddingHorizontal: 20,
   },
   imageContainer: {
     width: '100%',
@@ -73,11 +74,12 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flexDirection: 'column',
-    gap: 24,
+    gap: 14,
   },
   infoSection: {
-    flexDirection: 'column',
-    gap: 22,
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'space-between',
   },
   productInfo: {
     flexDirection: 'column',
@@ -94,7 +96,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   weightContainer: {
-    // 무게 컨테이너 스타일
+    flexDirection: 'column',
+    justifyContent: 'center',
   },
   weightText: {
     fontWeight: 'bold',

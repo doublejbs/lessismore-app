@@ -64,7 +64,6 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
           style={{ opacity: 0.6 }}
         />
       </TouchableOpacity>
-
       <Modal
         visible={isModalOpen}
         transparent={true}

@@ -10,8 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// TODO: Install expo-clipboard package
-// import * as Clipboard from 'expo-clipboard';
+import * as Clipboard from 'expo-clipboard';
 import BagDetail from '@/model/bag-detail/BagDetail';
 
 interface Props {
@@ -40,8 +39,7 @@ const ShareButtonView: FC<Props> = ({ bagDetail }) => {
         await bagDetail.share();
 
         try {
-          // TODO: Install expo-clipboard and uncomment
-          // await Clipboard.setStringAsync(url);
+          await Clipboard.setStringAsync(url);
           Alert.alert('성공', '공유 링크가 클립보드에 복사되었습니다.');
         } catch (error) {
           Alert.alert('오류', '링크 복사에 실패했습니다.');
@@ -54,8 +52,7 @@ const ShareButtonView: FC<Props> = ({ bagDetail }) => {
 
   const handleCopyLink = async () => {
     try {
-      // TODO: Install expo-clipboard and uncomment
-      // await Clipboard.setStringAsync(url);
+      await Clipboard.setStringAsync(url);
       Alert.alert('성공', '링크가 클립보드에 복사되었습니다.');
     } catch (error) {
       console.error('복사 실패:', error);

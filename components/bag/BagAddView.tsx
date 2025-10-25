@@ -44,18 +44,26 @@ const BagAddView: FC<Props> = ({ bag }) => {
   };
 
   const handleClickConfirm = async () => {
-    if (!startDate || !endDate) {
-      Alert.alert('오류', '날짜를 선택해주세요');
-      return;
-    }
-    const bagID = await bag.add(inputValue, startDate, endDate);
+    try {
+      if (!startDate || !endDate) {
+        Alert.alert('오류', '날짜를 선택해주세요');
+        return;
+      }
+      const bagID = await bag.add(inputValue, startDate, endDate);
 
-    if (bagID) {
-      setInputValue('');
-      setShouldShowAdd(false);
-      setStartDate(dayjs());
-      setEndDate(dayjs());
-      router.push(`/bag/${bagID}`);
+      if (bagID) {
+        setInputValue('');
+        setShouldShowAdd(false);
+        setStartDate(dayjs());
+        setEndDate(dayjs());
+        router.push(`/bag/${bagID}`);
+      }
+    } catch (error) {
+      console.error('배낭 추가 중 오류 발생:', error);
+      Alert.alert(
+        '오류',
+        '배낭 추가 중 문제가 발생했습니다. 다시 시도해주세요.'
+      );
     }
   };
 
