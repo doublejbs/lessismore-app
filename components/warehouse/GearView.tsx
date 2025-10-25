@@ -1,12 +1,18 @@
 import React, { FC, ReactNode } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  GestureResponderEvent,
+} from 'react-native';
 import GearImageView from '@/components/warehouse/GearImageView';
 import Gear from '@/model/gear/Gear';
 
 interface Props {
   gear: Gear;
   children?: ReactNode;
-  onPress?: () => void;
+  onPress?: (e: GestureResponderEvent) => void;
 }
 
 const GearView: FC<Props> = ({ gear, children, onPress }) => {
@@ -19,7 +25,7 @@ const GearView: FC<Props> = ({ gear, children, onPress }) => {
           <GearImageView imageUrl={imageUrl} />
         </View>
       </View>
-      
+
       <View style={styles.contentSection}>
         <View style={styles.contentContainer}>
           <View style={styles.headerRow}>
@@ -35,16 +41,14 @@ const GearView: FC<Props> = ({ gear, children, onPress }) => {
                     </View>
                   )}
                 </View>
-                
+
                 <Text style={styles.nameText} numberOfLines={2}>
                   {gear.getName()}
                 </Text>
-                
-                <Text style={styles.colorText}>
-                  {gear.getColor()}
-                </Text>
+
+                <Text style={styles.colorText}>{gear.getColor()}</Text>
               </View>
-              
+
               <Text style={styles.weightText}>
                 {gear.getWeight() ? `${gear.getWeight()}g` : ''}
               </Text>
@@ -52,7 +56,7 @@ const GearView: FC<Props> = ({ gear, children, onPress }) => {
           </View>
         </View>
       </View>
-      
+
       {children}
     </View>
   );

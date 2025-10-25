@@ -7,6 +7,7 @@ import {
   Platform,
   Modal,
   Animated,
+  GestureResponderEvent,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -59,14 +60,11 @@ const AddButtonView: FC = () => {
     setShowMenu(false);
   };
 
-  const handleClickSearch = () => {
+  const handleClickSearch = (e: GestureResponderEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setShowMenu(false);
-
-    if (app.getFirebase().isLoggedIn()) {
-      router.push('/search');
-    } else {
-      router.push('/not-login-search');
-    }
+    router.push('/search');
   };
 
   const handleClickCustom = () => {

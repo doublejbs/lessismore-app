@@ -1,5 +1,11 @@
 import React, { FC } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  GestureResponderEvent,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
@@ -15,16 +21,14 @@ const SearchGearView: FC<Props> = ({ gear, searchWarehouse }) => {
   const isAdded = gear.isAdded();
   const isSelected = searchWarehouse.isSelected(gear);
 
-  const handlePress = () => {
+  const handlePress = (e: GestureResponderEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (isAdded) {
       return;
     } else {
       searchWarehouse.toggle(gear);
     }
-  };
-
-  const handleToggle = () => {
-    searchWarehouse.toggle(gear);
   };
 
   return (
@@ -36,7 +40,7 @@ const SearchGearView: FC<Props> = ({ gear, searchWarehouse }) => {
               <Text style={styles.ownedText}>보유중</Text>
             </View>
           ) : (
-            <TouchableOpacity onPress={handleToggle} style={styles.checkbox}>
+            <TouchableOpacity style={styles.checkbox}>
               <View
                 style={[
                   styles.checkboxInner,
