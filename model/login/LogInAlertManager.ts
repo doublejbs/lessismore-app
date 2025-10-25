@@ -1,6 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 import Firebase from '../firebase/Firebase';
-import app from '../app/App';
+import { Alert } from 'react-native';
 
 class LogInAlertManager {
   public static new(firebase: Firebase) {
@@ -36,6 +36,18 @@ class LogInAlertManager {
     await this.firebase.logInWithGoogle();
     this.setLoading(false);
     this.hide();
+  }
+
+  public async loginWithEmail(email: string, password: string) {
+    try {
+      this.setLoading(true);
+      await this.firebase.login(email, password);
+      this.setLoading(false);
+      this.hide();
+    } catch (error) {
+      Alert.alert('알림', '이메일 또는 비밀번호가 올바르지 않습니다.');
+      this.setLoading(false);
+    }
   }
 
   private setLoading(loading: boolean) {

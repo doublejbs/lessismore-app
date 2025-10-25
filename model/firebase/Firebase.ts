@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, FirebaseApp } from 'firebase/app';
 import {
   Auth,
   createUserWithEmailAndPassword,
@@ -9,6 +9,8 @@ import {
   getReactNativePersistence,
   signInWithCredential,
   User,
+  signInWithPopup,
+  getAuth,
 } from 'firebase/auth';
 import { makeAutoObservable } from 'mobx';
 import {
@@ -37,6 +39,7 @@ class Firebase {
 
   private auth!: Auth;
   private userId = '';
+  private nickname = '';
   private initialized = false;
   private store!: Firestore;
   private storage!: FirebaseStorage;
@@ -52,23 +55,20 @@ class Firebase {
   public async initialize() {
     const fireBaseApp = initializeApp(Firebase.config);
 
-    // Google Sign-in 설정
-    GoogleSignin.configure({
-      webClientId:
-        '434364025032-9ocqi7g8s57pu88dmr5lvds5id8a8ent.apps.googleusercontent.com',
-      offlineAccess: true,
-      hostedDomain: '',
-      forceCodeForRefreshToken: false,
-      iosClientId:
-        '434364025032-ng7gpn2bks9128u8n2pg5qu47gqhuq43.apps.googleusercontent.com',
-    });
+    // 네이티브 앱에서만 Google Sign-in 설정
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      GoogleSignin.configure({
+        webClientId:
+          '434364025032-9ocqi7g8s57pu88dmr5lvds5id8a8ent.apps.googleusercontent.com',
+        offlineAccess: true,
+        hostedDomain: '',
+        forceCodeForRefreshToken: false,
+        iosClientId:
+          '434364025032-ng7gpn2bks9128u8n2pg5qu47gqhuq43.apps.googleusercontent.com',
+      });
+    }
 
-    this.auth = initializeAuth(fireBaseApp, {
-      persistence:
-        Platform.OS === 'ios' || Platform.OS === 'android'
-          ? getReactNativePersistence(ReactNativeAsyncStorage)
-          : undefined,
-    });
+    this.auth = this.initializeAuth(fireBaseApp);
     this.store = getFirestore(fireBaseApp);
     this.storage = getStorage(fireBaseApp);
 
@@ -88,6 +88,16 @@ class Firebase {
     });
   }
 
+  private initializeAuth(fireBaseApp: FirebaseApp) {
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      return initializeAuth(fireBaseApp, {
+        persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+      });
+    } else {
+      return getAuth(fireBaseApp);
+    }
+  }
+
   private clear() {
     this.setUserId('');
     this.setHasAgreedToTerms(false);
@@ -104,12 +114,15 @@ class Firebase {
         this.setUserId(userId.uid);
         await this.initializeStore();
         await this.checkTermsAgreement();
-        await GoogleSignin.signInSilently();
 
-        const tokens = await GoogleSignin.getTokens();
+        // 네이티브 앱에서만 GoogleSignin 사용
+        if (Platform.OS === 'ios' || Platform.OS === 'android') {
+          await GoogleSignin.signInSilently();
+        } else {
+          // 웹에서는 Firebase Auth의 토큰 사용
+          // await signInWithPopup(this.auth, new GoogleAuthProvider());
+        }
 
-        this.setIdToken(tokens.idToken);
-        this.setAccessToken(tokens.accessToken);
         this.setLoggedIn(true);
       }
     } catch (error) {
@@ -155,6 +168,7 @@ class Firebase {
         privacyAgreed: false,
         marketingAgreed: false,
         createdAt: new Date(),
+        nickname: `hiker${Math.floor(Math.random() * 10000)}`,
       });
     }
   }
@@ -172,6 +186,7 @@ class Firebase {
           userData.personalInfoAgreed === true &&
           userData.over14Agreed === true
       );
+      this.setNickname(userData.nickname);
     } else {
       this.setHasAgreedToTerms(false);
     }
@@ -186,12 +201,21 @@ class Firebase {
   }
 
   public async login(email: string, password: string) {
-    await signInWithEmailAndPassword(this.auth, email, password);
+    const result = await signInWithEmailAndPassword(this.auth, email, password);
+
+    if (result.user) {
+    } else {
+      throw new Error('이메일 또는 비밀번호가 올바르지 않습니다.');
+    }
   }
 
   public async logout() {
     await signOut(this.auth);
-    await GoogleSignin.signOut();
+
+    // 네이티브 앱에서만 GoogleSignin 사용
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      await GoogleSignin.signOut();
+    }
   }
 
   public getUserId() {
@@ -204,18 +228,27 @@ class Firebase {
 
   public async logInWithGoogle() {
     try {
-      const response = await GoogleSignin.signIn();
+      if (Platform.OS === 'ios' || Platform.OS === 'android') {
+        // 네이티브 앱에서는 GoogleSignin 라이브러리 사용
+        const response = await GoogleSignin.signIn();
 
-      if (response.data?.idToken) {
-        const googleCredential = GoogleAuthProvider.credential(
-          response.data.idToken,
-          response.data.serverAuthCode
-        );
-        await signInWithCredential(this.auth, googleCredential);
+        if (response.data?.idToken) {
+          const googleCredential = GoogleAuthProvider.credential(
+            response.data.idToken,
+            response.data.serverAuthCode
+          );
+          await signInWithCredential(this.auth, googleCredential);
+        } else {
+          throw new Error(
+            'Google 로그인 실패: idToken을 받을 수 없습니다. Google 설정을 확인해주세요.'
+          );
+        }
       } else {
-        throw new Error(
-          'Google 로그인 실패: idToken을 받을 수 없습니다. Google 설정을 확인해주세요.'
-        );
+        // 웹에서는 signInWithPopup 사용
+
+        const provider = new GoogleAuthProvider();
+
+        await signInWithPopup(this.auth, provider);
       }
     } catch (error) {
       console.error('Google 로그인 오류:', error);
@@ -256,20 +289,38 @@ class Firebase {
   }
 
   public async refreshTokens() {
-    if (this.accessToken) {
-      await GoogleSignin.signInSilently();
-      await GoogleSignin.clearCachedAccessToken(this.accessToken);
-    }
-    const { idToken, accessToken } = await GoogleSignin.getTokens();
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      // 네이티브 앱에서는 GoogleSignin 사용
+      if (this.accessToken) {
+        await GoogleSignin.signInSilently();
+        await GoogleSignin.clearCachedAccessToken(this.accessToken);
+      }
+      const { idToken, accessToken } = await GoogleSignin.getTokens();
 
-    this.idToken = idToken;
-    this.accessToken = accessToken;
-    return { idToken, accessToken };
+      this.idToken = idToken;
+      this.accessToken = accessToken;
+      return { idToken, accessToken };
+    } else {
+      // 웹에서는 Firebase Auth의 토큰 사용
+      const user = this.auth.currentUser;
+      if (user) {
+        const idToken = await user.getIdToken(true); // force refresh
+        this.idToken = idToken;
+        return { idToken, accessToken: null };
+      }
+      throw new Error('사용자가 로그인되지 않았습니다.');
+    }
   }
 
   public async getIdTokenResult() {
     if (this.auth.currentUser) {
-      return await GoogleSignin.getTokens();
+      if (Platform.OS === 'ios' || Platform.OS === 'android') {
+        return await GoogleSignin.getTokens();
+      } else {
+        // 웹에서는 Firebase Auth의 토큰 사용
+        const idToken = await this.auth.currentUser.getIdToken();
+        return { idToken, accessToken: null };
+      }
     }
     return null;
   }
@@ -291,6 +342,28 @@ class Firebase {
 
   private setAccessToken(value: string | null) {
     this.accessToken = value;
+  }
+
+  private setNickname(value: string) {
+    this.nickname = value;
+  }
+
+  public getNickname() {
+    return this.nickname;
+  }
+
+  public async createNickname() {
+    if (!!this.getNickname()) {
+      return;
+    }
+
+    const userDocRef = doc(this.getStore(), 'users', this.getUserId());
+    const nickname = `hiker${Math.floor(Math.random() * 10000)}`;
+
+    await updateDoc(userDocRef, {
+      nickname: nickname,
+    });
+    this.setNickname(nickname);
   }
 }
 

@@ -22,7 +22,7 @@ const WarehouseDetailWrapper: FC<Props> = ({}) => {
 
   if (initialized) {
     return (
-      <Layout>
+      <Layout paddingHorizontal={0}>
         <WarehouseDetailView warehouseDetail={warehouseDetail} />
       </Layout>
     );

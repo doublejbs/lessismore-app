@@ -9,12 +9,13 @@ import ToastView from './toast/ToastView';
 
 interface Props {
   children: ReactNode;
+  paddingHorizontal?: number;
 }
 
-const Layout: FC<Props> = ({ children }) => {
+const Layout: FC<Props> = ({ children, paddingHorizontal = 20 }) => {
   return (
     <SafeAreaView style={safeAreaStyle}>
-      <View style={containerStyle}>{children}</View>
+      <View style={[containerStyle, { paddingHorizontal }]}>{children}</View>
       <LogInView logInAlertManager={app.getLogInAlertManager()!} />
       <AlertView alertManager={app.getAlertManager()!} />
       <ToastView toastManager={app.getToastManager()!} bottom={100} />
@@ -31,7 +32,6 @@ const containerStyle: ViewStyle = {
   flex: 1,
   flexDirection: 'column',
   width: '100%',
-  paddingHorizontal: 20,
   position: 'relative',
 };
 

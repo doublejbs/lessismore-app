@@ -316,8 +316,7 @@ class BagDetail {
 
   public getUrl() {
     // React Native에서는 환경변수나 상수를 사용
-    const baseUrl =
-      process.env.EXPO_PUBLIC_BASE_URL || 'https://your-domain.com';
+    const baseUrl = 'https://useless.my';
     return `${baseUrl}/bag-share/${this.id}`;
   }
 

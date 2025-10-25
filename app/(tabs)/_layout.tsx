@@ -7,25 +7,33 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 
 export default function TabLayout() {
+  const screenOptions: any = {
+    tabBarActiveTintColor: 'black',
+    headerShown: false,
+    tabBarButton: Platform.select({
+      ios: HapticTab,
+      android: NoAnimationTab,
+      default: NoAnimationTab,
+    }),
+    tabBarStyle: Platform.select({
+      ios: {
+        // Use a transparent background on iOS to show the blur effect
+        position: 'absolute',
+      },
+      web: {
+        height: 65,
+        paddingBottom: 8,
+      },
+      default: {},
+    }),
+  };
+
+  if (Platform.OS === 'ios') {
+    screenOptions.tabBarBackground = TabBarBackground;
+  }
+
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: 'black',
-        headerShown: false,
-        tabBarButton: Platform.select({
-          ios: HapticTab,
-          android: NoAnimationTab,
-        }),
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
-      }}
-    >
+    <Tabs screenOptions={screenOptions}>
       <Tabs.Screen
         name='index'
         options={{

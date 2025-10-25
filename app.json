@@ -9,11 +9,13 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "googleServicesFile": "./GoogleService-Info.plist",
       "bundleIdentifier": "com.doublejbs.useless",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "WKCompanionAppBundleIdentifier": "",
+        "WatchKitApp": false
       }
     },
     "android": {

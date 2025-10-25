@@ -6,6 +6,7 @@ import SearchStore from '../search/SearchStore';
 import AlertManager from '../alert/AlertManager';
 import ToastManager from '../toast/ToastManager';
 import LogInAlertManager from '../login/LogInAlertManager';
+import ReplyStore from '../store/ReplyStore';
 
 class App {
   private readonly firebase = new Firebase();
@@ -15,6 +16,7 @@ class App {
   private alertManager: AlertManager | null = null;
   private logInAlertManager: LogInAlertManager | null = null;
   private toastManager: ToastManager | null = null;
+  private replyStore: ReplyStore | null = null;
   private initialized = false;
 
   public constructor() {
@@ -29,6 +31,7 @@ class App {
     this.alertManager = AlertManager.new();
     this.toastManager = ToastManager.new();
     this.logInAlertManager = LogInAlertManager.new(this.firebase);
+    this.replyStore = new ReplyStore(this.firebase);
     this.setInitialized(true);
   }
 
@@ -54,6 +57,10 @@ class App {
 
   public getGearStore() {
     return this.gearStore;
+  }
+
+  public getReplyStore() {
+    return this.replyStore;
   }
 
   public getSearchStore() {
