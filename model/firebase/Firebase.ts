@@ -12,6 +12,7 @@ import {
   getAuth,
   deleteUser,
   reauthenticateWithCredential,
+  OAuthProvider,
 } from 'firebase/auth';
 import { makeAutoObservable } from 'mobx';
 import {
@@ -29,11 +30,12 @@ import { FirebaseStorage, getStorage } from 'firebase/storage';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import * as AppleAuthentication from 'expo-apple-authentication';
 
 class Firebase {
   private static readonly config = {
     apiKey: 'AIzaSyBhg7PCSJY7Zm6p804Y5dTad4Qoi8Tr6MU',
-    authDomain: 'useless.my',
+    authDomain: 'lessismore-7e070.firebaseapp.com',
     projectId: 'lessismore-7e070',
     storageBucket: 'lessismore-7e070.appspot.com',
     messagingSenderId: '434364025032',
@@ -51,6 +53,7 @@ class Firebase {
   private loggedIn = false;
   private idToken: string | null = null;
   private accessToken: string | null = null;
+  private loginProvider: 'google' | 'apple' | 'email' | null = null;
 
   public constructor() {
     makeAutoObservable(this);
@@ -108,30 +111,46 @@ class Firebase {
     this.setIdToken(null);
     this.setAccessToken(null);
     this.setLoggedIn(false);
+    this.setLoginProvider(null);
   }
 
   private async checkLoggedIn() {
     try {
-      const userId = this.auth.currentUser;
+      const user = this.auth.currentUser;
 
-      if (userId) {
-        this.setUserId(userId.uid);
+      if (user) {
+        this.setUserId(user.uid);
+        // 로그인 제공자 확인
+        this.detectLoginProvider(user);
         await this.initializeStore();
         await this.checkTermsAgreement();
-
-        // 네이티브 앱에서만 GoogleSignin 사용
-        if (Platform.OS === 'ios' || Platform.OS === 'android') {
-          await GoogleSignin.signInSilently();
-        } else {
-          // 웹에서는 Firebase Auth의 토큰 사용
-          // await signInWithPopup(this.auth, new GoogleAuthProvider());
-        }
-
         this.setLoggedIn(true);
       }
     } catch (error) {
       console.error('checkLoggedIn error', error);
     }
+  }
+
+  /**
+   * 사용자의 로그인 제공자를 감지
+   */
+  private detectLoginProvider(user: User) {
+    // providerData에서 로그인 제공자 확인
+    for (const profile of user.providerData) {
+      if (profile.providerId === 'google.com') {
+        this.setLoginProvider('google');
+        return;
+      } else if (profile.providerId === 'apple.com') {
+        this.setLoginProvider('apple');
+        return;
+      } else if (profile.providerId === 'password') {
+        this.setLoginProvider('email');
+        return;
+      }
+    }
+
+    // 감지하지 못한 경우 null로 설정
+    this.setLoginProvider(null);
   }
 
   /**
@@ -208,6 +227,7 @@ class Firebase {
     const result = await signInWithEmailAndPassword(this.auth, email, password);
 
     if (result.user) {
+      this.setLoginProvider('email');
     } else {
       throw new Error('이메일 또는 비밀번호가 올바르지 않습니다.');
     }
@@ -242,6 +262,7 @@ class Firebase {
             response.data.serverAuthCode
           );
           await signInWithCredential(this.auth, googleCredential);
+          this.setLoginProvider('google');
         } else {
           throw new Error(
             'Google 로그인 실패: idToken을 받을 수 없습니다. Google 설정을 확인해주세요.'
@@ -253,9 +274,58 @@ class Firebase {
         const signInWithPopup = (firebaseAuth as any).signInWithPopup;
         const provider = new GoogleAuthProvider();
         await signInWithPopup(this.auth, provider);
+        this.setLoginProvider('google');
       }
     } catch (error) {
       console.error('Google 로그인 오류:', error);
+      throw error;
+    }
+  }
+
+  public async logInWithApple() {
+    try {
+      if (Platform.OS === 'ios') {
+        // iOS에서는 expo-apple-authentication 사용
+        const credential = await AppleAuthentication.signInAsync({
+          requestedScopes: [
+            AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+            AppleAuthentication.AppleAuthenticationScope.EMAIL,
+          ],
+        });
+
+        const { identityToken } = credential;
+
+        if (identityToken) {
+          const provider = new OAuthProvider('apple.com');
+          const authCredential = provider.credential({
+            idToken: identityToken,
+          });
+          await signInWithCredential(this.auth, authCredential);
+          this.setLoginProvider('apple');
+        } else {
+          throw new Error(
+            'Apple 로그인 실패: identityToken을 받을 수 없습니다.'
+          );
+        }
+      } else if (Platform.OS === 'web') {
+        // 웹에서는 signInWithPopup 사용 (동적 import)
+        const firebaseAuth = await import('firebase/auth');
+        const signInWithPopup = (firebaseAuth as any).signInWithPopup;
+        const provider = new OAuthProvider('apple.com');
+        provider.addScope('email');
+        provider.addScope('name');
+        await signInWithPopup(this.auth, provider);
+        this.setLoginProvider('apple');
+      } else {
+        throw new Error('Apple 로그인은 iOS와 웹에서만 지원됩니다.');
+      }
+    } catch (error: any) {
+      if (error.code === 'ERR_REQUEST_CANCELED') {
+        // 사용자가 로그인을 취소한 경우
+        console.log('Apple 로그인이 취소되었습니다.');
+        return;
+      }
+      console.error('Apple 로그인 오류:', error);
       throw error;
     }
   }
@@ -356,6 +426,14 @@ class Firebase {
     return this.nickname;
   }
 
+  private setLoginProvider(value: 'google' | 'apple' | 'email' | null) {
+    this.loginProvider = value;
+  }
+
+  public getLoginProvider() {
+    return this.loginProvider;
+  }
+
   public async createNickname() {
     if (!!this.getNickname()) {
       return;
@@ -389,33 +467,18 @@ class Firebase {
       throw new Error('로그인된 사용자가 없습니다.');
     }
 
-    // 재인증 수행
+    // 재인증 수행 - 로그인 방식에 따라 다르게 처리
     try {
-      if (Platform.OS === 'ios' || Platform.OS === 'android') {
-        // 네이티브: Google 재인증
-        const response = await GoogleSignin.signIn();
-
-        if (response.data?.idToken) {
-          const googleCredential = GoogleAuthProvider.credential(
-            response.data.idToken,
-            response.data.serverAuthCode
-          );
-          await reauthenticateWithCredential(user, googleCredential);
-        } else {
-          throw new Error('재인증에 실패했습니다.');
-        }
+      if (this.loginProvider === 'google') {
+        await this.reauthenticateWithGoogle(user);
+      } else if (this.loginProvider === 'apple') {
+        await this.reauthenticateWithApple(user);
+      } else if (this.loginProvider === 'email') {
+        throw new Error(
+          '이메일로 로그인한 경우, 비밀번호를 다시 입력해야 합니다. deleteUserAccountWithEmail 메서드를 사용하세요.'
+        );
       } else {
-        // 웹: signInWithPopup으로 재인증 (동적 import)
-        const firebaseAuth = await import('firebase/auth');
-        const signInWithPopup = (firebaseAuth as any).signInWithPopup;
-        const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(this.auth, provider);
-        const credential = GoogleAuthProvider.credentialFromResult(result);
-        if (credential) {
-          await reauthenticateWithCredential(user, credential);
-        } else {
-          throw new Error('재인증에 실패했습니다.');
-        }
+        throw new Error('로그인 방식을 알 수 없습니다.');
       }
     } catch (error: any) {
       console.error('재인증 실패:', error);
@@ -435,11 +498,126 @@ class Firebase {
 
     // 네이티브 앱에서만 GoogleSignin 로그아웃
     if (Platform.OS === 'ios' || Platform.OS === 'android') {
-      await GoogleSignin.signOut();
+      try {
+        await GoogleSignin.signOut();
+      } catch (error) {
+        // Google 로그인이 아닌 경우 에러 무시
+      }
     }
 
     // 로컬 상태 초기화
     this.clear();
+  }
+
+  /**
+   * 이메일 로그인 사용자 계정 삭제 (비밀번호 재인증 필요)
+   */
+  public async deleteUserAccountWithEmail(password: string) {
+    const user = this.auth.currentUser;
+
+    if (!user || !user.email) {
+      throw new Error('로그인된 사용자가 없습니다.');
+    }
+
+    // 이메일/비밀번호로 재인증
+    try {
+      const firebaseAuth = await import('firebase/auth');
+      const EmailAuthProvider = (firebaseAuth as any).EmailAuthProvider;
+      const credential = EmailAuthProvider.credential(user.email, password);
+      await reauthenticateWithCredential(user, credential);
+    } catch (error: any) {
+      console.error('재인증 실패:', error);
+      throw new Error('비밀번호가 올바르지 않습니다.');
+    }
+
+    // Firestore 데이터 삭제
+    try {
+      await this.deleteUserData(user.uid);
+    } catch (error) {
+      console.error('사용자 데이터 삭제 실패:', error);
+      // 데이터 삭제 실패해도 계정 삭제는 진행
+    }
+
+    // Firebase Auth 계정 삭제
+    await deleteUser(user);
+
+    // 로컬 상태 초기화
+    this.clear();
+  }
+
+  /**
+   * Google 재인증
+   */
+  private async reauthenticateWithGoogle(user: User) {
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      // 네이티브: Google 재인증
+      const response = await GoogleSignin.signIn();
+
+      if (response.data?.idToken) {
+        const googleCredential = GoogleAuthProvider.credential(
+          response.data.idToken,
+          response.data.serverAuthCode
+        );
+        await reauthenticateWithCredential(user, googleCredential);
+      } else {
+        throw new Error('재인증에 실패했습니다.');
+      }
+    } else {
+      // 웹: signInWithPopup으로 재인증 (동적 import)
+      const firebaseAuth = await import('firebase/auth');
+      const signInWithPopup = (firebaseAuth as any).signInWithPopup;
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(this.auth, provider);
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      if (credential) {
+        await reauthenticateWithCredential(user, credential);
+      } else {
+        throw new Error('재인증에 실패했습니다.');
+      }
+    }
+  }
+
+  /**
+   * Apple 재인증
+   */
+  private async reauthenticateWithApple(user: User) {
+    if (Platform.OS === 'ios') {
+      // iOS에서는 expo-apple-authentication 사용
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      const { identityToken } = credential;
+
+      if (identityToken) {
+        const provider = new OAuthProvider('apple.com');
+        const authCredential = provider.credential({
+          idToken: identityToken,
+        });
+        await reauthenticateWithCredential(user, authCredential);
+      } else {
+        throw new Error('Apple 재인증 실패: identityToken을 받을 수 없습니다.');
+      }
+    } else if (Platform.OS === 'web') {
+      // 웹에서는 signInWithPopup 사용 (동적 import)
+      const firebaseAuth = await import('firebase/auth');
+      const signInWithPopup = (firebaseAuth as any).signInWithPopup;
+      const provider = new OAuthProvider('apple.com');
+      provider.addScope('email');
+      provider.addScope('name');
+      const result = await signInWithPopup(this.auth, provider);
+      const credential = OAuthProvider.credentialFromResult(result);
+      if (credential) {
+        await reauthenticateWithCredential(user, credential);
+      } else {
+        throw new Error('재인증에 실패했습니다.');
+      }
+    } else {
+      throw new Error('Apple 재인증은 iOS와 웹에서만 지원됩니다.');
+    }
   }
 
   /**

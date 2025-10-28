@@ -10,6 +10,7 @@ import {
   Image,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import { Svg, Path } from 'react-native-svg';
 import LoadingView from '@/components/ui/LoadingView';
@@ -53,6 +54,10 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
       return;
     }
     await logInAlertManager.loginWithEmail(email, password);
+  };
+
+  const handleClickAppleLogin = async () => {
+    await logInAlertManager.loginWithApple();
   };
 
   if (!isVisible) {
@@ -140,6 +145,27 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
                   </Svg>
                   <Text style={styles.loginButtonText}>Google로 로그인</Text>
                 </TouchableOpacity>
+
+                {Platform.OS !== 'android' && (
+                  <TouchableOpacity
+                    style={styles.appleLoginButton}
+                    onPress={handleClickAppleLogin}
+                  >
+                    <Svg
+                      width={24}
+                      height={24}
+                      viewBox='0 0 24 24'
+                      style={styles.appleIcon}
+                    >
+                      <Path
+                        fill='white'
+                        d='M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z'
+                      />
+                    </Svg>
+                    <Text style={styles.loginButtonText}>Apple로 로그인</Text>
+                  </TouchableOpacity>
+                )}
+
                 <TouchableOpacity
                   style={styles.emailLoginButton}
                   onPress={handleClickEmailLogin}
@@ -205,6 +231,19 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   googleIcon: {
+    marginRight: 10,
+  },
+  appleLoginButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'black',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    width: '100%',
+  },
+  appleIcon: {
     marginRight: 10,
   },
   loginButtonText: {
