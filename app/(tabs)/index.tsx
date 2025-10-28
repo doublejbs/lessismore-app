@@ -1,5 +1,5 @@
-import WarehouseWrapper from '@/components/warehouse/WarehouseWrapper';
+import HomeView from '@/components/home/HomeView';
 
-export default function WarehouseTabPage() {
-  return <WarehouseWrapper />;
+export default function HomeTabPage() {
+  return <HomeView />;
 }

@@ -78,12 +78,8 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
   return (
     <Layout>
       <View style={styles.headerContainer}>
-        <View style={{ alignItems: 'center', marginBottom: 8 }}>
-          <Image
-            source={require('../../assets/images/logo.png')}
-            style={{ width: '100%', height: 32 }}
-            resizeMode='contain'
-          />
+        <View style={styles.titleContainer}>
+          <Text style={styles.titleText}>창고</Text>
         </View>
         {!warehouse.isEmpty() && <WarehouseFiltersView warehouse={warehouse} />}
       </View>
@@ -100,12 +96,14 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 16,
   },
+  titleContainer: {
+    alignItems: 'flex-start',
+  },
   titleText: {
     fontWeight: '900',
-    fontSize: 48,
-    textAlign: 'center',
-    lineHeight: 48,
-    letterSpacing: -4.5,
+    fontSize: 28,
+    textAlign: 'left',
+    lineHeight: 28,
   },
   contentContainer: {
     flex: 1,
