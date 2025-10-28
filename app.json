@@ -16,7 +16,9 @@
         "ITSAppUsesNonExemptEncryption": false,
         "WKCompanionAppBundleIdentifier": "",
         "WatchKitApp": false
-      }
+      },
+      "usesAppleSignIn": true,
+      "appleTeamId": "NFV6WC2X83"
     },
     "android": {
       "adaptiveIcon": {
@@ -26,7 +28,9 @@
       "edgeToEdgeEnabled": true,
       "googleServicesFile": "./google-services.json",
       "package": "com.doublejbs.useless",
-      "permissions": ["android.permission.RECORD_AUDIO"],
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
       "userInterfaceStyle": "light"
     },
     "web": {
@@ -37,6 +41,7 @@
     "plugins": [
       "@react-native-google-signin/google-signin",
       "expo-router",
+      "expo-apple-authentication",
       [
         "expo-splash-screen",
         {

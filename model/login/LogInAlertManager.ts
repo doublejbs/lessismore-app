@@ -50,6 +50,18 @@ class LogInAlertManager {
     }
   }
 
+  public async loginWithApple() {
+    try {
+      this.setLoading(true);
+      await this.firebase.logInWithApple();
+      this.setLoading(false);
+      this.hide();
+    } catch (error) {
+      Alert.alert('알림', 'Apple 로그인에 실패했습니다.');
+      this.setLoading(false);
+    }
+  }
+
   private setLoading(loading: boolean) {
     this.loading = loading;
   }
