@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "lessismore-app",
+    "name": "useless",
     "slug": "lessismore-app",
     "version": "1.0.2",
     "orientation": "portrait",
@@ -28,9 +28,7 @@
       "edgeToEdgeEnabled": true,
       "googleServicesFile": "./google-services.json",
       "package": "com.doublejbs.useless",
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ],
+      "permissions": ["android.permission.RECORD_AUDIO"],
       "userInterfaceStyle": "light"
     },
     "web": {
@@ -39,9 +37,24 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "@react-native-firebase/app",
       "@react-native-google-signin/google-signin",
       "expo-router",
       "expo-apple-authentication",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static",
+            "deploymentTarget": "15.1"
+          },
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "minSdkVersion": 24
+          }
+        }
+      ],
       [
         "expo-splash-screen",
         {
