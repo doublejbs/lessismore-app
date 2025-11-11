@@ -358,7 +358,7 @@ class BagDetail {
             // sticky header 높이를 고려한 오프셋 적용
             const stickyHeaderHeight = 46; // gearHeader 높이 (text + filters, 패딩 제외)
             const categoryTitleHeight = 30; // categoryTitle 높이 (fontSize 18 + marginBottom 12)
-            const additionalMargin = 20;
+            const additionalMargin = 30;
 
             const totalOffset =
               stickyHeaderHeight + categoryTitleHeight + additionalMargin;
