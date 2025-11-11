@@ -65,7 +65,7 @@ class BagEdit {
       this.order.initialize();
       const { weight, gears } = await this.bagStore.getBag(
         this.id,
-        [this.filterManager.getSelectedFilter().getFilter()],
+        [this.filterManager.getAllFilter()],
         this.order.getSelectedOrderType() ?? OrderType.NameAsc
       );
 
