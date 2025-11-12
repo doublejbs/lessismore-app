@@ -20,6 +20,7 @@ import ShareButtonView from './ShareButtonView';
 import { useFocusEffect } from 'expo-router';
 import BagDetailSkeletonView from './BagDetailSkeletonView';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import BagShareImageView from './BagShareImageView';
 
 interface Props {
   bagDetail: BagDetail;
@@ -82,6 +83,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               <BagDetailNameView bagDetail={bagDetail} />
               <BagDetailDateView bagDetail={bagDetail} />
             </View>
+            <BagShareImageView bagDetail={bagDetail} />
             <BagDetailUselessDescriptionView bagDetail={bagDetail} />
             <BagDetailChartView bagDetail={bagDetail} />
             <View style={styles.separator} />
