@@ -3,7 +3,6 @@ import React, { FC } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import SearchBarView from './SearchBarView';
-import SearchBottomView from './SearchBottomView';
 import SearchResultView from './SearchResultView';
 
 interface Props {
@@ -16,7 +15,6 @@ const SearchWarehouseView: FC<Props> = ({ searchWarehouse }) => {
     <View style={styles.container}>
       <SearchBarView searchWarehouse={searchWarehouse} />
       <SearchResultView searchWarehouse={searchWarehouse} />
-      <SearchBottomView searchWarehouse={searchWarehouse} />
     </View>
   );
 };

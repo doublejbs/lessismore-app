@@ -1,16 +1,16 @@
-import React, { FC } from 'react';
+import React, { FC, useState } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   GestureResponderEvent,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
+import { Ionicons } from '@expo/vector-icons';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Gear from '@/model/gear/Gear';
 import GearView from '@/components/warehouse/GearView';
+import LoadingView from '@/components/ui/LoadingView';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
@@ -19,88 +19,89 @@ interface Props {
 
 const SearchGearView: FC<Props> = ({ gear, searchWarehouse }) => {
   const isAdded = gear.isAdded();
-  const isSelected = searchWarehouse.isSelected(gear);
+  const [loading, setLoading] = useState(false);
 
-  const handlePress = (e: GestureResponderEvent) => {
+  const handleAddPress = async (e: GestureResponderEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isAdded) {
-      return;
-    } else {
-      searchWarehouse.toggle(gear);
+    setLoading(true);
+    try {
+      await searchWarehouse.registerSingle(gear);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemovePress = async (e: GestureResponderEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setLoading(true);
+    try {
+      await searchWarehouse.removeSingle(gear);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <GearView gear={gear} onPress={handlePress}>
-      <View style={styles.container}>
-        <View style={styles.checkboxContainer}>
-          {isAdded ? (
-            <View style={styles.ownedBadge}>
-              <Text style={styles.ownedText}>보유중</Text>
-            </View>
-          ) : (
-            <TouchableOpacity style={styles.checkbox}>
-              <View
-                style={[
-                  styles.checkboxInner,
-                  {
-                    backgroundColor: isSelected ? '#000' : '#fff',
-                  },
-                ]}
-              >
-                {isSelected && (
-                  <Ionicons name='checkmark' size={16} color='white' />
-                )}
-              </View>
-            </TouchableOpacity>
-          )}
-        </View>
+    <View style={styles.wrapper}>
+      <View style={styles.gearContainer}>
+        <GearView gear={gear} />
       </View>
-    </GearView>
+      <View style={styles.buttonContainer}>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <LoadingView duration={1000} />
+          </View>
+        ) : isAdded ? (
+          <TouchableOpacity
+            style={styles.ownedBadge}
+            onPress={handleRemovePress}
+          >
+            <Ionicons name='checkmark' size={20} color='#fff' />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.addButton} onPress={handleAddPress}>
+            <Ionicons name='add' size={20} color='#000' />
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'column',
-    minWidth: 40,
-    height: 80,
+  wrapper: {
+    flexDirection: 'row',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 24,
   },
-  checkboxContainer: {
+  gearContainer: {
+    flex: 1,
+  },
+  buttonContainer: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+  loadingContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 32,
-    height: 32,
-    flexShrink: 0,
   },
   ownedBadge: {
+    backgroundColor: '#000',
+    borderRadius: 16,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addButton: {
     backgroundColor: '#F6F6F6',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    minWidth: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ownedText: {
-    fontSize: 12,
-    fontFamily: 'Pretendard-Regular',
-    textAlign: 'center',
-    textAlignVertical: 'center',
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxInner: {
-    width: 24,
-    height: 24,
-    borderWidth: 2,
-    borderColor: '#000',
-    borderRadius: 4,
+    borderRadius: 16,
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },

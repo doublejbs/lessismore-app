@@ -87,10 +87,6 @@ class SearchWarehouse {
     }
   }
 
-  private deselect(gear: Gear) {
-    this.selected = this.selected.filter(item => !item.isSame(gear));
-  }
-
   @action
   public deleteSelected(gear: Gear) {
     this.selected = this.selected.filter(item => !item.isSame(gear));
@@ -224,6 +220,34 @@ class SearchWarehouse {
     await this.warehouseOrder.saveLastOrderOption();
     await this.bagDetailOrder.saveLastOrderOption();
     this.back(this.selected);
+  }
+
+  public async registerSingle(gear: Gear) {
+    if (!this.firebase.isLoggedIn()) {
+      this.logInAlertManager.show();
+      return;
+    }
+
+    await this.searchDispatcher.register([gear]);
+    await this.warehouseOrder.saveLastOrderOption();
+    await this.bagDetailOrder.saveLastOrderOption();
+
+    // 결과 목록에서 해당 gear의 isAdded 상태를 업데이트하기 위해 재검색
+    await this.executeSearch();
+  }
+
+  public async removeSingle(gear: Gear) {
+    if (!this.firebase.isLoggedIn()) {
+      this.logInAlertManager.show();
+      return;
+    }
+
+    await this.searchDispatcher.remove(gear);
+    await this.warehouseOrder.saveLastOrderOption();
+    await this.bagDetailOrder.saveLastOrderOption();
+
+    // 결과 목록에서 해당 gear의 isAdded 상태를 업데이트하기 위해 재검색
+    await this.executeSearch();
   }
 
   public back(_?: Array<Gear>) {

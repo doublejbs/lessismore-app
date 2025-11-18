@@ -9,6 +9,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import { josa } from 'josa';
+import { observer } from 'mobx-react-lite';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
@@ -55,11 +56,13 @@ const SearchBarInputView: FC<Props> = ({ searchWarehouse }) => {
         autoCapitalize='none'
         autoCorrect={false}
       />
-      {keyword && (
-        <TouchableOpacity onPress={handleClickClear} style={styles.clearButton}>
-          <Ionicons name='close-circle' size={20} color='#B0B8C1' />
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity
+        onPress={handleClickClear}
+        style={[styles.clearButton, !keyword && styles.hidden]}
+        disabled={!keyword}
+      >
+        <Ionicons name='close-circle' size={20} color='#B0B8C1' />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -93,6 +96,9 @@ const styles = StyleSheet.create({
     minHeight: 28,
     minWidth: 28,
   },
+  hidden: {
+    opacity: 0,
+  },
 });
 
-export default SearchBarInputView;
+export default observer(SearchBarInputView);

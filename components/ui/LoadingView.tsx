@@ -1,8 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, Easing, StyleSheet } from 'react-native';
-import Svg, { Circle, G } from 'react-native-svg';
+import Svg, { Circle } from 'react-native-svg';
 
-const LoadingView = () => {
+interface Props {
+  duration?: number;
+}
+
+const LoadingView = ({ duration = 2000 }: Props) => {
   const rotateValue = useRef(new Animated.Value(0)).current;
   const dashValue = useRef(new Animated.Value(0)).current;
 
@@ -11,7 +15,7 @@ const LoadingView = () => {
     const rotateAnimation = Animated.loop(
       Animated.timing(rotateValue, {
         toValue: 1,
-        duration: 2000,
+        duration: duration,
         easing: Easing.linear,
         useNativeDriver: true,
       })
@@ -22,13 +26,13 @@ const LoadingView = () => {
       Animated.sequence([
         Animated.timing(dashValue, {
           toValue: 1,
-          duration: 750,
+          duration: duration * 0.375,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: false,
         }),
         Animated.timing(dashValue, {
           toValue: 2,
-          duration: 750,
+          duration: duration * 0.375,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: false,
         }),
@@ -42,29 +46,27 @@ const LoadingView = () => {
       rotateAnimation.stop();
       dashAnimation.stop();
     };
-  }, []);
+  }, [duration]);
 
   const rotate = rotateValue.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
 
-  const AnimatedG = Animated.createAnimatedComponent(G);
-
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.svgContainer, { transform: [{ rotate }] }]}>
-        <Svg width="24" height="24" viewBox="0 0 24 24">
+        <Svg width='24' height='24' viewBox='0 0 24 24'>
           <Circle
-            cx="12"
-            cy="12"
-            r="9.5"
-            fill="none"
-            stroke="#000"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeDasharray="42 150"
-            strokeDashoffset="-16"
+            cx='12'
+            cy='12'
+            r='9.5'
+            fill='none'
+            stroke='#000'
+            strokeWidth='3'
+            strokeLinecap='round'
+            strokeDasharray='42 150'
+            strokeDashoffset='-16'
           />
         </Svg>
       </Animated.View>
@@ -85,6 +87,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
-  
-  export default LoadingView;
-  
+
+export default LoadingView;
