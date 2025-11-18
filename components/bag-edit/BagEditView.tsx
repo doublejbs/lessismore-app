@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   titleSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 15,
+    paddingVertical: 8,
     alignItems: 'center',
     backgroundColor: 'white',
   },

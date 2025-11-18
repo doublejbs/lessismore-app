@@ -88,7 +88,6 @@ const styles = StyleSheet.create({
   button: {
     height: '100%',
     paddingVertical: 8,
-    paddingHorizontal: 4,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
