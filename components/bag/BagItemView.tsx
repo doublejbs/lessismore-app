@@ -52,7 +52,7 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
           <IconSymbol name='trash.fill' size={18} color='#666' />
         </TouchableOpacity>
       </View>
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={styles.uselessButton}
         onPress={handleClickUseless}
         activeOpacity={0.7}
@@ -60,7 +60,7 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
         <PretendardText style={styles.uselessButtonText}>
           사용 여부 입력하기
         </PretendardText>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </TouchableOpacity>
   );
 };

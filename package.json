@@ -12,6 +12,7 @@
     "web:preview": "npm run web:export && npx serve dist",
     "deploy": "npm run web:export && firebase deploy --only hosting",
     "hotupdate": "npx hot-updater deploy -i",
+    "hotupdate:preview": "npx hot-updater deploy -i -c preview",
     "lint": "expo lint",
     "lint:fix": "expo lint --fix",
     "lint:unused": "eslint . --ext .ts,.tsx --fix"

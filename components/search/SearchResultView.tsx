@@ -17,7 +17,6 @@ const SearchResultView: FC<Props> = ({ searchWarehouse, children }) => {
   const canLoadMore = searchWarehouse.canLoadMore();
   const isLoading = searchWarehouse.isLoading();
   const result = searchWarehouse.getResult();
-  const hasSelected = searchWarehouse.hasSelected();
 
   const handleLoadMore = () => {
     searchWarehouse.searchMore();
@@ -40,7 +39,9 @@ const SearchResultView: FC<Props> = ({ searchWarehouse, children }) => {
           <FlatList
             data={result}
             renderItem={({ item: gear }) => (
-              <SearchGearView gear={gear} searchWarehouse={searchWarehouse} />
+              <View style={styles.itemContainer}>
+                <SearchGearView gear={gear} searchWarehouse={searchWarehouse} />
+              </View>
             )}
             keyExtractor={(gear: Gear) => gear.getId()}
             onEndReached={canLoadMore ? handleLoadMore : null}
@@ -63,24 +64,16 @@ const SearchResultView: FC<Props> = ({ searchWarehouse, children }) => {
     }
   };
 
-  return (
-    <View
-      style={[
-        styles.container,
-        {
-          paddingBottom: hasSelected ? 180 : 80,
-        },
-      ]}
-    >
-      {render()}
-    </View>
-  );
+  return <View style={styles.container}>{render()}</View>;
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,
+  },
+  itemContainer: {
+    width: '100%',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -95,6 +88,7 @@ const styles = StyleSheet.create({
   },
   flatListContent: {
     flexGrow: 1,
+    paddingBottom: 80,
   },
   skeletonContainer: {
     marginTop: 10,
