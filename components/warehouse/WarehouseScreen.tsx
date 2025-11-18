@@ -96,9 +96,8 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
 const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'column',
-    gap: 16,
+    gap: 8,
     marginTop: 8,
-    marginBottom: 16,
   },
   titleText: {
     fontWeight: '900',

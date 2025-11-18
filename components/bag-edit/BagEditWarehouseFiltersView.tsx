@@ -83,24 +83,28 @@ const BagEditWarehouseFiltersView: FC<Props> = ({ bagEdit }) => {
           );
         })}
       </ScrollView>
-      <OrderButtonView order={order} />
+      <View style={styles.orderContainer}>
+        <OrderButtonView order={order} />
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 15,
+    flexDirection: 'column',
+    gap: 4,
   },
   scrollContainer: {
     height: 32,
-    flex: 1,
   },
   scrollContent: {
     flexDirection: 'row',
     gap: 8,
+  },
+  orderContainer: {
+    width: '100%',
+    alignItems: 'flex-end',
   },
   filterButton: {
     height: 32,

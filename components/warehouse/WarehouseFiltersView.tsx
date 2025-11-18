@@ -17,6 +17,7 @@ interface Props {
 
 const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
   const order = warehouse.getOrder();
+  const totalCount = warehouse.getGears().length;
 
   const handleClick = (filter: WarehouseFilter) => {
     warehouse.toggleFilter(filter);
@@ -53,26 +54,39 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
           );
         })}
       </ScrollView>
-      <OrderButtonView order={order} />
+      <View style={styles.orderContainer}>
+        <Text style={styles.titleText}>총 {totalCount}개</Text>
+        <OrderButtonView order={order} />
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
     gap: 4,
     backgroundColor: 'white',
   },
   scrollView: {
     height: 32,
-    flex: 1,
+    width: '100%',
   },
   scrollContent: {
     flexDirection: 'row',
     gap: 8,
     paddingHorizontal: 0,
+  },
+  orderContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  titleText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'black',
   },
   filterButton: {
     height: 32,
