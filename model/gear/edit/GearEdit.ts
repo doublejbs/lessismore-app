@@ -67,7 +67,8 @@ class GearEdit extends AbstractGearEdit {
     if (this.initialWeight !== updatedGear.getWeight()) {
       await this.dispatcher.updateBagWeight(
         this.gear?.getBags() ?? [],
-        updatedGear
+        this.initialWeight,
+        updatedGear.getWeight()
       );
     }
 

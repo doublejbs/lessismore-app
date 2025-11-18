@@ -476,12 +476,20 @@ class BagStore {
     }
   }
 
-  public async updateBagsWeight(bags: string[], weight: number) {
+  public async updateBagsWeight(bags: string[], weightDiff: number) {
     const batch = writeBatch(this.getStore());
-    bags.forEach(bag => {
-      const bagRef = doc(this.getStore(), 'bag', bag);
-      batch.update(bagRef, { weight });
-    });
+
+    for (const bagId of bags) {
+      const bagRef = doc(this.getStore(), 'bag', bagId);
+      const bagSnap = await getDoc(bagRef);
+
+      if (bagSnap.exists()) {
+        const currentWeight = bagSnap.data()?.weight || 0;
+        const newWeight = currentWeight + weightDiff;
+        batch.update(bagRef, { weight: newWeight });
+      }
+    }
+
     await batch.commit();
   }
 

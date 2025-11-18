@@ -1,4 +1,4 @@
-import { FC, useRef } from 'react';
+import { forwardRef, useRef, useImperativeHandle } from 'react';
 import {
   View,
   TextInput,
@@ -15,6 +15,10 @@ interface Props {
   searchWarehouse: SearchWarehouse;
 }
 
+export interface SearchBarInputHandle {
+  focus: () => void;
+}
+
 const SuggestionKeywords = [
   '니모',
   '하이퍼라이트마운틴기어',
@@ -27,45 +31,55 @@ const SuggestionKeywords = [
   '헬리녹스',
 ];
 
-const SearchBarInputView: FC<Props> = ({ searchWarehouse }) => {
-  const keyword = searchWarehouse.getKeyword();
-  const inputRef = useRef<TextInput>(null);
-  const placeholder = `${josa(
-    `'${
-      SuggestionKeywords[Math.floor(Math.random() * SuggestionKeywords.length)]
-    }'#{을}`
-  )} 검색해보세요`;
+const SearchBarInputView = forwardRef<SearchBarInputHandle, Props>(
+  ({ searchWarehouse }, ref) => {
+    const keyword = searchWarehouse.getKeyword();
+    const inputRef = useRef<TextInput>(null);
 
-  const handleChange = (text: string) => {
-    searchWarehouse.changeKeyword(text);
-  };
+    useImperativeHandle(ref, () => ({
+      focus: () => {
+        inputRef.current?.focus();
+      },
+    }));
+    const placeholder = `${josa(
+      `'${
+        SuggestionKeywords[
+          Math.floor(Math.random() * SuggestionKeywords.length)
+        ]
+      }'#{을}`
+    )} 검색해보세요`;
 
-  const handleClickClear = () => {
-    searchWarehouse.clearKeyword();
-  };
+    const handleChange = (text: string) => {
+      searchWarehouse.changeKeyword(text);
+    };
 
-  return (
-    <View style={styles.container}>
-      <TextInput
-        ref={inputRef}
-        style={styles.input}
-        value={keyword}
-        onChangeText={handleChange}
-        placeholder={placeholder}
-        placeholderTextColor='#999'
-        autoCapitalize='none'
-        autoCorrect={false}
-      />
-      <TouchableOpacity
-        onPress={handleClickClear}
-        style={[styles.clearButton, !keyword && styles.hidden]}
-        disabled={!keyword}
-      >
-        <Ionicons name='close-circle' size={20} color='#B0B8C1' />
-      </TouchableOpacity>
-    </View>
-  );
-};
+    const handleClickClear = () => {
+      searchWarehouse.clearKeyword();
+    };
+
+    return (
+      <View style={styles.container}>
+        <TextInput
+          ref={inputRef}
+          style={styles.input}
+          value={keyword}
+          onChangeText={handleChange}
+          placeholder={placeholder}
+          placeholderTextColor='#999'
+          autoCapitalize='none'
+          autoCorrect={false}
+        />
+        <TouchableOpacity
+          onPress={handleClickClear}
+          style={[styles.clearButton, !keyword && styles.hidden]}
+          disabled={!keyword}
+        >
+          <Ionicons name='close-circle' size={20} color='#B0B8C1' />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   container: {

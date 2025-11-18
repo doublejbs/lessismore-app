@@ -58,11 +58,11 @@ const SearchGearView: FC<Props> = ({ gear, searchWarehouse }) => {
             style={styles.ownedBadge}
             onPress={handleRemovePress}
           >
-            <Ionicons name='checkmark' size={20} color='#fff' />
+            <Ionicons name='checkmark' size={16} color='#fff' />
           </TouchableOpacity>
         ) : (
           <TouchableOpacity style={styles.addButton} onPress={handleAddPress}>
-            <Ionicons name='add' size={20} color='#000' />
+            <Ionicons name='add' size={16} color='#000' />
           </TouchableOpacity>
         )}
       </View>
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 24,
+    gap: 28,
   },
   gearContainer: {
     flex: 1,
@@ -91,17 +91,17 @@ const styles = StyleSheet.create({
   },
   ownedBadge: {
     backgroundColor: '#000',
-    borderRadius: 16,
-    width: 32,
-    height: 32,
+    borderRadius: 14,
+    width: 28,
+    height: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
   addButton: {
     backgroundColor: '#F6F6F6',
-    borderRadius: 16,
-    width: 32,
-    height: 32,
+    borderRadius: 14,
+    width: 28,
+    height: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
