@@ -21,9 +21,14 @@ class GearEditDispatcher {
     await this.gearStore.update(gear);
   }
 
-  public async updateBagWeight(bags: string[], gear: Gear) {
+  public async updateBagWeight(
+    bags: string[],
+    previousWeight: string,
+    newWeight: string
+  ) {
     if (bags.length) {
-      await this.bagStore.updateBagsWeight(bags, Number(gear.getWeight()));
+      const weightDiff = Number(newWeight) - Number(previousWeight);
+      await this.bagStore.updateBagsWeight(bags, weightDiff);
     }
   }
 }

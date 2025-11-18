@@ -1,19 +1,25 @@
-import { FC } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { FC, useRef } from 'react';
+import { View, StyleSheet, Pressable } from 'react-native';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import { observer } from 'mobx-react-lite';
-import SearchBarInputView from './SearchInputView';
+import SearchBarInputView, { SearchBarInputHandle } from './SearchInputView';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
 }
 
 const SearchBarView: FC<Props> = ({ searchWarehouse }) => {
+  const inputRef = useRef<SearchBarInputHandle>(null);
+
+  const handlePressContainer = () => {
+    inputRef.current?.focus();
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <SearchBarInputView searchWarehouse={searchWarehouse} />
-      </View>
+      <Pressable style={styles.searchContainer} onPress={handlePressContainer}>
+        <SearchBarInputView ref={inputRef} searchWarehouse={searchWarehouse} />
+      </Pressable>
     </View>
   );
 };
