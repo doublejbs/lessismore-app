@@ -5,13 +5,15 @@ import SearchWarehouse from '@/model/search/SearchWarehouse';
 import SearchGearView from './SearchGearView';
 import SearchSkeletonView from './SearchSkeletonView';
 import Gear from '@/model/gear/Gear';
+import Bag from '@/model/bag/Bag';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
+  bag: Bag;
   children?: React.ReactNode;
 }
 
-const SearchResultView: FC<Props> = ({ searchWarehouse, children }) => {
+const SearchResultView: FC<Props> = ({ searchWarehouse, bag, children }) => {
   const keyword = searchWarehouse.getKeyword();
   const isEmpty = searchWarehouse.isEmpty();
   const canLoadMore = searchWarehouse.canLoadMore();
@@ -40,7 +42,11 @@ const SearchResultView: FC<Props> = ({ searchWarehouse, children }) => {
             data={result}
             renderItem={({ item: gear }) => (
               <View style={styles.itemContainer}>
-                <SearchGearView gear={gear} searchWarehouse={searchWarehouse} />
+                <SearchGearView
+                  gear={gear}
+                  searchWarehouse={searchWarehouse}
+                  bag={bag}
+                />
               </View>
             )}
             keyExtractor={(gear: Gear) => gear.getId()}

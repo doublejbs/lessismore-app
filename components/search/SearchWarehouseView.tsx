@@ -2,19 +2,21 @@ import { observer } from 'mobx-react-lite';
 import React, { FC } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
+import Bag from '@/model/bag/Bag';
 import SearchBarView from './SearchBarView';
 import SearchResultView from './SearchResultView';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
+  bag: Bag;
   children?: React.ReactNode;
 }
 
-const SearchWarehouseView: FC<Props> = ({ searchWarehouse }) => {
+const SearchWarehouseView: FC<Props> = ({ searchWarehouse, bag }) => {
   return (
     <View style={styles.container}>
       <SearchBarView searchWarehouse={searchWarehouse} />
-      <SearchResultView searchWarehouse={searchWarehouse} />
+      <SearchResultView searchWarehouse={searchWarehouse} bag={bag} />
     </View>
   );
 };
