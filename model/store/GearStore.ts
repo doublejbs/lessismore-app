@@ -74,6 +74,13 @@ class GearStore {
     }
   }
 
+  public async hasGear(id: string): Promise<boolean> {
+    const docData = await getDoc(
+      doc(this.getStore(), 'users', this.getUserId(), 'gears', id)
+    );
+    return docData.exists();
+  }
+
   public async getList(
     filters: GearFilter[],
     order: OrderType

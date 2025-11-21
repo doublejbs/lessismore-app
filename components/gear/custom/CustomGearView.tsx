@@ -20,6 +20,9 @@ import LoadingIconView from '@/components/ui/LoadingIconView';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import CustomGearWeightView from '@/components/gear/custom/CustomGearWeightView';
 import CustomGearColorView from '@/components/gear/custom/CustomGearColorView';
+import CustomGearInputSectionView from '@/components/gear/custom/CustomGearInputSectionView';
+import AlertView from '@/components/alert/AlertView';
+import app from '@/model/app/App';
 
 interface Props {
   customGear: CustomGear;
@@ -122,10 +125,6 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
     customGear.setName(text);
   };
 
-  const handleChangeCompany = (text: string) => {
-    customGear.setCompany(text);
-  };
-
   const handleClickHide = () => {
     customGear.hide();
   };
@@ -134,134 +133,143 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
     customGear.selectFilter(filter);
   };
 
+  const handleChangeCompany = (text: string) => {
+    customGear.setCompany(text);
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      {isLoading && (
-        <View style={styles.loadingOverlay}>
-          <LoadingIconView />
+    <>
+      <SafeAreaView style={styles.container}>
+        {isLoading && (
+          <View style={styles.loadingOverlay}>
+            <LoadingIconView />
+          </View>
+        )}
+
+        {/* 드래그 바 (iOS만) */}
+        {Platform.OS === 'ios' && <View style={styles.dragBar} />}
+
+        {/* 헤더 */}
+        <View style={styles.header}>
+          {Platform.OS === 'android' && (
+            <TouchableOpacity
+              onPress={handleClickHide}
+              style={styles.backButton}
+            >
+              <Ionicons name='chevron-back' size={24} color='black' />
+            </TouchableOpacity>
+          )}
+          <Text
+            style={[
+              styles.headerTitle,
+              Platform.OS === 'android' && styles.headerTitleWithBackButton,
+            ]}
+          >
+            장비 추가
+          </Text>
+          {Platform.OS === 'android' && (
+            <View style={styles.backButtonPlaceholder} />
+          )}
         </View>
-      )}
 
-      {/* 드래그 바 (iOS만) */}
-      {Platform.OS === 'ios' && <View style={styles.dragBar} />}
-
-      {/* 헤더 */}
-      <View style={styles.header}>
-        {Platform.OS === 'android' && (
-          <TouchableOpacity onPress={handleClickHide} style={styles.backButton}>
-            <Ionicons name='chevron-back' size={24} color='black' />
-          </TouchableOpacity>
-        )}
-        <Text
-          style={[
-            styles.headerTitle,
-            Platform.OS === 'android' && styles.headerTitleWithBackButton,
-          ]}
+        <KeyboardAvoidingView
+          style={styles.keyboardAvoidingView}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+          enabled={Platform.OS === 'ios'}
         >
-          직접 작성하기
-        </Text>
-        {Platform.OS === 'android' && (
-          <View style={styles.backButtonPlaceholder} />
-        )}
-      </View>
-
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-        enabled={Platform.OS === 'ios'}
-      >
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.scrollView}
-          contentContainerStyle={[
-            styles.scrollContent,
-            isKeyboardVisible && styles.scrollContentKeyboardVisible,
-          ]}
-          keyboardShouldPersistTaps='handled'
-          showsVerticalScrollIndicator={false}
-          keyboardDismissMode='interactive'
-          onScroll={e => {
-            if (Platform.OS === 'android') {
-              setSavedScrollPosition(e.nativeEvent.contentOffset.y);
-            }
-          }}
-          scrollEventThrottle={16}
-        >
-          <View style={styles.imageSection}>
-            <ImageUploadView fileUpload={customGear} />
-          </View>
-          <View style={styles.inputSection}>
-            <Text style={styles.label}>제품명</Text>
-            <TextInput
-              ref={nameInputRef}
-              style={styles.input}
-              placeholder={'제품명을 입력해주세요'}
-              onChangeText={handleChangeName}
-              value={name}
-              onFocus={() => setFocusedInput('name')}
-            />
-          </View>
-          <View style={styles.inputSection}>
-            <Text style={styles.label}>브랜드</Text>
-            <TextInput
-              ref={companyInputRef}
-              style={styles.input}
-              placeholder={'브랜드를 입력해주세요'}
-              onChangeText={handleChangeCompany}
-              value={company}
-              onFocus={() => setFocusedInput('company')}
-            />
-          </View>
-          <CustomGearColorView customGear={customGear} />
-          <View style={styles.inputSection}>
-            <Text style={styles.label}>카테고리</Text>
-            <View style={styles.filterContainer}>
-              {customGear.mapFilters(filter => {
-                return (
-                  <TouchableOpacity
-                    style={[
-                      styles.filterButton,
-                      filter.isSelected() && styles.filterButtonSelected,
-                    ]}
-                    key={filter.getFilter()}
-                    onPress={() => handleClickSelectFilter(filter)}
-                  >
-                    <Text
-                      style={[
-                        styles.filterButtonText,
-                        filter.isSelected() && styles.filterButtonTextSelected,
-                      ]}
-                    >
-                      {filter.getName()}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+          <ScrollView
+            ref={scrollViewRef}
+            style={styles.scrollView}
+            contentContainerStyle={[
+              styles.scrollContent,
+              isKeyboardVisible && styles.scrollContentKeyboardVisible,
+            ]}
+            keyboardShouldPersistTaps='handled'
+            showsVerticalScrollIndicator={false}
+            keyboardDismissMode='interactive'
+            onScroll={e => {
+              if (Platform.OS === 'android') {
+                setSavedScrollPosition(e.nativeEvent.contentOffset.y);
+              }
+            }}
+            scrollEventThrottle={16}
+          >
+            <View style={styles.imageSection}>
+              <ImageUploadView fileUpload={customGear} />
             </View>
+            <CustomGearInputSectionView
+              label='제품명'
+              placeholder='제품명을 입력하면 검색 결과가 나옵니다'
+              value={name}
+              onChangeText={handleChangeName}
+              onFocus={() => setFocusedInput('name')}
+              inputRef={nameInputRef}
+              customGear={customGear}
+            />
+            <View style={styles.inputSection}>
+              <Text style={styles.label}>브랜드</Text>
+              <TextInput
+                style={styles.input}
+                placeholder='브랜드를 입력해주세요'
+                value={company}
+                onChangeText={handleChangeCompany}
+                onFocus={() => setFocusedInput('company')}
+                ref={companyInputRef}
+              />
+            </View>
+            <CustomGearColorView customGear={customGear} />
+            <View style={styles.inputSection}>
+              <Text style={styles.label}>카테고리</Text>
+              <View style={styles.filterContainer}>
+                {customGear.mapFilters(filter => {
+                  return (
+                    <TouchableOpacity
+                      style={[
+                        styles.filterButton,
+                        filter.isSelected() && styles.filterButtonSelected,
+                      ]}
+                      key={filter.getFilter()}
+                      onPress={() => handleClickSelectFilter(filter)}
+                    >
+                      <Text
+                        style={[
+                          styles.filterButtonText,
+                          filter.isSelected() &&
+                            styles.filterButtonTextSelected,
+                        ]}
+                      >
+                        {filter.getName()}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+            <CustomGearWeightView
+              ref={weightInputRef}
+              customGear={customGear}
+              onFocus={() => setFocusedInput('weight')}
+            />
+            <View style={styles.scrollBottomPadding} />
+          </ScrollView>
+          <View
+            style={[
+              styles.confirmButtonContainer,
+              {
+                paddingBottom:
+                  Platform.OS === 'ios' && isKeyboardVisible
+                    ? keyboardHeight - 180
+                    : 16,
+              },
+            ]}
+          >
+            <CustomGearConfirmView customGear={customGear} />
           </View>
-          <CustomGearWeightView
-            ref={weightInputRef}
-            customGear={customGear}
-            onFocus={() => setFocusedInput('weight')}
-          />
-          <View style={styles.scrollBottomPadding} />
-        </ScrollView>
-        <View
-          style={[
-            styles.confirmButtonContainer,
-            {
-              paddingBottom:
-                Platform.OS === 'ios' && isKeyboardVisible
-                  ? keyboardHeight - 180
-                  : 16,
-            },
-          ]}
-        >
-          <CustomGearConfirmView customGear={customGear} />
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+      <AlertView alertManager={app.getAlertManager()!} />
+    </>
   );
 };
 
