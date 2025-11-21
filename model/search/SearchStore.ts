@@ -1,4 +1,10 @@
-import { collection, getDocs, orderBy, query, where } from '@firebase/firestore';
+import {
+  collection,
+  getDocs,
+  orderBy,
+  query,
+  where,
+} from '@firebase/firestore';
 import { SearchResponse } from 'algoliasearch';
 import { liteClient } from 'algoliasearch/lite';
 import Gear from '../gear/Gear';
@@ -7,7 +13,10 @@ import Firebase from '../firebase/Firebase';
 import GearType from '../gear/GearType';
 
 class SearchStore {
-  private readonly searchClient = liteClient('BWS6CWRXRM', 'dafcc0c015856d4ca5fb6d0626cf8f9f');
+  private readonly searchClient = liteClient(
+    'BWS6CWRXRM',
+    'dafcc0c015856d4ca5fb6d0626cf8f9f'
+  );
 
   public constructor(private readonly firebase: Firebase) {}
 
@@ -31,7 +40,16 @@ class SearchStore {
     return {
       gears: await this.convertWithMyGears(
         hits.map(
-          ({ name, weight, company, objectID, imageUrl, color, companyKorean, category }) => ({
+          ({
+            name,
+            weight,
+            company,
+            objectID,
+            imageUrl,
+            color,
+            companyKorean,
+            category = '',
+          }) => ({
             name,
             weight,
             company,
@@ -104,7 +122,7 @@ class SearchStore {
       const gears = (await getDocs(filterQuery)).docs;
 
       if (gears?.length) {
-        return gears.map((doc) => {
+        return gears.map(doc => {
           const {
             id,
             name,
@@ -145,7 +163,7 @@ class SearchStore {
   }
 
   private hasGear(id: string, myGears: Gear[]) {
-    return myGears.some((myGear) => {
+    return myGears.some(myGear => {
       return myGear.hasId(id);
     });
   }

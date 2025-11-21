@@ -91,10 +91,6 @@ abstract class AbstractGearEdit extends FileUpload {
         this.setErrorMessage('이름을 입력해주세요');
         throw Error('Invalid name');
       }
-      case !this.company: {
-        this.setErrorMessage('브랜드를 입력해주세요');
-        throw Error('Invalid company');
-      }
       default: {
         break;
       }
