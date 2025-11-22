@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import AlertView from '@/components/alert/AlertView';
 import app from '@/model/app/App';
 import LogInView from '@/components/login/LogInView';
+import ToastView from '@/components/toast/ToastView';
 
 const SearchPage = () => {
   const router = useRouter();
@@ -18,6 +19,7 @@ const SearchPage = () => {
       <SearchWarehouseView searchWarehouse={searchWarehouse} bag={bag} />
       <LogInView logInAlertManager={app.getLogInAlertManager()!} />
       <AlertView alertManager={app.getAlertManager()!} />
+      <ToastView toastManager={app.getToastManager()!} bottom={100} />
     </>
   );
 };

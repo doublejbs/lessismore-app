@@ -1,5 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import { Platform, ToastAndroid, Alert } from 'react-native';
+import { Platform, ToastAndroid } from 'react-native';
 
 class ToastManager {
   public static new() {
@@ -8,22 +8,34 @@ class ToastManager {
 
   private visible = false;
   private message = '';
+  private buttonText?: string | undefined;
+  private onButtonPress?: (() => void) | undefined;
 
   private constructor() {
     makeAutoObservable(this);
   }
 
-  public show({ message }: { message: string }) {
+  public show({
+    message,
+    buttonText,
+    onButtonPress,
+  }: {
+    message: string;
+    buttonText?: string;
+    onButtonPress?: () => void;
+  }) {
     if (Platform.OS === 'android') {
       // Android 네이티브 토스트 사용
       ToastAndroid.show(message, ToastAndroid.SHORT);
     } else {
       // 웹이나 다른 플랫폼에서는 커스텀 토스트 사용
       this.setMessage(message);
+      this.setButtonText(buttonText);
+      this.setOnButtonPress(onButtonPress);
       this.setVisible(true);
       setTimeout(() => {
         this.hide();
-      }, 2000);
+      }, 3000);
     }
   }
 
@@ -47,6 +59,8 @@ class ToastManager {
 
   public hide() {
     this.setVisible(false);
+    this.setButtonText(undefined);
+    this.setOnButtonPress(undefined);
   }
 
   private setVisible(visible: boolean) {
@@ -63,6 +77,22 @@ class ToastManager {
 
   public getMessage() {
     return this.message;
+  }
+
+  private setButtonText(text: string | undefined) {
+    this.buttonText = text;
+  }
+
+  public getButtonText() {
+    return this.buttonText;
+  }
+
+  private setOnButtonPress(callback: (() => void) | undefined) {
+    this.onButtonPress = callback;
+  }
+
+  public getOnButtonPress() {
+    return this.onButtonPress;
   }
 }
 
