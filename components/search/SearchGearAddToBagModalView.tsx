@@ -16,7 +16,6 @@ import PretendardText from '@/components/PretendardText';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
-import app from '@/model/app/App';
 
 interface Props {
   visible: boolean;
@@ -38,7 +37,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
     if (visible) {
       bag.getList();
     }
-  }, [visible]);
+  }, [bag, visible]);
 
   const handleNewBagPress = () => {
     onClose();
@@ -46,15 +45,10 @@ const SearchGearAddToBagModalView: FC<Props> = ({
   };
 
   const handleBagPress = async (bagItem: BagItem) => {
-    if (gear.getData().bags.includes(bagItem.getID())) {
-      return;
-    }
-
     setLoading(true);
     try {
-      const bagStore = app.getBagStore();
-      if (bagStore) {
-        await bagStore.save(bagItem.getID(), [gear], [], [gear]);
+      const success = await bag.addGearToBag(bagItem.getID(), gear);
+      if (success) {
         onClose();
       }
     } catch (error) {
@@ -90,31 +84,19 @@ const SearchGearAddToBagModalView: FC<Props> = ({
             activeOpacity={1}
             onPress={e => e.stopPropagation()}
           >
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={onClose}
-              activeOpacity={0.7}
-            >
-              <Ionicons name='close' size={20} color='#000' />
-            </TouchableOpacity>
-
+            <View style={styles.titleSection}>
+              <PretendardText style={styles.title}>
+                창고에 추가됐습니다.
+              </PretendardText>
+              <PretendardText style={styles.title}>
+                배낭에도 추가할까요?
+              </PretendardText>
+            </View>
             <ScrollView
               style={styles.scrollView}
               showsVerticalScrollIndicator={false}
               bounces={false}
             >
-              <View style={styles.titleSection}>
-                <PretendardText style={styles.title}>
-                  {gear.getName()}이
-                </PretendardText>
-                <PretendardText style={styles.title}>
-                  창고에 추가됐습니다.
-                </PretendardText>
-                <PretendardText style={styles.title}>
-                  배낭에도 추가할까요?
-                </PretendardText>
-              </View>
-
               <TouchableOpacity
                 style={styles.newBagButton}
                 onPress={handleNewBagPress}
@@ -132,12 +114,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
                   <Ionicons name='chevron-forward' size={20} color='#000' />
                 </View>
               </TouchableOpacity>
-
               <View style={styles.existingBagsSection}>
-                <PretendardText style={styles.sectionLabel}>
-                  기존 배낭에 추가
-                </PretendardText>
-
                 <View style={styles.bagsList}>
                   {bag.getBags().map(bagItem => {
                     const isInBag = isGearInBag(bagItem);

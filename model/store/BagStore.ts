@@ -453,6 +453,47 @@ class BagStore {
     }
   }
 
+  public async addGear(bagId: string, gear: Gear) {
+    const bagRef = doc(this.getStore(), 'bag', bagId);
+    const gearRef = doc(
+      this.getStore(),
+      'users',
+      this.getUserID(),
+      'gears',
+      gear.getId()
+    );
+
+    try {
+      await runTransaction(this.getStore(), async transaction => {
+        const bagSnap = await transaction.get(bagRef);
+        const gearSnap = await transaction.get(gearRef);
+
+        if (!bagSnap.exists()) {
+          throw new Error('Bag document does not exist!');
+        }
+
+        if (!gearSnap.exists()) {
+          throw new Error('Gear document does not exist!');
+        }
+
+        const currentWeight = bagSnap.data()?.weight || 0;
+        const gearWeight = parseInt(gear.getWeight() || '0');
+
+        transaction.update(bagRef, {
+          gears: arrayUnion(gear.getId()),
+          weight: currentWeight + gearWeight,
+        });
+
+        transaction.update(gearRef, {
+          bags: arrayUnion(bagId),
+        });
+      });
+    } catch (e) {
+      console.error('배낭에 장비 추가 실패:', e);
+      throw e;
+    }
+  }
+
   private getStore() {
     return this.firebase.getStore();
   }
