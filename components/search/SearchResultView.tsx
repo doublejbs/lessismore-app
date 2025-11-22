@@ -4,6 +4,7 @@ import { View, Text, FlatList, StyleSheet } from 'react-native';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import SearchGearView from './SearchGearView';
 import SearchSkeletonView from './SearchSkeletonView';
+import SearchTopKeywordsView from './SearchTopKeywordsView';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 
@@ -27,7 +28,7 @@ const SearchResultView: FC<Props> = ({ searchWarehouse, bag, children }) => {
   const render = () => {
     switch (true) {
       case !keyword.length: {
-        return <View />;
+        return <SearchTopKeywordsView searchWarehouse={searchWarehouse} />;
       }
       case isEmpty && !isLoading: {
         return (

@@ -23,10 +23,12 @@ class SearchWarehouse {
   }
 
   @observable private keyword: string = '';
-  @observable private result: Array<Gear> = [];
-  @observable private selected: Array<Gear> = [];
+  @observable private result: Gear[] = [];
+  @observable private selected: Gear[] = [];
   @observable private loading = false;
   @observable private hasMore = false;
+  @observable private topSearches: string[] = [];
+  @observable private loadingTopSearches = false;
   private page = 0;
   private disposeLoginReaction: () => void;
   private debounceTimer: NodeJS.Timeout | null = null;
@@ -134,7 +136,7 @@ class SearchWarehouse {
   }
 
   @action
-  private appendResult(value: Array<Gear>) {
+  private appendResult(value: Gear[]) {
     this.result.push(...value);
   }
 
@@ -144,7 +146,7 @@ class SearchWarehouse {
   }
 
   @action
-  private setResult(value: Array<Gear>) {
+  private setResult(value: Gear[]) {
     this.result = value;
   }
 
@@ -250,8 +252,41 @@ class SearchWarehouse {
     await this.executeSearch();
   }
 
-  public back(_?: Array<Gear>) {
+  public back(_?: Gear[]) {
     this.navigation.back();
+  }
+
+  public async loadTopSearches() {
+    if (this.topSearches.length > 0) {
+      return;
+    }
+
+    this.setLoadingTopSearches(true);
+    const searches = await this.searchDispatcher.getTopSearches();
+    this.setTopSearches(searches);
+    this.setLoadingTopSearches(false);
+  }
+
+  @action
+  private setTopSearches(value: string[]) {
+    this.topSearches = value;
+  }
+
+  @action
+  private setLoadingTopSearches(value: boolean) {
+    this.loadingTopSearches = value;
+  }
+
+  public getTopSearches() {
+    return this.topSearches;
+  }
+
+  public isLoadingTopSearches() {
+    return this.loadingTopSearches;
+  }
+
+  public searchByKeyword(keyword: string) {
+    this.changeKeyword(keyword);
   }
 }
 
