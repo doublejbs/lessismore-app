@@ -6,13 +6,17 @@ import { Dayjs } from 'dayjs';
 import Firebase from '@/model/firebase/Firebase';
 import { Alert } from 'react-native';
 import AlertManager from '@/model/alert/AlertManager';
+import ToastManager from '@/model/toast/ToastManager';
+import Gear from '@/model/gear/Gear';
+import { router } from 'expo-router';
 
 class Bag {
   public static new() {
     return new Bag(
       app.getBagStore()!,
       app.getFirebase(),
-      app.getAlertManager()!
+      app.getAlertManager()!,
+      app.getToastManager()!
     );
   }
 
@@ -23,7 +27,8 @@ class Bag {
   private constructor(
     private readonly bagStore: BagStore,
     private readonly firebase: Firebase,
-    private readonly alertManager: AlertManager
+    private readonly alertManager: AlertManager,
+    private readonly toastManager: ToastManager
   ) {
     makeAutoObservable(this);
     this.disposeLoginReaction = reaction(
@@ -68,6 +73,27 @@ class Bag {
         await this.getList();
       },
     });
+  }
+
+  public async addGearToBag(bagItemId: string, gear: Gear): Promise<boolean> {
+    if (gear.getData().bags.includes(bagItemId)) {
+      return false;
+    }
+
+    await this.bagStore.addGear(bagItemId, gear);
+
+    const bagItem = this.bags.find(bag => bag.getID() === bagItemId);
+    if (bagItem) {
+      this.toastManager.show({
+        message: '배낭에 추가됐습니다.',
+        buttonText: '배낭 보기',
+        onButtonPress: () => {
+          router.push(`/bag/${bagItemId}`);
+        },
+      });
+    }
+
+    return true;
   }
 
   public getBags() {
