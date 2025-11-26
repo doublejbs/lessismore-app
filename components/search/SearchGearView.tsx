@@ -4,6 +4,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   GestureResponderEvent,
+  Pressable,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
@@ -54,9 +55,13 @@ const SearchGearView: FC<Props> = ({ gear, searchWarehouse, bag }) => {
     setShowModal(false);
   };
 
+  const handleGearPress = () => {
+    searchWarehouse.goToGearDetail(gear);
+  };
+
   return (
     <>
-      <View style={styles.wrapper}>
+      <Pressable style={styles.wrapper} onPress={handleGearPress}>
         <View style={styles.gearContainer}>
           <GearView gear={gear} />
         </View>
@@ -78,7 +83,7 @@ const SearchGearView: FC<Props> = ({ gear, searchWarehouse, bag }) => {
             </TouchableOpacity>
           )}
         </View>
-      </View>
+      </Pressable>
       <SearchGearAddToBagModalView
         visible={showModal}
         onClose={handleCloseModal}

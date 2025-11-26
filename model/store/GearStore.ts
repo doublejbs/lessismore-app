@@ -34,9 +34,7 @@ class GearStore {
   public constructor(private readonly firebase: Firebase) {}
 
   public async getGear(id: string): Promise<Gear> {
-    const docData = await getDoc(
-      doc(this.getStore(), 'users', this.getUserId(), 'gears', id)
-    );
+    const docData = await getDoc(doc(this.getStore(), 'gear', id));
 
     if (docData.exists()) {
       const {
@@ -60,7 +58,7 @@ class GearStore {
         company,
         weight,
         imageUrl,
-        true,
+        await this.hasGear(id),
         isCustom,
         category,
         useless,
@@ -76,10 +74,14 @@ class GearStore {
   }
 
   public async hasGear(id: string): Promise<boolean> {
-    const docData = await getDoc(
-      doc(this.getStore(), 'users', this.getUserId(), 'gears', id)
-    );
-    return docData.exists();
+    if (this.getUserId()) {
+      const docData = await getDoc(
+        doc(this.getStore(), 'users', this.getUserId(), 'gears', id)
+      );
+      return docData.exists();
+    } else {
+      return false;
+    }
   }
 
   public async getList(
