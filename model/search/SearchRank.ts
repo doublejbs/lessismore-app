@@ -11,7 +11,6 @@ import ToastManager from '../toast/ToastManager';
 
 class SearchRank {
   private gears: Gear[] = [];
-  private gearCountMap: Map<string, number> = new Map();
   private loading = false;
   private selectedCategory: GearFilter = GearFilter.All;
 
@@ -35,23 +34,18 @@ class SearchRank {
     this.setSelectedCategory(category);
 
     try {
-      const data = await this.gearRankStore.loadRanking(category);
-
-      const countMap = new Map<string, number>();
-      data.forEach(item => {
-        countMap.set(item.id, item.count);
-      });
-      this.setGearCountMap(countMap);
-
-      const gears = await this.gearRankStore.loadRankingAsGears(category);
-      this.setGears(gears);
+      await this.loadRankingAsGears(category);
     } catch (error) {
       console.error('Error in SearchRank.loadRanking:', error);
-      this.setGearCountMap(new Map());
       this.setGears([]);
     } finally {
       this.setLoading(false);
     }
+  }
+
+  private async loadRankingAsGears(category: GearFilter) {
+    const gears = await this.gearRankStore.loadRankingAsGears(category);
+    this.setGears(gears);
   }
 
   public selectCategory(category: GearFilter) {
@@ -61,11 +55,6 @@ class SearchRank {
   @action
   private setGears(gears: Gear[]) {
     this.gears = gears;
-  }
-
-  @action
-  private setGearCountMap(map: Map<string, number>) {
-    this.gearCountMap = map;
   }
 
   @action
@@ -82,10 +71,6 @@ class SearchRank {
     return this.gears;
   }
 
-  public getGearCount(gearId: string): number {
-    return this.gearCountMap.get(gearId) || 0;
-  }
-
   public isLoading() {
     return this.loading;
   }
@@ -94,10 +79,10 @@ class SearchRank {
     return this.selectedCategory;
   }
 
-  public async registerSingle(gear: Gear) {
+  public async registerSingle(gear: Gear): Promise<boolean> {
     if (!this.firebase.isLoggedIn()) {
       this.logInAlertManager.show();
-      return;
+      return false;
     }
 
     await this.searchDispatcher.register([gear]);
@@ -105,13 +90,14 @@ class SearchRank {
     await this.bagDetailOrder.saveLastOrderOption();
 
     // 랭킹 목록을 다시 불러와서 isAdded 상태 업데이트
-    await this.loadRanking(this.selectedCategory, false);
+    await this.loadRankingAsGears(this.selectedCategory);
+    return true;
   }
 
-  public async removeSingle(gear: Gear) {
+  public async removeSingle(gear: Gear): Promise<boolean> {
     if (!this.firebase.isLoggedIn()) {
       this.logInAlertManager.show();
-      return;
+      return false;
     }
 
     this.alertManager.show({
@@ -123,10 +109,11 @@ class SearchRank {
         await this.bagDetailOrder.saveLastOrderOption();
 
         // 랭킹 목록을 다시 불러와서 isAdded 상태 업데이트
-        await this.loadRanking(this.selectedCategory, false);
+        await this.loadRankingAsGears(this.selectedCategory);
         this.toastManager.show({ message: '장비가 제거되었습니다.' });
       },
     });
+    return true;
   }
 }
 

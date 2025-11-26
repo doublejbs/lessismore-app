@@ -30,8 +30,10 @@ const SearchGearView: FC<Props> = ({ gear, searchWarehouse, bag }) => {
     e.stopPropagation();
     setLoading(true);
     try {
-      await searchWarehouse.registerSingle(gear);
-      setShowModal(true);
+      const success = await searchWarehouse.registerSingle(gear);
+      if (success) {
+        setShowModal(true);
+      }
     } finally {
       setLoading(false);
     }

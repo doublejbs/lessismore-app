@@ -252,10 +252,10 @@ class SearchWarehouse {
     this.back(this.selected);
   }
 
-  public async registerSingle(gear: Gear) {
+  public async registerSingle(gear: Gear): Promise<boolean> {
     if (!this.firebase.isLoggedIn()) {
       this.logInAlertManager.show();
-      return;
+      return false;
     }
 
     await this.searchDispatcher.register([gear]);
@@ -264,12 +264,13 @@ class SearchWarehouse {
 
     // 결과 목록에서 해당 gear의 isAdded 상태를 업데이트하기 위해 재검색
     await this.executeSearch();
+    return true;
   }
 
-  public async removeSingle(gear: Gear) {
+  public async removeSingle(gear: Gear): Promise<boolean> {
     if (!this.firebase.isLoggedIn()) {
       this.logInAlertManager.show();
-      return;
+      return false;
     }
 
     this.alertManager.show({
@@ -285,6 +286,7 @@ class SearchWarehouse {
         this.toastManager.show({ message: '장비가 제거되었습니다.' });
       },
     });
+    return true;
   }
 
   public back(_?: Gear[]) {
