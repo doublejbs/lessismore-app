@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import { FC, useEffect, useState } from 'react';
+import { FC, useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import LoadingView from '../ui/LoadingView';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import SearchGearAddToBagModalView from './SearchGearAddToBagModalView';
+import { useFocusEffect } from 'expo-router';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
@@ -52,9 +53,11 @@ const SearchTopKeywordsView: FC<Props> = ({ searchWarehouse, bag }) => {
   const gears = searchRank.getGears();
   const isLoading = searchRank.isLoading();
 
-  useEffect(() => {
-    searchRank.loadRanking(GearFilter.All);
-  }, [searchRank]);
+  useFocusEffect(
+    useCallback(() => {
+      searchRank.loadRanking(selectedCategory);
+    }, [searchRank, selectedCategory])
+  );
 
   const handleCategoryPress = (category: GearFilter) => {
     setSelectedCategory(category);
@@ -62,7 +65,7 @@ const SearchTopKeywordsView: FC<Props> = ({ searchWarehouse, bag }) => {
   };
 
   const handleGearPress = (gear: Gear) => {
-    searchWarehouse.searchByKeyword(gear.getName());
+    searchRank.goToGearDetail(gear);
   };
 
   const handleAddPress = async (e: GestureResponderEvent, gear: Gear) => {

@@ -40,7 +40,8 @@ class SearchWarehouse {
         warehouseOrder,
         bagDetailOrder,
         alertManager,
-        toastManager
+        toastManager,
+        router
       ),
       alertManager,
       toastManager
@@ -328,6 +329,14 @@ class SearchWarehouse {
 
   public getSearchRank() {
     return this.searchRank;
+  }
+
+  public goToGearDetail(gear: Gear) {
+    if (gear.isAdded()) {
+      this.navigation.push(`/gear-detail/${gear.getId()}`);
+    } else {
+      this.navigation.push(`/search/gear-detail/${gear.getId()}`);
+    }
   }
 }
 

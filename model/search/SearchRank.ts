@@ -1,4 +1,5 @@
 import { makeAutoObservable, action } from 'mobx';
+import { Router } from 'expo-router';
 import GearRankStore from './GearRankStore';
 import Gear from '../gear/Gear';
 import GearFilter from '../gear/GearFilter';
@@ -22,7 +23,8 @@ class SearchRank {
     private readonly warehouseOrder: Order,
     private readonly bagDetailOrder: Order,
     private readonly alertManager: AlertManager,
-    private readonly toastManager: ToastManager
+    private readonly toastManager: ToastManager,
+    private readonly router: Router
   ) {
     makeAutoObservable(this);
   }
@@ -114,6 +116,14 @@ class SearchRank {
       },
     });
     return true;
+  }
+
+  public goToGearDetail(gear: Gear) {
+    if (gear.isAdded()) {
+      this.router.push(`/gear-detail/${gear.getId()}`);
+    } else {
+      this.router.push(`/search/gear-detail/${gear.getId()}`);
+    }
   }
 }
 
