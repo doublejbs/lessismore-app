@@ -71,9 +71,11 @@ const SearchTopKeywordsView: FC<Props> = ({ searchWarehouse, bag }) => {
 
     setLoadingGearIds(prev => new Set(prev).add(gear.getId()));
     try {
-      await searchRank.registerSingle(gear);
-      setSelectedGear(gear);
-      setShowModal(true);
+      const success = await searchRank.registerSingle(gear);
+      if (success) {
+        setSelectedGear(gear);
+        setShowModal(true);
+      }
     } finally {
       setLoadingGearIds(prev => {
         const newSet = new Set(prev);
@@ -172,7 +174,7 @@ const SearchTopKeywordsView: FC<Props> = ({ searchWarehouse, bag }) => {
                   </Text>
                 </View>
 
-                {gear.getImageUrl() && (
+                {!!gear.getImageUrl() && (
                   <View style={styles.imageContainer}>
                     <Image
                       source={{ uri: gear.getImageUrl() }}

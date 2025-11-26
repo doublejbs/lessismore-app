@@ -1,5 +1,12 @@
 import React, { FC } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  Platform,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
 
@@ -47,7 +54,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     paddingTop: 16,
-    paddingBottom: 60,
+    paddingBottom: Platform.OS === 'ios' ? 60 : 0,
     paddingHorizontal: 16,
     borderTopWidth: 1,
     borderTopColor: '#eee',
