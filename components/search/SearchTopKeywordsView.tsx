@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import { FC, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import SearchSkeletonView from './SearchSkeletonView';
 
@@ -33,7 +33,7 @@ const SearchTopKeywordsView: FC<Props> = ({ searchWarehouse }) => {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Text style={styles.title}>인기 검색어</Text>
       <View style={styles.listContainer}>
         {topSearches.map((keyword, index) => (
@@ -52,7 +52,7 @@ const SearchTopKeywordsView: FC<Props> = ({ searchWarehouse }) => {
           </Pressable>
         ))}
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

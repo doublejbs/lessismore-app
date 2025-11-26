@@ -95,7 +95,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
             <ScrollView
               style={styles.scrollView}
               showsVerticalScrollIndicator={false}
-              bounces={false}
+              bounces={true}
             >
               <TouchableOpacity
                 style={styles.newBagButton}
@@ -106,9 +106,6 @@ const SearchGearAddToBagModalView: FC<Props> = ({
                   <View>
                     <PretendardText style={styles.bagItemTitle}>
                       새 배낭에 추가
-                    </PretendardText>
-                    <PretendardText style={styles.bagItemSubtitle}>
-                      새로운 패킹 시뮬레이션 만들기
                     </PretendardText>
                   </View>
                   <Ionicons name='chevron-forward' size={20} color='#000' />
