@@ -9,6 +9,7 @@ import {
   setDoc,
   where,
   writeBatch,
+  increment,
 } from '@firebase/firestore';
 import GearFilter from '../gear/GearFilter';
 import OrderType from '../order/OrderType';
@@ -170,9 +171,35 @@ class GearStore {
           gear.getId()
         );
 
-        if ((await getDoc(gearRef)).exists()) {
+        const gearExists = (await getDoc(gearRef)).exists();
+
+        if (gearExists) {
+          // 이미 존재하면 스킵
         } else {
+          // 사용자 gears에 추가
           batch.set(gearRef, gear.getData());
+
+          // isCustom이 false인 경우 gear-rank 업데이트
+          if (!gear.getIsCustom()) {
+            const gearRankRef = doc(this.getStore(), 'gear-rank', gear.getId());
+            const gearRankDoc = await getDoc(gearRankRef);
+
+            if (gearRankDoc.exists()) {
+              // 이미 존재하면 count만 증가
+              batch.update(gearRankRef, {
+                count: increment(1),
+                updatedAt: new Date(),
+              });
+            } else {
+              // 존재하지 않으면 새로 생성
+              batch.set(gearRankRef, {
+                id: gear.getId(),
+                count: 1,
+                category: gear.getCategory(),
+                updatedAt: new Date(),
+              });
+            }
+          }
         }
       }
 
@@ -245,6 +272,28 @@ class GearStore {
           });
         }
       }
+
+      // isCustom이 false인 경우 gear-rank 업데이트
+      if (!gear.getIsCustom()) {
+        const gearRankRef = doc(this.getStore(), 'gear-rank', gear.getId());
+        const gearRankDoc = await getDoc(gearRankRef);
+
+        if (gearRankDoc.exists()) {
+          const currentCount = gearRankDoc.data().count || 0;
+
+          if (currentCount <= 1) {
+            // count가 1 이하면 문서 삭제
+            batch.delete(gearRankRef);
+          } else {
+            // count 감소
+            batch.update(gearRankRef, {
+              count: increment(-1),
+              updatedAt: new Date(),
+            });
+          }
+        }
+      }
+
       await batch.commit();
       await deleteDoc(gearRef);
     } catch (error) {

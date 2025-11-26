@@ -28,7 +28,9 @@ const SearchResultView: FC<Props> = ({ searchWarehouse, bag, children }) => {
   const render = () => {
     switch (true) {
       case !keyword.length: {
-        return <SearchTopKeywordsView searchWarehouse={searchWarehouse} />;
+        return (
+          <SearchTopKeywordsView searchWarehouse={searchWarehouse} bag={bag} />
+        );
       }
       case isEmpty && !isLoading: {
         return (

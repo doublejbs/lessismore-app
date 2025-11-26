@@ -9,16 +9,41 @@ import SearchDispatcher from '@/model/search/SearchDispatcher';
 import Order from '../order/Order';
 import Warehouse from '../warehouse/Warehouse';
 import BagDetail from '../bag-detail/BagDetail';
+import GearRankStore from './GearRankStore';
+import SearchRank from './SearchRank';
+import AlertManager from '../alert/AlertManager';
+import ToastManager from '../toast/ToastManager';
 
 class SearchWarehouse {
   public static new(router: Router) {
+    const firebase = app.getFirebase();
+    const gearRankStore = new GearRankStore(firebase);
+    const searchDispatcher = SearchDispatcher.new();
+    const logInAlertManager = app.getLogInAlertManager()!;
+    const warehouseOrder = Order.new(Warehouse.ORDER_KEY);
+    const bagDetailOrder = Order.new(BagDetail.ORDER_KEY);
+    const alertManager = app.getAlertManager()!;
+    const toastManager = app.getToastManager()!;
+
     return new SearchWarehouse(
-      SearchDispatcher.new(),
+      searchDispatcher,
       router,
-      app.getFirebase(),
-      app.getLogInAlertManager()!,
-      Order.new(Warehouse.ORDER_KEY),
-      Order.new(BagDetail.ORDER_KEY)
+      firebase,
+      logInAlertManager,
+      warehouseOrder,
+      bagDetailOrder,
+      new SearchRank(
+        gearRankStore,
+        searchDispatcher,
+        firebase,
+        logInAlertManager,
+        warehouseOrder,
+        bagDetailOrder,
+        alertManager,
+        toastManager
+      ),
+      alertManager,
+      toastManager
     );
   }
 
@@ -39,7 +64,10 @@ class SearchWarehouse {
     private readonly firebase: Firebase,
     private readonly logInAlertManager: LogInAlertManager,
     private readonly warehouseOrder: Order,
-    private readonly bagDetailOrder: Order
+    private readonly bagDetailOrder: Order,
+    private readonly searchRank: SearchRank,
+    private readonly alertManager: AlertManager,
+    private readonly toastManager: ToastManager
   ) {
     makeObservable(this);
     this.disposeLoginReaction = reaction(
@@ -244,12 +272,19 @@ class SearchWarehouse {
       return;
     }
 
-    await this.searchDispatcher.remove(gear);
-    await this.warehouseOrder.saveLastOrderOption();
-    await this.bagDetailOrder.saveLastOrderOption();
+    this.alertManager.show({
+      message: '모든 배낭에서 장비가 제거됩니다.\n정말 제거하시겠습니까?',
+      confirmText: '확인',
+      onConfirm: async () => {
+        await this.searchDispatcher.remove(gear);
+        await this.warehouseOrder.saveLastOrderOption();
+        await this.bagDetailOrder.saveLastOrderOption();
 
-    // 결과 목록에서 해당 gear의 isAdded 상태를 업데이트하기 위해 재검색
-    await this.executeSearch();
+        // 결과 목록에서 해당 gear의 isAdded 상태를 업데이트하기 위해 재검색
+        await this.executeSearch();
+        this.toastManager.show({ message: '장비가 제거되었습니다.' });
+      },
+    });
   }
 
   public back(_?: Gear[]) {
@@ -287,6 +322,10 @@ class SearchWarehouse {
 
   public searchByKeyword(keyword: string) {
     this.changeKeyword(keyword);
+  }
+
+  public getSearchRank() {
+    return this.searchRank;
   }
 }
 

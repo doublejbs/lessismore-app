@@ -103,7 +103,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
                 activeOpacity={0.7}
               >
                 <View style={styles.bagItemContent}>
-                  <View>
+                  <View style={styles.bagInfo}>
                     <PretendardText style={styles.bagItemTitle}>
                       새 배낭에 추가
                     </PretendardText>
@@ -127,7 +127,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
                         activeOpacity={0.7}
                       >
                         <View style={styles.bagItemContent}>
-                          <View>
+                          <View style={styles.bagInfo}>
                             <PretendardText
                               style={[
                                 styles.bagItemTitle,
@@ -147,19 +147,13 @@ const SearchGearAddToBagModalView: FC<Props> = ({
                                 : bagItem.getDate()}
                             </PretendardText>
                           </View>
-                          {!isInBag && (
-                            <Ionicons
-                              name='chevron-forward'
-                              size={20}
-                              color='#000'
-                            />
-                          )}
                         </View>
                       </TouchableOpacity>
                     );
                   })}
                 </View>
               </View>
+              <View style={styles.bottomContainer}></View>
             </ScrollView>
           </TouchableOpacity>
         </KeyboardAvoidingView>
@@ -200,10 +194,7 @@ const styles = StyleSheet.create({
   titleSection: {
     flexDirection: 'column',
     gap: 2,
-    marginBottom: 16,
     paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
   },
   title: {
     fontFamily: 'Pretendard-Bold',
@@ -211,8 +202,8 @@ const styles = StyleSheet.create({
     lineHeight: 28,
   },
   newBagButton: {
-    backgroundColor: 'white',
-    borderRadius: 16.4,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 16,
     marginBottom: 8,
@@ -231,35 +222,40 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   bagItem: {
-    backgroundColor: 'white',
-    borderRadius: 16.4,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
   bagItemDisabled: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F1F1F1',
   },
   bagItemContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
   },
+  bagInfo: {
+    flex: 1,
+    gap: 2,
+  },
   bagItemTitle: {
-    fontFamily: 'Pretendard-Regular',
-    fontSize: 16,
+    fontFamily: 'Pretendard-SemiBold',
+    fontSize: 15,
     color: '#000',
-    marginBottom: 4,
   },
   bagItemTitleDisabled: {
-    color: '#62748e',
+    color: '#999',
   },
   bagItemSubtitle: {
     fontFamily: 'Pretendard-Regular',
     fontSize: 12,
-    color: '#45556c',
+    color: '#666',
   },
   bagItemSubtitleDisabled: {
-    color: '#90a1b9',
+    color: '#999',
+  },
+  bottomContainer: {
+    height: 100,
   },
 });
 
