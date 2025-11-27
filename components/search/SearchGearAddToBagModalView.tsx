@@ -12,6 +12,7 @@ import {
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import dayjs from 'dayjs';
 import PretendardText from '@/components/PretendardText';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
@@ -32,6 +33,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
 }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(visible);
 
   useEffect(() => {
     if (visible) {
@@ -39,9 +41,26 @@ const SearchGearAddToBagModalView: FC<Props> = ({
     }
   }, [bag, visible]);
 
-  const handleNewBagPress = () => {
-    onClose();
-    router.push('/bag');
+  useEffect(() => {
+    setShowModal(visible);
+  }, [visible]);
+
+  const handleNewBagPress = async () => {
+    setLoading(true);
+    try {
+      const today = dayjs();
+      const newBagId = await bag.add('새 배낭', today, today);
+
+      if (newBagId) {
+        await bag.addGearToBag(newBagId, gear);
+        setShowModal(false);
+        router.push(`/bag/${newBagId}`);
+      }
+    } catch (error) {
+      console.error('새 배낭 생성 및 장비 추가 중 오류:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBagPress = async (bagItem: BagItem) => {
@@ -64,7 +83,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
 
   return (
     <Modal
-      visible={visible}
+      visible={showModal}
       transparent={true}
       onRequestClose={onClose}
       animationType='fade'
@@ -100,6 +119,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
               <TouchableOpacity
                 style={styles.newBagButton}
                 onPress={handleNewBagPress}
+                disabled={loading}
                 activeOpacity={0.7}
               >
                 <View style={styles.bagItemContent}>

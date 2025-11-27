@@ -1,5 +1,11 @@
 import { FC, useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  GestureResponderEvent,
+} from 'react-native';
 import SearchGearDetail from '@/model/search/SearchGearDetail';
 import SearchGearDetailInformationView from './SearchGearDetailInformationView';
 import { observer } from 'mobx-react-lite';
@@ -20,8 +26,13 @@ const SearchGearDetailView: FC<Props> = ({ searchGearDetail }) => {
     searchGearDetail.close();
   };
 
-  const handleAddPress = async () => {
-    if (!gear) return;
+  const handleAddPress = async (e: GestureResponderEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!gear) {
+      return;
+    }
 
     setLoading(true);
     try {
