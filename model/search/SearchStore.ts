@@ -20,6 +20,33 @@ class SearchStore {
 
   public constructor(private readonly firebase: Firebase) {}
 
+  public async getTopSearches(): Promise<string[]> {
+    try {
+      const response = await fetch(
+        'https://analytics.algolia.com/2/searches?index=useless-gear-search&limit=10&orderBy=searchCount&direction=desc',
+        {
+          headers: {
+            'X-Algolia-Application-Id': 'BWS6CWRXRM',
+            'X-Algolia-API-Key': 'dafcc0c015856d4ca5fb6d0626cf8f9f',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.error('Failed to fetch top searches:', response.status);
+        return [];
+      }
+
+      const data = await response.json();
+      return (
+        data.searches?.map((item: { search: string }) => item.search) || []
+      );
+    } catch (error) {
+      console.error('Error fetching top searches:', error);
+      return [];
+    }
+  }
+
   public async searchList(
     value: string,
     index: number
@@ -69,7 +96,7 @@ class SearchStore {
     };
   }
 
-  private async convertWithMyGears(data: Array<GearType>) {
+  private async convertWithMyGears(data: GearType[]) {
     const myGears = await this.getList(GearFilter.All);
 
     return data.map(

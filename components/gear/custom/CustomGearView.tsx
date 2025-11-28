@@ -200,7 +200,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
             </View>
             <CustomGearInputSectionView
               label='제품명'
-              placeholder='제품명을 입력하면 검색 결과가 나옵니다'
+              placeholder='제품명을 입력해주세요'
               value={name}
               onChangeText={handleChangeName}
               onFocus={() => setFocusedInput('name')}

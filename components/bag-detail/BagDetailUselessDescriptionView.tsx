@@ -31,7 +31,7 @@ const BagDetailUselessDescriptionView: FC<Props> = ({ bagDetail }) => {
       return (
         <View style={styles.textContainer}>
           <Text style={styles.descriptionText}>사용 여부 기록하고</Text>
-          <Text style={styles.descriptionText}>무게 확인하기</Text>
+          <Text style={styles.descriptionText}>줄어든 무게 확인하기</Text>
         </View>
       );
     }
@@ -57,7 +57,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 8,
     backgroundColor: 'white',
-    marginVertical: 8,
   },
   touchableContainer: {
     flexDirection: 'row',
@@ -70,7 +69,6 @@ const styles = StyleSheet.create({
   },
   descriptionText: {
     fontSize: 17,
-    fontWeight: '500',
     color: 'black',
   },
   weightRow: {

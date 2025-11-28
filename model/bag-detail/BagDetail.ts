@@ -40,6 +40,7 @@ class BagDetail {
   private startDate = dayjs();
   private endDate = dayjs();
   private shared = false;
+  private memo: string = '';
   private categoryRefs: Map<string, any> = new Map();
   private scrollViewRef: any = null;
   private isScrollingSyncFilter = false;
@@ -64,7 +65,7 @@ class BagDetail {
   }
 
   private async getData() {
-    const { name, weight, editDate, gears, startDate, endDate, shared } =
+    const { name, weight, editDate, gears, startDate, endDate, shared, memo } =
       await this.bagStore.getBagWithAllFilter(this.id);
     this.setName(name);
     this.setWeight(weight);
@@ -73,6 +74,7 @@ class BagDetail {
     this.setStartDate(startDate);
     this.setEndDate(endDate);
     this.setShared(shared);
+    this.setMemo(memo || '');
     this.calculateUsedWeight();
     this.updateUselessChecked();
   }
@@ -312,6 +314,18 @@ class BagDetail {
     await this.bagStore.updateShared(this.id, this.firebase.getUserId(), false);
     // React Native Alert을 컴포넌트에서 호출하도록 변경
     this.setShared(false);
+  }
+
+  private setMemo(value: string) {
+    this.memo = value;
+  }
+
+  public getMemo() {
+    return this.memo;
+  }
+
+  public hasMemo() {
+    return this.memo.trim().length > 0;
   }
 
   public getUrl() {

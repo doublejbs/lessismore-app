@@ -7,6 +7,7 @@ interface SearchDispatcherType {
     keyword: string,
     index: number
   ): Promise<{ gears: Gear[]; hasMore: boolean }>;
+  getTopSearches(): Promise<string[]>;
 }
 
 export default SearchDispatcherType;

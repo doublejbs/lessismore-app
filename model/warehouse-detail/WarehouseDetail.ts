@@ -11,6 +11,8 @@ import app from '../app/App';
 import ReplyStore from '../store/ReplyStore';
 import ReplyItem from '../reply/ReplyItem';
 import dayjs from 'dayjs';
+import Firebase from '../firebase/Firebase';
+import LogInAlertManager from '../login/LogInAlertManager';
 
 class WarehouseDetail {
   public static new(router: Router, dispatcher: WarehouseDispatcherType) {
@@ -21,7 +23,9 @@ class WarehouseDetail {
       router,
       dispatcher,
       app.getAlertManager()!,
-      app.getToastManager()!
+      app.getToastManager()!,
+      app.getFirebase()!,
+      app.getLogInAlertManager()!
     );
   }
 
@@ -38,7 +42,9 @@ class WarehouseDetail {
     private readonly router: Router,
     private readonly dispatcher: WarehouseDispatcherType,
     private readonly alertManager: AlertManager,
-    private readonly toastManager: ToastManager
+    private readonly toastManager: ToastManager,
+    private readonly firebase: Firebase,
+    private readonly logInAlertManager: LogInAlertManager
   ) {
     makeAutoObservable(this);
   }
@@ -151,6 +157,14 @@ class WarehouseDetail {
 
   public getId() {
     return this.id;
+  }
+
+  public goToReply() {
+    if (this.firebase.isLoggedIn()) {
+      this.router.push(`/reply/${this.getId()}`);
+    } else {
+      this.logInAlertManager.show();
+    }
   }
 }
 
