@@ -4,7 +4,6 @@ import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import SeperaterView from '../ui/SeperaterView';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -15,7 +14,7 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
   const hasReplies = warehouseDetail.hasReplies();
 
   const handleAddReviewPress = () => {
-    router.push(`/reply/${warehouseDetail.getId()}`);
+    warehouseDetail.goToReply();
   };
 
   return (

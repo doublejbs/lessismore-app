@@ -16,7 +16,7 @@ import Layout from '@/components/Layout';
 import app from '@/model/app/App';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import InfoFooterView from '@/components/info/InfoFooterView';
 
 const privacyPolicyText = `Useless(이하 '회사'라 한다)는 개인정보 보호법 제30조에 따라 정보 주체의 개인정보를 보호하고 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 하기 위하여 다음과 같이 개인정보 처리지침을 수립, 공개합니다.
 
@@ -114,7 +114,6 @@ const InfoView: FC = () => {
   const isLoggedIn = firebase.isLoggedIn();
   const nickname = firebase.getNickname();
   const logInAlertManager = app.getLogInAlertManager();
-  const router = useRouter();
 
   const handleLogout = async () => {
     await firebase.logout();
@@ -233,17 +232,9 @@ const InfoView: FC = () => {
             )}
           </View>
         </View>
-        {isLoggedIn && (
-          <View style={styles.deleteAccountContainer}>
-            <TouchableOpacity
-              onPress={() => router.push('/info/delete')}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.deleteAccountText}>탈퇴하기</Text>
-            </TouchableOpacity>
-          </View>
-        )}
       </ScrollView>
+
+      <InfoFooterView isLoggedIn={isLoggedIn} />
 
       <Modal
         visible={isEditingNickname}
@@ -453,15 +444,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
-  deleteAccountContainer: {
+  imageContainer: {
+    marginTop: 24,
+    marginBottom: 24,
     alignItems: 'center',
-    marginTop: 16,
-    paddingBottom: 16,
   },
-  deleteAccountText: {
-    fontSize: 12,
-    color: '#666',
-    textDecorationLine: 'underline',
+  image: {
+    width: '100%',
+    height: 200,
   },
 });
 

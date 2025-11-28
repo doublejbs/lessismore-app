@@ -16,10 +16,13 @@ import BagDetailFiltersView from './BagDetailFiltersView';
 import BagDetailNameView from './BagDetailNameView';
 import BagDetailUselessDescriptionView from './BagDetailUselessDescriptionView';
 import BagDetailAddButtonView from './BagDetailAddButtonView';
+import BagDetailMemoView from './BagDetailMemoView';
 import ShareButtonView from './ShareButtonView';
 import { useFocusEffect } from 'expo-router';
 import BagDetailSkeletonView from './BagDetailSkeletonView';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ToastView from '../toast/ToastView';
+import app from '@/model/app/App';
 
 interface Props {
   bagDetail: BagDetail;
@@ -83,6 +86,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               <BagDetailDateView bagDetail={bagDetail} />
             </View>
             <BagDetailUselessDescriptionView bagDetail={bagDetail} />
+            <BagDetailMemoView bagDetail={bagDetail} />
             <BagDetailChartView bagDetail={bagDetail} />
             <View style={styles.separator} />
             <View style={styles.gearHeader}>
@@ -110,6 +114,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
           </ScrollView>
           <BagDetailAddButtonView bagDetail={bagDetail} />
         </View>
+        <ToastView toastManager={app.getToastManager()!} bottom={100} />
       </SafeAreaView>
     );
   } else {

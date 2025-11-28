@@ -28,6 +28,10 @@ class SearchDispatcher implements SearchDispatcherType {
   ): Promise<{ gears: Gear[]; hasMore: boolean }> {
     return await this.searchStore.searchList(keyword, index);
   }
+
+  public async getTopSearches(): Promise<string[]> {
+    return await this.searchStore.getTopSearches();
+  }
 }
 
 export default SearchDispatcher;

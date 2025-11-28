@@ -9,24 +9,52 @@ import SearchDispatcher from '@/model/search/SearchDispatcher';
 import Order from '../order/Order';
 import Warehouse from '../warehouse/Warehouse';
 import BagDetail from '../bag-detail/BagDetail';
+import GearRankStore from './GearRankStore';
+import SearchRank from './SearchRank';
+import AlertManager from '../alert/AlertManager';
+import ToastManager from '../toast/ToastManager';
 
 class SearchWarehouse {
   public static new(router: Router) {
+    const firebase = app.getFirebase();
+    const gearRankStore = new GearRankStore(firebase);
+    const searchDispatcher = SearchDispatcher.new();
+    const logInAlertManager = app.getLogInAlertManager()!;
+    const warehouseOrder = Order.new(Warehouse.ORDER_KEY);
+    const bagDetailOrder = Order.new(BagDetail.ORDER_KEY);
+    const alertManager = app.getAlertManager()!;
+    const toastManager = app.getToastManager()!;
+
     return new SearchWarehouse(
-      SearchDispatcher.new(),
+      searchDispatcher,
       router,
-      app.getFirebase(),
-      app.getLogInAlertManager()!,
-      Order.new(Warehouse.ORDER_KEY),
-      Order.new(BagDetail.ORDER_KEY)
+      firebase,
+      logInAlertManager,
+      warehouseOrder,
+      bagDetailOrder,
+      new SearchRank(
+        gearRankStore,
+        searchDispatcher,
+        firebase,
+        logInAlertManager,
+        warehouseOrder,
+        bagDetailOrder,
+        alertManager,
+        toastManager,
+        router
+      ),
+      alertManager,
+      toastManager
     );
   }
 
   @observable private keyword: string = '';
-  @observable private result: Array<Gear> = [];
-  @observable private selected: Array<Gear> = [];
+  @observable private result: Gear[] = [];
+  @observable private selected: Gear[] = [];
   @observable private loading = false;
   @observable private hasMore = false;
+  @observable private topSearches: string[] = [];
+  @observable private loadingTopSearches = false;
   private page = 0;
   private disposeLoginReaction: () => void;
   private debounceTimer: NodeJS.Timeout | null = null;
@@ -37,7 +65,10 @@ class SearchWarehouse {
     private readonly firebase: Firebase,
     private readonly logInAlertManager: LogInAlertManager,
     private readonly warehouseOrder: Order,
-    private readonly bagDetailOrder: Order
+    private readonly bagDetailOrder: Order,
+    private readonly searchRank: SearchRank,
+    private readonly alertManager: AlertManager,
+    private readonly toastManager: ToastManager
   ) {
     makeObservable(this);
     this.disposeLoginReaction = reaction(
@@ -134,7 +165,7 @@ class SearchWarehouse {
   }
 
   @action
-  private appendResult(value: Array<Gear>) {
+  private appendResult(value: Gear[]) {
     this.result.push(...value);
   }
 
@@ -144,7 +175,7 @@ class SearchWarehouse {
   }
 
   @action
-  private setResult(value: Array<Gear>) {
+  private setResult(value: Gear[]) {
     this.result = value;
   }
 
@@ -222,10 +253,10 @@ class SearchWarehouse {
     this.back(this.selected);
   }
 
-  public async registerSingle(gear: Gear) {
+  public async registerSingle(gear: Gear): Promise<boolean> {
     if (!this.firebase.isLoggedIn()) {
       this.logInAlertManager.show();
-      return;
+      return false;
     }
 
     await this.searchDispatcher.register([gear]);
@@ -234,24 +265,78 @@ class SearchWarehouse {
 
     // 결과 목록에서 해당 gear의 isAdded 상태를 업데이트하기 위해 재검색
     await this.executeSearch();
+    return true;
   }
 
-  public async removeSingle(gear: Gear) {
+  public async removeSingle(gear: Gear): Promise<boolean> {
     if (!this.firebase.isLoggedIn()) {
       this.logInAlertManager.show();
+      return false;
+    }
+
+    this.alertManager.show({
+      message: '모든 배낭에서 장비가 제거됩니다.\n정말 제거하시겠습니까?',
+      confirmText: '확인',
+      onConfirm: async () => {
+        await this.searchDispatcher.remove(gear);
+        await this.warehouseOrder.saveLastOrderOption();
+        await this.bagDetailOrder.saveLastOrderOption();
+
+        // 결과 목록에서 해당 gear의 isAdded 상태를 업데이트하기 위해 재검색
+        await this.executeSearch();
+        this.toastManager.show({ message: '장비가 제거되었습니다.' });
+      },
+    });
+    return true;
+  }
+
+  public back(_?: Gear[]) {
+    this.navigation.back();
+  }
+
+  public async loadTopSearches() {
+    if (this.topSearches.length > 0) {
       return;
     }
 
-    await this.searchDispatcher.remove(gear);
-    await this.warehouseOrder.saveLastOrderOption();
-    await this.bagDetailOrder.saveLastOrderOption();
-
-    // 결과 목록에서 해당 gear의 isAdded 상태를 업데이트하기 위해 재검색
-    await this.executeSearch();
+    this.setLoadingTopSearches(true);
+    const searches = await this.searchDispatcher.getTopSearches();
+    this.setTopSearches(searches);
+    this.setLoadingTopSearches(false);
   }
 
-  public back(_?: Array<Gear>) {
-    this.navigation.back();
+  @action
+  private setTopSearches(value: string[]) {
+    this.topSearches = value;
+  }
+
+  @action
+  private setLoadingTopSearches(value: boolean) {
+    this.loadingTopSearches = value;
+  }
+
+  public getTopSearches() {
+    return this.topSearches;
+  }
+
+  public isLoadingTopSearches() {
+    return this.loadingTopSearches;
+  }
+
+  public searchByKeyword(keyword: string) {
+    this.changeKeyword(keyword);
+  }
+
+  public getSearchRank() {
+    return this.searchRank;
+  }
+
+  public goToGearDetail(gear: Gear) {
+    if (gear.isAdded()) {
+      this.navigation.push(`/gear-detail/${gear.getId()}`);
+    } else {
+      this.navigation.push(`/search/gear-detail/${gear.getId()}`);
+    }
   }
 }
 
