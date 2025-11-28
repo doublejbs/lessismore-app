@@ -78,7 +78,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
             ref={scrollViewRef}
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
-            stickyHeaderIndices={[4]}
+            stickyHeaderIndices={[5]}
             onScroll={handleScroll}
           >
             <View style={styles.infoSection}>
