@@ -168,17 +168,17 @@ class BagStore {
       throw new Error('Bag not found');
     }
 
-    const { name, weight, gears, editDate, startDate, endDate, shared } = (
-      await getDoc(doc(this.getStore(), 'bag', id))
-    ).data() as {
-      name: string;
-      weight: string;
-      editDate: string;
-      startDate: string;
-      endDate: string;
-      gears: string[];
-      shared: boolean;
-    };
+    const { name, weight, gears, editDate, startDate, endDate, shared, memo } =
+      (await getDoc(doc(this.getStore(), 'bag', id))).data() as {
+        name: string;
+        weight: string;
+        editDate: string;
+        startDate: string;
+        endDate: string;
+        gears: string[];
+        shared: boolean;
+        memo?: string;
+      };
 
     if (gears.length === 0) {
       return {
@@ -189,6 +189,7 @@ class BagStore {
         endDate,
         gears: [],
         shared,
+        memo: memo || '',
       };
     } else {
       const warehouseSnapshot = await getDocs(
@@ -218,6 +219,7 @@ class BagStore {
         startDate,
         endDate,
         shared,
+        memo: memo || '',
         gears: warehouseGears.length
           ? warehouseGears.map(
               ({
@@ -547,6 +549,10 @@ class BagStore {
       startDate,
       endDate,
     });
+  }
+
+  public async updateMemo(id: string, memo: string) {
+    await updateDoc(doc(this.getStore(), 'bag', id), { memo });
   }
 }
 

@@ -92,7 +92,13 @@ const CustomGearInputSectionView: FC<Props> = ({
 
   return (
     <View style={styles.inputSection}>
-      <Text style={styles.label}>{label}</Text>
+      <View style={styles.labelContainer}>
+        <Text style={styles.label}>{label}</Text>
+        <Text style={styles.guideText}>
+          제품명을 입력하면 검색결과가 나옵니다
+        </Text>
+      </View>
+
       <View style={styles.inputContainer}>
         <TextInput
           ref={inputRef}
@@ -146,9 +152,18 @@ const styles = StyleSheet.create({
     gap: 12,
     zIndex: 1,
   },
+  labelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   label: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  guideText: {
+    fontSize: 12,
+    color: '#999',
   },
   inputContainer: {
     position: 'relative',

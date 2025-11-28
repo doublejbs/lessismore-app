@@ -114,7 +114,7 @@ const BagDetailChartView: FC<Props> = ({ bagDetail }) => {
         <Text style={styles.headerTitle}>📊 카테고리별 무게</Text>
         <View style={styles.iconContainer}>
           <Ionicons
-            name={isExpanded ? 'chevron-down' : 'chevron-forward'}
+            name={isExpanded ? 'chevron-up' : 'chevron-down'}
             size={24}
             color='#191F28'
           />
@@ -235,7 +235,6 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: 'bold',
   },
   iconContainer: {
     width: 20,

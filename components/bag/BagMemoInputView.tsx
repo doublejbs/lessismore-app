@@ -1,5 +1,5 @@
-import Reply from '@/model/reply/Reply';
-import { FC, useState } from 'react';
+import BagMemo from '@/model/bag/BagMemo';
+import { FC, useState, useEffect } from 'react';
 import {
   View,
   TextInput,
@@ -9,23 +9,36 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { observer } from 'mobx-react-lite';
 
 interface Props {
-  reply: Reply;
+  bagMemo: BagMemo;
 }
 
-const ReplyInputView: FC<Props> = ({ reply }) => {
+const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
   const router = useRouter();
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    const loadMemo = async () => {
+      await bagMemo.initialize();
+      setContent(bagMemo.getMemo());
+    };
+    loadMemo();
+  }, [bagMemo]);
+
   const handlePressBack = () => {
     if (isLoading) return;
     router.back();
+  };
+
+  const handlePressDelete = () => {
+    if (isLoading) return;
+    bagMemo.delete();
   };
 
   const handlePressComplete = async () => {
@@ -33,15 +46,9 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
 
     setIsLoading(true);
     try {
-      await reply.confirm(content.trim());
+      await bagMemo.confirm(content.trim());
     } catch (error) {
-      Alert.alert(
-        '댓글 작성 실패',
-        error instanceof Error
-          ? error.message
-          : '댓글 작성 중 오류가 발생했습니다.',
-        [{ text: '확인' }]
-      );
+      console.error('메모 저장 실패:', error);
     } finally {
       setIsLoading(false);
     }
@@ -58,12 +65,21 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
           <TouchableOpacity onPress={handlePressBack} activeOpacity={0.7}>
             <Ionicons name='chevron-back' size={24} color='#191F28' />
           </TouchableOpacity>
+          {bagMemo.getMemo() && (
+            <TouchableOpacity
+              onPress={handlePressDelete}
+              activeOpacity={0.7}
+              disabled={isLoading}
+            >
+              <Ionicons name='trash-outline' size={24} color='#FF3B30' />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
       <View style={styles.content}>
         <TextInput
           style={styles.textInput}
-          placeholder='장비가 어땠나요?'
+          placeholder='메모를 작성하세요'
           placeholderTextColor='#999'
           multiline
           textAlignVertical='top'
@@ -118,7 +134,8 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   content: {
     flex: 1,
@@ -159,4 +176,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ReplyInputView;
+export default observer(BagMemoInputView);
