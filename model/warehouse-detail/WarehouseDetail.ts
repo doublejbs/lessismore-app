@@ -13,9 +13,17 @@ import ReplyItem from '../reply/ReplyItem';
 import dayjs from 'dayjs';
 import Firebase from '../firebase/Firebase';
 import LogInAlertManager from '../login/LogInAlertManager';
+import SearchDispatcher from '../search/SearchDispatcher';
+import Order from '../order/Order';
+import Warehouse from '../warehouse/Warehouse';
+import BagDetail from '../bag-detail/BagDetail';
 
 class WarehouseDetail {
   public static new(router: Router, dispatcher: WarehouseDispatcherType) {
+    const searchDispatcher = SearchDispatcher.new();
+    const warehouseOrder = Order.new(Warehouse.ORDER_KEY);
+    const bagDetailOrder = Order.new(BagDetail.ORDER_KEY);
+
     return new WarehouseDetail(
       app.getBagStore()!,
       app.getGearStore()!,
@@ -25,7 +33,10 @@ class WarehouseDetail {
       app.getAlertManager()!,
       app.getToastManager()!,
       app.getFirebase()!,
-      app.getLogInAlertManager()!
+      app.getLogInAlertManager()!,
+      searchDispatcher,
+      warehouseOrder,
+      bagDetailOrder
     );
   }
 
@@ -34,6 +45,7 @@ class WarehouseDetail {
   private replies: ReplyItem[] = [];
   private initialized = false;
   private id: string = '';
+  private showAddToBagModal = false;
 
   private constructor(
     private readonly bagStore: BagStore,
@@ -44,7 +56,10 @@ class WarehouseDetail {
     private readonly alertManager: AlertManager,
     private readonly toastManager: ToastManager,
     private readonly firebase: Firebase,
-    private readonly logInAlertManager: LogInAlertManager
+    private readonly logInAlertManager: LogInAlertManager,
+    private readonly searchDispatcher: SearchDispatcher,
+    private readonly warehouseOrder: Order,
+    private readonly bagDetailOrder: Order
   ) {
     makeAutoObservable(this);
   }
@@ -165,6 +180,36 @@ class WarehouseDetail {
     } else {
       this.logInAlertManager.show();
     }
+  }
+
+  public async addToWarehouse(gear: Gear): Promise<boolean> {
+    if (!this.firebase.isLoggedIn()) {
+      this.logInAlertManager.show();
+      return false;
+    }
+
+    await this.searchDispatcher.register([gear]);
+    await this.warehouseOrder.saveLastOrderOption();
+    await this.bagDetailOrder.saveLastOrderOption();
+    this.toastManager.show({ message: '장비가 추가되었습니다.' });
+    this.setShowAddToBagModal(true);
+
+    await this.initialize(this.getId());
+
+    return true;
+  }
+
+  private setShowAddToBagModal(value: boolean) {
+    this.showAddToBagModal = value;
+  }
+
+  public shouldShowAddToBagModal() {
+    return this.showAddToBagModal;
+  }
+
+  public async closeAddToBagModal() {
+    this.setShowAddToBagModal(false);
+    await this.initialize(this.getId());
   }
 }
 

@@ -119,11 +119,7 @@ class SearchRank {
   }
 
   public goToGearDetail(gear: Gear) {
-    if (gear.isAdded()) {
-      this.router.push(`/gear-detail/${gear.getId()}`);
-    } else {
-      this.router.push(`/search/gear-detail/${gear.getId()}`);
-    }
+    this.router.push(`/gear-detail/${gear.getId()}`);
   }
 }
 

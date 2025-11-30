@@ -146,7 +146,7 @@ class SearchWarehouse {
     }
   }
 
-  private async executeSearch() {
+  public async executeSearch() {
     this.setLoading(true);
     this.clearPage();
 
@@ -332,11 +332,7 @@ class SearchWarehouse {
   }
 
   public goToGearDetail(gear: Gear) {
-    if (gear.isAdded()) {
-      this.navigation.push(`/gear-detail/${gear.getId()}`);
-    } else {
-      this.navigation.push(`/search/gear-detail/${gear.getId()}`);
-    }
+    this.navigation.push(`/gear-detail/${gear.getId()}`);
   }
 }
 

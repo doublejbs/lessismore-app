@@ -17,6 +17,7 @@ const WarehouseDetailInformationView: FC<Props> = ({ gear }) => {
   const usedCount = gear.getUsedCount();
   const uselessCount = gear.getUselessCount();
   const color = gear.getColor();
+  const isAdded = gear.isAdded();
 
   return (
     <View style={styles.container}>
@@ -40,16 +41,18 @@ const WarehouseDetailInformationView: FC<Props> = ({ gear }) => {
             <Text style={styles.weightText}>{weight}g</Text>
           </View>
         </View>
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>USED</Text>
-            <Text style={styles.statValue}>{`${usedCount}회`}</Text>
+        {isAdded && (
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>USED</Text>
+              <Text style={styles.statValue}>{`${usedCount}회`}</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>USELESS</Text>
+              <Text style={styles.statValue}>{`${uselessCount}회`}</Text>
+            </View>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>USELESS</Text>
-            <Text style={styles.statValue}>{`${uselessCount}회`}</Text>
-          </View>
-        </View>
+        )}
       </View>
     </View>
   );

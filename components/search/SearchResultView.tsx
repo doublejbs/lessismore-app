@@ -1,12 +1,10 @@
 import { observer } from 'mobx-react-lite';
 import { FC } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
-import SearchGearView from './SearchGearView';
-import SearchSkeletonView from './SearchSkeletonView';
 import SearchTopKeywordsView from './SearchTopKeywordsView';
-import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
+import SearchResultContentView from './SearchResultContentView';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
@@ -41,33 +39,15 @@ const SearchResultView: FC<Props> = ({ searchWarehouse, bag, children }) => {
       }
       default: {
         return (
-          <FlatList
-            data={result}
-            renderItem={({ item: gear }) => (
-              <View style={styles.itemContainer}>
-                <SearchGearView
-                  gear={gear}
-                  searchWarehouse={searchWarehouse}
-                  bag={bag}
-                />
-              </View>
-            )}
-            keyExtractor={(gear: Gear) => gear.getId()}
-            onEndReached={canLoadMore ? handleLoadMore : null}
-            onEndReachedThreshold={0.1}
-            ListFooterComponent={
-              <>
-                {children}
-                {isLoading && (
-                  <View style={styles.skeletonContainer}>
-                    <SearchSkeletonView />
-                  </View>
-                )}
-              </>
-            }
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.flatListContent}
-          />
+          <SearchResultContentView
+            result={result}
+            canLoadMore={canLoadMore}
+            handleLoadMore={handleLoadMore}
+            searchWarehouse={searchWarehouse}
+            bag={bag}
+          >
+            {children}
+          </SearchResultContentView>
         );
       }
     }
@@ -80,9 +60,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,
-  },
-  itemContainer: {
-    width: '100%',
   },
   emptyContainer: {
     alignItems: 'center',
