@@ -46,13 +46,15 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   // 스크롤 위치 저장
   const [savedScrollPosition, setSavedScrollPosition] = useState(0);
+  // 검색 결과 스크롤 상태
+  const [isSearchScrolling, setIsSearchScrolling] = useState(false);
 
   const scrollToInput = (inputRef: React.RefObject<TextInput | null>) => {
     if (inputRef.current && scrollViewRef.current) {
       setTimeout(() => {
         inputRef.current?.measureLayout(
           scrollViewRef.current as any,
-          (x, y) => {
+          (_x, y) => {
             scrollViewRef.current?.scrollTo({
               y: Math.max(0, y - 100), // 입력 필드 위쪽에 여백 제공
               animated: true,
@@ -137,6 +139,14 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
     customGear.setCompany(text);
   };
 
+  const handleSearchScrollStart = () => {
+    setIsSearchScrolling(true);
+  };
+
+  const handleSearchScrollEnd = () => {
+    setIsSearchScrolling(false);
+  };
+
   return (
     <>
       <SafeAreaView style={styles.container}>
@@ -188,6 +198,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
             keyboardShouldPersistTaps='handled'
             showsVerticalScrollIndicator={false}
             keyboardDismissMode='interactive'
+            scrollEnabled={!isSearchScrolling}
             onScroll={e => {
               if (Platform.OS === 'android') {
                 setSavedScrollPosition(e.nativeEvent.contentOffset.y);
@@ -206,6 +217,8 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
               onFocus={() => setFocusedInput('name')}
               inputRef={nameInputRef}
               customGear={customGear}
+              onSearchScrollStart={handleSearchScrollStart}
+              onSearchScrollEnd={handleSearchScrollEnd}
             />
             <View style={styles.inputSection}>
               <Text style={styles.label}>브랜드</Text>
