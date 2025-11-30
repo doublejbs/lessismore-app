@@ -22,6 +22,7 @@ const BagEditWarehouseView: FC<Props> = ({ bagEdit }) => {
       keyExtractor={item => item.getId()}
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
     />
   );
 };

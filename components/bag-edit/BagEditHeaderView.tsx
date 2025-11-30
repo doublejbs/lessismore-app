@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useRef, useEffect, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import PretendardText from '../PretendardText';
@@ -9,6 +9,53 @@ interface Props {
 }
 
 const BagEditHeaderView: FC<Props> = ({ weight, onPressBack }) => {
+  const [displayWeight, setDisplayWeight] = useState<number>(
+    parseFloat(weight) || 0
+  );
+  const previousWeightRef = useRef<number>(parseFloat(weight) || 0);
+  const animationRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const targetWeight = parseFloat(weight) || 0;
+    const startWeight = previousWeightRef.current;
+    const difference = targetWeight - startWeight;
+
+    if (difference === 0) return;
+
+    const duration = 300;
+    const startTime = Date.now();
+
+    const animate = () => {
+      const currentTime = Date.now();
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      const easeOutQuad = 1 - (1 - progress) * (1 - progress);
+      const currentWeight = startWeight + difference * easeOutQuad;
+
+      setDisplayWeight(currentWeight);
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        previousWeightRef.current = targetWeight;
+        setDisplayWeight(targetWeight);
+      }
+    };
+
+    if (animationRef.current !== null) {
+      cancelAnimationFrame(animationRef.current);
+    }
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current !== null) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [weight]);
+
   return (
     <View style={styles.header}>
       <View style={styles.headerContent}>
@@ -20,7 +67,9 @@ const BagEditHeaderView: FC<Props> = ({ weight, onPressBack }) => {
             />
           </Svg>
         </TouchableOpacity>
-        <PretendardText style={styles.weightText}>{weight}kg</PretendardText>
+        <PretendardText weight='bold' style={styles.weightText}>
+          {displayWeight.toFixed(2)}kg
+        </PretendardText>
         <View style={styles.placeholder} />
       </View>
     </View>

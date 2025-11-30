@@ -66,7 +66,6 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
               </PretendardText>
             </TouchableOpacity>
           </View>
-
           <BagEditWarehouseFiltersView bagEdit={bagEdit} />
           <BagEditWarehouseView bagEdit={bagEdit} />
         </View>
