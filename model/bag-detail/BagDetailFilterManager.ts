@@ -108,7 +108,15 @@ class BagDetailFilterManager {
   }
 
   public selectFirstFilter() {
-    this.filters[0].select();
+    if (this.hasSelectedFilter()) {
+      return;
+    } else {
+      this.filters[0].select();
+    }
+  }
+
+  private hasSelectedFilter() {
+    return this.filters.some(filter => filter.isSelected());
   }
 }
 
