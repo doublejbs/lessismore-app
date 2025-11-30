@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
@@ -132,12 +133,28 @@ const CustomGearInputSectionView: FC<Props> = ({
               style={styles.searchResultItem}
               onPress={() => handleSelectResult(item)}
             >
-              <Text style={styles.searchResultName}>{item.getName()}</Text>
-              {item.getCompany() && (
-                <Text style={styles.searchResultCompany}>
-                  {item.getCompany()}
-                </Text>
+              {item.getImageUrl() ? (
+                <Image
+                  source={{ uri: item.getImageUrl() }}
+                  style={styles.searchResultImage}
+                  resizeMode='cover'
+                />
+              ) : (
+                <View style={styles.searchResultImagePlaceholder} />
               )}
+              <View style={styles.searchResultInfo}>
+                {item.getCompany() && (
+                  <Text style={styles.searchResultCompany}>
+                    {item.getCompany()}
+                  </Text>
+                )}
+                <Text style={styles.searchResultName}>{item.getName()}</Text>
+                {item.getWeight() && (
+                  <Text style={styles.searchResultWeight}>
+                    {item.getWeight()}g
+                  </Text>
+                )}
+              </View>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -212,16 +229,38 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  searchResultImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    backgroundColor: '#F6F6F6',
+  },
+  searchResultImagePlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    backgroundColor: '#F6F6F6',
+  },
+  searchResultInfo: {
+    flex: 1,
+    gap: 4,
   },
   searchResultName: {
     fontSize: 14,
     fontWeight: '500',
     color: '#000',
-    marginBottom: 4,
   },
   searchResultCompany: {
     fontSize: 12,
     color: '#666',
+  },
+  searchResultWeight: {
+    fontSize: 12,
+    fontWeight: '500',
   },
 });
 

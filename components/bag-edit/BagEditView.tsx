@@ -6,7 +6,6 @@ import PretendardText from '../PretendardText';
 import BagEditWarehouseView from './BagEditWarehouseView';
 import BagEditWarehouseFiltersView from './BagEditWarehouseFiltersView';
 import BagEdit from '../../model/bag-edit/BagEdit';
-import BagEditWarehouseAddMenuView from './BagEditWarehouseAddMenuView';
 import BagEditHeaderView from './BagEditHeaderView';
 import Layout from '../Layout';
 import { useFocusEffect } from 'expo-router';
@@ -28,7 +27,7 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
   };
 
   const handlePressAddGear = () => {
-    bagEdit.showAddMenu();
+    bagEdit.showCustom();
   };
 
   useFocusEffect(
@@ -82,7 +81,6 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
             </PretendardText>
           </TouchableOpacity>
         </View>
-        <BagEditWarehouseAddMenuView bagEdit={bagEdit} />
       </Layout>
     );
   }
