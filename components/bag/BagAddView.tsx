@@ -17,6 +17,7 @@ import dayjs from 'dayjs';
 import BagAddDateView from './BagAddDateView';
 import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
   bag: Bag;
@@ -30,6 +31,7 @@ const BagAddView: FC<Props> = ({ bag }) => {
     dayjs().add(1, 'day')
   );
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const showAdd = () => {
     if (app.getFirebase()?.isLoggedIn()) {
@@ -105,14 +107,17 @@ const BagAddView: FC<Props> = ({ bag }) => {
             keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
           >
             <TouchableOpacity
-              style={styles.modalContent}
+              style={[
+                styles.modalContent,
+                { paddingBottom: insets.bottom + 12 },
+              ]}
               activeOpacity={1}
               onPress={e => e.stopPropagation()}
             >
               <ScrollView
                 style={styles.scrollView}
                 showsVerticalScrollIndicator={false}
-                bounces={false}
+                bounces={true}
               >
                 <View style={styles.inputSection}>
                   <PretendardText style={styles.inputLabel}>
@@ -208,7 +213,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     padding: 16,
-    maxHeight: screenHeight * 0.7, // 화면 높이의 70%로 제한 (키보드 공간 확보)
+    maxHeight: screenHeight * 0.9, // 화면 높이의 70%로 제한 (키보드 공간 확보)
   },
   scrollView: {
     flexGrow: 1,
