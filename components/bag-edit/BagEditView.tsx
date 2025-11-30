@@ -16,14 +16,9 @@ interface Props {
 
 const BagEditView: FC<Props> = ({ bagEdit }) => {
   const weight = bagEdit.getWeight();
-  const count = bagEdit.getCount();
 
   const handlePressBack = () => {
     bagEdit.back();
-  };
-
-  const handlePressSave = () => {
-    bagEdit.save();
   };
 
   const handlePressAddGear = () => {
@@ -68,19 +63,6 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
           <BagEditWarehouseFiltersView bagEdit={bagEdit} />
           <BagEditWarehouseView bagEdit={bagEdit} />
         </View>
-
-        {/* 하단 고정 버튼 */}
-        <View style={[styles.fixedBottomButton]}>
-          <TouchableOpacity
-            style={styles.saveButton}
-            onPress={handlePressSave}
-            activeOpacity={0.8}
-          >
-            <PretendardText style={styles.saveButtonText}>
-              {count ? `${count}개 추가하기` : '추가할 장비를 선택해주세요'}
-            </PretendardText>
-          </TouchableOpacity>
-        </View>
       </Layout>
     );
   }
@@ -123,20 +105,6 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontSize: 14,
     lineHeight: 14,
-  },
-  fixedBottomButton: {
-    backgroundColor: 'white',
-  },
-  saveButton: {
-    backgroundColor: 'black',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  saveButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '300',
   },
 });
 

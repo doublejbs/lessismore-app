@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import Svg, { Polyline } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';
 import Gear from '../../model/gear/Gear';
 import BagEdit from '../../model/bag-edit/BagEdit';
 import { observer } from 'mobx-react-lite';
@@ -20,51 +20,41 @@ const BagEditWarehouseGearView: FC<Props> = ({ gear, bagEdit }) => {
 
   return (
     <GearView gear={gear} onPress={handlePress}>
-      <TouchableOpacity
-        style={styles.checkboxContainer}
-        onPress={handlePress}
-        activeOpacity={0.7}
-      >
-        <View
-          style={[
-            styles.checkbox,
-            {
-              backgroundColor: isSelected ? '#000' : '#fff',
-            },
-          ]}
-        >
-          {isSelected && (
-            <Svg width={16} height={16} viewBox='0 0 24 24' fill='none'>
-              <Polyline
-                points='20,6 9,17 4,12'
-                stroke='white'
-                strokeWidth={2}
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              />
-            </Svg>
-          )}
-        </View>
-      </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+        {isSelected ? (
+          <TouchableOpacity style={styles.selectedBadge} onPress={handlePress}>
+            <Ionicons name='checkmark' size={16} color='#fff' />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.addButton} onPress={handlePress}>
+            <Ionicons name='add' size={16} color='#000' />
+          </TouchableOpacity>
+        )}
+      </View>
     </GearView>
   );
 };
 
 const styles = StyleSheet.create({
-  checkboxContainer: {
-    alignItems: 'center',
+  buttonContainer: {
+    flexDirection: 'column',
     justifyContent: 'center',
-    width: 24,
-    height: 24,
   },
-  checkbox: {
+  selectedBadge: {
+    backgroundColor: '#000',
+    borderRadius: 14,
+    width: 28,
+    height: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    width: 24,
-    height: 24,
-    borderWidth: 2,
-    borderColor: '#000',
-    borderRadius: 4,
+  },
+  addButton: {
+    backgroundColor: '#F6F6F6',
+    borderRadius: 14,
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

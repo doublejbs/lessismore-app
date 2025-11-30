@@ -27,8 +27,6 @@ class BagEdit {
 
   private selectedGears: Gear[] = [];
   private weight: number = 0;
-  private toRemoveGears: Gear[] = [];
-  private toAddGears: Gear[] = [];
   private warehouseGears: Gear[] = [];
   private loading = false;
   private initialized = false;
@@ -102,12 +100,7 @@ class BagEdit {
   }
 
   public async save() {
-    await this.bagStore.save(
-      this.id,
-      this.toAddGears,
-      this.toRemoveGears,
-      this.selectedGears
-    );
+    await this.bagStore.save(this.id, [], [], this.selectedGears);
     this.back();
   }
 
@@ -115,32 +108,30 @@ class BagEdit {
     this.router.back();
   }
 
-  public toggleGear(gear: Gear) {
+  public async toggleGear(gear: Gear) {
     if (this.hasGear(gear)) {
-      this.removeGear(gear);
+      await this.removeGear(gear);
     } else {
-      this.addGear(gear);
+      await this.addGear(gear);
     }
   }
 
-  public addGear(gear: Gear) {
+  public async addGear(gear: Gear) {
     if (this.hasGear(gear)) {
       return;
     } else {
       this.selectedGears.push(gear);
-      this.toAddGears.push(gear);
-      this.toRemoveGears = this.toRemoveGears.filter(g => !g.isSame(gear));
       this.filterManager.addFilterCount(gear.getCategory() as GearFilter);
       this.updateWeight();
+      await this.bagStore.save(this.id, [gear], [], this.selectedGears);
     }
   }
 
-  public removeGear(gear: Gear) {
+  public async removeGear(gear: Gear) {
     this.selectedGears = this.selectedGears.filter(g => !g.isSame(gear));
-    this.toAddGears = this.toAddGears.filter(g => !g.isSame(gear));
-    this.toRemoveGears.push(gear);
     this.filterManager.minusFilterCount(gear.getCategory() as GearFilter);
     this.updateWeight();
+    await this.bagStore.save(this.id, [], [gear], this.selectedGears);
   }
 
   private updateWeight() {
