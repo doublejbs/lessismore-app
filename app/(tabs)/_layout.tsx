@@ -46,7 +46,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name='search'
         options={{
-          title: '검색',
+          title: '탐색',
           tabBarIcon: ({ color }) => (
             <IconSymbol size={24} name='magnifyingglass' color={color} />
           ),
