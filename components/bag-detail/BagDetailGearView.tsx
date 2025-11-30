@@ -2,6 +2,7 @@ import React, { FC, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
+import { useRouter } from 'expo-router';
 import Gear from '@/model/gear/Gear';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import BagDetailImageView from './BagDetailImageView';
@@ -17,6 +18,11 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
   const isUseless = bagDetail.isUseless(gear);
   const [showMenu, setShowMenu] = useState(false);
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+
+  const handlePressGear = () => {
+    router.push(`/gear-detail/${gear.getId()}`);
+  };
 
   const handlePressMenu = () => {
     setShowMenu(true);
@@ -39,36 +45,42 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
   return (
     <>
       <View style={styles.container}>
-        <View style={styles.imageContainer}>
-          <BagDetailImageView imageUrl={imageUrl} shadow={isUseless} />
-          {isUseless && (
-            <View style={styles.uselessOverlay}>
-              <Text style={styles.uselessText}>useless</Text>
-            </View>
-          )}
-        </View>
-
-        <View
-          style={[styles.contentContainer, { opacity: isUseless ? 0.5 : 1 }]}
+        <TouchableOpacity
+          style={styles.gearItemContainer}
+          onPress={handlePressGear}
+          activeOpacity={0.7}
         >
-          <View style={styles.gearInfo}>
-            <View style={styles.companyRow}>
-              <Text style={styles.companyText}>{gear.getCompany()}</Text>
-              {gear.hasUsedRate() && (
-                <View style={styles.usageRateBadge}>
-                  <Text style={styles.usageRateText}>
-                    사용률 {gear.getUsedRate()}%
-                  </Text>
-                </View>
-              )}
-            </View>
-            <Text style={styles.nameText} numberOfLines={1}>
-              {gear.getName()}
-            </Text>
-            <Text style={styles.colorText}>{gear.getColor()}</Text>
-            <Text style={styles.weightText}>{gear.getWeight()}g</Text>
+          <View style={styles.imageContainer}>
+            <BagDetailImageView imageUrl={imageUrl} shadow={isUseless} />
+            {isUseless && (
+              <View style={styles.uselessOverlay}>
+                <Text style={styles.uselessText}>useless</Text>
+              </View>
+            )}
           </View>
-        </View>
+
+          <View
+            style={[styles.contentContainer, { opacity: isUseless ? 0.5 : 1 }]}
+          >
+            <View style={styles.gearInfo}>
+              <View style={styles.companyRow}>
+                <Text style={styles.companyText}>{gear.getCompany()}</Text>
+                {gear.hasUsedRate() && (
+                  <View style={styles.usageRateBadge}>
+                    <Text style={styles.usageRateText}>
+                      사용률 {gear.getUsedRate()}%
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.nameText} numberOfLines={1}>
+                {gear.getName()}
+              </Text>
+              <Text style={styles.colorText}>{gear.getColor()}</Text>
+              <Text style={styles.weightText}>{gear.getWeight()}g</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
 
         <View style={styles.menuContainer}>
           <TouchableOpacity style={styles.menuButton} onPress={handlePressMenu}>
@@ -126,6 +138,11 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     width: '100%',
+    gap: 6,
+  },
+  gearItemContainer: {
+    flexDirection: 'row',
+    flex: 1,
     gap: 6,
   },
   imageContainer: {

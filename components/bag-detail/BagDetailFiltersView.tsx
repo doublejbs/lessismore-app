@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import { FC } from 'react';
+import { FC, useRef, useEffect } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import FilterButtonView from './FilterButtonView';
@@ -8,6 +8,8 @@ interface BagWithFilters {
   toggleFilter: (filter: WarehouseFilter) => void;
   toggleFilterWithScroll: (filter: WarehouseFilter) => void;
   mapFiltersWithGears: <R>(callback: (filter: WarehouseFilter) => R) => R[];
+  setFilterScrollViewRef: (ref: any) => void;
+  setFilterButtonRefs: (refs: Map<string, any>) => void;
 }
 
 interface Props {
@@ -15,9 +17,18 @@ interface Props {
 }
 
 const BagDetailFiltersView: FC<Props> = ({ bagDetail }) => {
+  const scrollViewRef = useRef<ScrollView>(null);
+  const filterButtonRefs = useRef<Map<string, any>>(new Map());
+
+  useEffect(() => {
+    bagDetail.setFilterScrollViewRef(scrollViewRef.current);
+    bagDetail.setFilterButtonRefs(filterButtonRefs.current);
+  }, [bagDetail]);
+
   return (
     <View style={styles.container}>
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         horizontal={true}
@@ -29,6 +40,11 @@ const BagDetailFiltersView: FC<Props> = ({ bagDetail }) => {
               key={filter.getName()}
               filter={filter}
               bagDetail={bagDetail}
+              onRef={(ref: any) => {
+                if (ref) {
+                  filterButtonRefs.current.set(filter.getName(), ref);
+                }
+              }}
             />
           );
         })}

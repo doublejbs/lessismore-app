@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
-import { FC } from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { FC, useRef, useEffect } from 'react';
+import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 
 interface BagWithFilters {
@@ -10,29 +10,39 @@ interface BagWithFilters {
 interface Props {
   filter: WarehouseFilter;
   bagDetail: BagWithFilters;
+  onRef?: (ref: any) => void;
 }
 
-const FilterButtonView: FC<Props> = ({ filter, bagDetail }) => {
+const FilterButtonView: FC<Props> = ({ filter, bagDetail, onRef }) => {
   const isSelected = filter.isSelected();
+  const viewRef = useRef<View>(null);
+
+  useEffect(() => {
+    if (onRef && viewRef.current) {
+      onRef(viewRef.current);
+    }
+  }, [onRef]);
 
   const handlePress = () => {
     bagDetail.toggleFilterWithScroll(filter);
   };
 
   return (
-    <TouchableOpacity
-      style={[
-        styles.button,
-        { backgroundColor: isSelected ? 'black' : '#EBEBEB' },
-      ]}
-      onPress={handlePress}
-    >
-      <Text
-        style={[styles.buttonText, { color: isSelected ? 'white' : 'black' }]}
+    <View ref={viewRef}>
+      <TouchableOpacity
+        style={[
+          styles.button,
+          { backgroundColor: isSelected ? 'black' : '#EBEBEB' },
+        ]}
+        onPress={handlePress}
       >
-        {filter.getName()}
-      </Text>
-    </TouchableOpacity>
+        <Text
+          style={[styles.buttonText, { color: isSelected ? 'white' : 'black' }]}
+        >
+          {filter.getName()}
+        </Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 

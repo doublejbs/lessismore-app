@@ -44,6 +44,8 @@ class BagDetail {
   private categoryRefs: Map<string, any> = new Map();
   private scrollViewRef: any = null;
   private isScrollingSyncFilter = false;
+  private filterScrollViewRef: any = null;
+  private filterButtonRefs: Map<string, any> = new Map();
 
   private constructor(
     private readonly router: Router,
@@ -358,6 +360,14 @@ class BagDetail {
     this.scrollViewRef = ref;
   }
 
+  public setFilterScrollViewRef(ref: any) {
+    this.filterScrollViewRef = ref;
+  }
+
+  public setFilterButtonRefs(refs: Map<string, any>) {
+    this.filterButtonRefs = refs;
+  }
+
   public scrollToCategory(categoryFilter: GearFilter) {
     const element = this.categoryRefs.get(categoryFilter);
 
@@ -424,6 +434,37 @@ class BagDetail {
     }
   }
 
+  public scrollToFilter(filter: WarehouseFilter) {
+    const element = this.filterButtonRefs.get(filter.getName());
+
+    if (element && this.filterScrollViewRef) {
+      // 약간의 지연을 두고 스크롤 (레이아웃이 완료된 후)
+      setTimeout(() => {
+        element.measureLayout(
+          this.filterScrollViewRef,
+          (x: number, _y: number, width: number) => {
+            // ScrollView의 너비를 가져와서 버튼을 화면 중앙에 위치시킴
+            this.filterScrollViewRef.measure(
+              (_fx: number, _fy: number, scrollViewWidth: number) => {
+                // 버튼을 화면 중앙에 위치시키기 위한 스크롤 위치 계산
+                const centerOffset = (scrollViewWidth - width) / 2;
+                const targetScrollX = x - centerOffset;
+
+                this.filterScrollViewRef.scrollTo({
+                  x: Math.max(0, targetScrollX),
+                  animated: true,
+                });
+              }
+            );
+          },
+          () => {
+            // 측정 실패시 아무것도 하지 않음
+          }
+        );
+      }, 100);
+    }
+  }
+
   public toggleFilterWithScroll(filter: WarehouseFilter) {
     // 필터를 선택하고 해당 카테고리로 스크롤
     if (!filter.isSelected()) {
@@ -431,6 +472,10 @@ class BagDetail {
       this.selectFilter(filter);
     }
 
+    // 필터 버튼을 화면에 보이도록 스크롤
+    this.scrollToFilter(filter);
+
+    // 해당 카테고리로 스크롤
     this.scrollToCategory(filter.getFilter());
   }
 
@@ -462,12 +507,14 @@ class BagDetail {
   }
 
   public handleScroll(event: any) {
-    if (this.isScrollingSyncFilter) return;
+    if (this.isScrollingSyncFilter) {
+      return;
+    } else {
+      const currentOffset = event.nativeEvent.contentOffset.y;
+      const stickyHeaderHeight = 46;
 
-    const currentOffset = event.nativeEvent.contentOffset.y;
-    const stickyHeaderHeight = 46;
-
-    this.syncFilterByScrollPosition(currentOffset, stickyHeaderHeight);
+      this.syncFilterByScrollPosition(currentOffset, stickyHeaderHeight);
+    }
   }
 
   private syncFilterByScrollPosition(
@@ -486,7 +533,7 @@ class BagDetail {
       if (element) {
         element.measureLayout(
           this.scrollViewRef,
-          (_x: number, y: number, _width: number, height: number) => {
+          (_x: number, y: number, _width: number, _height: number) => {
             processedCount++;
 
             // 카테고리가 헤더에 전혀 가려지지 않는 경우
@@ -520,11 +567,18 @@ class BagDetail {
 
     // 모든 필터 해제 후 해당 카테고리 필터만 선택
     this.filterManager.deselectAll();
+    let selectedFilter: WarehouseFilter | null = null;
     this.filterManager.mapFilters(filter => {
       if (filter.isSame(categoryFilter)) {
         filter.select();
+        selectedFilter = filter;
       }
     });
+
+    // 선택된 필터가 화면에 보이도록 스크롤
+    if (selectedFilter) {
+      this.scrollToFilter(selectedFilter);
+    }
   };
 }
 
