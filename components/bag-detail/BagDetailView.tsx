@@ -80,6 +80,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
             contentContainerStyle={styles.scrollContent}
             stickyHeaderIndices={[5]}
             onScroll={handleScroll}
+            showsVerticalScrollIndicator={false}
           >
             <View style={styles.infoSection}>
               <BagDetailNameView bagDetail={bagDetail} />
