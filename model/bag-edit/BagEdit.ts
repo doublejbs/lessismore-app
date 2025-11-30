@@ -32,9 +32,7 @@ class BagEdit {
   private warehouseGears: Gear[] = [];
   private loading = false;
   private initialized = false;
-  private customVisible = false;
   private disposeReaction: () => void;
-  private addMenuVisible = false;
 
   private constructor(
     private readonly router: Router,
@@ -157,19 +155,8 @@ class BagEdit {
     return this.selectedGears.some(g => g.isSame(gear));
   }
 
-  public hideAddMenu() {
-    this.setCustomVisible(false);
-    this.setAddMenuVisible(false);
-  }
-
-  public showSearch() {
-    this.hideAddMenu();
-    this.router.push('/search');
-  }
-
   public showCustom() {
-    this.hideAddMenu();
-    this.router.push('/custom');
+    this.router.push(`/custom/bag-gear/${this.id}`);
   }
 
   private setWarehouseGears(gears: Gear[]) {
@@ -226,28 +213,8 @@ class BagEdit {
     return this.order;
   }
 
-  private setCustomVisible(value: boolean) {
-    this.customVisible = value;
-  }
-
-  public isCustomVisible() {
-    return this.customVisible;
-  }
-
   public prependGears(gears: Gear[]) {
     this.setWarehouseGears([...gears, ...this.warehouseGears]);
-  }
-
-  public showAddMenu() {
-    this.setAddMenuVisible(true);
-  }
-
-  private setAddMenuVisible(value: boolean) {
-    this.addMenuVisible = value;
-  }
-
-  public isAddMenuVisible() {
-    return this.addMenuVisible;
   }
 }
 
