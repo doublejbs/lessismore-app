@@ -14,7 +14,7 @@ class GearEditDispatcher {
   ) {}
 
   public async getGear(id: string): Promise<Gear> {
-    return await this.gearStore.getGear(id);
+    return await this.gearStore.getUserGear(id);
   }
 
   public async update(gear: Gear) {

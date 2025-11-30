@@ -8,6 +8,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
+  GestureResponderEvent,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
@@ -45,7 +46,9 @@ const SearchGearAddToBagModalView: FC<Props> = ({
     setShowModal(visible);
   }, [visible]);
 
-  const handleNewBagPress = async () => {
+  const handleNewBagPress = async (e: GestureResponderEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setLoading(true);
     try {
       const today = dayjs();
@@ -63,7 +66,9 @@ const SearchGearAddToBagModalView: FC<Props> = ({
     }
   };
 
-  const handleBagPress = async (bagItem: BagItem) => {
+  const handleBagPress = async (e: GestureResponderEvent, bagItem: BagItem) => {
+    e.preventDefault();
+    e.stopPropagation();
     setLoading(true);
     try {
       const success = await bag.addGearToBag(bagItem.getID(), gear);
@@ -142,7 +147,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
                           styles.bagItem,
                           isInBag && styles.bagItemDisabled,
                         ]}
-                        onPress={() => handleBagPress(bagItem)}
+                        onPress={e => handleBagPress(e, bagItem)}
                         disabled={isInBag || loading}
                         activeOpacity={0.7}
                       >

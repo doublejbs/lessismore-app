@@ -1,10 +1,11 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  GestureResponderEvent,
 } from 'react-native';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import WarehouseDetailInformationView from './WarehouseDetailInformationView';
@@ -12,6 +13,10 @@ import WarehouseDetailBagRecordView from './WarehouseDetailBagRecordView';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import WarehouseDetailReviewSectionView from './WarehouseDetailReviewSectionView';
+import LoadingView from '@/components/ui/LoadingView';
+import PretendardText from '../PretendardText';
+import SearchGearAddToBagModalView from '../search/SearchGearAddToBagModalView';
+import Bag from '@/model/bag/Bag';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -19,6 +24,9 @@ interface Props {
 
 const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
   const gear = warehouseDetail.getGear();
+  const showAddToBagModal = warehouseDetail.shouldShowAddToBagModal();
+  const [bag] = useState(() => Bag.new());
+  const [loading, setLoading] = useState(false);
 
   const handlePressClose = () => {
     warehouseDetail.close();
@@ -34,39 +42,96 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
     warehouseDetail.edit();
   };
 
-  if (gear) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={handlePressClose}
-            style={styles.backButton}
-          >
-            <Ionicons name='chevron-back' size={24} color='#191F28' />
-          </TouchableOpacity>
-        </View>
-        <ScrollView style={styles.content}>
-          <WarehouseDetailInformationView gear={gear} />
-          <WarehouseDetailBagRecordView
-            gear={gear}
-            warehouseDetail={warehouseDetail}
-          />
-          <WarehouseDetailReviewSectionView warehouseDetail={warehouseDetail} />
-          <View style={styles.bottomSpacing} />
-        </ScrollView>
+  const handleAddPress = async (e: GestureResponderEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-        <View style={styles.bottomButtons}>
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={handlePressDelete}
-          >
-            <Text style={styles.deleteButtonText}>삭제하기</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.editButton} onPress={handlePressEdit}>
-            <Text style={styles.editButtonText}>수정하기</Text>
-          </TouchableOpacity>
+    if (!gear) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await warehouseDetail.addToWarehouse(gear);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    warehouseDetail.closeAddToBagModal();
+  };
+
+  if (gear) {
+    const isAdded = gear.isAdded();
+
+    return (
+      <>
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={handlePressClose}
+              style={styles.backButton}
+            >
+              <Ionicons name='chevron-back' size={24} color='#191F28' />
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={styles.content}>
+            <WarehouseDetailInformationView gear={gear} />
+            {isAdded && (
+              <WarehouseDetailBagRecordView
+                gear={gear}
+                warehouseDetail={warehouseDetail}
+              />
+            )}
+            <WarehouseDetailReviewSectionView
+              warehouseDetail={warehouseDetail}
+            />
+            <View style={styles.bottomSpacing} />
+          </ScrollView>
+
+          {isAdded ? (
+            <View style={styles.bottomButtons}>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={handlePressDelete}
+              >
+                <Text style={styles.deleteButtonText}>삭제하기</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={handlePressEdit}
+              >
+                <Text style={styles.editButtonText}>수정하기</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.bottomButtonContainer}>
+              <TouchableOpacity
+                style={[styles.addButton, loading && styles.disabledButton]}
+                onPress={handleAddPress}
+                disabled={loading}
+              >
+                {loading ? (
+                  <LoadingView duration={1000} />
+                ) : (
+                  <View style={styles.buttonContent}>
+                    <PretendardText style={styles.addButtonText}>
+                      내 창고에 추가하기
+                    </PretendardText>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
-      </View>
+        <SearchGearAddToBagModalView
+          visible={showAddToBagModal}
+          onClose={handleCloseModal}
+          gear={gear}
+          bag={bag}
+        />
+      </>
     );
   } else {
     return null;
@@ -131,6 +196,38 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 100,
+  },
+  bottomButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    backgroundColor: 'white',
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+  },
+  addButton: {
+    backgroundColor: '#000',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 52,
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

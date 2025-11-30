@@ -34,42 +34,95 @@ class GearStore {
   public constructor(private readonly firebase: Firebase) {}
 
   public async getGear(id: string): Promise<Gear> {
-    const docData = await getDoc(doc(this.getStore(), 'gear', id));
+    const userGear = await this.getUserGear(id);
 
-    if (docData.exists()) {
-      const {
-        name,
-        company,
-        weight,
-        imageUrl,
-        isCustom,
-        category,
-        useless,
-        used,
-        bags,
-        createDate,
-        color,
-        companyKorean,
-      } = docData.data() as GearData;
-
-      return new Gear(
-        id,
-        name,
-        company,
-        weight,
-        imageUrl,
-        await this.hasGear(id),
-        isCustom,
-        category,
-        useless,
-        used,
-        bags,
-        createDate,
-        color,
-        companyKorean
-      );
+    if (userGear) {
+      return userGear;
     } else {
-      throw Error('No Gear data found.');
+      const docData = await getDoc(doc(this.getStore(), 'gear', id));
+
+      if (docData.exists()) {
+        const {
+          name,
+          company,
+          weight,
+          imageUrl,
+          isCustom,
+          category,
+          useless,
+          used,
+          bags,
+          createDate,
+          color,
+          companyKorean,
+        } = docData.data() as GearData;
+        const isAdded = await this.hasGear(id);
+
+        return new Gear(
+          id,
+          name,
+          company,
+          weight,
+          imageUrl,
+          isAdded,
+          isCustom,
+          category,
+          useless,
+          used,
+          bags,
+          isAdded ? createDate : Date.now(),
+          color,
+          companyKorean
+        );
+      } else {
+        throw Error('No Gear data found.');
+      }
+    }
+  }
+
+  public async getUserGear(id: string) {
+    if (this.getUserId()) {
+      const docData = await getDoc(
+        doc(this.getStore(), 'users', this.getUserId(), 'gears', id)
+      );
+
+      if (docData.exists()) {
+        const {
+          name,
+          company,
+          weight,
+          imageUrl,
+          isCustom,
+          category,
+          useless,
+          used,
+          bags,
+          createDate,
+          color,
+          companyKorean,
+        } = docData.data() as GearData;
+
+        return new Gear(
+          id,
+          name,
+          company,
+          weight,
+          imageUrl,
+          true,
+          isCustom,
+          category,
+          useless,
+          used,
+          bags,
+          createDate,
+          color,
+          companyKorean
+        );
+      } else {
+        return null;
+      }
+    } else {
+      return null;
     }
   }
 

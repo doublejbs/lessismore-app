@@ -1,6 +1,13 @@
 import { observer } from 'mobx-react-lite';
 import { FC } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  GestureResponderEvent,
+} from 'react-native';
 import AlertManager from '@/model/alert/AlertManager';
 
 interface Props {
@@ -12,11 +19,15 @@ const AlertView: FC<Props> = ({ alertManager }) => {
   const message = alertManager.getMessage();
   const confirmText = alertManager.getConfirmText();
 
-  const handleClickCancel = () => {
+  const handleClickCancel = (e: GestureResponderEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     alertManager.hide();
   };
 
-  const handleClickConfirm = () => {
+  const handleClickConfirm = (e: GestureResponderEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     alertManager.confirm();
   };
 

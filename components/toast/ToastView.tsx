@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    zIndex: 20,
+    zIndex: 90,
     backgroundColor: 'black',
     borderRadius: 10,
   },
