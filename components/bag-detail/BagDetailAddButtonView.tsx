@@ -14,7 +14,7 @@ const BagDetailAddButtonView: FC<Props> = ({ bagDetail }) => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.button} onPress={handlePressAdd}>
-        <Text style={styles.buttonText}>장비 추가하기</Text>
+        <Text style={styles.buttonText}>수정하기</Text>
       </TouchableOpacity>
     </View>
   );
