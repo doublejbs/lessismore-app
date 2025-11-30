@@ -29,6 +29,8 @@ interface Props {
   readonly inputRef: RefObject<TextInput | null>;
   readonly customGear: CustomGear;
   readonly searchDebounceMs?: number;
+  readonly onSearchScrollStart?: () => void;
+  readonly onSearchScrollEnd?: () => void;
 }
 
 const CustomGearInputSectionView: FC<Props> = ({
@@ -40,6 +42,8 @@ const CustomGearInputSectionView: FC<Props> = ({
   inputRef,
   customGear,
   searchDebounceMs = 300,
+  onSearchScrollStart,
+  onSearchScrollEnd,
 }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -126,7 +130,13 @@ const CustomGearInputSectionView: FC<Props> = ({
         )}
       </View>
       {showSearchResults && searchResults.length > 0 && (
-        <ScrollView style={styles.searchResultsContainer}>
+        <ScrollView
+          style={styles.searchResultsContainer}
+          nestedScrollEnabled={true}
+          onScrollBeginDrag={onSearchScrollStart}
+          onScrollEndDrag={onSearchScrollEnd}
+          onMomentumScrollEnd={onSearchScrollEnd}
+        >
           {searchResults.map(item => (
             <TouchableOpacity
               key={item.getId()}
