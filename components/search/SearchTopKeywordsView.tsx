@@ -108,9 +108,21 @@ const SearchTopKeywordsView: FC<Props> = ({ searchWarehouse, bag }) => {
     setShowModal(false);
   };
 
+  const handleSearchAllPress = () => {
+    searchWarehouse.goToExplore();
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>인기 장비 순위</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>인기 장비 순위</Text>
+        <TouchableOpacity
+          style={styles.searchAllButton}
+          onPress={handleSearchAllPress}
+        >
+          <Text style={styles.searchAllText}>전체 장비 탐색</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* 카테고리 필터 */}
       <ScrollView
@@ -242,11 +254,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   title: {
     fontSize: 18,
     fontFamily: 'Pretendard-Bold',
     color: '#000',
-    marginBottom: 12,
+  },
+  searchAllButton: {
+    backgroundColor: '#000',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
+  searchAllText: {
+    fontSize: 12,
+    fontFamily: 'Pretendard-Medium',
+    color: '#FFF',
   },
   categoryScrollView: {
     maxHeight: 32,

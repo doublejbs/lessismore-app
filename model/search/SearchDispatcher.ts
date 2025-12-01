@@ -29,6 +29,24 @@ class SearchDispatcher implements SearchDispatcherType {
     return await this.searchStore.searchList(keyword, index);
   }
 
+  public async exploreList(
+    category: string,
+    sort: string,
+    lastVisible?: any
+  ): Promise<{ gears: Gear[]; hasMore: boolean; lastVisible?: any }> {
+    const result = await this.gearStore.getAllGearsList(
+      category as any,
+      sort as any,
+      20,
+      lastVisible
+    );
+    return {
+      gears: result.gears,
+      hasMore: result.hasMore,
+      lastVisible: result.lastVisible,
+    };
+  }
+
   public async getTopSearches(): Promise<string[]> {
     return await this.searchStore.getTopSearches();
   }

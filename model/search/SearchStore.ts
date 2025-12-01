@@ -11,6 +11,7 @@ import Gear from '../gear/Gear';
 import GearFilter from '../gear/GearFilter';
 import Firebase from '../firebase/Firebase';
 import GearType from '../gear/GearType';
+import OrderType from '../order/OrderType';
 
 class SearchStore {
   private readonly searchClient = liteClient(
@@ -44,6 +45,83 @@ class SearchStore {
     } catch (error) {
       console.error('Error fetching top searches:', error);
       return [];
+    }
+  }
+
+  public async exploreList(
+    category: string,
+    sort: string,
+    page: number
+  ): Promise<{ gears: Gear[]; hasMore: boolean }> {
+    let indexName = 'useless-gear-search';
+    switch (sort) {
+      case OrderType.WeightAsc:
+        indexName = 'useless-gear-search_weight_asc';
+        break;
+      case OrderType.WeightDesc:
+        indexName = 'useless-gear-search_weight_desc';
+        break;
+      case OrderType.NameAsc:
+        indexName = 'useless-gear-search_name_asc';
+        break;
+      case OrderType.NameDesc:
+        indexName = 'useless-gear-search_name_desc';
+        break;
+      case OrderType.CreatedDesc:
+      default:
+        indexName = 'useless-gear-search_date_desc';
+        break;
+    }
+
+    const filters =
+      category !== GearFilter.All ? `category:${category}` : undefined;
+
+    try {
+      const { results } = await this.searchClient.search<GearType>({
+        requests: [
+          {
+            indexName,
+            filters,
+            page,
+            hitsPerPage: 20,
+          },
+        ],
+      });
+      const { hits, nbPages } = results[0] as SearchResponse<GearType>;
+
+      return {
+        gears: await this.convertWithMyGears(
+          hits.map(
+            ({
+              name,
+              weight,
+              company,
+              objectID,
+              imageUrl,
+              color,
+              companyKorean,
+              category = '',
+            }) => ({
+              name,
+              weight,
+              company,
+              id: objectID,
+              imageUrl,
+              useless: [],
+              used: [],
+              bags: [],
+              createDate: Date.now(),
+              color,
+              companyKorean,
+              category,
+            })
+          )
+        ),
+        hasMore: (page ?? 0) + 1 < (nbPages ?? 0),
+      };
+    } catch (e) {
+      console.error(e);
+      return { gears: [], hasMore: false };
     }
   }
 

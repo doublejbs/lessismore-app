@@ -334,6 +334,10 @@ class SearchWarehouse {
   public goToGearDetail(gear: Gear) {
     this.navigation.push(`/gear-detail/${gear.getId()}`);
   }
+
+  public goToExplore() {
+    this.navigation.push('/explore');
+  }
 }
 
 export default SearchWarehouse;

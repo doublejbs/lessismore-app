@@ -1,4 +1,14 @@
-import { collection, doc, getDoc, getDocs, query } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  limit,
+  startAfter,
+  QueryDocumentSnapshot,
+  DocumentData,
+} from 'firebase/firestore';
 import Firebase from '../firebase/Firebase';
 import Gear from '../gear/Gear';
 import {
@@ -190,6 +200,120 @@ class GearStore {
         );
       });
     } else {
+      return [];
+    }
+  }
+
+  public async getAllGearsList(
+    filter: GearFilter,
+    order: OrderType,
+    pageSize: number = 20,
+    lastVisible?: QueryDocumentSnapshot<DocumentData>
+  ): Promise<{
+    gears: Gear[];
+    hasMore: boolean;
+    lastVisible: QueryDocumentSnapshot<DocumentData> | undefined;
+  }> {
+    try {
+      let baseQuery;
+
+      if (filter === GearFilter.All) {
+        if (lastVisible) {
+          baseQuery = query(
+            collection(this.getStore(), 'gear'),
+            this.getOrderQuery(order),
+            startAfter(lastVisible),
+            limit(pageSize)
+          );
+        } else {
+          baseQuery = query(
+            collection(this.getStore(), 'gear'),
+            this.getOrderQuery(order),
+            limit(pageSize)
+          );
+        }
+      } else {
+        if (lastVisible) {
+          baseQuery = query(
+            collection(this.getStore(), 'gear'),
+            where('category', '==', filter),
+            this.getOrderQuery(order),
+            startAfter(lastVisible),
+            limit(pageSize)
+          );
+        } else {
+          baseQuery = query(
+            collection(this.getStore(), 'gear'),
+            where('category', '==', filter),
+            this.getOrderQuery(order),
+            limit(pageSize)
+          );
+        }
+      }
+
+      const gearDocs = (await getDocs(baseQuery)).docs;
+      const myGears = await this.getMyGearIds();
+
+      const gears = gearDocs.map(doc => {
+        const {
+          name,
+          company,
+          weight,
+          imageUrl,
+          isCustom,
+          category,
+          createDate,
+          color,
+          companyKorean,
+        } = doc.data();
+
+        return new Gear(
+          doc.id,
+          name,
+          company,
+          weight,
+          imageUrl,
+          myGears.includes(doc.id),
+          isCustom,
+          category,
+          [],
+          [],
+          [],
+          createDate,
+          color,
+          companyKorean
+        );
+      });
+
+      const hasMore = gearDocs.length === pageSize;
+      const newLastVisible =
+        gearDocs.length > 0 ? gearDocs[gearDocs.length - 1] : undefined;
+
+      return {
+        gears,
+        hasMore,
+        lastVisible: newLastVisible,
+      };
+    } catch (error) {
+      console.error('Error fetching all gears:', error);
+      return { gears: [], hasMore: false, lastVisible: undefined };
+    }
+  }
+
+  private async getMyGearIds(): Promise<string[]> {
+    if (!this.firebase.isLoggedIn()) {
+      return [];
+    }
+
+    try {
+      const gears = (
+        await getDocs(
+          collection(this.getStore(), 'users', this.getUserId(), 'gears')
+        )
+      ).docs;
+      return gears.map(doc => doc.id);
+    } catch (error) {
+      console.error('Error fetching my gear ids:', error);
       return [];
     }
   }
