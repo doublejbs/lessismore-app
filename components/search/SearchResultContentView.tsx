@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   },
   flatListContent: {
     flexGrow: 1,
-    paddingBottom: 80,
+    paddingBottom: 150,
   },
   skeletonContainer: {
     marginTop: 10,

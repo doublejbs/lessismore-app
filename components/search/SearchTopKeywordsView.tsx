@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   bottomContainer: {
-    height: 100,
+    height: 150,
   },
 });
 
