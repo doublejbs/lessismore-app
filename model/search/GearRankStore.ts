@@ -5,8 +5,7 @@ import {
   where,
   orderBy,
   limit,
-  doc,
-  getDoc,
+  documentId,
 } from 'firebase/firestore';
 import Firebase from '../firebase/Firebase';
 import GearFilter from '../gear/GearFilter';
@@ -51,19 +50,33 @@ class GearRankStore {
             );
 
       const snapshot = await getDocs(rankQuery);
-      const data: GearRankData[] = [];
+
+      // gearId 목록 수집
+      const gearIds = snapshot.docs.map(d => d.data().id);
+
+      if (gearIds.length === 0) {
+        return [];
+      }
+
+      // 한 번에 모든 gear 문서 가져오기
+      const gearsQuery = query(
+        collection(this.firebase.getStore(), 'gear'),
+        where(documentId(), 'in', gearIds)
+      );
+      const gearsSnapshot = await getDocs(gearsQuery);
+
+      // Map으로 변환하여 O(1) 조회
+      const gearsMap = new Map(gearsSnapshot.docs.map(d => [d.id, d.data()]));
 
       // gear-rank 데이터와 함께 실제 장비 정보도 가져오기
+      const data: GearRankData[] = [];
+
       for (const rankDoc of snapshot.docs) {
         const rankData = rankDoc.data();
         const gearId = rankData.id;
+        const gearData = gearsMap.get(gearId);
 
-        // gears 컬렉션에서 장비 정보 가져오기
-        const gearDocRef = doc(this.firebase.getStore(), 'gear', gearId);
-        const gearDoc = await getDoc(gearDocRef);
-
-        if (gearDoc.exists()) {
-          const gearData = gearDoc.data();
+        if (gearData) {
           data.push({
             id: gearId,
             name: gearData.name || gearId,

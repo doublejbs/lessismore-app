@@ -55,7 +55,7 @@ const SearchTopKeywordsView: FC<Props> = ({ searchWarehouse, bag }) => {
 
   useFocusEffect(
     useCallback(() => {
-      searchRank.loadRanking(selectedCategory);
+      searchRank.loadRanking(selectedCategory, false);
     }, [searchRank, selectedCategory])
   );
 
