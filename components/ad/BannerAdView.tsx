@@ -7,12 +7,10 @@ import {
 } from 'react-native-google-mobile-ads';
 
 // TODO: 프로덕션 배포 시 실제 광고 단위 ID로 교체 필요
-const adUnitId = __DEV__
-  ? TestIds.BANNER
-  : Platform.select({
-      ios: 'ca-app-pub-1953089301592534/8991809440',
-      android: 'ca-app-pub-1953089301592534/5355816761',
-    }) ?? TestIds.BANNER;
+const adUnitId = Platform.select({
+  ios: 'ca-app-pub-1953089301592534/8991809440',
+  android: 'ca-app-pub-1953089301592534/5355816761',
+});
 
 interface Props {
   size?: BannerAdSize;
