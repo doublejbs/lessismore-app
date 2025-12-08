@@ -66,7 +66,18 @@ const CANVAS_WIDTH = 1080;
 const CANVAS_HEIGHT = 1350; // 4:5 ratio
 const BG_COLOR = '#000000'; // Black Background
 const CARD_BG_COLOR = '#1A1A1A'; // Dark Grey Cards
-const TOTAL_BG_GRADIENT: readonly [string, string] = ['#90D830', '#60C000']; // iOS Fitness Lime Green - Exercise Ring (Darker)
+
+// 무게 카드 색상 팔레트
+const WEIGHT_GRADIENTS: readonly [string, string][] = [
+  ['#90D830', '#60C000'], // Lime Green
+  ['#FF2D55', '#CC0033'], // Pink/Red
+  ['#00FFD9', '#00CCA8'], // Cyan/Turquoise
+  ['#FFD60A', '#CCA800'], // Yellow
+  ['#30D158', '#26A346'], // Green
+  ['#64D2FF', '#33AACC'], // Light Blue
+  ['#BF5AF2', '#9933CC'], // Purple
+  ['#FF9F0A', '#CC7F08'], // Orange
+];
 
 // Layout Constants (optimized for 4:5 Instagram ratio: 1080 x 1350)
 const PADDING = 24;
@@ -102,6 +113,7 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
   const viewShotRef = useRef<ViewShot>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
 
   // Load Fonts
   const [fontsLoaded] = useFonts({
@@ -127,6 +139,20 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
   );
   const [isLightBackground, setIsLightBackground] = useState(false);
 
+  // 카드 크기 상태 (오른쪽 상단: 1,2,3,4 / 왼쪽 하단: 5,6)
+  type CardSize = '1x1' | '2x1' | '1x2' | '2x2';
+  const [cardSizes, setCardSizes] = useState<Record<number, CardSize>>({
+    1: '1x1',
+    2: '1x1',
+    3: '1x1',
+    4: '1x1',
+    5: '1x2',
+    6: '1x2',
+  });
+
+  // 무게 카드 색상 인덱스
+  const [weightColorIndex, setWeightColorIndex] = useState(0);
+
   // 이미지가 있는 모든 장비 리스트
   const allGearsWithImages = useMemo(() => {
     const allGears: Gear[] = [];
@@ -150,22 +176,65 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
     });
     setSortedCategories(data);
 
-    // 초기 선택: 이미지 있는 장비 중 처음 7개 자동 선택
+    // 초기 선택: 특정 카테고리 우선 배치
     const gearsWithImg: Gear[] = [];
     data.forEach(cat => {
       gearsWithImg.push(...cat.gears.filter(g => g.getImageUrl?.()));
     });
-    const initialGears = gearsWithImg.slice(0, 7);
+
     const gearArray = Array(7).fill(null);
-    initialGears.forEach((gear, idx) => {
-      gearArray[idx] = gear;
+
+    // 0번 위치: 텐트
+    const tentGear = gearsWithImg.find(
+      g => g.getCategory?.() === GearFilter.Tent
+    );
+    if (tentGear) {
+      gearArray[0] = tentGear;
+    }
+
+    // 5번 위치: 배낭
+    const backpackGear = gearsWithImg.find(
+      g => g.getCategory?.() === GearFilter.Backpack && g !== tentGear
+    );
+    if (backpackGear) {
+      gearArray[5] = backpackGear;
+    }
+
+    // 6번 위치: 침낭
+    const sleepingBagGear = gearsWithImg.find(
+      g =>
+        g.getCategory?.() === GearFilter.SleepingBag &&
+        g !== tentGear &&
+        g !== backpackGear
+    );
+    if (sleepingBagGear) {
+      gearArray[6] = sleepingBagGear;
+    }
+
+    // 나머지 위치 (1,2,3,4): 아직 배치되지 않은 장비들을 무게 순으로
+    const usedGears = new Set(
+      [tentGear, backpackGear, sleepingBagGear].filter(Boolean)
+    );
+    const remainingGears = gearsWithImg
+      .filter(g => !usedGears.has(g))
+      .sort((a, b) => {
+        const weightA = Number(a.getWeight() || 0);
+        const weightB = Number(b.getWeight() || 0);
+        return weightB - weightA;
+      });
+
+    const remainingPositions = [1, 2, 3, 4];
+    remainingGears.slice(0, 4).forEach((gear, idx) => {
+      gearArray[remainingPositions[idx]] = gear;
     });
+
     setSelectedGears(gearArray);
   }, [bagDetail]);
 
   useEffect(() => {
     if (visible) {
-      setTimeout(() => setIsReady(true), 500);
+      setIsReady(false);
+      setTimeout(() => setIsReady(true), 2000);
     } else {
       setIsReady(false);
     }
@@ -197,7 +266,17 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
         setIsSaving(false);
         return;
       }
+
+      // 캡처 전에 버튼 숨기기
+      setIsCapturing(true);
+      // 화면이 업데이트될 시간 대기
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       const uri = await viewShotRef.current.capture?.();
+
+      // 캡처 후 버튼 다시 보이기
+      setIsCapturing(false);
+
       if (uri) {
         await MediaLibrary.saveToLibraryAsync(uri);
         Alert.alert('저장 완료', '이미지가 저장되었습니다.');
@@ -205,6 +284,7 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
     } catch (error) {
       console.error(error);
       Alert.alert('저장 실패', '오류가 발생했습니다.');
+      setIsCapturing(false);
     } finally {
       setIsSaving(false);
     }
@@ -229,6 +309,69 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
     const newSelectedGears = [...selectedGears];
     newSelectedGears[index] = null;
     setSelectedGears(newSelectedGears);
+  };
+
+  const handleCardSizeChange = (index: number) => {
+    const currentSize = cardSizes[index];
+    let nextSize: CardSize;
+    const newSizes = { ...cardSizes };
+
+    // 오른쪽 상단 카드들 (1,2,3,4): 1x1 -> 2x1 -> 2x2 -> 1x1
+    if (index >= 1 && index <= 4) {
+      if (currentSize === '1x1') {
+        nextSize = '2x1';
+        // 같은 행의 다른 카드만 1x1로 리셋
+        if (index === 1 || index === 2) {
+          // 첫 번째 행 (1,2)
+          [1, 2].forEach(i => {
+            if (i !== index) {
+              newSizes[i] = '1x1';
+            }
+          });
+        } else {
+          // 두 번째 행 (3,4)
+          [3, 4].forEach(i => {
+            if (i !== index) {
+              newSizes[i] = '1x1';
+            }
+          });
+        }
+      } else if (currentSize === '2x1') {
+        nextSize = '2x2';
+        // 모든 다른 카드들 1x1로 리셋
+        [1, 2, 3, 4].forEach(i => {
+          if (i !== index) {
+            newSizes[i] = '1x1';
+          }
+        });
+      } else {
+        // 2x2 -> 1x1
+        nextSize = '1x1';
+      }
+    }
+    // 왼쪽 하단 카드들 (5,6): 1x2 -> 2x2 -> 1x2
+    else if (index >= 5 && index <= 6) {
+      if (currentSize === '1x2') {
+        nextSize = '2x2';
+        // 다른 카드 1x2로 리셋
+        [5, 6].forEach(i => {
+          if (i !== index) {
+            newSizes[i] = '1x2';
+          }
+        });
+      } else {
+        nextSize = '1x2';
+      }
+    } else {
+      return;
+    }
+
+    newSizes[index] = nextSize;
+    setCardSizes(newSizes);
+  };
+
+  const handleWeightColorChange = () => {
+    setWeightColorIndex(prev => (prev + 1) % WEIGHT_GRADIENTS.length);
   };
 
   const handleChangeBackground = async () => {
@@ -270,8 +413,13 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
     gear: Gear | null,
     width: number,
     height: number,
-    slotIndex: number
+    slotIndex: number,
+    showResizeButton: boolean = true,
+    isCapturing: boolean = false
   ) => {
+    const canResize = [1, 2, 3, 4, 5, 6].includes(slotIndex);
+    const isClickable = true; // 모든 카드 클릭 가능
+
     return (
       <TouchableOpacity
         style={[
@@ -281,9 +429,23 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
             height,
             padding: 0,
             overflow: 'hidden',
-            backgroundColor: gear ? CARD_BG_COLOR : '#2A2A2A',
-            borderWidth: gear ? 0 : 2,
-            borderColor: '#444444',
+            backgroundColor: gear
+              ? CARD_BG_COLOR
+              : isCapturing
+              ? BG_COLOR
+              : '#2A2A2A',
+            borderWidth: gear
+              ? showResizeButton
+                ? 2
+                : 0
+              : isCapturing
+              ? 0
+              : 2,
+            borderColor: gear
+              ? showResizeButton
+                ? 'rgba(175, 252, 65, 0.4)'
+                : 'transparent'
+              : '#444444',
             borderStyle: gear ? 'solid' : 'dashed',
             justifyContent: 'center',
             alignItems: 'center',
@@ -291,18 +453,350 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
         ]}
         onPress={() => handleSlotClick(slotIndex)}
         onLongPress={() => gear && handleRemoveGear(slotIndex)}
+        activeOpacity={0.7}
       >
         {gear ? (
-          <Image
-            source={{ uri: gear.getImageUrl?.() }}
-            style={{ width: '100%', height: '100%' }}
-            contentFit='cover'
-          />
-        ) : (
-          <Ionicons name='add-circle-outline' size={48} color='#666666' />
-        )}
+          <>
+            <Image
+              source={{ uri: gear.getImageUrl?.() }}
+              style={{ width: '100%', height: '100%' }}
+              contentFit='cover'
+            />
+            {isClickable && showResizeButton && (
+              <View style={styles.changeIconBadge}>
+                <Ionicons name='image-outline' size={16} color='white' />
+              </View>
+            )}
+            {canResize && showResizeButton && (
+              <TouchableOpacity
+                style={styles.resizeButton}
+                onPress={e => {
+                  e.stopPropagation();
+                  handleCardSizeChange(slotIndex);
+                }}
+              >
+                <Ionicons name='expand-outline' size={20} color='white' />
+              </TouchableOpacity>
+            )}
+          </>
+        ) : !isCapturing ? (
+          <>
+            <Ionicons name='add-circle-outline' size={48} color='#666666' />
+            {isClickable && (
+              <Text style={styles.clickHintText}>탭하여 장비 선택</Text>
+            )}
+          </>
+        ) : null}
       </TouchableOpacity>
     );
+  };
+
+  // 오른쪽 상단 카드들 레이아웃 계산 (Gear 1,2,3,4)
+  const renderRightTopCards = (
+    showResizeButton: boolean = true,
+    isCapturing: boolean = false
+  ) => {
+    const cards = [];
+
+    // 2x2 확대된 카드가 있는지 확인
+    const has2x2 = [1, 2, 3, 4].find(i => cardSizes[i] === '2x2');
+    if (has2x2) {
+      // 하나만 2x2로 표시
+      cards.push(
+        <View
+          key={has2x2}
+          style={{
+            position: 'absolute',
+            left: PADDING + CELL_2x2 + GAP,
+            top: PADDING,
+          }}
+        >
+          {renderGearCard(
+            gearsWithImages[has2x2],
+            CELL_2x2,
+            CELL_2x2,
+            has2x2,
+            showResizeButton,
+            isCapturing
+          )}
+        </View>
+      );
+      return cards;
+    }
+
+    // Row 1 (위): Gear 1,2
+    const size1 = cardSizes[1];
+    const size2 = cardSizes[2];
+
+    if (size1 === '2x1') {
+      // Gear 1이 2x1로 확대
+      cards.push(
+        <View
+          key={1}
+          style={{
+            position: 'absolute',
+            left: PADDING + CELL_2x2 + GAP,
+            top: PADDING,
+          }}
+        >
+          {renderGearCard(
+            gearsWithImages[1],
+            CELL_2x2,
+            CELL_1x1,
+            1,
+            showResizeButton,
+            isCapturing
+          )}
+        </View>
+      );
+    } else if (size2 === '2x1') {
+      // Gear 2가 2x1로 확대
+      cards.push(
+        <View
+          key={2}
+          style={{
+            position: 'absolute',
+            left: PADDING + CELL_2x2 + GAP,
+            top: PADDING,
+          }}
+        >
+          {renderGearCard(
+            gearsWithImages[2],
+            CELL_2x2,
+            CELL_1x1,
+            2,
+            showResizeButton,
+            isCapturing
+          )}
+        </View>
+      );
+    } else {
+      // Gear 1,2 모두 1x1
+      cards.push(
+        <View
+          key={1}
+          style={{
+            position: 'absolute',
+            left: PADDING + CELL_2x2 + GAP,
+            top: PADDING,
+          }}
+        >
+          {renderGearCard(
+            gearsWithImages[1],
+            CELL_1x1,
+            CELL_1x1,
+            1,
+            showResizeButton,
+            isCapturing
+          )}
+        </View>
+      );
+      cards.push(
+        <View
+          key={2}
+          style={{
+            position: 'absolute',
+            left: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
+            top: PADDING,
+          }}
+        >
+          {renderGearCard(
+            gearsWithImages[2],
+            CELL_1x1,
+            CELL_1x1,
+            2,
+            showResizeButton,
+            isCapturing
+          )}
+        </View>
+      );
+    }
+
+    // Row 2 (아래): Gear 3,4
+    const size3 = cardSizes[3];
+    const size4 = cardSizes[4];
+
+    if (size3 === '2x1') {
+      // Gear 3이 2x1로 확대
+      cards.push(
+        <View
+          key={3}
+          style={{
+            position: 'absolute',
+            left: PADDING + CELL_2x2 + GAP,
+            top: PADDING + CELL_1x1 + GAP,
+          }}
+        >
+          {renderGearCard(
+            gearsWithImages[3],
+            CELL_2x2,
+            CELL_1x1,
+            3,
+            showResizeButton,
+            isCapturing
+          )}
+        </View>
+      );
+    } else if (size4 === '2x1') {
+      // Gear 4가 2x1로 확대
+      cards.push(
+        <View
+          key={4}
+          style={{
+            position: 'absolute',
+            left: PADDING + CELL_2x2 + GAP,
+            top: PADDING + CELL_1x1 + GAP,
+          }}
+        >
+          {renderGearCard(
+            gearsWithImages[4],
+            CELL_2x2,
+            CELL_1x1,
+            4,
+            showResizeButton,
+            isCapturing
+          )}
+        </View>
+      );
+    } else {
+      // Gear 3,4 모두 1x1
+      cards.push(
+        <View
+          key={3}
+          style={{
+            position: 'absolute',
+            left: PADDING + CELL_2x2 + GAP,
+            top: PADDING + CELL_1x1 + GAP,
+          }}
+        >
+          {renderGearCard(
+            gearsWithImages[3],
+            CELL_1x1,
+            CELL_1x1,
+            3,
+            showResizeButton,
+            isCapturing
+          )}
+        </View>
+      );
+      cards.push(
+        <View
+          key={4}
+          style={{
+            position: 'absolute',
+            left: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
+            top: PADDING + CELL_1x1 + GAP,
+          }}
+        >
+          {renderGearCard(
+            gearsWithImages[4],
+            CELL_1x1,
+            CELL_1x1,
+            4,
+            showResizeButton,
+            isCapturing
+          )}
+        </View>
+      );
+    }
+
+    return cards;
+  };
+
+  // 왼쪽 하단 카드들 레이아웃 계산 (Gear 5,6)
+  const renderLeftBottomCards = (
+    showResizeButton: boolean = true,
+    isCapturing: boolean = false
+  ) => {
+    const cards = [];
+    const size5 = cardSizes[5];
+    const size6 = cardSizes[6];
+
+    if (size5 === '2x2') {
+      // Gear5만 2x2로 표시
+      cards.push(
+        <View
+          key={5}
+          style={{
+            position: 'absolute',
+            left: PADDING,
+            top: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
+          }}
+        >
+          {renderGearCard(
+            gearsWithImages[5],
+            CELL_2x2,
+            CELL_2x2,
+            5,
+            showResizeButton,
+            isCapturing
+          )}
+        </View>
+      );
+    } else if (size6 === '2x2') {
+      // Gear6만 2x2로 표시
+      cards.push(
+        <View
+          key={6}
+          style={{
+            position: 'absolute',
+            left: PADDING,
+            top: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
+          }}
+        >
+          {renderGearCard(
+            gearsWithImages[6],
+            CELL_2x2,
+            CELL_2x2,
+            6,
+            showResizeButton,
+            isCapturing
+          )}
+        </View>
+      );
+    } else {
+      // 둘 다 1x2로 표시
+      cards.push(
+        <View
+          key={5}
+          style={{
+            position: 'absolute',
+            left: PADDING,
+            top: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
+          }}
+        >
+          {renderGearCard(
+            gearsWithImages[5],
+            CELL_1x1,
+            CELL_2x2,
+            5,
+            showResizeButton,
+            isCapturing
+          )}
+        </View>
+      );
+      cards.push(
+        <View
+          key={6}
+          style={{
+            position: 'absolute',
+            left: PADDING + CELL_1x1 + GAP,
+            top: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
+          }}
+        >
+          {renderGearCard(
+            gearsWithImages[6],
+            CELL_1x1,
+            CELL_2x2,
+            6,
+            showResizeButton,
+            isCapturing
+          )}
+        </View>
+      );
+    }
+
+    return cards;
   };
 
   // Chart Card Renderer
@@ -460,37 +954,52 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
     );
   };
 
-  const renderTotalWeightCard = (width: number, height: number) => (
-    <LinearGradient
-      colors={TOTAL_BG_GRADIENT}
-      style={[
-        styles.cardBase,
-        {
-          width,
-          height,
-          justifyContent: 'center',
-          alignItems: 'center',
-        },
-      ]}
-    >
-      <Text
-        style={[
-          styles.totalWeightText,
-          {
-            color: 'white',
-            fontSize: width > 300 ? 90 : 70,
-            fontFamily: 'Inter_700Bold',
-            fontWeight: '700',
-            textShadowColor: 'rgba(255, 255, 255, 0.3)',
-            textShadowOffset: { width: 2, height: 2 },
-            textShadowRadius: 8,
-          },
-        ]}
+  const renderTotalWeightCard = (width: number, height: number) => {
+    const currentGradient = WEIGHT_GRADIENTS[weightColorIndex];
+
+    return (
+      <TouchableOpacity
+        onPress={handleWeightColorChange}
+        activeOpacity={0.8}
+        style={{ width, height }}
       >
-        {totalWeight}kg
-      </Text>
-    </LinearGradient>
-  );
+        <LinearGradient
+          colors={currentGradient}
+          style={[
+            styles.cardBase,
+            {
+              width,
+              height,
+              justifyContent: 'center',
+              alignItems: 'center',
+            },
+          ]}
+        >
+          {!isCapturing && (
+            <View style={styles.weightColorIconBadge}>
+              <Ionicons name='color-palette-outline' size={16} color='white' />
+            </View>
+          )}
+          <Text
+            style={[
+              styles.totalWeightText,
+              {
+                color: 'white',
+                fontSize: width > 300 ? 90 : 70,
+                fontFamily: 'Inter_700Bold',
+                fontWeight: '700',
+                textShadowColor: 'rgba(255, 255, 255, 0.3)',
+                textShadowOffset: { width: 2, height: 2 },
+                textShadowRadius: 8,
+              },
+            ]}
+          >
+            {totalWeight}kg
+          </Text>
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  };
 
   // 로고 카드
   const renderNatureImageCard = (width: number, height: number) => {
@@ -511,6 +1020,8 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
             alignItems: 'center',
             gap: 4,
             overflow: 'hidden',
+            borderWidth: !isCapturing ? 2 : 0,
+            borderColor: 'rgba(175, 252, 65, 0.4)',
           },
         ]}
         onPress={handleChangeBackground}
@@ -533,6 +1044,12 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
             },
           ]}
         />
+        {/* 배경 변경 힌트 아이콘 */}
+        {!isCapturing && (
+          <View style={styles.backgroundChangeIconBadge}>
+            <Ionicons name='image-outline' size={16} color='white' />
+          </View>
+        )}
         {/* 로고 */}
         <Image
           source={LOGO_IMG}
@@ -573,6 +1090,43 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
         >
           <ActivityIndicator size='large' color='#39FF14' />
           <Text style={{ marginTop: 16, color: '#666' }}>폰트 로딩 중...</Text>
+        </View>
+      </Modal>
+    );
+  }
+
+  if (!isReady) {
+    return (
+      <Modal
+        visible={visible}
+        animationType='slide'
+        presentationStyle='pageSheet'
+        onRequestClose={onClose}
+      >
+        <View
+          style={[
+            styles.container,
+            {
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: '#000000',
+            },
+          ]}
+        >
+          <View style={styles.aiLoadingContainer}>
+            <View style={styles.sparkleIcon}>
+              <Ionicons name='sparkles' size={48} color='#7C3AED' />
+            </View>
+            <Text style={styles.aiLoadingTitle}>AI로 이미지 생성 중...</Text>
+            <Text style={styles.aiLoadingSubtitle}>
+              장비 정보를 분석하고 있습니다
+            </Text>
+            <ActivityIndicator
+              size='large'
+              color='#7C3AED'
+              style={{ marginTop: 24 }}
+            />
+          </View>
         </View>
       </Modal>
     );
@@ -621,7 +1175,7 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
                   <View style={styles.canvas}>
                     {/* Grid-based Absolute Layout - 4 Columns */}
                     <View style={StyleSheet.absoluteFill}>
-                      {/* Row 1-2: Gear1 (2x2) | Gear2 (1x1) | Gear3 (1x1) */}
+                      {/* Row 1-2: Gear1 (2x2) - 고정 */}
                       <View
                         style={{
                           position: 'absolute',
@@ -633,67 +1187,14 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
                           gearsWithImages[0],
                           CELL_2x2,
                           CELL_2x2,
-                          0
-                        )}
-                      </View>
-                      <View
-                        style={{
-                          position: 'absolute',
-                          left: PADDING + CELL_2x2 + GAP,
-                          top: PADDING,
-                        }}
-                      >
-                        {renderGearCard(
-                          gearsWithImages[1],
-                          CELL_1x1,
-                          CELL_1x1,
-                          1
-                        )}
-                      </View>
-                      <View
-                        style={{
-                          position: 'absolute',
-                          left: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
-                          top: PADDING,
-                        }}
-                      >
-                        {renderGearCard(
-                          gearsWithImages[2],
-                          CELL_1x1,
-                          CELL_1x1,
-                          2
+                          0,
+                          !isCapturing,
+                          isCapturing
                         )}
                       </View>
 
-                      {/* Row 2: Gear4 (1x1) | Gear5 (1x1) */}
-                      <View
-                        style={{
-                          position: 'absolute',
-                          left: PADDING + CELL_2x2 + GAP,
-                          top: PADDING + CELL_1x1 + GAP,
-                        }}
-                      >
-                        {renderGearCard(
-                          gearsWithImages[3],
-                          CELL_1x1,
-                          CELL_1x1,
-                          3
-                        )}
-                      </View>
-                      <View
-                        style={{
-                          position: 'absolute',
-                          left: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
-                          top: PADDING + CELL_1x1 + GAP,
-                        }}
-                      >
-                        {renderGearCard(
-                          gearsWithImages[4],
-                          CELL_1x1,
-                          CELL_1x1,
-                          4
-                        )}
-                      </View>
+                      {/* Row 1-2: 오른쪽 상단 카드들 (Gear 1,2,3,4) - 동적 */}
+                      {renderRightTopCards(!isCapturing, isCapturing)}
 
                       {/* Row 3-4: TotalWeight (2x1) | Chart (2x2) */}
                       <View
@@ -715,35 +1216,8 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
                         {renderChartCard(CELL_2x2, CELL_2x2)}
                       </View>
 
-                      {/* Row 4-5: Gear6 (1x2) | Gear7 (1x2) */}
-                      <View
-                        style={{
-                          position: 'absolute',
-                          left: PADDING,
-                          top: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
-                        }}
-                      >
-                        {renderGearCard(
-                          gearsWithImages[5],
-                          CELL_1x1,
-                          CELL_2x2,
-                          5
-                        )}
-                      </View>
-                      <View
-                        style={{
-                          position: 'absolute',
-                          left: PADDING + CELL_1x1 + GAP,
-                          top: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
-                        }}
-                      >
-                        {renderGearCard(
-                          gearsWithImages[6],
-                          CELL_1x1,
-                          CELL_2x2,
-                          6
-                        )}
-                      </View>
+                      {/* Row 4-5: 왼쪽 하단 카드들 (Gear 5,6) - 동적 */}
+                      {renderLeftBottomCards(!isCapturing, isCapturing)}
 
                       {/* Row 5: Logo (2x1) - Right Side */}
                       <View
@@ -761,6 +1235,32 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
               </View>
             </View>
           </View>
+
+          {/* 가이드 텍스트 */}
+          <View style={styles.guideContainer}>
+            <View style={styles.infoTextContainer}>
+              <Ionicons name='image-outline' size={16} color='#666666' />
+              <Text style={styles.infoText}>
+                장비 이미지를 누르면 표시할 장비를 선택할 수 있습니다.
+              </Text>
+            </View>
+            <View style={styles.infoTextContainer}>
+              <Ionicons name='expand-outline' size={16} color='#666666' />
+              <Text style={styles.infoText}>
+                크기 조정 버튼을 클릭하면 크기 조정이 가능합니다.
+              </Text>
+            </View>
+            <View style={styles.infoTextContainer}>
+              <Ionicons
+                name='color-palette-outline'
+                size={16}
+                color='#666666'
+              />
+              <Text style={styles.infoText}>
+                무게 카드를 누르면 색상 변경이 가능합니다.
+              </Text>
+            </View>
+          </View>
         </ScrollView>
 
         <View
@@ -769,16 +1269,6 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
             { paddingBottom: insets.bottom + 16 },
           ]}
         >
-          <View style={styles.infoTextContainer}>
-            <Ionicons
-              name='information-circle-outline'
-              size={16}
-              color='#666666'
-            />
-            <Text style={styles.infoText}>
-              장비 카드를 누르면 표시할 장비를 선택할 수 있습니다.
-            </Text>
-          </View>
           <TouchableOpacity
             style={[
               styles.saveButton,
@@ -986,11 +1476,15 @@ const styles = StyleSheet.create({
     color: 'white',
     fontFamily: 'Inter_600SemiBold',
   },
+  guideContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 8,
+  },
   infoTextContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
     gap: 6,
   },
   infoText: {
@@ -1053,6 +1547,69 @@ const styles = StyleSheet.create({
   gearGridWeight: {
     fontSize: 10,
     color: '#666666',
+  },
+  resizeButton: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 20,
+    padding: 8,
+    zIndex: 10,
+  },
+  changeIconBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 16,
+    padding: 6,
+    zIndex: 10,
+  },
+  backgroundChangeIconBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 16,
+    padding: 6,
+    zIndex: 10,
+  },
+  weightColorIconBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 16,
+    padding: 6,
+    zIndex: 10,
+  },
+  clickHintText: {
+    position: 'absolute',
+    bottom: 16,
+    fontSize: 12,
+    color: '#999999',
+    fontFamily: 'Inter_400Regular',
+  },
+  aiLoadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+  },
+  sparkleIcon: {
+    marginBottom: 24,
+  },
+  aiLoadingTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 8,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  aiLoadingSubtitle: {
+    fontSize: 14,
+    color: '#999999',
+    fontFamily: 'Inter_400Regular',
   },
 });
 
