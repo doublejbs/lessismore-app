@@ -20,10 +20,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Svg, { Path, Circle } from 'react-native-svg';
+import { PlaywriteNZ_400Regular } from '@expo-google-fonts/playwrite-nz';
 import {
-  useFonts,
-  PlaywriteNZ_400Regular,
-} from '@expo-google-fonts/playwrite-nz';
+  Inter_400Regular,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
+import { useFonts } from 'expo-font';
 
 import BagDetail from '@/model/bag-detail/BagDetail';
 import GearFilter from '@/model/gear/GearFilter';
@@ -63,7 +66,7 @@ const CANVAS_WIDTH = 1080;
 const CANVAS_HEIGHT = 1350; // 4:5 ratio
 const BG_COLOR = '#000000'; // Black Background
 const CARD_BG_COLOR = '#1A1A1A'; // Dark Grey Cards
-const TOTAL_BG_GRADIENT: readonly [string, string] = ['#6B8E23', '#556B2F']; // Olive Green Gradient - Forest & Natural
+const TOTAL_BG_GRADIENT: readonly [string, string] = ['#90D830', '#60C000']; // iOS Fitness Lime Green - Exercise Ring (Darker)
 
 // Layout Constants (optimized for 4:5 Instagram ratio: 1080 x 1350)
 const PADDING = 24;
@@ -76,18 +79,18 @@ const CELL_2x2 = CELL_SIZE * 2 + GAP; // 243 * 2 + 20 = 506
 // Total width: 24 + 243*4 + 20*3 + 24 = 1080 ✓
 // Total height: 24 + 506 + 20 + 506 + 20 + 243 + 31 = 1350 ✓
 
-// Chart Colors (Modern Vibrant Palette - Sophisticated & Bold)
+// Chart Colors (iOS Fitness App Palette - Vibrant & Energetic)
 const CHART_COLORS = [
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
-  '#F59E0B', // Amber
-  '#10B981', // Emerald
-  '#3B82F6', // Blue
-  '#F43F5E', // Rose
-  '#06B6D4', // Cyan
-  '#8B5CF6', // Purple (repeat for more categories)
-  '#A78BFA', // Light Purple
-  '#FB923C', // Orange
+  '#FF2D55', // Move Ring - Pink/Red
+  '#AFFC41', // Exercise Ring - Lime Green
+  '#00FFD9', // Stand Ring - Cyan/Turquoise
+  '#FF453A', // Red
+  '#FFD60A', // Yellow
+  '#30D158', // Green
+  '#64D2FF', // Light Blue
+  '#BF5AF2', // Purple
+  '#FF9F0A', // Orange
+  '#AC8E68', // Brown
 ];
 
 const DARK_TEXT_MAIN = '#FFFFFF'; // White
@@ -100,9 +103,12 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
-  // Load Playwrite NZ Font
+  // Load Fonts
   const [fontsLoaded] = useFonts({
     PlaywriteNZ_400Regular,
+    Inter_400Regular,
+    Inter_600SemiBold,
+    Inter_700Bold,
   });
 
   // Display Scale
@@ -340,8 +346,8 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
             padding: 24,
             alignItems: 'center',
             backgroundColor: '#1A1A1A', // Slightly lighter dark background
-            borderWidth: 2,
-            borderColor: 'rgba(139, 92, 246, 0.3)', // Purple accent border
+            borderWidth: 1.5,
+            borderColor: 'rgba(255, 255, 255, 0.1)', // Subtle light border
           },
         ]}
       >
@@ -369,7 +375,7 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
                 fontSize: 20,
                 fontWeight: 'bold',
                 color: DARK_TEXT_MAIN,
-                fontFamily: 'Pretendard-Bold',
+                fontFamily: 'Inter_700Bold',
                 fontStyle: 'italic',
                 textAlign: 'center',
               }}
@@ -406,6 +412,7 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
                     fontSize: 20,
                     fontWeight: '600',
                     color: DARK_TEXT_MAIN, // White Text
+                    fontFamily: 'Inter_600SemiBold',
                   }}
                 >
                   {CATEGORY_NAME_MAP[slice.category.category.getFilter()] ||
@@ -418,11 +425,9 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
                     fontSize: 18,
                     fontWeight: '700',
                     color: DARK_TEXT_MAIN, // White Text
+                    fontFamily: 'Inter_700Bold',
                   }}
                 >
-                  {(slice.percentage * 100).toFixed(1)}%
-                </Text>
-                <Text style={{ fontSize: 14, color: DARK_TEXT_SUB }}>
                   {slice.category.gears.reduce(
                     (s, g) => s + Number(g.getWeight() || 0),
                     0
@@ -437,6 +442,15 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
                         (s, g) => s + Number(g.getWeight() || 0),
                         0
                       ) + 'g'}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    color: DARK_TEXT_SUB,
+                    fontFamily: 'Inter_400Regular',
+                  }}
+                >
+                  {(slice.percentage * 100).toFixed(1)}%
                 </Text>
               </View>
             </View>
@@ -463,11 +477,11 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
         style={[
           styles.totalWeightText,
           {
-            color: '#FFFFFF',
+            color: 'white',
             fontSize: width > 300 ? 90 : 70,
-            fontFamily: 'PlaywriteNZ_400Regular',
+            fontFamily: 'Inter_700Bold',
             fontWeight: '700',
-            textShadowColor: 'rgba(0, 0, 0, 0.3)',
+            textShadowColor: 'rgba(255, 255, 255, 0.3)',
             textShadowOffset: { width: 2, height: 2 },
             textShadowRadius: 8,
           },
@@ -534,6 +548,7 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
             position: 'absolute',
             bottom: 20,
             zIndex: 1,
+            fontFamily: 'Inter_400Regular',
           }}
         >
           https://useless.my
@@ -864,6 +879,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#191F28',
+    fontFamily: 'Inter_600SemiBold',
   },
   scrollView: {
     flex: 1,
@@ -968,6 +984,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: 'white',
+    fontFamily: 'Inter_600SemiBold',
   },
   infoTextContainer: {
     flexDirection: 'row',
@@ -980,6 +997,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#666666',
     fontWeight: '400',
+    fontFamily: 'Inter_400Regular',
   },
   categoryListContainer: {
     width: '100%',
