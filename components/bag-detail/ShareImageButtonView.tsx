@@ -29,8 +29,11 @@ const ShareImageButtonView: FC<Props> = ({ bagDetail }) => {
       >
         <View style={styles.textContainer}>
           <View style={styles.titleRow}>
-            <Ionicons name='image-outline' size={20} color='#191F28' />
-            <Text style={styles.titleText}>공유 이미지 만들기</Text>
+            <Ionicons name='sparkles' size={20} color='#7C3AED' />
+            <Text style={styles.titleText}>내가 가진 장비로 레디샷 만들기</Text>
+            <View style={styles.aiBadge}>
+              <Text style={styles.aiBadgeText}>AI</Text>
+            </View>
           </View>
         </View>
         <View style={styles.iconContainer}>
@@ -72,6 +75,17 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '500',
     color: '#191F28',
+  },
+  aiBadge: {
+    backgroundColor: '#7C3AED',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  aiBadgeText: {
+    color: 'white',
+    fontSize: 11,
+    fontWeight: '700',
   },
   iconContainer: {
     width: 20,
