@@ -2,7 +2,7 @@
   "expo": {
     "name": "useless",
     "slug": "lessismore-app",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "lessismoreapp",
@@ -28,9 +28,7 @@
       "edgeToEdgeEnabled": true,
       "googleServicesFile": "./google-services.json",
       "package": "com.doublejbs.useless",
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ],
+      "permissions": ["android.permission.RECORD_AUDIO"],
       "userInterfaceStyle": "light"
     },
     "web": {
