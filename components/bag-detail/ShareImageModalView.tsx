@@ -138,6 +138,7 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
     null
   );
   const [isLightBackground, setIsLightBackground] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // 카드 크기 상태 (오른쪽 상단: 1,2,3,4 / 왼쪽 하단: 5,6)
   type CardSize = '1x1' | '2x1' | '1x2' | '2x2';
@@ -451,9 +452,12 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
             alignItems: 'center',
           },
         ]}
-        onPress={() => handleSlotClick(slotIndex)}
-        onLongPress={() => gear && handleRemoveGear(slotIndex)}
+        onPress={() => showResizeButton && handleSlotClick(slotIndex)}
+        onLongPress={() =>
+          showResizeButton && gear && handleRemoveGear(slotIndex)
+        }
         activeOpacity={0.7}
+        disabled={!showResizeButton}
       >
         {gear ? (
           <>
@@ -962,6 +966,7 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
         onPress={handleWeightColorChange}
         activeOpacity={0.8}
         style={{ width, height }}
+        disabled={!isEditMode}
       >
         <LinearGradient
           colors={currentGradient}
@@ -975,7 +980,7 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
             },
           ]}
         >
-          {!isCapturing && (
+          {isEditMode && !isCapturing && (
             <View style={styles.weightColorIconBadge}>
               <Ionicons name='color-palette-outline' size={16} color='white' />
             </View>
@@ -1020,12 +1025,13 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
             alignItems: 'center',
             gap: 4,
             overflow: 'hidden',
-            borderWidth: !isCapturing ? 2 : 0,
+            borderWidth: isEditMode && !isCapturing ? 2 : 0,
             borderColor: 'rgba(175, 252, 65, 0.4)',
           },
         ]}
         onPress={handleChangeBackground}
         activeOpacity={0.8}
+        disabled={!isEditMode}
       >
         {/* 배경 이미지 */}
         <Image
@@ -1045,7 +1051,7 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
           ]}
         />
         {/* 배경 변경 힌트 아이콘 */}
-        {!isCapturing && (
+        {isEditMode && !isCapturing && (
           <View style={styles.backgroundChangeIconBadge}>
             <Ionicons name='image-outline' size={16} color='white' />
           </View>
@@ -1145,7 +1151,19 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
             <Ionicons name='close' size={24} color='#191F28' />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>공유 이미지</Text>
-          <View style={{ width: 40 }} />
+          <TouchableOpacity
+            onPress={() => setIsEditMode(!isEditMode)}
+            style={styles.editButton}
+          >
+            <Text
+              style={[
+                styles.editButtonText,
+                isEditMode && styles.editButtonTextActive,
+              ]}
+            >
+              {isEditMode ? '완료' : '편집'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <ScrollView
@@ -1188,13 +1206,16 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
                           CELL_2x2,
                           CELL_2x2,
                           0,
-                          !isCapturing,
+                          isEditMode && !isCapturing,
                           isCapturing
                         )}
                       </View>
 
                       {/* Row 1-2: 오른쪽 상단 카드들 (Gear 1,2,3,4) - 동적 */}
-                      {renderRightTopCards(!isCapturing, isCapturing)}
+                      {renderRightTopCards(
+                        isEditMode && !isCapturing,
+                        isCapturing
+                      )}
 
                       {/* Row 3-4: TotalWeight (2x1) | Chart (2x2) */}
                       <View
@@ -1217,7 +1238,10 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
                       </View>
 
                       {/* Row 4-5: 왼쪽 하단 카드들 (Gear 5,6) - 동적 */}
-                      {renderLeftBottomCards(!isCapturing, isCapturing)}
+                      {renderLeftBottomCards(
+                        isEditMode && !isCapturing,
+                        isCapturing
+                      )}
 
                       {/* Row 5: Logo (2x1) - Right Side */}
                       <View
@@ -1237,30 +1261,32 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
           </View>
 
           {/* 가이드 텍스트 */}
-          <View style={styles.guideContainer}>
-            <View style={styles.infoTextContainer}>
-              <Ionicons name='image-outline' size={16} color='#666666' />
-              <Text style={styles.infoText}>
-                장비 이미지를 누르면 표시할 장비를 선택할 수 있습니다.
-              </Text>
+          {isEditMode && (
+            <View style={styles.guideContainer}>
+              <View style={styles.infoTextContainer}>
+                <Ionicons name='image-outline' size={16} color='#666666' />
+                <Text style={styles.infoText}>
+                  장비 이미지를 누르면 표시할 장비를 선택할 수 있습니다.
+                </Text>
+              </View>
+              <View style={styles.infoTextContainer}>
+                <Ionicons name='expand-outline' size={16} color='#666666' />
+                <Text style={styles.infoText}>
+                  크기 조정 버튼을 클릭하면 크기 조정이 가능합니다.
+                </Text>
+              </View>
+              <View style={styles.infoTextContainer}>
+                <Ionicons
+                  name='color-palette-outline'
+                  size={16}
+                  color='#666666'
+                />
+                <Text style={styles.infoText}>
+                  무게 카드를 누르면 색상 변경이 가능합니다.
+                </Text>
+              </View>
             </View>
-            <View style={styles.infoTextContainer}>
-              <Ionicons name='expand-outline' size={16} color='#666666' />
-              <Text style={styles.infoText}>
-                크기 조정 버튼을 클릭하면 크기 조정이 가능합니다.
-              </Text>
-            </View>
-            <View style={styles.infoTextContainer}>
-              <Ionicons
-                name='color-palette-outline'
-                size={16}
-                color='#666666'
-              />
-              <Text style={styles.infoText}>
-                무게 카드를 누르면 색상 변경이 가능합니다.
-              </Text>
-            </View>
-          </View>
+          )}
         </ScrollView>
 
         <View
@@ -1365,6 +1391,18 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 4,
   },
+  editButton: {
+    padding: 4,
+  },
+  editButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#191F28',
+    fontFamily: 'Inter_600SemiBold',
+  },
+  editButtonTextActive: {
+    color: '#007AFF',
+  },
   headerTitle: {
     fontSize: 17,
     fontWeight: '600',
@@ -1381,7 +1419,7 @@ const styles = StyleSheet.create({
   previewContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 0,
     paddingVertical: 20,
   },
   canvas: {
@@ -1478,13 +1516,15 @@ const styles = StyleSheet.create({
   },
   guideContainer: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingTop: 4,
+    paddingBottom: 8,
     gap: 8,
+    alignItems: 'flex-start',
   },
   infoTextContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     gap: 6,
   },
   infoText: {
