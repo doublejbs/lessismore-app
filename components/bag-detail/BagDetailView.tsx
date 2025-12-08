@@ -79,7 +79,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
             ref={scrollViewRef}
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
-            stickyHeaderIndices={[5]}
+            stickyHeaderIndices={[6]}
             onScroll={handleScroll}
             showsVerticalScrollIndicator={false}
           >
@@ -89,8 +89,8 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
             </View>
             <BagDetailUselessDescriptionView bagDetail={bagDetail} />
             <BagDetailMemoView bagDetail={bagDetail} />
-            <BagDetailChartView bagDetail={bagDetail} />
             <ShareImageButtonView bagDetail={bagDetail} />
+            <BagDetailChartView bagDetail={bagDetail} />
             <View style={styles.separator} />
             <View style={styles.gearHeader}>
               <View style={styles.gearHeaderContent}>

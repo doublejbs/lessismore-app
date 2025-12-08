@@ -22,9 +22,20 @@ const ShareImageButtonView: FC<Props> = ({ bagDetail }) => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.button} onPress={handlePress}>
-        <Ionicons name='image-outline' size={20} color='#667eea' />
-        <Text style={styles.buttonText}>공유 이미지 만들기</Text>
+      <TouchableOpacity
+        style={styles.touchableContainer}
+        onPress={handlePress}
+        activeOpacity={0.7}
+      >
+        <View style={styles.textContainer}>
+          <View style={styles.titleRow}>
+            <Ionicons name='image-outline' size={20} color='#191F28' />
+            <Text style={styles.titleText}>공유 이미지 만들기</Text>
+          </View>
+        </View>
+        <View style={styles.iconContainer}>
+          <Ionicons name='chevron-forward' size={24} color='#191F28' />
+        </View>
       </TouchableOpacity>
 
       <ShareImageModalView
@@ -39,23 +50,34 @@ const ShareImageButtonView: FC<Props> = ({ bagDetail }) => {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingVertical: 12,
+    marginBottom: 8,
     backgroundColor: 'white',
   },
-  button: {
+  touchableContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderRadius: 6,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f0f2ff',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
     gap: 8,
   },
-  buttonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#667eea',
+  titleText: {
+    fontSize: 17,
+    fontWeight: '500',
+    color: '#191F28',
+  },
+  iconContainer: {
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
