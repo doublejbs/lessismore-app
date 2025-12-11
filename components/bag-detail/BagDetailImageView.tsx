@@ -35,7 +35,7 @@ const BagDetailImageView: FC<Props> = ({ imageUrl, shadow }) => {
           style={[
             styles.image,
             {
-              opacity: loading ? 0 : shadow ? 0.9 : 1,
+              opacity: loading ? 0 : shadow ? 0.5 : 1,
             },
           ]}
           resizeMode='contain'

@@ -18,6 +18,7 @@ import BagDetailUselessDescriptionView from './BagDetailUselessDescriptionView';
 import BagDetailAddButtonView from './BagDetailAddButtonView';
 import BagDetailMemoView from './BagDetailMemoView';
 import ShareButtonView from './ShareButtonView';
+import ShareImageButtonView from './ShareImageButtonView';
 import { useFocusEffect } from 'expo-router';
 import BagDetailSkeletonView from './BagDetailSkeletonView';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -78,7 +79,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
             ref={scrollViewRef}
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
-            stickyHeaderIndices={[5]}
+            stickyHeaderIndices={[6]}
             onScroll={handleScroll}
             showsVerticalScrollIndicator={false}
           >
@@ -88,6 +89,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
             </View>
             <BagDetailUselessDescriptionView bagDetail={bagDetail} />
             <BagDetailMemoView bagDetail={bagDetail} />
+            <ShareImageButtonView bagDetail={bagDetail} />
             <BagDetailChartView bagDetail={bagDetail} />
             <View style={styles.separator} />
             <View style={styles.gearHeader}>

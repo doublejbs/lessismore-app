@@ -1,5 +1,12 @@
 import React, { FC, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  Image,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
@@ -53,9 +60,10 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
           <View style={styles.imageContainer}>
             <BagDetailImageView imageUrl={imageUrl} shadow={isUseless} />
             {isUseless && (
-              <View style={styles.uselessOverlay}>
-                <Text style={styles.uselessText}>useless</Text>
-              </View>
+              <Image
+                source={require('@/assets/images/logo.png')}
+                style={styles.uselessOverlay}
+              />
             )}
           </View>
 
@@ -158,13 +166,10 @@ const styles = StyleSheet.create({
   },
   uselessOverlay: {
     position: 'absolute',
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
     transform: [{ rotate: '-10.78deg' }],
-  },
-  uselessText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    letterSpacing: -1.5,
-    color: 'black',
   },
   contentContainer: {
     flex: 1,
