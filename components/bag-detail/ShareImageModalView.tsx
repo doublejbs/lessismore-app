@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ViewShot from 'react-native-view-shot';
-import * as MediaLibrary from 'expo-media-library';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFonts } from 'expo-font';
@@ -214,41 +213,6 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
     }
   };
 
-  const handleSaveImage = async () => {
-    if (!viewShotRef.current) {
-      Alert.alert('오류', '이미지를 생성할 수 없습니다.');
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('권한 필요', '사진 라이브러리 접근 권한이 필요합니다.');
-        setIsSaving(false);
-        return;
-      }
-
-      setIsCapturing(true);
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      const uri = await viewShotRef.current.capture?.();
-
-      setIsCapturing(false);
-
-      if (uri) {
-        await MediaLibrary.saveToLibraryAsync(uri);
-        Alert.alert('저장 완료', '이미지가 저장되었습니다.');
-      }
-    } catch (error) {
-      console.error(error);
-      Alert.alert('저장 실패', '오류가 발생했습니다.');
-      setIsCapturing(false);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   const handleSelectGear = (gear: Gear) => {
     if (selectingSlotIndex !== null) {
       const newSelectedGears = [...selectedGears];
@@ -400,19 +364,7 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
             <Ionicons name='close' size={24} color='#191F28' />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>공유 이미지</Text>
-          <TouchableOpacity
-            onPress={() => setIsEditMode(!isEditMode)}
-            style={styles.editButton}
-          >
-            <Text
-              style={[
-                styles.editButtonText,
-                isEditMode && styles.editButtonTextActive,
-              ]}
-            >
-              {isEditMode ? '완료' : '편집'}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.headerRight} />
         </View>
 
         <ScrollView
@@ -492,56 +444,48 @@ const ShareImageModalView: FC<Props> = ({ visible, onClose, bagDetail }) => {
             { paddingBottom: insets.bottom + 16 },
           ]}
         >
-          <TouchableOpacity
-            style={[
-              styles.shareButton,
-              (!isReady || isSaving || isEditMode) &&
-                styles.shareButtonDisabled,
-            ]}
-            onPress={handleShareImage}
-            disabled={!isReady || isSaving || isEditMode}
-            activeOpacity={1}
-          >
-            <Ionicons
-              name='share-outline'
-              size={20}
-              color={!isReady || isSaving || isEditMode ? '#999999' : 'white'}
-            />
-            <Text
-              style={[
-                styles.shareButtonText,
-                (!isReady || isSaving || isEditMode) &&
-                  styles.shareButtonTextDisabled,
-              ]}
+          {isEditMode ? (
+            <TouchableOpacity
+              style={styles.doneButton}
+              onPress={() => setIsEditMode(false)}
+              activeOpacity={1}
             >
-              공유하기
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.saveButton,
-              (!isReady || isSaving || isEditMode) && styles.saveButtonDisabled,
-            ]}
-            onPress={handleSaveImage}
-            disabled={!isReady || isSaving || isEditMode}
-            activeOpacity={1}
-          >
-            <Ionicons
-              name='download-outline'
-              size={20}
-              color={!isReady || isSaving || isEditMode ? '#999999' : 'white'}
-            />
-            <Text
-              style={[
-                styles.saveButtonText,
-                (!isReady || isSaving || isEditMode) &&
-                  styles.saveButtonTextDisabled,
-              ]}
-            >
-              사진 저장하기
-            </Text>
-          </TouchableOpacity>
+              <Text style={styles.doneButtonText}>완료</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => setIsEditMode(true)}
+                activeOpacity={1}
+              >
+                <Text style={styles.editButtonText}>수정하기</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.shareButton,
+                  (!isReady || isSaving) && styles.shareButtonDisabled,
+                ]}
+                onPress={handleShareImage}
+                disabled={!isReady || isSaving}
+                activeOpacity={1}
+              >
+                <Ionicons
+                  name='share-outline'
+                  size={20}
+                  color={!isReady || isSaving ? '#999999' : 'white'}
+                />
+                <Text
+                  style={[
+                    styles.shareButtonText,
+                    (!isReady || isSaving) && styles.shareButtonTextDisabled,
+                  ]}
+                >
+                  공유하기
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         <GearSelectionModalView
@@ -573,17 +517,8 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 4,
   },
-  editButton: {
-    padding: 4,
-  },
-  editButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#191F28',
-    fontFamily: 'Inter_600SemiBold',
-  },
-  editButtonTextActive: {
-    color: '#007AFF',
+  headerRight: {
+    width: 32,
   },
   headerTitle: {
     fontSize: 17,
@@ -629,9 +564,44 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopWidth: 1,
     borderTopColor: '#E5E5E5',
+  },
+  buttonRow: {
+    flexDirection: 'row',
     gap: 12,
   },
+  doneButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#000000',
+    paddingVertical: 16,
+    borderRadius: 12,
+  },
+  doneButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+    fontFamily: 'Inter_600SemiBold',
+  },
+  editButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'white',
+    paddingVertical: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+  },
+  editButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#191F28',
+    fontFamily: 'Inter_600SemiBold',
+  },
   shareButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -650,27 +620,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
   },
   shareButtonTextDisabled: {
-    color: '#999999',
-  },
-  saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#000000',
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  saveButtonDisabled: {
-    backgroundColor: '#CCCCCC',
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
-    fontFamily: 'Inter_600SemiBold',
-  },
-  saveButtonTextDisabled: {
     color: '#999999',
   },
   aiLoadingContainer: {

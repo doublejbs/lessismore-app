@@ -89,9 +89,9 @@ const SearchGearAddToBagModalView: FC<Props> = ({
   return (
     <Modal
       visible={showModal}
-      transparent={true}
       onRequestClose={onClose}
-      animationType='fade'
+      animationType='slide'
+      presentationStyle='pageSheet'
     >
       <TouchableOpacity
         style={styles.modalOverlay}
@@ -100,7 +100,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'height' : 'height'}
-          style={{ flex: 1, justifyContent: 'flex-end' }}
+          style={{ flex: 1 }}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
           <TouchableOpacity
@@ -108,6 +108,9 @@ const SearchGearAddToBagModalView: FC<Props> = ({
             activeOpacity={1}
             onPress={e => e.stopPropagation()}
           >
+            <View style={styles.drawerHandle}>
+              <View style={styles.drawerBar} />
+            </View>
             <View style={styles.titleSection}>
               <PretendardText style={styles.title}>
                 창고에 추가됐습니다.
@@ -178,8 +181,16 @@ const SearchGearAddToBagModalView: FC<Props> = ({
                   })}
                 </View>
               </View>
-              <View style={styles.bottomContainer}></View>
             </ScrollView>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={onClose}
+              activeOpacity={0.7}
+            >
+              <PretendardText style={styles.closeButtonText}>
+                닫기
+              </PretendardText>
+            </TouchableOpacity>
           </TouchableOpacity>
         </KeyboardAvoidingView>
       </TouchableOpacity>
@@ -187,31 +198,35 @@ const SearchGearAddToBagModalView: FC<Props> = ({
   );
 };
 
-const { height: screenHeight } = Dimensions.get('window');
-
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    flex: 1,
     padding: 16,
-    paddingTop: 24,
-    maxHeight: screenHeight * 0.85,
+    paddingBottom: 32,
+  },
+  drawerHandle: {
+    alignItems: 'center',
+  },
+  drawerBar: {
+    width: 36,
+    height: 4,
+    backgroundColor: '#D1D1D6',
+    borderRadius: 2,
   },
   closeButton: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    zIndex: 10,
-    width: 32,
-    height: 32,
+    backgroundColor: '#000',
+    borderRadius: 8,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  closeButtonText: {
+    fontFamily: 'Pretendard-SemiBold',
+    fontSize: 16,
+    color: '#FFF',
   },
   scrollView: {
     flexGrow: 1,
@@ -219,7 +234,7 @@ const styles = StyleSheet.create({
   titleSection: {
     flexDirection: 'column',
     gap: 2,
-    paddingBottom: 16,
+    paddingVertical: 16,
   },
   title: {
     fontFamily: 'Pretendard-Bold',
@@ -278,9 +293,6 @@ const styles = StyleSheet.create({
   },
   bagItemSubtitleDisabled: {
     color: '#999',
-  },
-  bottomContainer: {
-    height: 100,
   },
 });
 
