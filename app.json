@@ -84,14 +84,14 @@
           "channel": "production"
         }
       ],
-      "expo-font"
       [
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-1953089301592534~4582339884",
           "iosAppId": "ca-app-pub-1953089301592534~3702989595"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

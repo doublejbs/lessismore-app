@@ -7,6 +7,8 @@
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
+    "android:release": "expo run:android --variant release",
+    "ios:release": "expo run:ios --configuration Release",
     "web": "expo start --web",
     "web:export": "expo export --platform web",
     "web:preview": "npm run web:export && npx serve dist",
