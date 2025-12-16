@@ -227,6 +227,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontFamily: 'Pretendard-Bold',
     fontSize: 20,
+    color: '#000000',
   },
   textInput: {
     borderRadius: 10,
@@ -235,6 +236,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     fontFamily: 'Pretendard-Regular',
+    color: '#000000',
   },
   buttonContainer: {
     flexDirection: 'row',

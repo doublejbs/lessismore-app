@@ -160,6 +160,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 20,
     textAlign: 'center',
+    color: 'black',
   },
   modalOverlay: {
     flex: 1,
@@ -182,10 +183,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 8,
     textAlign: 'center',
+    color: 'black',
   },
   modalDescription: {
     fontSize: 14,
-    color: '#666',
+    color: 'black',
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -211,7 +213,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#666',
+    color: 'black',
     fontSize: 16,
     fontWeight: '500',
   },

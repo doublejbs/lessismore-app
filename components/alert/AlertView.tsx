@@ -83,6 +83,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 24,
     fontFamily: 'Pretendard-Bold',
+    color: '#000000',
   },
   buttonContainer: {
     flexDirection: 'row',

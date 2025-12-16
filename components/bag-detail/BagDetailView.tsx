@@ -146,6 +146,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     flex: 1,
+    color: 'black',
   },
   scrollView: {
     flex: 1,
@@ -175,6 +176,7 @@ const styles = StyleSheet.create({
   gearCountText: {
     fontSize: 17,
     fontWeight: 'bold',
+    color: 'black',
   },
   gearListContainer: {
     alignItems: 'center',

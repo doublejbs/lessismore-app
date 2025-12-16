@@ -235,6 +235,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
+    color: 'black',
   },
   iconContainer: {
     width: 20,

@@ -100,6 +100,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontWeight: 'bold',
     fontSize: 17,
+    color: 'black',
   },
   listContainer: {
     // 리스트 컨테이너 스타일
@@ -119,6 +120,7 @@ const styles = StyleSheet.create({
   bagName: {
     fontSize: 14,
     fontWeight: '600',
+    color: 'black',
   },
   bagDate: {
     fontSize: 10,

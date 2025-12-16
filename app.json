@@ -2,12 +2,12 @@
   "expo": {
     "name": "useless",
     "slug": "lessismore-app",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "lessismoreapp",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": false,
       "googleServicesFile": "./GoogleService-Info.plist",

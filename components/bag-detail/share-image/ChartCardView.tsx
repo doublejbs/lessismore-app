@@ -4,12 +4,7 @@ import Svg, { Path, Circle } from 'react-native-svg';
 
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import Gear from '@/model/gear/Gear';
-import {
-  CHART_COLORS,
-  DARK_TEXT_MAIN,
-  DARK_TEXT_SUB,
-  CATEGORY_NAME_MAP,
-} from './constants';
+import { CHART_COLORS, CATEGORY_NAME_MAP } from './constants';
 
 interface Props {
   width: number;
@@ -19,7 +14,6 @@ interface Props {
     gears: Gear[];
   }>;
   totalWeightNum: number;
-  bagName: string;
 }
 
 const ChartCardView: FC<Props> = ({
@@ -27,7 +21,6 @@ const ChartCardView: FC<Props> = ({
   height,
   categories,
   totalWeightNum,
-  bagName,
 }) => {
   const chartSize = Math.min(width, height) * 0.6;
   const radius = chartSize / 2;
@@ -67,9 +60,9 @@ const ChartCardView: FC<Props> = ({
           flexDirection: 'row',
           padding: 24,
           alignItems: 'center',
-          backgroundColor: '#1A1A1A',
+          backgroundColor: '#FFFFFF',
           borderWidth: 1.5,
-          borderColor: 'rgba(255, 255, 255, 0.1)',
+          borderColor: 'rgba(0, 0, 0, 0.1)',
         },
       ]}
     >
@@ -79,27 +72,8 @@ const ChartCardView: FC<Props> = ({
           {slices.map((slice, i) => (
             <Path key={i} d={slice.path} fill={slice.color} />
           ))}
-          <Circle cx={radius} cy={radius} r={innerRadius} fill='#1A1A1A' />
+          <Circle cx={radius} cy={radius} r={innerRadius} fill='#FFFFFF' />
         </Svg>
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { justifyContent: 'center', alignItems: 'center' },
-          ]}
-        >
-          <Text
-            style={{
-              fontSize: 32,
-              fontWeight: 'bold',
-              color: DARK_TEXT_MAIN,
-              fontFamily: 'Inter_700Bold',
-              fontStyle: 'italic',
-              textAlign: 'center',
-            }}
-          >
-            {bagName}
-          </Text>
-        </View>
       </View>
 
       {/* Legend */}
@@ -128,7 +102,7 @@ const ChartCardView: FC<Props> = ({
                 style={{
                   fontSize: 20,
                   fontWeight: '600',
-                  color: DARK_TEXT_MAIN,
+                  color: '#000000',
                   fontFamily: 'Inter_600SemiBold',
                 }}
               >
@@ -141,7 +115,7 @@ const ChartCardView: FC<Props> = ({
                 style={{
                   fontSize: 18,
                   fontWeight: '700',
-                  color: DARK_TEXT_MAIN,
+                  color: '#000000',
                   fontFamily: 'Inter_700Bold',
                 }}
               >
@@ -163,7 +137,7 @@ const ChartCardView: FC<Props> = ({
               <Text
                 style={{
                   fontSize: 14,
-                  color: DARK_TEXT_SUB,
+                  color: '#000000',
                   fontFamily: 'Inter_400Regular',
                 }}
               >

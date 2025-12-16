@@ -3,7 +3,7 @@ import GearFilter from '@/model/gear/GearFilter';
 // Canvas Dimensions (4:5 ratio for Instagram)
 export const CANVAS_WIDTH = 1080;
 export const CANVAS_HEIGHT = 1350; // 4:5 ratio
-export const BG_COLOR = '#000000'; // Black Background
+export const BG_COLOR = '#F5F5F5'; // Light Grey Background
 export const CARD_BG_COLOR = '#1A1A1A'; // Dark Grey Cards
 
 // 무게 카드 색상 팔레트

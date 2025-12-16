@@ -147,6 +147,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     width: '100%',
     gap: 6,
+    color: 'black',
   },
   gearItemContainer: {
     flexDirection: 'row',
@@ -187,6 +188,7 @@ const styles = StyleSheet.create({
   },
   companyText: {
     fontSize: 12,
+    color: 'black',
   },
   usageRateBadge: {
     borderRadius: 8,
@@ -201,13 +203,16 @@ const styles = StyleSheet.create({
   nameText: {
     fontWeight: 'bold',
     fontSize: 14,
+    color: 'black',
   },
   colorText: {
     fontSize: 14,
+    color: 'black',
   },
   weightText: {
     fontSize: 14,
     fontWeight: 'bold',
+    color: 'black',
   },
   menuContainer: {
     minWidth: 32,

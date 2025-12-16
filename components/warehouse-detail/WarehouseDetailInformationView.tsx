@@ -89,14 +89,16 @@ const styles = StyleSheet.create({
   },
   companyText: {
     fontSize: 13,
-    color: '#505967',
+    color: 'black',
   },
   nameText: {
     fontWeight: 'bold',
     fontSize: 20,
+    color: 'black',
   },
   colorText: {
     fontSize: 16,
+    color: 'black',
   },
   weightContainer: {
     flexDirection: 'column',
@@ -105,6 +107,7 @@ const styles = StyleSheet.create({
   weightText: {
     fontWeight: 'bold',
     fontSize: 16,
+    color: 'black',
   },
   statsContainer: {
     width: '100%',
@@ -119,13 +122,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F3F3F3',
     borderRadius: 10,
+    color: 'black',
   },
   statLabel: {
     fontSize: 14,
+    color: 'black',
   },
   statValue: {
     fontSize: 15,
     fontWeight: '500',
+    color: 'black',
   },
 });
 

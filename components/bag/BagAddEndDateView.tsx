@@ -41,6 +41,7 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: 'Pretendard-Bold',
     fontSize: 20,
+    color: '#000000',
   },
   dateInput: {
     borderRadius: 10,

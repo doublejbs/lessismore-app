@@ -225,6 +225,7 @@ const styles = StyleSheet.create({
   dateLabel: {
     fontSize: 20,
     fontWeight: 'bold',
+    color: 'black',
   },
   dateDisplay: {
     backgroundColor: 'rgb(238, 238, 238)',
@@ -234,6 +235,7 @@ const styles = StyleSheet.create({
   },
   dateText: {
     textAlign: 'center',
+    color: 'black',
   },
   navigationContainer: {
     flexDirection: 'row',
@@ -251,6 +253,7 @@ const styles = StyleSheet.create({
   monthTitle: {
     fontWeight: 'bold',
     fontSize: 18,
+    color: 'black',
   },
   calendarContainer: {
     flex: 1,
@@ -266,6 +269,7 @@ const styles = StyleSheet.create({
   },
   weekdayText: {
     fontWeight: 'bold',
+    color: 'black',
   },
   sundayText: {
     color: '#FF5252',
@@ -300,6 +304,7 @@ const styles = StyleSheet.create({
   },
   dayText: {
     textAlign: 'center',
+    color: 'black',
   },
   otherMonthText: {
     color: '#BDBDBD',
@@ -309,6 +314,7 @@ const styles = StyleSheet.create({
   },
   boldText: {
     fontWeight: 'bold',
+    color: 'black',
   },
   todayIndicator: {
     position: 'absolute',

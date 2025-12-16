@@ -93,6 +93,7 @@ const styles = StyleSheet.create({
     left: 0,
     fontSize: 30,
     fontFamily: 'Pretendard-Bold',
+    color: '#000000',
   },
   headerContainer: {
     paddingVertical: 24,
@@ -100,6 +101,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 20,
     fontFamily: 'Pretendard-Bold',
+    color: 'black',
   },
   scrollContainer: {
     flex: 1,

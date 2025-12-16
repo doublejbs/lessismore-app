@@ -8,7 +8,6 @@ import ChartCardView from './ChartCardView';
 import WeightCardView from './WeightCardView';
 import LogoCardView from './LogoCardView';
 import {
-  BG_COLOR,
   CANVAS_WIDTH,
   CANVAS_HEIGHT,
   PADDING,
@@ -66,11 +65,13 @@ const ShareImageCanvasView: FC<Props> = ({
       cards.push(
         <View
           key={has2x2}
-          style={{
-            position: 'absolute',
-            left: PADDING + CELL_2x2 + GAP,
-            top: PADDING,
-          }}
+          style={[
+            styles.cardWrapper,
+            {
+              left: PADDING + CELL_2x2 + GAP,
+              top: PADDING,
+            },
+          ]}
         >
           <GearCardView
             gear={selectedGears[has2x2]}
@@ -95,11 +96,13 @@ const ShareImageCanvasView: FC<Props> = ({
       cards.push(
         <View
           key={1}
-          style={{
-            position: 'absolute',
-            left: PADDING + CELL_2x2 + GAP,
-            top: PADDING,
-          }}
+          style={[
+            styles.cardWrapper,
+            {
+              left: PADDING + CELL_2x2 + GAP,
+              top: PADDING,
+            },
+          ]}
         >
           <GearCardView
             gear={selectedGears[1]}
@@ -118,11 +121,13 @@ const ShareImageCanvasView: FC<Props> = ({
       cards.push(
         <View
           key={2}
-          style={{
-            position: 'absolute',
-            left: PADDING + CELL_2x2 + GAP,
-            top: PADDING,
-          }}
+          style={[
+            styles.cardWrapper,
+            {
+              left: PADDING + CELL_2x2 + GAP,
+              top: PADDING,
+            },
+          ]}
         >
           <GearCardView
             gear={selectedGears[2]}
@@ -141,11 +146,13 @@ const ShareImageCanvasView: FC<Props> = ({
       cards.push(
         <View
           key={1}
-          style={{
-            position: 'absolute',
-            left: PADDING + CELL_2x2 + GAP,
-            top: PADDING,
-          }}
+          style={[
+            styles.cardWrapper,
+            {
+              left: PADDING + CELL_2x2 + GAP,
+              top: PADDING,
+            },
+          ]}
         >
           <GearCardView
             gear={selectedGears[1]}
@@ -163,11 +170,13 @@ const ShareImageCanvasView: FC<Props> = ({
       cards.push(
         <View
           key={2}
-          style={{
-            position: 'absolute',
-            left: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
-            top: PADDING,
-          }}
+          style={[
+            styles.cardWrapper,
+            {
+              left: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
+              top: PADDING,
+            },
+          ]}
         >
           <GearCardView
             gear={selectedGears[2]}
@@ -191,11 +200,13 @@ const ShareImageCanvasView: FC<Props> = ({
       cards.push(
         <View
           key={3}
-          style={{
-            position: 'absolute',
-            left: PADDING + CELL_2x2 + GAP,
-            top: PADDING + CELL_1x1 + GAP,
-          }}
+          style={[
+            styles.cardWrapper,
+            {
+              left: PADDING + CELL_2x2 + GAP,
+              top: PADDING + CELL_1x1 + GAP,
+            },
+          ]}
         >
           <GearCardView
             gear={selectedGears[3]}
@@ -214,11 +225,13 @@ const ShareImageCanvasView: FC<Props> = ({
       cards.push(
         <View
           key={4}
-          style={{
-            position: 'absolute',
-            left: PADDING + CELL_2x2 + GAP,
-            top: PADDING + CELL_1x1 + GAP,
-          }}
+          style={[
+            styles.cardWrapper,
+            {
+              left: PADDING + CELL_2x2 + GAP,
+              top: PADDING + CELL_1x1 + GAP,
+            },
+          ]}
         >
           <GearCardView
             gear={selectedGears[4]}
@@ -237,11 +250,13 @@ const ShareImageCanvasView: FC<Props> = ({
       cards.push(
         <View
           key={3}
-          style={{
-            position: 'absolute',
-            left: PADDING + CELL_2x2 + GAP,
-            top: PADDING + CELL_1x1 + GAP,
-          }}
+          style={[
+            styles.cardWrapper,
+            {
+              left: PADDING + CELL_2x2 + GAP,
+              top: PADDING + CELL_1x1 + GAP,
+            },
+          ]}
         >
           <GearCardView
             gear={selectedGears[3]}
@@ -259,11 +274,13 @@ const ShareImageCanvasView: FC<Props> = ({
       cards.push(
         <View
           key={4}
-          style={{
-            position: 'absolute',
-            left: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
-            top: PADDING + CELL_1x1 + GAP,
-          }}
+          style={[
+            styles.cardWrapper,
+            {
+              left: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
+              top: PADDING + CELL_1x1 + GAP,
+            },
+          ]}
         >
           <GearCardView
             gear={selectedGears[4]}
@@ -292,11 +309,13 @@ const ShareImageCanvasView: FC<Props> = ({
       cards.push(
         <View
           key={5}
-          style={{
-            position: 'absolute',
-            left: PADDING,
-            top: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
-          }}
+          style={[
+            styles.cardWrapper,
+            {
+              left: PADDING,
+              top: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
+            },
+          ]}
         >
           <GearCardView
             gear={selectedGears[5]}
@@ -315,11 +334,13 @@ const ShareImageCanvasView: FC<Props> = ({
       cards.push(
         <View
           key={6}
-          style={{
-            position: 'absolute',
-            left: PADDING,
-            top: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
-          }}
+          style={[
+            styles.cardWrapper,
+            {
+              left: PADDING,
+              top: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
+            },
+          ]}
         >
           <GearCardView
             gear={selectedGears[6]}
@@ -338,11 +359,13 @@ const ShareImageCanvasView: FC<Props> = ({
       cards.push(
         <View
           key={5}
-          style={{
-            position: 'absolute',
-            left: PADDING,
-            top: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
-          }}
+          style={[
+            styles.cardWrapper,
+            {
+              left: PADDING,
+              top: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
+            },
+          ]}
         >
           <GearCardView
             gear={selectedGears[5]}
@@ -360,11 +383,13 @@ const ShareImageCanvasView: FC<Props> = ({
       cards.push(
         <View
           key={6}
-          style={{
-            position: 'absolute',
-            left: PADDING + CELL_1x1 + GAP,
-            top: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
-          }}
+          style={[
+            styles.cardWrapper,
+            {
+              left: PADDING + CELL_1x1 + GAP,
+              top: PADDING + CELL_2x2 + GAP + CELL_1x1 + GAP,
+            },
+          ]}
         >
           <GearCardView
             gear={selectedGears[6]}
@@ -389,11 +414,13 @@ const ShareImageCanvasView: FC<Props> = ({
       <View style={StyleSheet.absoluteFill}>
         {/* Row 1-2: Gear0 (2x2) - 고정 */}
         <View
-          style={{
-            position: 'absolute',
-            left: PADDING,
-            top: PADDING,
-          }}
+          style={[
+            styles.cardWrapper,
+            {
+              left: PADDING,
+              top: PADDING,
+            },
+          ]}
         >
           <GearCardView
             gear={selectedGears[0]}
@@ -413,11 +440,13 @@ const ShareImageCanvasView: FC<Props> = ({
 
         {/* Row 3-4: TotalWeight (2x1) | Chart (2x2) */}
         <View
-          style={{
-            position: 'absolute',
-            left: PADDING,
-            top: PADDING + CELL_2x2 + GAP,
-          }}
+          style={[
+            styles.cardWrapper,
+            {
+              left: PADDING,
+              top: PADDING + CELL_2x2 + GAP,
+            },
+          ]}
         >
           <WeightCardView
             width={CELL_2x2}
@@ -430,18 +459,19 @@ const ShareImageCanvasView: FC<Props> = ({
           />
         </View>
         <View
-          style={{
-            position: 'absolute',
-            left: PADDING + CELL_2x2 + GAP,
-            top: PADDING + CELL_2x2 + GAP,
-          }}
+          style={[
+            styles.cardWrapper,
+            {
+              left: PADDING + CELL_2x2 + GAP,
+              top: PADDING + CELL_2x2 + GAP,
+            },
+          ]}
         >
           <ChartCardView
             width={CELL_2x2}
             height={CELL_2x2}
             categories={categories}
             totalWeightNum={totalWeightNum}
-            bagName={bagName}
           />
         </View>
 
@@ -450,11 +480,13 @@ const ShareImageCanvasView: FC<Props> = ({
 
         {/* Row 5: Logo (2x1) - Right Side */}
         <View
-          style={{
-            position: 'absolute',
-            left: PADDING + CELL_2x2 + GAP,
-            top: PADDING + CELL_2x2 + GAP + CELL_2x2 + GAP,
-          }}
+          style={[
+            styles.cardWrapper,
+            {
+              left: PADDING + CELL_2x2 + GAP,
+              top: PADDING + CELL_2x2 + GAP + CELL_2x2 + GAP,
+            },
+          ]}
         >
           <LogoCardView
             width={CELL_2x2}
@@ -475,8 +507,13 @@ const styles = StyleSheet.create({
   canvas: {
     width: CANVAS_WIDTH,
     height: CANVAS_HEIGHT,
-    backgroundColor: BG_COLOR,
+    backgroundColor: '#F5F5F5',
     position: 'relative',
+  },
+  cardWrapper: {
+    position: 'absolute',
+    overflow: 'hidden',
+    backgroundColor: 'transparent',
   },
 });
 
