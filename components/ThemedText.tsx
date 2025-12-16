@@ -38,20 +38,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     fontFamily: 'Pretendard-Regular',
+    color: '#000000',
   },
   defaultSemiBold: {
     fontSize: 16,
     lineHeight: 24,
     fontFamily: 'Pretendard-SemiBold',
+    color: '#000000',
   },
   title: {
     fontSize: 32,
     lineHeight: 32,
     fontFamily: 'Pretendard-Bold',
+    color: '#000000',
   },
   subtitle: {
     fontSize: 20,
     fontFamily: 'Pretendard-Bold',
+    color: '#000000',
   },
   link: {
     lineHeight: 30,

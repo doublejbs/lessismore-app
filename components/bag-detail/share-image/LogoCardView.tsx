@@ -40,7 +40,7 @@ const LogoCardView: FC<Props> = ({
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [2, 1],
       quality: 1,

@@ -126,6 +126,7 @@ const styles = StyleSheet.create({
   companyText: {
     fontFamily: 'Pretendard-Regular',
     fontSize: 10,
+    color: '#000000',
   },
   usedRateBadge: {
     borderRadius: 10,
@@ -142,14 +143,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Bold',
     fontSize: 14,
     lineHeight: 16,
+    color: '#000000',
   },
   colorText: {
     fontFamily: 'Pretendard-Regular',
     fontSize: 14,
+    color: '#000000',
   },
   weightText: {
     fontFamily: 'Pretendard-Bold',
     fontSize: 14,
+    color: '#000000',
   },
 });
 

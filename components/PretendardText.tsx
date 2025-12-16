@@ -12,7 +12,7 @@ const PretendardText: React.FC<PretendardTextProps> = ({
 }) => {
   const fontFamily = getFontFamily(weight);
 
-  return <Text style={[{ fontFamily }, style]} {...props} />;
+  return <Text style={[{ fontFamily, color: '#000000' }, style]} {...props} />;
 };
 
 const getFontFamily = (

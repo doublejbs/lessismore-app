@@ -240,6 +240,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Bold',
     fontSize: 20,
     lineHeight: 28,
+    color: '#000000',
   },
   newBagButton: {
     backgroundColor: '#FAFAFA',

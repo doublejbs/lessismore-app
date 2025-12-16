@@ -209,11 +209,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 48,
     letterSpacing: -4.5,
+    color: '#000000',
   },
   subtitle: {
     fontFamily: 'Pretendard-Bold',
     textAlign: 'center',
     fontSize: 16,
+    color: '#000000',
   },
   buttonContainer: {
     alignItems: 'center',
@@ -269,6 +271,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 16,
     fontFamily: 'Pretendard-Regular',
+    color: '#000000',
   },
   linkContainer: {
     width: '100%',

@@ -1,23 +1,20 @@
 import { observer } from 'mobx-react-lite';
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+
 import BagDetail from '@/model/bag-detail/BagDetail';
-import ShareImageModalView from './ShareImageModalView';
 
 interface Props {
   bagDetail: BagDetail;
 }
 
 const ShareImageButtonView: FC<Props> = ({ bagDetail }) => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const router = useRouter();
 
   const handlePress = () => {
-    setIsModalVisible(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalVisible(false);
+    router.push(`/share-image/${bagDetail.getId()}`);
   };
 
   return (
@@ -40,12 +37,6 @@ const ShareImageButtonView: FC<Props> = ({ bagDetail }) => {
           <Ionicons name='chevron-forward' size={24} color='#191F28' />
         </View>
       </TouchableOpacity>
-
-      <ShareImageModalView
-        visible={isModalVisible}
-        onClose={handleCloseModal}
-        bagDetail={bagDetail}
-      />
     </View>
   );
 };

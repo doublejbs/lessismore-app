@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 14,
-    color: '#9B9B9B',
+    color: 'black',
     textAlign: 'center',
   },
   modalOverlay: {
@@ -180,12 +180,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 8,
     textAlign: 'center',
+    color: 'black',
   },
   modalDescription: {
     fontSize: 14,
-    color: '#666',
     textAlign: 'center',
     marginBottom: 20,
+    color: 'black',
   },
   calendarContainer: {
     marginBottom: 10,
@@ -194,7 +195,7 @@ const styles = StyleSheet.create({
   calendarPlaceholder: {
     fontSize: 16,
     textAlign: 'center',
-    color: '#333',
+    color: 'black',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -210,7 +211,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#666',
+    color: 'black',
     fontSize: 16,
     fontWeight: '500',
   },

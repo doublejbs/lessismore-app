@@ -46,13 +46,6 @@ const GearCardView: FC<Props> = ({
             : isCapturing
             ? BG_COLOR
             : '#2A2A2A',
-          borderWidth: gear ? (showResizeButton ? 2 : 0) : isCapturing ? 0 : 2,
-          borderColor: gear
-            ? showResizeButton
-              ? 'rgba(175, 252, 65, 0.4)'
-              : 'transparent'
-            : '#444444',
-          borderStyle: gear ? 'solid' : 'dashed',
           justifyContent: 'center',
           alignItems: 'center',
         },
@@ -100,7 +93,6 @@ const GearCardView: FC<Props> = ({
 
 const styles = StyleSheet.create({
   cardBase: {
-    backgroundColor: CARD_BG_COLOR,
     borderRadius: 30,
     overflow: 'hidden',
   },

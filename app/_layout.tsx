@@ -15,6 +15,15 @@ import SplashLoadingView from '@/components/ui/SplashLoadingView';
 import { View, Text, Platform, Image } from 'react-native';
 import { observer } from 'mobx-react-lite';
 
+// 커스텀 라이트 테마 - 텍스트 색상을 검은색으로 설정
+const CustomDefaultTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    text: '#000000', // 검은색으로 변경
+  },
+};
+
 const RootLayout = () => {
   const colorScheme = useColorScheme();
   const router = useRouter();
@@ -51,7 +60,9 @@ const RootLayout = () => {
 
   return (
     <SafeAreaProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <ThemeProvider
+        value={colorScheme === 'dark' ? DarkTheme : CustomDefaultTheme}
+      >
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
           <Stack.Screen

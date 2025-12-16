@@ -91,14 +91,17 @@ const styles = StyleSheet.create({
   name: {
     fontFamily: 'Pretendard-Bold',
     fontSize: 16,
+    color: '#000000',
   },
   date: {
     fontFamily: 'Pretendard-Regular',
     fontSize: 12,
+    color: '#000000',
   },
   weight: {
     fontFamily: 'Pretendard-Bold',
     fontSize: 16,
+    color: '#000000',
   },
   deleteButton: {
     height: 32,
@@ -119,6 +122,7 @@ const styles = StyleSheet.create({
   uselessButtonText: {
     fontFamily: 'Pretendard-Medium',
     fontSize: 14,
+    color: '#000000',
   },
 });
 
