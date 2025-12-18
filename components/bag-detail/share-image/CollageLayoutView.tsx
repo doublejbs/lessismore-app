@@ -1,5 +1,12 @@
 import React, { FC } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  useWindowDimensions,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ViewShot from 'react-native-view-shot';
 import * as ImagePicker from 'expo-image-picker';
@@ -47,6 +54,10 @@ const CollageLayoutView: FC<Props> = ({
   onToggleGearNames,
   onLoadingChange,
 }) => {
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const isCompact = screenHeight < 750 || screenWidth < 375;
+  const iconSize = isCompact ? 20 : 24;
+
   const handleBackgroundChange = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -114,70 +125,101 @@ const CollageLayoutView: FC<Props> = ({
         <>
           <View style={styles.collageButtonContainer}>
             <TouchableOpacity
-              style={styles.collageButton}
+              style={[
+                styles.collageButton,
+                isCompact && styles.collageButtonCompact,
+              ]}
               onPress={onCollageRefresh}
               activeOpacity={0.7}
             >
-              <Ionicons name='refresh-outline' size={28} color='#000000' />
-              <Text style={styles.collageButtonText}>장비 재배치</Text>
+              <Ionicons
+                name='refresh-outline'
+                size={iconSize}
+                color='#000000'
+              />
+              <Text
+                style={[
+                  styles.collageButtonText,
+                  isCompact && styles.collageButtonTextCompact,
+                ]}
+              >
+                새로 고침
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.collageButton}
+              style={[
+                styles.collageButton,
+                isCompact && styles.collageButtonCompact,
+              ]}
               onPress={handleBackgroundChange}
               activeOpacity={0.7}
             >
-              <Ionicons name='image-outline' size={28} color='#000000' />
-              <Text style={styles.collageButtonText}>배경 변경</Text>
+              <Ionicons name='image-outline' size={iconSize} color='#000000' />
+              <Text
+                style={[
+                  styles.collageButtonText,
+                  isCompact && styles.collageButtonTextCompact,
+                ]}
+              >
+                배경 변경
+              </Text>
             </TouchableOpacity>
 
             {customBackgroundUri && (
               <TouchableOpacity
-                style={styles.collageButton}
+                style={[
+                  styles.collageButton,
+                  isCompact && styles.collageButtonCompact,
+                ]}
                 onPress={handleBackgroundDelete}
                 activeOpacity={0.7}
               >
-                <Ionicons name='trash-outline' size={28} color='#000000' />
-                <Text style={styles.collageButtonText}>배경 삭제</Text>
+                <Ionicons
+                  name='trash-outline'
+                  size={iconSize}
+                  color='#000000'
+                />
+                <Text
+                  style={[
+                    styles.collageButtonText,
+                    isCompact && styles.collageButtonTextCompact,
+                  ]}
+                >
+                  배경 삭제
+                </Text>
               </TouchableOpacity>
             )}
 
             <TouchableOpacity
-              style={styles.collageButton}
+              style={[
+                styles.collageButton,
+                isCompact && styles.collageButtonCompact,
+              ]}
               onPress={onToggleGearNames}
               activeOpacity={0.7}
             >
               <View style={styles.iconWithBadge}>
-                <Ionicons name='pricetag-outline' size={28} color='#000000' />
+                <Ionicons
+                  name='pricetag-outline'
+                  size={iconSize}
+                  color='#000000'
+                />
                 {showGearNames && (
                   <View style={styles.badge}>
                     <Ionicons name='checkmark' size={12} color='#FFFFFF' />
                   </View>
                 )}
               </View>
-              <Text style={styles.collageButtonText}>장비 이름</Text>
+              <Text
+                style={[
+                  styles.collageButtonText,
+                  isCompact && styles.collageButtonTextCompact,
+                ]}
+              >
+                장비 이름
+              </Text>
             </TouchableOpacity>
-          </View>
-
-          <View style={styles.guideContainer}>
-            <View style={styles.infoTextContainer}>
-              <Ionicons name='move-outline' size={16} color='#666666' />
-              <Text style={styles.infoText}>
-                장비를 드래그하여 위치를 조정할 수 있습니다.
-              </Text>
-            </View>
-            <View style={styles.infoTextContainer}>
-              <Ionicons name='resize-outline' size={16} color='#666666' />
-              <Text style={styles.infoText}>
-                두 손가락으로 핀치하여 크기를 조정할 수 있습니다.
-              </Text>
-            </View>
-            <View style={styles.infoTextContainer}>
-              <Ionicons name='close-circle' size={16} color='#666666' />
-              <Text style={styles.infoText}>
-                우측 상단 × 버튼을 눌러 장비를 삭제할 수 있습니다.
-              </Text>
-            </View>
           </View>
         </>
       )}
@@ -196,6 +238,7 @@ const styles = StyleSheet.create({
   },
   collageButtonContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     backgroundColor: 'white',
     borderRadius: 12,
     marginHorizontal: 20,
@@ -204,26 +247,38 @@ const styles = StyleSheet.create({
     borderColor: '#E5E5E5',
     overflow: 'hidden',
     padding: 0,
-    gap: 8,
+    gap: 6,
     justifyContent: 'space-around',
   },
   collageButton: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '22%',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'white',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
     borderRadius: 8,
-    gap: 8,
+    gap: 4,
+    minHeight: 56,
+  },
+  collageButtonCompact: {
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    gap: 3,
+    minHeight: 48,
   },
   collageButtonText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: '#000000',
     fontFamily: 'Inter_600SemiBold',
     textAlign: 'center',
+  },
+  collageButtonTextCompact: {
+    fontSize: 11,
   },
   iconWithBadge: {
     position: 'relative',
@@ -242,25 +297,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  guideContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 4,
-    paddingBottom: 8,
-    gap: 8,
-    alignItems: 'flex-start',
-  },
-  infoTextContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: 6,
-  },
-  infoText: {
-    fontSize: 13,
-    color: '#666666',
-    fontWeight: '400',
-    fontFamily: 'Inter_400Regular',
   },
 });
 

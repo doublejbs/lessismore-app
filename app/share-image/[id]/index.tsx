@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  ScrollView,
   useWindowDimensions,
   Alert,
   Share,
@@ -47,7 +46,7 @@ interface CategoryGears {
 const ShareImagePage = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const insets = useSafeAreaInsets();
+  useSafeAreaInsets();
   const { width: windowWidth } = useWindowDimensions();
   const viewShotRef = useRef<ViewShot>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -95,7 +94,7 @@ const ShareImagePage = () => {
   const [weightColorIndex, setWeightColorIndex] = useState(0);
 
   type LayoutType = 'grid' | 'collage';
-  const [layoutType, setLayoutType] = useState<LayoutType>('grid');
+  const [layoutType, setLayoutType] = useState<LayoutType>('collage');
   const [collageKey, setCollageKey] = useState(0);
   const [showGearNames, setShowGearNames] = useState(false);
   const [isCollageLoading, setIsCollageLoading] = useState(false);
@@ -196,7 +195,7 @@ const ShareImagePage = () => {
     setGridIsLightBackground(false);
     setCollageBackgroundUri(null);
     setWeightColorIndex(0);
-    setLayoutType('grid');
+    setLayoutType('collage');
     setShowGearNames(false);
     setIsReady(false);
     setTimeout(() => setIsReady(true), 2000);
@@ -409,31 +408,6 @@ const ShareImagePage = () => {
             <TouchableOpacity
               style={[
                 styles.segmentButton,
-                layoutType === 'grid' && styles.segmentButtonActive,
-              ]}
-              onPress={() => {
-                setLayoutType('grid');
-                setIsEditMode(false);
-              }}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name='grid-outline'
-                size={18}
-                color={layoutType === 'grid' ? '#FFFFFF' : '#000000'}
-              />
-              <Text
-                style={[
-                  styles.segmentButtonText,
-                  layoutType === 'grid' && styles.segmentButtonTextActive,
-                ]}
-              >
-                그리드
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.segmentButton,
                 layoutType === 'collage' && styles.segmentButtonActive,
               ]}
               onPress={() => {
@@ -456,54 +430,78 @@ const ShareImagePage = () => {
                 콜라주
               </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.segmentButton,
+                layoutType === 'grid' && styles.segmentButtonActive,
+              ]}
+              onPress={() => {
+                setLayoutType('grid');
+                setIsEditMode(false);
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name='grid-outline'
+                size={18}
+                color={layoutType === 'grid' ? '#FFFFFF' : '#000000'}
+              />
+              <Text
+                style={[
+                  styles.segmentButtonText,
+                  layoutType === 'grid' && styles.segmentButtonTextActive,
+                ]}
+              >
+                그리드
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {layoutType === 'grid' ? (
-            <GridLayoutView
-              viewShotRef={viewShotRef}
-              selectedGears={selectedGears}
-              cardSizes={cardSizes}
-              categories={sortedCategories}
-              totalWeight={totalWeight}
-              totalWeightNum={totalWeightNum}
-              bagName={bagDetail.getName()}
-              weightColorIndex={weightColorIndex}
-              customBackgroundUri={gridBackgroundUri}
-              isLightBackground={gridIsLightBackground}
-              isEditMode={isEditMode}
-              isCapturing={isCapturing}
-              displayScale={displayScale}
-              onSlotClick={handleSlotClick}
-              onRemoveGear={handleRemoveGear}
-              onCardSizeChange={handleCardSizeChange}
-              onWeightColorChange={handleWeightColorChange}
-              onBackgroundChange={handleGridBackgroundChange}
-            />
-          ) : (
-            <CollageLayoutView
-              viewShotRef={viewShotRef}
-              selectedGears={selectedGears}
-              categories={sortedCategories}
-              totalWeight={totalWeight}
-              bagName={bagDetail.getName()}
-              isEditMode={isEditMode}
-              isCapturing={isCapturing}
-              displayScale={displayScale}
-              collageKey={collageKey}
-              customBackgroundUri={collageBackgroundUri}
-              showGearNames={showGearNames}
-              onCollageRefresh={handleCollageRefresh}
-              onBackgroundChange={handleCollageBackgroundChange}
-              onToggleGearNames={() => setShowGearNames(prev => !prev)}
-              onLoadingChange={setIsCollageLoading}
-            />
-          )}
-        </ScrollView>
+        <View style={styles.content}>
+          <View style={styles.contentInner}>
+            {layoutType === 'grid' ? (
+              <GridLayoutView
+                viewShotRef={viewShotRef}
+                selectedGears={selectedGears}
+                cardSizes={cardSizes}
+                categories={sortedCategories}
+                totalWeight={totalWeight}
+                totalWeightNum={totalWeightNum}
+                bagName={bagDetail.getName()}
+                weightColorIndex={weightColorIndex}
+                customBackgroundUri={gridBackgroundUri}
+                isLightBackground={gridIsLightBackground}
+                isEditMode={isEditMode}
+                isCapturing={isCapturing}
+                displayScale={displayScale}
+                onSlotClick={handleSlotClick}
+                onRemoveGear={handleRemoveGear}
+                onCardSizeChange={handleCardSizeChange}
+                onWeightColorChange={handleWeightColorChange}
+                onBackgroundChange={handleGridBackgroundChange}
+              />
+            ) : (
+              <CollageLayoutView
+                viewShotRef={viewShotRef}
+                selectedGears={selectedGears}
+                categories={sortedCategories}
+                totalWeight={totalWeight}
+                bagName={bagDetail.getName()}
+                isEditMode={isEditMode}
+                isCapturing={isCapturing}
+                displayScale={displayScale}
+                collageKey={collageKey}
+                customBackgroundUri={collageBackgroundUri}
+                showGearNames={showGearNames}
+                onCollageRefresh={handleCollageRefresh}
+                onBackgroundChange={handleCollageBackgroundChange}
+                onToggleGearNames={() => setShowGearNames(prev => !prev)}
+                onLoadingChange={setIsCollageLoading}
+              />
+            )}
+          </View>
+        </View>
 
         <View style={[styles.bottomContainer]}>
           {isEditMode ? (
@@ -624,10 +622,10 @@ const styles = StyleSheet.create({
     color: '#191F28',
     fontFamily: 'Inter_600SemiBold',
   },
-  scrollView: {
+  content: {
     flex: 1,
   },
-  scrollContent: {
+  contentInner: {
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingBottom: 12,
