@@ -1,10 +1,11 @@
-import React, { FC, useState, useEffect } from 'react';
+import React, { FC, useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { removeBackground } from '@six33/react-native-bg-removal';
@@ -13,6 +14,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   runOnJS,
+  useAnimatedReaction,
 } from 'react-native-reanimated';
 import * as FileSystem from 'expo-file-system';
 
@@ -55,9 +57,13 @@ interface DraggableGearProps {
   index: number;
   editablePosition: { x: number; y: number; scale: number; zIndex: number };
   isEditMode: boolean;
+  isMultiTouch: boolean;
+  isMultiTouchSV: Animated.SharedValue<number>;
+  selectedGearId: string | null;
+  activeScale: Animated.SharedValue<number>;
   showGearName: boolean;
+  onSelect: (id: string, index: number) => void;
   onPositionUpdate: (index: number, x: number, y: number) => void;
-  onScaleUpdate: (index: number, scale: number) => void;
   onDelete: (index: number) => void;
   onBringToFront: (index: number) => void;
 }
@@ -67,15 +73,21 @@ const DraggableGear: FC<DraggableGearProps> = ({
   index,
   editablePosition,
   isEditMode,
+  isMultiTouch,
+  isMultiTouchSV,
+  selectedGearId,
+  activeScale,
   showGearName,
+  onSelect,
   onPositionUpdate,
-  onScaleUpdate,
   onDelete,
   onBringToFront,
 }) => {
   const offsetX = useSharedValue(0);
   const offsetY = useSharedValue(0);
   const scale = useSharedValue(1);
+  const panLocked = useSharedValue(0);
+  const ignoreSelectRef = useRef(false);
 
   // 제스처 시작 시 저장할 값들
   const startX = useSharedValue(0);
@@ -92,44 +104,52 @@ const DraggableGear: FC<DraggableGearProps> = ({
     startScale.value = editablePosition?.scale || 1;
   }, []);
 
-  // 팬 제스처 (드래그) - 초고속 반응
+  // 캔버스에 2개 이상 터치가 있으면 드래그 즉시 차단
+  useEffect(() => {
+    panLocked.value = isMultiTouch ? 1 : 0;
+  }, [isMultiTouch]);
+
+  const isSelected = selectedGearId === gear.id;
+
+  // 부모의 activeScale이 변하면, 선택된 장비의 scale을 업데이트
+  useAnimatedReaction(
+    () => activeScale.value,
+    currentActiveScale => {
+      if (isSelected && currentActiveScale > 0) {
+        scale.value = currentActiveScale;
+      }
+    },
+    [isSelected] // activeScale은 sharedValue라 의존성 필요 없음, isSelected 바뀌면 반응
+  );
+
+  // 핀치 제스처 제거 (전역에서 처리)
+  // const pinchGesture = Gesture.Pinch() ...
+
+  // 팬 제스처 (드래그) - 정확히 한 손가락일 때만
   const panGesture = Gesture.Pan()
-    .enabled(isEditMode)
-    .minDistance(5) // 약간의 거리를 두어 버튼 클릭과 구분
-    .maxPointers(1) // 단일 터치만
+    .enabled(isEditMode && isSelected && !isMultiTouch)
+    .minDistance(10) // 드래그 최소 거리
+    .minPointers(1) // 최소 1개
+    .maxPointers(1) // 최대 1개 (정확히 1개만)
     .onStart(() => {
       'worklet';
+      if (panLocked.value) return;
       runOnJS(onBringToFront)(index); // 터치 시 최상위로
     })
     .onChange(e => {
       'worklet';
+      if (panLocked.value) return;
       offsetX.value += e.changeX;
       offsetY.value += e.changeY;
     })
     .onEnd(() => {
       'worklet';
+      if (panLocked.value) return;
       runOnJS(onPositionUpdate)(index, offsetX.value, offsetY.value);
     });
 
-  // 핀치 제스처 (확대/축소) - 고감도 버전
-  const pinchGesture = Gesture.Pinch()
-    .enabled(isEditMode)
-    .onBegin(() => {
-      'worklet';
-      runOnJS(onBringToFront)(index); // 터치 시 최상위로
-      startScale.value = scale.value;
-    })
-    .onUpdate(e => {
-      'worklet';
-      scale.value = startScale.value * e.scale;
-    })
-    .onEnd(() => {
-      'worklet';
-      runOnJS(onScaleUpdate)(index, scale.value);
-    });
-
-  // 핀치와 팬 제스처를 동시에 사용 (안드로이드 호환성 개선)
-  const composed = Gesture.Simultaneous(pinchGesture, panGesture);
+  // 선택은 Pressable(onPress)로 처리 (안드로이드 호환성)
+  const composed = panGesture;
 
   const animatedStyle = useAnimatedStyle(() => {
     'worklet';
@@ -142,17 +162,48 @@ const DraggableGear: FC<DraggableGearProps> = ({
     };
   });
 
+  // 삭제 버튼 역 scale 스타일 (확대/축소 영향 제거)
+  const deleteButtonStyle = useAnimatedStyle(() => {
+    'worklet';
+    return {
+      transform: [{ scale: 1 / scale.value }],
+    };
+  });
+
+  // 장비 이름 텍스트 역 scale 스타일 (확대/축소 영향 제거)
+  const gearNameStyle = useAnimatedStyle(() => {
+    'worklet';
+    return {
+      transform: [{ scale: 1 / scale.value }],
+    };
+  });
+
+  // 선택/가이드 UI도 확대/축소 영향 제거
+  const inverseScaleStyle = useAnimatedStyle(() => {
+    'worklet';
+    return {
+      transform: [{ scale: 1 / scale.value }],
+    };
+  });
+
+  // 최소 터치 영역 보장 (핀치 제스처를 위해 충분히 크게)
+  const minTouchSize = 150;
+  const touchWidth = Math.max(gear.width, minTouchSize);
+  const touchHeight = Math.max(gear.height, minTouchSize);
+  const imageOffsetX = (touchWidth - gear.width) / 2;
+  const imageOffsetY = (touchHeight - gear.height) / 2;
+
   return (
     <Animated.View
       style={[
         styles.gearContainer,
         {
-          width: gear.width,
-          height: gear.height,
+          width: touchWidth,
+          height: touchHeight,
           zIndex: editablePosition?.zIndex ?? gear.zIndex,
           position: 'absolute',
-          left: 0,
-          top: 0,
+          left: -imageOffsetX,
+          top: -imageOffsetY,
         },
         animatedStyle,
       ]}
@@ -160,40 +211,158 @@ const DraggableGear: FC<DraggableGearProps> = ({
       <GestureDetector gesture={composed}>
         <Animated.View style={[styles.gearTouchArea]}>
           {/* 터치 영역 확보를 위한 투명 레이어 */}
-          <View style={styles.touchableArea} />
+          <View style={styles.touchableArea} pointerEvents='none' />
 
           {/* 메인 이미지 (배경 제거된 이미지) */}
-          <Image
-            source={{
-              uri: gear.processedImageUri || gear.gear.getImageUrl?.(),
+          <View
+            style={{
+              position: 'absolute',
+              left: imageOffsetX,
+              top: imageOffsetY,
+              width: gear.width,
+              height: gear.height,
+              overflow: 'visible',
             }}
-            style={styles.gearImage}
-            contentFit='contain'
-          />
+          >
+            <Image
+              source={{
+                uri: gear.processedImageUri || gear.gear.getImageUrl?.(),
+              }}
+              style={styles.gearImage}
+              contentFit='contain'
+            />
 
-          {/* 장비 이름 */}
-          {showGearName && (
-            <View style={styles.gearNameContainer}>
-              <Text style={styles.gearNameText} numberOfLines={2}>
-                {gear.gear.getName()}
-              </Text>
-            </View>
+            {/* 편집 모드 안내 UI (선택된 장비만) */}
+            {isEditMode && isSelected && (
+              <View pointerEvents='none' style={StyleSheet.absoluteFill}>
+                <View style={styles.selectedOutline} />
+
+                {/* 네 모서리 크기 조절 핸들 */}
+                <Animated.View
+                  style={[
+                    styles.resizeHandle,
+                    styles.resizeHandleTopLeft,
+                    inverseScaleStyle,
+                  ]}
+                >
+                  <View style={styles.resizeHandleCircle} />
+                </Animated.View>
+                <Animated.View
+                  style={[
+                    styles.resizeHandle,
+                    styles.resizeHandleTopRight,
+                    inverseScaleStyle,
+                  ]}
+                >
+                  <View style={styles.resizeHandleCircle} />
+                </Animated.View>
+                <Animated.View
+                  style={[
+                    styles.resizeHandle,
+                    styles.resizeHandleBottomLeft,
+                    inverseScaleStyle,
+                  ]}
+                >
+                  <View style={styles.resizeHandleCircle} />
+                </Animated.View>
+                <Animated.View
+                  style={[
+                    styles.resizeHandle,
+                    styles.resizeHandleBottomRight,
+                    inverseScaleStyle,
+                  ]}
+                >
+                  <View style={styles.resizeHandleCircle} />
+                </Animated.View>
+              </View>
+            )}
+
+            {/* 장비 이름 */}
+            {showGearName && (
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'visible',
+                }}
+              >
+                <Animated.View
+                  style={[
+                    {
+                      overflow: 'visible',
+                      minWidth: 500,
+                    },
+                    gearNameStyle,
+                  ]}
+                >
+                  <Text
+                    style={styles.gearNameText}
+                    numberOfLines={1}
+                    ellipsizeMode='clip'
+                  >
+                    {gear.gear.getName()}
+                  </Text>
+                </Animated.View>
+              </View>
+            )}
+          </View>
+
+          {/* 선택 전용 터치 레이어 (안드로이드에서 Tap 제스처 이슈 회피)
+              - 반드시 최상단에 있어야 이미지가 터치를 먹지 않음
+           */}
+          {isEditMode && !isSelected && (
+            <Pressable
+              style={[StyleSheet.absoluteFill, { zIndex: 999 }]}
+              onTouchStart={e => {
+                // 2손가락 핀치 시작 시 press가 먼저 먹는 케이스 방지
+                ignoreSelectRef.current =
+                  (e.nativeEvent.touches?.length ?? 0) >= 2;
+              }}
+              onTouchEnd={() => {
+                ignoreSelectRef.current = false;
+              }}
+              onTouchCancel={() => {
+                ignoreSelectRef.current = false;
+              }}
+              onPress={() => {
+                if (ignoreSelectRef.current) return;
+                if (isMultiTouchSV.value) return;
+                onSelect(gear.id, index);
+              }}
+              disabled={isMultiTouch}
+              android_disableSound
+              hitSlop={12}
+            />
           )}
         </Animated.View>
       </GestureDetector>
 
-      {/* 편집 모드 삭제 버튼 - GestureDetector 외부에 배치 */}
-      {isEditMode && (
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => onDelete(index)}
-          activeOpacity={0.7}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      {/* 편집 모드 삭제 버튼 - 하단 가운데, scale 영향 없음 (선택된 장비만 노출) */}
+      {isEditMode && isSelected && (
+        <Animated.View
+          style={[
+            styles.deleteButtonContainer,
+            {
+              top: imageOffsetY + gear.height + 10, // 이미지 하단 + 간격
+              left: touchWidth / 2 - 100, // 버튼 너비(200)의 절반
+            },
+            deleteButtonStyle,
+          ]}
         >
-          <View style={styles.deleteButtonInner}>
-            <Text style={styles.deleteButtonText}>×</Text>
-          </View>
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => onDelete(index)}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={styles.deleteButton}
+          >
+            <Text style={styles.deleteButtonText}>삭제</Text>
+          </TouchableOpacity>
+        </Animated.View>
       )}
     </Animated.View>
   );
@@ -209,8 +378,15 @@ const CollageCanvasView: FC<Props> = ({
 }) => {
   const [gearPositions, setGearPositions] = useState<GearPosition[]>([]);
   const [isProcessing, setIsProcessing] = useState(true);
+  const [isMultiTouch, setIsMultiTouch] = useState(false);
+  const [selectedGearId, setSelectedGearId] = useState<string | null>(null);
+  const isMultiTouchSV = useSharedValue(0);
 
-  // 편집 가능한 위치와 크기를 위한 state
+  // 전역 핀치 줌을 위한 Shared Value
+  const activeScale = useSharedValue(1);
+  const startScale = useSharedValue(1);
+
+  // 로딩 상태 변경 시 부모에게 알림
   const [editablePositions, setEditablePositions] = useState<
     Array<{ id: string; x: number; y: number; scale: number; zIndex: number }>
   >([]);
@@ -219,6 +395,14 @@ const CollageCanvasView: FC<Props> = ({
   useEffect(() => {
     onLoadingChange?.(isProcessing);
   }, [isProcessing, onLoadingChange]);
+
+  // 선택된 장비가 바뀌면, 그 장비의 저장된 scale로 activeScale을 동기화
+  // (선택 직후 activeScale을 바로 바꾸면, 이전 선택 장비가 그 값을 "잠깐" 받아서 스케일이 되돌아갈 수 있음)
+  useEffect(() => {
+    if (!selectedGearId) return;
+    const pos = editablePositions.find(p => p.id === selectedGearId);
+    activeScale.value = pos?.scale ?? 1;
+  }, [selectedGearId, editablePositions, activeScale]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -251,17 +435,19 @@ const CollageCanvasView: FC<Props> = ({
 
       const positions: GearPosition[] = [];
 
-      // 핀터레스트 스타일 Masonry 레이아웃 설정
-      const columns = 4; // 3컬럼 → 4컬럼으로 증가
-      const columnGap = 12;
-      const topPadding = 15;
-      const sidePadding = 15;
+      // Greedy Packing Algorithm 설정 (macOS Mission Control 스타일)
+      const padding = 15;
+      const gap = 8;
+      const minGearWidth = 160; // 콜라주에서 장비 최소 크기(가로)
 
-      const columnWidth =
-        (CANVAS_WIDTH - sidePadding * 2 - columnGap * (columns - 1)) / columns;
+      // 전체 영역 계산
+      const canvasArea =
+        (CANVAS_WIDTH - padding * 2) * (CANVAS_HEIGHT - padding * 2);
 
-      // 각 컬럼의 현재 높이 추적
-      const columnHeights: number[] = new Array(columns).fill(topPadding);
+      // 장비 개수에 따른 평균 크기 계산 (전체 영역을 90% 채우도록)
+      const targetArea = canvasArea * 0.9;
+      const averageItemArea = targetArea / allGears.length;
+      const averageItemSize = Math.sqrt(averageItemArea);
 
       // 배경 제거를 순차적으로 처리 (안드로이드 동시성 이슈 해결)
       const processedImages: (string | null)[] = [];
@@ -334,48 +520,160 @@ const CollageCanvasView: FC<Props> = ({
         return;
       }
 
-      // 핀터레스트 스타일로 모든 장비 배치
+      // 충돌 체크 함수
+      const checkCollision = (
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        positions: GearPosition[]
+      ): boolean => {
+        // 로고 영역과 충돌 체크 (좌상단)
+        const logoX = 24;
+        const logoY = 24;
+        const logoWidth = 320;
+        const logoHeight = 110; // 로고 + URL 텍스트 포함
+
+        if (
+          x < logoX + logoWidth + gap &&
+          x + width + gap > logoX &&
+          y < logoY + logoHeight + gap &&
+          y + height + gap > logoY
+        ) {
+          return true; // 로고와 충돌
+        }
+
+        // 다른 장비와 충돌 체크
+        for (const pos of positions) {
+          if (
+            x < pos.x + pos.width + gap &&
+            x + width + gap > pos.x &&
+            y < pos.y + pos.height + gap &&
+            y + height + gap > pos.y
+          ) {
+            return true; // 충돌
+          }
+        }
+        return false; // 충돌 없음
+      };
+
+      // 최적의 위치 찾기 함수 (Greedy: 가장 위쪽, 왼쪽 우선)
+      const findBestPosition = (
+        width: number,
+        height: number,
+        positions: GearPosition[]
+      ): { x: number; y: number } | null => {
+        const canvasWidth = CANVAS_WIDTH - padding * 2;
+        const canvasHeight = CANVAS_HEIGHT - padding * 2;
+        const stepSize = 5; // 탐색 간격을 줄여 더 촘촘하게
+
+        // 위쪽부터 아래쪽으로, 왼쪽부터 오른쪽으로 탐색
+        for (
+          let y = padding;
+          y + height <= canvasHeight + padding;
+          y += stepSize
+        ) {
+          for (
+            let x = padding;
+            x + width <= canvasWidth + padding;
+            x += stepSize
+          ) {
+            if (!checkCollision(x, y, width, height, positions)) {
+              return { x, y };
+            }
+          }
+        }
+
+        return null; // 배치 불가능
+      };
+
+      // 크기를 줄여가며 배치 시도
+      const findPositionWithResize = (
+        initialWidth: number,
+        initialHeight: number,
+        positions: GearPosition[],
+        minWidth: number
+      ): { x: number; y: number; width: number; height: number } | null => {
+        // 처음엔 원래 크기로 시도
+        let pos = findBestPosition(initialWidth, initialHeight, positions);
+        if (pos) {
+          return { ...pos, width: initialWidth, height: initialHeight };
+        }
+
+        // 크기를 줄여가며 재시도 (0.8배, 0.6배, 0.5배)
+        const scaleFacs = [0.8, 0.6, 0.5];
+        for (const scale of scaleFacs) {
+          // 전달받은 최소 크기 아래로는 줄이지 않음
+          const scaledWidth = Math.max(minWidth, initialWidth * scale);
+          const scaledHeight = scaledWidth * (initialHeight / initialWidth);
+          pos = findBestPosition(scaledWidth, scaledHeight, positions);
+          if (pos) {
+            return { ...pos, width: scaledWidth, height: scaledHeight };
+          }
+        }
+
+        return null;
+      };
+
+      // Greedy Packing Algorithm으로 모든 장비 배치
       for (let i = 0; i < allGears.length; i++) {
         const gear = allGears[i];
         try {
           const imageUrl = gear.getImageUrl?.();
           if (!imageUrl) continue;
 
-          // 가장 높이가 낮은 컬럼 찾기
-          let targetColumn = 0;
-          let minHeight = columnHeights[0];
-          for (let col = 1; col < columns; col++) {
-            if (columnHeights[col] < minHeight) {
-              minHeight = columnHeights[col];
-              targetColumn = col;
-            }
+          // 무게에 따라 크기 결정 (무거울수록 크게, 전체 평균 크기 기준)
+          const weight = Number(gear.getWeight() || 0);
+          const maxWeight = Math.max(
+            ...allGears.map(g => Number(g.getWeight() || 0))
+          );
+          const normalizedWeight = maxWeight > 0 ? weight / maxWeight : 0.5;
+
+          // 평균 크기의 0.7배 ~ 1.5배 범위에서 무게에 따라 결정
+          const sizeFactor = 0.7 + normalizedWeight * 0.8;
+          const size = averageItemSize * sizeFactor;
+
+          // 다양한 비율로 Mission Control 느낌
+          const aspectRatioOptions = [0.8, 0.9, 1.0, 1.1, 1.2];
+          const aspectRatio = aspectRatioOptions[i % aspectRatioOptions.length];
+          const baseWidth = size;
+
+          // 최적의 위치 찾기 (크기 조정 포함)
+          // 배치 실패 시 최소 크기를 단계적으로 낮춰가며 재시도
+          const minWidthCandidates = [
+            minGearWidth,
+            Math.max(140, minGearWidth - 20),
+            Math.max(120, minGearWidth - 40),
+            Math.max(100, minGearWidth - 60),
+            80,
+          ];
+
+          let placed: {
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+          } | null = null;
+
+          for (const candidateMinWidth of minWidthCandidates) {
+            const initialWidth = Math.max(candidateMinWidth, baseWidth);
+            const initialHeight = initialWidth * aspectRatio;
+            placed = findPositionWithResize(
+              initialWidth,
+              initialHeight,
+              positions,
+              candidateMinWidth
+            );
+            if (placed) break;
           }
 
-          // 크기 결정 (랜덤한 높이로 핀터레스트 느낌)
-          const width = columnWidth;
-          const baseHeight = columnWidth * (1.2 + Math.random() * 0.8); // 1.2 ~ 2.0 비율
-          const height = baseHeight;
-
-          // x 위치 (컬럼 기반)
-          let x = sidePadding + targetColumn * (columnWidth + columnGap);
-
-          // y 위치 (현재 컬럼 높이)
-          let y = columnHeights[targetColumn];
-
-          // 화면 밖으로 나가면 랜덤 컬럼과 랜덤 높이로 배치 (겹치기 허용)
-          if (y + height > CANVAS_HEIGHT - 15) {
-            // 랜덤 컬럼 선택
-            targetColumn = Math.floor(Math.random() * columns);
-
-            // 컬럼 높이를 랜덤 위치로 리셋 (더 자연스러운 겹침)
-            const maxY = CANVAS_HEIGHT - height - 15;
-            const randomY = topPadding + Math.random() * (maxY - topPadding);
-            columnHeights[targetColumn] = randomY;
-            y = randomY;
-
-            // x 위치도 새 컬럼에 맞게 재계산
-            x = sidePadding + targetColumn * (columnWidth + columnGap);
+          if (!placed) {
+            // 그래도 배치할 공간이 없으면 스킵
+            console.warn('배치 공간 부족:', gear.getName());
+            continue;
           }
+
+          const { x, y, width, height } = placed;
 
           // 회전 없음
           const rotation = 0;
@@ -394,9 +692,6 @@ const CollageCanvasView: FC<Props> = ({
             zIndex,
             processedImageUri: processedImages[i],
           });
-
-          // 컬럼 높이 업데이트
-          columnHeights[targetColumn] = y + height + columnGap;
         } catch (error) {
           console.error('장비 처리 중 오류:', error);
         }
@@ -408,7 +703,37 @@ const CollageCanvasView: FC<Props> = ({
         return;
       }
 
+      // 캔버스 중앙에 가장 가까운 장비를 자동 선택
+      const canvasCenterX = CANVAS_WIDTH / 2;
+      const canvasCenterY = CANVAS_HEIGHT / 2;
+      let closestIndex = -1;
+      let minDistance = Number.POSITIVE_INFINITY;
+
+      for (let i = 0; i < positions.length; i++) {
+        const pos = positions[i];
+        const gearCenterX = pos.x + pos.width / 2;
+        const gearCenterY = pos.y + pos.height / 2;
+        const distance = Math.sqrt(
+          Math.pow(gearCenterX - canvasCenterX, 2) +
+            Math.pow(gearCenterY - canvasCenterY, 2)
+        );
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestIndex = i;
+        }
+      }
+
+      const initialSelectedId =
+        closestIndex >= 0 ? positions[closestIndex].id : null;
+
       setGearPositions(positions);
+      setSelectedGearId(initialSelectedId);
+
+      // 초기 선택된 장비의 scale을 activeScale에 반영
+      if (initialSelectedId) {
+        // 초기 생성 시 scale은 무조건 1
+        activeScale.value = 1;
+      }
 
       // 편집 가능한 위치 초기화
       setEditablePositions(
@@ -417,7 +742,10 @@ const CollageCanvasView: FC<Props> = ({
           x: pos.x,
           y: pos.y,
           scale: 1,
-          zIndex: idx,
+          zIndex:
+            initialSelectedId && pos.id === initialSelectedId
+              ? positions.length + 1
+              : idx,
         }))
       );
 
@@ -474,6 +802,44 @@ const CollageCanvasView: FC<Props> = ({
     });
   };
 
+  const handleSelectGear = (id: string, index: number) => {
+    setSelectedGearId(id);
+    bringToFront(index);
+  };
+
+  // 핀치 종료 처리를 위한 JS 함수
+  const handlePinchEnd = (id: string, newScale: number) => {
+    const index = gearPositions.findIndex(g => g.id === id);
+    if (index >= 0) {
+      updateScale(index, newScale);
+    }
+  };
+
+  // 전역 핀치 제스처 (선택된 장비 확대/축소)
+  const canvasPinch = Gesture.Pinch()
+    .enabled(isEditMode && !!selectedGearId)
+    .onBegin(() => {
+      'worklet';
+      startScale.value = activeScale.value;
+    })
+    .onUpdate(e => {
+      'worklet';
+      activeScale.value = Math.max(
+        0.5,
+        Math.min(3, startScale.value * e.scale)
+      );
+    })
+    .onEnd(() => {
+      'worklet';
+      if (selectedGearId) {
+        // 인덱스 찾기 (id로는 안되므로 runOnJS 내부에서 찾아야 함)
+        // 여기선 activeScale.value만 넘겨주고 JS측에서 처리
+        // 근데 updateScale 함수는 index를 받음.
+        // JS 함수 하나 만들어서 처리
+        runOnJS(handlePinchEnd)(selectedGearId, activeScale.value);
+      }
+    });
+
   if (isProcessing && !isCapturing) {
     return (
       <View style={styles.canvas}>
@@ -491,47 +857,74 @@ const CollageCanvasView: FC<Props> = ({
   }
 
   return (
-    <View style={styles.canvas}>
-      {/* 배경 */}
-      {backgroundImageUri ? (
-        <Image
-          source={{ uri: backgroundImageUri }}
-          style={[StyleSheet.absoluteFill, styles.backgroundImage]}
-          contentFit='cover'
-        />
-      ) : null}
-
-      {/* 장비 이미지들 */}
-      {gearPositions.map((pos, index) => {
-        const editablePos = editablePositions.find(ep => ep.id === pos.id);
-        if (!editablePos) return null;
-
-        return (
-          <DraggableGear
-            key={pos.id}
-            gear={pos}
-            index={index}
-            editablePosition={editablePos}
-            isEditMode={isEditMode && !isCapturing}
-            showGearName={showGearNames}
-            onPositionUpdate={updatePosition}
-            onScaleUpdate={updateScale}
-            onDelete={handleDelete}
-            onBringToFront={bringToFront}
+    <GestureDetector gesture={canvasPinch}>
+      <View
+        style={styles.canvas}
+        onTouchStart={e => {
+          const multi = (e.nativeEvent.touches?.length ?? 0) >= 2;
+          isMultiTouchSV.value = multi ? 1 : 0;
+          setIsMultiTouch(multi);
+        }}
+        onTouchMove={e => {
+          const multi = (e.nativeEvent.touches?.length ?? 0) >= 2;
+          isMultiTouchSV.value = multi ? 1 : 0;
+          setIsMultiTouch(multi);
+        }}
+        onTouchEnd={e => {
+          const multi = (e.nativeEvent.touches?.length ?? 0) >= 2;
+          isMultiTouchSV.value = multi ? 1 : 0;
+          setIsMultiTouch(multi);
+        }}
+        onTouchCancel={() => {
+          isMultiTouchSV.value = 0;
+          setIsMultiTouch(false);
+        }}
+      >
+        {/* 배경 */}
+        {backgroundImageUri ? (
+          <Image
+            source={{ uri: backgroundImageUri }}
+            style={[StyleSheet.absoluteFill, styles.backgroundImage]}
+            contentFit='cover'
           />
-        );
-      })}
+        ) : null}
 
-      {/* 로고 및 URL - 최상단 레이어 */}
-      <View style={styles.logoContainer}>
-        <Image
-          source={require('@/assets/images/logo.png')}
-          style={styles.logoImage}
-          contentFit='contain'
-        />
-        <Text style={styles.urlText}>https://useless.my</Text>
+        {/* 장비 이미지들 */}
+        {gearPositions.map((pos, index) => {
+          const editablePos = editablePositions.find(ep => ep.id === pos.id);
+          if (!editablePos) return null;
+
+          return (
+            <DraggableGear
+              key={pos.id}
+              gear={pos}
+              index={index}
+              editablePosition={editablePos}
+              isEditMode={isEditMode && !isCapturing}
+              isMultiTouch={isMultiTouch}
+              isMultiTouchSV={isMultiTouchSV}
+              selectedGearId={selectedGearId}
+              activeScale={activeScale}
+              showGearName={showGearNames}
+              onSelect={handleSelectGear}
+              onPositionUpdate={updatePosition}
+              onDelete={handleDelete}
+              onBringToFront={bringToFront}
+            />
+          );
+        })}
+
+        {/* 로고 및 URL - 최상단 레이어 */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('@/assets/images/logo.png')}
+            style={styles.logoImage}
+            contentFit='contain'
+          />
+          <Text style={styles.urlText}>https://useless.my</Text>
+        </View>
       </View>
-    </View>
+    </GestureDetector>
   );
 };
 
@@ -549,9 +942,14 @@ const styles = StyleSheet.create({
   },
   gearContainer: {
     position: 'absolute',
+    overflow: 'visible',
   },
   gearTouchArea: {
     backgroundColor: 'transparent',
+    overflow: 'visible',
+    width: '100%',
+    height: '100%',
+    position: 'relative',
   },
   touchableArea: {
     position: 'absolute',
@@ -572,10 +970,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 8,
+    overflow: 'visible',
   },
   gearNameText: {
-    fontSize: 20,
+    fontSize: 28,
     fontWeight: '700',
     color: '#000000',
     textAlign: 'center',
@@ -583,6 +981,92 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(255, 255, 255, 0.8)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 4,
+  },
+  selectedOutline: {
+    ...StyleSheet.absoluteFillObject,
+    borderWidth: 3,
+    borderColor: 'rgba(0, 0, 0, 0.6)',
+  },
+  centerMoveIcon: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  centerIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  resizeHandle: {
+    position: 'absolute',
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  resizeHandleCircle: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#000000',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  resizeHandleTopLeft: {
+    top: -10,
+    left: -10,
+  },
+  resizeHandleTopRight: {
+    top: -10,
+    right: -10,
+  },
+  resizeHandleBottomLeft: {
+    bottom: -10,
+    left: -10,
+  },
+  resizeHandleBottomRight: {
+    bottom: -10,
+    right: -10,
+  },
+  tapHintContainer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tapHintPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderWidth: 2,
+    borderColor: 'rgba(0,0,0,0.12)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  tapHintText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000000',
+    fontFamily: 'Inter_700Bold',
   },
   loadingContainer: {
     flex: 1,
@@ -605,46 +1089,47 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontFamily: 'Inter_600SemiBold',
   },
-  deleteButton: {
+  deleteButtonContainer: {
     position: 'absolute',
-    top: -12,
-    right: -12,
-    width: 48,
-    height: 48,
-    zIndex: 10,
+    zIndex: 90,
+    opacity: 1,
   },
-  deleteButtonInner: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 24,
-    backgroundColor: '#000000',
+  deleteButton: {
+    width: 200,
+    paddingVertical: 20,
+    paddingHorizontal: 40,
+    borderRadius: 40,
+    backgroundColor: 'rgb(0, 0, 0)',
+    opacity: 1,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 90,
   },
   deleteButtonText: {
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: '700',
-    color: 'white',
-    lineHeight: 32,
+    color: '#FFFFFF',
+    fontFamily: 'Inter_700Bold',
     textAlign: 'center',
   },
   logoContainer: {
     position: 'absolute',
-    right: 24,
-    bottom: 24,
+    left: 24,
+    top: 24,
     alignItems: 'center',
-    zIndex: 9999,
+    zIndex: 80,
   },
   logoImage: {
-    width: 400,
-    height: 100,
+    width: 320,
+    height: 80,
   },
   urlText: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     color: '#000000',
     fontFamily: 'Inter_700Bold',
