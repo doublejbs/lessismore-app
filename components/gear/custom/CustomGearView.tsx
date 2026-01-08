@@ -149,7 +149,14 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
 
   return (
     <>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={
+          Platform.OS === 'android'
+            ? ['top', 'bottom', 'left', 'right']
+            : ['bottom', 'left', 'right']
+        }
+      >
         {isLoading && (
           <View style={styles.loadingOverlay}>
             <LoadingIconView />

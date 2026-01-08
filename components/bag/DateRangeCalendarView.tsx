@@ -182,7 +182,6 @@ const DateRangeCalendarView: FC<Props> = ({
                     style={[
                       styles.dayText,
                       !isCurrentMonth(day) && styles.otherMonthText,
-                      isSelected && styles.selectedDayText,
                       index % 7 === 0 &&
                         isCurrentMonth(day) &&
                         !isSelected &&
@@ -192,6 +191,7 @@ const DateRangeCalendarView: FC<Props> = ({
                         !isSelected &&
                         styles.saturdayText,
                       (isToday(day) || isSelected) && styles.boldText,
+                      isSelected && styles.selectedDayText,
                     ]}
                   >
                     {day.date()}
