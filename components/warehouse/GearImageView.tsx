@@ -24,10 +24,7 @@ const GearImageView: FC<Props> = ({ imageUrl }) => {
     return null;
   }
 
-  if (
-    !!imageUrl &&
-    (String(imageUrl).includes('.com') || String(imageUrl).includes('.net'))
-  ) {
+  if (!!imageUrl && String(imageUrl) !== 'true') {
     return (
       <View style={styles.container}>
         {loading && (
