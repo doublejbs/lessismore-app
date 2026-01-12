@@ -128,16 +128,6 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
         >
           <View
             style={{
-              flexDirection: 'row',
-              width: '100%',
-              height: 80,
-              alignItems: 'center',
-            }}
-          >
-            <ImageUploadView fileUpload={gearEdit} />
-          </View>
-          <View
-            style={{
               flexDirection: 'column',
               gap: 6,
             }}

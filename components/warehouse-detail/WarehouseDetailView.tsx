@@ -16,7 +16,9 @@ import WarehouseDetailReviewSectionView from './WarehouseDetailReviewSectionView
 import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '../PretendardText';
 import SearchGearAddToBagModalView from '../search/SearchGearAddToBagModalView';
+import SharedImageSelectionModalView from '../gear-image/SharedImageSelectionModalView';
 import Bag from '@/model/bag/Bag';
+import GearImageType from '@/model/gear/GearImageType';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -25,11 +27,28 @@ interface Props {
 const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
   const gear = warehouseDetail.getGear();
   const showAddToBagModal = warehouseDetail.shouldShowAddToBagModal();
+  const gearImageSelection = warehouseDetail.getGearImageSelection();
   const [bag] = useState(() => Bag.new());
   const [loading, setLoading] = useState(false);
 
   const handlePressClose = () => {
     warehouseDetail.close();
+  };
+
+  const handleSelectOtherImage = () => {
+    gearImageSelection?.showModal();
+  };
+
+  const handleCloseImageModal = () => {
+    gearImageSelection?.hideModal();
+  };
+
+  const handleSelectImage = (image: GearImageType) => {
+    warehouseDetail.selectSharedImage(image);
+  };
+
+  const handleUploadComplete = () => {
+    gearImageSelection?.loadImages();
   };
 
   const handlePressDelete = () => {
@@ -77,7 +96,11 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
             </TouchableOpacity>
           </View>
           <ScrollView style={styles.content}>
-            <WarehouseDetailInformationView gear={gear} />
+            <WarehouseDetailInformationView
+              gear={gear}
+              canShowSharedImages={gearImageSelection?.canShowSharedImages()}
+              onSelectOtherImage={handleSelectOtherImage}
+            />
             {isAdded && (
               <WarehouseDetailBagRecordView
                 gear={gear}
@@ -131,6 +154,18 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
           gear={gear}
           bag={bag}
         />
+        {gearImageSelection && gear && (
+          <SharedImageSelectionModalView
+            visible={gearImageSelection.isModalVisible()}
+            gearId={gear.getId()}
+            images={gearImageSelection.getImages()}
+            loading={gearImageSelection.isLoading()}
+            selectedImageUrl={gear.getImageUrl()}
+            onClose={handleCloseImageModal}
+            onSelectImage={handleSelectImage}
+            onUploadComplete={handleUploadComplete}
+          />
+        )}
       </>
     );
   } else {

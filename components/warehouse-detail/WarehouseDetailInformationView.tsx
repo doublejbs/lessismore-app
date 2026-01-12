@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import GearImageView from '../warehouse/GearImageView';
 import Gear from '../../model/gear/Gear';
 import { observer } from 'mobx-react-lite';
@@ -7,9 +7,15 @@ import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
   gear: Gear;
+  canShowSharedImages?: boolean | undefined;
+  onSelectOtherImage?: () => void;
 }
 
-const WarehouseDetailInformationView: FC<Props> = ({ gear }) => {
+const WarehouseDetailInformationView: FC<Props> = ({
+  gear,
+  canShowSharedImages,
+  onSelectOtherImage,
+}) => {
   const imageUrl = gear.getImageUrl();
   const company = gear.getCompany();
   const name = gear.getName();
@@ -28,6 +34,15 @@ const WarehouseDetailInformationView: FC<Props> = ({ gear }) => {
           </View>
         ) : (
           <Ionicons name='camera-outline' size={24} color='black' />
+        )}
+        {canShowSharedImages && isAdded && (
+          <TouchableOpacity
+            style={styles.selectOtherImageButton}
+            onPress={onSelectOtherImage}
+          >
+            <Ionicons name='images-outline' size={14} color='#666' />
+            <Text style={styles.selectOtherImageText}>다른 이미지</Text>
+          </TouchableOpacity>
         )}
       </View>
       <View style={styles.contentContainer}>
@@ -67,13 +82,27 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    height: 180,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: 20,
   },
   imageWrapper: {
     height: 180,
     width: '100%',
+  },
+  selectOtherImageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#F3F3F3',
+    borderRadius: 16,
+  },
+  selectOtherImageText: {
+    fontSize: 12,
+    color: '#666',
   },
   contentContainer: {
     flexDirection: 'column',

@@ -59,6 +59,30 @@ class FirebaseImageStorage {
 
     return await getDownloadURL(storageRef);
   }
+
+  /**
+   * 장비 공유 이미지 업로드
+   * Storage 경로: /gears/{gearId}/{imageId}
+   */
+  public async uploadGearSharedImage(
+    file: ImageFile | File,
+    gearId: string,
+    imageId: string
+  ) {
+    const storageRef = ref(this.storage, `gears/${gearId}/${imageId}`);
+
+    // React Native의 경우 URI에서 Blob을 생성
+    if ('uri' in file) {
+      const response = await fetch(file.uri);
+      const blob = await response.blob();
+      await uploadBytes(storageRef, blob);
+    } else {
+      // 웹의 경우 기존 방식 사용
+      await uploadBytes(storageRef, file);
+    }
+
+    return await getDownloadURL(storageRef);
+  }
 }
 
 export default FirebaseImageStorage;
