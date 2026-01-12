@@ -40,6 +40,9 @@ const SharedImageSelectionModalView: FC<Props> = ({
   onUploadComplete,
 }) => {
   const [uploading, setUploading] = useState(false);
+  const [pendingImage, setPendingImage] = useState<GearImageType | null>(null);
+
+  const currentSelectedUrl = pendingImage?.url ?? selectedImageUrl;
 
   const generateId = () => {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -158,6 +161,17 @@ const SharedImageSelectionModalView: FC<Props> = ({
     }
   };
 
+  const handleConfirm = () => {
+    if (pendingImage) {
+      onSelectImage(pendingImage);
+    }
+  };
+
+  const handleClose = () => {
+    setPendingImage(null);
+    onClose();
+  };
+
   const handleUploadPress = () => {
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
@@ -198,14 +212,14 @@ const SharedImageSelectionModalView: FC<Props> = ({
       visible={visible}
       animationType='slide'
       presentationStyle='pageSheet'
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
             <Ionicons name='close' size={24} color='#191F28' />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>다른 이미지 선택</Text>
+          <Text style={styles.headerTitle}>대표 사진 변경</Text>
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.guideContainer}>
@@ -221,25 +235,28 @@ const SharedImageSelectionModalView: FC<Props> = ({
             <View style={styles.loadingContainer}>
               <ActivityIndicator size='large' color='#191F28' />
             </View>
-          ) : images.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Ionicons name='images-outline' size={48} color='#999' />
-              <Text style={styles.emptyText}>
-                아직 등록된 이미지가 없습니다
-              </Text>
-              <Text style={styles.emptySubText}>
-                하단 버튼을 눌러 이미지를 등록하면{'\n'}다른 사용자들도 볼 수
-                있습니다
-              </Text>
-            </View>
           ) : (
             <View style={styles.imageGridContainer}>
               <Text style={styles.imageCountText}>
                 {images.length}개의 이미지
               </Text>
               <View style={styles.imageGridList}>
+                <TouchableOpacity
+                  style={styles.uploadGridItem}
+                  onPress={handleUploadPress}
+                  disabled={uploading}
+                >
+                  {uploading ? (
+                    <ActivityIndicator size='small' color='#666' />
+                  ) : (
+                    <>
+                      <Ionicons name='add' size={32} color='#666' />
+                      <Text style={styles.uploadGridText}>이미지 추가</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
                 {images.map(image => {
-                  const isSelected = selectedImageUrl === image.url;
+                  const isSelected = currentSelectedUrl === image.url;
 
                   return (
                     <TouchableOpacity
@@ -248,7 +265,7 @@ const SharedImageSelectionModalView: FC<Props> = ({
                         styles.imageGridItem,
                         isSelected && styles.imageGridItemSelected,
                       ]}
-                      onPress={() => onSelectImage(image)}
+                      onPress={() => setPendingImage(image)}
                     >
                       <Image
                         source={{ uri: image.url }}
@@ -274,22 +291,16 @@ const SharedImageSelectionModalView: FC<Props> = ({
             </View>
           )}
         </ScrollView>
-
-        <View style={styles.bottomButtonContainer}>
-          <TouchableOpacity
-            style={[styles.uploadButton, uploading && styles.uploadingButton]}
-            onPress={handleUploadPress}
-            disabled={uploading}
-          >
-            {uploading ? (
-              <ActivityIndicator size='small' color='white' />
-            ) : (
-              <>
-                <Text style={styles.uploadButtonText}>이미지 추가</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
+        {pendingImage && (
+          <View style={styles.bottomButtonContainer}>
+            <TouchableOpacity
+              style={styles.confirmButton}
+              onPress={handleConfirm}
+            >
+              <Text style={styles.confirmButtonText}>확인</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </Modal>
   );
@@ -343,27 +354,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 100,
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 100,
-    paddingHorizontal: 40,
-  },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#191F28',
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  emptySubText: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 8,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
   imageGridContainer: {
     width: '100%',
     paddingHorizontal: 20,
@@ -377,6 +367,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
+  },
+  uploadGridItem: {
+    width: 108,
+    height: 108,
+    borderRadius: 12,
+    backgroundColor: '#E5E5E5',
+    borderWidth: 2,
+    borderColor: '#D5D5D5',
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  uploadGridText: {
+    fontSize: 12,
+    color: '#666',
   },
   imageGridItem: {
     width: 108,
@@ -438,19 +444,14 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E5E5',
   },
-  uploadButton: {
+  confirmButton: {
     backgroundColor: '#000',
     borderRadius: 12,
     paddingVertical: 16,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
   },
-  uploadingButton: {
-    opacity: 0.6,
-  },
-  uploadButtonText: {
+  confirmButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',

@@ -6,8 +6,11 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
+import { Ionicons } from '@expo/vector-icons';
 import GearEdit from '@/model/gear/edit/GearEdit';
 import ImageUploadView from '@/components/gear/ImageUploadView';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
@@ -16,7 +19,9 @@ import GearEditConfirmView from '@/components/gear/edit/GearEditConfirmView';
 import GearEditColorView from '@/components/gear/edit/GearEditColorView';
 import LoadingIconView from '@/components/ui/LoadingIconView';
 import PretendardText from '@/components/PretendardText';
+import AlertView from '@/components/alert/AlertView';
 import useKeyboard from '@/hooks/useKeyboard';
+import app from '@/model/app/App';
 
 interface Props {
   gearEdit: GearEdit;
@@ -84,15 +89,34 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
     gearEdit.selectFilter(filter);
   };
 
+  const handlePressBack = () => {
+    gearEdit.hide();
+  };
+
+  const handlePressDelete = () => {
+    gearEdit.delete();
+  };
+
   return (
-    <KeyboardAvoidingView
-      style={{
-        flex: 1,
-        backgroundColor: 'white',
-      }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 96 : 0}
-    >
+    <>
+      <SafeAreaView style={styles.container}>
+        <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        <View style={styles.header}>
+        <TouchableOpacity onPress={handlePressBack} style={styles.headerButton}>
+          <Ionicons name='chevron-back' size={24} color='#191F28' />
+        </TouchableOpacity>
+        <PretendardText style={styles.headerTitle}>수정하기</PretendardText>
+        <TouchableOpacity
+          onPress={handlePressDelete}
+          style={styles.headerButton}
+        >
+          <Ionicons name='trash-outline' size={22} color='#191F28' />
+        </TouchableOpacity>
+      </View>
       {isLoading && (
         <View
           style={{
@@ -244,15 +268,39 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
           )}
         </View>
       </ScrollView>
-      <View
-        style={{
-          backgroundColor: 'transparent',
-        }}
-      >
-        <GearEditConfirmView gearEdit={gearEdit} />
-      </View>
-    </KeyboardAvoidingView>
+        <View
+          style={{
+            backgroundColor: 'transparent',
+          }}
+        >
+          <GearEditConfirmView gearEdit={gearEdit} />
+        </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+      <AlertView alertManager={app.getAlertManager()!} />
+    </>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: 'white',
+  },
+  headerButton: {},
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#191F28',
+  },
+});
 
 export default observer(GearEditView);

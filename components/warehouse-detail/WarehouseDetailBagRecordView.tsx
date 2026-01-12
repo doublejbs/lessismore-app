@@ -19,6 +19,8 @@ interface Props {
 
 const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
   const bagCount = gear.getBagCount();
+  const usedCount = gear.getUsedCount();
+  const uselessCount = gear.getUselessCount();
 
   if (bagCount === 0) {
     return null;
@@ -49,6 +51,16 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
         <View style={styles.container}>
           <View style={styles.headerContainer}>
             <Text style={styles.headerText}>배낭 기록 {bagCount}회</Text>
+          </View>
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>USED</Text>
+              <Text style={styles.statValue}>{`${usedCount}회`}</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>USELESS</Text>
+              <Text style={styles.statValue}>{`${uselessCount}회`}</Text>
+            </View>
           </View>
           <ScrollView style={styles.listContainer}>
             {warehouseDetail.mapBags(bag => {
@@ -100,6 +112,30 @@ const styles = StyleSheet.create({
   headerText: {
     fontWeight: 'bold',
     fontSize: 17,
+    color: 'black',
+  },
+  statsContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 12,
+  },
+  statItem: {
+    padding: 16,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flex: 1,
+    backgroundColor: '#F3F3F3',
+    borderRadius: 10,
+  },
+  statLabel: {
+    fontSize: 14,
+    color: 'black',
+  },
+  statValue: {
+    fontSize: 15,
+    fontWeight: '500',
     color: 'black',
   },
   listContainer: {

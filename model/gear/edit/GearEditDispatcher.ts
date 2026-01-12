@@ -31,6 +31,10 @@ class GearEditDispatcher {
       await this.bagStore.updateBagsWeight(bags, weightDiff);
     }
   }
+
+  public async remove(gear: Gear) {
+    await this.gearStore.remove(gear);
+  }
 }
 
 export default GearEditDispatcher;
