@@ -9,19 +9,19 @@ interface Props {
   gear: Gear;
   canShowSharedImages?: boolean | undefined;
   onSelectOtherImage?: () => void;
+  onEdit?: () => void;
 }
 
 const WarehouseDetailInformationView: FC<Props> = ({
   gear,
   canShowSharedImages,
   onSelectOtherImage,
+  onEdit,
 }) => {
   const imageUrl = gear.getImageUrl();
   const company = gear.getCompany();
   const name = gear.getName();
   const weight = gear.getWeight();
-  const usedCount = gear.getUsedCount();
-  const uselessCount = gear.getUselessCount();
   const color = gear.getColor();
   const isAdded = gear.isAdded();
 
@@ -41,7 +41,7 @@ const WarehouseDetailInformationView: FC<Props> = ({
             onPress={onSelectOtherImage}
           >
             <Ionicons name='images-outline' size={14} color='#666' />
-            <Text style={styles.selectOtherImageText}>다른 이미지</Text>
+            <Text style={styles.selectOtherImageText}>대표 사진 변경</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -57,16 +57,10 @@ const WarehouseDetailInformationView: FC<Props> = ({
           </View>
         </View>
         {isAdded && (
-          <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>USED</Text>
-              <Text style={styles.statValue}>{`${usedCount}회`}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>USELESS</Text>
-              <Text style={styles.statValue}>{`${uselessCount}회`}</Text>
-            </View>
-          </View>
+          <TouchableOpacity onPress={onEdit} style={styles.editButton}>
+            <Text style={styles.editButtonText}>수정하기</Text>
+            <Ionicons name='chevron-forward' size={14} color='#000000' />
+          </TouchableOpacity>
         )}
       </View>
     </View>
@@ -103,6 +97,7 @@ const styles = StyleSheet.create({
   selectOtherImageText: {
     fontSize: 12,
     color: '#666',
+    lineHeight: 14,
   },
   contentContainer: {
     flexDirection: 'column',
@@ -138,29 +133,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'black',
   },
-  statsContainer: {
-    width: '100%',
+  editButton: {
     flexDirection: 'row',
-    gap: 12,
-  },
-  statItem: {
-    padding: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
     paddingHorizontal: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    flex: 1,
-    backgroundColor: '#F3F3F3',
     borderRadius: 10,
-    color: 'black',
+    width: '100%',
   },
-  statLabel: {
+  editButtonText: {
     fontSize: 14,
-    color: 'black',
-  },
-  statValue: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: 'black',
+    color: '#000000',
   },
 });
 

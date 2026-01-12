@@ -6,6 +6,8 @@ import Gear from '@/model/gear/Gear';
 import GearFilter from '@/model/gear/GearFilter';
 import GearEditDispatcher from '@/model/gear/edit/GearEditDispatcher';
 import app from '@/model/app/App';
+import AlertManager from '@/model/alert/AlertManager';
+import ToastManager from '@/model/toast/ToastManager';
 
 class GearEdit extends AbstractGearEdit {
   public static from(
@@ -13,7 +15,13 @@ class GearEdit extends AbstractGearEdit {
     navigate: Router,
     category: CustomGearCategory
   ) {
-    return new GearEdit(dispatcher, navigate, category);
+    return new GearEdit(
+      dispatcher,
+      navigate,
+      category,
+      app.getAlertManager()!,
+      app.getToastManager()!
+    );
   }
 
   private gear: Gear | null = null;
@@ -24,7 +32,9 @@ class GearEdit extends AbstractGearEdit {
   private constructor(
     private readonly dispatcher: GearEditDispatcher,
     private readonly navigate: Router,
-    category: CustomGearCategory
+    category: CustomGearCategory,
+    private readonly alertManager: AlertManager,
+    private readonly toastManager: ToastManager
   ) {
     super(category, '', '', '', '');
     makeObservable(this);
@@ -122,6 +132,26 @@ class GearEdit extends AbstractGearEdit {
 
   public override hide(): void {
     this.navigate.back();
+  }
+
+  public delete() {
+    if (!this.gear) return;
+
+    this.alertManager.show({
+      message: `${this.gear.getName()}을 삭제하시겠습니까?`,
+      confirmText: '삭제하기',
+      onConfirm: async () => {
+        await this.deleteGear();
+      },
+    });
+  }
+
+  private async deleteGear() {
+    if (!this.gear) return;
+
+    await this.dispatcher.remove(this.gear);
+    this.toastManager.show({ message: '삭제 되었습니다.' });
+    this.navigate.replace('/(tabs)');
   }
 
   @action

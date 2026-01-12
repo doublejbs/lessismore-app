@@ -1,7 +1,6 @@
 import { FC, useState } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -51,12 +50,6 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
     gearImageSelection?.loadImages();
   };
 
-  const handlePressDelete = () => {
-    if (gear) {
-      warehouseDetail.delete(gear);
-    }
-  };
-
   const handlePressEdit = () => {
     warehouseDetail.edit();
   };
@@ -100,6 +93,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
               gear={gear}
               canShowSharedImages={gearImageSelection?.canShowSharedImages()}
               onSelectOtherImage={handleSelectOtherImage}
+              onEdit={handlePressEdit}
             />
             {isAdded && (
               <WarehouseDetailBagRecordView
@@ -113,22 +107,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
             <View style={styles.bottomSpacing} />
           </ScrollView>
 
-          {isAdded ? (
-            <View style={styles.bottomButtons}>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={handlePressDelete}
-              >
-                <Text style={styles.deleteButtonText}>삭제하기</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={handlePressEdit}
-              >
-                <Text style={styles.editButtonText}>수정하기</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
+          {!isAdded && (
             <View style={styles.bottomButtonContainer}>
               <TouchableOpacity
                 style={[styles.addButton, loading && styles.disabledButton]}
@@ -191,43 +170,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flexDirection: 'column',
-  },
-  separator: {
-    width: '100%',
-    height: 10,
-    backgroundColor: '#F2F4F6',
-  },
-  bottomButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 0,
-    backgroundColor: 'white',
-    paddingHorizontal: 20,
-  },
-  deleteButton: {
-    flex: 1,
-    backgroundColor: '#F1F1F1',
-    borderRadius: 10,
-    paddingVertical: 18,
-    alignItems: 'center',
-  },
-  deleteButtonText: {
-    color: 'black',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  editButton: {
-    flex: 1,
-    backgroundColor: 'black',
-    borderRadius: 10,
-    paddingVertical: 18,
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-  editButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '500',
   },
   bottomSpacing: {
     height: 100,
