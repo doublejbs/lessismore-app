@@ -26,6 +26,7 @@ class GearImageSelection {
     this.setLoading(true);
     try {
       const images = await this.gearImageStore.getImages(this.gearId);
+
       this.setImages(images);
     } finally {
       this.setLoading(false);

@@ -3,6 +3,7 @@ import {
   getDownloadURL,
   ref,
   uploadBytes,
+  deleteObject,
 } from 'firebase/storage';
 import app from '@/model/app/App';
 
@@ -82,6 +83,18 @@ class FirebaseImageStorage {
     }
 
     return await getDownloadURL(storageRef);
+  }
+
+  /**
+   * 장비 공유 이미지 삭제
+   * Storage 경로: /gears/{gearId}/{imageId}
+   */
+  public async deleteGearSharedImage(
+    gearId: string,
+    imageId: string
+  ): Promise<void> {
+    const storageRef = ref(this.storage, `gears/${gearId}/${imageId}`);
+    await deleteObject(storageRef);
   }
 }
 

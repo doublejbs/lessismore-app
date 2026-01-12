@@ -40,9 +40,11 @@ const SharedImageSelectionModalView: FC<Props> = ({
   onUploadComplete,
 }) => {
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [pendingImage, setPendingImage] = useState<GearImageType | null>(null);
 
   const currentSelectedUrl = pendingImage?.url ?? selectedImageUrl;
+  const currentUserId = app.getFirebase().getUserId();
 
   const generateId = () => {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -92,11 +94,11 @@ const SharedImageSelectionModalView: FC<Props> = ({
         await gearImageStore.addImage(gearId, imageId, imageUrl, nickname);
       }
 
-      app.getToastManager()?.show({ message: '이미지가 업로드되었습니다.' });
+      app.getToastManager()?.show({ message: '사진이 업로드되었습니다.' });
       onUploadComplete();
     } catch (error) {
       console.error('이미지 업로드 오류:', error);
-      Alert.alert('오류', '이미지를 업로드하는 중 오류가 발생했습니다.');
+      Alert.alert('오류', '사진을 업로드하는 중 오류가 발생했습니다.');
     } finally {
       setUploading(false);
     }
@@ -138,7 +140,7 @@ const SharedImageSelectionModalView: FC<Props> = ({
       if (status !== 'granted') {
         Alert.alert(
           '권한 필요',
-          '이미지를 선택하려면 갤러리 접근 권한이 필요합니다.'
+          '사진을 선택하려면 갤러리 접근 권한이 필요합니다.'
         );
         return;
       }
@@ -157,7 +159,7 @@ const SharedImageSelectionModalView: FC<Props> = ({
       }
     } catch (error) {
       console.error('이미지 선택 오류:', error);
-      Alert.alert('오류', '이미지를 선택하는 중 오류가 발생했습니다.');
+      Alert.alert('오류', '사진을 선택하는 중 오류가 발생했습니다.');
     }
   };
 
@@ -172,13 +174,80 @@ const SharedImageSelectionModalView: FC<Props> = ({
     onClose();
   };
 
+  const isMyImage = (image: GearImageType): boolean => {
+    return image.uploadedBy === currentUserId;
+  };
+
+  const handleDeleteImage = async (image: GearImageType) => {
+    if (!isMyImage(image)) {
+      return;
+    }
+
+    const executeDelete = async () => {
+      try {
+        setDeleting(true);
+
+        const imageStorage = FirebaseImageStorage.new();
+        await imageStorage.deleteGearSharedImage(gearId, image.id);
+
+        const gearImageStore = app.getGearImageStore();
+        if (gearImageStore) {
+          await gearImageStore.deleteImage(gearId, image.id);
+        }
+
+        if (pendingImage?.id === image.id) {
+          setPendingImage(null);
+        }
+
+        app.getToastManager()?.show({ message: '사진이 삭제되었습니다.' });
+        onUploadComplete();
+      } catch (error) {
+        console.error('이미지 삭제 오류:', error);
+        Alert.alert('오류', '사진을 삭제하는 중 오류가 발생했습니다.');
+      } finally {
+        setDeleting(false);
+      }
+    };
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['취소', '삭제'],
+          cancelButtonIndex: 0,
+          destructiveButtonIndex: 1,
+          title: '사진 삭제',
+          message: '이 사진을 삭제하시겠습니까?',
+        },
+        buttonIndex => {
+          if (buttonIndex === 1) {
+            executeDelete();
+          }
+        }
+      );
+    } else {
+      Alert.alert(
+        '사진 삭제',
+        '이 사진을 삭제하시겠습니까?',
+        [
+          { text: '취소', style: 'cancel' },
+          {
+            text: '삭제',
+            style: 'destructive',
+            onPress: executeDelete,
+          },
+        ],
+        { cancelable: true }
+      );
+    }
+  };
+
   const handleUploadPress = () => {
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
           options: ['취소', '사진 촬영', '사진 보관함에서 선택'],
           cancelButtonIndex: 0,
-          title: '이미지 업로드',
+          title: '사진 업로드',
         },
         buttonIndex => {
           switch (buttonIndex) {
@@ -195,8 +264,8 @@ const SharedImageSelectionModalView: FC<Props> = ({
       );
     } else {
       Alert.alert(
-        '이미지 업로드',
-        '어떤 방법으로 이미지를 추가하시겠습니까?',
+        '사진 업로드',
+        '어떤 방법으로 사진을 추가하시겠습니까?',
         [
           { text: '취소', style: 'cancel' },
           { text: '사진 촬영', onPress: handleCamera },
@@ -224,7 +293,7 @@ const SharedImageSelectionModalView: FC<Props> = ({
         </View>
         <View style={styles.guideContainer}>
           <Text style={styles.guideText}>
-            이미지를 업로드하면 다른 사용자가 볼 수 있고 활용할 수 있습니다.
+            사진을 업로드하면 다른 사용자가 볼 수 있고 활용할 수 있습니다.
           </Text>
         </View>
         <ScrollView
@@ -238,7 +307,7 @@ const SharedImageSelectionModalView: FC<Props> = ({
           ) : (
             <View style={styles.imageGridContainer}>
               <Text style={styles.imageCountText}>
-                {images.length}개의 이미지
+                {images.length}개의 사진
               </Text>
               <View style={styles.imageGridList}>
                 <TouchableOpacity
@@ -251,12 +320,13 @@ const SharedImageSelectionModalView: FC<Props> = ({
                   ) : (
                     <>
                       <Ionicons name='add' size={32} color='#666' />
-                      <Text style={styles.uploadGridText}>이미지 추가</Text>
+                      <Text style={styles.uploadGridText}>사진 추가</Text>
                     </>
                   )}
                 </TouchableOpacity>
                 {images.map(image => {
                   const isSelected = currentSelectedUrl === image.url;
+                  const isMine = isMyImage(image);
 
                   return (
                     <TouchableOpacity
@@ -266,6 +336,7 @@ const SharedImageSelectionModalView: FC<Props> = ({
                         isSelected && styles.imageGridItemSelected,
                       ]}
                       onPress={() => setPendingImage(image)}
+                      disabled={deleting}
                     >
                       <Image
                         source={{ uri: image.url }}
@@ -281,6 +352,22 @@ const SharedImageSelectionModalView: FC<Props> = ({
                               size={14}
                               color='white'
                             />
+                          </View>
+                        </>
+                      )}
+                      {isMine && (
+                        <>
+                          <TouchableOpacity
+                            style={styles.deleteButton}
+                            onPress={() => handleDeleteImage(image)}
+                            disabled={deleting}
+                          >
+                            <Ionicons name='close' size={12} color='white' />
+                          </TouchableOpacity>
+                          <View style={styles.uploaderInfo}>
+                            <Text style={styles.uploaderName} numberOfLines={1}>
+                              내가 올린 사진
+                            </Text>
                           </View>
                         </>
                       )}
@@ -416,6 +503,17 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     backgroundColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteButton: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     alignItems: 'center',
     justifyContent: 'center',
   },
