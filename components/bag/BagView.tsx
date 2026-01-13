@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { View, ScrollView, StyleSheet, Platform } from 'react-native';
 import { observer } from 'mobx-react-lite';
+import { useTranslation } from 'react-i18next';
 import BagItemView from './BagItemView';
 import BagAddView from './BagAddView';
 import Bag from '@/model/bag/Bag';
@@ -11,6 +12,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import Layout from '../Layout';
 
 const BagView = () => {
+  const { t } = useTranslation();
   const [bag] = useState(() => Bag.new());
   const isLoading = bag.isLoading();
   const bags = bag.getBags();
@@ -31,7 +33,7 @@ const BagView = () => {
         return (
           <View style={styles.emptyContainer}>
             <PretendardText style={styles.emptyText}>
-              아직 등록한{'\n'}배낭이 없어요:(
+              {t('bag.empty')}
             </PretendardText>
           </View>
         );
@@ -41,7 +43,7 @@ const BagView = () => {
           <>
             <View style={styles.headerContainer}>
               <PretendardText style={styles.headerText}>
-                총 {bags.length}개의 배낭이 있어요
+                {t('bag.total', { count: bags.length })}
               </PretendardText>
             </View>
             <ScrollView

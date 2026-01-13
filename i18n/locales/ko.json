@@ -1,0 +1,45 @@
+{
+  "common": {
+    "loading": "로딩 중...",
+    "confirm": "확인",
+    "cancel": "취소",
+    "save": "저장",
+    "delete": "삭제",
+    "edit": "수정",
+    "back": "뒤로",
+    "search": "검색",
+    "close": "닫기"
+  },
+  "bag": {
+    "empty": "아직 등록한 배낭이 없어요:(",
+    "total": "총 {{count}}개의 배낭이 있어요",
+    "title": "배낭"
+  },
+  "warehouse": {
+    "title": "창고",
+    "empty": "아직 장비가 없어요:(",
+    "add": "장비 추가"
+  },
+  "search": {
+    "title": "검색",
+    "placeholder": "검색어를 입력하세요",
+    "noResults": "검색 결과가 없어요:("
+  },
+  "gear": {
+    "weight": "무게",
+    "color": "색상",
+    "edit": "장비 수정",
+    "save": "저장",
+    "delete": "삭제"
+  },
+  "language": {
+    "title": "언어 설정",
+    "korean": "한국어",
+    "japanese": "日本語"
+  },
+  "auth": {
+    "login": "로그인",
+    "logout": "로그아웃",
+    "welcome": "환영합니다!"
+  }
+}

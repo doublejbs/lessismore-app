@@ -14,6 +14,7 @@ import { useEffect } from 'react';
 import SplashLoadingView from '@/components/ui/SplashLoadingView';
 import { View, Text, Platform, Image } from 'react-native';
 import { observer } from 'mobx-react-lite';
+import '@/i18n';
 
 // 커스텀 라이트 테마 - 텍스트 색상을 검은색으로 설정
 const CustomDefaultTheme = {
