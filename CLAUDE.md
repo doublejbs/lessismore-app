@@ -111,6 +111,19 @@ const MyComponent = observer(() => {
 /gear-rank/               # 인기도 추적
 ```
 
+**두 개의 Firebase 프로젝트가 분리되어 있음:**
+
+- 앱 데이터(Auth / Firestore / Storage): **`lessismore-7e070`** (`model/firebase/Firebase.ts`의 config)
+- Hot Updater OTA 백엔드: **`useless-ota`** (`.env.hotupdater`의 `HOT_UPDATER_FIREBASE_PROJECT_ID`, admin 자격증명도 이 프로젝트용). **이 admin 키로는 앱 Firestore(`lessismore-7e070`)에 못 씀.**
+
+**장비 이름 필드 — `name` / `nameKorean`:**
+
+- 표시에는 항상 `Gear.getDisplayName()` (= `nameKorean || name`)을 쓴다. `getName()`은 편집 폼 프리필·중복키·정렬(`orderBy('name')`)용 **캐논컬 값**이라 표시에 쓰지 말 것.
+- `/gear` 카탈로그는 정리되어 대부분 **`nameKorean`=한글(표시값), `name`=영문 또는 빈 값**. 단, `/users/{userId}/gears`(사용자 추가분)는 마이그레이션하지 않아 옛 형태(`name`=한글)일 수 있음 — `getDisplayName()` fallback으로 어느 쪽이든 정상 표시됨.
+- Firestore 데이터 일괄 변경 스크립트는 admin 키가 없어 **클라이언트 SDK + public config**로 작성(`scripts/migrate-name-korean.mjs`, `scripts/swap-namekorean.mjs` 참고). `/gear`·`/gear-rank`는 보안 규칙상 미인증 쓰기가 허용됨. 변경 전 반드시 백업 JSON을 먼저 저장한다.
+
+**Algolia 검색** — 인덱스 `useless-gear-search`(app id `BWS6CWRXRM`). `searchableAttributes`에 `nameKorean`이 포함되어 있어 `name`이 비어도 한글 검색이 동작. Firestore `/gear` 쓰기는 익스텐션으로 Algolia에 자동 동기화됨.
+
 ### 전역 서비스
 
 `app` 싱글톤을 통해 접근:
@@ -129,3 +142,23 @@ const MyComponent = observer(() => {
 - 이미지는 `FirebaseImageStorage`를 통해 Firebase Storage에 업로드
 - Hot Updater가 네이티브 플랫폼에서 OTA 업데이트 처리 (`hot-updater.config.ts` 참고)
 - 린트 규칙은 `eslint-config-expo` 기반 + `unused-imports` 플러그인 — `_` 접두 변수는 무시됨
+
+## 버전 관리 & OTA 배포 (중요)
+
+버전 체계가 직관적이지 않으니 OTA(`npm run hotupdate`) 전에 반드시 숙지할 것.
+
+**세 가지 버전이 서로 다르다:**
+
+- **스토어 마케팅 버전**: 제출 시 수동 라벨링. iOS는 `1.1.x` 라인(예: 1.1.4), Android는 EAS 버전 그대로(예: 1.0.5). app.json/EAS와 무관하게 따로 움직임.
+- **EAS 빌드 appVersion**: `1.0.x` 라인(예: 1.0.6, 1.0.7). `eas.json`이 `appVersionSource: "remote"`라 **app.json의 `version`은 cosmetic**(실제 버전은 EAS 서버가 관리). `npx eas-cli build:list`로 확인.
+- **OTA 타깃 버전**: `updateStrategy: "appVersion"`이므로 앱이 런타임에 보고하는 **EAS 빌드 appVersion에 매칭**한다. 스토어 마케팅 버전(1.1.4)이 아니라 그 바이너리를 만든 **EAS 빌드 버전(예: iOS 1.0.6 / Android 1.0.5)** 을 `-t`로 줘야 한다.
+
+**배포 시 규칙:**
+
+- 반드시 **저장소 루트(메인 워크스페이스)** 에서 실행 — `.env.hotupdater`와 admin 자격증명이 gitignore라 워크트리엔 없다.
+- `-t`를 **명시**한다. `-i` 인터랙티브 자동감지는 로컬 네이티브(`ios/` `MARKETING_VERSION`/Info.plist, `android/app/build.gradle`)를 읽는데 이 값들이 stale이라 **틀린 타깃**을 잡는다.
+- OTA 전 라이브 빌드의 커밋 시점 → HEAD 사이에 네이티브/의존성 변경(`git log <base>..HEAD -- package.json ios android`)이 없는지 확인한다. appVersion 전략은 네이티브 호환을 검증하지 않으므로 변경이 있으면 크래시 위험.
+- 배포 명령 예: `npx hot-updater deploy -p ios -t 1.0.6 -c production` / `-p android -t 1.0.5 -c production`
+- 관리 콘솔: `npx hot-updater console` (http://localhost:1422)
+
+**실제 출시 흐름**: EAS로 iOS/Android 빌드 → 스토어에 수동 제출/출시. 스토어 공개 버전 확인은 iTunes Lookup(`https://itunes.apple.com/lookup?bundleId=com.doublejbs.useless`)·Play Store 페이지로 가능(둘 다 공개 출시본만 노출).
