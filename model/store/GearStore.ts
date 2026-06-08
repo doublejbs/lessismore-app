@@ -28,6 +28,7 @@ export interface GearData {
   createDate: number;
   color: string;
   companyKorean: string;
+  nameKorean: string;
 }
 
 class GearStore {
@@ -55,6 +56,7 @@ class GearStore {
           createDate,
           color,
           companyKorean,
+          nameKorean,
         } = docData.data() as GearData;
         const isAdded = await this.hasGear(id);
 
@@ -72,7 +74,8 @@ class GearStore {
           bags,
           isAdded ? createDate : Date.now(),
           color,
-          companyKorean
+          companyKorean,
+          nameKorean
         );
       } else {
         throw Error('No Gear data found.');
@@ -100,6 +103,7 @@ class GearStore {
           createDate,
           color,
           companyKorean,
+          nameKorean,
         } = docData.data() as GearData;
 
         return new Gear(
@@ -116,7 +120,8 @@ class GearStore {
           bags,
           createDate,
           color,
-          companyKorean
+          companyKorean,
+          nameKorean
         );
       } else {
         return null;
@@ -170,6 +175,7 @@ class GearStore {
           createDate,
           color,
           companyKorean,
+          nameKorean,
         } = doc.data();
 
         return new Gear(
@@ -186,7 +192,8 @@ class GearStore {
           bags,
           createDate,
           color,
-          companyKorean
+          companyKorean,
+          nameKorean
         );
       });
     } else {

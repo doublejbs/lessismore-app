@@ -248,7 +248,8 @@ class WarehouseDetail {
       this.gear.getBags(),
       this.gear.getCreateDate(),
       this.gear.getColor(),
-      this.gear.getCompanyKorean()
+      this.gear.getCompanyKorean(),
+      this.gear.getNameKorean()
     );
 
     await this.gearStore.update(updatedGear);

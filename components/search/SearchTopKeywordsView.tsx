@@ -194,7 +194,7 @@ const SearchTopKeywordsView: FC<Props> = ({ searchWarehouse, bag }) => {
                     </Text>
                   )}
                   <Text style={styles.gearName} numberOfLines={1}>
-                    {gear.getName()}
+                    {gear.getDisplayName()}
                   </Text>
                   <Text style={styles.gearCount}>{gear.getWeight()}g</Text>
                 </View>

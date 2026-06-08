@@ -305,7 +305,7 @@ const DraggableGear: FC<DraggableGearProps> = ({
                     numberOfLines={1}
                     ellipsizeMode='clip'
                   >
-                    {gear.gear.getName()}
+                    {gear.gear.getDisplayName()}
                   </Text>
                 </Animated.View>
               </View>

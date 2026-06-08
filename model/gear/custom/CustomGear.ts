@@ -82,7 +82,8 @@ class CustomGear extends AbstractGearEdit {
         [],
         Date.now(),
         this.getColor(),
-        this.getCompany()
+        this.getCompany(),
+        this.getName()
       );
 
       await this.gearStore.register([gear]);

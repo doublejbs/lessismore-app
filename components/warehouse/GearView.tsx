@@ -43,7 +43,7 @@ const GearView: FC<Props> = ({ gear, children, onPress }) => {
                 </View>
 
                 <Text style={styles.nameText} numberOfLines={2}>
-                  {gear.getName()}
+                  {gear.getDisplayName()}
                 </Text>
 
                 <Text style={styles.colorText}>{gear.getColor()}</Text>

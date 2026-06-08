@@ -59,7 +59,7 @@ const GearSelectionModalView: FC<Props> = ({
                   />
                   <View style={styles.gearGridInfo}>
                     <Text style={styles.gearGridName} numberOfLines={1}>
-                      {gear.getName()}
+                      {gear.getDisplayName()}
                     </Text>
                     <Text style={styles.gearGridWeight}>
                       {Number(gear.getWeight()) >= 1000
