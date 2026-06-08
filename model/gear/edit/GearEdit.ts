@@ -75,7 +75,8 @@ class GearEdit extends AbstractGearEdit {
       this.gear?.getBags() ?? [],
       this.gear?.getCreateDate() ?? Date.now(),
       this.getColor(),
-      this.gear?.getCompanyKorean() ?? ''
+      this.gear?.getCompanyKorean() ?? '',
+      this.gear?.getNameKorean() ?? ''
     );
 
     await this.dispatcher.update(updatedGear);

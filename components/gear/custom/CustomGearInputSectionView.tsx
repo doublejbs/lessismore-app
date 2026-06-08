@@ -158,7 +158,7 @@ const CustomGearInputSectionView: FC<Props> = ({
                     {item.getCompany()}
                   </Text>
                 )}
-                <Text style={styles.searchResultName}>{item.getName()}</Text>
+                <Text style={styles.searchResultName}>{item.getDisplayName()}</Text>
                 {item.getWeight() && (
                   <Text style={styles.searchResultWeight}>
                     {item.getWeight()}g

@@ -26,6 +26,7 @@ export interface GearRankData {
   createDate: number;
   color: string;
   companyKorean: string;
+  nameKorean: string;
 }
 
 class GearRankStore {
@@ -92,6 +93,7 @@ class GearRankStore {
             createDate: Date.now(),
             color: gearData.color || '',
             companyKorean: gearData.companyKorean || '',
+            nameKorean: gearData.nameKorean || '',
           });
         } else {
           // gears에 없으면 ID만 표시
@@ -110,6 +112,7 @@ class GearRankStore {
             createDate: Date.now(),
             color: '',
             companyKorean: '',
+            nameKorean: '',
           });
         }
       }
@@ -147,7 +150,8 @@ class GearRankStore {
         item.bags,
         item.createDate,
         item.color,
-        item.companyKorean
+        item.companyKorean,
+        item.nameKorean
       );
     });
   }
@@ -182,7 +186,8 @@ class GearRankStore {
           data.bags || [],
           data.createDate,
           data.color || '',
-          data.companyKorean || ''
+          data.companyKorean || '',
+          data.nameKorean || ''
         );
       });
     } catch (error) {

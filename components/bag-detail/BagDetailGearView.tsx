@@ -82,7 +82,7 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
                 )}
               </View>
               <Text style={styles.nameText} numberOfLines={1}>
-                {gear.getName()}
+                {gear.getDisplayName()}
               </Text>
               <Text style={styles.colorText}>{gear.getColor()}</Text>
               <Text style={styles.weightText}>{gear.getWeight()}g</Text>

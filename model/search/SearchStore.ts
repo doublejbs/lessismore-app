@@ -75,6 +75,7 @@ class SearchStore {
             imageUrl,
             color,
             companyKorean,
+            nameKorean,
             category = '',
           }) => ({
             name,
@@ -88,6 +89,7 @@ class SearchStore {
             createDate: Date.now(),
             color,
             companyKorean,
+            nameKorean,
             category,
           })
         )
@@ -113,6 +115,7 @@ class SearchStore {
         createDate,
         color,
         companyKorean,
+        nameKorean,
       }) => {
         return new Gear(
           id,
@@ -128,7 +131,8 @@ class SearchStore {
           bags,
           createDate,
           color,
-          companyKorean
+          companyKorean,
+          nameKorean
         );
       }
     );
@@ -164,6 +168,7 @@ class SearchStore {
             createDate,
             color,
             companyKorean,
+            nameKorean,
           } = doc.data();
 
           return new Gear(
@@ -180,7 +185,8 @@ class SearchStore {
             bags,
             createDate,
             color,
-            companyKorean
+            companyKorean,
+            nameKorean
           );
         });
       } else {

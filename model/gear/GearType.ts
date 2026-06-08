@@ -11,6 +11,7 @@ interface GearType {
     createDate: number;
     color: string;
     companyKorean: string;
+    nameKorean: string;
   }
   
   export default GearType;
