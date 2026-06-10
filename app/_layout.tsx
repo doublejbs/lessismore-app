@@ -98,18 +98,11 @@ const createAppComponent = () => {
     return observer(RootLayout);
   } else {
     // 네이티브 환경에서만 HotUpdater import
-    const {
-      HotUpdater,
-      getUpdateSource,
-    } = require('@hot-updater/react-native');
+    const { HotUpdater } = require('@hot-updater/react-native');
 
     return HotUpdater.wrap({
-      source: getUpdateSource(
-        'https://hot-updater-7llz3bz5aq-du.a.run.app/api/check-update',
-        {
-          updateStrategy: 'appVersion', // or "fingerprint"
-        }
-      ),
+      baseURL: 'https://hot-updater-7llz3bz5aq-du.a.run.app/api/check-update',
+      updateStrategy: 'appVersion', // or "fingerprint"
       requestHeaders: {
         // if you want to use the request headers, you can add them here
       },

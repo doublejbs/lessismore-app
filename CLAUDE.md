@@ -154,20 +154,18 @@ const MyComponent = observer(() => {
 
 ## 버전 관리 & OTA 배포 (중요)
 
-버전 체계가 직관적이지 않으니 OTA(`npm run hotupdate`) 전에 반드시 숙지할 것.
+**단일 버전 체계 (1.1.5부터):** `app.json`의 `version`이 유일한 버전 소스다. 이 값이 양 플랫폼 바이너리의 appVersion(iOS `CFBundleShortVersionString` / Android `versionName`)이 되고, 스토어 제출 라벨도 같은 값으로 넣고, OTA `-t`도 같은 값을 쓴다. **릴리스 시 app.json `version`을 먼저 올리고 EAS 빌드한다.**
 
-**세 가지 버전이 서로 다르다:**
-
-- **스토어 마케팅 버전**: 제출 시 수동 라벨링. iOS는 `1.1.x` 라인(예: 1.1.4), Android는 EAS 버전 그대로(예: 1.0.5). app.json/EAS와 무관하게 따로 움직임.
-- **EAS 빌드 appVersion**: `1.0.x` 라인(예: 1.0.6, 1.0.7). `eas.json`이 `appVersionSource: "remote"`라 **app.json의 `version`은 cosmetic**(실제 버전은 EAS 서버가 관리). `npx eas-cli build:list`로 확인.
-- **OTA 타깃 버전**: `updateStrategy: "appVersion"`이므로 앱이 런타임에 보고하는 **EAS 빌드 appVersion에 매칭**한다. 스토어 마케팅 버전(1.1.4)이 아니라 그 바이너리를 만든 **EAS 빌드 버전(예: iOS 1.0.6 / Android 1.0.5)** 을 `-t`로 줘야 한다.
+- `eas.json`의 `appVersionSource: "remote"` + `autoIncrement`가 원격 관리하는 것은 **buildNumber(iOS)/versionCode(Android)뿐**이다. appVersion은 app.json에서 온다 (과거 문서의 "app.json version은 cosmetic"은 잘못된 서술이었음).
+- **OTA 타깃**: `updateStrategy: "appVersion"`이므로 앱이 런타임에 보고하는 appVersion에 매칭. 빌드별 appVersion은 `npx eas-cli build:list`로 확인.
+- **레거시 주의 (1.1.5 이전 라이브 바이너리)**: 통일 전 빌드는 스토어 라벨과 바이너리 버전이 다르다 — iOS 스토어 1.1.4 = 바이너리 **1.0.6**, Android 스토어/바이너리 **1.0.5**. 이 바이너리들에 OTA를 보낼 일이 있으면 그 옛 값을 `-t`로 줘야 한다 (스토어 라벨 1.1.4 아님).
 
 **배포 시 규칙:**
 
 - 반드시 **저장소 루트(메인 워크스페이스)** 에서 실행 — `.env.hotupdater`와 admin 자격증명이 gitignore라 워크트리엔 없다.
 - `-t`를 **명시**한다. `-i` 인터랙티브 자동감지는 로컬 네이티브(`ios/` `MARKETING_VERSION`/Info.plist, `android/app/build.gradle`)를 읽는데 이 값들이 stale이라 **틀린 타깃**을 잡는다.
 - OTA 전 라이브 빌드의 커밋 시점 → HEAD 사이에 네이티브/의존성 변경(`git log <base>..HEAD -- package.json ios android`)이 없는지 확인한다. appVersion 전략은 네이티브 호환을 검증하지 않으므로 변경이 있으면 크래시 위험.
-- 배포 명령 예: `npx hot-updater deploy -p ios -t 1.0.6 -c production` / `-p android -t 1.0.5 -c production`
+- 배포 명령 예 (1.1.5 이후 통일 체계): `npx hot-updater deploy -p ios -t 1.1.5 -c production` / `-p android -t 1.1.5 -c production`. 레거시 바이너리 대상이면 `-t 1.0.6`(iOS) / `-t 1.0.5`(Android).
 - 관리 콘솔: `npx hot-updater console` (http://localhost:1422)
 
 **실제 출시 흐름**: EAS로 iOS/Android 빌드 → 스토어에 수동 제출/출시. 스토어 공개 버전 확인은 iTunes Lookup(`https://itunes.apple.com/lookup?bundleId=com.doublejbs.useless`)·Play Store 페이지로 가능(둘 다 공개 출시본만 노출).
