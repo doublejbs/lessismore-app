@@ -1,4 +1,5 @@
 import { Router } from 'expo-router';
+import app from '../app/App';
 
 interface WebViewMessage {
   type: string;
@@ -97,11 +98,9 @@ class WebViewManager {
 
   /**
    * 로그인 페이지 이동 처리
-  /**
-   * 로그인 페이지 이동 처리
    */
   private handleNavigateToLogin = (data?: any): void => {
-    this.router.push('/log-in');
+    app.getLogInAlertManager()?.show();
   };
 
   /**

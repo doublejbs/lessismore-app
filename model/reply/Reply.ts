@@ -108,7 +108,7 @@ class Reply {
   public async toggleLike(commentId: string) {
     const userId = this.firebase.getUserId();
     if (!userId) {
-      router.push('/log-in');
+      app.getLogInAlertManager()?.show();
       return;
     }
 
@@ -163,7 +163,7 @@ class Reply {
     const userId = this.firebase.getUserId();
 
     if (!userId) {
-      router.push('/log-in');
+      app.getLogInAlertManager()?.show();
       return;
     }
 
