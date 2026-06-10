@@ -43,7 +43,8 @@ npm run web:preview          # 웹 빌드 후 로컬에서 미리보기 (serve d
 
 ### 기술 스택
 
-- **Expo 53** + React Native 0.79.6 + React 19 (iOS / Android / Web 모두 지원)
+- **Expo 54** + React Native 0.81 + React 19.1 (iOS / Android / Web 모두 지원)
+- **레거시 아키텍처 유지** (`newArchEnabled: false`) — 이 때문에 `react-native-reanimated`는 3.x로 고정 (4.x는 New Arch 전용, `expo.install.exclude`에 등록됨). SDK 55+(RN 0.82+)는 New Arch가 강제라 업그레이드 전 마이그레이션 필요
 - **MobX** 상태 관리 (`makeAutoObservable` 사용)
 - **Expo Router** 파일 기반 라우팅
 - **Firebase** (Auth, Firestore, Storage) + **Algolia** 검색
