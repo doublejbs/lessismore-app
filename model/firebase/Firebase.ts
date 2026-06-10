@@ -6,7 +6,6 @@ import {
   signInWithEmailAndPassword,
   signOut,
   initializeAuth,
-  getReactNativePersistence,
   signInWithCredential,
   User,
   getAuth,
@@ -14,6 +13,11 @@ import {
   reauthenticateWithCredential,
   OAuthProvider,
 } from 'firebase/auth';
+// firebase 12.4부터 웹 타입 정의에 RN 전용 export가 누락됨 (firebase-js-sdk#9316).
+// 런타임은 Metro가 @firebase/auth의 react-native 번들을 해석해 정상 동작한다.
+// eslint-disable-next-line import/no-duplicates
+// @ts-ignore
+import { getReactNativePersistence } from 'firebase/auth';
 import { makeAutoObservable } from 'mobx';
 import {
   doc,
