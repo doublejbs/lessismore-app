@@ -178,7 +178,7 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 | 장비 삭제 `GearStore.remove` | `writeBatch` | 장비 문서 삭제 + 소속 배낭들의 `gears`/`weight` 갱신 + `gear-rank` 감소 |
 | 장비 무게 수정 | `GearStore.update` 후 `BagStore.updateBagsWeight` 배치 | 소속 배낭들의 `weight` |
 | 댓글 생성/수정/삭제/좋아요 | `runTransaction` | 댓글 문서 + 요약 문서(카운트) + 부모 `replyCount` / `likeCount` |
-| 회원 탈퇴 `Firebase.deleteUserData` | `writeBatch` | `users/{uid}` 삭제 + (아래 미해결 질문 참조) |
+| 회원 탈퇴 `Firebase.deleteUserData` | 청크 `writeBatch` | `gear-rank` 감소 + `bag` 문서들 + `users/{uid}/gears` 전체 + `comment-likes` + `users/{uid}` 삭제 ([Auth.md](Auth.md) AU-8) |
 
 **양방향 참조 불변식**: `gear.bags[]` ↔ `bag.gears[]`는 항상 쌍으로 갱신되어야 한다. `bag.weight`는 담긴 장비 `weight` 합과 일치해야 한다.
 
@@ -190,5 +190,5 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 
 ## 8. 미해결 질문
 
-- **탈퇴 시 데이터 삭제 불일치**: `Firebase.deleteUserData()`는 최상위 `bags`/`gears`/`replies` 컬렉션을 스캔해 `userId` 필드로 삭제하는데, 실제 스키마는 `bag`(단수)/`users/{uid}/gears`(서브컬렉션)/`gear-comments`다. 즉 현재 코드로는 `users/{uid}` 문서 외 실데이터(배낭·장비·댓글)가 삭제되지 않는 것으로 보인다. → [Auth.md](Auth.md) AU-8 참조.
+- 탈퇴 시 댓글(`gear-comments`)은 남는다 — 완전 삭제 정책은 [Auth.md](Auth.md) AU-8 미해결 질문 참조.
 - `bag` 목록 조회(`where('__name__', 'in', bagIds)`)는 Firestore `in` 절 30개 제한의 영향권 — 배낭이 30개를 넘는 사용자 처리 미정.
