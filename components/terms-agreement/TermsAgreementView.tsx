@@ -22,11 +22,14 @@ const TermsAgreementView: FC = () => {
   const firebase = app.getFirebase();
   const router = useRouter();
 
+  const allRequiredChecked =
+    termsAgreed && privacyAgreed && personalInfoAgreed && over14Agreed;
+
   const handleSubmit = async () => {
-    if (!termsAgreed || !privacyAgreed) {
+    if (!allRequiredChecked) {
       Alert.alert(
         '동의 필요',
-        '서비스 이용약관과 개인정보 처리방침에 동의해야 서비스를 이용할 수 있습니다.'
+        '필수 항목을 모두 동의해야 서비스를 이용할 수 있습니다.'
       );
       return;
     }
@@ -97,8 +100,6 @@ const TermsAgreementView: FC = () => {
     setMarketingAgreed(checked);
     setSmsAgreed(checked);
   };
-  const allRequiredChecked =
-    termsAgreed && privacyAgreed && personalInfoAgreed && over14Agreed;
   const allChecked = allRequiredChecked && marketingAgreed && smsAgreed;
 
   return (
@@ -247,11 +248,11 @@ const TermsAgreementView: FC = () => {
         onPress={handleSubmit}
         style={[
           styles.submitButton,
-          termsAgreed && privacyAgreed
+          allRequiredChecked
             ? styles.submitButtonEnabled
             : styles.submitButtonDisabled,
         ]}
-        disabled={!termsAgreed || !privacyAgreed}
+        disabled={!allRequiredChecked}
       >
         <Text style={styles.submitButtonText}>동의하고 계속하기</Text>
       </TouchableOpacity>
