@@ -1,8 +1,10 @@
 import { expo } from "@hot-updater/expo";
 import { firebaseDatabase, firebaseStorage } from "@hot-updater/firebase";
-import * as admin from "firebase-admin";
+import admin from "firebase-admin";
 import { config } from "dotenv";
 import { defineConfig } from "hot-updater";
+
+
 
 config({ path: ".env.hotupdater" });
 
@@ -11,6 +13,8 @@ config({ path: ".env.hotupdater" });
 // Set the GOOGLE_APPLICATION_CREDENTIALS environment variable to your credentials file path
 // Example: GOOGLE_APPLICATION_CREDENTIALS=./firebase-adminsdk-credentials.json
 const credential = admin.credential.applicationDefault();
+
+
 
 export default defineConfig({
   build: expo(),
