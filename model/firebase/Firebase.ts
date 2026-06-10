@@ -25,6 +25,9 @@ import {
   collection,
   getDocs,
   writeBatch,
+  query,
+  where,
+  increment,
 } from 'firebase/firestore';
 import { FirebaseStorage, getStorage } from 'firebase/storage';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -624,40 +627,77 @@ class Firebase {
    * Firestore에서 사용자 관련 데이터 삭제
    */
   private async deleteUserData(userId: string) {
-    const batch = writeBatch(this.store);
+    const store = this.store;
+    const operations: ((batch: ReturnType<typeof writeBatch>) => void)[] = [];
 
-    // users 컬렉션에서 사용자 문서 삭제
-    const userDocRef = doc(this.store, 'users', userId);
-    batch.delete(userDocRef);
+    // 사용자 장비 서브컬렉션 조회 (gear-rank 감소 + 서브컬렉션 삭제에 모두 사용)
+    const gearsSnapshot = await getDocs(
+      collection(store, 'users', userId, 'gears')
+    );
 
-    // bags 컬렉션에서 사용자의 배낭 삭제
-    const bagsRef = collection(this.store, 'bags');
-    const bagsSnapshot = await getDocs(bagsRef);
-    bagsSnapshot.forEach(doc => {
-      if (doc.data().userId === userId) {
-        batch.delete(doc.ref);
+    // 카탈로그 장비(isCustom === false)의 gear-rank count 감소, count ≤ 1이면 삭제
+    for (const gearDoc of gearsSnapshot.docs) {
+      if (gearDoc.data().isCustom === false) {
+        const gearRankRef = doc(store, 'gear-rank', gearDoc.id);
+        const gearRankDoc = await getDoc(gearRankRef);
+
+        if (gearRankDoc.exists()) {
+          const currentCount = gearRankDoc.data().count || 0;
+
+          if (currentCount <= 1) {
+            operations.push(batch => batch.delete(gearRankRef));
+          } else {
+            operations.push(batch =>
+              batch.update(gearRankRef, {
+                count: increment(-1),
+                updatedAt: new Date(),
+              })
+            );
+          }
+        }
       }
-    });
+    }
 
-    // gears 컬렉션에서 사용자의 장비 삭제
-    const gearsRef = collection(this.store, 'gears');
-    const gearsSnapshot = await getDocs(gearsRef);
-    gearsSnapshot.forEach(doc => {
-      if (doc.data().userId === userId) {
-        batch.delete(doc.ref);
+    // users/{uid}.bags에 기록된 bag 문서 삭제
+    const userDocRef = doc(store, 'users', userId);
+    const userDoc = await getDoc(userDocRef);
+    const bagIds: string[] = userDoc.exists()
+      ? userDoc.data().bags ?? []
+      : [];
+
+    for (const bagId of bagIds) {
+      operations.push(batch => batch.delete(doc(store, 'bag', bagId)));
+    }
+
+    // users/{uid}/gears 서브컬렉션 전체 문서 삭제
+    for (const gearDoc of gearsSnapshot.docs) {
+      operations.push(batch => batch.delete(gearDoc.ref));
+    }
+
+    // comment-likes에서 userId == uid인 문서 삭제
+    const likesSnapshot = await getDocs(
+      query(collection(store, 'comment-likes'), where('userId', '==', userId))
+    );
+
+    for (const likeDoc of likesSnapshot.docs) {
+      operations.push(batch => batch.delete(likeDoc.ref));
+    }
+
+    // users/{uid} 문서 삭제
+    operations.push(batch => batch.delete(userDocRef));
+
+    // 500 한도 미만(400)으로 청크 분할하여 커밋
+    const CHUNK_SIZE = 400;
+
+    for (let i = 0; i < operations.length; i += CHUNK_SIZE) {
+      const batch = writeBatch(store);
+
+      for (const operation of operations.slice(i, i + CHUNK_SIZE)) {
+        operation(batch);
       }
-    });
 
-    // replies 컬렉션에서 사용자의 댓글 삭제
-    const repliesRef = collection(this.store, 'replies');
-    const repliesSnapshot = await getDocs(repliesRef);
-    repliesSnapshot.forEach(doc => {
-      if (doc.data().userId === userId) {
-        batch.delete(doc.ref);
-      }
-    });
-
-    await batch.commit();
+      await batch.commit();
+    }
   }
 }
 

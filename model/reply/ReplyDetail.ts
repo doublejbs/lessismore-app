@@ -159,8 +159,7 @@ class ReplyDetail {
     const firebase = this.replyStore.getFirebase();
     const userId = firebase.getUserId();
     if (!userId) {
-      const { router } = await import('expo-router');
-      router.push('/log-in');
+      app.getLogInAlertManager()?.show();
       return;
     }
 
@@ -229,8 +228,7 @@ class ReplyDetail {
     const authorId = firebase.getUserId();
 
     if (!authorId) {
-      const { router } = await import('expo-router');
-      router.push('/log-in');
+      app.getLogInAlertManager()?.show();
       return;
     }
 
