@@ -147,6 +147,7 @@ const MyComponent = observer(() => {
 
 ## 주요 컨벤션
 
+- **Git 브랜치 정책 (2026-06-11부터)**: 작업은 `develop` 베이스 — 작업 브랜치를 `develop`에서 따고 PR 베이스도 `develop`으로 보낸다. `main`은 직접 건드리지 않는다 (커밋·머지 금지, 릴리스 머지는 사용자가 결정)
 - 한국어 UI (커밋 메시지도 한국어 사용)
 - 텍스트는 `PretendardText` 컴포넌트 사용 (커스텀 한글 폰트 — `assets/fonts/Pretendard-*.ttf`)
 - 이미지는 `FirebaseImageStorage`를 통해 Firebase Storage에 업로드
