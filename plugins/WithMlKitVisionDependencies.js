@@ -11,7 +11,7 @@ const withMlKitVisionDependencies = (config) =>
     const manifest = modConfig.modResults.manifest;
 
     manifest.$ = manifest.$ ?? {};
-    manifest.$['xmlns:tools'] = 'http://schemas.android.com/tools';
+    manifest.$['xmlns:tools'] = manifest.$['xmlns:tools'] ?? 'http://schemas.android.com/tools';
 
     const application = manifest.application?.[0];
 
