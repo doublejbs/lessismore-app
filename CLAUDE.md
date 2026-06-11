@@ -170,3 +170,9 @@ const MyComponent = observer(() => {
 - 관리 콘솔: `npx hot-updater console` (http://localhost:1422)
 
 **실제 출시 흐름**: EAS로 iOS/Android 빌드 → 스토어에 수동 제출/출시. 스토어 공개 버전 확인은 iTunes Lookup(`https://itunes.apple.com/lookup?bundleId=com.doublejbs.useless`)·Play Store 페이지로 가능(둘 다 공개 출시본만 노출).
+
+**EAS 빌드 실패 디버깅:**
+
+- 먼저 `npx eas-cli build:list --platform <ios|android> --limit 1 --json --non-interactive`의 `error.errorCode`로 원인을 구분한다 — `SERVER_ERROR`("We've lost connection to the worker")는 EAS 인프라 장애라 **그냥 재시도**하면 되고, `EAS_BUILD_UNKNOWN_GRADLE_ERROR` 등 프로젝트 에러는 같은 자리에서 재발하므로 로그를 확인해 고친 뒤 재빌드한다.
+- 같은 응답의 `logFiles` URL(서명 만료 900초)은 **brotli 압축 JSONL**이다: `curl -s "$URL" -o log.br && brotli -d -f log.br -o log.jsonl`로 풀고, 각 줄 JSON의 `phase`/`msg` 필드를 본다. Gradle 에러는 `RUN_GRADLEW` phase에서 `FAILURE`·`What went wrong`을 찾으면 된다.
+- 네이티브 매니페스트/프로젝트 설정 수정은 `android/`·`ios/`가 gitignore라(managed 워크플로우, EAS 워커가 prebuild로 재생성) 직접 고쳐도 빌드에 반영되지 않는다 — **config plugin**으로 고치고 `npx expo prebuild -p android --no-install` 산출물로 검증한다 (`plugins/WithMlKitVisionDependencies.js` 참고).
