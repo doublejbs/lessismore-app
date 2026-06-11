@@ -84,7 +84,8 @@
           "channel": "production"
         }
       ],
-      "expo-font"
+      "expo-font",
+      "./plugins/WithMlKitVisionDependencies.js"
     ],
     "experiments": {
       "typedRoutes": true
