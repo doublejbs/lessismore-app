@@ -28,6 +28,7 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
 
   const handleLikePress = (e: any) => {
     e.stopPropagation();
+    app.getAnalyticsManager()?.logClick('reply_like', { liked: !isLiked });
     reply.toggleLike(comment.id);
   };
 

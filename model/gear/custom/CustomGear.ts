@@ -66,6 +66,8 @@ class CustomGear extends AbstractGearEdit {
       await this.gearStore.register([this.selectedSearchGear]);
       await this.warehouseOrder.saveLastOrderOption();
       await this.bagDetailOrder.saveLastOrderOption();
+      app.getAnalyticsManager()?.logClick('gear_save', { mode: 'create' });
+
       return this.selectedSearchGear;
     } else {
       const gear = new Gear(
@@ -89,6 +91,8 @@ class CustomGear extends AbstractGearEdit {
       await this.gearStore.register([gear]);
       await this.warehouseOrder.saveLastOrderOption();
       await this.bagDetailOrder.saveLastOrderOption();
+      app.getAnalyticsManager()?.logClick('gear_save', { mode: 'create' });
+
       return gear;
     }
   }

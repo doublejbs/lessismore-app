@@ -27,6 +27,7 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
   };
 
   const handleLikePress = () => {
+    app.getAnalyticsManager()?.logClick('reply_like', { liked: !isLiked });
     replyDetail.toggleLike(comment.id);
   };
 

@@ -1,5 +1,6 @@
 import React, { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import app from '@/model/app/App';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
 import PretendardText from '@/components/PretendardText';
@@ -16,6 +17,7 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
   const router = useRouter();
 
   const handleClick = () => {
+    app.getAnalyticsManager()?.logClick('bag_item');
     router.push(`/bag/${bagItem.getID()}`);
   };
 

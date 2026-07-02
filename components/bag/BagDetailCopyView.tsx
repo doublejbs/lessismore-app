@@ -25,7 +25,7 @@ const BagDetailCopyView: FC<Props> = ({ sourceId, sourceName }) => {
   } = useBagCopyState();
 
   const handlePressCopy = () => {
-    open({ id: sourceId, name: sourceName });
+    open({ id: sourceId, name: sourceName }, 'detail');
   };
 
   return (

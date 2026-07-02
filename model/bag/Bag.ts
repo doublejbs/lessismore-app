@@ -69,6 +69,7 @@ class Bag {
       message: `${bagItem.getName()} 배낭을 삭제할까요?`,
       confirmText: '삭제',
       onConfirm: async () => {
+        app.getAnalyticsManager()?.logClick('bag_delete');
         await this.bagStore.delete(bagItem.getID());
         await this.getList();
       },

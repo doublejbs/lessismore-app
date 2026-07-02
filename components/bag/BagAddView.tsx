@@ -51,6 +51,8 @@ const BagAddView: FC<Props> = ({ bag }) => {
   } = useBagCopyState();
 
   const handlePressAdd = () => {
+    app.getAnalyticsManager()?.logClick('bag_add');
+
     if (!app.getFirebase()?.isLoggedIn()) {
       app.getLogInAlertManager()?.show();
 
@@ -77,10 +79,13 @@ const BagAddView: FC<Props> = ({ bag }) => {
       const target = source ?? pendingSource;
 
       if (target) {
-        openCopy({
-          id: target.getID(),
-          name: target.getName(),
-        });
+        openCopy(
+          {
+            id: target.getID(),
+            name: target.getName(),
+          },
+          'add_sheet'
+        );
         setPendingSource(null);
       }
     }
@@ -154,6 +159,7 @@ const BagAddView: FC<Props> = ({ bag }) => {
       const bagID = await bag.add(inputValue, startDate, endDate);
 
       if (bagID) {
+        app.getAnalyticsManager()?.logClick('bag_create_confirm');
         setInputValue('');
         setShouldShowAdd(false);
         setStartDate(dayjs());

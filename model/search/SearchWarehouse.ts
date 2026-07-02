@@ -97,6 +97,12 @@ class SearchWarehouse {
     }
 
     this.debounceTimer = setTimeout(() => {
+      if (this.getKeyword()) {
+        app
+          .getAnalyticsManager()
+          ?.logEvent('search', { search_term: this.getKeyword() });
+      }
+
       this.executeSearch();
     }, 300) as unknown as NodeJS.Timeout;
   }

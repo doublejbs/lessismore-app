@@ -3,6 +3,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Gear from '../../model/gear/Gear';
 import BagEdit from '../../model/bag-edit/BagEdit';
+import app from '../../model/app/App';
 import { observer } from 'mobx-react-lite';
 import GearView from '../warehouse/GearView';
 
@@ -15,6 +16,7 @@ const BagEditWarehouseGearView: FC<Props> = ({ gear, bagEdit }) => {
   const isSelected = bagEdit.hasGear(gear);
 
   const handlePress = () => {
+    app.getAnalyticsManager()?.logClick('gear_toggle', { added: !isSelected });
     bagEdit.toggleGear(gear);
   };
 

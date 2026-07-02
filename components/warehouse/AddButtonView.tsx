@@ -8,6 +8,8 @@ const AddButtonView: FC = () => {
   const router = useRouter();
 
   const handleClick = () => {
+    app.getAnalyticsManager()?.logClick('gear_add');
+
     if (app.getFirebase().isLoggedIn()) {
       router.push('/custom');
     } else {
