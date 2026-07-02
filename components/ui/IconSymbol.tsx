@@ -25,6 +25,8 @@ const MAPPING = {
   'chevron.right': 'chevron-right',
   'person.fill': 'person',
   'trash.fill': 'delete',
+  'doc.on.doc': 'content-copy',
+  plus: 'add',
 } as IconMapping;
 
 /**

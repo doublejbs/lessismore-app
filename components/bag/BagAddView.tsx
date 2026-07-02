@@ -1,23 +1,22 @@
 import React, { FC, useState } from 'react';
 import {
-  View,
   TouchableOpacity,
-  Modal,
-  TextInput,
   StyleSheet,
   Alert,
-  ScrollView,
-  Dimensions,
   Platform,
-  KeyboardAvoidingView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Bag from '@/model/bag/Bag';
+import BagItem from '@/model/bag/BagItem';
 import dayjs from 'dayjs';
-import BagAddDateView from './BagAddDateView';
 import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import BagFormModalView from './BagFormModalView';
+import BagAddActionSheetView from './BagAddActionSheetView';
+import BagCopySourceModalView from './BagCopySourceModalView';
+import BagCopyModalView from './BagCopyModalView';
+import useBagCopyState from './useBagCopyState';
+import PendingModalType from './PendingModalType';
 
 interface Props {
   bag: Bag;
@@ -25,20 +24,119 @@ interface Props {
 
 const BagAddView: FC<Props> = ({ bag }) => {
   const [shouldShowAdd, setShouldShowAdd] = useState(false);
+  const [shouldShowActionSheet, setShouldShowActionSheet] = useState(false);
+  const [shouldShowSource, setShouldShowSource] = useState(false);
+  const [pendingModal, setPendingModal] = useState<PendingModalType | null>(
+    null
+  );
+  const [pendingSource, setPendingSource] = useState<BagItem | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [startDate, setStartDate] = useState<dayjs.Dayjs | null>(dayjs());
   const [endDate, setEndDate] = useState<dayjs.Dayjs | null>(
     dayjs().add(1, 'day')
   );
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+  const {
+    visible: copyVisible,
+    inputValue: copyInputValue,
+    startDate: copyStartDate,
+    endDate: copyEndDate,
+    isCopying,
+    open: openCopy,
+    handleChangeName: handleCopyChangeName,
+    handleStartDateChange: handleCopyStartDateChange,
+    handleEndDateChange: handleCopyEndDateChange,
+    handleConfirm: handleCopyConfirm,
+    handleCancel: handleCopyCancel,
+  } = useBagCopyState();
 
-  const showAdd = () => {
-    if (app.getFirebase()?.isLoggedIn()) {
+  const handlePressAdd = () => {
+    if (!app.getFirebase()?.isLoggedIn()) {
+      app.getLogInAlertManager()?.show();
+
+      return;
+    }
+
+    if (bag.isEmpty()) {
       setShouldShowAdd(true);
     } else {
-      app.getLogInAlertManager()?.show();
+      setShouldShowActionSheet(true);
     }
+  };
+
+  const openPendingModal = (next: PendingModalType | null, source?: BagItem) => {
+    if (!next) {
+      return;
+    }
+
+    if (next === PendingModalType.Create) {
+      setShouldShowAdd(true);
+    } else if (next === PendingModalType.Source) {
+      setShouldShowSource(true);
+    } else if (next === PendingModalType.Copy) {
+      const target = source ?? pendingSource;
+
+      if (target) {
+        openCopy({
+          id: target.getID(),
+          name: target.getName(),
+        });
+        setPendingSource(null);
+      }
+    }
+  };
+
+  const flushPendingModal = () => {
+    const next = pendingModal;
+
+    setPendingModal(null);
+    openPendingModal(next);
+  };
+
+  const transitionTo = (
+    next: PendingModalType,
+    closeCurrent: () => void,
+    source?: BagItem
+  ) => {
+    if (Platform.OS === 'ios') {
+      if (source) {
+        setPendingSource(source);
+      }
+
+      setPendingModal(next);
+      closeCurrent();
+    } else {
+      closeCurrent();
+      openPendingModal(next, source);
+    }
+  };
+
+  const handleSelectCreate = () => {
+    transitionTo(PendingModalType.Create, () =>
+      setShouldShowActionSheet(false)
+    );
+  };
+
+  const handleSelectCopy = () => {
+    transitionTo(PendingModalType.Source, () =>
+      setShouldShowActionSheet(false)
+    );
+  };
+
+  const handleCloseActionSheet = () => {
+    setShouldShowActionSheet(false);
+  };
+
+  const handleSelectSource = (bagItem: BagItem) => {
+    transitionTo(
+      PendingModalType.Copy,
+      () => setShouldShowSource(false),
+      bagItem
+    );
+  };
+
+  const handleCloseSource = () => {
+    setShouldShowSource(false);
   };
 
   const handleChange = (text: string) => {
@@ -49,8 +147,10 @@ const BagAddView: FC<Props> = ({ bag }) => {
     try {
       if (!startDate || !endDate) {
         Alert.alert('오류', '날짜를 선택해주세요');
+
         return;
       }
+
       const bagID = await bag.add(inputValue, startDate, endDate);
 
       if (bagID) {
@@ -59,6 +159,7 @@ const BagAddView: FC<Props> = ({ bag }) => {
         setStartDate(dayjs());
         setEndDate(dayjs());
         router.push(`/bag/${bagID}`);
+        router.push(`/bag/${bagID}/edit`);
       }
     } catch (error) {
       console.error('배낭 추가 중 오류 발생:', error);
@@ -86,87 +187,51 @@ const BagAddView: FC<Props> = ({ bag }) => {
     <>
       <TouchableOpacity
         style={styles.floatingButton}
-        onPress={showAdd}
+        onPress={handlePressAdd}
         activeOpacity={0.8}
       >
         <PretendardText style={styles.buttonText}>배낭 추가</PretendardText>
       </TouchableOpacity>
-      <Modal
+      <BagAddActionSheetView
+        visible={shouldShowActionSheet}
+        onCreate={handleSelectCreate}
+        onCopy={handleSelectCopy}
+        onClose={handleCloseActionSheet}
+        onDismiss={flushPendingModal}
+      />
+      <BagCopySourceModalView
+        visible={shouldShowSource}
+        bags={bag.getBags()}
+        onSelect={handleSelectSource}
+        onClose={handleCloseSource}
+        onDismiss={flushPendingModal}
+      />
+      <BagFormModalView
         visible={shouldShowAdd}
-        transparent={true}
-        onRequestClose={handleClickCancel}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          onPress={handleClickCancel}
-          activeOpacity={1}
-        >
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'height' : 'height'}
-            style={{ flex: 1, justifyContent: 'flex-end' }}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-          >
-            <TouchableOpacity
-              style={[
-                styles.modalContent,
-                { paddingBottom: insets.bottom + 12 },
-              ]}
-              activeOpacity={1}
-              onPress={e => e.stopPropagation()}
-            >
-              <ScrollView
-                style={styles.scrollView}
-                showsVerticalScrollIndicator={false}
-                bounces={true}
-              >
-                <View style={styles.inputSection}>
-                  <PretendardText style={styles.inputLabel}>
-                    배낭 이름
-                  </PretendardText>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder='배낭 이름을 입력해주세요'
-                    value={inputValue}
-                    onChangeText={handleChange}
-                    placeholderTextColor='#999'
-                  />
-                </View>
-                <BagAddDateView
-                  startDate={startDate}
-                  endDate={endDate}
-                  onStartDateChange={handleStartDateChange}
-                  onEndDateChange={handleEndDateChange}
-                />
-              </ScrollView>
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={handleClickCancel}
-                  activeOpacity={0.7}
-                >
-                  <PretendardText style={styles.cancelButtonText}>
-                    취소
-                  </PretendardText>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.confirmButton}
-                  onPress={handleClickConfirm}
-                  activeOpacity={0.7}
-                >
-                  <PretendardText style={styles.confirmButtonText}>
-                    확인
-                  </PretendardText>
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          </KeyboardAvoidingView>
-        </TouchableOpacity>
-      </Modal>
+        inputValue={inputValue}
+        startDate={startDate}
+        endDate={endDate}
+        onChangeName={handleChange}
+        onStartDateChange={handleStartDateChange}
+        onEndDateChange={handleEndDateChange}
+        onConfirm={handleClickConfirm}
+        onCancel={handleClickCancel}
+      />
+      <BagCopyModalView
+        visible={copyVisible}
+        inputValue={copyInputValue}
+        startDate={copyStartDate}
+        endDate={copyEndDate}
+        isCopying={isCopying}
+        onChangeName={handleCopyChangeName}
+        onStartDateChange={handleCopyStartDateChange}
+        onEndDateChange={handleCopyEndDateChange}
+        onConfirm={handleCopyConfirm}
+        onCancel={handleCopyCancel}
+      />
     </>
   );
 };
-
-const { height: screenHeight } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   floatingButton: {
@@ -190,81 +255,11 @@ const styles = StyleSheet.create({
     width: 127,
     gap: 6,
   },
-  plusIcon: {
-    color: 'white',
-    fontSize: 20,
-    fontFamily: 'Pretendard-Bold',
-    lineHeight: 20,
-    textAlignVertical: 'center',
-  },
   buttonText: {
     color: 'white',
     fontSize: 16,
     fontFamily: 'Pretendard-Regular',
     textAlignVertical: 'center',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    padding: 16,
-    maxHeight: screenHeight * 0.9, // 화면 높이의 70%로 제한 (키보드 공간 확보)
-  },
-  scrollView: {
-    flexGrow: 1,
-    marginBottom: 16,
-  },
-  inputSection: {
-    flexDirection: 'column',
-    gap: 8,
-    marginBottom: 24,
-  },
-  inputLabel: {
-    fontFamily: 'Pretendard-Bold',
-    fontSize: 20,
-    color: '#000000',
-  },
-  textInput: {
-    borderRadius: 10,
-    backgroundColor: '#EEEEEE',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
-    fontFamily: 'Pretendard-Regular',
-    color: '#000000',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  cancelButton: {
-    flex: 1,
-    backgroundColor: '#EEEEEE',
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    color: '#000',
-    fontFamily: 'Pretendard-Regular',
-  },
-  confirmButton: {
-    flex: 1,
-    backgroundColor: 'black',
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  confirmButtonText: {
-    fontSize: 16,
-    color: 'white',
-    fontFamily: 'Pretendard-Regular',
   },
 });
 
