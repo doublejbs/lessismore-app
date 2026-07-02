@@ -159,6 +159,7 @@ const BagAddView: FC<Props> = ({ bag }) => {
         setStartDate(dayjs());
         setEndDate(dayjs());
         router.push(`/bag/${bagID}`);
+        router.push(`/bag/${bagID}/edit`);
       }
     } catch (error) {
       console.error('배낭 추가 중 오류 발생:', error);

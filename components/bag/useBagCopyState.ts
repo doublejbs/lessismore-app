@@ -76,6 +76,7 @@ const useBagCopyState = () => {
         setInputValue('');
         setVisible(false);
         router.push(`/bag/${bagID}`);
+        router.push(`/bag/${bagID}/edit`);
       }
     } catch (error) {
       console.error('배낭 복사 중 오류 발생:', error);
