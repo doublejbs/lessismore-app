@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import app from '@/model/app/App';
 
 interface Props {
   reply: Reply;
@@ -34,6 +35,7 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
     setIsLoading(true);
     try {
       await reply.confirm(content.trim());
+      app.getAnalyticsManager()?.logClick('reply_submit', { depth: 'comment' });
     } catch (error) {
       Alert.alert(
         '댓글 작성 실패',
