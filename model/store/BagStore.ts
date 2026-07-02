@@ -318,6 +318,59 @@ class BagStore {
     return docRef.id;
   }
 
+  public async copy(
+    id: string,
+    name: string,
+    startDate: Dayjs,
+    endDate: Dayjs
+  ) {
+    const sourceRef = doc(this.getStore(), 'bag', id);
+    const sourceSnap = await getDoc(sourceRef);
+
+    if (!sourceSnap.exists()) {
+      throw new Error('Bag document does not exist!');
+    }
+
+    const sourceData = sourceSnap.data();
+    const gears: string[] = sourceData.gears || [];
+    const weight = sourceData.weight ?? 0;
+
+    const batch = writeBatch(this.getStore());
+    const newBagRef = doc(collection(this.getStore(), 'bag'));
+
+    batch.set(newBagRef, {
+      name,
+      weight,
+      gears,
+      editDate: new Date().toISOString(),
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      shared: false,
+      userId: this.getUserID(),
+    });
+
+    for (const gearId of gears) {
+      const gearRef = doc(
+        this.getStore(),
+        'users',
+        this.getUserID(),
+        'gears',
+        gearId
+      );
+      batch.update(gearRef, {
+        bags: arrayUnion(newBagRef.id),
+      });
+    }
+
+    batch.update(doc(this.getStore(), 'users', this.getUserID()), {
+      bags: arrayUnion(newBagRef.id),
+    });
+
+    await batch.commit();
+
+    return newBagRef.id;
+  }
+
   public async save(
     id: string,
     toAddGears: Gear[],
