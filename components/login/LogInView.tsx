@@ -15,6 +15,7 @@ import {
 import { Svg, Path } from 'react-native-svg';
 import LoadingView from '@/components/ui/LoadingView';
 import LogInAlertManager from '@/model/login/LogInAlertManager';
+import app from '@/model/app/App';
 
 interface Props {
   logInAlertManager: LogInAlertManager;
@@ -35,6 +36,7 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
   };
 
   const handleClickConfirm = () => {
+    app.getAnalyticsManager()?.logClick('login', { provider: 'google' });
     logInAlertManager.confirm();
   };
 
@@ -53,10 +55,13 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
       Alert.alert('알림', '이메일과 비밀번호를 입력해주세요.');
       return;
     }
+
+    app.getAnalyticsManager()?.logClick('login', { provider: 'email' });
     await logInAlertManager.loginWithEmail(email, password);
   };
 
   const handleClickAppleLogin = async () => {
+    app.getAnalyticsManager()?.logClick('login', { provider: 'apple' });
     await logInAlertManager.loginWithApple();
   };
 

@@ -2,6 +2,7 @@ import { FC, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList } from 'react-native';
 import BagUseless from '../../model/bag-useless/BagUseless';
 import { observer } from 'mobx-react-lite';
+import app from '../../model/app/App';
 import BagUselessGearView from './BagUselessGearView';
 import { Svg, Path } from 'react-native-svg';
 
@@ -16,10 +17,14 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
   const gears = bagUseless.getGears();
 
   const handlePressToggleSelectAll = () => {
+    app.getAnalyticsManager()?.logClick('useless_select_all', {
+      selected: selectedCount === 0,
+    });
     bagUseless.toggleSelectAll();
   };
 
   const handlePressConfirm = () => {
+    app.getAnalyticsManager()?.logClick('useless_confirm');
     bagUseless.save();
   };
 

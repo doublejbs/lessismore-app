@@ -6,6 +6,7 @@ import PretendardText from '../PretendardText';
 import BagEditWarehouseView from './BagEditWarehouseView';
 import BagEditWarehouseFiltersView from './BagEditWarehouseFiltersView';
 import BagEdit from '../../model/bag-edit/BagEdit';
+import app from '../../model/app/App';
 import BagEditHeaderView from './BagEditHeaderView';
 import Layout from '../Layout';
 import { useFocusEffect } from 'expo-router';
@@ -26,6 +27,7 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
   };
 
   const handlePressConfirm = () => {
+    app.getAnalyticsManager()?.logClick('bag_edit_confirm');
     bagEdit.back();
   };
 

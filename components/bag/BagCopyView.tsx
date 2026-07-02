@@ -27,7 +27,7 @@ const BagCopyView: FC<Props> = ({ bagItem }) => {
 
   const showCopy = () => {
     if (app.getFirebase()?.isLoggedIn()) {
-      open({ id: bagItem.getID(), name: bagItem.getName() });
+      open({ id: bagItem.getID(), name: bagItem.getName() }, 'list');
     } else {
       app.getLogInAlertManager()?.show();
     }

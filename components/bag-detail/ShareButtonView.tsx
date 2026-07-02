@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
+import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 
 interface Props {
@@ -25,6 +26,7 @@ const ShareButtonView: FC<Props> = ({ bagDetail }) => {
   const url = bagDetail.getUrl();
 
   const handleShareButtonPress = () => {
+    app.getAnalyticsManager()?.logClick('bag_share');
     setShowModal(!showModal);
   };
 

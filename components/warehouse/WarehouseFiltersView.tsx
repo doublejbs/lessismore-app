@@ -10,6 +10,8 @@ import Warehouse from '@/model/warehouse/Warehouse';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import { observer } from 'mobx-react-lite';
 import OrderButtonView from '@/components/order/OrderButtonView';
+import OrderOption from '@/model/order/OrderOption';
+import app from '@/model/app/App';
 
 interface Props {
   warehouse: Warehouse;
@@ -20,7 +22,16 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
   const totalCount = warehouse.getGears().length;
 
   const handleClick = (filter: WarehouseFilter) => {
+    app
+      .getAnalyticsManager()
+      ?.logClick('warehouse_filter', { category: filter.getName() });
     warehouse.toggleFilter(filter);
+  };
+
+  const handleSelectOrder = (option: OrderOption) => {
+    app
+      .getAnalyticsManager()
+      ?.logClick('warehouse_sort', { order: option.getName() });
   };
 
   return (
@@ -56,7 +67,7 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
       </ScrollView>
       <View style={styles.orderContainer}>
         <Text style={styles.titleText}>총 {totalCount}개</Text>
-        <OrderButtonView order={order} />
+        <OrderButtonView order={order} onSelectOption={handleSelectOrder} />
       </View>
     </View>
   );

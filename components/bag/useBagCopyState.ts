@@ -4,6 +4,8 @@ import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import app from '@/model/app/App';
 
+type CopyEntrySource = 'list' | 'add_sheet' | 'detail';
+
 interface CopySource {
   id: string;
   name: string;
@@ -11,6 +13,7 @@ interface CopySource {
 
 const useBagCopyState = () => {
   const [source, setSource] = useState<CopySource | null>(null);
+  const [entrySource, setEntrySource] = useState<CopyEntrySource | null>(null);
   const [visible, setVisible] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -20,8 +23,10 @@ const useBagCopyState = () => {
   );
   const router = useRouter();
 
-  const open = (nextSource: CopySource) => {
+  const open = (nextSource: CopySource, nextEntrySource: CopyEntrySource) => {
     setSource(nextSource);
+    setEntrySource(nextEntrySource);
+    app.getAnalyticsManager()?.logClick('bag_copy', { source: nextEntrySource });
     setInputValue(`${nextSource.name} 복사본`);
     setStartDate(dayjs());
     setEndDate(dayjs().add(1, 'day'));
@@ -72,6 +77,11 @@ const useBagCopyState = () => {
         .copy(source.id, trimmedValue, startDate, endDate);
 
       if (bagID) {
+        app
+          .getAnalyticsManager()
+          ?.logClick('bag_copy_confirm', {
+            source: entrySource ?? 'list',
+          });
         app.getToastManager()?.show({ message: '복사됐습니다' });
         setInputValue('');
         setVisible(false);

@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
+import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 
 interface Props {
@@ -13,6 +14,7 @@ const BagDetailUselessDescriptionView: FC<Props> = ({ bagDetail }) => {
   const usedWeight = bagDetail.getUsedWeight();
 
   const handlePressUseless = () => {
+    app.getAnalyticsManager()?.logClick('bag_useless');
     bagDetail.goToUseless();
   };
 

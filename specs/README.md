@@ -21,6 +21,7 @@
 | [Auth.md](Auth.md) | `AU` | 로그인 / 약관 동의 / 정보 탭 / 회원 탈퇴 / 웹뷰 |
 | [AppLifecycle.md](AppLifecycle.md) | `APP` | 앱 초기화 / OTA / 전역 알림(Alert·Toast) / 탭 구조 |
 | [DataModel.md](DataModel.md) | `DM` | Firestore·Storage·Algolia 데이터 계약 (모든 스펙의 공통 참조) |
+| [Analytics.md](Analytics.md) | `AN` | 클릭 로그 지표 — Firebase Analytics 이벤트 수집 |
 
 신규 도메인 스펙은 [Template.md](Template.md)를 복사해서 시작한다.
 

@@ -13,6 +13,7 @@ import {
 import PretendardText from '@/components/PretendardText';
 import ReplyDetail from '@/model/reply/ReplyDetail';
 import { observer } from 'mobx-react-lite';
+import app from '@/model/app/App';
 
 interface Props {
   replyDetail: ReplyDetail;
@@ -71,6 +72,7 @@ const ReplyDetailInputView: FC<Props> = observer(
         }
 
         await replyDetail.createReply(content);
+        app.getAnalyticsManager()?.logClick('reply_submit', { depth: 'reply' });
         setText('');
         setIsInputMode(false);
         Keyboard.dismiss();

@@ -16,6 +16,7 @@ import OrderOption from '@/model/order/OrderOption';
 
 interface Props {
   order: Order;
+  onSelectOption?: (option: OrderOption) => void;
 }
 
 interface ButtonPosition {
@@ -49,7 +50,7 @@ const DownArrowIcon = () => (
   </Svg>
 );
 
-const OrderButtonView = ({ order }: Props) => {
+const OrderButtonView = ({ order, onSelectOption }: Props) => {
   const { width: screenWidth } = useWindowDimensions();
   const buttonRef = useRef<View>(null);
   const [buttonPosition, setButtonPosition] = useState<ButtonPosition | null>(
@@ -71,6 +72,7 @@ const OrderButtonView = ({ order }: Props) => {
   };
 
   const handleSortOptionClick = (orderOption: OrderOption) => {
+    onSelectOption?.(orderOption);
     order.setOrderOption(orderOption);
   };
 

@@ -116,6 +116,7 @@ const InfoView: FC = () => {
   const logInAlertManager = app.getLogInAlertManager();
 
   const handleLogout = async () => {
+    app.getAnalyticsManager()?.logClick('logout');
     await firebase.logout();
   };
 
@@ -124,6 +125,7 @@ const InfoView: FC = () => {
   };
 
   const handleOpenKakao = () => {
+    app.getAnalyticsManager()?.logClick('info_contact');
     Linking.openURL('http://pf.kakao.com/_VJwSn');
   };
 

@@ -20,6 +20,7 @@ import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import SearchGearAddToBagModalView from './SearchGearAddToBagModalView';
 import { useFocusEffect } from 'expo-router';
+import app from '@/model/app/App';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
@@ -65,6 +66,7 @@ const SearchTopKeywordsView: FC<Props> = ({ searchWarehouse, bag }) => {
   };
 
   const handleGearPress = (gear: Gear) => {
+    app.getAnalyticsManager()?.logClick('search_rank_item');
     searchRank.goToGearDetail(gear);
   };
 
@@ -76,6 +78,9 @@ const SearchTopKeywordsView: FC<Props> = ({ searchWarehouse, bag }) => {
     try {
       const success = await searchRank.registerSingle(gear);
       if (success) {
+        app
+          .getAnalyticsManager()
+          ?.logClick('search_add', { target: 'warehouse' });
         setSelectedGear(gear);
         setShowModal(true);
       }

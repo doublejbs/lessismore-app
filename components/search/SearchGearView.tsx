@@ -14,6 +14,7 @@ import Bag from '@/model/bag/Bag';
 import GearView from '@/components/warehouse/GearView';
 import LoadingView from '@/components/ui/LoadingView';
 import SearchGearAddToBagModalView from './SearchGearAddToBagModalView';
+import app from '@/model/app/App';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
@@ -33,6 +34,9 @@ const SearchGearView: FC<Props> = ({ gear, searchWarehouse, bag }) => {
     try {
       const success = await searchWarehouse.registerSingle(gear);
       if (success) {
+        app
+          .getAnalyticsManager()
+          ?.logClick('search_add', { target: 'warehouse' });
         setShowModal(true);
       }
     } finally {
@@ -56,6 +60,7 @@ const SearchGearView: FC<Props> = ({ gear, searchWarehouse, bag }) => {
   };
 
   const handleGearPress = () => {
+    app.getAnalyticsManager()?.logClick('gear_item', { from: 'search' });
     searchWarehouse.goToGearDetail(gear);
   };
 
