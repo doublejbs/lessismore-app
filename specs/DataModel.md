@@ -174,6 +174,7 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 | 배낭 장비 저장 `BagStore.save` | `runTransaction` | `bag/{id}`(gears, weight) + 추가 장비의 `bags` + 제거 장비의 `bags`/`used`/`useless` |
 | 배낭에 장비 1개 추가 `BagStore.addGear` | `runTransaction` | `bag/{id}` + 장비 문서 |
 | 배낭 삭제 `BagStore.delete` | 배치 | 장비들의 `bags`/`used`/`useless` 정리 + `bag/{id}` 삭제 + `users/{uid}.bags`에서 제거 |
+| 배낭 복사 `BagStore.copy` | `writeBatch` | 새 `bag` 문서 생성 + 담긴 장비들의 `bags`에 새 ID 추가 + `users/{uid}.bags`에 추가 ([Bag.md](Bag.md) BAG-4) |
 | 장비 등록 `GearStore.register` | `writeBatch` | `users/{uid}/gears` + `gear-rank` 증가 |
 | 장비 삭제 `GearStore.remove` | `writeBatch` | 장비 문서 삭제 + 소속 배낭들의 `gears`/`weight` 갱신 + `gear-rank` 감소 |
 | 장비 무게 수정 | `GearStore.update` 후 `BagStore.updateBagsWeight` 배치 | 소속 배낭들의 `weight` |

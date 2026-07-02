@@ -18,6 +18,7 @@ import BagDetailUselessDescriptionView from './BagDetailUselessDescriptionView';
 import BagDetailAddButtonView from './BagDetailAddButtonView';
 import BagDetailMemoView from './BagDetailMemoView';
 import ShareButtonView from './ShareButtonView';
+import BagDetailCopyView from '../bag/BagDetailCopyView';
 import ShareImageButtonView from './ShareImageButtonView';
 import { useFocusEffect } from 'expo-router';
 import BagDetailSkeletonView from './BagDetailSkeletonView';
@@ -72,7 +73,13 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                 <Ionicons name='chevron-back' size={24} color='#191F28' />
               </TouchableOpacity>
               <Text style={styles.weightText}>{weight}kg</Text>
-              <ShareButtonView bagDetail={bagDetail} />
+              <View style={styles.headerActions}>
+                <BagDetailCopyView
+                  sourceId={bagDetail.getId()}
+                  sourceName={bagDetail.getName()}
+                />
+                <ShareButtonView bagDetail={bagDetail} />
+              </View>
             </View>
           </View>
           <ScrollView
@@ -147,6 +154,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     flex: 1,
     color: 'black',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   scrollView: {
     flex: 1,
