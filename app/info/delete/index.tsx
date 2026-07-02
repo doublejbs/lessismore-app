@@ -34,6 +34,7 @@ const DeleteInfoView = () => {
           text: '확인',
           style: 'destructive',
           onPress: async () => {
+            app.getAnalyticsManager()?.logClick('withdraw');
             setIsDeleting(true);
 
             try {

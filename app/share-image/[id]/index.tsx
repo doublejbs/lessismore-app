@@ -37,6 +37,7 @@ import {
   CardSize,
 } from '@/components/bag-detail/share-image/constants';
 import Layout from '@/components/Layout';
+import app from '@/model/app/App';
 
 interface CategoryGears {
   category: WarehouseFilter;
@@ -209,6 +210,8 @@ const ShareImagePage = () => {
   );
 
   const handleShareImage = async () => {
+    app.getAnalyticsManager()?.logClick('readyshot_share');
+
     if (!viewShotRef.current) {
       Alert.alert('오류', '이미지를 생성할 수 없습니다.');
       return;
@@ -411,6 +414,9 @@ const ShareImagePage = () => {
                 layoutType === 'collage' && styles.segmentButtonActive,
               ]}
               onPress={() => {
+                app
+                  .getAnalyticsManager()
+                  ?.logClick('readyshot_layout', { type: 'collage' });
                 setLayoutType('collage');
                 setIsEditMode(false);
               }}
@@ -436,6 +442,9 @@ const ShareImagePage = () => {
                 layoutType === 'grid' && styles.segmentButtonActive,
               ]}
               onPress={() => {
+                app
+                  .getAnalyticsManager()
+                  ?.logClick('readyshot_layout', { type: 'grid' });
                 setLayoutType('grid');
                 setIsEditMode(false);
               }}

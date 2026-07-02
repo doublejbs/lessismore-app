@@ -74,11 +74,13 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse }) => {
       confirmText: '삭제하기',
       onConfirm: async () => {
         await warehouse.remove(gear);
+        app.getAnalyticsManager()?.logClick('gear_delete', { from: 'warehouse' });
       },
     });
   };
 
   const handlePressDetail = () => {
+    app.getAnalyticsManager()?.logClick('gear_item', { from: 'warehouse' });
     setShowMenu(false);
     router.push(`/gear-detail/${gear.getId()}`);
   };

@@ -12,6 +12,7 @@ import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import Gear from '@/model/gear/Gear';
 import BagDetail from '@/model/bag-detail/BagDetail';
+import app from '@/model/app/App';
 import BagDetailImageView from './BagDetailImageView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -28,6 +29,7 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
   const router = useRouter();
 
   const handlePressGear = () => {
+    app.getAnalyticsManager()?.logClick('gear_item', { from: 'bag_detail' });
     router.push(`/gear-detail/${gear.getId()}`);
   };
 

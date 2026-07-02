@@ -4,7 +4,7 @@ import {
   ThemeProvider,
 } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack, useRouter, usePathname } from 'expo-router';
+import { Stack, useRouter, usePathname, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -28,6 +28,7 @@ const RootLayout = () => {
   const colorScheme = useColorScheme();
   const router = useRouter();
   const pathname = usePathname();
+  const segments = useSegments();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     'Pretendard-Regular': require('../assets/fonts/Pretendard-Regular.ttf'),
@@ -52,6 +53,18 @@ const RootLayout = () => {
       app.initialize();
     }
   }, [isLoggedIn, isInitialized, pathname, hasAgreed, router]);
+
+  useEffect(() => {
+    // 초기화 완료 전에는 매니저가 없을 수 있으므로 null 가드
+    const analyticsManager = app.getAnalyticsManager();
+
+    if (!analyticsManager) {
+      return;
+    }
+
+    // useSegments는 동적 세그먼트를 [id] 패턴으로 반환해 문서 ID가 화면 이름에 노출되지 않는다.
+    analyticsManager.logScreenView(segments.join('/') || 'index');
+  }, [segments, isInitialized]);
 
   if (!loaded || !isInitialized) {
     // Async font loading only occurs in development.
