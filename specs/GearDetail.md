@@ -64,7 +64,7 @@ app/gear-detail/[id]/index.tsx → WarehouseDetailWrapper → WarehouseDetailVie
 - 대표 사진 선택은 선택(pending) → `확인` 2단계로 적용되며, 내 장비 문서의 `imageUrl`이 갱신된다.
 - 이미지가 0장이어도 `사진 추가` 버튼은 항상 노출된다.
 
-### GD-5 최저가 구입 링크 (쿠팡 파트너스) [제안]
+### GD-5 최저가 구입 링크 (쿠팡 파트너스)
 
 사용자는 카탈로그 장비 상세에서 쿠팡 파트너스 최저가 구입 링크로 바로 이동할 수 있다.
 
