@@ -17,6 +17,9 @@
         "WKCompanionAppBundleIdentifier": "",
         "WatchKitApp": false
       },
+      "entitlements": {
+        "aps-environment": "production"
+      },
       "usesAppleSignIn": true,
       "appleTeamId": "NFV6WC2X83"
     },
@@ -85,7 +88,14 @@
         }
       ],
       "expo-font",
-      "./plugins/WithMlKitVisionDependencies.js"
+      "./plugins/WithMlKitVisionDependencies.js",
+      "@react-native-firebase/messaging",
+      [
+        "expo-notifications",
+        {
+          "color": "#151515"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

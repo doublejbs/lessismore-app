@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Dimensions,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import Layout from '@/components/Layout';
 import app from '@/model/app/App';
 import { observer } from 'mobx-react-lite';
@@ -107,6 +108,7 @@ const privacyPolicyText = `Useless(이하 '회사'라 한다)는 개인정보 �
 ② 정보주체께서는 회사의 서비스(또는 사업)을 이용하시면서 발생한 모든 개인정보 보호 관련 문의, 불만 처리, 피해구제 등에 관한 사항을 개인정보 보호책임자 및 담당부서로 문의하실 수 있습니다. 회사는 정보주체의 문의에 대해 지체없이 답변 및 처리해드릴 것입니다.`;
 
 const InfoView: FC = () => {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [editedNickname, setEditedNickname] = useState('');
@@ -127,6 +129,10 @@ const InfoView: FC = () => {
   const handleOpenKakao = () => {
     app.getAnalyticsManager()?.logClick('info_contact');
     Linking.openURL('http://pf.kakao.com/_VJwSn');
+  };
+
+  const handleOpenNotificationSettings = () => {
+    router.push('/info/notification');
   };
 
   const handleEditNickname = () => {
@@ -204,6 +210,14 @@ const InfoView: FC = () => {
             <Text style={styles.buttonText}>로그인</Text>
           </TouchableOpacity>
         )}
+
+        <TouchableOpacity
+          style={[styles.button, styles.buttonMargin]}
+          onPress={handleOpenNotificationSettings}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.buttonText}>알림 설정</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.button, styles.buttonMargin]}
