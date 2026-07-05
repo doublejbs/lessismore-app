@@ -29,6 +29,7 @@ export interface GearData {
   color: string;
   companyKorean: string;
   nameKorean: string;
+  coupangUrl?: string;
 }
 
 class GearStore {
@@ -360,6 +361,22 @@ class GearStore {
       await deleteDoc(gearRef);
     } catch (error) {
       console.error('Error deleting gear:', error);
+    }
+  }
+
+  public async getCoupangUrl(id: string): Promise<string | undefined> {
+    try {
+      const docData = await getDoc(doc(this.getStore(), 'gear', id));
+
+      if (docData.exists()) {
+        const { coupangUrl } = docData.data() as GearData;
+
+        return coupangUrl;
+      } else {
+        return undefined;
+      }
+    } catch {
+      return undefined;
     }
   }
 
