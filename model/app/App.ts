@@ -8,6 +8,7 @@ import AlertManager from '../alert/AlertManager';
 import ToastManager from '../toast/ToastManager';
 import LogInAlertManager from '../login/LogInAlertManager';
 import ReplyStore from '../store/ReplyStore';
+import AnalyticsManager from '../analytics/AnalyticsManager';
 
 class App {
   private readonly firebase = new Firebase();
@@ -19,6 +20,7 @@ class App {
   private logInAlertManager: LogInAlertManager | null = null;
   private toastManager: ToastManager | null = null;
   private replyStore: ReplyStore | null = null;
+  private analyticsManager: AnalyticsManager | null = null;
   private initialized = false;
 
   public constructor() {
@@ -35,6 +37,7 @@ class App {
     this.toastManager = ToastManager.new();
     this.logInAlertManager = LogInAlertManager.new(this.firebase);
     this.replyStore = new ReplyStore(this.firebase);
+    this.analyticsManager = AnalyticsManager.new();
     this.setInitialized(true);
   }
 
@@ -92,6 +95,10 @@ class App {
 
   public getLogInAlertManager() {
     return this.logInAlertManager;
+  }
+
+  public getAnalyticsManager() {
+    return this.analyticsManager;
   }
 }
 

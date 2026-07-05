@@ -1,5 +1,6 @@
 import { FC } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
 
 const BagDetailAddButtonView: FC<Props> = ({ bagDetail }) => {
   const handlePressAdd = () => {
+    app.getAnalyticsManager()?.logClick('bag_edit');
     bagDetail.goToEdit();
   };
 

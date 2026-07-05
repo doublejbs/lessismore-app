@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
+import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 
 interface Props {
@@ -15,6 +16,7 @@ const BagDetailMemoView: FC<Props> = ({ bagDetail }) => {
   const memo = bagDetail.getMemo();
 
   const handlePressMemo = () => {
+    app.getAnalyticsManager()?.logClick('bag_memo');
     router.push(`/bag/${bagDetail.getId()}/memo`);
   };
 

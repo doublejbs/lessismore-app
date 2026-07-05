@@ -11,6 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateRangeCalendarView from '../bag/DateRangeCalendarView';
@@ -27,6 +28,7 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
   const insets = useSafeAreaInsets();
 
   const handleDatePress = () => {
+    app.getAnalyticsManager()?.logClick('bag_info_edit');
     setStartDate(bagDetail.getStartDate());
     setEndDate(bagDetail.getEndDate());
     setIsModalOpen(true);

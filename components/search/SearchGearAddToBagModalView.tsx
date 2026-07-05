@@ -18,6 +18,7 @@ import PretendardText from '@/components/PretendardText';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
+import app from '@/model/app/App';
 
 interface Props {
   visible: boolean;
@@ -56,6 +57,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
 
       if (newBagId) {
         await bag.addGearToBag(newBagId, gear);
+        app.getAnalyticsManager()?.logClick('search_add', { target: 'bag' });
         setShowModal(false);
         router.push(`/bag/${newBagId}`);
       }
@@ -73,6 +75,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
     try {
       const success = await bag.addGearToBag(bagItem.getID(), gear);
       if (success) {
+        app.getAnalyticsManager()?.logClick('search_add', { target: 'bag' });
         onClose();
       }
     } catch (error) {

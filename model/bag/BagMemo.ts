@@ -4,6 +4,7 @@ import BagStore from '../store/BagStore';
 import AlertManager from '../alert/AlertManager';
 import { makeAutoObservable } from 'mobx';
 import ToastManager from '../toast/ToastManager';
+import app from '../app/App';
 
 class BagMemo {
   public static of(
@@ -54,6 +55,7 @@ class BagMemo {
 
       await this.bagStore.updateMemo(this.bagId, content.trim());
 
+      app.getAnalyticsManager()?.logClick('memo_confirm');
       router.back();
       this.toastManager.show({ message: '메모가 저장되었습니다.' });
     } catch (error) {
@@ -75,6 +77,7 @@ class BagMemo {
 
           await this.bagStore.updateMemo(this.bagId, '');
 
+          app.getAnalyticsManager()?.logClick('memo_delete');
           router.back();
           this.toastManager.show({ message: '메모가 삭제되었습니다.' });
         } catch (error) {

@@ -1,10 +1,12 @@
 import React, { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import app from '@/model/app/App';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
 import PretendardText from '@/components/PretendardText';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import BagCopyView from './BagCopyView';
 
 interface Props {
   bagItem: BagItem;
@@ -15,6 +17,7 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
   const router = useRouter();
 
   const handleClick = () => {
+    app.getAnalyticsManager()?.logClick('bag_item');
     router.push(`/bag/${bagItem.getID()}`);
   };
 
@@ -44,13 +47,17 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
             {bagItem.getWeight()}kg
           </PretendardText>
         </View>
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={handleClickDelete}
-          activeOpacity={0.7}
-        >
-          <IconSymbol name='trash.fill' size={18} color='#666' />
-        </TouchableOpacity>
+        <View style={styles.actionContainer}>
+          <BagCopyView bagItem={bagItem} />
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleClickDelete}
+            activeOpacity={0.7}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          >
+            <IconSymbol name='trash.fill' size={18} color='#666' />
+          </TouchableOpacity>
+        </View>
       </View>
       {/* <TouchableOpacity
         style={styles.uselessButton}
@@ -102,6 +109,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Bold',
     fontSize: 16,
     color: '#000000',
+  },
+  actionContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   deleteButton: {
     height: 32,
