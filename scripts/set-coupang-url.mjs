@@ -68,7 +68,8 @@ const db = getFirestore(app);
 console.log(`모드: ${APPLY ? '★ APPLY (실제 쓰기)' : 'DRY-RUN (쓰기 안 함)'}`);
 console.log(`CSV: ${csvPath}`);
 
-const lines = readFileSync(csvPath, 'utf8').split(/\r?\n/).filter(Boolean);
+const raw = readFileSync(csvPath, 'utf8').replace(/^﻿/, '');
+const lines = raw.split(/\r?\n/).filter(Boolean);
 const header = parseLine(lines[0]);
 const idIdx = header.indexOf('gearId');
 const nameIdx = header.indexOf('name');
