@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
+import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 
 interface Props {
@@ -26,6 +27,7 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleNamePress = () => {
+    app.getAnalyticsManager()?.logClick('bag_info_edit');
     setInputValue(bagDetail.getName());
     setIsModalOpen(true);
   };

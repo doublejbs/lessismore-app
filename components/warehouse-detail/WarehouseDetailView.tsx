@@ -18,6 +18,7 @@ import SearchGearAddToBagModalView from '../search/SearchGearAddToBagModalView';
 import SharedImageSelectionModalView from '../gear-image/SharedImageSelectionModalView';
 import Bag from '@/model/bag/Bag';
 import GearImageType from '@/model/gear/GearImageType';
+import app from '@/model/app/App';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -35,6 +36,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
   };
 
   const handleSelectOtherImage = () => {
+    app.getAnalyticsManager()?.logClick('gear_photo_change');
     gearImageSelection?.showModal();
   };
 
@@ -51,6 +53,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
   };
 
   const handlePressEdit = () => {
+    app.getAnalyticsManager()?.logClick('gear_edit');
     warehouseDetail.edit();
   };
 

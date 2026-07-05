@@ -4,6 +4,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
+import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 
 interface Props {
@@ -14,6 +15,7 @@ const ShareImageButtonView: FC<Props> = ({ bagDetail }) => {
   const router = useRouter();
 
   const handlePress = () => {
+    app.getAnalyticsManager()?.logClick('readyshot');
     router.push(`/share-image/${bagDetail.getId()}`);
   };
 

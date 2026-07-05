@@ -96,6 +96,8 @@ class GearEdit extends AbstractGearEdit {
 
     await this.onRegister(updatedGear);
 
+    app.getAnalyticsManager()?.logClick('gear_save', { mode: 'edit' });
+
     return updatedGear;
   }
 
@@ -151,6 +153,7 @@ class GearEdit extends AbstractGearEdit {
     if (!this.gear) return;
 
     await this.dispatcher.remove(this.gear);
+    app.getAnalyticsManager()?.logClick('gear_delete', { from: 'edit' });
     this.toastManager.show({ message: '삭제 되었습니다.' });
     this.navigate.replace('/(tabs)');
   }

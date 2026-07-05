@@ -6,6 +6,7 @@ import PretendardText from '../PretendardText';
 import BagEditWarehouseView from './BagEditWarehouseView';
 import BagEditWarehouseFiltersView from './BagEditWarehouseFiltersView';
 import BagEdit from '../../model/bag-edit/BagEdit';
+import app from '../../model/app/App';
 import BagEditHeaderView from './BagEditHeaderView';
 import Layout from '../Layout';
 import { useFocusEffect } from 'expo-router';
@@ -25,6 +26,11 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
     bagEdit.showCustom();
   };
 
+  const handlePressConfirm = () => {
+    app.getAnalyticsManager()?.logClick('bag_edit_confirm');
+    bagEdit.back();
+  };
+
   useFocusEffect(
     useCallback(() => {
       bagEdit.initialize();
@@ -35,15 +41,15 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
     return null;
   } else {
     return (
-      <Layout>
-        <BagEditHeaderView
-          weight={weight.toString()}
-          onPressBack={handlePressBack}
-        />
-
-        {/* 메인 콘텐츠 */}
+      <Layout paddingHorizontal={0}>
+        <View style={{ paddingHorizontal: 20 }}>
+          <BagEditHeaderView
+            weight={weight.toString()}
+            onPressBack={handlePressBack}
+          />
+        </View>
         <View style={styles.mainContent}>
-          <View style={styles.titleSection}>
+          <View style={[styles.titleSection, { paddingHorizontal: 20 }]}>
             <Text style={styles.titleText}>내 장비</Text>
             <TouchableOpacity
               style={styles.addButton}
@@ -60,8 +66,23 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
               </PretendardText>
             </TouchableOpacity>
           </View>
-          <BagEditWarehouseFiltersView bagEdit={bagEdit} />
-          <BagEditWarehouseView bagEdit={bagEdit} />
+          <View style={{ paddingHorizontal: 20 }}>
+            <BagEditWarehouseFiltersView bagEdit={bagEdit} />
+          </View>
+          <View style={styles.warehouseContainer}>
+            <BagEditWarehouseView bagEdit={bagEdit} />
+          </View>
+        </View>
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.confirmButton}
+            onPress={handlePressConfirm}
+          >
+            <PretendardText style={styles.confirmButtonText}>
+              확인
+            </PretendardText>
+          </TouchableOpacity>
         </View>
       </Layout>
     );
@@ -105,6 +126,27 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontSize: 14,
     lineHeight: 14,
+  },
+  warehouseContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  buttonContainer: {
+    paddingTop: 12,
+    paddingHorizontal: 20,
+    backgroundColor: 'white',
+  },
+  confirmButton: {
+    backgroundColor: 'black',
+    width: '100%',
+    padding: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
 

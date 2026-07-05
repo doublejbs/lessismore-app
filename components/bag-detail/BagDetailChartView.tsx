@@ -2,6 +2,7 @@ import { observer } from 'mobx-react-lite';
 import { FC, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import app from '@/model/app/App';
 import Gear from '@/model/gear/Gear';
 import GearFilter from '@/model/gear/GearFilter';
 
@@ -90,6 +91,15 @@ const BagDetailChartView: FC<Props> = ({ bagDetail }) => {
   const categoryData = getCategoryData();
   const hasData = categoryData.length > 0;
 
+  const handleToggleExpand = () => {
+    const nextExpanded = !isExpanded;
+
+    app.getAnalyticsManager()?.logClick('bag_chart_toggle', {
+      expanded: nextExpanded,
+    });
+    setIsExpanded(nextExpanded);
+  };
+
   // 카테고리별 색상 정의
   const getColorForCategory = (index: number) => {
     const colors = [
@@ -107,10 +117,7 @@ const BagDetailChartView: FC<Props> = ({ bagDetail }) => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.header}
-        onPress={() => setIsExpanded(!isExpanded)}
-      >
+      <TouchableOpacity style={styles.header} onPress={handleToggleExpand}>
         <Text style={styles.headerTitle}>📊 카테고리별 무게</Text>
         <View style={styles.iconContainer}>
           <Ionicons
