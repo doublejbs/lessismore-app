@@ -99,7 +99,6 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
               onSelectOtherImage={handleSelectOtherImage}
               onEdit={handlePressEdit}
             />
-            <WarehouseDetailPurchaseView warehouseDetail={warehouseDetail} />
             {isAdded && (
               <WarehouseDetailBagRecordView
                 gear={gear}
@@ -109,6 +108,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
             <WarehouseDetailReviewSectionView
               warehouseDetail={warehouseDetail}
             />
+            <WarehouseDetailPurchaseView warehouseDetail={warehouseDetail} />
             <View style={styles.bottomSpacing} />
           </ScrollView>
 
