@@ -78,6 +78,7 @@
 | `click_gear_edit` | 장비 상세 `수정하기` (WH-4) | — |
 | `click_gear_save` | 장비 등록/편집 저장 (GE-3/GE-4) | `mode`: `create` \| `edit` |
 | `click_gear_photo_change` | 장비 상세 `대표 사진 변경` (GD-4) | — |
+| `click_gear_purchase` | 장비 상세 최저가 구입하기 (GD-5) [제안] | — |
 
 **리뷰 / 검색 / 레디샷 / 인증·정보** ([Reply.md](Reply.md), [Search.md](Search.md), [ShareImage.md](ShareImage.md), [Auth.md](Auth.md))
 
