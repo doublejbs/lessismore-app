@@ -80,7 +80,6 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
 
   if (gear) {
     const isAdded = gear.isAdded();
-    const coupangUrl = warehouseDetail.getCoupangUrl();
 
     return (
       <>
@@ -100,6 +99,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
               onSelectOtherImage={handleSelectOtherImage}
               onEdit={handlePressEdit}
             />
+            <WarehouseDetailPurchaseView warehouseDetail={warehouseDetail} />
             {isAdded && (
               <WarehouseDetailBagRecordView
                 gear={gear}
@@ -112,32 +112,23 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
             <View style={styles.bottomSpacing} />
           </ScrollView>
 
-          {(coupangUrl || !isAdded) && (
+          {!isAdded && (
             <View style={styles.bottomBar}>
-              {coupangUrl && (
-                <WarehouseDetailPurchaseView warehouseDetail={warehouseDetail} />
-              )}
-              {!isAdded && (
-                <TouchableOpacity
-                  style={[
-                    styles.addButton,
-                    coupangUrl && styles.addButtonSpacing,
-                    loading && styles.disabledButton,
-                  ]}
-                  onPress={handleAddPress}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <LoadingView duration={1000} />
-                  ) : (
-                    <View style={styles.buttonContent}>
-                      <PretendardText style={styles.addButtonText}>
-                        내 창고에 추가하기
-                      </PretendardText>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity
+                style={[styles.addButton, loading && styles.disabledButton]}
+                onPress={handleAddPress}
+                disabled={loading}
+              >
+                {loading ? (
+                  <LoadingView duration={1000} />
+                ) : (
+                  <View style={styles.buttonContent}>
+                    <PretendardText style={styles.addButtonText}>
+                      내 창고에 추가하기
+                    </PretendardText>
+                  </View>
+                )}
+              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -186,7 +177,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   bottomSpacing: {
-    height: 140,
+    height: 100,
   },
   bottomBar: {
     position: 'absolute',
@@ -194,14 +185,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 20,
+    paddingVertical: 20,
     backgroundColor: 'white',
     borderTopWidth: 1,
     borderTopColor: '#F0F0F0',
-  },
-  addButtonSpacing: {
-    marginTop: 14,
   },
   addButton: {
     backgroundColor: '#000',
