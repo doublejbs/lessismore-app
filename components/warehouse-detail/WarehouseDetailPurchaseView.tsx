@@ -42,12 +42,6 @@ const WarehouseDetailPurchaseView: FC<Props> = ({ warehouseDetail }) => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 4,
-    marginTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F1F1',
     gap: 6,
   },
   link: {
