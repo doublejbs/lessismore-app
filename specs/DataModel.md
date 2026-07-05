@@ -67,6 +67,7 @@
 | `used` | string[] | "사용함"으로 기록된 배낭 ID 배열 |
 | `useless` | string[] | "사용 안 함"으로 기록된 배낭 ID 배열 |
 | `createDate` | number | 생성 시각 (epoch ms) |
+| `coupangUrl` | string | 옵셔널. 쿠팡 파트너스 최저가 구입 링크. 카탈로그 `gear/{id}`에만 두는 상품 속성 — 사용자 사본엔 복사 안 함 (GD-5) |
 
 `/gear` 카탈로그는 정리되어 대부분 `nameKorean`=한글(표시값), `name`=영문/빈 값.
 `/users/{uid}/gears`는 마이그레이션하지 않아 옛 형태(`name`=한글)일 수 있다 — `getDisplayName()` fallback으로 양쪽 모두 정상 표시.
