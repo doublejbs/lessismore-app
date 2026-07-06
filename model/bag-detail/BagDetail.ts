@@ -9,6 +9,7 @@ import Order from '@/model/order/Order';
 import GearFilter from '@/model/gear/GearFilter';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import BagDetailFilterManager from '@/model/bag-detail/BagDetailFilterManager';
+import PackingButtonState from '@/model/bag-detail/PackingButtonState';
 import { Router } from 'expo-router';
 
 class BagDetail {
@@ -46,6 +47,9 @@ class BagDetail {
   private isScrollingSyncFilter = false;
   private filterScrollViewRef: any = null;
   private filterButtonRefs: Map<string, any> = new Map();
+  private packedCount = 0;
+  private packingCompleted = false;
+  private packingStarted = false;
 
   private constructor(
     private readonly router: Router,
@@ -79,6 +83,66 @@ class BagDetail {
     this.setMemo(memo || '');
     this.calculateUsedWeight();
     this.updateUselessChecked();
+    await this.loadPackingState();
+  }
+
+  private async loadPackingState() {
+    const { packedGears, packingStartedAt, packingCompletedAt } =
+      await this.bagStore.getPackingState(this.id);
+
+    // 진행률·완료 판정은 현재 로드된 장비 기준(stale ID 무시).
+    const loadedPackedCount = this.gears.reduce(
+      (acc, gear) => (packedGears.includes(gear.getId()) ? acc + 1 : acc),
+      0
+    );
+
+    this.setPackedCount(loadedPackedCount);
+    this.setPackingCompleted(Boolean(packingCompletedAt));
+    this.setPackingStarted(Boolean(packingStartedAt) || packedGears.length > 0);
+  }
+
+  private setPackedCount(value: number) {
+    this.packedCount = value;
+  }
+
+  private setPackingCompleted(value: boolean) {
+    this.packingCompleted = value;
+  }
+
+  private setPackingStarted(value: boolean) {
+    this.packingStarted = value;
+  }
+
+  public getPackedCount() {
+    return this.packedCount;
+  }
+
+  // 배낭에 담긴 장비가 있을 때만 플로팅 버튼을 노출한다(PK-1).
+  public shouldShowPackingButton() {
+    return this.gears.length > 0;
+  }
+
+  public getPackingButtonState(): PackingButtonState {
+    if (this.packingCompleted) {
+      return PackingButtonState.Completed;
+    } else if (this.packingStarted && this.packedCount > 0) {
+      return PackingButtonState.InProgress;
+    } else {
+      return PackingButtonState.None;
+    }
+  }
+
+  // 출발까지 남은 일수(지났으면 음수).
+  private getDDay() {
+    return this.startDate.startOf('day').diff(dayjs().startOf('day'), 'day');
+  }
+
+  public goToPacking() {
+    app.getAnalyticsManager()?.logClick('packing_start', {
+      gear_count: this.gears.length,
+      d_day: this.getDDay(),
+    });
+    this.router.push(`/bag/${this.id}/packing`);
   }
 
   private updateUselessChecked() {

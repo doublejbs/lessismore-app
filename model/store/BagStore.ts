@@ -5,6 +5,7 @@ import {
   arrayRemove,
   arrayUnion,
   collection,
+  deleteField,
   doc,
   DocumentData,
   getDoc,
@@ -628,6 +629,52 @@ class BagStore {
 
   public async updateMemo(id: string, memo: string) {
     await updateDoc(doc(this.getStore(), 'bag', id), { memo });
+  }
+
+  // 패킹 상태 필드(packedGears/packingStartedAt/packingCompletedAt)만 조회한다.
+  public async getPackingState(id: string) {
+    const bagSnap = await getDoc(doc(this.getStore(), 'bag', id));
+    const data = bagSnap.data() as
+      | {
+          packedGears?: string[];
+          packingStartedAt?: string;
+          packingCompletedAt?: string;
+        }
+      | undefined;
+
+    return {
+      packedGears: data?.packedGears ?? [],
+      packingStartedAt: data?.packingStartedAt,
+      packingCompletedAt: data?.packingCompletedAt,
+    };
+  }
+
+  // 패킹 진행 상태를 저장한다. packedGears 배열은 통째로 갱신하고,
+  // 옵셔널 필드는 exactOptionalPropertyTypes를 위해 조건부 스프레드로만 넣는다.
+  // packingCompletedAt 제거는 undefined 대입이 아니라 deleteField()로 처리한다.
+  public async savePacking(
+    id: string,
+    packedGears: string[],
+    options: {
+      packingStartedAt?: string;
+      packingCompletedAt?: string;
+      removePackingCompletedAt?: boolean;
+    } = {}
+  ) {
+    const {
+      packingStartedAt,
+      packingCompletedAt,
+      removePackingCompletedAt,
+    } = options;
+
+    await updateDoc(doc(this.getStore(), 'bag', id), {
+      packedGears,
+      ...(packingStartedAt !== undefined ? { packingStartedAt } : {}),
+      ...(packingCompletedAt !== undefined ? { packingCompletedAt } : {}),
+      ...(removePackingCompletedAt
+        ? { packingCompletedAt: deleteField() }
+        : {}),
+    });
   }
 }
 
