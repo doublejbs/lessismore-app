@@ -150,14 +150,16 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   packingProgressChip: {
-    backgroundColor: '#F2F4F6',
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#191F28',
     borderRadius: 999,
     paddingHorizontal: 10,
-    paddingVertical: 3,
+    paddingVertical: 2,
   },
   packingProgressChipText: {
     fontSize: 12,
-    color: '#4E5968',
+    color: '#191F28',
   },
   actionContainer: {
     flexDirection: 'row',
