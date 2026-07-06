@@ -48,20 +48,26 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
               {bagItem.getWeight()}kg
             </PretendardText>
             {bagItem.hasPackingRecord() && (
-              <>
-                <PretendardText style={styles.weightSeparator}>·</PretendardText>
+              <View
+                style={
+                  bagItem.isPackingComplete()
+                    ? styles.packingCompleteChip
+                    : styles.packingProgressChip
+                }
+              >
                 <PretendardText
                   style={
                     bagItem.isPackingComplete()
-                      ? styles.packingCompleteText
-                      : styles.packingProgressText
+                      ? styles.packingCompleteChipText
+                      : styles.packingProgressChipText
                   }
+                  weight='medium'
                 >
                   {bagItem.isPackingComplete()
                     ? '패킹 완료'
                     : `패킹 ${bagItem.getPackingPercent()}%`}
                 </PretendardText>
-              </>
+              </View>
             )}
           </View>
         </View>
@@ -133,20 +139,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  weightSeparator: {
-    fontFamily: 'Pretendard-Regular',
-    fontSize: 14,
-    color: '#8B95A1',
+  packingCompleteChip: {
+    backgroundColor: '#191F28',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
   },
-  packingCompleteText: {
-    fontFamily: 'Pretendard-Regular',
-    fontSize: 14,
-    color: '#191F28',
+  packingCompleteChipText: {
+    fontSize: 12,
+    color: 'white',
   },
-  packingProgressText: {
-    fontFamily: 'Pretendard-Regular',
-    fontSize: 14,
-    color: '#8B95A1',
+  packingProgressChip: {
+    backgroundColor: '#F2F4F6',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  packingProgressChipText: {
+    fontSize: 12,
+    color: '#4E5968',
   },
   actionContainer: {
     flexDirection: 'row',
