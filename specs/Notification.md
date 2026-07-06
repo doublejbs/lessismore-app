@@ -15,6 +15,11 @@
 - **원격 푸시** — FCM으로 수신하는 공지. 앱은 권한/토큰 등록·수신만 담당하고, **발송은 Firebase 콘솔에서 수동**으로 한다(백엔드 코드 없음). `@react-native-firebase/messaging`.
 
 > **배포 주의**: 네이티브 모듈(expo-notifications, RNFirebase messaging) 추가라 **OTA 불가** — 새 EAS 빌드(다음 버전, 예: 1.1.7)가 필요하다. iOS는 APNs 인증 키를 Firebase 프로젝트(`lessismore-7e070`)에 등록해야 원격 푸시가 동작한다(사용자 콘솔 작업). Android는 기존 `google-services.json`으로 동작.
+>
+> **빌드 제약(1.1.7에서 실제로 겪음):**
+> - **Android 매니페스트 병합 충돌** — expo-notifications와 `@react-native-firebase/messaging`이 `com.google.firebase.messaging.default_notification_color`를 서로 다른 값(`@color/notification_icon_color` vs `@color/white`)으로 선언해 `:app:processReleaseMainManifest`가 실패한다. config plugin `plugins/WithFirebaseMessagingNotificationColor.js`가 앱 값에 `tools:replace="android:resource"`를 붙여 해소한다(app.json plugins에 등록됨).
+> - **iOS Push capability** — `ios.entitlements`에 `aps-environment`(production)를 넣어도, Apple 개발자 포털 App ID에 Push Notifications capability가 켜지고 **프로비저닝 프로파일이 재발급**돼 있어야 빌드가 통과한다. EAS `--non-interactive`는 Apple capability 동기화를 건너뛰므로, 최초 1회는 인증된(`eas build -p ios --profile production`, Apple 로그인) 실행으로 프로파일을 재발급해야 한다.
+> - 의존성 추가 후 `package-lock.json`을 반드시 갱신·커밋한다(EAS는 `npm ci`라 lock 불일치 시 Install dependencies 단계에서 실패).
 
 ## 2. 구성
 
