@@ -27,6 +27,7 @@
 | `gear-comments/{gearId}/comments/{commentId}` | 최상위 댓글 | `ReplyStore` |
 | `gear-comments/{gearId}/comments/{parentId}/comments/{replyId}` | 답글 (중첩 서브컬렉션) | `ReplyStore` |
 | `comment-likes/{userId}_{commentId}` | 댓글 좋아요 (복합 키 문서) | `ReplyStore` |
+| `config/app` | 앱 원격 설정 (강제 업데이트 최소 버전) | 강제 업데이트 게이트 (AppLifecycle APP-7) |
 
 ## 3. 문서 스키마
 
@@ -136,6 +137,19 @@
 | `uploadedBy` | string | 업로더 uid (본인만 삭제 가능) |
 | `uploadedAt` | number/timestamp | 최신순 정렬 키 |
 | `uploaderName` | string? | 업로더 닉네임 |
+
+### DM-13 `config/app` `[제안]`
+
+앱 원격 설정 단일 문서. 강제 업데이트 게이트(AppLifecycle APP-7)가 앱 시작 시 1회 읽는다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `iosMinVersion` | string? | iOS 최소 지원 버전(semver). 현재 앱 버전이 이보다 낮으면 게이트 표시. 없으면 iOS 게이트 없음 |
+| `androidMinVersion` | string? | Android 최소 지원 버전(semver). 없으면 Android 게이트 없음 |
+
+- **읽기**: 로그인 이전에도 조회하므로 미인증 공개 읽기를 허용해야 한다(`gear`/`gear-rank`와 동일 정책). 보안 규칙에 `config/app` 읽기 허용 추가 필요 — **사용자 콘솔/규칙 배포 작업**.
+- **쓰기**: Firebase 콘솔에서 수동으로만. 클라이언트는 쓰지 않는다.
+- 버전은 app.json `version`(단일 버전 소스)과 같은 체계의 `major.minor.patch` 문자열로 넣는다(예: `1.1.7`).
 
 ## 4. Storage 경로 (DM-9)
 
