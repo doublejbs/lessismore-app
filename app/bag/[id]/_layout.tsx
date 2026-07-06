@@ -10,6 +10,12 @@ const BagLayout = () => {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name='packing'
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 };
