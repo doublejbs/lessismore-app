@@ -16,6 +16,7 @@
 | [Reply.md](Reply.md) | `RP` | 장비 리뷰 — 댓글 / 답글 / 좋아요 |
 | [Bag.md](Bag.md) | `BAG` | 배낭 탭 — 목록 / 생성 / 삭제 |
 | [BagDetail.md](BagDetail.md) | `BD` | 배낭 상세 / 편집 / 메모 / 사용 여부 기록 / 링크 공유 |
+| [Packing.md](Packing.md) | `PK` | 패킹 모드 — 출발 전 짐 싸기 체크 (proposed) |
 | [ShareImage.md](ShareImage.md) | `SI` | 레디샷 — 배낭 이미지(그리드/콜라주) 생성·공유 |
 | [Search.md](Search.md) | `SR` | 검색 — Algolia 검색 / 인기 장비 순위 / 창고·배낭 추가 |
 | [Auth.md](Auth.md) | `AU` | 로그인 / 약관 동의 / 정보 탭 / 회원 탈퇴 / 웹뷰 |

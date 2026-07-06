@@ -94,6 +94,11 @@
 | `shared` | boolean | 링크 공유 여부 |
 | `memo` | string | 옵셔널 |
 | `userId` | string | 소유자 uid (공유 조회 시 장비 경로 해석에 사용) |
+| `packedGears` | string[] | `[제안]` 패킹 모드에서 챙긴 장비 ID 배열 ([Packing.md](Packing.md) PK-4). 옵셔널(기존 문서엔 없음) |
+| `packingStartedAt` | string | `[제안]` 최초 패킹 시작 시각(ISO 8601). 옵셔널 |
+| `packingCompletedAt` | string | `[제안]` 패킹 완료 시각(ISO 8601). 옵셔널 — 완료 해제·리셋 시 필드 제거 |
+
+패킹 필드는 여행 후에도 보존한다(히스토리 데이터, [Packing.md](Packing.md) §8). 배낭 복사 시에는 복사하지 않는다([Bag.md](Bag.md) BAG-4).
 
 ### DM-6 `gear-rank/{gearId}`
 
