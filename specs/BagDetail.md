@@ -5,7 +5,7 @@
 | 상태 | as-built (2026-06-10 코드 기준) |
 | ID 프리픽스 | `BD` |
 | 주요 코드 | `app/bag/[id]/`, `app/useless/[id]/`, `components/bag-detail/`, `components/bag-edit/`, `components/bag-useless/`, `model/bag-detail/`, `model/bag-edit/`, `model/bag-useless/`, `model/store/BagStore.ts` |
-| 관련 스펙 | [DataModel.md](DataModel.md), [Bag.md](Bag.md), [ShareImage.md](ShareImage.md), [GearEdit.md](GearEdit.md) |
+| 관련 스펙 | [DataModel.md](DataModel.md), [Bag.md](Bag.md), [ShareImage.md](ShareImage.md), [GearEdit.md](GearEdit.md), [Packing.md](Packing.md) |
 
 ## 1. 개요
 
@@ -21,6 +21,7 @@
 | `/bag/[id]/memo` | BagMemoInputView | 메모 작성/삭제 |
 | `/useless/[id]` | BagUselessView | "실제로 사용한 장비" 체크 |
 | `/share-image/[id]` | — | 레디샷 ([ShareImage.md](ShareImage.md)) |
+| `/bag/[id]/packing` | BagPackingView | 패킹 모드 ([Packing.md](Packing.md)) `[제안]` |
 
 ## 3. 요구사항
 
@@ -98,6 +99,14 @@
 - 헤더 우측 공유 아이콘 왼쪽에 복사 아이콘을 표시한다 (44pt 이상 히트 영역).
 - 복사 아이콘 → 복사 모달을 띄운다. 모달·프리필(`{이름} 복사본`)·날짜 기본값·확정·토스트 동작은 [Bag.md](Bag.md) BAG-4와 동일하다.
 - 확정 시 복사본 상세를 push로 열고 **곧바로 장비 편집 화면을 연다** (뒤로가기 → 복사본 상세 → 원본 상세).
+
+### BD-9 패킹 시작 진입 `[제안]`
+
+사용자는 상세에서 패킹 모드로 들어갈 수 있다.
+
+**수용 기준**
+
+- 상세 우하단에 패킹 진입 플로팅 버튼을 표시한다 (하단 `수정하기` 바 위). 노출 조건·스타일·상태별 라벨·이동 동작은 [Packing.md](Packing.md) **PK-1**을 따른다.
 
 ## 4. 데이터
 

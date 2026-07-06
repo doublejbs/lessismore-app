@@ -16,6 +16,7 @@ import BagDetailFiltersView from './BagDetailFiltersView';
 import BagDetailNameView from './BagDetailNameView';
 import BagDetailUselessDescriptionView from './BagDetailUselessDescriptionView';
 import BagDetailAddButtonView from './BagDetailAddButtonView';
+import BagPackingFloatingButtonView from './BagPackingFloatingButtonView';
 import BagDetailMemoView from './BagDetailMemoView';
 import ShareButtonView from './ShareButtonView';
 import BagDetailCopyView from '../bag/BagDetailCopyView';
@@ -122,6 +123,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               </View>
             </View>
           </ScrollView>
+          <BagPackingFloatingButtonView bagDetail={bagDetail} />
           <BagDetailAddButtonView bagDetail={bagDetail} />
         </View>
         <ToastView toastManager={app.getToastManager()!} bottom={100} />
