@@ -29,7 +29,9 @@ const BagPackingHeaderView: FC<Props> = ({ bagPacking }) => {
   }, [percent, progress]);
 
   const barStyle = useAnimatedStyle(() => ({
-    width: `${progress.value}%`,
+    // 스프링 오버슈트로 0 미만/100 초과가 되면 width 퍼센트가 무효 값이 되어
+    // 순간 풀폭으로 렌더되는 버그가 있어 0~100으로 클램프한다.
+    width: `${Math.min(100, Math.max(0, progress.value))}%`,
   }));
 
   return (
