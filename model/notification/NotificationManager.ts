@@ -333,8 +333,8 @@ class NotificationManager {
 
     await this.scheduleLocal(
       identifier,
-      `${name} 여행 하루 전! 패킹을 확인해보세요`,
-      '',
+      `${name} 여행 하루 전!`,
+      '패킹을 확인해보세요',
       date,
       { route: `/bag/${id}` }
     );
@@ -357,8 +357,8 @@ class NotificationManager {
 
     await this.scheduleLocal(
       identifier,
-      `${name} 여행 잘 다녀오셨나요? 사용한 장비를 확인해보세요.`,
-      '',
+      `${name} 여행 잘 다녀오셨나요?`,
+      '사용한 장비를 확인해보세요.',
       date,
       { route: `/useless/${id}` }
     );
