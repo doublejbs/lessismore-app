@@ -56,7 +56,7 @@ app/(tabs)/bag.tsx → BagView
 - 목록 행의 삭제 버튼 → 확인 다이얼로그(`{이름} 배낭을 삭제할까요?`, 확인 버튼 `삭제`)를 거친다.
 - 확인 시 배치로: 담긴 모든 장비의 `bags`/`used`/`useless` 배열에서 해당 배낭 ID 제거 → `bag/{id}` 삭제 → `users/{uid}.bags`에서 제거 ([DataModel.md](DataModel.md) DM-11).
 
-### BAG-4 배낭 복사
+### BAG-4 배낭 복사 `[제안: 패킹 상태 복사 제외 추가]`
 
 사용자는 기존 배낭을 복제해 비슷한 구성의 새 배낭을 빠르게 만들 수 있다.
 
@@ -73,6 +73,7 @@ app/(tabs)/bag.tsx → BagView
   - `gears` / `weight`: 원본 그대로
   - `shared`: `false`, `editDate`: 복사 시점, `userId`: 현재 uid
   - `memo`: 복사하지 않는다 (여행 1회에 종속된 기록이므로)
+  - `packedGears` / `packingStartedAt` / `packingCompletedAt`: 복사하지 않는다 — 패킹은 여행 1회에 종속 (`memo`와 동일 원칙, [Packing.md](Packing.md) PK-4)
 - 배치로 함께 갱신한다 ([DataModel.md](DataModel.md) DM-11): 새 `bag` 문서 생성 + 담긴 각 장비의 `bags`에 새 배낭 ID 추가 + `users/{uid}.bags`에 추가.
   장비의 `used`/`useless`에는 추가하지 않는다 — **사용 여부 기록은 복사되지 않는다.**
 - 복사 완료 후 생성(BAG-2)과 동일하게 `/bag/{새 id}` 상세로 이동한 뒤 **곧바로 장비 편집 화면을 연다**. 완료 토스트(`복사됐습니다`)를 표시한다. 목록 복귀 시 갱신된 목록에 복사본이 표시된다.

@@ -66,6 +66,15 @@
 | `click_memo_delete` | 메모 삭제 확정 (BD-6) | — |
 | `click_readyshot` | 상세 `레디샷 만들기` 행 | — |
 
+**패킹** ([Packing.md](Packing.md)) `[제안]`
+
+| 이벤트 | 트리거 | 파라미터 |
+| --- | --- | --- |
+| `click_packing_start` | 상세 패킹 CTA (PK-1) | `gear_count`: 장비 수, `d_day`: 출발까지 일수(지났으면 음수) |
+| `click_packing_toggle` | 패킹 모드 행 토글 (PK-2) | `packed`: boolean |
+| `click_packing_complete` | 전체 챙김 도달 (PK-5) | `gear_count`, `duration_seconds`: `packingStartedAt`→완료, `d_day` |
+| `click_packing_exit` | 미완료 상태로 패킹 모드 이탈 (PK-4) | `progress_percent`: 0~100 정수 |
+
 **창고 / 장비 상세 / 장비 편집** ([Warehouse.md](Warehouse.md), [GearDetail.md](GearDetail.md), [GearEdit.md](GearEdit.md))
 
 | 이벤트 | 트리거 | 파라미터 |
