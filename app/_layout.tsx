@@ -66,6 +66,30 @@ const RootLayout = () => {
     analyticsManager.logScreenView(segments.join('/') || 'index');
   }, [segments, isInitialized]);
 
+  useEffect(() => {
+    if (!isInitialized) {
+      return;
+    }
+
+    // 초기화 완료 후 알림 권한 요청·리스너 등록을 1회 수행한다. (웹은 no-op)
+    void app.getNotificationManager()?.initialize();
+  }, [isInitialized]);
+
+  useEffect(() => {
+    if (!isInitialized) {
+      return;
+    }
+
+    // 알림 탭 시 페이로드의 route로 이동한다. 콜드스타트 응답은 매니저가 버퍼링해 전달한다. (웹은 no-op)
+    const unsubscribe = app.getNotificationManager()?.addResponseRouteListener(route => {
+      router.push(route as never);
+    });
+
+    return () => {
+      unsubscribe?.();
+    };
+  }, [isInitialized, router]);
+
   if (!loaded || !isInitialized) {
     // Async font loading only occurs in development.
     return <SplashLoadingView />;

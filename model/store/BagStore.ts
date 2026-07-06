@@ -22,6 +22,7 @@ import GearFilter from '../gear/GearFilter';
 import Firebase from '../firebase/Firebase';
 import { GearData } from './GearStore';
 import BagItem from '../bag/BagItem';
+import app from '../app/App';
 
 class BagStore {
   public constructor(private readonly firebase: Firebase) {}
@@ -315,6 +316,10 @@ class BagStore {
       bags: arrayUnion(docRef.id),
     });
 
+    void app
+      .getNotificationManager()
+      ?.scheduleBagReminders(docRef.id, name, startDate, endDate);
+
     return docRef.id;
   }
 
@@ -367,6 +372,10 @@ class BagStore {
     });
 
     await batch.commit();
+
+    void app
+      .getNotificationManager()
+      ?.scheduleBagReminders(newBagRef.id, name, startDate, endDate);
 
     return newBagRef.id;
   }
@@ -504,6 +513,8 @@ class BagStore {
       await updateDoc(doc(this.getStore(), 'users', this.getUserID()), {
         bags: arrayRemove(id),
       });
+
+      void app.getNotificationManager()?.cancelBagReminders(id);
     } catch (e) {
       console.error('배낭 삭제 중 오류 발생:', e);
       throw e;
@@ -604,6 +615,15 @@ class BagStore {
       startDate,
       endDate,
     });
+
+    const bagSnap = await getDoc(doc(this.getStore(), 'bag', id));
+    const name = bagSnap.data()?.name;
+
+    if (typeof name === 'string') {
+      void app
+        .getNotificationManager()
+        ?.scheduleBagReminders(id, name, dayjs(startDate), dayjs(endDate));
+    }
   }
 
   public async updateMemo(id: string, memo: string) {

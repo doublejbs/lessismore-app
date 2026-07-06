@@ -8,11 +8,18 @@ interface PretendardTextProps extends TextProps {
 const PretendardText: React.FC<PretendardTextProps> = ({
   style,
   weight = 'regular',
+  lineBreakStrategyIOS = 'hangul-word',
   ...props
 }) => {
   const fontFamily = getFontFamily(weight);
 
-  return <Text style={[{ fontFamily, color: '#000000' }, style]} {...props} />;
+  return (
+    <Text
+      style={[{ fontFamily, color: '#000000' }, style]}
+      lineBreakStrategyIOS={lineBreakStrategyIOS}
+      {...props}
+    />
+  );
 };
 
 const getFontFamily = (

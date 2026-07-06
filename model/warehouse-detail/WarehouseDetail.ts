@@ -1,4 +1,5 @@
 import { makeAutoObservable } from 'mobx';
+import { Linking } from 'react-native';
 import { Router } from 'expo-router';
 import WarehouseDispatcherType from '../warehouse/WarehouseDispatcherType';
 import BagStore from '../store/BagStore';
@@ -49,6 +50,7 @@ class WarehouseDetail {
   private id: string = '';
   private showAddToBagModal = false;
   private gearImageSelection: GearImageSelection | null = null;
+  private coupangUrl: string | undefined = undefined;
 
   private constructor(
     private readonly bagStore: BagStore,
@@ -91,8 +93,34 @@ class WarehouseDetail {
         gear.getIsCustom()
       );
       await this.gearImageSelection.loadImages();
+      this.setCoupangUrl(await this.gearStore.getCoupangUrl(this.id));
     } else {
       this.gearImageSelection = null;
+      this.setCoupangUrl(undefined);
+    }
+  }
+
+  private setCoupangUrl(value: string | undefined) {
+    this.coupangUrl = value;
+  }
+
+  public getCoupangUrl() {
+    return this.coupangUrl;
+  }
+
+  public async openCoupangUrl() {
+    const url = this.getCoupangUrl();
+
+    if (!url) {
+      return;
+    }
+
+    app.getAnalyticsManager()?.logClick('gear_purchase');
+
+    try {
+      await Linking.openURL(url);
+    } catch {
+      // 링크 열기 실패는 조용히 무시
     }
   }
 

@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import WarehouseDetailInformationView from './WarehouseDetailInformationView';
+import WarehouseDetailPurchaseView from './WarehouseDetailPurchaseView';
 import WarehouseDetailBagRecordView from './WarehouseDetailBagRecordView';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
@@ -98,6 +99,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
               onSelectOtherImage={handleSelectOtherImage}
               onEdit={handlePressEdit}
             />
+            <WarehouseDetailPurchaseView warehouseDetail={warehouseDetail} />
             {isAdded && (
               <WarehouseDetailBagRecordView
                 gear={gear}
@@ -111,7 +113,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
           </ScrollView>
 
           {!isAdded && (
-            <View style={styles.bottomButtonContainer}>
+            <View style={styles.bottomBar}>
               <TouchableOpacity
                 style={[styles.addButton, loading && styles.disabledButton]}
                 onPress={handleAddPress}
@@ -177,7 +179,7 @@ const styles = StyleSheet.create({
   bottomSpacing: {
     height: 100,
   },
-  bottomButtonContainer: {
+  bottomBar: {
     position: 'absolute',
     bottom: 0,
     left: 0,

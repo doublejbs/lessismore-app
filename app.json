@@ -2,7 +2,7 @@
   "expo": {
     "name": "useless",
     "slug": "lessismore-app",
-    "version": "1.1.6",
+    "version": "1.1.7",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "lessismoreapp",
@@ -16,6 +16,9 @@
         "ITSAppUsesNonExemptEncryption": false,
         "WKCompanionAppBundleIdentifier": "",
         "WatchKitApp": false
+      },
+      "entitlements": {
+        "aps-environment": "production"
       },
       "usesAppleSignIn": true,
       "appleTeamId": "NFV6WC2X83"
@@ -85,7 +88,15 @@
         }
       ],
       "expo-font",
-      "./plugins/WithMlKitVisionDependencies.js"
+      "./plugins/WithMlKitVisionDependencies.js",
+      "./plugins/WithFirebaseMessagingNotificationColor.js",
+      "@react-native-firebase/messaging",
+      [
+        "expo-notifications",
+        {
+          "color": "#151515"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
