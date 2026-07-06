@@ -66,7 +66,7 @@
 | `click_memo_delete` | 메모 삭제 확정 (BD-6) | — |
 | `click_readyshot` | 상세 `레디샷 만들기` 행 | — |
 
-**패킹** ([Packing.md](Packing.md)) `[제안]`
+**패킹** ([Packing.md](Packing.md))
 
 | 이벤트 | 트리거 | 파라미터 |
 | --- | --- | --- |
