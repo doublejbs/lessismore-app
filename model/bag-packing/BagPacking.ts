@@ -28,6 +28,7 @@ class BagPacking {
   private packingStartedAt: string | undefined;
   private packingCompletedAt: string | undefined;
   private initialized = false;
+  private completeCardDismissed = false;
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
   private pendingSave = false;
 
@@ -209,6 +210,8 @@ class BagPacking {
     if (this.isComplete()) {
       if (!this.packingCompletedAt) {
         this.setPackingCompletedAt(new Date().toISOString());
+        // 새로 완료에 도달하면 닫았던 완료 카드를 다시 노출한다(PK-5).
+        this.setCompleteCardDismissed(false);
         this.logComplete();
       }
     } else {
@@ -216,6 +219,20 @@ class BagPacking {
         this.setPackingCompletedAt(undefined);
       }
     }
+  }
+
+  // 완료 카드는 완료 상태이고 사용자가 닫지 않았을 때만 노출한다(PK-5).
+  public shouldShowCompleteCard() {
+    return this.isComplete() && !this.completeCardDismissed;
+  }
+
+  // 완료 카드 `닫기` — 카드만 닫고 패킹 화면에 남는다(PK-5).
+  public dismissCompleteCard() {
+    this.setCompleteCardDismissed(true);
+  }
+
+  private setCompleteCardDismissed(value: boolean) {
+    this.completeCardDismissed = value;
   }
 
   private logComplete() {

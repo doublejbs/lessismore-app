@@ -18,7 +18,7 @@ const BagPackingCompleteView: FC<Props> = ({ bagPacking }) => {
   };
 
   const handlePressClose = () => {
-    void bagPacking.close();
+    bagPacking.dismissCompleteCard();
   };
 
   return (
