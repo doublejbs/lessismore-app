@@ -36,7 +36,7 @@ const BagPackingView: FC<Props> = ({ bagPacking }) => {
   }
 
   const isEmpty = bagPacking.isEmpty();
-  const isComplete = bagPacking.isComplete();
+  const showCompleteCard = bagPacking.shouldShowCompleteCard();
   const categories = bagPacking.getGearsByCategory();
 
   return (
@@ -81,7 +81,7 @@ const BagPackingView: FC<Props> = ({ bagPacking }) => {
           </>
         )}
 
-        {isComplete && <BagPackingCompleteView bagPacking={bagPacking} />}
+        {showCompleteCard && <BagPackingCompleteView bagPacking={bagPacking} />}
       </View>
     </SafeAreaView>
   );
