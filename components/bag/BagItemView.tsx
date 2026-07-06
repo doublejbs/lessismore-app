@@ -43,9 +43,27 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
             </PretendardText>
             <PretendardText style={styles.date}>{date}</PretendardText>
           </View>
-          <PretendardText style={styles.weight}>
-            {bagItem.getWeight()}kg
-          </PretendardText>
+          <View style={styles.weightContainer}>
+            <PretendardText style={styles.weight}>
+              {bagItem.getWeight()}kg
+            </PretendardText>
+            {bagItem.hasPackingRecord() && (
+              <>
+                <PretendardText style={styles.weightSeparator}>·</PretendardText>
+                <PretendardText
+                  style={
+                    bagItem.isPackingComplete()
+                      ? styles.packingCompleteText
+                      : styles.packingProgressText
+                  }
+                >
+                  {bagItem.isPackingComplete()
+                    ? '패킹 완료'
+                    : `패킹 ${bagItem.getPackingPercent()}%`}
+                </PretendardText>
+              </>
+            )}
+          </View>
         </View>
         <View style={styles.actionContainer}>
           <BagCopyView bagItem={bagItem} />
@@ -109,6 +127,26 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Bold',
     fontSize: 16,
     color: '#000000',
+  },
+  weightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  weightSeparator: {
+    fontFamily: 'Pretendard-Regular',
+    fontSize: 14,
+    color: '#8B95A1',
+  },
+  packingCompleteText: {
+    fontFamily: 'Pretendard-Regular',
+    fontSize: 14,
+    color: '#191F28',
+  },
+  packingProgressText: {
+    fontFamily: 'Pretendard-Regular',
+    fontSize: 14,
+    color: '#8B95A1',
   },
   actionContainer: {
     flexDirection: 'row',
