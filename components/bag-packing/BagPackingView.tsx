@@ -8,6 +8,7 @@ import BagPacking from '@/model/bag-packing/BagPacking';
 import BagPackingHeaderView from './BagPackingHeaderView';
 import BagPackingCategorySectionView from './BagPackingCategorySectionView';
 import BagPackingCompleteView from './BagPackingCompleteView';
+import AlertView from '@/components/alert/AlertView';
 import app from '@/model/app/App';
 
 interface Props {
@@ -83,6 +84,7 @@ const BagPackingView: FC<Props> = ({ bagPacking }) => {
 
         {showCompleteCard && <BagPackingCompleteView bagPacking={bagPacking} />}
       </View>
+      <AlertView alertManager={app.getAlertManager()!} />
     </SafeAreaView>
   );
 };
