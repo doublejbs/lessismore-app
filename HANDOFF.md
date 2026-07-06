@@ -9,20 +9,21 @@
 | 플랫폼 | 상태 | 비고 |
 | --- | --- | --- |
 | Android | ✅ EAS 빌드 성공(versionCode **35**), Play Console **스토어 제출 완료** | |
-| iOS | ⏳ 빌드 실패 — 프로비저닝 프로파일에 Push capability 없음 | Apple 서버 점검(maintenance)으로 프로파일 재발급 API가 막힘. 점검 풀리면 재시도 |
+| iOS | ✅ EAS 빌드 성공 + **App Store Connect 심사 제출 완료**(2026-07-06) | 프로파일 재발급(push capability 포함)으로 해결. Apple 점검 해제 후 진행 |
 
-### iOS 재개 방법 (Apple 점검 풀린 뒤)
+### iOS 빌드 성공 방법 (해결 이력)
 
-워크트리(또는 1.1.7 코드가 있는 디렉토리)에서:
+메인 워크스페이스(1.1.7 코드가 있는 디렉토리)에서, 레지스트리 프리픽스를 붙여 인터랙티브 실행:
 
 ```bash
-npx eas-cli build -p ios --profile production
+npm_config_registry=https://registry.npmjs.org npx eas-cli build -p ios --profile production
 ```
 
 - Apple ID 로그인 프롬프트 → 인증(2FA).
 - `Would you like to reuse the original profile?` → **`no`** (새로 발급받아야 aps-environment가 들어감).
-- 성공하면 이후 non-interactive로 빌드 이어받기 가능.
+- `Generate a new Apple Provisioning Profile?` → **`Y`** (push capability 포함해 재발급).
 - 참고: EAS `--non-interactive`는 **Apple capability 동기화를 건너뛴다** → 최초 1회는 반드시 인증 실행 필요.
+- 이 머신은 `~/.npmrc`가 사내 artifactory라 `npm_config_registry` 프리픽스 없으면 FETCH_ERROR로 실패함.
 
 ### 1.1.7 빌드가 3번 실패했던 원인 (모두 수정·머지 완료)
 
@@ -32,9 +33,10 @@ npx eas-cli build -p ios --profile production
 
 ### 1.1.7 남은 일
 
-- [ ] Apple 점검 후 iOS 빌드 성공
-- [ ] 실기기 알림 검증: 로컬 리마인더(배낭 D-1/사용기록) + Firebase 콘솔 토픽 `all` 테스트 푸시(iOS는 APNs 키 등록 완료 상태)
-- [ ] develop → main 릴리스 머지 (사용자 결정) + 스토어 심사/출시
+- [x] iOS 빌드 성공 + App Store Connect 심사 제출 완료 (2026-07-06)
+- [ ] 실기기 알림 검증: 로컬 리마인더(배낭 D-1/사용기록) + Firebase 콘솔 토픽 `all` 테스트 푸시(iOS는 APNs 키 등록 완료 상태). 탭 라우팅 3상태(포그라운드/백그라운드/콜드 스타트) 확인
+- [ ] iOS/Android 심사 통과 후 스토어 출시
+- [ ] develop → main 릴리스 머지 (사용자 결정)
 
 ## 2. 진행 중 기능: 스토어 강제 업데이트 게이트 (미구현, 스펙 확정 대기)
 
