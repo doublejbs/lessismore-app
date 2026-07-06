@@ -43,9 +43,33 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
             </PretendardText>
             <PretendardText style={styles.date}>{date}</PretendardText>
           </View>
-          <PretendardText style={styles.weight}>
-            {bagItem.getWeight()}kg
-          </PretendardText>
+          <View style={styles.weightContainer}>
+            <PretendardText style={styles.weight}>
+              {bagItem.getWeight()}kg
+            </PretendardText>
+            {bagItem.hasPackingRecord() && (
+              <View
+                style={
+                  bagItem.isPackingComplete()
+                    ? styles.packingCompleteChip
+                    : styles.packingProgressChip
+                }
+              >
+                <PretendardText
+                  style={
+                    bagItem.isPackingComplete()
+                      ? styles.packingCompleteChipText
+                      : styles.packingProgressChipText
+                  }
+                  weight='medium'
+                >
+                  {bagItem.isPackingComplete()
+                    ? '패킹 완료'
+                    : `패킹 ${bagItem.getPackingPercent()}%`}
+                </PretendardText>
+              </View>
+            )}
+          </View>
         </View>
         <View style={styles.actionContainer}>
           <BagCopyView bagItem={bagItem} />
@@ -109,6 +133,33 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Bold',
     fontSize: 16,
     color: '#000000',
+  },
+  weightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  packingCompleteChip: {
+    backgroundColor: '#191F28',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  packingCompleteChipText: {
+    fontSize: 12,
+    color: 'white',
+  },
+  packingProgressChip: {
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#191F28',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+  },
+  packingProgressChipText: {
+    fontSize: 12,
+    color: '#191F28',
   },
   actionContainer: {
     flexDirection: 'row',

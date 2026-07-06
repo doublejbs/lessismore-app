@@ -156,3 +156,4 @@ app/bag/[id]/packing.tsx → BagPackingWrapper → BagPackingView
 
 - NT-2 알림의 딥링크를 `/bag/{id}/packing` 직행으로 바꿀지 — 예약 시점에 payload가 고정되므로 변경해도 기존 예약분은 옛 경로 유지. 패킹 모드 안착 후 재논의.
 - 항목별 `packedAt`(챙긴 시각) 기록 — v1 미포함. 필요 시 맵 필드로 추가(마이그레이션 불필요).
+- **완료 판정 소스 불일치 가능성**: 패킹 완료 후 배낭 편집으로 장비를 추가하면, 목록(BAG-1)은 교집합 퍼센트 기준이라 `패킹 {percent}%`로 되돌아가지만 상세 플로팅 버튼(PK-1)은 `packingCompletedAt` 존재 기준이라 `패킹 완료`로 남는다. 실사용 빈도가 낮아 수용 — 거슬리면 gears 변경 시 `packingCompletedAt` 해제 또는 버튼도 퍼센트 기준으로 통일을 검토.

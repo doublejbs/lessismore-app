@@ -285,7 +285,7 @@ class BagStore {
   private convertToArray(data: QuerySnapshot<DocumentData, DocumentData>) {
     const result: BagItem[] = [];
     data.forEach(doc => {
-      const { name, weight, editDate, startDate, endDate } = doc.data();
+      const { name, weight, editDate, startDate, endDate, gears, packedGears } = doc.data();
 
       result.push(
         new BagItem(
@@ -294,7 +294,9 @@ class BagStore {
           weight,
           dayjs(editDate),
           dayjs(startDate),
-          dayjs(endDate)
+          dayjs(endDate),
+          gears ?? [],
+          packedGears ?? []
         )
       );
     });
