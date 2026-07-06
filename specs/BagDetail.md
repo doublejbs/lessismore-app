@@ -21,7 +21,7 @@
 | `/bag/[id]/memo` | BagMemoInputView | 메모 작성/삭제 |
 | `/useless/[id]` | BagUselessView | "실제로 사용한 장비" 체크 |
 | `/share-image/[id]` | — | 레디샷 ([ShareImage.md](ShareImage.md)) |
-| `/bag/[id]/packing` | BagPackingView | 패킹 모드 ([Packing.md](Packing.md)) `[제안]` |
+| `/bag/[id]/packing` | BagPackingView | 패킹 모드 ([Packing.md](Packing.md)) |
 
 ## 3. 요구사항
 
@@ -100,7 +100,7 @@
 - 복사 아이콘 → 복사 모달을 띄운다. 모달·프리필(`{이름} 복사본`)·날짜 기본값·확정·토스트 동작은 [Bag.md](Bag.md) BAG-4와 동일하다.
 - 확정 시 복사본 상세를 push로 열고 **곧바로 장비 편집 화면을 연다** (뒤로가기 → 복사본 상세 → 원본 상세).
 
-### BD-9 패킹 시작 진입 `[제안]`
+### BD-9 패킹 시작 진입
 
 사용자는 상세에서 패킹 모드로 들어갈 수 있다.
 
