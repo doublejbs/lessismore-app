@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | proposed (2026-07-06) |
+| 상태 | as-built (2026-07-06 구현) |
 | ID 프리픽스 | `PK` |
 | 주요 코드 | `app/bag/[id]/packing.tsx`, `components/bag-packing/`, `model/bag-packing/`, `model/store/BagStore.ts` |
 | 관련 스펙 | [BagDetail.md](BagDetail.md), [Bag.md](Bag.md), [DataModel.md](DataModel.md), [Analytics.md](Analytics.md), [Notification.md](Notification.md), [ShareImage.md](ShareImage.md) |
@@ -24,11 +24,11 @@ app/bag/[id]/packing.tsx → BagPackingWrapper → BagPackingView
 ```
 
 - 진입 경로: 배낭 상세(`/bag/[id]`)의 `패킹 시작` CTA ([BagDetail.md](BagDetail.md) BD-9) → `/bag/[id]/packing` push.
-- 도메인 객체: `BagPacking.from(router, bagId)` — `BagDetail`과 동일하게 `app` 싱글톤에서 `BagStore`/`GearStore` 주입.
+- 도메인 객체: `BagPacking.from(router, bagId)` — `app` 싱글톤에서 `BagStore`·`AnalyticsManager`를 주입받고 `BagDetailFilterManager`로 카테고리 그룹핑 (장비 로드는 `BagStore.getBagWithAllFilter`가 담당하므로 `GearStore` 불필요).
 
 ## 3. 요구사항
 
-### PK-1 패킹 시작 진입 `[제안]`
+### PK-1 패킹 시작 진입
 
 사용자는 배낭 상세에서 패킹 모드로 들어갈 수 있다.
 
@@ -43,7 +43,7 @@ app/bag/[id]/packing.tsx → BagPackingWrapper → BagPackingView
   - 완료(`packingCompletedAt` 존재) → `패킹 완료` (재진입 가능)
 - 탭 → `/bag/[id]/packing` 이동. 터치 타깃 44pt 이상.
 
-### PK-2 패킹 모드 화면 `[제안]`
+### PK-2 패킹 모드 화면
 
 사용자는 배낭의 장비를 카테고리별로 보며 하나씩 "챙김" 처리할 수 있다.
 
@@ -55,7 +55,7 @@ app/bag/[id]/packing.tsx → BagPackingWrapper → BagPackingView
 - 토글 시 스프링 기반 전환 애니메이션을 준다 (햅틱·진동 없음. 신규 네이티브 의존성 금지 — OTA 배포 가능 범위 유지).
 - 화면은 push로 열리는 전체 화면이며, 뒤로가기로 언제든 이탈 가능하다 (블로킹 아님).
 
-### PK-3 진행률 표시 `[제안]`
+### PK-3 진행률 표시
 
 사용자는 얼마나 쌌는지 개수·퍼센트·무게로 확인할 수 있다.
 
@@ -67,7 +67,7 @@ app/bag/[id]/packing.tsx → BagPackingWrapper → BagPackingView
   - **챙긴 무게**: `{챙긴 장비 무게 합}kg / {배낭 총 무게}kg` (kg, 소수점 둘째 자리 반올림 — BD-5 `usedWeight` 표기 규칙과 동일)
 - 무게 합산은 기존 규칙(DM-3 `weight` g 단위, `parseInt`/`Number` 변환 후 합산)을 따른다.
 
-### PK-4 패킹 상태 저장·복원 `[제안]`
+### PK-4 패킹 상태 저장·복원
 
 패킹 진행 상태는 배낭에 저장되어 이탈 후 재진입해도 이어진다.
 
@@ -80,7 +80,7 @@ app/bag/[id]/packing.tsx → BagPackingWrapper → BagPackingView
 - 헤더 메뉴에 `처음부터 다시`를 제공한다 — 확인 다이얼로그 후 `packedGears`를 비우고 `packingCompletedAt`을 제거한다.
 - 저장 실패는 앱 동작을 막지 않는다 (Firestore 오프라인 persistence로 오프라인에서도 동작, 재접속 시 동기화).
 
-### PK-5 패킹 완료 `[제안]`
+### PK-5 패킹 완료
 
 모든 장비를 챙기면 완료 상태가 된다.
 
@@ -94,7 +94,7 @@ app/bag/[id]/packing.tsx → BagPackingWrapper → BagPackingView
 - 완료 시 `packingCompletedAt`을 기록한다.
 - 완료 후 항목을 해제해 전체 미만이 되면 완료 상태를 해제한다 (`packingCompletedAt` 제거, 완료 카드 닫힘).
 
-### PK-6 클릭 로그 `[제안]`
+### PK-6 클릭 로그
 
 - [Analytics.md](Analytics.md) AN-3의 "패킹" 표에 정의된 이벤트를 각 트리거에서 전송한다. 화면 조회(`bag/[id]/packing`)는 AN-2가 자동 수집.
 
