@@ -1,14 +1,9 @@
 import React, { FC } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-  Platform,
-} from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Image, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
+import PretendardText from '@/components/PretendardText';
+import { Color } from '@/constants/DesignTokens';
 
 interface Props {
   isLoggedIn: boolean;
@@ -25,14 +20,18 @@ const InfoFooterView: FC<Props> = ({ isLoggedIn }) => {
           onPress={() => router.push('/info/delete')}
           activeOpacity={0.7}
         >
-          <Text style={styles.deleteAccountText}>탈퇴하기</Text>
+          <PretendardText style={styles.deleteAccountText}>
+            탈퇴하기
+          </PretendardText>
         </TouchableOpacity>
       )}
-      <Text style={styles.versionText}>버전 {appVersion}</Text>
+      <PretendardText style={styles.versionText}>
+        버전 {appVersion}
+      </PretendardText>
       <View style={styles.appInfoContainer}>
-        <Text style={styles.appInfoText}>
+        <PretendardText style={styles.appInfoText}>
           Copyright 2025 useless. All rights reserved.
-        </Text>
+        </PretendardText>
       </View>
       <View style={styles.imageContainer}>
         <Image
@@ -57,18 +56,18 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 60 : 0,
     paddingHorizontal: 16,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
-    backgroundColor: '#fff',
+    borderTopColor: Color.borderLight,
+    backgroundColor: Color.background,
     gap: 8,
   },
   deleteAccountText: {
     fontSize: 12,
-    color: '#666',
+    color: Color.textTertiary,
     textDecorationLine: 'underline',
   },
   versionText: {
     fontSize: 11,
-    color: '#999',
+    color: Color.textSecondary,
   },
   appInfoContainer: {
     flexDirection: 'row',
@@ -76,7 +75,7 @@ const styles = StyleSheet.create({
   },
   appInfoText: {
     fontSize: 11,
-    color: '#999',
+    color: Color.textSecondary,
   },
   imageContainer: {
     flexDirection: 'row',

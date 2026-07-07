@@ -1,7 +1,6 @@
 import React, { FC, useState } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
@@ -18,6 +17,8 @@ import app from '@/model/app/App';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import InfoFooterView from '@/components/info/InfoFooterView';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 const privacyPolicyText = `Useless(이하 '회사'라 한다)는 개인정보 보호법 제30조에 따라 정보 주체의 개인정보를 보호하고 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 하기 위하여 다음과 같이 개인정보 처리지침을 수립, 공개합니다.
 
@@ -174,20 +175,26 @@ const InfoView: FC = () => {
               onPress={handleEditNickname}
               activeOpacity={0.7}
             >
-              <Text style={styles.setNicknameButtonText}>닉네임 설정하기</Text>
+              <PretendardText weight='bold' style={styles.setNicknameButtonText}>
+                닉네임 설정하기
+              </PretendardText>
             </TouchableOpacity>
           ) : (
             <View style={styles.nicknameContainer}>
-              <Text style={styles.headerText}>
+              <PretendardText weight='bold' style={styles.headerText}>
                 {isLoggedIn && nickname ? nickname : '내 정보'}
-              </Text>
+              </PretendardText>
               {isLoggedIn && nickname && (
                 <TouchableOpacity
                   style={styles.editIconButton}
                   onPress={handleEditNickname}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name='create-outline' size={20} color='#666' />
+                  <Ionicons
+                    name='create-outline'
+                    size={20}
+                    color={Color.textSecondary}
+                  />
                 </TouchableOpacity>
               )}
             </View>
@@ -195,55 +202,78 @@ const InfoView: FC = () => {
         </View>
         {isLoggedIn ? (
           <TouchableOpacity
-            style={[styles.button, styles.buttonMargin]}
+            style={styles.button}
             onPress={handleLogout}
             activeOpacity={0.7}
           >
-            <Text style={styles.buttonText}>로그아웃</Text>
+            <PretendardText weight='semibold' style={styles.buttonText}>
+              로그아웃
+            </PretendardText>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            style={[styles.button, styles.buttonMargin]}
+            style={styles.button}
             onPress={handleLogin}
             activeOpacity={0.7}
           >
-            <Text style={styles.buttonText}>로그인</Text>
+            <PretendardText weight='semibold' style={styles.buttonText}>
+              로그인
+            </PretendardText>
           </TouchableOpacity>
         )}
 
         <TouchableOpacity
-          style={[styles.button, styles.buttonMargin]}
+          style={styles.button}
           onPress={handleOpenNotificationSettings}
           activeOpacity={0.7}
         >
-          <Text style={styles.buttonText}>알림 설정</Text>
+          <PretendardText weight='semibold' style={styles.buttonText}>
+            알림 설정
+          </PretendardText>
+          <Ionicons
+            name='chevron-forward'
+            size={18}
+            color={Color.iconMuted}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.button, styles.buttonMargin]}
+          style={styles.button}
           onPress={handleOpenKakao}
           activeOpacity={0.7}
         >
-          <Text style={styles.buttonText}>서비스 문의</Text>
+          <PretendardText weight='semibold' style={styles.buttonText}>
+            서비스 문의
+          </PretendardText>
+          <Ionicons
+            name='chevron-forward'
+            size={18}
+            color={Color.iconMuted}
+          />
         </TouchableOpacity>
 
         <View style={styles.privacyContainer}>
           <View style={styles.privacyWrapper}>
             <TouchableOpacity
-              style={[
-                styles.button,
-                open && styles.buttonWithBottomBorder,
-                { borderRadius: 8 },
-              ]}
+              style={styles.button}
               onPress={() => setOpen(prev => !prev)}
               activeOpacity={0.7}
             >
-              <Text style={styles.buttonText}>개인정보 처리방침</Text>
+              <PretendardText weight='semibold' style={styles.buttonText}>
+                개인정보 처리방침
+              </PretendardText>
+              <Ionicons
+                name={open ? 'chevron-up' : 'chevron-down'}
+                size={18}
+                color={Color.iconMuted}
+              />
             </TouchableOpacity>
 
             {open && (
               <View style={styles.privacyContent}>
-                <Text style={styles.privacyText}>{privacyPolicyText}</Text>
+                <PretendardText style={styles.privacyText}>
+                  {privacyPolicyText}
+                </PretendardText>
               </View>
             )}
           </View>
@@ -277,14 +307,14 @@ const InfoView: FC = () => {
                 showsVerticalScrollIndicator={false}
                 bounces={false}
               >
-                <Text style={styles.modalTitle}>
+                <PretendardText weight='bold' style={styles.modalTitle}>
                   {nickname ? '닉네임 수정' : '닉네임 설정'}
-                </Text>
-                <Text style={styles.modalDescription}>
+                </PretendardText>
+                <PretendardText style={styles.modalDescription}>
                   {nickname
                     ? '새로운 닉네임을 입력해주세요'
                     : '사용하실 닉네임을 입력해주세요'}
-                </Text>
+                </PretendardText>
 
                 <TextInput
                   value={editedNickname}
@@ -302,7 +332,12 @@ const InfoView: FC = () => {
                   style={styles.modalCancelButton}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.modalCancelButtonText}>취소</Text>
+                  <PretendardText
+                    weight='medium'
+                    style={styles.modalCancelButtonText}
+                  >
+                    취소
+                  </PretendardText>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -312,12 +347,19 @@ const InfoView: FC = () => {
                     styles.modalSaveButton,
                     {
                       backgroundColor:
-                        editedNickname.trim() === '' ? '#666' : 'black',
+                        editedNickname.trim() === ''
+                          ? Color.textSecondary
+                          : Color.textPrimary,
                     },
                   ]}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.modalSaveButtonText}>저장</Text>
+                  <PretendardText
+                    weight='semibold'
+                    style={styles.modalSaveButtonText}
+                  >
+                    저장
+                  </PretendardText>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -339,7 +381,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 20,
-    fontWeight: 'bold',
+    color: Color.textPrimary,
   },
   nicknameContainer: {
     flexDirection: 'row',
@@ -355,55 +397,46 @@ const styles = StyleSheet.create({
   },
   setNicknameButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
     textDecorationLine: 'underline',
   },
   button: {
     width: '100%',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 8,
-    alignItems: 'flex-start',
-  },
-  buttonMargin: {
-    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    backgroundColor: Color.background,
+    borderBottomWidth: 1,
+    borderBottomColor: Color.borderLight,
   },
   buttonText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  buttonWithBottomBorder: {
-    borderBottomWidth: 1,
+    color: Color.textPrimary,
   },
   privacyContainer: {
     marginBottom: 24,
   },
   privacyWrapper: {
-    borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: '#fff',
+    backgroundColor: Color.background,
   },
   privacyContent: {
-    padding: 16,
-    backgroundColor: '#fff',
+    paddingVertical: 16,
+    backgroundColor: Color.background,
   },
   privacyText: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#000',
+    color: Color.textTertiary,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: Color.overlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    backgroundColor: Color.background,
+    borderTopLeftRadius: Radius.modal,
+    borderTopRightRadius: Radius.modal,
     padding: 16,
     maxHeight: screenHeight * 0.7,
   },
@@ -413,21 +446,22 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    color: Color.textPrimary,
     marginBottom: 8,
     textAlign: 'center',
   },
   modalDescription: {
     fontSize: 14,
-    color: '#666',
+    color: Color.textSecondary,
     textAlign: 'center',
     marginBottom: 20,
   },
   textInput: {
-    padding: 12,
+    padding: 14,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: Color.borderLight,
+    backgroundColor: Color.inputBg,
+    borderRadius: Radius.input,
     fontSize: 16,
     marginBottom: 20,
   },
@@ -437,28 +471,26 @@ const styles = StyleSheet.create({
   },
   modalCancelButton: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: Radius.input,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Color.borderLight,
     alignItems: 'center',
   },
   modalCancelButtonText: {
-    color: '#666',
+    color: Color.textSecondary,
     fontSize: 16,
-    fontWeight: '500',
   },
   modalSaveButton: {
     flex: 1,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: Radius.input,
     alignItems: 'center',
   },
   modalSaveButtonText: {
-    color: 'white',
+    color: Color.background,
     fontSize: 16,
-    fontWeight: '500',
   },
   imageContainer: {
     marginTop: 24,
