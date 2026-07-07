@@ -61,7 +61,7 @@ app/(tabs)/_layout.tsx → 탭 4개: 창고(index) · 탐색(search) · 배낭(b
 **수용 기준**
 
 - 탭 4개: `창고`(house) / `탐색`(magnifyingglass) / `배낭`(figure.hiking) / `정보`(person). 활성 색상 검정.
-- iOS: `HapticTab`(햅틱) + blur 투명 탭바(absolute), Android: `NoAnimationTab`, Web: 높이 65 고정 탭바.
+- **네이티브 탭바**: `expo-router`의 `NativeTabs`(unstable-native-tabs)로 렌더 — iOS는 네이티브 `UITabBar`(iOS 26 리퀴드 글래스·`minimizeBehavior='onScrollDown'` 자동), Android는 머티리얼 네이티브 탭. tint/아이콘 색 검정, 라벨색 선택 검정/비선택 #8E8E93. 아이콘은 iOS SF Symbol(`sf`) + Android drawable. (기존 JS 탭바 HapticTab/NoAnimationTab/TabBarBackground/IconSymbol은 미사용.)
 
 ### APP-6 공통 UI 규칙
 
