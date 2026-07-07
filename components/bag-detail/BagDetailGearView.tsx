@@ -1,12 +1,5 @@
 import React, { FC, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-  Image,
-} from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
@@ -15,6 +8,8 @@ import BagDetail from '@/model/bag-detail/BagDetail';
 import app from '@/model/app/App';
 import BagDetailImageView from './BagDetailImageView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   gear: Gear;
@@ -74,27 +69,41 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
           >
             <View style={styles.gearInfo}>
               <View style={styles.companyRow}>
-                <Text style={styles.companyText}>{gear.getCompany()}</Text>
+                <PretendardText style={styles.companyText}>
+                  {gear.getCompany()}
+                </PretendardText>
                 {gear.hasUsedRate() && (
                   <View style={styles.usageRateBadge}>
-                    <Text style={styles.usageRateText}>
+                    <PretendardText style={styles.usageRateText}>
                       사용률 {gear.getUsedRate()}%
-                    </Text>
+                    </PretendardText>
                   </View>
                 )}
               </View>
-              <Text style={styles.nameText} numberOfLines={1}>
+              <PretendardText
+                style={styles.nameText}
+                weight='bold'
+                numberOfLines={1}
+              >
                 {gear.getDisplayName()}
-              </Text>
-              <Text style={styles.colorText}>{gear.getColor()}</Text>
-              <Text style={styles.weightText}>{gear.getWeight()}g</Text>
+              </PretendardText>
+              <PretendardText style={styles.colorText}>
+                {gear.getColor()}
+              </PretendardText>
+              <PretendardText style={styles.weightText} weight='bold'>
+                {gear.getWeight()}g
+              </PretendardText>
             </View>
           </View>
         </TouchableOpacity>
 
         <View style={styles.menuContainer}>
           <TouchableOpacity style={styles.menuButton} onPress={handlePressMenu}>
-            <Ionicons name='ellipsis-vertical' size={18} color='black' />
+            <Ionicons
+              name='ellipsis-vertical'
+              size={18}
+              color={Color.textPrimary}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -116,16 +125,24 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
                 style={styles.actionButton}
                 onPress={handlePressEdit}
               >
-                <Ionicons name='create-outline' size={20} color='black' />
-                <Text style={styles.actionText}>수정하기</Text>
+                <Ionicons
+                  name='create-outline'
+                  size={20}
+                  color={Color.textPrimary}
+                />
+                <PretendardText style={styles.actionText}>수정하기</PretendardText>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.actionButton}
                 onPress={handlePressDelete}
               >
-                <Ionicons name='trash-outline' size={20} color='black' />
-                <Text style={styles.actionText}>삭제하기</Text>
+                <Ionicons
+                  name='trash-outline'
+                  size={20}
+                  color={Color.textPrimary}
+                />
+                <PretendardText style={styles.actionText}>삭제하기</PretendardText>
               </TouchableOpacity>
             </View>
 
@@ -134,7 +151,9 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
                 style={styles.closeButton}
                 onPress={handleCloseModal}
               >
-                <Text style={styles.closeButtonText}>닫기</Text>
+                <PretendardText style={styles.closeButtonText} weight='medium'>
+                  닫기
+                </PretendardText>
               </TouchableOpacity>
             </View>
           </View>
@@ -149,7 +168,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     width: '100%',
     gap: 6,
-    color: 'black',
+    color: Color.textPrimary,
   },
   gearItemContainer: {
     flexDirection: 'row',
@@ -160,8 +179,8 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     minWidth: 80,
-    backgroundColor: '#F1F1F1',
-    borderRadius: 4,
+    backgroundColor: Color.thumbBg,
+    borderRadius: Radius.listThumb,
     overflow: 'hidden',
     position: 'relative',
     justifyContent: 'center',
@@ -190,31 +209,29 @@ const styles = StyleSheet.create({
   },
   companyText: {
     fontSize: 12,
-    color: 'black',
+    color: Color.textPrimary,
   },
   usageRateBadge: {
-    borderRadius: 8,
-    backgroundColor: '#EBEBEB',
+    borderRadius: Radius.card,
+    backgroundColor: Color.chipInactiveBg,
     paddingVertical: 3,
     paddingHorizontal: 6,
   },
   usageRateText: {
     fontSize: 10,
-    color: 'black',
+    color: Color.textPrimary,
   },
   nameText: {
-    fontWeight: 'bold',
     fontSize: 14,
-    color: 'black',
+    color: Color.textPrimary,
   },
   colorText: {
     fontSize: 14,
-    color: 'black',
+    color: Color.textPrimary,
   },
   weightText: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: 'black',
+    color: Color.textPrimary,
   },
   menuContainer: {
     minWidth: 32,
@@ -227,13 +244,13 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: Color.overlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    backgroundColor: Color.background,
+    borderTopLeftRadius: Radius.modal,
+    borderTopRightRadius: Radius.modal,
     paddingTop: 20,
     paddingBottom: 20,
     gap: 16,
@@ -251,22 +268,21 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 16,
-    color: 'black',
+    color: Color.textPrimary,
   },
   closeButtonContainer: {
     paddingHorizontal: 20,
   },
   closeButton: {
     width: '100%',
-    backgroundColor: 'black',
+    backgroundColor: Color.chipActiveBg,
     padding: 18,
-    borderRadius: 10,
+    borderRadius: Radius.card,
     alignItems: 'center',
   },
   closeButtonText: {
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '500',
   },
 });
 

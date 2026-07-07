@@ -1,7 +1,6 @@
 import React, { FC, useState } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   TextInput,
   Modal,
@@ -16,6 +15,8 @@ import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -58,11 +59,13 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
   return (
     <>
       <TouchableOpacity style={styles.nameContainer} onPress={handleNamePress}>
-        <Text style={styles.nameText}>{bagDetail.getName()}</Text>
+        <PretendardText style={styles.nameText} weight='bold'>
+          {bagDetail.getName()}
+        </PretendardText>
         <Ionicons
           name='create-outline'
           size={18}
-          color='#666'
+          color={Color.textTertiary}
           style={{ opacity: 0.6 }}
         />
       </TouchableOpacity>
@@ -91,10 +94,12 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
                 showsVerticalScrollIndicator={false}
                 bounces={false}
               >
-                <Text style={styles.modalTitle}>배낭 이름 수정</Text>
-                <Text style={styles.modalDescription}>
+                <PretendardText style={styles.modalTitle} weight='bold'>
+                  배낭 이름 수정
+                </PretendardText>
+                <PretendardText style={styles.modalDescription}>
                   새로운 배낭 이름을 입력해주세요
-                </Text>
+                </PretendardText>
 
                 <TextInput
                   value={inputValue}
@@ -116,7 +121,12 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
                   ]}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.cancelButtonText}>취소</Text>
+                  <PretendardText
+                    style={styles.cancelButtonText}
+                    weight='medium'
+                  >
+                    취소
+                  </PretendardText>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -127,15 +137,15 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
                     {
                       backgroundColor:
                         isUpdating || inputValue.trim() === ''
-                          ? '#666'
-                          : 'black',
+                          ? Color.textTertiary
+                          : Color.chipActiveBg,
                     },
                   ]}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.saveButtonText}>
+                  <PretendardText style={styles.saveButtonText} weight='medium'>
                     {isUpdating ? '저장 중...' : '저장'}
-                  </Text>
+                  </PretendardText>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -155,24 +165,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'row',
     padding: 4,
-    borderRadius: 4,
+    borderRadius: Radius.listThumb,
     gap: 8,
   },
   nameText: {
-    fontWeight: 'bold',
     fontSize: 20,
     textAlign: 'center',
-    color: 'black',
+    color: Color.textPrimary,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: Color.overlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    backgroundColor: Color.background,
+    borderTopLeftRadius: Radius.modal,
+    borderTopRightRadius: Radius.modal,
     padding: 16,
     maxHeight: screenHeight * 0.7, // 화면 높이의 70%로 제한 (키보드 공간 확보)
   },
@@ -182,22 +191,22 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
     marginBottom: 8,
     textAlign: 'center',
-    color: 'black',
+    color: Color.textPrimary,
   },
   modalDescription: {
     fontSize: 14,
-    color: 'black',
+    color: Color.textPrimary,
     textAlign: 'center',
     marginBottom: 20,
   },
   textInput: {
     padding: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: Color.borderLight,
+    backgroundColor: Color.inputBg,
+    borderRadius: Radius.input,
     fontSize: 16,
     marginBottom: 20,
   },
@@ -207,28 +216,26 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: Radius.input,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Color.borderLight,
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: 'black',
+    color: Color.textPrimary,
     fontSize: 16,
-    fontWeight: '500',
   },
   saveButton: {
     flex: 1,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: Radius.input,
     alignItems: 'center',
   },
   saveButtonText: {
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '500',
   },
 });
 

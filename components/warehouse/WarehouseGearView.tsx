@@ -1,7 +1,6 @@
 import React, { FC, useState, useEffect, useRef } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   Modal,
   StyleSheet,
@@ -13,6 +12,8 @@ import Warehouse from '@/model/warehouse/Warehouse';
 import Gear from '@/model/gear/Gear';
 import app from '@/model/app/App';
 import GearView from '@/components/warehouse/GearView';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 import { useRouter } from 'expo-router';
 
 interface Props {
@@ -166,7 +167,7 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse }) => {
                 onPress={handlePressEdit}
               >
                 <EditIcon />
-                <Text style={styles.menuItemText}>수정하기</Text>
+                <PretendardText style={styles.menuItemText}>수정하기</PretendardText>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -174,7 +175,7 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse }) => {
                 onPress={handlePressDelete}
               >
                 <DeleteIcon />
-                <Text style={styles.menuItemText}>삭제하기</Text>
+                <PretendardText style={styles.menuItemText}>삭제하기</PretendardText>
               </TouchableOpacity>
             </View>
 
@@ -183,7 +184,7 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse }) => {
                 style={styles.closeButton}
                 onPress={handlePressBack}
               >
-                <Text style={styles.closeButtonText}>닫기</Text>
+                <PretendardText weight='bold' style={styles.closeButtonText}>닫기</PretendardText>
               </TouchableOpacity>
             </View>
           </Animated.View>
@@ -207,16 +208,16 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: Color.overlay,
     justifyContent: 'flex-end',
   },
   modalOverlayTouchable: {
     flex: 1,
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    backgroundColor: Color.background,
+    borderTopLeftRadius: Radius.modal,
+    borderTopRightRadius: Radius.modal,
     paddingTop: 20,
     height: 229,
   },
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     fontSize: 16,
-    color: 'black',
+    color: Color.textPrimary,
   },
   closeSection: {
     paddingHorizontal: 20,
@@ -242,15 +243,14 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     width: '100%',
-    backgroundColor: 'black',
-    borderRadius: 10,
+    backgroundColor: Color.textPrimary,
+    borderRadius: Radius.card,
     paddingVertical: 18,
     alignItems: 'center',
   },
   closeButtonText: {
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
   },
 });
 

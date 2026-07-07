@@ -1,13 +1,14 @@
 import React, { FC, ReactNode } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   GestureResponderEvent,
 } from 'react-native';
 import GearImageView from '@/components/warehouse/GearImageView';
+import PretendardText from '@/components/PretendardText';
 import Gear from '@/model/gear/Gear';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   gear: Gear;
@@ -32,28 +33,38 @@ const GearView: FC<Props> = ({ gear, children, onPress }) => {
             <View style={styles.infoColumn}>
               <View style={styles.infoContainer}>
                 <View style={styles.companyRow}>
-                  <Text style={styles.companyText}>
+                  <PretendardText style={styles.companyText} weight="regular">
                     {gear.getDisplayCompany()}
-                  </Text>
+                  </PretendardText>
                   {gear.hasUsedRate() && (
                     <View style={styles.usedRateBadge}>
-                      <Text style={styles.usedRateText}>
+                      <PretendardText style={styles.usedRateText} weight="regular">
                         사용률 {gear.getUsedRate()}%
-                      </Text>
+                      </PretendardText>
                     </View>
                   )}
                 </View>
 
-                <Text style={styles.nameText} numberOfLines={2}>
+                <PretendardText
+                  style={styles.nameText}
+                  weight="bold"
+                  numberOfLines={2}
+                >
                   {gear.getDisplayName()}
-                </Text>
+                </PretendardText>
 
-                <Text style={styles.colorText}>{gear.getColor()}</Text>
+                {gear.getColor() ? (
+                  <PretendardText style={styles.colorText} weight="regular">
+                    {gear.getColor()}
+                  </PretendardText>
+                ) : null}
               </View>
 
-              <Text style={styles.weightText}>
-                {gear.getWeight() ? `${gear.getWeight()}g` : ''}
-              </Text>
+              {gear.getWeight() ? (
+                <PretendardText style={styles.weightText} weight="bold">
+                  {gear.getWeight()}g
+                </PretendardText>
+              ) : null}
             </View>
           </View>
         </View>
@@ -91,10 +102,10 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: 80,
     height: 80,
-    backgroundColor: '#F1F1F1',
+    backgroundColor: Color.thumbBg,
     alignItems: 'center',
     minWidth: 80,
-    borderRadius: 4,
+    borderRadius: Radius.listThumb,
     justifyContent: 'center',
     overflow: 'hidden',
   },
@@ -126,36 +137,31 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   companyText: {
-    fontFamily: 'Pretendard-Regular',
     fontSize: 10,
-    color: '#000000',
+    color: Color.textPrimary,
   },
   usedRateBadge: {
-    borderRadius: 10,
-    backgroundColor: 'rgb(235, 235, 235)',
+    borderRadius: Radius.card,
+    backgroundColor: Color.chipInactiveBg,
     paddingVertical: 2,
     paddingHorizontal: 5,
   },
   usedRateText: {
-    fontFamily: 'Pretendard-Regular',
-    color: 'black',
+    color: Color.textPrimary,
     fontSize: 10,
   },
   nameText: {
-    fontFamily: 'Pretendard-Bold',
     fontSize: 14,
     lineHeight: 16,
-    color: '#000000',
+    color: Color.textPrimary,
   },
   colorText: {
-    fontFamily: 'Pretendard-Regular',
     fontSize: 14,
-    color: '#000000',
+    color: Color.textPrimary,
   },
   weightText: {
-    fontFamily: 'Pretendard-Bold',
     fontSize: 14,
-    color: '#000000',
+    color: Color.textPrimary,
   },
 });
 
