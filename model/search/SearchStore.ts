@@ -86,11 +86,11 @@ class SearchStore {
 
   public async browse(params: {
     category?: string;
-    companyKorean?: string;
+    brand?: string;
     sort: BrowseSort;
     page: number;
   }): Promise<{ gears: Gear[]; hasMore: boolean }> {
-    const { category, companyKorean, sort, page } = params;
+    const { category, brand, sort, page } = params;
 
     const facetFilters: string[][] = [];
 
@@ -98,8 +98,9 @@ class SearchStore {
       facetFilters.push([`category:${category}`]);
     }
 
-    if (companyKorean) {
-      facetFilters.push([`companyKorean:${companyKorean}`]);
+    if (brand) {
+      // 브랜드는 companyKorean 또는 company facet(OR) — companyKorean 없는 영문 브랜드도 매칭.
+      facetFilters.push([`companyKorean:${brand}`, `company:${brand}`]);
     }
 
     const { results } = await this.searchClient.search<GearType>({

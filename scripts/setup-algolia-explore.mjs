@@ -33,7 +33,7 @@ const client = algoliasearch(APP_ID, ADMIN_KEY);
 
 console.log(`모드: ${APPLY ? '★ APPLY (실제 적용)' : 'DRY-RUN'}`);
 console.log(`인덱스: ${INDEX}`);
-console.log(`facet 속성: filterOnly(category), filterOnly(companyKorean)`);
+console.log(`facet 속성: filterOnly(category), filterOnly(companyKorean), filterOnly(company)`);
 console.log(`정렬 replica: ${REPLICAS.map(r => r.name).join(', ')}`);
 
 // --- gear-rank.count 로드 (Firestore, public config) ---
@@ -64,7 +64,7 @@ if (!APPLY) {
 await client.setSettings({
   indexName: INDEX,
   indexSettings: {
-    attributesForFaceting: ['filterOnly(category)', 'filterOnly(companyKorean)'],
+    attributesForFaceting: ['filterOnly(category)', 'filterOnly(companyKorean)', 'filterOnly(company)'],
     replicas: REPLICAS.map(r => r.name),
   },
 });

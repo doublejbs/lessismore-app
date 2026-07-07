@@ -1,4 +1,4 @@
-import { FC, useCallback } from 'react';
+import { FC, useCallback, useRef } from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,9 +27,18 @@ const BrowseListView: FC<Props> = ({ browse, bag, title }) => {
   const isEmpty = browse.isEmpty();
   const canLoadMore = browse.canLoadMore();
 
-  // 화면 복귀 시 보유 배지 동기화(추가/제거 반영).
+  // 최초 포커스는 Wrapper의 initialize()가 이미 로드하므로 스킵(중복 로드 방지).
+  // 화면 복귀(재포커스) 시에만 보유 배지 동기화를 위해 reload한다.
+  const isFirstFocus = useRef(true);
+
   useFocusEffect(
     useCallback(() => {
+      if (isFirstFocus.current) {
+        isFirstFocus.current = false;
+
+        return;
+      }
+
       browse.reload();
     }, [browse])
   );

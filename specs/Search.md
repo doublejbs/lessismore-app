@@ -74,7 +74,7 @@
 
 **수용 기준**
 
-- 다음 섹션을 노출한다(순서는 UX 리뷰에서 조정 가능):
+- 다음 섹션을 노출한다(순서는 UX 리뷰에서 조정 가능). 실제 구현 순서는 **카테고리별 탐색 → 브랜드별 탐색 → 신제품 → 인기 장비 순위**다:
   1. **인기 장비 순위** — 기존 SR-4 그대로 유지.
   2. **카테고리별 탐색** — 카테고리 진입(칩/그리드). 탭 → SR-7 목록(해당 카테고리).
   3. **브랜드별 탐색** — `브랜드 전체 보기` 진입 → SR-8 디렉토리. (상단에 인기 브랜드 일부 미리 노출 가능.)
@@ -85,7 +85,7 @@
 
 **수용 기준**
 
-- 진입: 카테고리 또는 브랜드 선택(둘 조합 가능). Algolia `useless-gear-search` 조회 — 카테고리는 `category`, 브랜드는 `companyKorean` facet 필터([DataModel.md](DataModel.md) DM-10).
+- 진입: 카테고리 또는 브랜드 선택(둘 조합 가능). Algolia `useless-gear-search` 조회 — 카테고리는 `category`, 브랜드는 `companyKorean` **또는** `company` facet(OR — 두 값을 같은 facetFilters 내부 배열로 묶어 매칭)로 필터한다. `companyKorean`이 없는 영문 브랜드도 매칭되도록 하기 위함이다([DataModel.md](DataModel.md) DM-10).
 - 무한 스크롤·페이지네이션은 SR-1 방식을 재사용한다.
 - **정렬 옵션**: `무게순(가벼운순/무거운순)` · `최신순`(createDate desc) · `인기순`(보유수 count desc). Algolia 정렬 replica 사용([DataModel.md](DataModel.md) DM-10).
 - 결과 행·보유 배지·`+` 창고추가/배낭담기는 SR-2/SR-3을 그대로 재사용한다. 비로그인 `+`는 로그인 모달.
@@ -112,7 +112,7 @@
 
 - Algolia 계약·hit 필드: [DataModel.md](DataModel.md) DM-10. 순위: DM-6. 브랜드 집계: DM-14.
 - 인기 검색어 API(Algolia Analytics top 10)는 `SearchStore.getTopSearches()`로 존재하며 세션 내 1회 캐시.
-- **탐색(SR-6~9) 전제 — Algolia 인덱스 설정** (스크립트/대시보드, Algolia admin 키 필요): `attributesForFaceting`에 `category`·`companyKorean` 추가(filterOnly 가능), 정렬 replica `weight asc/desc`·`createDate desc`·`count desc` 생성, 각 레코드에 `count`(gear-rank 보유수) 동기화(인기순 정렬용, 미보유는 0). 설정·동기화 스크립트는 [DataModel.md](DataModel.md) DM-10/DM-14 참조.
+- **탐색(SR-6~9) 전제 — Algolia 인덱스 설정** (스크립트/대시보드, Algolia admin 키 필요): `attributesForFaceting`에 `category`·`companyKorean`·`company` 추가(filterOnly 가능 — 브랜드 OR 필터에 `company` 필요), 정렬 replica `weight asc/desc`·`createDate desc`·`count desc` 생성, 각 레코드에 `count`(gear-rank 보유수) 동기화(인기순 정렬용, 미보유는 0). 설정·동기화 스크립트는 [DataModel.md](DataModel.md) DM-10/DM-14 참조.
 
 ## 5. 플랫폼 분기
 
