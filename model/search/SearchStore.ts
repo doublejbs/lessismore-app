@@ -6,11 +6,25 @@ import {
   where,
 } from '@firebase/firestore';
 import { SearchResponse } from 'algoliasearch';
-import { liteClient } from 'algoliasearch/lite';
+import { Hit, liteClient } from 'algoliasearch/lite';
 import Gear from '../gear/Gear';
 import GearFilter from '../gear/GearFilter';
 import Firebase from '../firebase/Firebase';
 import GearType from '../gear/GearType';
+import BrowseSort from './BrowseSort';
+
+const BROWSE_INDEX_NAME = 'useless-gear-search';
+
+const BROWSE_SORT_INDEX: Record<BrowseSort, string> = {
+  [BrowseSort.Popular]: `${BROWSE_INDEX_NAME}_count_desc`,
+  [BrowseSort.Latest]: `${BROWSE_INDEX_NAME}_createDate_desc`,
+  [BrowseSort.WeightAsc]: `${BROWSE_INDEX_NAME}_weight_asc`,
+  [BrowseSort.WeightDesc]: `${BROWSE_INDEX_NAME}_weight_desc`,
+};
+
+const getBrowseSortIndexName = (sort: BrowseSort): string => {
+  return BROWSE_SORT_INDEX[sort];
+};
 
 class SearchStore {
   private readonly searchClient = liteClient(
@@ -65,37 +79,92 @@ class SearchStore {
     const { hits, page, nbPages } = results[0] as SearchResponse<GearType>;
 
     return {
-      gears: await this.convertWithMyGears(
-        hits.map(
-          ({
-            name,
-            weight,
-            company,
-            objectID,
-            imageUrl,
-            color,
-            companyKorean,
-            nameKorean,
-            category = '',
-          }) => ({
-            name,
-            weight,
-            company,
-            id: objectID,
-            imageUrl,
-            useless: [],
-            used: [],
-            bags: [],
-            createDate: Date.now(),
-            color,
-            companyKorean,
-            nameKorean,
-            category,
-          })
-        )
-      ),
+      gears: await this.convertWithMyGears(this.mapHitsToGearType(hits)),
       hasMore: (page ?? 0) + 1 < (nbPages ?? 0),
     };
+  }
+
+  public async browse(params: {
+    category?: string;
+    companyKorean?: string;
+    sort: BrowseSort;
+    page: number;
+  }): Promise<{ gears: Gear[]; hasMore: boolean }> {
+    const { category, companyKorean, sort, page } = params;
+
+    const facetFilters: string[][] = [];
+
+    if (category) {
+      facetFilters.push([`category:${category}`]);
+    }
+
+    if (companyKorean) {
+      facetFilters.push([`companyKorean:${companyKorean}`]);
+    }
+
+    const { results } = await this.searchClient.search<GearType>({
+      requests: [
+        {
+          indexName: getBrowseSortIndexName(sort),
+          query: '',
+          page,
+          hitsPerPage: 100,
+          facetFilters,
+        },
+      ],
+    });
+    const { hits, page: resultPage, nbPages } = results[0] as SearchResponse<GearType>;
+
+    return {
+      gears: await this.convertWithMyGears(this.mapHitsToGearType(hits)),
+      hasMore: (resultPage ?? 0) + 1 < (nbPages ?? 0),
+    };
+  }
+
+  public async getNewArrivals(count: number = 20): Promise<Gear[]> {
+    const { results } = await this.searchClient.search<GearType>({
+      requests: [
+        {
+          indexName: `${BROWSE_INDEX_NAME}_createDate_desc`,
+          query: '',
+          page: 0,
+          hitsPerPage: count,
+        },
+      ],
+    });
+    const { hits } = results[0] as SearchResponse<GearType>;
+
+    return this.convertWithMyGears(this.mapHitsToGearType(hits));
+  }
+
+  private mapHitsToGearType(hits: Hit<GearType>[]): GearType[] {
+    return hits.map(
+      ({
+        name,
+        weight,
+        company,
+        objectID,
+        imageUrl,
+        color,
+        companyKorean,
+        nameKorean,
+        category = '',
+      }) => ({
+        name,
+        weight,
+        company,
+        id: objectID,
+        imageUrl,
+        useless: [],
+        used: [],
+        bags: [],
+        createDate: Date.now(),
+        color,
+        companyKorean,
+        nameKorean,
+        category,
+      })
+    );
   }
 
   private async convertWithMyGears(data: GearType[]) {
