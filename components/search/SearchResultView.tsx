@@ -2,8 +2,8 @@ import { observer } from 'mobx-react-lite';
 import { FC } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
-import SearchBrowseHomeView from '../browse/SearchBrowseHomeView';
 import Bag from '@/model/bag/Bag';
+import FeedView from '../feed/FeedView';
 import SearchResultContentView from './SearchResultContentView';
 
 interface Props {
@@ -23,13 +23,14 @@ const SearchResultView: FC<Props> = ({ searchWarehouse, bag, children }) => {
     searchWarehouse.searchMore();
   };
 
+  // FD-2: 키워드가 없으면 검색 홈(SR-6) 대신 장비 피드를 렌더한다.
+  // 피드는 자체 여백을 관리하므로 20px 패딩 컨테이너를 우회해 전체 폭으로 렌더한다.
+  if (!keyword.length) {
+    return <FeedView bag={bag} />;
+  }
+
   const render = () => {
     switch (true) {
-      case !keyword.length: {
-        return (
-          <SearchBrowseHomeView searchWarehouse={searchWarehouse} bag={bag} />
-        );
-      }
       case isEmpty && !isLoading: {
         return (
           <View style={styles.emptyContainer}>
