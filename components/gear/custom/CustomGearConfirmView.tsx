@@ -1,7 +1,9 @@
 import React, { FC } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import CustomGear from '@/model/gear/custom/CustomGear';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   customGear: CustomGear;
@@ -16,12 +18,18 @@ const CustomGearConfirmView: FC<Props> = ({ customGear }) => {
 
   return (
     <View style={styles.container}>
-      {errorMessage && <Text style={styles.errorMessage}>{errorMessage}</Text>}
+      {errorMessage && (
+        <PretendardText style={styles.errorMessage}>
+          {errorMessage}
+        </PretendardText>
+      )}
       <TouchableOpacity
         style={styles.confirmButton}
         onPress={handleClickConfirm}
       >
-        <Text style={styles.confirmButtonText}>확인</Text>
+        <PretendardText weight='semibold' style={styles.confirmButtonText}>
+          확인
+        </PretendardText>
       </TouchableOpacity>
     </View>
   );
@@ -38,15 +46,15 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     width: '100%',
-    backgroundColor: 'black',
+    backgroundColor: Color.textPrimary,
     paddingVertical: 18,
     paddingHorizontal: 133,
-    borderRadius: 10,
+    borderRadius: Radius.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
   confirmButtonText: {
-    color: 'white',
+    color: '#FFFFFF',
     textAlign: 'center',
   },
 });

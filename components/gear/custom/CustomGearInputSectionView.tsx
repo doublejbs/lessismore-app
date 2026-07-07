@@ -1,7 +1,6 @@
 import React, { FC, RefObject, useState, useRef } from 'react';
 import {
   View,
-  Text,
   TextInput,
   StyleSheet,
   TouchableOpacity,
@@ -13,6 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import CustomGear from '@/model/gear/custom/CustomGear';
 import Gear from '@/model/gear/Gear';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 export interface SearchResult {
   readonly id: string;
@@ -98,10 +99,12 @@ const CustomGearInputSectionView: FC<Props> = ({
   return (
     <View style={styles.inputSection}>
       <View style={styles.labelContainer}>
-        <Text style={styles.label}>{label}</Text>
-        <Text style={styles.guideText}>
+        <PretendardText weight='medium' style={styles.label}>
+          {label}
+        </PretendardText>
+        <PretendardText style={styles.guideText}>
           제품명을 입력하면 검색결과가 나옵니다
-        </Text>
+        </PretendardText>
       </View>
 
       <View style={styles.inputContainer}>
@@ -116,7 +119,7 @@ const CustomGearInputSectionView: FC<Props> = ({
 
         {isSearching && (
           <View style={styles.loadingIndicator}>
-            <ActivityIndicator size='small' color='#999' />
+            <ActivityIndicator size='small' color={Color.textSecondary} />
           </View>
         )}
 
@@ -125,7 +128,7 @@ const CustomGearInputSectionView: FC<Props> = ({
             onPress={handleClickClear}
             style={styles.clearButton}
           >
-            <Ionicons name='close-circle' size={20} color='#B0B8C1' />
+            <Ionicons name='close-circle' size={20} color={Color.iconMuted} />
           </TouchableOpacity>
         )}
       </View>
@@ -154,15 +157,20 @@ const CustomGearInputSectionView: FC<Props> = ({
               )}
               <View style={styles.searchResultInfo}>
                 {item.getCompany() && (
-                  <Text style={styles.searchResultCompany}>
+                  <PretendardText style={styles.searchResultCompany}>
                     {item.getCompany()}
-                  </Text>
+                  </PretendardText>
                 )}
-                <Text style={styles.searchResultName}>{item.getDisplayName()}</Text>
+                <PretendardText weight='medium' style={styles.searchResultName}>
+                  {item.getDisplayName()}
+                </PretendardText>
                 {item.getWeight() && (
-                  <Text style={styles.searchResultWeight}>
+                  <PretendardText
+                    weight='medium'
+                    style={styles.searchResultWeight}
+                  >
                     {item.getWeight()}g
-                  </Text>
+                  </PretendardText>
                 )}
               </View>
             </TouchableOpacity>
@@ -186,11 +194,10 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '500',
   },
   guideText: {
     fontSize: 12,
-    color: '#999',
+    color: Color.textSecondary,
   },
   inputContainer: {
     position: 'relative',
@@ -199,8 +206,10 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    borderRadius: 10,
-    backgroundColor: '#F6F6F6',
+    borderRadius: Radius.input,
+    backgroundColor: Color.inputBg,
+    borderWidth: 1,
+    borderColor: Color.borderLight,
     padding: 16,
   },
   loadingIndicator: {
@@ -220,10 +229,10 @@ const styles = StyleSheet.create({
     minWidth: 28,
   },
   searchResultsContainer: {
-    backgroundColor: 'white',
-    borderRadius: 10,
+    backgroundColor: Color.background,
+    borderRadius: Radius.card,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: Color.borderLight,
     maxHeight: 200,
     overflow: 'scroll',
     shadowColor: '#000',
@@ -238,7 +247,7 @@ const styles = StyleSheet.create({
   searchResultItem: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: Color.borderLight,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
@@ -246,14 +255,14 @@ const styles = StyleSheet.create({
   searchResultImage: {
     width: 50,
     height: 50,
-    borderRadius: 8,
-    backgroundColor: '#F6F6F6',
+    borderRadius: Radius.card,
+    backgroundColor: Color.inputBg,
   },
   searchResultImagePlaceholder: {
     width: 50,
     height: 50,
-    borderRadius: 8,
-    backgroundColor: '#F6F6F6',
+    borderRadius: Radius.card,
+    backgroundColor: Color.inputBg,
   },
   searchResultInfo: {
     flex: 1,
@@ -261,16 +270,14 @@ const styles = StyleSheet.create({
   },
   searchResultName: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#000',
+    color: Color.textPrimary,
   },
   searchResultCompany: {
     fontSize: 12,
-    color: '#666',
+    color: Color.textTertiary,
   },
   searchResultWeight: {
     fontSize: 12,
-    fontWeight: '500',
   },
 });
 
