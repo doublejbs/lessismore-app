@@ -1,10 +1,12 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import {
   View,
   TouchableOpacity,
   StyleSheet,
   Modal,
   Pressable,
+  Animated,
+  Easing,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import Svg, { Path } from 'react-native-svg';
@@ -14,6 +16,10 @@ import {
   BROWSE_SORT_OPTIONS,
   getBrowseSortName,
 } from '@/model/browse/BrowseSortLabel';
+
+const SHEET_SLIDE_DISTANCE = 400;
+const OPEN_DURATION = 260;
+const CLOSE_DURATION = 200;
 
 interface Props {
   sort: BrowseSort;
@@ -58,19 +64,58 @@ const CheckIcon = () => (
 
 const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
   const [showOptions, setShowOptions] = useState(false);
+  const progress = useRef(new Animated.Value(0)).current;
+  const isClosing = useRef(false);
+
+  useEffect(() => {
+    if (!showOptions) {
+      return;
+    }
+
+    progress.setValue(0);
+    Animated.timing(progress, {
+      toValue: 1,
+      duration: OPEN_DURATION,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [showOptions, progress]);
+
+  const runClose = () => {
+    if (isClosing.current) {
+      return;
+    }
+
+    isClosing.current = true;
+
+    Animated.timing(progress, {
+      toValue: 0,
+      duration: CLOSE_DURATION,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    }).start(() => {
+      isClosing.current = false;
+      setShowOptions(false);
+    });
+  };
 
   const handleOpen = () => {
     setShowOptions(true);
   };
 
   const handleClose = () => {
-    setShowOptions(false);
+    runClose();
   };
 
   const handleSelect = (value: BrowseSort) => {
-    setShowOptions(false);
     onSelect(value);
+    runClose();
   };
+
+  const sheetTranslateY = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [SHEET_SLIDE_DISTANCE, 0],
+  });
 
   return (
     <View style={styles.container}>
@@ -84,11 +129,18 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
       <Modal
         visible={showOptions}
         transparent={true}
-        animationType='slide'
+        animationType='none'
         onRequestClose={handleClose}
       >
-        <Pressable style={styles.overlay} onPress={handleClose}>
-          <Pressable style={styles.sheet} onPress={e => e.stopPropagation()}>
+        <Pressable style={styles.overlayRoot} onPress={handleClose}>
+          <Animated.View
+            style={[styles.overlayDim, { opacity: progress }]}
+            pointerEvents='none'
+          />
+          <Animated.View
+            style={{ transform: [{ translateY: sheetTranslateY }] }}
+          >
+            <Pressable style={styles.sheet} onPress={e => e.stopPropagation()}>
             <View style={styles.handle}>
               <View style={styles.handleBar} />
             </View>
@@ -122,7 +174,8 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
                 );
               })}
             </View>
-          </Pressable>
+            </Pressable>
+          </Animated.View>
         </Pressable>
       </Modal>
     </View>
@@ -148,10 +201,13 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
     textAlignVertical: 'center',
   },
-  overlay: {
+  overlayRoot: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
+  },
+  overlayDim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   sheet: {
     backgroundColor: 'white',
