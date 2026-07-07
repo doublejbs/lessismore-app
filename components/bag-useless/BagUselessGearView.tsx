@@ -5,6 +5,7 @@ import Gear from '../../model/gear/Gear';
 import BagUseless from '../../model/bag-useless/BagUseless';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   gear: Gear;
@@ -51,10 +52,12 @@ const BagUselessGearView: FC<Props> = ({ gear, bagUseless }) => {
                 justifyContent: 'center',
                 width: 24,
                 height: 24,
-                backgroundColor: isSelected ? '#000' : '#fff',
+                backgroundColor: isSelected
+                  ? Color.textPrimary
+                  : Color.background,
                 borderWidth: 2,
-                borderColor: '#000',
-                borderRadius: 4,
+                borderColor: Color.textPrimary,
+                borderRadius: Radius.listThumb,
               }}
             >
               {isSelected && (

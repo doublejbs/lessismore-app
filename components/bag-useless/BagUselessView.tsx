@@ -1,10 +1,12 @@
 import { FC, useEffect } from 'react';
-import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import { View, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
 import BagUseless from '../../model/bag-useless/BagUseless';
 import { observer } from 'mobx-react-lite';
 import app from '../../model/app/App';
 import BagUselessGearView from './BagUselessGearView';
-import { Svg, Path } from 'react-native-svg';
+import PretendardText from '@/components/PretendardText';
+import { Ionicons } from '@expo/vector-icons';
+import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 
 interface Props {
   bagUseless: BagUseless;
@@ -42,125 +44,50 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
 
   if (isInitialized) {
     return (
-      <View
-        style={{
-          flexDirection: 'column',
-          height: '100%',
-          gap: 12,
-        }}
-      >
-        <View
-          style={{
-            width: '100%',
-            paddingVertical: 7,
-          }}
-        >
+      <View style={styles.container}>
+        <View style={styles.backRow}>
           <TouchableOpacity onPress={handlePressBack}>
-            <Svg width={25} height={24} viewBox='0 0 25 24' fill='none'>
-              <Path
-                d='M16.2844 20.475C15.9844 20.475 15.6844 20.375 15.4844 20.075L7.98438 12.575C7.48438 12.075 7.48438 11.375 7.98438 10.875L15.4844 3.375C15.9844 2.875 16.6844 2.875 17.1844 3.375C17.6844 3.875 17.6844 4.575 17.1844 5.075L10.3844 11.775L17.0844 18.475C17.5844 18.975 17.5844 19.675 17.0844 20.175C16.8844 20.375 16.5844 20.475 16.2844 20.475Z'
-                fill='#191F28'
-              />
-            </Svg>
+            <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
           </TouchableOpacity>
         </View>
-        <View
-          style={{
-            flexDirection: 'column',
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 28,
-              fontWeight: 'bold',
-            }}
-          >
+        <View style={styles.titleColumn}>
+          <PretendardText weight='bold' style={styles.title}>
             실제로 사용했던 장비만
-          </Text>
-          <Text
-            style={{
-              fontSize: 28,
-              fontWeight: 'bold',
-            }}
-          >
+          </PretendardText>
+          <PretendardText weight='bold' style={styles.title}>
             선택해주세요
-          </Text>
+          </PretendardText>
         </View>
-        <View
-          style={{
-            paddingTop: 24,
-            flexDirection: 'column',
-            flex: 1,
-          }}
-        >
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginBottom: 16,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: 'bold',
-              }}
-            >
-              전채 {allCount}개 중{' '}
-              <Text
-                style={{
-                  color: '#CCF124',
-                }}
-              >
+        <View style={styles.content}>
+          <View style={styles.countRow}>
+            <PretendardText weight='semibold' style={styles.countText}>
+              전체 {allCount}개 중{' '}
+              <PretendardText weight='bold' style={styles.countHighlight}>
                 {selectedCount}
-              </Text>
+              </PretendardText>
               개 사용
-            </Text>
+            </PretendardText>
             <TouchableOpacity onPress={handlePressToggleSelectAll}>
-              <Text
-                style={{
-                  color: '#505967',
-                  fontSize: 16,
-                }}
-              >
+              <PretendardText weight='medium' style={styles.selectAllText}>
                 {selectedCount ? '전체 해제' : '전체 선택'}
-              </Text>
+              </PretendardText>
             </TouchableOpacity>
           </View>
           <FlatList
             data={gears}
             renderItem={renderGearItem}
             keyExtractor={item => item.getId()}
-            style={{
-              flex: 1,
-            }}
+            style={styles.list}
             showsVerticalScrollIndicator={false}
           />
-          <View
-            style={{
-              width: '100%',
-              paddingVertical: 12,
-            }}
-          >
+          <View style={styles.confirmWrapper}>
             <TouchableOpacity
-              style={{
-                width: '100%',
-                backgroundColor: 'black',
-                paddingVertical: 18,
-                borderRadius: 10,
-                alignItems: 'center',
-              }}
+              style={styles.confirmButton}
               onPress={handlePressConfirm}
             >
-              <Text
-                style={{
-                  color: 'white',
-                  fontSize: 16,
-                  fontWeight: 'bold',
-                }}
-              >
+              <PretendardText weight='semibold' style={styles.confirmLabel}>
                 완료
-              </Text>
+              </PretendardText>
             </TouchableOpacity>
           </View>
         </View>
@@ -170,5 +97,63 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
     return null;
   }
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'column',
+    height: '100%',
+    gap: Spacing.item,
+  },
+  backRow: {
+    width: '100%',
+    paddingVertical: 7,
+  },
+  titleColumn: {
+    flexDirection: 'column',
+  },
+  title: {
+    fontSize: 28,
+    color: Color.textPrimary,
+  },
+  content: {
+    paddingTop: Spacing.section,
+    flexDirection: 'column',
+    flex: 1,
+  },
+  countRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  countText: {
+    fontSize: 16,
+    color: Color.textPrimary,
+  },
+  countHighlight: {
+    color: Color.textPrimary,
+  },
+  selectAllText: {
+    fontSize: 15,
+    color: Color.textSecondary,
+  },
+  list: {
+    flex: 1,
+  },
+  confirmWrapper: {
+    width: '100%',
+    paddingVertical: Spacing.item,
+  },
+  confirmButton: {
+    width: '100%',
+    backgroundColor: Color.textPrimary,
+    paddingVertical: 16,
+    borderRadius: Radius.card,
+    alignItems: 'center',
+  },
+  confirmLabel: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+});
 
 export default observer(BagUselessView);
