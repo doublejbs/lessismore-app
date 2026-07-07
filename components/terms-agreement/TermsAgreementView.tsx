@@ -1,7 +1,6 @@
 import React, { FC, useState } from 'react';
 import {
   View,
-  Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -11,6 +10,8 @@ import { observer } from 'mobx-react-lite';
 import app from '@/model/app/App';
 import { useRouter } from 'expo-router';
 import Layout from '../Layout';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 
 const TermsAgreementView: FC = () => {
   const [termsAgreed, setTermsAgreed] = useState(false);
@@ -72,15 +73,20 @@ const TermsAgreementView: FC = () => {
               isChecked ? styles.checkboxChecked : styles.checkboxUnchecked,
             ]}
           >
-            {isChecked && <Text style={styles.checkmark}>✓</Text>}
+            {isChecked && (
+              <PretendardText style={styles.checkmark} weight="bold">
+                ✓
+              </PretendardText>
+            )}
           </View>
         </View>
-        <Text
-          style={[styles.checkboxLabel, isChecked && styles.checkboxLabelBold]}
+        <PretendardText
+          style={styles.checkboxLabel}
+          weight={isChecked ? 'bold' : 'regular'}
         >
           {label}
           {isRequired && ' (필수)'}
-        </Text>
+        </PretendardText>
       </TouchableOpacity>
     );
   };
@@ -108,12 +114,14 @@ const TermsAgreementView: FC = () => {
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
       >
-        <Text style={styles.title}>약관 동의</Text>
+        <PretendardText style={styles.title} weight="bold">
+          약관 동의
+        </PretendardText>
         <View style={styles.sectionContainer}>
           {renderCheckbox(termsAgreed, setTermsAgreed, '이용약관 동의', true)}
 
           <ScrollView style={styles.termsTextContainer}>
-            <Text style={styles.termsText}>
+            <PretendardText style={styles.termsText}>
               {`
 제1조 목적
 본 이용약관은 "Useless"(이하 "사이트")의 서비스의 이용조건과 운영에 관한 제반 사항 규정을 목적으로 합니다.
@@ -145,7 +153,7 @@ const TermsAgreementView: FC = () => {
 
 부칙 이 약관은 사이트 개설일부터 시행합니다.
 `}
-            </Text>
+            </PretendardText>
           </ScrollView>
         </View>
 
@@ -158,7 +166,7 @@ const TermsAgreementView: FC = () => {
           )}
 
           <ScrollView style={styles.termsTextContainer}>
-            <Text style={styles.termsText}>
+            <PretendardText style={styles.termsText}>
               {`Useless(이하 '회사'라 한다)는 개인정보 보호법 제30조에 따라 정보 주체의 개인정보를 보호하고 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 하기 위하여 다음과 같이 개인정보 처리지침을 수립, 공개합니다.
 
 제1조 (개인정보의 처리목적)
@@ -172,7 +180,7 @@ const TermsAgreementView: FC = () => {
 제13조(개인정보 처리방침 시행 및 변경)
 이 개인정보 처리방침은 2025. 4. 1. 부터 적용됩니다.
 `}
-            </Text>
+            </PretendardText>
           </ScrollView>
         </View>
 
@@ -184,7 +192,7 @@ const TermsAgreementView: FC = () => {
             true
           )}
           <ScrollView style={styles.shortTextContainer}>
-            <Text style={styles.termsText}>
+            <PretendardText style={styles.termsText}>
               {`1. 개인정보 수집목적 및 이용목적
 (1) 홈페이지 회원 가입 및 관리 회원 가입 의사 확인, 회원제 서비스 제공에 따른 본인 식별․인증, 회원자격 유지․관리, 제한적 본인확인제 시행에 따른 본인확인, 서비스 부정 이용 방지, 만 14세 미만 아동의 개인정보 처리시 법정대리인의 동의 여부 확인, 각종 고지․통지, 고충 처리 등의 목적
 
@@ -194,7 +202,7 @@ const TermsAgreementView: FC = () => {
 3. 개인정보 보유 및 이용기간
 회원탈퇴 시까지 (단, 관계 법령에 보존 근거가 있는 경우 해당 기간 시까지 보유)
 `}
-            </Text>
+            </PretendardText>
           </ScrollView>
         </View>
 
@@ -218,10 +226,10 @@ const TermsAgreementView: FC = () => {
             '마케팅 활용 동의 및 광고 수신 동의'
           )}
           <ScrollView style={styles.shortTextContainer}>
-            <Text style={styles.termsText}>
-              서비스와 관련된 신상품 소식, 이벤트 안내, 고객 혜택 등 다양한
-              정보를 제공합니다.
-            </Text>
+            <PretendardText style={styles.termsText}>
+              서비스와 관련된 신상품 소식, 이벤트 안내, 고객 혜택 등 다양한 정보를
+              제공합니다.
+            </PretendardText>
           </ScrollView>
         </View>
       </ScrollView>
@@ -254,7 +262,9 @@ const TermsAgreementView: FC = () => {
         ]}
         disabled={!allRequiredChecked}
       >
-        <Text style={styles.submitButtonText}>동의하고 계속하기</Text>
+        <PretendardText style={styles.submitButtonText} weight="semibold">
+          동의하고 계속하기
+        </PretendardText>
       </TouchableOpacity>
     </Layout>
   );
@@ -263,7 +273,7 @@ const TermsAgreementView: FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: Color.background,
   },
   contentContainer: {
     maxWidth: 500,
@@ -273,12 +283,11 @@ const styles = StyleSheet.create({
   title: {
     textAlign: 'center',
     fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#000',
+    marginBottom: Spacing.screenH,
+    color: Color.textPrimary,
   },
   sectionContainer: {
-    marginBottom: 20,
+    marginBottom: Spacing.screenH,
   },
   checkboxContainer: {
     flexDirection: 'row',
@@ -291,85 +300,82 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 24,
     height: 24,
-    borderRadius: 4,
+    borderRadius: Radius.listThumb,
     borderWidth: 2,
-    borderColor: '#000',
+    borderColor: Color.iconMuted,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#000',
+    backgroundColor: Color.textPrimary,
+    borderColor: Color.textPrimary,
   },
   checkboxUnchecked: {
-    backgroundColor: '#fff',
+    backgroundColor: Color.background,
+    borderColor: Color.iconMuted,
   },
   checkmark: {
-    color: '#fff',
+    color: Color.background,
     fontSize: 16,
-    fontWeight: 'bold',
   },
   checkboxLabel: {
     flex: 1,
     fontSize: 16,
-    color: '#000',
-  },
-  checkboxLabelBold: {
-    fontWeight: 'bold',
+    color: Color.textPrimary,
   },
   termsTextContainer: {
     maxHeight: 150,
     padding: 10,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 6,
+    backgroundColor: Color.surfaceMuted,
+    borderRadius: Radius.card,
     marginLeft: 30,
     marginTop: 10,
   },
   shortTextContainer: {
     maxHeight: 100,
     padding: 10,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 6,
+    backgroundColor: Color.surfaceMuted,
+    borderRadius: Radius.card,
     marginLeft: 30,
     marginTop: 10,
   },
   termsText: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#333',
+    color: Color.textTertiary,
   },
   requiredCheckboxContainer: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Color.surfaceMuted,
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-    borderRadius: 8,
+    borderColor: Color.borderLight,
+    borderRadius: Radius.card,
     padding: 16,
-    marginTop: 24,
+    marginTop: Spacing.section,
     marginBottom: 10,
   },
   allCheckboxContainer: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Color.surfaceMuted,
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-    borderRadius: 8,
+    borderColor: Color.borderLight,
+    borderRadius: Radius.card,
     padding: 16,
-    marginBottom: 20,
+    marginBottom: Spacing.screenH,
   },
   submitButton: {
     padding: 15,
-    borderRadius: 8,
+    borderRadius: Radius.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
   submitButtonEnabled: {
-    backgroundColor: '#000',
+    backgroundColor: Color.textPrimary,
   },
   submitButtonDisabled: {
-    backgroundColor: '#CCCCCC',
+    backgroundColor: Color.textSecondary,
   },
   submitButtonText: {
-    color: '#fff',
+    color: Color.background,
     fontSize: 16,
-    fontWeight: 'bold',
   },
 });
 

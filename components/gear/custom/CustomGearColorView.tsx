@@ -1,7 +1,10 @@
 import React, { FC } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, TextInput, StyleSheet } from 'react-native';
 import CustomGear from '@/model/gear/custom/CustomGear';
 import { observer } from 'mobx-react-lite';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
+
 interface Props {
   customGear: CustomGear;
 }
@@ -15,7 +18,9 @@ const CustomGearColorView: FC<Props> = ({ customGear }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>색상</Text>
+      <PretendardText weight='medium' style={styles.label}>
+        색상
+      </PretendardText>
       <TextInput
         style={styles.input}
         placeholder={'색상을 입력해주세요'}
@@ -33,11 +38,12 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '500',
   },
   input: {
-    borderRadius: 10,
-    backgroundColor: '#F6F6F6',
+    borderRadius: Radius.input,
+    backgroundColor: Color.inputBg,
+    borderWidth: 1,
+    borderColor: Color.borderLight,
     padding: 16,
   },
 });
