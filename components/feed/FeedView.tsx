@@ -6,6 +6,7 @@ import {
   RefreshControl,
   ActivityIndicator,
   ListRenderItemInfo,
+  Platform,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
@@ -19,6 +20,14 @@ import FeedCardView from './FeedCardView';
 import app from '@/model/app/App';
 
 const END_REACHED_THRESHOLD = 0.3;
+
+// 플로팅 필터 버튼(높이 ~48 + BOTTOM_OFFSET)이 마지막 카드를 가리지 않도록 리스트 하단 여백을 확보한다.
+// iOS 오프셋 80 + 버튼 48 + 여유, Android 오프셋 20 + 버튼 48 + 여유.
+const LIST_BOTTOM_PADDING = Platform.select({
+  ios: 150,
+  android: 120,
+  default: 150,
+});
 
 interface Props {
   bag: Bag;
@@ -124,7 +133,7 @@ const styles = StyleSheet.create({
   listContent: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingBottom: 100,
+    paddingBottom: LIST_BOTTOM_PADDING,
   },
   skeletonContainer: {
     paddingTop: 10,

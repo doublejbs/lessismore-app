@@ -15,10 +15,11 @@ const FILTER_LABEL = '필터';
 
 const RANKING_LABEL = '인기 순위';
 
-// 창고 `장비 추가`(AddButtonView) 버튼과 동일한 탭바 위 오프셋.
+// 탭바 위 오프셋. Android는 0이면 버튼이 탭바에 붙어 마지막 카드를 가리므로 여백을 준다.
+// (창고 `장비 추가`(AddButtonView)는 우측 하단이라 겹침이 덜하지만, 피드 중앙 버튼은 더 명확한 여백이 필요.)
 const BOTTOM_OFFSET = Platform.select({
   ios: 80,
-  android: 0,
+  android: 20,
   default: 80,
 });
 
