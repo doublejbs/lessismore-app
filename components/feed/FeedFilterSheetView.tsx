@@ -28,22 +28,14 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import Feed from '@/model/feed/Feed';
-import {
-  FeedSort,
-  FEED_SORT_OPTIONS,
-  toFeedSort,
-  fromFeedSort,
-  getFeedSortLabel,
-} from '@/model/feed/FeedSort';
+import { toFeedSort, getFeedSortLabel } from '@/model/feed/FeedSort';
 import BrandDirectory from '@/model/browse/BrandDirectory';
 import { BrandRankData } from '@/model/search/BrandRankStore';
 import { FeedBrandInterest } from '@/model/feed/FeedInterestProfile';
 import { toBrandKey } from '@/model/store/BrandKey';
-import { BROWSE_CATEGORIES } from '@/model/browse/BrowseCategory';
 import PretendardText from '@/components/PretendardText';
 import SearchSkeletonView from '@/components/search/SearchSkeletonView';
 import BrandRowView from '@/components/browse/BrandRowView';
-import CategoryChipView from '@/components/browse/CategoryChipView';
 import app from '@/model/app/App';
 
 const OPEN_DURATION = 260;
@@ -54,8 +46,6 @@ const SHEET_HEIGHT_RATIO = 0.85;
 const CLOSE_DRAG_THRESHOLD = 120;
 const CLOSE_VELOCITY = 0.5;
 
-const ALL_LABEL = '전체';
-
 const CONFIRM_LABEL = '확인';
 
 interface Props {
@@ -64,7 +54,8 @@ interface Props {
   onClose: () => void;
 }
 
-// FD-3: 통합 필터 바텀시트. 카테고리 그리드(고정) + 브랜드 검색/목록(내부 스크롤) + 초기화 + 하단 고정 `확인`.
+// FD-3: 브랜드 전용 바텀시트. 정렬·카테고리는 상단 필터 바로 이동했고, 여기서는 브랜드만 다룬다.
+// 브랜드 검색/목록(내부 스크롤) + 선택 요약 칩 + 초기화 + 하단 고정 `확인`으로 구성된다.
 // 애니메이션/제스처는 gesture-handler + reanimated 기반(딤 페이드 + 시트 슬라이드 + 핸들바 드래그)이고,
 // 브랜드 목록·검색은 BrandDirectory 모델을 재사용한다.
 // 선택은 시트 안에서 스테이징되고 하단 `확인`으로 일괄 적용된다. 오버레이/핸들/뒤로가기 = 취소(스테이징 폐기).
@@ -80,11 +71,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
   const translateY = useSharedValue(sheetOffscreen);
   const dim = useSharedValue(0);
 
-  // 스테이징 로컬 상태 — 시트 열릴 때 현재 적용값으로 초기화한다(피드 재조회 없음).
-  const [stagedSort, setStagedSort] = useState<FeedSort>(
-    toFeedSort(feed.getSort())
-  );
-  const [stagedCategory, setStagedCategory] = useState<string | null>(null);
+  // 스테이징 로컬 상태 — 시트 열릴 때 현재 적용 브랜드로 초기화한다(피드 재조회 없음).
   const [stagedBrands, setStagedBrands] = useState<FeedBrandInterest[]>([]);
 
   const brands = brandDirectory.getBrands();
@@ -92,11 +79,8 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
   const isEmpty = brandDirectory.isEmpty();
   const keyword = brandDirectory.getKeyword();
 
-  // 스테이징 선택 수 = (카테고리 1) + (선택 브랜드 수). 플로팅 버튼 개수 규칙(FD-3)과 동일(정렬 미포함).
-  const stagedCount = (stagedCategory !== null ? 1 : 0) + stagedBrands.length;
-  // 정렬이 추천이 아니거나 필터가 있으면 초기화 노출(초기화는 정렬도 추천으로 되돌림).
-  const isRecommendedSort = stagedSort === toFeedSort(null);
-  const hasStagedFilter = stagedCount > 0 || !isRecommendedSort;
+  const stagedCount = stagedBrands.length;
+  const hasStagedFilter = stagedCount > 0;
   const confirmLabel =
     stagedCount > 0 ? `${CONFIRM_LABEL} (${stagedCount})` : CONFIRM_LABEL;
 
@@ -105,9 +89,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
       return;
     }
 
-    // 열릴 때마다 스테이징을 현재 적용 필터로 동기화한다.
-    setStagedSort(toFeedSort(feed.getSort()));
-    setStagedCategory(feed.getFilterCategory());
+    // 열릴 때마다 스테이징을 현재 적용 브랜드로 동기화한다.
     setStagedBrands([...feed.getFilterBrands()]);
 
     brandDirectory.initialize();
@@ -119,7 +101,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
     dim.value = withTiming(1, { duration: OPEN_DURATION });
   }, [visible, brandDirectory, translateY, dim, feed, sheetOffscreen]);
 
-  // 취소: 스테이징을 폐기하고 닫는다(적용 필터 유지).
+  // 취소: 스테이징을 폐기하고 닫는다(적용 브랜드 유지).
   const handleCancel = () => {
     onClose();
   };
@@ -177,28 +159,15 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
     opacity: dim.value,
   }));
 
-  // FD-3 `확인`: 스테이징을 원자 적용한 뒤 닫는다(변경 없으면 setFilters가 no-op).
+  // FD-3 `확인`: 스테이징 브랜드를 원자 적용한 뒤 닫는다(변경 없으면 applyBrands가 no-op).
   const handleApply = () => {
     app.getAnalyticsManager()?.logClick('feed_filter_apply', {
-      category: stagedCategory ?? 'all',
+      category: feed.getFilterCategory() ?? 'all',
       brand_count: stagedBrands.length,
-      sort: getFeedSortLabel(stagedSort),
+      sort: getFeedSortLabel(toFeedSort(feed.getSort())),
     });
-    feed.setFilters(stagedCategory, stagedBrands, fromFeedSort(stagedSort));
+    feed.applyBrands(stagedBrands);
     close();
-  };
-
-  const handleSelectSort = (sort: FeedSort) => {
-    setStagedSort(sort);
-  };
-
-  const handleSelectAllCategory = () => {
-    setStagedCategory(null);
-  };
-
-  const handleSelectCategory = (category: string) => {
-    // 같은 칩 재탭 시 해제(전체로 복귀).
-    setStagedCategory(prev => (prev === category ? null : category));
   };
 
   const handleChangeKeyword = (text: string) => {
@@ -241,11 +210,9 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
     );
   };
 
-  // 초기화: 스테이징 전체 해제(정렬은 추천으로 복귀, 적용은 `확인` 시점).
+  // 초기화: 브랜드 스테이징 전체 해제(적용은 `확인` 시점).
   const handleReset = () => {
     app.getAnalyticsManager()?.logClick('feed_filter_reset');
-    setStagedSort(toFeedSort(null));
-    setStagedCategory(null);
     setStagedBrands([]);
   };
 
@@ -326,7 +293,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
 
                 <View style={styles.header}>
                   <PretendardText style={styles.title} weight='bold'>
-                    필터
+                    브랜드
                   </PretendardText>
                   {hasStagedFilter ? (
                     <TouchableOpacity
@@ -341,57 +308,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
                   ) : null}
                 </View>
 
-                <View style={styles.section}>
-                  <PretendardText style={styles.sectionLabel} weight='semibold'>
-                    정렬
-                  </PretendardText>
-                  <ScrollView
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={false}
-                    keyboardShouldPersistTaps='handled'
-                    contentContainerStyle={styles.chipRowContent}
-                  >
-                    {FEED_SORT_OPTIONS.map(option => (
-                      <CategoryChipView
-                        key={option.value}
-                        label={option.label}
-                        selected={stagedSort === option.value}
-                        onPress={() => handleSelectSort(option.value)}
-                      />
-                    ))}
-                  </ScrollView>
-                </View>
-
-                <View style={styles.section}>
-                  <PretendardText style={styles.sectionLabel} weight='semibold'>
-                    카테고리
-                  </PretendardText>
-                  <ScrollView
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={false}
-                    keyboardShouldPersistTaps='handled'
-                    contentContainerStyle={styles.chipRowContent}
-                  >
-                    <CategoryChipView
-                      label={ALL_LABEL}
-                      selected={stagedCategory === null}
-                      onPress={handleSelectAllCategory}
-                    />
-                    {BROWSE_CATEGORIES.map(item => (
-                      <CategoryChipView
-                        key={item.filter}
-                        label={item.name}
-                        selected={stagedCategory === item.filter}
-                        onPress={() => handleSelectCategory(item.filter)}
-                      />
-                    ))}
-                  </ScrollView>
-                </View>
-
                 <View style={styles.brandSection}>
-                  <PretendardText style={styles.sectionLabel} weight='semibold'>
-                    브랜드
-                  </PretendardText>
                   <View style={styles.searchInputWrapper}>
                     <TextInput
                       style={styles.searchInput}
@@ -525,21 +442,6 @@ const styles = StyleSheet.create({
   resetText: {
     fontSize: 14,
     color: '#555',
-  },
-  section: {
-    marginBottom: 16,
-  },
-  sectionLabel: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#505967',
-    marginBottom: 12,
-  },
-  chipRowContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingRight: 4,
   },
   brandSection: {
     flex: 1,
