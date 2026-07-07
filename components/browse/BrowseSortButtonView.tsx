@@ -7,6 +7,7 @@ import {
   Pressable,
   Animated,
   Easing,
+  PanResponder,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import Svg, { Path } from 'react-native-svg';
@@ -20,6 +21,12 @@ import {
 const SHEET_SLIDE_DISTANCE = 400;
 const OPEN_DURATION = 260;
 const CLOSE_DURATION = 200;
+
+// 드래그 닫기 임계값 — 아래로 이만큼 끌거나(px) 이 속도 이상이면 닫는다.
+const CLOSE_DRAG_THRESHOLD = 120;
+const CLOSE_VELOCITY = 0.5;
+// 세로 드래그로 인정할 최소 이동량(가로/작은 움직임과 구분).
+const DRAG_ACTIVATE_DISTANCE = 6;
 
 interface Props {
   sort: BrowseSort;
@@ -65,6 +72,7 @@ const CheckIcon = () => (
 const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
   const [showOptions, setShowOptions] = useState(false);
   const progress = useRef(new Animated.Value(0)).current;
+  const dragY = useRef(new Animated.Value(0)).current;
   const isClosing = useRef(false);
 
   useEffect(() => {
@@ -73,13 +81,14 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
     }
 
     progress.setValue(0);
+    dragY.setValue(0);
     Animated.timing(progress, {
       toValue: 1,
       duration: OPEN_DURATION,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
-  }, [showOptions, progress]);
+  }, [showOptions, progress, dragY]);
 
   const runClose = () => {
     if (isClosing.current) {
@@ -95,9 +104,63 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
       useNativeDriver: true,
     }).start(() => {
       isClosing.current = false;
+      dragY.setValue(0);
       setShowOptions(false);
     });
   };
+
+  // 드래그로 닫기: dragY를 시트 밖까지 애니메이트한 뒤 닫는다(0으로 리셋은 runClose 완료 시점).
+  const runCloseByDrag = () => {
+    if (isClosing.current) {
+      return;
+    }
+
+    isClosing.current = true;
+
+    Animated.timing(dragY, {
+      toValue: SHEET_SLIDE_DISTANCE,
+      duration: CLOSE_DURATION,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    }).start(() => {
+      isClosing.current = false;
+      progress.setValue(0);
+      dragY.setValue(0);
+      setShowOptions(false);
+    });
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_event, gesture) => {
+        return (
+          gesture.dy > DRAG_ACTIVATE_DISTANCE &&
+          gesture.dy > Math.abs(gesture.dx)
+        );
+      },
+      onPanResponderMove: (_event, gesture) => {
+        dragY.setValue(Math.max(0, gesture.dy));
+      },
+      onPanResponderRelease: (_event, gesture) => {
+        if (gesture.dy > CLOSE_DRAG_THRESHOLD || gesture.vy > CLOSE_VELOCITY) {
+          runCloseByDrag();
+
+          return;
+        }
+
+        Animated.spring(dragY, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      },
+      onPanResponderTerminate: () => {
+        Animated.spring(dragY, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      },
+    })
+  ).current;
 
   const handleOpen = () => {
     setShowOptions(true);
@@ -138,10 +201,12 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
             pointerEvents='none'
           />
           <Animated.View
-            style={{ transform: [{ translateY: sheetTranslateY }] }}
+            style={{
+              transform: [{ translateY: Animated.add(sheetTranslateY, dragY) }],
+            }}
           >
             <Pressable style={styles.sheet} onPress={e => e.stopPropagation()}>
-            <View style={styles.handle}>
+            <View style={styles.handle} {...panResponder.panHandlers}>
               <View style={styles.handleBar} />
             </View>
 
@@ -219,6 +284,7 @@ const styles = StyleSheet.create({
   handle: {
     alignItems: 'center',
     paddingTop: 8,
+    paddingBottom: 8,
   },
   handleBar: {
     width: 36,
