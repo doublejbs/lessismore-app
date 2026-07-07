@@ -1,23 +1,32 @@
-import { FC, useEffect, useRef, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
   Modal,
   Pressable,
-  Animated,
-  Easing,
   ScrollView,
   TextInput,
   TouchableOpacity,
   Dimensions,
   KeyboardAvoidingView,
   Platform,
-  PanResponder,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  GestureHandlerRootView,
+  Gesture,
+  GestureDetector,
+} from 'react-native-gesture-handler';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  runOnJS,
+} from 'react-native-reanimated';
 import Feed from '@/model/feed/Feed';
 import BrandDirectory from '@/model/browse/BrandDirectory';
 import { BrandRankData } from '@/model/search/BrandRankStore';
@@ -30,7 +39,6 @@ import BrandRowView from '@/components/browse/BrandRowView';
 import CategoryChipView from '@/components/browse/CategoryChipView';
 import app from '@/model/app/App';
 
-const SHEET_SLIDE_DISTANCE = 800;
 const OPEN_DURATION = 260;
 const CLOSE_DURATION = 200;
 const SHEET_HEIGHT_RATIO = 0.75;
@@ -38,8 +46,6 @@ const SHEET_HEIGHT_RATIO = 0.75;
 // 드래그 닫기 임계값 — 아래로 이만큼 끌거나(px) 이 속도 이상이면 닫는다.
 const CLOSE_DRAG_THRESHOLD = 120;
 const CLOSE_VELOCITY = 0.5;
-// 세로 드래그로 인정할 최소 이동량(가로/작은 움직임과 구분).
-const DRAG_ACTIVATE_DISTANCE = 6;
 
 const ALL_LABEL = '전체';
 
@@ -52,16 +58,20 @@ interface Props {
 }
 
 // FD-3: 통합 필터 바텀시트. 카테고리 그리드(고정) + 브랜드 검색/목록(내부 스크롤) + 초기화 + 하단 고정 `확인`.
-// 애니메이션은 BrowseSortButtonView 패턴(딤 페이드 + 시트 슬라이드 + 핸들바)을 미러링하고,
+// 애니메이션/제스처는 gesture-handler + reanimated 기반(딤 페이드 + 시트 슬라이드 + 핸들바 드래그)이고,
 // 브랜드 목록·검색은 BrandDirectory 모델을 재사용한다.
 // 선택은 시트 안에서 스테이징되고 하단 `확인`으로 일괄 적용된다. 오버레이/핸들/뒤로가기 = 취소(스테이징 폐기).
 const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [brandDirectory] = useState(() => BrandDirectory.new(router));
-  const progress = useRef(new Animated.Value(0)).current;
-  const dragY = useRef(new Animated.Value(0)).current;
-  const isClosing = useRef(false);
+
+  const sheetHeight = Dimensions.get('window').height * SHEET_HEIGHT_RATIO;
+  // 시트가 화면 밖으로 완전히 내려가는 거리(초기/닫힘 translateY).
+  const sheetOffscreen = sheetHeight + 100;
+
+  const translateY = useSharedValue(sheetOffscreen);
+  const dim = useSharedValue(0);
 
   // 스테이징 로컬 상태 — 시트 열릴 때 현재 적용값으로 초기화한다(피드 재조회 없음).
   const [stagedCategory, setStagedCategory] = useState<string | null>(null);
@@ -71,7 +81,6 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
   const isLoading = brandDirectory.isLoading();
   const isEmpty = brandDirectory.isEmpty();
   const keyword = brandDirectory.getKeyword();
-  const sheetHeight = Dimensions.get('window').height * SHEET_HEIGHT_RATIO;
 
   // 스테이징 선택 수 = (카테고리 1) + (선택 브랜드 수). 플로팅 버튼 개수 규칙(FD-3)과 동일.
   const stagedCount = (stagedCategory !== null ? 1 : 0) + stagedBrands.length;
@@ -89,94 +98,71 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
     setStagedBrands([...feed.getFilterBrands()]);
 
     brandDirectory.initialize();
-    isClosing.current = false;
-    progress.setValue(0);
-    dragY.setValue(0);
-    Animated.timing(progress, {
-      toValue: 1,
-      duration: OPEN_DURATION,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: false,
-    }).start();
-  }, [visible, brandDirectory, progress, dragY, feed]);
 
-  const runClose = (onFinished?: () => void) => {
-    if (isClosing.current) {
-      return;
-    }
-
-    isClosing.current = true;
-
-    Animated.timing(progress, {
-      toValue: 0,
-      duration: CLOSE_DURATION,
-      easing: Easing.in(Easing.cubic),
-      useNativeDriver: false,
-    }).start(() => {
-      isClosing.current = false;
-      dragY.setValue(0);
-      onFinished?.();
-      onClose();
-    });
-  };
-
-  // 드래그로 닫기: dragY를 시트 밖까지 애니메이트한 뒤 닫는다(취소와 동일 의미 — 스테이징 폐기).
-  const runCloseByDrag = () => {
-    if (isClosing.current) {
-      return;
-    }
-
-    isClosing.current = true;
-
-    Animated.timing(dragY, {
-      toValue: SHEET_SLIDE_DISTANCE,
-      duration: CLOSE_DURATION,
-      easing: Easing.in(Easing.cubic),
-      useNativeDriver: false,
-    }).start(() => {
-      isClosing.current = false;
-      progress.setValue(0);
-      dragY.setValue(0);
-      onClose();
-    });
-  };
+    // 슬라이드 인 + 딤 페이드 인.
+    translateY.value = sheetOffscreen;
+    dim.value = 0;
+    translateY.value = withTiming(0, { duration: OPEN_DURATION });
+    dim.value = withTiming(1, { duration: OPEN_DURATION });
+  }, [visible, brandDirectory, translateY, dim, feed, sheetOffscreen]);
 
   // 취소: 스테이징을 폐기하고 닫는다(적용 필터 유지).
   const handleCancel = () => {
-    runClose();
+    onClose();
   };
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_event, gesture) => {
-        return (
-          gesture.dy > DRAG_ACTIVATE_DISTANCE &&
-          gesture.dy > Math.abs(gesture.dx)
-        );
-      },
-      onPanResponderMove: (_event, gesture) => {
-        dragY.setValue(Math.max(0, gesture.dy));
-      },
-      onPanResponderRelease: (_event, gesture) => {
-        if (gesture.dy > CLOSE_DRAG_THRESHOLD || gesture.vy > CLOSE_VELOCITY) {
-          runCloseByDrag();
+  // 닫기 애니메이션 완료 후 실행할 JS 콜백(취소 경로 = 스테이징 폐기).
+  const handleClosed = () => {
+    onClose();
+  };
 
-          return;
+  // 닫기: 시트를 화면 밖으로 내리고 딤을 페이드 아웃한 뒤 onClose(취소 경로)를 호출한다.
+  const close = () => {
+    dim.value = withTiming(0, { duration: CLOSE_DURATION });
+    translateY.value = withTiming(
+      sheetOffscreen,
+      { duration: CLOSE_DURATION },
+      finished => {
+        if (finished) {
+          runOnJS(handleClosed)();
         }
+      }
+    );
+  };
 
-        Animated.spring(dragY, {
-          toValue: 0,
-          useNativeDriver: false,
-        }).start();
-      },
-      onPanResponderTerminate: () => {
-        Animated.spring(dragY, {
-          toValue: 0,
-          useNativeDriver: false,
-        }).start();
-      },
+  const panGesture = Gesture.Pan()
+    .onUpdate(event => {
+      translateY.value = Math.max(0, event.translationY);
     })
-  ).current;
+    .onEnd(event => {
+      if (
+        event.translationY > CLOSE_DRAG_THRESHOLD ||
+        event.velocityY > CLOSE_VELOCITY
+      ) {
+        dim.value = withTiming(0, { duration: CLOSE_DURATION });
+        translateY.value = withTiming(
+          sheetOffscreen,
+          { duration: CLOSE_DURATION },
+          finished => {
+            if (finished) {
+              runOnJS(handleClosed)();
+            }
+          }
+        );
+
+        return;
+      }
+
+      translateY.value = withSpring(0);
+    });
+
+  const sheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  const dimStyle = useAnimatedStyle(() => ({
+    opacity: dim.value,
+  }));
 
   // FD-3 `확인`: 스테이징을 원자 적용한 뒤 닫는다(변경 없으면 setFilters가 no-op).
   const handleApply = () => {
@@ -185,7 +171,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
       brand_count: stagedBrands.length,
     });
     feed.setFilters(stagedCategory, stagedBrands);
-    runClose();
+    close();
   };
 
   const handleSelectAllCategory = () => {
@@ -252,11 +238,6 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
     );
   };
 
-  const sheetTranslateY = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [SHEET_SLIDE_DISTANCE, 0],
-  });
-
   const renderBrandList = () => {
     if (isLoading && isEmpty) {
       return (
@@ -301,149 +282,161 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
       animationType='none'
       onRequestClose={handleCancel}
     >
-      <Pressable style={styles.overlayRoot} onPress={handleCancel}>
-        <Animated.View
-          style={[styles.overlayDim, { opacity: progress }]}
-          pointerEvents='none'
-        />
-        <Animated.View
-          style={{
-            transform: [{ translateY: Animated.add(sheetTranslateY, dragY) }],
-          }}
-        >
-          <Pressable
-            style={[styles.sheet, { height: sheetHeight }]}
-            onPress={e => e.stopPropagation()}
-          >
-            {/* 키보드 회피: 브랜드 검색 포커스 시 목록·확인 버튼이 가려지지 않게 한다(배낭 담기 모달과 동일 패턴). */}
-            <KeyboardAvoidingView
-              style={styles.keyboardAvoider}
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <GestureHandlerRootView style={styles.gestureRoot}>
+        <Pressable style={styles.overlayRoot} onPress={handleCancel}>
+          <Animated.View
+            style={[styles.overlayDim, dimStyle]}
+            pointerEvents='none'
+          />
+          <Animated.View style={sheetStyle}>
+            <Pressable
+              style={[styles.sheet, { height: sheetHeight }]}
+              onPress={e => e.stopPropagation()}
             >
-            <View style={styles.handle} {...panResponder.panHandlers}>
-              <View style={styles.handleBar} />
-            </View>
-
-            <View style={styles.header}>
-              <PretendardText style={styles.title} weight='bold'>
-                필터
-              </PretendardText>
-              {hasStagedFilter ? (
-                <TouchableOpacity
-                  onPress={handleReset}
-                  activeOpacity={0.7}
-                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                >
-                  <PretendardText style={styles.resetText} weight='semibold'>
-                    초기화
-                  </PretendardText>
-                </TouchableOpacity>
-              ) : null}
-            </View>
-
-            <View style={styles.section}>
-              <PretendardText style={styles.sectionLabel} weight='semibold'>
-                카테고리
-              </PretendardText>
-              <View style={styles.categoryGrid}>
-                <CategoryChipView
-                  label={ALL_LABEL}
-                  selected={stagedCategory === null}
-                  onPress={handleSelectAllCategory}
-                />
-                {BROWSE_CATEGORIES.map(item => (
-                  <CategoryChipView
-                    key={item.filter}
-                    label={item.name}
-                    selected={stagedCategory === item.filter}
-                    onPress={() => handleSelectCategory(item.filter)}
-                  />
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.brandSection}>
-              <PretendardText style={styles.sectionLabel} weight='semibold'>
-                브랜드
-              </PretendardText>
-              <View style={styles.searchInputWrapper}>
-                <TextInput
-                  style={styles.searchInput}
-                  value={keyword}
-                  onChangeText={handleChangeKeyword}
-                  placeholder='브랜드명을 검색해보세요'
-                  placeholderTextColor='#999'
-                  autoCapitalize='none'
-                  autoCorrect={false}
-                />
-                {keyword ? (
-                  <TouchableOpacity
-                    onPress={handleClearKeyword}
-                    style={styles.clearButton}
-                  >
-                    <Ionicons name='close-circle' size={20} color='#B0B8C1' />
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-              {stagedBrands.length > 0 ? (
-                <ScrollView
-                  horizontal={true}
-                  showsHorizontalScrollIndicator={false}
-                  keyboardShouldPersistTaps='handled'
-                  style={styles.summaryChips}
-                  contentContainerStyle={styles.summaryChipsContent}
-                >
-                  {stagedBrands.map(brand => {
-                    const key = toBrandKey(brand.companyKorean, brand.company);
-                    const label = brand.companyKorean || brand.company;
-
-                    return (
-                      <TouchableOpacity
-                        key={key}
-                        style={styles.summaryChip}
-                        onPress={() => handleRemoveStagedBrand(brand)}
-                        activeOpacity={0.7}
-                      >
-                        <PretendardText
-                          style={styles.summaryChipText}
-                          weight='semibold'
-                        >
-                          {label}
-                        </PretendardText>
-                        <Ionicons name='close' size={14} color='#FFF' />
-                      </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
-              ) : null}
-              <View style={styles.brandListContainer}>{renderBrandList()}</View>
-            </View>
-
-            <View
-              style={[
-                styles.footer,
-                { paddingBottom: Math.max(insets.bottom, 16) },
-              ]}
-            >
-              <TouchableOpacity
-                style={styles.confirmButton}
-                onPress={handleApply}
-                activeOpacity={0.7}
+              {/* 키보드 회피: 브랜드 검색 포커스 시 목록·확인 버튼이 가려지지 않게 한다(배낭 담기 모달과 동일 패턴). */}
+              <KeyboardAvoidingView
+                style={styles.keyboardAvoider}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
               >
-                <PretendardText style={styles.confirmButtonText}>
-                  {confirmLabel}
-                </PretendardText>
-              </TouchableOpacity>
-            </View>
-            </KeyboardAvoidingView>
-          </Pressable>
-        </Animated.View>
-      </Pressable>
+                <GestureDetector gesture={panGesture}>
+                  <View style={styles.handle}>
+                    <View style={styles.handleBar} />
+                  </View>
+                </GestureDetector>
+
+                <View style={styles.header}>
+                  <PretendardText style={styles.title} weight='bold'>
+                    필터
+                  </PretendardText>
+                  {hasStagedFilter ? (
+                    <TouchableOpacity
+                      onPress={handleReset}
+                      activeOpacity={0.7}
+                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    >
+                      <PretendardText style={styles.resetText} weight='semibold'>
+                        초기화
+                      </PretendardText>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+
+                <View style={styles.section}>
+                  <PretendardText style={styles.sectionLabel} weight='semibold'>
+                    카테고리
+                  </PretendardText>
+                  <View style={styles.categoryGrid}>
+                    <CategoryChipView
+                      label={ALL_LABEL}
+                      selected={stagedCategory === null}
+                      onPress={handleSelectAllCategory}
+                    />
+                    {BROWSE_CATEGORIES.map(item => (
+                      <CategoryChipView
+                        key={item.filter}
+                        label={item.name}
+                        selected={stagedCategory === item.filter}
+                        onPress={() => handleSelectCategory(item.filter)}
+                      />
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.brandSection}>
+                  <PretendardText style={styles.sectionLabel} weight='semibold'>
+                    브랜드
+                  </PretendardText>
+                  <View style={styles.searchInputWrapper}>
+                    <TextInput
+                      style={styles.searchInput}
+                      value={keyword}
+                      onChangeText={handleChangeKeyword}
+                      placeholder='브랜드명을 검색해보세요'
+                      placeholderTextColor='#999'
+                      autoCapitalize='none'
+                      autoCorrect={false}
+                    />
+                    {keyword ? (
+                      <TouchableOpacity
+                        onPress={handleClearKeyword}
+                        style={styles.clearButton}
+                      >
+                        <Ionicons
+                          name='close-circle'
+                          size={20}
+                          color='#B0B8C1'
+                        />
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+                  {stagedBrands.length > 0 ? (
+                    <ScrollView
+                      horizontal={true}
+                      showsHorizontalScrollIndicator={false}
+                      keyboardShouldPersistTaps='handled'
+                      style={styles.summaryChips}
+                      contentContainerStyle={styles.summaryChipsContent}
+                    >
+                      {stagedBrands.map(brand => {
+                        const key = toBrandKey(
+                          brand.companyKorean,
+                          brand.company
+                        );
+                        const label = brand.companyKorean || brand.company;
+
+                        return (
+                          <TouchableOpacity
+                            key={key}
+                            style={styles.summaryChip}
+                            onPress={() => handleRemoveStagedBrand(brand)}
+                            activeOpacity={0.7}
+                          >
+                            <PretendardText
+                              style={styles.summaryChipText}
+                              weight='semibold'
+                            >
+                              {label}
+                            </PretendardText>
+                            <Ionicons name='close' size={14} color='#FFF' />
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
+                  ) : null}
+                  <View style={styles.brandListContainer}>
+                    {renderBrandList()}
+                  </View>
+                </View>
+
+                <View
+                  style={[
+                    styles.footer,
+                    { paddingBottom: Math.max(insets.bottom, 16) },
+                  ]}
+                >
+                  <TouchableOpacity
+                    style={styles.confirmButton}
+                    onPress={handleApply}
+                    activeOpacity={0.7}
+                  >
+                    <PretendardText style={styles.confirmButtonText}>
+                      {confirmLabel}
+                    </PretendardText>
+                  </TouchableOpacity>
+                </View>
+              </KeyboardAvoidingView>
+            </Pressable>
+          </Animated.View>
+        </Pressable>
+      </GestureHandlerRootView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
+  gestureRoot: {
+    flex: 1,
+  },
   overlayRoot: {
     flex: 1,
     justifyContent: 'flex-end',
