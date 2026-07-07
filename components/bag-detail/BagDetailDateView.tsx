@@ -3,7 +3,6 @@ import { observer } from 'mobx-react-lite';
 import { FC, useState } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   Modal,
   StyleSheet,
@@ -15,6 +14,8 @@ import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateRangeCalendarView from '../bag/DateRangeCalendarView';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -69,11 +70,13 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
   return (
     <>
       <TouchableOpacity style={styles.dateContainer} onPress={handleDatePress}>
-        <Text style={styles.dateText}>{bagDetail.getDate()}</Text>
+        <PretendardText style={styles.dateText}>
+          {bagDetail.getDate()}
+        </PretendardText>
         <Ionicons
           name='create-outline'
           size={16}
-          color='#9B9B9B'
+          color={Color.textSecondary}
           style={{ opacity: 0.5 }}
         />
       </TouchableOpacity>
@@ -96,10 +99,12 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
               style={styles.scrollContainer}
               contentContainerStyle={styles.scrollContentContainer}
             >
-              <Text style={styles.modalTitle}>여행 날짜 수정</Text>
-              <Text style={styles.modalDescription}>
+              <PretendardText style={styles.modalTitle} weight='bold'>
+                여행 날짜 수정
+              </PretendardText>
+              <PretendardText style={styles.modalDescription}>
                 여행 시작일과 종료일을 선택해주세요
-              </Text>
+              </PretendardText>
               <View style={styles.calendarContainer}>
                 <DateRangeCalendarView
                   startDate={startDate}
@@ -116,7 +121,9 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
                 disabled={isUpdating}
                 style={[styles.cancelButton, { opacity: isUpdating ? 0.6 : 1 }]}
               >
-                <Text style={styles.cancelButtonText}>취소</Text>
+                <PretendardText style={styles.cancelButtonText} weight='medium'>
+                  취소
+                </PretendardText>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -126,13 +133,15 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
                   styles.saveButton,
                   {
                     backgroundColor:
-                      isUpdating || !startDate || !endDate ? '#666' : 'black',
+                      isUpdating || !startDate || !endDate
+                        ? Color.textTertiary
+                        : Color.chipActiveBg,
                   },
                 ]}
               >
-                <Text style={styles.saveButtonText}>
+                <PretendardText style={styles.saveButtonText} weight='medium'>
                   {isUpdating ? '저장 중...' : '저장'}
-                </Text>
+                </PretendardText>
               </TouchableOpacity>
             </View>
           </View>
@@ -149,24 +158,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'row',
     padding: 4,
-    borderRadius: 4,
+    borderRadius: Radius.listThumb,
     gap: 8,
     paddingBottom: 8,
   },
   dateText: {
     fontSize: 14,
-    color: 'black',
+    color: Color.textPrimary,
     textAlign: 'center',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: Color.overlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    backgroundColor: Color.background,
+    borderTopLeftRadius: Radius.modal,
+    borderTopRightRadius: Radius.modal,
     padding: 24,
     maxHeight: '95%',
     minHeight: '70%',
@@ -179,16 +188,15 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
     marginBottom: 8,
     textAlign: 'center',
-    color: 'black',
+    color: Color.textPrimary,
   },
   modalDescription: {
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 20,
-    color: 'black',
+    color: Color.textPrimary,
   },
   calendarContainer: {
     marginBottom: 10,
@@ -197,7 +205,7 @@ const styles = StyleSheet.create({
   calendarPlaceholder: {
     fontSize: 16,
     textAlign: 'center',
-    color: 'black',
+    color: Color.textPrimary,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -205,28 +213,26 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: Radius.input,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Color.borderLight,
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: 'black',
+    color: Color.textPrimary,
     fontSize: 16,
-    fontWeight: '500',
   },
   saveButton: {
     flex: 1,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: Radius.input,
     alignItems: 'center',
   },
   saveButtonText: {
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '500',
   },
 });
 

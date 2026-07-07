@@ -1,14 +1,9 @@
 import React, { FC, useCallback, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  Platform,
-  Image,
-} from 'react-native';
+import { View, ScrollView, StyleSheet, Platform, Image } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import Layout from '@/components/Layout';
+import PretendardText from '@/components/PretendardText';
+import { Color } from '@/constants/DesignTokens';
 import Warehouse from '@/model/warehouse/Warehouse';
 import WarehouseFiltersView from '@/components/warehouse/WarehouseFiltersView';
 import WarehouseGearView from '@/components/warehouse/WarehouseGearView';
@@ -42,7 +37,9 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
     } else if (isEmpty) {
       return (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>장비를 추가해 주세요</Text>
+          <PretendardText style={styles.emptyText}>
+            장비를 추가해 주세요
+          </PretendardText>
         </View>
       );
     } else if (gears.length === 0) {
@@ -50,9 +47,9 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
 
       return (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>
+          <PretendardText style={styles.emptyText}>
             {josa(`${selectedFilter.getName()}#{가}`)} 없습니다
-          </Text>
+          </PretendardText>
         </View>
       );
     } else {
@@ -131,7 +128,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     textAlign: 'center',
-    color: '#666',
+    color: Color.textSecondary,
   },
   bottomSpacing: {
     height: 100,

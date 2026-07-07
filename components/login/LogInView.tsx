@@ -2,7 +2,6 @@ import { observer } from 'mobx-react-lite';
 import { FC, useState } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   Modal,
   StyleSheet,
@@ -14,6 +13,8 @@ import {
 } from 'react-native';
 import { Svg, Path } from 'react-native-svg';
 import LoadingView from '@/components/ui/LoadingView';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 import LogInAlertManager from '@/model/login/LogInAlertManager';
 import app from '@/model/app/App';
 
@@ -83,7 +84,9 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
             resizeMode='contain'
           />
           {!isEmailLoginMode && (
-            <Text style={styles.subtitle}>{'로그인 후 이용 가능합니다'}</Text>
+            <PretendardText weight='bold' style={styles.subtitle}>
+              {'로그인 후 이용 가능합니다'}
+            </PretendardText>
           )}
           <View style={styles.buttonContainer}>
             {isLoading ? (
@@ -111,11 +114,15 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
                   style={styles.loginButton}
                   onPress={handleClickLogin}
                 >
-                  <Text style={styles.loginButtonText}>확인</Text>
+                  <PretendardText weight='bold' style={styles.loginButtonText}>
+                    확인
+                  </PretendardText>
                 </TouchableOpacity>
                 <View style={styles.linkContainer}>
                   <TouchableOpacity onPress={handleClickBack}>
-                    <Text style={styles.linkText}>뒤로가기</Text>
+                    <PretendardText weight='medium' style={styles.linkText}>
+                      뒤로가기
+                    </PretendardText>
                   </TouchableOpacity>
                 </View>
               </>
@@ -148,7 +155,9 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
                       d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z'
                     />
                   </Svg>
-                  <Text style={styles.loginButtonText}>Google로 로그인</Text>
+                  <PretendardText weight='bold' style={styles.loginButtonText}>
+                    Google로 로그인
+                  </PretendardText>
                 </TouchableOpacity>
 
                 {Platform.OS !== 'android' && (
@@ -167,7 +176,12 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
                         d='M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z'
                       />
                     </Svg>
-                    <Text style={styles.loginButtonText}>Apple로 로그인</Text>
+                    <PretendardText
+                      weight='bold'
+                      style={styles.loginButtonText}
+                    >
+                      Apple로 로그인
+                    </PretendardText>
                   </TouchableOpacity>
                 )}
 
@@ -175,9 +189,12 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
                   style={styles.emailLoginButton}
                   onPress={handleClickEmailLogin}
                 >
-                  <Text style={styles.emailLoginButtonText}>
+                  <PretendardText
+                    weight='medium'
+                    style={styles.emailLoginButtonText}
+                  >
                     이메일로 로그인
-                  </Text>
+                  </PretendardText>
                 </TouchableOpacity>
               </>
             )}
@@ -191,14 +208,14 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: Color.overlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
   modal: {
     width: 350,
-    backgroundColor: 'white',
-    borderRadius: 16,
+    backgroundColor: Color.background,
+    borderRadius: Radius.modal,
     padding: 24,
     paddingBottom: 20,
     gap: 24,
@@ -209,18 +226,16 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   title: {
-    fontFamily: 'Pretendard-Bold',
     fontSize: 48,
     textAlign: 'center',
     lineHeight: 48,
     letterSpacing: -4.5,
-    color: '#000000',
+    color: Color.textPrimary,
   },
   subtitle: {
-    fontFamily: 'Pretendard-Bold',
     textAlign: 'center',
     fontSize: 16,
-    color: '#000000',
+    color: Color.textPrimary,
   },
   buttonContainer: {
     alignItems: 'center',
@@ -231,10 +246,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'black',
+    backgroundColor: Color.textPrimary,
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: Radius.card,
     width: '100%',
   },
   googleIcon: {
@@ -244,39 +259,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'black',
+    backgroundColor: Color.textPrimary,
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: Radius.card,
     width: '100%',
   },
   appleIcon: {
     marginRight: 10,
   },
   loginButtonText: {
-    fontFamily: 'Pretendard-Bold',
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 16,
   },
   emailLoginButton: {
     paddingVertical: 8,
   },
   emailLoginButtonText: {
-    fontFamily: 'Pretendard-Medium',
-    color: '#666',
+    color: Color.textTertiary,
     fontSize: 14,
     textDecorationLine: 'underline',
   },
   input: {
     width: '100%',
     height: 48,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    backgroundColor: Color.inputBg,
+    borderRadius: Radius.input,
     paddingHorizontal: 16,
     fontSize: 16,
     fontFamily: 'Pretendard-Regular',
-    color: '#000000',
+    color: Color.textPrimary,
   },
   linkContainer: {
     width: '100%',
@@ -285,8 +297,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   linkText: {
-    fontFamily: 'Pretendard-Medium',
-    color: '#666',
+    color: Color.textTertiary,
     fontSize: 14,
     textDecorationLine: 'underline',
   },

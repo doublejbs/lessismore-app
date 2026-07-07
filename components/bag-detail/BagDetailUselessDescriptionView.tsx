@@ -1,9 +1,11 @@
 import { FC } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -22,18 +24,29 @@ const BagDetailUselessDescriptionView: FC<Props> = ({ bagDetail }) => {
     if (isUselessChecked) {
       return (
         <View style={styles.textContainer}>
-          <Text style={styles.descriptionText}>사용한 제품만 측정해보니</Text>
+          <PretendardText style={styles.descriptionText}>
+            사용한 제품만 측정해보니
+          </PretendardText>
           <View style={styles.weightRow}>
-            <Text style={styles.weightText}>{usedWeight}kg</Text>
-            <Text style={styles.descriptionText}> 까지 줄어들어요</Text>
+            <PretendardText weight='bold' style={styles.weightText}>
+              {usedWeight}kg
+            </PretendardText>
+            <PretendardText style={styles.descriptionText}>
+              {' '}
+              까지 줄어들어요
+            </PretendardText>
           </View>
         </View>
       );
     } else {
       return (
         <View style={styles.textContainer}>
-          <Text style={styles.descriptionText}>사용 여부 기록하고</Text>
-          <Text style={styles.descriptionText}>줄어든 무게 확인하기</Text>
+          <PretendardText style={styles.descriptionText}>
+            사용 여부 기록하고
+          </PretendardText>
+          <PretendardText style={styles.descriptionText}>
+            줄어든 무게 확인하기
+          </PretendardText>
         </View>
       );
     }
@@ -47,7 +60,7 @@ const BagDetailUselessDescriptionView: FC<Props> = ({ bagDetail }) => {
       >
         {renderContent()}
         <View style={styles.iconContainer}>
-          <Ionicons name='chevron-forward' size={24} color='#191F28' />
+          <Ionicons name='chevron-forward' size={24} color={Color.textPrimary} />
         </View>
       </TouchableOpacity>
     </View>
@@ -56,31 +69,30 @@ const BagDetailUselessDescriptionView: FC<Props> = ({ bagDetail }) => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: Spacing.screenH,
     paddingBottom: 8,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   touchableContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: 6,
+    borderRadius: Radius.card,
   },
   textContainer: {
     gap: 4,
   },
   descriptionText: {
     fontSize: 17,
-    color: 'black',
+    color: Color.textPrimary,
   },
   weightRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   weightText: {
-    color: '#CCF124',
+    color: Color.textPrimary,
     fontSize: 20,
-    fontWeight: '500',
   },
   iconContainer: {
     width: 20,

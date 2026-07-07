@@ -1,7 +1,6 @@
 import React, { FC, useState, useEffect, useRef } from 'react';
 import {
   View,
-  Text,
   TextInput,
   TouchableOpacity,
   ScrollView,
@@ -13,6 +12,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 import ImageUploadView from '@/components/gear/ImageUploadView';
 import CustomGearConfirmView from '@/components/gear/custom/CustomGearConfirmView';
 import CustomGear from '@/model/gear/custom/CustomGear';
@@ -173,17 +174,18 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
               onPress={handleClickHide}
               style={styles.backButton}
             >
-              <Ionicons name='chevron-back' size={24} color='black' />
+              <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
             </TouchableOpacity>
           )}
-          <Text
+          <PretendardText
+            weight='semibold'
             style={[
               styles.headerTitle,
               Platform.OS === 'android' && styles.headerTitleWithBackButton,
             ]}
           >
             장비 추가
-          </Text>
+          </PretendardText>
           {Platform.OS === 'android' && (
             <View style={styles.backButtonPlaceholder} />
           )}
@@ -228,7 +230,9 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
               onSearchScrollEnd={handleSearchScrollEnd}
             />
             <View style={styles.inputSection}>
-              <Text style={styles.label}>브랜드</Text>
+              <PretendardText weight='medium' style={styles.label}>
+                브랜드
+              </PretendardText>
               <TextInput
                 style={styles.input}
                 placeholder='브랜드를 입력해주세요'
@@ -240,7 +244,9 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
             </View>
             <CustomGearColorView customGear={customGear} />
             <View style={styles.inputSection}>
-              <Text style={styles.label}>카테고리</Text>
+              <PretendardText weight='medium' style={styles.label}>
+                카테고리
+              </PretendardText>
               <View style={styles.filterContainer}>
                 {customGear.mapFilters(filter => {
                   return (
@@ -252,7 +258,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
                       key={filter.getFilter()}
                       onPress={() => handleClickSelectFilter(filter)}
                     >
-                      <Text
+                      <PretendardText
                         style={[
                           styles.filterButtonText,
                           filter.isSelected() &&
@@ -260,7 +266,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
                         ]}
                       >
                         {filter.getName()}
-                      </Text>
+                      </PretendardText>
                     </TouchableOpacity>
                   );
                 })}
@@ -296,7 +302,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     justifyContent: 'flex-end',
   },
   keyboardAvoidingView: {
@@ -325,20 +331,9 @@ const styles = StyleSheet.create({
     height: 20,
   },
   confirmButtonContainer: {
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     padding: 16,
-    borderTopColor: '#F0F0F0',
-  },
-  debugContainer: {
-    backgroundColor: '#E8F4FD',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  debugText: {
-    fontSize: 12,
-    color: '#2563EB',
-    fontWeight: '500',
+    borderTopColor: Color.borderLight,
   },
   imageSection: {
     flexDirection: 'row',
@@ -352,11 +347,12 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '500',
   },
   input: {
-    borderRadius: 10,
-    backgroundColor: '#F6F6F6',
+    borderRadius: Radius.input,
+    backgroundColor: Color.inputBg,
+    borderWidth: 1,
+    borderColor: Color.borderLight,
     padding: 16,
   },
   filterContainer: {
@@ -365,25 +361,29 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   filterButton: {
-    backgroundColor: '#F6F6F6',
-    borderRadius: 20,
+    height: 32,
+    backgroundColor: Color.chipInactiveBg,
+    borderRadius: Radius.chip,
     paddingVertical: 8,
     paddingHorizontal: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   filterButtonSelected: {
-    backgroundColor: 'black',
+    backgroundColor: Color.chipActiveBg,
   },
   filterButtonText: {
     fontSize: 14,
-    color: 'black',
+    lineHeight: 16,
+    color: Color.textPrimary,
   },
   filterButtonTextSelected: {
-    color: 'white',
+    color: '#FFFFFF',
   },
   dragBar: {
     width: 40,
     height: 4,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: Color.iconMuted,
     borderRadius: 2,
     alignSelf: 'center',
     marginTop: 12,
@@ -393,8 +393,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-    backgroundColor: 'white',
+    borderBottomColor: Color.borderLight,
+    backgroundColor: Color.background,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -407,8 +407,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: 'black',
+    color: Color.textPrimary,
     textAlign: 'center',
     flex: 1,
   },

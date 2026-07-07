@@ -1,14 +1,10 @@
 import { observer } from 'mobx-react-lite';
 import { FC, useCallback, useLayoutEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
+import PretendardText from '@/components/PretendardText';
+import { Color, Spacing } from '@/constants/DesignTokens';
 import BagDetailCategoryView from './BagDetailCategoryView';
 import BagDetailChartView from './BagDetailChartView';
 import BagDetailDateView from './BagDetailDateView';
@@ -71,9 +67,15 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
           <View style={styles.header}>
             <View style={styles.headerContent}>
               <TouchableOpacity onPress={handlePressBack}>
-                <Ionicons name='chevron-back' size={24} color='#191F28' />
+                <Ionicons
+                  name='chevron-back'
+                  size={24}
+                  color={Color.textPrimary}
+                />
               </TouchableOpacity>
-              <Text style={styles.weightText}>{weight}kg</Text>
+              <PretendardText style={styles.weightText} weight='bold'>
+                {weight}kg
+              </PretendardText>
               <View style={styles.headerActions}>
                 <BagDetailCopyView
                   sourceId={bagDetail.getId()}
@@ -102,9 +104,9 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
             <View style={styles.separator} />
             <View style={styles.gearHeader}>
               <View style={styles.gearHeaderContent}>
-                <Text style={styles.gearCountText}>
+                <PretendardText style={styles.gearCountText} weight='bold'>
                   총 {gears.length}개의 장비
-                </Text>
+                </PretendardText>
               </View>
               <BagDetailFiltersView bagDetail={bagDetail} />
             </View>
@@ -137,12 +139,12 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   header: {
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     marginBottom: 8,
-    paddingHorizontal: 20,
+    paddingHorizontal: Spacing.screenH,
   },
   headerContent: {
     flexDirection: 'row',
@@ -152,10 +154,9 @@ const styles = StyleSheet.create({
   },
   weightText: {
     fontSize: 28,
-    fontWeight: 'bold',
     textAlign: 'center',
     flex: 1,
-    color: 'black',
+    color: Color.textPrimary,
   },
   headerActions: {
     flexDirection: 'row',
@@ -169,32 +170,31 @@ const styles = StyleSheet.create({
     paddingBottom: 80,
   },
   infoSection: {
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     paddingTop: 8,
-    paddingHorizontal: 20,
+    paddingHorizontal: Spacing.screenH,
   },
   separator: {
     width: '100%',
-    backgroundColor: '#F2F4F6',
+    backgroundColor: Color.divider,
     minHeight: 10,
   },
   gearHeader: {
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   gearHeaderContent: {
     width: '100%',
     flexDirection: 'row',
-    padding: 20,
+    padding: Spacing.screenH,
     justifyContent: 'space-between',
   },
   gearCountText: {
     fontSize: 17,
-    fontWeight: 'bold',
-    color: 'black',
+    color: Color.textPrimary,
   },
   gearListContainer: {
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: Spacing.screenH,
   },
   gearList: {
     width: '100%',
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   },
   loading: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   dummy: {
     height: 200,

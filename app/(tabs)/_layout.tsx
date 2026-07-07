@@ -1,25 +1,49 @@
-import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
-import { HapticTab } from '@/components/HapticTab';
+import { Tabs } from 'expo-router';
+import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 import { NoAnimationTab } from '@/components/NoAnimationTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
 
-export default function TabLayout() {
+// iOS는 네이티브 UITabBar(NativeTabs)로 iOS 26 리퀴드 글래스를 받고,
+// Android/Web은 기존 커스텀 JS 탭바(react-navigation)를 그대로 쓴다.
+const NativeTabLayout = () => {
+  return (
+    <NativeTabs
+      tintColor='#000000'
+      iconColor={{ default: '#8E8E93', selected: '#000000' }}
+      labelStyle={{
+        default: { color: '#8E8E93' },
+        selected: { color: '#000000' },
+      }}
+      minimizeBehavior='onScrollDown'
+    >
+      <NativeTabs.Trigger name='index'>
+        <Icon sf='house.fill' drawable='ic_menu_home' />
+        <Label>창고</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name='search'>
+        <Icon sf='magnifyingglass' drawable='ic_menu_search' />
+        <Label>탐색</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name='bag'>
+        <Icon sf='figure.hiking' drawable='ic_menu_compass' />
+        <Label>배낭</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name='info'>
+        <Icon sf='person.fill' drawable='ic_menu_myplaces' />
+        <Label>정보</Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
+  );
+};
+
+const JsTabLayout = () => {
   const screenOptions: any = {
     tabBarActiveTintColor: 'black',
     headerShown: false,
-    tabBarButton: Platform.select({
-      ios: HapticTab,
-      android: NoAnimationTab,
-      default: NoAnimationTab,
-    }),
+    tabBarButton: NoAnimationTab,
     tabBarStyle: Platform.select({
-      ios: {
-        // Use a transparent background on iOS to show the blur effect
-        position: 'absolute',
-      },
       web: {
         height: 65,
         paddingBottom: 8,
@@ -27,10 +51,6 @@ export default function TabLayout() {
       default: {},
     }),
   };
-
-  if (Platform.OS === 'ios') {
-    screenOptions.tabBarBackground = TabBarBackground;
-  }
 
   return (
     <Tabs screenOptions={screenOptions}>
@@ -72,4 +92,12 @@ export default function TabLayout() {
       />
     </Tabs>
   );
+};
+
+export default function TabLayout() {
+  if (Platform.OS === 'ios') {
+    return <NativeTabLayout />;
+  }
+
+  return <JsTabLayout />;
 }

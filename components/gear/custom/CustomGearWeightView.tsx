@@ -1,7 +1,9 @@
-import React, { FC, forwardRef } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import React, { forwardRef } from 'react';
+import { View, TextInput, StyleSheet } from 'react-native';
 import CustomGear from '@/model/gear/custom/CustomGear';
 import { observer } from 'mobx-react-lite';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   customGear: CustomGear;
@@ -30,7 +32,9 @@ const CustomGearWeightView = forwardRef<TextInput, Props>(
 
     return (
       <View style={styles.container}>
-        <Text style={styles.label}>무게(g)</Text>
+        <PretendardText weight='medium' style={styles.label}>
+          무게(g)
+        </PretendardText>
         <TextInput
           ref={ref}
           style={styles.input}
@@ -52,11 +56,12 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '500',
   },
   input: {
-    borderRadius: 10,
-    backgroundColor: '#F6F6F6',
+    borderRadius: Radius.input,
+    backgroundColor: Color.inputBg,
+    borderWidth: 1,
+    borderColor: Color.borderLight,
     padding: 16,
   },
 });

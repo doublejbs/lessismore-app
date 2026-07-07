@@ -3,6 +3,7 @@ import { FC, useRef, useEffect } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import FilterButtonView from './FilterButtonView';
+import { Color } from '@/constants/DesignTokens';
 
 interface BagWithFilters {
   toggleFilter: (filter: WarehouseFilter) => void;
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingBottom: 15,
     paddingLeft: 20,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   scrollView: {
     height: 32,

@@ -1,5 +1,6 @@
 import { FC, useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
+import { Color } from '@/constants/DesignTokens';
 
 interface Props {}
 
@@ -38,7 +39,7 @@ const BagDetailSkeletonView: FC<Props> = () => {
         <Animated.View
           style={[
             StyleSheet.absoluteFillObject,
-            { opacity: pulseAnim, backgroundColor: '#E5E7EB' },
+            { opacity: pulseAnim, backgroundColor: Color.chipInactiveBg },
           ]}
         />
       </View>
@@ -118,7 +119,7 @@ const BagDetailSkeletonView: FC<Props> = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   header: {
     flexDirection: 'row',
@@ -127,8 +128,8 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 60, // Status bar 고려
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-    backgroundColor: 'white',
+    borderBottomColor: Color.divider,
+    backgroundColor: Color.background,
   },
   headerRight: {
     flexDirection: 'row',
@@ -141,20 +142,20 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingHorizontal: 20,
     gap: 12,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   description: {
     padding: 16,
     paddingHorizontal: 20,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     gap: 8,
   },
   filterSection: {
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     padding: 15,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: Color.divider,
     gap: 12,
   },
   filterButtons: {

@@ -1,8 +1,8 @@
 import { FC } from 'react';
-import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import app from '@/model/app/App';
-import PretendardText from '../PretendardText';
+import FloatingPillButton from '@/components/FloatingPillButton';
 
 const AddButtonView: FC = () => {
   const router = useRouter();
@@ -19,9 +19,12 @@ const AddButtonView: FC = () => {
 
   return (
     <View>
-      <TouchableOpacity style={styles.addButton} onPress={handleClick}>
-        <PretendardText style={styles.addButtonText}>장비 추가</PretendardText>
-      </TouchableOpacity>
+      <FloatingPillButton
+        label='장비 추가'
+        onPress={handleClick}
+        variant='primary'
+        style={styles.addButton}
+      />
     </View>
   );
 };
@@ -35,23 +38,6 @@ const styles = StyleSheet.create({
       android: 0,
       default: 80,
     }),
-    borderRadius: 32,
-    borderWidth: 1,
-    borderColor: 'black',
-    height: 48,
-    backgroundColor: 'black',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    width: 127,
-    gap: 6,
-  },
-  addButtonText: {
-    fontSize: 16,
-    color: 'white',
-    fontWeight: '500',
   },
   modalOverlay: {
     flex: 1,

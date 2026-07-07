@@ -22,6 +22,7 @@ import PretendardText from '@/components/PretendardText';
 import AlertView from '@/components/alert/AlertView';
 import useKeyboard from '@/hooks/useKeyboard';
 import app from '@/model/app/App';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   gearEdit: GearEdit;
@@ -107,14 +108,16 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
       >
         <View style={styles.header}>
         <TouchableOpacity onPress={handlePressBack} style={styles.headerButton}>
-          <Ionicons name='chevron-back' size={24} color='#191F28' />
+          <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
         </TouchableOpacity>
-        <PretendardText style={styles.headerTitle}>수정하기</PretendardText>
+        <PretendardText weight='semibold' style={styles.headerTitle}>
+          수정하기
+        </PretendardText>
         <TouchableOpacity
           onPress={handlePressDelete}
           style={styles.headerButton}
         >
-          <Ionicons name='trash-outline' size={22} color='#191F28' />
+          <Ionicons name='trash-outline' size={22} color={Color.textPrimary} />
         </TouchableOpacity>
       </View>
       {isLoading && (
@@ -140,7 +143,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
           paddingHorizontal: 16,
           paddingTop: 16,
           paddingBottom: 120,
-          backgroundColor: 'white',
+          backgroundColor: Color.background,
         }}
       >
         <View
@@ -157,9 +160,9 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
             }}
           >
             <PretendardText
+              weight='medium'
               style={{
                 fontSize: 14,
-                fontWeight: '500',
               }}
             >
               제품명
@@ -167,8 +170,8 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
             <TextInput
               ref={nameInputRef}
               style={{
-                borderRadius: 10,
-                backgroundColor: '#F6F6F6',
+                borderRadius: Radius.input,
+                backgroundColor: Color.inputBg,
                 paddingHorizontal: 12,
                 paddingVertical: 12,
                 fontSize: 16,
@@ -187,9 +190,9 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
             }}
           >
             <PretendardText
+              weight='medium'
               style={{
                 fontSize: 14,
-                fontWeight: '500',
               }}
             >
               브랜드
@@ -197,8 +200,8 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
             <TextInput
               ref={companyInputRef}
               style={{
-                borderRadius: 10,
-                backgroundColor: '#F6F6F6',
+                borderRadius: Radius.input,
+                backgroundColor: Color.inputBg,
                 paddingHorizontal: 12,
                 paddingVertical: 12,
                 fontSize: 16,
@@ -218,9 +221,9 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
             }}
           >
             <PretendardText
+              weight='medium'
               style={{
                 fontSize: 14,
-                fontWeight: '500',
               }}
             >
               카테고리
@@ -237,9 +240,9 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                   <TouchableOpacity
                     style={{
                       backgroundColor: filter.isSelected()
-                        ? 'black'
-                        : '#F6F6F6',
-                      borderRadius: 20,
+                        ? Color.chipActiveBg
+                        : Color.chipInactiveBg,
+                      borderRadius: Radius.chip,
                       paddingVertical: 8,
                       paddingHorizontal: 16,
                     }}
@@ -248,7 +251,9 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                   >
                     <PretendardText
                       style={{
-                        color: filter.isSelected() ? 'white' : 'black',
+                        color: filter.isSelected()
+                          ? '#FFFFFF'
+                          : Color.textPrimary,
                         fontSize: 14,
                       }}
                     >
@@ -285,7 +290,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   header: {
     flexDirection: 'row',
@@ -293,13 +298,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   headerButton: {},
   headerTitle: {
     fontSize: 17,
-    fontWeight: '600',
-    color: '#191F28',
+    color: Color.textPrimary,
   },
 });
 

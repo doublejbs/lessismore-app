@@ -1,5 +1,6 @@
 import { FC, useEffect, useRef } from 'react';
 import { View, Animated, FlatList } from 'react-native';
+import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 
 interface Props {}
 
@@ -21,16 +22,17 @@ const BagUselessSkeletonView: FC<Props> = () => {
         }),
       ]).start(() => pulse());
     };
+
     pulse();
   }, [pulseAnim]);
 
-  const renderGearSkeletonItem = ({ index }: { index: number }) => {
+  const renderGearSkeletonItem = ({ index: _index }: { index: number }) => {
     return (
       <View
         style={{
           flexDirection: 'row',
           paddingVertical: 10,
-          gap: 12,
+          gap: Spacing.item,
         }}
       >
         {/* 이미지 영역 */}
@@ -44,8 +46,8 @@ const BagUselessSkeletonView: FC<Props> = () => {
             style={{
               width: 80,
               height: 80,
-              backgroundColor: '#E5E7EB',
-              borderRadius: 4,
+              backgroundColor: Color.chipInactiveBg,
+              borderRadius: Radius.listThumb,
               minWidth: 80,
               opacity: pulseAnim,
             }}
@@ -65,8 +67,8 @@ const BagUselessSkeletonView: FC<Props> = () => {
             style={{
               width: '70%',
               height: 18,
-              backgroundColor: '#E5E7EB',
-              borderRadius: 4,
+              backgroundColor: Color.chipInactiveBg,
+              borderRadius: Radius.listThumb,
               opacity: pulseAnim,
             }}
           />
@@ -74,8 +76,8 @@ const BagUselessSkeletonView: FC<Props> = () => {
             style={{
               width: '50%',
               height: 16,
-              backgroundColor: '#E5E7EB',
-              borderRadius: 4,
+              backgroundColor: Color.chipInactiveBg,
+              borderRadius: Radius.listThumb,
               opacity: pulseAnim,
             }}
           />
@@ -83,8 +85,8 @@ const BagUselessSkeletonView: FC<Props> = () => {
             style={{
               width: '40%',
               height: 16,
-              backgroundColor: '#E5E7EB',
-              borderRadius: 4,
+              backgroundColor: Color.chipInactiveBg,
+              borderRadius: Radius.listThumb,
               opacity: pulseAnim,
             }}
           />
@@ -110,8 +112,8 @@ const BagUselessSkeletonView: FC<Props> = () => {
               style={{
                 width: 24,
                 height: 24,
-                backgroundColor: '#E5E7EB',
-                borderRadius: 4,
+                backgroundColor: Color.chipInactiveBg,
+                borderRadius: Radius.listThumb,
                 opacity: pulseAnim,
               }}
             />
@@ -128,8 +130,8 @@ const BagUselessSkeletonView: FC<Props> = () => {
       style={{
         flexDirection: 'column',
         height: '100%',
-        paddingHorizontal: 20,
-        gap: 12,
+        paddingHorizontal: Spacing.screenH,
+        gap: Spacing.item,
       }}
     >
       {/* 상단 뒤로가기 버튼 */}
@@ -143,8 +145,8 @@ const BagUselessSkeletonView: FC<Props> = () => {
           style={{
             width: 25,
             height: 24,
-            backgroundColor: '#E5E7EB',
-            borderRadius: 4,
+            backgroundColor: Color.chipInactiveBg,
+            borderRadius: Radius.listThumb,
             opacity: pulseAnim,
           }}
         />
@@ -161,8 +163,8 @@ const BagUselessSkeletonView: FC<Props> = () => {
           style={{
             width: '90%',
             height: 34,
-            backgroundColor: '#E5E7EB',
-            borderRadius: 4,
+            backgroundColor: Color.chipInactiveBg,
+            borderRadius: Radius.listThumb,
             opacity: pulseAnim,
           }}
         />
@@ -170,8 +172,8 @@ const BagUselessSkeletonView: FC<Props> = () => {
           style={{
             width: '60%',
             height: 34,
-            backgroundColor: '#E5E7EB',
-            borderRadius: 4,
+            backgroundColor: Color.chipInactiveBg,
+            borderRadius: Radius.listThumb,
             opacity: pulseAnim,
           }}
         />
@@ -180,7 +182,7 @@ const BagUselessSkeletonView: FC<Props> = () => {
       {/* 메인 컨텐츠 영역 */}
       <View
         style={{
-          paddingTop: 24,
+          paddingTop: Spacing.section,
           flexDirection: 'column',
           flex: 1,
         }}
@@ -197,8 +199,8 @@ const BagUselessSkeletonView: FC<Props> = () => {
             style={{
               width: 150,
               height: 20,
-              backgroundColor: '#E5E7EB',
-              borderRadius: 4,
+              backgroundColor: Color.chipInactiveBg,
+              borderRadius: Radius.listThumb,
               opacity: pulseAnim,
             }}
           />
@@ -206,8 +208,8 @@ const BagUselessSkeletonView: FC<Props> = () => {
             style={{
               width: 80,
               height: 20,
-              backgroundColor: '#E5E7EB',
-              borderRadius: 4,
+              backgroundColor: Color.chipInactiveBg,
+              borderRadius: Radius.listThumb,
               opacity: pulseAnim,
             }}
           />
@@ -228,15 +230,15 @@ const BagUselessSkeletonView: FC<Props> = () => {
         <View
           style={{
             width: '100%',
-            paddingVertical: 12,
+            paddingVertical: Spacing.item,
           }}
         >
           <Animated.View
             style={{
               width: '100%',
               height: 54,
-              backgroundColor: '#E5E7EB',
-              borderRadius: 10,
+              backgroundColor: Color.chipInactiveBg,
+              borderRadius: Radius.card,
               opacity: pulseAnim,
             }}
           />
