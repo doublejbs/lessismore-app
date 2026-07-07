@@ -60,15 +60,25 @@ if (!APPLY) {
   process.exit(0);
 }
 
-// 1) 기본 인덱스 설정: facet + replica 목록
+// 1) 기본 인덱스 설정: replica 목록 먼저 연결
+await client.setSettings({
+  indexName: INDEX,
+  indexSettings: {
+    replicas: REPLICAS.map(r => r.name),
+  },
+});
+console.log('✓ 기본 인덱스 replica 연결 완료');
+
+// 1-2) facet 속성은 forwardToReplicas로 replica에도 전파 (replica는 생성 시점 설정을
+//      물려받지 않을 수 있어, 전파 없이는 replica에서 facet 필터가 0건이 된다)
 await client.setSettings({
   indexName: INDEX,
   indexSettings: {
     attributesForFaceting: ['filterOnly(category)', 'filterOnly(companyKorean)', 'filterOnly(company)'],
-    replicas: REPLICAS.map(r => r.name),
   },
+  forwardToReplicas: true,
 });
-console.log('✓ 기본 인덱스 facet/replica 설정 완료');
+console.log('✓ facet 속성 설정 완료 (replica 전파 포함)');
 
 // 2) 각 replica ranking 설정
 for (const replica of REPLICAS) {
