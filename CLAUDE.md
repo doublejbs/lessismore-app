@@ -149,7 +149,8 @@ const MyComponent = observer(() => {
 
 - **Git 브랜치 정책 (2026-06-11부터)**: 작업은 `develop` 베이스 — 작업 브랜치를 `develop`에서 따고 PR 베이스도 `develop`으로 보낸다. `main`은 직접 건드리지 않는다 (커밋·머지 금지, 릴리스 머지는 사용자가 결정)
 - 한국어 UI (커밋 메시지도 한국어 사용)
-- 텍스트는 `PretendardText` 컴포넌트 사용 (커스텀 한글 폰트 — `assets/fonts/Pretendard-*.ttf`)
+- 텍스트는 `PretendardText` 컴포넌트 사용 (커스텀 한글 폰트 — `assets/fonts/Pretendard-*.ttf`). `fontWeight`/`fontFamily`를 직접 쓰지 말고 `weight` prop(`regular`/`medium`/`semibold`/`bold`/`extraBold`)을 쓴다. raw `<Text>` 금지.
+- **디자인 토큰은 `constants/DesignTokens.ts`가 단일 소스** — 색(`Color`), 모서리(`Radius`), 여백(`Spacing`)을 하드코딩하지 말고 토큰을 참조한다. 탐색(피드)·배낭 패킹모드 화면에서 추출·정규화한 값이며 앱 전 화면이 이 톤을 따른다. 대표값: 텍스트 `textPrimary`#000/`textSecondary`#888, 칩 `chipInactiveBg`#EBEBEB/`chipActiveBg`#000, 인풋 `inputBg`#F5F5F5, 썸네일 `thumbBg`#F1F1F1, 구분선 `borderLight`#F0F0F0; radius 카드/인풋 8·칩 22·필 32·모달 16·리스트썸네일 4. 데이터 시각화 색·브랜드 액센트 등 의미색은 예외.
 - 이미지는 `FirebaseImageStorage`를 통해 Firebase Storage에 업로드
 - Hot Updater가 네이티브 플랫폼에서 OTA 업데이트 처리 (`hot-updater.config.ts` 참고)
 - 린트 규칙은 `eslint-config-expo` 기반 + `unused-imports` 플러그인 — `_` 접두 변수는 무시됨
