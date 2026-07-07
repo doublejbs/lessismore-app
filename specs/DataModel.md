@@ -157,7 +157,7 @@
 - **쓰기**: Firebase 콘솔에서 수동으로만. 클라이언트는 쓰지 않는다.
 - 버전은 app.json `version`(단일 버전 소스)과 같은 체계의 `major.minor.patch` 문자열로 넣는다(예: `1.1.7`).
 
-### DM-14 `brand-rank/{brandKey}` `[제안]`
+### DM-14 `brand-rank/{brandKey}`
 
 브랜드 인기도 집계 문서. 탐색 브랜드 디렉토리(Search SR-8)가 `ownerCount desc`로 조회한다.
 
