@@ -2,7 +2,6 @@ import { observer } from 'mobx-react-lite';
 import { FC, useCallback, useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   Pressable,
   ScrollView,
@@ -10,6 +9,8 @@ import {
   Image,
   GestureResponderEvent,
 } from 'react-native';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import SearchSkeletonView from './SearchSkeletonView';
 import GearFilter from '@/model/gear/GearFilter';
@@ -127,7 +128,11 @@ const SearchTopKeywordsView: FC<Props> = ({
 
   return (
     <View style={styles.container}>
-      {showTitle ? <Text style={styles.title}>인기 장비 순위</Text> : null}
+      {showTitle ? (
+        <PretendardText style={styles.title} weight='bold'>
+          인기 장비 순위
+        </PretendardText>
+      ) : null}
 
       {/* 카테고리 필터 */}
       <ScrollView
@@ -155,7 +160,9 @@ const SearchTopKeywordsView: FC<Props> = ({
             <SearchSkeletonView count={10} />
           ) : gears.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>아직 등록된 장비가 없습니다</Text>
+              <PretendardText style={styles.emptyText}>
+                아직 등록된 장비가 없습니다
+              </PretendardText>
             </View>
           ) : (
             gears.map((gear, index) => (
@@ -170,14 +177,15 @@ const SearchTopKeywordsView: FC<Props> = ({
                 <View
                   style={[styles.rankBadge, index < 3 && styles.rankBadgeTop3]}
                 >
-                  <Text
+                  <PretendardText
                     style={[
                       styles.rankNumber,
                       index < 3 && styles.rankNumberTop3,
                     ]}
+                    weight='bold'
                   >
                     {index + 1}
-                  </Text>
+                  </PretendardText>
                 </View>
 
                 {!!gear.getImageUrl() && (
@@ -192,14 +200,23 @@ const SearchTopKeywordsView: FC<Props> = ({
 
                 <View style={styles.gearInfo}>
                   {gear.getCompany() && (
-                    <Text style={styles.gearCompany} numberOfLines={1}>
+                    <PretendardText
+                      style={styles.gearCompany}
+                      numberOfLines={1}
+                    >
                       {gear.getCompany()}
-                    </Text>
+                    </PretendardText>
                   )}
-                  <Text style={styles.gearName} numberOfLines={1}>
+                  <PretendardText
+                    style={styles.gearName}
+                    weight='semibold'
+                    numberOfLines={1}
+                  >
                     {gear.getDisplayName()}
-                  </Text>
-                  <Text style={styles.gearCount}>{gear.getWeight()}g</Text>
+                  </PretendardText>
+                  <PretendardText style={styles.gearCount}>
+                    {gear.getWeight()}g
+                  </PretendardText>
                 </View>
 
                 <View style={styles.buttonContainer}>
@@ -212,14 +229,18 @@ const SearchTopKeywordsView: FC<Props> = ({
                       style={styles.ownedBadge}
                       onPress={e => handleRemovePress(e, gear)}
                     >
-                      <Ionicons name='checkmark' size={16} color='#fff' />
+                      <Ionicons
+                        name='checkmark'
+                        size={16}
+                        color={Color.background}
+                      />
                     </TouchableOpacity>
                   ) : (
                     <TouchableOpacity
                       style={styles.addButton}
                       onPress={e => handleAddPress(e, gear)}
                     >
-                      <Ionicons name='add' size={16} color='#000' />
+                      <Ionicons name='add' size={16} color={Color.textPrimary} />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -247,8 +268,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontFamily: 'Pretendard-Bold',
-    color: '#000',
+    color: Color.textPrimary,
     marginBottom: 12,
   },
   categoryScrollView: {
@@ -271,37 +291,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 16,
-    backgroundColor: '#FAFAFA',
-    borderRadius: 8,
+    backgroundColor: Color.surfaceMuted,
+    borderRadius: Radius.card,
   },
   rankItemPressed: {
-    backgroundColor: '#F1F1F1',
+    backgroundColor: Color.thumbBg,
   },
   rankBadge: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: Color.borderLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   rankBadgeTop3: {
-    backgroundColor: '#000',
+    backgroundColor: Color.chipActiveBg,
   },
   rankNumber: {
     fontSize: 13,
-    fontFamily: 'Pretendard-Bold',
-    color: '#666',
+    color: Color.textTertiary,
   },
   rankNumberTop3: {
-    color: '#FFF',
+    color: Color.background,
   },
   imageContainer: {
     width: 56,
     height: 56,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 8,
+    backgroundColor: Color.surfaceMuted,
+    borderRadius: Radius.card,
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
@@ -317,18 +336,15 @@ const styles = StyleSheet.create({
   },
   gearCompany: {
     fontSize: 11,
-    fontFamily: 'Pretendard-Regular',
-    color: '#999',
+    color: Color.textSecondary,
   },
   gearName: {
     fontSize: 15,
-    fontFamily: 'Pretendard-SemiBold',
-    color: '#000',
+    color: Color.textPrimary,
   },
   gearCount: {
     fontSize: 12,
-    fontFamily: 'Pretendard-Regular',
-    color: '#666',
+    color: Color.textTertiary,
   },
   buttonContainer: {
     flexDirection: 'column',
@@ -339,7 +355,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ownedBadge: {
-    backgroundColor: '#000',
+    backgroundColor: Color.chipActiveBg,
     borderRadius: 14,
     width: 28,
     height: 28,
@@ -347,7 +363,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addButton: {
-    backgroundColor: '#F6F6F6',
+    backgroundColor: Color.surfaceMuted,
     borderRadius: 14,
     width: 28,
     height: 28,
@@ -360,8 +376,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    fontFamily: 'Pretendard-Regular',
-    color: '#999',
+    color: Color.textSecondary,
   },
   bottomContainer: {
     height: 100,

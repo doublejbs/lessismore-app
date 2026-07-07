@@ -1,5 +1,6 @@
 import { FC, useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   count?: number; // 스켈레톤 아이템 개수
@@ -95,10 +96,10 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: 80,
     height: 80,
-    backgroundColor: '#F1F1F1',
+    backgroundColor: Color.thumbBg,
     alignItems: 'center',
     minWidth: 80,
-    borderRadius: 4,
+    borderRadius: Radius.listThumb,
     justifyContent: 'center',
     overflow: 'hidden',
   },
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     backgroundColor: '#E0E0E0',
-    borderRadius: 4,
+    borderRadius: Radius.listThumb,
   },
 });
 

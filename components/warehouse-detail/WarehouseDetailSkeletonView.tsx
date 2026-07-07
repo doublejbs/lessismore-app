@@ -1,6 +1,7 @@
 import React, { FC, useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import { observer } from 'mobx-react-lite';
+import { Color } from '@/constants/DesignTokens';
 
 interface Props {}
 
@@ -90,7 +91,7 @@ const WarehouseDetailSkeletonView: FC<Props> = ({}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   header: {
     width: '100%',
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     zIndex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   headerIcon: {
     width: 25,
@@ -194,7 +195,7 @@ const styles = StyleSheet.create({
     right: 0,
     paddingVertical: 12,
     paddingHorizontal: 24,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   bottomButton: {
     flex: 1,

@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   loginButtonText: {
-    color: '#FFFFFF',
+    color: Color.background,
     fontSize: 16,
   },
   emailLoginButton: {

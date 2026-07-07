@@ -1,7 +1,6 @@
 import React, { FC, useState } from 'react';
 import {
   View,
-  Text,
   Modal,
   TouchableOpacity,
   StyleSheet,
@@ -17,6 +16,8 @@ import * as ImagePicker from 'expo-image-picker';
 import GearImageType from '@/model/gear/GearImageType';
 import FirebaseImageStorage from '@/model/firebase/FirebaseImageStorage';
 import app from '@/model/app/App';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   visible: boolean;
@@ -286,15 +287,17 @@ const SharedImageSelectionModalView: FC<Props> = ({
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <Ionicons name='close' size={24} color='#191F28' />
+            <Ionicons name='close' size={24} color={Color.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>대표 사진 변경</Text>
+          <PretendardText weight='semibold' style={styles.headerTitle}>
+            대표 사진 변경
+          </PretendardText>
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.guideContainer}>
-          <Text style={styles.guideText}>
+          <PretendardText style={styles.guideText}>
             사진을 업로드하면 다른 사용자가 볼 수 있고 활용할 수 있습니다.
-          </Text>
+          </PretendardText>
         </View>
         <ScrollView
           style={styles.scrollView}
@@ -302,13 +305,13 @@ const SharedImageSelectionModalView: FC<Props> = ({
         >
           {loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size='large' color='#191F28' />
+              <ActivityIndicator size='large' color={Color.textPrimary} />
             </View>
           ) : (
             <View style={styles.imageGridContainer}>
-              <Text style={styles.imageCountText}>
+              <PretendardText style={styles.imageCountText}>
                 {images.length}개의 사진
-              </Text>
+              </PretendardText>
               <View style={styles.imageGridList}>
                 <TouchableOpacity
                   style={styles.uploadGridItem}
@@ -316,11 +319,13 @@ const SharedImageSelectionModalView: FC<Props> = ({
                   disabled={uploading}
                 >
                   {uploading ? (
-                    <ActivityIndicator size='small' color='#666' />
+                    <ActivityIndicator size='small' color={Color.textTertiary} />
                   ) : (
                     <>
-                      <Ionicons name='add' size={32} color='#666' />
-                      <Text style={styles.uploadGridText}>사진 추가</Text>
+                      <Ionicons name='add' size={32} color={Color.textTertiary} />
+                      <PretendardText style={styles.uploadGridText}>
+                        사진 추가
+                      </PretendardText>
                     </>
                   )}
                 </TouchableOpacity>
@@ -350,7 +355,7 @@ const SharedImageSelectionModalView: FC<Props> = ({
                             <Ionicons
                               name='checkmark'
                               size={14}
-                              color='white'
+                              color={Color.background}
                             />
                           </View>
                         </>
@@ -362,12 +367,15 @@ const SharedImageSelectionModalView: FC<Props> = ({
                             onPress={() => handleDeleteImage(image)}
                             disabled={deleting}
                           >
-                            <Ionicons name='close' size={12} color='white' />
+                            <Ionicons name='close' size={12} color={Color.background} />
                           </TouchableOpacity>
                           <View style={styles.uploaderInfo}>
-                            <Text style={styles.uploaderName} numberOfLines={1}>
+                            <PretendardText
+                              style={styles.uploaderName}
+                              numberOfLines={1}
+                            >
                               내가 올린 사진
-                            </Text>
+                            </PretendardText>
                           </View>
                         </>
                       )}
@@ -384,7 +392,12 @@ const SharedImageSelectionModalView: FC<Props> = ({
               style={styles.confirmButton}
               onPress={handleConfirm}
             >
-              <Text style={styles.confirmButtonText}>확인</Text>
+              <PretendardText
+                weight='semibold'
+                style={styles.confirmButtonText}
+              >
+                확인
+              </PretendardText>
             </TouchableOpacity>
           </View>
         )}
@@ -396,7 +409,7 @@ const SharedImageSelectionModalView: FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F7',
+    backgroundColor: Color.surfaceMuted,
   },
   header: {
     flexDirection: 'row',
@@ -404,27 +417,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: Color.borderLight,
   },
   closeButton: {
     padding: 4,
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: '600',
-    color: '#191F28',
-    fontFamily: 'Inter_600SemiBold',
+    color: Color.textPrimary,
   },
   guideContainer: {
-    backgroundColor: '#000',
+    backgroundColor: Color.textPrimary,
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
   guideText: {
     fontSize: 13,
-    color: '#fff',
+    color: Color.background,
     lineHeight: 18,
   },
   scrollView: {
@@ -447,7 +458,7 @@ const styles = StyleSheet.create({
   },
   imageCountText: {
     fontSize: 14,
-    color: '#666',
+    color: Color.textTertiary,
     marginBottom: 16,
   },
   imageGridList: {
@@ -458,10 +469,10 @@ const styles = StyleSheet.create({
   uploadGridItem: {
     width: 108,
     height: 108,
-    borderRadius: 12,
-    backgroundColor: '#E5E5E5',
+    borderRadius: Radius.card,
+    backgroundColor: Color.thumbBg,
     borderWidth: 2,
-    borderColor: '#D5D5D5',
+    borderColor: Color.textSecondary,
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
@@ -469,19 +480,19 @@ const styles = StyleSheet.create({
   },
   uploadGridText: {
     fontSize: 12,
-    color: '#666',
+    color: Color.textTertiary,
   },
   imageGridItem: {
     width: 108,
     aspectRatio: 1,
-    borderRadius: 12,
+    borderRadius: Radius.card,
     overflow: 'hidden',
-    backgroundColor: '#E5E5E5',
+    backgroundColor: Color.thumbBg,
     borderWidth: 2,
     borderColor: 'transparent',
   },
   imageGridItemSelected: {
-    borderColor: '#000',
+    borderColor: Color.textPrimary,
   },
   imageGridImage: {
     width: '100%',
@@ -502,7 +513,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#000',
+    backgroundColor: Color.textPrimary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -528,7 +539,7 @@ const styles = StyleSheet.create({
   },
   uploaderName: {
     fontSize: 10,
-    color: 'white',
+    color: Color.background,
     textAlign: 'center',
   },
   bottomButtonContainer: {
@@ -538,21 +549,20 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: 20,
     paddingVertical: 20,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     borderTopWidth: 1,
-    borderTopColor: '#E5E5E5',
+    borderTopColor: Color.borderLight,
   },
   confirmButton: {
-    backgroundColor: '#000',
-    borderRadius: 12,
+    backgroundColor: Color.textPrimary,
+    borderRadius: Radius.card,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   confirmButtonText: {
-    color: 'white',
+    color: Color.background,
     fontSize: 16,
-    fontWeight: '600',
   },
 });
 

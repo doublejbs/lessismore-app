@@ -1,5 +1,6 @@
 import { FC, useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 // FD-2: 피드 2컬럼 그리드용 스켈레톤. FeedCardView 레이아웃(정방형 이미지 + 브랜드/이름/무게 바)과
 // 동일한 형태로, FeedView의 셀 폭/간격(FEED_COLUMN_GAP / FEED_ROW_GAP)에 맞춰 정렬한다.
@@ -8,7 +9,7 @@ import { View, Animated, StyleSheet } from 'react-native';
 // FeedView의 컬럼 간격과 동일하게 유지한다(리스트 columnWrapper gap).
 const FEED_COLUMN_GAP = 12;
 const FEED_ROW_GAP = 24;
-const PLACEHOLDER_COLOR = '#EBEBEB';
+const PLACEHOLDER_COLOR = Color.chipInactiveBg;
 
 interface Props {
   count?: number; // 스켈레톤 카드 개수 (기본 6 = 3행 x 2열)
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     aspectRatio: 1,
-    borderRadius: 8,
+    borderRadius: Radius.card,
     backgroundColor: PLACEHOLDER_COLOR,
   },
   info: {

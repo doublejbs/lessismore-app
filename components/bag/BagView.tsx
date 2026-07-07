@@ -9,6 +9,7 @@ import BagItem from '@/model/bag/BagItem';
 import PretendardText from '@/components/PretendardText';
 import { useFocusEffect } from '@react-navigation/native';
 import Layout from '../Layout';
+import { Color } from '@/constants/DesignTokens';
 
 const BagView = () => {
   const [bag] = useState(() => Bag.new());
@@ -30,7 +31,7 @@ const BagView = () => {
       case isEmpty: {
         return (
           <View style={styles.emptyContainer}>
-            <PretendardText style={styles.emptyText}>
+            <PretendardText weight='bold' style={styles.emptyText}>
               아직 등록한{'\n'}배낭이 없어요:(
             </PretendardText>
           </View>
@@ -40,7 +41,7 @@ const BagView = () => {
         return (
           <>
             <View style={styles.headerContainer}>
-              <PretendardText style={styles.headerText}>
+              <PretendardText weight='bold' style={styles.headerText}>
                 총 {bags.length}개의 배낭이 있어요
               </PretendardText>
             </View>
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
   container: {
     position: 'relative',
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   contentContainer: {
     flex: 1,
@@ -92,16 +93,14 @@ const styles = StyleSheet.create({
     top: '30%',
     left: 0,
     fontSize: 30,
-    fontFamily: 'Pretendard-Bold',
-    color: '#000000',
+    color: Color.textPrimary,
   },
   headerContainer: {
     paddingVertical: 24,
   },
   headerText: {
     fontSize: 20,
-    fontFamily: 'Pretendard-Bold',
-    color: 'black',
+    color: Color.textPrimary,
   },
   scrollContainer: {
     flex: 1,

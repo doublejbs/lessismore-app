@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     color: Color.textPrimary,
   },
   filterButtonTextSelected: {
-    color: '#FFFFFF',
+    color: Color.background,
   },
   dragBar: {
     width: 40,

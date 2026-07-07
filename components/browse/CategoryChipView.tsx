@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import PretendardText from '../PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   label: string;
@@ -31,21 +32,21 @@ const styles = StyleSheet.create({
     height: 32,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 22,
-    backgroundColor: '#EBEBEB',
+    borderRadius: Radius.chip,
+    backgroundColor: Color.chipInactiveBg,
     justifyContent: 'center',
     alignItems: 'center',
   },
   chipSelected: {
-    backgroundColor: '#000',
+    backgroundColor: Color.chipActiveBg,
   },
   chipText: {
     fontSize: 14,
     lineHeight: 16,
-    color: '#000',
+    color: Color.textPrimary,
   },
   chipTextSelected: {
-    color: '#FFF',
+    color: Color.background,
   },
 });
 

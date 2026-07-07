@@ -21,6 +21,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 import PretendardText from '../PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 import BrowseSort from '@/model/search/BrowseSort';
 import {
   BROWSE_SORT_OPTIONS,
@@ -45,7 +46,7 @@ const UpArrowIcon = () => (
   <Svg width={25} height={24} viewBox='0 0 25 24' fill='none'>
     <Path
       d='M7.5 14L12.5008 9.42L17.5 14'
-      stroke='#0A090B'
+      stroke={Color.textPrimary}
       strokeWidth={2}
       strokeLinecap='round'
       strokeLinejoin='round'
@@ -57,7 +58,7 @@ const DownArrowIcon = () => (
   <Svg width={25} height={24} viewBox='0 0 25 24' fill='none'>
     <Path
       d='M7.5 10L12.5008 14.58L17.5 10'
-      stroke='#0A090B'
+      stroke={Color.textPrimary}
       strokeWidth={2}
       strokeLinecap='round'
       strokeLinejoin='round'
@@ -69,7 +70,7 @@ const CheckIcon = () => (
   <Svg width={20} height={20} viewBox='0 0 20 20' fill='none'>
     <Path
       d='M4 10.5L8 14.5L16 5.5'
-      stroke='#0A090B'
+      stroke={Color.textPrimary}
       strokeWidth={2}
       strokeLinecap='round'
       strokeLinejoin='round'
@@ -206,7 +207,11 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
                         <PretendardText
                           style={[
                             styles.optionText,
-                            { color: isSelected ? '#0A090B' : '#505967' },
+                            {
+                              color: isSelected
+                                ? Color.textPrimary
+                                : Color.textTertiary,
+                            },
                           ]}
                           weight={isSelected ? 'bold' : 'medium'}
                         >
@@ -240,7 +245,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 14,
-    color: 'black',
+    color: Color.textPrimary,
     lineHeight: 16,
     includeFontPadding: false,
     textAlignVertical: 'center',
@@ -254,12 +259,12 @@ const styles = StyleSheet.create({
   },
   overlayDim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: Color.overlay,
   },
   sheet: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: Color.background,
+    borderTopLeftRadius: Radius.sheet,
+    borderTopRightRadius: Radius.sheet,
     paddingHorizontal: 16,
     paddingBottom: 32,
   },
@@ -277,7 +282,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     lineHeight: 26,
-    color: '#0A090B',
+    color: Color.textPrimary,
     paddingVertical: 16,
   },
   optionList: {

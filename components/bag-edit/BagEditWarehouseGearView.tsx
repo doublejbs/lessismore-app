@@ -6,6 +6,7 @@ import BagEdit from '../../model/bag-edit/BagEdit';
 import app from '../../model/app/App';
 import { observer } from 'mobx-react-lite';
 import GearView from '../warehouse/GearView';
+import { Color } from '@/constants/DesignTokens';
 
 interface Props {
   gear: Gear;
@@ -25,11 +26,11 @@ const BagEditWarehouseGearView: FC<Props> = ({ gear, bagEdit }) => {
       <View style={styles.buttonContainer}>
         {isSelected ? (
           <TouchableOpacity style={styles.selectedBadge} onPress={handlePress}>
-            <Ionicons name='checkmark' size={16} color='#fff' />
+            <Ionicons name='checkmark' size={16} color={Color.background} />
           </TouchableOpacity>
         ) : (
           <TouchableOpacity style={styles.addButton} onPress={handlePress}>
-            <Ionicons name='add' size={16} color='#000' />
+            <Ionicons name='add' size={16} color={Color.textPrimary} />
           </TouchableOpacity>
         )}
       </View>
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   selectedBadge: {
-    backgroundColor: '#000',
+    backgroundColor: Color.chipActiveBg,
     borderRadius: 14,
     width: 28,
     height: 28,
@@ -51,7 +52,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addButton: {
-    backgroundColor: '#F6F6F6',
+    backgroundColor: Color.surfaceMuted,
     borderRadius: 14,
     width: 28,
     height: 28,

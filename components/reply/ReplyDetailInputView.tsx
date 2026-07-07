@@ -11,6 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 import ReplyDetail from '@/model/reply/ReplyDetail';
 import { observer } from 'mobx-react-lite';
 import app from '@/model/app/App';
@@ -103,7 +104,7 @@ const ReplyDetailInputView: FC<Props> = observer(
                 style={styles.inputButton}
                 onPress={handlePressInput}
               >
-                <PretendardText style={styles.placeholder}>
+                <PretendardText weight='medium' style={styles.placeholder}>
                   답글을 남겨보세요
                 </PretendardText>
               </TouchableOpacity>
@@ -113,7 +114,7 @@ const ReplyDetailInputView: FC<Props> = observer(
                   ref={inputRef}
                   style={styles.textInput}
                   placeholder='답글을 남겨보세요'
-                  placeholderTextColor='#9BA2AD'
+                  placeholderTextColor={Color.textSecondary}
                   value={text}
                   onChangeText={setText}
                   onBlur={handleBlur}
@@ -129,9 +130,12 @@ const ReplyDetailInputView: FC<Props> = observer(
                   disabled={!text.trim() || isSaving}
                 >
                   {isSaving ? (
-                    <ActivityIndicator size='small' color='#FFFFFF' />
+                    <ActivityIndicator size='small' color={Color.background} />
                   ) : (
-                    <PretendardText style={styles.saveButtonText}>
+                    <PretendardText
+                      weight='semibold'
+                      style={styles.saveButtonText}
+                    >
                       저장
                     </PretendardText>
                   )}
@@ -149,7 +153,7 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 12,
     paddingTop: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Color.background,
   },
   content: {
     flexDirection: 'row',
@@ -159,28 +163,27 @@ const styles = StyleSheet.create({
   authorButton: {
     width: 40,
     height: 40,
-    backgroundColor: '#000000',
-    borderRadius: 10,
+    backgroundColor: Color.chipActiveBg,
+    borderRadius: Radius.input,
     justifyContent: 'center',
     alignItems: 'center',
   },
   authorText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: Color.background,
   },
   inputButton: {
     flex: 1,
     height: 40,
-    backgroundColor: '#EEEEEE',
-    borderRadius: 10,
+    backgroundColor: Color.inputBg,
+    borderRadius: Radius.input,
     justifyContent: 'center',
     paddingHorizontal: 16,
   },
   placeholder: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#9BA2AD',
+    color: Color.textSecondary,
   },
   inputContainer: {
     flex: 1,
@@ -192,17 +195,17 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 40,
     maxHeight: 100,
-    backgroundColor: '#EEEEEE',
-    borderRadius: 10,
+    backgroundColor: Color.inputBg,
+    borderRadius: Radius.input,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 16,
     fontWeight: '500',
-    color: '#000000',
+    color: Color.textPrimary,
   },
   saveButton: {
-    backgroundColor: '#000000',
-    borderRadius: 10,
+    backgroundColor: Color.chipActiveBg,
+    borderRadius: Radius.input,
     paddingHorizontal: 16,
     height: 40,
     justifyContent: 'center',
@@ -215,8 +218,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    color: Color.background,
   },
 });
 

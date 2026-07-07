@@ -3,7 +3,6 @@ import {
   View,
   TouchableOpacity,
   Image,
-  Text,
   Alert,
   Platform,
   ActionSheetIOS,
@@ -12,6 +11,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import FileUpload from '@/model/gear/FileUpload';
 import { observer } from 'mobx-react-lite';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   fileUpload: FileUpload;
@@ -187,16 +188,16 @@ const ImageUploadView: FC<Props> = ({ fileUpload }) => {
         onPress={handleImagePicker}
         style={{
           borderWidth: 1,
-          borderColor: '#E7E7E7',
-          borderRadius: 4,
+          borderColor: Color.borderLight,
+          borderRadius: Radius.listThumb,
           height: 80,
           width: 80,
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: 'white',
+          backgroundColor: Color.background,
         }}
       >
-        <Ionicons name='camera' size={24} color='black' />
+        <Ionicons name='camera' size={24} color={Color.textPrimary} />
       </TouchableOpacity>
 
       {hasPreviewSrc && (
@@ -206,8 +207,8 @@ const ImageUploadView: FC<Props> = ({ fileUpload }) => {
             height: 80,
             position: 'relative',
             justifyContent: 'center',
-            backgroundColor: '#F6F6F6',
-            borderRadius: 4,
+            backgroundColor: Color.inputBg,
+            borderRadius: Radius.listThumb,
           }}
         >
           <TouchableOpacity
@@ -216,9 +217,9 @@ const ImageUploadView: FC<Props> = ({ fileUpload }) => {
               top: -4,
               right: -4,
               borderWidth: 1,
-              borderColor: 'black',
+              borderColor: Color.textPrimary,
               borderRadius: 8,
-              backgroundColor: 'black',
+              backgroundColor: Color.textPrimary,
               width: 16,
               height: 16,
               justifyContent: 'center',
@@ -227,16 +228,19 @@ const ImageUploadView: FC<Props> = ({ fileUpload }) => {
             }}
             onPress={handleDeletePreview}
           >
-            <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
+            <PretendardText
+              weight='bold'
+              style={{ color: Color.background, fontSize: 10 }}
+            >
               ×
-            </Text>
+            </PretendardText>
           </TouchableOpacity>
           <Image
             source={{ uri: previewSrc }}
             style={{
               width: 80,
               height: 80,
-              borderRadius: 4,
+              borderRadius: Radius.listThumb,
             }}
             resizeMode='cover'
           />

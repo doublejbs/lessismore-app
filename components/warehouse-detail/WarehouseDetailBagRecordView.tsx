@@ -1,16 +1,12 @@
 import { FC } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import Gear from '../../model/gear/Gear';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import SeperaterView from '../ui/SeperaterView';
+import PretendardText from '../PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   gear: Gear;
@@ -29,18 +25,22 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
       if (isUseless) {
         return (
           <TouchableOpacity style={styles.uselessButton}>
-            <Text style={styles.uselessButtonText}>USELESS</Text>
+            <PretendardText style={styles.uselessButtonText}>
+              USELESS
+            </PretendardText>
           </TouchableOpacity>
         );
       } else if (isUsed) {
         return (
           <TouchableOpacity style={styles.usedButton}>
-            <Text style={styles.usedButtonText}>USED</Text>
+            <PretendardText style={styles.usedButtonText}>USED</PretendardText>
           </TouchableOpacity>
         );
       } else {
         return (
-          <Text style={styles.placeholderText}>사용 여부를 입력해주세요</Text>
+          <PretendardText style={styles.placeholderText}>
+            사용 여부를 입력해주세요
+          </PretendardText>
         );
       }
     };
@@ -50,16 +50,18 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
         <SeperaterView />
         <View style={styles.container}>
           <View style={styles.headerContainer}>
-            <Text style={styles.headerText}>배낭 기록 {bagCount}회</Text>
+            <PretendardText weight='bold' style={styles.headerText}>
+              배낭 기록 {bagCount}회
+            </PretendardText>
           </View>
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={styles.statLabel}>USED</Text>
-              <Text style={styles.statValue}>{`${usedCount}회`}</Text>
+              <PretendardText style={styles.statLabel}>USED</PretendardText>
+              <PretendardText weight='medium' style={styles.statValue}>{`${usedCount}회`}</PretendardText>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statLabel}>USELESS</Text>
-              <Text style={styles.statValue}>{`${uselessCount}회`}</Text>
+              <PretendardText style={styles.statLabel}>USELESS</PretendardText>
+              <PretendardText weight='medium' style={styles.statValue}>{`${uselessCount}회`}</PretendardText>
             </View>
           </View>
           <ScrollView style={styles.listContainer}>
@@ -78,15 +80,19 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
                   onPress={handlePress}
                 >
                   <View style={styles.bagContent}>
-                    <Text style={styles.bagName}>{bag.getName()}</Text>
-                    <Text style={styles.bagDate}>{bag.getEditDate()}</Text>
+                    <PretendardText weight='semibold' style={styles.bagName}>
+                      {bag.getName()}
+                    </PretendardText>
+                    <PretendardText style={styles.bagDate}>
+                      {bag.getEditDate()}
+                    </PretendardText>
                   </View>
                   <View style={styles.rightSection}>
                     {renderButton(isUseless, isUsed)}
                     <Ionicons
                       name='chevron-forward'
                       size={24}
-                      color='#505967'
+                      color={Color.textTertiary}
                     />
                   </View>
                 </TouchableOpacity>
@@ -110,9 +116,8 @@ const styles = StyleSheet.create({
     // 헤더 컨테이너 스타일
   },
   headerText: {
-    fontWeight: 'bold',
     fontSize: 17,
-    color: 'black',
+    color: Color.textPrimary,
   },
   statsContainer: {
     width: '100%',
@@ -126,17 +131,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     flex: 1,
-    backgroundColor: '#F3F3F3',
-    borderRadius: 10,
+    backgroundColor: Color.inputBg,
+    borderRadius: Radius.card,
   },
   statLabel: {
     fontSize: 14,
-    color: 'black',
+    color: Color.textPrimary,
   },
   statValue: {
     fontSize: 15,
-    fontWeight: '500',
-    color: 'black',
+    color: Color.textPrimary,
   },
   listContainer: {
     // 리스트 컨테이너 스타일
@@ -144,8 +148,8 @@ const styles = StyleSheet.create({
   bagItem: {
     padding: 14,
     paddingHorizontal: 20,
-    backgroundColor: '#F3F3F3',
-    borderRadius: 12,
+    backgroundColor: Color.inputBg,
+    borderRadius: Radius.card,
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 12,
@@ -155,41 +159,40 @@ const styles = StyleSheet.create({
   },
   bagName: {
     fontSize: 14,
-    fontWeight: '600',
-    color: 'black',
+    color: Color.textPrimary,
   },
   bagDate: {
     fontSize: 10,
-    color: '#757C86',
+    color: Color.textTertiary,
   },
   rightSection: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   uselessButton: {
-    backgroundColor: 'white',
-    borderRadius: 12,
+    backgroundColor: Color.background,
+    borderRadius: Radius.card,
     paddingVertical: 4,
     paddingHorizontal: 12,
     marginRight: 8,
   },
   uselessButtonText: {
     fontSize: 11,
-    color: '#505967',
+    color: Color.textTertiary,
   },
   usedButton: {
-    backgroundColor: '#5F5F5F',
-    borderRadius: 12,
+    backgroundColor: Color.textTertiary,
+    borderRadius: Radius.card,
     paddingVertical: 4,
     paddingHorizontal: 12,
     marginRight: 8,
   },
   usedButtonText: {
     fontSize: 11,
-    color: 'white',
+    color: Color.background,
   },
   placeholderText: {
-    color: '#9BA2AD',
+    color: Color.textSecondary,
     fontSize: 11,
     marginRight: 8,
   },

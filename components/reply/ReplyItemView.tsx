@@ -1,5 +1,7 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import PretendardText from '@/components/PretendardText';
+import { Color } from '@/constants/DesignTokens';
 import Comment from '@/model/reply/Comment';
 import Reply from '@/model/reply/Reply';
 import dayjs from 'dayjs';
@@ -73,24 +75,33 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
       >
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={[styles.name, isMyComment && { color: '#9CCC65' }]}>
+            <PretendardText
+              weight='semibold'
+              style={[styles.name, isMyComment && { color: '#9CCC65' }]}
+            >
               {comment.authorName}
-            </Text>
-            <Text style={styles.date}>
+            </PretendardText>
+            <PretendardText style={styles.date}>
               {dayjs(comment.createdAt).format('YYYY.MM.DD')}
-            </Text>
+            </PretendardText>
           </View>
           {isMyComment && (
             <TouchableOpacity
               style={styles.moreButton}
               onPress={handlePressMore}
             >
-              <Ionicons name='ellipsis-horizontal' size={16} color='#9BA2AD' />
+              <Ionicons
+                name='ellipsis-horizontal'
+                size={16}
+                color={Color.iconMuted}
+              />
             </TouchableOpacity>
           )}
         </View>
         <View style={styles.contentContainer}>
-          <Text style={styles.content}>{comment.content}</Text>
+          <PretendardText style={styles.content}>
+            {comment.content}
+          </PretendardText>
           <View style={styles.likeCountContainer}>
             <TouchableOpacity
               style={styles.iconWithText}
@@ -100,15 +111,23 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
               <Ionicons
                 name={isLiked ? 'heart' : 'heart-outline'}
                 size={20}
-                color={isLiked ? '#FF6B6B' : '#757C86'}
+                color={isLiked ? '#FF6B6B' : Color.textTertiary}
               />
-              <Text style={[styles.likeCount, isLiked && { color: '#FF6B6B' }]}>
+              <PretendardText
+                style={[styles.likeCount, isLiked && { color: '#FF6B6B' }]}
+              >
                 {comment.likeCount}
-              </Text>
+              </PretendardText>
             </TouchableOpacity>
             <View style={styles.iconWithText}>
-              <Ionicons name='chatbubble-outline' size={20} color='#757C86' />
-              <Text style={styles.replyCount}>{comment.replyCount}</Text>
+              <Ionicons
+                name='chatbubble-outline'
+                size={20}
+                color={Color.textTertiary}
+              />
+              <PretendardText style={styles.replyCount}>
+                {comment.replyCount}
+              </PretendardText>
             </View>
           </View>
         </View>
@@ -128,7 +147,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 12,
     borderTopWidth: 3,
-    borderTopColor: '#F2F4F6',
+    borderTopColor: Color.divider,
     paddingVertical: 24,
     paddingHorizontal: 20,
   },
@@ -144,11 +163,10 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 14,
-    fontWeight: '600',
   },
   date: {
     fontSize: 12,
-    color: '#757C86',
+    color: Color.textTertiary,
   },
   moreButton: {
     opacity: 0.3,
@@ -171,11 +189,11 @@ const styles = StyleSheet.create({
   },
   likeCount: {
     fontSize: 16,
-    color: '#757C86',
+    color: Color.textTertiary,
   },
   replyCount: {
     fontSize: 16,
-    color: '#757C86',
+    color: Color.textTertiary,
   },
 });
 
