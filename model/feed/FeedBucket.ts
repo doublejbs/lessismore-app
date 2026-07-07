@@ -15,7 +15,7 @@ interface FeedBucketParams {
   weight: number;
   sort: BrowseSort;
   category?: string;
-  brand?: string;
+  brands?: string[];
 }
 
 class FeedBucket {
@@ -28,25 +28,26 @@ class FeedBucket {
   public readonly weight: number;
   public readonly sort: BrowseSort;
   public readonly category: string | undefined;
-  public readonly brand: string | undefined;
+  // 복수 브랜드 OR 그룹(필터 브랜드 다중 선택). 미지정 버킷은 undefined.
+  public readonly brands: string[] | undefined;
 
   public constructor(params: FeedBucketParams) {
     this.kind = params.kind;
     this.weight = params.weight;
     this.sort = params.sort;
     this.category = params.category;
-    this.brand = params.brand;
+    this.brands = params.brands;
   }
 
   public buildBrowseParams(): {
     category?: string;
-    brand?: string;
+    brands?: string[];
     sort: BrowseSort;
     page: number;
   } {
     const params: {
       category?: string;
-      brand?: string;
+      brands?: string[];
       sort: BrowseSort;
       page: number;
     } = {
@@ -58,8 +59,8 @@ class FeedBucket {
       params.category = this.category;
     }
 
-    if (this.brand) {
-      params.brand = this.brand;
+    if (this.brands && this.brands.length > 0) {
+      params.brands = this.brands;
     }
 
     return params;

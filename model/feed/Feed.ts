@@ -11,6 +11,7 @@ import OrderType from '@/model/order/OrderType';
 import GearRowActions from '@/model/browse/GearRowActions';
 import app from '@/model/app/App';
 import FeedBucket, { FeedBucketKind } from './FeedBucket';
+import { toBrandKey } from '@/model/store/BrandKey';
 import {
   FeedBrandInterest,
   buildInterestProfile,
@@ -56,7 +57,7 @@ class Feed implements GearRowActions {
   @observable private hasMore = true;
   @observable private initialized = false;
   @observable private filterCategory: string | null = null;
-  @observable private filterBrand: FeedBrandInterest | null = null;
+  @observable private filterBrands: FeedBrandInterest[] = [];
 
   private buckets: FeedBucket[] = [];
   private seed = createSeed();
@@ -132,9 +133,7 @@ class Feed implements GearRowActions {
 
   // 현재 모드(필터/콜드스타트/개인화)에 맞춰 버킷을 구성한다.
   private buildBuckets(): FeedBucket[] {
-    const hasFilter = this.filterCategory !== null || this.filterBrand !== null;
-
-    if (hasFilter) {
+    if (this.hasActiveFilter()) {
       return this.buildFilterBuckets();
     }
 
@@ -147,9 +146,8 @@ class Feed implements GearRowActions {
 
   private buildFilterBuckets(): FeedBucket[] {
     const category = this.filterCategory ?? undefined;
-    const brand = this.filterBrand
-      ? this.filterBrand.companyKorean || this.filterBrand.company
-      : undefined;
+    // 선택 브랜드들의 표시명(companyKorean 우선)을 하나의 OR 그룹으로 넘긴다(FD-3).
+    const brands = this.toBrandNames(this.filterBrands);
 
     return [
       new FeedBucket({
@@ -157,16 +155,23 @@ class Feed implements GearRowActions {
         weight: WEIGHT_FILTER_POPULAR,
         sort: BrowseSort.Popular,
         ...(category ? { category } : {}),
-        ...(brand ? { brand } : {}),
+        ...(brands.length > 0 ? { brands } : {}),
       }),
       new FeedBucket({
         kind: FeedBucketKind.NewArrival,
         weight: WEIGHT_FILTER_NEW_ARRIVAL,
         sort: BrowseSort.Latest,
         ...(category ? { category } : {}),
-        ...(brand ? { brand } : {}),
+        ...(brands.length > 0 ? { brands } : {}),
       }),
     ];
+  }
+
+  // 관심/필터 브랜드를 browse용 표시명 배열로 변환한다(빈 값 제외).
+  private toBrandNames(brands: FeedBrandInterest[]): string[] {
+    return brands
+      .map(brand => brand.companyKorean || brand.company)
+      .filter(name => name.length > 0);
   }
 
   private buildColdStartBuckets(): FeedBucket[] {
@@ -222,7 +227,7 @@ class Feed implements GearRowActions {
               kind: FeedBucketKind.InterestBrand,
               weight: perBrand,
               sort: BrowseSort.Popular,
-              brand: brandName,
+              brands: [brandName],
             })
           );
         }
@@ -304,21 +309,14 @@ class Feed implements GearRowActions {
     this.setLoading(false);
   }
 
-  public async setFilterCategory(category: string | null) {
-    if (this.filterCategory === category) {
+  // FD-3 `확인`: 스테이징된 카테고리·브랜드를 원자적으로 적용한다.
+  // 현재 적용값과 얕은 비교로 동일하면 reload를 생략한다(변경 없으면 no-op).
+  public async setFilters(category: string | null, brands: FeedBrandInterest[]) {
+    if (this.isSameFilters(category, brands)) {
       return;
     }
 
-    this.setFilterCategoryValue(category);
-    await this.reload();
-  }
-
-  public async setFilterBrand(brand: FeedBrandInterest | null) {
-    if (this.isSameBrand(this.filterBrand, brand)) {
-      return;
-    }
-
-    this.setFilterBrandValue(brand);
+    this.setFilterValues(category, brands);
     await this.reload();
   }
 
@@ -529,12 +527,12 @@ class Feed implements GearRowActions {
     return this.filterCategory;
   }
 
-  public getFilterBrand() {
-    return this.filterBrand;
+  public getFilterBrands() {
+    return this.filterBrands;
   }
 
   public hasActiveFilter() {
-    return this.filterCategory !== null || this.filterBrand !== null;
+    return this.filterCategory !== null || this.filterBrands.length > 0;
   }
 
   public getActiveFilterCount() {
@@ -544,9 +542,7 @@ class Feed implements GearRowActions {
       count += 1;
     }
 
-    if (this.filterBrand !== null) {
-      count += 1;
-    }
+    count += this.filterBrands.length;
 
     return count;
   }
@@ -557,8 +553,7 @@ class Feed implements GearRowActions {
       return;
     }
 
-    this.setFilterCategoryValue(null);
-    this.setFilterBrandValue(null);
+    this.setFilterValues(null, []);
     await this.reload();
   }
 
@@ -582,21 +577,27 @@ class Feed implements GearRowActions {
     return this.initialized;
   }
 
-  private isSameBrand(
-    left: FeedBrandInterest | null,
-    right: FeedBrandInterest | null
+  // 적용값과 후보값이 같은지 얕게 비교한다(카테고리 동일 + 브랜드 집합 동일, 순서 무관).
+  private isSameFilters(
+    category: string | null,
+    brands: FeedBrandInterest[]
   ): boolean {
-    if (left === null && right === null) {
-      return true;
-    }
-
-    if (left === null || right === null) {
+    if (this.filterCategory !== category) {
       return false;
     }
 
-    return (
-      left.companyKorean === right.companyKorean &&
-      left.company === right.company
+    if (this.filterBrands.length !== brands.length) {
+      return false;
+    }
+
+    const currentKeys = new Set(
+      this.filterBrands.map(brand =>
+        toBrandKey(brand.companyKorean, brand.company)
+      )
+    );
+
+    return brands.every(brand =>
+      currentKeys.has(toBrandKey(brand.companyKorean, brand.company))
     );
   }
 
@@ -637,13 +638,9 @@ class Feed implements GearRowActions {
   }
 
   @action
-  private setFilterCategoryValue(value: string | null) {
-    this.filterCategory = value;
-  }
-
-  @action
-  private setFilterBrandValue(value: FeedBrandInterest | null) {
-    this.filterBrand = value;
+  private setFilterValues(category: string | null, brands: FeedBrandInterest[]) {
+    this.filterCategory = category;
+    this.filterBrands = brands;
   }
 }
 

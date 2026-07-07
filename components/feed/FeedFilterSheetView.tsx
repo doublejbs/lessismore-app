@@ -14,10 +14,12 @@ import {
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Feed from '@/model/feed/Feed';
 import BrandDirectory from '@/model/browse/BrandDirectory';
 import { BrandRankData } from '@/model/search/BrandRankStore';
 import { FeedBrandInterest } from '@/model/feed/FeedInterestProfile';
+import { toBrandKey } from '@/model/store/BrandKey';
 import { BROWSE_CATEGORIES } from '@/model/browse/BrowseCategory';
 import PretendardText from '@/components/PretendardText';
 import SearchSkeletonView from '@/components/search/SearchSkeletonView';
@@ -32,24 +34,28 @@ const SHEET_HEIGHT_RATIO = 0.75;
 
 const ALL_LABEL = '전체';
 
+const CONFIRM_LABEL = '확인';
+
 interface Props {
   feed: Feed;
   visible: boolean;
   onClose: () => void;
 }
 
-// FD-3: 통합 필터 바텀시트. 카테고리 그리드(고정) + 브랜드 검색/목록(내부 스크롤) + 초기화.
+// FD-3: 통합 필터 바텀시트. 카테고리 그리드(고정) + 브랜드 검색/목록(내부 스크롤) + 초기화 + 하단 고정 `확인`.
 // 애니메이션은 BrowseSortButtonView 패턴(딤 페이드 + 시트 슬라이드 + 핸들바)을 미러링하고,
-// 브랜드 목록·검색은 BrandDirectory 모델을 재사용한다. 선택은 즉시 적용(피드 재구성)한다.
+// 브랜드 목록·검색은 BrandDirectory 모델을 재사용한다.
+// 선택은 시트 안에서 스테이징되고 하단 `확인`으로 일괄 적용된다. 오버레이/핸들/뒤로가기 = 취소(스테이징 폐기).
 const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [brandDirectory] = useState(() => BrandDirectory.new(router));
   const progress = useRef(new Animated.Value(0)).current;
   const isClosing = useRef(false);
 
-  const selectedCategory = feed.getFilterCategory();
-  const selectedBrand = feed.getFilterBrand();
-  const hasActiveFilter = feed.hasActiveFilter();
+  // 스테이징 로컬 상태 — 시트 열릴 때 현재 적용값으로 초기화한다(피드 재조회 없음).
+  const [stagedCategory, setStagedCategory] = useState<string | null>(null);
+  const [stagedBrands, setStagedBrands] = useState<FeedBrandInterest[]>([]);
 
   const brands = brandDirectory.getBrands();
   const isLoading = brandDirectory.isLoading();
@@ -57,10 +63,16 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
   const keyword = brandDirectory.getKeyword();
   const sheetHeight = Dimensions.get('window').height * SHEET_HEIGHT_RATIO;
 
+  const hasStagedFilter = stagedCategory !== null || stagedBrands.length > 0;
+
   useEffect(() => {
     if (!visible) {
       return;
     }
+
+    // 열릴 때마다 스테이징을 현재 적용 필터로 동기화한다.
+    setStagedCategory(feed.getFilterCategory());
+    setStagedBrands([...feed.getFilterBrands()]);
 
     brandDirectory.initialize();
     isClosing.current = false;
@@ -71,9 +83,9 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
-  }, [visible, brandDirectory, progress]);
+  }, [visible, brandDirectory, progress, feed]);
 
-  const runClose = () => {
+  const runClose = (onFinished?: () => void) => {
     if (isClosing.current) {
       return;
     }
@@ -87,27 +99,33 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
       useNativeDriver: true,
     }).start(() => {
       isClosing.current = false;
+      onFinished?.();
       onClose();
     });
   };
 
-  const handleClose = () => {
+  // 취소: 스테이징을 폐기하고 닫는다(적용 필터 유지).
+  const handleCancel = () => {
+    runClose();
+  };
+
+  // FD-3 `확인`: 스테이징을 원자 적용한 뒤 닫는다(변경 없으면 setFilters가 no-op).
+  const handleApply = () => {
+    app.getAnalyticsManager()?.logClick('feed_filter_apply', {
+      category: stagedCategory ?? 'all',
+      brand_count: stagedBrands.length,
+    });
+    feed.setFilters(stagedCategory, stagedBrands);
     runClose();
   };
 
   const handleSelectAllCategory = () => {
-    app.getAnalyticsManager()?.logClick('feed_category', { category: 'all' });
-    feed.setFilterCategory(null);
+    setStagedCategory(null);
   };
 
   const handleSelectCategory = (category: string) => {
     // 같은 칩 재탭 시 해제(전체로 복귀).
-    const next = selectedCategory === category ? null : category;
-
-    app
-      .getAnalyticsManager()
-      ?.logClick('feed_category', { category: next ?? 'all' });
-    feed.setFilterCategory(next);
+    setStagedCategory(prev => (prev === category ? null : category));
   };
 
   const handleChangeKeyword = (text: string) => {
@@ -119,29 +137,38 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
   };
 
   const handleSelectBrand = (brand: BrandRankData) => {
-    const next: FeedBrandInterest | null = isSelectedBrand(brand)
-      ? null
-      : { companyKorean: brand.companyKorean, company: brand.company };
+    const key = toBrandKey(brand.companyKorean, brand.company);
 
-    app
-      .getAnalyticsManager()
-      ?.logClick('feed_brand', { selected: next !== null });
-    feed.setFilterBrand(next);
+    setStagedBrands(prev => {
+      const exists = prev.some(
+        staged => toBrandKey(staged.companyKorean, staged.company) === key
+      );
+
+      if (exists) {
+        return prev.filter(
+          staged => toBrandKey(staged.companyKorean, staged.company) !== key
+        );
+      }
+
+      return [
+        ...prev,
+        { companyKorean: brand.companyKorean, company: brand.company },
+      ];
+    });
   };
 
+  // 초기화: 스테이징 전체 해제(적용은 `확인` 시점).
   const handleReset = () => {
     app.getAnalyticsManager()?.logClick('feed_filter_reset');
-    feed.resetFilters();
+    setStagedCategory(null);
+    setStagedBrands([]);
   };
 
   const isSelectedBrand = (brand: BrandRankData) => {
-    if (!selectedBrand) {
-      return false;
-    }
+    const key = toBrandKey(brand.companyKorean, brand.company);
 
-    return (
-      selectedBrand.companyKorean === brand.companyKorean &&
-      selectedBrand.company === brand.company
+    return stagedBrands.some(
+      staged => toBrandKey(staged.companyKorean, staged.company) === key
     );
   };
 
@@ -192,9 +219,9 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
       visible={visible}
       transparent={true}
       animationType='none'
-      onRequestClose={handleClose}
+      onRequestClose={handleCancel}
     >
-      <Pressable style={styles.overlayRoot} onPress={handleClose}>
+      <Pressable style={styles.overlayRoot} onPress={handleCancel}>
         <Animated.View
           style={[styles.overlayDim, { opacity: progress }]}
           pointerEvents='none'
@@ -212,7 +239,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
               <PretendardText style={styles.title} weight='bold'>
                 필터
               </PretendardText>
-              {hasActiveFilter ? (
+              {hasStagedFilter ? (
                 <TouchableOpacity onPress={handleReset} activeOpacity={0.7}>
                   <PretendardText style={styles.resetText} weight='semibold'>
                     초기화
@@ -228,14 +255,14 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
               <View style={styles.categoryGrid}>
                 <CategoryChipView
                   label={ALL_LABEL}
-                  selected={selectedCategory === null}
+                  selected={stagedCategory === null}
                   onPress={handleSelectAllCategory}
                 />
                 {BROWSE_CATEGORIES.map(item => (
                   <CategoryChipView
                     key={item.filter}
                     label={item.name}
-                    selected={selectedCategory === item.filter}
+                    selected={stagedCategory === item.filter}
                     onPress={() => handleSelectCategory(item.filter)}
                   />
                 ))}
@@ -267,6 +294,23 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
               </View>
               <View style={styles.brandListContainer}>{renderBrandList()}</View>
             </View>
+
+            <View
+              style={[
+                styles.footer,
+                { paddingBottom: Math.max(insets.bottom, 16) },
+              ]}
+            >
+              <TouchableOpacity
+                style={styles.confirmButton}
+                onPress={handleApply}
+                activeOpacity={0.7}
+              >
+                <PretendardText style={styles.confirmButtonText}>
+                  {CONFIRM_LABEL}
+                </PretendardText>
+              </TouchableOpacity>
+            </View>
           </Pressable>
         </Animated.View>
       </Pressable>
@@ -288,7 +332,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 20,
-    paddingBottom: 16,
   },
   handle: {
     alignItems: 'center',
@@ -373,6 +416,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#888',
     textAlign: 'center',
+  },
+  footer: {
+    paddingTop: 12,
+    backgroundColor: 'white',
+  },
+  confirmButton: {
+    backgroundColor: '#000',
+    borderRadius: 8,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confirmButtonText: {
+    fontFamily: 'Pretendard-SemiBold',
+    fontSize: 16,
+    color: '#FFF',
   },
 });
 
