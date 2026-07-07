@@ -58,6 +58,8 @@ class Feed implements GearRowActions {
   @observable private initialized = false;
   @observable private filterCategory: string | null = null;
   @observable private filterBrands: FeedBrandInterest[] = [];
+  // FD-3 정렬: null=추천(개인화/필터 믹스), 그 외=해당 정렬 replica 단일 목록.
+  @observable private sort: BrowseSort | null = null;
 
   private buckets: FeedBucket[] = [];
   private seed = createSeed();
@@ -131,8 +133,14 @@ class Feed implements GearRowActions {
     }
   }
 
-  // 현재 모드(필터/콜드스타트/개인화)에 맞춰 버킷을 구성한다.
+  // 현재 모드(정렬/필터/콜드스타트/개인화)에 맞춰 버킷을 구성한다.
   private buildBuckets(): FeedBucket[] {
+    // FD-3: 정렬이 지정되면(≠추천) 개인화·6:4 믹스를 하지 않고 단일 정렬 버킷을 쓴다.
+    // 카테고리·브랜드 facet은 함께 적용한다.
+    if (this.sort !== null) {
+      return this.buildSortedBuckets(this.sort);
+    }
+
     if (this.hasActiveFilter()) {
       return this.buildFilterBuckets();
     }
@@ -142,6 +150,22 @@ class Feed implements GearRowActions {
     }
 
     return this.buildPersonalizedBuckets();
+  }
+
+  // FD-3: 지정 정렬(인기/최신/가벼운/무거운) 단일 버킷. 카테고리·브랜드 facet 동시 적용.
+  private buildSortedBuckets(sort: BrowseSort): FeedBucket[] {
+    const category = this.filterCategory ?? undefined;
+    const brands = this.toBrandNames(this.filterBrands);
+
+    return [
+      new FeedBucket({
+        kind: FeedBucketKind.Popular,
+        weight: WEIGHT_FILTER_POPULAR,
+        sort,
+        ...(category ? { category } : {}),
+        ...(brands.length > 0 ? { brands } : {}),
+      }),
+    ];
   }
 
   private buildFilterBuckets(): FeedBucket[] {
@@ -309,14 +333,18 @@ class Feed implements GearRowActions {
     this.setLoading(false);
   }
 
-  // FD-3 `확인`: 스테이징된 카테고리·브랜드를 원자적으로 적용한다.
+  // FD-3 `확인`: 스테이징된 정렬·카테고리·브랜드를 원자적으로 적용한다.
   // 현재 적용값과 얕은 비교로 동일하면 reload를 생략한다(변경 없으면 no-op).
-  public async setFilters(category: string | null, brands: FeedBrandInterest[]) {
-    if (this.isSameFilters(category, brands)) {
+  public async setFilters(
+    category: string | null,
+    brands: FeedBrandInterest[],
+    sort: BrowseSort | null
+  ) {
+    if (this.isSameFilters(category, brands, sort)) {
       return;
     }
 
-    this.setFilterValues(category, brands);
+    this.setFilterValues(category, brands, sort);
     await this.reload();
   }
 
@@ -531,6 +559,11 @@ class Feed implements GearRowActions {
     return this.filterBrands;
   }
 
+  // FD-3 정렬 상태(null=추천). 시트가 열릴 때 스테이징 초기값으로 읽는다.
+  public getSort() {
+    return this.sort;
+  }
+
   public hasActiveFilter() {
     return this.filterCategory !== null || this.filterBrands.length > 0;
   }
@@ -547,13 +580,13 @@ class Feed implements GearRowActions {
     return count;
   }
 
-  // FD-3 `초기화`: 카테고리·브랜드 필터를 모두 해제하고 피드를 재구성한다(중복 reload 방지).
+  // FD-3 `초기화`: 정렬(추천)·카테고리·브랜드 필터를 모두 해제하고 피드를 재구성한다(중복 reload 방지).
   public async resetFilters() {
-    if (!this.hasActiveFilter()) {
+    if (!this.hasActiveFilter() && this.sort === null) {
       return;
     }
 
-    this.setFilterValues(null, []);
+    this.setFilterValues(null, [], null);
     await this.reload();
   }
 
@@ -577,11 +610,16 @@ class Feed implements GearRowActions {
     return this.initialized;
   }
 
-  // 적용값과 후보값이 같은지 얕게 비교한다(카테고리 동일 + 브랜드 집합 동일, 순서 무관).
+  // 적용값과 후보값이 같은지 얕게 비교한다(정렬 동일 + 카테고리 동일 + 브랜드 집합 동일, 순서 무관).
   private isSameFilters(
     category: string | null,
-    brands: FeedBrandInterest[]
+    brands: FeedBrandInterest[],
+    sort: BrowseSort | null
   ): boolean {
+    if (this.sort !== sort) {
+      return false;
+    }
+
     if (this.filterCategory !== category) {
       return false;
     }
@@ -638,9 +676,14 @@ class Feed implements GearRowActions {
   }
 
   @action
-  private setFilterValues(category: string | null, brands: FeedBrandInterest[]) {
+  private setFilterValues(
+    category: string | null,
+    brands: FeedBrandInterest[],
+    sort: BrowseSort | null
+  ) {
     this.filterCategory = category;
     this.filterBrands = brands;
+    this.sort = sort;
   }
 }
 
