@@ -18,13 +18,18 @@ import LoadingView from '@/components/ui/LoadingView';
 import SearchGearAddToBagModalView from '@/components/search/SearchGearAddToBagModalView';
 import app from '@/model/app/App';
 
+// FD-2: 2컬럼 그리드 셀 기준. CTA 원형 버튼 크기(축소하되 hitSlop으로 44 실효 터치 타깃 확보).
+const CTA_SIZE = 36;
+const CTA_HIT_SLOP = { top: 4, bottom: 4, left: 4, right: 4 };
+
 interface Props {
   gear: Gear;
   actions: GearRowActions;
   bag: Bag;
 }
 
-// FD-2: 피드 카드. 큰 이미지 → 브랜드 → 이름 → 무게, 우측 상단 담기 CTA, coupangUrl이 있으면 하단 최저가 링크.
+// FD-2: 피드 카드(2컬럼 그리드 셀). 정방형 이미지 → 브랜드 → 이름 → 무게, 우측 상단 담기 CTA, coupangUrl이 있으면 하단 축약 링크.
+// 수수료 고지는 카드마다 반복하지 않고 FeedView 리스트 푸터에서 1회 노출한다.
 // coupangUrl은 Algolia hit·Gear에 없고 /gear 문서에만 있어(WarehouseDetail과 동일 경로) 마운트 시 지연 로드한다.
 const FeedCardView: FC<Props> = ({ gear, actions, bag }) => {
   const isAdded = gear.isAdded();
@@ -134,9 +139,10 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag }) => {
         <TouchableOpacity
           style={styles.ownedBadge}
           onPress={handleRemovePress}
+          hitSlop={CTA_HIT_SLOP}
           activeOpacity={0.8}
         >
-          <Ionicons name='checkmark' size={20} color='#fff' />
+          <Ionicons name='checkmark' size={18} color='#fff' />
         </TouchableOpacity>
       );
     }
@@ -145,9 +151,10 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag }) => {
       <TouchableOpacity
         style={styles.addButton}
         onPress={handleAddPress}
+        hitSlop={CTA_HIT_SLOP}
         activeOpacity={0.8}
       >
-        <Ionicons name='add' size={20} color='#fff' />
+        <Ionicons name='add' size={18} color='#fff' />
       </TouchableOpacity>
     );
   };
@@ -171,7 +178,7 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag }) => {
         </View>
 
         <View style={styles.info}>
-          <PretendardText style={styles.company}>
+          <PretendardText style={styles.company} numberOfLines={1}>
             {gear.getDisplayCompany()}
           </PretendardText>
           <PretendardText style={styles.name} weight='semibold' numberOfLines={2}>
@@ -183,22 +190,16 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag }) => {
         </View>
 
         {coupangUrl ? (
-          <View style={styles.coupang}>
-            <TouchableOpacity
-              style={styles.coupangLink}
-              onPress={handleCoupangPress}
-              activeOpacity={0.6}
-            >
-              <PretendardText style={styles.coupangText}>
-                쿠팡에서 최저가 보기
-              </PretendardText>
-              <Ionicons name='chevron-forward' size={13} color='#555555' />
-            </TouchableOpacity>
-            <PretendardText style={styles.coupangDisclaimer}>
-              이 링크는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를
-              제공받습니다.
+          <TouchableOpacity
+            style={styles.coupangLink}
+            onPress={handleCoupangPress}
+            activeOpacity={0.6}
+          >
+            <PretendardText style={styles.coupangText}>
+              쿠팡 최저가
             </PretendardText>
-          </View>
+            <Ionicons name='chevron-forward' size={12} color='#555555' />
+          </TouchableOpacity>
         ) : null}
       </Pressable>
 
@@ -214,7 +215,7 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag }) => {
 
 const styles = StyleSheet.create({
   card: {
-    marginBottom: 28,
+    flex: 1,
   },
   imageContainer: {
     width: '100%',
@@ -235,67 +236,60 @@ const styles = StyleSheet.create({
   },
   ctaContainer: {
     position: 'absolute',
-    top: 12,
-    right: 12,
+    top: 8,
+    right: 8,
   },
   addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: CTA_SIZE,
+    height: CTA_SIZE,
+    borderRadius: CTA_SIZE / 2,
     backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
   },
   ownedBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: CTA_SIZE,
+    height: CTA_SIZE,
+    borderRadius: CTA_SIZE / 2,
     backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
     opacity: 0.9,
   },
   ctaLoading: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: CTA_SIZE,
+    height: CTA_SIZE,
+    borderRadius: CTA_SIZE / 2,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   info: {
-    paddingTop: 12,
-    gap: 4,
+    paddingTop: 8,
+    gap: 3,
   },
   company: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#888',
   },
   name: {
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: 14,
+    lineHeight: 19,
     color: '#000',
   },
   weight: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#555',
-  },
-  coupang: {
-    paddingTop: 10,
-    gap: 3,
   },
   coupangLink: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
+    paddingTop: 6,
   },
   coupangText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#555555',
-  },
-  coupangDisclaimer: {
-    fontSize: 11,
-    color: '#B0B0B0',
   },
 });
 
