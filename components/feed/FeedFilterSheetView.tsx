@@ -345,7 +345,12 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
                   <PretendardText style={styles.sectionLabel} weight='semibold'>
                     정렬
                   </PretendardText>
-                  <View style={styles.sortRow}>
+                  <ScrollView
+                    horizontal={true}
+                    showsHorizontalScrollIndicator={false}
+                    keyboardShouldPersistTaps='handled'
+                    contentContainerStyle={styles.chipRowContent}
+                  >
                     {FEED_SORT_OPTIONS.map(option => (
                       <CategoryChipView
                         key={option.value}
@@ -354,14 +359,19 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
                         onPress={() => handleSelectSort(option.value)}
                       />
                     ))}
-                  </View>
+                  </ScrollView>
                 </View>
 
                 <View style={styles.section}>
                   <PretendardText style={styles.sectionLabel} weight='semibold'>
                     카테고리
                   </PretendardText>
-                  <View style={styles.categoryGrid}>
+                  <ScrollView
+                    horizontal={true}
+                    showsHorizontalScrollIndicator={false}
+                    keyboardShouldPersistTaps='handled'
+                    contentContainerStyle={styles.chipRowContent}
+                  >
                     <CategoryChipView
                       label={ALL_LABEL}
                       selected={stagedCategory === null}
@@ -375,7 +385,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
                         onPress={() => handleSelectCategory(item.filter)}
                       />
                     ))}
-                  </View>
+                  </ScrollView>
                 </View>
 
                 <View style={styles.brandSection}>
@@ -525,15 +535,11 @@ const styles = StyleSheet.create({
     color: '#505967',
     marginBottom: 12,
   },
-  categoryGrid: {
+  chipRowContent: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: 8,
-  },
-  sortRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    paddingRight: 4,
   },
   brandSection: {
     flex: 1,
