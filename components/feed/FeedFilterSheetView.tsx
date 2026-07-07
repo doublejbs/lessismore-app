@@ -48,7 +48,7 @@ import app from '@/model/app/App';
 
 const OPEN_DURATION = 260;
 const CLOSE_DURATION = 200;
-const SHEET_HEIGHT_RATIO = 0.75;
+const SHEET_HEIGHT_RATIO = 0.85;
 
 // 드래그 닫기 임계값 — 아래로 이만큼 끌거나(px) 이 속도 이상이면 닫는다.
 const CLOSE_DRAG_THRESHOLD = 120;
@@ -279,6 +279,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
     return (
       <ScrollView
         style={styles.brandList}
+        contentContainerStyle={styles.brandListContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps='handled'
       >
@@ -586,6 +587,9 @@ const styles = StyleSheet.create({
   },
   brandList: {
     flex: 1,
+  },
+  brandListContent: {
+    paddingBottom: 8,
   },
   skeletonContainer: {
     marginTop: 10,

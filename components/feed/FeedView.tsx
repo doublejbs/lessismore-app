@@ -14,7 +14,7 @@ import Feed from '@/model/feed/Feed';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import PretendardText from '@/components/PretendardText';
-import SearchSkeletonView from '@/components/search/SearchSkeletonView';
+import FeedSkeletonView from './FeedSkeletonView';
 import FeedFilterButtonView from './FeedFilterButtonView';
 import FeedCardView from './FeedCardView';
 import app from '@/model/app/App';
@@ -105,14 +105,6 @@ const FeedView: FC<Props> = ({ bag }) => {
   }, [isLoading, isEmpty, items.length]);
 
   const renderEmpty = useCallback(() => {
-    if (!isInitialized || isLoading) {
-      return (
-        <View style={styles.skeletonContainer}>
-          <SearchSkeletonView count={5} />
-        </View>
-      );
-    }
-
     return (
       <View style={styles.emptyContainer}>
         <PretendardText style={styles.emptyText}>
@@ -120,7 +112,22 @@ const FeedView: FC<Props> = ({ bag }) => {
         </PretendardText>
       </View>
     );
-  }, [isInitialized, isLoading]);
+  }, []);
+
+  // 최초 로딩(초기화 전 또는 데이터 없이 로딩 중)에는 2컬럼 스켈레톤으로 화면을 채운다.
+  // isInitialized가 초기 렌더에서 false이므로, 로드가 빨라도 스켈레톤이 먼저 보인다.
+  const showSkeleton = (!isInitialized || isLoading) && items.length === 0;
+
+  if (showSkeleton) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.skeletonContainer}>
+          <FeedSkeletonView count={6} />
+        </View>
+        <FeedFilterButtonView feed={feed} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -168,7 +175,9 @@ const styles = StyleSheet.create({
     maxWidth: '50%',
   },
   skeletonContainer: {
+    flex: 1,
     paddingTop: 10,
+    paddingHorizontal: LIST_HORIZONTAL_PADDING,
   },
   footer: {
     paddingVertical: 24,
