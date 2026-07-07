@@ -18,9 +18,18 @@ interface Props {
   warehouse: Warehouse;
 }
 
+const formatWeight = (grams: number) => {
+  if (grams >= 1000) {
+    return `${(grams / 1000).toFixed(1)}kg`;
+  }
+
+  return `${grams}g`;
+};
+
 const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
   const order = warehouse.getOrder();
   const totalCount = warehouse.getGears().length;
+  const totalWeight = warehouse.getTotalWeight();
 
   const handleClick = (filter: WarehouseFilter) => {
     app
@@ -73,6 +82,12 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
       <View style={styles.orderContainer}>
         <PretendardText weight='semibold' style={styles.titleText}>
           총 {totalCount}개
+          {totalWeight > 0 && (
+            <PretendardText weight='semibold' style={styles.weightText}>
+              {'  ·  '}
+              {formatWeight(totalWeight)}
+            </PretendardText>
+          )}
         </PretendardText>
         <OrderButtonView order={order} onSelectOption={handleSelectOrder} />
       </View>
@@ -104,6 +119,10 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 16,
     color: Color.textPrimary,
+  },
+  weightText: {
+    fontSize: 16,
+    color: Color.textSecondary,
   },
   filterButton: {
     height: 32,
