@@ -13,6 +13,7 @@ import {
 } from '@firebase/firestore';
 import GearFilter from '../gear/GearFilter';
 import OrderType from '../order/OrderType';
+import { toBrandKey } from './BrandKey';
 
 export interface GearData {
   id: string;
@@ -262,6 +263,31 @@ class GearStore {
                 updatedAt: new Date(),
               });
             }
+
+            // brand-rank ownerCount 업데이트
+            const companyKorean = gear.getCompanyKorean();
+            const company = gear.getCompany();
+            const brandKey = toBrandKey(companyKorean, company);
+
+            if (brandKey) {
+              const brandRankRef = doc(this.getStore(), 'brand-rank', brandKey);
+              const brandRankDoc = await getDoc(brandRankRef);
+
+              if (brandRankDoc.exists()) {
+                batch.update(brandRankRef, {
+                  ownerCount: increment(1),
+                  updatedAt: new Date(),
+                });
+              } else {
+                batch.set(brandRankRef, {
+                  brandKey,
+                  companyKorean,
+                  company,
+                  ownerCount: 1,
+                  updatedAt: new Date(),
+                });
+              }
+            }
           }
         }
       }
@@ -353,6 +379,30 @@ class GearStore {
               count: increment(-1),
               updatedAt: new Date(),
             });
+          }
+        }
+
+        // brand-rank ownerCount 업데이트
+        const brandKey = toBrandKey(
+          gear.getCompanyKorean(),
+          gear.getCompany()
+        );
+
+        if (brandKey) {
+          const brandRankRef = doc(this.getStore(), 'brand-rank', brandKey);
+          const brandRankDoc = await getDoc(brandRankRef);
+
+          if (brandRankDoc.exists()) {
+            const currentOwnerCount = brandRankDoc.data().ownerCount || 0;
+
+            if (currentOwnerCount <= 1) {
+              batch.delete(brandRankRef);
+            } else {
+              batch.update(brandRankRef, {
+                ownerCount: increment(-1),
+                updatedAt: new Date(),
+              });
+            }
           }
         }
       }
