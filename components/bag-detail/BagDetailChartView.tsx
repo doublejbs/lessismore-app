@@ -1,10 +1,12 @@
 import { observer } from 'mobx-react-lite';
 import { FC, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import app from '@/model/app/App';
 import Gear from '@/model/gear/Gear';
 import GearFilter from '@/model/gear/GearFilter';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Bag {
   getGears: () => Gear[];
@@ -118,12 +120,14 @@ const BagDetailChartView: FC<Props> = ({ bagDetail }) => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.header} onPress={handleToggleExpand}>
-        <Text style={styles.headerTitle}>📊 카테고리별 무게</Text>
+        <PretendardText weight='bold' style={styles.headerTitle}>
+          📊 카테고리별 무게
+        </PretendardText>
         <View style={styles.iconContainer}>
           <Ionicons
             name={isExpanded ? 'chevron-up' : 'chevron-down'}
             size={24}
-            color='#191F28'
+            color={Color.textPrimary}
           />
         </View>
       </TouchableOpacity>
@@ -197,19 +201,22 @@ const BagDetailChartView: FC<Props> = ({ bagDetail }) => {
                           ]}
                         />
                         <View>
-                          <Text style={styles.categoryName}>
+                          <PretendardText
+                            weight='bold'
+                            style={styles.categoryName}
+                          >
                             {getCategoryName(item.category)}
-                          </Text>
-                          <Text style={styles.categoryPercentage}>
+                          </PretendardText>
+                          <PretendardText style={styles.categoryPercentage}>
                             {item.percentage.toFixed(1)}%
-                          </Text>
+                          </PretendardText>
                         </View>
                       </View>
 
                       {/* 오른쪽: 무게 */}
-                      <Text style={styles.weightText}>
+                      <PretendardText weight='bold' style={styles.weightText}>
                         {item.weight.toFixed(0)}g
-                      </Text>
+                      </PretendardText>
                     </TouchableOpacity>
                   );
                 })}
@@ -218,7 +225,9 @@ const BagDetailChartView: FC<Props> = ({ bagDetail }) => {
           ) : (
             // 데이터가 없을 때 메시지
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>장비를 추가해주세요</Text>
+              <PretendardText weight='medium' style={styles.emptyText}>
+                장비를 추가해주세요
+              </PretendardText>
             </View>
           )}
         </>
@@ -230,19 +239,19 @@ const BagDetailChartView: FC<Props> = ({ bagDetail }) => {
 const styles = StyleSheet.create({
   container: {
     paddingBottom: 16,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: 6,
+    borderRadius: Radius.card,
     padding: 8,
     paddingHorizontal: 20,
   },
   headerTitle: {
     fontSize: 17,
-    color: 'black',
+    color: Color.textPrimary,
   },
   iconContainer: {
     width: 20,
@@ -252,7 +261,7 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     height: 48,
-    borderRadius: 8,
+    borderRadius: Radius.card,
     flexDirection: 'row',
     marginVertical: 16,
     paddingHorizontal: 20,
@@ -271,7 +280,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 8,
     padding: 8,
-    borderRadius: 6,
+    borderRadius: Radius.card,
     backgroundColor: 'transparent',
   },
   legendLeft: {
@@ -286,31 +295,28 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   categoryName: {
-    fontWeight: 'bold',
     fontSize: 14,
-    color: '#374151',
+    color: Color.textPrimary,
   },
   categoryPercentage: {
-    color: '#6B7280',
+    color: Color.textSecondary,
     fontSize: 14,
   },
   weightText: {
     fontSize: 14,
-    color: '#374151',
-    fontWeight: 'bold',
+    color: Color.textPrimary,
     textAlign: 'right',
   },
   emptyContainer: {
     height: 48,
-    borderRadius: 8,
+    borderRadius: Radius.card,
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 16,
   },
   emptyText: {
     fontSize: 14,
-    color: '#6B7280',
-    fontWeight: '500',
+    color: Color.textSecondary,
   },
 });
 
