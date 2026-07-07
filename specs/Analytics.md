@@ -98,6 +98,13 @@
 | `search` (GA4 표준) | 검색 실행 (SR-1) | `search_term`: 검색어 |
 | `click_search_add` | 검색 결과에서 창고/배낭에 장비 추가 (SR-3) | `target`: `warehouse` \| `bag` |
 | `click_search_rank_item` | 인기 장비 순위 행 클릭 (SR-4) | — |
+| `click_browse_category` | 탐색 홈 카테고리 칩/그리드 클릭 (SR-6/SR-7) | `category`: 카테고리 값 |
+| `click_browse_brand_all` | 탐색 홈 `브랜드 전체 보기` 클릭 → 디렉토리 (SR-6/SR-8) | — |
+| `click_browse_brand_preview` | 탐색 홈 인기 브랜드 미리보기 항목 클릭 → 브랜드 목록 (SR-6/SR-7) | — |
+| `click_browse_new_all` | 탐색 홈 신제품 `전체 보기` 클릭 → 최신순 목록 (SR-6/SR-9) | — |
+| `click_browse_new_item` | 탐색 홈 신제품 캐러셀 항목 클릭 → 장비 상세 (SR-9) | — |
+| `click_brand_directory_item` | 브랜드 디렉토리 항목 클릭 → 브랜드 목록 (SR-8/SR-7) | — |
+| `click_browse_sort` | 탐색 목록 정렬 변경 (SR-7) | `sort`: 정렬 값 |
 | `click_readyshot_layout` | 레디샷 레이아웃 전환 (SI-2/SI-3) | `type`: `grid` \| `collage` |
 | `click_readyshot_share` | 레디샷 캡처·공유 (SI-4) | — |
 | `click_login` | 로그인 버튼 (AU-1) | `provider`: `google` \| `apple` \| `email` |
