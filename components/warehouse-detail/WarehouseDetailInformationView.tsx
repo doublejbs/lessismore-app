@@ -1,9 +1,11 @@
 import { FC } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import GearImageView from '../warehouse/GearImageView';
 import Gear from '../../model/gear/Gear';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
+import PretendardText from '../PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   gear: Gear;
@@ -33,35 +35,43 @@ const WarehouseDetailInformationView: FC<Props> = ({
             <GearImageView imageUrl={imageUrl} />
           </View>
         ) : (
-          <Ionicons name='camera-outline' size={24} color='black' />
+          <Ionicons name='camera-outline' size={24} color={Color.textPrimary} />
         )}
         {canShowSharedImages && isAdded && (
           <TouchableOpacity
             style={styles.selectOtherImageButton}
             onPress={onSelectOtherImage}
           >
-            <Ionicons name='images-outline' size={14} color='#666' />
-            <Text style={styles.selectOtherImageText}>대표 사진 변경</Text>
+            <Ionicons name='images-outline' size={14} color={Color.textTertiary} />
+            <PretendardText style={styles.selectOtherImageText}>
+              대표 사진 변경
+            </PretendardText>
           </TouchableOpacity>
         )}
       </View>
       <View style={styles.contentContainer}>
         <View style={styles.infoSection}>
           <View style={styles.productInfo}>
-            <Text style={styles.companyText}>{company}</Text>
-            <Text style={styles.nameText} lineBreakStrategyIOS='hangul-word'>
+            <PretendardText style={styles.companyText}>{company}</PretendardText>
+            <PretendardText
+              weight='bold'
+              style={styles.nameText}
+              lineBreakStrategyIOS='hangul-word'
+            >
               {name}
-            </Text>
-            <Text style={styles.colorText}>{color}</Text>
+            </PretendardText>
+            <PretendardText style={styles.colorText}>{color}</PretendardText>
           </View>
           <View style={styles.weightContainer}>
-            <Text style={styles.weightText}>{weight}g</Text>
+            <PretendardText weight='bold' style={styles.weightText}>
+              {weight}g
+            </PretendardText>
           </View>
         </View>
         {isAdded && (
           <TouchableOpacity onPress={onEdit} style={styles.editButton}>
-            <Text style={styles.editButtonText}>수정하기</Text>
-            <Ionicons name='chevron-forward' size={14} color='#000000' />
+            <PretendardText style={styles.editButtonText}>수정하기</PretendardText>
+            <Ionicons name='chevron-forward' size={14} color={Color.textPrimary} />
           </TouchableOpacity>
         )}
       </View>
@@ -93,12 +103,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingVertical: 6,
     paddingHorizontal: 12,
-    backgroundColor: '#F3F3F3',
-    borderRadius: 16,
+    backgroundColor: Color.inputBg,
+    borderRadius: Radius.modal,
   },
   selectOtherImageText: {
     fontSize: 12,
-    color: '#666',
+    color: Color.textTertiary,
     lineHeight: 14,
   },
   contentContainer: {
@@ -116,25 +126,23 @@ const styles = StyleSheet.create({
   },
   companyText: {
     fontSize: 13,
-    color: 'black',
+    color: Color.textPrimary,
   },
   nameText: {
-    fontWeight: 'bold',
     fontSize: 20,
-    color: 'black',
+    color: Color.textPrimary,
   },
   colorText: {
     fontSize: 16,
-    color: 'black',
+    color: Color.textPrimary,
   },
   weightContainer: {
     flexDirection: 'column',
     justifyContent: 'center',
   },
   weightText: {
-    fontWeight: 'bold',
     fontSize: 16,
-    color: 'black',
+    color: Color.textPrimary,
   },
   editButton: {
     flexDirection: 'row',
@@ -142,12 +150,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: 20,
-    borderRadius: 10,
+    borderRadius: Radius.card,
     width: '100%',
   },
   editButtonText: {
     fontSize: 14,
-    color: '#000000',
+    color: Color.textPrimary,
   },
 });
 

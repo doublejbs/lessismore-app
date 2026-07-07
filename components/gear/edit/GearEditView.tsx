@@ -179,7 +179,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
               placeholder='제품명을 입력해주세요'
               onChangeText={handleChangeName}
               value={name}
-              placeholderTextColor='#999'
+              placeholderTextColor={Color.textSecondary}
               onFocus={() => setFocusedInput('name')}
             />
           </View>
@@ -209,7 +209,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
               placeholder='브랜드를 입력해주세요'
               onChangeText={handleChangeCompany}
               value={company}
-              placeholderTextColor='#999'
+              placeholderTextColor={Color.textSecondary}
               onFocus={() => setFocusedInput('company')}
             />
           </View>
@@ -252,7 +252,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                     <PretendardText
                       style={{
                         color: filter.isSelected()
-                          ? '#FFFFFF'
+                          ? Color.background
                           : Color.textPrimary,
                         fontSize: 14,
                       }}

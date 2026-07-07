@@ -11,6 +11,7 @@ import PretendardText from '@/components/PretendardText';
 import BagItem from '@/model/bag/BagItem';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   visible: boolean;
@@ -46,7 +47,9 @@ const BagCopySourceModalView: FC<Props> = ({
           activeOpacity={1}
           onPress={e => e.stopPropagation()}
         >
-          <PretendardText style={styles.title}>복사할 배낭 선택</PretendardText>
+          <PretendardText weight='bold' style={styles.title}>
+            복사할 배낭 선택
+          </PretendardText>
           <ScrollView
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
@@ -61,18 +64,22 @@ const BagCopySourceModalView: FC<Props> = ({
               >
                 <View style={styles.rowInfo}>
                   <View style={styles.titleContainer}>
-                    <PretendardText style={styles.name}>
+                    <PretendardText weight='bold' style={styles.name}>
                       {bagItem.getName()}
                     </PretendardText>
                     <PretendardText style={styles.date}>
                       {bagItem.getDate()}
                     </PretendardText>
                   </View>
-                  <PretendardText style={styles.weight}>
+                  <PretendardText weight='bold' style={styles.weight}>
                     {bagItem.getWeight()}kg
                   </PretendardText>
                 </View>
-                <IconSymbol name='chevron.right' size={20} color='#999999' />
+                <IconSymbol
+                  name='chevron.right'
+                  size={20}
+                  color={Color.iconMuted}
+                />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -81,7 +88,9 @@ const BagCopySourceModalView: FC<Props> = ({
             onPress={onClose}
             activeOpacity={0.7}
           >
-            <PretendardText style={styles.closeButtonText}>닫기</PretendardText>
+            <PretendardText style={styles.closeButtonText}>
+              닫기
+            </PretendardText>
           </TouchableOpacity>
         </TouchableOpacity>
       </TouchableOpacity>
@@ -94,20 +103,19 @@ const { height: screenHeight } = Dimensions.get('window');
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: Color.overlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    backgroundColor: Color.background,
+    borderTopLeftRadius: Radius.sheet,
+    borderTopRightRadius: Radius.sheet,
     padding: 16,
     maxHeight: screenHeight * 0.9,
   },
   title: {
-    fontFamily: 'Pretendard-Bold',
     fontSize: 20,
-    color: '#000000',
+    color: Color.textPrimary,
     marginBottom: 16,
   },
   scrollView: {
@@ -120,7 +128,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F6',
+    borderBottomColor: Color.divider,
   },
   rowInfo: {
     flexDirection: 'column',
@@ -132,31 +140,27 @@ const styles = StyleSheet.create({
     gap: 9,
   },
   name: {
-    fontFamily: 'Pretendard-Bold',
     fontSize: 16,
-    color: '#000000',
+    color: Color.textPrimary,
   },
   date: {
-    fontFamily: 'Pretendard-Regular',
     fontSize: 12,
-    color: '#000000',
+    color: Color.textPrimary,
   },
   weight: {
-    fontFamily: 'Pretendard-Bold',
     fontSize: 16,
-    color: '#000000',
+    color: Color.textPrimary,
   },
   closeButton: {
     width: '100%',
-    backgroundColor: 'black',
-    borderRadius: 10,
+    backgroundColor: Color.chipActiveBg,
+    borderRadius: Radius.input,
     paddingVertical: 12,
     alignItems: 'center',
   },
   closeButtonText: {
     fontSize: 16,
-    color: 'white',
-    fontFamily: 'Pretendard-Regular',
+    color: Color.background,
   },
 });
 

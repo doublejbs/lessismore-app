@@ -2,6 +2,7 @@ import React, { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   endDate: dayjs.Dayjs;
@@ -18,7 +19,9 @@ const BagAddEndDateView: FC<Props> = ({ endDate, handleEndDateChange }) => {
 
   return (
     <View style={styles.container}>
-      <PretendardText style={styles.label}>기간</PretendardText>
+      <PretendardText weight='bold' style={styles.label}>
+        기간
+      </PretendardText>
       <TouchableOpacity
         style={styles.dateInput}
         onPress={handleDatePress}
@@ -39,13 +42,12 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   label: {
-    fontFamily: 'Pretendard-Bold',
     fontSize: 20,
-    color: '#000000',
+    color: Color.textPrimary,
   },
   dateInput: {
-    borderRadius: 10,
-    backgroundColor: '#EEEEEE',
+    borderRadius: Radius.input,
+    backgroundColor: Color.surfaceMuted,
     paddingVertical: 12,
     paddingHorizontal: 16,
     width: '100%',
@@ -53,8 +55,7 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 16,
-    color: '#000',
-    fontFamily: 'Pretendard-Regular',
+    color: Color.textPrimary,
   },
 });
 

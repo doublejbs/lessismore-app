@@ -5,6 +5,7 @@ import app from '@/model/app/App';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import BagCopyModalView from './BagCopyModalView';
 import useBagCopyState from './useBagCopyState';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   bagItem: BagItem;
@@ -41,7 +42,7 @@ const BagCopyView: FC<Props> = ({ bagItem }) => {
         activeOpacity={0.7}
         hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
       >
-        <IconSymbol name='doc.on.doc' size={18} color='#666' />
+        <IconSymbol name='doc.on.doc' size={18} color={Color.textTertiary} />
       </TouchableOpacity>
       <BagCopyModalView
         visible={visible}
@@ -64,8 +65,8 @@ const styles = StyleSheet.create({
     height: 32,
     width: 32,
     padding: 4,
-    backgroundColor: '#F1F1F1',
-    borderRadius: 4,
+    backgroundColor: Color.thumbBg,
+    borderRadius: Radius.listThumb,
     alignItems: 'center',
     justifyContent: 'center',
   },

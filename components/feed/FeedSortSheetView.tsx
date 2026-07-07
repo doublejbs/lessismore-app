@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     lineHeight: 26,
-    color: '#0A090B',
+    color: Color.textPrimary,
   },
   row: {
     flexDirection: 'row',

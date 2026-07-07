@@ -1,7 +1,9 @@
 import { observer } from 'mobx-react-lite';
 import { FC, useRef, useEffect } from 'react';
-import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface BagWithFilters {
   toggleFilterWithScroll: (filter: WarehouseFilter) => void;
@@ -32,15 +34,22 @@ const FilterButtonView: FC<Props> = ({ filter, bagDetail, onRef }) => {
       <TouchableOpacity
         style={[
           styles.button,
-          { backgroundColor: isSelected ? 'black' : '#EBEBEB' },
+          {
+            backgroundColor: isSelected
+              ? Color.chipActiveBg
+              : Color.chipInactiveBg,
+          },
         ]}
         onPress={handlePress}
       >
-        <Text
-          style={[styles.buttonText, { color: isSelected ? 'white' : 'black' }]}
+        <PretendardText
+          style={[
+            styles.buttonText,
+            { color: isSelected ? Color.background : Color.textPrimary },
+          ]}
         >
           {filter.getName()}
-        </Text>
+        </PretendardText>
       </TouchableOpacity>
     </View>
   );
@@ -49,7 +58,7 @@ const FilterButtonView: FC<Props> = ({ filter, bagDetail, onRef }) => {
 const styles = StyleSheet.create({
   button: {
     height: 32,
-    borderRadius: 22,
+    borderRadius: Radius.chip,
     paddingVertical: 8,
     paddingHorizontal: 16,
     justifyContent: 'center',

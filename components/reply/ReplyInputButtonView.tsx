@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 import Reply from '@/model/reply/Reply';
 
 interface Props {
@@ -30,14 +31,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    borderTopColor: Color.borderLight,
     width: '100%',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F6F6F6',
-    borderRadius: 10,
+    backgroundColor: Color.inputBg,
+    borderRadius: Radius.input,
     paddingHorizontal: 16,
     paddingVertical: 12,
     minHeight: 44,
@@ -50,7 +51,7 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     fontSize: 16,
-    color: '#999999',
+    color: Color.textSecondary,
     flex: 1,
     ...Platform.select({
       ios: {

@@ -14,6 +14,7 @@ import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import GearRowActions from '@/model/browse/GearRowActions';
 import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 import LoadingView from '@/components/ui/LoadingView';
 import SearchGearAddToBagModalView from '@/components/search/SearchGearAddToBagModalView';
 import app from '@/model/app/App';
@@ -142,7 +143,7 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag }) => {
           hitSlop={CTA_HIT_SLOP}
           activeOpacity={0.8}
         >
-          <Ionicons name='checkmark' size={18} color='#fff' />
+          <Ionicons name='checkmark' size={18} color={Color.background} />
         </TouchableOpacity>
       );
     }
@@ -154,7 +155,7 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag }) => {
         hitSlop={CTA_HIT_SLOP}
         activeOpacity={0.8}
       >
-        <Ionicons name='add' size={18} color='#fff' />
+        <Ionicons name='add' size={18} color={Color.background} />
       </TouchableOpacity>
     );
   };
@@ -198,7 +199,11 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag }) => {
             <PretendardText style={styles.coupangText}>
               쿠팡 최저가
             </PretendardText>
-            <Ionicons name='chevron-forward' size={12} color='#555555' />
+            <Ionicons
+              name='chevron-forward'
+              size={12}
+              color={Color.textTertiary}
+            />
           </TouchableOpacity>
         ) : null}
       </Pressable>
@@ -220,8 +225,8 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: '100%',
     aspectRatio: 1,
-    borderRadius: 8,
-    backgroundColor: '#EBEBEB',
+    borderRadius: Radius.card,
+    backgroundColor: Color.chipInactiveBg,
     overflow: 'hidden',
     position: 'relative',
   },
@@ -232,7 +237,7 @@ const styles = StyleSheet.create({
   imagePlaceholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#EBEBEB',
+    backgroundColor: Color.chipInactiveBg,
   },
   ctaContainer: {
     position: 'absolute',
@@ -243,7 +248,7 @@ const styles = StyleSheet.create({
     width: CTA_SIZE,
     height: CTA_SIZE,
     borderRadius: CTA_SIZE / 2,
-    backgroundColor: '#000',
+    backgroundColor: Color.chipActiveBg,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -251,7 +256,7 @@ const styles = StyleSheet.create({
     width: CTA_SIZE,
     height: CTA_SIZE,
     borderRadius: CTA_SIZE / 2,
-    backgroundColor: '#000',
+    backgroundColor: Color.chipActiveBg,
     justifyContent: 'center',
     alignItems: 'center',
     opacity: 0.9,
@@ -270,16 +275,16 @@ const styles = StyleSheet.create({
   },
   company: {
     fontSize: 11,
-    color: '#888',
+    color: Color.textSecondary,
   },
   name: {
     fontSize: 14,
     lineHeight: 19,
-    color: '#000',
+    color: Color.textPrimary,
   },
   weight: {
     fontSize: 12,
-    color: '#555',
+    color: Color.textTertiary,
   },
   coupangLink: {
     flexDirection: 'row',
@@ -289,7 +294,7 @@ const styles = StyleSheet.create({
   },
   coupangText: {
     fontSize: 12,
-    color: '#555555',
+    color: Color.textTertiary,
   },
 });
 

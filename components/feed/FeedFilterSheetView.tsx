@@ -34,6 +34,7 @@ import { BrandRankData } from '@/model/search/BrandRankStore';
 import { FeedBrandInterest } from '@/model/feed/FeedInterestProfile';
 import { toBrandKey } from '@/model/store/BrandKey';
 import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 import SearchSkeletonView from '@/components/search/SearchSkeletonView';
 import BrandRowView from '@/components/browse/BrandRowView';
 import app from '@/model/app/App';
@@ -315,7 +316,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
                       value={keyword}
                       onChangeText={handleChangeKeyword}
                       placeholder='브랜드명을 검색해보세요'
-                      placeholderTextColor='#999'
+                      placeholderTextColor={Color.textSecondary}
                       autoCapitalize='none'
                       autoCorrect={false}
                     />
@@ -327,7 +328,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
                         <Ionicons
                           name='close-circle'
                           size={20}
-                          color='#B0B8C1'
+                          color={Color.iconMuted}
                         />
                       </TouchableOpacity>
                     ) : null}
@@ -360,7 +361,11 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
                             >
                               {label}
                             </PretendardText>
-                            <Ionicons name='close' size={14} color='#FFF' />
+                            <Ionicons
+                              name='close'
+                              size={14}
+                              color={Color.background}
+                            />
                           </TouchableOpacity>
                         );
                       })}
@@ -382,7 +387,10 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
                     onPress={handleApply}
                     activeOpacity={0.7}
                   >
-                    <PretendardText style={styles.confirmButtonText}>
+                    <PretendardText
+                      style={styles.confirmButtonText}
+                      weight='semibold'
+                    >
                       {confirmLabel}
                     </PretendardText>
                   </TouchableOpacity>
@@ -406,12 +414,12 @@ const styles = StyleSheet.create({
   },
   overlayDim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: Color.overlay,
   },
   sheet: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: Color.background,
+    borderTopLeftRadius: Radius.sheet,
+    borderTopRightRadius: Radius.sheet,
     paddingHorizontal: 20,
   },
   keyboardAvoider: {
@@ -437,11 +445,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     lineHeight: 26,
-    color: '#0A090B',
+    color: Color.textPrimary,
   },
   resetText: {
     fontSize: 14,
-    color: '#555',
+    color: Color.textTertiary,
   },
   brandSection: {
     flex: 1,
@@ -449,8 +457,8 @@ const styles = StyleSheet.create({
   searchInputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
+    backgroundColor: Color.inputBg,
+    borderRadius: Radius.input,
     paddingHorizontal: 12,
     height: 40,
   },
@@ -479,15 +487,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#000',
-    borderRadius: 16,
+    backgroundColor: Color.chipActiveBg,
+    borderRadius: Radius.modal,
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
   summaryChipText: {
     fontSize: 13,
     lineHeight: 16,
-    color: '#FFF',
+    color: Color.background,
   },
   brandListContainer: {
     flex: 1,
@@ -510,24 +518,23 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#888',
+    color: Color.textSecondary,
     textAlign: 'center',
   },
   footer: {
     paddingTop: 12,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   confirmButton: {
-    backgroundColor: '#000',
-    borderRadius: 8,
+    backgroundColor: Color.chipActiveBg,
+    borderRadius: Radius.card,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   confirmButtonText: {
-    fontFamily: 'Pretendard-SemiBold',
     fontSize: 16,
-    color: '#FFF',
+    color: Color.background,
   },
 });
 

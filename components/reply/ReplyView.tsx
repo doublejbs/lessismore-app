@@ -1,13 +1,8 @@
 import Reply from '@/model/reply/Reply';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { Color } from '@/constants/DesignTokens';
 import PretendardText from '../PretendardText';
 import ReplyInputButtonView from './ReplyInputButtonView';
 import { observer } from 'mobx-react-lite';
@@ -25,15 +20,23 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <TouchableOpacity onPress={handlePressBack} activeOpacity={0.7}>
-            <Ionicons name='chevron-back' size={24} color='#191F28' />
+            <Ionicons
+              name='chevron-back'
+              size={24}
+              color={Color.textPrimary}
+            />
           </TouchableOpacity>
-          <PretendardText style={styles.titleText}>리뷰</PretendardText>
+          <PretendardText weight='semibold' style={styles.titleText}>
+            리뷰
+          </PretendardText>
           <View style={styles.placeholder} />
         </View>
       </View>
       <ScrollView>
         <View style={styles.replyHeader}>
-          <Text style={styles.replyHeaderText}>리뷰</Text>
+          <PretendardText weight='semibold' style={styles.replyHeaderText}>
+            리뷰
+          </PretendardText>
         </View>
         <View style={styles.content}>
           {reply.getComments().map(comment => (
@@ -54,10 +57,10 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   header: {
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     paddingHorizontal: 20,
   },
   headerContent: {
@@ -68,10 +71,9 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontSize: 18,
-    fontWeight: '600',
     textAlign: 'center',
     flex: 1,
-    color: '#191F28',
+    color: Color.textPrimary,
   },
   placeholder: {
     width: 24,
@@ -86,8 +88,7 @@ const styles = StyleSheet.create({
   },
   replyHeaderText: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#191F28',
+    color: Color.textPrimary,
   },
 });
 

@@ -3,6 +3,7 @@ import { View, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   visible: boolean;
@@ -38,14 +39,18 @@ const BagAddActionSheetView: FC<Props> = ({
         >
           <View style={styles.modalActions}>
             <TouchableOpacity style={styles.actionButton} onPress={onCreate}>
-              <IconSymbol name='plus' size={20} color='black' />
+              <IconSymbol name='plus' size={20} color={Color.textPrimary} />
               <PretendardText style={styles.actionText}>
                 새로 만들기
               </PretendardText>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionButton} onPress={onCopy}>
-              <IconSymbol name='doc.on.doc' size={20} color='black' />
+              <IconSymbol
+                name='doc.on.doc'
+                size={20}
+                color={Color.textPrimary}
+              />
               <PretendardText style={styles.actionText}>
                 기존 배낭 복사하기
               </PretendardText>
@@ -68,13 +73,13 @@ const BagAddActionSheetView: FC<Props> = ({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: Color.overlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    backgroundColor: Color.background,
+    borderTopLeftRadius: Radius.sheet,
+    borderTopRightRadius: Radius.sheet,
     paddingTop: 20,
     paddingBottom: 20,
     gap: 16,
@@ -92,20 +97,20 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 16,
-    color: 'black',
+    color: Color.textPrimary,
   },
   closeButtonContainer: {
     paddingHorizontal: 20,
   },
   closeButton: {
     width: '100%',
-    backgroundColor: 'black',
+    backgroundColor: Color.chipActiveBg,
     padding: 18,
-    borderRadius: 10,
+    borderRadius: Radius.input,
     alignItems: 'center',
   },
   closeButtonText: {
-    color: 'white',
+    color: Color.background,
     fontSize: 16,
   },
 });

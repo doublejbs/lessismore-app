@@ -3,6 +3,7 @@ import { View, TextInput } from 'react-native';
 import GearEdit from '@/model/gear/edit/GearEdit';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   gearEdit: GearEdit;
@@ -37,9 +38,9 @@ const GearEditWeightView = forwardRef<TextInput, Props>(
         }}
       >
         <PretendardText
+          weight='medium'
           style={{
             fontSize: 14,
-            fontWeight: '500',
           }}
         >
           무게(g)
@@ -47,8 +48,8 @@ const GearEditWeightView = forwardRef<TextInput, Props>(
         <TextInput
           ref={ref}
           style={{
-            borderRadius: 10,
-            backgroundColor: '#F6F6F6',
+            borderRadius: Radius.input,
+            backgroundColor: Color.inputBg,
             paddingHorizontal: 12,
             paddingVertical: 12,
             fontSize: 16,
@@ -57,7 +58,7 @@ const GearEditWeightView = forwardRef<TextInput, Props>(
           value={String(weight)}
           placeholder='무게를 입력해주세요'
           keyboardType='numeric'
-          placeholderTextColor='#999'
+          placeholderTextColor={Color.textSecondary}
           onFocus={onFocus}
         />
       </View>

@@ -96,13 +96,6 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 8,
   },
-  titleText: {
-    fontWeight: '900',
-    fontSize: 48,
-    textAlign: 'center',
-    lineHeight: 48,
-    letterSpacing: -4.5,
-  },
   contentContainer: {
     flex: 1,
     width: '100%',

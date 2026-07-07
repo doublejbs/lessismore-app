@@ -3,6 +3,7 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { BrandRankData } from '@/model/search/BrandRankStore';
 import PretendardText from '../PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   brand: BrandRankData;
@@ -15,7 +16,7 @@ const CheckIcon = () => (
   <Svg width={20} height={20} viewBox='0 0 20 20' fill='none'>
     <Path
       d='M4 10.5L8 14.5L16 5.5'
-      stroke='#0A090B'
+      stroke={Color.textPrimary}
       strokeWidth={2}
       strokeLinecap='round'
       strokeLinejoin='round'
@@ -64,13 +65,13 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 12,
     marginHorizontal: -12,
-    borderRadius: 8,
+    borderRadius: Radius.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: Color.borderLight,
     gap: 8,
   },
   brandItemSelected: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Color.surfaceMuted,
     borderBottomColor: 'transparent',
   },
   brandInfo: {
@@ -79,14 +80,14 @@ const styles = StyleSheet.create({
   },
   brandName: {
     fontSize: 16,
-    color: '#000',
+    color: Color.textPrimary,
   },
   brandNameSelected: {
-    color: '#000',
+    color: Color.textPrimary,
   },
   brandMeta: {
     fontSize: 13,
-    color: '#888',
+    color: Color.textSecondary,
   },
 });
 

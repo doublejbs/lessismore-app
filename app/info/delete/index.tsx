@@ -1,14 +1,9 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Alert,
-  ScrollView,
-} from 'react-native';
+import { View, StyleSheet, Pressable, Alert, ScrollView } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import Layout from '@/components/Layout';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 const DeleteInfoView = () => {
@@ -76,21 +71,31 @@ const DeleteInfoView = () => {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>회원 탈퇴</Text>
+          <PretendardText weight='bold' style={styles.title}>
+            회원 탈퇴
+          </PretendardText>
         </View>
 
         <View style={styles.warningContainer}>
           <View style={styles.warningContent}>
-            <Text style={styles.warningTitle}>⚠️ 주의사항</Text>
-            <Text style={styles.warningMainText}>
+            <PretendardText weight='bold' style={styles.warningTitle}>
+              ⚠️ 주의사항
+            </PretendardText>
+            <PretendardText style={styles.warningMainText}>
               회원 탈퇴 시 모든 데이터가 삭제됩니다.
-            </Text>
-            <Text style={styles.warningBullet}>• 저장된 모든 배낭 정보</Text>
-            <Text style={styles.warningBullet}>• 저장된 모든 장비 정보</Text>
-            <Text style={styles.warningBullet}>• 개인 설정 및 기록</Text>
-            <Text style={styles.warningFooter}>
+            </PretendardText>
+            <PretendardText style={styles.warningBullet}>
+              • 저장된 모든 배낭 정보
+            </PretendardText>
+            <PretendardText style={styles.warningBullet}>
+              • 저장된 모든 장비 정보
+            </PretendardText>
+            <PretendardText style={styles.warningBullet}>
+              • 개인 설정 및 기록
+            </PretendardText>
+            <PretendardText style={styles.warningFooter}>
               삭제된 데이터는 복구할 수 없습니다.
-            </Text>
+            </PretendardText>
           </View>
         </View>
       </ScrollView>
@@ -104,7 +109,9 @@ const DeleteInfoView = () => {
             pressed && styles.cancelButtonPressed,
           ]}
         >
-          <Text style={styles.cancelButtonText}>취소</Text>
+          <PretendardText weight='bold' style={styles.cancelButtonText}>
+            취소
+          </PretendardText>
         </Pressable>
         <Pressable
           onPress={handleConfirm}
@@ -116,9 +123,9 @@ const DeleteInfoView = () => {
             pressed && !isDeleting && styles.confirmButtonPressed,
           ]}
         >
-          <Text style={styles.confirmButtonText}>
+          <PretendardText weight='bold' style={styles.confirmButtonText}>
             {isDeleting ? '처리중...' : '확인'}
-          </Text>
+          </PretendardText>
         </Pressable>
       </View>
     </Layout>
@@ -137,14 +144,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
   },
   warningContainer: {
     padding: 24,
-    backgroundColor: '#fff',
-    borderRadius: 8,
+    backgroundColor: Color.background,
+    borderRadius: Radius.card,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: Color.borderLight,
     marginBottom: 24,
   },
   warningContent: {
@@ -152,24 +158,23 @@ const styles = StyleSheet.create({
   },
   warningTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
     color: '#e74c3c',
     marginBottom: 8,
   },
   warningMainText: {
     fontSize: 16,
     lineHeight: 24,
-    color: '#333',
+    color: Color.textPrimary,
     marginBottom: 8,
   },
   warningBullet: {
     fontSize: 16,
     lineHeight: 24,
-    color: '#666',
+    color: Color.textTertiary,
   },
   warningFooter: {
     fontSize: 14,
-    color: '#999',
+    color: Color.textSecondary,
     marginTop: 8,
   },
   buttonContainer: {
@@ -178,7 +183,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: Color.background,
     flexDirection: 'row',
     gap: 12,
     maxWidth: 768,
@@ -187,36 +192,34 @@ const styles = StyleSheet.create({
   button: {
     flex: 1,
     padding: 16,
-    borderRadius: 8,
+    borderRadius: Radius.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cancelButton: {
-    backgroundColor: '#fff',
+    backgroundColor: Color.background,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Color.borderLight,
   },
   cancelButtonPressed: {
-    backgroundColor: '#f7f7f7',
+    backgroundColor: Color.surfaceMuted,
   },
   cancelButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    color: Color.textPrimary,
   },
   confirmButton: {
     backgroundColor: '#e74c3c',
   },
   confirmButtonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: Color.textSecondary,
   },
   confirmButtonPressed: {
     backgroundColor: '#c0392b',
   },
   confirmButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
+    color: Color.background,
   },
 });
 

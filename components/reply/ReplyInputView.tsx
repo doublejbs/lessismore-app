@@ -4,7 +4,6 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  Text,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -13,6 +12,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 interface Props {
@@ -58,7 +59,11 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <TouchableOpacity onPress={handlePressBack} activeOpacity={0.7}>
-            <Ionicons name='chevron-back' size={24} color='#191F28' />
+            <Ionicons
+              name='chevron-back'
+              size={24}
+              color={Color.textPrimary}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -66,7 +71,7 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
         <TextInput
           style={styles.textInput}
           placeholder='장비가 어땠나요?'
-          placeholderTextColor='#999'
+          placeholderTextColor={Color.textSecondary}
           multiline
           textAlignVertical='top'
           value={content}
@@ -86,9 +91,10 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
           disabled={!content.trim() || isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator size='small' color='#fff' />
+            <ActivityIndicator size='small' color={Color.background} />
           ) : (
-            <Text
+            <PretendardText
+              weight='semibold'
               style={[
                 styles.completeButtonText,
                 content.trim() && !isLoading
@@ -97,7 +103,7 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
               ]}
             >
               완료
-            </Text>
+            </PretendardText>
           )}
         </TouchableOpacity>
       </View>
@@ -108,11 +114,11 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Color.background,
     paddingHorizontal: 0,
   },
   header: {
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     paddingVertical: 4,
     paddingTop: 8,
     paddingBottom: 8,
@@ -128,36 +134,35 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    borderRadius: 12,
-    backgroundColor: '#F6F6F6',
+    borderRadius: Radius.input,
+    backgroundColor: Color.inputBg,
     padding: 16,
     fontSize: 16,
     minHeight: 200,
   },
   buttonContainer: {
     paddingHorizontal: 16,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   completeButton: {
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: Radius.input,
     alignItems: 'center',
   },
   completeButtonActive: {
-    backgroundColor: '#000',
+    backgroundColor: Color.chipActiveBg,
   },
   completeButtonDisabled: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: Color.borderLight,
   },
   completeButtonText: {
     fontSize: 16,
-    fontWeight: '600',
   },
   completeButtonTextActive: {
-    color: '#fff',
+    color: Color.background,
   },
   completeButtonTextDisabled: {
-    color: '#999',
+    color: Color.textSecondary,
   },
 });
 
