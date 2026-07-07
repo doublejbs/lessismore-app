@@ -12,6 +12,7 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Platform,
+  PanResponder,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
@@ -34,6 +35,12 @@ const OPEN_DURATION = 260;
 const CLOSE_DURATION = 200;
 const SHEET_HEIGHT_RATIO = 0.75;
 
+// 드래그 닫기 임계값 — 아래로 이만큼 끌거나(px) 이 속도 이상이면 닫는다.
+const CLOSE_DRAG_THRESHOLD = 120;
+const CLOSE_VELOCITY = 0.5;
+// 세로 드래그로 인정할 최소 이동량(가로/작은 움직임과 구분).
+const DRAG_ACTIVATE_DISTANCE = 6;
+
 const ALL_LABEL = '전체';
 
 const CONFIRM_LABEL = '확인';
@@ -53,6 +60,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
   const insets = useSafeAreaInsets();
   const [brandDirectory] = useState(() => BrandDirectory.new(router));
   const progress = useRef(new Animated.Value(0)).current;
+  const dragY = useRef(new Animated.Value(0)).current;
   const isClosing = useRef(false);
 
   // 스테이징 로컬 상태 — 시트 열릴 때 현재 적용값으로 초기화한다(피드 재조회 없음).
@@ -83,13 +91,14 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
     brandDirectory.initialize();
     isClosing.current = false;
     progress.setValue(0);
+    dragY.setValue(0);
     Animated.timing(progress, {
       toValue: 1,
       duration: OPEN_DURATION,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
-  }, [visible, brandDirectory, progress, feed]);
+  }, [visible, brandDirectory, progress, dragY, feed]);
 
   const runClose = (onFinished?: () => void) => {
     if (isClosing.current) {
@@ -105,7 +114,29 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
       useNativeDriver: true,
     }).start(() => {
       isClosing.current = false;
+      dragY.setValue(0);
       onFinished?.();
+      onClose();
+    });
+  };
+
+  // 드래그로 닫기: dragY를 시트 밖까지 애니메이트한 뒤 닫는다(취소와 동일 의미 — 스테이징 폐기).
+  const runCloseByDrag = () => {
+    if (isClosing.current) {
+      return;
+    }
+
+    isClosing.current = true;
+
+    Animated.timing(dragY, {
+      toValue: SHEET_SLIDE_DISTANCE,
+      duration: CLOSE_DURATION,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    }).start(() => {
+      isClosing.current = false;
+      progress.setValue(0);
+      dragY.setValue(0);
       onClose();
     });
   };
@@ -114,6 +145,38 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
   const handleCancel = () => {
     runClose();
   };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_event, gesture) => {
+        return (
+          gesture.dy > DRAG_ACTIVATE_DISTANCE &&
+          gesture.dy > Math.abs(gesture.dx)
+        );
+      },
+      onPanResponderMove: (_event, gesture) => {
+        dragY.setValue(Math.max(0, gesture.dy));
+      },
+      onPanResponderRelease: (_event, gesture) => {
+        if (gesture.dy > CLOSE_DRAG_THRESHOLD || gesture.vy > CLOSE_VELOCITY) {
+          runCloseByDrag();
+
+          return;
+        }
+
+        Animated.spring(dragY, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      },
+      onPanResponderTerminate: () => {
+        Animated.spring(dragY, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      },
+    })
+  ).current;
 
   // FD-3 `확인`: 스테이징을 원자 적용한 뒤 닫는다(변경 없으면 setFilters가 no-op).
   const handleApply = () => {
@@ -243,7 +306,11 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
           style={[styles.overlayDim, { opacity: progress }]}
           pointerEvents='none'
         />
-        <Animated.View style={{ transform: [{ translateY: sheetTranslateY }] }}>
+        <Animated.View
+          style={{
+            transform: [{ translateY: Animated.add(sheetTranslateY, dragY) }],
+          }}
+        >
           <Pressable
             style={[styles.sheet, { height: sheetHeight }]}
             onPress={e => e.stopPropagation()}
@@ -253,7 +320,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
               style={styles.keyboardAvoider}
               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
-            <View style={styles.handle}>
+            <View style={styles.handle} {...panResponder.panHandlers}>
               <View style={styles.handleBar} />
             </View>
 
@@ -397,6 +464,7 @@ const styles = StyleSheet.create({
   handle: {
     alignItems: 'center',
     paddingTop: 8,
+    paddingBottom: 8,
   },
   handleBar: {
     width: 36,
