@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -19,9 +19,18 @@ const BrandDirectoryView: FC<Props> = ({ brandDirectory }) => {
   const brands = brandDirectory.getBrands();
   const isLoading = brandDirectory.isLoading();
   const isEmpty = brandDirectory.isEmpty();
+  const keyword = brandDirectory.getKeyword();
 
   const handleBack = () => {
     router.back();
+  };
+
+  const handleChangeKeyword = (text: string) => {
+    brandDirectory.changeKeyword(text);
+  };
+
+  const handleClearKeyword = () => {
+    brandDirectory.clearKeyword();
   };
 
   const handleBrandPress = (brand: BrandRankData) => {
@@ -73,6 +82,27 @@ const BrandDirectoryView: FC<Props> = ({ brandDirectory }) => {
           브랜드별 탐색
         </PretendardText>
       </View>
+      <View style={styles.searchContainer}>
+        <View style={styles.searchInputWrapper}>
+          <TextInput
+            style={styles.searchInput}
+            value={keyword}
+            onChangeText={handleChangeKeyword}
+            placeholder='브랜드명을 검색해보세요'
+            placeholderTextColor='#999'
+            autoCapitalize='none'
+            autoCorrect={false}
+          />
+          {keyword ? (
+            <TouchableOpacity
+              onPress={handleClearKeyword}
+              style={styles.clearButton}
+            >
+              <Ionicons name='close-circle' size={20} color='#B0B8C1' />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      </View>
       <View style={styles.content}>{renderContent()}</View>
     </View>
   );
@@ -99,6 +129,31 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 17,
     color: '#000',
+  },
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  searchInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    height: 36,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    padding: 0,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+  },
+  clearButton: {
+    marginLeft: 8,
+    padding: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
     flex: 1,

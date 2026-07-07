@@ -14,6 +14,7 @@ class BrandDirectory {
   @observable private brands: BrandRankData[] = [];
   @observable private loading = false;
   @observable private initialized = false;
+  @observable private keyword: string = '';
 
   protected constructor(
     private readonly navigation: Router,
@@ -47,7 +48,18 @@ class BrandDirectory {
   }
 
   public getBrands() {
-    return this.brands;
+    const q = this.keyword.trim().toLowerCase();
+
+    if (!q) {
+      return this.brands;
+    }
+
+    return this.brands.filter((brand) => {
+      const koreanMatch = (brand.companyKorean || '').toLowerCase().includes(q);
+      const englishMatch = (brand.company || '').toLowerCase().includes(q);
+
+      return koreanMatch || englishMatch;
+    });
   }
 
   public isLoading() {
@@ -55,11 +67,15 @@ class BrandDirectory {
   }
 
   public isEmpty() {
-    return !this.brands.length;
+    return !this.getBrands().length;
   }
 
   public isInitialized() {
     return this.initialized;
+  }
+
+  public getKeyword() {
+    return this.keyword;
   }
 
   @action
@@ -75,6 +91,16 @@ class BrandDirectory {
   @action
   private setInitialized(value: boolean) {
     this.initialized = value;
+  }
+
+  @action
+  public changeKeyword(keyword: string) {
+    this.keyword = keyword;
+  }
+
+  @action
+  public clearKeyword() {
+    this.keyword = '';
   }
 }
 
