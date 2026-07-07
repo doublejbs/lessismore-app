@@ -32,7 +32,9 @@ const GearView: FC<Props> = ({ gear, children, onPress }) => {
             <View style={styles.infoColumn}>
               <View style={styles.infoContainer}>
                 <View style={styles.companyRow}>
-                  <Text style={styles.companyText}>{gear.getCompany()}</Text>
+                  <Text style={styles.companyText}>
+                    {gear.getDisplayCompany()}
+                  </Text>
                   {gear.hasUsedRate() && (
                     <View style={styles.usedRateBadge}>
                       <Text style={styles.usedRateText}>

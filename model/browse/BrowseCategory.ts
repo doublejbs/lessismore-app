@@ -1,4 +1,5 @@
 import GearFilter from '@/model/gear/GearFilter';
+import { getGearFilterName } from '@/model/gear/GearFilterName';
 
 export interface BrowseCategoryItem {
   filter: GearFilter;
@@ -6,27 +7,29 @@ export interface BrowseCategoryItem {
 }
 
 // 탐색 홈 카테고리 그리드에서 노출할 카테고리 목록(전체 제외).
-// 표시명은 CustomGearCategory와 동일한 매핑을 사용한다.
-const BROWSE_CATEGORIES: BrowseCategoryItem[] = [
-  { filter: GearFilter.Tent, name: '텐트' },
-  { filter: GearFilter.SleepingBag, name: '침낭' },
-  { filter: GearFilter.Backpack, name: '배낭' },
-  { filter: GearFilter.Clothing, name: '의류' },
-  { filter: GearFilter.Mat, name: '매트' },
-  { filter: GearFilter.Furniture, name: '가구' },
-  { filter: GearFilter.Lantern, name: '랜턴' },
-  { filter: GearFilter.Cooking, name: '조리' },
-  { filter: GearFilter.Electronic, name: '전자기기' },
-  { filter: GearFilter.Food, name: '음식' },
-  { filter: GearFilter.Etc, name: '기타' },
+// 표시명은 GearFilterName의 캐논컬 매핑에서 파생한다.
+const BROWSE_CATEGORY_FILTERS: GearFilter[] = [
+  GearFilter.Tent,
+  GearFilter.SleepingBag,
+  GearFilter.Backpack,
+  GearFilter.Clothing,
+  GearFilter.Mat,
+  GearFilter.Furniture,
+  GearFilter.Lantern,
+  GearFilter.Cooking,
+  GearFilter.Electronic,
+  GearFilter.Food,
+  GearFilter.Etc,
 ];
 
-const getBrowseCategoryName = (filter: string): string => {
-  const found = BROWSE_CATEGORIES.find(category => {
-    return category.filter === filter;
-  });
+const BROWSE_CATEGORIES: BrowseCategoryItem[] = BROWSE_CATEGORY_FILTERS.map(
+  filter => {
+    return { filter, name: getGearFilterName(filter) };
+  }
+);
 
-  return found ? found.name : filter;
+const getBrowseCategoryName = (filter: string): string => {
+  return getGearFilterName(filter as GearFilter);
 };
 
 export { BROWSE_CATEGORIES, getBrowseCategoryName };
