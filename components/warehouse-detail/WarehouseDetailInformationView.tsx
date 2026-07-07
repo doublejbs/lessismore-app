@@ -49,7 +49,9 @@ const WarehouseDetailInformationView: FC<Props> = ({
         <View style={styles.infoSection}>
           <View style={styles.productInfo}>
             <Text style={styles.companyText}>{company}</Text>
-            <Text style={styles.nameText}>{name}</Text>
+            <Text style={styles.nameText} lineBreakStrategyIOS='hangul-word'>
+              {name}
+            </Text>
             <Text style={styles.colorText}>{color}</Text>
           </View>
           <View style={styles.weightContainer}>
