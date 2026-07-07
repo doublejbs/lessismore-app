@@ -90,6 +90,7 @@
 - 진입: 카테고리 또는 브랜드 선택(둘 조합 가능). Algolia `useless-gear-search` 조회 — 카테고리는 `category`, 브랜드는 `companyKorean` **또는** `company` facet(OR — 두 값을 같은 facetFilters 내부 배열로 묶어 매칭)로 필터한다. `companyKorean`이 없는 영문 브랜드도 매칭되도록 하기 위함이다([DataModel.md](DataModel.md) DM-10).
 - 무한 스크롤·페이지네이션은 SR-1 방식을 재사용한다.
 - **정렬 옵션**: `무게순(가벼운순/무거운순)` · `최신순`(createDate desc) · `인기순`(보유수 count desc). Algolia 정렬 replica 사용([DataModel.md](DataModel.md) DM-10).
+- 정렬 선택 UI는 **바텀시트**(하단 슬라이드 모달 — 배낭 담기 모달과 동일 패턴: 딤 오버레이·핸들바·둥근 상단 모서리)로 표시한다. 선택된 옵션은 체크로 강조하고, 옵션 탭 또는 오버레이 탭으로 닫힌다. (플로팅 드롭다운은 iOS 시트 프레젠테이션에서 좌표 측정이 깨져 미표시되는 문제로 폐기)
 - 결과 행·보유 배지·`+` 창고추가/배낭담기는 SR-2/SR-3을 그대로 재사용한다. 비로그인 `+`는 로그인 모달.
 - 빈 결과: `장비가 없습니다`.
 
