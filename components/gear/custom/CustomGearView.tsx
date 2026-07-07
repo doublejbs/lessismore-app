@@ -174,7 +174,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
               onPress={handleClickHide}
               style={styles.backButton}
             >
-              <Ionicons name='chevron-back' size={24} color='black' />
+              <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
             </TouchableOpacity>
           )}
           <PretendardText
@@ -335,17 +335,6 @@ const styles = StyleSheet.create({
     padding: 16,
     borderTopColor: Color.borderLight,
   },
-  debugContainer: {
-    backgroundColor: '#E8F4FD',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  debugText: {
-    fontSize: 12,
-    color: '#2563EB',
-    fontWeight: '500',
-  },
   imageSection: {
     flexDirection: 'row',
     width: '100%',
@@ -372,16 +361,20 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   filterButton: {
+    height: 32,
     backgroundColor: Color.chipInactiveBg,
     borderRadius: Radius.chip,
     paddingVertical: 8,
     paddingHorizontal: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   filterButtonSelected: {
     backgroundColor: Color.chipActiveBg,
   },
   filterButtonText: {
     fontSize: 14,
+    lineHeight: 16,
     color: Color.textPrimary,
   },
   filterButtonTextSelected: {
