@@ -23,6 +23,7 @@ export const Color = {
   chipActiveBg: '#000000',
   inputBg: '#F5F5F5',
   surfaceMuted: '#F5F5F5',
+  thumbBg: '#F1F1F1',
 
   // 오버레이
   overlay: 'rgba(0,0,0,0.5)',

@@ -1,7 +1,9 @@
 import { FC } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -16,7 +18,9 @@ const BagDetailAddButtonView: FC<Props> = ({ bagDetail }) => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.button} onPress={handlePressAdd}>
-        <Text style={styles.buttonText}>수정하기</Text>
+        <PretendardText style={styles.buttonText} weight='semibold'>
+          수정하기
+        </PretendardText>
       </TouchableOpacity>
     </View>
   );
@@ -25,20 +29,19 @@ const BagDetailAddButtonView: FC<Props> = ({ bagDetail }) => {
 const styles = StyleSheet.create({
   container: {
     paddingTop: 12,
-    paddingHorizontal: 20,
-    backgroundColor: 'white',
+    paddingHorizontal: Spacing.screenH,
+    backgroundColor: Color.background,
   },
   button: {
-    backgroundColor: 'black',
+    backgroundColor: Color.textPrimary,
     width: '100%',
     padding: 14,
-    borderRadius: 10,
+    borderRadius: Radius.card,
     alignItems: 'center',
   },
   buttonText: {
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '500',
   },
 });
 

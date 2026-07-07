@@ -1,11 +1,13 @@
 import { observer } from 'mobx-react-lite';
 import { FC } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -29,14 +31,18 @@ const ShareImageButtonView: FC<Props> = ({ bagDetail }) => {
         <View style={styles.textContainer}>
           <View style={styles.titleRow}>
             <Ionicons name='sparkles' size={20} color='#7C3AED' />
-            <Text style={styles.titleText}>내가 가진 장비로 레디샷 만들기</Text>
+            <PretendardText style={styles.titleText} weight='medium'>
+              내가 가진 장비로 레디샷 만들기
+            </PretendardText>
             <View style={styles.aiBadge}>
-              <Text style={styles.aiBadgeText}>AI</Text>
+              <PretendardText style={styles.aiBadgeText} weight='bold'>
+                AI
+              </PretendardText>
             </View>
           </View>
         </View>
         <View style={styles.iconContainer}>
-          <Ionicons name='chevron-forward' size={24} color='#191F28' />
+          <Ionicons name='chevron-forward' size={24} color={Color.textPrimary} />
         </View>
       </TouchableOpacity>
     </View>
@@ -45,16 +51,16 @@ const ShareImageButtonView: FC<Props> = ({ bagDetail }) => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: Spacing.screenH,
     paddingVertical: 12,
     marginBottom: 8,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   touchableContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: 6,
+    borderRadius: Radius.card,
   },
   textContainer: {
     flex: 1,
@@ -66,19 +72,17 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontSize: 17,
-    fontWeight: '500',
-    color: '#191F28',
+    color: Color.textPrimary,
   },
   aiBadge: {
     backgroundColor: '#7C3AED',
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: Radius.listThumb,
   },
   aiBadgeText: {
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 11,
-    fontWeight: '700',
   },
   iconContainer: {
     width: 20,

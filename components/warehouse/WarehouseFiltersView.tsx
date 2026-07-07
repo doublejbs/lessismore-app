@@ -3,7 +3,6 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  Text,
   StyleSheet,
 } from 'react-native';
 import Warehouse from '@/model/warehouse/Warehouse';
@@ -11,6 +10,8 @@ import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import { observer } from 'mobx-react-lite';
 import OrderButtonView from '@/components/order/OrderButtonView';
 import OrderOption from '@/model/order/OrderOption';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 interface Props {
@@ -49,24 +50,30 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
               key={filter.getName()}
               style={[
                 styles.filterButton,
-                { backgroundColor: isSelected ? 'black' : '#EBEBEB' },
+                {
+                  backgroundColor: isSelected
+                    ? Color.chipActiveBg
+                    : Color.chipInactiveBg,
+                },
               ]}
               onPress={() => handleClick(filter)}
             >
-              <Text
+              <PretendardText
                 style={[
                   styles.filterButtonText,
-                  { color: isSelected ? 'white' : 'black' },
+                  { color: isSelected ? Color.background : Color.textPrimary },
                 ]}
               >
                 {filter.getName()}
-              </Text>
+              </PretendardText>
             </TouchableOpacity>
           );
         })}
       </ScrollView>
       <View style={styles.orderContainer}>
-        <Text style={styles.titleText}>총 {totalCount}개</Text>
+        <PretendardText weight='semibold' style={styles.titleText}>
+          총 {totalCount}개
+        </PretendardText>
         <OrderButtonView order={order} onSelectOption={handleSelectOrder} />
       </View>
     </View>
@@ -77,7 +84,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
     gap: 4,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   scrollView: {
     height: 32,
@@ -96,12 +103,11 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: 'black',
+    color: Color.textPrimary,
   },
   filterButton: {
     height: 32,
-    borderRadius: 22,
+    borderRadius: Radius.chip,
     paddingVertical: 8,
     paddingHorizontal: 16,
     justifyContent: 'center',
