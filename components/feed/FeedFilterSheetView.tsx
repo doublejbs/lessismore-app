@@ -10,6 +10,8 @@ import {
   TextInput,
   TouchableOpacity,
   Dimensions,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
@@ -63,7 +65,11 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
   const keyword = brandDirectory.getKeyword();
   const sheetHeight = Dimensions.get('window').height * SHEET_HEIGHT_RATIO;
 
-  const hasStagedFilter = stagedCategory !== null || stagedBrands.length > 0;
+  // 스테이징 선택 수 = (카테고리 1) + (선택 브랜드 수). 플로팅 버튼 개수 규칙(FD-3)과 동일.
+  const stagedCount = (stagedCategory !== null ? 1 : 0) + stagedBrands.length;
+  const hasStagedFilter = stagedCount > 0;
+  const confirmLabel =
+    stagedCount > 0 ? `${CONFIRM_LABEL} (${stagedCount})` : CONFIRM_LABEL;
 
   useEffect(() => {
     if (!visible) {
@@ -157,6 +163,17 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
     });
   };
 
+  // 선택 브랜드 요약 칩에서 개별 브랜드 스테이징 해제.
+  const handleRemoveStagedBrand = (brand: FeedBrandInterest) => {
+    const key = toBrandKey(brand.companyKorean, brand.company);
+
+    setStagedBrands(prev =>
+      prev.filter(
+        staged => toBrandKey(staged.companyKorean, staged.company) !== key
+      )
+    );
+  };
+
   // 초기화: 스테이징 전체 해제(적용은 `확인` 시점).
   const handleReset = () => {
     app.getAnalyticsManager()?.logClick('feed_filter_reset');
@@ -231,6 +248,11 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
             style={[styles.sheet, { height: sheetHeight }]}
             onPress={e => e.stopPropagation()}
           >
+            {/* 키보드 회피: 브랜드 검색 포커스 시 목록·확인 버튼이 가려지지 않게 한다(배낭 담기 모달과 동일 패턴). */}
+            <KeyboardAvoidingView
+              style={styles.keyboardAvoider}
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
             <View style={styles.handle}>
               <View style={styles.handleBar} />
             </View>
@@ -240,7 +262,11 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
                 필터
               </PretendardText>
               {hasStagedFilter ? (
-                <TouchableOpacity onPress={handleReset} activeOpacity={0.7}>
+                <TouchableOpacity
+                  onPress={handleReset}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                >
                   <PretendardText style={styles.resetText} weight='semibold'>
                     초기화
                   </PretendardText>
@@ -292,6 +318,37 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
                   </TouchableOpacity>
                 ) : null}
               </View>
+              {stagedBrands.length > 0 ? (
+                <ScrollView
+                  horizontal={true}
+                  showsHorizontalScrollIndicator={false}
+                  keyboardShouldPersistTaps='handled'
+                  style={styles.summaryChips}
+                  contentContainerStyle={styles.summaryChipsContent}
+                >
+                  {stagedBrands.map(brand => {
+                    const key = toBrandKey(brand.companyKorean, brand.company);
+                    const label = brand.companyKorean || brand.company;
+
+                    return (
+                      <TouchableOpacity
+                        key={key}
+                        style={styles.summaryChip}
+                        onPress={() => handleRemoveStagedBrand(brand)}
+                        activeOpacity={0.7}
+                      >
+                        <PretendardText
+                          style={styles.summaryChipText}
+                          weight='semibold'
+                        >
+                          {label}
+                        </PretendardText>
+                        <Ionicons name='close' size={14} color='#FFF' />
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              ) : null}
               <View style={styles.brandListContainer}>{renderBrandList()}</View>
             </View>
 
@@ -307,10 +364,11 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
                 activeOpacity={0.7}
               >
                 <PretendardText style={styles.confirmButtonText}>
-                  {CONFIRM_LABEL}
+                  {confirmLabel}
                 </PretendardText>
               </TouchableOpacity>
             </View>
+            </KeyboardAvoidingView>
           </Pressable>
         </Animated.View>
       </Pressable>
@@ -332,6 +390,9 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 20,
+  },
+  keyboardAvoider: {
+    flex: 1,
   },
   handle: {
     alignItems: 'center',
@@ -395,6 +456,28 @@ const styles = StyleSheet.create({
     padding: 4,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  summaryChips: {
+    flexGrow: 0,
+    marginTop: 8,
+  },
+  summaryChipsContent: {
+    gap: 8,
+    paddingRight: 8,
+  },
+  summaryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#000',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  summaryChipText: {
+    fontSize: 13,
+    lineHeight: 16,
+    color: '#FFF',
   },
   brandListContainer: {
     flex: 1,
