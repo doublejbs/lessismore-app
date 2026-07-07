@@ -259,7 +259,11 @@ class SearchWarehouse {
     this.back(this.selected);
   }
 
-  public async registerSingle(gear: Gear): Promise<boolean> {
+  // onRegistered는 창고 등록이 실제로 완료된 뒤 호출된다(피드 배지 재동기화용).
+  public async registerSingle(
+    gear: Gear,
+    onRegistered?: () => void | Promise<void>
+  ): Promise<boolean> {
     if (!this.firebase.isLoggedIn()) {
       this.logInAlertManager.show();
       return false;
@@ -271,10 +275,17 @@ class SearchWarehouse {
 
     // 결과 목록에서 해당 gear의 isAdded 상태를 업데이트하기 위해 재검색
     await this.executeSearch();
+    await onRegistered?.();
+
     return true;
   }
 
-  public async removeSingle(gear: Gear): Promise<boolean> {
+  // 제거는 확인 다이얼로그 이후 비동기로 일어난다.
+  // onRemoved는 실제 제거가 확정된 시점(onConfirm 완료 후)에 호출된다(피드 배지 재동기화용).
+  public async removeSingle(
+    gear: Gear,
+    onRemoved?: () => void | Promise<void>
+  ): Promise<boolean> {
     if (!this.firebase.isLoggedIn()) {
       this.logInAlertManager.show();
       return false;
@@ -290,9 +301,11 @@ class SearchWarehouse {
 
         // 결과 목록에서 해당 gear의 isAdded 상태를 업데이트하기 위해 재검색
         await this.executeSearch();
+        await onRemoved?.();
         this.toastManager.show({ message: '장비가 제거되었습니다.' });
       },
     });
+
     return true;
   }
 

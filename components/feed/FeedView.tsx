@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 import {
   View,
   FlatList,
@@ -44,20 +44,25 @@ const FeedView: FC<Props> = ({ bag }) => {
   const isRefreshing = feed.isRefreshing();
   const isEmpty = feed.isEmpty();
 
-  const handleEndReached = () => {
+  const handleEndReached = useCallback(() => {
     feed.loadMore();
-  };
+  }, [feed]);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     app.getAnalyticsManager()?.logClick('feed_refresh');
     feed.refresh();
-  };
+  }, [feed]);
 
-  const renderItem = ({ item }: ListRenderItemInfo<Gear>) => {
-    return <FeedCardView gear={item} actions={feed} bag={bag} />;
-  };
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<Gear>) => {
+      return <FeedCardView gear={item} actions={feed} bag={bag} />;
+    },
+    [feed, bag]
+  );
 
-  const renderFooter = () => {
+  const keyExtractor = useCallback((gear: Gear) => gear.getId(), []);
+
+  const renderFooter = useCallback(() => {
     if (!isLoading || isEmpty) {
       return null;
     }
@@ -67,9 +72,9 @@ const FeedView: FC<Props> = ({ bag }) => {
         <ActivityIndicator size='small' color='#888' />
       </View>
     );
-  };
+  }, [isLoading, isEmpty]);
 
-  const renderEmpty = () => {
+  const renderEmpty = useCallback(() => {
     if (!isInitialized || isLoading) {
       return (
         <View style={styles.skeletonContainer}>
@@ -85,7 +90,7 @@ const FeedView: FC<Props> = ({ bag }) => {
         </PretendardText>
       </View>
     );
-  };
+  }, [isInitialized, isLoading]);
 
   return (
     <View style={styles.container}>
@@ -93,7 +98,7 @@ const FeedView: FC<Props> = ({ bag }) => {
       <FlatList
         data={items}
         renderItem={renderItem}
-        keyExtractor={(gear: Gear) => gear.getId()}
+        keyExtractor={keyExtractor}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         onEndReached={handleEndReached}

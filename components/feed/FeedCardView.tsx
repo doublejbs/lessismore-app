@@ -1,13 +1,13 @@
 import { FC, useEffect, useState } from 'react';
 import {
   View,
-  Image,
   StyleSheet,
   TouchableOpacity,
   Pressable,
   Linking,
   GestureResponderEvent,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import Gear from '@/model/gear/Gear';
@@ -15,7 +15,6 @@ import Bag from '@/model/bag/Bag';
 import GearRowActions from '@/model/browse/GearRowActions';
 import PretendardText from '@/components/PretendardText';
 import LoadingView from '@/components/ui/LoadingView';
-import LoadingIconView from '@/components/ui/LoadingIconView';
 import SearchGearAddToBagModalView from '@/components/search/SearchGearAddToBagModalView';
 import app from '@/model/app/App';
 
@@ -35,7 +34,6 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag }) => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [imageLoading, setImageLoading] = useState(true);
   const [coupangUrl, setCoupangUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -118,13 +116,7 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag }) => {
     }
   };
 
-  const handleImageLoad = () => {
-    setImageLoading(false);
-    setImageError(false);
-  };
-
   const handleImageError = () => {
-    setImageLoading(false);
     setImageError(true);
   };
 
@@ -165,20 +157,13 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag }) => {
       <Pressable style={styles.card} onPress={handleCardPress}>
         <View style={styles.imageContainer}>
           {imageUrl && !imageError ? (
-            <>
-              {imageLoading ? (
-                <View style={styles.imageLoading}>
-                  <LoadingIconView />
-                </View>
-              ) : null}
-              <Image
-                source={{ uri: imageUrl }}
-                onLoad={handleImageLoad}
-                onError={handleImageError}
-                style={[styles.image, { opacity: imageLoading ? 0 : 1 }]}
-                resizeMode='cover'
-              />
-            </>
+            <Image
+              source={{ uri: imageUrl }}
+              onError={handleImageError}
+              style={styles.image}
+              contentFit='cover'
+              transition={150}
+            />
           ) : (
             <View style={styles.imagePlaceholder} />
           )}
@@ -193,7 +178,7 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag }) => {
             {gear.getDisplayName()}
           </PretendardText>
           {weight ? (
-            <PretendardText style={styles.weight}>{`${weight} g`}</PretendardText>
+            <PretendardText style={styles.weight}>{`${weight}g`}</PretendardText>
           ) : null}
         </View>
 
@@ -210,7 +195,8 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag }) => {
               <Ionicons name='chevron-forward' size={13} color='#555555' />
             </TouchableOpacity>
             <PretendardText style={styles.coupangDisclaimer}>
-              파트너스 활동으로 수수료를 받을 수 있습니다.
+              이 링크는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를
+              제공받습니다.
             </PretendardText>
           </View>
         ) : null}
@@ -234,19 +220,13 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 1,
     borderRadius: 8,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#EBEBEB',
     overflow: 'hidden',
     position: 'relative',
   },
   image: {
     width: '100%',
     height: '100%',
-  },
-  imageLoading: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
   },
   imagePlaceholder: {
     width: '100%',

@@ -34,6 +34,15 @@ export interface GearData {
 }
 
 class GearStore {
+  // coupangUrl은 /gear 문서에만 있어 카드 마운트마다 getDoc이 반복된다.
+  // 동일 id 재요청 시 Firestore를 다시 읽지 않도록 결과와 in-flight Promise를 캐시한다.
+  private readonly coupangUrlCache = new Map<string, string | undefined>();
+
+  private readonly coupangUrlInFlight = new Map<
+    string,
+    Promise<string | undefined>
+  >();
+
   public constructor(private readonly firebase: Firebase) {}
 
   public async getGear(id: string): Promise<Gear> {
@@ -415,6 +424,32 @@ class GearStore {
   }
 
   public async getCoupangUrl(id: string): Promise<string | undefined> {
+    if (this.coupangUrlCache.has(id)) {
+      return this.coupangUrlCache.get(id);
+    }
+
+    const inFlight = this.coupangUrlInFlight.get(id);
+
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const request = this.fetchCoupangUrl(id);
+
+    this.coupangUrlInFlight.set(id, request);
+
+    try {
+      const coupangUrl = await request;
+
+      this.coupangUrlCache.set(id, coupangUrl);
+
+      return coupangUrl;
+    } finally {
+      this.coupangUrlInFlight.delete(id);
+    }
+  }
+
+  private async fetchCoupangUrl(id: string): Promise<string | undefined> {
     try {
       const docData = await getDoc(doc(this.getStore(), 'gear', id));
 
