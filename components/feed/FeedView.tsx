@@ -14,7 +14,7 @@ import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import PretendardText from '@/components/PretendardText';
 import SearchSkeletonView from '@/components/search/SearchSkeletonView';
-import FeedFilterBarView from './FeedFilterBarView';
+import FeedFilterButtonView from './FeedFilterButtonView';
 import FeedCardView from './FeedCardView';
 import app from '@/model/app/App';
 
@@ -25,7 +25,7 @@ interface Props {
 }
 
 // FD-2/FD-4: 장비 피드 본체. Feed 도메인 객체를 1회 생성·초기화하고 카드 FlatList로 렌더한다.
-// 필터 바는 FlatList 밖 상단에 고정해 스크롤과 무관하게 항상 접근 가능하게 한다.
+// FD-3: 상단 필터 바 대신, FlatList 위에 하단 플로팅 버튼(필터·인기 순위)을 absolute로 얹는다.
 const FeedView: FC<Props> = ({ bag }) => {
   const router = useRouter();
   const [feed] = useState(() => Feed.new(router));
@@ -94,7 +94,6 @@ const FeedView: FC<Props> = ({ bag }) => {
 
   return (
     <View style={styles.container}>
-      <FeedFilterBarView feed={feed} />
       <FlatList
         data={items}
         renderItem={renderItem}
@@ -113,6 +112,7 @@ const FeedView: FC<Props> = ({ bag }) => {
           />
         }
       />
+      <FeedFilterButtonView feed={feed} />
     </View>
   );
 };

@@ -4,7 +4,7 @@
 | --- | --- |
 | 상태 | as-built (2026-07-07 구현) |
 | ID 프리픽스 | `FD` |
-| 주요 코드 | `model/feed/`, `components/feed/`, `components/search/SearchResultView.tsx`(키워드 빈 상태에서 피드 렌더) |
+| 주요 코드 | `model/feed/`, `components/feed/`(`FeedView`·`FeedCardView`·`FeedFilterButtonView`·`FeedFilterSheetView`·`PopularRankingWrapper`), `app/popular-ranking/`(인기 순위 라우트), `components/search/SearchTopKeywordsView.tsx`(인기 순위 화면 재사용), `components/search/SearchResultView.tsx`(키워드 빈 상태에서 피드 렌더) |
 | 관련 스펙 | [Search.md](Search.md), [DataModel.md](DataModel.md), [GearDetail.md](GearDetail.md), [Analytics.md](Analytics.md) |
 
 ## 1. 개요
@@ -49,13 +49,18 @@
 
 ### FD-3 필터 (카테고리·브랜드)
 
+피드 상단에는 필터 UI를 두지 않고(몰입 우선), **하단 중앙 플로팅 `필터` 버튼**으로 통합 필터 시트를 연다.
+
 **수용 기준**
 
-- 피드 상단에 **카테고리 칩**(가로 스크롤, `전체` + 11개)과 **브랜드 선택** 진입점을 둔다.
-- 카테고리 칩 선택 → 해당 카테고리로 피드 재구성(버킷: 해당 카테고리 인기순 6 : 해당 카테고리 신제품 4). 개인화 버킷은 필터 중 비활성.
-- 브랜드 선택 → 브랜드 선택 바텀시트(brand-rank 인기순 목록 + 브랜드명 검색 — SR-8 디렉토리 로직 재사용). 선택 시 해당 브랜드 피드(인기순 6 : 신제품 4).
-- 카테고리+브랜드 동시 적용 가능. 활성 필터는 칩 강조로 표시, 재탭/`전체`로 해제.
+- **플로팅 필터 버튼**: 피드 위 하단 중앙에 고정(탭바 위). 검정 필(pill) 스타일 — 창고 `장비 추가` 버튼과 동일 디자인 언어. 활성 필터가 있으면 라벨에 개수를 표시(`필터 1`, `필터 2`).
+- 버튼 탭 → **통합 필터 바텀시트**(정렬 시트와 동일 Animated 패턴):
+  - **카테고리 섹션**: `전체` + 11개 칩 그리드, 탭 즉시 적용(단일 선택, 재탭/`전체`로 해제).
+  - **브랜드 섹션**: 브랜드명 검색 입력 + brand-rank 인기순 목록(SR-8 로직 재사용), 탭 즉시 적용(단일 선택, 선택 행 재탭으로 해제).
+  - 상단에 `초기화`(전체 해제) 액션. 닫기는 오버레이 탭/핸들.
+- 필터 적용 시 피드 재구성: 해당 필터 인기순 6 : 신제품 4, 개인화 버킷 비활성. 카테고리+브랜드 동시 적용 가능.
 - 필터 결과 없음: `장비가 없습니다`.
+- **인기 순위 진입점**([Search.md](Search.md) SR-4): 하단 우측에 보조 플로팅 버튼 `인기 순위` → 인기 장비 순위 화면(신규 라우트, 기존 SR-4 화면 재사용).
 
 ### FD-4 새로고침·페이지네이션
 
@@ -70,7 +75,7 @@
 
 **수용 기준**
 
-- 카드 탭(`click_feed_card`), 담기(`click_feed_add`), 쿠팡 링크(`click_feed_coupang`), 카테고리 필터(`click_feed_category`), 브랜드 필터(`click_feed_brand`), 새로고침(`click_feed_refresh`)을 [Analytics.md](Analytics.md) AN 규약(스네이크 케이스·40자·식별정보 금지)으로 계측하고 AN-3 표에 등록한다.
+- 카드 탭(`click_feed_card`), 담기(`click_feed_add`), 쿠팡 링크(`click_feed_coupang`), 필터 버튼(`click_feed_filter`), 카테고리 필터(`click_feed_category`), 브랜드 필터(`click_feed_brand`), 필터 초기화(`click_feed_filter_reset`), 인기 순위 진입(`click_feed_ranking`), 새로고침(`click_feed_refresh`)을 [Analytics.md](Analytics.md) AN 규약(스네이크 케이스·40자·식별정보 금지)으로 계측하고 AN-3 표에 등록한다.
 
 ## 4. 데이터
 

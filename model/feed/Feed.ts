@@ -537,6 +537,31 @@ class Feed implements GearRowActions {
     return this.filterCategory !== null || this.filterBrand !== null;
   }
 
+  public getActiveFilterCount() {
+    let count = 0;
+
+    if (this.filterCategory !== null) {
+      count += 1;
+    }
+
+    if (this.filterBrand !== null) {
+      count += 1;
+    }
+
+    return count;
+  }
+
+  // FD-3 `초기화`: 카테고리·브랜드 필터를 모두 해제하고 피드를 재구성한다(중복 reload 방지).
+  public async resetFilters() {
+    if (!this.hasActiveFilter()) {
+      return;
+    }
+
+    this.setFilterCategoryValue(null);
+    this.setFilterBrandValue(null);
+    await this.reload();
+  }
+
   public isLoading() {
     return this.loading;
   }

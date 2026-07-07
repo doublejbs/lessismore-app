@@ -26,6 +26,8 @@ import app from '@/model/app/App';
 interface Props {
   searchWarehouse: SearchWarehouse;
   bag: Bag;
+  // 전용 화면(PopularRankingWrapper)이 자체 헤더를 두므로 내부 타이틀은 숨길 수 있다.
+  showTitle?: boolean;
 }
 
 interface CategoryItem {
@@ -49,7 +51,11 @@ const categories: CategoryItem[] = SEARCH_RANK_CATEGORY_FILTERS.map(filter => {
   return { filter, name: getGearFilterName(filter) };
 });
 
-const SearchTopKeywordsView: FC<Props> = ({ searchWarehouse, bag }) => {
+const SearchTopKeywordsView: FC<Props> = ({
+  searchWarehouse,
+  bag,
+  showTitle = true,
+}) => {
   const searchRank = searchWarehouse.getSearchRank();
   const [selectedCategory, setSelectedCategory] = useState<GearFilter>(
     GearFilter.All
@@ -121,7 +127,7 @@ const SearchTopKeywordsView: FC<Props> = ({ searchWarehouse, bag }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>인기 장비 순위</Text>
+      {showTitle ? <Text style={styles.title}>인기 장비 순위</Text> : null}
 
       {/* 카테고리 필터 */}
       <ScrollView

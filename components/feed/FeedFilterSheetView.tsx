@@ -14,37 +14,42 @@ import {
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import Feed from '@/model/feed/Feed';
 import BrandDirectory from '@/model/browse/BrandDirectory';
 import { BrandRankData } from '@/model/search/BrandRankStore';
 import { FeedBrandInterest } from '@/model/feed/FeedInterestProfile';
+import { BROWSE_CATEGORIES } from '@/model/browse/BrowseCategory';
 import PretendardText from '@/components/PretendardText';
 import SearchSkeletonView from '@/components/search/SearchSkeletonView';
 import BrandRowView from '@/components/browse/BrandRowView';
+import CategoryChipView from '@/components/browse/CategoryChipView';
+import app from '@/model/app/App';
 
-const SHEET_SLIDE_DISTANCE = 600;
+const SHEET_SLIDE_DISTANCE = 800;
 const OPEN_DURATION = 260;
 const CLOSE_DURATION = 200;
-const SHEET_HEIGHT_RATIO = 0.68;
+const SHEET_HEIGHT_RATIO = 0.75;
+
+const ALL_LABEL = '전체';
 
 interface Props {
+  feed: Feed;
   visible: boolean;
-  selectedBrand: FeedBrandInterest | null;
   onClose: () => void;
-  onSelect: (brand: FeedBrandInterest | null) => void;
 }
 
-// FD-3: 브랜드 선택 바텀시트. BrowseSortButtonView의 애니메이션 패턴(딤 페이드 + 시트 슬라이드 + 핸들바)을 미러링한다.
-// 브랜드 목록·검색 로직은 BrandDirectory 모델을 재사용하되, 행 탭 시 화면 이동이 아니라 선택 콜백을 호출한다.
-const FeedBrandSheetView: FC<Props> = ({
-  visible,
-  selectedBrand,
-  onClose,
-  onSelect,
-}) => {
+// FD-3: 통합 필터 바텀시트. 카테고리 그리드(고정) + 브랜드 검색/목록(내부 스크롤) + 초기화.
+// 애니메이션은 BrowseSortButtonView 패턴(딤 페이드 + 시트 슬라이드 + 핸들바)을 미러링하고,
+// 브랜드 목록·검색은 BrandDirectory 모델을 재사용한다. 선택은 즉시 적용(피드 재구성)한다.
+const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
   const router = useRouter();
   const [brandDirectory] = useState(() => BrandDirectory.new(router));
   const progress = useRef(new Animated.Value(0)).current;
   const isClosing = useRef(false);
+
+  const selectedCategory = feed.getFilterCategory();
+  const selectedBrand = feed.getFilterBrand();
+  const hasActiveFilter = feed.hasActiveFilter();
 
   const brands = brandDirectory.getBrands();
   const isLoading = brandDirectory.isLoading();
@@ -90,6 +95,21 @@ const FeedBrandSheetView: FC<Props> = ({
     runClose();
   };
 
+  const handleSelectAllCategory = () => {
+    app.getAnalyticsManager()?.logClick('feed_category', { category: 'all' });
+    feed.setFilterCategory(null);
+  };
+
+  const handleSelectCategory = (category: string) => {
+    // 같은 칩 재탭 시 해제(전체로 복귀).
+    const next = selectedCategory === category ? null : category;
+
+    app
+      .getAnalyticsManager()
+      ?.logClick('feed_category', { category: next ?? 'all' });
+    feed.setFilterCategory(next);
+  };
+
   const handleChangeKeyword = (text: string) => {
     brandDirectory.changeKeyword(text);
   };
@@ -99,16 +119,30 @@ const FeedBrandSheetView: FC<Props> = ({
   };
 
   const handleSelectBrand = (brand: BrandRankData) => {
-    onSelect({
-      companyKorean: brand.companyKorean,
-      company: brand.company,
-    });
-    runClose();
+    const next: FeedBrandInterest | null = isSelectedBrand(brand)
+      ? null
+      : { companyKorean: brand.companyKorean, company: brand.company };
+
+    app
+      .getAnalyticsManager()
+      ?.logClick('feed_brand', { selected: next !== null });
+    feed.setFilterBrand(next);
   };
 
-  const handleClearSelection = () => {
-    onSelect(null);
-    runClose();
+  const handleReset = () => {
+    app.getAnalyticsManager()?.logClick('feed_filter_reset');
+    feed.resetFilters();
+  };
+
+  const isSelectedBrand = (brand: BrandRankData) => {
+    if (!selectedBrand) {
+      return false;
+    }
+
+    return (
+      selectedBrand.companyKorean === brand.companyKorean &&
+      selectedBrand.company === brand.company
+    );
   };
 
   const sheetTranslateY = progress.interpolate({
@@ -116,7 +150,7 @@ const FeedBrandSheetView: FC<Props> = ({
     outputRange: [SHEET_SLIDE_DISTANCE, 0],
   });
 
-  const renderList = () => {
+  const renderBrandList = () => {
     if (isLoading && isEmpty) {
       return (
         <View style={styles.skeletonContainer}>
@@ -137,7 +171,7 @@ const FeedBrandSheetView: FC<Props> = ({
 
     return (
       <ScrollView
-        style={styles.list}
+        style={styles.brandList}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps='handled'
       >
@@ -145,6 +179,7 @@ const FeedBrandSheetView: FC<Props> = ({
           <BrandRowView
             key={brand.brandKey}
             brand={brand}
+            selected={isSelectedBrand(brand)}
             onPress={() => handleSelectBrand(brand)}
           />
         ))}
@@ -164,9 +199,7 @@ const FeedBrandSheetView: FC<Props> = ({
           style={[styles.overlayDim, { opacity: progress }]}
           pointerEvents='none'
         />
-        <Animated.View
-          style={{ transform: [{ translateY: sheetTranslateY }] }}
-        >
+        <Animated.View style={{ transform: [{ translateY: sheetTranslateY }] }}>
           <Pressable
             style={[styles.sheet, { height: sheetHeight }]}
             onPress={e => e.stopPropagation()}
@@ -175,46 +208,65 @@ const FeedBrandSheetView: FC<Props> = ({
               <View style={styles.handleBar} />
             </View>
 
-            <PretendardText style={styles.title} weight='bold'>
-              브랜드
-            </PretendardText>
-
-            <View style={styles.searchInputWrapper}>
-              <TextInput
-                style={styles.searchInput}
-                value={keyword}
-                onChangeText={handleChangeKeyword}
-                placeholder='브랜드명을 검색해보세요'
-                placeholderTextColor='#999'
-                autoCapitalize='none'
-                autoCorrect={false}
-              />
-              {keyword ? (
-                <TouchableOpacity
-                  onPress={handleClearKeyword}
-                  style={styles.clearButton}
-                >
-                  <Ionicons name='close-circle' size={20} color='#B0B8C1' />
+            <View style={styles.header}>
+              <PretendardText style={styles.title} weight='bold'>
+                필터
+              </PretendardText>
+              {hasActiveFilter ? (
+                <TouchableOpacity onPress={handleReset} activeOpacity={0.7}>
+                  <PretendardText style={styles.resetText} weight='semibold'>
+                    초기화
+                  </PretendardText>
                 </TouchableOpacity>
               ) : null}
             </View>
 
-            {selectedBrand ? (
-              <TouchableOpacity
-                style={styles.clearSelection}
-                onPress={handleClearSelection}
-                activeOpacity={0.7}
-              >
-                <PretendardText
-                  style={styles.clearSelectionText}
-                  weight='semibold'
-                >
-                  선택 해제
-                </PretendardText>
-              </TouchableOpacity>
-            ) : null}
+            <View style={styles.section}>
+              <PretendardText style={styles.sectionLabel} weight='semibold'>
+                카테고리
+              </PretendardText>
+              <View style={styles.categoryGrid}>
+                <CategoryChipView
+                  label={ALL_LABEL}
+                  selected={selectedCategory === null}
+                  onPress={handleSelectAllCategory}
+                />
+                {BROWSE_CATEGORIES.map(item => (
+                  <CategoryChipView
+                    key={item.filter}
+                    label={item.name}
+                    selected={selectedCategory === item.filter}
+                    onPress={() => handleSelectCategory(item.filter)}
+                  />
+                ))}
+              </View>
+            </View>
 
-            <View style={styles.listContainer}>{renderList()}</View>
+            <View style={styles.brandSection}>
+              <PretendardText style={styles.sectionLabel} weight='semibold'>
+                브랜드
+              </PretendardText>
+              <View style={styles.searchInputWrapper}>
+                <TextInput
+                  style={styles.searchInput}
+                  value={keyword}
+                  onChangeText={handleChangeKeyword}
+                  placeholder='브랜드명을 검색해보세요'
+                  placeholderTextColor='#999'
+                  autoCapitalize='none'
+                  autoCorrect={false}
+                />
+                {keyword ? (
+                  <TouchableOpacity
+                    onPress={handleClearKeyword}
+                    style={styles.clearButton}
+                  >
+                    <Ionicons name='close-circle' size={20} color='#B0B8C1' />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+              <View style={styles.brandListContainer}>{renderBrandList()}</View>
+            </View>
           </Pressable>
         </Animated.View>
       </Pressable>
@@ -248,11 +300,37 @@ const styles = StyleSheet.create({
     backgroundColor: '#D1D1D6',
     borderRadius: 2,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+  },
   title: {
     fontSize: 18,
     lineHeight: 26,
     color: '#0A090B',
-    paddingVertical: 16,
+  },
+  resetText: {
+    fontSize: 14,
+    color: '#555',
+  },
+  section: {
+    marginBottom: 16,
+  },
+  sectionLabel: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#505967',
+    marginBottom: 12,
+  },
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  brandSection: {
+    flex: 1,
   },
   searchInputWrapper: {
     flexDirection: 'row',
@@ -275,19 +353,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  clearSelection: {
-    paddingVertical: 12,
-    alignItems: 'flex-start',
-  },
-  clearSelectionText: {
-    fontSize: 14,
-    color: '#555',
-  },
-  listContainer: {
+  brandListContainer: {
     flex: 1,
-    marginTop: 4,
+    marginTop: 8,
   },
-  list: {
+  brandList: {
     flex: 1,
   },
   skeletonContainer: {
@@ -306,4 +376,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default observer(FeedBrandSheetView);
+export default observer(FeedFilterSheetView);

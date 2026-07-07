@@ -4,7 +4,7 @@
 | --- | --- |
 | 상태 | as-built (SR-7~9는 2026-07-07 구현 기준. SR-6 탐색 홈은 피드([Feed.md](Feed.md))가 대체해 폐기) |
 | ID 프리픽스 | `SR` |
-| 주요 코드 | `app/(tabs)/search.tsx`, `app/search/`, `app/browse/`, `app/brand-directory/`, `app/not-login-search/`, `components/search/`, `components/search-page/`, `components/browse/`, `model/search/`, `model/browse/` |
+| 주요 코드 | `app/(tabs)/search.tsx`, `app/search/`, `app/browse/`, `app/brand-directory/`, `app/popular-ranking/`, `app/not-login-search/`, `components/search/`, `components/search-page/`, `components/browse/`, `components/feed/PopularRankingWrapper.tsx`, `model/search/`, `model/browse/` |
 | 관련 스펙 | [DataModel.md](DataModel.md), [GearDetail.md](GearDetail.md), [Bag.md](Bag.md), [Auth.md](Auth.md) |
 
 ## 1. 개요
@@ -21,6 +21,7 @@
 | `/not-login-search` | 비로그인 사용자 | 웹뷰로 `https://useless.my/search` 로드, iOS는 모달 프레젠테이션 |
 | `/browse?category=&brand=&sort=` | 전체 | 카테고리·브랜드 목록 + 정렬 (SR-7) |
 | `/brand-directory` | 전체 | 브랜드 디렉토리 인기순 (SR-8) |
+| `/popular-ranking` | 전체 | 인기 장비 순위 (SR-4, 피드 `인기 순위` 버튼으로 진입) |
 
 ## 3. 요구사항
 
@@ -51,11 +52,13 @@
 - 체크 배지 클릭: `모든 배낭에서 장비가 제거됩니다` 경고 확인 후 창고에서 제거(`GearStore.remove`).
 - 추가/제거 시 `gear-rank` count 증감([DataModel.md](DataModel.md) DM-6) 후 현재 검색을 재실행해 배지를 갱신한다.
 
-### SR-4 인기 장비 순위 (키워드 없음 상태)
+### SR-4 인기 장비 순위
+
+> 진입 경로 변경(2026-07-07): 키워드-빈 상태는 피드([Feed.md](Feed.md))가 대체했고, 인기 순위는 **피드 하단 `인기 순위` 플로팅 버튼 → 전용 화면**(신규 라우트)으로 진입한다(FD-3).
 
 **수용 기준**
 
-- 키워드가 비어 있으면 `인기 장비 순위`를 표시한다.
+- 피드의 `인기 순위` 버튼 탭 → 인기 장비 순위 화면(뒤로가기 헤더 포함).
 - 카테고리 탭 8개: 전체/텐트/침낭/배낭/매트/가구/랜턴/조리.
 - `gear-rank`를 `count desc limit 10`으로 조회하고(카테고리 선택 시 `where('category'==…)`), 상위 3위는 강조 배지.
 - 순위 행 클릭 → 장비 상세.
