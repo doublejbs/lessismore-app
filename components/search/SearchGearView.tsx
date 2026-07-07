@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
-import SearchWarehouse from '@/model/search/SearchWarehouse';
+import GearRowActions from '@/model/browse/GearRowActions';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import GearView from '@/components/warehouse/GearView';
@@ -17,7 +17,7 @@ import SearchGearAddToBagModalView from './SearchGearAddToBagModalView';
 import app from '@/model/app/App';
 
 interface Props {
-  searchWarehouse: SearchWarehouse;
+  searchWarehouse: GearRowActions;
   gear: Gear;
   bag: Bag;
 }

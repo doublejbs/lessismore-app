@@ -2,7 +2,7 @@ import { observer } from 'mobx-react-lite';
 import { FC } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
-import SearchTopKeywordsView from './SearchTopKeywordsView';
+import SearchBrowseHomeView from '../browse/SearchBrowseHomeView';
 import Bag from '@/model/bag/Bag';
 import SearchResultContentView from './SearchResultContentView';
 
@@ -27,7 +27,7 @@ const SearchResultView: FC<Props> = ({ searchWarehouse, bag, children }) => {
     switch (true) {
       case !keyword.length: {
         return (
-          <SearchTopKeywordsView searchWarehouse={searchWarehouse} bag={bag} />
+          <SearchBrowseHomeView searchWarehouse={searchWarehouse} bag={bag} />
         );
       }
       case isEmpty && !isLoading: {
