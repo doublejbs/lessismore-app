@@ -28,6 +28,13 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import Feed from '@/model/feed/Feed';
+import {
+  FeedSort,
+  FEED_SORT_OPTIONS,
+  toFeedSort,
+  fromFeedSort,
+  getFeedSortLabel,
+} from '@/model/feed/FeedSort';
 import BrandDirectory from '@/model/browse/BrandDirectory';
 import { BrandRankData } from '@/model/search/BrandRankStore';
 import { FeedBrandInterest } from '@/model/feed/FeedInterestProfile';
@@ -74,6 +81,9 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
   const dim = useSharedValue(0);
 
   // 스테이징 로컬 상태 — 시트 열릴 때 현재 적용값으로 초기화한다(피드 재조회 없음).
+  const [stagedSort, setStagedSort] = useState<FeedSort>(
+    toFeedSort(feed.getSort())
+  );
   const [stagedCategory, setStagedCategory] = useState<string | null>(null);
   const [stagedBrands, setStagedBrands] = useState<FeedBrandInterest[]>([]);
 
@@ -82,9 +92,11 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
   const isEmpty = brandDirectory.isEmpty();
   const keyword = brandDirectory.getKeyword();
 
-  // 스테이징 선택 수 = (카테고리 1) + (선택 브랜드 수). 플로팅 버튼 개수 규칙(FD-3)과 동일.
+  // 스테이징 선택 수 = (카테고리 1) + (선택 브랜드 수). 플로팅 버튼 개수 규칙(FD-3)과 동일(정렬 미포함).
   const stagedCount = (stagedCategory !== null ? 1 : 0) + stagedBrands.length;
-  const hasStagedFilter = stagedCount > 0;
+  // 정렬이 추천이 아니거나 필터가 있으면 초기화 노출(초기화는 정렬도 추천으로 되돌림).
+  const isRecommendedSort = stagedSort === toFeedSort(null);
+  const hasStagedFilter = stagedCount > 0 || !isRecommendedSort;
   const confirmLabel =
     stagedCount > 0 ? `${CONFIRM_LABEL} (${stagedCount})` : CONFIRM_LABEL;
 
@@ -94,6 +106,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
     }
 
     // 열릴 때마다 스테이징을 현재 적용 필터로 동기화한다.
+    setStagedSort(toFeedSort(feed.getSort()));
     setStagedCategory(feed.getFilterCategory());
     setStagedBrands([...feed.getFilterBrands()]);
 
@@ -169,9 +182,14 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
     app.getAnalyticsManager()?.logClick('feed_filter_apply', {
       category: stagedCategory ?? 'all',
       brand_count: stagedBrands.length,
+      sort: getFeedSortLabel(stagedSort),
     });
-    feed.setFilters(stagedCategory, stagedBrands);
+    feed.setFilters(stagedCategory, stagedBrands, fromFeedSort(stagedSort));
     close();
+  };
+
+  const handleSelectSort = (sort: FeedSort) => {
+    setStagedSort(sort);
   };
 
   const handleSelectAllCategory = () => {
@@ -223,9 +241,10 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
     );
   };
 
-  // 초기화: 스테이징 전체 해제(적용은 `확인` 시점).
+  // 초기화: 스테이징 전체 해제(정렬은 추천으로 복귀, 적용은 `확인` 시점).
   const handleReset = () => {
     app.getAnalyticsManager()?.logClick('feed_filter_reset');
+    setStagedSort(toFeedSort(null));
     setStagedCategory(null);
     setStagedBrands([]);
   };
@@ -319,6 +338,22 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
                       </PretendardText>
                     </TouchableOpacity>
                   ) : null}
+                </View>
+
+                <View style={styles.section}>
+                  <PretendardText style={styles.sectionLabel} weight='semibold'>
+                    정렬
+                  </PretendardText>
+                  <View style={styles.sortRow}>
+                    {FEED_SORT_OPTIONS.map(option => (
+                      <CategoryChipView
+                        key={option.value}
+                        label={option.label}
+                        selected={stagedSort === option.value}
+                        onPress={() => handleSelectSort(option.value)}
+                      />
+                    ))}
+                  </View>
                 </View>
 
                 <View style={styles.section}>
@@ -490,6 +525,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  sortRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
