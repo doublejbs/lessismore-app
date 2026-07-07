@@ -1,0 +1,660 @@
+[
+  {
+    "brandKey": "니모",
+    "companyKorean": "니모",
+    "company": "nemo",
+    "ownerCount": 199,
+    "gearCount": 284
+  },
+  {
+    "brandKey": "헬리녹스",
+    "companyKorean": "헬리녹스",
+    "company": "Helinox",
+    "ownerCount": 130,
+    "gearCount": 12
+  },
+  {
+    "brandKey": "몽벨",
+    "companyKorean": "몽벨",
+    "company": "montbell",
+    "ownerCount": 116,
+    "gearCount": 2778
+  },
+  {
+    "brandKey": "꼴로르",
+    "companyKorean": "꼴로르",
+    "company": "CCOLORE",
+    "ownerCount": 104,
+    "gearCount": 62
+  },
+  {
+    "brandKey": "스노우피크",
+    "companyKorean": "스노우피크",
+    "company": "Snow Peak",
+    "ownerCount": 102,
+    "gearCount": 23
+  },
+  {
+    "brandKey": "제로그램",
+    "companyKorean": "제로그램",
+    "company": "Zerogram",
+    "ownerCount": 95,
+    "gearCount": 36
+  },
+  {
+    "brandKey": "씨투써밋",
+    "companyKorean": "씨투써밋",
+    "company": "sea-to-summit",
+    "ownerCount": 83,
+    "gearCount": 604
+  },
+  {
+    "brandKey": "골제로",
+    "companyKorean": "골제로",
+    "company": "Goal Zero",
+    "ownerCount": 82,
+    "gearCount": 1
+  },
+  {
+    "brandKey": "하이퍼라이트마운틴기어",
+    "companyKorean": "하이퍼라이트마운틴기어",
+    "company": "HMG",
+    "ownerCount": 72,
+    "gearCount": 42
+  },
+  {
+    "brandKey": "소토",
+    "companyKorean": "소토",
+    "company": "SOTO",
+    "ownerCount": 62,
+    "gearCount": 15
+  },
+  {
+    "brandKey": "써머레스트",
+    "companyKorean": "써머레스트",
+    "company": "Therm-a-Rest",
+    "ownerCount": 61,
+    "gearCount": 91
+  },
+  {
+    "brandKey": "라이프스포츠",
+    "companyKorean": "라이프스포츠",
+    "company": "Life Sports",
+    "ownerCount": 44,
+    "gearCount": 10
+  },
+  {
+    "brandKey": "사마야",
+    "companyKorean": "사마야",
+    "company": "samaya",
+    "ownerCount": 43,
+    "gearCount": 81
+  },
+  {
+    "brandKey": "랩",
+    "companyKorean": "랩",
+    "company": "rab",
+    "ownerCount": 42,
+    "gearCount": 443
+  },
+  {
+    "brandKey": "힐레베르그",
+    "companyKorean": "힐레베르그",
+    "company": "Hilleberg",
+    "ownerCount": 42,
+    "gearCount": 63
+  },
+  {
+    "brandKey": "야마토미치",
+    "companyKorean": "야마토미치",
+    "company": "Yamatomichi",
+    "ownerCount": 40,
+    "gearCount": 45
+  },
+  {
+    "brandKey": "더스턴기어",
+    "companyKorean": "더스턴기어",
+    "company": "Durston Gear",
+    "ownerCount": 39,
+    "gearCount": 27
+  },
+  {
+    "brandKey": "나이트코어",
+    "companyKorean": "나이트코어",
+    "company": "NITECORE",
+    "ownerCount": 38,
+    "gearCount": 2
+  },
+  {
+    "brandKey": "백컨트리",
+    "companyKorean": "백컨트리",
+    "company": "Backcountry",
+    "ownerCount": 36,
+    "gearCount": 60
+  },
+  {
+    "brandKey": "큐뮬러스",
+    "companyKorean": "큐뮬러스",
+    "company": "Cumulus",
+    "ownerCount": 36,
+    "gearCount": 32
+  },
+  {
+    "brandKey": "미스테리랜치",
+    "companyKorean": "미스테리랜치",
+    "company": "Mystery Ranch",
+    "ownerCount": 35,
+    "gearCount": 30
+  },
+  {
+    "brandKey": "크레모아",
+    "companyKorean": "크레모아",
+    "company": "CLAYMORE",
+    "ownerCount": 34,
+    "gearCount": 8
+  },
+  {
+    "brandKey": "케일",
+    "companyKorean": "케일",
+    "company": "CAYL",
+    "ownerCount": 32,
+    "gearCount": 156
+  },
+  {
+    "brandKey": "에이엠지티타늄",
+    "companyKorean": "에이엠지티타늄",
+    "company": "AMG TITANIUM",
+    "ownerCount": 32,
+    "gearCount": 22
+  },
+  {
+    "brandKey": "고싸머기어",
+    "companyKorean": "고싸머기어",
+    "company": "Gossamer Gear",
+    "ownerCount": 31,
+    "gearCount": 36
+  },
+  {
+    "brandKey": "지팩스",
+    "companyKorean": "지팩스",
+    "company": "zpacks",
+    "ownerCount": 30,
+    "gearCount": 1502
+  },
+  {
+    "brandKey": "빅아그네스",
+    "companyKorean": "빅아그네스",
+    "company": "Big Agnes",
+    "ownerCount": 29,
+    "gearCount": 85
+  },
+  {
+    "brandKey": "엠에스알",
+    "companyKorean": "엠에스알",
+    "company": "MSR",
+    "ownerCount": 29,
+    "gearCount": 50
+  },
+  {
+    "brandKey": "코오롱스포츠",
+    "companyKorean": "코오롱스포츠",
+    "company": "KOLON SPORT",
+    "ownerCount": 29,
+    "gearCount": 50
+  },
+  {
+    "brandKey": "에버뉴",
+    "companyKorean": "에버뉴",
+    "company": "Evernew",
+    "ownerCount": 28,
+    "gearCount": 31
+  },
+  {
+    "brandKey": "메이크투하이크",
+    "companyKorean": "메이크투하이크",
+    "company": "Maketohike",
+    "ownerCount": 22,
+    "gearCount": 29
+  },
+  {
+    "brandKey": "아크테릭스",
+    "companyKorean": "아크테릭스",
+    "company": "Arc'teryx",
+    "ownerCount": 21,
+    "gearCount": 13
+  },
+  {
+    "brandKey": "어썸홀리데이",
+    "companyKorean": "어썸홀리데이",
+    "company": "AWESOME HOLIDAY",
+    "ownerCount": 21,
+    "gearCount": 27
+  },
+  {
+    "brandKey": "슬로우아웃도어",
+    "companyKorean": "슬로우아웃도어",
+    "company": "Slow Outdoor",
+    "ownerCount": 20,
+    "gearCount": 1
+  },
+  {
+    "brandKey": "코베아",
+    "companyKorean": "코베아",
+    "company": "kovea",
+    "ownerCount": 19,
+    "gearCount": 328
+  },
+  {
+    "brandKey": "데카트론",
+    "companyKorean": "데카트론",
+    "company": "Decathlon",
+    "ownerCount": 19,
+    "gearCount": 2
+  },
+  {
+    "brandKey": "날진",
+    "companyKorean": "날진",
+    "company": "Nalgene",
+    "ownerCount": 17,
+    "gearCount": 31
+  },
+  {
+    "brandKey": "네이처하이크",
+    "companyKorean": "네이처하이크",
+    "company": "Naturehike",
+    "ownerCount": 16,
+    "gearCount": 17
+  },
+  {
+    "brandKey": "베른",
+    "companyKorean": "베른",
+    "company": "Bern",
+    "ownerCount": 16,
+    "gearCount": 16
+  },
+  {
+    "brandKey": "바로쿡",
+    "companyKorean": "바로쿡",
+    "company": "Barocook",
+    "ownerCount": 16,
+    "gearCount": 5
+  },
+  {
+    "brandKey": "베이스침낭",
+    "companyKorean": "베이스침낭",
+    "company": "Base Sleeping Bag",
+    "ownerCount": 14,
+    "gearCount": 24
+  },
+  {
+    "brandKey": "루메나",
+    "companyKorean": "루메나",
+    "company": "Lumena",
+    "ownerCount": 14,
+    "gearCount": 4
+  },
+  {
+    "brandKey": "미니멀웍스",
+    "companyKorean": "미니멀웍스",
+    "company": "Minimalworks",
+    "ownerCount": 13,
+    "gearCount": 197
+  },
+  {
+    "brandKey": "캐리더썬",
+    "companyKorean": "캐리더썬",
+    "company": "Carry the Sun",
+    "ownerCount": 13,
+    "gearCount": 2
+  },
+  {
+    "brandKey": "캐스케이드 와일드",
+    "companyKorean": "캐스케이드 와일드",
+    "company": "Casecade Wild",
+    "ownerCount": 12,
+    "gearCount": 1
+  },
+  {
+    "brandKey": "웨스턴마운티니어링",
+    "companyKorean": "웨스턴마운티니어링",
+    "company": "Westen Mountaineering",
+    "ownerCount": 11,
+    "gearCount": 124
+  },
+  {
+    "brandKey": "하이커워크샵",
+    "companyKorean": "하이커워크샵",
+    "company": "Hiker Workshop",
+    "ownerCount": 11,
+    "gearCount": 44
+  },
+  {
+    "brandKey": "엑스패드",
+    "companyKorean": "엑스패드",
+    "company": "Exped",
+    "ownerCount": 11,
+    "gearCount": 94
+  },
+  {
+    "brandKey": "라이트웨이",
+    "companyKorean": "라이트웨이",
+    "company": "Liteway",
+    "ownerCount": 11,
+    "gearCount": 34
+  },
+  {
+    "brandKey": "블랙다이아몬드",
+    "companyKorean": "블랙다이아몬드",
+    "company": "Black Diamond",
+    "ownerCount": 11,
+    "gearCount": 18
+  },
+  {
+    "brandKey": "맥스",
+    "companyKorean": "맥스",
+    "company": "Max",
+    "ownerCount": 10,
+    "gearCount": 3
+  },
+  {
+    "brandKey": "핫앤쿡",
+    "companyKorean": "핫앤쿡",
+    "company": "HOT&COOK",
+    "ownerCount": 10,
+    "gearCount": 7
+  },
+  {
+    "brandKey": "트란지아",
+    "companyKorean": "트란지아",
+    "company": "Trangia",
+    "ownerCount": 9,
+    "gearCount": 64
+  },
+  {
+    "brandKey": "지에스아이",
+    "companyKorean": "지에스아이",
+    "company": "GSI OUTDOORS",
+    "ownerCount": 8,
+    "gearCount": 107
+  },
+  {
+    "brandKey": "스타루스",
+    "companyKorean": "스타루스",
+    "company": "Starus",
+    "ownerCount": 8,
+    "gearCount": 26
+  },
+  {
+    "brandKey": "마운틴로버",
+    "companyKorean": "마운틴로버",
+    "company": "Mountain Rover",
+    "ownerCount": 8,
+    "gearCount": 12
+  },
+  {
+    "brandKey": "포질스",
+    "companyKorean": "포질스",
+    "company": "FOZZILS",
+    "ownerCount": 8,
+    "gearCount": 4
+  },
+  {
+    "brandKey": "말라코프스키",
+    "companyKorean": "말라코프스키",
+    "company": "Malachowski",
+    "ownerCount": 7,
+    "gearCount": 14
+  },
+  {
+    "brandKey": "발란드레",
+    "companyKorean": "발란드레",
+    "company": "Valandre",
+    "ownerCount": 7,
+    "gearCount": 18
+  },
+  {
+    "brandKey": "힐맨",
+    "companyKorean": "힐맨",
+    "company": "Hillman",
+    "ownerCount": 7,
+    "gearCount": 25
+  },
+  {
+    "brandKey": "타프텐트",
+    "companyKorean": "타프텐트",
+    "company": "Tarptent",
+    "ownerCount": 6,
+    "gearCount": 33
+  },
+  {
+    "brandKey": "헥사",
+    "companyKorean": "헥사",
+    "company": "HEXAR",
+    "ownerCount": 6,
+    "gearCount": 4
+  },
+  {
+    "brandKey": "폴러스터프",
+    "companyKorean": "폴러스터프",
+    "company": "Poler Stuff",
+    "ownerCount": 5,
+    "gearCount": 9
+  },
+  {
+    "brandKey": "유엘에이",
+    "companyKorean": "유엘에이",
+    "company": "ULA",
+    "ownerCount": 5,
+    "gearCount": 11
+  },
+  {
+    "brandKey": "오피넬",
+    "companyKorean": "오피넬",
+    "company": "Opinel",
+    "ownerCount": 5,
+    "gearCount": 3
+  },
+  {
+    "brandKey": "프로몬테",
+    "companyKorean": "프로몬테",
+    "company": "PuroMonte",
+    "ownerCount": 5,
+    "gearCount": 10
+  },
+  {
+    "brandKey": "조이침낭",
+    "companyKorean": "조이침낭",
+    "company": "",
+    "ownerCount": 5,
+    "gearCount": 3
+  },
+  {
+    "brandKey": "헤리티지",
+    "companyKorean": "헤리티지",
+    "company": "Heritage",
+    "ownerCount": 5,
+    "gearCount": 5
+  },
+  {
+    "brandKey": "유니프레임",
+    "companyKorean": "유니프레임",
+    "company": "UNIFLAME",
+    "ownerCount": 4,
+    "gearCount": 7
+  },
+  {
+    "brandKey": "솔",
+    "companyKorean": "솔",
+    "company": "SOL",
+    "ownerCount": 3,
+    "gearCount": 2
+  },
+  {
+    "brandKey": "씰슨",
+    "companyKorean": "씰슨",
+    "company": "SEALSON",
+    "ownerCount": 3,
+    "gearCount": 1
+  },
+  {
+    "brandKey": "트레일스기어",
+    "companyKorean": "트레일스기어",
+    "company": "TRAILSGEAR",
+    "ownerCount": 3,
+    "gearCount": 3
+  },
+  {
+    "brandKey": "산들로",
+    "companyKorean": "산들로",
+    "company": "Sandello",
+    "ownerCount": 2,
+    "gearCount": 29
+  },
+  {
+    "brandKey": "반고",
+    "companyKorean": "반고",
+    "company": "Vango",
+    "ownerCount": 2,
+    "gearCount": 86
+  },
+  {
+    "brandKey": "시에라디자인",
+    "companyKorean": "시에라디자인",
+    "company": "Sierra Designs",
+    "ownerCount": 2,
+    "gearCount": 41
+  },
+  {
+    "brandKey": "파이네",
+    "companyKorean": "파이네",
+    "company": "Paine",
+    "ownerCount": 2,
+    "gearCount": 17
+  },
+  {
+    "brandKey": "제이알기어",
+    "companyKorean": "제이알기어",
+    "company": "JR Gear",
+    "ownerCount": 2,
+    "gearCount": 16
+  },
+  {
+    "brandKey": "플렉스테일",
+    "companyKorean": "플렉스테일",
+    "company": "Flextail",
+    "ownerCount": 2,
+    "gearCount": 1
+  },
+  {
+    "brandKey": "알데바란",
+    "companyKorean": "알데바란",
+    "company": "Aldebaran",
+    "ownerCount": 2,
+    "gearCount": 3
+  },
+  {
+    "brandKey": "마운틴하드웨어",
+    "companyKorean": "마운틴하드웨어",
+    "company": "Mountain Hardwear",
+    "ownerCount": 2,
+    "gearCount": 6
+  },
+  {
+    "brandKey": "미스테리월",
+    "companyKorean": "미스테리월",
+    "company": "MYSTERY WALL",
+    "ownerCount": 2,
+    "gearCount": 6
+  },
+  {
+    "brandKey": "카고컨테이너",
+    "companyKorean": "카고컨테이너",
+    "company": "Cargo Container",
+    "ownerCount": 2,
+    "gearCount": 2
+  },
+  {
+    "brandKey": "트라이텐실",
+    "companyKorean": "트라이텐실",
+    "company": "Tritensil",
+    "ownerCount": 2,
+    "gearCount": 2
+  },
+  {
+    "brandKey": "인수스",
+    "companyKorean": "인수스",
+    "company": "Insooth",
+    "ownerCount": 1,
+    "gearCount": 7
+  },
+  {
+    "brandKey": "도이터",
+    "companyKorean": "도이터",
+    "company": "Deuter",
+    "ownerCount": 1,
+    "gearCount": 10
+  },
+  {
+    "brandKey": "3f ul 기어",
+    "companyKorean": "3F UL 기어",
+    "company": "3F UL GEAR",
+    "ownerCount": 1,
+    "gearCount": 14
+  },
+  {
+    "brandKey": "naturehike",
+    "companyKorean": "Naturehike",
+    "company": "네이처하이크",
+    "ownerCount": 1,
+    "gearCount": 2
+  },
+  {
+    "brandKey": "포스텐",
+    "companyKorean": "포스텐",
+    "company": "Forceten",
+    "ownerCount": 1,
+    "gearCount": 1
+  },
+  {
+    "brandKey": "쿠필카",
+    "companyKorean": "쿠필카",
+    "company": "Kupilka",
+    "ownerCount": 0,
+    "gearCount": 13
+  },
+  {
+    "brandKey": "test",
+    "companyKorean": "test",
+    "company": "test",
+    "ownerCount": 0,
+    "gearCount": 2
+  },
+  {
+    "brandKey": "젯보일",
+    "companyKorean": "젯보일",
+    "company": "JETBOIL",
+    "ownerCount": 0,
+    "gearCount": 9
+  },
+  {
+    "brandKey": "모트릴",
+    "companyKorean": "모트릴",
+    "company": "Motril",
+    "ownerCount": 0,
+    "gearCount": 2
+  },
+  {
+    "brandKey": "하이드로블루",
+    "companyKorean": "하이드로블루",
+    "company": "HydroBlu",
+    "ownerCount": 0,
+    "gearCount": 1
+  },
+  {
+    "brandKey": "알레시카",
+    "companyKorean": "알레시카",
+    "company": "Alecika",
+    "ownerCount": 0,
+    "gearCount": 1
+  }
+]
