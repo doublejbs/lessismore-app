@@ -21,53 +21,43 @@ const GearView: FC<Props> = ({ gear, children, onPress }) => {
 
   const content = (
     <View style={styles.container}>
-      <View style={styles.imageSection}>
-        <View style={styles.imageContainer}>
-          <GearImageView imageUrl={imageUrl} />
-        </View>
+      <View style={styles.imageContainer}>
+        <GearImageView imageUrl={imageUrl} />
       </View>
 
-      <View style={styles.contentSection}>
-        <View style={styles.contentContainer}>
-          <View style={styles.headerRow}>
-            <View style={styles.infoColumn}>
-              <View style={styles.infoContainer}>
-                <View style={styles.companyRow}>
-                  <PretendardText style={styles.companyText} weight="regular">
-                    {gear.getDisplayCompany()}
-                  </PretendardText>
-                  {gear.hasUsedRate() && (
-                    <View style={styles.usedRateBadge}>
-                      <PretendardText style={styles.usedRateText} weight="regular">
-                        사용률 {gear.getUsedRate()}%
-                      </PretendardText>
-                    </View>
-                  )}
-                </View>
-
-                <PretendardText
-                  style={styles.nameText}
-                  weight="bold"
-                  numberOfLines={2}
-                >
-                  {gear.getDisplayName()}
-                </PretendardText>
-
-                {gear.getColor() ? (
-                  <PretendardText style={styles.colorText} weight="regular">
-                    {gear.getColor()}
-                  </PretendardText>
-                ) : null}
-              </View>
-
-              {gear.getWeight() ? (
-                <PretendardText style={styles.weightText} weight="bold">
-                  {gear.getWeight()}g
-                </PretendardText>
-              ) : null}
+      <View style={styles.infoColumn}>
+        <View style={styles.companyRow}>
+          <PretendardText style={styles.companyText} weight="regular">
+            {gear.getDisplayCompany()}
+          </PretendardText>
+          {gear.hasUsedRate() && (
+            <View style={styles.usedRateBadge}>
+              <PretendardText style={styles.usedRateText} weight="regular">
+                사용률 {gear.getUsedRate()}%
+              </PretendardText>
             </View>
-          </View>
+          )}
         </View>
+
+        <PretendardText
+          style={styles.nameText}
+          weight="bold"
+          numberOfLines={2}
+        >
+          {gear.getDisplayName()}
+        </PretendardText>
+
+        {gear.getColor() ? (
+          <PretendardText style={styles.colorText} weight="regular">
+            {gear.getColor()}
+          </PretendardText>
+        ) : null}
+
+        {gear.getWeight() ? (
+          <PretendardText style={styles.weightText} weight="bold">
+            {gear.getWeight()}g
+          </PretendardText>
+        ) : null}
       </View>
 
       {children}
@@ -96,10 +86,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     gap: 12,
   },
-  imageSection: {
-    flexDirection: 'row',
-    gap: 6,
-  },
   imageContainer: {
     width: 80,
     height: 80,
@@ -110,27 +96,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  contentSection: {
-    flex: 1,
-    overflow: 'hidden',
-  },
-  contentContainer: {
-    flex: 1,
-    gap: 10,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    width: '100%',
-  },
   infoColumn: {
     flex: 1,
-    gap: 7,
-  },
-  infoContainer: {
+    gap: 6,
     overflow: 'hidden',
-    gap: 7,
   },
   companyRow: {
     flexDirection: 'row',
