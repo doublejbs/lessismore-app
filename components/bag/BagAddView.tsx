@@ -1,16 +1,11 @@
 import React, { FC, useState } from 'react';
-import {
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  Platform,
-} from 'react-native';
+import { StyleSheet, Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
 import dayjs from 'dayjs';
 import app from '@/model/app/App';
-import PretendardText from '@/components/PretendardText';
+import FloatingPillButton from '@/components/FloatingPillButton';
 import BagFormModalView from './BagFormModalView';
 import BagAddActionSheetView from './BagAddActionSheetView';
 import BagCopySourceModalView from './BagCopySourceModalView';
@@ -191,13 +186,12 @@ const BagAddView: FC<Props> = ({ bag }) => {
 
   return (
     <>
-      <TouchableOpacity
-        style={styles.floatingButton}
+      <FloatingPillButton
+        label='배낭 추가'
         onPress={handlePressAdd}
-        activeOpacity={0.8}
-      >
-        <PretendardText style={styles.buttonText}>배낭 추가</PretendardText>
-      </TouchableOpacity>
+        variant='primary'
+        style={styles.floatingButton}
+      />
       <BagAddActionSheetView
         visible={shouldShowActionSheet}
         onCreate={handleSelectCreate}
@@ -248,24 +242,6 @@ const styles = StyleSheet.create({
       android: 0,
       default: 80,
     }),
-    borderRadius: 32,
-    borderWidth: 1,
-    borderColor: 'black',
-    height: 48,
-    backgroundColor: 'black',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    width: 127,
-    gap: 6,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontFamily: 'Pretendard-Regular',
-    textAlignVertical: 'center',
   },
 });
 

@@ -1,8 +1,8 @@
 import { FC } from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
-import PretendardText from '@/components/PretendardText';
+import FloatingPillButton from '@/components/FloatingPillButton';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PackingButtonState from '@/model/bag-detail/PackingButtonState';
 
@@ -33,16 +33,15 @@ const BagPackingFloatingButtonView: FC<Props> = ({ bagDetail }) => {
   }
 
   return (
-    <TouchableOpacity
-      style={styles.button}
+    <FloatingPillButton
+      label={getLabel(bagDetail)}
       onPress={handlePress}
-      activeOpacity={0.8}
-    >
-      <Ionicons name='bag-check-outline' size={18} color='white' />
-      <PretendardText style={styles.label} weight='bold'>
-        {getLabel(bagDetail)}
-      </PretendardText>
-    </TouchableOpacity>
+      variant='primary'
+      style={styles.button}
+      leadingIcon={
+        <Ionicons name='bag-check-outline' size={18} color='white' />
+      }
+    />
   );
 };
 
@@ -52,23 +51,11 @@ const styles = StyleSheet.create({
     right: 20,
     // 하단 고정 `수정하기` 바(약 72pt) 위에 뜨도록 오프셋을 준다.
     bottom: 84,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    minHeight: 44,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 24,
-    backgroundColor: 'black',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 4,
-  },
-  label: {
-    color: 'white',
-    fontSize: 15,
   },
 });
 
