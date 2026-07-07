@@ -109,6 +109,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   productInfo: {
+    flex: 1,
     flexDirection: 'column',
   },
   companyText: {
