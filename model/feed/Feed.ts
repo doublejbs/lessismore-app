@@ -437,12 +437,84 @@ class Feed implements GearRowActions {
 
   public async registerSingle(gear: Gear): Promise<boolean> {
     // FD-2: 담기 후에도 items를 리셋하지 않아 스크롤 위치를 유지한다.
-    return this.searchWarehouse.registerSingle(gear);
+    // 등록 완료 후 보유 배지만 재동기화한다(전체 reload 금지).
+    return this.searchWarehouse.registerSingle(gear, () =>
+      this.refreshOwnedState()
+    );
   }
 
   public async removeSingle(gear: Gear): Promise<boolean> {
-    // 제거는 SearchWarehouse가 확인 다이얼로그로 처리한다(Browse.ts와 동일 패턴).
-    return this.searchWarehouse.removeSingle(gear);
+    // 제거는 SearchWarehouse가 확인 다이얼로그로 처리하며 실제 제거는 비동기 onConfirm 이후 일어난다(Browse.ts 참고).
+    // Browse는 화면 복귀 시 focus reload로 배지를 맞추지만 피드는 focus reload가 없어,
+    // 제거 확정 콜백에서 보유 배지만 재동기화한다(전체 reload 금지, 스크롤 유지).
+    return this.searchWarehouse.removeSingle(gear, () =>
+      this.refreshOwnedState()
+    );
+  }
+
+  // 창고 추가/제거 후 현재 items의 보유(added) 배지만 동기화한다.
+  // 페이지 재fetch 대신 창고 보유 id 집합을 다시 읽어, added만 갱신된 새 Gear 인스턴스로 in-place 교체한다.
+  // items 배열 길이·순서를 유지하므로 스크롤 위치가 튀지 않는다(FD-2).
+  private async refreshOwnedState() {
+    if (this.items.length === 0) {
+      return;
+    }
+
+    const id = ++this.requestId;
+    const ownedIds = await this.loadOwnedIds();
+
+    if (id !== this.requestId) {
+      return;
+    }
+
+    const synced = this.items.map(gear =>
+      this.withOwnedState(gear, ownedIds.has(gear.getId()))
+    );
+
+    this.setItems(synced);
+  }
+
+  // 창고 보유 장비 id 집합을 읽는다. 비로그인·오류 시 빈 집합.
+  private async loadOwnedIds(): Promise<Set<string>> {
+    if (!this.firebase.isLoggedIn()) {
+      return new Set<string>();
+    }
+
+    try {
+      const owned = await this.gearStore.getList(
+        [GearFilter.All],
+        OrderType.CreatedDesc
+      );
+
+      return new Set(owned.map(gear => gear.getId()));
+    } catch {
+      return new Set<string>();
+    }
+  }
+
+  // added만 바뀐 새 Gear 인스턴스를 만든다(Gear에 mutator를 두지 않기 위함).
+  private withOwnedState(gear: Gear, added: boolean): Gear {
+    if (gear.isAdded() === added) {
+      return gear;
+    }
+
+    return new Gear(
+      gear.getId(),
+      gear.getName(),
+      gear.getCompany(),
+      gear.getWeight(),
+      gear.getImageUrl(),
+      added,
+      gear.getIsCustom(),
+      gear.getCategory(),
+      gear.getUseless(),
+      gear.getUsed(),
+      gear.getBags(),
+      gear.getCreateDate(),
+      gear.getColor(),
+      gear.getCompanyKorean(),
+      gear.getNameKorean()
+    );
   }
 
   public goToGearDetail(gear: Gear) {
