@@ -23,6 +23,7 @@
 | `gear/{gearId}/images/{imageId}` | 장비 공유 이미지 갤러리 | `GearImageStore` |
 | `bag/{bagId}` | 배낭 (소유자 무관 단일 컬렉션) | `BagStore` |
 | `gear-rank/{gearId}` | 장비 인기도 (보유 count) | `GearStore`(증감), `GearRankStore`(조회) |
+| `brand-rank/{brandKey}` | 브랜드 인기도 집계 (보유수 합·제품수) | 탐색 브랜드 디렉토리 (Search SR-8) |
 | `gear-comments/{gearId}` | 장비별 댓글 요약 문서 | `ReplyStore` |
 | `gear-comments/{gearId}/comments/{commentId}` | 최상위 댓글 | `ReplyStore` |
 | `gear-comments/{gearId}/comments/{parentId}/comments/{replyId}` | 답글 (중첩 서브컬렉션) | `ReplyStore` |
@@ -155,6 +156,24 @@
 - **읽기**: 로그인 이전에도 조회하므로 미인증 공개 읽기를 허용해야 한다(`gear`/`gear-rank`와 동일 정책). 보안 규칙에 `config/app` 읽기 허용 추가 필요 — **사용자 콘솔/규칙 배포 작업**.
 - **쓰기**: Firebase 콘솔에서 수동으로만. 클라이언트는 쓰지 않는다.
 - 버전은 app.json `version`(단일 버전 소스)과 같은 체계의 `major.minor.patch` 문자열로 넣는다(예: `1.1.7`).
+
+### DM-14 `brand-rank/{brandKey}` `[제안]`
+
+브랜드 인기도 집계 문서. 탐색 브랜드 디렉토리(Search SR-8)가 `ownerCount desc`로 조회한다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `brandKey` | string | 문서 ID. 정규화된 브랜드 키 (아래 규칙) |
+| `companyKorean` | string | 표시용 한글 브랜드명 |
+| `company` | string | 영문 브랜드명 (없을 수 있음) |
+| `ownerCount` | number | 이 브랜드 소속 장비들의 `gear-rank.count` **합** = 사용자 보유수 합계 (= 인기순 정렬 키) |
+| `gearCount` | number | 이 브랜드의 카탈로그 장비 수 (`gear-rank` 문서가 있는 장비 기준) |
+| `updatedAt` | timestamp | 마지막 갱신 시각 |
+
+- **brandKey 정규화**: `companyKorean`(없으면 `company`)를 trim + 소문자화한 값. 표시는 항상 `companyKorean || company`. 둘 다 없으면 집계에서 제외.
+- **유지 방식**: `GearStore.register`/`remove`의 gear-rank 증감 트랜잭션에서 해당 장비의 `brand-rank/{brandKey}`도 `ownerCount`를 `increment(±1)`한다(카탈로그 장비 `isCustom === false`만, gear-rank와 동일 조건). 문서 없으면 생성, `ownerCount ≤ 1`에서 -1이면 삭제(gear-rank 규칙과 대칭).
+- **초기 백필**: 기존 데이터는 스크립트 1회로 `gear-rank` × `gear`(company)를 조인·브랜드별 합산해 생성한다. 앱 Firestore 쓰기이므로 **클라이언트 SDK + public config**로 작성(admin 키 불필요, `gear-rank`처럼 미인증 쓰기 허용 경로). 변경 전 백업 JSON 저장([DM-12](#7-운영-스크립트-dm-12) 관례).
+- **읽기 규칙**: 브랜드 디렉토리는 로그인 사용자 화면이나, `gear-rank`와 동일하게 공개 읽기 허용을 둔다(보안 규칙 작업).
 
 ## 4. Storage 경로 (DM-9)
 
