@@ -96,7 +96,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
       toValue: 1,
       duration: OPEN_DURATION,
       easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start();
   }, [visible, brandDirectory, progress, dragY, feed]);
 
@@ -111,7 +111,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
       toValue: 0,
       duration: CLOSE_DURATION,
       easing: Easing.in(Easing.cubic),
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start(() => {
       isClosing.current = false;
       dragY.setValue(0);
@@ -132,7 +132,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
       toValue: SHEET_SLIDE_DISTANCE,
       duration: CLOSE_DURATION,
       easing: Easing.in(Easing.cubic),
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start(() => {
       isClosing.current = false;
       progress.setValue(0);
@@ -166,13 +166,13 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
 
         Animated.spring(dragY, {
           toValue: 0,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }).start();
       },
       onPanResponderTerminate: () => {
         Animated.spring(dragY, {
           toValue: 0,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }).start();
       },
     })
