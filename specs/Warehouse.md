@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | as-built (2026-06-10 코드 기준) |
+| 상태 | as-built (2026-07-07 코드 기준) |
 | ID 프리픽스 | `WH` |
 | 주요 코드 | `app/(tabs)/index.tsx`, `components/warehouse/`, `model/warehouse/`, `model/order/`, `model/filter/FilterManager.ts` |
 | 관련 스펙 | [DataModel.md](DataModel.md), [GearEdit.md](GearEdit.md), [GearDetail.md](GearDetail.md) |
@@ -50,7 +50,7 @@ app/(tabs)/index.tsx → WarehouseWrapper → WarehouseScreen
 - 한 번에 하나만 선택된다 — 다른 필터 선택 시 기존 선택은 해제된다.
 - 선택된 필터를 다시 눌러 해제하면 자동으로 `전체`가 선택된다.
 - 필터 적용은 Firestore 쿼리(`where('category', 'in', …)`)로 수행한다.
-- 필터 영역에 현재 목록의 장비 개수를 표시한다.
+- 필터 영역에 현재 목록의 장비 개수와 **총 무게**를 `총 N개 · X.Xkg` 형식으로 표시한다. 총 무게는 `Warehouse.getTotalWeight()`(현재 필터 목록의 무게 합, 그램)로 계산하고 1000g 이상이면 kg로 환산(`(g/1000).toFixed(1)kg`), 미만이면 `{g}g`. 무게 합이 0이면 무게 부분은 생략.
 - 창고가 완전히 빈 상태(WH-6)에서는 필터 영역을 렌더하지 않는다.
 
 ### WH-3 정렬
