@@ -9,13 +9,12 @@ interface Props {
 }
 
 // 브랜드 디렉토리와 탐색 홈 브랜드 미리보기가 공유하는 브랜드 행.
-// 이름 + `보유 n · 제품 n` 보조 라벨 + 하단 구분선으로 밀도를 통일한다.
+// 이름 + `제품 n` 보조 라벨 + 하단 구분선으로 밀도를 통일한다.
+// 보유 수(ownerCount)는 정렬 키로만 쓰고 노출하지 않는다.
 const BrandRowView: FC<Props> = ({ brand, onPress }) => {
   const name = brand.companyKorean || brand.company;
   const meta =
-    typeof brand.gearCount === 'number'
-      ? `보유 ${brand.ownerCount} · 제품 ${brand.gearCount}`
-      : `보유 ${brand.ownerCount}`;
+    typeof brand.gearCount === 'number' ? `제품 ${brand.gearCount}` : '';
 
   return (
     <TouchableOpacity
@@ -26,7 +25,9 @@ const BrandRowView: FC<Props> = ({ brand, onPress }) => {
       <PretendardText style={styles.brandName} weight='semibold'>
         {name}
       </PretendardText>
-      <PretendardText style={styles.brandMeta}>{meta}</PretendardText>
+      {meta.length > 0 ? (
+        <PretendardText style={styles.brandMeta}>{meta}</PretendardText>
+      ) : null}
     </TouchableOpacity>
   );
 };
