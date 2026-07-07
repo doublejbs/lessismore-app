@@ -108,9 +108,10 @@
 | `click_feed_card` | 피드 카드 클릭 → 장비 상세 (FD-2) | — |
 | `click_feed_add` | 피드 카드 담기/제거 토글 (FD-2) | `added`: boolean |
 | `click_feed_coupang` | 피드 카드 쿠팡 최저가 링크 (FD-2) | — |
-| `click_feed_filter` | 피드 하단 플로팅 `필터` 버튼 → 필터 시트 (FD-3) | — |
-| `click_feed_filter_apply` | 피드 필터 시트 하단 `확인`(스테이징 일괄 적용, FD-3) | `category`: 카테고리 값 \| `all`, `brand_count`: 선택 브랜드 수, `sort`: 정렬 라벨(추천/인기순/최신순/가벼운순/무거운순) |
-| `click_feed_filter_reset` | 피드 필터 시트 `초기화` (FD-3) | — |
+| `click_feed_brand` | 피드 상단 `브랜드` 진입 버튼 → 브랜드 시트 (FD-3) | — |
+| `click_feed_sort` | 피드 상단 `정렬` 드롭다운 → 정렬 시트 (FD-3) | — |
+| `click_feed_filter_apply` | 피드 필터 적용 — 카테고리 칩 즉시 적용, 브랜드 시트 `확인`, 정렬 시트 선택 (FD-3) | `category`: 카테고리 값 \| `all`, `brand_count`: 선택 브랜드 수, `sort`: 정렬 라벨(추천/인기순/최신순/가벼운순/무거운순) |
+| `click_feed_filter_reset` | 피드 브랜드 시트 `초기화` (FD-3) | — |
 | `click_feed_ranking` | 피드 하단 `인기 순위` 버튼 → 인기 순위 화면 (FD-3) | — |
 | `click_feed_refresh` | 피드 pull-to-refresh (FD-4) | — |
 | `click_readyshot_layout` | 레디샷 레이아웃 전환 (SI-2/SI-3) | `type`: `grid` \| `collage` |

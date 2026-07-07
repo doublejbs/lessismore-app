@@ -348,6 +348,21 @@ class Feed implements GearRowActions {
     await this.reload();
   }
 
+  // FD-3 상단 바 즉시 적용 — 현재 카테고리·브랜드는 유지하고 정렬만 교체한다.
+  public async selectSort(sort: BrowseSort | null) {
+    await this.setFilters(this.filterCategory, this.filterBrands, sort);
+  }
+
+  // FD-3 상단 바 즉시 적용 — 현재 정렬·브랜드는 유지하고 카테고리만 교체한다(재탭/`전체` 해제는 호출측에서 null 전달).
+  public async selectCategory(category: string | null) {
+    await this.setFilters(category, this.filterBrands, this.sort);
+  }
+
+  // FD-3 브랜드 시트 `확인` — 현재 정렬·카테고리는 유지하고 브랜드만 교체한다.
+  public async applyBrands(brands: FeedBrandInterest[]) {
+    await this.setFilters(this.filterCategory, brands, this.sort);
+  }
+
   // 각 버킷의 다음 페이지를 병렬 로드하고(hasMore·큐 잔량 고려) 비율 기반 인터리브를 수행한다.
   private async fetchAndInterleave(id: number): Promise<Gear[]> {
     await this.fetchNextPages(id);
