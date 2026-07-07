@@ -1,12 +1,10 @@
-import { FC, useRef, useState } from 'react';
+import { FC, useState } from 'react';
 import {
   View,
   TouchableOpacity,
   StyleSheet,
   Modal,
   Pressable,
-  useWindowDimensions,
-  Platform,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import Svg, { Path } from 'react-native-svg';
@@ -20,13 +18,6 @@ import {
 interface Props {
   sort: BrowseSort;
   onSelect: (sort: BrowseSort) => void;
-}
-
-interface ButtonPosition {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
 }
 
 const UpArrowIcon = () => (
@@ -53,24 +44,27 @@ const DownArrowIcon = () => (
   </Svg>
 );
 
-const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
-  const { width: screenWidth } = useWindowDimensions();
-  const buttonRef = useRef<View>(null);
-  const [showOptions, setShowOptions] = useState(false);
-  const [buttonPosition, setButtonPosition] = useState<ButtonPosition | null>(
-    null
-  );
+const CheckIcon = () => (
+  <Svg width={20} height={20} viewBox='0 0 20 20' fill='none'>
+    <Path
+      d='M4 10.5L8 14.5L16 5.5'
+      stroke='#0A090B'
+      strokeWidth={2}
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+  </Svg>
+);
 
-  const handleLayout = () => {
-    if (buttonRef.current) {
-      buttonRef.current.measureInWindow((x, y, width, height) => {
-        setButtonPosition({ x, y, width, height });
-      });
-    }
+const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
+  const [showOptions, setShowOptions] = useState(false);
+
+  const handleOpen = () => {
+    setShowOptions(true);
   };
 
-  const handleToggle = () => {
-    setShowOptions(prev => !prev);
+  const handleClose = () => {
+    setShowOptions(false);
   };
 
   const handleSelect = (value: BrowseSort) => {
@@ -79,8 +73,8 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
   };
 
   return (
-    <View style={styles.container} ref={buttonRef} onLayout={handleLayout}>
-      <TouchableOpacity style={styles.button} onPress={handleToggle}>
+    <View style={styles.container}>
+      <TouchableOpacity style={styles.button} onPress={handleOpen}>
         <PretendardText style={styles.buttonText} weight='bold'>
           {getBrowseSortName(sort)}
         </PretendardText>
@@ -90,41 +84,45 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
       <Modal
         visible={showOptions}
         transparent={true}
-        animationType='fade'
-        onRequestClose={handleToggle}
+        animationType='slide'
+        onRequestClose={handleClose}
       >
-        <Pressable style={styles.overlay} onPress={handleToggle}>
-          <View
-            style={[
-              styles.dropdown,
-              buttonPosition && {
-                position: 'absolute',
-                top: buttonPosition.y + buttonPosition.height + 4,
-                right:
-                  screenWidth - (buttonPosition.x + buttonPosition.width),
-              },
-            ]}
-          >
-            {BROWSE_SORT_OPTIONS.map(option => (
-              <TouchableOpacity
-                key={option.sort}
-                style={styles.dropdownItem}
-                onPress={() => handleSelect(option.sort)}
-              >
-                <PretendardText
-                  style={[
-                    styles.dropdownText,
-                    {
-                      color:
-                        option.sort === sort ? 'rgb(204, 241, 36)' : '#505967',
-                    },
-                  ]}
-                >
-                  {option.name}
-                </PretendardText>
-              </TouchableOpacity>
-            ))}
-          </View>
+        <Pressable style={styles.overlay} onPress={handleClose}>
+          <Pressable style={styles.sheet} onPress={e => e.stopPropagation()}>
+            <View style={styles.handle}>
+              <View style={styles.handleBar} />
+            </View>
+
+            <PretendardText style={styles.title} weight='bold'>
+              정렬
+            </PretendardText>
+
+            <View style={styles.optionList}>
+              {BROWSE_SORT_OPTIONS.map(option => {
+                const isSelected = option.sort === sort;
+
+                return (
+                  <TouchableOpacity
+                    key={option.sort}
+                    style={styles.optionItem}
+                    onPress={() => handleSelect(option.sort)}
+                    activeOpacity={0.7}
+                  >
+                    <PretendardText
+                      style={[
+                        styles.optionText,
+                        { color: isSelected ? '#0A090B' : '#505967' },
+                      ]}
+                      weight={isSelected ? 'bold' : 'medium'}
+                    >
+                      {option.name}
+                    </PretendardText>
+                    {isSelected ? <CheckIcon /> : null}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </Pressable>
         </Pressable>
       </Modal>
     </View>
@@ -133,7 +131,6 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
 
 const styles = StyleSheet.create({
   container: {
-    position: 'relative',
     height: 32,
   },
   button: {
@@ -153,32 +150,43 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
   },
-  dropdown: {
+  sheet: {
     backgroundColor: 'white',
-    borderRadius: 8,
-    minWidth: 120,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'rgba(0, 0, 0, 0.1)',
-        shadowOffset: {
-          width: 0,
-          height: 4,
-        },
-        shadowOpacity: 1,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 8,
-        borderWidth: 1,
-        borderColor: '#E5E5E5',
-      },
-    }),
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 32,
   },
-  dropdownItem: {
-    padding: 10,
+  handle: {
+    alignItems: 'center',
+    paddingTop: 8,
   },
-  dropdownText: {
+  handleBar: {
+    width: 36,
+    height: 4,
+    backgroundColor: '#D1D1D6',
+    borderRadius: 2,
+  },
+  title: {
+    fontSize: 18,
+    lineHeight: 26,
+    color: '#0A090B',
+    paddingVertical: 16,
+  },
+  optionList: {
+    flexDirection: 'column',
+  },
+  optionItem: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+  },
+  optionText: {
     fontSize: 16,
     lineHeight: 24,
     includeFontPadding: false,
