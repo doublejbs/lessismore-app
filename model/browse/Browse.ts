@@ -77,7 +77,7 @@ class Browse implements GearRowActions {
   private buildBrowseParams(page: number) {
     const params: {
       category?: string;
-      brand?: string;
+      brands?: string[];
       sort: BrowseSort;
       page: number;
     } = {
@@ -90,7 +90,8 @@ class Browse implements GearRowActions {
     }
 
     if (this.brand) {
-      params.brand = this.brand;
+      // 단일 브랜드 콜사이트 — browse 다중 브랜드 시그니처에 맞춰 길이 1 배열로 전달(SR-7).
+      params.brands = [this.brand];
     }
 
     return params;

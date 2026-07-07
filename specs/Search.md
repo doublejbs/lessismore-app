@@ -2,9 +2,9 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | as-built (탐색 SR-6~9는 2026-07-07 구현 기준) |
+| 상태 | as-built (SR-7~9는 2026-07-07 구현 기준. SR-6 탐색 홈은 피드([Feed.md](Feed.md))가 대체해 폐기) |
 | ID 프리픽스 | `SR` |
-| 주요 코드 | `app/(tabs)/search.tsx`, `app/search/`, `app/browse/`, `app/brand-directory/`, `app/not-login-search/`, `components/search/`, `components/search-page/`, `components/browse/`, `model/search/`, `model/browse/` |
+| 주요 코드 | `app/(tabs)/search.tsx`, `app/search/`, `app/browse/`, `app/brand-directory/`, `app/popular-ranking/`, `app/not-login-search/`, `components/search/`, `components/search-page/`, `components/browse/`, `components/feed/PopularRankingWrapper.tsx`, `model/search/`, `model/browse/` |
 | 관련 스펙 | [DataModel.md](DataModel.md), [GearDetail.md](GearDetail.md), [Bag.md](Bag.md), [Auth.md](Auth.md) |
 
 ## 1. 개요
@@ -21,6 +21,7 @@
 | `/not-login-search` | 비로그인 사용자 | 웹뷰로 `https://useless.my/search` 로드, iOS는 모달 프레젠테이션 |
 | `/browse?category=&brand=&sort=` | 전체 | 카테고리·브랜드 목록 + 정렬 (SR-7) |
 | `/brand-directory` | 전체 | 브랜드 디렉토리 인기순 (SR-8) |
+| `/popular-ranking` | 전체 | 인기 장비 순위 (SR-4, 피드 `인기 순위` 버튼으로 진입) |
 
 ## 3. 요구사항
 
@@ -51,11 +52,13 @@
 - 체크 배지 클릭: `모든 배낭에서 장비가 제거됩니다` 경고 확인 후 창고에서 제거(`GearStore.remove`).
 - 추가/제거 시 `gear-rank` count 증감([DataModel.md](DataModel.md) DM-6) 후 현재 검색을 재실행해 배지를 갱신한다.
 
-### SR-4 인기 장비 순위 (키워드 없음 상태)
+### SR-4 인기 장비 순위
+
+> 진입 경로 변경(2026-07-07): 키워드-빈 상태는 피드([Feed.md](Feed.md))가 대체했고, 인기 순위는 **피드 하단 `인기 순위` 플로팅 버튼 → 전용 화면**(신규 라우트)으로 진입한다(FD-3).
 
 **수용 기준**
 
-- 키워드가 비어 있으면 `인기 장비 순위`를 표시한다.
+- 피드의 `인기 순위` 버튼 탭 → 인기 장비 순위 화면(뒤로가기 헤더 포함).
 - 카테고리 탭 8개: 전체/텐트/침낭/배낭/매트/가구/랜턴/조리.
 - `gear-rank`를 `count desc limit 10`으로 조회하고(카테고리 선택 시 `where('category'==…)`), 상위 3위는 강조 배지.
 - 순위 행 클릭 → 장비 상세.
@@ -70,18 +73,9 @@
 
 > **참고(코드 실태)**: `/not-login-search`로 이동하는 네비게이션 호출이 현재 코드에 없다(탐색 탭은 로그인·비로그인 모두 네이티브 `SearchPageView`). 아래 탐색 기능(SR-6~9)도 네이티브로 구현하고, 비로그인은 `+`만 로그인 모달로 게이트한다(SR-3 패턴).
 
-### SR-6 탐색 홈 (키워드 없음 상태)
+### SR-6 탐색 홈 (키워드 없음 상태) `[폐기]`
 
-키워드가 비어 있을 때 화면을 **둘러보기 홈**으로 구성한다. 인기 순위만 있던 기존 상태(SR-4)를 확장한다.
-
-**수용 기준**
-
-- 다음 섹션을 노출한다(순서는 UX 리뷰에서 조정 가능). 실제 구현 순서는 **카테고리별 탐색 → 브랜드별 탐색 → 신제품 → 인기 장비 순위**다:
-  1. **인기 장비 순위** — 기존 SR-4 그대로 유지.
-  2. **카테고리별 탐색** — 카테고리 진입(칩/그리드). 탭 → SR-7 목록(해당 카테고리).
-  3. **브랜드별 탐색** — `브랜드 전체 보기` 진입 → SR-8 디렉토리. (상단에 인기 브랜드 일부 미리 노출 가능.)
-  4. **신제품** — SR-9 최근 추가 캐러셀.
-- 키워드 입력이 시작되면 기존 검색 결과(SR-1/2/3)로 전환한다.
+피드([Feed.md](Feed.md) FD-1~5)가 탐색 홈을 대체함 (2026-07-07). 카테고리·브랜드·신제품 진입은 피드 필터로 흡수, SR-7/SR-8 화면·라우트는 유지.
 
 ### SR-7 카테고리·브랜드 장비 목록 + 정렬
 
@@ -140,7 +134,7 @@
 - [ ] 체크 배지 → 제거 경고 → 창고·배낭 모두에서 제거
 - [ ] 추가/제거가 인기 순위 count에 반영
 - [ ] 비로그인: 웹뷰 검색 노출, 네이티브 `+`는 로그인 모달
-- [x] 탐색 홈: 카테고리 그리드·브랜드 미리보기(인기순)·신제품 캐러셀 노출 (iOS/Android 2026-07-07 확인)
+- [~] 탐색 홈(SR-6): 폐기 — 키워드 빈 상태는 피드([Feed.md](Feed.md))가 렌더한다. 검증은 Feed.md 체크리스트 참조
 - [x] 목록: 카테고리·브랜드 필터 + 4개 정렬 동작 (가벼운순 오름차순 실측 확인)
 - [x] 브랜드 디렉토리: brand-rank 인기순·보유/제품 수 표시
 - [x] 비로그인 목록 `+` → 로그인 모달 (Android 확인)

@@ -1,9 +1,11 @@
 import { FC, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Gear from '@/model/gear/Gear';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import BagDetailGearView from './BagDetailGearView';
 import BagDetail from '@/model/bag-detail/BagDetail';
+import PretendardText from '@/components/PretendardText';
+import { Color } from '@/constants/DesignTokens';
 
 interface Props {
   category: WarehouseFilter;
@@ -28,7 +30,9 @@ const BagDetailCategoryView: FC<Props> = ({
 
   return (
     <View ref={categoryRef} style={styles.container}>
-      <Text style={styles.categoryTitle}>{category.getName()}</Text>
+      <PretendardText style={styles.categoryTitle} weight='bold'>
+        {category.getName()}
+      </PretendardText>
       <View style={styles.gearList}>
         {gears.map(gear => (
           <BagDetailGearView
@@ -48,9 +52,8 @@ const styles = StyleSheet.create({
   },
   categoryTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
     marginBottom: 12,
-    color: '#333',
+    color: Color.textTertiary,
   },
   gearList: {
     gap: 16,

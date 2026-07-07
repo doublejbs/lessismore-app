@@ -1,5 +1,6 @@
 import React, { FC, useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
+import { Color } from '@/constants/DesignTokens';
 
 const SkeletonItem: FC = () => {
   const opacity = useRef(new Animated.Value(0.3)).current;
@@ -81,7 +82,7 @@ const styles = StyleSheet.create({
   skeletonImage: {
     width: 80,
     height: 80,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: Color.chipInactiveBg,
     borderRadius: 4,
     minWidth: 80,
   },
@@ -115,31 +116,31 @@ const styles = StyleSheet.create({
   skeletonCompanyText: {
     height: 12,
     width: 60,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: Color.chipInactiveBg,
     borderRadius: 4,
   },
   skeletonUsedRateBadge: {
     height: 16,
     width: 70,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: Color.chipInactiveBg,
     borderRadius: 8,
   },
   skeletonNameText: {
     height: 16,
     width: '80%',
-    backgroundColor: '#E0E0E0',
+    backgroundColor: Color.chipInactiveBg,
     borderRadius: 4,
   },
   skeletonColorText: {
     height: 14,
     width: '50%',
-    backgroundColor: '#E0E0E0',
+    backgroundColor: Color.chipInactiveBg,
     borderRadius: 4,
   },
   skeletonWeightText: {
     height: 14,
     width: 40,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: Color.chipInactiveBg,
     borderRadius: 4,
   },
 });

@@ -2,13 +2,14 @@ import { observer } from 'mobx-react-lite';
 import { FC } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   Modal,
   GestureResponderEvent,
 } from 'react-native';
 import AlertManager from '@/model/alert/AlertManager';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   alertManager: AlertManager;
@@ -44,19 +45,25 @@ const AlertView: FC<Props> = ({ alertManager }) => {
     >
       <View style={styles.overlay}>
         <View style={styles.alertContainer}>
-          <Text style={styles.messageText}>{message}</Text>
+          <PretendardText weight='bold' style={styles.messageText}>
+            {message}
+          </PretendardText>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={handleClickCancel}
             >
-              <Text style={styles.cancelButtonText}>취소하기</Text>
+              <PretendardText weight='medium' style={styles.cancelButtonText}>
+                취소하기
+              </PretendardText>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.confirmButton}
               onPress={handleClickConfirm}
             >
-              <Text style={styles.confirmButtonText}>{confirmText}</Text>
+              <PretendardText weight='medium' style={styles.confirmButtonText}>
+                {confirmText}
+              </PretendardText>
             </TouchableOpacity>
           </View>
         </View>
@@ -68,23 +75,21 @@ const AlertView: FC<Props> = ({ alertManager }) => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: Color.overlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
   alertContainer: {
     width: 350,
-    backgroundColor: 'white',
-    borderRadius: 16,
+    backgroundColor: Color.background,
+    borderRadius: Radius.modal,
     padding: 24,
     paddingBottom: 20,
   },
   messageText: {
     fontSize: 20,
-    fontWeight: 'bold',
     marginBottom: 24,
-    fontFamily: 'Pretendard-Bold',
-    color: '#000000',
+    color: Color.textPrimary,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -93,27 +98,25 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#EEEEEE',
-    borderRadius: 10,
+    backgroundColor: Color.surfaceMuted,
+    borderRadius: Radius.card,
     justifyContent: 'center',
     alignItems: 'center',
   },
   cancelButtonText: {
     fontSize: 16,
-    color: 'black',
-    fontFamily: 'Pretendard-Medium',
+    color: Color.textPrimary,
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: 'black',
-    borderRadius: 10,
+    backgroundColor: Color.textPrimary,
+    borderRadius: Radius.card,
     justifyContent: 'center',
     alignItems: 'center',
   },
   confirmButtonText: {
     fontSize: 16,
-    color: 'white',
-    fontFamily: 'Pretendard-Medium',
+    color: '#FFFFFF',
   },
 });
 

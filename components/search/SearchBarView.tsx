@@ -3,6 +3,7 @@ import { View, StyleSheet, Pressable } from 'react-native';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import { observer } from 'mobx-react-lite';
 import SearchBarInputView, { SearchBarInputHandle } from './SearchInputView';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
@@ -33,7 +34,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 16,
     height: 80,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     gap: 4,
   },
   backButton: {
@@ -45,8 +46,8 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: '#F6F6F6',
+    borderRadius: Radius.input,
+    backgroundColor: Color.inputBg,
   },
 });
 

@@ -26,7 +26,8 @@ import app from '@/model/app/App';
 interface Props {
   searchWarehouse: SearchWarehouse;
   bag: Bag;
-  embedded?: boolean;
+  // 전용 화면(PopularRankingWrapper)이 자체 헤더를 두므로 내부 타이틀은 숨길 수 있다.
+  showTitle?: boolean;
 }
 
 interface CategoryItem {
@@ -53,7 +54,7 @@ const categories: CategoryItem[] = SEARCH_RANK_CATEGORY_FILTERS.map(filter => {
 const SearchTopKeywordsView: FC<Props> = ({
   searchWarehouse,
   bag,
-  embedded = false,
+  showTitle = true,
 }) => {
   const searchRank = searchWarehouse.getSearchRank();
   const [selectedCategory, setSelectedCategory] = useState<GearFilter>(
@@ -124,119 +125,9 @@ const SearchTopKeywordsView: FC<Props> = ({
     setShowModal(false);
   };
 
-  const rankingContent = (
-    <View style={styles.listContainer}>
-      {isLoading ? (
-        <SearchSkeletonView count={10} />
-      ) : gears.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>아직 등록된 장비가 없습니다</Text>
-        </View>
-      ) : (
-        gears.map((gear, index) => (
-          <Pressable
-            key={gear.getId()}
-            style={({ pressed }) => [
-              styles.rankItem,
-              pressed && styles.rankItemPressed,
-            ]}
-            onPress={() => handleGearPress(gear)}
-          >
-            <View style={[styles.rankBadge, index < 3 && styles.rankBadgeTop3]}>
-              <Text
-                style={[styles.rankNumber, index < 3 && styles.rankNumberTop3]}
-              >
-                {index + 1}
-              </Text>
-            </View>
-
-            {!!gear.getImageUrl() && (
-              <View style={styles.imageContainer}>
-                <Image
-                  source={{ uri: gear.getImageUrl() }}
-                  style={styles.gearImage}
-                  resizeMode='contain'
-                />
-              </View>
-            )}
-
-            <View style={styles.gearInfo}>
-              {gear.getDisplayCompany() && (
-                <Text style={styles.gearCompany} numberOfLines={1}>
-                  {gear.getDisplayCompany()}
-                </Text>
-              )}
-              <Text style={styles.gearName} numberOfLines={1}>
-                {gear.getDisplayName()}
-              </Text>
-              <Text style={styles.gearCount}>{gear.getWeight()}g</Text>
-            </View>
-
-            <View style={styles.buttonContainer}>
-              {loadingGearIds.has(gear.getId()) ? (
-                <View style={styles.loadingContainer}>
-                  <LoadingView duration={1000} />
-                </View>
-              ) : gear.isAdded() ? (
-                <TouchableOpacity
-                  style={styles.ownedBadge}
-                  onPress={e => handleRemovePress(e, gear)}
-                >
-                  <Ionicons name='checkmark' size={16} color='#fff' />
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={styles.addButton}
-                  onPress={e => handleAddPress(e, gear)}
-                >
-                  <Ionicons name='add' size={16} color='#000' />
-                </TouchableOpacity>
-              )}
-            </View>
-          </Pressable>
-        ))
-      )}
-    </View>
-  );
-
-  const modal = selectedGear && (
-    <SearchGearAddToBagModalView
-      visible={showModal}
-      onClose={handleCloseModal}
-      gear={selectedGear}
-      bag={bag}
-    />
-  );
-
-  if (embedded) {
-    return (
-      <View style={styles.embeddedContainer}>
-        <Text style={styles.title}>인기 장비 순위</Text>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoryScrollView}
-          contentContainerStyle={styles.categoryScrollContent}
-        >
-          {categories.map(category => (
-            <CategoryChipView
-              key={category.filter}
-              label={category.name}
-              selected={selectedCategory === category.filter}
-              onPress={() => handleCategoryPress(category.filter)}
-            />
-          ))}
-        </ScrollView>
-        {rankingContent}
-        {modal}
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>인기 장비 순위</Text>
+      {showTitle ? <Text style={styles.title}>인기 장비 순위</Text> : null}
 
       {/* 카테고리 필터 */}
       <ScrollView
@@ -353,9 +244,6 @@ const SearchTopKeywordsView: FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  embeddedContainer: {
-    width: '100%',
   },
   title: {
     fontSize: 18,

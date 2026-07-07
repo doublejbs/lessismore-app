@@ -1,10 +1,12 @@
 import { FC } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -34,9 +36,11 @@ const BagDetailMemoView: FC<Props> = ({ bagDetail }) => {
                 <Ionicons
                   name='document-text-outline'
                   size={20}
-                  color='#191F28'
+                  color={Color.textPrimary}
                 />
-                <Text style={styles.titleText}>{memo}</Text>
+                <PretendardText style={styles.titleText} weight='medium'>
+                  {memo}
+                </PretendardText>
               </View>
             </>
           ) : (
@@ -44,14 +48,16 @@ const BagDetailMemoView: FC<Props> = ({ bagDetail }) => {
               <Ionicons
                 name='document-text-outline'
                 size={20}
-                color='#191F28'
+                color={Color.textPrimary}
               />
-              <Text style={styles.titleText}>메모 작성하기</Text>
+              <PretendardText style={styles.titleText} weight='medium'>
+                메모 작성하기
+              </PretendardText>
             </View>
           )}
         </View>
         <View style={styles.iconContainer}>
-          <Ionicons name='chevron-forward' size={24} color='#191F28' />
+          <Ionicons name='chevron-forward' size={24} color={Color.textPrimary} />
         </View>
       </TouchableOpacity>
     </View>
@@ -60,16 +66,16 @@ const BagDetailMemoView: FC<Props> = ({ bagDetail }) => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: Spacing.screenH,
     paddingVertical: 12,
     marginBottom: 8,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   touchableContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: 6,
+    borderRadius: Radius.card,
   },
   textContainer: {
     flex: 1,
@@ -81,12 +87,11 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontSize: 17,
-    fontWeight: '500',
-    color: '#191F28',
+    color: Color.textPrimary,
   },
   memoContent: {
     fontSize: 15,
-    color: '#666',
+    color: Color.textTertiary,
     marginTop: 8,
     lineHeight: 20,
   },

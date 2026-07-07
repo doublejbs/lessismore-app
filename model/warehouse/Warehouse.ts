@@ -114,6 +114,10 @@ class Warehouse {
     return this.gears;
   }
 
+  public getTotalWeight() {
+    return this.gears.reduce((sum, gear) => sum + (Number(gear.getWeight()) || 0), 0);
+  }
+
   public mapFilters<R>(callback: (filter: WarehouseFilter) => R) {
     return this.filterManager.mapFilters(callback);
   }

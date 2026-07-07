@@ -86,11 +86,11 @@ class SearchStore {
 
   public async browse(params: {
     category?: string;
-    brand?: string;
+    brands?: string[];
     sort: BrowseSort;
     page: number;
   }): Promise<{ gears: Gear[]; hasMore: boolean }> {
-    const { category, brand, sort, page } = params;
+    const { category, brands, sort, page } = params;
 
     const facetFilters: string[][] = [];
 
@@ -98,9 +98,15 @@ class SearchStore {
       facetFilters.push([`category:${category}`]);
     }
 
-    if (brand) {
-      // 브랜드는 companyKorean 또는 company facet(OR) — companyKorean 없는 영문 브랜드도 매칭.
-      facetFilters.push([`companyKorean:${brand}`, `company:${brand}`]);
+    if (brands && brands.length > 0) {
+      // 복수 브랜드는 하나의 OR 그룹 — 모든 브랜드의 companyKorean·company facet을 같은 내부 배열에 나열한다.
+      // companyKorean 없는 영문 브랜드도 매칭되며, 여러 브랜드는 서로 OR로 묶인다(FD-3).
+      const brandFacets = brands.flatMap(brand => [
+        `companyKorean:${brand}`,
+        `company:${brand}`,
+      ]);
+
+      facetFilters.push(brandFacets);
     }
 
     const { results } = await this.searchClient.search<GearType>({

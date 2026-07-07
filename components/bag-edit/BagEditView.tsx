@@ -1,8 +1,9 @@
 import React, { FC, useCallback } from 'react';
-import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '../PretendardText';
+import FloatingPillButton from '../FloatingPillButton';
 import BagEditWarehouseView from './BagEditWarehouseView';
 import BagEditWarehouseFiltersView from './BagEditWarehouseFiltersView';
 import BagEdit from '../../model/bag-edit/BagEdit';
@@ -10,6 +11,7 @@ import app from '../../model/app/App';
 import BagEditHeaderView from './BagEditHeaderView';
 import Layout from '../Layout';
 import { useFocusEffect } from 'expo-router';
+import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 
 interface Props {
   bagEdit: BagEdit;
@@ -42,31 +44,35 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
   } else {
     return (
       <Layout paddingHorizontal={0}>
-        <View style={{ paddingHorizontal: 20 }}>
+        <View style={{ paddingHorizontal: Spacing.screenH }}>
           <BagEditHeaderView
             weight={weight.toString()}
             onPressBack={handlePressBack}
           />
         </View>
         <View style={styles.mainContent}>
-          <View style={[styles.titleSection, { paddingHorizontal: 20 }]}>
-            <Text style={styles.titleText}>내 장비</Text>
-            <TouchableOpacity
-              style={styles.addButton}
+          <View style={[styles.titleSection, { paddingHorizontal: Spacing.screenH }]}>
+            <PretendardText style={styles.titleText} weight='bold'>
+              내 장비
+            </PretendardText>
+            <FloatingPillButton
+              label='장비 추가'
               onPress={handlePressAddGear}
-              activeOpacity={0.7}
-            >
-              <View style={styles.addIconContainer}>
-                <Svg width={14} height={14} viewBox='0 0 14 14' fill='none'>
-                  <Path d='M14 8H8V14H6V8H0V6H6V0H8V6H14V8Z' fill='black' />
-                </Svg>
-              </View>
-              <PretendardText style={styles.addButtonText}>
-                장비 추가
-              </PretendardText>
-            </TouchableOpacity>
+              variant='secondary'
+              style={styles.addButton}
+              leadingIcon={
+                <View style={styles.addIconContainer}>
+                  <Svg width={14} height={14} viewBox='0 0 14 14' fill='none'>
+                    <Path
+                      d='M14 8H8V14H6V8H0V6H6V0H8V6H14V8Z'
+                      fill={Color.textPrimary}
+                    />
+                  </Svg>
+                </View>
+              }
+            />
           </View>
-          <View style={{ paddingHorizontal: 20 }}>
+          <View style={{ paddingHorizontal: Spacing.screenH }}>
             <BagEditWarehouseFiltersView bagEdit={bagEdit} />
           </View>
           <View style={styles.warehouseContainer}>
@@ -79,7 +85,7 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
             style={styles.confirmButton}
             onPress={handlePressConfirm}
           >
-            <PretendardText style={styles.confirmButtonText}>
+            <PretendardText style={styles.confirmButtonText} weight='medium'>
               확인
             </PretendardText>
           </TouchableOpacity>
@@ -92,7 +98,7 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   mainContent: {
     flex: 1,
@@ -102,20 +108,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   titleText: {
     fontSize: 20,
-    fontWeight: 'bold',
+    color: Color.textPrimary,
   },
   addButton: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-    backgroundColor: '#EBEBEB',
-    borderRadius: 26,
+    minHeight: 0,
     paddingVertical: 8,
     paddingHorizontal: 16,
+    gap: 8,
   },
   addIconContainer: {
     width: 14,
@@ -123,30 +126,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  addButtonText: {
-    fontSize: 14,
-    lineHeight: 14,
-  },
   warehouseContainer: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: Spacing.screenH,
   },
   buttonContainer: {
-    paddingTop: 12,
-    paddingHorizontal: 20,
-    backgroundColor: 'white',
+    paddingTop: Spacing.item,
+    paddingHorizontal: Spacing.screenH,
+    backgroundColor: Color.background,
   },
   confirmButton: {
-    backgroundColor: 'black',
+    backgroundColor: Color.chipActiveBg,
     width: '100%',
     padding: 14,
-    borderRadius: 10,
+    borderRadius: Radius.card,
     alignItems: 'center',
   },
   confirmButtonText: {
-    color: 'white',
+    color: Color.background,
     fontSize: 16,
-    fontWeight: '500',
   },
 });
 

@@ -1,14 +1,24 @@
-import { FC, useEffect, useRef, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import {
   View,
   TouchableOpacity,
   StyleSheet,
   Modal,
   Pressable,
-  Animated,
-  Easing,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
+import {
+  GestureHandlerRootView,
+  Gesture,
+  GestureDetector,
+} from 'react-native-gesture-handler';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  runOnJS,
+} from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 import PretendardText from '../PretendardText';
 import BrowseSort from '@/model/search/BrowseSort';
@@ -17,9 +27,14 @@ import {
   getBrowseSortName,
 } from '@/model/browse/BrowseSortLabel';
 
-const SHEET_SLIDE_DISTANCE = 400;
+// 시트가 화면 밖으로 완전히 내려가는 거리(초기/닫힘 translateY).
+const SHEET_OFFSCREEN = 400;
 const OPEN_DURATION = 260;
 const CLOSE_DURATION = 200;
+
+// 드래그 닫기 임계값 — 아래로 이만큼 끌거나(px) 이 속도 이상이면 닫는다.
+const CLOSE_DRAG_THRESHOLD = 120;
+const CLOSE_VELOCITY = 0.5;
 
 interface Props {
   sort: BrowseSort;
@@ -64,58 +79,85 @@ const CheckIcon = () => (
 
 const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
   const [showOptions, setShowOptions] = useState(false);
-  const progress = useRef(new Animated.Value(0)).current;
-  const isClosing = useRef(false);
+  const translateY = useSharedValue(SHEET_OFFSCREEN);
+  const dim = useSharedValue(0);
 
+  // 시트가 열리면 슬라이드 인 + 딤 페이드 인.
   useEffect(() => {
     if (!showOptions) {
       return;
     }
 
-    progress.setValue(0);
-    Animated.timing(progress, {
-      toValue: 1,
-      duration: OPEN_DURATION,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [showOptions, progress]);
+    translateY.value = SHEET_OFFSCREEN;
+    dim.value = 0;
+    translateY.value = withTiming(0, { duration: OPEN_DURATION });
+    dim.value = withTiming(1, { duration: OPEN_DURATION });
+  }, [showOptions, translateY, dim]);
 
-  const runClose = () => {
-    if (isClosing.current) {
-      return;
-    }
-
-    isClosing.current = true;
-
-    Animated.timing(progress, {
-      toValue: 0,
-      duration: CLOSE_DURATION,
-      easing: Easing.in(Easing.cubic),
-      useNativeDriver: true,
-    }).start(() => {
-      isClosing.current = false;
-      setShowOptions(false);
-    });
+  const handleClosed = () => {
+    setShowOptions(false);
   };
+
+  // 닫기: 시트를 화면 밖으로 내리고 딤을 페이드 아웃한 뒤 상태를 정리한다.
+  const close = () => {
+    dim.value = withTiming(0, { duration: CLOSE_DURATION });
+    translateY.value = withTiming(
+      SHEET_OFFSCREEN,
+      { duration: CLOSE_DURATION },
+      finished => {
+        if (finished) {
+          runOnJS(handleClosed)();
+        }
+      }
+    );
+  };
+
+  const panGesture = Gesture.Pan()
+    .onUpdate(event => {
+      translateY.value = Math.max(0, event.translationY);
+    })
+    .onEnd(event => {
+      if (
+        event.translationY > CLOSE_DRAG_THRESHOLD ||
+        event.velocityY > CLOSE_VELOCITY
+      ) {
+        dim.value = withTiming(0, { duration: CLOSE_DURATION });
+        translateY.value = withTiming(
+          SHEET_OFFSCREEN,
+          { duration: CLOSE_DURATION },
+          finished => {
+            if (finished) {
+              runOnJS(handleClosed)();
+            }
+          }
+        );
+
+        return;
+      }
+
+      translateY.value = withSpring(0);
+    });
+
+  const sheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  const dimStyle = useAnimatedStyle(() => ({
+    opacity: dim.value,
+  }));
 
   const handleOpen = () => {
     setShowOptions(true);
   };
 
   const handleClose = () => {
-    runClose();
+    close();
   };
 
   const handleSelect = (value: BrowseSort) => {
     onSelect(value);
-    runClose();
+    close();
   };
-
-  const sheetTranslateY = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [SHEET_SLIDE_DISTANCE, 0],
-  });
 
   return (
     <View style={styles.container}>
@@ -132,51 +174,53 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
         animationType='none'
         onRequestClose={handleClose}
       >
-        <Pressable style={styles.overlayRoot} onPress={handleClose}>
-          <Animated.View
-            style={[styles.overlayDim, { opacity: progress }]}
-            pointerEvents='none'
-          />
-          <Animated.View
-            style={{ transform: [{ translateY: sheetTranslateY }] }}
-          >
-            <Pressable style={styles.sheet} onPress={e => e.stopPropagation()}>
-            <View style={styles.handle}>
-              <View style={styles.handleBar} />
-            </View>
+        <GestureHandlerRootView style={styles.gestureRoot}>
+          <Pressable style={styles.overlayRoot} onPress={handleClose}>
+            <Animated.View
+              style={[styles.overlayDim, dimStyle]}
+              pointerEvents='none'
+            />
+            <Animated.View style={sheetStyle}>
+              <Pressable style={styles.sheet} onPress={e => e.stopPropagation()}>
+                <GestureDetector gesture={panGesture}>
+                  <View style={styles.handle}>
+                    <View style={styles.handleBar} />
+                  </View>
+                </GestureDetector>
 
-            <PretendardText style={styles.title} weight='bold'>
-              정렬
-            </PretendardText>
+                <PretendardText style={styles.title} weight='bold'>
+                  정렬
+                </PretendardText>
 
-            <View style={styles.optionList}>
-              {BROWSE_SORT_OPTIONS.map(option => {
-                const isSelected = option.sort === sort;
+                <View style={styles.optionList}>
+                  {BROWSE_SORT_OPTIONS.map(option => {
+                    const isSelected = option.sort === sort;
 
-                return (
-                  <TouchableOpacity
-                    key={option.sort}
-                    style={styles.optionItem}
-                    onPress={() => handleSelect(option.sort)}
-                    activeOpacity={0.7}
-                  >
-                    <PretendardText
-                      style={[
-                        styles.optionText,
-                        { color: isSelected ? '#0A090B' : '#505967' },
-                      ]}
-                      weight={isSelected ? 'bold' : 'medium'}
-                    >
-                      {option.name}
-                    </PretendardText>
-                    {isSelected ? <CheckIcon /> : null}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-            </Pressable>
-          </Animated.View>
-        </Pressable>
+                    return (
+                      <TouchableOpacity
+                        key={option.sort}
+                        style={styles.optionItem}
+                        onPress={() => handleSelect(option.sort)}
+                        activeOpacity={0.7}
+                      >
+                        <PretendardText
+                          style={[
+                            styles.optionText,
+                            { color: isSelected ? '#0A090B' : '#505967' },
+                          ]}
+                          weight={isSelected ? 'bold' : 'medium'}
+                        >
+                          {option.name}
+                        </PretendardText>
+                        {isSelected ? <CheckIcon /> : null}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </Pressable>
+            </Animated.View>
+          </Pressable>
+        </GestureHandlerRootView>
       </Modal>
     </View>
   );
@@ -201,6 +245,9 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
     textAlignVertical: 'center',
   },
+  gestureRoot: {
+    flex: 1,
+  },
   overlayRoot: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -219,6 +266,7 @@ const styles = StyleSheet.create({
   handle: {
     alignItems: 'center',
     paddingTop: 8,
+    paddingBottom: 8,
   },
   handleBar: {
     width: 36,
