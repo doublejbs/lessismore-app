@@ -41,6 +41,10 @@ class Gear {
     return this.company;
   }
 
+  public getDisplayCompany() {
+    return this.companyKorean || this.company;
+  }
+
   public getWeight() {
     return this.weight;
   }

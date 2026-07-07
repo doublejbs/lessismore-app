@@ -13,7 +13,8 @@ import {
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import SearchSkeletonView from './SearchSkeletonView';
 import GearFilter from '@/model/gear/GearFilter';
-import PretendardText from '../PretendardText';
+import { getGearFilterName } from '@/model/gear/GearFilterName';
+import CategoryChipView from '../browse/CategoryChipView';
 import { Ionicons } from '@expo/vector-icons';
 import LoadingView from '../ui/LoadingView';
 import Gear from '@/model/gear/Gear';
@@ -33,16 +34,21 @@ interface CategoryItem {
   name: string;
 }
 
-const categories: CategoryItem[] = [
-  { filter: GearFilter.All, name: '전체' },
-  { filter: GearFilter.Tent, name: '텐트' },
-  { filter: GearFilter.SleepingBag, name: '침낭' },
-  { filter: GearFilter.Backpack, name: '배낭' },
-  { filter: GearFilter.Mat, name: '매트' },
-  { filter: GearFilter.Furniture, name: '가구' },
-  { filter: GearFilter.Lantern, name: '랜턴' },
-  { filter: GearFilter.Cooking, name: '조리' },
+// SR-4 인기순위 카테고리 탭(고정 8개). 표시명은 GearFilterName 캐논컬 매핑에서 파생한다.
+const SEARCH_RANK_CATEGORY_FILTERS: GearFilter[] = [
+  GearFilter.All,
+  GearFilter.Tent,
+  GearFilter.SleepingBag,
+  GearFilter.Backpack,
+  GearFilter.Mat,
+  GearFilter.Furniture,
+  GearFilter.Lantern,
+  GearFilter.Cooking,
 ];
+
+const categories: CategoryItem[] = SEARCH_RANK_CATEGORY_FILTERS.map(filter => {
+  return { filter, name: getGearFilterName(filter) };
+});
 
 const SearchTopKeywordsView: FC<Props> = ({
   searchWarehouse,
@@ -155,9 +161,9 @@ const SearchTopKeywordsView: FC<Props> = ({
             )}
 
             <View style={styles.gearInfo}>
-              {gear.getCompany() && (
+              {gear.getDisplayCompany() && (
                 <Text style={styles.gearCompany} numberOfLines={1}>
-                  {gear.getCompany()}
+                  {gear.getDisplayCompany()}
                 </Text>
               )}
               <Text style={styles.gearName} numberOfLines={1}>
@@ -214,26 +220,12 @@ const SearchTopKeywordsView: FC<Props> = ({
           contentContainerStyle={styles.categoryScrollContent}
         >
           {categories.map(category => (
-            <TouchableOpacity
+            <CategoryChipView
               key={category.filter}
-              style={[
-                styles.categoryButton,
-                selectedCategory === category.filter &&
-                  styles.categoryButtonSelected,
-              ]}
+              label={category.name}
+              selected={selectedCategory === category.filter}
               onPress={() => handleCategoryPress(category.filter)}
-              activeOpacity={0.7}
-            >
-              <PretendardText
-                style={[
-                  styles.categoryText,
-                  selectedCategory === category.filter &&
-                    styles.categoryTextSelected,
-                ]}
-              >
-                {category.name}
-              </PretendardText>
-            </TouchableOpacity>
+            />
           ))}
         </ScrollView>
         {rankingContent}
@@ -254,26 +246,12 @@ const SearchTopKeywordsView: FC<Props> = ({
         contentContainerStyle={styles.categoryScrollContent}
       >
         {categories.map(category => (
-          <TouchableOpacity
+          <CategoryChipView
             key={category.filter}
-            style={[
-              styles.categoryButton,
-              selectedCategory === category.filter &&
-                styles.categoryButtonSelected,
-            ]}
+            label={category.name}
+            selected={selectedCategory === category.filter}
             onPress={() => handleCategoryPress(category.filter)}
-            activeOpacity={0.7}
-          >
-            <PretendardText
-              style={[
-                styles.categoryText,
-                selectedCategory === category.filter &&
-                  styles.categoryTextSelected,
-              ]}
-            >
-              {category.name}
-            </PretendardText>
-          </TouchableOpacity>
+          />
         ))}
       </ScrollView>
       {/* 순위 리스트 */}
@@ -392,26 +370,6 @@ const styles = StyleSheet.create({
   categoryScrollContent: {
     flexDirection: 'row',
     gap: 8,
-  },
-  categoryButton: {
-    height: 32,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 22,
-    backgroundColor: '#EBEBEB',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  categoryButtonSelected: {
-    backgroundColor: '#000',
-  },
-  categoryText: {
-    fontSize: 14,
-    lineHeight: 16,
-    color: '#000',
-  },
-  categoryTextSelected: {
-    color: '#FFF',
   },
   listScrollView: {
     flex: 1,

@@ -7,6 +7,7 @@ import BrandDirectory from '@/model/browse/BrandDirectory';
 import { BrandRankData } from '@/model/search/BrandRankStore';
 import PretendardText from '../PretendardText';
 import SearchSkeletonView from '../search/SearchSkeletonView';
+import BrandRowView from './BrandRowView';
 import app from '@/model/app/App';
 
 interface Props {
@@ -29,23 +30,7 @@ const BrandDirectoryView: FC<Props> = ({ brandDirectory }) => {
   };
 
   const renderItem = ({ item }: { item: BrandRankData }) => {
-    const name = item.companyKorean || item.company;
-
-    return (
-      <TouchableOpacity
-        style={styles.brandItem}
-        onPress={() => handleBrandPress(item)}
-        activeOpacity={0.7}
-      >
-        <PretendardText style={styles.brandName} weight='semibold'>
-          {name}
-        </PretendardText>
-        <PretendardText style={styles.brandMeta}>
-          {`보유 ${item.ownerCount}`}
-          {typeof item.gearCount === 'number' ? ` · 제품 ${item.gearCount}` : ''}
-        </PretendardText>
-      </TouchableOpacity>
-    );
+    return <BrandRowView brand={item} onPress={() => handleBrandPress(item)} />;
   };
 
   const renderContent = () => {
@@ -125,20 +110,6 @@ const styles = StyleSheet.create({
   },
   skeletonContainer: {
     marginTop: 10,
-  },
-  brandItem: {
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-    gap: 4,
-  },
-  brandName: {
-    fontSize: 16,
-    color: '#000',
-  },
-  brandMeta: {
-    fontSize: 13,
-    color: '#888',
   },
   emptyContainer: {
     flex: 1,

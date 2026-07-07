@@ -13,6 +13,8 @@ import { BrandRankData } from '@/model/search/BrandRankStore';
 import GearFilter from '@/model/gear/GearFilter';
 import { BROWSE_CATEGORIES } from '@/model/browse/BrowseCategory';
 import PretendardText from '../PretendardText';
+import CategoryChipView from './CategoryChipView';
+import BrandRowView from './BrandRowView';
 import app from '@/model/app/App';
 
 interface Props {
@@ -63,9 +65,9 @@ const BrowseHomeSectionsView: FC<Props> = ({ browseHome }) => {
           />
         )}
       </View>
-      {!!item.getCompany() && (
+      {!!item.getDisplayCompany() && (
         <PretendardText style={styles.newArrivalCompany} numberOfLines={1}>
-          {item.getCompany()}
+          {item.getDisplayCompany()}
         </PretendardText>
       )}
       <PretendardText
@@ -87,16 +89,11 @@ const BrowseHomeSectionsView: FC<Props> = ({ browseHome }) => {
         </PretendardText>
         <View style={styles.categoryGrid}>
           {BROWSE_CATEGORIES.map(category => (
-            <TouchableOpacity
+            <CategoryChipView
               key={category.filter}
-              style={styles.categoryChip}
+              label={category.name}
               onPress={() => handleCategoryPress(category.filter)}
-              activeOpacity={0.7}
-            >
-              <PretendardText style={styles.categoryChipText} weight='medium'>
-                {category.name}
-              </PretendardText>
-            </TouchableOpacity>
+            />
           ))}
         </View>
       </View>
@@ -114,16 +111,11 @@ const BrowseHomeSectionsView: FC<Props> = ({ browseHome }) => {
         {brands.length > 0 && (
           <View style={styles.brandPreviewList}>
             {brands.map(brand => (
-              <TouchableOpacity
+              <BrandRowView
                 key={brand.brandKey}
-                style={styles.brandPreviewItem}
+                brand={brand}
                 onPress={() => handleBrandPress(brand)}
-                activeOpacity={0.7}
-              >
-                <PretendardText style={styles.brandPreviewName} weight='medium'>
-                  {brand.companyKorean || brand.company}
-                </PretendardText>
-              </TouchableOpacity>
+              />
             ))}
           </View>
         )}
@@ -182,29 +174,8 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
-  categoryChip: {
-    height: 40,
-    minWidth: 44,
-    paddingHorizontal: 16,
-    borderRadius: 22,
-    backgroundColor: '#F5F5F5',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  categoryChipText: {
-    fontSize: 14,
-    color: '#000',
-  },
   brandPreviewList: {
-    gap: 4,
-  },
-  brandPreviewItem: {
-    height: 44,
-    justifyContent: 'center',
-  },
-  brandPreviewName: {
-    fontSize: 15,
-    color: '#000',
+    width: '100%',
   },
   newArrivalListContent: {
     gap: 12,
