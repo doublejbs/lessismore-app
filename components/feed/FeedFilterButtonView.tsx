@@ -1,9 +1,9 @@
 import { FC, useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import Feed from '@/model/feed/Feed';
-import PretendardText from '@/components/PretendardText';
+import FloatingPillButton from '@/components/FloatingPillButton';
 import FeedFilterSheetView from './FeedFilterSheetView';
 import app from '@/model/app/App';
 
@@ -51,25 +51,18 @@ const FeedFilterButtonView: FC<Props> = ({ feed }) => {
   return (
     <>
       <View style={styles.container} pointerEvents='box-none'>
-        <TouchableOpacity
-          style={styles.filterButton}
+        <FloatingPillButton
+          label={filterLabel}
           onPress={handleOpenFilter}
-          activeOpacity={0.85}
-        >
-          <PretendardText style={styles.filterButtonText} weight='semibold'>
-            {filterLabel}
-          </PretendardText>
-        </TouchableOpacity>
+          variant='primary'
+        />
 
-        <TouchableOpacity
-          style={styles.rankingButton}
+        <FloatingPillButton
+          label={RANKING_LABEL}
           onPress={handleGoToRanking}
-          activeOpacity={0.85}
-        >
-          <PretendardText style={styles.rankingButtonText} weight='semibold'>
-            {RANKING_LABEL}
-          </PretendardText>
-        </TouchableOpacity>
+          variant='secondary'
+          style={styles.rankingButton}
+        />
       </View>
 
       <FeedFilterSheetView
@@ -92,40 +85,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
-  filterButton: {
-    minHeight: 48,
-    borderRadius: 32,
-    backgroundColor: 'black',
-    borderWidth: 1,
-    borderColor: 'black',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-  },
-  filterButtonText: {
-    fontSize: 16,
-    lineHeight: 20,
-    color: 'white',
-  },
   rankingButton: {
-    minHeight: 48,
-    borderRadius: 32,
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: 'black',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
     marginLeft: 8,
-  },
-  rankingButtonText: {
-    fontSize: 16,
-    lineHeight: 20,
-    color: 'black',
   },
 });
 

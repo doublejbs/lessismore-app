@@ -1,7 +1,13 @@
 import React from 'react';
+import { Platform } from 'react-native';
+import { Tabs } from 'expo-router';
 import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
+import { NoAnimationTab } from '@/components/NoAnimationTab';
+import { IconSymbol } from '@/components/ui/IconSymbol';
 
-export default function TabLayout() {
+// iOS는 네이티브 UITabBar(NativeTabs)로 iOS 26 리퀴드 글래스를 받고,
+// Android/Web은 기존 커스텀 JS 탭바(react-navigation)를 그대로 쓴다.
+const NativeTabLayout = () => {
   return (
     <NativeTabs
       tintColor='#000000'
@@ -30,4 +36,68 @@ export default function TabLayout() {
       </NativeTabs.Trigger>
     </NativeTabs>
   );
+};
+
+const JsTabLayout = () => {
+  const screenOptions: any = {
+    tabBarActiveTintColor: 'black',
+    headerShown: false,
+    tabBarButton: NoAnimationTab,
+    tabBarStyle: Platform.select({
+      web: {
+        height: 65,
+        paddingBottom: 8,
+      },
+      default: {},
+    }),
+  };
+
+  return (
+    <Tabs screenOptions={screenOptions}>
+      <Tabs.Screen
+        name='index'
+        options={{
+          title: '창고',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name='house.fill' color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name='search'
+        options={{
+          title: '탐색',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={24} name='magnifyingglass' color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name='bag'
+        options={{
+          title: '배낭',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name='figure.hiking' color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name='info'
+        options={{
+          title: '정보',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name='person.fill' color={color} />
+          ),
+        }}
+      />
+    </Tabs>
+  );
+};
+
+export default function TabLayout() {
+  if (Platform.OS === 'ios') {
+    return <NativeTabLayout />;
+  }
+
+  return <JsTabLayout />;
 }
