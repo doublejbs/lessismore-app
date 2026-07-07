@@ -13,7 +13,8 @@ import {
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import SearchSkeletonView from './SearchSkeletonView';
 import GearFilter from '@/model/gear/GearFilter';
-import PretendardText from '../PretendardText';
+import { getGearFilterName } from '@/model/gear/GearFilterName';
+import CategoryChipView from '../browse/CategoryChipView';
 import { Ionicons } from '@expo/vector-icons';
 import LoadingView from '../ui/LoadingView';
 import Gear from '@/model/gear/Gear';
@@ -25,6 +26,7 @@ import app from '@/model/app/App';
 interface Props {
   searchWarehouse: SearchWarehouse;
   bag: Bag;
+  embedded?: boolean;
 }
 
 interface CategoryItem {
@@ -32,18 +34,27 @@ interface CategoryItem {
   name: string;
 }
 
-const categories: CategoryItem[] = [
-  { filter: GearFilter.All, name: '전체' },
-  { filter: GearFilter.Tent, name: '텐트' },
-  { filter: GearFilter.SleepingBag, name: '침낭' },
-  { filter: GearFilter.Backpack, name: '배낭' },
-  { filter: GearFilter.Mat, name: '매트' },
-  { filter: GearFilter.Furniture, name: '가구' },
-  { filter: GearFilter.Lantern, name: '랜턴' },
-  { filter: GearFilter.Cooking, name: '조리' },
+// SR-4 인기순위 카테고리 탭(고정 8개). 표시명은 GearFilterName 캐논컬 매핑에서 파생한다.
+const SEARCH_RANK_CATEGORY_FILTERS: GearFilter[] = [
+  GearFilter.All,
+  GearFilter.Tent,
+  GearFilter.SleepingBag,
+  GearFilter.Backpack,
+  GearFilter.Mat,
+  GearFilter.Furniture,
+  GearFilter.Lantern,
+  GearFilter.Cooking,
 ];
 
-const SearchTopKeywordsView: FC<Props> = ({ searchWarehouse, bag }) => {
+const categories: CategoryItem[] = SEARCH_RANK_CATEGORY_FILTERS.map(filter => {
+  return { filter, name: getGearFilterName(filter) };
+});
+
+const SearchTopKeywordsView: FC<Props> = ({
+  searchWarehouse,
+  bag,
+  embedded = false,
+}) => {
   const searchRank = searchWarehouse.getSearchRank();
   const [selectedCategory, setSelectedCategory] = useState<GearFilter>(
     GearFilter.All
@@ -113,6 +124,116 @@ const SearchTopKeywordsView: FC<Props> = ({ searchWarehouse, bag }) => {
     setShowModal(false);
   };
 
+  const rankingContent = (
+    <View style={styles.listContainer}>
+      {isLoading ? (
+        <SearchSkeletonView count={10} />
+      ) : gears.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>아직 등록된 장비가 없습니다</Text>
+        </View>
+      ) : (
+        gears.map((gear, index) => (
+          <Pressable
+            key={gear.getId()}
+            style={({ pressed }) => [
+              styles.rankItem,
+              pressed && styles.rankItemPressed,
+            ]}
+            onPress={() => handleGearPress(gear)}
+          >
+            <View style={[styles.rankBadge, index < 3 && styles.rankBadgeTop3]}>
+              <Text
+                style={[styles.rankNumber, index < 3 && styles.rankNumberTop3]}
+              >
+                {index + 1}
+              </Text>
+            </View>
+
+            {!!gear.getImageUrl() && (
+              <View style={styles.imageContainer}>
+                <Image
+                  source={{ uri: gear.getImageUrl() }}
+                  style={styles.gearImage}
+                  resizeMode='contain'
+                />
+              </View>
+            )}
+
+            <View style={styles.gearInfo}>
+              {gear.getDisplayCompany() && (
+                <Text style={styles.gearCompany} numberOfLines={1}>
+                  {gear.getDisplayCompany()}
+                </Text>
+              )}
+              <Text style={styles.gearName} numberOfLines={1}>
+                {gear.getDisplayName()}
+              </Text>
+              <Text style={styles.gearCount}>{gear.getWeight()}g</Text>
+            </View>
+
+            <View style={styles.buttonContainer}>
+              {loadingGearIds.has(gear.getId()) ? (
+                <View style={styles.loadingContainer}>
+                  <LoadingView duration={1000} />
+                </View>
+              ) : gear.isAdded() ? (
+                <TouchableOpacity
+                  style={styles.ownedBadge}
+                  onPress={e => handleRemovePress(e, gear)}
+                >
+                  <Ionicons name='checkmark' size={16} color='#fff' />
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={e => handleAddPress(e, gear)}
+                >
+                  <Ionicons name='add' size={16} color='#000' />
+                </TouchableOpacity>
+              )}
+            </View>
+          </Pressable>
+        ))
+      )}
+    </View>
+  );
+
+  const modal = selectedGear && (
+    <SearchGearAddToBagModalView
+      visible={showModal}
+      onClose={handleCloseModal}
+      gear={selectedGear}
+      bag={bag}
+    />
+  );
+
+  if (embedded) {
+    return (
+      <View style={styles.embeddedContainer}>
+        <Text style={styles.title}>인기 장비 순위</Text>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoryScrollView}
+          contentContainerStyle={styles.categoryScrollContent}
+        >
+          {categories.map(category => (
+            <CategoryChipView
+              key={category.filter}
+              label={category.name}
+              selected={selectedCategory === category.filter}
+              onPress={() => handleCategoryPress(category.filter)}
+            />
+          ))}
+        </ScrollView>
+        {rankingContent}
+        {modal}
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>인기 장비 순위</Text>
@@ -125,26 +246,12 @@ const SearchTopKeywordsView: FC<Props> = ({ searchWarehouse, bag }) => {
         contentContainerStyle={styles.categoryScrollContent}
       >
         {categories.map(category => (
-          <TouchableOpacity
+          <CategoryChipView
             key={category.filter}
-            style={[
-              styles.categoryButton,
-              selectedCategory === category.filter &&
-                styles.categoryButtonSelected,
-            ]}
+            label={category.name}
+            selected={selectedCategory === category.filter}
             onPress={() => handleCategoryPress(category.filter)}
-            activeOpacity={0.7}
-          >
-            <PretendardText
-              style={[
-                styles.categoryText,
-                selectedCategory === category.filter &&
-                  styles.categoryTextSelected,
-              ]}
-            >
-              {category.name}
-            </PretendardText>
-          </TouchableOpacity>
+          />
         ))}
       </ScrollView>
       {/* 순위 리스트 */}
@@ -247,6 +354,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  embeddedContainer: {
+    width: '100%',
+  },
   title: {
     fontSize: 18,
     fontFamily: 'Pretendard-Bold',
@@ -260,26 +370,6 @@ const styles = StyleSheet.create({
   categoryScrollContent: {
     flexDirection: 'row',
     gap: 8,
-  },
-  categoryButton: {
-    height: 32,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 22,
-    backgroundColor: '#EBEBEB',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  categoryButtonSelected: {
-    backgroundColor: '#000',
-  },
-  categoryText: {
-    fontSize: 14,
-    lineHeight: 16,
-    color: '#000',
-  },
-  categoryTextSelected: {
-    color: '#FFF',
   },
   listScrollView: {
     flex: 1,
