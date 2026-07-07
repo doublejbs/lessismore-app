@@ -14,7 +14,7 @@ class Browse implements GearRowActions {
   public static new(
     router: Router,
     category: string,
-    companyKorean: string,
+    brand: string,
     sort: BrowseSort
   ) {
     const firebase = app.getFirebase();
@@ -27,7 +27,7 @@ class Browse implements GearRowActions {
       searchStore,
       searchWarehouse,
       category,
-      companyKorean,
+      brand,
       sort
     );
   }
@@ -38,6 +38,7 @@ class Browse implements GearRowActions {
   @observable private hasMore = false;
   @observable private initialized = false;
   private page = 0;
+  private requestId = 0;
   private disposeLoginReaction: () => void;
 
   protected constructor(
@@ -46,7 +47,7 @@ class Browse implements GearRowActions {
     private readonly searchStore: SearchStore,
     private readonly searchWarehouse: SearchWarehouse,
     private readonly category: string,
-    private readonly companyKorean: string,
+    private readonly brand: string,
     initialSort: BrowseSort
   ) {
     this.sort = initialSort;
@@ -76,7 +77,7 @@ class Browse implements GearRowActions {
   private buildBrowseParams(page: number) {
     const params: {
       category?: string;
-      companyKorean?: string;
+      brand?: string;
       sort: BrowseSort;
       page: number;
     } = {
@@ -88,20 +89,26 @@ class Browse implements GearRowActions {
       params.category = this.category;
     }
 
-    if (this.companyKorean) {
-      params.companyKorean = this.companyKorean;
+    if (this.brand) {
+      params.brand = this.brand;
     }
 
     return params;
   }
 
   public async reload() {
+    const id = ++this.requestId;
+
     this.setLoading(true);
     this.clearPage();
 
     const { gears, hasMore } = await this.searchStore.browse(
       this.buildBrowseParams(this.plusPage())
     );
+
+    if (id !== this.requestId) {
+      return;
+    }
 
     this.setResult(gears);
     this.setHasMore(hasMore);
@@ -113,11 +120,17 @@ class Browse implements GearRowActions {
       return;
     }
 
+    const id = ++this.requestId;
+
     this.setLoading(true);
 
     const { gears, hasMore } = await this.searchStore.browse(
       this.buildBrowseParams(this.plusPage())
     );
+
+    if (id !== this.requestId) {
+      return;
+    }
 
     this.appendResult(gears);
     this.setHasMore(hasMore);
@@ -137,14 +150,45 @@ class Browse implements GearRowActions {
     const success = await this.searchWarehouse.registerSingle(gear);
 
     if (success) {
-      await this.reload();
+      await this.refreshOwnedState();
     }
 
     return success;
   }
 
   public async removeSingle(gear: Gear): Promise<boolean> {
+    // 제거는 SearchWarehouse가 확인 다이얼로그로 처리하며, 실제 제거는 비동기 onConfirm 이후 일어난다.
+    // 반환 시점에는 아직 제거가 확정되지 않았으므로 여기서 배지를 갱신하지 않고,
+    // 화면 복귀 시 useFocusEffect의 reload로 배지를 동기화한다(SR-1 패턴).
     return this.searchWarehouse.removeSingle(gear);
+  }
+
+  // 창고 추가/제거 후 보유 배지만 동기화한다.
+  // 전체 reload(page 0 리셋)와 달리 이미 로드된 페이지 수를 유지해 스크롤 위치가 튀지 않는다.
+  private async refreshOwnedState() {
+    const loadedPages = this.page;
+
+    if (loadedPages <= 0) {
+      return;
+    }
+
+    const id = ++this.requestId;
+
+    const responses = await Promise.all(
+      Array.from({ length: loadedPages }, (_, pageIndex) =>
+        this.searchStore.browse(this.buildBrowseParams(pageIndex))
+      )
+    );
+
+    if (id !== this.requestId) {
+      return;
+    }
+
+    const gears = responses.flatMap(response => response.gears);
+    const hasMore = responses[responses.length - 1]?.hasMore ?? false;
+
+    this.setResult(gears);
+    this.setHasMore(hasMore);
   }
 
   public goToGearDetail(gear: Gear) {
@@ -163,8 +207,8 @@ class Browse implements GearRowActions {
     return this.category;
   }
 
-  public getCompanyKorean() {
-    return this.companyKorean;
+  public getBrand() {
+    return this.brand;
   }
 
   public isLoading() {
