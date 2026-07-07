@@ -15,7 +15,8 @@ import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import PretendardText from '@/components/PretendardText';
 import FeedSkeletonView from './FeedSkeletonView';
-import FeedFilterButtonView from './FeedFilterButtonView';
+import FeedFilterBarView from './FeedFilterBarView';
+import FeedRankingButtonView from './FeedRankingButtonView';
 import FeedCardView from './FeedCardView';
 import app from '@/model/app/App';
 
@@ -121,16 +122,18 @@ const FeedView: FC<Props> = ({ bag }) => {
   if (showSkeleton) {
     return (
       <View style={styles.container}>
+        <FeedFilterBarView feed={feed} />
         <View style={styles.skeletonContainer}>
           <FeedSkeletonView count={6} />
         </View>
-        <FeedFilterButtonView feed={feed} />
+        <FeedRankingButtonView feed={feed} />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
+      <FeedFilterBarView feed={feed} />
       <FlatList
         data={items}
         renderItem={renderItem}
@@ -151,7 +154,7 @@ const FeedView: FC<Props> = ({ bag }) => {
           />
         }
       />
-      <FeedFilterButtonView feed={feed} />
+      <FeedRankingButtonView feed={feed} />
     </View>
   );
 };
@@ -163,6 +166,7 @@ const styles = StyleSheet.create({
   listContent: {
     flexGrow: 1,
     paddingHorizontal: LIST_HORIZONTAL_PADDING,
+    paddingTop: 12,
     paddingBottom: LIST_BOTTOM_PADDING,
   },
   columnWrapper: {
