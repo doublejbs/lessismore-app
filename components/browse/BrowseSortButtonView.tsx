@@ -86,7 +86,7 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
       toValue: 1,
       duration: OPEN_DURATION,
       easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start();
   }, [showOptions, progress, dragY]);
 
@@ -101,7 +101,7 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
       toValue: 0,
       duration: CLOSE_DURATION,
       easing: Easing.in(Easing.cubic),
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start(() => {
       isClosing.current = false;
       dragY.setValue(0);
@@ -121,7 +121,7 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
       toValue: SHEET_SLIDE_DISTANCE,
       duration: CLOSE_DURATION,
       easing: Easing.in(Easing.cubic),
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start(() => {
       isClosing.current = false;
       progress.setValue(0);
@@ -150,13 +150,13 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
 
         Animated.spring(dragY, {
           toValue: 0,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }).start();
       },
       onPanResponderTerminate: () => {
         Animated.spring(dragY, {
           toValue: 0,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }).start();
       },
     })
