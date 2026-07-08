@@ -122,6 +122,50 @@ const RootLayout = () => {
               presentation: 'modal',
             }}
           />
+          <Stack.Screen
+            name='bag-add-options'
+            options={{
+              headerShown: false,
+              presentation: 'formSheet',
+              sheetAllowedDetents: 'fitToContents',
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 20,
+              contentStyle: { backgroundColor: '#FFFFFF' },
+            }}
+          />
+          <Stack.Screen
+            name='bag-copy-source'
+            options={{
+              headerShown: false,
+              presentation: 'formSheet',
+              sheetAllowedDetents: 'fitToContents',
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 20,
+              contentStyle: { backgroundColor: '#FFFFFF' },
+            }}
+          />
+          <Stack.Screen
+            name='bag-new'
+            options={{
+              headerShown: false,
+              presentation: 'formSheet',
+              sheetAllowedDetents: 'fitToContents',
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 20,
+              contentStyle: { backgroundColor: '#FFFFFF' },
+            }}
+          />
+          <Stack.Screen
+            name='bag-copy'
+            options={{
+              headerShown: false,
+              presentation: 'formSheet',
+              sheetAllowedDetents: 'fitToContents',
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 20,
+              contentStyle: { backgroundColor: '#FFFFFF' },
+            }}
+          />
           <Stack.Screen name='+not-found' />
         </Stack>
         <StatusBar style='auto' />
