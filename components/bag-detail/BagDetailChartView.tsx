@@ -120,9 +120,16 @@ const BagDetailChartView: FC<Props> = ({ bagDetail }) => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.header} onPress={handleToggleExpand}>
-        <PretendardText weight='bold' style={styles.headerTitle}>
-          📊 카테고리별 무게
-        </PretendardText>
+        <View style={styles.titleRow}>
+          <Ionicons
+            name='stats-chart-outline'
+            size={20}
+            color={Color.textPrimary}
+          />
+          <PretendardText weight='bold' style={styles.headerTitle}>
+            카테고리별 무게
+          </PretendardText>
+        </View>
         <View style={styles.iconContainer}>
           <Ionicons
             name={isExpanded ? 'chevron-up' : 'chevron-down'}
@@ -248,6 +255,11 @@ const styles = StyleSheet.create({
     borderRadius: Radius.card,
     padding: 8,
     paddingHorizontal: 20,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   headerTitle: {
     fontSize: 17,

@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
+import { Color } from '@/constants/DesignTokens';
 import GearRowActions from '@/model/browse/GearRowActions';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
@@ -80,11 +81,11 @@ const SearchGearView: FC<Props> = ({ gear, searchWarehouse, bag }) => {
               style={styles.ownedBadge}
               onPress={handleRemovePress}
             >
-              <Ionicons name='checkmark' size={16} color='#fff' />
+              <Ionicons name='checkmark' size={16} color={Color.background} />
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.addButton} onPress={handleAddPress}>
-              <Ionicons name='add' size={16} color='#000' />
+              <Ionicons name='add' size={16} color={Color.textPrimary} />
             </TouchableOpacity>
           )}
         </View>
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ownedBadge: {
-    backgroundColor: '#000',
+    backgroundColor: Color.chipActiveBg,
     borderRadius: 14,
     width: 28,
     height: 28,
@@ -127,7 +128,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addButton: {
-    backgroundColor: '#F6F6F6',
+    backgroundColor: Color.surfaceMuted,
     borderRadius: 14,
     width: 28,
     height: 28,

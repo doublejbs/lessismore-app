@@ -1,5 +1,7 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import PretendardText from '@/components/PretendardText';
+import { Color } from '@/constants/DesignTokens';
 import Comment from '@/model/reply/Comment';
 import dayjs from 'dayjs';
 import { FC, useRef, useState } from 'react';
@@ -69,12 +71,15 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
         <View style={styles.content}>
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <Text style={[styles.name, isMyComment && { color: '#9CCC65' }]}>
+              <PretendardText
+                weight='bold'
+                style={[styles.name, isMyComment && { color: '#9CCC65' }]}
+              >
                 {comment.authorName}
-              </Text>
-              <Text style={styles.date}>
+              </PretendardText>
+              <PretendardText style={styles.date}>
                 {dayjs(comment.createdAt).format('YYYY. M. D')}
-              </Text>
+              </PretendardText>
             </View>
             {isMyComment && (
               <TouchableOpacity
@@ -84,17 +89,19 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
                 <Ionicons
                   name='ellipsis-horizontal'
                   size={16}
-                  color='#9BA2AD'
+                  color={Color.iconMuted}
                 />
               </TouchableOpacity>
             )}
           </View>
-          <Text style={styles.commentText}>
+          <PretendardText style={styles.commentText}>
             {comment.mentionedUserName && (
-              <Text style={styles.mention}>@{comment.mentionedUserName} </Text>
+              <PretendardText weight='semibold' style={styles.mention}>
+                @{comment.mentionedUserName}{' '}
+              </PretendardText>
             )}
             {comment.content}
-          </Text>
+          </PretendardText>
           <View style={styles.footer}>
             <TouchableOpacity
               style={styles.iconWithText}
@@ -104,14 +111,16 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
               <Ionicons
                 name={isLiked ? 'heart' : 'heart-outline'}
                 size={18}
-                color={isLiked ? '#FF6B6B' : '#9BA2AD'}
+                color={isLiked ? '#FF6B6B' : Color.iconMuted}
               />
-              <Text style={[styles.likeCount, isLiked && { color: '#FF6B6B' }]}>
+              <PretendardText
+                style={[styles.likeCount, isLiked && { color: '#FF6B6B' }]}
+              >
                 {comment.likeCount}
-              </Text>
+              </PretendardText>
             </TouchableOpacity>
             <TouchableOpacity onPress={handlePressReply} activeOpacity={0.7}>
-              <Text style={styles.replyButton}>답글달기</Text>
+              <PretendardText style={styles.replyButton}>답글달기</PretendardText>
             </TouchableOpacity>
           </View>
         </View>
@@ -132,7 +141,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1.83,
-    backgroundColor: '#F2F4F6',
+    backgroundColor: Color.divider,
   },
   content: {
     paddingVertical: 24,
@@ -151,12 +160,11 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#333D4B',
+    color: Color.textPrimary,
   },
   date: {
     fontSize: 12,
-    color: '#9BA2AD',
+    color: Color.textSecondary,
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -172,25 +180,24 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#242424',
+    color: Color.textPrimary,
   },
   moreButton: {
     opacity: 0.3,
   },
   commentText: {
     fontSize: 17,
-    color: '#000000',
+    color: Color.textPrimary,
     lineHeight: 20.28,
   },
   mention: {
     fontSize: 17,
     color: '#9CCC65',
-    fontWeight: '600',
     lineHeight: 20.28,
   },
   replyButton: {
     fontSize: 14,
-    color: '#9BA2AD',
+    color: Color.textSecondary,
   },
   footer: {
     flexDirection: 'row',
@@ -205,7 +212,7 @@ const styles = StyleSheet.create({
   },
   likeCount: {
     fontSize: 14,
-    color: '#9BA2AD',
+    color: Color.textSecondary,
   },
 });
 

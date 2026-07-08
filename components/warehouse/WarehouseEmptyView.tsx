@@ -1,10 +1,11 @@
 import { FC } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Layout from '@/components/Layout';
 import AddButtonView from '@/components/warehouse/AddButtonView';
 import Warehouse from '@/model/warehouse/Warehouse';
 import LoadingIconView from '../ui/LoadingIconView';
 import { observer } from 'mobx-react-lite';
+import PretendardText from '@/components/PretendardText';
 
 interface Props {
   warehouse: Warehouse;
@@ -16,7 +17,9 @@ const WarehouseEmptyView: FC<Props> = ({ warehouse }) => {
   return (
     <Layout>
       <View style={styles.headerContainer}>
-        <Text style={styles.title}>useless</Text>
+        <PretendardText weight='extraBold' style={styles.title}>
+          useless
+        </PretendardText>
       </View>
       {isLoading ? (
         <View style={styles.loadingContainer}>
@@ -24,7 +27,9 @@ const WarehouseEmptyView: FC<Props> = ({ warehouse }) => {
         </View>
       ) : (
         <View style={styles.messageContainer}>
-          <Text style={styles.message}>장비를 추가해 주세요</Text>
+          <PretendardText weight='bold' style={styles.message}>
+            장비를 추가해 주세요
+          </PretendardText>
         </View>
       )}
       <AddButtonView />
@@ -40,7 +45,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontWeight: '900',
     fontSize: 48,
     textAlign: 'center',
     lineHeight: 48,
@@ -48,8 +52,6 @@ const styles = StyleSheet.create({
   },
   messageContainer: {
     width: '100%',
-    fontSize: 24,
-    fontWeight: 'bold',
     justifyContent: 'center',
     alignItems: 'center',
     flex: 1,
@@ -57,7 +59,6 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 24,
-    fontWeight: 'bold',
   },
   loadingContainer: {
     flex: 1,

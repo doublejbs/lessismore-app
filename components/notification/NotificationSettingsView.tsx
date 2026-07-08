@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 type ToggleKey = 'packing' | 'useless' | 'notice';
@@ -55,7 +56,7 @@ const NotificationSettingsView: FC = () => {
     <Layout>
       <View style={styles.header}>
         <TouchableOpacity onPress={handlePressBack} style={styles.backButton}>
-          <Ionicons name='chevron-back' size={24} color='#191F28' />
+          <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -80,9 +81,12 @@ const NotificationSettingsView: FC = () => {
             <Switch
               value={settings[row.key]}
               onValueChange={value => handleToggle(row.key, value)}
-              trackColor={{ false: '#e5e5e5', true: '#191F28' }}
-              thumbColor='#fff'
-              ios_backgroundColor='#e5e5e5'
+              trackColor={{
+                false: Color.borderLight,
+                true: Color.textPrimary,
+              }}
+              thumbColor={Color.background}
+              ios_backgroundColor={Color.borderLight}
             />
           </View>
         ))}
@@ -108,10 +112,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   list: {
-    borderRadius: 8,
+    borderRadius: Radius.card,
     borderWidth: 1,
-    borderColor: '#eee',
-    backgroundColor: '#fff',
+    borderColor: Color.borderLight,
+    backgroundColor: Color.background,
     overflow: 'hidden',
   },
   row: {
@@ -121,14 +125,14 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: Color.borderLight,
   },
   rowLast: {
     borderBottomWidth: 0,
   },
   rowLabel: {
     fontSize: 16,
-    color: '#000',
+    color: Color.textPrimary,
   },
 });
 

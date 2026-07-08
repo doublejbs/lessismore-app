@@ -14,6 +14,7 @@ import dayjs from 'dayjs';
 import BagAddDateView from './BagAddDateView';
 import PretendardText from '@/components/PretendardText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   visible: boolean;
@@ -69,10 +70,12 @@ const BagFormModalView: FC<Props> = ({
               bounces={true}
             >
               {title ? (
-                <PretendardText style={styles.title}>{title}</PretendardText>
+                <PretendardText weight='bold' style={styles.title}>
+                  {title}
+                </PretendardText>
               ) : null}
               <View style={styles.inputSection}>
-                <PretendardText style={styles.inputLabel}>
+                <PretendardText weight='bold' style={styles.inputLabel}>
                   배낭 이름
                 </PretendardText>
                 <TextInput
@@ -80,7 +83,7 @@ const BagFormModalView: FC<Props> = ({
                   placeholder='배낭 이름을 입력해주세요'
                   value={inputValue}
                   onChangeText={onChangeName}
-                  placeholderTextColor='#999'
+                  placeholderTextColor={Color.textSecondary}
                 />
               </View>
               <BagAddDateView
@@ -96,9 +99,7 @@ const BagFormModalView: FC<Props> = ({
                 onPress={onCancel}
                 activeOpacity={0.7}
               >
-                <PretendardText style={styles.cancelButtonText}>
-                  취소
-                </PretendardText>
+                <PretendardText style={styles.cancelButtonText}>취소</PretendardText>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
@@ -126,13 +127,13 @@ const { height: screenHeight } = Dimensions.get('window');
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: Color.overlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    backgroundColor: Color.background,
+    borderTopLeftRadius: Radius.sheet,
+    borderTopRightRadius: Radius.sheet,
     padding: 16,
     maxHeight: screenHeight * 0.9,
   },
@@ -141,9 +142,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontFamily: 'Pretendard-Bold',
     fontSize: 20,
-    color: '#000000',
+    color: Color.textPrimary,
     marginBottom: 16,
   },
   inputSection: {
@@ -152,18 +152,17 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   inputLabel: {
-    fontFamily: 'Pretendard-Bold',
     fontSize: 20,
-    color: '#000000',
+    color: Color.textPrimary,
   },
   textInput: {
-    borderRadius: 10,
-    backgroundColor: '#EEEEEE',
+    borderRadius: Radius.input,
+    backgroundColor: Color.surfaceMuted,
     paddingHorizontal: 12,
     paddingVertical: 12,
     fontSize: 16,
     fontFamily: 'Pretendard-Regular',
-    color: '#000000',
+    color: Color.textPrimary,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -171,20 +170,19 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#EEEEEE',
-    borderRadius: 10,
+    backgroundColor: Color.surfaceMuted,
+    borderRadius: Radius.input,
     paddingVertical: 12,
     alignItems: 'center',
   },
   cancelButtonText: {
     fontSize: 16,
-    color: '#000',
-    fontFamily: 'Pretendard-Regular',
+    color: Color.textPrimary,
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: 'black',
-    borderRadius: 10,
+    backgroundColor: Color.chipActiveBg,
+    borderRadius: Radius.input,
     paddingVertical: 12,
     alignItems: 'center',
   },
@@ -193,8 +191,7 @@ const styles = StyleSheet.create({
   },
   confirmButtonText: {
     fontSize: 16,
-    color: 'white',
-    fontFamily: 'Pretendard-Regular',
+    color: Color.background,
   },
 });
 

@@ -6,6 +6,7 @@ import app from '@/model/app/App';
 import { observer } from 'mobx-react-lite';
 import AlertView from './alert/AlertView';
 import ToastView from './toast/ToastView';
+import { Color } from '@/constants/DesignTokens';
 
 interface Props {
   children: ReactNode;
@@ -25,7 +26,7 @@ const Layout: FC<Props> = ({ children, paddingHorizontal = 20 }) => {
 
 const safeAreaStyle: ViewStyle = {
   flex: 1,
-  backgroundColor: '#fff', // 필요에 따라 배경색 조정
+  backgroundColor: Color.background, // 필요에 따라 배경색 조정
 };
 
 const containerStyle: ViewStyle = {

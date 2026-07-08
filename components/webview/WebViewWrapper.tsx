@@ -8,6 +8,7 @@ import WebViewManager, {
 } from '@/model/webview/WebViewManager';
 import { useEffect, useState } from 'react';
 import WebViewContentView from './WebViewContentView';
+import { Color } from '@/constants/DesignTokens';
 
 interface Props {
   uri: string;
@@ -60,7 +61,7 @@ const WebViewWrapper = ({ uri, header, callback, modal = false }: Props) => {
       {header && (
         <View style={styles.header}>
           <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
-            <Ionicons name='chevron-back' size={24} color='black' />
+            <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
           </TouchableOpacity>
         </View>
       )}
@@ -82,7 +83,7 @@ const WebViewWrapper = ({ uri, header, callback, modal = false }: Props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Color.background,
   },
   dragBar: {
     width: 40,
@@ -95,12 +96,12 @@ const styles = StyleSheet.create({
   },
   header: {
     height: 50,
-    backgroundColor: '#fff',
+    backgroundColor: Color.background,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e1e1e1',
+    borderBottomColor: Color.borderLight,
   },
   backButton: {
     width: 44,

@@ -1,7 +1,6 @@
 import React, { FC } from 'react';
 import {
   View,
-  Text,
   Modal,
   TouchableOpacity,
   StyleSheet,
@@ -11,6 +10,8 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 
 import Gear from '@/model/gear/Gear';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   visible: boolean;
@@ -35,9 +36,11 @@ const GearSelectionModalView: FC<Props> = ({
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name='close' size={24} color='#191F28' />
+            <Ionicons name='close' size={24} color={Color.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>장비 선택</Text>
+          <PretendardText weight='semibold' style={styles.headerTitle}>
+            장비 선택
+          </PretendardText>
           <View style={{ width: 40 }} />
         </View>
         <ScrollView
@@ -58,14 +61,18 @@ const GearSelectionModalView: FC<Props> = ({
                     contentFit='cover'
                   />
                   <View style={styles.gearGridInfo}>
-                    <Text style={styles.gearGridName} numberOfLines={1}>
+                    <PretendardText
+                      weight='semibold'
+                      style={styles.gearGridName}
+                      numberOfLines={1}
+                    >
                       {gear.getDisplayName()}
-                    </Text>
-                    <Text style={styles.gearGridWeight}>
+                    </PretendardText>
+                    <PretendardText style={styles.gearGridWeight}>
                       {Number(gear.getWeight()) >= 1000
                         ? `${(Number(gear.getWeight()) / 1000).toFixed(1)}kg`
                         : `${gear.getWeight()}g`}
-                    </Text>
+                    </PretendardText>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -80,7 +87,7 @@ const GearSelectionModalView: FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F7',
+    backgroundColor: Color.surfaceMuted,
   },
   header: {
     flexDirection: 'row',
@@ -88,18 +95,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: Color.borderLight,
   },
   closeButton: {
     padding: 4,
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: '600',
-    color: '#191F28',
-    fontFamily: 'Inter_600SemiBold',
+    color: Color.textPrimary,
   },
   scrollView: {
     flex: 1,
@@ -122,9 +127,9 @@ const styles = StyleSheet.create({
   gearGridItem: {
     width: 108,
     aspectRatio: 1,
-    borderRadius: 12,
+    borderRadius: Radius.card,
     overflow: 'hidden',
-    backgroundColor: '#F5F5F7',
+    backgroundColor: Color.surfaceMuted,
     borderWidth: 2,
     borderColor: 'transparent',
   },
@@ -139,13 +144,12 @@ const styles = StyleSheet.create({
   },
   gearGridName: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#191F28',
+    color: Color.textPrimary,
     marginBottom: 2,
   },
   gearGridWeight: {
     fontSize: 10,
-    color: '#666666',
+    color: Color.textTertiary,
   },
 });
 

@@ -1,7 +1,9 @@
 import { FC } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import ToastManager from '@/model/toast/ToastManager';
 import { observer } from 'mobx-react-lite';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   toastManager: ToastManager;
@@ -25,10 +27,12 @@ const ToastView: FC<Props> = ({ toastManager, bottom }) => {
     return (
       <View style={[styles.container, { bottom }]}>
         <View style={styles.content}>
-          <Text style={styles.text}>{message}</Text>
+          <PretendardText style={styles.text}>{message}</PretendardText>
           {buttonText && (
             <TouchableOpacity style={styles.button} onPress={handleButtonPress}>
-              <Text style={styles.buttonText}>{buttonText}</Text>
+              <PretendardText weight='semibold' style={styles.buttonText}>
+                {buttonText}
+              </PretendardText>
             </TouchableOpacity>
           )}
         </View>
@@ -47,8 +51,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     zIndex: 90,
-    backgroundColor: 'black',
-    borderRadius: 10,
+    backgroundColor: Color.chipActiveBg,
+    borderRadius: Radius.card,
   },
   content: {
     flex: 1,
@@ -57,18 +61,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   text: {
-    color: 'white',
+    color: Color.background,
     textAlign: 'center',
   },
   button: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 6,
+    borderRadius: Radius.card,
   },
   buttonText: {
-    color: 'white',
-    fontWeight: '600',
+    color: Color.background,
     textAlign: 'center',
   },
 });

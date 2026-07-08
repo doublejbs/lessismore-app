@@ -8,6 +8,7 @@ import BrowseSort from '@/model/search/BrowseSort';
 import Bag from '@/model/bag/Bag';
 import Gear from '@/model/gear/Gear';
 import PretendardText from '../PretendardText';
+import { Color } from '@/constants/DesignTokens';
 import SearchGearView from '../search/SearchGearView';
 import SearchSkeletonView from '../search/SearchSkeletonView';
 import BrowseSortButtonView from './BrowseSortButtonView';
@@ -97,7 +98,7 @@ const BrowseListView: FC<Props> = ({ browse, bag, title }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Ionicons name='chevron-back' size={24} color='#191F28' />
+          <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
         </TouchableOpacity>
         <PretendardText style={styles.headerTitle} weight='bold'>
           {title}
@@ -114,7 +115,7 @@ const BrowseListView: FC<Props> = ({ browse, bag, title }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Color.background,
   },
   header: {
     flexDirection: 'row',
@@ -131,7 +132,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     fontSize: 17,
-    color: '#000',
+    color: Color.textPrimary,
   },
   headerRight: {
     marginLeft: 'auto',
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#888',
+    color: Color.textSecondary,
     textAlign: 'center',
   },
 });
