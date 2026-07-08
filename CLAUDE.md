@@ -30,6 +30,13 @@ npm run web:preview          # 웹 빌드 후 로컬에서 미리보기 (serve d
 
 > **테스트**: 현재 테스트 프레임워크가 설정되어 있지 않음 (package.json에 `test` 스크립트 없음). 새 테스트를 추가할 때 먼저 사용자에게 어떤 러너를 사용할지 확인할 것.
 
+> **로컬 iOS 실행 함정** (`npm run ios` 실패 시 순서대로 확인):
+>
+> 1. **의존성 먼저**: 새 클론/워크트리는 `node_modules`가 없거나 부분 설치라 `Failed to resolve plugin for module '@react-native-firebase/messaging'` 등이 난다 → `npm install` 먼저.
+> 2. **CocoaPods 인코딩** (Ruby 3.4 환경): `pod install`이 `Encoding::CompatibilityError`("CocoaPods requires UTF-8")로 죽으면 로케일을 붙여 실행 → `LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 npm run ios`.
+> 3. **stale `ios/` prebuild**: `ios/`는 gitignore(managed 워크플로우)라 새 클론엔 없고 `expo run:ios`가 자동 prebuild한다. 단, 옛 `ios/`가 남아 있으면 최신 네이티브 모듈이 빠져 런타임 크래시(예: `Cannot find native module 'ExpoPushTokenManager'`)가 날 수 있다 → `LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 npx expo prebuild -p ios --clean` 후 재빌드. (참고: expo-notifications pod 이름은 `EXNotifications`)
+> 4. 특정 시뮬레이터 지정: `npm run ios -- --device "iPhone 17 Pro"`. dev-client 딥링크: `exp+lessismore-app://expo-development-client/?url=http://localhost:8081`, 앱 스킴: `lessismoreapp://`.
+
 ## 스펙 주도 개발
 
 이 저장소는 **스펙 주도(spec-driven)로 개발한다.** 동작 명세의 단일 소스는 `specs/` 디렉토리다.
@@ -151,6 +158,7 @@ const MyComponent = observer(() => {
 - 한국어 UI (커밋 메시지도 한국어 사용)
 - 텍스트는 `PretendardText` 컴포넌트 사용 (커스텀 한글 폰트 — `assets/fonts/Pretendard-*.ttf`). `fontWeight`/`fontFamily`를 직접 쓰지 말고 `weight` prop(`regular`/`medium`/`semibold`/`bold`/`extraBold`)을 쓴다. raw `<Text>` 금지.
 - **디자인 토큰은 `constants/DesignTokens.ts`가 단일 소스** — 색(`Color`), 모서리(`Radius`), 여백(`Spacing`)을 하드코딩하지 말고 토큰을 참조한다. 탐색(피드)·배낭 패킹모드 화면에서 추출·정규화한 값이며 앱 전 화면이 이 톤을 따른다. 대표값: 텍스트 `textPrimary`#000/`textSecondary`#888, 칩 `chipInactiveBg`#EBEBEB/`chipActiveBg`#000, 인풋 `inputBg`#F5F5F5, 썸네일 `thumbBg`#F1F1F1, 구분선 `borderLight`#F0F0F0; radius 카드/인풋 8·칩 22·필 32·모달 16·리스트썸네일 4. 데이터 시각화 색·브랜드 액센트 등 의미색은 예외.
+  - **정렬 완료 (2026-07)**: 앱 전 화면·모달을 토큰으로 전수 정렬함(리터럴이 값이 같아도 토큰 참조로 치환). 새 UI도 리터럴 대신 토큰·`PretendardText`(weight prop)를 쓴다. **예외(하드코딩 허용)**: 데이터 시각화/차트 색, 브랜드 액센트(예 `#7C3AED`·`#39FF14`), 시맨틱 상태색(성공 green·삭제/경고 red·달력 요일색), 스켈레톤 셰이딩, 공유 이미지 **내보내기 캔버스**(별도 Inter 폰트·팔레트 — 주변 앱 UI는 토큰 적용), `useless` 워드마크 굵기.
 - 이미지는 `FirebaseImageStorage`를 통해 Firebase Storage에 업로드
 - Hot Updater가 네이티브 플랫폼에서 OTA 업데이트 처리 (`hot-updater.config.ts` 참고)
 - 린트 규칙은 `eslint-config-expo` 기반 + `unused-imports` 플러그인 — `_` 접두 변수는 무시됨
