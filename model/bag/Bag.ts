@@ -41,7 +41,10 @@ class Bag {
 
   public async getList() {
     if (this.firebase.isLoggedIn()) {
-      this.setLoading(true);
+      // 이미 목록이 있으면(재포커스 등) 로딩뷰 없이 조용히 갱신 — 깜빡임 방지.
+      if (this.bags.length === 0) {
+        this.setLoading(true);
+      }
       this.setBags(await this.bagStore.getList());
       this.setLoading(false);
     } else {

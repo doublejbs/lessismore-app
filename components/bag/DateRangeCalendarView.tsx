@@ -107,7 +107,7 @@ const DateRangeCalendarView: FC<Props> = ({
     <View style={styles.container}>
       <View style={styles.dateSelectionContainer}>
         <View style={styles.dateSection}>
-          <PretendardText weight='bold' style={styles.dateLabel}>
+          <PretendardText weight='semibold' style={styles.dateLabel}>
             시작일
           </PretendardText>
           <View style={styles.dateDisplay}>
@@ -118,7 +118,7 @@ const DateRangeCalendarView: FC<Props> = ({
         </View>
 
         <View style={styles.dateSection}>
-          <PretendardText weight='bold' style={styles.dateLabel}>
+          <PretendardText weight='semibold' style={styles.dateLabel}>
             종료일
           </PretendardText>
           <View style={styles.dateDisplay}>
@@ -235,7 +235,8 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   dateLabel: {
-    fontSize: 20,
+    fontSize: 15,
+    lineHeight: 20,
     color: Color.textPrimary,
   },
   dateDisplay: {
@@ -261,7 +262,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   monthTitle: {
-    fontSize: 18,
+    fontSize: 16,
     color: Color.textPrimary,
   },
   calendarContainer: {
