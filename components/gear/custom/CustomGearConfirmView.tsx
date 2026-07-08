@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   confirmButtonText: {
-    color: '#FFFFFF',
+    color: Color.background,
     textAlign: 'center',
   },
 });

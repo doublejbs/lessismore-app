@@ -3,6 +3,7 @@ import { View, TouchableOpacity } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import GearEdit from '@/model/gear/edit/GearEdit';
 import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   gearEdit: GearEdit;
@@ -46,18 +47,18 @@ const GearEditConfirmView: FC<Props> = ({ gearEdit }) => {
       <TouchableOpacity
         style={{
           width: '100%',
-          backgroundColor: 'black',
+          backgroundColor: Color.textPrimary,
           paddingVertical: 12,
-          borderRadius: 10,
+          borderRadius: Radius.card,
           alignItems: 'center',
         }}
         onPress={handleClickConfirm}
       >
         <PretendardText
+          weight='semibold'
           style={{
-            color: 'white',
+            color: Color.background,
             fontSize: 16,
-            fontWeight: '600',
           }}
         >
           확인

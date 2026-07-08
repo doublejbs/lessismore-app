@@ -1,9 +1,11 @@
 import { FC } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import SeperaterView from '../ui/SeperaterView';
 import { Ionicons } from '@expo/vector-icons';
+import PretendardText from '../PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -21,7 +23,9 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
     <>
       <SeperaterView />
       <View style={styles.container}>
-        <Text style={styles.title}>리뷰</Text>
+        <PretendardText weight='bold' style={styles.title}>
+          리뷰
+        </PretendardText>
         <View style={styles.repliesContainer}>
           {hasReplies ? (
             <>
@@ -32,10 +36,12 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
                   onPress={handleAddReviewPress}
                 >
                   <View style={styles.replyContent}>
-                    <Text style={styles.replyName}>{reply.getContent()}</Text>
-                    <Text style={styles.replyDate}>
+                    <PretendardText weight='semibold' style={styles.replyName}>
+                      {reply.getContent()}
+                    </PretendardText>
+                    <PretendardText style={styles.replyDate}>
                       {reply.getCreateDate()}
-                    </Text>
+                    </PretendardText>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -43,10 +49,10 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
                 onPress={handleAddReviewPress}
                 style={styles.moreReviewButton}
               >
-                <Text style={styles.moreReviewButtonText}>
+                <PretendardText style={styles.moreReviewButtonText}>
                   더 많은 의견 보기
-                </Text>
-                <Ionicons name='chevron-forward' size={14} color='#000000' />
+                </PretendardText>
+                <Ionicons name='chevron-forward' size={14} color={Color.textPrimary} />
               </TouchableOpacity>
             </>
           ) : (
@@ -54,8 +60,10 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
               style={styles.addReviewButton}
               onPress={handleAddReviewPress}
             >
-              <Text style={styles.addReviewButtonText}>첫번째 리뷰 남기기</Text>
-              <Ionicons name='chevron-forward' size={14} color='#000000' />
+              <PretendardText style={styles.addReviewButtonText}>
+                첫번째 리뷰 남기기
+              </PretendardText>
+              <Ionicons name='chevron-forward' size={14} color={Color.textPrimary} />
             </TouchableOpacity>
           )}
         </View>
@@ -73,8 +81,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: 'black',
+    color: Color.textPrimary,
   },
   repliesContainer: {
     flex: 1,
@@ -89,17 +96,17 @@ const styles = StyleSheet.create({
     gap: 4,
     padding: 16,
     paddingHorizontal: 20,
-    backgroundColor: '#F3F3F3',
-    borderRadius: 10,
+    backgroundColor: Color.inputBg,
+    borderRadius: Radius.card,
     width: '100%',
   },
   addReviewButtonText: {
     fontSize: 14,
-    color: '#000000',
+    color: Color.textPrimary,
   },
   moreReviewButtonText: {
     fontSize: 14,
-    color: '#000000',
+    color: Color.textPrimary,
   },
   moreReviewButton: {
     flexDirection: 'row',
@@ -107,14 +114,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: 20,
-    borderRadius: 10,
+    borderRadius: Radius.card,
     width: '100%',
   },
   replyItem: {
     padding: 14,
     paddingHorizontal: 20,
-    backgroundColor: '#F3F3F3',
-    borderRadius: 12,
+    backgroundColor: Color.inputBg,
+    borderRadius: Radius.card,
     width: '100%',
   },
   replyContent: {
@@ -122,11 +129,10 @@ const styles = StyleSheet.create({
   },
   replyName: {
     fontSize: 14,
-    fontWeight: '600',
   },
   replyDate: {
     fontSize: 10,
-    color: '#757C86',
+    color: Color.textTertiary,
   },
 });
 

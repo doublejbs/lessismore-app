@@ -1,6 +1,8 @@
 import { observer } from 'mobx-react-lite';
 import { FC } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import PretendardText from '@/components/PretendardText';
+import { Color } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Bag from '@/model/bag/Bag';
 import FeedView from '../feed/FeedView';
@@ -34,7 +36,9 @@ const SearchResultView: FC<Props> = ({ searchWarehouse, bag, children }) => {
       case isEmpty && !isLoading: {
         return (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>검색 결과가 없습니다</Text>
+            <PretendardText style={styles.emptyText}>
+              검색 결과가 없습니다
+            </PretendardText>
           </View>
         );
       }
@@ -68,10 +72,9 @@ const styles = StyleSheet.create({
     height: 200,
   },
   emptyText: {
-    color: '#888',
+    color: Color.textSecondary,
     fontSize: 16,
     textAlign: 'center',
-    fontFamily: 'Pretendard-Regular',
   },
   flatListContent: {
     flexGrow: 1,

@@ -1,6 +1,8 @@
 import dayjs from 'dayjs';
 import { FC, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   startDate: dayjs.Dayjs | null;
@@ -105,20 +107,24 @@ const DateRangeCalendarView: FC<Props> = ({
     <View style={styles.container}>
       <View style={styles.dateSelectionContainer}>
         <View style={styles.dateSection}>
-          <Text style={styles.dateLabel}>시작일</Text>
+          <PretendardText weight='bold' style={styles.dateLabel}>
+            시작일
+          </PretendardText>
           <View style={styles.dateDisplay}>
-            <Text style={styles.dateText}>
+            <PretendardText style={styles.dateText}>
               {startDate ? startDate.format('YYYY.MM.DD') : '선택 안됨'}
-            </Text>
+            </PretendardText>
           </View>
         </View>
 
         <View style={styles.dateSection}>
-          <Text style={styles.dateLabel}>종료일</Text>
+          <PretendardText weight='bold' style={styles.dateLabel}>
+            종료일
+          </PretendardText>
           <View style={styles.dateDisplay}>
-            <Text style={styles.dateText}>
+            <PretendardText style={styles.dateText}>
               {endDate ? endDate.format('YYYY.MM.DD') : '선택 안됨'}
-            </Text>
+            </PretendardText>
           </View>
         </View>
       </View>
@@ -128,16 +134,20 @@ const DateRangeCalendarView: FC<Props> = ({
           onPress={navigateToPreviousMonth}
           style={styles.navigationButton}
         >
-          <Text style={styles.navigationArrow}>‹</Text>
+          <PretendardText weight='bold' style={styles.navigationArrow}>
+            ‹
+          </PretendardText>
         </TouchableOpacity>
-        <Text style={styles.monthTitle}>
+        <PretendardText weight='bold' style={styles.monthTitle}>
           {currentMonth.format('YYYY년 M월')}
-        </Text>
+        </PretendardText>
         <TouchableOpacity
           onPress={navigateToNextMonth}
           style={styles.navigationButton}
         >
-          <Text style={styles.navigationArrow}>›</Text>
+          <PretendardText weight='bold' style={styles.navigationArrow}>
+            ›
+          </PretendardText>
         </TouchableOpacity>
       </View>
 
@@ -145,7 +155,8 @@ const DateRangeCalendarView: FC<Props> = ({
         <View style={styles.weekdaysContainer}>
           {weekdays.map((day, index) => (
             <View key={index} style={styles.weekdayCell}>
-              <Text
+              <PretendardText
+                weight='bold'
                 style={[
                   styles.weekdayText,
                   index === 0 && styles.sundayText,
@@ -153,7 +164,7 @@ const DateRangeCalendarView: FC<Props> = ({
                 ]}
               >
                 {day}
-              </Text>
+              </PretendardText>
             </View>
           ))}
         </View>
@@ -178,7 +189,8 @@ const DateRangeCalendarView: FC<Props> = ({
                     isRange && !isSelected && styles.rangeDay,
                   ]}
                 >
-                  <Text
+                  <PretendardText
+                    weight={isToday(day) || isSelected ? 'bold' : 'regular'}
                     style={[
                       styles.dayText,
                       !isCurrentMonth(day) && styles.otherMonthText,
@@ -195,7 +207,7 @@ const DateRangeCalendarView: FC<Props> = ({
                     ]}
                   >
                     {day.date()}
-                  </Text>
+                  </PretendardText>
                 </View>
                 {isToday(day) && !isSelected && (
                   <View style={styles.todayIndicator} />
@@ -224,18 +236,17 @@ const styles = StyleSheet.create({
   },
   dateLabel: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: 'black',
+    color: Color.textPrimary,
   },
   dateDisplay: {
-    backgroundColor: 'rgb(238, 238, 238)',
+    backgroundColor: Color.surfaceMuted,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: Radius.card,
   },
   dateText: {
     textAlign: 'center',
-    color: 'black',
+    color: Color.textPrimary,
   },
   navigationContainer: {
     flexDirection: 'row',
@@ -248,12 +259,10 @@ const styles = StyleSheet.create({
   },
   navigationArrow: {
     fontSize: 24,
-    fontWeight: 'bold',
   },
   monthTitle: {
-    fontWeight: 'bold',
     fontSize: 18,
-    color: 'black',
+    color: Color.textPrimary,
   },
   calendarContainer: {
     flex: 1,
@@ -268,8 +277,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   weekdayText: {
-    fontWeight: 'bold',
-    color: 'black',
+    color: Color.textPrimary,
   },
   sundayText: {
     color: '#FF5252',
@@ -297,24 +305,23 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   selectedDay: {
-    backgroundColor: 'black',
+    backgroundColor: Color.chipActiveBg,
   },
   rangeDay: {
-    backgroundColor: 'rgb(238, 238, 238)',
+    backgroundColor: Color.surfaceMuted,
   },
   dayText: {
     textAlign: 'center',
-    color: 'black',
+    color: Color.textPrimary,
   },
   otherMonthText: {
-    color: '#BDBDBD',
+    color: Color.textSecondary,
   },
   selectedDayText: {
-    color: 'white',
+    color: Color.background,
   },
   boldText: {
-    fontWeight: 'bold',
-    color: 'black',
+    color: Color.textPrimary,
   },
   todayIndicator: {
     position: 'absolute',

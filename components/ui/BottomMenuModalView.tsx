@@ -1,6 +1,5 @@
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Modal,
@@ -9,6 +8,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { FC, useRef, useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface MenuItem {
   readonly icon: keyof typeof Ionicons.glyphMap;
@@ -86,15 +87,19 @@ const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
                 style={styles.menuItem}
                 onPress={item.onPress}
               >
-                <Ionicons name={item.icon} size={20} color='black' />
-                <Text style={styles.menuItemText}>{item.text}</Text>
+                <Ionicons name={item.icon} size={20} color={Color.textPrimary} />
+                <PretendardText style={styles.menuItemText}>
+                  {item.text}
+                </PretendardText>
               </TouchableOpacity>
             ))}
           </View>
 
           <View style={styles.closeSection}>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Text style={styles.closeButtonText}>닫기</Text>
+              <PretendardText weight='bold' style={styles.closeButtonText}>
+                닫기
+              </PretendardText>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -106,16 +111,16 @@ const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: Color.overlay,
     justifyContent: 'flex-end',
   },
   modalOverlayTouchable: {
     flex: 1,
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    backgroundColor: Color.background,
+    borderTopLeftRadius: Radius.sheet,
+    borderTopRightRadius: Radius.sheet,
     paddingTop: 20,
     minHeight: 229,
   },
@@ -134,7 +139,7 @@ const styles = StyleSheet.create({
   menuItemText: {
     fontSize: 16,
     lineHeight: 18,
-    color: 'black',
+    color: Color.textPrimary,
   },
   closeSection: {
     paddingHorizontal: 20,
@@ -142,15 +147,14 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     width: '100%',
-    backgroundColor: 'black',
-    borderRadius: 10,
+    backgroundColor: Color.chipActiveBg,
+    borderRadius: Radius.card,
     paddingVertical: 18,
     alignItems: 'center',
   },
   closeButtonText: {
-    color: 'white',
+    color: Color.background,
     fontSize: 16,
-    fontWeight: 'bold',
   },
 });
 

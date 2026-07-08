@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
@@ -115,10 +116,10 @@ const SearchGearAddToBagModalView: FC<Props> = ({
               <View style={styles.drawerBar} />
             </View>
             <View style={styles.titleSection}>
-              <PretendardText style={styles.title}>
+              <PretendardText style={styles.title} weight='bold'>
                 창고에 추가됐습니다.
               </PretendardText>
-              <PretendardText style={styles.title}>
+              <PretendardText style={styles.title} weight='bold'>
                 배낭에도 추가할까요?
               </PretendardText>
             </View>
@@ -135,11 +136,15 @@ const SearchGearAddToBagModalView: FC<Props> = ({
               >
                 <View style={styles.bagItemContent}>
                   <View style={styles.bagInfo}>
-                    <PretendardText style={styles.bagItemTitle}>
+                    <PretendardText style={styles.bagItemTitle} weight='semibold'>
                       새 배낭에 추가
                     </PretendardText>
                   </View>
-                  <Ionicons name='chevron-forward' size={20} color='#000' />
+                  <Ionicons
+                    name='chevron-forward'
+                    size={20}
+                    color={Color.textPrimary}
+                  />
                 </View>
               </TouchableOpacity>
               <View style={styles.existingBagsSection}>
@@ -164,6 +169,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
                                 styles.bagItemTitle,
                                 isInBag && styles.bagItemTitleDisabled,
                               ]}
+                              weight='semibold'
                             >
                               {bagItem.getName()}
                             </PretendardText>
@@ -190,7 +196,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
               onPress={onClose}
               activeOpacity={0.7}
             >
-              <PretendardText style={styles.closeButtonText}>
+              <PretendardText style={styles.closeButtonText} weight='semibold'>
                 닫기
               </PretendardText>
             </TouchableOpacity>
@@ -220,16 +226,15 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   closeButton: {
-    backgroundColor: '#000',
-    borderRadius: 8,
+    backgroundColor: Color.chipActiveBg,
+    borderRadius: Radius.card,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   closeButtonText: {
-    fontFamily: 'Pretendard-SemiBold',
     fontSize: 16,
-    color: '#FFF',
+    color: Color.background,
   },
   scrollView: {
     flexGrow: 1,
@@ -240,14 +245,13 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   title: {
-    fontFamily: 'Pretendard-Bold',
     fontSize: 20,
     lineHeight: 28,
-    color: '#000000',
+    color: Color.textPrimary,
   },
   newBagButton: {
-    backgroundColor: '#FAFAFA',
-    borderRadius: 8,
+    backgroundColor: Color.surfaceMuted,
+    borderRadius: Radius.card,
     paddingHorizontal: 16,
     paddingVertical: 16,
     marginBottom: 8,
@@ -256,9 +260,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   sectionLabel: {
-    fontFamily: 'Pretendard-Regular',
     fontSize: 14,
-    color: '#45556c',
+    color: Color.textTertiary,
     marginBottom: 12,
     paddingLeft: 4,
   },
@@ -266,13 +269,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   bagItem: {
-    backgroundColor: '#FAFAFA',
-    borderRadius: 8,
+    backgroundColor: Color.surfaceMuted,
+    borderRadius: Radius.card,
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
   bagItemDisabled: {
-    backgroundColor: '#F1F1F1',
+    backgroundColor: Color.thumbBg,
   },
   bagItemContent: {
     flexDirection: 'row',
@@ -283,20 +286,18 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   bagItemTitle: {
-    fontFamily: 'Pretendard-SemiBold',
     fontSize: 15,
-    color: '#000',
+    color: Color.textPrimary,
   },
   bagItemTitleDisabled: {
-    color: '#999',
+    color: Color.textSecondary,
   },
   bagItemSubtitle: {
-    fontFamily: 'Pretendard-Regular',
     fontSize: 12,
-    color: '#666',
+    color: Color.textTertiary,
   },
   bagItemSubtitleDisabled: {
-    color: '#999',
+    color: Color.textSecondary,
   },
 });
 

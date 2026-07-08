@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import WarehouseDetailReviewSectionView from './WarehouseDetailReviewSectionView';
 import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '../PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 import SearchGearAddToBagModalView from '../search/SearchGearAddToBagModalView';
 import SharedImageSelectionModalView from '../gear-image/SharedImageSelectionModalView';
 import Bag from '@/model/bag/Bag';
@@ -89,7 +90,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
               onPress={handlePressClose}
               style={styles.backButton}
             >
-              <Ionicons name='chevron-back' size={24} color='#191F28' />
+              <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
             </TouchableOpacity>
           </View>
           <ScrollView style={styles.content}>
@@ -123,7 +124,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
                   <LoadingView duration={1000} />
                 ) : (
                   <View style={styles.buttonContent}>
-                    <PretendardText style={styles.addButtonText}>
+                    <PretendardText weight='semibold' style={styles.addButtonText}>
                       내 창고에 추가하기
                     </PretendardText>
                   </View>
@@ -160,7 +161,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   header: {
     width: '100%',
@@ -168,7 +169,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingHorizontal: 20,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
   },
   backButton: {
     // 뒤로가기 버튼 스타일
@@ -186,13 +187,13 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: 20,
     paddingVertical: 20,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    borderTopColor: Color.borderLight,
   },
   addButton: {
-    backgroundColor: '#000',
-    borderRadius: 12,
+    backgroundColor: Color.textPrimary,
+    borderRadius: Radius.card,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -207,9 +208,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   addButtonText: {
-    color: '#fff',
+    color: Color.background,
     fontSize: 16,
-    fontWeight: '600',
   },
 });
 

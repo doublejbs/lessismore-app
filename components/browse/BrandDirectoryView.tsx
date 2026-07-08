@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import BrandDirectory from '@/model/browse/BrandDirectory';
 import { BrandRankData } from '@/model/search/BrandRankStore';
 import PretendardText from '../PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 import SearchSkeletonView from '../search/SearchSkeletonView';
 import BrandRowView from './BrandRowView';
 import app from '@/model/app/App';
@@ -76,7 +77,7 @@ const BrandDirectoryView: FC<Props> = ({ brandDirectory }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Ionicons name='chevron-back' size={24} color='#191F28' />
+          <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
         </TouchableOpacity>
         <PretendardText style={styles.headerTitle} weight='bold'>
           브랜드별 탐색
@@ -89,7 +90,7 @@ const BrandDirectoryView: FC<Props> = ({ brandDirectory }) => {
             value={keyword}
             onChangeText={handleChangeKeyword}
             placeholder='브랜드명을 검색해보세요'
-            placeholderTextColor='#999'
+            placeholderTextColor={Color.textSecondary}
             autoCapitalize='none'
             autoCorrect={false}
           />
@@ -98,7 +99,7 @@ const BrandDirectoryView: FC<Props> = ({ brandDirectory }) => {
               onPress={handleClearKeyword}
               style={styles.clearButton}
             >
-              <Ionicons name='close-circle' size={20} color='#B0B8C1' />
+              <Ionicons name='close-circle' size={20} color={Color.iconMuted} />
             </TouchableOpacity>
           ) : null}
         </View>
@@ -111,7 +112,7 @@ const BrandDirectoryView: FC<Props> = ({ brandDirectory }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Color.background,
   },
   header: {
     flexDirection: 'row',
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     fontSize: 17,
-    color: '#000',
+    color: Color.textPrimary,
   },
   searchContainer: {
     paddingHorizontal: 20,
@@ -137,8 +138,8 @@ const styles = StyleSheet.create({
   searchInputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
+    backgroundColor: Color.inputBg,
+    borderRadius: Radius.input,
     paddingHorizontal: 12,
     height: 36,
   },
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#888',
+    color: Color.textSecondary,
     textAlign: 'center',
   },
 });

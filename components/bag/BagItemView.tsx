@@ -7,6 +7,7 @@ import PretendardText from '@/components/PretendardText';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import BagCopyView from './BagCopyView';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   bagItem: BagItem;
@@ -38,13 +39,13 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
       <View style={styles.header}>
         <View style={styles.infoContainer}>
           <View style={styles.titleContainer}>
-            <PretendardText style={styles.name}>
+            <PretendardText weight='bold' style={styles.name}>
               {bagItem.getName()}
             </PretendardText>
             <PretendardText style={styles.date}>{date}</PretendardText>
           </View>
           <View style={styles.weightContainer}>
-            <PretendardText style={styles.weight}>
+            <PretendardText weight='bold' style={styles.weight}>
               {bagItem.getWeight()}kg
             </PretendardText>
             {bagItem.hasPackingRecord() && (
@@ -79,7 +80,7 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
             activeOpacity={0.7}
             hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
           >
-            <IconSymbol name='trash.fill' size={18} color='#666' />
+            <IconSymbol name='trash.fill' size={18} color={Color.textTertiary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -104,7 +105,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     gap: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F6',
+    borderBottomColor: Color.divider,
   },
   header: {
     flexDirection: 'row',
@@ -120,19 +121,16 @@ const styles = StyleSheet.create({
     gap: 9,
   },
   name: {
-    fontFamily: 'Pretendard-Bold',
     fontSize: 16,
-    color: '#000000',
+    color: Color.textPrimary,
   },
   date: {
-    fontFamily: 'Pretendard-Regular',
     fontSize: 12,
-    color: '#000000',
+    color: Color.textPrimary,
   },
   weight: {
-    fontFamily: 'Pretendard-Bold',
     fontSize: 16,
-    color: '#000000',
+    color: Color.textPrimary,
   },
   weightContainer: {
     flexDirection: 'row',
@@ -140,26 +138,26 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   packingCompleteChip: {
-    backgroundColor: '#191F28',
-    borderRadius: 999,
+    backgroundColor: Color.textPrimary,
+    borderRadius: Radius.chip,
     paddingHorizontal: 10,
     paddingVertical: 3,
   },
   packingCompleteChipText: {
     fontSize: 12,
-    color: 'white',
+    color: Color.background,
   },
   packingProgressChip: {
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     borderWidth: 1,
-    borderColor: '#191F28',
-    borderRadius: 999,
+    borderColor: Color.textPrimary,
+    borderRadius: Radius.chip,
     paddingHorizontal: 10,
     paddingVertical: 2,
   },
   packingProgressChipText: {
     fontSize: 12,
-    color: '#191F28',
+    color: Color.textPrimary,
   },
   actionContainer: {
     flexDirection: 'row',
@@ -170,22 +168,21 @@ const styles = StyleSheet.create({
     height: 32,
     width: 32,
     padding: 4,
-    backgroundColor: '#F1F1F1',
-    borderRadius: 4,
+    backgroundColor: Color.thumbBg,
+    borderRadius: Radius.listThumb,
     alignItems: 'center',
     justifyContent: 'center',
   },
   uselessButton: {
-    backgroundColor: '#F5F7FB',
+    backgroundColor: Color.surfaceMuted,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: Radius.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
   uselessButtonText: {
-    fontFamily: 'Pretendard-Medium',
     fontSize: 14,
-    color: '#000000',
+    color: Color.textPrimary,
   },
 });
 

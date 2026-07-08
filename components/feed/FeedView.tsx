@@ -14,6 +14,7 @@ import Feed from '@/model/feed/Feed';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import PretendardText from '@/components/PretendardText';
+import { Color } from '@/constants/DesignTokens';
 import FeedSkeletonView from './FeedSkeletonView';
 import FeedFilterBarView from './FeedFilterBarView';
 import FeedRankingButtonView from './FeedRankingButtonView';
@@ -94,7 +95,7 @@ const FeedView: FC<Props> = ({ bag }) => {
     return (
       <View style={styles.footer}>
         {isLoading ? (
-          <ActivityIndicator size='small' color='#888' />
+          <ActivityIndicator size='small' color={Color.textSecondary} />
         ) : null}
         {items.length > 0 ? (
           <PretendardText style={styles.disclaimer}>
@@ -150,7 +151,7 @@ const FeedView: FC<Props> = ({ bag }) => {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor='#888'
+            tintColor={Color.textSecondary}
           />
         }
       />
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
   },
   disclaimer: {
     fontSize: 11,
-    color: '#B0B0B0',
+    color: Color.textSecondary,
     textAlign: 'center',
   },
   emptyContainer: {
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#888',
+    color: Color.textSecondary,
     textAlign: 'center',
   },
 });

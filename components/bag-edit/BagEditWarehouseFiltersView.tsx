@@ -6,6 +6,7 @@ import OrderButtonView from '../order/OrderButtonView';
 import GearFilter from '../../model/gear/GearFilter';
 import WarehouseFilter from '../../model/warehouse/WarehouseFilter';
 import BagEdit from '../../model/bag-edit/BagEdit';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   bagEdit: BagEdit;
@@ -34,7 +35,9 @@ const BagEditWarehouseFiltersView: FC<Props> = ({ bagEdit }) => {
                 styles.filterButton,
                 styles.allFilterButton,
                 {
-                  backgroundColor: filter.isSelected() ? 'black' : '#EBEBEB',
+                  backgroundColor: filter.isSelected()
+                    ? Color.chipActiveBg
+                    : Color.chipInactiveBg,
                 },
               ]}
               onPress={() => handlePress(filter)}
@@ -44,7 +47,9 @@ const BagEditWarehouseFiltersView: FC<Props> = ({ bagEdit }) => {
                 style={[
                   styles.filterText,
                   {
-                    color: filter.isSelected() ? 'white' : 'black',
+                    color: filter.isSelected()
+                      ? Color.background
+                      : Color.textPrimary,
                   },
                 ]}
               >
@@ -58,7 +63,9 @@ const BagEditWarehouseFiltersView: FC<Props> = ({ bagEdit }) => {
                 styles.filterButton,
                 styles.countFilterButton,
                 {
-                  backgroundColor: filter.isSelected() ? 'black' : '#EBEBEB',
+                  backgroundColor: filter.isSelected()
+                    ? Color.chipActiveBg
+                    : Color.chipInactiveBg,
                 },
               ]}
               onPress={() => handlePress(filter)}
@@ -68,7 +75,9 @@ const BagEditWarehouseFiltersView: FC<Props> = ({ bagEdit }) => {
                 style={[
                   styles.filterText,
                   {
-                    color: filter.isSelected() ? 'white' : 'black',
+                    color: filter.isSelected()
+                      ? Color.background
+                      : Color.textPrimary,
                   },
                 ]}
               >
@@ -108,7 +117,7 @@ const styles = StyleSheet.create({
   },
   filterButton: {
     height: 32,
-    borderRadius: 22,
+    borderRadius: Radius.chip,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -129,7 +138,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   countBadge: {
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     width: 16,
     height: 16,
     borderRadius: 8,
@@ -137,7 +146,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   countText: {
-    color: 'black',
+    color: Color.textPrimary,
     fontSize: 12,
     lineHeight: 12,
   },

@@ -3,6 +3,7 @@ import { TouchableOpacity, StyleSheet } from 'react-native';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import BagCopyModalView from './BagCopyModalView';
 import useBagCopyState from './useBagCopyState';
+import { Color } from '@/constants/DesignTokens';
 
 interface Props {
   sourceId: string;
@@ -36,7 +37,7 @@ const BagDetailCopyView: FC<Props> = ({ sourceId, sourceName }) => {
         activeOpacity={0.7}
         hitSlop={{ top: 9, bottom: 9, left: 9, right: 9 }}
       >
-        <IconSymbol name='doc.on.doc' size={26} color='#333' />
+        <IconSymbol name='doc.on.doc' size={26} color={Color.textPrimary} />
       </TouchableOpacity>
       <BagCopyModalView
         visible={visible}

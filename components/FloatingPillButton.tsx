@@ -6,6 +6,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 type FloatingPillVariant = 'primary' | 'secondary';
 
@@ -52,7 +53,7 @@ const FloatingPillButton: FC<Props> = ({
 const styles = StyleSheet.create({
   pill: {
     minHeight: 48,
-    borderRadius: 32,
+    borderRadius: Radius.pill,
     borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
@@ -62,22 +63,22 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   primaryPill: {
-    backgroundColor: 'black',
-    borderColor: 'black',
+    backgroundColor: Color.chipActiveBg,
+    borderColor: Color.textPrimary,
   },
   secondaryPill: {
-    backgroundColor: 'white',
-    borderColor: 'black',
+    backgroundColor: Color.background,
+    borderColor: Color.textPrimary,
   },
   primaryLabel: {
     fontSize: 16,
     lineHeight: 20,
-    color: 'white',
+    color: Color.background,
   },
   secondaryLabel: {
     fontSize: 16,
     lineHeight: 20,
-    color: 'black',
+    color: Color.textPrimary,
   },
 });
 

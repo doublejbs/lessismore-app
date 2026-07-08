@@ -2,7 +2,6 @@ import { observer } from 'mobx-react-lite';
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
@@ -37,6 +36,8 @@ import {
   CardSize,
 } from '@/components/bag-detail/share-image/constants';
 import Layout from '@/components/Layout';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 interface CategoryGears {
@@ -347,13 +348,13 @@ const ShareImagePage = () => {
         ]}
       >
         <ActivityIndicator size='large' color='#39FF14' />
-        <Text style={{ marginTop: 16, color: '#666' }}>
+        <PretendardText style={{ marginTop: 16, color: Color.textTertiary }}>
           {!bagDetail
             ? '배낭 정보 로딩 중...'
             : !initialized
             ? '배낭 정보 로딩 중...'
             : '폰트 로딩 중...'}
-        </Text>
+        </PretendardText>
       </View>
     );
   }
@@ -374,10 +375,12 @@ const ShareImagePage = () => {
           <View style={styles.sparkleIcon}>
             <Ionicons name='sparkles' size={48} color='#7C3AED' />
           </View>
-          <Text style={styles.aiLoadingTitle}>AI로 이미지 생성 중...</Text>
-          <Text style={styles.aiLoadingSubtitle}>
+          <PretendardText weight='semibold' style={styles.aiLoadingTitle}>
+            AI로 이미지 생성 중...
+          </PretendardText>
+          <PretendardText style={styles.aiLoadingSubtitle}>
             배낭 정보를 분석하고 있습니다
-          </Text>
+          </PretendardText>
           <ActivityIndicator
             size='large'
             color='#7C3AED'
@@ -398,9 +401,15 @@ const ShareImagePage = () => {
               onPress={() => router.back()}
               style={styles.backButton}
             >
-              <Ionicons name='chevron-back' size={24} color='#191F28' />
+              <Ionicons
+                name='chevron-back'
+                size={24}
+                color={Color.textPrimary}
+              />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>공유 이미지</Text>
+            <PretendardText weight='semibold' style={styles.headerTitle}>
+              공유 이미지
+            </PretendardText>
             <View style={styles.headerRight} />
           </View>
         </View>
@@ -425,16 +434,21 @@ const ShareImagePage = () => {
               <Ionicons
                 name='shuffle-outline'
                 size={18}
-                color={layoutType === 'collage' ? '#FFFFFF' : '#000000'}
+                color={
+                  layoutType === 'collage'
+                    ? Color.background
+                    : Color.textPrimary
+                }
               />
-              <Text
+              <PretendardText
+                weight='semibold'
                 style={[
                   styles.segmentButtonText,
                   layoutType === 'collage' && styles.segmentButtonTextActive,
                 ]}
               >
                 콜라주
-              </Text>
+              </PretendardText>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
@@ -453,16 +467,19 @@ const ShareImagePage = () => {
               <Ionicons
                 name='grid-outline'
                 size={18}
-                color={layoutType === 'grid' ? '#FFFFFF' : '#000000'}
+                color={
+                  layoutType === 'grid' ? Color.background : Color.textPrimary
+                }
               />
-              <Text
+              <PretendardText
+                weight='semibold'
                 style={[
                   styles.segmentButtonText,
                   layoutType === 'grid' && styles.segmentButtonTextActive,
                 ]}
               >
                 그리드
-              </Text>
+              </PretendardText>
             </TouchableOpacity>
           </View>
         </View>
@@ -520,7 +537,9 @@ const ShareImagePage = () => {
                 onPress={() => setIsEditMode(false)}
                 activeOpacity={1}
               >
-                <Text style={styles.doneButtonText}>완료</Text>
+                <PretendardText weight='semibold' style={styles.doneButtonText}>
+                  완료
+                </PretendardText>
               </TouchableOpacity>
             </View>
           ) : (
@@ -536,7 +555,8 @@ const ShareImagePage = () => {
                 disabled={layoutType === 'collage' && isCollageLoading}
                 activeOpacity={1}
               >
-                <Text
+                <PretendardText
+                  weight='semibold'
                   style={[
                     styles.editButtonText,
                     layoutType === 'collage' &&
@@ -545,7 +565,7 @@ const ShareImagePage = () => {
                   ]}
                 >
                   수정하기
-                </Text>
+                </PretendardText>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
@@ -571,11 +591,12 @@ const ShareImagePage = () => {
                     !isReady ||
                     isSaving ||
                     (layoutType === 'collage' && isCollageLoading)
-                      ? '#999999'
-                      : 'white'
+                      ? Color.textSecondary
+                      : Color.background
                   }
                 />
-                <Text
+                <PretendardText
+                  weight='semibold'
                   style={[
                     styles.shareButtonText,
                     (!isReady ||
@@ -585,7 +606,7 @@ const ShareImagePage = () => {
                   ]}
                 >
                   공유하기
-                </Text>
+                </PretendardText>
               </TouchableOpacity>
             </View>
           )}
@@ -605,14 +626,14 @@ const ShareImagePage = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Color.background,
   },
   header: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: Color.borderLight,
   },
   headerContent: {
     flexDirection: 'row',
@@ -627,9 +648,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: '600',
-    color: '#191F28',
-    fontFamily: 'Inter_600SemiBold',
+    color: Color.textPrimary,
   },
   content: {
     flex: 1,
@@ -642,9 +661,9 @@ const styles = StyleSheet.create({
   bottomContainer: {
     paddingHorizontal: 20,
     paddingTop: 16,
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     borderTopWidth: 1,
-    borderTopColor: '#E5E5E5',
+    borderTopColor: Color.borderLight,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -655,9 +674,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#000000',
+    backgroundColor: Color.chipActiveBg,
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: Radius.card,
   },
   doneButtonFlex: {
     flex: 1,
@@ -666,71 +685,63 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     paddingVertical: 16,
     paddingHorizontal: 20,
-    borderRadius: 12,
+    borderRadius: Radius.card,
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: Color.borderLight,
     gap: 6,
   },
   resetButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#666666',
-    fontFamily: 'Inter_600SemiBold',
+    color: Color.textTertiary,
   },
   doneButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
-    fontFamily: 'Inter_600SemiBold',
+    color: Color.background,
   },
   editButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: Radius.card,
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: Color.borderLight,
   },
   editButtonDisabled: {
-    backgroundColor: '#F5F5F5',
-    borderColor: '#E5E5E5',
+    backgroundColor: Color.surfaceMuted,
+    borderColor: Color.borderLight,
   },
   editButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#191F28',
-    fontFamily: 'Inter_600SemiBold',
+    color: Color.textPrimary,
   },
   editButtonTextDisabled: {
-    color: '#999999',
+    color: Color.textSecondary,
   },
   shareButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#000000',
+    backgroundColor: Color.chipActiveBg,
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: Radius.card,
     gap: 8,
   },
   shareButtonDisabled: {
-    backgroundColor: '#CCCCCC',
+    backgroundColor: Color.textSecondary,
   },
   shareButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
-    fontFamily: 'Inter_600SemiBold',
+    color: Color.background,
   },
   shareButtonTextDisabled: {
-    color: '#999999',
+    color: Color.textSecondary,
   },
   aiLoadingContainer: {
     alignItems: 'center',
@@ -742,25 +753,22 @@ const styles = StyleSheet.create({
   },
   aiLoadingTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    color: Color.background,
     marginBottom: 8,
-    fontFamily: 'Inter_600SemiBold',
   },
   aiLoadingSubtitle: {
     fontSize: 14,
-    color: '#999999',
-    fontFamily: 'Inter_400Regular',
+    color: Color.textSecondary,
   },
   segmentContainer: {
-    backgroundColor: 'white',
+    backgroundColor: Color.background,
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
   segmentBackground: {
     flexDirection: 'row',
-    backgroundColor: '#E8E8E8',
-    borderRadius: 10,
+    backgroundColor: Color.borderLight,
+    borderRadius: Radius.card,
     padding: 3,
   },
   segmentButton: {
@@ -771,19 +779,17 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     gap: 6,
-    borderRadius: 8,
+    borderRadius: Radius.card,
   },
   segmentButtonActive: {
-    backgroundColor: '#000000',
+    backgroundColor: Color.chipActiveBg,
   },
   segmentButtonText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#000000',
-    fontFamily: 'Inter_600SemiBold',
+    color: Color.textPrimary,
   },
   segmentButtonTextActive: {
-    color: '#FFFFFF',
+    color: Color.background,
   },
   shareButtonFlex: {
     flex: 1,
