@@ -32,6 +32,11 @@
       "googleServicesFile": "./google-services.json",
       "package": "com.doublejbs.useless",
       "permissions": ["android.permission.RECORD_AUDIO"],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyARRTmSGoxVUxXOINJ-YqU_DDJkZOeQS5Q"
+        }
+      },
       "userInterfaceStyle": "light"
     },
     "web": {

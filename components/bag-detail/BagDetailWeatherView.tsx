@@ -7,7 +7,7 @@ import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius, Spacing } from '@/constants/DesignTokens';
-import { getWeatherCodeInfo } from '@/model/weather/WeatherCode';
+import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 
 interface Props {
   bagDetail: BagDetail;
@@ -25,21 +25,8 @@ const BagDetailWeatherView: FC<Props> = ({ bagDetail }) => {
     router.push(`/bag/${bagDetail.getId()}/weather`);
   };
 
-  // 요약: 기간 전체 최저~최고 + 강수가 가장 큰 날의 대표 아이콘.
-  const summary = (() => {
-    if (!weather || weather.daily.length === 0) {
-      return null;
-    }
-    const daily = weather.daily;
-    const tempMin = Math.round(Math.min(...daily.map(d => d.tempMin)));
-    const tempMax = Math.round(Math.max(...daily.map(d => d.tempMax)));
-    const rep = daily.reduce((worst, d) => {
-      const p = d.precipProb ?? d.precipSum ?? 0;
-      const wp = worst.precipProb ?? worst.precipSum ?? 0;
-      return p > wp ? d : worst;
-    }, daily[0]);
-    return { tempMin, tempMax, icon: getWeatherCodeInfo(rep.code).icon };
-  })();
+  // 요약: 날씨 페이지와 동일 규칙(눈>비>맑음) — 대표 아이콘·최저~최고.
+  const summary = weather ? summarizeWeatherPeriod(weather.daily) : null;
 
   return (
     <View style={styles.container}>
@@ -56,7 +43,7 @@ const BagDetailWeatherView: FC<Props> = ({ bagDetail }) => {
           />
           {location && summary ? (
             <PretendardText style={styles.text} weight='medium'>
-              {location.name} · {summary.tempMin}~{summary.tempMax}°
+              {location.name} · {summary.low}~{summary.high}°
             </PretendardText>
           ) : location ? (
             <PretendardText style={styles.text} weight='medium'>
