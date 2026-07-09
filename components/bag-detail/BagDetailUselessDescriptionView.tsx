@@ -57,8 +57,16 @@ const BagDetailUselessDescriptionView: FC<Props> = ({ bagDetail }) => {
       <TouchableOpacity
         style={styles.touchableContainer}
         onPress={handlePressUseless}
+        activeOpacity={0.7}
       >
-        {renderContent()}
+        <View style={styles.titleRow}>
+          <Ionicons
+            name='trending-down-outline'
+            size={20}
+            color={Color.textPrimary}
+          />
+          {renderContent()}
+        </View>
         <View style={styles.iconContainer}>
           <Ionicons name='chevron-forward' size={24} color={Color.textPrimary} />
         </View>
@@ -70,7 +78,8 @@ const BagDetailUselessDescriptionView: FC<Props> = ({ bagDetail }) => {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: Spacing.screenH,
-    paddingBottom: 8,
+    paddingVertical: 12,
+    marginBottom: 8,
     backgroundColor: Color.background,
   },
   touchableContainer: {
@@ -79,7 +88,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: Radius.card,
   },
+  titleRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   textContainer: {
+    flex: 1,
     gap: 4,
   },
   descriptionText: {
