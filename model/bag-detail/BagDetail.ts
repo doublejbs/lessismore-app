@@ -11,6 +11,7 @@ import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import BagDetailFilterManager from '@/model/bag-detail/BagDetailFilterManager';
 import PackingButtonState from '@/model/bag-detail/PackingButtonState';
 import { Router } from 'expo-router';
+import BagWeather from '@/model/bag/BagWeather';
 
 class BagDetail {
   public static readonly ORDER_KEY = 'bag';
@@ -42,6 +43,7 @@ class BagDetail {
   private endDate = dayjs();
   private shared = false;
   private memo: string = '';
+  private readonly bagWeather: BagWeather;
   private categoryRefs: Map<string, any> = new Map();
   private scrollViewRef: any = null;
   private isScrollingSyncFilter = false;
@@ -60,7 +62,12 @@ class BagDetail {
     private readonly order: Order,
     private readonly firebase: Firebase
   ) {
+    this.bagWeather = BagWeather.of(id, bagStore);
     makeAutoObservable(this);
+  }
+
+  public getBagWeather() {
+    return this.bagWeather;
   }
 
   public async initialize() {
@@ -71,8 +78,18 @@ class BagDetail {
   }
 
   private async getData() {
-    const { name, weight, editDate, gears, startDate, endDate, shared, memo } =
-      await this.bagStore.getBagWithAllFilter(this.id);
+    const {
+      name,
+      weight,
+      editDate,
+      gears,
+      startDate,
+      endDate,
+      shared,
+      memo,
+      location,
+      weather,
+    } = await this.bagStore.getBagWithAllFilter(this.id);
     this.setName(name);
     this.setWeight(weight);
     this.setEditDate(editDate);
@@ -84,6 +101,15 @@ class BagDetail {
     this.calculateUsedWeight();
     this.updateUselessChecked();
     await this.loadPackingState();
+    // 이미 읽은 배낭 데이터를 BagWeather에 주입하고(중복 읽기 방지),
+    // 날씨는 부가정보라 초기화를 막지 않도록 비동기로만 신선도 갱신한다.
+    this.bagWeather.hydrate(
+      location ?? null,
+      weather ?? null,
+      this.startDate,
+      this.endDate
+    );
+    void this.bagWeather.ensureFresh();
   }
 
   private async loadPackingState() {

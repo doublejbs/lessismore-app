@@ -169,7 +169,12 @@ const DateRangeCalendarView: FC<Props> = ({
           ))}
         </View>
 
-        <View style={styles.daysContainer}>
+        <View
+          style={[
+            styles.daysContainer,
+            { height: Math.ceil(calendarDays.length / 7) * 44 },
+          ]}
+        >
           {calendarDays.map((day, index) => {
             const isStart = isSelectedStart(day);
             const isEnd = isSelectedEnd(day);
@@ -289,11 +294,10 @@ const styles = StyleSheet.create({
   daysContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    height: 240,
   },
   dayContainer: {
     width: '14.28%', // 100% / 7 days
-    height: 40,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
