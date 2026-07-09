@@ -64,9 +64,8 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
         </PretendardText>
         <Ionicons
           name='create-outline'
-          size={18}
+          size={16}
           color={Color.textTertiary}
-          style={{ opacity: 0.6 }}
         />
       </TouchableOpacity>
       <Modal

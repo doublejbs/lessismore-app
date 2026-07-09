@@ -76,8 +76,7 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
         <Ionicons
           name='create-outline'
           size={16}
-          color={Color.textSecondary}
-          style={{ opacity: 0.5 }}
+          color={Color.textTertiary}
         />
       </TouchableOpacity>
 
