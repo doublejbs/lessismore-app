@@ -54,7 +54,7 @@
 | `click_bag_item` | 배낭 행 클릭 (상세 진입) | — |
 | `click_bag_share` | 상세 공유 버튼 (BD-7) | — |
 | `click_bag_info_edit` | 상세 이름·날짜 행 클릭 (수정 모달, BD-1) | — |
-| `click_bag_chart_toggle` | 상세 무게 차트 펼치기/접기 (BD-3) | `expanded`: boolean |
+| `click_bag_chart_toggle` | [폐기] 상세 무게 차트 접이식이 요약 영역 상시 표시로 대체(BD-3 재설계)되어 더 이상 발생하지 않음 | `expanded`: boolean |
 | `click_bag_edit` | 상세 `수정하기` 버튼 | — |
 | `click_bag_edit_confirm` | 편집 화면 하단 `확인` 버튼 | — |
 | `click_gear_toggle` | 편집 화면 장비 담기/빼기 토글 (BD-4) | `added`: boolean |

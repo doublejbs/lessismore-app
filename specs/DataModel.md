@@ -211,7 +211,7 @@
 | `code` | number | WMO weather_code (한글/아이콘 매핑은 `model/weather/WeatherCode.ts`) |
 | `tempMax` | number | 최고기온(℃) |
 | `tempMin` | number | 최저기온(℃) |
-| `source` | string | `forecast` / `archive` / `normal` (일별 출처 배지) |
+| `source` | string | `forecast` / `archive` / `normal` (일별 데이터 출처 구분 — UI 배지는 미표시) |
 | `precipProb` | number? | 강수확률(%). 예보 구간 |
 | `precipSum` | number? | 강수량(mm). 실측/평년 구간 |
 | `windSpeedMax` | number? | 최대 풍속(m/s) |
