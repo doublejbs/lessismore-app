@@ -98,8 +98,12 @@
 | `packedGears` | string[] | 패킹 모드에서 챙긴 장비 ID 배열 ([Packing.md](Packing.md) PK-4). 옵셔널(기존 문서엔 없음) |
 | `packingStartedAt` | string | 최초 패킹 시작 시각(ISO 8601). 옵셔널 |
 | `packingCompletedAt` | string | 패킹 완료 시각(ISO 8601). 옵셔널 — 완료 해제·리셋 시 필드 제거 |
+| `location` | object | 여행지 위치. `BagLocation` 형태(DM-15). 옵셔널(미설정 시 없음) |
+| `weather` | object | 여행 기간 날씨 스냅샷 캐시. `WeatherSnapshot` 형태(DM-15). 옵셔널 |
 
 패킹 필드는 여행 후에도 보존한다(히스토리 데이터, [Packing.md](Packing.md) §8). 배낭 복사 시에는 복사하지 않는다([Bag.md](Bag.md) BAG-4).
+
+`location`/`weather`는 `BagStore.updateLocation`/`updateWeather`가 각각 `updateDoc`으로 단독 갱신한다(트랜잭션 아님). 배낭 복사 시 복사 대상에서 제외한다. 상세 설계는 [Weather.md](Weather.md).
 
 ### DM-6 `gear-rank/{gearId}`
 
@@ -174,6 +178,44 @@
 - **유지 방식**: `GearStore.register`/`remove`의 gear-rank 증감 트랜잭션에서 해당 장비의 `brand-rank/{brandKey}`도 `ownerCount`를 `increment(±1)`한다(카탈로그 장비 `isCustom === false`만, gear-rank와 동일 조건). 문서 없으면 생성(`ownerCount=1`, `gearCount`는 백필이 채움), `ownerCount ≤ 1`에서 -1이면 삭제(gear-rank 규칙과 대칭). `gearCount`는 실시간 갱신하지 않는다.
 - **초기 백필**: 기존 데이터는 스크립트 1회로 `gear-rank` × `gear`(company)를 조인·브랜드별 합산해 생성한다. 앱 Firestore 쓰기이므로 **클라이언트 SDK + public config**로 작성(admin 키 불필요, `gear-rank`처럼 미인증 쓰기 허용 경로). 변경 전 백업 JSON 저장([DM-12](#7-운영-스크립트-dm-12) 관례).
 - **읽기 규칙**: 브랜드 디렉토리는 로그인 사용자 화면이나, `gear-rank`와 동일하게 공개 읽기 허용을 둔다(보안 규칙 작업).
+
+### DM-15 여행지 위치·날씨 (`bag.location`, `bag.weather`)
+
+`bag` 문서 안에 중첩 저장되는 날씨 도메인 값. 타입 원본은 `model/weather/WeatherTypes.ts`. 상세 동작은 [Weather.md](Weather.md).
+
+**`BagLocation`** (`bag.location`)
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `name` | string | 표시용 지명/주소 (Kakao 지오코딩 결과 또는 검색 장소명) |
+| `latitude` | number | WGS84 위도 |
+| `longitude` | number | WGS84 경도 |
+
+**`WeatherSnapshot`** (`bag.weather`) — 캐시 신선도 판단 메타를 함께 보관
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `fetchedAt` | string | ISO 8601. TTL 판단용 |
+| `kind` | string | `forecast`(예보) / `archive`(실측) / `normal`(평년값) / `mixed`(구간 혼합) |
+| `frozen` | boolean | 여행 종료일이 오늘 이전이면 true → 재조회 안 함 |
+| `latitude` | number | 스냅샷 당시 좌표(위치 변경 감지용) |
+| `longitude` | number | 스냅샷 당시 좌표 |
+| `locationName` | string | 스냅샷 당시 지명 |
+| `daily` | array | 하루치 배열(`WeatherDaily`) |
+
+**`WeatherDaily`** (`weather.daily[]`)
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `date` | string | `YYYY-MM-DD` |
+| `code` | number | WMO weather_code (한글/아이콘 매핑은 `model/weather/WeatherCode.ts`) |
+| `tempMax` | number | 최고기온(℃) |
+| `tempMin` | number | 최저기온(℃) |
+| `source` | string | `forecast` / `archive` / `normal` (일별 출처 배지) |
+| `precipProb` | number? | 강수확률(%). 예보 구간 |
+| `precipSum` | number? | 강수량(mm). 실측/평년 구간 |
+| `windSpeedMax` | number? | 최대 풍속(m/s) |
+| `windGustMax` | number? | 최대 돌풍(m/s) |
 
 ## 4. Storage 경로 (DM-9)
 
