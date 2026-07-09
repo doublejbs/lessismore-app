@@ -5,7 +5,7 @@
 | 상태 | as-built (2026-06-10 코드 기준) |
 | ID 프리픽스 | `BD` |
 | 주요 코드 | `app/bag/[id]/`, `app/useless/[id]/`, `components/bag-detail/`, `components/bag-edit/`, `components/bag-useless/`, `model/bag-detail/`, `model/bag-edit/`, `model/bag-useless/`, `model/store/BagStore.ts` |
-| 관련 스펙 | [DataModel.md](DataModel.md), [Bag.md](Bag.md), [ShareImage.md](ShareImage.md), [GearEdit.md](GearEdit.md), [Packing.md](Packing.md) |
+| 관련 스펙 | [DataModel.md](DataModel.md), [Bag.md](Bag.md), [ShareImage.md](ShareImage.md), [GearEdit.md](GearEdit.md), [Packing.md](Packing.md), [Weather.md](Weather.md) |
 
 ## 1. 개요
 
@@ -22,6 +22,7 @@
 | `/useless/[id]` | BagUselessView | "실제로 사용한 장비" 체크 |
 | `/share-image/[id]` | — | 레디샷 ([ShareImage.md](ShareImage.md)) |
 | `/bag/[id]/packing` | BagPackingView | 패킹 모드 ([Packing.md](Packing.md)) |
+| `/bag/[id]/weather` | BagWeatherView | 여행지 날씨 ([Weather.md](Weather.md)) |
 
 ## 3. 요구사항
 
