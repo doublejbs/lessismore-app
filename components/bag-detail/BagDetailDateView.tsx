@@ -71,13 +71,9 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
     <>
       <TouchableOpacity style={styles.dateContainer} onPress={handleDatePress}>
         <PretendardText style={styles.dateText}>
-          {bagDetail.getDate()}
+          {bagDetail.getDate()} · {bagDetail.getPhaseLabel()}
         </PretendardText>
-        <Ionicons
-          name='create-outline'
-          size={16}
-          color={Color.textTertiary}
-        />
+        <Ionicons name='pencil' size={12} color={Color.textSecondary} />
       </TouchableOpacity>
 
       <Modal
@@ -116,30 +112,28 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
 
             <View style={styles.buttonContainer}>
               <TouchableOpacity
-                onPress={handleCancel}
-                disabled={isUpdating}
-                style={[styles.cancelButton, { opacity: isUpdating ? 0.6 : 1 }]}
-              >
-                <PretendardText style={styles.cancelButtonText} weight='medium'>
-                  취소
-                </PretendardText>
-              </TouchableOpacity>
-
-              <TouchableOpacity
                 onPress={handleSave}
                 disabled={isUpdating || !startDate || !endDate}
                 style={[
                   styles.saveButton,
-                  {
-                    backgroundColor:
-                      isUpdating || !startDate || !endDate
-                        ? Color.textTertiary
-                        : Color.chipActiveBg,
-                  },
+                  (isUpdating || !startDate || !endDate) &&
+                    styles.saveButtonDisabled,
                 ]}
+                activeOpacity={0.7}
               >
-                <PretendardText style={styles.saveButtonText} weight='medium'>
+                <PretendardText style={styles.saveButtonText} weight='bold'>
                   {isUpdating ? '저장 중...' : '저장'}
+                </PretendardText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleCancel}
+                disabled={isUpdating}
+                style={styles.cancelButton}
+                activeOpacity={0.7}
+              >
+                <PretendardText style={styles.cancelButtonText} weight='medium'>
+                  취소
                 </PretendardText>
               </TouchableOpacity>
             </View>
@@ -152,19 +146,18 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
 
 const styles = StyleSheet.create({
   dateContainer: {
-    width: '100%',
+    alignSelf: 'flex-start',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     flexDirection: 'row',
-    padding: 4,
+    paddingVertical: 4,
     borderRadius: Radius.listThumb,
-    gap: 8,
-    paddingBottom: 8,
+    gap: 6,
+    marginBottom: 4,
   },
   dateText: {
     fontSize: 14,
-    color: Color.textPrimary,
-    textAlign: 'center',
+    color: Color.textSecondary,
   },
   modalOverlay: {
     flex: 1,
@@ -175,7 +168,8 @@ const styles = StyleSheet.create({
     backgroundColor: Color.background,
     borderTopLeftRadius: Radius.modal,
     borderTopRightRadius: Radius.modal,
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingTop: 28,
     maxHeight: '95%',
     minHeight: '70%',
   },
@@ -186,16 +180,16 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   modalTitle: {
-    fontSize: 18,
-    marginBottom: 8,
+    fontSize: 20,
+    marginBottom: 4,
     textAlign: 'center',
     color: Color.textPrimary,
   },
   modalDescription: {
     fontSize: 14,
     textAlign: 'center',
-    marginBottom: 20,
-    color: Color.textPrimary,
+    marginBottom: 24,
+    color: Color.textSecondary,
   },
   calendarContainer: {
     marginBottom: 10,
@@ -207,31 +201,30 @@ const styles = StyleSheet.create({
     color: Color.textPrimary,
   },
   buttonContainer: {
-    flexDirection: 'row',
     gap: 8,
   },
-  cancelButton: {
-    flex: 1,
-    backgroundColor: Color.background,
-    padding: 12,
+  saveButton: {
+    width: '100%',
+    paddingVertical: 16,
     borderRadius: Radius.input,
-    borderWidth: 1,
-    borderColor: Color.borderLight,
+    backgroundColor: Color.chipActiveBg,
+    alignItems: 'center',
+  },
+  saveButtonDisabled: {
+    opacity: 0.35,
+  },
+  saveButtonText: {
+    color: Color.background,
+    fontSize: 16,
+  },
+  cancelButton: {
+    width: '100%',
+    paddingVertical: 14,
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: Color.textPrimary,
-    fontSize: 16,
-  },
-  saveButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: Radius.input,
-    alignItems: 'center',
-  },
-  saveButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: Color.textSecondary,
+    fontSize: 15,
   },
 });
 

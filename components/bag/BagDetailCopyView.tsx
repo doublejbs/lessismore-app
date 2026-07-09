@@ -26,6 +26,8 @@ const BagDetailCopyView: FC<Props> = ({ sourceId, sourceName }) => {
       onPress={handlePressCopy}
       activeOpacity={0.7}
       hitSlop={{ top: 9, bottom: 9, left: 9, right: 9 }}
+      accessibilityRole='button'
+      accessibilityLabel='복사'
     >
       <IconSymbol name='doc.on.doc' size={26} color={Color.textPrimary} />
     </TouchableOpacity>

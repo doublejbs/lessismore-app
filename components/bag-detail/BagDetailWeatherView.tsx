@@ -1,93 +1,108 @@
 import { FC } from 'react';
-import { View, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { Color, Radius } from '@/constants/DesignTokens';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 
 interface Props {
   bagDetail: BagDetail;
+  emphasized?: boolean;
 }
 
-const BagDetailWeatherView: FC<Props> = ({ bagDetail }) => {
+const EMPHASIZED_SUB = '#B9B9B9';
+
+const BagDetailWeatherView: FC<Props> = ({ bagDetail, emphasized = false }) => {
   const router = useRouter();
   const bagWeather = bagDetail.getBagWeather();
   const location = bagWeather.getLocation();
   const weather = bagWeather.getWeather();
-  const loading = bagWeather.isLoading();
 
   const handlePress = () => {
     app.getAnalyticsManager()?.logClick('bag_weather');
     router.push(`/bag/${bagDetail.getId()}/weather`);
   };
 
-  // 요약: 날씨 페이지와 동일 규칙(눈>비>맑음) — 대표 아이콘·최저~최고.
   const summary = weather ? summarizeWeatherPeriod(weather.daily) : null;
+  const fg = emphasized ? Color.background : Color.textPrimary;
+  const subFg = emphasized ? EMPHASIZED_SUB : Color.textSecondary;
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.touchable}
-        onPress={handlePress}
-        activeOpacity={0.7}
-      >
-        <View style={styles.left}>
-          <Ionicons
-            name={summary ? summary.icon : 'partly-sunny-outline'}
-            size={20}
-            color={Color.textPrimary}
-          />
-          {location && summary ? (
-            <PretendardText style={styles.text} weight='medium'>
-              {location.name} · {summary.low}~{summary.high}°
-            </PretendardText>
-          ) : location ? (
-            <PretendardText style={styles.text} weight='medium'>
-              {location.name}
-            </PretendardText>
-          ) : (
-            <PretendardText style={styles.text} weight='medium'>
-              여행지 날씨 보기
-            </PretendardText>
-          )}
-        </View>
-        {loading && !summary ? (
-          <ActivityIndicator size='small' color={Color.textSecondary} />
-        ) : (
-          <Ionicons name='chevron-forward' size={24} color={Color.textPrimary} />
+    <TouchableOpacity
+      style={[styles.tile, emphasized && styles.tileEmphasized]}
+      onPress={handlePress}
+      activeOpacity={0.7}
+    >
+      <View style={styles.iconRow}>
+        <Ionicons
+          name={summary ? summary.icon : 'partly-sunny-outline'}
+          size={24}
+          color={fg}
+        />
+        {summary && (
+          <PretendardText style={[styles.cond, { color: subFg }]} weight='medium'>
+            {summary.cond}
+          </PretendardText>
         )}
-      </TouchableOpacity>
-    </View>
+      </View>
+      {summary && location ? (
+        <View style={styles.textWrap}>
+          <PretendardText style={[styles.temp, { color: fg }]} weight='bold'>
+            {summary.low}~{summary.high}°
+          </PretendardText>
+          <PretendardText style={[styles.subtitle, { color: subFg }]} numberOfLines={1}>
+            {location.name}
+          </PretendardText>
+        </View>
+      ) : (
+        <View style={styles.textWrap}>
+          <PretendardText style={[styles.title, { color: fg }]} weight='medium'>
+            날씨
+          </PretendardText>
+          <PretendardText style={[styles.subtitle, { color: subFg }]} numberOfLines={1}>
+            {location ? location.name : '여행지 설정'}
+          </PretendardText>
+        </View>
+      )}
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: Spacing.screenH,
-    paddingVertical: 12,
-    marginBottom: 8,
-    backgroundColor: Color.background,
-  },
-  touchable: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  tile: {
+    width: '48%',
+    minHeight: 92,
+    backgroundColor: Color.surfaceMuted,
     borderRadius: Radius.card,
+    padding: 14,
+    justifyContent: 'space-between',
   },
-  left: {
-    flex: 1,
+  tileEmphasized: {
+    backgroundColor: Color.chipActiveBg,
+  },
+  iconRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
   },
-  text: {
-    flex: 1,
-    fontSize: 17,
-    color: Color.textPrimary,
+  textWrap: {
+    gap: 2,
+  },
+  title: {
+    fontSize: 15,
+  },
+  temp: {
+    fontSize: 22,
+  },
+  cond: {
+    fontSize: 13,
+  },
+  subtitle: {
+    fontSize: 12,
   },
 });
 

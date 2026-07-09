@@ -75,7 +75,7 @@ export const summarizeWeatherPeriod = (
   const hasRain = daily.some(
     d => RAIN_CODES.has(d.code) || (d.precipProb ?? 0) >= 60
   );
-  const cond = hasSnow ? '눈 예상' : hasRain ? '비 예상' : '대체로 맑음';
+  const cond = hasSnow ? '눈' : hasRain ? '비' : '맑음';
   const icon: IoniconName = hasSnow
     ? 'snow-outline'
     : hasRain

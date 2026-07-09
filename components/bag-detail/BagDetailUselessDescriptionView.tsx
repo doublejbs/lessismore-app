@@ -1,120 +1,80 @@
 import { FC } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
+  emphasized?: boolean;
 }
 
-const BagDetailUselessDescriptionView: FC<Props> = ({ bagDetail }) => {
+const BagDetailUselessDescriptionView: FC<Props> = ({
+  bagDetail,
+  emphasized = false,
+}) => {
   const isUselessChecked = bagDetail.isUselessChecked();
   const usedWeight = bagDetail.getUsedWeight();
+  const phase = bagDetail.getTripPhase();
 
   const handlePressUseless = () => {
     app.getAnalyticsManager()?.logClick('bag_useless');
     bagDetail.goToUseless();
   };
 
-  const renderContent = () => {
-    if (isUselessChecked) {
-      return (
-        <View style={styles.textContainer}>
-          <PretendardText style={styles.descriptionText}>
-            사용한 제품만 측정해보니
-          </PretendardText>
-          <View style={styles.weightRow}>
-            <PretendardText weight='bold' style={styles.weightText}>
-              {usedWeight}kg
-            </PretendardText>
-            <PretendardText style={styles.descriptionText}>
-              {' '}
-              까지 줄어들어요
-            </PretendardText>
-          </View>
-        </View>
-      );
-    } else {
-      return (
-        <View style={styles.textContainer}>
-          <PretendardText style={styles.descriptionText}>
-            사용 여부 기록하고
-          </PretendardText>
-          <PretendardText style={styles.descriptionText}>
-            줄어든 무게 확인하기
-          </PretendardText>
-        </View>
-      );
-    }
-  };
+  const subtitle = isUselessChecked
+    ? `${usedWeight}kg로 줄어요`
+    : phase === 'after'
+      ? '줄어든 무게 확인'
+      : '여행 후 기록';
+
+  const fg = emphasized ? Color.background : Color.textPrimary;
+  const subFg = emphasized ? EMPHASIZED_SUB : Color.textSecondary;
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.touchableContainer}
-        onPress={handlePressUseless}
-        activeOpacity={0.7}
-      >
-        <View style={styles.titleRow}>
-          <Ionicons
-            name='trending-down-outline'
-            size={20}
-            color={Color.textPrimary}
-          />
-          {renderContent()}
-        </View>
-        <View style={styles.iconContainer}>
-          <Ionicons name='chevron-forward' size={24} color={Color.textPrimary} />
-        </View>
-      </TouchableOpacity>
-    </View>
+    <TouchableOpacity
+      style={[styles.tile, emphasized && styles.tileEmphasized]}
+      onPress={handlePressUseless}
+      activeOpacity={0.7}
+    >
+      <Ionicons name='trending-down-outline' size={22} color={fg} />
+      <View style={styles.textWrap}>
+        <PretendardText style={[styles.title, { color: fg }]} weight='medium'>
+          사용 기록
+        </PretendardText>
+        <PretendardText style={[styles.subtitle, { color: subFg }]} numberOfLines={1}>
+          {subtitle}
+        </PretendardText>
+      </View>
+    </TouchableOpacity>
   );
 };
 
+const EMPHASIZED_SUB = '#B9B9B9';
+
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: Spacing.screenH,
-    paddingVertical: 12,
-    marginBottom: 8,
-    backgroundColor: Color.background,
-  },
-  touchableContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  tile: {
+    width: '48%',
+    minHeight: 92,
+    backgroundColor: Color.surfaceMuted,
     borderRadius: Radius.card,
+    padding: 14,
+    justifyContent: 'space-between',
   },
-  titleRow: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  tileEmphasized: {
+    backgroundColor: Color.chipActiveBg,
   },
-  textContainer: {
-    flex: 1,
-    gap: 4,
+  textWrap: {
+    gap: 2,
   },
-  descriptionText: {
-    fontSize: 17,
-    color: Color.textPrimary,
+  title: {
+    fontSize: 15,
   },
-  weightRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  weightText: {
-    color: Color.textPrimary,
-    fontSize: 20,
-  },
-  iconContainer: {
-    width: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+  subtitle: {
+    fontSize: 12,
   },
 });
 

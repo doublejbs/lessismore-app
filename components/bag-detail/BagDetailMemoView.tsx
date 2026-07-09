@@ -1,12 +1,12 @@
 import { FC } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -23,83 +23,47 @@ const BagDetailMemoView: FC<Props> = ({ bagDetail }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.touchableContainer}
-        onPress={handlePressMemo}
-        activeOpacity={0.7}
-      >
-        <View style={styles.textContainer}>
-          {hasMemo ? (
-            <>
-              <View style={styles.titleRow}>
-                <Ionicons
-                  name='document-text-outline'
-                  size={20}
-                  color={Color.textPrimary}
-                />
-                <PretendardText style={styles.titleText} weight='medium'>
-                  {memo}
-                </PretendardText>
-              </View>
-            </>
-          ) : (
-            <View style={styles.titleRow}>
-              <Ionicons
-                name='document-text-outline'
-                size={20}
-                color={Color.textPrimary}
-              />
-              <PretendardText style={styles.titleText} weight='medium'>
-                메모 작성하기
-              </PretendardText>
-            </View>
-          )}
-        </View>
-        <View style={styles.iconContainer}>
-          <Ionicons name='chevron-forward' size={24} color={Color.textPrimary} />
-        </View>
-      </TouchableOpacity>
-    </View>
+    <TouchableOpacity
+      style={styles.tile}
+      onPress={handlePressMemo}
+      activeOpacity={0.7}
+    >
+      <Ionicons
+        name='document-text-outline'
+        size={22}
+        color={Color.textPrimary}
+      />
+      <View style={styles.textWrap}>
+        <PretendardText style={styles.title} weight='medium'>
+          메모
+        </PretendardText>
+        <PretendardText style={styles.subtitle} numberOfLines={1}>
+          {hasMemo ? memo : '작성하기'}
+        </PretendardText>
+      </View>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: Spacing.screenH,
-    paddingVertical: 12,
-    marginBottom: 8,
-    backgroundColor: Color.background,
-  },
-  touchableContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  tile: {
+    width: '48%',
+    minHeight: 92,
+    backgroundColor: Color.surfaceMuted,
     borderRadius: Radius.card,
+    padding: 14,
+    justifyContent: 'space-between',
   },
-  textContainer: {
-    flex: 1,
+  textWrap: {
+    gap: 2,
   },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  titleText: {
-    fontSize: 17,
+  title: {
+    fontSize: 15,
     color: Color.textPrimary,
   },
-  memoContent: {
-    fontSize: 15,
-    color: Color.textTertiary,
-    marginTop: 8,
-    lineHeight: 20,
-  },
-  iconContainer: {
-    width: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+  subtitle: {
+    fontSize: 12,
+    color: Color.textSecondary,
   },
 });
 
