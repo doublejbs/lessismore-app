@@ -14,6 +14,7 @@ import BagDetailUselessDescriptionView from './BagDetailUselessDescriptionView';
 import BagDetailAddButtonView from './BagDetailAddButtonView';
 import BagPackingFloatingButtonView from './BagPackingFloatingButtonView';
 import BagDetailMemoView from './BagDetailMemoView';
+import BagDetailWeatherView from './BagDetailWeatherView';
 import ShareButtonView from './ShareButtonView';
 import BagDetailCopyView from '../bag/BagDetailCopyView';
 import ShareImageButtonView from './ShareImageButtonView';
@@ -89,7 +90,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
             ref={scrollViewRef}
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
-            stickyHeaderIndices={[6]}
+            stickyHeaderIndices={[7]}
             onScroll={handleScroll}
             showsVerticalScrollIndicator={false}
           >
@@ -99,6 +100,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
             </View>
             <BagDetailUselessDescriptionView bagDetail={bagDetail} />
             <BagDetailMemoView bagDetail={bagDetail} />
+            <BagDetailWeatherView bagDetail={bagDetail} />
             <ShareImageButtonView bagDetail={bagDetail} />
             <BagDetailChartView bagDetail={bagDetail} />
             <View style={styles.separator} />

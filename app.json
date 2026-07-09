@@ -82,6 +82,12 @@
         }
       ],
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "여행지의 현재 위치를 불러오기 위해 위치 정보를 사용합니다."
+        }
+      ],
+      [
         "@hot-updater/react-native",
         {
           "channel": "production"

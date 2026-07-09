@@ -24,6 +24,7 @@ import Firebase from '../firebase/Firebase';
 import { GearData } from './GearStore';
 import BagItem from '../bag/BagItem';
 import app from '../app/App';
+import { BagLocation, WeatherSnapshot } from '../weather/WeatherTypes';
 
 class BagStore {
   public constructor(private readonly firebase: Firebase) {}
@@ -172,17 +173,29 @@ class BagStore {
       throw new Error('Bag not found');
     }
 
-    const { name, weight, gears, editDate, startDate, endDate, shared, memo } =
-      (await getDoc(doc(this.getStore(), 'bag', id))).data() as {
-        name: string;
-        weight: string;
-        editDate: string;
-        startDate: string;
-        endDate: string;
-        gears: string[];
-        shared: boolean;
-        memo?: string;
-      };
+    const {
+      name,
+      weight,
+      gears,
+      editDate,
+      startDate,
+      endDate,
+      shared,
+      memo,
+      location,
+      weather,
+    } = (await getDoc(doc(this.getStore(), 'bag', id))).data() as {
+      name: string;
+      weight: string;
+      editDate: string;
+      startDate: string;
+      endDate: string;
+      gears: string[];
+      shared: boolean;
+      memo?: string;
+      location?: BagLocation;
+      weather?: WeatherSnapshot;
+    };
 
     if (gears.length === 0) {
       return {
@@ -194,6 +207,8 @@ class BagStore {
         gears: [],
         shared,
         memo: memo || '',
+        location: location ?? null,
+        weather: weather ?? null,
       };
     } else {
       const warehouseSnapshot = await getDocs(
@@ -224,6 +239,8 @@ class BagStore {
         endDate,
         shared,
         memo: memo || '',
+        location: location ?? null,
+        weather: weather ?? null,
         gears: warehouseGears.length
           ? warehouseGears.map(
               ({
@@ -631,6 +648,33 @@ class BagStore {
 
   public async updateMemo(id: string, memo: string) {
     await updateDoc(doc(this.getStore(), 'bag', id), { memo });
+  }
+
+  // 날씨 화면용 경량 조회: 문서 1회 읽기로 날짜·위치·날씨만.
+  public async getBagWeatherData(id: string) {
+    const data = (await getDoc(doc(this.getStore(), 'bag', id))).data() as
+      | {
+          startDate?: string;
+          endDate?: string;
+          location?: BagLocation;
+          weather?: WeatherSnapshot;
+        }
+      | undefined;
+
+    return {
+      startDate: data?.startDate ?? null,
+      endDate: data?.endDate ?? null,
+      location: data?.location ?? null,
+      weather: data?.weather ?? null,
+    };
+  }
+
+  public async updateLocation(id: string, location: BagLocation) {
+    await updateDoc(doc(this.getStore(), 'bag', id), { location });
+  }
+
+  public async updateWeather(id: string, weather: WeatherSnapshot) {
+    await updateDoc(doc(this.getStore(), 'bag', id), { weather });
   }
 
   // 패킹 상태 필드(packedGears/packingStartedAt/packingCompletedAt)만 조회한다.

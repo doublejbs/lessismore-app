@@ -1,11 +1,5 @@
 import React, { FC } from 'react';
-import {
-  View,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
@@ -47,13 +41,7 @@ const BagFormContent: FC<Props> = ({
     <View
       style={[styles.container, { paddingBottom: Math.max(insets.bottom - 12, 12) }]}
     >
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps='handled'
-        bounces={true}
-      >
+      <View style={styles.body}>
         <PretendardText weight='bold' style={styles.title}>
           {title}
         </PretendardText>
@@ -75,7 +63,7 @@ const BagFormContent: FC<Props> = ({
           onStartDateChange={onStartDateChange}
           onEndDateChange={onEndDateChange}
         />
-      </ScrollView>
+      </View>
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.cancelButton}
@@ -105,25 +93,22 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: Color.background,
     // 네이티브 그래버가 시트 상단에 겹쳐 렌더되므로 그 아래로 제목이 오도록 여백을 준다.
-    paddingTop: 36,
+    paddingTop: 52,
   },
-  scrollView: {
-    flexGrow: 0,
-    marginBottom: 16,
-  },
-  scrollContent: {
+  body: {
     paddingHorizontal: 20,
+    marginBottom: 20,
   },
   title: {
-    fontSize: 18,
-    lineHeight: 26,
+    fontSize: 20,
+    lineHeight: 28,
     color: Color.textPrimary,
-    marginBottom: 16,
+    marginBottom: 24,
   },
   inputSection: {
     flexDirection: 'column',
-    gap: 8,
-    marginBottom: 24,
+    gap: 10,
+    marginBottom: 28,
   },
   inputLabel: {
     fontSize: 15,
