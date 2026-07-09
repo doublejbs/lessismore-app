@@ -69,11 +69,11 @@ const WeatherDailyRow: FC<{ item: WeatherDaily; isLast: boolean }> = ({
       </View>
 
       <View style={styles.tempCol}>
-        <PretendardText style={styles.tempMinText}>
-          ↓{Math.round(item.tempMin)}°
-        </PretendardText>
         <PretendardText style={styles.tempMaxText} weight='semibold'>
           ↑{Math.round(item.tempMax)}°
+        </PretendardText>
+        <PretendardText style={styles.tempMinText}>
+          ↓{Math.round(item.tempMin)}°
         </PretendardText>
       </View>
 
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 11,
-    color: Color.textTertiary,
+    color: Color.textSecondary,
   },
 });
 

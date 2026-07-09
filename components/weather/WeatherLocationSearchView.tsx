@@ -14,6 +14,7 @@ import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import BagWeather from '@/model/bag/BagWeather';
+import weatherService from '@/model/weather/WeatherService';
 import { GeocodeResult } from '@/model/weather/WeatherTypes';
 import WeatherMapPickerView from './WeatherMapPickerView';
 
@@ -34,27 +35,34 @@ const WeatherLocationSearchView: FC<Props> = ({
   const [searching, setSearching] = useState(false);
   const [locating, setLocating] = useState(false);
   const [mapVisible, setMapVisible] = useState(false);
+  // 위치가 있으면 기본은 칩(접힘). "변경"을 누르면 검색 입력을 편다.
+  const [editing, setEditing] = useState(false);
 
   const hasResults = results.length > 0;
   const location = bagWeather.getLocation();
   const locationName = location?.name ?? '';
+  // 위치가 없거나(최초 설정) 편집 중이면 검색 입력을 보여준다.
+  const showSearch = editing || !location;
 
   useEffect(() => {
     onActiveChange?.(hasResults);
   }, [hasResults, onActiveChange]);
 
-  // 선택된 위치를 검색창에 표시(위치 카드 + 검색 통합).
-  // 위치가 바뀌면 검색어를 그 이름으로 맞추고 결과를 닫는다.
+  // 위치가 확정되면 검색 입력을 접고 초기화한다.
   useEffect(() => {
-    setQuery(locationName);
-    setResults([]);
-  }, [locationName]);
+    if (location) {
+      setEditing(false);
+      setQuery('');
+      setResults([]);
+    }
+  }, [locationName, location]);
 
-  // 입력 디바운스 후 지오코딩. 이미 선택된 위치명 그대로면 검색하지 않는다.
+  // 입력 디바운스 후 지오코딩.
   useEffect(() => {
     const trimmed = query.trim();
-    if (trimmed.length < 2 || trimmed === locationName) {
+    if (trimmed.length < 2) {
       setResults([]);
+      setSearching(false);
       return;
     }
     let cancelled = false;
@@ -80,7 +88,7 @@ const WeatherLocationSearchView: FC<Props> = ({
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [query, locationName, bagWeather]);
+  }, [query, bagWeather]);
 
   const handleSelect = async (result: GeocodeResult) => {
     setQuery('');
@@ -94,22 +102,23 @@ const WeatherLocationSearchView: FC<Props> = ({
   };
 
   const handleCurrentLocation = async () => {
+    if (locating) {
+      return;
+    }
     try {
       setLocating(true);
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('위치 권한 필요', '현재 위치를 사용하려면 위치 권한을 허용해주세요.');
+        Alert.alert(
+          '위치 권한 필요',
+          '현재 위치를 사용하려면 위치 권한을 허용해주세요.'
+        );
         return;
       }
       const pos = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = pos.coords;
-      const geo = await Location.reverseGeocodeAsync({ latitude, longitude });
-      const place = geo[0];
-      const name =
-        [place?.city, place?.district].filter(Boolean).join(' ') ||
-        place?.region ||
-        place?.name ||
-        '현재 위치';
+      // 지도 선택과 동일하게 Kakao 역지오코딩으로 이름을 통일한다.
+      const name = await weatherService.reverseGeocode(latitude, longitude);
       await bagWeather.updateLocation({ name, latitude, longitude });
       onDone?.();
     } catch (error) {
@@ -120,14 +129,33 @@ const WeatherLocationSearchView: FC<Props> = ({
     }
   };
 
+  // 접힌 상태: 선택된 위치 칩 + 변경 버튼.
+  if (!showSearch && location) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.chip}>
+          <Ionicons name='location' size={18} color={Color.textPrimary} />
+          <PretendardText
+            style={styles.chipText}
+            weight='medium'
+            numberOfLines={1}
+          >
+            {location.name}
+          </PretendardText>
+          <TouchableOpacity onPress={() => setEditing(true)} hitSlop={8}>
+            <PretendardText style={styles.changeText} weight='medium'>
+              변경
+            </PretendardText>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, hasResults && styles.containerFill]}>
       <View style={styles.searchBox}>
-        <Ionicons
-          name={location ? 'location' : 'search'}
-          size={18}
-          color={location ? Color.textPrimary : Color.textSecondary}
-        />
+        <Ionicons name='search' size={18} color={Color.textSecondary} />
         <TextInput
           style={styles.input}
           placeholder='여행지를 검색하세요 (예: 북한산)'
@@ -135,6 +163,8 @@ const WeatherLocationSearchView: FC<Props> = ({
           value={query}
           onChangeText={setQuery}
           autoCorrect={false}
+          autoFocus={editing}
+          returnKeyType='search'
         />
         {searching ? (
           <ActivityIndicator size='small' color={Color.textSecondary} />
@@ -145,6 +175,19 @@ const WeatherLocationSearchView: FC<Props> = ({
               size={18}
               color={Color.textSecondary}
             />
+          </TouchableOpacity>
+        ) : location ? (
+          <TouchableOpacity
+            onPress={() => {
+              setEditing(false);
+              setQuery('');
+              setResults([]);
+            }}
+            hitSlop={8}
+          >
+            <PretendardText style={styles.cancelText} weight='medium'>
+              취소
+            </PretendardText>
           </TouchableOpacity>
         ) : null}
       </View>
@@ -187,7 +230,10 @@ const WeatherLocationSearchView: FC<Props> = ({
       <WeatherMapPickerView
         bagWeather={bagWeather}
         visible={mapVisible}
-        onClose={() => setMapVisible(false)}
+        onClose={() => {
+          setMapVisible(false);
+          setEditing(false);
+        }}
       />
 
       {hasResults && (
@@ -240,6 +286,24 @@ const styles = StyleSheet.create({
   results: {
     flex: 1,
   },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Color.surfaceMuted,
+    borderRadius: Radius.input,
+    paddingHorizontal: 14,
+    height: 48,
+  },
+  chipText: {
+    flex: 1,
+    fontSize: 15,
+    color: Color.textPrimary,
+  },
+  changeText: {
+    fontSize: 14,
+    color: Color.textSecondary,
+  },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -255,6 +319,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Regular',
     color: Color.textPrimary,
     padding: 0,
+  },
+  cancelText: {
+    fontSize: 14,
+    color: Color.textSecondary,
   },
   secondaryRow: {
     flexDirection: 'row',

@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 import BagWeather from '@/model/bag/BagWeather';
+import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 import WeatherLocationSearchView from './WeatherLocationSearchView';
 import WeatherDailyView from './WeatherDailyView';
 
@@ -21,12 +22,6 @@ interface Props {
 }
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
-
-// 비/눈 판정용 WMO 코드.
-const RAIN_CODES = new Set([
-  51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99,
-]);
-const SNOW_CODES = new Set([71, 73, 75, 77, 85, 86]);
 
 const BagWeatherView: FC<Props> = ({ bagWeather }) => {
   const router = useRouter();
@@ -44,25 +39,8 @@ const BagWeatherView: FC<Props> = ({ bagWeather }) => {
     ? fmtDay(start)
     : `${fmtDay(start)} ~ ${fmtDay(end)}`;
 
-  // #6 기간 요약(대표 날씨 + 최고/최저 + 강한 돌풍).
-  const summary = (() => {
-    if (!weather || weather.daily.length === 0) {
-      return null;
-    }
-    const daily = weather.daily;
-    const high = Math.round(Math.max(...daily.map(d => d.tempMax)));
-    const low = Math.round(Math.min(...daily.map(d => d.tempMin)));
-    const hasSnow = daily.some(d => SNOW_CODES.has(d.code));
-    const hasRain = daily.some(
-      d => RAIN_CODES.has(d.code) || (d.precipProb ?? 0) >= 60
-    );
-    const cond = hasSnow ? '눈 예상' : hasRain ? '비 예상' : '대체로 맑음';
-    const gusts = daily
-      .map(d => d.windGustMax)
-      .filter((v): v is number => v != null);
-    const maxGust = gusts.length ? Math.round(Math.max(...gusts)) : null;
-    return { high, low, cond, maxGust };
-  })();
+  // #6 기간 요약(대표 날씨 + 최고/최저 + 강한 돌풍). 카드와 동일 규칙 공유.
+  const summary = weather ? summarizeWeatherPeriod(weather.daily) : null;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
