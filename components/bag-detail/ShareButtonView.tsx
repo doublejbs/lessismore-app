@@ -62,8 +62,11 @@ const ShareButtonView: FC<Props> = ({ bagDetail }) => {
       <TouchableOpacity
         style={styles.shareButton}
         onPress={handleShareButtonPress}
+        hitSlop={{ top: 9, bottom: 9, left: 9, right: 9 }}
+        accessibilityRole='button'
+        accessibilityLabel='공유'
       >
-        <Ionicons name='share-outline' size={28} color={Color.textTertiary} />
+        <Ionicons name='share-outline' size={24} color={Color.textPrimary} />
       </TouchableOpacity>
       <Modal
         visible={showModal}

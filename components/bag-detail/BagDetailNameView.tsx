@@ -62,11 +62,7 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
         <PretendardText style={styles.nameText} weight='bold'>
           {bagDetail.getName()}
         </PretendardText>
-        <Ionicons
-          name='create-outline'
-          size={16}
-          color={Color.textTertiary}
-        />
+        <Ionicons name='pencil' size={15} color={Color.textSecondary} />
       </TouchableOpacity>
       <Modal
         visible={isModalOpen}
@@ -112,38 +108,28 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
               </ScrollView>
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
-                  onPress={handleCancel}
-                  disabled={isUpdating}
-                  style={[
-                    styles.cancelButton,
-                    { opacity: isUpdating ? 0.6 : 1 },
-                  ]}
-                  activeOpacity={0.7}
-                >
-                  <PretendardText
-                    style={styles.cancelButtonText}
-                    weight='medium'
-                  >
-                    취소
-                  </PretendardText>
-                </TouchableOpacity>
-
-                <TouchableOpacity
                   onPress={handleSave}
                   disabled={isUpdating || inputValue.trim() === ''}
                   style={[
                     styles.saveButton,
-                    {
-                      backgroundColor:
-                        isUpdating || inputValue.trim() === ''
-                          ? Color.textTertiary
-                          : Color.chipActiveBg,
-                    },
+                    (isUpdating || inputValue.trim() === '') &&
+                      styles.saveButtonDisabled,
                   ]}
                   activeOpacity={0.7}
                 >
-                  <PretendardText style={styles.saveButtonText} weight='medium'>
+                  <PretendardText style={styles.saveButtonText} weight='bold'>
                     {isUpdating ? '저장 중...' : '저장'}
+                  </PretendardText>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handleCancel}
+                  disabled={isUpdating}
+                  style={styles.cancelButton}
+                  activeOpacity={0.7}
+                >
+                  <PretendardText style={styles.cancelButtonText} weight='medium'>
+                    취소
                   </PretendardText>
                 </TouchableOpacity>
               </View>
@@ -159,17 +145,16 @@ const { height: screenHeight } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   nameContainer: {
-    width: '100%',
+    alignSelf: 'flex-start',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     flexDirection: 'row',
-    padding: 4,
+    paddingVertical: 4,
     borderRadius: Radius.listThumb,
-    gap: 8,
+    gap: 6,
   },
   nameText: {
-    fontSize: 20,
-    textAlign: 'center',
+    fontSize: 28,
     color: Color.textPrimary,
   },
   modalOverlay: {
@@ -181,60 +166,58 @@ const styles = StyleSheet.create({
     backgroundColor: Color.background,
     borderTopLeftRadius: Radius.modal,
     borderTopRightRadius: Radius.modal,
-    padding: 16,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 24,
     maxHeight: screenHeight * 0.7, // 화면 높이의 70%로 제한 (키보드 공간 확보)
   },
   scrollView: {
     flexGrow: 0,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   modalTitle: {
-    fontSize: 18,
-    marginBottom: 8,
+    fontSize: 20,
+    marginBottom: 4,
     textAlign: 'center',
     color: Color.textPrimary,
   },
   modalDescription: {
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Color.textSecondary,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   textInput: {
-    padding: 12,
-    borderWidth: 1,
-    borderColor: Color.borderLight,
+    padding: 14,
     backgroundColor: Color.inputBg,
     borderRadius: Radius.input,
     fontSize: 16,
-    marginBottom: 20,
   },
   buttonContainer: {
-    flexDirection: 'row',
     gap: 8,
   },
-  cancelButton: {
-    flex: 1,
-    backgroundColor: Color.background,
-    padding: 12,
+  saveButton: {
+    width: '100%',
+    paddingVertical: 16,
     borderRadius: Radius.input,
-    borderWidth: 1,
-    borderColor: Color.borderLight,
+    backgroundColor: Color.chipActiveBg,
+    alignItems: 'center',
+  },
+  saveButtonDisabled: {
+    opacity: 0.35,
+  },
+  saveButtonText: {
+    color: Color.background,
+    fontSize: 16,
+  },
+  cancelButton: {
+    width: '100%',
+    paddingVertical: 14,
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: Color.textPrimary,
-    fontSize: 16,
-  },
-  saveButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: Radius.input,
-    alignItems: 'center',
-  },
-  saveButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: Color.textSecondary,
+    fontSize: 15,
   },
 });
 

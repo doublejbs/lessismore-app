@@ -3,21 +3,15 @@ import { View, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Color } from '@/constants/DesignTokens';
 import { getWeatherCodeInfo } from '@/model/weather/WeatherCode';
-import { WeatherDaily, WeatherSource } from '@/model/weather/WeatherTypes';
+import { WeatherDaily } from '@/model/weather/WeatherTypes';
 
 interface Props {
   daily: WeatherDaily[];
 }
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
-
-const SOURCE_LABEL: Record<WeatherSource, string> = {
-  forecast: '예보',
-  archive: '실측',
-  normal: '평년',
-};
 
 const WeatherDailyRow: FC<{ item: WeatherDaily; isLast: boolean }> = ({
   item,
@@ -74,12 +68,6 @@ const WeatherDailyRow: FC<{ item: WeatherDaily; isLast: boolean }> = ({
         </PretendardText>
         <PretendardText style={styles.tempMinText}>
           ↓{Math.round(item.tempMin)}°
-        </PretendardText>
-      </View>
-
-      <View style={styles.badge}>
-        <PretendardText style={styles.badgeText}>
-          {SOURCE_LABEL[item.source]}
         </PretendardText>
       </View>
     </View>
@@ -164,18 +152,6 @@ const styles = StyleSheet.create({
   tempMaxText: {
     fontSize: 15,
     color: Color.textPrimary,
-  },
-  badge: {
-    minWidth: 34,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.surfaceMuted,
-    alignItems: 'center',
-  },
-  badgeText: {
-    fontSize: 11,
-    color: Color.textSecondary,
   },
 });
 

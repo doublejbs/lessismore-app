@@ -1,13 +1,13 @@
 import { observer } from 'mobx-react-lite';
 import { FC } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -22,57 +22,40 @@ const ShareImageButtonView: FC<Props> = ({ bagDetail }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.touchableContainer}
-        onPress={handlePress}
-        activeOpacity={0.7}
-      >
-        <View style={styles.textContainer}>
-          <View style={styles.titleRow}>
-            <Ionicons name='sparkles' size={20} color='#7C3AED' />
-            <PretendardText style={styles.titleText} weight='medium'>
-              내가 가진 장비로 레디샷 만들기
-            </PretendardText>
-            <View style={styles.aiBadge}>
-              <PretendardText style={styles.aiBadgeText} weight='bold'>
-                AI
-              </PretendardText>
-            </View>
-          </View>
+    <TouchableOpacity style={styles.tile} onPress={handlePress} activeOpacity={0.7}>
+      <View style={styles.iconRow}>
+        <Ionicons name='sparkles' size={22} color='#7C3AED' />
+        <View style={styles.aiBadge}>
+          <PretendardText style={styles.aiBadgeText} weight='bold'>
+            AI
+          </PretendardText>
         </View>
-        <View style={styles.iconContainer}>
-          <Ionicons name='chevron-forward' size={24} color={Color.textPrimary} />
-        </View>
-      </TouchableOpacity>
-    </View>
+      </View>
+      <View style={styles.textWrap}>
+        <PretendardText style={styles.title} weight='medium'>
+          레디샷
+        </PretendardText>
+        <PretendardText style={styles.subtitle} numberOfLines={1}>
+          장비로 이미지 생성
+        </PretendardText>
+      </View>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: Spacing.screenH,
-    paddingVertical: 12,
-    marginBottom: 8,
-    backgroundColor: Color.background,
-  },
-  touchableContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  tile: {
+    width: '48%',
+    minHeight: 92,
+    backgroundColor: Color.surfaceMuted,
     borderRadius: Radius.card,
+    padding: 14,
+    justifyContent: 'space-between',
   },
-  textContainer: {
-    flex: 1,
-  },
-  titleRow: {
+  iconRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  titleText: {
-    fontSize: 17,
-    color: Color.textPrimary,
+    gap: 6,
   },
   aiBadge: {
     backgroundColor: '#7C3AED',
@@ -82,13 +65,18 @@ const styles = StyleSheet.create({
   },
   aiBadgeText: {
     color: '#FFFFFF',
-    fontSize: 11,
+    fontSize: 10,
   },
-  iconContainer: {
-    width: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+  textWrap: {
+    gap: 2,
+  },
+  title: {
+    fontSize: 15,
+    color: Color.textPrimary,
+  },
+  subtitle: {
+    fontSize: 12,
+    color: Color.textSecondary,
   },
 });
 

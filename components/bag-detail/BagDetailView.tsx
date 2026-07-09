@@ -6,13 +6,12 @@ import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
 import { Color, Spacing } from '@/constants/DesignTokens';
 import BagDetailCategoryView from './BagDetailCategoryView';
-import BagDetailChartView from './BagDetailChartView';
 import BagDetailDateView from './BagDetailDateView';
 import BagDetailFiltersView from './BagDetailFiltersView';
 import BagDetailNameView from './BagDetailNameView';
 import BagDetailUselessDescriptionView from './BagDetailUselessDescriptionView';
-import BagDetailAddButtonView from './BagDetailAddButtonView';
-import BagPackingFloatingButtonView from './BagPackingFloatingButtonView';
+import BagDetailSummaryView from './BagDetailSummaryView';
+import BagDetailBottomBar from './BagDetailBottomBar';
 import BagDetailMemoView from './BagDetailMemoView';
 import BagDetailWeatherView from './BagDetailWeatherView';
 import ShareButtonView from './ShareButtonView';
@@ -59,7 +58,6 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
   }, [initialized]);
 
   if (initialized) {
-    const weight = bagDetail.getWeight();
     const gears = bagDetail.getGears();
 
     return (
@@ -67,16 +65,18 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
         <View style={styles.container}>
           <View style={styles.header}>
             <View style={styles.headerContent}>
-              <TouchableOpacity onPress={handlePressBack}>
+              <TouchableOpacity
+                onPress={handlePressBack}
+                hitSlop={12}
+                accessibilityRole='button'
+                accessibilityLabel='뒤로가기'
+              >
                 <Ionicons
                   name='chevron-back'
                   size={24}
                   color={Color.textPrimary}
                 />
               </TouchableOpacity>
-              <PretendardText style={styles.weightText} weight='bold'>
-                {weight}kg
-              </PretendardText>
               <View style={styles.headerActions}>
                 <BagDetailCopyView
                   sourceId={bagDetail.getId()}
@@ -90,7 +90,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
             ref={scrollViewRef}
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
-            stickyHeaderIndices={[7]}
+            stickyHeaderIndices={[4]}
             onScroll={handleScroll}
             showsVerticalScrollIndicator={false}
           >
@@ -98,11 +98,27 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               <BagDetailNameView bagDetail={bagDetail} />
               <BagDetailDateView bagDetail={bagDetail} />
             </View>
-            <BagDetailUselessDescriptionView bagDetail={bagDetail} />
-            <BagDetailMemoView bagDetail={bagDetail} />
-            <BagDetailWeatherView bagDetail={bagDetail} />
-            <ShareImageButtonView bagDetail={bagDetail} />
-            <BagDetailChartView bagDetail={bagDetail} />
+            <BagDetailSummaryView bagDetail={bagDetail} />
+            <View style={styles.actionsGrid}>
+              {bagDetail.getTripPhase() === 'after' ? (
+                <>
+                  <BagDetailUselessDescriptionView
+                    bagDetail={bagDetail}
+                    emphasized
+                  />
+                  <BagDetailMemoView bagDetail={bagDetail} />
+                  <BagDetailWeatherView bagDetail={bagDetail} />
+                  <ShareImageButtonView bagDetail={bagDetail} />
+                </>
+              ) : (
+                <>
+                  <BagDetailWeatherView bagDetail={bagDetail} emphasized />
+                  <BagDetailMemoView bagDetail={bagDetail} />
+                  <ShareImageButtonView bagDetail={bagDetail} />
+                  <BagDetailUselessDescriptionView bagDetail={bagDetail} />
+                </>
+              )}
+            </View>
             <View style={styles.separator} />
             <View style={styles.gearHeader}>
               <View style={styles.gearHeaderContent}>
@@ -127,8 +143,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               </View>
             </View>
           </ScrollView>
-          <BagPackingFloatingButtonView bagDetail={bagDetail} />
-          <BagDetailAddButtonView bagDetail={bagDetail} />
+          <BagDetailBottomBar bagDetail={bagDetail} />
         </View>
         <ToastView toastManager={app.getToastManager()!} bottom={100} />
       </SafeAreaView>
@@ -154,12 +169,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
   },
-  weightText: {
-    fontSize: 28,
-    textAlign: 'center',
-    flex: 1,
-    color: Color.textPrimary,
-  },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -175,6 +184,15 @@ const styles = StyleSheet.create({
     backgroundColor: Color.background,
     paddingTop: 8,
     paddingHorizontal: Spacing.screenH,
+  },
+  actionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 10,
+    paddingHorizontal: Spacing.screenH,
+    marginTop: 12,
+    marginBottom: 8,
   },
   separator: {
     width: '100%',

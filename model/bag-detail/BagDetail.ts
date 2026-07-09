@@ -202,6 +202,52 @@ class BagDetail {
     return Math.round((Number(this.weight) / 1000) * 100) / 100;
   }
 
+  // 베이스 무게(배낭/텐트/침낭/매트) — UL 핵심 지표. kg 반올림.
+  private static readonly BASE_CATEGORIES: string[] = [
+    GearFilter.Backpack,
+    GearFilter.Tent,
+    GearFilter.SleepingBag,
+    GearFilter.Mat,
+  ];
+
+  public getBaseWeight() {
+    const grams = this.gears
+      .filter(gear => BagDetail.BASE_CATEGORIES.includes(gear.getCategory()))
+      .reduce((acc, gear) => acc + Number(gear.getWeight()), 0);
+    return Math.round((grams / 1000) * 100) / 100;
+  }
+
+  // 베이스를 제외한 나머지(휴대품·소모품 등) 무게. kg 반올림.
+  public getRestWeight() {
+    return Math.round((this.getWeight() - this.getBaseWeight()) * 100) / 100;
+  }
+
+  // 여행 상태: 출발 전 / 여행 중 / 지난 여행.
+  public getTripPhase(): 'before' | 'ongoing' | 'after' {
+    const today = dayjs().startOf('day');
+    if (this.endDate.startOf('day').isBefore(today)) {
+      return 'after';
+    }
+    if (this.startDate.startOf('day').isAfter(today)) {
+      return 'before';
+    }
+    return 'ongoing';
+  }
+
+  // 날짜 부제에 붙일 상황 라벨(D-day / 여행 중 / 지난 여행).
+  public getPhaseLabel(): string {
+    const today = dayjs().startOf('day');
+    const phase = this.getTripPhase();
+    if (phase === 'before') {
+      const d = this.startDate.startOf('day').diff(today, 'day');
+      return d === 0 ? '오늘 출발' : `D-${d}`;
+    }
+    if (phase === 'ongoing') {
+      return '여행 중';
+    }
+    return '지난 여행';
+  }
+
   private setGears(value: Gear[]) {
     this.gears = value;
   }
