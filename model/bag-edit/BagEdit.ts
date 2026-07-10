@@ -28,6 +28,7 @@ class BagEdit {
   private selectedGears: Gear[] = [];
   private weight: number = 0;
   private warehouseGears: Gear[] = [];
+  private query = '';
   private loading = false;
   private initialized = false;
   private disposeReaction: () => void;
@@ -154,8 +155,24 @@ class BagEdit {
     this.warehouseGears = gears;
   }
 
+  public getQuery() {
+    return this.query;
+  }
+
+  public setQuery(value: string) {
+    this.query = value;
+  }
+
   public mapWarehouseGears<R>(callback: (gear: Gear) => R) {
-    return this.warehouseGears.map(callback);
+    const q = this.query.trim().toLowerCase();
+    const list = q
+      ? this.warehouseGears.filter(
+          gear =>
+            gear.getDisplayName().toLowerCase().includes(q) ||
+            gear.getDisplayCompany().toLowerCase().includes(q)
+        )
+      : this.warehouseGears;
+    return list.map(callback);
   }
 
   public toggleFilter(filter: WarehouseFilter) {

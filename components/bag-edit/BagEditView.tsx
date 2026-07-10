@@ -1,6 +1,7 @@
 import React, { FC, useCallback } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '../PretendardText';
 import FloatingPillButton from '../FloatingPillButton';
@@ -73,6 +74,34 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
             />
           </View>
           <View style={{ paddingHorizontal: Spacing.screenH }}>
+            <View style={styles.searchBox}>
+              <Ionicons name='search' size={18} color={Color.textSecondary} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder='장비 검색'
+                placeholderTextColor={Color.textSecondary}
+                value={bagEdit.getQuery()}
+                onChangeText={value => bagEdit.setQuery(value)}
+                autoCorrect={false}
+                returnKeyType='search'
+              />
+              {bagEdit.getQuery().length > 0 && (
+                <TouchableOpacity
+                  onPress={() => bagEdit.setQuery('')}
+                  hitSlop={8}
+                  accessibilityRole='button'
+                  accessibilityLabel='검색어 지우기'
+                >
+                  <Ionicons
+                    name='close-circle'
+                    size={18}
+                    color={Color.textSecondary}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+          <View style={{ paddingHorizontal: Spacing.screenH }}>
             <BagEditWarehouseFiltersView bagEdit={bagEdit} />
           </View>
           <View style={styles.warehouseContainer}>
@@ -115,6 +144,23 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 20,
     color: Color.textPrimary,
+  },
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Color.surfaceMuted,
+    borderRadius: Radius.input,
+    paddingHorizontal: 14,
+    height: 44,
+    marginBottom: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: 'Pretendard-Regular',
+    color: Color.textPrimary,
+    padding: 0,
   },
   addButton: {
     minHeight: 0,
