@@ -1,8 +1,10 @@
 import { FC } from 'react';
-import { FlatList, StyleSheet } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import BagEdit from '../../model/bag-edit/BagEdit';
 import BagEditWarehouseGearView from './BagEditWarehouseGearView';
+import PretendardText from '@/components/PretendardText';
+import { Color } from '@/constants/DesignTokens';
 
 interface Props {
   bagEdit: BagEdit;
@@ -23,6 +25,15 @@ const BagEditWarehouseView: FC<Props> = ({ bagEdit }) => {
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
+      ListEmptyComponent={
+        bagEdit.getQuery().trim() ? (
+          <View style={styles.empty}>
+            <PretendardText style={styles.emptyText}>
+              검색 결과가 없어요
+            </PretendardText>
+          </View>
+        ) : null
+      }
     />
   );
 };
@@ -33,6 +44,17 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingBottom: 20,
+    flexGrow: 1,
+  },
+  empty: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: Color.textSecondary,
   },
 });
 
