@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   TouchableOpacity,
   StyleSheet,
   Modal,
   Pressable,
+  Animated,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import Svg, { Path } from 'react-native-svg';
@@ -19,6 +20,8 @@ interface Props {
   order: Order;
   onSelectOption?: (option: OrderOption) => void;
 }
+
+const SHEET_OFFSET = 500;
 
 const UpArrowIcon = () => (
   <Svg width={25} height={24} viewBox='0 0 25 24' fill='none'>
@@ -49,6 +52,29 @@ const OrderButtonView = ({ order, onSelectOption }: Props) => {
   const showOrderOptions = order.isShowOrderOptions();
   const selectedOrderName = order.getSelectedOrderName();
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(SHEET_OFFSET)).current;
+
+  useEffect(() => {
+    if (showOrderOptions) {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      fadeAnim.setValue(0);
+      slideAnim.setValue(SHEET_OFFSET);
+    }
+  }, [showOrderOptions, fadeAnim, slideAnim]);
+
   const handleSortClick = () => {
     order.toggleOrderOptions();
   };
@@ -76,13 +102,19 @@ const OrderButtonView = ({ order, onSelectOption }: Props) => {
       <Modal
         visible={showOrderOptions}
         transparent
-        animationType='slide'
+        animationType='none'
         onRequestClose={handleSortClick}
       >
-        <Pressable style={styles.overlay} onPress={handleSortClick}>
-          <Pressable
-            style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]}
-            onPress={e => e.stopPropagation()}
+        <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={handleSortClick} />
+          <Animated.View
+            style={[
+              styles.sheet,
+              {
+                paddingBottom: insets.bottom + 12,
+                transform: [{ translateY: slideAnim }],
+              },
+            ]}
           >
             <PretendardText weight='bold' style={styles.sheetTitle}>
               정렬
@@ -116,8 +148,8 @@ const OrderButtonView = ({ order, onSelectOption }: Props) => {
                 </TouchableOpacity>
               );
             })}
-          </Pressable>
-        </Pressable>
+          </Animated.View>
+        </Animated.View>
       </Modal>
     </View>
   );
