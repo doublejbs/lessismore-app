@@ -61,9 +61,32 @@ class SearchStore {
     }
   }
 
+  // 카테고리 + 브랜드(OR 그룹) facetFilters — browse·searchList가 공유한다(FD-3/SR-1).
+  private buildFacetFilters(category?: string, brands?: string[]): string[][] {
+    const facetFilters: string[][] = [];
+
+    if (category) {
+      facetFilters.push([`category:${category}`]);
+    }
+
+    if (brands && brands.length > 0) {
+      // 복수 브랜드는 하나의 OR 그룹 — 모든 브랜드의 companyKorean·company facet을 같은 내부 배열에 나열한다.
+      // companyKorean 없는 영문 브랜드도 매칭되며, 여러 브랜드는 서로 OR로 묶인다(FD-3).
+      const brandFacets = brands.flatMap(brand => [
+        `companyKorean:${brand}`,
+        `company:${brand}`,
+      ]);
+
+      facetFilters.push(brandFacets);
+    }
+
+    return facetFilters;
+  }
+
   public async searchList(
     value: string,
-    index: number
+    index: number,
+    filters?: { category?: string; brands?: string[] }
   ): Promise<{ gears: Gear[]; hasMore: boolean }> {
     const keyword = value.trim();
     const { results } = await this.searchClient.search<GearType>({
@@ -73,6 +96,10 @@ class SearchStore {
           query: keyword,
           page: index,
           hitsPerPage: 100,
+          facetFilters: this.buildFacetFilters(
+            filters?.category,
+            filters?.brands
+          ),
         },
       ],
     });
@@ -92,22 +119,7 @@ class SearchStore {
   }): Promise<{ gears: Gear[]; hasMore: boolean }> {
     const { category, brands, sort, page } = params;
 
-    const facetFilters: string[][] = [];
-
-    if (category) {
-      facetFilters.push([`category:${category}`]);
-    }
-
-    if (brands && brands.length > 0) {
-      // 복수 브랜드는 하나의 OR 그룹 — 모든 브랜드의 companyKorean·company facet을 같은 내부 배열에 나열한다.
-      // companyKorean 없는 영문 브랜드도 매칭되며, 여러 브랜드는 서로 OR로 묶인다(FD-3).
-      const brandFacets = brands.flatMap(brand => [
-        `companyKorean:${brand}`,
-        `company:${brand}`,
-      ]);
-
-      facetFilters.push(brandFacets);
-    }
+    const facetFilters = this.buildFacetFilters(category, brands);
 
     const { results } = await this.searchClient.search<GearType>({
       requests: [

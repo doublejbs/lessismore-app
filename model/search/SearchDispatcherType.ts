@@ -5,7 +5,8 @@ interface SearchDispatcherType {
   register(gears: Gear[]): Promise<void>;
   searchList(
     keyword: string,
-    index: number
+    index: number,
+    filters?: { category?: string; brands?: string[] }
   ): Promise<{ gears: Gear[]; hasMore: boolean }>;
   getTopSearches(): Promise<string[]>;
 }
