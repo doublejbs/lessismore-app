@@ -24,9 +24,10 @@ class SearchDispatcher implements SearchDispatcherType {
 
   public async searchList(
     keyword: string,
-    index: number
+    index: number,
+    filters?: { category?: string; brands?: string[] }
   ): Promise<{ gears: Gear[]; hasMore: boolean }> {
-    return await this.searchStore.searchList(keyword, index);
+    return await this.searchStore.searchList(keyword, index, filters);
   }
 
   public async getTopSearches(): Promise<string[]> {

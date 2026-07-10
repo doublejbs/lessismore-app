@@ -41,21 +41,27 @@ const COUPANG_DISCLAIMER =
 
 interface Props {
   bag: Bag;
+  // 탐색 탭이 검색 승계(FD-3)를 위해 상위에서 소유·공유하는 피드. 없으면 내부에서 생성한다.
+  feed?: Feed;
 }
 
 // FD-2/FD-4: 장비 피드 본체. Feed 도메인 객체를 1회 생성·초기화하고 카드 FlatList(2컬럼 그리드)로 렌더한다.
 // FD-3: 상단 필터 바 대신, FlatList 위에 하단 플로팅 버튼(필터·인기 순위)을 absolute로 얹는다.
-const FeedView: FC<Props> = ({ bag }) => {
+const FeedView: FC<Props> = ({ bag, feed: externalFeed }) => {
   const router = useRouter();
-  const [feed] = useState(() => Feed.new(router));
+  const [feed] = useState(() => externalFeed ?? Feed.new(router));
+  const ownsFeed = !externalFeed;
 
   useEffect(() => {
     feed.initialize();
 
     return () => {
-      feed.dispose();
+      // 외부 소유 피드는 언마운트(검색어 입력) 시에도 상태를 유지해야 하므로 소유자만 dispose한다.
+      if (ownsFeed) {
+        feed.dispose();
+      }
     };
-  }, [feed]);
+  }, [feed, ownsFeed]);
 
   const items = feed.getItems();
   const isInitialized = feed.isInitialized();

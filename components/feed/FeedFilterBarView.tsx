@@ -14,6 +14,8 @@ import app from '@/model/app/App';
 
 interface Props {
   feed: Feed;
+  // 검색 결과 화면(SR-1 검색 승계)에서는 정렬이 검색에 적용되지 않으므로 정렬 드롭다운을 숨긴다.
+  showSort?: boolean;
 }
 
 const ALL_LABEL = '전체';
@@ -23,7 +25,7 @@ const BRAND_LABEL = '브랜드';
 // FD-3: 피드 상단 고정 필터 바.
 // 위계상 카테고리를 주 축(칩 행)으로 노출하고, 보조 축인 브랜드(진입 버튼)·정렬(드롭다운)은
 // 그 아래 컨트롤 행에 둔다. 카테고리는 탭 즉시 적용, 브랜드/정렬은 각각 전용 시트로 진입한다.
-const FeedFilterBarView: FC<Props> = ({ feed }) => {
+const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
   const [brandVisible, setBrandVisible] = useState(false);
   const [sortVisible, setSortVisible] = useState(false);
 
@@ -110,20 +112,22 @@ const FeedFilterBarView: FC<Props> = ({ feed }) => {
           </PretendardText>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.sortButton}
-          onPress={handleOpenSort}
-          activeOpacity={0.7}
-        >
-          <PretendardText style={styles.sortButtonText} weight='medium'>
-            {sortLabel}
-          </PretendardText>
-          <Ionicons
-            name='chevron-down'
-            size={16}
-            color={Color.textSecondary}
-          />
-        </TouchableOpacity>
+        {showSort ? (
+          <TouchableOpacity
+            style={styles.sortButton}
+            onPress={handleOpenSort}
+            activeOpacity={0.7}
+          >
+            <PretendardText style={styles.sortButtonText} weight='medium'>
+              {sortLabel}
+            </PretendardText>
+            <Ionicons
+              name='chevron-down'
+              size={16}
+              color={Color.textSecondary}
+            />
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <FeedFilterSheetView
@@ -131,11 +135,13 @@ const FeedFilterBarView: FC<Props> = ({ feed }) => {
         visible={brandVisible}
         onClose={() => setBrandVisible(false)}
       />
-      <FeedSortSheetView
-        feed={feed}
-        visible={sortVisible}
-        onClose={() => setSortVisible(false)}
-      />
+      {showSort ? (
+        <FeedSortSheetView
+          feed={feed}
+          visible={sortVisible}
+          onClose={() => setSortVisible(false)}
+        />
+      ) : null}
     </View>
   );
 };
@@ -164,17 +170,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    height: 32,
+    minHeight: 32,
     paddingHorizontal: 14,
     borderRadius: Radius.chip,
-    backgroundColor: Color.chipInactiveBg,
+    borderWidth: 1,
+    borderColor: Color.chipBorder,
+    backgroundColor: Color.background,
   },
   brandButtonActive: {
     backgroundColor: Color.chipActiveBg,
+    borderColor: Color.chipActiveBg,
   },
   brandButtonText: {
     fontSize: 14,
-    lineHeight: 16,
     color: Color.textPrimary,
   },
   brandButtonTextActive: {
@@ -184,12 +192,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
-    height: 32,
+    minHeight: 32,
     paddingLeft: 12,
   },
   sortButtonText: {
     fontSize: 14,
-    lineHeight: 16,
     color: Color.textPrimary,
   },
 });

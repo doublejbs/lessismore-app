@@ -58,6 +58,10 @@ class SearchWarehouse {
   private page = 0;
   private disposeLoginReaction: () => void;
   private debounceTimer: NodeJS.Timeout | null = null;
+  // 검색 승계(SR-1) — 탐색 탭이 피드 필터(카테고리·브랜드)를 주입한다. 없으면 필터 없이 검색.
+  private searchFilterProvider:
+    | (() => { category?: string; brands?: string[] })
+    | null = null;
 
   protected constructor(
     private readonly searchDispatcher: SearchDispatcherType,
@@ -133,6 +137,12 @@ class SearchWarehouse {
     return this.selected.some(item => item.isSame(gear));
   }
 
+  public setSearchFilterProvider(
+    provider: (() => { category?: string; brands?: string[] }) | null
+  ) {
+    this.searchFilterProvider = provider;
+  }
+
   public async searchMore() {
     if (this.hasMore) {
       this.setLoading(true);
@@ -140,7 +150,8 @@ class SearchWarehouse {
       if (this.getKeyword()) {
         const { gears, hasMore } = await this.searchDispatcher.searchList(
           this.getKeyword(),
-          this.plusPage()
+          this.plusPage(),
+          this.searchFilterProvider?.()
         );
 
         this.appendResult(gears);
@@ -159,7 +170,8 @@ class SearchWarehouse {
     if (this.getKeyword()) {
       const { gears, hasMore } = await this.searchDispatcher.searchList(
         this.getKeyword(),
-        this.plusPage()
+        this.plusPage(),
+        this.searchFilterProvider?.()
       );
 
       this.setResult(gears);
