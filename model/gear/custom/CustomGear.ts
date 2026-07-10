@@ -1,4 +1,4 @@
-import { makeObservable } from 'mobx';
+import { action, makeObservable, observable } from 'mobx';
 import app from '@/model/app/App';
 import GearStore from '@/model/store/GearStore';
 import Gear from '@/model/gear/Gear';
@@ -33,8 +33,8 @@ class CustomGear extends AbstractGearEdit {
     );
   }
 
-  private searchResults: Gear[] = [];
-  private selectedSearchGear: Gear | null = null;
+  @observable private searchResults: Gear[] = [];
+  @observable private selectedSearchGear: Gear | null = null;
 
   protected constructor(
     private readonly navigate: Router,
@@ -114,6 +114,7 @@ class CustomGear extends AbstractGearEdit {
     this.setSearchResults(results.gears);
   }
 
+  @action
   private setSearchResults(results: Gear[]) {
     this.searchResults = results;
   }
@@ -122,6 +123,7 @@ class CustomGear extends AbstractGearEdit {
     return this.searchResults;
   }
 
+  @action
   public clearSearchResults() {
     this.setSearchResults([]);
   }
@@ -147,6 +149,7 @@ class CustomGear extends AbstractGearEdit {
     }
   }
 
+  @action
   private setSelectedSearchGear(gear: Gear) {
     this.selectedSearchGear = gear;
   }
