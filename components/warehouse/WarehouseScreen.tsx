@@ -1,9 +1,18 @@
 import React, { FC, useCallback, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, Platform, Image } from 'react-native';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Platform,
+  Image,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { Color, Radius } from '@/constants/DesignTokens';
 import Warehouse from '@/model/warehouse/Warehouse';
 import WarehouseFiltersView from '@/components/warehouse/WarehouseFiltersView';
 import WarehouseGearView from '@/components/warehouse/WarehouseGearView';
@@ -48,7 +57,9 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
       return (
         <View style={styles.emptyContainer}>
           <PretendardText style={styles.emptyText}>
-            {josa(`${selectedFilter.getName()}#{가}`)} 없습니다
+            {warehouse.getQuery().trim()
+              ? '검색 결과가 없어요'
+              : `${josa(`${selectedFilter.getName()}#{가}`)} 없습니다`}
           </PretendardText>
         </View>
       );
@@ -82,7 +93,38 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
             resizeMode='contain'
           />
         </View>
-        {!warehouse.isEmpty() && <WarehouseFiltersView warehouse={warehouse} />}
+        {!warehouse.isEmpty() && (
+          <>
+            <View style={styles.searchBox}>
+              <Ionicons name='search' size={18} color={Color.textSecondary} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder='장비 검색'
+                placeholderTextColor={Color.textSecondary}
+                value={warehouse.getQuery()}
+                onChangeText={value => warehouse.setQuery(value)}
+                autoCorrect={false}
+                returnKeyType='search'
+                clearButtonMode='while-editing'
+              />
+              {warehouse.getQuery().length > 0 && (
+                <TouchableOpacity
+                  onPress={() => warehouse.setQuery('')}
+                  hitSlop={8}
+                  accessibilityRole='button'
+                  accessibilityLabel='검색어 지우기'
+                >
+                  <Ionicons
+                    name='close-circle'
+                    size={18}
+                    color={Color.textSecondary}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+            <WarehouseFiltersView warehouse={warehouse} />
+          </>
+        )}
       </View>
       <View style={styles.contentContainer}>{renderGears()}</View>
       <AddButtonView />
@@ -95,6 +137,22 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 8,
     marginTop: 8,
+  },
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Color.surfaceMuted,
+    borderRadius: Radius.input,
+    paddingHorizontal: 14,
+    height: 44,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: 'Pretendard-Regular',
+    color: Color.textPrimary,
+    padding: 0,
   },
   contentContainer: {
     flex: 1,
