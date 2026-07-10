@@ -1,15 +1,15 @@
-import React, { useRef, useState } from 'react';
+import React from 'react';
 import {
   View,
   TouchableOpacity,
   StyleSheet,
   Modal,
   Pressable,
-  useWindowDimensions,
-  Platform,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import Svg, { Path } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import Order from '@/model/order/Order';
@@ -18,13 +18,6 @@ import OrderOption from '@/model/order/OrderOption';
 interface Props {
   order: Order;
   onSelectOption?: (option: OrderOption) => void;
-}
-
-interface ButtonPosition {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
 }
 
 const UpArrowIcon = () => (
@@ -52,21 +45,9 @@ const DownArrowIcon = () => (
 );
 
 const OrderButtonView = ({ order, onSelectOption }: Props) => {
-  const { width: screenWidth } = useWindowDimensions();
-  const buttonRef = useRef<View>(null);
-  const [buttonPosition, setButtonPosition] = useState<ButtonPosition | null>(
-    null
-  );
+  const insets = useSafeAreaInsets();
   const showOrderOptions = order.isShowOrderOptions();
   const selectedOrderName = order.getSelectedOrderName();
-
-  const handleLayout = () => {
-    if (buttonRef.current) {
-      buttonRef.current.measureInWindow((x, y, width, height) => {
-        setButtonPosition({ x, y, width, height });
-      });
-    }
-  };
 
   const handleSortClick = () => {
     order.toggleOrderOptions();
@@ -78,7 +59,7 @@ const OrderButtonView = ({ order, onSelectOption }: Props) => {
   };
 
   return (
-    <View style={styles.container} ref={buttonRef} onLayout={handleLayout}>
+    <View style={styles.container}>
       <TouchableOpacity
         style={styles.button}
         onPress={handleSortClick}
@@ -94,44 +75,48 @@ const OrderButtonView = ({ order, onSelectOption }: Props) => {
 
       <Modal
         visible={showOrderOptions}
-        transparent={true}
-        animationType='fade'
+        transparent
+        animationType='slide'
         onRequestClose={handleSortClick}
       >
         <Pressable style={styles.overlay} onPress={handleSortClick}>
-          <View
-            style={[
-              styles.dropdown,
-              buttonPosition && {
-                position: 'absolute',
-                top: buttonPosition.y + buttonPosition.height + 4,
-                right:
-                  screenWidth - (buttonPosition.x + buttonPosition.width),
-              },
-            ]}
+          <Pressable
+            style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]}
+            onPress={e => e.stopPropagation()}
           >
-            {order.mapOrderOptions(option => (
-              <TouchableOpacity
-                key={option.getOrder()}
-                style={styles.dropdownItem}
-                onPress={() => handleSortOptionClick(option)}
-              >
-                <PretendardText
-                  weight={option.isSelected() ? 'semibold' : 'regular'}
-                  style={[
-                    styles.dropdownText,
-                    {
-                      color: option.isSelected()
-                        ? Color.textPrimary
-                        : Color.textSecondary,
-                    },
-                  ]}
+            <PretendardText weight='bold' style={styles.sheetTitle}>
+              정렬
+            </PretendardText>
+            {order.mapOrderOptions(option => {
+              const selected = option.isSelected();
+              return (
+                <TouchableOpacity
+                  key={option.getOrder()}
+                  style={styles.optionRow}
+                  onPress={() => handleSortOptionClick(option)}
+                  activeOpacity={0.7}
+                  accessibilityRole='button'
                 >
-                  {option.getName()}
-                </PretendardText>
-              </TouchableOpacity>
-            ))}
-          </View>
+                  <PretendardText
+                    weight={selected ? 'semibold' : 'regular'}
+                    style={[
+                      styles.optionText,
+                      { color: selected ? Color.textPrimary : Color.textSecondary },
+                    ]}
+                  >
+                    {option.getName()}
+                  </PretendardText>
+                  {selected && (
+                    <Ionicons
+                      name='checkmark'
+                      size={20}
+                      color={Color.textPrimary}
+                    />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </Pressable>
         </Pressable>
       </Modal>
     </View>
@@ -140,7 +125,6 @@ const OrderButtonView = ({ order, onSelectOption }: Props) => {
 
 const styles = StyleSheet.create({
   container: {
-    position: 'relative',
     height: 32,
   },
   button: {
@@ -149,7 +133,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 0,
   },
   buttonText: {
     fontSize: 14,
@@ -160,36 +143,29 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
+    backgroundColor: Color.overlay,
+    justifyContent: 'flex-end',
   },
-  dropdown: {
+  sheet: {
     backgroundColor: Color.background,
-    borderRadius: Radius.card,
-    minWidth: 120,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'rgba(0, 0, 0, 0.1)',
-        shadowOffset: {
-          width: 0,
-          height: 4,
-        },
-        shadowOpacity: 1,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 8,
-        borderWidth: 1,
-        borderColor: Color.borderLight,
-      },
-    }),
+    borderTopLeftRadius: Radius.modal,
+    borderTopRightRadius: Radius.modal,
+    paddingTop: 20,
+    paddingHorizontal: 20,
   },
-  dropdownItem: {
-    padding: 10,
+  sheetTitle: {
+    fontSize: 18,
+    color: Color.textPrimary,
+    marginBottom: 8,
   },
-  dropdownText: {
+  optionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+  },
+  optionText: {
     fontSize: 16,
-    lineHeight: 24,
-    includeFontPadding: false,
-    textAlignVertical: 'center',
   },
 });
 

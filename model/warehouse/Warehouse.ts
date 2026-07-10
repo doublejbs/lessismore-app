@@ -27,6 +27,7 @@ class Warehouse {
   }
 
   private gears: Gear[] = [];
+  private query = '';
   private loading = false;
   private initialized = false;
   private disposeReaction: () => void;
@@ -111,11 +112,30 @@ class Warehouse {
   }
 
   public getGears() {
-    return this.gears;
+    const q = this.query.trim().toLowerCase();
+    if (!q) {
+      return this.gears;
+    }
+    return this.gears.filter(
+      gear =>
+        gear.getDisplayName().toLowerCase().includes(q) ||
+        gear.getDisplayCompany().toLowerCase().includes(q)
+    );
+  }
+
+  public getQuery() {
+    return this.query;
+  }
+
+  public setQuery(value: string) {
+    this.query = value;
   }
 
   public getTotalWeight() {
-    return this.gears.reduce((sum, gear) => sum + (Number(gear.getWeight()) || 0), 0);
+    return this.getGears().reduce(
+      (sum, gear) => sum + (Number(gear.getWeight()) || 0),
+      0
+    );
   }
 
   public mapFilters<R>(callback: (filter: WarehouseFilter) => R) {
