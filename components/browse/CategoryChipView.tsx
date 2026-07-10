@@ -1,5 +1,5 @@
-import { FC } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { forwardRef } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import PretendardText from '../PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 
@@ -7,46 +7,105 @@ interface Props {
   label: string;
   selected?: boolean;
   onPress: () => void;
+  count?: number;
+  accessibilityLabel?: string;
 }
 
-// 탐색 홈 카테고리 그리드와 인기순위 카테고리 탭이 공유하는 칩 컴포넌트.
-// 시각 토큰은 기존 인기순위 탭 스타일 기준으로 통일한다.
-const CategoryChipView: FC<Props> = ({ label, selected = false, onPress }) => {
-  return (
-    <TouchableOpacity
-      style={[styles.chip, selected && styles.chipSelected]}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <PretendardText
-        style={[styles.chipText, selected && styles.chipTextSelected]}
-      >
-        {label}
-      </PretendardText>
-    </TouchableOpacity>
-  );
-};
+// 앱 공용 선택형 필터·카테고리 칩. 아웃라인 톤(비선택 테두리 / 선택 검정 채움),
+// Dynamic Type 대응(고정 높이 없이 minHeight+패딩으로 확장), 44pt 터치(hitSlop).
+const CategoryChipView = forwardRef<View, Props>(
+  ({ label, selected = false, onPress, count, accessibilityLabel }, ref) => {
+    return (
+      <View ref={ref}>
+        <TouchableOpacity
+          style={[
+            styles.chip,
+            selected ? styles.chipSelected : styles.chipUnselected,
+          ]}
+          onPress={onPress}
+          activeOpacity={0.7}
+          hitSlop={{ top: 6, bottom: 6, left: 0, right: 0 }}
+          accessibilityRole='button'
+          accessibilityLabel={accessibilityLabel ?? label}
+          accessibilityState={{ selected }}
+        >
+          <PretendardText
+            weight='medium'
+            style={[
+              styles.chipText,
+              selected ? styles.chipTextSelected : styles.chipTextUnselected,
+            ]}
+          >
+            {label}
+          </PretendardText>
+          {count !== undefined && (
+            <View
+              style={[
+                styles.countBadge,
+                selected
+                  ? styles.countBadgeSelected
+                  : styles.countBadgeUnselected,
+              ]}
+            >
+              <PretendardText weight='medium' style={styles.countText}>
+                {count}
+              </PretendardText>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+    );
+  }
+);
+
+CategoryChipView.displayName = 'CategoryChipView';
 
 const styles = StyleSheet.create({
   chip: {
-    height: 32,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    minHeight: 34,
+    paddingVertical: 7,
+    paddingHorizontal: 14,
     borderRadius: Radius.chip,
-    backgroundColor: Color.chipInactiveBg,
-    justifyContent: 'center',
+    borderWidth: 1,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  chipUnselected: {
+    backgroundColor: Color.background,
+    borderColor: Color.chipBorder,
   },
   chipSelected: {
     backgroundColor: Color.chipActiveBg,
+    borderColor: Color.chipActiveBg,
   },
   chipText: {
     fontSize: 14,
-    lineHeight: 16,
-    color: Color.textPrimary,
+  },
+  chipTextUnselected: {
+    color: Color.textSecondary,
   },
   chipTextSelected: {
     color: Color.background,
+  },
+  countBadge: {
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  countBadgeUnselected: {
+    backgroundColor: Color.chipInactiveBg,
+  },
+  countBadgeSelected: {
+    backgroundColor: Color.background,
+  },
+  countText: {
+    fontSize: 12,
+    color: Color.textPrimary,
   },
 });
 

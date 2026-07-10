@@ -12,7 +12,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import GearEdit from '@/model/gear/edit/GearEdit';
-import ImageUploadView from '@/components/gear/ImageUploadView';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import GearEditWeightView from '@/components/gear/edit/GearEditWeightView';
 import GearEditConfirmView from '@/components/gear/edit/GearEditConfirmView';
@@ -20,6 +19,7 @@ import GearEditColorView from '@/components/gear/edit/GearEditColorView';
 import LoadingIconView from '@/components/ui/LoadingIconView';
 import PretendardText from '@/components/PretendardText';
 import AlertView from '@/components/alert/AlertView';
+import CategoryChipView from '@/components/browse/CategoryChipView';
 import useKeyboard from '@/hooks/useKeyboard';
 import app from '@/model/app/App';
 import { Color, Radius } from '@/constants/DesignTokens';
@@ -42,7 +42,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
   const isLoading = gearEdit.isLoading();
   const isInitialized = gearEdit.isInitialized();
 
-  const { isKeyboardVisible, keyboardHeight } = useKeyboard();
+  const { isKeyboardVisible } = useKeyboard();
 
   const scrollToInput = (inputRef: React.RefObject<TextInput | null>) => {
     if (inputRef.current && scrollViewRef.current) {
@@ -235,33 +235,14 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                 gap: 4,
               }}
             >
-              {gearEdit.mapFilters(filter => {
-                return (
-                  <TouchableOpacity
-                    style={{
-                      backgroundColor: filter.isSelected()
-                        ? Color.chipActiveBg
-                        : Color.chipInactiveBg,
-                      borderRadius: Radius.chip,
-                      paddingVertical: 8,
-                      paddingHorizontal: 16,
-                    }}
-                    key={filter.getFilter()}
-                    onPress={() => handleClickSelectFilter(filter)}
-                  >
-                    <PretendardText
-                      style={{
-                        color: filter.isSelected()
-                          ? Color.background
-                          : Color.textPrimary,
-                        fontSize: 14,
-                      }}
-                    >
-                      {filter.getName()}
-                    </PretendardText>
-                  </TouchableOpacity>
-                );
-              })}
+              {gearEdit.mapFilters(filter => (
+                <CategoryChipView
+                  key={filter.getFilter()}
+                  label={filter.getName()}
+                  selected={filter.isSelected()}
+                  onPress={() => handleClickSelectFilter(filter)}
+                />
+              ))}
             </View>
           </View>
           {isInitialized && (

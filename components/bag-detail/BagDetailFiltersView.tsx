@@ -62,9 +62,10 @@ const styles = StyleSheet.create({
     backgroundColor: Color.background,
   },
   scrollView: {
-    height: 32,
+    width: '100%',
   },
   scrollContent: {
+    alignItems: 'center',
     gap: 8,
   },
 });

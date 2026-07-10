@@ -48,6 +48,7 @@ app/(tabs)/index.tsx → WarehouseWrapper → WarehouseScreen
 **수용 기준**
 
 - 필터는 `전체` + 11개 카테고리([DataModel.md](DataModel.md) DM-4)로 구성되고 기본값은 `전체`다.
+- 칩 UI는 앱 공용 `CategoryChipView`(아웃라인 톤: 비선택 배경+`chipBorder` 테두리+`textSecondary`, 선택 `chipActiveBg` 채움; radius 8)를 쓴다. 고정 높이 없이 `minHeight`+패딩으로 큰 글씨(Dynamic Type)에서도 잘리지 않으며, `hitSlop`으로 44pt 터치를 확보한다. 배낭 상세·피드·배낭 수정·장비 카테고리 칩도 동일 컴포넌트를 공유한다.
 - 한 번에 하나만 선택된다 — 다른 필터 선택 시 기존 선택은 해제된다.
 - 선택된 필터를 다시 눌러 해제하면 자동으로 `전체`가 선택된다.
 - 필터 적용은 Firestore 쿼리(`where('category', 'in', …)`)로 수행한다.
