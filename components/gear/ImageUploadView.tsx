@@ -88,8 +88,8 @@ const ImageUploadView: FC<Props> = ({ fileUpload }) => {
   // 갤러리 선택 핸들러 (iOS에서는 카메라 옵션 포함)
   const handleGallery = async () => {
     try {
-      // 갤러리 및 카메라 권한 요청
-      const [mediaLibraryStatus, cameraStatus] = await Promise.all([
+      // 갤러리 및 카메라 권한 요청 (카메라 권한은 미리 요청만 하고 게이팅은 갤러리 기준)
+      const [mediaLibraryStatus] = await Promise.all([
         ImagePicker.requestMediaLibraryPermissionsAsync(),
         ImagePicker.requestCameraPermissionsAsync(),
       ]);
@@ -186,6 +186,8 @@ const ImageUploadView: FC<Props> = ({ fileUpload }) => {
     >
       <TouchableOpacity
         onPress={handleImagePicker}
+        accessibilityRole='button'
+        accessibilityLabel='사진 추가'
         style={{
           borderWidth: 1,
           borderColor: Color.borderLight,
@@ -227,6 +229,9 @@ const ImageUploadView: FC<Props> = ({ fileUpload }) => {
               zIndex: 1,
             }}
             onPress={handleDeletePreview}
+            accessibilityRole='button'
+            accessibilityLabel='사진 삭제'
+            hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
           >
             <PretendardText
               weight='bold'

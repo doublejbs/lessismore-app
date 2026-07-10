@@ -173,22 +173,29 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
             <TouchableOpacity
               onPress={handleClickHide}
               style={styles.backButton}
+              accessibilityRole='button'
+              accessibilityLabel='닫기'
             >
               <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
             </TouchableOpacity>
           )}
+          {Platform.OS === 'ios' && (
+            <TouchableOpacity
+              onPress={handleClickHide}
+              style={styles.backButton}
+              accessibilityRole='button'
+              accessibilityLabel='닫기'
+            >
+              <Ionicons name='close' size={24} color={Color.textPrimary} />
+            </TouchableOpacity>
+          )}
           <PretendardText
             weight='semibold'
-            style={[
-              styles.headerTitle,
-              Platform.OS === 'android' && styles.headerTitleWithBackButton,
-            ]}
+            style={[styles.headerTitle, styles.headerTitleWithBackButton]}
           >
             장비 추가
           </PretendardText>
-          {Platform.OS === 'android' && (
-            <View style={styles.backButtonPlaceholder} />
-          )}
+          <View style={styles.backButtonPlaceholder} />
         </View>
 
         <KeyboardAvoidingView
@@ -220,6 +227,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
             </View>
             <CustomGearInputSectionView
               label='제품명'
+              required
               placeholder='제품명을 입력해주세요'
               value={name}
               onChangeText={handleChangeName}
@@ -233,14 +241,31 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
               <PretendardText weight='medium' style={styles.label}>
                 브랜드
               </PretendardText>
-              <TextInput
-                style={styles.input}
-                placeholder='브랜드를 입력해주세요'
-                value={company}
-                onChangeText={handleChangeCompany}
-                onFocus={() => setFocusedInput('company')}
-                ref={companyInputRef}
-              />
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder='브랜드를 입력해주세요'
+                  value={company}
+                  onChangeText={handleChangeCompany}
+                  onFocus={() => setFocusedInput('company')}
+                  ref={companyInputRef}
+                />
+                {company ? (
+                  <TouchableOpacity
+                    onPress={() => customGear.setCompany('')}
+                    style={styles.clearButton}
+                    accessibilityRole='button'
+                    accessibilityLabel='입력 지우기'
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons
+                      name='close-circle'
+                      size={20}
+                      color={Color.iconMuted}
+                    />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
             </View>
             <CustomGearColorView customGear={customGear} />
             <View style={styles.inputSection}>
@@ -257,6 +282,10 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
                       ]}
                       key={filter.getFilter()}
                       onPress={() => handleClickSelectFilter(filter)}
+                      accessibilityRole='button'
+                      accessibilityLabel={filter.getName()}
+                      accessibilityState={{ selected: filter.isSelected() }}
+                      hitSlop={{ top: 6, bottom: 6, left: 0, right: 0 }}
                     >
                       <PretendardText
                         style={[
@@ -348,12 +377,27 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
   },
+  inputContainer: {
+    position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   input: {
+    flex: 1,
     borderRadius: Radius.input,
     backgroundColor: Color.inputBg,
     borderWidth: 1,
     borderColor: Color.borderLight,
     padding: 16,
+  },
+  clearButton: {
+    position: 'absolute',
+    right: 16,
+    padding: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 28,
+    minWidth: 28,
   },
   filterContainer: {
     flexDirection: 'row',
