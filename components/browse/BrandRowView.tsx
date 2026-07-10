@@ -9,6 +9,7 @@ interface Props {
   brand: BrandRankData;
   onPress: () => void;
   selected?: boolean;
+  showCount?: boolean;
 }
 
 // 선택 행 우측에 노출하는 검정 체크(✓) 아이콘 — BrowseSortButtonView의 CheckIcon 패턴 재사용.
@@ -25,15 +26,23 @@ const CheckIcon = () => (
 );
 
 // 브랜드 디렉토리와 탐색 홈 브랜드 미리보기가 공유하는 브랜드 행.
-// 이름 + `제품 n` 보조 라벨 + 하단 구분선으로 밀도를 통일한다.
+// 이름 + (옵션)`제품 n` 보조 라벨 + 하단 구분선으로 밀도를 통일한다.
+// `showCount`가 false면 제품 수를 숨긴다(피드 브랜드 필터 시트).
 // 보유 수(ownerCount)는 정렬 키로만 쓰고 노출하지 않는다.
 // selected는 피드 필터 시트에서 현재 선택된 브랜드 행을 강조하는 용도(기본 미강조).
 // 선택 시 은은한 배경 + 브랜드명 bold + 우측 검정 체크(✓)로 대비를 준다.
 // 브랜드 디렉토리(단일 화면)는 selected를 넘기지 않으므로 기존 동작에 영향이 없다.
-const BrandRowView: FC<Props> = ({ brand, onPress, selected = false }) => {
+const BrandRowView: FC<Props> = ({
+  brand,
+  onPress,
+  selected = false,
+  showCount = true,
+}) => {
   const name = brand.companyKorean || brand.company;
   const meta =
-    typeof brand.gearCount === 'number' ? `제품 ${brand.gearCount}` : '';
+    showCount && typeof brand.gearCount === 'number'
+      ? `제품 ${brand.gearCount}`
+      : '';
 
   return (
     <TouchableOpacity

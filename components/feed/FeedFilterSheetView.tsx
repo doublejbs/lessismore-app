@@ -257,6 +257,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
             brand={brand}
             selected={isSelectedBrand(brand)}
             onPress={() => handleSelectBrand(brand)}
+            showCount={false}
           />
         ))}
       </ScrollView>
