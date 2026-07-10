@@ -105,7 +105,6 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                 onChangeText={value => warehouse.setQuery(value)}
                 autoCorrect={false}
                 returnKeyType='search'
-                clearButtonMode='while-editing'
               />
               {warehouse.getQuery().length > 0 && (
                 <TouchableOpacity
