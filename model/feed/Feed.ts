@@ -574,6 +574,11 @@ class Feed implements GearRowActions {
     return this.filterBrands;
   }
 
+  // 검색 승계(SR-1)용 — 현재 필터 브랜드를 facet 매칭용 표시명 배열로 반환한다.
+  public getFilterBrandNames() {
+    return this.toBrandNames(this.filterBrands);
+  }
+
   // FD-3 정렬 상태(null=추천). 시트가 열릴 때 스테이징 초기값으로 읽는다.
   public getSort() {
     return this.sort;
