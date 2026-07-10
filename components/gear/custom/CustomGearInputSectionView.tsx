@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   ScrollView,
   Image,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
@@ -14,6 +15,8 @@ import CustomGear from '@/model/gear/custom/CustomGear';
 import Gear from '@/model/gear/Gear';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
+
+const REQUIRED_RED = '#FF3B30';
 
 export interface SearchResult {
   readonly id: string;
@@ -23,6 +26,7 @@ export interface SearchResult {
 
 interface Props {
   readonly label: string;
+  readonly required?: boolean;
   readonly placeholder: string;
   readonly value: string;
   readonly onChangeText: (text: string) => void;
@@ -36,6 +40,7 @@ interface Props {
 
 const CustomGearInputSectionView: FC<Props> = ({
   label,
+  required,
   placeholder,
   value,
   onChangeText,
@@ -81,6 +86,8 @@ const CustomGearInputSectionView: FC<Props> = ({
 
   const handleSelectResult = (item: Gear) => {
     customGear.selectSearchGear(item);
+    setShowSearchResults(false);
+    Keyboard.dismiss();
   };
 
   const handleFocus = () => {
@@ -101,6 +108,12 @@ const CustomGearInputSectionView: FC<Props> = ({
       <View style={styles.labelContainer}>
         <PretendardText weight='medium' style={styles.label}>
           {label}
+          {required && (
+            <PretendardText weight='medium' style={{ color: REQUIRED_RED }}>
+              {' '}
+              *
+            </PretendardText>
+          )}
         </PretendardText>
         <PretendardText style={styles.guideText}>
           제품명을 입력하면 검색결과가 나옵니다
@@ -127,6 +140,9 @@ const CustomGearInputSectionView: FC<Props> = ({
           <TouchableOpacity
             onPress={handleClickClear}
             style={styles.clearButton}
+            accessibilityRole='button'
+            accessibilityLabel='입력 지우기'
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Ionicons name='close-circle' size={20} color={Color.iconMuted} />
           </TouchableOpacity>

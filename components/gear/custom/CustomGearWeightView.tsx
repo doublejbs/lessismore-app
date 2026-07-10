@@ -1,5 +1,6 @@
 import React, { forwardRef } from 'react';
-import { View, TextInput, StyleSheet } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import CustomGear from '@/model/gear/custom/CustomGear';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
@@ -35,15 +36,28 @@ const CustomGearWeightView = forwardRef<TextInput, Props>(
         <PretendardText weight='medium' style={styles.label}>
           무게(g)
         </PretendardText>
-        <TextInput
-          ref={ref}
-          style={styles.input}
-          onChangeText={handleChangeWeight}
-          value={weight}
-          placeholder={'무게를 입력해주세요'}
-          keyboardType='numeric'
-          onFocus={onFocus}
-        />
+        <View style={styles.inputContainer}>
+          <TextInput
+            ref={ref}
+            style={styles.input}
+            onChangeText={handleChangeWeight}
+            value={weight}
+            placeholder={'무게를 입력해주세요'}
+            keyboardType='numeric'
+            onFocus={onFocus}
+          />
+          {weight ? (
+            <TouchableOpacity
+              onPress={() => customGear.setWeight('')}
+              style={styles.clearButton}
+              accessibilityRole='button'
+              accessibilityLabel='입력 지우기'
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name='close-circle' size={20} color={Color.iconMuted} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </View>
     );
   }
@@ -57,12 +71,27 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
   },
+  inputContainer: {
+    position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   input: {
+    flex: 1,
     borderRadius: Radius.input,
     backgroundColor: Color.inputBg,
     borderWidth: 1,
     borderColor: Color.borderLight,
     padding: 16,
+  },
+  clearButton: {
+    position: 'absolute',
+    right: 16,
+    padding: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 28,
+    minWidth: 28,
   },
 });
 
