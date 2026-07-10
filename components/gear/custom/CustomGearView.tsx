@@ -22,6 +22,7 @@ import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import CustomGearWeightView from '@/components/gear/custom/CustomGearWeightView';
 import CustomGearColorView from '@/components/gear/custom/CustomGearColorView';
 import CustomGearInputSectionView from '@/components/gear/custom/CustomGearInputSectionView';
+import CategoryChipView from '@/components/browse/CategoryChipView';
 import AlertView from '@/components/alert/AlertView';
 import app from '@/model/app/App';
 
@@ -273,32 +274,14 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
                 카테고리
               </PretendardText>
               <View style={styles.filterContainer}>
-                {customGear.mapFilters(filter => {
-                  return (
-                    <TouchableOpacity
-                      style={[
-                        styles.filterButton,
-                        filter.isSelected() && styles.filterButtonSelected,
-                      ]}
-                      key={filter.getFilter()}
-                      onPress={() => handleClickSelectFilter(filter)}
-                      accessibilityRole='button'
-                      accessibilityLabel={filter.getName()}
-                      accessibilityState={{ selected: filter.isSelected() }}
-                      hitSlop={{ top: 6, bottom: 6, left: 0, right: 0 }}
-                    >
-                      <PretendardText
-                        style={[
-                          styles.filterButtonText,
-                          filter.isSelected() &&
-                            styles.filterButtonTextSelected,
-                        ]}
-                      >
-                        {filter.getName()}
-                      </PretendardText>
-                    </TouchableOpacity>
-                  );
-                })}
+                {customGear.mapFilters(filter => (
+                  <CategoryChipView
+                    key={filter.getFilter()}
+                    label={filter.getName()}
+                    selected={filter.isSelected()}
+                    onPress={() => handleClickSelectFilter(filter)}
+                  />
+                ))}
               </View>
             </View>
             <CustomGearWeightView
@@ -403,26 +386,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-  },
-  filterButton: {
-    height: 32,
-    backgroundColor: Color.chipInactiveBg,
-    borderRadius: Radius.chip,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  filterButtonSelected: {
-    backgroundColor: Color.chipActiveBg,
-  },
-  filterButtonText: {
-    fontSize: 14,
-    lineHeight: 16,
-    color: Color.textPrimary,
-  },
-  filterButtonTextSelected: {
-    color: Color.background,
   },
   dragBar: {
     width: 40,

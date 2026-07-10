@@ -21,6 +21,7 @@ export const Color = {
   // 칩 / 인풋 / 표면
   chipInactiveBg: '#EBEBEB',
   chipActiveBg: '#000000',
+  chipBorder: '#E5E5E5', // 아웃라인 칩(비선택) 테두리
   inputBg: '#F5F5F5',
   surfaceMuted: '#F5F5F5',
   thumbBg: '#F1F1F1',
@@ -33,7 +34,7 @@ export const Radius = {
   listThumb: 4,
   card: 8,
   input: 8,
-  chip: 22,
+  chip: 8,
   sheet: 20,
   modal: 16,
   pill: 32,

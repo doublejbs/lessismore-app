@@ -49,6 +49,7 @@ class BagDetail {
   private isScrollingSyncFilter = false;
   private filterScrollViewRef: any = null;
   private filterButtonRefs: Map<string, any> = new Map();
+  private gearHeaderHeight = 0;
   private packedCount = 0;
   private packingCompleted = false;
   private packingStarted = false;
@@ -492,6 +493,12 @@ class BagDetail {
     this.categoryRefs = refs;
   }
 
+  // sticky 헤더(총 N개 + 필터 행) 실측 높이. 필터 칩 높이가 바뀌어도
+  // 카테고리 스크롤 오프셋이 자동 보정되도록 실측값을 쓴다.
+  public setGearHeaderHeight(height: number) {
+    this.gearHeaderHeight = height;
+  }
+
   public setScrollViewRef(ref: any) {
     this.scrollViewRef = ref;
   }
@@ -515,13 +522,13 @@ class BagDetail {
         element.measureLayout(
           this.scrollViewRef,
           (_x: number, y: number) => {
-            // sticky header 높이를 고려한 오프셋 적용
-            const stickyHeaderHeight = 46; // gearHeader 높이 (text + filters, 패딩 제외)
-            const categoryTitleHeight = 30; // categoryTitle 높이 (fontSize 18 + marginBottom 12)
-            const additionalMargin = 30;
+            // 실측한 sticky 헤더(총 N개 + 필터 행) 높이 아래로 카테고리 타이틀이 오도록
+            // 오프셋을 준다. 필터 칩 높이가 바뀌어도 자동 보정된다(실측 전 폴백 106).
+            const stickyHeaderHeight =
+              this.gearHeaderHeight > 0 ? this.gearHeaderHeight : 106;
+            const gap = 12;
 
-            const totalOffset =
-              stickyHeaderHeight + categoryTitleHeight + additionalMargin;
+            const totalOffset = stickyHeaderHeight + gap;
             const adjustedY = Math.max(0, y - totalOffset);
 
             this.scrollViewRef.scrollTo({
