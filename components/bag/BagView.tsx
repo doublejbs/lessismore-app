@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { View, ScrollView, StyleSheet, Platform } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { observer } from 'mobx-react-lite';
 import BagItemView from './BagItemView';
 import BagAddView from './BagAddView';
@@ -66,15 +67,20 @@ const BagView = () => {
   };
 
   return (
-    <Layout>
-      {render()}
-      <View style={styles.addButtonSpacer} />
-      <BagAddView bag={bag} />
-    </Layout>
+    <GestureHandlerRootView style={styles.root}>
+      <Layout>
+        {render()}
+        <View style={styles.addButtonSpacer} />
+        <BagAddView bag={bag} />
+      </Layout>
+    </GestureHandlerRootView>
   );
 };
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   container: {
     position: 'relative',
     flex: 1,
@@ -109,10 +115,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   bottomSpacer: {
+    // 플로팅 `배낭 추가` 버튼 높이 이상 — 끝까지 스크롤 시 마지막 행이 가리지 않도록 (HIG).
     minHeight: Platform.select({
-      ios: 20,
-      android: 0,
-      default: 20,
+      ios: 80,
+      android: 64,
+      default: 80,
     }),
   },
   addButtonSpacer: {
