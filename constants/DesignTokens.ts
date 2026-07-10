@@ -10,7 +10,7 @@ export const Color = {
   // 배경 / 텍스트
   background: '#FFFFFF',
   textPrimary: '#000000',
-  textSecondary: '#888888',
+  textSecondary: '#767676', // WCAG AA(4.5:1) 충족 — 흰 배경 보조 텍스트
   textTertiary: '#555555',
   iconMuted: '#B0B8C1',
 
