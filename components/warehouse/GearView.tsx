@@ -107,8 +107,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   companyText: {
-    fontSize: 10,
-    color: Color.textPrimary,
+    fontSize: 12,
+    color: Color.textTertiary,
   },
   usedRateBadge: {
     borderRadius: Radius.card,
@@ -118,19 +118,19 @@ const styles = StyleSheet.create({
   },
   usedRateText: {
     color: Color.textPrimary,
-    fontSize: 10,
+    fontSize: 11,
   },
   nameText: {
-    fontSize: 14,
-    lineHeight: 16,
+    fontSize: 15,
+    lineHeight: 19,
     color: Color.textPrimary,
   },
   colorText: {
-    fontSize: 14,
-    color: Color.textPrimary,
+    fontSize: 13,
+    color: Color.textTertiary,
   },
   weightText: {
-    fontSize: 14,
+    fontSize: 15,
     color: Color.textPrimary,
   },
 });

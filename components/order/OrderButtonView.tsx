@@ -79,7 +79,13 @@ const OrderButtonView = ({ order, onSelectOption }: Props) => {
 
   return (
     <View style={styles.container} ref={buttonRef} onLayout={handleLayout}>
-      <TouchableOpacity style={styles.button} onPress={handleSortClick}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleSortClick}
+        hitSlop={8}
+        accessibilityRole='button'
+        accessibilityLabel={`정렬: ${selectedOrderName}`}
+      >
         <PretendardText weight='semibold' style={styles.buttonText}>
           {selectedOrderName}
         </PretendardText>

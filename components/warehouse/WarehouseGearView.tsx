@@ -134,7 +134,13 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse }) => {
     <View>
       <GearView gear={gear} onPress={handlePressDetail}>
         <View style={styles.menuContainer}>
-          <TouchableOpacity style={styles.menuButton} onPress={handlePressMenu}>
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={handlePressMenu}
+            hitSlop={8}
+            accessibilityRole='button'
+            accessibilityLabel={`${gear.getDisplayName()} 더보기`}
+          >
             <MenuIcon />
           </TouchableOpacity>
         </View>

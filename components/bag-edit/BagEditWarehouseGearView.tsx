@@ -25,11 +25,23 @@ const BagEditWarehouseGearView: FC<Props> = ({ gear, bagEdit }) => {
     <GearView gear={gear} onPress={handlePress}>
       <View style={styles.buttonContainer}>
         {isSelected ? (
-          <TouchableOpacity style={styles.selectedBadge} onPress={handlePress}>
+          <TouchableOpacity
+            style={styles.selectedBadge}
+            onPress={handlePress}
+            hitSlop={8}
+            accessibilityRole='button'
+            accessibilityLabel={`${gear.getDisplayName()} 배낭에서 빼기`}
+          >
             <Ionicons name='checkmark' size={16} color={Color.background} />
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.addButton} onPress={handlePress}>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={handlePress}
+            hitSlop={8}
+            accessibilityRole='button'
+            accessibilityLabel={`${gear.getDisplayName()} 배낭에 담기`}
+          >
             <Ionicons name='add' size={16} color={Color.textPrimary} />
           </TouchableOpacity>
         )}

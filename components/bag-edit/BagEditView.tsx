@@ -84,9 +84,11 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
           <TouchableOpacity
             style={styles.confirmButton}
             onPress={handlePressConfirm}
+            activeOpacity={0.8}
+            accessibilityRole='button'
           >
-            <PretendardText style={styles.confirmButtonText} weight='medium'>
-              확인
+            <PretendardText style={styles.confirmButtonText} weight='semibold'>
+              완료
             </PretendardText>
           </TouchableOpacity>
         </View>
