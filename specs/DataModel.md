@@ -217,6 +217,20 @@
 | `windSpeedMax` | number? | 최대 풍속(m/s) |
 | `windGustMax` | number? | 최대 돌풍(m/s) |
 
+### DM-16 트래킹 기록 (`bag.track`) `[기획]`
+
+필드샷([FieldShot.md](FieldShot.md))이 저장하는 여행 트래킹 요약. `bag` 문서 안에 중첩 저장(옵셔널). 배낭 복사 시 복사하지 않는다(location/weather와 동일 규칙). `updateDoc` 단독 갱신.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `distanceKm` | number | 총 거리(km) |
+| `durationMin` | number | 총 소요 시간(분) |
+| `elevationGainM` | number | 총 상승고도(m) |
+| `source` | string | `healthkit` / `manual` |
+| `routePolyline` | string? | 경로 좌표(encoded polyline, 단순화 후). `healthkit`일 때만 |
+| `campsiteName` | string? | 박지 표시명. 기본값은 `location.name`(DM-15), 사용자가 수정 시 저장 |
+| `fetchedAt` | string | ISO 8601 — 가져온/입력한 시각 |
+
 ## 4. Storage 경로 (DM-9)
 
 `model/firebase/FirebaseImageStorage.ts`:
