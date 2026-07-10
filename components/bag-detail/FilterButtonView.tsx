@@ -1,9 +1,8 @@
 import { observer } from 'mobx-react-lite';
 import { FC, useRef, useEffect } from 'react';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
-import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import CategoryChipView from '@/components/browse/CategoryChipView';
 
 interface BagWithFilters {
   toggleFilterWithScroll: (filter: WarehouseFilter) => void;
@@ -16,7 +15,6 @@ interface Props {
 }
 
 const FilterButtonView: FC<Props> = ({ filter, bagDetail, onRef }) => {
-  const isSelected = filter.isSelected();
   const viewRef = useRef<View>(null);
 
   useEffect(() => {
@@ -30,44 +28,13 @@ const FilterButtonView: FC<Props> = ({ filter, bagDetail, onRef }) => {
   };
 
   return (
-    <View ref={viewRef}>
-      <TouchableOpacity
-        style={[
-          styles.button,
-          {
-            backgroundColor: isSelected
-              ? Color.chipActiveBg
-              : Color.chipInactiveBg,
-          },
-        ]}
-        onPress={handlePress}
-      >
-        <PretendardText
-          style={[
-            styles.buttonText,
-            { color: isSelected ? Color.background : Color.textPrimary },
-          ]}
-        >
-          {filter.getName()}
-        </PretendardText>
-      </TouchableOpacity>
-    </View>
+    <CategoryChipView
+      ref={viewRef}
+      label={filter.getName()}
+      selected={filter.isSelected()}
+      onPress={handlePress}
+    />
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    height: 32,
-    borderRadius: Radius.chip,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    fontSize: 14,
-    lineHeight: 16,
-  },
-});
 
 export default observer(FilterButtonView);

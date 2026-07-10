@@ -120,7 +120,12 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               )}
             </View>
             <View style={styles.separator} />
-            <View style={styles.gearHeader}>
+            <View
+              style={styles.gearHeader}
+              onLayout={e =>
+                bagDetail.setGearHeaderHeight(e.nativeEvent.layout.height)
+              }
+            >
               <View style={styles.gearHeaderContent}>
                 <PretendardText style={styles.gearCountText} weight='bold'>
                   총 {gears.length}개의 장비

@@ -1,17 +1,13 @@
 import React, { FC } from 'react';
-import {
-  View,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import { View, ScrollView, StyleSheet } from 'react-native';
 import Warehouse from '@/model/warehouse/Warehouse';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import { observer } from 'mobx-react-lite';
 import OrderButtonView from '@/components/order/OrderButtonView';
 import OrderOption from '@/model/order/OrderOption';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import CategoryChipView from '@/components/browse/CategoryChipView';
+import { Color } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 interface Props {
@@ -52,32 +48,14 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
-        {warehouse.mapFilters(filter => {
-          const isSelected = filter.isSelected();
-          return (
-            <TouchableOpacity
-              key={filter.getName()}
-              style={[
-                styles.filterButton,
-                {
-                  backgroundColor: isSelected
-                    ? Color.chipActiveBg
-                    : Color.chipInactiveBg,
-                },
-              ]}
-              onPress={() => handleClick(filter)}
-            >
-              <PretendardText
-                style={[
-                  styles.filterButtonText,
-                  { color: isSelected ? Color.background : Color.textPrimary },
-                ]}
-              >
-                {filter.getName()}
-              </PretendardText>
-            </TouchableOpacity>
-          );
-        })}
+        {warehouse.mapFilters(filter => (
+          <CategoryChipView
+            key={filter.getName()}
+            label={filter.getName()}
+            selected={filter.isSelected()}
+            onPress={() => handleClick(filter)}
+          />
+        ))}
       </ScrollView>
       <View style={styles.orderContainer}>
         <PretendardText weight='semibold' style={styles.titleText}>
@@ -102,11 +80,11 @@ const styles = StyleSheet.create({
     backgroundColor: Color.background,
   },
   scrollView: {
-    height: 32,
     width: '100%',
   },
   scrollContent: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
     paddingHorizontal: 0,
   },
@@ -123,21 +101,6 @@ const styles = StyleSheet.create({
   weightText: {
     fontSize: 16,
     color: Color.textSecondary,
-  },
-  filterButton: {
-    height: 32,
-    borderRadius: Radius.chip,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  filterButtonText: {
-    fontSize: 14,
-    lineHeight: 16,
-    includeFontPadding: false,
-    textAlignVertical: 'center',
-    textAlign: 'center',
   },
 });
 
