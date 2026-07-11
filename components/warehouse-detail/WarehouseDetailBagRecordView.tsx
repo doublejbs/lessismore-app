@@ -56,12 +56,32 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
           </View>
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <PretendardText style={styles.statLabel}>USED</PretendardText>
-              <PretendardText weight='medium' style={styles.statValue}>{`${usedCount}회`}</PretendardText>
+              <PretendardText
+                style={[styles.statLabel, usedCount === 0 && styles.statMuted]}
+              >
+                USED
+              </PretendardText>
+              <PretendardText
+                weight='medium'
+                style={[styles.statValue, usedCount === 0 && styles.statMuted]}
+              >{`${usedCount}회`}</PretendardText>
             </View>
             <View style={styles.statItem}>
-              <PretendardText style={styles.statLabel}>USELESS</PretendardText>
-              <PretendardText weight='medium' style={styles.statValue}>{`${uselessCount}회`}</PretendardText>
+              <PretendardText
+                style={[
+                  styles.statLabel,
+                  uselessCount === 0 && styles.statMuted,
+                ]}
+              >
+                USELESS
+              </PretendardText>
+              <PretendardText
+                weight='medium'
+                style={[
+                  styles.statValue,
+                  uselessCount === 0 && styles.statMuted,
+                ]}
+              >{`${uselessCount}회`}</PretendardText>
             </View>
           </View>
           <ScrollView style={styles.listContainer}>
@@ -141,6 +161,10 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 15,
     color: Color.textPrimary,
+  },
+  statMuted: {
+    // 0회 카드: 라벨·값 색을 낮춰 유효 정보 스캔을 돕는다 (GD-2)
+    color: Color.textSecondary,
   },
   listContainer: {
     // 리스트 컨테이너 스타일

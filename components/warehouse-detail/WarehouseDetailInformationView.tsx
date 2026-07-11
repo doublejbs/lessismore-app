@@ -7,20 +7,18 @@ import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '../PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import GearFilter from '@/model/gear/GearFilter';
-import { getGearFilterName } from '@/model/gear/GearFilterName';
+import { GEAR_FILTER_NAMES } from '@/model/gear/GearFilterName';
 
 interface Props {
   gear: Gear;
   canShowSharedImages?: boolean | undefined;
   onSelectOtherImage?: () => void;
-  onEdit?: () => void;
 }
 
 const WarehouseDetailInformationView: FC<Props> = ({
   gear,
   canShowSharedImages,
   onSelectOtherImage,
-  onEdit,
 }) => {
   const imageUrl = gear.getImageUrl();
   const company = gear.getCompany();
@@ -29,7 +27,13 @@ const WarehouseDetailInformationView: FC<Props> = ({
   const color = gear.getColor();
   const isAdded = gear.isAdded();
   const category = gear.getCategory();
-  const categoryName = category ? getGearFilterName(category as GearFilter) : '';
+  // GearFilter enum에 매핑이 있을 때만 한글 표시명을 쓰고, 없으면 항목 생략 (원문 노출 금지)
+  const categoryName =
+    category && category in GEAR_FILTER_NAMES
+      ? GEAR_FILTER_NAMES[category as GearFilter]
+      : '';
+  // 카테고리 · 색상 메타 라인 — 둘 다 없으면 라인 미노출
+  const metaLine = [categoryName, color].filter(Boolean).join(' · ');
 
   return (
     <View style={styles.container}>
@@ -45,52 +49,37 @@ const WarehouseDetailInformationView: FC<Props> = ({
           <TouchableOpacity
             style={styles.selectOtherImageButton}
             onPress={onSelectOtherImage}
+            accessibilityLabel='대표 사진 변경'
+            accessibilityRole='button'
           >
-            <Ionicons name='images-outline' size={14} color={Color.textTertiary} />
-            <PretendardText style={styles.selectOtherImageText}>
-              대표 사진 변경
-            </PretendardText>
+            <Ionicons
+              name='images-outline'
+              size={20}
+              color={Color.textPrimary}
+            />
           </TouchableOpacity>
         )}
       </View>
-      <View style={styles.contentContainer}>
-        <View style={styles.infoSection}>
-          <View style={styles.productInfo}>
-            <View style={styles.companyRow}>
-              <PretendardText style={styles.companyText}>{company}</PretendardText>
-              {categoryName ? (
-                // 탭 불가 정적 카테고리 라벨 (GD-1)
-                <View style={styles.categoryChip}>
-                  <PretendardText
-                    weight='medium'
-                    style={styles.categoryChipText}
-                  >
-                    {categoryName}
-                  </PretendardText>
-                </View>
-              ) : null}
-            </View>
-            <PretendardText
-              weight='bold'
-              style={styles.nameText}
-              lineBreakStrategyIOS='hangul-word'
-            >
-              {name}
-            </PretendardText>
-            <PretendardText style={styles.colorText}>{color}</PretendardText>
-          </View>
-          <View style={styles.weightContainer}>
-            <PretendardText weight='bold' style={styles.weightText}>
-              {weight}g
-            </PretendardText>
-          </View>
+      <View style={styles.infoSection}>
+        <View style={styles.productInfo}>
+          <PretendardText style={styles.companyText}>{company}</PretendardText>
+          <PretendardText
+            weight='bold'
+            style={styles.nameText}
+            lineBreakStrategyIOS='hangul-word'
+          >
+            {name}
+          </PretendardText>
+          {metaLine ? (
+            <PretendardText style={styles.metaText}>{metaLine}</PretendardText>
+          ) : null}
         </View>
-        {isAdded && (
-          <TouchableOpacity onPress={onEdit} style={styles.editButton}>
-            <PretendardText style={styles.editButtonText}>수정하기</PretendardText>
-            <Ionicons name='chevron-forward' size={14} color={Color.textPrimary} />
-          </TouchableOpacity>
-        )}
+        <View style={styles.weightContainer}>
+          <PretendardText style={styles.weightCaption}>무게</PretendardText>
+          <PretendardText weight='bold' style={styles.weightText}>
+            {weight}g
+          </PretendardText>
+        </View>
       </View>
     </View>
   );
@@ -114,23 +103,16 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   selectOtherImageButton: {
-    flexDirection: 'row',
+    // 이미지 영역 우하단 오버레이 원형 버튼 (HIG 44pt 터치 타깃)
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    width: 44,
+    height: 44,
+    borderRadius: Radius.pill,
+    backgroundColor: Color.surfaceMuted,
     alignItems: 'center',
-    gap: 4,
-    marginTop: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: Color.inputBg,
-    borderRadius: Radius.modal,
-  },
-  selectOtherImageText: {
-    fontSize: 12,
-    color: Color.textTertiary,
-    lineHeight: 14,
-  },
-  contentContainer: {
-    flexDirection: 'column',
-    gap: 14,
+    justifyContent: 'center',
   },
   infoSection: {
     flexDirection: 'row',
@@ -141,56 +123,31 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
   },
-  companyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
   companyText: {
     fontSize: 13,
     color: Color.textPrimary,
-  },
-  categoryChip: {
-    backgroundColor: Color.background,
-    borderWidth: 1,
-    borderColor: Color.chipBorder,
-    borderRadius: Radius.chip,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  categoryChipText: {
-    fontSize: 11,
-    color: Color.textSecondary,
   },
   nameText: {
     fontSize: 20,
     color: Color.textPrimary,
   },
-  colorText: {
-    fontSize: 16,
-    color: Color.textPrimary,
+  metaText: {
+    fontSize: 13,
+    color: Color.textSecondary,
+    marginTop: 4,
   },
   weightContainer: {
     flexDirection: 'column',
     justifyContent: 'center',
+    alignItems: 'flex-end',
+  },
+  weightCaption: {
+    fontSize: 11,
+    color: Color.textSecondary,
+    marginBottom: 2,
   },
   weightText: {
     fontSize: 16,
-    color: Color.textPrimary,
-  },
-  editButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 20,
-    borderRadius: Radius.card,
-    width: '100%',
-    // HIG 최소 터치 타깃 44pt
-    minHeight: 44,
-  },
-  editButtonText: {
-    fontSize: 14,
     color: Color.textPrimary,
   },
 });
