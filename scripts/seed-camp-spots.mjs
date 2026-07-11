@@ -145,6 +145,12 @@ const fetchGoCampingSpots = async () => {
   const now = new Date().toISOString();
   const spots = [];
   let skipped = 0;
+  let filteredOut = 0;
+
+  // v1 마커 상한(CampSite.md §8 수백 건 이내)을 지키기 위한 필터:
+  // 일반야영장 × 공공 관리주체(국립/공립/지자체/국립공원/자연휴양림)만 적재.
+  // 민간 글램핑·카라반은 백패킹 정체성과 거리가 있어 제외.
+  const PUBLIC_DIVISIONS = ['국립', '공립', '지자체', '자연휴양림'];
 
   for (const item of items) {
     const latitude = Number(item.mapY);
@@ -158,6 +164,17 @@ const fetchGoCampingSpots = async () => {
       (latitude === 0 && longitude === 0)
     ) {
       skipped += 1;
+      continue;
+    }
+
+    const induty = String(item.induty || '');
+    const division = String(item.facltDivNm || '');
+
+    if (
+      !induty.includes('일반야영장') ||
+      !PUBLIC_DIVISIONS.some(d => division.includes(d))
+    ) {
+      filteredOut += 1;
       continue;
     }
 
@@ -180,6 +197,7 @@ const fetchGoCampingSpots = async () => {
   }
 
   console.log(`  좌표/식별자 누락으로 스킵: ${skipped}개`);
+  console.log(`  필터 제외(민간/글램핑·카라반 등): ${filteredOut}개`);
   console.log(`  매핑된 고캠핑 박지: ${spots.length}개`);
 
   return spots;
