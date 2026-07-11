@@ -1,6 +1,7 @@
 import { FC, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -11,7 +12,10 @@ import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { observer } from 'mobx-react-lite';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
@@ -36,6 +40,10 @@ const KOREA_REGION: Region = {
 
 // 최초 진입 1회 규제 고지(CS-4) 표시 여부 저장 키.
 const NOTICE_STORAGE_KEY = 'campSiteNoticeShown';
+
+// iOS 네이티브 탭바(리퀴드 글래스)는 풀블리드 지도 위에 떠 있으므로
+// 하단 플로팅 요소는 탭바 높이만큼 띄운다. Android JS 탭바는 레이아웃 공간을 차지해 불필요.
+const TAB_BAR_HEIGHT = 49;
 
 // 유형별 마커 색 — 디자인 토큰 외 시맨틱 리터럴 허용:
 // 야영장=검정, 대피소=회색, 노지=주황(현지 규제 주의).
@@ -75,6 +83,11 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
   const router = useRouter();
   const mapRef = useRef<MapView>(null);
   const [locationGranted, setLocationGranted] = useState(false);
+  const insets = useSafeAreaInsets();
+
+  // 하단 플로팅 요소(현재 위치 버튼·요약 카드)가 iOS 플로팅 탭바에 가리지 않게 하는 여유.
+  const bottomClearance =
+    Platform.OS === 'ios' ? insets.bottom + TAB_BAR_HEIGHT : 0;
 
   // 지도 최초 진입 시 위치 권한 요청 → 허용 시 현재 위치로 카메라 이동(CS-1).
   useEffect(() => {
@@ -239,7 +252,10 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
       {/* 현재 위치 버튼 — 권한 허용 시에만 노출 */}
       {locationGranted && (
         <View
-          style={[styles.locateWrap, selectedSpot && styles.locateWrapRaised]}
+          style={[
+            styles.locateWrap,
+            { bottom: bottomClearance + (selectedSpot ? 190 : 24) },
+          ]}
           pointerEvents='box-none'
         >
           <TouchableOpacity
@@ -257,6 +273,7 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
       {selectedSpot && (
         <CampSiteSummaryCardView
           spot={selectedSpot}
+          bottomInset={bottomClearance}
           onPress={() => router.push(`/camp-site/${selectedSpot.id}`)}
         />
       )}
@@ -330,15 +347,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // bottom은 탭바 여유(bottomClearance) + 카드 유무에 따라 렌더에서 동적으로 지정한다.
   locateWrap: {
     position: 'absolute',
     right: 16,
-    bottom: 40,
     alignItems: 'flex-end',
-  },
-  // 요약 카드가 떠 있을 때 버튼을 카드 위로 올린다.
-  locateWrapRaised: {
-    bottom: 190,
   },
   locateButton: {
     width: 48,
