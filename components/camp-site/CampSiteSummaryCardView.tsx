@@ -1,7 +1,6 @@
 import { ComponentProps, FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import CampSiteFacility from '@/model/camp-site/CampSiteFacility';
@@ -10,6 +9,8 @@ import { getCampSiteTypeLabel } from '@/model/camp-site/CampSiteLabels';
 
 interface Props {
   spot: CampSpot;
+  // 하단 여유(탭바+safe area) — 풀블리드 지도 위 플로팅이라 부모(MapView)가 계산해 내려준다.
+  bottomInset: number;
   onPress: () => void;
 }
 
@@ -27,9 +28,9 @@ const FACILITY_META: Record<
 };
 
 // 마커 탭 시 하단에 뜨는 박지 요약 카드(CS-2). 탭하면 상세로 이동한다.
-const CampSiteSummaryCardView: FC<Props> = ({ spot, onPress }) => {
+const CampSiteSummaryCardView: FC<Props> = ({ spot, bottomInset, onPress }) => {
   return (
-    <SafeAreaView edges={['bottom']} style={styles.wrap} pointerEvents='box-none'>
+    <View style={[styles.wrap, { bottom: bottomInset }]} pointerEvents='box-none'>
       <TouchableOpacity
         style={styles.card}
         activeOpacity={0.9}
@@ -95,14 +96,14 @@ const CampSiteSummaryCardView: FC<Props> = ({ spot, onPress }) => {
           />
         </View>
       </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  // bottom은 부모가 내려주는 bottomInset으로 렌더에서 지정한다.
   wrap: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
   },
