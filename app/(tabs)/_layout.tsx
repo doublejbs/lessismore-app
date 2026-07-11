@@ -26,6 +26,10 @@ const NativeTabLayout = () => {
         <Icon sf='magnifyingglass' drawable='ic_menu_search' />
         <Label>탐색</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name='map'>
+        <Icon sf='map.fill' drawable='ic_menu_mapmode' />
+        <Label>지도</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name='bag'>
         <Icon sf='figure.hiking' drawable='ic_menu_compass' />
         <Label>배낭</Label>
@@ -70,6 +74,17 @@ const JsTabLayout = () => {
           tabBarIcon: ({ color }) => (
             <IconSymbol size={24} name='magnifyingglass' color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name='map'
+        options={{
+          title: '지도',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={26} name='map.fill' color={color} />
+          ),
+          // 웹은 react-native-maps 미지원이라 탭바에서 숨긴다(CS 플랫폼 분기).
+          ...(Platform.OS === 'web' ? { href: null } : {}),
         }}
       />
       <Tabs.Screen

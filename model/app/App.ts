@@ -8,6 +8,7 @@ import AlertManager from '../alert/AlertManager';
 import ToastManager from '../toast/ToastManager';
 import LogInAlertManager from '../login/LogInAlertManager';
 import ReplyStore from '../store/ReplyStore';
+import CampSpotStore from '../store/CampSpotStore';
 import AnalyticsManager from '../analytics/AnalyticsManager';
 import NotificationManager from '../notification/NotificationManager';
 
@@ -21,6 +22,7 @@ class App {
   private logInAlertManager: LogInAlertManager | null = null;
   private toastManager: ToastManager | null = null;
   private replyStore: ReplyStore | null = null;
+  private campSpotStore: CampSpotStore | null = null;
   private analyticsManager: AnalyticsManager | null = null;
   private notificationManager: NotificationManager | null = null;
   private initialized = false;
@@ -39,6 +41,7 @@ class App {
     this.toastManager = ToastManager.new();
     this.logInAlertManager = LogInAlertManager.new(this.firebase);
     this.replyStore = new ReplyStore(this.firebase);
+    this.campSpotStore = new CampSpotStore(this.firebase);
     this.analyticsManager = AnalyticsManager.new();
     this.notificationManager = NotificationManager.new();
     this.setInitialized(true);
@@ -74,6 +77,10 @@ class App {
 
   public getReplyStore() {
     return this.replyStore;
+  }
+
+  public getCampSpotStore() {
+    return this.campSpotStore;
   }
 
   public getSearchStore() {

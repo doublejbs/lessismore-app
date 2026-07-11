@@ -121,6 +121,13 @@
 | `click_withdraw` | 회원 탈퇴 확정 (AU-5) | — |
 | `click_info_contact` | 정보 탭 서비스 문의 링크 (AU-4, 카카오 채널) | — |
 
+**박지 지도** ([CampSite.md](CampSite.md))
+
+| 이벤트 | 트리거 | 파라미터 |
+| --- | --- | --- |
+| `click_camp_site` | 박지 상세 진입 (CS-3) | — |
+| `click_camp_site_directions` | 박지 상세 `길찾기` 버튼 (CS-3) | — |
+
 - 이벤트 이름은 snake_case, `click_` 접두(표준 `search` 제외), 40자 이내 (GA4 제한).
 - 파라미터 값은 식별자가 아닌 열거형 문자열/불리언만 쓴다. `search_term`은 사용자 입력이지만 검색어 자체가 지표 대상이므로 허용 (개인정보 입력란 아님).
 

@@ -1,0 +1,122 @@
+[
+  {
+    "slug": "seonjaeryeong",
+    "name": "선자령",
+    "type": "wild",
+    "location": { "latitude": 37.6866, "longitude": 128.7561 },
+    "region": "강원",
+    "description": "대관령 능선의 초지 위에서 풍력발전기와 동해 조망을 즐기는 겨울 백패킹 성지. 바람이 강해 방풍 대비가 필수인 곳이다.",
+    "facilities": [],
+    "accessInfo": "대관령 국사성황사 주차장에서 능선까지 도보 약 1시간.",
+    "warnings": "능선은 강풍과 급격한 기온 저하가 잦다. 겨울철 저체온증에 유의하고 지정된 야영 가능 구역을 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "guleopdo-gaemeori",
+    "name": "굴업도 개머리언덕",
+    "type": "wild",
+    "location": { "latitude": 37.1912, "longitude": 125.9954 },
+    "region": "인천",
+    "description": "서해 굴업도 남서쪽의 넓은 초원 언덕으로, 붉은 노을과 별밤으로 이름난 섬 백패킹의 대표지다.",
+    "facilities": [],
+    "accessInfo": "인천 연안여객터미널에서 배편으로 굴업도 선착장 도착 후 도보 약 40분.",
+    "warnings": "사유지·생태 보전 지역이 포함되어 취사·야영이 제한될 수 있습니다. 흔적 남기지 않기를 지키고 현지 규정을 반드시 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "mindungsan",
+    "name": "민둥산",
+    "type": "wild",
+    "location": { "latitude": 37.2402, "longitude": 128.7205 },
+    "region": "강원",
+    "description": "정선의 억새 능선으로 가을이면 은빛 억새밭이 정상 일대를 뒤덮는다. 완만한 정상부에서 조망 야영을 즐기는 곳이다.",
+    "facilities": [],
+    "accessInfo": "증산초등학교 들머리에서 정상까지 도보 약 1시간 30분.",
+    "warnings": "노지 야영은 지역에 따라 금지될 수 있습니다. 억새 보호를 위한 통제 구역과 화기 사용 제한을 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "yeoninsan",
+    "name": "연인산",
+    "type": "wild",
+    "location": { "latitude": 37.8703, "longitude": 127.3722 },
+    "region": "경기",
+    "description": "가평의 완만한 능선과 넓은 초지가 있어 수도권 근교 백패킹지로 꾸준히 찾는 산이다.",
+    "facilities": [],
+    "accessInfo": "백둔리 들머리에서 정상 능선까지 도보 약 2시간.",
+    "warnings": "노지 야영은 지역에 따라 금지될 수 있습니다. 도립공원 규정과 취사 제한을 이용 전 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "somuuido",
+    "name": "소무의도",
+    "type": "wild",
+    "location": { "latitude": 37.3758, "longitude": 126.4342 },
+    "region": "인천",
+    "description": "무의도와 인도교로 이어진 작은 섬으로, 둘레길과 해변에서 일몰을 보며 가볍게 즐기는 섬 백패킹지다.",
+    "facilities": ["toilet"],
+    "accessInfo": "무의도 광명항에서 소무의인도교 도보 이동 후 둘레길 진입.",
+    "warnings": "노지 야영은 지역에 따라 금지될 수 있습니다. 해변·마을 인근 취사 및 야영 제한을 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "yukbaengmajigi",
+    "name": "청옥산 육백마지기",
+    "type": "wild",
+    "location": { "latitude": 37.3517, "longitude": 128.5822 },
+    "region": "강원",
+    "description": "평창 청옥산 정상부의 드넓은 고원 평지로, 풍력발전기와 야생화 밭을 배경으로 한 대표적인 차박·백패킹 명소다.",
+    "facilities": ["toilet", "deck"],
+    "accessInfo": "미탄면 임도를 따라 정상 부근까지 차량 접근 후 도보 이동.",
+    "warnings": "노지 야영은 지역에 따라 금지될 수 있습니다. 야생화 보호를 위한 출입·야영 통제 구역을 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "oseosan",
+    "name": "오서산",
+    "type": "wild",
+    "location": { "latitude": 36.3508, "longitude": 126.6497 },
+    "region": "충남",
+    "description": "보령·홍성 경계의 억새 능선으로 서해 조망이 트여 있어 서해안 백패킹지로 알려진 산이다.",
+    "facilities": [],
+    "accessInfo": "성연주차장 또는 정암사 들머리에서 정상까지 도보 약 1시간 30분.",
+    "warnings": "노지 야영은 지역에 따라 금지될 수 있습니다. 산불 조심 기간 입산 통제와 취사 제한을 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gungmangbong",
+    "name": "국망봉",
+    "type": "wild",
+    "location": { "latitude": 37.9411, "longitude": 127.4247 },
+    "region": "경기",
+    "description": "포천·가평 경계의 고봉으로 능선 조망이 좋아 경기 북부 백패킹지로 찾는 곳이다.",
+    "facilities": [],
+    "accessInfo": "생창리 들머리에서 정상 능선까지 도보 약 2시간 30분.",
+    "warnings": "노지 야영은 지역에 따라 금지될 수 있습니다. 겨울철 강풍·적설과 산불 조심 기간 입산 통제를 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jirisan-seseok-shelter",
+    "name": "지리산 세석대피소",
+    "type": "shelter",
+    "location": { "latitude": 35.3211, "longitude": 127.7108 },
+    "region": "경남",
+    "description": "지리산 주능선 세석평전에 자리한 국립공원 대피소로, 종주 산행의 주요 숙영지다. 예약제로 운영된다.",
+    "facilities": ["toilet", "water", "store"],
+    "accessInfo": "거림 또는 백무동 들머리에서 도보 약 4~5시간.",
+    "warnings": "국립공원 대피소는 사전 예약이 필요하며 지정 구역 외 야영은 금지됩니다. 운영 현황을 예약 시스템에서 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "seoraksan-socheong-shelter",
+    "name": "설악산 소청대피소",
+    "type": "shelter",
+    "location": { "latitude": 38.1136, "longitude": 128.4589 },
+    "region": "강원",
+    "description": "설악산 소청봉 아래에 위치한 국립공원 대피소로, 대청봉·공룡능선 산행의 거점이 되는 숙영지다. 예약제로 운영된다.",
+    "facilities": ["toilet", "water", "store"],
+    "accessInfo": "오색 또는 백담사 방면에서 도보 약 5~6시간.",
+    "warnings": "국립공원 대피소는 사전 예약이 필요하며 지정 구역 외 야영은 금지됩니다. 운영 현황을 예약 시스템에서 확인하세요.",
+    "needsVerification": true
+  }
+]
