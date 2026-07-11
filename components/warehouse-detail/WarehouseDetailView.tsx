@@ -89,6 +89,8 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
             <TouchableOpacity
               onPress={handlePressClose}
               style={styles.backButton}
+              accessibilityLabel='뒤로 가기'
+              accessibilityRole='button'
             >
               <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
             </TouchableOpacity>
@@ -100,13 +102,14 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
               onSelectOtherImage={handleSelectOtherImage}
               onEdit={handlePressEdit}
             />
-            <WarehouseDetailPurchaseView warehouseDetail={warehouseDetail} />
             {isAdded && (
+              // 보유(관리) 모드: 내 배낭 기록을 최저가 링크보다 위로 (GD-5)
               <WarehouseDetailBagRecordView
                 gear={gear}
                 warehouseDetail={warehouseDetail}
               />
             )}
+            <WarehouseDetailPurchaseView warehouseDetail={warehouseDetail} />
             <WarehouseDetailReviewSectionView
               warehouseDetail={warehouseDetail}
             />
@@ -172,7 +175,13 @@ const styles = StyleSheet.create({
     backgroundColor: Color.background,
   },
   backButton: {
-    // 뒤로가기 버튼 스타일
+    // HIG 최소 터치 타깃 44×44pt, 아이콘 중앙 정렬 (헤더 좌측 정렬 유지)
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    // 터치 영역 확대로 밀린 아이콘 시각 위치를 콘텐츠 좌측 정렬선(20px)에 복원
+    marginLeft: -10,
   },
   content: {
     flexDirection: 'column',

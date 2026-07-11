@@ -6,6 +6,8 @@ import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '../PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
+import GearFilter from '@/model/gear/GearFilter';
+import { getGearFilterName } from '@/model/gear/GearFilterName';
 
 interface Props {
   gear: Gear;
@@ -26,6 +28,8 @@ const WarehouseDetailInformationView: FC<Props> = ({
   const weight = gear.getWeight();
   const color = gear.getColor();
   const isAdded = gear.isAdded();
+  const category = gear.getCategory();
+  const categoryName = category ? getGearFilterName(category as GearFilter) : '';
 
   return (
     <View style={styles.container}>
@@ -52,7 +56,20 @@ const WarehouseDetailInformationView: FC<Props> = ({
       <View style={styles.contentContainer}>
         <View style={styles.infoSection}>
           <View style={styles.productInfo}>
-            <PretendardText style={styles.companyText}>{company}</PretendardText>
+            <View style={styles.companyRow}>
+              <PretendardText style={styles.companyText}>{company}</PretendardText>
+              {categoryName ? (
+                // 탭 불가 정적 카테고리 라벨 (GD-1)
+                <View style={styles.categoryChip}>
+                  <PretendardText
+                    weight='medium'
+                    style={styles.categoryChipText}
+                  >
+                    {categoryName}
+                  </PretendardText>
+                </View>
+              ) : null}
+            </View>
             <PretendardText
               weight='bold'
               style={styles.nameText}
@@ -124,9 +141,26 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
   },
+  companyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   companyText: {
     fontSize: 13,
     color: Color.textPrimary,
+  },
+  categoryChip: {
+    backgroundColor: Color.background,
+    borderWidth: 1,
+    borderColor: Color.chipBorder,
+    borderRadius: Radius.chip,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  categoryChipText: {
+    fontSize: 11,
+    color: Color.textSecondary,
   },
   nameText: {
     fontSize: 20,
@@ -152,6 +186,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: Radius.card,
     width: '100%',
+    // HIG 최소 터치 타깃 44pt
+    minHeight: 44,
   },
   editButtonText: {
     fontSize: 14,
