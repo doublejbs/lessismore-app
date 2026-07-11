@@ -221,6 +221,27 @@
 
 필드샷(여행 사진 공유 이미지) 기능이 기획 단계에서 폐기되어 미구현·미사용 (2026-07-11). 번호는 재사용하지 않는다.
 
+### DM-17 박지 (`camp-spot/{spotId}`) `[기획]`
+
+박지 지도([CampSite.md](CampSite.md))의 박지 카탈로그. 관리 스크립트(`scripts/seed-camp-spots.mjs`)로만 적재하고 클라이언트는 읽기 전용.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `name` | string | 박지명 |
+| `type` | string | `campground`(야영장) / `shelter`(대피소) / `wild`(노지) — `CampSiteType` enum |
+| `location` | map | `{ latitude: number, longitude: number }` (WGS84) |
+| `region` | string | 시/도 단위 지역명 (예: `강원`) |
+| `description` | string | 자체 작성 설명 |
+| `facilities` | string[] | `toilet` / `water` / `deck` / `store` 중 해당 항목 |
+| `accessInfo` | string? | 접근 정보 자유 텍스트 (예: `주차장에서 도보 40분`) |
+| `warnings` | string? | 주의·규제 문구 (있으면 상세 상단 경고 박스) |
+| `imageUrl` | string? | 대표 사진 URL |
+| `source` | string | `gocamping` / `knps` / `curated` — 출처 표기용 |
+| `status` | string | `active` / `hidden` — 클라이언트는 `active`만 조회 |
+| `updatedAt` | string | ISO 8601 — 적재/갱신 시각 |
+
+문서 id는 `{source}:{외부id}` 또는 slug로 upsert 멱등성을 보장한다. 보안 규칙: 읽기 공개, 쓰기 금지(시드 시에만 임시 허용).
+
 ## 4. Storage 경로 (DM-9)
 
 `model/firebase/FirebaseImageStorage.ts`:
