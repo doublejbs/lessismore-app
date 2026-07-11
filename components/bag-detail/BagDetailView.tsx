@@ -19,6 +19,7 @@ import BagDetailCopyView from '../bag/BagDetailCopyView';
 import ShareImageButtonView from './ShareImageButtonView';
 import { useFocusEffect } from 'expo-router';
 import BagDetailSkeletonView from './BagDetailSkeletonView';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ToastView from '../toast/ToastView';
 import app from '@/model/app/App';
@@ -61,97 +62,99 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     const gears = bagDetail.getGears();
 
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <View style={styles.headerContent}>
-              <TouchableOpacity
-                onPress={handlePressBack}
-                hitSlop={12}
-                accessibilityRole='button'
-                accessibilityLabel='뒤로가기'
-              >
-                <Ionicons
-                  name='chevron-back'
-                  size={24}
-                  color={Color.textPrimary}
-                />
-              </TouchableOpacity>
-              <View style={styles.headerActions}>
-                <BagDetailCopyView
-                  sourceId={bagDetail.getId()}
-                  sourceName={bagDetail.getName()}
-                />
-                <ShareButtonView bagDetail={bagDetail} />
+      <GestureHandlerRootView style={styles.container}>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.container}>
+            <View style={styles.header}>
+              <View style={styles.headerContent}>
+                <TouchableOpacity
+                  onPress={handlePressBack}
+                  hitSlop={12}
+                  accessibilityRole='button'
+                  accessibilityLabel='뒤로가기'
+                >
+                  <Ionicons
+                    name='chevron-back'
+                    size={24}
+                    color={Color.textPrimary}
+                  />
+                </TouchableOpacity>
+                <View style={styles.headerActions}>
+                  <BagDetailCopyView
+                    sourceId={bagDetail.getId()}
+                    sourceName={bagDetail.getName()}
+                  />
+                  <ShareButtonView bagDetail={bagDetail} />
+                </View>
               </View>
             </View>
-          </View>
-          <ScrollView
-            ref={scrollViewRef}
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-            stickyHeaderIndices={[4]}
-            onScroll={handleScroll}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.infoSection}>
-              <BagDetailNameView bagDetail={bagDetail} />
-              <BagDetailDateView bagDetail={bagDetail} />
-            </View>
-            <BagDetailSummaryView bagDetail={bagDetail} />
-            <View style={styles.actionsGrid}>
-              {bagDetail.getTripPhase() === 'after' ? (
-                <>
-                  <BagDetailUselessDescriptionView
-                    bagDetail={bagDetail}
-                    emphasized
-                  />
-                  <BagDetailMemoView bagDetail={bagDetail} />
-                  <BagDetailWeatherView bagDetail={bagDetail} />
-                  <ShareImageButtonView bagDetail={bagDetail} />
-                </>
-              ) : (
-                <>
-                  <BagDetailWeatherView bagDetail={bagDetail} emphasized />
-                  <BagDetailMemoView bagDetail={bagDetail} />
-                  <ShareImageButtonView bagDetail={bagDetail} />
-                  <BagDetailUselessDescriptionView bagDetail={bagDetail} />
-                </>
-              )}
-            </View>
-            <View style={styles.separator} />
-            <View
-              style={styles.gearHeader}
-              onLayout={e =>
-                bagDetail.setGearHeaderHeight(e.nativeEvent.layout.height)
-              }
+            <ScrollView
+              ref={scrollViewRef}
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              stickyHeaderIndices={[4]}
+              onScroll={handleScroll}
+              showsVerticalScrollIndicator={false}
             >
-              <View style={styles.gearHeaderContent}>
-                <PretendardText style={styles.gearCountText} weight='bold'>
-                  총 {gears.length}개의 장비
-                </PretendardText>
+              <View style={styles.infoSection}>
+                <BagDetailNameView bagDetail={bagDetail} />
+                <BagDetailDateView bagDetail={bagDetail} />
               </View>
-              <BagDetailFiltersView bagDetail={bagDetail} />
-            </View>
-            <View style={styles.gearListContainer}>
-              <View style={styles.gearList}>
-                {bagDetail.getGearsByCategory().map(({ category, gears }) => (
-                  <BagDetailCategoryView
-                    key={category.getFilter()}
-                    category={category}
-                    bagDetail={bagDetail}
-                    gears={gears}
-                    onRefReady={handleCategoryRefReady}
-                  />
-                ))}
-                <View style={styles.dummy} />
+              <BagDetailSummaryView bagDetail={bagDetail} />
+              <View style={styles.actionsGrid}>
+                {bagDetail.getTripPhase() === 'after' ? (
+                  <>
+                    <BagDetailUselessDescriptionView
+                      bagDetail={bagDetail}
+                      emphasized
+                    />
+                    <BagDetailMemoView bagDetail={bagDetail} />
+                    <BagDetailWeatherView bagDetail={bagDetail} />
+                    <ShareImageButtonView bagDetail={bagDetail} />
+                  </>
+                ) : (
+                  <>
+                    <BagDetailWeatherView bagDetail={bagDetail} emphasized />
+                    <BagDetailMemoView bagDetail={bagDetail} />
+                    <ShareImageButtonView bagDetail={bagDetail} />
+                    <BagDetailUselessDescriptionView bagDetail={bagDetail} />
+                  </>
+                )}
               </View>
-            </View>
-          </ScrollView>
-          <BagDetailBottomBar bagDetail={bagDetail} />
-        </View>
-        <ToastView toastManager={app.getToastManager()!} bottom={100} />
-      </SafeAreaView>
+              <View style={styles.separator} />
+              <View
+                style={styles.gearHeader}
+                onLayout={e =>
+                  bagDetail.setGearHeaderHeight(e.nativeEvent.layout.height)
+                }
+              >
+                <View style={styles.gearHeaderContent}>
+                  <PretendardText style={styles.gearCountText} weight='bold'>
+                    총 {gears.length}개의 장비
+                  </PretendardText>
+                </View>
+                <BagDetailFiltersView bagDetail={bagDetail} />
+              </View>
+              <View style={styles.gearListContainer}>
+                <View style={styles.gearList}>
+                  {bagDetail.getGearsByCategory().map(({ category, gears }) => (
+                    <BagDetailCategoryView
+                      key={category.getFilter()}
+                      category={category}
+                      bagDetail={bagDetail}
+                      gears={gears}
+                      onRefReady={handleCategoryRefReady}
+                    />
+                  ))}
+                  <View style={styles.dummy} />
+                </View>
+              </View>
+            </ScrollView>
+            <BagDetailBottomBar bagDetail={bagDetail} />
+          </View>
+          <ToastView toastManager={app.getToastManager()!} bottom={100} />
+        </SafeAreaView>
+      </GestureHandlerRootView>
     );
   } else {
     return <BagDetailSkeletonView />;
@@ -225,10 +228,6 @@ const styles = StyleSheet.create({
     width: '100%',
     gap: 24,
     paddingBottom: 80,
-  },
-  loading: {
-    flex: 1,
-    backgroundColor: Color.background,
   },
   dummy: {
     height: 200,

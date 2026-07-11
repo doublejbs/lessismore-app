@@ -1,15 +1,80 @@
-import React, { FC, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal, Image } from 'react-native';
+import React, { FC, useRef } from 'react';
+import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
+import ReanimatedSwipeable, {
+  SwipeableMethods,
+} from 'react-native-gesture-handler/ReanimatedSwipeable';
+import Reanimated, {
+  SharedValue,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 import Gear from '@/model/gear/Gear';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import app from '@/model/app/App';
 import BagDetailImageView from './BagDetailImageView';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
+
+// 삭제 스와이프 액션 배경 — 파괴적 액션 시맨틱 색(DesignTokens 예외, CLAUDE.md 참고).
+const DELETE_RED = '#FF3B30';
+
+// 액션 버튼 1개 너비. 전체 액션 영역 = ACTION_WIDTH * 2.
+const ACTION_WIDTH = 72;
+const ACTIONS_TOTAL_WIDTH = ACTION_WIDTH * 2;
+
+interface RightActionsProps {
+  // ReanimatedSwipeable가 넘겨주는 드래그 변위(열릴수록 음수, 닫히면 0).
+  drag: SharedValue<number>;
+  editLabel: string;
+  deleteLabel: string;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+// 드래그 변위에 맞춰 오른쪽에서 슬라이드 인. 닫힘(drag=0) 상태에선 화면 밖으로 밀려 숨겨져
+// 살짝 드래그했을 때 액션이 통째로 깜빡이는 문제를 방지한다.
+const RightActions: FC<RightActionsProps> = ({
+  drag,
+  editLabel,
+  deleteLabel,
+  onEdit,
+  onDelete,
+}) => {
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: drag.value + ACTIONS_TOTAL_WIDTH }],
+  }));
+
+  return (
+    <Reanimated.View style={[styles.actionsContainer, animatedStyle]}>
+      <TouchableOpacity
+        style={[styles.actionButton, styles.editAction]}
+        onPress={onEdit}
+        activeOpacity={0.7}
+        accessibilityRole='button'
+        accessibilityLabel={editLabel}
+      >
+        <Ionicons name='create-outline' size={20} color={Color.background} />
+        <PretendardText style={styles.actionLabel} weight='medium'>
+          수정
+        </PretendardText>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.actionButton, styles.deleteAction]}
+        onPress={onDelete}
+        activeOpacity={0.7}
+        accessibilityRole='button'
+        accessibilityLabel={deleteLabel}
+      >
+        <Ionicons name='trash' size={20} color={Color.background} />
+        <PretendardText style={styles.actionLabel} weight='medium'>
+          삭제
+        </PretendardText>
+      </TouchableOpacity>
+    </Reanimated.View>
+  );
+};
 
 interface Props {
   gear: Gear;
@@ -19,40 +84,53 @@ interface Props {
 const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
   const imageUrl = gear.getImageUrl();
   const isUseless = bagDetail.isUseless(gear);
-  const [showMenu, setShowMenu] = useState(false);
-  const insets = useSafeAreaInsets();
   const router = useRouter();
+  const swipeableRef = useRef<SwipeableMethods>(null);
 
   const handlePressGear = () => {
     app.getAnalyticsManager()?.logClick('gear_item', { from: 'bag_detail' });
     router.push(`/gear-detail/${gear.getId()}`);
   };
 
-  const handlePressMenu = () => {
-    setShowMenu(true);
-  };
-
-  const handlePressDelete = () => {
-    bagDetail.delete(gear);
-    setShowMenu(false);
-  };
-
   const handlePressEdit = () => {
-    setShowMenu(false);
+    swipeableRef.current?.close();
     bagDetail.goToEditGear(gear);
   };
 
-  const handleCloseModal = () => {
-    setShowMenu(false);
+  const handlePressDelete = () => {
+    swipeableRef.current?.close();
+    bagDetail.delete(gear);
   };
 
+  const renderRightActions = (
+    _progress: SharedValue<number>,
+    drag: SharedValue<number>
+  ) => (
+    <RightActions
+      drag={drag}
+      editLabel={`${gear.getDisplayName()} 수정`}
+      deleteLabel={`${gear.getDisplayName()} 삭제`}
+      onEdit={handlePressEdit}
+      onDelete={handlePressDelete}
+    />
+  );
+
   return (
-    <>
-      <View style={styles.container}>
+    <ReanimatedSwipeable
+      ref={swipeableRef}
+      friction={2}
+      rightThreshold={40}
+      overshootRight={false}
+      renderRightActions={renderRightActions}
+    >
+      {/* 불투명 배경 — 스와이프 전환 중 뒤 액션색이 행 밑으로 비치지 않게 한다(BagItemView와 동일). */}
+      <View style={styles.rowBackground}>
         <TouchableOpacity
           style={styles.gearItemContainer}
           onPress={handlePressGear}
           activeOpacity={0.7}
+          accessibilityRole='button'
+          accessibilityLabel={`${gear.getDisplayName()}, ${gear.getWeight()}g`}
         >
           <View style={styles.imageContainer}>
             <BagDetailImageView imageUrl={imageUrl} shadow={isUseless} />
@@ -96,83 +174,18 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
             </View>
           </View>
         </TouchableOpacity>
-
-        <View style={styles.menuContainer}>
-          <TouchableOpacity style={styles.menuButton} onPress={handlePressMenu}>
-            <Ionicons
-              name='ellipsis-vertical'
-              size={18}
-              color={Color.textPrimary}
-            />
-          </TouchableOpacity>
-        </View>
       </View>
-      <Modal
-        visible={showMenu}
-        transparent={true}
-        onRequestClose={handleCloseModal}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          onPress={handleCloseModal}
-          activeOpacity={1}
-        >
-          <View
-            style={[styles.modalContent, { paddingBottom: 12 + insets.bottom }]}
-          >
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={handlePressEdit}
-              >
-                <Ionicons
-                  name='create-outline'
-                  size={20}
-                  color={Color.textPrimary}
-                />
-                <PretendardText style={styles.actionText}>수정하기</PretendardText>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={handlePressDelete}
-              >
-                <Ionicons
-                  name='trash-outline'
-                  size={20}
-                  color={Color.textPrimary}
-                />
-                <PretendardText style={styles.actionText}>삭제하기</PretendardText>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.closeButtonContainer}>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={handleCloseModal}
-              >
-                <PretendardText style={styles.closeButtonText} weight='medium'>
-                  닫기
-                </PretendardText>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-    </>
+    </ReanimatedSwipeable>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    width: '100%',
-    gap: 6,
-    color: Color.textPrimary,
+  rowBackground: {
+    backgroundColor: Color.background,
   },
   gearItemContainer: {
     flexDirection: 'row',
-    flex: 1,
+    width: '100%',
     gap: 6,
   },
   imageContainer: {
@@ -233,56 +246,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Color.textPrimary,
   },
-  menuContainer: {
-    minWidth: 32,
-    justifyContent: 'center',
-  },
-  menuButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 8,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: Color.overlay,
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: Color.background,
-    borderTopLeftRadius: Radius.modal,
-    borderTopRightRadius: Radius.modal,
-    paddingTop: 20,
-    paddingBottom: 20,
-    gap: 16,
-  },
-  modalActions: {
-    paddingHorizontal: 12,
-    gap: 8,
+  actionsContainer: {
+    width: ACTIONS_TOTAL_WIDTH,
+    flexDirection: 'row',
+    alignItems: 'stretch',
   },
   actionButton: {
-    flexDirection: 'row',
+    width: ACTION_WIDTH,
     alignItems: 'center',
-    padding: 12,
-    paddingHorizontal: 18,
-    gap: 10,
+    justifyContent: 'center',
+    gap: 4,
   },
-  actionText: {
-    fontSize: 16,
-    color: Color.textPrimary,
-  },
-  closeButtonContainer: {
-    paddingHorizontal: 20,
-  },
-  closeButton: {
-    width: '100%',
+  editAction: {
     backgroundColor: Color.chipActiveBg,
-    padding: 18,
-    borderRadius: Radius.card,
-    alignItems: 'center',
   },
-  closeButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+  deleteAction: {
+    backgroundColor: DELETE_RED,
+  },
+  actionLabel: {
+    fontSize: 12,
+    color: Color.background,
   },
 });
 
