@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { observer } from 'mobx-react-lite';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
@@ -94,76 +95,81 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
   };
 
   return (
-    <Layout>
-      <View style={styles.headerContainer}>
-        {isSearching && !isEmpty ? (
-          <View style={styles.searchRow}>
-            <View style={styles.searchBox}>
-              <Ionicons name='search' size={18} color={Color.textSecondary} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder='장비 검색'
-                placeholderTextColor={Color.textSecondary}
-                value={warehouse.getQuery()}
-                onChangeText={value => warehouse.setQuery(value)}
-                autoCorrect={false}
-                returnKeyType='search'
-                autoFocus
+    <GestureHandlerRootView style={styles.root}>
+      <Layout>
+        <View style={styles.headerContainer}>
+          {isSearching && !isEmpty ? (
+            <View style={styles.searchRow}>
+              <View style={styles.searchBox}>
+                <Ionicons name='search' size={18} color={Color.textSecondary} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder='장비 검색'
+                  placeholderTextColor={Color.textSecondary}
+                  value={warehouse.getQuery()}
+                  onChangeText={value => warehouse.setQuery(value)}
+                  autoCorrect={false}
+                  returnKeyType='search'
+                  autoFocus
+                />
+                {warehouse.getQuery().length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => warehouse.setQuery('')}
+                    hitSlop={8}
+                    accessibilityRole='button'
+                    accessibilityLabel='검색어 지우기'
+                  >
+                    <Ionicons
+                      name='close-circle'
+                      size={18}
+                      color={Color.textSecondary}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+              <TouchableOpacity
+                onPress={handleCloseSearch}
+                style={styles.cancelButton}
+                hitSlop={8}
+                accessibilityRole='button'
+                accessibilityLabel='검색 닫기'
+              >
+                <PretendardText style={styles.cancelText}>취소</PretendardText>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.logoRow}>
+              <Image
+                source={require('../../assets/images/logo.png')}
+                style={styles.logo}
+                resizeMode='contain'
               />
-              {warehouse.getQuery().length > 0 && (
+              {!isEmpty && (
                 <TouchableOpacity
-                  onPress={() => warehouse.setQuery('')}
+                  onPress={handleOpenSearch}
+                  style={styles.searchButton}
                   hitSlop={8}
                   accessibilityRole='button'
-                  accessibilityLabel='검색어 지우기'
+                  accessibilityLabel='검색'
                 >
-                  <Ionicons
-                    name='close-circle'
-                    size={18}
-                    color={Color.textSecondary}
-                  />
+                  <Ionicons name='search' size={22} color={Color.textPrimary} />
                 </TouchableOpacity>
               )}
             </View>
-            <TouchableOpacity
-              onPress={handleCloseSearch}
-              style={styles.cancelButton}
-              hitSlop={8}
-              accessibilityRole='button'
-              accessibilityLabel='검색 닫기'
-            >
-              <PretendardText style={styles.cancelText}>취소</PretendardText>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.logoRow}>
-            <Image
-              source={require('../../assets/images/logo.png')}
-              style={styles.logo}
-              resizeMode='contain'
-            />
-            {!isEmpty && (
-              <TouchableOpacity
-                onPress={handleOpenSearch}
-                style={styles.searchButton}
-                hitSlop={8}
-                accessibilityRole='button'
-                accessibilityLabel='검색'
-              >
-                <Ionicons name='search' size={22} color={Color.textPrimary} />
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-        {!isEmpty && <WarehouseFiltersView warehouse={warehouse} />}
-      </View>
-      <View style={styles.contentContainer}>{renderGears()}</View>
-      <AddButtonView />
-    </Layout>
+          )}
+          {!isEmpty && <WarehouseFiltersView warehouse={warehouse} />}
+        </View>
+        <View style={styles.contentContainer}>{renderGears()}</View>
+        <AddButtonView />
+      </Layout>
+    </GestureHandlerRootView>
   );
 };
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   headerContainer: {
     flexDirection: 'column',
     gap: 8,
