@@ -53,6 +53,9 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
+
+# Data migration backups
+scripts/backup-camp-spot-*.json
 # hot-updater
 .hot-updater/output
 .hot-updater/log
