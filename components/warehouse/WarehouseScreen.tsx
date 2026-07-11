@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect } from 'react';
+import React, { FC, useCallback, useEffect, useState } from 'react';
 import {
   View,
   ScrollView,
@@ -29,6 +29,16 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
   const gears = warehouse.getGears();
   const isEmpty = warehouse.isEmpty();
   const isLoading = warehouse.isLoading();
+  const [isSearching, setIsSearching] = useState(false);
+
+  const handleOpenSearch = () => {
+    setIsSearching(true);
+  };
+
+  const handleCloseSearch = () => {
+    setIsSearching(false);
+    warehouse.setQuery('');
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -86,15 +96,8 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
   return (
     <Layout>
       <View style={styles.headerContainer}>
-        <View style={{ alignItems: 'center', marginBottom: 8 }}>
-          <Image
-            source={require('../../assets/images/logo.png')}
-            style={{ width: '100%', height: 32 }}
-            resizeMode='contain'
-          />
-        </View>
-        {!warehouse.isEmpty() && (
-          <>
+        {isSearching && !isEmpty ? (
+          <View style={styles.searchRow}>
             <View style={styles.searchBox}>
               <Ionicons name='search' size={18} color={Color.textSecondary} />
               <TextInput
@@ -105,6 +108,7 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                 onChangeText={value => warehouse.setQuery(value)}
                 autoCorrect={false}
                 returnKeyType='search'
+                autoFocus
               />
               {warehouse.getQuery().length > 0 && (
                 <TouchableOpacity
@@ -121,9 +125,37 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                 </TouchableOpacity>
               )}
             </View>
-            <WarehouseFiltersView warehouse={warehouse} />
-          </>
+            <TouchableOpacity
+              onPress={handleCloseSearch}
+              style={styles.cancelButton}
+              hitSlop={8}
+              accessibilityRole='button'
+              accessibilityLabel='검색 닫기'
+            >
+              <PretendardText style={styles.cancelText}>취소</PretendardText>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.logoRow}>
+            <Image
+              source={require('../../assets/images/logo.png')}
+              style={styles.logo}
+              resizeMode='contain'
+            />
+            {!isEmpty && (
+              <TouchableOpacity
+                onPress={handleOpenSearch}
+                style={styles.searchButton}
+                hitSlop={8}
+                accessibilityRole='button'
+                accessibilityLabel='검색'
+              >
+                <Ionicons name='search' size={22} color={Color.textPrimary} />
+              </TouchableOpacity>
+            )}
+          </View>
         )}
+        {!isEmpty && <WarehouseFiltersView warehouse={warehouse} />}
       </View>
       <View style={styles.contentContainer}>{renderGears()}</View>
       <AddButtonView />
@@ -137,7 +169,47 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 8,
   },
+  logoRow: {
+    // 검색 모드(searchRow)와 높이를 44로 맞춰 토글 시 레이아웃 점프를 없앤다.
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  logo: {
+    width: '100%',
+    height: 32,
+  },
+  searchButton: {
+    // 로고는 가운데 정렬을 유지하고, 검색 버튼만 우측 여백에 겹쳐 올린다(글자 영역과 겹치지 않음).
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchRow: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  cancelButton: {
+    minWidth: 44,
+    minHeight: 44,
+    paddingHorizontal: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cancelText: {
+    fontSize: 15,
+    color: Color.textPrimary,
+  },
   searchBox: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
