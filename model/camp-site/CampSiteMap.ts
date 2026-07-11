@@ -16,7 +16,11 @@ class CampSiteMap {
   // null = 전체(필터 없음).
   private selectedType: CampSiteType | null = null;
   private selectedSpot: CampSpot | null = null;
+  private query = '';
   private initialized = false;
+
+  // 검색 결과 상한(CS-6).
+  private static readonly SEARCH_RESULT_LIMIT = 20;
 
   private constructor(private readonly dispatcher: CampSiteMapDispatcher) {
     makeAutoObservable(this);
@@ -60,6 +64,37 @@ class CampSiteMap {
     }
 
     return this.spots.filter(spot => spot.type === this.selectedType);
+  }
+
+  // 검색어로 전체 spots를 필터한 결과(CS-6). 유형 필터(CS-2)와 독립.
+  // trim이 비면 빈 배열, 아니면 name/region 부분일치(대소문자 무시) 최대 20건.
+  public getSearchResults(): CampSpot[] {
+    const keyword = this.query.trim().toLowerCase();
+
+    if (keyword.length === 0) {
+      return [];
+    }
+
+    const matched = this.spots.filter(spot => {
+      const name = spot.name.toLowerCase();
+      const region = spot.region.toLowerCase();
+
+      return name.includes(keyword) || region.includes(keyword);
+    });
+
+    return matched.slice(0, CampSiteMap.SEARCH_RESULT_LIMIT);
+  }
+
+  public getQuery(): string {
+    return this.query;
+  }
+
+  public setQuery(value: string) {
+    this.query = value;
+  }
+
+  public clearQuery() {
+    this.query = '';
   }
 
   public selectType(type: CampSiteType | null) {
