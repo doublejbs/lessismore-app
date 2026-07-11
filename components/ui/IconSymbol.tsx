@@ -20,6 +20,7 @@ const MAPPING = {
   'house.fill': 'home',
   magnifyingglass: 'search',
   'figure.hiking': 'hiking',
+  'map.fill': 'map',
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
