@@ -79,7 +79,7 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (react-native-maps
 - 읽기: `/camp-spot`(DM-17) — `where('status','==','active')` 전량. 날씨는 WT 파이프라인 재사용(쓰기 없음).
 - 쓰기: 클라이언트는 CS-5의 `bag.location`(DM-15)만 쓴다. `/camp-spot` 적재는 관리 스크립트 전용.
 - **적재 파이프라인** (`scripts/seed-camp-spots.mjs`, 수동 실행):
-  1. **고캠핑 API**(한국관광공사, 공공데이터포털 무료 키) 스냅샷 → `campground` 유형으로 변환. 국립공원 대피소는 별도 소스(공공 API 또는 수동 표) → `shelter`.
+  1. **고캠핑 API**(한국관광공사, 공공데이터포털 무료 키) 스냅샷 → `campground` 유형으로 변환. **필터: 일반야영장 × 공공 관리주체(국립/공립/지자체/국립공원/자연휴양림)만 적재**(≈250곳) — v1 마커 상한(§8) 준수, 민간 글램핑·카라반 제외. 국립공원 대피소는 별도 소스(공공 API 또는 수동 표) → `shelter`.
   2. **큐레이션 시드**: 유명 노지 박지 목록(LLM 리서치 초안 → 수동 검수 필수)을 JSON으로 관리 → `wild` 유형. 좌표는 카카오 지오코딩(WT 재사용) 또는 수동 입력. 설명·주의 문구는 자체 작성(외부 텍스트 복사 금지).
   3. 실행 전 기존 데이터 백업 JSON 저장(`scripts/backup-*` 관례). upsert는 문서 id(`source:{외부id}` 또는 slug) 기준.
 - **보안 규칙(콘솔 관리)**: `/camp-spot` 읽기 공개 + 클라이언트 쓰기 금지. 시드 실행 시에만 임시 허용 후 잠금(gear 마이그레이션 스크립트 관례) — 운영 절차로 기록.
