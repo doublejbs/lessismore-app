@@ -1,13 +1,15 @@
 import { FC, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Keyboard,
   Platform,
   ScrollView,
   StyleSheet,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import MapView, { Marker, Region } from 'react-native-maps';
+import MapView, { MapPressEvent, Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -21,6 +23,7 @@ import { Color, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import CampSiteType from '@/model/camp-site/CampSiteType';
+import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import { getCampSiteTypeLabel } from '@/model/camp-site/CampSiteLabels';
 import LocalStorageManager from '@/model/storage/LocalStorageManager';
 import CategoryChipView from '@/components/browse/CategoryChipView';
@@ -83,6 +86,8 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
   const router = useRouter();
   const mapRef = useRef<MapView>(null);
   const [locationGranted, setLocationGranted] = useState(false);
+  // 검색 인풋 포커스 여부 — 드롭다운은 query가 있고 포커스 상태일 때만 표시(CS-6).
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const insets = useSafeAreaInsets();
 
   // 하단 플로팅 요소(현재 위치 버튼·요약 카드)가 iOS 플로팅 탭바에 가리지 않게 하는 여유.
@@ -168,7 +173,56 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
     }
   };
 
+  // 검색 결과 탭 → 키보드/드롭다운 닫기 + 카메라 이동(줌인) + 요약 카드 오픈(CS-6). 검색어는 유지.
+  const handleSelectResult = (spot: CampSpot) => {
+    Keyboard.dismiss();
+
+    setIsSearchFocused(false);
+
+    campSiteMap.selectSpot(spot);
+
+    mapRef.current?.animateToRegion(
+      {
+        latitude: spot.location.latitude,
+        longitude: spot.location.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      },
+      500
+    );
+  };
+
+  // 마커 탭이 지도 onPress로도 전파되는 경합(iOS) 방어용 플래그.
+  const markerPressedRef = useRef(false);
+
+  const handleMarkerPress = (spot: CampSpot) => {
+    markerPressedRef.current = true;
+    campSiteMap.selectSpot(spot);
+  };
+
+  // 지도 빈 곳 터치 → 요약 카드 닫기 + 키보드 dismiss(드롭다운 blur로 닫힘, CS-6).
+  // 마커 탭 직후 전파된 press는 무시해 카드가 열리자마자 닫히지 않게 한다.
+  const handleMapPress = (event: MapPressEvent) => {
+    if (
+      event.nativeEvent?.action === 'marker-press' ||
+      markerPressedRef.current
+    ) {
+      markerPressedRef.current = false;
+
+      return;
+    }
+
+    campSiteMap.selectSpot(null);
+
+    // Android는 Keyboard.dismiss 후에도 blur가 안 뜰 수 있어 드롭다운 닫힘을 명시한다.
+    setIsSearchFocused(false);
+    Keyboard.dismiss();
+  };
+
   const selectedSpot = campSiteMap.getSelectedSpot();
+  const query = campSiteMap.getQuery();
+  const searchResults = campSiteMap.getSearchResults();
+  const showSearchResults = query.trim().length > 0 && isSearchFocused;
 
   return (
     <View style={styles.container}>
@@ -176,7 +230,7 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
         ref={mapRef}
         style={StyleSheet.absoluteFill}
         initialRegion={KOREA_REGION}
-        onPress={() => campSiteMap.selectSpot(null)}
+        onPress={handleMapPress}
       >
         {campSiteMap.getVisibleSpots().map(spot => (
           <Marker
@@ -187,24 +241,110 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
             }}
             anchor={{ x: 0.5, y: 0.5 }}
             tracksViewChanges={false}
-            onPress={() => campSiteMap.selectSpot(spot)}
+            onPress={() => handleMarkerPress(spot)}
           >
-            <View
-              style={[
-                styles.marker,
-                { backgroundColor: getMarkerColor(spot.type) },
-              ]}
-            />
+            {/* 44pt 히트 영역 안에 20pt 원 — 작은 마커의 탭 인식률 확보 */}
+            <View style={styles.markerHitArea}>
+              <View
+                style={[
+                  styles.marker,
+                  { backgroundColor: getMarkerColor(spot.type) },
+                ]}
+              />
+            </View>
           </Marker>
         ))}
       </MapView>
 
-      {/* 상단 오버레이: 로드 실패 배너 + 유형 필터 칩 행 */}
+      {/* 상단 오버레이: 로드 실패 배너 + 검색 인풋/드롭다운 + 유형 필터 칩 행 */}
       <SafeAreaView
         edges={['top']}
         style={styles.topOverlay}
         pointerEvents='box-none'
       >
+        {/* 박지 검색(CS-6) — 필터 칩 행 위, 지도 위 흰 pill */}
+        <View style={styles.searchWrap}>
+          <View style={styles.searchBox}>
+            <Ionicons name='search' size={18} color={Color.textSecondary} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder='박지 검색'
+              placeholderTextColor={Color.textSecondary}
+              value={query}
+              onChangeText={value => campSiteMap.setQuery(value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
+              autoCorrect={false}
+              returnKeyType='search'
+            />
+            {query.length > 0 && (
+              <TouchableOpacity
+                onPress={() => campSiteMap.clearQuery()}
+                hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+                accessibilityRole='button'
+                accessibilityLabel='검색어 지우기'
+              >
+                <Ionicons
+                  name='close-circle'
+                  size={20}
+                  color={Color.iconMuted}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {showSearchResults && (
+            <View style={styles.dropdown}>
+              <ScrollView
+                style={styles.dropdownScroll}
+                keyboardShouldPersistTaps='handled'
+                showsVerticalScrollIndicator={false}
+              >
+                {searchResults.length === 0 ? (
+                  <View style={styles.dropdownEmpty}>
+                    <PretendardText style={styles.dropdownEmptyText}>
+                      검색 결과가 없어요
+                    </PretendardText>
+                  </View>
+                ) : (
+                  searchResults.map(spot => (
+                    <TouchableOpacity
+                      key={spot.id}
+                      style={styles.resultRow}
+                      onPress={() => handleSelectResult(spot)}
+                      activeOpacity={0.7}
+                      accessibilityRole='button'
+                      accessibilityLabel={`${spot.name} 지도에서 보기`}
+                    >
+                      <PretendardText
+                        style={styles.resultName}
+                        weight='bold'
+                        numberOfLines={1}
+                      >
+                        {spot.name}
+                      </PretendardText>
+                      <View style={styles.resultBadge}>
+                        <PretendardText
+                          style={styles.resultBadgeText}
+                          weight='medium'
+                        >
+                          {getCampSiteTypeLabel(spot.type)}
+                        </PretendardText>
+                      </View>
+                      <PretendardText
+                        style={styles.resultRegion}
+                        numberOfLines={1}
+                      >
+                        {spot.region}
+                      </PretendardText>
+                    </TouchableOpacity>
+                  ))
+                )}
+              </ScrollView>
+            </View>
+          )}
+        </View>
+
         {campSiteMap.hasLoadError() && (
           <View style={styles.errorBanner}>
             <PretendardText
@@ -287,6 +427,12 @@ const styles = StyleSheet.create({
     backgroundColor: Color.background,
   },
   // Android hue 문제 회피용 커스텀 원형 마커(위 getMarkerColor 주석 참고).
+  markerHitArea: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   marker: {
     width: 20,
     height: 20,
@@ -306,6 +452,89 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     paddingHorizontal: 16,
+  },
+  // 검색 인풋 + 드롭다운 묶음(CS-6) — 칩 행과 좌우 여백을 맞춘다.
+  searchWrap: {
+    marginHorizontal: 16,
+    gap: 8,
+  },
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    height: 44,
+    paddingHorizontal: 14,
+    borderRadius: Radius.input,
+    borderWidth: 1,
+    borderColor: Color.borderLight,
+    backgroundColor: Color.background,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: 'Pretendard-Regular',
+    color: Color.textPrimary,
+    padding: 0,
+  },
+  dropdown: {
+    maxHeight: 320,
+    borderRadius: Radius.card,
+    backgroundColor: Color.background,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  dropdownScroll: {
+    flexGrow: 0,
+  },
+  dropdownEmpty: {
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+  },
+  dropdownEmptyText: {
+    fontSize: 14,
+    color: Color.textSecondary,
+  },
+  resultRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minHeight: 44,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: Color.borderLight,
+  },
+  resultName: {
+    flexShrink: 1,
+    fontSize: 15,
+    color: Color.textPrimary,
+  },
+  resultBadge: {
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: Radius.chip,
+    backgroundColor: Color.chipInactiveBg,
+  },
+  resultBadgeText: {
+    fontSize: 12,
+    color: Color.textTertiary,
+  },
+  resultRegion: {
+    flex: 1,
+    fontSize: 13,
+    textAlign: 'right',
+    color: Color.textSecondary,
   },
   errorBanner: {
     flexDirection: 'row',
