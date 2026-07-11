@@ -8,7 +8,6 @@ class Order {
     return new Order(key);
   }
 
-  private showOrderOptions = false;
   private orderOptions: OrderOption[] = [
     {
       name: '이름순',
@@ -53,18 +52,6 @@ class Order {
     }
   }
 
-  public isShowOrderOptions() {
-    return this.showOrderOptions;
-  }
-
-  public toggleOrderOptions() {
-    this.setShowOrderOptions(!this.showOrderOptions);
-  }
-
-  private setShowOrderOptions(showOrderOptions: boolean) {
-    this.showOrderOptions = showOrderOptions;
-  }
-
   public getSelectedOrderName() {
     return this.orderOptions.find(option => option.isSelected())?.getName();
   }
@@ -87,7 +74,6 @@ class Order {
   public setOrderOption(orderOption: OrderOption) {
     this.orderOptions.forEach(option => option.deselect());
     this.orderOptions.find(option => option.equals(orderOption))?.select();
-    this.setShowOrderOptions(false);
     LocalStorageManager.set(this.getStorageKey(), orderOption.getOrder());
   }
 
