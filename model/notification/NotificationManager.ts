@@ -252,7 +252,11 @@ class NotificationManager {
       return;
     }
 
-    if (date.getTime() <= Date.now()) {
+    const time = date.getTime();
+
+    // Invalid Date(NaN)는 비교 연산이 모두 false라 과거 검사를 통과해 버리고,
+    // 네이티브 trigger로 넘어가면 expo-notifications Swift assertion으로 앱이 크래시한다(NT 엣지 케이스).
+    if (!Number.isFinite(time) || time <= Date.now()) {
       return;
     }
 
