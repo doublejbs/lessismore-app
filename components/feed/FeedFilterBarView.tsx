@@ -2,14 +2,21 @@ import { FC, useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import Feed from '@/model/feed/Feed';
-import { toFeedSort, getFeedSortLabel } from '@/model/feed/FeedSort';
+import {
+  FeedSort,
+  FEED_SORT_OPTIONS,
+  toFeedSort,
+  fromFeedSort,
+  getFeedSortLabel,
+} from '@/model/feed/FeedSort';
 import { BROWSE_CATEGORIES } from '@/model/browse/BrowseCategory';
 import { Color, Radius } from '@/constants/DesignTokens';
 import PretendardText from '@/components/PretendardText';
 import CategoryChipView from '@/components/browse/CategoryChipView';
 import FeedFilterSheetView from './FeedFilterSheetView';
-import FeedSortSheetView from './FeedSortSheetView';
+import { setSortSheetContext } from '@/model/sort/SortSheetHandoff';
 import app from '@/model/app/App';
 
 interface Props {
@@ -26,8 +33,8 @@ const BRAND_LABEL = '브랜드';
 // 위계상 카테고리를 주 축(칩 행)으로 노출하고, 보조 축인 브랜드(진입 버튼)·정렬(드롭다운)은
 // 그 아래 컨트롤 행에 둔다. 카테고리는 탭 즉시 적용, 브랜드/정렬은 각각 전용 시트로 진입한다.
 const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
+  const router = useRouter();
   const [brandVisible, setBrandVisible] = useState(false);
-  const [sortVisible, setSortVisible] = useState(false);
 
   const currentCategory = feed.getFilterCategory();
   const currentSort = toFeedSort(feed.getSort());
@@ -59,9 +66,28 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
     setBrandVisible(true);
   };
 
+  // FD-3: 정렬 시트 진입 — 공용 formSheet 라우트로 위임한다.
+  // 옵션·현재값·선택 콜백을 모듈 핸드오프에 넣고 push한다(FeedSortSheetView의 적용 로직 그대로 이관).
   const handleOpenSort = () => {
     app.getAnalyticsManager()?.logClick('feed_sort');
-    setSortVisible(true);
+    setSortSheetContext({
+      options: FEED_SORT_OPTIONS.map(option => ({
+        key: option.value,
+        label: option.label,
+      })),
+      selectedKey: currentSort,
+      onSelect: key => {
+        const value = key as FeedSort;
+
+        app.getAnalyticsManager()?.logClick('feed_filter_apply', {
+          category: feed.getFilterCategory() ?? 'all',
+          brand_count: feed.getFilterBrands().length,
+          sort: getFeedSortLabel(value),
+        });
+        feed.selectSort(fromFeedSort(value));
+      },
+    });
+    router.push('/sort-sheet');
   };
 
   const brandActive = brandCount > 0;
@@ -135,13 +161,6 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
         visible={brandVisible}
         onClose={() => setBrandVisible(false)}
       />
-      {showSort ? (
-        <FeedSortSheetView
-          feed={feed}
-          visible={sortVisible}
-          onClose={() => setSortVisible(false)}
-        />
-      ) : null}
     </View>
   );
 };

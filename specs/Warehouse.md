@@ -64,7 +64,7 @@ app/(tabs)/index.tsx → WarehouseWrapper → WarehouseScreen
 - 옵션은 4개: `이름순`(기본) / `가벼운순` / `무거운순` / `최근 추가순`.
 - 각 옵션은 Firestore `orderBy`에 매핑된다: `name asc` / `weight asc` / `weight desc` / `createDate desc`.
 - 선택 시 즉시 목록을 다시 읽고, `LocalStorageManager`에 `selectedOrderType_{key}`로 저장되어 재실행 후에도 유지된다.
-- 정렬 선택 UI는 **하단 바텀시트**로 표시한다(딤 오버레이는 opacity 페이드, 시트만 아래→위 슬라이드업; 타이틀 `정렬` + 옵션 행, 선택 옵션은 체크·볼드). 옵션 탭 또는 오버레이 탭으로 닫힌다. (구 앵커드 드롭다운은 폐기.)
+- 정렬 선택 UI는 **공용 네이티브 formSheet 라우트 `/sort-sheet`**로 표시한다(타이틀 `정렬` + 옵션 행, 선택 옵션은 체크·볼드; 그래버·드래그 닫기·높이는 OS 처리, `fitToContents`). 옵션 탭 시 즉시 적용 후 닫힘. 피드·탐색과 같은 라우트를 공유한다. (구 앵커드 드롭다운·커스텀 Animated 바텀시트는 폐기.)
 - 정렬 기준 `name`은 캐논컬 값이다(표시 이름과 다를 수 있음) — [DataModel.md](DataModel.md) DM-3.
 
 ### WH-4 장비 상세/수정 진입
