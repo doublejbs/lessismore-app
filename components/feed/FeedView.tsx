@@ -173,7 +173,8 @@ const styles = StyleSheet.create({
   listContent: {
     flexGrow: 1,
     paddingHorizontal: LIST_HORIZONTAL_PADDING,
-    paddingTop: 12,
+    // 필터바 하단 헤어라인이 분리 역할을 하므로 위(검색바↔필터 20)보다 의도적으로 타이트하게.
+    paddingTop: 8,
     paddingBottom: LIST_BOTTOM_PADDING,
   },
   columnWrapper: {
@@ -187,7 +188,8 @@ const styles = StyleSheet.create({
   },
   skeletonContainer: {
     flex: 1,
-    paddingTop: 10,
+    // 로드 완료 상태(listContent)와 동일한 상단 여백으로 전환 시 점프를 없앤다.
+    paddingTop: 8,
     paddingHorizontal: LIST_HORIZONTAL_PADDING,
   },
   footer: {
