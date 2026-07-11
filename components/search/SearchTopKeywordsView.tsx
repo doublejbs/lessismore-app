@@ -272,7 +272,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   categoryScrollView: {
-    maxHeight: 32,
+    // 고정 높이를 주면 칩(minHeight 34 + 테두리)이 잘린다 — 내용 높이에 맞추되 세로로 늘어나지 않게만 제한.
+    flexGrow: 0,
     marginBottom: 12,
   },
   categoryScrollContent: {
