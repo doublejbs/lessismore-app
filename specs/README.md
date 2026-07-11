@@ -26,7 +26,6 @@
 | [Notification.md](Notification.md) | `NT` | 알림 — 로컬 리마인더(여행 D-1/사용기록) + 원격 푸시(수동 공지) |
 | [Feed.md](Feed.md) | `FD` | 장비 피드 — 개인화 둘러보기(탐색 탭) + 카테고리·브랜드 필터 |
 | [Weather.md](Weather.md) | `WT` | 여행지 날씨 — 위치 설정 / 지도 선택 / 기간 예보 |
-| [FieldShot.md](FieldShot.md) | `FS` | 필드샷 — 여행 사진 + 트래킹×팩무게 공유 이미지 `[기획]` |
 
 신규 도메인 스펙은 [Template.md](Template.md)를 복사해서 시작한다.
 
