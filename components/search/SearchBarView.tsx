@@ -3,7 +3,7 @@ import { View, StyleSheet, Pressable } from 'react-native';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import { observer } from 'mobx-react-lite';
 import SearchBarInputView, { SearchBarInputHandle } from './SearchInputView';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
@@ -32,8 +32,8 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
     paddingRight: 20,
     paddingTop: 16,
-    paddingBottom: 16,
-    height: 80,
+    // 필터바까지 리듬 = 이 값 + 필터 paddingTop(8) = 20(Spacing.screenH). height 고정은 Dynamic Type에서 잘려 제거.
+    paddingBottom: Spacing.item,
     backgroundColor: Color.background,
     gap: 4,
   },
