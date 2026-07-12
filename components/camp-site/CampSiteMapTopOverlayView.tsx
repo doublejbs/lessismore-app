@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useRef } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -12,12 +12,14 @@ import { observer } from 'mobx-react-lite';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import CampSiteType from '@/model/camp-site/CampSiteType';
 import CampSiteTag from '@/model/camp-site/CampSiteTag';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
   getCampSiteTagLabel,
+  getCampSiteTypeColor,
   getCampSiteTypeLabel,
 } from '@/model/camp-site/CampSiteLabels';
 import CategoryChipView from '@/components/browse/CategoryChipView';
@@ -28,30 +30,31 @@ interface Props {
   onSelectResult: (spot: CampSpot) => void;
 }
 
-const TYPE_FILTERS: { label: string; value: CampSiteType | null }[] = [
+// 유형 필터(CS-2) — 단일 선택. 칩의 색 도트가 지도 마커 색 범례를 겸한다.
+const TYPE_FILTERS: {
+  label: string;
+  value: CampSiteType | null;
+  dotColor?: string;
+}[] = [
   { label: '전체', value: null },
-  {
-    label: getCampSiteTypeLabel(CampSiteType.Campground),
-    value: CampSiteType.Campground,
-  },
-  {
-    label: getCampSiteTypeLabel(CampSiteType.Shelter),
-    value: CampSiteType.Shelter,
-  },
-  {
-    label: getCampSiteTypeLabel(CampSiteType.Wild),
-    value: CampSiteType.Wild,
-  },
-];
-
-// 태그 필터(CS-2) — 유형 필터와 AND 결합, 단일 선택.
-const TAG_FILTERS: { label: string; value: CampSiteTag | null }[] = [
-  { label: '전체', value: null },
-  ...Object.values(CampSiteTag).map(tag => ({
-    label: getCampSiteTagLabel(tag),
-    value: tag,
+  ...([
+    CampSiteType.Campground,
+    CampSiteType.Shelter,
+    CampSiteType.Wild,
+  ] as const).map(type => ({
+    label: getCampSiteTypeLabel(type),
+    value: type,
+    dotColor: getCampSiteTypeColor(type),
   })),
 ];
+
+// 태그 필터(CS-2) — `#` 접두로 유형과 축을 구분하고, 재탭으로 해제(토글)한다.
+const TAG_FILTERS: { label: string; value: CampSiteTag }[] = Object.values(
+  CampSiteTag
+).map(tag => ({
+  label: `#${getCampSiteTagLabel(tag)}`,
+  value: tag,
+}));
 
 // 지도 상단 오버레이(CS-2/CS-6): 검색 인풋/드롭다운 + 유형 필터 칩 + 로드 실패 배너 + 로딩.
 // 지도 화면에서 분리된 observer라 검색 타이핑·필터 선택이 마커 레이어를 리렌더하지 않는다.
@@ -61,6 +64,69 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
     const searchResults = campSiteMap.getSearchResults();
     const showSearchResults =
       query.trim().length > 0 && campSiteMap.isSearchFocused();
+
+    // 선택 칩 시인성(CS-2): 스크롤로 가려진 칩을 선택해도 보이도록,
+    // 칩별 x 위치를 기록해 두고 선택 시 행을 해당 위치로 스크롤한다.
+    const filterScrollRef = useRef<ScrollView>(null);
+    const chipOffsets = useRef(new Map<string, number>());
+
+    const scrollToChip = (key: string) => {
+      const x = chipOffsets.current.get(key);
+
+      if (x === undefined) {
+        return;
+      }
+
+      filterScrollRef.current?.scrollTo({
+        x: Math.max(0, x - 16),
+        animated: true,
+      });
+    };
+
+    // 결과 수 피드백(CS-2): 필터 변경 결과를 토스트로 알린다.
+    // 전체(무필터)로 돌아올 때는 띄우지 않는다.
+    const showResultToast = () => {
+      const type = campSiteMap.getSelectedType();
+      const tag = campSiteMap.getSelectedTag();
+
+      if (type === null && tag === null) {
+        return;
+      }
+
+      const count = campSiteMap.getVisibleSpots().length;
+
+      if (count === 0) {
+        app.getToastManager()?.show({ message: '조건에 맞는 박지가 없어요' });
+
+        return;
+      }
+
+      const parts = [
+        tag !== null ? `#${getCampSiteTagLabel(tag)}` : '',
+        type !== null ? getCampSiteTypeLabel(type) : '',
+      ].filter(Boolean);
+      const name = parts.length > 0 ? parts.join(' ') : '박지';
+
+      app.getToastManager()?.show({ message: `${name} ${count}곳` });
+    };
+
+    const handlePressType = (value: CampSiteType | null, key: string) => {
+      campSiteMap.selectType(value);
+      showResultToast();
+      scrollToChip(key);
+    };
+
+    // 태그 칩은 재탭으로 해제(토글)한다.
+    const handlePressTag = (value: CampSiteTag, key: string) => {
+      const next = campSiteMap.getSelectedTag() === value ? null : value;
+
+      campSiteMap.selectTag(next);
+      showResultToast();
+
+      if (next !== null) {
+        scrollToChip(key);
+      }
+    };
 
     // 검색 시작 시 요약 카드를 닫아 드롭다운과 카드가 동시에 뜨지 않게 한다.
     const handleSearchFocus = () => {
@@ -189,41 +255,59 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
 
           {/* 검색 결과가 열려 있는 동안 필터 칩은 숨긴다 — 검색은 필터와 독립이라 무의미하고,
               드롭다운에 밀려 지도 한가운데 떠 보이는 문제(디자인 리뷰)를 막는다. */}
+          {/* 유형(색 도트=마커 범례) + 구분선 + 태그(#접두, 토글) 한 행(CS-2) —
+              지도를 가리는 세로 공간을 줄이기 위해 두 축을 한 행에 담는다. */}
           {!showSearchResults && (
-            <>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.filterRow}
-                keyboardShouldPersistTaps='handled'
-              >
-                {TYPE_FILTERS.map(filter => (
-                  <CategoryChipView
-                    key={filter.label}
-                    label={filter.label}
-                    selected={campSiteMap.getSelectedType() === filter.value}
-                    onPress={() => campSiteMap.selectType(filter.value)}
-                  />
-                ))}
-              </ScrollView>
+            <ScrollView
+              ref={filterScrollRef}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterRow}
+              keyboardShouldPersistTaps='handled'
+            >
+              {TYPE_FILTERS.map(filter => {
+                const key = `type:${filter.label}`;
 
-              {/* 지형·특징 태그 필터(CS-2) — 유형 필터와 AND 결합 */}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.filterRow}
-                keyboardShouldPersistTaps='handled'
-              >
-                {TAG_FILTERS.map(filter => (
-                  <CategoryChipView
-                    key={filter.label}
-                    label={filter.label}
-                    selected={campSiteMap.getSelectedTag() === filter.value}
-                    onPress={() => campSiteMap.selectTag(filter.value)}
-                  />
-                ))}
-              </ScrollView>
-            </>
+                return (
+                  <View
+                    key={key}
+                    onLayout={e =>
+                      chipOffsets.current.set(key, e.nativeEvent.layout.x)
+                    }
+                  >
+                    <CategoryChipView
+                      label={filter.label}
+                      {...(filter.dotColor !== undefined
+                        ? { dotColor: filter.dotColor }
+                        : {})}
+                      selected={campSiteMap.getSelectedType() === filter.value}
+                      onPress={() => handlePressType(filter.value, key)}
+                    />
+                  </View>
+                );
+              })}
+
+              <View style={styles.filterDivider} />
+
+              {TAG_FILTERS.map(filter => {
+                const key = `tag:${filter.value}`;
+
+                return (
+                  <View
+                    key={key}
+                    onLayout={e =>
+                      chipOffsets.current.set(key, e.nativeEvent.layout.x)
+                    }
+                  >
+                    <CategoryChipView
+                      label={filter.label}
+                      selected={campSiteMap.getSelectedTag() === filter.value}
+                      onPress={() => handlePressTag(filter.value, key)}
+                    />
+                  </View>
+                );
+              })}
+            </ScrollView>
           )}
         </SafeAreaView>
 
@@ -248,9 +332,17 @@ const styles = StyleSheet.create({
   },
   filterRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
     // 검색 카드(marginHorizontal 12)와 좌측 정렬.
     paddingHorizontal: 12,
+  },
+  // 유형·태그 축 구분선.
+  filterDivider: {
+    width: 1,
+    alignSelf: 'stretch',
+    marginVertical: 6,
+    backgroundColor: Color.chipBorder,
   },
   // 검색 카드 + 결과 카드 묶음(CS-6) — 날씨 지도 피커(WeatherMapPickerView)와 동일한 UI 언어.
   searchWrap: {

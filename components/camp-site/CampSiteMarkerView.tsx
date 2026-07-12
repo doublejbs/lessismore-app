@@ -2,30 +2,13 @@ import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { NaverMapMarkerOverlay } from '@mj-studio/react-native-naver-map';
 import { Color } from '@/constants/DesignTokens';
-import CampSiteType from '@/model/camp-site/CampSiteType';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
+import { getCampSiteTypeColor } from '@/model/camp-site/CampSiteLabels';
 
 interface Props {
   spot: CampSpot;
   onTapSpot: (spot: CampSpot) => void;
 }
-
-// 유형별 마커 색 — 디자인 토큰 외 시맨틱 리터럴 허용:
-// 야영장=검정, 대피소=회색, 노지=주황(현지 규제 주의).
-// 커스텀 원형 View 마커의 배경색으로 사용하므로 색이 그대로 렌더된다.
-const getMarkerColor = (type: CampSiteType): string => {
-  switch (type) {
-    case CampSiteType.Shelter: {
-      return '#767676';
-    }
-    case CampSiteType.Wild: {
-      return '#FF9500';
-    }
-    default: {
-      return '#000000';
-    }
-  }
-};
 
 // 박지 마커 1개(CS-2). memo로 분리해 요약 카드 오픈 등 지도 화면의
 // 다른 상태 변경 시 마커 전체가 리렌더(네이티브 동기화)되지 않게 한다 —
@@ -59,12 +42,12 @@ const CampSiteMarkerView = memo<Props>(({ spot, onTapSpot }) => {
           커스텀 View 마커는 최상위 자식에 생김새 의존성(색)을 key로 넘기고
           collapsable=false로 렌더를 보장해야 한다(라이브러리 요구사항). */}
       <View
-        key={`${spot.id}/${getMarkerColor(spot.type)}`}
+        key={`${spot.id}/${getCampSiteTypeColor(spot.type)}`}
         collapsable={false}
         style={styles.markerHitArea}
       >
         <View
-          style={[styles.marker, { backgroundColor: getMarkerColor(spot.type) }]}
+          style={[styles.marker, { backgroundColor: getCampSiteTypeColor(spot.type) }]}
         />
       </View>
     </NaverMapMarkerOverlay>
