@@ -16,6 +16,7 @@ import WarehouseDetailBagRecordView from './WarehouseDetailBagRecordView';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import WarehouseDetailReviewSectionView from './WarehouseDetailReviewSectionView';
+import WarehouseDetailExternalReviewView from './WarehouseDetailExternalReviewView';
 import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '../PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
@@ -170,6 +171,10 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
             )}
             <WarehouseDetailPurchaseView warehouseDetail={warehouseDetail} />
             <WarehouseDetailReviewSectionView
+              warehouseDetail={warehouseDetail}
+            />
+            {/* 외부 후기(GD-6) — 유튜브·네이버 블로그 */}
+            <WarehouseDetailExternalReviewView
               warehouseDetail={warehouseDetail}
             />
             <View style={styles.bottomSpacing} />

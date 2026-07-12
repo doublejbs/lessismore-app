@@ -1,11 +1,11 @@
-import { CampSiteReview, CampSiteVideo } from './CampSiteReviewTypes';
+import { BlogReview, VideoReview } from './ReviewTypes';
 
-// 박지 후기(CS-3): 네이버 블로그 검색 + 유튜브 검색으로 "{박지명} 백패킹" 상위 결과를 조회한다.
+// 외부 후기 검색(공용): 네이버 블로그 검색 + 유튜브 검색으로 검색어의 상위 결과를 조회한다.
+// 박지 상세(CS-3)와 장비 상세(GD-6)가 함께 쓴다 — 검색어는 호출측이 조립한다.
 // 반환 규약: 조회 성공 시 배열(0건이면 빈 배열), 키 미설정·조회 실패면 null.
-// null/배열 구분은 Firestore 공유 캐시(DM-18) 갱신 판단에 쓰인다 — 실패를 캐시에 저장하지 않기 위함.
+// null/배열 구분은 Firestore 공유 캐시(DM-18/19) 갱신 판단에 쓰인다 — 실패를 캐시에 저장하지 않기 위함.
 const BLOG_SEARCH_URL = 'https://openapi.naver.com/v1/search/blog.json';
 const YOUTUBE_SEARCH_URL = 'https://www.googleapis.com/youtube/v3/search';
-const SEARCH_KEYWORD = '백패킹';
 const BLOG_DISPLAY_COUNT = 5;
 const VIDEO_MAX_RESULTS = 4;
 
@@ -74,27 +74,20 @@ const formatPostDate = (postdate: string | undefined): string => {
   return `${year}.${month}.${day}`;
 };
 
-// "{박지명} 백패킹" 검색어.
-const buildQuery = (spotName: string): string => {
-  return `${spotName} ${SEARCH_KEYWORD}`;
-};
-
-const getReviews = async (
-  spotName: string
-): Promise<CampSiteReview[] | null> => {
+const getBlogReviews = async (query: string): Promise<BlogReview[] | null> => {
   if (!CLIENT_ID || !CLIENT_SECRET) {
     return null;
   }
 
-  const trimmed = spotName.trim();
+  const trimmed = query.trim();
 
   if (!trimmed) {
     return null;
   }
 
   try {
-    const query = encodeURIComponent(buildQuery(trimmed));
-    const url = `${BLOG_SEARCH_URL}?query=${query}&display=${BLOG_DISPLAY_COUNT}`;
+    const encoded = encodeURIComponent(trimmed);
+    const url = `${BLOG_SEARCH_URL}?query=${encoded}&display=${BLOG_DISPLAY_COUNT}`;
     const res = await fetch(url, {
       headers: {
         'X-Naver-Client-Id': CLIENT_ID,
@@ -119,26 +112,28 @@ const getReviews = async (
         link: item.link ?? '',
       }));
   } catch (e) {
-    console.error('박지 후기 조회 실패:', e);
+    console.error('블로그 후기 조회 실패:', e);
 
     return null;
   }
 };
 
-const getVideos = async (spotName: string): Promise<CampSiteVideo[] | null> => {
+const getVideoReviews = async (
+  query: string
+): Promise<VideoReview[] | null> => {
   if (!YOUTUBE_API_KEY) {
     return null;
   }
 
-  const trimmed = spotName.trim();
+  const trimmed = query.trim();
 
   if (!trimmed) {
     return null;
   }
 
   try {
-    const query = encodeURIComponent(buildQuery(trimmed));
-    const url = `${YOUTUBE_SEARCH_URL}?part=snippet&type=video&maxResults=${VIDEO_MAX_RESULTS}&q=${query}&key=${YOUTUBE_API_KEY}`;
+    const encoded = encodeURIComponent(trimmed);
+    const url = `${YOUTUBE_SEARCH_URL}?part=snippet&type=video&maxResults=${VIDEO_MAX_RESULTS}&q=${encoded}&key=${YOUTUBE_API_KEY}`;
     const res = await fetch(url);
 
     if (!res.ok) {
@@ -157,12 +152,12 @@ const getVideos = async (spotName: string): Promise<CampSiteVideo[] | null> => {
         thumbnailUrl: item.snippet?.thumbnails?.medium?.url ?? '',
       }));
   } catch (e) {
-    console.error('박지 후기 영상 조회 실패:', e);
+    console.error('후기 영상 조회 실패:', e);
 
     return null;
   }
 };
 
-const campSiteReviewService = { getReviews, getVideos };
+const reviewSearchService = { getBlogReviews, getVideoReviews };
 
-export default campSiteReviewService;
+export default reviewSearchService;
