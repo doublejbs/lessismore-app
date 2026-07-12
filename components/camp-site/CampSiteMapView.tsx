@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -13,7 +13,6 @@ import {
 import {
   NaverMapView,
   NaverMapViewRef,
-  NaverMapMarkerOverlay,
   Camera,
 } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
@@ -34,6 +33,7 @@ import { getCampSiteTypeLabel } from '@/model/camp-site/CampSiteLabels';
 import LocalStorageManager from '@/model/storage/LocalStorageManager';
 import { deltaToZoom, zoomToDelta } from '@/model/map/MapZoom';
 import CategoryChipView from '@/components/browse/CategoryChipView';
+import CampSiteMarkerView from './CampSiteMarkerView';
 import CampSiteSummaryCardView from './CampSiteSummaryCardView';
 
 interface Props {
@@ -59,23 +59,6 @@ const TAB_BAR_HEIGHT = 49;
 // 줌아웃 상태에서는 현재 화면 영역 안의 spots를 샘플(격자, 최대 30개)로 분산 표시한다(CS-2).
 // 임계 latitudeDelta ≤ 1.2 등가(iPhone 세로 ~850dp 기준 zoom ≈ 10).
 const MARKER_VISIBLE_MIN_ZOOM = deltaToZoom(1.2);
-
-// 유형별 마커 색 — 디자인 토큰 외 시맨틱 리터럴 허용:
-// 야영장=검정, 대피소=회색, 노지=주황(현지 규제 주의).
-// 커스텀 원형 View 마커의 배경색으로 사용하므로 색이 그대로 렌더된다.
-const getMarkerColor = (type: CampSiteType): string => {
-  switch (type) {
-    case CampSiteType.Shelter: {
-      return '#767676';
-    }
-    case CampSiteType.Wild: {
-      return '#FF9500';
-    }
-    default: {
-      return '#000000';
-    }
-  }
-};
 
 const TYPE_FILTERS: { label: string; value: CampSiteType | null }[] = [
   { label: '전체', value: null },
@@ -212,9 +195,14 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
     campSiteMap.selectSpot(null);
   };
 
-  const handleMarkerTap = (spot: CampSpot) => {
-    campSiteMap.selectSpot(spot);
-  };
+  // 마커 탭 콜백 — memo된 마커(CampSiteMarkerView)가 리렌더를 건너뛸 수 있게
+  // useCallback으로 참조를 고정한다.
+  const handleMarkerTap = useCallback(
+    (spot: CampSpot) => {
+      campSiteMap.selectSpot(spot);
+    },
+    [campSiteMap]
+  );
 
   // 지도 빈 곳 터치 → 요약 카드 닫기 + 키보드 dismiss(드롭다운 blur로 닫힘, CS-6).
   // 네이버는 마커 onTap과 지도 onTapMap이 분리돼 있어 별도 경합 방어가 필요 없다.
@@ -319,43 +307,11 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
         onCameraChanged={handleCameraChanged}
       >
         {markerSpots.map(spot => (
-          <NaverMapMarkerOverlay
+          <CampSiteMarkerView
             key={spot.id}
-            latitude={spot.location.latitude}
-            longitude={spot.location.longitude}
-            anchor={{ x: 0.5, y: 0.5 }}
-            width={44}
-            height={44}
-            onTap={() => handleMarkerTap(spot)}
-            // 박지 이름 캡션(CS-2) — 마커 위쪽 표시, 흰 halo로 지도 위 가독성 확보.
-            // 44pt 히트 영역(원은 중앙 20pt) 밖에 붙으므로 음수 offset으로 원에 가깝게 당긴다.
-            caption={{
-              text: spot.name,
-              align: 'Top',
-              textSize: 12,
-              color: Color.textPrimary,
-              haloColor: Color.background,
-              offset: -8,
-            }}
-            // 겹치는 마커는 캡션만 숨긴다(마커 자체는 유지).
-            isHideCollidedCaptions
-          >
-            {/* 44pt 히트 영역 안에 20pt 원 — 작은 마커의 탭 인식률 확보.
-                커스텀 View 마커는 최상위 자식에 생김새 의존성(색)을 key로 넘기고
-                collapsable=false로 렌더를 보장해야 한다(라이브러리 요구사항). */}
-            <View
-              key={`${spot.id}/${getMarkerColor(spot.type)}`}
-              collapsable={false}
-              style={styles.markerHitArea}
-            >
-              <View
-                style={[
-                  styles.marker,
-                  { backgroundColor: getMarkerColor(spot.type) },
-                ]}
-              />
-            </View>
-          </NaverMapMarkerOverlay>
+            spot={spot}
+            onTapSpot={handleMarkerTap}
+          />
         ))}
       </NaverMapView>
 
@@ -539,20 +495,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Color.background,
-  },
-  // 유형별 색을 그대로 표현하는 커스텀 원형 마커(위 getMarkerColor 주석 참고).
-  markerHitArea: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  marker: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Color.background,
   },
   topOverlay: {
     position: 'absolute',
