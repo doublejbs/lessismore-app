@@ -8,13 +8,18 @@ interface Props {
   selected?: boolean;
   onPress: () => void;
   count?: number;
+  // 라벨 앞 색 도트 — 칩이 색 범례를 겸할 때 사용(예: 지도 유형 필터의 마커 색).
+  dotColor?: string;
   accessibilityLabel?: string;
 }
 
 // 앱 공용 선택형 필터·카테고리 칩. 아웃라인 톤(비선택 테두리 / 선택 검정 채움),
 // Dynamic Type 대응(고정 높이 없이 minHeight+패딩으로 확장), 44pt 터치(hitSlop).
 const CategoryChipView = forwardRef<View, Props>(
-  ({ label, selected = false, onPress, count, accessibilityLabel }, ref) => {
+  (
+    { label, selected = false, onPress, count, dotColor, accessibilityLabel },
+    ref
+  ) => {
     return (
       <View ref={ref}>
         <TouchableOpacity
@@ -29,6 +34,16 @@ const CategoryChipView = forwardRef<View, Props>(
           accessibilityLabel={accessibilityLabel ?? label}
           accessibilityState={{ selected }}
         >
+          {dotColor !== undefined && (
+            <View
+              style={[
+                styles.dot,
+                { backgroundColor: dotColor },
+                // 선택(검정 채움) 상태에서 어두운 도트가 묻히지 않게 흰 테두리를 두른다.
+                selected && styles.dotSelected,
+              ]}
+            />
+          )}
           <PretendardText
             weight='medium'
             style={[
@@ -79,6 +94,15 @@ const styles = StyleSheet.create({
   chipSelected: {
     backgroundColor: Color.chipActiveBg,
     borderColor: Color.chipActiveBg,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  dotSelected: {
+    borderWidth: 1,
+    borderColor: Color.background,
   },
   chipText: {
     fontSize: 14,
