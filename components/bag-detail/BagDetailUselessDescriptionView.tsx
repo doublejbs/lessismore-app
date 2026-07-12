@@ -25,11 +25,8 @@ const BagDetailUselessDescriptionView: FC<Props> = ({
     bagDetail.goToUseless();
   };
 
-  const subtitle = isUselessChecked
-    ? `${usedWeight}kg로 줄어요`
-    : phase === 'after'
-      ? '줄어든 무게 확인'
-      : '여행 후 기록';
+  const subtitle =
+    phase === 'after' ? '줄어든 무게 확인' : '여행 후 기록';
 
   const fg = emphasized ? Color.background : Color.textPrimary;
   const subFg = emphasized ? EMPHASIZED_SUB : Color.textSecondary;
@@ -45,9 +42,24 @@ const BagDetailUselessDescriptionView: FC<Props> = ({
         <PretendardText style={[styles.title, { color: fg }]} weight='medium'>
           사용 기록
         </PretendardText>
-        <PretendardText style={[styles.subtitle, { color: subFg }]} numberOfLines={1}>
-          {subtitle}
-        </PretendardText>
+        {isUselessChecked ? (
+          // 기록이 있으면 줄어드는 무게를 히어로 숫자로 강조한다.
+          <View style={styles.weightRow}>
+            <PretendardText style={[styles.weightValue, { color: fg }]} weight='bold'>
+              {usedWeight}kg
+            </PretendardText>
+            <PretendardText style={[styles.weightSuffix, { color: subFg }]}>
+              로 줄어요
+            </PretendardText>
+          </View>
+        ) : (
+          <PretendardText
+            style={[styles.subtitle, { color: subFg }]}
+            numberOfLines={1}
+          >
+            {subtitle}
+          </PretendardText>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -74,6 +86,18 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   subtitle: {
+    fontSize: 12,
+  },
+  weightRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 3,
+  },
+  weightValue: {
+    fontSize: 18,
+    lineHeight: 22,
+  },
+  weightSuffix: {
     fontSize: 12,
   },
 });

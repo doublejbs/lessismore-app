@@ -37,9 +37,16 @@ const BagDetailMemoView: FC<Props> = ({ bagDetail }) => {
         <PretendardText style={styles.title} weight='medium'>
           메모
         </PretendardText>
-        <PretendardText style={styles.subtitle} numberOfLines={1}>
-          {hasMemo ? memo : '작성하기'}
-        </PretendardText>
+        {hasMemo ? (
+          // 메모가 있으면 내용을 히어로로 — 진한 본문 색 + 2줄 노출.
+          <PretendardText style={styles.memoContent} numberOfLines={2}>
+            {memo}
+          </PretendardText>
+        ) : (
+          <PretendardText style={styles.subtitle} numberOfLines={1}>
+            작성하기
+          </PretendardText>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -64,6 +71,11 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 12,
     color: Color.textSecondary,
+  },
+  memoContent: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: Color.textPrimary,
   },
 });
 
