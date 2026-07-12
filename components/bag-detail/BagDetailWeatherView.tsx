@@ -30,19 +30,59 @@ const BagDetailWeatherView: FC<Props> = ({ bagDetail, emphasized = false }) => {
   const summary = weather ? summarizeWeatherPeriod(weather.daily) : null;
   const fg = emphasized ? Color.background : Color.textPrimary;
   const subFg = emphasized ? EMPHASIZED_SUB : Color.textSecondary;
+  const iconName = summary ? summary.icon : 'partly-sunny-outline';
+
+  // 강조 타일은 전체 폭 가로 카드 — 아이콘 좌측, 온도·지역 가운데, 날씨 상태 우측.
+  if (emphasized) {
+    return (
+      <TouchableOpacity
+        style={[styles.tile, styles.tileEmphasized, styles.tileFull]}
+        onPress={handlePress}
+        activeOpacity={0.7}
+      >
+        <View style={styles.emphRow}>
+          <Ionicons name={iconName} size={26} color={fg} />
+          <View style={styles.emphMain}>
+            {summary && location ? (
+              <>
+                <PretendardText style={[styles.temp, { color: fg }]} weight='bold'>
+                  {summary.low}~{summary.high}°
+                </PretendardText>
+                <PretendardText
+                  style={[styles.subtitle, { color: subFg }]}
+                  numberOfLines={1}
+                >
+                  {location.name}
+                </PretendardText>
+              </>
+            ) : (
+              <>
+                <PretendardText style={[styles.title, { color: fg }]} weight='medium'>
+                  날씨
+                </PretendardText>
+                <PretendardText
+                  style={[styles.subtitle, { color: subFg }]}
+                  numberOfLines={1}
+                >
+                  {location ? location.name : '여행지 설정'}
+                </PretendardText>
+              </>
+            )}
+          </View>
+          {summary && (
+            <PretendardText style={[styles.cond, { color: subFg }]} weight='medium'>
+              {summary.cond}
+            </PretendardText>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  }
 
   return (
-    <TouchableOpacity
-      style={[styles.tile, emphasized && styles.tileEmphasized]}
-      onPress={handlePress}
-      activeOpacity={0.7}
-    >
+    <TouchableOpacity style={styles.tile} onPress={handlePress} activeOpacity={0.7}>
       <View style={styles.iconRow}>
-        <Ionicons
-          name={summary ? summary.icon : 'partly-sunny-outline'}
-          size={24}
-          color={fg}
-        />
+        <Ionicons name={iconName} size={24} color={fg} />
         {summary && (
           <PretendardText style={[styles.cond, { color: subFg }]} weight='medium'>
             {summary.cond}
@@ -83,6 +123,21 @@ const styles = StyleSheet.create({
   },
   tileEmphasized: {
     backgroundColor: Color.chipActiveBg,
+  },
+  // 강조 타일은 전체 폭 가로 카드 — 세로 공간은 줄이고 좌우로 편다.
+  tileFull: {
+    width: '100%',
+    minHeight: 68,
+    justifyContent: 'center',
+  },
+  emphRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  emphMain: {
+    flex: 1,
+    gap: 2,
   },
   iconRow: {
     flexDirection: 'row',
