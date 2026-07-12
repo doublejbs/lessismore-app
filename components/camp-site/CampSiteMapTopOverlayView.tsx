@@ -65,19 +65,20 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
     const showSearchResults =
       query.trim().length > 0 && campSiteMap.isSearchFocused();
 
-    // 선택 칩 시인성(CS-2): 스크롤로 가려진 칩을 선택해도 보이도록,
+    // 선택 칩 시인성(CS-2): 스크롤되는 태그 행에서 가려진 칩을 선택해도 보이도록,
     // 칩별 x 위치를 기록해 두고 선택 시 행을 해당 위치로 스크롤한다.
-    const filterScrollRef = useRef<ScrollView>(null);
-    const chipOffsets = useRef(new Map<string, number>());
+    // (유형 행은 4칩이 스크롤 없이 화면에 다 들어가 불필요)
+    const tagScrollRef = useRef<ScrollView>(null);
+    const tagChipOffsets = useRef(new Map<CampSiteTag, number>());
 
-    const scrollToChip = (key: string) => {
-      const x = chipOffsets.current.get(key);
+    const scrollToTagChip = (tag: CampSiteTag) => {
+      const x = tagChipOffsets.current.get(tag);
 
       if (x === undefined) {
         return;
       }
 
-      filterScrollRef.current?.scrollTo({
+      tagScrollRef.current?.scrollTo({
         x: Math.max(0, x - 16),
         animated: true,
       });
@@ -110,21 +111,20 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
       app.getToastManager()?.show({ message: `${name} ${count}곳` });
     };
 
-    const handlePressType = (value: CampSiteType | null, key: string) => {
+    const handlePressType = (value: CampSiteType | null) => {
       campSiteMap.selectType(value);
       showResultToast();
-      scrollToChip(key);
     };
 
     // 태그 칩은 재탭으로 해제(토글)한다.
-    const handlePressTag = (value: CampSiteTag, key: string) => {
+    const handlePressTag = (value: CampSiteTag) => {
       const next = campSiteMap.getSelectedTag() === value ? null : value;
 
       campSiteMap.selectTag(next);
       showResultToast();
 
       if (next !== null) {
-        scrollToChip(key);
+        scrollToTagChip(next);
       }
     };
 
@@ -255,59 +255,51 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
 
           {/* 검색 결과가 열려 있는 동안 필터 칩은 숨긴다 — 검색은 필터와 독립이라 무의미하고,
               드롭다운에 밀려 지도 한가운데 떠 보이는 문제(디자인 리뷰)를 막는다. */}
-          {/* 유형(색 도트=마커 범례) + 구분선 + 태그(#접두, 토글) 한 행(CS-2) —
-              지도를 가리는 세로 공간을 줄이기 위해 두 축을 한 행에 담는다. */}
+          {/* 축당 한 행(CS-2): 1행 유형(전체+색 도트 범례, 스크롤 없이 전부 노출) +
+              2행 태그(#접두, 토글, 가로 스크롤) — 한 행에 합치면 "전체"가 스크롤
+              밖으로 사라지고 태그 발견 가능성이 떨어진다(디자인 리뷰로 확정). */}
           {!showSearchResults && (
-            <ScrollView
-              ref={filterScrollRef}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.filterRow}
-              keyboardShouldPersistTaps='handled'
-            >
-              {TYPE_FILTERS.map(filter => {
-                const key = `type:${filter.label}`;
+            <>
+              <View style={styles.filterRow}>
+                {TYPE_FILTERS.map(filter => (
+                  <CategoryChipView
+                    key={filter.label}
+                    label={filter.label}
+                    {...(filter.dotColor !== undefined
+                      ? { dotColor: filter.dotColor }
+                      : {})}
+                    selected={campSiteMap.getSelectedType() === filter.value}
+                    onPress={() => handlePressType(filter.value)}
+                  />
+                ))}
+              </View>
 
-                return (
+              <ScrollView
+                ref={tagScrollRef}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.filterRow}
+                keyboardShouldPersistTaps='handled'
+              >
+                {TAG_FILTERS.map(filter => (
                   <View
-                    key={key}
+                    key={filter.value}
                     onLayout={e =>
-                      chipOffsets.current.set(key, e.nativeEvent.layout.x)
-                    }
-                  >
-                    <CategoryChipView
-                      label={filter.label}
-                      {...(filter.dotColor !== undefined
-                        ? { dotColor: filter.dotColor }
-                        : {})}
-                      selected={campSiteMap.getSelectedType() === filter.value}
-                      onPress={() => handlePressType(filter.value, key)}
-                    />
-                  </View>
-                );
-              })}
-
-              <View style={styles.filterDivider} />
-
-              {TAG_FILTERS.map(filter => {
-                const key = `tag:${filter.value}`;
-
-                return (
-                  <View
-                    key={key}
-                    onLayout={e =>
-                      chipOffsets.current.set(key, e.nativeEvent.layout.x)
+                      tagChipOffsets.current.set(
+                        filter.value,
+                        e.nativeEvent.layout.x
+                      )
                     }
                   >
                     <CategoryChipView
                       label={filter.label}
                       selected={campSiteMap.getSelectedTag() === filter.value}
-                      onPress={() => handlePressTag(filter.value, key)}
+                      onPress={() => handlePressTag(filter.value)}
                     />
                   </View>
-                );
-              })}
-            </ScrollView>
+                ))}
+              </ScrollView>
+            </>
           )}
         </SafeAreaView>
 
@@ -336,13 +328,6 @@ const styles = StyleSheet.create({
     gap: 8,
     // 검색 카드(marginHorizontal 12)와 좌측 정렬.
     paddingHorizontal: 12,
-  },
-  // 유형·태그 축 구분선.
-  filterDivider: {
-    width: 1,
-    alignSelf: 'stretch',
-    marginVertical: 6,
-    backgroundColor: Color.chipBorder,
   },
   // 검색 카드 + 결과 카드 묶음(CS-6) — 날씨 지도 피커(WeatherMapPickerView)와 동일한 UI 언어.
   searchWrap: {
