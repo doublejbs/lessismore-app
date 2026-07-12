@@ -33,21 +33,21 @@ const BagDetailMemoView: FC<Props> = ({ bagDetail }) => {
         size={22}
         color={Color.textPrimary}
       />
-      <View style={styles.textWrap}>
-        <PretendardText style={styles.title} weight='medium'>
-          메모
+      {hasMemo ? (
+        // 메모가 있으면 '메모' 라벨을 빼고 내용에 공간을 다 준다(아이콘으로 메모임을 식별).
+        <PretendardText style={styles.memoContent} numberOfLines={3}>
+          {memo}
         </PretendardText>
-        {hasMemo ? (
-          // 메모가 있으면 내용을 히어로로 — 진한 본문 색 + 2줄 노출.
-          <PretendardText style={styles.memoContent} numberOfLines={2}>
-            {memo}
+      ) : (
+        <View style={styles.textWrap}>
+          <PretendardText style={styles.title} weight='medium'>
+            메모
           </PretendardText>
-        ) : (
           <PretendardText style={styles.subtitle} numberOfLines={1}>
             작성하기
           </PretendardText>
-        )}
-      </View>
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
