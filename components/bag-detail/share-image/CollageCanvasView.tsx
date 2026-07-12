@@ -16,7 +16,7 @@ import Animated, {
   runOnJS,
   useAnimatedReaction,
 } from 'react-native-reanimated';
-import * as FileSystem from 'expo-file-system';
+import { File, Paths } from 'expo-file-system';
 
 import Gear from '@/model/gear/Gear';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
@@ -480,11 +480,15 @@ const CollageCanvasView: FC<Props> = ({
             imageUrl.startsWith('https://')
           ) {
             const filename = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
-            const localPath = `${FileSystem.cacheDirectory}${filename}`;
+            const destination = new File(Paths.cache, filename);
 
-            const downloadResult = await FileSystem.downloadAsync(
+            if (destination.exists) {
+              destination.delete();
+            }
+
+            const downloadedFile = await File.downloadFileAsync(
               imageUrl,
-              localPath
+              destination
             );
 
             // 취소 확인
@@ -493,7 +497,7 @@ const CollageCanvasView: FC<Props> = ({
               return;
             }
 
-            localUri = downloadResult.uri;
+            localUri = downloadedFile.uri;
           }
 
           // @six33/react-native-bg-removal 사용

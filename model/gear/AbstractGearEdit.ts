@@ -106,16 +106,6 @@ abstract class AbstractGearEdit extends FileUpload {
     return this.loading;
   }
 
-  private clear() {
-    this.setName('');
-    this.setWeight('');
-    this.clearFile();
-    this.setErrorMessage('');
-    this.setCompany('');
-    this.setColor('');
-    this.category.clear();
-  }
-
   @action
   private setErrorMessage(value: string) {
     this.errorMessage = value;

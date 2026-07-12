@@ -3,7 +3,7 @@ import WebViewManager, {
 } from '@/model/webview/WebViewManager';
 import { WEBVIEW_BRIDGE_SCRIPT } from '@/model/webview/WebViewBridge';
 import { useRouter } from 'expo-router';
-import { FC, useEffect, useRef, useState } from 'react';
+import { FC, useEffect, useRef } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { SafeAreaView } from 'react-native-safe-area-context';

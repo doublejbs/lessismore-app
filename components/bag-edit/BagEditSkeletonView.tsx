@@ -1,5 +1,5 @@
 import { FC, useRef, useEffect } from 'react';
-import { View, Animated, StyleSheet, FlatList, Dimensions } from 'react-native';
+import { View, Animated, StyleSheet, FlatList } from 'react-native';
 
 interface Props {}
 

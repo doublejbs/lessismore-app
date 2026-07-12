@@ -45,7 +45,6 @@ const ShareImageCanvasView: FC<Props> = ({
   categories,
   totalWeight,
   totalWeightNum,
-  bagName,
   weightColorIndex,
   customBackgroundUri,
   isLightBackground,
