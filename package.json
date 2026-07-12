@@ -16,7 +16,8 @@
     "hotupdate:preview": "npx hot-updater deploy -i -c preview",
     "lint": "expo lint",
     "lint:fix": "expo lint --fix",
-    "lint:unused": "eslint . --ext .ts,.tsx --fix"
+    "lint:unused": "eslint . --ext .ts,.tsx --fix",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@expo-google-fonts/gaegu": "^0.4.1",
@@ -24,6 +25,7 @@
     "@expo-google-fonts/playwrite-nz": "^0.4.1",
     "@expo/vector-icons": "^15.0.3",
     "@hot-updater/react-native": "^0.32.0",
+    "@mj-studio/react-native-naver-map": "1.5.10",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-firebase/analytics": "^23.4.1",
     "@react-native-firebase/app": "^23.4.1",
@@ -68,7 +70,6 @@
     "react-native": "0.81.5",
     "react-native-gesture-handler": "~2.28.0",
     "react-native-image-colors": "^2.5.1",
-    "react-native-maps": "1.20.1",
     "react-native-reanimated": "~3.19.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
@@ -96,6 +97,7 @@
     "firebase-admin": "^13.5.0",
     "firebase-tools": "^14.17.0",
     "hot-updater": "^0.32.0",
+    "patch-package": "^8.0.1",
     "typescript": "~5.9.2"
   },
   "expo": {
