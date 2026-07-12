@@ -13,8 +13,9 @@ interface Props {
   onPressVideo: (video: VideoReview) => void;
 }
 
-// 외부 후기 섹션(유튜브 가로 카드 + 네이버 블로그 리스트) — 박지 상세(CS-3)와
-// 장비 상세(GD-6)가 함께 쓴다. 두 소스 모두 0건이면 섹션 자체를 렌더하지 않는다.
+// 외부 후기 콘텐츠(유튜브 가로 카드 + 네이버 블로그 리스트) — 박지 상세(CS-3)와
+// 장비 상세(GD-6)가 함께 쓴다. 섹션 타이틀·래퍼는 화면별 톤이 달라 부모가 렌더한다.
+// 두 소스 모두 0건이면 아무것도 렌더하지 않는다.
 const ReviewSectionView: FC<Props> = ({
   reviews,
   videos,
@@ -27,14 +28,13 @@ const ReviewSectionView: FC<Props> = ({
 
   return (
     <View style={styles.section}>
-      <PretendardText style={styles.sectionTitle} weight='semibold'>
-        후기
-      </PretendardText>
-
       {videos.length > 0 ? (
+        // 부모 좌우 패딩(20)을 상쇄해 풀블리드로 스크롤 — 좌우 여백이 대칭이 되고
+        // 스와이프 가능 영역이 넓어진다. 시작 여백은 contentContainer 패딩으로 복원.
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          style={styles.videoScrollBleed}
           contentContainerStyle={styles.videoScroll}
         >
           {videos.map(video => (
@@ -115,15 +115,14 @@ const ReviewSectionView: FC<Props> = ({
 const styles = StyleSheet.create({
   section: {
     gap: 8,
-    marginTop: 4,
   },
-  sectionTitle: {
-    fontSize: 15,
-    color: Color.textPrimary,
+  videoScrollBleed: {
+    marginHorizontal: -20,
   },
   videoScroll: {
     gap: 12,
     paddingVertical: 4,
+    paddingHorizontal: 20,
   },
   videoCard: {
     width: 200,
