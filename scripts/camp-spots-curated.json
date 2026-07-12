@@ -3,7 +3,10 @@
     "slug": "seonjaeryeong",
     "name": "선자령",
     "type": "wild",
-    "location": { "latitude": 37.6866, "longitude": 128.7561 },
+    "location": {
+      "latitude": 37.6866,
+      "longitude": 128.7561
+    },
     "region": "강원",
     "description": "대관령 능선의 초지 위에서 풍력발전기와 동해 조망을 즐기는 겨울 백패킹 성지. 바람이 강해 방풍 대비가 필수인 곳이다.",
     "facilities": [],
@@ -15,7 +18,10 @@
     "slug": "guleopdo-gaemeori",
     "name": "굴업도 개머리언덕",
     "type": "wild",
-    "location": { "latitude": 37.1912, "longitude": 125.9954 },
+    "location": {
+      "latitude": 37.1912,
+      "longitude": 125.9954
+    },
     "region": "인천",
     "description": "서해 굴업도 남서쪽의 넓은 초원 언덕으로, 붉은 노을과 별밤으로 이름난 섬 백패킹의 대표지다.",
     "facilities": [],
@@ -27,7 +33,10 @@
     "slug": "mindungsan",
     "name": "민둥산",
     "type": "wild",
-    "location": { "latitude": 37.2402, "longitude": 128.7205 },
+    "location": {
+      "latitude": 37.2402,
+      "longitude": 128.7205
+    },
     "region": "강원",
     "description": "정선의 억새 능선으로 가을이면 은빛 억새밭이 정상 일대를 뒤덮는다. 완만한 정상부에서 조망 야영을 즐기는 곳이다.",
     "facilities": [],
@@ -39,7 +48,10 @@
     "slug": "yeoninsan",
     "name": "연인산",
     "type": "wild",
-    "location": { "latitude": 37.8703, "longitude": 127.3722 },
+    "location": {
+      "latitude": 37.8703,
+      "longitude": 127.3722
+    },
     "region": "경기",
     "description": "가평의 완만한 능선과 넓은 초지가 있어 수도권 근교 백패킹지로 꾸준히 찾는 산이다.",
     "facilities": [],
@@ -51,10 +63,15 @@
     "slug": "somuuido",
     "name": "소무의도",
     "type": "wild",
-    "location": { "latitude": 37.3758, "longitude": 126.4342 },
+    "location": {
+      "latitude": 37.3758,
+      "longitude": 126.4342
+    },
     "region": "인천",
     "description": "무의도와 인도교로 이어진 작은 섬으로, 둘레길과 해변에서 일몰을 보며 가볍게 즐기는 섬 백패킹지다.",
-    "facilities": ["toilet"],
+    "facilities": [
+      "toilet"
+    ],
     "accessInfo": "무의도 광명항에서 소무의인도교 도보 이동 후 둘레길 진입.",
     "warnings": "노지 야영은 지역에 따라 금지될 수 있습니다. 해변·마을 인근 취사 및 야영 제한을 확인하세요.",
     "needsVerification": true
@@ -63,10 +80,16 @@
     "slug": "yukbaengmajigi",
     "name": "청옥산 육백마지기",
     "type": "wild",
-    "location": { "latitude": 37.3517, "longitude": 128.5822 },
+    "location": {
+      "latitude": 37.3517,
+      "longitude": 128.5822
+    },
     "region": "강원",
     "description": "평창 청옥산 정상부의 드넓은 고원 평지로, 풍력발전기와 야생화 밭을 배경으로 한 대표적인 차박·백패킹 명소다.",
-    "facilities": ["toilet", "deck"],
+    "facilities": [
+      "toilet",
+      "deck"
+    ],
     "accessInfo": "미탄면 임도를 따라 정상 부근까지 차량 접근 후 도보 이동.",
     "warnings": "노지 야영은 지역에 따라 금지될 수 있습니다. 야생화 보호를 위한 출입·야영 통제 구역을 확인하세요.",
     "needsVerification": true
@@ -75,7 +98,10 @@
     "slug": "oseosan",
     "name": "오서산",
     "type": "wild",
-    "location": { "latitude": 36.3508, "longitude": 126.6497 },
+    "location": {
+      "latitude": 36.3508,
+      "longitude": 126.6497
+    },
     "region": "충남",
     "description": "보령·홍성 경계의 억새 능선으로 서해 조망이 트여 있어 서해안 백패킹지로 알려진 산이다.",
     "facilities": [],
@@ -87,7 +113,10 @@
     "slug": "gungmangbong",
     "name": "국망봉",
     "type": "wild",
-    "location": { "latitude": 37.9411, "longitude": 127.4247 },
+    "location": {
+      "latitude": 37.9411,
+      "longitude": 127.4247
+    },
     "region": "경기",
     "description": "포천·가평 경계의 고봉으로 능선 조망이 좋아 경기 북부 백패킹지로 찾는 곳이다.",
     "facilities": [],
@@ -99,10 +128,17 @@
     "slug": "jirisan-seseok-shelter",
     "name": "지리산 세석대피소",
     "type": "shelter",
-    "location": { "latitude": 35.3211, "longitude": 127.7108 },
+    "location": {
+      "latitude": 35.3211,
+      "longitude": 127.7108
+    },
     "region": "경남",
     "description": "지리산 주능선 세석평전에 자리한 국립공원 대피소로, 종주 산행의 주요 숙영지다. 예약제로 운영된다.",
-    "facilities": ["toilet", "water", "store"],
+    "facilities": [
+      "toilet",
+      "water",
+      "store"
+    ],
     "accessInfo": "거림 또는 백무동 들머리에서 도보 약 4~5시간.",
     "warnings": "국립공원 대피소는 사전 예약이 필요하며 지정 구역 외 야영은 금지됩니다. 운영 현황을 예약 시스템에서 확인하세요.",
     "needsVerification": true
@@ -111,12 +147,2114 @@
     "slug": "seoraksan-socheong-shelter",
     "name": "설악산 소청대피소",
     "type": "shelter",
-    "location": { "latitude": 38.1136, "longitude": 128.4589 },
+    "location": {
+      "latitude": 38.1136,
+      "longitude": 128.4589
+    },
     "region": "강원",
     "description": "설악산 소청봉 아래에 위치한 국립공원 대피소로, 대청봉·공룡능선 산행의 거점이 되는 숙영지다. 예약제로 운영된다.",
-    "facilities": ["toilet", "water", "store"],
+    "facilities": [
+      "toilet",
+      "water",
+      "store"
+    ],
     "accessInfo": "오색 또는 백담사 방면에서 도보 약 5~6시간.",
     "warnings": "국립공원 대피소는 사전 예약이 필요하며 지정 구역 외 야영은 금지됩니다. 운영 현황을 예약 시스템에서 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "taegisan",
+    "name": "태기산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.598,
+      "longitude": 128.28
+    },
+    "region": "강원",
+    "description": "횡성 최고봉(1,261m) 능선을 따라 풍력발전기가 늘어선 임도형 박지. 완만한 임도로 접근해 일몰·운해 조망을 즐긴다.",
+    "facilities": [],
+    "accessInfo": "양구두미재(둔내면)에서 임도 따라 도보 약 1시간.",
+    "warnings": "능선 강풍과 겨울 혹한에 대비하세요. 임도 차량 통제·산불조심기간 입산 통제 여부를 확인해야 합니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "maebongsan-wind-hill",
+    "name": "매봉산 바람의언덕",
+    "type": "wild",
+    "location": {
+      "latitude": 37.221,
+      "longitude": 128.924
+    },
+    "region": "강원",
+    "description": "태백 고랭지 배추밭 위로 풍력발전기가 돌아가는 이색 풍경의 박지. 여름 배추밭 초록과 은하수 조망으로 유명하다.",
+    "facilities": [],
+    "accessInfo": "삼수령(피재)에서 임도 따라 도보 약 1시간, 배추 수확기엔 차량 통제.",
+    "warnings": "경작지(사유지)라 재배 기간(6~9월경) 출입·야영이 통제됩니다. 농작물 훼손 금지, 현지 안내를 반드시 따르세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "anbandegi",
+    "name": "안반데기",
+    "type": "wild",
+    "location": {
+      "latitude": 37.6103,
+      "longitude": 128.7402
+    },
+    "region": "강원",
+    "description": "해발 1,100m 고랭지 배추밭 마을. 멍에전망대 일대에서 보는 일출과 은하수가 이름났다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "안반데기 마을(운유촌)까지 차량 진입 후 전망대까지 도보 약 20분.",
+    "warnings": "마을 전체가 주민 경작지로, 경작기(특히 여름)에는 야영·차박이 통제됩니다. 마을 공지와 지정 구역을 반드시 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gadeoksan",
+    "name": "가덕산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.985,
+      "longitude": 127.647
+    },
+    "region": "강원",
+    "description": "춘천 몽덕산~가덕산~북배산으로 이어지는 억새 방화선 능선의 박지. 가을 억새와 부드러운 능선 조망이 매력이다.",
+    "facilities": [],
+    "accessInfo": "홍적고개에서 몽덕산 경유 능선까지 도보 약 1시간 30분.",
+    "warnings": "능선에 그늘과 물이 없어 식수를 충분히 준비하세요. 산불조심기간 입산 통제 여부를 확인해야 합니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gwangdeoksan-observatory",
+    "name": "광덕산 조경철천문대",
+    "type": "wild",
+    "location": {
+      "latitude": 38.116,
+      "longitude": 127.445
+    },
+    "region": "강원",
+    "description": "화천 광덕산(1,046m) 정상부 천문대 일대의 박지. 차량 접근이 쉬워 별 관측과 일출 백패킹으로 알려졌다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "광덕고개에서 천문대까지 포장 임도, 차량 또는 도보 약 1시간 30분.",
+    "warnings": "천문대 관측에 방해되는 조명 사용을 자제하세요. 시설 주변 야영 통제 여부를 현지에서 확인해야 합니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "geomdansan",
+    "name": "검단산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.5253,
+      "longitude": 127.2385
+    },
+    "region": "경기",
+    "description": "하남 한강 조망 명산(657m). 정상부 헬기장에서 서울 야경과 팔당·한강 일출을 함께 볼 수 있어 수도권 백패킹 입문지로 꼽힌다.",
+    "facilities": [],
+    "accessInfo": "에니메이션고교 들머리에서 정상까지 도보 약 1시간 30분.",
+    "warnings": "이용객이 많은 근교 산으로 화기 사용이 엄격히 제한됩니다. 헬기장은 비상시 즉시 비워야 합니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "yumyeongsan",
+    "name": "유명산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.609,
+      "longitude": 127.493
+    },
+    "region": "경기",
+    "description": "가평 능선 초지의 완만한 정상부(862m). 패러글라이딩 활공장 주변으로 시야가 트여 일몰 박지로 인기다.",
+    "facilities": [],
+    "accessInfo": "유명산자연휴양림 들머리에서 정상까지 도보 약 1시간 30분.",
+    "warnings": "자연휴양림 구역 내 야영은 지정지 외 금지입니다. 정상부 활공장 운영 시간과 통제 구역을 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "godongsan",
+    "name": "고동산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.617,
+      "longitude": 127.404
+    },
+    "region": "경기",
+    "description": "양평 서종의 아담한 능선 봉우리. 북한강 조망 데크가 있어 수도권 근교 1박 박지로 알려졌다.",
+    "facilities": [],
+    "accessInfo": "서종면 정배리 들머리에서 정상까지 도보 약 1시간 30분.",
+    "warnings": "정상 데크는 좁아 선점 경쟁이 있습니다. 사유지 구간 통과 시 현지 안내를 따르세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jangbongdo-gamakmeori",
+    "name": "장봉도 가막머리",
+    "type": "wild",
+    "location": {
+      "latitude": 37.532,
+      "longitude": 126.31
+    },
+    "region": "인천",
+    "description": "장봉도 서쪽 끝 전망대 일대의 섬 박지. 서해 낙조와 갯벌 풍경을 마주하는 자리로 배 시간만 맞으면 당일 접근이 쉽다.",
+    "facilities": [],
+    "accessInfo": "삼목선착장에서 배편으로 장봉도 도착 후 옹암선착장에서 도보 약 1시간 30분.",
+    "warnings": "지정 야영장이 아니므로 취사·화기 사용이 제한될 수 있습니다. 막배 시간과 물때를 반드시 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "ueumdo",
+    "name": "우음도",
+    "type": "wild",
+    "location": {
+      "latitude": 37.187,
+      "longitude": 126.723
+    },
+    "region": "경기",
+    "description": "화성호 간척으로 육지가 된 옛 섬. 초원과 갈대밭, 송산그린시티 전망대 일대의 이국적 풍경으로 차박·백패킹 명소가 됐다.",
+    "facilities": [],
+    "accessInfo": "송산그린시티 전망대 인근 주차 후 도보 약 20분.",
+    "warnings": "개발지구·공사 구역이 포함되어 출입이 수시로 통제됩니다. 공룡알화석산지 보호구역은 출입 금지입니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jukdo-hongseong",
+    "name": "죽도",
+    "type": "wild",
+    "location": {
+      "latitude": 36.539,
+      "longitude": 126.466
+    },
+    "region": "충남",
+    "description": "홍성 남당항 앞 작은 섬. 대나무 숲길과 둘레길 조망 데크가 정비되어 있어 섬 백패킹 입문지로 알려졌다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "남당항에서 배편 약 15분, 선착장에서 조망 데크까지 도보 약 30분.",
+    "warnings": "데크 야영은 주민 협의 구역으로 통제될 수 있습니다. 막배 시간과 쓰레기 되가져가기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "geumoreum",
+    "name": "금오름",
+    "type": "wild",
+    "location": {
+      "latitude": 33.352,
+      "longitude": 126.306
+    },
+    "region": "제주",
+    "description": "한림의 분화구 오름(427m). 굼부리 능선에서 보는 일몰과 은하수로 유명해 제주 백패킹의 상징처럼 알려졌다.",
+    "facilities": [],
+    "accessInfo": "금악리 입구에서 정상 굼부리까지 도보 약 20분.",
+    "warnings": "사유지(공동목장)로 야영·취사 자제 캠페인이 진행 중입니다. 통제 안내가 있으면 야영을 삼가세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "biyangdo",
+    "name": "비양도",
+    "type": "wild",
+    "location": {
+      "latitude": 33.4095,
+      "longitude": 126.227
+    },
+    "region": "제주",
+    "description": "협재 앞바다의 화산섬. 펄랑못 습지와 비양봉 등대, 에메랄드빛 바다를 낀 섬 박지로 사랑받는다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "한림항에서 배편 약 15분, 선착장에서 야영 포인트까지 도보 약 20분.",
+    "warnings": "야영 허용 구역이 축소·통제되는 추세입니다. 마을 안내를 따르고 화기 사용을 삼가세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "baekdeoksan",
+    "name": "백덕산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.39643,
+      "longitude": 128.2935
+    },
+    "region": "강원",
+    "description": "영월·평창 경계의 1,350m 육중한 육산. 정상 헬기장에서 치악·소백 능선을 조망한다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "taehwasan-yeongwol",
+    "name": "태화산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.11759,
+      "longitude": 128.48539
+    },
+    "region": "강원",
+    "description": "영월 남대천과 남한강을 굽어보는 1,027m 능선. 완만한 헬기장 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "duwibong",
+    "name": "두위봉",
+    "type": "wild",
+    "location": {
+      "latitude": 37.2116,
+      "longitude": 128.7543
+    },
+    "region": "강원",
+    "description": "정선 철쭉 명산(1,466m). 6월 철쭉 능선과 백운산·함백산 조망이 트인다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "hambaeksan-manhangjae",
+    "name": "함백산 만항재",
+    "type": "wild",
+    "location": {
+      "latitude": 37.15077,
+      "longitude": 128.90059
+    },
+    "region": "강원",
+    "description": "국내에서 차로 오르는 가장 높은 포장 고개(1,330m). 야생화 군락과 은하수로 이름났다.",
+    "facilities": [],
+    "warnings": "태백산국립공원 경계와 가깝습니다. 공원 구역 내 야영은 불법이니 경계 밖 허용 구역을 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "baekunsan-jeongseon",
+    "name": "백운산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.27999,
+      "longitude": 128.5961
+    },
+    "region": "강원",
+    "description": "동강 물돌이를 발아래 두는 883m 암릉. 칠족령 전망과 일출 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gwinemi",
+    "name": "귀네미마을",
+    "type": "wild",
+    "location": {
+      "latitude": 37.33788,
+      "longitude": 129.00811
+    },
+    "region": "강원",
+    "description": "태백 고랭지 배추밭과 풍력발전기가 어우러진 마을 위 언덕. 매봉산과 함께 배추밭 박지로 불린다.",
+    "facilities": [],
+    "warnings": "경작지(사유지)라 재배 기간 출입·야영이 통제됩니다. 농작물에 피해를 주지 않도록 각별히 주의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "myeongseongsan",
+    "name": "명성산",
+    "type": "wild",
+    "location": {
+      "latitude": 38.10428,
+      "longitude": 127.33816
+    },
+    "region": "강원",
+    "description": "산정호수 뒤 억새 명산(923m). 가을 억새밭 축제 능선 위 박지로 유명하다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gakheulsan",
+    "name": "각흘산",
+    "type": "wild",
+    "location": {
+      "latitude": 38.11773,
+      "longitude": 127.37775
+    },
+    "region": "강원",
+    "description": "철원·포천 경계의 838m 민둥 능선. 명성산과 마주 보는 초지 능선 박지다.",
+    "facilities": [],
+    "warnings": "과거 사격장 인접 지역입니다. 출입 통제 안내와 산불조심기간 통제를 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "daeryongsan",
+    "name": "대룡산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.84503,
+      "longitude": 127.82113
+    },
+    "region": "강원",
+    "description": "춘천 시가지와 소양강을 내려다보는 899m 헬기장. 야경 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gamaksan-wonju",
+    "name": "감악산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.22834,
+      "longitude": 128.14225
+    },
+    "region": "강원",
+    "description": "원주·제천 경계의 945m 암봉. 백련사 능선 위 일출 조망 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "cheongtaesan",
+    "name": "청태산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.51135,
+      "longitude": 128.30125
+    },
+    "region": "강원",
+    "description": "횡성·평창 경계의 1,200m 육산. 잣나무 숲과 완만한 정상부로 겨울 박지로 인기다.",
+    "facilities": [],
+    "warnings": "자연휴양림 구역 내 야영은 지정지 외 금지입니다. 능선 허용 구역을 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gariwangsan",
+    "name": "가리왕산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.46151,
+      "longitude": 128.56337
+    },
+    "region": "강원",
+    "description": "정선의 1,561m 거산. 주목 군락과 운해 조망의 정상 헬기장 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "산림유전자원보호구역이 넓게 지정되어 있습니다. 입산 가능 구간과 통제 공지를 반드시 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "masanbong",
+    "name": "마산봉",
+    "type": "wild",
+    "location": {
+      "latitude": 38.26764,
+      "longitude": 128.39879
+    },
+    "region": "강원",
+    "description": "백두대간 최북단 구간(1,052m). 진부령 흘리 마을에서 오르는 설경 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "bangtaesan",
+    "name": "방태산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.88826,
+      "longitude": 128.39017
+    },
+    "region": "강원",
+    "description": "인제의 1,444m 원시림 산. 주억봉 능선에서 점봉산·설악 능선을 조망한다.",
+    "facilities": [],
+    "warnings": "자연휴양림 구역 내 야영은 지정지 외 금지입니다. 산불조심기간 통제를 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "garisan",
+    "name": "가리산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.87138,
+      "longitude": 127.95647
+    },
+    "region": "강원",
+    "description": "소양호를 내려다보는 1,051m 암봉 삼봉. 정상 아래 헬기장 박지로 유명하다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gongjaksan",
+    "name": "공작산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.71602,
+      "longitude": 128.01064
+    },
+    "region": "강원",
+    "description": "홍천의 887m 공작 날개 능선. 수타사 계곡 위 능선 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "yukbaeksan",
+    "name": "육백산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.2441,
+      "longitude": 129.09122
+    },
+    "region": "강원",
+    "description": "삼척의 1,244m 고위평탄면. 이끼폭포 상부의 넓은 임도형 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "bokgyesan",
+    "name": "복계산",
+    "type": "wild",
+    "location": {
+      "latitude": 38.20323,
+      "longitude": 127.50211
+    },
+    "region": "강원",
+    "description": "철원 민통선 인접 1,057m 산. 매월대 절벽과 한북정맥 조망 박지다.",
+    "facilities": [],
+    "warnings": "민통선 인접 지역으로 군 통제가 있을 수 있습니다. 안내 표지를 따르세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "chungnyeongsan-namyangju",
+    "name": "축령산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.75461,
+      "longitude": 127.31316
+    },
+    "region": "경기",
+    "description": "남양주·가평 경계의 886m 잣나무 산. 정상 헬기장에서 서리산 철쭉 능선과 이어진다.",
+    "facilities": [],
+    "warnings": "자연휴양림 구역 내 야영은 지정지 외 금지입니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "seorisan",
+    "name": "서리산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.76851,
+      "longitude": 127.31608
+    },
+    "region": "경기",
+    "description": "축령산과 마주한 832m 철쭉 명산. 5월 철쭉동산 위 능선 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jugeumsan",
+    "name": "주금산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.78434,
+      "longitude": 127.26807
+    },
+    "region": "경기",
+    "description": "포천·남양주 경계 814m. 비단산 능선 헬기장이 수도권 1박 박지로 인기다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "cheonmasan",
+    "name": "천마산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.68024,
+      "longitude": 127.27331
+    },
+    "region": "경기",
+    "description": "남양주의 812m 정상 암봉. 서울 야경과 일출을 함께 보는 근교 박지다.",
+    "facilities": [],
+    "warnings": "군립공원 구역 여부와 야영 통제 공지를 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "yebongsan",
+    "name": "예봉산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.55913,
+      "longitude": 127.26106
+    },
+    "region": "경기",
+    "description": "한강 두물머리를 내려다보는 683m. 활공장 데크에서 보는 야경 박지로 유명하다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "soraesan",
+    "name": "소래산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.45222,
+      "longitude": 126.77888
+    },
+    "region": "인천",
+    "description": "인천·시흥 경계 300m급 도심 산. 정상 헬기장 야경 박지로 입문자에게 알려졌다.",
+    "facilities": [],
+    "warnings": "도심 인접 산으로 화기 사용이 엄격히 금지됩니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gyeyangsan",
+    "name": "계양산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.55316,
+      "longitude": 126.71456
+    },
+    "region": "인천",
+    "description": "인천의 진산(395m). 정상 헬기장에서 서해 낙조와 도심 야경을 함께 본다.",
+    "facilities": [],
+    "warnings": "도심 인접 산으로 화기 사용이 엄격히 금지됩니다. 야영 통제 공지를 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "goryeosan",
+    "name": "고려산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.74393,
+      "longitude": 126.43726
+    },
+    "region": "인천",
+    "description": "강화 진달래 명산(436m). 4월 진달래 군락 위 헬기장 박지로 유명하다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "haemyeongsan",
+    "name": "해명산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.67527,
+      "longitude": 126.35428
+    },
+    "region": "인천",
+    "description": "석모도 종주 능선의 첫 봉(327m). 서해 낙조와 갯벌 조망 능선 박지다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "horyonggoksan",
+    "name": "호룡곡산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.38323,
+      "longitude": 126.41332
+    },
+    "region": "인천",
+    "description": "무의도 최고봉(246m). 하나개해수욕장과 서해 낙조를 내려다보는 섬 산 박지다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "modo",
+    "name": "모도",
+    "type": "wild",
+    "location": {
+      "latitude": 37.53313,
+      "longitude": 126.40864
+    },
+    "region": "인천",
+    "description": "신도·시도와 다리로 이어진 작은 섬. 배미꾸미 해변 조각공원 옆 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "bijobong",
+    "name": "비조봉",
+    "type": "wild",
+    "location": {
+      "latitude": 37.21913,
+      "longitude": 126.13091
+    },
+    "region": "인천",
+    "description": "덕적도 서포리 해변 뒤 292m 봉우리. 덕적군도 일몰 조망 데크가 있다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "seungbongdo",
+    "name": "승봉도",
+    "type": "wild",
+    "location": {
+      "latitude": 37.16709,
+      "longitude": 126.30845
+    },
+    "region": "인천",
+    "description": "이일레해변 솔숲으로 이름난 조용한 섬. 완만한 둘레길과 해변 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jawoldo",
+    "name": "자월도",
+    "type": "wild",
+    "location": {
+      "latitude": 37.25717,
+      "longitude": 126.31133
+    },
+    "region": "인천",
+    "description": "장골해변 솔숲과 국사봉 능선의 한적한 섬 박지. 인천에서 배편 접근이 쉽다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "daeijakdo",
+    "name": "대이작도",
+    "type": "wild",
+    "location": {
+      "latitude": 37.17251,
+      "longitude": 126.26362
+    },
+    "region": "인천",
+    "description": "부아산 구름다리와 풀등 모래섬으로 유명한 섬. 작은풀안 해변 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "baekunbong-yangpyeong",
+    "name": "백운봉",
+    "type": "wild",
+    "location": {
+      "latitude": 37.53349,
+      "longitude": 127.52708
+    },
+    "region": "경기",
+    "description": "용문산 남쪽의 뾰족한 940m 암봉. 양평의 마터호른으로 불리는 일출 박지다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jungmisan",
+    "name": "중미산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.5954,
+      "longitude": 127.47163
+    },
+    "region": "경기",
+    "description": "양평·가평 경계 834m. 천문대가 있을 만큼 밤하늘이 어두워 별 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "자연휴양림 구역 내 야영은 지정지 외 금지입니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gangssibong",
+    "name": "강씨봉",
+    "type": "wild",
+    "location": {
+      "latitude": 37.96981,
+      "longitude": 127.38231
+    },
+    "region": "경기",
+    "description": "포천·가평 경계 830m 한북정맥 능선. 임도와 헬기장이 있어 접근이 무난하다.",
+    "facilities": [],
+    "warnings": "자연휴양림 구역 내 야영은 지정지 외 금지입니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "wangbangsan",
+    "name": "왕방산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.89577,
+      "longitude": 127.1556
+    },
+    "region": "경기",
+    "description": "포천·동두천 경계 737m. 정상 데크에서 포천 시가지 야경을 본다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gamaksan-paju",
+    "name": "감악산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.94122,
+      "longitude": 126.96992
+    },
+    "region": "경기",
+    "description": "파주·양주·연천 경계 675m. 임진강과 개성 송악산까지 조망하는 헬기장 박지다.",
+    "facilities": [],
+    "warnings": "출렁다리 관광지 구간과 군사시설 통제 구역을 피해 야영 가능 여부를 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "aengmubong",
+    "name": "앵무봉",
+    "type": "wild",
+    "location": {
+      "latitude": 37.75756,
+      "longitude": 126.92858
+    },
+    "region": "경기",
+    "description": "파주 고령산 주봉(622m). 보광사 위 헬기장에서 북한산 능선을 조망한다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "homyeongsan",
+    "name": "호명산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.72953,
+      "longitude": 127.44577
+    },
+    "region": "경기",
+    "description": "청평호와 호명호수를 내려다보는 632m. 호수 조망 박지로 인기다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jobisan",
+    "name": "조비산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.1185,
+      "longitude": 127.36822
+    },
+    "region": "경기",
+    "description": "용인의 새가 나는 형상 암봉(295m). 낮지만 사방이 트여 일몰 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "seokseongsan",
+    "name": "석성산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.27259,
+      "longitude": 127.17296
+    },
+    "region": "경기",
+    "description": "용인의 진산(472m). 정상 데크에서 보는 도심 야경 박지로 유명하다.",
+    "facilities": [],
+    "warnings": "도심 인접 산으로 화기 사용이 엄격히 금지됩니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "seounsan",
+    "name": "서운산",
+    "type": "wild",
+    "location": {
+      "latitude": 36.92883,
+      "longitude": 127.29547
+    },
+    "region": "경기",
+    "description": "안성·진천 경계 547m 육산. 청룡사 위 완만한 능선 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gukhwado",
+    "name": "국화도",
+    "type": "wild",
+    "location": {
+      "latitude": 37.05962,
+      "longitude": 126.55428
+    },
+    "region": "경기",
+    "description": "화성 궁평항에서 배로 닿는 작은 섬. 물때에 열리는 매박섬 산책과 해변 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gubongdo",
+    "name": "구봉도",
+    "type": "wild",
+    "location": {
+      "latitude": 37.28296,
+      "longitude": 126.54469
+    },
+    "region": "경기",
+    "description": "대부도 북단의 낙조전망대 곶. 개미허리 아치교 너머 서해 일몰 박지로 유명하다.",
+    "facilities": [],
+    "warnings": "공원 구역 야영·취사 통제 공지를 확인하세요. 낙조전망대 데크는 야영 금지입니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "yongbongsan",
+    "name": "용봉산",
+    "type": "wild",
+    "location": {
+      "latitude": 36.64365,
+      "longitude": 126.6492
+    },
+    "region": "충남",
+    "description": "홍성의 미니 금강산(381m). 기암 능선 위에서 내포신도시 야경을 본다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "okmasan",
+    "name": "옥마산",
+    "type": "wild",
+    "location": {
+      "latitude": 36.318,
+      "longitude": 126.63494
+    },
+    "region": "충남",
+    "description": "보령의 601m 활공장 봉우리. 대천해수욕장과 서해 낙조를 조망한다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "seodaesan",
+    "name": "서대산",
+    "type": "wild",
+    "location": {
+      "latitude": 36.22063,
+      "longitude": 127.53836
+    },
+    "region": "충남",
+    "description": "충남 최고봉(904m). 정상 헬기장에서 대전·금산 산군을 조망하는 암산 박지다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "sikjangsan",
+    "name": "식장산",
+    "type": "wild",
+    "location": {
+      "latitude": 36.29971,
+      "longitude": 127.48111
+    },
+    "region": "대전",
+    "description": "대전의 진산(624m). 전망데크에서 보는 시가지 야경 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "도심 인접 산으로 화기 사용이 엄격히 금지됩니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "sapsido",
+    "name": "삽시도",
+    "type": "wild",
+    "location": {
+      "latitude": 36.33851,
+      "longitude": 126.35507
+    },
+    "region": "충남",
+    "description": "보령 앞바다의 화살 모양 섬. 거멀너머 해변 솔숲과 물망터 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "oeyeondo",
+    "name": "외연도",
+    "type": "wild",
+    "location": {
+      "latitude": 36.2289,
+      "longitude": 126.08056
+    },
+    "region": "충남",
+    "description": "보령에서 두 시간 뱃길의 먼 섬. 상록수림 당숲과 노을 언덕 박지로 이름났다.",
+    "facilities": [],
+    "warnings": "천연기념물 상록수림 구역은 출입·야영 금지입니다. 마을 안내를 따르세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "hyangjeoksan",
+    "name": "향적산",
+    "type": "wild",
+    "location": {
+      "latitude": 36.29302,
+      "longitude": 127.20181
+    },
+    "region": "충남",
+    "description": "계룡산을 마주 보는 574m 국사봉 능선. 계룡 들판 일출 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "minjujisan",
+    "name": "민주지산",
+    "type": "wild",
+    "location": {
+      "latitude": 36.03981,
+      "longitude": 127.84925
+    },
+    "region": "충북",
+    "description": "충북·전북·경북이 만나는 1,242m. 삼도봉 능선과 정상 헬기장 박지로 유명하다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "wollyubong",
+    "name": "월류봉",
+    "type": "wild",
+    "location": {
+      "latitude": 36.22829,
+      "longitude": 127.88769
+    },
+    "region": "충북",
+    "description": "영동 한천팔경의 달이 머무는 봉우리(400m). 초강천 물돌이 절벽 위 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "절벽 지형이라 안전에 각별히 유의하세요. 관광지 데크는 야영 금지입니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gubyeongsan",
+    "name": "구병산",
+    "type": "wild",
+    "location": {
+      "latitude": 36.46958,
+      "longitude": 127.86173
+    },
+    "region": "충북",
+    "description": "보은 충북알프스의 병풍 암릉(876m). 속리산 조망 헬기장 박지다.",
+    "facilities": [],
+    "warnings": "속리산국립공원 경계와 가깝습니다. 공원 구역 내 야영은 불법입니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "dutasan-jincheon",
+    "name": "두타산",
+    "type": "wild",
+    "location": {
+      "latitude": 36.83041,
+      "longitude": 127.5663
+    },
+    "region": "충북",
+    "description": "진천·증평 경계 598m. 정상 전망데크에서 진천 들판 일출을 본다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gyemyeongsan",
+    "name": "계명산",
+    "type": "wild",
+    "location": {
+      "latitude": 36.99076,
+      "longitude": 127.97629
+    },
+    "region": "충북",
+    "description": "충주호를 내려다보는 775m. 호수 운해와 일출 조망 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "yongdusan-jecheon",
+    "name": "용두산",
+    "type": "wild",
+    "location": {
+      "latitude": 37.20307,
+      "longitude": 128.21078
+    },
+    "region": "충북",
+    "description": "제천 의림지 뒤 873m 육산. 완만한 정상부에서 제천 시가지를 조망한다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "unjangsan",
+    "name": "운장산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.91126,
+      "longitude": 127.35765
+    },
+    "region": "전북",
+    "description": "진안고원의 1,126m 주봉. 서봉 오성대 암봉 위 운해 박지로 유명하다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "guksabong-imsil",
+    "name": "국사봉",
+    "type": "wild",
+    "location": {
+      "latitude": 35.64267,
+      "longitude": 127.14637
+    },
+    "region": "전북",
+    "description": "옥정호 붕어섬을 내려다보는 475m 전망 봉우리. 물안개 일출 박지의 대명사다.",
+    "facilities": [],
+    "warnings": "전망데크는 사진 명소로 새벽 혼잡합니다. 데크 위 야영 통제 공지를 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "manhaengsan",
+    "name": "만행산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.52565,
+      "longitude": 127.45038
+    },
+    "region": "전북",
+    "description": "남원의 뾰족한 천황봉(910m). 지리산 주능선 파노라마 조망 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "chuwolsan",
+    "name": "추월산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.39993,
+      "longitude": 126.97604
+    },
+    "region": "전남",
+    "description": "담양호를 발아래 두는 731m 절벽 산. 보리암 능선 일출 박지로 유명하다.",
+    "facilities": [],
+    "warnings": "담양군립공원 구역 여부와 야영 통제 공지를 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "byeongpungsan-damyang",
+    "name": "병풍산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.32461,
+      "longitude": 126.88567
+    },
+    "region": "전남",
+    "description": "담양의 병풍 능선(822m). 투구봉 헬기장에서 광주 야경과 운해를 본다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "baekasan",
+    "name": "백아산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.17178,
+      "longitude": 127.16114
+    },
+    "region": "전남",
+    "description": "화순의 하얀 거위 암릉(810m). 하늘다리 능선 위 조망 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "ongseongsan",
+    "name": "옹성산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.11551,
+      "longitude": 127.13267
+    },
+    "region": "전남",
+    "description": "화순 철옹산성의 항아리 암봉(572m). 동복호 조망 박지로 백패커에게 인기다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "mohusan",
+    "name": "모후산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.03467,
+      "longitude": 127.18344
+    },
+    "region": "전남",
+    "description": "화순·순천 경계 919m. 강우레이더 관측소 임도로 오르는 운해 박지다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "bangjangsan",
+    "name": "방장산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.44441,
+      "longitude": 126.74907
+    },
+    "region": "전남",
+    "description": "고창·장성 경계 743m. 활공장 억새 능선에서 고창 들판 낙조를 본다.",
+    "facilities": [],
+    "warnings": "자연휴양림 구역 내 야영은 지정지 외 금지입니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "wido",
+    "name": "위도",
+    "type": "wild",
+    "location": {
+      "latitude": 35.5955,
+      "longitude": 126.28274
+    },
+    "region": "전북",
+    "description": "부안 격포항 앞 고슴도치 섬. 위도해수욕장 솔숲과 망월봉 능선 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "seonyudo",
+    "name": "선유도",
+    "type": "wild",
+    "location": {
+      "latitude": 35.81069,
+      "longitude": 126.41051
+    },
+    "region": "전북",
+    "description": "고군산군도의 중심 섬. 망주봉 아래 명사십리 해변 낙조 박지로 이름났다.",
+    "facilities": [],
+    "warnings": "관광지 정비로 해변 야영이 통제될 수 있습니다. 지정 구역 안내를 따르세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "eocheongdo",
+    "name": "어청도",
+    "type": "wild",
+    "location": {
+      "latitude": 36.11971,
+      "longitude": 125.97966
+    },
+    "region": "전북",
+    "description": "군산에서 뱃길 두 시간의 등대 섬. 하얀 등대 능선 초지 박지로 백패커에게 사랑받는다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "daegaksan",
+    "name": "대각산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.82545,
+      "longitude": 126.45461
+    },
+    "region": "전북",
+    "description": "새만금 신시도의 187m 전망 산. 고군산군도 다도해 조망 데크가 있다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "mireuksan-iksan",
+    "name": "미륵산",
+    "type": "wild",
+    "location": {
+      "latitude": 36.02531,
+      "longitude": 127.03954
+    },
+    "region": "전북",
+    "description": "익산 미륵사지를 품은 430m. 정상 능선에서 호남평야 낙조를 본다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "unamsan",
+    "name": "운암산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.98822,
+      "longitude": 127.28131
+    },
+    "region": "전북",
+    "description": "대아저수지를 발아래 두는 597m 암릉. 저수지 운해 일출 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jeamsan",
+    "name": "제암산",
+    "type": "wild",
+    "location": {
+      "latitude": 34.70973,
+      "longitude": 126.97736
+    },
+    "region": "전남",
+    "description": "장흥·보성 경계 807m. 5월 곰재 철쭉 평원과 임금바위 조망 박지로 유명하다.",
+    "facilities": [],
+    "warnings": "자연휴양림 구역 내 야영은 지정지 외 금지입니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "obongsan-boseong",
+    "name": "오봉산",
+    "type": "wild",
+    "location": {
+      "latitude": 34.72071,
+      "longitude": 127.17667
+    },
+    "region": "전남",
+    "description": "득량만을 내려다보는 344m 칼바위 능선. 남해 일출 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jeokdaebong",
+    "name": "적대봉",
+    "type": "wild",
+    "location": {
+      "latitude": 34.46359,
+      "longitude": 127.17977
+    },
+    "region": "전남",
+    "description": "고흥 거금도의 592m 섬 산. 정상 봉수대에서 다도해 파노라마를 본다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "maboksan",
+    "name": "마복산",
+    "type": "wild",
+    "location": {
+      "latitude": 34.53728,
+      "longitude": 127.38759
+    },
+    "region": "전남",
+    "description": "고흥의 소개골산(539m). 기암 능선 너머 다도해 일출 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "nangdo",
+    "name": "낭도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.60745,
+      "longitude": 127.547
+    },
+    "region": "전남",
+    "description": "여수 백리섬섬길로 이어진 섬. 공룡 발자국 해안과 장사금 해변 박지로 인기다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "geumodo",
+    "name": "금오도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.52269,
+      "longitude": 127.75041
+    },
+    "region": "전남",
+    "description": "비렁길 벼랑 산책로로 유명한 여수의 섬. 장지·직포 해변 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "비렁길 벼랑 구간은 야영 금지입니다. 마을 지정 구역을 이용하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "geomundo",
+    "name": "거문도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.0269,
+      "longitude": 127.31617
+    },
+    "region": "전남",
+    "description": "여수 먼바다의 등대 섬. 녹산등대 초지 언덕 낙조 박지로 백패커의 로망으로 꼽힌다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "dongaksan",
+    "name": "동악산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.28193,
+      "longitude": 127.25203
+    },
+    "region": "전남",
+    "description": "곡성 섬진강을 내려다보는 737m. 청류동 계곡 위 능선 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "baekunsan-gwangyang",
+    "name": "백운산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.10637,
+      "longitude": 127.62134
+    },
+    "region": "전남",
+    "description": "호남 최고봉급(1,222m). 억불봉 능선 억새와 한재 임도 박지로 유명하다.",
+    "facilities": [],
+    "warnings": "자연휴양림·수목원 구역 내 야영은 지정지 외 금지입니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "osan-gurye",
+    "name": "오산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.17964,
+      "longitude": 127.48222
+    },
+    "region": "전남",
+    "description": "사성암 절벽 위 531m. 섬진강 물돌이와 지리산 조망 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "사성암 사찰 구역은 야영 금지입니다. 암자 아래 능선 허용 여부를 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "sangwangbong-wando",
+    "name": "상왕봉",
+    "type": "wild",
+    "location": {
+      "latitude": 34.34819,
+      "longitude": 126.69286
+    },
+    "region": "전남",
+    "description": "완도의 최고봉(644m). 다도해와 제주 한라산까지 조망하는 상록수림 능선이다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "cheongsando",
+    "name": "청산도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.18157,
+      "longitude": 126.88719
+    },
+    "region": "전남",
+    "description": "슬로시티 청보리 섬. 범바위 언덕과 보적산 초지에서 다도해 낙조를 본다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "bogildo",
+    "name": "보길도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.14259,
+      "longitude": 126.55213
+    },
+    "region": "전남",
+    "description": "윤선도 원림의 섬. 격자봉 능선과 예송리 몽돌해변 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "dalmasan",
+    "name": "달마산",
+    "type": "wild",
+    "location": {
+      "latitude": 34.38258,
+      "longitude": 126.58516
+    },
+    "region": "전남",
+    "description": "해남 땅끝의 공룡 등뼈 암릉(489m). 미황사 위 능선에서 다도해 일출을 본다.",
+    "facilities": [],
+    "warnings": "도솔암 순례길 구간 야영 통제 공지를 확인하세요. 암릉 안전에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jujaksan",
+    "name": "주작산",
+    "type": "wild",
+    "location": {
+      "latitude": 34.50602,
+      "longitude": 126.69733
+    },
+    "region": "전남",
+    "description": "해남·강진의 봉황 날개 암릉(475m). 덕룡 종주와 이어지는 진달래 박지 성지다.",
+    "facilities": [],
+    "warnings": "자연휴양림 구역 내 야영은 지정지 외 금지입니다. 암릉 구간 안전에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "deokryongsan",
+    "name": "덕룡산",
+    "type": "wild",
+    "location": {
+      "latitude": 34.9075,
+      "longitude": 126.79355
+    },
+    "region": "전남",
+    "description": "강진 소석문에서 솟는 433m 공룡 암릉. 낮지만 험한 능선 위 일출 박지로 유명하다.",
+    "facilities": [],
+    "warnings": "암릉 구간이 험합니다. 안전 확보가 어려우면 야영을 삼가세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jeungdo",
+    "name": "증도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.9935,
+      "longitude": 126.15505
+    },
+    "region": "전남",
+    "description": "신안 슬로시티 소금의 섬. 우전해변 한반도 솔숲 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "imjado",
+    "name": "임자도",
+    "type": "wild",
+    "location": {
+      "latitude": 35.09419,
+      "longitude": 126.08902
+    },
+    "region": "전남",
+    "description": "12km 대광해변이 펼쳐진 신안의 섬. 튤립축제와 백사장 낙조 박지로 이름났다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "geurimsan",
+    "name": "그림산",
+    "type": "wild",
+    "location": {
+      "latitude": 34.74089,
+      "longitude": 125.92273
+    },
+    "region": "전남",
+    "description": "비금도의 그림 같은 암봉(226m). 선왕산 능선과 하트해변 조망 박지다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "uido",
+    "name": "우이도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.61109,
+      "longitude": 125.8415
+    },
+    "region": "전남",
+    "description": "신안 먼바다의 모래언덕 섬. 성촌해변과 돈목해변 사이 풍성사구로 유명하다.",
+    "facilities": [],
+    "warnings": "풍성사구는 보호구역으로 출입 금지입니다. 해변 지정 구역만 이용하고 마을 안내를 따르세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "chungnyeongsan-jangseong",
+    "name": "축령산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.37093,
+      "longitude": 126.72604
+    },
+    "region": "전남",
+    "description": "장성 편백 치유의 숲(621m). 편백 숲 임도 위 능선 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "치유의숲 관리 구역 내 야영은 금지입니다. 구역 밖 허용 여부를 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "geumseongsan-naju",
+    "name": "금성산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.05584,
+      "longitude": 126.69709
+    },
+    "region": "전남",
+    "description": "나주의 진산(451m). 정상 데크에서 나주평야와 영산강 낙조를 본다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jagulsan",
+    "name": "자굴산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.37707,
+      "longitude": 128.20348
+    },
+    "region": "경남",
+    "description": "의령의 진산(897m). 정상 헬기장에서 지리산과 남강 물줄기를 조망한다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "hanusan",
+    "name": "한우산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.39521,
+      "longitude": 128.19236
+    },
+    "region": "경남",
+    "description": "의령 찰비계곡 위 836m. 철쭉 능선까지 임도가 이어져 접근이 쉬운 박지다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "yeohangsan",
+    "name": "여항산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.19619,
+      "longitude": 128.4064
+    },
+    "region": "경남",
+    "description": "함안 낙남정맥의 770m 암봉. 곧은 절벽 위에서 남강과 지리산을 조망한다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "muhaksan",
+    "name": "무학산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.20992,
+      "longitude": 128.53555
+    },
+    "region": "경남",
+    "description": "창원 마산만을 내려다보는 761m. 학 날개 능선 야경 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "도심 인접 산으로 화기 사용이 엄격히 금지됩니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jongnamsan",
+    "name": "종남산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.44848,
+      "longitude": 128.7221
+    },
+    "region": "경남",
+    "description": "밀양강과 시가지를 굽어보는 663m. 진달래 능선 야경 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jangsan-busan",
+    "name": "장산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.1943,
+      "longitude": 129.14489
+    },
+    "region": "부산",
+    "description": "해운대 뒤 634m. 억새밭 너머 광안대교 야경을 보는 도심 박지다.",
+    "facilities": [],
+    "warnings": "도심 군사시설 인접 구역은 출입 금지입니다. 화기 사용 금지를 지키세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "daeunsan",
+    "name": "대운산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.40192,
+      "longitude": 129.21324
+    },
+    "region": "울산",
+    "description": "울주·양산 경계 742m. 시명골 계곡 위 정상 데크 조망 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "cheonseongsan",
+    "name": "천성산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.4016,
+      "longitude": 129.10628
+    },
+    "region": "경남",
+    "description": "양산의 922m 억새 평원 산. 원효봉 일출 박지로 오래 사랑받았다.",
+    "facilities": [],
+    "warnings": "화엄늪 습지보호지역은 출입 금지입니다. 군 훈련장 통제 구역과 야영 통제 공지를 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "choejeongsan",
+    "name": "최정산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.76269,
+      "longitude": 128.60064
+    },
+    "region": "대구",
+    "description": "대구 가창 뒤 905m 고위평원. 목장 억새 임도와 운해 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "목장 사유지 구간 출입 통제를 따르세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "odosan",
+    "name": "오도산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.67377,
+      "longitude": 128.07522
+    },
+    "region": "경남",
+    "description": "합천의 1,134m 중계소 봉우리. 정상까지 임도가 있어 차량 일출 박지로 유명하다.",
+    "facilities": [],
+    "warnings": "중계소 시설 구역은 출입 금지입니다. 좁은 임도 야간 운전에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gamaksan-geochang",
+    "name": "감악산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.59558,
+      "longitude": 127.92812
+    },
+    "region": "경남",
+    "description": "거창의 951m 풍력 능선. 가을 아스타 꽃밭과 별 관측 박지로 이름났다.",
+    "facilities": [],
+    "warnings": "꽃축제 기간 야영·차박이 통제됩니다. 공지를 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gibaeksan",
+    "name": "기백산",
+    "type": "wild",
+    "location": {
+      "latitude": 35.70697,
+      "longitude": 127.78158
+    },
+    "region": "경남",
+    "description": "함양·거창 경계 1,331m. 누룩덤 암릉과 금원산 연계 능선 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "자연휴양림 구역 내 야영은 지정지 외 금지입니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "dansan-mungyeong",
+    "name": "단산",
+    "type": "wild",
+    "location": {
+      "latitude": 36.71663,
+      "longitude": 128.1817
+    },
+    "region": "경북",
+    "description": "문경의 956m 활공장 봉우리. 모노레일이 닿는 능선에서 백두대간 운해를 본다.",
+    "facilities": [],
+    "warnings": "활공장 운영 시간과 모노레일 구역 통제를 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "ilwolsan",
+    "name": "일월산",
+    "type": "wild",
+    "location": {
+      "latitude": 36.80362,
+      "longitude": 129.09857
+    },
+    "region": "경북",
+    "description": "영양의 해와 달을 먼저 보는 산(1,219m). 일자봉 일출과 KBS 중계소 임도 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "bohyeonsan",
+    "name": "보현산",
+    "type": "wild",
+    "location": {
+      "latitude": 36.16484,
+      "longitude": 128.97704
+    },
+    "region": "경북",
+    "description": "영천의 1,124m 천문대 산. 국내 최대 망원경 옆에서 별밤을 보내는 박지다.",
+    "facilities": [],
+    "warnings": "천문대 관측에 방해되는 조명 사용을 삼가세요. 시설 구역 출입 금지.",
+    "needsVerification": true
+  },
+  {
+    "slug": "hakgasan",
+    "name": "학가산",
+    "type": "wild",
+    "location": {
+      "latitude": 36.6785,
+      "longitude": 128.59242
+    },
+    "region": "경북",
+    "description": "안동·예천 경계 882m. 송신탑 능선 바위 전망대에서 낙동강 운해를 본다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "saryangdo",
+    "name": "사량도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.84584,
+      "longitude": 128.18247
+    },
+    "region": "경남",
+    "description": "통영 사량도의 지리망산 암릉. 출렁다리 능선 너머 한려수도 조망 박지로 유명하다.",
+    "facilities": [],
+    "warnings": "암릉 구간이 험해 야영 장비 이동에 주의하세요. 지정 야영 구역 안내를 따르세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "yeonhwado",
+    "name": "연화도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.64599,
+      "longitude": 128.35432
+    },
+    "region": "경남",
+    "description": "통영의 연꽃 섬. 용머리 해안 절벽과 연화봉 능선 박지로 사랑받는다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "yokjido",
+    "name": "욕지도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.63637,
+      "longitude": 128.25237
+    },
+    "region": "경남",
+    "description": "통영 먼바다의 고구마 섬. 대기봉 능선과 야포 몽돌해변 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "maemuldo",
+    "name": "매물도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.64079,
+      "longitude": 128.57342
+    },
+    "region": "경남",
+    "description": "당금마을 위 초지 언덕에서 소매물도 등대섬을 마주 보는 박지 성지다.",
+    "facilities": [],
+    "warnings": "소매물도 등대섬은 야영 금지입니다. 매물도 야영 지정 구역 안내를 따르세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "mangsan-geoje",
+    "name": "망산",
+    "type": "wild",
+    "location": {
+      "latitude": 34.71392,
+      "longitude": 128.6013
+    },
+    "region": "경남",
+    "description": "거제 남단 397m. 내도·외도와 한려수도 다도해 일출 조망 박지로 유명하다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "daegeumsan-geoje",
+    "name": "대금산",
+    "type": "wild",
+    "location": {
+      "latitude": 34.95159,
+      "longitude": 128.69998
+    },
+    "region": "경남",
+    "description": "거제 북단의 438m 진달래 산. 4월 진달래 군락 위에서 거가대교를 조망한다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "seolheulsan",
+    "name": "설흘산",
+    "type": "wild",
+    "location": {
+      "latitude": 34.73526,
+      "longitude": 127.90006
+    },
+    "region": "경남",
+    "description": "남해 다랭이마을 위 482m. 응봉산 암릉과 남해 바다 일출 박지로 유명하다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "mangunsan",
+    "name": "망운산",
+    "type": "wild",
+    "location": {
+      "latitude": 34.8517,
+      "longitude": 127.85549
+    },
+    "region": "경남",
+    "description": "남해 최고봉(786m). 철쭉 능선과 여수 바다 낙조 조망 박지로 알려졌다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "waryongsan",
+    "name": "와룡산",
+    "type": "wild",
+    "location": {
+      "latitude": 34.98084,
+      "longitude": 128.09904
+    },
+    "region": "경남",
+    "description": "사천의 용이 누운 새섬봉(799m). 암릉 위에서 한려수도와 사천만을 조망한다.",
+    "facilities": [],
+    "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "geumosan-hadong",
+    "name": "금오산",
+    "type": "wild",
+    "location": {
+      "latitude": 34.99276,
+      "longitude": 127.86983
+    },
+    "region": "경남",
+    "description": "하동의 875m 다도해 전망대. 짚와이어 시설 옆 일출 명소로 차량 접근이 쉽다.",
+    "facilities": [],
+    "warnings": "케이블카·짚와이어 시설 구역은 야영 금지입니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "hyeongjebong-hadong",
+    "name": "형제봉",
+    "type": "wild",
+    "location": {
+      "latitude": 35.15884,
+      "longitude": 127.69745
+    },
+    "region": "경남",
+    "description": "악양 들판과 섬진강을 내려다보는 1,116m. 활공장 초지 박지로 유명하다.",
+    "facilities": [],
+    "warnings": "지리산국립공원 경계와 가깝습니다. 공원 구역 내 야영은 불법입니다.",
+    "needsVerification": true
+  },
+  {
+    "slug": "gunsanoreum",
+    "name": "군산오름",
+    "type": "wild",
+    "location": {
+      "latitude": 33.25324,
+      "longitude": 126.36997
+    },
+    "region": "제주",
+    "description": "서귀포 앞바다와 한라산을 함께 보는 334m 오름. 정상 근처까지 차가 올라 일출 박지로 인기다.",
+    "facilities": [],
+    "warnings": "오름 보호를 위해 야영 통제가 강화되는 추세입니다. 현지 안내를 따르고 화기를 사용하지 마세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jirisan-nogodan",
+    "name": "지리산 노고단대피소",
+    "type": "shelter",
+    "location": {
+      "latitude": 35.29623,
+      "longitude": 127.52631
+    },
+    "region": "전남",
+    "description": "성삼재에서 한 시간 남짓, 지리산 서부 능선의 관문 대피소. 노고단 운해와 일출로 유명하다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "warnings": "대피소 주변 야영(비박)은 공단 규정에 따릅니다. 예약·취사 규정을 사전에 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jirisan-byeoksoryeong",
+    "name": "지리산 벽소령대피소",
+    "type": "shelter",
+    "location": {
+      "latitude": 35.32602,
+      "longitude": 127.64279
+    },
+    "region": "경남",
+    "description": "지리산 주능선 한가운데의 대피소. 벽소명월이라 불리는 달밤으로 이름났다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "warnings": "대피소 주변 야영(비박)은 공단 규정에 따릅니다. 예약·취사 규정을 사전에 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jirisan-yeonhacheon",
+    "name": "지리산 연하천대피소",
+    "type": "shelter",
+    "location": {
+      "latitude": 35.33129,
+      "longitude": 127.61318
+    },
+    "region": "전북",
+    "description": "숲속 샘터를 낀 지리산 주능선 대피소. 물이 풍부해 종주 야영 거점으로 사랑받는다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "warnings": "대피소 주변 야영(비박)은 공단 규정에 따릅니다. 예약·취사 규정을 사전에 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jirisan-jangteomok",
+    "name": "지리산 장터목대피소",
+    "type": "shelter",
+    "location": {
+      "latitude": 35.33267,
+      "longitude": 127.71624
+    },
+    "region": "경남",
+    "description": "천왕봉 일출을 보러 가는 전진기지. 지리산에서 가장 붐비는 대피소다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "warnings": "대피소 주변 야영(비박)은 공단 규정에 따릅니다. 예약·취사 규정을 사전에 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jirisan-chibatmok",
+    "name": "지리산 치밭목대피소",
+    "type": "shelter",
+    "location": {
+      "latitude": 35.34857,
+      "longitude": 127.75061
+    },
+    "region": "경남",
+    "description": "대원사 계곡 위 한적한 대피소. 지리산 동부의 조용한 박지 거점이다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "warnings": "대피소 주변 야영(비박)은 공단 규정에 따릅니다. 예약·취사 규정을 사전에 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "jirisan-rotary",
+    "name": "지리산 로타리대피소",
+    "type": "shelter",
+    "location": {
+      "latitude": 35.3274,
+      "longitude": 127.73736
+    },
+    "region": "경남",
+    "description": "중산리에서 천왕봉으로 오르는 길목의 대피소. 법계사와 가깝다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "warnings": "대피소 주변 야영(비박)은 공단 규정에 따릅니다. 예약·취사 규정을 사전에 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "seoraksan-huiungak",
+    "name": "설악산 희운각대피소",
+    "type": "shelter",
+    "location": {
+      "latitude": 38.13263,
+      "longitude": 128.46497
+    },
+    "region": "강원",
+    "description": "공룡능선과 천불동이 갈리는 요충지 대피소. 설악 종주의 핵심 거점이다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "warnings": "대피소 주변 야영(비박)은 공단 규정에 따릅니다. 예약·취사 규정을 사전에 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "seoraksan-suryeomdong",
+    "name": "설악산 수렴동대피소",
+    "type": "shelter",
+    "location": {
+      "latitude": 38.14656,
+      "longitude": 128.41442
+    },
+    "region": "강원",
+    "description": "백담사에서 오르는 수렴동 계곡의 대피소. 봉정암·소청 방면 길목이다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "warnings": "대피소 주변 야영(비박)은 공단 규정에 따릅니다. 예약·취사 규정을 사전에 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "deogyusan-hyangjeokbong",
+    "name": "덕유산 향적봉대피소",
+    "type": "shelter",
+    "location": {
+      "latitude": 35.85856,
+      "longitude": 127.74684
+    },
+    "region": "전북",
+    "description": "덕유산 정상 바로 아래 대피소. 겨울 상고대와 운해 일출로 이름난 박지 거점이다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "warnings": "대피소 주변 야영(비박)은 공단 규정에 따릅니다. 예약·취사 규정을 사전에 확인하세요.",
+    "needsVerification": true
+  },
+  {
+    "slug": "sobaeksan-yeonhwabong",
+    "name": "소백산 제2연화봉대피소",
+    "type": "shelter",
+    "location": {
+      "latitude": 36.92781,
+      "longitude": 128.4416
+    },
+    "region": "충북",
+    "description": "소백산 능선 위 현대식 대피소. 은하수 관측 명소로 알려졌다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "warnings": "대피소 주변 야영(비박)은 공단 규정에 따릅니다. 예약·취사 규정을 사전에 확인하세요.",
     "needsVerification": true
   }
 ]
