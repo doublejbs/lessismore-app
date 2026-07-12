@@ -1,4 +1,5 @@
 import CampSiteType from './CampSiteType';
+import CampSiteTag from './CampSiteTag';
 
 // 박지 상세(CampSite CS-3/CS-4)에서 쓰는 표시 라벨·문구 매핑.
 
@@ -18,8 +19,35 @@ const SOURCE_LABEL: Record<string, string> = {
   curated: '자체 큐레이션',
 };
 
+const TAG_LABEL: Record<CampSiteTag, string> = {
+  [CampSiteTag.Mountain]: '산',
+  [CampSiteTag.Beach]: '해변',
+  [CampSiteTag.Valley]: '계곡',
+  [CampSiteTag.Island]: '섬',
+  [CampSiteTag.Lake]: '호수',
+  [CampSiteTag.Plain]: '초원',
+  [CampSiteTag.Forest]: '숲',
+};
+
+// 유형별 마커 색 — 배낭 상세 카테고리 팔레트(BagDetailSummaryView PALETTE) 재사용:
+// 노지=파랑, 대피소=초록, 야영장=골드 (데이터 시각화 의미색 예외 — DesignTokens 컨벤션상 허용).
+// 지도 마커(CampSiteMarkerView)와 유형 필터 칩의 색 도트(범례)가 함께 쓴다.
+const TYPE_COLOR: Record<CampSiteType, string> = {
+  [CampSiteType.Campground]: '#FFD700',
+  [CampSiteType.Shelter]: '#50C878',
+  [CampSiteType.Wild]: '#4A90E2',
+};
+
 export const getCampSiteTypeLabel = (type: CampSiteType): string => {
   return TYPE_LABEL[type] ?? '';
+};
+
+export const getCampSiteTypeColor = (type: CampSiteType): string => {
+  return TYPE_COLOR[type] ?? '#000000';
+};
+
+export const getCampSiteTagLabel = (tag: CampSiteTag): string => {
+  return TAG_LABEL[tag] ?? '';
 };
 
 export const getCampSiteSourceLabel = (source: string): string => {

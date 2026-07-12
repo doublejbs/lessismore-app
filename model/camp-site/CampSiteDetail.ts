@@ -1,5 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import { Alert, Linking, Platform } from 'react-native';
+import { Alert, Linking } from 'react-native';
 import { Router } from 'expo-router';
 import app from '../app/App';
 import Firebase from '../firebase/Firebase';
@@ -9,7 +9,7 @@ import AnalyticsManager from '../analytics/AnalyticsManager';
 import BagItem from '../bag/BagItem';
 import CampSiteDetailDispatcher from './CampSiteDetailDispatcher';
 import { CampSpot } from './CampSpotTypes';
-import { WeatherDaily } from '../weather/WeatherTypes';
+import { BlogReview, REVIEW_CACHE_TTL_MS, VideoReview } from '../review/ReviewTypes';
 
 // 박지 상세 도메인 모델 (CampSite CS-3/CS-4/CS-5).
 // 3단 래퍼(라우트 → Wrapper → View) 중 상태·비즈니스 로직을 담당한다.
@@ -27,7 +27,8 @@ class CampSiteDetail {
 
   private spot: CampSpot | null = null;
   private initialized = false;
-  private weather: WeatherDaily[] | null = null;
+  private reviews: BlogReview[] = [];
+  private videos: VideoReview[] = [];
   private bags: BagItem[] = [];
   private showBagSheet = false;
 
@@ -56,28 +57,12 @@ class CampSiteDetail {
       this.analyticsManager?.logClick('camp_site');
       this.setInitialized(true);
 
-      void this.loadWeather(spot);
+      void this.loadReviewContent(spot);
     } catch (e) {
       console.error('박지 상세 로드 실패:', e);
       Alert.alert('알림', '박지 정보를 불러오지 못했어요.', [
         { text: '확인', onPress: () => this.close() },
       ]);
-    }
-  }
-
-  // 주간 날씨(CS-3). 실패/빈 값이면 섹션을 생략하도록 null 을 유지한다(조용히).
-  private async loadWeather(spot: CampSpot) {
-    try {
-      const daily = await this.dispatcher.getWeeklyWeather({
-        name: spot.name,
-        latitude: spot.location.latitude,
-        longitude: spot.location.longitude,
-      });
-
-      this.setWeather(daily.length > 0 ? daily : null);
-    } catch (e) {
-      console.error('박지 날씨 조회 실패:', e);
-      this.setWeather(null);
     }
   }
 
@@ -89,12 +74,104 @@ class CampSiteDetail {
     return this.spot;
   }
 
-  private setWeather(value: WeatherDaily[] | null) {
-    this.weather = value;
+  // 박지 후기·영상(CS-3). Firestore 공유 캐시(DM-18)를 먼저 표시하고,
+  // 7일이 지났거나 캐시가 없으면 외부 검색 API로 재조회해 최신화한다.
+  // 재조회 실패 시 기존 캐시를 그대로 유지하고(가용성 우선), 캐시도 갱신하지 않는다.
+  private async loadReviewContent(spot: CampSpot) {
+    try {
+      const cached = await this.dispatcher.getReviewCache(spot.id).catch(e => {
+        console.error('박지 후기 캐시 조회 실패:', e);
+
+        return null;
+      });
+
+      if (cached) {
+        this.setReviews(cached.reviews ?? []);
+        this.setVideos(cached.videos ?? []);
+      }
+
+      const cachedAt = cached ? Date.parse(cached.updatedAt) : NaN;
+      const isFresh =
+        Number.isFinite(cachedAt) &&
+        Date.now() - cachedAt < REVIEW_CACHE_TTL_MS;
+
+      if (isFresh) {
+        return;
+      }
+
+      const [reviews, videos] = await Promise.all([
+        this.dispatcher.getReviews(spot.name),
+        this.dispatcher.getVideos(spot.name),
+      ]);
+
+      // null = 해당 소스 조회 실패 → 캐시된 값(없으면 빈 배열)을 유지한다.
+      this.setReviews(reviews ?? cached?.reviews ?? []);
+      this.setVideos(videos ?? cached?.videos ?? []);
+
+      // 두 소스 모두 성공했을 때만 저장 — 실패 결과로 공유 캐시를 오염시키지 않는다(DM-18).
+      if (reviews !== null && videos !== null) {
+        await this.dispatcher
+          .saveReviewCache(spot.id, {
+            reviews,
+            videos,
+            updatedAt: new Date().toISOString(),
+          })
+          .catch(e => {
+            console.error('박지 후기 캐시 저장 실패:', e);
+          });
+      }
+    } catch (e) {
+      console.error('박지 후기 조회 실패:', e);
+    }
   }
 
-  public getWeather() {
-    return this.weather;
+  private setReviews(value: BlogReview[]) {
+    this.reviews = value;
+  }
+
+  public getReviews() {
+    return this.reviews;
+  }
+
+  private setVideos(value: VideoReview[]) {
+    this.videos = value;
+  }
+
+  public getVideos() {
+    return this.videos;
+  }
+
+  // 후기 항목 탭(CS-3): 외부 브라우저로 블로그 글을 연다. 실패는 조용히 무시.
+  public async openReview(review: BlogReview) {
+    this.analyticsManager?.logClick('camp_site_review', { source: 'blog' });
+
+    try {
+      await Linking.openURL(review.link);
+    } catch {
+      // 외부 브라우저 열기 실패는 조용히 무시
+    }
+  }
+
+  // 후기 영상 카드 탭(CS-3): 유튜브 영상을 연다(유튜브 앱/브라우저). 실패는 조용히 무시.
+  public async openVideo(video: VideoReview) {
+    this.analyticsManager?.logClick('camp_site_review', { source: 'youtube' });
+
+    try {
+      await Linking.openURL(`https://www.youtube.com/watch?v=${video.videoId}`);
+    } catch {
+      // 외부 앱/브라우저 열기 실패는 조용히 무시
+    }
+  }
+
+  // 주간 날씨 버튼 탭(CS-3): 박지 전용 주간 날씨 페이지로 이동한다.
+  public openWeather() {
+    const spot = this.spot;
+
+    if (!spot) {
+      return;
+    }
+
+    this.router.push(`/camp-site-weather/${spot.id}`);
   }
 
   private setInitialized(value: boolean) {
@@ -109,8 +186,9 @@ class CampSiteDetail {
     this.router.back();
   }
 
-  // 길찾기(CS-3): 외부 지도앱을 좌표로 연다. 실패는 조용히 무시.
-  public async openDirections() {
+  // 네이버 지도에서 열기(CS-3): 좌표·박지명으로 네이버 지도 앱을 연다.
+  // 앱 미설치·실패 시 네이버 지도 웹 검색으로 폴백한다.
+  public async openNaverMap() {
     const spot = this.spot;
 
     if (!spot) {
@@ -120,15 +198,17 @@ class CampSiteDetail {
     this.analyticsManager?.logClick('camp_site_directions');
 
     const { latitude, longitude } = spot.location;
-    const url =
-      Platform.OS === 'ios'
-        ? `maps://?ll=${latitude},${longitude}&q=${encodeURIComponent(spot.name)}`
-        : `geo:${latitude},${longitude}?q=${latitude},${longitude}(${spot.name})`;
+    const appUrl = `nmap://place?lat=${latitude}&lng=${longitude}&name=${encodeURIComponent(spot.name)}&appname=com.doublejbs.useless`;
+    const webUrl = `https://map.naver.com/p/search/${encodeURIComponent(spot.name)}`;
 
     try {
-      await Linking.openURL(url);
+      await Linking.openURL(appUrl);
     } catch {
-      // 외부 지도앱 열기 실패는 조용히 무시
+      try {
+        await Linking.openURL(webUrl);
+      } catch {
+        // 웹 폴백까지 실패하면 조용히 무시
+      }
     }
   }
 
@@ -184,7 +264,15 @@ class CampSiteDetail {
       longitude: spot.location.longitude,
     });
 
-    this.toastManager.show({ message: '여행지로 설정했어요.' });
+    // 설정한 배낭으로 바로 이동할 수 있게 토스트에 액션을 넣는다(CS-5).
+    // Android는 네이티브 토스트라 버튼 미지원 — 메시지만 표시된다.
+    this.toastManager.show({
+      message: '여행지로 설정했어요.',
+      buttonText: '이동',
+      onButtonPress: () => {
+        this.router.push(`/bag/${bag.getID()}`);
+      },
+    });
     this.closeBagSheet();
   }
 }

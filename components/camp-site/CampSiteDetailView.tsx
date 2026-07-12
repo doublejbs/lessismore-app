@@ -5,15 +5,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
-import WeatherDailyView from '@/components/weather/WeatherDailyView';
 import CampSiteBagSelectSheetView from './CampSiteBagSelectSheetView';
+import ReviewSectionView from '@/components/review/ReviewSectionView';
 import CampSiteDetail from '@/model/camp-site/CampSiteDetail';
 import CampSiteType from '@/model/camp-site/CampSiteType';
 import CampSiteFacility from '@/model/camp-site/CampSiteFacility';
+import { BlogReview, VideoReview } from '@/model/review/ReviewTypes';
 import BagItem from '@/model/bag/BagItem';
 import {
   WILD_NOTICE,
   getCampSiteSourceLabel,
+  getCampSiteTagLabel,
   getCampSiteTypeLabel,
 } from '@/model/camp-site/CampSiteLabels';
 
@@ -47,15 +49,28 @@ const FACILITY_ORDER: CampSiteFacility[] = [
 
 const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
   const spot = campSiteDetail.getSpot();
-  const weather = campSiteDetail.getWeather();
+  const reviews = campSiteDetail.getReviews();
+  const videos = campSiteDetail.getVideos();
   const showBagSheet = campSiteDetail.shouldShowBagSheet();
 
   const handlePressClose = () => {
     campSiteDetail.close();
   };
 
-  const handlePressDirections = () => {
-    void campSiteDetail.openDirections();
+  const handlePressNaverMap = () => {
+    void campSiteDetail.openNaverMap();
+  };
+
+  const handlePressWeather = () => {
+    campSiteDetail.openWeather();
+  };
+
+  const handlePressReview = (review: BlogReview) => {
+    void campSiteDetail.openReview(review);
+  };
+
+  const handlePressVideo = (video: VideoReview) => {
+    void campSiteDetail.openVideo(video);
   };
 
   const handlePressSetBag = () => {
@@ -92,6 +107,16 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
           >
             <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
           </TouchableOpacity>
+
+          {/* 네이버 지도에서 열기(CS-3) — 헤더 우측 상단 아이콘 버튼 */}
+          <TouchableOpacity
+            onPress={handlePressNaverMap}
+            style={styles.naverMapButton}
+            accessibilityLabel='네이버 지도에서 열기'
+            accessibilityRole='button'
+          >
+            <Ionicons name='map-outline' size={22} color={Color.textPrimary} />
+          </TouchableOpacity>
         </View>
 
         <ScrollView
@@ -119,25 +144,18 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
             </View>
             <PretendardText style={styles.region}>{spot.region}</PretendardText>
 
-            <TouchableOpacity
-              style={styles.directionsButton}
-              onPress={handlePressDirections}
-              activeOpacity={0.7}
-              accessibilityLabel='길찾기'
-              accessibilityRole='button'
-            >
-              <Ionicons
-                name='navigate-outline'
-                size={18}
-                color={Color.textPrimary}
-              />
-              <PretendardText
-                style={styles.directionsText}
-                weight='semibold'
-              >
-                길찾기
-              </PretendardText>
-            </TouchableOpacity>
+            {/* 지형·특징 태그(CS-3) — 비인터랙티브 칩 */}
+            {(spot.tags ?? []).length > 0 && (
+              <View style={styles.tagRow}>
+                {(spot.tags ?? []).map(tag => (
+                  <View key={tag} style={styles.tagChip}>
+                    <PretendardText style={styles.tagChipText} weight='medium'>
+                      #{getCampSiteTagLabel(tag)}
+                    </PretendardText>
+                  </View>
+                ))}
+              </View>
+            )}
 
             {hasWarnings ? (
               <View style={styles.warningBox}>
@@ -209,12 +227,35 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
               </View>
             ) : null}
 
-            {weather && weather.length > 0 ? (
+            <TouchableOpacity
+              style={styles.weatherButton}
+              onPress={handlePressWeather}
+              activeOpacity={0.7}
+              accessibilityLabel='주간 날씨'
+              accessibilityRole='button'
+            >
+              <Ionicons
+                name='partly-sunny-outline'
+                size={18}
+                color={Color.textPrimary}
+              />
+              <PretendardText style={styles.weatherButtonText} weight='semibold'>
+                주간 날씨
+              </PretendardText>
+            </TouchableOpacity>
+
+            {/* 외부 후기(CS-3) — 공용 후기 콘텐츠(유튜브 카드 + 블로그 리스트) */}
+            {reviews.length > 0 || videos.length > 0 ? (
               <View style={styles.section}>
                 <PretendardText style={styles.sectionTitle} weight='semibold'>
-                  주간 날씨
+                  후기
                 </PretendardText>
-                <WeatherDailyView daily={weather} />
+                <ReviewSectionView
+                  reviews={reviews}
+                  videos={videos}
+                  onPressReview={handlePressReview}
+                  onPressVideo={handlePressVideo}
+                />
               </View>
             ) : null}
 
@@ -270,6 +311,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginLeft: -10,
   },
+  // 헤더 우측 네이버 지도 열기 버튼 — 뒤로 가기와 대칭인 44pt 아이콘 버튼.
+  naverMapButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 'auto',
+    marginRight: -10,
+  },
   content: {
     flex: 1,
   },
@@ -311,7 +361,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Color.textSecondary,
   },
-  directionsButton: {
+  tagRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 10,
+  },
+  tagChip: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: Radius.chip,
+    backgroundColor: Color.chipInactiveBg,
+  },
+  tagChipText: {
+    fontSize: 12,
+    color: Color.textTertiary,
+  },
+  weatherButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -321,7 +387,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.card,
     paddingVertical: 12,
   },
-  directionsText: {
+  weatherButtonText: {
     fontSize: 15,
     color: Color.textPrimary,
   },

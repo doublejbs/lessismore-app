@@ -30,7 +30,7 @@ app/gear-detail/[id]/index.tsx → WarehouseDetailWrapper → WarehouseDetailVie
 
 **수용 기준**
 
-- 제조사, 이름(`getDisplayName()`), 색상, 무게, 대표 사진을 표시한다.
+- 제조사(`getDisplayCompany()` — 한글 표시명 우선, 리스트 화면과 동일), 이름(`getDisplayName()`), 색상, 무게, 대표 사진을 표시한다. 대표 사진이 없으면 `thumbBg` 배경의 플레이스홀더 박스(동일 높이)로 레이아웃을 유지한다.
 - 카테고리·색상은 이름 아래 **메타 라인**에 `카테고리 · 색상` 형식 보조 텍스트(`textSecondary`)로 표시한다(칩 아님). 카테고리는 `GearFilterName` 한글 표시명, 알 수 없는/빈 값은 항목 생략, 둘 다 없으면 라인 자체 미노출.
 - 무게는 큰 숫자에 `무게` 캡션을 붙여 맥락을 준다.
 - 대표 사진 변경 버튼은 중앙 pill 대신 **이미지 우하단 오버레이 아이콘 버튼**(44pt, `accessibilityLabel`)으로 배치한다. 노출 조건은 기존과 동일 — **내 창고에 추가된 장비이고 공유 이미지 기능이 활성일 때만**.
@@ -86,10 +86,21 @@ app/gear-detail/[id]/index.tsx → WarehouseDetailWrapper → WarehouseDetailVie
 - 링크 바로 아래에 수수료 고지 문구(`이 링크는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.`)를 상시(숨김/접힘 없이) 표시한다.
 - 고지 문구는 상시 노출을 유지하되 링크보다 시각 위계를 낮춘다(fontSize 11, `textSecondary`) — 법적 고지가 링크 본문보다 무거워 보이지 않게.
 
+### GD-6 외부 후기 (네이버 블로그·유튜브)
+
+사용자는 장비 상세에서 해당 장비의 외부 후기(블로그 글·유튜브 영상)를 바로 확인할 수 있다. 박지 상세(CS-3)의 후기 섹션과 동일한 공용 모듈을 재사용한다.
+
+**수용 기준**
+
+- 섹션 타이틀은 `블로그·유튜브 후기`(앱 내 사용자 `리뷰` 섹션과 구분). **배치는 보유 여부로 분기**한다 — 미보유(쇼핑 맥락)는 외부 후기가 구매 판단에 더 유용하므로 리뷰(댓글) 섹션 **위**, 보유는 리뷰 섹션 아래. 검색어는 두 소스 모두 `"{제조사 표시명} {장비 표시명} 후기"`(표시명 = `getDisplayName()` 계열, 제조사 없으면 생략).
+- **유튜브 영상**(상위 4건, 가로 카드)과 **네이버 블로그**(상위 5건, 리스트) 구성·동작은 CS-3와 동일 — 탭 시 외부 앱/브라우저로 이동, HTML 태그·엔티티 제거, 소스별 실패·0건이면 해당 리스트만 생략(둘 다 0건이면 섹션 생략).
+- **후기 캐시(주 1회 최신화)**: Firestore `gear-review/{gearId}`([DataModel.md](DataModel.md) DM-19)에 저장. 정책은 DM-18과 동일 — 캐시 우선 표시, `updatedAt` 7일 초과 시 재조회, 두 소스 모두 성공 시에만 갱신, 실패 시 기존 캐시 유지.
+- 블로그·유튜브 클릭은 `click_gear_review`(파라미터 `source: blog|youtube`)로 계측한다.
+
 ## 4. 데이터
 
-- 읽기: 장비 문서(DM-3), `gear/{gearId}/images`(DM-8), 최신 댓글(DM-7).
-- 쓰기: 갤러리 업로드/삭제(Storage `/gears/{gearId}/{imageId}` + Firestore), 대표 사진 변경(`users/{uid}/gears/{id}.imageUrl`).
+- 읽기: 장비 문서(DM-3), `gear/{gearId}/images`(DM-8), 최신 댓글(DM-7), 외부 후기 캐시(DM-19).
+- 쓰기: 갤러리 업로드/삭제(Storage `/gears/{gearId}/{imageId}` + Firestore), 대표 사진 변경(`users/{uid}/gears/{id}.imageUrl`), 외부 후기 캐시 갱신(DM-19).
 
 ## 5. 플랫폼 분기
 

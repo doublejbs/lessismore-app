@@ -32,11 +32,6 @@
       "googleServicesFile": "./google-services.json",
       "package": "com.doublejbs.useless",
       "permissions": ["android.permission.RECORD_AUDIO"],
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyBYYprHdpI_4j3_yERPOcImb-mw2bNFVYU"
-        }
-      },
       "userInterfaceStyle": "light"
     },
     "web": {
@@ -59,7 +54,8 @@
           "android": {
             "compileSdkVersion": 35,
             "targetSdkVersion": 35,
-            "minSdkVersion": 24
+            "minSdkVersion": 24,
+            "extraMavenRepos": ["https://repository.map.naver.com/archive/maven"]
           }
         }
       ],
@@ -84,6 +80,12 @@
         {
           "photosPermission": "이 앱은 공유 이미지를 저장하기 위해 사진 라이브러리에 접근합니다.",
           "savePhotosPermission": "이 앱은 공유 이미지를 저장하기 위해 사진 라이브러리에 접근합니다."
+        }
+      ],
+      [
+        "./plugins/WithNaverMapNcpKey.js",
+        {
+          "ncpKeyId": "4ct2o369jz"
         }
       ],
       [

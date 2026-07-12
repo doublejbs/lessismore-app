@@ -33,14 +33,26 @@ const BagDetailMemoView: FC<Props> = ({ bagDetail }) => {
         size={22}
         color={Color.textPrimary}
       />
-      <View style={styles.textWrap}>
-        <PretendardText style={styles.title} weight='medium'>
-          메모
+      {hasMemo ? (
+        // 메모가 있으면 '메모' 라벨을 빼고 내용에 공간을 다 준다(아이콘으로 메모임을 식별).
+        // 옆 타일의 주 텍스트(라벨 15pt medium)와 위계를 맞춘다.
+        <PretendardText
+          style={styles.memoContent}
+          weight='medium'
+          numberOfLines={3}
+        >
+          {memo}
         </PretendardText>
-        <PretendardText style={styles.subtitle} numberOfLines={1}>
-          {hasMemo ? memo : '작성하기'}
-        </PretendardText>
-      </View>
+      ) : (
+        <View style={styles.textWrap}>
+          <PretendardText style={styles.title} weight='medium'>
+            메모
+          </PretendardText>
+          <PretendardText style={styles.subtitle} numberOfLines={1}>
+            작성하기
+          </PretendardText>
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
@@ -64,6 +76,11 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 12,
     color: Color.textSecondary,
+  },
+  memoContent: {
+    fontSize: 15,
+    lineHeight: 21,
+    color: Color.textPrimary,
   },
 });
 

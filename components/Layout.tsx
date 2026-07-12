@@ -11,15 +11,22 @@ import { Color } from '@/constants/DesignTokens';
 interface Props {
   children: ReactNode;
   paddingHorizontal?: number;
+  // 토스트를 화면 하단에서 띄우는 높이. 하단 CTA가 있는 화면은 낮춰서
+  // 토스트가 버튼 위에 떠 겹쳐 보이지 않게 한다(기본 100).
+  toastBottom?: number;
 }
 
-const Layout: FC<Props> = ({ children, paddingHorizontal = 20 }) => {
+const Layout: FC<Props> = ({
+  children,
+  paddingHorizontal = 20,
+  toastBottom = 100,
+}) => {
   return (
     <SafeAreaView style={safeAreaStyle}>
       <View style={[containerStyle, { paddingHorizontal }]}>{children}</View>
       <LogInView logInAlertManager={app.getLogInAlertManager()!} />
       <AlertView alertManager={app.getAlertManager()!} />
-      <ToastView toastManager={app.getToastManager()!} bottom={100} />
+      <ToastView toastManager={app.getToastManager()!} bottom={toastBottom} />
     </SafeAreaView>
   );
 };

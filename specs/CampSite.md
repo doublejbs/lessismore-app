@@ -11,15 +11,15 @@
 
 전국 백패킹 박지(공식 야영장·대피소·노지 박지)를 **지도 기반**으로 둘러보고 상세 정보를 확인하는 신규 탭.
 데이터는 공공 API(고캠핑·국립공원) 스냅샷 + 큐레이션 시드를 Firestore `/camp-spot`(DM-17)에 배치 적재하고,
-클라이언트는 Firestore만 읽는다. 지도는 이미 설치·설정된 `react-native-maps`(날씨 지도 피커와 동일)를 재사용한다 —
-**새 네이티브 모듈 없음 → OTA 배포 가능.**
+클라이언트는 Firestore만 읽는다. 지도는 **네이버 지도**(`@mj-studio/react-native-naver-map` v1 — 레거시 아키텍처용, 공식 네이티브 SDK 래퍼)를 사용한다.
+네이티브 SDK라 지도 엔진 변경은 새 바이너리에 묶인다. 과금: NCP Mobile Dynamic Map(지도 뷰 생성당 — 단가는 NCP 요금표).
 
 노지 야영은 국립공원·상수원보호구역 등에서 **불법**일 수 있다. 유형 배지와 주의·규제 고지(CS-4)가 이 기능의 신뢰성 핵심이다.
 
 ## 2. 화면 및 진입
 
 ```
-app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (react-native-maps)
+app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
   ├─ 유형 필터 칩 행 (전체/야영장/대피소/노지)
   ├─ 박지 마커 × n (유형별 색/아이콘)
   ├─ 현재 위치 버튼
@@ -28,7 +28,7 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (react-native-maps
 ```
 
 - 다섯 번째 탭 `지도` — iOS NativeTabs SF `map.fill`, Android JS 탭바 동일 순서. 탭 위치는 `배낭` 앞(창고/탐색/지도/배낭/정보).
-- 웹은 `react-native-maps` 미지원이므로 탭 자체를 렌더하지 않는다.
+- 웹은 네이버 지도 SDK 미지원이므로 탭 자체를 렌더하지 않는다.
 
 ## 3. 요구사항
 
@@ -46,20 +46,33 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (react-native-maps
 
 **수용 기준**
 
-- 박지 유형은 string enum `CampSiteType`: `campground`(야영장) / `shelter`(대피소) / `wild`(노지). 마커는 유형별로 색을 달리한다(야영장=검정, 대피소=회색, 노지=아웃라인 — 구현 시 토큰 기준 확정).
-- **마커는 줌 임계(위도 델타 ≤ 1.2, 도 단위) 이내로 줌인했을 때만 표시**한다(유형 구분 없이 일괄) — 전국 뷰에서 수백 개가 한꺼번에 깔리는 것 방지. 줌아웃 상태에선 마커가 없어도 무방(검색·현재 위치로 진입 유도). `[제안]`
-- 지도 상단에 유형 필터 칩(전체 + 3유형, 단일 선택 — 공용 `CategoryChipView` 톤). 선택 시 해당 유형 마커만 표시.
+- 박지 유형은 string enum `CampSiteType`: `campground`(야영장) / `shelter`(대피소) / `wild`(노지). 마커는 유형별로 색을 달리한다 — 배낭 상세 카테고리 팔레트 재사용: 노지=`#4A90E2`(파랑), 대피소=`#50C878`(초록), 야영장=`#FFD700`(골드).
+- **마커는 줌 수준과 무관하게 현재 화면(뷰포트) 영역 안의 필터 적용 마커를 전량 표시**한다(샘플링·개수 상한 없음). 겹침은 캡션 자동 숨김(`isHideCollidedCaptions`)이 처리하고 마커 자체는 항상 보인다. 카메라 이동/줌 변경 시 표시 대상을 갱신한다. **뷰포트 밖 마커는 렌더하지 않는다**(전체 spots를 전부 네이티브 마커로 올리면 탭 반응이 느려짐). `[제안]`
+- **마커에는 박지 이름 캡션을 함께 표시**한다(마커 위, 검정 텍스트 + 흰 halo로 지도 위 가독성 확보). 마커·캡션이 겹치는 영역에서는 겹치는 마커의 캡션만 자동으로 숨긴다(`isHideCollidedCaptions`) — 마커 자체는 숨기지 않는다. 마커와 겹치는 **기본 지도 심볼(산 정상 POI 등)은 숨긴다**(`isHideCollidedSymbols`) — 이중 라벨 정리 + 심볼이 마커 탭을 가로채는 문제 방지. 마커 탭 표면은 44pt 히트 영역 전체가 동작해야 한다(아이콘 투명 픽셀로 탭이 통과하지 않게).
+- 지도 상단에 **필터 칩 두 행**(공용 `CategoryChipView` 톤) — 축당 한 행씩 담당해 리셋·색 범례가 항상 보이게 한다(두 축을 한 행에 합치면 "전체"가 스크롤 밖으로 사라지고 태그 발견 가능성이 떨어짐 — 디자인 리뷰로 확정).
+  - **1행 유형 칩**: `전체 · [●노지] [●대피소] [●야영장]` — 4칩이 스크롤 없이 화면 안에 들어간다(단일 선택). 라벨 앞 **마커 색 도트**(노지=파랑/대피소=초록/야영장=골드)가 지도 마커 색 범례를 겸하며, 선택(검정 채움) 상태에서는 도트에 흰 테두리를 둘러 시인성을 유지한다.
+  - **2행 태그 칩**: `[#산] [#해변] … [#숲]` 가로 스크롤. `#` 접두 라벨(상세 화면 태그 칩과 일관)이며, 별도 "전체" 없이 **선택된 칩을 다시 탭하면 해제**(토글)된다. 스크롤로 가려진 칩을 선택하면 보이도록 행을 자동 스크롤한다.
+  - 유형·태그는 **AND 결합** — 태그 선택 시 해당 태그가 없는 spot(태그 미부여 포함)은 마커 표시에서 제외된다. 검색(CS-6)은 필터와 독립.
+  - **결과 수 피드백**: 필터 변경 시 토스트로 결과 수를 알린다(예: `#해변 노지 21곳`). 0건이면 `조건에 맞는 박지가 없어요`. 전체(무필터)로 돌아올 때는 토스트를 띄우지 않는다.
 - 마커 탭 → 하단 요약 카드(이름·유형 배지·지역·시설 아이콘 요약). 지도 빈 곳 탭 → 카드 닫힘.
+- 요약 카드에 **위치로 이동** 버튼을 둔다 — 카드가 열린 채 지도를 움직였다가 다시 해당 박지 위치로 카메라를 되돌린다(줌인 이동, 검색 결과 선택과 동일한 줌 레벨).
 
 ### CS-3 박지 상세
 
 **수용 기준**
 
-- 요약 카드 탭 → `/camp-site/{id}` 상세 화면.
+- 요약 카드 탭 → `/camp-site/{id}` 상세 화면. 박지 데이터를 불러오는 동안 빈 화면 대신 **로딩 인디케이터**(중앙)를 표시한다.
 - 표시: 대표 사진(있으면), 이름, 유형 배지, 지역, 설명, 시설(화장실/식수/데크/매점 — 있는 것만 아이콘+라벨), 접근 정보(`accessInfo` 자유 텍스트, 예: `주차장에서 도보 40분`), 출처(`source`).
-- **길찾기** 버튼: 좌표로 외부 지도앱을 연다(iOS `maps://`, Android `geo:` — `Linking.openURL`).
-- **주간 날씨**: 박지 좌표로 기존 `WeatherService`(WT) 예보를 조회해 상세 하단에 표시한다. 날씨 조회 실패는 섹션 생략(조용히).
+- `tags`가 있으면 지역 아래에 **태그 칩**(`#해변` 형태, 비인터랙티브)을 표시한다.
+- **네이버 지도에서 열기**: 헤더 우측 상단 아이콘 버튼. 좌표·박지명으로 네이버 지도 앱을 연다(`nmap://place?lat=..&lng=..&name=..&appname=..`). 앱 미설치·실패 시 네이버 지도 웹 검색(`https://map.naver.com/p/search/{박지명}`)으로 폴백.
+- **주간 날씨**: 상세에는 인라인 표시 대신 `주간 날씨` **버튼**을 둔다. 탭 → `/camp-site-weather/{id}` 전용 페이지로 이동해 박지 좌표로 기존 `WeatherService`(WT) 예보를 조회·표시한다(페이지 타이틀=박지명, 로딩 인디케이터, 실패 시 `날씨를 불러오지 못했어요` + 재시도). 상세 화면 자체는 날씨를 조회하지 않는다.
 - 진입/길찾기 클릭 이벤트를 [Analytics.md](Analytics.md) AN-3 규칙으로 계측한다(`click_camp_site`, `click_camp_site_directions` — 구현 시 표 갱신).
+- **후기 콘텐츠** `[제안]`: 상세 하단(날씨 아래)에 `후기` 섹션을 표시한다. 검색어는 두 소스 모두 `"{박지명} 백패킹"`.
+  - **블로그 후기 리스트**: 네이버 블로그 검색 API(`GET https://openapi.naver.com/v1/search/blog.json`, 헤더 `X-Naver-Client-Id`/`X-Naver-Client-Secret` — env `EXPO_PUBLIC_NAVER_SEARCH_CLIENT_ID`/`EXPO_PUBLIC_NAVER_SEARCH_CLIENT_SECRET`, 네이버 개발자센터 앱)로 상위 5건 — 제목·요약(description 1~2줄)·블로거명·작성일. 항목 탭 → 외부 브라우저(`Linking.openURL`). 제목/요약의 HTML 태그·엔티티는 제거해 표시.
+  - **유튜브 영상 리스트**: YouTube Data API v3(`GET https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=4`, env `EXPO_PUBLIC_YOUTUBE_API_KEY`)로 상위 4건 — 썸네일(`snippet.thumbnails.medium`)+제목+채널명 카드를 가로 스크롤로 표시. 탭 → `https://www.youtube.com/watch?v={videoId}` 열기(유튜브 앱).
+  - **후기 캐시(주 1회 최신화)**: 검색 결과는 Firestore `camp-spot-review/{spotId}`([DataModel.md](DataModel.md) DM-18)에 저장해 두고, 상세 진입 시 ① 캐시가 있으면 즉시 표시 ② `updatedAt`이 **7일 이내면 재조회하지 않음** ③ 7일 초과(또는 캐시 없음)면 두 소스를 재조회해 표시하고 **둘 다 성공했을 때만** 캐시를 갱신한다. 재조회 실패 시 기존 캐시를 그대로 유지·표시한다. 검색 쿼터(유튜브 기본 10,000유닛/일, 검색당 100유닛) 절약이 목적.
+  - 소스별로 키 미설정·조회 실패·0건이면 해당 리스트만 조용히 생략(두 소스 모두 0건이면 후기 섹션 자체를 생략). 별도의 `더 보기` 행은 두지 않는다.
+  - 블로그·유튜브·더보기 클릭은 `click_camp_site_review`로 계측한다(AN-3, 파라미터로 소스 구분 가능 시 `source: blog|youtube`).
 
 ### CS-4 주의·규제 고지 (필수)
 
@@ -74,6 +87,7 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (react-native-maps
 **수용 기준**
 
 - 상세에 `배낭 여행지로 설정` 버튼 → 내 배낭 목록에서 선택 → 해당 배낭의 `location`(DM-15)에 `{ name: 박지명, latitude, longitude }` 저장(기존 `BagStore.updateLocation` 재사용) 후 날씨 스냅샷 갱신은 기존 BagWeather 흐름에 위임.
+- 설정 완료 토스트(`여행지로 설정했어요.`)에 **`이동` 액션 버튼**을 넣어 해당 배낭 상세(`/bag/{id}`)로 바로 이동할 수 있게 한다. (Android는 네이티브 토스트라 버튼 미지원 — 메시지만 표시, 기존 토스트 액션 관례와 동일)
 - 비로그인 또는 배낭 0개면 버튼 대신 비활성/안내.
 
 ### CS-6 박지 검색 `[제안]`
@@ -102,8 +116,8 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (react-native-maps
 
 | 지점 | iOS | Android | Web |
 | --- | --- | --- | --- |
-| 지도 | Apple Maps (기본 provider) | Google Maps (키 설정됨) | 탭 미노출 |
-| 길찾기 | `maps://` | `geo:` | — |
+| 지도 | 네이버 지도 (공식 SDK) | 네이버 지도 (공식 SDK) | 탭 미노출 |
+| 지도 열기 | `nmap://place` → 웹 폴백 | `nmap://place` → 웹 폴백 | — |
 | 탭 | NativeTabs `map.fill` | JS 탭바 drawable | — |
 
 ## 6. 엣지 케이스
