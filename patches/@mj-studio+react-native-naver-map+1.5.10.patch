@@ -1,0 +1,39 @@
+diff --git a/node_modules/@mj-studio/react-native-naver-map/android/build.gradle b/node_modules/@mj-studio/react-native-naver-map/android/build.gradle
+index 6d8622d..dd03016 100644
+--- a/node_modules/@mj-studio/react-native-naver-map/android/build.gradle
++++ b/node_modules/@mj-studio/react-native-naver-map/android/build.gradle
+@@ -108,7 +108,11 @@ dependencies {
+   //noinspection GradleDynamicVersion
+   implementation "com.facebook.react:react-native:+"
+   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+-  implementation "com.naver.maps:map-sdk:${getExtOrDefault("sdkVersion")}"
++  implementation("com.naver.maps:map-sdk:${getExtOrDefault("sdkVersion")}") {
++    // hot-updater가 org.brotli.dec-1.2.0.jar를 내장해 중복 클래스 충돌 → naver 쪽 brotli 제외
++    // (런타임 클래스는 hot-updater jar가 제공)
++    exclude group: "org.brotli", module: "dec"
++  }
+   implementation "com.google.android.gms:play-services-location:${getExtOrDefault("locationServiceVersion")}"
+ }
+ 
+diff --git a/node_modules/@mj-studio/react-native-naver-map/android/gradle.properties b/node_modules/@mj-studio/react-native-naver-map/android/gradle.properties
+index 29a238e..7f0c5d2 100644
+--- a/node_modules/@mj-studio/react-native-naver-map/android/gradle.properties
++++ b/node_modules/@mj-studio/react-native-naver-map/android/gradle.properties
+@@ -3,5 +3,5 @@ NaverMap_minSdkVersion=21
+ NaverMap_targetSdkVersion=31
+ NaverMap_compileSdkVersion=31
+ NaverMap_ndkversion=21.4.7075529
+-NaverMap_sdkVersion=3.18.0
++NaverMap_sdkVersion=3.21.0
+ NaverMap_locationServiceVersion=21.2.0
+diff --git a/node_modules/@mj-studio/react-native-naver-map/mj-studio-react-native-naver-map.podspec b/node_modules/@mj-studio/react-native-naver-map/mj-studio-react-native-naver-map.podspec
+index 4d1cead..6425a6b 100644
+--- a/node_modules/@mj-studio/react-native-naver-map/mj-studio-react-native-naver-map.podspec
++++ b/node_modules/@mj-studio/react-native-naver-map/mj-studio-react-native-naver-map.podspec
+@@ -40,5 +40,5 @@ Pod::Spec.new do |s|
+    end
+   end
+ 
+-  s.dependency "NMapsMap", "3.18.0"
++  s.dependency "NMapsMap", "3.21.0"
+ end

@@ -9,7 +9,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import MapView, { MapPressEvent, Marker, Region } from 'react-native-maps';
+import {
+  NaverMapView,
+  NaverMapViewRef,
+  NaverMapMarkerOverlay,
+  Camera,
+} from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -26,6 +31,7 @@ import CampSiteType from '@/model/camp-site/CampSiteType';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import { getCampSiteTypeLabel } from '@/model/camp-site/CampSiteLabels';
 import LocalStorageManager from '@/model/storage/LocalStorageManager';
+import { deltaToZoom } from '@/model/map/MapZoom';
 import CategoryChipView from '@/components/browse/CategoryChipView';
 import CampSiteSummaryCardView from './CampSiteSummaryCardView';
 
@@ -34,11 +40,11 @@ interface Props {
 }
 
 // 남한 전역이 보이는 폴백 카메라(위치 권한 거부/미결정 시).
-const KOREA_REGION: Region = {
+// 중심=남한 중앙, 줌=기존 latitudeDelta 4.8 등가(iPhone 세로 ~850dp 기준 zoom ≈ 8).
+const KOREA_CAMERA: Camera = {
   latitude: 36.2,
   longitude: 127.9,
-  latitudeDelta: 4.8,
-  longitudeDelta: 4.2,
+  zoom: deltaToZoom(4.8),
 };
 
 // 최초 진입 1회 규제 고지(CS-4) 표시 여부 저장 키.
@@ -48,14 +54,14 @@ const NOTICE_STORAGE_KEY = 'campSiteNoticeShown';
 // 하단 플로팅 요소는 탭바 높이만큼 띄운다. Android JS 탭바는 레이아웃 공간을 차지해 불필요.
 const TAB_BAR_HEIGHT = 49;
 
-// 마커는 이 줌(위도 델타) 이내로 줌인했을 때만 표시한다 —
+// 마커는 이 줌 이상으로 확대했을 때만 표시한다 —
 // 전국 뷰에서 수백 개가 한꺼번에 깔리는 것 방지(유형 구분 없이 일괄 적용).
-const MARKER_VISIBLE_MAX_DELTA = 1.2;
+// 임계 latitudeDelta ≤ 1.2 등가(iPhone 세로 ~850dp 기준 zoom ≈ 10).
+const MARKER_VISIBLE_MIN_ZOOM = deltaToZoom(1.2);
 
 // 유형별 마커 색 — 디자인 토큰 외 시맨틱 리터럴 허용:
 // 야영장=검정, 대피소=회색, 노지=주황(현지 규제 주의).
-// Android(Google Maps)의 Marker pinColor는 hue만 반영해 검정/회색이 빨강으로
-// 렌더되므로, 이 색은 커스텀 원형 View 마커의 배경색으로 사용한다.
+// 커스텀 원형 View 마커의 배경색으로 사용하므로 색이 그대로 렌더된다.
 const getMarkerColor = (type: CampSiteType): string => {
   switch (type) {
     case CampSiteType.Shelter: {
@@ -88,8 +94,10 @@ const TYPE_FILTERS: { label: string; value: CampSiteType | null }[] = [
 
 const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
   const router = useRouter();
-  const mapRef = useRef<MapView>(null);
+  const mapRef = useRef<NaverMapViewRef>(null);
   const [locationGranted, setLocationGranted] = useState(false);
+  // 지도 초기화 완료 여부 — 위치 추적 모드는 초기화 후에만 설정할 수 있다.
+  const [mapReady, setMapReady] = useState(false);
   // 검색 인풋 포커스 여부 — 드롭다운은 query가 있고 포커스 상태일 때만 표시(CS-6).
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const insets = useSafeAreaInsets();
@@ -118,15 +126,12 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
           return;
         }
 
-        mapRef.current?.animateToRegion(
-          {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            latitudeDelta: 0.2,
-            longitudeDelta: 0.2,
-          },
-          500
-        );
+        mapRef.current?.animateCameraTo({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          zoom: deltaToZoom(0.2),
+          duration: 500,
+        });
       } catch (error) {
         console.error('위치 권한 요청 실패:', error);
       }
@@ -159,19 +164,26 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
     showNoticeOnce();
   }, []);
 
+  // 권한 허용 + 지도 초기화 완료 시 현위치 오버레이(파란 점)를 표시한다.
+  // NoFollow는 오버레이만 사용자 위치를 따라가고 카메라는 움직이지 않는다(기존 showsUserLocation 대체).
+  useEffect(() => {
+    if (!mapReady || !locationGranted) {
+      return;
+    }
+
+    mapRef.current?.setLocationTrackingMode('NoFollow');
+  }, [mapReady, locationGranted]);
+
   const handleMoveToCurrentLocation = async () => {
     try {
       const position = await Location.getCurrentPositionAsync({});
 
-      mapRef.current?.animateToRegion(
-        {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          latitudeDelta: 0.2,
-          longitudeDelta: 0.2,
-        },
-        500
-      );
+      mapRef.current?.animateCameraTo({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        zoom: deltaToZoom(0.2),
+        duration: 500,
+      });
     } catch (error) {
       console.error('현재 위치 이동 실패:', error);
     }
@@ -185,15 +197,12 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
 
     campSiteMap.selectSpot(spot);
 
-    mapRef.current?.animateToRegion(
-      {
-        latitude: spot.location.latitude,
-        longitude: spot.location.longitude,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
-      },
-      500
-    );
+    mapRef.current?.animateCameraTo({
+      latitude: spot.location.latitude,
+      longitude: spot.location.longitude,
+      zoom: deltaToZoom(0.05),
+      duration: 500,
+    });
   };
 
   // 검색 시작 시 요약 카드를 닫아 드롭다운과 카드가 동시에 뜨지 않게 한다.
@@ -202,26 +211,13 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
     campSiteMap.selectSpot(null);
   };
 
-  // 마커 탭이 지도 onPress로도 전파되는 경합(iOS) 방어용 플래그.
-  const markerPressedRef = useRef(false);
-
-  const handleMarkerPress = (spot: CampSpot) => {
-    markerPressedRef.current = true;
+  const handleMarkerTap = (spot: CampSpot) => {
     campSiteMap.selectSpot(spot);
   };
 
   // 지도 빈 곳 터치 → 요약 카드 닫기 + 키보드 dismiss(드롭다운 blur로 닫힘, CS-6).
-  // 마커 탭 직후 전파된 press는 무시해 카드가 열리자마자 닫히지 않게 한다.
-  const handleMapPress = (event: MapPressEvent) => {
-    if (
-      event.nativeEvent?.action === 'marker-press' ||
-      markerPressedRef.current
-    ) {
-      markerPressedRef.current = false;
-
-      return;
-    }
-
+  // 네이버는 마커 onTap과 지도 onTapMap이 분리돼 있어 별도 경합 방어가 필요 없다.
+  const handleTapMap = () => {
     campSiteMap.selectSpot(null);
 
     // Android는 Keyboard.dismiss 후에도 blur가 안 뜰 수 있어 드롭다운 닫힘을 명시한다.
@@ -237,38 +233,47 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
   // 초기 카메라(전국)는 임계 밖이므로 false로 시작.
   const [markersVisible, setMarkersVisible] = useState(false);
 
-  const handleRegionChangeComplete = (region: Region) => {
-    setMarkersVisible(region.latitudeDelta <= MARKER_VISIBLE_MAX_DELTA);
+  const handleCameraChanged = (camera: Camera) => {
+    const zoom = camera.zoom ?? 0;
+
+    setMarkersVisible(zoom >= MARKER_VISIBLE_MIN_ZOOM);
   };
 
   const markerSpots = markersVisible ? campSiteMap.getVisibleSpots() : [];
 
   return (
     <View style={styles.container}>
-      <MapView
+      <NaverMapView
         ref={mapRef}
         style={StyleSheet.absoluteFill}
-        initialRegion={KOREA_REGION}
-        onPress={handleMapPress}
-        onRegionChangeComplete={handleRegionChangeComplete}
-        // 권한 허용 시 내 위치를 네이티브 파란 점으로 표시. Android 기본 위치 버튼은
-        // 자체 현재 위치 버튼과 중복이라 끈다.
-        showsUserLocation={locationGranted}
-        showsMyLocationButton={false}
+        initialCamera={KOREA_CAMERA}
+        // 네이버 기본 현위치 버튼은 자체 버튼과 중복이라 숨긴다.
+        isShowLocationButton={false}
+        // 기본 줌 버튼/스케일바는 기존 지도 UI 톤(핀치 줌만)과 달라 숨긴다.
+        isShowZoomControls={false}
+        isShowScaleBar={false}
+        onInitialized={() => setMapReady(true)}
+        onTapMap={handleTapMap}
+        onCameraChanged={handleCameraChanged}
       >
         {markerSpots.map(spot => (
-          <Marker
+          <NaverMapMarkerOverlay
             key={spot.id}
-            coordinate={{
-              latitude: spot.location.latitude,
-              longitude: spot.location.longitude,
-            }}
+            latitude={spot.location.latitude}
+            longitude={spot.location.longitude}
             anchor={{ x: 0.5, y: 0.5 }}
-            tracksViewChanges={false}
-            onPress={() => handleMarkerPress(spot)}
+            width={44}
+            height={44}
+            onTap={() => handleMarkerTap(spot)}
           >
-            {/* 44pt 히트 영역 안에 20pt 원 — 작은 마커의 탭 인식률 확보 */}
-            <View style={styles.markerHitArea}>
+            {/* 44pt 히트 영역 안에 20pt 원 — 작은 마커의 탭 인식률 확보.
+                커스텀 View 마커는 최상위 자식에 생김새 의존성(색)을 key로 넘기고
+                collapsable=false로 렌더를 보장해야 한다(라이브러리 요구사항). */}
+            <View
+              key={`${spot.id}/${getMarkerColor(spot.type)}`}
+              collapsable={false}
+              style={styles.markerHitArea}
+            >
               <View
                 style={[
                   styles.marker,
@@ -276,9 +281,9 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
                 ]}
               />
             </View>
-          </Marker>
+          </NaverMapMarkerOverlay>
         ))}
-      </MapView>
+      </NaverMapView>
 
       {/* 상단 오버레이: 로드 실패 배너 + 검색 인풋/드롭다운 + 유형 필터 칩 행 */}
       <SafeAreaView
@@ -461,7 +466,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Color.background,
   },
-  // Android hue 문제 회피용 커스텀 원형 마커(위 getMarkerColor 주석 참고).
+  // 유형별 색을 그대로 표현하는 커스텀 원형 마커(위 getMarkerColor 주석 참고).
   markerHitArea: {
     width: 44,
     height: 44,

@@ -11,15 +11,15 @@
 
 전국 백패킹 박지(공식 야영장·대피소·노지 박지)를 **지도 기반**으로 둘러보고 상세 정보를 확인하는 신규 탭.
 데이터는 공공 API(고캠핑·국립공원) 스냅샷 + 큐레이션 시드를 Firestore `/camp-spot`(DM-17)에 배치 적재하고,
-클라이언트는 Firestore만 읽는다. 지도는 이미 설치·설정된 `react-native-maps`(날씨 지도 피커와 동일)를 재사용한다 —
-**새 네이티브 모듈 없음 → OTA 배포 가능.**
+클라이언트는 Firestore만 읽는다. 지도는 **네이버 지도**(`@mj-studio/react-native-naver-map` v1 — 레거시 아키텍처용, 공식 네이티브 SDK 래퍼)를 사용한다.
+네이티브 SDK라 지도 엔진 변경은 새 바이너리에 묶인다. 과금: NCP Mobile Dynamic Map(지도 뷰 생성당 — 단가는 NCP 요금표).
 
 노지 야영은 국립공원·상수원보호구역 등에서 **불법**일 수 있다. 유형 배지와 주의·규제 고지(CS-4)가 이 기능의 신뢰성 핵심이다.
 
 ## 2. 화면 및 진입
 
 ```
-app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (react-native-maps)
+app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
   ├─ 유형 필터 칩 행 (전체/야영장/대피소/노지)
   ├─ 박지 마커 × n (유형별 색/아이콘)
   ├─ 현재 위치 버튼
@@ -28,7 +28,7 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (react-native-maps
 ```
 
 - 다섯 번째 탭 `지도` — iOS NativeTabs SF `map.fill`, Android JS 탭바 동일 순서. 탭 위치는 `배낭` 앞(창고/탐색/지도/배낭/정보).
-- 웹은 `react-native-maps` 미지원이므로 탭 자체를 렌더하지 않는다.
+- 웹은 네이버 지도 SDK 미지원이므로 탭 자체를 렌더하지 않는다.
 
 ## 3. 요구사항
 
@@ -102,7 +102,7 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (react-native-maps
 
 | 지점 | iOS | Android | Web |
 | --- | --- | --- | --- |
-| 지도 | Apple Maps (기본 provider) | Google Maps (키 설정됨) | 탭 미노출 |
+| 지도 | 네이버 지도 (공식 SDK) | 네이버 지도 (공식 SDK) | 탭 미노출 |
 | 길찾기 | `maps://` | `geo:` | — |
 | 탭 | NativeTabs `map.fill` | JS 탭바 drawable | — |
 
