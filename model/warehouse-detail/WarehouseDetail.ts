@@ -20,6 +20,12 @@ import Warehouse from '../warehouse/Warehouse';
 import BagDetail from '../bag-detail/BagDetail';
 import GearImageSelection from '../gear-image/GearImageSelection';
 import GearImageType from '../gear/GearImageType';
+import reviewSearchService from '../review/ReviewSearchService';
+import {
+  BlogReview,
+  REVIEW_CACHE_TTL_MS,
+  VideoReview,
+} from '../review/ReviewTypes';
 
 class WarehouseDetail {
   public static new(router: Router, dispatcher: WarehouseDispatcherType) {
@@ -51,6 +57,8 @@ class WarehouseDetail {
   private showAddToBagModal = false;
   private gearImageSelection: GearImageSelection | null = null;
   private coupangUrl: string | undefined = undefined;
+  private reviews: BlogReview[] = [];
+  private videos: VideoReview[] = [];
 
   private constructor(
     private readonly bagStore: BagStore,
@@ -83,6 +91,11 @@ class WarehouseDetail {
   private async getGearData() {
     const gear = await this.gearStore.getGear(this.id);
     this.setGear(gear);
+
+    if (gear) {
+      void this.loadReviewContent(gear);
+    }
+
     this.setBags(await this.bagStore.getBags(this.getGear()?.getBags() ?? []));
     await this.fetchReplies();
 
@@ -97,6 +110,99 @@ class WarehouseDetail {
     } else {
       this.gearImageSelection = null;
       this.setCoupangUrl(undefined);
+    }
+  }
+
+  // 외부 후기(GD-6). Firestore 공유 캐시(DM-19)를 먼저 표시하고,
+  // 7일이 지났거나 캐시가 없으면 외부 검색 API로 재조회해 최신화한다.
+  // 재조회 실패 시 기존 캐시를 그대로 유지하고(가용성 우선), 캐시도 갱신하지 않는다.
+  private async loadReviewContent(gear: Gear) {
+    try {
+      const gearId = gear.getId();
+      const cached = await this.gearStore.getReviewCache(gearId).catch(e => {
+        console.error('장비 후기 캐시 조회 실패:', e);
+
+        return null;
+      });
+
+      if (cached) {
+        this.setReviews(cached.reviews ?? []);
+        this.setVideos(cached.videos ?? []);
+      }
+
+      const cachedAt = cached ? Date.parse(cached.updatedAt) : NaN;
+      const isFresh =
+        Number.isFinite(cachedAt) &&
+        Date.now() - cachedAt < REVIEW_CACHE_TTL_MS;
+
+      if (isFresh) {
+        return;
+      }
+
+      // 검색어: "{제조사 표시명} {장비 표시명} 후기" — 제조사가 없으면 생략.
+      const query =
+        `${gear.getDisplayCompany() ?? ''} ${gear.getDisplayName()} 후기`.trim();
+      const [reviews, videos] = await Promise.all([
+        reviewSearchService.getBlogReviews(query),
+        reviewSearchService.getVideoReviews(query),
+      ]);
+
+      // null = 해당 소스 조회 실패 → 캐시된 값(없으면 빈 배열)을 유지한다.
+      this.setReviews(reviews ?? cached?.reviews ?? []);
+      this.setVideos(videos ?? cached?.videos ?? []);
+
+      // 두 소스 모두 성공했을 때만 저장 — 실패 결과로 공유 캐시를 오염시키지 않는다(DM-19).
+      if (reviews !== null && videos !== null) {
+        await this.gearStore
+          .saveReviewCache(gearId, {
+            reviews,
+            videos,
+            updatedAt: new Date().toISOString(),
+          })
+          .catch(e => {
+            console.error('장비 후기 캐시 저장 실패:', e);
+          });
+      }
+    } catch (e) {
+      console.error('장비 후기 조회 실패:', e);
+    }
+  }
+
+  private setReviews(value: BlogReview[]) {
+    this.reviews = value;
+  }
+
+  public getExternalReviews() {
+    return this.reviews;
+  }
+
+  private setVideos(value: VideoReview[]) {
+    this.videos = value;
+  }
+
+  public getExternalVideos() {
+    return this.videos;
+  }
+
+  // 외부 후기 항목 탭(GD-6): 외부 브라우저로 블로그 글을 연다. 실패는 조용히 무시.
+  public async openExternalReview(review: BlogReview) {
+    app.getAnalyticsManager()?.logClick('gear_review', { source: 'blog' });
+
+    try {
+      await Linking.openURL(review.link);
+    } catch {
+      // 외부 브라우저 열기 실패는 조용히 무시
+    }
+  }
+
+  // 외부 후기 영상 탭(GD-6): 유튜브 영상을 연다. 실패는 조용히 무시.
+  public async openExternalVideo(video: VideoReview) {
+    app.getAnalyticsManager()?.logClick('gear_review', { source: 'youtube' });
+
+    try {
+      await Linking.openURL(`https://www.youtube.com/watch?v=${video.videoId}`);
+    } catch {
+      // 외부 앱/브라우저 열기 실패는 조용히 무시
     }
   }
 

@@ -9,7 +9,7 @@ import AnalyticsManager from '../analytics/AnalyticsManager';
 import BagItem from '../bag/BagItem';
 import CampSiteDetailDispatcher from './CampSiteDetailDispatcher';
 import { CampSpot } from './CampSpotTypes';
-import { CampSiteReview, CampSiteVideo } from './CampSiteReviewTypes';
+import { BlogReview, REVIEW_CACHE_TTL_MS, VideoReview } from '../review/ReviewTypes';
 
 // 박지 상세 도메인 모델 (CampSite CS-3/CS-4/CS-5).
 // 3단 래퍼(라우트 → Wrapper → View) 중 상태·비즈니스 로직을 담당한다.
@@ -27,8 +27,8 @@ class CampSiteDetail {
 
   private spot: CampSpot | null = null;
   private initialized = false;
-  private reviews: CampSiteReview[] = [];
-  private videos: CampSiteVideo[] = [];
+  private reviews: BlogReview[] = [];
+  private videos: VideoReview[] = [];
   private bags: BagItem[] = [];
   private showBagSheet = false;
 
@@ -74,9 +74,6 @@ class CampSiteDetail {
     return this.spot;
   }
 
-  // 후기 캐시(DM-18) TTL — 이보다 오래된 캐시는 상세 진입 시 재조회해 최신화한다.
-  private static readonly REVIEW_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-
   // 박지 후기·영상(CS-3). Firestore 공유 캐시(DM-18)를 먼저 표시하고,
   // 7일이 지났거나 캐시가 없으면 외부 검색 API로 재조회해 최신화한다.
   // 재조회 실패 시 기존 캐시를 그대로 유지하고(가용성 우선), 캐시도 갱신하지 않는다.
@@ -96,7 +93,7 @@ class CampSiteDetail {
       const cachedAt = cached ? Date.parse(cached.updatedAt) : NaN;
       const isFresh =
         Number.isFinite(cachedAt) &&
-        Date.now() - cachedAt < CampSiteDetail.REVIEW_CACHE_TTL_MS;
+        Date.now() - cachedAt < REVIEW_CACHE_TTL_MS;
 
       if (isFresh) {
         return;
@@ -128,7 +125,7 @@ class CampSiteDetail {
     }
   }
 
-  private setReviews(value: CampSiteReview[]) {
+  private setReviews(value: BlogReview[]) {
     this.reviews = value;
   }
 
@@ -136,7 +133,7 @@ class CampSiteDetail {
     return this.reviews;
   }
 
-  private setVideos(value: CampSiteVideo[]) {
+  private setVideos(value: VideoReview[]) {
     this.videos = value;
   }
 
@@ -145,7 +142,7 @@ class CampSiteDetail {
   }
 
   // 후기 항목 탭(CS-3): 외부 브라우저로 블로그 글을 연다. 실패는 조용히 무시.
-  public async openReview(review: CampSiteReview) {
+  public async openReview(review: BlogReview) {
     this.analyticsManager?.logClick('camp_site_review', { source: 'blog' });
 
     try {
@@ -156,7 +153,7 @@ class CampSiteDetail {
   }
 
   // 후기 영상 카드 탭(CS-3): 유튜브 영상을 연다(유튜브 앱/브라우저). 실패는 조용히 무시.
-  public async openVideo(video: CampSiteVideo) {
+  public async openVideo(video: VideoReview) {
     this.analyticsManager?.logClick('camp_site_review', { source: 'youtube' });
 
     try {

@@ -9,7 +9,7 @@ import {
 } from 'firebase/firestore';
 import Firebase from '../firebase/Firebase';
 import { CampSpot, CampSpotData } from '../camp-site/CampSpotTypes';
-import { CampSiteReviewCache } from '../camp-site/CampSiteReviewTypes';
+import { ReviewCache } from '../review/ReviewTypes';
 
 // 박지 카탈로그 조회 (CampSite CS-1, DataModel DM-17).
 // /camp-spot 은 관리 스크립트로만 적재되며 클라이언트는 읽기 전용이다.
@@ -48,7 +48,7 @@ class CampSpotStore {
   // 박지 후기 공유 캐시 조회 (CampSite CS-3, DataModel DM-18). 문서가 없으면 null.
   public async getReviewCache(
     spotId: string
-  ): Promise<CampSiteReviewCache | null> {
+  ): Promise<ReviewCache | null> {
     const snapshot = await getDoc(
       doc(this.getStore(), 'camp-spot-review', spotId)
     );
@@ -57,14 +57,14 @@ class CampSpotStore {
       return null;
     }
 
-    return snapshot.data() as CampSiteReviewCache;
+    return snapshot.data() as ReviewCache;
   }
 
   // 박지 후기 공유 캐시 갱신 (DM-18). 문서 통째 덮어쓰기 — 두 소스 모두
   // 조회에 성공한 결과만 저장해야 한다(실패로 캐시를 오염시키지 않기, 호출측 책임).
   public async saveReviewCache(
     spotId: string,
-    cache: CampSiteReviewCache
+    cache: ReviewCache
   ): Promise<void> {
     await setDoc(doc(this.getStore(), 'camp-spot-review', spotId), cache);
   }

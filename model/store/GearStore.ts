@@ -14,6 +14,7 @@ import {
 import GearFilter from '../gear/GearFilter';
 import OrderType from '../order/OrderType';
 import { toBrandKey } from './BrandKey';
+import { ReviewCache } from '../review/ReviewTypes';
 
 export interface GearData {
   id: string;
@@ -463,6 +464,26 @@ class GearStore {
     } catch {
       return undefined;
     }
+  }
+
+  // 장비 외부 후기 공유 캐시 조회 (GearDetail GD-6, DataModel DM-19). 문서가 없으면 null.
+  public async getReviewCache(gearId: string): Promise<ReviewCache | null> {
+    const snapshot = await getDoc(doc(this.getStore(), 'gear-review', gearId));
+
+    if (!snapshot.exists()) {
+      return null;
+    }
+
+    return snapshot.data() as ReviewCache;
+  }
+
+  // 장비 외부 후기 공유 캐시 갱신 (DM-19). 문서 통째 덮어쓰기 — 두 소스 모두
+  // 조회에 성공한 결과만 저장해야 한다(실패로 캐시를 오염시키지 않기, 호출측 책임).
+  public async saveReviewCache(
+    gearId: string,
+    cache: ReviewCache
+  ): Promise<void> {
+    await setDoc(doc(this.getStore(), 'gear-review', gearId), cache);
   }
 
   private getStore() {

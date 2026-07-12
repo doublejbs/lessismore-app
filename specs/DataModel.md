@@ -258,6 +258,10 @@
 - 갱신 실패 시 기존(만료된) 캐시를 그대로 표시한다 — 후기는 정확도보다 가용성 우선.
 - 보안 규칙: 읽기·쓰기 공개(캐시 특성상 클라이언트가 직접 갱신, 2026-07-12 실측 확인).
 
+### DM-19 장비 외부 후기 캐시 (`gear-review/{gearId}`) `[기획]`
+
+장비 상세([GearDetail.md](GearDetail.md) GD-6) 외부 후기(네이버 블로그·유튜브)의 공유 캐시. **필드·TTL(7일)·갱신 정책은 DM-18과 동일**하며 컬렉션과 문서 id(gearId)만 다르다. 공용 모듈(`model/review/`)이 두 캐시를 함께 다룬다.
+
 ## 4. Storage 경로 (DM-9)
 
 `model/firebase/FirebaseImageStorage.ts`:

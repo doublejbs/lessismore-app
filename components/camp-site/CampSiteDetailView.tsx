@@ -6,10 +6,11 @@ import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import CampSiteBagSelectSheetView from './CampSiteBagSelectSheetView';
+import ReviewSectionView from '@/components/review/ReviewSectionView';
 import CampSiteDetail from '@/model/camp-site/CampSiteDetail';
 import CampSiteType from '@/model/camp-site/CampSiteType';
 import CampSiteFacility from '@/model/camp-site/CampSiteFacility';
-import { CampSiteReview, CampSiteVideo } from '@/model/camp-site/CampSiteReviewTypes';
+import { BlogReview, VideoReview } from '@/model/review/ReviewTypes';
 import BagItem from '@/model/bag/BagItem';
 import {
   WILD_NOTICE,
@@ -64,11 +65,11 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
     campSiteDetail.openWeather();
   };
 
-  const handlePressReview = (review: CampSiteReview) => {
+  const handlePressReview = (review: BlogReview) => {
     void campSiteDetail.openReview(review);
   };
 
-  const handlePressVideo = (video: CampSiteVideo) => {
+  const handlePressVideo = (video: VideoReview) => {
     void campSiteDetail.openVideo(video);
   };
 
@@ -93,8 +94,6 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
   );
   const hasWildNotice = spot.type === CampSiteType.Wild;
   const hasWarnings = Boolean(spot.warnings);
-  // 블로그·유튜브 둘 다 0건이면 후기 섹션 자체를 렌더하지 않는다(빈 섹션 방지).
-  const hasReviewContent = reviews.length > 0 || videos.length > 0;
 
   return (
     <>
@@ -245,97 +244,13 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
               </PretendardText>
             </TouchableOpacity>
 
-            {hasReviewContent ? (
-              <View style={styles.section}>
-                <PretendardText style={styles.sectionTitle} weight='semibold'>
-                  후기
-                </PretendardText>
-
-                {videos.length > 0 ? (
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.videoScroll}
-                  >
-                    {videos.map(video => (
-                      <TouchableOpacity
-                        key={video.videoId}
-                        style={styles.videoCard}
-                        onPress={() => handlePressVideo(video)}
-                        activeOpacity={0.7}
-                        accessibilityRole='link'
-                        accessibilityLabel={`후기 영상: ${video.title}`}
-                      >
-                        <Image
-                          source={{ uri: video.thumbnailUrl }}
-                          style={styles.videoThumb}
-                          contentFit='cover'
-                        />
-                        <PretendardText
-                          style={styles.videoTitle}
-                          weight='medium'
-                          numberOfLines={2}
-                        >
-                          {video.title}
-                        </PretendardText>
-                        <PretendardText
-                          style={styles.videoChannel}
-                          numberOfLines={1}
-                        >
-                          {video.channelName}
-                        </PretendardText>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                ) : null}
-
-                {reviews.length > 0 ? (
-                  <View style={styles.reviewList}>
-                    {reviews.map(review => (
-                      <TouchableOpacity
-                        key={review.link}
-                        style={styles.reviewItem}
-                        onPress={() => handlePressReview(review)}
-                        activeOpacity={0.7}
-                        accessibilityRole='link'
-                        accessibilityLabel={`후기: ${review.title}`}
-                      >
-                        <View style={styles.reviewTextColumn}>
-                          <PretendardText
-                            style={styles.reviewTitle}
-                            weight='medium'
-                            numberOfLines={2}
-                          >
-                            {review.title}
-                          </PretendardText>
-                          {review.summary ? (
-                            <PretendardText
-                              style={styles.reviewSummary}
-                              numberOfLines={2}
-                            >
-                              {review.summary}
-                            </PretendardText>
-                          ) : null}
-                          <PretendardText
-                            style={styles.reviewMeta}
-                            numberOfLines={1}
-                          >
-                            {review.postDate
-                              ? `${review.bloggerName} · ${review.postDate}`
-                              : review.bloggerName}
-                          </PretendardText>
-                        </View>
-                        <Ionicons
-                          name='open-outline'
-                          size={16}
-                          color={Color.textSecondary}
-                        />
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                ) : null}
-              </View>
-            ) : null}
+            {/* 외부 후기(CS-3) — 공용 후기 섹션(유튜브 카드 + 블로그 리스트) */}
+            <ReviewSectionView
+              reviews={reviews}
+              videos={videos}
+              onPressReview={handlePressReview}
+              onPressVideo={handlePressVideo}
+            />
 
             <PretendardText style={styles.source}>
               출처 · {getCampSiteSourceLabel(spot.source)}
@@ -515,59 +430,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     color: Color.textPrimary,
-  },
-  videoScroll: {
-    gap: 12,
-    paddingVertical: 4,
-  },
-  videoCard: {
-    width: 200,
-    gap: 6,
-  },
-  videoThumb: {
-    width: 200,
-    aspectRatio: 16 / 9,
-    borderRadius: Radius.card,
-    backgroundColor: Color.thumbBg,
-  },
-  videoTitle: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: Color.textPrimary,
-  },
-  videoChannel: {
-    fontSize: 12,
-    color: Color.textSecondary,
-  },
-  reviewList: {
-    gap: 4,
-  },
-  reviewItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    minHeight: 44,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
-  },
-  reviewTextColumn: {
-    flex: 1,
-    gap: 4,
-  },
-  reviewTitle: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: Color.textPrimary,
-  },
-  reviewSummary: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: Color.textSecondary,
-  },
-  reviewMeta: {
-    fontSize: 12,
-    color: Color.textSecondary,
   },
   source: {
     marginTop: 8,
