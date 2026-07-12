@@ -142,37 +142,35 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
           style={styles.topOverlay}
           pointerEvents='box-none'
         >
-          {/* 박지 검색(CS-6) — 날씨 지도 피커와 동일한 카드형 검색 UI */}
+          {/* 박지 검색(CS-6) — 카드 프레임 없이 지도 위에 바로 뜨는 흰 pill(그림자) */}
           <View style={styles.searchWrap}>
-            <View style={styles.searchCard}>
-              <View style={styles.searchBox}>
-                <Ionicons name='search' size={18} color={Color.textSecondary} />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder='박지 검색'
-                  placeholderTextColor={Color.textSecondary}
-                  value={query}
-                  onChangeText={value => campSiteMap.setQuery(value)}
-                  onFocus={handleSearchFocus}
-                  onBlur={() => campSiteMap.setSearchFocused(false)}
-                  autoCorrect={false}
-                  returnKeyType='search'
-                />
-                {query.length > 0 && (
-                  <TouchableOpacity
-                    onPress={() => campSiteMap.clearQuery()}
-                    hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
-                    accessibilityRole='button'
-                    accessibilityLabel='검색어 지우기'
-                  >
-                    <Ionicons
-                      name='close-circle'
-                      size={18}
-                      color={Color.textSecondary}
-                    />
-                  </TouchableOpacity>
-                )}
-              </View>
+            <View style={styles.searchBox}>
+              <Ionicons name='search' size={20} color={Color.textPrimary} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder='박지 검색'
+                placeholderTextColor={Color.textSecondary}
+                value={query}
+                onChangeText={value => campSiteMap.setQuery(value)}
+                onFocus={handleSearchFocus}
+                onBlur={() => campSiteMap.setSearchFocused(false)}
+                autoCorrect={false}
+                returnKeyType='search'
+              />
+              {query.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => campSiteMap.clearQuery()}
+                  hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+                  accessibilityRole='button'
+                  accessibilityLabel='검색어 지우기'
+                >
+                  <Ionicons
+                    name='close-circle'
+                    size={18}
+                    color={Color.textSecondary}
+                  />
+                </TouchableOpacity>
+              )}
             </View>
 
             {showSearchResults && (
@@ -329,30 +327,25 @@ const styles = StyleSheet.create({
     // 검색 카드(marginHorizontal 12)와 좌측 정렬.
     paddingHorizontal: 12,
   },
-  // 검색 카드 + 결과 카드 묶음(CS-6) — 날씨 지도 피커(WeatherMapPickerView)와 동일한 UI 언어.
+  // 검색 pill + 결과 카드 묶음(CS-6).
   searchWrap: {
     marginHorizontal: 12,
     gap: 8,
   },
-  // 흰 카드 안에 회색 인풋 (날씨 피커 headerCard/searchBox와 동일).
-  searchCard: {
-    padding: 12,
-    borderRadius: Radius.card,
-    backgroundColor: Color.background,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
+  // 카드 프레임 없이 지도 위에 바로 뜨는 흰 pill — 그림자로 지도와 분리해 시인성 확보.
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    height: 44,
-    paddingHorizontal: 14,
-    borderRadius: Radius.input,
-    backgroundColor: Color.surfaceMuted,
+    gap: 10,
+    height: 48,
+    paddingHorizontal: 18,
+    borderRadius: Radius.pill,
+    backgroundColor: Color.background,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   searchInput: {
     flex: 1,
