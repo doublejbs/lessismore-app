@@ -167,6 +167,17 @@ const RootLayout = () => {
             }}
           />
           <Stack.Screen
+            name='bag-share'
+            options={{
+              headerShown: false,
+              presentation: 'formSheet',
+              sheetAllowedDetents: 'fitToContents',
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 20,
+              contentStyle: { backgroundColor: '#FFFFFF' },
+            }}
+          />
+          <Stack.Screen
             name='bag-info-edit'
             options={{
               headerShown: false,
