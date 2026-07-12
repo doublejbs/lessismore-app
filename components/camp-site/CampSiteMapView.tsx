@@ -39,11 +39,6 @@ const NOTICE_STORAGE_KEY = 'campSiteNoticeShown';
 // 하단 플로팅 요소는 탭바 높이만큼 띄운다. Android JS 탭바는 레이아웃 공간을 차지해 불필요.
 const TAB_BAR_HEIGHT = 49;
 
-// 마커는 이 줌 이상으로 확대했을 때 화면 영역 안 전량을 표시하고,
-// 줌아웃 상태에서는 화면 영역 안의 spots를 샘플(격자, 최대 30개)로 분산 표시한다(CS-2).
-// 임계 latitudeDelta ≤ 1.2 등가(iPhone 세로 ~850dp 기준 zoom ≈ 10).
-const MARKER_VISIBLE_MIN_ZOOM = deltaToZoom(1.2);
-
 // 박지 지도 화면(CS-1/CS-2/CS-6)의 조립 컴포넌트. 지도(카메라·권한)만 직접 다루고,
 // MobX 상태를 읽는 UI는 마커 레이어·상단(검색/칩)·하단(카드/현위치) observer로 분리했다 —
 // 검색 타이핑·카드 오픈·카메라 이동이 서로(특히 마커 레이어)를 리렌더하지 않게 하기 위함.
@@ -58,9 +53,6 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   // 하단 플로팅 요소(현재 위치 버튼·요약 카드)가 iOS 플로팅 탭바에 가리지 않게 하는 여유.
   const bottomClearance =
     Platform.OS === 'ios' ? insets.bottom + TAB_BAR_HEIGHT : 0;
-
-  // 초기 카메라(전국)는 임계 밖이므로 false로 시작.
-  const [markersVisible, setMarkersVisible] = useState(false);
 
   // 마커 레이어용 뷰포트. onCameraChanged는 이동 중 연속 발화하므로
   // 값을 양자화해 실질 변화가 있을 때만 리렌더되게 한다.
@@ -207,8 +199,6 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   const handleCameraChanged = useCallback((camera: Camera) => {
     const zoom = camera.zoom ?? 0;
 
-    setMarkersVisible(zoom >= MARKER_VISIBLE_MIN_ZOOM);
-
     // 중심 0.05°·줌 0.25 단위 양자화 — 동일 값이면 React가 리렌더를 생략한다.
     const quantized = {
       latitude: Math.round(camera.latitude / 0.05) * 0.05,
@@ -244,7 +234,6 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         const latSpan = Math.abs(topLeft.latitude - bottomRight.latitude);
         const zoom = deltaToZoom(latSpan);
 
-        setMarkersVisible(zoom >= MARKER_VISIBLE_MIN_ZOOM);
         setViewport(prev =>
           prev
             ? prev
@@ -291,7 +280,6 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         <CampSiteMapMarkersView
           campSiteMap={campSiteMap}
           viewport={viewport}
-          markersVisible={markersVisible}
           onTapSpot={handleMarkerTap}
         />
       </NaverMapView>
