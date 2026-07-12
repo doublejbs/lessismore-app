@@ -192,6 +192,12 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
     );
   };
 
+  // 검색 시작 시 요약 카드를 닫아 드롭다운과 카드가 동시에 뜨지 않게 한다.
+  const handleSearchFocus = () => {
+    setIsSearchFocused(true);
+    campSiteMap.selectSpot(null);
+  };
+
   // 마커 탭이 지도 onPress로도 전파되는 경합(iOS) 방어용 플래그.
   const markerPressedRef = useRef(false);
 
@@ -231,6 +237,10 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
         style={StyleSheet.absoluteFill}
         initialRegion={KOREA_REGION}
         onPress={handleMapPress}
+        // 권한 허용 시 내 위치를 네이티브 파란 점으로 표시. Android 기본 위치 버튼은
+        // 자체 현재 위치 버튼과 중복이라 끈다.
+        showsUserLocation={locationGranted}
+        showsMyLocationButton={false}
       >
         {campSiteMap.getVisibleSpots().map(spot => (
           <Marker
@@ -272,7 +282,7 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
               placeholderTextColor={Color.textSecondary}
               value={query}
               onChangeText={value => campSiteMap.setQuery(value)}
-              onFocus={() => setIsSearchFocused(true)}
+              onFocus={handleSearchFocus}
               onBlur={() => setIsSearchFocused(false)}
               autoCorrect={false}
               returnKeyType='search'
@@ -366,21 +376,25 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
           </View>
         )}
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterRow}
-          keyboardShouldPersistTaps='handled'
-        >
-          {TYPE_FILTERS.map(filter => (
-            <CategoryChipView
-              key={filter.label}
-              label={filter.label}
-              selected={campSiteMap.getSelectedType() === filter.value}
-              onPress={() => campSiteMap.selectType(filter.value)}
-            />
-          ))}
-        </ScrollView>
+        {/* 검색 결과가 열려 있는 동안 유형 칩은 숨긴다 — 검색은 유형과 독립이라 무의미하고,
+            드롭다운에 밀려 지도 한가운데 떠 보이는 문제(디자인 리뷰)를 막는다. */}
+        {!showSearchResults && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterRow}
+            keyboardShouldPersistTaps='handled'
+          >
+            {TYPE_FILTERS.map(filter => (
+              <CategoryChipView
+                key={filter.label}
+                label={filter.label}
+                selected={campSiteMap.getSelectedType() === filter.value}
+                onPress={() => campSiteMap.selectType(filter.value)}
+              />
+            ))}
+          </ScrollView>
+        )}
       </SafeAreaView>
 
       {campSiteMap.isLoading() && (
