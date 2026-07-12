@@ -56,8 +56,8 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
     campSiteDetail.close();
   };
 
-  const handlePressDirections = () => {
-    void campSiteDetail.openDirections();
+  const handlePressNaverMap = () => {
+    void campSiteDetail.openNaverMap();
   };
 
   const handlePressWeather = () => {
@@ -108,6 +108,16 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
           >
             <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
           </TouchableOpacity>
+
+          {/* 네이버 지도에서 열기(CS-3) — 헤더 우측 상단 아이콘 버튼 */}
+          <TouchableOpacity
+            onPress={handlePressNaverMap}
+            style={styles.naverMapButton}
+            accessibilityLabel='네이버 지도에서 열기'
+            accessibilityRole='button'
+          >
+            <Ionicons name='map-outline' size={22} color={Color.textPrimary} />
+          </TouchableOpacity>
         </View>
 
         <ScrollView
@@ -147,26 +157,6 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
                 ))}
               </View>
             )}
-
-            <TouchableOpacity
-              style={styles.directionsButton}
-              onPress={handlePressDirections}
-              activeOpacity={0.7}
-              accessibilityLabel='길찾기'
-              accessibilityRole='button'
-            >
-              <Ionicons
-                name='navigate-outline'
-                size={18}
-                color={Color.textPrimary}
-              />
-              <PretendardText
-                style={styles.directionsText}
-                weight='semibold'
-              >
-                길찾기
-              </PretendardText>
-            </TouchableOpacity>
 
             {hasWarnings ? (
               <View style={styles.warningBox}>
@@ -399,6 +389,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginLeft: -10,
   },
+  // 헤더 우측 네이버 지도 열기 버튼 — 뒤로 가기와 대칭인 44pt 아이콘 버튼.
+  naverMapButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 'auto',
+    marginRight: -10,
+  },
   content: {
     flex: 1,
   },
@@ -455,20 +454,6 @@ const styles = StyleSheet.create({
   tagChipText: {
     fontSize: 12,
     color: Color.textTertiary,
-  },
-  directionsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    borderWidth: 1,
-    borderColor: Color.chipBorder,
-    borderRadius: Radius.card,
-    paddingVertical: 12,
-  },
-  directionsText: {
-    fontSize: 15,
-    color: Color.textPrimary,
   },
   weatherButton: {
     flexDirection: 'row',
