@@ -57,8 +57,7 @@ class CampSiteDetail {
       this.analyticsManager?.logClick('camp_site');
       this.setInitialized(true);
 
-      void this.loadReviews(spot);
-      void this.loadVideos(spot);
+      void this.loadReviewContent(spot);
     } catch (e) {
       console.error('박지 상세 로드 실패:', e);
       Alert.alert('알림', '박지 정보를 불러오지 못했어요.', [
@@ -75,15 +74,57 @@ class CampSiteDetail {
     return this.spot;
   }
 
-  // 박지 후기(CS-3). 키 미설정·실패·0건이면 빈 배열을 유지한다(리스트만 생략, 조용히).
-  private async loadReviews(spot: CampSpot) {
-    try {
-      const reviews = await this.dispatcher.getReviews(spot.name);
+  // 후기 캐시(DM-18) TTL — 이보다 오래된 캐시는 상세 진입 시 재조회해 최신화한다.
+  private static readonly REVIEW_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-      this.setReviews(reviews);
+  // 박지 후기·영상(CS-3). Firestore 공유 캐시(DM-18)를 먼저 표시하고,
+  // 7일이 지났거나 캐시가 없으면 외부 검색 API로 재조회해 최신화한다.
+  // 재조회 실패 시 기존 캐시를 그대로 유지하고(가용성 우선), 캐시도 갱신하지 않는다.
+  private async loadReviewContent(spot: CampSpot) {
+    try {
+      const cached = await this.dispatcher.getReviewCache(spot.id).catch(e => {
+        console.error('박지 후기 캐시 조회 실패:', e);
+
+        return null;
+      });
+
+      if (cached) {
+        this.setReviews(cached.reviews ?? []);
+        this.setVideos(cached.videos ?? []);
+      }
+
+      const cachedAt = cached ? Date.parse(cached.updatedAt) : NaN;
+      const isFresh =
+        Number.isFinite(cachedAt) &&
+        Date.now() - cachedAt < CampSiteDetail.REVIEW_CACHE_TTL_MS;
+
+      if (isFresh) {
+        return;
+      }
+
+      const [reviews, videos] = await Promise.all([
+        this.dispatcher.getReviews(spot.name),
+        this.dispatcher.getVideos(spot.name),
+      ]);
+
+      // null = 해당 소스 조회 실패 → 캐시된 값(없으면 빈 배열)을 유지한다.
+      this.setReviews(reviews ?? cached?.reviews ?? []);
+      this.setVideos(videos ?? cached?.videos ?? []);
+
+      // 두 소스 모두 성공했을 때만 저장 — 실패 결과로 공유 캐시를 오염시키지 않는다(DM-18).
+      if (reviews !== null && videos !== null) {
+        await this.dispatcher
+          .saveReviewCache(spot.id, {
+            reviews,
+            videos,
+            updatedAt: new Date().toISOString(),
+          })
+          .catch(e => {
+            console.error('박지 후기 캐시 저장 실패:', e);
+          });
+      }
     } catch (e) {
       console.error('박지 후기 조회 실패:', e);
-      this.setReviews([]);
     }
   }
 
@@ -93,18 +134,6 @@ class CampSiteDetail {
 
   public getReviews() {
     return this.reviews;
-  }
-
-  // 박지 후기 영상(CS-3). 키 미설정·실패·0건이면 빈 배열을 유지한다(리스트만 생략, 조용히).
-  private async loadVideos(spot: CampSpot) {
-    try {
-      const videos = await this.dispatcher.getVideos(spot.name);
-
-      this.setVideos(videos);
-    } catch (e) {
-      console.error('박지 후기 영상 조회 실패:', e);
-      this.setVideos([]);
-    }
   }
 
   private setVideos(value: CampSiteVideo[]) {
