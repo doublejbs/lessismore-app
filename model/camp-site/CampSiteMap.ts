@@ -22,6 +22,9 @@ class CampSiteMap {
   // 검색 결과 상한(CS-6).
   private static readonly SEARCH_RESULT_LIMIT = 20;
 
+  // 줌아웃 상태에서 표시할 샘플 마커 상한(CS-2).
+  private static readonly MAX_ZOOMED_OUT_MARKERS = 30;
+
   private constructor(private readonly dispatcher: CampSiteMapDispatcher) {
     makeAutoObservable(this);
   }
@@ -83,6 +86,40 @@ class CampSiteMap {
     });
 
     return matched.slice(0, CampSiteMap.SEARCH_RESULT_LIMIT);
+  }
+
+  // 줌아웃 상태에서 표시할 샘플 마커(CS-2). 0.5° 격자 셀당 1개 우선으로
+  // 지역을 분산시키고, 상한이 남으면 순서대로 보충한다.
+  public getSampledSpots(): CampSpot[] {
+    const spots = this.getVisibleSpots();
+    const cellSize = 0.5;
+    const picked = new Map<string, CampSpot>();
+
+    for (const spot of spots) {
+      const key = `${Math.floor(spot.location.latitude / cellSize)}:${Math.floor(spot.location.longitude / cellSize)}`;
+
+      if (!picked.has(key)) {
+        picked.set(key, spot);
+      }
+    }
+
+    const sampled = Array.from(picked.values());
+
+    if (sampled.length < CampSiteMap.MAX_ZOOMED_OUT_MARKERS) {
+      const chosen = new Set(sampled.map(spot => spot.id));
+
+      for (const spot of spots) {
+        if (sampled.length >= CampSiteMap.MAX_ZOOMED_OUT_MARKERS) {
+          break;
+        }
+
+        if (!chosen.has(spot.id)) {
+          sampled.push(spot);
+        }
+      }
+    }
+
+    return sampled.slice(0, CampSiteMap.MAX_ZOOMED_OUT_MARKERS);
   }
 
   public getQuery(): string {
