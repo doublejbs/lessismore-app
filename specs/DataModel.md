@@ -242,6 +242,21 @@
 
 문서 id는 `{source}:{외부id}` 또는 slug로 upsert 멱등성을 보장한다. 보안 규칙: 읽기 공개, 쓰기 금지(시드 시에만 임시 허용).
 
+### DM-18 박지 후기 캐시 (`camp-spot-review/{spotId}`) `[기획]`
+
+박지 상세([CampSite.md](CampSite.md) CS-3) 후기(네이버 블로그·유튜브) 검색 결과의 **공유 캐시**. 외부 검색 API를 상세 진입마다 호출하지 않도록 결과를 저장해 두고, **7일이 지난 캐시는 상세 진입 시 클라이언트가 재조회해 갱신**한다(read-through, 주 1회 최신화).
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `reviews` | array | `CampSiteReview[]` — `{ title, summary, bloggerName, postDate, link }` |
+| `videos` | array | `CampSiteVideo[]` — `{ videoId, title, channelName, thumbnailUrl }` |
+| `updatedAt` | string | ISO 8601 — 마지막 최신화 시각 (TTL 판정 기준) |
+
+- 문서 id = `camp-spot/{spotId}`의 spotId. 갱신은 문서 통째 덮어쓰기(setDoc).
+- **두 소스 모두 조회에 성공했을 때만 저장**한다(0건 포함). 한쪽이라도 실패(키 미설정·HTTP 오류)하면 저장하지 않아 기존 캐시가 오염되지 않고, 다음 진입에서 재시도된다.
+- 갱신 실패 시 기존(만료된) 캐시를 그대로 표시한다 — 후기는 정확도보다 가용성 우선.
+- 보안 규칙: 읽기·쓰기 공개(캐시 특성상 클라이언트가 직접 갱신, 2026-07-12 실측 확인).
+
 ## 4. Storage 경로 (DM-9)
 
 `model/firebase/FirebaseImageStorage.ts`:

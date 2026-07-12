@@ -64,7 +64,8 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
 - 진입/길찾기 클릭 이벤트를 [Analytics.md](Analytics.md) AN-3 규칙으로 계측한다(`click_camp_site`, `click_camp_site_directions` — 구현 시 표 갱신).
 - **후기 콘텐츠** `[제안]`: 상세 하단(날씨 아래)에 `후기` 섹션을 표시한다. 검색어는 두 소스 모두 `"{박지명} 백패킹"`.
   - **블로그 후기 리스트**: 네이버 블로그 검색 API(`GET https://openapi.naver.com/v1/search/blog.json`, 헤더 `X-Naver-Client-Id`/`X-Naver-Client-Secret` — env `EXPO_PUBLIC_NAVER_SEARCH_CLIENT_ID`/`EXPO_PUBLIC_NAVER_SEARCH_CLIENT_SECRET`, 네이버 개발자센터 앱)로 상위 5건 — 제목·요약(description 1~2줄)·블로거명·작성일. 항목 탭 → 외부 브라우저(`Linking.openURL`). 제목/요약의 HTML 태그·엔티티는 제거해 표시.
-  - **유튜브 영상 리스트**: YouTube Data API v3(`GET https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=4`, env `EXPO_PUBLIC_YOUTUBE_API_KEY`)로 상위 4건 — 썸네일(`snippet.thumbnails.medium`)+제목+채널명 카드를 가로 스크롤로 표시. 탭 → `https://www.youtube.com/watch?v={videoId}` 열기(유튜브 앱). 검색 쿼터(기본 10,000유닛/일, 검색당 100유닛)를 고려해 **박지별 세션 캐시**(같은 상세 재진입 시 재조회 없음)를 둔다.
+  - **유튜브 영상 리스트**: YouTube Data API v3(`GET https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=4`, env `EXPO_PUBLIC_YOUTUBE_API_KEY`)로 상위 4건 — 썸네일(`snippet.thumbnails.medium`)+제목+채널명 카드를 가로 스크롤로 표시. 탭 → `https://www.youtube.com/watch?v={videoId}` 열기(유튜브 앱).
+  - **후기 캐시(주 1회 최신화)**: 검색 결과는 Firestore `camp-spot-review/{spotId}`([DataModel.md](DataModel.md) DM-18)에 저장해 두고, 상세 진입 시 ① 캐시가 있으면 즉시 표시 ② `updatedAt`이 **7일 이내면 재조회하지 않음** ③ 7일 초과(또는 캐시 없음)면 두 소스를 재조회해 표시하고 **둘 다 성공했을 때만** 캐시를 갱신한다. 재조회 실패 시 기존 캐시를 그대로 유지·표시한다. 검색 쿼터(유튜브 기본 10,000유닛/일, 검색당 100유닛) 절약이 목적.
   - 소스별로 키 미설정·조회 실패·0건이면 해당 리스트만 조용히 생략(두 소스 모두 0건이면 후기 섹션 자체를 생략). 별도의 `더 보기` 행은 두지 않는다.
   - 블로그·유튜브·더보기 클릭은 `click_camp_site_review`로 계측한다(AN-3, 파라미터로 소스 구분 가능 시 `source: blog|youtube`).
 
