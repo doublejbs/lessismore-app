@@ -9,3 +9,10 @@ export const deltaToZoom = (latitudeDelta: number): number => {
 
   return Math.log2((360 * height) / (512 * latitudeDelta));
 };
+
+// deltaToZoom의 역변환: 줌 레벨 → 화면에 보이는 위도 스팬(도).
+export const zoomToDelta = (zoom: number): number => {
+  const { height } = Dimensions.get('window');
+
+  return (360 * height) / (512 * Math.pow(2, zoom));
+};

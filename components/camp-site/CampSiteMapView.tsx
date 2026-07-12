@@ -1,6 +1,7 @@
 import { FC, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Dimensions,
   Keyboard,
   Platform,
   ScrollView,
@@ -31,7 +32,7 @@ import CampSiteType from '@/model/camp-site/CampSiteType';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import { getCampSiteTypeLabel } from '@/model/camp-site/CampSiteLabels';
 import LocalStorageManager from '@/model/storage/LocalStorageManager';
-import { deltaToZoom } from '@/model/map/MapZoom';
+import { deltaToZoom, zoomToDelta } from '@/model/map/MapZoom';
 import CategoryChipView from '@/components/browse/CategoryChipView';
 import CampSiteSummaryCardView from './CampSiteSummaryCardView';
 
@@ -55,7 +56,7 @@ const NOTICE_STORAGE_KEY = 'campSiteNoticeShown';
 const TAB_BAR_HEIGHT = 49;
 
 // 마커는 이 줌 이상으로 확대했을 때 모두 표시하고,
-// 줌아웃 상태에서는 샘플(0.5° 격자, 최대 30개)로 지역을 분산 표시한다(CS-2).
+// 줌아웃 상태에서는 현재 화면 영역 안의 spots를 샘플(격자, 최대 30개)로 분산 표시한다(CS-2).
 // 임계 latitudeDelta ≤ 1.2 등가(iPhone 세로 ~850dp 기준 zoom ≈ 10).
 const MARKER_VISIBLE_MIN_ZOOM = deltaToZoom(1.2);
 
@@ -233,15 +234,74 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
   // 초기 카메라(전국)는 임계 밖이므로 false로 시작.
   const [markersVisible, setMarkersVisible] = useState(false);
 
+  // 줌아웃 샘플링용 뷰포트. onCameraChanged는 이동 중 연속 발화하므로
+  // 값을 양자화해 실질 변화가 있을 때만 리렌더되게 한다.
+  const [viewport, setViewport] = useState<{
+    latitude: number;
+    longitude: number;
+    zoom: number;
+  } | null>(null);
+
   const handleCameraChanged = (camera: Camera) => {
     const zoom = camera.zoom ?? 0;
 
     setMarkersVisible(zoom >= MARKER_VISIBLE_MIN_ZOOM);
+
+    // 중심 0.05°·줌 0.25 단위 양자화 — 동일 값이면 React가 리렌더를 생략한다.
+    const quantized = {
+      latitude: Math.round(camera.latitude / 0.05) * 0.05,
+      longitude: Math.round(camera.longitude / 0.05) * 0.05,
+      zoom: Math.round(zoom / 0.25) * 0.25,
+    };
+
+    setViewport(prev =>
+      prev &&
+      prev.latitude === quantized.latitude &&
+      prev.longitude === quantized.longitude &&
+      prev.zoom === quantized.zoom
+        ? prev
+        : quantized
+    );
   };
 
-  const markerSpots = markersVisible
-    ? campSiteMap.getVisibleSpots()
-    : campSiteMap.getSampledSpots();
+  // 첫 onCameraChanged 이전에도 샘플 마커가 보이도록 초기 카메라(KOREA_CAMERA)로 뷰포트를 시드한다.
+  const handleMapInitialized = () => {
+    setMapReady(true);
+
+    setViewport(prev =>
+      prev
+        ? prev
+        : {
+            latitude: KOREA_CAMERA.latitude,
+            longitude: KOREA_CAMERA.longitude,
+            zoom: KOREA_CAMERA.zoom ?? 0,
+          }
+    );
+  };
+
+  // 줌인 상태면 화면 영역 안 전부, 줌아웃 상태면 화면 영역 안에서 샘플링(CS-2).
+  const markerSpots = (() => {
+    if (markersVisible) {
+      return campSiteMap.getVisibleSpots();
+    }
+
+    if (!viewport) {
+      return [];
+    }
+
+    // 뷰포트 줌 → 위도 스팬. 경도 스팬은 화면 비율로 근사하고, 가장자리 마진 10%를 더한다.
+    const latSpan = zoomToDelta(viewport.zoom);
+    const { width, height } = Dimensions.get('window');
+    const lngSpan = latSpan * (width / height);
+    const margin = 1.1;
+
+    return campSiteMap.getSampledSpots({
+      minLatitude: viewport.latitude - (latSpan / 2) * margin,
+      maxLatitude: viewport.latitude + (latSpan / 2) * margin,
+      minLongitude: viewport.longitude - (lngSpan / 2) * margin,
+      maxLongitude: viewport.longitude + (lngSpan / 2) * margin,
+    });
+  })();
 
   return (
     <View style={styles.container}>
@@ -254,7 +314,7 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
         // 기본 줌 버튼/스케일바는 기존 지도 UI 톤(핀치 줌만)과 달라 숨긴다.
         isShowZoomControls={false}
         isShowScaleBar={false}
-        onInitialized={() => setMapReady(true)}
+        onInitialized={handleMapInitialized}
         onTapMap={handleTapMap}
         onCameraChanged={handleCameraChanged}
       >
