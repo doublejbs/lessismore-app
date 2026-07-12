@@ -16,7 +16,6 @@ import BagDetailMemoView from './BagDetailMemoView';
 import BagDetailWeatherView from './BagDetailWeatherView';
 import ShareButtonView from './ShareButtonView';
 import BagDetailCopyView from '../bag/BagDetailCopyView';
-import ShareImageButtonView from './ShareImageButtonView';
 import { useFocusEffect } from 'expo-router';
 import BagDetailSkeletonView from './BagDetailSkeletonView';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -110,13 +109,11 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                     />
                     <BagDetailMemoView bagDetail={bagDetail} />
                     <BagDetailWeatherView bagDetail={bagDetail} />
-                    <ShareImageButtonView bagDetail={bagDetail} />
                   </>
                 ) : (
                   <>
                     <BagDetailWeatherView bagDetail={bagDetail} emphasized />
                     <BagDetailMemoView bagDetail={bagDetail} />
-                    <ShareImageButtonView bagDetail={bagDetail} />
                     <BagDetailUselessDescriptionView bagDetail={bagDetail} />
                   </>
                 )}
