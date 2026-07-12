@@ -264,7 +264,15 @@ class CampSiteDetail {
       longitude: spot.location.longitude,
     });
 
-    this.toastManager.show({ message: '여행지로 설정했어요.' });
+    // 설정한 배낭으로 바로 이동할 수 있게 토스트에 액션을 넣는다(CS-5).
+    // Android는 네이티브 토스트라 버튼 미지원 — 메시지만 표시된다.
+    this.toastManager.show({
+      message: '여행지로 설정했어요.',
+      buttonText: '이동',
+      onButtonPress: () => {
+        this.router.push(`/bag/${bag.getID()}`);
+      },
+    });
     this.closeBagSheet();
   }
 }
