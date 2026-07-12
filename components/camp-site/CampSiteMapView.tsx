@@ -48,6 +48,10 @@ const NOTICE_STORAGE_KEY = 'campSiteNoticeShown';
 // 하단 플로팅 요소는 탭바 높이만큼 띄운다. Android JS 탭바는 레이아웃 공간을 차지해 불필요.
 const TAB_BAR_HEIGHT = 49;
 
+// 마커는 이 줌(위도 델타) 이내로 줌인했을 때만 표시한다 —
+// 전국 뷰에서 수백 개가 한꺼번에 깔리는 것 방지(유형 구분 없이 일괄 적용).
+const MARKER_VISIBLE_MAX_DELTA = 1.2;
+
 // 유형별 마커 색 — 디자인 토큰 외 시맨틱 리터럴 허용:
 // 야영장=검정, 대피소=회색, 노지=주황(현지 규제 주의).
 // Android(Google Maps)의 Marker pinColor는 hue만 반영해 검정/회색이 빨강으로
@@ -230,6 +234,15 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
   const searchResults = campSiteMap.getSearchResults();
   const showSearchResults = query.trim().length > 0 && isSearchFocused;
 
+  // 초기 카메라(전국)는 임계 밖이므로 false로 시작.
+  const [markersVisible, setMarkersVisible] = useState(false);
+
+  const handleRegionChangeComplete = (region: Region) => {
+    setMarkersVisible(region.latitudeDelta <= MARKER_VISIBLE_MAX_DELTA);
+  };
+
+  const markerSpots = markersVisible ? campSiteMap.getVisibleSpots() : [];
+
   return (
     <View style={styles.container}>
       <MapView
@@ -237,12 +250,13 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
         style={StyleSheet.absoluteFill}
         initialRegion={KOREA_REGION}
         onPress={handleMapPress}
+        onRegionChangeComplete={handleRegionChangeComplete}
         // 권한 허용 시 내 위치를 네이티브 파란 점으로 표시. Android 기본 위치 버튼은
         // 자체 현재 위치 버튼과 중복이라 끈다.
         showsUserLocation={locationGranted}
         showsMyLocationButton={false}
       >
-        {campSiteMap.getVisibleSpots().map(spot => (
+        {markerSpots.map(spot => (
           <Marker
             key={spot.id}
             coordinate={{
