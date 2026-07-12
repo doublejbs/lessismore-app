@@ -659,6 +659,9 @@ class BagDetail {
     await this.bagStore.updateDates(this.id, startDate, endDate);
     this.setStartDate(startDate);
     this.setEndDate(endDate);
+
+    // 날씨 카드가 옛 기간 스냅샷을 계속 쓰지 않게 기간을 넘기고(필요 시 재조회) 갱신한다.
+    await this.bagWeather.updateTripDates(dayjs(startDate), dayjs(endDate));
   }
 
   public async handleRefresh() {

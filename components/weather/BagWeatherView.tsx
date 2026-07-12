@@ -39,8 +39,11 @@ const BagWeatherView: FC<Props> = ({ bagWeather }) => {
     ? fmtDay(start)
     : `${fmtDay(start)} ~ ${fmtDay(end)}`;
 
+  // 여행 기간에 해당하는 일자만(스냅샷이 옛 더 넓은 기간을 담고 있어도 기간으로 제한).
+  const tripDaily = bagWeather.getDailyInRange();
+
   // #6 기간 요약(대표 날씨 + 최고/최저 + 강한 돌풍). 카드와 동일 규칙 공유.
-  const summary = weather ? summarizeWeatherPeriod(weather.daily) : null;
+  const summary = tripDaily.length > 0 ? summarizeWeatherPeriod(tripDaily) : null;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -124,7 +127,7 @@ const BagWeatherView: FC<Props> = ({ bagWeather }) => {
                     </PretendardText>
                   )}
                 </View>
-                <WeatherDailyView daily={weather.daily} />
+                <WeatherDailyView daily={tripDaily} />
                 <PretendardText style={styles.disclaimer}>
                   예보는 향후 16일까지 제공되며, 그 이후는 과거 평년값을 참고로
                   표시합니다.
