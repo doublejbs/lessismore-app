@@ -12,6 +12,7 @@ import BagDetailFilterManager from '@/model/bag-detail/BagDetailFilterManager';
 import PackingButtonState from '@/model/bag-detail/PackingButtonState';
 import { Router } from 'expo-router';
 import BagWeather from '@/model/bag/BagWeather';
+import { setBagInfoEditContext } from '@/model/bag-detail/BagInfoEditHandoff';
 
 class BagDetail {
   public static readonly ORDER_KEY = 'bag';
@@ -620,6 +621,33 @@ class BagDetail {
 
     // 해당 카테고리로 스크롤
     this.scrollToCategory(filter.getFilter());
+  }
+
+  // 이름·기간 행 탭 → 배낭 정보 수정 formSheet(BD-1). 현재값·저장 콜백을
+  // 모듈 핸드오프에 넣고 공용 formSheet 라우트로 위임한다.
+  public openInfoEdit() {
+    app.getAnalyticsManager()?.logClick('bag_info_edit');
+
+    setBagInfoEditContext({
+      name: this.getName(),
+      startDate: this.getStartDate(),
+      endDate: this.getEndDate(),
+      onSave: async (name, startDate, endDate) => {
+        if (name !== this.getName()) {
+          await this.updateName(name);
+        }
+
+        const datesChanged =
+          !startDate.isSame(this.getStartDate(), 'day') ||
+          !endDate.isSame(this.getEndDate(), 'day');
+
+        if (datesChanged) {
+          await this.updateDates(startDate.toISOString(), endDate.toISOString());
+        }
+      },
+    });
+
+    this.router.push('/bag-info-edit');
   }
 
   public async updateName(name: string) {
