@@ -88,11 +88,30 @@ class CampSiteMap {
     return matched.slice(0, CampSiteMap.SEARCH_RESULT_LIMIT);
   }
 
-  // 줌아웃 상태에서 표시할 샘플 마커(CS-2). 0.5° 격자 셀당 1개 우선으로
-  // 지역을 분산시키고, 상한이 남으면 순서대로 보충한다.
-  public getSampledSpots(): CampSpot[] {
-    const spots = this.getVisibleSpots();
-    const cellSize = 0.5;
+  // 줌아웃 상태에서 표시할 샘플 마커(CS-2). 현재 화면 영역(region) 안의 spots를
+  // 세로 6분할 격자 셀당 1개 우선으로 분산시키고, 상한이 남으면 순서대로 보충한다.
+  public getSampledSpots(region: {
+    minLatitude: number;
+    maxLatitude: number;
+    minLongitude: number;
+    maxLongitude: number;
+  }): CampSpot[] {
+    const spots = this.getVisibleSpots().filter(spot => {
+      const { latitude, longitude } = spot.location;
+
+      return (
+        latitude >= region.minLatitude &&
+        latitude <= region.maxLatitude &&
+        longitude >= region.minLongitude &&
+        longitude <= region.maxLongitude
+      );
+    });
+
+    // 화면 높이(위도 스팬)를 6분할한 셀 크기. 0 이하일 땐 최소 0.01로 방어한다.
+    const cellSize = Math.max(
+      (region.maxLatitude - region.minLatitude) / 6,
+      0.01
+    );
     const picked = new Map<string, CampSpot>();
 
     for (const spot of spots) {
