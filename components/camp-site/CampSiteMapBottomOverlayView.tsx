@@ -14,6 +14,8 @@ interface Props {
   locationGranted: boolean;
   onMoveToCurrentLocation: () => void;
   onPressSpot: (spot: CampSpot) => void;
+  // 위치로 이동(CS-2) — 카메라를 선택 박지 위치로 되돌린다.
+  onMoveToSpot: (spot: CampSpot) => void;
 }
 
 // 지도 하단 오버레이(CS-2): 현재 위치 버튼 + 선택 박지 요약 카드.
@@ -25,6 +27,7 @@ const CampSiteMapBottomOverlayView: FC<Props> = observer(
     locationGranted,
     onMoveToCurrentLocation,
     onPressSpot,
+    onMoveToSpot,
   }) => {
     const selectedSpot = campSiteMap.getSelectedSpot();
 
@@ -56,6 +59,7 @@ const CampSiteMapBottomOverlayView: FC<Props> = observer(
             spot={selectedSpot}
             bottomInset={bottomClearance}
             onPress={() => onPressSpot(selectedSpot)}
+            onPressMoveToSpot={() => onMoveToSpot(selectedSpot)}
           />
         )}
       </>

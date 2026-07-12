@@ -183,6 +183,17 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     [router]
   );
 
+  // 요약 카드의 위치로 이동 버튼(CS-2) — 지도를 움직였다가 다시 박지 위치로.
+  // 검색 결과 선택과 동일한 줌 레벨로 이동한다.
+  const handleMoveToSpot = useCallback((spot: CampSpot) => {
+    mapRef.current?.animateCameraTo({
+      latitude: spot.location.latitude,
+      longitude: spot.location.longitude,
+      zoom: deltaToZoom(0.05),
+      duration: 500,
+    });
+  }, []);
+
   // 지도 빈 곳 터치 → 요약 카드 닫기 + 키보드 dismiss(드롭다운 blur로 닫힘, CS-6).
   // 네이버는 마커 onTap과 지도 onTapMap이 분리돼 있어 별도 경합 방어가 필요 없다.
   const handleTapMap = useCallback(() => {
@@ -296,6 +307,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         locationGranted={locationGranted}
         onMoveToCurrentLocation={handleMoveToCurrentLocation}
         onPressSpot={handlePressSpot}
+        onMoveToSpot={handleMoveToSpot}
       />
     </View>
   );
