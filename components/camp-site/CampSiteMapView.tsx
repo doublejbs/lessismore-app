@@ -54,8 +54,8 @@ const NOTICE_STORAGE_KEY = 'campSiteNoticeShown';
 // 하단 플로팅 요소는 탭바 높이만큼 띄운다. Android JS 탭바는 레이아웃 공간을 차지해 불필요.
 const TAB_BAR_HEIGHT = 49;
 
-// 마커는 이 줌 이상으로 확대했을 때만 표시한다 —
-// 전국 뷰에서 수백 개가 한꺼번에 깔리는 것 방지(유형 구분 없이 일괄 적용).
+// 마커는 이 줌 이상으로 확대했을 때 모두 표시하고,
+// 줌아웃 상태에서는 샘플(0.5° 격자, 최대 30개)로 지역을 분산 표시한다(CS-2).
 // 임계 latitudeDelta ≤ 1.2 등가(iPhone 세로 ~850dp 기준 zoom ≈ 10).
 const MARKER_VISIBLE_MIN_ZOOM = deltaToZoom(1.2);
 
@@ -239,7 +239,9 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
     setMarkersVisible(zoom >= MARKER_VISIBLE_MIN_ZOOM);
   };
 
-  const markerSpots = markersVisible ? campSiteMap.getVisibleSpots() : [];
+  const markerSpots = markersVisible
+    ? campSiteMap.getVisibleSpots()
+    : campSiteMap.getSampledSpots();
 
   return (
     <View style={styles.container}>
