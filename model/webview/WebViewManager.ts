@@ -78,7 +78,7 @@ class WebViewManager {
   /**
    * WebView 닫기 요청 처리
    */
-  private handleCloseWebView = (data?: any): void => {
+  private handleCloseWebView = (_data?: any): void => {
     this.router.back();
   };
 
@@ -99,7 +99,7 @@ class WebViewManager {
   /**
    * 로그인 페이지 이동 처리
    */
-  private handleNavigateToLogin = (data?: any): void => {
+  private handleNavigateToLogin = (_data?: any): void => {
     app.getLogInAlertManager()?.show();
   };
 
