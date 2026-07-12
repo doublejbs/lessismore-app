@@ -20,14 +20,15 @@ const BagDetailWeatherView: FC<Props> = ({ bagDetail, emphasized = false }) => {
   const router = useRouter();
   const bagWeather = bagDetail.getBagWeather();
   const location = bagWeather.getLocation();
-  const weather = bagWeather.getWeather();
 
   const handlePress = () => {
     app.getAnalyticsManager()?.logClick('bag_weather');
     router.push(`/bag/${bagDetail.getId()}/weather`);
   };
 
-  const summary = weather ? summarizeWeatherPeriod(weather.daily) : null;
+  // 여행 기간에 해당하는 일자만으로 요약(스냅샷이 옛 더 넓은 기간을 담고 있어도 기간으로 제한).
+  const tripDaily = bagWeather.getDailyInRange();
+  const summary = tripDaily.length > 0 ? summarizeWeatherPeriod(tripDaily) : null;
   const fg = emphasized ? Color.background : Color.textPrimary;
   const subFg = emphasized ? EMPHASIZED_SUB : Color.textSecondary;
   const iconName = summary ? summary.icon : 'partly-sunny-outline';
