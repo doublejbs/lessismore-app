@@ -29,13 +29,13 @@ const TAG_LABEL: Record<CampSiteTag, string> = {
   [CampSiteTag.Forest]: '숲',
 };
 
-// 유형별 마커 색 — 디자인 토큰 외 시맨틱 리터럴 허용:
-// 야영장=검정, 대피소=회색, 노지=주황(현지 규제 주의).
+// 유형별 마커 색 — 배낭 상세 카테고리 팔레트(BagDetailSummaryView PALETTE) 재사용:
+// 노지=파랑, 대피소=초록, 야영장=골드 (데이터 시각화 의미색 예외 — DesignTokens 컨벤션상 허용).
 // 지도 마커(CampSiteMarkerView)와 유형 필터 칩의 색 도트(범례)가 함께 쓴다.
 const TYPE_COLOR: Record<CampSiteType, string> = {
-  [CampSiteType.Campground]: '#000000',
-  [CampSiteType.Shelter]: '#767676',
-  [CampSiteType.Wild]: '#FF9500',
+  [CampSiteType.Campground]: '#FFD700',
+  [CampSiteType.Shelter]: '#50C878',
+  [CampSiteType.Wild]: '#4A90E2',
 };
 
 export const getCampSiteTypeLabel = (type: CampSiteType): string => {
