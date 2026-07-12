@@ -10,6 +10,7 @@ import CampSiteBagSelectSheetView from './CampSiteBagSelectSheetView';
 import CampSiteDetail from '@/model/camp-site/CampSiteDetail';
 import CampSiteType from '@/model/camp-site/CampSiteType';
 import CampSiteFacility from '@/model/camp-site/CampSiteFacility';
+import { CampSiteReview, CampSiteVideo } from '@/model/camp-site/CampSiteReviewTypes';
 import BagItem from '@/model/bag/BagItem';
 import {
   WILD_NOTICE,
@@ -48,6 +49,8 @@ const FACILITY_ORDER: CampSiteFacility[] = [
 const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
   const spot = campSiteDetail.getSpot();
   const weather = campSiteDetail.getWeather();
+  const reviews = campSiteDetail.getReviews();
+  const videos = campSiteDetail.getVideos();
   const showBagSheet = campSiteDetail.shouldShowBagSheet();
 
   const handlePressClose = () => {
@@ -56,6 +59,18 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
 
   const handlePressDirections = () => {
     void campSiteDetail.openDirections();
+  };
+
+  const handlePressReview = (review: CampSiteReview) => {
+    void campSiteDetail.openReview(review);
+  };
+
+  const handlePressMoreReviews = () => {
+    void campSiteDetail.openMoreReviews();
+  };
+
+  const handlePressVideo = (video: CampSiteVideo) => {
+    void campSiteDetail.openVideo(video);
   };
 
   const handlePressSetBag = () => {
@@ -218,6 +233,114 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
               </View>
             ) : null}
 
+            <View style={styles.section}>
+              <PretendardText style={styles.sectionTitle} weight='semibold'>
+                후기
+              </PretendardText>
+
+              {videos.length > 0 ? (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.videoScroll}
+                >
+                  {videos.map(video => (
+                    <TouchableOpacity
+                      key={video.videoId}
+                      style={styles.videoCard}
+                      onPress={() => handlePressVideo(video)}
+                      activeOpacity={0.7}
+                      accessibilityRole='link'
+                      accessibilityLabel={`후기 영상: ${video.title}`}
+                    >
+                      <Image
+                        source={{ uri: video.thumbnailUrl }}
+                        style={styles.videoThumb}
+                        contentFit='cover'
+                      />
+                      <PretendardText
+                        style={styles.videoTitle}
+                        weight='medium'
+                        numberOfLines={2}
+                      >
+                        {video.title}
+                      </PretendardText>
+                      <PretendardText
+                        style={styles.videoChannel}
+                        numberOfLines={1}
+                      >
+                        {video.channelName}
+                      </PretendardText>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              ) : null}
+
+              <View style={styles.reviewList}>
+                {reviews.map(review => (
+                  <TouchableOpacity
+                    key={review.link}
+                    style={styles.reviewItem}
+                    onPress={() => handlePressReview(review)}
+                    activeOpacity={0.7}
+                    accessibilityRole='link'
+                    accessibilityLabel={`후기: ${review.title}`}
+                  >
+                    <View style={styles.reviewTextColumn}>
+                      <PretendardText
+                        style={styles.reviewTitle}
+                        weight='medium'
+                        numberOfLines={2}
+                      >
+                        {review.title}
+                      </PretendardText>
+                      {review.summary ? (
+                        <PretendardText
+                          style={styles.reviewSummary}
+                          numberOfLines={2}
+                        >
+                          {review.summary}
+                        </PretendardText>
+                      ) : null}
+                      <PretendardText
+                        style={styles.reviewMeta}
+                        numberOfLines={1}
+                      >
+                        {review.postDate
+                          ? `${review.bloggerName} · ${review.postDate}`
+                          : review.bloggerName}
+                      </PretendardText>
+                    </View>
+                    <Ionicons
+                      name='open-outline'
+                      size={16}
+                      color={Color.textSecondary}
+                    />
+                  </TouchableOpacity>
+                ))}
+
+                <TouchableOpacity
+                  style={styles.reviewMoreRow}
+                  onPress={handlePressMoreReviews}
+                  activeOpacity={0.7}
+                  accessibilityRole='link'
+                  accessibilityLabel='네이버 블로그에서 더 보기'
+                >
+                  <PretendardText
+                    style={styles.reviewMoreText}
+                    weight='medium'
+                  >
+                    네이버 블로그에서 더 보기
+                  </PretendardText>
+                  <Ionicons
+                    name='chevron-forward'
+                    size={16}
+                    color={Color.textSecondary}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
             <PretendardText style={styles.source}>
               출처 · {getCampSiteSourceLabel(spot.source)}
             </PretendardText>
@@ -370,6 +493,71 @@ const styles = StyleSheet.create({
   accessInfo: {
     fontSize: 14,
     lineHeight: 22,
+    color: Color.textPrimary,
+  },
+  videoScroll: {
+    gap: 12,
+    paddingVertical: 4,
+  },
+  videoCard: {
+    width: 200,
+    gap: 6,
+  },
+  videoThumb: {
+    width: 200,
+    aspectRatio: 16 / 9,
+    borderRadius: Radius.card,
+    backgroundColor: Color.thumbBg,
+  },
+  videoTitle: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: Color.textPrimary,
+  },
+  videoChannel: {
+    fontSize: 12,
+    color: Color.textSecondary,
+  },
+  reviewList: {
+    gap: 4,
+  },
+  reviewItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    minHeight: 44,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Color.borderLight,
+  },
+  reviewTextColumn: {
+    flex: 1,
+    gap: 4,
+  },
+  reviewTitle: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: Color.textPrimary,
+  },
+  reviewSummary: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: Color.textSecondary,
+  },
+  reviewMeta: {
+    fontSize: 12,
+    color: Color.textSecondary,
+  },
+  reviewMoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    minHeight: 44,
+    paddingVertical: 8,
+  },
+  reviewMoreText: {
+    fontSize: 14,
     color: Color.textPrimary,
   },
   source: {

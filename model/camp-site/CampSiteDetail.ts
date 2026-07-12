@@ -8,7 +8,9 @@ import LogInAlertManager from '../login/LogInAlertManager';
 import AnalyticsManager from '../analytics/AnalyticsManager';
 import BagItem from '../bag/BagItem';
 import CampSiteDetailDispatcher from './CampSiteDetailDispatcher';
+import campSiteReviewService from './CampSiteReviewService';
 import { CampSpot } from './CampSpotTypes';
+import { CampSiteReview, CampSiteVideo } from './CampSiteReviewTypes';
 import { WeatherDaily } from '../weather/WeatherTypes';
 
 // 박지 상세 도메인 모델 (CampSite CS-3/CS-4/CS-5).
@@ -28,6 +30,8 @@ class CampSiteDetail {
   private spot: CampSpot | null = null;
   private initialized = false;
   private weather: WeatherDaily[] | null = null;
+  private reviews: CampSiteReview[] = [];
+  private videos: CampSiteVideo[] = [];
   private bags: BagItem[] = [];
   private showBagSheet = false;
 
@@ -57,6 +61,8 @@ class CampSiteDetail {
       this.setInitialized(true);
 
       void this.loadWeather(spot);
+      void this.loadReviews(spot);
+      void this.loadVideos(spot);
     } catch (e) {
       console.error('박지 상세 로드 실패:', e);
       Alert.alert('알림', '박지 정보를 불러오지 못했어요.', [
@@ -95,6 +101,87 @@ class CampSiteDetail {
 
   public getWeather() {
     return this.weather;
+  }
+
+  // 박지 후기(CS-3). 키 미설정·실패·0건이면 빈 배열을 유지한다(리스트만 생략, 조용히).
+  private async loadReviews(spot: CampSpot) {
+    try {
+      const reviews = await this.dispatcher.getReviews(spot.name);
+
+      this.setReviews(reviews);
+    } catch (e) {
+      console.error('박지 후기 조회 실패:', e);
+      this.setReviews([]);
+    }
+  }
+
+  private setReviews(value: CampSiteReview[]) {
+    this.reviews = value;
+  }
+
+  public getReviews() {
+    return this.reviews;
+  }
+
+  // 박지 후기 영상(CS-3). 키 미설정·실패·0건이면 빈 배열을 유지한다(리스트만 생략, 조용히).
+  private async loadVideos(spot: CampSpot) {
+    try {
+      const videos = await this.dispatcher.getVideos(spot.name);
+
+      this.setVideos(videos);
+    } catch (e) {
+      console.error('박지 후기 영상 조회 실패:', e);
+      this.setVideos([]);
+    }
+  }
+
+  private setVideos(value: CampSiteVideo[]) {
+    this.videos = value;
+  }
+
+  public getVideos() {
+    return this.videos;
+  }
+
+  // 후기 항목 탭(CS-3): 외부 브라우저로 블로그 글을 연다. 실패는 조용히 무시.
+  public async openReview(review: CampSiteReview) {
+    this.analyticsManager?.logClick('camp_site_review', { source: 'blog' });
+
+    try {
+      await Linking.openURL(review.link);
+    } catch {
+      // 외부 브라우저 열기 실패는 조용히 무시
+    }
+  }
+
+  // 후기 영상 카드 탭(CS-3): 유튜브 영상을 연다(유튜브 앱/브라우저). 실패는 조용히 무시.
+  public async openVideo(video: CampSiteVideo) {
+    this.analyticsManager?.logClick('camp_site_review', { source: 'youtube' });
+
+    try {
+      await Linking.openURL(`https://www.youtube.com/watch?v=${video.videoId}`);
+    } catch {
+      // 외부 앱/브라우저 열기 실패는 조용히 무시
+    }
+  }
+
+  // "네이버 블로그에서 더 보기" 행 탭(CS-3): 블로그 검색 결과 페이지를 연다.
+  public async openMoreReviews() {
+    const spot = this.spot;
+
+    if (!spot) {
+      return;
+    }
+
+    this.analyticsManager?.logClick('camp_site_review', { source: 'blog' });
+
+    const url = campSiteReviewService.getMoreReviewsUrl(spot.name);
+
+    try {
+      await Linking.openURL(url);
+    } catch {
+      // 외부 브라우저 열기 실패는 조용히 무시
+    }
   }
 
   private setInitialized(value: boolean) {

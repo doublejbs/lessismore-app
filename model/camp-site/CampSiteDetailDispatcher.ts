@@ -4,7 +4,9 @@ import CampSpotStore from '../store/CampSpotStore';
 import BagStore from '../store/BagStore';
 import BagItem from '../bag/BagItem';
 import weatherService from '../weather/WeatherService';
+import campSiteReviewService from './CampSiteReviewService';
 import { CampSpot } from './CampSpotTypes';
+import { CampSiteReview, CampSiteVideo } from './CampSiteReviewTypes';
 import { BagLocation, WeatherDaily } from '../weather/WeatherTypes';
 
 // 주간 날씨 조회 범위: 오늘 포함 7일.
@@ -37,6 +39,16 @@ class CampSiteDetailDispatcher {
     const snapshot = await weatherService.getWeather(location, start, end);
 
     return snapshot.daily;
+  }
+
+  // 박지 후기(CS-3): "{박지명} 백패킹" 네이버 블로그 상위 5건.
+  public async getReviews(spotName: string): Promise<CampSiteReview[]> {
+    return campSiteReviewService.getReviews(spotName);
+  }
+
+  // 박지 후기 영상(CS-3): "{박지명} 백패킹" 유튜브 상위 4건.
+  public async getVideos(spotName: string): Promise<CampSiteVideo[]> {
+    return campSiteReviewService.getVideos(spotName);
   }
 
   public async getBags(): Promise<BagItem[]> {
