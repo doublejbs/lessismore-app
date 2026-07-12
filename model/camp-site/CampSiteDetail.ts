@@ -1,5 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import { Alert, Linking, Platform } from 'react-native';
+import { Alert, Linking } from 'react-native';
 import { Router } from 'expo-router';
 import app from '../app/App';
 import Firebase from '../firebase/Firebase';
@@ -189,8 +189,9 @@ class CampSiteDetail {
     this.router.back();
   }
 
-  // 길찾기(CS-3): 외부 지도앱을 좌표로 연다. 실패는 조용히 무시.
-  public async openDirections() {
+  // 네이버 지도에서 열기(CS-3): 좌표·박지명으로 네이버 지도 앱을 연다.
+  // 앱 미설치·실패 시 네이버 지도 웹 검색으로 폴백한다.
+  public async openNaverMap() {
     const spot = this.spot;
 
     if (!spot) {
@@ -200,15 +201,17 @@ class CampSiteDetail {
     this.analyticsManager?.logClick('camp_site_directions');
 
     const { latitude, longitude } = spot.location;
-    const url =
-      Platform.OS === 'ios'
-        ? `maps://?ll=${latitude},${longitude}&q=${encodeURIComponent(spot.name)}`
-        : `geo:${latitude},${longitude}?q=${latitude},${longitude}(${spot.name})`;
+    const appUrl = `nmap://place?lat=${latitude}&lng=${longitude}&name=${encodeURIComponent(spot.name)}&appname=com.doublejbs.useless`;
+    const webUrl = `https://map.naver.com/p/search/${encodeURIComponent(spot.name)}`;
 
     try {
-      await Linking.openURL(url);
+      await Linking.openURL(appUrl);
     } catch {
-      // 외부 지도앱 열기 실패는 조용히 무시
+      try {
+        await Linking.openURL(webUrl);
+      } catch {
+        // 웹 폴백까지 실패하면 조용히 무시
+      }
     }
   }
 
