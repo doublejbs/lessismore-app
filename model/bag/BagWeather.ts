@@ -86,6 +86,20 @@ class BagWeather {
     return this.weather;
   }
 
+  // 여행 기간(startDate~endDate)에 해당하는 일자만 잘라 반환한다.
+  // 스냅샷은 조회 시점의 기간을 담는데, 이후 여행 날짜를 줄이면 옛 기간이 그대로 남을 수 있어
+  // (isStale은 경계일 포함만 확인해 재조회를 건너뜀) 표시 단계에서 기간으로 제한한다.
+  public getDailyInRange() {
+    if (!this.weather) {
+      return [];
+    }
+
+    const start = this.startDate.format('YYYY-MM-DD');
+    const end = this.endDate.format('YYYY-MM-DD');
+
+    return this.weather.daily.filter(d => d.date >= start && d.date <= end);
+  }
+
   private setLoading(value: boolean) {
     this.loading = value;
   }
@@ -113,6 +127,12 @@ class BagWeather {
   // 지명 검색(지오코딩) 위임.
   public async searchLocations(name: string) {
     return weatherService.geocode(name);
+  }
+
+  // 여행 날짜 변경 시 호출: 기간을 갱신하고 스냅샷이 새 기간을 못 덮으면 재조회한다.
+  public async updateTripDates(start: Dayjs, end: Dayjs) {
+    this.setDates(start, end);
+    await this.ensureFresh();
   }
 
   // 위치를 저장하고 좌표 변경으로 스냅샷을 무효화 → 즉시 재조회.
