@@ -14,8 +14,12 @@ import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import CampSiteType from '@/model/camp-site/CampSiteType';
+import CampSiteTag from '@/model/camp-site/CampSiteTag';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
-import { getCampSiteTypeLabel } from '@/model/camp-site/CampSiteLabels';
+import {
+  getCampSiteTagLabel,
+  getCampSiteTypeLabel,
+} from '@/model/camp-site/CampSiteLabels';
 import CategoryChipView from '@/components/browse/CategoryChipView';
 
 interface Props {
@@ -38,6 +42,15 @@ const TYPE_FILTERS: { label: string; value: CampSiteType | null }[] = [
     label: getCampSiteTypeLabel(CampSiteType.Wild),
     value: CampSiteType.Wild,
   },
+];
+
+// 태그 필터(CS-2) — 유형 필터와 AND 결합, 단일 선택.
+const TAG_FILTERS: { label: string; value: CampSiteTag | null }[] = [
+  { label: '전체', value: null },
+  ...Object.values(CampSiteTag).map(tag => ({
+    label: getCampSiteTagLabel(tag),
+    value: tag,
+  })),
 ];
 
 // 지도 상단 오버레이(CS-2/CS-6): 검색 인풋/드롭다운 + 유형 필터 칩 + 로드 실패 배너 + 로딩.
@@ -174,24 +187,43 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
             </View>
           )}
 
-          {/* 검색 결과가 열려 있는 동안 유형 칩은 숨긴다 — 검색은 유형과 독립이라 무의미하고,
+          {/* 검색 결과가 열려 있는 동안 필터 칩은 숨긴다 — 검색은 필터와 독립이라 무의미하고,
               드롭다운에 밀려 지도 한가운데 떠 보이는 문제(디자인 리뷰)를 막는다. */}
           {!showSearchResults && (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.filterRow}
-              keyboardShouldPersistTaps='handled'
-            >
-              {TYPE_FILTERS.map(filter => (
-                <CategoryChipView
-                  key={filter.label}
-                  label={filter.label}
-                  selected={campSiteMap.getSelectedType() === filter.value}
-                  onPress={() => campSiteMap.selectType(filter.value)}
-                />
-              ))}
-            </ScrollView>
+            <>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.filterRow}
+                keyboardShouldPersistTaps='handled'
+              >
+                {TYPE_FILTERS.map(filter => (
+                  <CategoryChipView
+                    key={filter.label}
+                    label={filter.label}
+                    selected={campSiteMap.getSelectedType() === filter.value}
+                    onPress={() => campSiteMap.selectType(filter.value)}
+                  />
+                ))}
+              </ScrollView>
+
+              {/* 지형·특징 태그 필터(CS-2) — 유형 필터와 AND 결합 */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.filterRow}
+                keyboardShouldPersistTaps='handled'
+              >
+                {TAG_FILTERS.map(filter => (
+                  <CategoryChipView
+                    key={filter.label}
+                    label={filter.label}
+                    selected={campSiteMap.getSelectedTag() === filter.value}
+                    onPress={() => campSiteMap.selectTag(filter.value)}
+                  />
+                ))}
+              </ScrollView>
+            </>
           )}
         </SafeAreaView>
 

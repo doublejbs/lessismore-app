@@ -14,6 +14,7 @@ import BagItem from '@/model/bag/BagItem';
 import {
   WILD_NOTICE,
   getCampSiteSourceLabel,
+  getCampSiteTagLabel,
   getCampSiteTypeLabel,
 } from '@/model/camp-site/CampSiteLabels';
 
@@ -133,6 +134,19 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
               </View>
             </View>
             <PretendardText style={styles.region}>{spot.region}</PretendardText>
+
+            {/* 지형·특징 태그(CS-3) — 비인터랙티브 칩 */}
+            {(spot.tags ?? []).length > 0 && (
+              <View style={styles.tagRow}>
+                {(spot.tags ?? []).map(tag => (
+                  <View key={tag} style={styles.tagChip}>
+                    <PretendardText style={styles.tagChipText} weight='medium'>
+                      #{getCampSiteTagLabel(tag)}
+                    </PretendardText>
+                  </View>
+                ))}
+              </View>
+            )}
 
             <TouchableOpacity
               style={styles.directionsButton}
@@ -425,6 +439,22 @@ const styles = StyleSheet.create({
   region: {
     fontSize: 14,
     color: Color.textSecondary,
+  },
+  tagRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 10,
+  },
+  tagChip: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: Radius.chip,
+    backgroundColor: Color.chipInactiveBg,
+  },
+  tagChipText: {
+    fontSize: 12,
+    color: Color.textTertiary,
   },
   directionsButton: {
     flexDirection: 'row',

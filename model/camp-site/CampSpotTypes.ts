@@ -1,5 +1,6 @@
 import CampSiteType from './CampSiteType';
 import CampSiteFacility from './CampSiteFacility';
+import CampSiteTag from './CampSiteTag';
 
 // /camp-spot 문서 계약 (DataModel DM-17). 관리 스크립트로만 적재하고 클라이언트는 읽기 전용.
 // 옵셔널 필드는 exactOptionalPropertyTypes 규칙에 맞춰 `?`로만 선언한다(undefined 값 대입 금지).
@@ -13,6 +14,8 @@ export interface CampSpotData {
   region: string;
   description: string;
   facilities: CampSiteFacility[];
+  // 지형·특징 태그 (DM-17). 없으면 태그 필터 선택 시 제외된다.
+  tags?: CampSiteTag[];
   accessInfo?: string;
   warnings?: string;
   imageUrl?: string;
