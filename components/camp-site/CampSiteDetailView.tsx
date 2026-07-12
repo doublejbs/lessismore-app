@@ -5,7 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
-import WeatherDailyView from '@/components/weather/WeatherDailyView';
 import CampSiteBagSelectSheetView from './CampSiteBagSelectSheetView';
 import CampSiteDetail from '@/model/camp-site/CampSiteDetail';
 import CampSiteType from '@/model/camp-site/CampSiteType';
@@ -48,7 +47,6 @@ const FACILITY_ORDER: CampSiteFacility[] = [
 
 const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
   const spot = campSiteDetail.getSpot();
-  const weather = campSiteDetail.getWeather();
   const reviews = campSiteDetail.getReviews();
   const videos = campSiteDetail.getVideos();
   const showBagSheet = campSiteDetail.shouldShowBagSheet();
@@ -61,12 +59,12 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
     void campSiteDetail.openDirections();
   };
 
-  const handlePressReview = (review: CampSiteReview) => {
-    void campSiteDetail.openReview(review);
+  const handlePressWeather = () => {
+    campSiteDetail.openWeather();
   };
 
-  const handlePressMoreReviews = () => {
-    void campSiteDetail.openMoreReviews();
+  const handlePressReview = (review: CampSiteReview) => {
+    void campSiteDetail.openReview(review);
   };
 
   const handlePressVideo = (video: CampSiteVideo) => {
@@ -94,6 +92,8 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
   );
   const hasWildNotice = spot.type === CampSiteType.Wild;
   const hasWarnings = Boolean(spot.warnings);
+  // 블로그·유튜브 둘 다 0건이면 후기 섹션 자체를 렌더하지 않는다(빈 섹션 방지).
+  const hasReviewContent = reviews.length > 0 || videos.length > 0;
 
   return (
     <>
@@ -224,122 +224,114 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
               </View>
             ) : null}
 
-            {weather && weather.length > 0 ? (
+            <TouchableOpacity
+              style={styles.weatherButton}
+              onPress={handlePressWeather}
+              activeOpacity={0.7}
+              accessibilityLabel='주간 날씨'
+              accessibilityRole='button'
+            >
+              <Ionicons
+                name='partly-sunny-outline'
+                size={18}
+                color={Color.textPrimary}
+              />
+              <PretendardText style={styles.weatherButtonText} weight='semibold'>
+                주간 날씨
+              </PretendardText>
+            </TouchableOpacity>
+
+            {hasReviewContent ? (
               <View style={styles.section}>
                 <PretendardText style={styles.sectionTitle} weight='semibold'>
-                  주간 날씨
+                  후기
                 </PretendardText>
-                <WeatherDailyView daily={weather} />
-              </View>
-            ) : null}
 
-            <View style={styles.section}>
-              <PretendardText style={styles.sectionTitle} weight='semibold'>
-                후기
-              </PretendardText>
-
-              {videos.length > 0 ? (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.videoScroll}
-                >
-                  {videos.map(video => (
-                    <TouchableOpacity
-                      key={video.videoId}
-                      style={styles.videoCard}
-                      onPress={() => handlePressVideo(video)}
-                      activeOpacity={0.7}
-                      accessibilityRole='link'
-                      accessibilityLabel={`후기 영상: ${video.title}`}
-                    >
-                      <Image
-                        source={{ uri: video.thumbnailUrl }}
-                        style={styles.videoThumb}
-                        contentFit='cover'
-                      />
-                      <PretendardText
-                        style={styles.videoTitle}
-                        weight='medium'
-                        numberOfLines={2}
-                      >
-                        {video.title}
-                      </PretendardText>
-                      <PretendardText
-                        style={styles.videoChannel}
-                        numberOfLines={1}
-                      >
-                        {video.channelName}
-                      </PretendardText>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              ) : null}
-
-              <View style={styles.reviewList}>
-                {reviews.map(review => (
-                  <TouchableOpacity
-                    key={review.link}
-                    style={styles.reviewItem}
-                    onPress={() => handlePressReview(review)}
-                    activeOpacity={0.7}
-                    accessibilityRole='link'
-                    accessibilityLabel={`후기: ${review.title}`}
+                {videos.length > 0 ? (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.videoScroll}
                   >
-                    <View style={styles.reviewTextColumn}>
-                      <PretendardText
-                        style={styles.reviewTitle}
-                        weight='medium'
-                        numberOfLines={2}
+                    {videos.map(video => (
+                      <TouchableOpacity
+                        key={video.videoId}
+                        style={styles.videoCard}
+                        onPress={() => handlePressVideo(video)}
+                        activeOpacity={0.7}
+                        accessibilityRole='link'
+                        accessibilityLabel={`후기 영상: ${video.title}`}
                       >
-                        {review.title}
-                      </PretendardText>
-                      {review.summary ? (
+                        <Image
+                          source={{ uri: video.thumbnailUrl }}
+                          style={styles.videoThumb}
+                          contentFit='cover'
+                        />
                         <PretendardText
-                          style={styles.reviewSummary}
+                          style={styles.videoTitle}
+                          weight='medium'
                           numberOfLines={2}
                         >
-                          {review.summary}
+                          {video.title}
                         </PretendardText>
-                      ) : null}
-                      <PretendardText
-                        style={styles.reviewMeta}
-                        numberOfLines={1}
-                      >
-                        {review.postDate
-                          ? `${review.bloggerName} · ${review.postDate}`
-                          : review.bloggerName}
-                      </PretendardText>
-                    </View>
-                    <Ionicons
-                      name='open-outline'
-                      size={16}
-                      color={Color.textSecondary}
-                    />
-                  </TouchableOpacity>
-                ))}
+                        <PretendardText
+                          style={styles.videoChannel}
+                          numberOfLines={1}
+                        >
+                          {video.channelName}
+                        </PretendardText>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                ) : null}
 
-                <TouchableOpacity
-                  style={styles.reviewMoreRow}
-                  onPress={handlePressMoreReviews}
-                  activeOpacity={0.7}
-                  accessibilityRole='link'
-                  accessibilityLabel='네이버 블로그에서 더 보기'
-                >
-                  <PretendardText
-                    style={styles.reviewMoreText}
-                    weight='medium'
-                  >
-                    네이버 블로그에서 더 보기
-                  </PretendardText>
-                  <Ionicons
-                    name='chevron-forward'
-                    size={16}
-                    color={Color.textSecondary}
-                  />
-                </TouchableOpacity>
+                {reviews.length > 0 ? (
+                  <View style={styles.reviewList}>
+                    {reviews.map(review => (
+                      <TouchableOpacity
+                        key={review.link}
+                        style={styles.reviewItem}
+                        onPress={() => handlePressReview(review)}
+                        activeOpacity={0.7}
+                        accessibilityRole='link'
+                        accessibilityLabel={`후기: ${review.title}`}
+                      >
+                        <View style={styles.reviewTextColumn}>
+                          <PretendardText
+                            style={styles.reviewTitle}
+                            weight='medium'
+                            numberOfLines={2}
+                          >
+                            {review.title}
+                          </PretendardText>
+                          {review.summary ? (
+                            <PretendardText
+                              style={styles.reviewSummary}
+                              numberOfLines={2}
+                            >
+                              {review.summary}
+                            </PretendardText>
+                          ) : null}
+                          <PretendardText
+                            style={styles.reviewMeta}
+                            numberOfLines={1}
+                          >
+                            {review.postDate
+                              ? `${review.bloggerName} · ${review.postDate}`
+                              : review.bloggerName}
+                          </PretendardText>
+                        </View>
+                        <Ionicons
+                          name='open-outline'
+                          size={16}
+                          color={Color.textSecondary}
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                ) : null}
               </View>
-            </View>
+            ) : null}
 
             <PretendardText style={styles.source}>
               출처 · {getCampSiteSourceLabel(spot.source)}
@@ -448,6 +440,20 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Color.textPrimary,
   },
+  weatherButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: Color.chipBorder,
+    borderRadius: Radius.card,
+    paddingVertical: 12,
+  },
+  weatherButtonText: {
+    fontSize: 15,
+    color: Color.textPrimary,
+  },
   warningBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -547,18 +553,6 @@ const styles = StyleSheet.create({
   reviewMeta: {
     fontSize: 12,
     color: Color.textSecondary,
-  },
-  reviewMoreRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-    minHeight: 44,
-    paddingVertical: 8,
-  },
-  reviewMoreText: {
-    fontSize: 14,
-    color: Color.textPrimary,
   },
   source: {
     marginTop: 8,

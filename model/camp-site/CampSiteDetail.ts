@@ -8,10 +8,8 @@ import LogInAlertManager from '../login/LogInAlertManager';
 import AnalyticsManager from '../analytics/AnalyticsManager';
 import BagItem from '../bag/BagItem';
 import CampSiteDetailDispatcher from './CampSiteDetailDispatcher';
-import campSiteReviewService from './CampSiteReviewService';
 import { CampSpot } from './CampSpotTypes';
 import { CampSiteReview, CampSiteVideo } from './CampSiteReviewTypes';
-import { WeatherDaily } from '../weather/WeatherTypes';
 
 // 박지 상세 도메인 모델 (CampSite CS-3/CS-4/CS-5).
 // 3단 래퍼(라우트 → Wrapper → View) 중 상태·비즈니스 로직을 담당한다.
@@ -29,7 +27,6 @@ class CampSiteDetail {
 
   private spot: CampSpot | null = null;
   private initialized = false;
-  private weather: WeatherDaily[] | null = null;
   private reviews: CampSiteReview[] = [];
   private videos: CampSiteVideo[] = [];
   private bags: BagItem[] = [];
@@ -60,7 +57,6 @@ class CampSiteDetail {
       this.analyticsManager?.logClick('camp_site');
       this.setInitialized(true);
 
-      void this.loadWeather(spot);
       void this.loadReviews(spot);
       void this.loadVideos(spot);
     } catch (e) {
@@ -71,36 +67,12 @@ class CampSiteDetail {
     }
   }
 
-  // 주간 날씨(CS-3). 실패/빈 값이면 섹션을 생략하도록 null 을 유지한다(조용히).
-  private async loadWeather(spot: CampSpot) {
-    try {
-      const daily = await this.dispatcher.getWeeklyWeather({
-        name: spot.name,
-        latitude: spot.location.latitude,
-        longitude: spot.location.longitude,
-      });
-
-      this.setWeather(daily.length > 0 ? daily : null);
-    } catch (e) {
-      console.error('박지 날씨 조회 실패:', e);
-      this.setWeather(null);
-    }
-  }
-
   private setSpot(value: CampSpot | null) {
     this.spot = value;
   }
 
   public getSpot() {
     return this.spot;
-  }
-
-  private setWeather(value: WeatherDaily[] | null) {
-    this.weather = value;
-  }
-
-  public getWeather() {
-    return this.weather;
   }
 
   // 박지 후기(CS-3). 키 미설정·실패·0건이면 빈 배열을 유지한다(리스트만 생략, 조용히).
@@ -165,23 +137,15 @@ class CampSiteDetail {
     }
   }
 
-  // "네이버 블로그에서 더 보기" 행 탭(CS-3): 블로그 검색 결과 페이지를 연다.
-  public async openMoreReviews() {
+  // 주간 날씨 버튼 탭(CS-3): 박지 전용 주간 날씨 페이지로 이동한다.
+  public openWeather() {
     const spot = this.spot;
 
     if (!spot) {
       return;
     }
 
-    this.analyticsManager?.logClick('camp_site_review', { source: 'blog' });
-
-    const url = campSiteReviewService.getMoreReviewsUrl(spot.name);
-
-    try {
-      await Linking.openURL(url);
-    } catch {
-      // 외부 브라우저 열기 실패는 조용히 무시
-    }
+    this.router.push(`/camp-site-weather/${spot.id}`);
   }
 
   private setInitialized(value: boolean) {

@@ -1,16 +1,11 @@
-import dayjs from 'dayjs';
 import app from '../app/App';
 import CampSpotStore from '../store/CampSpotStore';
 import BagStore from '../store/BagStore';
 import BagItem from '../bag/BagItem';
-import weatherService from '../weather/WeatherService';
 import campSiteReviewService from './CampSiteReviewService';
 import { CampSpot } from './CampSpotTypes';
 import { CampSiteReview, CampSiteVideo } from './CampSiteReviewTypes';
-import { BagLocation, WeatherDaily } from '../weather/WeatherTypes';
-
-// 주간 날씨 조회 범위: 오늘 포함 7일.
-const WEEKLY_DAYS = 6;
+import { BagLocation } from '../weather/WeatherTypes';
 
 // 박지 상세(CampSite CS-3/CS-5)의 데이터 접근을 캡슐화한다.
 class CampSiteDetailDispatcher {
@@ -28,17 +23,6 @@ class CampSiteDetailDispatcher {
 
   public async getSpot(id: string): Promise<CampSpot | null> {
     return this.campSpotStore.getSpot(id);
-  }
-
-  // 박지 좌표로 오늘부터 7일치 예보를 조회한다(CS-3 주간 날씨).
-  public async getWeeklyWeather(
-    location: BagLocation
-  ): Promise<WeatherDaily[]> {
-    const start = dayjs().startOf('day');
-    const end = start.add(WEEKLY_DAYS, 'day');
-    const snapshot = await weatherService.getWeather(location, start, end);
-
-    return snapshot.daily;
   }
 
   // 박지 후기(CS-3): "{박지명} 백패킹" 네이버 블로그 상위 5건.

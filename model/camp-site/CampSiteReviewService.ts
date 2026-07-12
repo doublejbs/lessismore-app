@@ -1,9 +1,8 @@
 import { CampSiteReview, CampSiteVideo } from './CampSiteReviewTypes';
 
 // 박지 후기(CS-3): 네이버 블로그 검색 + 유튜브 검색으로 "{박지명} 백패킹" 상위 결과를 조회한다.
-// 소스별로 키 미설정·조회 실패·0건이면 조용히 빈 배열을 반환한다(리스트만 생략, "더 보기" 행은 유지).
+// 소스별로 키 미설정·조회 실패·0건이면 조용히 빈 배열을 반환한다(해당 리스트만 생략, 두 소스 모두 0건이면 후기 섹션 자체 생략).
 const BLOG_SEARCH_URL = 'https://openapi.naver.com/v1/search/blog.json';
-const WEB_SEARCH_URL = 'https://search.naver.com/search.naver';
 const YOUTUBE_SEARCH_URL = 'https://www.googleapis.com/youtube/v3/search';
 const SEARCH_KEYWORD = '백패킹';
 const BLOG_DISPLAY_COUNT = 5;
@@ -82,13 +81,6 @@ const formatPostDate = (postdate: string | undefined): string => {
 // "{박지명} 백패킹" 검색어.
 const buildQuery = (spotName: string): string => {
   return `${spotName} ${SEARCH_KEYWORD}`;
-};
-
-// "네이버 블로그에서 더 보기" 대상 URL(항상 노출되는 행이 여는 주소).
-const getMoreReviewsUrl = (spotName: string): string => {
-  const query = encodeURIComponent(buildQuery(spotName));
-
-  return `${WEB_SEARCH_URL}?where=blog&query=${query}`;
 };
 
 const getReviews = async (spotName: string): Promise<CampSiteReview[]> => {
@@ -191,6 +183,6 @@ const getVideos = async (spotName: string): Promise<CampSiteVideo[]> => {
   }
 };
 
-const campSiteReviewService = { getReviews, getVideos, getMoreReviewsUrl };
+const campSiteReviewService = { getReviews, getVideos };
 
 export default campSiteReviewService;
