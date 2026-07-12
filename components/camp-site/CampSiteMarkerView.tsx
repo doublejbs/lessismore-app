@@ -51,6 +51,9 @@ const CampSiteMarkerView = memo<Props>(({ spot, onTapSpot }) => {
       }}
       // 겹치는 마커는 캡션만 숨긴다(마커 자체는 유지).
       isHideCollidedCaptions
+      // 마커와 겹치는 기본 지도 심볼(산 정상 POI 등)은 숨긴다 — 이중 라벨을 정리하고,
+      // 심볼이 마커 탭을 가로채 반응이 없어 보이는 문제를 막는다.
+      isHideCollidedSymbols
     >
       {/* 44pt 히트 영역 안에 20pt 원 — 작은 마커의 탭 인식률 확보.
           커스텀 View 마커는 최상위 자식에 생김새 의존성(색)을 key로 넘기고
@@ -76,6 +79,9 @@ const styles = StyleSheet.create({
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
+    // 사실상 보이지 않는 배경 — 아이콘 이미지의 투명 픽셀 영역 탭이 아래 심볼/지도로
+    // 통과하지 않게 44pt 전체를 탭 표면으로 만든다(원(20pt) 밖을 눌러도 마커가 반응).
+    backgroundColor: 'rgba(255, 255, 255, 0.01)',
   },
   marker: {
     width: 20,

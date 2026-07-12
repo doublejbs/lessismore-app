@@ -17,6 +17,9 @@ class CampSiteMap {
   private selectedType: CampSiteType | null = null;
   private selectedSpot: CampSpot | null = null;
   private query = '';
+  // 검색 인풋 포커스 여부 — 드롭다운은 query가 있고 포커스 상태일 때만 표시(CS-6).
+  // 검색 오버레이 컴포넌트와 지도 탭 핸들러가 함께 쓰므로 모델이 들고 있는다.
+  private searchFocused = false;
   private initialized = false;
 
   // 검색 결과 상한(CS-6).
@@ -88,15 +91,16 @@ class CampSiteMap {
     return matched.slice(0, CampSiteMap.SEARCH_RESULT_LIMIT);
   }
 
-  // 줌아웃 상태에서 표시할 샘플 마커(CS-2). 현재 화면 영역(region) 안의 spots를
-  // 세로 6분할 격자 셀당 1개 우선으로 분산시키고, 상한이 남으면 순서대로 보충한다.
-  public getSampledSpots(region: {
+  // 유형 필터 적용 후 화면 영역(region) 안에 있는 spots(CS-2).
+  // 줌인 상태 마커는 전체가 아니라 이 목록만 그린다 — 전량(400+)을 네이티브 마커로
+  // 올리면 커스텀 뷰 캡처·캡션 충돌 계산이 무거워 탭 반응이 눈에 띄게 느려진다.
+  public getSpotsInRegion(region: {
     minLatitude: number;
     maxLatitude: number;
     minLongitude: number;
     maxLongitude: number;
   }): CampSpot[] {
-    const spots = this.getVisibleSpots().filter(spot => {
+    return this.getVisibleSpots().filter(spot => {
       const { latitude, longitude } = spot.location;
 
       return (
@@ -106,6 +110,17 @@ class CampSiteMap {
         longitude <= region.maxLongitude
       );
     });
+  }
+
+  // 줌아웃 상태에서 표시할 샘플 마커(CS-2). 현재 화면 영역(region) 안의 spots를
+  // 세로 6분할 격자 셀당 1개 우선으로 분산시키고, 상한이 남으면 순서대로 보충한다.
+  public getSampledSpots(region: {
+    minLatitude: number;
+    maxLatitude: number;
+    minLongitude: number;
+    maxLongitude: number;
+  }): CampSpot[] {
+    const spots = this.getSpotsInRegion(region);
 
     // 화면 높이(위도 스팬)를 6분할한 셀 크기. 0 이하일 땐 최소 0.01로 방어한다.
     const cellSize = Math.max(
@@ -143,6 +158,14 @@ class CampSiteMap {
 
   public getQuery(): string {
     return this.query;
+  }
+
+  public setSearchFocused(value: boolean) {
+    this.searchFocused = value;
+  }
+
+  public isSearchFocused(): boolean {
+    return this.searchFocused;
   }
 
   public setQuery(value: string) {
