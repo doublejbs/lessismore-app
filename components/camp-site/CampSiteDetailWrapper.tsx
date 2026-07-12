@@ -22,9 +22,9 @@ const CampSiteDetailWrapper: FC = () => {
 
   if (initialized) {
     return (
-      // 하단 '배낭 여행지로 설정' CTA 위에 토스트를 띄우면 검정끼리 겹쳐 보이므로,
-      // 토스트를 화면 최하단(버튼을 덮는 위치)으로 내린다(CS-5).
-      <Layout paddingHorizontal={0} toastBottom={24}>
+      // 토스트를 하단 '배낭 여행지로 설정' CTA 위에 띄운다(버튼과 좌우 끝선·폭이
+      // 동일해 검정끼리도 어긋나 보이지 않는다). 버튼 높이(약 84) + 여유만큼 올린다(CS-5).
+      <Layout paddingHorizontal={0} toastBottom={96}>
         <CampSiteDetailView campSiteDetail={campSiteDetail} />
       </Layout>
     );
