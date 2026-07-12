@@ -45,21 +45,6 @@
     "needsVerification": true
   },
   {
-    "slug": "yeoninsan",
-    "name": "연인산",
-    "type": "wild",
-    "location": {
-      "latitude": 37.8703,
-      "longitude": 127.3722
-    },
-    "region": "경기",
-    "description": "가평의 완만한 능선과 넓은 초지가 있어 수도권 근교 백패킹지로 꾸준히 찾는 산이다.",
-    "facilities": [],
-    "accessInfo": "백둔리 들머리에서 정상 능선까지 도보 약 2시간.",
-    "warnings": "노지 야영은 지역에 따라 금지될 수 있습니다. 도립공원 규정과 취사 제한을 이용 전 확인하세요.",
-    "needsVerification": true
-  },
-  {
     "slug": "somuuido",
     "name": "소무의도",
     "type": "wild",
@@ -91,7 +76,7 @@
       "deck"
     ],
     "accessInfo": "미탄면 임도를 따라 정상 부근까지 차량 접근 후 도보 이동.",
-    "warnings": "노지 야영은 지역에 따라 금지될 수 있습니다. 야생화 보호를 위한 출입·야영 통제 구역을 확인하세요.",
+    "warnings": "평창군이 2021년부터 육백마지기 일대의 야영·차박을 금지했습니다. 단속 대상이니 정상부 야영은 삼가고, 인근 지정 야영장을 이용하세요.",
     "needsVerification": true
   },
   {
