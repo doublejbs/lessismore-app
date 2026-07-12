@@ -25,9 +25,6 @@ class CampSiteMap {
   // 검색 결과 상한(CS-6).
   private static readonly SEARCH_RESULT_LIMIT = 20;
 
-  // 줌아웃 상태에서 표시할 샘플 마커 상한(CS-2).
-  private static readonly MAX_ZOOMED_OUT_MARKERS = 30;
-
   private constructor(private readonly dispatcher: CampSiteMapDispatcher) {
     makeAutoObservable(this);
   }
@@ -110,50 +107,6 @@ class CampSiteMap {
         longitude <= region.maxLongitude
       );
     });
-  }
-
-  // 줌아웃 상태에서 표시할 샘플 마커(CS-2). 현재 화면 영역(region) 안의 spots를
-  // 세로 6분할 격자 셀당 1개 우선으로 분산시키고, 상한이 남으면 순서대로 보충한다.
-  public getSampledSpots(region: {
-    minLatitude: number;
-    maxLatitude: number;
-    minLongitude: number;
-    maxLongitude: number;
-  }): CampSpot[] {
-    const spots = this.getSpotsInRegion(region);
-
-    // 화면 높이(위도 스팬)를 6분할한 셀 크기. 0 이하일 땐 최소 0.01로 방어한다.
-    const cellSize = Math.max(
-      (region.maxLatitude - region.minLatitude) / 6,
-      0.01
-    );
-    const picked = new Map<string, CampSpot>();
-
-    for (const spot of spots) {
-      const key = `${Math.floor(spot.location.latitude / cellSize)}:${Math.floor(spot.location.longitude / cellSize)}`;
-
-      if (!picked.has(key)) {
-        picked.set(key, spot);
-      }
-    }
-
-    const sampled = Array.from(picked.values());
-
-    if (sampled.length < CampSiteMap.MAX_ZOOMED_OUT_MARKERS) {
-      const chosen = new Set(sampled.map(spot => spot.id));
-
-      for (const spot of spots) {
-        if (sampled.length >= CampSiteMap.MAX_ZOOMED_OUT_MARKERS) {
-          break;
-        }
-
-        if (!chosen.has(spot.id)) {
-          sampled.push(spot);
-        }
-      }
-    }
-
-    return sampled.slice(0, CampSiteMap.MAX_ZOOMED_OUT_MARKERS);
   }
 
   public getQuery(): string {

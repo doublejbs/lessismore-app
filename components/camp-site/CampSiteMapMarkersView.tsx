@@ -16,17 +16,15 @@ export interface CampSiteMapViewport {
 interface Props {
   campSiteMap: CampSiteMap;
   viewport: CampSiteMapViewport | null;
-  // 줌 임계 이상으로 확대된 상태 — 화면 영역 안 전량 표시(아니면 샘플링, CS-2).
-  markersVisible: boolean;
   onTapSpot: (spot: CampSpot) => void;
 }
 
 // 마커 레이어(CS-2). 지도 화면에서 분리된 observer라 카메라 이동(viewport 변경)과
 // spots·유형 필터 변경에만 리렌더된다 — 검색 타이핑·요약 카드 오픈은 영향을 주지 않는다.
-// 줌인·줌아웃 어느 쪽이든 뷰포트 밖 마커는 그리지 않는다. 전체 spots(400+)를
-// 네이티브 마커로 전부 올리면 커스텀 뷰 캡처·캡션 충돌 계산 탓에 지도 전체가 느려진다.
+// 줌 수준과 무관하게 뷰포트 안 마커는 전량 표시하되(겹침은 캡션 숨김이 처리),
+// 뷰포트 밖 마커는 그리지 않는다 — 화면 밖까지 전부 네이티브 마커로 올릴 이유가 없다.
 const CampSiteMapMarkersView: FC<Props> = observer(
-  ({ campSiteMap, viewport, markersVisible, onTapSpot }) => {
+  ({ campSiteMap, viewport, onTapSpot }) => {
     if (!viewport) {
       return null;
     }
@@ -46,9 +44,7 @@ const CampSiteMapMarkersView: FC<Props> = observer(
       maxLongitude: viewport.longitude + lngSpan / 2 + lngPad,
     };
 
-    const spots = markersVisible
-      ? campSiteMap.getSpotsInRegion(region)
-      : campSiteMap.getSampledSpots(region);
+    const spots = campSiteMap.getSpotsInRegion(region);
 
     return (
       <>
