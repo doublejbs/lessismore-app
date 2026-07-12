@@ -4,6 +4,8 @@ import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import SeperaterView from '../ui/SeperaterView';
 import ReviewSectionView from '../review/ReviewSectionView';
+import PretendardText from '../PretendardText';
+import { Color } from '@/constants/DesignTokens';
 import { BlogReview, VideoReview } from '@/model/review/ReviewTypes';
 
 interface Props {
@@ -32,6 +34,10 @@ const WarehouseDetailExternalReviewView: FC<Props> = ({ warehouseDetail }) => {
     <>
       <SeperaterView />
       <View style={styles.container}>
+        {/* 앱 내 사용자 `리뷰` 섹션과 구분되는 타이틀 — 이 화면의 섹션 타이틀 톤(bold 16). */}
+        <PretendardText weight='bold' style={styles.title}>
+          블로그·유튜브 후기
+        </PretendardText>
         <ReviewSectionView
           reviews={reviews}
           videos={videos}
@@ -47,6 +53,11 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
     paddingVertical: 16,
+    gap: 12,
+  },
+  title: {
+    fontSize: 16,
+    color: Color.textPrimary,
   },
 });
 

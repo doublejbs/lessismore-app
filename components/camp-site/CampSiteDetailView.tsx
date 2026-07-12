@@ -244,13 +244,20 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
               </PretendardText>
             </TouchableOpacity>
 
-            {/* 외부 후기(CS-3) — 공용 후기 섹션(유튜브 카드 + 블로그 리스트) */}
-            <ReviewSectionView
-              reviews={reviews}
-              videos={videos}
-              onPressReview={handlePressReview}
-              onPressVideo={handlePressVideo}
-            />
+            {/* 외부 후기(CS-3) — 공용 후기 콘텐츠(유튜브 카드 + 블로그 리스트) */}
+            {reviews.length > 0 || videos.length > 0 ? (
+              <View style={styles.section}>
+                <PretendardText style={styles.sectionTitle} weight='semibold'>
+                  후기
+                </PretendardText>
+                <ReviewSectionView
+                  reviews={reviews}
+                  videos={videos}
+                  onPressReview={handlePressReview}
+                  onPressVideo={handlePressVideo}
+                />
+              </View>
+            ) : null}
 
             <PretendardText style={styles.source}>
               출처 · {getCampSiteSourceLabel(spot.source)}

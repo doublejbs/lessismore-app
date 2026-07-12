@@ -21,7 +21,8 @@ const WarehouseDetailInformationView: FC<Props> = ({
   onSelectOtherImage,
 }) => {
   const imageUrl = gear.getImageUrl();
-  const company = gear.getCompany();
+  // 한글 표시명 우선 — 창고/검색 리스트와 동일한 이름으로 보이게 한다(GD-1).
+  const company = gear.getDisplayCompany();
   const name = gear.getDisplayName();
   const weight = gear.getWeight();
   const color = gear.getColor();
@@ -43,7 +44,14 @@ const WarehouseDetailInformationView: FC<Props> = ({
             <GearImageView imageUrl={imageUrl} />
           </View>
         ) : (
-          <Ionicons name='camera-outline' size={24} color={Color.textPrimary} />
+          // 사진 없는 장비 — thumbBg 플레이스홀더 박스로 레이아웃 높이를 유지한다(GD-1).
+          <View style={styles.imagePlaceholder}>
+            <Ionicons
+              name='camera-outline'
+              size={32}
+              color={Color.textSecondary}
+            />
+          </View>
         )}
         {canShowSharedImages && isAdded && (
           <TouchableOpacity
@@ -101,6 +109,14 @@ const styles = StyleSheet.create({
   imageWrapper: {
     height: 180,
     width: '100%',
+  },
+  imagePlaceholder: {
+    height: 180,
+    width: '100%',
+    borderRadius: Radius.card,
+    backgroundColor: Color.thumbBg,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   selectOtherImageButton: {
     // 이미지 영역 우하단 오버레이 원형 버튼 (HIG 44pt 터치 타깃)

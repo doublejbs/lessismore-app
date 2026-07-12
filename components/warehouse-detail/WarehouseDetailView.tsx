@@ -170,13 +170,27 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
               />
             )}
             <WarehouseDetailPurchaseView warehouseDetail={warehouseDetail} />
-            <WarehouseDetailReviewSectionView
-              warehouseDetail={warehouseDetail}
-            />
-            {/* 외부 후기(GD-6) — 유튜브·네이버 블로그 */}
-            <WarehouseDetailExternalReviewView
-              warehouseDetail={warehouseDetail}
-            />
+            {/* 외부 후기(GD-6)는 보유 여부로 배치 분기 — 미보유(쇼핑 맥락)는
+                구매 판단에 유용한 외부 후기를 리뷰(댓글)보다 위로 올린다. */}
+            {isAdded ? (
+              <>
+                <WarehouseDetailReviewSectionView
+                  warehouseDetail={warehouseDetail}
+                />
+                <WarehouseDetailExternalReviewView
+                  warehouseDetail={warehouseDetail}
+                />
+              </>
+            ) : (
+              <>
+                <WarehouseDetailExternalReviewView
+                  warehouseDetail={warehouseDetail}
+                />
+                <WarehouseDetailReviewSectionView
+                  warehouseDetail={warehouseDetail}
+                />
+              </>
+            )}
             <View style={styles.bottomSpacing} />
           </ScrollView>
 
