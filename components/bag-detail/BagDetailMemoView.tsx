@@ -35,7 +35,12 @@ const BagDetailMemoView: FC<Props> = ({ bagDetail }) => {
       />
       {hasMemo ? (
         // 메모가 있으면 '메모' 라벨을 빼고 내용에 공간을 다 준다(아이콘으로 메모임을 식별).
-        <PretendardText style={styles.memoContent} numberOfLines={3}>
+        // 옆 타일의 주 텍스트(라벨 15pt medium)와 위계를 맞춘다.
+        <PretendardText
+          style={styles.memoContent}
+          weight='medium'
+          numberOfLines={3}
+        >
           {memo}
         </PretendardText>
       ) : (
@@ -73,8 +78,8 @@ const styles = StyleSheet.create({
     color: Color.textSecondary,
   },
   memoContent: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 15,
+    lineHeight: 21,
     color: Color.textPrimary,
   },
 });
