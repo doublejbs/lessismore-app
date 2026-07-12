@@ -53,6 +53,15 @@ const styles = StyleSheet.create({
     zIndex: 90,
     backgroundColor: Color.chipActiveBg,
     borderRadius: Radius.card,
+    // 토스트가 검정이라 아래 검정 버튼(예: 박지 상세 하단바)과 붙어 보이지 않게
+    // 그림자 + 얇은 밝은 테두리로 경계를 만든다.
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 10,
   },
   content: {
     flex: 1,
