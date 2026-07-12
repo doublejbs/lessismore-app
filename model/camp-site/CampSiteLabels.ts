@@ -1,4 +1,5 @@
 import CampSiteType from './CampSiteType';
+import CampSiteTag from './CampSiteTag';
 
 // 박지 상세(CampSite CS-3/CS-4)에서 쓰는 표시 라벨·문구 매핑.
 
@@ -18,8 +19,22 @@ const SOURCE_LABEL: Record<string, string> = {
   curated: '자체 큐레이션',
 };
 
+const TAG_LABEL: Record<CampSiteTag, string> = {
+  [CampSiteTag.Mountain]: '산',
+  [CampSiteTag.Beach]: '해변',
+  [CampSiteTag.Valley]: '계곡',
+  [CampSiteTag.Island]: '섬',
+  [CampSiteTag.Lake]: '호수',
+  [CampSiteTag.Plain]: '초원',
+  [CampSiteTag.Forest]: '숲',
+};
+
 export const getCampSiteTypeLabel = (type: CampSiteType): string => {
   return TYPE_LABEL[type] ?? '';
+};
+
+export const getCampSiteTagLabel = (tag: CampSiteTag): string => {
+  return TAG_LABEL[tag] ?? '';
 };
 
 export const getCampSiteSourceLabel = (source: string): string => {

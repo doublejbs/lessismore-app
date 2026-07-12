@@ -1,5 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 import CampSiteType from './CampSiteType';
+import CampSiteTag from './CampSiteTag';
 import { CampSpot } from './CampSpotTypes';
 import CampSiteMapDispatcher from './CampSiteMapDispatcher';
 
@@ -15,6 +16,8 @@ class CampSiteMap {
   private loadError = false;
   // null = 전체(필터 없음).
   private selectedType: CampSiteType | null = null;
+  // 태그 필터(CS-2) — 유형 필터와 AND 결합. null = 전체.
+  private selectedTag: CampSiteTag | null = null;
   private selectedSpot: CampSpot | null = null;
   private query = '';
   // 검색 인풋 포커스 여부 — 드롭다운은 query가 있고 포커스 상태일 때만 표시(CS-6).
@@ -60,13 +63,23 @@ class CampSiteMap {
     }
   }
 
-  // 선택된 유형 필터를 적용한 표시 대상 마커 목록.
+  // 선택된 유형·태그 필터(AND)를 적용한 표시 대상 마커 목록.
+  // 태그 필터 선택 시 태그 미부여 spot은 제외된다(CS-2).
   public getVisibleSpots(): CampSpot[] {
-    if (this.selectedType === null) {
-      return this.spots;
-    }
+    return this.spots.filter(spot => {
+      if (this.selectedType !== null && spot.type !== this.selectedType) {
+        return false;
+      }
 
-    return this.spots.filter(spot => spot.type === this.selectedType);
+      if (
+        this.selectedTag !== null &&
+        !(spot.tags ?? []).includes(this.selectedTag)
+      ) {
+        return false;
+      }
+
+      return true;
+    });
   }
 
   // 검색어로 전체 spots를 필터한 결과(CS-6). 유형 필터(CS-2)와 독립.
@@ -127,6 +140,14 @@ class CampSiteMap {
 
   public clearQuery() {
     this.query = '';
+  }
+
+  public selectTag(tag: CampSiteTag | null) {
+    this.selectedTag = tag;
+  }
+
+  public getSelectedTag(): CampSiteTag | null {
+    return this.selectedTag;
   }
 
   public selectType(type: CampSiteType | null) {

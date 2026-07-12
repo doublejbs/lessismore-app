@@ -234,6 +234,7 @@
 | `description` | string | 자체 작성 설명 |
 | `facilities` | string[] | `toilet` / `water` / `deck` / `store` 중 해당 항목 |
 | `accessInfo` | string? | 접근 정보 자유 텍스트 (예: `주차장에서 도보 40분`) |
+| `tags` | string[]? | 지형·특징 태그 — `mountain`(산)/`beach`(해변)/`valley`(계곡)/`island`(섬)/`lake`(호수)/`plain`(초원·평원)/`forest`(숲), `CampSiteTag` enum. 다중 부여 가능. 큐레이션 spot 위주로 부여하며 없으면 태그 필터에서 제외됨 |
 | `warnings` | string? | 주의·규제 문구 (있으면 상세 상단 경고 박스) |
 | `imageUrl` | string? | 대표 사진 URL |
 | `source` | string | `gocamping` / `knps` / `curated` — 출처 표기용 |
