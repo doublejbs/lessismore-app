@@ -30,8 +30,6 @@ class Warehouse {
   private query = '';
   private loading = false;
   private initialized = false;
-  private disposeReaction: () => void;
-  private disposeLoginReaction: () => void;
 
   private constructor(
     private readonly dispatcher: WarehouseDispatcherType,
@@ -40,13 +38,13 @@ class Warehouse {
     private readonly order: Order,
     private readonly firebase: Firebase
   ) {
-    this.disposeReaction = reaction(
+    reaction(
       () => this.order.getSelectedOrderType(),
       async () => {
         await this.refresh();
       }
     );
-    this.disposeLoginReaction = reaction(
+    reaction(
       () => this.firebase.isLoggedIn(),
       async () => {
         await this.refreshWithLoading();
@@ -194,12 +192,6 @@ class Warehouse {
 
   public getOrder() {
     return this.order;
-  }
-
-  // 객체 소멸 시 reaction 정리
-  private dispose() {
-    this.disposeReaction();
-    this.disposeLoginReaction();
   }
 
   private isLoggedIn() {

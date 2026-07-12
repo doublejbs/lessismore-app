@@ -46,10 +46,6 @@ const ReplyDetailInputView: FC<Props> = observer(
       }
     }, [replyTarget]);
 
-    const handlePressAuthor = () => {
-      // TODO: 작성자 프로필로 이동
-    };
-
     const handlePressInput = () => {
       setIsInputMode(true);
       setTimeout(() => {
