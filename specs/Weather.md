@@ -105,10 +105,10 @@
 
 | 지점 | iOS | Android | Web |
 | --- | --- | --- | --- |
-| 지도 렌더러(`react-native-maps`) | Apple Maps(키 불필요) | Google Maps(`app.json` `android.config.googleMaps.apiKey` 필요) | 미검증 |
+| 지도 렌더러(`@mj-studio/react-native-naver-map`) | 네이버 지도 (NCP Client ID — `app.json` 플러그인 설정) | 네이버 지도 (동일 Client ID) | 미검증 |
 | 현재 위치(`expo-location`) | 권한 문자열 `app.json` `locationWhenInUsePermission` | 위치 권한 | 브라우저 Geolocation |
 
-- `react-native-maps`/`expo-location`은 네이티브 의존성 → 추가 후 prebuild 재생성·재빌드 필요.
+- `네이버 지도(@mj-studio/react-native-naver-map)`/`expo-location`은 네이티브 의존성 → 추가 후 prebuild 재생성·재빌드 필요.
 
 ## 6. 엣지 케이스
 

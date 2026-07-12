@@ -1,44 +1,35 @@
-import { FC, useEffect, useRef, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { Dimensions, Keyboard, Platform, StyleSheet, View } from 'react-native';
 import {
-  ActivityIndicator,
-  Keyboard,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import MapView, { MapPressEvent, Marker, Region } from 'react-native-maps';
+  NaverMapView,
+  NaverMapViewRef,
+  Camera,
+} from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { observer } from 'mobx-react-lite';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
-import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Color } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
-import CampSiteType from '@/model/camp-site/CampSiteType';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
-import { getCampSiteTypeLabel } from '@/model/camp-site/CampSiteLabels';
 import LocalStorageManager from '@/model/storage/LocalStorageManager';
-import CategoryChipView from '@/components/browse/CategoryChipView';
-import CampSiteSummaryCardView from './CampSiteSummaryCardView';
+import { deltaToZoom } from '@/model/map/MapZoom';
+import CampSiteMapMarkersView, {
+  CampSiteMapViewport,
+} from './CampSiteMapMarkersView';
+import CampSiteMapTopOverlayView from './CampSiteMapTopOverlayView';
+import CampSiteMapBottomOverlayView from './CampSiteMapBottomOverlayView';
 
 interface Props {
   campSiteMap: CampSiteMap;
 }
 
 // 남한 전역이 보이는 폴백 카메라(위치 권한 거부/미결정 시).
-const KOREA_REGION: Region = {
+// 중심=남한 중앙, 줌=기존 latitudeDelta 4.8 등가(iPhone 세로 ~850dp 기준 zoom ≈ 8).
+const KOREA_CAMERA: Camera = {
   latitude: 36.2,
   longitude: 127.9,
-  latitudeDelta: 4.8,
-  longitudeDelta: 4.2,
+  zoom: deltaToZoom(4.8),
 };
 
 // 최초 진입 1회 규제 고지(CS-4) 표시 여부 저장 키.
@@ -48,55 +39,24 @@ const NOTICE_STORAGE_KEY = 'campSiteNoticeShown';
 // 하단 플로팅 요소는 탭바 높이만큼 띄운다. Android JS 탭바는 레이아웃 공간을 차지해 불필요.
 const TAB_BAR_HEIGHT = 49;
 
-// 마커는 이 줌(위도 델타) 이내로 줌인했을 때만 표시한다 —
-// 전국 뷰에서 수백 개가 한꺼번에 깔리는 것 방지(유형 구분 없이 일괄 적용).
-const MARKER_VISIBLE_MAX_DELTA = 1.2;
-
-// 유형별 마커 색 — 디자인 토큰 외 시맨틱 리터럴 허용:
-// 야영장=검정, 대피소=회색, 노지=주황(현지 규제 주의).
-// Android(Google Maps)의 Marker pinColor는 hue만 반영해 검정/회색이 빨강으로
-// 렌더되므로, 이 색은 커스텀 원형 View 마커의 배경색으로 사용한다.
-const getMarkerColor = (type: CampSiteType): string => {
-  switch (type) {
-    case CampSiteType.Shelter: {
-      return '#767676';
-    }
-    case CampSiteType.Wild: {
-      return '#FF9500';
-    }
-    default: {
-      return '#000000';
-    }
-  }
-};
-
-const TYPE_FILTERS: { label: string; value: CampSiteType | null }[] = [
-  { label: '전체', value: null },
-  {
-    label: getCampSiteTypeLabel(CampSiteType.Campground),
-    value: CampSiteType.Campground,
-  },
-  {
-    label: getCampSiteTypeLabel(CampSiteType.Shelter),
-    value: CampSiteType.Shelter,
-  },
-  {
-    label: getCampSiteTypeLabel(CampSiteType.Wild),
-    value: CampSiteType.Wild,
-  },
-];
-
-const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
+// 박지 지도 화면(CS-1/CS-2/CS-6)의 조립 컴포넌트. 지도(카메라·권한)만 직접 다루고,
+// MobX 상태를 읽는 UI는 마커 레이어·상단(검색/칩)·하단(카드/현위치) observer로 분리했다 —
+// 검색 타이핑·카드 오픈·카메라 이동이 서로(특히 마커 레이어)를 리렌더하지 않게 하기 위함.
+const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   const router = useRouter();
-  const mapRef = useRef<MapView>(null);
+  const mapRef = useRef<NaverMapViewRef>(null);
   const [locationGranted, setLocationGranted] = useState(false);
-  // 검색 인풋 포커스 여부 — 드롭다운은 query가 있고 포커스 상태일 때만 표시(CS-6).
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  // 지도 초기화 완료 여부 — 위치 추적 모드는 초기화 후에만 설정할 수 있다.
+  const [mapReady, setMapReady] = useState(false);
   const insets = useSafeAreaInsets();
 
   // 하단 플로팅 요소(현재 위치 버튼·요약 카드)가 iOS 플로팅 탭바에 가리지 않게 하는 여유.
   const bottomClearance =
     Platform.OS === 'ios' ? insets.bottom + TAB_BAR_HEIGHT : 0;
+
+  // 마커 레이어용 뷰포트. onCameraChanged는 이동 중 연속 발화하므로
+  // 값을 양자화해 실질 변화가 있을 때만 리렌더되게 한다.
+  const [viewport, setViewport] = useState<CampSiteMapViewport | null>(null);
 
   // 지도 최초 진입 시 위치 권한 요청 → 허용 시 현재 위치로 카메라 이동(CS-1).
   useEffect(() => {
@@ -118,15 +78,12 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
           return;
         }
 
-        mapRef.current?.animateToRegion(
-          {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            latitudeDelta: 0.2,
-            longitudeDelta: 0.2,
-          },
-          500
-        );
+        mapRef.current?.animateCameraTo({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          zoom: deltaToZoom(0.2),
+          duration: 500,
+        });
       } catch (error) {
         console.error('위치 권한 요청 실패:', error);
       }
@@ -159,481 +116,195 @@ const CampSiteMapView: FC<Props> = observer(({ campSiteMap }) => {
     showNoticeOnce();
   }, []);
 
-  const handleMoveToCurrentLocation = async () => {
-    try {
-      const position = await Location.getCurrentPositionAsync({});
-
-      mapRef.current?.animateToRegion(
-        {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          latitudeDelta: 0.2,
-          longitudeDelta: 0.2,
-        },
-        500
-      );
-    } catch (error) {
-      console.error('현재 위치 이동 실패:', error);
-    }
-  };
-
-  // 검색 결과 탭 → 키보드/드롭다운 닫기 + 카메라 이동(줌인) + 요약 카드 오픈(CS-6). 검색어는 유지.
-  const handleSelectResult = (spot: CampSpot) => {
-    Keyboard.dismiss();
-
-    setIsSearchFocused(false);
-
-    campSiteMap.selectSpot(spot);
-
-    mapRef.current?.animateToRegion(
-      {
-        latitude: spot.location.latitude,
-        longitude: spot.location.longitude,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
-      },
-      500
-    );
-  };
-
-  // 검색 시작 시 요약 카드를 닫아 드롭다운과 카드가 동시에 뜨지 않게 한다.
-  const handleSearchFocus = () => {
-    setIsSearchFocused(true);
-    campSiteMap.selectSpot(null);
-  };
-
-  // 마커 탭이 지도 onPress로도 전파되는 경합(iOS) 방어용 플래그.
-  const markerPressedRef = useRef(false);
-
-  const handleMarkerPress = (spot: CampSpot) => {
-    markerPressedRef.current = true;
-    campSiteMap.selectSpot(spot);
-  };
-
-  // 지도 빈 곳 터치 → 요약 카드 닫기 + 키보드 dismiss(드롭다운 blur로 닫힘, CS-6).
-  // 마커 탭 직후 전파된 press는 무시해 카드가 열리자마자 닫히지 않게 한다.
-  const handleMapPress = (event: MapPressEvent) => {
-    if (
-      event.nativeEvent?.action === 'marker-press' ||
-      markerPressedRef.current
-    ) {
-      markerPressedRef.current = false;
-
+  // 권한 허용 + 지도 초기화 완료 시 현위치 오버레이(파란 점)를 표시한다.
+  // NoFollow는 오버레이만 사용자 위치를 따라가고 카메라는 움직이지 않는다(기존 showsUserLocation 대체).
+  useEffect(() => {
+    if (!mapReady || !locationGranted) {
       return;
     }
 
+    mapRef.current?.setLocationTrackingMode('NoFollow');
+  }, [mapReady, locationGranted]);
+
+  const handleMoveToCurrentLocation = useCallback(async () => {
+    try {
+      const position = await Location.getCurrentPositionAsync({});
+
+      mapRef.current?.animateCameraTo({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        zoom: deltaToZoom(0.2),
+        duration: 500,
+      });
+    } catch (error) {
+      console.error('현재 위치 이동 실패:', error);
+    }
+  }, []);
+
+  // 검색 결과 탭 → 키보드/드롭다운 닫기 + 카메라 이동(줌인) + 요약 카드 오픈(CS-6). 검색어는 유지.
+  const handleSelectResult = useCallback(
+    (spot: CampSpot) => {
+      Keyboard.dismiss();
+
+      campSiteMap.setSearchFocused(false);
+      campSiteMap.selectSpot(spot);
+
+      mapRef.current?.animateCameraTo({
+        latitude: spot.location.latitude,
+        longitude: spot.location.longitude,
+        zoom: deltaToZoom(0.05),
+        duration: 500,
+      });
+    },
+    [campSiteMap]
+  );
+
+  // 마커 탭 콜백 — memo된 마커(CampSiteMarkerView)가 리렌더를 건너뛸 수 있게 참조를 고정한다.
+  const handleMarkerTap = useCallback(
+    (spot: CampSpot) => {
+      campSiteMap.selectSpot(spot);
+    },
+    [campSiteMap]
+  );
+
+  // 요약 카드 탭 → 상세 화면(CS-3).
+  const handlePressSpot = useCallback(
+    (spot: CampSpot) => {
+      router.push(`/camp-site/${spot.id}`);
+    },
+    [router]
+  );
+
+  // 요약 카드의 위치로 이동 버튼(CS-2) — 지도를 움직였다가 다시 박지 위치로.
+  // 검색 결과 선택과 동일한 줌 레벨로 이동한다.
+  const handleMoveToSpot = useCallback((spot: CampSpot) => {
+    mapRef.current?.animateCameraTo({
+      latitude: spot.location.latitude,
+      longitude: spot.location.longitude,
+      zoom: deltaToZoom(0.05),
+      duration: 500,
+    });
+  }, []);
+
+  // 지도 빈 곳 터치 → 요약 카드 닫기 + 키보드 dismiss(드롭다운 blur로 닫힘, CS-6).
+  // 네이버는 마커 onTap과 지도 onTapMap이 분리돼 있어 별도 경합 방어가 필요 없다.
+  const handleTapMap = useCallback(() => {
     campSiteMap.selectSpot(null);
 
     // Android는 Keyboard.dismiss 후에도 blur가 안 뜰 수 있어 드롭다운 닫힘을 명시한다.
-    setIsSearchFocused(false);
+    campSiteMap.setSearchFocused(false);
     Keyboard.dismiss();
-  };
+  }, [campSiteMap]);
 
-  const selectedSpot = campSiteMap.getSelectedSpot();
-  const query = campSiteMap.getQuery();
-  const searchResults = campSiteMap.getSearchResults();
-  const showSearchResults = query.trim().length > 0 && isSearchFocused;
+  const handleCameraChanged = useCallback((camera: Camera) => {
+    const zoom = camera.zoom ?? 0;
 
-  // 초기 카메라(전국)는 임계 밖이므로 false로 시작.
-  const [markersVisible, setMarkersVisible] = useState(false);
+    // 중심 0.05°·줌 0.25 단위 양자화 — 동일 값이면 React가 리렌더를 생략한다.
+    const quantized = {
+      latitude: Math.round(camera.latitude / 0.05) * 0.05,
+      longitude: Math.round(camera.longitude / 0.05) * 0.05,
+      zoom: Math.round(zoom / 0.25) * 0.25,
+    };
 
-  const handleRegionChangeComplete = (region: Region) => {
-    setMarkersVisible(region.latitudeDelta <= MARKER_VISIBLE_MAX_DELTA);
-  };
+    setViewport(prev =>
+      prev &&
+      prev.latitude === quantized.latitude &&
+      prev.longitude === quantized.longitude &&
+      prev.zoom === quantized.zoom
+        ? prev
+        : quantized
+    );
+  }, []);
 
-  const markerSpots = markersVisible ? campSiteMap.getVisibleSpots() : [];
+  // 첫 onCameraChanged 이전에도 마커가 보이도록 초기 뷰포트를 시드한다.
+  // 실제 지도 화면 모서리 좌표(screenToCoordinate)로 복원하는 이유:
+  // 화면 재마운트 시 네이티브 지도는 이전 카메라를 유지할 수 있어,
+  // initialCamera(전국)로 시드하면 실제 화면과 다른 영역의 마커를 계산하게 된다.
+  const handleMapInitialized = useCallback(() => {
+    setMapReady(true);
+
+    const seedViewportFromMap = async () => {
+      const { width, height } = Dimensions.get('window');
+      const [topLeft, bottomRight] = await Promise.all([
+        mapRef.current?.screenToCoordinate({ screenX: 0, screenY: 0 }),
+        mapRef.current?.screenToCoordinate({ screenX: width, screenY: height }),
+      ]);
+
+      if (topLeft?.isValid && bottomRight?.isValid) {
+        const latSpan = Math.abs(topLeft.latitude - bottomRight.latitude);
+        const zoom = deltaToZoom(latSpan);
+
+        setViewport(prev =>
+          prev
+            ? prev
+            : {
+                latitude: (topLeft.latitude + bottomRight.latitude) / 2,
+                longitude: (topLeft.longitude + bottomRight.longitude) / 2,
+                zoom,
+              }
+        );
+
+        return;
+      }
+
+      // 프로젝션이 아직 준비 전이면 초기 카메라(전국)로 폴백 — 이후 onCameraChanged가 보정한다.
+      setViewport(prev =>
+        prev
+          ? prev
+          : {
+              latitude: KOREA_CAMERA.latitude,
+              longitude: KOREA_CAMERA.longitude,
+              zoom: KOREA_CAMERA.zoom ?? 0,
+            }
+      );
+    };
+
+    void seedViewportFromMap();
+  }, []);
 
   return (
     <View style={styles.container}>
-      <MapView
+      <NaverMapView
         ref={mapRef}
         style={StyleSheet.absoluteFill}
-        initialRegion={KOREA_REGION}
-        onPress={handleMapPress}
-        onRegionChangeComplete={handleRegionChangeComplete}
-        // 권한 허용 시 내 위치를 네이티브 파란 점으로 표시. Android 기본 위치 버튼은
-        // 자체 현재 위치 버튼과 중복이라 끈다.
-        showsUserLocation={locationGranted}
-        showsMyLocationButton={false}
+        initialCamera={KOREA_CAMERA}
+        // 네이버 기본 현위치 버튼은 자체 버튼과 중복이라 숨긴다.
+        isShowLocationButton={false}
+        // 기본 줌 버튼/스케일바는 기존 지도 UI 톤(핀치 줌만)과 달라 숨긴다.
+        isShowZoomControls={false}
+        isShowScaleBar={false}
+        onInitialized={handleMapInitialized}
+        onTapMap={handleTapMap}
+        onCameraChanged={handleCameraChanged}
       >
-        {markerSpots.map(spot => (
-          <Marker
-            key={spot.id}
-            coordinate={{
-              latitude: spot.location.latitude,
-              longitude: spot.location.longitude,
-            }}
-            anchor={{ x: 0.5, y: 0.5 }}
-            tracksViewChanges={false}
-            onPress={() => handleMarkerPress(spot)}
-          >
-            {/* 44pt 히트 영역 안에 20pt 원 — 작은 마커의 탭 인식률 확보 */}
-            <View style={styles.markerHitArea}>
-              <View
-                style={[
-                  styles.marker,
-                  { backgroundColor: getMarkerColor(spot.type) },
-                ]}
-              />
-            </View>
-          </Marker>
-        ))}
-      </MapView>
-
-      {/* 상단 오버레이: 로드 실패 배너 + 검색 인풋/드롭다운 + 유형 필터 칩 행 */}
-      <SafeAreaView
-        edges={['top']}
-        style={styles.topOverlay}
-        pointerEvents='box-none'
-      >
-        {/* 박지 검색(CS-6) — 날씨 지도 피커와 동일한 카드형 검색 UI */}
-        <View style={styles.searchWrap}>
-          <View style={styles.searchCard}>
-            <View style={styles.searchBox}>
-              <Ionicons name='search' size={18} color={Color.textSecondary} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder='박지 검색'
-                placeholderTextColor={Color.textSecondary}
-                value={query}
-                onChangeText={value => campSiteMap.setQuery(value)}
-                onFocus={handleSearchFocus}
-                onBlur={() => setIsSearchFocused(false)}
-                autoCorrect={false}
-                returnKeyType='search'
-              />
-              {query.length > 0 && (
-                <TouchableOpacity
-                  onPress={() => campSiteMap.clearQuery()}
-                  hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
-                  accessibilityRole='button'
-                  accessibilityLabel='검색어 지우기'
-                >
-                  <Ionicons
-                    name='close-circle'
-                    size={18}
-                    color={Color.textSecondary}
-                  />
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-
-          {showSearchResults && (
-            <View style={styles.dropdown}>
-              <ScrollView
-                style={styles.dropdownScroll}
-                keyboardShouldPersistTaps='handled'
-                showsVerticalScrollIndicator={false}
-              >
-                {searchResults.length === 0 ? (
-                  <View style={styles.dropdownEmpty}>
-                    <PretendardText style={styles.dropdownEmptyText}>
-                      검색 결과가 없어요
-                    </PretendardText>
-                  </View>
-                ) : (
-                  searchResults.map(spot => (
-                    <TouchableOpacity
-                      key={spot.id}
-                      style={styles.resultRow}
-                      onPress={() => handleSelectResult(spot)}
-                      activeOpacity={0.7}
-                      accessibilityRole='button'
-                      accessibilityLabel={`${spot.name} 지도에서 보기`}
-                    >
-                      <Ionicons
-                        name='location-outline'
-                        size={18}
-                        color={Color.textSecondary}
-                      />
-                      <PretendardText
-                        style={styles.resultName}
-                        weight='medium'
-                        numberOfLines={1}
-                      >
-                        {spot.name}
-                      </PretendardText>
-                      <View style={styles.resultBadge}>
-                        <PretendardText
-                          style={styles.resultBadgeText}
-                          weight='medium'
-                        >
-                          {getCampSiteTypeLabel(spot.type)}
-                        </PretendardText>
-                      </View>
-                      <PretendardText
-                        style={styles.resultRegion}
-                        numberOfLines={1}
-                      >
-                        {spot.region}
-                      </PretendardText>
-                    </TouchableOpacity>
-                  ))
-                )}
-              </ScrollView>
-            </View>
-          )}
-        </View>
-
-        {campSiteMap.hasLoadError() && (
-          <View style={styles.errorBanner}>
-            <PretendardText
-              style={styles.errorText}
-              weight='medium'
-              numberOfLines={1}
-            >
-              박지 정보를 불러오지 못했어요
-            </PretendardText>
-            <TouchableOpacity
-              style={styles.retryButton}
-              onPress={() => campSiteMap.retry()}
-              activeOpacity={0.8}
-            >
-              <PretendardText style={styles.retryText} weight='semibold'>
-                재시도
-              </PretendardText>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* 검색 결과가 열려 있는 동안 유형 칩은 숨긴다 — 검색은 유형과 독립이라 무의미하고,
-            드롭다운에 밀려 지도 한가운데 떠 보이는 문제(디자인 리뷰)를 막는다. */}
-        {!showSearchResults && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterRow}
-            keyboardShouldPersistTaps='handled'
-          >
-            {TYPE_FILTERS.map(filter => (
-              <CategoryChipView
-                key={filter.label}
-                label={filter.label}
-                selected={campSiteMap.getSelectedType() === filter.value}
-                onPress={() => campSiteMap.selectType(filter.value)}
-              />
-            ))}
-          </ScrollView>
-        )}
-      </SafeAreaView>
-
-      {campSiteMap.isLoading() && (
-        <View style={styles.loadingWrap} pointerEvents='none'>
-          <ActivityIndicator size='small' color={Color.textPrimary} />
-        </View>
-      )}
-
-      {/* 현재 위치 버튼 — 권한 허용 시에만 노출 */}
-      {locationGranted && (
-        <View
-          style={[
-            styles.locateWrap,
-            { bottom: bottomClearance + (selectedSpot ? 190 : 24) },
-          ]}
-          pointerEvents='box-none'
-        >
-          <TouchableOpacity
-            style={styles.locateButton}
-            onPress={handleMoveToCurrentLocation}
-            activeOpacity={0.8}
-            accessibilityRole='button'
-            accessibilityLabel='현재 위치로 이동'
-          >
-            <Ionicons name='locate' size={22} color={Color.textPrimary} />
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {selectedSpot && (
-        <CampSiteSummaryCardView
-          spot={selectedSpot}
-          bottomInset={bottomClearance}
-          onPress={() => router.push(`/camp-site/${selectedSpot.id}`)}
+        <CampSiteMapMarkersView
+          campSiteMap={campSiteMap}
+          viewport={viewport}
+          onTapSpot={handleMarkerTap}
         />
-      )}
+      </NaverMapView>
+
+      <CampSiteMapTopOverlayView
+        campSiteMap={campSiteMap}
+        onSelectResult={handleSelectResult}
+      />
+
+      <CampSiteMapBottomOverlayView
+        campSiteMap={campSiteMap}
+        bottomClearance={bottomClearance}
+        locationGranted={locationGranted}
+        onMoveToCurrentLocation={handleMoveToCurrentLocation}
+        onPressSpot={handlePressSpot}
+        onMoveToSpot={handleMoveToSpot}
+      />
     </View>
   );
-});
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Color.background,
-  },
-  // Android hue 문제 회피용 커스텀 원형 마커(위 getMarkerColor 주석 참고).
-  markerHitArea: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  marker: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Color.background,
-  },
-  topOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    gap: 10,
-    paddingTop: 8,
-  },
-  filterRow: {
-    flexDirection: 'row',
-    gap: 8,
-    // 검색 카드(marginHorizontal 12)와 좌측 정렬.
-    paddingHorizontal: 12,
-  },
-  // 검색 카드 + 결과 카드 묶음(CS-6) — 날씨 지도 피커(WeatherMapPickerView)와 동일한 UI 언어.
-  searchWrap: {
-    marginHorizontal: 12,
-    gap: 8,
-  },
-  // 흰 카드 안에 회색 인풋 (날씨 피커 headerCard/searchBox와 동일).
-  searchCard: {
-    padding: 12,
-    borderRadius: Radius.card,
-    backgroundColor: Color.background,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  searchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    height: 44,
-    paddingHorizontal: 14,
-    borderRadius: Radius.input,
-    backgroundColor: Color.surfaceMuted,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    fontFamily: 'Pretendard-Regular',
-    color: Color.textPrimary,
-    padding: 0,
-  },
-  // 결과는 별도 카드로 (날씨 피커 resultsCard와 동일).
-  dropdown: {
-    maxHeight: 260,
-    borderRadius: Radius.card,
-    backgroundColor: Color.background,
-    paddingHorizontal: 12,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  dropdownScroll: {
-    flexGrow: 0,
-  },
-  dropdownEmpty: {
-    minHeight: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dropdownEmptyText: {
-    fontSize: 14,
-    color: Color.textSecondary,
-  },
-  resultRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    minHeight: 44,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
-  },
-  resultName: {
-    flexShrink: 1,
-    fontSize: 15,
-    color: Color.textPrimary,
-  },
-  resultBadge: {
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: Radius.chip,
-    backgroundColor: Color.chipInactiveBg,
-  },
-  resultBadgeText: {
-    fontSize: 12,
-    color: Color.textTertiary,
-  },
-  resultRegion: {
-    flex: 1,
-    fontSize: 13,
-    textAlign: 'right',
-    color: Color.textSecondary,
-  },
-  errorBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginHorizontal: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: Radius.card,
-    backgroundColor: Color.background,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  errorText: {
-    flex: 1,
-    fontSize: 14,
-    color: Color.textPrimary,
-  },
-  retryButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: Radius.chip,
-    backgroundColor: Color.chipActiveBg,
-  },
-  retryText: {
-    fontSize: 13,
-    color: Color.background,
-  },
-  loadingWrap: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  // bottom은 탭바 여유(bottomClearance) + 카드 유무에 따라 렌더에서 동적으로 지정한다.
-  locateWrap: {
-    position: 'absolute',
-    right: 16,
-    alignItems: 'flex-end',
-  },
-  locateButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Color.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 5,
   },
 });
 

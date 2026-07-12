@@ -104,9 +104,14 @@ class Firebase {
 
   private initializeAuth(fireBaseApp: FirebaseApp) {
     if (Platform.OS === 'ios' || Platform.OS === 'android') {
-      return initializeAuth(fireBaseApp, {
-        persistence: getReactNativePersistence(ReactNativeAsyncStorage),
-      });
+      try {
+        return initializeAuth(fireBaseApp, {
+          persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+        });
+      } catch {
+        // 이미 초기화된 앱(dev 리로드/중복 initialize)이면 기존 인스턴스를 재사용한다.
+        return getAuth(fireBaseApp);
+      }
     } else {
       return getAuth(fireBaseApp);
     }

@@ -27,9 +27,19 @@ const ToastView: FC<Props> = ({ toastManager, bottom }) => {
     return (
       <View style={[styles.container, { bottom }]}>
         <View style={styles.content}>
-          <PretendardText style={styles.text}>{message}</PretendardText>
+          <PretendardText
+            style={[styles.text, buttonText ? styles.textWithButton : null]}
+          >
+            {message}
+          </PretendardText>
           {buttonText && (
-            <TouchableOpacity style={styles.button} onPress={handleButtonPress}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleButtonPress}
+              accessibilityRole='button'
+              accessibilityLabel={buttonText}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
               <PretendardText weight='semibold' style={styles.buttonText}>
                 {buttonText}
               </PretendardText>
@@ -46,32 +56,49 @@ const ToastView: FC<Props> = ({ toastManager, bottom }) => {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    width: '90%',
-    alignSelf: 'center',
+    // 하단 CTA(예: 박지 상세 '배낭 여행지로 설정')와 좌우 끝선을 맞춰
+    // 두 요소가 어긋나 보이지 않게 한다(하단바 marginHorizontal 20과 동일).
+    left: 20,
+    right: 20,
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 14,
     zIndex: 90,
     backgroundColor: Color.chipActiveBg,
     borderRadius: Radius.card,
+    // 토스트가 검정이라 아래 검정 버튼과 붙어 보이지 않게 그림자 + 얇은 밝은 테두리로 경계를 만든다.
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 10,
   },
   content: {
-    flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
   },
   text: {
+    flex: 1,
     color: Color.background,
     textAlign: 'center',
   },
+  // 액션 버튼이 있으면 메시지는 좌측 정렬(2단 레이아웃).
+  textWithButton: {
+    textAlign: 'left',
+  },
   button: {
+    minHeight: 36,
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: Radius.card,
+    justifyContent: 'center',
+    // 검정 토스트 위에서 흐리게 묻히지 않게 흰 채움(텍스트 검정)으로 대비를 높인다.
+    backgroundColor: Color.background,
+    borderRadius: Radius.chip,
   },
   buttonText: {
-    color: Color.background,
+    color: Color.textPrimary,
     textAlign: 'center',
   },
 });

@@ -1,14 +1,15 @@
-import dayjs from 'dayjs';
 import app from '../app/App';
 import CampSpotStore from '../store/CampSpotStore';
 import BagStore from '../store/BagStore';
 import BagItem from '../bag/BagItem';
-import weatherService from '../weather/WeatherService';
+import reviewSearchService from '../review/ReviewSearchService';
 import { CampSpot } from './CampSpotTypes';
-import { BagLocation, WeatherDaily } from '../weather/WeatherTypes';
-
-// 주간 날씨 조회 범위: 오늘 포함 7일.
-const WEEKLY_DAYS = 6;
+import {
+  BlogReview,
+  ReviewCache,
+  VideoReview,
+} from '../review/ReviewTypes';
+import { BagLocation } from '../weather/WeatherTypes';
 
 // 박지 상세(CampSite CS-3/CS-5)의 데이터 접근을 캡슐화한다.
 class CampSiteDetailDispatcher {
@@ -28,15 +29,27 @@ class CampSiteDetailDispatcher {
     return this.campSpotStore.getSpot(id);
   }
 
-  // 박지 좌표로 오늘부터 7일치 예보를 조회한다(CS-3 주간 날씨).
-  public async getWeeklyWeather(
-    location: BagLocation
-  ): Promise<WeatherDaily[]> {
-    const start = dayjs().startOf('day');
-    const end = start.add(WEEKLY_DAYS, 'day');
-    const snapshot = await weatherService.getWeather(location, start, end);
+  // 박지 후기(CS-3): "{박지명} 백패킹" 네이버 블로그 상위 5건. 실패·키 미설정이면 null.
+  public async getReviews(spotName: string): Promise<BlogReview[] | null> {
+    return reviewSearchService.getBlogReviews(`${spotName} 백패킹`);
+  }
 
-    return snapshot.daily;
+  // 박지 후기 영상(CS-3): "{박지명} 백패킹" 유튜브 상위 4건. 실패·키 미설정이면 null.
+  public async getVideos(spotName: string): Promise<VideoReview[] | null> {
+    return reviewSearchService.getVideoReviews(`${spotName} 백패킹`);
+  }
+
+  // 후기 공유 캐시(DM-18) 조회 — 문서 없으면 null.
+  public async getReviewCache(spotId: string): Promise<ReviewCache | null> {
+    return this.campSpotStore.getReviewCache(spotId);
+  }
+
+  // 후기 공유 캐시(DM-18) 갱신.
+  public async saveReviewCache(
+    spotId: string,
+    cache: ReviewCache
+  ): Promise<void> {
+    await this.campSpotStore.saveReviewCache(spotId, cache);
   }
 
   public async getBags(): Promise<BagItem[]> {

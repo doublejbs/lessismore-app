@@ -83,6 +83,11 @@ const loadCuratedSpots = () => {
     withOptional(document, 'warnings', item.warnings);
     withOptional(document, 'imageUrl', item.imageUrl);
 
+    // 지형·특징 태그(DM-17 tags) — 비어있지 않은 배열일 때만 영속.
+    if (Array.isArray(item.tags) && item.tags.length > 0) {
+      document.tags = item.tags;
+    }
+
     // 좌표 검수 플래그(needsVerification)는 소스 JSON에만 둔다 —
     // DM-17 계약 외 필드를 Firestore에 영속하지 않는다(카탈로그는 계약 필드만).
 

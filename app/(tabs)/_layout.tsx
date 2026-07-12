@@ -83,7 +83,7 @@ const JsTabLayout = () => {
           tabBarIcon: ({ color }) => (
             <IconSymbol size={26} name='map.fill' color={color} />
           ),
-          // 웹은 react-native-maps 미지원이라 탭바에서 숨긴다(CS 플랫폼 분기).
+          // 웹은 네이티브 지도 SDK 미지원이라 탭바에서 숨긴다(CS 플랫폼 분기).
           ...(Platform.OS === 'web' ? { href: null } : {}),
         }}
       />

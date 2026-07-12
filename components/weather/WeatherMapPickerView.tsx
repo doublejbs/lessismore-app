@@ -11,7 +11,11 @@ import {
   Alert,
   Pressable,
 } from 'react-native';
-import MapView, { Region } from 'react-native-maps';
+import {
+  NaverMapView,
+  NaverMapViewRef,
+  Camera,
+} from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -23,6 +27,7 @@ import { Color, Radius } from '@/constants/DesignTokens';
 import BagWeather from '@/model/bag/BagWeather';
 import weatherService from '@/model/weather/WeatherService';
 import { GeocodeResult } from '@/model/weather/WeatherTypes';
+import { deltaToZoom } from '@/model/map/MapZoom';
 
 interface Props {
   bagWeather: BagWeather;
@@ -31,11 +36,9 @@ interface Props {
 }
 
 // 위치 미설정 시 기본 중심(서울 시청).
-const DEFAULT: Region = {
+const DEFAULT = {
   latitude: 37.5665,
   longitude: 126.978,
-  latitudeDelta: 0.05,
-  longitudeDelta: 0.05,
 };
 
 // 저장/검색으로 이름을 이미 아는 좌표인지 판정(약 100m 이내면 같은 지점으로 본다).
@@ -43,7 +46,7 @@ const EPSILON = 0.001;
 const near = (a: number, b: number) => Math.abs(a - b) < EPSILON;
 
 const WeatherMapPickerView: FC<Props> = ({ bagWeather, visible, onClose }) => {
-  const mapRef = useRef<MapView>(null);
+  const mapRef = useRef<NaverMapViewRef>(null);
   // 저장/검색으로 이름을 확정한 좌표. 이 좌표 위에선 역지오코딩 대신 이 이름을 쓴다.
   const knownRef = useRef<{ lat: number; lng: number; name: string } | null>(
     null
@@ -67,14 +70,17 @@ const WeatherMapPickerView: FC<Props> = ({ bagWeather, visible, onClose }) => {
 
   // 지도를 초기에 어디로 띄울지: 저장된 위치가 있으면 그 좌표, 없으면 기본값.
   const location = bagWeather.getLocation();
-  const initialRegion: Region = location
+  const initialCamera: Camera = location
     ? {
         latitude: location.latitude,
         longitude: location.longitude,
-        latitudeDelta: 0.02,
-        longitudeDelta: 0.02,
+        zoom: deltaToZoom(0.02),
       }
-    : DEFAULT;
+    : {
+        latitude: DEFAULT.latitude,
+        longitude: DEFAULT.longitude,
+        zoom: deltaToZoom(0.05),
+      };
 
   // 모달이 열릴 때마다 저장된 위치 기준으로 초기화한다.
   useEffect(() => {
@@ -181,15 +187,12 @@ const WeatherMapPickerView: FC<Props> = ({ bagWeather, visible, onClose }) => {
     setResults([]);
     setAddressName(result.name);
     setCenter({ latitude: result.latitude, longitude: result.longitude });
-    mapRef.current?.animateToRegion(
-      {
-        latitude: result.latitude,
-        longitude: result.longitude,
-        latitudeDelta: 0.02,
-        longitudeDelta: 0.02,
-      },
-      400
-    );
+    mapRef.current?.animateCameraTo({
+      latitude: result.latitude,
+      longitude: result.longitude,
+      zoom: deltaToZoom(0.02),
+      duration: 400,
+    });
   };
 
   const handleCurrentLocation = async () => {
@@ -214,10 +217,12 @@ const WeatherMapPickerView: FC<Props> = ({ bagWeather, visible, onClose }) => {
       setQuery('');
       setResults([]);
       setCenter({ latitude, longitude });
-      mapRef.current?.animateToRegion(
-        { latitude, longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 },
-        400
-      );
+      mapRef.current?.animateCameraTo({
+        latitude,
+        longitude,
+        zoom: deltaToZoom(0.02),
+        duration: 400,
+      });
     } catch (error) {
       console.error('현재 위치 조회 실패:', error);
       Alert.alert('오류', '현재 위치를 불러오지 못했습니다.');
@@ -260,13 +265,20 @@ const WeatherMapPickerView: FC<Props> = ({ bagWeather, visible, onClose }) => {
     >
       <SafeAreaProvider>
         <View style={styles.container}>
-          <MapView
+          <NaverMapView
             key={mapKey}
             ref={mapRef}
             style={StyleSheet.absoluteFill}
-            initialRegion={initialRegion}
-            onRegionChangeComplete={r =>
-              setCenter({ latitude: r.latitude, longitude: r.longitude })
+            initialCamera={initialCamera}
+            // 기본 줌 버튼/스케일바/현위치 버튼은 기존 피커 UI 톤과 달라 숨긴다.
+            isShowLocationButton={false}
+            isShowZoomControls={false}
+            isShowScaleBar={false}
+            onCameraChanged={camera =>
+              setCenter({
+                latitude: camera.latitude,
+                longitude: camera.longitude,
+              })
             }
           />
 

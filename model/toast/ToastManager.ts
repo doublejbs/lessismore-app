@@ -33,9 +33,13 @@ class ToastManager {
       this.setButtonText(buttonText);
       this.setOnButtonPress(onButtonPress);
       this.setVisible(true);
+
+      // 액션 버튼이 있으면 사용자가 눌러야 하므로 노출 시간을 늘린다(3초 → 5초).
+      const duration = buttonText ? 5000 : 3000;
+
       setTimeout(() => {
         this.hide();
-      }, 3000);
+      }, duration);
     }
   }
 

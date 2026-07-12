@@ -26,12 +26,21 @@ class App {
   private analyticsManager: AnalyticsManager | null = null;
   private notificationManager: NotificationManager | null = null;
   private initialized = false;
+  // 초기화 진행 중 재진입 방지 — _layout의 useEffect가 초기화 완료 전에
+  // 의존성 변경으로 재실행되면 initialize가 중복 호출된다(auth/already-initialized).
+  private initializing = false;
 
   public constructor() {
     makeAutoObservable(this);
   }
 
   public async initialize() {
+    if (this.initialized || this.initializing) {
+      return;
+    }
+
+    this.initializing = true;
+
     await this.firebase.initialize();
     this.gearStore = new GearStore(this.firebase);
     this.gearImageStore = new GearImageStore(this.firebase);
@@ -45,6 +54,7 @@ class App {
     this.analyticsManager = AnalyticsManager.new();
     this.notificationManager = NotificationManager.new();
     this.setInitialized(true);
+    this.initializing = false;
   }
 
   public getFirebase() {

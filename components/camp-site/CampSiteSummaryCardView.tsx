@@ -12,6 +12,8 @@ interface Props {
   // 하단 여유(탭바+safe area) — 풀블리드 지도 위 플로팅이라 부모(MapView)가 계산해 내려준다.
   bottomInset: number;
   onPress: () => void;
+  // 위치로 이동(CS-2) — 지도를 움직였다가 다시 이 박지 위치로 카메라를 되돌린다.
+  onPressMoveToSpot: () => void;
 }
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
@@ -28,7 +30,12 @@ const FACILITY_META: Record<
 };
 
 // 마커 탭 시 하단에 뜨는 박지 요약 카드(CS-2). 탭하면 상세로 이동한다.
-const CampSiteSummaryCardView: FC<Props> = ({ spot, bottomInset, onPress }) => {
+const CampSiteSummaryCardView: FC<Props> = ({
+  spot,
+  bottomInset,
+  onPress,
+  onPressMoveToSpot,
+}) => {
   return (
     <View style={[styles.wrap, { bottom: bottomInset }]} pointerEvents='box-none'>
       <TouchableOpacity
@@ -86,14 +93,32 @@ const CampSiteSummaryCardView: FC<Props> = ({ spot, bottomInset, onPress }) => {
         )}
 
         <View style={styles.detailHintRow}>
-          <PretendardText style={styles.detailHint} weight='medium'>
-            자세히 보기
-          </PretendardText>
-          <Ionicons
-            name='chevron-forward'
-            size={16}
-            color={Color.textSecondary}
-          />
+          {/* 지도를 움직였다가 다시 박지 위치로 돌아가는 버튼(CS-2). 카드 탭(상세 이동)과
+              분리된 내부 버튼이라 터치 타깃 44pt를 hitSlop으로 확보한다. */}
+          <TouchableOpacity
+            style={styles.moveToSpotButton}
+            onPress={onPressMoveToSpot}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
+            accessibilityRole='button'
+            accessibilityLabel={`${spot.name} 위치로 지도 이동`}
+          >
+            <Ionicons name='locate' size={14} color={Color.textSecondary} />
+            <PretendardText style={styles.moveToSpotText} weight='medium'>
+              위치로 이동
+            </PretendardText>
+          </TouchableOpacity>
+
+          <View style={styles.detailHint}>
+            <PretendardText style={styles.detailHintText} weight='medium'>
+              자세히 보기
+            </PretendardText>
+            <Ionicons
+              name='chevron-forward'
+              size={16}
+              color={Color.textSecondary}
+            />
+          </View>
         </View>
       </TouchableOpacity>
     </View>
@@ -166,10 +191,23 @@ const styles = StyleSheet.create({
   detailHintRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: 2,
+    justifyContent: 'space-between',
+  },
+  moveToSpotButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  moveToSpotText: {
+    fontSize: 13,
+    color: Color.textSecondary,
   },
   detailHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  detailHintText: {
     fontSize: 13,
     color: Color.textSecondary,
   },
