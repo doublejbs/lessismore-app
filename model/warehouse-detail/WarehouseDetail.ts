@@ -298,7 +298,13 @@ class WarehouseDetail {
   }
 
   public close() {
-    this.router.back();
+    // 공유 딥링크로 상세가 첫 화면으로 열리면 돌아갈 화면이 없어 back()이 실패한다
+    // ('GO_BACK not handled'). 이 경우 창고(홈) 탭으로 보낸다.
+    if (this.router.canGoBack()) {
+      this.router.back();
+    } else {
+      this.router.replace('/');
+    }
   }
 
   private setId(id: string) {
