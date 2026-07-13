@@ -9,7 +9,9 @@ class BagItem {
     private readonly startDate: Dayjs,
     private readonly endDate: Dayjs,
     private readonly gears: string[] = [],
-    private readonly packedGears: string[] = []
+    private readonly packedGears: string[] = [],
+    // 여행지(location) 이름 — 설정돼 있으면 배낭 선택 시트 등에서 노출한다(CS-5). 없으면 null.
+    private readonly locationName: string | null = null
   ) {}
 
   public getID() {
@@ -18,6 +20,15 @@ class BagItem {
 
   public getName() {
     return this.name;
+  }
+
+  public getLocationName() {
+    return this.locationName;
+  }
+
+  // 최근 수정 순 정렬용 편집일 epoch(ms).
+  public getEditDateValue() {
+    return this.editDate.valueOf();
   }
 
   public getWeight() {
