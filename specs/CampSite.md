@@ -104,6 +104,16 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
 - 인풋 클리어(X) 버튼으로 검색어·리스트 초기화(창고 WH-8과 동일한 커스텀 X 1개).
 - 검색 리스트가 열려 있는 동안 지도 터치는 리스트를 닫는다(키보드 dismiss 포함).
 
+### CS-7 공유 `[제안]`
+
+사용자는 박지를 외부(카카오톡 등)로 공유하고, 받은 사람은 웹 랜딩을 거쳐 앱으로 진입한다.
+
+**수용 기준**
+
+- 상세 헤더 우측에 **공유 아이콘 버튼**(지도 열기 버튼 왼쪽). 탭 → OS 공유 시트(`Share.share`)로 `{박지명} · 백패킹 박지` + URL `https://useless.my/camp-share/{spotId}`를 내보낸다.
+- 공유 클릭을 `click_camp_site_share`로 계측한다([Analytics.md](Analytics.md) AN-3).
+- **웹 랜딩**(별도 레포 `lessismore`, `/camp-share/:id`): Firestore `/camp-spot/{id}`(공개 읽기)를 읽어 이름·유형·지역·사진·설명·주의를 보여주고, **`앱에서 보기`** 버튼으로 `lessismoreapp://camp-site/{id}` 딥링크(미설치 시 스토어 폴백)로 앱을 연다. Universal Link는 쓰지 않는다(웹 랜딩을 먼저 보여주는 의도).
+
 ## 4. 데이터
 
 - 읽기: `/camp-spot`(DM-17) — `where('status','==','active')` 전량. 날씨는 WT 파이프라인 재사용(쓰기 없음).
