@@ -61,6 +61,10 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
     void campSiteDetail.openNaverMap();
   };
 
+  const handlePressShare = () => {
+    void campSiteDetail.share();
+  };
+
   const handlePressWeather = () => {
     campSiteDetail.openWeather();
   };
@@ -112,15 +116,29 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
             <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
           </TouchableOpacity>
 
-          {/* 네이버 지도에서 열기(CS-3) — 헤더 우측 상단 아이콘 버튼 */}
-          <TouchableOpacity
-            onPress={handlePressNaverMap}
-            style={styles.naverMapButton}
-            accessibilityLabel='네이버 지도에서 열기'
-            accessibilityRole='button'
-          >
-            <Ionicons name='map-outline' size={22} color={Color.textPrimary} />
-          </TouchableOpacity>
+          {/* 헤더 우측 액션 — 공유 + 네이버 지도에서 열기(CS-3/CS-7) */}
+          <View style={styles.headerRight}>
+            <TouchableOpacity
+              onPress={handlePressShare}
+              style={styles.headerButton}
+              accessibilityLabel='공유'
+              accessibilityRole='button'
+            >
+              <Ionicons
+                name='share-outline'
+                size={22}
+                color={Color.textPrimary}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handlePressNaverMap}
+              style={styles.headerButton}
+              accessibilityLabel='네이버 지도에서 열기'
+              accessibilityRole='button'
+            >
+              <Ionicons name='map-outline' size={22} color={Color.textPrimary} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView
@@ -317,14 +335,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginLeft: -10,
   },
-  // 헤더 우측 네이버 지도 열기 버튼 — 뒤로 가기와 대칭인 44pt 아이콘 버튼.
-  naverMapButton: {
+  // 헤더 우측 액션 묶음(공유 + 지도) — 뒤로 가기 대칭 위치.
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 'auto',
+    marginRight: -10,
+  },
+  headerButton: {
     width: 44,
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 'auto',
-    marginRight: -10,
   },
   content: {
     flex: 1,
