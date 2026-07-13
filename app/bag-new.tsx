@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import app from '@/model/app/App';
 import BagFormContent from '@/components/bag/BagFormContent';
+import { takePendingBagLocation } from '@/model/bag/PendingBagLocationHandoff';
 
 // BAG-2: 배낭 생성 폼 — 네이티브 formSheet 라우트. 상태를 직접 소유하고 BagStore로 생성한다.
 const BagNewScreen = () => {
@@ -41,6 +42,14 @@ const BagNewScreen = () => {
 
       if (bagID) {
         app.getAnalyticsManager()?.logClick('bag_create_confirm');
+
+        // 박지 상세(CS-5) '새 배낭 만들기'로 진입했다면 여행지 위치를 붙인다.
+        const pendingLocation = takePendingBagLocation();
+
+        if (pendingLocation) {
+          await app.getBagStore()!.updateLocation(bagID, pendingLocation);
+        }
+
         router.replace(`/bag/${bagID}`);
         router.push(`/bag/${bagID}/edit`);
       }
