@@ -10,6 +10,7 @@ import BagItem from '../bag/BagItem';
 import CampSiteDetailDispatcher from './CampSiteDetailDispatcher';
 import { CampSpot } from './CampSpotTypes';
 import { BlogReview, REVIEW_CACHE_TTL_MS, VideoReview } from '../review/ReviewTypes';
+import { setPendingBagLocation } from '../bag/PendingBagLocationHandoff';
 
 // 박지 상세 도메인 모델 (CampSite CS-3/CS-4/CS-5).
 // 3단 래퍼(라우트 → Wrapper → View) 중 상태·비즈니스 로직을 담당한다.
@@ -212,7 +213,8 @@ class CampSiteDetail {
     }
   }
 
-  // 배낭 여행지로 설정 버튼(CS-5). 비로그인·배낭 0개는 눌렀을 때 안내한다.
+  // 배낭 여행지로 설정 버튼(CS-5). 비로그인은 안내, 배낭 0개여도 시트를 열어
+  // '새 배낭 만들기'로 생성할 수 있게 한다.
   public async openBagSheet() {
     if (!this.firebase.isLoggedIn()) {
       this.logInAlertManager.show();
@@ -221,13 +223,26 @@ class CampSiteDetail {
 
     const bags = await this.dispatcher.getBags();
 
-    if (bags.length === 0) {
-      this.toastManager.show({ message: '설정할 배낭이 없어요.' });
+    this.setBags(bags);
+    this.setShowBagSheet(true);
+  }
+
+  // 배낭 선택 시트의 '새 배낭 만들기'(CS-5): 박지 좌표를 핸드오프로 넘기고
+  // 배낭 생성 formSheet로 이동한다. 생성 완료 후 새 배낭에 여행지가 저장된다.
+  public createBagForSpot() {
+    const spot = this.spot;
+
+    if (!spot) {
       return;
     }
 
-    this.setBags(bags);
-    this.setShowBagSheet(true);
+    setPendingBagLocation({
+      name: spot.name,
+      latitude: spot.location.latitude,
+      longitude: spot.location.longitude,
+    });
+    this.closeBagSheet();
+    this.router.push('/bag-new');
   }
 
   public closeBagSheet() {

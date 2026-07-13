@@ -87,6 +87,7 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
 **수용 기준**
 
 - 상세에 `배낭 여행지로 설정` 버튼 → 내 배낭 목록에서 선택 → 해당 배낭의 `location`(DM-15)에 `{ name: 박지명, latitude, longitude }` 저장(기존 `BagStore.updateLocation` 재사용) 후 날씨 스냅샷 갱신은 기존 BagWeather 흐름에 위임.
+- 배낭 선택 시트 상단에 **`새 배낭 만들기` 행**을 둔다 → 탭 시 시트를 닫고 배낭 생성 formSheet(`/bag-new`)로 이동한다. 이때 박지 좌표를 `PendingBagLocationHandoff`로 넘겨, 배낭 생성 완료 후 새 배낭의 `location`에 자동 저장한다(생성→편집 기존 흐름 유지). 배낭이 0개여도 이 행으로 새 배낭을 만들며 여행지를 설정할 수 있다.
 - 설정 완료 토스트(`여행지로 설정했어요.`)에 **`이동` 액션 버튼**을 넣어 해당 배낭 상세(`/bag/{id}`)로 바로 이동할 수 있게 한다. (Android는 네이티브 토스트라 버튼 미지원 — 메시지만 표시, 기존 토스트 액션 관례와 동일)
 - 비로그인 또는 배낭 0개면 버튼 대신 비활성/안내.
 
