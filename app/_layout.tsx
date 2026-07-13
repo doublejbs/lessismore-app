@@ -6,6 +6,7 @@ import {
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, usePathname, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -14,6 +15,10 @@ import { useEffect } from 'react';
 import SplashLoadingView from '@/components/ui/SplashLoadingView';
 import { View, Text, Platform, Image } from 'react-native';
 import { observer } from 'mobx-react-lite';
+
+// 네이티브 스플래시를 폰트 로드 후 직접 내려, 초기화(Firebase) 동안 React 스플래시
+// (SplashLoadingView — 하단 team magma 로고)가 보이게 한다. 자동 숨김을 막아둔다.
+SplashScreen.preventAutoHideAsync();
 
 // 커스텀 라이트 테마 - 텍스트 색상을 검은색으로 설정
 const CustomDefaultTheme = {
@@ -40,6 +45,13 @@ const RootLayout = () => {
   const isInitialized = app.isInitialized();
   const isLoggedIn = firebase.isLoggedIn();
   const hasAgreed = firebase.hasUserAgreedToTerms();
+
+  // 폰트가 준비되면 네이티브 스플래시를 내려, 초기화 동안 React 스플래시(하단 magma)를 노출한다.
+  useEffect(() => {
+    if (loaded) {
+      void SplashScreen.hideAsync();
+    }
+  }, [loaded]);
 
   useEffect(() => {
     if (isInitialized) {
