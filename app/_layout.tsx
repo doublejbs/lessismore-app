@@ -161,7 +161,7 @@ const RootLayout = () => {
             options={{
               headerShown: false,
               presentation: 'formSheet',
-              sheetAllowedDetents: 'fitToContents',
+              sheetAllowedDetents: Platform.OS === 'android' ? [0.76] : 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
               contentStyle: { backgroundColor: '#FFFFFF' },
@@ -172,7 +172,7 @@ const RootLayout = () => {
             options={{
               headerShown: false,
               presentation: 'formSheet',
-              sheetAllowedDetents: 'fitToContents',
+              sheetAllowedDetents: Platform.OS === 'android' ? [0.76] : 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
               contentStyle: { backgroundColor: '#FFFFFF' },
@@ -194,7 +194,7 @@ const RootLayout = () => {
             options={{
               headerShown: false,
               presentation: 'formSheet',
-              sheetAllowedDetents: 'fitToContents',
+              sheetAllowedDetents: Platform.OS === 'android' ? [0.76] : 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
               contentStyle: { backgroundColor: '#FFFFFF' },
