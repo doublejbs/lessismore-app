@@ -289,6 +289,7 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
       <CampSiteBagSelectSheetView
         visible={showBagSheet}
         bags={campSiteDetail.getBags()}
+        spotName={spot.name}
         onClose={handleCloseBagSheet}
         onSelect={handleSelectBag}
         onCreateNew={handleCreateBag}
