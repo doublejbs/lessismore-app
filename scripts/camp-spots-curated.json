@@ -2995,5 +2995,2080 @@
     "warnings": "군 훈련장으로 사용되는 시기에는 출입이 통제됩니다. 출입 가능 여부를 사전 확인하고 화기 사용에 특히 주의하세요.",
     "facilities": [],
     "needsVerification": true
+  },
+  {
+    "slug": "mongsanpo-beach",
+    "name": "몽산포해변",
+    "type": "wild",
+    "location": {
+      "latitude": 36.647,
+      "longitude": 126.304
+    },
+    "region": "충남",
+    "description": "태안 남면의 완만한 백사장과 울창한 솔숲을 낀 서해 차박의 대표 성지. 정식 자동차야영장 외곽·해변 솔밭 구역에서 노지 백패킹이 이뤄진다.",
+    "facilities": [],
+    "accessInfo": "몽산포 공영주차장·야영장 진입로에서 해변 솔밭까지 도보 이동. 서해안고속도로 태안 방면.",
+    "warnings": "태안해안국립공원 구간으로 지정지 외 취사·화기 통제와 성수기 야영 제한이 있을 수 있다. 갯벌 조석차가 커 만조 시 백사장이 크게 줄어드니 야영지는 사구 안쪽으로.",
+    "needsVerification": true,
+    "tags": [
+      "beach",
+      "forest"
+    ]
+  },
+  {
+    "slug": "padori-beach",
+    "name": "파도리해변",
+    "type": "wild",
+    "location": {
+      "latitude": 36.753,
+      "longitude": 126.138
+    },
+    "region": "충남",
+    "description": "태안 소원면 끝자락의 한적한 자갈·모래 혼합 해변으로, 소나무 숲이 해변을 감싸 조용한 감성 차박·노지 명소로 알려져 있다.",
+    "facilities": [],
+    "accessInfo": "파도리초등학교 인근 마을길 끝 해변 주차 구역. 만리포에서 남쪽으로 차로 약 10분.",
+    "warnings": "갯바위와 자갈이 많고 파도가 센 편이라 우천·너울 시 위험하다. 상업시설이 거의 없어 물·쓰레기 처리는 스스로 해결해야 하며 취사 규제를 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "beach",
+      "forest"
+    ]
+  },
+  {
+    "slug": "unyeo-beach",
+    "name": "운여해변",
+    "type": "wild",
+    "location": {
+      "latitude": 36.443,
+      "longitude": 126.335
+    },
+    "region": "충남",
+    "description": "안면도 고남면의 방풍 솔밭과 석호·독살이 어우러진 낙조 명소. 유료 캠핑장 인근에 무료로 쓰는 솔밭 노지가 있어 사진가·백패커가 즐겨 찾는다.",
+    "facilities": [],
+    "accessInfo": "태안군 고남면 장삼포로 일원 운여해변 주차장에서 솔밭까지 도보 접근.",
+    "warnings": "해안사구·독살 보존 구역이므로 식생 훼손과 취사·화기에 주의한다. 솔밭 방파제 끝은 만조 시 바닷물이 들어와 고립될 수 있으니 물때를 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "beach",
+      "forest"
+    ]
+  },
+  {
+    "slug": "kkotji-beach",
+    "name": "꽃지해변",
+    "type": "wild",
+    "location": {
+      "latitude": 36.473,
+      "longitude": 126.332
+    },
+    "region": "충남",
+    "description": "할미·할아비바위 낙조로 유명한 안면도 대표 해변. 넓은 백사장 배후 구역에서 바다뷰 노지 차박을 즐기는 이들이 많다.",
+    "facilities": [],
+    "accessInfo": "꽃지해수욕장 공영주차장 이용. 안면대로에서 진입.",
+    "warnings": "관광객이 많은 성수기에는 야영·차박이 통제될 수 있다. 국립공원 구간 취사 규제와 만조 시 침수 라인을 확인하고 사구를 넘지 말 것.",
+    "needsVerification": true,
+    "tags": [
+      "beach"
+    ]
+  },
+  {
+    "slug": "muchangpo-beach",
+    "name": "무창포해변",
+    "type": "wild",
+    "location": {
+      "latitude": 36.256,
+      "longitude": 126.534
+    },
+    "region": "충남",
+    "description": "신비의 바닷길(모세의 기적)과 일몰로 알려진 보령 해변으로, 방파제·주차장 주변에서 노지 차박과 감성 캠핑이 이뤄진다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "accessInfo": "서해안고속도로 무창포IC에서 약 3km. 무창포해수욕장 주차장 이용.",
+    "warnings": "성수기·축제 기간에는 야영이 제한될 수 있다. 바닷길이 열리는 물때 외에는 조수 변화가 크므로 만조 침수에 유의하고 화기·취사 규정을 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "beach"
+    ]
+  },
+  {
+    "slug": "gosapo-beach",
+    "name": "고사포해변",
+    "type": "wild",
+    "location": {
+      "latitude": 36.664,
+      "longitude": 126.453
+    },
+    "region": "전북",
+    "description": "변산반도국립공원 내 2km 백사장과 300m 폭 송림이 장관인 해변. 송림 노지·솔밭 캠핑으로 백패커에게 오래 알려진 곳이다.",
+    "facilities": [],
+    "accessInfo": "부안 변산반도 해안도로변 고사포해수욕장. 격포·변산에서 차로 접근.",
+    "warnings": "국립공원 구역이라 지정지 외 취사·야영·화기가 통제되며 단속이 있을 수 있다. 하섬 바닷길이 열리는 물때 외 만조 침수와 방풍림 화재에 주의.",
+    "needsVerification": true,
+    "tags": [
+      "beach",
+      "forest"
+    ]
+  },
+  {
+    "slug": "byeonsan-beach",
+    "name": "변산해수욕장",
+    "type": "wild",
+    "location": {
+      "latitude": 35.611,
+      "longitude": 126.487
+    },
+    "region": "전북",
+    "description": "완만한 수심과 배후 솔밭을 갖춘 부안 대표 해변으로, 솔밭 그늘의 바다뷰 노지 차박지로 이용된다.",
+    "facilities": [],
+    "accessInfo": "부안 변산면 해안도로변 변산해수욕장 주차 구역.",
+    "warnings": "변산반도국립공원 인접 구간의 취사·야영 규제와 성수기 통제를 확인한다. 서해 특성상 조석차가 커 만조 시 백사장이 좁아진다.",
+    "needsVerification": true,
+    "tags": [
+      "beach",
+      "forest"
+    ]
+  },
+  {
+    "slug": "sampo-beach",
+    "name": "삼포해변",
+    "type": "wild",
+    "location": {
+      "latitude": 38.302,
+      "longitude": 128.556
+    },
+    "region": "강원",
+    "description": "고성 죽왕면의 넓은 백사장과 울창한 송림을 낀 일출·서핑 명소로, 지정 구역에서 무료 차박이 가능한 동해안 노지로 통한다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "고성군 죽왕면 삼포리 삼포해수욕장 주차장. 7번 국도에서 진입.",
+    "warnings": "무료 지정 구역 외 야영·주차는 제한될 수 있고 편의시설 이용 시 요금이 붙는다. 동해안 군사해안 구간이라 야간 해안 접근·조명에 유의.",
+    "needsVerification": true,
+    "tags": [
+      "beach",
+      "forest"
+    ]
+  },
+  {
+    "slug": "ayajin-beach",
+    "name": "아야진해변",
+    "type": "wild",
+    "location": {
+      "latitude": 38.274,
+      "longitude": 128.558
+    },
+    "region": "강원",
+    "description": "기암과 방파제가 어우러진 고성 토성면 해변으로, 바다뷰 무료 차박·낚시 캠핑 노지로 백패커·앵글러에게 알려져 있다.",
+    "facilities": [],
+    "accessInfo": "고성군 토성면 아야진해변길 일원. 아야진항·해변 주차 구역 이용.",
+    "warnings": "항·방파제 인근 조업·통행에 방해되지 않게 하고 성수기 주차 제한을 확인한다. 너울성 파도와 만조 시 갯바위 접근 위험에 유의.",
+    "needsVerification": true,
+    "tags": [
+      "beach"
+    ]
+  },
+  {
+    "slug": "baekdo-beach",
+    "name": "백도해변",
+    "type": "wild",
+    "location": {
+      "latitude": 38.226,
+      "longitude": 128.562
+    },
+    "region": "강원",
+    "description": "고성 죽왕면의 아담하고 맑은 해변으로, 일반 주차 구역에서 무료 차박이 가능하고 기본 편의시설이 있어 조용한 노지로 꼽힌다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "accessInfo": "고성군 죽왕면 백도리 백도해변 주차장. 7번 국도 인접.",
+    "warnings": "성수기에는 주차 요금·야영 통제가 생길 수 있다. 군사해안 구간 야간 통제와 만조 침수 라인을 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "beach"
+    ]
+  },
+  {
+    "slug": "jajakdo-beach",
+    "name": "자작도해변",
+    "type": "wild",
+    "location": {
+      "latitude": 38.397,
+      "longitude": 128.464
+    },
+    "region": "강원",
+    "description": "약 400m의 아담한 고성 거진 해변으로 서핑 조건이 좋아 서핑과 차박을 함께 즐기는 노지로 알려져 있다.",
+    "facilities": [],
+    "accessInfo": "고성군 거진읍 자작도리 자작도해변 주차 구역.",
+    "warnings": "서핑 이용객·해변 관리 통제와 성수기 주차 제한을 확인한다. 파도가 높은 날이 많아 너울·이안류에 주의하고 만조 침수를 피할 것.",
+    "needsVerification": true,
+    "tags": [
+      "beach"
+    ]
+  },
+  {
+    "slug": "bongpo-beach",
+    "name": "봉포해변",
+    "type": "wild",
+    "location": {
+      "latitude": 38.242,
+      "longitude": 128.562
+    },
+    "region": "강원",
+    "description": "고성 토성면의 맑은 물빛 해변으로 항과 인접해 접근이 쉬워 바다뷰 차박·노지로 이용된다.",
+    "facilities": [],
+    "accessInfo": "고성군 토성면 봉포리 봉포해변·봉포항 주변 주차 구역.",
+    "warnings": "성수기 주차 요금·야영 통제 가능. 항 시설과 어업 활동에 방해되지 않게 하고 만조·너울에 유의.",
+    "needsVerification": true,
+    "tags": [
+      "beach"
+    ]
+  },
+  {
+    "slug": "hajodae-beach",
+    "name": "하조대해변",
+    "type": "wild",
+    "location": {
+      "latitude": 38.023,
+      "longitude": 128.729
+    },
+    "region": "강원",
+    "description": "옥빛 바다와 기암·등대 절경으로 유명한 양양 해변으로, 배후 송림과 백사장 구역에서 차박·노지 야영이 이뤄진다.",
+    "facilities": [],
+    "accessInfo": "양양군 현북면 하광정리 하조대해수욕장 주차장.",
+    "warnings": "모래사장·송림 일부는 유료 야영 구역으로 운영되니 무료 노지 가능 여부를 현장에서 확인한다. 서핑 성수기 혼잡과 만조 침수에 유의.",
+    "needsVerification": true,
+    "tags": [
+      "beach",
+      "forest"
+    ]
+  },
+  {
+    "slug": "maengbang-beach",
+    "name": "맹방해변",
+    "type": "wild",
+    "location": {
+      "latitude": 37.39,
+      "longitude": 129.227
+    },
+    "region": "강원",
+    "description": "약 4km에 이르는 삼척 근덕의 긴 백사장과 해송숲을 낀 해변으로, 넓은 노지에서 오션뷰 차박을 즐기는 이들이 많다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "삼척시 근덕면 하맹방리 맹방해변 주차 구역. 주차 무료로 알려짐.",
+    "warnings": "성수기 개장 기간에는 야영·화기 통제가 있을 수 있다. 방풍 해송림 화재와 만조 시 백사장 축소에 유의하고 쓰레기는 되가져갈 것.",
+    "needsVerification": true,
+    "tags": [
+      "beach",
+      "forest"
+    ]
+  },
+  {
+    "slug": "wonpyeong-beach",
+    "name": "원평해변",
+    "type": "wild",
+    "location": {
+      "latitude": 37.348,
+      "longitude": 129.248
+    },
+    "region": "강원",
+    "description": "궁촌해변과 이어지는 삼척 근덕의 긴 백사장과 울창한 솔숲 해변으로, 한적한 솔밭 노지 차박지로 알려져 있다.",
+    "facilities": [],
+    "accessInfo": "삼척시 근덕면 원평리 원평해변 주차 구역. 7번 국도 인접.",
+    "warnings": "인접한 오토캠핑장과 별개로 솔밭 노지 이용 시 취사·화기 규제와 성수기 통제를 확인한다. 만조 침수 라인 밖에 설영할 것.",
+    "needsVerification": true,
+    "tags": [
+      "beach",
+      "forest"
+    ]
+  },
+  {
+    "slug": "sungut-beach",
+    "name": "순긋해변",
+    "type": "wild",
+    "location": {
+      "latitude": 37.827,
+      "longitude": 128.876
+    },
+    "region": "강원",
+    "description": "강릉 사천 솔밭해변 인근의 한적한 모래 해변으로, 사람이 적어 조용한 차박·노지로 백패커 사이에 입소문이 난 곳이다.",
+    "facilities": [],
+    "accessInfo": "강릉시 안현동 해안로 682-5 일원. 사천해변에서 연접.",
+    "warnings": "편의시설이 거의 없어 물·화장실은 인근에서 해결해야 한다. 만조·너울 시 모래 야영지가 좁아지니 유의하고 취사 규정을 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "beach"
+    ]
+  },
+  {
+    "slug": "yeocha-mongdol-beach",
+    "name": "여차몽돌해변",
+    "type": "wild",
+    "location": {
+      "latitude": 34.718,
+      "longitude": 128.547
+    },
+    "region": "경남",
+    "description": "거제 남부면의 몽돌이 깔린 해변으로 주변 경관이 빼어나 몽돌 파도소리를 들으며 즐기는 차박·노지로 알려져 있다.",
+    "facilities": [],
+    "accessInfo": "거제시 남부면 여차길 일원. 여차·홍포 해안도로변 주차 구역.",
+    "warnings": "해안도로가 좁고 굽이가 많아 진입에 주의한다. 몽돌 위 취사·화기 규제와 만조·너울, 쓰레기 처리에 유의할 것.",
+    "needsVerification": true,
+    "tags": [
+      "beach"
+    ]
+  },
+  {
+    "slug": "sangju-eunmorae-beach",
+    "name": "상주은모래비치",
+    "type": "wild",
+    "location": {
+      "latitude": 34.71,
+      "longitude": 127.988
+    },
+    "region": "경남",
+    "description": "금산 아래 2km 반달형 백사장과 송림을 갖춘 남해 대표 해변으로, 무료 공영주차장 주변에서 파도소리를 들으며 차박·노지를 즐긴다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "accessInfo": "남해군 상주면 상주은모래비치 공영주차장(무료) 이용.",
+    "warnings": "인접 야영장과 별개로 무료 구역·차박 가능 여부를 현장에서 확인한다. 연 100만 방문의 인기지라 성수기 혼잡·통제와 만조 침수에 유의.",
+    "needsVerification": true,
+    "tags": [
+      "beach",
+      "forest"
+    ]
+  },
+  {
+    "slug": "gangdong-mongdol-beach",
+    "name": "강동몽돌해변",
+    "type": "wild",
+    "location": {
+      "latitude": 35.647,
+      "longitude": 129.447
+    },
+    "region": "울산",
+    "description": "울산 북구 강동·정자 일원의 몽돌 해안으로, 일출과 오션뷰가 좋아 몽돌 위에서 즐기는 차박·노지 명소로 통한다.",
+    "facilities": [],
+    "accessInfo": "울산 북구 정자·산하동 강동해변 해안도로변 주차 구역.",
+    "warnings": "몽돌 해안은 취사·화기·해루질 규제 구역이 있으니 확인한다. 너울성 파도가 자주 들이쳐 만조 시 해안 접근에 주의.",
+    "needsVerification": true,
+    "tags": [
+      "beach"
+    ]
+  },
+  {
+    "slug": "mangyangjeong-beach",
+    "name": "망양정해변",
+    "type": "wild",
+    "location": {
+      "latitude": 36.949,
+      "longitude": 129.418
+    },
+    "region": "경북",
+    "description": "관동팔경 망양정 아래 동해가 트인 울진 해안으로, 일출과 원투낚시를 겸한 바다뷰 노지 차박지로 알려져 있다.",
+    "facilities": [],
+    "accessInfo": "울진군 근남면 망양정 해안·주차 구역. 7번 국도 인접.",
+    "warnings": "정자·유적 주변 통행과 낚시 안전에 유의한다. 취사·화기 규제와 너울성 파도, 만조 침수 라인을 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "beach"
+    ]
+  },
+  {
+    "slug": "daegwang-beach",
+    "name": "대광해변",
+    "type": "wild",
+    "location": {
+      "latitude": 35.085,
+      "longitude": 126.068
+    },
+    "region": "전남",
+    "description": "연륙교로 차량 진입이 되는 신안 임자도의 12km에 달하는 국내 최장급 해변으로, 광활한 백사장 야영 구역에서 차박·노지가 가능하다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "accessInfo": "신안군 임자면 대광해수욕장. 임자대교로 연륙되어 차량 진입 가능.",
+    "warnings": "튤립축제 등 행사·성수기에는 야영이 통제될 수 있다. 백사장이 매우 넓고 조석차가 커 만조 침수와 차량 갯벌 고립에 특히 유의.",
+    "needsVerification": true,
+    "tags": [
+      "beach"
+    ]
+  },
+  {
+    "slug": "manseongni-black-sand-beach",
+    "name": "만성리검은모래해변",
+    "type": "wild",
+    "location": {
+      "latitude": 34.764,
+      "longitude": 127.769
+    },
+    "region": "전남",
+    "description": "검은 모래로 이색적인 여수 만흥동 해변으로, 파출소·항 인근 구역에서 조용한 차박을 즐기는 노지로 알려져 있다.",
+    "facilities": [],
+    "accessInfo": "여수시 만성리길 일원, 마래터널 방면 해변 주차 구역.",
+    "warnings": "해변이 좁고 마을·항과 붙어 있어 취사·화기와 소음에 주의한다. 성수기 통제와 만조 시 백사장 축소를 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "beach"
+    ]
+  },
+  {
+    "slug": "baengnyeongdo",
+    "name": "백령도 사곶해변",
+    "type": "wild",
+    "location": {
+      "latitude": 37.94,
+      "longitude": 124.703
+    },
+    "region": "인천",
+    "description": "서해 최북단 섬으로, 천연 비행장으로 쓰였다는 단단한 규암 백사장 사곶해변과 콩돌해안, 두무진 절벽이 유명하다. 트레킹과 결합한 섬 백패킹지로 꼽힌다.",
+    "facilities": [],
+    "accessInfo": "인천항연안여객터미널에서 쾌속선으로 약 4시간, 하루 2~3회 운항. 기상에 따라 결항이 잦다.",
+    "warnings": "서해5도 접경지역으로 해안 곳곳에 군 시설·철책·출입통제 구간이 있고 일부 지역엔 지뢰 위험이 남아 있다. 정해진 길·해변을 벗어난 야영은 삼가고 야영 가능 여부를 현지에서 확인할 것. 식수·보급은 미리 준비.",
+    "needsVerification": true,
+    "tags": [
+      "island",
+      "beach"
+    ]
+  },
+  {
+    "slug": "daecheongdo",
+    "name": "대청도 옥죽동 사구",
+    "type": "wild",
+    "location": {
+      "latitude": 37.845,
+      "longitude": 124.712
+    },
+    "region": "인천",
+    "description": "국내 유일의 사막형 해안사구(옥죽동 모래사막)와 농여해변, 서풍받이 트레킹으로 알려진 서해 접경 섬. 사구·해변 노지 백패킹지로 인기다.",
+    "facilities": [],
+    "accessInfo": "인천항연안여객터미널에서 백령도행 쾌속선이 경유, 약 3시간 30분. 하루 2~3회.",
+    "warnings": "접경지역으로 군 통제구간이 있고, 과거 산속에서 지뢰 사고가 발생한 이력이 있어 표시된 길·해변을 벗어나지 말 것. 강풍·모래날림에 대비하고 식수·보급을 미리 준비.",
+    "needsVerification": true,
+    "tags": [
+      "island",
+      "beach"
+    ]
+  },
+  {
+    "slug": "munapdo",
+    "name": "문갑도",
+    "type": "wild",
+    "location": {
+      "latitude": 37.201,
+      "longitude": 126.063
+    },
+    "region": "인천",
+    "description": "덕적군도의 조용한 섬으로 한월리 해변과 능선 산길을 갖춰 굴업도 인근 백패킹 코스와 함께 찾는 이들이 있다. 한적함이 매력.",
+    "facilities": [],
+    "accessInfo": "인천 연안부두에서 덕적도 경유 여객선 이용, 약 1시간 30분~2시간. 배편이 하루 소수라 시간표 확인 필수.",
+    "warnings": "편의시설·상점이 거의 없어 식수와 식량을 전량 지참해야 한다. 마을·사유지·경작지를 피해 해변 노지 위주로 야영하고 흔적을 남기지 말 것.",
+    "needsVerification": true,
+    "tags": [
+      "island",
+      "beach"
+    ]
+  },
+  {
+    "slug": "baegado",
+    "name": "백아도",
+    "type": "wild",
+    "location": {
+      "latitude": 37.133,
+      "longitude": 125.995
+    },
+    "region": "인천",
+    "description": "굴업도 남쪽의 작은 섬으로 발전을 이룬 능선과 선단여 조망이 뛰어나다. 굴업도 대체지로 능선 초지 백패킹을 즐기는 마니아들이 찾는다.",
+    "facilities": [],
+    "accessInfo": "인천 연안부두에서 덕적도 환승 후 나래호 등 지선 여객선으로 문갑·지도·울도를 거쳐 접근, 총 2시간 이상. 배편이 홀짝일 등으로 제한적.",
+    "warnings": "상점·식수시설이 없어 물과 식량을 전량 지참할 것. 배편이 적어 결항 시 발이 묶일 수 있으니 일정에 여유를 두고, 능선 강풍에 대비.",
+    "needsVerification": true,
+    "tags": [
+      "island",
+      "plain"
+    ]
+  },
+  {
+    "slug": "sido",
+    "name": "시도 수기해변",
+    "type": "wild",
+    "location": {
+      "latitude": 37.553,
+      "longitude": 126.419
+    },
+    "region": "인천",
+    "description": "신도·시도·모도가 다리로 이어진 삼형제섬 중 하나로, 드라마 촬영지로 알려진 수기해변에서 바다를 보며 하룻밤 야영할 수 있다. 수도권 접근성이 좋다.",
+    "facilities": [],
+    "accessInfo": "영종도 삼목선착장에서 신도까지 페리로 약 10분, 이후 연도교로 시도 진입(차량·자전거·도보 가능).",
+    "warnings": "성수기에는 데크 유료 이용·통제가 있을 수 있고 비수기 노지 위주로 운영된다. 주말 혼잡·소음이 있으니 취사·화기·쓰레기 규정을 지킬 것.",
+    "needsVerification": true,
+    "tags": [
+      "island",
+      "beach"
+    ]
+  },
+  {
+    "slug": "gwallido",
+    "name": "관리도",
+    "type": "wild",
+    "location": {
+      "latitude": 35.792,
+      "longitude": 126.415
+    },
+    "region": "전북",
+    "description": "고군산군도 서쪽 섬으로 천공굴(쇠코바위) 등 섬 산행의 묘미가 있다. 선착장에서 언덕을 15~20분 올라야 하는 계단식 야영지라 초보 백패커도 도전하는 곳.",
+    "facilities": [],
+    "accessInfo": "군산 연안여객터미널 또는 고군산 지선에서 여객선으로 약 40~50분. 성수기 주말은 사전 예약이 필요할 만큼 붐빈다.",
+    "warnings": "섬 내 매점·편의점 규모가 작아 식수·식량은 입도 전 준비. 야영지까지 오르막 도보 구간이 있어 짐 무게를 줄이는 게 좋다.",
+    "needsVerification": true,
+    "tags": [
+      "island"
+    ]
+  },
+  {
+    "slug": "wonsando",
+    "name": "원산도 해수욕장",
+    "type": "wild",
+    "location": {
+      "latitude": 36.398,
+      "longitude": 126.423
+    },
+    "region": "충남",
+    "description": "보령해저터널과 원산안면대교로 배 없이 차량 진입이 가능해진 섬. 오봉산·저두·원산도해수욕장 등 여러 백사장을 끼고 있어 차박·해변 야영지로 인기다.",
+    "facilities": [],
+    "accessInfo": "대천항에서 보령해저터널을 통해 차량으로 진입(무료), 또는 안면도에서 원산안면대교 이용. 대천항 여객선도 운항.",
+    "warnings": "여름 성수기 해수욕장 야영장은 운영기간·요금이 정해져 있어 확인이 필요하다. 갯벌·물때를 확인하고 지정 구역 외 사유지·양식장 인근 야영은 피할 것.",
+    "needsVerification": true,
+    "tags": [
+      "island",
+      "beach"
+    ]
+  },
+  {
+    "slug": "janggodo",
+    "name": "장고도 명장섬",
+    "type": "wild",
+    "location": {
+      "latitude": 36.421,
+      "longitude": 126.365
+    },
+    "region": "충남",
+    "description": "대천항 서북쪽 섬으로, 썰물 때 1km 바닷길이 열리는 명장섬과 당너머·장고도해수욕장을 갖췄다. 백사장과 해안사구를 배경으로 소규모 백패킹을 즐긴다.",
+    "facilities": [],
+    "accessInfo": "대천항 연안여객선터미널에서 여객선으로 약 1시간. 하루 운항편이 제한적이라 물때·시간표를 함께 확인.",
+    "warnings": "캠핑 인프라가 부족해 텐트 설치 공간이 협소하고 식수·화장실이 마땅치 않다. 명장섬은 물때에 갇힐 수 있으니 물때표를 반드시 확인하고 마을·사유지 인근 야영은 삼갈 것.",
+    "needsVerification": true,
+    "tags": [
+      "island",
+      "beach"
+    ]
+  },
+  {
+    "slug": "gwanmaedo",
+    "name": "관매도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.243,
+      "longitude": 126.058
+    },
+    "region": "전남",
+    "description": "진도 조도면의 국립공원 명품마을로, 국내 최대 규모의 곰솔 해송숲과 약 1.2km 관매도 해변을 끼고 있다. 덱과 노지가 섞인 섬 백패킹의 대표 성지.",
+    "facilities": [],
+    "accessInfo": "진도 팽목항(진도항) 여객선터미널에서 여객선으로 약 1시간 40분. 전남 여객선 예약 통합시스템으로 예약 가능.",
+    "warnings": "다도해상국립공원 구역으로 지정지 외 야영·취사·화기 사용이 제한되고 선착순 운영이라 성수기엔 자리 경쟁이 있다. 해송숲 보호 규정을 지킬 것.",
+    "needsVerification": true,
+    "tags": [
+      "island",
+      "beach",
+      "forest"
+    ]
+  },
+  {
+    "slug": "hahwado",
+    "name": "하화도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.628,
+      "longitude": 127.616
+    },
+    "region": "전남",
+    "description": "야생화가 많아 '꽃섬'으로 불리는 여수의 작은 섬. 약 5.7km 꽃섬길 둘레길과 언덕 조망이 좋아 봄·가을 트레킹 겸 백패킹지로 소문났다.",
+    "facilities": [],
+    "accessInfo": "여수 백야도선착장 등에서 여객선으로 약 40분~1시간. 하루 운항편이 적어 시간표 확인 필수.",
+    "warnings": "상점이 마을식당 정도로 제한적이라 식수·식량을 지참할 것. 둘레길·언덕 야영 시 사유지·경작지와 야생화 군락을 피하고 강풍에 대비.",
+    "needsVerification": true,
+    "tags": [
+      "island",
+      "plain"
+    ]
+  },
+  {
+    "slug": "chodo-yeosu",
+    "name": "초도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.283,
+      "longitude": 127.32
+    },
+    "region": "전남",
+    "description": "여수 삼산면의 섬으로 상산 능선과 대동·의성 해변을 갖췄다. 거문도로 가는 뱃길에 있어 능선·해변을 배경으로 조용한 백패킹을 즐긴다.",
+    "facilities": [],
+    "accessInfo": "여수 연안여객터미널에서 거문도행 여객선이 경유, 약 2시간. 운항편이 적고 결항이 잦다.",
+    "warnings": "편의시설이 부족해 식수·식량 전량 지참이 필요하다. 능선 강풍·안개에 대비하고 마을·사유지 인근 야영은 삼갈 것.",
+    "needsVerification": true,
+    "tags": [
+      "island",
+      "beach"
+    ]
+  },
+  {
+    "slug": "sonjukdo",
+    "name": "손죽도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.333,
+      "longitude": 127.303
+    },
+    "region": "전남",
+    "description": "여수 삼산면의 한적한 섬으로 깃대봉 능선과 소나무숲·해변을 갖췄다. 관광객이 적어 호젓한 섬 백패킹을 원하는 이들이 찾는다.",
+    "facilities": [],
+    "accessInfo": "여수 연안여객터미널에서 여객선으로 약 1시간 40분. 하루 운항편이 제한적이라 시간표 확인 필수.",
+    "warnings": "상점·식수시설이 거의 없어 보급을 전량 지참할 것. 배편이 적어 결항 시 발이 묶일 수 있으니 일정에 여유를 두고 사유지 야영은 피할 것.",
+    "needsVerification": true,
+    "tags": [
+      "island",
+      "beach"
+    ]
+  },
+  {
+    "slug": "gaedo",
+    "name": "개도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.552,
+      "longitude": 127.607
+    },
+    "region": "전남",
+    "description": "여수 화정면의 섬으로 봉화산 능선과 해안을 두르는 둘레길, 캠핑 가능한 해변을 갖췄다. 섬 막걸리로도 알려졌으며 트레킹 겸 야영지로 찾는다.",
+    "facilities": [],
+    "accessInfo": "여수 연안여객터미널·백야도선착장에서 여객선으로 약 40분~1시간.",
+    "warnings": "매점 규모가 작아 식수·식량은 미리 준비할 것. 지정 야영 구역 여부와 취사·화기 규정을 현지에서 확인하고 마을·경작지 인근 야영은 삼갈 것.",
+    "needsVerification": true,
+    "tags": [
+      "island"
+    ]
+  },
+  {
+    "slug": "somaemuldo",
+    "name": "소매물도 등대섬",
+    "type": "wild",
+    "location": {
+      "latitude": 34.631,
+      "longitude": 128.559
+    },
+    "region": "경남",
+    "description": "통영 남단의 섬으로, 썰물 때 열목개 바닷길이 열려 걸어 건너는 등대섬과 초원 언덕 조망이 절경이다. 남해 섬 백패킹의 인기 목적지.",
+    "facilities": [],
+    "accessInfo": "통영 여객선터미널에서 약 1시간 30분, 또는 거제 저구항에서 약 30~40분. 성수기 주말은 배편이 붐빈다.",
+    "warnings": "등대섬 열목개는 물때에만 열리므로 물때표를 확인할 것. 초지 보호·야영 제한 구역이 있을 수 있어 지정지 위주로 야영하고 강풍에 대비.",
+    "needsVerification": true,
+    "tags": [
+      "island",
+      "plain"
+    ]
+  },
+  {
+    "slug": "bijindo",
+    "name": "비진도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.68,
+      "longitude": 128.508
+    },
+    "region": "경남",
+    "description": "두 섬이 백사장 모래톱으로 이어진 통영의 섬으로, 산호빛 해변과 산호길 트레킹이 유명하다. 백사장을 낀 해변 야영지로 인기가 높다.",
+    "facilities": [],
+    "accessInfo": "통영 여객선터미널에서 여객선으로 약 40분~1시간.",
+    "warnings": "성수기 해변은 통제·유료 운영이 있을 수 있어 확인이 필요하다. 취사·화기·쓰레기 규정을 지키고 만조 시 침수되는 모래톱 야영은 피할 것.",
+    "needsVerification": true,
+    "tags": [
+      "island",
+      "beach"
+    ]
+  },
+  {
+    "slug": "yeondaedo",
+    "name": "연대도",
+    "type": "wild",
+    "location": {
+      "latitude": 34.72,
+      "longitude": 128.452
+    },
+    "region": "경남",
+    "description": "통영 산양읍의 에코아일랜드로, 만지도와 출렁다리로 연결되며 지겟길 둘레길과 몽돌해변을 갖췄다. 잔잔한 남해 섬 야영지로 찾는다.",
+    "facilities": [],
+    "accessInfo": "통영 달아항에서 여객선으로 약 20~30분. 연대도-만지도 도보 연결.",
+    "warnings": "지정 야영 가능 구역과 취사 규정을 현지에서 확인할 것. 마을·펜션 밀집지와 사유지를 피하고 쓰레기를 되가져올 것.",
+    "needsVerification": true,
+    "tags": [
+      "island",
+      "beach"
+    ]
+  },
+  {
+    "slug": "gapado",
+    "name": "가파도",
+    "type": "wild",
+    "location": {
+      "latitude": 33.17,
+      "longitude": 126.271
+    },
+    "region": "제주",
+    "description": "제주 남쪽의 낮고 평평한 섬으로 봄이면 청보리밭이 물결친다. 한라산·산방산·마라도를 한자리에서 조망하는 태봉왓 야영지에서 일출·일몰을 모두 볼 수 있다.",
+    "facilities": [],
+    "accessInfo": "서귀포 운진항 여객터미널에서 여객선으로 약 15~20분. 배편·정원이 제한적이라 예약·시간표 확인 필수.",
+    "warnings": "섬 내 마트·편의점 규모가 작으니 필요한 물품은 미리 준비. 청보리밭·경작지를 밟거나 사유지에 야영하지 말고 강풍에 대비할 것.",
+    "needsVerification": true,
+    "tags": [
+      "island",
+      "plain"
+    ]
+  },
+  {
+    "slug": "naerincheon-misan-valley",
+    "name": "내린천 미산계곡 강변",
+    "type": "wild",
+    "location": {
+      "latitude": 37.85,
+      "longitude": 128.31
+    },
+    "region": "강원",
+    "description": "인제 상남면을 흐르는 내린천 상류 미산계곡의 자갈밭 노지. 1급수 계곡물과 넓은 강변에서 차박·백패킹과 물놀이를 즐기는 대표 스팟이다.",
+    "facilities": [],
+    "accessInfo": "서울에서 서울양양고속도로 이용, 인제 상남면 미산리 방면. 446번 지방도변 강변 자갈밭 진입.",
+    "warnings": "래프팅 구간이라 유량이 많고 급류·수심이 있다. 집중호우 시 수위가 급격히 오르므로 물가에서 떨어진 자갈밭에 자리 잡고 기상예보를 반드시 확인할 것. 자갈밭 차량 진입 시 빠짐 주의.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "deoksangi-valley",
+    "name": "정선 덕산기계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.42,
+      "longitude": 128.61
+    },
+    "region": "강원",
+    "description": "100m 층암절벽이 병풍처럼 둘러싼 정선의 오지 계곡. '한국의 티베트'로 불리며 옥빛 물과 자갈밭이 이어지는 청정 비경이다.",
+    "facilities": [],
+    "accessInfo": "정선읍 덕우리 덕산기길. 계곡 초입에 무료 주차 공간이 있으나 안쪽은 비포장 오지길.",
+    "warnings": "자연휴식년제 시행 구간으로 물놀이 전면 금지, 7·8월에는 취사·야영·차박·낚시·오프로드를 집중 단속한다. 야영 자체가 불법일 수 있으니 방문 전 정선군에 반드시 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "eoraeyeon-donggang",
+    "name": "동강 어라연 강변",
+    "type": "wild",
+    "location": {
+      "latitude": 37.23,
+      "longitude": 128.53
+    },
+    "region": "강원",
+    "description": "영월 동강 12경 중 으뜸으로 꼽히는 어라연 일대의 강변 노지. 원시림과 굽이치는 물길이 어우러진 비경 속에서 조용히 하룻밤을 보내기 좋다.",
+    "facilities": [],
+    "accessInfo": "영월 거운리 거운분교에서 잣봉·만지나루 트레킹으로 접근. 차량 진입이 제한되는 도보 구간이 많다.",
+    "warnings": "동강은 생태보전지역으로 취사·야영이 제한될 수 있어 사전 확인 필수. 급류와 깊은 소가 많고 여름 집중호우 시 수위가 급상승한다. 매점·식수 시설이 없다.",
+    "needsVerification": true,
+    "tags": [
+      "lake"
+    ]
+  },
+  {
+    "slug": "donggang-dunchi",
+    "name": "영월 동강둔치",
+    "type": "wild",
+    "location": {
+      "latitude": 37.18,
+      "longitude": 128.47
+    },
+    "region": "강원",
+    "description": "영월읍 시가지에 접한 동강 둔치의 넓은 강변 노지. 동강 뗏목축제가 열리는 개방된 둔치라 차박·팩박 접근성이 좋다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "영월읍내에서 동강대교 인근 둔치로 진입. 시내와 가까워 보급이 편하다.",
+    "warnings": "댐 방류·집중호우 시 둔치가 잠길 수 있으니 수위와 기상을 확인할 것. 축제·행사 기간에는 통제되며, 하천부지 야영 규정을 지자체에 확인 권장.",
+    "needsVerification": true,
+    "tags": [
+      "lake"
+    ]
+  },
+  {
+    "slug": "jucheon-panun-seopdari",
+    "name": "주천강 판운리 섶다리 강변",
+    "type": "wild",
+    "location": {
+      "latitude": 37.32,
+      "longitude": 128.27
+    },
+    "region": "강원",
+    "description": "영월 수주면 판운리 섶다리마을을 흐르는 주천강 둔치 노지. 맑은 물과 데크 산책길, 손 덜 탄 청정 강변 풍경으로 스텔스 차박 명소다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "영월 수주면 판운리 판운쉼터·섶다리마을 인근 강변 둔치. 주천강 둘레길과 연결.",
+    "warnings": "가을 이후 놓이는 섶다리는 임시 구조물이라 진입 통제 시기가 있다. 강변 야영은 수위 급상승·급류에 유의하고 하천 취사 규정을 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "lake"
+    ]
+  },
+  {
+    "slug": "mogok-bambeol",
+    "name": "홍천강 모곡밤벌유원지",
+    "type": "wild",
+    "location": {
+      "latitude": 37.71,
+      "longitude": 127.64
+    },
+    "region": "강원",
+    "description": "홍천강을 따라 1km가량 펼쳐진 자갈밭·백사장 노지. 무료 차박·취사·물놀이·카약이 가능해 여름 성수기에도 자리가 넉넉한 대표 강변 스팟이다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "홍천 서면 모곡리 밤벌길. 46번 국도 강촌에서 강촌교 건너 모곡 방면.",
+    "warnings": "홍천강 본류라 유속이 있고 비 온 뒤 수위가 빠르게 오른다. 물가에서 떨어진 자갈밭에 자리 잡고, 자갈밭 차량 진입 시 빠짐에 주의할 것.",
+    "needsVerification": true,
+    "tags": [
+      "lake"
+    ]
+  },
+  {
+    "slug": "namnoil-riverside",
+    "name": "홍천강 남노일 강변유원지",
+    "type": "wild",
+    "location": {
+      "latitude": 37.72,
+      "longitude": 127.71
+    },
+    "region": "강원",
+    "description": "홍천강 상류의 맑고 깊은 물과 자갈밭이 어우러진 강변 노지. 비교적 한적해 조용한 차박·백패킹을 즐길 수 있다.",
+    "facilities": [],
+    "accessInfo": "홍천 서면 개야리 남노일 강변. 홍천강 상류 도로변에서 강변으로 진입.",
+    "warnings": "수심이 깊은 구간이 있어 물놀이 주의. 집중호우 시 급격한 수위 상승·급류 위험이 있으므로 기상예보 확인 필수.",
+    "needsVerification": true,
+    "tags": [
+      "lake"
+    ]
+  },
+  {
+    "slug": "hantan-goseokjeong",
+    "name": "철원 한탄강 고석정·순담 강변",
+    "type": "wild",
+    "location": {
+      "latitude": 38.21,
+      "longitude": 127.31
+    },
+    "region": "강원",
+    "description": "한탄강 주상절리 협곡을 내려다보는 철원 고석정 일대의 강변 노지. 물소리와 절벽 풍경이 어우러진 뷰 맛집 차박지로 알려져 있다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "철원 동송읍 장흥리 고석정 인근. 맞은편이 순담 주상절리길.",
+    "warnings": "협곡 강변이라 급류와 낙석 위험이 있고, 상류 댐 방류 시 수위가 급변한다. 지질공원·군사보호구역 규정으로 야영이 제한될 수 있어 사전 확인 필요.",
+    "needsVerification": true,
+    "tags": [
+      "lake"
+    ]
+  },
+  {
+    "slug": "yeoncheon-hantan",
+    "name": "연천 한탄강 유원지 둔치",
+    "type": "wild",
+    "location": {
+      "latitude": 38.02,
+      "longitude": 127.06
+    },
+    "region": "경기",
+    "description": "서울에서 1시간 거리의 전곡 한탄강 둔치 무료 노지. 넓고 개방된 강변에 화장실·매점이 있어 초보 차박·주말 캠핑으로 붐빈다.",
+    "facilities": [
+      "toilet",
+      "store"
+    ],
+    "accessInfo": "연천 전곡읍 전곡리 한탄강 관광지 둔치. 전곡선사유적지 인근.",
+    "warnings": "상류 강우 시 둔치 수위가 빠르게 오르므로 하천 범람에 유의. 주말·성수기엔 매우 혼잡하고 통제될 수 있다. 하천부지 취사 규정을 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "lake"
+    ]
+  },
+  {
+    "slug": "myeongji-valley",
+    "name": "가평 명지계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.87,
+      "longitude": 127.43
+    },
+    "region": "경기",
+    "description": "가평 북면 명지산 자락의 계곡으로 깊은 소부터 얕은 여울까지 다양한 물놀이 스팟이 있다. 계곡변 자갈밭에서 차박·캠핑을 즐긴다.",
+    "facilities": [],
+    "accessInfo": "가평 북면 가화리 가화로 일원. 청평·가평에서 북면 방면 계곡 도로변 진입.",
+    "warnings": "다이빙 가능한 깊은 구간이 있어 안전사고 주의. 좁은 계곡이라 집중호우 시 계곡물이 급격히 불어난다. 일부 구간은 사유지·평상 유료라 노지 여부를 현장 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "yongchu-valley-gapyeong",
+    "name": "가평 용추계곡(용추구곡)",
+    "type": "wild",
+    "location": {
+      "latitude": 37.86,
+      "longitude": 127.49
+    },
+    "region": "경기",
+    "description": "가평 승안리 연인산 자락의 아홉 굽이 용추구곡. 맑은 담과 너럭바위가 이어지는 계곡변에서 차박·계곡 캠핑을 즐긴다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "가평읍 승안리 용추계곡 일원. 무료 주차 공간이 곳곳에 있다.",
+    "warnings": "계곡 폭이 좁아 폭우 시 급류·범람 위험이 크다. 상수원·유원지 구간별로 취사·야영이 제한될 수 있어 현장 안내를 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "samtan-resort",
+    "name": "충주 삼탄유원지 강변",
+    "type": "wild",
+    "location": {
+      "latitude": 37.07,
+      "longitude": 127.97
+    },
+    "region": "충북",
+    "description": "충주 산척면 주포천 삼탄역 인근의 무료 강변 노지. 기차 타고 찾는 조용한 물가 야영지로 차박·캠핑 명소다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "충주 산척면 명서리, 삼탄역 서편 약 200m 강변. 열차 접근도 가능.",
+    "warnings": "하천변이라 비 온 뒤 수위 상승·급류에 유의. 물가에서 떨어져 자리 잡고 취사·쓰레기 규정을 지킬 것.",
+    "needsVerification": true,
+    "tags": [
+      "lake"
+    ]
+  },
+  {
+    "slug": "suju-palbong",
+    "name": "충주 수주팔봉 달천 강변",
+    "type": "wild",
+    "location": {
+      "latitude": 36.94,
+      "longitude": 127.82
+    },
+    "region": "충북",
+    "description": "여덟 암봉이 병풍처럼 솟은 수주팔봉 아래 달천변 무료 노지. 백사장·자갈밭이 그대로 사이트가 되는 리버뷰 차박 성지다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "accessInfo": "충주 대소원면 문주리·살미면 두산리 달천변. 출렁다리 인근 강변 진입.",
+    "warnings": "사이트 구분 없는 자갈밭이라 차량이 빠질 수 있어 진입 주의. 달천 유량이 늘면 수위가 급상승하니 물가에서 떨어져 자리 잡을 것.",
+    "needsVerification": true,
+    "tags": [
+      "lake"
+    ]
+  },
+  {
+    "slug": "mokgye-solbat",
+    "name": "충주 목계솔밭 남한강 강변",
+    "type": "wild",
+    "location": {
+      "latitude": 37.03,
+      "longitude": 127.88
+    },
+    "region": "충북",
+    "description": "남한강 목계나루 옛 포구 자리의 솔밭 무료 노지. 소나무 그늘과 넓은 강변 백사장에서 차박·캠핑을 즐긴다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "충주 엄정면 목계리 남한강변 솔밭. 목계교 인근 진입.",
+    "warnings": "남한강 본류라 상류 방류·집중호우 시 수위 급변 위험. 하천부지 취사·야영 규정과 성수기 통제 여부를 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "lake",
+      "forest"
+    ]
+  },
+  {
+    "slug": "mokdo-gangsuyok",
+    "name": "괴산 목도 강수욕장",
+    "type": "wild",
+    "location": {
+      "latitude": 36.86,
+      "longitude": 127.74
+    },
+    "region": "충북",
+    "description": "남한강 상류 괴산 목도리의 넓은 백사장 노지. 옛 목도나루 자리로 물놀이와 팩박·차박이 가능한 한적한 강변이다.",
+    "facilities": [],
+    "accessInfo": "괴산 불정면 목도리 남한강변. 목도교 인근 백사장 진입.",
+    "warnings": "상류 강우 시 수위가 빠르게 오른다. 모래밭 차량 진입 시 빠짐 주의, 하천 취사 규정 확인 권장.",
+    "needsVerification": true,
+    "tags": [
+      "lake"
+    ]
+  },
+  {
+    "slug": "gouncol-galdaebat",
+    "name": "단양 고운골 갈대밭 강변",
+    "type": "wild",
+    "location": {
+      "latitude": 36.96,
+      "longitude": 128.32
+    },
+    "region": "충북",
+    "description": "남한강 단양 구간의 갈대밭·자갈밭 노지. 가을이면 은빛 갈대가 강변을 덮는 조용한 차박 스팟이다.",
+    "facilities": [],
+    "accessInfo": "단양읍 남한강변 고운골 갈대밭. 단양팔경 관광과 연계 접근.",
+    "warnings": "강변 자갈밭이라 폭우 시 수위 급상승·범람 위험. 편의시설이 거의 없어 물·화장실 대비가 필요하다.",
+    "needsVerification": true,
+    "tags": [
+      "lake"
+    ]
+  },
+  {
+    "slug": "auraji",
+    "name": "정선 아우라지 강변",
+    "type": "wild",
+    "location": {
+      "latitude": 37.51,
+      "longitude": 128.71
+    },
+    "region": "강원",
+    "description": "골지천과 송천 두 물길이 합쳐지는 정선 아우라지의 강변 노지. 조형물 산책길과 밤 강변 풍경이 어우러진 낭만적인 차박지다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "정선 여량면 여량리 아우라지 일원. 정선아리랑열차(아우라지역) 접근 가능.",
+    "warnings": "합류부라 유량 변화가 크고 비 온 뒤 수위가 급상승한다. 관광지 구역별 야영·취사 통제가 있을 수 있어 현장 확인 권장.",
+    "needsVerification": true,
+    "tags": [
+      "lake"
+    ]
+  },
+  {
+    "slug": "imgye-mirak-forest",
+    "name": "정선 임계 미락숲 강변",
+    "type": "wild",
+    "location": {
+      "latitude": 37.58,
+      "longitude": 128.83
+    },
+    "region": "강원",
+    "description": "골지천이 감싸 도는 정선 임계 미락숲의 강변 노지. 소나무 숲과 물길이 섬처럼 어우러져 트레킹·물놀이·차박을 함께 즐긴다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "정선 임계면 봉산리 골지천변 미락숲. 임계에서 골지천 방면 진입.",
+    "warnings": "하천이 숲을 감싸 도는 지형이라 폭우 시 고립·범람 위험. 물가에서 떨어져 자리 잡고 하천 취사 규정을 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "lake",
+      "forest"
+    ]
+  },
+  {
+    "slug": "paroho-ttansan",
+    "name": "화천 파로호 딴산유원지",
+    "type": "wild",
+    "location": {
+      "latitude": 38.1,
+      "longitude": 127.79
+    },
+    "region": "강원",
+    "description": "파로호·북한강이 어우러진 화천 딴산유원지의 물가 노지. 카누·카약 등 수상 레저와 함께 조용한 호반 차박을 즐긴다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "화천 간동면 어룡동길 일원. 파로호 100리 산소길·화천댐 인근.",
+    "warnings": "댐 담수호라 방류·수위 변동에 유의. 상수·군사보호구역 규정으로 야영·취사가 제한될 수 있어 화천군에 사전 확인 권장.",
+    "needsVerification": true,
+    "tags": [
+      "lake"
+    ]
+  },
+  {
+    "slug": "amrok-resort",
+    "name": "곡성 압록유원지 섬진강 백사장",
+    "type": "wild",
+    "location": {
+      "latitude": 35.2,
+      "longitude": 127.35
+    },
+    "region": "전남",
+    "description": "섬진강과 보성강이 합류하는 곡성 압록의 드넓은 백사장 노지. 무료 개방된 강변으로 전남권 노지캠핑 성지로 불린다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "곡성 오곡면 압록리 섬진강·보성강 합류부. 압록역·17번 국도 인근.",
+    "warnings": "두 강 합류부라 유량 변화가 크고 비 온 뒤 급류·수위 상승 위험. 성수기 혼잡, 모래밭 차량 진입 시 빠짐 주의.",
+    "needsVerification": true,
+    "tags": [
+      "lake"
+    ]
+  },
+  {
+    "slug": "gilancheon-andong",
+    "name": "안동 길안천지생태공원 강변",
+    "type": "wild",
+    "location": {
+      "latitude": 36.42,
+      "longitude": 128.87
+    },
+    "region": "경북",
+    "description": "임하호로 흘러드는 길안천변 생태공원의 무료 노지. 넓은 잔디·자갈밭 강변에서 차박·캠핑이 가능한 한적한 스팟이다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "안동 길안면 길안천변 생태공원. 안동 시내에서 길안 방면.",
+    "warnings": "임하댐 방류·집중호우 시 하천 수위가 급변한다. 취사·야영 허용 범위를 지자체 안내로 확인하고 물가에서 떨어져 자리 잡을 것.",
+    "needsVerification": true,
+    "tags": [
+      "lake"
+    ]
+  },
+  {
+    "slug": "daecheongho-busugol",
+    "name": "대청호 부수골 호반",
+    "type": "wild",
+    "location": {
+      "latitude": 36.42,
+      "longitude": 127.49
+    },
+    "region": "충북",
+    "description": "대청호 자락 부수골의 호반 노지. 잔잔한 호수 뷰로 오래전부터 차박러들이 찾던 조용한 스팟이다.",
+    "facilities": [],
+    "accessInfo": "청주 문의면 대청호변 부수골. 대청호 오백리길 인근 진입.",
+    "warnings": "대청호는 상수원보호구역이라 취사·야영·낚시가 대부분 금지되며 단속 대상이다. 방문 전 허용 여부를 반드시 확인할 것. 여름철 무더위·모기 대비 필요.",
+    "needsVerification": true,
+    "tags": [
+      "lake"
+    ]
+  },
+  {
+    "slug": "ganwoljae-eoksae-pyeongwon",
+    "name": "간월재 억새평원",
+    "type": "wild",
+    "location": {
+      "latitude": 35.548,
+      "longitude": 129.04
+    },
+    "region": "울산",
+    "description": "영남알프스 간월산과 신불산을 잇는 해발 900m 안부의 광활한 억새 초지다. 가을이면 황금빛 억새가 능선을 뒤덮어 백패커들이 손꼽는 초지 박지로 통한다.",
+    "facilities": [],
+    "accessInfo": "울주군 상북면 배내2공영주차장 또는 등억온천단지에서 임도·등산로로 도보 1시간 30분~3시간. 사슴농장 코스가 난도가 가장 낮다.",
+    "warnings": "능선 강풍과 급격한 기온 저하에 대비할 것. 억새 복원·보호를 위한 통제구간과 화기 사용 금지 안내를 반드시 확인하고, 데크 외 초지 훼손을 피한다.",
+    "needsVerification": true,
+    "tags": [
+      "plain"
+    ]
+  },
+  {
+    "slug": "sinbuljae-eoksae-pyeongwon",
+    "name": "신불재 억새평원",
+    "type": "wild",
+    "location": {
+      "latitude": 35.535,
+      "longitude": 129.022
+    },
+    "region": "울산",
+    "description": "신불산과 영축산 사이 안부에 펼쳐진 신불평원의 억새 초지로, 영남알프스 하늘억새길의 하이라이트 구간이다. 사방이 트여 억새 일출과 운해를 보기 좋다.",
+    "facilities": [],
+    "accessInfo": "간월재를 지나 신불산 정상을 넘거나 파래소폭포 방면에서 접근. 신불재에 넓은 데크가 있고 주변 초지가 박지로 이용된다.",
+    "warnings": "고지대 강풍·안개가 잦고 물 보급이 어렵다. 억새 복원구역 통제와 화기 금지를 준수하고 초지 위 취사·불 사용을 삼간다.",
+    "needsVerification": true,
+    "tags": [
+      "plain"
+    ]
+  },
+  {
+    "slug": "hwawangsan-eoksae-pyeongwon",
+    "name": "화왕산 억새평원",
+    "type": "wild",
+    "location": {
+      "latitude": 35.527,
+      "longitude": 128.532
+    },
+    "region": "경남",
+    "description": "창녕 화왕산 정상 분화구 자리에 펼쳐진 5만여 평의 억새 평원이다. 화산지형 특유의 완만한 초지가 가을 은빛 물결로 유명하다.",
+    "facilities": [],
+    "accessInfo": "창녕읍 자하곡매표소에서 등산로로 도보 1시간~1시간 30분. 화왕산군립공원 구역이다.",
+    "warnings": "군립공원이라 야영이 제한될 수 있으니 사전 확인 필수. 과거 억새 태우기 사고가 발생한 곳으로 화기 사용은 절대 금지한다.",
+    "needsVerification": true,
+    "tags": [
+      "plain"
+    ]
+  },
+  {
+    "slug": "hwangmaesan-eoksae-pyeongwon",
+    "name": "황매산 억새·철쭉 평원",
+    "type": "wild",
+    "location": {
+      "latitude": 35.492,
+      "longitude": 127.987
+    },
+    "region": "경남",
+    "description": "합천·산청 경계 황매산 정상부의 드넓은 산상 초원으로 봄 철쭉, 가을 억새 명소다. 완만한 초지와 탁 트인 조망으로 백패킹 인기 지역이다.",
+    "facilities": [],
+    "accessInfo": "산청 황매산오토캠핑장·군립공원 주차장에서 도보 30분~1시간이면 능선 평원에 닿는다.",
+    "warnings": "군립공원 구역으로 지정 야영장 외 노지 야영이 제한될 수 있어 사전 확인이 필요하다. 강풍·화기 금지, 초지·철쭉 군락 훼손 주의.",
+    "needsVerification": true,
+    "tags": [
+      "plain"
+    ]
+  },
+  {
+    "slug": "cheongwansan-eoksae-pyeongwon",
+    "name": "천관산 억새평원",
+    "type": "wild",
+    "location": {
+      "latitude": 34.535,
+      "longitude": 126.902
+    },
+    "region": "전남",
+    "description": "장흥 천관산 연대봉에서 환희대로 이어지는 40만 평 억새평원이다. 다도해와 멀리 한라산까지 조망되는 남도 대표 억새 초지다.",
+    "facilities": [],
+    "accessInfo": "관산읍 천관산자연휴양림 또는 장천재 들머리에서 능선까지 도보 1시간 안팎.",
+    "warnings": "천관산도립공원 구역으로 야영 통제 가능성이 있어 사전 확인이 필요하다. 능선 강풍·화기 금지 준수, 억새 군락 보호.",
+    "needsVerification": true,
+    "tags": [
+      "plain"
+    ]
+  },
+  {
+    "slug": "jangansan-eoksae-pyeongwon",
+    "name": "장안산 억새평원",
+    "type": "wild",
+    "location": {
+      "latitude": 35.622,
+      "longitude": 127.548
+    },
+    "region": "전북",
+    "description": "장수 장안산 정상부로 이어지는 호남 최대급 억새 능선 초지다. 무룡고개에서 완만하게 오르는 초원 능선으로 가을 억새 산행지로 유명하다.",
+    "facilities": [],
+    "accessInfo": "무룡고개 주차장에서 능선 억새길로 도보 1시간~1시간 30분(최단 코스).",
+    "warnings": "장안산군립공원 구역이라 야영이 제한될 수 있으니 사전 확인 필수. 능선 강풍·화기 금지, 초지 보호.",
+    "needsVerification": true,
+    "tags": [
+      "plain"
+    ]
+  },
+  {
+    "slug": "gasiri-gongdong-mokjang",
+    "name": "가시리 공동목장 초원",
+    "type": "wild",
+    "location": {
+      "latitude": 33.383,
+      "longitude": 126.795
+    },
+    "region": "제주",
+    "description": "서귀포 표선면 가시리 녹산로 일대 공동목장 지대로, 풍력발전기가 늘어선 드넓은 중산간 초원이다. 이국적인 목장 초지 풍경으로 노지·차박 캠퍼가 찾는다.",
+    "facilities": [],
+    "accessInfo": "녹산로(가시리~정석비행장) 도로변 목장 초지. 조랑말체험공원 인근에서 접근한다.",
+    "warnings": "공동목장 사유지 구역이 많아 무단 출입·야영이 제한될 수 있으니 사전 확인이 필요하다. 방목 가축·화기 금지, 초지 훼손과 쓰레기 투기 주의.",
+    "needsVerification": true,
+    "tags": [
+      "plain"
+    ]
+  },
+  {
+    "slug": "muuido-silmido-solbat",
+    "name": "무의도 실미도 솔밭 노지",
+    "type": "wild",
+    "location": {
+      "latitude": 37.383,
+      "longitude": 126.418
+    },
+    "region": "인천",
+    "description": "무의도 실미도유원지의 백사장과 맞닿은 해변 송림 노지다. 완만한 솔숲 그늘 아래 노지 야영이 가능해 일몰 캠핑 명소로 알려져 있다.",
+    "facilities": [],
+    "accessInfo": "무의대교 개통으로 차량 접근 가능. 실미유원지 진입 후 솔밭 구역 이용(성수기 소액 징수 가능).",
+    "warnings": "모닥불·캠프파이어 금지, 취사도구만 허용된다. 실미도는 물때에 따라 진입로가 잠기므로 물때표를 반드시 확인하고, 송림 훼손·쓰레기 투기를 삼간다.",
+    "needsVerification": true,
+    "tags": [
+      "forest",
+      "beach"
+    ]
+  },
+  {
+    "slug": "chungnyeongsan-pyeonbaeksup",
+    "name": "축령산 편백숲 인근 노지",
+    "type": "wild",
+    "location": {
+      "latitude": 35.354,
+      "longitude": 126.833
+    },
+    "region": "전남",
+    "description": "장성 축령산 일대 1,000ha가 넘는 편백·삼나무 조림 숲으로 국내 대표 치유의 숲이다. 울창한 상록수림 사이 노지에서 피톤치드 가득한 숲속 하룻밤을 보낼 수 있다.",
+    "facilities": [],
+    "accessInfo": "장성 서삼면 모암리·금곡영화마을 들머리에서 임도·숲길로 접근. 축령산자연휴양림은 추첨 예약제로 운영된다.",
+    "warnings": "휴양림·치유의숲 지정구역은 야영·취사가 제한되므로 노지 야영 가능 여부를 장성군·산림청에 사전 확인해야 한다. 산불 위험이 커 화기 사용은 금지한다.",
+    "needsVerification": true,
+    "tags": [
+      "forest"
+    ]
+  },
+  {
+    "slug": "inje-jindong-gyegok",
+    "name": "인제 진동계곡 (방태천)",
+    "type": "wild",
+    "location": {
+      "latitude": 37.91,
+      "longitude": 128.42
+    },
+    "region": "강원",
+    "description": "방태산 원시림에서 흘러내리는 방태천 상류 계곡으로, 자갈밭과 너럭바위가 이어져 물놀이와 야영을 함께 즐긴다. 생물권보전지역에 속한 오지 계곡이라 여름에도 물이 차갑다.",
+    "facilities": [],
+    "accessInfo": "인제 기린면 진동리 방면. 진동리 마을 안쪽 방태천변으로 진입하며, 인근에 유료 진동리국민여가캠핑장이 별도로 있다.",
+    "warnings": "폭우 시 급류·범람 위험이 크다. 노지 구간은 화장실·수도 등 편의시설이 없어 물과 쓰레기봉투를 직접 준비하고 흔적을 모두 되가져가야 한다. 사유지·경작지 무단 점유에 주의.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "yangyang-beopsuchi-gyegok",
+    "name": "양양 법수치계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.94,
+      "longitude": 128.63
+    },
+    "region": "강원",
+    "description": "남대천 최상류를 이루는 양양 대표 청정계곡으로, 황토빛 기암과 맑은 소가 이어진다. 소나무 숲이 짙어 한여름에도 그늘이 넉넉하다.",
+    "facilities": [],
+    "accessInfo": "양양 현북면 어성전리를 지나 법수치리 방향 상류로 진입. 계곡을 따라 펜션·민박이 흩어져 있어 노지 자리는 상류로 갈수록 한적하다.",
+    "warnings": "폭우 시 수위가 급격히 오르는 협곡 지형이라 야영 전 기상 확인이 필수다. 펜션 소유의 사유지 평상은 유료이며, 취사·낚시 제한 구간이 있을 수 있으니 현장 안내를 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "yangyang-eoseongjeon-gyegok",
+    "name": "양양 어성전계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.96,
+      "longitude": 128.67
+    },
+    "region": "강원",
+    "description": "법수치계곡 하류에 이어지는 계곡으로, 다슬기와 물고기가 많고 물놀이하기 좋은 완만한 여울이 이어진다. 가족 단위 피서·차박객이 즐겨 찾는다.",
+    "facilities": [],
+    "accessInfo": "양양 현북면 어성전리 일원. 마을길과 계곡 사이 공터에 차를 대고 노지 야영을 하는 형태다.",
+    "warnings": "폭우 시 급류 위험이 있다. 마을·경작지가 가까워 소음과 사유지 점유에 유의하고, 편의시설이 거의 없으니 취사·쓰레기 처리를 스스로 해결해야 한다.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "jecheon-neunggang-gyegok",
+    "name": "제천 능강계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.98,
+      "longitude": 128.24
+    },
+    "region": "충북",
+    "description": "웅장한 암반 위로 맑은 물이 흐르는 계곡으로, 청풍호로 이어지는 물길이라 수질이 좋다. 입구 무료 주차장 앞 계곡 공터가 차박·텐트 명소로 알려져 있다.",
+    "facilities": [],
+    "accessInfo": "제천 수산면 능강리. 능강계곡 입구 무료 주차장을 이용하며, 주차장 앞 공터에서 텐트 피칭과 취사가 이뤄진다.",
+    "warnings": "폭우 시 암반 계곡 특성상 물이 순식간에 불어난다. 성수기에는 혼잡하며, 지정 구역 밖 무단 취사·주차 단속이 있을 수 있으니 현장 안내를 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "yeongdong-mulhan-gyegok",
+    "name": "영동 물한계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.09,
+      "longitude": 127.86
+    },
+    "region": "충북",
+    "description": "민주지산 자락의 대표 계곡으로 수온이 낮고 물이 맑아 여름 피서지로 붐빈다. 공영주차장 일대가 차박·노지 야영 자리로 이용된다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "영동 상촌면 물한리 116-1 물한계곡 공영주차장(승용차 주차 유료). 주차장 주변에서 차박·야영이 이뤄진다.",
+    "warnings": "폭우 시 계곡물이 급격히 불어나므로 하천변 야영은 피할 것. 공영주차장 유료이며, 성수기 혼잡·취사 제한 여부를 현장에서 확인하고 흔적을 되가져가야 한다.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "yeongdeok-okgye-gyegok",
+    "name": "영덕 옥계계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.37,
+      "longitude": 129.28
+    },
+    "region": "경북",
+    "description": "팔각산·동대산 물길이 모이는 계곡으로 자갈밭과 잔디밭이 넓어 텐트 치기 좋다. 공식 캠핑장이 아니어서 자유로운 노지 야영이 가능하다.",
+    "facilities": [],
+    "accessInfo": "영덕 달산면 옥계리 일원. 내비게이션 '옥계계곡'으로 접근하며 계곡변 자갈밭·잔디밭에 자리를 잡는다.",
+    "warnings": "관리 인력이 없는 노지라 폭우 시 급류에 취약하고, 화장실·수도 등 시설이 없다. 취사 흔적과 쓰레기는 전량 되가져가야 하며 사유지·경작지 점유에 주의.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "pyeongchang-heungjeong-gyegok",
+    "name": "평창 흥정계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.64,
+      "longitude": 128.35
+    },
+    "region": "강원",
+    "description": "흥정산·회령봉에서 발원해 사철 마르지 않는 맑은 계곡으로, 물가에 차를 댈 평지가 있어 차박·노지 캠핑 명소로 꼽힌다. 이효석 문학마을과 가깝다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "accessInfo": "평창 봉평면 흥정리. 장평IC에서 봉평 방향 약 15분. 계곡변 주차 공간과 공용 화장실·수도를 이용할 수 있는 구간이 있다.",
+    "warnings": "폭우 시 급류·범람에 유의. 상류 일부는 사유지 평상(유료) 구간이며 성수기에는 혼잡하다. 취사 가능 구간과 금지 구간을 현장 안내로 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "jinan-unilam-banilam",
+    "name": "진안 운일암반일암",
+    "type": "wild",
+    "location": {
+      "latitude": 35.92,
+      "longitude": 127.42
+    },
+    "region": "전북",
+    "description": "운장산 명덕봉·명도봉 사이 주자천의 기암 협곡으로, 한여름에도 물이 차고 숲이 우거진다. 지자체가 노적봉 쉼터 일대를 차박 무료 구역으로 운영해 취사와 야영이 가능하다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "accessInfo": "진안 주천면 대불리 노적봉 쉼터. 쉼터 뒤편 숲에 개수대·음수대·수세식 화장실이 갖춰져 있다.",
+    "warnings": "일부 구간이 유료로 전환될 수 있어 방문 전 최신 운영 방침을 확인해야 한다. 폭우 시 협곡 급류 위험이 크고, 지정 구역 밖 취사·야영은 금지될 수 있다.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "hongcheon-chikso-gyegok",
+    "name": "홍천 칡소계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.76,
+      "longitude": 128.43
+    },
+    "region": "강원",
+    "description": "내면 깊은 산속 계곡으로 칡소폭포 상류의 한적한 냇가에서 무료 노지 캠핑·물놀이가 이뤄진다. 성수기에도 비교적 여유로운 오지형 계곡이다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "홍천 내면 광원리 일원. 칡소폭포에서 비포장 길을 약 3km 더 들어간 냇가에 화장실이 있는 노지가 있다.",
+    "warnings": "비포장 진입로라 차량 통행에 주의하고, 폭우 시 급류·고립 위험이 크다. 편의시설이 최소한이라 물·연료·쓰레기봉투를 준비하고 흔적을 되가져가야 한다.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "uiseong-binggye-gyegok",
+    "name": "의성 빙계계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.3,
+      "longitude": 128.8
+    },
+    "region": "경북",
+    "description": "한여름 얼음이 어는 빙혈과 기암절벽으로 유명한 빙계군립공원 내 계곡으로, 수심이 얕고 유속이 완만해 가족 물놀이에 좋다. 지자체가 관리하는 무료 야영/차박 구역이 계곡을 따라 이어진다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "accessInfo": "의성 춘산면 빙계리 1008 일원. 무료로 개방된 오토캠프장·야영장이 있으며 수세식 화장실·개수대·음수대가 갖춰져 있다(전기 없음, 선착순).",
+    "warnings": "무료 개방 구역이라 성수기 자리 경쟁이 치열하다. 폭우 시 계곡물이 불어날 수 있고, 지정 구역 밖 취사·주차는 제한될 수 있으니 현장 안내를 따를 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "uiseong-jeomgok-gyegok",
+    "name": "의성 점곡계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.38,
+      "longitude": 128.76
+    },
+    "region": "경북",
+    "description": "기암절벽 아래 맑은 물이 흐르는 한적한 계곡으로, 자갈밭 노지에서 무료로 야영·취사·물놀이를 할 수 있다. 캠퍼들 사이에서 조용한 물놀이 명소로 알려져 있다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "의성 점곡면 사촌리 667 일원. 잔디블록 주차장과 자갈 노지가 있으나 화장실은 재래식이고 수도 시설은 없다.",
+    "warnings": "수도가 없어 식수를 준비해야 하고 재래식 화장실 위생이 열악하다. 폭우 시 급류에 주의하고 취사 흔적·쓰레기를 전량 되가져가야 한다.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "miryang-pyochungsa-gyegok",
+    "name": "밀양 표충사 국민관광단지 계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 35.51,
+      "longitude": 128.9
+    },
+    "region": "경남",
+    "description": "재약산 자락 표충사 앞을 흐르는 계곡으로 그늘이 넉넉하고 물놀이 여건이 좋다. 국민관광단지 내에 무료로 개방된 평지 야영 공간이 있어 계곡 옆 차박이 가능하다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "accessInfo": "밀양 단장면 구천리 309-1 표충사 입구 국민관광단지. 대형 주차장 옆 평지에 화장실·개수대가 있다.",
+    "warnings": "상류의 얼음골·호박소 일대는 가지산도립공원 구역으로 취사·야영이 금지되니 국민관광단지 개방 구역만 이용할 것. 폭우 시 급류에 유의.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "cheongyang-kkachinae-gyegok",
+    "name": "청양 칠갑산 까치내계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.41,
+      "longitude": 126.84
+    },
+    "region": "충남",
+    "description": "칠갑산 아래 '한국의 명수 100선'에 든 맑은 계곡으로, 계곡 앞 넓은 노지에 수십 팀이 차박·야영을 펼칠 수 있다. 수심이 얕아 아이 동반 가족에게도 무난하다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "청양 칠갑산 자락 지천변 까치내 유원지 일원. 인근 칠갑산오토캠핑장·간이화장실을 이용할 수 있다.",
+    "warnings": "폭우 시 하천 수위가 빠르게 오르므로 물가 야영은 피할 것. 넓은 노지라 편의시설이 부족하니 물·화기·쓰레기 처리를 스스로 준비해야 한다.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "cheonan-bukmyeon-gyegok",
+    "name": "천안 북면 계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.76,
+      "longitude": 127.27
+    },
+    "region": "충남",
+    "description": "위례산 자락 병천천 상류의 냇가 계곡으로, 봄 벚꽃길과 여름 물놀이로 알려진 무료 노지 야영지다. 도심에서 가까워 접근성이 좋다.",
+    "facilities": [],
+    "accessInfo": "천안 동남구 북면 매송리 827 일원(위례성로변). 냇가에 무료로 야영할 수 있는 공간이 있다.",
+    "warnings": "폭우 시 급류·범람에 유의하고, 상수원·취사 규제 여부를 현장에서 확인할 것. 편의시설이 최소한이라 쓰레기는 되가져가야 한다.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "hoengseong-byeongjibang-gyegok",
+    "name": "횡성 병지방계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.56,
+      "longitude": 128.14
+    },
+    "region": "강원",
+    "description": "어답산·태기산에 둘러싸인 청정 계곡으로 섬강 발원지답게 물이 맑고 차다. 지자체가 관리하는 무료 노지에서 야영·취사가 가능해 초보 캠퍼에게도 인기다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "accessInfo": "횡성 갑천면 병지방리 일원. 계곡을 따라 약 10km 포장도로가 이어지며 대형 무료 주차장·수세식 화장실·음수대가 갖춰져 있다.",
+    "warnings": "무료 개방 구역이라 성수기 혼잡하다. 폭우 시 급류 위험이 있으니 하천변 야영은 피하고, 지정 구역 밖 취사·주차는 삼갈 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "boeun-seowon-gyegok",
+    "name": "보은 서원계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.47,
+      "longitude": 127.83
+    },
+    "region": "충북",
+    "description": "속리산 남쪽 자락의 넓은 물길 계곡으로, 무료 개방이며 취사·야영이 가능해 가족 단위 방문객이 많다. 상류 만수계곡은 숲이 짙고 하류 서원계곡은 하천폭이 넓다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "보은 속리산면 서원리 일원. 상시 개방이며 인근에 화장실이 있다.",
+    "warnings": "속리산국립공원 경계에 가까워 공원 구역으로 넘어가면 취사·야영이 금지되니 개방 구역만 이용할 것. 폭우 시 급류·범람에 유의.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "yeongyang-yonghwa-gyegok",
+    "name": "영양 일월산 용화리 계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.81,
+      "longitude": 129.16
+    },
+    "region": "경북",
+    "description": "일월산에서 발원한 반변천 최상류 계곡으로, 문암삼거리에서 선녀탕에 이르기까지 원시림 사이로 차박 노지가 길게 이어진다. 인적이 드문 오지형 계곡이다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "영양 일월면 용화리·대티골 일원. 윗대티 무료 주차장에 화장실이 있으나 그 외 편의시설은 거의 없다.",
+    "warnings": "편의시설이 부족한 오지라 물·연료를 넉넉히 준비하고, 폭우 시 급류·고립에 대비해야 한다. 산림 인접지 화기 사용 규제와 흔적 되가져가기를 지킬 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "hadong-hwagaecheon-gyegok",
+    "name": "하동 화개천 계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 35.24,
+      "longitude": 127.63
+    },
+    "region": "경남",
+    "description": "지리산 남쪽 자락 화개천을 따라 에메랄드빛 물길과 야생차밭·숲이 어우러진 긴 계곡이다. 하류 일부 구간에서 노지캠핑·차박이 이뤄진다.",
+    "facilities": [
+      "toilet",
+      "water",
+      "store"
+    ],
+    "accessInfo": "하동 화개면 화개장터에서 쌍계사·신흥 방향 화개천변으로 진입. 하류 노지 구간 인근에 주차장·화장실·수도·편의점이 있다.",
+    "warnings": "상류 의신·피아골 등 지리산국립공원 구역은 취사·야영이 금지되므로 공원 밖 화개천 하류 구간만 이용할 것. 폭우 시 급류·범람 위험이 크다.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "samcheok-deokpung-valley",
+    "name": "삼척 덕풍계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.05,
+      "longitude": 129.24
+    },
+    "region": "강원",
+    "description": "응봉산 협곡을 따라 6km 넘게 이어지는 청정 계곡으로, 무릎 아래로 얕고 바닥이 훤히 비치는 계곡물과 너럭바위가 많아 물놀이와 노지 야영을 함께 즐기는 곳이다. 강 건너 무료 주차장에서 도보로 진입한다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "강원 삼척시 가곡면 풍곡리. 덕풍계곡유원지 무료주차장에 주차 후 도보 진입. 주말 오전 일찍 서둘러야 자리 확보 가능.",
+    "warnings": "폭이 좁은 협곡이라 상류 폭우 시 급류·불어난 물에 고립될 위험이 크다. 기상 악화 예보 시 진입을 삼가고, 계곡 바닥에 직접 불을 피우지 말 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "inje-dongasil-valley",
+    "name": "인제 동아실계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.88,
+      "longitude": 128.09
+    },
+    "region": "강원",
+    "description": "기암절벽 사이로 작은 폭포와 소가 이어지고 턱걸이폭포 전설이 전해지는 계곡으로, 수심이 낮아 가족 물놀이에 좋고 바닥이 평탄해 차박·노지 캠퍼들이 즐겨 찾는다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "강원 인제군 남면 남전리 일대. 간이화장실이 있고 승용차 접근이 가능하다.",
+    "warnings": "국유림 구간이라 계절별 산림 내 취사·야영 금지 기간이 있으니 방문 전 인제군에 확인할 것. 폭우 시 계곡물이 빠르게 불어난다.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "gangneung-dangyeonggol-valley",
+    "name": "강릉 단경골계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.68,
+      "longitude": 128.97
+    },
+    "region": "강원",
+    "description": "강동면 만덕봉 자락 깊은 골에 자리한 숲그늘 계곡으로, 여름 물놀이와 계곡가 야영을 함께 즐길 수 있는 조용한 오지형 스팟이다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "강원 강릉시 강동면 단경골 일원. 계곡을 따라 진입로가 이어지며 여름 성수기에는 소액 이용료를 받기도 한다.",
+    "warnings": "성수기 마을 운영 시 요금이 발생할 수 있어 무료 여부를 사전에 확인할 것. 좁은 골짜기라 집중호우 시 급류 위험이 있다.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "goseong-dowonri-valley",
+    "name": "고성 도원리계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 38.21,
+      "longitude": 128.44
+    },
+    "region": "강원",
+    "description": "설악 신선봉 북쪽 자락에서 흘러내리는 맑은 계곡으로, 얕은 물길과 자갈밭이 넓어 물놀이와 계곡가 차박을 겸하기 좋다.",
+    "facilities": [],
+    "accessInfo": "강원 고성군 토성면 도원리. 계곡 주변에 주차 공간이 있고 성수기에는 소액 주차비를 받는 경우가 있다.",
+    "warnings": "사유지·마을 관리 구간이 섞여 있어 취사·야영 가능 여부가 지점마다 다르니 현장 안내를 따를 것. 폭우 시 급류를 주의.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "yeongwol-yeonha-valley",
+    "name": "영월 연하계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.2,
+      "longitude": 128.52
+    },
+    "region": "강원",
+    "description": "영월읍 연하리 산자락을 끼고 흐르는 한적한 계곡으로, 관광지화되지 않아 조용하게 물놀이와 노지 야영을 즐기려는 캠퍼에게 알려진 곳이다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "강원 영월군 영월읍 연하리 일원. 간이화장실이 있으며 계곡가에 승용차 접근이 가능하다.",
+    "warnings": "편의시설이 거의 없어 식수·쓰레기 처리를 스스로 준비해야 한다. 상류 강우 시 계곡물이 급격히 불어날 수 있다.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "wonju-yeonhwasa-valley",
+    "name": "원주 연화사계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.3,
+      "longitude": 128.09
+    },
+    "region": "강원",
+    "description": "치악산 남쪽 성남리 노송 숲(아랫당숲) 아래로 계곡물이 모여 보를 이루는 곳으로, 나무 그늘과 넓은 물가 덕에 취사·차박이 가능한 무료 노지로 통한다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "accessInfo": "강원 원주시 신림면 성남리 아랫당숲 일원. 간이화장실과 개수대가 있고 차량 접근이 쉽다.",
+    "warnings": "치악산 국립공원 경계와 인접해 지점에 따라 취사·야영이 불법일 수 있으니 공원 구역 표지를 확인하고 지정 외 구역에서는 삼갈 것. 폭우 시 보 주변 급류 주의.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "jecheon-deokdong-valley",
+    "name": "제천 덕동계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.21,
+      "longitude": 127.99
+    },
+    "region": "충북",
+    "description": "백운산 자락 백운면 덕동리에 자리한 청정 계곡으로, 투명한 계곡물 바로 옆에서 여름 물놀이와 야영을 즐길 수 있는 숲속 피서지다.",
+    "facilities": [],
+    "accessInfo": "충북 제천시 백운면 덕동리 일원. 계곡을 따라 유료 캠핑장과 무료 노지 구간이 섞여 있다.",
+    "warnings": "일부 구간은 사설 캠핑장 사유지이므로 무료 노지 구간인지 현장에서 확인할 것. 좁은 계곡이라 집중호우 시 급류 위험이 있다.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "goesan-suok-valley",
+    "name": "괴산 수옥계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.78,
+      "longitude": 128.06
+    },
+    "region": "충북",
+    "description": "조령 아래 수옥폭포에서 이어지는 계곡으로, 너럭바위와 맑은 물길을 따라 물놀이와 계곡가 야영을 즐기는 이들이 찾는 곳이다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "충북 괴산군 연풍면 원풍리 수옥정 관광지 일원. 주차장과 화장실이 있고 폭포 하류로 계곡이 이어진다.",
+    "warnings": "관광지 지정 구역이라 취사·야영이 제한될 수 있으니 안내판을 확인할 것. 폭포 하류는 수심이 깊은 소가 있어 물놀이 시 주의.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "chungju-suryong-valley",
+    "name": "충주 수룡폭포계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.98,
+      "longitude": 127.74
+    },
+    "region": "충북",
+    "description": "국망산 자락 노은면 수룡리의 폭포와 소를 낀 한적한 계곡으로, 사람이 붐비지 않아 조용한 물놀이와 노지 야영을 원하는 캠퍼에게 알려져 있다.",
+    "facilities": [],
+    "accessInfo": "충북 충주시 노은면 수룡리 일원. 마을길을 따라 폭포 인근까지 차량 접근이 가능하다.",
+    "warnings": "편의시설이 없어 식수·화장실을 스스로 해결해야 한다. 폭포 주변 바위가 미끄럽고 소가 깊어 안전에 유의하고, 폭우 시 진입을 삼갈 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "cheonan-gwangdeok-valley",
+    "name": "천안 광덕계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.72,
+      "longitude": 127.04
+    },
+    "region": "충남",
+    "description": "광덕산 자락 광덕면을 흐르는 나지막한 계곡으로, 수도권에서 가깝고 수심이 얕아 가족 단위 물놀이와 가벼운 노지 야영에 적합하다.",
+    "facilities": [],
+    "accessInfo": "충남 천안시 동남구 광덕면 광덕리 일원. 광덕사 방면 도로를 따라 계곡가에 접근할 수 있다.",
+    "warnings": "사유지·농지와 인접한 구간이 있어 야영 전 취사·주차 가능 여부를 확인할 것. 여름철 방문객이 많아 자리와 정숙에 유의.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "mungyeong-soya-solbat",
+    "name": "문경 소야솔밭",
+    "type": "wild",
+    "location": {
+      "latitude": 36.67,
+      "longitude": 128.14
+    },
+    "region": "경북",
+    "description": "마성면 모곡리 조령천 곁 솔밭에 자리한 무료 노지로, 소나무 그늘과 얕은 계곡물이 어우러져 물놀이와 차박을 함께 즐기기 좋다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "경북 문경시 마성면 모곡리 일원. 무료로 개방되며 화장실과 계곡 물놀이가 가능하다.",
+    "warnings": "무료 개방지라 성수기에는 매우 붐비고 자리 경쟁이 있다. 계곡물이 불어나는 우천 시 저지대 야영을 피할 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "mungyeong-ssangnyong-valley",
+    "name": "문경 쌍룡계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.62,
+      "longitude": 127.97
+    },
+    "region": "경북",
+    "description": "대야산 자락 농암면 내서리에서 흘러내리는 맑고 깊은 계곡으로, 울창한 숲과 넓은 암반을 따라 물놀이와 계곡가 야영을 즐기는 곳이다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "경북 문경시 농암면 내서리 일원. 간이화장실이 있고 계곡을 따라 물놀이 구간이 이어진다.",
+    "warnings": "수심이 깊은 소가 곳곳에 있어 물놀이 시 주의가 필요하다. 상류 폭우 시 급류 위험이 크므로 기상 예보를 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "sangju-janggak-valley",
+    "name": "상주 장각폭포계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.55,
+      "longitude": 127.87
+    },
+    "region": "경북",
+    "description": "속리산 천왕봉 동쪽 화북면 상오리의 장각폭포 아래로 이어지는 계곡으로, 폭포와 담을 낀 물놀이와 노지 야영을 즐기는 캠퍼에게 알려져 있다.",
+    "facilities": [],
+    "accessInfo": "경북 상주시 화북면 상오리 일원. 장각폭포 주변에 주차 공간이 있고 인근에 마을 운영 야영장도 있다.",
+    "warnings": "속리산 국립공원 경계와 가까워 지점에 따라 취사·야영이 불법일 수 있으니 공원 구역 표지를 반드시 확인할 것. 폭포 소는 수심이 깊다.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "geochang-wolseong-valley",
+    "name": "거창 월성계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 35.83,
+      "longitude": 127.76
+    },
+    "region": "경남",
+    "description": "덕유산 서쪽 북상면을 흐르는 월성계곡은 사선대 일대의 너럭바위와 맑고 얕은 물길로 유명해, 모래톱·바위 위에 텐트를 치고 물놀이와 노지 야영을 즐기는 곳이다.",
+    "facilities": [],
+    "accessInfo": "경남 거창군 북상면 월성리 사선대 일원. 계곡을 따라 도로가 이어져 차량 접근이 쉽다.",
+    "warnings": "편의시설이 거의 없어 준비를 철저히 해야 한다. 덕유산에서 내려오는 물이라 폭우 시 수위가 급히 오르므로 저지대 야영과 우천 진입을 피할 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "geochang-jangpung-sup",
+    "name": "거창 장풍숲",
+    "type": "wild",
+    "location": {
+      "latitude": 35.72,
+      "longitude": 127.87
+    },
+    "region": "경남",
+    "description": "마리면 율리의 소나무 숲과 냇가가 어우러진 노지로, 그늘 아래 얕은 계곡물에서 물놀이하며 야영·차박하기 좋은 조용한 스팟이다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "accessInfo": "경남 거창군 마리면 율리 일원. 화장실과 개수대가 있고 소나무 그늘 아래 차량 접근이 가능하다.",
+    "warnings": "여름 성수기에는 자리가 빠르게 찬다. 하천변 저지대라 집중호우 시 침수·급류에 유의할 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "miryang-geumgok-valley",
+    "name": "밀양 금곡계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 35.53,
+      "longitude": 128.82
+    },
+    "region": "경남",
+    "description": "산외면 금곡리 금곡교 일대의 계곡으로, 개수대가 있는 넓은 물가에서 물놀이와 노지 차박을 겸하는 이들이 찾는 한적한 곳이다.",
+    "facilities": [
+      "water"
+    ],
+    "accessInfo": "경남 밀양시 산외면 금곡리 금곡교 일원. 개수대가 있으나 화장실은 재래식으로 상태가 좋지 않다.",
+    "warnings": "화장실 등 편의시설이 열악하니 대비가 필요하다. 하천변이라 상류 강우 시 물이 빠르게 불어날 수 있다.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "gokseong-cheonggyedong-valley",
+    "name": "곡성 청계동계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 35.3,
+      "longitude": 127.27
+    },
+    "region": "전남",
+    "description": "동악산 자락 곡성읍 신기리의 청계동계곡은 기암과 소가 이어지는 남도의 대표 피서 계곡으로, 물놀이와 계곡가 노지 야영을 함께 즐길 수 있다.",
+    "facilities": [],
+    "accessInfo": "전남 곡성군 곡성읍 신기리 청계동 일원. 계곡을 따라 마을길과 주차 공간이 이어진다.",
+    "warnings": "사유지·펜션 구간이 섞여 있어 무료 노지 구간을 현장에서 확인할 것. 좁은 골짜기라 폭우 시 급류에 유의.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "pocheon-jijangsan-valley",
+    "name": "포천 지장산계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 38.08,
+      "longitude": 127.16
+    },
+    "region": "경기",
+    "description": "관인면 중리의 지장산(보개산) 자락을 흐르는 계곡으로, 수도권에서 접근이 쉬우면서도 한적해 물놀이와 노지 야영을 즐기려는 캠퍼에게 알려져 있다.",
+    "facilities": [],
+    "accessInfo": "경기 포천시 관인면 중리 지장산 입구 일원. 계곡을 따라 진입로와 주차 공간이 있다.",
+    "warnings": "군사시설·통제 구간이 인근에 있을 수 있으니 표지를 확인할 것. 편의시설이 부족하고 폭우 시 계곡물이 급히 불어난다.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "yangpyeong-seoksan-valley",
+    "name": "양평 석산계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.6,
+      "longitude": 127.66
+    },
+    "region": "경기",
+    "description": "단월면 석산리 산자락을 흐르는 소규모 계곡으로, 수도권 근교에서 조용히 물놀이와 계곡가 노지 야영을 즐길 수 있는 곳이다.",
+    "facilities": [],
+    "accessInfo": "경기 양평군 단월면 석산리 일원. 마을길을 따라 계곡가에 접근할 수 있다.",
+    "warnings": "농지·사유지와 접한 구간이 많아 야영·취사 전 이용 가능 여부를 확인할 것. 규모가 작은 계곡이라 우천 시 흙탕물·급류가 생기기 쉽다.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
   }
 ]
