@@ -238,10 +238,11 @@
 | `warnings` | string? | 주의·규제 문구 (있으면 상세 상단 경고 박스) |
 | `imageUrl` | string? | 대표 사진 URL |
 | `source` | string | `gocamping` / `knps` / `curated` — 출처 표기용 |
+| `sourceKey` | string? | 시드 멱등성 키(source별 원본 키 — curated=slug, gocamping=contentId). 문서 id는 무작위 고유값이라 재실행 매칭에 이 필드를 쓴다 |
 | `status` | string | `active` / `hidden` — 클라이언트는 `active`만 조회 |
 | `updatedAt` | string | ISO 8601 — 적재/갱신 시각 |
 
-문서 id는 `{source}:{외부id}` 또는 slug로 upsert 멱등성을 보장한다. 보안 규칙: 읽기 공개, 쓰기 금지(시드 시에만 임시 허용).
+문서 id는 **무작위 고유값(Firebase 자동 생성)**이다. 재실행 멱등성은 `(source, sourceKey)` 매칭으로 보장한다(`scripts/seed-camp-spots.mjs`). 구형 `{source}:{key}` id는 `scripts/rekey-camp-spots.mjs`로 재키했다(콜론이 공유 URL 링크화에서 끊기고 slug가 노출되는 문제). 보안 규칙: 읽기 공개, 쓰기 금지(시드 시에만 임시 허용).
 
 ### DM-18 박지 후기 캐시 (`camp-spot-review/{spotId}`) `[기획]`
 
