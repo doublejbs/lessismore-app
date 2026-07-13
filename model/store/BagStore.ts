@@ -261,6 +261,7 @@ class BagStore {
                 createDate,
                 color,
                 companyKorean,
+                nameKorean,
               }) =>
                 new Gear(
                   id,
@@ -276,7 +277,8 @@ class BagStore {
                   bags,
                   createDate,
                   color,
-                  companyKorean
+                  companyKorean,
+                  nameKorean
                 )
             )
           : [],
