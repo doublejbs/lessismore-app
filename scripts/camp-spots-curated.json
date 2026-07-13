@@ -4330,5 +4330,369 @@
     "tags": [
       "forest"
     ]
+  },
+  {
+    "slug": "inje-jindong-gyegok",
+    "name": "인제 진동계곡 (방태천)",
+    "type": "wild",
+    "location": {
+      "latitude": 37.91,
+      "longitude": 128.42
+    },
+    "region": "강원",
+    "description": "방태산 원시림에서 흘러내리는 방태천 상류 계곡으로, 자갈밭과 너럭바위가 이어져 물놀이와 야영을 함께 즐긴다. 생물권보전지역에 속한 오지 계곡이라 여름에도 물이 차갑다.",
+    "facilities": [],
+    "accessInfo": "인제 기린면 진동리 방면. 진동리 마을 안쪽 방태천변으로 진입하며, 인근에 유료 진동리국민여가캠핑장이 별도로 있다.",
+    "warnings": "폭우 시 급류·범람 위험이 크다. 노지 구간은 화장실·수도 등 편의시설이 없어 물과 쓰레기봉투를 직접 준비하고 흔적을 모두 되가져가야 한다. 사유지·경작지 무단 점유에 주의.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "yangyang-beopsuchi-gyegok",
+    "name": "양양 법수치계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.94,
+      "longitude": 128.63
+    },
+    "region": "강원",
+    "description": "남대천 최상류를 이루는 양양 대표 청정계곡으로, 황토빛 기암과 맑은 소가 이어진다. 소나무 숲이 짙어 한여름에도 그늘이 넉넉하다.",
+    "facilities": [],
+    "accessInfo": "양양 현북면 어성전리를 지나 법수치리 방향 상류로 진입. 계곡을 따라 펜션·민박이 흩어져 있어 노지 자리는 상류로 갈수록 한적하다.",
+    "warnings": "폭우 시 수위가 급격히 오르는 협곡 지형이라 야영 전 기상 확인이 필수다. 펜션 소유의 사유지 평상은 유료이며, 취사·낚시 제한 구간이 있을 수 있으니 현장 안내를 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "yangyang-eoseongjeon-gyegok",
+    "name": "양양 어성전계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.96,
+      "longitude": 128.67
+    },
+    "region": "강원",
+    "description": "법수치계곡 하류에 이어지는 계곡으로, 다슬기와 물고기가 많고 물놀이하기 좋은 완만한 여울이 이어진다. 가족 단위 피서·차박객이 즐겨 찾는다.",
+    "facilities": [],
+    "accessInfo": "양양 현북면 어성전리 일원. 마을길과 계곡 사이 공터에 차를 대고 노지 야영을 하는 형태다.",
+    "warnings": "폭우 시 급류 위험이 있다. 마을·경작지가 가까워 소음과 사유지 점유에 유의하고, 편의시설이 거의 없으니 취사·쓰레기 처리를 스스로 해결해야 한다.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "jecheon-neunggang-gyegok",
+    "name": "제천 능강계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.98,
+      "longitude": 128.24
+    },
+    "region": "충북",
+    "description": "웅장한 암반 위로 맑은 물이 흐르는 계곡으로, 청풍호로 이어지는 물길이라 수질이 좋다. 입구 무료 주차장 앞 계곡 공터가 차박·텐트 명소로 알려져 있다.",
+    "facilities": [],
+    "accessInfo": "제천 수산면 능강리. 능강계곡 입구 무료 주차장을 이용하며, 주차장 앞 공터에서 텐트 피칭과 취사가 이뤄진다.",
+    "warnings": "폭우 시 암반 계곡 특성상 물이 순식간에 불어난다. 성수기에는 혼잡하며, 지정 구역 밖 무단 취사·주차 단속이 있을 수 있으니 현장 안내를 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "yeongdong-mulhan-gyegok",
+    "name": "영동 물한계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.09,
+      "longitude": 127.86
+    },
+    "region": "충북",
+    "description": "민주지산 자락의 대표 계곡으로 수온이 낮고 물이 맑아 여름 피서지로 붐빈다. 공영주차장 일대가 차박·노지 야영 자리로 이용된다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "영동 상촌면 물한리 116-1 물한계곡 공영주차장(승용차 주차 유료). 주차장 주변에서 차박·야영이 이뤄진다.",
+    "warnings": "폭우 시 계곡물이 급격히 불어나므로 하천변 야영은 피할 것. 공영주차장 유료이며, 성수기 혼잡·취사 제한 여부를 현장에서 확인하고 흔적을 되가져가야 한다.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "yeongdeok-okgye-gyegok",
+    "name": "영덕 옥계계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.37,
+      "longitude": 129.28
+    },
+    "region": "경북",
+    "description": "팔각산·동대산 물길이 모이는 계곡으로 자갈밭과 잔디밭이 넓어 텐트 치기 좋다. 공식 캠핑장이 아니어서 자유로운 노지 야영이 가능하다.",
+    "facilities": [],
+    "accessInfo": "영덕 달산면 옥계리 일원. 내비게이션 '옥계계곡'으로 접근하며 계곡변 자갈밭·잔디밭에 자리를 잡는다.",
+    "warnings": "관리 인력이 없는 노지라 폭우 시 급류에 취약하고, 화장실·수도 등 시설이 없다. 취사 흔적과 쓰레기는 전량 되가져가야 하며 사유지·경작지 점유에 주의.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "pyeongchang-heungjeong-gyegok",
+    "name": "평창 흥정계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.64,
+      "longitude": 128.35
+    },
+    "region": "강원",
+    "description": "흥정산·회령봉에서 발원해 사철 마르지 않는 맑은 계곡으로, 물가에 차를 댈 평지가 있어 차박·노지 캠핑 명소로 꼽힌다. 이효석 문학마을과 가깝다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "accessInfo": "평창 봉평면 흥정리. 장평IC에서 봉평 방향 약 15분. 계곡변 주차 공간과 공용 화장실·수도를 이용할 수 있는 구간이 있다.",
+    "warnings": "폭우 시 급류·범람에 유의. 상류 일부는 사유지 평상(유료) 구간이며 성수기에는 혼잡하다. 취사 가능 구간과 금지 구간을 현장 안내로 확인할 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "jinan-unilam-banilam",
+    "name": "진안 운일암반일암",
+    "type": "wild",
+    "location": {
+      "latitude": 35.92,
+      "longitude": 127.42
+    },
+    "region": "전북",
+    "description": "운장산 명덕봉·명도봉 사이 주자천의 기암 협곡으로, 한여름에도 물이 차고 숲이 우거진다. 지자체가 노적봉 쉼터 일대를 차박 무료 구역으로 운영해 취사와 야영이 가능하다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "accessInfo": "진안 주천면 대불리 노적봉 쉼터. 쉼터 뒤편 숲에 개수대·음수대·수세식 화장실이 갖춰져 있다.",
+    "warnings": "일부 구간이 유료로 전환될 수 있어 방문 전 최신 운영 방침을 확인해야 한다. 폭우 시 협곡 급류 위험이 크고, 지정 구역 밖 취사·야영은 금지될 수 있다.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "hongcheon-chikso-gyegok",
+    "name": "홍천 칡소계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.76,
+      "longitude": 128.43
+    },
+    "region": "강원",
+    "description": "내면 깊은 산속 계곡으로 칡소폭포 상류의 한적한 냇가에서 무료 노지 캠핑·물놀이가 이뤄진다. 성수기에도 비교적 여유로운 오지형 계곡이다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "홍천 내면 광원리 일원. 칡소폭포에서 비포장 길을 약 3km 더 들어간 냇가에 화장실이 있는 노지가 있다.",
+    "warnings": "비포장 진입로라 차량 통행에 주의하고, 폭우 시 급류·고립 위험이 크다. 편의시설이 최소한이라 물·연료·쓰레기봉투를 준비하고 흔적을 되가져가야 한다.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "uiseong-binggye-gyegok",
+    "name": "의성 빙계계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.3,
+      "longitude": 128.8
+    },
+    "region": "경북",
+    "description": "한여름 얼음이 어는 빙혈과 기암절벽으로 유명한 빙계군립공원 내 계곡으로, 수심이 얕고 유속이 완만해 가족 물놀이에 좋다. 지자체가 관리하는 무료 야영/차박 구역이 계곡을 따라 이어진다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "accessInfo": "의성 춘산면 빙계리 1008 일원. 무료로 개방된 오토캠프장·야영장이 있으며 수세식 화장실·개수대·음수대가 갖춰져 있다(전기 없음, 선착순).",
+    "warnings": "무료 개방 구역이라 성수기 자리 경쟁이 치열하다. 폭우 시 계곡물이 불어날 수 있고, 지정 구역 밖 취사·주차는 제한될 수 있으니 현장 안내를 따를 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "uiseong-jeomgok-gyegok",
+    "name": "의성 점곡계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.38,
+      "longitude": 128.76
+    },
+    "region": "경북",
+    "description": "기암절벽 아래 맑은 물이 흐르는 한적한 계곡으로, 자갈밭 노지에서 무료로 야영·취사·물놀이를 할 수 있다. 캠퍼들 사이에서 조용한 물놀이 명소로 알려져 있다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "의성 점곡면 사촌리 667 일원. 잔디블록 주차장과 자갈 노지가 있으나 화장실은 재래식이고 수도 시설은 없다.",
+    "warnings": "수도가 없어 식수를 준비해야 하고 재래식 화장실 위생이 열악하다. 폭우 시 급류에 주의하고 취사 흔적·쓰레기를 전량 되가져가야 한다.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "miryang-pyochungsa-gyegok",
+    "name": "밀양 표충사 국민관광단지 계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 35.51,
+      "longitude": 128.9
+    },
+    "region": "경남",
+    "description": "재약산 자락 표충사 앞을 흐르는 계곡으로 그늘이 넉넉하고 물놀이 여건이 좋다. 국민관광단지 내에 무료로 개방된 평지 야영 공간이 있어 계곡 옆 차박이 가능하다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "accessInfo": "밀양 단장면 구천리 309-1 표충사 입구 국민관광단지. 대형 주차장 옆 평지에 화장실·개수대가 있다.",
+    "warnings": "상류의 얼음골·호박소 일대는 가지산도립공원 구역으로 취사·야영이 금지되니 국민관광단지 개방 구역만 이용할 것. 폭우 시 급류에 유의.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "cheongyang-kkachinae-gyegok",
+    "name": "청양 칠갑산 까치내계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.41,
+      "longitude": 126.84
+    },
+    "region": "충남",
+    "description": "칠갑산 아래 '한국의 명수 100선'에 든 맑은 계곡으로, 계곡 앞 넓은 노지에 수십 팀이 차박·야영을 펼칠 수 있다. 수심이 얕아 아이 동반 가족에게도 무난하다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "청양 칠갑산 자락 지천변 까치내 유원지 일원. 인근 칠갑산오토캠핑장·간이화장실을 이용할 수 있다.",
+    "warnings": "폭우 시 하천 수위가 빠르게 오르므로 물가 야영은 피할 것. 넓은 노지라 편의시설이 부족하니 물·화기·쓰레기 처리를 스스로 준비해야 한다.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "cheonan-bukmyeon-gyegok",
+    "name": "천안 북면 계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.76,
+      "longitude": 127.27
+    },
+    "region": "충남",
+    "description": "위례산 자락 병천천 상류의 냇가 계곡으로, 봄 벚꽃길과 여름 물놀이로 알려진 무료 노지 야영지다. 도심에서 가까워 접근성이 좋다.",
+    "facilities": [],
+    "accessInfo": "천안 동남구 북면 매송리 827 일원(위례성로변). 냇가에 무료로 야영할 수 있는 공간이 있다.",
+    "warnings": "폭우 시 급류·범람에 유의하고, 상수원·취사 규제 여부를 현장에서 확인할 것. 편의시설이 최소한이라 쓰레기는 되가져가야 한다.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "hoengseong-byeongjibang-gyegok",
+    "name": "횡성 병지방계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 37.56,
+      "longitude": 128.14
+    },
+    "region": "강원",
+    "description": "어답산·태기산에 둘러싸인 청정 계곡으로 섬강 발원지답게 물이 맑고 차다. 지자체가 관리하는 무료 노지에서 야영·취사가 가능해 초보 캠퍼에게도 인기다.",
+    "facilities": [
+      "toilet",
+      "water"
+    ],
+    "accessInfo": "횡성 갑천면 병지방리 일원. 계곡을 따라 약 10km 포장도로가 이어지며 대형 무료 주차장·수세식 화장실·음수대가 갖춰져 있다.",
+    "warnings": "무료 개방 구역이라 성수기 혼잡하다. 폭우 시 급류 위험이 있으니 하천변 야영은 피하고, 지정 구역 밖 취사·주차는 삼갈 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "boeun-seowon-gyegok",
+    "name": "보은 서원계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.47,
+      "longitude": 127.83
+    },
+    "region": "충북",
+    "description": "속리산 남쪽 자락의 넓은 물길 계곡으로, 무료 개방이며 취사·야영이 가능해 가족 단위 방문객이 많다. 상류 만수계곡은 숲이 짙고 하류 서원계곡은 하천폭이 넓다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "보은 속리산면 서원리 일원. 상시 개방이며 인근에 화장실이 있다.",
+    "warnings": "속리산국립공원 경계에 가까워 공원 구역으로 넘어가면 취사·야영이 금지되니 개방 구역만 이용할 것. 폭우 시 급류·범람에 유의.",
+    "needsVerification": true,
+    "tags": [
+      "valley"
+    ]
+  },
+  {
+    "slug": "yeongyang-yonghwa-gyegok",
+    "name": "영양 일월산 용화리 계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 36.81,
+      "longitude": 129.16
+    },
+    "region": "경북",
+    "description": "일월산에서 발원한 반변천 최상류 계곡으로, 문암삼거리에서 선녀탕에 이르기까지 원시림 사이로 차박 노지가 길게 이어진다. 인적이 드문 오지형 계곡이다.",
+    "facilities": [
+      "toilet"
+    ],
+    "accessInfo": "영양 일월면 용화리·대티골 일원. 윗대티 무료 주차장에 화장실이 있으나 그 외 편의시설은 거의 없다.",
+    "warnings": "편의시설이 부족한 오지라 물·연료를 넉넉히 준비하고, 폭우 시 급류·고립에 대비해야 한다. 산림 인접지 화기 사용 규제와 흔적 되가져가기를 지킬 것.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
+  },
+  {
+    "slug": "hadong-hwagaecheon-gyegok",
+    "name": "하동 화개천 계곡",
+    "type": "wild",
+    "location": {
+      "latitude": 35.24,
+      "longitude": 127.63
+    },
+    "region": "경남",
+    "description": "지리산 남쪽 자락 화개천을 따라 에메랄드빛 물길과 야생차밭·숲이 어우러진 긴 계곡이다. 하류 일부 구간에서 노지캠핑·차박이 이뤄진다.",
+    "facilities": [
+      "toilet",
+      "water",
+      "store"
+    ],
+    "accessInfo": "하동 화개면 화개장터에서 쌍계사·신흥 방향 화개천변으로 진입. 하류 노지 구간 인근에 주차장·화장실·수도·편의점이 있다.",
+    "warnings": "상류 의신·피아골 등 지리산국립공원 구역은 취사·야영이 금지되므로 공원 밖 화개천 하류 구간만 이용할 것. 폭우 시 급류·범람 위험이 크다.",
+    "needsVerification": true,
+    "tags": [
+      "valley",
+      "forest"
+    ]
   }
 ]
