@@ -1,5 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import { Linking } from 'react-native';
+import { Linking, Share } from 'react-native';
 import { Router } from 'expo-router';
 import WarehouseDispatcherType from '../warehouse/WarehouseDispatcherType';
 import BagStore from '../store/BagStore';
@@ -227,6 +227,27 @@ class WarehouseDetail {
       await Linking.openURL(url);
     } catch {
       // 링크 열기 실패는 조용히 무시
+    }
+  }
+
+  // 공유(GD-7): 장비 웹 랜딩 URL을 OS 공유 시트로 내보낸다(카탈로그 장비만).
+  // 랜딩(useless.my/gear-share/{id})에서 앱으로 딥링크(lessismoreapp://gear-detail/{id})된다.
+  public async share() {
+    const gear = this.getGear();
+
+    if (!gear || gear.getIsCustom()) {
+      return;
+    }
+
+    app.getAnalyticsManager()?.logClick('gear_share');
+
+    const url = `https://useless.my/gear-share/${encodeURIComponent(gear.getId())}`;
+
+    try {
+      // URL만 공유 — 텍스트를 붙이면 '복사' 시 링크로 동작하지 않는다(CS-7과 동일).
+      await Share.share({ message: url });
+    } catch {
+      // 공유 시트 취소·실패는 조용히 무시
     }
   }
 
