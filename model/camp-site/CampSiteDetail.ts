@@ -201,10 +201,9 @@ class CampSiteDetail {
     const url = `https://useless.my/camp-share/${spot.id}`;
 
     try {
-      await Share.share({
-        message: `${spot.name} · 백패킹 박지\n${url}`,
-        url,
-      });
+      // URL만 공유한다 — 이름 등 텍스트를 붙이면 '복사' 시 URL이 아닌 문자열이 복사돼
+      // 사파리에 붙여넣어도 링크로 동작하지 않는다.
+      await Share.share({ message: url });
     } catch {
       // 공유 시트 취소·실패는 조용히 무시
     }
