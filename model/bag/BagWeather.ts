@@ -147,8 +147,9 @@ class BagWeather {
     const today = dayjs().startOf('day');
     const start = this.startDate.startOf('day');
     const end = this.endDate.startOf('day');
+    // WeatherService의 예보 커버 범위와 일치해야 한다(오늘+16은 API 400 — WeatherService 주석 참고).
     const forecastLow = today.subtract(92, 'day');
-    const forecastHigh = today.add(16, 'day');
+    const forecastHigh = today.add(15, 'day');
 
     const kinds = new Set<WeatherKind>();
     if (start.isBefore(forecastLow)) {

@@ -16,9 +16,11 @@ const ARCHIVE_URL = 'https://archive-api.open-meteo.com/v1/archive';
 const KAKAO_KEYWORD_URL = 'https://dapi.kakao.com/v2/local/search/keyword.json';
 const KAKAO_REST_KEY = process.env.EXPO_PUBLIC_KAKAO_REST_KEY;
 
-// 예보 API 커버 범위: [오늘-92일 ~ 오늘+16일]. 그 밖은 아카이브/평년값.
+// 예보 API 커버 범위: [오늘-92일 ~ 오늘+15일]. 그 밖은 아카이브/평년값.
+// Open-Meteo forecast는 오늘 포함 16일(=오늘+15일)까지만 허용한다 — 오늘+16을 요청하면
+// "end_date out of allowed range" 400이 난다. 초과분(먼 미래)은 평년값 세그먼트가 담당한다.
 const FORECAST_PAST_DAYS = 92;
-const FORECAST_FUTURE_DAYS = 16;
+const FORECAST_FUTURE_DAYS = 15;
 // 평년값 계산에 사용할 과거 연도 수.
 const NORMAL_YEARS = 5;
 
