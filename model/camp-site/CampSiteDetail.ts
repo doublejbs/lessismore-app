@@ -10,6 +10,8 @@ import BagItem from '../bag/BagItem';
 import CampSiteDetailDispatcher from './CampSiteDetailDispatcher';
 import { CampSpot } from './CampSpotTypes';
 import { BlogReview, REVIEW_CACHE_TTL_MS, VideoReview } from '../review/ReviewTypes';
+import { CampReview, CampReviewSummary } from '../camp-review/CampReviewTypes';
+import { setCampReviewWrite } from '../camp-review/CampReviewWriteHandoff';
 import { setPendingBagLocation } from '../bag/PendingBagLocationHandoff';
 
 // 박지 상세 도메인 모델 (CampSite CS-3/CS-4/CS-5).
@@ -32,6 +34,9 @@ class CampSiteDetail {
   private videos: VideoReview[] = [];
   private bags: BagItem[] = [];
   private showBagSheet = false;
+  private reviewSummary: CampReviewSummary | null = null;
+  private userReviews: CampReview[] = [];
+  private myReview: CampReview | null = null;
 
   private constructor(
     private readonly router: Router,
@@ -59,6 +64,7 @@ class CampSiteDetail {
       this.setInitialized(true);
 
       void this.loadReviewContent(spot);
+      void this.loadUserReviews(spot.id);
     } catch (e) {
       console.error('박지 상세 로드 실패:', e);
       Alert.alert('알림', '박지 정보를 불러오지 못했어요.', [
@@ -140,6 +146,109 @@ class CampSiteDetail {
 
   public getVideos() {
     return this.videos;
+  }
+
+  // 유저 후기(CS-8): 별점 요약·후기 목록을 병렬 조회하고, 로그인 상태면 내 후기도 함께 조회한다.
+  // 실패는 삼키고 빈 상태를 유지한다(가용성 우선).
+  private async loadUserReviews(spotId: string) {
+    try {
+      const isLoggedIn = this.firebase.isLoggedIn();
+
+      const [summary, reviews, myReview] = await Promise.all([
+        this.dispatcher.getReviewSummary(spotId),
+        this.dispatcher.getUserReviews(spotId),
+        isLoggedIn
+          ? this.dispatcher.getMyReview(spotId, this.firebase.getUserId())
+          : Promise.resolve(null),
+      ]);
+
+      this.setReviewSummary(summary);
+      this.setUserReviews(reviews);
+      this.setMyReview(myReview);
+    } catch (e) {
+      console.error('박지 유저 후기 조회 실패:', e);
+    }
+  }
+
+  private setReviewSummary(value: CampReviewSummary | null) {
+    this.reviewSummary = value;
+  }
+
+  public getReviewSummary() {
+    return this.reviewSummary;
+  }
+
+  private setUserReviews(value: CampReview[]) {
+    this.userReviews = value;
+  }
+
+  public getUserReviews() {
+    return this.userReviews;
+  }
+
+  private setMyReview(value: CampReview | null) {
+    this.myReview = value;
+  }
+
+  public getMyReview() {
+    return this.myReview;
+  }
+
+  // 후기 쓰기/수정 진입(CS-8): 비로그인은 안내. 로그인이면 작성 formSheet로 핸드오프를 넘긴다.
+  public openWriteReview() {
+    const spot = this.spot;
+
+    if (!spot) {
+      return;
+    }
+
+    if (!this.firebase.isLoggedIn()) {
+      this.logInAlertManager.show();
+      return;
+    }
+
+    this.analyticsManager?.logClick('camp_site_review_write');
+
+    setCampReviewWrite({
+      spotId: spot.id,
+      spotName: spot.name,
+      existing: this.myReview,
+      onComplete: () => {
+        void this.loadUserReviews(spot.id);
+      },
+    });
+    this.router.push('/camp-review-write');
+  }
+
+  // 내 후기 삭제(CS-8): 실제 삭제만 담당. 확인 다이얼로그는 뷰에서 처리한다.
+  public async deleteMyReview() {
+    const spot = this.spot;
+
+    if (!spot) {
+      return;
+    }
+
+    if (!this.firebase.isLoggedIn()) {
+      return;
+    }
+
+    await this.dispatcher.deleteReview(spot.id, this.firebase.getUserId());
+    await this.loadUserReviews(spot.id);
+  }
+
+  // 후기에 첨부된 배낭 탭(CS-8): 공유 배낭 화면으로 이동한다.
+  public openReviewBag(bagId: string) {
+    this.analyticsManager?.logClick('camp_site_review_bag');
+    this.router.push(`/shared-bag/${bagId}`);
+  }
+
+  // 뷰에서 소유자·로그인 분기용.
+  public isLoggedIn() {
+    return this.firebase.isLoggedIn();
+  }
+
+  public getMyUserId() {
+    return this.firebase.getUserId();
   }
 
   // 후기 항목 탭(CS-3): 외부 브라우저로 블로그 글을 연다. 실패는 조용히 무시.
