@@ -32,9 +32,9 @@ const styles = StyleSheet.create({
   },
   teamLogo: {
     position: 'absolute',
-    bottom: 60,
-    width: 72,
-    height: 72,
+    bottom: 56,
+    width: 120,
+    height: 120,
   },
 });
 
