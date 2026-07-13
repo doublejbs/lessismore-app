@@ -1,5 +1,12 @@
 import React, { FC } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import dayjs from 'dayjs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
@@ -36,34 +43,54 @@ const BagFormContent: FC<Props> = ({
   onCancel,
 }) => {
   const insets = useSafeAreaInsets();
+  const isAndroid = Platform.OS === 'android';
+
+  // 본문(제목 + 이름 입력 + 날짜 범위)을 추출해, Android는 스크롤 컨테이너로 감싼다.
+  const bodyContent = (
+    <>
+      <PretendardText weight='bold' style={styles.title}>
+        {title}
+      </PretendardText>
+      <View style={styles.inputSection}>
+        <PretendardText weight='semibold' style={styles.inputLabel}>
+          배낭 이름
+        </PretendardText>
+        <TextInput
+          style={styles.textInput}
+          placeholder='배낭 이름을 입력해주세요'
+          value={inputValue}
+          onChangeText={onChangeName}
+          placeholderTextColor={Color.textSecondary}
+        />
+      </View>
+      <DateRangeCalendar
+        startDate={startDate}
+        endDate={endDate}
+        onStartDateChange={onStartDateChange}
+        onEndDateChange={onEndDateChange}
+      />
+    </>
+  );
 
   return (
     <View
-      style={[styles.container, { paddingBottom: Math.max(insets.bottom - 12, 12) }]}
+      style={[
+        styles.container,
+        isAndroid && styles.containerFill,
+        { paddingBottom: Math.max(insets.bottom - 12, 12) },
+      ]}
     >
-      <View style={styles.body}>
-        <PretendardText weight='bold' style={styles.title}>
-          {title}
-        </PretendardText>
-        <View style={styles.inputSection}>
-          <PretendardText weight='semibold' style={styles.inputLabel}>
-            배낭 이름
-          </PretendardText>
-          <TextInput
-            style={styles.textInput}
-            placeholder='배낭 이름을 입력해주세요'
-            value={inputValue}
-            onChangeText={onChangeName}
-            placeholderTextColor={Color.textSecondary}
-          />
-        </View>
-        <DateRangeCalendar
-          startDate={startDate}
-          endDate={endDate}
-          onStartDateChange={onStartDateChange}
-          onEndDateChange={onEndDateChange}
-        />
-      </View>
+      {isAndroid ? (
+        <ScrollView
+          style={styles.bodyScroll}
+          contentContainerStyle={styles.body}
+          showsVerticalScrollIndicator={false}
+        >
+          {bodyContent}
+        </ScrollView>
+      ) : (
+        <View style={styles.body}>{bodyContent}</View>
+      )}
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.cancelButton}
@@ -94,6 +121,14 @@ const styles = StyleSheet.create({
     backgroundColor: Color.background,
     // 네이티브 그래버가 시트 상단에 겹쳐 렌더되므로 그 아래로 제목이 오도록 여백을 준다.
     paddingTop: 52,
+  },
+  // Android는 고정 높이(0.9) 시트라 컨테이너를 채워 버튼을 하단에 고정한다.
+  containerFill: {
+    flex: 1,
+  },
+  // Android 본문 스크롤 영역. flex:1로 버튼을 하단으로 밀어낸다.
+  bodyScroll: {
+    flex: 1,
   },
   body: {
     paddingHorizontal: 20,
