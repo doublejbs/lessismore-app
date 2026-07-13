@@ -133,7 +133,12 @@ class CampSiteWeather {
   }
 
   public close() {
-    this.router.back();
+    // 딥링크로 첫 화면으로 열린 경우 돌아갈 화면이 없어 back()이 실패하므로 지도 탭으로 보낸다.
+    if (this.router.canGoBack()) {
+      this.router.back();
+    } else {
+      this.router.replace('/map');
+    }
   }
 }
 
