@@ -29,6 +29,7 @@
 - **웹에서는 모든 메서드가 no-op** — 호출부는 플랫폼을 신경 쓰지 않는다. RNFirebase 모듈은 네이티브에서만 로드한다(웹 번들에 포함 금지).
 - 전송 실패는 앱 동작에 영향을 주지 않는다 (fire-and-forget, 알럿/토스트 금지).
 - 이벤트·파라미터에 개인 식별 정보(이메일, 닉네임 등)를 넣지 않는다. `setUserId`는 사용하지 않는다.
+- **내부(개발자) 트래픽 제외**: 로그인/로그아웃 시 `identifyUser(uid)`가 내부 UID 허용목록(`model/analytics/InternalUsers.ts`)을 확인해 사용자 속성 `is_internal`(`'true'`/`'false'`)을 설정한다. 수집은 그대로 두고 GA4/Firebase 대시보드에서 `is_internal=true`를 필터·제외해 지표를 분석한다. 로그아웃·일반 계정은 `'false'`로 되돌린다(기기 재사용 시 오태깅 방지). 앱 시작 시 `App.initialize`가 현재 로그인 사용자로 1회 반영하고, 이후 로그인/로그아웃은 `Firebase`가 처리한다.
 
 ### AN-2 화면 조회 자동 수집
 
