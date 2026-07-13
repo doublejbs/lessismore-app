@@ -85,6 +85,10 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
     void campSiteDetail.selectBag(bag);
   };
 
+  const handleCreateBag = () => {
+    campSiteDetail.createBagForSpot();
+  };
+
   if (!spot) {
     return null;
   }
@@ -287,6 +291,7 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
         bags={campSiteDetail.getBags()}
         onClose={handleCloseBagSheet}
         onSelect={handleSelectBag}
+        onCreateNew={handleCreateBag}
       />
     </>
   );
