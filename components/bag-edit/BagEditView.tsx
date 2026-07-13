@@ -1,10 +1,8 @@
 import React, { FC, useCallback } from 'react';
 import { View, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '../PretendardText';
-import FloatingPillButton from '../FloatingPillButton';
 import BagEditWarehouseView from './BagEditWarehouseView';
 import BagEditWarehouseFiltersView from './BagEditWarehouseFiltersView';
 import BagEdit from '../../model/bag-edit/BagEdit';
@@ -49,6 +47,7 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
           <BagEditHeaderView
             weight={weight.toString()}
             onPressBack={handlePressBack}
+            onPressAddGear={handlePressAddGear}
           />
         </View>
         <View style={styles.mainContent}>
@@ -56,22 +55,6 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
             <PretendardText style={styles.titleText} weight='bold'>
               내 장비
             </PretendardText>
-            <FloatingPillButton
-              label='장비 추가'
-              onPress={handlePressAddGear}
-              variant='secondary'
-              style={styles.addButton}
-              leadingIcon={
-                <View style={styles.addIconContainer}>
-                  <Svg width={14} height={14} viewBox='0 0 14 14' fill='none'>
-                    <Path
-                      d='M14 8H8V14H6V8H0V6H6V0H8V6H14V8Z'
-                      fill={Color.textPrimary}
-                    />
-                  </Svg>
-                </View>
-              }
-            />
           </View>
           <View style={{ paddingHorizontal: Spacing.screenH }}>
             <View style={styles.searchBox}>
@@ -161,18 +144,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Regular',
     color: Color.textPrimary,
     padding: 0,
-  },
-  addButton: {
-    minHeight: 0,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-  addIconContainer: {
-    width: 14,
-    height: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   warehouseContainer: {
     flex: 1,
