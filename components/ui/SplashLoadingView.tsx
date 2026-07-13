@@ -9,6 +9,12 @@ const SplashLoadingView = () => {
         style={styles.icon}
         resizeMode='contain'
       />
+      {/* 제작 팀 로고 — 하단 중앙(TEAM MAGMA) */}
+      <Image
+        source={require('../../assets/images/magma.png')}
+        style={styles.teamLogo}
+        resizeMode='contain'
+      />
     </View>
   );
 };
@@ -23,6 +29,12 @@ const styles = StyleSheet.create({
   icon: {
     width: 200,
     height: 200,
+  },
+  teamLogo: {
+    position: 'absolute',
+    bottom: 60,
+    width: 72,
+    height: 72,
   },
 });
 
