@@ -38,6 +38,7 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
+import app from '@/model/app/App';
 
 class Firebase {
   private static readonly config = {
@@ -124,6 +125,8 @@ class Firebase {
     this.setAccessToken(null);
     this.setLoggedIn(false);
     this.setLoginProvider(null);
+    // 로그아웃 시 내부 태그를 해제한다(기기 재사용 시 속성이 잘못 남지 않게).
+    app.getAnalyticsManager()?.identifyUser(null);
   }
 
   private async checkLoggedIn() {
@@ -132,6 +135,8 @@ class Firebase {
 
       if (user) {
         this.setUserId(user.uid);
+        // 내부(개발자) 계정이면 analytics에서 제외 태그를 붙인다.
+        app.getAnalyticsManager()?.identifyUser(user.uid);
         // 로그인 제공자 확인
         this.detectLoginProvider(user);
         await this.initializeStore();

@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { isInternalUser } from './InternalUsers';
 
 type AnalyticsParams = Record<string, string | number | boolean>;
 
@@ -8,6 +9,7 @@ type FirebaseAnalytics = {
     screen_name: string;
     screen_class: string;
   }) => Promise<void>;
+  setUserProperty: (name: string, value: string | null) => Promise<void>;
 };
 
 class AnalyticsManager {
@@ -24,6 +26,19 @@ class AnalyticsManager {
 
   public setCurrentScreen(screen: string) {
     this.currentScreen = screen;
+  }
+
+  // 로그인/로그아웃 시 호출: 내부(개발자) 계정이면 `is_internal=true` 사용자 속성을 붙여
+  // GA4/Firebase 대시보드에서 내부 트래픽을 필터·제외할 수 있게 한다(수집은 그대로).
+  // 일반 계정·로그아웃은 'false'로 되돌려, 기기 재사용 시 속성이 잘못 남지 않게 한다.
+  public identifyUser(uid: string | null) {
+    if (!this.enabled) {
+      return;
+    }
+
+    const value = isInternalUser(uid) ? 'true' : 'false';
+
+    void this.send(analytics => analytics.setUserProperty('is_internal', value));
   }
 
   public logClick(element: string, params?: AnalyticsParams) {
