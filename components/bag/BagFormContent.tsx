@@ -77,7 +77,13 @@ const BagFormContent: FC<Props> = ({
       style={[
         styles.container,
         isAndroid && styles.containerFill,
-        { paddingBottom: Math.max(insets.bottom - 12, 12) },
+        {
+          // Android formSheet는 제스처 바 인셋을 제대로 못 잡아, 버튼이 홈 인디케이터와
+          // 겹치지 않도록 하단 패딩을 넉넉히 확보한다. iOS는 홈 인디케이터에 맞춰 보정.
+          paddingBottom: isAndroid
+            ? Math.max(insets.bottom, 24)
+            : Math.max(insets.bottom - 12, 12),
+        },
       ]}
     >
       {isAndroid ? (
