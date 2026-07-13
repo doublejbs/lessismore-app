@@ -27,14 +27,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   icon: {
-    width: 200,
-    height: 200,
+    width: 240,
+    height: 240,
   },
+  // 하단 팀 로고 — TVING 스플래시 하단 광고처럼 크게 배치.
   teamLogo: {
     position: 'absolute',
-    bottom: 56,
-    width: 120,
-    height: 120,
+    bottom: 96,
+    width: 200,
+    height: 200,
   },
 });
 
