@@ -1,0 +1,2552 @@
+[
+  {
+    "oldId": "curated:achimgari-valley",
+    "newId": "1cd1lngOh3fSx2LWloWC",
+    "source": "curated",
+    "sourceKey": "achimgari-valley"
+  },
+  {
+    "oldId": "curated:aengmubong",
+    "newId": "5NsqB8zZ0EXdwvfCzPQf",
+    "source": "curated",
+    "sourceKey": "aengmubong"
+  },
+  {
+    "oldId": "curated:anbandegi",
+    "newId": "34jJ38PyWz232kpQgeUT",
+    "source": "curated",
+    "sourceKey": "anbandegi"
+  },
+  {
+    "oldId": "curated:baegun-valley-pocheon",
+    "newId": "QfH2qDypjZjX2T3NvLIz",
+    "source": "curated",
+    "sourceKey": "baegun-valley-pocheon"
+  },
+  {
+    "oldId": "curated:baekasan",
+    "newId": "6nMvesdaegxcd9Djxy97",
+    "source": "curated",
+    "sourceKey": "baekasan"
+  },
+  {
+    "oldId": "curated:baekdeoksan",
+    "newId": "l7PqpyLhKGhVdP55aq7t",
+    "source": "curated",
+    "sourceKey": "baekdeoksan"
+  },
+  {
+    "oldId": "curated:baekunbong-yangpyeong",
+    "newId": "KYDlVNV4CsOiSvTGl94j",
+    "source": "curated",
+    "sourceKey": "baekunbong-yangpyeong"
+  },
+  {
+    "oldId": "curated:baekunsan-gwangyang",
+    "newId": "YQ5WU8M3PSVaEKw0br21",
+    "source": "curated",
+    "sourceKey": "baekunsan-gwangyang"
+  },
+  {
+    "oldId": "curated:baekunsan-jeongseon",
+    "newId": "XKXg3sryIawe8rjrXfTn",
+    "source": "curated",
+    "sourceKey": "baekunsan-jeongseon"
+  },
+  {
+    "oldId": "curated:bangjangsan",
+    "newId": "2U1Z0OrErL6FtdHt7aQ2",
+    "source": "curated",
+    "sourceKey": "bangjangsan"
+  },
+  {
+    "oldId": "curated:bangtaesan",
+    "newId": "eR3TzZnQdgK82asky9Bu",
+    "source": "curated",
+    "sourceKey": "bangtaesan"
+  },
+  {
+    "oldId": "curated:beopheung-valley",
+    "newId": "YTQJCqIm6td1ckxi1nNh",
+    "source": "curated",
+    "sourceKey": "beopheung-valley"
+  },
+  {
+    "oldId": "curated:bijobong",
+    "newId": "vOkpVvDVpUYOc3PHdzbb",
+    "source": "curated",
+    "sourceKey": "bijobong"
+  },
+  {
+    "oldId": "curated:binaeseom",
+    "newId": "LLUrvwXxwXoetJVOqq4N",
+    "source": "curated",
+    "sourceKey": "binaeseom"
+  },
+  {
+    "oldId": "curated:biyangdo",
+    "newId": "L61F6BGdM4JkaehpJqmM",
+    "source": "curated",
+    "sourceKey": "biyangdo"
+  },
+  {
+    "oldId": "curated:bogildo",
+    "newId": "59rHX6e9Gs8gyCrLKOM7",
+    "source": "curated",
+    "sourceKey": "bogildo"
+  },
+  {
+    "oldId": "curated:bohyeonsan",
+    "newId": "gUuj1gD2PT2wRi5wBCdU",
+    "source": "curated",
+    "sourceKey": "bohyeonsan"
+  },
+  {
+    "oldId": "curated:bokgyesan",
+    "newId": "c4WyTQanF4m5sOfleLGm",
+    "source": "curated",
+    "sourceKey": "bokgyesan"
+  },
+  {
+    "oldId": "curated:byeongpungsan-damyang",
+    "newId": "vXvtEcS62JNr29G3phOI",
+    "source": "curated",
+    "sourceKey": "byeongpungsan-damyang"
+  },
+  {
+    "oldId": "curated:cheongsando",
+    "newId": "4dCuRiV7iWho4vrCWjgj",
+    "source": "curated",
+    "sourceKey": "cheongsando"
+  },
+  {
+    "oldId": "curated:cheongtaesan",
+    "newId": "mYOF1YuazzFaopHvOIYd",
+    "source": "curated",
+    "sourceKey": "cheongtaesan"
+  },
+  {
+    "oldId": "curated:cheonmasan",
+    "newId": "tHrvCoR9qUI2kJFY7T30",
+    "source": "curated",
+    "sourceKey": "cheonmasan"
+  },
+  {
+    "oldId": "curated:cheonseongsan",
+    "newId": "mM6Jrp63MHvyMyZcDis5",
+    "source": "curated",
+    "sourceKey": "cheonseongsan"
+  },
+  {
+    "oldId": "curated:choejeongsan",
+    "newId": "gB0BD7im8BNfHnaIr2WU",
+    "source": "curated",
+    "sourceKey": "choejeongsan"
+  },
+  {
+    "oldId": "curated:chungnyeongsan-jangseong",
+    "newId": "ggj0VAld37baNy9TdajL",
+    "source": "curated",
+    "sourceKey": "chungnyeongsan-jangseong"
+  },
+  {
+    "oldId": "curated:chungnyeongsan-namyangju",
+    "newId": "S65DFHjkPfZS0s9c9Sft",
+    "source": "curated",
+    "sourceKey": "chungnyeongsan-namyangju"
+  },
+  {
+    "oldId": "curated:chunjangdae-beach",
+    "newId": "ZgbPuD6Eom8AEiUqrSHH",
+    "source": "curated",
+    "sourceKey": "chunjangdae-beach"
+  },
+  {
+    "oldId": "curated:chuwolsan",
+    "newId": "aBzkBF8gfqKxSjDqW9FW",
+    "source": "curated",
+    "sourceKey": "chuwolsan"
+  },
+  {
+    "oldId": "curated:daegaksan",
+    "newId": "JxVBZWWMF7lCIGR4FK2O",
+    "source": "curated",
+    "sourceKey": "daegaksan"
+  },
+  {
+    "oldId": "curated:daegeumsan-geoje",
+    "newId": "W9IRBIX7klhqd8DqPl5m",
+    "source": "curated",
+    "sourceKey": "daegeumsan-geoje"
+  },
+  {
+    "oldId": "curated:daeijakdo",
+    "newId": "Qa92zs0JzjAE4DjlDmlE",
+    "source": "curated",
+    "sourceKey": "daeijakdo"
+  },
+  {
+    "oldId": "curated:daeryongsan",
+    "newId": "8KTSdhjcZEK8mKabDxuh",
+    "source": "curated",
+    "sourceKey": "daeryongsan"
+  },
+  {
+    "oldId": "curated:daeunsan",
+    "newId": "xNkwE8xEJ8LqS7HKZJRP",
+    "source": "curated",
+    "sourceKey": "daeunsan"
+  },
+  {
+    "oldId": "curated:dalmasan",
+    "newId": "o8h2968W8tu1Deag2FoH",
+    "source": "curated",
+    "sourceKey": "dalmasan"
+  },
+  {
+    "oldId": "curated:dansan-mungyeong",
+    "newId": "UdHDi26FI0yu0g5dCfpg",
+    "source": "curated",
+    "sourceKey": "dansan-mungyeong"
+  },
+  {
+    "oldId": "curated:deogyusan-hyangjeokbong",
+    "newId": "8N1ihSu1paC4AtlN6SoW",
+    "source": "curated",
+    "sourceKey": "deogyusan-hyangjeokbong"
+  },
+  {
+    "oldId": "curated:deokjeokdo-seopori",
+    "newId": "F0Ea3ityeebBmquySnBF",
+    "source": "curated",
+    "sourceKey": "deokjeokdo-seopori"
+  },
+  {
+    "oldId": "curated:deokryongsan",
+    "newId": "a3E2MeaGjwaGyiUN2pvI",
+    "source": "curated",
+    "sourceKey": "deokryongsan"
+  },
+  {
+    "oldId": "curated:dongaksan",
+    "newId": "dxGeTp1G6v2imEIva2a0",
+    "source": "curated",
+    "sourceKey": "dongaksan"
+  },
+  {
+    "oldId": "curated:dutasan-jincheon",
+    "newId": "3eywOYr6eph8HJ7M3isp",
+    "source": "curated",
+    "sourceKey": "dutasan-jincheon"
+  },
+  {
+    "oldId": "curated:duwibong",
+    "newId": "VFjTrWT4eyiz3q3bS1PG",
+    "source": "curated",
+    "sourceKey": "duwibong"
+  },
+  {
+    "oldId": "curated:eocheongdo",
+    "newId": "haUQN2eLnmXbKa0rwv0k",
+    "source": "curated",
+    "sourceKey": "eocheongdo"
+  },
+  {
+    "oldId": "curated:gadeoksan",
+    "newId": "zF0qaLdbnJe4A9mx81rM",
+    "source": "curated",
+    "sourceKey": "gadeoksan"
+  },
+  {
+    "oldId": "curated:gakheulsan",
+    "newId": "VhbrXGkpM4zEiTunDQ6P",
+    "source": "curated",
+    "sourceKey": "gakheulsan"
+  },
+  {
+    "oldId": "curated:gamaksan-geochang",
+    "newId": "PIuSPu3E7fYkcFF6G02R",
+    "source": "curated",
+    "sourceKey": "gamaksan-geochang"
+  },
+  {
+    "oldId": "curated:gamaksan-paju",
+    "newId": "21kbVB0Wsc6U0s1qRbkm",
+    "source": "curated",
+    "sourceKey": "gamaksan-paju"
+  },
+  {
+    "oldId": "curated:gamaksan-wonju",
+    "newId": "BDDRn7mIEfmkGdQEPf6S",
+    "source": "curated",
+    "sourceKey": "gamaksan-wonju"
+  },
+  {
+    "oldId": "curated:gangssibong",
+    "newId": "RTe7INthVz0AG4JdmRv4",
+    "source": "curated",
+    "sourceKey": "gangssibong"
+  },
+  {
+    "oldId": "curated:garisan",
+    "newId": "sO1i0TpMa8amJN6z82gn",
+    "source": "curated",
+    "sourceKey": "garisan"
+  },
+  {
+    "oldId": "curated:gariwangsan",
+    "newId": "LL1ygIXuVH8jD1iSYky4",
+    "source": "curated",
+    "sourceKey": "gariwangsan"
+  },
+  {
+    "oldId": "curated:geomdansan",
+    "newId": "GSbAHP04bTm38jkMUslr",
+    "source": "curated",
+    "sourceKey": "geomdansan"
+  },
+  {
+    "oldId": "curated:geomundo",
+    "newId": "Soft8JeDQPnWwvzn3GFE",
+    "source": "curated",
+    "sourceKey": "geomundo"
+  },
+  {
+    "oldId": "curated:geumodo",
+    "newId": "S4DXjNkPMQOw0eujllXv",
+    "source": "curated",
+    "sourceKey": "geumodo"
+  },
+  {
+    "oldId": "curated:geumoreum",
+    "newId": "vlMoIiO76Vt1QvKQZdIh",
+    "source": "curated",
+    "sourceKey": "geumoreum"
+  },
+  {
+    "oldId": "curated:geumosan-hadong",
+    "newId": "CUlb1RHjld2aZs8fshNC",
+    "source": "curated",
+    "sourceKey": "geumosan-hadong"
+  },
+  {
+    "oldId": "curated:geumseongsan-naju",
+    "newId": "DUnOsgYrR0KDgAkaLs0e",
+    "source": "curated",
+    "sourceKey": "geumseongsan-naju"
+  },
+  {
+    "oldId": "curated:geurimsan",
+    "newId": "pke99ckcqqOEaJM9meRR",
+    "source": "curated",
+    "sourceKey": "geurimsan"
+  },
+  {
+    "oldId": "curated:gibaeksan",
+    "newId": "C5ITTMaiH9ROWKenhbfZ",
+    "source": "curated",
+    "sourceKey": "gibaeksan"
+  },
+  {
+    "oldId": "curated:godongsan",
+    "newId": "MPWVyBr82FiUgXjVDfpM",
+    "source": "curated",
+    "sourceKey": "godongsan"
+  },
+  {
+    "oldId": "curated:gongjaksan",
+    "newId": "Ksp7Gh5gIS6AN5ZfzKgK",
+    "source": "curated",
+    "sourceKey": "gongjaksan"
+  },
+  {
+    "oldId": "curated:goraebul-beach",
+    "newId": "W5yXM8TOfdN6f1LfX4BK",
+    "source": "curated",
+    "sourceKey": "goraebul-beach"
+  },
+  {
+    "oldId": "curated:goryeosan",
+    "newId": "tNsOMEhX4QPV2t8MoAyI",
+    "source": "curated",
+    "sourceKey": "goryeosan"
+  },
+  {
+    "oldId": "curated:gubongdo",
+    "newId": "006lCz7NWrXR20L9t6qU",
+    "source": "curated",
+    "sourceKey": "gubongdo"
+  },
+  {
+    "oldId": "curated:gubyeongsan",
+    "newId": "iJxo2MUhAOr2al56EWO3",
+    "source": "curated",
+    "sourceKey": "gubyeongsan"
+  },
+  {
+    "oldId": "curated:gukhwado",
+    "newId": "YbIc4SoAH7OXLywZH2d6",
+    "source": "curated",
+    "sourceKey": "gukhwado"
+  },
+  {
+    "oldId": "curated:guksabong-imsil",
+    "newId": "hfBBVOHb8NcLk4L4Hf7F",
+    "source": "curated",
+    "sourceKey": "guksabong-imsil"
+  },
+  {
+    "oldId": "curated:guleopdo-gaemeori",
+    "newId": "g1vAXSt5e0pQ8UYSBaZu",
+    "source": "curated",
+    "sourceKey": "guleopdo-gaemeori"
+  },
+  {
+    "oldId": "curated:gungmangbong",
+    "newId": "hdRil4vYrxV5tjjXGJPd",
+    "source": "curated",
+    "sourceKey": "gungmangbong"
+  },
+  {
+    "oldId": "curated:gunsanoreum",
+    "newId": "qRQ7n2NL7NBKhzRms4dX",
+    "source": "curated",
+    "sourceKey": "gunsanoreum"
+  },
+  {
+    "oldId": "curated:gwangdeoksan-observatory",
+    "newId": "kcWcPLPJYCCiH0Xk5Qpc",
+    "source": "curated",
+    "sourceKey": "gwangdeoksan-observatory"
+  },
+  {
+    "oldId": "curated:gwinemi",
+    "newId": "2VVDzbqX33YI3aNKVxpO",
+    "source": "curated",
+    "sourceKey": "gwinemi"
+  },
+  {
+    "oldId": "curated:gyemyeongsan",
+    "newId": "udf8zNef4zwyUUZyxaEG",
+    "source": "curated",
+    "sourceKey": "gyemyeongsan"
+  },
+  {
+    "oldId": "curated:gyeyangsan",
+    "newId": "FoevvoYZdB5D3fj6IZuu",
+    "source": "curated",
+    "sourceKey": "gyeyangsan"
+  },
+  {
+    "oldId": "curated:haemyeongsan",
+    "newId": "aKM2HSMO9BnqpOzWY14x",
+    "source": "curated",
+    "sourceKey": "haemyeongsan"
+  },
+  {
+    "oldId": "curated:hakgasan",
+    "newId": "f6yMFCKpQkwgM5L1254C",
+    "source": "curated",
+    "sourceKey": "hakgasan"
+  },
+  {
+    "oldId": "curated:hambaeksan-manhangjae",
+    "newId": "u7CEXTXxmB4JFqM5f2K7",
+    "source": "curated",
+    "sourceKey": "hambaeksan-manhangjae"
+  },
+  {
+    "oldId": "curated:hanusan",
+    "newId": "WoNaQaIGAfa9zPrjKHGf",
+    "source": "curated",
+    "sourceKey": "hanusan"
+  },
+  {
+    "oldId": "curated:homyeongsan",
+    "newId": "rmXzhDWW98mU28GD6xKp",
+    "source": "curated",
+    "sourceKey": "homyeongsan"
+  },
+  {
+    "oldId": "curated:horyonggoksan",
+    "newId": "fRe0mzb0LWefy708S0Xh",
+    "source": "curated",
+    "sourceKey": "horyonggoksan"
+  },
+  {
+    "oldId": "curated:hyangjeoksan",
+    "newId": "FRiowR5JnN10FFcV11Zz",
+    "source": "curated",
+    "sourceKey": "hyangjeoksan"
+  },
+  {
+    "oldId": "curated:hyeongjebong-hadong",
+    "newId": "kuX2GNqRntpEthGVrxnI",
+    "source": "curated",
+    "sourceKey": "hyeongjebong-hadong"
+  },
+  {
+    "oldId": "curated:ilwolsan",
+    "newId": "44jUWhSCt6g7k4iZSxak",
+    "source": "curated",
+    "sourceKey": "ilwolsan"
+  },
+  {
+    "oldId": "curated:imjado",
+    "newId": "mhHXa0i3d6xMbdyJ2ZhH",
+    "source": "curated",
+    "sourceKey": "imjado"
+  },
+  {
+    "oldId": "curated:jagulsan",
+    "newId": "Hez0pKSGwBNRxIUx6ocd",
+    "source": "curated",
+    "sourceKey": "jagulsan"
+  },
+  {
+    "oldId": "curated:jangbongdo-gamakmeori",
+    "newId": "bA1mhnUbtVUnDt9M6Rlb",
+    "source": "curated",
+    "sourceKey": "jangbongdo-gamakmeori"
+  },
+  {
+    "oldId": "curated:jangsan-busan",
+    "newId": "wB0yUB6sFr4KsMYOrDRy",
+    "source": "curated",
+    "sourceKey": "jangsan-busan"
+  },
+  {
+    "oldId": "curated:jawoldo",
+    "newId": "ugvd9Iq8o0jr8oqRyczD",
+    "source": "curated",
+    "sourceKey": "jawoldo"
+  },
+  {
+    "oldId": "curated:jeamsan",
+    "newId": "T9YJMy4LXfDidFSSiRz0",
+    "source": "curated",
+    "sourceKey": "jeamsan"
+  },
+  {
+    "oldId": "curated:jeokdaebong",
+    "newId": "F67gaN6iMkAzBmweThN4",
+    "source": "curated",
+    "sourceKey": "jeokdaebong"
+  },
+  {
+    "oldId": "curated:jeungdo",
+    "newId": "Bs4hVrpnJHtyiWGZKax2",
+    "source": "curated",
+    "sourceKey": "jeungdo"
+  },
+  {
+    "oldId": "curated:jirisan-byeoksoryeong",
+    "newId": "YQCL3uuYIXqUJbRr3Qyk",
+    "source": "curated",
+    "sourceKey": "jirisan-byeoksoryeong"
+  },
+  {
+    "oldId": "curated:jirisan-chibatmok",
+    "newId": "CdnF5fYAsQJcmMGIHzJc",
+    "source": "curated",
+    "sourceKey": "jirisan-chibatmok"
+  },
+  {
+    "oldId": "curated:jirisan-jangteomok",
+    "newId": "qCnLfAoUymiIG1vCPSEX",
+    "source": "curated",
+    "sourceKey": "jirisan-jangteomok"
+  },
+  {
+    "oldId": "curated:jirisan-nogodan",
+    "newId": "Qfr20YoiEslLFQ2M8CNN",
+    "source": "curated",
+    "sourceKey": "jirisan-nogodan"
+  },
+  {
+    "oldId": "curated:jirisan-rotary",
+    "newId": "YyJr1fyKBWYHipFM6OFi",
+    "source": "curated",
+    "sourceKey": "jirisan-rotary"
+  },
+  {
+    "oldId": "curated:jirisan-seseok-shelter",
+    "newId": "bbZHDooXcxZvKrUjdJeN",
+    "source": "curated",
+    "sourceKey": "jirisan-seseok-shelter"
+  },
+  {
+    "oldId": "curated:jirisan-yeonhacheon",
+    "newId": "IsRUqz2tfPTKGr761Ejq",
+    "source": "curated",
+    "sourceKey": "jirisan-yeonhacheon"
+  },
+  {
+    "oldId": "curated:jobisan",
+    "newId": "GMPnurSOJs5bvVV78e8K",
+    "source": "curated",
+    "sourceKey": "jobisan"
+  },
+  {
+    "oldId": "curated:jomurakgol-valley",
+    "newId": "7s1tCr0XfZHkL5O6EDyz",
+    "source": "curated",
+    "sourceKey": "jomurakgol-valley"
+  },
+  {
+    "oldId": "curated:jongnamsan",
+    "newId": "MU76qv6TUpTHfkJbMepy",
+    "source": "curated",
+    "sourceKey": "jongnamsan"
+  },
+  {
+    "oldId": "curated:jugeumsan",
+    "newId": "uaDdxPmm4ASqIgZ037jZ",
+    "source": "curated",
+    "sourceKey": "jugeumsan"
+  },
+  {
+    "oldId": "curated:jujaksan",
+    "newId": "5Sl8Rj8Ufq03Nh2BceEs",
+    "source": "curated",
+    "sourceKey": "jujaksan"
+  },
+  {
+    "oldId": "curated:jukdo-hongseong",
+    "newId": "MDfw70qFKv5VqYJCgaDR",
+    "source": "curated",
+    "sourceKey": "jukdo-hongseong"
+  },
+  {
+    "oldId": "curated:jungmisan",
+    "newId": "ZpaoPB33VwFXbvkFaq7W",
+    "source": "curated",
+    "sourceKey": "jungmisan"
+  },
+  {
+    "oldId": "curated:maboksan",
+    "newId": "Hpx3RgxJKtQUnoB2wQdZ",
+    "source": "curated",
+    "sourceKey": "maboksan"
+  },
+  {
+    "oldId": "curated:maebongsan-wind-hill",
+    "newId": "JgAUnt9S7LEGMBc4jvE7",
+    "source": "curated",
+    "sourceKey": "maebongsan-wind-hill"
+  },
+  {
+    "oldId": "curated:maemuldo",
+    "newId": "f0JYZBzMZNQ27JSk0Kiv",
+    "source": "curated",
+    "sourceKey": "maemuldo"
+  },
+  {
+    "oldId": "curated:mangsan-geoje",
+    "newId": "XSdH045fmiTOzMj0RpJR",
+    "source": "curated",
+    "sourceKey": "mangsan-geoje"
+  },
+  {
+    "oldId": "curated:mangunsan",
+    "newId": "VH0VgTUaykzlILGSEBaq",
+    "source": "curated",
+    "sourceKey": "mangunsan"
+  },
+  {
+    "oldId": "curated:manhaengsan",
+    "newId": "2orGu1fa6dP4iMRR9cz6",
+    "source": "curated",
+    "sourceKey": "manhaengsan"
+  },
+  {
+    "oldId": "curated:masanbong",
+    "newId": "Irn40f1hNRJF2pAvok2v",
+    "source": "curated",
+    "sourceKey": "masanbong"
+  },
+  {
+    "oldId": "curated:mindungsan",
+    "newId": "OhwXUCKhxAbE4w9PIqsn",
+    "source": "curated",
+    "sourceKey": "mindungsan"
+  },
+  {
+    "oldId": "curated:minjujisan",
+    "newId": "1riPtKPQYd8sLCOJHmk4",
+    "source": "curated",
+    "sourceKey": "minjujisan"
+  },
+  {
+    "oldId": "curated:mireuksan-iksan",
+    "newId": "FN2oYZW3418dsxuDxIHT",
+    "source": "curated",
+    "sourceKey": "mireuksan-iksan"
+  },
+  {
+    "oldId": "curated:modo",
+    "newId": "I3AMzUD8tu24Ak7imtZ7",
+    "source": "curated",
+    "sourceKey": "modo"
+  },
+  {
+    "oldId": "curated:mohusan",
+    "newId": "FGVdWRFE0xybwkSHGNh0",
+    "source": "curated",
+    "sourceKey": "mohusan"
+  },
+  {
+    "oldId": "curated:muhaksan",
+    "newId": "H6T5cpPc8uqWSJBNeql3",
+    "source": "curated",
+    "sourceKey": "muhaksan"
+  },
+  {
+    "oldId": "curated:muuido-hanagae",
+    "newId": "U4wQrHT5TDmxCkzoOcKf",
+    "source": "curated",
+    "sourceKey": "muuido-hanagae"
+  },
+  {
+    "oldId": "curated:myeongseongsan",
+    "newId": "ygnGO2C5ID39CGENJRPw",
+    "source": "curated",
+    "sourceKey": "myeongseongsan"
+  },
+  {
+    "oldId": "curated:namyeol-beach",
+    "newId": "DfhvTpUni3XFsLskXWt9",
+    "source": "curated",
+    "sourceKey": "namyeol-beach"
+  },
+  {
+    "oldId": "curated:nangdo",
+    "newId": "Ph8733VYbm7gdsnAuwwC",
+    "source": "curated",
+    "sourceKey": "nangdo"
+  },
+  {
+    "oldId": "curated:obongsan-boseong",
+    "newId": "ZbWHErRBKtp9x90LiKHi",
+    "source": "curated",
+    "sourceKey": "obongsan-boseong"
+  },
+  {
+    "oldId": "curated:odosan",
+    "newId": "IxlC8A0fOzILpQjsBUhF",
+    "source": "curated",
+    "sourceKey": "odosan"
+  },
+  {
+    "oldId": "curated:oeyeondo",
+    "newId": "KxF8tVlYzF4TonX0yhwb",
+    "source": "curated",
+    "sourceKey": "oeyeondo"
+  },
+  {
+    "oldId": "curated:okmasan",
+    "newId": "BlQ7wfF5dT6AaO0ohlou",
+    "source": "curated",
+    "sourceKey": "okmasan"
+  },
+  {
+    "oldId": "curated:ongseongsan",
+    "newId": "J2n6SVWRbowyQebZWvT6",
+    "source": "curated",
+    "sourceKey": "ongseongsan"
+  },
+  {
+    "oldId": "curated:osan-gurye",
+    "newId": "dvLET2Wa2PIo6xlgLJ5G",
+    "source": "curated",
+    "sourceKey": "osan-gurye"
+  },
+  {
+    "oldId": "curated:oseosan",
+    "newId": "Iz7u1zOypV2sgYFJD66i",
+    "source": "curated",
+    "sourceKey": "oseosan"
+  },
+  {
+    "oldId": "curated:saldun-valley",
+    "newId": "hB9NGQLbmWITJmvNh03A",
+    "source": "curated",
+    "sourceKey": "saldun-valley"
+  },
+  {
+    "oldId": "curated:sangwangbong-wando",
+    "newId": "NHrgWJ7OpeipRwOQWBVo",
+    "source": "curated",
+    "sourceKey": "sangwangbong-wando"
+  },
+  {
+    "oldId": "curated:sapsido",
+    "newId": "aeSbH7HVHPLU8UONAUXP",
+    "source": "curated",
+    "sourceKey": "sapsido"
+  },
+  {
+    "oldId": "curated:saryangdo",
+    "newId": "MNtqgrDTSypsqeaNz8h5",
+    "source": "curated",
+    "sourceKey": "saryangdo"
+  },
+  {
+    "oldId": "curated:saseungbongdo",
+    "newId": "GPbJTaQyBujHGreh9gZG",
+    "source": "curated",
+    "sourceKey": "saseungbongdo"
+  },
+  {
+    "oldId": "curated:seodaesan",
+    "newId": "r7jvQ6RyNrkcWYYCr2AQ",
+    "source": "curated",
+    "sourceKey": "seodaesan"
+  },
+  {
+    "oldId": "curated:seokseongsan",
+    "newId": "tJ0K9GSwxTUdqhuSBTtz",
+    "source": "curated",
+    "sourceKey": "seokseongsan"
+  },
+  {
+    "oldId": "curated:seolheulsan",
+    "newId": "SWzgBtWNelK7uqra9lxZ",
+    "source": "curated",
+    "sourceKey": "seolheulsan"
+  },
+  {
+    "oldId": "curated:seonjaeryeong",
+    "newId": "eCwfMtOW0Had75GJRQUt",
+    "source": "curated",
+    "sourceKey": "seonjaeryeong"
+  },
+  {
+    "oldId": "curated:seonyudo",
+    "newId": "jjBuSdOjAneAa1PHFl4u",
+    "source": "curated",
+    "sourceKey": "seonyudo"
+  },
+  {
+    "oldId": "curated:seoraksan-huiungak",
+    "newId": "6xUqtef0I5NZ8sdN66qj",
+    "source": "curated",
+    "sourceKey": "seoraksan-huiungak"
+  },
+  {
+    "oldId": "curated:seoraksan-socheong-shelter",
+    "newId": "Fji8ROIwbXl76kZWx2o8",
+    "source": "curated",
+    "sourceKey": "seoraksan-socheong-shelter"
+  },
+  {
+    "oldId": "curated:seoraksan-suryeomdong",
+    "newId": "0dK4kF68YbjXrTrYwlSB",
+    "source": "curated",
+    "sourceKey": "seoraksan-suryeomdong"
+  },
+  {
+    "oldId": "curated:seorisan",
+    "newId": "eI1XmDx3B3qBfjOxSv2a",
+    "source": "curated",
+    "sourceKey": "seorisan"
+  },
+  {
+    "oldId": "curated:seounsan",
+    "newId": "dU6OvviTssuKg0hUgw78",
+    "source": "curated",
+    "sourceKey": "seounsan"
+  },
+  {
+    "oldId": "curated:seungbongdo",
+    "newId": "ZsJve8L0s2l8PeeLusyN",
+    "source": "curated",
+    "sourceKey": "seungbongdo"
+  },
+  {
+    "oldId": "curated:sikjangsan",
+    "newId": "c3teGFgEMh2nbxafBUnG",
+    "source": "curated",
+    "sourceKey": "sikjangsan"
+  },
+  {
+    "oldId": "curated:sobaeksan-yeonhwabong",
+    "newId": "sjUCd2VeWhTjY6MP9M44",
+    "source": "curated",
+    "sourceKey": "sobaeksan-yeonhwabong"
+  },
+  {
+    "oldId": "curated:somuuido",
+    "newId": "n4rSlDCl9V8u0T8sQG3h",
+    "source": "curated",
+    "sourceKey": "somuuido"
+  },
+  {
+    "oldId": "curated:songjiho-beach",
+    "newId": "uBlDRibZBrINGLqeeiAv",
+    "source": "curated",
+    "sourceKey": "songjiho-beach"
+  },
+  {
+    "oldId": "curated:soraesan",
+    "newId": "2QshzdhPsEy0UJfla4W5",
+    "source": "curated",
+    "sourceKey": "soraesan"
+  },
+  {
+    "oldId": "curated:taegisan",
+    "newId": "0tqQFqSwqMapRMhGqGSz",
+    "source": "curated",
+    "sourceKey": "taegisan"
+  },
+  {
+    "oldId": "curated:taehwasan-yeongwol",
+    "newId": "QwYQrrP9vmiRkkJyXMn5",
+    "source": "curated",
+    "sourceKey": "taehwasan-yeongwol"
+  },
+  {
+    "oldId": "curated:ueumdo",
+    "newId": "ng67p1wM9r9ZqziBldDl",
+    "source": "curated",
+    "sourceKey": "ueumdo"
+  },
+  {
+    "oldId": "curated:uido",
+    "newId": "j5dwvA1G9gYn7VUbIQSN",
+    "source": "curated",
+    "sourceKey": "uido"
+  },
+  {
+    "oldId": "curated:unamsan",
+    "newId": "R4svE7F3MB9ZCPlPzw7r",
+    "source": "curated",
+    "sourceKey": "unamsan"
+  },
+  {
+    "oldId": "curated:unjangsan",
+    "newId": "SwzhmCQbwQlSFZIbo6hx",
+    "source": "curated",
+    "sourceKey": "unjangsan"
+  },
+  {
+    "oldId": "curated:waemok-beach",
+    "newId": "uTzWbAWdSZ2jOMAXGk8m",
+    "source": "curated",
+    "sourceKey": "waemok-beach"
+  },
+  {
+    "oldId": "curated:wangbangsan",
+    "newId": "TkEHawM5PU5ZNzF3Y074",
+    "source": "curated",
+    "sourceKey": "wangbangsan"
+  },
+  {
+    "oldId": "curated:waryongsan",
+    "newId": "8fBHHopw9zsxIyAh0nnn",
+    "source": "curated",
+    "sourceKey": "waryongsan"
+  },
+  {
+    "oldId": "curated:wido",
+    "newId": "ZsMAxo7xhAAhgsguZvBs",
+    "source": "curated",
+    "sourceKey": "wido"
+  },
+  {
+    "oldId": "curated:wollyubong",
+    "newId": "ZG2wnxaOvrq8FYpmRzYO",
+    "source": "curated",
+    "sourceKey": "wollyubong"
+  },
+  {
+    "oldId": "curated:yebongsan",
+    "newId": "rrlEqQdf8kCXsXGuh5i2",
+    "source": "curated",
+    "sourceKey": "yebongsan"
+  },
+  {
+    "oldId": "curated:yeohangsan",
+    "newId": "RJq1CIRn75aPr68utWo2",
+    "source": "curated",
+    "sourceKey": "yeohangsan"
+  },
+  {
+    "oldId": "curated:yeonhwado",
+    "newId": "V6ZWnyS9eHFru9SK7ODN",
+    "source": "curated",
+    "sourceKey": "yeonhwado"
+  },
+  {
+    "oldId": "curated:yokjido",
+    "newId": "jbw3K4iUPpwSKuA3IkbN",
+    "source": "curated",
+    "sourceKey": "yokjido"
+  },
+  {
+    "oldId": "curated:yongbongsan",
+    "newId": "gB6rfqlJl8IWD0yHXvlu",
+    "source": "curated",
+    "sourceKey": "yongbongsan"
+  },
+  {
+    "oldId": "curated:yongdusan-jecheon",
+    "newId": "V2i5Gkpo7EA3rfGDhOQl",
+    "source": "curated",
+    "sourceKey": "yongdusan-jecheon"
+  },
+  {
+    "oldId": "curated:yukbaeksan",
+    "newId": "zvTfNzgTFfZRj1BtbIcH",
+    "source": "curated",
+    "sourceKey": "yukbaeksan"
+  },
+  {
+    "oldId": "curated:yukbaengmajigi",
+    "newId": "LtPKCDNexPAx1U0UV8Iu",
+    "source": "curated",
+    "sourceKey": "yukbaengmajigi"
+  },
+  {
+    "oldId": "curated:yumyeongsan",
+    "newId": "vtrmIuZhx8hdJgA6gL0a",
+    "source": "curated",
+    "sourceKey": "yumyeongsan"
+  },
+  {
+    "oldId": "gocamping:100048",
+    "newId": "EmM5BjHwSl8D0EpFLF53",
+    "source": "gocamping",
+    "sourceKey": "100048"
+  },
+  {
+    "oldId": "gocamping:100063",
+    "newId": "v8dimMj9kgWA42wibH5o",
+    "source": "gocamping",
+    "sourceKey": "100063"
+  },
+  {
+    "oldId": "gocamping:100082",
+    "newId": "23eIdBHDyz7OarkoXZe0",
+    "source": "gocamping",
+    "sourceKey": "100082"
+  },
+  {
+    "oldId": "gocamping:100126",
+    "newId": "8xGxo2yOjhvobZTI2cBP",
+    "source": "gocamping",
+    "sourceKey": "100126"
+  },
+  {
+    "oldId": "gocamping:100183",
+    "newId": "kLBIAOKPdnzp8NLwCPS9",
+    "source": "gocamping",
+    "sourceKey": "100183"
+  },
+  {
+    "oldId": "gocamping:100245",
+    "newId": "PcyV5Czk3HjaQjIVLchY",
+    "source": "gocamping",
+    "sourceKey": "100245"
+  },
+  {
+    "oldId": "gocamping:100267",
+    "newId": "Lp2wxXALx7fPNtPyaqx0",
+    "source": "gocamping",
+    "sourceKey": "100267"
+  },
+  {
+    "oldId": "gocamping:100274",
+    "newId": "tjnEUqpdJWOSJWGSkZWh",
+    "source": "gocamping",
+    "sourceKey": "100274"
+  },
+  {
+    "oldId": "gocamping:100411",
+    "newId": "mSpkpdwk7qxldszGO8JW",
+    "source": "gocamping",
+    "sourceKey": "100411"
+  },
+  {
+    "oldId": "gocamping:100450",
+    "newId": "0GIxcJop8oUH1BFw3zs2",
+    "source": "gocamping",
+    "sourceKey": "100450"
+  },
+  {
+    "oldId": "gocamping:100497",
+    "newId": "QPQ2fyysOtpuLDqTtFm8",
+    "source": "gocamping",
+    "sourceKey": "100497"
+  },
+  {
+    "oldId": "gocamping:100518",
+    "newId": "I2oc5Q2e8Vczle2yULyJ",
+    "source": "gocamping",
+    "sourceKey": "100518"
+  },
+  {
+    "oldId": "gocamping:100528",
+    "newId": "ADNcj7LkelGc7mCnyLXT",
+    "source": "gocamping",
+    "sourceKey": "100528"
+  },
+  {
+    "oldId": "gocamping:100550",
+    "newId": "tkuVGGuRuqTO4qrGTGxa",
+    "source": "gocamping",
+    "sourceKey": "100550"
+  },
+  {
+    "oldId": "gocamping:100554",
+    "newId": "JmYiGsWGcDj9xhHgkKdL",
+    "source": "gocamping",
+    "sourceKey": "100554"
+  },
+  {
+    "oldId": "gocamping:100600",
+    "newId": "NdUeHJLlPgmph8wbwcXm",
+    "source": "gocamping",
+    "sourceKey": "100600"
+  },
+  {
+    "oldId": "gocamping:100601",
+    "newId": "JzBdVuLb3gpx8QqQc1g5",
+    "source": "gocamping",
+    "sourceKey": "100601"
+  },
+  {
+    "oldId": "gocamping:100615",
+    "newId": "EZBzk6e4iKx8m12u0h5F",
+    "source": "gocamping",
+    "sourceKey": "100615"
+  },
+  {
+    "oldId": "gocamping:100620",
+    "newId": "z6SYSBMnGgg7rjuFoMFY",
+    "source": "gocamping",
+    "sourceKey": "100620"
+  },
+  {
+    "oldId": "gocamping:100714",
+    "newId": "oe8KDWBiD7kkOPHquldZ",
+    "source": "gocamping",
+    "sourceKey": "100714"
+  },
+  {
+    "oldId": "gocamping:100737",
+    "newId": "uTF6WinLYoE8NvTmjkuM",
+    "source": "gocamping",
+    "sourceKey": "100737"
+  },
+  {
+    "oldId": "gocamping:100746",
+    "newId": "x4pX0RBYkUQkVqNmPo07",
+    "source": "gocamping",
+    "sourceKey": "100746"
+  },
+  {
+    "oldId": "gocamping:100812",
+    "newId": "keNSYWVNQNX6cL9uQWfi",
+    "source": "gocamping",
+    "sourceKey": "100812"
+  },
+  {
+    "oldId": "gocamping:100819",
+    "newId": "t2IlUNvgOAveFenNbphY",
+    "source": "gocamping",
+    "sourceKey": "100819"
+  },
+  {
+    "oldId": "gocamping:100824",
+    "newId": "JucyoyR3cb8MSNUyzCJO",
+    "source": "gocamping",
+    "sourceKey": "100824"
+  },
+  {
+    "oldId": "gocamping:100958",
+    "newId": "U7ErY4gnlIA6QazWqh4e",
+    "source": "gocamping",
+    "sourceKey": "100958"
+  },
+  {
+    "oldId": "gocamping:101041",
+    "newId": "KAAq3fbcxbNd8rhMDMrc",
+    "source": "gocamping",
+    "sourceKey": "101041"
+  },
+  {
+    "oldId": "gocamping:101043",
+    "newId": "7GvWaoXdwXTgd4vD0RVP",
+    "source": "gocamping",
+    "sourceKey": "101043"
+  },
+  {
+    "oldId": "gocamping:101084",
+    "newId": "4NfQh6W3GE0r2vw7cdka",
+    "source": "gocamping",
+    "sourceKey": "101084"
+  },
+  {
+    "oldId": "gocamping:101101",
+    "newId": "qUfDPK2oDUSGYLW4yi5U",
+    "source": "gocamping",
+    "sourceKey": "101101"
+  },
+  {
+    "oldId": "gocamping:101160",
+    "newId": "J1QaizCK02SsjQo1OciK",
+    "source": "gocamping",
+    "sourceKey": "101160"
+  },
+  {
+    "oldId": "gocamping:101166",
+    "newId": "EOWjAsGleOJQYxKvy54A",
+    "source": "gocamping",
+    "sourceKey": "101166"
+  },
+  {
+    "oldId": "gocamping:101167",
+    "newId": "pNADGYhqLXdOAGcUwDCQ",
+    "source": "gocamping",
+    "sourceKey": "101167"
+  },
+  {
+    "oldId": "gocamping:101310",
+    "newId": "U1bXAfdXFARGKqj8H5We",
+    "source": "gocamping",
+    "sourceKey": "101310"
+  },
+  {
+    "oldId": "gocamping:101346",
+    "newId": "4y9PawzqGonrfYuuohpY",
+    "source": "gocamping",
+    "sourceKey": "101346"
+  },
+  {
+    "oldId": "gocamping:101376",
+    "newId": "YiWTO2DW6NAygG8IGC9d",
+    "source": "gocamping",
+    "sourceKey": "101376"
+  },
+  {
+    "oldId": "gocamping:101382",
+    "newId": "MaAv10Vs23j32UaNvDsw",
+    "source": "gocamping",
+    "sourceKey": "101382"
+  },
+  {
+    "oldId": "gocamping:101408",
+    "newId": "EJ3A7cMSXd1ltQyesZPg",
+    "source": "gocamping",
+    "sourceKey": "101408"
+  },
+  {
+    "oldId": "gocamping:101453",
+    "newId": "dyEUMiEor7eXv5mJpsHv",
+    "source": "gocamping",
+    "sourceKey": "101453"
+  },
+  {
+    "oldId": "gocamping:101490",
+    "newId": "HjIPUckVZo8XyEX1Hbo7",
+    "source": "gocamping",
+    "sourceKey": "101490"
+  },
+  {
+    "oldId": "gocamping:101520",
+    "newId": "xjLelbPjjMB8fckJIkS5",
+    "source": "gocamping",
+    "sourceKey": "101520"
+  },
+  {
+    "oldId": "gocamping:101588",
+    "newId": "rS4SFusV6omKiQKP45bF",
+    "source": "gocamping",
+    "sourceKey": "101588"
+  },
+  {
+    "oldId": "gocamping:101589",
+    "newId": "JcW2t0Ku8tTa8venjJA6",
+    "source": "gocamping",
+    "sourceKey": "101589"
+  },
+  {
+    "oldId": "gocamping:101637",
+    "newId": "LPGjHbjpheAjNDWvZoLd",
+    "source": "gocamping",
+    "sourceKey": "101637"
+  },
+  {
+    "oldId": "gocamping:101665",
+    "newId": "a1Ktj9SwYtxGQfCMHGrF",
+    "source": "gocamping",
+    "sourceKey": "101665"
+  },
+  {
+    "oldId": "gocamping:101710",
+    "newId": "lWuKIhWwKHJ4g03zb9aM",
+    "source": "gocamping",
+    "sourceKey": "101710"
+  },
+  {
+    "oldId": "gocamping:101763",
+    "newId": "ExljiDwHQAWPJXMdFSnk",
+    "source": "gocamping",
+    "sourceKey": "101763"
+  },
+  {
+    "oldId": "gocamping:101861",
+    "newId": "SFcdD4Ks7SG8wnbhDK9H",
+    "source": "gocamping",
+    "sourceKey": "101861"
+  },
+  {
+    "oldId": "gocamping:101890",
+    "newId": "DXYBDCtBHb4tVrygM6Nd",
+    "source": "gocamping",
+    "sourceKey": "101890"
+  },
+  {
+    "oldId": "gocamping:101902",
+    "newId": "0jo0BPo85sanYUZk1Ent",
+    "source": "gocamping",
+    "sourceKey": "101902"
+  },
+  {
+    "oldId": "gocamping:101955",
+    "newId": "exf83TOhuTwzzyQL8w6M",
+    "source": "gocamping",
+    "sourceKey": "101955"
+  },
+  {
+    "oldId": "gocamping:102005",
+    "newId": "NLnzMaLAyuRqAQ9VSZMe",
+    "source": "gocamping",
+    "sourceKey": "102005"
+  },
+  {
+    "oldId": "gocamping:102121",
+    "newId": "fXSGuhaVghnILmmKgp5I",
+    "source": "gocamping",
+    "sourceKey": "102121"
+  },
+  {
+    "oldId": "gocamping:1029",
+    "newId": "Zck4AuES2OI3QyVYluBI",
+    "source": "gocamping",
+    "sourceKey": "1029"
+  },
+  {
+    "oldId": "gocamping:1038",
+    "newId": "PCcIX2zXpK1VS1kUQD2F",
+    "source": "gocamping",
+    "sourceKey": "1038"
+  },
+  {
+    "oldId": "gocamping:1100",
+    "newId": "9iQToFx9Hk4mGizEjC79",
+    "source": "gocamping",
+    "sourceKey": "1100"
+  },
+  {
+    "oldId": "gocamping:1128",
+    "newId": "MrvcSKdt4e4muOFWvChD",
+    "source": "gocamping",
+    "sourceKey": "1128"
+  },
+  {
+    "oldId": "gocamping:1139",
+    "newId": "xhdSU4nxVXaYsEk9m6BL",
+    "source": "gocamping",
+    "sourceKey": "1139"
+  },
+  {
+    "oldId": "gocamping:1141",
+    "newId": "rypx07ia57UslTPbBH2I",
+    "source": "gocamping",
+    "sourceKey": "1141"
+  },
+  {
+    "oldId": "gocamping:1184",
+    "newId": "teEZVElT1NkV4xcd2ve6",
+    "source": "gocamping",
+    "sourceKey": "1184"
+  },
+  {
+    "oldId": "gocamping:1208",
+    "newId": "2oOyMyjvJljYitq3wqOT",
+    "source": "gocamping",
+    "sourceKey": "1208"
+  },
+  {
+    "oldId": "gocamping:123",
+    "newId": "OZL3gaOfB5MG6SjzJkL2",
+    "source": "gocamping",
+    "sourceKey": "123"
+  },
+  {
+    "oldId": "gocamping:1246",
+    "newId": "IAgeUHI8aSaaqKcKtE0i",
+    "source": "gocamping",
+    "sourceKey": "1246"
+  },
+  {
+    "oldId": "gocamping:1266",
+    "newId": "Mucvbs3CBbYzkXfQ1ub6",
+    "source": "gocamping",
+    "sourceKey": "1266"
+  },
+  {
+    "oldId": "gocamping:1279",
+    "newId": "ILydvRdIdYoaWuQDGoY1",
+    "source": "gocamping",
+    "sourceKey": "1279"
+  },
+  {
+    "oldId": "gocamping:1283",
+    "newId": "Q46jJNeQ8RfaKqLWcnvQ",
+    "source": "gocamping",
+    "sourceKey": "1283"
+  },
+  {
+    "oldId": "gocamping:1357",
+    "newId": "vWk0Ak10MzhPXvXfihCI",
+    "source": "gocamping",
+    "sourceKey": "1357"
+  },
+  {
+    "oldId": "gocamping:1368",
+    "newId": "OZYCdVrmT8427oPQrxyj",
+    "source": "gocamping",
+    "sourceKey": "1368"
+  },
+  {
+    "oldId": "gocamping:138",
+    "newId": "ekDT29gOC0mIAywxF6L7",
+    "source": "gocamping",
+    "sourceKey": "138"
+  },
+  {
+    "oldId": "gocamping:1389",
+    "newId": "nDFPJANDg68xzLyZRiVN",
+    "source": "gocamping",
+    "sourceKey": "1389"
+  },
+  {
+    "oldId": "gocamping:1390",
+    "newId": "753cYZNBXyXjbi67Thdh",
+    "source": "gocamping",
+    "sourceKey": "1390"
+  },
+  {
+    "oldId": "gocamping:1441",
+    "newId": "xohH4COa0Xy4Y0yvjCqp",
+    "source": "gocamping",
+    "sourceKey": "1441"
+  },
+  {
+    "oldId": "gocamping:1449",
+    "newId": "LUna10Jb9HtQB8IGXW6h",
+    "source": "gocamping",
+    "sourceKey": "1449"
+  },
+  {
+    "oldId": "gocamping:1468",
+    "newId": "rXsm3B7AkXZ4k2zovL4D",
+    "source": "gocamping",
+    "sourceKey": "1468"
+  },
+  {
+    "oldId": "gocamping:1473",
+    "newId": "JiDtQlbQuufUTeC12yPR",
+    "source": "gocamping",
+    "sourceKey": "1473"
+  },
+  {
+    "oldId": "gocamping:1513",
+    "newId": "4K19fjhXhHuZAL24iQLo",
+    "source": "gocamping",
+    "sourceKey": "1513"
+  },
+  {
+    "oldId": "gocamping:154",
+    "newId": "FU01p90Opj9Jv5XBUvo8",
+    "source": "gocamping",
+    "sourceKey": "154"
+  },
+  {
+    "oldId": "gocamping:1547",
+    "newId": "F9HgmWggr1brhewuYPW5",
+    "source": "gocamping",
+    "sourceKey": "1547"
+  },
+  {
+    "oldId": "gocamping:1622",
+    "newId": "VAm1XEUYr2iTdnHRyayv",
+    "source": "gocamping",
+    "sourceKey": "1622"
+  },
+  {
+    "oldId": "gocamping:1628",
+    "newId": "c9ctD1CwzPWRRdL9KqV4",
+    "source": "gocamping",
+    "sourceKey": "1628"
+  },
+  {
+    "oldId": "gocamping:1667",
+    "newId": "tKhhuQiXGMjVFjBW8Vvj",
+    "source": "gocamping",
+    "sourceKey": "1667"
+  },
+  {
+    "oldId": "gocamping:1678",
+    "newId": "Yiyza6LjvejEE2KuLsu8",
+    "source": "gocamping",
+    "sourceKey": "1678"
+  },
+  {
+    "oldId": "gocamping:1682",
+    "newId": "JalumBSuNThFFb46a2t4",
+    "source": "gocamping",
+    "sourceKey": "1682"
+  },
+  {
+    "oldId": "gocamping:1715",
+    "newId": "q6gEfciKiFcRi6RO5xjd",
+    "source": "gocamping",
+    "sourceKey": "1715"
+  },
+  {
+    "oldId": "gocamping:1717",
+    "newId": "6qeo3YzMaWVUCAstopDH",
+    "source": "gocamping",
+    "sourceKey": "1717"
+  },
+  {
+    "oldId": "gocamping:1718",
+    "newId": "I0Xu1DpH20QNYPsEvPEw",
+    "source": "gocamping",
+    "sourceKey": "1718"
+  },
+  {
+    "oldId": "gocamping:1723",
+    "newId": "1OVaRZLZtnyantwEGF7J",
+    "source": "gocamping",
+    "sourceKey": "1723"
+  },
+  {
+    "oldId": "gocamping:1736",
+    "newId": "PobW9x75GhfCjzUNYHFs",
+    "source": "gocamping",
+    "sourceKey": "1736"
+  },
+  {
+    "oldId": "gocamping:1796",
+    "newId": "CbY9DFNqKM4VbzZrqDeD",
+    "source": "gocamping",
+    "sourceKey": "1796"
+  },
+  {
+    "oldId": "gocamping:1807",
+    "newId": "tl8ML3uBbtGzyzJWAEmz",
+    "source": "gocamping",
+    "sourceKey": "1807"
+  },
+  {
+    "oldId": "gocamping:1833",
+    "newId": "6KneDJrdcEeB9ZshJaTE",
+    "source": "gocamping",
+    "sourceKey": "1833"
+  },
+  {
+    "oldId": "gocamping:1903",
+    "newId": "mflM3URcnldLmTrpm9Bc",
+    "source": "gocamping",
+    "sourceKey": "1903"
+  },
+  {
+    "oldId": "gocamping:1920",
+    "newId": "bLJ8YZEZmPLGeE7MoW5J",
+    "source": "gocamping",
+    "sourceKey": "1920"
+  },
+  {
+    "oldId": "gocamping:1993",
+    "newId": "Ll5Mf46EaYvIdFT5GKb4",
+    "source": "gocamping",
+    "sourceKey": "1993"
+  },
+  {
+    "oldId": "gocamping:2022",
+    "newId": "OYWTXs9KCLdu8IHYMIsA",
+    "source": "gocamping",
+    "sourceKey": "2022"
+  },
+  {
+    "oldId": "gocamping:2031",
+    "newId": "tkT8qv26CNn1UyBwsycX",
+    "source": "gocamping",
+    "sourceKey": "2031"
+  },
+  {
+    "oldId": "gocamping:2049",
+    "newId": "5ONZXE7kMqks84GqNpES",
+    "source": "gocamping",
+    "sourceKey": "2049"
+  },
+  {
+    "oldId": "gocamping:2051",
+    "newId": "1XVLxQwgZ06qLr9sxBK5",
+    "source": "gocamping",
+    "sourceKey": "2051"
+  },
+  {
+    "oldId": "gocamping:2166",
+    "newId": "Z0fztLG6xTAG7QSbGs2C",
+    "source": "gocamping",
+    "sourceKey": "2166"
+  },
+  {
+    "oldId": "gocamping:2167",
+    "newId": "lmRsPbPcmzKRC9FTH8IX",
+    "source": "gocamping",
+    "sourceKey": "2167"
+  },
+  {
+    "oldId": "gocamping:2171",
+    "newId": "DSZVfBDxSBJBQv65l9k5",
+    "source": "gocamping",
+    "sourceKey": "2171"
+  },
+  {
+    "oldId": "gocamping:2213",
+    "newId": "pJZYPHn6tXdY3vCVQdjZ",
+    "source": "gocamping",
+    "sourceKey": "2213"
+  },
+  {
+    "oldId": "gocamping:2220",
+    "newId": "0X9toZZD1azCXkyErkW7",
+    "source": "gocamping",
+    "sourceKey": "2220"
+  },
+  {
+    "oldId": "gocamping:2226",
+    "newId": "v3HNuMHBh95VYqBo4Hzl",
+    "source": "gocamping",
+    "sourceKey": "2226"
+  },
+  {
+    "oldId": "gocamping:2228",
+    "newId": "JlZL5gtMwOyecR6mv9Ne",
+    "source": "gocamping",
+    "sourceKey": "2228"
+  },
+  {
+    "oldId": "gocamping:2282",
+    "newId": "IfZe2r37TlClJ0pi2o7K",
+    "source": "gocamping",
+    "sourceKey": "2282"
+  },
+  {
+    "oldId": "gocamping:2288",
+    "newId": "YbWcGIoCvf4PNsiCMRUD",
+    "source": "gocamping",
+    "sourceKey": "2288"
+  },
+  {
+    "oldId": "gocamping:2314",
+    "newId": "fh1OSlU2BLtNkIXcj8mS",
+    "source": "gocamping",
+    "sourceKey": "2314"
+  },
+  {
+    "oldId": "gocamping:2370",
+    "newId": "5agXxtdQsLNjUIugxILQ",
+    "source": "gocamping",
+    "sourceKey": "2370"
+  },
+  {
+    "oldId": "gocamping:2372",
+    "newId": "Wzv3wekM6oOZdL0R0KYG",
+    "source": "gocamping",
+    "sourceKey": "2372"
+  },
+  {
+    "oldId": "gocamping:2373",
+    "newId": "8rq8BSMV9KTe65QltSju",
+    "source": "gocamping",
+    "sourceKey": "2373"
+  },
+  {
+    "oldId": "gocamping:2377",
+    "newId": "akSTlllwPf1rO9Xkdr8q",
+    "source": "gocamping",
+    "sourceKey": "2377"
+  },
+  {
+    "oldId": "gocamping:238",
+    "newId": "g6PF0t5GD6uKhlo0QIVq",
+    "source": "gocamping",
+    "sourceKey": "238"
+  },
+  {
+    "oldId": "gocamping:2394",
+    "newId": "LBZ1lnArb5iFryXYfpBR",
+    "source": "gocamping",
+    "sourceKey": "2394"
+  },
+  {
+    "oldId": "gocamping:2439",
+    "newId": "WAZqBCtO07n2ZvqOdQ15",
+    "source": "gocamping",
+    "sourceKey": "2439"
+  },
+  {
+    "oldId": "gocamping:2444",
+    "newId": "FcYeD75D3mLYvrHiNN5o",
+    "source": "gocamping",
+    "sourceKey": "2444"
+  },
+  {
+    "oldId": "gocamping:2445",
+    "newId": "raSbjT06GRmpk18RuL8S",
+    "source": "gocamping",
+    "sourceKey": "2445"
+  },
+  {
+    "oldId": "gocamping:2459",
+    "newId": "RYsfIagAeEdW5vZ6c3b4",
+    "source": "gocamping",
+    "sourceKey": "2459"
+  },
+  {
+    "oldId": "gocamping:2460",
+    "newId": "sgcjZIIFEpoZZCxVpUhZ",
+    "source": "gocamping",
+    "sourceKey": "2460"
+  },
+  {
+    "oldId": "gocamping:2489",
+    "newId": "EEOypPSojBG5MfriqzMY",
+    "source": "gocamping",
+    "sourceKey": "2489"
+  },
+  {
+    "oldId": "gocamping:2491",
+    "newId": "bhcFjxK9CYt0BfAbERDQ",
+    "source": "gocamping",
+    "sourceKey": "2491"
+  },
+  {
+    "oldId": "gocamping:2498",
+    "newId": "7v8FBvp40WHbYzQfInsJ",
+    "source": "gocamping",
+    "sourceKey": "2498"
+  },
+  {
+    "oldId": "gocamping:2521",
+    "newId": "s1pPhdQXx6JxSmGBnN3v",
+    "source": "gocamping",
+    "sourceKey": "2521"
+  },
+  {
+    "oldId": "gocamping:2564",
+    "newId": "fOov0qFEyxTBBcqK86VI",
+    "source": "gocamping",
+    "sourceKey": "2564"
+  },
+  {
+    "oldId": "gocamping:2610",
+    "newId": "mIFQGyQDazGoR9XyKlPU",
+    "source": "gocamping",
+    "sourceKey": "2610"
+  },
+  {
+    "oldId": "gocamping:2616",
+    "newId": "eYQLGzFWPzuGg7rcPrp5",
+    "source": "gocamping",
+    "sourceKey": "2616"
+  },
+  {
+    "oldId": "gocamping:2697",
+    "newId": "TWTe6Xm86D4OUV1LuIKq",
+    "source": "gocamping",
+    "sourceKey": "2697"
+  },
+  {
+    "oldId": "gocamping:2703",
+    "newId": "fWPpmoo3g1DO2Jfp6wr5",
+    "source": "gocamping",
+    "sourceKey": "2703"
+  },
+  {
+    "oldId": "gocamping:2735",
+    "newId": "ke7zupt2jSccMtCfT1by",
+    "source": "gocamping",
+    "sourceKey": "2735"
+  },
+  {
+    "oldId": "gocamping:2751",
+    "newId": "YYAyNApRgsojxQqchjp0",
+    "source": "gocamping",
+    "sourceKey": "2751"
+  },
+  {
+    "oldId": "gocamping:2782",
+    "newId": "9cvSRYdiShZuMD7W8A2P",
+    "source": "gocamping",
+    "sourceKey": "2782"
+  },
+  {
+    "oldId": "gocamping:2793",
+    "newId": "1H8D4bI5dRiqxzwlNvpA",
+    "source": "gocamping",
+    "sourceKey": "2793"
+  },
+  {
+    "oldId": "gocamping:2874",
+    "newId": "zitPASOclS2XEF5yy2hP",
+    "source": "gocamping",
+    "sourceKey": "2874"
+  },
+  {
+    "oldId": "gocamping:289",
+    "newId": "RlHR3S1qEqgYyRNbkW1b",
+    "source": "gocamping",
+    "sourceKey": "289"
+  },
+  {
+    "oldId": "gocamping:2894",
+    "newId": "BzOPEcij6rzj7nVe9CDl",
+    "source": "gocamping",
+    "sourceKey": "2894"
+  },
+  {
+    "oldId": "gocamping:2895",
+    "newId": "7hqNCFMiEKi1n34SmnmN",
+    "source": "gocamping",
+    "sourceKey": "2895"
+  },
+  {
+    "oldId": "gocamping:2931",
+    "newId": "oNKBAb0Ud3aQzFhd4SJk",
+    "source": "gocamping",
+    "sourceKey": "2931"
+  },
+  {
+    "oldId": "gocamping:2937",
+    "newId": "H19l5XBFWTFvJ92KSdn8",
+    "source": "gocamping",
+    "sourceKey": "2937"
+  },
+  {
+    "oldId": "gocamping:2963",
+    "newId": "BRXk8C0t8QOYvaKJeUUH",
+    "source": "gocamping",
+    "sourceKey": "2963"
+  },
+  {
+    "oldId": "gocamping:2990",
+    "newId": "YpK4COm13ZhEWGpstV3H",
+    "source": "gocamping",
+    "sourceKey": "2990"
+  },
+  {
+    "oldId": "gocamping:2992",
+    "newId": "cDiRJF7LYnnY7eM9WVLV",
+    "source": "gocamping",
+    "sourceKey": "2992"
+  },
+  {
+    "oldId": "gocamping:3024",
+    "newId": "07GID3ux7QNzRDznqrjG",
+    "source": "gocamping",
+    "sourceKey": "3024"
+  },
+  {
+    "oldId": "gocamping:3049",
+    "newId": "xZs5V2gCjJsBH58l2HxS",
+    "source": "gocamping",
+    "sourceKey": "3049"
+  },
+  {
+    "oldId": "gocamping:3085",
+    "newId": "DT8eL6OHQOTId7Xv6Jwt",
+    "source": "gocamping",
+    "sourceKey": "3085"
+  },
+  {
+    "oldId": "gocamping:3105",
+    "newId": "MQtUR3Mz8eCcjYJcaXdV",
+    "source": "gocamping",
+    "sourceKey": "3105"
+  },
+  {
+    "oldId": "gocamping:3120",
+    "newId": "wn9DbyAPrf3r5BQmeHma",
+    "source": "gocamping",
+    "sourceKey": "3120"
+  },
+  {
+    "oldId": "gocamping:3147",
+    "newId": "GO3ORQ467lZQiynu8oAV",
+    "source": "gocamping",
+    "sourceKey": "3147"
+  },
+  {
+    "oldId": "gocamping:3157",
+    "newId": "3gfPIeGCI36iy7P4wCLZ",
+    "source": "gocamping",
+    "sourceKey": "3157"
+  },
+  {
+    "oldId": "gocamping:3160",
+    "newId": "zIPKdFdESPBl94cg8iqm",
+    "source": "gocamping",
+    "sourceKey": "3160"
+  },
+  {
+    "oldId": "gocamping:3202",
+    "newId": "LltgmUSal6LFgASyY92k",
+    "source": "gocamping",
+    "sourceKey": "3202"
+  },
+  {
+    "oldId": "gocamping:3206",
+    "newId": "zD3BLkjrXGxF3VPxUITy",
+    "source": "gocamping",
+    "sourceKey": "3206"
+  },
+  {
+    "oldId": "gocamping:3209",
+    "newId": "YwNhzpcthZkgofPLIvaZ",
+    "source": "gocamping",
+    "sourceKey": "3209"
+  },
+  {
+    "oldId": "gocamping:3271",
+    "newId": "ZRyDtvevVaNrP0DDNJsV",
+    "source": "gocamping",
+    "sourceKey": "3271"
+  },
+  {
+    "oldId": "gocamping:3275",
+    "newId": "tanMhgPOqr2kFBFILWFe",
+    "source": "gocamping",
+    "sourceKey": "3275"
+  },
+  {
+    "oldId": "gocamping:3287",
+    "newId": "p8Jop7hV0hhtm7eWs97K",
+    "source": "gocamping",
+    "sourceKey": "3287"
+  },
+  {
+    "oldId": "gocamping:331",
+    "newId": "oi7J1LcXJA8aBvljMU3J",
+    "source": "gocamping",
+    "sourceKey": "331"
+  },
+  {
+    "oldId": "gocamping:3326",
+    "newId": "KiPY8aZzItq2AzP4uNwr",
+    "source": "gocamping",
+    "sourceKey": "3326"
+  },
+  {
+    "oldId": "gocamping:333",
+    "newId": "NrUTGhszTvz2mLJI3VsR",
+    "source": "gocamping",
+    "sourceKey": "333"
+  },
+  {
+    "oldId": "gocamping:3354",
+    "newId": "ojz6Eb1uYELESnvzvOBI",
+    "source": "gocamping",
+    "sourceKey": "3354"
+  },
+  {
+    "oldId": "gocamping:3383",
+    "newId": "SBR1Zch5vDpCB2ITxvBo",
+    "source": "gocamping",
+    "sourceKey": "3383"
+  },
+  {
+    "oldId": "gocamping:3395",
+    "newId": "zfLTd8wOSqRNpeD9q00s",
+    "source": "gocamping",
+    "sourceKey": "3395"
+  },
+  {
+    "oldId": "gocamping:3397",
+    "newId": "15t4hNZjKfx5ZE45ANsi",
+    "source": "gocamping",
+    "sourceKey": "3397"
+  },
+  {
+    "oldId": "gocamping:344",
+    "newId": "KccPTSHkBdUi4pefpscV",
+    "source": "gocamping",
+    "sourceKey": "344"
+  },
+  {
+    "oldId": "gocamping:3482",
+    "newId": "8hf3348JFHPhLzbD0HNH",
+    "source": "gocamping",
+    "sourceKey": "3482"
+  },
+  {
+    "oldId": "gocamping:3551",
+    "newId": "piXVJHL0M8qfHKopFctS",
+    "source": "gocamping",
+    "sourceKey": "3551"
+  },
+  {
+    "oldId": "gocamping:3556",
+    "newId": "rRITDIZM9dZrkCZbd0n7",
+    "source": "gocamping",
+    "sourceKey": "3556"
+  },
+  {
+    "oldId": "gocamping:3577",
+    "newId": "gClETL2TnTPy2NbBAgzB",
+    "source": "gocamping",
+    "sourceKey": "3577"
+  },
+  {
+    "oldId": "gocamping:362",
+    "newId": "18AOX9ohT0ZxtiSukRU3",
+    "source": "gocamping",
+    "sourceKey": "362"
+  },
+  {
+    "oldId": "gocamping:3636",
+    "newId": "1BxAHq6FnXMNiBQ1JOCu",
+    "source": "gocamping",
+    "sourceKey": "3636"
+  },
+  {
+    "oldId": "gocamping:383",
+    "newId": "AayztwoBgKulcqYKaG59",
+    "source": "gocamping",
+    "sourceKey": "383"
+  },
+  {
+    "oldId": "gocamping:385",
+    "newId": "xauN67f1ZHnlsB8jjYYG",
+    "source": "gocamping",
+    "sourceKey": "385"
+  },
+  {
+    "oldId": "gocamping:389",
+    "newId": "zLtQFgZHVsCbtQLxNu2k",
+    "source": "gocamping",
+    "sourceKey": "389"
+  },
+  {
+    "oldId": "gocamping:398",
+    "newId": "ViaevmvZ2HQTMN9ikyLu",
+    "source": "gocamping",
+    "sourceKey": "398"
+  },
+  {
+    "oldId": "gocamping:399",
+    "newId": "8BsaYpyzTBTTVWI4lmMQ",
+    "source": "gocamping",
+    "sourceKey": "399"
+  },
+  {
+    "oldId": "gocamping:400",
+    "newId": "sxiTFGMjkbpC1Nwggmft",
+    "source": "gocamping",
+    "sourceKey": "400"
+  },
+  {
+    "oldId": "gocamping:401",
+    "newId": "ZG8x4jPKVQy3FpbzCBEZ",
+    "source": "gocamping",
+    "sourceKey": "401"
+  },
+  {
+    "oldId": "gocamping:408",
+    "newId": "lFWDTtJH4si8NC46fe9k",
+    "source": "gocamping",
+    "sourceKey": "408"
+  },
+  {
+    "oldId": "gocamping:420",
+    "newId": "8ijoLSWJbqBwP0fvYtoV",
+    "source": "gocamping",
+    "sourceKey": "420"
+  },
+  {
+    "oldId": "gocamping:477",
+    "newId": "h93JgcOdWWWEFvx0R1ti",
+    "source": "gocamping",
+    "sourceKey": "477"
+  },
+  {
+    "oldId": "gocamping:480",
+    "newId": "LZ2OD8nILjl55ASfaaJy",
+    "source": "gocamping",
+    "sourceKey": "480"
+  },
+  {
+    "oldId": "gocamping:483",
+    "newId": "YPCpYxhda7FYnAc6c44F",
+    "source": "gocamping",
+    "sourceKey": "483"
+  },
+  {
+    "oldId": "gocamping:484",
+    "newId": "IhDPqz8NtgAIuzwIRQqJ",
+    "source": "gocamping",
+    "sourceKey": "484"
+  },
+  {
+    "oldId": "gocamping:538",
+    "newId": "LUARWnhyNosrPCeL96c7",
+    "source": "gocamping",
+    "sourceKey": "538"
+  },
+  {
+    "oldId": "gocamping:548",
+    "newId": "rWjYE6KhdbTUiGlgVLNa",
+    "source": "gocamping",
+    "sourceKey": "548"
+  },
+  {
+    "oldId": "gocamping:591",
+    "newId": "fwdMhFYGXFddJYVzfXKW",
+    "source": "gocamping",
+    "sourceKey": "591"
+  },
+  {
+    "oldId": "gocamping:672",
+    "newId": "WCCddnqiDBCqDZ7mhgs6",
+    "source": "gocamping",
+    "sourceKey": "672"
+  },
+  {
+    "oldId": "gocamping:6731",
+    "newId": "uuyKKWALAqvTTxEnud2h",
+    "source": "gocamping",
+    "sourceKey": "6731"
+  },
+  {
+    "oldId": "gocamping:6764",
+    "newId": "wy8PwA0VIp2wORrl0OJa",
+    "source": "gocamping",
+    "sourceKey": "6764"
+  },
+  {
+    "oldId": "gocamping:6768",
+    "newId": "JWLRSVaIhoFKyoz8exLa",
+    "source": "gocamping",
+    "sourceKey": "6768"
+  },
+  {
+    "oldId": "gocamping:6803",
+    "newId": "AM7VGy1453d31QMf8hpH",
+    "source": "gocamping",
+    "sourceKey": "6803"
+  },
+  {
+    "oldId": "gocamping:6808",
+    "newId": "N53j1xwmSEIeWRb989c7",
+    "source": "gocamping",
+    "sourceKey": "6808"
+  },
+  {
+    "oldId": "gocamping:6819",
+    "newId": "DMu09e4gBABNapIlYLeg",
+    "source": "gocamping",
+    "sourceKey": "6819"
+  },
+  {
+    "oldId": "gocamping:6965",
+    "newId": "KGyVauTOarinlGpl1YEQ",
+    "source": "gocamping",
+    "sourceKey": "6965"
+  },
+  {
+    "oldId": "gocamping:6968",
+    "newId": "XGaIqKLLombASiaxcDA6",
+    "source": "gocamping",
+    "sourceKey": "6968"
+  },
+  {
+    "oldId": "gocamping:6971",
+    "newId": "MLMNiu5xDRNVtPyGraaA",
+    "source": "gocamping",
+    "sourceKey": "6971"
+  },
+  {
+    "oldId": "gocamping:6972",
+    "newId": "qN5B0BnI543PikrWQiCE",
+    "source": "gocamping",
+    "sourceKey": "6972"
+  },
+  {
+    "oldId": "gocamping:698",
+    "newId": "BtICh8R8EPxDJHsARs34",
+    "source": "gocamping",
+    "sourceKey": "698"
+  },
+  {
+    "oldId": "gocamping:7025",
+    "newId": "X78gDO4OyEM2XXRBeiJO",
+    "source": "gocamping",
+    "sourceKey": "7025"
+  },
+  {
+    "oldId": "gocamping:704",
+    "newId": "8uk6yHn1UELEhe1S2bhX",
+    "source": "gocamping",
+    "sourceKey": "704"
+  },
+  {
+    "oldId": "gocamping:7059",
+    "newId": "CtYypLYOoq4wYjKOGlyF",
+    "source": "gocamping",
+    "sourceKey": "7059"
+  },
+  {
+    "oldId": "gocamping:7060",
+    "newId": "rPHtDsIFEQZDaoGEcaJd",
+    "source": "gocamping",
+    "sourceKey": "7060"
+  },
+  {
+    "oldId": "gocamping:7067",
+    "newId": "QoObIKR3R5nEleLcqz8L",
+    "source": "gocamping",
+    "sourceKey": "7067"
+  },
+  {
+    "oldId": "gocamping:7109",
+    "newId": "LxpmI5uxxLbt92mBXLbj",
+    "source": "gocamping",
+    "sourceKey": "7109"
+  },
+  {
+    "oldId": "gocamping:7154",
+    "newId": "LlEcdM8I8mqpOB2L8aqU",
+    "source": "gocamping",
+    "sourceKey": "7154"
+  },
+  {
+    "oldId": "gocamping:719",
+    "newId": "Y59w7Phi4g0o15vyyJLo",
+    "source": "gocamping",
+    "sourceKey": "719"
+  },
+  {
+    "oldId": "gocamping:7207",
+    "newId": "pg2qJ6hPmLw6RYJrFgzi",
+    "source": "gocamping",
+    "sourceKey": "7207"
+  },
+  {
+    "oldId": "gocamping:7209",
+    "newId": "FmqQOHE4SEb2xH04SwJY",
+    "source": "gocamping",
+    "sourceKey": "7209"
+  },
+  {
+    "oldId": "gocamping:7254",
+    "newId": "yo3qE7J8zytSFkto5dV6",
+    "source": "gocamping",
+    "sourceKey": "7254"
+  },
+  {
+    "oldId": "gocamping:7305",
+    "newId": "KnkHhjmmAfswoS3TG1Pf",
+    "source": "gocamping",
+    "sourceKey": "7305"
+  },
+  {
+    "oldId": "gocamping:7315",
+    "newId": "0jhLSh1a8aWf0uYpn41j",
+    "source": "gocamping",
+    "sourceKey": "7315"
+  },
+  {
+    "oldId": "gocamping:7353",
+    "newId": "sIooLKBuM8rYM5y750pJ",
+    "source": "gocamping",
+    "sourceKey": "7353"
+  },
+  {
+    "oldId": "gocamping:7430",
+    "newId": "PBpnU1RI60jJeigGR9rJ",
+    "source": "gocamping",
+    "sourceKey": "7430"
+  },
+  {
+    "oldId": "gocamping:7442",
+    "newId": "njrVv2xNIj9ys7UycA2F",
+    "source": "gocamping",
+    "sourceKey": "7442"
+  },
+  {
+    "oldId": "gocamping:7466",
+    "newId": "6ksPOnZRm2GuBUixbHGO",
+    "source": "gocamping",
+    "sourceKey": "7466"
+  },
+  {
+    "oldId": "gocamping:7541",
+    "newId": "ghFGid8yJFsWAkNrOUSE",
+    "source": "gocamping",
+    "sourceKey": "7541"
+  },
+  {
+    "oldId": "gocamping:7594",
+    "newId": "tHfTfVEdx6Cp1KtuIfaL",
+    "source": "gocamping",
+    "sourceKey": "7594"
+  },
+  {
+    "oldId": "gocamping:763",
+    "newId": "3vmRonI7Yu0jKBvfk88J",
+    "source": "gocamping",
+    "sourceKey": "763"
+  },
+  {
+    "oldId": "gocamping:7642",
+    "newId": "q8WLqSkyGK8NTWrpFoOH",
+    "source": "gocamping",
+    "sourceKey": "7642"
+  },
+  {
+    "oldId": "gocamping:766",
+    "newId": "5agYxlshQuvSCY4gkz19",
+    "source": "gocamping",
+    "sourceKey": "766"
+  },
+  {
+    "oldId": "gocamping:7677",
+    "newId": "gm3yrWsezHSa2aVT8aLx",
+    "source": "gocamping",
+    "sourceKey": "7677"
+  },
+  {
+    "oldId": "gocamping:7684",
+    "newId": "EJbgsNxB1ejV9WSRu3Jk",
+    "source": "gocamping",
+    "sourceKey": "7684"
+  },
+  {
+    "oldId": "gocamping:7686",
+    "newId": "ywOquFVOOZKcEOhC5qCL",
+    "source": "gocamping",
+    "sourceKey": "7686"
+  },
+  {
+    "oldId": "gocamping:769",
+    "newId": "lvPC0wMsT7TM5iYMaoX5",
+    "source": "gocamping",
+    "sourceKey": "769"
+  },
+  {
+    "oldId": "gocamping:77",
+    "newId": "XXEVOkXuHtY0BqqzXYqW",
+    "source": "gocamping",
+    "sourceKey": "77"
+  },
+  {
+    "oldId": "gocamping:7725",
+    "newId": "jXa572yqu9jatIi8MgDx",
+    "source": "gocamping",
+    "sourceKey": "7725"
+  },
+  {
+    "oldId": "gocamping:7745",
+    "newId": "vGhR67MXory68LZEUG0S",
+    "source": "gocamping",
+    "sourceKey": "7745"
+  },
+  {
+    "oldId": "gocamping:7749",
+    "newId": "ZbWN8r3bEDSjhfdunJms",
+    "source": "gocamping",
+    "sourceKey": "7749"
+  },
+  {
+    "oldId": "gocamping:7757",
+    "newId": "dyW8FpBq614mqXKcd8HA",
+    "source": "gocamping",
+    "sourceKey": "7757"
+  },
+  {
+    "oldId": "gocamping:7763",
+    "newId": "WwmIei5Wz6kRzOmPDOcO",
+    "source": "gocamping",
+    "sourceKey": "7763"
+  },
+  {
+    "oldId": "gocamping:7826",
+    "newId": "FB3BHmpN60kgBPeiEmQs",
+    "source": "gocamping",
+    "sourceKey": "7826"
+  },
+  {
+    "oldId": "gocamping:7830",
+    "newId": "XZq9iVs7OQia2wQAw7aA",
+    "source": "gocamping",
+    "sourceKey": "7830"
+  },
+  {
+    "oldId": "gocamping:7848",
+    "newId": "gcyitVrEXPELt0v5VbZm",
+    "source": "gocamping",
+    "sourceKey": "7848"
+  },
+  {
+    "oldId": "gocamping:7879",
+    "newId": "kTiara07N3r98pcQvpoM",
+    "source": "gocamping",
+    "sourceKey": "7879"
+  },
+  {
+    "oldId": "gocamping:7895",
+    "newId": "kMFbhaBGdoyTgg2pp5mL",
+    "source": "gocamping",
+    "sourceKey": "7895"
+  },
+  {
+    "oldId": "gocamping:7899",
+    "newId": "51hkqXBahuORNpZc75fi",
+    "source": "gocamping",
+    "sourceKey": "7899"
+  },
+  {
+    "oldId": "gocamping:7909",
+    "newId": "iPQvlH4rCKS1vtg6OmHE",
+    "source": "gocamping",
+    "sourceKey": "7909"
+  },
+  {
+    "oldId": "gocamping:7910",
+    "newId": "Ab7vCMleIYhnEufSWt5w",
+    "source": "gocamping",
+    "sourceKey": "7910"
+  },
+  {
+    "oldId": "gocamping:7913",
+    "newId": "dHLFI9TM9bqFduDKnK0z",
+    "source": "gocamping",
+    "sourceKey": "7913"
+  },
+  {
+    "oldId": "gocamping:7945",
+    "newId": "1kzJOvET48TKBhVwcAfq",
+    "source": "gocamping",
+    "sourceKey": "7945"
+  },
+  {
+    "oldId": "gocamping:7947",
+    "newId": "wY3A7qYVc5PZa0zs7JcT",
+    "source": "gocamping",
+    "sourceKey": "7947"
+  },
+  {
+    "oldId": "gocamping:7953",
+    "newId": "2ym19r7OMCrgwdSzd7tS",
+    "source": "gocamping",
+    "sourceKey": "7953"
+  },
+  {
+    "oldId": "gocamping:7967",
+    "newId": "8dfvBGq5V7kmLnFuSUSN",
+    "source": "gocamping",
+    "sourceKey": "7967"
+  },
+  {
+    "oldId": "gocamping:8019",
+    "newId": "7hdjApF1JAxktBm5tKnR",
+    "source": "gocamping",
+    "sourceKey": "8019"
+  },
+  {
+    "oldId": "gocamping:8030",
+    "newId": "ahN5uJkg5Lkytnwt3TNK",
+    "source": "gocamping",
+    "sourceKey": "8030"
+  },
+  {
+    "oldId": "gocamping:8041",
+    "newId": "Q8EkJRCZefCrs4ibROGr",
+    "source": "gocamping",
+    "sourceKey": "8041"
+  },
+  {
+    "oldId": "gocamping:8042",
+    "newId": "x02thVNzFupkoyXIInV9",
+    "source": "gocamping",
+    "sourceKey": "8042"
+  },
+  {
+    "oldId": "gocamping:8074",
+    "newId": "4mJUN7HknAqcnkd6CBh0",
+    "source": "gocamping",
+    "sourceKey": "8074"
+  },
+  {
+    "oldId": "gocamping:813",
+    "newId": "p8FIpLY9PonaeBJ9RJnL",
+    "source": "gocamping",
+    "sourceKey": "813"
+  },
+  {
+    "oldId": "gocamping:8149",
+    "newId": "ZZlwCua062cQtdbLs4FY",
+    "source": "gocamping",
+    "sourceKey": "8149"
+  },
+  {
+    "oldId": "gocamping:8159",
+    "newId": "hzxcd6ogyKXgsyue60nZ",
+    "source": "gocamping",
+    "sourceKey": "8159"
+  },
+  {
+    "oldId": "gocamping:8175",
+    "newId": "ul7wn8kdQk77jxYySUPG",
+    "source": "gocamping",
+    "sourceKey": "8175"
+  },
+  {
+    "oldId": "gocamping:8209",
+    "newId": "coKmNYHiLgAqgAlWIrOS",
+    "source": "gocamping",
+    "sourceKey": "8209"
+  },
+  {
+    "oldId": "gocamping:8213",
+    "newId": "6ScoLZRI4KfLvD3R1pXZ",
+    "source": "gocamping",
+    "sourceKey": "8213"
+  },
+  {
+    "oldId": "gocamping:8217",
+    "newId": "XboXVAdYfL2N2Rw7R3Mj",
+    "source": "gocamping",
+    "sourceKey": "8217"
+  },
+  {
+    "oldId": "gocamping:881",
+    "newId": "wJDRj8YH86E6ECgH8gRy",
+    "source": "gocamping",
+    "sourceKey": "881"
+  },
+  {
+    "oldId": "gocamping:937",
+    "newId": "OWSLMiqC3mRDSFYRNt2z",
+    "source": "gocamping",
+    "sourceKey": "937"
+  }
+]

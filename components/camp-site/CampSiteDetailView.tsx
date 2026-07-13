@@ -6,6 +6,7 @@ import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import CampSiteBagSelectSheetView from './CampSiteBagSelectSheetView';
+import CampUserReviewSectionView from './CampUserReviewSectionView';
 import ReviewSectionView from '@/components/review/ReviewSectionView';
 import CampSiteDetail from '@/model/camp-site/CampSiteDetail';
 import CampSiteType from '@/model/camp-site/CampSiteType';
@@ -266,11 +267,14 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
               </PretendardText>
             </TouchableOpacity>
 
+            {/* 유저 후기(CS-8) — 별점 요약·리스트·작성 액션 */}
+            <CampUserReviewSectionView campSiteDetail={campSiteDetail} />
+
             {/* 외부 후기(CS-3) — 공용 후기 콘텐츠(유튜브 카드 + 블로그 리스트) */}
             {reviews.length > 0 || videos.length > 0 ? (
               <View style={styles.section}>
                 <PretendardText style={styles.sectionTitle} weight='semibold'>
-                  후기
+                  블로그·영상
                 </PretendardText>
                 <ReviewSectionView
                   reviews={reviews}

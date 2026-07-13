@@ -92,7 +92,8 @@
 | `startDate` | string | ISO 8601 문자열 |
 | `endDate` | string | ISO 8601 문자열 |
 | `editDate` | string | ISO 8601 문자열, 수정 시 갱신 |
-| `shared` | boolean | 링크 공유 여부 |
+| `shared` | boolean | 링크 공유 여부 (배낭 공유 BD-7). 후기 첨부 공개와는 별개 |
+| `reviewShared` | boolean | 박지 후기에 첨부돼 공개된 배낭 여부 ([CampSite.md](CampSite.md) CS-8, DM-20). `shared`와 독립 플래그. 옵셔널(기존 문서엔 없음) |
 | `memo` | string | 옵셔널 |
 | `userId` | string | 소유자 uid (공유 조회 시 장비 경로 해석에 사용) |
 | `packedGears` | string[] | 패킹 모드에서 챙긴 장비 ID 배열 ([Packing.md](Packing.md) PK-4). 옵셔널(기존 문서엔 없음) |
@@ -118,8 +119,10 @@
 
 ### DM-7 댓글 (`gear-comments`)
 
-요약 문서 `gear-comments/{gearId}`: `gearId`, `totalCount`, `parentCount`, `lastCommentAt`, `createdAt`, `updatedAt`.
-댓글 카운트는 댓글 생성/삭제 트랜잭션 안에서 함께 갱신된다.
+요약 문서 `gear-comments/{gearId}`: `gearId`, `totalCount`, `parentCount`, `lastCommentAt`, `createdAt`, `updatedAt`, 그리고 **별점 집계**(장비 리뷰 별점, [Reply.md](Reply.md) RP-1) `ratingSum`, `ratingCount`, `ratingAvg`.
+댓글 카운트와 별점 집계는 댓글 생성/수정/삭제 트랜잭션 안에서 함께 갱신된다.
+
+- `ratingCount` = **별점이 있는 최상위 댓글 수**(답글·레거시 무별점 댓글 제외). `ratingSum` = 그 별점들의 합. `ratingAvg` = `ratingCount>0 ? ratingSum/ratingCount : 0`(소수 1자리). `increment`로 못 구하는 `ratingAvg`는 트랜잭션 내 재계산.
 
 댓글 문서 (`comments/{commentId}`, 답글도 동일 형태 — `model/reply/Comment.ts`):
 
@@ -131,6 +134,7 @@
 | `authorProfileUrl` | string? | |
 | `parentId` | string \| null | 최상위는 null |
 | `depth` | number | 0: 최상위, 1: 답글 (스토어 검증: `depth > 2`면 예외) |
+| `rating` | number? | 최상위 리뷰 별점 1~5(RP-1). 답글·레거시 댓글에는 없음. 별점 집계는 이 값이 있는 최상위 댓글만 포함 |
 | `isDeleted` | boolean | 답글 있는 댓글은 논리 삭제 |
 | `likeCount` / `replyCount` | number | 트랜잭션으로 증감 |
 | `createdAt` / `updatedAt` / `deletedAt?` | timestamp | |
@@ -263,6 +267,40 @@
 
 장비 상세([GearDetail.md](GearDetail.md) GD-6) 외부 후기(네이버 블로그·유튜브)의 공유 캐시. **필드·TTL(7일)·갱신 정책은 DM-18과 동일**하며 컬렉션과 문서 id(gearId)만 다르다. 공용 모듈(`model/review/`)이 두 캐시를 함께 다룬다.
 
+### DM-20 박지 유저 후기 (`camp-spot-user-review/{spotId}` + `/reviews/{userId}`) `[기획]`
+
+박지 상세([CampSite.md](CampSite.md) CS-8)의 **유저 작성 후기**(별점·글·다녀온 배낭). DM-18(외부 블로그·유튜브 캐시)과 별개의 유저 생성 콘텐츠다. 요약 문서 + 후기 서브컬렉션 구조(장비 댓글 `gear-comments` DM-7 패턴 재사용)로, 별점 집계를 요약 문서에 트랜잭션으로 유지한다.
+
+**요약 문서 `camp-spot-user-review/{spotId}`**
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `spotId` | string | `camp-spot/{spotId}` |
+| `reviewCount` | number | 후기 수 |
+| `ratingSum` | number | 별점 합(평균 산출용) |
+| `ratingAvg` | number | 평균 별점(소수 1자리, `ratingSum/reviewCount`) |
+| `updatedAt` | string | ISO 8601 |
+
+**후기 문서 `camp-spot-user-review/{spotId}/reviews/{userId}`** — 문서 id = 작성자 uid라 **박지당 유저 1개**가 구조적으로 보장된다(재작성=덮어쓰기).
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `authorId` | string | 작성자 uid (== 문서 id) |
+| `authorName` | string | 작성 시점 닉네임 스냅샷(`Firebase.getNickname()`) |
+| `rating` | number | 1~5 정수(필수) |
+| `content` | string? | 후기 글(선택, 최대 1000자) |
+| `bagId` | string? | 다녀온 배낭 id(선택) — 첨부 시 해당 `bag.reviewShared=true`로 설정(링크 공유 `shared`와 별개) |
+| `bagName` | string? | 첨부 배낭 이름 스냅샷 |
+| `bagDate` | string? | 첨부 배낭 날짜 스냅샷("YYYY.MM.DD" 또는 범위) |
+| `bagWeight` | string? | 첨부 배낭 무게 스냅샷(kg) |
+| `createdAt` | string | ISO 8601 |
+| `updatedAt` | string | ISO 8601 |
+
+- 작성/수정/삭제는 **`runTransaction`**으로 후기 문서 + 요약 문서를 함께 갱신한다(DM-11). 신규=요약 `reviewCount+1`·`ratingSum+rating`, 수정=`ratingSum`에 별점 차이 반영, 삭제=`reviewCount-1`·`ratingSum-rating`(0건이면 요약 문서 삭제). `ratingAvg`는 매 갱신 시 재계산.
+- 첨부 배낭 정보는 **스냅샷 비정규화**(원본 배낭 변경·삭제에 견고). 배낭 열람은 `bagId`로 앱 내 읽기전용 뷰어(CS-8 `/shared-bag/{bagId}`)에서 `bag.reviewShared` 또는 `bag.shared`가 `true`인 배낭을 로드한다(`BagStore.getSharedBag`가 두 플래그를 함께 허용).
+- **후기용 공개는 `reviewShared` 전용 플래그**로 링크 공유(`shared`)와 분리한다. 같은 배낭이 여러 박지 후기에 첨부될 수 있어(유저당 박지별 1개지만 박지가 다르면 별개) **후기 삭제 시 `reviewShared`를 되돌리지 않는다**(레퍼런스 카운트 없이 안전). 남아 있어도 링크 공유 노출과 무관하고 참조하는 후기가 없으면 발견되지 않는다.
+- 보안 규칙(콘솔 관리): 읽기 공개, 후기 문서 쓰기는 **인증 유저이고 문서 id == `request.auth.uid`**일 때만(작성자 위조 방지). 요약 문서는 클라이언트 트랜잭션 갱신 허용. 클라이언트 SDK에서도 `authorId==uid` 재검증.
+
 ## 4. Storage 경로 (DM-9)
 
 `model/firebase/FirebaseImageStorage.ts`:
@@ -305,7 +343,8 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 | 장비 등록 `GearStore.register` | `writeBatch` | `users/{uid}/gears` + `gear-rank` 증가 |
 | 장비 삭제 `GearStore.remove` | `writeBatch` | 장비 문서 삭제 + 소속 배낭들의 `gears`/`weight` 갱신 + `gear-rank` 감소 |
 | 장비 무게 수정 | `GearStore.update` 후 `BagStore.updateBagsWeight` 배치 | 소속 배낭들의 `weight` |
-| 댓글 생성/수정/삭제/좋아요 | `runTransaction` | 댓글 문서 + 요약 문서(카운트) + 부모 `replyCount` / `likeCount` |
+| 댓글 생성/수정/삭제/좋아요 | `runTransaction` | 댓글 문서 + 요약 문서(카운트 + 별점 집계 `ratingSum`/`ratingCount`/`ratingAvg`) + 부모 `replyCount` / `likeCount` (별점 수정은 요약 델타 반영 위해 updateComment도 트랜잭션) |
+| 박지 유저 후기 생성/수정/삭제 | `runTransaction` | 후기 문서 + 요약 문서(`reviewCount`/`ratingSum`/`ratingAvg`) (DM-20) |
 | 회원 탈퇴 `Firebase.deleteUserData` | 청크 `writeBatch` | `gear-rank` 감소 + `bag` 문서들 + `users/{uid}/gears` 전체 + `comment-likes` + `users/{uid}` 삭제 ([Auth.md](Auth.md) AU-8) |
 
 **양방향 참조 불변식**: `gear.bags[]` ↔ `bag.gears[]`는 항상 쌍으로 갱신되어야 한다. `bag.weight`는 담긴 장비 `weight` 합과 일치해야 한다.
@@ -318,5 +357,5 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 
 ## 8. 미해결 질문
 
-- 탈퇴 시 댓글(`gear-comments`)은 남는다 — 완전 삭제 정책은 [Auth.md](Auth.md) AU-8 미해결 질문 참조.
+- 탈퇴 시 댓글(`gear-comments`)·박지 유저 후기(`camp-spot-user-review` DM-20)는 남는다 — 완전 삭제 정책은 [Auth.md](Auth.md) AU-8 미해결 질문 참조.
 - `bag` 목록 조회(`where('__name__', 'in', bagIds)`)는 Firestore `in` 절 30개 제한의 영향권 — 배낭이 30개를 넘는 사용자 처리 미정.

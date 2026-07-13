@@ -22,6 +22,10 @@ interface Props {
   onClose: () => void;
   onSelect: (bag: BagItem) => void;
   onCreateNew: () => void;
+  // true면 '새 배낭 만들기' 행을 렌더하지 않는다(후기 작성 CS-8에서 재사용).
+  hideCreateNew?: boolean;
+  // 있으면 헤더 서브텍스트를 이 값으로 대체한다(기본은 spotName 기반 문구).
+  subtitleOverride?: string;
 }
 
 // CS-5: 박지를 여행지로 설정할 배낭을 고르는 시트. iOS 네이티브 pageSheet 프레젠테이션.
@@ -32,6 +36,8 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
   onClose,
   onSelect,
   onCreateNew,
+  hideCreateNew = false,
+  subtitleOverride,
 }) => {
   const insets = useSafeAreaInsets();
   const isAndroid = Platform.OS === 'android';
@@ -55,7 +61,7 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
               배낭 선택
             </PretendardText>
             <PretendardText style={styles.subtitle} numberOfLines={1}>
-              {spotName}을 여행지로 설정해요
+              {subtitleOverride ?? `${spotName}을 여행지로 설정해요`}
             </PretendardText>
           </View>
           <TouchableOpacity
@@ -78,20 +84,22 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
           showsVerticalScrollIndicator={false}
         >
           {/* 새 배낭 만들기 — 여기로 진입해 만든 배낭에 이 박지가 여행지로 설정된다(CS-5). */}
-          <TouchableOpacity
-            style={styles.createRow}
-            onPress={onCreateNew}
-            activeOpacity={0.7}
-            accessibilityRole='button'
-            accessibilityLabel='새 배낭 만들기'
-          >
-            <View style={styles.createIcon}>
-              <Ionicons name='add' size={22} color={Color.background} />
-            </View>
-            <PretendardText style={styles.createText} weight='semibold'>
-              새 배낭 만들기
-            </PretendardText>
-          </TouchableOpacity>
+          {!hideCreateNew && (
+            <TouchableOpacity
+              style={styles.createRow}
+              onPress={onCreateNew}
+              activeOpacity={0.7}
+              accessibilityRole='button'
+              accessibilityLabel='새 배낭 만들기'
+            >
+              <View style={styles.createIcon}>
+                <Ionicons name='add' size={22} color={Color.background} />
+              </View>
+              <PretendardText style={styles.createText} weight='semibold'>
+                새 배낭 만들기
+              </PretendardText>
+            </TouchableOpacity>
+          )}
 
           {bags.length === 0 ? (
             <PretendardText style={styles.emptyText}>

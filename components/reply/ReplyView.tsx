@@ -32,22 +32,39 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
           <View style={styles.placeholder} />
         </View>
       </View>
-      <ScrollView>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.replyHeader}>
           <PretendardText weight='semibold' style={styles.replyHeaderText}>
             리뷰
           </PretendardText>
         </View>
-        <View style={styles.content}>
-          {reply.getComments().map(comment => (
-            <ReplyItemView
-              key={comment.id}
-              gearId={reply.getGearId()}
-              comment={comment}
-              reply={reply}
+        {reply.getComments().length === 0 ? (
+          // 리뷰가 없을 때 빈 여백 대신 안내를 남은 공간 중앙에 표시한다.
+          <View style={styles.emptyState}>
+            <Ionicons
+              name='star-outline'
+              size={40}
+              color={Color.chipBorder}
             />
-          ))}
-        </View>
+            <PretendardText weight='semibold' style={styles.emptyTitle}>
+              아직 등록된 리뷰가 없어요
+            </PretendardText>
+            <PretendardText style={styles.emptyDesc}>
+              첫 리뷰를 남겨보세요
+            </PretendardText>
+          </View>
+        ) : (
+          <View style={styles.content}>
+            {reply.getComments().map(comment => (
+              <ReplyItemView
+                key={comment.id}
+                gearId={reply.getGearId()}
+                comment={comment}
+                reply={reply}
+              />
+            ))}
+          </View>
+        )}
       </ScrollView>
       <ReplyInputButtonView reply={reply} />
     </View>
@@ -78,6 +95,9 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 24,
   },
+  scrollContent: {
+    flexGrow: 1,
+  },
   content: {
     flex: 1,
     paddingTop: 20,
@@ -89,6 +109,21 @@ const styles = StyleSheet.create({
   replyHeaderText: {
     fontSize: 20,
     color: Color.textPrimary,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 80,
+    gap: 8,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    color: Color.textPrimary,
+  },
+  emptyDesc: {
+    fontSize: 14,
+    color: Color.textSecondary,
   },
 });
 

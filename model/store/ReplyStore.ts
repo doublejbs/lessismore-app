@@ -2,7 +2,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  updateDoc,
   collection,
   query,
   where,
@@ -85,6 +84,10 @@ class ReplyStore {
         lastCommentAt: data.lastCommentAt.toDate(),
         createdAt: data.createdAt.toDate(),
         updatedAt: data.updatedAt.toDate(),
+        // 별점 집계 — 문서에 없으면(레거시 요약) 0으로 기본.
+        ratingSum: data.ratingSum ?? 0,
+        ratingCount: data.ratingCount ?? 0,
+        ratingAvg: data.ratingAvg ?? 0,
       };
     }
 
@@ -143,6 +146,8 @@ class ReplyStore {
         deletedAt: data.deletedAt?.toDate(),
         mentionedUserName: data.mentionedUserName,
         mentionedUserId: data.mentionedUserId,
+        // 별점은 값이 있을 때만 포함(exactOptionalPropertyTypes).
+        ...(data.rating !== undefined ? { rating: data.rating } : {}),
       });
     });
 
@@ -193,6 +198,8 @@ class ReplyStore {
         deletedAt: data.deletedAt?.toDate(),
         mentionedUserName: data.mentionedUserName,
         mentionedUserId: data.mentionedUserId,
+        // 별점은 값이 있을 때만 포함(exactOptionalPropertyTypes).
+        ...(data.rating !== undefined ? { rating: data.rating } : {}),
       });
     });
 
@@ -276,6 +283,15 @@ class ReplyStore {
       }
 
       const now = serverTimestamp();
+
+      // 최상위 댓글이고 별점이 1~5로 유효할 때만 별점을 기록한다.
+      const hasRating =
+        !request.parentId &&
+        typeof request.rating === 'number' &&
+        request.rating >= 1 &&
+        request.rating <= 5;
+      const rating = hasRating ? (request.rating as number) : 0;
+
       const commentData = {
         id: newCommentRef.id,
         content: request.content,
@@ -292,12 +308,15 @@ class ReplyStore {
         deletedAt: null,
         mentionedUserName: request.mentionedUserName || null,
         mentionedUserId: request.mentionedUserId || null,
+        // 별점은 유효할 때만 키를 넣는다(Firestore는 undefined 거부).
+        ...(hasRating ? { rating } : {}),
       };
 
       transaction.set(newCommentRef, commentData);
 
       // 장비 댓글 요약 정보 업데이트
       if (gearCommentSnap.exists()) {
+        const data = gearCommentSnap.data();
         const updates: any = {
           totalCount: increment(1),
           lastCommentAt: now,
@@ -306,6 +325,19 @@ class ReplyStore {
 
         if (!request.parentId) {
           updates.parentCount = increment(1);
+        }
+
+        // 별점 집계는 increment로 avg를 못 구하므로 스냅샷 기반으로 재계산한다.
+        if (hasRating) {
+          const prevSum = data.ratingSum ?? 0;
+          const prevCount = data.ratingCount ?? 0;
+          const newSum = prevSum + rating;
+          const newCount = prevCount + 1;
+          const newAvg = Math.round((newSum / newCount) * 10) / 10;
+
+          updates.ratingSum = newSum;
+          updates.ratingCount = newCount;
+          updates.ratingAvg = newAvg;
         }
 
         transaction.update(gearCommentRef, updates);
@@ -318,6 +350,10 @@ class ReplyStore {
           lastCommentAt: now,
           createdAt: now,
           updatedAt: now,
+          // 최상위+별점이면 초기 집계, 아니면 0으로 둔다.
+          ratingSum: hasRating ? rating : 0,
+          ratingCount: hasRating ? 1 : 0,
+          ratingAvg: hasRating ? rating : 0,
         });
       }
 
@@ -347,25 +383,86 @@ class ReplyStore {
     authorId: string,
     request: CommentUpdateRequest
   ): Promise<void> {
-    const { commentRef } = await this.findCommentLocation(gearId, commentId);
-    const commentSnap = await getDoc(commentRef);
+    const db = this.getStore();
+    const { parentId, commentRef } = await this.findCommentLocation(
+      gearId,
+      commentId
+    );
 
-    if (!commentSnap.exists()) {
-      throw new Error('댓글을 찾을 수 없습니다.');
-    }
+    await runTransaction(db, async transaction => {
+      const gearCommentRef = doc(db, 'gear-comments', gearId);
 
-    const commentData = commentSnap.data() as any;
-    if (commentData.authorId !== authorId) {
-      throw new Error('본인의 댓글만 수정할 수 있습니다.');
-    }
+      // 모든 read를 write보다 먼저 수행한다.
+      const commentSnap = await transaction.get(commentRef);
+      const gearCommentSnap = await transaction.get(gearCommentRef);
 
-    if (commentData.isDeleted) {
-      throw new Error('삭제된 댓글은 수정할 수 없습니다.');
-    }
+      if (!commentSnap.exists()) {
+        throw new Error('댓글을 찾을 수 없습니다.');
+      }
 
-    await updateDoc(commentRef, {
-      content: request.content,
-      updatedAt: serverTimestamp(),
+      const commentData = commentSnap.data() as any;
+      if (commentData.authorId !== authorId) {
+        throw new Error('본인의 댓글만 수정할 수 있습니다.');
+      }
+
+      if (commentData.isDeleted) {
+        throw new Error('삭제된 댓글은 수정할 수 없습니다.');
+      }
+
+      const now = serverTimestamp();
+      const isTopLevel = parentId == null;
+
+      // 최상위 댓글이고 별점이 1~5로 유효할 때만 별점 변경으로 취급한다.
+      const hasNewRating =
+        isTopLevel &&
+        typeof request.rating === 'number' &&
+        request.rating >= 1 &&
+        request.rating <= 5;
+
+      const updates: any = {
+        content: request.content,
+        updatedAt: now,
+      };
+
+      // 별점이 새로 들어온 경우에만 rating을 기록한다(글만 수정하면 기존 유지).
+      if (hasNewRating) {
+        updates.rating = request.rating as number;
+      }
+
+      transaction.update(commentRef, updates);
+
+      // 별점 집계 델타 — 최상위이고 요약 문서가 있을 때만 반영한다.
+      if (isTopLevel && hasNewRating && gearCommentSnap.exists()) {
+        const summary = gearCommentSnap.data();
+        const prevSum = summary.ratingSum ?? 0;
+        const prevCount = summary.ratingCount ?? 0;
+
+        const oldRating =
+          typeof commentData.rating === 'number' ? commentData.rating : 0;
+        const newRating = request.rating as number;
+
+        let newSum = prevSum;
+        let newCount = prevCount;
+
+        if (oldRating > 0) {
+          // 기존 별점 있음 → 합만 조정, 개수 불변.
+          newSum = prevSum + (newRating - oldRating);
+        } else {
+          // 기존 별점 없음 → 합·개수 모두 증가.
+          newSum = prevSum + newRating;
+          newCount = prevCount + 1;
+        }
+
+        const newAvg =
+          newCount > 0 ? Math.round((newSum / newCount) * 10) / 10 : 0;
+
+        transaction.update(gearCommentRef, {
+          ratingSum: newSum,
+          ratingCount: newCount,
+          ratingAvg: newAvg,
+          updatedAt: now,
+        });
+      }
     });
   }
 
@@ -382,7 +479,11 @@ class ReplyStore {
         gearId,
         commentId
       );
+      const gearCommentRef = doc(db, 'gear-comments', gearId);
+
+      // 모든 read를 write보다 먼저 수행한다.
       const commentSnap = await transaction.get(commentRef);
+      const gearCommentSnap = await transaction.get(gearCommentRef);
 
       if (!commentSnap.exists()) {
         throw new Error('댓글을 찾을 수 없습니다.');
@@ -414,7 +515,6 @@ class ReplyStore {
       }
 
       // 장비 댓글 요약 정보 업데이트
-      const gearCommentRef = doc(db, 'gear-comments', gearId);
       const updates: any = {
         totalCount: increment(-1),
         updatedAt: now,
@@ -422,6 +522,27 @@ class ReplyStore {
 
       if (!parentId) {
         updates.parentCount = increment(-1);
+      }
+
+      // 삭제 대상이 별점 있는 최상위 댓글이면 집계에서 제외한다
+      // (논리·물리 삭제 모두 화면에서 사라지므로 평균에서 빼야 함).
+      if (
+        !parentId &&
+        typeof commentData.rating === 'number' &&
+        gearCommentSnap.exists()
+      ) {
+        const summary = gearCommentSnap.data();
+        const rating = commentData.rating;
+        const prevSum = summary.ratingSum ?? 0;
+        const prevCount = summary.ratingCount ?? 0;
+        const newCount = prevCount - 1;
+        const newSum = prevSum - rating;
+        const newAvg =
+          newCount > 0 ? Math.round((newSum / newCount) * 10) / 10 : 0;
+
+        updates.ratingSum = newSum;
+        updates.ratingCount = newCount;
+        updates.ratingAvg = newAvg;
       }
 
       transaction.update(gearCommentRef, updates);
@@ -563,6 +684,8 @@ class ReplyStore {
       deletedAt: data.deletedAt?.toDate(),
       mentionedUserName: data.mentionedUserName,
       mentionedUserId: data.mentionedUserId,
+      // 별점은 값이 있을 때만 포함(exactOptionalPropertyTypes).
+      ...(data.rating !== undefined ? { rating: data.rating } : {}),
     };
   }
 
@@ -596,6 +719,8 @@ class ReplyStore {
         deletedAt: data.deletedAt?.toDate(),
         mentionedUserName: data.mentionedUserName,
         mentionedUserId: data.mentionedUserId,
+        // 별점은 값이 있을 때만 포함(exactOptionalPropertyTypes).
+        ...(data.rating !== undefined ? { rating: data.rating } : {}),
       };
     } catch (error) {
       console.error('댓글 조회 실패:', error);

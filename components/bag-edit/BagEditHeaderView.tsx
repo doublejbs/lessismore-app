@@ -7,9 +7,14 @@ import { Color } from '@/constants/DesignTokens';
 interface Props {
   weight: string;
   onPressBack: () => void;
+  onPressAddGear: () => void;
 }
 
-const BagEditHeaderView: FC<Props> = ({ weight, onPressBack }) => {
+const BagEditHeaderView: FC<Props> = ({
+  weight,
+  onPressBack,
+  onPressAddGear,
+}) => {
   const [displayWeight, setDisplayWeight] = useState<number>(
     parseFloat(weight) || 0
   );
@@ -77,7 +82,22 @@ const BagEditHeaderView: FC<Props> = ({ weight, onPressBack }) => {
         <PretendardText weight='bold' style={styles.weightText}>
           {displayWeight.toFixed(2)}kg
         </PretendardText>
-        <View style={styles.placeholder} />
+        {/* 장비 추가 — 상단 헤더 우측 아이콘 버튼(텍스트 없음). */}
+        <TouchableOpacity
+          onPress={onPressAddGear}
+          activeOpacity={0.7}
+          hitSlop={12}
+          style={styles.addButton}
+          accessibilityRole='button'
+          accessibilityLabel='장비 추가'
+        >
+          <Svg width={24} height={24} viewBox='0 0 14 14' fill='none'>
+            <Path
+              d='M14 8H8V14H6V8H0V6H6V0H8V6H14V8Z'
+              fill={Color.textPrimary}
+            />
+          </Svg>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -99,8 +119,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     flex: 1,
   },
-  placeholder: {
+  addButton: {
     width: 40,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
   },
 });
 

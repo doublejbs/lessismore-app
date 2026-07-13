@@ -1,8 +1,7 @@
 import { router } from 'expo-router';
 import Firebase from '../firebase/Firebase';
 import ReplyStore from '../store/ReplyStore';
-import { CommentCreateRequest } from './Comment';
-import Comment from './Comment';
+import Comment, { CommentCreateRequest } from './Comment';
 import { makeAutoObservable } from 'mobx';
 import app from '../app/App';
 
@@ -50,7 +49,7 @@ class Reply {
     return this.gearId;
   }
 
-  public async confirm(content: string) {
+  public async confirm(content: string, rating: number) {
     try {
       const userId = this.firebase.getUserId();
       if (!userId) {
@@ -62,8 +61,10 @@ class Reply {
         throw new Error('닉네임이 필요합니다.');
       }
 
+      // 별점은 유효할 때만 request에 포함(Firestore는 undefined 거부).
       const request: CommentCreateRequest = {
         content,
+        ...(rating ? { rating } : {}),
       };
 
       await this.replyStore.createComment(
