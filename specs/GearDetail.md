@@ -97,6 +97,16 @@ app/gear-detail/[id]/index.tsx → WarehouseDetailWrapper → WarehouseDetailVie
 - **후기 캐시(주 1회 최신화)**: Firestore `gear-review/{gearId}`([DataModel.md](DataModel.md) DM-19)에 저장. 정책은 DM-18과 동일 — 캐시 우선 표시, `updatedAt` 7일 초과 시 재조회, 두 소스 모두 성공 시에만 갱신, 실패 시 기존 캐시 유지.
 - 블로그·유튜브 클릭은 `click_gear_review`(파라미터 `source: blog|youtube`)로 계측한다.
 
+### GD-7 공유 `[제안]`
+
+사용자는 카탈로그 장비를 외부로 공유하고, 받은 사람은 웹 랜딩을 거쳐 앱으로 진입한다(박지 공유 CS-7과 동일 구조).
+
+**수용 기준**
+
+- **카탈로그 장비(`!isCustom`)** 상세 헤더 우측에 공유 아이콘(수정하기 왼쪽). 커스텀 장비는 웹 랜딩 대상이 아니라 노출하지 않는다.
+- 탭 → OS 공유 시트(`Share.share`)로 URL `https://useless.my/gear-share/{encodeURIComponent(gearId)}`**만** 내보낸다. 공유 클릭은 `click_gear_share`로 계측한다.
+- **웹 랜딩**(별도 레포 `lessismore`, `/gear-share/:id`): Firestore `/gear/{id}`(공개 읽기)를 읽어 제조사·이름·무게·사진·카테고리를 보여주고, `앱에서 보기` 버튼으로 `lessismoreapp://gear-detail/{id}` 딥링크(미설치 시 스토어 폴백)로 앱을 연다.
+
 ## 4. 데이터
 
 - 읽기: 장비 문서(DM-3), `gear/{gearId}/images`(DM-8), 최신 댓글(DM-7), 외부 후기 캐시(DM-19).

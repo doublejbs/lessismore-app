@@ -91,6 +91,10 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
     warehouseDetail.edit();
   };
 
+  const handlePressShare = () => {
+    void warehouseDetail.share();
+  };
+
   const handleAddPress = async (e: GestureResponderEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -137,18 +141,35 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
                 </PretendardText>
               </View>
             )}
-            {isAdded && (
-              <TouchableOpacity
-                onPress={handlePressEdit}
-                style={styles.editButton}
-                accessibilityLabel='수정하기'
-                accessibilityRole='button'
-              >
-                <PretendardText style={styles.editButtonText}>
-                  수정하기
-                </PretendardText>
-              </TouchableOpacity>
-            )}
+            <View style={styles.headerRight}>
+              {/* 공유(GD-7) — 카탈로그 장비만(커스텀은 웹 랜딩 대상이 아님) */}
+              {gear && !gear.getIsCustom() && (
+                <TouchableOpacity
+                  onPress={handlePressShare}
+                  style={styles.headerIconButton}
+                  accessibilityLabel='공유'
+                  accessibilityRole='button'
+                >
+                  <Ionicons
+                    name='share-outline'
+                    size={22}
+                    color={Color.textPrimary}
+                  />
+                </TouchableOpacity>
+              )}
+              {isAdded && (
+                <TouchableOpacity
+                  onPress={handlePressEdit}
+                  style={styles.editButton}
+                  accessibilityLabel='수정하기'
+                  accessibilityRole='button'
+                >
+                  <PretendardText style={styles.editButtonText}>
+                    수정하기
+                  </PretendardText>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
           <ScrollView
             style={styles.content}
@@ -275,12 +296,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Color.textPrimary,
   },
+  // 헤더 우측 액션 묶음(공유 + 수정).
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: -10,
+  },
+  headerIconButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   editButton: {
     // HIG 최소 터치 타깃 44pt, 우측 정렬선(20px) 복원
     height: 44,
     justifyContent: 'center',
     alignItems: 'flex-end',
-    marginRight: -4,
     paddingHorizontal: 4,
   },
   editButtonText: {
