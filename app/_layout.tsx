@@ -201,6 +201,18 @@ const RootLayout = () => {
             }}
           />
           <Stack.Screen
+            name='camp-review-write'
+            options={{
+              headerShown: false,
+              presentation: 'formSheet',
+              sheetAllowedDetents:
+                Platform.OS === 'android' ? [0.9] : 'fitToContents',
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 20,
+              contentStyle: { backgroundColor: '#FFFFFF' },
+            }}
+          />
+          <Stack.Screen
             name='sort-sheet'
             options={{
               headerShown: false,

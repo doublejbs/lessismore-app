@@ -6,6 +6,7 @@ import SeperaterView from '../ui/SeperaterView';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '../PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
+import StarRatingView from '../camp-site/StarRatingView';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -14,6 +15,8 @@ interface Props {
 const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
   const replies = warehouseDetail.getReplies();
   const hasReplies = warehouseDetail.hasReplies();
+  const ratingAvg = warehouseDetail.getReviewRatingAvg();
+  const ratingCount = warehouseDetail.getReviewRatingCount();
 
   const handleAddReviewPress = () => {
     warehouseDetail.goToReply();
@@ -23,9 +26,22 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
     <>
       <SeperaterView />
       <View style={styles.container}>
-        <PretendardText weight='bold' style={styles.title}>
-          리뷰
-        </PretendardText>
+        <View style={styles.header}>
+          <PretendardText weight='bold' style={styles.title}>
+            리뷰
+          </PretendardText>
+          {ratingCount > 0 && (
+            <View style={styles.ratingSummary}>
+              <StarRatingView rating={ratingAvg} size={14} />
+              <PretendardText weight='semibold' style={styles.ratingAvgText}>
+                {ratingAvg.toFixed(1)}
+              </PretendardText>
+              <PretendardText style={styles.ratingCountText}>
+                (리뷰 {ratingCount})
+              </PretendardText>
+            </View>
+          )}
+        </View>
         <View style={styles.repliesContainer}>
           {hasReplies ? (
             <>
@@ -79,9 +95,28 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     gap: 12,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
+  },
   title: {
     fontSize: 16,
     color: Color.textPrimary,
+  },
+  ratingSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  ratingAvgText: {
+    fontSize: 14,
+    color: Color.textPrimary,
+  },
+  ratingCountText: {
+    fontSize: 12,
+    color: Color.textSecondary,
   },
   repliesContainer: {
     flex: 1,

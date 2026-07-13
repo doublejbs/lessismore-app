@@ -148,7 +148,7 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
             <View style={styles.gearInfo}>
               <View style={styles.companyRow}>
                 <PretendardText style={styles.companyText}>
-                  {gear.getCompany()}
+                  {gear.getDisplayCompany()}
                 </PretendardText>
                 {gear.hasUsedRate() && (
                   <View style={styles.usageRateBadge}>

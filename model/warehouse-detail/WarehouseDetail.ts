@@ -59,6 +59,8 @@ class WarehouseDetail {
   private coupangUrl: string | undefined = undefined;
   private reviews: BlogReview[] = [];
   private videos: VideoReview[] = [];
+  private reviewRatingAvg: number = 0;
+  private reviewRatingCount: number = 0;
 
   private constructor(
     private readonly bagStore: BagStore,
@@ -98,6 +100,7 @@ class WarehouseDetail {
 
     this.setBags(await this.bagStore.getBags(this.getGear()?.getBags() ?? []));
     await this.fetchReplies();
+    await this.fetchReviewSummary();
 
     // 공유 이미지 기능 초기화 (isCustom === false인 경우만)
     if (gear && !gear.getIsCustom()) {
@@ -327,6 +330,35 @@ class WarehouseDetail {
     } catch (error) {
       console.error(error);
     }
+  }
+
+  // 리뷰 별점 요약(RP-6): 평균 별점·별점 리뷰 수를 로드한다.
+  // 실패 시 조용히 삼키고 0을 유지한다(가용성 우선).
+  private async fetchReviewSummary() {
+    try {
+      const summary = await this.replyStore.getGearCommentSummary(this.id);
+
+      if (summary) {
+        this.setReviewRatingSummary(summary.ratingAvg, summary.ratingCount);
+      } else {
+        this.setReviewRatingSummary(0, 0);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  private setReviewRatingSummary(avg: number, count: number) {
+    this.reviewRatingAvg = avg;
+    this.reviewRatingCount = count;
+  }
+
+  public getReviewRatingAvg() {
+    return this.reviewRatingAvg;
+  }
+
+  public getReviewRatingCount() {
+    return this.reviewRatingCount;
   }
 
   private setReplies(value: ReplyItem[]) {
