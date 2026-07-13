@@ -1,5 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import { Alert, Linking } from 'react-native';
+import { Alert, Linking, Share } from 'react-native';
 import { Router } from 'expo-router';
 import app from '../app/App';
 import Firebase from '../firebase/Firebase';
@@ -185,6 +185,29 @@ class CampSiteDetail {
 
   public close() {
     this.router.back();
+  }
+
+  // 공유(CS-7): 박지 웹 랜딩 URL을 OS 공유 시트로 내보낸다.
+  // 랜딩(useless.my/camp-share/{id})에서 앱으로 딥링크(lessismoreapp://camp-site/{id})된다.
+  public async share() {
+    const spot = this.spot;
+
+    if (!spot) {
+      return;
+    }
+
+    this.analyticsManager?.logClick('camp_site_share');
+
+    const url = `https://useless.my/camp-share/${spot.id}`;
+
+    try {
+      await Share.share({
+        message: `${spot.name} · 백패킹 박지\n${url}`,
+        url,
+      });
+    } catch {
+      // 공유 시트 취소·실패는 조용히 무시
+    }
   }
 
   // 네이버 지도에서 열기(CS-3): 좌표·박지명으로 네이버 지도 앱을 연다.
