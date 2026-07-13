@@ -17,6 +17,8 @@ export interface CampSpotData {
   // 지형·특징 태그 (DM-17). 없으면 태그 필터 선택 시 제외된다.
   tags?: CampSiteTag[];
   accessInfo?: string;
+  // 시드 멱등성 키(DM-17) — 문서 id는 무작위라 (source, sourceKey)로 재실행 매칭. 표시엔 안 씀.
+  sourceKey?: string;
   warnings?: string;
   imageUrl?: string;
   source: string;

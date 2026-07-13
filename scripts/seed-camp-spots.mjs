@@ -2,7 +2,8 @@
 //   /camp-spot 컬렉션에 큐레이션 시드 + (선택) 고캠핑 API 스냅샷을 upsert 한다.
 //   - 큐레이션: scripts/camp-spots-curated.json (백패킹 노지·대피소, 수동 검수 대상)
 //   - 고캠핑: GOCAMPING_KEY env 가 있을 때만 한국관광공사 basedList 조회 → campground 유형
-//   문서 id: curated:{slug} / gocamping:{contentId} (upsert 멱등)
+//   문서 id: 무작위 고유값(Firebase 자동 생성). 멱등성은 (source, sourceKey) 필드로 매칭
+//            — curated: sourceKey=slug / gocamping: sourceKey=contentId.
 //   앱 Firestore(lessismore-7e070) 쓰기이므로 클라이언트 SDK + public config 사용(admin 키 불필요).
 //   /camp-spot 은 기본 보안 규칙상 클라이언트 쓰기가 막혀 있을 수 있다 →
 //   permission-denied 시 콘솔에서 규칙 임시 허용이 필요하다는 안내를 출력하고 정상 종료한다.
@@ -91,7 +92,10 @@ const loadCuratedSpots = () => {
     // 좌표 검수 플래그(needsVerification)는 소스 JSON에만 둔다 —
     // DM-17 계약 외 필드를 Firestore에 영속하지 않는다(카탈로그는 계약 필드만).
 
-    return { id: `curated:${item.slug}`, document };
+    // 재실행 멱등성 키(source, sourceKey) — 문서 id는 무작위라 이 필드로 기존 문서를 매칭한다.
+    document.sourceKey = item.slug;
+
+    return { source: 'curated', sourceKey: item.slug, document };
   });
 };
 
@@ -198,7 +202,9 @@ const fetchGoCampingSpots = async () => {
     withOptional(document, 'accessInfo', item.direction);
     withOptional(document, 'imageUrl', item.firstImageUrl);
 
-    spots.push({ id: `gocamping:${contentId}`, document });
+    document.sourceKey = String(contentId);
+
+    spots.push({ source: 'gocamping', sourceKey: String(contentId), document });
   }
 
   console.log(`  좌표/식별자 누락으로 스킵: ${skipped}개`);
@@ -222,15 +228,36 @@ const backupExisting = async () => {
   return existing.length;
 };
 
-// ── 4. upsert (setDoc merge) ──────────────────────────────────────
+// ── 4. upsert — (source, sourceKey)로 기존 문서를 찾아 갱신, 없으면 무작위 id 생성 ──
+// 문서 id가 무작위(고유값)라 결정적 id 대신 이 키로 멱등성을 보장한다.
+const buildExistingKeyMap = async () => {
+  const snap = await getDocs(collection(db, 'camp-spot'));
+  const map = new Map();
+
+  snap.forEach(d => {
+    const data = d.data();
+
+    if (data.source && data.sourceKey) {
+      map.set(`${data.source} ${data.sourceKey}`, d.id);
+    }
+  });
+
+  return map;
+};
+
 const upsertSpots = async spots => {
   let written = 0;
+  const existingByKey = await buildExistingKeyMap();
 
   for (const spot of spots) {
     try {
-      await setDoc(doc(db, 'camp-spot', spot.id), spot.document, {
-        merge: true,
-      });
+      const key = `${spot.source} ${spot.sourceKey}`;
+      const existingId = existingByKey.get(key);
+      const ref = existingId
+        ? doc(db, 'camp-spot', existingId)
+        : doc(collection(db, 'camp-spot')); // 신규는 무작위 id
+
+      await setDoc(ref, spot.document, { merge: true });
       written += 1;
 
       if (written % 50 === 0) {
