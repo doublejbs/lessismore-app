@@ -62,17 +62,20 @@ const CampUserReviewSectionView: FC<Props> = ({ campSiteDetail }) => {
         ) : null}
       </View>
 
-      <TouchableOpacity
-        style={styles.writeButton}
-        onPress={handlePressWrite}
-        activeOpacity={0.7}
-        accessibilityRole='button'
-        accessibilityLabel={myReview ? '내 후기 수정' : '후기 쓰기'}
-      >
-        <PretendardText style={styles.writeButtonText} weight='semibold'>
-          {myReview ? '내 후기 수정' : '후기 쓰기'}
-        </PretendardText>
-      </TouchableOpacity>
+      {/* 내 후기가 없을 때만 작성 버튼 노출 — 있으면 카드의 수정/삭제로 진입(중복 제거). */}
+      {!myReview ? (
+        <TouchableOpacity
+          style={styles.writeButton}
+          onPress={handlePressWrite}
+          activeOpacity={0.7}
+          accessibilityRole='button'
+          accessibilityLabel='후기 쓰기'
+        >
+          <PretendardText style={styles.writeButtonText} weight='semibold'>
+            후기 쓰기
+          </PretendardText>
+        </TouchableOpacity>
+      ) : null}
 
       {isEmpty ? (
         <PretendardText style={styles.emptyText}>
@@ -99,6 +102,9 @@ const CampUserReviewSectionView: FC<Props> = ({ campSiteDetail }) => {
           ))}
         </View>
       )}
+
+      {/* 아래 '블로그·영상' 섹션과 경계를 명확히 하는 구분선(CS-8 디자인 리뷰). */}
+      <View style={styles.divider} />
     </View>
   );
 };
@@ -149,6 +155,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Color.textSecondary,
     textAlign: 'center',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Color.borderLight,
+    marginTop: 4,
   },
 });
 

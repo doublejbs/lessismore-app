@@ -7,6 +7,9 @@ import {
   Platform,
   ScrollView,
   Alert,
+  Keyboard,
+  TouchableWithoutFeedback,
+  InputAccessoryView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,6 +24,8 @@ import { CampReviewInput } from '@/model/camp-review/CampReviewTypes';
 import { Color, Radius } from '@/constants/DesignTokens';
 
 const MAX_CONTENT_LENGTH = 1000;
+// iOS 멀티라인 입력은 리턴키로 키보드를 못 닫으므로 키보드 위 '완료' 액세서리를 붙인다.
+const CONTENT_ACCESSORY_ID = 'campReviewContentAccessory';
 
 // 첨부 배낭의 표시/저장 스냅샷 — 실 배낭(BagItem) 선택분과 수정 시 기존 후기 스냅샷을 함께 다룬다.
 interface AttachedBag {
@@ -208,6 +213,7 @@ const CampReviewWriteScreen = () => {
           maxLength={MAX_CONTENT_LENGTH}
           multiline
           textAlignVertical='top'
+          inputAccessoryViewID={isAndroid ? undefined : CONTENT_ACCESSORY_ID}
         />
         <PretendardText style={styles.counter}>
           {content.length}/{MAX_CONTENT_LENGTH}
@@ -282,11 +288,16 @@ const CampReviewWriteScreen = () => {
           style={styles.bodyScroll}
           contentContainerStyle={styles.body}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps='handled'
+          keyboardDismissMode='on-drag'
         >
           {bodyContent}
         </ScrollView>
       ) : (
-        <View style={styles.body}>{bodyContent}</View>
+        // iOS: 빈 영역을 탭하면 키보드를 닫는다(멀티라인 입력 대응).
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={styles.body}>{bodyContent}</View>
+        </TouchableWithoutFeedback>
       )}
 
       <View style={styles.buttonContainer}>
@@ -324,6 +335,24 @@ const CampReviewWriteScreen = () => {
         hideCreateNew
         subtitleOverride='다녀온 배낭을 선택해요'
       />
+
+      {/* iOS 키보드 위 '완료' 바 — 멀티라인 입력에서 키보드를 내린다. */}
+      {!isAndroid && (
+        <InputAccessoryView nativeID={CONTENT_ACCESSORY_ID}>
+          <View style={styles.accessoryBar}>
+            <TouchableOpacity
+              onPress={() => Keyboard.dismiss()}
+              accessibilityRole='button'
+              accessibilityLabel='키보드 닫기'
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <PretendardText weight='semibold' style={styles.accessoryDone}>
+                완료
+              </PretendardText>
+            </TouchableOpacity>
+          </View>
+        </InputAccessoryView>
+      )}
     </View>
   );
 };
@@ -447,6 +476,22 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     fontSize: 16,
     color: Color.background,
+  },
+  accessoryBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: Color.surfaceMuted,
+    borderTopWidth: 1,
+    borderTopColor: Color.borderLight,
+  },
+  accessoryDone: {
+    fontSize: 16,
+    color: Color.textPrimary,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
 });
 

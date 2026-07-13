@@ -119,8 +119,10 @@
 
 ### DM-7 댓글 (`gear-comments`)
 
-요약 문서 `gear-comments/{gearId}`: `gearId`, `totalCount`, `parentCount`, `lastCommentAt`, `createdAt`, `updatedAt`.
-댓글 카운트는 댓글 생성/삭제 트랜잭션 안에서 함께 갱신된다.
+요약 문서 `gear-comments/{gearId}`: `gearId`, `totalCount`, `parentCount`, `lastCommentAt`, `createdAt`, `updatedAt`, 그리고 **별점 집계**(장비 리뷰 별점, [Reply.md](Reply.md) RP-1) `ratingSum`, `ratingCount`, `ratingAvg`.
+댓글 카운트와 별점 집계는 댓글 생성/수정/삭제 트랜잭션 안에서 함께 갱신된다.
+
+- `ratingCount` = **별점이 있는 최상위 댓글 수**(답글·레거시 무별점 댓글 제외). `ratingSum` = 그 별점들의 합. `ratingAvg` = `ratingCount>0 ? ratingSum/ratingCount : 0`(소수 1자리). `increment`로 못 구하는 `ratingAvg`는 트랜잭션 내 재계산.
 
 댓글 문서 (`comments/{commentId}`, 답글도 동일 형태 — `model/reply/Comment.ts`):
 
@@ -132,6 +134,7 @@
 | `authorProfileUrl` | string? | |
 | `parentId` | string \| null | 최상위는 null |
 | `depth` | number | 0: 최상위, 1: 답글 (스토어 검증: `depth > 2`면 예외) |
+| `rating` | number? | 최상위 리뷰 별점 1~5(RP-1). 답글·레거시 댓글에는 없음. 별점 집계는 이 값이 있는 최상위 댓글만 포함 |
 | `isDeleted` | boolean | 답글 있는 댓글은 논리 삭제 |
 | `likeCount` / `replyCount` | number | 트랜잭션으로 증감 |
 | `createdAt` / `updatedAt` / `deletedAt?` | timestamp | |
@@ -340,7 +343,7 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 | 장비 등록 `GearStore.register` | `writeBatch` | `users/{uid}/gears` + `gear-rank` 증가 |
 | 장비 삭제 `GearStore.remove` | `writeBatch` | 장비 문서 삭제 + 소속 배낭들의 `gears`/`weight` 갱신 + `gear-rank` 감소 |
 | 장비 무게 수정 | `GearStore.update` 후 `BagStore.updateBagsWeight` 배치 | 소속 배낭들의 `weight` |
-| 댓글 생성/수정/삭제/좋아요 | `runTransaction` | 댓글 문서 + 요약 문서(카운트) + 부모 `replyCount` / `likeCount` |
+| 댓글 생성/수정/삭제/좋아요 | `runTransaction` | 댓글 문서 + 요약 문서(카운트 + 별점 집계 `ratingSum`/`ratingCount`/`ratingAvg`) + 부모 `replyCount` / `likeCount` (별점 수정은 요약 델타 반영 위해 updateComment도 트랜잭션) |
 | 박지 유저 후기 생성/수정/삭제 | `runTransaction` | 후기 문서 + 요약 문서(`reviewCount`/`ratingSum`/`ratingAvg`) (DM-20) |
 | 회원 탈퇴 `Firebase.deleteUserData` | 청크 `writeBatch` | `gear-rank` 감소 + `bag` 문서들 + `users/{uid}/gears` 전체 + `comment-likes` + `users/{uid}` 삭제 ([Auth.md](Auth.md) AU-8) |
 

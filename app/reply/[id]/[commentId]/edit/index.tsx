@@ -3,6 +3,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import app from '@/model/app/App';
+import Comment from '@/model/reply/Comment';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 
 const ReplyEdit = () => {
@@ -10,15 +11,16 @@ const ReplyEdit = () => {
     id: string;
     commentId: string;
   }>();
-  const [initialContent, setInitialContent] = useState<string | null>(null);
+  const [comment, setComment] = useState<Comment | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadComment = async () => {
       try {
-        const comment = await app.getReplyStore()?.getComment(id, commentId);
-        if (comment) {
-          setInitialContent(comment.content);
+        const loaded = await app.getReplyStore()?.getComment(id, commentId);
+
+        if (loaded) {
+          setComment(loaded);
         }
       } catch (error) {
         console.error('댓글 로드 실패:', error);
@@ -30,7 +32,7 @@ const ReplyEdit = () => {
     loadComment();
   }, [id, commentId]);
 
-  if (isLoading || initialContent === null) {
+  if (isLoading || comment === null) {
     return (
       <Layout paddingHorizontal={0}>
         <View style={styles.loadingContainer}>
@@ -40,12 +42,17 @@ const ReplyEdit = () => {
     );
   }
 
+  // 최상위 댓글(=리뷰)만 별점을 편집한다. 답글은 글만 수정한다.
+  const isTopLevel = comment.parentId == null;
+
   return (
     <Layout paddingHorizontal={0}>
       <ReplyEditView
         gearId={id}
         commentId={commentId}
-        initialContent={initialContent}
+        initialContent={comment.content}
+        isTopLevel={isTopLevel}
+        initialRating={comment.rating ?? 0}
       />
     </Layout>
   );
