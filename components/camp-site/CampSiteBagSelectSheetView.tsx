@@ -5,6 +5,8 @@ import {
   Modal,
   ScrollView,
   TouchableOpacity,
+  TouchableWithoutFeedback,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,6 +34,7 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
   onCreateNew,
 }) => {
   const insets = useSafeAreaInsets();
+  const isAndroid = Platform.OS === 'android';
 
   // 방금 만든/최근 수정한 배낭을 위로 — 최근 수정순(편집일 desc).
   const sortedBags = [...bags].sort(
@@ -42,16 +45,11 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
     onSelect(bag);
   };
 
-  return (
-    <Modal
-      visible={visible}
-      animationType='slide'
-      presentationStyle='pageSheet'
-      onRequestClose={onClose}
-      onDismiss={onClose}
-    >
-      <View style={styles.sheet}>
-        <View style={styles.header}>
+  // 시트 본문(헤더 + 목록). iOS는 pageSheet 전체, Android는 하단 바텀시트에 담는다.
+  const sheetContent = (
+    <>
+      {isAndroid && <View style={styles.grabber} />}
+      <View style={styles.header}>
           <View style={styles.headerText}>
             <PretendardText style={styles.title} weight='bold'>
               배낭 선택
@@ -72,10 +70,10 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
         </View>
 
         <ScrollView
-          style={styles.list}
+          style={[styles.list, isAndroid && styles.listAndroid]}
           contentContainerStyle={[
             styles.listContent,
-            { paddingBottom: Math.max(insets.bottom, 16) },
+            { paddingBottom: isAndroid ? 8 : Math.max(insets.bottom, 16) },
           ]}
           showsVerticalScrollIndicator={false}
         >
@@ -155,7 +153,40 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
             </>
           )}
         </ScrollView>
-      </View>
+    </>
+  );
+
+  // Android: presentationStyle는 iOS 전용이라 Modal이 전체화면으로 뜬다.
+  // 딤 배경 + 하단 라운드 바텀시트(최대 높이)로 감싸 시트처럼 보이게 한다.
+  if (isAndroid) {
+    return (
+      <Modal
+        visible={visible}
+        animationType='slide'
+        transparent
+        onRequestClose={onClose}
+      >
+        <View style={styles.androidBackdrop}>
+          <TouchableWithoutFeedback onPress={onClose}>
+            <View style={styles.backdropTouchable} />
+          </TouchableWithoutFeedback>
+          <View style={[styles.androidSheet, { paddingBottom: insets.bottom }]}>
+            {sheetContent}
+          </View>
+        </View>
+      </Modal>
+    );
+  }
+
+  return (
+    <Modal
+      visible={visible}
+      animationType='slide'
+      presentationStyle='pageSheet'
+      onRequestClose={onClose}
+      onDismiss={onClose}
+    >
+      <View style={styles.sheet}>{sheetContent}</View>
     </Modal>
   );
 };
@@ -166,6 +197,39 @@ const styles = StyleSheet.create({
     backgroundColor: Color.background,
     paddingHorizontal: 20,
     paddingTop: 12,
+  },
+  // Android 딤 배경 — 하단에 시트를 정렬한다.
+  androidBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'flex-end',
+  },
+  // 배경 탭 시 닫힘 영역(시트 위쪽 여백 전체).
+  backdropTouchable: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  // Android 바텀시트 컨테이너 — 상단 라운드 + 최대 높이로 전체화면 방지.
+  androidSheet: {
+    maxHeight: '85%',
+    backgroundColor: Color.background,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingHorizontal: 20,
+  },
+  // 상단 그래버 핸들(다른 시트와 톤 통일).
+  grabber: {
+    alignSelf: 'center',
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Color.borderLight,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  // Android는 내용 높이에 맞춰 시트가 줄어들도록 flex를 강제하지 않는다.
+  listAndroid: {
+    flexGrow: 0,
+    flexShrink: 1,
   },
   header: {
     flexDirection: 'row',
