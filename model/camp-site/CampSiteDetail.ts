@@ -184,7 +184,13 @@ class CampSiteDetail {
   }
 
   public close() {
-    this.router.back();
+    // 앱이 꺼진 상태에서 공유 딥링크로 상세가 첫 화면으로 열리면 돌아갈 화면이 없어
+    // router.back()이 'GO_BACK not handled'로 실패한다 — 이 경우 지도 탭으로 보낸다.
+    if (this.router.canGoBack()) {
+      this.router.back();
+    } else {
+      this.router.replace('/map');
+    }
   }
 
   // 공유(CS-7): 박지 웹 랜딩 URL을 OS 공유 시트로 내보낸다.
