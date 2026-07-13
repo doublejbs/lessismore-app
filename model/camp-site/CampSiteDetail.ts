@@ -204,7 +204,9 @@ class CampSiteDetail {
 
     this.analyticsManager?.logClick('camp_site_share');
 
-    const url = `https://useless.my/camp-share/${spot.id}`;
+    // 문서 id에 콜론(예: curated:seokseongsan)이 들어가 있다. 메신저의 URL 자동 링크화가
+    // 콜론에서 끊겨 링크가 깨지므로 퍼센트 인코딩(%3A)한다 — 웹 랜딩(React Router)이 복원한다.
+    const url = `https://useless.my/camp-share/${encodeURIComponent(spot.id)}`;
 
     try {
       // URL만 공유한다 — 이름 등 텍스트를 붙이면 '복사' 시 URL이 아닌 문자열이 복사돼
