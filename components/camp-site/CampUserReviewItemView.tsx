@@ -91,6 +91,12 @@ const CampUserReviewItemView: FC<Props> = ({
               {review.bagWeight}kg
             </PretendardText>
           ) : null}
+          {/* 탭 가능(읽기전용 배낭 뷰어로 이동)함을 나타내는 chevron. */}
+          <Ionicons
+            name='chevron-forward'
+            size={14}
+            color={Color.textSecondary}
+          />
         </TouchableOpacity>
       ) : null}
 
@@ -117,7 +123,7 @@ const CampUserReviewItemView: FC<Props> = ({
               accessibilityRole='button'
               accessibilityLabel='후기 삭제'
             >
-              <PretendardText style={styles.actionText} weight='medium'>
+              <PretendardText style={styles.deleteText} weight='medium'>
                 삭제
               </PretendardText>
             </TouchableOpacity>
@@ -192,6 +198,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: 4,
+    // 배낭 칩과 붙지 않도록 위 여백을 준다(디자인 리뷰).
+    marginTop: 4,
   },
   actionButton: {
     minHeight: 44,
@@ -202,6 +210,11 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 13,
     color: Color.textSecondary,
+  },
+  // 삭제는 위험 액션이라 빨강 시맨틱색으로 구분(토큰 예외 허용).
+  deleteText: {
+    fontSize: 13,
+    color: '#E5484D',
   },
 });
 

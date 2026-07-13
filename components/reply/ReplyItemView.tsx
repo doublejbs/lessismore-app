@@ -10,6 +10,7 @@ import { FC, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import app from '@/model/app/App';
 import BottomMenuModalView from '../ui/BottomMenuModalView';
+import StarRatingView from '../camp-site/StarRatingView';
 
 interface Props {
   gearId: string;
@@ -98,6 +99,9 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
             </TouchableOpacity>
           )}
         </View>
+        {comment.rating !== undefined && (
+          <StarRatingView rating={comment.rating} size={14} />
+        )}
         <View style={styles.contentContainer}>
           <PretendardText style={styles.content}>
             {comment.content}
