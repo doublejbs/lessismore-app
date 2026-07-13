@@ -17,6 +17,7 @@ interface Props {
   bags: BagItem[];
   onClose: () => void;
   onSelect: (bag: BagItem) => void;
+  onCreateNew: () => void;
 }
 
 // CS-5: 박지를 여행지로 설정할 배낭을 고르는 시트. iOS 네이티브 pageSheet 프레젠테이션.
@@ -25,6 +26,7 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
   bags,
   onClose,
   onSelect,
+  onCreateNew,
 }) => {
   const insets = useSafeAreaInsets();
 
@@ -64,6 +66,28 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
           ]}
           showsVerticalScrollIndicator={false}
         >
+          {/* 새 배낭 만들기 — 여기로 진입해 만든 배낭에 이 박지가 여행지로 설정된다(CS-5). */}
+          <TouchableOpacity
+            style={styles.createRow}
+            onPress={onCreateNew}
+            activeOpacity={0.7}
+            accessibilityRole='button'
+            accessibilityLabel='새 배낭 만들기'
+          >
+            <View style={styles.createIcon}>
+              <Ionicons name='add' size={22} color={Color.background} />
+            </View>
+            <PretendardText style={styles.createText} weight='semibold'>
+              새 배낭 만들기
+            </PretendardText>
+          </TouchableOpacity>
+
+          {bags.length === 0 && (
+            <PretendardText style={styles.emptyText}>
+              아직 배낭이 없어요. 새 배낭을 만들어 여행지를 설정하세요.
+            </PretendardText>
+          )}
+
           {bags.map(bag => (
             <TouchableOpacity
               key={bag.getID()}
@@ -126,6 +150,32 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingTop: 4,
+  },
+  createRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Color.borderLight,
+  },
+  createIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Color.chipActiveBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  createText: {
+    fontSize: 16,
+    color: Color.textPrimary,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: Color.textSecondary,
+    paddingVertical: 20,
+    textAlign: 'center',
   },
   row: {
     flexDirection: 'row',
