@@ -1,6 +1,7 @@
 import app from '../app/App';
 import CampSpotStore from '../store/CampSpotStore';
 import BagStore from '../store/BagStore';
+import CampReviewStore from '../store/CampReviewStore';
 import BagItem from '../bag/BagItem';
 import reviewSearchService from '../review/ReviewSearchService';
 import { CampSpot } from './CampSpotTypes';
@@ -9,20 +10,23 @@ import {
   ReviewCache,
   VideoReview,
 } from '../review/ReviewTypes';
+import { CampReview, CampReviewSummary } from '../camp-review/CampReviewTypes';
 import { BagLocation } from '../weather/WeatherTypes';
 
-// 박지 상세(CampSite CS-3/CS-5)의 데이터 접근을 캡슐화한다.
+// 박지 상세(CampSite CS-3/CS-5/CS-8)의 데이터 접근을 캡슐화한다.
 class CampSiteDetailDispatcher {
   public static new() {
     return new CampSiteDetailDispatcher(
       app.getCampSpotStore()!,
-      app.getBagStore()!
+      app.getBagStore()!,
+      app.getCampReviewStore()!
     );
   }
 
   private constructor(
     private readonly campSpotStore: CampSpotStore,
-    private readonly bagStore: BagStore
+    private readonly bagStore: BagStore,
+    private readonly campReviewStore: CampReviewStore
   ) {}
 
   public async getSpot(id: string): Promise<CampSpot | null> {
@@ -50,6 +54,31 @@ class CampSiteDetailDispatcher {
     cache: ReviewCache
   ): Promise<void> {
     await this.campSpotStore.saveReviewCache(spotId, cache);
+  }
+
+  // 유저 후기 별점 요약(CS-8) 조회 — 문서 없으면 null.
+  public async getReviewSummary(
+    spotId: string
+  ): Promise<CampReviewSummary | null> {
+    return this.campReviewStore.getSummary(spotId);
+  }
+
+  // 유저 후기 목록(CS-8) 조회 — 최신 수정순.
+  public async getUserReviews(spotId: string): Promise<CampReview[]> {
+    return this.campReviewStore.getReviews(spotId);
+  }
+
+  // 내 후기 단건(CS-8) 조회 — 없으면 null.
+  public async getMyReview(
+    spotId: string,
+    userId: string
+  ): Promise<CampReview | null> {
+    return this.campReviewStore.getMyReview(spotId, userId);
+  }
+
+  // 내 후기 삭제(CS-8) — 소유자만. 요약 집계는 스토어가 트랜잭션으로 반영한다.
+  public async deleteReview(spotId: string, userId: string): Promise<void> {
+    await this.campReviewStore.deleteReview(spotId, userId);
   }
 
   public async getBags(): Promise<BagItem[]> {

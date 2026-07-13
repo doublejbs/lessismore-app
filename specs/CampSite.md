@@ -4,8 +4,8 @@
 | --- | --- |
 | 상태 | **기획 초안** (2026-07-12 — 구현 전, diff 승인 후 착수) |
 | ID 프리픽스 | `CS` |
-| 주요 코드 (예정) | `app/(tabs)/map.tsx`, `components/camp-site/`, `model/camp-site/`, `scripts/seed-camp-spots.mjs` |
-| 관련 스펙 | [DataModel.md](DataModel.md), [Weather.md](Weather.md), [BagDetail.md](BagDetail.md), [AppLifecycle.md](AppLifecycle.md) |
+| 주요 코드 (예정) | `app/(tabs)/map.tsx`, `app/camp-review-write.tsx`, `app/shared-bag/[id].tsx`, `components/camp-site/`, `model/camp-site/`, `model/camp-review/`, `scripts/seed-camp-spots.mjs` |
+| 관련 스펙 | [DataModel.md](DataModel.md), [Weather.md](Weather.md), [BagDetail.md](BagDetail.md), [Reply.md](Reply.md), [Analytics.md](Analytics.md), [AppLifecycle.md](AppLifecycle.md) |
 
 ## 1. 개요
 
@@ -114,10 +114,26 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
 - 공유 클릭을 `click_camp_site_share`로 계측한다([Analytics.md](Analytics.md) AN-3).
 - **웹 랜딩**(별도 레포 `lessismore`, `/camp-share/:id`): Firestore `/camp-spot/{id}`(공개 읽기)를 읽어 이름·유형·지역·사진·설명·주의를 보여주고, **`앱에서 보기`** 버튼으로 `lessismoreapp://camp-site/{id}` 딥링크(미설치 시 스토어 폴백)로 앱을 연다. Universal Link는 쓰지 않는다(웹 랜딩을 먼저 보여주는 의도).
 
+### CS-8 유저 후기 (별점·글·다녀온 배낭) `[기획]`
+
+이용자가 박지에 **별점(필수)·후기 글(선택)·다녀온 배낭(선택)**을 남기고, 다른 이용자는 이를 읽고 첨부된 배낭(장비 구성)을 앱 내에서 열람한다. 외부 블로그·유튜브 후기(CS-3)와는 **별개의 유저 생성 콘텐츠**(데이터: [DataModel.md](DataModel.md) DM-20). 작성자 식별·로그인 가드·소유자 삭제는 장비 댓글(Reply, [Reply.md](Reply.md)) 패턴을 재사용한다.
+
+**수용 기준**
+
+- **배치**: 상세 하단, `주간 날씨` 버튼 아래에 **`후기` 섹션**(유저 후기)을 두고, 그 아래에 기존 외부 콘텐츠 섹션을 **`블로그·영상`**으로 이름을 바꿔 배치한다(두 "후기" 라벨 혼동 방지).
+- **요약 헤더**: 섹션 상단에 **평균 별점(★ n.n)·후기 수**를 표시한다. 후기가 0건이면 `첫 후기를 남겨보세요`.
+- **작성 진입**: 섹션에 `후기 쓰기`(내 후기 없음) 또는 `내 후기 수정`(있음) 버튼. 탭 → 작성 화면(formSheet `/camp-review-write`, 박지 id·이름과 기존 내 후기를 모듈 핸드오프로 전달). 비로그인 시 전역 로그인 모달(`app.getLogInAlertManager()`, Reply 관례) 후 중단.
+- **작성 화면**(`/camp-review-write`, formSheet): ① **별점 입력**(★ 1~5 탭, 필수 — 미선택 시 저장 비활성) ② **후기 글**(멀티라인, 선택, 최대 1000자) ③ **다녀온 배낭 선택**(선택) — `배낭 선택` 행 탭 시 내 배낭 시트(CS-5 `CampSiteBagSelectSheetView` 재사용, `새 배낭 만들기` 행은 숨김) → 고른 배낭의 이름·날짜·무게를 칩으로 표시하고 해제 가능. 저장 시 첨부 배낭은 **`bag.reviewShared=true`**(후기 전용 공개 플래그 — 링크 공유 `shared`와 별개)로 설정해 다른 이용자가 열람 가능하게 한다.
+- **박지당 1개(수정)**: 후기 문서 id=작성자 uid라 한 박지에 유저당 1개(DM-20). 재작성은 기존 후기를 프리필해 **수정**(덮어쓰기). 저장은 DM-20 트랜잭션으로 요약 문서의 별점 집계(개수·평균)를 동기 갱신한다.
+- **후기 리스트**: 최신순(`updatedAt` desc). 항목 = 작성자 닉네임 + 별점(★) + 날짜 + 글 + (첨부 시) **배낭 칩**(이름·무게·날짜). **내 후기는 상단 고정 + 강조**하고 `수정`/`삭제`(확인 다이얼로그)를 노출한다. 소유자 판정은 `authorId===내 uid` + 스토어 재검증(이중 방어).
+- **첨부 배낭 열람**: 배낭 칩 탭 → 앱 내 **읽기전용 공유 배낭 뷰어** `/shared-bag/{bagId}`로 이동. `BagStore.getSharedBag(bagId)`로 소유자의 장비 구성을 로드해 배낭명·기간·총무게·장비 리스트를 **읽기전용**(편집·패킹 액션 없음)으로 표시한다. 뷰어는 **`reviewShared` 또는 `shared`가 true**인 배낭을 허용한다. 둘 다 아니거나 로드 실패면 `공유가 해제된 배낭이에요` 안내. (이 뷰어는 배낭 공유 [BagDetail.md](BagDetail.md) BD-7 링크의 앱 내 대응물로 재사용 가능.)
+- **삭제**: 소유자만. DM-20 트랜잭션으로 요약 집계 반영(0건이면 요약 문서 정리). 첨부했던 배낭의 **`reviewShared`는 되돌리지 않는다** — 같은 배낭이 다른 박지 후기에도 첨부됐을 수 있어 레퍼런스 카운트 없이 유지하는 편이 안전하고, 후기 전용 플래그라 링크 공유(`shared`) 노출과도 무관하다.
+- **계측**([Analytics.md](Analytics.md) AN-3): `click_camp_site_review_write`(작성 진입), `submit_camp_site_review`(저장 — 파라미터 `rating`·`has_bag`), `click_camp_site_review_bag`(첨부 배낭 열람). 구현 시 AN 표 갱신.
+
 ## 4. 데이터
 
-- 읽기: `/camp-spot`(DM-17) — `where('status','==','active')` 전량. 날씨는 WT 파이프라인 재사용(쓰기 없음).
-- 쓰기: 클라이언트는 CS-5의 `bag.location`(DM-15)만 쓴다. `/camp-spot` 적재는 관리 스크립트 전용.
+- 읽기: `/camp-spot`(DM-17) — `where('status','==','active')` 전량. 유저 후기 `camp-spot-user-review`(DM-20). 날씨는 WT 파이프라인 재사용(쓰기 없음).
+- 쓰기: 클라이언트는 CS-5의 `bag.location`(DM-15), CS-8의 유저 후기(`camp-spot-user-review` DM-20, 트랜잭션) 및 첨부 배낭의 `bag.reviewShared`(후기 전용 공개 플래그, `shared`와 별개)만 쓴다. `/camp-spot` 적재는 관리 스크립트 전용.
 - **적재 파이프라인** (`scripts/seed-camp-spots.mjs`, 수동 실행):
   1. **고캠핑 API**(한국관광공사, 공공데이터포털 무료 키) 스냅샷 → `campground` 유형으로 변환. **필터: 일반야영장 × 공공 관리주체(국립/공립/지자체/국립공원/자연휴양림)만 적재**(≈250곳) — v1 마커 상한(§8) 준수, 민간 글램핑·카라반 제외. 국립공원 대피소는 별도 소스(공공 API 또는 수동 표) → `shelter`.
   2. **큐레이션 시드**: 유명 노지 박지 목록(LLM 리서치 초안 → 수동 검수 필수)을 JSON으로 관리 → `wild` 유형. 좌표는 카카오 지오코딩(WT 재사용) 또는 수동 입력. 설명·주의 문구는 자체 작성(외부 텍스트 복사 금지).
@@ -148,11 +164,17 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
 - [ ] 길찾기 → 외부 지도앱 열림 (iOS/Android)
 - [ ] 상세 주간 날씨 표시, 실패 시 섹션 생략
 - [ ] 배낭 여행지로 설정 → 해당 배낭 location 갱신 + 날씨 흐름 동작
+- [ ] 후기 쓰기(별점 필수, 글·배낭 선택) → 저장 후 리스트·평균 별점 반영
+- [ ] 내 후기 수정/삭제 → 요약 별점 집계 갱신, 소유자만 노출
+- [ ] 첨부 배낭 칩 탭 → 앱 내 읽기전용 공유 배낭 뷰어에서 장비 구성 표시
+- [ ] 비로그인 후기 작성 시 → 로그인 모달
 - [ ] 웹 → 지도 탭 미노출
 
 ## 8. 미해결 질문
 
 - 마커 수가 수천 건(고캠핑 전량)이면 클러스터링/뷰포트 쿼리 필요 — v1은 큐레이션 중심으로 수백 건 이내 유지, 초과 시 재설계.
-- 유저 제보·리뷰·즐겨찾기(v2): 검수 플로우와 보안 규칙 설계 필요.
+- 유저 후기(별점·글·다녀온 배낭)는 CS-8로 구현. 유저 **제보·즐겨찾기**(v2)는 검수 플로우·보안 규칙 설계 필요.
+- 후기 신고·차단·부적절 콘텐츠 모더레이션(v2): 현재 없음.
+- 회원 탈퇴 시 유저 후기(`camp-spot-user-review`) 잔존 — 완전 삭제 정책은 [Auth.md](Auth.md) AU-8 미해결 질문과 함께 검토.
 - 고캠핑 스냅샷 갱신 주기(수동 재실행 vs 주기 배치).
 - 노지 박지 좌표 공개의 커뮤니티 반발 가능성(오버투어리즘) — 민감 박지 제외 기준.

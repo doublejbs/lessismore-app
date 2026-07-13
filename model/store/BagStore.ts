@@ -68,12 +68,14 @@ class BagStore {
         startDate,
         endDate,
         shared,
+        reviewShared,
         gears,
         userId,
       } = bag.data();
 
-      if (!shared) {
-        alert('공유되지 않은 배낭입니다.');
+      // 링크 공유(shared) 또는 후기 첨부 공개(reviewShared) 둘 중 하나라도 true면 열람 허용(CS-8, DM-20).
+      // 미공유는 호출측(읽기전용 뷰어)이 상태로 안내하므로 여기서 raw alert는 띄우지 않는다.
+      if (!shared && !reviewShared) {
         throw new Error('Bag not shared');
       }
 
@@ -86,6 +88,7 @@ class BagStore {
           endDate,
           gears: [],
           shared,
+          reviewShared,
         };
       } else {
         const warehouseSnapshot = await getDocs(
@@ -115,6 +118,7 @@ class BagStore {
           startDate,
           endDate,
           shared,
+          reviewShared,
           gears: warehouseGears.length
             ? warehouseGears.map(
                 ({
@@ -626,6 +630,15 @@ class BagStore {
 
   public async updateShared(id: string, userId: string, shared: boolean) {
     await updateDoc(doc(this.getStore(), 'bag', id), { shared, userId });
+  }
+
+  // 박지 후기 첨부 공개 플래그(CS-8, DM-20). 링크 공유 shared와 별개.
+  public async updateReviewShared(
+    id: string,
+    userId: string,
+    reviewShared: boolean
+  ) {
+    await updateDoc(doc(this.getStore(), 'bag', id), { reviewShared, userId });
   }
 
   public async updateName(id: string, name: string) {

@@ -9,6 +9,7 @@ import ToastManager from '../toast/ToastManager';
 import LogInAlertManager from '../login/LogInAlertManager';
 import ReplyStore from '../store/ReplyStore';
 import CampSpotStore from '../store/CampSpotStore';
+import CampReviewStore from '../store/CampReviewStore';
 import AnalyticsManager from '../analytics/AnalyticsManager';
 import NotificationManager from '../notification/NotificationManager';
 
@@ -23,6 +24,7 @@ class App {
   private toastManager: ToastManager | null = null;
   private replyStore: ReplyStore | null = null;
   private campSpotStore: CampSpotStore | null = null;
+  private campReviewStore: CampReviewStore | null = null;
   private analyticsManager: AnalyticsManager | null = null;
   private notificationManager: NotificationManager | null = null;
   private initialized = false;
@@ -51,6 +53,7 @@ class App {
     this.logInAlertManager = LogInAlertManager.new(this.firebase);
     this.replyStore = new ReplyStore(this.firebase);
     this.campSpotStore = new CampSpotStore(this.firebase);
+    this.campReviewStore = new CampReviewStore(this.firebase);
     this.analyticsManager = AnalyticsManager.new();
     // Firebase 초기화 중 첫 로그인 확인 때는 analyticsManager가 아직 없어 태깅이 누락되므로,
     // 생성 직후 현재 로그인 사용자로 내부 태그를 1회 반영한다(이후 로그인/로그아웃은 Firebase가 처리).
@@ -94,6 +97,10 @@ class App {
 
   public getCampSpotStore() {
     return this.campSpotStore;
+  }
+
+  public getCampReviewStore() {
+    return this.campReviewStore;
   }
 
   public getSearchStore() {
