@@ -283,6 +283,9 @@ class Feed implements GearRowActions {
     const id = ++this.requestId;
 
     this.setLoading(true);
+    // 필터·정렬 변경 시 기존 목록을 비워 스켈레톤을 노출하고, 새 목록은 최상단부터 렌더한다
+    // (FlatList가 리마운트되어 스크롤이 맨 위로 리셋된다). 당겨서 새로고침(refresh)은 이 경로를 쓰지 않는다.
+    this.setItems([]);
     this.resetPagingState();
     this.buckets = this.buildBuckets();
 
