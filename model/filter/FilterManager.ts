@@ -67,8 +67,11 @@ class FilterManager {
   public initializeWithSelectedGears(selectedGears: Gear[]) {
     this.clearFilterCounts();
     selectedGears.forEach(gear => {
+      // 세분 카테고리는 그룹(GearFilter) 기준으로 카운트한다(DM-4).
       this.filters
-        .find(currentFilter => currentFilter.getFilter() === gear.getCategory())
+        .find(
+          currentFilter => currentFilter.getFilter() === gear.getGroupCategory()
+        )
         ?.plusCount();
     });
   }

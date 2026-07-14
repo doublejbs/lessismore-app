@@ -7,8 +7,9 @@ import {
 } from '@firebase/firestore';
 import { SearchResponse } from 'algoliasearch';
 import { Hit, liteClient } from 'algoliasearch/lite';
-import Gear from '../gear/Gear';
+import Gear, { toGearExtra } from '../gear/Gear';
 import GearFilter from '../gear/GearFilter';
+import { GROUP_MEMBERS, getGroupMembers } from '../gear/GearCategoryGroups';
 import Firebase from '../firebase/Firebase';
 import GearType from '../gear/GearType';
 import BrowseSort from './BrowseSort';
@@ -66,7 +67,13 @@ class SearchStore {
     const facetFilters: string[][] = [];
 
     if (category) {
-      facetFilters.push([`category:${category}`]);
+      // 1차 그룹(GearFilter) 키면 그룹의 세분 멤버들을 하나의 OR 배열로 확장하고,
+      // 세분 키면 기존대로 단일 facet으로 넘긴다(DM-4).
+      const facetGroup = GROUP_MEMBERS[category as GearFilter]
+        ? getGroupMembers(category as GearFilter).map(key => `category:${key}`)
+        : [`category:${category}`];
+
+      facetFilters.push(facetGroup);
     }
 
     if (brands && brands.length > 0) {
@@ -157,8 +164,8 @@ class SearchStore {
   }
 
   private mapHitsToGearType(hits: Hit<GearType>[]): GearType[] {
-    return hits.map(
-      ({
+    return hits.map(hit => {
+      const {
         name,
         weight,
         company,
@@ -168,7 +175,9 @@ class SearchStore {
         companyKorean,
         nameKorean,
         category = '',
-      }) => ({
+      } = hit;
+
+      return {
         name,
         weight,
         company,
@@ -182,15 +191,17 @@ class SearchStore {
         companyKorean,
         nameKorean,
         category,
-      })
-    );
+        // 신규 옵셔널 필드 — hit에 없으면 키를 생략한다(exactOptionalPropertyTypes).
+        ...toGearExtra(hit),
+      };
+    });
   }
 
   private async convertWithMyGears(data: GearType[]) {
     const myGears = await this.getList(GearFilter.All);
 
-    return data.map(
-      ({
+    return data.map(item => {
+      const {
         name,
         weight,
         company,
@@ -204,26 +215,27 @@ class SearchStore {
         color,
         companyKorean,
         nameKorean,
-      }) => {
-        return new Gear(
-          id,
-          name,
-          company,
-          weight,
-          imageUrl,
-          this.hasGear(id, myGears),
-          false,
-          category,
-          useless,
-          used,
-          bags,
-          createDate,
-          color,
-          companyKorean,
-          nameKorean
-        );
-      }
-    );
+      } = item;
+
+      return new Gear(
+        id,
+        name,
+        company,
+        weight,
+        imageUrl,
+        this.hasGear(id, myGears),
+        false,
+        category,
+        useless,
+        used,
+        bags,
+        createDate,
+        color,
+        companyKorean,
+        nameKorean,
+        toGearExtra(item)
+      );
+    });
   }
 
   private async getList(filter: GearFilter): Promise<Gear[]> {
@@ -235,13 +247,15 @@ class SearchStore {
           ? collection(this.getStore(), 'users', this.getUserId(), 'gears')
           : query(
               collection(this.getStore(), 'users', this.getUserId(), 'gears'),
-              where('category', '==', filter),
+              // 1차 그룹은 세분 멤버 집합으로 확장한다(단일 그룹이라 ≤8키, Firestore in 30 제한 내, DM-4).
+              where('category', 'in', getGroupMembers(filter)),
               orderBy('name', 'desc')
             );
       const gears = (await getDocs(filterQuery)).docs;
 
       if (gears?.length) {
         return gears.map(doc => {
+          const data = doc.data();
           const {
             id,
             name,
@@ -257,7 +271,7 @@ class SearchStore {
             color,
             companyKorean,
             nameKorean,
-          } = doc.data();
+          } = data;
 
           return new Gear(
             id,
@@ -274,7 +288,8 @@ class SearchStore {
             createDate,
             color,
             companyKorean,
-            nameKorean
+            nameKorean,
+            toGearExtra(data)
           );
         });
       } else {

@@ -19,7 +19,8 @@ const SearchPageView: FC<Props> = ({ searchWarehouse, bag, feed }) => {
   useEffect(() => {
     searchWarehouse.setSearchFilterProvider(() => {
       const filters: { category?: string; brands?: string[] } = {};
-      const category = feed.getFilterCategory();
+      // 세분 선택이 있으면 세분 키를 우선 넘긴다(FD-3 검색 승계).
+      const category = feed.getEffectiveFilterCategory();
       const brandNames = feed.getFilterBrandNames();
 
       if (category) {
@@ -36,7 +37,7 @@ const SearchPageView: FC<Props> = ({ searchWarehouse, bag, feed }) => {
     // 검색 결과 화면에서 필터를 바꾸면 현재 키워드로 즉시 재검색한다.
     const disposeFilterReaction = reaction(
       () => ({
-        category: feed.getFilterCategory(),
+        category: feed.getEffectiveFilterCategory(),
         brandNames: feed.getFilterBrandNames().join('|'),
       }),
       () => {

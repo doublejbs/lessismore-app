@@ -17,7 +17,8 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore';
-import Gear from '../gear/Gear';
+import Gear, { toGearExtra } from '../gear/Gear';
+import { getGroupForCategory } from '../gear/GearCategoryGroups';
 import OrderType from '../order/OrderType';
 import GearFilter from '../gear/GearFilter';
 import Firebase from '../firebase/Firebase';
@@ -98,12 +99,16 @@ class BagStore {
             this.getOrderQuery(order)
           )
         );
+        // 세분 카테고리는 그룹으로 매핑해 비교한다(DM-4).
+        // (기존 category.includes(filter)는 'tent_acc'.includes('tent') 같은 부분 문자열 오탐이 있었다.)
         const warehouseGears = warehouseSnapshot.docs
           .filter(doc =>
             filters.length === 1 && filters[0] === GearFilter.All
               ? true
-              : filters.some(filter =>
-                  (doc.data() as GearData).category.includes(filter)
+              : filters.some(
+                  filter =>
+                    getGroupForCategory((doc.data() as GearData).category) ===
+                    filter
                 )
           )
           .map(doc => ({
@@ -120,8 +125,8 @@ class BagStore {
           shared,
           reviewShared,
           gears: warehouseGears.length
-            ? warehouseGears.map(
-                ({
+            ? warehouseGears.map(gearData => {
+                const {
                   id,
                   name,
                   company,
@@ -136,25 +141,27 @@ class BagStore {
                   color,
                   companyKorean,
                   nameKorean,
-                }) =>
-                  new Gear(
-                    id,
-                    name,
-                    company,
-                    weight,
-                    imageUrl,
-                    true,
-                    isCustom,
-                    category,
-                    useless,
-                    used,
-                    bags,
-                    createDate,
-                    color,
-                    companyKorean,
-                    nameKorean
-                  )
-              )
+                } = gearData;
+
+                return new Gear(
+                  id,
+                  name,
+                  company,
+                  weight,
+                  imageUrl,
+                  true,
+                  isCustom,
+                  category,
+                  useless,
+                  used,
+                  bags,
+                  createDate,
+                  color,
+                  companyKorean,
+                  nameKorean,
+                  toGearExtra(gearData)
+                );
+              })
             : [],
         };
       }
@@ -222,12 +229,15 @@ class BagStore {
           this.getOrderQuery(order)
         )
       );
+      // 세분 카테고리는 그룹으로 매핑해 비교한다(DM-4) — getSharedBag과 동일한 부분 문자열 오탐 수정.
       const warehouseGears = warehouseSnapshot.docs
         .filter(doc =>
           filters.length === 1 && filters[0] === GearFilter.All
             ? true
-            : filters.some(filter =>
-                (doc.data() as GearData).category.includes(filter)
+            : filters.some(
+                filter =>
+                  getGroupForCategory((doc.data() as GearData).category) ===
+                  filter
               )
         )
         .map(doc => ({
@@ -246,8 +256,8 @@ class BagStore {
         location: location ?? null,
         weather: weather ?? null,
         gears: warehouseGears.length
-          ? warehouseGears.map(
-              ({
+          ? warehouseGears.map(gearData => {
+              const {
                 id,
                 name,
                 company,
@@ -262,25 +272,27 @@ class BagStore {
                 color,
                 companyKorean,
                 nameKorean,
-              }) =>
-                new Gear(
-                  id,
-                  name,
-                  company,
-                  weight,
-                  imageUrl,
-                  true,
-                  isCustom,
-                  category,
-                  useless,
-                  used,
-                  bags,
-                  createDate,
-                  color,
-                  companyKorean,
-                  nameKorean
-                )
-            )
+              } = gearData;
+
+              return new Gear(
+                id,
+                name,
+                company,
+                weight,
+                imageUrl,
+                true,
+                isCustom,
+                category,
+                useless,
+                used,
+                bags,
+                createDate,
+                color,
+                companyKorean,
+                nameKorean,
+                toGearExtra(gearData)
+              );
+            })
           : [],
       };
     }
