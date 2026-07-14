@@ -442,7 +442,9 @@ class WarehouseDetail {
       this.gear.getCreateDate(),
       this.gear.getColor(),
       this.gear.getCompanyKorean(),
-      this.gear.getNameKorean()
+      this.gear.getNameKorean(),
+      // 기존 gear에서 재구성 — specs/size 등 신규 필드를 보존한다.
+      this.gear.getExtra()
     );
 
     await this.gearStore.update(updatedGear);

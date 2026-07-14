@@ -9,7 +9,7 @@ import {
 } from 'firebase/firestore';
 import Firebase from '../firebase/Firebase';
 import GearFilter from '../gear/GearFilter';
-import Gear from '../gear/Gear';
+import Gear, { GearExtra, toGearExtra } from '../gear/Gear';
 
 export interface GearRankData {
   id: string;
@@ -27,6 +27,7 @@ export interface GearRankData {
   color: string;
   companyKorean: string;
   nameKorean: string;
+  extra: GearExtra;
 }
 
 class GearRankStore {
@@ -94,6 +95,7 @@ class GearRankStore {
             color: gearData.color || '',
             companyKorean: gearData.companyKorean || '',
             nameKorean: gearData.nameKorean || '',
+            extra: toGearExtra(gearData),
           });
         } else {
           // gears에 없으면 ID만 표시
@@ -113,6 +115,7 @@ class GearRankStore {
             color: '',
             companyKorean: '',
             nameKorean: '',
+            extra: {},
           });
         }
       }
@@ -151,7 +154,8 @@ class GearRankStore {
         item.createDate,
         item.color,
         item.companyKorean,
-        item.nameKorean
+        item.nameKorean,
+        item.extra
       );
     });
   }
@@ -187,7 +191,8 @@ class GearRankStore {
           data.createDate,
           data.color || '',
           data.companyKorean || '',
-          data.nameKorean || ''
+          data.nameKorean || '',
+          toGearExtra(data)
         );
       });
     } catch (error) {

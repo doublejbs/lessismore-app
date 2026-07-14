@@ -53,7 +53,8 @@ const BagDetailSummaryView: FC<Props> = ({ bagDetail }) => {
   const map = new Map<string, number>();
   let totalG = 0;
   bagDetail.getGears().forEach(gear => {
-    const cat = gear.getCategory() || GearFilter.Etc;
+    // 세분 카테고리는 그룹(GearFilter)으로 매핑해 집계한다(DM-4). 빈/미지 키는 etc 폴백.
+    const cat: string = gear.getGroupCategory();
     const key = BASE_CATEGORIES.includes(cat) ? BASE_KEY : cat;
     const w = Number(gear.getWeight());
     map.set(key, (map.get(key) ?? 0) + w);

@@ -8,7 +8,6 @@ import Order from '../order/Order';
 import Gear from '../gear/Gear';
 import { makeAutoObservable, reaction } from 'mobx';
 import OrderType from '../order/OrderType';
-import GearFilter from '../gear/GearFilter';
 import WarehouseFilter from '../warehouse/WarehouseFilter';
 
 class BagEdit {
@@ -122,7 +121,7 @@ class BagEdit {
       return;
     } else {
       this.selectedGears.push(gear);
-      this.filterManager.addFilterCount(gear.getCategory() as GearFilter);
+      this.filterManager.addFilterCount(gear.getGroupCategory());
       this.updateWeight();
       await this.bagStore.save(this.id, [gear], [], this.selectedGears);
     }
@@ -130,7 +129,7 @@ class BagEdit {
 
   public async removeGear(gear: Gear) {
     this.selectedGears = this.selectedGears.filter(g => !g.isSame(gear));
-    this.filterManager.minusFilterCount(gear.getCategory() as GearFilter);
+    this.filterManager.minusFilterCount(gear.getGroupCategory());
     this.updateWeight();
     await this.bagStore.save(this.id, [], [gear], this.selectedGears);
   }

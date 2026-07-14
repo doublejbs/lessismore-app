@@ -214,7 +214,9 @@ class BagDetail {
 
   public getBaseWeight() {
     const grams = this.gears
-      .filter(gear => BagDetail.BASE_CATEGORIES.includes(gear.getCategory()))
+      .filter(gear =>
+        BagDetail.BASE_CATEGORIES.includes(gear.getGroupCategory())
+      )
       .reduce((acc, gear) => acc + Number(gear.getWeight()), 0);
     return Math.round((grams / 1000) * 100) / 100;
   }
@@ -393,9 +395,7 @@ class BagDetail {
 
   public mapGears<R>(callback: (gear: Gear) => R) {
     return this.gears
-      .filter(gear =>
-        this.filterManager.hasFilter(gear.getCategory() as GearFilter)
-      )
+      .filter(gear => this.filterManager.hasFilter(gear.getGroupCategory()))
       .map(callback);
   }
 

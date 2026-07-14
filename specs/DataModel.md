@@ -62,8 +62,13 @@
 | `companyKorean` | string | 제조사 한글명 |
 | `weight` | string \| number | **그램(g) 단위**. 인터페이스 선언은 string이지만 `Gear.getData()`는 number(`+this.weight`)로 저장 — 실제 문서에는 양쪽 타입이 혼재할 수 있다. 합산 시 `parseInt`/`Number` 변환 |
 | `imageUrl` | string | 이미지 URL. `'http'` 포함 여부로 유효성 판단, 없으면 `''` |
-| `color` | string | 자유 입력 문자열 |
-| `category` | string | `GearFilter` enum 값 (아래 DM-4) |
+| `color` | string | 자유 입력 문자열 (영문/원문) |
+| `colorKorean` | string? | 색상 한글. **표시는 `colorKorean \|\| color`** (웹 크롤 파이프라인 기록, 옵셔널) |
+| `size` | string? | 사이즈 (영문/원문, 옵셔널) |
+| `sizeKorean` | string? | 사이즈 한글. **표시는 `sizeKorean \|\| size`** (옵셔널) |
+| `category` | string | 카테고리 키 (아래 DM-4 — 세분 33키 또는 레거시 11키) |
+| `groupId` | string? | 색상·사이즈 변형 그룹 id (크롤 기록). 앱은 표시·그룹핑에만 사용, 쓰지 않음 |
+| `specs` | map? | **카테고리별 스펙 객체** (웹 `specs-schema.js`가 계약 — 예: 텐트 `capacity`/`waterproofRating`, 침낭 `fillPower`/`limitTemp`, 배낭 `volume`). 값은 number/string/boolean. 앱은 읽기 전용으로 상세에 표시(GD-8), 스키마 사본은 `model/gear/GearSpecsSchema.ts` |
 | `isCustom` | boolean | true: 사용자 직접 등록, false: 카탈로그 출신 |
 | `bags` | string[] | 이 장비가 담긴 배낭 ID 배열 |
 | `used` | string[] | "사용함"으로 기록된 배낭 ID 배열 |
@@ -74,13 +79,31 @@
 `/gear` 카탈로그는 정리되어 대부분 `nameKorean`=한글(표시값), `name`=영문/빈 값.
 `/users/{uid}/gears`는 마이그레이션하지 않아 옛 형태(`name`=한글)일 수 있다 — `getDisplayName()` fallback으로 양쪽 모두 정상 표시.
 
-### DM-4 카테고리 enum (`GearFilter`)
+### DM-4 카테고리 체계 (`GearFilter` 그룹 + 세분 카테고리)
 
-`model/gear/GearFilter.ts` — string enum. 저장 값은 영문 슬러그, 표시명은 `FilterManager`/`CustomGearCategory`가 정의.
+카테고리는 **2단 체계**다. 웹 크롤 파이프라인(레포 `lessismore`의 `specs-schema.js`)이 `gear.category`에 **세분 카테고리 키(33개)** 를 직접 저장하고, 앱의 1차 필터 11개(`GearFilter`)는 세분 키들의 **그룹**으로 동작한다(2026-07 실데이터: 카탈로그 대부분이 이미 세분 키).
 
-`all`(전체) / `tent`(텐트) / `sleeping_bag`(침낭) / `backpack`(배낭) / `clothing`(의류) / `mat`(매트) / `furniture`(가구) / `lantern`(랜턴) / `cooking`(조리) / `electronic`(전자기기) / `food`(음식) / `etc`(기타)
+**1차 그룹 (`GearFilter`, `model/gear/GearFilter.ts`)** — 필터 칩·차트·통계 단위. `all`은 필터 전용.
 
-`all`은 필터 전용 값으로 장비 문서에는 저장되지 않는다.
+**그룹 → 세분 카테고리 매핑 (`model/gear/GearCategoryGroups.ts`)** — 레거시 그룹 키 자신도 멤버로 포함(구 데이터 호환):
+
+| 그룹 | 세분 카테고리 (키) |
+| --- | --- |
+| `tent` 텐트 | `tent` 텐트 / `tarp` 타프 / `shelter` 쉘터 / `tent_acc` 텐트ACC |
+| `sleeping_bag` 침낭 | `sleeping_bag` 침낭 |
+| `mat` 매트 | `mat` 매트 / `pillow` 필로우 |
+| `backpack` 배낭 | `backpack` 배낭 / `vest_pack` 베스트 배낭 / `backpack_cover` 배낭 커버 / `pouch` 파우치·수납가방 |
+| `clothing` 의류 | `clothing` 의류 / `gloves` 장갑 / `gaiter` 스패츠 / `sunglasses` 선글라스 |
+| `furniture` 가구 | `furniture` 가구 / `chair` 체어 / `table` 테이블 |
+| `lantern` 랜턴 | `lantern` 랜턴 / `lighting` 조명 |
+| `cooking` 조리 | `cooking` 조리 / `stove` 버너 / `torch` 토치 / `cup` 컵 / `bowl` 그릇 / `cookware_etc` 식기류 기타 / `cutlery` 수저 / `bottle` 물통 |
+| `electronic` 전자기기 | `electronic` 전자기기 |
+| `food` 음식 | `food` 식품 |
+| `etc` 기타 | `etc` 기타 / `towel` 수건 / `hand_warmer` 핫팩 / `shovel` 삽 / `hammer` 망치 / `microspikes` 아이젠 / `trekking_pole` 트레킹폴 |
+
+- 그룹 필터의 Firestore 쿼리는 `where('category','in', 그룹 멤버 배열)` — 최대 멤버 8개(cooking)로 Firestore `in` 30개 제한 안. 매핑에 없는 미지의 키는 `etc` 그룹으로 폴백.
+- 세분 카테고리 한글 라벨은 웹 `CATEGORY_LABELS`와 동일하게 유지한다(위 표). 상세 화면 메타 라인은 세분 라벨을 표시.
+- 사용자 직접 등록(`CustomGearCategory`)은 기존 11개 그룹 키를 그대로 저장한다(세분 선택 UI 없음).
 
 ### DM-5 `bag/{bagId}`
 

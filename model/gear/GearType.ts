@@ -12,6 +12,11 @@ interface GearType {
     color: string;
     companyKorean: string;
     nameKorean: string;
+    colorKorean?: string;
+    size?: string;
+    sizeKorean?: string;
+    groupId?: string;
+    specs?: Record<string, string | number | boolean>;
   }
   
   export default GearType;
