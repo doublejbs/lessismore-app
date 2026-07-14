@@ -3,7 +3,6 @@ import { Router } from 'expo-router';
 import AbstractGearEdit from '@/model/gear/AbstractGearEdit';
 import CustomGearCategory from '@/model/gear/custom/CustomGearCategory';
 import Gear from '@/model/gear/Gear';
-import GearFilter from '@/model/gear/GearFilter';
 import GearEditDispatcher from '@/model/gear/edit/GearEditDispatcher';
 import app from '@/model/app/App';
 import AlertManager from '@/model/alert/AlertManager';
@@ -49,7 +48,8 @@ class GearEdit extends AbstractGearEdit {
       this.setInitialWeight(this.gear.getWeight());
       this.setCompany(this.gear.getCompany());
       this.setPreviewSrc(this.gear.getImageUrl());
-      this.selectFilterWith(this.gear.getCategory() as GearFilter);
+      // 세분 카테고리는 그룹(GearFilter)으로 매핑해 선택한다(DM-4).
+      this.selectFilterWith(this.gear.getGroupCategory());
       this.setColor(this.gear.getColor());
       this.setInitialized(true);
     }
@@ -76,7 +76,9 @@ class GearEdit extends AbstractGearEdit {
       this.gear?.getCreateDate() ?? Date.now(),
       this.getColor(),
       this.gear?.getCompanyKorean() ?? '',
-      this.gear?.getNameKorean() ?? ''
+      this.gear?.getNameKorean() ?? '',
+      // 기존 gear에서 재구성 — specs/size 등 신규 필드를 보존한다.
+      this.gear?.getExtra() ?? {}
     );
 
     await this.dispatcher.update(updatedGear);

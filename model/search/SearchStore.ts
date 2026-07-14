@@ -7,7 +7,7 @@ import {
 } from '@firebase/firestore';
 import { SearchResponse } from 'algoliasearch';
 import { Hit, liteClient } from 'algoliasearch/lite';
-import Gear from '../gear/Gear';
+import Gear, { toGearExtra } from '../gear/Gear';
 import GearFilter from '../gear/GearFilter';
 import Firebase from '../firebase/Firebase';
 import GearType from '../gear/GearType';
@@ -157,8 +157,8 @@ class SearchStore {
   }
 
   private mapHitsToGearType(hits: Hit<GearType>[]): GearType[] {
-    return hits.map(
-      ({
+    return hits.map(hit => {
+      const {
         name,
         weight,
         company,
@@ -168,7 +168,9 @@ class SearchStore {
         companyKorean,
         nameKorean,
         category = '',
-      }) => ({
+      } = hit;
+
+      return {
         name,
         weight,
         company,
@@ -182,15 +184,17 @@ class SearchStore {
         companyKorean,
         nameKorean,
         category,
-      })
-    );
+        // 신규 옵셔널 필드 — hit에 없으면 키를 생략한다(exactOptionalPropertyTypes).
+        ...toGearExtra(hit),
+      };
+    });
   }
 
   private async convertWithMyGears(data: GearType[]) {
     const myGears = await this.getList(GearFilter.All);
 
-    return data.map(
-      ({
+    return data.map(item => {
+      const {
         name,
         weight,
         company,
@@ -204,26 +208,27 @@ class SearchStore {
         color,
         companyKorean,
         nameKorean,
-      }) => {
-        return new Gear(
-          id,
-          name,
-          company,
-          weight,
-          imageUrl,
-          this.hasGear(id, myGears),
-          false,
-          category,
-          useless,
-          used,
-          bags,
-          createDate,
-          color,
-          companyKorean,
-          nameKorean
-        );
-      }
-    );
+      } = item;
+
+      return new Gear(
+        id,
+        name,
+        company,
+        weight,
+        imageUrl,
+        this.hasGear(id, myGears),
+        false,
+        category,
+        useless,
+        used,
+        bags,
+        createDate,
+        color,
+        companyKorean,
+        nameKorean,
+        toGearExtra(item)
+      );
+    });
   }
 
   private async getList(filter: GearFilter): Promise<Gear[]> {
@@ -242,6 +247,7 @@ class SearchStore {
 
       if (gears?.length) {
         return gears.map(doc => {
+          const data = doc.data();
           const {
             id,
             name,
@@ -257,7 +263,7 @@ class SearchStore {
             color,
             companyKorean,
             nameKorean,
-          } = doc.data();
+          } = data;
 
           return new Gear(
             id,
@@ -274,7 +280,8 @@ class SearchStore {
             createDate,
             color,
             companyKorean,
-            nameKorean
+            nameKorean,
+            toGearExtra(data)
           );
         });
       } else {

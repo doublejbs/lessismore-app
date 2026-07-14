@@ -91,7 +91,9 @@ class BagDetailFilterManager {
     return this.filters
       .map(filter => ({
         category: filter,
-        gears: gears.filter(gear => gear.getCategory() === filter.getFilter()),
+        gears: gears.filter(
+          gear => gear.getGroupCategory() === filter.getFilter()
+        ),
       }))
       .filter(({ gears }) => gears.length > 0);
   }
@@ -103,7 +105,7 @@ class BagDetailFilterManager {
 
   public getFiltersWithGears(gears: Gear[]) {
     return this.filters.filter(filter =>
-      gears.some(gear => gear.getCategory() === filter.getFilter())
+      gears.some(gear => gear.getGroupCategory() === filter.getFilter())
     );
   }
 

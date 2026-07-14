@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import WarehouseDetailInformationView from './WarehouseDetailInformationView';
+import WarehouseDetailSpecsView from './WarehouseDetailSpecsView';
 import WarehouseDetailPurchaseView from './WarehouseDetailPurchaseView';
 import WarehouseDetailBagRecordView from './WarehouseDetailBagRecordView';
 import { observer } from 'mobx-react-lite';
@@ -183,6 +184,8 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
                 onSelectOtherImage={handleSelectOtherImage}
               />
             </View>
+            {/* 카테고리별 스펙 표(GD-8) — 기본 정보 아래, 배낭 기록/최저가 위 */}
+            <WarehouseDetailSpecsView gear={gear} />
             {isAdded && (
               // 보유(관리) 모드: 내 배낭 기록을 최저가 링크보다 위로 (GD-5)
               <WarehouseDetailBagRecordView
