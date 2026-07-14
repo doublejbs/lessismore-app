@@ -2,7 +2,7 @@ import { FC, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Bag from '@/model/bag/Bag';
 import Layout from '@/components/Layout';
@@ -14,6 +14,8 @@ import SearchTopKeywordsView from '@/components/search/SearchTopKeywordsView';
 // 뒤로가기 헤더(`인기 장비 순위`)를 얹는다. 내부 타이틀은 헤더와 중복되므로 감춘다.
 const PopularRankingWrapper: FC = () => {
   const router = useRouter();
+  // SR-4: 피드에서 승계한 진입 카테고리(그룹 GearFilter 값). 없으면 전체로 진입.
+  const { category } = useLocalSearchParams<{ category?: string }>();
   const [searchWarehouse] = useState(() => SearchWarehouse.new(router));
   const [bag] = useState(() => Bag.new());
 
@@ -36,6 +38,7 @@ const PopularRankingWrapper: FC = () => {
           searchWarehouse={searchWarehouse}
           bag={bag}
           showTitle={false}
+          initialCategory={category}
         />
       </View>
     </Layout>
