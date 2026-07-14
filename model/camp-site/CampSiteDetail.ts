@@ -379,6 +379,7 @@ class CampSiteDetail {
       name: spot.name,
       latitude: spot.location.latitude,
       longitude: spot.location.longitude,
+      spotId: spot.id,
     });
     this.closeBagSheet();
     this.router.push('/bag-new');
@@ -416,6 +417,7 @@ class CampSiteDetail {
       name: spot.name,
       latitude: spot.location.latitude,
       longitude: spot.location.longitude,
+      spotId: spot.id,
     });
 
     // 설정한 배낭으로 바로 이동할 수 있게 토스트에 액션을 넣는다(CS-5).

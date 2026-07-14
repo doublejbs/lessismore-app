@@ -6,6 +6,10 @@ export interface BagLocation {
   name: string;
   latitude: number;
   longitude: number;
+  // 연결된 박지(`camp-spot/{spotId}`, DM-17) 참조. 박지에서 설정했을 때만 존재하고,
+  // 자유 위치(검색/현재위치/지도)로 바꾸면 없어진다(위치=박지=날씨 일관성). 상세는 Weather WT-2.
+  // exactOptionalPropertyTypes: 값이 없으면 필드를 아예 넣지 않는다(undefined 대입 금지 — Firestore도 거부).
+  spotId?: string;
 }
 
 /** 하루치 날씨 데이터의 출처. 일별 배지 표기에 사용. */
