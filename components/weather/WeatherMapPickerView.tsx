@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Modal,
@@ -95,17 +95,21 @@ const WeatherMapPickerView: FC<Props> = ({
 
   // 지도를 초기에 어디로 띄울지: 저장된 위치가 있으면 그 좌표, 없으면 기본값.
   const location = bagWeather.getLocation();
-  const initialCamera: Camera = location
-    ? {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        zoom: deltaToZoom(0.02),
-      }
-    : {
-        latitude: DEFAULT.latitude,
-        longitude: DEFAULT.longitude,
-        zoom: deltaToZoom(0.05),
-      };
+  const locLat = location?.latitude ?? null;
+  const locLng = location?.longitude ?? null;
+  // initialCamera는 반드시 **안정된 참조**여야 한다. 매 렌더 새 객체를 넘기면 마커(자식)를 얹은
+  // NaverMapView가 렌더마다 카메라를 재적용 → onCameraChanged 재발화 → setCenter → 무한 루프가 된다.
+  const initialCamera: Camera = useMemo(
+    () =>
+      locLat !== null && locLng !== null
+        ? { latitude: locLat, longitude: locLng, zoom: deltaToZoom(0.02) }
+        : {
+            latitude: DEFAULT.latitude,
+            longitude: DEFAULT.longitude,
+            zoom: deltaToZoom(0.05),
+          },
+    [locLat, locLng]
+  );
 
   // 모달이 열릴 때마다 저장된 위치 기준으로 초기화한다. 박지 목록은 1회 로드(초기화 멱등).
   useEffect(() => {
