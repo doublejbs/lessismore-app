@@ -214,9 +214,10 @@
 
 | 필드 | 타입 | 비고 |
 | --- | --- | --- |
-| `name` | string | 표시용 지명/주소 (Kakao 지오코딩 결과 또는 검색 장소명) |
+| `name` | string | 표시용 지명/주소 (Kakao 지오코딩 결과 또는 검색 장소명. 박지 연결 시 박지명 `camp-spot.name`) |
 | `latitude` | number | WGS84 위도 |
 | `longitude` | number | WGS84 경도 |
+| `spotId` | string? | 연결된 박지(`camp-spot/{spotId}`, DM-17) 참조. **박지에서 설정했을 때만** 존재하고 자유 위치(검색/현재위치/지도)로 바꾸면 없어진다. `latitude`/`longitude`/`name`은 항상 실제 위치 = 날씨 조회 지점이며, 박지 연결 시 그 값이 곧 박지 좌표·박지명이다(별도 날씨 지점을 두지 않는다). 상세 동작은 [Weather.md](Weather.md) WT-2, [CampSite.md](CampSite.md) CS-5. |
 
 **`WeatherSnapshot`** (`bag.weather`) — 캐시 신선도 판단 메타를 함께 보관
 
