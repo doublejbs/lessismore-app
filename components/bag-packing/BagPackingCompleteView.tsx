@@ -13,10 +13,6 @@ const BagPackingCompleteView: FC<Props> = ({ bagPacking }) => {
   const showDDay = bagPacking.hasUpcomingDeparture();
   const dDay = bagPacking.getDDay();
 
-  const handlePressShareImage = () => {
-    void bagPacking.goToShareImage();
-  };
-
   const handlePressClose = () => {
     bagPacking.dismissCompleteCard();
   };
@@ -38,19 +34,10 @@ const BagPackingCompleteView: FC<Props> = ({ bagPacking }) => {
         <View style={styles.actions}>
           <TouchableOpacity
             style={styles.primaryButton}
-            onPress={handlePressShareImage}
-            activeOpacity={0.7}
-          >
-            <PretendardText style={styles.primaryButtonText} weight='bold'>
-              레디샷 만들기
-            </PretendardText>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.secondaryButton}
             onPress={handlePressClose}
             activeOpacity={0.7}
           >
-            <PretendardText style={styles.secondaryButtonText} weight='medium'>
+            <PretendardText style={styles.primaryButtonText} weight='bold'>
               닫기
             </PretendardText>
           </TouchableOpacity>
@@ -104,16 +91,6 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: 'white',
     fontSize: 16,
-  },
-  secondaryButton: {
-    width: '100%',
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    color: '#8B95A1',
-    fontSize: 15,
   },
 });
 
