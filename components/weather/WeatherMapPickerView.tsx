@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Modal,
@@ -15,6 +15,7 @@ import {
   NaverMapView,
   NaverMapViewRef,
   Camera,
+  CameraChangeReason,
 } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
@@ -224,7 +225,9 @@ const WeatherMapPickerView: FC<Props> = ({
   }, [query, bagWeather]);
 
   // 카메라 이동: 중심 갱신 + 마커 뷰포트(양자화) 갱신 + 박지에서 벗어나면 자유 위치 모드 복귀.
-  const handleCameraChanged = (camera: Camera) => {
+  const handleCameraChanged = (
+    camera: Camera & { reason: CameraChangeReason }
+  ) => {
     setCenter({ latitude: camera.latitude, longitude: camera.longitude });
 
     const zoom = camera.zoom ?? 0;
@@ -243,7 +246,10 @@ const WeatherMapPickerView: FC<Props> = ({
         : quantized
     );
 
+    // 박지 선택 후 **사용자 제스처(드래그)**로 박지 좌표에서 벗어날 때만 자유 위치 모드로 복귀한다.
+    // 마커 탭 시 animateCameraTo가 유발하는 Developer 이동에서는 해제하지 않는다(선택 유지).
     if (
+      camera.reason === 'Gesture' &&
       selectedSpot &&
       !(
         near(camera.latitude, selectedSpot.location.latitude) &&
@@ -256,7 +262,8 @@ const WeatherMapPickerView: FC<Props> = ({
   };
 
   // 박지 마커 탭 → 박지 선택 모드. 카메라를 그 박지로 이동하고 이름을 확정한다.
-  const handleTapSpot = (spot: CampSpot) => {
+  // 마커(memo) churn 방지를 위해 useCallback으로 안정화한다(내부는 setter·ref·상수뿐).
+  const handleTapSpot = useCallback((spot: CampSpot) => {
     Keyboard.dismiss();
     knownRef.current = {
       lat: spot.location.latitude,
@@ -277,7 +284,7 @@ const WeatherMapPickerView: FC<Props> = ({
       zoom: deltaToZoom(0.02),
       duration: 400,
     });
-  };
+  }, []);
 
   const handleSelectResult = (result: GeocodeResult) => {
     Keyboard.dismiss();
