@@ -22,12 +22,20 @@ const BOTTOM_OFFSET = Platform.select({
 // FD-3: 피드 하단 플로팅 `인기 순위` 진입 버튼.
 // (구 중앙 `필터` 버튼은 상단 필터 바(FeedFilterBarView)로 대체되어 제거됨.)
 // 컨테이너는 pointerEvents='box-none'으로 버튼 외 영역의 피드 스크롤을 방해하지 않는다.
-const FeedRankingButtonView: FC<Props> = ({ feed: _feed }) => {
+const FeedRankingButtonView: FC<Props> = ({ feed }) => {
   const router = useRouter();
 
+  // SR-4: 현재 선택된 카테고리를 순위 화면으로 승계한다(그룹 카테고리 기준).
   const handleGoToRanking = () => {
     app.getAnalyticsManager()?.logClick('feed_ranking');
-    router.push('/popular-ranking');
+
+    const category = feed.getFilterCategory();
+
+    if (category) {
+      router.push(`/popular-ranking?category=${category}`);
+    } else {
+      router.push('/popular-ranking');
+    }
   };
 
   return (
