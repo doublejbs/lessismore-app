@@ -228,7 +228,13 @@ const WeatherMapPickerView: FC<Props> = ({
   const handleCameraChanged = (
     camera: Camera & { reason: CameraChangeReason }
   ) => {
-    setCenter({ latitude: camera.latitude, longitude: camera.longitude });
+    // 좌표가 실제로 바뀔 때만 새 객체로 갱신한다. 매번 새 객체를 만들면 리렌더 →
+    // NaverMapView가 onCameraChanged를 재발화 → 무한 업데이트 루프가 된다.
+    setCenter(prev =>
+      prev.latitude === camera.latitude && prev.longitude === camera.longitude
+        ? prev
+        : { latitude: camera.latitude, longitude: camera.longitude }
+    );
 
     const zoom = camera.zoom ?? 0;
     const quantized: CampSiteMapViewport = {
