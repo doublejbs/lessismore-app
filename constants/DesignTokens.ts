@@ -26,6 +26,9 @@ export const Color = {
   surfaceMuted: '#F5F5F5',
   thumbBg: '#F1F1F1',
 
+  // 토스트 배경 — 흰 텍스트 대비를 유지하는 진회색(검정보다 부드럽게)
+  toastBg: '#333333',
+
   // 오버레이
   overlay: 'rgba(0,0,0,0.5)',
 } as const;
