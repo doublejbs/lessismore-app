@@ -31,7 +31,7 @@ app/gear-detail/[id]/index.tsx → WarehouseDetailWrapper → WarehouseDetailVie
 **수용 기준**
 
 - 제조사(`getDisplayCompany()` — 한글 표시명 우선, 리스트 화면과 동일), 이름(`getDisplayName()`), 색상, 무게, 대표 사진을 표시한다. 대표 사진이 없으면 `thumbBg` 배경의 플레이스홀더 박스(동일 높이)로 레이아웃을 유지한다.
-- 카테고리·색상은 이름 아래 **메타 라인**에 `카테고리 · 색상` 형식 보조 텍스트(`textSecondary`)로 표시한다(칩 아님). 카테고리는 `GearFilterName` 한글 표시명, 알 수 없는/빈 값은 항목 생략, 둘 다 없으면 라인 자체 미노출.
+- 카테고리·색상·사이즈는 이름 아래 **메타 라인**에 `카테고리 · 색상 · 사이즈` 형식 보조 텍스트(`textSecondary`)로 표시한다(칩 아님). 카테고리는 **세분 카테고리 한글 라벨**(DM-4, 매핑에 없으면 그룹 라벨 폴백), 색상은 `colorKorean || color`, 사이즈는 `sizeKorean || size`. 빈 항목은 생략, 모두 없으면 라인 미노출.
 - 무게는 큰 숫자에 `무게` 캡션을 붙여 맥락을 준다.
 - 대표 사진 변경 버튼은 중앙 pill 대신 **이미지 우하단 오버레이 아이콘 버튼**(44pt, `accessibilityLabel`)으로 배치한다. 노출 조건은 기존과 동일 — **내 창고에 추가된 장비이고 공유 이미지 기능이 활성일 때만**.
 - `수정하기`는 본문 중앙 텍스트 버튼 대신 **헤더 우상단** 액션(44pt)으로 이동한다(보유 장비만). 화면 본문의 중앙 정렬 액션 나열을 줄여 주 액션 위계를 명확히 한다(HIG).
@@ -106,6 +106,17 @@ app/gear-detail/[id]/index.tsx → WarehouseDetailWrapper → WarehouseDetailVie
 - **카탈로그 장비(`!isCustom`)** 상세 헤더 우측에 공유 아이콘(수정하기 왼쪽). 커스텀 장비는 웹 랜딩 대상이 아니라 노출하지 않는다.
 - 탭 → OS 공유 시트(`Share.share`)로 URL `https://useless.my/gear-share/{encodeURIComponent(gearId)}`**만** 내보낸다. 공유 클릭은 `click_gear_share`로 계측한다.
 - **웹 랜딩**(별도 레포 `lessismore`, `/gear-share/:id`): Firestore `/gear/{id}`(공개 읽기)를 읽어 제조사·이름·무게·사진·카테고리를 보여주고, `앱에서 보기` 버튼으로 `lessismoreapp://gear-detail/{id}` 딥링크(미설치 시 스토어 폴백)로 앱을 연다.
+
+### GD-8 카테고리별 스펙 표 `[기획]`
+
+크롤 파이프라인이 기록한 `gear.specs`(DM-3)를 카테고리별 스키마에 맞춰 상세에 표시한다.
+
+**수용 기준**
+
+- 기본 정보 아래(배낭 기록/최저가 위)에 **`스펙` 섹션**을 두고, `specs`에 값이 있는 필드만 `라벨 : 값` 2열 표로 표시한다. `specs`가 없거나 전부 비면 섹션 자체를 렌더하지 않는다(레거시·커스텀 장비 호환).
+- 스키마 사본 `model/gear/GearSpecsSchema.ts`가 계약: 웹 `specs-schema.js`와 **필드 키·한글 라벨·단위·타입을 동일하게** 유지한다(카테고리 33키). 스키마에 없는 미지의 키는 키명 그대로 표시(값 문자열화).
+- 값 포맷: boolean은 `예`/`아니오`, `unit` 있으면 `값+단위`(예: `1500mm`, `850FP`, `-5°C`), enum은 한글 표시(`down`→`덕다운/합성` 등 라벨은 스키마에 정의), 빈 문자열·null은 해당 행 생략.
+- 표는 토큰 톤(라벨 `textSecondary`, 값 `textPrimary`), 행 구분은 `borderLight`.
 
 ## 4. 데이터
 

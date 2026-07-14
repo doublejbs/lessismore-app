@@ -554,7 +554,8 @@ class Feed implements GearRowActions {
       gear.getCreateDate(),
       gear.getColor(),
       gear.getCompanyKorean(),
-      gear.getNameKorean()
+      gear.getNameKorean(),
+      gear.getExtra()
     );
   }
 

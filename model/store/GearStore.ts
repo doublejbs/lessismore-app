@@ -1,6 +1,7 @@
 import { collection, doc, getDoc, getDocs, query } from 'firebase/firestore';
 import Firebase from '../firebase/Firebase';
-import Gear from '../gear/Gear';
+import Gear, { toGearExtra } from '../gear/Gear';
+import { getGroupMembers } from '../gear/GearCategoryGroups';
 import {
   addDoc,
   arrayRemove,
@@ -32,6 +33,11 @@ export interface GearData {
   companyKorean: string;
   nameKorean: string;
   coupangUrl?: string;
+  colorKorean?: string;
+  size?: string;
+  sizeKorean?: string;
+  groupId?: string;
+  specs?: Record<string, string | number | boolean>;
 }
 
 class GearStore {
@@ -55,6 +61,7 @@ class GearStore {
       const docData = await getDoc(doc(this.getStore(), 'gear', id));
 
       if (docData.exists()) {
+        const data = docData.data() as GearData;
         const {
           name,
           company,
@@ -69,7 +76,7 @@ class GearStore {
           color,
           companyKorean,
           nameKorean,
-        } = docData.data() as GearData;
+        } = data;
         const isAdded = await this.hasGear(id);
 
         return new Gear(
@@ -87,7 +94,8 @@ class GearStore {
           isAdded ? createDate : Date.now(),
           color,
           companyKorean,
-          nameKorean
+          nameKorean,
+          toGearExtra(data)
         );
       } else {
         throw Error('No Gear data found.');
@@ -102,6 +110,7 @@ class GearStore {
       );
 
       if (docData.exists()) {
+        const data = docData.data() as GearData;
         const {
           name,
           company,
@@ -116,7 +125,7 @@ class GearStore {
           color,
           companyKorean,
           nameKorean,
-        } = docData.data() as GearData;
+        } = data;
 
         return new Gear(
           id,
@@ -133,7 +142,8 @@ class GearStore {
           createDate,
           color,
           companyKorean,
-          nameKorean
+          nameKorean,
+          toGearExtra(data)
         );
       } else {
         return null;
@@ -158,6 +168,9 @@ class GearStore {
     filters: GearFilter[],
     order: OrderType
   ): Promise<Gear[]> {
+    // 그룹 필터는 세분 카테고리 멤버 배열로 확장해 쿼리한다(DM-4 — 레거시 그룹 키 포함).
+    const categoryKeys = filters.flatMap(filter => getGroupMembers(filter));
+
     const filterQuery =
       filters.length === 1 && filters[0] === GearFilter.All
         ? query(
@@ -166,13 +179,14 @@ class GearStore {
           )
         : query(
             collection(this.getStore(), 'users', this.getUserId(), 'gears'),
-            where('category', 'in', filters),
+            where('category', 'in', categoryKeys),
             this.getOrderQuery(order)
           );
     const gears = (await getDocs(filterQuery)).docs;
 
     if (!!gears?.length) {
       return gears.map(doc => {
+        const data = doc.data();
         const {
           id,
           name,
@@ -188,7 +202,7 @@ class GearStore {
           color,
           companyKorean,
           nameKorean,
-        } = doc.data();
+        } = data;
 
         return new Gear(
           id,
@@ -205,7 +219,8 @@ class GearStore {
           createDate,
           color,
           companyKorean,
-          nameKorean
+          nameKorean,
+          toGearExtra(data)
         );
       });
     } else {
@@ -265,11 +280,12 @@ class GearStore {
                 updatedAt: new Date(),
               });
             } else {
-              // 존재하지 않으면 새로 생성
+              // 존재하지 않으면 새로 생성 — gear-rank.category는 GearFilter 값 계약(DM-6)이라
+              // 세분 카테고리를 그룹 키로 정규화해 저장한다.
               batch.set(gearRankRef, {
                 id: gear.getId(),
                 count: 1,
-                category: gear.getCategory(),
+                category: gear.getGroupCategory(),
                 updatedAt: new Date(),
               });
             }

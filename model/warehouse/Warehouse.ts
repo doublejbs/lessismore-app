@@ -1,6 +1,8 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import Firebase from '../firebase/Firebase';
 import Gear from '../gear/Gear';
+import GearFilter from '../gear/GearFilter';
+import { getGroupMembers } from '../gear/GearCategoryGroups';
 import Order from '../order/Order';
 import OrderType from '../order/OrderType';
 import ToastManager from '../toast/ToastManager';
@@ -28,6 +30,8 @@ class Warehouse {
 
   private gears: Gear[] = [];
   private query = '';
+  // WH-2 2차(세분) 카테고리 필터 — null이면 전체(세분 미적용)
+  private fineCategory: string | null = null;
   private loading = false;
   private initialized = false;
 
@@ -111,14 +115,20 @@ class Warehouse {
 
   public getGears() {
     const q = this.query.trim().toLowerCase();
-    if (!q) {
-      return this.gears;
+    const queried = q
+      ? this.gears.filter(
+          gear =>
+            gear.getDisplayName().toLowerCase().includes(q) ||
+            gear.getDisplayCompany().toLowerCase().includes(q)
+        )
+      : this.gears;
+
+    // 세분 필터는 추가 쿼리 없이 표시 단계에서만 적용한다(WH-2)
+    if (this.fineCategory) {
+      return queried.filter(gear => gear.getCategory() === this.fineCategory);
     }
-    return this.gears.filter(
-      gear =>
-        gear.getDisplayName().toLowerCase().includes(q) ||
-        gear.getDisplayCompany().toLowerCase().includes(q)
-    );
+
+    return queried;
   }
 
   public getQuery() {
@@ -150,6 +160,7 @@ class Warehouse {
 
   public async deselectFilter(filter: WarehouseFilter) {
     this.setLoading(true);
+    this.setFineCategory(null);
     this.filterManager.deselectFilter(filter);
     await this.getList();
     this.setLoading(false);
@@ -157,9 +168,44 @@ class Warehouse {
 
   public async selectFilter(filter: WarehouseFilter) {
     this.setLoading(true);
+    this.setFineCategory(null);
     this.filterManager.selectFilter(filter);
     await this.getList();
     this.setLoading(false);
+  }
+
+  // 세분 칩 탭 — 같은 키를 다시 선택하면 전체(null)로 토글. 재조회 없이 표시만 갱신된다.
+  public selectFineCategory(key: string | null) {
+    if (key !== null && key === this.fineCategory) {
+      this.setFineCategory(null);
+    } else {
+      this.setFineCategory(key);
+    }
+  }
+
+  private setFineCategory(value: string | null) {
+    this.fineCategory = value;
+  }
+
+  public getFineCategory() {
+    return this.fineCategory;
+  }
+
+  // 선택된 1차 필터의 세분 카테고리 옵션. 전체이거나 멤버가 2개 미만(레거시 키 포함 기준)이면 빈 배열.
+  public getFineCategoryOptions(): string[] {
+    const selected = this.filterManager.getSelectedFilter().getFilter();
+
+    if (selected === GearFilter.All) {
+      return [];
+    }
+
+    const members = getGroupMembers(selected);
+
+    if (members.length < 2) {
+      return [];
+    }
+
+    return members;
   }
 
   public async updateGear(gear: Gear) {

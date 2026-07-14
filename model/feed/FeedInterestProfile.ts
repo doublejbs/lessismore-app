@@ -1,4 +1,5 @@
 import Gear from '@/model/gear/Gear';
+import { getGroupForCategory } from '@/model/gear/GearCategoryGroups';
 import { toBrandKey } from '@/model/store/BrandKey';
 
 // FD-1: 창고(카탈로그 출신 장비)에서 추출한 관심 신호.
@@ -61,8 +62,9 @@ const buildTopCategories = (catalogGears: Gear[]): string[] => {
   catalogGears.forEach(gear => {
     const category = gear.getCategory();
 
+    // 세분 카테고리는 그룹 키로 정규화해 집계한다(DM-4) — tarp/tent가 같은 관심으로 묶이게.
     if (category) {
-      increment(counts, category);
+      increment(counts, getGroupForCategory(category));
     }
   });
 

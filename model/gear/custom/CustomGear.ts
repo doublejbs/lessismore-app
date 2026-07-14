@@ -11,7 +11,6 @@ import Order from '@/model/order/Order';
 import Warehouse from '@/model/warehouse/Warehouse';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import SearchStore from '@/model/search/SearchStore';
-import GearFilter from '@/model/gear/GearFilter';
 import AlertManager from '@/model/alert/AlertManager';
 
 class CustomGear extends AbstractGearEdit {
@@ -143,7 +142,8 @@ class CustomGear extends AbstractGearEdit {
       this.setColor(gear.getColor());
       this.setPreviewSrc(gear.getImageUrl());
 
-      const category = gear.getCategory() as GearFilter;
+      // 세분 카테고리는 그룹(GearFilter)으로 매핑해 선택한다(DM-4).
+      const category = gear.getGroupCategory();
       this.selectFilterWith(category);
       this.clearSearchResults();
     }
