@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import {
   View,
   ScrollView,
@@ -25,7 +25,6 @@ const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
 const BagWeatherView: FC<Props> = ({ bagWeather }) => {
   const router = useRouter();
-  const [searchActive, setSearchActive] = useState(false);
   const location = bagWeather.getLocation();
   const weather = bagWeather.getWeather();
   const loading = bagWeather.isLoading();
@@ -58,19 +57,15 @@ const BagWeatherView: FC<Props> = ({ bagWeather }) => {
       </View>
 
       <View style={styles.body}>
-        <WeatherLocationSearchView
-          bagWeather={bagWeather}
-          onActiveChange={setSearchActive}
-        />
+        <WeatherLocationSearchView bagWeather={bagWeather} />
 
-        {!searchActive && (
-          <ScrollView
-            style={styles.weatherScroll}
-            contentContainerStyle={styles.weatherContent}
-            keyboardShouldPersistTaps='handled'
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.divider} />
+        <ScrollView
+          style={styles.weatherScroll}
+          contentContainerStyle={styles.weatherContent}
+          keyboardShouldPersistTaps='handled'
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.divider} />
 
             {!location ? (
               <View style={styles.emptyState}>
@@ -134,8 +129,7 @@ const BagWeatherView: FC<Props> = ({ bagWeather }) => {
                 </PretendardText>
               </View>
             ) : null}
-          </ScrollView>
-        )}
+        </ScrollView>
       </View>
     </SafeAreaView>
   );

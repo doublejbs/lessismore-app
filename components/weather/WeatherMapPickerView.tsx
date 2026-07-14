@@ -28,11 +28,17 @@ import BagWeather from '@/model/bag/BagWeather';
 import weatherService from '@/model/weather/WeatherService';
 import { GeocodeResult } from '@/model/weather/WeatherTypes';
 import { deltaToZoom } from '@/model/map/MapZoom';
+import CampSiteMap from '@/model/camp-site/CampSiteMap';
+import { CampSpot } from '@/model/camp-site/CampSpotTypes';
+import CampSiteMapMarkersView, {
+  CampSiteMapViewport,
+} from '@/components/camp-site/CampSiteMapMarkersView';
 
 interface Props {
   bagWeather: BagWeather;
   visible: boolean;
   onClose: () => void;
+  onDone?: (() => void) | undefined;
 }
 
 // 위치 미설정 시 기본 중심(서울 시청).
@@ -41,16 +47,30 @@ const DEFAULT = {
   longitude: 126.978,
 };
 
+// 박지 선택 모드가 쓰는 최소 박지 정보(id·이름·좌표). 저장된 spotId 복원과 마커 탭 모두 이 형태면 충분하다.
+interface SelectedSpot {
+  id: string;
+  name: string;
+  location: { latitude: number; longitude: number };
+}
+
 // 저장/검색으로 이름을 이미 아는 좌표인지 판정(약 100m 이내면 같은 지점으로 본다).
 const EPSILON = 0.001;
 const near = (a: number, b: number) => Math.abs(a - b) < EPSILON;
 
-const WeatherMapPickerView: FC<Props> = ({ bagWeather, visible, onClose }) => {
+const WeatherMapPickerView: FC<Props> = ({
+  bagWeather,
+  visible,
+  onClose,
+  onDone,
+}) => {
   const mapRef = useRef<NaverMapViewRef>(null);
   // 저장/검색으로 이름을 확정한 좌표. 이 좌표 위에선 역지오코딩 대신 이 이름을 쓴다.
   const knownRef = useRef<{ lat: number; lng: number; name: string } | null>(
     null
   );
+  // 박지 마커/뷰포트 로직은 지도 탭(CS-1/CS-2)의 모델을 그대로 재사용한다.
+  const [campSiteMap] = useState(() => CampSiteMap.new());
 
   const [center, setCenter] = useState({
     latitude: DEFAULT.latitude,
@@ -62,6 +82,10 @@ const WeatherMapPickerView: FC<Props> = ({ bagWeather, visible, onClose }) => {
   const [locating, setLocating] = useState(false);
   // 지도를 다시 그려 initialRegion을 재적용하기 위한 remount 키.
   const [mapKey, setMapKey] = useState(0);
+  // 마커 레이어용 뷰포트(양자화된 카메라).
+  const [viewport, setViewport] = useState<CampSiteMapViewport | null>(null);
+  // 박지 선택 모드: 마커를 고르면 그 박지, 자유 위치(핀)면 null.
+  const [selectedSpot, setSelectedSpot] = useState<SelectedSpot | null>(null);
 
   // 지도 내 지명 검색.
   const [query, setQuery] = useState('');
@@ -82,26 +106,49 @@ const WeatherMapPickerView: FC<Props> = ({ bagWeather, visible, onClose }) => {
         zoom: deltaToZoom(0.05),
       };
 
-  // 모달이 열릴 때마다 저장된 위치 기준으로 초기화한다.
+  // 모달이 열릴 때마다 저장된 위치 기준으로 초기화한다. 박지 목록은 1회 로드(초기화 멱등).
   useEffect(() => {
     if (!visible) {
       return;
     }
+    campSiteMap.initialize();
     const loc = bagWeather.getLocation();
     if (loc) {
       knownRef.current = { lat: loc.latitude, lng: loc.longitude, name: loc.name };
       setCenter({ latitude: loc.latitude, longitude: loc.longitude });
       setAddressName(loc.name);
+      // 저장된 위치가 박지 링크면 박지 선택 모드로 연다.
+      setSelectedSpot(
+        loc.spotId
+          ? {
+              id: loc.spotId,
+              name: loc.name,
+              location: { latitude: loc.latitude, longitude: loc.longitude },
+            }
+          : null
+      );
+      // 첫 onCameraChanged 이전에도 마커가 보이도록 초기 뷰포트를 시드한다.
+      setViewport({
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+        zoom: deltaToZoom(0.02),
+      });
     } else {
       knownRef.current = null;
       setCenter({ latitude: DEFAULT.latitude, longitude: DEFAULT.longitude });
       setAddressName('');
+      setSelectedSpot(null);
+      setViewport({
+        latitude: DEFAULT.latitude,
+        longitude: DEFAULT.longitude,
+        zoom: deltaToZoom(0.05),
+      });
     }
     setResolving(false);
     setQuery('');
     setResults([]);
     setMapKey(k => k + 1);
-  }, [visible, bagWeather]);
+  }, [visible, bagWeather, campSiteMap]);
 
   // 지도 중심 이동 시 디바운스 역지오코딩으로 주소 미리보기.
   // 단, 저장/검색으로 이름을 이미 아는 좌표면 그 이름을 그대로 쓴다.
@@ -176,6 +223,62 @@ const WeatherMapPickerView: FC<Props> = ({ bagWeather, visible, onClose }) => {
     };
   }, [query, bagWeather]);
 
+  // 카메라 이동: 중심 갱신 + 마커 뷰포트(양자화) 갱신 + 박지에서 벗어나면 자유 위치 모드 복귀.
+  const handleCameraChanged = (camera: Camera) => {
+    setCenter({ latitude: camera.latitude, longitude: camera.longitude });
+
+    const zoom = camera.zoom ?? 0;
+    const quantized: CampSiteMapViewport = {
+      latitude: Math.round(camera.latitude / 0.05) * 0.05,
+      longitude: Math.round(camera.longitude / 0.05) * 0.05,
+      zoom: Math.round(zoom / 0.25) * 0.25,
+    };
+
+    setViewport(prev =>
+      prev &&
+      prev.latitude === quantized.latitude &&
+      prev.longitude === quantized.longitude &&
+      prev.zoom === quantized.zoom
+        ? prev
+        : quantized
+    );
+
+    if (
+      selectedSpot &&
+      !(
+        near(camera.latitude, selectedSpot.location.latitude) &&
+        near(camera.longitude, selectedSpot.location.longitude)
+      )
+    ) {
+      setSelectedSpot(null);
+      knownRef.current = null;
+    }
+  };
+
+  // 박지 마커 탭 → 박지 선택 모드. 카메라를 그 박지로 이동하고 이름을 확정한다.
+  const handleTapSpot = (spot: CampSpot) => {
+    Keyboard.dismiss();
+    knownRef.current = {
+      lat: spot.location.latitude,
+      lng: spot.location.longitude,
+      name: spot.name,
+    };
+    setQuery('');
+    setResults([]);
+    setSelectedSpot(spot);
+    setAddressName(spot.name);
+    setCenter({
+      latitude: spot.location.latitude,
+      longitude: spot.location.longitude,
+    });
+    mapRef.current?.animateCameraTo({
+      latitude: spot.location.latitude,
+      longitude: spot.location.longitude,
+      zoom: deltaToZoom(0.02),
+      duration: 400,
+    });
+  };
+
   const handleSelectResult = (result: GeocodeResult) => {
     Keyboard.dismiss();
     knownRef.current = {
@@ -183,6 +286,8 @@ const WeatherMapPickerView: FC<Props> = ({ bagWeather, visible, onClose }) => {
       lng: result.longitude,
       name: result.name,
     };
+    // 지명 검색은 자유 위치 — 박지 선택 모드 해제.
+    setSelectedSpot(null);
     setQuery('');
     setResults([]);
     setAddressName(result.name);
@@ -211,8 +316,9 @@ const WeatherMapPickerView: FC<Props> = ({ bagWeather, visible, onClose }) => {
       }
       const pos = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = pos.coords;
-      // 현재 위치는 실제 주소를 역지오코딩하도록 알려진 이름을 비운다.
+      // 현재 위치는 자유 위치 — 알려진 이름을 비워 역지오코딩하고, 박지 선택 모드 해제.
       knownRef.current = null;
+      setSelectedSpot(null);
       Keyboard.dismiss();
       setQuery('');
       setResults([]);
@@ -237,17 +343,30 @@ const WeatherMapPickerView: FC<Props> = ({ bagWeather, visible, onClose }) => {
     }
     setSaving(true);
     try {
-      const name =
-        addressName ||
-        (await weatherService.reverseGeocode(
-          center.latitude,
-          center.longitude
-        ));
-      await bagWeather.updateLocation({
-        name,
-        latitude: center.latitude,
-        longitude: center.longitude,
-      });
+      if (selectedSpot) {
+        // 박지 선택: 박지 좌표·박지명 + spotId로 저장(박지 링크, WT-2).
+        await bagWeather.updateLocation({
+          name: selectedSpot.name,
+          latitude: selectedSpot.location.latitude,
+          longitude: selectedSpot.location.longitude,
+          spotId: selectedSpot.id,
+        });
+      } else {
+        // 자유 위치(핀): spotId 없이 저장 → 기존 박지 링크 해제.
+        const name =
+          addressName ||
+          (await weatherService.reverseGeocode(
+            center.latitude,
+            center.longitude
+          ));
+
+        await bagWeather.updateLocation({
+          name,
+          latitude: center.latitude,
+          longitude: center.longitude,
+        });
+      }
+      onDone?.();
       onClose();
     } catch {
       // 저장 실패 시 모달 유지
@@ -274,13 +393,15 @@ const WeatherMapPickerView: FC<Props> = ({ bagWeather, visible, onClose }) => {
             isShowLocationButton={false}
             isShowZoomControls={false}
             isShowScaleBar={false}
-            onCameraChanged={camera =>
-              setCenter({
-                latitude: camera.latitude,
-                longitude: camera.longitude,
-              })
-            }
-          />
+            onCameraChanged={handleCameraChanged}
+          >
+            {/* 박지 마커(CS-2 재사용) — 뷰포트 안 활성 박지. 탭 시 박지 선택 모드. */}
+            <CampSiteMapMarkersView
+              campSiteMap={campSiteMap}
+              viewport={viewport}
+              onTapSpot={handleTapSpot}
+            />
+          </NaverMapView>
 
           {/* 중앙 고정 핀(지도를 움직여 중심을 맞춘다) */}
           <View style={styles.centerPin} pointerEvents='none'>
@@ -411,19 +532,25 @@ const WeatherMapPickerView: FC<Props> = ({ bagWeather, visible, onClose }) => {
             </View>
             <View style={styles.bottomPanel}>
               <View style={styles.addressRow}>
-                <Ionicons
-                  name='location-outline'
-                  size={18}
-                  color={Color.textPrimary}
-                />
+                {selectedSpot ? (
+                  <PretendardText style={styles.pinMark}>📍</PretendardText>
+                ) : (
+                  <Ionicons
+                    name='location-outline'
+                    size={18}
+                    color={Color.textPrimary}
+                  />
+                )}
                 <PretendardText
                   style={styles.addressText}
                   weight='medium'
                   numberOfLines={2}
                 >
-                  {resolving
-                    ? '위치 확인 중…'
-                    : addressName || '주소를 찾을 수 없어요'}
+                  {selectedSpot
+                    ? selectedSpot.name
+                    : resolving
+                      ? '위치 확인 중…'
+                      : addressName || '주소를 찾을 수 없어요'}
                 </PretendardText>
               </View>
               <TouchableOpacity
@@ -436,7 +563,7 @@ const WeatherMapPickerView: FC<Props> = ({ bagWeather, visible, onClose }) => {
                   <ActivityIndicator color={Color.background} />
                 ) : (
                   <PretendardText style={styles.confirmText} weight='semibold'>
-                    이 위치로 설정
+                    {selectedSpot ? '이 박지로 설정' : '이 위치로 설정'}
                   </PretendardText>
                 )}
               </TouchableOpacity>
@@ -581,6 +708,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  pinMark: {
+    fontSize: 18,
   },
   addressText: {
     flex: 1,
