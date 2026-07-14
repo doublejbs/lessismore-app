@@ -9,6 +9,7 @@ import { SearchResponse } from 'algoliasearch';
 import { Hit, liteClient } from 'algoliasearch/lite';
 import Gear, { toGearExtra } from '../gear/Gear';
 import GearFilter from '../gear/GearFilter';
+import { GROUP_MEMBERS, getGroupMembers } from '../gear/GearCategoryGroups';
 import Firebase from '../firebase/Firebase';
 import GearType from '../gear/GearType';
 import BrowseSort from './BrowseSort';
@@ -66,7 +67,13 @@ class SearchStore {
     const facetFilters: string[][] = [];
 
     if (category) {
-      facetFilters.push([`category:${category}`]);
+      // 1차 그룹(GearFilter) 키면 그룹의 세분 멤버들을 하나의 OR 배열로 확장하고,
+      // 세분 키면 기존대로 단일 facet으로 넘긴다(DM-4).
+      const facetGroup = GROUP_MEMBERS[category as GearFilter]
+        ? getGroupMembers(category as GearFilter).map(key => `category:${key}`)
+        : [`category:${category}`];
+
+      facetFilters.push(facetGroup);
     }
 
     if (brands && brands.length > 0) {
@@ -240,7 +247,8 @@ class SearchStore {
           ? collection(this.getStore(), 'users', this.getUserId(), 'gears')
           : query(
               collection(this.getStore(), 'users', this.getUserId(), 'gears'),
-              where('category', '==', filter),
+              // 1차 그룹은 세분 멤버 집합으로 확장한다(단일 그룹이라 ≤8키, Firestore in 30 제한 내, DM-4).
+              where('category', 'in', getGroupMembers(filter)),
               orderBy('name', 'desc')
             );
       const gears = (await getDocs(filterQuery)).docs;

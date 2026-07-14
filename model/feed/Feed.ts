@@ -7,6 +7,7 @@ import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Firebase from '@/model/firebase/Firebase';
 import GearStore from '@/model/store/GearStore';
 import GearFilter from '@/model/gear/GearFilter';
+import { getGroupMembers } from '@/model/gear/GearCategoryGroups';
 import OrderType from '@/model/order/OrderType';
 import GearRowActions from '@/model/browse/GearRowActions';
 import app from '@/model/app/App';
@@ -57,6 +58,8 @@ class Feed implements GearRowActions {
   @observable private hasMore = true;
   @observable private initialized = false;
   @observable private filterCategory: string | null = null;
+  // WH-2/FD-3 2차(세분) 카테고리 필터 — null이면 그룹 전체
+  @observable private filterFineCategory: string | null = null;
   @observable private filterBrands: FeedBrandInterest[] = [];
   // FD-3 정렬: null=추천(개인화/필터 믹스), 그 외=해당 정렬 replica 단일 목록.
   @observable private sort: BrowseSort | null = null;
@@ -154,7 +157,7 @@ class Feed implements GearRowActions {
 
   // FD-3: 지정 정렬(인기/최신/가벼운/무거운) 단일 버킷. 카테고리·브랜드 facet 동시 적용.
   private buildSortedBuckets(sort: BrowseSort): FeedBucket[] {
-    const category = this.filterCategory ?? undefined;
+    const category = this.getEffectiveFilterCategory() ?? undefined;
     const brands = this.toBrandNames(this.filterBrands);
 
     return [
@@ -169,7 +172,7 @@ class Feed implements GearRowActions {
   }
 
   private buildFilterBuckets(): FeedBucket[] {
-    const category = this.filterCategory ?? undefined;
+    const category = this.getEffectiveFilterCategory() ?? undefined;
     // 선택 브랜드들의 표시명(companyKorean 우선)을 하나의 OR 그룹으로 넘긴다(FD-3).
     const brands = this.toBrandNames(this.filterBrands);
 
@@ -355,7 +358,21 @@ class Feed implements GearRowActions {
 
   // FD-3 상단 바 즉시 적용 — 현재 정렬·브랜드는 유지하고 카테고리만 교체한다(재탭/`전체` 해제는 호출측에서 null 전달).
   public async selectCategory(category: string | null) {
+    // 1차 카테고리 변경 시 2차(세분) 선택은 초기화한다.
+    this.setFilterFineCategory(null);
     await this.setFilters(category, this.filterBrands, this.sort);
+  }
+
+  // FD-3 2차(세분) 카테고리 선택 — 같은 키 재선택이면 그룹 전체(null)로 토글. 재조회로 facet 반영.
+  public async selectFineCategory(key: string | null) {
+    const next = key !== null && key === this.filterFineCategory ? null : key;
+
+    if (next === this.filterFineCategory) {
+      return;
+    }
+
+    this.setFilterFineCategory(next);
+    await this.reload();
   }
 
   // FD-3 브랜드 시트 `확인` — 현재 정렬·카테고리는 유지하고 브랜드만 교체한다.
@@ -571,6 +588,30 @@ class Feed implements GearRowActions {
     return this.filterCategory;
   }
 
+  public getFilterFineCategory() {
+    return this.filterFineCategory;
+  }
+
+  // facet에 넘길 실질 카테고리 — 세분 선택 시 세분 키, 아니면 그룹 키.
+  public getEffectiveFilterCategory() {
+    return this.filterFineCategory ?? this.filterCategory;
+  }
+
+  // 선택된 1차 그룹의 세분 옵션. 전체이거나 멤버 2개 미만이면 빈 배열(세분 행 미표시).
+  public getFineCategoryOptions(): string[] {
+    if (this.filterCategory === null) {
+      return [];
+    }
+
+    const members = getGroupMembers(this.filterCategory as GearFilter);
+
+    if (members.length < 2) {
+      return [];
+    }
+
+    return members;
+  }
+
   public getFilterBrands() {
     return this.filterBrands;
   }
@@ -607,6 +648,7 @@ class Feed implements GearRowActions {
       return;
     }
 
+    this.setFilterFineCategory(null);
     this.setFilterValues(null, [], null);
     await this.reload();
   }
@@ -705,6 +747,11 @@ class Feed implements GearRowActions {
     this.filterCategory = category;
     this.filterBrands = brands;
     this.sort = sort;
+  }
+
+  @action
+  private setFilterFineCategory(value: string | null) {
+    this.filterFineCategory = value;
   }
 }
 

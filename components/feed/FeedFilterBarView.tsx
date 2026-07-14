@@ -12,6 +12,7 @@ import {
   getFeedSortLabel,
 } from '@/model/feed/FeedSort';
 import { BROWSE_CATEGORIES } from '@/model/browse/BrowseCategory';
+import { getFineCategoryLabel } from '@/model/gear/GearCategoryGroups';
 import { Color, Radius } from '@/constants/DesignTokens';
 import PretendardText from '@/components/PretendardText';
 import CategoryChipView from '@/components/browse/CategoryChipView';
@@ -39,6 +40,8 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
   const currentCategory = feed.getFilterCategory();
   const currentSort = toFeedSort(feed.getSort());
   const brandCount = feed.getFilterBrands().length;
+  const fineOptions = feed.getFineCategoryOptions();
+  const fineCategory = feed.getFilterFineCategory();
 
   // FD-5: 카테고리 즉시 적용도 공통 `click_feed_filter_apply`로 관찰한다.
   const logApply = (category: string | null) => {
@@ -59,6 +62,20 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
     const next = currentCategory === filter ? null : filter;
     logApply(next);
     feed.selectCategory(next);
+  };
+
+  const handleSelectAllFine = () => {
+    app.getAnalyticsManager()?.logClick('feed_fine_filter', { category: 'all' });
+    feed.selectFineCategory(null);
+  };
+
+  const handleSelectFine = (key: string) => {
+    // 같은 세분 칩 재탭 시 해제(1차 그룹으로 복귀).
+    const next = fineCategory === key ? null : key;
+    app
+      .getAnalyticsManager()
+      ?.logClick('feed_fine_filter', { category: next ?? 'all' });
+    feed.selectFineCategory(next);
   };
 
   const handleOpenBrand = () => {
@@ -115,6 +132,30 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
           />
         ))}
       </ScrollView>
+
+      {fineOptions.length > 0 ? (
+        <ScrollView
+          horizontal={true}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.fineCategoryRowContent}
+        >
+          <CategoryChipView
+            label={ALL_LABEL}
+            variant='secondary'
+            selected={fineCategory === null}
+            onPress={handleSelectAllFine}
+          />
+          {fineOptions.map(key => (
+            <CategoryChipView
+              key={key}
+              label={getFineCategoryLabel(key)}
+              variant='secondary'
+              selected={fineCategory === key}
+              onPress={() => handleSelectFine(key)}
+            />
+          ))}
+        </ScrollView>
+      ) : null}
 
       <View style={styles.controlRow}>
         <TouchableOpacity
@@ -177,6 +218,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    paddingHorizontal: 20,
+  },
+  fineCategoryRowContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     paddingHorizontal: 20,
   },
   controlRow: {

@@ -68,6 +68,7 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
         >
           <CategoryChipView
             label='전체'
+            variant='secondary'
             selected={fineCategory === null}
             onPress={() => handleClickFineCategory(null)}
           />
@@ -75,6 +76,7 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
             <CategoryChipView
               key={key}
               label={getFineCategoryLabel(key)}
+              variant='secondary'
               selected={fineCategory === key}
               onPress={() => handleClickFineCategory(key)}
             />
