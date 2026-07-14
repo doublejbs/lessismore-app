@@ -11,12 +11,15 @@ import {
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
+import { useRouter } from 'expo-router';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import BagWeather from '@/model/bag/BagWeather';
 import weatherService from '@/model/weather/WeatherService';
 import { GeocodeResult } from '@/model/weather/WeatherTypes';
+import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import WeatherMapPickerView from './WeatherMapPickerView';
+import CampSpotPickerView from './CampSpotPickerView';
 
 interface Props {
   bagWeather: BagWeather;
@@ -30,11 +33,13 @@ const WeatherLocationSearchView: FC<Props> = ({
   onDone,
   onActiveChange,
 }) => {
+  const router = useRouter();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<GeocodeResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [locating, setLocating] = useState(false);
   const [mapVisible, setMapVisible] = useState(false);
+  const [campPickerVisible, setCampPickerVisible] = useState(false);
   // 위치가 있으면 기본은 칩(접힘). "변경"을 누르면 검색 입력을 편다.
   const [editing, setEditing] = useState(false);
 
@@ -93,12 +98,36 @@ const WeatherLocationSearchView: FC<Props> = ({
   const handleSelect = async (result: GeocodeResult) => {
     setQuery('');
     setResults([]);
+    // 자유 위치: spotId를 넣지 않아(필드 부재) 기존 박지 링크가 해제된다(WT-2).
     await bagWeather.updateLocation({
       name: result.name,
       latitude: result.latitude,
       longitude: result.longitude,
     });
     onDone?.();
+  };
+
+  // WT-2 '캠프 박지에서 선택': 박지 좌표·박지명 + spotId로 위치를 저장한다(박지 링크).
+  const handleSelectSpot = async (spot: CampSpot) => {
+    setCampPickerVisible(false);
+    setQuery('');
+    setResults([]);
+    await bagWeather.updateLocation({
+      name: spot.name,
+      latitude: spot.location.latitude,
+      longitude: spot.location.longitude,
+      spotId: spot.id,
+    });
+    onDone?.();
+  };
+
+  // 박지 링크(spotId)가 있으면 위치 칩 탭 시 박지 상세로 이동한다(배낭↔박지 상호 이동, WT-2).
+  const handleGoToSpot = () => {
+    const spotId = location?.spotId;
+
+    if (spotId) {
+      router.push(`/camp-site/${spotId}`);
+    }
   };
 
   const handleCurrentLocation = async () => {
@@ -129,19 +158,43 @@ const WeatherLocationSearchView: FC<Props> = ({
     }
   };
 
-  // 접힌 상태: 선택된 위치 칩 + 변경 버튼.
+  // 접힌 상태: 선택된 위치 칩 + 변경 버튼. 박지 링크면 칩 본문 탭 시 박지 상세로 이동.
   if (!showSearch && location) {
+    const isSpotLinked = !!location.spotId;
+
     return (
       <View style={styles.container}>
         <View style={styles.chip}>
-          <Ionicons name='location' size={18} color={Color.textPrimary} />
-          <PretendardText
-            style={styles.chipText}
-            weight='medium'
-            numberOfLines={1}
+          <TouchableOpacity
+            style={styles.chipMain}
+            onPress={handleGoToSpot}
+            disabled={!isSpotLinked}
+            activeOpacity={0.7}
+            accessibilityRole={isSpotLinked ? 'button' : undefined}
+            accessibilityLabel={
+              isSpotLinked ? `${location.name} 박지 상세 보기` : undefined
+            }
           >
-            {location.name}
-          </PretendardText>
+            {isSpotLinked ? (
+              <PretendardText style={styles.pin}>📍</PretendardText>
+            ) : (
+              <Ionicons name='location' size={18} color={Color.textPrimary} />
+            )}
+            <PretendardText
+              style={styles.chipText}
+              weight='medium'
+              numberOfLines={1}
+            >
+              {location.name}
+            </PretendardText>
+            {isSpotLinked && (
+              <Ionicons
+                name='chevron-forward'
+                size={16}
+                color={Color.textSecondary}
+              />
+            )}
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => setEditing(true)} hitSlop={8}>
             <PretendardText style={styles.changeText} weight='medium'>
               변경
@@ -225,6 +278,22 @@ const WeatherLocationSearchView: FC<Props> = ({
             지도에서 선택
           </PretendardText>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={() => setCampPickerVisible(true)}
+          activeOpacity={0.6}
+          hitSlop={6}
+        >
+          <Ionicons
+            name='bonfire-outline'
+            size={16}
+            color={Color.textSecondary}
+          />
+          <PretendardText style={styles.secondaryText} weight='medium'>
+            캠프 박지에서 선택
+          </PretendardText>
+        </TouchableOpacity>
       </View>
 
       <WeatherMapPickerView
@@ -234,6 +303,12 @@ const WeatherLocationSearchView: FC<Props> = ({
           setMapVisible(false);
           setEditing(false);
         }}
+      />
+
+      <CampSpotPickerView
+        visible={campPickerVisible}
+        onClose={() => setCampPickerVisible(false)}
+        onSelect={handleSelectSpot}
       />
 
       {hasResults && (
@@ -295,6 +370,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     height: 48,
   },
+  // 칩 본문(아이콘·위치명·화살표) — 박지 링크면 이 영역이 탭 타깃(박지 상세 이동).
+  chipMain: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  pin: {
+    fontSize: 15,
+  },
   chipText: {
     flex: 1,
     fontSize: 15,
@@ -327,7 +412,9 @@ const styles = StyleSheet.create({
   secondaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 20,
+    flexWrap: 'wrap',
+    columnGap: 20,
+    rowGap: 4,
   },
   secondaryButton: {
     flexDirection: 'row',

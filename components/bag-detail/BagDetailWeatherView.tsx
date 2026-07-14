@@ -32,6 +32,8 @@ const BagDetailWeatherView: FC<Props> = ({ bagDetail, emphasized = false }) => {
   const fg = emphasized ? Color.background : Color.textPrimary;
   const subFg = emphasized ? EMPHASIZED_SUB : Color.textSecondary;
   const iconName = summary ? summary.icon : 'partly-sunny-outline';
+  // 박지 링크(location.spotId)면 위치명 앞에 📍 (WT-1).
+  const spotMark = location?.spotId ? '📍 ' : '';
 
   // 강조 타일은 전체 폭 가로 카드 — 아이콘 좌측, 온도·지역 가운데, 날씨 상태 우측.
   if (emphasized) {
@@ -53,7 +55,7 @@ const BagDetailWeatherView: FC<Props> = ({ bagDetail, emphasized = false }) => {
                   style={[styles.subtitle, { color: subFg }]}
                   numberOfLines={1}
                 >
-                  {location.name}
+                  {spotMark}{location.name}
                 </PretendardText>
               </>
             ) : (
@@ -65,7 +67,7 @@ const BagDetailWeatherView: FC<Props> = ({ bagDetail, emphasized = false }) => {
                   style={[styles.subtitle, { color: subFg }]}
                   numberOfLines={1}
                 >
-                  {location ? location.name : '여행지 설정'}
+                  {location ? `${spotMark}${location.name}` : '여행지 설정'}
                 </PretendardText>
               </>
             )}
@@ -96,7 +98,7 @@ const BagDetailWeatherView: FC<Props> = ({ bagDetail, emphasized = false }) => {
             {summary.low}~{summary.high}°
           </PretendardText>
           <PretendardText style={[styles.subtitle, { color: subFg }]} numberOfLines={1}>
-            {location.name}
+            {spotMark}{location.name}
           </PretendardText>
         </View>
       ) : (
@@ -105,7 +107,7 @@ const BagDetailWeatherView: FC<Props> = ({ bagDetail, emphasized = false }) => {
             날씨
           </PretendardText>
           <PretendardText style={[styles.subtitle, { color: subFg }]} numberOfLines={1}>
-            {location ? location.name : '여행지 설정'}
+            {location ? `${spotMark}${location.name}` : '여행지 설정'}
           </PretendardText>
         </View>
       )}
