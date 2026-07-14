@@ -29,6 +29,8 @@ interface Props {
   bag: Bag;
   // 전용 화면(PopularRankingWrapper)이 자체 헤더를 두므로 내부 타이틀은 숨길 수 있다.
   showTitle?: boolean;
+  // SR-4: 진입 시 승계할 카테고리(GearFilter 값). 이 화면의 8개 탭에 없으면 전체로 진입.
+  initialCategory?: string | undefined;
 }
 
 interface CategoryItem {
@@ -52,14 +54,24 @@ const categories: CategoryItem[] = SEARCH_RANK_CATEGORY_FILTERS.map(filter => {
   return { filter, name: getGearFilterName(filter) };
 });
 
+// SR-4: 승계 카테고리를 이 화면의 8개 탭 중 하나로 해석한다(없으면 전체).
+const resolveInitialCategory = (category?: string): GearFilter => {
+  const matched = SEARCH_RANK_CATEGORY_FILTERS.find(
+    filter => filter === category
+  );
+
+  return matched ?? GearFilter.All;
+};
+
 const SearchTopKeywordsView: FC<Props> = ({
   searchWarehouse,
   bag,
   showTitle = true,
+  initialCategory,
 }) => {
   const searchRank = searchWarehouse.getSearchRank();
-  const [selectedCategory, setSelectedCategory] = useState<GearFilter>(
-    GearFilter.All
+  const [selectedCategory, setSelectedCategory] = useState<GearFilter>(() =>
+    resolveInitialCategory(initialCategory)
   );
   const [loadingGearIds, setLoadingGearIds] = useState<Set<string>>(new Set());
   const [showModal, setShowModal] = useState(false);
