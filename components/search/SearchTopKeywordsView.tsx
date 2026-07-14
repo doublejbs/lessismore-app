@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import { FC, useCallback, useState } from 'react';
+import { FC, useCallback, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Image,
   GestureResponderEvent,
+  LayoutChangeEvent,
 } from 'react-native';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
@@ -73,6 +74,9 @@ const SearchTopKeywordsView: FC<Props> = ({
   const [selectedCategory, setSelectedCategory] = useState<GearFilter>(() =>
     resolveInitialCategory(initialCategory)
   );
+  // SR-4: 카테고리 칩 행을 진입 시 선택된 칩이 보이도록 가로 스크롤한다.
+  const categoryScrollRef = useRef<ScrollView>(null);
+  const didInitialScrollRef = useRef(false);
   const [loadingGearIds, setLoadingGearIds] = useState<Set<string>>(new Set());
   const [showModal, setShowModal] = useState(false);
   const [selectedGear, setSelectedGear] = useState<Gear | null>(null);
@@ -88,6 +92,24 @@ const SearchTopKeywordsView: FC<Props> = ({
   const handleCategoryPress = (category: GearFilter) => {
     setSelectedCategory(category);
     searchRank.selectCategory(category);
+  };
+
+  // 진입 시 승계된 카테고리 칩이 화면 밖(오른쪽)에 있으면 그 칩이 보이도록 1회 스크롤한다.
+  // 칩의 x 오프셋을 알아야 하므로 해당 칩의 onLayout에서 처리한다(전체는 이미 좌측이라 제외).
+  const handleChipLayout = (category: GearFilter) => (event: LayoutChangeEvent) => {
+    if (
+      didInitialScrollRef.current ||
+      category !== selectedCategory ||
+      selectedCategory === GearFilter.All
+    ) {
+      return;
+    }
+
+    didInitialScrollRef.current = true;
+
+    const { x } = event.nativeEvent.layout;
+
+    categoryScrollRef.current?.scrollTo({ x: Math.max(0, x - 16), animated: false });
   };
 
   const handleGearPress = (gear: Gear) => {
@@ -148,18 +170,23 @@ const SearchTopKeywordsView: FC<Props> = ({
 
       {/* 카테고리 필터 */}
       <ScrollView
+        ref={categoryScrollRef}
         horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.categoryScrollView}
         contentContainerStyle={styles.categoryScrollContent}
       >
         {categories.map(category => (
-          <CategoryChipView
+          <View
             key={category.filter}
-            label={category.name}
-            selected={selectedCategory === category.filter}
-            onPress={() => handleCategoryPress(category.filter)}
-          />
+            onLayout={handleChipLayout(category.filter)}
+          >
+            <CategoryChipView
+              label={category.name}
+              selected={selectedCategory === category.filter}
+              onPress={() => handleCategoryPress(category.filter)}
+            />
+          </View>
         ))}
       </ScrollView>
       {/* 순위 리스트 */}
