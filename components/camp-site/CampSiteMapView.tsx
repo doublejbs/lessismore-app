@@ -17,6 +17,7 @@ import { deltaToZoom } from '@/model/map/MapZoom';
 import CampSiteMapMarkersView, {
   CampSiteMapViewport,
 } from './CampSiteMapMarkersView';
+import CampSiteSelectedPulseView from './CampSiteSelectedPulseView';
 import CampSiteMapTopOverlayView from './CampSiteMapTopOverlayView';
 import CampSiteMapBottomOverlayView from './CampSiteMapBottomOverlayView';
 
@@ -59,6 +60,8 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   const mapReadyRef = useRef(false);
   const pendingCameraTargetRef = useRef<CameraTarget | null>(null);
   const pendingCameraFrameRef = useRef<number | null>(null);
+  // 현재 줌(마커 탭 시 줌은 유지한 채 그 박지를 중앙으로 이징하기 위함).
+  const zoomRef = useRef<number>(deltaToZoom(0.2));
   const insets = useSafeAreaInsets();
 
   // 하단 플로팅 요소(현재 위치 버튼·요약 카드)가 iOS 플로팅 탭바에 가리지 않게 하는 여유.
@@ -247,8 +250,15 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   const handleMarkerTap = useCallback(
     (spot: CampSpot) => {
       campSiteMap.selectSpot(spot);
+      // B: 선택 박지를 화면 중앙으로 부드럽게 이징(줌 유지) → 펄스(A)가 중앙에서 정렬돼 재생된다.
+      moveCamera({
+        latitude: spot.location.latitude,
+        longitude: spot.location.longitude,
+        zoom: zoomRef.current,
+        duration: 400,
+      });
     },
-    [campSiteMap]
+    [campSiteMap, moveCamera]
   );
 
   // 요약 카드 탭 → 상세 화면(CS-3).
@@ -289,6 +299,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     }
 
     const zoom = camera.zoom ?? 0;
+    zoomRef.current = zoom;
 
     // 중심 0.05°·줌 0.25 단위 양자화 — 동일 값이면 React가 리렌더를 생략한다.
     const quantized = {
@@ -404,6 +415,9 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
           onTapSpot={handleMarkerTap}
         />
       </NaverMapView>
+
+      {/* A: 선택 박지 강조 펄스(화면 중앙 = 카메라 이징이 옮긴 위치). pointerEvents none. */}
+      <CampSiteSelectedPulseView campSiteMap={campSiteMap} />
 
       <CampSiteMapTopOverlayView
         campSiteMap={campSiteMap}

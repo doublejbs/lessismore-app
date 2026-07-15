@@ -23,18 +23,22 @@ const CampSiteMarkerView = memo<Props>(({ spot, selected, onTapSpot }) => {
       width={44}
       height={44}
       onTap={() => onTapSpot(spot)}
+      // 선택 마커는 다른 마커 캡션 위로 그려지도록 zIndex를 올린다 — 겹침에서 선택 캡션이 이긴다.
+      zIndex={selected ? 1 : 0}
       // 박지 이름 캡션(CS-2) — 마커 위쪽 표시, 흰 halo로 지도 위 가독성 확보.
       // 44pt 히트 영역(원은 중앙 20pt) 밖에 붙으므로 음수 offset으로 원에 가깝게 당긴다.
       caption={{
         text: spot.name,
         align: 'Top',
-        textSize: 12,
+        // 선택 시 마커가 커지므로 캡션을 조금 더 위로 올리고 살짝 키운다.
+        textSize: selected ? 13 : 12,
         color: Color.textPrimary,
         haloColor: Color.background,
-        offset: -8,
+        offset: selected ? -12 : -8,
       }}
-      // 겹치는 마커는 캡션만 숨긴다(마커 자체는 유지).
-      isHideCollidedCaptions
+      // 겹치는 마커는 캡션만 숨긴다(마커 자체는 유지). 단, **선택(탭)한 마커는 캡션을 강제로 표시**한다 —
+      // 줌·밀집으로 이름이 숨겨졌던 마커도 탭하면 이름이 보이게(선택 마커만 겹침 숨김 해제).
+      isHideCollidedCaptions={!selected}
       // 마커와 겹치는 기본 지도 심볼(산 정상 POI 등)은 숨긴다 — 이중 라벨을 정리하고,
       // 심볼이 마커 탭을 가로채 반응이 없어 보이는 문제를 막는다.
       isHideCollidedSymbols
@@ -47,10 +51,11 @@ const CampSiteMarkerView = memo<Props>(({ spot, selected, onTapSpot }) => {
         collapsable={false}
         style={styles.markerHitArea}
       >
+        {/* 선택 시: 유형색 원을 키우고 두꺼운 흰 테두리 + 그림자로 지도에서 "떠오르게"(유형색 유지).
+            시선 유도 펄스·카메라 포커스는 지도 화면(CampSiteSelectedPulseView/handleMarkerTap)이 담당. */}
         <View
           style={[
-            styles.marker,
-            selected && styles.markerSelected,
+            selected ? styles.markerSelected : styles.marker,
             { backgroundColor: getCampSiteTypeColor(spot.type) },
           ]}
         />
@@ -78,12 +83,18 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Color.background,
   },
+  // 선택 마커: 크게 + 두꺼운 흰 테두리 + 진한 그림자로 지도 위에 떠오르게(유형색 유지).
   markerSelected: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    borderWidth: 4,
-    borderColor: Color.textPrimary,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 3,
+    borderColor: Color.background,
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 6,
   },
 });
 
