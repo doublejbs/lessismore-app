@@ -28,10 +28,11 @@ const CampSiteMarkerView = memo<Props>(({ spot, selected, onTapSpot }) => {
       caption={{
         text: spot.name,
         align: 'Top',
-        textSize: 12,
+        // 선택 시 마커가 커지므로 캡션을 조금 더 위로 올리고 살짝 키운다.
+        textSize: selected ? 13 : 12,
         color: Color.textPrimary,
         haloColor: Color.background,
-        offset: -8,
+        offset: selected ? -12 : -8,
       }}
       // 겹치는 마커는 캡션만 숨긴다(마커 자체는 유지).
       isHideCollidedCaptions
@@ -47,13 +48,24 @@ const CampSiteMarkerView = memo<Props>(({ spot, selected, onTapSpot }) => {
         collapsable={false}
         style={styles.markerHitArea}
       >
-        <View
-          style={[
-            styles.marker,
-            selected && styles.markerSelected,
-            { backgroundColor: getCampSiteTypeColor(spot.type) },
-          ]}
-        />
+        {selected ? (
+          // 선택 상태: 검정 강조 링(앱의 활성=검정 언어) + 흰 테두리 + 크게 → 명확히 구분·팝업.
+          <View style={styles.selectedOuter}>
+            <View
+              style={[
+                styles.selectedInner,
+                { backgroundColor: getCampSiteTypeColor(spot.type) },
+              ]}
+            />
+          </View>
+        ) : (
+          <View
+            style={[
+              styles.marker,
+              { backgroundColor: getCampSiteTypeColor(spot.type) },
+            ]}
+          />
+        )}
       </View>
     </NaverMapMarkerOverlay>
   );
@@ -78,12 +90,27 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Color.background,
   },
-  markerSelected: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    borderWidth: 4,
-    borderColor: Color.textPrimary,
+  // 선택 마커 바깥 검정 링(활성=검정). 그림자로 다른 마커 위에 떠 보이게 한다.
+  selectedOuter: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Color.chipActiveBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 4,
+  },
+  // 링 안 유형색 원 + 흰 테두리(유형 정보 유지).
+  selectedInner: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: Color.background,
   },
 });
 
