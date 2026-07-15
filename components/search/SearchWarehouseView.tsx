@@ -6,24 +6,31 @@ import { Ionicons } from '@expo/vector-icons';
 import { Color } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Bag from '@/model/bag/Bag';
+import Feed from '@/model/feed/Feed';
 import { GearAddContext } from '@/model/gear/GearAddContext';
+import useSearchFilterInheritance from '@/hooks/useSearchFilterInheritance';
 import SearchBarView from './SearchBarView';
 import SearchResultView from './SearchResultView';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
   bag: Bag;
+  feed: Feed;
   gearAddContext?: GearAddContext | undefined;
   children?: React.ReactNode;
 }
 
 // 장비 추가 검색 모달(GE-8). 검색바 위에 핸들바 + 닫기(우상단) 헤더를 둔다.
+// 탐색 탭과 동일하게 검색 승계(SR-1)를 배선해 검색 시에도 필터 바를 유지한다.
 const SearchWarehouseView: FC<Props> = ({
   searchWarehouse,
   bag,
+  feed,
   gearAddContext,
 }) => {
   const router = useRouter();
+
+  useSearchFilterInheritance(searchWarehouse, feed);
 
   const handleClose = () => {
     router.back();
@@ -47,6 +54,7 @@ const SearchWarehouseView: FC<Props> = ({
       <SearchResultView
         searchWarehouse={searchWarehouse}
         bag={bag}
+        feed={feed}
         gearAddContext={gearAddContext}
       />
     </View>
