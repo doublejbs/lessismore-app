@@ -64,7 +64,7 @@
 - 장비 토글 시 헤더의 총 무게가 실시간 갱신된다(선택 장비 `weight` 합 / 1000).
 - **토글할 때마다 즉시** 트랜잭션 `BagStore.save`가 실행된다(이탈 시 일괄 저장 아님): `bag.gears`/`bag.weight` 갱신 + 추가 장비의 `bags`에 ID 추가 + 제거 장비의 `bags`/`used`/`useless`에서 ID 제거.
 - `bag.weight`는 담긴 전체 장비의 `parseInt(weight)` 합으로 다시 계산해 저장한다.
-- "장비 추가" 버튼 → `/custom/bag-gear/{bagId}` ([GearEdit.md](GearEdit.md) GE-3).
+- "장비 추가" 버튼(헤더 우측 아이콘) → **장비 추가 선택 시트(`gear-add-options`, 배낭 컨텍스트 `bagId` 전달)** 를 연다([GearEdit.md](GearEdit.md) GE-8). 두 갈래: `검색으로 추가`(카탈로그 검색 → **이 배낭에 바로 담기**, GE-8) / `직접 입력`(`/custom/bag-gear/{bagId}` 수동 폼, 저장 시 이 배낭에 추가).
 - 하단에 고정 `완료` 버튼을 표시한다. 누르면 배낭 상세로 돌아간다. (변경사항은 토글마다 이미 저장돼 있으므로 추가 저장은 없다 — 버튼은 편집 종료 신호.)
 
 ### BD-5 사용 여부 기록 (useless)
