@@ -119,6 +119,14 @@ const useBagDestinationPickerState = ({
   const mapReadyFallbackFrameRef = useRef<number | null>(null);
   // 프롭 변화로 초기화 이펙트가 다시 돌지 않도록(열릴 때 1회만 읽는다).
   const currentLocationRef = useRef(currentLocation);
+  // [DIAG] 루프 진단 카운터.
+  const cameraCallCountRef = useRef(0);
+  const renderCountRef = useRef(0);
+
+  renderCountRef.current += 1;
+  console.log(
+    `[DIAG render] #${renderCountRef.current} visible=${visible} cam#=${cameraCallCountRef.current}`
+  );
 
   if (previousVisibleRef.current !== visible) {
     previousVisibleRef.current = visible;
@@ -591,6 +599,14 @@ const useBagDestinationPickerState = ({
 
   const handleCameraChanged = useCallback(
     (camera: Camera & { reason: CameraChangeReason }) => {
+      // [DIAG] 카메라 루프 진단 — reason(Gesture/Developer)·좌표·줌·호출횟수.
+      cameraCallCountRef.current += 1;
+      console.log(
+        `[DIAG cam] #${cameraCallCountRef.current} reason=${camera.reason} ` +
+          `lat=${camera.latitude.toFixed(5)} lng=${camera.longitude.toFixed(5)} ` +
+          `zoom=${(camera.zoom ?? 0).toFixed(2)}`
+      );
+
       if (savingRef.current) {
         return;
       }
