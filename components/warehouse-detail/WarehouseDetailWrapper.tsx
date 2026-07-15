@@ -13,12 +13,20 @@ const WarehouseDetailWrapper: FC<Props> = ({}) => {
   const [warehouseDetail] = useState(() =>
     WarehouseDetail.new(navigate, WarehouseDispatcher.new())
   );
-  const { id = '' } = useLocalSearchParams<{ id: string }>();
+  const { id = '', bagId } = useLocalSearchParams<{
+    id: string;
+    bagId?: string;
+  }>();
   const initialized = warehouseDetail.isInitialized();
 
   useEffect(() => {
+    // GE-8: 배낭 장비 추가 검색에서 들어오면 그 배낭 컨텍스트로 담기 버튼을 전환한다.
+    if (bagId) {
+      warehouseDetail.setBagContext(bagId);
+    }
+
     warehouseDetail.initialize(id);
-  }, [id]);
+  }, [id, bagId]);
 
   if (initialized) {
     return (

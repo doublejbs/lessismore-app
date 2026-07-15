@@ -55,6 +55,8 @@ class WarehouseDetail {
   private initialized = false;
   private id: string = '';
   private showAddToBagModal = false;
+  // GE-8: 배낭 장비 추가 검색에서 상세로 들어온 경우의 대상 배낭. 있으면 담기 버튼이 그 배낭에 바로 담는다.
+  private bagContextId: string | null = null;
   private gearImageSelection: GearImageSelection | null = null;
   private coupangUrl: string | undefined = undefined;
   private reviews: BlogReview[] = [];
@@ -402,6 +404,55 @@ class WarehouseDetail {
     this.setShowAddToBagModal(true);
 
     await this.initialize(this.getId());
+
+    return true;
+  }
+
+  // GE-8: 배낭 장비 추가 컨텍스트. 창고에 없으면 등록 후 그 배낭에 바로 담고, 담으면 검색으로 돌아간다.
+  public setBagContext(bagId: string) {
+    this.bagContextId = bagId;
+  }
+
+  public isBagContext() {
+    return this.bagContextId !== null;
+  }
+
+  public isInBagContextBag() {
+    return (
+      this.bagContextId !== null &&
+      (this.getGear()?.getBags().includes(this.bagContextId) ?? false)
+    );
+  }
+
+  public async addToBag(gear: Gear): Promise<boolean> {
+    if (!this.firebase.isLoggedIn()) {
+      this.logInAlertManager.show();
+      return false;
+    }
+
+    const bagId = this.bagContextId;
+
+    if (bagId === null) {
+      return this.addToWarehouse(gear);
+    }
+
+    // 창고에 없으면 먼저 등록한다(이미 보유면 재등록하지 않아 gear-rank 중복 집계를 피한다).
+    if (!gear.isAdded()) {
+      await this.searchDispatcher.register([gear]);
+      await this.warehouseOrder.saveLastOrderOption();
+      await this.bagDetailOrder.saveLastOrderOption();
+    }
+
+    if (gear.getBags().includes(bagId)) {
+      this.toastManager.show({ message: '이미 이 배낭에 담겨 있어요.' });
+      this.router.back();
+
+      return true;
+    }
+
+    await this.bagStore.addGear(bagId, gear);
+    this.toastManager.show({ message: '배낭에 담았어요.' });
+    this.router.back();
 
     return true;
   }
