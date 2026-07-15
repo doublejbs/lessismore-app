@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { observer } from 'mobx-react-lite';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
@@ -37,6 +38,7 @@ interface Props {
 // 수수료 고지는 카드마다 반복하지 않고 FeedView 리스트 푸터에서 1회 노출한다.
 // coupangUrl은 Algolia hit·Gear에 없고 /gear 문서에만 있어(WarehouseDetail과 동일 경로) 마운트 시 지연 로드한다.
 const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
+  const router = useRouter();
   const isAdded = gear.isAdded();
   const imageUrl = gear.getImageUrl();
   const weight = gear.getWeight();
@@ -77,7 +79,13 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
 
   const handleCardPress = () => {
     app.getAnalyticsManager()?.logClick('feed_card');
-    actions.goToGearDetail(gear);
+
+    // GE-8 배낭 컨텍스트: 상세에서도 그 배낭에 담도록 bagId를 넘긴다.
+    if (bagCtxId) {
+      router.push(`/gear-detail/${gear.getId()}?bagId=${bagCtxId}`);
+    } else {
+      actions.goToGearDetail(gear);
+    }
   };
 
   const handleAddPress = async (e: GestureResponderEvent) => {
