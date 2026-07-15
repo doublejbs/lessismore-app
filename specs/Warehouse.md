@@ -97,7 +97,8 @@ app/(tabs)/index.tsx → WarehouseWrapper → WarehouseScreen
 
 ### WH-7 장비 추가 진입
 
-- 플로팅 추가 버튼: 로그인 상태면 `/custom`으로 이동([GearEdit.md](GearEdit.md)), 비로그인이면 로그인 모달(`LogInAlertManager`)을 띄운다.
+- 플로팅 추가 버튼: 로그인 상태면 **장비 추가 선택 시트(`gear-add-options`)** 를 연다([GearEdit.md](GearEdit.md) GE-8), 비로그인이면 로그인 모달(`LogInAlertManager`)을 띄운다.
+- 선택 시트는 배낭 추가 시트(BAG-2, `bag-add-options`)와 동일한 네이티브 formSheet 패턴을 쓰며 두 갈래를 제공한다: **`검색으로 추가`**(카탈로그 검색 → 창고 담기, GE-8) / **`직접 입력`**(`/custom` 수동 폼, GE-1/GE-3). 항목 선택 시 시트를 다음 화면으로 `replace`한다(중간 탭 리로드 노출 방지).
 
 ### WH-8 장비 검색
 
