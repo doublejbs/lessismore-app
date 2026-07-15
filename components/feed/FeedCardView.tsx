@@ -41,6 +41,11 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
   const imageUrl = gear.getImageUrl();
   const weight = gear.getWeight();
 
+  // GE-8 배낭 컨텍스트: 이 배낭에 담는 흐름. 창고 보유 여부와 무관하게 파괴적 제거 대신 담기로 동작한다.
+  const bagCtxId =
+    gearAddContext?.mode === GearAddMode.Bag ? gearAddContext.bagId : undefined;
+  const isInThisBag = !!bagCtxId && gear.getData().bags.includes(bagCtxId);
+
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -81,6 +86,29 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
     setLoading(true);
 
     try {
+      // GE-8 배낭 컨텍스트: 창고에 없으면 등록 후, 그 배낭에 바로 담는다(재선택 모달 없음).
+      // 이미 창고 보유 장비는 재등록하지 않아 gear-rank 중복 집계를 피한다.
+      if (bagCtxId) {
+        if (!isAdded) {
+          const registered = await actions.registerSingle(gear);
+
+          if (!registered) {
+            return;
+          }
+        }
+
+        app.getAnalyticsManager()?.logClick('feed_add', { added: true });
+
+        const added = await bag.addGearToBag(bagCtxId, gear);
+
+        if (added) {
+          app.getToastManager()?.show({ message: '배낭에 담았어요.' });
+        }
+
+        return;
+      }
+
+      // 창고 컨텍스트 / 탐색 기본: 창고 등록.
       const success = await actions.registerSingle(gear);
 
       if (!success) {
@@ -89,20 +117,12 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
 
       app.getAnalyticsManager()?.logClick('feed_add', { added: true });
 
-      // GE-8: 장비 추가 검색 컨텍스트별 담기 동작.
-      if (!gearAddContext) {
+      if (gearAddContext) {
+        // 창고 장비 추가: 창고 등록만(배낭 담기 모달 생략).
+        app.getToastManager()?.show({ message: '창고에 담았어요.' });
+      } else {
         // 탐색 기본: 창고 등록 후 배낭 담기 모달(SR-3).
         setShowModal(true);
-      } else if (gearAddContext.mode === GearAddMode.Bag && gearAddContext.bagId) {
-        // 배낭 컨텍스트: 그 배낭에 바로 담기(재선택 모달 없음).
-        const added = await bag.addGearToBag(gearAddContext.bagId, gear);
-
-        if (added) {
-          app.getToastManager()?.show({ message: '배낭에 담았어요.' });
-        }
-      } else {
-        // 창고 컨텍스트: 창고 등록만(배낭 담기 모달 생략).
-        app.getToastManager()?.show({ message: '창고에 담았어요.' });
       }
     } finally {
       setLoading(false);
@@ -156,7 +176,17 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
       );
     }
 
-    if (isAdded) {
+    // GE-8 배낭 컨텍스트: 이미 이 배낭에 담긴 장비는 비파괴 체크 배지(중복 담기 방지),
+    // 그 외에는 담기(+) — 창고 보유 여부와 무관하게 제거 동작을 노출하지 않는다.
+    if (bagCtxId) {
+      if (isInThisBag) {
+        return (
+          <View style={styles.ownedBadge}>
+            <Ionicons name='checkmark' size={18} color={Color.background} />
+          </View>
+        );
+      }
+    } else if (isAdded) {
       return (
         <TouchableOpacity
           style={styles.ownedBadge}
