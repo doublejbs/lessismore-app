@@ -146,6 +146,17 @@ const RootLayout = () => {
             }}
           />
           <Stack.Screen
+            name='gear-add-options'
+            options={{
+              headerShown: false,
+              presentation: 'formSheet',
+              sheetAllowedDetents: 'fitToContents',
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 20,
+              contentStyle: { backgroundColor: '#FFFFFF' },
+            }}
+          />
+          <Stack.Screen
             name='bag-copy-source'
             options={{
               headerShown: false,

@@ -20,8 +20,6 @@ class CustomGearForBag extends CustomGear {
       app.getLogInAlertManager()!,
       Order.new(Warehouse.ORDER_KEY),
       Order.new(BagDetail.ORDER_KEY),
-      app.getSearchStore()!,
-      app.getAlertManager()!,
       CustomGearCategory.new().selectFirst(),
       '',
       '',

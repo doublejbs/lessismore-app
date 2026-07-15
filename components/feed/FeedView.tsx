@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import Feed from '@/model/feed/Feed';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
+import { GearAddContext } from '@/model/gear/GearAddContext';
 import PretendardText from '@/components/PretendardText';
 import { Color } from '@/constants/DesignTokens';
 import FeedSkeletonView from './FeedSkeletonView';
@@ -43,11 +44,13 @@ interface Props {
   bag: Bag;
   // 탐색 탭이 검색 승계(FD-3)를 위해 상위에서 소유·공유하는 피드. 없으면 내부에서 생성한다.
   feed?: Feed;
+  // GE-8: 장비 추가 검색 진입 시 담기 동작 컨텍스트(카드로 전달).
+  gearAddContext?: GearAddContext | undefined;
 }
 
 // FD-2/FD-4: 장비 피드 본체. Feed 도메인 객체를 1회 생성·초기화하고 카드 FlatList(2컬럼 그리드)로 렌더한다.
 // FD-3: 상단 필터 바 대신, FlatList 위에 하단 플로팅 버튼(필터·인기 순위)을 absolute로 얹는다.
-const FeedView: FC<Props> = ({ bag, feed: externalFeed }) => {
+const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   const router = useRouter();
   const [feed] = useState(() => externalFeed ?? Feed.new(router));
   const ownsFeed = !externalFeed;
@@ -84,11 +87,16 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed }) => {
       // 우측으로 늘어나지 않도록 셀 폭을 고정(좌측 정렬)한다.
       return (
         <View style={styles.cell}>
-          <FeedCardView gear={item} actions={feed} bag={bag} />
+          <FeedCardView
+            gear={item}
+            actions={feed}
+            bag={bag}
+            gearAddContext={gearAddContext}
+          />
         </View>
       );
     },
-    [feed, bag]
+    [feed, bag, gearAddContext]
   );
 
   const keyExtractor = useCallback((gear: Gear) => gear.getId(), []);
@@ -133,7 +141,8 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed }) => {
         <View style={styles.skeletonContainer}>
           <FeedSkeletonView count={6} />
         </View>
-        <FeedRankingButtonView feed={feed} />
+        {/* GE-8: 장비 추가 검색 모달에서는 인기 순위 버튼을 숨긴다(탐색 탭에서만 노출). */}
+        {!gearAddContext && <FeedRankingButtonView feed={feed} />}
       </View>
     );
   }
@@ -161,7 +170,7 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed }) => {
           />
         }
       />
-      <FeedRankingButtonView feed={feed} />
+      {!gearAddContext && <FeedRankingButtonView feed={feed} />}
     </View>
   );
 };

@@ -5,6 +5,7 @@ import SearchSkeletonView from './SearchSkeletonView';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import { observer } from 'mobx-react-lite';
 import Bag from '@/model/bag/Bag';
+import { GearAddContext } from '@/model/gear/GearAddContext';
 import FeedCardView from '@/components/feed/FeedCardView';
 import PretendardText from '@/components/PretendardText';
 import { Color } from '@/constants/DesignTokens';
@@ -24,6 +25,7 @@ interface Props {
   handleLoadMore: () => void;
   searchWarehouse: SearchWarehouse;
   bag: Bag;
+  gearAddContext?: GearAddContext | undefined;
   children?: React.ReactNode;
 }
 
@@ -36,6 +38,7 @@ const SearchResultContentView: FC<Props> = ({
   searchWarehouse,
   children,
   bag,
+  gearAddContext,
 }) => {
   const isLoading = searchWarehouse.isLoading();
 
@@ -52,7 +55,12 @@ const SearchResultContentView: FC<Props> = ({
       columnWrapperStyle={styles.columnWrapper}
       renderItem={({ item: gear }) => (
         <View style={styles.cell}>
-          <FeedCardView gear={gear} actions={searchWarehouse} bag={bag} />
+          <FeedCardView
+            gear={gear}
+            actions={searchWarehouse}
+            bag={bag}
+            gearAddContext={gearAddContext}
+          />
         </View>
       )}
       keyExtractor={(gear: Gear) => gear.getId()}
