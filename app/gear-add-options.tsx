@@ -16,7 +16,8 @@ const GearAddOptionsScreen = () => {
 
   const select = (type: 'search' | 'custom') => {
     if (type === 'search') {
-      router.replace(bagId ? `/search?bagId=${bagId}` : '/search');
+      // 창고는 탐색 탭으로(둘러보기+검색 그대로), 배낭은 검색 모달로 그 배낭에 바로 담기.
+      router.replace(bagId ? `/search?bagId=${bagId}` : '/(tabs)/search');
     } else {
       router.replace(bagId ? `/custom/bag-gear/${bagId}` : '/custom');
     }
