@@ -147,7 +147,8 @@ class BagEdit {
   }
 
   public showCustom() {
-    this.router.push(`/custom/bag-gear/${this.id}`);
+    // GE-8: 검색/직접 선택 시트로 진입(이 배낭 컨텍스트 — bagId 전달).
+    this.router.push(`/gear-add-options?bagId=${this.id}`);
   }
 
   private setWarehouseGears(gears: Gear[]) {

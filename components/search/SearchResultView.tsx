@@ -5,6 +5,7 @@ import PretendardText from '@/components/PretendardText';
 import { Color } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Bag from '@/model/bag/Bag';
+import { GearAddContext } from '@/model/gear/GearAddContext';
 import Feed from '@/model/feed/Feed';
 import FeedView from '../feed/FeedView';
 import FeedFilterBarView from '../feed/FeedFilterBarView';
@@ -14,6 +15,7 @@ interface Props {
   searchWarehouse: SearchWarehouse;
   bag: Bag;
   feed?: Feed;
+  gearAddContext?: GearAddContext | undefined;
   children?: React.ReactNode;
 }
 
@@ -21,6 +23,7 @@ const SearchResultView: FC<Props> = ({
   searchWarehouse,
   bag,
   feed,
+  gearAddContext,
   children,
 }) => {
   const keyword = searchWarehouse.getKeyword();
@@ -37,7 +40,13 @@ const SearchResultView: FC<Props> = ({
   // 피드는 자체 여백을 관리하므로 20px 패딩 컨테이너를 우회해 전체 폭으로 렌더한다.
   // 탐색 탭은 필터 상태 유지를 위해 상위에서 공유하는 feed를 내려준다(FD-3 검색 승계).
   if (!keyword.length) {
-    return <FeedView bag={bag} {...(feed ? { feed } : {})} />;
+    return (
+      <FeedView
+        bag={bag}
+        {...(feed ? { feed } : {})}
+        gearAddContext={gearAddContext}
+      />
+    );
   }
 
   const render = () => {
@@ -59,6 +68,7 @@ const SearchResultView: FC<Props> = ({
             handleLoadMore={handleLoadMore}
             searchWarehouse={searchWarehouse}
             bag={bag}
+            gearAddContext={gearAddContext}
           >
             {children}
           </SearchResultContentView>
