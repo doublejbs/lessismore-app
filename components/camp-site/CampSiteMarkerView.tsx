@@ -48,24 +48,14 @@ const CampSiteMarkerView = memo<Props>(({ spot, selected, onTapSpot }) => {
         collapsable={false}
         style={styles.markerHitArea}
       >
-        {selected ? (
-          // 선택 상태: 검정 강조 링(앱의 활성=검정 언어) + 흰 테두리 + 크게 → 명확히 구분·팝업.
-          <View style={styles.selectedOuter}>
-            <View
-              style={[
-                styles.selectedInner,
-                { backgroundColor: getCampSiteTypeColor(spot.type) },
-              ]}
-            />
-          </View>
-        ) : (
-          <View
-            style={[
-              styles.marker,
-              { backgroundColor: getCampSiteTypeColor(spot.type) },
-            ]}
-          />
-        )}
+        {/* 선택 시: 유형색 원을 키우고 두꺼운 흰 테두리 + 그림자로 지도에서 "떠오르게"(유형색 유지).
+            시선 유도 펄스·카메라 포커스는 지도 화면(CampSiteSelectedPulseView/handleMarkerTap)이 담당. */}
+        <View
+          style={[
+            selected ? styles.markerSelected : styles.marker,
+            { backgroundColor: getCampSiteTypeColor(spot.type) },
+          ]}
+        />
       </View>
     </NaverMapMarkerOverlay>
   );
@@ -90,27 +80,18 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Color.background,
   },
-  // 선택 마커 바깥 검정 링(활성=검정). 그림자로 다른 마커 위에 떠 보이게 한다.
-  selectedOuter: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Color.chipActiveBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 4,
-  },
-  // 링 안 유형색 원 + 흰 테두리(유형 정보 유지).
-  selectedInner: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
+  // 선택 마커: 크게 + 두꺼운 흰 테두리 + 진한 그림자로 지도 위에 떠오르게(유형색 유지).
+  markerSelected: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 3,
     borderColor: Color.background,
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 6,
   },
 });
 
