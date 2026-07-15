@@ -11,7 +11,8 @@ const AddButtonView: FC = () => {
     app.getAnalyticsManager()?.logClick('gear_add');
 
     if (app.getFirebase().isLoggedIn()) {
-      router.push('/custom');
+      // GE-8: 검색/직접 선택 시트로 진입(창고 컨텍스트).
+      router.push('/gear-add-options');
     } else {
       app.getLogInAlertManager()?.show();
     }

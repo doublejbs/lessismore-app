@@ -13,6 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import GearRowActions from '@/model/browse/GearRowActions';
+import { GearAddContext } from '@/model/gear/GearAddContext';
+import GearAddMode from '@/model/gear/GearAddMode';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import LoadingView from '@/components/ui/LoadingView';
@@ -27,12 +29,14 @@ interface Props {
   gear: Gear;
   actions: GearRowActions;
   bag: Bag;
+  // GE-8: 장비 추가 검색(/search) 진입 시 담기 동작 컨텍스트. 미지정이면 탐색 기본(배낭 담기 모달).
+  gearAddContext?: GearAddContext | undefined;
 }
 
 // FD-2: 피드 카드(2컬럼 그리드 셀). 정방형 이미지 → 브랜드 → 이름 → 무게, 우측 상단 담기 CTA, coupangUrl이 있으면 하단 축약 링크.
 // 수수료 고지는 카드마다 반복하지 않고 FeedView 리스트 푸터에서 1회 노출한다.
 // coupangUrl은 Algolia hit·Gear에 없고 /gear 문서에만 있어(WarehouseDetail과 동일 경로) 마운트 시 지연 로드한다.
-const FeedCardView: FC<Props> = ({ gear, actions, bag }) => {
+const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
   const isAdded = gear.isAdded();
   const imageUrl = gear.getImageUrl();
   const weight = gear.getWeight();
@@ -79,9 +83,26 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag }) => {
     try {
       const success = await actions.registerSingle(gear);
 
-      if (success) {
-        app.getAnalyticsManager()?.logClick('feed_add', { added: true });
+      if (!success) {
+        return;
+      }
+
+      app.getAnalyticsManager()?.logClick('feed_add', { added: true });
+
+      // GE-8: 장비 추가 검색 컨텍스트별 담기 동작.
+      if (!gearAddContext) {
+        // 탐색 기본: 창고 등록 후 배낭 담기 모달(SR-3).
         setShowModal(true);
+      } else if (gearAddContext.mode === GearAddMode.Bag && gearAddContext.bagId) {
+        // 배낭 컨텍스트: 그 배낭에 바로 담기(재선택 모달 없음).
+        const added = await bag.addGearToBag(gearAddContext.bagId, gear);
+
+        if (added) {
+          app.getToastManager()?.show({ message: '배낭에 담았어요.' });
+        }
+      } else {
+        // 창고 컨텍스트: 창고 등록만(배낭 담기 모달 생략).
+        app.getToastManager()?.show({ message: '창고에 담았어요.' });
       }
     } finally {
       setLoading(false);
