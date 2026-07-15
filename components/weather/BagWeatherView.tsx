@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import {
   View,
   ScrollView,
@@ -25,7 +25,6 @@ const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
 const BagWeatherView: FC<Props> = ({ bagWeather }) => {
   const router = useRouter();
-  const [searchActive, setSearchActive] = useState(false);
   const location = bagWeather.getLocation();
   const weather = bagWeather.getWeather();
   const loading = bagWeather.isLoading();
@@ -48,94 +47,91 @@ const BagWeatherView: FC<Props> = ({ bagWeather }) => {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => router.back()}
+          accessibilityRole='button'
+          accessibilityLabel='뒤로가기'
+        >
           <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
         </TouchableOpacity>
         <PretendardText style={styles.headerTitle} weight='bold'>
-          여행지 날씨
+          여행지
         </PretendardText>
         <View style={styles.headerSpacer} />
       </View>
 
       <View style={styles.body}>
-        <WeatherLocationSearchView
-          bagWeather={bagWeather}
-          onActiveChange={setSearchActive}
-        />
+        <WeatherLocationSearchView bagWeather={bagWeather} />
 
-        {!searchActive && (
-          <ScrollView
-            style={styles.weatherScroll}
-            contentContainerStyle={styles.weatherContent}
-            keyboardShouldPersistTaps='handled'
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.divider} />
+        <ScrollView
+          style={styles.weatherScroll}
+          contentContainerStyle={styles.weatherContent}
+          keyboardShouldPersistTaps='handled'
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.divider} />
 
-            {!location ? (
-              <View style={styles.emptyState}>
-                <Ionicons
-                  name='partly-sunny-outline'
-                  size={40}
-                  color={Color.iconMuted}
-                />
-                <PretendardText style={styles.emptyText}>
-                  여행지를 설정하면{'\n'}기간 동안의 날씨를 볼 수 있어요
+          {!location ? (
+            <View style={styles.emptyState}>
+              <Ionicons
+                name='partly-sunny-outline'
+                size={40}
+                color={Color.iconMuted}
+              />
+              <PretendardText style={styles.emptyText}>
+                여행지를 설정하면{'\n'}기간 동안의 날씨를 볼 수 있어요
+              </PretendardText>
+            </View>
+          ) : loading && !weather ? (
+            <View style={styles.centerState}>
+              <ActivityIndicator color={Color.textSecondary} />
+            </View>
+          ) : error && !weather ? (
+            <View style={styles.centerState}>
+              <PretendardText style={styles.emptyText}>
+                날씨를 불러오지 못했어요
+              </PretendardText>
+              <TouchableOpacity
+                style={styles.retryButton}
+                onPress={() => bagWeather.ensureFresh()}
+                accessibilityRole='button'
+                accessibilityLabel='날씨 다시 시도'
+              >
+                <PretendardText style={styles.retryText} weight='medium'>
+                  다시 시도
                 </PretendardText>
-              </View>
-            ) : loading && !weather ? (
-              <View style={styles.centerState}>
-                <ActivityIndicator color={Color.textSecondary} />
-              </View>
-            ) : error && !weather ? (
-              <View style={styles.centerState}>
-                <PretendardText style={styles.emptyText}>
-                  날씨를 불러오지 못했어요
-                </PretendardText>
-                <TouchableOpacity
-                  style={styles.retryButton}
-                  onPress={() => bagWeather.ensureFresh()}
-                >
-                  <PretendardText style={styles.retryText} weight='medium'>
-                    다시 시도
+              </TouchableOpacity>
+            </View>
+          ) : weather ? (
+            <View>
+              <View style={styles.sectionHeader}>
+                <View style={styles.sectionTitleRow}>
+                  <PretendardText style={styles.sectionTitle} weight='bold'>
+                    여행 기간 날씨
                   </PretendardText>
-                </TouchableOpacity>
-              </View>
-            ) : weather ? (
-              <View>
-                <View style={styles.sectionHeader}>
-                  <View style={styles.sectionTitleRow}>
-                    <PretendardText style={styles.sectionTitle} weight='bold'>
-                      여행 기간 날씨
-                    </PretendardText>
-                    {loading && (
-                      <ActivityIndicator
-                        size='small'
-                        color={Color.textSecondary}
-                      />
-                    )}
-                  </View>
-                  <PretendardText style={styles.periodText}>
-                    {periodLabel}
-                  </PretendardText>
-                  {summary && (
-                    <PretendardText style={styles.summaryText} weight='medium'>
-                      {summary.cond} · ↑{summary.high}° ↓{summary.low}°
-                      {summary.maxGust != null &&
-                        summary.maxGust >= 10 &&
-                        ` · 돌풍 ${summary.maxGust}m/s`}
-                    </PretendardText>
+                  {loading && (
+                    <ActivityIndicator size='small' color={Color.textSecondary} />
                   )}
                 </View>
-                <WeatherDailyView daily={tripDaily} />
-                <PretendardText style={styles.disclaimer}>
-                  예보는 향후 16일까지 제공되며, 그 이후는 과거 평년값을 참고로
-                  표시합니다.
-                </PretendardText>
+                <PretendardText style={styles.periodText}>{periodLabel}</PretendardText>
+                {summary && (
+                  <PretendardText style={styles.summaryText} weight='medium'>
+                    {summary.cond} · ↑{summary.high}° ↓{summary.low}°
+                    {summary.maxGust != null &&
+                      summary.maxGust >= 10 &&
+                      ` · 돌풍 ${summary.maxGust}m/s`}
+                  </PretendardText>
+                )}
               </View>
-            ) : null}
-          </ScrollView>
-        )}
+              <WeatherDailyView daily={tripDaily} />
+              <PretendardText style={styles.disclaimer}>
+                예보는 향후 16일까지 제공되며, 그 이후는 과거 평년값을 참고로
+                표시합니다.
+              </PretendardText>
+            </View>
+          ) : null}
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
@@ -158,7 +154,13 @@ const styles = StyleSheet.create({
     color: Color.textPrimary,
   },
   headerSpacer: {
-    width: 24,
+    width: 44,
+  },
+  headerButton: {
+    width: 44,
+    minHeight: 44,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
   },
   body: {
     flex: 1,
@@ -192,8 +194,9 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   retryButton: {
+    minHeight: 44,
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    justifyContent: 'center',
     borderRadius: Radius.input,
     backgroundColor: Color.surfaceMuted,
   },

@@ -13,7 +13,7 @@ import BagDetailUselessDescriptionView from './BagDetailUselessDescriptionView';
 import BagDetailSummaryView from './BagDetailSummaryView';
 import BagDetailBottomBar from './BagDetailBottomBar';
 import BagDetailMemoView from './BagDetailMemoView';
-import BagDetailWeatherView from './BagDetailWeatherView';
+import BagDetailDestinationView from './BagDetailDestinationView';
 import ShareButtonView from './ShareButtonView';
 import BagDetailCopyView from '../bag/BagDetailCopyView';
 import { useFocusEffect } from 'expo-router';
@@ -108,11 +108,11 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                       emphasized
                     />
                     <BagDetailMemoView bagDetail={bagDetail} />
-                    <BagDetailWeatherView bagDetail={bagDetail} />
+                    <BagDetailDestinationView bagDetail={bagDetail} />
                   </>
                 ) : (
                   <>
-                    <BagDetailWeatherView bagDetail={bagDetail} emphasized />
+                    <BagDetailDestinationView bagDetail={bagDetail} emphasized />
                     <BagDetailMemoView bagDetail={bagDetail} />
                     <BagDetailUselessDescriptionView bagDetail={bagDetail} />
                   </>

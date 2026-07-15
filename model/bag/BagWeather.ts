@@ -1,12 +1,9 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { makeAutoObservable } from 'mobx';
 import BagStore from '../store/BagStore';
+import { BagLocation } from '../bag-destination/BagLocation';
 import weatherService from '../weather/WeatherService';
-import {
-  BagLocation,
-  WeatherKind,
-  WeatherSnapshot,
-} from '../weather/WeatherTypes';
+import { WeatherKind, WeatherSnapshot } from '../weather/WeatherTypes';
 
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
@@ -29,6 +26,7 @@ class BagWeather {
   private endDate: Dayjs = dayjs();
   private loading = false;
   private error = false;
+  private requestGeneration = 0;
 
   private constructor(
     private readonly bagId: string,
@@ -64,10 +62,12 @@ class BagWeather {
   private setDates(start: Dayjs, end: Dayjs) {
     this.startDate = start;
     this.endDate = end;
+    this.invalidateRequests();
   }
 
   private setLocation(value: BagLocation | null) {
     this.location = value;
+    this.invalidateRequests();
   }
 
   public getLocation() {
@@ -124,9 +124,9 @@ class BagWeather {
     return this.endDate;
   }
 
-  // 지명 검색(지오코딩) 위임.
-  public async searchLocations(name: string) {
-    return weatherService.geocode(name);
+  private invalidateRequests() {
+    this.requestGeneration += 1;
+    this.setLoading(false);
   }
 
   // 여행 날짜 변경 시 호출: 기간을 갱신하고 스냅샷이 새 기간을 못 덮으면 재조회한다.
@@ -135,10 +135,17 @@ class BagWeather {
     await this.ensureFresh();
   }
 
-  // 위치를 저장하고 좌표 변경으로 스냅샷을 무효화 → 즉시 재조회.
+  // 여행지 저장(DST-6). 저장 결과로 로컬 캐시를 즉시 맞춘 뒤 새 날씨를 조회한다 —
+  // 좌표가 바뀌었으면 스토어가 weather를 지워 돌려주므로 이전 위치의 날씨가 곧바로 사라진다.
+  // 저장 자체가 실패하면 던져서 기존 location을 유지하고 호출자가 재시도할 수 있게 한다.
   public async updateLocation(location: BagLocation) {
-    await this.bagStore.updateLocation(this.bagId, location);
+    const result = await this.bagStore.updateLocation(this.bagId, location);
+
     this.setLocation(location);
+    this.setWeather(result.coordinatesChanged ? null : result.weather);
+    this.setError(false);
+
+    // 새 좌표·누락·만료 캐시는 즉시 조회하고, 같은 좌표의 유효 캐시는 isStale에서 그대로 유지한다.
     await this.ensureFresh();
   }
 
@@ -173,6 +180,9 @@ class BagWeather {
     if (snap.latitude !== loc.latitude || snap.longitude !== loc.longitude) {
       return true;
     }
+    if (snap.frozen) {
+      return false;
+    }
     const dates = new Set(snap.daily.map(d => d.date));
     if (
       !dates.has(this.startDate.format('YYYY-MM-DD')) ||
@@ -182,9 +192,6 @@ class BagWeather {
     }
     if (snap.kind !== this.desiredKind()) {
       return true;
-    }
-    if (snap.frozen) {
-      return false;
     }
     const ttl =
       snap.kind === 'forecast' || snap.kind === 'mixed'
@@ -199,6 +206,10 @@ class BagWeather {
     if (!loc || !this.isStale()) {
       return;
     }
+
+    const requestGeneration = this.requestGeneration + 1;
+
+    this.requestGeneration = requestGeneration;
     this.setLoading(true);
     this.setError(false);
     try {
@@ -207,15 +218,28 @@ class BagWeather {
         this.startDate,
         this.endDate
       );
-      await this.bagStore.updateWeather(this.bagId, snapshot);
+
+      if (requestGeneration !== this.requestGeneration) {
+        return;
+      }
+
+      const saved = await this.bagStore.updateWeather(this.bagId, loc, snapshot);
+
+      if (!saved || requestGeneration !== this.requestGeneration) {
+        return;
+      }
+
       this.setWeather(snapshot);
     } catch (error) {
       console.error('날씨 조회 실패:', error);
-      if (!this.weather) {
+
+      if (requestGeneration === this.requestGeneration && !this.weather) {
         this.setError(true);
       }
     } finally {
-      this.setLoading(false);
+      if (requestGeneration === this.requestGeneration) {
+        this.setLoading(false);
+      }
     }
   }
 }

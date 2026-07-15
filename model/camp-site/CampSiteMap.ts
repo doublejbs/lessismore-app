@@ -2,6 +2,7 @@ import { makeAutoObservable } from 'mobx';
 import CampSiteType from './CampSiteType';
 import CampSiteTag from './CampSiteTag';
 import { CampSpot } from './CampSpotTypes';
+import { getCampSiteTagLabel } from './CampSiteLabels';
 import CampSiteMapDispatcher from './CampSiteMapDispatcher';
 
 // 박지 지도 화면(CS-1/CS-2)의 도메인 모델.
@@ -33,7 +34,7 @@ class CampSiteMap {
   }
 
   public async initialize() {
-    if (this.initialized) {
+    if (this.loading || (this.initialized && !this.loadError)) {
       return;
     }
 
@@ -47,6 +48,10 @@ class CampSiteMap {
   }
 
   private async load() {
+    if (this.loading) {
+      return;
+    }
+
     this.setLoading(true);
     this.setLoadError(false);
 
@@ -101,6 +106,40 @@ class CampSiteMap {
     return matched.slice(0, CampSiteMap.SEARCH_RESULT_LIMIT);
   }
 
+  // 배낭 여행지 선택기의 통합 검색(DST-4)용 활성 박지 검색.
+  // 지도 탭 드롭다운(CS-6)과 달리 선택기는 자체 검색어 상태를 들고 있어 인자로 받고,
+  // 태그 라벨(`산`·`계곡` 등)까지 대상에 넣어 지형으로도 찾을 수 있게 한다.
+  public searchSpotsBy(keyword: string): CampSpot[] {
+    const normalized = keyword.trim().toLowerCase();
+
+    if (normalized.length === 0) {
+      return [];
+    }
+
+    const matched = this.spots.filter(spot => {
+      const tagLabels = (spot.tags ?? []).map(tag => getCampSiteTagLabel(tag));
+      const haystack = [spot.name, spot.region, ...tagLabels]
+        .join(' ')
+        .toLowerCase();
+
+      return haystack.includes(normalized);
+    });
+
+    return matched.slice(0, CampSiteMap.SEARCH_RESULT_LIMIT);
+  }
+
+  public getSpotsByName(name: string): CampSpot[] {
+    const normalized = name.replace(/\s+/g, '').toLowerCase();
+
+    if (normalized.length === 0) {
+      return [];
+    }
+
+    return this.spots.filter(
+      spot => spot.name.replace(/\s+/g, '').toLowerCase() === normalized
+    );
+  }
+
   // 유형 필터 적용 후 화면 영역(region) 안에 있는 spots(CS-2).
   // 줌인 상태 마커는 전체가 아니라 이 목록만 그린다 — 전량(400+)을 네이티브 마커로
   // 올리면 커스텀 뷰 캡처·캡션 충돌 계산이 무거워 탭 반응이 눈에 띄게 느려진다.
@@ -120,6 +159,12 @@ class CampSiteMap {
         longitude <= region.maxLongitude
       );
     });
+  }
+
+  // 문서 id로 활성 박지 1건(DST-3 — 저장된 여행지의 박지 링크 복원).
+  // 삭제·비활성된 박지는 로드 대상이 아니라 null이 되고, 호출자는 저장된 스냅샷을 그대로 쓴다(DST-7).
+  public getSpotById(id: string): CampSpot | null {
+    return this.spots.find(spot => spot.id === id) ?? null;
   }
 
   public getQuery(): string {

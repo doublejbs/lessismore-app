@@ -3,7 +3,7 @@ import app from '../app/App';
 import CampSpotStore from '../store/CampSpotStore';
 import weatherService from '../weather/WeatherService';
 import { CampSpot } from './CampSpotTypes';
-import { BagLocation, WeatherDaily } from '../weather/WeatherTypes';
+import { WeatherDaily, WeatherLocation } from '../weather/WeatherTypes';
 
 // 주간 날씨 조회 범위: 오늘 포함 7일.
 const WEEKLY_DAYS = 6;
@@ -22,7 +22,7 @@ class CampSiteWeatherDispatcher {
 
   // 박지 좌표로 오늘부터 7일치 예보를 조회한다(CS-3 주간 날씨).
   public async getWeeklyWeather(
-    location: BagLocation
+    location: WeatherLocation
   ): Promise<WeatherDaily[]> {
     const start = dayjs().startOf('day');
     const end = start.add(WEEKLY_DAYS, 'day');

@@ -25,7 +25,8 @@ import Firebase from '../firebase/Firebase';
 import { GearData } from './GearStore';
 import BagItem from '../bag/BagItem';
 import app from '../app/App';
-import { BagLocation, WeatherSnapshot } from '../weather/WeatherTypes';
+import { BagLocation } from '../bag-destination/BagLocation';
+import { WeatherSnapshot } from '../weather/WeatherTypes';
 
 class BagStore {
   public constructor(private readonly firebase: Firebase) {}
@@ -333,7 +334,7 @@ class BagStore {
           dayjs(endDate),
           gears ?? [],
           packedGears ?? [],
-          location?.name ?? null
+          location ?? null
         )
       );
     });
@@ -698,12 +699,87 @@ class BagStore {
     };
   }
 
-  public async updateLocation(id: string, location: BagLocation) {
-    await updateDoc(doc(this.getStore(), 'bag', id), { location });
+  // 여행지 저장(DST-6). 기존 문서를 먼저 읽어 좌표 변경 여부를 판단하고 한 번의 쓰기로 끝낸다.
+  // 반환값은 호출자가 좌표 변경 여부와 저장 후 weather를 로컬 상태에 그대로 반영할 수 있게 한다.
+  public async updateLocation(
+    id: string,
+    location: BagLocation
+  ): Promise<{
+    coordinatesChanged: boolean;
+    weather: WeatherSnapshot | null;
+  }> {
+    const ref = doc(this.getStore(), 'bag', id);
+
+    return await runTransaction(this.getStore(), async transaction => {
+      const snapshot = await transaction.get(ref);
+      const data = snapshot.data() as
+        | { location?: BagLocation; weather?: WeatherSnapshot }
+        | undefined;
+
+      // location/weather가 없는 기존 문서도 그대로 통과한다(좌표 변경 취급 → 아래 분기).
+      const previousLocation = data?.location ?? null;
+      const previousWeather = data?.weather ?? null;
+
+      const coordinatesChanged =
+        previousLocation === null ||
+        previousLocation.latitude !== location.latitude ||
+        previousLocation.longitude !== location.longitude;
+
+      if (coordinatesChanged) {
+        // 이전 위치의 날씨가 새 여행지 날씨처럼 보이지 않도록 location 저장과 캐시 제거를 같은 쓰기로 처리한다.
+        // frozen 스냅샷도 예외 없이 제거하며 새 조회 결과가 저장되기 전까지 표시하지 않는다.
+        transaction.update(ref, { location, weather: deleteField() });
+
+        return { coordinatesChanged, weather: null };
+      }
+
+      if (previousWeather && previousWeather.locationName !== location.name) {
+        const weather = {
+          ...previousWeather,
+          locationName: location.name,
+        };
+
+        // 좌표가 같으면 일별 캐시는 유지하고 표시명만 여행지 스냅샷과 동기화한다.
+        transaction.update(ref, {
+          location,
+          'weather.locationName': location.name,
+        });
+
+        return { coordinatesChanged, weather };
+      }
+
+      // 박지 참조만 바뀌었거나 같은 여행지를 다시 선택한 경우에도 location 객체 전체를 교체해
+      // 자유 위치의 campSpotId 제거와 동일 박지의 최신 이름·좌표 스냅샷 갱신을 보장한다.
+      transaction.update(ref, { location });
+
+      return { coordinatesChanged, weather: previousWeather };
+    });
   }
 
-  public async updateWeather(id: string, weather: WeatherSnapshot) {
-    await updateDoc(doc(this.getStore(), 'bag', id), { weather });
+  public async updateWeather(
+    id: string,
+    location: BagLocation,
+    weather: WeatherSnapshot
+  ): Promise<boolean> {
+    const ref = doc(this.getStore(), 'bag', id);
+
+    return await runTransaction(this.getStore(), async transaction => {
+      const snapshot = await transaction.get(ref);
+      const currentLocation = snapshot.data()?.location as BagLocation | undefined;
+
+      if (
+        !currentLocation ||
+        currentLocation.latitude !== location.latitude ||
+        currentLocation.longitude !== location.longitude ||
+        currentLocation.name !== location.name
+      ) {
+        return false;
+      }
+
+      transaction.update(ref, { weather });
+
+      return true;
+    });
   }
 
   // 패킹 상태 필드(packedGears/packingStartedAt/packingCompletedAt)만 조회한다.

@@ -7,13 +7,14 @@ import { getCampSiteTypeColor } from '@/model/camp-site/CampSiteLabels';
 
 interface Props {
   spot: CampSpot;
+  selected: boolean;
   onTapSpot: (spot: CampSpot) => void;
 }
 
 // 박지 마커 1개(CS-2). memo로 분리해 요약 카드 오픈 등 지도 화면의
 // 다른 상태 변경 시 마커 전체가 리렌더(네이티브 동기화)되지 않게 한다 —
 // 마커 탭 → 카드 표시 지연의 원인이었다. props(spot 참조·콜백)가 같으면 건너뛴다.
-const CampSiteMarkerView = memo<Props>(({ spot, onTapSpot }) => {
+const CampSiteMarkerView = memo<Props>(({ spot, selected, onTapSpot }) => {
   return (
     <NaverMapMarkerOverlay
       latitude={spot.location.latitude}
@@ -42,12 +43,16 @@ const CampSiteMarkerView = memo<Props>(({ spot, onTapSpot }) => {
           커스텀 View 마커는 최상위 자식에 생김새 의존성(색)을 key로 넘기고
           collapsable=false로 렌더를 보장해야 한다(라이브러리 요구사항). */}
       <View
-        key={`${spot.id}/${getCampSiteTypeColor(spot.type)}`}
+        key={`${spot.id}/${getCampSiteTypeColor(spot.type)}/${selected}`}
         collapsable={false}
         style={styles.markerHitArea}
       >
         <View
-          style={[styles.marker, { backgroundColor: getCampSiteTypeColor(spot.type) }]}
+          style={[
+            styles.marker,
+            selected && styles.markerSelected,
+            { backgroundColor: getCampSiteTypeColor(spot.type) },
+          ]}
         />
       </View>
     </NaverMapMarkerOverlay>
@@ -72,6 +77,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 2,
     borderColor: Color.background,
+  },
+  markerSelected: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 4,
+    borderColor: Color.textPrimary,
   },
 });
 

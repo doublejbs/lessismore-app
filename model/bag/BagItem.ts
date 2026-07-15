@@ -1,4 +1,5 @@
 import { Dayjs } from 'dayjs';
+import { BagLocation } from '../bag-destination/BagLocation';
 
 class BagItem {
   public constructor(
@@ -10,8 +11,8 @@ class BagItem {
     private readonly endDate: Dayjs,
     private readonly gears: string[] = [],
     private readonly packedGears: string[] = [],
-    // 여행지(location) 이름 — 설정돼 있으면 배낭 선택 시트 등에서 노출한다(CS-5). 없으면 null.
-    private readonly locationName: string | null = null
+    // 설정된 여행지(DM-15). 배낭 선택 시트가 기존 여행지명 표시·박지 링크 비교에 쓴다(DST-5). 없으면 null.
+    private readonly location: BagLocation | null = null
   ) {}
 
   public getID() {
@@ -22,8 +23,17 @@ class BagItem {
     return this.name;
   }
 
+  public getLocation() {
+    return this.location;
+  }
+
   public getLocationName() {
-    return this.locationName;
+    return this.location?.name ?? null;
+  }
+
+  // 이 배낭 여행지에 연결된 박지 id(DST-7). 자유 위치·미설정이면 null.
+  public getCampSpotId() {
+    return this.location?.campSpotId ?? null;
   }
 
   // 최근 수정 순 정렬용 편집일 epoch(ms).

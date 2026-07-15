@@ -24,6 +24,13 @@ interface Props {
   campSiteMap: CampSiteMap;
 }
 
+interface CameraTarget {
+  latitude: number;
+  longitude: number;
+  zoom: number;
+  duration: number;
+}
+
 // 남한 전역이 보이는 폴백 카메라(위치 권한 거부/미결정 시).
 // 중심=남한 중앙, 줌=기존 latitudeDelta 4.8 등가(iPhone 세로 ~850dp 기준 zoom ≈ 8).
 const KOREA_CAMERA: Camera = {
@@ -48,6 +55,10 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   const [locationGranted, setLocationGranted] = useState(false);
   // 지도 초기화 완료 여부 — 위치 추적 모드는 초기화 후에만 설정할 수 있다.
   const [mapReady, setMapReady] = useState(false);
+  const mountedRef = useRef(true);
+  const mapReadyRef = useRef(false);
+  const pendingCameraTargetRef = useRef<CameraTarget | null>(null);
+  const pendingCameraFrameRef = useRef<number | null>(null);
   const insets = useSafeAreaInsets();
 
   // 하단 플로팅 요소(현재 위치 버튼·요약 카드)가 iOS 플로팅 탭바에 가리지 않게 하는 여유.
@@ -57,6 +68,73 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   // 마커 레이어용 뷰포트. onCameraChanged는 이동 중 연속 발화하므로
   // 값을 양자화해 실질 변화가 있을 때만 리렌더되게 한다.
   const [viewport, setViewport] = useState<CampSiteMapViewport | null>(null);
+
+  const flushPendingCamera = useCallback(() => {
+    if (
+      pendingCameraFrameRef.current !== null ||
+      !pendingCameraTargetRef.current
+    ) {
+      return;
+    }
+
+    pendingCameraFrameRef.current = requestAnimationFrame(() => {
+      pendingCameraFrameRef.current = null;
+
+      if (!mountedRef.current || !mapReadyRef.current || !mapRef.current) {
+        return;
+      }
+
+      const target = pendingCameraTargetRef.current;
+
+      if (!target) {
+        return;
+      }
+
+      pendingCameraTargetRef.current = null;
+      mapRef.current.animateCameraTo(target);
+    });
+  }, []);
+
+  const moveCamera = useCallback(
+    (target: CameraTarget) => {
+      if (!mountedRef.current) {
+        return;
+      }
+
+      if (
+        !mapReadyRef.current ||
+        !mapRef.current ||
+        pendingCameraFrameRef.current !== null
+      ) {
+        pendingCameraTargetRef.current = target;
+
+        if (mapReadyRef.current) {
+          flushPendingCamera();
+        }
+
+        return;
+      }
+
+      pendingCameraTargetRef.current = null;
+      mapRef.current.animateCameraTo(target);
+    },
+    [flushPendingCamera]
+  );
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+      mapReadyRef.current = false;
+      pendingCameraTargetRef.current = null;
+
+      if (pendingCameraFrameRef.current !== null) {
+        cancelAnimationFrame(pendingCameraFrameRef.current);
+        pendingCameraFrameRef.current = null;
+      }
+    };
+  }, []);
 
   // 지도 최초 진입 시 위치 권한 요청 → 허용 시 현재 위치로 카메라 이동(CS-1).
   useEffect(() => {
@@ -78,7 +156,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
           return;
         }
 
-        mapRef.current?.animateCameraTo({
+        moveCamera({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
           zoom: deltaToZoom(0.2),
@@ -94,7 +172,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [moveCamera]);
 
   // 최초 진입 1회 규제 고지(CS-4) — 토스트로 노출 후 기기에 표시 완료 저장.
   useEffect(() => {
@@ -119,18 +197,24 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   // 권한 허용 + 지도 초기화 완료 시 현위치 오버레이(파란 점)를 표시한다.
   // NoFollow는 오버레이만 사용자 위치를 따라가고 카메라는 움직이지 않는다(기존 showsUserLocation 대체).
   useEffect(() => {
-    if (!mapReady || !locationGranted) {
+    if (
+      !mapReady ||
+      !locationGranted ||
+      !mountedRef.current ||
+      !mapReadyRef.current ||
+      !mapRef.current
+    ) {
       return;
     }
 
-    mapRef.current?.setLocationTrackingMode('NoFollow');
+    mapRef.current.setLocationTrackingMode('NoFollow');
   }, [mapReady, locationGranted]);
 
   const handleMoveToCurrentLocation = useCallback(async () => {
     try {
       const position = await Location.getCurrentPositionAsync({});
 
-      mapRef.current?.animateCameraTo({
+      moveCamera({
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
         zoom: deltaToZoom(0.2),
@@ -139,7 +223,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     } catch (error) {
       console.error('현재 위치 이동 실패:', error);
     }
-  }, []);
+  }, [moveCamera]);
 
   // 검색 결과 탭 → 키보드/드롭다운 닫기 + 카메라 이동(줌인) + 요약 카드 오픈(CS-6). 검색어는 유지.
   const handleSelectResult = useCallback(
@@ -149,14 +233,14 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       campSiteMap.setSearchFocused(false);
       campSiteMap.selectSpot(spot);
 
-      mapRef.current?.animateCameraTo({
+      moveCamera({
         latitude: spot.location.latitude,
         longitude: spot.location.longitude,
         zoom: deltaToZoom(0.05),
         duration: 500,
       });
     },
-    [campSiteMap]
+    [campSiteMap, moveCamera]
   );
 
   // 마커 탭 콜백 — memo된 마커(CampSiteMarkerView)가 리렌더를 건너뛸 수 있게 참조를 고정한다.
@@ -177,14 +261,17 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
 
   // 요약 카드의 위치로 이동 버튼(CS-2) — 지도를 움직였다가 다시 박지 위치로.
   // 검색 결과 선택과 동일한 줌 레벨로 이동한다.
-  const handleMoveToSpot = useCallback((spot: CampSpot) => {
-    mapRef.current?.animateCameraTo({
-      latitude: spot.location.latitude,
-      longitude: spot.location.longitude,
-      zoom: deltaToZoom(0.05),
-      duration: 500,
-    });
-  }, []);
+  const handleMoveToSpot = useCallback(
+    (spot: CampSpot) => {
+      moveCamera({
+        latitude: spot.location.latitude,
+        longitude: spot.location.longitude,
+        zoom: deltaToZoom(0.05),
+        duration: 500,
+      });
+    },
+    [moveCamera]
+  );
 
   // 지도 빈 곳 터치 → 요약 카드 닫기 + 키보드 dismiss(드롭다운 blur로 닫힘, CS-6).
   // 네이버는 마커 onTap과 지도 onTapMap이 분리돼 있어 별도 경합 방어가 필요 없다.
@@ -197,6 +284,10 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   }, [campSiteMap]);
 
   const handleCameraChanged = useCallback((camera: Camera) => {
+    if (!mountedRef.current) {
+      return;
+    }
+
     const zoom = camera.zoom ?? 0;
 
     // 중심 0.05°·줌 0.25 단위 양자화 — 동일 값이면 React가 리렌더를 생략한다.
@@ -221,46 +312,76 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   // 화면 재마운트 시 네이티브 지도는 이전 카메라를 유지할 수 있어,
   // initialCamera(전국)로 시드하면 실제 화면과 다른 영역의 마커를 계산하게 된다.
   const handleMapInitialized = useCallback(() => {
+    if (!mountedRef.current || !mapRef.current) {
+      return;
+    }
+
+    const initializedMap = mapRef.current;
+
+    mapReadyRef.current = true;
     setMapReady(true);
+    flushPendingCamera();
 
     const seedViewportFromMap = async () => {
-      const { width, height } = Dimensions.get('window');
-      const [topLeft, bottomRight] = await Promise.all([
-        mapRef.current?.screenToCoordinate({ screenX: 0, screenY: 0 }),
-        mapRef.current?.screenToCoordinate({ screenX: width, screenY: height }),
-      ]);
+      const isMapActive = () =>
+        mountedRef.current &&
+        mapReadyRef.current &&
+        mapRef.current === initializedMap;
 
-      if (topLeft?.isValid && bottomRight?.isValid) {
-        const latSpan = Math.abs(topLeft.latitude - bottomRight.latitude);
-        const zoom = deltaToZoom(latSpan);
+      try {
+        const { width, height } = Dimensions.get('window');
+        const topLeft = await initializedMap.screenToCoordinate({
+          screenX: 0,
+          screenY: 0,
+        });
 
+        if (!isMapActive()) {
+          return;
+        }
+
+        const bottomRight = await initializedMap.screenToCoordinate({
+          screenX: width,
+          screenY: height,
+        });
+
+        if (!isMapActive()) {
+          return;
+        }
+
+        if (topLeft?.isValid && bottomRight?.isValid) {
+          const latSpan = Math.abs(topLeft.latitude - bottomRight.latitude);
+          const zoom = deltaToZoom(latSpan);
+
+          setViewport(prev =>
+            prev
+              ? prev
+              : {
+                  latitude: (topLeft.latitude + bottomRight.latitude) / 2,
+                  longitude: (topLeft.longitude + bottomRight.longitude) / 2,
+                  zoom,
+                }
+          );
+
+          return;
+        }
+
+        // 프로젝션이 아직 준비 전이면 초기 카메라(전국)로 폴백 — 이후 onCameraChanged가 보정한다.
         setViewport(prev =>
           prev
             ? prev
             : {
-                latitude: (topLeft.latitude + bottomRight.latitude) / 2,
-                longitude: (topLeft.longitude + bottomRight.longitude) / 2,
-                zoom,
+                latitude: KOREA_CAMERA.latitude,
+                longitude: KOREA_CAMERA.longitude,
+                zoom: KOREA_CAMERA.zoom ?? 0,
               }
         );
-
+      } catch {
         return;
       }
-
-      // 프로젝션이 아직 준비 전이면 초기 카메라(전국)로 폴백 — 이후 onCameraChanged가 보정한다.
-      setViewport(prev =>
-        prev
-          ? prev
-          : {
-              latitude: KOREA_CAMERA.latitude,
-              longitude: KOREA_CAMERA.longitude,
-              zoom: KOREA_CAMERA.zoom ?? 0,
-            }
-      );
     };
 
     void seedViewportFromMap();
-  }, []);
+  }, [flushPendingCamera]);
 
   return (
     <View style={styles.container}>

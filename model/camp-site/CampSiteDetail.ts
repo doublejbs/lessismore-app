@@ -2,6 +2,7 @@ import { makeAutoObservable } from 'mobx';
 import { Alert, Linking, Share } from 'react-native';
 import { Router } from 'expo-router';
 import app from '../app/App';
+import AlertManager from '../alert/AlertManager';
 import Firebase from '../firebase/Firebase';
 import ToastManager from '../toast/ToastManager';
 import LogInAlertManager from '../login/LogInAlertManager';
@@ -21,6 +22,7 @@ class CampSiteDetail {
     return new CampSiteDetail(
       router,
       dispatcher,
+      app.getAlertManager()!,
       app.getFirebase(),
       app.getToastManager()!,
       app.getLogInAlertManager()!,
@@ -41,6 +43,7 @@ class CampSiteDetail {
   private constructor(
     private readonly router: Router,
     private readonly dispatcher: CampSiteDetailDispatcher,
+    private readonly alertManager: AlertManager,
     private readonly firebase: Firebase,
     private readonly toastManager: ToastManager,
     private readonly logInAlertManager: LogInAlertManager,
@@ -379,6 +382,7 @@ class CampSiteDetail {
       name: spot.name,
       latitude: spot.location.latitude,
       longitude: spot.location.longitude,
+      campSpotId: spot.id,
     });
     this.closeBagSheet();
     this.router.push('/bag-new');
@@ -404,7 +408,8 @@ class CampSiteDetail {
     return this.showBagSheet;
   }
 
-  // 선택한 배낭의 location 에 박지 좌표를 저장한다(CS-5).
+  // 선택한 배낭의 여행지에 이 박지를 저장한다(CS-5 → DST-5).
+  // 이미 다른 여행지가 있으면 덮어쓰기 전에 확인받고, 같은 박지면 확인 없이 완료 처리한다.
   public async selectBag(bag: BagItem) {
     const spot = this.spot;
 
@@ -412,19 +417,61 @@ class CampSiteDetail {
       return;
     }
 
-    await this.dispatcher.setBagLocation(bag.getID(), {
-      name: spot.name,
-      latitude: spot.location.latitude,
-      longitude: spot.location.longitude,
-    });
+    const existingLocation = bag.getLocation();
 
-    // 설정한 배낭으로 바로 이동할 수 있게 토스트에 액션을 넣는다(CS-5).
-    // Android는 네이티브 토스트라 버튼 미지원 — 메시지만 표시된다.
+    // 같은 박지는 확인 없이 다시 저장해 박지의 최신 이름·좌표 스냅샷까지 반영한다(DST-7).
+    if (existingLocation?.campSpotId === spot.id) {
+      await this.saveBagDestination(bag, spot);
+
+      return;
+    }
+
+    if (existingLocation) {
+      this.alertManager.show({
+        message: `${existingLocation.name}에서 ${spot.name}(으)로 변경할까요?`,
+        confirmText: '변경',
+        onConfirm: async () => {
+          await this.saveBagDestination(bag, spot);
+        },
+      });
+
+      return;
+    }
+
+    await this.saveBagDestination(bag, spot);
+  }
+
+  private async saveBagDestination(bag: BagItem, spot: CampSpot) {
+    try {
+      const { weatherFailed } = await this.dispatcher.setBagDestination(
+        bag.getID(),
+        {
+          name: spot.name,
+          latitude: spot.location.latitude,
+          longitude: spot.location.longitude,
+          campSpotId: spot.id,
+        }
+      );
+
+      this.completeBagSelection(bag, weatherFailed);
+    } catch (e) {
+      console.error('배낭 여행지 저장 실패:', e);
+      Alert.alert('오류', '여행지를 저장하지 못했어요. 다시 시도해주세요.');
+    }
+  }
+
+  // 설정한 배낭으로 바로 이동할 수 있게 토스트에 액션을 넣는다(CS-5).
+  // Android는 네이티브 토스트라 버튼 미지원 — 메시지만 표시된다.
+  private completeBagSelection(bag: BagItem, weatherFailed: boolean) {
     this.toastManager.show({
-      message: '여행지로 설정했어요.',
-      buttonText: '이동',
+      message: weatherFailed
+        ? '여행지는 설정했지만 날씨를 불러오지 못했어요.'
+        : '여행지로 설정했어요.',
+      buttonText: weatherFailed ? '다시 시도' : '이동',
       onButtonPress: () => {
-        this.router.push(`/bag/${bag.getID()}`);
+        this.router.push(
+          weatherFailed ? `/bag/${bag.getID()}/weather` : `/bag/${bag.getID()}`
+        );
       },
     });
     this.closeBagSheet();
