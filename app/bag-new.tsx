@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import app from '@/model/app/App';
 import BagFormContent from '@/components/bag/BagFormContent';
+import BagWeather from '@/model/bag/BagWeather';
 import { takePendingBagLocation } from '@/model/bag/PendingBagLocationHandoff';
 
 // BAG-2: 배낭 생성 폼 — 네이티브 formSheet 라우트. 상태를 직접 소유하고 BagStore로 생성한다.
@@ -47,16 +48,46 @@ const BagNewScreen = () => {
 
       if (bagID) {
         app.getAnalyticsManager()?.logClick('bag_create_confirm');
+        let weatherFailed = false;
 
-        // 박지 상세(CS-5) '새 배낭 만들기'로 진입했다면 여행지 위치를 붙인다.
+        // 박지 상세(CS-5) '새 배낭 만들기'로 진입했다면 여행지를 붙이고,
+        // 방금 정한 여행 기간의 날씨까지 바로 조회·저장한다(DST-5).
+        // 날씨 조회 실패는 생성 흐름을 막지 않고 생성 후 별도로 안내한다.
         if (pendingLocationRef.current) {
-          await app
-            .getBagStore()!
-            .updateLocation(bagID, pendingLocationRef.current);
+          try {
+            const bagWeather = BagWeather.of(bagID, app.getBagStore()!);
+
+            bagWeather.hydrate(null, null, startDate, endDate);
+
+            await bagWeather.updateLocation(pendingLocationRef.current);
+            weatherFailed = bagWeather.hasError();
+          } catch (error) {
+            // 배낭 생성은 이미 완료됐으므로 생성 폼에 머물러 중복 생성되지 않게 하고,
+            // 여행지만 나중에 다시 설정할 수 있도록 생성된 배낭으로 계속 이동한다.
+            console.error('새 배낭 여행지 저장 실패:', error);
+            Alert.alert(
+              '여행지 저장 실패',
+              '배낭은 만들었지만 여행지를 저장하지 못했어요.'
+            );
+          }
         }
 
         router.replace(`/bag/${bagID}`);
         router.push(`/bag/${bagID}/edit`);
+
+        if (weatherFailed) {
+          Alert.alert(
+            '날씨를 불러오지 못했어요',
+            '여행지는 저장했어요. 여행지 화면에서 다시 시도할 수 있어요.',
+            [
+              { text: '확인', style: 'cancel' },
+              {
+                text: '다시 시도',
+                onPress: () => router.push(`/bag/${bagID}/weather`),
+              },
+            ]
+          );
+        }
       }
     } catch (error) {
       console.error('배낭 추가 중 오류 발생:', error);

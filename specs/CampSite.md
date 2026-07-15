@@ -5,7 +5,7 @@
 | 상태 | **기획 초안** (2026-07-12 — 구현 전, diff 승인 후 착수) |
 | ID 프리픽스 | `CS` |
 | 주요 코드 (예정) | `app/(tabs)/map.tsx`, `app/camp-review-write.tsx`, `app/shared-bag/[id].tsx`, `components/camp-site/`, `model/camp-site/`, `model/camp-review/`, `scripts/seed-camp-spots.mjs` |
-| 관련 스펙 | [DataModel.md](DataModel.md), [Weather.md](Weather.md), [BagDetail.md](BagDetail.md), [Reply.md](Reply.md), [Analytics.md](Analytics.md), [AppLifecycle.md](AppLifecycle.md) |
+| 관련 스펙 | [DataModel.md](DataModel.md), [BagDestination.md](BagDestination.md), [Weather.md](Weather.md), [BagDetail.md](BagDetail.md), [Reply.md](Reply.md), [Analytics.md](Analytics.md), [AppLifecycle.md](AppLifecycle.md) |
 
 ## 1. 개요
 
@@ -86,11 +86,12 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
 
 **수용 기준**
 
-- 상세에 `배낭 여행지로 설정` 버튼 → 내 배낭 목록에서 선택 → 해당 배낭의 `location`(DM-15)에 `{ name: 박지명, latitude, longitude }` 저장(기존 `BagStore.updateLocation` 재사용) 후 날씨 스냅샷 갱신은 기존 BagWeather 흐름에 위임.
-- 배낭 선택 시트 상단에 **`새 배낭 만들기` 행**을 둔다 → 탭 시 시트를 닫고 배낭 생성 formSheet(`/bag-new`)로 이동한다. 이때 박지 좌표를 `PendingBagLocationHandoff`로 넘겨, 배낭 이름 입력란을 **박지명으로 프리필**하고 배낭 생성 완료 후 새 배낭의 `location`에 자동 저장한다(생성→편집 기존 흐름 유지). 배낭이 0개여도 이 행으로 새 배낭을 만들며 여행지를 설정할 수 있다.
+- 상세에 `배낭 여행지로 설정` 버튼을 둔다. 내 배낭을 선택하면 공용 여행지 저장 동작([BagDestination.md](BagDestination.md) DST-5/DST-6)으로 박지 참조와 박지명·좌표 스냅샷을 해당 배낭의 여행지로 저장한다. 별도의 날씨 위치는 두지 않는다.
+- 배낭 선택 시트 상단에 **`새 배낭 만들기` 행**을 둔다 → 탭 시 시트를 닫고 배낭 생성 formSheet(`/bag-new`)로 이동한다. 박지 여행지를 `PendingBagLocationHandoff`로 넘겨 배낭 이름 입력란을 **박지명으로 프리필**하고, 생성 완료 후 새 배낭의 여행지로 자동 저장한다(생성→편집 기존 흐름 유지). 배낭이 0개여도 이 행으로 새 배낭을 만들며 여행지를 설정할 수 있다.
 - 시트 UX: 헤더에 **`{박지명}을 여행지로 설정해요` 서브텍스트**로 맥락을 준다. 생성 행과 배낭 목록은 `내 배낭` 소제목으로 영역을 나눈다. 배낭 목록은 **최근 수정순**(편집일 desc)으로 정렬해 방금 만든/최근 쓴 배낭을 위로 올린다. **이미 여행지가 설정된 배낭 행에는 `📍{기존 박지명}`을 표시**해 덮어쓰기 전에 인지시킨다.
+- 기존 여행지가 선택한 박지와 다르면 `{기존 여행지명}에서 {박지명}(으)로 변경할까요?` 확인 후 저장한다. 같은 박지가 이미 연결돼 있으면 확인 없이 완료 처리한다.
 - 설정 완료 토스트(`여행지로 설정했어요.`)에 **`이동` 액션 버튼**을 넣어 해당 배낭 상세(`/bag/{id}`)로 바로 이동할 수 있게 한다. (Android는 네이티브 토스트라 버튼 미지원 — 메시지만 표시, 기존 토스트 액션 관례와 동일)
-- 비로그인 또는 배낭 0개면 버튼 대신 비활성/안내.
+- 비로그인은 로그인 안내를 표시한다. 배낭 0개는 시트를 열어 `새 배낭 만들기`만 제공한다.
 
 ### CS-6 박지 검색 `[제안]`
 
@@ -133,10 +134,10 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
 ## 4. 데이터
 
 - 읽기: `/camp-spot`(DM-17) — `where('status','==','active')` 전량. 유저 후기 `camp-spot-user-review`(DM-20). 날씨는 WT 파이프라인 재사용(쓰기 없음).
-- 쓰기: 클라이언트는 CS-5의 `bag.location`(DM-15), CS-8의 유저 후기(`camp-spot-user-review` DM-20, 트랜잭션) 및 첨부 배낭의 `bag.reviewShared`(후기 전용 공개 플래그, `shared`와 별개)만 쓴다. `/camp-spot` 적재는 관리 스크립트 전용.
+- 쓰기: 클라이언트는 CS-5에서 공용 배낭 여행지 저장 동작([BagDestination.md](BagDestination.md), DM-15), CS-8의 유저 후기(`camp-spot-user-review` DM-20, 트랜잭션) 및 첨부 배낭의 `bag.reviewShared`(후기 전용 공개 플래그, `shared`와 별개)만 쓴다. `/camp-spot` 적재는 관리 스크립트 전용.
 - **적재 파이프라인** (`scripts/seed-camp-spots.mjs`, 수동 실행):
   1. **고캠핑 API**(한국관광공사, 공공데이터포털 무료 키) 스냅샷 → `campground` 유형으로 변환. **필터: 일반야영장 × 공공 관리주체(국립/공립/지자체/국립공원/자연휴양림)만 적재**(≈250곳) — v1 마커 상한(§8) 준수, 민간 글램핑·카라반 제외. 국립공원 대피소는 별도 소스(공공 API 또는 수동 표) → `shelter`.
-  2. **큐레이션 시드**: 유명 노지 박지 목록(LLM 리서치 초안 → 수동 검수 필수)을 JSON으로 관리 → `wild` 유형. 좌표는 카카오 지오코딩(WT 재사용) 또는 수동 입력. 설명·주의 문구는 자체 작성(외부 텍스트 복사 금지).
+  2. **큐레이션 시드**: 유명 노지 박지 목록(LLM 리서치 초안 → 수동 검수 필수)을 JSON으로 관리 → `wild` 유형. 좌표는 카카오 지오코딩(DST-3 재사용) 또는 수동 입력. 설명·주의 문구는 자체 작성(외부 텍스트 복사 금지).
   3. 실행 전 기존 데이터 백업 JSON 저장(`scripts/backup-*` 관례). upsert는 문서 id(`source:{외부id}` 또는 slug) 기준.
 - **보안 규칙(콘솔 관리)**: `/camp-spot` 읽기 공개 + 클라이언트 쓰기 금지. 시드 실행 시에만 임시 허용 후 잠금(gear 마이그레이션 스크립트 관례) — 운영 절차로 기록.
 
@@ -163,7 +164,8 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
 - [ ] `wild` 상세 → 고정 규제 고지 노출, warnings 있는 박지 → 경고 박스
 - [ ] 길찾기 → 외부 지도앱 열림 (iOS/Android)
 - [ ] 상세 주간 날씨 표시, 실패 시 섹션 생략
-- [ ] 배낭 여행지로 설정 → 해당 배낭 location 갱신 + 날씨 흐름 동작
+- [ ] 배낭 여행지로 설정 → 박지 참조 포함 여행지 저장 + 기존 여행지 변경 확인 + 날씨 갱신
+- [ ] 배낭 0개 → 선택 시트에서 새 배낭 생성 후 동일 박지 여행지 자동 저장
 - [ ] 후기 쓰기(별점 필수, 글·배낭 선택) → 저장 후 리스트·평균 별점 반영
 - [ ] 내 후기 수정/삭제 → 요약 별점 집계 갱신, 소유자만 노출
 - [ ] 첨부 배낭 칩 탭 → 앱 내 읽기전용 공유 배낭 뷰어에서 장비 구성 표시

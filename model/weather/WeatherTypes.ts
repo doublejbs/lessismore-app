@@ -1,8 +1,12 @@
 // 배낭 여행지 날씨 도메인 타입.
 // Open-Meteo(무료·키 없음) 단독 연동. 자세한 설계는 날씨 스펙 참고.
 
-/** 배낭에 저장되는 여행지 위치. Firestore `bag.location` 필드. */
-export interface BagLocation {
+/**
+ * 날씨 조회에 필요한 최소 위치 정보.
+ * 여행지 자체는 배낭 여행지 도메인이 소유하며(`model/bag-destination/BagLocation`),
+ * 날씨 도메인은 그 좌표·표시명을 읽어 스냅샷만 만든다(WT-6).
+ */
+export interface WeatherLocation {
   name: string;
   latitude: number;
   longitude: number;
@@ -45,12 +49,4 @@ export interface WeatherSnapshot {
   longitude: number;
   locationName: string;
   daily: WeatherDaily[];
-}
-
-/** 지오코딩 검색 결과 한 건. */
-export interface GeocodeResult {
-  name: string; // 장소명(place_name)
-  latitude: number;
-  longitude: number;
-  subtitle?: string; // 검색 리스트 보조 표시용 주소
 }

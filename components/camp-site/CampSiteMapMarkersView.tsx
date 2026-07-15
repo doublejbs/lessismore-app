@@ -16,6 +16,7 @@ export interface CampSiteMapViewport {
 interface Props {
   campSiteMap: CampSiteMap;
   viewport: CampSiteMapViewport | null;
+  selectedSpotId?: string | null;
   onTapSpot: (spot: CampSpot) => void;
 }
 
@@ -24,7 +25,7 @@ interface Props {
 // 줌 수준과 무관하게 뷰포트 안 마커는 전량 표시하되(겹침은 캡션 숨김이 처리),
 // 뷰포트 밖 마커는 그리지 않는다 — 화면 밖까지 전부 네이티브 마커로 올릴 이유가 없다.
 const CampSiteMapMarkersView: FC<Props> = observer(
-  ({ campSiteMap, viewport, onTapSpot }) => {
+  ({ campSiteMap, viewport, selectedSpotId = null, onTapSpot }) => {
     if (!viewport) {
       return null;
     }
@@ -49,7 +50,12 @@ const CampSiteMapMarkersView: FC<Props> = observer(
     return (
       <>
         {spots.map(spot => (
-          <CampSiteMarkerView key={spot.id} spot={spot} onTapSpot={onTapSpot} />
+          <CampSiteMarkerView
+            key={spot.id}
+            spot={spot}
+            selected={selectedSpotId === spot.id}
+            onTapSpot={onTapSpot}
+          />
         ))}
       </>
     );

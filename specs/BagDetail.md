@@ -2,10 +2,10 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | as-built (2026-07-09 상세/사용기록 재설계 반영) |
+| 상태 | as-built (2026-07-15 여행지 통합 반영) |
 | ID 프리픽스 | `BD` |
 | 주요 코드 | `app/bag/[id]/`, `app/useless/[id]/`, `components/bag-detail/`, `components/bag-edit/`, `components/bag-useless/`, `model/bag-detail/`, `model/bag-edit/`, `model/bag-useless/`, `model/store/BagStore.ts` |
-| 관련 스펙 | [DataModel.md](DataModel.md), [Bag.md](Bag.md), [ShareImage.md](ShareImage.md), [GearEdit.md](GearEdit.md), [Packing.md](Packing.md), [Weather.md](Weather.md) |
+| 관련 스펙 | [DataModel.md](DataModel.md), [Bag.md](Bag.md), [BagDestination.md](BagDestination.md), [ShareImage.md](ShareImage.md), [GearEdit.md](GearEdit.md), [Packing.md](Packing.md), [Weather.md](Weather.md) |
 
 ## 1. 개요
 
@@ -21,7 +21,7 @@
 | `/bag/[id]/memo` | BagMemoInputView | 메모 작성/삭제 |
 | `/useless/[id]` | BagUselessView | "실제로 사용한 장비" 체크 |
 | `/bag/[id]/packing` | BagPackingView | 패킹 모드 ([Packing.md](Packing.md)) |
-| `/bag/[id]/weather` | BagWeatherView | 여행지 날씨 ([Weather.md](Weather.md)) |
+| `/bag/[id]/weather` | BagWeatherView | 여행지 정보·기간 날씨 ([BagDestination.md](BagDestination.md), [Weather.md](Weather.md)) |
 
 ## 3. 요구사항
 
@@ -119,14 +119,15 @@
 
 **수용 기준**
 
-- 요약 아래에 **2열 그리드**로 3개 액션 타일을 둔다: 사용 기록(BD-5)·메모(BD-6)·여행지 날씨([Weather.md](Weather.md)). 각 타일은 아이콘 + 제목 + 현재값 부제(회색 `surfaceMuted`). (레디샷 타일은 제거 — 패킹 완료 화면에서만 진입)
-- **상황형 강조**: 여행 상태에 따라 관련 타일 하나를 **검정(강조) 전체 폭 가로 카드로 최상단에 배치**한다 — `지난 여행`이면 `사용 기록`, `출발 전`·`여행 중`이면 `날씨`. 강조 카드는 아이콘·라벨 좌측 + 값 우측의 가로 레이아웃(높이 축소). 나머지 2개는 그 아래 회색 2열(48%).
+- 요약 아래에 **2열 그리드**로 3개 액션 타일을 둔다: 사용 기록(BD-5)·메모(BD-6)·여행지([BagDestination.md](BagDestination.md) DST-2). 각 타일은 아이콘 + 제목 + 현재값 부제(회색 `surfaceMuted`). (레디샷 타일은 제거 — 패킹 완료 화면에서만 진입)
+- **상황형 강조**: 여행 상태에 따라 관련 타일 하나를 **검정(강조) 전체 폭 가로 카드로 최상단에 배치**한다 — `지난 여행`이면 `사용 기록`, `출발 전`·`여행 중`이면 `여행지`. 강조 카드는 아이콘·라벨 좌측 + 값 우측의 가로 레이아웃(높이 축소). 나머지 2개는 그 아래 회색 2열(48%).
 - 사용 기록 타일 부제: 기록됨 → `{usedWeight}kg로 줄어요`, 미기록·지난 여행 → `줄어든 무게 확인`, 미기록·출발 전/중 → `여행 후 기록`.
-- 날씨 타일: 위치·날씨 있으면 대표 아이콘 + 상태(`비/눈/맑음`) + 기간 `{최저}~{최고}°`, 없으면 `여행지 설정`.
+- 여행지 타일: 미설정이면 `여행지 선택`을 표시하고 탭 시 공용 지도 선택기를 바로 연다. 설정됨이면 위치명을 주 정보로 표시하고, 날씨가 있으면 상태(`비/눈/맑음`) + 기간 `{최저}~{최고}°`를 보조 정보로 표시한다. 등록된 박지는 위치명 앞에 `📍`를 표시한다.
+- 여행지가 설정된 타일을 탭하면 `/bag/{id}/weather`로 이동하고, 사용자 노출 화면 제목은 `여행지`로 표시한다(DST-2).
 
 ## 4. 데이터
 
-- [DataModel.md](DataModel.md) DM-5(`bag`), DM-3(`used`/`useless`/`bags`), DM-11(트랜잭션 규칙).
+- [DataModel.md](DataModel.md) DM-5(`bag`), DM-3(`used`/`useless`/`bags`), DM-11(트랜잭션 규칙), DM-15(`BagLocation`/`WeatherSnapshot`). 여행지 동작은 [BagDestination.md](BagDestination.md).
 
 ## 5. 플랫폼 분기
 
@@ -144,7 +145,9 @@
 
 - [ ] 편집에서 장비 추가/제거 → 상세 총 무게·무게 분해·필터 즉시 반영
 - [ ] 이름 라지 타이틀 + 기간 상황 라벨(출발 전 D-day / 여행 중 / 지난 여행)
-- [ ] 액션 그리드 상황형 강조: 지난 여행=사용 기록 검정 / 출발 전·중=날씨 검정
+- [ ] 액션 그리드 상황형 강조: 지난 여행=사용 기록 검정 / 출발 전·중=여행지 검정
+- [ ] 여행지 미설정 타일 → 지도 선택기 바로 열림 / 설정 타일 → `여행지` 화면 이동
+- [ ] 여행지 타일 → 위치명 주 정보 + 날씨 상태·기온 보조 정보, 등록 박지는 `📍` 표시
 - [ ] 하단 바: 수정하기(주) + 패킹(보조), 플로팅 없음·장비 행 안 가림
 - [ ] 사용 여부 기록 화면: 진행 헤더(카운트·바·사용/총 무게) + 행 원형 체크·미선택 dim
 - [ ] 사용 여부 기록 → "줄어들어요" 문구의 kg 값이 used 장비 합과 일치

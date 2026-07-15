@@ -1,4 +1,4 @@
-import { BagLocation } from '../weather/WeatherTypes';
+import { BagLocation } from '../bag-destination/BagLocation';
 
 // 배낭 생성(`/bag-new`) 완료 후 새 배낭에 붙일 여행지 위치의 모듈 레벨 핸드오프.
 // 박지 상세(CS-5)에서 '새 배낭 만들기'로 진입할 때 좌표를 넘기고, bag-new가 생성 직후 소비한다.

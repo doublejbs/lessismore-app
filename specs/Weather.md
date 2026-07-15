@@ -1,67 +1,41 @@
-# 여행지 날씨 — 위치 설정 / 지도 선택 / 기간 예보
+# 여행지 날씨 — 기간 예보
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | as-built (2026-07-09 코드 기준) |
+| 상태 | as-built (2026-07-15 여행지 책임 분리) |
 | ID 프리픽스 | `WT` |
-| 주요 코드 | `app/bag/[id]/weather.tsx`, `components/weather/`, `components/bag-detail/BagDetailWeatherView.tsx`, `model/bag/BagWeather.ts`, `model/weather/`(`WeatherService`, `WeatherTypes`, `WeatherCode`), `model/store/BagStore.ts`(날씨 메서드) |
-| 관련 스펙 | [DataModel.md](DataModel.md)(DM-5, DM-15), [BagDetail.md](BagDetail.md) |
+| 주요 코드 | `app/bag/[id]/weather.tsx`, `components/weather/`, `model/bag/BagWeather.ts`, `model/weather/`(`WeatherService`, `WeatherCode`), `model/store/BagStore.ts`(날씨 메서드) |
+| 관련 스펙 | [BagDestination.md](BagDestination.md), [DataModel.md](DataModel.md)(DM-5, DM-15), [BagDetail.md](BagDetail.md) |
 
 ## 1. 개요
 
-배낭(여행) 1개에 여행지 위치를 설정하면, 여행 기간(`bag.startDate`~`endDate`) 동안의 일별 날씨를 보여준다.
-날씨는 Open-Meteo(무료·키 없음)로 조회하고, 지명 검색·역지오코딩은 Kakao 로컬 API를 쓴다.
+배낭 여행지([BagDestination.md](BagDestination.md)) 좌표를 기준으로 여행 기간(`bag.startDate`~`endDate`) 동안의 일별 날씨를 보여준다.
+날씨 도메인은 여행지를 설정하지 않고 `bag.location`을 읽는다. 날씨는 Open-Meteo(무료·키 없음)로 조회한다.
 조회 결과는 `bag.weather`에 스냅샷으로 캐시하고, 좌표·기간·신선도(TTL) 조건으로 필요할 때만 재조회한다.
 
 ## 2. 화면 및 진입
 
 | 라우트 / 컴포넌트 | 역할 |
 | --- | --- |
-| `BagDetailWeatherView` (배낭 상세 내 카드) | 요약 진입점. 클릭 → `/bag/{id}/weather` |
-| `/bag/[id]/weather` → `BagWeatherView` | 날씨 화면 — 위치 설정 영역 + 기간 요약 + 일별 목록 |
-| `WeatherLocationSearchView` | 위치 칩/검색 + 현재위치 + 지도 진입 |
-| `WeatherMapPickerView` (풀스크린 모달) | 지도에서 위치 선택 |
+| 배낭 상세 `여행지` 타일 | 위치·날씨 요약. 동작은 DST-2 |
+| `/bag/[id]/weather` → 여행지 화면 | 상단 여행지 정보·변경 진입 + 기간 요약 + 일별 목록 |
 | `WeatherDailyView` | 일별 날씨 행 목록 |
 
 - 상세 카드는 `BagDetail`이 이미 읽은 배낭 데이터를 `BagWeather.hydrate`로 주입해 **중복 문서 읽기를 피한다**. 날씨 화면 단독 진입 시에는 `BagWeather.load`가 `bag` 문서를 직접 읽는다.
 
 ## 3. 요구사항
 
-### WT-1 상세 진입 타일
+### WT-1 상세 진입 타일 `[폐기]`
 
-**수용 기준**
+배낭 상세 타일의 소유권과 동작은 [BagDestination.md](BagDestination.md) DST-2로 이전한다. 날씨 요약 계산은 WT-4를 계속 사용한다.
 
-- 배낭 상세 **액션 그리드([BagDetail.md](BagDetail.md) BD-10)의 타일**로 표시한다(2×2). 아이콘 + 상태(`비/눈/맑음`) + 온도/부제.
-- 위치·날씨가 있으면 대표 아이콘 + 상태 + 기간 `{최저}~{최고}°`(온도 강조), 위치만 있으면 위치명, 둘 다 없으면 `여행지 설정`.
-- 대표 아이콘·상태·최고/최저는 **WT-4의 `summarizeWeatherPeriod`와 동일 규칙**을 사용한다(타일과 페이지가 어긋나지 않는다).
-- **출발 전·여행 중**이면 이 타일이 강조(검정)로 좌상단에 노출된다(BD-10 상황형).
-- 클릭 시 `bag_weather` 클릭 로그를 남기고 `/bag/{id}/weather`로 이동한다([Analytics.md](Analytics.md)).
+### WT-2 여행지 위치 설정 `[폐기]`
 
-### WT-2 여행지 위치 설정
+여행지 설정·변경 책임은 [BagDestination.md](BagDestination.md) DST-1~DST-3으로 이전한다.
 
-날씨 화면 상단에서 위치를 설정/변경한다. 위치 설정 방법은 **지명 검색 / 현재 위치 / 지도 선택** 세 가지다.
+### WT-3 지도에서 위치 선택 `[폐기]`
 
-**수용 기준**
-
-- 위치가 **없으면** 검색 입력창 + `현재 위치 사용` + `지도에서 선택`을 노출한다.
-- 위치가 **있으면** 위치명 칩 + `변경`으로 접어서 표시한다(상단 공간 절약). `변경`을 누르면 빈 검색창(자동 포커스) + 두 액션 + `취소`를 편다.
-- 지명 검색: 2자 이상 입력 시 400ms 디바운스 후 Kakao 키워드 검색(WT-6). 결과 행 선택 시 그 좌표·장소명으로 위치를 저장한다. 검색 결과가 떠 있는 동안은 아래 날씨 영역을 숨기고 결과 리스트가 화면을 채운다.
-- 현재 위치: `expo-location` 권한 요청 → 거부 시 안내 알럿. 좌표를 얻고 **Kakao 역지오코딩으로 이름을 만든다**(지도 선택과 동일 소스로 통일).
-- 위치가 확정되면 검색 입력을 접고 검색어·결과를 초기화한다.
-- 위치 저장(`updateLocation`)은 좌표가 바뀌므로 기존 스냅샷을 무효화하고 즉시 재조회한다(WT-5).
-
-### WT-3 지도에서 위치 선택 (지도 피커)
-
-풀스크린 지도 모달. 지도를 움직여 중앙 고정 핀으로 지점을 맞추고 확정한다.
-
-**수용 기준**
-
-- 헤더 카드(닫기 `×` + 제목 `지도에서 위치 선택` + 지명 검색창)는 세이프에어리어 상단 아래에 놓여 상태바/노치와 겹치지 않는다(모달 내부를 `SafeAreaProvider`로 감싼다).
-- 모달이 **열릴 때마다** 저장된 위치가 있으면 그 좌표로 지도를 띄우고 하단에 그 위치명을 즉시 표시한다. 저장된 위치가 없으면 기본 중심(서울 시청)으로 연다.
-- 지도 중심을 옮기면 500ms 디바운스 후 Kakao 역지오코딩으로 하단 주소 미리보기를 갱신한다(`위치 확인 중…` → 주소 / `주소를 찾을 수 없어요`). 단, **저장/검색으로 이름을 이미 아는 좌표(약 100m 이내)에서는 재역지오코딩 없이 그 이름을 그대로 쓴다**(열자마자 세종대로 등으로 덮어써지지 않는다).
-- 헤더 검색창에서 지명을 검색해 결과를 선택하면 지도가 그 좌표로 애니메이션 이동하고 이름·중심을 갱신한다. 검색 결과가 떠 있을 때 지도(바깥)를 탭하면 결과가 닫힌다.
-- 현재 위치 버튼(하단 패널 위 우측 원형 FAB): 권한 요청 → 현재 좌표로 지도 이동 + 그 지점 Kakao 역지오코딩 주소 표시.
-- `이 위치로 설정`을 누르면 현재 중심 좌표와 표시 이름(없으면 역지오코딩 fallback)으로 위치를 저장하고 모달을 닫는다.
+지도 선택과 박지·장소 통합 검색은 [BagDestination.md](BagDestination.md) DST-3/DST-4로 이전한다.
 
 ### WT-4 기간 요약과 일별 표시
 
@@ -80,11 +54,11 @@
 
 **수용 기준**
 
-- 스냅샷·위치가 없다 → stale.
+- 위치가 없으면 조회하지 않는다. 위치가 있으나 스냅샷이 없으면 stale.
 - 스냅샷 좌표 ≠ 현재 위치 좌표 → stale.
 - 스냅샷 일별에 시작일 또는 종료일이 포함돼 있지 않다 → stale.
 - 스냅샷 `kind` ≠ 현재 기간이 요구하는 `kind` → stale (구간 이동 감지).
-- `frozen === true`(종료일이 오늘 이전, 완전 과거 여행)면 **절대 stale 아님**(다시 조회하지 않는다).
+- `frozen === true`(종료일이 오늘 이전, 완전 과거 여행)면 **좌표가 같은 동안** stale 아님(다시 조회하지 않는다). 여행지 좌표 변경은 DST-6에서 기존 스냅샷을 제거한다.
 - 위 조건이 없으면 TTL로 판단: `forecast`/`mixed` = 3시간, `archive`/`normal` = 7일 경과 시 stale.
 - 재조회 성공 시 `updateWeather`로 스냅샷을 저장한다. 실패 시 기존 스냅샷이 있으면 유지하고(에러 표시 안 함), 없으면 에러 상태로 둔다.
 
@@ -93,48 +67,35 @@
 **수용 기준**
 
 - **날씨**: Open-Meteo. 예보 API 커버 범위는 `[오늘-92일 ~ 오늘+15일]`(forecast는 오늘 포함 16일까지만 허용 — 오늘+16 요청 시 400). 기간이 이 범위를 벗어나면 과거 구간은 archive API(실측), 먼 미래 구간은 평년값(과거 5년 같은 날짜 archive 평균)으로 채우고, 여러 구간에 걸치면 `kind='mixed'`.
-- **지오코딩/역지오코딩**: Kakao 로컬 REST API. 키는 `.env`의 `EXPO_PUBLIC_KAKAO_REST_KEY`(EXPO_PUBLIC이라 번들에 인라인, gitignore된 `.env`로 주입). 키 없으면 에러를 던진다.
-- 역지오코딩은 도로명/지번 주소 우선, 없으면(바다·산악 등) 행정구역명, 그것도 없으면 `선택한 위치`로 폴백.
-- 좌표계는 WGS84(x=경도, y=위도).
+- 지오코딩·역지오코딩과 카카오 장소 검색은 여행지 선택 책임([BagDestination.md](BagDestination.md) DST-3/DST-4)이다.
 
 ## 4. 데이터
 
 - [DataModel.md](DataModel.md) DM-5(`bag.location`/`bag.weather`), DM-15(`BagLocation`/`WeatherSnapshot`/`WeatherDaily` 형태).
-- `location`/`weather`는 각각 `updateDoc` 단독 갱신(트랜잭션 아님). 배낭 복사 시 제외([Bag.md](Bag.md) BAG-4).
+- 날씨 도메인은 `location`을 읽고 `weather`만 저장한다. 여행지 변경과 캐시 제거는 [BagDestination.md](BagDestination.md) DST-6이 담당한다.
+- 배낭 복사 시 여행지와 날씨를 제외한다([Bag.md](Bag.md) BAG-4).
 
 ## 5. 플랫폼 분기
 
 | 지점 | iOS | Android | Web |
 | --- | --- | --- | --- |
-| 지도 렌더러(`@mj-studio/react-native-naver-map`) | 네이버 지도 (NCP Client ID — `app.json` 플러그인 설정) | 네이버 지도 (동일 Client ID) | 미검증 |
-| 현재 위치(`expo-location`) | 권한 문자열 `app.json` `locationWhenInUsePermission` | 위치 권한 | 브라우저 Geolocation |
-
-- `네이버 지도(@mj-studio/react-native-naver-map)`/`expo-location`은 네이티브 의존성 → 추가 후 prebuild 재생성·재빌드 필요.
+| 날씨 조회 | Open-Meteo HTTPS | Open-Meteo HTTPS | Open-Meteo HTTPS |
 
 ## 6. 엣지 케이스
 
 - **위치 미설정**: 날씨 영역에 `여행지를 설정하면 / 기간 동안의 날씨를 볼 수 있어요` 빈 상태.
 - **로딩**: 위치는 있으나 스냅샷이 아직 없으면 중앙 인디케이터.
 - **에러**: 조회 실패 + 스냅샷 없음이면 `날씨를 불러오지 못했어요` + `다시 시도` 버튼. 기존 스냅샷이 있으면 조용히 유지.
-- **검색 중 위치 변경**: 검색 in-flight 중 위치가 확정되면 스피너를 반드시 해제한다(조기 리턴 시 `searching=false`).
 - **과거 여행**: `frozen`으로 고정되어 재조회하지 않는다.
-- **Kakao 키 미주입 환경**(새 클론/CI): 검색·역지오코딩이 실패한다 → `.env`에 키 필요.
 
 ## 7. 수동 검증 체크리스트
 
-- [ ] 상세 카드: 위치·날씨 있음 → `{위치} · {최저}~{최고}°` + 대표 아이콘, 카드/페이지 아이콘 일치
-- [ ] 위치 미설정 → 검색창 노출 / 설정됨 → 칩 + `변경`, `변경` 시 빈 검색창
-- [ ] 지명 검색 → 결과 선택 → 위치 저장 + 날씨 갱신
-- [ ] 현재 위치 사용 → 권한 → 위치·날씨 갱신(이름이 지도 선택과 동일 형식)
-- [ ] 지도: 헤더가 상태바에 안 가림 / 저장 위치에서 열림 + 하단에 그 위치 표시
-- [ ] 지도: 헤더 검색 → 선택 시 지도 이동 / 결과 뜬 채 지도 탭 → 결과 닫힘 / 현재위치 버튼 이동
+- [ ] 여행지 설정·변경 → 해당 좌표의 날씨만 표시, 이전 위치 스냅샷 미노출
+- [ ] 상세 여행지 타일과 페이지의 대표 아이콘·상태·기온 일치
 - [ ] 일별 온도가 ↑최고 ↓최저 순 (출처 배지 없음)
 - [ ] 먼 미래 기간(오늘+15일 초과) → `평년`, 과거 → `실측`, 혼합 기간 정상 표시
-- [ ] iOS/Android 양쪽 지도 렌더(Android는 Google Maps 키 반영 확인)
+- [ ] iOS/Android/Web에서 동일 기간·좌표에 동일한 날씨 결과 표시
 
 ## 8. 미해결 질문
 
-- 스펙 프리픽스 `WT`는 신규. 기존 스펙과 충돌 없음(README 인덱스 반영).
-- 지명 검색과 현재위치가 날씨 페이지·지도 양쪽에 존재(기능 중복). 지도가 상위집합이 됐으므로 페이지 쪽 위치 UI를 더 단순화할지 검토 여지(리뷰 P2, 미적용).
-- 지도 `이 위치로 설정`은 주소 미확인 상태에서도 활성이며 `선택한 위치`로 저장된다(의도 확인 필요).
-- 웹 플랫폼에서의 지도/현재위치 동작 미검증.
+- 없음. 여행지 선택 관련 미해결 질문은 [BagDestination.md](BagDestination.md) §8에서 관리한다.

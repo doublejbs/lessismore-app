@@ -1,20 +1,16 @@
 import dayjs, { Dayjs } from 'dayjs';
 import {
-  BagLocation,
-  GeocodeResult,
   WeatherDaily,
   WeatherKind,
+  WeatherLocation,
   WeatherSnapshot,
   WeatherSource,
 } from './WeatherTypes';
 
 // 날씨: Open-Meteo 무료 엔드포인트(키 없음).
+// 지오코딩·장소 검색은 여행지 선택 책임이라 여기 없다(WT-6, `model/bag-destination/GeocodeService`).
 const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 const ARCHIVE_URL = 'https://archive-api.open-meteo.com/v1/archive';
-
-// 지오코딩: 한국 POI 정확도를 위해 Kakao 로컬 키워드 검색 사용(REST 키 필요).
-const KAKAO_KEYWORD_URL = 'https://dapi.kakao.com/v2/local/search/keyword.json';
-const KAKAO_REST_KEY = process.env.EXPO_PUBLIC_KAKAO_REST_KEY;
 
 // 예보 API 커버 범위: [오늘-92일 ~ 오늘+15일]. 그 밖은 아카이브/평년값.
 // Open-Meteo forecast는 오늘 포함 16일(=오늘+15일)까지만 허용한다 — 오늘+16을 요청하면
@@ -49,87 +45,9 @@ const fetchJson = async (url: string): Promise<any> => {
 
 const fmt = (d: Dayjs) => d.format('YYYY-MM-DD');
 
-/**
- * 지명 → 좌표 후보 목록. Kakao 로컬 키워드 검색(한국 POI 정확).
- * 좌표는 WGS84(x=경도, y=위도)로 바로 사용. 키는 .env의 EXPO_PUBLIC_KAKAO_REST_KEY.
- */
-const geocode = async (name: string): Promise<GeocodeResult[]> => {
-  const trimmed = name.trim();
-  if (!trimmed) {
-    return [];
-  }
-  if (!KAKAO_REST_KEY) {
-    throw new Error(
-      'Kakao REST 키가 없습니다. .env에 EXPO_PUBLIC_KAKAO_REST_KEY를 설정하세요.'
-    );
-  }
-  const url = `${KAKAO_KEYWORD_URL}?query=${encodeURIComponent(trimmed)}&size=15`;
-  const res = await fetch(url, {
-    headers: { Authorization: `KakaoAK ${KAKAO_REST_KEY}` },
-  });
-  if (!res.ok) {
-    throw new Error(`Kakao 지오코딩 실패: ${res.status}`);
-  }
-  const json = await res.json();
-  const docs: any[] = json?.documents ?? [];
-  return docs.map(d => {
-    const addr = d.road_address_name || d.address_name;
-    return {
-      name: d.place_name,
-      latitude: parseFloat(d.y),
-      longitude: parseFloat(d.x),
-      ...(addr ? { subtitle: addr } : {}),
-    };
-  });
-};
-
-/**
- * 좌표 → 지명(지도 선택용 역지오코딩). Kakao coord2address → 없으면 지역명 폴백.
- */
-const reverseGeocode = async (
-  latitude: number,
-  longitude: number
-): Promise<string> => {
-  if (!KAKAO_REST_KEY) {
-    throw new Error(
-      'Kakao REST 키가 없습니다. .env에 EXPO_PUBLIC_KAKAO_REST_KEY를 설정하세요.'
-    );
-  }
-  const headers = { Authorization: `KakaoAK ${KAKAO_REST_KEY}` };
-
-  const addrRes = await fetch(
-    `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${longitude}&y=${latitude}`,
-    { headers }
-  );
-  if (addrRes.ok) {
-    const json = await addrRes.json();
-    const doc = json?.documents?.[0];
-    const name =
-      doc?.road_address?.address_name || doc?.address?.address_name;
-    if (name) {
-      return name;
-    }
-  }
-
-  // 도로/지번 주소가 없으면(바다/산악 등) 행정구역명으로 폴백.
-  const regionRes = await fetch(
-    `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${longitude}&y=${latitude}`,
-    { headers }
-  );
-  if (regionRes.ok) {
-    const json = await regionRes.json();
-    const name = json?.documents?.[0]?.address_name;
-    if (name) {
-      return name;
-    }
-  }
-
-  return '선택한 위치';
-};
-
 // forecast API: [오늘-92 ~ 오늘+16] 범위의 특정 구간을 일별로.
 const fetchForecastRange = async (
-  location: BagLocation,
+  location: WeatherLocation,
   start: Dayjs,
   end: Dayjs
 ): Promise<WeatherDaily[]> => {
@@ -143,7 +61,7 @@ const fetchForecastRange = async (
 
 // archive API: 과거 실측.
 const fetchArchiveRange = async (
-  location: BagLocation,
+  location: WeatherLocation,
   start: Dayjs,
   end: Dayjs
 ): Promise<WeatherDaily[]> => {
@@ -188,7 +106,7 @@ const toDaily = (raw: DailyRaw | undefined, source: WeatherSource): WeatherDaily
 
 // 먼 미래 구간의 평년값: 과거 NORMAL_YEARS년 같은 날짜의 아카이브 평균.
 const computeNormals = async (
-  location: BagLocation,
+  location: WeatherLocation,
   start: Dayjs,
   end: Dayjs
 ): Promise<WeatherDaily[]> => {
@@ -278,7 +196,7 @@ const computeNormals = async (
  * `frozen`은 여행이 완전히 과거일 때 true.
  */
 const getWeather = async (
-  location: BagLocation,
+  location: WeatherLocation,
   start: Dayjs,
   end: Dayjs
 ): Promise<WeatherSnapshot> => {
@@ -333,6 +251,6 @@ const getWeather = async (
   };
 };
 
-const weatherService = { geocode, reverseGeocode, getWeather };
+const weatherService = { getWeather };
 
 export default weatherService;

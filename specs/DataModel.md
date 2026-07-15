@@ -122,12 +122,12 @@
 | `packedGears` | string[] | 패킹 모드에서 챙긴 장비 ID 배열 ([Packing.md](Packing.md) PK-4). 옵셔널(기존 문서엔 없음) |
 | `packingStartedAt` | string | 최초 패킹 시작 시각(ISO 8601). 옵셔널 |
 | `packingCompletedAt` | string | 패킹 완료 시각(ISO 8601). 옵셔널 — 완료 해제·리셋 시 필드 제거 |
-| `location` | object | 여행지 위치. `BagLocation` 형태(DM-15). 옵셔널(미설정 시 없음) |
-| `weather` | object | 여행 기간 날씨 스냅샷 캐시. `WeatherSnapshot` 형태(DM-15). 옵셔널 |
+| `location` | object | 배낭 여행지의 단일 원본. `BagLocation` 형태(DM-15). 옵셔널(미설정 시 없음) |
+| `weather` | object | `location` 좌표에서 조회한 여행 기간 날씨 스냅샷 캐시. `WeatherSnapshot` 형태(DM-15). 옵셔널 |
 
 패킹 필드는 여행 후에도 보존한다(히스토리 데이터, [Packing.md](Packing.md) §8). 배낭 복사 시에는 복사하지 않는다([Bag.md](Bag.md) BAG-4).
 
-`location`/`weather`는 `BagStore.updateLocation`/`updateWeather`가 각각 `updateDoc`으로 단독 갱신한다(트랜잭션 아님). 배낭 복사 시 복사 대상에서 제외한다. 상세 설계는 [Weather.md](Weather.md).
+배낭 복사 시 `location`/`weather`는 복사하지 않는다. 여행지 좌표 변경 시에는 새 `location` 저장과 기존 `weather` 제거를 **한 번의 `updateDoc`**으로 처리하고, 새 조회 성공 후 `weather`를 별도 저장한다. 좌표가 같고 표시명·박지 참조만 바뀌면 기존 일별 날씨는 유지하되 `weather.locationName`을 새 이름으로 함께 갱신한다. 상세 동작은 [BagDestination.md](BagDestination.md) DST-6, 날씨 캐시는 [Weather.md](Weather.md) WT-5.
 
 ### DM-6 `gear-rank/{gearId}`
 
@@ -206,17 +206,18 @@
 - **초기 백필**: 기존 데이터는 스크립트 1회로 `gear-rank` × `gear`(company)를 조인·브랜드별 합산해 생성한다. 앱 Firestore 쓰기이므로 **클라이언트 SDK + public config**로 작성(admin 키 불필요, `gear-rank`처럼 미인증 쓰기 허용 경로). 변경 전 백업 JSON 저장([DM-12](#7-운영-스크립트-dm-12) 관례).
 - **읽기 규칙**: 브랜드 디렉토리는 로그인 사용자 화면이나, `gear-rank`와 동일하게 공개 읽기 허용을 둔다(보안 규칙 작업).
 
-### DM-15 여행지 위치·날씨 (`bag.location`, `bag.weather`)
+### DM-15 배낭 여행지·날씨 캐시 (`bag.location`, `bag.weather`)
 
-`bag` 문서 안에 중첩 저장되는 날씨 도메인 값. 타입 원본은 `model/weather/WeatherTypes.ts`. 상세 동작은 [Weather.md](Weather.md).
+`bag` 문서 안에 중첩 저장되는 여행지 단일 원본과 그 좌표에서 조회한 날씨 캐시. 여행지 상세 동작은 [BagDestination.md](BagDestination.md), 날씨 조회·신선도는 [Weather.md](Weather.md).
 
 **`BagLocation`** (`bag.location`)
 
 | 필드 | 타입 | 비고 |
 | --- | --- | --- |
-| `name` | string | 표시용 지명/주소 (Kakao 지오코딩 결과 또는 검색 장소명) |
+| `name` | string | 표시용 지명/주소. 자유 위치는 Kakao 지오코딩 결과 또는 검색 장소명, 박지 연결은 선택 당시 `camp-spot.name` 스냅샷 |
 | `latitude` | number | WGS84 위도 |
 | `longitude` | number | WGS84 경도 |
+| `campSpotId` | string? | 연결된 등록 박지(`/camp-spot/{campSpotId}`, DM-17) 참조. 박지 선택 시에만 존재하며 자유 위치로 변경하면 제거한다. 이름·좌표는 참조와 별도로 항상 저장해 박지 삭제·비활성·조회 실패에도 여행지를 유지한다. 기존 문서에 이 필드가 없으면 자유 위치로 간주한다. |
 
 **`WeatherSnapshot`** (`bag.weather`) — 캐시 신선도 판단 메타를 함께 보관
 
