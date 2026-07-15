@@ -106,7 +106,12 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
 
     setLoading(true);
     try {
-      await warehouseDetail.addToWarehouse(gear);
+      // GE-8: 배낭 컨텍스트면 그 배낭에 바로 담고, 아니면 창고 등록(후 배낭 담기 모달).
+      if (warehouseDetail.isBagContext()) {
+        await warehouseDetail.addToBag(gear);
+      } else {
+        await warehouseDetail.addToWarehouse(gear);
+      }
     } finally {
       setLoading(false);
     }
@@ -118,6 +123,11 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
 
   if (gear) {
     const isAdded = gear.isAdded();
+    // GE-8: 배낭 컨텍스트면 '이 배낭에 담기'(이미 그 배낭에 담김이면 버튼 숨김), 아니면 창고 미보유 시 '내 창고에 추가'.
+    const isBagContext = warehouseDetail.isBagContext();
+    const showAddButton = isBagContext
+      ? !warehouseDetail.isInBagContextBag()
+      : !isAdded;
 
     return (
       <>
@@ -218,7 +228,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
             <View style={styles.bottomSpacing} />
           </ScrollView>
 
-          {!isAdded && (
+          {showAddButton && (
             <View style={styles.bottomBar}>
               <TouchableOpacity
                 style={[styles.addButton, loading && styles.disabledButton]}
@@ -230,7 +240,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
                 ) : (
                   <View style={styles.buttonContent}>
                     <PretendardText weight='semibold' style={styles.addButtonText}>
-                      내 창고에 추가하기
+                      {isBagContext ? '이 배낭에 담기' : '내 창고에 추가하기'}
                     </PretendardText>
                   </View>
                 )}

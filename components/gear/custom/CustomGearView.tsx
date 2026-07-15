@@ -21,7 +21,6 @@ import LoadingIconView from '@/components/ui/LoadingIconView';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import CustomGearWeightView from '@/components/gear/custom/CustomGearWeightView';
 import CustomGearColorView from '@/components/gear/custom/CustomGearColorView';
-import CustomGearInputSectionView from '@/components/gear/custom/CustomGearInputSectionView';
 import CategoryChipView from '@/components/browse/CategoryChipView';
 import AlertView from '@/components/alert/AlertView';
 import app from '@/model/app/App';
@@ -48,8 +47,6 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   // 스크롤 위치 저장
   const [savedScrollPosition, setSavedScrollPosition] = useState(0);
-  // 검색 결과 스크롤 상태
-  const [isSearchScrolling, setIsSearchScrolling] = useState(false);
 
   const scrollToInput = (inputRef: React.RefObject<TextInput | null>) => {
     if (inputRef.current && scrollViewRef.current) {
@@ -141,14 +138,6 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
     customGear.setCompany(text);
   };
 
-  const handleSearchScrollStart = () => {
-    setIsSearchScrolling(true);
-  };
-
-  const handleSearchScrollEnd = () => {
-    setIsSearchScrolling(false);
-  };
-
   return (
     <>
       <SafeAreaView
@@ -215,7 +204,6 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
             keyboardShouldPersistTaps='handled'
             showsVerticalScrollIndicator={false}
             keyboardDismissMode='interactive'
-            scrollEnabled={!isSearchScrolling}
             onScroll={e => {
               if (Platform.OS === 'android') {
                 setSavedScrollPosition(e.nativeEvent.contentOffset.y);
@@ -226,18 +214,40 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
             <View style={styles.imageSection}>
               <ImageUploadView fileUpload={customGear} />
             </View>
-            <CustomGearInputSectionView
-              label='제품명'
-              required
-              placeholder='제품명을 입력해주세요'
-              value={name}
-              onChangeText={handleChangeName}
-              onFocus={() => setFocusedInput('name')}
-              inputRef={nameInputRef}
-              customGear={customGear}
-              onSearchScrollStart={handleSearchScrollStart}
-              onSearchScrollEnd={handleSearchScrollEnd}
-            />
+            <View style={styles.inputSection}>
+              <PretendardText weight='medium' style={styles.label}>
+                제품명
+                <PretendardText weight='medium' style={styles.requiredMark}>
+                  {' '}
+                  *
+                </PretendardText>
+              </PretendardText>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  ref={nameInputRef}
+                  style={styles.input}
+                  placeholder='제품명을 입력해주세요'
+                  value={name}
+                  onChangeText={handleChangeName}
+                  onFocus={() => setFocusedInput('name')}
+                />
+                {name ? (
+                  <TouchableOpacity
+                    onPress={() => customGear.setName('')}
+                    style={styles.clearButton}
+                    accessibilityRole='button'
+                    accessibilityLabel='입력 지우기'
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons
+                      name='close-circle'
+                      size={20}
+                      color={Color.iconMuted}
+                    />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            </View>
             <View style={styles.inputSection}>
               <PretendardText weight='medium' style={styles.label}>
                 브랜드
@@ -359,6 +369,9 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
+  },
+  requiredMark: {
+    color: '#FF3B30',
   },
   inputContainer: {
     position: 'relative',
