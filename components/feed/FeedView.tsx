@@ -141,7 +141,8 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
         <View style={styles.skeletonContainer}>
           <FeedSkeletonView count={6} />
         </View>
-        <FeedRankingButtonView feed={feed} />
+        {/* GE-8: 장비 추가 검색 모달에서는 인기 순위 버튼을 숨긴다(탐색 탭에서만 노출). */}
+        {!gearAddContext && <FeedRankingButtonView feed={feed} />}
       </View>
     );
   }
@@ -169,7 +170,7 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
           />
         }
       />
-      <FeedRankingButtonView feed={feed} />
+      {!gearAddContext && <FeedRankingButtonView feed={feed} />}
     </View>
   );
 };
