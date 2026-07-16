@@ -76,7 +76,7 @@ const CampSiteSummaryScreen = () => {
     <View
       style={[
         styles.container,
-        { paddingBottom: Math.max(insets.bottom, 16) },
+        { paddingBottom: Math.max(insets.bottom - 16, 12) },
       ]}
     >
       <View style={styles.headerRow}>
