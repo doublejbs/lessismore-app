@@ -170,6 +170,21 @@ const RootLayout = () => {
             }}
           />
           <Stack.Screen
+            // _layout이 없는 디렉토리라 라우트 이름이 그룹('camp-site-weather')이 아니라
+            // 파일 경로 그대로다 — 이름이 어긋나면 등록이 무시돼 기본 화면으로 뜬다.
+            name='camp-site-weather/[id]'
+            options={{
+              headerShown: false,
+              // 상세 시트(camp-site) 위에 겹쳐 뜨는 시트 — 일반 화면으로 push하면
+              // 상세 시트 뒤에 깔려 가려진다(CS-3 주간 날씨).
+              presentation: 'formSheet',
+              sheetAllowedDetents: [0.5, 1],
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 20,
+              contentStyle: { backgroundColor: '#FFFFFF' },
+            }}
+          />
+          <Stack.Screen
             name='bag-copy-source'
             options={{
               headerShown: false,
