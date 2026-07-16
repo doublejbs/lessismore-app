@@ -161,15 +161,19 @@ const RootLayout = () => {
             options={{
               headerShown: false,
               presentation: 'formSheet',
-              // 60%로 떠서 위로 끌면 최대까지 확장. 이 비율은 CampSiteDetailWrapper의
-              // SHEET_DETENTS와 반드시 같아야 한다 — 래퍼가 콘텐츠 높이를 여기에 맞춘다
-              // (formSheet 안은 React 레이아웃 높이가 무제한이라 명시하지 않으면 스크롤이 죽는다).
+              // 60%로 떠서 위로 끌면 최대까지 확장(네이티브 시트 기본 동작).
               sheetAllowedDetents: [0.6, 1],
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
               // 딤 없음 — 시트가 떠 있어도 뒤 지도를 계속 조작할 수 있다(구글맵 동작).
               sheetLargestUndimmedDetentIndex: 'last',
-              contentStyle: { backgroundColor: '#FFFFFF' },
+              // bottom: 0이 핵심이다. react-native-screens는 formSheet 콘텐츠 래퍼를
+              // top/left/right만 건 absolute로 둔다(시트 높이 변경 시 깜빡임 방지) — 그러면
+              // React 레이아웃 높이가 무제한이라 flex:1이 뷰포트를 못 잡고 ScrollView가
+              // 콘텐츠 높이만큼 늘어나 스크롤이 죽는다. contentStyle은 그 스타일 뒤에
+              // 병합되므로 여기서 bottom을 되돌리면 래퍼 높이 = 시트 높이가 되고,
+              // detent를 끌어 바꿔도 네이티브가 알아서 따라온다.
+              contentStyle: { backgroundColor: '#FFFFFF', bottom: 0 },
             }}
           />
           <Stack.Screen
