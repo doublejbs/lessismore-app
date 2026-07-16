@@ -1,5 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import { Alert, Linking } from 'react-native';
+import { Alert, Linking, Share } from 'react-native';
 import { Router } from 'expo-router';
 import app from '../app/App';
 import AlertManager from '../alert/AlertManager';
@@ -14,10 +14,6 @@ import { BlogReview, REVIEW_CACHE_TTL_MS, VideoReview } from '../review/ReviewTy
 import { CampReview, CampReviewSummary } from '../camp-review/CampReviewTypes';
 import { setCampReviewWrite } from '../camp-review/CampReviewWriteHandoff';
 import { setPendingBagLocation } from '../bag/PendingBagLocationHandoff';
-import {
-  openCampSpotInNaverMap,
-  shareCampSpot,
-} from './CampSiteActions';
 
 // 박지 상세 도메인 모델 (CampSite CS-3/CS-4/CS-5).
 // 3단 래퍼(라우트 → Wrapper → View) 중 상태·비즈니스 로직을 담당한다.
@@ -318,7 +314,19 @@ class CampSiteDetail {
       return;
     }
 
-    await shareCampSpot(spot);
+    this.analyticsManager?.logClick('camp_site_share');
+
+    // 문서 id에 콜론(예: curated:seokseongsan)이 들어가 있다. 메신저의 URL 자동 링크화가
+    // 콜론에서 끊겨 링크가 깨지므로 퍼센트 인코딩(%3A)한다 — 웹 랜딩(React Router)이 복원한다.
+    const url = `https://useless.my/camp-share/${encodeURIComponent(spot.id)}`;
+
+    try {
+      // URL만 공유한다 — 이름 등 텍스트를 붙이면 '복사' 시 URL이 아닌 문자열이 복사돼
+      // 사파리에 붙여넣어도 링크로 동작하지 않는다.
+      await Share.share({ message: url });
+    } catch {
+      // 공유 시트 취소·실패는 조용히 무시
+    }
   }
 
   // 네이버 지도에서 열기(CS-3): 좌표·박지명으로 네이버 지도 앱을 연다.
@@ -330,7 +338,21 @@ class CampSiteDetail {
       return;
     }
 
-    await openCampSpotInNaverMap(spot);
+    this.analyticsManager?.logClick('camp_site_directions');
+
+    const { latitude, longitude } = spot.location;
+    const appUrl = `nmap://place?lat=${latitude}&lng=${longitude}&name=${encodeURIComponent(spot.name)}&appname=com.doublejbs.useless`;
+    const webUrl = `https://map.naver.com/p/search/${encodeURIComponent(spot.name)}`;
+
+    try {
+      await Linking.openURL(appUrl);
+    } catch {
+      try {
+        await Linking.openURL(webUrl);
+      } catch {
+        // 웹 폴백까지 실패하면 조용히 무시
+      }
+    }
   }
 
   // 배낭 여행지로 설정 버튼(CS-5). 비로그인은 안내, 배낭 0개여도 시트를 열어
