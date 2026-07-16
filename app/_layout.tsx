@@ -161,8 +161,9 @@ const RootLayout = () => {
             options={{
               headerShown: false,
               presentation: 'formSheet',
-              // 60%로 떠서 위로 끌면 최대까지 확장(네이티브 시트 기본 동작).
-              sheetAllowedDetents: [0.6, 1],
+              // 20%(헤더만 보이는 최소) / 40%(기본) / 최대 — 위아래로 끌어 전환한다.
+              sheetAllowedDetents: [0.2, 0.4, 1],
+              sheetInitialDetentIndex: 1,
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
               // 딤 없음 — 시트가 떠 있어도 뒤 지도를 계속 조작할 수 있다(구글맵 동작).

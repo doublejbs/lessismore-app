@@ -1,5 +1,10 @@
-import { FC } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { FC, useState } from 'react';
+import {
+  LayoutChangeEvent,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
@@ -21,10 +26,17 @@ interface Props {
   onMoveToSpot?: (() => void) | undefined;
 }
 
+// 탭 바·CTA까지 다 넣으려면 이 정도는 있어야 한다(헤더 약 90 + 탭 바 약 50 + CTA 약 84).
+// 최소 detent(20%)는 그보다 낮아 다 넣으면 CTA가 잘린다 — 그땐 헤더만 보이는 peek으로 둔다(CS-3).
+const FULL_LAYOUT_MIN_HEIGHT = 260;
+
 // 박지 상세 시트(CS-3) — 고정 영역(헤더·제목·탭 바) + 탭 콘텐츠 + 고정 CTA.
 // 스크롤은 각 탭 콘텐츠 안에서만 일어난다(고정 영역은 스크롤되지 않는다).
 const CampSiteDetailView: FC<Props> = ({ campSiteDetail, onMoveToSpot }) => {
   const spot = campSiteDetail.getSpot();
+  // 시트 높이. contentStyle의 bottom: 0 덕에 이 컨테이너가 시트 높이를 그대로 갖고,
+  // 사용자가 detent를 끌면 네이티브가 프레임을 바꿔 여기로 다시 들어온다(app/_layout.tsx 주석 참고).
+  const [sheetHeight, setSheetHeight] = useState(0);
   const showBagSheet = campSiteDetail.shouldShowBagSheet();
   const { selectedTab, campSiteWeather, handleSelectTab } =
     useCampSiteDetailTabState(spot);
@@ -61,13 +73,20 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail, onMoveToSpot }) => {
     campSiteDetail.createBagForSpot();
   };
 
+  const handleLayout = (event: LayoutChangeEvent) => {
+    setSheetHeight(event.nativeEvent.layout.height);
+  };
+
   if (!spot) {
     return null;
   }
 
+  // 높이를 재기 전(0)에는 기본 detent(40%)라고 보고 전체 레이아웃을 그린다 — peek이 깜빡이지 않게.
+  const isPeek = sheetHeight > 0 && sheetHeight < FULL_LAYOUT_MIN_HEIGHT;
+
   return (
     <>
-      <View style={styles.container}>
+      <View style={styles.container} onLayout={handleLayout}>
         {/* 이름·액션 아이콘·유형 배지·지역은 탭과 무관한 박지 정체성이라 고정 영역에 둔다(CS-3). */}
         <CampSiteDetailHeaderView
           name={spot.name}
@@ -79,37 +98,42 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail, onMoveToSpot }) => {
           onPressClose={handlePressClose}
         />
 
-        <CampSiteDetailTabBarView
-          selectedTab={selectedTab}
-          onSelectTab={handleSelectTab}
-        />
+        {/* peek(최소 detent)에서는 헤더만 남긴다 — 탭·CTA까지 그리면 높이가 모자라 CTA가 잘린다. */}
+        {isPeek ? null : (
+          <>
+            <CampSiteDetailTabBarView
+              selectedTab={selectedTab}
+              onSelectTab={handleSelectTab}
+            />
 
-        <View style={styles.tabContent}>
-          {selectedTab === CampSiteDetailTab.Overview ? (
-            <CampSiteOverviewTabView spot={spot} />
-          ) : null}
-          {selectedTab === CampSiteDetailTab.Weather ? (
-            <CampSiteWeatherTabView campSiteWeather={campSiteWeather} />
-          ) : null}
-          {selectedTab === CampSiteDetailTab.Review ? (
-            <CampSiteReviewTabView campSiteDetail={campSiteDetail} />
-          ) : null}
-        </View>
+            <View style={styles.tabContent}>
+              {selectedTab === CampSiteDetailTab.Overview ? (
+                <CampSiteOverviewTabView spot={spot} />
+              ) : null}
+              {selectedTab === CampSiteDetailTab.Weather ? (
+                <CampSiteWeatherTabView campSiteWeather={campSiteWeather} />
+              ) : null}
+              {selectedTab === CampSiteDetailTab.Review ? (
+                <CampSiteReviewTabView campSiteDetail={campSiteDetail} />
+              ) : null}
+            </View>
 
-        {/* 박지 단위의 주 액션이라 어느 탭에서도 닿도록 하단에 고정한다(CS-3/CS-5). */}
-        <View style={styles.bottomBar}>
-          <TouchableOpacity
-            style={styles.setBagButton}
-            onPress={handlePressSetBag}
-            activeOpacity={0.7}
-            accessibilityLabel='배낭 여행지로 설정'
-            accessibilityRole='button'
-          >
-            <PretendardText style={styles.setBagButtonText} weight='semibold'>
-              배낭 여행지로 설정
-            </PretendardText>
-          </TouchableOpacity>
-        </View>
+            {/* 박지 단위의 주 액션이라 어느 탭에서도 닿도록 하단에 고정한다(CS-3/CS-5). */}
+            <View style={styles.bottomBar}>
+              <TouchableOpacity
+                style={styles.setBagButton}
+                onPress={handlePressSetBag}
+                activeOpacity={0.7}
+                accessibilityLabel='배낭 여행지로 설정'
+                accessibilityRole='button'
+              >
+                <PretendardText style={styles.setBagButtonText} weight='semibold'>
+                  배낭 여행지로 설정
+                </PretendardText>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
       </View>
 
       <CampSiteBagSelectSheetView
