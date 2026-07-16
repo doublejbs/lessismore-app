@@ -74,7 +74,7 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
 - 표시: 대표 사진(있으면), 이름, 유형 배지, 지역, 설명, 시설(화장실/식수/데크/매점 — 있는 것만 아이콘+라벨), 접근 정보(`accessInfo` 자유 텍스트, 예: `주차장에서 도보 40분`), 출처(`source`).
 - `tags`가 있으면 지역 아래에 **태그 칩**(`#해변` 형태, 비인터랙티브)을 표시한다.
 - **네이버 지도에서 열기**: 헤더 우측 상단 아이콘 버튼. 좌표·박지명으로 네이버 지도 앱을 연다(`nmap://place?lat=..&lng=..&name=..&appname=..`). 앱 미설치·실패 시 네이버 지도 웹 검색(`https://map.naver.com/p/search/{박지명}`)으로 폴백.
-- **주간 날씨**: 상세에는 인라인 표시 대신 `주간 날씨` **버튼**을 둔다. 탭 → `/camp-site-weather/{id}` 전용 페이지로 이동해 박지 좌표로 기존 `WeatherService`(WT) 예보를 조회·표시한다(페이지 타이틀=박지명, 로딩 인디케이터, 실패 시 `날씨를 불러오지 못했어요` + 재시도). 상세 화면 자체는 날씨를 조회하지 않는다.
+- **주간 날씨**: 상세에는 인라인 표시 대신 `주간 날씨` **버튼**을 둔다. 탭 → `/camp-site-weather/{id}`로 이동해 박지 좌표로 기존 `WeatherService`(WT) 예보를 조회·표시한다(페이지 타이틀=박지명, 로딩 인디케이터, 실패 시 `날씨를 불러오지 못했어요` + 재시도). 상세 화면 자체는 날씨를 조회하지 않는다. **상세가 시트로 뜨므로(CS-2) 이 화면도 상세 시트 위에 겹쳐 뜨는 `formSheet`로 표시**한다 — 일반 화면으로 push하면 상세 시트 뒤에 깔려 가려진다. (`camp-site` 그룹 안에 중첩 Stack을 두어 시트 안에서 전환하는 방식은 쓸 수 없다 — 네이티브 formSheet 안의 중첩 Stack은 내용이 렌더되지 않는다.)
 - 진입/길찾기 클릭 이벤트를 [Analytics.md](Analytics.md) AN-3 규칙으로 계측한다(`click_camp_site`, `click_camp_site_directions` — 구현 시 표 갱신).
 - **후기 콘텐츠** `[제안]`: 상세 하단(날씨 아래)에 `후기` 섹션을 표시한다. 검색어는 두 소스 모두 `"{박지명} 백패킹"`.
   - **블로그 후기 리스트**: 네이버 블로그 검색 API(`GET https://openapi.naver.com/v1/search/blog.json`, 헤더 `X-Naver-Client-Id`/`X-Naver-Client-Secret` — env `EXPO_PUBLIC_NAVER_SEARCH_CLIENT_ID`/`EXPO_PUBLIC_NAVER_SEARCH_CLIENT_SECRET`, 네이버 개발자센터 앱)로 상위 5건 — 제목·요약(description 1~2줄)·블로거명·작성일. 항목 탭 → 외부 브라우저(`Linking.openURL`). 제목/요약의 HTML 태그·엔티티는 제거해 표시.

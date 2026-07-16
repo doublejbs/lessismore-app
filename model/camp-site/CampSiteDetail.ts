@@ -284,6 +284,7 @@ class CampSiteDetail {
       return;
     }
 
+    // 상세 시트(CS-2) 위에 겹쳐 뜨는 별도 시트 — 일반 화면으로 push하면 시트 뒤에 깔려 가려진다.
     this.router.push(`/camp-site-weather/${spot.id}`);
   }
 
