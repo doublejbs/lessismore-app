@@ -161,8 +161,9 @@ const RootLayout = () => {
             options={{
               headerShown: false,
               presentation: 'formSheet',
-              // 20%(헤더만 보이는 최소) / 40%(기본) / 최대 — 위아래로 끌어 전환한다.
-              sheetAllowedDetents: [0.2, 0.4, 1],
+              // 최소(peek) / 40%(기본) / 최대 — 위아래로 끌어 전환한다.
+              // 최소가 0.2가 아니라 0.24인 이유는 CampSiteDetailView의 PEEK 주석 참고.
+              sheetAllowedDetents: [0.24, 0.4, 1],
               sheetInitialDetentIndex: 1,
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,

@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
@@ -26,9 +27,15 @@ interface Props {
   onMoveToSpot?: (() => void) | undefined;
 }
 
-// 탭 바·CTA까지 다 넣으려면 이 정도는 있어야 한다(헤더 약 90 + 탭 바 약 50 + CTA 약 84).
-// 최소 detent(20%)는 그보다 낮아 다 넣으면 CTA가 잘린다 — 그땐 헤더만 보이는 peek으로 둔다(CS-3).
+// 탭 바까지 넣으려면 이 정도는 있어야 한다(헤더 약 92 + 탭 바 약 50 + CTA 약 84 + 콘텐츠 여유).
+// 최소 detent는 그보다 낮으므로 그땐 탭 바·탭 콘텐츠를 접는다 — 지도를 보는 상태라 의도에도 맞다(CS-3).
+// 헤더와 CTA는 peek에서도 남긴다: 이름 + 주 액션만 있는 컴팩트 카드가 되고,
+// 확장할 때 CTA가 제자리에 머물러 나타나는 건 탭 영역뿐이라 전환이 덜 튄다.
+// 그래서 최소 detent는 헤더 92 + CTA 84가 들어가는 0.24다(0.2=약 163pt에는 CTA가 잘린다).
 const FULL_LAYOUT_MIN_HEIGHT = 260;
+
+// 탭 영역이 나타날 때 페이드 — 임계값을 넘는 순간 툭 튀어나오지 않게.
+const TAB_FADE_DURATION = 160;
 
 // 박지 상세 시트(CS-3) — 고정 영역(헤더·제목·탭 바) + 탭 콘텐츠 + 고정 CTA.
 // 스크롤은 각 탭 콘텐츠 안에서만 일어난다(고정 영역은 스크롤되지 않는다).
@@ -98,9 +105,15 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail, onMoveToSpot }) => {
           onPressClose={handlePressClose}
         />
 
-        {/* peek(최소 detent)에서는 헤더만 남긴다 — 탭·CTA까지 그리면 높이가 모자라 CTA가 잘린다. */}
-        {isPeek ? null : (
-          <>
+        {/* peek(최소 detent)에서는 탭 영역을 접는다 — 헤더와 CTA만으로도 높이가 꽉 찬다. */}
+        {isPeek ? (
+          <View style={styles.peekSpacer} />
+        ) : (
+          <Animated.View
+            style={styles.tabSection}
+            entering={FadeIn.duration(TAB_FADE_DURATION)}
+            exiting={FadeOut.duration(TAB_FADE_DURATION)}
+          >
             <CampSiteDetailTabBarView
               selectedTab={selectedTab}
               onSelectTab={handleSelectTab}
@@ -117,23 +130,23 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail, onMoveToSpot }) => {
                 <CampSiteReviewTabView campSiteDetail={campSiteDetail} />
               ) : null}
             </View>
-
-            {/* 박지 단위의 주 액션이라 어느 탭에서도 닿도록 하단에 고정한다(CS-3/CS-5). */}
-            <View style={styles.bottomBar}>
-              <TouchableOpacity
-                style={styles.setBagButton}
-                onPress={handlePressSetBag}
-                activeOpacity={0.7}
-                accessibilityLabel='배낭 여행지로 설정'
-                accessibilityRole='button'
-              >
-                <PretendardText style={styles.setBagButtonText} weight='semibold'>
-                  배낭 여행지로 설정
-                </PretendardText>
-              </TouchableOpacity>
-            </View>
-          </>
+          </Animated.View>
         )}
+
+        {/* 박지 단위의 주 액션이라 어느 탭에서도 닿도록 하단에 고정한다(CS-3/CS-5). */}
+        <View style={styles.bottomBar}>
+          <TouchableOpacity
+            style={styles.setBagButton}
+            onPress={handlePressSetBag}
+            activeOpacity={0.7}
+            accessibilityLabel='배낭 여행지로 설정'
+            accessibilityRole='button'
+          >
+            <PretendardText style={styles.setBagButtonText} weight='semibold'>
+              배낭 여행지로 설정
+            </PretendardText>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <CampSiteBagSelectSheetView
@@ -154,7 +167,14 @@ const styles = StyleSheet.create({
     backgroundColor: Color.background,
   },
   // 탭 콘텐츠에 경계를 줘야 안쪽 ScrollView가 시트 높이 안에서 스크롤된다.
+  tabSection: {
+    flex: 1,
+  },
   tabContent: {
+    flex: 1,
+  },
+  // peek에서 헤더와 CTA 사이 여백. 남는 높이를 먹어 CTA를 아래에 붙인다.
+  peekSpacer: {
     flex: 1,
   },
   bottomBar: {
