@@ -276,18 +276,6 @@ class CampSiteDetail {
     }
   }
 
-  // 주간 날씨 버튼 탭(CS-3): 박지 전용 주간 날씨 페이지로 이동한다.
-  public openWeather() {
-    const spot = this.spot;
-
-    if (!spot) {
-      return;
-    }
-
-    // 상세 시트(CS-2) 위에 겹쳐 뜨는 별도 시트 — 일반 화면으로 push하면 시트 뒤에 깔려 가려진다.
-    this.router.push(`/camp-site-weather/${spot.id}`);
-  }
-
   private setInitialized(value: boolean) {
     this.initialized = value;
   }

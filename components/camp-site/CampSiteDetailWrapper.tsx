@@ -28,8 +28,8 @@ const SHEET_EDGES = ['bottom'] as const;
 // ScrollView가 콘텐츠 높이만큼 늘어나고 스크롤이 아예 죽는다. 높이를 명시하면 경계가 생겨
 // 스크롤·하단 고정 CTA·토스트가 모두 정상 동작한다. 그래서 detent는 fitToContents로 두고
 // (= 시트가 이 높이에 맞춰짐) 높이는 여기서 정한다.
-// 이름·사진·요약이 먼저 보이면서 뒤 지도도 충분히 남는 값.
-const SHEET_HEIGHT_RATIO = 0.6;
+// 헤더·제목·탭 바·고정 CTA를 빼고도 탭 콘텐츠가 충분히 남으면서 뒤 지도도 남는 값(CS-3).
+const SHEET_HEIGHT_RATIO = 0.75;
 
 const CampSiteDetailWrapper: FC = () => {
   const router = useRouter();
