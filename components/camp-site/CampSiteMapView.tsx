@@ -14,6 +14,7 @@ import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import LocalStorageManager from '@/model/storage/LocalStorageManager';
 import { deltaToZoom } from '@/model/map/MapZoom';
+import { setCampSiteSummary } from '@/model/camp-site/CampSiteSummaryHandoff';
 import CampSiteMapMarkersView, {
   CampSiteMapViewport,
 } from './CampSiteMapMarkersView';
@@ -228,48 +229,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     }
   }, [moveCamera]);
 
-  // 검색 결과 탭 → 키보드/드롭다운 닫기 + 카메라 이동(줌인) + 요약 카드 오픈(CS-6). 검색어는 유지.
-  const handleSelectResult = useCallback(
-    (spot: CampSpot) => {
-      Keyboard.dismiss();
-
-      campSiteMap.setSearchFocused(false);
-      campSiteMap.selectSpot(spot);
-
-      moveCamera({
-        latitude: spot.location.latitude,
-        longitude: spot.location.longitude,
-        zoom: deltaToZoom(0.05),
-        duration: 500,
-      });
-    },
-    [campSiteMap, moveCamera]
-  );
-
-  // 마커 탭 콜백 — memo된 마커(CampSiteMarkerView)가 리렌더를 건너뛸 수 있게 참조를 고정한다.
-  const handleMarkerTap = useCallback(
-    (spot: CampSpot) => {
-      campSiteMap.selectSpot(spot);
-      // B: 선택 박지를 화면 중앙으로 부드럽게 이징(줌 유지) → 펄스(A)가 중앙에서 정렬돼 재생된다.
-      moveCamera({
-        latitude: spot.location.latitude,
-        longitude: spot.location.longitude,
-        zoom: zoomRef.current,
-        duration: 400,
-      });
-    },
-    [campSiteMap, moveCamera]
-  );
-
-  // 요약 카드 탭 → 상세 화면(CS-3).
-  const handlePressSpot = useCallback(
-    (spot: CampSpot) => {
-      router.push(`/camp-site/${spot.id}`);
-    },
-    [router]
-  );
-
-  // 요약 카드의 위치로 이동 버튼(CS-2) — 지도를 움직였다가 다시 박지 위치로.
+  // 요약 시트의 위치로 이동 버튼(CS-2) — 지도를 움직였다가 다시 박지 위치로.
   // 검색 결과 선택과 동일한 줌 레벨로 이동한다.
   const handleMoveToSpot = useCallback(
     (spot: CampSpot) => {
@@ -281,6 +241,56 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       });
     },
     [moveCamera]
+  );
+
+  // 박지 선택(CS-2): 마커 강조 + 요약 시트 오픈. 시트가 닫히면 강조를 해제한다.
+  // 시트는 딤이 없어(sheetLargestUndimmedDetentIndex) 뒤 지도를 계속 조작할 수 있다.
+  const openSummary = useCallback(
+    (spot: CampSpot) => {
+      campSiteMap.selectSpot(spot);
+
+      setCampSiteSummary({
+        spot,
+        onMoveToSpot: handleMoveToSpot,
+        onClose: () => campSiteMap.selectSpot(null),
+      });
+
+      router.push('/camp-site-summary');
+    },
+    [campSiteMap, handleMoveToSpot, router]
+  );
+
+  // 검색 결과 탭 → 키보드/드롭다운 닫기 + 카메라 이동(줌인) + 요약 시트 오픈(CS-6). 검색어는 유지.
+  const handleSelectResult = useCallback(
+    (spot: CampSpot) => {
+      Keyboard.dismiss();
+
+      campSiteMap.setSearchFocused(false);
+      openSummary(spot);
+
+      moveCamera({
+        latitude: spot.location.latitude,
+        longitude: spot.location.longitude,
+        zoom: deltaToZoom(0.05),
+        duration: 500,
+      });
+    },
+    [campSiteMap, moveCamera, openSummary]
+  );
+
+  // 마커 탭 콜백 — memo된 마커(CampSiteMarkerView)가 리렌더를 건너뛸 수 있게 참조를 고정한다.
+  const handleMarkerTap = useCallback(
+    (spot: CampSpot) => {
+      openSummary(spot);
+      // B: 선택 박지를 화면 중앙으로 부드럽게 이징(줌 유지) → 펄스(A)가 중앙에서 정렬돼 재생된다.
+      moveCamera({
+        latitude: spot.location.latitude,
+        longitude: spot.location.longitude,
+        zoom: zoomRef.current,
+        duration: 400,
+      });
+    },
+    [moveCamera, openSummary]
   );
 
   // 지도 빈 곳 터치 → 요약 카드 닫기 + 키보드 dismiss(드롭다운 blur로 닫힘, CS-6).
@@ -425,12 +435,9 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       />
 
       <CampSiteMapBottomOverlayView
-        campSiteMap={campSiteMap}
         bottomClearance={bottomClearance}
         locationGranted={locationGranted}
         onMoveToCurrentLocation={handleMoveToCurrentLocation}
-        onPressSpot={handlePressSpot}
-        onMoveToSpot={handleMoveToSpot}
       />
     </View>
   );
