@@ -89,14 +89,16 @@ const CampSiteOverviewTabView: FC<Props> = ({ spot }) => {
             </PretendardText>
           </View>
         ) : null}
+        {/* 유형 전체에 붙는 일반 안내라 박지별 경고 박스보다 약하게 — 배경 없이 아이콘 + 한 줄(CS-4). */}
         {hasWildNotice ? (
-          <View style={styles.warningBox}>
+          <View style={styles.wildNoticeRow}>
             <Ionicons
               name='warning-outline'
-              size={18}
+              size={14}
               color={WARNING_TEXT_COLOR}
+              style={styles.wildNoticeIcon}
             />
-            <PretendardText style={styles.warningText}>
+            <PretendardText style={styles.wildNoticeText}>
               {WILD_NOTICE}
             </PretendardText>
           </View>
@@ -199,6 +201,21 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     lineHeight: 20,
+    color: WARNING_TEXT_COLOR,
+  },
+  wildNoticeRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  // 첫 줄 텍스트의 시각 중심에 아이콘을 맞춘다(Dynamic Type로 줄 높이가 늘어도 상단 정렬 유지).
+  wildNoticeIcon: {
+    marginTop: 2,
+  },
+  wildNoticeText: {
+    flex: 1,
+    fontSize: 12,
+    lineHeight: 18,
     color: WARNING_TEXT_COLOR,
   },
   section: {
