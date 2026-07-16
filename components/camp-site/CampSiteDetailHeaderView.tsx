@@ -109,9 +109,11 @@ const CampSiteDetailHeaderView: FC<Props> = ({
 const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
-    paddingTop: 4,
-    paddingBottom: 12,
-    gap: 6,
+    // 시트 상단엔 네이티브 그래버가 그려진다 — 여유를 안 주면 제목이 그래버에 붙는다.
+    paddingTop: 14,
+    paddingBottom: 10,
+    // 이름·배지·지역은 한 덩어리라 좁게 묶는다(아래 탭 바와의 간격이 그룹 경계가 된다).
+    gap: 2,
     backgroundColor: Color.background,
   },
   titleRow: {
