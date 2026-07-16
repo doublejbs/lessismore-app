@@ -14,9 +14,25 @@ export interface CampSiteSummaryParams {
 
 let pending: CampSiteSummaryParams | null = null;
 
+// 열려 있는 요약 시트 수. 시트는 항상 1개여야 하므로(CS-2) 지도가 이 값을 보고
+// 새 시트를 열기 전에 기존 시트를 닫는다. boolean이 아니라 카운터인 이유:
+// 닫기와 열기가 겹칠 때 새 시트의 mount가 기존 시트의 unmount보다 먼저 일어날 수 있어,
+// boolean이면 "닫힘"으로 잘못 남아 다음 탭에서 다시 쌓이게 된다.
+let openCount = 0;
+
 export const setCampSiteSummary = (params: CampSiteSummaryParams): void => {
   pending = params;
 };
+
+export const markCampSiteSummaryOpened = (): void => {
+  openCount += 1;
+};
+
+export const markCampSiteSummaryClosed = (): void => {
+  openCount = Math.max(0, openCount - 1);
+};
+
+export const isCampSiteSummaryOpen = (): boolean => openCount > 0;
 
 // 소비: 반환 후 즉시 비워, 다음 진입에 이전 파라미터가 잘못 붙지 않게 한다.
 export const takeCampSiteSummary = (): CampSiteSummaryParams | null => {
