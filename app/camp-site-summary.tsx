@@ -11,7 +11,11 @@ import {
   openCampSpotInNaverMap,
   shareCampSpot,
 } from '@/model/camp-site/CampSiteActions';
-import { takeCampSiteSummary } from '@/model/camp-site/CampSiteSummaryHandoff';
+import {
+  markCampSiteSummaryClosed,
+  markCampSiteSummaryOpened,
+  takeCampSiteSummary,
+} from '@/model/camp-site/CampSiteSummaryHandoff';
 import app from '@/model/app/App';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
@@ -38,8 +42,12 @@ const CampSiteSummaryScreen = () => {
   const [params] = useState(() => takeCampSiteSummary());
 
   // 시트가 닫히면(스와이프·닫기) 지도의 마커 선택을 해제한다.
+  // 열림 카운트는 지도가 "기존 시트 닫고 새로 열기"를 판단하는 데 쓴다(CS-2).
   useEffect(() => {
+    markCampSiteSummaryOpened();
+
     return () => {
+      markCampSiteSummaryClosed();
       params?.onClose();
     };
   }, [params]);

@@ -14,7 +14,10 @@ import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import LocalStorageManager from '@/model/storage/LocalStorageManager';
 import { deltaToZoom } from '@/model/map/MapZoom';
-import { setCampSiteSummary } from '@/model/camp-site/CampSiteSummaryHandoff';
+import {
+  isCampSiteSummaryOpen,
+  setCampSiteSummary,
+} from '@/model/camp-site/CampSiteSummaryHandoff';
 import CampSiteMapMarkersView, {
   CampSiteMapViewport,
 } from './CampSiteMapMarkersView';
@@ -244,7 +247,8 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   );
 
   // 박지 선택(CS-2): 마커 강조 + 요약 시트 오픈. 시트가 닫히면 강조를 해제한다.
-  // 시트는 딤이 없어(sheetLargestUndimmedDetentIndex) 뒤 지도를 계속 조작할 수 있다.
+  // 시트는 딤이 없어(sheetLargestUndimmedDetentIndex) 뒤 지도를 계속 조작할 수 있다 —
+  // 즉 시트가 떠 있는 채로 다른 마커를 탭할 수 있으므로, 그때는 기존 시트를 닫고 새로 연다.
   const openSummary = useCallback(
     (spot: CampSpot) => {
       campSiteMap.selectSpot(spot);
@@ -252,8 +256,19 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       setCampSiteSummary({
         spot,
         onMoveToSpot: handleMoveToSpot,
-        onClose: () => campSiteMap.selectSpot(null),
+        // 닫히는 시트가 이미 다른 박지로 넘어간 선택을 지우지 않게, 자기 박지일 때만 해제한다.
+        onClose: () => {
+          if (campSiteMap.getSelectedSpot()?.id === spot.id) {
+            campSiteMap.selectSpot(null);
+          }
+        },
       });
+
+      if (isCampSiteSummaryOpen()) {
+        router.replace('/camp-site-summary');
+
+        return;
+      }
 
       router.push('/camp-site-summary');
     },
