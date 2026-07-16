@@ -26,6 +26,8 @@ const WARNING_TEXT_COLOR = '#B65A00';
 
 interface Props {
   campSiteDetail: CampSiteDetail;
+  // 위치로 이동(CS-2) — 지도에서 연 시트에만 있다(공유 딥링크 진입엔 되돌릴 지도가 없어 undefined).
+  onMoveToSpot?: (() => void) | undefined;
 }
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
@@ -48,7 +50,7 @@ const FACILITY_ORDER: CampSiteFacility[] = [
   CampSiteFacility.Store,
 ];
 
-const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
+const CampSiteDetailView: FC<Props> = ({ campSiteDetail, onMoveToSpot }) => {
   const spot = campSiteDetail.getSpot();
   const reviews = campSiteDetail.getReviews();
   const videos = campSiteDetail.getVideos();
@@ -56,6 +58,10 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
 
   const handlePressClose = () => {
     campSiteDetail.close();
+  };
+
+  const handlePressMoveToSpot = () => {
+    onMoveToSpot?.();
   };
 
   const handlePressNaverMap = () => {
@@ -108,17 +114,28 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail }) => {
     <>
       <View style={styles.container}>
         <View style={styles.header}>
+          {/* 상세는 지도 위 바텀 시트(CS-2)라 뒤로 가기가 아니라 닫기(X)를 둔다. */}
           <TouchableOpacity
             onPress={handlePressClose}
-            style={styles.backButton}
-            accessibilityLabel='뒤로 가기'
+            style={styles.closeButton}
+            accessibilityLabel='닫기'
             accessibilityRole='button'
           >
-            <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
+            <Ionicons name='close' size={24} color={Color.textPrimary} />
           </TouchableOpacity>
 
-          {/* 헤더 우측 액션 — 공유 + 네이버 지도에서 열기(CS-3/CS-7) */}
+          {/* 헤더 우측 액션 — (지도 진입 시) 위치로 이동 + 공유 + 네이버 지도에서 열기(CS-2/CS-3/CS-7) */}
           <View style={styles.headerRight}>
+            {onMoveToSpot ? (
+              <TouchableOpacity
+                onPress={handlePressMoveToSpot}
+                style={styles.headerButton}
+                accessibilityLabel='지도에서 이 박지 위치로 이동'
+                accessibilityRole='button'
+              >
+                <Ionicons name='locate' size={22} color={Color.textPrimary} />
+              </TouchableOpacity>
+            ) : null}
             <TouchableOpacity
               onPress={handlePressShare}
               style={styles.headerButton}
@@ -332,14 +349,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: Color.background,
   },
-  backButton: {
+  closeButton: {
     width: 44,
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: -10,
   },
-  // 헤더 우측 액션 묶음(공유 + 지도) — 뒤로 가기 대칭 위치.
+  // 헤더 우측 액션 묶음(위치로 이동 + 공유 + 지도) — 닫기 대칭 위치.
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -157,11 +157,11 @@ const RootLayout = () => {
             }}
           />
           <Stack.Screen
-            name='camp-site-summary'
+            name='camp-site'
             options={{
               headerShown: false,
               presentation: 'formSheet',
-              sheetAllowedDetents: 'fitToContents',
+              sheetAllowedDetents: [0.5, 1],
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
               // 딤 없음 — 시트가 떠 있어도 뒤 지도를 계속 조작할 수 있다(구글맵 동작).

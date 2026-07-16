@@ -15,9 +15,9 @@ import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import LocalStorageManager from '@/model/storage/LocalStorageManager';
 import { deltaToZoom } from '@/model/map/MapZoom';
 import {
-  isCampSiteSummaryOpen,
-  setCampSiteSummary,
-} from '@/model/camp-site/CampSiteSummaryHandoff';
+  isCampSiteDetailSheetOpen,
+  setCampSiteDetailSheet,
+} from '@/model/camp-site/CampSiteDetailSheetHandoff';
 import CampSiteMapMarkersView, {
   CampSiteMapViewport,
 } from './CampSiteMapMarkersView';
@@ -232,7 +232,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     }
   }, [moveCamera]);
 
-  // 요약 시트의 위치로 이동 버튼(CS-2) — 지도를 움직였다가 다시 박지 위치로.
+  // 상세 시트의 위치로 이동 버튼(CS-2) — 지도를 움직였다가 다시 박지 위치로.
   // 검색 결과 선택과 동일한 줌 레벨로 이동한다.
   const handleMoveToSpot = useCallback(
     (spot: CampSpot) => {
@@ -246,15 +246,14 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     [moveCamera]
   );
 
-  // 박지 선택(CS-2): 마커 강조 + 요약 시트 오픈. 시트가 닫히면 강조를 해제한다.
+  // 박지 선택(CS-2): 마커 강조 + 상세 시트 오픈. 시트가 닫히면 강조를 해제한다.
   // 시트는 딤이 없어(sheetLargestUndimmedDetentIndex) 뒤 지도를 계속 조작할 수 있다 —
   // 즉 시트가 떠 있는 채로 다른 마커를 탭할 수 있으므로, 그때는 기존 시트를 닫고 새로 연다.
-  const openSummary = useCallback(
+  const openDetail = useCallback(
     (spot: CampSpot) => {
       campSiteMap.selectSpot(spot);
 
-      setCampSiteSummary({
-        spot,
+      setCampSiteDetailSheet({
         onMoveToSpot: handleMoveToSpot,
         // 닫히는 시트가 이미 다른 박지로 넘어간 선택을 지우지 않게, 자기 박지일 때만 해제한다.
         onClose: () => {
@@ -264,24 +263,24 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         },
       });
 
-      if (isCampSiteSummaryOpen()) {
-        router.replace('/camp-site-summary');
+      if (isCampSiteDetailSheetOpen()) {
+        router.replace(`/camp-site/${spot.id}`);
 
         return;
       }
 
-      router.push('/camp-site-summary');
+      router.push(`/camp-site/${spot.id}`);
     },
     [campSiteMap, handleMoveToSpot, router]
   );
 
-  // 검색 결과 탭 → 키보드/드롭다운 닫기 + 카메라 이동(줌인) + 요약 시트 오픈(CS-6). 검색어는 유지.
+  // 검색 결과 탭 → 키보드/드롭다운 닫기 + 카메라 이동(줌인) + 상세 시트 오픈(CS-6). 검색어는 유지.
   const handleSelectResult = useCallback(
     (spot: CampSpot) => {
       Keyboard.dismiss();
 
       campSiteMap.setSearchFocused(false);
-      openSummary(spot);
+      openDetail(spot);
 
       moveCamera({
         latitude: spot.location.latitude,
@@ -290,13 +289,13 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         duration: 500,
       });
     },
-    [campSiteMap, moveCamera, openSummary]
+    [campSiteMap, moveCamera, openDetail]
   );
 
   // 마커 탭 콜백 — memo된 마커(CampSiteMarkerView)가 리렌더를 건너뛸 수 있게 참조를 고정한다.
   const handleMarkerTap = useCallback(
     (spot: CampSpot) => {
-      openSummary(spot);
+      openDetail(spot);
       // B: 선택 박지를 화면 중앙으로 부드럽게 이징(줌 유지) → 펄스(A)가 중앙에서 정렬돼 재생된다.
       moveCamera({
         latitude: spot.location.latitude,
@@ -305,7 +304,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         duration: 400,
       });
     },
-    [moveCamera, openSummary]
+    [moveCamera, openDetail]
   );
 
   // 지도 빈 곳 터치 → 마커 선택 해제 + 키보드 dismiss(드롭다운 blur로 닫힘, CS-6).

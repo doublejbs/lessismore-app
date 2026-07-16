@@ -11,7 +11,7 @@ interface Props {
 }
 
 // 지도 하단 오버레이(CS-2): 현재 위치 버튼.
-// 선택 박지 요약은 바텀 시트(`/camp-site-summary`)가 담당한다.
+// 선택 박지 정보는 상세 바텀 시트(`/camp-site/{id}`)가 담당한다.
 const CampSiteMapBottomOverlayView: FC<Props> = ({
   bottomClearance,
   locationGranted,
