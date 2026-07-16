@@ -67,6 +67,13 @@ const CampSiteSummaryCardView: FC<Props> = ({
           </PretendardText>
         </View>
 
+        {/* 설명(CS-2) — 요약 카드에선 2줄까지만. 전문은 상세(CS-3)에서 본다. */}
+        {spot.description ? (
+          <PretendardText style={styles.description} numberOfLines={2}>
+            {spot.description}
+          </PretendardText>
+        ) : null}
+
         {spot.facilities.length > 0 && (
           <View style={styles.facilityRow}>
             {spot.facilities.map(facility => {
@@ -173,6 +180,11 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     color: Color.textSecondary,
+  },
+  description: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: Color.textTertiary,
   },
   facilityRow: {
     flexDirection: 'row',
