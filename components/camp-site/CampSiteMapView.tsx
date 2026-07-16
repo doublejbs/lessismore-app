@@ -49,8 +49,8 @@ const NOTICE_STORAGE_KEY = 'campSiteNoticeShown';
 const TAB_BAR_HEIGHT = 49;
 
 // 박지 지도 화면(CS-1/CS-2/CS-6)의 조립 컴포넌트. 지도(카메라·권한)만 직접 다루고,
-// MobX 상태를 읽는 UI는 마커 레이어·상단(검색/칩)·하단(카드/현위치) observer로 분리했다 —
-// 검색 타이핑·카드 오픈·카메라 이동이 서로(특히 마커 레이어)를 리렌더하지 않게 하기 위함.
+// MobX 상태를 읽는 UI는 마커 레이어·상단(검색/칩) observer로 분리했다 —
+// 검색 타이핑·카메라 이동이 서로(특히 마커 레이어)를 리렌더하지 않게 하기 위함.
 const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   const router = useRouter();
   const mapRef = useRef<NaverMapViewRef>(null);
@@ -65,7 +65,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   const zoomRef = useRef<number>(deltaToZoom(0.2));
   const insets = useSafeAreaInsets();
 
-  // 하단 플로팅 요소(현재 위치 버튼·요약 카드)가 iOS 플로팅 탭바에 가리지 않게 하는 여유.
+  // 하단 플로팅 요소(현재 위치 버튼)가 iOS 플로팅 탭바에 가리지 않게 하는 여유.
   const bottomClearance =
     Platform.OS === 'ios' ? insets.bottom + TAB_BAR_HEIGHT : 0;
 
@@ -293,7 +293,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     [moveCamera, openSummary]
   );
 
-  // 지도 빈 곳 터치 → 요약 카드 닫기 + 키보드 dismiss(드롭다운 blur로 닫힘, CS-6).
+  // 지도 빈 곳 터치 → 마커 선택 해제 + 키보드 dismiss(드롭다운 blur로 닫힘, CS-6).
   // 네이버는 마커 onTap과 지도 onTapMap이 분리돼 있어 별도 경합 방어가 필요 없다.
   const handleTapMap = useCallback(() => {
     campSiteMap.selectSpot(null);
