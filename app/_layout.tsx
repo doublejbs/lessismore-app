@@ -161,9 +161,10 @@ const RootLayout = () => {
             options={{
               headerShown: false,
               presentation: 'formSheet',
-              // 높이는 화면이 직접 지정한다(CampSiteDetailWrapper) — formSheet 안은
-              // React 레이아웃 높이가 무제한이라 명시하지 않으면 스크롤이 죽는다.
-              sheetAllowedDetents: 'fitToContents',
+              // 60%로 떠서 위로 끌면 최대까지 확장. 이 비율은 CampSiteDetailWrapper의
+              // SHEET_DETENTS와 반드시 같아야 한다 — 래퍼가 콘텐츠 높이를 여기에 맞춘다
+              // (formSheet 안은 React 레이아웃 높이가 무제한이라 명시하지 않으면 스크롤이 죽는다).
+              sheetAllowedDetents: [0.6, 1],
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
               // 딤 없음 — 시트가 떠 있어도 뒤 지도를 계속 조작할 수 있다(구글맵 동작).
