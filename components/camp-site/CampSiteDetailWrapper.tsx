@@ -1,5 +1,10 @@
 import { FC, useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Color } from '@/constants/DesignTokens';
@@ -17,8 +22,18 @@ import Layout from '../Layout';
 // 헤더 위에 빈 띠가 생기지 않는다. 하단은 홈 인디케이터 회피가 필요해 남긴다.
 const SHEET_EDGES = ['bottom'] as const;
 
+// 시트 높이를 화면 비율로 직접 지정한다(CS-2/CS-3).
+// react-native-screens는 formSheet에서 콘텐츠 래퍼에 bottom을 걸지 않아(시트 높이 변경 시
+// 깜빡임 방지) React 레이아웃 높이가 무제한이 된다 — 그러면 flex:1이 뷰포트를 못 잡아
+// ScrollView가 콘텐츠 높이만큼 늘어나고 스크롤이 아예 죽는다. 높이를 명시하면 경계가 생겨
+// 스크롤·하단 고정 CTA·토스트가 모두 정상 동작한다. 그래서 detent는 fitToContents로 두고
+// (= 시트가 이 높이에 맞춰짐) 높이는 여기서 정한다.
+// 이름·사진·요약이 먼저 보이면서 뒤 지도도 충분히 남는 값.
+const SHEET_HEIGHT_RATIO = 0.6;
+
 const CampSiteDetailWrapper: FC = () => {
   const router = useRouter();
+  const { height: windowHeight } = useWindowDimensions();
   const [campSiteDetail] = useState(() =>
     CampSiteDetail.new(router, CampSiteDetailDispatcher.new())
   );
@@ -55,25 +70,32 @@ const CampSiteDetailWrapper: FC = () => {
     sheetParams?.onMoveToSpot(spot);
   };
 
+  const sheetStyle = { height: windowHeight * SHEET_HEIGHT_RATIO };
+
   if (initialized) {
     return (
-      // 토스트를 하단 '배낭 여행지로 설정' CTA 위에 띄운다(버튼과 좌우 끝선·폭이
-      // 동일해 검정끼리도 어긋나 보이지 않는다). 버튼 높이(약 84) + 여유만큼 올린다(CS-5).
-      <Layout paddingHorizontal={0} toastBottom={96} edges={SHEET_EDGES}>
-        <CampSiteDetailView
-          campSiteDetail={campSiteDetail}
-          onMoveToSpot={sheetParams ? handleMoveToSpot : undefined}
-        />
-      </Layout>
+      <View style={sheetStyle}>
+        {/* 토스트를 하단 '배낭 여행지로 설정' CTA 위에 띄운다(버튼과 좌우 끝선·폭이
+            동일해 검정끼리도 어긋나 보이지 않는다). 버튼 높이(약 84) + 여유만큼 올린다(CS-5). */}
+        <Layout paddingHorizontal={0} toastBottom={96} edges={SHEET_EDGES}>
+          <CampSiteDetailView
+            campSiteDetail={campSiteDetail}
+            onMoveToSpot={sheetParams ? handleMoveToSpot : undefined}
+          />
+        </Layout>
+      </View>
     );
   } else {
     // 박지 데이터를 불러오는 동안 빈 화면 대신 로딩 인디케이터를 표시한다(CS-3).
+    // 로딩에도 같은 높이를 줘야 로드 완료 시 시트 높이가 튀지 않는다.
     return (
-      <Layout paddingHorizontal={0} edges={SHEET_EDGES}>
-        <View style={styles.loadingWrap}>
-          <ActivityIndicator color={Color.textPrimary} />
-        </View>
-      </Layout>
+      <View style={sheetStyle}>
+        <Layout paddingHorizontal={0} edges={SHEET_EDGES}>
+          <View style={styles.loadingWrap}>
+            <ActivityIndicator color={Color.textPrimary} />
+          </View>
+        </Layout>
+      </View>
     );
   }
 };

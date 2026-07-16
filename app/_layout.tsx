@@ -161,7 +161,9 @@ const RootLayout = () => {
             options={{
               headerShown: false,
               presentation: 'formSheet',
-              sheetAllowedDetents: [0.5, 1],
+              // 높이는 화면이 직접 지정한다(CampSiteDetailWrapper) — formSheet 안은
+              // React 레이아웃 높이가 무제한이라 명시하지 않으면 스크롤이 죽는다.
+              sheetAllowedDetents: 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
               // 딤 없음 — 시트가 떠 있어도 뒤 지도를 계속 조작할 수 있다(구글맵 동작).
@@ -178,7 +180,8 @@ const RootLayout = () => {
               // 상세 시트(camp-site) 위에 겹쳐 뜨는 시트 — 일반 화면으로 push하면
               // 상세 시트 뒤에 깔려 가려진다(CS-3 주간 날씨).
               presentation: 'formSheet',
-              sheetAllowedDetents: [0.5, 1],
+              // 상세 시트와 동일 — 높이는 CampSiteWeatherWrapper가 지정한다.
+              sheetAllowedDetents: 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
               contentStyle: { backgroundColor: '#FFFFFF' },
