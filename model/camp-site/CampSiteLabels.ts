@@ -7,10 +7,11 @@ import CampSiteTag from './CampSiteTag';
 export const WILD_NOTICE =
   '노지 야영은 지역에 따라 금지될 수 있습니다. 이용 전 반드시 현지 규정을 확인하세요.';
 
+// 표시 라벨(CS-2). 데이터 값(CampSiteType enum: campground/shelter/wild)은 그대로 두고 표시만 바꾼다.
 const TYPE_LABEL: Record<CampSiteType, string> = {
-  [CampSiteType.Campground]: '야영장',
+  [CampSiteType.Campground]: '캠핑장',
   [CampSiteType.Shelter]: '대피소',
-  [CampSiteType.Wild]: '노지',
+  [CampSiteType.Wild]: '백패킹',
 };
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -30,7 +31,7 @@ const TAG_LABEL: Record<CampSiteTag, string> = {
 };
 
 // 유형별 마커 색 — 배낭 상세 카테고리 팔레트(BagDetailSummaryView PALETTE) 재사용:
-// 노지=파랑, 대피소=초록, 야영장=골드 (데이터 시각화 의미색 예외 — DesignTokens 컨벤션상 허용).
+// 백패킹(wild)=파랑, 대피소=초록, 캠핑장(campground)=골드 (데이터 시각화 의미색 예외 — DesignTokens 컨벤션상 허용).
 // 지도 마커(CampSiteMarkerView)와 유형 필터 칩의 색 도트(범례)가 함께 쓴다.
 const TYPE_COLOR: Record<CampSiteType, string> = {
   [CampSiteType.Campground]: '#FFD700',
