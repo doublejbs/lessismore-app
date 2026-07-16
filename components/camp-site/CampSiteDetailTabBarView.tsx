@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
     alignItems: 'center',
     justifyContent: 'flex-end',
-    paddingTop: 12,
+    paddingTop: 6,
   },
   label: {
     fontSize: 15,
