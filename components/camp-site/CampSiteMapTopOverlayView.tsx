@@ -30,7 +30,7 @@ interface Props {
   onSelectResult: (spot: CampSpot) => void;
 }
 
-// 유형 필터(CS-2) — 단일 선택, 노지→대피소→야영장 순. 칩의 색 도트가 지도 마커 색 범례를 겸한다.
+// 유형 필터(CS-2) — 단일 선택, 백패킹(wild)→대피소→캠핑장(campground) 순. 칩의 색 도트가 지도 마커 색 범례를 겸한다.
 const TYPE_FILTERS: {
   label: string;
   value: CampSiteType | null;
