@@ -5,8 +5,9 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { Color } from '@/constants/DesignTokens';
 import CampSiteDetail from '@/model/camp-site/CampSiteDetail';
 import CampSiteDetailDispatcher from '@/model/camp-site/CampSiteDetailDispatcher';
@@ -18,22 +19,31 @@ import {
 import CampSiteDetailView from './CampSiteDetailView';
 import Layout from '../Layout';
 
-// 상세는 바텀 시트로 뜬다(CS-2) — 시트 상단엔 상태바가 없어 top 인셋을 빼야
-// 헤더 위에 빈 띠가 생기지 않는다. 하단은 홈 인디케이터 회피가 필요해 남긴다.
-const SHEET_EDGES = ['bottom'] as const;
+// 상세는 바텀 시트로 뜬다(CS-2) — 시트 상단엔 상태바가 없고 하단은 시트가 이미
+// 홈 인디케이터 위로 떠 있어, 세이프에어리어를 더하면 여백만 커진다.
+const SHEET_EDGES = [] as const;
 
-// 시트 높이를 화면 비율로 직접 지정한다(CS-2/CS-3).
+// 시트가 쉴 수 있는 높이(CS-2). 60%로 떠서 위로 끌면 최대까지 확장된다.
+// app/_layout.tsx의 sheetAllowedDetents와 반드시 같은 값이어야 한다 —
+// 시트 높이는 네이티브가 이 비율로 정하고, 우리는 콘텐츠 높이를 거기에 맞춘다.
+const SHEET_DETENTS = [0.6, 1];
+
+// 콘텐츠 높이를 detent에 직접 맞춰야 하는 이유:
 // react-native-screens는 formSheet에서 콘텐츠 래퍼에 bottom을 걸지 않아(시트 높이 변경 시
 // 깜빡임 방지) React 레이아웃 높이가 무제한이 된다 — 그러면 flex:1이 뷰포트를 못 잡아
 // ScrollView가 콘텐츠 높이만큼 늘어나고 스크롤이 아예 죽는다. 높이를 명시하면 경계가 생겨
-// 스크롤·하단 고정 CTA·토스트가 모두 정상 동작한다. 그래서 detent는 fitToContents로 두고
-// (= 시트가 이 높이에 맞춰짐) 높이는 여기서 정한다.
-// 헤더·제목·탭 바·고정 CTA를 빼고도 탭 콘텐츠가 충분히 남으면서 뒤 지도도 남는 값(CS-3).
-const SHEET_HEIGHT_RATIO = 0.75;
+// 스크롤·하단 고정 CTA·토스트가 모두 정상 동작한다.
+// detent 비율은 화면 전체가 아니라 '시트가 쓸 수 있는 최대 높이'(상단 인셋 제외) 기준이다.
+const getSheetHeight = (windowHeight: number, topInset: number, index: number) =>
+  (windowHeight - topInset) * (SHEET_DETENTS[index] ?? SHEET_DETENTS[0]!);
 
 const CampSiteDetailWrapper: FC = () => {
   const router = useRouter();
+  const navigation = useNavigation();
   const { height: windowHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  // 현재 detent. 사용자가 시트를 끌면 네이티브가 알려주고, 콘텐츠 높이를 따라 맞춘다.
+  const [detentIndex, setDetentIndex] = useState(0);
   const [campSiteDetail] = useState(() =>
     CampSiteDetail.new(router, CampSiteDetailDispatcher.new())
   );
@@ -59,6 +69,23 @@ const CampSiteDetailWrapper: FC = () => {
     };
   }, [sheetParams]);
 
+  // 시트를 끌어 확장/축소하면 콘텐츠 높이를 그 detent에 맞춘다 —
+  // 안 맞추면 확장했을 때 늘어난 만큼 빈 흰 영역이 남는다.
+  useEffect(() => {
+    const unsubscribe = navigation.addListener(
+      'sheetDetentChange' as never,
+      ((event: { data?: { index?: number } }) => {
+        const index = event.data?.index;
+
+        if (typeof index === 'number') {
+          setDetentIndex(index);
+        }
+      }) as never
+    );
+
+    return unsubscribe;
+  }, [navigation]);
+
   // 시트는 열어 둔 채 지도 카메라만 그 박지로 되돌린다(뒤 지도가 조작 가능한 undimmed 시트).
   const handleMoveToSpot = () => {
     const spot = campSiteDetail.getSpot();
@@ -70,7 +97,9 @@ const CampSiteDetailWrapper: FC = () => {
     sheetParams?.onMoveToSpot(spot);
   };
 
-  const sheetStyle = { height: windowHeight * SHEET_HEIGHT_RATIO };
+  const sheetStyle = {
+    height: getSheetHeight(windowHeight, insets.top, detentIndex),
+  };
 
   if (initialized) {
     return (
