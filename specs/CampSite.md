@@ -72,10 +72,8 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
 **수용 기준**
 
 - 라우트는 `/camp-site/{id}`이며 **네이티브 `formSheet`로 표시**한다(CS-2). 지도 마커 탭이 주 진입이고, 공유 랜딩 딥링크(CS-7)로도 같은 화면이 열린다. 박지 데이터를 불러오는 동안 빈 화면 대신 **로딩 인디케이터**(중앙)를 표시한다.
-- **콘텐츠 높이를 detent에 직접 맞춰야 한다** — `react-native-screens`는 formSheet에서 콘텐츠 래퍼에 `bottom`을 걸지 않아(시트 높이 변경 시 깜빡임 방지) **React 레이아웃 높이가 무제한**이 된다. 그러면 `flex: 1`이 뷰포트를 못 잡아 ScrollView가 콘텐츠 높이만큼 늘어나고 **스크롤이 아예 죽는다**(detent 아래는 잘려서 접근 불가). 하단 고정 요소(CTA·토스트)도 화면 밖에 배치된다.
-  - 래퍼가 루트 View에 **현재 detent에 해당하는 height를 명시**한다. 경계가 생기면 `flex: 1` 체인이 살아나 스크롤·하단 고정 CTA·토스트가 모두 정상 동작한다.
-  - 높이 = `(화면 높이 − 상단 인셋) × detent 비율` — detent 비율은 화면 전체가 아니라 **시트가 쓸 수 있는 최대 높이** 기준이다.
-  - 사용자가 시트를 끌면 네이티브가 `sheetDetentChange`로 알려주므로, 그 index로 높이를 다시 맞춘다. 안 맞추면 확장했을 때 늘어난 만큼 **빈 흰 영역**이 남는다. 비율 배열은 `app/_layout.tsx`의 `sheetAllowedDetents`와 반드시 같아야 한다.
+- **시트 콘텐츠에 `contentStyle: { bottom: 0 }`을 반드시 준다** — `react-native-screens`는 formSheet의 콘텐츠 래퍼를 `top/left/right`만 건 absolute로 둔다(시트 높이 변경 시 깜빡임 방지). 그러면 **React 레이아웃 높이가 무제한**이 되어 `flex: 1`이 뷰포트를 못 잡고, ScrollView가 콘텐츠 높이만큼 늘어나 **스크롤이 아예 죽는다**(detent 아래는 잘려서 접근 불가). 하단 고정 요소(CTA·토스트)도 화면 밖에 배치된다.
+  - `contentStyle`은 그 스타일 **뒤에 병합**되므로, 여기서 `bottom: 0`을 되돌리면 래퍼 높이 = 시트 높이가 된다. 그러면 `flex: 1` 체인이 살아나 스크롤·하단 고정 CTA·토스트가 정상 동작하고, **detent를 끌어 바꿔도 네이티브가 알아서 따라온다**(높이를 JS에서 계산하거나 `sheetDetentChange`를 구독할 필요가 없다).
   - 시트는 이미 홈 인디케이터 위로 떠 있으므로 **하단 세이프에어리어를 더하지 않는다** — 더하면 여백만 커진다.
   - RNS가 formSheet 안 ScrollView의 네이티브 프레임을 보정해 주는 경로(`[헤더, ScrollView]`를 화면 콘텐츠 직계 자식으로 두기)는 **이 앱에선 쓸 수 없다** — 레거시 아키텍처(`newArchEnabled: false`)에서 동작하지 않는 것으로 확인했다.
 - **탭 구조**(구글 지도 장소 시트와 동일한 얼개): 시트는 **고정 영역 + 탭 콘텐츠 + 고정 CTA**로 나뉜다.
