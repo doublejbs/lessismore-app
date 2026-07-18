@@ -24,6 +24,9 @@ interface Props {
   campSiteDetail: CampSiteDetail;
   // 위치로 이동(CS-2) — 지도에서 연 시트에만 있다(공유 딥링크 진입엔 되돌릴 지도가 없어 undefined).
   onMoveToSpot?: (() => void) | undefined;
+  // 오버레이(DST-3)에서 열렸을 때 닫기 동작 — 라우터 대신 오버레이 모달을 닫는다.
+  // 없으면 기존대로 campSiteDetail.close()(router.back)를 쓴다.
+  onClose?: (() => void) | undefined;
 }
 
 // 탭 바까지 넣으려면 이 정도는 있어야 한다(헤더 약 92 + 탭 바 약 50 + CTA 약 84 + 콘텐츠 여유).
@@ -35,7 +38,11 @@ const FULL_LAYOUT_MIN_HEIGHT = 260;
 
 // 박지 상세 시트(CS-3) — 고정 영역(헤더·제목·탭 바) + 탭 콘텐츠 + 고정 CTA.
 // 스크롤은 각 탭 콘텐츠 안에서만 일어난다(고정 영역은 스크롤되지 않는다).
-const CampSiteDetailView: FC<Props> = ({ campSiteDetail, onMoveToSpot }) => {
+const CampSiteDetailView: FC<Props> = ({
+  campSiteDetail,
+  onMoveToSpot,
+  onClose,
+}) => {
   const spot = campSiteDetail.getSpot();
   // 시트 높이. contentStyle의 bottom: 0 덕에 이 컨테이너가 시트 높이를 그대로 갖고,
   // 사용자가 detent를 끌면 네이티브가 프레임을 바꿔 여기로 다시 들어온다(app/_layout.tsx 주석 참고).
@@ -45,6 +52,12 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail, onMoveToSpot }) => {
     useCampSiteDetailTabState(spot);
 
   const handlePressClose = () => {
+    if (onClose) {
+      onClose();
+
+      return;
+    }
+
     campSiteDetail.close();
   };
 

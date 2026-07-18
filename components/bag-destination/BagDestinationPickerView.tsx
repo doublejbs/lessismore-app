@@ -19,6 +19,7 @@ import { BagLocation } from '@/model/bag-destination/BagLocation';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { getCampSiteTypeLabel } from '@/model/camp-site/CampSiteLabels';
 import CampSiteMapMarkersView from '@/components/camp-site/CampSiteMapMarkersView';
+import CampSiteDetailOverlayView from '@/components/camp-site/CampSiteDetailOverlayView';
 import BagDestinationSearchResultsView from './BagDestinationSearchResultsView';
 import useBagDestinationPickerState from './useBagDestinationPickerState';
 
@@ -38,6 +39,8 @@ const BagDestinationPickerView: FC<Props> = observer(
   ({ currentLocation, visible, onClose, onConfirm, onDone }) => {
     const mapRef = useRef<NaverMapViewRef>(null);
     const [campSiteMap] = useState(() => CampSiteMap.new());
+    // 상세 오버레이(DST-3)로 띄울 박지 id. null이면 닫힘.
+    const [detailSpotId, setDetailSpotId] = useState<string | null>(null);
     // 웹은 네이티브 지도 SDK를 못 써서 지도 탭(CS-1)과 같은 방식으로 렌더만 건너뛴다.
     // 카카오 장소 검색으로 고른 좌표는 그대로 확정할 수 있어 기존 웹 동작이 유지된다.
     const isMapSupported = Platform.OS !== 'web';
@@ -247,6 +250,34 @@ const BagDestinationPickerView: FC<Props> = observer(
                         </PretendardText>
                       )}
                     </View>
+                    {/* 등록된 박지는 상세(CS-3)를 확인할 수 있게 진입점을 둔다. 선택기 위에
+                        시트로 겹쳐 뜨고, 닫으면 선택 상태를 유지한 선택기로 돌아온다(DST-3). */}
+                    {selectedCampLocation.campSpotId ? (
+                      <TouchableOpacity
+                        style={styles.detailLink}
+                        onPress={() =>
+                          setDetailSpotId(
+                            selectedCampLocation.campSpotId ?? null
+                          )
+                        }
+                        activeOpacity={0.7}
+                        hitSlop={8}
+                        accessibilityRole='button'
+                        accessibilityLabel={`${selectedCampLocation.name} 박지 상세 보기`}
+                      >
+                        <PretendardText
+                          style={styles.detailLinkText}
+                          weight='medium'
+                        >
+                          상세
+                        </PretendardText>
+                        <Ionicons
+                          name='chevron-forward'
+                          size={16}
+                          color={Color.textSecondary}
+                        />
+                      </TouchableOpacity>
+                    ) : null}
                   </View>
                 ) : (
                   <View style={styles.infoRow}>
@@ -293,6 +324,13 @@ const BagDestinationPickerView: FC<Props> = observer(
                 </TouchableOpacity>
               </View>
             </SafeAreaView>
+
+            {/* 등록된 박지 상세(CS-3)를 선택기 위에 pageSheet로 겹쳐 띄운다. 닫으면
+                선택 상태를 유지한 선택기로 돌아온다(DST-3). */}
+            <CampSiteDetailOverlayView
+              spotId={detailSpotId}
+              onClose={() => setDetailSpotId(null)}
+            />
           </View>
         </SafeAreaProvider>
       </Modal>
@@ -423,6 +461,17 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
+    color: Color.textSecondary,
+  },
+  detailLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    minHeight: 44,
+    paddingLeft: 8,
+  },
+  detailLinkText: {
+    fontSize: 14,
     color: Color.textSecondary,
   },
   confirmButton: {
