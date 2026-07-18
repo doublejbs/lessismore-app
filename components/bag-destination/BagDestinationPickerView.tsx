@@ -19,6 +19,7 @@ import { BagLocation } from '@/model/bag-destination/BagLocation';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { getCampSiteTypeLabel } from '@/model/camp-site/CampSiteLabels';
 import CampSiteMapMarkersView from '@/components/camp-site/CampSiteMapMarkersView';
+import CampSiteFilterChipsView from '@/components/camp-site/CampSiteFilterChipsView';
 import CampSiteDetailOverlayView from '@/components/camp-site/CampSiteDetailOverlayView';
 import BagDestinationSearchResultsView from './BagDestinationSearchResultsView';
 import useBagDestinationPickerState from './useBagDestinationPickerState';
@@ -86,6 +87,12 @@ const BagDestinationPickerView: FC<Props> = observer(
       }
 
       onClose();
+    };
+
+    // 선택기의 ★ 칩(DST-3): 지도 탭과 달리 로그인·빈 상태 가드가 없다. 배낭은 로그인 전용이라
+    // 비로그인 상황이 없고, ★ 칩 자체가 즐겨찾기 1건 이상일 때만 노출되므로 단순 토글이면 된다.
+    const handleToggleFavorite = () => {
+      campSiteMap.setFavoriteOnly(!campSiteMap.isFavoriteOnly());
     };
 
     return (
@@ -199,6 +206,18 @@ const BagDestinationPickerView: FC<Props> = observer(
                   )}
                 </View>
               </View>
+
+              {/* 지도 탭과 동일한 필터 칩(DST-3) — 검색 카드 아래에 지도 위 오버레이로 얹는다.
+                  칩은 자체 배경이 있어 지도 위에 떠도 시인성이 유지된다. 결과 드롭다운이 열리면
+                  드롭다운과 겹치지 않게 숨기고, 마커가 없는 웹에서는 렌더하지 않는다.
+                  ★ 칩은 즐겨찾기 1건 이상일 때만 노출하고, 결과 수 토스트는 띄우지 않는다. */}
+              {isMapSupported && !resultsVisible && (
+                <CampSiteFilterChipsView
+                  campSiteMap={campSiteMap}
+                  showFavoriteChip={campSiteMap.hasFavorites()}
+                  onPressFavorite={handleToggleFavorite}
+                />
+              )}
 
               {resultsVisible && (
                 <BagDestinationSearchResultsView
