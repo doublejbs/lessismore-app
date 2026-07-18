@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import BagWeather from '@/model/bag/BagWeather';
-import BagWeatherView from '@/components/weather/BagWeatherView';
+import BagDestinationHubView from '@/components/bag-destination/BagDestinationHubView';
 import app from '@/model/app/App';
 
 const BagWeatherScreen = () => {
@@ -14,7 +14,7 @@ const BagWeatherScreen = () => {
     void bagWeather.load();
   }, [bagWeather]);
 
-  return <BagWeatherView bagWeather={bagWeather} />;
+  return <BagDestinationHubView bagWeather={bagWeather} />;
 };
 
 export default BagWeatherScreen;
