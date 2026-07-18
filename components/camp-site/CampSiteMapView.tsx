@@ -14,6 +14,10 @@ import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import LocalStorageManager from '@/model/storage/LocalStorageManager';
 import { deltaToZoom } from '@/model/map/MapZoom';
+import {
+  isCampSiteDetailSheetOpen,
+  setCampSiteDetailSheet,
+} from '@/model/camp-site/CampSiteDetailSheetHandoff';
 import CampSiteMapMarkersView, {
   CampSiteMapViewport,
 } from './CampSiteMapMarkersView';
@@ -48,8 +52,8 @@ const NOTICE_STORAGE_KEY = 'campSiteNoticeShown';
 const TAB_BAR_HEIGHT = 49;
 
 // 박지 지도 화면(CS-1/CS-2/CS-6)의 조립 컴포넌트. 지도(카메라·권한)만 직접 다루고,
-// MobX 상태를 읽는 UI는 마커 레이어·상단(검색/칩)·하단(카드/현위치) observer로 분리했다 —
-// 검색 타이핑·카드 오픈·카메라 이동이 서로(특히 마커 레이어)를 리렌더하지 않게 하기 위함.
+// MobX 상태를 읽는 UI는 마커 레이어·상단(검색/칩) observer로 분리했다 —
+// 검색 타이핑·카메라 이동이 서로(특히 마커 레이어)를 리렌더하지 않게 하기 위함.
 const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   const router = useRouter();
   const mapRef = useRef<NaverMapViewRef>(null);
@@ -64,7 +68,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   const zoomRef = useRef<number>(deltaToZoom(0.2));
   const insets = useSafeAreaInsets();
 
-  // 하단 플로팅 요소(현재 위치 버튼·요약 카드)가 iOS 플로팅 탭바에 가리지 않게 하는 여유.
+  // 하단 플로팅 요소(현재 위치 버튼)가 iOS 플로팅 탭바에 가리지 않게 하는 여유.
   const bottomClearance =
     Platform.OS === 'ios' ? insets.bottom + TAB_BAR_HEIGHT : 0;
 
@@ -228,48 +232,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     }
   }, [moveCamera]);
 
-  // 검색 결과 탭 → 키보드/드롭다운 닫기 + 카메라 이동(줌인) + 요약 카드 오픈(CS-6). 검색어는 유지.
-  const handleSelectResult = useCallback(
-    (spot: CampSpot) => {
-      Keyboard.dismiss();
-
-      campSiteMap.setSearchFocused(false);
-      campSiteMap.selectSpot(spot);
-
-      moveCamera({
-        latitude: spot.location.latitude,
-        longitude: spot.location.longitude,
-        zoom: deltaToZoom(0.05),
-        duration: 500,
-      });
-    },
-    [campSiteMap, moveCamera]
-  );
-
-  // 마커 탭 콜백 — memo된 마커(CampSiteMarkerView)가 리렌더를 건너뛸 수 있게 참조를 고정한다.
-  const handleMarkerTap = useCallback(
-    (spot: CampSpot) => {
-      campSiteMap.selectSpot(spot);
-      // B: 선택 박지를 화면 중앙으로 부드럽게 이징(줌 유지) → 펄스(A)가 중앙에서 정렬돼 재생된다.
-      moveCamera({
-        latitude: spot.location.latitude,
-        longitude: spot.location.longitude,
-        zoom: zoomRef.current,
-        duration: 400,
-      });
-    },
-    [campSiteMap, moveCamera]
-  );
-
-  // 요약 카드 탭 → 상세 화면(CS-3).
-  const handlePressSpot = useCallback(
-    (spot: CampSpot) => {
-      router.push(`/camp-site/${spot.id}`);
-    },
-    [router]
-  );
-
-  // 요약 카드의 위치로 이동 버튼(CS-2) — 지도를 움직였다가 다시 박지 위치로.
+  // 상세 시트의 위치로 이동 버튼(CS-2) — 지도를 움직였다가 다시 박지 위치로.
   // 검색 결과 선택과 동일한 줌 레벨로 이동한다.
   const handleMoveToSpot = useCallback(
     (spot: CampSpot) => {
@@ -283,7 +246,68 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     [moveCamera]
   );
 
-  // 지도 빈 곳 터치 → 요약 카드 닫기 + 키보드 dismiss(드롭다운 blur로 닫힘, CS-6).
+  // 박지 선택(CS-2): 마커 강조 + 상세 시트 오픈. 시트가 닫히면 강조를 해제한다.
+  // 시트는 딤이 없어(sheetLargestUndimmedDetentIndex) 뒤 지도를 계속 조작할 수 있다 —
+  // 즉 시트가 떠 있는 채로 다른 마커를 탭할 수 있으므로, 그때는 기존 시트를 닫고 새로 연다.
+  const openDetail = useCallback(
+    (spot: CampSpot) => {
+      campSiteMap.selectSpot(spot);
+
+      setCampSiteDetailSheet({
+        onMoveToSpot: handleMoveToSpot,
+        // 닫히는 시트가 이미 다른 박지로 넘어간 선택을 지우지 않게, 자기 박지일 때만 해제한다.
+        onClose: () => {
+          if (campSiteMap.getSelectedSpot()?.id === spot.id) {
+            campSiteMap.selectSpot(null);
+          }
+        },
+      });
+
+      if (isCampSiteDetailSheetOpen()) {
+        router.replace(`/camp-site/${spot.id}`);
+
+        return;
+      }
+
+      router.push(`/camp-site/${spot.id}`);
+    },
+    [campSiteMap, handleMoveToSpot, router]
+  );
+
+  // 검색 결과 탭 → 키보드/드롭다운 닫기 + 카메라 이동(줌인) + 상세 시트 오픈(CS-6). 검색어는 유지.
+  const handleSelectResult = useCallback(
+    (spot: CampSpot) => {
+      Keyboard.dismiss();
+
+      campSiteMap.setSearchFocused(false);
+      openDetail(spot);
+
+      moveCamera({
+        latitude: spot.location.latitude,
+        longitude: spot.location.longitude,
+        zoom: deltaToZoom(0.05),
+        duration: 500,
+      });
+    },
+    [campSiteMap, moveCamera, openDetail]
+  );
+
+  // 마커 탭 콜백 — memo된 마커(CampSiteMarkerView)가 리렌더를 건너뛸 수 있게 참조를 고정한다.
+  const handleMarkerTap = useCallback(
+    (spot: CampSpot) => {
+      openDetail(spot);
+      // B: 선택 박지를 화면 중앙으로 부드럽게 이징(줌 유지) → 펄스(A)가 중앙에서 정렬돼 재생된다.
+      moveCamera({
+        latitude: spot.location.latitude,
+        longitude: spot.location.longitude,
+        zoom: zoomRef.current,
+        duration: 400,
+      });
+    },
+    [moveCamera, openDetail]
+  );
+
+  // 지도 빈 곳 터치 → 마커 선택 해제 + 키보드 dismiss(드롭다운 blur로 닫힘, CS-6).
   // 네이버는 마커 onTap과 지도 onTapMap이 분리돼 있어 별도 경합 방어가 필요 없다.
   const handleTapMap = useCallback(() => {
     campSiteMap.selectSpot(null);
@@ -425,12 +449,9 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       />
 
       <CampSiteMapBottomOverlayView
-        campSiteMap={campSiteMap}
         bottomClearance={bottomClearance}
         locationGranted={locationGranted}
         onMoveToCurrentLocation={handleMoveToCurrentLocation}
-        onPressSpot={handlePressSpot}
-        onMoveToSpot={handleMoveToSpot}
       />
     </View>
   );
