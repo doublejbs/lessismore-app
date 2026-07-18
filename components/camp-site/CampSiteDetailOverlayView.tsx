@@ -13,8 +13,11 @@ interface Props {
   spotId: string | null;
   onClose: () => void;
   // 배낭 여행지로 설정 — 여행지 선택기에서 연 상세는 배낭 리스트를 열지 않고
-  // 이 박지를 현재 배낭 여행지로 바로 설정한다(DST-3).
-  onSetBag: () => void;
+  // 이 박지를 현재 배낭 여행지로 바로 설정한다(DST-3). 허브 진입(DST-8)엔 없다.
+  onSetBag?: (() => void) | undefined;
+  // 배낭 여행지로 설정 CTA 노출 여부(기본 true). 허브 진입은 이미 이 배낭의
+  // 여행지라 false로 숨긴다(DST-8).
+  showSetBag?: boolean | undefined;
 }
 
 // 박지 상세 오버레이(DST-3). 선택기가 풀스크린 네이티브 모달이라 /camp-site/{id}
@@ -23,7 +26,7 @@ interface Props {
 // 모달이라 상세의 [헤더·탭·CTA]가 일반 flex:1로 배치돼 formSheet 라우트용
 // detent 처리(app/_layout.tsx의 contentStyle bottom:0)가 필요 없다.
 const CampSiteDetailOverlayView: FC<Props> = observer(
-  ({ spotId, onClose, onSetBag }) => {
+  ({ spotId, onClose, onSetBag, showSetBag = true }) => {
     const router = useRouter();
     // 모델은 1회 생성하고(후기 작성·공유 배낭 push용 Router가 필요), 열릴 때마다
     // 해당 박지로 재초기화한다.
@@ -61,6 +64,7 @@ const CampSiteDetailOverlayView: FC<Props> = observer(
                 campSiteDetail={campSiteDetail}
                 onClose={onClose}
                 onSetBag={onSetBag}
+                showSetBag={showSetBag}
               />
             ) : (
               // 박지 데이터를 불러오는 동안 빈 화면 대신 로딩 인디케이터를 표시한다(CS-3).

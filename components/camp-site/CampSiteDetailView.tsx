@@ -31,6 +31,9 @@ interface Props {
   // 배낭 리스트를 열지 않고 현재 배낭에 바로 설정한다(= 이 박지로 설정).
   // 없으면 기존대로 배낭 선택 시트를 연다(지도 탭 진입, CS-5).
   onSetBag?: (() => void) | undefined;
+  // 배낭 여행지로 설정 CTA 노출 여부(기본 true). 여행지 허브에서 연 상세는
+  // 이미 이 배낭의 여행지라 설정 버튼이 필요 없어 숨긴다(DST-8).
+  showSetBag?: boolean | undefined;
 }
 
 // 탭 바까지 넣으려면 이 정도는 있어야 한다(헤더 약 92 + 탭 바 약 50 + CTA 약 84 + 콘텐츠 여유).
@@ -47,6 +50,7 @@ const CampSiteDetailView: FC<Props> = ({
   onMoveToSpot,
   onClose,
   onSetBag,
+  showSetBag = true,
 }) => {
   const spot = campSiteDetail.getSpot();
   // 시트 높이. contentStyle의 bottom: 0 덕에 이 컨테이너가 시트 높이를 그대로 갖고,
@@ -152,20 +156,23 @@ const CampSiteDetailView: FC<Props> = ({
           </View>
         )}
 
-        {/* 박지 단위의 주 액션이라 어느 탭에서도 닿도록 하단에 고정한다(CS-3/CS-5). */}
-        <View style={styles.bottomBar}>
-          <TouchableOpacity
-            style={styles.setBagButton}
-            onPress={handlePressSetBag}
-            activeOpacity={0.7}
-            accessibilityLabel='배낭 여행지로 설정'
-            accessibilityRole='button'
-          >
-            <PretendardText style={styles.setBagButtonText} weight='semibold'>
-              배낭 여행지로 설정
-            </PretendardText>
-          </TouchableOpacity>
-        </View>
+        {/* 박지 단위의 주 액션이라 어느 탭에서도 닿도록 하단에 고정한다(CS-3/CS-5).
+            여행지 허브에서 연 상세는 이미 이 배낭의 여행지라 이 버튼을 숨긴다(DST-8). */}
+        {showSetBag ? (
+          <View style={styles.bottomBar}>
+            <TouchableOpacity
+              style={styles.setBagButton}
+              onPress={handlePressSetBag}
+              activeOpacity={0.7}
+              accessibilityLabel='배낭 여행지로 설정'
+              accessibilityRole='button'
+            >
+              <PretendardText style={styles.setBagButtonText} weight='semibold'>
+                배낭 여행지로 설정
+              </PretendardText>
+            </TouchableOpacity>
+          </View>
+        ) : null}
       </View>
 
       <CampSiteBagSelectSheetView
