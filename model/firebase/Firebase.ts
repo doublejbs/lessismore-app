@@ -127,6 +127,8 @@ class Firebase {
     this.setLoginProvider(null);
     // 로그아웃 시 내부 태그를 해제한다(기기 재사용 시 속성이 잘못 남지 않게).
     app.getAnalyticsManager()?.identifyUser(null);
+    // 다른 사용자로 재로그인 시 이전 사용자의 즐겨찾기가 남지 않도록 초기화한다(CS-9).
+    app.getCampFavoriteStore()?.reset();
   }
 
   private async checkLoggedIn() {

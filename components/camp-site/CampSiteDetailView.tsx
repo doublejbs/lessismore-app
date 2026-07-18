@@ -76,6 +76,10 @@ const CampSiteDetailView: FC<Props> = ({
     void campSiteDetail.share();
   };
 
+  const handlePressFavorite = () => {
+    void campSiteDetail.toggleFavorite();
+  };
+
   const handlePressSetBag = () => {
     if (onSetBag) {
       onSetBag();
@@ -120,6 +124,8 @@ const CampSiteDetailView: FC<Props> = ({
             region={spot.region}
             description={spot.description}
             imageUrl={spot.imageUrl}
+            isFavorite={campSiteDetail.isFavorite()}
+            onPressFavorite={handlePressFavorite}
             onPressMoveToSpot={onMoveToSpot ? handlePressMoveToSpot : undefined}
             onPressShare={handlePressShare}
             onPressNaverMap={handlePressNaverMap}

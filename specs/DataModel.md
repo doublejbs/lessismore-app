@@ -325,6 +325,19 @@
 - **후기용 공개는 `reviewShared` 전용 플래그**로 링크 공유(`shared`)와 분리한다. 같은 배낭이 여러 박지 후기에 첨부될 수 있어(유저당 박지별 1개지만 박지가 다르면 별개) **후기 삭제 시 `reviewShared`를 되돌리지 않는다**(레퍼런스 카운트 없이 안전). 남아 있어도 링크 공유 노출과 무관하고 참조하는 후기가 없으면 발견되지 않는다.
 - 보안 규칙(콘솔 관리): 읽기 공개, 후기 문서 쓰기는 **인증 유저이고 문서 id == `request.auth.uid`**일 때만(작성자 위조 방지). 요약 문서는 클라이언트 트랜잭션 갱신 허용. 클라이언트 SDK에서도 `authorId==uid` 재검증.
 
+### DM-21 박지 즐겨찾기 (`users/{uid}/camp-favorites/{spotId}`) `[기획]`
+
+박지 즐겨찾기([CampSite.md](CampSite.md) CS-9). 사용자 하위 컬렉션(`users/{uid}/gears` 패턴)이며 문서 id = 박지 id라 토글이 멱등이다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `name` | string | 즐겨찾기 시점 박지명 스냅샷(박지 삭제 후에도 표시용) |
+| `createdAt` | string(ISO) | 등록 시각 |
+
+- 토글 on = `setDoc`, off = `deleteDoc`. 목록은 로그인 사용자의 지도 진입 시 1회 `getDocs`.
+- 박지 문서(`/camp-spot`) 변경·삭제를 자동 반영하지 않는다 — 필터 시 활성 박지와 조인해 자연히 걸러진다(CS-9).
+- 탈퇴 시 사용자 문서 트리와 함께 삭제 대상(AU-8 정책 따름).
+
 ## 4. Storage 경로 (DM-9)
 
 `model/firebase/FirebaseImageStorage.ts`:

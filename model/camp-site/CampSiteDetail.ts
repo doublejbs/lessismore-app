@@ -9,6 +9,7 @@ import LogInAlertManager from '../login/LogInAlertManager';
 import AnalyticsManager from '../analytics/AnalyticsManager';
 import BagItem from '../bag/BagItem';
 import CampSiteDetailDispatcher from './CampSiteDetailDispatcher';
+import CampFavoriteStore from '../store/CampFavoriteStore';
 import { CampSpot } from './CampSpotTypes';
 import { BlogReview, REVIEW_CACHE_TTL_MS, VideoReview } from '../review/ReviewTypes';
 import { CampReview, CampReviewSummary } from '../camp-review/CampReviewTypes';
@@ -26,7 +27,8 @@ class CampSiteDetail {
       app.getFirebase(),
       app.getToastManager()!,
       app.getLogInAlertManager()!,
-      app.getAnalyticsManager()
+      app.getAnalyticsManager(),
+      app.getCampFavoriteStore()!
     );
   }
 
@@ -50,7 +52,8 @@ class CampSiteDetail {
     private readonly firebase: Firebase,
     private readonly toastManager: ToastManager,
     private readonly logInAlertManager: LogInAlertManager,
-    private readonly analyticsManager: AnalyticsManager | null
+    private readonly analyticsManager: AnalyticsManager | null,
+    private readonly favoriteStore: CampFavoriteStore
   ) {
     makeAutoObservable(this);
   }
@@ -306,6 +309,46 @@ class CampSiteDetail {
       this.router.back();
     } else {
       this.router.replace('/map');
+    }
+  }
+
+  // 즐겨찾기 여부(CS-9). 뷰는 observer라 ObservableSet 변경 시 자동 반영된다.
+  public isFavorite(): boolean {
+    const spot = this.spot;
+
+    if (!spot) {
+      return false;
+    }
+
+    return this.favoriteStore.isFavorite(spot.id);
+  }
+
+  // 즐겨찾기 토글(CS-9): 비로그인은 안내 후 중단. 낙관적 갱신 — 실패 시 스토어가
+  // 롤백하고 여기서 토스트로 안내한다.
+  public async toggleFavorite() {
+    const spot = this.spot;
+
+    if (!spot) {
+      return;
+    }
+
+    if (!this.firebase.isLoggedIn()) {
+      this.logInAlertManager.show();
+
+      return;
+    }
+
+    const willFavorite = !this.favoriteStore.isFavorite(spot.id);
+
+    if (willFavorite) {
+      this.analyticsManager?.logClick('camp_site_favorite');
+    }
+
+    try {
+      await this.favoriteStore.toggle({ id: spot.id, name: spot.name });
+    } catch (e) {
+      console.error('박지 즐겨찾기 토글 실패:', e);
+      this.toastManager.show({ message: '잠시 후 다시 시도해주세요' });
     }
   }
 

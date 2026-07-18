@@ -1,15 +1,20 @@
 import { makeAutoObservable } from 'mobx';
+import app from '../app/App';
 import CampSiteType from './CampSiteType';
 import CampSiteTag from './CampSiteTag';
 import { CampSpot } from './CampSpotTypes';
 import { getCampSiteTagLabel } from './CampSiteLabels';
 import CampSiteMapDispatcher from './CampSiteMapDispatcher';
+import CampFavoriteStore from '../store/CampFavoriteStore';
 
 // 박지 지도 화면(CS-1/CS-2)의 도메인 모델.
 // /camp-spot 활성 문서를 로드해 유형 필터·선택 상태를 관리한다.
 class CampSiteMap {
   public static new() {
-    return new CampSiteMap(CampSiteMapDispatcher.new());
+    return new CampSiteMap(
+      CampSiteMapDispatcher.new(),
+      app.getCampFavoriteStore()!
+    );
   }
 
   private spots: CampSpot[] = [];
@@ -19,6 +24,8 @@ class CampSiteMap {
   private selectedType: CampSiteType | null = null;
   // 태그 필터(CS-2) — 유형 필터와 AND 결합. null = 전체.
   private selectedTag: CampSiteTag | null = null;
+  // 즐겨찾기 필터(CS-9) — 유형·태그 필터와 AND 결합. 즐겨찾기한 박지만 마커 표시.
+  private favoriteOnly = false;
   private selectedSpot: CampSpot | null = null;
   private query = '';
   // 검색 인풋 포커스 여부 — 드롭다운은 query가 있고 포커스 상태일 때만 표시(CS-6).
@@ -29,7 +36,10 @@ class CampSiteMap {
   // 검색 결과 상한(CS-6).
   private static readonly SEARCH_RESULT_LIMIT = 20;
 
-  private constructor(private readonly dispatcher: CampSiteMapDispatcher) {
+  private constructor(
+    private readonly dispatcher: CampSiteMapDispatcher,
+    private readonly favoriteStore: CampFavoriteStore
+  ) {
     makeAutoObservable(this);
   }
 
@@ -39,6 +49,9 @@ class CampSiteMap {
     }
 
     this.setInitialized(true);
+
+    // 즐겨찾기 목록은 로그인 사용자만 1회 로드한다(CS-9). 스팟 로드와 병렬로 진행한다.
+    void this.favoriteStore.load();
 
     await this.load();
   }
@@ -72,6 +85,11 @@ class CampSiteMap {
   // 태그 필터 선택 시 태그 미부여 spot은 제외된다(CS-2).
   public getVisibleSpots(): CampSpot[] {
     return this.spots.filter(spot => {
+      // 즐겨찾기 필터(CS-9)는 유형·태그와 AND 결합한다.
+      if (this.favoriteOnly && !this.favoriteStore.isFavorite(spot.id)) {
+        return false;
+      }
+
       if (this.selectedType !== null && spot.type !== this.selectedType) {
         return false;
       }
@@ -197,6 +215,19 @@ class CampSiteMap {
 
   public selectType(type: CampSiteType | null) {
     this.selectedType = type;
+  }
+
+  public isFavoriteOnly(): boolean {
+    return this.favoriteOnly;
+  }
+
+  public setFavoriteOnly(value: boolean) {
+    this.favoriteOnly = value;
+  }
+
+  // 즐겨찾기 필터 칩의 빈 상태 가드용(CS-9). 즐겨찾기가 하나도 없으면 필터를 켜지 않는다.
+  public hasFavorites(): boolean {
+    return this.favoriteStore.hasFavorites();
   }
 
   public selectSpot(spot: CampSpot | null) {
