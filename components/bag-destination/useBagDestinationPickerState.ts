@@ -32,12 +32,11 @@ const SPOT_RELEASE_METERS = 100;
 const SAME_PLACE_METERS = 100;
 // 이 거리 미만의 중심 변화는 무시한다 — 네이티브 지도가 리렌더 때마다 부동소수점 수준으로
 // 미세하게 다른 카메라를 onCameraChanged로 되쏘는데, 정확 비교(===)면 그때마다 center가
-// 갱신되고 역지오코딩 이펙트(center dep)가 재실행 → 다시 리렌더 → 재발화로 무한 루프가 된다.
+// 갱신돼 불필요한 리렌더가 늘어난다.
 const CENTER_SETTLE_METERS = 1;
-// 역지오코딩 이펙트가 반응하는 중심 양자화 단위(약 55m). center를 직접 dep로 쓰면 위 미세
-// 진동을 setCenter 임계값이 다 못 막을 때(진동 폭이 그보다 클 때) 이펙트가 계속 재실행돼
-// 무한 루프가 된다. 양자화 값에만 반응시켜 흡수한다 — 역지오코딩은 주소 수준이라 오차 무의미.
-const GEO_QUANTIZE_DEGREE = 0.0005;
+// 카메라가 이만큼 멈춰 있어야 정착으로 보고 역지오코딩한다 — 진동이 지속되는 동안에는
+// 정착값이 갱신되지 않아 이펙트가 돌지 않는다(무한 루프 방지).
+const CAMERA_SETTLE_MS = 300;
 
 const MIN_QUERY_LENGTH = 2;
 const PLACE_SEARCH_DEBOUNCE_MS = 400;
@@ -97,6 +96,11 @@ const useBagDestinationPickerState = ({
   // 카메라 재적용으로 인한 이동 루프를 막는다.
   const [origin, setOrigin] = useState<Camera | null>(null);
   const [center, setCenter] = useState<Coordinate>(SEOUL_CITY_HALL);
+  // 카메라가 멈춘 뒤에만 갱신되는 정착 중심(정착 전엔 null). 역지오코딩 이펙트는 center가
+  // 아니라 이 값에 반응한다 — center는 네이티브 지도가 리렌더마다 미세하게 다른 값을 되쏴
+  // 진동하는데, 그 진동에 이펙트가 반응하면 setState→리렌더→재발화 무한 루프가 되기 때문이다.
+  // 이펙트가 안 돌면 리렌더도 없어 재발화가 멎고, 그때 정착값이 갱신돼 주소를 조회한다.
+  const [settledCenter, setSettledCenter] = useState<Coordinate | null>(null);
   const [viewport, setViewport] = useState<CampSiteMapViewport | null>(null);
   const [selectedSpot, setSelectedSpot] = useState<CampSpot | null>(null);
   const [selectedCampLocation, setSelectedCampLocation] =
@@ -465,20 +469,31 @@ const useBagDestinationPickerState = ({
   }, [visible, linkedSpot, saving, selectSpot]);
 
   // 자유 위치 모드에서만 지도 중심 주소를 미리 본다. 박지 모드는 박지명을 그대로 쓴다.
-  // 역지오코딩 이펙트가 반응할 양자화 중심(약 55m). 미세 진동을 흡수해 무한 루프를 막는다.
-  const geoLat =
-    Math.round(center.latitude / GEO_QUANTIZE_DEGREE) * GEO_QUANTIZE_DEGREE;
-  const geoLng =
-    Math.round(center.longitude / GEO_QUANTIZE_DEGREE) * GEO_QUANTIZE_DEGREE;
+  // 카메라가 CAMERA_SETTLE_MS 동안 멈추면 그때의 center를 정착값으로 확정한다.
+  // center가 진동하는 동안에는 타이머가 계속 리셋돼 setSettledCenter가 호출되지 않으므로,
+  // 역지오코딩 이펙트(settledCenter dep)도 돌지 않아 무한 루프가 생기지 않는다.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSettledCenter(prev =>
+        prev && getDistanceInMeters(prev, center) < CENTER_SETTLE_METERS
+          ? prev
+          : center
+      );
+    }, CAMERA_SETTLE_MS);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [center]);
 
   useEffect(() => {
-    if (!visible || !origin || selectedCampLocation) {
+    if (!visible || !origin || selectedCampLocation || !settledCenter) {
       return;
     }
 
     const known = knownRef.current;
 
-    if (known && getDistanceInMeters(known, center) <= SAME_PLACE_METERS) {
+    if (known && getDistanceInMeters(known, settledCenter) <= SAME_PLACE_METERS) {
       setAddressName(known.name);
       setResolving(false);
 
@@ -492,8 +507,8 @@ const useBagDestinationPickerState = ({
     const timer = setTimeout(async () => {
       try {
         const name = await geocodeService.reverseGeocode(
-          center.latitude,
-          center.longitude
+          settledCenter.latitude,
+          settledCenter.longitude
         );
 
         if (!cancelled) {
@@ -517,10 +532,7 @@ const useBagDestinationPickerState = ({
       cancelled = true;
       clearTimeout(timer);
     };
-    // center 대신 양자화 값(geoLat/geoLng)에 반응한다 — 무한 루프 방지(GEO_QUANTIZE_DEGREE 주석).
-    // 본문은 정확한 center를 쓰지만 양자화 단위(약 55m) 내 오차라 역지오코딩 결과에 영향 없다.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, origin, selectedCampLocation, geoLat, geoLng]);
+  }, [visible, origin, selectedCampLocation, settledCenter]);
 
   // 카카오 장소 검색만 디바운스한다(DST-4) — 박지는 이미 로드된 목록이라 즉시 필터한다.
   useEffect(() => {
