@@ -1,4 +1,4 @@
-import { FC, useRef } from 'react';
+import { FC } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -14,48 +14,18 @@ import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
-import CampSiteType from '@/model/camp-site/CampSiteType';
-import CampSiteTag from '@/model/camp-site/CampSiteTag';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
   getCampSiteTagLabel,
-  getCampSiteTypeColor,
   getCampSiteTypeLabel,
 } from '@/model/camp-site/CampSiteLabels';
-import CategoryChipView from '@/components/browse/CategoryChipView';
-import CampSiteFavoriteChipView from './CampSiteFavoriteChipView';
+import CampSiteFilterChipsView from './CampSiteFilterChipsView';
 
 interface Props {
   campSiteMap: CampSiteMap;
   // 검색 결과 탭 — 카메라 이동은 mapRef를 가진 부모(CampSiteMapView)가 수행한다.
   onSelectResult: (spot: CampSpot) => void;
 }
-
-// 유형 필터(CS-2) — 단일 선택, 백패킹(wild)→대피소→캠핑장(campground) 순. 칩의 색 도트가 지도 마커 색 범례를 겸한다.
-const TYPE_FILTERS: {
-  label: string;
-  value: CampSiteType | null;
-  dotColor?: string;
-}[] = [
-  { label: '전체', value: null },
-  ...([
-    CampSiteType.Wild,
-    CampSiteType.Shelter,
-    CampSiteType.Campground,
-  ] as const).map(type => ({
-    label: getCampSiteTypeLabel(type),
-    value: type,
-    dotColor: getCampSiteTypeColor(type),
-  })),
-];
-
-// 태그 필터(CS-2) — `#` 접두로 유형과 축을 구분하고, 재탭으로 해제(토글)한다.
-const TAG_FILTERS: { label: string; value: CampSiteTag }[] = Object.values(
-  CampSiteTag
-).map(tag => ({
-  label: `#${getCampSiteTagLabel(tag)}`,
-  value: tag,
-}));
 
 // 지도 상단 오버레이(CS-2/CS-6): 검색 인풋/드롭다운 + 유형 필터 칩 + 로드 실패 배너 + 로딩.
 // 지도 화면에서 분리된 observer라 검색 타이핑·필터 선택이 마커 레이어를 리렌더하지 않는다.
@@ -65,25 +35,6 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
     const searchResults = campSiteMap.getSearchResults();
     const showSearchResults =
       query.trim().length > 0 && campSiteMap.isSearchFocused();
-
-    // 선택 칩 시인성(CS-2): 스크롤되는 태그 행에서 가려진 칩을 선택해도 보이도록,
-    // 칩별 x 위치를 기록해 두고 선택 시 행을 해당 위치로 스크롤한다.
-    // (유형 행은 4칩이 스크롤 없이 화면에 다 들어가 불필요)
-    const tagScrollRef = useRef<ScrollView>(null);
-    const tagChipOffsets = useRef(new Map<CampSiteTag, number>());
-
-    const scrollToTagChip = (tag: CampSiteTag) => {
-      const x = tagChipOffsets.current.get(tag);
-
-      if (x === undefined) {
-        return;
-      }
-
-      tagScrollRef.current?.scrollTo({
-        x: Math.max(0, x - 16),
-        animated: true,
-      });
-    };
 
     // 결과 수 피드백(CS-2): 필터 변경 결과를 토스트로 알린다.
     // 전체(무필터)로 돌아올 때는 띄우지 않는다.
@@ -110,23 +61,6 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
       const name = parts.length > 0 ? parts.join(' ') : '박지';
 
       app.getToastManager()?.show({ message: `${name} ${count}곳` });
-    };
-
-    const handlePressType = (value: CampSiteType | null) => {
-      campSiteMap.selectType(value);
-      showResultToast();
-    };
-
-    // 태그 칩은 재탭으로 해제(토글)한다.
-    const handlePressTag = (value: CampSiteTag) => {
-      const next = campSiteMap.getSelectedTag() === value ? null : value;
-
-      campSiteMap.selectTag(next);
-      showResultToast();
-
-      if (next !== null) {
-        scrollToTagChip(next);
-      }
     };
 
     // 즐겨찾기 필터 칩(CS-9): 이미 켜져 있으면 항상 끌 수 있다. 켜려 할 때만
@@ -279,56 +213,15 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
 
           {/* 검색 결과가 열려 있는 동안 필터 칩은 숨긴다 — 검색은 필터와 독립이라 무의미하고,
               드롭다운에 밀려 지도 한가운데 떠 보이는 문제(디자인 리뷰)를 막는다. */}
-          {/* 축당 한 행(CS-2): 1행 유형(전체+색 도트 범례, 스크롤 없이 전부 노출) +
-              2행 태그(#접두, 토글, 가로 스크롤) — 한 행에 합치면 "전체"가 스크롤
-              밖으로 사라지고 태그 발견 가능성이 떨어진다(디자인 리뷰로 확정). */}
+          {/* 지도 탭은 ★ 칩을 항상 노출하고 로그인/빈 상태 가드(handlePressFavorite)와
+              결과 수 토스트(showResultToast)를 붙인다(CS-9/CS-2). 선택기와 공용 뷰로 공유한다. */}
           {!showSearchResults && (
-            <>
-              <View style={styles.filterRow}>
-                {/* ★ 칩(CS-9): 유형 칩 1행의 `전체` 앞. 선택 시 즐겨찾기 박지만 마커 표시. */}
-                <CampSiteFavoriteChipView
-                  selected={campSiteMap.isFavoriteOnly()}
-                  onPress={handlePressFavorite}
-                />
-                {TYPE_FILTERS.map(filter => (
-                  <CategoryChipView
-                    key={filter.label}
-                    label={filter.label}
-                    {...(filter.dotColor !== undefined
-                      ? { dotColor: filter.dotColor }
-                      : {})}
-                    selected={campSiteMap.getSelectedType() === filter.value}
-                    onPress={() => handlePressType(filter.value)}
-                  />
-                ))}
-              </View>
-
-              <ScrollView
-                ref={tagScrollRef}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.filterRow}
-                keyboardShouldPersistTaps='handled'
-              >
-                {TAG_FILTERS.map(filter => (
-                  <View
-                    key={filter.value}
-                    onLayout={e =>
-                      tagChipOffsets.current.set(
-                        filter.value,
-                        e.nativeEvent.layout.x
-                      )
-                    }
-                  >
-                    <CategoryChipView
-                      label={filter.label}
-                      selected={campSiteMap.getSelectedTag() === filter.value}
-                      onPress={() => handlePressTag(filter.value)}
-                    />
-                  </View>
-                ))}
-              </ScrollView>
-            </>
+            <CampSiteFilterChipsView
+              campSiteMap={campSiteMap}
+              showFavoriteChip
+              onPressFavorite={handlePressFavorite}
+              onChangeFilter={showResultToast}
+            />
           )}
         </SafeAreaView>
 
@@ -350,13 +243,6 @@ const styles = StyleSheet.create({
     right: 0,
     gap: 10,
     paddingTop: 8,
-  },
-  filterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    // 검색 카드(marginHorizontal 12)와 좌측 정렬.
-    paddingHorizontal: 12,
   },
   // 검색 pill + 결과 카드 묶음(CS-6).
   searchWrap: {
