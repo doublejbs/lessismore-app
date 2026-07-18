@@ -30,6 +30,10 @@ const DEFAULT_ZOOM = deltaToZoom(0.05);
 const SPOT_RELEASE_METERS = 100;
 // 같은 지점으로 볼 거리 — 박지·장소 중복 제거(DST-4)와 알려진 이름 재사용에 쓴다.
 const SAME_PLACE_METERS = 100;
+// 이 거리 미만의 중심 변화는 무시한다 — 네이티브 지도가 리렌더 때마다 부동소수점 수준으로
+// 미세하게 다른 카메라를 onCameraChanged로 되쏘는데, 정확 비교(===)면 그때마다 center가
+// 갱신되고 역지오코딩 이펙트(center dep)가 재실행 → 다시 리렌더 → 재발화로 무한 루프가 된다.
+const CENTER_SETTLE_METERS = 1;
 
 const MIN_QUERY_LENGTH = 2;
 const PLACE_SEARCH_DEBOUNCE_MS = 400;
@@ -609,10 +613,9 @@ const useBagDestinationPickerState = ({
         pendingCameraTargetRef.current = null;
         markUserInteraction();
 
+        // 미세 변화는 무시해 center를 안정시킨다 — 무한 리렌더 방지(CENTER_SETTLE_METERS 주석 참고).
         setCenter(prev =>
-          prev.latitude === next.latitude && prev.longitude === next.longitude
-            ? prev
-            : next
+          getDistanceInMeters(prev, next) < CENTER_SETTLE_METERS ? prev : next
         );
       }
 
