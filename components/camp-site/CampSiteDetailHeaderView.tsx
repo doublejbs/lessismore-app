@@ -12,12 +12,18 @@ import { Color, Radius } from '@/constants/DesignTokens';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
+// 즐겨찾기 등록 상태의 별 색(CS-9) — 마커 캠핑장색과 동일한 시맨틱 노랑 리터럴(브랜드 액센트 아님).
+const FAVORITE_STAR_COLOR = '#FFD700';
+
 interface Props {
   name: string;
   typeLabel: string;
   region: string;
   description: string;
   imageUrl?: string | undefined;
+  // 즐겨찾기(CS-9) — 주요 기능 버튼 행 맨 앞 pill. 등록 여부로 아이콘·라벨이 토글된다.
+  isFavorite: boolean;
+  onPressFavorite: () => void;
   // 위치로 이동(CS-2) — 지도에서 연 시트에만 있다(공유 딥링크 진입엔 되돌릴 지도가 없어 undefined).
   onPressMoveToSpot?: (() => void) | undefined;
   onPressShare: () => void;
@@ -29,11 +35,18 @@ interface FeatureButtonProps {
   icon: IoniconName;
   label: string;
   onPress: () => void;
+  // 기본은 텍스트색. 즐겨찾기 등록 시 별에 시맨틱 노랑을 주는 등 아이콘 색만 달리할 때 쓴다.
+  iconColor?: string | undefined;
 }
 
-// 주요 기능 pill(공유·네이버 지도·위치로 이동) — 아이콘 + 라벨, 44pt 터치(CS-3).
+// 주요 기능 pill(즐겨찾기·공유·네이버 지도·위치로 이동) — 아이콘 + 라벨, 44pt 터치(CS-3).
 // 라벨이 함께 있어 아이콘 전용이 아니므로 라벨을 accessibilityLabel로 그대로 쓴다.
-const FeatureButton: FC<FeatureButtonProps> = ({ icon, label, onPress }) => {
+const FeatureButton: FC<FeatureButtonProps> = ({
+  icon,
+  label,
+  onPress,
+  iconColor,
+}) => {
   return (
     <TouchableOpacity
       style={styles.featureButton}
@@ -42,7 +55,7 @@ const FeatureButton: FC<FeatureButtonProps> = ({ icon, label, onPress }) => {
       accessibilityRole='button'
       accessibilityLabel={label}
     >
-      <Ionicons name={icon} size={18} color={Color.textPrimary} />
+      <Ionicons name={icon} size={18} color={iconColor ?? Color.textPrimary} />
       <PretendardText style={styles.featureLabel} weight='medium'>
         {label}
       </PretendardText>
@@ -59,6 +72,8 @@ const CampSiteDetailHeaderView: FC<Props> = ({
   region,
   description,
   imageUrl,
+  isFavorite,
+  onPressFavorite,
   onPressMoveToSpot,
   onPressShare,
   onPressNaverMap,
@@ -110,6 +125,13 @@ const CampSiteDetailHeaderView: FC<Props> = ({
         style={styles.featureScrollBleed}
         contentContainerStyle={styles.featureRow}
       >
+        {/* 즐겨찾기(CS-9) — 주요 기능 행 맨 앞. 등록 시 채운 별 + 시맨틱 노랑, 라벨은 '즐겨찾기됨'. */}
+        <FeatureButton
+          icon={isFavorite ? 'star' : 'star-outline'}
+          iconColor={isFavorite ? FAVORITE_STAR_COLOR : undefined}
+          label={isFavorite ? '즐겨찾기됨' : '즐겨찾기'}
+          onPress={onPressFavorite}
+        />
         <FeatureButton icon='share-outline' label='공유' onPress={onPressShare} />
         {/* 외부 길찾기 성격이라 조준 아이콘(위치로 이동)과 구분되는 방향 화살표를 쓴다(CS-3). */}
         <FeatureButton

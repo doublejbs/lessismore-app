@@ -23,6 +23,7 @@ import {
   getCampSiteTypeLabel,
 } from '@/model/camp-site/CampSiteLabels';
 import CategoryChipView from '@/components/browse/CategoryChipView';
+import CampSiteFavoriteChipView from './CampSiteFavoriteChipView';
 
 interface Props {
   campSiteMap: CampSiteMap;
@@ -126,6 +127,31 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
       if (next !== null) {
         scrollToTagChip(next);
       }
+    };
+
+    // 즐겨찾기 필터 칩(CS-9): 이미 켜져 있으면 항상 끌 수 있다. 켜려 할 때만
+    // 비로그인(로그인 안내)·즐겨찾기 0건(토스트) 가드를 적용하고, 통과 시에만 선택한다.
+    const handlePressFavorite = () => {
+      if (campSiteMap.isFavoriteOnly()) {
+        campSiteMap.setFavoriteOnly(false);
+
+        return;
+      }
+
+      if (!app.getFirebase().isLoggedIn()) {
+        app.getLogInAlertManager()?.show();
+
+        return;
+      }
+
+      if (!campSiteMap.hasFavorites()) {
+        app.getToastManager()?.show({ message: '즐겨찾기한 박지가 없어요' });
+
+        return;
+      }
+
+      campSiteMap.setFavoriteOnly(true);
+      showResultToast();
     };
 
     // 검색 시작 시 요약 카드를 닫아 드롭다운과 카드가 동시에 뜨지 않게 한다.
@@ -259,6 +285,11 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
           {!showSearchResults && (
             <>
               <View style={styles.filterRow}>
+                {/* ★ 칩(CS-9): 유형 칩 1행의 `전체` 앞. 선택 시 즐겨찾기 박지만 마커 표시. */}
+                <CampSiteFavoriteChipView
+                  selected={campSiteMap.isFavoriteOnly()}
+                  onPress={handlePressFavorite}
+                />
                 {TYPE_FILTERS.map(filter => (
                   <CategoryChipView
                     key={filter.label}
