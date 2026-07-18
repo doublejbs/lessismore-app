@@ -36,6 +36,9 @@ interface Props {
 // 탭 바 뷰의 컨테이너는 이미 불투명 배경(Color.background)을 가져 고정 시 뒤 콘텐츠가 비치지 않는다.
 const TAB_BAR_INDEX = 1;
 
+// 하단 고정 CTA가 스크롤 마지막 콘텐츠를 가리지 않도록 확보하는 여유(버튼 높이 약 84 + 여유).
+const CTA_CLEARANCE = 96;
+
 // 박지 상세 시트(CS-3) — 상단 블록·탭 바·탭 콘텐츠가 하나의 세로 스크롤 안에 있고,
 // 탭 바만 sticky로 상단에 붙는다. 주 액션(배낭 여행지로 설정)만 하단에 고정한다.
 // 하나의 스크롤 + 고정 CTA 구조라 detent별 peek 접기·높이 측정 로직은 두지 않는다(CS-2).
@@ -104,6 +107,9 @@ const CampSiteDetailView: FC<Props> = ({
       <View style={styles.container}>
         <ScrollView
           style={styles.scroll}
+          contentContainerStyle={
+            showSetBag ? styles.scrollContentWithCta : undefined
+          }
           stickyHeaderIndices={[TAB_BAR_INDEX]}
           showsVerticalScrollIndicator={false}
         >
@@ -178,6 +184,10 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flex: 1,
+  },
+  // CTA가 있으면 마지막 콘텐츠가 그 뒤에 가리지 않게 하단 여유를 준다.
+  scrollContentWithCta: {
+    paddingBottom: CTA_CLEARANCE,
   },
   tabContent: {
     paddingBottom: 12,
