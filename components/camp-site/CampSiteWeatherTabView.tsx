@@ -2,7 +2,6 @@ import { FC } from 'react';
 import {
   View,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
@@ -17,7 +16,8 @@ interface Props {
 }
 
 // 상세 시트 '날씨' 탭(CS-3) — 주간 예보만 렌더한다.
-// 박지명 헤더는 시트 고정 영역(CampSiteDetailView)이 이미 갖고 있어 두지 않는다.
+// 박지명 헤더는 상단 블록(CampSiteDetailView)이 이미 갖고 있어 두지 않는다.
+// 바깥 스크롤이 스크롤을 담당하므로 자체 ScrollView를 두지 않고 플레인 View로 인라인 렌더한다.
 const CampSiteWeatherTabView: FC<Props> = ({ campSiteWeather }) => {
   const initialized = campSiteWeather.isInitialized();
   const loading = campSiteWeather.isLoading();
@@ -58,26 +58,21 @@ const CampSiteWeatherTabView: FC<Props> = ({ campSiteWeather }) => {
   }
 
   return (
-    <ScrollView
-      style={styles.content}
-      contentContainerStyle={styles.contentContainer}
-    >
+    <View style={styles.content}>
       <WeatherDailyView daily={weather} />
-    </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   content: {
-    flex: 1,
-  },
-  contentContainer: {
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 20,
   },
+  // 바깥 스크롤 안에서는 flex:1로 뷰포트를 채울 수 없어, 로딩·에러 상태에 최소 높이를 준다.
   centerBox: {
-    flex: 1,
+    minHeight: 220,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 16,

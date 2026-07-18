@@ -1,13 +1,23 @@
 import { FC } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
+
+type IoniconName = keyof typeof Ionicons.glyphMap;
 
 interface Props {
   name: string;
   typeLabel: string;
   region: string;
+  description: string;
+  imageUrl?: string | undefined;
   // 위치로 이동(CS-2) — 지도에서 연 시트에만 있다(공유 딥링크 진입엔 되돌릴 지도가 없어 undefined).
   onPressMoveToSpot?: (() => void) | undefined;
   onPressShare: () => void;
@@ -15,17 +25,40 @@ interface Props {
   onPressClose: () => void;
 }
 
-// 아이콘 버튼은 시각 폭을 44보다 좁혀 이름이 쓸 폭을 확보하고(60% 시트라 가로가 귀하다),
-// 부족한 만큼은 hitSlop으로 메워 44pt 터치 타깃(HIG)을 유지한다.
-const ICON_BUTTON_WIDTH = 36;
-const ICON_HIT_SLOP = { top: 0, bottom: 0, left: 4, right: 4 };
+interface FeatureButtonProps {
+  icon: IoniconName;
+  label: string;
+  onPress: () => void;
+}
 
-// 박지 상세 시트의 고정 헤더(CS-3) — ① 이름 + 액션 아이콘 한 줄 ② 유형 배지 · 지역.
-// 아이콘만 따로 한 줄을 쓰면 가운데가 비어 세로를 낭비하므로 이름과 같은 줄에 둔다(구글 지도 장소 시트).
+// 주요 기능 pill(공유·네이버 지도·위치로 이동) — 아이콘 + 라벨, 44pt 터치(CS-3).
+// 라벨이 함께 있어 아이콘 전용이 아니므로 라벨을 accessibilityLabel로 그대로 쓴다.
+const FeatureButton: FC<FeatureButtonProps> = ({ icon, label, onPress }) => {
+  return (
+    <TouchableOpacity
+      style={styles.featureButton}
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole='button'
+      accessibilityLabel={label}
+    >
+      <Ionicons name={icon} size={18} color={Color.textPrimary} />
+      <PretendardText style={styles.featureLabel} weight='medium'>
+        {label}
+      </PretendardText>
+    </TouchableOpacity>
+  );
+};
+
+// 박지 상세 시트의 상단 블록(CS-3) — 네이버 지도 place 상세 얼개:
+// 닫기(X) 행 → 이름 → 유형 배지·지역 → 설명 → 주요 기능 버튼 행 → 대표 사진.
+// 액션은 아이콘 행이 아니라 라벨 달린 pill 버튼 행으로 내려 이름·설명이 폭을 온전히 쓰게 한다.
 const CampSiteDetailHeaderView: FC<Props> = ({
   name,
   typeLabel,
   region,
+  description,
+  imageUrl,
   onPressMoveToSpot,
   onPressShare,
   onPressNaverMap,
@@ -33,64 +66,26 @@ const CampSiteDetailHeaderView: FC<Props> = ({
 }) => {
   return (
     <View style={styles.header}>
-      <View style={styles.titleRow}>
-        <PretendardText
-          style={styles.name}
-          weight='bold'
-          numberOfLines={1}
-          ellipsizeMode='tail'
+      {/* 상세는 지도 위 바텀 시트(CS-2)라 뒤로 가기가 아니라 우상단 닫기(X)만 둔다. */}
+      <View style={styles.closeRow}>
+        <TouchableOpacity
+          onPress={onPressClose}
+          style={styles.closeButton}
+          accessibilityLabel='닫기'
+          accessibilityRole='button'
         >
-          {name}
-        </PretendardText>
-
-        {/* 헤더 우측 액션 — (지도 진입 시) 위치로 이동 + 공유 + 네이버 지도 + 닫기(CS-2/CS-3/CS-7) */}
-        <View style={styles.actionRow}>
-          {onPressMoveToSpot ? (
-            <TouchableOpacity
-              onPress={onPressMoveToSpot}
-              style={styles.iconButton}
-              hitSlop={ICON_HIT_SLOP}
-              accessibilityLabel='지도에서 이 박지 위치로 이동'
-              accessibilityRole='button'
-            >
-              <Ionicons name='locate' size={22} color={Color.textPrimary} />
-            </TouchableOpacity>
-          ) : null}
-          <TouchableOpacity
-            onPress={onPressShare}
-            style={styles.iconButton}
-            hitSlop={ICON_HIT_SLOP}
-            accessibilityLabel='공유'
-            accessibilityRole='button'
-          >
-            <Ionicons name='share-outline' size={22} color={Color.textPrimary} />
-          </TouchableOpacity>
-          {/* 외부 길찾기 성격이라 조준 아이콘(위치로 이동)과 구분되는 방향 화살표를 쓴다(CS-3). */}
-          <TouchableOpacity
-            onPress={onPressNaverMap}
-            style={styles.iconButton}
-            hitSlop={ICON_HIT_SLOP}
-            accessibilityLabel='네이버 지도에서 열기'
-            accessibilityRole='button'
-          >
-            <Ionicons
-              name='navigate-outline'
-              size={22}
-              color={Color.textPrimary}
-            />
-          </TouchableOpacity>
-          {/* 상세는 지도 위 바텀 시트(CS-2)라 뒤로 가기가 아니라 닫기(X)를 둔다. */}
-          <TouchableOpacity
-            onPress={onPressClose}
-            style={styles.iconButton}
-            hitSlop={ICON_HIT_SLOP}
-            accessibilityLabel='닫기'
-            accessibilityRole='button'
-          >
-            <Ionicons name='close' size={24} color={Color.textPrimary} />
-          </TouchableOpacity>
-        </View>
+          <Ionicons name='close' size={24} color={Color.textPrimary} />
+        </TouchableOpacity>
       </View>
+
+      <PretendardText
+        style={styles.name}
+        weight='bold'
+        numberOfLines={1}
+        ellipsizeMode='tail'
+      >
+        {name}
+      </PretendardText>
 
       <View style={styles.metaRow}>
         <View style={styles.typeBadge}>
@@ -102,6 +97,43 @@ const CampSiteDetailHeaderView: FC<Props> = ({
           {region}
         </PretendardText>
       </View>
+
+      {/* 설명 — "어떤 곳인지"가 사진·탭보다 먼저 읽히도록 이름 바로 아래에 둔다. 비면 생략(CS-3). */}
+      {description ? (
+        <PretendardText style={styles.description}>{description}</PretendardText>
+      ) : null}
+
+      {/* 주요 기능 버튼 행 — 넘치면 가로 스크롤. 좌우 패딩을 상쇄해 화면 폭을 온전히 쓴다(CS-3). */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.featureScrollBleed}
+        contentContainerStyle={styles.featureRow}
+      >
+        <FeatureButton icon='share-outline' label='공유' onPress={onPressShare} />
+        {/* 외부 길찾기 성격이라 조준 아이콘(위치로 이동)과 구분되는 방향 화살표를 쓴다(CS-3). */}
+        <FeatureButton
+          icon='navigate-outline'
+          label='네이버 지도'
+          onPress={onPressNaverMap}
+        />
+        {onPressMoveToSpot ? (
+          <FeatureButton
+            icon='locate'
+            label='위치로 이동'
+            onPress={onPressMoveToSpot}
+          />
+        ) : null}
+      </ScrollView>
+
+      {/* 대표 사진(CS-3) — 있으면 표시, 없으면 생략. v1은 단일 이미지. */}
+      {imageUrl ? (
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.image}
+          contentFit='cover'
+        />
+      ) : null}
     </View>
   );
 };
@@ -109,40 +141,33 @@ const CampSiteDetailHeaderView: FC<Props> = ({
 const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
-    // 시트 상단엔 네이티브 그래버가 그려진다 — 여유를 안 주면 제목이 그래버에 붙는다.
-    paddingTop: 14,
-    paddingBottom: 10,
-    // 이름·배지·지역은 한 덩어리라 좁게 묶는다(아래 탭 바와의 간격이 그룹 경계가 된다).
-    gap: 2,
-    backgroundColor: Color.background,
+    // 시트 상단엔 네이티브 그래버가 그려진다 — 여유를 안 주면 닫기 버튼이 그래버에 붙는다.
+    paddingTop: 6,
+    paddingBottom: 12,
   },
-  titleRow: {
+  closeRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    justifyContent: 'flex-end',
+    // 아이콘의 시각 중심을 화면 여백에 맞추려 컨테이너를 바깥으로 당긴다.
+    marginRight: -10,
   },
-  name: {
-    flex: 1,
-    fontSize: 20,
-    lineHeight: 28,
-    color: Color.textPrimary,
-  },
-  // 마지막 아이콘의 시각 중심을 화면 여백에 맞추려 컨테이너를 바깥으로 당긴다.
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: -8,
-  },
-  iconButton: {
-    width: ICON_BUTTON_WIDTH,
+  closeButton: {
+    width: 44,
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  name: {
+    marginTop: 2,
+    fontSize: 22,
+    lineHeight: 30,
+    color: Color.textPrimary,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    marginTop: 6,
   },
   typeBadge: {
     backgroundColor: Color.chipInactiveBg,
@@ -158,6 +183,42 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     fontSize: 14,
     color: Color.textSecondary,
+  },
+  description: {
+    marginTop: 10,
+    fontSize: 14,
+    lineHeight: 22,
+    color: Color.textPrimary,
+  },
+  featureScrollBleed: {
+    marginTop: 14,
+    marginHorizontal: -20,
+  },
+  featureRow: {
+    gap: 8,
+    paddingHorizontal: 20,
+  },
+  featureButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minHeight: 44,
+    paddingHorizontal: 16,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Color.chipBorder,
+    backgroundColor: Color.background,
+  },
+  featureLabel: {
+    fontSize: 14,
+    color: Color.textPrimary,
+  },
+  image: {
+    marginTop: 16,
+    width: '100%',
+    aspectRatio: 16 / 9,
+    borderRadius: Radius.card,
+    backgroundColor: Color.thumbBg,
   },
 });
 

@@ -1,10 +1,5 @@
-import { FC, useState } from 'react';
-import {
-  LayoutChangeEvent,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { FC } from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
@@ -36,15 +31,14 @@ interface Props {
   showSetBag?: boolean | undefined;
 }
 
-// 탭 바까지 넣으려면 이 정도는 있어야 한다(헤더 약 92 + 탭 바 약 50 + CTA 약 84 + 콘텐츠 여유).
-// 최소 detent는 그보다 낮으므로 그땐 탭 바·탭 콘텐츠를 접는다 — 지도를 보는 상태라 의도에도 맞다(CS-3).
-// 헤더와 CTA는 peek에서도 남긴다: 이름 + 주 액션만 있는 컴팩트 카드가 되고,
-// 확장할 때 CTA가 제자리에 머물러 나타나는 건 탭 영역뿐이라 전환이 덜 튄다.
-// 그래서 최소 detent는 헤더 92 + CTA 84가 들어가는 0.24다(0.2=약 163pt에는 CTA가 잘린다).
-const FULL_LAYOUT_MIN_HEIGHT = 260;
+// stickyHeaderIndices는 ScrollView 직계 자식 기준. 상단 블록(0) → 탭 바(1) → 탭 콘텐츠(2)라
+// 탭 바 인덱스는 1이며, 위로 스크롤될 때 상단에 고정(sticky)된다(CS-3).
+// 탭 바 뷰의 컨테이너는 이미 불투명 배경(Color.background)을 가져 고정 시 뒤 콘텐츠가 비치지 않는다.
+const TAB_BAR_INDEX = 1;
 
-// 박지 상세 시트(CS-3) — 고정 영역(헤더·제목·탭 바) + 탭 콘텐츠 + 고정 CTA.
-// 스크롤은 각 탭 콘텐츠 안에서만 일어난다(고정 영역은 스크롤되지 않는다).
+// 박지 상세 시트(CS-3) — 상단 블록·탭 바·탭 콘텐츠가 하나의 세로 스크롤 안에 있고,
+// 탭 바만 sticky로 상단에 붙는다. 주 액션(배낭 여행지로 설정)만 하단에 고정한다.
+// 하나의 스크롤 + 고정 CTA 구조라 detent별 peek 접기·높이 측정 로직은 두지 않는다(CS-2).
 const CampSiteDetailView: FC<Props> = ({
   campSiteDetail,
   onMoveToSpot,
@@ -53,9 +47,6 @@ const CampSiteDetailView: FC<Props> = ({
   showSetBag = true,
 }) => {
   const spot = campSiteDetail.getSpot();
-  // 시트 높이. contentStyle의 bottom: 0 덕에 이 컨테이너가 시트 높이를 그대로 갖고,
-  // 사용자가 detent를 끌면 네이티브가 프레임을 바꿔 여기로 다시 들어온다(app/_layout.tsx 주석 참고).
-  const [sheetHeight, setSheetHeight] = useState(0);
   const showBagSheet = campSiteDetail.shouldShowBagSheet();
   const { selectedTab, campSiteWeather, handleSelectTab } =
     useCampSiteDetailTabState(spot);
@@ -104,59 +95,52 @@ const CampSiteDetailView: FC<Props> = ({
     campSiteDetail.createBagForSpot();
   };
 
-  const handleLayout = (event: LayoutChangeEvent) => {
-    setSheetHeight(event.nativeEvent.layout.height);
-  };
-
   if (!spot) {
     return null;
   }
 
-  // 높이를 재기 전(0)에는 기본 detent(40%)라고 보고 전체 레이아웃을 그린다 — peek이 깜빡이지 않게.
-  const isPeek = sheetHeight > 0 && sheetHeight < FULL_LAYOUT_MIN_HEIGHT;
-
   return (
     <>
-      <View style={styles.container} onLayout={handleLayout}>
-        {/* 이름·액션 아이콘·유형 배지·지역은 탭과 무관한 박지 정체성이라 고정 영역에 둔다(CS-3). */}
-        <CampSiteDetailHeaderView
-          name={spot.name}
-          typeLabel={getCampSiteTypeLabel(spot.type)}
-          region={spot.region}
-          onPressMoveToSpot={onMoveToSpot ? handlePressMoveToSpot : undefined}
-          onPressShare={handlePressShare}
-          onPressNaverMap={handlePressNaverMap}
-          onPressClose={handlePressClose}
-        />
+      <View style={styles.container}>
+        <ScrollView
+          style={styles.scroll}
+          stickyHeaderIndices={[TAB_BAR_INDEX]}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* 상단 블록: 닫기(X)·이름·유형/지역·설명·기능 버튼·대표 사진(CS-3). */}
+          <CampSiteDetailHeaderView
+            name={spot.name}
+            typeLabel={getCampSiteTypeLabel(spot.type)}
+            region={spot.region}
+            description={spot.description}
+            imageUrl={spot.imageUrl}
+            onPressMoveToSpot={onMoveToSpot ? handlePressMoveToSpot : undefined}
+            onPressShare={handlePressShare}
+            onPressNaverMap={handlePressNaverMap}
+            onPressClose={handlePressClose}
+          />
 
-        {/* peek(최소 detent)에서는 탭 영역을 접는다 — 헤더와 CTA만으로도 높이가 꽉 찬다.
-            reanimated 레이아웃 애니메이션(FadeIn/FadeOut)은 여기서 쓰지 않는다 — 레거시
-            아키텍처에서 formSheet 전환(마커 A→B의 router.replace)과 겹치면 네이티브
-            UI 매니저가 크래시한다(RCTUIManager flushUIBlocksWithCompletion). */}
-        {isPeek ? (
-          <View style={styles.peekSpacer} />
-        ) : (
-          <View style={styles.tabSection}>
-            <CampSiteDetailTabBarView
-              selectedTab={selectedTab}
-              onSelectTab={handleSelectTab}
-            />
+          {/* 탭 바(index=TAB_BAR_INDEX) — 사진까지 밀어 올려도 상단에 고정돼 탭 전환이 가능하다(CS-3). */}
+          <CampSiteDetailTabBarView
+            selectedTab={selectedTab}
+            onSelectTab={handleSelectTab}
+          />
 
-            <View style={styles.tabContent}>
-              {selectedTab === CampSiteDetailTab.Overview ? (
-                <CampSiteOverviewTabView spot={spot} />
-              ) : null}
-              {selectedTab === CampSiteDetailTab.Weather ? (
-                <CampSiteWeatherTabView campSiteWeather={campSiteWeather} />
-              ) : null}
-              {selectedTab === CampSiteDetailTab.Review ? (
-                <CampSiteReviewTabView campSiteDetail={campSiteDetail} />
-              ) : null}
-            </View>
+          {/* 탭 콘텐츠 — 별도 중첩 스크롤 없이 바깥 스크롤에 이어 그린다(CS-3). */}
+          <View style={styles.tabContent}>
+            {selectedTab === CampSiteDetailTab.Overview ? (
+              <CampSiteOverviewTabView spot={spot} />
+            ) : null}
+            {selectedTab === CampSiteDetailTab.Weather ? (
+              <CampSiteWeatherTabView campSiteWeather={campSiteWeather} />
+            ) : null}
+            {selectedTab === CampSiteDetailTab.Review ? (
+              <CampSiteReviewTabView campSiteDetail={campSiteDetail} />
+            ) : null}
           </View>
-        )}
+        </ScrollView>
 
-        {/* 박지 단위의 주 액션이라 어느 탭에서도 닿도록 하단에 고정한다(CS-3/CS-5).
+        {/* 박지 단위의 주 액션이라 어느 탭·스크롤 위치에서도 닿도록 하단에 고정한다(CS-3/CS-5).
             여행지 허브에서 연 상세는 이미 이 배낭의 여행지라 이 버튼을 숨긴다(DST-8). */}
         {showSetBag ? (
           <View style={styles.bottomBar}>
@@ -192,16 +176,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Color.background,
   },
-  // 탭 콘텐츠에 경계를 줘야 안쪽 ScrollView가 시트 높이 안에서 스크롤된다.
-  tabSection: {
+  scroll: {
     flex: 1,
   },
   tabContent: {
-    flex: 1,
-  },
-  // peek에서 헤더와 CTA 사이 여백. 남는 높이를 먹어 CTA를 아래에 붙인다.
-  peekSpacer: {
-    flex: 1,
+    paddingBottom: 12,
   },
   bottomBar: {
     paddingHorizontal: 20,
