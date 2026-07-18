@@ -1,5 +1,6 @@
 import CampSiteType from './CampSiteType';
 import CampSiteTag from './CampSiteTag';
+import CampSiteDetailTab from './CampSiteDetailTab';
 
 // 박지 상세(CampSite CS-3/CS-4)에서 쓰는 표시 라벨·문구 매핑.
 
@@ -37,6 +38,17 @@ const TYPE_COLOR: Record<CampSiteType, string> = {
   [CampSiteType.Campground]: '#FFD700',
   [CampSiteType.Shelter]: '#50C878',
   [CampSiteType.Wild]: '#4A90E2',
+};
+
+// 상세 시트 탭 바의 표시 라벨(CS-3).
+const DETAIL_TAB_LABEL: Record<CampSiteDetailTab, string> = {
+  [CampSiteDetailTab.Overview]: '개요',
+  [CampSiteDetailTab.Weather]: '날씨',
+  [CampSiteDetailTab.Review]: '후기',
+};
+
+export const getCampSiteDetailTabLabel = (tab: CampSiteDetailTab): string => {
+  return DETAIL_TAB_LABEL[tab] ?? '';
 };
 
 export const getCampSiteTypeLabel = (type: CampSiteType): string => {

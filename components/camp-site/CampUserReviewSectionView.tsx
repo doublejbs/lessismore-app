@@ -45,22 +45,25 @@ const CampUserReviewSectionView: FC<Props> = ({ campSiteDetail }) => {
 
   return (
     <View style={styles.section}>
-      <View style={styles.headerRow}>
-        <PretendardText style={styles.title} weight='semibold'>
-          후기
+      {/* 탭 이름이 이미 '후기'라 섹션 제목을 다시 달지 않는다 — 요약(또는 빈 상태 안내)이 헤더 역할(CS-8). */}
+      {summary ? (
+        <View style={styles.summaryRow}>
+          <StarRatingView rating={summary.ratingAvg} size={16} />
+          <PretendardText style={styles.summaryAvg} weight='semibold'>
+            {summary.ratingAvg.toFixed(1)}
+          </PretendardText>
+          <PretendardText style={styles.summaryCount}>
+            후기 {summary.reviewCount}개
+          </PretendardText>
+        </View>
+      ) : null}
+
+      {/* 안내 → 액션 순서라 빈 상태 문구를 작성 버튼보다 위에 둔다(CS-8). */}
+      {isEmpty ? (
+        <PretendardText style={styles.emptyText}>
+          첫 후기를 남겨보세요
         </PretendardText>
-        {summary ? (
-          <View style={styles.summaryRow}>
-            <StarRatingView rating={summary.ratingAvg} size={16} />
-            <PretendardText style={styles.summaryAvg} weight='semibold'>
-              {summary.ratingAvg.toFixed(1)}
-            </PretendardText>
-            <PretendardText style={styles.summaryCount}>
-              후기 {summary.reviewCount}개
-            </PretendardText>
-          </View>
-        ) : null}
-      </View>
+      ) : null}
 
       {/* 내 후기가 없을 때만 작성 버튼 노출 — 있으면 카드의 수정/삭제로 진입(중복 제거). */}
       {!myReview ? (
@@ -71,17 +74,13 @@ const CampUserReviewSectionView: FC<Props> = ({ campSiteDetail }) => {
           accessibilityRole='button'
           accessibilityLabel='후기 쓰기'
         >
-          <PretendardText style={styles.writeButtonText} weight='semibold'>
+          <PretendardText style={styles.writeButtonText} weight='medium'>
             후기 쓰기
           </PretendardText>
         </TouchableOpacity>
       ) : null}
 
-      {isEmpty ? (
-        <PretendardText style={styles.emptyText}>
-          첫 후기를 남겨보세요
-        </PretendardText>
-      ) : (
+      {!isEmpty ? (
         <View>
           {myReview ? (
             <CampUserReviewItemView
@@ -101,7 +100,7 @@ const CampUserReviewSectionView: FC<Props> = ({ campSiteDetail }) => {
             />
           ))}
         </View>
-      )}
+      ) : null}
 
       {/* 아래 '블로그·영상' 섹션과 경계를 명확히 하는 구분선(CS-8 디자인 리뷰). */}
       <View style={styles.divider} />
@@ -113,16 +112,6 @@ const styles = StyleSheet.create({
   section: {
     gap: 12,
     marginTop: 4,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  title: {
-    fontSize: 15,
-    color: Color.textPrimary,
   },
   summaryRow: {
     flexDirection: 'row',
@@ -137,24 +126,26 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Color.textSecondary,
   },
+  // 하단 고정 CTA(배낭 여행지로 설정)와 폭이 같으면 주 액션이 둘로 보인다 —
+  // 내용 폭만 쓰는 보조 버튼으로 두되 터치 타깃은 44pt를 지킨다(CS-8).
   writeButton: {
+    alignSelf: 'flex-start',
     borderWidth: 1,
     borderColor: Color.chipBorder,
     borderRadius: Radius.card,
-    paddingVertical: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },
   writeButtonText: {
-    fontSize: 15,
-    color: Color.textPrimary,
+    fontSize: 14,
+    color: Color.textTertiary,
   },
   emptyText: {
-    paddingVertical: 24,
     fontSize: 14,
     color: Color.textSecondary,
-    textAlign: 'center',
   },
   divider: {
     height: 1,
