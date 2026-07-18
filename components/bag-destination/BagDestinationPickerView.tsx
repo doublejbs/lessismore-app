@@ -326,10 +326,15 @@ const BagDestinationPickerView: FC<Props> = observer(
             </SafeAreaView>
 
             {/* 등록된 박지 상세(CS-3)를 선택기 위에 pageSheet로 겹쳐 띄운다. 닫으면
-                선택 상태를 유지한 선택기로 돌아온다(DST-3). */}
+                선택 상태를 유지한 선택기로 돌아온다(DST-3). 상세의 '배낭 여행지로 설정'은
+                배낭 리스트를 열지 않고 이 박지를 현재 배낭에 바로 설정한다(= 이 박지로 설정). */}
             <CampSiteDetailOverlayView
               spotId={detailSpotId}
               onClose={() => setDetailSpotId(null)}
+              onSetBag={() => {
+                setDetailSpotId(null);
+                void handleConfirm();
+              }}
             />
           </View>
         </SafeAreaProvider>

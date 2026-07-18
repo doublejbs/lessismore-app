@@ -27,6 +27,10 @@ interface Props {
   // 오버레이(DST-3)에서 열렸을 때 닫기 동작 — 라우터 대신 오버레이 모달을 닫는다.
   // 없으면 기존대로 campSiteDetail.close()(router.back)를 쓴다.
   onClose?: (() => void) | undefined;
+  // 배낭 여행지로 설정 동작 오버라이드(DST-3) — 여행지 선택기에서 연 상세는
+  // 배낭 리스트를 열지 않고 현재 배낭에 바로 설정한다(= 이 박지로 설정).
+  // 없으면 기존대로 배낭 선택 시트를 연다(지도 탭 진입, CS-5).
+  onSetBag?: (() => void) | undefined;
 }
 
 // 탭 바까지 넣으려면 이 정도는 있어야 한다(헤더 약 92 + 탭 바 약 50 + CTA 약 84 + 콘텐츠 여유).
@@ -42,6 +46,7 @@ const CampSiteDetailView: FC<Props> = ({
   campSiteDetail,
   onMoveToSpot,
   onClose,
+  onSetBag,
 }) => {
   const spot = campSiteDetail.getSpot();
   // 시트 높이. contentStyle의 bottom: 0 덕에 이 컨테이너가 시트 높이를 그대로 갖고,
@@ -74,6 +79,12 @@ const CampSiteDetailView: FC<Props> = ({
   };
 
   const handlePressSetBag = () => {
+    if (onSetBag) {
+      onSetBag();
+
+      return;
+    }
+
     void campSiteDetail.openBagSheet();
   };
 
