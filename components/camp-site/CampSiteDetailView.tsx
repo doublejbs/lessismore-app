@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
@@ -33,9 +32,6 @@ interface Props {
 // 확장할 때 CTA가 제자리에 머물러 나타나는 건 탭 영역뿐이라 전환이 덜 튄다.
 // 그래서 최소 detent는 헤더 92 + CTA 84가 들어가는 0.24다(0.2=약 163pt에는 CTA가 잘린다).
 const FULL_LAYOUT_MIN_HEIGHT = 260;
-
-// 탭 영역이 나타날 때 페이드 — 임계값을 넘는 순간 툭 튀어나오지 않게.
-const TAB_FADE_DURATION = 160;
 
 // 박지 상세 시트(CS-3) — 고정 영역(헤더·제목·탭 바) + 탭 콘텐츠 + 고정 CTA.
 // 스크롤은 각 탭 콘텐츠 안에서만 일어난다(고정 영역은 스크롤되지 않는다).
@@ -105,15 +101,14 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail, onMoveToSpot }) => {
           onPressClose={handlePressClose}
         />
 
-        {/* peek(최소 detent)에서는 탭 영역을 접는다 — 헤더와 CTA만으로도 높이가 꽉 찬다. */}
+        {/* peek(최소 detent)에서는 탭 영역을 접는다 — 헤더와 CTA만으로도 높이가 꽉 찬다.
+            reanimated 레이아웃 애니메이션(FadeIn/FadeOut)은 여기서 쓰지 않는다 — 레거시
+            아키텍처에서 formSheet 전환(마커 A→B의 router.replace)과 겹치면 네이티브
+            UI 매니저가 크래시한다(RCTUIManager flushUIBlocksWithCompletion). */}
         {isPeek ? (
           <View style={styles.peekSpacer} />
         ) : (
-          <Animated.View
-            style={styles.tabSection}
-            entering={FadeIn.duration(TAB_FADE_DURATION)}
-            exiting={FadeOut.duration(TAB_FADE_DURATION)}
-          >
+          <View style={styles.tabSection}>
             <CampSiteDetailTabBarView
               selectedTab={selectedTab}
               onSelectTab={handleSelectTab}
@@ -130,7 +125,7 @@ const CampSiteDetailView: FC<Props> = ({ campSiteDetail, onMoveToSpot }) => {
                 <CampSiteReviewTabView campSiteDetail={campSiteDetail} />
               ) : null}
             </View>
-          </Animated.View>
+          </View>
         )}
 
         {/* 박지 단위의 주 액션이라 어느 탭에서도 닿도록 하단에 고정한다(CS-3/CS-5). */}

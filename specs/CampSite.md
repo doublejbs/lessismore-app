@@ -64,7 +64,7 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
   - **높이·확장**: `sheetAllowedDetents: [0.24, 0.4, 1]` — **기본은 40%**(`sheetInitialDetentIndex: 1`)이고, 위아래로 끌어 peek · 40% · 최대로 전환한다(네이티브 시트 기본 동작). 핸들바(`sheetGrabberVisible`) 노출, 모서리 radius 20.
   - **최소(peek)에서는 탭 영역을 접는다** — 이 높이에는 헤더 · 탭 바 · 고정 CTA가 다 들어가지 않아 그대로 그리면 **CTA가 잘린다**. 시트 높이가 임계값(260pt) 미만이면 **탭 바·탭 콘텐츠를 접고 헤더와 CTA만 남긴다** — 이름 + 주 액션만 있는 컴팩트 카드가 되고, 지도를 보는 상태라 의도에도 맞다.
     - **헤더와 CTA는 peek에서도 남긴다**: 확장할 때 CTA가 제자리에 머물러 나타나는 건 탭 영역뿐이라 전환이 덜 튄다. 그래서 최소 detent는 헤더(약 92pt) + CTA(약 84pt)가 들어가는 **0.24**다 — 0.2(약 163pt)로는 CTA가 잘린다.
-    - 탭 영역은 임계값을 넘는 순간 툭 나타나지 않게 **페이드**(160ms)로 들어오고 나간다.
+    - 탭 영역 등장·퇴장에 **reanimated 레이아웃 애니메이션(FadeIn/FadeOut)을 쓰지 않는다** — 레거시 아키텍처에서 formSheet 전환(마커 A→B의 `router.replace`)과 겹치면 네이티브 UI 매니저가 크래시한다(`RCTUIManager flushUIBlocksWithCompletion`).
     - 시트 높이는 루트 컨테이너의 `onLayout`으로 안다 — `contentStyle`의 `bottom: 0`(아래 항목) 덕에 그 컨테이너가 시트 높이를 그대로 갖고, 사용자가 detent를 끌면 네이티브가 프레임을 바꿔 다시 들어온다. (`sheetDetentChange` 이벤트 구독은 동작하지 않았다.)
   - **뒤 지도는 계속 조작 가능**: `sheetLargestUndimmedDetentIndex: 'last'`로 딤을 없애 시트가 떠 있는 동안 지도를 패닝·줌할 수 있다.
   - **닫힘**: 아래로 스와이프 또는 시트 좌상단 **닫기(X)** → 시트가 닫히고 마커 선택 강조가 해제된다. 지도 빈 곳 탭도 선택을 해제한다.
