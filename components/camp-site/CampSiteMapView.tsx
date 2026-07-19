@@ -310,15 +310,16 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
 
   // 즐겨찾기 리스트 항목 탭(CS-9) — 시트를 닫지 않고 유지한 채 그 박지로 카메라를 이동하고,
   // 시트를 최소 높이(20%)로 낮춰 지도의 그 마커가 드러나게 한다(선택 후 지도 확인 흐름).
-  // 리스트 항목 탭 → 시트를 닫지 않고 그 박지로 카메라만 이징한다(줌 유지, 마커 탭과 동일 로직).
-  // 시트를 더 낮춰 지도를 보고 싶으면 사용자가 핸들바로 끌어 내린다(CS-9).
+  // 리스트 항목 탭 → 시트를 닫지 않고 그 박지로 카메라를 이징한다(CS-9).
+  // 즐겨찾기는 화면 밖 멀리일 수 있어 현재 줌을 유지하지 않고, 검색 결과 선택과 같은
+  // 근접 줌(deltaToZoom 0.05)으로 맞춰 그 박지가 잘 보이게 한다.
   const handleSelectFavorite = useCallback(
     (spot: CampSpot) => {
       moveCamera({
         latitude: spot.location.latitude,
         longitude: spot.location.longitude,
-        zoom: zoomRef.current,
-        duration: 400,
+        zoom: deltaToZoom(0.05),
+        duration: 500,
       });
     },
     [moveCamera]
