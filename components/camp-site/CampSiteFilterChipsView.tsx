@@ -14,24 +14,23 @@ import CampSiteFavoriteChipView from './CampSiteFavoriteChipView';
 
 interface Props {
   campSiteMap: CampSiteMap;
-  // ★ 칩 노출 여부(CS-9). 지도 탭은 항상 노출하고 자체 로그인 가드를 onPressFavorite에
-  //   담아 넘긴다. 선택기(DST-3)는 즐겨찾기 1건 이상일 때만 노출한다.
+  // ★ 칩 노출 여부(CS-9). 지도 탭은 하단 플로팅 버튼으로 옮겨 false를 넘기고, 선택기(DST-3)는
+  //   즐겨찾기 1건 이상일 때만 노출한다.
   showFavoriteChip: boolean;
-  // ★ 칩 press 동작 — 즐겨찾기 리스트 시트를 연다(CS-9). 지도 탭은 로그인 가드가 든 핸들러를,
-  //   선택기는 곧바로 시트를 여는 핸들러를 넘긴다.
-  onPressFavorite: () => void;
+  // ★ 칩 press 동작 — 즐겨찾기 리스트 시트를 연다(CS-9). showFavoriteChip일 때만 필요하다.
+  onPressFavorite?: (() => void) | undefined;
   // 유형·태그 필터 변경 직후 피드백(지도 탭의 결과 수 토스트, CS-2).
   //   선택기는 토스트를 띄우지 않아 넘기지 않는다(DST-3).
   onChangeFilter?: (() => void) | undefined;
 }
 
 // 유형 필터(CS-2) — 단일 선택, 백패킹(wild)→대피소→캠핑장(campground) 순. 칩의 색 도트가 지도 마커 색 범례를 겸한다.
+// 백패킹(Wild)을 맨 앞에 둔다 — UL 백패킹 앱이라 주 관심 유형을 첫 칩으로 노출한다.
 const TYPE_FILTERS: {
   label: string;
   value: CampSiteType | null;
   dotColor?: string;
 }[] = [
-  { label: '전체', value: null },
   ...([
     CampSiteType.Wild,
     CampSiteType.Shelter,
@@ -41,6 +40,7 @@ const TYPE_FILTERS: {
     value: type,
     dotColor: getCampSiteTypeColor(type),
   })),
+  { label: '전체', value: null },
 ];
 
 // 태그 필터(CS-2) — `#` 접두로 유형과 축을 구분하고, 재탭으로 해제(토글)한다.
@@ -99,7 +99,7 @@ const CampSiteFilterChipsView: FC<Props> = observer(
       <View style={styles.container}>
         <View style={styles.filterRow}>
           {/* ★ 칩(CS-9): 유형 칩 1행의 `전체` 앞. 탭 시 즐겨찾기 리스트 시트를 연다(지도 미필터). */}
-          {showFavoriteChip && (
+          {showFavoriteChip && onPressFavorite && (
             <CampSiteFavoriteChipView onPress={onPressFavorite} />
           )}
           {TYPE_FILTERS.map(filter => (

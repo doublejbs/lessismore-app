@@ -25,14 +25,12 @@ interface Props {
   campSiteMap: CampSiteMap;
   // 검색 결과 탭 — 카메라 이동은 mapRef를 가진 부모(CampSiteMapView)가 수행한다.
   onSelectResult: (spot: CampSpot) => void;
-  // 즐겨찾기 리스트 시트 열기(CS-9) — 시트·항목 선택 흐름은 부모(CampSiteMapView)가 소유한다.
-  onOpenFavorites: () => void;
 }
 
 // 지도 상단 오버레이(CS-2/CS-6): 검색 인풋/드롭다운 + 유형 필터 칩 + 로드 실패 배너 + 로딩.
 // 지도 화면에서 분리된 observer라 검색 타이핑·필터 선택이 마커 레이어를 리렌더하지 않는다.
 const CampSiteMapTopOverlayView: FC<Props> = observer(
-  ({ campSiteMap, onSelectResult, onOpenFavorites }) => {
+  ({ campSiteMap, onSelectResult }) => {
     const query = campSiteMap.getQuery();
     const searchResults = campSiteMap.getSearchResults();
     const showSearchResults =
@@ -63,18 +61,6 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
       const name = parts.length > 0 ? parts.join(' ') : '박지';
 
       app.getToastManager()?.show({ message: `${name} ${count}곳` });
-    };
-
-    // ★ 칩(CS-9): 즐겨찾기 리스트 시트를 연다. 비로그인은 로그인 안내 후 중단하고,
-    // 로그인 상태면 즐겨찾기 0건이어도 빈 상태 시트를 띄운다(시트가 빈 상태를 처리).
-    const handlePressFavorite = () => {
-      if (!app.getFirebase().isLoggedIn()) {
-        app.getLogInAlertManager()?.show();
-
-        return;
-      }
-
-      onOpenFavorites();
     };
 
     // 검색 시작 시 요약 카드를 닫아 드롭다운과 카드가 동시에 뜨지 않게 한다.
@@ -202,14 +188,13 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
 
           {/* 검색 결과가 열려 있는 동안 필터 칩은 숨긴다 — 검색은 필터와 독립이라 무의미하고,
               드롭다운에 밀려 지도 한가운데 떠 보이는 문제(디자인 리뷰)를 막는다. */}
-          {/* 지도 탭은 ★ 칩을 항상 노출한다 — 탭 시 로그인 가드 후 즐겨찾기 리스트 시트를 열고
-              (handlePressFavorite), 유형·태그 필터 변경엔 결과 수 토스트(showResultToast)를 붙인다(CS-9/CS-2).
+          {/* 유형·태그 필터 칩(CS-2) — 변경 시 결과 수 토스트(showResultToast)를 붙인다.
+              ★ 즐겨찾기는 하단 오버레이 플로팅 버튼으로 옮겨 칩 행에선 노출하지 않는다(CS-9).
               선택기와 공용 뷰로 공유한다. */}
           {!showSearchResults && (
             <CampSiteFilterChipsView
               campSiteMap={campSiteMap}
-              showFavoriteChip
-              onPressFavorite={handlePressFavorite}
+              showFavoriteChip={false}
               onChangeFilter={showResultToast}
             />
           )}
