@@ -27,6 +27,9 @@ import CampSiteFavoritesSheetView from '@/components/camp-site/CampSiteFavorites
 import BagDestinationSearchResultsView from './BagDestinationSearchResultsView';
 import useBagDestinationPickerState from './useBagDestinationPickerState';
 
+// 즐겨찾기 상징 노랑 — 마커 캠핑장색과 동일한 시맨틱 리터럴(CS-9). 지도 탭 오버레이와 동일.
+const FAVORITE_COLOR = '#FFD700';
+
 interface Props {
   // 현재 저장된 여행지. 없으면 미설정 상태로 연다.
   currentLocation: BagLocation | null;
@@ -222,13 +225,9 @@ const BagDestinationPickerView: FC<Props> = observer(
               {/* 지도 탭과 동일한 필터 칩(DST-3) — 검색 카드 아래에 지도 위 오버레이로 얹는다.
                   칩은 자체 배경이 있어 지도 위에 떠도 시인성이 유지된다. 결과 드롭다운이 열리면
                   드롭다운과 겹치지 않게 숨기고, 마커가 없는 웹에서는 렌더하지 않는다.
-                  ★ 칩은 즐겨찾기 1건 이상일 때만 노출하고, 결과 수 토스트는 띄우지 않는다. */}
+                  ★ 즐겨찾기는 지도 탭과 동일하게 하단 현재 위치 버튼 위 플로팅 버튼으로 옮겨 칩 행에선 뺀다. */}
               {isMapSupported && !resultsVisible && (
-                <CampSiteFilterChipsView
-                  campSiteMap={campSiteMap}
-                  showFavoriteChip={campSiteMap.hasFavorites()}
-                  onPressFavorite={handleOpenFavorites}
-                />
+                <CampSiteFilterChipsView campSiteMap={campSiteMap} />
               )}
 
               {resultsVisible && (
@@ -245,6 +244,21 @@ const BagDestinationPickerView: FC<Props> = observer(
             <SafeAreaView edges={['bottom']} style={styles.bottomWrap}>
               {isMapSupported && (
                 <View style={styles.locateRow}>
+                  {/* ★ 즐겨찾기 — 현재 위치 버튼 위(CS-9). 즐겨찾기 1건 이상일 때만 노출한다
+                      (배낭은 로그인 전용이라 빈 상태는 사실상 없어 리스트를 곧바로 연다). */}
+                  {campSiteMap.hasFavorites() && (
+                    <TouchableOpacity
+                      style={styles.locateButton}
+                      onPress={handleOpenFavorites}
+                      disabled={saving}
+                      activeOpacity={0.8}
+                      accessibilityRole='button'
+                      accessibilityLabel='즐겨찾기 목록'
+                      accessibilityState={{ disabled: saving }}
+                    >
+                      <Ionicons name='star' size={22} color={FAVORITE_COLOR} />
+                    </TouchableOpacity>
+                  )}
                   <TouchableOpacity
                     style={styles.locateButton}
                     onPress={handleMoveToCurrentLocation}
@@ -460,6 +474,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: 16,
     marginBottom: 10,
+    gap: 12,
   },
   locateButton: {
     width: 48,

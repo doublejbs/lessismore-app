@@ -194,7 +194,6 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
           {!showSearchResults && (
             <CampSiteFilterChipsView
               campSiteMap={campSiteMap}
-              showFavoriteChip={false}
               onChangeFilter={showResultToast}
             />
           )}
