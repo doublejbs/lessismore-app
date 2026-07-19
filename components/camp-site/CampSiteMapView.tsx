@@ -345,6 +345,13 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   // 시트가 열려 있는 동안 지도에는 즐겨찾기 마커만 표시하고(favoriteOnly), 시트가 완전히 닫히면
   // 핸드오프의 onClose가 필터를 해제한다. 목록은 로드에 따라 늘 수 있어 지연 조회 함수로 넘긴다.
   const handleOpenFavorites = useCallback(() => {
+    // 비로그인은 로그인 안내 후 중단(CS-9). 로그인이면 즐겨찾기 0건이어도 빈 상태 시트를 연다.
+    if (!app.getFirebase().isLoggedIn()) {
+      app.getLogInAlertManager()?.show();
+
+      return;
+    }
+
     app.getAnalyticsManager()?.logClick('camp_site_favorites_open');
 
     campSiteMap.setFavoriteOnly(true);
@@ -498,13 +505,13 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       <CampSiteMapTopOverlayView
         campSiteMap={campSiteMap}
         onSelectResult={handleSelectResult}
-        onOpenFavorites={handleOpenFavorites}
       />
 
       <CampSiteMapBottomOverlayView
         bottomClearance={bottomClearance}
         locationGranted={locationGranted}
         onMoveToCurrentLocation={handleMoveToCurrentLocation}
+        onOpenFavorites={handleOpenFavorites}
       />
     </View>
   );
