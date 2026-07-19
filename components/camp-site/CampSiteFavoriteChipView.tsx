@@ -3,33 +3,24 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Color, Radius } from '@/constants/DesignTokens';
 
-// 즐겨찾기 등록 상태의 별 색(CS-9) — 마커 캠핑장색과 동일한 시맨틱 노랑 리터럴(브랜드 액센트 아님).
-const FAVORITE_STAR_COLOR = '#FFD700';
-
 interface Props {
-  selected: boolean;
   onPress: () => void;
 }
 
-// 지도 유형 칩 1행의 `전체` 앞에 두는 ★ 필터 칩(CS-9). 아이콘 전용이라
-// accessibilityLabel을 명시하고, 공용 CategoryChipView의 아웃라인 톤(비선택 테두리 /
-// 선택 검정 채움)을 그대로 따라 이웃 칩과 시각적으로 통일한다.
-const CampSiteFavoriteChipView: FC<Props> = ({ selected, onPress }) => {
+// 유형 칩 1행의 `전체` 앞에 두는 ★ 칩(CS-9). 필터가 아니라 즐겨찾기 리스트 시트를 여는
+// 액션 버튼이라 선택 상태가 없다. 아이콘 전용이라 accessibilityLabel을 명시하고,
+// 공용 CategoryChipView의 아웃라인 톤(비선택 테두리)을 그대로 따라 이웃 칩과 통일한다.
+const CampSiteFavoriteChipView: FC<Props> = ({ onPress }) => {
   return (
     <TouchableOpacity
-      style={[styles.chip, selected ? styles.chipSelected : styles.chipUnselected]}
+      style={styles.chip}
       onPress={onPress}
       activeOpacity={0.7}
       hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
       accessibilityRole='button'
-      accessibilityLabel='즐겨찾기만 보기'
-      accessibilityState={{ selected }}
+      accessibilityLabel='즐겨찾기 목록'
     >
-      <Ionicons
-        name={selected ? 'star' : 'star-outline'}
-        size={16}
-        color={selected ? FAVORITE_STAR_COLOR : Color.textSecondary}
-      />
+      <Ionicons name='star-outline' size={16} color={Color.textSecondary} />
     </TouchableOpacity>
   );
 };
@@ -45,14 +36,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  chipUnselected: {
     backgroundColor: Color.background,
     borderColor: Color.chipBorder,
-  },
-  chipSelected: {
-    backgroundColor: Color.chipActiveBg,
-    borderColor: Color.chipActiveBg,
   },
 });
 
