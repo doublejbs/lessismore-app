@@ -10,15 +10,9 @@ import {
   getCampSiteTypeLabel,
 } from '@/model/camp-site/CampSiteLabels';
 import CategoryChipView from '@/components/browse/CategoryChipView';
-import CampSiteFavoriteChipView from './CampSiteFavoriteChipView';
 
 interface Props {
   campSiteMap: CampSiteMap;
-  // ★ 칩 노출 여부(CS-9). 지도 탭은 하단 플로팅 버튼으로 옮겨 false를 넘기고, 선택기(DST-3)는
-  //   즐겨찾기 1건 이상일 때만 노출한다.
-  showFavoriteChip: boolean;
-  // ★ 칩 press 동작 — 즐겨찾기 리스트 시트를 연다(CS-9). showFavoriteChip일 때만 필요하다.
-  onPressFavorite?: (() => void) | undefined;
   // 유형·태그 필터 변경 직후 피드백(지도 탭의 결과 수 토스트, CS-2).
   //   선택기는 토스트를 띄우지 않아 넘기지 않는다(DST-3).
   onChangeFilter?: (() => void) | undefined;
@@ -51,11 +45,12 @@ const TAG_FILTERS: { label: string; value: CampSiteTag }[] = Object.values(
   value: tag,
 }));
 
-// 필터 칩 공용 뷰(CS-2/CS-9, DST-3): 1행 유형(★ + 전체/백패킹/대피소/캠핑장) +
+// 필터 칩 공용 뷰(CS-2, DST-3): 1행 유형(백패킹/대피소/캠핑장/전체) +
 // 2행 태그(#접두, 토글, 가로 스크롤). 지도 탭과 배낭 여행지 선택기가 함께 쓴다.
+// ★ 즐겨찾기는 하단 플로팅 버튼으로 옮겨 이 칩 행에선 다루지 않는다(CS-9).
 // 필터 상태는 넘겨받은 campSiteMap 인스턴스에 실려 마커 표시 대상에 AND로 적용된다.
 const CampSiteFilterChipsView: FC<Props> = observer(
-  ({ campSiteMap, showFavoriteChip, onPressFavorite, onChangeFilter }) => {
+  ({ campSiteMap, onChangeFilter }) => {
     // 선택 칩 시인성(CS-2): 스크롤되는 태그 행에서 가려진 칩을 선택해도 보이도록,
     // 칩별 x 위치를 기록해 두고 선택 시 행을 해당 위치로 스크롤한다.
     // (유형 행은 4칩이 스크롤 없이 화면에 다 들어가 불필요)
@@ -98,10 +93,6 @@ const CampSiteFilterChipsView: FC<Props> = observer(
     return (
       <View style={styles.container}>
         <View style={styles.filterRow}>
-          {/* ★ 칩(CS-9): 유형 칩 1행의 `전체` 앞. 탭 시 즐겨찾기 리스트 시트를 연다(지도 미필터). */}
-          {showFavoriteChip && onPressFavorite && (
-            <CampSiteFavoriteChipView onPress={onPressFavorite} />
-          )}
           {TYPE_FILTERS.map(filter => (
             <CategoryChipView
               key={filter.label}
