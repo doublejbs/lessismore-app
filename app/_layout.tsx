@@ -178,6 +178,22 @@ const RootLayout = () => {
               contentStyle: { backgroundColor: '#FFFFFF', bottom: 0 },
             }}
           />
+          {/* 즐겨찾기 리스트 시트(CS-9) — 박지 상세 시트와 동일한 formSheet 얼개.
+              기본 40%(sheetInitialDetentIndex: 1)로 뜨고, 위아래로 끌어 20%/100%로 조절한다.
+              contentStyle bottom: 0의 이유는 위 camp-site 주석 참고. */}
+          <Stack.Screen
+            name='camp-site-favorites'
+            options={{
+              headerShown: false,
+              presentation: 'formSheet',
+              sheetAllowedDetents: [0.2, 0.4, 1],
+              sheetInitialDetentIndex: 1,
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 20,
+              sheetLargestUndimmedDetentIndex: 'last',
+              contentStyle: { backgroundColor: '#FFFFFF', bottom: 0 },
+            }}
+          />
           <Stack.Screen
             name='bag-copy-source'
             options={{

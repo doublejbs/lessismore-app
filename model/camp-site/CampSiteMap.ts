@@ -25,6 +25,9 @@ class CampSiteMap {
   // 태그 필터(CS-2) — 유형 필터와 AND 결합. null = 전체.
   private selectedTag: CampSiteTag | null = null;
   private selectedSpot: CampSpot | null = null;
+  // 즐겨찾기 리스트 시트(CS-9)가 열려 있는 동안 지도에 즐겨찾기 마커만 표시하는 필터.
+  // 시트가 열리면 true, 닫히면 false로 되돌린다. 유형·태그 필터와 AND 결합한다.
+  private favoriteOnly = false;
   private query = '';
   // 검색 인풋 포커스 여부 — 드롭다운은 query가 있고 포커스 상태일 때만 표시(CS-6).
   // 검색 오버레이 컴포넌트와 지도 탭 핸들러가 함께 쓰므로 모델이 들고 있는다.
@@ -91,6 +94,10 @@ class CampSiteMap {
         this.selectedTag !== null &&
         !(spot.tags ?? []).includes(this.selectedTag)
       ) {
+        return false;
+      }
+
+      if (this.favoriteOnly && !this.favoriteStore.isFavorite(spot.id)) {
         return false;
       }
 
@@ -208,6 +215,15 @@ class CampSiteMap {
 
   public selectType(type: CampSiteType | null) {
     this.selectedType = type;
+  }
+
+  // 즐겨찾기 리스트 시트(CS-9) 열림/닫힘에 맞춰 즐겨찾기 전용 마커 필터를 토글한다.
+  public setFavoriteOnly(value: boolean) {
+    this.favoriteOnly = value;
+  }
+
+  public isFavoriteOnly(): boolean {
+    return this.favoriteOnly;
   }
 
   // 즐겨찾기 리스트 시트(CS-9)에 뿌릴 박지 목록 — 로드된 활성 박지와 즐겨찾기 id를 조인한다.
