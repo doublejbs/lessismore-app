@@ -24,6 +24,7 @@ import CampSiteMapMarkersView, {
 import CampSiteSelectedPulseView from './CampSiteSelectedPulseView';
 import CampSiteMapTopOverlayView from './CampSiteMapTopOverlayView';
 import CampSiteMapBottomOverlayView from './CampSiteMapBottomOverlayView';
+import CampSiteFavoritesSheetView from './CampSiteFavoritesSheetView';
 
 interface Props {
   campSiteMap: CampSiteMap;
@@ -75,6 +76,8 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   // 마커 레이어용 뷰포트. onCameraChanged는 이동 중 연속 발화하므로
   // 값을 양자화해 실질 변화가 있을 때만 리렌더되게 한다.
   const [viewport, setViewport] = useState<CampSiteMapViewport | null>(null);
+  // 즐겨찾기 리스트 시트(CS-9) 노출 여부. ★ 칩(상단 오버레이)이 로그인 가드 후 연다.
+  const [favoritesVisible, setFavoritesVisible] = useState(false);
 
   const flushPendingCamera = useCallback(() => {
     if (
@@ -307,6 +310,21 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     [moveCamera, openDetail]
   );
 
+  // 즐겨찾기 ★ 칩 → 리스트 시트 열기(CS-9). 로그인 가드는 상단 오버레이가 이미 통과시킨 뒤 호출한다.
+  const handleOpenFavorites = useCallback(() => {
+    app.getAnalyticsManager()?.logClick('camp_site_favorites_open');
+    setFavoritesVisible(true);
+  }, []);
+
+  // 즐겨찾기 리스트 항목 탭 → 시트를 닫고 마커 탭과 동일한 흐름(카메라 이동 + 상세)으로 이어간다(CS-9).
+  const handleSelectFavorite = useCallback(
+    (spot: CampSpot) => {
+      setFavoritesVisible(false);
+      handleMarkerTap(spot);
+    },
+    [handleMarkerTap]
+  );
+
   // 지도 빈 곳 터치 → 마커 선택 해제 + 키보드 dismiss(드롭다운 blur로 닫힘, CS-6).
   // 네이버는 마커 onTap과 지도 onTapMap이 분리돼 있어 별도 경합 방어가 필요 없다.
   const handleTapMap = useCallback(() => {
@@ -446,12 +464,21 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       <CampSiteMapTopOverlayView
         campSiteMap={campSiteMap}
         onSelectResult={handleSelectResult}
+        onOpenFavorites={handleOpenFavorites}
       />
 
       <CampSiteMapBottomOverlayView
         bottomClearance={bottomClearance}
         locationGranted={locationGranted}
         onMoveToCurrentLocation={handleMoveToCurrentLocation}
+      />
+
+      {/* 즐겨찾기 리스트 시트(CS-9) — 항목 탭 시 마커 탭과 동일한 카메라 이동 + 상세 흐름. */}
+      <CampSiteFavoritesSheetView
+        visible={favoritesVisible}
+        spots={campSiteMap.getFavoriteSpots()}
+        onClose={() => setFavoritesVisible(false)}
+        onSelect={handleSelectFavorite}
       />
     </View>
   );

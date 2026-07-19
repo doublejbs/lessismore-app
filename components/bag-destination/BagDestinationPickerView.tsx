@@ -15,12 +15,15 @@ import { observer } from 'mobx-react-lite';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
+import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import { getCampSiteTypeLabel } from '@/model/camp-site/CampSiteLabels';
 import CampSiteMapMarkersView from '@/components/camp-site/CampSiteMapMarkersView';
 import CampSiteFilterChipsView from '@/components/camp-site/CampSiteFilterChipsView';
 import CampSiteDetailOverlayView from '@/components/camp-site/CampSiteDetailOverlayView';
+import CampSiteFavoritesSheetView from '@/components/camp-site/CampSiteFavoritesSheetView';
 import BagDestinationSearchResultsView from './BagDestinationSearchResultsView';
 import useBagDestinationPickerState from './useBagDestinationPickerState';
 
@@ -42,6 +45,8 @@ const BagDestinationPickerView: FC<Props> = observer(
     const [campSiteMap] = useState(() => CampSiteMap.new());
     // 상세 오버레이(DST-3)로 띄울 박지 id. null이면 닫힘.
     const [detailSpotId, setDetailSpotId] = useState<string | null>(null);
+    // 즐겨찾기 리스트 시트(CS-9) 노출 여부. ★ 칩이 연다.
+    const [favoritesVisible, setFavoritesVisible] = useState(false);
     // 웹은 네이티브 지도 SDK를 못 써서 지도 탭(CS-1)과 같은 방식으로 렌더만 건너뛴다.
     // 카카오 장소 검색으로 고른 좌표는 그대로 확정할 수 있어 기존 웹 동작이 유지된다.
     const isMapSupported = Platform.OS !== 'web';
@@ -89,10 +94,17 @@ const BagDestinationPickerView: FC<Props> = observer(
       onClose();
     };
 
-    // 선택기의 ★ 칩(DST-3): 지도 탭과 달리 로그인·빈 상태 가드가 없다. 배낭은 로그인 전용이라
-    // 비로그인 상황이 없고, ★ 칩 자체가 즐겨찾기 1건 이상일 때만 노출되므로 단순 토글이면 된다.
-    const handleToggleFavorite = () => {
-      campSiteMap.setFavoriteOnly(!campSiteMap.isFavoriteOnly());
+    // 선택기의 ★ 칩(CS-9): 즐겨찾기 리스트 시트를 연다. 배낭은 로그인 전용이라 비로그인 가드가
+    // 없고, ★ 칩 자체가 즐겨찾기 1건 이상일 때만 노출되므로 빈 상태도 사실상 나오지 않는다.
+    const handleOpenFavorites = () => {
+      app.getAnalyticsManager()?.logClick('camp_site_favorites_open');
+      setFavoritesVisible(true);
+    };
+
+    // 리스트 항목 탭 → 시트를 닫고 그 박지를 선택한다(= 마커 탭과 동일, DST-3).
+    const handleSelectFavorite = (spot: CampSpot) => {
+      setFavoritesVisible(false);
+      handleSelectSpot(spot);
     };
 
     return (
@@ -215,7 +227,7 @@ const BagDestinationPickerView: FC<Props> = observer(
                 <CampSiteFilterChipsView
                   campSiteMap={campSiteMap}
                   showFavoriteChip={campSiteMap.hasFavorites()}
-                  onPressFavorite={handleToggleFavorite}
+                  onPressFavorite={handleOpenFavorites}
                 />
               )}
 
@@ -354,6 +366,15 @@ const BagDestinationPickerView: FC<Props> = observer(
                 setDetailSpotId(null);
                 void handleConfirm();
               }}
+            />
+
+            {/* 즐겨찾기 리스트 시트(CS-9)를 선택기 위에 pageSheet로 겹쳐 띄운다. 항목 탭 시
+                시트를 닫고 그 박지를 선택한다(= 마커 탭). 배낭은 로그인 전용이라 빈 상태는 사실상 없다. */}
+            <CampSiteFavoritesSheetView
+              visible={favoritesVisible}
+              spots={campSiteMap.getFavoriteSpots()}
+              onClose={() => setFavoritesVisible(false)}
+              onSelect={handleSelectFavorite}
             />
           </View>
         </SafeAreaProvider>

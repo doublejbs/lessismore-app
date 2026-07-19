@@ -14,11 +14,11 @@ import CampSiteFavoriteChipView from './CampSiteFavoriteChipView';
 
 interface Props {
   campSiteMap: CampSiteMap;
-  // ★ 칩 노출 여부(CS-9). 지도 탭은 항상 노출하고 자체 로그인/빈 상태 가드를
-  //   onPressFavorite에 담아 넘긴다. 선택기(DST-3)는 즐겨찾기 1건 이상일 때만 노출한다.
+  // ★ 칩 노출 여부(CS-9). 지도 탭은 항상 노출하고 자체 로그인 가드를 onPressFavorite에
+  //   담아 넘긴다. 선택기(DST-3)는 즐겨찾기 1건 이상일 때만 노출한다.
   showFavoriteChip: boolean;
-  // ★ 칩 press 동작. 지도 탭은 로그인/빈 상태 가드가 든 핸들러를,
-  //   선택기는 단순 토글을 넘긴다.
+  // ★ 칩 press 동작 — 즐겨찾기 리스트 시트를 연다(CS-9). 지도 탭은 로그인 가드가 든 핸들러를,
+  //   선택기는 곧바로 시트를 여는 핸들러를 넘긴다.
   onPressFavorite: () => void;
   // 유형·태그 필터 변경 직후 피드백(지도 탭의 결과 수 토스트, CS-2).
   //   선택기는 토스트를 띄우지 않아 넘기지 않는다(DST-3).
@@ -98,12 +98,9 @@ const CampSiteFilterChipsView: FC<Props> = observer(
     return (
       <View style={styles.container}>
         <View style={styles.filterRow}>
-          {/* ★ 칩(CS-9): 유형 칩 1행의 `전체` 앞. 선택 시 즐겨찾기 박지만 마커 표시. */}
+          {/* ★ 칩(CS-9): 유형 칩 1행의 `전체` 앞. 탭 시 즐겨찾기 리스트 시트를 연다(지도 미필터). */}
           {showFavoriteChip && (
-            <CampSiteFavoriteChipView
-              selected={campSiteMap.isFavoriteOnly()}
-              onPress={onPressFavorite}
-            />
+            <CampSiteFavoriteChipView onPress={onPressFavorite} />
           )}
           {TYPE_FILTERS.map(filter => (
             <CategoryChipView
