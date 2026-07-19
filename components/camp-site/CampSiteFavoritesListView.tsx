@@ -183,9 +183,8 @@ const styles = StyleSheet.create({
     color: Color.textTertiary,
   },
   rowRegion: {
-    flex: 1,
+    flexShrink: 1,
     fontSize: 13,
-    textAlign: 'right',
     color: Color.textSecondary,
   },
   emptyWrap: {
