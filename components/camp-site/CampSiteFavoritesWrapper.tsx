@@ -45,6 +45,10 @@ const CampSiteFavoritesWrapper: FC = () => {
     sheetParams?.onSelect(spot);
   };
 
+  const handleOpenDetail = (spot: CampSpot) => {
+    sheetParams?.onOpenDetail(spot);
+  };
+
   // 닫기 버튼(CS-9) — 시트를 닫아 지도로 돌아간다(unmount 시 필터 해제).
   const handleClose = () => {
     router.back();
@@ -56,6 +60,7 @@ const CampSiteFavoritesWrapper: FC = () => {
         <CampSiteFavoritesListView
           spots={spots}
           onSelect={handleSelect}
+          onOpenDetail={handleOpenDetail}
           onClose={handleClose}
         />
       </Layout>

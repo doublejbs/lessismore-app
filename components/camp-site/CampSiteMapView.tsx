@@ -310,10 +310,24 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     [moveCamera, openDetail]
   );
 
-  // 즐겨찾기 리스트 항목 탭(CS-9) — 즐겨찾기 시트를 그 박지 상세로 교체하고(forceReplace),
-  // 그 박지로 카메라를 이동한다. 즐겨찾기는 화면 밖 멀리일 수 있어 현재 줌을 유지하지 않고
-  // 검색 결과 선택과 같은 근접 줌(deltaToZoom 0.05)으로 맞춰 그 박지가 잘 보이게 한다.
+  // 즐겨찾기 리스트 항목 본체 탭(CS-9) — 시트를 유지한 채 그 박지로 카메라만 이동한다.
+  // 즐겨찾기는 화면 밖 멀리일 수 있어 현재 줌을 유지하지 않고, 검색 결과 선택과 같은
+  // 근접 줌(deltaToZoom 0.05)으로 맞춰 그 박지가 잘 보이게 한다.
   const handleSelectFavorite = useCallback(
+    (spot: CampSpot) => {
+      moveCamera({
+        latitude: spot.location.latitude,
+        longitude: spot.location.longitude,
+        zoom: deltaToZoom(0.05),
+        duration: 500,
+      });
+    },
+    [moveCamera]
+  );
+
+  // 즐겨찾기 리스트 항목의 상세 버튼 탭(CS-9) — 즐겨찾기 시트를 그 박지 상세로 교체하고
+  // (forceReplace로 위로 쌓지 않음) 근접 줌으로 이동한다.
+  const handleOpenFavoriteDetail = useCallback(
     (spot: CampSpot) => {
       openDetail(spot, true);
 
@@ -338,11 +352,12 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     setCampSiteFavoritesSheet({
       getSpots: () => campSiteMap.getFavoriteSpots(),
       onSelect: handleSelectFavorite,
+      onOpenDetail: handleOpenFavoriteDetail,
       onClose: () => campSiteMap.setFavoriteOnly(false),
     });
 
     router.push('/camp-site-favorites');
-  }, [campSiteMap, handleSelectFavorite, router]);
+  }, [campSiteMap, handleSelectFavorite, handleOpenFavoriteDetail, router]);
 
   // 지도 빈 곳 터치 → 마커 선택 해제 + 키보드 dismiss(드롭다운 blur로 닫힘, CS-6).
   // 네이버는 마커 onTap과 지도 onTapMap이 분리돼 있어 별도 경합 방어가 필요 없다.
