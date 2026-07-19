@@ -250,8 +250,10 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   // 박지 선택(CS-2): 마커 강조 + 상세 시트 오픈. 시트가 닫히면 강조를 해제한다.
   // 시트는 딤이 없어(sheetLargestUndimmedDetentIndex) 뒤 지도를 계속 조작할 수 있다 —
   // 즉 시트가 떠 있는 채로 다른 마커를 탭할 수 있으므로, 그때는 기존 시트를 닫고 새로 연다.
+  // forceReplace: 즐겨찾기 시트 등 다른 시트가 떠 있는 상태에서 상세로 갈 때, 그 시트를
+  // 상세로 교체한다(위로 쌓지 않음). 상세끼리 교체는 기존대로 isCampSiteDetailSheetOpen로 판단.
   const openDetail = useCallback(
-    (spot: CampSpot) => {
+    (spot: CampSpot, forceReplace = false) => {
       campSiteMap.selectSpot(spot);
 
       setCampSiteDetailSheet({
@@ -264,7 +266,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         },
       });
 
-      if (isCampSiteDetailSheetOpen()) {
+      if (forceReplace || isCampSiteDetailSheetOpen()) {
         router.replace(`/camp-site/${spot.id}`);
 
         return;
@@ -308,13 +310,13 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     [moveCamera, openDetail]
   );
 
-  // 즐겨찾기 리스트 항목 탭(CS-9) — 시트를 닫지 않고 유지한 채 그 박지로 카메라를 이동하고,
-  // 시트를 최소 높이(20%)로 낮춰 지도의 그 마커가 드러나게 한다(선택 후 지도 확인 흐름).
-  // 리스트 항목 탭 → 시트를 닫지 않고 그 박지로 카메라를 이징한다(CS-9).
-  // 즐겨찾기는 화면 밖 멀리일 수 있어 현재 줌을 유지하지 않고, 검색 결과 선택과 같은
-  // 근접 줌(deltaToZoom 0.05)으로 맞춰 그 박지가 잘 보이게 한다.
+  // 즐겨찾기 리스트 항목 탭(CS-9) — 즐겨찾기 시트를 그 박지 상세로 교체하고(forceReplace),
+  // 그 박지로 카메라를 이동한다. 즐겨찾기는 화면 밖 멀리일 수 있어 현재 줌을 유지하지 않고
+  // 검색 결과 선택과 같은 근접 줌(deltaToZoom 0.05)으로 맞춰 그 박지가 잘 보이게 한다.
   const handleSelectFavorite = useCallback(
     (spot: CampSpot) => {
+      openDetail(spot, true);
+
       moveCamera({
         latitude: spot.location.latitude,
         longitude: spot.location.longitude,
@@ -322,7 +324,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         duration: 500,
       });
     },
-    [moveCamera]
+    [moveCamera, openDetail]
   );
 
   // 즐겨찾기 ★ 칩 → 리스트 시트 열기(CS-9). 로그인 가드는 상단 오버레이가 이미 통과시킨 뒤 호출한다.
