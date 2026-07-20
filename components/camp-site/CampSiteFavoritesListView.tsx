@@ -4,7 +4,10 @@ import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
-import { getCampSiteTypeLabel } from '@/model/camp-site/CampSiteLabels';
+import {
+  getCampSiteTypeLabel,
+  getCampSpotRegionLabel,
+} from '@/model/camp-site/CampSiteLabels';
 
 interface Props {
   // 즐겨찾기한 박지 목록(campSiteMap.getFavoriteSpots()). 로드된 활성 박지와 즐겨찾기 id 조인 결과.
@@ -56,7 +59,7 @@ const CampSiteFavoritesListView: FC<Props> = ({
             </PretendardText>
           </View>
           <PretendardText style={styles.rowRegion} numberOfLines={1}>
-            {item.region}
+            {getCampSpotRegionLabel(item)}
           </PretendardText>
         </TouchableOpacity>
 

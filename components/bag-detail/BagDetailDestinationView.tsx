@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
@@ -6,8 +6,8 @@ import { useRouter } from 'expo-router';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
+import { setBagDestinationPicker } from '@/model/bag-destination/BagDestinationPickerHandoff';
 import PretendardText from '@/components/PretendardText';
-import BagDestinationPickerView from '@/components/bag-destination/BagDestinationPickerView';
 import { Color, Radius } from '@/constants/DesignTokens';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 
@@ -20,26 +20,31 @@ interface Props {
 // 미설정이면 중간 날씨 화면을 거치지 않고 공용 선택기를 바로 연다.
 const BagDetailDestinationView: FC<Props> = ({ bagDetail, emphasized = false }) => {
   const router = useRouter();
-  const [pickerVisible, setPickerVisible] = useState(false);
   const bagWeather = bagDetail.getBagWeather();
   const location = bagWeather.getLocation();
-
-  const handlePress = () => {
-    app.getAnalyticsManager()?.logClick('bag_weather');
-
-    if (!location) {
-      setPickerVisible(true);
-
-      return;
-    }
-
-    router.push(`/bag/${bagDetail.getId()}/weather`);
-  };
 
   // 저장 성공 시 BagWeather가 갱신돼 이 타일도 곧바로 새 여행지·날씨를 반영한다.
   // 실패는 선택기가 알리고 열린 채 유지하도록 그대로 던진다(DST-6).
   const handleConfirmLocation = async (next: BagLocation) => {
     await bagWeather.updateLocation(next);
+  };
+
+  const handlePress = () => {
+    app.getAnalyticsManager()?.logClick('bag_weather');
+
+    if (!location) {
+      // 공용 선택기(DST-3)는 라우트라 저장 콜백을 모듈 레벨 핸드오프로 넘기고 push한다.
+      setBagDestinationPicker({
+        currentLocation: null,
+        onConfirm: handleConfirmLocation,
+      });
+
+      router.push('/bag-destination-picker');
+
+      return;
+    }
+
+    router.push(`/bag/${bagDetail.getId()}/weather`);
   };
 
   // 여행 기간에 해당하는 일자만으로 요약(스냅샷이 옛 더 넓은 기간을 담고 있어도 기간으로 제한).
@@ -61,82 +66,67 @@ const BagDetailDestinationView: FC<Props> = ({ bagDetail, emphasized = false }) 
         : null
     : '여행지 선택';
 
-  const picker = (
-    <BagDestinationPickerView
-      currentLocation={location}
-      visible={pickerVisible}
-      onClose={() => setPickerVisible(false)}
-      onConfirm={handleConfirmLocation}
-    />
-  );
-
   // 강조 타일은 전체 폭 가로 카드 — 아이콘 좌측, 여행지·날씨 우측.
   if (emphasized) {
     return (
-      <>
-        <TouchableOpacity
-          style={[styles.tile, styles.tileEmphasized, styles.tileFull]}
-          onPress={handlePress}
-          activeOpacity={0.7}
-          accessibilityRole='button'
-          accessibilityLabel={location ? `여행지 ${location.name}` : '여행지 선택'}
-        >
-          <View style={styles.emphRow}>
-            <Ionicons name={iconName} size={26} color={fg} />
-            <View style={styles.emphMain}>
-              <PretendardText
-                style={[styles.title, { color: fg }]}
-                weight='semibold'
-                numberOfLines={1}
-              >
-                {title}
-              </PretendardText>
-              {subtitle && (
-                <PretendardText
-                  style={[styles.subtitle, { color: subFg }]}
-                  numberOfLines={1}
-                >
-                  {subtitle}
-                </PretendardText>
-              )}
-            </View>
-          </View>
-        </TouchableOpacity>
-        {picker}
-      </>
-    );
-  }
-
-  return (
-    <>
       <TouchableOpacity
-        style={styles.tile}
+        style={[styles.tile, styles.tileEmphasized, styles.tileFull]}
         onPress={handlePress}
         activeOpacity={0.7}
         accessibilityRole='button'
         accessibilityLabel={location ? `여행지 ${location.name}` : '여행지 선택'}
       >
-        <Ionicons name={iconName} size={24} color={fg} />
-        <View style={styles.textWrap}>
-          <PretendardText
-            style={[styles.title, { color: fg }]}
-            weight='semibold'
-            numberOfLines={1}
-          >
-            {title}
-          </PretendardText>
-          {subtitle && (
+        <View style={styles.emphRow}>
+          <Ionicons name={iconName} size={26} color={fg} />
+          <View style={styles.emphMain}>
             <PretendardText
-              style={[styles.subtitle, { color: subFg }]}
+              style={[styles.title, { color: fg }]}
+              weight='semibold'
               numberOfLines={1}
             >
-              {subtitle}
+              {title}
             </PretendardText>
-          )}
+            {subtitle && (
+              <PretendardText
+                style={[styles.subtitle, { color: subFg }]}
+                numberOfLines={1}
+              >
+                {subtitle}
+              </PretendardText>
+            )}
+          </View>
         </View>
       </TouchableOpacity>
-      {picker}
-    </>
+    );
+  }
+
+  return (
+    <TouchableOpacity
+      style={styles.tile}
+      onPress={handlePress}
+      activeOpacity={0.7}
+      accessibilityRole='button'
+      accessibilityLabel={location ? `여행지 ${location.name}` : '여행지 선택'}
+    >
+      <Ionicons name={iconName} size={24} color={fg} />
+      <View style={styles.textWrap}>
+        <PretendardText
+          style={[styles.title, { color: fg }]}
+          weight='semibold'
+          numberOfLines={1}
+        >
+          {title}
+        </PretendardText>
+        {subtitle && (
+          <PretendardText
+            style={[styles.subtitle, { color: subFg }]}
+            numberOfLines={1}
+          >
+            {subtitle}
+          </PretendardText>
+        )}
+      </View>
+    </TouchableOpacity>
   );
 };
 

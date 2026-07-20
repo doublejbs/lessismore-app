@@ -10,7 +10,10 @@ import PretendardText from '@/components/PretendardText';
 import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 import { GeocodeResult } from '@/model/bag-destination/GeocodeResult';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
-import { getCampSiteTypeLabel } from '@/model/camp-site/CampSiteLabels';
+import {
+  getCampSiteTypeLabel,
+  getCampSpotRegionLabel,
+} from '@/model/camp-site/CampSiteLabels';
 
 interface Props {
   spots: CampSpot[];
@@ -50,7 +53,7 @@ const BagDestinationSearchResultsView: FC<Props> = ({
                 onPress={() => onSelectSpot(spot)}
                 activeOpacity={0.7}
                 accessibilityRole='button'
-                accessibilityLabel={`박지 ${spot.name}, ${spot.region}`}
+                accessibilityLabel={`박지 ${spot.name}, ${getCampSpotRegionLabel(spot)}`}
               >
                 <View style={styles.badge}>
                   <PretendardText style={styles.badgeText} weight='semibold'>
@@ -66,7 +69,8 @@ const BagDestinationSearchResultsView: FC<Props> = ({
                     {spot.name}
                   </PretendardText>
                   <PretendardText style={styles.rowSubtitle} numberOfLines={1}>
-                    {getCampSiteTypeLabel(spot.type)} · {spot.region}
+                    {getCampSiteTypeLabel(spot.type)} ·{' '}
+                    {getCampSpotRegionLabel(spot)}
                   </PretendardText>
                 </View>
               </TouchableOpacity>

@@ -3,7 +3,7 @@ import app from '../app/App';
 import CampSiteType from './CampSiteType';
 import CampSiteTag from './CampSiteTag';
 import { CampSpot } from './CampSpotTypes';
-import { getCampSiteTagLabel } from './CampSiteLabels';
+import { getCampSiteTagLabel, getCampSpotRegionLabel } from './CampSiteLabels';
 import CampSiteMapDispatcher from './CampSiteMapDispatcher';
 import CampFavoriteStore from '../store/CampFavoriteStore';
 
@@ -116,7 +116,9 @@ class CampSiteMap {
 
     const matched = this.spots.filter(spot => {
       const name = spot.name.toLowerCase();
-      const region = spot.region.toLowerCase();
+      // 지역은 표시와 동일하게 시/도 + 시/군/구를 함께 대상으로 삼는다(DM-17).
+      // `평창`처럼 시군구만 입력해도 찾히게 하려는 의도적 확대이며, 기존 시/도 검색은 그대로 동작한다.
+      const region = getCampSpotRegionLabel(spot).toLowerCase();
 
       return name.includes(keyword) || region.includes(keyword);
     });
@@ -136,7 +138,7 @@ class CampSiteMap {
 
     const matched = this.spots.filter(spot => {
       const tagLabels = (spot.tags ?? []).map(tag => getCampSiteTagLabel(tag));
-      const haystack = [spot.name, spot.region, ...tagLabels]
+      const haystack = [spot.name, spot.region, spot.city ?? '', ...tagLabels]
         .join(' ')
         .toLowerCase();
 

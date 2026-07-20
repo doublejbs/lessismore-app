@@ -1,5 +1,11 @@
-import { FC } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { FC, useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
@@ -13,7 +19,10 @@ import useCampSiteDetailTabState from './useCampSiteDetailTabState';
 import CampSiteDetail from '@/model/camp-site/CampSiteDetail';
 import CampSiteDetailTab from '@/model/camp-site/CampSiteDetailTab';
 import BagItem from '@/model/bag/BagItem';
-import { getCampSiteTypeLabel } from '@/model/camp-site/CampSiteLabels';
+import {
+  getCampSiteTypeLabel,
+  getCampSpotRegionLabel,
+} from '@/model/camp-site/CampSiteLabels';
 
 interface Props {
   campSiteDetail: CampSiteDetail;
@@ -24,8 +33,9 @@ interface Props {
   onClose?: (() => void) | undefined;
   // 배낭 여행지로 설정 동작 오버라이드(DST-3) — 여행지 선택기에서 연 상세는
   // 배낭 리스트를 열지 않고 현재 배낭에 바로 설정한다(= 이 박지로 설정).
+  // 저장이 끝날 때까지 CTA가 로딩을 표시하도록 Promise를 반환한다.
   // 없으면 기존대로 배낭 선택 시트를 연다(지도 탭 진입, CS-5).
-  onSetBag?: (() => void) | undefined;
+  onSetBag?: (() => Promise<void>) | undefined;
   // 배낭 여행지로 설정 CTA 노출 여부(기본 true). 여행지 허브에서 연 상세는
   // 이미 이 배낭의 여행지라 설정 버튼이 필요 없어 숨긴다(DST-8).
   showSetBag?: boolean | undefined;
@@ -51,6 +61,19 @@ const CampSiteDetailView: FC<Props> = ({
 }) => {
   const spot = campSiteDetail.getSpot();
   const showBagSheet = campSiteDetail.shouldShowBagSheet();
+  // 선택기에서 연 상세의 `배낭 여행지로 설정` 저장 진행 상태(DST-3).
+  const [settingBag, setSettingBag] = useState(false);
+  // 저장 성공 시 시트가 언마운트되므로, 언마운트 뒤 setState를 피하려 마운트 여부를 들고 있는다.
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   const { selectedTab, campSiteWeather, handleSelectTab } =
     useCampSiteDetailTabState(spot);
 
@@ -80,14 +103,29 @@ const CampSiteDetailView: FC<Props> = ({
     void campSiteDetail.toggleFavorite();
   };
 
-  const handlePressSetBag = () => {
-    if (onSetBag) {
-      onSetBag();
+  // 선택기 경로(onSetBag)는 Firestore 저장이 끝나야 시트가 닫히므로 그동안 CTA를 로딩으로
+  // 바꾼다. 배낭 선택 시트를 여는 기본 경로는 즉시 끝나 로딩이 필요 없다(CS-5).
+  const handlePressSetBag = async () => {
+    if (!onSetBag) {
+      void campSiteDetail.openBagSheet();
 
       return;
     }
 
-    void campSiteDetail.openBagSheet();
+    if (settingBag) {
+      return;
+    }
+
+    setSettingBag(true);
+
+    try {
+      await onSetBag();
+    } finally {
+      // 성공하면 시트가 곧 언마운트되지만, 실패 시엔 이 시트가 남아 재시도할 수 있어야 한다(DST-6).
+      if (mountedRef.current) {
+        setSettingBag(false);
+      }
+    }
   };
 
   const handleCloseBagSheet = () => {
@@ -121,7 +159,7 @@ const CampSiteDetailView: FC<Props> = ({
           <CampSiteDetailHeaderView
             name={spot.name}
             typeLabel={getCampSiteTypeLabel(spot.type)}
-            region={spot.region}
+            region={getCampSpotRegionLabel(spot)}
             description={spot.description}
             imageUrl={spot.imageUrl}
             isFavorite={campSiteDetail.isFavorite()}
@@ -157,15 +195,27 @@ const CampSiteDetailView: FC<Props> = ({
         {showSetBag ? (
           <View style={styles.bottomBar}>
             <TouchableOpacity
-              style={styles.setBagButton}
+              style={[
+                styles.setBagButton,
+                settingBag && styles.setBagButtonDisabled,
+              ]}
               onPress={handlePressSetBag}
+              disabled={settingBag}
               activeOpacity={0.7}
               accessibilityLabel='배낭 여행지로 설정'
               accessibilityRole='button'
+              accessibilityState={{ disabled: settingBag, busy: settingBag }}
             >
-              <PretendardText style={styles.setBagButtonText} weight='semibold'>
-                배낭 여행지로 설정
-              </PretendardText>
+              {settingBag ? (
+                <ActivityIndicator color={Color.background} />
+              ) : (
+                <PretendardText
+                  style={styles.setBagButtonText}
+                  weight='semibold'
+                >
+                  배낭 여행지로 설정
+                </PretendardText>
+              )}
             </TouchableOpacity>
           </View>
         ) : null}
@@ -212,6 +262,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 52,
+  },
+  setBagButtonDisabled: {
+    opacity: 0.6,
   },
   setBagButtonText: {
     fontSize: 16,

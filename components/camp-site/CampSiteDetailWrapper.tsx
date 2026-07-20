@@ -57,6 +57,20 @@ const CampSiteDetailWrapper: FC = () => {
     sheetParams?.onMoveToSpot(spot);
   };
 
+  // 여행지 선택기(DST-3) 위에 겹쳐 뜬 상세는 배낭 리스트를 열지 않고 이 박지를 현재 배낭
+  // 여행지로 바로 설정한다. 핸드오프에 onSetBag이 없는 진입(지도 탭·공유 딥링크)에는 아래에서
+  // undefined를 넘겨 CampSiteDetailView가 기존대로 배낭 선택 시트(CS-5)를 연다.
+  // CTA가 저장 완료까지 로딩을 표시할 수 있게 Promise를 그대로 돌려준다(DST-3).
+  const handleSetBag = async () => {
+    const spot = campSiteDetail.getSpot();
+
+    if (!spot) {
+      return;
+    }
+
+    await sheetParams?.onSetBag?.(spot);
+  };
+
   if (initialized) {
     return (
       <View style={styles.sheet}>
@@ -66,6 +80,7 @@ const CampSiteDetailWrapper: FC = () => {
           <CampSiteDetailView
             campSiteDetail={campSiteDetail}
             onMoveToSpot={sheetParams ? handleMoveToSpot : undefined}
+            onSetBag={sheetParams?.onSetBag ? handleSetBag : undefined}
           />
         </Layout>
       </View>

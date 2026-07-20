@@ -1,6 +1,7 @@
 import CampSiteType from './CampSiteType';
 import CampSiteTag from './CampSiteTag';
 import CampSiteDetailTab from './CampSiteDetailTab';
+import { CampSpotData } from './CampSpotTypes';
 
 // 박지 상세(CampSite CS-3/CS-4)에서 쓰는 표시 라벨·문구 매핑.
 
@@ -65,4 +66,14 @@ export const getCampSiteTagLabel = (tag: CampSiteTag): string => {
 
 export const getCampSiteSourceLabel = (source: string): string => {
   return SOURCE_LABEL[source] ?? source;
+};
+
+// 지역 표시 라벨(DM-17) — `강원 평창군`처럼 시/도 + 시/군/구를 합쳐 낸다.
+// city 백필 이전 문서엔 city가 없으므로 region만 내는 폴백이 필수다.
+export const getCampSpotRegionLabel = (spot: CampSpotData): string => {
+  if (!spot.city) {
+    return spot.region;
+  }
+
+  return `${spot.region} ${spot.city}`;
 };
