@@ -15,6 +15,7 @@ import Animated, {
   useAnimatedStyle,
   runOnJS,
   useAnimatedReaction,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { File, Paths } from 'expo-file-system';
 
@@ -58,9 +59,9 @@ interface DraggableGearProps {
   editablePosition: { x: number; y: number; scale: number; zIndex: number };
   isEditMode: boolean;
   isMultiTouch: boolean;
-  isMultiTouchSV: Animated.SharedValue<number>;
+  isMultiTouchSV: SharedValue<number>;
   selectedGearId: string | null;
-  activeScale: Animated.SharedValue<number>;
+  activeScale: SharedValue<number>;
   showGearName: boolean;
   onSelect: (id: string, index: number) => void;
   onPositionUpdate: (index: number, x: number, y: number) => void;
