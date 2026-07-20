@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "lessismoreapp",
     "userInterfaceStyle": "light",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
       "googleServicesFile": "./GoogleService-Info.plist",
@@ -48,7 +48,6 @@
         "expo-build-properties",
         {
           "ios": {
-            "useFrameworks": "static",
             "deploymentTarget": "15.1"
           },
           "android": {
@@ -101,6 +100,8 @@
         }
       ],
       "expo-font",
+      "./plugins/WithPodfileModularHeaders.js",
+      "./plugins/WithBrotliDedupe.js",
       "./plugins/WithMlKitVisionDependencies.js",
       "./plugins/WithFirebaseMessagingNotificationColor.js",
       "@react-native-firebase/messaging",
