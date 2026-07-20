@@ -258,7 +258,8 @@
 | `name` | string | 박지명 |
 | `type` | string | `campground`(야영장) / `shelter`(대피소) / `wild`(노지) — `CampSiteType` enum |
 | `location` | map | `{ latitude: number, longitude: number }` (WGS84) |
-| `region` | string | 시/도 단위 지역명 (예: `강원`) |
+| `region` | string | 시/도 단위 지역명 (예: `강원`). **좌표 기준**이 진실 — Kakao `coord2regioncode`의 `region_1depth_name`을 축약 표기로 정규화한다(`강원특별자치도`→`강원`, `전남광주통합특별시`→`전남광주`). 큐레이션 원본의 값과 다르면 좌표를 따른다 |
+| `city` | string? | 시/군/구 단위 지역명 (예: `평창군`, `보령시`, `옹진군`). Kakao `coord2regioncode`의 `region_2depth_name`. 표시는 `region + city`를 합쳐 `강원 평창군`처럼 낸다(`getCampSpotRegionLabel`). 옛 문서엔 없을 수 있어 옵셔널이며, 없으면 `region`만 표시한다 |
 | `description` | string | 자체 작성 설명 |
 | `facilities` | string[] | `toilet` / `water` / `deck` / `store` 중 해당 항목 |
 | `accessInfo` | string? | 접근 정보 자유 텍스트 (예: `주차장에서 도보 40분`) |

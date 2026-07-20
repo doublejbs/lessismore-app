@@ -194,6 +194,16 @@ const RootLayout = () => {
               contentStyle: { backgroundColor: '#FFFFFF', bottom: 0 },
             }}
           />
+          {/* 공용 여행지 선택기(DST-3) — 풀스크린 모달 라우트. RN Modal이 아니라 라우트라
+              이 위로 박지 상세(/camp-site/{'{id}'})·즐겨찾기(/camp-site-favorites) formSheet가
+              그대로 스택돼 지도 탭과 동일한 디텐트(기본 40% + 높이 조절)를 쓴다. */}
+          <Stack.Screen
+            name='bag-destination-picker'
+            options={{
+              headerShown: false,
+              presentation: 'fullScreenModal',
+            }}
+          />
           <Stack.Screen
             name='bag-copy-source'
             options={{

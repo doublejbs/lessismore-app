@@ -16,7 +16,8 @@
     "tags": [
       "mountain",
       "plain"
-    ]
+    ],
+    "city": "평창군"
   },
   {
     "slug": "guleopdo-gaemeori",
@@ -35,7 +36,8 @@
     "tags": [
       "island",
       "plain"
-    ]
+    ],
+    "city": "옹진군"
   },
   {
     "slug": "mindungsan",
@@ -54,7 +56,8 @@
     "tags": [
       "mountain",
       "plain"
-    ]
+    ],
+    "city": "정선군"
   },
   {
     "slug": "somuuido",
@@ -74,7 +77,8 @@
     "needsVerification": true,
     "tags": [
       "island"
-    ]
+    ],
+    "city": "영종구"
   },
   {
     "slug": "yukbaengmajigi",
@@ -96,7 +100,8 @@
     "tags": [
       "mountain",
       "plain"
-    ]
+    ],
+    "city": "정선군"
   },
   {
     "slug": "oseosan",
@@ -114,7 +119,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "보령시"
   },
   {
     "slug": "gungmangbong",
@@ -132,7 +138,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "가평군"
   },
   {
     "slug": "jirisan-seseok-shelter",
@@ -154,7 +161,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "산청군"
   },
   {
     "slug": "seoraksan-socheong-shelter",
@@ -176,7 +184,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "양양군"
   },
   {
     "slug": "taegisan",
@@ -194,7 +203,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "평창군"
   },
   {
     "slug": "maebongsan-wind-hill",
@@ -213,7 +223,8 @@
     "tags": [
       "mountain",
       "plain"
-    ]
+    ],
+    "city": "태백시"
   },
   {
     "slug": "anbandegi",
@@ -233,7 +244,8 @@
     "needsVerification": true,
     "tags": [
       "plain"
-    ]
+    ],
+    "city": "강릉시"
   },
   {
     "slug": "gadeoksan",
@@ -251,7 +263,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "춘천시"
   },
   {
     "slug": "gwangdeoksan-observatory",
@@ -271,7 +284,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "화천군"
   },
   {
     "slug": "geomdansan",
@@ -289,7 +303,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "하남시"
   },
   {
     "slug": "yumyeongsan",
@@ -307,7 +322,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "가평군"
   },
   {
     "slug": "godongsan",
@@ -325,7 +341,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "양평군"
   },
   {
     "slug": "jangbongdo-gamakmeori",
@@ -344,7 +361,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "옹진군"
   },
   {
     "slug": "ueumdo",
@@ -363,7 +381,8 @@
     "tags": [
       "plain",
       "lake"
-    ]
+    ],
+    "city": "화성시 만세구"
   },
   {
     "slug": "jukdo-hongseong",
@@ -383,7 +402,8 @@
     "needsVerification": true,
     "tags": [
       "island"
-    ]
+    ],
+    "city": "홍성군"
   },
   {
     "slug": "geumoreum",
@@ -402,7 +422,8 @@
     "tags": [
       "mountain",
       "plain"
-    ]
+    ],
+    "city": "제주시"
   },
   {
     "slug": "biyangdo",
@@ -422,7 +443,8 @@
     "needsVerification": true,
     "tags": [
       "island"
-    ]
+    ],
+    "city": "제주시"
   },
   {
     "slug": "baekdeoksan",
@@ -439,7 +461,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "영월군"
   },
   {
     "slug": "taehwasan-yeongwol",
@@ -449,14 +472,15 @@
       "latitude": 37.11759,
       "longitude": 128.48539
     },
-    "region": "강원",
+    "region": "충북",
     "description": "영월 남대천과 남한강을 굽어보는 1,027m 능선. 완만한 헬기장 박지로 알려졌다.",
     "facilities": [],
     "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "단양군"
   },
   {
     "slug": "duwibong",
@@ -473,7 +497,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "영월군"
   },
   {
     "slug": "hambaeksan-manhangjae",
@@ -490,7 +515,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "정선군"
   },
   {
     "slug": "baekunsan-jeongseon",
@@ -507,7 +533,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "평창군"
   },
   {
     "slug": "gwinemi",
@@ -525,7 +552,8 @@
     "tags": [
       "mountain",
       "plain"
-    ]
+    ],
+    "city": "태백시"
   },
   {
     "slug": "myeongseongsan",
@@ -542,7 +570,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "철원군"
   },
   {
     "slug": "gakheulsan",
@@ -552,14 +581,15 @@
       "latitude": 38.11773,
       "longitude": 127.37775
     },
-    "region": "강원",
+    "region": "경기",
     "description": "철원·포천 경계의 838m 민둥 능선. 명성산과 마주 보는 초지 능선 박지다.",
     "facilities": [],
     "warnings": "과거 사격장 인접 지역입니다. 출입 통제 안내와 산불조심기간 통제를 확인하세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "포천시"
   },
   {
     "slug": "daeryongsan",
@@ -576,7 +606,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "홍천군"
   },
   {
     "slug": "gamaksan-wonju",
@@ -593,7 +624,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "원주시"
   },
   {
     "slug": "cheongtaesan",
@@ -610,7 +642,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "평창군"
   },
   {
     "slug": "gariwangsan",
@@ -628,7 +661,8 @@
     "tags": [
       "mountain",
       "forest"
-    ]
+    ],
+    "city": "평창군"
   },
   {
     "slug": "masanbong",
@@ -645,7 +679,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "고성군"
   },
   {
     "slug": "bangtaesan",
@@ -662,7 +697,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "인제군"
   },
   {
     "slug": "garisan",
@@ -679,7 +715,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "홍천군"
   },
   {
     "slug": "gongjaksan",
@@ -696,7 +733,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "홍천군"
   },
   {
     "slug": "yukbaeksan",
@@ -713,7 +751,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "삼척시"
   },
   {
     "slug": "bokgyesan",
@@ -730,7 +769,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "철원군"
   },
   {
     "slug": "chungnyeongsan-namyangju",
@@ -748,7 +788,8 @@
     "tags": [
       "mountain",
       "forest"
-    ]
+    ],
+    "city": "남양주시"
   },
   {
     "slug": "seorisan",
@@ -766,7 +807,8 @@
     "tags": [
       "mountain",
       "forest"
-    ]
+    ],
+    "city": "남양주시"
   },
   {
     "slug": "jugeumsan",
@@ -783,7 +825,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "가평군"
   },
   {
     "slug": "cheonmasan",
@@ -800,7 +843,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "남양주시"
   },
   {
     "slug": "yebongsan",
@@ -817,7 +861,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "남양주시"
   },
   {
     "slug": "soraesan",
@@ -834,7 +879,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "남동구"
   },
   {
     "slug": "gyeyangsan",
@@ -851,7 +897,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "계양구"
   },
   {
     "slug": "goryeosan",
@@ -868,7 +915,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "강화군"
   },
   {
     "slug": "haemyeongsan",
@@ -886,7 +934,8 @@
     "tags": [
       "island",
       "mountain"
-    ]
+    ],
+    "city": "강화군"
   },
   {
     "slug": "horyonggoksan",
@@ -904,7 +953,8 @@
     "tags": [
       "island",
       "mountain"
-    ]
+    ],
+    "city": "영종구"
   },
   {
     "slug": "modo",
@@ -922,7 +972,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "옹진군"
   },
   {
     "slug": "bijobong",
@@ -940,7 +991,8 @@
     "tags": [
       "island",
       "mountain"
-    ]
+    ],
+    "city": "옹진군"
   },
   {
     "slug": "seungbongdo",
@@ -958,7 +1010,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "옹진군"
   },
   {
     "slug": "jawoldo",
@@ -976,7 +1029,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "옹진군"
   },
   {
     "slug": "daeijakdo",
@@ -994,7 +1048,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "옹진군"
   },
   {
     "slug": "baekunbong-yangpyeong",
@@ -1011,7 +1066,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "양평군"
   },
   {
     "slug": "jungmisan",
@@ -1028,7 +1084,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "가평군"
   },
   {
     "slug": "gangssibong",
@@ -1045,7 +1102,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "가평군"
   },
   {
     "slug": "wangbangsan",
@@ -1062,7 +1120,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "포천시"
   },
   {
     "slug": "gamaksan-paju",
@@ -1079,7 +1138,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "파주시"
   },
   {
     "slug": "aengmubong",
@@ -1096,7 +1156,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "양주시"
   },
   {
     "slug": "homyeongsan",
@@ -1114,7 +1175,8 @@
     "tags": [
       "mountain",
       "lake"
-    ]
+    ],
+    "city": "가평군"
   },
   {
     "slug": "jobisan",
@@ -1131,7 +1193,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "용인시 처인구"
   },
   {
     "slug": "seokseongsan",
@@ -1148,7 +1211,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "용인시 처인구"
   },
   {
     "slug": "seounsan",
@@ -1165,7 +1229,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "안성시"
   },
   {
     "slug": "gukhwado",
@@ -1183,7 +1248,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "화성시 만세구"
   },
   {
     "slug": "gubongdo",
@@ -1200,7 +1266,8 @@
     "needsVerification": true,
     "tags": [
       "island"
-    ]
+    ],
+    "city": "안산시 단원구"
   },
   {
     "slug": "yongbongsan",
@@ -1217,7 +1284,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "홍성군"
   },
   {
     "slug": "okmasan",
@@ -1234,7 +1302,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "보령시"
   },
   {
     "slug": "seodaesan",
@@ -1251,7 +1320,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "금산군"
   },
   {
     "slug": "sikjangsan",
@@ -1268,7 +1338,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "동구"
   },
   {
     "slug": "sapsido",
@@ -1286,7 +1357,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "보령시"
   },
   {
     "slug": "oeyeondo",
@@ -1303,7 +1375,8 @@
     "needsVerification": true,
     "tags": [
       "island"
-    ]
+    ],
+    "city": "보령시"
   },
   {
     "slug": "hyangjeoksan",
@@ -1320,7 +1393,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "논산시"
   },
   {
     "slug": "minjujisan",
@@ -1337,7 +1411,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "영동군"
   },
   {
     "slug": "wollyubong",
@@ -1355,7 +1430,8 @@
     "tags": [
       "mountain",
       "valley"
-    ]
+    ],
+    "city": "영동군"
   },
   {
     "slug": "gubyeongsan",
@@ -1372,7 +1448,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "보은군"
   },
   {
     "slug": "dutasan-jincheon",
@@ -1389,7 +1466,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "진천군"
   },
   {
     "slug": "gyemyeongsan",
@@ -1407,7 +1485,8 @@
     "tags": [
       "mountain",
       "lake"
-    ]
+    ],
+    "city": "충주시"
   },
   {
     "slug": "yongdusan-jecheon",
@@ -1425,7 +1504,8 @@
     "tags": [
       "mountain",
       "lake"
-    ]
+    ],
+    "city": "제천시"
   },
   {
     "slug": "unjangsan",
@@ -1442,7 +1522,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "진안군"
   },
   {
     "slug": "guksabong-imsil",
@@ -1460,7 +1541,8 @@
     "tags": [
       "mountain",
       "lake"
-    ]
+    ],
+    "city": "임실군"
   },
   {
     "slug": "manhaengsan",
@@ -1477,7 +1559,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "남원시"
   },
   {
     "slug": "chuwolsan",
@@ -1487,14 +1570,15 @@
       "latitude": 35.39993,
       "longitude": 126.97604
     },
-    "region": "전남",
+    "region": "전북",
     "description": "담양호를 발아래 두는 731m 절벽 산. 보리암 능선 일출 박지로 유명하다.",
     "facilities": [],
     "warnings": "담양군립공원 구역 여부와 야영 통제 공지를 확인하세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "순창군"
   },
   {
     "slug": "byeongpungsan-damyang",
@@ -1504,14 +1588,15 @@
       "latitude": 35.32461,
       "longitude": 126.88567
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "담양의 병풍 능선(822m). 투구봉 헬기장에서 광주 야경과 운해를 본다.",
     "facilities": [],
     "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "담양군"
   },
   {
     "slug": "baekasan",
@@ -1521,14 +1606,15 @@
       "latitude": 35.17178,
       "longitude": 127.16114
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "화순의 하얀 거위 암릉(810m). 하늘다리 능선 위 조망 박지로 알려졌다.",
     "facilities": [],
     "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "화순군"
   },
   {
     "slug": "ongseongsan",
@@ -1538,14 +1624,15 @@
       "latitude": 35.11551,
       "longitude": 127.13267
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "화순 철옹산성의 항아리 암봉(572m). 동복호 조망 박지로 백패커에게 인기다.",
     "facilities": [],
     "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "화순군"
   },
   {
     "slug": "mohusan",
@@ -1555,14 +1642,15 @@
       "latitude": 35.03467,
       "longitude": 127.18344
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "화순·순천 경계 919m. 강우레이더 관측소 임도로 오르는 운해 박지다.",
     "facilities": [],
     "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "순천시"
   },
   {
     "slug": "bangjangsan",
@@ -1572,14 +1660,15 @@
       "latitude": 35.44441,
       "longitude": 126.74907
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "고창·장성 경계 743m. 활공장 억새 능선에서 고창 들판 낙조를 본다.",
     "facilities": [],
     "warnings": "자연휴양림 구역 내 야영은 지정지 외 금지입니다.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "장성군"
   },
   {
     "slug": "wido",
@@ -1597,7 +1686,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "부안군"
   },
   {
     "slug": "seonyudo",
@@ -1615,7 +1705,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "군산시"
   },
   {
     "slug": "eocheongdo",
@@ -1632,7 +1723,8 @@
     "needsVerification": true,
     "tags": [
       "island"
-    ]
+    ],
+    "city": "군산시"
   },
   {
     "slug": "daegaksan",
@@ -1650,7 +1742,8 @@
     "tags": [
       "island",
       "mountain"
-    ]
+    ],
+    "city": "군산시"
   },
   {
     "slug": "mireuksan-iksan",
@@ -1667,7 +1760,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "익산시"
   },
   {
     "slug": "unamsan",
@@ -1685,7 +1779,8 @@
     "tags": [
       "mountain",
       "lake"
-    ]
+    ],
+    "city": "완주군"
   },
   {
     "slug": "jeamsan",
@@ -1695,14 +1790,15 @@
       "latitude": 34.70973,
       "longitude": 126.97736
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "장흥·보성 경계 807m. 5월 곰재 철쭉 평원과 임금바위 조망 박지로 유명하다.",
     "facilities": [],
     "warnings": "자연휴양림 구역 내 야영은 지정지 외 금지입니다.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "보성군"
   },
   {
     "slug": "obongsan-boseong",
@@ -1712,14 +1808,15 @@
       "latitude": 34.72071,
       "longitude": 127.17667
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "득량만을 내려다보는 344m 칼바위 능선. 남해 일출 박지로 알려졌다.",
     "facilities": [],
     "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "보성군"
   },
   {
     "slug": "jeokdaebong",
@@ -1729,14 +1826,15 @@
       "latitude": 34.46359,
       "longitude": 127.17977
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "고흥 거금도의 592m 섬 산. 정상 봉수대에서 다도해 파노라마를 본다.",
     "facilities": [],
     "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "고흥군"
   },
   {
     "slug": "maboksan",
@@ -1746,14 +1844,15 @@
       "latitude": 34.53728,
       "longitude": 127.38759
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "고흥의 소개골산(539m). 기암 능선 너머 다도해 일출 박지로 알려졌다.",
     "facilities": [],
     "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "고흥군"
   },
   {
     "slug": "nangdo",
@@ -1763,7 +1862,7 @@
       "latitude": 34.60745,
       "longitude": 127.547
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "여수 백리섬섬길로 이어진 섬. 공룡 발자국 해안과 장사금 해변 박지로 인기다.",
     "facilities": [],
     "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
@@ -1771,7 +1870,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "여수시"
   },
   {
     "slug": "geumodo",
@@ -1781,14 +1881,15 @@
       "latitude": 34.52269,
       "longitude": 127.75041
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "비렁길 벼랑 산책로로 유명한 여수의 섬. 장지·직포 해변 박지로 알려졌다.",
     "facilities": [],
     "warnings": "비렁길 벼랑 구간은 야영 금지입니다. 마을 지정 구역을 이용하세요.",
     "needsVerification": true,
     "tags": [
       "island"
-    ]
+    ],
+    "city": "여수시"
   },
   {
     "slug": "geomundo",
@@ -1798,14 +1899,15 @@
       "latitude": 34.0269,
       "longitude": 127.31617
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "여수 먼바다의 등대 섬. 녹산등대 초지 언덕 낙조 박지로 백패커의 로망으로 꼽힌다.",
     "facilities": [],
     "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
     "needsVerification": true,
     "tags": [
       "island"
-    ]
+    ],
+    "city": "여수시"
   },
   {
     "slug": "dongaksan",
@@ -1815,14 +1917,15 @@
       "latitude": 35.28193,
       "longitude": 127.25203
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "곡성 섬진강을 내려다보는 737m. 청류동 계곡 위 능선 박지로 알려졌다.",
     "facilities": [],
     "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "곡성군"
   },
   {
     "slug": "baekunsan-gwangyang",
@@ -1832,14 +1935,15 @@
       "latitude": 35.10637,
       "longitude": 127.62134
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "호남 최고봉급(1,222m). 억불봉 능선 억새와 한재 임도 박지로 유명하다.",
     "facilities": [],
     "warnings": "자연휴양림·수목원 구역 내 야영은 지정지 외 금지입니다.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "광양시"
   },
   {
     "slug": "osan-gurye",
@@ -1849,14 +1953,15 @@
       "latitude": 35.17964,
       "longitude": 127.48222
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "사성암 절벽 위 531m. 섬진강 물돌이와 지리산 조망 박지로 알려졌다.",
     "facilities": [],
     "warnings": "사성암 사찰 구역은 야영 금지입니다. 암자 아래 능선 허용 여부를 확인하세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "구례군"
   },
   {
     "slug": "sangwangbong-wando",
@@ -1866,14 +1971,15 @@
       "latitude": 34.34819,
       "longitude": 126.69286
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "완도의 최고봉(644m). 다도해와 제주 한라산까지 조망하는 상록수림 능선이다.",
     "facilities": [],
     "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "완도군"
   },
   {
     "slug": "cheongsando",
@@ -1883,14 +1989,15 @@
       "latitude": 34.18157,
       "longitude": 126.88719
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "슬로시티 청보리 섬. 범바위 언덕과 보적산 초지에서 다도해 낙조를 본다.",
     "facilities": [],
     "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
     "needsVerification": true,
     "tags": [
       "island"
-    ]
+    ],
+    "city": "완도군"
   },
   {
     "slug": "bogildo",
@@ -1900,14 +2007,15 @@
       "latitude": 34.14259,
       "longitude": 126.55213
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "윤선도 원림의 섬. 격자봉 능선과 예송리 몽돌해변 박지로 알려졌다.",
     "facilities": [],
     "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
     "needsVerification": true,
     "tags": [
       "island"
-    ]
+    ],
+    "city": "완도군"
   },
   {
     "slug": "dalmasan",
@@ -1917,14 +2025,15 @@
       "latitude": 34.38258,
       "longitude": 126.58516
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "해남 땅끝의 공룡 등뼈 암릉(489m). 미황사 위 능선에서 다도해 일출을 본다.",
     "facilities": [],
     "warnings": "도솔암 순례길 구간 야영 통제 공지를 확인하세요. 암릉 안전에 유의하세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "해남군"
   },
   {
     "slug": "jujaksan",
@@ -1934,14 +2043,15 @@
       "latitude": 34.50602,
       "longitude": 126.69733
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "해남·강진의 봉황 날개 암릉(475m). 덕룡 종주와 이어지는 진달래 박지 성지다.",
     "facilities": [],
     "warnings": "자연휴양림 구역 내 야영은 지정지 외 금지입니다. 암릉 구간 안전에 유의하세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "강진군"
   },
   {
     "slug": "deokryongsan",
@@ -1951,14 +2061,15 @@
       "latitude": 34.9075,
       "longitude": 126.79355
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "강진 소석문에서 솟는 433m 공룡 암릉. 낮지만 험한 능선 위 일출 박지로 유명하다.",
     "facilities": [],
     "warnings": "암릉 구간이 험합니다. 안전 확보가 어려우면 야영을 삼가세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "나주시"
   },
   {
     "slug": "jeungdo",
@@ -1968,7 +2079,7 @@
       "latitude": 34.9935,
       "longitude": 126.15505
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "신안 슬로시티 소금의 섬. 우전해변 한반도 솔숲 박지로 알려졌다.",
     "facilities": [],
     "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
@@ -1976,7 +2087,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "신안군"
   },
   {
     "slug": "imjado",
@@ -1986,7 +2098,7 @@
       "latitude": 35.09419,
       "longitude": 126.08902
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "12km 대광해변이 펼쳐진 신안의 섬. 튤립축제와 백사장 낙조 박지로 이름났다.",
     "facilities": [],
     "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
@@ -1994,7 +2106,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "신안군"
   },
   {
     "slug": "geurimsan",
@@ -2004,7 +2117,7 @@
       "latitude": 34.74089,
       "longitude": 125.92273
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "비금도의 그림 같은 암봉(226m). 선왕산 능선과 하트해변 조망 박지다.",
     "facilities": [],
     "warnings": "지정 야영장이 아니므로 마을·관리 주체의 안내에 따라주세요. 배편 막배 시간과 기상 결항에 유의하세요.",
@@ -2012,7 +2125,8 @@
     "tags": [
       "island",
       "mountain"
-    ]
+    ],
+    "city": "신안군"
   },
   {
     "slug": "uido",
@@ -2022,7 +2136,7 @@
       "latitude": 34.61109,
       "longitude": 125.8415
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "신안 먼바다의 모래언덕 섬. 성촌해변과 돈목해변 사이 풍성사구로 유명하다.",
     "facilities": [],
     "warnings": "풍성사구는 보호구역으로 출입 금지입니다. 해변 지정 구역만 이용하고 마을 안내를 따르세요.",
@@ -2030,7 +2144,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "신안군"
   },
   {
     "slug": "chungnyeongsan-jangseong",
@@ -2040,7 +2155,7 @@
       "latitude": 35.37093,
       "longitude": 126.72604
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "장성 편백 치유의 숲(621m). 편백 숲 임도 위 능선 박지로 알려졌다.",
     "facilities": [],
     "warnings": "치유의숲 관리 구역 내 야영은 금지입니다. 구역 밖 허용 여부를 확인하세요.",
@@ -2048,7 +2163,8 @@
     "tags": [
       "mountain",
       "forest"
-    ]
+    ],
+    "city": "장성군"
   },
   {
     "slug": "geumseongsan-naju",
@@ -2058,14 +2174,15 @@
       "latitude": 35.05584,
       "longitude": 126.69709
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "나주의 진산(451m). 정상 데크에서 나주평야와 영산강 낙조를 본다.",
     "facilities": [],
     "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "나주시"
   },
   {
     "slug": "jagulsan",
@@ -2082,7 +2199,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "의령군"
   },
   {
     "slug": "hanusan",
@@ -2099,7 +2217,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "의령군"
   },
   {
     "slug": "yeohangsan",
@@ -2116,7 +2235,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "함안군"
   },
   {
     "slug": "muhaksan",
@@ -2133,7 +2253,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "창원시 마산회원구"
   },
   {
     "slug": "jongnamsan",
@@ -2150,7 +2271,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "밀양시"
   },
   {
     "slug": "jangsan-busan",
@@ -2167,7 +2289,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "해운대구"
   },
   {
     "slug": "daeunsan",
@@ -2177,14 +2300,15 @@
       "latitude": 35.40192,
       "longitude": 129.21324
     },
-    "region": "울산",
+    "region": "경남",
     "description": "울주·양산 경계 742m. 시명골 계곡 위 정상 데크 조망 박지로 알려졌다.",
     "facilities": [],
     "warnings": "노지 야영 허용 여부는 유동적입니다. 산불조심기간(봄·가을) 입산 통제와 화기 금지 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "양산시"
   },
   {
     "slug": "cheonseongsan",
@@ -2201,7 +2325,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "양산시"
   },
   {
     "slug": "choejeongsan",
@@ -2218,7 +2343,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "달성군"
   },
   {
     "slug": "odosan",
@@ -2235,7 +2361,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "합천군"
   },
   {
     "slug": "gamaksan-geochang",
@@ -2252,7 +2379,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "거창군"
   },
   {
     "slug": "gibaeksan",
@@ -2269,7 +2397,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "함양군"
   },
   {
     "slug": "dansan-mungyeong",
@@ -2286,7 +2415,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "문경시"
   },
   {
     "slug": "ilwolsan",
@@ -2303,7 +2433,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "영양군"
   },
   {
     "slug": "bohyeonsan",
@@ -2320,7 +2451,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "영천시"
   },
   {
     "slug": "hakgasan",
@@ -2337,7 +2469,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "예천군"
   },
   {
     "slug": "saryangdo",
@@ -2355,7 +2488,8 @@
     "tags": [
       "island",
       "mountain"
-    ]
+    ],
+    "city": "통영시"
   },
   {
     "slug": "yeonhwado",
@@ -2372,7 +2506,8 @@
     "needsVerification": true,
     "tags": [
       "island"
-    ]
+    ],
+    "city": "통영시"
   },
   {
     "slug": "yokjido",
@@ -2389,7 +2524,8 @@
     "needsVerification": true,
     "tags": [
       "island"
-    ]
+    ],
+    "city": "통영시"
   },
   {
     "slug": "maemuldo",
@@ -2406,7 +2542,8 @@
     "needsVerification": true,
     "tags": [
       "island"
-    ]
+    ],
+    "city": "통영시"
   },
   {
     "slug": "mangsan-geoje",
@@ -2423,7 +2560,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "거제시"
   },
   {
     "slug": "daegeumsan-geoje",
@@ -2440,7 +2578,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "거제시"
   },
   {
     "slug": "seolheulsan",
@@ -2457,7 +2596,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "남해군"
   },
   {
     "slug": "mangunsan",
@@ -2474,7 +2614,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "남해군"
   },
   {
     "slug": "waryongsan",
@@ -2491,7 +2632,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "사천시"
   },
   {
     "slug": "geumosan-hadong",
@@ -2508,7 +2650,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "하동군"
   },
   {
     "slug": "hyeongjebong-hadong",
@@ -2525,7 +2668,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "하동군"
   },
   {
     "slug": "gunsanoreum",
@@ -2543,7 +2687,8 @@
     "tags": [
       "mountain",
       "plain"
-    ]
+    ],
+    "city": "서귀포시"
   },
   {
     "slug": "jirisan-nogodan",
@@ -2553,7 +2698,7 @@
       "latitude": 35.29623,
       "longitude": 127.52631
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "성삼재에서 한 시간 남짓, 지리산 서부 능선의 관문 대피소. 노고단 운해와 일출로 유명하다.",
     "facilities": [
       "toilet",
@@ -2563,7 +2708,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "구례군"
   },
   {
     "slug": "jirisan-byeoksoryeong",
@@ -2583,7 +2729,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "함양군"
   },
   {
     "slug": "jirisan-yeonhacheon",
@@ -2603,7 +2750,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "남원시"
   },
   {
     "slug": "jirisan-jangteomok",
@@ -2623,7 +2771,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "함양군"
   },
   {
     "slug": "jirisan-chibatmok",
@@ -2643,7 +2792,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "산청군"
   },
   {
     "slug": "jirisan-rotary",
@@ -2663,7 +2813,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "산청군"
   },
   {
     "slug": "seoraksan-huiungak",
@@ -2683,7 +2834,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "인제군"
   },
   {
     "slug": "seoraksan-suryeomdong",
@@ -2703,7 +2855,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "인제군"
   },
   {
     "slug": "deogyusan-hyangjeokbong",
@@ -2723,7 +2876,8 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "무주군"
   },
   {
     "slug": "sobaeksan-yeonhwabong",
@@ -2743,13 +2897,14 @@
     "needsVerification": true,
     "tags": [
       "mountain"
-    ]
+    ],
+    "city": "단양군"
   },
   {
     "slug": "namyeol-beach",
     "name": "남열해돋이해변",
     "type": "wild",
-    "region": "전남",
+    "region": "전남광주",
     "location": {
       "latitude": 34.5798317757747,
       "longitude": 127.486612160145
@@ -2760,7 +2915,8 @@
     ],
     "warnings": "해수욕장 개장기간(7~8월)과 지자체 조례에 따라 야영·취사가 금지될 수 있습니다. 방문 전 관할 지자체 규정을 확인하세요.",
     "facilities": [],
-    "needsVerification": true
+    "needsVerification": true,
+    "city": "고흥군"
   },
   {
     "slug": "waemok-beach",
@@ -2777,7 +2933,8 @@
     ],
     "warnings": "해수욕장 개장기간(7~8월)과 지자체 조례에 따라 야영·취사가 금지될 수 있습니다. 방문 전 관할 지자체 규정을 확인하세요.",
     "facilities": [],
-    "needsVerification": true
+    "needsVerification": true,
+    "city": "당진시"
   },
   {
     "slug": "chunjangdae-beach",
@@ -2795,7 +2952,8 @@
     ],
     "warnings": "해수욕장 개장기간(7~8월)과 지자체 조례에 따라 야영·취사가 금지될 수 있습니다. 방문 전 관할 지자체 규정을 확인하세요.",
     "facilities": [],
-    "needsVerification": true
+    "needsVerification": true,
+    "city": "서천군"
   },
   {
     "slug": "goraebul-beach",
@@ -2813,7 +2971,8 @@
     ],
     "warnings": "해수욕장 개장기간(7~8월)과 지자체 조례에 따라 야영·취사가 금지될 수 있습니다. 방문 전 관할 지자체 규정을 확인하세요.",
     "facilities": [],
-    "needsVerification": true
+    "needsVerification": true,
+    "city": "영덕군"
   },
   {
     "slug": "songjiho-beach",
@@ -2831,7 +2990,8 @@
     ],
     "warnings": "해수욕장 개장기간(7~8월)과 지자체 조례에 따라 야영·취사가 금지될 수 있습니다. 방문 전 관할 지자체 규정을 확인하세요.",
     "facilities": [],
-    "needsVerification": true
+    "needsVerification": true,
+    "city": "고성군"
   },
   {
     "slug": "saseungbongdo",
@@ -2850,7 +3010,8 @@
     ],
     "warnings": "사유지 섬으로 입도·야영 조건이 수시로 바뀝니다. 방문 전 배편과 야영 허용 여부를 확인하고 흔적 남기지 않기를 지켜주세요.",
     "facilities": [],
-    "needsVerification": true
+    "needsVerification": true,
+    "city": "옹진군"
   },
   {
     "slug": "deokjeokdo-seopori",
@@ -2870,7 +3031,8 @@
     ],
     "warnings": "해수욕장 개장기간(7~8월)과 지자체 조례에 따라 야영·취사가 금지될 수 있습니다. 방문 전 관할 지자체 규정을 확인하세요.",
     "facilities": [],
-    "needsVerification": true
+    "needsVerification": true,
+    "city": "옹진군"
   },
   {
     "slug": "muuido-hanagae",
@@ -2888,7 +3050,8 @@
     ],
     "warnings": "해수욕장 개장기간(7~8월)과 지자체 조례에 따라 야영·취사가 금지될 수 있습니다. 방문 전 관할 지자체 규정을 확인하세요. 해변 일부는 사유 관리 구역으로 입장료·야영 통제가 있을 수 있습니다.",
     "facilities": [],
-    "needsVerification": true
+    "needsVerification": true,
+    "city": "영종구"
   },
   {
     "slug": "achimgari-valley",
@@ -2907,7 +3070,8 @@
     ],
     "warnings": "하천·계곡은 상수원보호·취사 금지 구역이 많고, 우천 시 급류·고립 위험이 있습니다. 기상과 현지 규정을 반드시 확인하세요.",
     "facilities": [],
-    "needsVerification": true
+    "needsVerification": true,
+    "city": "인제군"
   },
   {
     "slug": "jomurakgol-valley",
@@ -2925,7 +3089,8 @@
     ],
     "warnings": "하천·계곡은 상수원보호·취사 금지 구역이 많고, 우천 시 급류·고립 위험이 있습니다. 기상과 현지 규정을 반드시 확인하세요.",
     "facilities": [],
-    "needsVerification": true
+    "needsVerification": true,
+    "city": "가평군"
   },
   {
     "slug": "baegun-valley-pocheon",
@@ -2942,7 +3107,8 @@
     ],
     "warnings": "하천·계곡은 상수원보호·취사 금지 구역이 많고, 우천 시 급류·고립 위험이 있습니다. 기상과 현지 규정을 반드시 확인하세요.",
     "facilities": [],
-    "needsVerification": true
+    "needsVerification": true,
+    "city": "포천시"
   },
   {
     "slug": "beopheung-valley",
@@ -2959,7 +3125,8 @@
     ],
     "warnings": "하천·계곡은 상수원보호·취사 금지 구역이 많고, 우천 시 급류·고립 위험이 있습니다. 기상과 현지 규정을 반드시 확인하세요.",
     "facilities": [],
-    "needsVerification": true
+    "needsVerification": true,
+    "city": "영월군"
   },
   {
     "slug": "saldun-valley",
@@ -2976,7 +3143,8 @@
     ],
     "warnings": "하천·계곡은 상수원보호·취사 금지 구역이 많고, 우천 시 급류·고립 위험이 있습니다. 기상과 현지 규정을 반드시 확인하세요.",
     "facilities": [],
-    "needsVerification": true
+    "needsVerification": true,
+    "city": "홍천군"
   },
   {
     "slug": "binaeseom",
@@ -2994,7 +3162,8 @@
     ],
     "warnings": "군 훈련장으로 사용되는 시기에는 출입이 통제됩니다. 출입 가능 여부를 사전 확인하고 화기 사용에 특히 주의하세요.",
     "facilities": [],
-    "needsVerification": true
+    "needsVerification": true,
+    "city": "충주시"
   },
   {
     "slug": "mongsanpo-beach",
@@ -3013,7 +3182,8 @@
     "tags": [
       "beach",
       "forest"
-    ]
+    ],
+    "city": "태안군"
   },
   {
     "slug": "padori-beach",
@@ -3032,7 +3202,8 @@
     "tags": [
       "beach",
       "forest"
-    ]
+    ],
+    "city": "태안군"
   },
   {
     "slug": "unyeo-beach",
@@ -3051,7 +3222,8 @@
     "tags": [
       "beach",
       "forest"
-    ]
+    ],
+    "city": "태안군"
   },
   {
     "slug": "kkotji-beach",
@@ -3069,7 +3241,8 @@
     "needsVerification": true,
     "tags": [
       "beach"
-    ]
+    ],
+    "city": "태안군"
   },
   {
     "slug": "muchangpo-beach",
@@ -3090,15 +3263,16 @@
     "needsVerification": true,
     "tags": [
       "beach"
-    ]
+    ],
+    "city": "보령시"
   },
   {
     "slug": "gosapo-beach",
     "name": "고사포해변",
     "type": "wild",
     "location": {
-      "latitude": 36.664,
-      "longitude": 126.453
+      "latitude": 35.66389,
+      "longitude": 126.51037
     },
     "region": "전북",
     "description": "변산반도국립공원 내 2km 백사장과 300m 폭 송림이 장관인 해변. 송림 노지·솔밭 캠핑으로 백패커에게 오래 알려진 곳이다.",
@@ -3109,7 +3283,8 @@
     "tags": [
       "beach",
       "forest"
-    ]
+    ],
+    "city": "부안군"
   },
   {
     "slug": "byeonsan-beach",
@@ -3128,7 +3303,8 @@
     "tags": [
       "beach",
       "forest"
-    ]
+    ],
+    "city": "부안군"
   },
   {
     "slug": "sampo-beach",
@@ -3149,7 +3325,8 @@
     "tags": [
       "beach",
       "forest"
-    ]
+    ],
+    "city": "고성군"
   },
   {
     "slug": "ayajin-beach",
@@ -3167,7 +3344,8 @@
     "needsVerification": true,
     "tags": [
       "beach"
-    ]
+    ],
+    "city": "고성군"
   },
   {
     "slug": "baekdo-beach",
@@ -3188,7 +3366,8 @@
     "needsVerification": true,
     "tags": [
       "beach"
-    ]
+    ],
+    "city": "고성군"
   },
   {
     "slug": "jajakdo-beach",
@@ -3206,7 +3385,8 @@
     "needsVerification": true,
     "tags": [
       "beach"
-    ]
+    ],
+    "city": "고성군"
   },
   {
     "slug": "bongpo-beach",
@@ -3224,7 +3404,8 @@
     "needsVerification": true,
     "tags": [
       "beach"
-    ]
+    ],
+    "city": "고성군"
   },
   {
     "slug": "hajodae-beach",
@@ -3243,7 +3424,8 @@
     "tags": [
       "beach",
       "forest"
-    ]
+    ],
+    "city": "양양군"
   },
   {
     "slug": "maengbang-beach",
@@ -3264,7 +3446,8 @@
     "tags": [
       "beach",
       "forest"
-    ]
+    ],
+    "city": "삼척시"
   },
   {
     "slug": "wonpyeong-beach",
@@ -3283,7 +3466,8 @@
     "tags": [
       "beach",
       "forest"
-    ]
+    ],
+    "city": "삼척시"
   },
   {
     "slug": "sungut-beach",
@@ -3301,7 +3485,8 @@
     "needsVerification": true,
     "tags": [
       "beach"
-    ]
+    ],
+    "city": "강릉시"
   },
   {
     "slug": "yeocha-mongdol-beach",
@@ -3319,7 +3504,8 @@
     "needsVerification": true,
     "tags": [
       "beach"
-    ]
+    ],
+    "city": "통영시"
   },
   {
     "slug": "sangju-eunmorae-beach",
@@ -3341,7 +3527,8 @@
     "tags": [
       "beach",
       "forest"
-    ]
+    ],
+    "city": "남해군"
   },
   {
     "slug": "gangdong-mongdol-beach",
@@ -3359,7 +3546,8 @@
     "needsVerification": true,
     "tags": [
       "beach"
-    ]
+    ],
+    "city": "북구"
   },
   {
     "slug": "mangyangjeong-beach",
@@ -3377,7 +3565,8 @@
     "needsVerification": true,
     "tags": [
       "beach"
-    ]
+    ],
+    "city": "울진군"
   },
   {
     "slug": "daegwang-beach",
@@ -3387,7 +3576,7 @@
       "latitude": 35.085,
       "longitude": 126.068
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "연륙교로 차량 진입이 되는 신안 임자도의 12km에 달하는 국내 최장급 해변으로, 광활한 백사장 야영 구역에서 차박·노지가 가능하다.",
     "facilities": [
       "toilet",
@@ -3398,7 +3587,8 @@
     "needsVerification": true,
     "tags": [
       "beach"
-    ]
+    ],
+    "city": "신안군"
   },
   {
     "slug": "manseongni-black-sand-beach",
@@ -3408,7 +3598,7 @@
       "latitude": 34.764,
       "longitude": 127.769
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "검은 모래로 이색적인 여수 만흥동 해변으로, 파출소·항 인근 구역에서 조용한 차박을 즐기는 노지로 알려져 있다.",
     "facilities": [],
     "accessInfo": "여수시 만성리길 일원, 마래터널 방면 해변 주차 구역.",
@@ -3416,7 +3606,8 @@
     "needsVerification": true,
     "tags": [
       "beach"
-    ]
+    ],
+    "city": "여수시"
   },
   {
     "slug": "baengnyeongdo",
@@ -3435,7 +3626,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "옹진군"
   },
   {
     "slug": "daecheongdo",
@@ -3454,7 +3646,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "옹진군"
   },
   {
     "slug": "munapdo",
@@ -3473,7 +3666,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "옹진군"
   },
   {
     "slug": "baegado",
@@ -3492,7 +3686,8 @@
     "tags": [
       "island",
       "plain"
-    ]
+    ],
+    "city": "옹진군"
   },
   {
     "slug": "sido",
@@ -3511,7 +3706,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "옹진군"
   },
   {
     "slug": "gwallido",
@@ -3529,7 +3725,8 @@
     "needsVerification": true,
     "tags": [
       "island"
-    ]
+    ],
+    "city": "군산시"
   },
   {
     "slug": "wonsando",
@@ -3548,7 +3745,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "태안군"
   },
   {
     "slug": "janggodo",
@@ -3567,7 +3765,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "태안군"
   },
   {
     "slug": "gwanmaedo",
@@ -3577,7 +3776,7 @@
       "latitude": 34.243,
       "longitude": 126.058
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "진도 조도면의 국립공원 명품마을로, 국내 최대 규모의 곰솔 해송숲과 약 1.2km 관매도 해변을 끼고 있다. 덱과 노지가 섞인 섬 백패킹의 대표 성지.",
     "facilities": [],
     "accessInfo": "진도 팽목항(진도항) 여객선터미널에서 여객선으로 약 1시간 40분. 전남 여객선 예약 통합시스템으로 예약 가능.",
@@ -3587,7 +3786,8 @@
       "island",
       "beach",
       "forest"
-    ]
+    ],
+    "city": "진도군"
   },
   {
     "slug": "hahwado",
@@ -3597,7 +3797,7 @@
       "latitude": 34.628,
       "longitude": 127.616
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "야생화가 많아 '꽃섬'으로 불리는 여수의 작은 섬. 약 5.7km 꽃섬길 둘레길과 언덕 조망이 좋아 봄·가을 트레킹 겸 백패킹지로 소문났다.",
     "facilities": [],
     "accessInfo": "여수 백야도선착장 등에서 여객선으로 약 40분~1시간. 하루 운항편이 적어 시간표 확인 필수.",
@@ -3606,7 +3806,8 @@
     "tags": [
       "island",
       "plain"
-    ]
+    ],
+    "city": "여수시"
   },
   {
     "slug": "chodo-yeosu",
@@ -3616,7 +3817,7 @@
       "latitude": 34.283,
       "longitude": 127.32
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "여수 삼산면의 섬으로 상산 능선과 대동·의성 해변을 갖췄다. 거문도로 가는 뱃길에 있어 능선·해변을 배경으로 조용한 백패킹을 즐긴다.",
     "facilities": [],
     "accessInfo": "여수 연안여객터미널에서 거문도행 여객선이 경유, 약 2시간. 운항편이 적고 결항이 잦다.",
@@ -3625,7 +3826,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "여수시"
   },
   {
     "slug": "sonjukdo",
@@ -3635,7 +3837,7 @@
       "latitude": 34.333,
       "longitude": 127.303
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "여수 삼산면의 한적한 섬으로 깃대봉 능선과 소나무숲·해변을 갖췄다. 관광객이 적어 호젓한 섬 백패킹을 원하는 이들이 찾는다.",
     "facilities": [],
     "accessInfo": "여수 연안여객터미널에서 여객선으로 약 1시간 40분. 하루 운항편이 제한적이라 시간표 확인 필수.",
@@ -3644,7 +3846,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "고흥군"
   },
   {
     "slug": "gaedo",
@@ -3654,7 +3857,7 @@
       "latitude": 34.552,
       "longitude": 127.607
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "여수 화정면의 섬으로 봉화산 능선과 해안을 두르는 둘레길, 캠핑 가능한 해변을 갖췄다. 섬 막걸리로도 알려졌으며 트레킹 겸 야영지로 찾는다.",
     "facilities": [],
     "accessInfo": "여수 연안여객터미널·백야도선착장에서 여객선으로 약 40분~1시간.",
@@ -3662,7 +3865,8 @@
     "needsVerification": true,
     "tags": [
       "island"
-    ]
+    ],
+    "city": "여수시"
   },
   {
     "slug": "somaemuldo",
@@ -3681,7 +3885,8 @@
     "tags": [
       "island",
       "plain"
-    ]
+    ],
+    "city": "통영시"
   },
   {
     "slug": "bijindo",
@@ -3700,7 +3905,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "통영시"
   },
   {
     "slug": "yeondaedo",
@@ -3719,7 +3925,8 @@
     "tags": [
       "island",
       "beach"
-    ]
+    ],
+    "city": "통영시"
   },
   {
     "slug": "gapado",
@@ -3738,7 +3945,8 @@
     "tags": [
       "island",
       "plain"
-    ]
+    ],
+    "city": "서귀포시"
   },
   {
     "slug": "naerincheon-misan-valley",
@@ -3756,7 +3964,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "인제군"
   },
   {
     "slug": "deoksangi-valley",
@@ -3774,7 +3983,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "정선군"
   },
   {
     "slug": "eoraeyeon-donggang",
@@ -3792,7 +4002,8 @@
     "needsVerification": true,
     "tags": [
       "lake"
-    ]
+    ],
+    "city": "영월군"
   },
   {
     "slug": "donggang-dunchi",
@@ -3812,7 +4023,8 @@
     "needsVerification": true,
     "tags": [
       "lake"
-    ]
+    ],
+    "city": "영월군"
   },
   {
     "slug": "jucheon-panun-seopdari",
@@ -3832,7 +4044,8 @@
     "needsVerification": true,
     "tags": [
       "lake"
-    ]
+    ],
+    "city": "영월군"
   },
   {
     "slug": "mogok-bambeol",
@@ -3852,7 +4065,8 @@
     "needsVerification": true,
     "tags": [
       "lake"
-    ]
+    ],
+    "city": "춘천시"
   },
   {
     "slug": "namnoil-riverside",
@@ -3870,7 +4084,8 @@
     "needsVerification": true,
     "tags": [
       "lake"
-    ]
+    ],
+    "city": "홍천군"
   },
   {
     "slug": "hantan-goseokjeong",
@@ -3890,7 +4105,8 @@
     "needsVerification": true,
     "tags": [
       "lake"
-    ]
+    ],
+    "city": "철원군"
   },
   {
     "slug": "yeoncheon-hantan",
@@ -3911,7 +4127,8 @@
     "needsVerification": true,
     "tags": [
       "lake"
-    ]
+    ],
+    "city": "연천군"
   },
   {
     "slug": "myeongji-valley",
@@ -3929,7 +4146,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "가평군"
   },
   {
     "slug": "yongchu-valley-gapyeong",
@@ -3949,7 +4167,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "가평군"
   },
   {
     "slug": "samtan-resort",
@@ -3969,7 +4188,8 @@
     "needsVerification": true,
     "tags": [
       "lake"
-    ]
+    ],
+    "city": "충주시"
   },
   {
     "slug": "suju-palbong",
@@ -3990,7 +4210,8 @@
     "needsVerification": true,
     "tags": [
       "lake"
-    ]
+    ],
+    "city": "괴산군"
   },
   {
     "slug": "mokgye-solbat",
@@ -4011,7 +4232,8 @@
     "tags": [
       "lake",
       "forest"
-    ]
+    ],
+    "city": "충주시"
   },
   {
     "slug": "mokdo-gangsuyok",
@@ -4029,7 +4251,8 @@
     "needsVerification": true,
     "tags": [
       "lake"
-    ]
+    ],
+    "city": "괴산군"
   },
   {
     "slug": "gouncol-galdaebat",
@@ -4047,7 +4270,8 @@
     "needsVerification": true,
     "tags": [
       "lake"
-    ]
+    ],
+    "city": "단양군"
   },
   {
     "slug": "auraji",
@@ -4067,7 +4291,8 @@
     "needsVerification": true,
     "tags": [
       "lake"
-    ]
+    ],
+    "city": "정선군"
   },
   {
     "slug": "imgye-mirak-forest",
@@ -4088,7 +4313,8 @@
     "tags": [
       "lake",
       "forest"
-    ]
+    ],
+    "city": "강릉시"
   },
   {
     "slug": "paroho-ttansan",
@@ -4108,7 +4334,8 @@
     "needsVerification": true,
     "tags": [
       "lake"
-    ]
+    ],
+    "city": "화천군"
   },
   {
     "slug": "amrok-resort",
@@ -4118,7 +4345,7 @@
       "latitude": 35.2,
       "longitude": 127.35
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "섬진강과 보성강이 합류하는 곡성 압록의 드넓은 백사장 노지. 무료 개방된 강변으로 전남권 노지캠핑 성지로 불린다.",
     "facilities": [
       "toilet"
@@ -4128,7 +4355,8 @@
     "needsVerification": true,
     "tags": [
       "lake"
-    ]
+    ],
+    "city": "곡성군"
   },
   {
     "slug": "gilancheon-andong",
@@ -4148,7 +4376,8 @@
     "needsVerification": true,
     "tags": [
       "lake"
-    ]
+    ],
+    "city": "안동시"
   },
   {
     "slug": "daecheongho-busugol",
@@ -4158,7 +4387,7 @@
       "latitude": 36.42,
       "longitude": 127.49
     },
-    "region": "충북",
+    "region": "대전",
     "description": "대청호 자락 부수골의 호반 노지. 잔잔한 호수 뷰로 오래전부터 차박러들이 찾던 조용한 스팟이다.",
     "facilities": [],
     "accessInfo": "청주 문의면 대청호변 부수골. 대청호 오백리길 인근 진입.",
@@ -4166,7 +4395,8 @@
     "needsVerification": true,
     "tags": [
       "lake"
-    ]
+    ],
+    "city": "동구"
   },
   {
     "slug": "ganwoljae-eoksae-pyeongwon",
@@ -4184,7 +4414,8 @@
     "needsVerification": true,
     "tags": [
       "plain"
-    ]
+    ],
+    "city": "울주군"
   },
   {
     "slug": "sinbuljae-eoksae-pyeongwon",
@@ -4202,7 +4433,8 @@
     "needsVerification": true,
     "tags": [
       "plain"
-    ]
+    ],
+    "city": "울주군"
   },
   {
     "slug": "hwawangsan-eoksae-pyeongwon",
@@ -4220,7 +4452,8 @@
     "needsVerification": true,
     "tags": [
       "plain"
-    ]
+    ],
+    "city": "창녕군"
   },
   {
     "slug": "hwangmaesan-eoksae-pyeongwon",
@@ -4238,7 +4471,8 @@
     "needsVerification": true,
     "tags": [
       "plain"
-    ]
+    ],
+    "city": "합천군"
   },
   {
     "slug": "cheongwansan-eoksae-pyeongwon",
@@ -4248,7 +4482,7 @@
       "latitude": 34.535,
       "longitude": 126.902
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "장흥 천관산 연대봉에서 환희대로 이어지는 40만 평 억새평원이다. 다도해와 멀리 한라산까지 조망되는 남도 대표 억새 초지다.",
     "facilities": [],
     "accessInfo": "관산읍 천관산자연휴양림 또는 장천재 들머리에서 능선까지 도보 1시간 안팎.",
@@ -4256,7 +4490,8 @@
     "needsVerification": true,
     "tags": [
       "plain"
-    ]
+    ],
+    "city": "장흥군"
   },
   {
     "slug": "jangansan-eoksae-pyeongwon",
@@ -4274,7 +4509,8 @@
     "needsVerification": true,
     "tags": [
       "plain"
-    ]
+    ],
+    "city": "장수군"
   },
   {
     "slug": "gasiri-gongdong-mokjang",
@@ -4292,7 +4528,8 @@
     "needsVerification": true,
     "tags": [
       "plain"
-    ]
+    ],
+    "city": "서귀포시"
   },
   {
     "slug": "muuido-silmido-solbat",
@@ -4311,7 +4548,8 @@
     "tags": [
       "forest",
       "beach"
-    ]
+    ],
+    "city": "영종구"
   },
   {
     "slug": "chungnyeongsan-pyeonbaeksup",
@@ -4321,7 +4559,7 @@
       "latitude": 35.354,
       "longitude": 126.833
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "장성 축령산 일대 1,000ha가 넘는 편백·삼나무 조림 숲으로 국내 대표 치유의 숲이다. 울창한 상록수림 사이 노지에서 피톤치드 가득한 숲속 하룻밤을 보낼 수 있다.",
     "facilities": [],
     "accessInfo": "장성 서삼면 모암리·금곡영화마을 들머리에서 임도·숲길로 접근. 축령산자연휴양림은 추첨 예약제로 운영된다.",
@@ -4329,7 +4567,8 @@
     "needsVerification": true,
     "tags": [
       "forest"
-    ]
+    ],
+    "city": "장성군"
   },
   {
     "slug": "inje-jindong-gyegok",
@@ -4348,7 +4587,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "인제군"
   },
   {
     "slug": "yangyang-beopsuchi-gyegok",
@@ -4367,7 +4607,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "양양군"
   },
   {
     "slug": "yangyang-eoseongjeon-gyegok",
@@ -4386,7 +4627,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "양양군"
   },
   {
     "slug": "jecheon-neunggang-gyegok",
@@ -4404,7 +4646,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "제천시"
   },
   {
     "slug": "yeongdong-mulhan-gyegok",
@@ -4425,7 +4668,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "영동군"
   },
   {
     "slug": "yeongdeok-okgye-gyegok",
@@ -4443,7 +4687,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "영덕군"
   },
   {
     "slug": "pyeongchang-heungjeong-gyegok",
@@ -4464,7 +4709,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "평창군"
   },
   {
     "slug": "jinan-unilam-banilam",
@@ -4486,7 +4732,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "진안군"
   },
   {
     "slug": "hongcheon-chikso-gyegok",
@@ -4506,7 +4753,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "홍천군"
   },
   {
     "slug": "uiseong-binggye-gyegok",
@@ -4527,7 +4775,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "의성군"
   },
   {
     "slug": "uiseong-jeomgok-gyegok",
@@ -4547,7 +4796,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "의성군"
   },
   {
     "slug": "miryang-pyochungsa-gyegok",
@@ -4569,7 +4819,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "밀양시"
   },
   {
     "slug": "cheongyang-kkachinae-gyegok",
@@ -4589,7 +4840,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "청양군"
   },
   {
     "slug": "cheonan-bukmyeon-gyegok",
@@ -4607,7 +4859,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "천안시 동남구"
   },
   {
     "slug": "hoengseong-byeongjibang-gyegok",
@@ -4629,7 +4882,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "횡성군"
   },
   {
     "slug": "boeun-seowon-gyegok",
@@ -4649,7 +4903,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "보은군"
   },
   {
     "slug": "yeongyang-yonghwa-gyegok",
@@ -4670,7 +4925,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "영양군"
   },
   {
     "slug": "hadong-hwagaecheon-gyegok",
@@ -4693,15 +4949,16 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "하동군"
   },
   {
     "slug": "samcheok-deokpung-valley",
     "name": "삼척 덕풍계곡",
     "type": "wild",
     "location": {
-      "latitude": 37.05,
-      "longitude": 129.24
+      "latitude": 37.09361,
+      "longitude": 129.18686
     },
     "region": "강원",
     "description": "응봉산 협곡을 따라 6km 넘게 이어지는 청정 계곡으로, 무릎 아래로 얕고 바닥이 훤히 비치는 계곡물과 너럭바위가 많아 물놀이와 노지 야영을 함께 즐기는 곳이다. 강 건너 무료 주차장에서 도보로 진입한다.",
@@ -4714,7 +4971,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "삼척시"
   },
   {
     "slug": "inje-dongasil-valley",
@@ -4735,7 +4993,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "홍천군"
   },
   {
     "slug": "gangneung-dangyeonggol-valley",
@@ -4756,7 +5015,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "강릉시"
   },
   {
     "slug": "goseong-dowonri-valley",
@@ -4774,7 +5034,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "고성군"
   },
   {
     "slug": "yeongwol-yeonha-valley",
@@ -4794,7 +5055,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "영월군"
   },
   {
     "slug": "wonju-yeonhwasa-valley",
@@ -4816,7 +5078,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "원주시"
   },
   {
     "slug": "jecheon-deokdong-valley",
@@ -4835,15 +5098,16 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "제천시"
   },
   {
     "slug": "goesan-suok-valley",
     "name": "괴산 수옥계곡",
     "type": "wild",
     "location": {
-      "latitude": 36.78,
-      "longitude": 128.06
+      "latitude": 36.80643,
+      "longitude": 128.0274
     },
     "region": "충북",
     "description": "조령 아래 수옥폭포에서 이어지는 계곡으로, 너럭바위와 맑은 물길을 따라 물놀이와 계곡가 야영을 즐기는 이들이 찾는 곳이다.",
@@ -4855,7 +5119,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "괴산군"
   },
   {
     "slug": "chungju-suryong-valley",
@@ -4873,7 +5138,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "충주시"
   },
   {
     "slug": "cheonan-gwangdeok-valley",
@@ -4891,7 +5157,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "아산시"
   },
   {
     "slug": "mungyeong-soya-solbat",
@@ -4912,7 +5179,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "문경시"
   },
   {
     "slug": "mungyeong-ssangnyong-valley",
@@ -4933,15 +5201,16 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "문경시"
   },
   {
     "slug": "sangju-janggak-valley",
     "name": "상주 장각폭포계곡",
     "type": "wild",
     "location": {
-      "latitude": 36.55,
-      "longitude": 127.87
+      "latitude": 36.5418,
+      "longitude": 127.91566
     },
     "region": "경북",
     "description": "속리산 천왕봉 동쪽 화북면 상오리의 장각폭포 아래로 이어지는 계곡으로, 폭포와 담을 낀 물놀이와 노지 야영을 즐기는 캠퍼에게 알려져 있다.",
@@ -4952,7 +5221,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "상주시"
   },
   {
     "slug": "geochang-wolseong-valley",
@@ -4971,7 +5241,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "거창군"
   },
   {
     "slug": "geochang-jangpung-sup",
@@ -4993,7 +5264,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "거창군"
   },
   {
     "slug": "miryang-geumgok-valley",
@@ -5013,7 +5285,8 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "밀양시"
   },
   {
     "slug": "gokseong-cheonggyedong-valley",
@@ -5023,7 +5296,7 @@
       "latitude": 35.3,
       "longitude": 127.27
     },
-    "region": "전남",
+    "region": "전남광주",
     "description": "동악산 자락 곡성읍 신기리의 청계동계곡은 기암과 소가 이어지는 남도의 대표 피서 계곡으로, 물놀이와 계곡가 노지 야영을 함께 즐길 수 있다.",
     "facilities": [],
     "accessInfo": "전남 곡성군 곡성읍 신기리 청계동 일원. 계곡을 따라 마을길과 주차 공간이 이어진다.",
@@ -5032,7 +5305,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "곡성군"
   },
   {
     "slug": "pocheon-jijangsan-valley",
@@ -5051,7 +5325,8 @@
     "tags": [
       "valley",
       "forest"
-    ]
+    ],
+    "city": "연천군"
   },
   {
     "slug": "yangpyeong-seoksan-valley",
@@ -5069,6 +5344,7 @@
     "needsVerification": true,
     "tags": [
       "valley"
-    ]
+    ],
+    "city": "양평군"
   }
 ]

@@ -5,7 +5,10 @@ import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
-import { getCampSiteTypeLabel } from '@/model/camp-site/CampSiteLabels';
+import {
+  getCampSiteTypeLabel,
+  getCampSpotRegionLabel,
+} from '@/model/camp-site/CampSiteLabels';
 
 interface Props {
   location: BagLocation;
@@ -49,7 +52,7 @@ const BagDestinationInfoView: FC<Props> = ({
               </PretendardText>
             </View>
             <PretendardText style={styles.metaText} numberOfLines={1}>
-              {linkedSpot.region}
+              {getCampSpotRegionLabel(linkedSpot)}
             </PretendardText>
           </View>
         )}

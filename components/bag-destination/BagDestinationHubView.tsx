@@ -9,7 +9,6 @@ import PretendardText from '@/components/PretendardText';
 import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 import BagWeather from '@/model/bag/BagWeather';
 import { getPhaseLabel } from '@/model/bag/TripPhaseHelper';
-import BagDestinationPickerView from './BagDestinationPickerView';
 import BagDestinationMapPreviewView from './BagDestinationMapPreviewView';
 import BagDestinationInfoView from './BagDestinationInfoView';
 import BagTripWeatherView from '@/components/weather/BagTripWeatherView';
@@ -32,12 +31,9 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
   const {
     location,
     linkedSpot,
-    pickerVisible,
     detailSpotId,
     isMapSupported,
     handleOpenPicker,
-    handleClosePicker,
-    handleConfirmLocation,
     handleOpenSpotDetail,
     handleCloseSpotDetail,
     handleOpenDirections,
@@ -49,15 +45,6 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
     ? formatDay(start)
     : `${formatDay(start)} ~ ${formatDay(end)}`;
   const phaseLabel = getPhaseLabel(start, end);
-
-  const picker = (
-    <BagDestinationPickerView
-      currentLocation={location}
-      visible={pickerVisible}
-      onClose={handleClosePicker}
-      onConfirm={handleConfirmLocation}
-    />
-  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -136,8 +123,6 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
           <BagTripWeatherView bagWeather={bagWeather} />
         </ScrollView>
       )}
-
-      {picker}
 
       {/* 박지 상세(CS-3)를 풀 시트로 겹쳐 띄운다. 이미 이 배낭의 여행지라
           '배낭 여행지로 설정' CTA는 숨긴다(DST-8). */}

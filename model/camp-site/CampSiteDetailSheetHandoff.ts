@@ -10,6 +10,11 @@ export interface CampSiteDetailSheetParams {
   onMoveToSpot: (spot: CampSpot) => void;
   // 시트가 닫힐 때 지도의 마커 선택을 해제한다(강조 정리).
   onClose: () => void;
+  // `배낭 여행지로 설정` CTA의 동작 오버라이드(DST-3). 여행지 선택기 위에 겹쳐 뜬 상세는
+  // 이미 특정 배낭의 선택기 안이라 배낭 리스트(CS-5)를 열 이유가 없어, 이 콜백으로 그 박지를
+  // 곧바로 현재 배낭 여행지로 저장한다. 없으면(지도 탭 진입) 기존대로 배낭 선택 시트를 연다.
+  // 저장이 끝날 때까지 CTA가 로딩 상태를 보여줄 수 있도록 Promise를 돌려준다(DST-3).
+  onSetBag?: ((spot: CampSpot) => Promise<void>) | undefined;
 }
 
 let pending: CampSiteDetailSheetParams | null = null;

@@ -12,21 +12,18 @@ interface Props {
   // 표시할 박지 id. null이면 오버레이를 닫는다(DST-3).
   spotId: string | null;
   onClose: () => void;
-  // 배낭 여행지로 설정 — 여행지 선택기에서 연 상세는 배낭 리스트를 열지 않고
-  // 이 박지를 현재 배낭 여행지로 바로 설정한다(DST-3). 허브 진입(DST-8)엔 없다.
-  onSetBag?: (() => void) | undefined;
   // 배낭 여행지로 설정 CTA 노출 여부(기본 true). 허브 진입은 이미 이 배낭의
   // 여행지라 false로 숨긴다(DST-8).
   showSetBag?: boolean | undefined;
 }
 
-// 박지 상세 오버레이(DST-3). 선택기가 풀스크린 네이티브 모달이라 /camp-site/{id}
-// 라우트를 push하면 모달 뒤에 가려진다 — 라우트 대신 pageSheet 모달로 선택기 위에
-// 겹쳐 띄우고, 닫으면 선택 상태를 유지한 선택기로 돌아온다. pageSheet은 평범한 RN
-// 모달이라 상세의 [헤더·탭·CTA]가 일반 flex:1로 배치돼 formSheet 라우트용
-// detent 처리(app/_layout.tsx의 contentStyle bottom:0)가 필요 없다.
+// 박지 상세 오버레이(DST-8). 여행지 허브가 연결 박지 상세를 **풀 높이 + CTA 숨김**으로 띄우기
+// 위해 쓴다 — /camp-site/{id} 라우트는 detent 시트라 높이를 그렇게 고정할 수 없다.
+// pageSheet은 평범한 RN 모달이라 상세의 [헤더·탭·CTA]가 일반 flex:1로 배치돼 formSheet
+// 라우트용 detent 처리(app/_layout.tsx의 contentStyle bottom:0)가 필요 없다.
+// (선택기 DST-3은 라우트가 되면서 이 오버레이 대신 formSheet 라우트를 쓴다.)
 const CampSiteDetailOverlayView: FC<Props> = observer(
-  ({ spotId, onClose, onSetBag, showSetBag = true }) => {
+  ({ spotId, onClose, showSetBag = true }) => {
     const router = useRouter();
     // 모델은 1회 생성하고(후기 작성·공유 배낭 push용 Router가 필요), 열릴 때마다
     // 해당 박지로 재초기화한다.
@@ -58,12 +55,10 @@ const CampSiteDetailOverlayView: FC<Props> = observer(
         <SafeAreaProvider>
           <SafeAreaView style={styles.container} edges={['bottom']}>
             {initialized ? (
-              // 위치로 이동(onMoveToSpot)은 넘기지 않는다 — 이 컨텍스트엔 되돌릴 지도가 없다(DST-3).
-              // onSetBag으로 CTA를 현재 배낭 설정으로 바꾼다(배낭 리스트를 열지 않는다).
+              // 위치로 이동(onMoveToSpot)은 넘기지 않는다 — 이 컨텍스트엔 되돌릴 지도가 없다(DST-8).
               <CampSiteDetailView
                 campSiteDetail={campSiteDetail}
                 onClose={onClose}
-                onSetBag={onSetBag}
                 showSetBag={showSetBag}
               />
             ) : (

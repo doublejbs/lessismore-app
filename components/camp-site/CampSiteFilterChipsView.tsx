@@ -18,34 +18,34 @@ interface Props {
   onChangeFilter?: (() => void) | undefined;
 }
 
-// 유형 필터(CS-2) — 단일 선택, 백패킹(wild)→대피소→캠핑장(campground) 순. 칩의 색 도트가 지도 마커 색 범례를 겸한다.
-// 백패킹(Wild)을 맨 앞에 둔다 — UL 백패킹 앱이라 주 관심 유형을 첫 칩으로 노출한다.
+// 유형 필터(CS-2) — 단일 선택. 칩의 색 도트가 지도 마커 색 범례를 겸한다.
+// 무필터인 `전체`를 맨 앞에 두고 백패킹(wild)→대피소→캠핑장(campground) 순으로 잇는다 —
+// 필터 해제 수단이 항상 첫 자리에 있어야 찾기 쉽다.
 const TYPE_FILTERS: {
   label: string;
   value: CampSiteType | null;
   dotColor?: string;
 }[] = [
-  ...([
-    CampSiteType.Wild,
-    CampSiteType.Shelter,
-    CampSiteType.Campground,
-  ] as const).map(type => ({
+  { label: '전체', value: null },
+  ...(
+    [CampSiteType.Wild, CampSiteType.Shelter, CampSiteType.Campground] as const
+  ).map(type => ({
     label: getCampSiteTypeLabel(type),
     value: type,
     dotColor: getCampSiteTypeColor(type),
   })),
-  { label: '전체', value: null },
 ];
 
-// 태그 필터(CS-2) — `#` 접두로 유형과 축을 구분하고, 재탭으로 해제(토글)한다.
+// 태그 필터(CS-2) — 재탭으로 해제(토글)한다. 유형 행과는 행이 갈려 있어
+// `#` 접두 없이도 축이 구분된다(접두를 빼 라벨을 짧고 깔끔하게 유지).
 const TAG_FILTERS: { label: string; value: CampSiteTag }[] = Object.values(
   CampSiteTag
 ).map(tag => ({
-  label: `#${getCampSiteTagLabel(tag)}`,
+  label: getCampSiteTagLabel(tag),
   value: tag,
 }));
 
-// 필터 칩 공용 뷰(CS-2, DST-3): 1행 유형(백패킹/대피소/캠핑장/전체) +
+// 필터 칩 공용 뷰(CS-2, DST-3): 1행 유형(전체/백패킹/대피소/캠핑장) +
 // 2행 태그(#접두, 토글, 가로 스크롤). 지도 탭과 배낭 여행지 선택기가 함께 쓴다.
 // ★ 즐겨찾기는 하단 플로팅 버튼으로 옮겨 이 칩 행에선 다루지 않는다(CS-9).
 // 필터 상태는 넘겨받은 campSiteMap 인스턴스에 실려 마커 표시 대상에 AND로 적용된다.
@@ -117,10 +117,7 @@ const CampSiteFilterChipsView: FC<Props> = observer(
             <View
               key={filter.value}
               onLayout={e =>
-                tagChipOffsets.current.set(
-                  filter.value,
-                  e.nativeEvent.layout.x
-                )
+                tagChipOffsets.current.set(filter.value, e.nativeEvent.layout.x)
               }
             >
               <CategoryChipView

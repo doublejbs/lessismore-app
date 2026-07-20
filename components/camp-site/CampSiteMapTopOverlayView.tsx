@@ -18,6 +18,7 @@ import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
   getCampSiteTagLabel,
   getCampSiteTypeLabel,
+  getCampSpotRegionLabel,
 } from '@/model/camp-site/CampSiteLabels';
 import CampSiteFilterChipsView from './CampSiteFilterChipsView';
 
@@ -55,7 +56,7 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
       }
 
       const parts = [
-        tag !== null ? `#${getCampSiteTagLabel(tag)}` : '',
+        tag !== null ? getCampSiteTagLabel(tag) : '',
         type !== null ? getCampSiteTypeLabel(type) : '',
       ].filter(Boolean);
       const name = parts.length > 0 ? parts.join(' ') : '박지';
@@ -155,7 +156,7 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
                           style={styles.resultRegion}
                           numberOfLines={1}
                         >
-                          {spot.region}
+                          {getCampSpotRegionLabel(spot)}
                         </PretendardText>
                       </TouchableOpacity>
                     ))

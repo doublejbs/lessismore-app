@@ -26,7 +26,7 @@ const SEOUL_CITY_HALL: Coordinate = { latitude: 37.5665, longitude: 126.978 };
 const PICKED_ZOOM = deltaToZoom(0.02);
 const DEFAULT_ZOOM = deltaToZoom(0.05);
 
-// 박지 선택 후 제스처로 이만큼 넘게 벗어나면 자유 위치 모드로 돌린다(DST-3).
+// 박지를 포커스한 뒤 제스처로 이만큼 넘게 벗어나면 자유 위치 UI로 되돌린다(DST-3).
 const SPOT_RELEASE_METERS = 100;
 // 같은 지점으로 볼 거리 — 박지·장소 중복 제거(DST-4)와 알려진 이름 재사용에 쓴다.
 const SAME_PLACE_METERS = 100;
@@ -102,9 +102,12 @@ const useBagDestinationPickerState = ({
   // 이펙트가 안 돌면 리렌더도 없어 재발화가 멎고, 그때 정착값이 갱신돼 주소를 조회한다.
   const [settledCenter, setSettledCenter] = useState<Coordinate | null>(null);
   const [viewport, setViewport] = useState<CampSiteMapViewport | null>(null);
-  const [selectedSpot, setSelectedSpot] = useState<CampSpot | null>(null);
+  // 박지 확정(handleConfirmSpot) 경로에서만 잠깐 채워지는 확정 대상. 선택 모드가 없어져
+  // 평소에는 항상 null이고, 하단 확정 버튼은 언제나 지도 중심(자유 위치)을 저장한다(DST-3).
   const [selectedCampLocation, setSelectedCampLocation] =
     useState<BagLocation | null>(null);
+  // 표시 전용 박지 포커스 — null이면 자유 위치 UI를 노출한다(DST-3).
+  const [focusedSpot, setFocusedSpot] = useState<CampSpot | null>(null);
   const [addressName, setAddressName] = useState('');
   const [resolving, setResolving] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -118,6 +121,8 @@ const useBagDestinationPickerState = ({
   // 저장/검색으로 이름을 이미 아는 좌표. 이 근처에선 역지오코딩 대신 이 이름을 쓴다.
   const knownRef = useRef<(Coordinate & { name: string }) | null>(null);
   const selectedCampLocationRef = useRef<BagLocation | null>(null);
+  // 표시 전용 박지 포커스(위 focusSpot 주석 참고). 콜백 안에서 최신값을 읽으려 ref를 함께 둔다.
+  const focusedSpotRef = useRef<CampSpot | null>(null);
   const mountedRef = useRef(true);
   const visibleGenerationRef = useRef(0);
   const previousVisibleRef = useRef(visible);
@@ -262,27 +267,33 @@ const useBagDestinationPickerState = ({
     setViewport(prev => prev ?? camera);
   }, []);
 
-  const selectCampLocation = useCallback(
-    (location: BagLocation | null, spot: CampSpot | null) => {
-      selectedCampLocationRef.current = location;
-      setSelectedCampLocation(location);
-      setSelectedSpot(spot);
-    },
-    []
-  );
-
-  const selectSpot = useCallback((spot: CampSpot) => {
-    const location = {
-      name: spot.name,
-      latitude: spot.location.latitude,
-      longitude: spot.location.longitude,
-      campSpotId: spot.id,
-    };
-
+  // ref를 동기적으로 갱신한다 — 확정 흐름(buildLocation)이 리렌더를 기다리지 않고
+  // 곧바로 최신 값을 읽어야 하기 때문이다.
+  const selectCampLocation = useCallback((location: BagLocation | null) => {
     selectedCampLocationRef.current = location;
     setSelectedCampLocation(location);
-    setSelectedSpot(spot);
   }, []);
+
+  // 박지 포커스는 **표시 전용** 상태다(DST-3) — 마커·검색·즐겨찾기로 박지를 들여다보는 동안
+  // 하단 자유 위치 UI(주소 + `이 위치로 설정`)를 감추는 데만 쓴다. 확정 대상인
+  // selectedCampLocationRef에는 절대 손대지 않아, `이 위치로 설정`이 항상 지도 중심을
+  // 저장한다는 보장이 유지된다. 지도를 제스처로 충분히 움직이면 해제된다.
+  const focusSpot = useCallback((spot: CampSpot | null) => {
+    focusedSpotRef.current = spot;
+    setFocusedSpot(spot);
+  }, []);
+
+  const selectSpot = useCallback(
+    (spot: CampSpot) => {
+      selectCampLocation({
+        name: spot.name,
+        latitude: spot.location.latitude,
+        longitude: spot.location.longitude,
+        campSpotId: spot.id,
+      });
+    },
+    [selectCampLocation]
+  );
 
   useEffect(() => {
     mountedRef.current = true;
@@ -324,10 +335,9 @@ const useBagDestinationPickerState = ({
       setPlaceResults([]);
       setResultsDismissed(false);
       setResolving(false);
-      selectCampLocation(
-        saved?.campSpotId ? saved : null,
-        null
-      );
+      // 저장된 여행지가 박지여도 미리 선택하지 않는다 — 남아 있으면 하단 `이 위치로 설정`이
+      // 지도 중심 대신 그 박지를 저장해 버린다(DST-3, 박지 선택 모드 폐지).
+      selectCampLocation(null);
 
       // 저장된 여행지가 있으면 그 좌표로 연다(지도 범위 밖이어도 그대로 쓴다).
       if (saved) {
@@ -447,28 +457,8 @@ const useBagDestinationPickerState = ({
     visible,
   ]);
 
-  // 저장된 여행지의 박지 링크 복원(DST-3) — 박지 목록이 로드된 뒤 매칭한다.
-  // 삭제·비활성·로드 실패여도 저장된 스냅샷 자체가 박지 선택 모드를 유지한다(DST-7).
-  const savedCampSpotId = currentLocation?.campSpotId ?? null;
-  const linkedSpot = savedCampSpotId
-    ? campSiteMap.getSpotById(savedCampSpotId)
-    : null;
-
-  useEffect(() => {
-    if (
-      !visible ||
-      savingRef.current ||
-      userInteractionRef.current > 0 ||
-      !linkedSpot ||
-      selectedCampLocationRef.current?.campSpotId !== linkedSpot.id
-    ) {
-      return;
-    }
-
-    selectSpot(linkedSpot);
-  }, [visible, linkedSpot, saving, selectSpot]);
-
-  // 자유 위치 모드에서만 지도 중심 주소를 미리 본다. 박지 모드는 박지명을 그대로 쓴다.
+  // 지도 중심 주소를 미리 본다(하단 패널은 언제나 자유 위치, DST-3).
+  // 박지 확정 중(selectedCampLocation)에만 잠깐 건너뛴다.
   // 카메라가 CAMERA_SETTLE_MS 동안 멈추면 그때의 center를 정착값으로 확정한다.
   // center가 진동하는 동안에는 타이머가 계속 리셋돼 setSettledCenter가 호출되지 않으므로,
   // 역지오코딩 이펙트(settledCenter dep)도 돌지 않아 무한 루프가 생기지 않는다.
@@ -642,6 +632,20 @@ const useBagDestinationPickerState = ({
         setCenter(prev =>
           getDistanceInMeters(prev, next) < CENTER_SETTLE_METERS ? prev : next
         );
+
+        // 포커스한 박지에서 제스처로 충분히 벗어나면 자유 위치로 되돌린다(DST-3) — 하단
+        // `이 위치로 설정` 패널이 다시 나타난다. 검색 결과 이동 등 Developer 애니메이션으로는
+        // 풀리지 않는다(그건 여전히 그 박지를 보고 있는 것).
+        const focused = focusedSpotRef.current;
+
+        if (
+          focused &&
+          getDistanceInMeters(focused.location, next) > SPOT_RELEASE_METERS
+        ) {
+          knownRef.current = null;
+          setAddressName('');
+          focusSpot(null);
+        }
       }
 
       // 중심 0.05°·줌 0.25 단위 양자화 — 값이 같으면 마커 레이어가 리렌더되지 않는다.
@@ -660,9 +664,10 @@ const useBagDestinationPickerState = ({
           : quantized
       );
 
-      const campLocation = selectedCampLocationRef.current;
-
-      if (camera.reason === 'Gesture' && !campLocation) {
+      // 알려진 이름에서 충분히 멀어지면 그 이름을 버리고 다시 역지오코딩하게 한다.
+      // 확정 대상(selectedCampLocation) 해제 분기는 없다 — 선택 모드가 폐지돼 끌어서 풀
+      // 선택 자체가 없다(DST-3). 위에서 푸는 건 표시 전용 포커스뿐이다.
+      if (camera.reason === 'Gesture') {
         const known = knownRef.current;
 
         if (!known || getDistanceInMeters(known, next) > SAME_PLACE_METERS) {
@@ -670,24 +675,13 @@ const useBagDestinationPickerState = ({
           setAddressName('');
         }
       }
-
-      // 사용자가 직접 끌어 박지에서 멀어질 때만 링크를 놓는다 —
-      // 검색 결과 선택 등 카메라 애니메이션(Developer)으로는 선택이 풀리지 않는다(DST-3).
-      if (
-        camera.reason === 'Gesture' &&
-        campLocation &&
-        getDistanceInMeters(campLocation, next) > SPOT_RELEASE_METERS
-      ) {
-        knownRef.current = null;
-        setAddressName('');
-        selectCampLocation(null, null);
-      }
     },
-    [markUserInteraction, selectCampLocation]
+    [focusSpot, markUserInteraction]
   );
 
-  // 박지 마커·박지 검색 결과 선택 → 박지 선택 모드(DST-3/DST-4).
-  const handleSelectSpot = useCallback(
+  // 박지 마커·박지 검색 결과·즐겨찾기 항목 탭 → 그 박지로 카메라만 옮긴다(DST-3).
+  // 선택은 하지 않는다 — 박지 확정은 상세 시트의 CTA(handleConfirmSpot)가 유일한 경로다.
+  const handleFocusSpot = useCallback(
     (spot: CampSpot) => {
       if (savingRef.current) {
         return;
@@ -698,12 +692,12 @@ const useBagDestinationPickerState = ({
       markUserInteraction();
       knownRef.current = null;
       setResultsDismissed(true);
-      selectSpot(spot);
       setCenter(spot.location);
       ensureOrigin(spot.location);
       moveCamera(spot.location);
+      focusSpot(spot);
     },
-    [ensureOrigin, markUserInteraction, moveCamera, selectSpot]
+    [ensureOrigin, focusSpot, markUserInteraction, moveCamera]
   );
 
   // 카카오 장소 선택 → 자유 위치 모드. 기존 박지 링크는 여기서 풀린다(DST-7).
@@ -720,13 +714,21 @@ const useBagDestinationPickerState = ({
       markUserInteraction();
       knownRef.current = { ...target, name: place.name };
       setResultsDismissed(true);
-      selectCampLocation(null, null);
+      selectCampLocation(null);
+      // 장소 검색 결과는 명시적인 자유 위치 의사표시라 박지 포커스를 푼다(DST-3).
+      focusSpot(null);
       setAddressName(place.name);
       setCenter(target);
       ensureOrigin(target);
       moveCamera(target);
     },
-    [ensureOrigin, markUserInteraction, moveCamera, selectCampLocation]
+    [
+      ensureOrigin,
+      focusSpot,
+      markUserInteraction,
+      moveCamera,
+      selectCampLocation,
+    ]
   );
 
   const handleChangeQuery = useCallback((value: string) => {
@@ -823,7 +825,9 @@ const useBagDestinationPickerState = ({
       // 현재 위치는 실제 주소를 역지오코딩하도록 알려진 이름을 비운다.
       knownRef.current = null;
       setResultsDismissed(true);
-      selectCampLocation(null, null);
+      selectCampLocation(null);
+      // 현재 위치로 이동도 명시적인 자유 위치 의사표시라 박지 포커스를 푼다(DST-3).
+      focusSpot(null);
       setAddressName('');
       setCenter(target);
       ensureOrigin(target);
@@ -849,6 +853,7 @@ const useBagDestinationPickerState = ({
   }, [
     ensureOrigin,
     isMapSupported,
+    focusSpot,
     isCurrentInteraction,
     locating,
     markUserInteraction,
@@ -967,11 +972,32 @@ const useBagDestinationPickerState = ({
     schedulePendingCamera,
   ]);
 
+  // 박지 상세 시트의 `배낭 여행지로 설정`(DST-3) — 그 박지를 곧바로 확정 저장한다.
+  // selectSpot이 selectedCampLocationRef를 동기적으로 채우므로 이어지는 handleConfirm의
+  // buildLocation이 지도 중심이 아니라 이 박지를 반환한다.
+  // 저장이 끝나면(성공·실패 모두) 선택을 반드시 비운다 — 실패해 선택기가 열린 채 남았을 때
+  // 하단 `이 위치로 설정`이 이 박지를 다시 저장해 버리지 않게 하기 위함이다.
+  const handleConfirmSpot = useCallback(
+    async (spot: CampSpot) => {
+      if (savingRef.current) {
+        return;
+      }
+
+      selectSpot(spot);
+
+      try {
+        await handleConfirm();
+      } finally {
+        selectCampLocation(null);
+      }
+    },
+    [handleConfirm, selectCampLocation, selectSpot]
+  );
+
   return {
     origin,
     viewport,
-    selectedSpot,
-    selectedCampLocation,
+    focusedSpot,
     addressName,
     resolving,
     saving,
@@ -983,7 +1009,8 @@ const useBagDestinationPickerState = ({
     resultsVisible,
     handleMapInitialized,
     handleCameraChanged,
-    handleSelectSpot,
+    handleFocusSpot,
+    handleConfirmSpot,
     handleSelectPlace,
     handleChangeQuery,
     handleFocusSearch,

@@ -12,6 +12,9 @@ export interface CampSpotData {
     longitude: number;
   };
   region: string;
+  // 시/군/구 단위 지역명(DM-17) — Kakao coord2regioncode의 region_2depth_name.
+  // 백필 이전에 적재된 옛 문서엔 없을 수 있어 옵셔널이며, 표시는 getCampSpotRegionLabel로 폴백한다.
+  city?: string;
   description: string;
   facilities: CampSiteFacility[];
   // 지형·특징 태그 (DM-17). 없으면 태그 필터 선택 시 제외된다.

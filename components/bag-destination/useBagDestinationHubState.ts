@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Linking, Platform } from 'react-native';
+import { useRouter } from 'expo-router';
 import app from '@/model/app/App';
 import BagWeather from '@/model/bag/BagWeather';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
+import { setBagDestinationPicker } from '@/model/bag-destination/BagDestinationPickerHandoff';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 
 interface Params {
@@ -15,7 +17,7 @@ const useBagDestinationHubState = ({ bagWeather }: Params) => {
   const location = bagWeather.getLocation();
   const campSpotId = location?.campSpotId ?? null;
 
-  const [pickerVisible, setPickerVisible] = useState(false);
+  const router = useRouter();
   // 상세 오버레이로 띄울 박지 id. null이면 닫힘(DST-8).
   const [detailSpotId, setDetailSpotId] = useState<string | null>(null);
   // 연결 박지 스냅샷(유형색·유형·지역·상세 이동 가능 여부). null이면 자유 위치이거나 조회 불가 상태다.
@@ -56,14 +58,6 @@ const useBagDestinationHubState = ({ bagWeather }: Params) => {
     };
   }, [campSpotId]);
 
-  const handleOpenPicker = useCallback(() => {
-    setPickerVisible(true);
-  }, []);
-
-  const handleClosePicker = useCallback(() => {
-    setPickerVisible(false);
-  }, []);
-
   // 확정한 여행지 저장. 실패는 던져 선택기가 열린 채 재시도할 수 있게 한다(DST-6).
   const handleConfirmLocation = useCallback(
     async (next: BagLocation) => {
@@ -71,6 +65,17 @@ const useBagDestinationHubState = ({ bagWeather }: Params) => {
     },
     [bagWeather]
   );
+
+  // 공용 선택기(DST-3)는 RN Modal이 아니라 라우트다 — 현재 여행지와 저장 콜백을 모듈 레벨
+  // 핸드오프에 실어 두고 풀스크린 모달 라우트를 push한다. 닫기는 선택기가 router.back()으로 한다.
+  const handleOpenPicker = useCallback(() => {
+    setBagDestinationPicker({
+      currentLocation: location,
+      onConfirm: handleConfirmLocation,
+    });
+
+    router.push('/bag-destination-picker');
+  }, [handleConfirmLocation, location, router]);
 
   // 박지 상세(CS-3)를 오버레이(pageSheet)로 풀로 띄운다(DST-8). 허브는 라우트라
   // /camp-site/{id} push도 되지만, detent가 아닌 풀 시트 + CTA 숨김을 위해 오버레이를 쓴다.
@@ -114,12 +119,9 @@ const useBagDestinationHubState = ({ bagWeather }: Params) => {
     location,
     campSpotId,
     linkedSpot,
-    pickerVisible,
     detailSpotId,
     isMapSupported: Platform.OS !== 'web',
     handleOpenPicker,
-    handleClosePicker,
-    handleConfirmLocation,
     handleOpenSpotDetail,
     handleCloseSpotDetail,
     handleOpenDirections,
