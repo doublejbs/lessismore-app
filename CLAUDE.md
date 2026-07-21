@@ -92,7 +92,7 @@ npm run web:preview          # 웹 빌드 후 로컬에서 미리보기 (serve d
 - `/app` - Expo Router 페이지 (파일 기반 라우팅)
   - `(tabs)/` - 하단 탭 네비게이션 (창고/검색/배낭/정보)
   - `gear-detail/[id]`, `bag/[id]` 같은 동적 세그먼트 라우트
-  - `terms-agreement`, `not-login-search`, `share-image`, `useless` 등 모달/특수 화면
+  - `terms-agreement`, `not-login-search`, `useless` 등 모달/특수 화면
 - `/components` - 기능별 폴더로 정리된 UI 컴포넌트 (`warehouse/`, `bag/`, `gear/`, `search/`, `alert/`, `toast/` 등)
 - `/model` - MobX 스토어 및 비즈니스 로직
   - `app/App.ts` - 루트 싱글톤, 앱 시작 시 `initialize()` 1회 호출
