@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet, Image, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';

@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import { FC, useState } from 'react';
 import { View, Image, StyleSheet } from 'react-native';
 import LoadingIconView from '@/components/ui/LoadingIconView';
 

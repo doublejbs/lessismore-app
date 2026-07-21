@@ -1,6 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 import { Linking, Share } from 'react-native';
-import { Router } from 'expo-router';
+import { ImperativeRouter } from 'expo-router';
 import WarehouseDispatcherType from '../warehouse/WarehouseDispatcherType';
 import BagStore from '../store/BagStore';
 import GearStore from '../store/GearStore';
@@ -28,7 +28,10 @@ import {
 } from '../review/ReviewTypes';
 
 class WarehouseDetail {
-  public static new(router: Router, dispatcher: WarehouseDispatcherType) {
+  public static new(
+    router: ImperativeRouter,
+    dispatcher: WarehouseDispatcherType
+  ) {
     const searchDispatcher = SearchDispatcher.new();
     const warehouseOrder = Order.new(Warehouse.ORDER_KEY);
     const bagDetailOrder = Order.new(BagDetail.ORDER_KEY);
@@ -68,7 +71,7 @@ class WarehouseDetail {
     private readonly bagStore: BagStore,
     private readonly gearStore: GearStore,
     private readonly replyStore: ReplyStore,
-    private readonly router: Router,
+    private readonly router: ImperativeRouter,
     private readonly dispatcher: WarehouseDispatcherType,
     private readonly alertManager: AlertManager,
     private readonly toastManager: ToastManager,

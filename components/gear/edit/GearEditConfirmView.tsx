@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import GearEdit from '@/model/gear/edit/GearEdit';

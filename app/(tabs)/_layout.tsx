@@ -1,4 +1,3 @@
-import React from 'react';
 import { Platform } from 'react-native';
 import { Tabs } from 'expo-router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';

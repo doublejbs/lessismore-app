@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { View, StyleSheet } from 'react-native';
 
 import Gear from '@/model/gear/Gear';
