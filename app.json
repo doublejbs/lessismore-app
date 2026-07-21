@@ -55,7 +55,7 @@
           "android": {
             "compileSdkVersion": 36,
             "targetSdkVersion": 36,
-            "minSdkVersion": 24,
+            "minSdkVersion": 26,
             "extraMavenRepos": [
               "https://repository.map.naver.com/archive/maven"
             ]
@@ -120,7 +120,9 @@
           "NSHealthShareUsageDescription": "배낭 여행 기간에 기록된 운동(거리·상승고도·경로)을 불러와 배낭 상세에 보여주기 위해 건강 데이터를 읽습니다. 데이터는 기기에만 남고 서버로 전송하지 않습니다.",
           "background": false
         }
-      ]
+      ],
+      "react-native-health-connect",
+      "./plugins/WithHealthConnectPermissions.js"
     ],
     "experiments": {
       "typedRoutes": true

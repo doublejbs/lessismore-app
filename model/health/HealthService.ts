@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import HealthConnectService from './HealthConnectService';
 import HealthKitService from './HealthKitService';
 import HealthPermissionStatus from './HealthPermissionStatus';
 import {
@@ -35,11 +36,10 @@ export interface HealthService {
 }
 
 /**
- * 건강 허브가 없는 플랫폼(웹)과 아직 구현이 없는 플랫폼(Android)용 스텁.
+ * 건강 허브가 없는 플랫폼(웹)용 스텁.
  *
  * 호출부가 플랫폼 분기 없이 쓸 수 있도록 예외 대신 "없음"을 돌려준다.
- * Android에 Health Connect 구현(`HealthConnectService`)이 생기면
- * 아래 팩토리의 분기 한 줄만 고치면 된다.
+ * iOS·Android는 각각 `HealthKitService`·`HealthConnectService`가 맡는다.
  */
 class UnsupportedHealthService implements HealthService {
   public static new = (): UnsupportedHealthService => {
@@ -76,7 +76,11 @@ const createHealthService = (): HealthService => {
     return HealthKitService.new();
   }
 
-  // Android는 Health Connect 구현이 들어오기 전까지 미지원으로 둔다(스펙 5. 플랫폼 분기).
+  if (Platform.OS === 'android') {
+    return HealthConnectService.new();
+  }
+
+  // 웹에는 건강 허브 자체가 없다(스펙 5. 플랫폼 분기).
   return UnsupportedHealthService.new();
 };
 
