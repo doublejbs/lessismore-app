@@ -25,6 +25,7 @@
     "@expo-google-fonts/playwrite-nz": "^0.4.1",
     "@expo/vector-icons": "^15.0.3",
     "@hot-updater/react-native": "^0.32.0",
+    "@kingstinct/react-native-healthkit": "^14.0.2",
     "@mj-studio/react-native-naver-map": "2.9.0",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-firebase/analytics": "^23.8.8",

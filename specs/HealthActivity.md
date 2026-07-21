@@ -57,10 +57,23 @@ app/(tabs)/bag → bag/[id] (배낭 상세)
 **수용 기준**
 
 - **타일을 탭한 시점에** 권한을 요청한다. 앱 시작이나 배낭 상세 진입만으로 요청하지 않는다.
-- 요청 범위는 **읽기 전용**이며 아래로 한정한다 — 운동(workout), 이동 거리, 상승고도, 활동 에너지, 심박수, **운동 경로(route)**.
-  - 이 6개는 모두 HA-4가 표시하는 항목이라 기능이 직접 정당화한다. **표시하지 않는 타입은 요청하지 않는다** — App Store가 문제 삼는 건 데이터의 민감도 자체가 아니라 *기능이 정당화하지 못하는 범위의 요청*이다(예: 한 번에 십수 개 타입 일괄 요청).
-  - iOS의 `HKWorkoutRoute`는 운동 읽기 권한과 **별개의 추가 권한**이 필요하다.
-- 거부하면 → 안내 문구와 함께 설정 앱으로 가는 링크를 제공하고, 타일 부제는 `기록 연결하기`를 유지한다.
+- 요청 범위는 **읽기 전용**이며, HA-4가 실제로 표시하는 항목으로만 한정한다. **표시하지 않는 타입은 요청하지 않는다** — App Store가 문제 삼는 건 데이터의 민감도 자체가 아니라 *기능이 정당화하지 못하는 범위의 요청*이다(예: 한 번에 십수 개 타입 일괄 요청).
+- iOS에서 실제로 요청하는 식별자는 다음 6개다.
+
+  | 식별자 | 용도 |
+  | --- | --- |
+  | `HKWorkoutTypeIdentifier` | 운동 자체 |
+  | `HKWorkoutRouteTypeIdentifier` | GPS 경로 — **운동 읽기와 별개의 추가 권한** |
+  | `HKQuantityTypeIdentifierDistanceWalkingRunning` | 이동 거리(도보·러닝) |
+  | `HKQuantityTypeIdentifierDistanceCycling` | 이동 거리(자전거) — HealthKit이 종목별로 타입을 가른다 |
+  | `HKQuantityTypeIdentifierActiveEnergyBurned` | 소모 활동 에너지 |
+  | `HKQuantityTypeIdentifierHeartRate` | 심박수 |
+
+  - **누적 상승고도는 요청 대상이 아니다.** HealthKit에 해당 quantity 타입이 없고 워크아웃 **메타데이터**(`HKElevationAscended`)로 딸려오므로, 운동 읽기 권한만으로 얻는다. 고도를 위해 `FlightsClimbed` 같은 대체 타입을 끼워넣지 않는다.
+- **iOS는 읽기 권한의 "거부"를 앱에 알려주지 않는다.** Apple이 프라이버시 목적으로 의도적으로 숨기며, API로 알 수 있는 건 *"권한을 물어봐야 하는가"* 뿐이다(`AuthorizationRequestStatus` = `unknown`/`shouldRequest`/`unnecessary`). `requestAuthorization`의 반환값도 "허용됨"이 아니라 "요청 절차가 끝남"을 뜻한다.
+  - 따라서 **거부 상태를 분기 조건으로 삼지 않는다.** 권한 요청을 마쳤는데 **조회 결과가 비어 있으면** `기록이 없거나 접근이 허용되지 않았어요`처럼 두 경우를 함께 안내하고, 설정 앱으로 가는 링크를 제공한다.
+  - Android(Health Connect)는 허용된 권한 집합을 돌려주므로 거부를 정확히 판별할 수 있다. **UI는 판별이 약한 iOS 기준으로 맞춘다.**
+- 어느 경우든 타일 부제는 `기록 연결하기`를 유지한다.
 - **HealthKit 사용을 앱 UI에서 명확히 드러낸다** (App Store 심사 지침 2.5.1 — HealthKit 관련 거절 중 가장 흔한 사유). 권한 요청 전에 무엇을 왜 읽는지 설명하는 화면을 거치고, `Info.plist`의 `NSHealthShareUsageDescription`에도 같은 목적을 한국어로 적는다.
 - **건강 정보를 iCloud에 저장하지 않는다** (5.1.3 명시 금지). 광고·데이터 마이닝에 쓰지 않으며, 건강 허브에 **쓰기(write)를 하지 않는다**(거짓 데이터 기록 금지 조항 회피 겸 기능상 불필요).
 - **건강 데이터를 서버(Firestore)로 올리지 않는다.** 원본은 기기에만 두고, 배낭에는 참조와 표시용 요약값만 저장한다(HA-5).
