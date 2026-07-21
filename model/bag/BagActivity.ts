@@ -8,9 +8,12 @@ import ToastManager from '../toast/ToastManager';
 import HealthPermissionStatus from '../health/HealthPermissionStatus';
 import { HealthService } from '../health/HealthService';
 import { HealthWorkout } from '../health/HealthTypes';
+import { derivePaceSeries } from '../health/HealthPace';
+import BagActivityDetailStatus from './BagActivityDetailStatus';
 import BagActivityPhase from './BagActivityPhase';
 import BagActivityPlatform from './BagActivityPlatform';
 import { BagActivitySummary } from './BagActivitySummary';
+import { BagActivityWorkoutDetail } from './BagActivityWorkoutDetail';
 
 /**
  * 배낭 여행에 운동 기록을 연결하는 화면의 도메인 모델(HA-2/HA-3).
@@ -35,6 +38,10 @@ class BagActivity {
   private startDate = dayjs();
   private endDate = dayjs();
   private saving = false;
+  private weightGrams = 0;
+  private details: BagActivityWorkoutDetail[] = [];
+  private detailStatus: BagActivityDetailStatus =
+    BagActivityDetailStatus.Loading;
 
   private constructor(
     private readonly bagId: string,
@@ -69,6 +76,31 @@ class BagActivity {
     return this.linked !== null;
   }
 
+  /** 저장된 요약 스냅샷(DM-22). 기기 조회가 실패해도 이 값은 항상 있다(HA-5). */
+  public getLinkedSummary() {
+    return this.linked;
+  }
+
+  /** 배낭 총 무게(g). 상세에서 "무게 ↔ 이동"을 잇는 데 쓴다(HA-4). */
+  public getWeightGrams() {
+    return this.weightGrams;
+  }
+
+  public getDetailStatus() {
+    return this.detailStatus;
+  }
+
+  public getDetails() {
+    return this.details;
+  }
+
+  /** 지도에 그릴 경로만 추린다. 하나도 없으면 지도 영역 자체를 렌더하지 않는다(HA-4). */
+  public getRoutes() {
+    return this.details
+      .map(detail => detail.route)
+      .filter(route => route !== null);
+  }
+
   private setPhase(value: BagActivityPhase) {
     this.phase = value;
   }
@@ -89,12 +121,28 @@ class BagActivity {
     this.saving = value;
   }
 
+  private setWeightGrams(value: number) {
+    this.weightGrams = value;
+  }
+
+  private setDetails(value: BagActivityWorkoutDetail[]) {
+    this.details = value;
+  }
+
+  private setDetailStatus(value: BagActivityDetailStatus) {
+    this.detailStatus = value;
+  }
+
   /**
-   * 화면 진입 시 1회. 기간·연결 상태를 읽고, 이미 권한 요청을 마친 사용자는
-   * 곧바로 후보를 조회한다. 아직 요청 전이면 설명 화면(Intro)에서 멈춘다(HA-2).
+   * 화면 진입 시 1회. 기간·무게·연결 상태를 읽는다.
+   *
+   * 이미 연결된 기록이 있으면 후보 선택 대신 **상세로 연다**(HA-4) — 연결이 끝난
+   * 사용자에게 매번 선택 목록을 다시 보여줄 이유가 없다. 재선택은 별도 액션이다.
+   * 연결이 없으면 기존 흐름대로, 권한 요청을 마친 사용자는 곧바로 후보를 조회하고
+   * 아직 요청 전이면 설명 화면(Intro)에서 멈춘다(HA-2).
    */
   public async load() {
-    const { startDate, endDate, activity } =
+    const { startDate, endDate, weight, activity } =
       await this.bagStore.getBagActivityData(this.bagId);
 
     if (startDate && endDate) {
@@ -102,9 +150,24 @@ class BagActivity {
       this.endDate = dayjs(endDate);
     }
 
+    this.setWeightGrams(weight ?? 0);
     this.setLinked(activity);
     // 이미 연결된 기록은 선택된 상태로 열어 해제·수정이 바로 가능하게 한다(HA-3).
     this.setSelectedIds(activity ? [...activity.workoutIds] : []);
+
+    if (activity) {
+      this.setPhase(BagActivityPhase.Detail);
+      await this.loadDetail();
+
+      return;
+    }
+
+    await this.enterPicker();
+  }
+
+  /** 후보 선택 단계 진입. 권한을 이미 받았으면 조회로, 아니면 설명 화면으로 간다(HA-2). */
+  private async enterPicker() {
+    this.setPhase(BagActivityPhase.Loading);
 
     const status = await this.healthService.getPermissionStatus();
 
@@ -115,6 +178,79 @@ class BagActivity {
     }
 
     this.setPhase(BagActivityPhase.Intro);
+  }
+
+  /** 상세에서 "다시 선택" — 후보 목록으로 돌아간다(HA-4). */
+  public async reselect() {
+    await this.enterPicker();
+  }
+
+  /**
+   * 연결된 운동의 상세를 기기에서 읽는다(HA-4).
+   *
+   * 저장된 건 참조(`workoutIds`)뿐이라(HA-5) 기간으로 다시 조회해 id로 맞춘다.
+   * 경로는 운동과 **별개 권한**이라 운동은 읽히는데 경로만 실패할 수 있고, 그 경우
+   * 조용히 지도만 생략한다 — 요약까지 막지 않는다.
+   */
+  private async loadDetail() {
+    const linked = this.linked;
+
+    if (!linked) {
+      return;
+    }
+
+    this.setDetailStatus(BagActivityDetailStatus.Loading);
+
+    try {
+      const workouts = await this.healthService.queryWorkouts({
+        from: this.startDate.startOf('day').toDate(),
+        to: this.endDate.endOf('day').toDate(),
+      });
+      const linkedWorkouts = linked.workoutIds
+        .map(id => workouts.find(workout => workout.id === id))
+        .filter(workout => workout !== undefined);
+
+      if (linkedWorkouts.length === 0) {
+        // 권한 회수·기기 변경·허브에서 삭제 — 어느 쪽인지 알 수 없다. 요약만 남긴다(HA-5).
+        this.setDetails([]);
+        this.setDetailStatus(BagActivityDetailStatus.Unavailable);
+
+        return;
+      }
+
+      const details = await Promise.all(
+        linkedWorkouts.map(workout => this.loadWorkoutDetail(workout))
+      );
+
+      this.setDetails(details);
+      this.setDetailStatus(BagActivityDetailStatus.Ready);
+    } catch (error) {
+      console.error('운동 기록 상세 조회 실패:', error);
+      this.setDetails([]);
+      this.setDetailStatus(BagActivityDetailStatus.Unavailable);
+    }
+  }
+
+  private async loadWorkoutDetail(
+    workout: HealthWorkout
+  ): Promise<BagActivityWorkoutDetail> {
+    const [route, heartRateSeries] = await Promise.all([
+      this.healthService.getRoute(workout.id),
+      this.healthService.getHeartRateSeries(workout.id),
+    ]);
+
+    return {
+      workout,
+      route,
+      heartRateSeries,
+      // 페이스는 허브가 주지 않아 경로에서 파생한다 — 경로가 없으면 그래프도 없다.
+      paceSeries: route ? derivePaceSeries(route.points) : [],
+    };
+  }
+
+  /** 상세 조회 실패 후 재시도. */
+  public async retryDetail() {
+    await this.loadDetail();
   }
 
   /** 설명 화면의 주 액션. 타일 탭 이후 이 시점에만 권한 시트를 띄운다(HA-2). */

@@ -4,7 +4,7 @@
 | --- | --- |
 | 상태 | proposed `[기획]` |
 | ID 프리픽스 | `HA` |
-| 주요 코드 | (미구현) `model/health/`, `components/bag-detail/health/`, `app/bag/[id]/activity` |
+| 주요 코드 | `model/health/`, `model/bag/BagActivity*.ts`, `components/bag-detail/health/`, `components/bag-detail/BagDetailActivityView.tsx`, `app/bag/[id]/activity.tsx` |
 | 관련 스펙 | [DataModel.md](DataModel.md), [BagDetail.md](BagDetail.md), [BagDestination.md](BagDestination.md), [Analytics.md](Analytics.md) |
 
 ## 1. 개요
@@ -105,6 +105,8 @@ app/(tabs)/bag → bag/[id] (배낭 상세)
 - **경로 지도**: 네이버 지도 위에 GPS 폴리라인. 시작/종료 지점을 마커로 표시하고, 경로 전체가 보이도록 카메라를 맞춘다.
   - 실내 운동 등 경로가 없는 기록이면 지도 영역을 렌더하지 않는다(빈 지도를 남기지 않는다).
 - **그래프**: 심박수와 페이스의 시간축 추이. 데이터가 없는 항목은 해당 그래프를 생략한다.
+  - **페이스는 별도 API가 없어 GPS 경로에서 파생한다.** 순간 페이스는 GPS 잡음에 그대로 노출돼 쓸 수 없으므로 60초 창 평균을 쓰고, 정지 구간(창 이동 10m 미만)과 이상치(60분/km 초과)를 버린다. 경로가 없으면 페이스 그래프도 자연히 생략된다.
+  - 복수 연결 시 그래프는 **운동별로 나눠 그린다.** 하나의 시간축에 합치면 날짜 사이 빈 구간(취침)이 그래프 대부분을 차지한다.
 - 배낭 무게(BD-3)를 함께 노출해 **"무게 ↔ 이동"** 을 한 화면에서 잇는다.
 - 로딩·빈 상태·권한 거부 상태를 각각 처리한다.
 

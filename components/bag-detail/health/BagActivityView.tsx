@@ -18,6 +18,7 @@ import {
   formatElevation,
   formatEnergy,
 } from '@/model/health/HealthFormat';
+import BagActivityDetailView from './BagActivityDetailView';
 import BagActivityEmptyView from './BagActivityEmptyView';
 import BagActivityIntroView from './BagActivityIntroView';
 import BagActivityWorkoutItemView from './BagActivityWorkoutItemView';
@@ -45,6 +46,10 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
 
   const handleRetry = () => {
     void bagActivity.retry();
+  };
+
+  const handleReselect = () => {
+    void bagActivity.reselect();
   };
 
   const handleToggle = (workoutId: string) => {
@@ -75,6 +80,11 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
           <ActivityIndicator color={Color.textSecondary} />
         </View>
       );
+    }
+
+    // 이미 연결된 기록이 있으면 후보 선택 대신 상세를 연다(HA-4).
+    if (phase === BagActivityPhase.Detail) {
+      return <BagActivityDetailView bagActivity={bagActivity} />;
     }
 
     if (phase === BagActivityPhase.Intro) {
@@ -151,6 +161,20 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
         <PretendardText style={styles.headerTitle} weight='bold'>
           운동 기록
         </PretendardText>
+        {/* 상세에서만 후보 목록으로 돌아가는 통로를 둔다 — 상세의 주 목적은 보기다. */}
+        {phase === BagActivityPhase.Detail && (
+          <TouchableOpacity
+            style={styles.headerAction}
+            onPress={handleReselect}
+            activeOpacity={0.7}
+            accessibilityRole='button'
+            accessibilityLabel='연결할 운동 다시 선택'
+          >
+            <PretendardText style={styles.headerActionText} weight='semibold'>
+              다시 선택
+            </PretendardText>
+          </TouchableOpacity>
+        )}
       </View>
       {renderBody()}
       {showFooter && (
@@ -218,6 +242,16 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
+    color: Color.textPrimary,
+  },
+  headerAction: {
+    // 헤더 오른쪽 끝으로 밀되 44pt 터치 타깃을 확보한다.
+    marginLeft: 'auto',
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  headerActionText: {
+    fontSize: 15,
     color: Color.textPrimary,
   },
   centered: {
