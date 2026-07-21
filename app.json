@@ -102,7 +102,6 @@
       "expo-font",
       "./plugins/WithPodfileModularHeaders.js",
       "./plugins/WithBrotliDedupe.js",
-      "./plugins/WithMlKitVisionDependencies.js",
       "./plugins/WithFirebaseMessagingNotificationColor.js",
       "@react-native-firebase/messaging",
       [
