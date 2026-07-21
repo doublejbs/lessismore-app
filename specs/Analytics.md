@@ -64,6 +64,10 @@
 | `click_useless_select_all` | 사용 여부 전체 선택/해제 (BD-5) | `selected`: boolean |
 | `click_bag_memo` | 상세 `메모 작성하기` 행 | — |
 | `click_memo_confirm` | 메모 저장 (BD-6) | — |
+| `click_activity` | [기획] 상세 `운동 기록` 타일 (HA-1) | — |
+| `click_activity_permission` | [기획] 건강 데이터 권한 요청 결과 (HA-2) | `granted`: boolean |
+| `click_activity_link` | [기획] 운동 연결 확정 (HA-3) | `count`: 연결 수, `source`: `suggested` \| `manual` |
+| `click_activity_unlink` | [기획] 운동 연결 해제 (HA-3) | — |
 | `click_memo_delete` | 메모 삭제 확정 (BD-6) | — |
 | `click_readyshot` | [폐기] 레디샷(배낭 이미지 공유) 기능이 제거되어 더 이상 발생하지 않음 | — |
 
