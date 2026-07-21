@@ -1,0 +1,106 @@
+import { FC } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import PretendardText from '@/components/PretendardText';
+import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+
+interface Props {
+  onRequestPermission: () => void;
+}
+
+// 권한 요청 전 설명 화면(HA-2). HealthKit은 무엇을 왜 읽는지 앱 UI에서 먼저
+// 드러내야 한다(App Store 심사 2.5.1) — 이 화면의 주 액션에서만 권한 시트가 뜬다.
+const READ_ITEMS = [
+  '운동 기록(종류·시간·거리)',
+  '이동 경로와 상승고도',
+  '소모 칼로리와 심박수',
+];
+
+const BagActivityIntroView: FC<Props> = ({ onRequestPermission }) => {
+  return (
+    <View style={styles.container}>
+      <View style={styles.body}>
+        <Ionicons name='heart-outline' size={40} color={Color.textPrimary} />
+        <PretendardText style={styles.title} weight='bold'>
+          건강 앱의 운동 기록을 가져옵니다
+        </PretendardText>
+        <PretendardText style={styles.description}>
+          이 여행 기간에 기록된 운동을 골라 배낭에 연결합니다. 아래 항목만 읽고,
+          건강 앱에 쓰거나 서버에 저장하지 않습니다.
+        </PretendardText>
+        <View style={styles.itemList}>
+          {READ_ITEMS.map(item => (
+            <View key={item} style={styles.item}>
+              <Ionicons
+                name='checkmark'
+                size={16}
+                color={Color.textSecondary}
+              />
+              <PretendardText style={styles.itemText}>{item}</PretendardText>
+            </View>
+          ))}
+        </View>
+      </View>
+      <TouchableOpacity
+        style={styles.primaryButton}
+        onPress={onRequestPermission}
+        activeOpacity={0.8}
+        accessibilityRole='button'
+        accessibilityLabel='건강 앱 접근 허용하기'
+      >
+        <PretendardText style={styles.primaryButtonText} weight='semibold'>
+          건강 앱에서 불러오기
+        </PretendardText>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.screenH,
+    paddingBottom: Spacing.section,
+  },
+  body: {
+    flex: 1,
+    justifyContent: 'center',
+    gap: Spacing.item,
+  },
+  title: {
+    fontSize: 20,
+    color: Color.textPrimary,
+  },
+  description: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: Color.textSecondary,
+  },
+  itemList: {
+    gap: 8,
+    marginTop: 8,
+  },
+  item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  itemText: {
+    fontSize: 14,
+    color: Color.textTertiary,
+  },
+  primaryButton: {
+    minHeight: 52,
+    borderRadius: Radius.card,
+    backgroundColor: Color.chipActiveBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryButtonText: {
+    fontSize: 16,
+    color: Color.background,
+  },
+});
+
+export default BagActivityIntroView;
