@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import PretendardText from '@/components/PretendardText';

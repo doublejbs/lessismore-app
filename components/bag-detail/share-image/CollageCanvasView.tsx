@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect, useRef } from 'react';
+import { FC, useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -988,12 +988,20 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   selectedOutline: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
     borderWidth: 3,
     borderColor: 'rgba(0, 0, 0, 0.6)',
   },
   centerMoveIcon: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1047,7 +1055,11 @@ const styles = StyleSheet.create({
     right: -10,
   },
   tapHintContainer: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },

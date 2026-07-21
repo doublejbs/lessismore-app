@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import ViewShot from 'react-native-view-shot';
+import ViewShot, { ViewShotRef } from 'react-native-view-shot';
 
 import Gear from '@/model/gear/Gear';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
@@ -9,7 +9,7 @@ import ShareImageCanvasView from './ShareImageCanvasView';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, CardSize } from './constants';
 
 interface Props {
-  viewShotRef: React.RefObject<ViewShot | null>;
+  viewShotRef: React.RefObject<ViewShotRef | null>;
   selectedGears: (Gear | null)[];
   cardSizes: Record<number, CardSize>;
   categories: Array<{

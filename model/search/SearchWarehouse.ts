@@ -2,7 +2,7 @@ import Gear from '@/model/gear/Gear';
 import { action, makeObservable, observable, reaction } from 'mobx';
 import Firebase from '@/model/firebase/Firebase';
 import LogInAlertManager from '@/model/login/LogInAlertManager';
-import { Router } from 'expo-router';
+import { ImperativeRouter } from 'expo-router';
 import app from '@/model/app/App';
 import SearchDispatcherType from '@/model/search/SearchDispatcherType';
 import SearchDispatcher from '@/model/search/SearchDispatcher';
@@ -15,7 +15,7 @@ import AlertManager from '../alert/AlertManager';
 import ToastManager from '../toast/ToastManager';
 
 class SearchWarehouse {
-  public static new(router: Router) {
+  public static new(router: ImperativeRouter) {
     const firebase = app.getFirebase();
     const gearRankStore = new GearRankStore(firebase);
     const searchDispatcher = SearchDispatcher.new();
@@ -65,7 +65,7 @@ class SearchWarehouse {
 
   protected constructor(
     private readonly searchDispatcher: SearchDispatcherType,
-    private readonly navigation: Router,
+    private readonly navigation: ImperativeRouter,
     private readonly firebase: Firebase,
     private readonly logInAlertManager: LogInAlertManager,
     private readonly warehouseOrder: Order,

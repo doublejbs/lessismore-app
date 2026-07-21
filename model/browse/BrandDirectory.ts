@@ -1,11 +1,11 @@
 import { action, makeObservable, observable } from 'mobx';
-import { Router } from 'expo-router';
+import { ImperativeRouter } from 'expo-router';
 import BrandRankStore, { BrandRankData } from '@/model/search/BrandRankStore';
 import app from '@/model/app/App';
 
 // SR-8 브랜드 디렉토리 화면의 도메인 모델.
 class BrandDirectory {
-  public static new(router: Router) {
+  public static new(router: ImperativeRouter) {
     const brandRankStore = new BrandRankStore(app.getFirebase());
 
     return new BrandDirectory(router, brandRankStore);
@@ -17,7 +17,7 @@ class BrandDirectory {
   @observable private keyword: string = '';
 
   protected constructor(
-    private readonly navigation: Router,
+    private readonly navigation: ImperativeRouter,
     private readonly brandRankStore: BrandRankStore
   ) {
     makeObservable(this);

@@ -8,7 +8,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import ViewShot from 'react-native-view-shot';
+import ViewShot, { ViewShotRef } from 'react-native-view-shot';
 import * as ImagePicker from 'expo-image-picker';
 
 import Gear from '@/model/gear/Gear';
@@ -17,7 +17,7 @@ import CollageCanvasView from './CollageCanvasView';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from './constants';
 
 interface Props {
-  viewShotRef: React.RefObject<ViewShot | null>;
+  viewShotRef: React.RefObject<ViewShotRef | null>;
   selectedGears: (Gear | null)[];
   categories: Array<{
     category: WarehouseFilter;

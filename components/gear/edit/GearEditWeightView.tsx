@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import { View, TextInput } from 'react-native';
 import GearEdit from '@/model/gear/edit/GearEdit';
 import { observer } from 'mobx-react-lite';

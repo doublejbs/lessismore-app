@@ -1,4 +1,4 @@
-import { Router } from 'expo-router';
+import { ImperativeRouter } from 'expo-router';
 import FilterManager from '../filter/FilterManager';
 import BagStore from '../store/BagStore';
 import app from '../app/App';
@@ -13,7 +13,7 @@ import WarehouseFilter from '../warehouse/WarehouseFilter';
 class BagEdit {
   private static readonly ORDER_KEY = 'bag';
 
-  public static from(router: Router, id: string) {
+  public static from(router: ImperativeRouter, id: string) {
     return new BagEdit(
       router,
       id,
@@ -33,7 +33,7 @@ class BagEdit {
   private disposeReaction: () => void;
 
   private constructor(
-    private readonly router: Router,
+    private readonly router: ImperativeRouter,
     private readonly id: string,
     private readonly bagStore: BagStore,
     private readonly dispatcher: WarehouseDispatcherType,

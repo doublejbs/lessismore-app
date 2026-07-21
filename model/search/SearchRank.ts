@@ -1,5 +1,5 @@
 import { makeAutoObservable, action } from 'mobx';
-import { Router } from 'expo-router';
+import { ImperativeRouter } from 'expo-router';
 import GearRankStore from './GearRankStore';
 import Gear from '../gear/Gear';
 import GearFilter from '../gear/GearFilter';
@@ -24,7 +24,7 @@ class SearchRank {
     private readonly bagDetailOrder: Order,
     private readonly alertManager: AlertManager,
     private readonly toastManager: ToastManager,
-    private readonly router: Router
+    private readonly router: ImperativeRouter
   ) {
     makeAutoObservable(this);
   }

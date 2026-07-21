@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import Warehouse from '@/model/warehouse/Warehouse';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';

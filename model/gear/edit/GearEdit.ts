@@ -1,5 +1,5 @@
 import { action, makeObservable, observable } from 'mobx';
-import { Router } from 'expo-router';
+import { ImperativeRouter } from 'expo-router';
 import AbstractGearEdit from '@/model/gear/AbstractGearEdit';
 import CustomGearCategory from '@/model/gear/custom/CustomGearCategory';
 import Gear from '@/model/gear/Gear';
@@ -11,7 +11,7 @@ import ToastManager from '@/model/toast/ToastManager';
 class GearEdit extends AbstractGearEdit {
   public static from(
     dispatcher: GearEditDispatcher,
-    navigate: Router,
+    navigate: ImperativeRouter,
     category: CustomGearCategory
   ) {
     return new GearEdit(
@@ -30,7 +30,7 @@ class GearEdit extends AbstractGearEdit {
 
   private constructor(
     private readonly dispatcher: GearEditDispatcher,
-    private readonly navigate: Router,
+    private readonly navigate: ImperativeRouter,
     category: CustomGearCategory,
     private readonly alertManager: AlertManager,
     private readonly toastManager: ToastManager

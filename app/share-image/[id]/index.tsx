@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import ViewShot from 'react-native-view-shot';
+import { ViewShotRef } from 'react-native-view-shot';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFonts } from 'expo-font';
@@ -50,7 +50,7 @@ const ShareImagePage = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   useSafeAreaInsets();
   const { width: windowWidth } = useWindowDimensions();
-  const viewShotRef = useRef<ViewShot>(null);
+  const viewShotRef = useRef<ViewShotRef>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);

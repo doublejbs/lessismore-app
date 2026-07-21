@@ -1,4 +1,4 @@
-import { Router } from 'expo-router';
+import { ImperativeRouter } from 'expo-router';
 import app from '../app/App';
 
 interface WebViewMessage {
@@ -20,7 +20,7 @@ class WebViewManager {
   private static instance: WebViewManager;
 
   public static getInstance(
-    router: Router,
+    router: ImperativeRouter,
     callback: WebViewManagerCallback = {
       onUpdateData: () => {},
     }
@@ -32,7 +32,7 @@ class WebViewManager {
   }
 
   private constructor(
-    private readonly router: Router,
+    private readonly router: ImperativeRouter,
     private readonly callback: WebViewManagerCallback
   ) {}
 

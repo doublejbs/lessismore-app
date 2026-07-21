@@ -5,13 +5,13 @@ import CustomGearCategory from './CustomGearCategory';
 import Firebase from '@/model/firebase/Firebase';
 import LogInAlertManager from '@/model/login/LogInAlertManager';
 import AbstractGearEdit from '../AbstractGearEdit';
-import { Router } from 'expo-router';
+import { ImperativeRouter } from 'expo-router';
 import Order from '@/model/order/Order';
 import Warehouse from '@/model/warehouse/Warehouse';
 import BagDetail from '@/model/bag-detail/BagDetail';
 
 class CustomGear extends AbstractGearEdit {
-  public static new(navigate: Router) {
+  public static new(navigate: ImperativeRouter) {
     return new CustomGear(
       navigate,
       app.getGearStore()!,
@@ -28,7 +28,7 @@ class CustomGear extends AbstractGearEdit {
   }
 
   protected constructor(
-    private readonly navigate: Router,
+    private readonly navigate: ImperativeRouter,
     private readonly gearStore: GearStore,
     private readonly firebase: Firebase,
     private readonly logInAlertManager: LogInAlertManager,
