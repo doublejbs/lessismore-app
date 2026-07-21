@@ -5,7 +5,7 @@
 | 상태 | as-built (2026-07-06 구현) |
 | ID 프리픽스 | `PK` |
 | 주요 코드 | `app/bag/[id]/packing.tsx`, `components/bag-packing/`, `model/bag-packing/`, `model/store/BagStore.ts` |
-| 관련 스펙 | [BagDetail.md](BagDetail.md), [Bag.md](Bag.md), [DataModel.md](DataModel.md), [Analytics.md](Analytics.md), [Notification.md](Notification.md), [ShareImage.md](ShareImage.md) |
+| 관련 스펙 | [BagDetail.md](BagDetail.md), [Bag.md](Bag.md), [DataModel.md](DataModel.md), [Analytics.md](Analytics.md), [Notification.md](Notification.md) |
 
 ## 1. 개요
 
@@ -88,7 +88,7 @@ app/bag/[id]/packing.tsx → BagPackingWrapper → BagPackingView
 - 전체 장비를 챙기면 완료 전환을 표시한다: 진행 바 100% 채움 애니메이션 + 완료 카드.
 - 완료 카드에는 `패킹 완료`, 배낭 총 무게, 출발까지 남은 일수(출발일 지났으면 미표시)를 표시하고 `닫기` 액션만 제공한다:
   - `닫기` → **완료 카드(오버레이)만 닫는다** — 패킹 화면에 남으며, 상세 복귀는 헤더 뒤로가기로 한다
-  - (레디샷 만들기 버튼은 제거됨 — 공유 이미지는 배낭 상세의 공유 진입으로만 접근)
+  - (레디샷 만들기 버튼은 제거됨. 배낭 상세의 진입 타일도 같은 시기 제거되어 기능이 도달 불가가 되었고, 2026-07-21 코드·스펙을 함께 제거했다)
 - 카드를 닫은 뒤 항목을 해제했다가 다시 전체를 챙기면 완료 카드가 다시 표시된다.
 - 완료 시 `packingCompletedAt`을 기록한다.
 - 완료 후 항목을 해제해 전체 미만이 되면 완료 상태를 해제한다 (`packingCompletedAt` 제거, 완료 카드 닫힘).
