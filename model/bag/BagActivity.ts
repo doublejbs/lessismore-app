@@ -487,8 +487,12 @@ class BagActivity {
       });
 
       this.setLinked(activity);
-      router.back();
       this.toastManager.show({ message: '운동 기록을 연결했습니다.' });
+
+      // 화면을 닫지 않고 그 자리에서 상세로 넘어간다 — 방금 연결한 기록을 바로 보는
+      // 것이 자연스럽고, 배낭 상세로 돌아갔다가 다시 들어오게 만들 이유가 없다.
+      this.setPhase(BagActivityPhase.Detail);
+      await this.loadDetail();
     } catch (error) {
       console.error('운동 기록 연결 실패:', error);
       this.toastManager.show({ message: '연결에 실패했습니다.' });
