@@ -65,7 +65,7 @@
 | `click_bag_memo` | 상세 `메모 작성하기` 행 | — |
 | `click_memo_confirm` | 메모 저장 (BD-6) | — |
 | `click_memo_delete` | 메모 삭제 확정 (BD-6) | — |
-| `click_readyshot` | 상세 `레디샷 만들기` 행 | — |
+| `click_readyshot` | [폐기] 레디샷(배낭 이미지 공유) 기능이 제거되어 더 이상 발생하지 않음 | — |
 
 **패킹** ([Packing.md](Packing.md))
 
@@ -90,7 +90,7 @@
 | `click_gear_photo_change` | 장비 상세 `대표 사진 변경` (GD-4) | — |
 | `click_gear_purchase` | 장비 상세 최저가 구입하기 (GD-5) | — |
 
-**리뷰 / 검색 / 레디샷 / 인증·정보** ([Reply.md](Reply.md), [Search.md](Search.md), [ShareImage.md](ShareImage.md), [Auth.md](Auth.md))
+**리뷰 / 검색 / 인증·정보** ([Reply.md](Reply.md), [Search.md](Search.md), [Auth.md](Auth.md))
 
 | 이벤트 | 트리거 | 파라미터 |
 | --- | --- | --- |
@@ -115,8 +115,8 @@
 | `click_feed_filter_reset` | 피드 브랜드 시트 `초기화` (FD-3) | — |
 | `click_feed_ranking` | 피드 하단 `인기 순위` 버튼 → 인기 순위 화면 (FD-3) | — |
 | `click_feed_refresh` | 피드 pull-to-refresh (FD-4) | — |
-| `click_readyshot_layout` | 레디샷 레이아웃 전환 (SI-2/SI-3) | `type`: `grid` \| `collage` |
-| `click_readyshot_share` | 레디샷 캡처·공유 (SI-4) | — |
+| `click_readyshot_layout` | [폐기] 레디샷 기능 제거로 더 이상 발생하지 않음 | `type`: `grid` \| `collage` |
+| `click_readyshot_share` | [폐기] 레디샷 기능 제거로 더 이상 발생하지 않음 | — |
 | `click_login` | 로그인 버튼 (AU-1) | `provider`: `google` \| `apple` \| `email` |
 | `click_logout` | 정보 탭 로그아웃 확정 (AU-4) | — |
 | `click_withdraw` | 회원 탈퇴 확정 (AU-5) | — |
