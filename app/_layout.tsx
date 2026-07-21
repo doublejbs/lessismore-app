@@ -2,7 +2,7 @@ import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
-} from '@react-navigation/native';
+} from 'expo-router/react-navigation';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, usePathname, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -93,9 +93,11 @@ const RootLayout = () => {
     }
 
     // 알림 탭 시 페이로드의 route로 이동한다. 콜드스타트 응답은 매니저가 버퍼링해 전달한다. (웹은 no-op)
-    const unsubscribe = app.getNotificationManager()?.addResponseRouteListener(route => {
-      router.push(route as never);
-    });
+    const unsubscribe = app
+      .getNotificationManager()
+      ?.addResponseRouteListener(route => {
+        router.push(route as never);
+      });
 
     return () => {
       unsubscribe?.();
@@ -220,7 +222,8 @@ const RootLayout = () => {
             options={{
               headerShown: false,
               presentation: 'formSheet',
-              sheetAllowedDetents: Platform.OS === 'android' ? [0.76] : 'fitToContents',
+              sheetAllowedDetents:
+                Platform.OS === 'android' ? [0.76] : 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
               contentStyle: { backgroundColor: '#FFFFFF' },
@@ -231,7 +234,8 @@ const RootLayout = () => {
             options={{
               headerShown: false,
               presentation: 'formSheet',
-              sheetAllowedDetents: Platform.OS === 'android' ? [0.76] : 'fitToContents',
+              sheetAllowedDetents:
+                Platform.OS === 'android' ? [0.76] : 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
               contentStyle: { backgroundColor: '#FFFFFF' },
@@ -253,7 +257,8 @@ const RootLayout = () => {
             options={{
               headerShown: false,
               presentation: 'formSheet',
-              sheetAllowedDetents: Platform.OS === 'android' ? [0.76] : 'fitToContents',
+              sheetAllowedDetents:
+                Platform.OS === 'android' ? [0.76] : 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
               contentStyle: { backgroundColor: '#FFFFFF' },

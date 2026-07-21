@@ -18,7 +18,7 @@ import Warehouse from '@/model/warehouse/Warehouse';
 import WarehouseFiltersView from '@/components/warehouse/WarehouseFiltersView';
 import WarehouseGearView from '@/components/warehouse/WarehouseGearView';
 import AddButtonView from '@/components/warehouse/AddButtonView';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router/react-navigation';
 import WarehouseSkeletonView from '@/components/warehouse/WarehouseSkeletonView';
 import { josa } from 'josa';
 

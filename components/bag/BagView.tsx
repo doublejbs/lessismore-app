@@ -8,7 +8,7 @@ import Bag from '@/model/bag/Bag';
 import LoadingView from '@/components/ui/LoadingView';
 import BagItem from '@/model/bag/BagItem';
 import PretendardText from '@/components/PretendardText';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router/react-navigation';
 import Layout from '../Layout';
 import { Color } from '@/constants/DesignTokens';
 
