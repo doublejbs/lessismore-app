@@ -247,13 +247,29 @@ class HealthKitService {
     }
 
     try {
-      const samples = await queryQuantitySamples(HEART_RATE_TYPE, {
+      let samples = await queryQuantitySamples(HEART_RATE_TYPE, {
         // 기간이 아니라 워크아웃으로 거른다 — 같은 시간대의 다른 기록이 섞이지 않는다.
         filter: { workout: proxy },
         limit: -1,
         ascending: true,
         unit: BEATS_PER_MINUTE_UNIT,
       });
+
+      // 다만 가민 등 서드파티가 동기화한 운동은 심박 샘플이 워크아웃 객체에 연결되지
+      // 않고 독립 샘플로 들어온다. 그 경우 위 조회가 0건이라 운동 시간 구간으로 폴백한다.
+      // (같은 시간대 다른 기록이 섞일 수 있지만, 아무것도 못 보여주는 것보다 낫다.)
+      if (samples.length === 0) {
+        const workout = proxy.toJSON();
+
+        samples = await queryQuantitySamples(HEART_RATE_TYPE, {
+          filter: {
+            date: { startDate: workout.startDate, endDate: workout.endDate },
+          },
+          limit: -1,
+          ascending: true,
+          unit: BEATS_PER_MINUTE_UNIT,
+        });
+      }
 
       return samples.map(sample => ({
         timestamp: sample.startDate,

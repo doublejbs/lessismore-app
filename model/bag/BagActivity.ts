@@ -15,6 +15,11 @@ import BagActivityPlatform from './BagActivityPlatform';
 import { BagActivitySummary } from './BagActivitySummary';
 import { BagActivityWorkoutDetail } from './BagActivityWorkoutDetail';
 
+// UUID가 바뀐 운동을 요약값으로 다시 찾을 때의 허용 오차. 같은 기록이 재동기화되면
+// 값이 미세하게 달라질 수 있어 약간의 여유를 준다.
+const REMATCH_DISTANCE_TOLERANCE_METERS = 50;
+const REMATCH_DURATION_TOLERANCE_SECONDS = 60;
+
 /**
  * 배낭 여행에 운동 기록을 연결하는 화면의 도메인 모델(HA-2/HA-3).
  *
@@ -206,9 +211,22 @@ class BagActivity {
         from: this.startDate.startOf('day').toDate(),
         to: this.endDate.endOf('day').toDate(),
       });
-      const linkedWorkouts = linked.workoutIds
+      let linkedWorkouts = linked.workoutIds
         .map(id => workouts.find(workout => workout.id === id))
         .filter(workout => workout !== undefined);
+
+      // HealthKit 워크아웃 UUID는 영구적이지 않다 — 가민 등 서드파티 동기화가 기록을
+      // 다시 쓰면 같은 운동이 새 UUID로 바뀐다. 그러면 저장해 둔 id가 아무것도 가리키지
+      // 못해 연결이 저절로 끊긴 것처럼 보인다. 요약값으로 다시 찾아 자가 치유한다.
+      if (linkedWorkouts.length === 0 && workouts.length > 0) {
+        const rematched = this.rematchBySummary(workouts, linked);
+
+        if (rematched.length > 0) {
+          linkedWorkouts = rematched;
+          // 다음 진입부터는 정상 경로를 타도록 새 id를 저장한다.
+          await this.persistRematchedIds(rematched);
+        }
+      }
 
       if (linkedWorkouts.length === 0) {
         // 권한 회수·기기 변경·허브에서 삭제 — 어느 쪽인지 알 수 없다. 요약만 남긴다(HA-5).
@@ -228,6 +246,60 @@ class BagActivity {
       console.error('운동 기록 상세 조회 실패:', error);
       this.setDetails([]);
       this.setDetailStatus(BagActivityDetailStatus.Unavailable);
+    }
+  }
+
+  // 저장된 요약값으로 같은 운동을 다시 찾는다(UUID 변동 대응).
+  // 거리·소요시간이 둘 다 허용 오차 안이어야 같은 운동으로 본다 — 같은 여행 기간에
+  // 두 값이 동시에 근접한 다른 운동이 있을 확률은 낮다.
+  private rematchBySummary(
+    workouts: HealthWorkout[],
+    linked: BagActivitySummary
+  ): HealthWorkout[] {
+    // 복수 연결이었다면 개별 값을 알 수 없다(합산만 저장한다). 합이 맞는 조합을 찾는
+    // 것은 과하고 오매칭 위험도 커서, 단건 연결일 때만 재매칭한다.
+    if (linked.workoutIds.length !== 1) {
+      return [];
+    }
+
+    const matched = workouts.filter(workout => {
+      const distanceGap = Math.abs(
+        (workout.distanceMeters ?? 0) - linked.distance
+      );
+      const durationGap = Math.abs(workout.durationSeconds - linked.duration);
+
+      return (
+        distanceGap <= REMATCH_DISTANCE_TOLERANCE_METERS &&
+        durationGap <= REMATCH_DURATION_TOLERANCE_SECONDS
+      );
+    });
+
+    // 후보가 여럿이면 어느 쪽인지 확신할 수 없어 재매칭하지 않는다(오매칭 방지).
+    if (matched.length !== 1) {
+      return [];
+    }
+
+    return matched;
+  }
+
+  private async persistRematchedIds(workouts: HealthWorkout[]) {
+    const linked = this.linked;
+
+    if (!linked) {
+      return;
+    }
+
+    const next: BagActivitySummary = {
+      ...linked,
+      workoutIds: workouts.map(workout => workout.id),
+    };
+
+    try {
+      await this.bagStore.updateActivity(this.bagId, next);
+      this.setLinked(next);
+    } catch (error) {
+      // 저장에 실패해도 이번 화면은 재매칭 결과로 보여준다 — 다음 진입에서 다시 시도한다.
+      console.error('운동 기록 재매칭 저장 실패:', error);
     }
   }
 
