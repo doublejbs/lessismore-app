@@ -324,11 +324,6 @@ class BagPacking {
     return this.id;
   }
 
-  public async goToShareImage() {
-    await this.flush();
-    this.router.push(`/share-image/${this.id}`);
-  }
-
   public async close() {
     await this.flush();
     this.back();
