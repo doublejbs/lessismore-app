@@ -22,8 +22,9 @@ const BagDetailActivityView: FC<Props> = ({ bagDetail }) => {
   const healthService = getHealthService();
   const activity = bagDetail.getActivity();
 
-  // 누를 수 없는 진입점을 남기지 않는다(HA-1): 건강 허브가 없는 플랫폼·기기(웹·Android·
-  // 미지원 기기)와, 기록이 존재할 수 없는 미래 여행에서는 타일 자체를 렌더하지 않는다.
+  // 누를 수 없는 진입점을 남기지 않는다(HA-1): 건강 허브가 없는 플랫폼·기기(웹,
+  // Android 14 미만, 미지원 기기)와, 기록이 존재할 수 없는 미래 여행에서는
+  // 타일 자체를 렌더하지 않는다.
   const isFutureTrip = bagDetail
     .getStartDate()
     .startOf('day')

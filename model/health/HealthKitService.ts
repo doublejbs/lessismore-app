@@ -16,6 +16,7 @@ import type {
   WorkoutProxyTyped,
 } from '@kingstinct/react-native-healthkit';
 import HealthPermissionStatus from './HealthPermissionStatus';
+import type { HealthService } from './HealthService';
 import {
   HealthRoutePoint,
   HealthSeriesPoint,
@@ -113,7 +114,7 @@ const convertQuantity = (
   return quantity.quantity * factor;
 };
 
-class HealthKitService {
+class HealthKitService implements HealthService {
   public static new = (): HealthKitService => {
     return new HealthKitService();
   };
