@@ -8,6 +8,11 @@
 enum BagActivityPhase {
   /** 기간·연결 상태를 읽는 중 */
   Preparing = 'preparing',
+  /**
+   * 이미 연결된 기록이 있어 상세를 보여주는 단계(HA-4).
+   * 진입 시 후보 선택 대신 이 단계로 열고, 재선택은 별도 액션으로 후보 조회에 들어간다.
+   */
+  Detail = 'detail',
   /** 권한 요청 전 설명 화면 */
   Intro = 'intro',
   /** 건강 허브 후보 조회 중 */

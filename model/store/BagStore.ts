@@ -704,14 +704,16 @@ class BagStore {
     };
   }
 
-  // 운동 기록 화면용 경량 조회(HA-3): 문서 1회 읽기로 후보 조회에 필요한
-  // 기간·여행지와 현재 연결 상태만 가져온다.
+  // 운동 기록 화면용 경량 조회(HA-3/HA-4): 문서 1회 읽기로 후보 조회에 필요한
+  // 기간·여행지, 현재 연결 상태, 그리고 상세에서 "이 무게로 이만큼 걸었다"를 잇는 데
+  // 쓰는 총 무게(g)를 가져온다. 배낭 상세 전체를 로드하지 않기 위한 경량 경로다.
   public async getBagActivityData(id: string) {
     const data = (await getDoc(doc(this.getStore(), 'bag', id))).data() as
       | {
           startDate?: string;
           endDate?: string;
           location?: BagLocation;
+          weight?: number;
           activity?: BagActivitySummary;
         }
       | undefined;
@@ -720,6 +722,7 @@ class BagStore {
       startDate: data?.startDate ?? null,
       endDate: data?.endDate ?? null,
       location: data?.location ?? null,
+      weight: data?.weight ?? null,
       activity: data?.activity ?? null,
     };
   }

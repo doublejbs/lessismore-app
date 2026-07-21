@@ -6,6 +6,7 @@ import HealthWorkoutType from './HealthWorkoutType';
 // 후보 목록·합산 요약(HA-3)이 같은 표기를 쓰게 하기 위함이다.
 
 const METERS_PER_KILOMETER = 1000;
+const GRAMS_PER_KILOGRAM = 1000;
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 3600;
 
@@ -50,6 +51,34 @@ export const formatDuration = (seconds: number): string => {
 /** 활동 에너지(kcal) → `420kcal`. */
 export const formatEnergy = (kilocalories: number): string => {
   return `${Math.round(kilocalories)}kcal`;
+};
+
+/**
+ * 배낭 무게(g) → `8.4kg`(HA-4).
+ *
+ * `bag.weight`는 그램 단위 정수다. 배낭 상세(BD-3)와 같은 소수 첫째 자리 표기를 쓴다.
+ */
+export const formatBagWeight = (grams: number): string => {
+  return `${(grams / GRAMS_PER_KILOGRAM).toFixed(1)}kg`;
+};
+
+/** 심박(bpm) → `132bpm`. */
+export const formatHeartRate = (beatsPerMinute: number): string => {
+  return `${Math.round(beatsPerMinute)}bpm`;
+};
+
+/** 페이스(분/km) → `12'30"/km`. 초는 반올림 후 60초로 올라가면 분으로 넘긴다. */
+export const formatPace = (minutesPerKilometer: number): string => {
+  const totalSeconds = Math.round(minutesPerKilometer * SECONDS_PER_MINUTE);
+  const minutes = Math.floor(totalSeconds / SECONDS_PER_MINUTE);
+  const seconds = totalSeconds % SECONDS_PER_MINUTE;
+
+  return `${minutes}'${seconds.toString().padStart(2, '0')}"/km`;
+};
+
+/** 그래프 x축 라벨용 시각 → `14:05`. */
+export const formatClockTime = (date: Date): string => {
+  return dayjs(date).format('HH:mm');
 };
 
 // dayjs 한국어 로케일을 등록하지 않은 저장소라 요일 토큰(ddd)은 영문으로 나온다.
