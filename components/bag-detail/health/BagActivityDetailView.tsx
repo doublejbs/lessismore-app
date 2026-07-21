@@ -75,9 +75,19 @@ const BagActivityDetailView: FC<Props> = ({ bagActivity }) => {
 
     return (
       <>
-        {/* 경로가 하나도 없으면(실내 운동·경로 권한 없음) 지도 영역 자체를 렌더하지 않는다.
-            웹은 건강 허브가 미지원이라 경로가 늘 비어 네이티브 지도가 마운트되지 않는다. */}
-        {routes.length > 0 && <BagActivityRouteMapView routes={routes} />}
+        {/* 경로가 없으면(실내 운동·서드파티 동기화) 지도 대신 이유를 알린다 — 지도가
+            말없이 사라지면 고장으로 보인다. 웹은 건강 허브가 미지원이라 상세 자체가
+            비므로(details 0건) 이 안내도 뜨지 않는다. */}
+        {routes.length > 0 ? (
+          <BagActivityRouteMapView routes={routes} />
+        ) : (
+          details.length > 0 && (
+            <PretendardText style={styles.noticeText}>
+              이 운동에는 GPS 경로가 없어요. 가민 등 외부 기기가 건강 앱으로
+              보내는 기록에는 경로가 포함되지 않아요.
+            </PretendardText>
+          )
+        )}
         {details.map(detail => (
           <BagActivityWorkoutDetailView
             key={detail.workout.id}
