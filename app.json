@@ -101,7 +101,6 @@
         }
       ],
       "expo-font",
-      "./plugins/WithMlKitVisionDependencies.js",
       "./plugins/WithFirebaseMessagingNotificationColor.js",
       "@react-native-firebase/messaging",
       [

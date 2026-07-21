@@ -18,7 +18,7 @@
 | [BagDetail.md](BagDetail.md) | `BD` | 배낭 상세 / 편집 / 메모 / 사용 여부 기록 / 링크 공유 |
 | [BagDestination.md](BagDestination.md) | `DST` | 배낭 여행지 — 위치 선택 / 박지 연결 / 날씨 연계 |
 | [Packing.md](Packing.md) | `PK` | 패킹 모드 — 출발 전 짐 싸기 체크 |
-| [ShareImage.md](ShareImage.md) | `SI` | 레디샷 — 배낭 이미지(그리드/콜라주) 생성·공유 |
+| ~~ShareImage.md~~ | `SI` | **[폐기]** 레디샷(배낭 이미지 생성·공유) — 진입점이 모두 사라져 도달 불가 상태로 방치되다 2026-07-21 코드·스펙 제거. `SI` 프리픽스는 재사용하지 않는다 |
 | [Search.md](Search.md) | `SR` | 검색 — Algolia 검색 / 인기 장비 순위 / 창고·배낭 추가 |
 | [Auth.md](Auth.md) | `AU` | 로그인 / 약관 동의 / 정보 탭 / 회원 탈퇴 / 웹뷰 |
 | [AppLifecycle.md](AppLifecycle.md) | `APP` | 앱 초기화 / OTA / 전역 알림(Alert·Toast) / 탭 구조 |
