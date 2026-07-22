@@ -1,6 +1,12 @@
 import { observer } from 'mobx-react-lite';
 import { FC, useCallback, useLayoutEffect, useRef } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
@@ -17,16 +23,24 @@ import BagDetailDestinationView from './BagDetailDestinationView';
 import BagDetailActivityView from './BagDetailActivityView';
 import ShareButtonView from './ShareButtonView';
 import BagDetailCopyView from '../bag/BagDetailCopyView';
-import { useFocusEffect } from 'expo-router';
+import { Stack, useFocusEffect } from 'expo-router';
 import BagDetailSkeletonView from './BagDetailSkeletonView';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Edge, SafeAreaView } from 'react-native-safe-area-context';
 import ToastView from '../toast/ToastView';
 import app from '@/model/app/App';
 
 interface Props {
   bagDetail: BagDetail;
 }
+
+// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
+const IS_IOS = Platform.OS === 'ios';
+// iOS는 네이티브 투명 헤더가 상단을 덮고 스크롤 뷰가 자동 인셋을 받으므로
+// top 세이프에어리어를 빼 이중 인셋을 막는다. 하단은 기존 동작 유지.
+const SAFE_AREA_EDGES: readonly Edge[] = IS_IOS
+  ? ['left', 'right', 'bottom']
+  : ['top', 'left', 'right', 'bottom'];
 
 const BagDetailView: FC<Props> = ({ bagDetail }) => {
   const initialized = bagDetail.isInitialized();
@@ -58,40 +72,66 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     }
   }, [initialized]);
 
+  // 헤더 우측 액션(복사·공유) — iOS 네이티브 headerRight와 Android/Web 커스텀 헤더가 공유한다.
+  const renderHeaderActions = () => (
+    <View style={styles.headerActions}>
+      <BagDetailCopyView
+        sourceId={bagDetail.getId()}
+        sourceName={bagDetail.getName()}
+      />
+      <ShareButtonView bagDetail={bagDetail} />
+    </View>
+  );
+
+  // LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
+  // 시스템에 위임한다(headerBlurEffect·headerStyle.backgroundColor 지정 금지).
+  // 배낭 이름은 본문(BagDetailNameView)이 주인공이라 타이틀은 비워 중복을 피한다.
+  const stackScreen = (
+    <Stack.Screen
+      options={{
+        headerShown: IS_IOS,
+        headerTransparent: true,
+        headerTitle: '',
+        headerBackButtonDisplayMode: 'minimal',
+        // 스켈레톤 동안은 우측 액션을 숨긴다 — 초기화 전 복사/공유는 의미가 없다.
+        ...(initialized ? { headerRight: () => renderHeaderActions() } : {}),
+      }}
+    />
+  );
+
   if (initialized) {
     const gears = bagDetail.getGears();
 
     return (
       <GestureHandlerRootView style={styles.container}>
-        <SafeAreaView style={styles.container}>
+        {stackScreen}
+        <SafeAreaView style={styles.container} edges={SAFE_AREA_EDGES}>
           <View style={styles.container}>
-            <View style={styles.header}>
-              <View style={styles.headerContent}>
-                <TouchableOpacity
-                  onPress={handlePressBack}
-                  hitSlop={12}
-                  accessibilityRole='button'
-                  accessibilityLabel='뒤로가기'
-                >
-                  <Ionicons
-                    name='chevron-back'
-                    size={24}
-                    color={Color.textPrimary}
-                  />
-                </TouchableOpacity>
-                <View style={styles.headerActions}>
-                  <BagDetailCopyView
-                    sourceId={bagDetail.getId()}
-                    sourceName={bagDetail.getName()}
-                  />
-                  <ShareButtonView bagDetail={bagDetail} />
+            {!IS_IOS && (
+              <View style={styles.header}>
+                <View style={styles.headerContent}>
+                  <TouchableOpacity
+                    onPress={handlePressBack}
+                    hitSlop={12}
+                    accessibilityRole='button'
+                    accessibilityLabel='뒤로가기'
+                  >
+                    <Ionicons
+                      name='chevron-back'
+                      size={24}
+                      color={Color.textPrimary}
+                    />
+                  </TouchableOpacity>
+                  {renderHeaderActions()}
                 </View>
               </View>
-            </View>
+            )}
             <ScrollView
               ref={scrollViewRef}
               style={styles.scrollView}
               contentContainerStyle={styles.scrollContent}
+              // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
+              contentInsetAdjustmentBehavior='automatic'
               stickyHeaderIndices={[4]}
               onScroll={handleScroll}
               showsVerticalScrollIndicator={false}
@@ -157,7 +197,12 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
       </GestureHandlerRootView>
     );
   } else {
-    return <BagDetailSkeletonView />;
+    return (
+      <>
+        {stackScreen}
+        <BagDetailSkeletonView />
+      </>
+    );
   }
 };
 
@@ -180,7 +225,8 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    // iOS는 글래스 캡슐 안에서 아이콘이 붙어 보이지 않게 간격을 넉넉히(Android 커스텀 헤더는 기존 유지).
+    gap: IS_IOS ? 24 : 12,
   },
   scrollView: {
     flex: 1,
