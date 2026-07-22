@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import { FC, useCallback, useLayoutEffect, useRef } from 'react';
+import { FC, useCallback, useLayoutEffect, useRef, useState } from 'react';
 import {
   View,
   ScrollView,
@@ -26,7 +26,11 @@ import BagDetailCopyView from '../bag/BagDetailCopyView';
 import { Stack, useFocusEffect } from 'expo-router';
 import BagDetailSkeletonView from './BagDetailSkeletonView';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Edge, SafeAreaView } from 'react-native-safe-area-context';
+import {
+  Edge,
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import ToastView from '../toast/ToastView';
 import app from '@/model/app/App';
 
@@ -56,8 +60,26 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     bagDetail.setCategoryRefs(categoryRefsMap.current);
   };
 
+  const insets = useSafeAreaInsets();
+
+  // iOS 네이티브 투명 헤더 하단(상태바 + 컴팩트 바 44pt) — 필터 오버레이의 핀 기준선.
+  const headerBottom = insets.top + 44;
+
+  // 장비 헤더(총 N개 + 필터)의 콘텐츠 내 y 위치. onLayout으로 측정한다.
+  const [gearHeaderY, setGearHeaderY] = useState<number | null>(null);
+  // iOS 전용: 필터가 헤더 아래에 고정 표시돼야 하는지(스크롤 위치 기반).
+  const [isFilterPinned, setIsFilterPinned] = useState(false);
+
   const handleScroll = (event: any) => {
     bagDetail.handleScroll(event);
+
+    // iOS: RN sticky는 인셋을 몰라 화면 최상단(투명 헤더 뒤)에 붙어 가려진다.
+    // sticky 대신 스크롤 위치로 '헤더 아래 오버레이' 표시를 판정한다(핀 라인 = headerBottom).
+    if (IS_IOS && gearHeaderY !== null) {
+      const offsetY = event.nativeEvent.contentOffset.y;
+
+      setIsFilterPinned(offsetY + headerBottom >= gearHeaderY);
+    }
   };
 
   useFocusEffect(
@@ -138,8 +160,10 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               contentContainerStyle={styles.scrollContent}
               // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
               contentInsetAdjustmentBehavior='automatic'
-              stickyHeaderIndices={[4]}
+              // iOS는 sticky가 투명 헤더 뒤(화면 최상단)에 붙어 가려지므로 오버레이로 대체한다.
+              stickyHeaderIndices={IS_IOS ? undefined : [4]}
               onScroll={handleScroll}
+              scrollEventThrottle={16}
               showsVerticalScrollIndicator={false}
             >
               <View style={styles.infoSection}>
@@ -170,9 +194,11 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               <View style={styles.separator} />
               <View
                 style={styles.gearHeader}
-                onLayout={e =>
-                  bagDetail.setGearHeaderHeight(e.nativeEvent.layout.height)
-                }
+                onLayout={e => {
+                  bagDetail.setGearHeaderHeight(e.nativeEvent.layout.height);
+                  // iOS 오버레이 핀 판정용 — 콘텐츠 내 y 위치를 기록한다.
+                  setGearHeaderY(e.nativeEvent.layout.y);
+                }}
               >
                 <View style={styles.gearHeaderContent}>
                   <PretendardText style={styles.gearCountText} weight='bold'>
@@ -196,6 +222,21 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                 </View>
               </View>
             </ScrollView>
+            {/* iOS: sticky 대체 오버레이 — 필터를 투명 헤더 '아래'에 고정 표시한다.
+                SafeAreaView가 top 인셋을 소비하지 않는 iOS 구조라 화면 최상단(top: 0)부터
+                흰 배경을 깔고 paddingTop으로 헤더 높이만큼 내려 그린다. */}
+            {IS_IOS && isFilterPinned && (
+              <View
+                style={[styles.pinnedGearHeader, { paddingTop: headerBottom }]}
+              >
+                <View style={styles.gearHeaderContent}>
+                  <PretendardText style={styles.gearCountText} weight='bold'>
+                    총 {gears.length}개의 장비
+                  </PretendardText>
+                </View>
+                <BagDetailFiltersView bagDetail={bagDetail} />
+              </View>
+            )}
             <BagDetailBottomBar bagDetail={bagDetail} />
           </View>
           <ToastView toastManager={app.getToastManager()!} bottom={100} />
@@ -268,6 +309,14 @@ const styles = StyleSheet.create({
     minHeight: 10,
   },
   gearHeader: {
+    backgroundColor: Color.background,
+  },
+  // iOS sticky 대체 오버레이 — 화면 상단 고정, 헤더 높이만큼 paddingTop을 준다(렌더에서 주입).
+  pinnedGearHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     backgroundColor: Color.background,
   },
   gearHeaderContent: {
