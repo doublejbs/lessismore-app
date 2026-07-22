@@ -79,7 +79,10 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
         styles.container,
         // LG-1: 큰 안내 타이틀이 상단 고정 콘텐츠라 헤더 뒤로 흐를 수 없다 —
         // 투명 헤더(상태바+44pt) 아래에서 시작하도록 여백을 준다.
-        IS_IOS && { paddingTop: insets.top + NATIVE_HEADER_HEIGHT },
+        // 헤더 높이 + 여백 — back 버튼과 본문 타이틀이 붙어 보이지 않게 간격을 둔다.
+        IS_IOS && {
+          paddingTop: insets.top + NATIVE_HEADER_HEIGHT + Spacing.section,
+        },
       ]}
     >
       {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)은 시스템에 위임한다
