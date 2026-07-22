@@ -16,7 +16,8 @@ interface Props {
   toastBottom?: number;
   // 세이프에어리어를 적용할 방향. 기본은 전 방향이며, 바텀 시트로 뜨는 화면은
   // 상단에 상태바가 없어 top을 빼야 헤더 위에 빈 여백이 생기지 않는다.
-  edges?: readonly Edge[];
+  // iOS edge-to-edge 탭 화면은 'bottom'을 빼 리스트가 탭바 뒤로 흐르게 한다.
+  edges?: readonly Edge[] | undefined;
 }
 
 const ALL_EDGES = ['top', 'right', 'bottom', 'left'] as const;

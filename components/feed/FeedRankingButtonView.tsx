@@ -1,5 +1,6 @@
 import { FC } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import Feed from '@/model/feed/Feed';
@@ -12,18 +13,19 @@ interface Props {
 
 const RANKING_LABEL = '인기 순위';
 
-// 탭바 위 오프셋. Android는 0이면 버튼이 탭바에 붙어 마지막 카드를 가리므로 여백을 준다.
-const BOTTOM_OFFSET = Platform.select({
-  ios: 80,
-  android: 20,
-  default: 80,
-});
-
 // FD-3: 피드 하단 플로팅 `인기 순위` 진입 버튼.
 // (구 중앙 `필터` 버튼은 상단 필터 바(FeedFilterBarView)로 대체되어 제거됨.)
 // 컨테이너는 pointerEvents='box-none'으로 버튼 외 영역의 피드 스크롤을 방해하지 않는다.
 const FeedRankingButtonView: FC<Props> = ({ feed }) => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  // iOS는 피드가 탭바 뒤로 흐르는(edge-to-edge) 화면 하단 기준이라, 탭바(insets.bottom) 위 20pt에 버튼을 둔다.
+  const bottom = Platform.select({
+    ios: insets.bottom + 20,
+    android: 20,
+    default: 80,
+  });
 
   // SR-4: 현재 선택된 카테고리를 순위 화면으로 승계한다(그룹 카테고리 기준).
   const handleGoToRanking = () => {
@@ -39,7 +41,7 @@ const FeedRankingButtonView: FC<Props> = ({ feed }) => {
   };
 
   return (
-    <View style={styles.container} pointerEvents='box-none'>
+    <View style={[styles.container, { bottom }]} pointerEvents='box-none'>
       <FloatingPillButton
         label={RANKING_LABEL}
         onPress={handleGoToRanking}
@@ -54,7 +56,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: BOTTOM_OFFSET,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

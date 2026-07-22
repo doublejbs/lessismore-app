@@ -1,5 +1,6 @@
 import { FC } from 'react';
 import { StyleSheet, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Bag from '@/model/bag/Bag';
 import app from '@/model/app/App';
@@ -12,6 +13,15 @@ interface Props {
 // 배낭 추가 진입점. 배낭이 없으면 바로 생성 폼, 있으면 추가 액션시트(모두 네이티브 formSheet 라우트).
 const BagAddView: FC<Props> = ({ bag }) => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  // iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) Layout 하단 세이프에어리어를 빼서
+  // 화면 하단 기준이 된다 → 버튼을 탭바(=insets.bottom) 위 20pt에 띄운다.
+  const bottom = Platform.select({
+    ios: insets.bottom + 20,
+    android: 0,
+    default: 80,
+  });
 
   const handlePressAdd = () => {
     app.getAnalyticsManager()?.logClick('bag_add');
@@ -34,7 +44,7 @@ const BagAddView: FC<Props> = ({ bag }) => {
       label='배낭 추가'
       onPress={handlePressAdd}
       variant='primary'
-      style={styles.floatingButton}
+      style={[styles.floatingButton, { bottom }]}
     />
   );
 };
@@ -43,11 +53,6 @@ const styles = StyleSheet.create({
   floatingButton: {
     position: 'absolute',
     right: 20,
-    bottom: Platform.select({
-      ios: 80,
-      android: 0,
-      default: 80,
-    }),
   },
 });
 
