@@ -288,6 +288,21 @@ const RootLayout = () => {
               contentStyle: { backgroundColor: '#FFFFFF' },
             }}
           />
+          {/* LG-1: reply 중첩 레이아웃(Stack)을 삭제하고 루트 스택으로 호이스팅 —
+              중첩 스택에선 reply/[id]·edit가 그 스택의 루트라 시스템 back이 안 나온다.
+              리뷰 작성(input) formSheet 옵션만 기존 그대로 여기서 지정한다. */}
+          <Stack.Screen
+            name='reply/[id]/input/index'
+            options={{
+              headerShown: false,
+              presentation: 'formSheet',
+              sheetAllowedDetents:
+                Platform.OS === 'android' ? [0.9] : 'fitToContents',
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 20,
+              contentStyle: { backgroundColor: '#FFFFFF' },
+            }}
+          />
           <Stack.Screen
             name='sort-sheet'
             options={{

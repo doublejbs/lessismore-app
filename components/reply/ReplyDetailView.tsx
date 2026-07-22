@@ -1,6 +1,12 @@
 import ReplyDetail from '@/model/reply/ReplyDetail';
-import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
+import {
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Platform,
+} from 'react-native';
+import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import ReplyDetailOriginalView from './ReplyDetailOriginalView';
@@ -13,6 +19,9 @@ interface Props {
   originalComment: any;
 }
 
+// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
+const IS_IOS = Platform.OS === 'ios';
+
 const ReplyDetailView = ({ replyDetail, originalComment }: Props) => {
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
@@ -23,12 +32,29 @@ const ReplyDetailView = ({ replyDetail, originalComment }: Props) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handlePressBack} activeOpacity={0.7}>
-          <Ionicons name='chevron-back-outline' size={24} color='#191F28' />
-        </TouchableOpacity>
-      </View>
-      <ScrollView style={styles.scrollView} ref={scrollViewRef}>
+      {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
+          시스템에 위임한다. 원 리뷰에 달린 댓글(답글) 화면이라 타이틀은 '댓글'. */}
+      <Stack.Screen
+        options={{
+          headerShown: IS_IOS,
+          headerTransparent: true,
+          headerTitle: '댓글',
+          headerBackButtonDisplayMode: 'minimal',
+        }}
+      />
+      {!IS_IOS && (
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handlePressBack} activeOpacity={0.7}>
+            <Ionicons name='chevron-back-outline' size={24} color='#191F28' />
+          </TouchableOpacity>
+        </View>
+      )}
+      <ScrollView
+        style={styles.scrollView}
+        ref={scrollViewRef}
+        // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
+        contentInsetAdjustmentBehavior='automatic'
+      >
         <ReplyDetailOriginalView
           comment={originalComment}
           replyDetail={replyDetail}
