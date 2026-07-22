@@ -29,6 +29,8 @@
 | `gear-comments/{gearId}/comments/{parentId}/comments/{replyId}` | 답글 (중첩 서브컬렉션) | `ReplyStore` |
 | `comment-likes/{userId}_{commentId}` | 댓글 좋아요 (복합 키 문서) | `ReplyStore` |
 | `config/app` | 앱 원격 설정 (강제 업데이트 최소 버전) | 강제 업데이트 게이트 (AppLifecycle APP-7) |
+| `config/announcement` | 인앱 텍스트 공지 (원격 배너) | 공지 시트 (Announcement AN) |
+| `config/featurePopup` | 신기능 안내 팝업 (원격 온보딩) | 신기능 팝업 (FeaturePopup FP) |
 
 ## 3. 문서 스키마
 
@@ -376,6 +378,31 @@
 - **읽기**: 로그인 이전에도 조회하므로 미인증 공개 읽기를 허용한다(`config/app`과 동일 정책). 보안 규칙에 `config/announcement` 읽기 허용 추가 필요 — **사용자 콘솔/규칙 배포 작업**.
 - **쓰기**: Firebase 콘솔에서 수동으로만. 클라이언트는 쓰지 않는다.
 - 닫음 상태(닫은 `id`)는 서버에 저장하지 않고 기기 로컬(AsyncStorage)에만 둔다.
+
+### DM-24 신기능 안내 팝업 (`config/featurePopup`) `[기획]`
+
+신기능 온보딩 팝업 원격 제어 단일 문서([FeaturePopup.md](FeaturePopup.md)). 앱이 `onSnapshot`으로 실시간 구독한다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `id` | string | 팝업 식별자. 닫음 단위(FP-5) — 값이 바뀌면 새 팝업으로 보고 다시 띄운다 |
+| `active` | boolean | 표시 여부. `false`면 팝업 없음 |
+| `title` | string | 제목(필수). 빈 값이면 팝업 없음 |
+| `subtitle` | string? | 부제목. 없으면 표시 안 함 |
+| `items` | array? | 아이템 목록. **앞에서 최대 3개**만 렌더(FP-3). 각 원소는 아래 형태 |
+| `items[].imageUrl` | string? | 썸네일 원격 이미지. 없거나 로드 실패면 빈 박스 |
+| `items[].title` | string | 아이템 제목(필수). 없으면 그 아이템 스킵 |
+| `items[].description` | string? | 아이템 설명 |
+| `items[].link` | string? | 탭 시 이동. 앱 내부 경로(`/bag` 등) 또는 `http(s)://`. 없으면 탭 비활성 |
+| `buttonLabel` | string? | 메인 버튼 라벨. 없으면 기본값 `확인` |
+| `buttonLink` | string? | 메인 버튼 이동 대상(내부 경로/`http(s)`). 없으면 닫기만 |
+| `showSkip` | boolean? | 건너뛰기 노출 여부. 기본(미지정)은 노출, `false`면 숨김 |
+| `startAt` | string?(ISO) | 노출 시작. 없으면 시작 제한 없음 |
+| `endAt` | string?(ISO) | 노출 종료. 없으면 종료 제한 없음 |
+
+- **읽기**: 로그인 이전에도 조회하므로 미인증 공개 읽기를 허용한다(`config/app`과 동일 정책). 보안 규칙에 `config/featurePopup` 읽기 허용 추가 필요 — **사용자 콘솔/규칙 배포 작업**.
+- **쓰기**: Firebase 콘솔에서 수동으로만. 클라이언트는 쓰지 않는다.
+- 닫음 상태(닫은 `id` 목록)는 서버에 저장하지 않고 기기 로컬(AsyncStorage)에만 둔다.
 
 ## 4. Storage 경로 (DM-9)
 
