@@ -396,7 +396,8 @@
 | `items[].link` | string? | 탭 시 이동. 앱 내부 경로(`/bag` 등) 또는 `http(s)://`. 없으면 탭 비활성 |
 | `buttonLabel` | string? | 메인 버튼 라벨. 없으면 기본값 `확인` |
 | `buttonLink` | string? | 메인 버튼 이동 대상(내부 경로/`http(s)`). 없으면 닫기만 |
-| `showSkip` | boolean? | 건너뛰기 노출 여부. 기본(미지정)은 노출, `false`면 숨김 |
+| `showSkip` | boolean? | 건너뛰기 노출 여부. 기본(미지정)은 노출, `false`면 숨김. `forced=true`면 무시 |
+| `forced` | boolean? | 강제(차단) 모드(FP-7). `true`면 닫기 불가·닫음 저장 안 함·아이템 탭 비활성·버튼은 이동만(`buttonLink` 없으면 숨김). 기본(미지정) 일반 모드 |
 | `startAt` | string?(ISO) | 노출 시작. 없으면 시작 제한 없음 |
 | `endAt` | string?(ISO) | 노출 종료. 없으면 종료 제한 없음 |
 

@@ -45,7 +45,10 @@ const FeaturePopupSheetView = () => {
   const subtitle = manager?.getSubtitle() ?? null;
   const items = manager?.getItems() ?? [];
   const buttonLabel = manager?.getButtonLabel() ?? '확인';
+  const buttonLink = manager?.getButtonLink() ?? null;
   const skippable = manager?.isSkippable() ?? true;
+  // 강제(차단) 모드(FP-7) — 닫기 경로 전부 차단, 아이템 탭 비활성, 버튼은 이동만.
+  const forced = manager?.isForced() ?? false;
 
   // 표시 조건에 따라 fade-in / fade-out을 재생한다.
   useEffect(() => {
@@ -71,11 +74,21 @@ const FeaturePopupSheetView = () => {
 
   // 닫음은 id 영구 닫음으로 처리한다(FP-5). 딤 탭 / 하드웨어 back.
   const handleDismiss = () => {
+    // 강제 모드는 하드웨어 back·딤 탭을 무시한다 — 닫기 경로가 전부 없어야 한다(FP-7).
+    if (forced) {
+      return;
+    }
+
     void manager?.dismiss();
   };
 
   // 아이템 탭(FP-3) — link가 있으면 이동하고 팝업을 닫는다(id 영구 닫음).
   const handlePressItem = (link: string | null) => {
+    // 강제 모드는 아이템 탭 비활성(FP-7). 렌더에서 disabled 처리하지만 이중 안전으로 가드한다.
+    if (forced) {
+      return;
+    }
+
     if (link) {
       openLink(link);
     }
@@ -84,11 +97,14 @@ const FeaturePopupSheetView = () => {
   };
 
   // 메인 버튼(FP-4) — buttonLink가 있으면 이동, 없으면 닫기만. 어느 경우든 id 영구 닫음.
+  // 강제 모드(FP-7)에서는 이동만 하고 팝업을 유지한다(dismiss 호출 안 함).
   const handlePressButton = () => {
-    const buttonLink = manager?.getButtonLink() ?? null;
-
     if (buttonLink) {
       openLink(buttonLink);
+    }
+
+    if (forced) {
+      return;
     }
 
     void manager?.dismiss();
@@ -107,14 +123,19 @@ const FeaturePopupSheetView = () => {
       onRequestClose={handleDismiss}
     >
       <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
-        {/* 딤 배경 탭은 id 영구 닫음으로 처리한다(FP-5). */}
-        <TouchableOpacity
-          style={styles.overlayTouchable}
-          activeOpacity={1}
-          onPress={handleDismiss}
-          accessibilityRole='button'
-          accessibilityLabel='신기능 안내 닫기'
-        />
+        {/* 딤 배경 탭은 id 영구 닫음으로 처리한다(FP-5).
+            강제 모드는 딤 탭으로 닫을 수 없으므로 '닫기' 터쳐블 자체를 두지 않는다(FP-7). */}
+        {forced ? (
+          <View style={styles.overlayTouchable} />
+        ) : (
+          <TouchableOpacity
+            style={styles.overlayTouchable}
+            activeOpacity={1}
+            onPress={handleDismiss}
+            accessibilityRole='button'
+            accessibilityLabel='신기능 안내 닫기'
+          />
+        )}
 
         <View style={styles.centerArea} pointerEvents='box-none'>
           {/* 카드 자체 탭은 딤 닫힘으로 전파되지 않게 activeOpacity=1 래퍼로 감싼다. */}
@@ -148,27 +169,32 @@ const FeaturePopupSheetView = () => {
                         item={item}
                         onPress={() => handlePressItem(item.link ?? null)}
                         showDivider={index < items.length - 1}
+                        // 강제 모드는 아이템 탭 비활성 — 정보 표시만(FP-7).
+                        disabled={forced}
                       />
                     ))}
                   </View>
                 ) : null}
               </ScrollView>
 
-              {/* 메인 버튼(FP-4) — 필수 채움형 풀폭 버튼. */}
-              <TouchableOpacity
-                style={styles.mainButton}
-                onPress={handlePressButton}
-                activeOpacity={0.8}
-                accessibilityRole='button'
-                accessibilityLabel={buttonLabel}
-              >
-                <PretendardText weight='bold' style={styles.mainButtonText}>
-                  {buttonLabel}
-                </PretendardText>
-              </TouchableOpacity>
+              {/* 메인 버튼(FP-4) — 필수 채움형 풀폭 버튼.
+                  강제 모드에서 buttonLink가 없으면 버튼은 닫기 역할뿐이라 숨긴다(FP-7). */}
+              {!forced || buttonLink ? (
+                <TouchableOpacity
+                  style={styles.mainButton}
+                  onPress={handlePressButton}
+                  activeOpacity={0.8}
+                  accessibilityRole='button'
+                  accessibilityLabel={buttonLabel}
+                >
+                  <PretendardText weight='bold' style={styles.mainButtonText}>
+                    {buttonLabel}
+                  </PretendardText>
+                </TouchableOpacity>
+              ) : null}
 
-              {/* 건너뛰기(FP-5) — showSkip !== false일 때만 노출. */}
-              {skippable ? (
+              {/* 건너뛰기(FP-5) — showSkip !== false일 때만 노출. 강제 모드는 showSkip 값과 무관하게 숨긴다(FP-7). */}
+              {skippable && !forced ? (
                 <TouchableOpacity
                   style={styles.skipButton}
                   onPress={handleSkip}
