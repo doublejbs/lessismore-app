@@ -103,6 +103,19 @@ Firestore 문서 하나(`config/featurePopup`)를 고치면 **앱을 열었을 �
 - 텍스트 공지 시트(`AnnouncementSheetView`)는 **신기능 팝업이 표시 조건이면 표시하지 않는다**. 즉 `AnnouncementSheetView`의 표시 판정에 `!featurePopupManager.shouldShow()` 조건을 추가한다.
 - 강제 업데이트 게이트는 일반 absolute View라 Modal이 그 위로 뜨므로, FP·AN 모두 게이트가 떠 있을 땐 표시 조건에서 배제해 게이트를 최상위로 유지한다.
 
+### FP-7 강제 모드 (차단형) `[제안]`
+
+`forced === true`면 팝업이 **차단형**이 된다 — 강제 업데이트 게이트(APP-7)처럼 사용자가 닫을 수 없고, 원격으로만 내릴 수 있다. 점검 안내·필수 고지 용도.
+
+**수용 기준**
+
+- **닫기 경로가 전부 없다**: 건너뛰기 숨김(`showSkip` 값 무시), 딤 배경 탭·하드웨어 back(안드로이드) 무시. 닫음 상태를 저장하지 않는다.
+- **이전에 같은 `id`를 닫았어도 표시한다**(닫음 목록 무시) — 강제 팝업의 노출 스위치는 원격 문서뿐이다.
+- **아이템 링크는 탭 비활성**(정보 표시만, chevron 숨김) — 모달이 계속 덮여 있어 내부 이동이 무의미하다.
+- **메인 버튼**: `buttonLink`가 있으면 이동만 하고 **팝업은 유지**된다(닫히지 않음 — 외부 링크/스토어 안내 용도). `buttonLink`가 없으면 버튼을 숨긴다(콘텐츠만 표시).
+- **내리는 방법은 원격뿐**: `active=false` / 문서 삭제 / `forced=false`(일반 모드 전환) — `onSnapshot`으로 즉시 반영된다.
+- 우선순위(FP-6)는 그대로 적용: 강제 업데이트 게이트가 떠 있으면 강제 팝업도 표시하지 않는다.
+
 ## 4. 데이터
 
 - 문서·필드는 [DataModel.md](DataModel.md) **DM-24 (`config/featurePopup`)** 에 정의한다.
@@ -133,6 +146,10 @@ Firestore 문서 하나(`config/featurePopup`)를 고치면 **앱을 열었을 �
 - [ ] 강제 업데이트 게이트가 떠 있을 때 → 팝업 안 뜸(게이트만)
 - [ ] 신기능 팝업 표시 조건일 때 → 텍스트 공지 시트(AN) 안 뜸
 - [ ] 문서 삭제·오프라인 → 팝업 없이 앱 정상
+- [ ] `forced=true` → 건너뛰기 없음, 딤 탭·back 무시, 아이템 chevron 없음·탭 무반응
+- [ ] `forced=true` + `buttonLink` → 버튼 탭 시 이동만 하고 팝업 유지 / `buttonLink` 없음 → 버튼 숨김
+- [ ] `forced=true`는 이전에 닫은 `id`여도 표시됨
+- [ ] `forced=true`에서 `active=false`/`forced=false`로 원격 변경 → 즉시 내려감/일반 모드 전환
 
 ## 7. 결정 사항 / 미해결 질문
 
