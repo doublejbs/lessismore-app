@@ -180,29 +180,31 @@ const AnnouncementSheetView = () => {
             </PretendardText>
           </ScrollView>
 
-          {link ? (
+          <View style={styles.buttonRow}>
             <TouchableOpacity
-              style={styles.ctaButton}
-              onPress={handlePressCta}
+              style={styles.closeButton}
+              onPress={handleDismiss}
               accessibilityRole='button'
-              accessibilityLabel='자세히 보기'
+              accessibilityLabel='공지 닫기'
             >
-              <PretendardText weight='bold' style={styles.ctaText}>
-                자세히 보기
+              <PretendardText weight='medium' style={styles.closeText}>
+                닫기
               </PretendardText>
             </TouchableOpacity>
-          ) : null}
 
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={handleDismiss}
-            accessibilityRole='button'
-            accessibilityLabel='공지 닫기'
-          >
-            <PretendardText weight='medium' style={styles.closeText}>
-              닫기
-            </PretendardText>
-          </TouchableOpacity>
+            {link ? (
+              <TouchableOpacity
+                style={styles.ctaButton}
+                onPress={handlePressCta}
+                accessibilityRole='button'
+                accessibilityLabel='자세히 보기'
+              >
+                <PretendardText weight='bold' style={styles.ctaText}>
+                  자세히 보기
+                </PretendardText>
+              </TouchableOpacity>
+            ) : null}
+          </View>
         </Animated.View>
       </Animated.View>
     </Modal>
@@ -248,9 +250,15 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: Color.textPrimary,
   },
+  // 닫기·자세히 보기를 가로로 나란히 배치한다. 각 버튼이 폭을 반씩 차지한다.
+  buttonRow: {
+    flexDirection: 'row',
+    marginTop: Spacing.item,
+    gap: Spacing.item,
+  } as ViewStyle,
   // 주 액션(AN-3) — 검은 채움 버튼. 44pt 이상 터치 타깃.
   ctaButton: {
-    marginTop: Spacing.item,
+    flex: 1,
     minHeight: 52,
     alignItems: 'center',
     justifyContent: 'center',
@@ -261,16 +269,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Color.background,
   },
-  // 보조 액션(닫기) — 텍스트 버튼. 44pt 이상 터치 타깃.
+  // 보조 액션(닫기) — 회색 채움 버튼. link가 없으면 단독으로 폭을 채운다.
   closeButton: {
-    marginTop: Spacing.item,
-    minHeight: 44,
+    flex: 1,
+    minHeight: 52,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: Radius.card,
+    backgroundColor: Color.chipInactiveBg,
   } as ViewStyle,
   closeText: {
-    fontSize: 15,
-    color: Color.textSecondary,
+    fontSize: 16,
+    color: Color.textPrimary,
   },
 });
 
