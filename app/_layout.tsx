@@ -16,6 +16,7 @@ import SplashLoadingView from '@/components/ui/SplashLoadingView';
 import { View, Text, Platform, Image } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import ForceUpdateGateView from '@/components/app-update/ForceUpdateGateView';
+import AnnouncementSheetView from '@/components/announcement/AnnouncementSheetView';
 
 // 네이티브 스플래시를 폰트 로드 후 직접 내려, 초기화(Firebase) 동안 React 스플래시
 // (SplashLoadingView — 하단 team magma 로고)가 보이게 한다. 자동 숨김을 막아둔다.
@@ -300,6 +301,9 @@ const RootLayout = () => {
           <Stack.Screen name='+not-found' />
         </Stack>
         <StatusBar style='auto' />
+        {/* 인앱 공지 바텀 시트(AN-2) — 모달이라 모든 탭·화면 위에 뜬다. isInitialized 이후 렌더 지점.
+            게이트보다 먼저 두지만, 시트는 needsUpdate면 스스로 뜨지 않아 게이트가 최상위를 유지한다. */}
+        <AnnouncementSheetView />
         {/* 강제 업데이트 게이트(APP-7) — 스플래시 이후 최상위에서 다른 모든 것 위에 렌더한다.
             로그인·약관·라우팅과 무관하게 needsUpdate면 전체 화면을 덮는다(absolute fill). */}
         <ForceUpdateGateView />
