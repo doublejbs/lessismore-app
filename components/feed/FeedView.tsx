@@ -9,6 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Feed from '@/model/feed/Feed';
 import Gear from '@/model/gear/Gear';
@@ -29,14 +30,6 @@ const FEED_COLUMN_GAP = 12;
 const FEED_ROW_GAP = 24;
 const LIST_HORIZONTAL_PADDING = 20;
 
-// 플로팅 필터 버튼(높이 ~48 + BOTTOM_OFFSET)이 마지막 카드를 가리지 않도록 리스트 하단 여백을 확보한다.
-// iOS 오프셋 80 + 버튼 48 + 여유, Android 오프셋 20 + 버튼 48 + 여유.
-const LIST_BOTTOM_PADDING = Platform.select({
-  ios: 150,
-  android: 120,
-  default: 150,
-});
-
 const COUPANG_DISCLAIMER =
   '이 링크는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.';
 
@@ -52,8 +45,17 @@ interface Props {
 // FD-3: 상단 필터 바 대신, FlatList 위에 하단 플로팅 버튼(필터·인기 순위)을 absolute로 얹는다.
 const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [feed] = useState(() => externalFeed ?? Feed.new(router));
   const ownsFeed = !externalFeed;
+
+  // 플로팅 `인기 순위` 버튼(탭바 위 20pt, 높이 ~48)이 마지막 카드를 가리지 않도록 리스트 하단 여백을 확보한다.
+  // iOS는 edge-to-edge라 탭바 영역(insets.bottom)까지 더한다. Android는 커스텀 탭이라 고정값.
+  const listBottomPadding = Platform.select({
+    ios: insets.bottom + 90,
+    android: 120,
+    default: 150,
+  });
 
   useEffect(() => {
     feed.initialize();
@@ -157,7 +159,10 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
         numColumns={2}
         columnWrapperStyle={styles.columnWrapper}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingBottom: listBottomPadding },
+        ]}
         onEndReached={handleEndReached}
         onEndReachedThreshold={END_REACHED_THRESHOLD}
         ListEmptyComponent={renderEmpty}
@@ -184,7 +189,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: LIST_HORIZONTAL_PADDING,
     // 필터바 하단 헤어라인이 분리 역할을 하므로 위(검색바↔필터 20)보다 의도적으로 타이트하게.
     paddingTop: 8,
-    paddingBottom: LIST_BOTTOM_PADDING,
   },
   columnWrapper: {
     gap: FEED_COLUMN_GAP,

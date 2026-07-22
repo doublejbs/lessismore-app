@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { View, ScrollView, StyleSheet, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import BagItemView from './BagItemView';
 import BagAddView from './BagAddView';
@@ -12,8 +13,12 @@ import { useFocusEffect } from 'expo-router/react-navigation';
 import Layout from '../Layout';
 import { Color } from '@/constants/DesignTokens';
 
+// iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
+const IOS_EDGES = ['top', 'left', 'right'] as const;
+
 const BagView = () => {
   const [bag] = useState(() => Bag.new());
+  const insets = useSafeAreaInsets();
   const isLoading = bag.isLoading();
   const bags = bag.getBags();
   const isEmpty = bag.isEmpty();
@@ -58,7 +63,15 @@ const BagView = () => {
                   bagItem={bagItem}
                 />
               ))}
-              <View style={styles.bottomSpacer} />
+              <View
+                style={{
+                  minHeight: Platform.select({
+                    ios: insets.bottom + 80,
+                    android: 64,
+                    default: 80,
+                  }),
+                }}
+              />
             </ScrollView>
           </>
         );
@@ -68,7 +81,7 @@ const BagView = () => {
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <Layout>
+      <Layout edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}>
         {render()}
         <BagAddView bag={bag} />
       </Layout>
@@ -112,14 +125,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-  },
-  bottomSpacer: {
-    // 플로팅 `배낭 추가` 버튼 높이 이상 — 끝까지 스크롤 시 마지막 행이 가리지 않도록 (HIG).
-    minHeight: Platform.select({
-      ios: 80,
-      android: 64,
-      default: 80,
-    }),
   },
 });
 

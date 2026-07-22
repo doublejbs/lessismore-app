@@ -6,9 +6,11 @@ import {
   Image,
   TextInput,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
@@ -25,10 +27,15 @@ interface Props {
   warehouse: Warehouse;
 }
 
+// iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 빼고,
+// 콘텐츠 하단 여백으로 마지막 항목이 탭바·플로팅 버튼에 가리지 않게 한다.
+const IOS_EDGES = ['top', 'left', 'right'] as const;
+
 const WarehouseView: FC<Props> = ({ warehouse }) => {
   const gears = warehouse.getGears();
   const isEmpty = warehouse.isEmpty();
   const isLoading = warehouse.isLoading();
+  const insets = useSafeAreaInsets();
   const [isSearching, setIsSearching] = useState(false);
 
   const handleOpenSearch = () => {
@@ -87,7 +94,15 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
               warehouse={warehouse}
             />
           ))}
-          <View style={styles.bottomSpacing} />
+          <View
+            style={{
+              height: Platform.select({
+                ios: insets.bottom + 100,
+                android: 100,
+                default: 100,
+              }),
+            }}
+          />
         </ScrollView>
       );
     }
@@ -95,7 +110,7 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <Layout>
+      <Layout edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}>
         <View style={styles.headerContainer}>
           {isSearching && !isEmpty ? (
             <View style={styles.searchRow}>
@@ -251,9 +266,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     color: Color.textSecondary,
-  },
-  bottomSpacing: {
-    height: 100,
   },
 });
 

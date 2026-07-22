@@ -1,5 +1,6 @@
 import { FC, useCallback } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Gear from '@/model/gear/Gear';
 import SearchSkeletonView from './SearchSkeletonView';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
@@ -41,6 +42,10 @@ const SearchResultContentView: FC<Props> = ({
   gearAddContext,
 }) => {
   const isLoading = searchWarehouse.isLoading();
+  const insets = useSafeAreaInsets();
+
+  // iOS는 결과 리스트가 탭바 뒤로 흐르므로(edge-to-edge) 마지막 카드가 가리지 않게 탭바 영역만큼 더한다.
+  const listBottomPadding = Platform.OS === 'ios' ? insets.bottom + 40 : 80;
 
   useFocusEffect(
     useCallback(() => {
@@ -82,7 +87,10 @@ const SearchResultContentView: FC<Props> = ({
         </>
       }
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.flatListContent}
+      contentContainerStyle={[
+        styles.flatListContent,
+        { paddingBottom: listBottomPadding },
+      ]}
     />
   );
 };
@@ -100,7 +108,6 @@ const styles = StyleSheet.create({
   flatListContent: {
     flexGrow: 1,
     paddingTop: 12,
-    paddingBottom: 80,
   },
   skeletonContainer: {
     marginTop: 10,
