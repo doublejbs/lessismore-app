@@ -23,6 +23,8 @@ type FeaturePopupData = {
   buttonLabel?: string;
   buttonLink?: string;
   showSkip?: boolean;
+  // 강제(차단) 모드(FP-7). parse에서 항상 boolean으로 확정한다.
+  forced: boolean;
   startAt?: string;
   endAt?: string;
 };
@@ -104,6 +106,8 @@ class FeaturePopupManager {
       active: data.active === true,
       title,
       items: this.parseItems(data.items),
+      // 강제 모드는 명시적 true일 때만(FP-7). 미지정·이상값은 일반 모드.
+      forced: data.forced === true,
     };
 
     // exactOptionalPropertyTypes를 켠 tsconfig라 옵셔널 필드는 값이 있을 때만 넣는다.
@@ -195,7 +199,8 @@ class FeaturePopupManager {
       return false;
     }
 
-    if (this.isDismissed(popup.id)) {
+    // 강제 모드는 이전에 닫은 id여도 표시한다 — 노출 스위치는 원격 문서뿐(FP-7).
+    if (!popup.forced && this.isDismissed(popup.id)) {
       return false;
     }
 
@@ -239,6 +244,12 @@ class FeaturePopupManager {
     const popup = this.popup;
 
     if (!popup) {
+      return;
+    }
+
+    // 강제 모드는 닫음 저장 금지(FP-7) — forced 해제 후 같은 id가 일반 모드로 다시 떠야 하므로
+    // 닫음 목록에 기록하지 않는다. 내리는 방법은 원격 문서 변경뿐이다.
+    if (popup.forced) {
       return;
     }
 
@@ -295,6 +306,11 @@ class FeaturePopupManager {
   // 건너뛰기 노출 여부(FP-5). showSkip이 명시적으로 false일 때만 숨긴다(기본 노출).
   public isSkippable(): boolean {
     return this.popup?.showSkip !== false;
+  }
+
+  // 강제(차단) 모드 여부(FP-7).
+  public isForced(): boolean {
+    return this.popup?.forced ?? false;
   }
 
   private setPopup(value: FeaturePopupData | null) {
