@@ -1,4 +1,4 @@
-import { Router } from 'expo-router';
+import { ImperativeRouter } from 'expo-router';
 import CustomGear from './CustomGear';
 import CustomGearCategory from './CustomGearCategory';
 import app from '@/model/app/App';
@@ -8,11 +8,11 @@ import Warehouse from '@/model/warehouse/Warehouse';
 import BagDetail from '@/model/bag-detail/BagDetail';
 
 class CustomGearForBag extends CustomGear {
-  public static newForBag(navigate: Router, bagId: string) {
+  public static newForBag(navigate: ImperativeRouter, bagId: string) {
     return new CustomGearForBag(navigate, bagId);
   }
 
-  private constructor(navigate: Router, private readonly bagId: string) {
+  private constructor(navigate: ImperativeRouter, private readonly bagId: string) {
     super(
       navigate,
       app.getGearStore()!,

@@ -1,5 +1,5 @@
 import { action, makeObservable, observable, reaction } from 'mobx';
-import { Router } from 'expo-router';
+import { ImperativeRouter } from 'expo-router';
 import Gear from '@/model/gear/Gear';
 import BrowseSort from '@/model/search/BrowseSort';
 import SearchStore from '@/model/search/SearchStore';
@@ -37,7 +37,7 @@ const WEIGHT_FILTER_NEW_ARRIVAL = 4;
 // FD-4: 장비 피드 도메인 모델. 버킷별 browse 쿼리를 병렬로 소싱하고 비율 기반 인터리브로 items를 구성한다.
 // 결과 카드의 창고추가/제거/상세이동은 SearchWarehouse에 위임한다(Browse.ts 미러).
 class Feed implements GearRowActions {
-  public static new(router: Router) {
+  public static new(router: ImperativeRouter) {
     const firebase = app.getFirebase();
     const searchStore = app.getSearchStore()!;
     const gearStore = app.getGearStore()!;
@@ -75,7 +75,7 @@ class Feed implements GearRowActions {
   private disposeLoginReaction: () => void;
 
   protected constructor(
-    private readonly navigation: Router,
+    private readonly navigation: ImperativeRouter,
     private readonly firebase: Firebase,
     private readonly searchStore: SearchStore,
     private readonly gearStore: GearStore,

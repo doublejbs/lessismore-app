@@ -5,13 +5,13 @@ import Order from '@/model/order/Order';
 import Gear from '@/model/gear/Gear';
 import GearFilter from '@/model/gear/GearFilter';
 import OrderType from '@/model/order/OrderType';
-import { Router } from 'expo-router';
+import { ImperativeRouter } from 'expo-router';
 import app from '@/model/app/App';
 
 class BagUseless {
   private static readonly ORDER_KEY = 'bag';
 
-  public static new(router: Router, id: string) {
+  public static new(router: ImperativeRouter, id: string) {
     return new BagUseless(
       id,
       router,
@@ -29,7 +29,7 @@ class BagUseless {
 
   private constructor(
     private readonly id: string,
-    private readonly router: Router,
+    private readonly router: ImperativeRouter,
     private readonly bagStore: BagStore,
     private readonly gearStore: GearStore,
     private readonly order: Order

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View, ScrollView, StyleSheet, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { observer } from 'mobx-react-lite';
@@ -8,7 +8,7 @@ import Bag from '@/model/bag/Bag';
 import LoadingView from '@/components/ui/LoadingView';
 import BagItem from '@/model/bag/BagItem';
 import PretendardText from '@/components/PretendardText';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router/react-navigation';
 import Layout from '../Layout';
 import { Color } from '@/constants/DesignTokens';
 
@@ -70,7 +70,6 @@ const BagView = () => {
     <GestureHandlerRootView style={styles.root}>
       <Layout>
         {render()}
-        <View style={styles.addButtonSpacer} />
         <BagAddView bag={bag} />
       </Layout>
     </GestureHandlerRootView>
@@ -119,13 +118,6 @@ const styles = StyleSheet.create({
     minHeight: Platform.select({
       ios: 80,
       android: 64,
-      default: 80,
-    }),
-  },
-  addButtonSpacer: {
-    minHeight: Platform.select({
-      ios: 80,
-      android: 0,
       default: 80,
     }),
   },

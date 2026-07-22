@@ -1,12 +1,14 @@
 // Fallback for using MaterialIcons on Android and web.
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SymbolWeight, SymbolViewProps } from 'expo-symbols';
+import { SymbolWeight } from 'expo-symbols';
 import { ComponentProps } from 'react';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 
+// SDK 55에서 SymbolViewProps['name']이 플랫폼별 객체({ios,android,web})까지 허용하도록
+// 넓어져 Record 키로 쓸 수 없다. 여기서 필요한 건 SF Symbol 문자열 키뿐이라 string으로 좁힌다.
 type IconMapping = Record<
-  SymbolViewProps['name'],
+  string,
   ComponentProps<typeof MaterialIcons>['name']
 >;
 type IconSymbolName = keyof typeof MAPPING;

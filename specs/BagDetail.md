@@ -5,7 +5,7 @@
 | 상태 | as-built (2026-07-15 여행지 통합 반영) |
 | ID 프리픽스 | `BD` |
 | 주요 코드 | `app/bag/[id]/`, `app/useless/[id]/`, `components/bag-detail/`, `components/bag-edit/`, `components/bag-useless/`, `model/bag-detail/`, `model/bag-edit/`, `model/bag-useless/`, `model/store/BagStore.ts` |
-| 관련 스펙 | [DataModel.md](DataModel.md), [Bag.md](Bag.md), [BagDestination.md](BagDestination.md), [GearEdit.md](GearEdit.md), [Packing.md](Packing.md), [Weather.md](Weather.md) |
+| 관련 스펙 | [DataModel.md](DataModel.md), [Bag.md](Bag.md), [BagDestination.md](BagDestination.md), [HealthActivity.md](HealthActivity.md), [GearEdit.md](GearEdit.md), [Packing.md](Packing.md), [Weather.md](Weather.md) |
 
 ## 1. 개요
 
@@ -119,7 +119,7 @@
 
 **수용 기준**
 
-- 요약 아래에 **2열 그리드**로 3개 액션 타일을 둔다: 사용 기록(BD-5)·메모(BD-6)·여행지([BagDestination.md](BagDestination.md) DST-2). 각 타일은 아이콘 + 제목 + 현재값 부제(회색 `surfaceMuted`). (레디샷 타일은 2026-07-12 제거, 기능 자체도 2026-07-21 제거)
+- 요약 아래에 **2열 그리드**로 액션 타일을 둔다: 사용 기록(BD-5)·메모(BD-6)·여행지([BagDestination.md](BagDestination.md) DST-2)·운동 기록([HealthActivity.md](HealthActivity.md) HA-1 `[기획]` — 권한 없음·웹·미래 여행이면 렌더하지 않아 3개로 줄 수 있다). 각 타일은 아이콘 + 제목 + 현재값 부제(회색 `surfaceMuted`). (레디샷 타일은 2026-07-12 제거, 기능 자체도 2026-07-21 제거)
 - **상황형 강조**: 여행 상태에 따라 관련 타일 하나를 **검정(강조) 전체 폭 가로 카드로 최상단에 배치**한다 — `지난 여행`이면 `사용 기록`, `출발 전`·`여행 중`이면 `여행지`. 강조 카드는 아이콘·라벨 좌측 + 값 우측의 가로 레이아웃(높이 축소). 나머지 2개는 그 아래 회색 2열(48%).
 - 사용 기록 타일 부제: 기록됨 → `{usedWeight}kg로 줄어요`, 미기록·지난 여행 → `줄어든 무게 확인`, 미기록·출발 전/중 → `여행 후 기록`.
 - 여행지 타일: 미설정이면 `여행지 선택`을 표시하고 탭 시 공용 지도 선택기를 바로 연다. 설정됨이면 위치명을 주 정보로 표시하고, 날씨가 있으면 상태(`비/눈/맑음`) + 기간 `{최저}~{최고}°`를 보조 정보로 표시한다. 등록된 박지는 위치명 앞에 `📍`를 표시한다.

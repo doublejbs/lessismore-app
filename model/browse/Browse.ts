@@ -1,5 +1,5 @@
 import { action, makeObservable, observable, reaction } from 'mobx';
-import { Router } from 'expo-router';
+import { ImperativeRouter } from 'expo-router';
 import Gear from '@/model/gear/Gear';
 import BrowseSort from '@/model/search/BrowseSort';
 import SearchStore from '@/model/search/SearchStore';
@@ -12,7 +12,7 @@ import app from '@/model/app/App';
 // 결과 행의 창고추가/배낭담기/상세이동은 SearchWarehouse에 위임해 기존 동작을 재사용한다.
 class Browse implements GearRowActions {
   public static new(
-    router: Router,
+    router: ImperativeRouter,
     category: string,
     brand: string,
     sort: BrowseSort
@@ -42,7 +42,7 @@ class Browse implements GearRowActions {
   private disposeLoginReaction: () => void;
 
   protected constructor(
-    private readonly navigation: Router,
+    private readonly navigation: ImperativeRouter,
     private readonly firebase: Firebase,
     private readonly searchStore: SearchStore,
     private readonly searchWarehouse: SearchWarehouse,

@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from 'react';
+import { FC, useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
@@ -72,13 +72,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   hollowCircle: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
     borderRadius: 14,
     borderWidth: 1.5,
     borderColor: Color.chipInactiveBg,
   },
   checkCircle: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
     borderRadius: 14,
     backgroundColor: Color.chipActiveBg,
     alignItems: 'center',

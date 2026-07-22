@@ -1,6 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 import { Alert, Linking, Share } from 'react-native';
-import { Router } from 'expo-router';
+import { ImperativeRouter } from 'expo-router';
 import app from '../app/App';
 import AlertManager from '../alert/AlertManager';
 import Firebase from '../firebase/Firebase';
@@ -19,7 +19,7 @@ import { setPendingBagLocation } from '../bag/PendingBagLocationHandoff';
 // 박지 상세 도메인 모델 (CampSite CS-3/CS-4/CS-5).
 // 3단 래퍼(라우트 → Wrapper → View) 중 상태·비즈니스 로직을 담당한다.
 class CampSiteDetail {
-  public static new(router: Router, dispatcher: CampSiteDetailDispatcher) {
+  public static new(router: ImperativeRouter, dispatcher: CampSiteDetailDispatcher) {
     return new CampSiteDetail(
       router,
       dispatcher,
@@ -46,7 +46,7 @@ class CampSiteDetail {
   private closeHandler: (() => void) | null = null;
 
   private constructor(
-    private readonly router: Router,
+    private readonly router: ImperativeRouter,
     private readonly dispatcher: CampSiteDetailDispatcher,
     private readonly alertManager: AlertManager,
     private readonly firebase: Firebase,

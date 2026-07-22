@@ -10,14 +10,15 @@ import GearFilter from '@/model/gear/GearFilter';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import BagDetailFilterManager from '@/model/bag-detail/BagDetailFilterManager';
 import PackingButtonState from '@/model/bag-detail/PackingButtonState';
-import { Router } from 'expo-router';
+import { ImperativeRouter } from 'expo-router';
 import BagWeather from '@/model/bag/BagWeather';
+import { BagActivitySummary } from '@/model/bag/BagActivitySummary';
 import { setBagInfoEditContext } from '@/model/bag-detail/BagInfoEditHandoff';
 
 class BagDetail {
   public static readonly ORDER_KEY = 'bag';
 
-  public static from(router: Router, id: string) {
+  public static from(router: ImperativeRouter, id: string) {
     return new BagDetail(
       router,
       id,
@@ -44,6 +45,8 @@ class BagDetail {
   private endDate = dayjs();
   private shared = false;
   private memo: string = '';
+  // 배낭에 연결된 운동 기록 요약(DM-22). 타일 부제 표시용이며 원본은 담지 않는다(HA-5).
+  private activity: BagActivitySummary | null = null;
   private readonly bagWeather: BagWeather;
   private categoryRefs: Map<string, any> = new Map();
   private scrollViewRef: any = null;
@@ -56,7 +59,7 @@ class BagDetail {
   private packingStarted = false;
 
   private constructor(
-    private readonly router: Router,
+    private readonly router: ImperativeRouter,
     private readonly id: string,
     private readonly bagStore: BagStore,
     private readonly gearStore: GearStore,
@@ -70,6 +73,14 @@ class BagDetail {
 
   public getBagWeather() {
     return this.bagWeather;
+  }
+
+  private setActivity(value: BagActivitySummary | null) {
+    this.activity = value;
+  }
+
+  public getActivity() {
+    return this.activity;
   }
 
   public async initialize() {
@@ -91,6 +102,7 @@ class BagDetail {
       memo,
       location,
       weather,
+      activity,
     } = await this.bagStore.getBagWithAllFilter(this.id);
     this.setName(name);
     this.setWeight(weight);
@@ -100,6 +112,7 @@ class BagDetail {
     this.setEndDate(endDate);
     this.setShared(shared);
     this.setMemo(memo || '');
+    this.setActivity(activity);
     this.calculateUsedWeight();
     this.updateUselessChecked();
     await this.loadPackingState();

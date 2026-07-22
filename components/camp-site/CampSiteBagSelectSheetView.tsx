@@ -214,7 +214,11 @@ const styles = StyleSheet.create({
   },
   // 배경 탭 시 닫힘 영역(시트 위쪽 여백 전체).
   backdropTouchable: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
   },
   // Android 바텀시트 컨테이너 — 상단 라운드 + 최대 높이로 전체화면 방지.
   androidSheet: {

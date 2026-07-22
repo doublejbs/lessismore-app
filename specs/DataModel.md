@@ -339,6 +339,27 @@
 - 박지 문서(`/camp-spot`) 변경·삭제를 자동 반영하지 않는다 — 필터 시 활성 박지와 조인해 자연히 걸러진다(CS-9).
 - 탈퇴 시 사용자 문서 트리와 함께 삭제 대상(AU-8 정책 따름).
 
+### DM-22 배낭 운동 기록 (`bag.activity`) `[기획]`
+
+배낭 여행의 실측 운동 기록([HealthActivity.md](HealthActivity.md) HA-5). **건강 데이터 원본은 저장하지 않는다** — 기기의 건강 허브(HealthKit / Health Connect)에 있는 운동을 가리키는 **참조와 표시용 요약값만** 둔다.
+
+`bag` 문서 안의 옵셔널 객체이며, 연결된 기록이 없으면 필드 자체가 없다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `workoutIds` | string[] | 건강 허브의 운동 식별자(iOS: HKWorkout UUID / Android: Health Connect record id). 1박 2일이 날짜별로 나뉜 경우를 위해 복수 |
+| `platform` | string | `healthkit` / `healthconnect` — 식별자 체계가 달라 어느 소스에서 연결했는지 구분 |
+| `distance` | number | 총 이동 거리(m). 표시용 스냅샷 |
+| `duration` | number | 총 소요 시간(초) |
+| `elevationGain` | number? | 누적 상승고도(m). 소스에 없으면 생략 |
+| `activeEnergy` | number? | 소모 활동 에너지(kcal) |
+| `linkedAt` | string(ISO) | 연결 시각 |
+
+- **요약값을 스냅샷으로 두는 이유**: 기기 교체·권한 회수·건강 허브 데이터 삭제 후에도 배낭 목록·타일 부제에 요약을 계속 보여주기 위함이다. 상세(경로·심박·페이스)는 매번 기기에서 다시 읽으므로, 읽을 수 없으면 상세만 비고 요약은 남는다(HA-5).
+- **거리·시간 외 시계열(심박 배열, 경로 좌표)은 절대 저장하지 않는다.** 건강 데이터의 서버 보관은 심사·프라이버시 부담이 크고 이 기능에 불필요하다.
+- `workoutIds`는 **기기 로컬 식별자**라 다른 기기에서는 해석되지 않는다. 플랫폼을 바꾼 사용자(iOS→Android)는 재연결이 필요하다.
+- 탈퇴 시 배낭 문서와 함께 삭제된다(AU-8 정책 따름).
+
 ## 4. Storage 경로 (DM-9)
 
 `model/firebase/FirebaseImageStorage.ts`:

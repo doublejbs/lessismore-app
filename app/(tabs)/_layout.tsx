@@ -1,7 +1,6 @@
-import React from 'react';
 import { Platform } from 'react-native';
 import { Tabs } from 'expo-router';
-import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { NoAnimationTab } from '@/components/NoAnimationTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 
@@ -19,24 +18,24 @@ const NativeTabLayout = () => {
       minimizeBehavior='onScrollDown'
     >
       <NativeTabs.Trigger name='index'>
-        <Icon sf='house.fill' drawable='ic_menu_home' />
-        <Label>창고</Label>
+        <NativeTabs.Trigger.Icon sf='house.fill' drawable='ic_menu_home' />
+        <NativeTabs.Trigger.Label>창고</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='search'>
-        <Icon sf='magnifyingglass' drawable='ic_menu_search' />
-        <Label>탐색</Label>
+        <NativeTabs.Trigger.Icon sf='magnifyingglass' drawable='ic_menu_search' />
+        <NativeTabs.Trigger.Label>탐색</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='map'>
-        <Icon sf='map.fill' drawable='ic_menu_mapmode' />
-        <Label>지도</Label>
+        <NativeTabs.Trigger.Icon sf='map.fill' drawable='ic_menu_mapmode' />
+        <NativeTabs.Trigger.Label>지도</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='bag'>
-        <Icon sf='figure.hiking' drawable='ic_menu_compass' />
-        <Label>배낭</Label>
+        <NativeTabs.Trigger.Icon sf='figure.hiking' drawable='ic_menu_compass' />
+        <NativeTabs.Trigger.Label>배낭</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='info'>
-        <Icon sf='person.fill' drawable='ic_menu_myplaces' />
-        <Label>정보</Label>
+        <NativeTabs.Trigger.Icon sf='person.fill' drawable='ic_menu_myplaces' />
+        <NativeTabs.Trigger.Label>정보</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
