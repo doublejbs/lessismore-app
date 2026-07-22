@@ -6,6 +6,7 @@ import app from '@/model/app/App';
 import { observer } from 'mobx-react-lite';
 import AlertView from './alert/AlertView';
 import ToastView from './toast/ToastView';
+import AnnouncementBannerView from './announcement/AnnouncementBannerView';
 import { Color } from '@/constants/DesignTokens';
 
 interface Props {
@@ -29,6 +30,8 @@ const Layout: FC<Props> = ({
 }) => {
   return (
     <SafeAreaView style={safeAreaStyle} edges={edges}>
+      {/* 인앱 공지 배너(AN-2) — 세이프에어리어 안 최상단에서 콘텐츠를 밀어내며 렌더한다(겹치지 않음). */}
+      <AnnouncementBannerView />
       <View style={[containerStyle, { paddingHorizontal }]}>{children}</View>
       <LogInView logInAlertManager={app.getLogInAlertManager()!} />
       <AlertView alertManager={app.getAlertManager()!} />
