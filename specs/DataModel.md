@@ -360,6 +360,23 @@
 - `workoutIds`는 **기기 로컬 식별자**라 다른 기기에서는 해석되지 않는다. 플랫폼을 바꾼 사용자(iOS→Android)는 재연결이 필요하다.
 - 탈퇴 시 배낭 문서와 함께 삭제된다(AU-8 정책 따름).
 
+### DM-23 인앱 공지 배너 (`config/announcement`) `[기획]`
+
+인앱 배너 원격 제어 단일 문서([Announcement.md](Announcement.md)). 앱이 `onSnapshot`으로 실시간 구독한다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `id` | string | 공지 식별자. 닫음 상태의 단위(AN-4) — 값이 바뀌면 새 공지로 보고 다시 띄운다 |
+| `active` | boolean | 표시 여부. `false`면 배너 없음 |
+| `message` | string | 배너 텍스트(필수). 빈 값이면 배너 없음 |
+| `link` | string? | 탭 시 이동. 앱 내부 경로(`/bag` 등) 또는 `http(s)://` URL. 없으면 탭 이동 없음 |
+| `startAt` | string?(ISO) | 노출 시작. 없으면 시작 제한 없음 |
+| `endAt` | string?(ISO) | 노출 종료. 없으면 종료 제한 없음 |
+
+- **읽기**: 로그인 이전에도 조회하므로 미인증 공개 읽기를 허용한다(`config/app`과 동일 정책). 보안 규칙에 `config/announcement` 읽기 허용 추가 필요 — **사용자 콘솔/규칙 배포 작업**.
+- **쓰기**: Firebase 콘솔에서 수동으로만. 클라이언트는 쓰지 않는다.
+- 닫음 상태(닫은 `id`)는 서버에 저장하지 않고 기기 로컬(AsyncStorage)에만 둔다.
+
 ## 4. Storage 경로 (DM-9)
 
 `model/firebase/FirebaseImageStorage.ts`:

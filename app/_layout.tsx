@@ -15,6 +15,7 @@ import { useEffect } from 'react';
 import SplashLoadingView from '@/components/ui/SplashLoadingView';
 import { View, Text, Platform, Image } from 'react-native';
 import { observer } from 'mobx-react-lite';
+import ForceUpdateGateView from '@/components/app-update/ForceUpdateGateView';
 
 // 네이티브 스플래시를 폰트 로드 후 직접 내려, 초기화(Firebase) 동안 React 스플래시
 // (SplashLoadingView — 하단 team magma 로고)가 보이게 한다. 자동 숨김을 막아둔다.
@@ -85,6 +86,15 @@ const RootLayout = () => {
 
     // 초기화 완료 후 알림 권한 요청·리스너 등록을 1회 수행한다. (웹은 no-op)
     void app.getNotificationManager()?.initialize();
+  }, [isInitialized]);
+
+  useEffect(() => {
+    if (!isInitialized) {
+      return;
+    }
+
+    // 초기화 후 강제 업데이트 최소 버전을 1회 조회한다(APP-7). fail-open, 웹은 no-op.
+    void app.getForceUpdateManager()?.check();
   }, [isInitialized]);
 
   useEffect(() => {
@@ -290,6 +300,9 @@ const RootLayout = () => {
           <Stack.Screen name='+not-found' />
         </Stack>
         <StatusBar style='auto' />
+        {/* 강제 업데이트 게이트(APP-7) — 스플래시 이후 최상위에서 다른 모든 것 위에 렌더한다.
+            로그인·약관·라우팅과 무관하게 needsUpdate면 전체 화면을 덮는다(absolute fill). */}
+        <ForceUpdateGateView />
       </ThemeProvider>
     </SafeAreaProvider>
   );

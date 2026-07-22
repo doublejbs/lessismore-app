@@ -20,6 +20,7 @@ import {
   getCampSiteTypeLabel,
   getCampSpotRegionLabel,
 } from '@/model/camp-site/CampSiteLabels';
+import AnnouncementBannerView from '@/components/announcement/AnnouncementBannerView';
 import CampSiteFilterChipsView from './CampSiteFilterChipsView';
 
 interface Props {
@@ -78,6 +79,11 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
           style={styles.topOverlay}
           pointerEvents='box-none'
         >
+          {/* 인앱 공지 배너(AN-2) — 지도 탭은 Layout을 쓰지 않으므로 여기서 렌더한다.
+              이 SafeAreaView(edges top)가 노치/다이나믹아일랜드 여백을 처리하고, 배너가 뜰 때만
+              공간을 차지해(shouldShow false면 null) 검색 pill을 아래로 밀어낸다(겹치지 않음). */}
+          <AnnouncementBannerView />
+
           {/* 박지 검색(CS-6) — 카드 프레임 없이 지도 위에 바로 뜨는 흰 pill(그림자) */}
           <View style={styles.searchWrap}>
             <View style={styles.searchBox}>
