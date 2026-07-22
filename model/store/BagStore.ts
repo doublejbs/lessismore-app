@@ -26,6 +26,7 @@ import { GearData } from './GearStore';
 import BagItem from '../bag/BagItem';
 import app from '../app/App';
 import { BagLocation } from '../bag-destination/BagLocation';
+import { BagActivitySummary } from '../bag/BagActivitySummary';
 import { WeatherSnapshot } from '../weather/WeatherTypes';
 
 class BagStore {
@@ -196,6 +197,7 @@ class BagStore {
       memo,
       location,
       weather,
+      activity,
     } = (await getDoc(doc(this.getStore(), 'bag', id))).data() as {
       name: string;
       weight: string;
@@ -207,6 +209,7 @@ class BagStore {
       memo?: string;
       location?: BagLocation;
       weather?: WeatherSnapshot;
+      activity?: BagActivitySummary;
     };
 
     if (gears.length === 0) {
@@ -221,6 +224,7 @@ class BagStore {
         memo: memo || '',
         location: location ?? null,
         weather: weather ?? null,
+        activity: activity ?? null,
       };
     } else {
       const warehouseSnapshot = await getDocs(
@@ -256,6 +260,7 @@ class BagStore {
         memo: memo || '',
         location: location ?? null,
         weather: weather ?? null,
+        activity: activity ?? null,
         gears: warehouseGears.length
           ? warehouseGears.map(gearData => {
               const {
@@ -697,6 +702,42 @@ class BagStore {
       location: data?.location ?? null,
       weather: data?.weather ?? null,
     };
+  }
+
+  // 운동 기록 화면용 경량 조회(HA-3/HA-4): 문서 1회 읽기로 후보 조회에 필요한
+  // 기간·여행지, 현재 연결 상태, 그리고 상세에서 "이 무게로 이만큼 걸었다"를 잇는 데
+  // 쓰는 총 무게(g)를 가져온다. 배낭 상세 전체를 로드하지 않기 위한 경량 경로다.
+  public async getBagActivityData(id: string) {
+    const data = (await getDoc(doc(this.getStore(), 'bag', id))).data() as
+      | {
+          startDate?: string;
+          endDate?: string;
+          location?: BagLocation;
+          weight?: number;
+          activity?: BagActivitySummary;
+        }
+      | undefined;
+
+    return {
+      startDate: data?.startDate ?? null,
+      endDate: data?.endDate ?? null,
+      location: data?.location ?? null,
+      weight: data?.weight ?? null,
+      activity: data?.activity ?? null,
+    };
+  }
+
+  // 운동 기록 연결(DM-22). 저장하는 건 허브 식별자와 표시용 요약뿐이며
+  // 심박·경로 같은 원본 시계열은 절대 올리지 않는다(HA-5).
+  public async updateActivity(id: string, activity: BagActivitySummary) {
+    await updateDoc(doc(this.getStore(), 'bag', id), { activity });
+  }
+
+  // 연결 해제(HA-3). 빈 객체를 남기면 "연결됨"과 구분되지 않으므로 필드를 지운다.
+  public async removeActivity(id: string) {
+    await updateDoc(doc(this.getStore(), 'bag', id), {
+      activity: deleteField(),
+    });
   }
 
   // 여행지 저장(DST-6). 기존 문서를 먼저 읽어 좌표 변경 여부를 판단하고 한 번의 쓰기로 끝낸다.

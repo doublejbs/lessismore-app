@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import Bag from '@/model/bag/Bag';

@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { makeAutoObservable } from 'mobx';
-import { Router } from 'expo-router';
+import { ImperativeRouter } from 'expo-router';
 import app from '@/model/app/App';
 import BagStore from '@/model/store/BagStore';
 import Gear from '@/model/gear/Gear';
@@ -10,7 +10,7 @@ import AnalyticsManager from '@/model/analytics/AnalyticsManager';
 const SAVE_DEBOUNCE_MS = 800;
 
 class BagPacking {
-  public static from(router: Router, id: string) {
+  public static from(router: ImperativeRouter, id: string) {
     return new BagPacking(
       router,
       id,
@@ -33,7 +33,7 @@ class BagPacking {
   private pendingSave = false;
 
   private constructor(
-    private readonly router: Router,
+    private readonly router: ImperativeRouter,
     private readonly id: string,
     private readonly bagStore: BagStore,
     private readonly filterManager: BagDetailFilterManager,

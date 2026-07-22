@@ -38,7 +38,7 @@ const BagDetailSkeletonView: FC<Props> = () => {
       <View style={[styles.skeletonBox, { width: widthValue, height }]}>
         <Animated.View
           style={[
-            StyleSheet.absoluteFillObject,
+            StyleSheet.absoluteFill,
             { opacity: pulseAnim, backgroundColor: Color.chipInactiveBg },
           ]}
         />

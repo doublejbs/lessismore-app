@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useRef } from 'react';
+import { FC, useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Color } from '@/constants/DesignTokens';
