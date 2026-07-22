@@ -155,6 +155,8 @@ app/(tabs)/bag → bag/[id] (배낭 상세)
 - **지표가 워크아웃에 붙어 오지 않는다.** 거리·상승고도·칼로리가 독립 레코드 타입이라 세션마다 시간 구간 aggregate를 따로 건다. 그래서 **같은 시간대에 다른 운동이 겹쳐 기록돼 있으면 값이 섞인다** — 레코드를 세션에 귀속시키는 API가 없어 피할 수 없다.
 - **경로 지도가 사실상 뜨지 않는다.** Health Connect의 경로 읽기는 두 갈래인데, 전체 경로 권한(`READ_EXERCISE_ROUTES`)은 Google Play 별도 심사 대상이고, 레코드 단위(`requestExerciseRoute`)는 **시스템 동의 다이얼로그**를 띄운다. 상세 화면은 경로를 자동으로 불러오므로 후자를 쓰면 열 때마다 다이얼로그가 뜬다 — 그래서 **자동 요청은 하지 않는다.** 경로가 이미 채워져 온 경우에만 표시하고, 없으면 HA-4의 안내로 처리한다.
   - 향후 선택지: ① 명시적 `경로 불러오기` 버튼 뒤에 `requestExerciseRoute`를 붙인다 ② `READ_EXERCISE_ROUTES` 심사를 받는다. **매니페스트에도 경로 권한을 선언하지 않는다** — 코드가 요청하지 않는 권한인데 Google Play는 선언된 권한마다 정당화를 요구해, 소명할 근거 없는 선언은 심사 마찰만 부른다. ①·② 중 하나를 실제로 구현할 때 선언을 함께 되살린다.
+- **권한 요청에 MainActivity 초기화가 필요하다.** `react-native-health-connect`는 `MainActivity.onCreate`에서 `HealthConnectPermissionDelegate.setPermissionDelegate(this)`를 호출해야 권한 요청 런처가 초기화된다. 빠지면 권한 요청 시 `UninitializedPropertyAccessException`으로 앱이 죽는다(2026-07-22 에뮬레이터에서 확인). `android/`가 gitignore라 config plugin(`plugins/WithHealthConnectMainActivity.js`)으로 매 prebuild마다 주입한다.
+- **`minSdkVersion`을 26으로 올렸다.** `androidx.health.connect:connect-client`가 minSdk 26을 요구해 24로는 매니페스트 머지가 실패한다. `tools:overrideLibrary` 우회는 런타임 크래시 위험이 있어 쓰지 않았다.
 - **권한 판정이 iOS보다 정확하다.** 허용된 권한 집합이 돌아와 거부를 확정할 수 있다. 다만 조회(`getGrantedPermissions`)만으로는 "아직 안 물어봄"과 "거부됨"이 갈리지 않아, `Denied`는 `requestPermission()` 결과로만 확정한다.
 - **심박 조회가 기간 조회 1단계다.** Health Connect에는 HealthKit의 워크아웃 프리디케이트에 해당하는 개념이 없어, HA-4의 2단계(워크아웃 필터 → 기간 폴백) 중 1단계를 쓸 수 없다. 처음부터 세션 시간 구간으로만 조회하므로 **같은 시간대의 무관한 심박 기록이 섞일 수 있다.**
 - **Android 14 미만에서는 타일을 숨긴다.** Health Connect가 OS에 내장되지 않아 별도 앱 설치가 전제인데, 설치를 유도하는 안내까지 붙일 만큼 이 기능의 우선순위가 높지 않다.
