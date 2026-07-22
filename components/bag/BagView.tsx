@@ -70,7 +70,6 @@ const BagView = () => {
     <GestureHandlerRootView style={styles.root}>
       <Layout>
         {render()}
-        <View style={styles.addButtonSpacer} />
         <BagAddView bag={bag} />
       </Layout>
     </GestureHandlerRootView>
@@ -119,13 +118,6 @@ const styles = StyleSheet.create({
     minHeight: Platform.select({
       ios: 80,
       android: 64,
-      default: 80,
-    }),
-  },
-  addButtonSpacer: {
-    minHeight: Platform.select({
-      ios: 80,
-      android: 0,
       default: 80,
     }),
   },
