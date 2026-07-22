@@ -13,6 +13,9 @@ import CampReviewStore from '../store/CampReviewStore';
 import CampFavoriteStore from '../store/CampFavoriteStore';
 import AnalyticsManager from '../analytics/AnalyticsManager';
 import NotificationManager from '../notification/NotificationManager';
+import AnnouncementManager from '../announcement/AnnouncementManager';
+import ForceUpdateManager from '../app-update/ForceUpdateManager';
+import FeaturePopupManager from '../feature-popup/FeaturePopupManager';
 
 class App {
   private readonly firebase = new Firebase();
@@ -29,6 +32,9 @@ class App {
   private campFavoriteStore: CampFavoriteStore | null = null;
   private analyticsManager: AnalyticsManager | null = null;
   private notificationManager: NotificationManager | null = null;
+  private announcementManager: AnnouncementManager | null = null;
+  private forceUpdateManager: ForceUpdateManager | null = null;
+  private featurePopupManager: FeaturePopupManager | null = null;
   private initialized = false;
   // 초기화 진행 중 재진입 방지 — _layout의 useEffect가 초기화 완료 전에
   // 의존성 변경으로 재실행되면 initialize가 중복 호출된다(auth/already-initialized).
@@ -62,6 +68,13 @@ class App {
     // 생성 직후 현재 로그인 사용자로 내부 태그를 1회 반영한다(이후 로그인/로그아웃은 Firebase가 처리).
     this.analyticsManager.identifyUser(this.firebase.getUserId() || null);
     this.notificationManager = NotificationManager.new();
+    this.announcementManager = AnnouncementManager.new(this.firebase);
+    // config/announcement 실시간 구독을 시작한다(닫음 목록 로드 후 구독, 웹 포함). 실패는 조용히 통과.
+    void this.announcementManager.initialize();
+    this.forceUpdateManager = ForceUpdateManager.new(this.firebase);
+    this.featurePopupManager = FeaturePopupManager.new(this.firebase);
+    // config/featurePopup 실시간 구독을 시작한다(닫음 목록 로드 후 구독, 웹 포함). 실패는 조용히 통과(FP-2).
+    void this.featurePopupManager.initialize();
     this.setInitialized(true);
     this.initializing = false;
   }
@@ -140,6 +153,18 @@ class App {
 
   public getNotificationManager() {
     return this.notificationManager;
+  }
+
+  public getAnnouncementManager() {
+    return this.announcementManager;
+  }
+
+  public getForceUpdateManager() {
+    return this.forceUpdateManager;
+  }
+
+  public getFeaturePopupManager() {
+    return this.featurePopupManager;
   }
 }
 
