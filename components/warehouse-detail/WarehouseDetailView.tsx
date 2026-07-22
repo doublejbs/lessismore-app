@@ -349,8 +349,9 @@ const styles = StyleSheet.create({
   nativeHeaderRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    // 글래스 캡슐 안에서 아이콘·텍스트가 붙어 보이지 않게 간격을 넉넉히 둔다(iOS 전용 행).
-    gap: 16,
+    // 시스템 바 버튼 그룹 지오메트리에 맞춘 간격 — 44pt 박스(내부 여백 ~11pt) + gap 8
+    // = 아이콘 중심 간격 ~52pt(iOS 26 표준 캡슐과 동일).
+    gap: 8,
   },
   headerIconButton: {
     width: 44,

@@ -73,13 +73,19 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
   }, [initialized]);
 
   // 헤더 우측 액션(복사·공유) — iOS 네이티브 headerRight와 Android/Web 커스텀 헤더가 공유한다.
+  // iOS는 각 아이콘을 44pt 박스로 감싸 글래스 캡슐의 내부 여백·높이를 시스템 바 버튼
+  // 지오메트리(내부 ~11pt, 아이콘 중심 간격 ~52pt, 높이 44pt)에 맞춘다. 터치 타깃도 44pt 확보.
   const renderHeaderActions = () => (
     <View style={styles.headerActions}>
-      <BagDetailCopyView
-        sourceId={bagDetail.getId()}
-        sourceName={bagDetail.getName()}
-      />
-      <ShareButtonView bagDetail={bagDetail} />
+      <View style={IS_IOS ? styles.headerIconBox : null}>
+        <BagDetailCopyView
+          sourceId={bagDetail.getId()}
+          sourceName={bagDetail.getName()}
+        />
+      </View>
+      <View style={IS_IOS ? styles.headerIconBox : null}>
+        <ShareButtonView bagDetail={bagDetail} />
+      </View>
     </View>
   );
 
@@ -225,8 +231,16 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    // iOS는 글래스 캡슐 안에서 아이콘이 붙어 보이지 않게 간격을 넉넉히(Android 커스텀 헤더는 기존 유지).
-    gap: IS_IOS ? 24 : 12,
+    // iOS는 44pt 박스 + gap 8 = 아이콘 중심 간격 ~52pt(시스템 캡슐 지오메트리).
+    // Android 커스텀 헤더는 기존 간격 유지.
+    gap: IS_IOS ? 8 : 12,
+  },
+  // iOS 글래스 캡슐 내부 여백·높이를 맞추는 아이콘 박스(터치 타깃 44pt).
+  headerIconBox: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollView: {
     flex: 1,
