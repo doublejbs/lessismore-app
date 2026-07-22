@@ -56,7 +56,8 @@ const AnnouncementSheetView = () => {
           gesture.dy > SWIPE_CLOSE_DISTANCE ||
           gesture.vy > SWIPE_CLOSE_VELOCITY
         ) {
-          void app.getAnnouncementManager()?.dismiss();
+          // 스와이프 닫기는 가벼운 '닫기'(세션)로 처리한다 — 앱 재실행 시 다시 뜬다(AN-4).
+          app.getAnnouncementManager()?.dismissForSession();
 
           return;
         }
@@ -115,12 +116,17 @@ const AnnouncementSheetView = () => {
     ]).start();
   }, [visible, fadeAnim, slideAnim]);
 
-  // 닫음 처리(AN-4) — id를 기억한 뒤 표시 조건이 꺼지며 시트가 내려간다.
-  const handleDismiss = () => {
-    void manager?.dismiss();
+  // '닫기'(세션) — 이번 실행 동안만 숨긴다. 표시 조건이 꺼지며 시트가 내려간다(AN-4).
+  const handleDismissForSession = () => {
+    manager?.dismissForSession();
   };
 
-  // CTA 이동(AN-3) — 내부 경로는 라우터, http(s)는 외부 브라우저. 그 외 형식은 무시(크래시 금지). 이동 후 닫음.
+  // '하루동안 보지않기' — 24시간 숨긴다(AN-4).
+  const handleDismissForDay = () => {
+    void manager?.dismissForDay();
+  };
+
+  // CTA 이동(AN-3) — 내부 경로는 라우터, http(s)는 외부 브라우저. 그 외 형식은 무시(크래시 금지). 이동 후 세션 닫음.
   const handlePressCta = () => {
     if (!link) {
       return;
@@ -128,14 +134,14 @@ const AnnouncementSheetView = () => {
 
     if (link.startsWith('/')) {
       router.push(link as never);
-      handleDismiss();
+      handleDismissForSession();
 
       return;
     }
 
     if (EXTERNAL_LINK_PATTERN.test(link)) {
       void Linking.openURL(link).catch(() => undefined);
-      handleDismiss();
+      handleDismissForSession();
     }
   };
 
@@ -144,14 +150,14 @@ const AnnouncementSheetView = () => {
       visible={visible}
       transparent={true}
       animationType='none'
-      onRequestClose={handleDismiss}
+      onRequestClose={handleDismissForSession}
     >
       <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
-        {/* 딤 배경 탭으로 닫기(AN-2). */}
+        {/* 딤 배경 탭은 가벼운 '닫기'(세션)로 처리한다(AN-2/AN-4). */}
         <TouchableOpacity
           style={styles.overlayTouchable}
           activeOpacity={1}
-          onPress={handleDismiss}
+          onPress={handleDismissForSession}
           accessibilityRole='button'
           accessibilityLabel='공지 닫기'
         />
@@ -178,32 +184,45 @@ const AnnouncementSheetView = () => {
             <PretendardText weight='medium' style={styles.message}>
               {message}
             </PretendardText>
-          </ScrollView>
 
-          <View style={styles.buttonRow}>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={handleDismiss}
-              accessibilityRole='button'
-              accessibilityLabel='공지 닫기'
-            >
-              <PretendardText weight='medium' style={styles.closeText}>
-                닫기
-              </PretendardText>
-            </TouchableOpacity>
-
+            {/* 자세히 보기(AN-3)는 본문 안에 링크로 둔다. link가 없으면 표시하지 않는다. */}
             {link ? (
               <TouchableOpacity
-                style={styles.ctaButton}
+                style={styles.detailLink}
                 onPress={handlePressCta}
                 accessibilityRole='button'
                 accessibilityLabel='자세히 보기'
               >
-                <PretendardText weight='bold' style={styles.ctaText}>
+                <PretendardText weight='semibold' style={styles.detailLinkText}>
                   자세히 보기
                 </PretendardText>
               </TouchableOpacity>
             ) : null}
+          </ScrollView>
+
+          {/* 하단은 두 가지 닫기 옵션을 가로로 둔다(AN-4). */}
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={handleDismissForSession}
+              accessibilityRole='button'
+              accessibilityLabel='닫기'
+            >
+              <PretendardText weight='medium' style={styles.buttonText}>
+                닫기
+              </PretendardText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={handleDismissForDay}
+              accessibilityRole='button'
+              accessibilityLabel='하루동안 보지않기'
+            >
+              <PretendardText weight='medium' style={styles.buttonText}>
+                하루동안 보지않기
+              </PretendardText>
+            </TouchableOpacity>
           </View>
         </Animated.View>
       </Animated.View>
@@ -250,26 +269,24 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: Color.textPrimary,
   },
-  // 닫기·자세히 보기를 가로로 나란히 배치한다. 각 버튼이 폭을 반씩 차지한다.
+  // 본문 안 '자세히 보기' 링크(AN-3). 메시지 아래에 밑줄 텍스트로 둔다.
+  detailLink: {
+    marginTop: Spacing.item,
+    minHeight: 44,
+    justifyContent: 'center',
+  } as ViewStyle,
+  detailLinkText: {
+    fontSize: 15,
+    color: Color.textPrimary,
+    textDecorationLine: 'underline',
+  },
+  // 하단 두 닫기 옵션을 가로로 나란히 배치한다. 각 버튼이 폭을 반씩 차지한다.
   buttonRow: {
     flexDirection: 'row',
     marginTop: Spacing.item,
     gap: Spacing.item,
   } as ViewStyle,
-  // 주 액션(AN-3) — 검은 채움 버튼. 44pt 이상 터치 타깃.
-  ctaButton: {
-    flex: 1,
-    minHeight: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: Radius.card,
-    backgroundColor: Color.chipActiveBg,
-  } as ViewStyle,
-  ctaText: {
-    fontSize: 16,
-    color: Color.background,
-  },
-  // 보조 액션(닫기) — 회색 채움 버튼. link가 없으면 단독으로 폭을 채운다.
+  // 닫기 / 하루동안 보지않기 — 회색 채움 버튼. 44pt 이상 터치 타깃.
   closeButton: {
     flex: 1,
     minHeight: 52,
@@ -278,8 +295,8 @@ const styles = StyleSheet.create({
     borderRadius: Radius.card,
     backgroundColor: Color.chipInactiveBg,
   } as ViewStyle,
-  closeText: {
-    fontSize: 16,
+  buttonText: {
+    fontSize: 15,
     color: Color.textPrimary,
   },
 });

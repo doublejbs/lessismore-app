@@ -14,8 +14,15 @@ type AnnouncementData = {
   endAt?: string;
 };
 
-// 닫은 공지 id 목록을 기기 로컬에 보관하는 키. 닫음 상태는 id 단위로 판정한다(AN-4).
-const DISMISSED_IDS_STORAGE_KEY = 'announcement.dismissed.ids';
+// '하루동안 보지않기'로 숨긴 공지의 만료 시각을 기기 로컬에 보관한다(AN-4).
+// id 단위로 판정하며, 새 공지(id 변경)면 다시 뜬다.
+type DayDismissed = {
+  id: string;
+  until: number;
+};
+
+const DAY_DISMISSED_STORAGE_KEY = 'announcement.dismissed.day';
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 class AnnouncementManager {
   public static new(firebase: Firebase) {
@@ -23,16 +30,19 @@ class AnnouncementManager {
   }
 
   private announcement: AnnouncementData | null = null;
-  private dismissedIds: string[] = [];
+  // '닫기'로 이번 실행 동안만 숨긴 공지 id. 저장하지 않아 앱 재실행 시 초기화된다(AN-4).
+  private sessionDismissedId: string | null = null;
+  // '하루동안 보지않기'로 24시간 숨긴 공지. 기기 로컬에 저장한다(AN-4).
+  private dayDismissed: DayDismissed | null = null;
   private unsubscribe: (() => void) | null = null;
 
   private constructor(private readonly firebase: Firebase) {
     makeAutoObservable(this);
   }
 
-  // 닫음 목록을 먼저 로드한 뒤 실시간 구독을 시작한다(로드 전에 뜨면 이미 닫은 공지가 잠깐 보일 수 있어서).
+  // 하루 닫음 상태를 먼저 로드한 뒤 실시간 구독을 시작한다(로드 전에 뜨면 이미 닫은 공지가 잠깐 보일 수 있어서).
   public async initialize() {
-    await this.loadDismissedIds();
+    await this.loadDayDismissed();
 
     this.subscribe();
   }
@@ -103,7 +113,7 @@ class AnnouncementManager {
     return result;
   }
 
-  // 배너 표시 판정: active + message 존재 + 노출 기간 내 + 닫지 않은 id (AN-2).
+  // 시트 표시 판정: active + message 존재 + 노출 기간 내 + 세션/하루로 닫지 않음 (AN-2/AN-4).
   public shouldShow(): boolean {
     const announcement = this.announcement;
 
@@ -119,7 +129,11 @@ class AnnouncementManager {
       return false;
     }
 
-    if (this.dismissedIds.includes(announcement.id)) {
+    if (this.sessionDismissedId === announcement.id) {
+      return false;
+    }
+
+    if (this.isDayDismissed(announcement.id)) {
       return false;
     }
 
@@ -128,6 +142,17 @@ class AnnouncementManager {
     }
 
     return true;
+  }
+
+  // 같은 id를 '하루동안 보지않기'로 닫았고 아직 24시간이 안 지났으면 숨긴다.
+  private isDayDismissed(id: string): boolean {
+    const dismissed = this.dayDismissed;
+
+    if (!dismissed || dismissed.id !== id) {
+      return false;
+    }
+
+    return Date.now() < dismissed.until;
   }
 
   private isWithinPeriod(announcement: AnnouncementData): boolean {
@@ -161,32 +186,46 @@ class AnnouncementManager {
     return this.announcement?.link ?? null;
   }
 
-  // 현재 공지를 닫는다. id 단위로 기억해 같은 id는 다시 뜨지 않는다(AN-4).
-  public async dismiss() {
+  // '닫기' — 이번 실행 동안만 숨긴다. 저장하지 않아 앱 재실행 시 다시 뜬다(AN-4).
+  public dismissForSession() {
     const announcement = this.announcement;
 
     if (!announcement) {
       return;
     }
 
-    if (this.dismissedIds.includes(announcement.id)) {
+    this.setSessionDismissedId(announcement.id);
+  }
+
+  // '하루동안 보지않기' — 24시간 숨긴다. 기기 로컬에 만료 시각을 저장한다(AN-4).
+  public async dismissForDay() {
+    const announcement = this.announcement;
+
+    if (!announcement) {
       return;
     }
 
-    const next = [...this.dismissedIds, announcement.id];
+    const next: DayDismissed = {
+      id: announcement.id,
+      until: Date.now() + DAY_MS,
+    };
 
-    this.setDismissedIds(next);
+    this.setDayDismissed(next);
 
-    await LocalStorageManager.set(DISMISSED_IDS_STORAGE_KEY, next);
+    await LocalStorageManager.set(DAY_DISMISSED_STORAGE_KEY, next);
   }
 
-  private async loadDismissedIds() {
-    const stored = await LocalStorageManager.get<string[]>(
-      DISMISSED_IDS_STORAGE_KEY
+  private async loadDayDismissed() {
+    const stored = await LocalStorageManager.get<DayDismissed>(
+      DAY_DISMISSED_STORAGE_KEY
     );
 
-    if (Array.isArray(stored)) {
-      this.setDismissedIds(stored);
+    if (
+      stored &&
+      typeof stored.id === 'string' &&
+      typeof stored.until === 'number'
+    ) {
+      this.setDayDismissed(stored);
     }
   }
 
@@ -194,8 +233,12 @@ class AnnouncementManager {
     this.announcement = value;
   }
 
-  private setDismissedIds(value: string[]) {
-    this.dismissedIds = value;
+  private setSessionDismissedId(value: string | null) {
+    this.sessionDismissedId = value;
+  }
+
+  private setDayDismissed(value: DayDismissed | null) {
+    this.dayDismissed = value;
   }
 
   // 구독 해제 — 앱 종료·재초기화 시 리스너 누수를 막는다.
