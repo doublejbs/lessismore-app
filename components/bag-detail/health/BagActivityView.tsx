@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -8,6 +9,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
+import { Stack } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 import BagActivity from '@/model/bag/BagActivity';
@@ -27,9 +30,16 @@ interface Props {
   bagActivity: BagActivity;
 }
 
+// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
+const IS_IOS = Platform.OS === 'ios';
+// iOS 26 투명 헤더는 배경이 없어(고정 레이아웃 화면) 콘텐츠 상단 여백을
+// 세이프에어리어 + 컴팩트 바 높이(44pt)로 직접 확보한다.
+const IOS_HEADER_BAR_HEIGHT = 44;
+
 // 운동 기록 후보 선택·연결 화면(HA-3).
 // 화면당 주 액션은 하나다 — 하단 CTA가 선택 상태에 따라 `연결`/`연결 해제`로 바뀐다.
 const BagActivityView: FC<Props> = ({ bagActivity }) => {
+  const insets = useSafeAreaInsets();
   const phase = bagActivity.getPhase();
   const summary = bagActivity.getSelectedSummary();
   const selectedCount = bagActivity.getSelectedCount();
@@ -148,34 +158,71 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
       hasLinked);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={handlePressBack}
-          hitSlop={12}
-          accessibilityRole='button'
-          accessibilityLabel='뒤로가기'
-        >
-          <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
-        </TouchableOpacity>
-        <PretendardText style={styles.headerTitle} weight='bold'>
-          운동 기록
-        </PretendardText>
-        {/* 상세에서만 후보 목록으로 돌아가는 통로를 둔다 — 상세의 주 목적은 보기다. */}
-        {phase === BagActivityPhase.Detail && (
+    <View
+      style={[
+        styles.container,
+        // 고정 레이아웃(단계별 본문) 화면 — iOS는 투명 헤더 높이만큼 상단 여백을 직접 확보한다.
+        IS_IOS && { paddingTop: insets.top + IOS_HEADER_BAR_HEIGHT },
+      ]}
+    >
+      {/* LG-1: iOS만 네이티브 투명 헤더 — 우측 '다시 선택'은 상세 단계에서만 노출(기존과 동일). */}
+      <Stack.Screen
+        options={{
+          headerShown: IS_IOS,
+          headerTransparent: true,
+          headerTitle: '운동 기록',
+          headerBackButtonDisplayMode: 'minimal',
+          ...(phase === BagActivityPhase.Detail
+            ? {
+                headerRight: () => (
+                  <TouchableOpacity
+                    style={styles.headerAction}
+                    onPress={handleReselect}
+                    activeOpacity={0.7}
+                    accessibilityRole='button'
+                    accessibilityLabel='연결할 운동 다시 선택'
+                  >
+                    <PretendardText
+                      style={styles.headerActionText}
+                      weight='semibold'
+                    >
+                      다시 선택
+                    </PretendardText>
+                  </TouchableOpacity>
+                ),
+              }
+            : {}),
+        }}
+      />
+      {!IS_IOS && (
+        <View style={styles.header}>
           <TouchableOpacity
-            style={styles.headerAction}
-            onPress={handleReselect}
-            activeOpacity={0.7}
+            onPress={handlePressBack}
+            hitSlop={12}
             accessibilityRole='button'
-            accessibilityLabel='연결할 운동 다시 선택'
+            accessibilityLabel='뒤로가기'
           >
-            <PretendardText style={styles.headerActionText} weight='semibold'>
-              다시 선택
-            </PretendardText>
+            <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
           </TouchableOpacity>
-        )}
-      </View>
+          <PretendardText style={styles.headerTitle} weight='bold'>
+            운동 기록
+          </PretendardText>
+          {/* 상세에서만 후보 목록으로 돌아가는 통로를 둔다 — 상세의 주 목적은 보기다. */}
+          {phase === BagActivityPhase.Detail && (
+            <TouchableOpacity
+              style={styles.headerAction}
+              onPress={handleReselect}
+              activeOpacity={0.7}
+              accessibilityRole='button'
+              accessibilityLabel='연결할 운동 다시 선택'
+            >
+              <PretendardText style={styles.headerActionText} weight='semibold'>
+                다시 선택
+              </PretendardText>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
       {renderBody()}
       {showFooter && (
         <View style={styles.footer}>
