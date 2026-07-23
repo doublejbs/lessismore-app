@@ -1,6 +1,12 @@
 import { observer } from 'mobx-react-lite';
-import { FC, useCallback, useLayoutEffect, useRef } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { FC, useCallback, useLayoutEffect, useRef, useState } from 'react';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
@@ -17,16 +23,28 @@ import BagDetailDestinationView from './BagDetailDestinationView';
 import BagDetailActivityView from './BagDetailActivityView';
 import ShareButtonView from './ShareButtonView';
 import BagDetailCopyView from '../bag/BagDetailCopyView';
-import { useFocusEffect } from 'expo-router';
+import { Stack, useFocusEffect } from 'expo-router';
 import BagDetailSkeletonView from './BagDetailSkeletonView';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  Edge,
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import ToastView from '../toast/ToastView';
 import app from '@/model/app/App';
 
 interface Props {
   bagDetail: BagDetail;
 }
+
+// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
+const IS_IOS = Platform.OS === 'ios';
+// iOS는 네이티브 투명 헤더가 상단을 덮고 스크롤 뷰가 자동 인셋을 받으므로
+// top 세이프에어리어를 빼 이중 인셋을 막는다. 하단은 기존 동작 유지.
+const SAFE_AREA_EDGES: readonly Edge[] = IS_IOS
+  ? ['left', 'right', 'bottom']
+  : ['top', 'left', 'right', 'bottom'];
 
 const BagDetailView: FC<Props> = ({ bagDetail }) => {
   const initialized = bagDetail.isInitialized();
@@ -42,8 +60,26 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     bagDetail.setCategoryRefs(categoryRefsMap.current);
   };
 
+  const insets = useSafeAreaInsets();
+
+  // iOS 네이티브 투명 헤더 하단(상태바 + 컴팩트 바 44pt) — 필터 오버레이의 핀 기준선.
+  const headerBottom = insets.top + 44;
+
+  // 장비 헤더(총 N개 + 필터)의 콘텐츠 내 y 위치. onLayout으로 측정한다.
+  const [gearHeaderY, setGearHeaderY] = useState<number | null>(null);
+  // iOS 전용: 필터가 헤더 아래에 고정 표시돼야 하는지(스크롤 위치 기반).
+  const [isFilterPinned, setIsFilterPinned] = useState(false);
+
   const handleScroll = (event: any) => {
     bagDetail.handleScroll(event);
+
+    // iOS: RN sticky는 인셋을 몰라 화면 최상단(투명 헤더 뒤)에 붙어 가려진다.
+    // sticky 대신 스크롤 위치로 '헤더 아래 오버레이' 표시를 판정한다(핀 라인 = headerBottom).
+    if (IS_IOS && gearHeaderY !== null) {
+      const offsetY = event.nativeEvent.contentOffset.y;
+
+      setIsFilterPinned(offsetY + headerBottom >= gearHeaderY);
+    }
   };
 
   useFocusEffect(
@@ -58,42 +94,76 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     }
   }, [initialized]);
 
+  // 헤더 우측 액션(복사·공유) — iOS 네이티브 headerRight와 Android/Web 커스텀 헤더가 공유한다.
+  // iOS는 각 아이콘을 44pt 박스로 감싸 글래스 캡슐의 내부 여백·높이를 시스템 바 버튼
+  // 지오메트리(내부 ~11pt, 아이콘 중심 간격 ~52pt, 높이 44pt)에 맞춘다. 터치 타깃도 44pt 확보.
+  const renderHeaderActions = () => (
+    <View style={styles.headerActions}>
+      <View style={IS_IOS ? styles.headerIconBox : null}>
+        <BagDetailCopyView
+          sourceId={bagDetail.getId()}
+          sourceName={bagDetail.getName()}
+        />
+      </View>
+      <View style={IS_IOS ? styles.headerIconBox : null}>
+        <ShareButtonView bagDetail={bagDetail} />
+      </View>
+    </View>
+  );
+
+  // LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
+  // 시스템에 위임한다(headerBlurEffect·headerStyle.backgroundColor 지정 금지).
+  // 배낭 이름은 본문(BagDetailNameView)이 주인공이라 타이틀은 비워 중복을 피한다.
+  const stackScreen = (
+    <Stack.Screen
+      options={{
+        headerShown: IS_IOS,
+        headerTransparent: true,
+        headerTitle: '',
+        headerBackButtonDisplayMode: 'minimal',
+        // 스켈레톤 동안은 우측 액션을 숨긴다 — 초기화 전 복사/공유는 의미가 없다.
+        ...(initialized ? { headerRight: () => renderHeaderActions() } : {}),
+      }}
+    />
+  );
+
   if (initialized) {
     const gears = bagDetail.getGears();
 
     return (
       <GestureHandlerRootView style={styles.container}>
-        <SafeAreaView style={styles.container}>
+        {stackScreen}
+        <SafeAreaView style={styles.container} edges={SAFE_AREA_EDGES}>
           <View style={styles.container}>
-            <View style={styles.header}>
-              <View style={styles.headerContent}>
-                <TouchableOpacity
-                  onPress={handlePressBack}
-                  hitSlop={12}
-                  accessibilityRole='button'
-                  accessibilityLabel='뒤로가기'
-                >
-                  <Ionicons
-                    name='chevron-back'
-                    size={24}
-                    color={Color.textPrimary}
-                  />
-                </TouchableOpacity>
-                <View style={styles.headerActions}>
-                  <BagDetailCopyView
-                    sourceId={bagDetail.getId()}
-                    sourceName={bagDetail.getName()}
-                  />
-                  <ShareButtonView bagDetail={bagDetail} />
+            {!IS_IOS && (
+              <View style={styles.header}>
+                <View style={styles.headerContent}>
+                  <TouchableOpacity
+                    onPress={handlePressBack}
+                    hitSlop={12}
+                    accessibilityRole='button'
+                    accessibilityLabel='뒤로가기'
+                  >
+                    <Ionicons
+                      name='chevron-back'
+                      size={24}
+                      color={Color.textPrimary}
+                    />
+                  </TouchableOpacity>
+                  {renderHeaderActions()}
                 </View>
               </View>
-            </View>
+            )}
             <ScrollView
               ref={scrollViewRef}
               style={styles.scrollView}
               contentContainerStyle={styles.scrollContent}
-              stickyHeaderIndices={[4]}
+              // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
+              contentInsetAdjustmentBehavior='automatic'
+              // iOS는 sticky가 투명 헤더 뒤(화면 최상단)에 붙어 가려지므로 오버레이로 대체한다.
+              stickyHeaderIndices={IS_IOS ? undefined : [4]}
               onScroll={handleScroll}
+              scrollEventThrottle={16}
               showsVerticalScrollIndicator={false}
             >
               <View style={styles.infoSection}>
@@ -124,9 +194,11 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               <View style={styles.separator} />
               <View
                 style={styles.gearHeader}
-                onLayout={e =>
-                  bagDetail.setGearHeaderHeight(e.nativeEvent.layout.height)
-                }
+                onLayout={e => {
+                  bagDetail.setGearHeaderHeight(e.nativeEvent.layout.height);
+                  // iOS 오버레이 핀 판정용 — 콘텐츠 내 y 위치를 기록한다.
+                  setGearHeaderY(e.nativeEvent.layout.y);
+                }}
               >
                 <View style={styles.gearHeaderContent}>
                   <PretendardText style={styles.gearCountText} weight='bold'>
@@ -150,6 +222,21 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                 </View>
               </View>
             </ScrollView>
+            {/* iOS: sticky 대체 오버레이 — 필터를 투명 헤더 '아래'에 고정 표시한다.
+                SafeAreaView가 top 인셋을 소비하지 않는 iOS 구조라 화면 최상단(top: 0)부터
+                흰 배경을 깔고 paddingTop으로 헤더 높이만큼 내려 그린다. */}
+            {IS_IOS && isFilterPinned && (
+              <View
+                style={[styles.pinnedGearHeader, { paddingTop: headerBottom }]}
+              >
+                <View style={styles.gearHeaderContent}>
+                  <PretendardText style={styles.gearCountText} weight='bold'>
+                    총 {gears.length}개의 장비
+                  </PretendardText>
+                </View>
+                <BagDetailFiltersView bagDetail={bagDetail} />
+              </View>
+            )}
             <BagDetailBottomBar bagDetail={bagDetail} />
           </View>
           <ToastView toastManager={app.getToastManager()!} bottom={100} />
@@ -157,7 +244,12 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
       </GestureHandlerRootView>
     );
   } else {
-    return <BagDetailSkeletonView />;
+    return (
+      <>
+        {stackScreen}
+        <BagDetailSkeletonView />
+      </>
+    );
   }
 };
 
@@ -180,7 +272,16 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    // iOS는 44pt 박스 + gap 8 = 아이콘 중심 간격 ~52pt(시스템 캡슐 지오메트리).
+    // Android 커스텀 헤더는 기존 간격 유지.
+    gap: IS_IOS ? 8 : 12,
+  },
+  // iOS 글래스 캡슐 내부 여백·높이를 맞추는 아이콘 박스(터치 타깃 44pt).
+  headerIconBox: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollView: {
     flex: 1,
@@ -208,6 +309,14 @@ const styles = StyleSheet.create({
     minHeight: 10,
   },
   gearHeader: {
+    backgroundColor: Color.background,
+  },
+  // iOS sticky 대체 오버레이 — 화면 상단 고정, 헤더 높이만큼 paddingTop을 준다(렌더에서 주입).
+  pinnedGearHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     backgroundColor: Color.background,
   },
   gearHeaderContent: {

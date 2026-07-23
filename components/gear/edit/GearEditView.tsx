@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Stack } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import GearEdit from '@/model/gear/edit/GearEdit';
@@ -27,6 +28,14 @@ import { Color, Radius } from '@/constants/DesignTokens';
 interface Props {
   gearEdit: GearEdit;
 }
+
+// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
+const IS_IOS = Platform.OS === 'ios';
+// iOS는 네이티브 투명 헤더가 상단을 덮고 스크롤 뷰가 자동 인셋을 받으므로
+// top 세이프에어리어를 빼 이중 인셋을 막는다. 하단은 기존 동작 유지.
+const IOS_EDGES = ['left', 'right', 'bottom'] as const;
+// Android/Web은 기존과 동일한 전 방향 세이프에어리어(SafeAreaView 기본값과 동일).
+const ALL_EDGES = ['top', 'right', 'bottom', 'left'] as const;
 
 const GearEditView: FC<Props> = ({ gearEdit }) => {
   const scrollViewRef = useRef<ScrollView>(null);
@@ -100,26 +109,71 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
 
   return (
     <>
-      <SafeAreaView style={styles.container}>
+      {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
+          시스템에 위임하고(headerBlurEffect·headerStyle.backgroundColor 지정 금지),
+          삭제 액션은 기존 핸들러 그대로 headerRight에 임베드한다. */}
+      <Stack.Screen
+        options={{
+          headerShown: IS_IOS,
+          headerTransparent: true,
+          headerTitle: '수정하기',
+          headerBackButtonDisplayMode: 'minimal',
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={handlePressDelete}
+              style={styles.nativeHeaderButton}
+              accessibilityLabel='삭제'
+              accessibilityRole='button'
+            >
+              <Ionicons
+                name='trash-outline'
+                size={22}
+                color={Color.textPrimary}
+              />
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      <SafeAreaView
+        style={styles.container}
+        edges={IS_IOS ? IOS_EDGES : ALL_EDGES}
+      >
         <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
-        <View style={styles.header}>
-        <TouchableOpacity onPress={handlePressBack} style={styles.headerButton}>
-          <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
-        </TouchableOpacity>
-        <PretendardText weight='semibold' style={styles.headerTitle}>
-          수정하기
-        </PretendardText>
-        <TouchableOpacity
-          onPress={handlePressDelete}
-          style={styles.headerButton}
-        >
-          <Ionicons name='trash-outline' size={22} color={Color.textPrimary} />
-        </TouchableOpacity>
-      </View>
+        {!IS_IOS && (
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={handlePressBack}
+              style={styles.headerButton}
+              accessibilityLabel='뒤로 가기'
+              accessibilityRole='button'
+            >
+              <Ionicons
+                name='chevron-back'
+                size={24}
+                color={Color.textPrimary}
+              />
+            </TouchableOpacity>
+            <PretendardText weight='semibold' style={styles.headerTitle}>
+              수정하기
+            </PretendardText>
+            <TouchableOpacity
+              onPress={handlePressDelete}
+              style={styles.headerButton}
+              accessibilityLabel='삭제'
+              accessibilityRole='button'
+            >
+              <Ionicons
+                name='trash-outline'
+                size={22}
+                color={Color.textPrimary}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
       {isLoading && (
         <View
           style={{
@@ -139,6 +193,8 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
         style={{
           flex: 1,
         }}
+        // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
+        contentInsetAdjustmentBehavior='automatic'
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 16,
@@ -282,6 +338,13 @@ const styles = StyleSheet.create({
     backgroundColor: Color.background,
   },
   headerButton: {},
+  // iOS 네이티브 headerRight 삭제 버튼 — HIG 최소 터치 타깃 44×44pt, 바 안 정렬은 시스템에 위임.
+  nativeHeaderButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerTitle: {
     fontSize: 17,
     color: Color.textPrimary,

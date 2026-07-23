@@ -17,7 +17,7 @@ const NativeTabLayout = () => {
       }}
       minimizeBehavior='onScrollDown'
     >
-      <NativeTabs.Trigger name='index'>
+      <NativeTabs.Trigger name='(warehouse)'>
         <NativeTabs.Trigger.Icon sf='house.fill' drawable='ic_menu_home' />
         <NativeTabs.Trigger.Label>창고</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
@@ -58,7 +58,7 @@ const JsTabLayout = () => {
   return (
     <Tabs screenOptions={screenOptions}>
       <Tabs.Screen
-        name='index'
+        name='(warehouse)'
         options={{
           title: '창고',
           tabBarIcon: ({ color }) => (

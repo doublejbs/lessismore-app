@@ -10,6 +10,7 @@ import {
   Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Stack } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
@@ -28,6 +29,9 @@ import app from '@/model/app/App';
 interface Props {
   customGear: CustomGear;
 }
+
+// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
+const IS_IOS = Platform.OS === 'ios';
 
 const CustomGearView: FC<Props> = ({ customGear }) => {
   const scrollViewRef = useRef<ScrollView>(null);
@@ -148,45 +152,59 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
             : ['bottom', 'left', 'right']
         }
       >
+        {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 바 버튼·scroll edge effect는 시스템에
+            위임한다(headerBlurEffect·headerStyle.backgroundColor 지정 금지). 모달이라
+            스택 히스토리가 없어 시스템 back이 안 나온다 — 기존 닫기 핸들러를 headerLeft에
+            임베드한다. 커스텀 드래그 바(iOS 전용 어포던스)는 네이티브 헤더로 대체. */}
+        <Stack.Screen
+          options={{
+            headerShown: IS_IOS,
+            headerTransparent: true,
+            headerTitle: '장비 추가',
+            headerLeft: () => (
+              <TouchableOpacity
+                onPress={handleClickHide}
+                style={styles.nativeCloseButton}
+                accessibilityRole='button'
+                accessibilityLabel='닫기'
+              >
+                <Ionicons name='close' size={24} color={Color.textPrimary} />
+              </TouchableOpacity>
+            ),
+          }}
+        />
         {isLoading && (
           <View style={styles.loadingOverlay}>
             <LoadingIconView />
           </View>
         )}
 
-        {/* 드래그 바 (iOS만) */}
-        {Platform.OS === 'ios' && <View style={styles.dragBar} />}
-
-        {/* 헤더 */}
-        <View style={styles.header}>
-          {Platform.OS === 'android' && (
-            <TouchableOpacity
-              onPress={handleClickHide}
-              style={styles.backButton}
-              accessibilityRole='button'
-              accessibilityLabel='닫기'
+        {/* 헤더 (Android/Web 커스텀 유지) */}
+        {!IS_IOS && (
+          <View style={styles.header}>
+            {Platform.OS === 'android' && (
+              <TouchableOpacity
+                onPress={handleClickHide}
+                style={styles.backButton}
+                accessibilityRole='button'
+                accessibilityLabel='닫기'
+              >
+                <Ionicons
+                  name='chevron-back'
+                  size={24}
+                  color={Color.textPrimary}
+                />
+              </TouchableOpacity>
+            )}
+            <PretendardText
+              weight='semibold'
+              style={[styles.headerTitle, styles.headerTitleWithBackButton]}
             >
-              <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
-            </TouchableOpacity>
-          )}
-          {Platform.OS === 'ios' && (
-            <TouchableOpacity
-              onPress={handleClickHide}
-              style={styles.backButton}
-              accessibilityRole='button'
-              accessibilityLabel='닫기'
-            >
-              <Ionicons name='close' size={24} color={Color.textPrimary} />
-            </TouchableOpacity>
-          )}
-          <PretendardText
-            weight='semibold'
-            style={[styles.headerTitle, styles.headerTitleWithBackButton]}
-          >
-            장비 추가
-          </PretendardText>
-          <View style={styles.backButtonPlaceholder} />
-        </View>
+              장비 추가
+            </PretendardText>
+            <View style={styles.backButtonPlaceholder} />
+          </View>
+        )}
 
         <KeyboardAvoidingView
           style={styles.keyboardAvoidingView}
@@ -197,6 +215,8 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
           <ScrollView
             ref={scrollViewRef}
             style={styles.scrollView}
+            // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
+            contentInsetAdjustmentBehavior='automatic'
             contentContainerStyle={[
               styles.scrollContent,
               isKeyboardVisible && styles.scrollContentKeyboardVisible,
@@ -400,15 +420,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
-  dragBar: {
-    width: 40,
-    height: 4,
-    backgroundColor: Color.iconMuted,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 8,
-  },
   header: {
     paddingHorizontal: 20,
     paddingVertical: 16,
@@ -437,6 +448,13 @@ const styles = StyleSheet.create({
   backButtonPlaceholder: {
     width: 44,
     height: 44,
+  },
+  // iOS 네이티브 headerLeft 닫기 버튼 — HIG 최소 터치 타깃 44×44pt, 바 안 정렬은 시스템에 위임.
+  nativeCloseButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

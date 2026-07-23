@@ -1,12 +1,21 @@
 import Reply from '@/model/reply/Reply';
-import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
+import {
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Platform,
+} from 'react-native';
+import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Color } from '@/constants/DesignTokens';
 import PretendardText from '../PretendardText';
 import ReplyInputButtonView from './ReplyInputButtonView';
 import { observer } from 'mobx-react-lite';
 import ReplyItemView from './ReplyItemView';
+
+// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
+const IS_IOS = Platform.OS === 'ios';
 
 const ReplyView = ({ reply }: { reply: Reply }) => {
   const router = useRouter();
@@ -17,22 +26,38 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity onPress={handlePressBack} activeOpacity={0.7}>
-            <Ionicons
-              name='chevron-back'
-              size={24}
-              color={Color.textPrimary}
-            />
-          </TouchableOpacity>
-          <PretendardText weight='semibold' style={styles.titleText}>
-            리뷰
-          </PretendardText>
-          <View style={styles.placeholder} />
+      {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
+          시스템에 위임한다(headerBlurEffect·headerStyle.backgroundColor 지정 금지). */}
+      <Stack.Screen
+        options={{
+          headerShown: IS_IOS,
+          headerTransparent: true,
+          headerTitle: '리뷰',
+          headerBackButtonDisplayMode: 'minimal',
+        }}
+      />
+      {!IS_IOS && (
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <TouchableOpacity onPress={handlePressBack} activeOpacity={0.7}>
+              <Ionicons
+                name='chevron-back'
+                size={24}
+                color={Color.textPrimary}
+              />
+            </TouchableOpacity>
+            <PretendardText weight='semibold' style={styles.titleText}>
+              리뷰
+            </PretendardText>
+            <View style={styles.placeholder} />
+          </View>
         </View>
-      </View>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      )}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
+        contentInsetAdjustmentBehavior='automatic'
+      >
         <View style={styles.replyHeader}>
           <PretendardText weight='semibold' style={styles.replyHeaderText}>
             리뷰

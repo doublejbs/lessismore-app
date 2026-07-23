@@ -8,7 +8,9 @@ import {
   LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
 } from 'react-native';
+import { Stack } from 'expo-router';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import WarehouseDetailInformationView from './WarehouseDetailInformationView';
 import WarehouseDetailSpecsView from './WarehouseDetailSpecsView';
@@ -37,6 +39,8 @@ const HEADER_TITLE_REVEAL_MARGIN = 88;
 const INFO_HEIGHT_FALLBACK = 360;
 // 헤더 타이틀 좌우 인셋 — 뒤로가기/수정하기 액션과 겹침 방지.
 const HEADER_TITLE_INSET = 60;
+// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
+const IS_IOS = Platform.OS === 'ios';
 
 const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
   const gear = warehouseDetail.getGear();
@@ -129,62 +133,88 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
       ? !warehouseDetail.isInBagContextBag()
       : !isAdded;
 
+    // 헤더 우측 액션(공유·수정) — iOS 네이티브 headerRight와 Android/Web 커스텀 헤더가 공유한다.
+    const renderHeaderActions = () => (
+      <>
+        {/* 공유(GD-7) — 카탈로그 장비만(커스텀은 웹 랜딩 대상이 아님) */}
+        {!gear.getIsCustom() && (
+          <TouchableOpacity
+            onPress={handlePressShare}
+            style={styles.headerIconButton}
+            accessibilityLabel='공유'
+            accessibilityRole='button'
+          >
+            <Ionicons name='share-outline' size={22} color={Color.textPrimary} />
+          </TouchableOpacity>
+        )}
+        {isAdded && (
+          <TouchableOpacity
+            onPress={handlePressEdit}
+            style={styles.editButton}
+            accessibilityLabel='수정하기'
+            accessibilityRole='button'
+          >
+            <PretendardText style={styles.editButtonText}>
+              수정하기
+            </PretendardText>
+          </TouchableOpacity>
+        )}
+      </>
+    );
+
     return (
       <>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <TouchableOpacity
-              onPress={handlePressClose}
-              style={styles.backButton}
-              accessibilityLabel='뒤로 가기'
-              accessibilityRole='button'
-            >
-              <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
-            </TouchableOpacity>
-            {showHeaderTitle && (
-              <View style={styles.headerTitleContainer} pointerEvents='none'>
-                <PretendardText
-                  weight='semibold'
-                  numberOfLines={1}
-                  style={styles.headerTitle}
-                >
-                  {gear.getDisplayName()}
-                </PretendardText>
+        {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
+            시스템에 위임한다(headerBlurEffect·headerStyle.backgroundColor 지정 금지).
+            타이틀은 시스템 폰트의 일반(스몰) 타이틀로 항상 표시된다. */}
+        <Stack.Screen
+          options={{
+            headerShown: IS_IOS,
+            headerTransparent: true,
+            headerTitle: gear.getDisplayName(),
+            headerBackButtonDisplayMode: 'minimal',
+            headerRight: () => (
+              <View style={styles.nativeHeaderRight}>
+                {renderHeaderActions()}
               </View>
-            )}
-            <View style={styles.headerRight}>
-              {/* 공유(GD-7) — 카탈로그 장비만(커스텀은 웹 랜딩 대상이 아님) */}
-              {gear && !gear.getIsCustom() && (
-                <TouchableOpacity
-                  onPress={handlePressShare}
-                  style={styles.headerIconButton}
-                  accessibilityLabel='공유'
-                  accessibilityRole='button'
-                >
-                  <Ionicons
-                    name='share-outline'
-                    size={22}
-                    color={Color.textPrimary}
-                  />
-                </TouchableOpacity>
-              )}
-              {isAdded && (
-                <TouchableOpacity
-                  onPress={handlePressEdit}
-                  style={styles.editButton}
-                  accessibilityLabel='수정하기'
-                  accessibilityRole='button'
-                >
-                  <PretendardText style={styles.editButtonText}>
-                    수정하기
+            ),
+          }}
+        />
+        <View style={styles.container}>
+          {!IS_IOS && (
+            <View style={styles.header}>
+              <TouchableOpacity
+                onPress={handlePressClose}
+                style={styles.backButton}
+                accessibilityLabel='뒤로 가기'
+                accessibilityRole='button'
+              >
+                <Ionicons
+                  name='chevron-back'
+                  size={24}
+                  color={Color.textPrimary}
+                />
+              </TouchableOpacity>
+              {showHeaderTitle && (
+                <View style={styles.headerTitleContainer} pointerEvents='none'>
+                  <PretendardText
+                    weight='semibold'
+                    numberOfLines={1}
+                    style={styles.headerTitle}
+                  >
+                    {gear.getDisplayName()}
                   </PretendardText>
-                </TouchableOpacity>
+                </View>
               )}
+              <View style={styles.headerRight}>{renderHeaderActions()}</View>
             </View>
-          </View>
+          )}
           <ScrollView
             style={styles.content}
-            onScroll={handleScroll}
+            // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
+            contentInsetAdjustmentBehavior='automatic'
+            // 스크롤 시 타이틀 노출은 커스텀 헤더(Android/Web) 전용 — iOS는 네이티브 타이틀 상시 표시.
+            onScroll={IS_IOS ? undefined : handleScroll}
             scrollEventThrottle={16}
           >
             <View onLayout={handleInfoLayout}>
@@ -314,6 +344,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginRight: -10,
+  },
+  // iOS 네이티브 headerRight 컨테이너 — 공유·수정 버튼 가로 배치(바 안 정렬은 시스템에 위임).
+  nativeHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    // 시스템 바 버튼 그룹 지오메트리에 맞춘 간격 — 44pt 박스(내부 여백 ~11pt) + gap 8
+    // = 아이콘 중심 간격 ~52pt(iOS 26 표준 캡슐과 동일).
+    gap: 8,
   },
   headerIconButton: {
     width: 44,

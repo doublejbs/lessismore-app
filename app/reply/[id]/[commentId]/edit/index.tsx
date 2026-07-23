@@ -1,10 +1,15 @@
 import ReplyEditView from '@/components/reply/ReplyEditView';
-import { useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import app from '@/model/app/App';
 import Comment from '@/model/reply/Comment';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, Platform } from 'react-native';
+
+// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스). 네이티브 헤더가 상단을 덮으므로
+// top 세이프에어리어를 빼 이중 인셋을 막는다(콘텐츠 여백은 ReplyEditView가 처리).
+const IS_IOS = Platform.OS === 'ios';
+const IOS_EDGES = ['left', 'right', 'bottom'] as const;
 
 const ReplyEdit = () => {
   const { id, commentId } = useLocalSearchParams<{
@@ -34,7 +39,19 @@ const ReplyEdit = () => {
 
   if (isLoading || comment === null) {
     return (
-      <Layout paddingHorizontal={0}>
+      <Layout
+        paddingHorizontal={0}
+        edges={IS_IOS ? IOS_EDGES : undefined}
+      >
+        {/* 로딩 중에도 네이티브 헤더(back)를 미리 띄워 로드 완료 시 헤더가 튀지 않게 한다. */}
+        <Stack.Screen
+          options={{
+            headerShown: IS_IOS,
+            headerTransparent: true,
+            headerTitle: '',
+            headerBackButtonDisplayMode: 'minimal',
+          }}
+        />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size='large' color='#000' />
         </View>
@@ -46,7 +63,7 @@ const ReplyEdit = () => {
   const isTopLevel = comment.parentId == null;
 
   return (
-    <Layout paddingHorizontal={0}>
+    <Layout paddingHorizontal={0} edges={IS_IOS ? IOS_EDGES : undefined}>
       <ReplyEditView
         gearId={id}
         commentId={commentId}

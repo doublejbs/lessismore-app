@@ -44,7 +44,7 @@ const TermsAgreementView: FC = () => {
         personalInfoAgreed,
         over14Agreed
       );
-      router.replace('/(tabs)');
+      router.replace('/(tabs)/(warehouse)');
     } catch (error) {
       console.error('약관 동의 저장 오류:', error);
       Alert.alert(
