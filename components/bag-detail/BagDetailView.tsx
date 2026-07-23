@@ -1,5 +1,12 @@
 import { observer } from 'mobx-react-lite';
-import { FC, useCallback, useLayoutEffect, useRef, useState } from 'react';
+import {
+  FC,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   View,
   ScrollView,
@@ -64,6 +71,12 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
 
   // iOS 네이티브 투명 헤더 하단(상태바 + 컴팩트 바 44pt) — 필터 오버레이의 핀 기준선.
   const headerBottom = insets.top + 44;
+
+  // iOS는 스크롤 프레임이 화면 최상단부터라, 카테고리 스크롤 이동·활성 필터 감지가
+  // 헤더 높이만큼 어긋나지 않게 모델에 상단 인셋을 주입한다(LG). Android/Web은 0.
+  useEffect(() => {
+    bagDetail.setTopContentInset(IS_IOS ? headerBottom : 0);
+  }, [bagDetail, headerBottom]);
 
   // 장비 헤더(총 N개 + 필터)의 콘텐츠 내 y 위치. onLayout으로 측정한다.
   const [gearHeaderY, setGearHeaderY] = useState<number | null>(null);
