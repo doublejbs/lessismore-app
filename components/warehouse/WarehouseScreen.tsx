@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
-import { Stack, useFocusEffect } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
@@ -22,15 +22,14 @@ import WarehouseGearView from '@/components/warehouse/WarehouseGearView';
 import AddButtonView from '@/components/warehouse/AddButtonView';
 import WarehouseSkeletonView from '@/components/warehouse/WarehouseSkeletonView';
 import { josa } from 'josa';
-import type { NativeStackNavigationOptions } from 'expo-router';
 
 interface Props {
   warehouse: Warehouse;
 }
 
-// iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 빼고,
+// iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어만 빼고,
 // 콘텐츠 하단 여백으로 마지막 항목이 탭바·플로팅 버튼에 가리지 않게 한다.
-const IOS_EDGES = ['left', 'right'] as const;
+const IOS_EDGES = ['top', 'left', 'right'] as const;
 
 const WarehouseView: FC<Props> = ({ warehouse }) => {
   const gears = warehouse.getGears();
@@ -38,24 +37,6 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
   const isLoading = warehouse.isLoading();
   const insets = useSafeAreaInsets();
   const [isSearching, setIsSearching] = useState(false);
-
-  const nativeSearchBarOptions: NativeStackNavigationOptions['headerSearchBarOptions'] =
-    !isEmpty
-      ? {
-          placeholder: '장비 검색',
-          cancelButtonText: '취소',
-          placement: 'integratedButton',
-          onChangeText: event => {
-            warehouse.setQuery(event.nativeEvent.text);
-          },
-          onCancelButtonPress: () => {
-            warehouse.setQuery('');
-          },
-          onClose: () => {
-            warehouse.setQuery('');
-          },
-        }
-      : undefined;
 
   useFocusEffect(
     useCallback(() => {
@@ -131,45 +112,11 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
     );
   };
 
-  const renderIosGears = () => {
-    return (
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.iosScrollContent}
-        showsVerticalScrollIndicator={false}
-        contentInsetAdjustmentBehavior='automatic'
-      >
-        {!isEmpty && <WarehouseFiltersView warehouse={warehouse} />}
-        {renderGearItems()}
-        {!isLoading && !isEmpty && gears.length > 0 && (
-          <View style={{ height: insets.bottom + 100 }} />
-        )}
-      </ScrollView>
-    );
-  };
-
   return (
-    <>
-      {Platform.OS === 'ios' && (
-        <Stack.Screen
-          options={{
-            title: '창고',
-            // 탭 루트는 HIG상 large title(좌측 정렬, 스크롤 시 인라인으로 접힘)이 표준.
-            // RNS large title 겹침 버그(#3315)는 back 전환 시 문제라 탭 루트엔 해당 없음.
-            // headerTransparent는 large title 접힘 연동을 끊어 지정하지 않는다 —
-            // iOS 26 기본 바(배경 없음 + scroll edge effect)에 위임.
-            headerLargeTitle: true,
-            ...(nativeSearchBarOptions
-              ? { headerSearchBarOptions: nativeSearchBarOptions }
-              : {}),
-          }}
-        />
-      )}
     <GestureHandlerRootView style={styles.root}>
       <Layout edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}>
-        {Platform.OS !== 'ios' && (
-          <View style={styles.headerContainer}>
-            {isSearching ? (
+        <View style={styles.headerContainer}>
+          {isSearching ? (
               <View style={styles.searchRow}>
                 <View style={styles.searchBox}>
                   <Ionicons name='search' size={18} color={Color.textSecondary} />
@@ -211,6 +158,25 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                   <PretendardText style={styles.cancelText}>취소</PretendardText>
                 </TouchableOpacity>
               </View>
+            ) : Platform.OS === 'ios' ? (
+              // iOS: HIG large title 톤의 좌측 타이틀 + 같은 행 우측 원형 검색 버튼(LG-3).
+              // 네이티브 바는 바 버튼이 large title과 다른 행에 놓여 커스텀 행으로 그린다.
+              <View style={styles.titleRow}>
+                <PretendardText weight='bold' style={styles.titleText}>
+                  창고
+                </PretendardText>
+                {!isEmpty && (
+                  <TouchableOpacity
+                    onPress={() => setIsSearching(true)}
+                    style={styles.circleSearchButton}
+                    hitSlop={8}
+                    accessibilityRole='button'
+                    accessibilityLabel='검색'
+                  >
+                    <Ionicons name='search' size={20} color={Color.textPrimary} />
+                  </TouchableOpacity>
+                )}
+              </View>
             ) : (
               <View style={styles.logoRow}>
                 <Image
@@ -232,15 +198,11 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
               </View>
             )}
             {!isEmpty && <WarehouseFiltersView warehouse={warehouse} />}
-          </View>
-        )}
-        <View style={styles.contentContainer}>
-          {Platform.OS === 'ios' ? renderIosGears() : renderGears()}
         </View>
+        <View style={styles.contentContainer}>{renderGears()}</View>
         <AddButtonView />
       </Layout>
     </GestureHandlerRootView>
-    </>
   );
 };
 
@@ -259,6 +221,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
+  },
+  // iOS 탭 루트 타이틀 행 — HIG large title 톤(좌측 큰 제목) + 같은 행 우측 검색 버튼.
+  // 검색 모드(searchRow, 44)와 높이를 맞춰 토글 시 레이아웃 점프를 없앤다.
+  titleRow: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  titleText: {
+    fontSize: 32,
+    lineHeight: 40,
+    color: Color.textPrimary,
+  },
+  // 원형 검색 버튼 — 시스템 바 버튼(44pt 원형)과 동일한 지오메트리.
+  circleSearchButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Color.surfaceMuted,
   },
   logo: {
     width: '100%',
@@ -319,10 +304,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexDirection: 'column',
     gap: 4,
-  },
-  iosScrollContent: {
-    flexDirection: 'column',
-    gap: 8,
   },
   emptyContainer: {
     flex: 1,
