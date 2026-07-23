@@ -29,6 +29,9 @@ import { BagLocation } from '../bag-destination/BagLocation';
 import { BagActivitySummary } from '../bag/BagActivitySummary';
 import { WeatherSnapshot } from '../weather/WeatherTypes';
 
+// Firestore `in` 쿼리 값 상한(30개). 초과분은 청크로 나눠 조회한다(GD-10).
+const IN_QUERY_CHUNK_SIZE = 30;
+
 class BagStore {
   public constructor(private readonly firebase: Firebase) {}
 
@@ -326,8 +329,18 @@ class BagStore {
   private convertToArray(data: QuerySnapshot<DocumentData, DocumentData>) {
     const result: BagItem[] = [];
     data.forEach(doc => {
-      const { name, weight, editDate, startDate, endDate, gears, packedGears, location } =
-        doc.data();
+      const {
+        name,
+        weight,
+        editDate,
+        startDate,
+        endDate,
+        gears,
+        packedGears,
+        location,
+        weather,
+        activity,
+      } = doc.data();
 
       result.push(
         new BagItem(
@@ -335,11 +348,14 @@ class BagStore {
           name,
           weight,
           dayjs(editDate),
-          dayjs(startDate),
-          dayjs(endDate),
+          // 날짜 필드가 없으면 invalid Dayjs로 만들어 "날짜 없음"을 구분한다(GD-10 정렬·표시).
+          startDate ? dayjs(startDate) : dayjs(''),
+          endDate ? dayjs(endDate) : dayjs(''),
           gears ?? [],
           packedGears ?? [],
-          location ?? null
+          location ?? null,
+          weather ?? null,
+          activity ?? null
         )
       );
     });
@@ -618,14 +634,25 @@ class BagStore {
 
   public async getBags(bagIDs: string[]) {
     if (bagIDs.length) {
-      return this.convertToArray(
-        await getDocs(
-          query(
-            collection(this.getStore(), 'bag'),
-            where('__name__', 'in', bagIDs)
+      // `in` 쿼리는 값 30개 제한 — 초과 시 청크로 나눠 병렬 조회 후 병합한다(GD-10).
+      const chunks: string[][] = [];
+
+      for (let i = 0; i < bagIDs.length; i += IN_QUERY_CHUNK_SIZE) {
+        chunks.push(bagIDs.slice(i, i + IN_QUERY_CHUNK_SIZE));
+      }
+
+      const snapshots = await Promise.all(
+        chunks.map(chunk =>
+          getDocs(
+            query(
+              collection(this.getStore(), 'bag'),
+              where('__name__', 'in', chunk)
+            )
           )
         )
       );
+
+      return snapshots.flatMap(snapshot => this.convertToArray(snapshot));
     } else {
       return [];
     }

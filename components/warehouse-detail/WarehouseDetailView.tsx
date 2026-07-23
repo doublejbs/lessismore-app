@@ -15,6 +15,9 @@ import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import WarehouseDetailInformationView from './WarehouseDetailInformationView';
 import WarehouseDetailSpecsView from './WarehouseDetailSpecsView';
 import WarehouseDetailPurchaseView from './WarehouseDetailPurchaseView';
+import WarehouseDetailUsageHeroView from './WarehouseDetailUsageHeroView';
+import WarehouseDetailDeclutterBannerView from './WarehouseDetailDeclutterBannerView';
+import WarehouseDetailActivityTotalsView from './WarehouseDetailActivityTotalsView';
 import WarehouseDetailBagRecordView from './WarehouseDetailBagRecordView';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
@@ -227,11 +230,26 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
             {/* 카테고리별 스펙 표(GD-8) — 기본 정보 아래, 배낭 기록/최저가 위 */}
             <WarehouseDetailSpecsView gear={gear} />
             {isAdded && (
-              // 보유(관리) 모드: 내 배낭 기록을 최저가 링크보다 위로 (GD-5)
-              <WarehouseDetailBagRecordView
-                gear={gear}
-                warehouseDetail={warehouseDetail}
-              />
+              // 보유(관리) 모드: 사용 인사이트(GD-9~12) → 배낭 기록을 최저가 링크보다 위로 (GD-5)
+              <>
+                {/* 사용 지표 히어로(GD-9) */}
+                <WarehouseDetailUsageHeroView
+                  warehouseDetail={warehouseDetail}
+                />
+                {/* 덜어내기 시그널(GD-12) — 히어로 바로 아래, 조건 충족 시에만 */}
+                <WarehouseDetailDeclutterBannerView
+                  warehouseDetail={warehouseDetail}
+                />
+                {/* 함께한 활동 누적(GD-11) — 운동 기록 있는 사용 여행이 있을 때만 */}
+                <WarehouseDetailActivityTotalsView
+                  warehouseDetail={warehouseDetail}
+                />
+                {/* 함께한 여행 타임라인(GD-10) */}
+                <WarehouseDetailBagRecordView
+                  gear={gear}
+                  warehouseDetail={warehouseDetail}
+                />
+              </>
             )}
             <WarehouseDetailPurchaseView warehouseDetail={warehouseDetail} />
             {/* 외부 후기(GD-6)는 보유 여부로 배치 분기 — 미보유(쇼핑 맥락)는
