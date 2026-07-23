@@ -15,7 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
@@ -50,6 +50,10 @@ interface Props {
 const BagDestinationPickerView: FC<Props> = observer(
   ({ currentLocation, onConfirm, onDone }) => {
     const router = useRouter();
+    // fullScreenModal 안 네이티브 SafeAreaView는 첫 마운트에 인셋 0으로 측정된 뒤
+    // 갱신을 못 받아(초기 진입 시 다이나믹 아일랜드 겹침), 루트 프로바이더의
+    // 훅 값(모달 열기 전 확정)으로 패딩을 준다.
+    const insets = useSafeAreaInsets();
     const mapRef = useRef<NaverMapViewRef>(null);
     const [campSiteMap] = useState(() => CampSiteMap.new());
     // 박지 시트(상세·즐겨찾기)가 떠 있는지. 떠 있는 동안 하단 자유 위치 UI를 숨긴다(DST-3).
@@ -267,7 +271,7 @@ const BagDestinationPickerView: FC<Props> = observer(
           />
         )}
 
-        <SafeAreaView edges={['top']} style={styles.headerWrap}>
+        <View style={[styles.headerWrap, { paddingTop: insets.top }]}>
           <View style={styles.headerCard}>
             <View style={styles.headerRow}>
               <TouchableOpacity
@@ -338,13 +342,13 @@ const BagDestinationPickerView: FC<Props> = observer(
               onSelectPlace={handleSelectPlace}
             />
           )}
-        </SafeAreaView>
+        </View>
 
         {/* 박지 상세가 떠 있는 동안엔 하단 자유 위치 UI(주소 + `이 위치로 설정`)와 지도 컨트롤을
             아예 감춘다 — 박지를 고르는 맥락에서 `이 위치로 설정`이 같이 보이면 주 액션이 둘로
             갈라지고(HIG: 화면당 주 액션 1개), 작은 디텐트에선 시트 아래로 비어져 나온다(DST-3). */}
         {!sheetOpen && !focusedSpot && (
-          <SafeAreaView edges={['bottom']} style={styles.bottomWrap}>
+          <View style={[styles.bottomWrap, { paddingBottom: insets.bottom }]}>
             {isMapSupported && (
               <View style={styles.locateRow}>
                 {/* ★ 즐겨찾기 — 현재 위치 버튼 위(CS-9). 즐겨찾기 1건 이상일 때만 노출한다
@@ -424,7 +428,7 @@ const BagDestinationPickerView: FC<Props> = observer(
                 )}
               </TouchableOpacity>
             </View>
-          </SafeAreaView>
+          </View>
         )}
       </View>
     );
