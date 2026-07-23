@@ -54,6 +54,8 @@ class BagDetail {
   private filterScrollViewRef: any = null;
   private filterButtonRefs: Map<string, any> = new Map();
   private gearHeaderHeight = 0;
+  // iOS 투명 헤더 높이(insets.top + 44) — 뷰가 주입. Android/Web은 0.
+  private topContentInset = 0;
   private packedCount = 0;
   private packingCompleted = false;
   private packingStarted = false;
@@ -513,6 +515,13 @@ class BagDetail {
     this.gearHeaderHeight = height;
   }
 
+  // iOS 네이티브 투명 헤더(LG) 아래로 콘텐츠가 흐르는 화면에서, scrollTo 좌표와
+  // 가시 영역 판정이 헤더 높이만큼 어긋나지 않도록 뷰가 주입하는 상단 인셋.
+  // (스크롤 프레임 최상단 = 화면 최상단이 된 iOS에서만 > 0, Android/Web은 0.)
+  public setTopContentInset(value: number) {
+    this.topContentInset = value;
+  }
+
   public setScrollViewRef(ref: any) {
     this.scrollViewRef = ref;
   }
@@ -538,11 +547,12 @@ class BagDetail {
           (_x: number, y: number) => {
             // 실측한 sticky 헤더(총 N개 + 필터 행) 높이 아래로 카테고리 타이틀이 오도록
             // 오프셋을 준다. 필터 칩 높이가 바뀌어도 자동 보정된다(실측 전 폴백 106).
+            // iOS는 스크롤 프레임이 화면 최상단부터라 투명 헤더 높이(topContentInset)도 더한다(LG).
             const stickyHeaderHeight =
               this.gearHeaderHeight > 0 ? this.gearHeaderHeight : 106;
             const gap = 12;
 
-            const totalOffset = stickyHeaderHeight + gap;
+            const totalOffset = this.topContentInset + stickyHeaderHeight + gap;
             const adjustedY = Math.max(0, y - totalOffset);
 
             this.scrollViewRef.scrollTo({
@@ -698,7 +708,8 @@ class BagDetail {
       return;
     } else {
       const currentOffset = event.nativeEvent.contentOffset.y;
-      const stickyHeaderHeight = 46;
+      // iOS는 투명 헤더 높이만큼 가시 상단이 내려가 있어 인셋을 더해 보정한다(LG).
+      const stickyHeaderHeight = this.topContentInset + 46;
 
       this.syncFilterByScrollPosition(currentOffset, stickyHeaderHeight);
     }
