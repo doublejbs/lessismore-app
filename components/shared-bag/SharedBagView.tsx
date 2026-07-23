@@ -1,9 +1,15 @@
 import { FC } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import SharedBag from '@/model/shared-bag/SharedBag';
@@ -12,6 +18,9 @@ import Gear from '@/model/gear/Gear';
 interface Props {
   sharedBag: SharedBag;
 }
+
+// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
+const IS_IOS = Platform.OS === 'ios';
 
 const SharedBagView: FC<Props> = ({ sharedBag }) => {
   const router = useRouter();
@@ -26,27 +35,58 @@ const SharedBagView: FC<Props> = ({ sharedBag }) => {
 
   const notShared = sharedBag.isNotShared();
   const gears = sharedBag.getGears();
+  // 공유 링크 콜드스타트(스택 히스토리 없음)면 시스템 back이 안 나온다 —
+  // 기존 홈 이동 폴백(handlePressBack)을 headerLeft로 이관해 뒤로가기 어포던스를 유지한다.
+  const needsFallbackBack = IS_IOS && !router.canGoBack();
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={handlePressBack}
-          style={styles.backButton}
-          accessibilityLabel='뒤로 가기'
-          accessibilityRole='button'
-        >
-          <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
-        </TouchableOpacity>
+      {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
+          시스템에 위임한다(headerBlurEffect·headerStyle.backgroundColor 지정 금지). */}
+      <Stack.Screen
+        options={{
+          headerShown: IS_IOS,
+          headerTransparent: true,
+          headerTitle: sharedBag.getName(),
+          headerBackButtonDisplayMode: 'minimal',
+          ...(needsFallbackBack && {
+            headerLeft: () => (
+              <TouchableOpacity
+                onPress={handlePressBack}
+                style={styles.nativeBackButton}
+                accessibilityLabel='뒤로 가기'
+                accessibilityRole='button'
+              >
+                <Ionicons
+                  name='chevron-back'
+                  size={24}
+                  color={Color.textPrimary}
+                />
+              </TouchableOpacity>
+            ),
+          }),
+        }}
+      />
+      {!IS_IOS && (
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={handlePressBack}
+            style={styles.backButton}
+            accessibilityLabel='뒤로 가기'
+            accessibilityRole='button'
+          >
+            <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
+          </TouchableOpacity>
 
-        <PretendardText
-          style={styles.headerTitle}
-          weight='semibold'
-          numberOfLines={1}
-        >
-          {sharedBag.getName()}
-        </PretendardText>
-      </View>
+          <PretendardText
+            style={styles.headerTitle}
+            weight='semibold'
+            numberOfLines={1}
+          >
+            {sharedBag.getName()}
+          </PretendardText>
+        </View>
+      )}
 
       {notShared ? (
         <View style={styles.emptyWrap}>
@@ -58,6 +98,8 @@ const SharedBagView: FC<Props> = ({ sharedBag }) => {
         <ScrollView
           style={styles.content}
           contentContainerStyle={styles.contentContainer}
+          // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
+          contentInsetAdjustmentBehavior='automatic'
         >
           <View style={styles.summary}>
             <PretendardText style={styles.dateRange}>
@@ -141,6 +183,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: -10,
+  },
+  // 콜드스타트 폴백 back(headerLeft) — HIG 최소 터치 타깃 44×44pt, 바 안 정렬은 시스템에 위임.
+  nativeBackButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
     flex: 1,

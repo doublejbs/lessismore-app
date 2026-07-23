@@ -1,7 +1,7 @@
-import { FC, useRef, useEffect, useState } from 'react';
+import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import PretendardText from '../PretendardText';
+import BagEditWeightTitleView from './BagEditWeightTitleView';
 import { Color } from '@/constants/DesignTokens';
 
 interface Props {
@@ -10,58 +10,13 @@ interface Props {
   onPressAddGear: () => void;
 }
 
+// Android/Web 전용 커스텀 헤더 — iOS는 네이티브 스택 헤더(LG-1)를 쓴다.
+// 무게 카운트업 타이틀은 BagEditWeightTitleView로 분리해 iOS headerTitle과 공유한다.
 const BagEditHeaderView: FC<Props> = ({
   weight,
   onPressBack,
   onPressAddGear,
 }) => {
-  const [displayWeight, setDisplayWeight] = useState<number>(
-    parseFloat(weight) || 0
-  );
-  const previousWeightRef = useRef<number>(parseFloat(weight) || 0);
-  const animationRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    const targetWeight = parseFloat(weight) || 0;
-    const startWeight = previousWeightRef.current;
-    const difference = targetWeight - startWeight;
-
-    if (difference === 0) return;
-
-    const duration = 300;
-    const startTime = Date.now();
-
-    const animate = () => {
-      const currentTime = Date.now();
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-
-      const easeOutQuad = 1 - (1 - progress) * (1 - progress);
-      const currentWeight = startWeight + difference * easeOutQuad;
-
-      setDisplayWeight(currentWeight);
-
-      if (progress < 1) {
-        animationRef.current = requestAnimationFrame(animate);
-      } else {
-        previousWeightRef.current = targetWeight;
-        setDisplayWeight(targetWeight);
-      }
-    };
-
-    if (animationRef.current !== null) {
-      cancelAnimationFrame(animationRef.current);
-    }
-
-    animationRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (animationRef.current !== null) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [weight]);
-
   return (
     <View style={styles.header}>
       <View style={styles.headerContent}>
@@ -79,9 +34,11 @@ const BagEditHeaderView: FC<Props> = ({
             />
           </Svg>
         </TouchableOpacity>
-        <PretendardText weight='bold' style={styles.weightText}>
-          {displayWeight.toFixed(2)}kg
-        </PretendardText>
+        <BagEditWeightTitleView
+          weight={weight}
+          fontSize={28}
+          style={styles.weightText}
+        />
         {/* 장비 추가 — 상단 헤더 우측 아이콘 버튼(텍스트 없음). */}
         <TouchableOpacity
           onPress={onPressAddGear}
@@ -115,7 +72,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   weightText: {
-    fontSize: 28,
     textAlign: 'center',
     flex: 1,
   },

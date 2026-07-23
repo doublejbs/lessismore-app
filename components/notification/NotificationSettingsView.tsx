@@ -1,6 +1,13 @@
 import { FC, useState } from 'react';
-import { View, StyleSheet, Switch, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import {
+  View,
+  StyleSheet,
+  Switch,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
@@ -20,8 +27,16 @@ const TOGGLE_ROWS: ToggleRow[] = [
   { key: 'notice', label: '공지 알림' },
 ];
 
+// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
+const IS_IOS = Platform.OS === 'ios';
+// iOS 네이티브 내비게이션 바 높이 — 고정(비스크롤) 상단 콘텐츠의 시작 위치 보정용.
+const NATIVE_HEADER_HEIGHT = 44;
+// iOS는 네이티브 투명 헤더가 상단을 덮으므로 top 세이프에어리어를 빼 이중 인셋을 막는다.
+const IOS_EDGES = ['left', 'right', 'bottom'] as const;
+
 const NotificationSettingsView: FC = () => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const notificationManager = app.getNotificationManager();
   const [settings, setSettings] = useState(
     () =>
@@ -53,20 +68,51 @@ const NotificationSettingsView: FC = () => {
   };
 
   return (
-    <Layout>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handlePressBack} style={styles.backButton}>
-          <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
-        </TouchableOpacity>
-      </View>
+    <Layout edges={IS_IOS ? IOS_EDGES : undefined}>
+      {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)은 시스템에 위임하고
+          (headerBlurEffect·headerStyle.backgroundColor 지정 금지), 화면 타이틀은
+          네이티브 headerTitle로 통합한다(본문 타이틀 행과 중복 표시 금지). */}
+      <Stack.Screen
+        options={{
+          headerShown: IS_IOS,
+          headerTransparent: true,
+          headerTitle: '알림 설정',
+          headerBackButtonDisplayMode: 'minimal',
+        }}
+      />
+      {!IS_IOS && (
+        <>
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={handlePressBack}
+              style={styles.backButton}
+            >
+              <Ionicons
+                name='chevron-back'
+                size={24}
+                color={Color.textPrimary}
+              />
+            </TouchableOpacity>
+          </View>
 
-      <View style={styles.titleContainer}>
-        <PretendardText weight='bold' style={styles.title}>
-          알림 설정
-        </PretendardText>
-      </View>
+          <View style={styles.titleContainer}>
+            <PretendardText weight='bold' style={styles.title}>
+              알림 설정
+            </PretendardText>
+          </View>
+        </>
+      )}
 
-      <View style={styles.list}>
+      <View
+        style={[
+          styles.list,
+          // LG-1: 고정(비스크롤) 화면이라 토글 리스트가 투명 헤더(상태바+44pt) 아래에서
+          // 시작하도록 여백을 준다. 헤더 아래 살짝 띄우는 여백은 기존 톤(24pt)을 따른다.
+          IS_IOS && {
+            marginTop: insets.top + NATIVE_HEADER_HEIGHT + 24,
+          },
+        ]}
+      >
         {TOGGLE_ROWS.map((row, index) => (
           <View
             key={row.key}

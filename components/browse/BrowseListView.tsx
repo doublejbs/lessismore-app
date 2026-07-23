@@ -1,8 +1,14 @@
 import { FC, useCallback, useRef } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import Browse from '@/model/browse/Browse';
 import BrowseSort from '@/model/search/BrowseSort';
 import Bag from '@/model/bag/Bag';
@@ -19,6 +25,9 @@ interface Props {
   bag: Bag;
   title: string;
 }
+
+// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
+const IS_IOS = Platform.OS === 'ios';
 
 const BrowseListView: FC<Props> = ({ browse, bag, title }) => {
   const router = useRouter();
@@ -81,6 +90,8 @@ const BrowseListView: FC<Props> = ({ browse, bag, title }) => {
         keyExtractor={(gear: Gear) => gear.getId()}
         onEndReached={canLoadMore ? handleLoadMore : null}
         onEndReachedThreshold={0.1}
+        // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
+        contentInsetAdjustmentBehavior='automatic'
         ListFooterComponent={
           isLoading ? (
             <View style={styles.skeletonContainer}>
@@ -96,17 +107,33 @@ const BrowseListView: FC<Props> = ({ browse, bag, title }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
-        </TouchableOpacity>
-        <PretendardText style={styles.headerTitle} weight='bold'>
-          {title}
-        </PretendardText>
-        <View style={styles.headerRight}>
-          <BrowseSortButtonView sort={sort} onSelect={handleSelectSort} />
+      {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
+          시스템에 위임한다(headerBlurEffect·headerStyle.backgroundColor 지정 금지).
+          정렬 버튼은 기존 핸들러 그대로 headerRight에 임베드한다. */}
+      <Stack.Screen
+        options={{
+          headerShown: IS_IOS,
+          headerTransparent: true,
+          headerTitle: title,
+          headerBackButtonDisplayMode: 'minimal',
+          headerRight: () => (
+            <BrowseSortButtonView sort={sort} onSelect={handleSelectSort} />
+          ),
+        }}
+      />
+      {!IS_IOS && (
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+            <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
+          </TouchableOpacity>
+          <PretendardText style={styles.headerTitle} weight='bold'>
+            {title}
+          </PretendardText>
+          <View style={styles.headerRight}>
+            <BrowseSortButtonView sort={sort} onSelect={handleSelectSort} />
+          </View>
         </View>
-      </View>
+      )}
       <View style={styles.content}>{renderContent()}</View>
     </View>
   );

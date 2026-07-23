@@ -1,10 +1,16 @@
 import { FC } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { Dayjs } from 'dayjs';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Edge, SafeAreaView } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 import BagWeather from '@/model/bag/BagWeather';
@@ -22,6 +28,14 @@ interface Props {
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
 const formatDay = (d: Dayjs) => `${d.format('M.D')}(${WEEKDAYS[d.day()]})`;
+
+// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
+const IS_IOS = Platform.OS === 'ios';
+// iOS는 네이티브 투명 헤더가 상단을 덮고 스크롤 뷰가 자동 인셋을 받으므로
+// top 세이프에어리어를 빼 이중 인셋을 막는다.
+const SAFE_AREA_EDGES: readonly Edge[] = IS_IOS
+  ? ['left', 'right']
+  : ['top', 'left', 'right'];
 
 // 여행지 허브(DST-8). 위→아래: 지도 미리보기 → 여행지 정보 → 여행 기간·상황 라벨 → 기간 날씨.
 // 라우트(/bag/{id}/weather)는 딥링크 호환을 위해 유지하되, 화면은 여행지를 주인공으로 재구성했다.
@@ -47,21 +61,33 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
   const phaseLabel = getPhaseLabel(start, end);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => router.back()}
-          accessibilityRole='button'
-          accessibilityLabel='뒤로가기'
-        >
-          <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
-        </TouchableOpacity>
-        <PretendardText style={styles.headerTitle} weight='bold'>
-          여행지
-        </PretendardText>
-        <View style={styles.headerSpacer} />
-      </View>
+    <SafeAreaView style={styles.container} edges={SAFE_AREA_EDGES}>
+      {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back·scroll edge effect는 시스템에 위임.
+          단순(back + 타이틀) 화면이라 우측 액션은 없다. */}
+      <Stack.Screen
+        options={{
+          headerShown: IS_IOS,
+          headerTransparent: true,
+          headerTitle: '여행지',
+          headerBackButtonDisplayMode: 'minimal',
+        }}
+      />
+      {!IS_IOS && (
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => router.back()}
+            accessibilityRole='button'
+            accessibilityLabel='뒤로가기'
+          >
+            <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
+          </TouchableOpacity>
+          <PretendardText style={styles.headerTitle} weight='bold'>
+            여행지
+          </PretendardText>
+          <View style={styles.headerSpacer} />
+        </View>
+      )}
 
       {!location ? (
         <View style={styles.emptyState}>
@@ -84,6 +110,8 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
+          // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
+          contentInsetAdjustmentBehavior='automatic'
           showsVerticalScrollIndicator={false}
         >
           {isMapSupported && (
