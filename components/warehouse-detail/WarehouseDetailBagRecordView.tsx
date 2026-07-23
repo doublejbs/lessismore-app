@@ -1,224 +1,202 @@
 import { FC } from 'react';
-import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import Gear from '../../model/gear/Gear';
-import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
+import WarehouseDetail, {
+  GearTripRecord,
+} from '../../model/warehouse-detail/WarehouseDetail';
+import GearUsageStatus from '../../model/warehouse-detail/GearUsageStatus';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import SeperaterView from '../ui/SeperaterView';
 import PretendardText from '../PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
+import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 
 interface Props {
   gear: Gear;
   warehouseDetail: WarehouseDetail;
 }
 
+// 함께한 여행 타임라인(GD-10) — 배낭별 행을 여행 카드로 강화한 GD-2 확장.
+// 이름·기간·여행지·날씨 요약·챙김 여부·사용 3-상태를 보여주고, 탭 시 배낭 상세로 이동한다.
+// 상단 통계 카드는 사용 지표 히어로(GD-9)로 통합되어 여기서는 표시하지 않는다.
 const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
   const bagCount = gear.getBagCount();
-  const usedCount = gear.getUsedCount();
-  const uselessCount = gear.getUselessCount();
 
   if (bagCount === 0) {
     return null;
-  } else {
-    const renderButton = (isUseless: boolean, isUsed: boolean) => {
-      if (isUseless) {
-        return (
-          <TouchableOpacity style={styles.uselessButton}>
-            <PretendardText style={styles.uselessButtonText}>
-              USELESS
-            </PretendardText>
-          </TouchableOpacity>
-        );
-      } else if (isUsed) {
-        return (
-          <TouchableOpacity style={styles.usedButton}>
-            <PretendardText style={styles.usedButtonText}>USED</PretendardText>
-          </TouchableOpacity>
-        );
-      } else {
-        return (
-          <PretendardText style={styles.placeholderText}>
-            사용 여부를 입력해주세요
-          </PretendardText>
-        );
-      }
+  }
+
+  const renderStatusTag = (status: GearUsageStatus) => {
+    if (status === GearUsageStatus.Useless) {
+      return (
+        <View style={styles.uselessTag}>
+          <PretendardText style={styles.uselessTagText}>안 씀</PretendardText>
+        </View>
+      );
+    } else if (status === GearUsageStatus.Used) {
+      return (
+        <View style={styles.usedTag}>
+          <PretendardText style={styles.usedTagText}>사용</PretendardText>
+        </View>
+      );
+    } else {
+      // 미기록 — 기존 "사용 여부 입력" 유도를 유지한다(GD-10).
+      return (
+        <PretendardText style={styles.placeholderText}>
+          사용 여부를 입력해주세요
+        </PretendardText>
+      );
+    }
+  };
+
+  const renderTripCard = (record: GearTripRecord) => {
+    const { bag, status } = record;
+    const displayDate = bag.getDisplayDate();
+    const locationName = bag.getLocationName();
+    const metaParts = [displayDate, locationName].filter(
+      (part): part is string => part !== null
+    );
+    const weatherSummary = summarizeWeatherPeriod(
+      bag.getWeather()?.daily ?? []
+    );
+    // 강수(비/눈)가 있을 때만 아이콘을 붙인다 — 기온 범위는 항상 표시(GD-10).
+    const showWeatherIcon = weatherSummary !== null && weatherSummary.hasPrecip;
+
+    const handlePress = () => {
+      warehouseDetail.goToBag(bag);
     };
 
     return (
-      <>
-        <SeperaterView />
-        <View style={styles.container}>
-          <View style={styles.headerContainer}>
-            <PretendardText weight='bold' style={styles.headerText}>
-              배낭 기록 {bagCount}회
+      <TouchableOpacity
+        key={bag.getID()}
+        style={styles.tripCard}
+        onPress={handlePress}
+        // 커스텀 라벨을 두면 자식 텍스트(기간·여행지·날씨·상태)가 스크린리더에서
+        // 전부 가려지므로, 라벨 없이 자식 평탄화에 맡긴다(HIG 접근성).
+        accessibilityRole='button'
+      >
+        <View style={styles.tripContent}>
+          <View style={styles.tripHeaderRow}>
+            <PretendardText
+              weight='semibold'
+              numberOfLines={1}
+              style={styles.tripName}
+            >
+              {bag.getName()}
             </PretendardText>
+            {renderStatusTag(status)}
           </View>
-          <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <PretendardText
-                style={[styles.statLabel, usedCount === 0 && styles.statMuted]}
-              >
-                USED
+          {metaParts.length > 0 && (
+            <PretendardText style={styles.tripMetaText}>
+              {metaParts.join(' · ')}
+            </PretendardText>
+          )}
+          {weatherSummary && (
+            <View style={styles.weatherRow}>
+              {showWeatherIcon && (
+                <Ionicons
+                  name={weatherSummary.icon}
+                  size={13}
+                  color={Color.textSecondary}
+                />
+              )}
+              <PretendardText style={styles.tripMetaText}>
+                {`${weatherSummary.low}° ~ ${weatherSummary.high}°`}
               </PretendardText>
-              <PretendardText
-                weight='medium'
-                style={[styles.statValue, usedCount === 0 && styles.statMuted]}
-              >{`${usedCount}회`}</PretendardText>
             </View>
-            <View style={styles.statItem}>
-              <PretendardText
-                style={[
-                  styles.statLabel,
-                  uselessCount === 0 && styles.statMuted,
-                ]}
-              >
-                USELESS
-              </PretendardText>
-              <PretendardText
-                weight='medium'
-                style={[
-                  styles.statValue,
-                  uselessCount === 0 && styles.statMuted,
-                ]}
-              >{`${uselessCount}회`}</PretendardText>
-            </View>
-          </View>
-          <ScrollView style={styles.listContainer}>
-            {warehouseDetail.mapBags(bag => {
-              const isUseless = gear.hasUseless(bag.getID());
-              const isUsed = gear.hasUsed(bag.getID());
-
-              const handlePress = () => {
-                warehouseDetail.goToBag(bag);
-              };
-
-              return (
-                <TouchableOpacity
-                  key={bag.getID()}
-                  style={styles.bagItem}
-                  onPress={handlePress}
-                >
-                  <View style={styles.bagContent}>
-                    <PretendardText weight='semibold' style={styles.bagName}>
-                      {bag.getName()}
-                    </PretendardText>
-                    <PretendardText style={styles.bagDate}>
-                      {bag.getEditDate()}
-                    </PretendardText>
-                  </View>
-                  <View style={styles.rightSection}>
-                    {renderButton(isUseless, isUsed)}
-                    <Ionicons
-                      name='chevron-forward'
-                      size={24}
-                      color={Color.textTertiary}
-                    />
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+          )}
         </View>
-      </>
+        <Ionicons name='chevron-forward' size={24} color={Color.textTertiary} />
+      </TouchableOpacity>
     );
-  }
+  };
+
+  return (
+    <>
+      <SeperaterView />
+      <View style={styles.container}>
+        <PretendardText weight='bold' style={styles.headerText}>
+          함께한 여행 {bagCount}회
+        </PretendardText>
+        <View style={styles.listContainer}>
+          {warehouseDetail.getTripRecords().map(renderTripCard)}
+        </View>
+      </View>
+    </>
+  );
 };
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
-    gap: 0,
     paddingHorizontal: 20,
     marginVertical: 20,
-  },
-  headerContainer: {
-    // 헤더 컨테이너 스타일
   },
   headerText: {
     fontSize: 17,
     color: Color.textPrimary,
   },
-  statsContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 12,
+  listContainer: {
+    flexDirection: 'column',
   },
-  statItem: {
-    padding: 16,
-    paddingHorizontal: 20,
+  tripCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    flex: 1,
+    alignItems: 'center',
+    padding: 14,
+    paddingHorizontal: 16,
     backgroundColor: Color.inputBg,
     borderRadius: Radius.card,
+    marginTop: 12,
   },
-  statLabel: {
-    fontSize: 14,
-    color: Color.textPrimary,
+  tripContent: {
+    flex: 1,
+    flexDirection: 'column',
+    gap: 4,
   },
-  statValue: {
+  tripHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  tripName: {
+    flex: 1,
     fontSize: 15,
     color: Color.textPrimary,
   },
-  statMuted: {
-    // 0회 카드: 라벨·값 색을 낮춰 유효 정보 스캔을 돕는다 (GD-2)
+  tripMetaText: {
+    fontSize: 12,
     color: Color.textSecondary,
   },
-  listContainer: {
-    // 리스트 컨테이너 스타일
-  },
-  bagItem: {
-    padding: 14,
-    paddingHorizontal: 20,
-    backgroundColor: Color.inputBg,
-    borderRadius: Radius.card,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 12,
-  },
-  bagContent: {
-    flexDirection: 'column',
-  },
-  bagName: {
-    fontSize: 14,
-    color: Color.textPrimary,
-  },
-  bagDate: {
-    fontSize: 10,
-    color: Color.textTertiary,
-  },
-  rightSection: {
+  weatherRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
   },
-  uselessButton: {
-    backgroundColor: Color.background,
-    borderRadius: Radius.card,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    marginRight: 8,
-  },
-  uselessButtonText: {
-    fontSize: 11,
-    color: Color.textTertiary,
-  },
-  usedButton: {
+  usedTag: {
     backgroundColor: Color.textTertiary,
     borderRadius: Radius.card,
     paddingVertical: 4,
     paddingHorizontal: 12,
-    marginRight: 8,
   },
-  usedButtonText: {
+  usedTagText: {
     fontSize: 11,
     color: Color.background,
+  },
+  uselessTag: {
+    backgroundColor: Color.background,
+    borderRadius: Radius.card,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+  },
+  uselessTagText: {
+    fontSize: 11,
+    color: Color.textTertiary,
   },
   placeholderText: {
     color: Color.textSecondary,
     fontSize: 11,
-    marginRight: 8,
   },
 });
 

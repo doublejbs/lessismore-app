@@ -58,6 +58,8 @@ export interface WeatherPeriodSummary {
   cond: string; // 대표 상태 문구(눈>비>맑음)
   icon: IoniconName; // 대표 아이콘(cond와 동일 우선순위)
   maxGust: number | null; // 기간 중 최대 돌풍(m/s)
+  // 강수(눈/비) 여부 — 표시 문구(cond)에 결합하지 않고 조건 분기에 쓴다.
+  hasPrecip: boolean;
 }
 
 /**
@@ -85,5 +87,5 @@ export const summarizeWeatherPeriod = (
     .map(d => d.windGustMax)
     .filter((v): v is number => v != null);
   const maxGust = gusts.length ? Math.round(Math.max(...gusts)) : null;
-  return { high, low, cond, icon, maxGust };
+  return { high, low, cond, icon, maxGust, hasPrecip: hasSnow || hasRain };
 };
