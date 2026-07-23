@@ -26,6 +26,41 @@ import {
   REVIEW_CACHE_TTL_MS,
   VideoReview,
 } from '../review/ReviewTypes';
+import { BagActivitySummary } from '../bag/BagActivitySummary';
+import GearUsageStatus from './GearUsageStatus';
+
+// 덜어내기 시그널(GD-12) 판정 대상 최근 기록 수.
+const DECLUTTER_RECENT_TRIP_COUNT = 3;
+// createDate 신뢰 하한(2010-01-01 UTC, ms) — 이보다 작으면 초 단위·쓰레기 값으로 보고 보유 일수를 숨긴다(GD-9).
+const MIN_TRUSTED_CREATE_DATE_MS = 1262304000000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// GD-9 사용 지표 히어로 표시값.
+export interface GearUsageStats {
+  bagCount: number;
+  usedCount: number;
+  uselessCount: number;
+  unrecordedCount: number;
+}
+
+// GD-10 여행 타임라인 1행 표시 데이터.
+export interface GearTripRecord {
+  bag: BagItem;
+  status: GearUsageStatus;
+}
+
+// GD-11 활동 누적 합산값. 옵셔널 지표는 값이 있는 배낭이 하나도 없으면 null.
+export interface GearActivityTotals {
+  distanceM: number;
+  durationSec: number;
+  elevationGainM: number | null;
+  activeEnergyKcal: number | null;
+}
+
+// GD-12 덜어내기 시그널. weightG가 null이면 무게 문구를 생략한다.
+export interface GearDeclutterSignal {
+  weightG: number | null;
+}
 
 class WarehouseDetail {
   public static new(
@@ -293,8 +328,174 @@ class WarehouseDetail {
     this.bags = value;
   }
 
-  public mapBags<R>(callback: (bag: BagItem) => R): R[] {
-    return this.bags.map(callback);
+  // GD-9: 담김/사용/안 씀/미기록 지표. 미기록은 음수 방지(max 0) — 3-상태 원칙상 '안 씀'에 합산하지 않는다.
+  // 기준은 gear.bags 배열이 아니라 **실제 로드된 배낭 목록** — 삭제 잔여 id가 남아 있어도
+  // 타임라인 행 수·"함께한 여행 N회" 헤더와 수치가 항상 일치한다.
+  public getUsageStats(): GearUsageStats {
+    const gear = this.getGear();
+
+    if (!gear) {
+      return { bagCount: 0, usedCount: 0, uselessCount: 0, unrecordedCount: 0 };
+    }
+
+    const loadedBags = this.bags;
+    const bagCount = loadedBags.length;
+    const usedCount = loadedBags.filter(bag =>
+      gear.hasUsed(bag.getID())
+    ).length;
+    const uselessCount = loadedBags.filter(bag =>
+      gear.hasUseless(bag.getID())
+    ).length;
+
+    return {
+      bagCount,
+      usedCount,
+      uselessCount,
+      unrecordedCount: Math.max(0, bagCount - usedCount - uselessCount),
+    };
+  }
+
+  // GD-9: 보유 D일째(등록일 포함해 1일째부터). createDate가 누락·미래·비정상 값이면 null(미표시).
+  public getOwnedDays(): number | null {
+    const createDate = this.getGear()?.getCreateDate();
+    const now = Date.now();
+
+    if (
+      typeof createDate !== 'number' ||
+      !Number.isFinite(createDate) ||
+      createDate < MIN_TRUSTED_CREATE_DATE_MS ||
+      createDate > now
+    ) {
+      return null;
+    }
+
+    return Math.floor((now - createDate) / DAY_MS) + 1;
+  }
+
+  // GD-10: 여행 타임라인 — startDate 내림차순, 날짜 없는 배낭은 뒤로, 동순위는 editDate 내림차순.
+  public getTripRecords(): GearTripRecord[] {
+    const gear = this.getGear();
+
+    if (!gear) {
+      return [];
+    }
+
+    const sorted = [...this.bags].sort((a, b) => {
+      const aStart = a.getStartDateValue();
+      const bStart = b.getStartDateValue();
+
+      if (aStart !== null && bStart !== null && aStart !== bStart) {
+        return bStart - aStart;
+      }
+
+      if (aStart === null && bStart !== null) {
+        return 1;
+      }
+
+      if (aStart !== null && bStart === null) {
+        return -1;
+      }
+
+      return b.getEditDateValue() - a.getEditDateValue();
+    });
+
+    return sorted.map(bag => {
+      const bagId = bag.getID();
+      const status = gear.hasUsed(bagId)
+        ? GearUsageStatus.Used
+        : gear.hasUseless(bagId)
+          ? GearUsageStatus.Useless
+          : GearUsageStatus.Unrecorded;
+
+      return {
+        bag,
+        status,
+      };
+    });
+  }
+
+  // GD-11: 사용한 여행의 운동 기록 합산. 대상이 하나도 없으면 null(섹션 미렌더).
+  public getActivityTotals(): GearActivityTotals | null {
+    const gear = this.getGear();
+
+    if (!gear) {
+      return null;
+    }
+
+    const activities = this.bags
+      .filter(bag => gear.hasUsed(bag.getID()))
+      .map(bag => bag.getActivity())
+      .filter((activity): activity is BagActivitySummary => activity !== null);
+
+    if (activities.length === 0) {
+      return null;
+    }
+
+    const sumOptional = (values: (number | undefined)[]): number | null => {
+      const present = values.filter((value): value is number => value != null);
+
+      if (present.length === 0) {
+        return null;
+      }
+
+      return present.reduce((acc, value) => acc + value, 0);
+    };
+
+    return {
+      // 타입상 필수 필드지만 Firestore 실데이터 결손(NaN 노출)을 방어한다.
+      distanceM: activities.reduce(
+        (acc, activity) => acc + (activity.distance ?? 0),
+        0
+      ),
+      durationSec: activities.reduce(
+        (acc, activity) => acc + (activity.duration ?? 0),
+        0
+      ),
+      elevationGainM: sumOptional(
+        activities.map(activity => activity.elevationGain)
+      ),
+      activeEnergyKcal: sumOptional(
+        activities.map(activity => activity.activeEnergy)
+      ),
+    };
+  }
+
+  // GD-12: 기록된 여행 3회 이상 + 기록 기준 최근 3회 모두 '안 씀'이면 덜어내기 시그널.
+  // 최근 판정은 startDate 내림차순, 날짜 없으면 editDate로 대체한다.
+  public getDeclutterSignal(): GearDeclutterSignal | null {
+    const gear = this.getGear();
+
+    if (!gear) {
+      return null;
+    }
+
+    const recorded = this.bags.filter(
+      bag => gear.hasUsed(bag.getID()) || gear.hasUseless(bag.getID())
+    );
+
+    if (recorded.length < DECLUTTER_RECENT_TRIP_COUNT) {
+      return null;
+    }
+
+    const recentBags = [...recorded]
+      .sort((a, b) => {
+        const aKey = a.getStartDateValue() ?? a.getEditDateValue();
+        const bKey = b.getStartDateValue() ?? b.getEditDateValue();
+
+        return bKey - aKey;
+      })
+      .slice(0, DECLUTTER_RECENT_TRIP_COUNT);
+    const isAllUseless = recentBags.every(bag => gear.hasUseless(bag.getID()));
+
+    if (!isAllUseless) {
+      return null;
+    }
+
+    const weight = Number(gear.getWeight());
+
+    return {
+      weightG: Number.isFinite(weight) && weight > 0 ? weight : null,
+    };
   }
 
   private setInitialized(initialized: boolean) {
