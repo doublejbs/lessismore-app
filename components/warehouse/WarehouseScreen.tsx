@@ -154,7 +154,11 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
         <Stack.Screen
           options={{
             title: '창고',
-            headerTransparent: true,
+            // 탭 루트는 HIG상 large title(좌측 정렬, 스크롤 시 인라인으로 접힘)이 표준.
+            // RNS large title 겹침 버그(#3315)는 back 전환 시 문제라 탭 루트엔 해당 없음.
+            // headerTransparent는 large title 접힘 연동을 끊어 지정하지 않는다 —
+            // iOS 26 기본 바(배경 없음 + scroll edge effect)에 위임.
+            headerLargeTitle: true,
             ...(nativeSearchBarOptions
               ? { headerSearchBarOptions: nativeSearchBarOptions }
               : {}),
