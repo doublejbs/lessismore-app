@@ -157,7 +157,7 @@ class GearEdit extends AbstractGearEdit {
     await this.dispatcher.remove(this.gear);
     app.getAnalyticsManager()?.logClick('gear_delete', { from: 'edit' });
     this.toastManager.show({ message: '삭제 되었습니다.' });
-    this.navigate.replace('/(tabs)');
+    this.navigate.replace('/(tabs)/(warehouse)');
   }
 
   @action
