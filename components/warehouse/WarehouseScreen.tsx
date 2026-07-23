@@ -3,7 +3,6 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  Image,
   TextInput,
   TouchableOpacity,
   Platform,
@@ -158,9 +157,9 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                   <PretendardText style={styles.cancelText}>취소</PretendardText>
                 </TouchableOpacity>
               </View>
-            ) : Platform.OS === 'ios' ? (
-              // iOS: HIG large title 톤의 좌측 타이틀 + 같은 행 우측 원형 검색 버튼(LG-3).
-              // 네이티브 바는 바 버튼이 large title과 다른 행에 놓여 커스텀 행으로 그린다.
+            ) : (
+              // 전 플랫폼 공통: HIG large title 톤의 좌측 타이틀 + 같은 행 우측 원형 검색 버튼(LG-3).
+              // (네이티브 바는 바 버튼이 large title과 다른 행에 놓여 커스텀 행으로 그린다.)
               <View style={styles.titleRow}>
                 <PretendardText weight='bold' style={styles.titleText}>
                   창고
@@ -174,25 +173,6 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                     accessibilityLabel='검색'
                   >
                     <Ionicons name='search' size={20} color={Color.textPrimary} />
-                  </TouchableOpacity>
-                )}
-              </View>
-            ) : (
-              <View style={styles.logoRow}>
-                <Image
-                  source={require('../../assets/images/logo.png')}
-                  style={styles.logo}
-                  resizeMode='contain'
-                />
-                {!isEmpty && (
-                  <TouchableOpacity
-                    onPress={() => setIsSearching(true)}
-                    style={styles.searchButton}
-                    hitSlop={8}
-                    accessibilityRole='button'
-                    accessibilityLabel='검색'
-                  >
-                    <Ionicons name='search' size={22} color={Color.textPrimary} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -215,14 +195,7 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 8,
   },
-  logoRow: {
-    // 검색 모드(searchRow)와 높이를 44로 맞춰 토글 시 레이아웃 점프를 없앤다.
-    minHeight: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  // iOS 탭 루트 타이틀 행 — HIG large title 톤(좌측 큰 제목) + 같은 행 우측 검색 버튼.
+  // 탭 루트 타이틀 행(전 플랫폼) — HIG large title 톤(좌측 큰 제목) + 같은 행 우측 검색 버튼.
   // 검색 모드(searchRow, 44)와 높이를 맞춰 토글 시 레이아웃 점프를 없앤다.
   titleRow: {
     minHeight: 44,
@@ -244,20 +217,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Color.surfaceMuted,
-  },
-  logo: {
-    width: '100%',
-    height: 32,
-  },
-  searchButton: {
-    // 로고는 가운데 정렬을 유지하고, 검색 버튼만 우측 여백에 겹쳐 올린다(글자 영역과 겹치지 않음).
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    bottom: 0,
-    width: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   searchRow: {
     minHeight: 44,
