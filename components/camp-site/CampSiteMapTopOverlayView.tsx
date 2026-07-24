@@ -12,11 +12,9 @@ import { observer } from 'mobx-react-lite';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
-import app from '@/model/app/App';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
-  getCampSiteTagLabel,
   getCampSiteTypeLabel,
   getCampSpotRegionLabel,
 } from '@/model/camp-site/CampSiteLabels';
@@ -36,33 +34,6 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
     const searchResults = campSiteMap.getSearchResults();
     const showSearchResults =
       query.trim().length > 0 && campSiteMap.isSearchFocused();
-
-    // 결과 수 피드백(CS-2): 필터 변경 결과를 토스트로 알린다.
-    // 전체(무필터)로 돌아올 때는 띄우지 않는다.
-    const showResultToast = () => {
-      const type = campSiteMap.getSelectedType();
-      const tag = campSiteMap.getSelectedTag();
-
-      if (type === null && tag === null) {
-        return;
-      }
-
-      const count = campSiteMap.getVisibleSpots().length;
-
-      if (count === 0) {
-        app.getToastManager()?.show({ message: '조건에 맞는 박지가 없어요' });
-
-        return;
-      }
-
-      const parts = [
-        tag !== null ? getCampSiteTagLabel(tag) : '',
-        type !== null ? getCampSiteTypeLabel(type) : '',
-      ].filter(Boolean);
-      const name = parts.length > 0 ? parts.join(' ') : '박지';
-
-      app.getToastManager()?.show({ message: `${name} ${count}곳` });
-    };
 
     // 검색 시작 시 요약 카드를 닫아 드롭다운과 카드가 동시에 뜨지 않게 한다.
     const handleSearchFocus = () => {
@@ -189,14 +160,10 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
 
           {/* 검색 결과가 열려 있는 동안 필터 칩은 숨긴다 — 검색은 필터와 독립이라 무의미하고,
               드롭다운에 밀려 지도 한가운데 떠 보이는 문제(디자인 리뷰)를 막는다. */}
-          {/* 유형·태그 필터 칩(CS-2) — 변경 시 결과 수 토스트(showResultToast)를 붙인다.
-              ★ 즐겨찾기는 하단 오버레이 플로팅 버튼으로 옮겨 칩 행에선 노출하지 않는다(CS-9).
-              선택기와 공용 뷰로 공유한다. */}
+          {/* 유형·태그 필터 칩(CS-2). ★ 즐겨찾기는 하단 오버레이 플로팅 버튼으로 옮겨
+              칩 행에선 노출하지 않는다(CS-9). 선택기와 공용 뷰로 공유한다. */}
           {!showSearchResults && (
-            <CampSiteFilterChipsView
-              campSiteMap={campSiteMap}
-              onChangeFilter={showResultToast}
-            />
+            <CampSiteFilterChipsView campSiteMap={campSiteMap} />
           )}
         </SafeAreaView>
 
