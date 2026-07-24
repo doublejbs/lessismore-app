@@ -168,17 +168,16 @@ class Warehouse {
     this.setLoading(false);
   }
 
-  // 세분 칩 탭 — 같은 키를 다시 선택하면 전체(null)로 토글. 서버 재조회는 없지만,
-  // 짧게 로딩(스켈레톤)을 노출해 리스트를 리마운트한다 → 스크롤이 최상단으로 리셋된다(1차 필터와 동일 UX).
+  // 세분 칩 탭 — 이미 선택된 칩을 다시 눌러도 해제하지 않는다(재탭 무시, 1차 필터와 동일).
+  // '전체' 칩(key=null)으로 해제한다. 서버 재조회는 없지만 짧게 로딩(스켈레톤)을 노출해
+  // 리스트를 리마운트한다 → 스크롤이 최상단으로 리셋된다.
   public async selectFineCategory(key: string | null) {
-    const next = key !== null && key === this.fineCategory ? null : key;
-
-    if (next === this.fineCategory) {
+    if (key === this.fineCategory) {
       return;
     }
 
     this.setLoading(true);
-    this.setFineCategory(next);
+    this.setFineCategory(key);
     await new Promise(resolve => setTimeout(resolve, 200));
     this.setLoading(false);
   }
