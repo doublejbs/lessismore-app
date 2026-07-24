@@ -150,20 +150,14 @@ class Warehouse {
     return this.filterManager.mapFilters(callback);
   }
 
+  // 이미 선택된 필터를 다시 눌러도 해제하지 않고 그대로 유지한다(선택 칩 재탭 = 변화 없음, WH-2).
+  // 다른 필터를 누르면 그 필터로 전환되고, 전체로 돌아가려면 '전체' 칩을 누른다.
   public toggleFilter(filter: WarehouseFilter) {
     if (filter.isSelected()) {
-      this.deselectFilter(filter);
-    } else {
-      this.selectFilter(filter);
+      return;
     }
-  }
 
-  public async deselectFilter(filter: WarehouseFilter) {
-    this.setLoading(true);
-    this.setFineCategory(null);
-    this.filterManager.deselectFilter(filter);
-    await this.getList();
-    this.setLoading(false);
+    void this.selectFilter(filter);
   }
 
   public async selectFilter(filter: WarehouseFilter) {
