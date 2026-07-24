@@ -66,43 +66,10 @@ const BagDetailDestinationView: FC<Props> = ({ bagDetail, emphasized = false }) 
         : null
     : '여행지 선택';
 
-  // 강조 타일은 전체 폭 가로 카드 — 아이콘 좌측, 여행지·날씨 우측.
-  if (emphasized) {
-    return (
-      <TouchableOpacity
-        style={[styles.tile, styles.tileEmphasized, styles.tileFull]}
-        onPress={handlePress}
-        activeOpacity={0.7}
-        accessibilityRole='button'
-        accessibilityLabel={location ? `여행지 ${location.name}` : '여행지 선택'}
-      >
-        <View style={styles.emphRow}>
-          <Ionicons name={iconName} size={26} color={fg} />
-          <View style={styles.emphMain}>
-            <PretendardText
-              style={[styles.title, { color: fg }]}
-              weight='semibold'
-              numberOfLines={1}
-            >
-              {title}
-            </PretendardText>
-            {subtitle && (
-              <PretendardText
-                style={[styles.subtitle, { color: subFg }]}
-                numberOfLines={1}
-              >
-                {subtitle}
-              </PretendardText>
-            )}
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  }
-
+  // 강조여도 48% 그리드 세로 카드는 그대로 두고 배경/전경색만 검정으로 바꾼다.
   return (
     <TouchableOpacity
-      style={styles.tile}
+      style={[styles.tile, emphasized && styles.tileEmphasized]}
       onPress={handlePress}
       activeOpacity={0.7}
       accessibilityRole='button'
@@ -141,21 +108,6 @@ const styles = StyleSheet.create({
   },
   tileEmphasized: {
     backgroundColor: Color.chipActiveBg,
-  },
-  // 강조 타일은 전체 폭 가로 카드 — 세로 공간은 줄이고 좌우로 편다.
-  tileFull: {
-    width: '100%',
-    minHeight: 68,
-    justifyContent: 'center',
-  },
-  emphRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  emphMain: {
-    flex: 1,
-    gap: 2,
   },
   textWrap: {
     gap: 2,
