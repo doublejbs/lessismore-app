@@ -20,6 +20,8 @@ interface Props {
 const SPRING_CONFIG = {
   damping: 16,
   stiffness: 160,
+  // 오버슈트 제거 — 체크가 과장되게 커졌다 줄어드는 바운스를 없앤다(스프링 가속감은 유지).
+  overshootClamping: true,
 };
 
 const BagPackingGearRowView: FC<Props> = ({ gear, bagPacking }) => {
