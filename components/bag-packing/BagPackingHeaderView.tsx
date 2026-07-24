@@ -25,6 +25,8 @@ const BagPackingHeaderView: FC<Props> = ({ bagPacking }) => {
     progress.value = withSpring(percent, {
       damping: 18,
       stiffness: 120,
+      // 오버슈트 제거 — 바가 목표치를 지나쳤다 돌아오는 과장 바운스를 없앤다.
+      overshootClamping: true,
     });
   }, [percent, progress]);
 
