@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { Color, Spacing } from '@/constants/DesignTokens';
 import CampSiteDetailTab from '@/model/camp-site/CampSiteDetailTab';
 import { getCampSiteDetailTabLabel } from '@/model/camp-site/CampSiteLabels';
 
@@ -58,6 +58,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     paddingHorizontal: 20,
+    // 위로 스크롤해 이 탭 바가 시트 상단에 고정될 때 그래버 핸들과 붙지 않도록 상단 여백을 준다(CS-3).
+    paddingTop: Spacing.item,
     borderBottomWidth: 1,
     borderBottomColor: Color.borderLight,
     backgroundColor: Color.background,
