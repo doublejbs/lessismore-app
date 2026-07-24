@@ -39,7 +39,7 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
 - 초기 카메라: 위치 권한 허용 시 현재 위치 중심(줌 ~시 단위), 거부/미결정 시 남한 전역이 보이는 고정 카메라.
 - `/camp-spot`의 `status == 'active'` 문서를 전량 로드해 마커로 표시한다(v1 데이터 규모 수백 건 — 클러스터링 없이 수용, 초과 시 미해결 질문 참조).
 - 위치 권한은 지도 최초 진입 시 요청한다(`expo-location`, 날씨 지도 피커와 동일 흐름). 거부해도 지도·마커 조회는 가능(현재 위치 버튼만 비활성).
-- 권한 허용 시 지도에 **내 위치를 네이티브 표시**(`showsUserLocation` 파란 점)한다. Android 기본 위치 버튼은 자체 버튼과 중복이라 숨긴다. `[제안]`
+- 권한 허용 시 지도에 **내 위치를 파란 점으로 표시**한다. 단 네이티브 위치 오버레이(`setLocationTrackingMode`)는 이 라이브러리(@mj-studio/react-native-naver-map)에서 **줌 스케일에 따라 점 위치가 실제 좌표에서 드리프트하는 버그**가 있어 쓰지 않고, 박지 마커와 동일한 지오 앵커 `NaverMapMarkerOverlay`(anchor `{0.5,0.5}`)로 직접 렌더한다. 위치는 `expo-location`의 `watchPositionAsync`로 구독해 갱신하고, 화면 이탈 시 구독을 해제한다. 네이티브 기본 위치 버튼은 자체 버튼과 중복이라 숨긴다.
 - 3단 래퍼 패턴(라우트 → Wrapper → View)과 도메인 모델(`CampSiteMap` + Dispatcher) 구조를 따른다.
 
 ### CS-2 마커·유형 필터
