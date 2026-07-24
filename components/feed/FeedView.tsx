@@ -137,14 +137,15 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   const showSkeleton = (!isInitialized || isLoading) && items.length === 0;
 
   if (showSkeleton) {
+    // 플로팅 `인기 순위` 버튼은 스켈레톤 위에 띄우지 않는다. 탭이 막 마운트된 첫 프레임에는
+    // 네이티브 탭바 몫이 반영되기 전이라 insets.bottom이 작게 잡혀 버튼이 탭바 뒤로 내려간다.
+    // 피드가 로드된 뒤(= inset 정착 후)에만 노출하면 위치가 정확하고, 로딩 위 CTA 겹침도 없다.
     return (
       <View style={styles.container}>
         <FeedFilterBarView feed={feed} />
         <View style={styles.skeletonContainer}>
           <FeedSkeletonView count={6} />
         </View>
-        {/* GE-8: 장비 추가 검색 모달에서는 인기 순위 버튼을 숨긴다(탐색 탭에서만 노출). */}
-        {!gearAddContext && <FeedRankingButtonView feed={feed} />}
       </View>
     );
   }
