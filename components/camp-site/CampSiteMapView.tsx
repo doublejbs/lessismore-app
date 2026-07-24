@@ -22,6 +22,7 @@ import { setCampSiteFavoritesSheet } from '@/model/camp-site/CampSiteFavoritesHa
 import CampSiteMapMarkersView, {
   CampSiteMapViewport,
 } from './CampSiteMapMarkersView';
+import CampSiteMyLocationMarkerView from './CampSiteMyLocationMarkerView';
 import CampSiteSelectedPulseView from './CampSiteSelectedPulseView';
 import CampSiteMapTopOverlayView from './CampSiteMapTopOverlayView';
 import CampSiteMapBottomOverlayView from './CampSiteMapBottomOverlayView';
@@ -59,9 +60,15 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   const router = useRouter();
   const mapRef = useRef<NaverMapViewRef>(null);
   const [locationGranted, setLocationGranted] = useState(false);
-  // 지도 초기화 완료 여부 — 위치 추적 모드는 초기화 후에만 설정할 수 있다.
-  const [mapReady, setMapReady] = useState(false);
+  // 내 위치 파란 점 좌표. 네이티브 위치 오버레이는 줌 드리프트 버그가 있어 쓰지 않고,
+  // 이 좌표를 지오 앵커 마커(CampSiteMyLocationMarkerView)로 직접 렌더한다(CS-1).
+  const [currentLocation, setCurrentLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const locationWatchRef = useRef<Location.LocationSubscription | null>(null);
   const mountedRef = useRef(true);
+  // 지도 초기화 완료 여부 — 대기 중이던 카메라 이동을 초기화 후에만 flush한다.
   const mapReadyRef = useRef(false);
   const pendingCameraTargetRef = useRef<CameraTarget | null>(null);
   const pendingCameraFrameRef = useRef<number | null>(null);
@@ -164,12 +171,40 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
           return;
         }
 
+        setCurrentLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+
         moveCamera({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
           zoom: deltaToZoom(0.2),
           duration: 500,
         });
+
+        // 내 위치 파란 점을 이후 이동에도 갱신한다(카메라는 따라가지 않음 = 기존 NoFollow와 동일).
+        const subscription = await Location.watchPositionAsync(
+          { accuracy: Location.Accuracy.Balanced, distanceInterval: 10 },
+          next => {
+            if (!mountedRef.current) {
+              return;
+            }
+
+            setCurrentLocation({
+              latitude: next.coords.latitude,
+              longitude: next.coords.longitude,
+            });
+          }
+        );
+
+        if (cancelled) {
+          subscription.remove();
+
+          return;
+        }
+
+        locationWatchRef.current = subscription;
       } catch (error) {
         console.error('위치 권한 요청 실패:', error);
       }
@@ -179,6 +214,8 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
 
     return () => {
       cancelled = true;
+      locationWatchRef.current?.remove();
+      locationWatchRef.current = null;
     };
   }, [moveCamera]);
 
@@ -202,25 +239,16 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     showNoticeOnce();
   }, []);
 
-  // 권한 허용 + 지도 초기화 완료 시 현위치 오버레이(파란 점)를 표시한다.
-  // NoFollow는 오버레이만 사용자 위치를 따라가고 카메라는 움직이지 않는다(기존 showsUserLocation 대체).
-  useEffect(() => {
-    if (
-      !mapReady ||
-      !locationGranted ||
-      !mountedRef.current ||
-      !mapReadyRef.current ||
-      !mapRef.current
-    ) {
-      return;
-    }
-
-    mapRef.current.setLocationTrackingMode('NoFollow');
-  }, [mapReady, locationGranted]);
-
   const handleMoveToCurrentLocation = useCallback(async () => {
     try {
       const position = await Location.getCurrentPositionAsync({});
+
+      if (mountedRef.current) {
+        setCurrentLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      }
 
       moveCamera({
         latitude: position.coords.latitude,
@@ -413,7 +441,6 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     const initializedMap = mapRef.current;
 
     mapReadyRef.current = true;
-    setMapReady(true);
     flushPendingCamera();
 
     const seedViewportFromMap = async () => {
@@ -497,6 +524,13 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
           viewport={viewport}
           onTapSpot={handleMarkerTap}
         />
+        {/* 내 위치 파란 점 — 네이티브 위치 오버레이의 줌 드리프트를 피해 지오 앵커 마커로 렌더한다(CS-1). */}
+        {locationGranted && currentLocation ? (
+          <CampSiteMyLocationMarkerView
+            latitude={currentLocation.latitude}
+            longitude={currentLocation.longitude}
+          />
+        ) : null}
       </NaverMapView>
 
       {/* A: 선택 박지 강조 펄스(화면 중앙 = 카메라 이징이 옮긴 위치). pointerEvents none. */}
