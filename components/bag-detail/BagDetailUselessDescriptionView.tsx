@@ -47,27 +47,13 @@ const BagDetailUselessDescriptionView: FC<Props> = ({
     </PretendardText>
   );
 
-  // 강조 타일은 전체 폭 가로 카드 — 아이콘·라벨 좌측, 무게 우측.
-  if (emphasized) {
-    return (
-      <TouchableOpacity
-        style={[styles.tile, styles.tileEmphasized, styles.tileFull]}
-        onPress={handlePressUseless}
-        activeOpacity={0.7}
-      >
-        <View style={styles.emphRow}>
-          <Ionicons name='trending-down-outline' size={24} color={fg} />
-          <PretendardText style={[styles.title, styles.emphLabel, { color: fg }]} weight='medium'>
-            사용 기록
-          </PretendardText>
-          {weightBlock}
-        </View>
-      </TouchableOpacity>
-    );
-  }
-
+  // 강조여도 48% 그리드 세로 카드는 그대로 두고 배경/전경색만 검정으로 바꾼다.
   return (
-    <TouchableOpacity style={styles.tile} onPress={handlePressUseless} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={[styles.tile, emphasized && styles.tileEmphasized]}
+      onPress={handlePressUseless}
+      activeOpacity={0.7}
+    >
       <Ionicons name='trending-down-outline' size={22} color={fg} />
       <View style={styles.textWrap}>
         <PretendardText style={[styles.title, { color: fg }]} weight='medium'>
@@ -92,20 +78,6 @@ const styles = StyleSheet.create({
   },
   tileEmphasized: {
     backgroundColor: Color.chipActiveBg,
-  },
-  // 강조 타일은 전체 폭 가로 카드 — 세로 공간은 줄이고 좌우로 편다.
-  tileFull: {
-    width: '100%',
-    minHeight: 68,
-    justifyContent: 'center',
-  },
-  emphRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  emphLabel: {
-    flex: 1,
   },
   textWrap: {
     gap: 2,
