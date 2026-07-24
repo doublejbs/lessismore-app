@@ -6,6 +6,11 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import BagUseless from '../../model/bag-useless/BagUseless';
@@ -59,6 +64,25 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
     bagUseless.initialize();
   }, []);
 
+  const percent = allCount > 0 ? Math.round((selectedCount / allCount) * 100) : 0;
+
+  // 진행 바를 패킹모드 헤더와 동일한 스프링으로 채운다(오버슈트 없이 목표치까지).
+  // 훅은 early return보다 위에 둔다(조건부 훅 금지).
+  const progress = useSharedValue(percent);
+
+  useEffect(() => {
+    progress.value = withSpring(percent, {
+      damping: 18,
+      stiffness: 120,
+      overshootClamping: true,
+    });
+  }, [percent, progress]);
+
+  const barStyle = useAnimatedStyle(() => ({
+    // 0~100 클램프 — 무효 width 퍼센트로 순간 풀폭 렌더되는 것을 막는다.
+    width: `${Math.min(100, Math.max(0, progress.value))}%`,
+  }));
+
   if (!isInitialized) {
     return null;
   }
@@ -71,7 +95,6 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
       .filter(gear => bagUseless.isSelected(gear))
       .reduce((acc, gear) => acc + Number(gear.getWeight()), 0)
   );
-  const percent = allCount > 0 ? Math.round((selectedCount / allCount) * 100) : 0;
 
   return (
     <View
@@ -135,7 +158,7 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
           </TouchableOpacity>
         </View>
         <View style={styles.barTrack}>
-          <View style={[styles.barFill, { width: `${percent}%` }]} />
+          <Animated.View style={[styles.barFill, barStyle]} />
         </View>
         <PretendardText weight='medium' style={styles.weightText}>
           {selectedKg}kg / {totalKg}kg
