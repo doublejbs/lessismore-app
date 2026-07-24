@@ -1,8 +1,9 @@
-import { FC } from 'react';
+import { FC, useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import {
   NaverMapMarkerOverlay,
   NaverMapView,
+  NaverMapViewRef,
 } from '@mj-studio/react-native-naver-map';
 import { Ionicons } from '@expo/vector-icons';
 import { Color, Radius } from '@/constants/DesignTokens';
@@ -30,15 +31,30 @@ const BagDestinationMapPreviewView: FC<Props> = ({
     ? getCampSiteTypeColor(linkedSpot.type)
     : null;
 
+  const mapRef = useRef<NaverMapViewRef>(null);
+  const zoom = deltaToZoom(0.05);
+
+  // initialCamera는 최초 마운트에만 적용되므로, 여행지를 바꿔 좌표가 달라지면
+  // 마커만 이동하고 지도는 옛 위치에 머문다 — 좌표 변경 시 카메라를 새 위치로 옮긴다(DST-8).
+  useEffect(() => {
+    mapRef.current?.animateCameraTo({
+      latitude: location.latitude,
+      longitude: location.longitude,
+      zoom,
+      duration: 0,
+    });
+  }, [location.latitude, location.longitude, zoom]);
+
   return (
     <View style={styles.container}>
       <NaverMapView
+        ref={mapRef}
         style={StyleSheet.absoluteFill}
         initialCamera={{
           latitude: location.latitude,
           longitude: location.longitude,
           // 동네 수준 줌 — CampSiteMapView와 동일 환산 사용.
-          zoom: deltaToZoom(0.05),
+          zoom,
         }}
         isShowLocationButton={false}
         isShowZoomControls={false}
