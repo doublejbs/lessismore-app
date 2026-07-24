@@ -1,6 +1,6 @@
 import { FC, ReactNode } from 'react';
 import { View, ViewStyle } from 'react-native';
-import { Edge, SafeAreaView } from 'react-native-safe-area-context';
+import { Edge, useSafeAreaInsets } from 'react-native-safe-area-context';
 import LogInView from './login/LogInView';
 import app from '@/model/app/App';
 import { observer } from 'mobx-react-lite';
@@ -28,13 +28,25 @@ const Layout: FC<Props> = ({
   toastBottom = 100,
   edges = ALL_EDGES,
 }) => {
+  const insets = useSafeAreaInsets();
+
+  // 네이티브 SafeAreaView 컴포넌트는 최초 마운트 프레임에서 inset을 0으로 보고하는
+  // 레이스가 있어(탭 첫 진입 시 스켈레톤이 다이나믹 아일랜드까지 올라감), 루트 프로바이더가
+  // 즉시 올바른 값을 주는 useSafeAreaInsets로 지정 방향의 세이프에어리어 패딩을 직접 계산한다.
+  const edgeInsets: ViewStyle = {
+    paddingTop: edges.includes('top') ? insets.top : 0,
+    paddingBottom: edges.includes('bottom') ? insets.bottom : 0,
+    paddingLeft: edges.includes('left') ? insets.left : 0,
+    paddingRight: edges.includes('right') ? insets.right : 0,
+  };
+
   return (
-    <SafeAreaView style={safeAreaStyle} edges={edges}>
+    <View style={[safeAreaStyle, edgeInsets]}>
       <View style={[containerStyle, { paddingHorizontal }]}>{children}</View>
       <LogInView logInAlertManager={app.getLogInAlertManager()!} />
       <AlertView alertManager={app.getAlertManager()!} />
       <ToastView toastManager={app.getToastManager()!} bottom={toastBottom} />
-    </SafeAreaView>
+    </View>
   );
 };
 
