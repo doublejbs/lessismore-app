@@ -4,6 +4,8 @@ import {
   ThemeProvider,
 } from 'expo-router/react-navigation';
 import { useFonts } from 'expo-font';
+import { NanumBrushScript_400Regular } from '@expo-google-fonts/nanum-brush-script';
+import { NothingYouCouldDo_400Regular } from '@expo-google-fonts/nothing-you-could-do';
 import { Stack, useRouter, usePathname, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -43,6 +45,9 @@ const RootLayout = () => {
     'Pretendard-Medium': require('../assets/fonts/Pretendard-Medium.ttf'),
     'Pretendard-SemiBold': require('../assets/fonts/Pretendard-SemiBold.ttf'),
     'Pretendard-Bold': require('../assets/fonts/Pretendard-Bold.ttf'),
+    // 필름 카드 캡션 손글씨(BS-3) — 영문·숫자 / 한글 장소명.
+    NothingYouCouldDo_400Regular,
+    NanumBrushScript_400Regular,
   });
   const firebase = app.getFirebase();
   const isInitialized = app.isInitialized();

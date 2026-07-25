@@ -43,7 +43,7 @@
 
 **수용 기준** — 아래 이벤트를 각 CTA 핸들러 시작부에서 전송한다. 이벤트 추가·변경은 이 표를 갱신한 뒤 구현한다.
 
-**배낭 탭 / 상세 / 편집** ([Bag.md](Bag.md), [BagDetail.md](BagDetail.md))
+**배낭 탭 / 상세 / 편집** ([Bag.md](Bag.md), [BagDetail.md](BagDetail.md), [BagShare.md](BagShare.md))
 
 | 이벤트 | 트리거 | 파라미터 |
 | --- | --- | --- |
@@ -70,6 +70,10 @@
 | `click_activity_unlink` | [기획] 운동 연결 해제 (HA-3) | — |
 | `click_memo_delete` | 메모 삭제 확정 (BD-6) | — |
 | `click_readyshot` | [폐기] 레디샷(배낭 이미지 공유) 기능이 제거되어 더 이상 발생하지 않음 | — |
+| `click_film_card_open` | 상세 헤더 `필름 카드` 아이콘 (BS-1) | — |
+| `click_film_card_photo` | 필름 카드 사진 선택 완료 (BS-2) | — |
+| `click_film_card_share` | 필름 카드 `공유하기` (BS-5) | `has_activity`: boolean, `has_photo`: boolean |
+| `click_film_card_save` | 필름 카드 갤러리 저장 (BS-5) | — |
 
 **패킹** ([Packing.md](Packing.md))
 
