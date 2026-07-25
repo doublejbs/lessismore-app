@@ -15,7 +15,9 @@ import { observer } from 'mobx-react-lite';
 import { captureRef } from 'react-native-view-shot';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BagFilmCard from '@/model/bag-film-card/BagFilmCard';
+import FilmCardRatio from '@/model/bag-film-card/FilmCardRatio';
 import BagFilmCardCanvasView from '@/components/bag-film-card/BagFilmCardCanvasView';
+import CategoryChipView from '@/components/browse/CategoryChipView';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 
@@ -30,13 +32,55 @@ const IOS_HEADER_BAR_HEIGHT = 44;
 
 // SNS 업로드에 충분한 가로 해상도(BS-5).
 const CAPTURE_PIXEL_WIDTH = 1080;
-// 카드 높이/너비 비(대략 4:5). onLayout 실측 전 폴백으로만 쓴다.
-const DEFAULT_CARD_RATIO = 1.27;
-// 헤더 + 사진 다시 고르기 버튼 + 하단 CTA가 쓰는 세로 공간(카드 최대 크기 산정용).
-const RESERVED_HEIGHT = 300;
-const MIN_CARD_WIDTH = 220;
-// 이보다 작은 비율 변화는 되먹임 루프를 막기 위해 무시한다(handleLayoutCard 주석 참고).
+// 폴라로이드 높이/너비 비(대략 4:5). onLayout 실측 전 폴백으로만 쓴다.
+const DEFAULT_CARD_RATIO = 1.25;
+// 헤더 + 비율 칩 + 사진 고르기 버튼 + 하단 CTA가 쓰는 세로 공간(캔버스 최대 크기 산정용).
+const RESERVED_HEIGHT = 340;
+const MIN_CANVAS_WIDTH = 200;
+// 이보다 작은 비율 변화는 되먹임 루프를 막기 위해 무시한다(handleLayoutCanvas 주석 참고).
 const CARD_RATIO_EPSILON = 0.001;
+
+/**
+ * 비율별 캔버스 규격(BS-3).
+ *
+ * `aspect`는 캔버스 높이/너비이며 `null`이면 폴라로이드 내용이 높이를 정한다.
+ * `polaroidFraction`은 캔버스 폭 대비 폴라로이드 폭으로, 좌우 여백이 자연스럽게
+ * 남고 세로 여백이 가로보다 좁아지지 않도록 잡았다.
+ */
+const CANVAS_SPECS: Record<
+  FilmCardRatio,
+  {
+    label: string;
+    accessibilityLabel: string;
+    aspect: number | null;
+    polaroidFraction: number;
+  }
+> = {
+  [FilmCardRatio.Card]: {
+    label: '카드',
+    accessibilityLabel: '폴라로이드 카드 비율',
+    aspect: null,
+    polaroidFraction: 1,
+  },
+  [FilmCardRatio.Feed]: {
+    label: '4:5',
+    accessibilityLabel: '4 대 5 비율',
+    aspect: 5 / 4,
+    polaroidFraction: 0.66,
+  },
+  [FilmCardRatio.Story]: {
+    label: '9:16',
+    accessibilityLabel: '9 대 16 비율',
+    aspect: 16 / 9,
+    polaroidFraction: 0.68,
+  },
+};
+
+const RATIO_OPTIONS: readonly FilmCardRatio[] = [
+  FilmCardRatio.Card,
+  FilmCardRatio.Feed,
+  FilmCardRatio.Story,
+];
 
 /**
  * iOS 네이티브는 캡처 옵션 크기를 pt로 받아 기기 배율만큼 픽셀이 곱해지고(RNViewShot.mm의
@@ -59,32 +103,46 @@ const BagFilmCardView: FC<Props> = ({ filmCard }) => {
   const cardRef = useRef<View>(null);
   const [cardRatio, setCardRatio] = useState(DEFAULT_CARD_RATIO);
 
-  // 카드는 화면 폭에 맞추되, 하단 CTA를 가리지 않도록 남은 높이로도 한 번 더 제한한다.
-  const cardWidth = Math.max(
-    MIN_CARD_WIDTH,
+  const ratio = filmCard.getRatio();
+  const spec = CANVAS_SPECS[ratio];
+  // 폴라로이드 단독은 내용이 높이를 정하므로 실측 비율을, 나머지는 고정 규격을 쓴다.
+  const canvasRatio = spec.aspect ?? cardRatio;
+
+  // 캔버스는 화면 폭에 맞추되, 하단 CTA를 가리지 않도록 남은 높이로도 한 번 더 제한한다.
+  // 9:16처럼 세로로 긴 비율은 이 높이 제약이 실제로 폭을 결정한다.
+  const canvasWidth = Math.max(
+    MIN_CANVAS_WIDTH,
     Math.min(
       windowWidth - Spacing.screenH * 2,
-      (windowHeight - RESERVED_HEIGHT - insets.top - insets.bottom) / cardRatio
+      (windowHeight - RESERVED_HEIGHT - insets.top - insets.bottom) /
+        canvasRatio
     )
   );
+  const canvasHeight = spec.aspect === null ? null : canvasWidth * spec.aspect;
+  const polaroidWidth = canvasWidth * spec.polaroidFraction;
 
   const sharing = filmCard.isSharing();
   const saving = filmCard.isSaving();
   const busy = filmCard.isBusy();
 
-  const handleLayoutCard = (event: LayoutChangeEvent) => {
+  const handleLayoutCanvas = (event: LayoutChangeEvent) => {
+    // 4:5·9:16은 높이를 직접 지정하므로 실측값이 폴라로이드 비율이 아니다 — 덮어쓰지 않는다.
+    if (spec.aspect !== null) {
+      return;
+    }
+
     const { width, height } = event.nativeEvent.layout;
 
     if (width <= 0 || height <= 0) {
       return;
     }
 
-    const ratio = height / width;
+    const measured = height / width;
 
-    // cardWidth가 cardRatio에서 나오고 onLayout이 다시 cardRatio를 갱신하는 되먹임 구조다.
+    // canvasWidth가 cardRatio에서 나오고 onLayout이 다시 cardRatio를 갱신하는 되먹임 구조다.
     // 텍스트 레이아웃 반올림으로 ±ε 진동하면 렌더 루프가 되므로 그 폭의 변화는 무시한다.
     setCardRatio(previous =>
-      Math.abs(previous - ratio) < CARD_RATIO_EPSILON ? previous : ratio
+      Math.abs(previous - measured) < CARD_RATIO_EPSILON ? previous : measured
     );
   };
 
@@ -93,9 +151,9 @@ const BagFilmCardView: FC<Props> = ({ filmCard }) => {
     return await captureRef(cardRef, {
       format: 'png',
       result: 'tmpfile',
-      ...getCaptureSize(cardRatio),
+      ...getCaptureSize(canvasRatio),
     });
-  }, [cardRatio]);
+  }, [canvasRatio]);
 
   const handlePressPhoto = () => {
     void filmCard.pickPhoto();
@@ -147,10 +205,23 @@ const BagFilmCardView: FC<Props> = ({ filmCard }) => {
         <BagFilmCardCanvasView
           filmCard={filmCard}
           cardRef={cardRef}
-          width={cardWidth}
+          width={canvasWidth}
+          height={canvasHeight}
+          polaroidWidth={polaroidWidth}
           onPressPhoto={handlePressPhoto}
-          onLayoutCard={handleLayoutCard}
+          onLayoutCanvas={handleLayoutCanvas}
         />
+        <View style={styles.ratioRow}>
+          {RATIO_OPTIONS.map(option => (
+            <CategoryChipView
+              key={option}
+              label={CANVAS_SPECS[option].label}
+              accessibilityLabel={CANVAS_SPECS[option].accessibilityLabel}
+              selected={filmCard.isRatioSelected(option)}
+              onPress={() => filmCard.selectRatio(option)}
+            />
+          ))}
+        </View>
         <TouchableOpacity
           style={styles.photoButton}
           onPress={handlePressPhoto}
@@ -226,7 +297,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 16,
+    gap: 14,
+  },
+  ratioRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   photoButton: {
     flexDirection: 'row',

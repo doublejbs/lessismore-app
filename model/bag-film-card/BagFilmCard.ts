@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { releaseCapture } from 'react-native-view-shot';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
+import FilmCardRatio from '@/model/bag-film-card/FilmCardRatio';
 import ToastManager from '@/model/toast/ToastManager';
 
 // 아래 두 모듈은 웹 변형이 없어 동적으로만 불러온다(getMediaLibrary·getSharing 주석 참고).
@@ -34,6 +35,8 @@ class BagFilmCard {
   // 캡처·네이티브 공유/저장 경로가 없는 웹에서는 동작하지 않는다(BS-1, 스펙 §5).
   private readonly enabled = Platform.OS !== 'web';
   private photoUri: string | null = null;
+  // 내보내기 캔버스 비율(BS-3). 기본은 폴라로이드 단독.
+  private ratio: FilmCardRatio = FilmCardRatio.Card;
   // 캡처 중에는 카드 위의 안내(사진 고르기 플레이스홀더)를 감춘다.
   private capturing = false;
   private picking = false;
@@ -55,6 +58,23 @@ class BagFilmCard {
 
   public hasPhoto() {
     return this.photoUri !== null;
+  }
+
+  public getRatio() {
+    return this.ratio;
+  }
+
+  public isRatioSelected(value: FilmCardRatio) {
+    return this.ratio === value;
+  }
+
+  // 캡처 중 비율이 바뀌면 화면과 결과물이 어긋나므로 진행 중에는 막는다.
+  public selectRatio(value: FilmCardRatio) {
+    if (this.isBusy()) {
+      return;
+    }
+
+    this.ratio = value;
   }
 
   private setPhotoUri(value: string | null) {
@@ -130,17 +150,6 @@ class BagFilmCard {
     const speed = (activity.distance / activity.duration) * 3.6;
 
     return `${speed.toFixed(1)} KM/H`;
-  }
-
-  // 운동 기록이 없을 때 우측 열을 채우는 장소명. 데이터 그대로(한글 유지) 쓴다(BS-4).
-  public getPlaceText(): string | null {
-    const location = this.bagDetail.getBagWeather().getLocation();
-
-    if (!location || location.name.trim().length === 0) {
-      return null;
-    }
-
-    return location.name.trim();
   }
 
   // BS-2: 사진은 매번 갤러리에서 고른다. 권한 요청은 이 시점에만 한다.
