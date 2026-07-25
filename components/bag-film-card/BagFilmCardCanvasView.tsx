@@ -1,237 +1,133 @@
-import { FC, RefObject, useMemo } from 'react';
-import {
-  Image,
-  LayoutChangeEvent,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { FC, RefObject } from 'react';
+import { LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import BagFilmCard from '@/model/bag-film-card/BagFilmCard';
-import PretendardText from '@/components/PretendardText';
+import BagFilmCardPolaroidView from '@/components/bag-film-card/BagFilmCardPolaroidView';
 
 interface Props {
   filmCard: BagFilmCard;
   // 캡처 대상 View의 ref. observer 래핑 컴포넌트라 ref를 명시 prop으로 받는다.
   cardRef: RefObject<View | null>;
-  // 카드 실제 렌더 폭(pt). 내부 치수는 모두 이 값에서 비례 계산한다.
   width: number;
+  // 배경 캔버스 높이(pt). 폴라로이드 단독 출력은 내용이 높이를 정하므로 null.
+  height: number | null;
+  polaroidWidth: number;
   onPressPhoto: () => void;
-  onLayoutCard: (event: LayoutChangeEvent) => void;
+  onLayoutCanvas: (event: LayoutChangeEvent) => void;
 }
 
-// 아래 치수의 기준이 되는 카드 폭. 목업(폴라로이드) 수치를 이 폭 기준으로 잡았다.
-const BASE_WIDTH = 300;
-
-// 캡션 손글씨 폰트(BS-3). 카드는 앱 디자인 토큰이 아니라 내보내기 캔버스 팔레트를 따르므로
-// PretendardText·Color 토큰 대신 폰트·색을 직접 지정한다(CLAUDE.md 내보내기 캔버스 예외).
-const LATIN_FONT = 'NothingYouCouldDo_400Regular';
-const KOREAN_FONT = 'NanumBrushScript_400Regular';
-
-const FRAME_COLOR = '#FFFFFF';
-const INK_COLOR = '#000000';
-const MARK_COLOR = '#C0C0C0';
-// 사진을 고르지 않아도 카드가 완성되도록 하는 단색 배경(BS-2). 앱 브랜드 톤의 짙은 회색.
-const EMPTY_PHOTO_COLOR = '#151515';
+// 4:5 / 9:16 배경색(BS-3). 내보내기 캔버스 팔레트라 디자인 토큰 예외 대상이다.
+const CANVAS_COLOR = '#000000';
 
 /**
- * 필름(폴라로이드) 카드 — 캡처 대상 캔버스(BS-3).
+ * 폴라로이드를 배경에서 띄우는 그림자(BS-3, 4:5·9:16 전용).
  *
- * 흰 프레임 안에 정사각 사진, 아래 좌·우 2열 캡션, 맨 아래 `useless` 워드마크.
- * 좌우 여백보다 아래 여백이 넓어 폴라로이드 비율(대략 4:5)이 된다.
+ * **네이티브 그림자 속성을 쓰지 않는 이유**: Android 캡처는 `view.draw(new Canvas(bitmap))`
+ * (ViewShot.java) — 소프트웨어 캔버스다. `elevation` 그림자는 하드웨어 RenderNode가 그리므로
+ * 소프트웨어 캔버스에는 **찍히지 않는다**. 화면 프리뷰에는 보이는데 내보낸 PNG에서만 사라지는
+ * 조용한 불일치가 생긴다. 그래서 실제로 그려지는 View를 겹쳐 그림자를 만든다 —
+ * 두 플랫폼이 같은 결과를 내고 캡처에도 그대로 들어간다.
+ *
+ * **어두운 그림자가 아니라 옅은 광휘인 이유**: 배경이 순수 검정(#000)이라 검은 그림자는
+ * 정의상 보이지 않는다. 흰 카드 가장자리가 배경에서 떠 보이려면 빛 번짐(주변광 반사) 쪽이
+ * 물리적으로도 맞고 실제로도 보인다.
+ */
+const SHADOW_LAYER_COUNT = 8;
+// 폴라로이드 폭 대비 총 확산 폭. 폴라로이드를 줄이면(4:5 66% / 9:16 68%) 폭 기준인 확산도
+// 같이 작아져 광휘가 눈에 덜 띄므로, 캔버스 위 절대 크기가 이전과 비슷하게 유지되도록 키웠다
+// (0.060 × 0.66 ≈ 캔버스 폭의 4.0% — 이전 0.048 × 0.78 ≈ 3.7%와 거의 같다).
+// 캔버스 여백(4:5 사방 17%, 9:16 좌우 16%)의 1/4 수준이라 캡처 경계에서 잘리지 않는다.
+const SHADOW_SPREAD_RATIO = 0.06;
+// 레이어당 알파. 8겹이 모두 겹치는 카드 바로 바깥이 최대 밝기(1-0.984^8 ≈ 12%)가 되도록 잡았다.
+const SHADOW_LAYER_ALPHA = 0.016;
+// 위에서 빛이 오는 느낌을 주려고 광휘를 아래로 살짝 내린다.
+const SHADOW_OFFSET_RATIO = 0.006;
+
+const renderShadowLayers = (polaroidWidth: number) => {
+  const step = (polaroidWidth * SHADOW_SPREAD_RATIO) / SHADOW_LAYER_COUNT;
+  const offset = polaroidWidth * SHADOW_OFFSET_RATIO;
+
+  return Array.from({ length: SHADOW_LAYER_COUNT }, (_unused, index) => {
+    const spread = step * (index + 1);
+
+    return (
+      <View
+        key={index}
+        // 광휘가 사진 영역 탭을 가로채지 않게 한다.
+        pointerEvents='none'
+        style={[
+          styles.shadowLayer,
+          {
+            top: -spread + offset,
+            bottom: -spread - offset,
+            left: -spread,
+            right: -spread,
+            borderRadius: spread * 0.6,
+            backgroundColor: `rgba(255, 255, 255, ${SHADOW_LAYER_ALPHA})`,
+          },
+        ]}
+      />
+    );
+  });
+};
+
+/**
+ * 캡처 대상 캔버스(BS-3, BS-5).
+ *
+ * 폴라로이드 단독 출력이면 폴라로이드 자체가 캔버스이고, 4:5·9:16이면
+ * 검은 배경 위 가운데에 폴라로이드를 얹는다. 어느 쪽이든 이 View 전체가 캡처된다.
  */
 const BagFilmCardCanvasView: FC<Props> = ({
   filmCard,
   cardRef,
   width,
+  height,
+  polaroidWidth,
   onPressPhoto,
-  onLayoutCard,
+  onLayoutCanvas,
 }) => {
-  const styles = useMemo(() => createStyles(width), [width]);
-  const photoUri = filmCard.getPhotoUri();
-  const capturing = filmCard.isCapturing();
-  const distanceText = filmCard.getDistanceText();
-  const speedText = filmCard.getSpeedText();
-  const placeText = filmCard.getPlaceText();
-
-  // BS-4: 운동 기록이 있으면 거리·속도, 없으면 장소, 둘 다 없으면 우측 열을 비운다.
-  const renderRightColumn = () => {
-    if (filmCard.hasActivity() && distanceText) {
-      return (
-        <View style={styles.rightColumn}>
-          <Text style={[styles.bigText, styles.rightText]}>{distanceText}</Text>
-          {speedText ? (
-            <Text
-              style={[styles.smallText, styles.rightText, styles.speedText]}
-            >
-              {speedText}
-            </Text>
-          ) : null}
-        </View>
-      );
-    }
-
-    if (placeText) {
-      return (
-        <View style={styles.rightColumn}>
-          <Text style={styles.placeText} numberOfLines={2}>
-            {placeText}
-          </Text>
-        </View>
-      );
-    }
-
-    return null;
-  };
+  const hasBackground = height !== null;
 
   return (
     <View
       ref={cardRef}
-      style={styles.card}
-      onLayout={onLayoutCard}
+      style={[
+        { width },
+        hasBackground ? styles.background : null,
+        hasBackground ? { height } : null,
+      ]}
+      onLayout={onLayoutCanvas}
       // Android가 캡처 대상 View를 레이아웃에서 합쳐 없애지 않도록 한다.
       collapsable={false}
     >
-      {/* 캡처·공유 중 탭을 막는다 — 캡처 도중 피커가 뜨면 빈/잘린 이미지가 나가거나
-          공유된 이미지와 화면이 어긋난다. 화면 하단에 같은 동작의 레이블된 버튼이
-          따로 있어, 스크린 리더에는 이 영역을 중복 노출하지 않는다. */}
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={onPressPhoto}
-        disabled={filmCard.isBusy()}
-        accessible={false}
-        accessibilityElementsHidden
-        importantForAccessibility='no-hide-descendants'
-      >
-        <View style={styles.photo}>
-          {photoUri ? (
-            <Image
-              source={{ uri: photoUri }}
-              style={styles.photoImage}
-              resizeMode='cover'
-            />
-          ) : null}
-          {/* 안내는 화면용이라 캡처 프레임에서는 감춘다 — 사진 없이도 단색 배경으로 완성된다(BS-2). */}
-          {!photoUri && !capturing ? (
-            <View style={styles.placeholder}>
-              <Ionicons
-                name='image-outline'
-                size={Math.round(28 * (width / BASE_WIDTH))}
-                color={FRAME_COLOR}
-              />
-              <PretendardText style={styles.placeholderText} weight='medium'>
-                사진 고르기
-              </PretendardText>
-            </View>
-          ) : null}
-        </View>
-      </TouchableOpacity>
-      <View style={styles.caption}>
-        <View style={styles.leftColumn}>
-          <Text style={styles.bigText}>{filmCard.getDateText()}</Text>
-          <Text style={styles.smallText}>{filmCard.getWeightText()}</Text>
-        </View>
-        {renderRightColumn()}
+      {/* 그림자 레이어를 폴라로이드보다 먼저 선언해 뒤에 깔리게 한다 —
+          RN은 (웹과 달리) absolute 자식을 자동으로 위로 올리지 않고 선언 순서대로 그린다. */}
+      <View style={styles.polaroidHolder}>
+        {hasBackground ? renderShadowLayers(polaroidWidth) : null}
+        <BagFilmCardPolaroidView
+          filmCard={filmCard}
+          width={polaroidWidth}
+          onPressPhoto={onPressPhoto}
+        />
       </View>
-      <PretendardText style={styles.mark} weight='medium'>
-        useless
-      </PretendardText>
     </View>
   );
 };
 
-const createStyles = (width: number) => {
-  const scale = width / BASE_WIDTH;
-  const big = 21 * scale;
-  const small = 15 * scale;
-  // 한글 붓글씨는 같은 포인트에서 훨씬 작아 보여 영문 대비 크기를 키워 맞춘다(BS-3).
-  const place = 30 * scale;
-
-  return StyleSheet.create({
-    card: {
-      width,
-      backgroundColor: FRAME_COLOR,
-      paddingHorizontal: 15 * scale,
-      paddingTop: 15 * scale,
-    },
-    photo: {
-      width: '100%',
-      aspectRatio: 1,
-      backgroundColor: EMPTY_PHOTO_COLOR,
-      overflow: 'hidden',
-    },
-    photoImage: {
-      width: '100%',
-      height: '100%',
-    },
-    placeholder: {
-      position: 'absolute',
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8 * scale,
-    },
-    placeholderText: {
-      fontSize: 13 * scale,
-      color: FRAME_COLOR,
-    },
-    caption: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      justifyContent: 'space-between',
-      gap: 10 * scale,
-      paddingTop: 17 * scale,
-      paddingHorizontal: 5 * scale,
-      paddingBottom: 4 * scale,
-    },
-    leftColumn: {
-      flexShrink: 0,
-    },
-    rightColumn: {
-      flexShrink: 1,
-      alignItems: 'flex-end',
-    },
-    bigText: {
-      fontFamily: LATIN_FONT,
-      fontSize: big,
-      lineHeight: big * 1.15,
-      color: INK_COLOR,
-    },
-    smallText: {
-      fontFamily: LATIN_FONT,
-      fontSize: small,
-      lineHeight: small * 1.2,
-      marginTop: 7 * scale,
-      color: INK_COLOR,
-    },
-    rightText: {
-      textAlign: 'right',
-    },
-    // 이 손글씨체의 슬래시가 세로줄에 가까워 `KM/H`가 `KMIH`로 읽히기 쉬워,
-    // 자간을 벌려 슬래시를 글자가 아닌 구분자로 읽히게 한다.
-    speedText: {
-      letterSpacing: 1.6 * scale,
-    },
-    placeText: {
-      fontFamily: KOREAN_FONT,
-      fontSize: place,
-      lineHeight: place * 1.1,
-      textAlign: 'right',
-      color: INK_COLOR,
-    },
-    mark: {
-      fontSize: 9 * scale,
-      letterSpacing: 2.5 * scale,
-      color: MARK_COLOR,
-      textAlign: 'center',
-      paddingBottom: 11 * scale,
-    },
-  });
-};
+const styles = StyleSheet.create({
+  background: {
+    backgroundColor: CANVAS_COLOR,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // 폴라로이드 크기에 맞춰 자동으로 잡히는 기준 박스. 그림자 레이어가 이 박스 바깥으로
+  // 음수 인셋만큼 퍼진다(overflow를 걸지 않아야 캡처에 그대로 들어온다).
+  polaroidHolder: {
+    position: 'relative',
+  },
+  shadowLayer: {
+    position: 'absolute',
+  },
+});
 
 export default observer(BagFilmCardCanvasView);
