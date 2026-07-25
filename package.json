@@ -22,6 +22,8 @@
   "dependencies": {
     "@expo-google-fonts/gaegu": "^0.4.1",
     "@expo-google-fonts/inter": "^0.4.2",
+    "@expo-google-fonts/nanum-brush-script": "^0.4.1",
+    "@expo-google-fonts/nothing-you-could-do": "^0.4.1",
     "@expo-google-fonts/playwrite-nz": "^0.4.1",
     "@expo/vector-icons": "^15.0.3",
     "@hot-updater/react-native": "^0.32.0",
@@ -73,6 +75,7 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
     "react-native-svg": "15.15.4",
+    "react-native-view-shot": "5.1.0",
     "react-native-web": "^0.21.0",
     "react-native-webview": "13.16.1",
     "react-native-worklets": "0.10.0"
