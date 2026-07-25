@@ -152,6 +152,14 @@ class BagFilmCard {
     return `${speed.toFixed(1)} KM/H`;
   }
 
+  // 운동 기록이 없을 때 우측 열을 채우는 배낭 이름(BS-4). 사용자 자유 입력이라 한글이 올 수 있고,
+  // 길이 제한도 없어 표시 쪽에서 한 줄로 자른다.
+  public getBagNameText(): string | null {
+    const name = this.bagDetail.getName().trim();
+
+    return name.length > 0 ? name : null;
+  }
+
   // BS-2: 사진은 매번 갤러리에서 고른다. 권한 요청은 이 시점에만 한다.
   public async pickPhoto() {
     // 연타로 피커가 두 번 열리면 Android expo-image-picker가 두 번째 호출을 reject해
