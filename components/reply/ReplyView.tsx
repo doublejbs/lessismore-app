@@ -19,6 +19,8 @@ const IS_IOS = Platform.OS === 'ios';
 
 const ReplyView = ({ reply }: { reply: Reply }) => {
   const router = useRouter();
+  const comments = reply.getComments();
+  const hasComments = comments.length > 0;
 
   const handlePressBack = () => {
     router.back();
@@ -57,13 +59,16 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
         contentContainerStyle={styles.scrollContent}
         // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
         contentInsetAdjustmentBehavior='automatic'
+        // 리뷰가 없을 땐 스크롤을 끈다 — flexGrow(중앙 정렬용)와 헤더 자동 인셋이 겹쳐
+        // 빈 화면인데도 헤더 높이만큼 스크롤이 생기는 것을 막는다.
+        scrollEnabled={hasComments}
       >
         <View style={styles.replyHeader}>
           <PretendardText weight='semibold' style={styles.replyHeaderText}>
             리뷰
           </PretendardText>
         </View>
-        {reply.getComments().length === 0 ? (
+        {!hasComments ? (
           // 리뷰가 없을 때 빈 여백 대신 안내를 남은 공간 중앙에 표시한다.
           <View style={styles.emptyState}>
             <Ionicons
@@ -80,7 +85,7 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
           </View>
         ) : (
           <View style={styles.content}>
-            {reply.getComments().map(comment => (
+            {comments.map(comment => (
               <ReplyItemView
                 key={comment.id}
                 gearId={reply.getGearId()}
