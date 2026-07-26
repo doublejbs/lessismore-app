@@ -1,4 +1,4 @@
-import { FC, useMemo } from 'react';
+import { FC, useMemo, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
@@ -17,23 +17,21 @@ const BASE_WIDTH = 300;
 
 // 캡션 손글씨 폰트(BS-3). 카드는 앱 디자인 토큰이 아니라 내보내기 캔버스 팔레트를 따르므로
 // PretendardText·Color 토큰 대신 폰트·색을 직접 지정한다(CLAUDE.md 내보내기 캔버스 예외).
-const LATIN_FONT = 'PermanentMarker_400Regular';
-// 배낭 이름은 사용자 자유 입력이라 한글이 올 수 있는데 Permanent Marker에는 한글 글리프가
-// 없어 그대로 두면 시스템 폰트로 폴백돼 톤이 깨진다. 길쭉하고 세련된 인상으로 고른 폰트이며,
-// 마커체와 굵기를 맞추지 않고 **의도적으로 대비**를 주는 선택이다(가늘다고 700으로 바꾸지 말 것).
-const KOREAN_FONT = 'Dongle_300Light';
-
 /**
- * 배낭 이름 폰트 크기(BASE_WIDTH 기준).
+ * 캡션 폰트(BS-3). **라틴·숫자·한글을 한 폰트로 쓴다.**
  *
- * Dongle은 cap-height/em이 0.395로 아주 작지만 **한글 글리프는 em 박스를 훨씬 크게 쓴다**
- * (실측: 라틴 대문자 0.415em vs 한글 0.56~0.71em, 게다가 baseline 아래 -0.284em까지 내려감).
- * 그래서 라틴 cap-height로 맞추면(=33.7pt) 한글이 히어로인 무게보다 커져 위계가 깨진다.
- * 한글 대표 글리프 높이(약 0.60em)를 거리 값의 글리프 높이(18 × 0.749 ≈ 13.5pt)에 맞춘 값이다.
+ * 이전에는 라틴을 Permanent Marker, 한글을 별도 손글씨로 섞었는데 두 손글씨의 결·굵기를
+ * 맞추는 데 계속 실패했다. 나눔손글씨는 **라틴·숫자도 같은 손으로 그려져 있어서**, 하나로
+ * 통일하면 정의상 완벽히 맞는다. 폰트 이원화가 사라져 크기 보정 계산도 필요 없다.
+ *
+ * 나눔손글씨 미래나무(네이버 한글한글아름답게) — Google Fonts 패키지가 아니라 번들한
+ * 로컬 TTF라 폰트 패밀리 문자열이 useFonts 키다.
  */
-const BAG_NAME_FONT_SIZE = 24;
-// 한글이 baseline 아래로 깊게 내려가(-0.284em) 다른 텍스트와 같은 1.15배로는 잘릴 수 있다.
-const BAG_NAME_LINE_HEIGHT_RATIO = 1.3;
+const CAPTION_FONT = 'NanumMiRaeNaMu';
+// 한글이 baseline 아래 -0.197em까지 내려가 받침이 잘릴 수 있다. 폰트 자연 줄높이(1.15배)로는
+// 여유가 0.6pt뿐이라 조금 더 준다. 이름은 기록이 있을 때 좌측 열에 오고 그 열이 캡션 높이를
+// 정하므로, 이 값은 카드 비율에도 영향을 준다.
+const BAG_NAME_LINE_HEIGHT_RATIO = 1.25;
 
 /**
  * 인화지 텍스처(BS-3). 그레인·섬유질 얼룩·가장자리 음영·광택이 이미 구워져 있는 1080×1352
@@ -61,6 +59,83 @@ const PHOTO_EDGE_COLOR = 'rgba(0, 0, 0, 0.07)';
  * 필름(폴라로이드) 카드 — 흰 프레임 안에 정사각 사진, 아래 좌·우 2열 캡션(BS-3).
  * 좌우 여백보다 아래 여백이 넓어 폴라로이드 비율(대략 4:5)이 된다.
  */
+const CaptionView: FC<{
+  filmCard: BagFilmCard;
+  styles: ReturnType<typeof createStyles>;
+}> = ({ filmCard, styles }) => {
+  const distanceText = filmCard.getDistanceText();
+  const bagNameText = filmCard.getBagNameText();
+  const hasActivity = filmCard.hasActivity() && !!distanceText;
+  // 한 줄에 들어가는 만큼만 남긴 이름(아래 renderBagName 참고). 측정 결과에 측정 당시의
+  // 조건(이름·열 배치)을 키로 함께 담아, 조건이 바뀌면 자동으로 원본으로 되돌아가 다시
+  // 측정되게 한다 — effect로 초기화하면 불필요한 연쇄 렌더가 생긴다.
+  const measureKey = `${bagNameText ?? ''}|${hasActivity}`;
+  const [measured, setMeasured] = useState<{
+    key: string;
+    text: string;
+  } | null>(null);
+  const nameText =
+    measured?.key === measureKey ? measured.text : bagNameText;
+
+  // 이름은 길이 제한이 없는 자유 입력이다. 크기를 줄이거나 말줄임(`…`)을 붙이거나 두 줄로
+  // 접지 않고, **한 줄에 들어가는 단어까지만 보여주고 나머지는 버린다**.
+  //
+  // RN의 `numberOfLines={1}`은 픽셀 기준으로 잘라 단어 중간이 끊기므로 쓸 수 없다. 대신
+  // 줄 수 제한 없이 한 번 렌더해 `onTextLayout`으로 실제 줄바꿈 결과를 받고(RN의 기본
+  // 줄바꿈이 공백 기준이다), 첫 줄 텍스트만 남겨 다시 렌더한다. 두 번째 렌더는 한 줄이라
+  // 콜백이 다시 잘라내지 않아 루프가 돌지 않는다.
+  const renderBagName = () =>
+    bagNameText ? (
+      <Text
+        style={styles.bagNameText}
+        onTextLayout={event => {
+          const { lines } = event.nativeEvent;
+
+          if (lines.length > 1) {
+            setMeasured({ key: measureKey, text: lines[0].text.trimEnd() });
+          }
+        }}
+      >
+        {nameText}
+      </Text>
+    ) : null;
+
+  /**
+   * 캡션 구성(BS-4)은 운동 기록 유무로 갈린다. 네 값 모두 같은 크기라 히어로가 없고,
+   * 좌·우 2열이 나란히 읽힌다.
+   *
+   * - 기록 있음: 좌 [이름 · 날짜] / 우 [무게 · 거리]
+   * - 기록 없음: 좌 [무게 · 날짜] / 우 [이름]
+   *
+   * 기록이 있을 때 좌측에 이름·날짜를 묶는 건 "언제 어디"를, 우측에 무게·거리를 묶는 건
+   * "얼마를 지고 얼마나"를 한 덩어리로 읽히게 하려는 배치다.
+   */
+  if (hasActivity) {
+    return (
+      <View style={styles.caption}>
+        <View style={styles.leftColumn}>
+          {renderBagName()}
+          <Text style={styles.dateText}>{filmCard.getDateText()}</Text>
+        </View>
+        <View style={styles.rightColumn}>
+          <Text style={styles.weightText}>{filmCard.getWeightText()}</Text>
+          <Text style={styles.rightBigText}>{distanceText}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.caption}>
+      <View style={styles.leftColumn}>
+        <Text style={styles.weightText}>{filmCard.getWeightText()}</Text>
+        <Text style={styles.dateText}>{filmCard.getDateText()}</Text>
+      </View>
+      <View style={styles.rightColumn}>{renderBagName()}</View>
+    </View>
+  );
+};
+
 const BagFilmCardPolaroidView: FC<Props> = ({
   filmCard,
   width,
@@ -70,39 +145,6 @@ const BagFilmCardPolaroidView: FC<Props> = ({
   const scale = width / BASE_WIDTH;
   const photoUri = filmCard.getPhotoUri();
   const capturing = filmCard.isCapturing();
-  const distanceText = filmCard.getDistanceText();
-  const speedText = filmCard.getSpeedText();
-  const bagNameText = filmCard.getBagNameText();
-
-  // BS-4 우선순위: ① 운동 기록(거리·속도) → ② 배낭 이름 → ③ 비움. 하나만 표시한다.
-  const renderRightColumn = () => {
-    if (filmCard.hasActivity() && distanceText) {
-      return (
-        <View style={styles.rightColumn}>
-          <Text style={styles.rightBigText}>{distanceText}</Text>
-          {speedText ? <Text style={styles.speedText}>{speedText}</Text> : null}
-        </View>
-      );
-    }
-
-    // 이름은 거리와 같은 자리·크기를 쓰고 한 줄만 채운다. 길이 제한이 없는 자유 입력이라
-    // 크기를 줄여 맞추지 않고 말줄임으로 자른다(축소 로직은 복잡도 대비 이득이 없다).
-    if (bagNameText) {
-      return (
-        <View style={styles.rightColumn}>
-          <Text
-            style={styles.bagNameText}
-            numberOfLines={1}
-            ellipsizeMode='tail'
-          >
-            {bagNameText}
-          </Text>
-        </View>
-      );
-    }
-
-    return null;
-  };
 
   return (
     <View style={styles.card}>
@@ -143,29 +185,24 @@ const BagFilmCardPolaroidView: FC<Props> = ({
           ) : null}
         </View>
       </TouchableOpacity>
-      <View style={styles.caption}>
-        {/* "이 무게로 다녀왔다"가 이 앱의 서사라 총 무게가 히어로다(BS-4).
-            양쪽 열 모두 `큰 값 위 / 작은 값 아래` 리듬을 지켜 2×2 그리드로 읽히게 한다. */}
-        <View style={styles.leftColumn}>
-          <Text style={styles.weightText}>{filmCard.getWeightText()}</Text>
-          <Text style={styles.dateText}>{filmCard.getDateText()}</Text>
-        </View>
-        {renderRightColumn()}
-      </View>
+      <CaptionView filmCard={filmCard} styles={styles} />
     </View>
   );
 };
 
 const createStyles = (width: number) => {
   const scale = width / BASE_WIDTH;
-  // 크기 위계(BS-4): 무게(히어로) > 거리·배낭이름 > 날짜·속도.
-  // 폭 예산은 캡션 안쪽 260 기준으로 실측했다 — 무게 `7.2 KG` 94.9 + 간격 10을 빼면
-  // 우측에 155가 남아, 흔한 배낭 이름(`설악산 백패킹` 135)이 한 줄에 들어간다.
-  const weight = 28 * scale;
-  const date = 13 * scale;
-  const rightBig = 18 * scale;
-  const speed = 13 * scale;
-  const bagName = BAG_NAME_FONT_SIZE * scale;
+  // 미래나무 라틴 글리프 높이 0.710em 기준으로 잡은 값이다. 한 폰트라 언어별 보정이
+  // 필요 없고, 한글(0.770em)이 라틴보다 살짝 크게 그려져 이름이 자연히 조금 더 큼직해진다.
+  // **네 값 모두 같은 크기**다 — 이름·날짜·무게·거리가 그 여행을 함께 설명하는 기록이라
+  // 한쪽을 히어로로 세우지 않고 2×2 그리드로 나란히 읽히게 한다.
+  // 폭 예산: 캡션 안쪽 260 − 우측 최대(`999.9 KM` = 95) − 간격 10 = 155.
+  // `설악산 백패킹`(112)까지 들어가고, 더 긴 이름은 들어가는 단어까지만 남는다.
+  const CAPTION_SIZE = 30;
+  const weight = CAPTION_SIZE * scale;
+  const date = CAPTION_SIZE * scale;
+  const rightBig = CAPTION_SIZE * scale;
+  const bagName = CAPTION_SIZE * scale;
 
   return StyleSheet.create({
     card: {
@@ -176,8 +213,9 @@ const createStyles = (width: number) => {
       overflow: 'hidden',
       paddingHorizontal: 15 * scale,
       paddingTop: 15 * scale,
-      // 좌우보다 넓은 하단 여백이 폴라로이드의 정체성이다. 크기 위계를 바꿔 캡션 높이가
-      // 달라졌으므로 이 값으로 다시 맞췄다 — 카드 비율 1.2527로 텍스처(1.2519)와 0.06% 차이.
+      // 좌우보다 넓은 하단 여백이 폴라로이드의 정체성이다. 캡션 높이가 카드 비율을 정하며
+      // 현재 약 1.33이다 — 텍스처(1080×1440 = 1.333)를 이 비율에 맞춰 만들어 뒀다.
+      // 캡션 크기·행 수를 바꾸면 비율이 달라지니 텍스처도 함께 다시 만들어야 한다.
       paddingBottom: 15 * scale,
     },
     paper: {
@@ -233,45 +271,34 @@ const createStyles = (width: number) => {
       flexShrink: 1,
       alignItems: 'flex-end',
     },
-    // 좌·큰(히어로): 총 무게.
+    // 총 무게.
     weightText: {
-      fontFamily: LATIN_FONT,
+      fontFamily: CAPTION_FONT,
       fontSize: weight,
       lineHeight: weight * 1.15,
       color: INK_COLOR,
     },
     // 좌·작: 날짜.
     dateText: {
-      fontFamily: LATIN_FONT,
+      fontFamily: CAPTION_FONT,
       fontSize: date,
       lineHeight: date * 1.2,
       marginTop: 7 * scale,
       color: INK_COLOR,
     },
-    // 우·큰: 이동 거리. 히어로(무게)보다 작아 위계가 유지된다.
+    // 이동 거리.
     rightBigText: {
-      fontFamily: LATIN_FONT,
+      fontFamily: CAPTION_FONT,
       fontSize: rightBig,
       lineHeight: rightBig * 1.15,
       textAlign: 'right',
       color: INK_COLOR,
     },
-    // 우·큰 대체: 배낭 이름. 한글 글리프 높이를 거리 값에 맞춘 크기다(BAG_NAME_FONT_SIZE 주석).
+    // 우·큰 대체: 배낭 이름. 거리 값과 같은 크기를 쓴다(위 createStyles 주석).
     bagNameText: {
-      fontFamily: KOREAN_FONT,
+      fontFamily: CAPTION_FONT,
       fontSize: bagName,
       lineHeight: bagName * BAG_NAME_LINE_HEIGHT_RATIO,
-      textAlign: 'right',
-      color: INK_COLOR,
-    },
-    // 우·작: 평균 속도. 이 손글씨체의 슬래시가 세로줄에 가까워 `KM/H`가 `KMIH`로 읽히기
-    // 쉬워, 자간을 벌려 슬래시를 글자가 아닌 구분자로 읽히게 한다.
-    speedText: {
-      fontFamily: LATIN_FONT,
-      fontSize: speed,
-      lineHeight: speed * 1.2,
-      marginTop: 7 * scale,
-      letterSpacing: 1.6 * scale,
       textAlign: 'right',
       color: INK_COLOR,
     },

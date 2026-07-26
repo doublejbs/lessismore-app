@@ -20,10 +20,8 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
-    "@expo-google-fonts/dongle": "^0.4.1",
     "@expo-google-fonts/gaegu": "^0.4.1",
     "@expo-google-fonts/inter": "^0.4.2",
-    "@expo-google-fonts/permanent-marker": "^0.4.0",
     "@expo-google-fonts/playwrite-nz": "^0.4.1",
     "@expo/vector-icons": "^15.0.3",
     "@hot-updater/react-native": "^0.32.0",
