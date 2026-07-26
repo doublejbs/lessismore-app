@@ -139,20 +139,7 @@ class BagFilmCard {
     return `${(activity.distance / 1000).toFixed(1)} KM`;
   }
 
-  // 우·작: 평균 속도. 페이스가 아니라 시속으로 표기한다(BS-4).
-  public getSpeedText(): string | null {
-    const activity = this.bagDetail.getActivity();
-
-    if (!activity || activity.distance <= 0 || activity.duration <= 0) {
-      return null;
-    }
-
-    const speed = (activity.distance / activity.duration) * 3.6;
-
-    return `${speed.toFixed(1)} KM/H`;
-  }
-
-  // 운동 기록이 없을 때 우측 열을 채우는 배낭 이름(BS-4). 사용자 자유 입력이라 한글이 올 수 있고,
+  // 배낭 이름(BS-4). 사용자 자유 입력이라 한글이 올 수 있고,
   // 길이 제한도 없어 표시 쪽에서 한 줄로 자른다.
   public getBagNameText(): string | null {
     const name = this.bagDetail.getName().trim();
