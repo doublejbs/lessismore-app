@@ -1,3 +1,6 @@
+이 파일은 Pretendard 글꼴(Pretendard-*.ttf)의 라이선스다.
+나눔손글씨 미래나무(NanumMiRaeNaMu.ttf)는 별도 라이선스이며 LICENSE-Nanum.txt를 참고한다.
+
 Copyright (c) 2021, Kil Hyung-jin (https://github.com/orioncactus/pretendard),
 with Reserved Font Name Pretendard.
 

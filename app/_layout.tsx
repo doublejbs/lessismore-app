@@ -43,6 +43,9 @@ const RootLayout = () => {
     'Pretendard-Medium': require('../assets/fonts/Pretendard-Medium.ttf'),
     'Pretendard-SemiBold': require('../assets/fonts/Pretendard-SemiBold.ttf'),
     'Pretendard-Bold': require('../assets/fonts/Pretendard-Bold.ttf'),
+    // 필름 카드 캡션 손글씨(BS-3) — 라틴·숫자·한글을 이 폰트 하나로 렌더한다.
+    // 미래나무는 Google Fonts 패키지가 아니라 번들한 로컬 TTF다(assets/fonts/LICENSE-Nanum.txt).
+    NanumMiRaeNaMu: require('../assets/fonts/NanumMiRaeNaMu.ttf'),
   });
   const firebase = app.getFirebase();
   const isInitialized = app.isInitialized();

@@ -29,6 +29,7 @@ import BagDetailMemoView from './BagDetailMemoView';
 import BagDetailDestinationView from './BagDetailDestinationView';
 import BagDetailActivityView from './BagDetailActivityView';
 import ShareButtonView from './ShareButtonView';
+import BagFilmCardButtonView from './BagFilmCardButtonView';
 import BagDetailCopyView from '../bag/BagDetailCopyView';
 import { Stack, useFocusEffect } from 'expo-router';
 import BagDetailSkeletonView from './BagDetailSkeletonView';
@@ -107,7 +108,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     }
   }, [initialized]);
 
-  // 헤더 우측 액션(복사·공유) — iOS 네이티브 headerRight와 Android/Web 커스텀 헤더가 공유한다.
+  // 헤더 우측 액션(복사·공유·필름 카드) — iOS 네이티브 headerRight와 Android/Web 커스텀 헤더가 공유한다.
   // iOS는 각 아이콘을 44pt 박스로 감싸 글래스 캡슐의 내부 여백·높이를 시스템 바 버튼
   // 지오메트리(내부 ~11pt, 아이콘 중심 간격 ~52pt, 높이 44pt)에 맞춘다. 터치 타깃도 44pt 확보.
   const renderHeaderActions = () => (
@@ -120,6 +121,9 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
       </View>
       <View style={IS_IOS ? styles.headerIconBox : null}>
         <ShareButtonView bagDetail={bagDetail} />
+      </View>
+      <View style={IS_IOS ? styles.headerIconBox : null}>
+        <BagFilmCardButtonView bagDetail={bagDetail} />
       </View>
     </View>
   );
