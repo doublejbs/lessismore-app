@@ -1,0 +1,38 @@
+나눔손글씨 미래나무 (Nanum MiRaeNaMu)
+=====================================
+
+파일        : NanumMiRaeNaMu.ttf
+저작권      : Copyright (c) 2019 NAVER Corporation. All rights reserved.
+              Font created by CLOVA AI OCR Team.
+              (위 문구는 TTF의 name 테이블 nameID 0에서 그대로 옮긴 것이다)
+출처        : 네이버 한글한글아름답게 — https://hangeul.naver.com/fonts/search?f=clova
+사용 위치   : 배낭 필름 카드 공유 이미지의 배낭 이름 캡션 (specs/BagShare.md BS-3)
+
+
+라이선스 요지
+-------------
+
+나눔글꼴 라이선스에 따라 배포되는 무료 글꼴이다.
+
+- 개인·기업 모두 **상업적 용도로 자유롭게 사용**할 수 있다.
+- 앱·서비스에 **임베드해 배포**할 수 있다.
+- **글꼴 파일 자체를 유상으로 판매·배포하는 것은 금지**된다.
+- 저작권 표시를 제거하지 않는다.
+
+
+주의
+----
+
+이 파일은 **출처와 요지를 밝히는 저작자 표시 고지**다. 이 TTF에는 라이선스 전문이
+포함돼 있지 않아(name 테이블에 nameID 13 `라이선스 설명` / nameID 14 `라이선스 URL`이
+없음) 여기에 전문을 옮겨 적지 않았다.
+
+배포 전 위 출처 페이지에서 **공식 라이선스 전문을 확인해 이 파일에 덧붙이는 것을 권한다.**
+스토어 제출용 오픈소스 고지 화면을 만들 때도 이 파일이 아니라 공식 전문을 기준으로 한다.
+
+
+같은 디렉토리의 다른 글꼴
+-------------------------
+
+- Pretendard (Pretendard-*.ttf) — SIL Open Font License 1.1, `LICENSE.txt` 참고
+- SpaceMono-Regular.ttf — Expo 템플릿 기본 포함 글꼴
