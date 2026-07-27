@@ -15,7 +15,7 @@ import Animated, { AnimatedStyle } from 'react-native-reanimated';
 import BagFilmCard from '@/model/bag-film-card/BagFilmCard';
 import FilmCardElement from '@/model/bag-film-card/FilmCardElement';
 import BagFilmCardPolaroidView from '@/components/bag-film-card/BagFilmCardPolaroidView';
-import BagFilmCardSpecLabelView from '@/components/bag-film-card/BagFilmCardSpecLabelView';
+import BagFilmCardPackingListView from '@/components/bag-film-card/BagFilmCardPackingListView';
 import PretendardText from '@/components/PretendardText';
 
 /**
@@ -38,9 +38,9 @@ interface Props {
   width: number;
   height: number;
   polaroidWidth: number;
-  // 영수증 종이 폭(pt)과 본문에 싣는 장비 수(BS-8).
-  receiptWidth: number;
-  receiptItemLimit: number;
+  // 패킹리스트 종이 폭(pt)과 본문에 싣는 장비 수(BS-8).
+  packingListWidth: number;
+  packingListItemLimit: number;
   // 켜져 있는 요소만, **켠 순서대로** 들어온다 — 나중에 켠 것이 위에 온다(BS-7).
   elements: readonly FilmCardCanvasElement[];
   onPressPhoto: () => void;
@@ -81,7 +81,7 @@ interface ShadowSpec {
  * **[이력] 값을 다시 잡은 이유**: 예전에는 폴라로이드가 크림 배경(#E6E0D4) 위에 놓여
  * **경계를 배경색이 만들었기 때문에** 그림자를 누적 4.4%로 아주 옅게 썼다. 배경이 사진으로
  * 바뀌면서 그 전제가 사라졌다 — 사진은 밝기·색이 제각각이라 색만으로는 인화물의 경계가
- * 서지 않는다. 아래 영수증 종이가 같은 이유로 이미 누적 11%를 쓰고 있었고, 폴라로이드는
+ * 서지 않는다. 아래 패킹리스트 종이가 같은 이유로 이미 누적 11%를 쓰고 있었고, 폴라로이드는
  * 흰 인화지라 밝은 사진 위에서 종이보다 더 묻히므로 그보다 진하게 잡았다.
  * 사진을 어둡게 덮는 스크림을 걷어낸 만큼(BS-10 "사진이 주인공") 대비는 이 그림자가 전담한다.
  */
@@ -92,7 +92,7 @@ const POLAROID_SHADOW: ShadowSpec = {
 };
 
 /**
- * 영수증 종이 그림자(BS-8). 종이가 사진에서 떠 보이도록 누적 11%로 준다.
+ * 패킹리스트 종이 그림자(BS-8). 종이가 사진에서 떠 보이도록 누적 11%로 준다.
  * 폴라로이드보다 옅은 것은 종이가 오프화이트라 흰 인화지보다 밝은 사진에 덜 묻히고,
  * 종이 자체에 구김 질감이 있어 경계가 조금 더 서기 때문이다.
  */
@@ -134,9 +134,9 @@ const renderShadowLayers = (baseWidth: number, spec: ShadowSpec) => {
  * 캡처 대상 캔버스(BS-2, BS-5, BS-10).
  *
  * **캔버스는 언제나 사진이다** — 고른 사진이 `cover`로 화면을 채우고(없으면 단색),
- * 그 위에 켜져 있는 요소(폴라로이드·영수증)를 켠 순서대로 얹는다. 이 View 전체가 캡처된다.
+ * 그 위에 켜져 있는 요소(폴라로이드·패킹리스트)를 켠 순서대로 얹는다. 이 View 전체가 캡처된다.
  *
- * **사진 위에 스크림을 깔지 않는다.** 예전 영수증 템플릿은 22% 검정 스크림으로 종이를
+ * **사진 위에 스크림을 깔지 않는다.** 예전 패킹리스트 템플릿은 22% 검정 스크림으로 종이를
  * 분리했지만, 사진이 주인공이라는 원칙(BS-10)과 충돌한다 — 요소 대비는 각자의 그림자가 맡는다.
  */
 const BagFilmCardCanvasView: FC<Props> = ({
@@ -145,8 +145,8 @@ const BagFilmCardCanvasView: FC<Props> = ({
   width,
   height,
   polaroidWidth,
-  receiptWidth,
-  receiptItemLimit,
+  packingListWidth,
+  packingListItemLimit,
   elements,
   onPressPhoto,
 }) => {
@@ -167,11 +167,11 @@ const BagFilmCardCanvasView: FC<Props> = ({
 
     return (
       <View style={styles.elementHolder}>
-        {renderShadowLayers(receiptWidth, PAPER_SHADOW)}
-        <BagFilmCardSpecLabelView
+        {renderShadowLayers(packingListWidth, PAPER_SHADOW)}
+        <BagFilmCardPackingListView
           filmCard={filmCard}
-          width={receiptWidth}
-          itemLimit={receiptItemLimit}
+          width={packingListWidth}
+          itemLimit={packingListItemLimit}
         />
       </View>
     );
@@ -186,7 +186,7 @@ const BagFilmCardCanvasView: FC<Props> = ({
     >
       {/* 배경(요소가 없는 자리) 탭 = **배경 사진** 다시 고르기. 요소보다 **먼저** 선언해
           아래에 깔리게 한다 — 요소를 탭했을 때는 이 영역이 아니라 요소가 터치 대상이라
-          여기로 새지 않는다. 폴라로이드 탭은 폴라로이드 사진 피커를 열고, 영수증 탭은
+          여기로 새지 않는다. 폴라로이드 탭은 폴라로이드 사진 피커를 열고, 패킹리스트 탭은
           아무 일도 일어나지 않는다(BS-9 — 탭 동작은 요소의 제스처가 들고 있다).
           프리뷰 오버레이에 같은 동작의 레이블된 아이콘 버튼이 있어 스크린 리더에는
           중복 노출하지 않는다(BS-10). */}

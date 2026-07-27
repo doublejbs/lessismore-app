@@ -7,7 +7,7 @@ import BagDetail from '@/model/bag-detail/BagDetail';
 import FilmCardElement from '@/model/bag-film-card/FilmCardElement';
 import FilmCardRatio from '@/model/bag-film-card/FilmCardRatio';
 import PhotoPickTarget from '@/model/bag-film-card/PhotoPickTarget';
-import { SpecLabelItem } from '@/model/bag-film-card/SpecLabelItem';
+import { PackingListItem } from '@/model/bag-film-card/PackingListItem';
 import Gear from '@/model/gear/Gear';
 import ToastManager from '@/model/toast/ToastManager';
 
@@ -24,13 +24,13 @@ type SharingModule = {
 
 const GRANTED = 'granted';
 
-// 브랜드에 한글 음절이 섞였는지 판정한다(BS-8). 영수증 템플릿은 라틴·한글을 함께 담은
-// D2Coding 하나만 쓰므로 뷰가 이 값을 보지 않는다(`SpecLabelItem` 주석 참고).
+// 브랜드에 한글 음절이 섞였는지 판정한다(BS-8). 패킹리스트 템플릿은 라틴·한글을 함께 담은
+// D2Coding 하나만 쓰므로 뷰가 이 값을 보지 않는다(`PackingListItem` 주석 참고).
 const KOREAN_PATTERN = /[가-힣]/;
 
 // 켜지지 않은 요소의 활성화 번호(BS-7). 0은 "꺼짐"을 뜻하며 정렬에 쓰이지 않는다.
 const ELEMENT_OFF = 0;
-// 진입 시 폴라로이드·영수증이 둘 다 켜져 있어 번호 1·2를 먼저 쓰고, 다음 번호는 3부터다.
+// 진입 시 폴라로이드·패킹리스트이 둘 다 켜져 있어 번호 1·2를 먼저 쓰고, 다음 번호는 3부터다.
 const FIRST_ELEMENT_SEQ = 1;
 
 /**
@@ -67,11 +67,11 @@ class BagFilmCard {
    * (위치 상태는 뷰의 훅이 들고 있다).
    * **진입 시 기본은 둘 다 켜짐**이다 — 이 화면이 무엇을 만들 수 있는지 바로 보이게 한다.
    * 서로 다른 모서리에서 시작하므로(BS-9) 둘 다 켜져 있어도 가리지 않는다.
-   * 폴라로이드가 먼저 놓인 것으로 두어 겹칠 때는 영수증이 위에 온다.
+   * 폴라로이드가 먼저 놓인 것으로 두어 겹칠 때는 패킹리스트이 위에 온다.
    */
   private elementSeqs: Record<FilmCardElement, number> = {
     [FilmCardElement.Polaroid]: FIRST_ELEMENT_SEQ,
-    [FilmCardElement.Receipt]: FIRST_ELEMENT_SEQ + 1,
+    [FilmCardElement.PackingList]: FIRST_ELEMENT_SEQ + 1,
   };
   private nextElementSeq = FIRST_ELEMENT_SEQ + 2;
   // 캡처 중에는 카드 위의 안내(사진 고르기 플레이스홀더)를 감춘다.
@@ -148,7 +148,7 @@ class BagFilmCard {
    * 요소가 켜진 시점의 활성화 번호(BS-7). 껐다 다시 켜면 값이 달라진다.
    *
    * 뷰는 이 값을 위치·배율·각도 초기화 키로 쓴다 — "껐다는 것은 지웠다는 뜻"이라
-   * 다시 켠 요소는 요소별 **기본 배치**(BS-9 — 폴라로이드 좌측 상단, 영수증 우측 하단)로 돌아온다.
+   * 다시 켠 요소는 요소별 **기본 배치**(BS-9 — 폴라로이드 좌측 상단, 패킹리스트 우측 하단)로 돌아온다.
    */
   public getElementKey(element: FilmCardElement) {
     return this.elementSeqs[element];
@@ -255,7 +255,7 @@ class BagFilmCard {
    * `Array.prototype.sort`가 안정 정렬이라 비교 함수를 무게 차이로만 두면 된다.
    * `bagDetail`이 들고 있는 배열을 그대로 정렬하면 배낭 상세 화면의 순서까지 바뀌므로 복사해서 다룬다.
    */
-  public getSpecLabelItems(limit: number): SpecLabelItem[] {
+  public getPackingListItems(limit: number): PackingListItem[] {
     return this.getGearsByWeightDesc()
       .slice(0, limit)
       .map(gear => {
@@ -264,7 +264,7 @@ class BagFilmCard {
         return {
           brand,
           name: BagFilmCard.toLabelName(gear),
-          // 영수증 본문의 무게 표기는 소문자 g다(BS-8 데이터 표 — `1840g`).
+          // 패킹리스트 본문의 무게 표기는 소문자 g다(BS-8 데이터 표 — `1840g`).
           weightText: `${BagFilmCard.toGramWeight(gear)}g`,
           hasKoreanBrand: KOREAN_PATTERN.test(brand),
         };
@@ -277,7 +277,7 @@ class BagFilmCard {
   }
 
   /**
-   * 영수증 푸터 `TOTAL WEIGHT`의 **값**(BS-8) — `6.61KG`.
+   * 패킹리스트 푸터 `TOTAL WEIGHT`의 **값**(BS-8) — `6.61KG`.
    *
    * 라벨은 뷰가 따로 찍으므로 여기서는 값만 만든다. `getWeight()`가 이미 kg이라
    * 단위 환산 없이 소수 2자리로 자른다(폴라로이드의 `getWeightText()`는 소수 1자리 +
@@ -288,7 +288,7 @@ class BagFilmCard {
     return `${this.bagDetail.getWeight().toFixed(2)}KG`;
   }
 
-  // 영수증 푸터 `TOTAL ITEMS`의 **값**(BS-8) — `14`. 이것도 전량 기준이다.
+  // 패킹리스트 푸터 `TOTAL ITEMS`의 **값**(BS-8) — `14`. 이것도 전량 기준이다.
   public getItemCountText() {
     return `${this.bagDetail.getCount()}`;
   }
@@ -350,13 +350,15 @@ class BagFilmCard {
    * `사진 고르기` 안내이고 **어디를 탭하든 배경 피커가 열려야** 하기 때문이다(BS-2).
    * 그래야 폴라로이드만 채워진 채 배경이 비는 어중간한 상태도 생기지 않는다.
    */
+  /**
+   * 폴라로이드를 탭했을 때(BS-9) — **인화물 안 사진만** 바꾼다.
+   *
+   * 배경 사진이 아직 없어도 배경 피커로 넘기지 않는다. 요소를 탭하면 **그 요소에만**
+   * 적용되는 것이 예측 가능하고, 배경은 배경(요소가 없는 자리)을 탭하거나 우측 상단
+   * 아이콘으로 고르면 된다. 그 결과 "폴라로이드 사진만 있고 배경은 비어 있는" 상태가
+   * 만들어질 수 있는데, 이것도 유효한 카드다(§6).
+   */
   public async pickPolaroidPhoto() {
-    if (!this.hasPhoto()) {
-      await this.pickPhoto();
-
-      return;
-    }
-
     await this.pickPhotoInto(PhotoPickTarget.Polaroid, uri =>
       this.setPolaroidPhotoUri(uri)
     );
@@ -435,7 +437,7 @@ class BagFilmCard {
     // 어떤 요소 조합이 실제로 공유되는지가 이 기능의 다음 판단 근거라 두 불리언을 함께 담는다(BS-6).
     app.getAnalyticsManager()?.logClick('film_card_share', {
       has_polaroid: this.isElementOn(FilmCardElement.Polaroid),
-      has_receipt: this.isElementOn(FilmCardElement.Receipt),
+      has_packing_list: this.isElementOn(FilmCardElement.PackingList),
       has_activity: this.hasActivity(),
       has_photo: this.hasPhoto(),
     });
@@ -477,7 +479,7 @@ class BagFilmCard {
 
     app.getAnalyticsManager()?.logClick('film_card_save', {
       has_polaroid: this.isElementOn(FilmCardElement.Polaroid),
-      has_receipt: this.isElementOn(FilmCardElement.Receipt),
+      has_packing_list: this.isElementOn(FilmCardElement.PackingList),
     });
     this.setSaving(true);
 

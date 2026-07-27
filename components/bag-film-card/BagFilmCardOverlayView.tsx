@@ -80,7 +80,7 @@ const BagFilmCardOverlayView: FC<Props> = ({
   const photoLabel = hasPhoto ? '사진 다시 고르기' : '사진 고르기';
 
   return (
-    // box-none: 컨트롤이 아닌 자리의 탭은 아래 캔버스(사진 다시 고르기·영수증 드래그)로
+    // box-none: 컨트롤이 아닌 자리의 탭은 아래 캔버스(사진 다시 고르기·패킹리스트 드래그)로
     // 그대로 통과시킨다.
     <View style={StyleSheet.absoluteFill} pointerEvents='box-none'>
       <View

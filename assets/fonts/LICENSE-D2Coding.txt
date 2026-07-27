@@ -9,4 +9,4 @@ SIL Open Font License 1.1 로 배포되며, 임베드·상업적 사용·수정�
 - 남긴 유니코드: 기본 라틴/보충, 일반 문장부호, 한글 자모·음절(U+AC00–D7A3), 전각 기호
 - 제거: 한자·가나 등 그 외 전 영역 (원본 4.19MB → 1.23MB, Bold 4.36MB → 1.22MB)
 - 서브셋 도구: fontTools.subset (--layout-features=* --no-hinting --desubroutinize)
-용도: 배낭 영수증 카드(BS-8) 내보내기 캔버스 전용.
+용도: 배낭 패킹리스트 카드(BS-8) 내보내기 캔버스 전용.
