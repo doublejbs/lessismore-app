@@ -1,15 +1,13 @@
 import { FC, useMemo, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import BagFilmCard from '@/model/bag-film-card/BagFilmCard';
-import PretendardText from '@/components/PretendardText';
 
 interface Props {
   filmCard: BagFilmCard;
   // 폴라로이드 렌더 폭(pt). 내부 치수는 모두 이 값에서 비례 계산한다.
   width: number;
-  onPressPhoto: () => void;
 }
 
 // 아래 치수의 기준이 되는 폴라로이드 폭. 목업 수치를 이 폭 기준으로 잡았다.
@@ -45,13 +43,23 @@ const PAPER_TEXTURE = require('@/assets/images/film-frame-paper.jpg');
 
 const INK_COLOR = '#000000';
 
+/**
+ * 사진 변경 단서(BS-3). 사진 영역 우하단에 얹는 작은 아이콘 배지다.
+ *
+ * 사진 위에 놓이므로 반투명 검정 위 흰 아이콘으로 두어 밝은 사진에서도 보이게 한다.
+ * 크기는 인화물 폭에 비례해야 배율을 바꿔도 비율이 유지된다.
+ */
+const PHOTO_HINT_ICON_RATIO = 0.075;
+const PHOTO_HINT_COLOR = 'rgba(255, 255, 255, 0.95)';
+const PHOTO_HINT_BG_COLOR = 'rgba(0, 0, 0, 0.42)';
+
 // 인화지는 완벽한 직각이 아니다 — 아주 작게만 둥글린다(과하면 스티커처럼 보인다).
 // 텍스처가 알파 없는 사각 이미지라 모서리는 RN이 잘라줘야 한다(card의 overflow: 'hidden').
 const FRAME_RADIUS = 2;
 // 사진을 고르지 않아도 카드가 완성되도록 하는 단색 배경(BS-2). 앱 브랜드 톤의 짙은 회색.
+// `사진 고르기` 안내는 이 안이 아니라 캔버스 전체가 맡는다(BS-2) — 배경 사진이 없는 동안에는
+// 폴라로이드를 탭해도 배경 피커가 열리므로(BS-9) 안내를 두 곳에 겹쳐 둘 이유가 없다.
 const EMPTY_PHOTO_COLOR = '#151515';
-// 위 짙은 배경 위에 얹히는 `사진 고르기` 안내 색(화면 전용 — 캡처 시에는 감춘다).
-const PLACEHOLDER_COLOR = '#FFFFFF';
 // 사진과 인화지 사이 경계. 눈에 띄면 안 되는 수준으로만 둔다.
 const PHOTO_EDGE_COLOR = 'rgba(0, 0, 0, 0.07)';
 
@@ -74,8 +82,7 @@ const CaptionView: FC<{
     key: string;
     text: string;
   } | null>(null);
-  const nameText =
-    measured?.key === measureKey ? measured.text : bagNameText;
+  const nameText = measured?.key === measureKey ? measured.text : bagNameText;
 
   // 이름은 길이 제한이 없는 자유 입력이다. 크기를 줄이거나 말줄임(`…`)을 붙이거나 두 줄로
   // 접지 않고, **한 줄에 들어가는 단어까지만 보여주고 나머지는 버린다**.
@@ -124,55 +131,38 @@ const CaptionView: FC<{
   );
 };
 
-const BagFilmCardPolaroidView: FC<Props> = ({
-  filmCard,
-  width,
-  onPressPhoto,
-}) => {
+const BagFilmCardPolaroidView: FC<Props> = ({ filmCard, width }) => {
   const styles = useMemo(() => createStyles(width), [width]);
-  const scale = width / BASE_WIDTH;
-  const photoUri = filmCard.getPhotoUri();
-  const capturing = filmCard.isCapturing();
+  const photoUri = filmCard.getPolaroidPhotoUri();
+  // 탭하면 사진을 바꿀 수 있다는 단서(BS-3). 단서가 없으면 탭할 수 있다는 걸 알 방법이 없다.
+  // 화면용이므로 **캡처 프레임에서는 감춘다** — 결과물에 배지가 찍히면 안 된다.
+  const showPhotoHint = !filmCard.isCapturing();
 
   return (
     <View style={styles.card}>
       {/* 인화지 텍스처 — 사진·캡션보다 먼저 선언해 그 아래에 깔린다(사진은 원본 그대로 유지).
           사진 창이 뚫린 프레임이 아니라 종이 전체 텍스처라 좌표를 맞출 필요가 없다. */}
       <Image source={PAPER_TEXTURE} style={styles.paper} resizeMode='cover' />
-      {/* 캡처·공유 중 탭을 막는다 — 캡처 도중 피커가 뜨면 빈/잘린 이미지가 나가거나
-          공유된 이미지와 화면이 어긋난다. 화면 하단에 같은 동작의 레이블된 버튼이
-          따로 있어, 스크린 리더에는 이 영역을 중복 노출하지 않는다. */}
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={onPressPhoto}
-        disabled={filmCard.isBusy()}
-        accessible={false}
-        accessibilityElementsHidden
-        importantForAccessibility='no-hide-descendants'
-      >
-        <View style={styles.photo}>
-          {photoUri ? (
-            <Image
-              source={{ uri: photoUri }}
-              style={styles.photoImage}
-              resizeMode='cover'
+      {/* 인화물 안 사진은 **기본이 배경과 같은 사진**이다(BS-3) — 한 번만 골라도 카드가
+          완성되고, 폴라로이드를 탭해 따로 고르면 그때부터 배경과 갈린다(BS-9). */}
+      <View style={styles.photo}>
+        {photoUri ? (
+          <Image
+            source={{ uri: photoUri }}
+            style={styles.photoImage}
+            resizeMode='cover'
+          />
+        ) : null}
+        {showPhotoHint ? (
+          <View style={styles.photoHint} pointerEvents='none'>
+            <Ionicons
+              name='image-outline'
+              size={width * PHOTO_HINT_ICON_RATIO}
+              color={PHOTO_HINT_COLOR}
             />
-          ) : null}
-          {/* 안내는 화면용이라 캡처 프레임에서는 감춘다 — 사진 없이도 단색 배경으로 완성된다(BS-2). */}
-          {!photoUri && !capturing ? (
-            <View style={styles.placeholder}>
-              <Ionicons
-                name='image-outline'
-                size={Math.round(28 * scale)}
-                color={PLACEHOLDER_COLOR}
-              />
-              <PretendardText style={styles.placeholderText} weight='medium'>
-                사진 고르기
-              </PretendardText>
-            </View>
-          ) : null}
-        </View>
-      </TouchableOpacity>
+          </View>
+        ) : null}
+      </View>
       <CaptionView filmCard={filmCard} styles={styles} />
     </View>
   );
@@ -229,19 +219,16 @@ const createStyles = (width: number) => {
       width: '100%',
       height: '100%',
     },
-    placeholder: {
+    // 사진 영역 우하단 배지 — 캡션을 가리지 않고, 인화물을 탭하면 사진을 바꾼다는 단서다.
+    photoHint: {
       position: 'absolute',
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
+      right: 8 * scale,
+      bottom: 8 * scale,
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 8 * scale,
-    },
-    placeholderText: {
-      fontSize: 13 * scale,
-      color: PLACEHOLDER_COLOR,
+      padding: 5 * scale,
+      borderRadius: 999,
+      backgroundColor: PHOTO_HINT_BG_COLOR,
     },
     caption: {
       flexDirection: 'row',
