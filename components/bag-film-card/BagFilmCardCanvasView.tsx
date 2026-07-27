@@ -1,4 +1,4 @@
-import { FC, RefObject } from 'react';
+import { FC, ReactNode, RefObject } from 'react';
 import {
   Image,
   LayoutChangeEvent,
@@ -8,52 +8,51 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { ComposedGesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { AnimatedStyle } from 'react-native-reanimated';
 import BagFilmCard from '@/model/bag-film-card/BagFilmCard';
-import FilmCardTemplate from '@/model/bag-film-card/FilmCardTemplate';
+import FilmCardElement from '@/model/bag-film-card/FilmCardElement';
 import BagFilmCardPolaroidView from '@/components/bag-film-card/BagFilmCardPolaroidView';
 import BagFilmCardSpecLabelView from '@/components/bag-film-card/BagFilmCardSpecLabelView';
+import PretendardText from '@/components/PretendardText';
+
+/**
+ * 캔버스에 얹을 요소 하나(BS-7·BS-9).
+ *
+ * 이동·확대·회전 상태와 탭 동작은 화면(BagFilmCardView)의 훅이 요소마다 하나씩 들고 있고,
+ * 이 컴포넌트는 받은 제스처·스타일을 적용해 그리기만 한다.
+ */
+export interface FilmCardCanvasElement {
+  element: FilmCardElement;
+  gesture: ComposedGesture;
+  style: StyleProp<AnimatedStyle<ViewStyle>>;
+  onLayout: (event: LayoutChangeEvent) => void;
+}
 
 interface Props {
   filmCard: BagFilmCard;
   // 캡처 대상 View의 ref. observer 래핑 컴포넌트라 ref를 명시 prop으로 받는다.
   cardRef: RefObject<View | null>;
   width: number;
-  // 배경 캔버스 높이(pt). 폴라로이드 단독 출력은 내용이 높이를 정하므로 null.
-  height: number | null;
+  height: number;
   polaroidWidth: number;
   // 영수증 종이 폭(pt)과 본문에 싣는 장비 수(BS-8).
-  labelWidth: number;
-  labelItemLimit: number;
-  // 종이 이동·확대(BS-9). 상태는 화면 쪽 훅이 들고 있고 여기서는 적용만 한다.
-  labelGesture: ComposedGesture;
-  labelStyle: StyleProp<AnimatedStyle<ViewStyle>>;
-  onLayoutLabel: (event: LayoutChangeEvent) => void;
+  receiptWidth: number;
+  receiptItemLimit: number;
+  // 켜져 있는 요소만, **켠 순서대로** 들어온다 — 나중에 켠 것이 위에 온다(BS-7).
+  elements: readonly FilmCardCanvasElement[];
   onPressPhoto: () => void;
-  onLayoutCanvas: (event: LayoutChangeEvent) => void;
 }
 
-// 4:5 / 9:16 배경색(BS-3). 내보내기 캔버스 팔레트라 디자인 토큰 예외 대상이다.
-// 크림 — 순검정은 인화지의 따뜻한 톤과 부딪혀 앱 UI처럼 보였다.
-// 인화지(#F2F0EB)보다 확실히 어두운 값을 쓴다: 카드 경계를 **색**이 만들어야 그림자를
-// 은은하게 둘 수 있다. 더 밝게 잡으면 경계가 전부 그림자에 실려 그림자가 과해진다.
-const CANVAS_COLOR = '#E6E0D4';
-
-// 영수증에서 사진을 고르지 않았을 때 캔버스를 채우는 단색(BS-2·BS-8).
-// 폴라로이드의 빈 사진 배경과 같은 톤이라 두 템플릿의 빈 상태가 어긋나지 않는다.
+// 사진을 고르지 않았을 때 캔버스를 채우는 단색(BS-2). 사진 없이도 카드를 완성할 수 있다.
 const EMPTY_PHOTO_COLOR = '#151515';
+// 위 짙은 배경 위에 얹히는 `사진 고르기` 안내 색(화면 전용 — 캡처 시에는 감춘다).
+const PLACEHOLDER_COLOR = '#FFFFFF';
 
 /**
- * 사진 위 스크림(BS-8). 오프화이트 종이가 밝은 사진에 묻히지 않도록 배경을 살짝 눌러
- * 종이를 분리한다. 22%보다 진하면 사진을 보여준다는 이 템플릿의 전제가 무너진다.
- * 사진이 없을 때는 이미 어두운 단색이라 덧칠하지 않는다.
- */
-const PHOTO_SCRIM_COLOR = 'rgba(0, 0, 0, 0.22)';
-
-/**
- * 폴라로이드를 배경에서 띄우는 그림자(BS-3, 4:5·9:16 전용).
+ * 요소를 사진에서 띄우는 그림자(BS-3·BS-8).
  *
  * **네이티브 그림자 속성을 쓰지 않는 이유**: Android 캡처는 `view.draw(new Canvas(bitmap))`
  * (ViewShot.java) — 소프트웨어 캔버스다. `elevation` 그림자는 하드웨어 RenderNode가 그리므로
@@ -61,13 +60,8 @@ const PHOTO_SCRIM_COLOR = 'rgba(0, 0, 0, 0.22)';
  * 조용한 불일치가 생긴다. 그래서 실제로 그려지는 View를 겹쳐 그림자를 만든다 —
  * 두 플랫폼이 같은 결과를 내고 캡처에도 그대로 들어간다.
  *
- * **밝은 광휘가 아니라 어두운 그림자인 이유**: 배경이 순검정이던 시절에는 검은 그림자가
- * 원리상 보이지 않아 흰 광휘를 썼다. 배경을 크림으로 바꾸면서 그 전제가 뒤집혀 반전했다 —
- * 밝은 배경 위의 흰 광휘는 보이지 않거나 뿌옇게 지저분해진다.
- * **배경색을 다시 건드릴 때는 이 그림자 방향도 함께 검토해야 한다.**
- *
- * 검정 알파 합성은 배경을 곱셈으로 어둡게 만들어 색조(따뜻한 크림)를 그대로 보존한다 —
- * 색을 따로 warm 톤으로 조색할 필요가 없다.
+ * 검정 알파 합성은 바닥(사진)을 곱셈으로 어둡게 만들어 색조를 그대로 보존한다 —
+ * 사진 색에 맞춰 그림자 색을 조색할 필요가 없다.
  */
 const SHADOW_LAYER_COUNT = 8;
 
@@ -81,21 +75,26 @@ interface ShadowSpec {
 }
 
 /**
- * 폴라로이드 그림자(BS-3). 폴라로이드 폭 대비 0.030 × 0.66 ≈ 캔버스 폭의 2.0%.
- * 경계는 배경색(#E6E0D4)이 만들고 그림자는 바닥에 닿은 자리만 아주 옅게 앉히는
- * 역할이라 누적 4.4%로 좁고 얕게 둔다 — 알파를 올리면 그림자가 과해 보인다.
- * 캔버스 여백(4:5 사방 17%, 9:16 좌우 16%) 안에 들어와 캡처 경계에서 잘리지 않는다.
+ * 폴라로이드 그림자(BS-3). 폴라로이드 폭 대비 0.055 × 0.56 ≈ 캔버스 폭의 3.1%,
+ * 누적 알파 20%(0.025 × 8).
+ *
+ * **[이력] 값을 다시 잡은 이유**: 예전에는 폴라로이드가 크림 배경(#E6E0D4) 위에 놓여
+ * **경계를 배경색이 만들었기 때문에** 그림자를 누적 4.4%로 아주 옅게 썼다. 배경이 사진으로
+ * 바뀌면서 그 전제가 사라졌다 — 사진은 밝기·색이 제각각이라 색만으로는 인화물의 경계가
+ * 서지 않는다. 아래 영수증 종이가 같은 이유로 이미 누적 11%를 쓰고 있었고, 폴라로이드는
+ * 흰 인화지라 밝은 사진 위에서 종이보다 더 묻히므로 그보다 진하게 잡았다.
+ * 사진을 어둡게 덮는 스크림을 걷어낸 만큼(BS-10 "사진이 주인공") 대비는 이 그림자가 전담한다.
  */
 const POLAROID_SHADOW: ShadowSpec = {
-  spreadRatio: 0.03,
-  layerAlpha: 0.0055,
-  offsetRatio: 0.006,
+  spreadRatio: 0.055,
+  layerAlpha: 0.025,
+  offsetRatio: 0.012,
 };
 
 /**
- * 영수증 종이 그림자(BS-8). 폴라로이드와 달리 바닥이 **사진**이라 배경색이 경계를
- * 만들어 주지 않는다 — 종이가 사진에서 떠 보이도록 조금 더 넓고 진하게(누적 11%) 준다.
- * 스크림과 이 그림자가 함께 종이를 분리한다.
+ * 영수증 종이 그림자(BS-8). 종이가 사진에서 떠 보이도록 누적 11%로 준다.
+ * 폴라로이드보다 옅은 것은 종이가 오프화이트라 흰 인화지보다 밝은 사진에 덜 묻히고,
+ * 종이 자체에 구김 질감이 있어 경계가 조금 더 서기 때문이다.
  */
 const PAPER_SHADOW: ShadowSpec = {
   spreadRatio: 0.05,
@@ -113,7 +112,7 @@ const renderShadowLayers = (baseWidth: number, spec: ShadowSpec) => {
     return (
       <View
         key={index}
-        // 그림자가 사진 영역 탭을 가로채지 않게 한다.
+        // 그림자가 요소 드래그를 가로채지 않게 한다.
         pointerEvents='none'
         style={[
           styles.shadowLayer,
@@ -132,14 +131,13 @@ const renderShadowLayers = (baseWidth: number, spec: ShadowSpec) => {
 };
 
 /**
- * 캡처 대상 캔버스(BS-3, BS-5, BS-8).
+ * 캡처 대상 캔버스(BS-2, BS-5, BS-10).
  *
- * 템플릿에 따라 두 가지를 그린다.
- * - 폴라로이드: 단독 출력이면 폴라로이드 자체가 캔버스이고, 4:5·9:16이면
- *   크림 배경 위 가운데에 폴라로이드를 얹는다.
- * - 영수증: 사진이 캔버스를 꽉 채우고(`cover`) 그 위에 스크림 + 영수증 종이를 얹는다.
+ * **캔버스는 언제나 사진이다** — 고른 사진이 `cover`로 화면을 채우고(없으면 단색),
+ * 그 위에 켜져 있는 요소(폴라로이드·영수증)를 켠 순서대로 얹는다. 이 View 전체가 캡처된다.
  *
- * 어느 쪽이든 이 View 전체가 캡처된다.
+ * **사진 위에 스크림을 깔지 않는다.** 예전 영수증 템플릿은 22% 검정 스크림으로 종이를
+ * 분리했지만, 사진이 주인공이라는 원칙(BS-10)과 충돌한다 — 요소 대비는 각자의 그림자가 맡는다.
  */
 const BagFilmCardCanvasView: FC<Props> = ({
   filmCard,
@@ -147,139 +145,141 @@ const BagFilmCardCanvasView: FC<Props> = ({
   width,
   height,
   polaroidWidth,
-  labelWidth,
-  labelItemLimit,
-  labelGesture,
-  labelStyle,
-  onLayoutLabel,
+  receiptWidth,
+  receiptItemLimit,
+  elements,
   onPressPhoto,
-  onLayoutCanvas,
 }) => {
-  const isLabel = filmCard.getTemplate() === FilmCardTemplate.Label;
   const photoUri = filmCard.getPhotoUri();
+  const capturing = filmCard.isCapturing();
 
-  if (isLabel) {
+  // 요소는 자기 그림자와 함께 한 덩어리로 그려진다 — 그림자 레이어를 내용보다 먼저 선언해
+  // 뒤에 깔리게 한다(RN은 웹과 달리 absolute 자식을 자동으로 위로 올리지 않는다).
+  const renderElementContent = (element: FilmCardElement): ReactNode => {
+    if (element === FilmCardElement.Polaroid) {
+      return (
+        <View style={styles.elementHolder}>
+          {renderShadowLayers(polaroidWidth, POLAROID_SHADOW)}
+          <BagFilmCardPolaroidView filmCard={filmCard} width={polaroidWidth} />
+        </View>
+      );
+    }
+
     return (
-      <View
-        ref={cardRef}
-        style={[
-          styles.labelCanvas,
-          // 라벨은 항상 고정 규격(4:5·9:16)이라 높이가 들어오지만, 타입상 null을 허용하므로
-          // 정사각으로 떨어뜨려 크기가 비는 프레임이 생기지 않게 한다.
-          { width, height: height ?? width },
-        ]}
-        onLayout={onLayoutCanvas}
-        // Android가 캡처 대상 View를 레이아웃에서 합쳐 없애지 않도록 한다.
-        collapsable={false}
-      >
-        {/* 사진 영역 탭 = 사진 다시 고르기. 종이보다 **먼저** 선언해 아래에 깔리게 한다 —
-            종이를 탭했을 때는 이 영역이 아니라 종이가 터치 대상이 되어 피커가 열리지 않는다(BS-9).
-            화면 하단에 같은 동작의 레이블된 버튼이 있어 스크린 리더에는 중복 노출하지 않는다. */}
-        <TouchableOpacity
-          style={StyleSheet.absoluteFill}
-          activeOpacity={0.85}
-          onPress={onPressPhoto}
-          disabled={filmCard.isBusy()}
-          accessible={false}
-          accessibilityElementsHidden
-          importantForAccessibility='no-hide-descendants'
-        >
-          {photoUri ? (
-            <>
-              <Image
-                source={{ uri: photoUri }}
-                style={styles.labelPhoto}
-                resizeMode='cover'
-              />
-              {/* 스크림은 사진 위·종이 아래에 깔린다(BS-8). 터치 영역 안에 두어
-                  사진 영역 탭이 그대로 동작하게 한다. */}
-              <View style={styles.photoScrim} />
-            </>
-          ) : null}
-        </TouchableOpacity>
-        <GestureDetector gesture={labelGesture}>
-          <Animated.View style={labelStyle} onLayout={onLayoutLabel}>
-            {/* 그림자 레이어를 종이보다 먼저 선언해 뒤에 깔리게 한다 — RN은 (웹과 달리)
-                absolute 자식을 자동으로 위로 올리지 않고 선언 순서대로 그린다.
-                종이 높이는 내용이 정하므로 레이어는 인셋(top/bottom/left/right)으로 잡는다. */}
-            <View style={styles.paperHolder}>
-              {renderShadowLayers(labelWidth, PAPER_SHADOW)}
-              <BagFilmCardSpecLabelView
-                filmCard={filmCard}
-                width={labelWidth}
-                itemLimit={labelItemLimit}
-              />
-            </View>
-          </Animated.View>
-        </GestureDetector>
+      <View style={styles.elementHolder}>
+        {renderShadowLayers(receiptWidth, PAPER_SHADOW)}
+        <BagFilmCardSpecLabelView
+          filmCard={filmCard}
+          width={receiptWidth}
+          itemLimit={receiptItemLimit}
+        />
       </View>
     );
-  }
-
-  const hasBackground = height !== null;
+  };
 
   return (
     <View
       ref={cardRef}
-      style={[
-        { width },
-        hasBackground ? styles.background : null,
-        hasBackground ? { height } : null,
-      ]}
-      onLayout={onLayoutCanvas}
+      style={[styles.canvas, { width, height }]}
       // Android가 캡처 대상 View를 레이아웃에서 합쳐 없애지 않도록 한다.
       collapsable={false}
     >
-      {/* 그림자 레이어를 폴라로이드보다 먼저 선언해 뒤에 깔리게 한다 —
-          RN은 (웹과 달리) absolute 자식을 자동으로 위로 올리지 않고 선언 순서대로 그린다. */}
-      <View style={styles.polaroidHolder}>
-        {hasBackground
-          ? renderShadowLayers(polaroidWidth, POLAROID_SHADOW)
-          : null}
-        <BagFilmCardPolaroidView
-          filmCard={filmCard}
-          width={polaroidWidth}
-          onPressPhoto={onPressPhoto}
-        />
-      </View>
+      {/* 배경(요소가 없는 자리) 탭 = **배경 사진** 다시 고르기. 요소보다 **먼저** 선언해
+          아래에 깔리게 한다 — 요소를 탭했을 때는 이 영역이 아니라 요소가 터치 대상이라
+          여기로 새지 않는다. 폴라로이드 탭은 폴라로이드 사진 피커를 열고, 영수증 탭은
+          아무 일도 일어나지 않는다(BS-9 — 탭 동작은 요소의 제스처가 들고 있다).
+          프리뷰 오버레이에 같은 동작의 레이블된 아이콘 버튼이 있어 스크린 리더에는
+          중복 노출하지 않는다(BS-10). */}
+      <TouchableOpacity
+        style={StyleSheet.absoluteFill}
+        activeOpacity={0.85}
+        onPress={onPressPhoto}
+        disabled={filmCard.isBusy()}
+        accessible={false}
+        accessibilityElementsHidden
+        importantForAccessibility='no-hide-descendants'
+      >
+        {photoUri ? (
+          <Image
+            source={{ uri: photoUri }}
+            style={styles.photo}
+            resizeMode='cover'
+          />
+        ) : null}
+        {/* 사진을 아직 안 골랐으면 캔버스 전체가 안내가 된다 — 어디를 탭해도 피커가 열린다(BS-2).
+            안내는 화면용이라 캡처 프레임에서는 감춘다(사진 없이도 단색 배경으로 완성된다). */}
+        {!photoUri && !capturing ? (
+          <View style={styles.placeholder} pointerEvents='none'>
+            <Ionicons
+              name='image-outline'
+              size={32}
+              color={PLACEHOLDER_COLOR}
+            />
+            <PretendardText style={styles.placeholderText} weight='medium'>
+              사진 고르기
+            </PretendardText>
+          </View>
+        ) : null}
+      </TouchableOpacity>
+      {elements.map(item => (
+        // 캔버스를 덮는 투명 레이어로 요소를 가운데에 세운다. `box-none`이라 요소 바깥의
+        // 탭은 아래 사진 영역으로 그대로 통과하고, 레이어끼리도 서로를 막지 않는다.
+        <View
+          key={item.element}
+          style={styles.elementLayer}
+          pointerEvents='box-none'
+        >
+          <GestureDetector gesture={item.gesture}>
+            <Animated.View style={item.style}>
+              {/* `onLayout`은 `Animated.View`가 아니라 **안쪽 일반 View**에 건다 —
+                  `GestureDetector`가 감싼 reanimated 뷰에서는 콜백이 오지 않는다. */}
+              <View onLayout={item.onLayout}>
+                {renderElementContent(item.element)}
+              </View>
+            </Animated.View>
+          </GestureDetector>
+        </View>
+      ))}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  background: {
-    backgroundColor: CANVAS_COLOR,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  // 폴라로이드 크기에 맞춰 자동으로 잡히는 기준 박스. 그림자 레이어가 이 박스 바깥으로
-  // 음수 인셋만큼 퍼진다(overflow를 걸지 않아야 캡처에 그대로 들어온다).
-  polaroidHolder: {
-    position: 'relative',
-  },
-  labelCanvas: {
+  canvas: {
     backgroundColor: EMPTY_PHOTO_COLOR,
-    alignItems: 'center',
-    justifyContent: 'center',
-    // 사진과 옮긴 텍스트 블록이 캔버스를 넘지 않게 자른다.
-    // **폴라로이드에는 절대 걸지 않는다** — 캔버스 밖으로 퍼지는 그림자 레이어가 잘린다.
+    // 옮긴 요소와 그 그림자가 캔버스를 넘어 화면 배경으로 새지 않게 자른다.
     overflow: 'hidden',
   },
-  labelPhoto: {
+  photo: {
     width: '100%',
     height: '100%',
   },
-  photoScrim: {
+  placeholder: {
     position: 'absolute',
     top: 0,
     right: 0,
     bottom: 0,
     left: 0,
-    backgroundColor: PHOTO_SCRIM_COLOR,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
   },
-  // 종이 크기에 맞춰 자동으로 잡히는 기준 박스. 그림자 레이어가 이 박스 바깥으로
-  // 음수 인셋만큼 퍼진다(overflow를 걸지 않아야 캡처에 그대로 들어온다).
-  paperHolder: {
+  placeholderText: {
+    fontSize: 14,
+    color: PLACEHOLDER_COLOR,
+  },
+  elementLayer: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // 요소 크기에 맞춰 자동으로 잡히는 기준 박스. 그림자 레이어가 이 박스 바깥으로
+  // 음수 인셋만큼 퍼진다(overflow를 걸지 않아야 그림자가 보인다).
+  elementHolder: {
     position: 'relative',
   },
   shadowLayer: {

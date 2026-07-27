@@ -180,7 +180,7 @@ const ReceiptItemView: FC<{
 };
 
 /**
- * 영수증 템플릿(BS-8) — 사진 위에 얹는 **오프화이트 종이**다.
+ * 영수증 요소(BS-8) — 사진 위에 얹는 **오프화이트 종이**다.
  *
  * 제목·날짜·장소·바코드는 넣지 않는다. 높이는 내용이 정하며(고정 높이 금지),
  * 종이를 띄우는 그림자는 캔버스(`BagFilmCardCanvasView`)가 종이 뒤에 그린다 —
@@ -227,10 +227,7 @@ const BagFilmCardSpecLabelView: FC<Props> = ({
         ))}
         {hiddenCount > 0 ? (
           <Text
-            style={[
-              styles.brand,
-              items.length > 0 ? styles.itemSpacing : null,
-            ]}
+            style={[styles.brand, items.length > 0 ? styles.itemSpacing : null]}
           >
             {`+${hiddenCount} MORE`}
           </Text>
