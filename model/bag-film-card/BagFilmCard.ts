@@ -5,6 +5,9 @@ import { releaseCapture } from 'react-native-view-shot';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import FilmCardRatio from '@/model/bag-film-card/FilmCardRatio';
+import FilmCardTemplate from '@/model/bag-film-card/FilmCardTemplate';
+import { SpecLabelItem } from '@/model/bag-film-card/SpecLabelItem';
+import Gear from '@/model/gear/Gear';
 import ToastManager from '@/model/toast/ToastManager';
 
 // 아래 두 모듈은 웹 변형이 없어 동적으로만 불러온다(getMediaLibrary·getSharing 주석 참고).
@@ -20,8 +23,12 @@ type SharingModule = {
 
 const GRANTED = 'granted';
 
+// 브랜드에 한글 음절이 섞였는지 판정한다(BS-8). 영수증 템플릿은 라틴·한글을 함께 담은
+// D2Coding 하나만 쓰므로 뷰가 이 값을 보지 않는다(`SpecLabelItem` 주석 참고).
+const KOREAN_PATTERN = /[가-힣]/;
+
 /**
- * 배낭 필름 카드(BS-1~BS-6) 도메인 모델.
+ * 배낭 필름 카드(BS-1~BS-9) 도메인 모델.
  *
  * 카드에 얹는 값은 배낭 상세가 이미 로드해 둔 `BagDetail`에서만 읽는다 —
  * 이 화면 때문에 배낭·건강 허브를 다시 조회하지 않는다(BS-4).
@@ -37,6 +44,8 @@ class BagFilmCard {
   private photoUri: string | null = null;
   // 내보내기 캔버스 비율(BS-3). 기본은 폴라로이드 단독.
   private ratio: FilmCardRatio = FilmCardRatio.Card;
+  // 카드 템플릿(BS-7). 기본은 폴라로이드.
+  private template: FilmCardTemplate = FilmCardTemplate.Polaroid;
   // 캡처 중에는 카드 위의 안내(사진 고르기 플레이스홀더)를 감춘다.
   private capturing = false;
   private picking = false;
@@ -75,6 +84,33 @@ class BagFilmCard {
     }
 
     this.ratio = value;
+  }
+
+  public getTemplate() {
+    return this.template;
+  }
+
+  public isTemplateSelected(value: FilmCardTemplate) {
+    return this.template === value;
+  }
+
+  // 비율과 같은 규칙으로, 캡처·공유가 도는 동안에는 템플릿을 바꿀 수 없다(BS-7).
+  public selectTemplate(value: FilmCardTemplate) {
+    if (this.isBusy()) {
+      return;
+    }
+
+    this.template = value;
+
+    // 스펙 라벨은 사진 배경 위에 놓인 텍스트라 배경 없는 `카드` 출력이 성립하지 않는다.
+    // 고른 사진과 나머지 비율은 그대로 두고, `카드`였던 경우에만 4:5로 옮긴다(BS-7).
+    if (value === FilmCardTemplate.Label && this.ratio === FilmCardRatio.Card) {
+      this.ratio = FilmCardRatio.Feed;
+    }
+
+    app.getAnalyticsManager()?.logClick('film_card_template', {
+      template: value,
+    });
   }
 
   private setPhotoUri(value: string | null) {
@@ -147,6 +183,89 @@ class BagFilmCard {
     return name.length > 0 ? name : null;
   }
 
+  /**
+   * 스펙 라벨 본문(BS-8). `limit` 개까지만 싣고 나머지는 `getHiddenItemCount`가 센다.
+   *
+   * 정렬은 무게 내림차순이며 같은 무게는 원래 순서를 유지한다 —
+   * `Array.prototype.sort`가 안정 정렬이라 비교 함수를 무게 차이로만 두면 된다.
+   * `bagDetail`이 들고 있는 배열을 그대로 정렬하면 배낭 상세 화면의 순서까지 바뀌므로 복사해서 다룬다.
+   */
+  public getSpecLabelItems(limit: number): SpecLabelItem[] {
+    return this.getGearsByWeightDesc()
+      .slice(0, limit)
+      .map(gear => {
+        const brand = BagFilmCard.toLabelBrand(gear);
+
+        return {
+          brand,
+          name: BagFilmCard.toLabelName(gear),
+          // 영수증 본문의 무게 표기는 소문자 g다(BS-8 데이터 표 — `1840g`).
+          weightText: `${BagFilmCard.toGramWeight(gear)}g`,
+          hasKoreanBrand: KOREAN_PATTERN.test(brand),
+        };
+      });
+  }
+
+  // `+N MORE`에 쓸 잘라낸 개수(BS-8). 다 실렸으면 0이다.
+  public getHiddenItemCount(limit: number) {
+    return Math.max(this.bagDetail.getCount() - limit, 0);
+  }
+
+  /**
+   * 영수증 푸터 `TOTAL WEIGHT`의 **값**(BS-8) — `6.61KG`.
+   *
+   * 라벨은 뷰가 따로 찍으므로 여기서는 값만 만든다. `getWeight()`가 이미 kg이라
+   * 단위 환산 없이 소수 2자리로 자른다(폴라로이드의 `getWeightText()`는 소수 1자리 +
+   * 공백 구분이라 형식이 다르다 — 둘을 합치지 말 것).
+   * 잘라낸 항목과 무관하게 항상 배낭 전량 기준이다.
+   */
+  public getTotalWeightText() {
+    return `${this.bagDetail.getWeight().toFixed(2)}KG`;
+  }
+
+  // 영수증 푸터 `TOTAL ITEMS`의 **값**(BS-8) — `14`. 이것도 전량 기준이다.
+  public getItemCountText() {
+    return `${this.bagDetail.getCount()}`;
+  }
+
+  // 배낭 전량을 무게 내림차순으로 정렬한다(BS-8). 필터가 걸리는 `mapGears()`는 쓰지 않는다 —
+  // 카드에는 배낭에 담긴 장비가 전부 나와야 한다.
+  private getGearsByWeightDesc() {
+    return [...this.bagDetail.getGears()].sort(
+      (left, right) =>
+        BagFilmCard.toGramWeight(right) - BagFilmCard.toGramWeight(left)
+    );
+  }
+
+  /**
+   * 라벨의 브랜드는 영문 캐논컬(`getCompany()`)을 우선하고, 비었을 때만 한글로 떨어뜨린다.
+   *
+   * 이것은 `CLAUDE.md`의 "표시에는 항상 `getDisplayName()`" 규약에 대한 **의도적 예외**다(BS-8).
+   * 여기는 앱 UI가 아니라 **영문 올캡스 라벨이라는 디자인 의도가 있는 내보내기 캔버스**라
+   * 캐논컬 값을 우선한다. 규약 위반으로 오해해 `getDisplayCompany()`로 되돌리지 말 것.
+   */
+  private static toLabelBrand(gear: Gear) {
+    const company = gear.getCompany().trim();
+    const brand = company.length > 0 ? company : gear.getCompanyKorean().trim();
+
+    return brand.toUpperCase();
+  }
+
+  // 장비명도 같은 이유로 영문 캐논컬(`getName()`) 우선이다 — 위 `toLabelBrand` 주석 참고.
+  private static toLabelName(gear: Gear) {
+    const name = gear.getName().trim();
+
+    return name.length > 0 ? name : gear.getDisplayName().trim();
+  }
+
+  // `Gear.getWeight()`는 그램 단위 **문자열**이라 숫자로 쓰려면 캐스팅해야 한다(BS-8).
+  // 무게가 비어 있는 장비가 정렬 순서를 흐트러뜨리지 않도록 NaN은 0으로 눕힌다.
+  private static toGramWeight(gear: Gear) {
+    const weight = Number(gear.getWeight());
+
+    return Number.isFinite(weight) ? weight : 0;
+  }
+
   // BS-2: 사진은 매번 갤러리에서 고른다. 권한 요청은 이 시점에만 한다.
   public async pickPhoto() {
     // 연타로 피커가 두 번 열리면 Android expo-image-picker가 두 번째 호출을 reject해
@@ -201,6 +320,7 @@ class BagFilmCard {
     }
 
     app.getAnalyticsManager()?.logClick('film_card_share', {
+      template: this.template,
       has_activity: this.hasActivity(),
       has_photo: this.hasPhoto(),
     });
@@ -240,7 +360,9 @@ class BagFilmCard {
       return;
     }
 
-    app.getAnalyticsManager()?.logClick('film_card_save');
+    app.getAnalyticsManager()?.logClick('film_card_save', {
+      template: this.template,
+    });
     this.setSaving(true);
 
     try {
