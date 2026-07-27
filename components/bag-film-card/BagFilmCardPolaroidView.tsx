@@ -101,37 +101,25 @@ const CaptionView: FC<{
     ) : null;
 
   /**
-   * 캡션 구성(BS-4)은 운동 기록 유무로 갈린다. 네 값 모두 같은 크기라 히어로가 없고,
-   * 좌·우 2열이 나란히 읽힌다.
+   * 캡션 구성(BS-4). 좌 [이름 · 날짜] / 우 [무게 · 거리] 한 가지 배치만 쓴다 —
+   * 좌측이 "언제 어디", 우측이 "얼마를 지고 얼마나"로 묶여 읽힌다.
+   * 네 값 모두 같은 크기라 히어로가 없고 2×2 그리드로 나란히 놓인다.
    *
-   * - 기록 있음: 좌 [이름 · 날짜] / 우 [무게 · 거리]
-   * - 기록 없음: 좌 [무게 · 날짜] / 우 [이름]
-   *
-   * 기록이 있을 때 좌측에 이름·날짜를 묶는 건 "언제 어디"를, 우측에 무게·거리를 묶는 건
-   * "얼마를 지고 얼마나"를 한 덩어리로 읽히게 하려는 배치다.
+   * 운동 기록이 없으면 **거리 한 줄만 빠진다** — 배치를 따로 만들지 않는다.
+   * 그래도 캡션 높이는 2행인 좌측 열이 정하므로 카드 비율은 두 경우가 같다.
    */
-  if (hasActivity) {
-    return (
-      <View style={styles.caption}>
-        <View style={styles.leftColumn}>
-          {renderBagName()}
-          <Text style={styles.dateText}>{filmCard.getDateText()}</Text>
-        </View>
-        <View style={styles.rightColumn}>
-          <Text style={styles.weightText}>{filmCard.getWeightText()}</Text>
-          <Text style={styles.rightBigText}>{distanceText}</Text>
-        </View>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.caption}>
       <View style={styles.leftColumn}>
-        <Text style={styles.weightText}>{filmCard.getWeightText()}</Text>
+        {renderBagName()}
         <Text style={styles.dateText}>{filmCard.getDateText()}</Text>
       </View>
-      <View style={styles.rightColumn}>{renderBagName()}</View>
+      <View style={styles.rightColumn}>
+        <Text style={styles.weightText}>{filmCard.getWeightText()}</Text>
+        {hasActivity ? (
+          <Text style={styles.rightBigText}>{distanceText}</Text>
+        ) : null}
+      </View>
     </View>
   );
 };

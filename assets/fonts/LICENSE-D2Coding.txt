@@ -1,0 +1,12 @@
+D2Coding
+Copyright (c) NAVER Corp. (https://github.com/naver/d2codingfont)
+
+버전 1.3.2 (2018-05-24) 기준의 D2Coding / D2CodingBold를 사용한다.
+SIL Open Font License 1.1 로 배포되며, 임베드·상업적 사용·수정이 허용되고
+글꼴 파일 자체를 유상 판매하는 것은 금지된다. 원문: https://scripts.sil.org/OFL
+
+이 저장소에 담긴 파일은 원본이 아니라 **서브셋**이다.
+- 남긴 유니코드: 기본 라틴/보충, 일반 문장부호, 한글 자모·음절(U+AC00–D7A3), 전각 기호
+- 제거: 한자·가나 등 그 외 전 영역 (원본 4.19MB → 1.23MB, Bold 4.36MB → 1.22MB)
+- 서브셋 도구: fontTools.subset (--layout-features=* --no-hinting --desubroutinize)
+용도: 배낭 영수증 카드(BS-8) 내보내기 캔버스 전용.
