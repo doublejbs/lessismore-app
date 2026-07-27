@@ -83,15 +83,15 @@ const ELEMENT_SPECS: Record<
     label: '폴라로이드',
     accessibilityLabel: '폴라로이드 요소',
   },
-  [FilmCardElement.Receipt]: {
-    label: '영수증',
-    accessibilityLabel: '영수증 요소',
+  [FilmCardElement.PackingList]: {
+    label: '패킹리스트',
+    accessibilityLabel: '패킹리스트 요소',
   },
 };
 
 const ELEMENT_OPTIONS: readonly FilmCardElement[] = [
   FilmCardElement.Polaroid,
-  FilmCardElement.Receipt,
+  FilmCardElement.PackingList,
 ];
 
 /**
@@ -101,17 +101,17 @@ const ELEMENT_OPTIONS: readonly FilmCardElement[] = [
 const POLAROID_WIDTH_FRACTION = 0.56;
 
 /**
- * 영수증 기본 폭(캔버스 폭 대비, BS-8)과 본문에 싣는 장비 수.
+ * 패킹리스트 기본 폭(캔버스 폭 대비, BS-8)과 본문에 싣는 장비 수.
  *
  * 종이를 이보다 좁히지 않는다: 40%까지 줄이면 브랜드 줄이 1080px 캡처 기준 약 11px이 되어
  * 피드에서 읽히지 않는다. 장비가 넘치면 종이를 줄이는 대신 목록을 자른다(`+N MORE`).
  */
-const RECEIPT_WIDTH_FRACTION: Record<FilmCardRatio, number> = {
+const PACKING_LIST_WIDTH_FRACTION: Record<FilmCardRatio, number> = {
   [FilmCardRatio.Feed]: 0.44,
   [FilmCardRatio.Story]: 0.48,
 };
 
-const RECEIPT_ITEM_LIMIT: Record<FilmCardRatio, number> = {
+const PACKING_LIST_ITEM_LIMIT: Record<FilmCardRatio, number> = {
   [FilmCardRatio.Feed]: 8,
   [FilmCardRatio.Story]: 14,
 };
@@ -154,7 +154,7 @@ const BagFilmCardView: FC<Props> = ({ filmCard }) => {
   const canvasHeight = canvasWidth * canvasAspect;
 
   const polaroidWidth = canvasWidth * POLAROID_WIDTH_FRACTION;
-  const receiptWidth = canvasWidth * RECEIPT_WIDTH_FRACTION[ratio];
+  const packingListWidth = canvasWidth * PACKING_LIST_WIDTH_FRACTION[ratio];
 
   const sharing = filmCard.isSharing();
   const saving = filmCard.isSaving();
@@ -169,12 +169,12 @@ const BagFilmCardView: FC<Props> = ({ filmCard }) => {
   }, [filmCard]);
 
   /**
-   * 요소마다 위치·배율·각도를 따로 가진다(BS-9) — 폴라로이드를 옮겨도 영수증은 그대로다.
+   * 요소마다 위치·배율·각도를 따로 가진다(BS-9) — 폴라로이드를 옮겨도 패킹리스트은 그대로다.
    * 꺼진 요소도 훅은 그대로 호출하고(훅 규칙), 다시 켜지면 `resetKey`가 바뀌어
    * 기본 배치로 돌아온다(BS-7).
    *
-   * **기본 배치는 요소마다 다르다** — 폴라로이드는 좌측 상단, 영수증은 우측 하단에서
-   * 시작한다(BS-9). 둘 다 가운데면 나중에 켠 영수증이 폴라로이드를 완전히 덮는다.
+   * **기본 배치는 요소마다 다르다** — 폴라로이드는 좌측 상단, 패킹리스트은 우측 하단에서
+   * 시작한다(BS-9). 둘 다 가운데면 나중에 켠 패킹리스트이 폴라로이드를 완전히 덮는다.
    */
   const polaroidTransform = useElementTransform({
     canvasWidth,
@@ -186,28 +186,23 @@ const BagFilmCardView: FC<Props> = ({ filmCard }) => {
     onTap: handleTapPolaroid,
   });
   /**
-   * 영수증에는 탭 동작이 없다(BS-9) — `onTap`을 넘기지 않으면 탭 제스처 자체가 붙지 않는다.
+   * 패킹리스트에는 탭 동작이 없다(BS-9) — `onTap`을 넘기지 않으면 탭 제스처 자체가 붙지 않는다.
    *
-   * **단 배경 사진을 아직 안 골랐을 때는 예외다**(BS-2): 그때는 캔버스 전체가 `사진 고르기`
-   * 안내라 어디를 탭해도 피커가 열려야 하는데, 요소가 터치를 삼키면 그 자리만 죽은 영역이
-   * 된다. 요소는 기본으로 둘 다 켜져 있어 첫 화면에서 바로 걸리는 문제다.
+   * 요소 탭은 **그 요소에만** 적용되는 것이 예측 가능하므로, 배경 사진이 없을 때도
+   * 배경 피커로 넘기지 않는다. 배경은 배경(요소가 없는 자리) 탭이나 우측 상단 아이콘으로 고른다.
    */
-  const handleTapBackground = useCallback(() => {
-    void filmCard.pickPhoto();
-  }, [filmCard]);
-  const receiptTransform = useElementTransform({
+  const packingListTransform = useElementTransform({
     canvasWidth,
     canvasHeight,
-    elementWidth: receiptWidth,
-    enabled: filmCard.isElementOn(FilmCardElement.Receipt) && !busy,
-    resetKey: filmCard.getElementKey(FilmCardElement.Receipt),
+    elementWidth: packingListWidth,
+    enabled: filmCard.isElementOn(FilmCardElement.PackingList) && !busy,
+    resetKey: filmCard.getElementKey(FilmCardElement.PackingList),
     defaultCorner: FilmCardCorner.BottomRight,
-    ...(filmCard.hasPhoto() ? {} : { onTap: handleTapBackground }),
   });
 
   const transforms: Record<FilmCardElement, ElementTransform> = {
     [FilmCardElement.Polaroid]: polaroidTransform,
-    [FilmCardElement.Receipt]: receiptTransform,
+    [FilmCardElement.PackingList]: packingListTransform,
   };
 
   // 켠 순서대로 들어오므로 그대로 넘기면 나중에 켠 요소가 위에 그려진다(BS-7).
@@ -250,7 +245,7 @@ const BagFilmCardView: FC<Props> = ({ filmCard }) => {
   // 아니다). 꺼진 요소를 함께 되돌려도 어차피 다시 켜질 때 초기화되므로 구분하지 않는다.
   const handlePressReset = () => {
     polaroidTransform.handleReset();
-    receiptTransform.handleReset();
+    packingListTransform.handleReset();
   };
 
   const elementChips: FilmCardChipOption[] = ELEMENT_OPTIONS.map(option => ({
@@ -284,8 +279,8 @@ const BagFilmCardView: FC<Props> = ({ filmCard }) => {
           width={canvasWidth}
           height={canvasHeight}
           polaroidWidth={polaroidWidth}
-          receiptWidth={receiptWidth}
-          receiptItemLimit={RECEIPT_ITEM_LIMIT[ratio]}
+          packingListWidth={packingListWidth}
+          packingListItemLimit={PACKING_LIST_ITEM_LIMIT[ratio]}
           elements={canvasElements}
           onPressPhoto={handlePressPhoto}
         />

@@ -9,11 +9,11 @@ import {
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import BagFilmCard from '@/model/bag-film-card/BagFilmCard';
-import { SpecLabelItem } from '@/model/bag-film-card/SpecLabelItem';
+import { PackingListItem } from '@/model/bag-film-card/PackingListItem';
 
 interface Props {
   filmCard: BagFilmCard;
-  // 영수증 종이 폭(pt). 아래 치수는 **전부** 이 값에서 비례 계산한다 —
+  // 패킹리스트 종이 폭(pt). 아래 치수는 **전부** 이 값에서 비례 계산한다 —
   // 고정 pt를 쓰면 비율(4:5 ↔ 9:16)이나 핀치 배율이 바뀔 때 레이아웃이 무너진다(BS-8).
   width: number;
   // 본문에 싣는 장비 수(BS-8). 비율마다 다르며 넘치는 개수는 `+N MORE`로 표시된다.
@@ -21,10 +21,10 @@ interface Props {
 }
 
 /**
- * 영수증 종이 텍스처(BS-8). 옅은 구김이 이미 구워진 760×1600 오프화이트 이미지다.
+ * 패킹리스트 종이 텍스처(BS-8). 옅은 구김이 이미 구워진 760×1600 오프화이트 이미지다.
  * 종이 자체가 오프화이트라 배경색을 덧칠하지 않는다 — 덧칠하면 구김이 죽는다.
  */
-const PAPER_TEXTURE = require('@/assets/images/receipt-paper.jpg');
+const PAPER_TEXTURE = require('@/assets/images/packing-list-paper.jpg');
 
 /**
  * 종이 위 서체(BS-8) — **D2Coding 하나만 쓴다.**
@@ -35,7 +35,7 @@ const PAPER_TEXTURE = require('@/assets/images/receipt-paper.jpg');
  * `fontFamily`를 직접 지정한다.
  *
  * D2Coding은 라틴·한글을 같은 손으로 그린 고정폭이라 두 폰트를 섞을 이유가 없고
- * (`SpecLabelItem.hasKoreanBrand`는 이 뷰에서 쓰지 않는다), 숫자 폭이 일정해
+ * (`PackingListItem.hasKoreanBrand`는 이 뷰에서 쓰지 않는다), 숫자 폭이 일정해
  * 무게 우측 정렬이 정확히 떨어진다. 폰트 패밀리 문자열은 `app/_layout.tsx`
  * `useFonts`의 등록 키와 같다.
  */
@@ -94,15 +94,15 @@ const DASH_GAP_RATIO = 0.012;
 const DASH_THICKNESS_RATIO = 0.004;
 const MIN_DASH_THICKNESS = 1;
 
-// 장비명이 두 줄로 흘렀을 때 둘째 줄의 무게 자리에 찍는 표기(영수증 관례, BS-8).
+// 장비명이 두 줄로 흘렀을 때 둘째 줄의 무게 자리에 찍는 표기(패킹리스트 관례, BS-8).
 const CONTINUATION_MARK = '----';
 // 장비명은 두 줄까지만 허용한다. 세 줄부터는 종이가 세로로 무너진다.
 const MAX_NAME_LINES = 2;
 
-type ReceiptStyles = ReturnType<typeof createStyles>;
+type PackingListStyles = ReturnType<typeof createStyles>;
 
 // 상·중·하단 파선 구분선(BS-8).
-const DashedLineView: FC<{ styles: ReceiptStyles; count: number }> = ({
+const DashedLineView: FC<{ styles: PackingListStyles; count: number }> = ({
   styles,
   count,
 }) => (
@@ -122,10 +122,10 @@ const DashedLineView: FC<{ styles: ReceiptStyles; count: number }> = ({
  * 측정 결과에는 **측정 당시 조건(장비명·종이 폭)을 키로 함께 담아**, 조건이 바뀌면
  * 한 줄로 되돌아가 다시 측정되게 한다 — effect로 초기화하면 불필요한 연쇄 렌더가 생긴다.
  */
-const ReceiptItemView: FC<{
-  item: SpecLabelItem;
+const PackingListItemView: FC<{
+  item: PackingListItem;
   width: number;
-  styles: ReceiptStyles;
+  styles: PackingListStyles;
 }> = ({ item, width, styles }) => {
   const measureKey = `${item.name}|${width}`;
   const [measured, setMeasured] = useState<{
@@ -180,13 +180,13 @@ const ReceiptItemView: FC<{
 };
 
 /**
- * 영수증 요소(BS-8) — 사진 위에 얹는 **오프화이트 종이**다.
+ * 패킹리스트 요소(BS-8) — 사진 위에 얹는 **오프화이트 종이**다.
  *
  * 제목·날짜·장소·바코드는 넣지 않는다. 높이는 내용이 정하며(고정 높이 금지),
  * 종이를 띄우는 그림자는 캔버스(`BagFilmCardCanvasView`)가 종이 뒤에 그린다 —
  * `elevation`·`shadow*`는 Android 소프트웨어 캔버스 캡처에 찍히지 않는다.
  */
-const BagFilmCardSpecLabelView: FC<Props> = ({
+const BagFilmCardPackingListView: FC<Props> = ({
   filmCard,
   width,
   itemLimit,
@@ -200,7 +200,7 @@ const BagFilmCardSpecLabelView: FC<Props> = ({
     return Math.max(1, Math.floor((contentWidth + gap) / (segment + gap)));
   }, [width]);
 
-  const items = filmCard.getSpecLabelItems(itemLimit);
+  const items = filmCard.getPackingListItems(itemLimit);
   const hiddenCount = filmCard.getHiddenItemCount(itemLimit);
 
   return (
@@ -222,7 +222,7 @@ const BagFilmCardSpecLabelView: FC<Props> = ({
             key={`${item.name}-${index}`}
             style={index > 0 ? styles.itemSpacing : null}
           >
-            <ReceiptItemView item={item} width={width} styles={styles} />
+            <PackingListItemView item={item} width={width} styles={styles} />
           </View>
         ))}
         {hiddenCount > 0 ? (
@@ -346,4 +346,4 @@ const createStyles = (width: number) => {
   });
 };
 
-export default observer(BagFilmCardSpecLabelView);
+export default observer(BagFilmCardPackingListView);
