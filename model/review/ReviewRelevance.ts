@@ -8,9 +8,11 @@ const MIN_TOKEN_LENGTH = 2;
 
 // 사이즈·성별처럼 여러 장비에 공통으로 붙는 토큰. 이것만 맞아도 통과시키면
 // 제품이 다른 결과가 그대로 올라온다 — 필수 토큰에서 제외한다(GD-6).
+// **검색어(buildSearchPhrase)와 필수 토큰 판정이 공통으로 제외하는 집합**이다 —
+// 검색어에 사이즈·성별이 붙으면 검색이 과하게 좁아져 후보 자체가 사라진다.
 // 정규화를 거친 형태로 담아 두고 정규화된 토큰과 비교한다.
 // 1자 항목(`s`·`남` 등)은 위 길이 규칙이 이미 걸러내지만, 규칙이 바뀌어도 남도록 함께 적어 둔다.
-const GENERAL_TOKENS = new Set([
+const SIZE_AND_GENDER_TOKENS = new Set([
   'mens',
   'womens',
   '남',
@@ -30,6 +32,50 @@ const GENERAL_TOKENS = new Set([
   '세트',
 ]);
 
+// 카테고리·품목 명사. **필수 토큰 판정에서만 추가로 제외하고 검색어에는 그대로 남긴다** —
+// 검색어에서 빼면 `엑스패드 렘`처럼 품목이 사라진 문구가 되어 아무것도 찾지 못한다(회귀).
+// 판정에서 빼는 이유: 카테고리 명사만으로 판정하면 같은 품목의 **다른 제품**이 통과한다
+// (라이브 실측: `엑스패드 렘 필로우` 상세의 필수 토큰이 `["필로우"]`뿐이라
+// `엑스패드 딥슬립 필로우`·`랩 스트라토스피어 필로우`(타사)가 통과했다).
+// 모델명이 함께 있는 장비(`스텔라릿지 텐트`)는 모델명 토큰이 판정을 계속 담당한다(GD-6).
+const CATEGORY_TOKENS = new Set([
+  '필로우',
+  'pillow',
+  '텐트',
+  'tent',
+  '배낭',
+  '백팩',
+  'backpack',
+  '침낭',
+  '매트',
+  'mat',
+  'pad',
+  '파우치',
+  'pouch',
+  '체어',
+  'chair',
+  '스토브',
+  'stove',
+  '재킷',
+  '자켓',
+  'jacket',
+  '팬츠',
+  'pants',
+  '후디',
+  'hoody',
+  '셔츠',
+  'shirt',
+  '티셔츠',
+  '베스트',
+  'vest',
+  '슈즈',
+  'shoes',
+  '파카',
+  'parka',
+  '장갑',
+  'gloves',
+]);
+
 // 표기 차이로 같은 대상이 탈락하는 것을 막기 위해 양쪽을 같은 형태로 만든다
 // (`AMG-TITANIUM`/`amg titanium`, `X.Mid`/`xmid`, `헬리녹스·체어원`).
 // 아포스트로피(ASCII `'`·타이포그래픽 `’`)까지 지우는 이유: 카탈로그의 `men's`·`women's`가
@@ -39,14 +85,22 @@ const normalizeToken = (value: string): string => {
   return value.toLowerCase().replace(/[\s\-_·.'’]/g, '');
 };
 
+// 타입은 string이지만 Firestore 문서를 캐스팅으로 받는 경로가 있어 문자열이 아닌 값이 실제로 온다
+// (카탈로그 `gear/qsJalQ0oL4KtS1H6Klcm`의 `name`·`nameKorean`이 숫자 `2.5`). `!source` 가드만 두면
+// 숫자가 통과해 `source.split`에서 TypeError가 나고, 호출측 try/catch에 삼켜져 후기 섹션이
+// 조용히 사라진다(재시도도 없다). 문자열로 변환해 살리지 않고 건너뛴다 — 모델명이 `2.5`뿐인
+// 장비는 어차피 판정 근거가 못 된다.
+const isUsableSource = (source: string): boolean => {
+  return typeof source === 'string' && Boolean(source);
+};
+
 // 제품명·박지명처럼 여러 낱말로 이뤄진 값에서 필수 토큰을 뽑는다.
 // 낱말 단위로 쪼개는 이유는 제목이 이름 전체를 그대로 적지 않기 때문이다(`제로그램 엘찰텐 2.5p` → `엘찰텐`).
 export const buildRequiredTokens = (sources: string[]): string[] => {
   const tokens = new Set<string>();
 
   for (const source of sources) {
-    // 타입은 string이지만 Firestore 문서를 캐스팅으로 받는 경로가 있어 런타임 undefined가 올 수 있다.
-    if (!source) {
+    if (!isUsableSource(source)) {
       continue;
     }
 
@@ -57,7 +111,7 @@ export const buildRequiredTokens = (sources: string[]): string[] => {
         continue;
       }
 
-      if (GENERAL_TOKENS.has(token)) {
+      if (SIZE_AND_GENDER_TOKENS.has(token) || CATEGORY_TOKENS.has(token)) {
         continue;
       }
 
@@ -68,14 +122,13 @@ export const buildRequiredTokens = (sources: string[]): string[] => {
   return Array.from(tokens);
 };
 
-// 브랜드는 낱말로 쪼개지 않고 문자열 전체를 한 토큰으로 쓴다 — 쪼개면 `노스` 같은 조각이
-// 무관한 제목에 걸린다. 제품명 토큰이 전부 일반 토큰이라 비었을 때의 폴백 용도다(GD-6).
-export const buildBrandTokens = (sources: string[]): string[] => {
+// 값 하나를 낱말로 쪼개지 않고 공백까지 제거한 한 토큰으로 만든다(`렘 필로우` → `렘필로우`).
+// 폴백 두 단계(이름 전체·제조사)가 공유하는 구현이며, 두 단계는 의미가 달라 함수는 따로 둔다.
+const buildJoinedTokens = (sources: string[]): string[] => {
   const tokens = new Set<string>();
 
   for (const source of sources) {
-    // 타입은 string이지만 Firestore 문서를 캐스팅으로 받는 경로가 있어 런타임 undefined가 올 수 있다.
-    if (!source) {
+    if (!isUsableSource(source)) {
       continue;
     }
 
@@ -89,6 +142,19 @@ export const buildBrandTokens = (sources: string[]): string[] => {
   }
 
   return Array.from(tokens);
+};
+
+// 필수 토큰 폴백 ②(GD-6): 장비명 전체를 공백 없이 이어 붙인 토큰.
+// 낱말 토큰이 비는 이유는 `렘`처럼 1자 고유 모델명이 길이 규칙에 걸려 버려지고 나머지가
+// 카테고리 명사뿐이기 때문이다 — 이름을 이어 붙이면 고유성이 되살아난다.
+export const buildWholeNameTokens = (sources: string[]): string[] => {
+  return buildJoinedTokens(sources);
+};
+
+// 필수 토큰 폴백 ③(GD-6): 브랜드는 낱말로 쪼개지 않고 문자열 전체를 한 토큰으로 쓴다 —
+// 쪼개면 `노스` 같은 조각이 무관한 제목에 걸린다. 이름 폴백(②)까지 비었을 때만 쓴다.
+export const buildBrandTokens = (sources: string[]): string[] => {
+  return buildJoinedTokens(sources);
 };
 
 // 항목 제목에 필수 토큰이 하나라도 들어 있는지 본다. 요약·설명은 보지 않는다 —
@@ -119,14 +185,18 @@ export const matchesRequiredTokens = (
 // 길이 규칙(MIN_TOKEN_LENGTH)은 적용하지 않는다 — 모델 번호처럼 1자인 낱말(`에어로라이트 2`의 `2`)이
 // 빠지면 `2`와 `3`이 구분되지 않아 다른 모델의 후기가 섞인다. 길이 규칙은 필수 토큰 판정 전용이다(GD-6).
 export const buildSearchPhrase = (name: string): string => {
-  // 타입은 string이지만 Firestore 문서를 캐스팅으로 받는 경로가 있어 런타임 undefined가 올 수 있다.
-  if (!name) {
+  // 카탈로그에 `name`이 숫자인 문서가 실제로 있어(위 isUsableSource 주석) 문자열 여부까지 본다.
+  if (!isUsableSource(name)) {
     return '';
   }
 
+  // 카테고리 명사(CATEGORY_TOKENS)는 빼지 않는다 — 검색어에서 `필로우`·`텐트`가 사라지면
+  // `엑스패드 렘`처럼 품목 없는 문구가 되어 후보를 못 찾는다. 판정 전용 집합과 구분한다.
   const words = name
     .split(/\s+/)
-    .filter(word => Boolean(word) && !GENERAL_TOKENS.has(normalizeToken(word)));
+    .filter(
+      word => Boolean(word) && !SIZE_AND_GENDER_TOKENS.has(normalizeToken(word))
+    );
 
   // 낱말이 전부 일반 토큰이면 검색어에 제조사만 남아 아무 결과도 찾지 못한다 — 원문을 그대로 쓴다.
   if (words.length === 0) {
