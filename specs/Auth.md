@@ -1,16 +1,16 @@
-# 인증 / 계정 (로그인 · 약관 · 정보 탭 · 탈퇴 · 웹뷰)
+# 인증 / 계정 (로그인 · 약관 · 정보 탭 · 탈퇴)
 
 | 항목 | 내용 |
 | --- | --- |
 | 상태 | as-built (2026-06-10 코드 기준) |
 | ID 프리픽스 | `AU` |
-| 주요 코드 | `model/firebase/Firebase.ts`, `components/login/`, `model/login/`, `app/terms-agreement/`, `app/(tabs)/info.tsx`, `app/info/delete/`, `components/webview/`, `model/webview/` |
+| 주요 코드 | `model/firebase/Firebase.ts`, `components/login/`, `model/login/`, `app/terms-agreement/`, `app/(tabs)/info.tsx`, `app/info/delete/` |
 | 관련 스펙 | [DataModel.md](DataModel.md), [AppLifecycle.md](AppLifecycle.md) |
 
 ## 1. 개요
 
-Firebase Auth 기반 인증(Google/Apple/Email), 약관 동의 강제, 정보 탭(계정 관리), 회원 탈퇴,
-그리고 웹(useless.my)과의 웹뷰 브릿지를 다룬다.
+Firebase Auth 기반 인증(Google/Apple/Email), 약관 동의 강제, 정보 탭(계정 관리), 회원 탈퇴를 다룬다.
+웹뷰 브릿지는 2026-07-28 폐기됐다(AU-6).
 
 ## 2. 화면 및 진입
 
@@ -73,14 +73,9 @@ Firebase Auth 기반 인증(Google/Apple/Email), 약관 동의 강제, 정보 �
 - 기타 실패: `회원 탈퇴 중 오류가 발생했습니다. 다시 시도해주세요.`
 - 완료: `회원 탈퇴 완료` 알럿 후 `/`로 이동.
 
-### AU-6 웹뷰 브릿지
+### AU-6 웹뷰 브릿지 `[폐기]`
 
-**수용 기준**
-
-- 웹 페이지에는 `window.NativeBridge`가 주입된다: `closeWebView` / `navigate(url)` / `updateData(data)` / `navigateToLogin` / `reportError` / `sendCustomMessage`.
-- 네이티브 측 `WebViewManager`가 메시지를 처리한다: `CLOSE_WEBVIEW`→back, `NAVIGATE`→push, `UPDATE_DATA`→콜백, `NAVIGATE_TO_LOGIN`→전역 로그인 모달(`LogInAlertManager.show()`) 표시, `PAGE_LOADED`/`ERROR`→로그.
-- 로그인 웹뷰(`WebViewWrapper`): 마운트 시 토큰 갱신(`refreshTokens`) 후 `?token={idToken}&accessToken={accessToken}` 쿼리로 로드. 토큰 준비 전에는 웹뷰를 렌더하지 않는다.
-- 비로그인 웹뷰(`NotLogInWebViewWrapper`): 즉시 로드하고, 토큰이 있으면 `AUTH_TOKENS` 메시지를 JS로 주입한다.
+**2026-07-28 폐기.** 검색이 네이티브로 전환되면서 웹뷰 진입점이 사라졌고, 라우트 등록만 남은 죽은 코드였다(`/not-login-search`로 이동하는 코드가 앱에 하나도 없었다). `app/not-login-search/`·`components/webview/`·`model/webview/`를 모두 제거했다. 웹(`useless.my`)과의 브릿지 계약(`window.NativeBridge`, `AUTH_TOKENS` 주입 등)도 함께 폐기된다 — 다시 필요해지면 이 절을 새로 쓸 것.
 
 ### AU-7 로그인 상태 전파
 
@@ -126,8 +121,6 @@ AU-1 표 참조. 추가로: 토큰 갱신은 네이티브 `GoogleSignin.getToken
 - [ ] 약관 동의 후 재실행 → 리다이렉트 없음
 - [ ] 닉네임 변경 → 댓글 작성자명에 반영
 - [ ] 탈퇴(Google/Apple) → 재인증 취소 시 계정 유지, 완료 시 배낭·장비·좋아요 문서가 모두 삭제되고 재로그인하면 신규 사용자로 생성
-- [ ] 웹뷰에서 `NAVIGATE_TO_LOGIN` → 로그인 모달 표시
-- [ ] 웹뷰 검색에서 닫기/내비게이션 브릿지 동작
 
 ## 8. 미해결 질문
 
