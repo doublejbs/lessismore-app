@@ -11,7 +11,13 @@ import BagItem from '../bag/BagItem';
 import CampSiteDetailDispatcher from './CampSiteDetailDispatcher';
 import CampFavoriteStore from '../store/CampFavoriteStore';
 import { CampSpot } from './CampSpotTypes';
-import { BlogReview, REVIEW_CACHE_TTL_MS, VideoReview } from '../review/ReviewTypes';
+import {
+  BlogReview,
+  getUsableReviewCache,
+  REVIEW_CACHE_TTL_MS,
+  REVIEW_QUERY_VERSION,
+  VideoReview,
+} from '../review/ReviewTypes';
 import { CampReview, CampReviewSummary } from '../camp-review/CampReviewTypes';
 import { setCampReviewWrite } from '../camp-review/CampReviewWriteHandoff';
 import { setPendingBagLocation } from '../bag/PendingBagLocationHandoff';
@@ -91,7 +97,7 @@ class CampSiteDetail {
   }
 
   // 박지 후기·영상(CS-3). Firestore 공유 캐시(DM-18)를 먼저 표시하고,
-  // 7일이 지났거나 캐시가 없으면 외부 검색 API로 재조회해 최신화한다.
+  // 7일이 지났거나 캐시가 없거나 queryVersion이 현재보다 낮으면 외부 검색 API로 재조회해 최신화한다.
   // 재조회 실패 시 기존 캐시를 그대로 유지하고(가용성 우선), 캐시도 갱신하지 않는다.
   private async loadReviewContent(spot: CampSpot) {
     try {
@@ -101,12 +107,15 @@ class CampSiteDetail {
         return null;
       });
 
-      if (cached) {
-        this.setReviews(cached.reviews ?? []);
-        this.setVideos(cached.videos ?? []);
+      // 옛 규칙으로 담긴 캐시는 이미 부적합으로 판정된 결과라 표시하지 않고 재조회한다(DM-18).
+      const usableCache = getUsableReviewCache(cached);
+
+      if (usableCache) {
+        this.setReviews(usableCache.reviews ?? []);
+        this.setVideos(usableCache.videos ?? []);
       }
 
-      const cachedAt = cached ? Date.parse(cached.updatedAt) : NaN;
+      const cachedAt = usableCache ? Date.parse(usableCache.updatedAt) : NaN;
       const isFresh =
         Number.isFinite(cachedAt) &&
         Date.now() - cachedAt < REVIEW_CACHE_TTL_MS;
@@ -116,13 +125,14 @@ class CampSiteDetail {
       }
 
       const [reviews, videos] = await Promise.all([
-        this.dispatcher.getReviews(spot.name),
-        this.dispatcher.getVideos(spot.name),
+        // 검색어에 지역을 붙이려면 박지명만으로는 부족해 박지 전체를 넘긴다(CS-3).
+        this.dispatcher.getReviews(spot),
+        this.dispatcher.getVideos(spot),
       ]);
 
-      // null = 해당 소스 조회 실패 → 캐시된 값(없으면 빈 배열)을 유지한다.
-      this.setReviews(reviews ?? cached?.reviews ?? []);
-      this.setVideos(videos ?? cached?.videos ?? []);
+      // null = 해당 소스 조회 실패 → 같은 규칙으로 담긴 캐시가 있으면 그 값을 유지한다.
+      this.setReviews(reviews ?? usableCache?.reviews ?? []);
+      this.setVideos(videos ?? usableCache?.videos ?? []);
 
       // 두 소스 모두 성공했을 때만 저장 — 실패 결과로 공유 캐시를 오염시키지 않는다(DM-18).
       if (reviews !== null && videos !== null) {
@@ -131,6 +141,7 @@ class CampSiteDetail {
             reviews,
             videos,
             updatedAt: new Date().toISOString(),
+            queryVersion: REVIEW_QUERY_VERSION,
           })
           .catch(e => {
             console.error('박지 후기 캐시 저장 실패:', e);
