@@ -21,6 +21,7 @@ import {
 import { CampReview, CampReviewSummary } from '../camp-review/CampReviewTypes';
 import { setCampReviewWrite } from '../camp-review/CampReviewWriteHandoff';
 import { setPendingBagLocation } from '../bag/PendingBagLocationHandoff';
+import { getCampShareUrl } from '@/constants/WebLinks';
 
 // 박지 상세 도메인 모델 (CampSite CS-3/CS-4/CS-5).
 // 3단 래퍼(라우트 → Wrapper → View) 중 상태·비즈니스 로직을 담당한다.
@@ -364,7 +365,7 @@ class CampSiteDetail {
   }
 
   // 공유(CS-7): 박지 웹 랜딩 URL을 OS 공유 시트로 내보낸다.
-  // 랜딩(useless.my/camp-share/{id})에서 앱으로 딥링크(lessismoreapp://camp-site/{id})된다.
+  // 랜딩(WEB_BASE_URL/camp-share/{id})에서 앱으로 딥링크(lessismoreapp://camp-site/{id})된다.
   public async share() {
     const spot = this.spot;
 
@@ -376,7 +377,7 @@ class CampSiteDetail {
 
     // 문서 id에 콜론(예: curated:seokseongsan)이 들어가 있다. 메신저의 URL 자동 링크화가
     // 콜론에서 끊겨 링크가 깨지므로 퍼센트 인코딩(%3A)한다 — 웹 랜딩(React Router)이 복원한다.
-    const url = `https://useless.my/camp-share/${encodeURIComponent(spot.id)}`;
+    const url = getCampShareUrl(spot.id);
 
     try {
       // URL만 공유한다 — 이름 등 텍스트를 붙이면 '복사' 시 URL이 아닌 문자열이 복사돼

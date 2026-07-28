@@ -93,7 +93,7 @@
 
 **수용 기준**
 
-- 공유 버튼 → **네이티브 formSheet**(`/bag-share`, 배낭 생성/복사/정보수정 시트와 동일한 UI 언어) → 공유 시 `bag.shared = true`로 갱신하고 `https://useless.my/bag-share/{bagId}` 링크를 클립보드에 복사한다. 시트는 공유 상태를 관찰(observer)해 공유 중이면 링크 행 + `공유 취소`를 표시한다. BagDetail 인스턴스는 `BagShareHandoff` 모듈로 전달한다.
+- 공유 버튼 → **네이티브 formSheet**(`/bag-share`, 배낭 생성/복사/정보수정 시트와 동일한 UI 언어) → 공유 시 `bag.shared = true`로 갱신하고 `{웹 베이스}/bag-share/{bagId}` 링크를 클립보드에 복사한다(웹 베이스는 `constants/WebLinks.ts`의 `WEB_BASE_URL` 단일 소스 — 2026-07-28 `useless.my` → `https://lessismore-7e070.web.app`). 시트는 공유 상태를 관찰(observer)해 공유 중이면 링크 행 + `공유 취소`를 표시한다. BagDetail 인스턴스는 `BagShareHandoff` 모듈로 전달한다.
 - 공유 해제 시 `shared = false`.
 - 공유 조회(`BagStore.getSharedBag`)는 `shared === true`를 확인하고, 아니면 `공유되지 않은 배낭입니다.` 알럿을 띄운다. 장비는 `bag.userId` 경로의 `users/{userId}/gears`에서 읽는다.
 

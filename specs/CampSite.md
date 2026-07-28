@@ -140,7 +140,7 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
 
 **수용 기준**
 
-- 상세 헤더 우측에 **공유 아이콘 버튼**(지도 열기 버튼 왼쪽). 탭 → OS 공유 시트(`Share.share`)로 URL `https://useless.my/camp-share/{encodeURIComponent(spotId)}`**만** 내보낸다(문서 id의 콜론은 메신저 자동 링크화가 끊기지 않게 `%3A`로 인코딩 — 웹 랜딩이 복원)(이름 등 텍스트를 붙이면 '복사' 시 URL이 아닌 문자열이 복사돼 링크로 동작하지 않음).
+- 상세 헤더 우측에 **공유 아이콘 버튼**(지도 열기 버튼 왼쪽). 탭 → OS 공유 시트(`Share.share`)로 URL `{웹 베이스}/camp-share/{encodeURIComponent(spotId)}`**만** 내보낸다(웹 베이스는 `constants/WebLinks.ts`의 `WEB_BASE_URL` 단일 소스 — 2026-07-28 `useless.my` → `https://lessismore-7e070.web.app`)(문서 id의 콜론은 메신저 자동 링크화가 끊기지 않게 `%3A`로 인코딩 — 웹 랜딩이 복원)(이름 등 텍스트를 붙이면 '복사' 시 URL이 아닌 문자열이 복사돼 링크로 동작하지 않음).
 - 공유 클릭을 `click_camp_site_share`로 계측한다([Analytics.md](Analytics.md) AN-3).
 - **웹 랜딩**(별도 레포 `lessismore`, `/camp-share/:id`): Firestore `/camp-spot/{id}`(공개 읽기)를 읽어 이름·유형·지역·사진·설명·주의를 보여주고, **`앱에서 보기`** 버튼으로 `lessismoreapp://camp-site/{id}` 딥링크(미설치 시 스토어 폴백)로 앱을 연다. Universal Link는 쓰지 않는다(웹 랜딩을 먼저 보여주는 의도).
 
