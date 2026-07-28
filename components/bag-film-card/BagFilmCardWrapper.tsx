@@ -1,5 +1,4 @@
 import { FC, useEffect, useState } from 'react';
-import { Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import Layout from '@/components/Layout';
@@ -11,8 +10,16 @@ import {
   getBagFilmCardContext,
 } from '@/model/bag-film-card/BagFilmCardHandoff';
 
-// LG-1: iOS는 네이티브 투명 헤더가 상단을 덮으므로 top 세이프에어리어를 빼 이중 인셋을 막는다.
-const IOS_EDGES = ['left', 'right', 'bottom'] as const;
+/**
+ * 세이프에어리어 패딩을 Layout에 맡기지 않는다(BS-10).
+ *
+ * 카드 프리뷰가 화면을 가장자리까지 꽉 채워야 하고, 떠 있는 컨트롤만 인셋 안쪽에 놓이면
+ * 된다 — 인셋 처리는 오버레이가 `useSafeAreaInsets()`로 직접 한다.
+ */
+const NO_EDGES = [] as const;
+
+// 하단에 떠 있는 CTA·칩 묶음(약 190pt) 위로 토스트를 올려 컨트롤을 가리지 않게 한다.
+const TOAST_BOTTOM = 200;
 
 const BagFilmCardWrapper: FC = () => {
   const router = useRouter();
@@ -41,11 +48,7 @@ const BagFilmCardWrapper: FC = () => {
   }
 
   return (
-    <Layout
-      paddingHorizontal={0}
-      edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
-      toastBottom={140}
-    >
+    <Layout paddingHorizontal={0} edges={NO_EDGES} toastBottom={TOAST_BOTTOM}>
       <BagFilmCardView filmCard={filmCard} />
     </Layout>
   );

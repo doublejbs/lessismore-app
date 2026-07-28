@@ -46,6 +46,11 @@ const RootLayout = () => {
     // 필름 카드 캡션 손글씨(BS-3) — 라틴·숫자·한글을 이 폰트 하나로 렌더한다.
     // 미래나무는 Google Fonts 패키지가 아니라 번들한 로컬 TTF다(assets/fonts/LICENSE-Nanum.txt).
     NanumMiRaeNaMu: require('../assets/fonts/NanumMiRaeNaMu.ttf'),
+    // 필름 카드 패킹리스트 템플릿(BS-8) — 라틴·한글을 같은 손으로 그린 고정폭이라 이 폰트
+    // 하나로 종이 전체를 렌더한다. 네이버 D2Coding 1.3.2 서브셋, OFL 1.1
+    // (assets/fonts/LICENSE-D2Coding.txt). 폰트 패밀리 문자열이 이 등록 키다.
+    D2Coding: require('../assets/fonts/D2Coding-Regular.ttf'),
+    D2CodingBold: require('../assets/fonts/D2Coding-Bold.ttf'),
   });
   const firebase = app.getFirebase();
   const isInitialized = app.isInitialized();
