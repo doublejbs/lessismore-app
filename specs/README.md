@@ -11,8 +11,8 @@
 | 스펙 | ID 프리픽스 | 범위 |
 | --- | --- | --- |
 | [Warehouse.md](Warehouse.md) | `WH` | 창고 탭 — 장비 목록 / 정렬 / 필터 / 삭제 |
-| [GearEdit.md](GearEdit.md) | `GE` | 장비 추가(커스텀) / 편집 / 이미지 업로드 |
-| [GearDetail.md](GearDetail.md) | `GD` | 장비 상세 — 정보 / 배낭 기록 / 공유 이미지 갤러리 |
+| [GearEdit.md](GearEdit.md) | `GE` | 장비 추가(커스텀) / 편집 |
+| [GearDetail.md](GearDetail.md) | `GD` | 장비 상세 — 정보 / 배낭 기록 / 리뷰·외부 후기 |
 | [Reply.md](Reply.md) | `RP` | 장비 리뷰 — 댓글 / 답글 / 좋아요 |
 | [Bag.md](Bag.md) | `BAG` | 배낭 탭 — 목록 / 생성 / 삭제 |
 | [BagDetail.md](BagDetail.md) | `BD` | 배낭 상세 / 편집 / 메모 / 사용 여부 기록 / 링크 공유 |
