@@ -23,7 +23,7 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
       accessibilityRole='button'
       accessibilityLabel='배낭 정보 수정'
     >
-      <PretendardText style={styles.nameText} weight='bold'>
+      <PretendardText style={styles.nameText} weight='bold' numberOfLines={2}>
         {bagDetail.getName()}
       </PretendardText>
       <Ionicons name='pencil' size={15} color={Color.textSecondary} />
@@ -34,6 +34,10 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
 const styles = StyleSheet.create({
   nameContainer: {
     alignSelf: 'flex-start',
+    // alignSelf: flex-start면 컨테이너가 콘텐츠 크기로 잡혀 부모 폭을 넘어서고,
+    // 그 안에서는 자식이 넘치지 않으니 nameText의 flexShrink가 발동하지 않는다.
+    // 폭을 부모로 제한해야 텍스트가 줄어들고 연필이 화면 안에 남는다.
+    maxWidth: '100%',
     alignItems: 'center',
     justifyContent: 'flex-start',
     flexDirection: 'row',
@@ -43,7 +47,10 @@ const styles = StyleSheet.create({
   },
   nameText: {
     fontSize: 28,
+    // 2줄까지 늘어나므로 한글 받침이 잘리지 않게 줄 간격을 명시한다.
+    lineHeight: 36,
     color: Color.textPrimary,
+    flexShrink: 1,
   },
 });
 
