@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | as-built (2026-07-07 구현) · **2026-07-28 개정 `[제안]`**: 장비 이미지 미제공([DataModel.md](DataModel.md) §1) — 텍스트 카드 개편(FD-2), 이미지 제외 규칙 삭제(FD-1) |
+| 상태 | as-built (2026-07-07 구현) · **2026-07-28 개정(as-built)**: 장비 이미지 미제공([DataModel.md](DataModel.md) §1) — 텍스트 카드 개편(FD-2), 이미지 제외 규칙 삭제(FD-1) |
 | ID 프리픽스 | `FD` |
 | 주요 코드 | `model/feed/`, `components/feed/`(`FeedView`·`FeedCardView`·`FeedFilterButtonView`·`FeedFilterSheetView`·`PopularRankingWrapper`), `app/popular-ranking/`(인기 순위 라우트), `components/search/SearchTopKeywordsView.tsx`(인기 순위 화면 재사용), `components/search/SearchResultView.tsx`(키워드 빈 상태에서 피드 렌더) |
 | 관련 스펙 | [Search.md](Search.md), [DataModel.md](DataModel.md), [GearDetail.md](GearDetail.md), [Analytics.md](Analytics.md) |
@@ -31,7 +31,7 @@
   2. **관심 브랜드** — 창고 브랜드 분포 상위 2개 브랜드의 장비 (인기순, companyKorean·company OR facet)
   3. **전체 인기** — count desc
   4. **신제품** — createDate desc
-- **제외 규칙**: 내 창고에 이미 있는 장비, 중복(같은 id는 1회). (구 `imageUrl` 유효성 제외는 장비 이미지 미제공 원칙([DataModel.md](DataModel.md) §1)으로 삭제 `[제안]` — 카탈로그 전체가 피드 후보가 된다.)
+- **제외 규칙**: 내 창고에 이미 있는 장비, 중복(같은 id는 1회). (구 `imageUrl` 유효성 제외는 장비 이미지 미제공 원칙([DataModel.md](DataModel.md) §1)으로 삭제 — 카탈로그 전체가 피드 후보가 된다.)
 - **콜드스타트**(비로그인 또는 창고 비어 있음): 버킷 3+4만으로 구성(비율 6:4).
 - 버킷 소싱은 Algolia 정렬 replica + facet을 사용한다. 각 버킷은 자신의 다음 페이지를 `Promise.all`로 병렬 요청하며(큐가 비었고 페이지가 남은 버킷만), 버킷별 페이지를 독립 진행해 무한 스크롤을 지원한다. 요청 경합은 요청 토큰(`requestId`)으로 방어해 늦게 도착한 이전 요청 결과를 폐기한다.
 - **셔플**: 새로고침 시점의 시드로 인터리브 순서를 흔들되, 스크롤 중에는 순서가 바뀌지 않는다(세션 내 안정).
@@ -42,7 +42,7 @@
 **수용 기준**
 
 - 피드는 **2컬럼 그리드**로 표시한다(`FlatList numColumns={2}`, 컬럼 간 균등 간격). 마지막 홀수 카드는 좌측 정렬(빈 칸 우측).
-- **텍스트 카드** `[제안]` — 장비 이미지 미제공 원칙([DataModel.md](DataModel.md) §1)에 따라 이미지 없이 카드 면을 만든다: 카드 배경 `inputBg` + radius 8의 텍스트 블록. 구성(위→아래): 브랜드(`Gear.getDisplayCompany()`, 작게 `textSecondary`) → 이름(`getDisplayName()`, 2줄까지) → **무게(`n g`)가 카드의 시각 앵커**(카드에서 가장 큰 활자 — 이미지가 하던 위계를 무게가 대신한다). 카드 높이는 콘텐츠 기준(정방형 강제 없음), 그리드 리듬은 카드 면(배경)이 유지한다.
+- **텍스트 카드** — 장비 이미지 미제공 원칙([DataModel.md](DataModel.md) §1)에 따라 이미지 없이 카드 면을 만든다: 카드 배경 `inputBg` + radius 8의 텍스트 블록. 구성(위→아래): 브랜드(`Gear.getDisplayCompany()`, 작게 `textSecondary`) → 이름(`getDisplayName()`, 2줄까지) → **무게(`n g`)가 카드의 시각 앵커**(카드에서 가장 큰 활자 — 이미지가 하던 위계를 무게가 대신한다). 카드 높이는 콘텐츠 기준(정방형 강제 없음), 그리드 리듬은 카드 면(배경)이 유지한다.
 - **창고 담기 CTA**: 카드 우상단 원형 버튼(2컬럼에 맞게 크기 축소하되 터치 타깃 확보). 기존 SR-2/SR-3 규칙 재사용 — 미보유 `+` → 창고 등록 + 배낭 담기 모달, 보유 체크 배지 → 제거 경고. 비로그인 `+` → 로그인 모달.
 - `coupangUrl`이 있는 장비는 카드 하단에 **`쿠팡 최저가 ›`**(2컬럼 폭에 맞춘 축약 라벨) 텍스트 링크 노출. 수수료 고지는 카드마다 반복하지 않고 피드 화면 하단/최초 1회 등 공간 효율적으로 처리(GD-5 고지 취지 유지).
 - 카드 탭 → `/gear-detail/{id}`.

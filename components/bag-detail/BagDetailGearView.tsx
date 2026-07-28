@@ -156,9 +156,11 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
             >
               {gear.getDisplayName()}
             </PretendardText>
-            <PretendardText style={styles.colorText}>
-              {gear.getColor()}
-            </PretendardText>
+            {gear.getColor() ? (
+              <PretendardText style={styles.colorText}>
+                {gear.getColor()}
+              </PretendardText>
+            ) : null}
             <PretendardText style={styles.weightText} weight='bold'>
               {gear.getWeight()}g
             </PretendardText>
