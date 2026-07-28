@@ -141,7 +141,9 @@ const GearRow: FC<GearRowProps> = ({ gear }) => {
           {gear.getDisplayName()}
         </PretendardText>
         {company ? (
-          <PretendardText style={styles.gearCompany}>{company}</PretendardText>
+          <PretendardText style={styles.gearCompany} weight='semibold'>
+            {company}
+          </PretendardText>
         ) : null}
       </View>
 
@@ -227,9 +229,11 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     color: Color.textPrimary,
   },
+  // 브랜드는 이름(gearName)과 동일한 타이포로 표시한다.
   gearCompany: {
-    fontSize: 13,
-    color: Color.textSecondary,
+    fontSize: 15,
+    lineHeight: 19,
+    color: Color.textPrimary,
   },
   gearWeight: {
     fontSize: 15,

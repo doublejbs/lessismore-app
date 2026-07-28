@@ -106,8 +106,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     gap: 7,
   },
+  // 브랜드는 이름과 동일한 타이포라 바 높이도 nameBar와 같게 둔다.
   companyBar: {
-    height: 10,
+    height: 14,
     width: 60,
     backgroundColor: '#E0E0E0',
     borderRadius: 2,

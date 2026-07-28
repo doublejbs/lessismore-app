@@ -248,8 +248,9 @@ const styles = StyleSheet.create({
   gearInfoInner: {
     gap: 7,
   },
+  // 브랜드는 이름과 동일한 타이포라 바 높이도 productPlaceholder와 같게 둔다.
   companyPlaceholder: {
-    height: 10,
+    height: 14,
     width: 60,
     backgroundColor: '#E5E7EB',
     borderRadius: 2,
