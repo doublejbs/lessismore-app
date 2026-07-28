@@ -14,6 +14,7 @@ import { ImperativeRouter } from 'expo-router';
 import BagWeather from '@/model/bag/BagWeather';
 import { BagActivitySummary } from '@/model/bag/BagActivitySummary';
 import { setBagInfoEditContext } from '@/model/bag-detail/BagInfoEditHandoff';
+import { getBagShareUrl } from '@/constants/WebLinks';
 
 class BagDetail {
   public static readonly ORDER_KEY = 'bag';
@@ -484,9 +485,7 @@ class BagDetail {
   }
 
   public getUrl() {
-    // React Native에서는 환경변수나 상수를 사용
-    const baseUrl = 'https://useless.my';
-    return `${baseUrl}/bag-share/${this.id}`;
+    return getBagShareUrl(this.id);
   }
 
   public setActiveFilterByCategory(categoryFilter: GearFilter) {

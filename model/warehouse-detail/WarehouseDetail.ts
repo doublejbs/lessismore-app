@@ -18,6 +18,7 @@ import SearchDispatcher from '../search/SearchDispatcher';
 import Order from '../order/Order';
 import Warehouse from '../warehouse/Warehouse';
 import BagDetail from '../bag-detail/BagDetail';
+import { getGearShareUrl } from '@/constants/WebLinks';
 import reviewSearchService from '../review/ReviewSearchService';
 import {
   BlogReview,
@@ -265,7 +266,7 @@ class WarehouseDetail {
   }
 
   // 공유(GD-7): 장비 웹 랜딩 URL을 OS 공유 시트로 내보낸다(카탈로그 장비만).
-  // 랜딩(useless.my/gear-share/{id})에서 앱으로 딥링크(lessismoreapp://gear-detail/{id})된다.
+  // 랜딩(WEB_BASE_URL/gear-share/{id})에서 앱으로 딥링크(lessismoreapp://gear-detail/{id})된다.
   public async share() {
     const gear = this.getGear();
 
@@ -275,7 +276,7 @@ class WarehouseDetail {
 
     app.getAnalyticsManager()?.logClick('gear_share');
 
-    const url = `https://useless.my/gear-share/${encodeURIComponent(gear.getId())}`;
+    const url = getGearShareUrl(gear.getId());
 
     try {
       // URL만 공유 — 텍스트를 붙이면 '복사' 시 링크로 동작하지 않는다(CS-7과 동일).
