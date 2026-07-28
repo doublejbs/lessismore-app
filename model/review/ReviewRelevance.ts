@@ -85,17 +85,59 @@ const normalizeToken = (value: string): string => {
   return value.toLowerCase().replace(/[\s\-_·.'’]/g, '');
 };
 
-// 타입은 string이지만 Firestore 문서를 캐스팅으로 받는 경로가 있어 문자열이 아닌 값이 실제로 온다
+// 호출측 타입은 string이지만 Firestore 문서를 캐스팅으로 받는 경로가 있어 문자열이 아닌 값이 실제로 온다
 // (카탈로그 `gear/qsJalQ0oL4KtS1H6Klcm`의 `name`·`nameKorean`이 숫자 `2.5`). `!source` 가드만 두면
 // 숫자가 통과해 `source.split`에서 TypeError가 나고, 호출측 try/catch에 삼켜져 후기 섹션이
 // 조용히 사라진다(재시도도 없다). 문자열로 변환해 살리지 않고 건너뛴다 — 모델명이 `2.5`뿐인
-// 장비는 어차피 판정 근거가 못 된다.
-const isUsableSource = (source: string): boolean => {
+// 장비는 어차피 판정 근거가 못 된다. `unknown`을 받는 타입 가드로 두는 이유: 시그니처가 string이면
+// 런타임에 비문자열이 온다는 계약이 코드에 드러나지 않고, 호출측 좁히기도 동작하지 않는다.
+const isUsableSource = (source: unknown): source is string => {
   return typeof source === 'string' && Boolean(source);
 };
 
-// 제품명·박지명처럼 여러 낱말로 이뤄진 값에서 필수 토큰을 뽑는다.
-// 낱말 단위로 쪼개는 이유는 제목이 이름 전체를 그대로 적지 않기 때문이다(`제로그램 엘찰텐 2.5p` → `엘찰텐`).
+// 이름 하나에서 낱말 토큰을 뽑는다. 낱말 단위로 쪼개는 이유는 제목이 이름 전체를 그대로
+// 적지 않기 때문이다(`제로그램 엘찰텐 2.5p` → `엘찰텐`).
+const buildWordTokens = (source: string): string[] => {
+  const tokens: string[] = [];
+
+  for (const word of source.split(/\s+/)) {
+    const token = normalizeToken(word);
+
+    if (token.length < MIN_TOKEN_LENGTH) {
+      continue;
+    }
+
+    if (SIZE_AND_GENDER_TOKENS.has(token) || CATEGORY_TOKENS.has(token)) {
+      continue;
+    }
+
+    tokens.push(token);
+  }
+
+  return tokens;
+};
+
+// 이름 하나를 낱말로 쪼개지 않고 공백까지 제거한 한 토큰으로 만든다(`렘 필로우` → `렘필로우`).
+// 사이즈·성별 낱말은 여기서도 뺀다 — 제목에는 사이즈가 안 적히므로 남겨 두면 이어 붙인 토큰이
+// 제목과 어긋나 전량 탈락한다(라이브 실측 `콕 파우치 - S` → `콕파우치s`는 `콕 파우치 후기`에 안 걸린다).
+// 카테고리 명사는 반대로 남긴다 — 빼면 `콕`처럼 1자만 남아 고유성이 사라진다.
+// 길이 규칙에 걸리는 값은 판정 근거가 못 되므로 빈 문자열로 돌려준다.
+const buildWholeNameToken = (source: string): string => {
+  const token = source
+    .split(/\s+/)
+    .filter(word => !SIZE_AND_GENDER_TOKENS.has(normalizeToken(word)))
+    .map(word => normalizeToken(word))
+    .join('');
+
+  if (token.length < MIN_TOKEN_LENGTH) {
+    return '';
+  }
+
+  return token;
+};
+
+// 제품명·박지명처럼 여러 낱말로 이뤄진 값에서 필수 토큰(낱말 토큰)을 뽑는다.
+// 박지(CS-3)는 이름이 하나뿐이라 폴백 없이 이 규칙만 쓴다.
 export const buildRequiredTokens = (sources: string[]): string[] => {
   const tokens = new Set<string>();
 
@@ -104,17 +146,7 @@ export const buildRequiredTokens = (sources: string[]): string[] => {
       continue;
     }
 
-    for (const word of source.split(/\s+/)) {
-      const token = normalizeToken(word);
-
-      if (token.length < MIN_TOKEN_LENGTH) {
-        continue;
-      }
-
-      if (SIZE_AND_GENDER_TOKENS.has(token) || CATEGORY_TOKENS.has(token)) {
-        continue;
-      }
-
+    for (const token of buildWordTokens(source)) {
       tokens.add(token);
     }
   }
@@ -122,9 +154,48 @@ export const buildRequiredTokens = (sources: string[]): string[] => {
   return Array.from(tokens);
 };
 
-// 값 하나를 낱말로 쪼개지 않고 공백까지 제거한 한 토큰으로 만든다(`렘 필로우` → `렘필로우`).
-// 폴백 두 단계(이름 전체·제조사)가 공유하는 구현이며, 두 단계는 의미가 달라 함수는 따로 둔다.
-const buildJoinedTokens = (sources: string[]): string[] => {
+// 장비 필수 토큰(GD-6) — 표시명·캐논컬명처럼 같은 대상의 여러 표기를 받아 **이름별로** 판단한다:
+// 낱말 토큰을 하나도 못 내는 이름은 그 이름의 전체 토큰으로 대신 채우고, 결과를 합집합으로 모은다.
+// 전체 토큰이 필요한 이유는 `렘`처럼 1자 고유 모델명이 길이 규칙에 걸려 버려지고 나머지가
+// 카테고리 명사뿐이기 때문이다 — 이어 붙이면 고유성이 되살아난다(`["필로우"]` → `["렘필로우"]`로
+// 블로그 통과 20건(대부분 타사)이 3건 전부 해당 제품으로 바뀌었다).
+// **이름별로 판단하는 이유**: 합집합이 빌 때만 폴백하면 한글 표시명이 토큰을 못 내도 영문
+// 캐논컬명의 로마자 토큰이 남아 폴백을 건너뛴다. 한국어 제목은 그 토큰에 걸리지 않아 후보가
+// 전량 탈락하고 후기 섹션이 사라진다(라이브 카탈로그 11건: `돔 3 텐트 매트`/`Dome 3 Tent Mat`).
+export const buildNameRequiredTokens = (names: string[]): string[] => {
+  const tokens = new Set<string>();
+
+  for (const name of names) {
+    if (!isUsableSource(name)) {
+      continue;
+    }
+
+    const wordTokens = buildWordTokens(name);
+
+    if (wordTokens.length > 0) {
+      for (const token of wordTokens) {
+        tokens.add(token);
+      }
+
+      continue;
+    }
+
+    const wholeNameToken = buildWholeNameToken(name);
+
+    if (!wholeNameToken) {
+      continue;
+    }
+
+    tokens.add(wholeNameToken);
+  }
+
+  return Array.from(tokens);
+};
+
+// 필수 토큰 마지막 폴백(GD-6): 브랜드는 낱말로 쪼개지 않고 문자열 전체를 한 토큰으로 쓴다 —
+// 쪼개면 `노스` 같은 조각이 무관한 제목에 걸린다. 브랜드를 마지막에 두는 이유는 `브랜드만 일치`
+// 문제(`몽벨 버사자켓` 상세에 `몽벨 아울렛 득템후기`)를 되살리기 때문이다.
+export const buildBrandTokens = (sources: string[]): string[] => {
   const tokens = new Set<string>();
 
   for (const source of sources) {
@@ -142,19 +213,6 @@ const buildJoinedTokens = (sources: string[]): string[] => {
   }
 
   return Array.from(tokens);
-};
-
-// 필수 토큰 폴백 ②(GD-6): 장비명 전체를 공백 없이 이어 붙인 토큰.
-// 낱말 토큰이 비는 이유는 `렘`처럼 1자 고유 모델명이 길이 규칙에 걸려 버려지고 나머지가
-// 카테고리 명사뿐이기 때문이다 — 이름을 이어 붙이면 고유성이 되살아난다.
-export const buildWholeNameTokens = (sources: string[]): string[] => {
-  return buildJoinedTokens(sources);
-};
-
-// 필수 토큰 폴백 ③(GD-6): 브랜드는 낱말로 쪼개지 않고 문자열 전체를 한 토큰으로 쓴다 —
-// 쪼개면 `노스` 같은 조각이 무관한 제목에 걸린다. 이름 폴백(②)까지 비었을 때만 쓴다.
-export const buildBrandTokens = (sources: string[]): string[] => {
-  return buildJoinedTokens(sources);
 };
 
 // 항목 제목에 필수 토큰이 하나라도 들어 있는지 본다. 요약·설명은 보지 않는다 —
@@ -198,7 +256,7 @@ export const buildSearchPhrase = (name: string): string => {
       word => Boolean(word) && !SIZE_AND_GENDER_TOKENS.has(normalizeToken(word))
     );
 
-  // 낱말이 전부 일반 토큰이면 검색어에 제조사만 남아 아무 결과도 찾지 못한다 — 원문을 그대로 쓴다.
+  // 낱말이 전부 사이즈·성별 토큰이면 검색어에 제조사만 남아 아무 결과도 찾지 못한다 — 원문을 그대로 쓴다.
   if (words.length === 0) {
     return name;
   }
