@@ -150,13 +150,6 @@ const RootLayout = () => {
             }}
           />
           <Stack.Screen
-            name='not-login-search'
-            options={{
-              headerShown: false,
-              presentation: 'modal',
-            }}
-          />
-          <Stack.Screen
             name='bag-add-options'
             options={{
               headerShown: false,
