@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | as-built (2026-06-10 코드 기준) · **2026-07-28 개정 `[제안]`**: 장비 이미지 미제공([DataModel.md](DataModel.md) §1) — 이미지 필드·업로드 제거 |
+| 상태 | as-built (2026-06-10 코드 기준) · **2026-07-28 개정(as-built)**: 장비 이미지 미제공([DataModel.md](DataModel.md) §1) — 이미지 필드·업로드 제거 |
 | ID 프리픽스 | `GE` |
 | 주요 코드 | `app/custom/`, `app/gear-edit/`, `components/gear/`, `model/gear/` (AbstractGearEdit, custom/, edit/) |
 | 관련 스펙 | [DataModel.md](DataModel.md), [Warehouse.md](Warehouse.md), [BagDetail.md](BagDetail.md), [Search.md](Search.md) |
@@ -36,7 +36,7 @@
 | 색상 | 선택 | 자유 입력 (팔레트 없음) |
 | 카테고리 | 필수(기본값 있음) | 11개 중 단일 선택, 기본 첫 항목(텐트). 목록 정의: `model/gear/custom/CustomGearCategory.ts` |
 
-이미지 필드는 **두지 않는다** — 장비 이미지 미제공 원칙([DataModel.md](DataModel.md) §1, 2026-07-28)으로 제거 `[제안]`.
+이미지 필드는 **두지 않는다** — 장비 이미지 미제공 원칙([DataModel.md](DataModel.md) §1, 2026-07-28)으로 제거.
 
 **수용 기준**
 
