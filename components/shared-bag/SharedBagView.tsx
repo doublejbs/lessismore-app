@@ -141,7 +141,11 @@ const GearRow: FC<GearRowProps> = ({ gear }) => {
           {gear.getDisplayName()}
         </PretendardText>
         {company ? (
-          <PretendardText style={styles.gearCompany} weight='semibold'>
+          <PretendardText
+            style={styles.gearCompany}
+            weight='semibold'
+            numberOfLines={1}
+          >
             {company}
           </PretendardText>
         ) : null}
@@ -220,6 +224,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     gap: 12,
   },
+  // 좌 정체 컬럼 — 이름·브랜드(이 화면은 이름이 위인 기존 순서를 유지한다).
   gearInfo: {
     flex: 1,
     gap: 4,
@@ -235,9 +240,11 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     color: Color.textPrimary,
   },
+  // 우 지표 — 무게. 우측 정렬로 행마다 같은 자리에 온다(WH-1 공통 행 레이아웃).
   gearWeight: {
     fontSize: 15,
     color: Color.textPrimary,
+    textAlign: 'right',
   },
   emptyWrap: {
     flex: 1,

@@ -26,30 +26,17 @@ const SkeletonItem: FC = () => {
 
   return (
     <View style={styles.skeletonContainer}>
-      <View style={styles.skeletonContentSection}>
-        <View style={styles.skeletonContentContainer}>
-          <View style={styles.skeletonHeaderRow}>
-            <View style={styles.skeletonInfoColumn}>
-              <View style={styles.skeletonInfoContainer}>
-                <View style={styles.skeletonCompanyRow}>
-                  <Animated.View
-                    style={[styles.skeletonCompanyText, { opacity }]}
-                  />
-                  <Animated.View
-                    style={[styles.skeletonUsedRateBadge, { opacity }]}
-                  />
-                </View>
+      {/* 좌 정체 컬럼 — 브랜드·이름·색상 */}
+      <View style={styles.skeletonIdentityColumn}>
+        <Animated.View style={[styles.skeletonCompanyText, { opacity }]} />
+        <Animated.View style={[styles.skeletonNameText, { opacity }]} />
+        <Animated.View style={[styles.skeletonColorText, { opacity }]} />
+      </View>
 
-                <Animated.View style={[styles.skeletonNameText, { opacity }]} />
-                <Animated.View
-                  style={[styles.skeletonColorText, { opacity }]}
-                />
-              </View>
-
-              <Animated.View style={[styles.skeletonWeightText, { opacity }]} />
-            </View>
-          </View>
-        </View>
+      {/* 우 지표 컬럼 — 사용률 배지(위) + 무게(아래) */}
+      <View style={styles.skeletonMetricsColumn}>
+        <Animated.View style={[styles.skeletonUsedRateBadge, { opacity }]} />
+        <Animated.View style={[styles.skeletonWeightText, { opacity }]} />
       </View>
     </View>
   );
@@ -71,39 +58,22 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     gap: 4,
   },
-  // WH-1 텍스트 우선 행에 맞춘 로딩 자리 — 썸네일 자리는 두지 않는다(DataModel §1).
+  // WH-1 텍스트 우선 · 좌 정체/우 지표 2열 행에 맞춘 로딩 자리 — 썸네일 자리는 두지 않는다(DataModel §1).
   skeletonContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 14,
     paddingHorizontal: 0,
     gap: 12,
   },
-  skeletonContentSection: {
+  skeletonIdentityColumn: {
     flex: 1,
-    overflow: 'hidden',
-  },
-  skeletonContentContainer: {
-    flex: 1,
-    gap: 10,
-  },
-  skeletonHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    width: '100%',
-  },
-  skeletonInfoColumn: {
-    flex: 1,
-    gap: 7,
-  },
-  skeletonInfoContainer: {
-    overflow: 'hidden',
-    gap: 7,
-  },
-  skeletonCompanyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 6,
+    overflow: 'hidden',
+  },
+  skeletonMetricsColumn: {
+    alignItems: 'flex-end',
+    gap: 4,
   },
   // 브랜드는 이름과 동일한 타이포라 바 높이도 skeletonNameText와 같게 둔다.
   skeletonCompanyText: {

@@ -17,26 +17,24 @@ interface Props {
 
 // WH-1 창고 목록 행. 장비 썸네일은 표시하지 않으며(DataModel §1 장비 이미지 미제공 원칙)
 // 빈 썸네일 박스도 남기지 않는 텍스트 우선 행 레이아웃이다.
+// 행은 **좌 정체(브랜드·이름·색상) · 우 지표** 2열로 나눈다. 지표 컬럼은 사용률 배지가 위, 무게가 아래
+// (보조 지표가 위·앵커가 아래인 메트릭 문법) — 무게가 행마다 같은 자리에 오므로 세로 스캔으로 비교할 수
+// 있다. 정체 텍스트는 말줄임해 지표 컬럼을 침범하지 않는다.
 const GearView: FC<Props> = ({ gear, children, onPress }) => {
+  const weight = gear.getWeight();
+  const hasUsedRate = gear.hasUsedRate();
+  const hasMetrics = !!weight || hasUsedRate;
+
   const content = (
     <View style={styles.container}>
-      <View style={styles.infoColumn}>
-        <View style={styles.companyRow}>
-          <PretendardText
-            style={styles.companyText}
-            weight="bold"
-            numberOfLines={1}
-          >
-            {gear.getDisplayCompany()}
-          </PretendardText>
-          {gear.hasUsedRate() && (
-            <View style={styles.usedRateBadge}>
-              <PretendardText style={styles.usedRateText} weight="regular">
-                사용률 {gear.getUsedRate()}%
-              </PretendardText>
-            </View>
-          )}
-        </View>
+      <View style={styles.identityColumn}>
+        <PretendardText
+          style={styles.companyText}
+          weight="bold"
+          numberOfLines={1}
+        >
+          {gear.getDisplayCompany()}
+        </PretendardText>
 
         <PretendardText
           style={styles.nameText}
@@ -47,17 +45,33 @@ const GearView: FC<Props> = ({ gear, children, onPress }) => {
         </PretendardText>
 
         {gear.getColor() ? (
-          <PretendardText style={styles.colorText} weight="regular">
+          <PretendardText
+            style={styles.colorText}
+            weight="regular"
+            numberOfLines={1}
+          >
             {gear.getColor()}
           </PretendardText>
         ) : null}
-
-        {gear.getWeight() ? (
-          <PretendardText style={styles.weightText} weight="bold">
-            {gear.getWeight()}g
-          </PretendardText>
-        ) : null}
       </View>
+
+      {hasMetrics ? (
+        <View style={styles.metricsColumn}>
+          {hasUsedRate && (
+            <View style={styles.usedRateBadge}>
+              <PretendardText style={styles.usedRateText} weight="regular">
+                사용률 {gear.getUsedRate()}%
+              </PretendardText>
+            </View>
+          )}
+
+          {weight ? (
+            <PretendardText style={styles.weightText} weight="bold">
+              {weight}g
+            </PretendardText>
+          ) : null}
+        </View>
+      ) : null}
 
       {children}
     </View>
@@ -85,20 +99,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     gap: 12,
   },
-  infoColumn: {
+  // 좌 정체 컬럼 — 브랜드·이름·색상.
+  identityColumn: {
     flex: 1,
     gap: 6,
     overflow: 'hidden',
   },
-  companyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  // 우 지표 컬럼 — 사용률 배지(위) + 무게(아래). 우측 정렬로 행마다 무게가 같은 자리에 온다.
+  metricsColumn: {
+    alignItems: 'flex-end',
+    gap: 4,
   },
   // WH-1: 브랜드는 제품 식별의 첫 축이라 이름(nameText)과 동일한 타이포로 표시한다.
-  // 길면 말줄임해 사용률 배지를 같은 행에 유지한다.
   companyText: {
-    flexShrink: 1,
     fontSize: 15,
     lineHeight: 19,
     color: Color.textPrimary,
@@ -125,6 +138,7 @@ const styles = StyleSheet.create({
   weightText: {
     fontSize: 15,
     color: Color.textPrimary,
+    textAlign: 'right',
   },
 });
 

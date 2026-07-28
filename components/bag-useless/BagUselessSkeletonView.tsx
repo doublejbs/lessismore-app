@@ -36,7 +36,7 @@ const BagUselessSkeletonView: FC<Props> = () => {
           gap: Spacing.item,
         }}
       >
-        {/* 장비 정보 — 장비 썸네일이 없어 이미지 자리도 두지 않는다(DataModel §1) */}
+        {/* 좌 정체 컬럼(브랜드·이름·색상) — 장비 썸네일이 없어 이미지 자리도 두지 않는다(DataModel §1) */}
         <View
           style={{
             flexDirection: 'column',
@@ -47,8 +47,8 @@ const BagUselessSkeletonView: FC<Props> = () => {
         >
           <Animated.View
             style={{
-              width: '70%',
-              height: 18,
+              width: '50%',
+              height: 19,
               backgroundColor: Color.chipInactiveBg,
               borderRadius: Radius.listThumb,
               opacity: pulseAnim,
@@ -56,8 +56,8 @@ const BagUselessSkeletonView: FC<Props> = () => {
           />
           <Animated.View
             style={{
-              width: '50%',
-              height: 16,
+              width: '70%',
+              height: 19,
               backgroundColor: Color.chipInactiveBg,
               borderRadius: Radius.listThumb,
               opacity: pulseAnim,
@@ -66,6 +66,25 @@ const BagUselessSkeletonView: FC<Props> = () => {
           <Animated.View
             style={{
               width: '40%',
+              height: 16,
+              backgroundColor: Color.chipInactiveBg,
+              borderRadius: Radius.listThumb,
+              opacity: pulseAnim,
+            }}
+          />
+        </View>
+
+        {/* 우 지표 컬럼 — 무게 */}
+        <View
+          style={{
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            gap: 4,
+          }}
+        >
+          <Animated.View
+            style={{
+              width: 40,
               height: 16,
               backgroundColor: Color.chipInactiveBg,
               borderRadius: Radius.listThumb,
