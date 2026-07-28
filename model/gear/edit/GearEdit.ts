@@ -47,7 +47,6 @@ class GearEdit extends AbstractGearEdit {
       this.setWeight(this.gear.getWeight());
       this.setInitialWeight(this.gear.getWeight());
       this.setCompany(this.gear.getCompany());
-      this.setPreviewSrc(this.gear.getImageUrl());
       // 세분 카테고리는 그룹(GearFilter)으로 매핑해 선택한다(DM-4).
       this.selectFilterWith(this.gear.getGroupCategory());
       this.setColor(this.gear.getColor());
@@ -56,17 +55,11 @@ class GearEdit extends AbstractGearEdit {
   }
 
   public override async _register(): Promise<Gear> {
-    // 새 이미지 업로드 여부 확인
-    const hasNewImage = !!this.getFile();
-    const newImageUrl = await this.getFileUrl();
-    const imageUrl = (newImageUrl || this.gear?.getImageUrl()) ?? '';
-
     const updatedGear = new Gear(
       this.gear?.getId() ?? '',
       this.getName(),
       this.getCompany(),
       this.getWeight(),
-      imageUrl,
       true,
       this.gear?.getIsCustom() ?? false,
       this.getSelectedFilter(),
@@ -91,34 +84,11 @@ class GearEdit extends AbstractGearEdit {
       );
     }
 
-    // 공유 이미지 등록 (isCustom === false이고 새 이미지가 있는 경우)
-    if (!updatedGear.getIsCustom() && hasNewImage && newImageUrl) {
-      await this.registerSharedImage(updatedGear.getId(), newImageUrl);
-    }
-
     await this.onRegister(updatedGear);
 
     app.getAnalyticsManager()?.logClick('gear_save', { mode: 'edit' });
 
     return updatedGear;
-  }
-
-  private async registerSharedImage(
-    gearId: string,
-    imageUrl: string
-  ): Promise<void> {
-    try {
-      const gearImageStore = app.getGearImageStore();
-      const firebase = app.getFirebase();
-      const nickname = firebase.getNickname();
-      const imageId = this.generateId();
-
-      if (gearImageStore) {
-        await gearImageStore.addImage(gearId, imageId, imageUrl, nickname);
-      }
-    } catch (error) {
-      console.error('Error registering shared image:', error);
-    }
   }
 
   @action

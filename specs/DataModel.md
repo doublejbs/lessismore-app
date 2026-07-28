@@ -4,7 +4,7 @@
 | --- | --- |
 | 상태 | as-built (2026-06-10 코드 기준) |
 | ID 프리픽스 | `DM` |
-| 주요 코드 | `model/store/*.ts`, `model/firebase/Firebase.ts`, `model/firebase/FirebaseImageStorage.ts`, `model/gear/Gear.ts`, `model/bag/BagItem.ts`, `model/reply/Comment.ts` |
+| 주요 코드 | `model/store/*.ts`, `model/firebase/Firebase.ts`, `model/gear/Gear.ts`, `model/bag/BagItem.ts`, `model/reply/Comment.ts` |
 | 관련 스펙 | 모든 도메인 스펙이 이 문서를 참조한다 |
 
 ## 1. 개요
@@ -23,8 +23,10 @@
 - 앱은 장비 `imageUrl`을 **읽지도 쓰지도 않는다**. 필드는 레거시 데이터로만 존재한다(DM-3).
 - 공유 이미지 갤러리(DM-8)와 장비 이미지 Storage 업로드(DM-9)는 폐기한다.
 - **데이터 정리(운영 절차)**:
-  1. 카탈로그 `gear/{id}.imageUrl` 값을 **백업 JSON 저장 후** 일괄 제거한다(클라이언트 SDK 스크립트 —
-     `scripts/swap-namekorean.mjs` 패턴, `/gear`는 미인증 쓰기 허용). Algolia에는 익스텐션이 자동 전파된다.
+  1. 카탈로그 `gear/{id}.imageUrl`의 **값을 비운다**(빈 문자열 `''` — 필드 자체는 DM-3 계약대로 레거시로 남긴다).
+     **백업 JSON 저장 후** 일괄 갱신한다(클라이언트 SDK 스크립트 `scripts/clear-gear-imageurl.mjs` —
+     `scripts/swap-namekorean.mjs` 패턴의 `--apply` opt-in, `/gear`는 미인증 쓰기 허용). Algolia에는 익스텐션이 자동 전파된다.
+     대상 판정은 타입을 가리지 않는다 — 문자열 URL뿐 아니라 boolean `true` 같은 비문자열 레거시 값도 비어있지 않으면 포함한다.
   2. Storage의 갤러리(`/gears/**`)·개인 업로드(`/{userId}/**` 이미지) 파일 삭제는 별도 2단계 운영 작업으로 남긴다.
   3. `users/{uid}/gears.imageUrl` 잔존 값은 앱이 읽지 않으므로 동작에 영향 없다(정리 불요).
   4. 크롤 파이프라인(별도 레포)의 `imageUrl` 기록도 중단해야 한다 — 별도 레포 작업.

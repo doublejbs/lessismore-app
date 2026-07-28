@@ -15,7 +15,6 @@ import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
-import ImageUploadView from '@/components/gear/ImageUploadView';
 import CustomGearConfirmView from '@/components/gear/custom/CustomGearConfirmView';
 import CustomGear from '@/model/gear/custom/CustomGear';
 import LoadingIconView from '@/components/ui/LoadingIconView';
@@ -231,9 +230,6 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
             }}
             scrollEventThrottle={16}
           >
-            <View style={styles.imageSection}>
-              <ImageUploadView fileUpload={customGear} />
-            </View>
             <View style={styles.inputSection}>
               <PretendardText weight='medium' style={styles.label}>
                 제품명
@@ -376,12 +372,6 @@ const styles = StyleSheet.create({
     backgroundColor: Color.background,
     padding: 16,
     borderTopColor: Color.borderLight,
-  },
-  imageSection: {
-    flexDirection: 'row',
-    width: '100%',
-    height: 80,
-    alignItems: 'center',
   },
   inputSection: {
     flexDirection: 'column',

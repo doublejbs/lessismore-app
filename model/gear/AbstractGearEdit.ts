@@ -1,12 +1,11 @@
 import { action, makeObservable, observable } from 'mobx';
 import CustomGearCategory from './custom/CustomGearCategory';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
-import FileUpload from '@/model/gear/FileUpload';
 import GearFilter from '@/model/gear/GearFilter';
-import dayjs from 'dayjs';
 import Gear from '@/model/gear/Gear';
 
-abstract class AbstractGearEdit extends FileUpload {
+// 이미지 필드는 두지 않는다 — 장비 이미지 미제공 원칙(DataModel §1, GE-1).
+abstract class AbstractGearEdit {
   @observable private name = '';
   @observable private company = '';
   @observable private weight = '';
@@ -21,7 +20,6 @@ abstract class AbstractGearEdit extends FileUpload {
     weight: string,
     color: string
   ) {
-    super();
     this.name = name;
     this.company = company;
     this.weight = weight;
@@ -124,12 +122,6 @@ abstract class AbstractGearEdit extends FileUpload {
 
   public mapFilters<R>(callback: (filter: WarehouseFilter) => R) {
     return this.category.mapFilters(callback);
-  }
-
-  public getFileName(): string {
-    return `${this.name}${this.company}${this.weight}-${dayjs().format(
-      'YYYY.MM.DD.HH.mm.ss'
-    )}`;
   }
 
   protected getSelectedFilter() {

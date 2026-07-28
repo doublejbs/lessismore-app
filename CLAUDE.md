@@ -188,7 +188,7 @@ const MyComponent = observer(() => {
 - **디자인 토큰은 `constants/DesignTokens.ts`가 단일 소스** — 색(`Color`), 모서리(`Radius`), 여백(`Spacing`)을 하드코딩하지 말고 토큰을 참조한다. 탐색(피드)·배낭 패킹모드 화면에서 추출·정규화한 값이며 앱 전 화면이 이 톤을 따른다. 대표값: 텍스트 `textPrimary`#000/`textSecondary`#767676(WCAG AA)/`textTertiary`#555, 칩 `chipInactiveBg`#EBEBEB/`chipActiveBg`#000/`chipBorder`#E5E5E5, 인풋 `inputBg`#F5F5F5, 썸네일 `thumbBg`#F1F1F1, 구분선 `borderLight`#F0F0F0; radius 카드/인풋/칩 8·필 32·모달 16·리스트썸네일 4. 선택형 필터·카테고리 칩은 공용 `CategoryChipView`(아웃라인: 비선택 배경+`chipBorder` 테두리+`textSecondary`, 선택 `chipActiveBg` 채움; radius 8; 고정 높이 금지로 Dynamic Type 대응; 44pt 터치)로 통일한다. 데이터 시각화 색·브랜드 액센트 등 의미색은 예외.
   - **정렬 완료 (2026-07)**: 앱 전 화면·모달을 토큰으로 전수 정렬함(리터럴이 값이 같아도 토큰 참조로 치환). 새 UI도 리터럴 대신 토큰·`PretendardText`(weight prop)를 쓴다. **예외(하드코딩 허용)**: 데이터 시각화/차트 색, 브랜드 액센트(예 `#7C3AED`·`#39FF14`), 시맨틱 상태색(성공 green·삭제/경고 red·달력 요일색), 스켈레톤 셰이딩, 공유 이미지 **내보내기 캔버스**(별도 Inter 폰트·팔레트 — 주변 앱 UI는 토큰 적용), `useless` 워드마크 굵기.
 - **UX/UI 구현·리뷰는 Apple Human Interface Guidelines(HIG)를 기준으로 한다.** 새 화면/컴포넌트는 물론 기존 화면 개선도 HIG로 판단한다 — 터치 타깃 44×44pt, 아이콘 전용 컨트롤엔 `accessibilityLabel`(+ `accessibilityRole`), 명확한 위계(내비 타이틀=화면 대상), 충분한 대비, 콘텐츠를 가리지 않는 플로팅/오버레이, 화면당 명확한 주 액션 1개, 세이프에어리어 준수. UI 변경 리뷰는 **실행 중 앱 스크린샷** 근거로 HIG 기준 점검한다([specs/README.md](specs/README.md) UX/디자인 리뷰 기준 참고).
-- 이미지는 `FirebaseImageStorage`를 통해 Firebase Storage에 업로드
+- **장비 이미지는 취급하지 않는다** — 장비 이미지 미제공 원칙([specs/DataModel.md](specs/DataModel.md) §1, 2026-07-28). 크롤링 제공·사용자 업로드·공유 갤러리 전부 제거됨(Storage 업로드 경로 없음)
 - Hot Updater가 네이티브 플랫폼에서 OTA 업데이트 처리 (`hot-updater.config.ts` 참고)
 - 린트 규칙은 `eslint-config-expo` 기반 + `unused-imports` 플러그인 — `_` 접두 변수는 무시됨
 

@@ -31,30 +31,12 @@ const BagUselessSkeletonView: FC<Props> = () => {
       <View
         style={{
           flexDirection: 'row',
-          paddingVertical: 10,
+          // GearView의 실제 행과 동일한 세로 여백(14).
+          paddingVertical: 14,
           gap: Spacing.item,
         }}
       >
-        {/* 이미지 영역 */}
-        <View
-          style={{
-            flexDirection: 'row',
-            gap: 6,
-          }}
-        >
-          <Animated.View
-            style={{
-              width: 80,
-              height: 80,
-              backgroundColor: Color.chipInactiveBg,
-              borderRadius: Radius.listThumb,
-              minWidth: 80,
-              opacity: pulseAnim,
-            }}
-          />
-        </View>
-
-        {/* 장비 정보 */}
+        {/* 장비 정보 — 장비 썸네일이 없어 이미지 자리도 두지 않는다(DataModel §1) */}
         <View
           style={{
             flexDirection: 'column',
