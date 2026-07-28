@@ -7,7 +7,6 @@ import {
   Linking,
   GestureResponderEvent,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +16,7 @@ import GearRowActions from '@/model/browse/GearRowActions';
 import { GearAddContext } from '@/model/gear/GearAddContext';
 import GearAddMode from '@/model/gear/GearAddMode';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 import LoadingView from '@/components/ui/LoadingView';
 import SearchGearAddToBagModalView from '@/components/search/SearchGearAddToBagModalView';
 import app from '@/model/app/App';
@@ -34,13 +33,15 @@ interface Props {
   gearAddContext?: GearAddContext | undefined;
 }
 
-// FD-2: 피드 카드(2컬럼 그리드 셀). 정방형 이미지 → 브랜드 → 이름 → 무게, 우측 상단 담기 CTA, coupangUrl이 있으면 하단 축약 링크.
+// FD-2: 피드 텍스트 카드(2컬럼 그리드 셀). 장비 이미지를 쓰지 않으므로(DataModel §1 장비 이미지
+// 미제공 원칙) 이미지 칸·플레이스홀더 없이 카드 면(inputBg + radius)만으로 그리드 리듬을 만든다.
+// 구성은 위→아래로 브랜드 → 이름(2줄) → 무게이며, 이미지가 하던 시각 위계는 무게가 대신한다.
+// 담기 CTA는 카드 우상단, coupangUrl이 있으면 하단 축약 링크.
 // 수수료 고지는 카드마다 반복하지 않고 FeedView 리스트 푸터에서 1회 노출한다.
 // coupangUrl은 Algolia hit·Gear에 없고 /gear 문서에만 있어(WarehouseDetail과 동일 경로) 마운트 시 지연 로드한다.
 const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
   const router = useRouter();
   const isAdded = gear.isAdded();
-  const imageUrl = gear.getImageUrl();
   const weight = gear.getWeight();
 
   // GE-8 배낭 컨텍스트: 이 배낭에 담는 흐름. 창고 보유 여부와 무관하게 파괴적 제거 대신 담기로 동작한다.
@@ -50,7 +51,6 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
 
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [imageError, setImageError] = useState(false);
   const [coupangUrl, setCoupangUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -171,15 +171,11 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
     }
   };
 
-  const handleImageError = () => {
-    setImageError(true);
-  };
-
   const renderCta = () => {
     if (loading) {
       return (
         <View style={styles.ctaLoading}>
-          <LoadingView duration={1000} />
+          <LoadingView duration={1000} color={Color.background} />
         </View>
       );
     }
@@ -201,6 +197,8 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
           onPress={handleRemovePress}
           hitSlop={CTA_HIT_SLOP}
           activeOpacity={0.8}
+          accessibilityRole='button'
+          accessibilityLabel={`${gear.getDisplayName()} 창고에서 빼기`}
         >
           <Ionicons name='checkmark' size={18} color={Color.background} />
         </TouchableOpacity>
@@ -213,6 +211,12 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
         onPress={handleAddPress}
         hitSlop={CTA_HIT_SLOP}
         activeOpacity={0.8}
+        accessibilityRole='button'
+        accessibilityLabel={
+          bagCtxId
+            ? `${gear.getDisplayName()} 배낭에 담기`
+            : `${gear.getDisplayName()} 창고에 담기`
+        }
       >
         <Ionicons name='add' size={18} color={Color.background} />
       </TouchableOpacity>
@@ -222,30 +226,32 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
   return (
     <>
       <Pressable style={styles.card} onPress={handleCardPress}>
-        <View style={styles.imageContainer}>
-          {imageUrl && !imageError ? (
-            <Image
-              source={{ uri: imageUrl }}
-              onError={handleImageError}
-              style={styles.image}
-              contentFit='cover'
-              transition={150}
-            />
-          ) : (
-            <View style={styles.imagePlaceholder} />
-          )}
-          <View style={styles.ctaContainer}>{renderCta()}</View>
-        </View>
+        <View style={styles.cardFace}>
+          <View style={styles.cardHeader}>
+            <PretendardText
+              style={styles.company}
+              weight='semibold'
+              numberOfLines={1}
+            >
+              {gear.getDisplayCompany()}
+            </PretendardText>
+            {renderCta()}
+          </View>
 
-        <View style={styles.info}>
-          <PretendardText style={styles.company} numberOfLines={1}>
-            {gear.getDisplayCompany()}
-          </PretendardText>
-          <PretendardText style={styles.name} weight='semibold' numberOfLines={2}>
+          <PretendardText
+            style={styles.name}
+            weight='semibold'
+            numberOfLines={2}
+            lineBreakStrategyIOS='hangul-word'
+          >
             {gear.getDisplayName()}
           </PretendardText>
+
           {weight ? (
-            <PretendardText style={styles.weight}>{`${weight}g`}</PretendardText>
+            <PretendardText
+              style={styles.weight}
+              weight='bold'
+            >{`${weight}g`}</PretendardText>
           ) : null}
         </View>
 
@@ -281,27 +287,22 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
   },
-  imageContainer: {
+  // 텍스트 카드 면 — 이미지 대신 이 면이 2컬럼 그리드의 리듬을 만든다. 높이는 콘텐츠 기준(정방형 강제 없음).
+  // flex: 1 로 같은 행의 카드 면을 늘려 면 아래 빈 공간이 뜨지 않게 한다(카드 전체 하단 기준 정렬).
+  cardFace: {
+    flex: 1,
     width: '100%',
-    aspectRatio: 1,
     borderRadius: Radius.card,
-    backgroundColor: Color.chipInactiveBg,
-    overflow: 'hidden',
-    position: 'relative',
+    backgroundColor: Color.inputBg,
+    padding: Spacing.item,
+    gap: 6,
   },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  imagePlaceholder: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: Color.chipInactiveBg,
-  },
-  ctaContainer: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
+  // 브랜드(좌) + 담기 CTA(우상단) 한 행.
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 6,
   },
   addButton: {
     width: CTA_SIZE,
@@ -320,30 +321,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     opacity: 0.9,
   },
+  // 로딩 중에도 담기/보유 CTA와 같은 대비를 유지한다(카드 면 inputBg 위에서 흰 배경은 묻힌다).
   ctaLoading: {
     width: CTA_SIZE,
     height: CTA_SIZE,
     borderRadius: CTA_SIZE / 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: Color.chipActiveBg,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  info: {
-    paddingTop: 8,
-    gap: 3,
-  },
+  // FD-2: 브랜드는 제품 식별의 첫 축이라 이름(name)과 동일한 타이포로 표시한다(길면 1줄 말줄임).
   company: {
-    fontSize: 11,
-    color: Color.textSecondary,
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 19,
+    color: Color.textPrimary,
   },
   name: {
     fontSize: 14,
     lineHeight: 19,
     color: Color.textPrimary,
   },
+  // 카드에서 가장 큰 활자 — 이미지가 하던 시각 앵커를 무게가 대신한다(FD-2).
   weight: {
-    fontSize: 12,
-    color: Color.textTertiary,
+    fontSize: 26,
+    lineHeight: 32,
+    color: Color.textPrimary,
   },
   coupangLink: {
     flexDirection: 'row',

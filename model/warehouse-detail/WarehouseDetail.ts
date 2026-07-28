@@ -18,8 +18,6 @@ import SearchDispatcher from '../search/SearchDispatcher';
 import Order from '../order/Order';
 import Warehouse from '../warehouse/Warehouse';
 import BagDetail from '../bag-detail/BagDetail';
-import GearImageSelection from '../gear-image/GearImageSelection';
-import GearImageType from '../gear/GearImageType';
 import reviewSearchService from '../review/ReviewSearchService';
 import {
   BlogReview,
@@ -95,7 +93,6 @@ class WarehouseDetail {
   private showAddToBagModal = false;
   // GE-8: 배낭 장비 추가 검색에서 상세로 들어온 경우의 대상 배낭. 있으면 담기 버튼이 그 배낭에 바로 담는다.
   private bagContextId: string | null = null;
-  private gearImageSelection: GearImageSelection | null = null;
   private coupangUrl: string | undefined = undefined;
   private reviews: BlogReview[] = [];
   private videos: VideoReview[] = [];
@@ -142,16 +139,10 @@ class WarehouseDetail {
     await this.fetchReplies();
     await this.fetchReviewSummary();
 
-    // 공유 이미지 기능 초기화 (isCustom === false인 경우만)
+    // 쿠팡 최저가 링크는 카탈로그 장비(isCustom === false)에서만 읽는다(GD-5).
     if (gear && !gear.getIsCustom()) {
-      this.gearImageSelection = GearImageSelection.new(
-        this.id,
-        gear.getIsCustom()
-      );
-      await this.gearImageSelection.loadImages();
       this.setCoupangUrl(await this.gearStore.getCoupangUrl(this.id));
     } else {
-      this.gearImageSelection = null;
       this.setCoupangUrl(undefined);
     }
   }
@@ -672,40 +663,6 @@ class WarehouseDetail {
   public async closeAddToBagModal() {
     this.setShowAddToBagModal(false);
     await this.initialize(this.getId());
-  }
-
-  public getGearImageSelection() {
-    return this.gearImageSelection;
-  }
-
-  public async selectSharedImage(image: GearImageType): Promise<void> {
-    if (!this.gear) return;
-
-    // 사용자의 장비 imageUrl을 선택한 이미지로 업데이트
-    const updatedGear = new Gear(
-      this.gear.getId(),
-      this.gear.getName(),
-      this.gear.getCompany(),
-      this.gear.getWeight(),
-      image.url,
-      this.gear.isAdded(),
-      this.gear.getIsCustom(),
-      this.gear.getCategory(),
-      this.gear.getUseless(),
-      this.gear.getUsed(),
-      this.gear.getBags(),
-      this.gear.getCreateDate(),
-      this.gear.getColor(),
-      this.gear.getCompanyKorean(),
-      this.gear.getNameKorean(),
-      // 기존 gear에서 재구성 — specs/size 등 신규 필드를 보존한다.
-      this.gear.getExtra()
-    );
-
-    await this.gearStore.update(updatedGear);
-    this.setGear(updatedGear);
-    this.gearImageSelection?.hideModal();
-    this.toastManager.show({ message: '이미지가 변경되었습니다.' });
   }
 }
 

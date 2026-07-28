@@ -16,7 +16,6 @@ export interface GearRankData {
   name: string;
   company: string;
   weight: string;
-  imageUrl: string;
   count: number;
   category: string;
   updatedAt: Date;
@@ -84,7 +83,6 @@ class GearRankStore {
             name: gearData.name || gearId,
             company: gearData.company || '',
             weight: gearData.weight || '',
-            imageUrl: gearData.imageUrl || '',
             count: rankData.count,
             category: rankData.category,
             updatedAt: rankData.updatedAt?.toDate() || new Date(),
@@ -104,7 +102,6 @@ class GearRankStore {
             name: gearId,
             company: '',
             weight: '',
-            imageUrl: '',
             count: rankData.count,
             category: rankData.category,
             updatedAt: rankData.updatedAt?.toDate() || new Date(),
@@ -144,7 +141,6 @@ class GearRankStore {
         item.name,
         item.company,
         item.weight,
-        item.imageUrl || '',
         isAdded,
         false,
         item.category,
@@ -181,7 +177,6 @@ class GearRankStore {
           data.name,
           data.company,
           data.weight,
-          data.imageUrl || '',
           true,
           data.isCustom,
           data.category,
