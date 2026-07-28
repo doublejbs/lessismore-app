@@ -59,3 +59,6 @@ scripts/backup-camp-spot-*.json
 # hot-updater
 .hot-updater/output
 .hot-updater/log
+
+# 로컬 EAS 빌드 산출물
+*.ipa
