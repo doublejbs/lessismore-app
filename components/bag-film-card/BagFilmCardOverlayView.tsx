@@ -35,11 +35,8 @@ interface Props {
   busy: boolean;
   sharing: boolean;
   saving: boolean;
-  // 켜져 있는 요소 중 하나라도 옮겼을 때만 노출되는 위치 초기화(BS-9).
-  showReset: boolean;
   onPressBack: () => void;
   onPressPhoto: () => void;
-  onPressReset: () => void;
   onPressShare: () => void;
   onPressSave: () => void;
 }
@@ -53,7 +50,7 @@ const ACTION_HEIGHT = 52;
 
 /**
  * 카드 프리뷰 **위에 떠 있는** 컨트롤 전부(BS-10) —
- * 뒤로가기·사진 고르기·위치 초기화·요소/비율 칩·공유하기·갤러리 저장.
+ * 뒤로가기·사진 고르기·요소/비율 칩·공유하기·갤러리 저장.
  *
  * **캡처 대상 캔버스(`cardRef`)의 형제로 렌더해야 한다.** 캔버스 안에 넣으면 저장·공유한
  * 이미지에 컨트롤이 그대로 찍힌다.
@@ -69,10 +66,8 @@ const BagFilmCardOverlayView: FC<Props> = ({
   busy,
   sharing,
   saving,
-  showReset,
   onPressBack,
   onPressPhoto,
-  onPressReset,
   onPressShare,
   onPressSave,
 }) => {
@@ -119,26 +114,6 @@ const BagFilmCardOverlayView: FC<Props> = ({
         style={[styles.bottomBar, { paddingBottom: insets.bottom + EDGE_GAP }]}
         pointerEvents='box-none'
       >
-        {showReset ? (
-          <TouchableOpacity
-            style={[styles.resetButton, busy ? styles.disabled : null]}
-            onPress={onPressReset}
-            disabled={busy}
-            activeOpacity={0.7}
-            hitSlop={{ top: 5, bottom: 5, left: 0, right: 0 }}
-            accessibilityRole='button'
-            accessibilityLabel='요소 위치 초기화'
-          >
-            <Ionicons
-              name='refresh'
-              size={16}
-              color={FilmCardControlPalette.foreground}
-            />
-            <PretendardText style={styles.resetButtonText} weight='medium'>
-              위치 초기화
-            </PretendardText>
-          </TouchableOpacity>
-        ) : null}
         <View style={styles.chipRow} pointerEvents='box-none'>
           {elementChips.map(option => (
             <BagFilmCardDarkChipView
@@ -255,22 +230,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: FilmCardControlPalette.border,
     backgroundColor: FilmCardControlPalette.background,
-  },
-  resetButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    minHeight: 34,
-    paddingHorizontal: 14,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: FilmCardControlPalette.border,
-    backgroundColor: FilmCardControlPalette.background,
-  },
-  resetButtonText: {
-    fontSize: 14,
-    color: FilmCardControlPalette.foreground,
   },
   shareButton: {
     flex: 1,
