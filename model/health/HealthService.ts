@@ -28,6 +28,17 @@ export interface HealthService {
   /** 기간 내 운동을 최신순으로 조회한다. 권한이 없으면 빈 배열(HA-3). */
   queryWorkouts(params: HealthWorkoutQuery): Promise<HealthWorkout[]>;
 
+  /**
+   * 빈 상태 문구 분기용. **운동(워크아웃) 읽기 접근**이 열려 있음이 증명되면 true,
+   * 판별 불가면 false(거부가 아니다).
+   *
+   * 증명 범위는 운동 읽기 하나뿐이다 — 경로·거리·에너지·심박은 타입별 권한이 따로라
+   * 이 값이 true여도 여전히 판별 불가다.
+   *
+   * **HA-4의 지표·경로 렌더링을 이 값으로 막지 마라.** 빈 상태 문구를 고르는 용도 전용이다.
+   */
+  isWorkoutReadConfirmed(): Promise<boolean>;
+
   /** GPS 경로. 실내 운동 등 경로가 없으면 null(HA-4). */
   getRoute(workoutId: string): Promise<HealthWorkoutRoute | null>;
 
@@ -60,6 +71,11 @@ class UnsupportedHealthService implements HealthService {
 
   public queryWorkouts = async (): Promise<HealthWorkout[]> => {
     return [];
+  };
+
+  // 건강 허브 자체가 없어 운동 읽기 접근을 증명할 방법이 없다 — 항상 판별 불가다.
+  public isWorkoutReadConfirmed = async (): Promise<boolean> => {
+    return false;
   };
 
   public getRoute = async (): Promise<HealthWorkoutRoute | null> => {
