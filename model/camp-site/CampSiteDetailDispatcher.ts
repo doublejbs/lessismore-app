@@ -36,21 +36,31 @@ class CampSiteDetailDispatcher {
     return this.campSpotStore.getSpot(id);
   }
 
-  // 박지 후기(CS-3): "{박지명} 백패킹" 네이버 블로그 후보 중 관련성 필터를 통과한 상위 5건.
-  // 실패·키 미설정이면 null. 필수 토큰은 박지명 토큰이다.
-  public async getReviews(spotName: string): Promise<BlogReview[] | null> {
+  // 후기 검색어(CS-3): "{시·군·구} {박지명} 백패킹". 지역을 넣는 이유는 박지명이 유일하지 않기
+  // 때문이다 — 큐레이션 276건에 `감악산` 3곳(경기 파주·강원 원주 등)이 있어 이름만 검색하면
+  // 다른 지역 박지의 후기가 올라온다. city는 백필 이전 문서에 없을 수 있어(DM-17) 시·도(region)로,
+  // 둘 다 없으면 박지명만으로 물러난다.
+  private buildReviewQuery(spot: CampSpot): string {
+    const area = (spot.city || spot.region || '').trim();
+
+    return [area, spot.name, '백패킹'].filter(part => Boolean(part)).join(' ');
+  }
+
+  // 박지 후기(CS-3): 네이버 블로그 후보 중 관련성 필터를 통과한 상위 5건. 실패·키 미설정이면 null.
+  // 필수 토큰은 박지명만 유지한다 — 지역을 넣으면 제목에 지역만 있는 무관한 글
+  // (`강원도 백패킹 명소`)이 통과한다.
+  public async getReviews(spot: CampSpot): Promise<BlogReview[] | null> {
     return reviewSearchService.getBlogReviews({
-      query: `${spotName} 백패킹`,
-      requiredTokens: buildRequiredTokens([spotName]),
+      query: this.buildReviewQuery(spot),
+      requiredTokens: buildRequiredTokens([spot.name]),
     });
   }
 
-  // 박지 후기 영상(CS-3): "{박지명} 백패킹" 유튜브 후보 중 관련성 필터를 통과한 상위 4건.
-  // 실패·키 미설정이면 null.
-  public async getVideos(spotName: string): Promise<VideoReview[] | null> {
+  // 박지 후기 영상(CS-3): 유튜브 후보 중 관련성 필터를 통과한 상위 4건. 실패·키 미설정이면 null.
+  public async getVideos(spot: CampSpot): Promise<VideoReview[] | null> {
     return reviewSearchService.getVideoReviews({
-      query: `${spotName} 백패킹`,
-      requiredTokens: buildRequiredTokens([spotName]),
+      query: this.buildReviewQuery(spot),
+      requiredTokens: buildRequiredTokens([spot.name]),
     });
   }
 

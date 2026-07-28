@@ -125,8 +125,9 @@ class CampSiteDetail {
       }
 
       const [reviews, videos] = await Promise.all([
-        this.dispatcher.getReviews(spot.name),
-        this.dispatcher.getVideos(spot.name),
+        // 검색어에 지역을 붙이려면 박지명만으로는 부족해 박지 전체를 넘긴다(CS-3).
+        this.dispatcher.getReviews(spot),
+        this.dispatcher.getVideos(spot),
       ]);
 
       // null = 해당 소스 조회 실패 → 같은 규칙으로 담긴 캐시가 있으면 그 값을 유지한다.
