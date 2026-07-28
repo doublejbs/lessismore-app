@@ -21,9 +21,8 @@ import BagDetail from '../bag-detail/BagDetail';
 import reviewSearchService from '../review/ReviewSearchService';
 import {
   buildBrandTokens,
-  buildRequiredTokens,
+  buildNameRequiredTokens,
   buildSearchPhrase,
-  buildWholeNameTokens,
 } from '../review/ReviewRelevance';
 import {
   BlogReview,
@@ -197,7 +196,10 @@ class WarehouseDetail {
 
       // 블로그 검색어: "{제조사 표시명} {장비명} 후기" — 제조사가 없으면 생략.
       // 블로그는 이 검색어로도 제품명 일치율이 높아 현행을 유지한다(실측 93.3%, GD-6).
-      const blogQuery = `${displayCompany} ${searchName} 후기`.trim();
+      // 빈 조각을 걸러 이어 붙인다 — 템플릿 문자열로 만들면 이름이 빈 장비에서 공백이 겹친다.
+      const blogQuery = [displayCompany, searchName, '후기']
+        .filter(part => Boolean(part))
+        .join(' ');
 
       // 유튜브 검색어에는 `후기`를 넣지 않는다 — `추천 판매순위 Top10 ... 후기 비교` 류
       // 리스티클이 여러 장비에 공통으로 붙는 원인이다. 카탈로그 companyKorean이 아무도 쓰지
@@ -212,24 +214,15 @@ class WarehouseDetail {
         .join(' ');
 
       // 필수 토큰은 장비명 토큰만 쓴다 — 브랜드만 맞고 제품이 다른 결과(`몽벨 버사자켓` 상세에
-      // `몽벨 아울렛 득템후기`)가 사용자에게 가장 무관하게 읽힌다. 표시명·캐논컬명을 함께 넣어
-      // 어느 표기로 적힌 제목이든 통과시킨다(GD-6).
-      // 폴백 ①: 장비명 낱말 토큰.
-      const nameTokens = buildRequiredTokens([displayName, gear.getName()]);
+      // `몽벨 아울렛 득템후기`)가 사용자에게 가장 무관하게 읽힌다. 표시명·캐논컬명을 함께 넘겨
+      // 어느 표기로 적힌 제목이든 통과시킨다 — 이름별 전체 토큰 폴백은 공용 모듈이 처리한다(GD-6).
+      const nameTokens = buildNameRequiredTokens([displayName, gear.getName()]);
 
-      // 폴백 ②: ①이 비면 장비명 전체를 공백 없이 이어 붙인 토큰. `렘 필로우`처럼 1자 고유
-      // 모델명이 길이 규칙에 걸려 버려지면 남는 게 카테고리 명사뿐이라 ①이 빈다(카탈로그 10건).
-      const nameFallbackTokens =
+      // 이름 토큰이 전부 비면(이름이 숫자인 카탈로그 문서) 제조사 토큰으로 물러난다.
+      // 제조사를 마지막에 두는 이유는 그것이 `브랜드만 일치` 문제를 되살리기 때문이다(GD-6).
+      const requiredTokens =
         nameTokens.length > 0
           ? nameTokens
-          : buildWholeNameTokens([displayName, gear.getName()]);
-
-      // 폴백 ③: ②도 비면 제조사 토큰. 제조사를 ②보다 뒤에 두는 이유는 제조사 폴백이
-      // `브랜드만 일치` 문제를 되살리기 때문이다 — 라이브 실측에서 `["필로우"]`는 블로그 통과
-      // 20건이 대부분 타사 제품이었고, `["렘필로우"]`는 3건 전부 해당 제품이었다(GD-6).
-      const requiredTokens =
-        nameFallbackTokens.length > 0
-          ? nameFallbackTokens
           : buildBrandTokens([displayCompany, englishCompany]);
 
       const [reviews, videos] = await Promise.all([
