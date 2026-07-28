@@ -219,15 +219,19 @@ const RootLayout = () => {
               presentation: 'fullScreenModal',
             }}
           />
+          {/* 원본 배낭 선택 시트(BAG-5) — 화면 높이 60%로 뜨고 위로 끌어 100%까지 키운다.
+              목록이 시트 높이 안에서 스크롤되려면 contentStyle에 bottom: 0이 필요하다
+              (이유는 위 camp-site 주석 참고). */}
           <Stack.Screen
             name='bag-copy-source'
             options={{
               headerShown: false,
               presentation: 'formSheet',
-              sheetAllowedDetents: 'fitToContents',
+              sheetAllowedDetents: [0.6, 1],
+              sheetInitialDetentIndex: 0,
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
-              contentStyle: { backgroundColor: '#FFFFFF' },
+              contentStyle: { backgroundColor: '#FFFFFF', bottom: 0 },
             }}
           />
           <Stack.Screen
