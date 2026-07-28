@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | as-built (2026-07-10 검색·정렬 시트 반영) |
+| 상태 | as-built (2026-07-10 검색·정렬 시트 반영) · **2026-07-28 개정 `[제안]`**: 장비 이미지 미제공([DataModel.md](DataModel.md) §1) — 행 썸네일 제거(WH-1) |
 | ID 프리픽스 | `WH` |
 | 주요 코드 | `app/(tabs)/index.tsx`, `components/warehouse/`, `model/warehouse/`, `model/order/`, `model/filter/FilterManager.ts` |
 | 관련 스펙 | [DataModel.md](DataModel.md), [GearEdit.md](GearEdit.md), [GearDetail.md](GearDetail.md) |
@@ -34,10 +34,9 @@ app/(tabs)/index.tsx → WarehouseWrapper → WarehouseScreen
 
 **수용 기준**
 
-- 각 장비 행에 이미지, 제조사, 이름, 색상, 무게를 표시한다.
+- 각 장비 행에 제조사, 이름, 색상, 무게를 표시한다. **장비 이미지·썸네일은 표시하지 않는다**([DataModel.md](DataModel.md) §1 장비 이미지 미제공 원칙) — 빈 썸네일 박스를 남기지 않고 처음부터 이미지 칸이 없는 텍스트 우선 행 레이아웃으로 잡는다 `[제안]`.
 - 이름은 `Gear.getDisplayName()`(= `nameKorean || name`)으로 표시한다 — `getName()` 직접 표시 금지.
 - 무게는 `{weight}g` 형식으로 표시한다.
-- `imageUrl`에 `'http'`가 포함된 경우에만 이미지를 렌더하고, 로드 실패 시 이미지를 표시하지 않는다.
 - 사용 기록이 있는 장비는 사용률 배지(`사용률 XX%` — `used`/`useless` 기록 기반)를 표시한다.
 - 목록은 전체 일괄 로드한다 (페이지네이션/무한 스크롤 없음).
 

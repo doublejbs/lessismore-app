@@ -2,24 +2,23 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | as-built (2026-07-11 코드 기준) |
+| 상태 | as-built (2026-07-11 코드 기준) · **2026-07-28 개정 `[제안]`**: 장비 이미지 미제공([DataModel.md](DataModel.md) §1) — GD-4 폐기, GD-1 텍스트 우선 레이아웃 |
 | ID 프리픽스 | `GD` |
-| 주요 코드 | `app/gear-detail/[id]/`, `components/warehouse-detail/`, `model/warehouse-detail/WarehouseDetail.ts`, `components/gear-image/`, `model/gear-image/`, `model/store/GearImageStore.ts` |
+| 주요 코드 | `app/gear-detail/[id]/`, `components/warehouse-detail/`, `model/warehouse-detail/WarehouseDetail.ts` |
 | 관련 스펙 | [DataModel.md](DataModel.md), [Reply.md](Reply.md), [Warehouse.md](Warehouse.md), [Search.md](Search.md) |
 
 ## 1. 개요
 
-장비 1개의 상세 화면. 기본 정보, 이 장비를 담았던 배낭 기록(사용/미사용 통계), 리뷰(댓글) 미리보기,
-공유 이미지 갤러리(대표 사진 변경)를 제공한다. 창고·검색·배낭 상세 어디서든 `/gear-detail/{id}`로 진입한다.
+장비 1개의 상세 화면. 기본 정보, 이 장비를 담았던 배낭 기록(사용/미사용 통계), 리뷰(댓글) 미리보기를
+제공한다. 창고·검색·배낭 상세 어디서든 `/gear-detail/{id}`로 진입한다.
 
 ## 2. 화면 및 진입
 
 ```
 app/gear-detail/[id]/index.tsx → WarehouseDetailWrapper → WarehouseDetailView
-  ├─ WarehouseDetailInformationView   (제조사/이름/색상/무게/대표 사진)
+  ├─ WarehouseDetailInformationView   (제조사/이름/색상/무게)
   ├─ WarehouseDetailBagRecordView     (배낭 기록 — bags가 있을 때만)
-  ├─ WarehouseDetailReviewSectionView (리뷰 미리보기)
-  └─ SharedImageSelectionModalView    (공유 이미지 갤러리 모달)
+  └─ WarehouseDetailReviewSectionView (리뷰 미리보기)
 ```
 
 - 장비 조회는 `GearStore.getGear(id)`: `users/{uid}/gears/{id}` 우선, 없으면 카탈로그 `gear/{id}`.
@@ -30,13 +29,12 @@ app/gear-detail/[id]/index.tsx → WarehouseDetailWrapper → WarehouseDetailVie
 
 **수용 기준**
 
-- 제조사(`getDisplayCompany()` — 한글 표시명 우선, 리스트 화면과 동일), 이름(`getDisplayName()`), 색상, 무게, 대표 사진을 표시한다. 대표 사진이 없으면 `thumbBg` 배경의 플레이스홀더 박스(동일 높이)로 레이아웃을 유지한다.
+- 제조사(`getDisplayCompany()` — 한글 표시명 우선, 리스트 화면과 동일), 이름(`getDisplayName()`), 색상, 무게를 표시한다. **장비 이미지는 표시하지 않는다**([DataModel.md](DataModel.md) §1 장비 이미지 미제공 원칙) — 빈 이미지 칸·플레이스홀더를 남기지 않고 처음부터 이미지 칸이 없는 **텍스트 우선 레이아웃**으로 잡는다 `[제안]`. 화면의 시각 앵커는 무게 히어로가 담당한다.
 - 카테고리·색상·사이즈는 이름 아래 **메타 라인**에 `카테고리 · 색상 · 사이즈` 형식 보조 텍스트(`textSecondary`)로 표시한다(칩 아님). 카테고리는 **세분 카테고리 한글 라벨**(DM-4, 매핑에 없으면 그룹 라벨 폴백), 색상은 `colorKorean || color`, 사이즈는 `sizeKorean || size`. 빈 항목은 생략, 모두 없으면 라인 미노출.
 - 무게는 큰 숫자에 `무게` 캡션을 붙여 맥락을 준다.
-- 대표 사진 변경 버튼은 중앙 pill 대신 **이미지 우하단 오버레이 아이콘 버튼**(44pt, `accessibilityLabel`)으로 배치한다. 노출 조건은 기존과 동일 — **내 창고에 추가된 장비이고 공유 이미지 기능이 활성일 때만**.
 - `수정하기`는 본문 중앙 텍스트 버튼 대신 **헤더 우상단** 액션(44pt)으로 이동한다(보유 장비만). 화면 본문의 중앙 정렬 액션 나열을 줄여 주 액션 위계를 명확히 한다(HIG).
 - 헤더: 스크롤이 기본 정보 섹션을 지나면 헤더에 **제품명 타이틀**이 나타난다(컨텍스트 유지).
-- 접근성·터치 타깃(HIG): 뒤로가기 버튼은 44×44pt 터치 영역과 `accessibilityLabel`/`accessibilityRole`을 가진다. 헤더 액션·오버레이 버튼도 동일 기준.
+- 접근성·터치 타깃(HIG): 뒤로가기 버튼은 44×44pt 터치 영역과 `accessibilityLabel`/`accessibilityRole`을 가진다. 헤더 액션도 동일 기준.
 
 ### GD-2 배낭 기록 섹션
 
@@ -105,18 +103,12 @@ GD-2의 배낭별 행을 **여행 카드**로 강화한다. 배낭 문서에 이
 - 댓글이 있으면 최신 댓글 1개(`createdAt desc limit 1`)와 `더 많은 의견 보기` 버튼을 표시한다.
 - 리뷰 화면 이동은 로그인 확인을 거친다.
 
-### GD-4 공유 이미지 갤러리
+### GD-4 공유 이미지 갤러리 `[폐기]`
 
-카탈로그 장비는 사용자들이 올린 실사용 사진을 공유하고, 그중 하나를 내 대표 사진으로 쓸 수 있다.
-
-**수용 기준**
-
-- **카탈로그 장비(`isCustom === false`)에만** 갤러리 기능이 활성화된다. 커스텀 장비는 비활성.
-- 이미지 목록은 `gear/{gearId}/images`를 `uploadedAt desc`로 표시한다([DataModel.md](DataModel.md) DM-8).
-- 업로드는 로그인 사용자 누구나 가능 (카메라/갤러리, 권한 필요).
-- 삭제는 본인이 올린 이미지(`uploadedBy === 내 uid`)만 가능.
-- 대표 사진 선택은 선택(pending) → `확인` 2단계로 적용되며, 내 장비 문서의 `imageUrl`이 갱신된다.
-- 이미지가 0장이어도 `사진 추가` 버튼은 항상 노출된다.
+**장비 이미지 미제공 원칙([DataModel.md](DataModel.md) §1, 2026-07-28)에 따라 제거한다.**
+갤러리 모달(`SharedImageSelectionModalView`)·업로드·삭제·대표 사진 변경(`users/{uid}/gears/{id}.imageUrl` 갱신)과
+진입 버튼, 관련 코드(`components/gear-image/`, `model/gear-image/`, `model/store/GearImageStore.ts`)를 모두 걷어낸다.
+기존 데이터(DM-8)·Storage 파일 정리는 DataModel §1 운영 절차. `GD-4` 번호는 재사용하지 않는다.
 
 ### GD-5 최저가 구입 링크 (쿠팡 파트너스)
 
@@ -153,7 +145,7 @@ GD-2의 배낭별 행을 **여행 카드**로 강화한다. 배낭 문서에 이
 
 - **카탈로그 장비(`!isCustom`)** 상세 헤더 우측에 공유 아이콘(수정하기 왼쪽). 커스텀 장비는 웹 랜딩 대상이 아니라 노출하지 않는다.
 - 탭 → OS 공유 시트(`Share.share`)로 URL `https://useless.my/gear-share/{encodeURIComponent(gearId)}`**만** 내보낸다. 공유 클릭은 `click_gear_share`로 계측한다.
-- **웹 랜딩**(별도 레포 `lessismore`, `/gear-share/:id`): Firestore `/gear/{id}`(공개 읽기)를 읽어 제조사·이름·무게·사진·카테고리를 보여주고, `앱에서 보기` 버튼으로 `lessismoreapp://gear-detail/{id}` 딥링크(미설치 시 스토어 폴백)로 앱을 연다.
+- **웹 랜딩**(별도 레포 `lessismore`, `/gear-share/:id`): Firestore `/gear/{id}`(공개 읽기)를 읽어 제조사·이름·무게·카테고리를 보여주고(장비 이미지 미제공 원칙 — 사진 없음), `앱에서 보기` 버튼으로 `lessismoreapp://gear-detail/{id}` 딥링크(미설치 시 스토어 폴백)로 앱을 연다.
 
 ### GD-8 카테고리별 스펙 표 `[기획]`
 
@@ -168,20 +160,18 @@ GD-2의 배낭별 행을 **여행 카드**로 강화한다. 배낭 문서에 이
 
 ## 4. 데이터
 
-- 읽기: 장비 문서(DM-3), `gear/{gearId}/images`(DM-8), 최신 댓글(DM-7), 외부 후기 캐시(DM-19).
-- 쓰기: 갤러리 업로드/삭제(Storage `/gears/{gearId}/{imageId}` + Firestore), 대표 사진 변경(`users/{uid}/gears/{id}.imageUrl`), 외부 후기 캐시 갱신(DM-19).
+- 읽기: 장비 문서(DM-3), 최신 댓글(DM-7), 외부 후기 캐시(DM-19).
+- 쓰기: 외부 후기 캐시 갱신(DM-19).
 
 ## 5. 플랫폼 분기
 
-| 지점 | iOS | Android | Web |
-| --- | --- | --- | --- |
-| 이미지 업로드/삭제 선택 UI | `ActionSheetIOS` | `Alert.alert` | — |
+없음 — 이미지 업로드/삭제 선택 UI 분기는 GD-4 폐기(2026-07-28)와 함께 제거.
 
 ## 6. 엣지 케이스
 
 - **장비 조회 실패**(삭제된 장비 등): 알럿 표시 후 초기화 중단(화면 미렌더).
 - **로딩**: 초기화 완료 전에는 아무것도 렌더하지 않는다(null). 스켈레톤 UI 없음.
-- **비로그인**: 리뷰 이동·이미지 업로드 시 로그인 유도.
+- **비로그인**: 리뷰 이동 시 로그인 유도.
 
 ## 7. 수동 검증 체크리스트
 
@@ -196,15 +186,13 @@ GD-2의 배낭별 행을 **여행 카드**로 강화한다. 배낭 문서에 이
 - [ ] 최근 기록 3회 연속 안 씀 → 덜어내기 배너(−Ng), 조건 미충족 시 미노출
 - [ ] 미보유(카탈로그) 장비 → GD-9~12 전부 미노출
 - [ ] 배낭 31개 이상 담긴 장비 → 전체 배낭 조회(청크) 정상
-- [ ] 커스텀 장비 → 갤러리/대표 사진 변경 미노출
-- [ ] 다른 사용자가 올린 공유 이미지에 삭제 버튼 미노출
-- [ ] 대표 사진 변경 → 창고 목록 썸네일에 반영
+- [ ] 화면 어디에도 장비 이미지·이미지 플레이스홀더·갤러리 진입점이 없음 (GD-1, GD-4 폐기)
 - [ ] `coupangUrl`이 있는 카탈로그 장비 → 제품 정보~리뷰 사이 섹션에 `쿠팡에서 최저가 보기` 텍스트 링크·수수료 고지·구분선 노출, 탭 시 외부 링크
 - [ ] `coupangUrl`이 없는 장비·커스텀 장비 → 버튼·고지 미노출
 - [ ] 보유 장비 → 섹션 순서가 정보 → 배낭 기록 → 쿠팡 → 리뷰 (GD-5)
 - [ ] 미보유 장비 → 섹션 순서가 정보 → 쿠팡 → 리뷰 (GD-5, 현행 유지)
 - [ ] 카테고리 있는 장비 → 이름 아래 메타 라인에 `카테고리 · 색상` 표시, 둘 다 없으면 라인 미노출 (GD-1)
-- [ ] 대표 사진 변경이 이미지 우하단 오버레이 버튼으로 노출 (보유+갤러리 활성 시), 수정하기가 헤더 우상단에 노출 (GD-1)
+- [ ] 수정하기가 헤더 우상단에 노출 (GD-1)
 - [ ] 스크롤을 정보 섹션 아래로 내리면 헤더에 제품명 표시, 최상단 복귀 시 사라짐 (GD-1)
 - [ ] USED/USELESS 0회 카드가 시각적으로 낮게 표시 (GD-2)
 - [ ] 뒤로가기 VoiceOver 라벨 읽힘 + 버튼 주변 오탭 없이 44pt 터치 (GD-1)

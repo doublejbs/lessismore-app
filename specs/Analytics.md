@@ -95,7 +95,7 @@
 | `click_gear_delete` | 장비 삭제 확정 (WH-5 / GE-5) | `from`: `warehouse` \| `edit` |
 | `click_gear_edit` | 장비 상세 `수정하기` (WH-4) | — |
 | `click_gear_save` | 장비 등록/편집 저장 (GE-3/GE-4) | `mode`: `create` \| `edit` |
-| `click_gear_photo_change` | 장비 상세 `대표 사진 변경` (GD-4) | — |
+| `click_gear_photo_change` | [폐기] 공유 이미지 갤러리(GD-4)가 제거되어 더 이상 발생하지 않음 (장비 이미지 미제공, 2026-07-28) | — |
 | `click_gear_purchase` | 장비 상세 최저가 구입하기 (GD-5) | — |
 
 **리뷰 / 검색 / 인증·정보** ([Reply.md](Reply.md), [Search.md](Search.md), [Auth.md](Auth.md))
