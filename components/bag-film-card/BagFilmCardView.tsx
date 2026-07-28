@@ -111,9 +111,19 @@ const PACKING_LIST_WIDTH_FRACTION: Record<FilmCardRatio, number> = {
   [FilmCardRatio.Story]: 0.48,
 };
 
+/**
+ * 종이에 싣는 장비 수(BS-8).
+ *
+ * **한도는 최대 배율(1.3배) 기준으로 잡는다** — 사용자가 핀치로 키웠을 때 종이가 캔버스를
+ * 넘으면 잘린다. 종이 높이는 `고정 0.520 + 항목당 0.099`(종이 폭 대비)이고, iPhone 17 Pro
+ * 기준 1.3배에서 4:5는 15개·9:16은 22개까지 들어간다. 여유를 조금 남긴 값이다.
+ *
+ * 항목 수를 늘려도 **글자는 작아지지 않는다** — 폰트가 종이 폭에 비례하지 항목 수에
+ * 비례하지 않아 종이만 길어진다.
+ */
 const PACKING_LIST_ITEM_LIMIT: Record<FilmCardRatio, number> = {
-  [FilmCardRatio.Feed]: 8,
-  [FilmCardRatio.Story]: 14,
+  [FilmCardRatio.Feed]: 14,
+  [FilmCardRatio.Story]: 20,
 };
 
 /**
@@ -241,13 +251,6 @@ const BagFilmCardView: FC<Props> = ({ filmCard }) => {
     router.back();
   };
 
-  // 초기화는 켜져 있는 요소의 위치·배율·각도를 **모두 기본 배치로** 되돌린다(BS-9 — 가운데가
-  // 아니다). 꺼진 요소를 함께 되돌려도 어차피 다시 켜질 때 초기화되므로 구분하지 않는다.
-  const handlePressReset = () => {
-    polaroidTransform.handleReset();
-    packingListTransform.handleReset();
-  };
-
   const elementChips: FilmCardChipOption[] = ELEMENT_OPTIONS.map(option => ({
     key: option,
     label: ELEMENT_SPECS[option].label,
@@ -294,10 +297,8 @@ const BagFilmCardView: FC<Props> = ({ filmCard }) => {
         busy={busy}
         sharing={sharing}
         saving={saving}
-        showReset={activeElements.some(element => transforms[element].moved)}
         onPressBack={handlePressBack}
         onPressPhoto={handlePressPhoto}
-        onPressReset={handlePressReset}
         onPressShare={handlePressShare}
         onPressSave={handlePressSave}
       />

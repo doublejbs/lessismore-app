@@ -1,14 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { LayoutChangeEvent, StyleProp, ViewStyle } from 'react-native';
 import { ComposedGesture, Gesture } from 'react-native-gesture-handler';
 import {
   AnimatedStyle,
   runOnJS,
   runOnUI,
-  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
-  withTiming,
 } from 'react-native-reanimated';
 import FilmCardCorner from '@/components/bag-film-card/FilmCardCorner';
 
@@ -44,10 +42,7 @@ interface Params {
 export interface ElementTransform {
   gesture: ComposedGesture;
   elementStyle: StyleProp<AnimatedStyle<ViewStyle>>;
-  // 사용자가 위치·배율·각도에 손댔을 때만 true — 초기화 컨트롤 노출 조건이다(BS-9).
-  moved: boolean;
   handleLayoutElement: (event: LayoutChangeEvent) => void;
-  handleReset: () => void;
 }
 
 // 배율 한계(BS-9). 더 키우면 요소가 캔버스를 넘고, 더 줄이면 읽히지 않는다.
@@ -63,7 +58,6 @@ const DEFAULT_SCALE = MIN_SCALE;
 const CORNER_MARGIN_FRACTION = 0.06;
 // 요소가 캔버스 밖으로 완전히 나가지 않도록, 이 비율만큼은 항상 캔버스 안에 남긴다.
 const MIN_VISIBLE_FRACTION = 0.5;
-const RESET_DURATION = 180;
 // 탭으로 인정하는 한계(BS-9). 손가락이 이보다 멀리 가거나 오래 눌리면 탭이 아니다 —
 // 옮기려던 동작이 사진 피커를 여는 일이 없어야 한다.
 const TAP_MAX_DISTANCE = 10;
@@ -191,11 +185,10 @@ const useElementTransform = ({
    */
   const ready = useSharedValue(0);
   /**
-   * 사용자가 이 요소에 손댔는지(BS-9). 초기화 컨트롤 노출 조건이자, 비율이 바뀌었을 때
-   * 기본 배치를 다시 잡아도 되는지의 판단 근거다 — 손댄 요소의 자리를 마음대로 옮기지 않는다.
+   * 사용자가 이 요소에 손댔는지(BS-9). 비율이 바뀌었을 때 기본 배치를 다시 잡아도 되는지의
+   * 판단 근거다 — 손댄 요소의 자리를 마음대로 옮기지 않는다.
    */
   const touched = useSharedValue(false);
-  const [moved, setMoved] = useState(false);
 
   /**
    * 클램프와 기본 배치는 **제스처와 다른 memo**에 둔다.
@@ -229,171 +222,141 @@ const useElementTransform = ({
    *
    * 새로 함수를 추가할 때도 **JS 스레드에서 shared value를 읽어 계산하지 말 것.**
    */
-  const {
-    clampOffsets,
-    applySizes,
-    applyElementHeight,
-    placeAtDefault,
-    handleReset,
-  } = useMemo(() => {
-    const clampCurrentOffsets = () => {
-      'worklet';
-
-      const width = canvasWidthValue.value;
-      const height = canvasHeightValue.value;
-
-      if (width <= 0 || height <= 0) {
-        return;
-      }
-
-      // 기울면 실제로 차지하는 폭·높이가 커지므로 회전한 바운딩 박스로 가둔다(BS-9).
-      const rotated = getRotatedSize(
-        elementWidthValue.value,
-        elementHeightValue.value,
-        rotation.value
-      );
-      const maxX = getMaxOffset(width, rotated.width, scale.value);
-      const maxY = getMaxOffset(height, rotated.height, scale.value);
-
-      offsetRatioX.value = clamp(
-        offsetRatioX.value,
-        -maxX / width,
-        maxX / width
-      );
-      offsetRatioY.value = clamp(
-        offsetRatioY.value,
-        -maxY / height,
-        maxY / height
-      );
-    };
-
-    // 높이를 실측하기 전에는 기본 위치를 계산할 수 없다.
-    const isMeasured = () => {
-      'worklet';
-
-      return (
-        canvasWidthValue.value > 0 &&
-        canvasHeightValue.value > 0 &&
-        elementHeightValue.value > 0
-      );
-    };
-
-    const getDefaults = () => {
-      'worklet';
-
-      return getDefaultOffsetRatios(
-        canvasWidthValue.value,
-        canvasHeightValue.value,
-        elementWidthValue.value,
-        elementHeightValue.value,
-        defaultCorner
-      );
-    };
-
-    // 애니메이션 없이 즉시 기본 배치로 앉힌다(BS-9) — 최초 진입·껐다 켜기 경로.
-    const placeDefaultInstantly = () => {
-      'worklet';
-
-      scale.value = DEFAULT_SCALE;
-      rotation.value = 0;
-      touched.value = false;
-
-      if (!isMeasured()) {
-        // 아직 자리를 못 잡았으므로 계속 감춰 둔다. 실측되면 applyElementHeight가 다시 부른다.
-        return;
-      }
-
-      const defaults = getDefaults();
-
-      offsetRatioX.value = defaults.x;
-      offsetRatioY.value = defaults.y;
-      // 기본 위치도 이동 한계 안이어야 한다 — 요소가 커서 넘치면 허용 최대치로 밀어 넣는다.
-      clampCurrentOffsets();
-      ready.value = 1;
-    };
-
-    /**
-     * 캔버스·요소 크기가 바뀌었을 때 자리를 다시 잡는다.
-     *
-     * 손대지 않은 요소는 **새 크기 기준 기본 배치**로 앉힌다(비율만 유지하면 모서리
-     * 여백이 어긋난다). 손댄 요소는 비율로 보관된 자리를 존중하고 한계만 다시 가둔다.
-     */
-    const refreshCurrentPlacement = () => {
-      'worklet';
-
-      if (!touched.value) {
-        placeDefaultInstantly();
-
-        return;
-      }
-
-      clampCurrentOffsets();
-
-      if (isMeasured()) {
-        ready.value = 1;
-      }
-    };
-
-    // 초기화 컨트롤: 끌다가 구석에 처박히거나 심하게 기울었을 때 기본 배치로 되돌린다(BS-9).
-    // 여기서만 애니메이션을 쓴다 — 사용자가 누른 결과라 움직임이 보이는 편이 낫다.
-    const resetToDefault = () => {
-      'worklet';
-
-      if (!isMeasured()) {
-        placeDefaultInstantly();
-
-        return;
-      }
-
-      const defaults = getDefaults();
-
-      offsetRatioX.value = withTiming(defaults.x, {
-        duration: RESET_DURATION,
-      });
-      offsetRatioY.value = withTiming(defaults.y, {
-        duration: RESET_DURATION,
-      });
-      scale.value = withTiming(DEFAULT_SCALE, { duration: RESET_DURATION });
-      rotation.value = withTiming(0, { duration: RESET_DURATION });
-      touched.value = false;
-    };
-
-    return {
-      // 제스처 워크릿은 이미 UI 런타임에서 도므로 래핑하지 않은 워크릿을 그대로 쓴다.
-      clampOffsets: clampCurrentOffsets,
-      // 아래 넷은 React 런타임에서 불리는 입구라 UI 런타임으로 넘긴다(위 주석 참고).
-      applySizes: runOnUI(
-        (width: number, height: number, elementSize: number) => {
-          'worklet';
-
-          canvasWidthValue.value = width;
-          canvasHeightValue.value = height;
-          elementWidthValue.value = elementSize;
-          refreshCurrentPlacement();
-        }
-      ),
-      /**
-       * 실측 높이 반영. **같은 높이면 아무것도 하지 않는 비교까지 UI 런타임 안에서** 한다 —
-       * JS 쪽에서 비교하면 직전에 예약한 쓰기가 아직 안 보여 매번 "바뀌었다"로 새거나,
-       * 반대로 첫 실측을 놓친다.
-       */
-      applyElementHeight: runOnUI((height: number) => {
+  const { clampOffsets, applySizes, applyElementHeight, placeAtDefault } =
+    useMemo(() => {
+      const clampCurrentOffsets = () => {
         'worklet';
 
-        if (height === elementHeightValue.value) {
+        const width = canvasWidthValue.value;
+        const height = canvasHeightValue.value;
+
+        if (width <= 0 || height <= 0) {
           return;
         }
 
-        elementHeightValue.value = height;
-        refreshCurrentPlacement();
-      }),
-      placeAtDefault: runOnUI(placeDefaultInstantly),
-      handleReset: runOnUI(resetToDefault),
-    };
-    // shared value는 렌더 사이에 동일한 참조라 의존성에 넣지 않는다(넣으면 워크릿이
-    // "훅 인자로 넘긴 값을 수정한다"는 react-hooks/immutability 위반이 된다).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultCorner]);
+        // 기울면 실제로 차지하는 폭·높이가 커지므로 회전한 바운딩 박스로 가둔다(BS-9).
+        const rotated = getRotatedSize(
+          elementWidthValue.value,
+          elementHeightValue.value,
+          rotation.value
+        );
+        const maxX = getMaxOffset(width, rotated.width, scale.value);
+        const maxY = getMaxOffset(height, rotated.height, scale.value);
+
+        offsetRatioX.value = clamp(
+          offsetRatioX.value,
+          -maxX / width,
+          maxX / width
+        );
+        offsetRatioY.value = clamp(
+          offsetRatioY.value,
+          -maxY / height,
+          maxY / height
+        );
+      };
+
+      // 높이를 실측하기 전에는 기본 위치를 계산할 수 없다.
+      const isMeasured = () => {
+        'worklet';
+
+        return (
+          canvasWidthValue.value > 0 &&
+          canvasHeightValue.value > 0 &&
+          elementHeightValue.value > 0
+        );
+      };
+
+      const getDefaults = () => {
+        'worklet';
+
+        return getDefaultOffsetRatios(
+          canvasWidthValue.value,
+          canvasHeightValue.value,
+          elementWidthValue.value,
+          elementHeightValue.value,
+          defaultCorner
+        );
+      };
+
+      // 애니메이션 없이 즉시 기본 배치로 앉힌다(BS-9) — 최초 진입·껐다 켜기 경로.
+      const placeDefaultInstantly = () => {
+        'worklet';
+
+        scale.value = DEFAULT_SCALE;
+        rotation.value = 0;
+        touched.value = false;
+
+        if (!isMeasured()) {
+          // 아직 자리를 못 잡았으므로 계속 감춰 둔다. 실측되면 applyElementHeight가 다시 부른다.
+          return;
+        }
+
+        const defaults = getDefaults();
+
+        offsetRatioX.value = defaults.x;
+        offsetRatioY.value = defaults.y;
+        // 기본 위치도 이동 한계 안이어야 한다 — 요소가 커서 넘치면 허용 최대치로 밀어 넣는다.
+        clampCurrentOffsets();
+        ready.value = 1;
+      };
+
+      /**
+       * 캔버스·요소 크기가 바뀌었을 때 자리를 다시 잡는다.
+       *
+       * 손대지 않은 요소는 **새 크기 기준 기본 배치**로 앉힌다(비율만 유지하면 모서리
+       * 여백이 어긋난다). 손댄 요소는 비율로 보관된 자리를 존중하고 한계만 다시 가둔다.
+       */
+      const refreshCurrentPlacement = () => {
+        'worklet';
+
+        if (!touched.value) {
+          placeDefaultInstantly();
+
+          return;
+        }
+
+        clampCurrentOffsets();
+
+        if (isMeasured()) {
+          ready.value = 1;
+        }
+      };
+
+      return {
+        // 제스처 워크릿은 이미 UI 런타임에서 도므로 래핑하지 않은 워크릿을 그대로 쓴다.
+        clampOffsets: clampCurrentOffsets,
+        // 아래 넷은 React 런타임에서 불리는 입구라 UI 런타임으로 넘긴다(위 주석 참고).
+        applySizes: runOnUI(
+          (width: number, height: number, elementSize: number) => {
+            'worklet';
+
+            canvasWidthValue.value = width;
+            canvasHeightValue.value = height;
+            elementWidthValue.value = elementSize;
+            refreshCurrentPlacement();
+          }
+        ),
+        /**
+         * 실측 높이 반영. **같은 높이면 아무것도 하지 않는 비교까지 UI 런타임 안에서** 한다 —
+         * JS 쪽에서 비교하면 직전에 예약한 쓰기가 아직 안 보여 매번 "바뀌었다"로 새거나,
+         * 반대로 첫 실측을 놓친다.
+         */
+        applyElementHeight: runOnUI((height: number) => {
+          'worklet';
+
+          if (height === elementHeightValue.value) {
+            return;
+          }
+
+          elementHeightValue.value = height;
+          refreshCurrentPlacement();
+        }),
+        placeAtDefault: runOnUI(placeDefaultInstantly),
+      };
+      // shared value는 렌더 사이에 동일한 참조라 의존성에 넣지 않는다(넣으면 워크릿이
+      // "훅 인자로 넘긴 값을 수정한다"는 react-hooks/immutability 위반이 된다).
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [defaultCorner]);
 
   /**
    * 제스처는 잠금(`enabled`)과 탭 동작이 바뀔 때만 다시 만든다 — 매 렌더 새로 만들면
@@ -484,22 +447,6 @@ const useElementTransform = ({
   }, [enabled, onTap, clampOffsets]);
 
   /**
-   * 손댔는지를 React 상태로 끌어올려 초기화 컨트롤 노출에 쓴다(BS-9).
-   *
-   * **위치**: 아래 effect들과 같은 이유로 위 `useMemo`들보다 **뒤에** 와야 한다 —
-   * shared value를 읽는 훅을 앞에 두면 react-hooks/immutability가 그 값을 "고정"으로 보고
-   * memo 안의 수정을 막는다.
-   */
-  useAnimatedReaction(
-    () => touched.value,
-    (current, previous) => {
-      if (current !== previous) {
-        runOnJS(setMoved)(current);
-      }
-    }
-  );
-
-  /**
    * 캔버스·요소 크기를 shared value로 옮기고 자리를 다시 잡는다.
    *
    * **위치**: shared value를 건드리는 effect는 위 `useMemo`들보다 **뒤에** 와야 한다.
@@ -539,7 +486,7 @@ const useElementTransform = ({
     applyElementHeight(event.nativeEvent.layout.height);
   };
 
-  return { gesture, elementStyle, moved, handleLayoutElement, handleReset };
+  return { gesture, elementStyle, handleLayoutElement };
 };
 
 export default useElementTransform;
