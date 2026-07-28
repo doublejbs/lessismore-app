@@ -57,7 +57,6 @@ class CustomGear extends AbstractGearEdit {
       this.getName(),
       this.getCompany(),
       this.getWeight(),
-      await this.getFileUrl(),
       true,
       true,
       this.getSelectedFilter(),
@@ -76,10 +75,6 @@ class CustomGear extends AbstractGearEdit {
     app.getAnalyticsManager()?.logClick('gear_save', { mode: 'create' });
 
     return gear;
-  }
-
-  public getFileName(): string {
-    return `${this.getName()}${this.getCompany()}${this.getWeight()}`;
   }
 
   public override hide() {

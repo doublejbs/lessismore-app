@@ -5,7 +5,6 @@ import {
   StyleSheet,
   GestureResponderEvent,
 } from 'react-native';
-import GearImageView from '@/components/warehouse/GearImageView';
 import PretendardText from '@/components/PretendardText';
 import Gear from '@/model/gear/Gear';
 import { Color, Radius } from '@/constants/DesignTokens';
@@ -16,15 +15,11 @@ interface Props {
   onPress?: (e: GestureResponderEvent) => void;
 }
 
+// WH-1 창고 목록 행. 장비 썸네일은 표시하지 않으며(DataModel §1 장비 이미지 미제공 원칙)
+// 빈 썸네일 박스도 남기지 않는 텍스트 우선 행 레이아웃이다.
 const GearView: FC<Props> = ({ gear, children, onPress }) => {
-  const imageUrl = gear.getImageUrl();
-
   const content = (
     <View style={styles.container}>
-      <View style={styles.imageContainer}>
-        <GearImageView imageUrl={imageUrl} />
-      </View>
-
       <View style={styles.infoColumn}>
         <View style={styles.companyRow}>
           <PretendardText style={styles.companyText} weight="regular">
@@ -82,19 +77,9 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 14,
     paddingHorizontal: 0,
     gap: 12,
-  },
-  imageContainer: {
-    width: 80,
-    height: 80,
-    backgroundColor: Color.thumbBg,
-    alignItems: 'center',
-    minWidth: 80,
-    borderRadius: Radius.listThumb,
-    justifyContent: 'center',
-    overflow: 'hidden',
   },
   infoColumn: {
     flex: 1,

@@ -1,7 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 import Firebase from '../firebase/Firebase';
 import GearStore from '../store/GearStore';
-import GearImageStore from '../store/GearImageStore';
 import BagStore from '../store/BagStore';
 import SearchStore from '../search/SearchStore';
 import AlertManager from '../alert/AlertManager';
@@ -20,7 +19,6 @@ import FeaturePopupManager from '../feature-popup/FeaturePopupManager';
 class App {
   private readonly firebase = new Firebase();
   private gearStore: GearStore | null = null;
-  private gearImageStore: GearImageStore | null = null;
   private bagStore: BagStore | null = null;
   private searchStore: SearchStore | null = null;
   private alertManager: AlertManager | null = null;
@@ -53,7 +51,6 @@ class App {
 
     await this.firebase.initialize();
     this.gearStore = new GearStore(this.firebase);
-    this.gearImageStore = new GearImageStore(this.firebase);
     this.setBagStore(new BagStore(this.firebase));
     this.searchStore = new SearchStore(this.firebase);
     this.alertManager = AlertManager.new();
@@ -91,20 +88,12 @@ class App {
     return this.firebase.getStore();
   }
 
-  public getStorage() {
-    return this.firebase.getStorage();
-  }
-
   private setBagStore(value: BagStore) {
     this.bagStore = value;
   }
 
   public getGearStore() {
     return this.gearStore;
-  }
-
-  public getGearImageStore() {
-    return this.gearImageStore;
   }
 
   public getReplyStore() {

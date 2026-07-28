@@ -26,8 +26,6 @@ const SkeletonItem: FC = () => {
 
   return (
     <View style={styles.skeletonContainer}>
-      <Animated.View style={[styles.skeletonImage, { opacity }]} />
-
       <View style={styles.skeletonContentSection}>
         <View style={styles.skeletonContentContainer}>
           <View style={styles.skeletonHeaderRow}>
@@ -73,18 +71,12 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     gap: 4,
   },
+  // WH-1 텍스트 우선 행에 맞춘 로딩 자리 — 썸네일 자리는 두지 않는다(DataModel §1).
   skeletonContainer: {
     flexDirection: 'row',
-    paddingVertical: 10,
+    paddingVertical: 14,
     paddingHorizontal: 0,
     gap: 12,
-  },
-  skeletonImage: {
-    width: 80,
-    height: 80,
-    backgroundColor: Color.chipInactiveBg,
-    borderRadius: 4,
-    minWidth: 80,
   },
   skeletonContentSection: {
     flex: 1,

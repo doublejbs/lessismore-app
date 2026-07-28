@@ -54,7 +54,6 @@ class Gear {
     private readonly name: string,
     private readonly company: string,
     private readonly weight: string,
-    private readonly imageUrl: string,
     private readonly added: boolean,
     private readonly isCustom: boolean,
     private readonly category: string,
@@ -100,10 +99,6 @@ class Gear {
     return this.weight;
   }
 
-  public getImageUrl() {
-    return this.imageUrl?.includes?.('http') ? this.imageUrl : '';
-  }
-
   public getId() {
     return this.id;
   }
@@ -128,7 +123,7 @@ class Gear {
       name: this.name,
       company: this.company,
       weight: +this.weight,
-      imageUrl: this.imageUrl ?? '',
+      // imageUrl은 저장하지 않는다 — 장비 이미지 미제공 원칙(DataModel §1, GE-3).
       isCustom: this.isCustom,
       category: this.category,
       useless: this.useless,

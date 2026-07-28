@@ -6,12 +6,11 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { Stack, useRouter } from 'expo-router';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Color } from '@/constants/DesignTokens';
 import SharedBag from '@/model/shared-bag/SharedBag';
 import Gear from '@/model/gear/Gear';
 
@@ -126,23 +125,13 @@ interface GearRowProps {
 }
 
 // 읽기전용 장비 행 — 탭·편집·삭제·체크 없음.
+// 장비 썸네일은 표시하지 않는다(DataModel §1 장비 이미지 미제공 원칙).
 const GearRow: FC<GearRowProps> = ({ gear }) => {
-  const imageUrl = gear.getImageUrl();
   const company = gear.getDisplayCompany();
   const weight = gear.getWeight();
 
   return (
     <View style={styles.gearRow}>
-      <View style={styles.thumb}>
-        {imageUrl ? (
-          <Image
-            source={{ uri: imageUrl }}
-            style={styles.thumbImage}
-            contentFit='cover'
-          />
-        ) : null}
-      </View>
-
       <View style={styles.gearInfo}>
         <PretendardText
           style={styles.gearName}
@@ -228,18 +217,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     gap: 12,
-  },
-  thumb: {
-    width: 56,
-    height: 56,
-    minWidth: 56,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.thumbBg,
-    overflow: 'hidden',
-  },
-  thumbImage: {
-    width: '100%',
-    height: '100%',
   },
   gearInfo: {
     flex: 1,

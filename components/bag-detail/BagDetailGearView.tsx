@@ -13,7 +13,6 @@ import Reanimated, {
 import Gear from '@/model/gear/Gear';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import app from '@/model/app/App';
-import BagDetailImageView from './BagDetailImageView';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 
@@ -81,8 +80,9 @@ interface Props {
   bagDetail: BagDetail;
 }
 
+// 배낭 상세의 장비 행. 장비 썸네일은 표시하지 않는다(DataModel §1 장비 이미지 미제공 원칙).
+// BD-5의 useless 표기는 유지하되, 썸네일이 사라져 로고 마크를 행 우측에 둔다(로고는 장비 이미지가 아님).
 const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
-  const imageUrl = gear.getImageUrl();
   const isUseless = bagDetail.isUseless(gear);
   const router = useRouter();
   const swipeableRef = useRef<SwipeableMethods>(null);
@@ -130,49 +130,46 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
           onPress={handlePressGear}
           activeOpacity={0.7}
           accessibilityRole='button'
-          accessibilityLabel={`${gear.getDisplayName()}, ${gear.getWeight()}g`}
+          accessibilityLabel={
+            isUseless
+              ? `${gear.getDisplayName()}, ${gear.getWeight()}g, 사용 안 함`
+              : `${gear.getDisplayName()}, ${gear.getWeight()}g`
+          }
         >
-          <View style={styles.imageContainer}>
-            <BagDetailImageView imageUrl={imageUrl} shadow={isUseless} />
-            {isUseless && (
-              <Image
-                source={require('@/assets/images/logo.png')}
-                style={styles.uselessOverlay}
-              />
-            )}
+          <View style={[styles.gearInfo, { opacity: isUseless ? 0.5 : 1 }]}>
+            <View style={styles.companyRow}>
+              <PretendardText style={styles.companyText}>
+                {gear.getDisplayCompany()}
+              </PretendardText>
+              {gear.hasUsedRate() && (
+                <View style={styles.usageRateBadge}>
+                  <PretendardText style={styles.usageRateText}>
+                    사용률 {gear.getUsedRate()}%
+                  </PretendardText>
+                </View>
+              )}
+            </View>
+            <PretendardText
+              style={styles.nameText}
+              weight='bold'
+              numberOfLines={1}
+            >
+              {gear.getDisplayName()}
+            </PretendardText>
+            <PretendardText style={styles.colorText}>
+              {gear.getColor()}
+            </PretendardText>
+            <PretendardText style={styles.weightText} weight='bold'>
+              {gear.getWeight()}g
+            </PretendardText>
           </View>
 
-          <View
-            style={[styles.contentContainer, { opacity: isUseless ? 0.5 : 1 }]}
-          >
-            <View style={styles.gearInfo}>
-              <View style={styles.companyRow}>
-                <PretendardText style={styles.companyText}>
-                  {gear.getDisplayCompany()}
-                </PretendardText>
-                {gear.hasUsedRate() && (
-                  <View style={styles.usageRateBadge}>
-                    <PretendardText style={styles.usageRateText}>
-                      사용률 {gear.getUsedRate()}%
-                    </PretendardText>
-                  </View>
-                )}
-              </View>
-              <PretendardText
-                style={styles.nameText}
-                weight='bold'
-                numberOfLines={1}
-              >
-                {gear.getDisplayName()}
-              </PretendardText>
-              <PretendardText style={styles.colorText}>
-                {gear.getColor()}
-              </PretendardText>
-              <PretendardText style={styles.weightText} weight='bold'>
-                {gear.getWeight()}g
-              </PretendardText>
-            </View>
-          </View>
+          {isUseless && (
+            <Image
+              source={require('@/assets/images/logo.png')}
+              style={styles.uselessMark}
+            />
+          )}
         </TouchableOpacity>
       </View>
     </ReanimatedSwipeable>
@@ -186,33 +183,20 @@ const styles = StyleSheet.create({
   gearItemContainer: {
     flexDirection: 'row',
     width: '100%',
+    alignItems: 'center',
     gap: 6,
   },
-  imageContainer: {
-    width: 80,
-    height: 80,
-    minWidth: 80,
-    backgroundColor: Color.thumbBg,
-    borderRadius: Radius.listThumb,
-    overflow: 'hidden',
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  uselessOverlay: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
+  // BD-5 useless 표기 — 썸네일이 사라져 행 우측의 로고 마크로 낸다(본문은 50% 투명도).
+  uselessMark: {
+    width: 44,
+    height: 44,
     resizeMode: 'contain',
+    opacity: 0.5,
     transform: [{ rotate: '-10.78deg' }],
-  },
-  contentContainer: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
   },
   gearInfo: {
     flex: 1,
+    alignItems: 'flex-start',
     gap: 4,
   },
   companyRow: {

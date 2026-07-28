@@ -33,7 +33,6 @@ import {
   where,
   increment,
 } from 'firebase/firestore';
-import { FirebaseStorage, getStorage } from 'firebase/storage';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
@@ -56,7 +55,6 @@ class Firebase {
   private nickname = '';
   private initialized = false;
   private store!: Firestore;
-  private storage!: FirebaseStorage;
   private hasAgreedToTerms = false;
   private loggedIn = false;
   private idToken: string | null = null;
@@ -85,7 +83,6 @@ class Firebase {
 
     this.auth = this.initializeAuth(fireBaseApp);
     this.store = getFirestore(fireBaseApp);
-    this.storage = getStorage(fireBaseApp);
 
     await this.auth.authStateReady();
     await this.checkLoggedIn();
@@ -355,10 +352,6 @@ class Firebase {
 
   private setUserId(value: string) {
     this.userId = value;
-  }
-
-  public getStorage() {
-    return this.storage;
   }
 
   public hasUserAgreedToTerms() {

@@ -6,7 +6,6 @@ import {
   Pressable,
   ScrollView,
   TouchableOpacity,
-  Image,
   GestureResponderEvent,
   LayoutChangeEvent,
 } from 'react-native';
@@ -227,16 +226,6 @@ const SearchTopKeywordsView: FC<Props> = ({
                   </PretendardText>
                 </View>
 
-                {!!gear.getImageUrl() && (
-                  <View style={styles.imageContainer}>
-                    <Image
-                      source={{ uri: gear.getImageUrl() }}
-                      style={styles.gearImage}
-                      resizeMode='contain'
-                    />
-                  </View>
-                )}
-
                 <View style={styles.gearInfo}>
                   {gear.getCompany() && (
                     <PretendardText
@@ -355,20 +344,6 @@ const styles = StyleSheet.create({
   },
   rankNumberTop3: {
     color: Color.background,
-  },
-  imageContainer: {
-    width: 56,
-    height: 56,
-    backgroundColor: Color.surfaceMuted,
-    borderRadius: Radius.card,
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  gearImage: {
-    width: '100%',
-    height: '100%',
   },
   gearInfo: {
     flex: 1,

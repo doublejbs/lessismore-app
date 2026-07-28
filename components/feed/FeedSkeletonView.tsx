@@ -1,14 +1,17 @@
 import { FC, useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 
-// FD-2: 피드 2컬럼 그리드용 스켈레톤. FeedCardView 레이아웃(정방형 이미지 + 브랜드/이름/무게 바)과
+// FD-2: 피드 2컬럼 그리드용 스켈레톤. FeedCardView의 텍스트 카드 레이아웃(카드 면 위 브랜드/이름/무게 바)과
 // 동일한 형태로, FeedView의 셀 폭/간격(FEED_COLUMN_GAP / FEED_ROW_GAP)에 맞춰 정렬한다.
+// 장비 이미지 미제공 원칙(DataModel §1)에 따라 정방형 이미지 자리는 두지 않는다.
 // SearchSkeletonView와 동일한 은은한 펄스 애니메이션을 사용한다.
 
 // FeedView의 컬럼 간격과 동일하게 유지한다(리스트 columnWrapper gap).
 const FEED_COLUMN_GAP = 12;
 const FEED_ROW_GAP = 24;
+// FeedCardView의 담기 CTA 원형 크기와 동일하게 유지한다.
+const CTA_SIZE = 36;
 const PLACEHOLDER_COLOR = Color.chipInactiveBg;
 
 interface Props {
@@ -39,12 +42,12 @@ const SkeletonCard: FC = () => {
 
   return (
     <View style={styles.cell}>
-      {/* 정방형 이미지 자리 */}
-      <Animated.View style={[styles.image, { opacity }]} />
-
-      {/* 브랜드 · 이름 · 무게 바 */}
-      <View style={styles.info}>
-        <Animated.View style={[styles.companyBar, { opacity }]} />
+      {/* 카드 면 위 (브랜드 + CTA) 행 · 이름 · 무게 바 — FeedCardView와 동일한 구조로 로딩→렌더 점프를 줄인다. */}
+      <View style={styles.cardFace}>
+        <View style={styles.cardHeader}>
+          <Animated.View style={[styles.companyBar, { opacity }]} />
+          <Animated.View style={[styles.ctaCircle, { opacity }]} />
+        </View>
         <Animated.View style={[styles.nameBar, { opacity }]} />
         <Animated.View style={[styles.weightBar, { opacity }]} />
       </View>
@@ -81,31 +84,44 @@ const styles = StyleSheet.create({
     flex: 1,
     maxWidth: '50%',
   },
-  image: {
+  // FeedCardView의 카드 면과 동일한 배경·모서리·패딩.
+  cardFace: {
     width: '100%',
-    aspectRatio: 1,
     borderRadius: Radius.card,
-    backgroundColor: PLACEHOLDER_COLOR,
+    backgroundColor: Color.inputBg,
+    padding: Spacing.item,
+    gap: 6,
   },
-  info: {
-    paddingTop: 8,
+  // FeedCardView의 cardHeader(브랜드 좌 + CTA 우)와 동일한 한 행.
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 6,
   },
   companyBar: {
+    width: '50%',
     height: 10,
-    width: '40%',
     backgroundColor: PLACEHOLDER_COLOR,
     borderRadius: 2,
   },
+  // 실제 카드의 담기 CTA(원형 36pt) 자리.
+  ctaCircle: {
+    width: CTA_SIZE,
+    height: CTA_SIZE,
+    borderRadius: CTA_SIZE / 2,
+    backgroundColor: PLACEHOLDER_COLOR,
+  },
   nameBar: {
-    height: 14,
+    height: 19,
     width: '80%',
     backgroundColor: PLACEHOLDER_COLOR,
     borderRadius: 2,
   },
+  // 실제 무게 텍스트의 lineHeight(32)와 맞춘다.
   weightBar: {
-    height: 12,
-    width: '30%',
+    height: 32,
+    width: '50%',
     backgroundColor: PLACEHOLDER_COLOR,
     borderRadius: 2,
   },

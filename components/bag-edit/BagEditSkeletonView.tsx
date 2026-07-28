@@ -26,14 +26,7 @@ const BagEditSkeletonView: FC<Props> = () => {
   const renderGearSkeletonItem = ({ index }: { index: number }) => {
     return (
       <View key={index} style={styles.gearItemContainer}>
-        {/* 장비 이미지 */}
-        <View style={styles.imageContainer}>
-          <Animated.View
-            style={[styles.imagePlaceholder, { opacity: pulseAnim }]}
-          />
-        </View>
-
-        {/* 장비 정보 */}
+        {/* 장비 정보 — 장비 썸네일이 없어 이미지 자리도 두지 않는다(DataModel §1) */}
         <View style={styles.gearInfoContainer}>
           <View style={styles.gearInfoInner}>
             {/* 회사명 */}
@@ -243,20 +236,10 @@ const styles = StyleSheet.create({
   },
   gearItemContainer: {
     flexDirection: 'row',
-    paddingVertical: 10,
+    // GearView의 실제 행과 동일한 세로 여백(14).
+    paddingVertical: 14,
     gap: 12,
     alignItems: 'center',
-  },
-  imageContainer: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  imagePlaceholder: {
-    width: 80,
-    height: 80,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
-    minWidth: 80,
   },
   gearInfoContainer: {
     flex: 1,
