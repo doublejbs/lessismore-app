@@ -21,7 +21,7 @@
 | [BagShare.md](BagShare.md) | `BS` | 배낭 필름 카드 공유 — 사진 위에 무게·거리·속도·날짜를 얹은 SNS 이미지 |
 | ~~ShareImage.md~~ | `SI` | **[폐기]** 레디샷(배낭 이미지 생성·공유) — 진입점이 모두 사라져 도달 불가 상태로 방치되다 2026-07-21 코드·스펙 제거. `SI` 프리픽스는 재사용하지 않는다 |
 | [Search.md](Search.md) | `SR` | 검색 — Algolia 검색 / 인기 장비 순위 / 창고·배낭 추가 |
-| [Auth.md](Auth.md) | `AU` | 로그인 / 약관 동의 / 정보 탭 / 회원 탈퇴 / 웹뷰 |
+| [Auth.md](Auth.md) | `AU` | 로그인 / 약관 동의 / 정보 탭 / 회원 탈퇴 |
 | [AppLifecycle.md](AppLifecycle.md) | `APP` | 앱 초기화 / OTA / 전역 알림(Alert·Toast) / 탭 구조 |
 | [DataModel.md](DataModel.md) | `DM` | Firestore·Storage·Algolia 데이터 계약 (모든 스펙의 공통 참조) |
 | [Analytics.md](Analytics.md) | `AN` | 클릭 로그 지표 — Firebase Analytics 이벤트 수집 |
