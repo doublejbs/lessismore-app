@@ -31,7 +31,9 @@ const WarehouseDetailInformationView: FC<Props> = ({ gear }) => {
   return (
     <View style={styles.container}>
       <View style={styles.productInfo}>
-        <PretendardText style={styles.companyText}>{company}</PretendardText>
+        <PretendardText style={styles.companyText} weight='bold'>
+          {company}
+        </PretendardText>
         <PretendardText
           weight='bold'
           style={styles.nameText}
@@ -66,9 +68,11 @@ const styles = StyleSheet.create({
   productInfo: {
     flexDirection: 'column',
   },
+  // GD-1: 브랜드는 제품명(nameText)과 동일한 타이포로 표시한다.
   companyText: {
-    fontSize: 13,
-    color: Color.textSecondary,
+    fontSize: 24,
+    lineHeight: 32,
+    color: Color.textPrimary,
   },
   nameText: {
     fontSize: 24,

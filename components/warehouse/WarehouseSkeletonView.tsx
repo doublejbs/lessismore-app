@@ -105,8 +105,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
+  // 브랜드는 이름과 동일한 타이포라 바 높이도 skeletonNameText와 같게 둔다.
   skeletonCompanyText: {
-    height: 12,
+    height: 16,
     width: 60,
     backgroundColor: Color.chipInactiveBg,
     borderRadius: 4,

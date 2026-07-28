@@ -228,7 +228,11 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
       <Pressable style={styles.card} onPress={handleCardPress}>
         <View style={styles.cardFace}>
           <View style={styles.cardHeader}>
-            <PretendardText style={styles.company} numberOfLines={1}>
+            <PretendardText
+              style={styles.company}
+              weight='semibold'
+              numberOfLines={1}
+            >
               {gear.getDisplayCompany()}
             </PretendardText>
             {renderCta()}
@@ -326,10 +330,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  // FD-2: 브랜드는 제품 식별의 첫 축이라 이름(name)과 동일한 타이포로 표시한다(길면 1줄 말줄임).
   company: {
     flex: 1,
-    fontSize: 11,
-    color: Color.textSecondary,
+    fontSize: 14,
+    lineHeight: 19,
+    color: Color.textPrimary,
   },
   name: {
     fontSize: 14,

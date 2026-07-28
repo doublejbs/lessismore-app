@@ -22,7 +22,11 @@ const GearView: FC<Props> = ({ gear, children, onPress }) => {
     <View style={styles.container}>
       <View style={styles.infoColumn}>
         <View style={styles.companyRow}>
-          <PretendardText style={styles.companyText} weight="regular">
+          <PretendardText
+            style={styles.companyText}
+            weight="bold"
+            numberOfLines={1}
+          >
             {gear.getDisplayCompany()}
           </PretendardText>
           {gear.hasUsedRate() && (
@@ -91,9 +95,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
+  // WH-1: 브랜드는 제품 식별의 첫 축이라 이름(nameText)과 동일한 타이포로 표시한다.
+  // 길면 말줄임해 사용률 배지를 같은 행에 유지한다.
   companyText: {
-    fontSize: 12,
-    color: Color.textTertiary,
+    flexShrink: 1,
+    fontSize: 15,
+    lineHeight: 19,
+    color: Color.textPrimary,
   },
   usedRateBadge: {
     borderRadius: Radius.card,

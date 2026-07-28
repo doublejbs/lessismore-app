@@ -99,9 +99,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 6,
   },
+  // 브랜드는 이름과 동일한 타이포(14/19)라 바 높이도 nameBar와 같게 둔다.
   companyBar: {
     width: '50%',
-    height: 10,
+    height: 19,
     backgroundColor: PLACEHOLDER_COLOR,
     borderRadius: 2,
   },

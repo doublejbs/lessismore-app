@@ -138,7 +138,11 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
         >
           <View style={[styles.gearInfo, { opacity: isUseless ? 0.5 : 1 }]}>
             <View style={styles.companyRow}>
-              <PretendardText style={styles.companyText}>
+              <PretendardText
+                style={styles.companyText}
+                weight='bold'
+                numberOfLines={1}
+              >
                 {gear.getDisplayCompany()}
               </PretendardText>
               {gear.hasUsedRate() && (
@@ -206,8 +210,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
+  // 브랜드는 이름(nameText)과 동일한 타이포로 표시한다. 길면 말줄임해 사용률 배지를 같은 행에 유지한다.
   companyText: {
-    fontSize: 12,
+    flexShrink: 1,
+    fontSize: 14,
     color: Color.textPrimary,
   },
   usageRateBadge: {
