@@ -268,6 +268,26 @@ class HealthConnectService implements HealthService {
     }
   };
 
+  /**
+   * **운동(워크아웃) 읽기** 접근이 열려 있는지 확인한다(HA-2).
+   *
+   * **Android는 프로브가 필요 없다.** `getGrantedPermissions()`가 허용된 권한 집합을
+   * 그대로 돌려주므로 `Granted`는 실제 허용을 뜻한다 — iOS처럼 기록을 읽어 접근을
+   * 역으로 증명할 이유가 없다.
+   *
+   * 그 판정 기준이 `ExerciseSession`(운동 세션) 읽기 권한 하나이므로(`ESSENTIAL_RECORD_TYPE`),
+   * 두 플랫폼의 의미가 **운동 읽기 기준**으로 같아진다. 거리·상승고도·칼로리·심박 권한은
+   * 여기 반영되지 않는다.
+   *
+   * **HA-4의 지표·경로 렌더링을 이 값으로 막지 마라.** 빈 상태 문구를 고르는 용도 전용이다.
+   * `false`는 거부가 아니라 판별 불가로 다룬다.
+   */
+  public isWorkoutReadConfirmed = async (): Promise<boolean> => {
+    const status = await this.getPermissionStatus();
+
+    return status === HealthPermissionStatus.Granted;
+  };
+
   public getRoute = async (
     workoutId: string
   ): Promise<HealthWorkoutRoute | null> => {

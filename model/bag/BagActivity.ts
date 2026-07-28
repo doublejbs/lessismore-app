@@ -47,6 +47,7 @@ class BagActivity {
   private details: BagActivityWorkoutDetail[] = [];
   private detailStatus: BagActivityDetailStatus =
     BagActivityDetailStatus.Loading;
+  private workoutReadConfirmed = false;
 
   private constructor(
     private readonly bagId: string,
@@ -99,6 +100,18 @@ class BagActivity {
     return this.details;
   }
 
+  /**
+   * **운동(워크아웃) 읽기** 접근이 확인됐는지(HA-2). 빈 상태 문구를 가르는 데만 쓴다 —
+   * true면 권한 언급 없이 "이 기간에 기록이 없다"만 안내한다. false는 거부가 아니라
+   * 판별 불가다.
+   *
+   * 확인 범위는 운동 읽기 하나뿐이라 경로·거리·에너지·심박은 true여도 판별 불가다.
+   * **HA-4의 지표·경로 렌더링을 이 값으로 막지 마라.**
+   */
+  public isWorkoutReadConfirmed() {
+    return this.workoutReadConfirmed;
+  }
+
   /** 지도에 그릴 경로만 추린다. 하나도 없으면 지도 영역 자체를 렌더하지 않는다(HA-4). */
   public getRoutes() {
     return this.details
@@ -136,6 +149,10 @@ class BagActivity {
 
   private setDetailStatus(value: BagActivityDetailStatus) {
     this.detailStatus = value;
+  }
+
+  private setWorkoutReadConfirmed(value: boolean) {
+    this.workoutReadConfirmed = value;
   }
 
   /**
@@ -359,9 +376,22 @@ class BagActivity {
       });
 
       this.setCandidates(workouts);
-      this.setPhase(
-        workouts.length > 0 ? BagActivityPhase.Ready : BagActivityPhase.Empty
-      );
+
+      if (workouts.length === 0) {
+        // 빈 상태 문구는 운동 읽기 확인 여부로 갈린다(HA-2/HA-3). 프로브는 **후보가
+        // 0건일 때만** 태워 평상시 비용을 0으로 둔다.
+        //
+        // Empty로 넘기기 전에 await한다 — 순서를 뒤집으면 프로브가 끝나기 전 한 프레임
+        // 동안 "접근이 허용되지 않았어요"가 떴다가 뒤바뀐다. 프로브 동안 화면은 Loading이다.
+        const confirmed = await this.healthService.isWorkoutReadConfirmed();
+
+        this.setWorkoutReadConfirmed(confirmed);
+        this.setPhase(BagActivityPhase.Empty);
+
+        return;
+      }
+
+      this.setPhase(BagActivityPhase.Ready);
     } catch (error) {
       console.error('운동 기록 조회 실패:', error);
       this.setPhase(BagActivityPhase.Error);
