@@ -6,6 +6,7 @@ import CampReviewStore from '../store/CampReviewStore';
 import BagItem from '../bag/BagItem';
 import BagWeather from '../bag/BagWeather';
 import reviewSearchService from '../review/ReviewSearchService';
+import { buildRequiredTokens } from '../review/ReviewRelevance';
 import { CampSpot } from './CampSpotTypes';
 import {
   BlogReview,
@@ -35,14 +36,22 @@ class CampSiteDetailDispatcher {
     return this.campSpotStore.getSpot(id);
   }
 
-  // 박지 후기(CS-3): "{박지명} 백패킹" 네이버 블로그 상위 5건. 실패·키 미설정이면 null.
+  // 박지 후기(CS-3): "{박지명} 백패킹" 네이버 블로그 후보 중 관련성 필터를 통과한 상위 5건.
+  // 실패·키 미설정이면 null. 필수 토큰은 박지명 토큰이다.
   public async getReviews(spotName: string): Promise<BlogReview[] | null> {
-    return reviewSearchService.getBlogReviews(`${spotName} 백패킹`);
+    return reviewSearchService.getBlogReviews({
+      query: `${spotName} 백패킹`,
+      requiredTokens: buildRequiredTokens([spotName]),
+    });
   }
 
-  // 박지 후기 영상(CS-3): "{박지명} 백패킹" 유튜브 상위 4건. 실패·키 미설정이면 null.
+  // 박지 후기 영상(CS-3): "{박지명} 백패킹" 유튜브 후보 중 관련성 필터를 통과한 상위 4건.
+  // 실패·키 미설정이면 null.
   public async getVideos(spotName: string): Promise<VideoReview[] | null> {
-    return reviewSearchService.getVideoReviews(`${spotName} 백패킹`);
+    return reviewSearchService.getVideoReviews({
+      query: `${spotName} 백패킹`,
+      requiredTokens: buildRequiredTokens([spotName]),
+    });
   }
 
   // 후기 공유 캐시(DM-18) 조회 — 문서 없으면 null.

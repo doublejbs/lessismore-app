@@ -20,8 +20,15 @@ import Warehouse from '../warehouse/Warehouse';
 import BagDetail from '../bag-detail/BagDetail';
 import reviewSearchService from '../review/ReviewSearchService';
 import {
+  buildBrandTokens,
+  buildRequiredTokens,
+  buildSearchPhrase,
+} from '../review/ReviewRelevance';
+import {
   BlogReview,
+  getUsableReviewCache,
   REVIEW_CACHE_TTL_MS,
+  REVIEW_QUERY_VERSION,
   VideoReview,
 } from '../review/ReviewTypes';
 import { BagActivitySummary } from '../bag/BagActivitySummary';
@@ -148,7 +155,7 @@ class WarehouseDetail {
   }
 
   // 외부 후기(GD-6). Firestore 공유 캐시(DM-19)를 먼저 표시하고,
-  // 7일이 지났거나 캐시가 없으면 외부 검색 API로 재조회해 최신화한다.
+  // 7일이 지났거나 캐시가 없거나 queryVersion이 현재보다 낮으면 외부 검색 API로 재조회해 최신화한다.
   // 재조회 실패 시 기존 캐시를 그대로 유지하고(가용성 우선), 캐시도 갱신하지 않는다.
   private async loadReviewContent(gear: Gear) {
     try {
@@ -159,12 +166,15 @@ class WarehouseDetail {
         return null;
       });
 
-      if (cached) {
-        this.setReviews(cached.reviews ?? []);
-        this.setVideos(cached.videos ?? []);
+      // 옛 규칙으로 담긴 캐시는 이미 부적합으로 판정된 결과라 표시하지 않고 재조회한다(DM-19).
+      const usableCache = getUsableReviewCache(cached);
+
+      if (usableCache) {
+        this.setReviews(usableCache.reviews ?? []);
+        this.setVideos(usableCache.videos ?? []);
       }
 
-      const cachedAt = cached ? Date.parse(cached.updatedAt) : NaN;
+      const cachedAt = usableCache ? Date.parse(usableCache.updatedAt) : NaN;
       const isFresh =
         Number.isFinite(cachedAt) &&
         Date.now() - cachedAt < REVIEW_CACHE_TTL_MS;
@@ -173,17 +183,58 @@ class WarehouseDetail {
         return;
       }
 
-      // 검색어: "{제조사 표시명} {장비 표시명} 후기" — 제조사가 없으면 생략.
-      const query =
-        `${gear.getDisplayCompany() ?? ''} ${gear.getDisplayName()} 후기`.trim();
+      // 타입은 string이지만 GearStore가 Firestore 문서를 캐스팅으로 받으므로 런타임 undefined가 올 수 있다.
+      // 방어하지 않으면 여기서 TypeError가 나고 아래 catch에 삼켜져 후기 섹션이 조용히 사라진다.
+      const displayCompany = (gear.getDisplayCompany() ?? '').trim();
+      const englishCompany = (gear.getCompany() ?? '').trim();
+      const displayName = gear.getDisplayName() ?? '';
+
+      // 두 소스 공통: 검색어에 넣는 장비명은 사이즈·성별(일반 토큰)을 뺀 형태를 쓴다 — 사이즈까지
+      // 넣으면 검색이 과하게 좁아져 후보 자체가 사라진다(라이브 실측: 유튜브 0건 → 25건, GD-6).
+      // 필수 토큰 판정에는 원본 표시명·캐논컬명을 그대로 쓴다 — 판정용 토큰과 검색 문구는 목적이 다르다.
+      const searchName = buildSearchPhrase(displayName);
+
+      // 블로그 검색어: "{제조사 표시명} {장비명} 후기" — 제조사가 없으면 생략.
+      // 블로그는 이 검색어로도 제품명 일치율이 높아 현행을 유지한다(실측 93.3%, GD-6).
+      const blogQuery = `${displayCompany} ${searchName} 후기`.trim();
+
+      // 유튜브 검색어에는 `후기`를 넣지 않는다 — `추천 판매순위 Top10 ... 후기 비교` 류
+      // 리스티클이 여러 장비에 공통으로 붙는 원인이다. 카탈로그 companyKorean이 아무도 쓰지
+      // 않는 음차(`에이엠지티타늄` ↔ 실제 표기 `AMG-TITANIUM`)인 경우가 많아, 표기가 다른
+      // 영문 제조사를 함께 넣어 실제 표기로도 검색되게 한다(GD-6).
+      const companyQueryParts =
+        englishCompany && englishCompany !== displayCompany
+          ? [displayCompany, englishCompany]
+          : [displayCompany];
+      const videoQuery = [...companyQueryParts, searchName]
+        .filter(part => Boolean(part))
+        .join(' ');
+
+      // 필수 토큰은 장비명 토큰만 쓴다 — 브랜드만 맞고 제품이 다른 결과(`몽벨 버사자켓` 상세에
+      // `몽벨 아울렛 득템후기`)가 사용자에게 가장 무관하게 읽힌다. 표시명·캐논컬명을 함께 넣어
+      // 어느 표기로 적힌 제목이든 통과시킨다(GD-6).
+      const nameTokens = buildRequiredTokens([displayName, gear.getName()]);
+
+      // 장비명이 전부 일반 토큰이라 비면 판정 근거가 없어 제조사 토큰으로 물러난다(GD-6).
+      const requiredTokens =
+        nameTokens.length > 0
+          ? nameTokens
+          : buildBrandTokens([displayCompany, englishCompany]);
+
       const [reviews, videos] = await Promise.all([
-        reviewSearchService.getBlogReviews(query),
-        reviewSearchService.getVideoReviews(query),
+        reviewSearchService.getBlogReviews({
+          query: blogQuery,
+          requiredTokens,
+        }),
+        reviewSearchService.getVideoReviews({
+          query: videoQuery,
+          requiredTokens,
+        }),
       ]);
 
-      // null = 해당 소스 조회 실패 → 캐시된 값(없으면 빈 배열)을 유지한다.
-      this.setReviews(reviews ?? cached?.reviews ?? []);
-      this.setVideos(videos ?? cached?.videos ?? []);
+      // null = 해당 소스 조회 실패 → 같은 규칙으로 담긴 캐시가 있으면 그 값을 유지한다.
+      this.setReviews(reviews ?? usableCache?.reviews ?? []);
+      this.setVideos(videos ?? usableCache?.videos ?? []);
 
       // 두 소스 모두 성공했을 때만 저장 — 실패 결과로 공유 캐시를 오염시키지 않는다(DM-19).
       if (reviews !== null && videos !== null) {
@@ -192,6 +243,7 @@ class WarehouseDetail {
             reviews,
             videos,
             updatedAt: new Date().toISOString(),
+            queryVersion: REVIEW_QUERY_VERSION,
           })
           .catch(e => {
             console.error('장비 후기 캐시 저장 실패:', e);
