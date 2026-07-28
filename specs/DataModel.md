@@ -4,7 +4,7 @@
 | --- | --- |
 | 상태 | as-built (2026-06-10 코드 기준) |
 | ID 프리픽스 | `DM` |
-| 주요 코드 | `model/store/*.ts`, `model/firebase/Firebase.ts`, `model/firebase/FirebaseImageStorage.ts`, `model/gear/Gear.ts`, `model/bag/BagItem.ts`, `model/reply/Comment.ts` |
+| 주요 코드 | `model/store/*.ts`, `model/firebase/Firebase.ts`, `model/gear/Gear.ts`, `model/bag/BagItem.ts`, `model/reply/Comment.ts` |
 | 관련 스펙 | 모든 도메인 스펙이 이 문서를 참조한다 |
 
 ## 1. 개요
@@ -13,6 +13,29 @@
 장비 카탈로그 검색은 **Algolia** 인덱스가 담당한다. 이 문서가 모든 컬렉션 경로·필드의 단일 정의처다.
 다른 스펙에서는 경로 이름만 적고 필드 정의는 이 문서를 링크한다.
 
+### 장비 이미지 미제공 원칙 (2026-07-28 결정)
+
+**앱은 장비 이미지를 제공하지 않는다.** 브랜드 공식 사이트에서 크롤링한 이미지 제공을 중단하고(저작권 리스크),
+사용자 이미지 업로드·공유 갤러리도 함께 제거한다 — 업로드를 남기면 공유 배낭·후기 노출을 통해
+같은 리스크가 UGC 형태로 재유입되기 때문이다. 장비는 텍스트(브랜드·이름·무게·카테고리·스펙) 중심으로
+표현하고, 커머스(쿠팡 링크, [GearDetail.md](GearDetail.md) GD-5)는 유지한다.
+
+- 앱은 장비 `imageUrl`을 **읽지도 쓰지도 않는다**. 필드는 레거시 데이터로만 존재한다(DM-3).
+- 공유 이미지 갤러리(DM-8)와 장비 이미지 Storage 업로드(DM-9)는 폐기한다.
+- **데이터 처리(운영)**:
+  1. **카탈로그 `gear/{id}.imageUrl` 값은 보존한다(2026-07-28 사용자 결정)** — 향후 **브랜드 직접 제휴로 공식
+     이미지를 제공할 가능성**에 대비해 데이터를 지우지 않는다. 앱이 필드를 읽지 않으므로 값이 남아 있어도
+     화면에 노출되지 않는다. 일괄 제거가 필요해지는 경우를 위해 `scripts/clear-gear-imageurl.mjs`를
+     보관한다(백업 우선, `--apply` opt-in, 비문자열 레거시 값 포함 — 실행은 사용자 확인 후에만).
+  2. Storage의 갤러리(`/gears/**`)·개인 업로드(`/{userId}/**` 이미지) 파일 정리는 별도 운영 작업으로
+     남긴다(앱에는 신규 생성 경로가 없음).
+  3. `users/{uid}/gears.imageUrl` 잔존 값은 앱이 읽지 않으므로 동작에 영향 없다(정리 불요).
+  4. 크롤 파이프라인(별도 레포)의 `imageUrl` 기록은 앱 동작과 무관해졌다 — 유지·중단은 제휴 계획과 함께
+     별도 레포에서 결정.
+- 브랜드 제휴로 공식 이미지를 다시 제공하게 되면 **이 원칙 자체를 개정**한다(표시 레이어 복원은 새 스펙 작업).
+- **범위 밖**: 여행·박지 사진([BagShare.md](BagShare.md) 필름 카드, [CampSite.md](CampSite.md) 박지 대표 사진·`camp-spot.imageUrl`)은
+  장비 이미지가 아니므로 이 원칙과 무관하다.
+
 ## 2. Firestore 컬렉션 맵 (DM-1)
 
 | 경로 | 내용 | 주 사용처 |
@@ -20,7 +43,7 @@
 | `users/{uid}` | 사용자 문서 (약관 동의, 닉네임, 보유 배낭 ID) | `Firebase.ts` |
 | `users/{uid}/gears/{gearId}` | 사용자 창고의 장비 | `GearStore` |
 | `gear/{gearId}` | 전체 장비 카탈로그 (공용) | `GearStore`, Algolia 동기화 원본 |
-| `gear/{gearId}/images/{imageId}` | 장비 공유 이미지 갤러리 | `GearImageStore` |
+| ~~`gear/{gearId}/images/{imageId}`~~ | **[폐기]** 장비 공유 이미지 갤러리 — 장비 이미지 미제공 원칙(§1). 기존 문서 정리는 §1 운영 절차 | — |
 | `bag/{bagId}` | 배낭 (소유자 무관 단일 컬렉션) | `BagStore` |
 | `gear-rank/{gearId}` | 장비 인기도 (보유 count) | `GearStore`(증감), `GearRankStore`(조회) |
 | `brand-rank/{brandKey}` | 브랜드 인기도 집계 (보유수 합·제품수) | 탐색 브랜드 디렉토리 (Search SR-8) |
@@ -63,7 +86,7 @@
 | `company` | string | 제조사 (캐논컬) |
 | `companyKorean` | string | 제조사 한글명 |
 | `weight` | string \| number | **그램(g) 단위**. 인터페이스 선언은 string이지만 `Gear.getData()`는 number(`+this.weight`)로 저장 — 실제 문서에는 양쪽 타입이 혼재할 수 있다. 합산 시 `parseInt`/`Number` 변환 |
-| `imageUrl` | string | 이미지 URL. `'http'` 포함 여부로 유효성 판단, 없으면 `''` |
+| `imageUrl` | string | **[레거시 — 미사용]** 장비 이미지 미제공 원칙(§1, 2026-07-28)에 따라 앱은 읽지도 쓰지도 않는다. 카탈로그 값은 **보존**(§1 — 브랜드 제휴로 공식 이미지 제공 가능성 대비), 사용자 문서 잔존 값도 무해 |
 | `color` | string | 자유 입력 문자열 (영문/원문) |
 | `colorKorean` | string? | 색상 한글. **표시는 `colorKorean \|\| color`** (웹 크롤 파이프라인 기록, 옵셔널) |
 | `size` | string? | 사이즈 (영문/원문, 옵셔널) |
@@ -167,15 +190,11 @@
 
 좋아요: `comment-likes/{userId}_{commentId}` = `{ userId, commentId, gearId, createdAt }`. 존재 여부가 좋아요 상태.
 
-### DM-8 `gear/{gearId}/images/{imageId}`
+### DM-8 `gear/{gearId}/images/{imageId}` `[폐기]`
 
-| 필드 | 타입 | 비고 |
-| --- | --- | --- |
-| `id` | string | |
-| `url` | string | Storage 다운로드 URL |
-| `uploadedBy` | string | 업로더 uid (본인만 삭제 가능) |
-| `uploadedAt` | number/timestamp | 최신순 정렬 키 |
-| `uploaderName` | string? | 업로더 닉네임 |
+**장비 이미지 미제공 원칙(§1, 2026-07-28)에 따라 폐기.** 공유 이미지 갤러리(GearDetail GD-4)가 제거되어
+더 이상 읽거나 쓰지 않는다. 기존 문서·Storage 파일 정리는 §1 운영 절차를 따른다.
+폐기 전 필드: `id` · `url` · `uploadedBy` · `uploadedAt` · `uploaderName`.
 
 ### DM-13 `config/app` `[제안]`
 
@@ -405,18 +424,19 @@
 - **쓰기**: Firebase 콘솔에서 수동으로만. 클라이언트는 쓰지 않는다.
 - 닫음 상태(닫은 `id` 목록)는 서버에 저장하지 않고 기기 로컬(AsyncStorage)에만 둔다.
 
-## 4. Storage 경로 (DM-9)
+## 4. Storage 경로 (DM-9) `[폐기]`
 
-`model/firebase/FirebaseImageStorage.ts`:
+**장비 이미지 미제공 원칙(§1, 2026-07-28)에 따라 장비 이미지 업로드가 없다.**
+`model/firebase/FirebaseImageStorage.ts`와 `model/gear/FileUpload.ts`는 소비처가 장비 이미지뿐이므로
+코드에서 함께 제거한다. 기존 파일 정리는 §1 운영 절차 ②.
 
-| 경로 패턴 | 용도 |
+폐기 전 경로:
+
+| 경로 패턴 | 용도(폐기 전) |
 | --- | --- |
 | `/{userId}/{fileName}` | 개인 장비 이미지 (장비 추가/편집 업로드) |
 | `/gears/{fileName}` | 공용 업로드 |
-| `/gears/{gearId}/{imageId}` | 장비 공유 이미지 갤러리 (삭제 API 존재) |
-
-파일명: 업로드 파일명은 **UUID**(`generateUUID()` = `Date.now().toString(36)` + 난수, `model/gear/FileUpload.ts`).
-(`CustomGear.getFileName()`의 이름 기반 규칙은 호출처가 없는 데드 코드다.)
+| `/gears/{gearId}/{imageId}` | 장비 공유 이미지 갤러리 |
 
 ## 5. Algolia (DM-10)
 
@@ -429,7 +449,8 @@
 | 동기화 | Firestore `/gear` 쓰기 → Firebase 익스텐션이 자동 동기화 |
 | 검색 속성 | `searchableAttributes`에 `nameKorean` 포함 — `name`이 비어도 한글 검색 동작 (인덱스 설정은 Algolia 대시보드 관리라 코드로는 검증 불가, CLAUDE.md 기록 기준) |
 
-검색 hit에서 사용하는 필드: `objectID`, `name`, `nameKorean`, `company`, `companyKorean`, `weight`, `imageUrl`, `color`, `category`.
+검색 hit에서 사용하는 필드: `objectID`, `name`, `nameKorean`, `company`, `companyKorean`, `weight`, `color`, `category`.
+(`imageUrl`은 장비 이미지 미제공 원칙(§1)으로 hit에서 더 이상 읽지 않는다 — 인덱스에 남아 있어도 무시.)
 hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Date.now()`를 로컬에서 채운다.
 
 인기 검색어: Algolia Analytics API (`/2/searches?index=useless-gear-search&limit=10&orderBy=searchCount&direction=desc`).

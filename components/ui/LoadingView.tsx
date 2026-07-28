@@ -1,12 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { View, Animated, Easing, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
+import { Color } from '@/constants/DesignTokens';
 
 interface Props {
   duration?: number;
+  // 어두운 배경 위에 얹을 때 밝은 색으로 넘긴다(기본은 밝은 배경 기준 검정).
+  color?: string;
 }
 
-const LoadingView = ({ duration = 2000 }: Props) => {
+const LoadingView = ({ duration = 2000, color = Color.textPrimary }: Props) => {
   const rotateValue = useRef(new Animated.Value(0)).current;
   const dashValue = useRef(new Animated.Value(0)).current;
 
@@ -62,7 +65,7 @@ const LoadingView = ({ duration = 2000 }: Props) => {
             cy='12'
             r='9.5'
             fill='none'
-            stroke='#000'
+            stroke={color}
             strokeWidth='3'
             strokeLinecap='round'
             strokeDasharray='42 150'

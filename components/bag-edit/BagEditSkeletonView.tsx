@@ -26,33 +26,21 @@ const BagEditSkeletonView: FC<Props> = () => {
   const renderGearSkeletonItem = ({ index }: { index: number }) => {
     return (
       <View key={index} style={styles.gearItemContainer}>
-        {/* 장비 이미지 */}
-        <View style={styles.imageContainer}>
+        {/* 좌 정체 컬럼(브랜드·제품명·컬러) — 장비 썸네일이 없어 이미지 자리도 두지 않는다(DataModel §1) */}
+        <View style={styles.gearInfoContainer}>
           <Animated.View
-            style={[styles.imagePlaceholder, { opacity: pulseAnim }]}
+            style={[styles.companyPlaceholder, { opacity: pulseAnim }]}
+          />
+          <Animated.View
+            style={[styles.productPlaceholder, { opacity: pulseAnim }]}
+          />
+          <Animated.View
+            style={[styles.colorPlaceholder, { opacity: pulseAnim }]}
           />
         </View>
 
-        {/* 장비 정보 */}
-        <View style={styles.gearInfoContainer}>
-          <View style={styles.gearInfoInner}>
-            {/* 회사명 */}
-            <Animated.View
-              style={[styles.companyPlaceholder, { opacity: pulseAnim }]}
-            />
-
-            {/* 제품명 */}
-            <Animated.View
-              style={[styles.productPlaceholder, { opacity: pulseAnim }]}
-            />
-
-            {/* 컬러 */}
-            <Animated.View
-              style={[styles.colorPlaceholder, { opacity: pulseAnim }]}
-            />
-          </View>
-
-          {/* 무게 */}
+        {/* 우 지표 컬럼 — 무게 */}
+        <View style={styles.gearMetricsColumn}>
           <Animated.View
             style={[styles.weightPlaceholder, { opacity: pulseAnim }]}
           />
@@ -243,30 +231,25 @@ const styles = StyleSheet.create({
   },
   gearItemContainer: {
     flexDirection: 'row',
-    paddingVertical: 10,
+    // GearView의 실제 행과 동일한 세로 여백(14).
+    paddingVertical: 14,
     gap: 12,
     alignItems: 'center',
   },
-  imageContainer: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  imagePlaceholder: {
-    width: 80,
-    height: 80,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
-    minWidth: 80,
-  },
+  // 좌 정체 컬럼 — 브랜드·제품명·컬러 바 스택.
   gearInfoContainer: {
     flex: 1,
     gap: 7,
+    overflow: 'hidden',
   },
-  gearInfoInner: {
-    gap: 7,
+  // 우 지표 컬럼 — 무게 바(우측 정렬).
+  gearMetricsColumn: {
+    alignItems: 'flex-end',
+    gap: 4,
   },
+  // 브랜드는 이름과 동일한 타이포라 바 높이도 productPlaceholder와 같게 둔다.
   companyPlaceholder: {
-    height: 10,
+    height: 14,
     width: 60,
     backgroundColor: '#E5E7EB',
     borderRadius: 2,

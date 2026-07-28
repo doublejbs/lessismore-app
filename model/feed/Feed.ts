@@ -432,16 +432,13 @@ class Feed implements GearRowActions {
     });
   }
 
-  // 제외 규칙 적용: 보유 장비, imageUrl 무효, 이미 노출된 id 중복.
+  // 제외 규칙 적용: 보유 장비, 이미 노출된 id 중복.
+  // 장비 이미지 미제공 원칙(DataModel §1)으로 imageUrl 유효성 제외는 없다 — 카탈로그 전체가 후보(FD-1).
   private filterCandidates(gears: Gear[]): Gear[] {
     const result: Gear[] = [];
 
     gears.forEach(gear => {
       if (gear.isAdded()) {
-        return;
-      }
-
-      if (!gear.getImageUrl()) {
         return;
       }
 
@@ -564,7 +561,6 @@ class Feed implements GearRowActions {
       gear.getName(),
       gear.getCompany(),
       gear.getWeight(),
-      gear.getImageUrl(),
       added,
       gear.getIsCustom(),
       gear.getCategory(),

@@ -3,7 +3,6 @@ interface GearType {
     name: string;
     company: string;
     weight: string;
-    imageUrl: string;
     category?: string;
     useless: string[];
     used: string[];

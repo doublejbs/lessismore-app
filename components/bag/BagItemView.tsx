@@ -134,40 +134,45 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
         accessibilityLabel={rowAccessibilityLabel}
       >
         <View style={styles.header}>
-          <View style={styles.infoContainer}>
-            <View style={styles.titleContainer}>
-              <PretendardText weight='bold' style={styles.name}>
-                {bagItem.getName()}
-              </PretendardText>
-              <PretendardText style={styles.date}>{date}</PretendardText>
-            </View>
-            <View style={styles.weightContainer}>
-              <PretendardText weight='bold' style={styles.weight}>
-                {bagItem.getWeight()}kg
-              </PretendardText>
-              {bagItem.hasPackingRecord() && (
-                <View
+          {/* 좌 정체 컬럼 — 이름(말줄임)·날짜 */}
+          <View style={styles.identityColumn}>
+            <PretendardText
+              weight='bold'
+              style={styles.name}
+              numberOfLines={1}
+            >
+              {bagItem.getName()}
+            </PretendardText>
+            <PretendardText style={styles.date}>{date}</PretendardText>
+          </View>
+
+          {/* 우 지표 컬럼 — 패킹 칩(위, 기록 있을 때만) + 총 무게(아래) */}
+          <View style={styles.metricsColumn}>
+            {bagItem.hasPackingRecord() && (
+              <View
+                style={
+                  bagItem.isPackingComplete()
+                    ? styles.packingCompleteChip
+                    : styles.packingProgressChip
+                }
+              >
+                <PretendardText
                   style={
                     bagItem.isPackingComplete()
-                      ? styles.packingCompleteChip
-                      : styles.packingProgressChip
+                      ? styles.packingCompleteChipText
+                      : styles.packingProgressChipText
                   }
+                  weight='medium'
                 >
-                  <PretendardText
-                    style={
-                      bagItem.isPackingComplete()
-                        ? styles.packingCompleteChipText
-                        : styles.packingProgressChipText
-                    }
-                    weight='medium'
-                  >
-                    {bagItem.isPackingComplete()
-                      ? '패킹 완료'
-                      : `패킹 ${bagItem.getPackingPercent()}%`}
-                  </PretendardText>
-                </View>
-              )}
-            </View>
+                  {bagItem.isPackingComplete()
+                    ? '패킹 완료'
+                    : `패킹 ${bagItem.getPackingPercent()}%`}
+                </PretendardText>
+              </View>
+            )}
+            <PretendardText weight='bold' style={styles.weight}>
+              {bagItem.getWeight()}kg
+            </PretendardText>
           </View>
         </View>
       </TouchableOpacity>
@@ -185,18 +190,17 @@ const styles = StyleSheet.create({
     borderBottomColor: Color.divider,
     backgroundColor: Color.background,
   },
+  // BAG-1: 좌 정체 · 우 지표 2열(WH-1 공통 행 레이아웃과 동일 문법).
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  infoContainer: {
-    flexDirection: 'column',
     gap: 12,
   },
-  titleContainer: {
+  identityColumn: {
+    flex: 1,
     flexDirection: 'column',
     gap: 9,
+    overflow: 'hidden',
   },
   name: {
     fontSize: 16,
@@ -209,10 +213,12 @@ const styles = StyleSheet.create({
   weight: {
     fontSize: 16,
     color: Color.textPrimary,
+    textAlign: 'right',
   },
-  weightContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  // 우 지표 컬럼 — 패킹 칩(위) + 무게(아래).
+  metricsColumn: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
     gap: 8,
   },
   packingCompleteChip: {

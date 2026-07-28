@@ -27,9 +27,7 @@ import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '../PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import SearchGearAddToBagModalView from '../search/SearchGearAddToBagModalView';
-import SharedImageSelectionModalView from '../gear-image/SharedImageSelectionModalView';
 import Bag from '@/model/bag/Bag';
-import GearImageType from '@/model/gear/GearImageType';
 import app from '@/model/app/App';
 
 interface Props {
@@ -38,8 +36,8 @@ interface Props {
 
 // 스크롤 타이틀 노출 임계 보정 — 정보 섹션 하단에서 헤더 1행(~44pt)+여유만큼 앞당김.
 const HEADER_TITLE_REVEAL_MARGIN = 88;
-// onLayout 측정 전 폴백 (이미지+정보 대략 높이).
-const INFO_HEIGHT_FALLBACK = 360;
+// onLayout 측정 전 폴백 (텍스트 우선 정보 섹션 대략 높이 — GD-1로 이미지 칸이 사라져 낮아졌다).
+const INFO_HEIGHT_FALLBACK = 200;
 // 헤더 타이틀 좌우 인셋 — 뒤로가기/수정하기 액션과 겹침 방지.
 const HEADER_TITLE_INSET = 60;
 // LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
@@ -48,7 +46,6 @@ const IS_IOS = Platform.OS === 'ios';
 const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
   const gear = warehouseDetail.getGear();
   const showAddToBagModal = warehouseDetail.shouldShowAddToBagModal();
-  const gearImageSelection = warehouseDetail.getGearImageSelection();
   const [bag] = useState(() => Bag.new());
   const [loading, setLoading] = useState(false);
   const [showHeaderTitle, setShowHeaderTitle] = useState(false);
@@ -75,23 +72,6 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
     if (shouldShow !== showHeaderTitle) {
       setShowHeaderTitle(shouldShow);
     }
-  };
-
-  const handleSelectOtherImage = () => {
-    app.getAnalyticsManager()?.logClick('gear_photo_change');
-    gearImageSelection?.showModal();
-  };
-
-  const handleCloseImageModal = () => {
-    gearImageSelection?.hideModal();
-  };
-
-  const handleSelectImage = (image: GearImageType) => {
-    warehouseDetail.selectSharedImage(image);
-  };
-
-  const handleUploadComplete = () => {
-    gearImageSelection?.loadImages();
   };
 
   const handlePressEdit = () => {
@@ -221,11 +201,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
             scrollEventThrottle={16}
           >
             <View onLayout={handleInfoLayout}>
-              <WarehouseDetailInformationView
-                gear={gear}
-                canShowSharedImages={gearImageSelection?.canShowSharedImages()}
-                onSelectOtherImage={handleSelectOtherImage}
-              />
+              <WarehouseDetailInformationView gear={gear} />
             </View>
             {/* 카테고리별 스펙 표(GD-8) — 기본 정보 아래, 배낭 기록/최저가 위 */}
             <WarehouseDetailSpecsView gear={gear} />
@@ -302,18 +278,6 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
           gear={gear}
           bag={bag}
         />
-        {gearImageSelection && gear && (
-          <SharedImageSelectionModalView
-            visible={gearImageSelection.isModalVisible()}
-            gearId={gear.getId()}
-            images={gearImageSelection.getImages()}
-            loading={gearImageSelection.isLoading()}
-            selectedImageUrl={gear.getImageUrl()}
-            onClose={handleCloseImageModal}
-            onSelectImage={handleSelectImage}
-            onUploadComplete={handleUploadComplete}
-          />
-        )}
       </>
     );
   } else {

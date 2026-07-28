@@ -2,9 +2,9 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | as-built (2026-06-10 코드 기준) |
+| 상태 | as-built (2026-06-10 코드 기준) · **2026-07-28 개정(as-built)**: 장비 이미지 미제공([DataModel.md](DataModel.md) §1) — 이미지 필드·업로드 제거 |
 | ID 프리픽스 | `GE` |
-| 주요 코드 | `app/custom/`, `app/gear-edit/`, `components/gear/`, `model/gear/` (AbstractGearEdit, custom/, edit/, FileUpload), `model/firebase/FirebaseImageStorage.ts` |
+| 주요 코드 | `app/custom/`, `app/gear-edit/`, `components/gear/`, `model/gear/` (AbstractGearEdit, custom/, edit/) |
 | 관련 스펙 | [DataModel.md](DataModel.md), [Warehouse.md](Warehouse.md), [BagDetail.md](BagDetail.md), [Search.md](Search.md) |
 
 ## 1. 개요
@@ -35,7 +35,8 @@
 | 무게 | 선택 | g 단위. 숫자 외 문자는 입력 시 제거, NaN 무시 |
 | 색상 | 선택 | 자유 입력 (팔레트 없음) |
 | 카테고리 | 필수(기본값 있음) | 11개 중 단일 선택, 기본 첫 항목(텐트). 목록 정의: `model/gear/custom/CustomGearCategory.ts` |
-| 이미지 | 선택 | 카메라/갤러리, 1:1 크롭, 품질 0.8 |
+
+이미지 필드는 **두지 않는다** — 장비 이미지 미제공 원칙([DataModel.md](DataModel.md) §1, 2026-07-28)으로 제거.
 
 **수용 기준**
 
@@ -59,17 +60,16 @@
 - 저장 경로는 `users/{uid}/gears/{id}` — 필드 계약은 [DataModel.md](DataModel.md) DM-3.
 - 추가 수동 폼 저장 시: `isCustom: true`, `nameKorean = name`, `companyKorean = company`, `bags/used/useless = []`, `createDate = 현재 시각(ms)`. (추가 수동 폼은 항상 커스텀 장비 — GE-2 폐기로 카탈로그 프리필 경로 없음.)
 - 카탈로그 등록(`isCustom: false` + `gear-rank` count +1)은 검색 플로우(GE-8 / [Search.md](Search.md) SR-3)가 담당한다. 커스텀 장비는 `gear-rank`에 집계하지 않는다.
-- 이미지가 첨부되면 Storage `/{userId}/{fileName}`에 업로드 후 URL을 `imageUrl`에 저장한다. 파일명 규칙은 DM-9.
+- `imageUrl`은 저장하지 않는다(빈 값도 쓰지 않음 — 필드 자체를 문서에 넣지 않는다). 장비 이미지 미제공 원칙([DataModel.md](DataModel.md) §1).
 - `/custom/bag-gear/[bagId]` 경로에서는 저장 후 트랜잭션으로 해당 배낭에 장비를 추가한다(배낭 `gears`/`weight` 동시 갱신).
 
 ### GE-4 편집
 
 **수용 기준**
 
-- 진입 시 기존 장비 값(제품명·브랜드·무게·색상·카테고리·이미지)을 프리필한다. 프리필은 캐논컬 값(`getName()`) 기준.
-- 저장은 같은 문서에 `setDoc` 덮어쓰기. 기존 `nameKorean`/`companyKorean`은 유지된다.
+- 진입 시 기존 장비 값(제품명·브랜드·무게·색상·카테고리)을 프리필한다. 프리필은 캐논컬 값(`getName()`) 기준. 이미지 필드는 없다(GE-1).
+- 저장은 같은 문서에 `setDoc` 덮어쓰기. 기존 `nameKorean`/`companyKorean`은 유지된다. 문서에 남아 있는 레거시 `imageUrl` 값은 편집 저장 시 **보존하지 않아도 된다**(앱이 읽지 않는 필드 — DM-3).
 - **무게를 변경하면** 장비가 담긴 모든 배낭의 `weight`를 차액만큼 배치로 갱신한다.
-- 카탈로그 장비(`isCustom: false`)에 새 이미지를 올리면 공유 이미지 갤러리(`gear/{gearId}/images`)에도 등록된다 → [GearDetail.md](GearDetail.md).
 
 ### GE-5 편집 화면에서 삭제
 
@@ -92,15 +92,12 @@ WCAG 1.1.1(Non-text Content)·4.1.2(Name/Role/Value)·2.5.5(Target Size 44×44) 
 - 아이콘 전용 컨트롤에는 `accessibilityRole`과 `accessibilityLabel`을 부여한다:
   | 컨트롤 | role | label |
   | --- | --- | --- |
-  | 이미지 추가(카메라) | `button` | `사진 추가` |
-  | 이미지 미리보기 삭제(×) | `button` | `사진 삭제` |
   | 제품명 검색어 클리어(×) | `button` | `입력 지우기` |
   | Android 헤더 뒤로가기 | `button` | `닫기` |
   | iOS 헤더 닫기(GE-6) | `button` | `닫기` |
   | 확인 | `button` | (텍스트 `확인`) |
 - 카테고리 칩은 `accessibilityRole='button'` + `accessibilityState={{ selected }}`로 선택 상태를 보조기술에 노출한다(4.1.2).
 - 모든 상호작용 컨트롤은 터치 타깃 **최소 44×44pt**를 확보한다(2.5.5):
-  - 이미지 미리보기 삭제 배지는 외형(16pt)을 유지하되 `hitSlop`으로 44pt 확보.
   - 카테고리 칩(높이 32pt)은 `hitSlop`으로 세로 터치 영역 44pt 확보.
 
 ### GE-8 장비 추가 진입 (검색 / 직접 선택)
@@ -124,21 +121,19 @@ WCAG 1.1.1(Non-text Content)·4.1.2(Name/Role/Value)·2.5.5(Target Size 44×44) 
 
 ## 4. 데이터
 
-- 쓰기: `users/{uid}/gears/{id}`, `gear-rank/{id}`(카탈로그만), Storage `/{userId}/{fileName}`.
+- 쓰기: `users/{uid}/gears/{id}`, `gear-rank/{id}`(카탈로그만). Storage 쓰기 없음(이미지 업로드 제거 — [DataModel.md](DataModel.md) DM-9 폐기).
 - 배낭 연동: `bag/{bagId}` 트랜잭션/배치 — [DataModel.md](DataModel.md) DM-11.
 
 ## 5. 플랫폼 분기
 
 | 지점 | iOS | Android | Web |
 | --- | --- | --- | --- |
-| 이미지 소스 선택 | `ActionSheetIOS` | `Alert.alert` | — |
 | 키보드 회피 | `behavior: 'padding'` | `behavior: 'height'` | — |
 | 헤더 닫기/뒤로 | 상단 좌측 닫기(취소) 버튼 + 스와이프 제스처 | chevron(뒤로) 버튼 | — |
 
 ## 6. 엣지 케이스
 
 - **비로그인**: `/custom` 진입 시 로그인 모달 표시.
-- **이미지 업로드 실패**: 에러 로깅 + 알럿, 폼 유지.
 - **저장 실패**: 로딩 해제 후 폼 유지(콘솔 로그).
 
 ## 7. 수동 검증 체크리스트
@@ -150,16 +145,15 @@ WCAG 1.1.1(Non-text Content)·4.1.2(Name/Role/Value)·2.5.5(Target Size 44×44) 
 - [ ] `검색으로 추가`(배낭 편집) → 검색 결과 선택 시 그 배낭에 바로 담김(재선택 모달 없음)
 - [ ] 무게 수정 → 소속 배낭 총 무게 반영
 - [ ] 배낭 편집 → 직접 입력 → 저장 시 배낭에 자동 포함
-- [ ] iOS/Android에서 이미지 선택 UI가 각각 액션시트/다이얼로그로 표시
-- [ ] VoiceOver로 카메라·미리보기 삭제·검색 클리어 버튼의 라벨이 읽힘
+- [ ] 추가·편집 폼에 이미지 필드·사진 추가 버튼이 없음 (GE-1)
+- [ ] VoiceOver로 검색 클리어 버튼의 라벨이 읽힘
 - [ ] VoiceOver로 카테고리 칩의 선택 상태(selected)가 읽힘
 - [ ] 제품명이 비었을 때 확인 버튼이 비활성(dim)이고, 입력하면 활성화
 - [ ] 저장 에러 메시지가 빨간색으로 표시
-- [ ] 미리보기 삭제 배지·카테고리 칩을 가장자리에서 눌러도 반응(44pt 히트 영역)
+- [ ] 카테고리 칩을 가장자리에서 눌러도 반응(44pt 히트 영역)
 - [ ] iOS 시트 상단 닫기 버튼으로 이탈 가능
 
 ## 8. 미해결 질문
 
 - 무게에 음수 형식 입력이 가능하다(검증 없음) — 합산 계산에 음수가 섞일 수 있음.
 - 편집에서 카테고리를 바꿔도 `gear-rank.category`는 갱신되지 않는다(등록 시점 값 유지).
-- `AbstractGearEdit.getFileName()`(이름 기반 파일명 규칙)은 호출처가 없는 데드 코드 — 실제 파일명은 UUID([DataModel.md](DataModel.md) DM-9).

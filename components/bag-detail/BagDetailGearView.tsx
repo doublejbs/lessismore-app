@@ -13,7 +13,6 @@ import Reanimated, {
 import Gear from '@/model/gear/Gear';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import app from '@/model/app/App';
-import BagDetailImageView from './BagDetailImageView';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 
@@ -81,9 +80,12 @@ interface Props {
   bagDetail: BagDetail;
 }
 
+// 배낭 상세의 장비 행. 장비 썸네일은 표시하지 않는다(DataModel §1 장비 이미지 미제공 원칙).
+// BD-5의 useless 표기는 유지하되, 썸네일이 사라져 로고 마크를 행 우측에 둔다(로고는 장비 이미지가 아님).
 const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
-  const imageUrl = gear.getImageUrl();
   const isUseless = bagDetail.isUseless(gear);
+  // BD-5: useless 장비는 행 본문(정체·지표 컬럼)을 50% 투명으로 낮춘다. 로고 마크는 자체 투명도를 갖는다.
+  const bodyOpacity = isUseless ? 0.5 : 1;
   const router = useRouter();
   const swipeableRef = useRef<SwipeableMethods>(null);
 
@@ -130,48 +132,53 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
           onPress={handlePressGear}
           activeOpacity={0.7}
           accessibilityRole='button'
-          accessibilityLabel={`${gear.getDisplayName()}, ${gear.getWeight()}g`}
+          accessibilityLabel={
+            isUseless
+              ? `${gear.getDisplayName()}, ${gear.getWeight()}g, 사용 안 함`
+              : `${gear.getDisplayName()}, ${gear.getWeight()}g`
+          }
         >
-          <View style={styles.imageContainer}>
-            <BagDetailImageView imageUrl={imageUrl} shadow={isUseless} />
-            {isUseless && (
-              <Image
-                source={require('@/assets/images/logo.png')}
-                style={styles.uselessOverlay}
-              />
-            )}
-          </View>
-
-          <View
-            style={[styles.contentContainer, { opacity: isUseless ? 0.5 : 1 }]}
-          >
-            <View style={styles.gearInfo}>
-              <View style={styles.companyRow}>
-                <PretendardText style={styles.companyText}>
-                  {gear.getDisplayCompany()}
-                </PretendardText>
-                {gear.hasUsedRate() && (
-                  <View style={styles.usageRateBadge}>
-                    <PretendardText style={styles.usageRateText}>
-                      사용률 {gear.getUsedRate()}%
-                    </PretendardText>
-                  </View>
-                )}
-              </View>
-              <PretendardText
-                style={styles.nameText}
-                weight='bold'
-                numberOfLines={1}
-              >
-                {gear.getDisplayName()}
-              </PretendardText>
-              <PretendardText style={styles.colorText}>
+          <View style={[styles.identityColumn, { opacity: bodyOpacity }]}>
+            <PretendardText
+              style={styles.companyText}
+              weight='bold'
+              numberOfLines={1}
+            >
+              {gear.getDisplayCompany()}
+            </PretendardText>
+            <PretendardText
+              style={styles.nameText}
+              weight='bold'
+              numberOfLines={1}
+            >
+              {gear.getDisplayName()}
+            </PretendardText>
+            {gear.getColor() ? (
+              <PretendardText style={styles.colorText} numberOfLines={1}>
                 {gear.getColor()}
               </PretendardText>
-              <PretendardText style={styles.weightText} weight='bold'>
-                {gear.getWeight()}g
-              </PretendardText>
-            </View>
+            ) : null}
+          </View>
+
+          {/* BD-5: useless 로고 마크는 지표 컬럼의 **왼쪽**에 둬 무게 컬럼의 세로 정렬을 유지한다. */}
+          {isUseless && (
+            <Image
+              source={require('@/assets/images/logo.png')}
+              style={styles.uselessMark}
+            />
+          )}
+
+          <View style={[styles.metricsColumn, { opacity: bodyOpacity }]}>
+            {gear.hasUsedRate() && (
+              <View style={styles.usageRateBadge}>
+                <PretendardText style={styles.usageRateText}>
+                  사용률 {gear.getUsedRate()}%
+                </PretendardText>
+              </View>
+            )}
+            <PretendardText style={styles.weightText} weight='bold'>
+              {gear.getWeight()}g
+            </PretendardText>
           </View>
         </TouchableOpacity>
       </View>
@@ -186,42 +193,31 @@ const styles = StyleSheet.create({
   gearItemContainer: {
     flexDirection: 'row',
     width: '100%',
+    alignItems: 'center',
     gap: 6,
   },
-  imageContainer: {
-    width: 80,
-    height: 80,
-    minWidth: 80,
-    backgroundColor: Color.thumbBg,
-    borderRadius: Radius.listThumb,
-    overflow: 'hidden',
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  uselessOverlay: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
+  // BD-5 useless 표기 — 썸네일이 사라져 행 우측의 로고 마크로 낸다(본문은 50% 투명도).
+  uselessMark: {
+    width: 44,
+    height: 44,
     resizeMode: 'contain',
+    opacity: 0.5,
     transform: [{ rotate: '-10.78deg' }],
   },
-  contentContainer: {
+  // 좌 정체 컬럼 — 브랜드·이름·색상.
+  identityColumn: {
     flex: 1,
-    justifyContent: 'flex-start',
     alignItems: 'flex-start',
-  },
-  gearInfo: {
-    flex: 1,
     gap: 4,
   },
-  companyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  // 우 지표 컬럼 — 사용률 배지(위) + 무게(아래).
+  metricsColumn: {
+    alignItems: 'flex-end',
+    gap: 4,
   },
+  // 브랜드는 이름(nameText)과 동일한 타이포로 표시한다.
   companyText: {
-    fontSize: 12,
+    fontSize: 14,
     color: Color.textPrimary,
   },
   usageRateBadge: {
@@ -245,6 +241,7 @@ const styles = StyleSheet.create({
   weightText: {
     fontSize: 14,
     color: Color.textPrimary,
+    textAlign: 'right',
   },
   actionsContainer: {
     width: ACTIONS_TOTAL_WIDTH,

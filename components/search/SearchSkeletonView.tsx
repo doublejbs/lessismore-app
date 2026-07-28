@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Radius } from '@/constants/DesignTokens';
 
 interface Props {
   count?: number; // 스켈레톤 아이템 개수
@@ -30,12 +30,7 @@ const SkeletonItem: FC = () => {
 
   return (
     <View style={styles.skeletonItem}>
-      {/* 이미지 영역 */}
-      <View style={styles.imageSection}>
-        <Animated.View style={[styles.imageContainer, { opacity }]} />
-      </View>
-
-      {/* 텍스트 정보 영역 */}
+      {/* 텍스트 정보 영역 — 장비 썸네일이 없어 이미지 자리도 두지 않는다(DataModel §1) */}
       <View style={styles.contentSection}>
         <View style={styles.contentContainer}>
           <View style={styles.headerRow}>
@@ -86,22 +81,8 @@ const styles = StyleSheet.create({
   },
   skeletonItem: {
     flexDirection: 'row',
-    paddingVertical: 10,
+    paddingVertical: 14,
     gap: 12,
-  },
-  imageSection: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  imageContainer: {
-    width: 80,
-    height: 80,
-    backgroundColor: Color.thumbBg,
-    alignItems: 'center',
-    minWidth: 80,
-    borderRadius: Radius.listThumb,
-    justifyContent: 'center',
-    overflow: 'hidden',
   },
   contentSection: {
     flex: 1,
@@ -125,8 +106,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     gap: 7,
   },
+  // 브랜드는 이름과 동일한 타이포라 바 높이도 nameBar와 같게 둔다.
   companyBar: {
-    height: 10,
+    height: 14,
     width: 60,
     backgroundColor: '#E0E0E0',
     borderRadius: 2,

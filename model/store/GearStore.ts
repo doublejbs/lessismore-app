@@ -22,7 +22,6 @@ export interface GearData {
   name: string;
   company: string;
   weight: string;
-  imageUrl: string;
   isCustom: boolean;
   category: string;
   useless: string[];
@@ -66,7 +65,6 @@ class GearStore {
           name,
           company,
           weight,
-          imageUrl,
           isCustom,
           category,
           useless,
@@ -84,7 +82,6 @@ class GearStore {
           name,
           company,
           weight,
-          imageUrl,
           isAdded,
           isCustom,
           category,
@@ -115,7 +112,6 @@ class GearStore {
           name,
           company,
           weight,
-          imageUrl,
           isCustom,
           category,
           useless,
@@ -132,7 +128,6 @@ class GearStore {
           name,
           company,
           weight,
-          imageUrl,
           true,
           isCustom,
           category,
@@ -192,7 +187,6 @@ class GearStore {
           name,
           company,
           weight,
-          imageUrl,
           isCustom,
           category,
           useless,
@@ -209,7 +203,6 @@ class GearStore {
           name,
           company,
           weight,
-          imageUrl,
           true,
           isCustom,
           category,
