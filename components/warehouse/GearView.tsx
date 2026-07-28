@@ -44,13 +44,13 @@ const GearView: FC<Props> = ({ gear, children, onPress }) => {
           {gear.getDisplayName()}
         </PretendardText>
 
-        {gear.getColor() ? (
+        {gear.getDisplayColor() ? (
           <PretendardText
             style={styles.colorText}
             weight="regular"
             numberOfLines={1}
           >
-            {gear.getColor()}
+            {gear.getDisplayColor()}
           </PretendardText>
         ) : null}
       </View>
