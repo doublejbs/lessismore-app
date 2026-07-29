@@ -14,6 +14,7 @@ import {
 } from '@firebase/firestore';
 import GearFilter from '../gear/GearFilter';
 import OrderType from '../order/OrderType';
+import { moveUnweightedLast } from '../order/WeightOrder';
 import { toBrandKey } from './BrandKey';
 import { ReviewCache } from '../review/ReviewTypes';
 
@@ -177,48 +178,44 @@ class GearStore {
             where('category', 'in', categoryKeys),
             this.getOrderQuery(order)
           );
-    const gears = (await getDocs(filterQuery)).docs;
+    const gears = (await getDocs(filterQuery)).docs.map(doc => {
+      const data = doc.data();
+      const {
+        id,
+        name,
+        company,
+        weight,
+        isCustom,
+        category,
+        useless,
+        used,
+        bags,
+        createDate,
+        color,
+        companyKorean,
+        nameKorean,
+      } = data;
 
-    if (!!gears?.length) {
-      return gears.map(doc => {
-        const data = doc.data();
-        const {
-          id,
-          name,
-          company,
-          weight,
-          isCustom,
-          category,
-          useless,
-          used,
-          bags,
-          createDate,
-          color,
-          companyKorean,
-          nameKorean,
-        } = data;
+      return new Gear(
+        id,
+        name,
+        company,
+        weight,
+        true,
+        isCustom,
+        category,
+        useless,
+        used,
+        bags,
+        createDate,
+        color,
+        companyKorean,
+        nameKorean,
+        toGearExtra(data)
+      );
+    });
 
-        return new Gear(
-          id,
-          name,
-          company,
-          weight,
-          true,
-          isCustom,
-          category,
-          useless,
-          used,
-          bags,
-          createDate,
-          color,
-          companyKorean,
-          nameKorean,
-          toGearExtra(data)
-        );
-      });
-    } else {
-      return [];
-    }
+    return moveUnweightedLast(gears, order, gear => gear.getWeight());
   }
 
   private getOrderQuery(order: OrderType) {
