@@ -42,13 +42,17 @@ const WarehouseDetailInformationView: FC<Props> = ({ gear, photo }) => {
 
       <View style={styles.identityRow}>
         <View style={styles.identityColumn}>
-          <PretendardText
-            style={styles.companyText}
-            weight='bold'
-            numberOfLines={1}
-          >
-            {company}
-          </PretendardText>
+          {/* 값이 없으면 줄 자체를 렌더하지 않는다(GD-1) — 빈 텍스트를 두면 정체 줄에
+              죽은 공백이 생겨 이름이 아래로 밀린다. 메타 라인과 같은 규칙. */}
+          {company ? (
+            <PretendardText
+              style={styles.companyText}
+              weight='bold'
+              numberOfLines={1}
+            >
+              {company}
+            </PretendardText>
+          ) : null}
           <PretendardText
             weight='bold'
             style={styles.nameText}
