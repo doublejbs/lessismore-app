@@ -23,7 +23,7 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
       accessibilityRole='button'
       accessibilityLabel='여행 날짜 수정'
     >
-      <PretendardText style={styles.dateText}>
+      <PretendardText style={styles.dateText} numberOfLines={2}>
         {bagDetail.getDate()} · {bagDetail.getPhaseLabel()}
       </PretendardText>
       <Ionicons name='pencil' size={12} color={Color.textSecondary} />
@@ -34,6 +34,8 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
 const styles = StyleSheet.create({
   dateContainer: {
     alignSelf: 'flex-start',
+    // 이름 행과 같은 이유로 폭을 부모로 제한한다(BagDetailNameView 주석 참고).
+    maxWidth: '100%',
     alignItems: 'center',
     justifyContent: 'flex-start',
     flexDirection: 'row',
@@ -45,6 +47,7 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 14,
     color: Color.textSecondary,
+    flexShrink: 1,
   },
 });
 
