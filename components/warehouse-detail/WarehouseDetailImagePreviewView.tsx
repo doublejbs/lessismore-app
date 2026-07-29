@@ -8,9 +8,9 @@ import {
 } from 'react-native';
 import { Color, Radius } from '@/constants/DesignTokens';
 
-// GD-1 2열 좌측 칸. 시각 앵커는 사진이 아니라 무게 히어로라, 무게 활자와 경쟁하지 않게
-// 140pt가 아닌 100pt로 둔다(우측 컬럼에 브랜드·이름이 들어갈 폭도 여기서 나온다).
-const IMAGE_SIZE = 100;
+// GD-1 1층(사진 줄) 크기. 가운데 단독 줄이라 좌우 컬럼 폭을 나눠 쓸 필요가 없어,
+// "내 물건이 맞나"를 한눈에 알아볼 수 있는 140pt 정사각으로 둔다.
+const IMAGE_SIZE = 140;
 
 interface Props {
   imageUrl: string;
