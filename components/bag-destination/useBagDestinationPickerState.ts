@@ -19,6 +19,10 @@ import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import { CampSiteMapViewport } from '@/components/camp-site/CampSiteMapMarkersView';
 import { deltaToZoom } from '@/model/map/MapZoom';
+import {
+  CURRENT_LOCATION_FAILED_MESSAGE,
+  getCurrentPositionWithinTimeout,
+} from '@/model/location/CurrentLocation';
 
 // 저장된 여행지도 없고 위치 권한도 없을 때의 기본 중심(DST-3).
 const SEOUL_CITY_HALL: Coordinate = { latitude: 37.5665, longitude: 126.978 };
@@ -44,6 +48,12 @@ const REVERSE_GEOCODE_DEBOUNCE_MS = 500;
 const MAP_READY_FALLBACK_MAX_FRAMES = 3;
 
 // 이미 허용된 권한만 확인한다 — 선택기를 여는 것만으로 권한을 새로 요청하지 않는다(DST-3).
+// 초기 카메라 시드는 **캐시만** 쓴다(DST-3). 여기서 새 fix를 기다리면 안드로이드 정지
+// 스로틀링에 걸려 약 30초 동안 지도에 줄 좌표가 없어 화면 자체가 안 뜬다
+// (원인은 model/location/CurrentLocation.ts 주석 참고). 이 좌표는 화면을 여는 순간의
+// 중심일 뿐이고 사용자가 곧 조정하므로 신선도보다 즉시성이 중요하다.
+// getLastKnownPositionAsync는 캐시를 즉시 반환하고, 캐시가 없으면 기다리지 않고 null을
+// 돌려 호출부가 서울 시청 폴백으로 넘어간다 — 그래서 이 함수는 절대 블로킹하지 않는다.
 const getGrantedPosition = async (): Promise<Coordinate | null> => {
   try {
     const { granted } = await Location.getForegroundPermissionsAsync();
@@ -52,11 +62,15 @@ const getGrantedPosition = async (): Promise<Coordinate | null> => {
       return null;
     }
 
-    const position = await Location.getCurrentPositionAsync({});
+    const lastKnown = await Location.getLastKnownPositionAsync();
+
+    if (!lastKnown) {
+      return null;
+    }
 
     return {
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude,
+      latitude: lastKnown.coords.latitude,
+      longitude: lastKnown.coords.longitude,
     };
   } catch (error) {
     console.error('현재 위치 조회 실패:', error);
@@ -804,12 +818,11 @@ const useBagDestinationPickerState = ({
         return;
       }
 
-      const position = await Location.getCurrentPositionAsync({});
-
-      const target = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      };
+      // 사용자가 직접 누른 경로라 신선도가 우선이다 — 새 fix를 먼저 시도한다(DST-3).
+      // 다만 안드로이드 정지 스로틀링 탓에 무기한 대기가 될 수 있어 상한을 걸고,
+      // 상한을 넘기면 캐시로 폴백한다(원인은 model/location/CurrentLocation.ts 주석 참고).
+      const fresh = await getCurrentPositionWithinTimeout();
+      const position = fresh ?? (await Location.getLastKnownPositionAsync());
 
       if (
         savingRef.current ||
@@ -817,6 +830,19 @@ const useBagDestinationPickerState = ({
       ) {
         return;
       }
+
+      // 새 fix도 캐시도 없으면 반드시 알린다 — 조용히 끝내면 버튼이 죽은 것으로 보인다(DST-3).
+      // 이 화면은 풀스크린 모달이라 전역 토스트가 모달 뒤에 가려지므로 Alert를 쓴다.
+      if (!position) {
+        Alert.alert('현재 위치 확인 실패', CURRENT_LOCATION_FAILED_MESSAGE);
+
+        return;
+      }
+
+      const target = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      };
 
       markUserInteraction();
 
@@ -841,7 +867,8 @@ const useBagDestinationPickerState = ({
       }
 
       console.error('현재 위치 이동 실패:', error);
-      Alert.alert('오류', '현재 위치를 불러오지 못했습니다.');
+      // 상한 초과(위 분기)와 예외는 사용자에게 같은 상황이라 문구를 통일한다(DST-3).
+      Alert.alert('현재 위치 확인 실패', CURRENT_LOCATION_FAILED_MESSAGE);
     } finally {
       if (
         mountedRef.current &&
