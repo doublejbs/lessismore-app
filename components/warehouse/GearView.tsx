@@ -36,13 +36,17 @@ const GearView: FC<Props> = ({ gear, children, onPress }) => {
       <GearThumbnailView imageUrl={gear.getImageUrl()} />
 
       <View style={styles.identityColumn}>
-        <PretendardText
-          style={styles.companyText}
-          weight='bold'
-          numberOfLines={1}
-        >
-          {gear.getDisplayCompany()}
-        </PretendardText>
+        {/* 값이 없으면 줄 자체를 렌더하지 않는다(WH-1) — 빈 텍스트를 두면 행에 죽은
+            공백이 생겨 이름이 아래로 밀려 보인다. 색상 줄과 같은 규칙. */}
+        {gear.getDisplayCompany() ? (
+          <PretendardText
+            style={styles.companyText}
+            weight='bold'
+            numberOfLines={1}
+          >
+            {gear.getDisplayCompany()}
+          </PretendardText>
+        ) : null}
 
         <PretendardText style={styles.nameText} weight='bold' numberOfLines={2}>
           {gear.getDisplayName()}

@@ -153,13 +153,17 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
           />
 
           <View style={[styles.identityColumn, { opacity: bodyOpacity }]}>
-            <PretendardText
-              style={styles.companyText}
-              weight='bold'
-              numberOfLines={1}
-            >
-              {gear.getDisplayCompany()}
-            </PretendardText>
+            {/* 값이 없으면 줄 자체를 렌더하지 않는다(WH-1 공통 행 규칙) — 빈 텍스트를
+                두면 행에 죽은 공백이 생긴다. 아래 색상 줄과 같은 규칙. */}
+            {gear.getDisplayCompany() ? (
+              <PretendardText
+                style={styles.companyText}
+                weight='bold'
+                numberOfLines={1}
+              >
+                {gear.getDisplayCompany()}
+              </PretendardText>
+            ) : null}
             <PretendardText
               style={styles.nameText}
               weight='bold'
