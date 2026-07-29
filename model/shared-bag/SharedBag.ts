@@ -4,7 +4,6 @@ import app from '@/model/app/App';
 import BagStore from '@/model/store/BagStore';
 import Gear from '@/model/gear/Gear';
 import GearFilter from '@/model/gear/GearFilter';
-import OrderType from '@/model/order/OrderType';
 
 // 공유 배낭(다녀온 배낭) 읽기전용 뷰어 도메인(CS-8).
 // 소유자의 장비 구성을 편집·패킹 없이 열람만 한다.
@@ -32,11 +31,7 @@ class SharedBag {
 
   public async initialize(id: string) {
     try {
-      const result = await this.bagStore.getSharedBag(
-        id,
-        [GearFilter.All],
-        OrderType.NameAsc
-      );
+      const result = await this.bagStore.getSharedBag(id, [GearFilter.All]);
 
       runInAction(() => {
         if (result) {

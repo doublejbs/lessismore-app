@@ -137,7 +137,7 @@
 | `name` | string | 배낭 이름 |
 | `weight` | number | 총 무게(g). 담긴 장비 weight 합 (BD-스펙 참조) |
 | `gears` | string[] | 담긴 장비 ID 배열 (`users/{uid}/gears` 참조) |
-| `startDate` | string | ISO 8601 문자열 |
+| `startDate` | string | ISO 8601 문자열. 생성·복사가 항상 `toISOString()`으로 쓰지만, **레거시 문서에는 없을 수 있다** — 목록 정렬 시 뒤로 보낸다([Bag.md](Bag.md) BAG-1, DM-23) |
 | `endDate` | string | ISO 8601 문자열 |
 | `editDate` | string | ISO 8601 문자열, 수정 시 갱신 |
 | `shared` | boolean | 링크 공유 여부 (배낭 공유 BD-7). 후기 첨부 공개와는 별개 |
@@ -477,6 +477,15 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 
 **양방향 참조 불변식**: `gear.bags[]` ↔ `bag.gears[]`는 항상 쌍으로 갱신되어야 한다. `bag.weight`는 담긴 장비 `weight` 합과 일치해야 한다.
 
+### DM-23 `in` 쿼리 30개 상한
+
+ID 배열로 문서를 모아 읽는 경로는 모두 Firestore `in` 절의 **값 30개 상한**에 걸린다. 상한 초과는 네트워크 오류가 아니라 **쿼리 생성 시점의 클라이언트 검증 예외**라, 해당 문서에서는 매번 결정적으로 실패한다.
+
+- 이런 경로는 `IN_QUERY_CHUNK_SIZE`(30) 단위로 **청크 분할해 병렬 조회한 뒤 병합**한다. 현재 대상: 배낭 목록 `users/{uid}.bags` → `bag`([Bag.md](Bag.md) BAG-1, [GearDetail.md](GearDetail.md) GD-10), 배낭 장비 `bag.gears` → `users/{userId}/gears`([BagDetail.md](BagDetail.md) BD-1).
+- **`orderBy`는 청크별로만 걸리므로 청크 분할 경로에서는 서버 정렬에 의존하지 않는다.** 병합 뒤 클라이언트에서 정렬하고, 기준은 Firestore와 결과가 같도록 둔다 — **문자열 필드는 코드포인트 순**(`localeCompare` 아님), 날짜·숫자는 값 비교(ISO 8601 날짜는 epoch 변환 비교가 문자열 비교와 동치라 어느 쪽이든 무방).
+  - 동률 항목은 **문서 ID 오름차순**으로 타이브레이크한다 — Firestore가 `orderBy` 동률에서 `__name__` 오름차순을 주므로, 그래야 청크 분할 전후 순서가 같다.
+  - **정렬 필드가 없는 문서에 주의한다.** Firestore `orderBy(F)`는 `F`가 없는 문서를 결과에서 **제외**하지만, 클라이언트 정렬은 포함한다 — 청크 분할을 도입하면 이전에 안 보이던 문서가 나타날 수 있다. 각 경로에서 이 문서들을 어디에 둘지 스펙에 명시한다(현재 두 경로 모두 **뒤로**).
+
 ## 7. 운영 스크립트 (DM-12)
 
 - Firestore 일괄 변경은 admin 키가 없어 **클라이언트 SDK + public config**로 작성한다 (`scripts/migrate-name-korean.mjs`, `scripts/swap-namekorean.mjs`, `scripts/migrate-gear-rank.ts` 참고).
@@ -486,4 +495,4 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 ## 8. 미해결 질문
 
 - 탈퇴 시 댓글(`gear-comments`)·박지 유저 후기(`camp-spot-user-review` DM-20)는 남는다 — 완전 삭제 정책은 [Auth.md](Auth.md) AU-8 미해결 질문 참조.
-- `bag` 목록 조회(`where('__name__', 'in', bagIds)`)는 Firestore `in` 절 30개 제한의 영향권 — 배낭이 30개를 넘는 사용자 처리 미정.
+- ~~`bag` 목록 조회(`where('__name__', 'in', bagIds)`)는 Firestore `in` 절 30개 제한의 영향권~~ → DM-23으로 규칙화(청크 분할). 배낭 목록은 GD-10, 배낭 장비는 BD-1에서 해소.
