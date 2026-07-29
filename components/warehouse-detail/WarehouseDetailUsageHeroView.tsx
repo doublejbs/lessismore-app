@@ -21,18 +21,6 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
 
   const { bagCount, usedCount, uselessCount, unrecordedCount } =
     warehouseDetail.getUsageStats();
-  const ownedDays = warehouseDetail.getOwnedDays();
-  const hasUsedRate = gear.hasUsedRate();
-  // 사용률·보유 일수를 한 줄 보조 문구로 합친다. 둘 다 없으면 라인 미노출.
-  const footerParts: string[] = [];
-
-  if (hasUsedRate) {
-    footerParts.push(`사용률 ${gear.getUsedRate()}%`);
-  }
-
-  if (ownedDays !== null) {
-    footerParts.push(`보유 ${ownedDays.toLocaleString()}일째`);
-  }
 
   const renderStat = (label: string, value: number, muted: boolean) => (
     <View style={styles.statItem}>
@@ -69,11 +57,6 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
               {unrecordedCount > 0 &&
                 renderStat('미기록', unrecordedCount, false)}
             </View>
-            {footerParts.length > 0 && (
-              <PretendardText style={styles.footerText}>
-                {footerParts.join(' · ')}
-              </PretendardText>
-            )}
           </>
         )}
       </View>
@@ -119,11 +102,6 @@ const styles = StyleSheet.create({
   },
   statMuted: {
     // 0회 지표는 값·라벨을 낮춰 유효 정보 스캔을 돕는다(GD-2 톤 유지).
-    color: Color.textSecondary,
-  },
-  footerText: {
-    marginTop: 10,
-    fontSize: 13,
     color: Color.textSecondary,
   },
 });

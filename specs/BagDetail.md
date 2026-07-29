@@ -37,6 +37,7 @@
 - 이름·기간 행은 각각 탭하면 **`배낭 정보 수정` 네이티브 formSheet**(`/bag-info-edit`, 공용 `BagFormContent` = 이름 입력 + 날짜 범위 달력 + 취소/저장 가로 버튼)를 연다 — 배낭 생성(`bag-new`)/복사(`bag-copy`) 시트와 동일한 UI 언어. 현재 이름·날짜가 프리필되며, 이름 공백은 저장 거부, 날짜는 달력이 역순을 방지한다. 배낭 상세의 model 인스턴스는 뷰 스코프라 정렬 시트와 같은 **모듈 핸드오프**(`BagInfoEditHandoff`)로 현재값·저장 콜백을 전달한다.
 - 기간 라벨 아래 **총 무게(kg)를 히어로 스탯**으로 표시한다(=`bag.weight`/1000). 그 아래 **무게 분해**(BD-3)를 항상 표시한다.
 - 장비 목록은 카테고리별로 그룹핑, 비어 있지 않은 카테고리만 렌더. 섹션 헤더는 카테고리명만 표시(소계 없음).
+- 장비 행 썸네일 규칙은 창고 목록과 같다([Warehouse.md](Warehouse.md) WH-1) — 사용자가 올린 본인 사진이 있을 때만 표시하고, 없으면 빈 칸 없이 텍스트 우선 행을 쓴다. 업로드는 [GearDetail.md](GearDetail.md) GD-13. **단 공유 배낭(BD-7)에서는 표시하지 않는다**([DataModel.md](DataModel.md) §1 비공개 원칙).
 - **장비가 30개를 넘는 배낭도 정상 조회된다.** `bag.gears` → `users/{userId}/gears` 조회는 `where('__name__','in', gears)`라 Firestore `in` 30개 상한에 걸리므로, 30개 단위로 청크 분할해 병렬 조회하고 병합한다([DataModel.md](DataModel.md) DM-25).
   - 이 조회 경로(`BagStore.getBag`/`getSharedBag`)는 **상세·패킹·메모·편집(BD-4)·사용 기록(BD-5)·공유 배낭(BD-7)이 모두 공유**하므로, 한 곳만 고치면 나머지가 남는다.
   - **이 경로에는 사용자가 고르는 정렬이 없다** — 상세는 카테고리 그룹핑(위 항목), 편집(BD-4)은 담김 여부·무게 계산용이라 순서가 화면에 안 드러나고, 사용 기록(BD-5)·공유 배낭(BD-7)에는 정렬 UI가 없다. 창고의 정렬 규칙([Warehouse.md](Warehouse.md) WH-3 — `가벼운순` 0g 뒤로 등)도 여기엔 적용되지 않는다.
@@ -103,6 +104,7 @@
 - 공유 버튼 → **네이티브 formSheet**(`/bag-share`, 배낭 생성/복사/정보수정 시트와 동일한 UI 언어) → 공유 시 `bag.shared = true`로 갱신하고 `{웹 베이스}/bag-share/{bagId}` 링크를 클립보드에 복사한다(웹 베이스는 `constants/WebLinks.ts`의 `WEB_BASE_URL` 단일 소스 — 2026-07-28 `useless.my` → `https://lessismore-7e070.web.app`). 시트는 공유 상태를 관찰(observer)해 공유 중이면 링크 행 + `공유 취소`를 표시한다. BagDetail 인스턴스는 `BagShareHandoff` 모듈로 전달한다.
 - 공유 해제 시 `shared = false`.
 - 공유 조회(`BagStore.getSharedBag`)는 `shared === true`를 확인하고, 아니면 `공유되지 않은 배낭입니다.` 알럿을 띄운다. 장비는 `bag.userId` 경로의 `users/{userId}/gears`에서 읽는다.
+- **공유 화면에는 장비 사진이 오지 않는다**([DataModel.md](DataModel.md) §1 비공개 원칙, 2026-07-29). 이 조회는 소유자의 `users/{userId}/gears`를 읽지만 **보는 사람이 업로더가 아니므로**, 뷰에서 거르는 대신 **데이터 레이어에서 `imageUrl`을 애초에 채우지 않는다**(`getSharedBag`은 사용자 문서용 정규화를 쓰지 않는다). 뷰 차단은 화면이 늘 때마다 빠뜨릴 수 있어 경로 자체를 막는 편이 안전하다. 같은 이유로 박지 후기에 첨부된 배낭([CampSite.md](CampSite.md) CS-8)에서도 표시되지 않는다.
 
 ### BD-8 배낭 복사
 

@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Stack } from 'expo-router';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
+import WarehouseDetailBasicInfoView from './WarehouseDetailBasicInfoView';
 import WarehouseDetailInformationView from './WarehouseDetailInformationView';
 import WarehouseDetailSpecsView from './WarehouseDetailSpecsView';
 import WarehouseDetailPurchaseView from './WarehouseDetailPurchaseView';
@@ -36,7 +37,9 @@ interface Props {
 
 // 스크롤 타이틀 노출 임계 보정 — 정보 섹션 하단에서 헤더 1행(~44pt)+여유만큼 앞당김.
 const HEADER_TITLE_REVEAL_MARGIN = 88;
-// onLayout 측정 전 폴백 (텍스트 우선 정보 섹션 대략 높이 — GD-1로 이미지 칸이 사라져 낮아졌다).
+// onLayout 측정 전 폴백 (정보 섹션 대략 높이). 실제 높이는 사진(GD-13) 유무로 갈리는데
+// — 사진이 있으면 2열이라 100pt 남짓, 없으면 `사진 추가` 행만큼 — 폴백은 첫 프레임에만 쓰이고
+// onLayout이 곧 실측값으로 덮으므로 사진 없는 기본 모습 기준의 보수적인 값을 둔다.
 const INFO_HEIGHT_FALLBACK = 200;
 // 헤더 타이틀 좌우 인셋 — 뒤로가기/수정하기 액션과 겹침 방지.
 const HEADER_TITLE_INSET = 60;
@@ -200,8 +203,19 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
             onScroll={IS_IOS ? undefined : handleScroll}
             scrollEventThrottle={16}
           >
+            {/* 기본 정보 섹션(GD-1). 보유 장비는 사진 유무로 레이아웃이 갈리므로(2열/1열)
+                업로드 상태를 가진 BasicInfoView가 조립까지 맡고, 카탈로그 장비는 저장할 문서가
+                없어 업로드 UI 없이 정보 뷰만 그린다(GD-13).
+                헤더 타이틀 노출 임계는 이 영역까지 포함해 측정해야 어긋나지 않는다. */}
             <View onLayout={handleInfoLayout}>
-              <WarehouseDetailInformationView gear={gear} />
+              {/* key로 장비가 바뀌면 GearImageUpload를 확실히 재생성한다 — 모델이 진입 시점
+                  URL로 한 번만 씨를 받으므로(useState 초기화) 같은 자리에 다른 장비가 들어오면
+                  이전 장비의 사진이 그대로 남는다. */}
+              {isAdded ? (
+                <WarehouseDetailBasicInfoView key={gear.getId()} gear={gear} />
+              ) : (
+                <WarehouseDetailInformationView gear={gear} />
+              )}
             </View>
             {/* 카테고리별 스펙 표(GD-8) — 기본 정보 아래, 배낭 기록/최저가 위 */}
             <WarehouseDetailSpecsView gear={gear} />

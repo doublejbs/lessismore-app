@@ -46,10 +46,11 @@ const BagDetailSkeletonView: FC<Props> = () => {
     );
   };
 
+  // BD-1: 썸네일은 사용자가 올린 사진이 있는 행에만 붙고 대다수 장비에는 없으므로,
+  // 로딩 자리는 기본 모습인 텍스트 우선 행에 맞춘다(썸네일 박스를 두면 대부분의 행과 어긋난다).
   const renderGearSkeletonItem = (index: number) => {
     return (
       <View key={index} style={styles.gearItem}>
-        <SkeletonBox width={60} height={60} />
         <View style={styles.gearInfo}>
           <SkeletonBox width='70%' height={16} />
           <SkeletonBox width='50%' height={14} />

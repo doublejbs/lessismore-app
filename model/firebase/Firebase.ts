@@ -33,6 +33,7 @@ import {
   where,
   increment,
 } from 'firebase/firestore';
+import { FirebaseStorage, getStorage } from 'firebase/storage';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
@@ -55,6 +56,8 @@ class Firebase {
   private nickname = '';
   private initialized = false;
   private store!: Firestore;
+  // 개인 장비 사진 업로드에 쓰는 Storage (DM-9, GD-13).
+  private storage!: FirebaseStorage;
   private hasAgreedToTerms = false;
   private loggedIn = false;
   private idToken: string | null = null;
@@ -83,6 +86,7 @@ class Firebase {
 
     this.auth = this.initializeAuth(fireBaseApp);
     this.store = getFirestore(fireBaseApp);
+    this.storage = getStorage(fireBaseApp);
 
     await this.auth.authStateReady();
     await this.checkLoggedIn();
@@ -348,6 +352,10 @@ class Firebase {
 
   public getStore() {
     return this.store;
+  }
+
+  public getStorage() {
+    return this.storage;
   }
 
   private setUserId(value: string) {
