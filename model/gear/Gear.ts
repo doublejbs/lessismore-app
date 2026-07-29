@@ -20,6 +20,13 @@ const isNonEmptyString = (value: unknown): value is string => {
   return typeof value === 'string' && value !== '';
 };
 
+// 크롤 원본 색상값은 `black`처럼 소문자 영문이라 그대로 노출하면 표시 품질이 떨어진다(DM-3).
+// 첫 글자만 올리고 나머지는 건드리지 않는다 — 한글(`블랙`)이나 이미 대문자로 시작하는
+// 값(`Black`·`BLACK`)은 그대로 남는다.
+const capitalizeFirstLetter = (value: string) => {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+};
+
 // Firestore 문서·Algolia hit의 느슨한 데이터를 GearExtra로 정규화한다.
 // 문자열/객체 타입 가드를 통과한 값만 포함하고, 빈 값은 키를 생략한다.
 //
@@ -270,9 +277,17 @@ class Gear {
     return this.extra.colorKorean ?? '';
   }
 
-  // 색상 표시값 — 한글 우선(colorKorean || color).
+  // 색상 표시값 — 한글 우선(colorKorean || color, DM-3).
+  // colorKorean이 없어 크롤 원본값으로 떨어질 때만 첫 글자를 대문자로 정규화한다
+  // (한글 매핑 확대는 별도 과제). 표시 정규화는 이 접근자 한 곳에서만 한다.
   public getDisplayColor() {
-    return this.extra.colorKorean || this.color;
+    const colorKorean = this.extra.colorKorean;
+
+    if (colorKorean) {
+      return colorKorean;
+    }
+
+    return capitalizeFirstLetter(this.color);
   }
 
   public getSize() {

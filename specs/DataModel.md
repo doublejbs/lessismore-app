@@ -108,7 +108,7 @@
 | `weight` | string \| number | **그램(g) 단위**. 인터페이스 선언은 string이지만 `Gear.getData()`는 number(`+this.weight`)로 저장 — 실제 문서에는 양쪽 타입이 혼재할 수 있다. 합산 시 `parseInt`/`Number` 변환 |
 | `imageUrl` | string? | **문서 경로에 따라 의미가 다르다**(§1, 2026-07-29 개정). `users/{uid}/gears/{id}`: **사용자가 올린 본인 장비 사진**의 Storage 다운로드 URL — 읽고 쓴다(GD-13), 업로더 본인 화면에만 표시. `gear/{id}`(카탈로그): 크롤 이미지라 **읽지 않는다**(값은 보존). 사용자 문서에 값이 없으면 이미지 없음으로 취급하며, **카탈로그 값으로 폴백하지 않는다** |
 | `color` | string | 자유 입력 문자열 (영문/원문) |
-| `colorKorean` | string? | 색상 한글. **표시는 `colorKorean \|\| color`** (웹 크롤 파이프라인 기록, 옵셔널) |
+| `colorKorean` | string? | 색상 한글. **표시는 `colorKorean \|\| color`** (웹 크롤 파이프라인 기록, 옵셔널). `colorKorean`이 없어 원본값으로 떨어질 때는 **첫 글자만 대문자로 정규화해 표시한다** — 크롤 값이 `black`처럼 소문자 영문이라 그대로 노출하면 표시 품질이 떨어진다(2026-07-29 실측). 한글 매핑 확대는 미해결 |
 | `size` | string? | 사이즈 (영문/원문, 옵셔널) |
 | `sizeKorean` | string? | 사이즈 한글. **표시는 `sizeKorean \|\| size`** (옵셔널) |
 | `category` | string | 카테고리 키 (아래 DM-4 — 세분 33키 또는 레거시 11키) |
