@@ -111,6 +111,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     gap: 12,
     minHeight: GEAR_THUMBNAIL_SIZE + ROW_VERTICAL_PADDING * 2,
+    // WH-1: 행 하단 구분선. 여백만으로는 줄 수가 다른 행(1~3줄)이 섞일 때 경계가 잡히지
+    // 않아, 정보가 적은 행이 떠 있는 문자열처럼 읽힌다. 배낭 목록(BAG-1)이 쓰는 것과
+    // 같은 토큰·같은 처리라 새 문법이 아니다.
+    borderBottomWidth: 1,
+    borderBottomColor: Color.divider,
   },
   // 좌 정체 컬럼 — 브랜드·이름·색상. flex:1이라 썸네일이 붙으면 정체 컬럼만 좁아지고
   // 우측 지표 컬럼은 오른쪽 끝에 그대로 붙어 있다(= 무게의 세로 정렬 유지).
