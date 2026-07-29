@@ -64,6 +64,13 @@ class BagItem {
     return Number((Number(this.weight) / 1000).toFixed(2));
   }
 
+  // 무게 정렬용 저장값(g). 표시용 getWeight()는 kg로 반올림해 동률이 뭉개지므로 정렬에 쓰지 않는다(BAG-6).
+  // 둘 다 number라 단위를 이름에 박아 구분한다.
+  // 값이 없거나 숫자가 아니면 0(빈 배낭)으로 본다.
+  public getWeightGram(): number {
+    return Number(this.weight) || 0;
+  }
+
   public getEditDate() {
     return this.editDate.format('YYYY.MM.DD HH:mm');
   }
