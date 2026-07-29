@@ -818,11 +818,17 @@ const useBagDestinationPickerState = ({
         return;
       }
 
-      // 사용자가 직접 누른 경로라 신선도가 우선이다 — 새 fix를 먼저 시도한다(DST-3).
-      // 다만 안드로이드 정지 스로틀링 탓에 무기한 대기가 될 수 있어 상한을 걸고,
-      // 상한을 넘기면 캐시로 폴백한다(원인은 model/location/CurrentLocation.ts 주석 참고).
-      const fresh = await getCurrentPositionWithinTimeout();
-      const position = fresh ?? (await Location.getLastKnownPositionAsync());
+      // 캐시를 **먼저** 쓴다(DST-3, 지도 탭 CS-1과 같은 폴백 사슬).
+      // 예전엔 "직접 누른 경로라 신선도 우선"으로 새 fix를 먼저 시도하고 상한(5초)을
+      // 넘기면 캐시로 폴백했는데, 안드로이드 정지 스로틀링이 걸린 상태에서는 새 fix가
+      // 상한 안에 오지 않아 **매번 5초를 통째로 기다린 뒤에야** 캐시로 넘어갔다
+      // (2026-07-29 실기기 재보고). 상한은 최악을 30초에서 5초로 줄일 뿐 "멈춘 것 같은"
+      // 대기 자체를 없애지 못한다 — 그래서 순서를 뒤집어 즉시 이동을 우선한다.
+      // 이 화면은 지도 중심을 눈으로 보고 조정한 뒤 확정하는 구조라 캐시 정확도로 충분하다.
+      const cached = await Location.getLastKnownPositionAsync();
+      // 캐시가 없을 때만 새 fix를 기다린다. 여기서도 상한은 유지한다 — 무기한 대기 금지
+      // (원인은 model/location/CurrentLocation.ts 주석 참고).
+      const position = cached ?? (await getCurrentPositionWithinTimeout());
 
       if (
         savingRef.current ||
@@ -831,7 +837,7 @@ const useBagDestinationPickerState = ({
         return;
       }
 
-      // 새 fix도 캐시도 없으면 반드시 알린다 — 조용히 끝내면 버튼이 죽은 것으로 보인다(DST-3).
+      // 캐시도 새 fix도 없으면 반드시 알린다 — 조용히 끝내면 버튼이 죽은 것으로 보인다(DST-3).
       // 이 화면은 풀스크린 모달이라 전역 토스트가 모달 뒤에 가려지므로 Alert를 쓴다.
       if (!position) {
         Alert.alert('현재 위치 확인 실패', CURRENT_LOCATION_FAILED_MESSAGE);
@@ -867,7 +873,7 @@ const useBagDestinationPickerState = ({
       }
 
       console.error('현재 위치 이동 실패:', error);
-      // 상한 초과(위 분기)와 예외는 사용자에게 같은 상황이라 문구를 통일한다(DST-3).
+      // 수단이 모두 실패한 경우(위 분기)와 예외는 사용자에게 같은 상황이라 문구를 통일한다(DST-3).
       Alert.alert('현재 위치 확인 실패', CURRENT_LOCATION_FAILED_MESSAGE);
     } finally {
       if (
