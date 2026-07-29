@@ -35,6 +35,17 @@ const DISTANCE_CYCLING_TYPE = 'HKQuantityTypeIdentifierDistanceCycling';
 const ACTIVE_ENERGY_TYPE = 'HKQuantityTypeIdentifierActiveEnergyBurned';
 const HEART_RATE_TYPE = 'HKQuantityTypeIdentifierHeartRate';
 
+// 운동 읽기 확인 프로브(HA-2)의 조회 하한 — 전 기간을 본다. `limit: 1` + 내림차순이라
+// 최신 1건만 받으므로 창을 넓혀도 비용이 같고, 반대로 창을 자르면 마지막 운동이 그 이전인
+// 사용자가 판별 불가로 오분류된다.
+const WORKOUT_READ_PROBE_START_DATE = new Date(0);
+
+// 이 클래스의 public 메서드는 던지지 않는 계약이라 실패가 빈 값으로 떨어진다.
+// 흔적까지 지우면 필드에서 원인을 좁힐 수 없어 삼키되 로그는 남긴다.
+const logHealthError = (scope: string, error: unknown): void => {
+  console.error(`[HealthKit] ${scope} 실패:`, error);
+};
+
 const METERS_UNIT = 'm';
 const KILOCALORIES_UNIT = 'kcal';
 const BEATS_PER_MINUTE_UNIT = 'count/min';
@@ -191,6 +202,51 @@ class HealthKitService implements HealthService {
       );
     } catch {
       return [];
+    }
+  };
+
+  /**
+   * **운동(워크아웃) 읽기** 접근이 열려 있는지 확인한다(HA-2).
+   *
+   * **iOS에서 이것이 접근을 증명할 수 있는 유일한 방법이다.** HealthKit은 읽기 권한의
+   * 거부를 앱에 알려주지 않으므로(`getPermissionStatus`의 `Granted`는 "요청 절차가
+   * 끝남"일 뿐이다), 전 기간을 조회해 운동이 1건이라도 읽히면 운동 읽기 접근이 열려
+   * 있음이 증명된다.
+   *
+   * **증명 범위는 운동 읽기 하나뿐이다.** HealthKit 권한은 타입별이라 이 프로브는
+   * 워크아웃만 물어본 것이고, 경로(`WorkoutRoute`)·거리·에너지·심박은 여전히 판별
+   * 불가다 — 운동은 읽히면서 그중 일부만 거부된 상태가 정상적으로 존재한다.
+   *
+   * **HA-4의 지표·경로 렌더링을 이 값으로 막지 마라.** 빈 상태 문구를 고르는 용도 전용이다.
+   *
+   * `false`는 **"거부"가 아니라 "판별 불가"** 다 — 접근이 열려 있어도 운동을 한 건도
+   * 기록하지 않은 사용자면 똑같이 0건이 된다.
+   */
+  public isWorkoutReadConfirmed = async (): Promise<boolean> => {
+    if (!this.isAvailable()) {
+      return false;
+    }
+
+    const to = new Date();
+
+    try {
+      // 존재 여부만 보면 되므로 1건만 받고 도메인 타입으로 매핑하지 않는다
+      // (`queryWorkouts`의 매핑은 지표 통계까지 읽어 건수만큼 네이티브 왕복이 나간다).
+      const proxies = await queryWorkoutSamples({
+        filter: {
+          date: { startDate: WORKOUT_READ_PROBE_START_DATE, endDate: to },
+        },
+        limit: 1,
+        ascending: false,
+      });
+
+      return proxies.length > 0;
+    } catch (error) {
+      // 여기서 삼키면 화면은 "기록이 없거나 접근이 허용되지 않았어요"로 떨어진다 —
+      // 판별 불가와 프로브 자체의 실패가 UI에서 똑같이 보이므로 로그로만 구분된다.
+      logHealthError('운동 읽기 확인 프로브', error);
+
+      return false;
     }
   };
 
