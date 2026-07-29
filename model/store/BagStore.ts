@@ -5,13 +5,13 @@ import {
   arrayRemove,
   arrayUnion,
   collection,
+  CollectionReference,
   deleteField,
   doc,
   DocumentData,
   getDoc,
   getDocs,
   deleteDoc,
-  orderBy,
   query,
   QuerySnapshot,
   updateDoc,
@@ -19,7 +19,6 @@ import {
 } from 'firebase/firestore';
 import Gear, { toGearExtra } from '../gear/Gear';
 import { getGroupForCategory } from '../gear/GearCategoryGroups';
-import OrderType from '../order/OrderType';
 import GearFilter from '../gear/GearFilter';
 import Firebase from '../firebase/Firebase';
 import { GearData } from './GearStore';
@@ -29,7 +28,7 @@ import { BagLocation } from '../bag-destination/BagLocation';
 import { BagActivitySummary } from '../bag/BagActivitySummary';
 import { WeatherSnapshot } from '../weather/WeatherTypes';
 
-// Firestore `in` 쿼리 값 상한(30개). 초과분은 청크로 나눠 조회한다(GD-10).
+// Firestore `in` 쿼리 값 상한(30개). 초과분은 청크로 나눠 조회한다(DM-23).
 const IN_QUERY_CHUNK_SIZE = 30;
 
 class BagStore {
@@ -41,30 +40,38 @@ class BagStore {
         await getDoc(doc(this.getStore(), 'users', this.firebase.getUserId()))
       ).data()?.['bags'];
 
-      if (bagIDs.length) {
-        const bags = await getDocs(
-          query(
-            collection(this.getStore(), 'bag'),
-            where('__name__', 'in', bagIDs),
-            orderBy('startDate', 'desc')
-          )
-        );
-
-        return this.convertToArray(bags);
-      } else {
-        return [];
-      }
+      return (await this.getBags(bagIDs)).sort(this.compareByStartDateDesc);
     } catch (e) {
       console.log(e);
+
       return [];
     }
   }
 
-  public async getSharedBag(
-    id: string,
-    filters: GearFilter[],
-    order: OrderType
-  ) {
+  // 청크 쿼리에는 orderBy를 둘 수 없으므로 클라이언트에서 정렬한다(DM-23).
+  // startDate 내림차순 — 유효한 날짜는 역순, 없는 항목(값=null)은 뒤로.
+  // 동률은 기존 Firestore orderBy('startDate','desc')와 같이 문서 ID 오름차순으로 타이브레이크해
+  // users/{uid}.bags 배열 순서에 좌우되지 않는 결정적 순서를 준다.
+  private compareByStartDateDesc = (a: BagItem, b: BagItem): number => {
+    const aValue = a.getStartDateValue();
+    const bValue = b.getStartDateValue();
+
+    if (aValue !== null && bValue !== null && aValue !== bValue) {
+      return bValue - aValue;
+    }
+
+    if (aValue === null && bValue !== null) {
+      return 1;
+    }
+
+    if (aValue !== null && bValue === null) {
+      return -1;
+    }
+
+    return this.compareByCodePoint(a.getID(), b.getID());
+  };
+
+  public async getSharedBag(id: string, filters: GearFilter[]) {
     const bag = await getDoc(doc(this.getStore(), 'bag', id));
     if (bag.exists()) {
       const {
@@ -97,29 +104,7 @@ class BagStore {
           reviewShared,
         };
       } else {
-        const warehouseSnapshot = await getDocs(
-          query(
-            collection(this.getStore(), 'users', userId, 'gears'),
-            where('__name__', 'in', gears),
-            this.getOrderQuery(order)
-          )
-        );
-        // 세분 카테고리는 그룹으로 매핑해 비교한다(DM-4).
-        // (기존 category.includes(filter)는 'tent_acc'.includes('tent') 같은 부분 문자열 오탐이 있었다.)
-        const warehouseGears = warehouseSnapshot.docs
-          .filter(doc =>
-            filters.length === 1 && filters[0] === GearFilter.All
-              ? true
-              : filters.some(
-                  filter =>
-                    getGroupForCategory((doc.data() as GearData).category) ===
-                    filter
-                )
-          )
-          .map(doc => ({
-            ...(doc.data() as GearData),
-            id: doc.id,
-          }));
+        const warehouseGears = await this.getBagGears(userId, gears, filters);
 
         return {
           name,
@@ -174,10 +159,10 @@ class BagStore {
   }
 
   public async getBagWithAllFilter(id: string) {
-    return await this.getBag(id, [GearFilter.All], OrderType.NameAsc);
+    return await this.getBag(id, [GearFilter.All]);
   }
 
-  public async getBag(id: string, filters: GearFilter[], order: OrderType) {
+  public async getBag(id: string, filters: GearFilter[]) {
     const bagIDs = (
       await getDoc(doc(this.getStore(), 'users', this.firebase.getUserId()))
     ).data()?.['bags'];
@@ -228,28 +213,11 @@ class BagStore {
         activity: activity ?? null,
       };
     } else {
-      const warehouseSnapshot = await getDocs(
-        query(
-          collection(this.getStore(), 'users', this.getUserID(), 'gears'),
-          where('__name__', 'in', gears),
-          this.getOrderQuery(order)
-        )
+      const warehouseGears = await this.getBagGears(
+        this.getUserID(),
+        gears,
+        filters
       );
-      // 세분 카테고리는 그룹으로 매핑해 비교한다(DM-4) — getSharedBag과 동일한 부분 문자열 오탐 수정.
-      const warehouseGears = warehouseSnapshot.docs
-        .filter(doc =>
-          filters.length === 1 && filters[0] === GearFilter.All
-            ? true
-            : filters.some(
-                filter =>
-                  getGroupForCategory((doc.data() as GearData).category) ===
-                  filter
-              )
-        )
-        .map(doc => ({
-          ...(doc.data() as GearData),
-          id: doc.id,
-        }));
 
       return {
         name,
@@ -303,23 +271,115 @@ class BagStore {
     }
   }
 
-  private getOrderQuery(order: OrderType) {
-    switch (order) {
-      case OrderType.NameAsc:
-        return orderBy('name', 'asc');
-      case OrderType.NameDesc:
-        return orderBy('name', 'desc');
-      case OrderType.WeightAsc:
-        return orderBy('weight', 'asc');
-      case OrderType.WeightDesc:
-        return orderBy('weight', 'desc');
-      case OrderType.CreatedAsc:
-        return orderBy('createDate', 'asc');
-      case OrderType.CreatedDesc:
-        return orderBy('createDate', 'desc');
-      default:
-        return orderBy('name', 'asc');
+  /**
+   * 배낭에 담긴 장비를 읽는다. `in` 절 30개 상한(DM-23)을 넘기지 않도록 청크로 나눠
+   * 병렬 조회한 뒤 병합하고, 기존 서버 쿼리와 같은 이름 오름차순으로 정렬한다.
+   */
+  private async getBagGears(
+    userId: string,
+    gearIDs: string[],
+    filters: GearFilter[]
+  ): Promise<GearData[]> {
+    if (!gearIDs.length) {
+      return [];
     }
+
+    // bag.gears에 같은 ID가 중복으로 들어 있어도 장비가 두 번 나오지 않도록 먼저 제거한다.
+    const uniqueGearIDs = Array.from(new Set(gearIDs));
+
+    const snapshots = await this.getDocsByIDs(
+      collection(this.getStore(), 'users', userId, 'gears'),
+      uniqueGearIDs
+    );
+
+    const gearDataByID = new Map<string, GearData>();
+
+    snapshots.forEach(snapshot => {
+      snapshot.docs.forEach(doc => {
+        gearDataByID.set(doc.id, {
+          ...(doc.data() as GearData),
+          id: doc.id,
+        });
+      });
+    });
+
+    // 세분 카테고리는 그룹으로 매핑해 비교한다(DM-4).
+    // (기존 category.includes(filter)는 'tent_acc'.includes('tent') 같은 부분 문자열 오탐이 있었다.)
+    const isAllFilter = filters.length === 1 && filters[0] === GearFilter.All;
+
+    // 조회되지 않은 ID(삭제된 장비 참조)는 건너뛴다.
+    return uniqueGearIDs
+      .map(gearID => gearDataByID.get(gearID))
+      .filter((gearData): gearData is GearData => !!gearData)
+      .filter(gearData =>
+        isAllFilter
+          ? true
+          : filters.some(
+              filter => getGroupForCategory(gearData.category) === filter
+            )
+      )
+      .sort(this.compareByNameAsc);
+  }
+
+  // 배낭 장비 표시 순서(배낭 상세·패킹·사용 기록·공유 배낭)는 기존 서버 쿼리의
+  // orderBy('name','asc')를 그대로 유지한다. 청크 분할 후에는 청크마다 정렬이 따로 적용돼
+  // 서버 정렬을 쓸 수 없으므로 병합 후 클라이언트에서 정렬한다(DM-23).
+  // 비교는 Firestore 문자열 정렬(코드포인트 순)과 결과를 맞추기 위해 원시 비교(a < b)를 쓴다 —
+  // localeCompare는 한글 로케일 규칙을 적용해 Firestore와 순서가 갈린다.
+  // name이 없거나 빈 문자열인 문서는 뒤로 보낸다. 기존 orderBy('name')은 이런 문서를
+  // 결과에서 아예 제외했지만, 목록에서 사라지는 것보다 뒤에 붙는 편이 낫다는 판단이다.
+  private compareByNameAsc = (a: GearData, b: GearData): number => {
+    const aName = a.name || '';
+    const bName = b.name || '';
+
+    if (!aName && !bName) {
+      return 0;
+    }
+
+    if (!aName) {
+      return 1;
+    }
+
+    if (!bName) {
+      return -1;
+    }
+
+    const nameOrder = this.compareByCodePoint(aName, bName);
+
+    // 이름이 같으면 Firestore orderBy 동률 규칙과 같이 문서 ID 오름차순으로 타이브레이크한다(DM-23).
+    return nameOrder !== 0 ? nameOrder : this.compareByCodePoint(a.id, b.id);
+  };
+
+  // 코드포인트 순 문자열 비교(Firestore 문자열 정렬과 동일). localeCompare를 쓰지 않는다.
+  private compareByCodePoint = (a: string, b: string): number => {
+    if (a < b) {
+      return -1;
+    }
+
+    if (a > b) {
+      return 1;
+    }
+
+    return 0;
+  };
+
+  // `in` 절 값 상한(DM-23)을 넘기지 않도록 ID를 청크로 나눠 병렬 조회한다.
+  // 병합·가공은 호출측에서 한다.
+  private async getDocsByIDs(
+    collectionRef: CollectionReference<DocumentData, DocumentData>,
+    ids: string[]
+  ): Promise<QuerySnapshot<DocumentData, DocumentData>[]> {
+    const chunks: string[][] = [];
+
+    for (let i = 0; i < ids.length; i += IN_QUERY_CHUNK_SIZE) {
+      chunks.push(ids.slice(i, i + IN_QUERY_CHUNK_SIZE));
+    }
+
+    return await Promise.all(
+      chunks.map(chunk =>
+        getDocs(query(collectionRef, where('__name__', 'in', chunk)))
+      )
+    );
   }
 
   private convertToArray(data: QuerySnapshot<DocumentData, DocumentData>) {
@@ -630,22 +690,9 @@ class BagStore {
 
   public async getBags(bagIDs: string[]) {
     if (bagIDs.length) {
-      // `in` 쿼리는 값 30개 제한 — 초과 시 청크로 나눠 병렬 조회 후 병합한다(GD-10).
-      const chunks: string[][] = [];
-
-      for (let i = 0; i < bagIDs.length; i += IN_QUERY_CHUNK_SIZE) {
-        chunks.push(bagIDs.slice(i, i + IN_QUERY_CHUNK_SIZE));
-      }
-
-      const snapshots = await Promise.all(
-        chunks.map(chunk =>
-          getDocs(
-            query(
-              collection(this.getStore(), 'bag'),
-              where('__name__', 'in', chunk)
-            )
-          )
-        )
+      const snapshots = await this.getDocsByIDs(
+        collection(this.getStore(), 'bag'),
+        bagIDs
       );
 
       return snapshots.flatMap(snapshot => this.convertToArray(snapshot));
@@ -777,8 +824,7 @@ class BagStore {
     return await runTransaction(this.getStore(), async transaction => {
       const snapshot = await transaction.get(ref);
       const data = snapshot.data() as
-        | { location?: BagLocation; weather?: WeatherSnapshot }
-        | undefined;
+        { location?: BagLocation; weather?: WeatherSnapshot } | undefined;
 
       // location/weather가 없는 기존 문서도 그대로 통과한다(좌표 변경 취급 → 아래 분기).
       const previousLocation = data?.location ?? null;
@@ -829,7 +875,8 @@ class BagStore {
 
     return await runTransaction(this.getStore(), async transaction => {
       const snapshot = await transaction.get(ref);
-      const currentLocation = snapshot.data()?.location as BagLocation | undefined;
+      const currentLocation = snapshot.data()?.location as
+        BagLocation | undefined;
 
       if (
         !currentLocation ||
@@ -876,11 +923,8 @@ class BagStore {
       removePackingCompletedAt?: boolean;
     } = {}
   ) {
-    const {
-      packingStartedAt,
-      packingCompletedAt,
-      removePackingCompletedAt,
-    } = options;
+    const { packingStartedAt, packingCompletedAt, removePackingCompletedAt } =
+      options;
 
     await updateDoc(doc(this.getStore(), 'bag', id), {
       packedGears,

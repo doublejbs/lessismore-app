@@ -1,50 +1,31 @@
-import { makeAutoObservable, reaction } from 'mobx';
+import { makeAutoObservable } from 'mobx';
 import BagStore from '@/model/store/BagStore';
 import GearStore from '@/model/store/GearStore';
-import Order from '@/model/order/Order';
 import Gear from '@/model/gear/Gear';
 import GearFilter from '@/model/gear/GearFilter';
-import OrderType from '@/model/order/OrderType';
 import { ImperativeRouter } from 'expo-router';
 import app from '@/model/app/App';
 
 class BagUseless {
-  private static readonly ORDER_KEY = 'bag';
-
   public static new(router: ImperativeRouter, id: string) {
-    return new BagUseless(
-      id,
-      router,
-      app.getBagStore()!,
-      app.getGearStore()!,
-      Order.new(BagUseless.ORDER_KEY)
-    );
+    return new BagUseless(id, router, app.getBagStore()!, app.getGearStore()!);
   }
 
   private gears: Gear[] = [];
   private selectedGears: Gear[] = [];
   private uselessGears: Gear[] = [];
   private initialized = false;
-  private disposeReaction: () => void;
 
   private constructor(
     private readonly id: string,
     private readonly router: ImperativeRouter,
     private readonly bagStore: BagStore,
-    private readonly gearStore: GearStore,
-    private readonly order: Order
+    private readonly gearStore: GearStore
   ) {
     makeAutoObservable(this);
-    this.disposeReaction = reaction(
-      () => this.order.getSelectedOrderType(),
-      async () => {
-        await this.fetchGears();
-      }
-    );
   }
 
   public async initialize() {
-    this.order.initialize();
     const gears = await this.fetchGears();
     gears.forEach(gear => {
       if (gear.hasUseless(this.id)) {
@@ -62,11 +43,7 @@ class BagUseless {
   }
 
   private async fetchGears() {
-    const { gears } = await this.bagStore.getBag(
-      this.id,
-      [GearFilter.All],
-      this.order.getSelectedOrderType() ?? OrderType.NameAsc
-    );
+    const { gears } = await this.bagStore.getBag(this.id, [GearFilter.All]);
     this.setGears(gears);
 
     return gears;
@@ -155,14 +132,6 @@ class BagUseless {
 
   public back() {
     this.router.back();
-  }
-
-  public getOrder() {
-    return this.order;
-  }
-
-  public dispose() {
-    this.disposeReaction();
   }
 }
 
