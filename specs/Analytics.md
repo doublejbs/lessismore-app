@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | as-built (2026-07-03 코드 기준) |
+| 상태 | as-built (2026-07-29 코드 기준 — AN-3 표를 구현과 전수 대조해 동기화) |
 | ID 프리픽스 | `AN` |
 | 주요 코드 | `model/analytics/`, `app/_layout.tsx`, 각 CTA 컴포넌트 |
 | 관련 스펙 | [AppLifecycle.md](AppLifecycle.md), [Bag.md](Bag.md), [BagDetail.md](BagDetail.md), [Warehouse.md](Warehouse.md), [Search.md](Search.md) |
@@ -43,6 +43,14 @@
 
 **수용 기준** — 아래 이벤트를 각 CTA 핸들러 시작부에서 전송한다. 이벤트 추가·변경은 이 표를 갱신한 뒤 구현한다.
 
+> **표와 구현은 전수 대조로 맞춘다.** 2026-07-29 점검에서 표에만 있는 항목 5건(폐기된 탐색 홈 SR-6의 이벤트)과 구현에만 있는 항목 13건이 발견됐다. 기능을 지우거나 이벤트를 추가하면서 이 표를 함께 갱신하지 않아 생긴 드리프트다. 대조는 아래로 확인한다.
+>
+> ```bash
+> grep -rhoE "logClick\('[a-z_]+'" --include="*.ts" --include="*.tsx" . | grep -v node_modules | sed -E "s/logClick\('([a-z_]+)'/click_\1/" | sort -u
+> ```
+>
+> 이 목록과 표의 활성 항목(= `[폐기]`·`[기획]` 제외)이 정확히 일치해야 한다.
+
 **배낭 탭 / 상세 / 편집** ([Bag.md](Bag.md), [BagDetail.md](BagDetail.md), [BagShare.md](BagShare.md))
 
 | 이벤트 | 트리거 | 파라미터 |
@@ -75,6 +83,9 @@
 | `click_film_card_photo` | 필름 카드 사진 선택 완료 (BS-2) | — |
 | `click_film_card_share` | 필름 카드 `공유하기` (BS-5) | `has_activity`: boolean, `has_photo`: boolean |
 | `click_film_card_save` | 필름 카드 갤러리 저장 (BS-5) | — |
+| `click_film_card_element` | 필름 카드 요소 켜기/끄기 (BS-7) | `element`: 요소 종류, `on`: boolean |
+| `click_bag_weather` | 배낭 상세 여행지 타일 → 여행지 허브 (DST-2/DST-8) | — |
+| `click_bag_destination_directions` | 여행지 허브 `길찾기` (DST-8) | — |
 
 **패킹** ([Packing.md](Packing.md))
 
@@ -100,6 +111,9 @@
 | `click_gear_photo_upload` | 내 장비 사진 업로드 시도 — 앨범·카메라에서 사진을 고른 직후 (GD-13) | `source`: `library` \| `camera`, `mode`: `create` \| `replace` |
 | `click_gear_photo_delete` | 내 장비 사진 삭제 확정 (GD-13) | — |
 | `click_gear_purchase` | 장비 상세 최저가 구입하기 (GD-5) | — |
+| `click_gear_share` | 장비 상세 공유 (GD-7) | — |
+| `click_gear_review` | 장비 상세 외부 후기 항목 클릭 (GD-6) | `source`: `blog` \| `youtube` |
+| `click_warehouse_fine_filter` | 창고 2차(세분) 카테고리 칩 (WH-2) | `category`: 세분 카테고리 값 \| `all` |
 
 **리뷰 / 검색 / 인증·정보** ([Reply.md](Reply.md), [Search.md](Search.md), [Auth.md](Auth.md))
 
@@ -110,11 +124,11 @@
 | `search` (GA4 표준) | 검색 실행 (SR-1) | `search_term`: 검색어 |
 | `click_search_add` | 검색 결과에서 창고/배낭에 장비 추가 (SR-3) | `target`: `warehouse` \| `bag` |
 | `click_search_rank_item` | 인기 장비 순위 행 클릭 (SR-4) | — |
-| `click_browse_category` | 탐색 홈 카테고리 칩/그리드 클릭 (SR-6/SR-7) | `category`: 카테고리 값 |
-| `click_browse_brand_all` | 탐색 홈 `브랜드 전체 보기` 클릭 → 디렉토리 (SR-6/SR-8) | — |
-| `click_browse_brand_preview` | 탐색 홈 인기 브랜드 미리보기 항목 클릭 → 브랜드 목록 (SR-6/SR-7) | — |
-| `click_browse_new_all` | 탐색 홈 신제품 `전체 보기` 클릭 → 최신순 목록 (SR-6/SR-9) | — |
-| `click_browse_new_item` | 탐색 홈 신제품 캐러셀 항목 클릭 → 장비 상세 (SR-9) | — |
+| `click_browse_category` | [폐기] 탐색 홈(SR-6)이 피드로 대체되며 화면이 제거돼 더 이상 발생하지 않음 | `category`: 카테고리 값 |
+| `click_browse_brand_all` | [폐기] 위와 동일 — 브랜드 디렉토리로 가는 진입점이 코드에 없다(라우트만 잔존) | — |
+| `click_browse_brand_preview` | [폐기] 위와 동일 | — |
+| `click_browse_new_all` | [폐기] 위와 동일 — 신제품 캐러셀(SR-9)이 코드에 없다 | — |
+| `click_browse_new_item` | [폐기] 위와 동일 | — |
 | `click_brand_directory_item` | 브랜드 디렉토리 항목 클릭 → 브랜드 목록 (SR-8/SR-7) | — |
 | `click_browse_sort` | 탐색 목록 정렬 변경 (SR-7) | `sort`: 정렬 값 |
 | `click_feed_card` | 피드 카드 클릭 → 장비 상세 (FD-2) | — |
@@ -126,6 +140,7 @@
 | `click_feed_filter_reset` | 피드 브랜드 시트 `초기화` (FD-3) | — |
 | `click_feed_ranking` | 피드 하단 `인기 순위` 버튼 → 인기 순위 화면 (FD-3) | — |
 | `click_feed_refresh` | 피드 pull-to-refresh (FD-4) | — |
+| `click_feed_fine_filter` | 피드 2차(세분) 카테고리 칩 (FD-3) | `category`: 세분 카테고리 값 \| `all` |
 | `click_readyshot_layout` | [폐기] 레디샷 기능 제거로 더 이상 발생하지 않음 | `type`: `grid` \| `collage` |
 | `click_readyshot_share` | [폐기] 레디샷 기능 제거로 더 이상 발생하지 않음 | — |
 | `click_login` | 로그인 버튼 (AU-1) | `provider`: `google` \| `apple` \| `email` |
@@ -139,6 +154,12 @@
 | --- | --- | --- |
 | `click_camp_site` | 박지 상세 진입 (CS-3) | — |
 | `click_camp_site_directions` | 박지 상세 `길찾기` 버튼 (CS-3) | — |
+| `click_camp_site_share` | 박지 상세 공유 (CS-3) | — |
+| `click_camp_site_favorite` | 박지 즐겨찾기 **추가** (CS-9) — 해제는 보내지 않는다 | — |
+| `click_camp_site_favorites_open` | 즐겨찾기 목록 시트 열기 (CS-9) | — |
+| `click_camp_site_review` | 박지 상세 외부 후기 항목 클릭 (CS-3) | `source`: `blog` \| `youtube` |
+| `click_camp_site_review_write` | 박지 유저 후기 작성 진입 (CS-8) | — |
+| `click_camp_site_review_bag` | 박지 유저 후기에 첨부된 배낭 열기 (CS-8) | — |
 
 - 이벤트 이름은 snake_case, `click_` 접두(표준 `search` 제외), 40자 이내 (GA4 제한).
 - 파라미터 값은 식별자가 아닌 열거형 문자열/불리언만 쓴다. `search_term`은 사용자 입력이지만 검색어 자체가 지표 대상이므로 허용 (개인정보 입력란 아님).
