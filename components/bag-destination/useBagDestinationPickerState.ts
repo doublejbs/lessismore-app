@@ -19,6 +19,10 @@ import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import { CampSiteMapViewport } from '@/components/camp-site/CampSiteMapMarkersView';
 import { deltaToZoom } from '@/model/map/MapZoom';
+import {
+  CURRENT_LOCATION_FAILED_MESSAGE,
+  getCurrentPositionWithinTimeout,
+} from '@/model/location/CurrentLocation';
 
 // 저장된 여행지도 없고 위치 권한도 없을 때의 기본 중심(DST-3).
 const SEOUL_CITY_HALL: Coordinate = { latitude: 37.5665, longitude: 126.978 };
@@ -38,12 +42,22 @@ const CENTER_SETTLE_METERS = 1;
 // 정착값이 갱신되지 않아 이펙트가 돌지 않는다(무한 루프 방지).
 const CAMERA_SETTLE_MS = 300;
 
+// 위치 구독 전달 간격 — 지도 탭(CS-1)과 같은 값을 쓴다. 두 지도 화면이 위치를 서로 다르게
+// 다루던 것이 애초에 이 버그의 씨앗이었다(DST-3).
+const LOCATION_WATCH_DISTANCE_INTERVAL_METERS = 10;
+
 const MIN_QUERY_LENGTH = 2;
 const PLACE_SEARCH_DEBOUNCE_MS = 400;
 const REVERSE_GEOCODE_DEBOUNCE_MS = 500;
 const MAP_READY_FALLBACK_MAX_FRAMES = 3;
 
 // 이미 허용된 권한만 확인한다 — 선택기를 여는 것만으로 권한을 새로 요청하지 않는다(DST-3).
+// 초기 카메라 시드는 **캐시만** 쓴다(DST-3). 여기서 새 fix를 기다리면 안드로이드 정지
+// 스로틀링에 걸려 약 30초 동안 지도에 줄 좌표가 없어 화면 자체가 안 뜬다
+// (원인은 model/location/CurrentLocation.ts 주석 참고). 이 좌표는 화면을 여는 순간의
+// 중심일 뿐이고 사용자가 곧 조정하므로 신선도보다 즉시성이 중요하다.
+// getLastKnownPositionAsync는 캐시를 즉시 반환하고, 캐시가 없으면 기다리지 않고 null을
+// 돌려 호출부가 서울 시청 폴백으로 넘어간다 — 그래서 이 함수는 절대 블로킹하지 않는다.
 const getGrantedPosition = async (): Promise<Coordinate | null> => {
   try {
     const { granted } = await Location.getForegroundPermissionsAsync();
@@ -52,11 +66,15 @@ const getGrantedPosition = async (): Promise<Coordinate | null> => {
       return null;
     }
 
-    const position = await Location.getCurrentPositionAsync({});
+    const lastKnown = await Location.getLastKnownPositionAsync();
+
+    if (!lastKnown) {
+      return null;
+    }
 
     return {
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude,
+      latitude: lastKnown.coords.latitude,
+      longitude: lastKnown.coords.longitude,
     };
   } catch (error) {
     console.error('현재 위치 조회 실패:', error);
@@ -134,6 +152,14 @@ const useBagDestinationPickerState = ({
   const pendingCameraTargetRef = useRef<PendingCameraTarget | null>(null);
   const pendingCameraFrameRef = useRef<number | null>(null);
   const mapReadyFallbackFrameRef = useRef<number | null>(null);
+  // 선택기가 열려 있는 동안 유지하는 위치 구독과 그 최신 좌표(DST-3).
+  // 좌표를 state가 아니라 ref에 두는 이유 — 이 값은 현재 위치 버튼 핸들러만 읽는데,
+  // state로 두면 위치가 갱신될 때마다 지도·하단 패널까지 리렌더된다(카메라도 따라가지 않는다).
+  const watchedPositionRef = useRef<Coordinate | null>(null);
+  const locationWatchRef = useRef<Location.LocationSubscription | null>(null);
+  // 구독을 소유한 visible 세대. 시작 중(await 사이)에도 채워져 있어 중복 시작을 막고,
+  // 세대가 바뀌면 늦게 도착한 구독을 그 자리에서 해제하는 판단 근거가 된다.
+  const locationWatchGenerationRef = useRef<number | null>(null);
   // 프롭 변화로 초기화 이펙트가 다시 돌지 않도록(열릴 때 1회만 읽는다).
   const currentLocationRef = useRef(currentLocation);
 
@@ -256,6 +282,72 @@ const useBagDestinationPickerState = ({
         isCurrentVisibleGeneration(visibleGeneration) &&
         userInteractionRef.current === userInteraction
       );
+    },
+    [isCurrentVisibleGeneration]
+  );
+
+  // 위치 구독을 닫고 보관 좌표를 버린다(DST-3). 선택기가 닫히거나 언마운트될 때 호출한다.
+  // 좌표까지 비우는 이유 — 다음에 열었을 때 이전 세션의 낡은 좌표를 "현재 위치"로 쓰면 안 된다.
+  // 지도 탭(CampSiteMapView, CS-1)은 같은 목적을 신선도 플래그로 달성하는데, 이 차이는
+  // 의도된 것이다 — 거기선 보관 좌표를 파란 점으로 그리고 있어 비우면 점이 깜빡인다.
+  // 여기선 좌표를 화면에 그리지 않아 비우는 쪽이 더 단순하고 낡은 값을 남기지 않는다.
+  const stopLocationWatch = useCallback(() => {
+    locationWatchGenerationRef.current = null;
+    locationWatchRef.current?.remove();
+    locationWatchRef.current = null;
+    watchedPositionRef.current = null;
+  }, []);
+
+  // 선택기가 열려 있는 동안 위치를 구독한다(DST-3).
+  // 왜 구독인가 — 아무도 구독하지 않는 동안 fused provider는 `ProviderRequest[OFF]`라
+  // OS가 위치를 계산조차 하지 않는다(2026-07-29 dumpsys 실기기 확인). 그 상태에서 버튼이
+  // 일회성으로 새 fix를 요구하면 provider 기동 + 안드로이드 정지 스로틀이 겹쳐 약 30초가
+  // 걸렸다. 구독이 열려 있으면 provider가 켜져 있어 최신 좌표가 항상 준비돼 있고, 버튼은
+  // 그 값을 대기 0으로 쓴다. **일회성 요청으로 되돌리지 말 것 — 지연이 재발한다.**
+  // 좌표는 보관만 하고 카메라는 건드리지 않는다 — 사용자가 지도를 보며 좌표를 고르는
+  // 화면이라 위치가 갱신될 때마다 화면이 따라가면 좌표를 고를 수 없다(CS-1의 NoFollow와 동일).
+  const startLocationWatch = useCallback(
+    async (visibleGeneration: number) => {
+      // 이미 이 세대의 구독을 열었거나 여는 중이면 중복으로 열지 않는다.
+      if (locationWatchGenerationRef.current === visibleGeneration) {
+        return;
+      }
+
+      locationWatchGenerationRef.current = visibleGeneration;
+
+      try {
+        const subscription = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Balanced,
+            distanceInterval: LOCATION_WATCH_DISTANCE_INTERVAL_METERS,
+          },
+          next => {
+            watchedPositionRef.current = {
+              latitude: next.coords.latitude,
+              longitude: next.coords.longitude,
+            };
+          }
+        );
+
+        // await 사이에 선택기가 닫혔거나 언마운트됐으면 여기가 유일한 해제 지점이다.
+        if (
+          locationWatchGenerationRef.current !== visibleGeneration ||
+          !isCurrentVisibleGeneration(visibleGeneration)
+        ) {
+          subscription.remove();
+
+          return;
+        }
+
+        locationWatchRef.current = subscription;
+      } catch (error) {
+        // 구독을 못 열어도(위치 서비스 꺼짐 등) 버튼은 캐시·새 fix로 폴백하므로 화면은 살아 있다.
+        console.error('현재 위치 구독 실패:', error);
+
+        if (locationWatchGenerationRef.current === visibleGeneration) {
+          locationWatchGenerationRef.current = null;
+        }
+      }
     },
     [isCurrentVisibleGeneration]
   );
@@ -390,6 +482,42 @@ const useBagDestinationPickerState = ({
     resetMapCommandState,
     selectCampLocation,
   ]);
+
+  // 위치 구독의 생명주기는 선택기 화면과 같다(DST-3) — 열릴 때 시작하고 닫힐 때·언마운트 때
+  // 해제한다. **권한을 새로 요청하지 않는다**: 선택기를 여는 것만으로 권한 요청이 뜨면 안 되므로
+  // 이미 허용된 경우에만 시작한다. 열 때 권한이 없었다면 현재 위치 버튼이 허용을 받은 시점에
+  // 같은 함수로 구독을 시작한다.
+  useEffect(() => {
+    if (!visible || !isMapSupported) {
+      return;
+    }
+
+    // 세대는 렌더 중에 이미 갱신돼 있어 이펙트 본문에서 읽으면 이번 열기의 값이다.
+    const visibleGeneration = visibleGenerationRef.current;
+
+    let cancelled = false;
+
+    const startWatchIfGranted = async () => {
+      try {
+        const { granted } = await Location.getForegroundPermissionsAsync();
+
+        if (cancelled || !granted) {
+          return;
+        }
+
+        await startLocationWatch(visibleGeneration);
+      } catch (error) {
+        console.error('위치 권한 확인 실패:', error);
+      }
+    };
+
+    void startWatchIfGranted();
+
+    return () => {
+      cancelled = true;
+      stopLocationWatch();
+    };
+  }, [visible, isMapSupported, startLocationWatch, stopLocationWatch]);
 
   // iOS legacy architecture에서 onInitialized가 유실돼도, 지도 ref 커밋 뒤
   // 프로그램 카메라 명령을 실행할 수 있도록 짧게 readiness를 확인한다.
@@ -775,7 +903,14 @@ const useBagDestinationPickerState = ({
   }, [markUserInteraction]);
 
   // 현재 위치 버튼에서만 권한을 요청한다(DST-3).
+  // 폴백 사슬은 지도 탭(CS-1)과 완전히 같다: ① 구독 값(대기 0) → ② 캐시 → ③ 상한 건 새 fix.
+  // 왜 버튼이 스스로 새 fix를 요청하지 않는가 — 아무도 구독하지 않는 동안 fused provider는
+  // `ProviderRequest[OFF]`라 OS가 위치를 계산조차 하지 않는다(2026-07-29 dumpsys 확인).
+  // 그 상태에서 일회성으로 새 fix를 요구하면 provider 기동 + 정지 스로틀이 겹쳐 약 30초가 걸렸다
+  // (자세한 내용은 model/location/CurrentLocation.ts 주석 참고). 그래서 선택기가 열려 있는 동안
+  // 구독을 유지하고 버튼은 그 값을 쓴다. **일회성 요청으로 되돌리지 말 것.**
   const handleMoveToCurrentLocation = useCallback(async () => {
+    // locating이 풀리기 전 연타는 무시한다 — 폴백 조회가 겹쳐 돌면 안 된다(DST-3).
     if (!isMapSupported || savingRef.current || locating) {
       return;
     }
@@ -804,17 +939,43 @@ const useBagDestinationPickerState = ({
         return;
       }
 
-      const position = await Location.getCurrentPositionAsync({});
+      // 선택기를 열 때는 권한이 없어 구독을 못 걸었을 수 있다 — 여기서 새로 허용받았다면
+      // 그 시점부터 구독을 시작한다(DST-3). 이미 구독 중이면 내부에서 무시된다.
+      // 이번 탭은 아직 구독 값이 없어 아래 폴백으로 끝나지만, 다음 탭부터는 대기 0이 된다.
+      void startLocationWatch(visibleGeneration);
 
-      const target = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      };
+      // ① 구독 값이 있으면 즉시 쓴다 — 대기 0이고 걸어가는 중에도 최신이다(DST-3).
+      let target = watchedPositionRef.current;
+
+      if (!target) {
+        // ② 캐시는 즉시 반환되지만 **우리 앱이 아니라 기기 전체가** 채우는 값이라 낡을 수 있다
+        // (DST-3 정정 이력 ③ — 실측 나이 8분 32초). 구독 첫 전달 전에만 쓰는 폴백이다.
+        const lastKnown = await Location.getLastKnownPositionAsync();
+
+        // ③ 캐시도 없으면 마지막으로 상한을 건 새 fix를 요청한다. 스로틀 상황에서는 상한을
+        // 통째로 대기할 수 있어 사슬의 맨 끝이다.
+        const position = lastKnown ?? (await getCurrentPositionWithinTimeout());
+
+        target = position
+          ? {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            }
+          : null;
+      }
 
       if (
         savingRef.current ||
         !isCurrentInteraction(visibleGeneration, userInteraction)
       ) {
+        return;
+      }
+
+      // 세 수단이 모두 좌표를 주지 못하면 반드시 알린다 — 조용히 끝내면 버튼이 죽은 것으로 보인다(DST-3).
+      // 이 화면은 풀스크린 모달이라 전역 토스트가 모달 뒤에 가려지므로 Alert를 쓴다.
+      if (!target) {
+        Alert.alert('현재 위치 확인 실패', CURRENT_LOCATION_FAILED_MESSAGE);
+
         return;
       }
 
@@ -841,7 +1002,8 @@ const useBagDestinationPickerState = ({
       }
 
       console.error('현재 위치 이동 실패:', error);
-      Alert.alert('오류', '현재 위치를 불러오지 못했습니다.');
+      // 수단이 모두 실패한 경우(위 분기)와 예외는 사용자에게 같은 상황이라 문구를 통일한다(DST-3).
+      Alert.alert('현재 위치 확인 실패', CURRENT_LOCATION_FAILED_MESSAGE);
     } finally {
       if (
         mountedRef.current &&
@@ -859,6 +1021,7 @@ const useBagDestinationPickerState = ({
     markUserInteraction,
     moveCamera,
     selectCampLocation,
+    startLocationWatch,
   ]);
 
   // 확정할 여행지. 박지 모드는 참조 + 이름·좌표 스냅샷, 자유 위치는 참조 없이 저장한다(DST-1).
