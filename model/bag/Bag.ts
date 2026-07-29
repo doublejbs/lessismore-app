@@ -8,27 +8,38 @@ import { Alert } from 'react-native';
 import AlertManager from '@/model/alert/AlertManager';
 import ToastManager from '@/model/toast/ToastManager';
 import Gear from '@/model/gear/Gear';
+import Order from '@/model/order/Order';
+import { createBagOrderOptions } from '@/model/order/BagOrderOptions';
+import { getBagComparator } from '@/model/order/BagOrderComparators';
 import { router } from 'expo-router';
 
 class Bag {
+  // 배낭 목록 정렬 저장 키(BAG-6). 창고(warehouse)·배낭 편집(bag)과 선택값을 공유하지 않는다.
+  private static readonly ORDER_KEY = 'bagList';
+
   public static new() {
     return new Bag(
       app.getBagStore()!,
       app.getFirebase(),
       app.getAlertManager()!,
-      app.getToastManager()!
+      app.getToastManager()!,
+      Order.new(Bag.ORDER_KEY, createBagOrderOptions())
     );
   }
 
   private bags: BagItem[] = [];
   private loading = false;
+  // 저장된 정렬 복원(order.initialize())을 1회만 수행하기 위한 가드.
+  // 목록 조회는 재포커스마다 반복되지만 AsyncStorage 복원은 첫 조회 때 한 번이면 된다(BAG-6).
+  private initialized = false;
   private disposeLoginReaction: () => void;
 
   private constructor(
     private readonly bagStore: BagStore,
     private readonly firebase: Firebase,
     private readonly alertManager: AlertManager,
-    private readonly toastManager: ToastManager
+    private readonly toastManager: ToastManager,
+    private readonly order: Order
   ) {
     makeAutoObservable(this);
     this.disposeLoginReaction = reaction(
@@ -39,17 +50,32 @@ class Bag {
     );
   }
 
+  public getOrder() {
+    return this.order;
+  }
+
   public async getList() {
     if (this.firebase.isLoggedIn()) {
       // 이미 목록이 있으면(재포커스 등) 로딩뷰 없이 조용히 갱신 — 깜빡임 방지.
+      // 첫 진입에서는 아래 await보다 먼저 켜야 빈 상태 문구(§6)가 잠깐 보이지 않는다.
       if (this.bags.length === 0) {
         this.setLoading(true);
       }
+
+      if (!this.initialized) {
+        await this.order.initialize();
+        this.setInitialized(true);
+      }
+
       this.setBags(await this.bagStore.getList());
       this.setLoading(false);
     } else {
       this.setBags([]);
     }
+  }
+
+  private setInitialized(value: boolean) {
+    this.initialized = value;
   }
 
   private setBags(value: BagItem[]) {
@@ -100,8 +126,13 @@ class Bag {
     return true;
   }
 
+  // 정렬은 100% 클라이언트 정렬이라 정렬을 바꿔도 새로 받아올 데이터가 없다 —
+  // 재조회 없이 이미 받아 둔 배열을 표시 시점에 정렬한다(BAG-6).
+  // getSelectedOrderType()이 observable이라 정렬을 바꾸면 observer가 자동으로 다시 렌더한다.
   public getBags() {
-    return this.bags;
+    return [...this.bags].sort(
+      getBagComparator(this.order.getSelectedOrderType())
+    );
   }
 
   public isEmpty() {

@@ -137,7 +137,7 @@
 | `name` | string | 배낭 이름 |
 | `weight` | number | 총 무게(g). 담긴 장비 weight 합 (BD-스펙 참조) |
 | `gears` | string[] | 담긴 장비 ID 배열 (`users/{uid}/gears` 참조) |
-| `startDate` | string | ISO 8601 문자열. 생성·복사가 항상 `toISOString()`으로 쓰지만, **레거시 문서에는 없을 수 있다** — 목록 정렬 시 뒤로 보낸다([Bag.md](Bag.md) BAG-1, DM-23) |
+| `startDate` | string | ISO 8601 문자열. 생성·복사가 항상 `toISOString()`으로 쓰지만, **레거시 문서에는 없을 수 있다** — 배낭 목록의 **날짜 정렬**에서 방향과 무관하게 뒤로 보낸다([Bag.md](Bag.md) BAG-6, DM-25) |
 | `endDate` | string | ISO 8601 문자열 |
 | `editDate` | string | ISO 8601 문자열, 수정 시 갱신 |
 | `shared` | boolean | 링크 공유 여부 (배낭 공유 BD-7). 후기 첨부 공개와는 별개 |
@@ -477,7 +477,7 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 
 **양방향 참조 불변식**: `gear.bags[]` ↔ `bag.gears[]`는 항상 쌍으로 갱신되어야 한다. `bag.weight`는 담긴 장비 `weight` 합과 일치해야 한다.
 
-### DM-23 `in` 쿼리 30개 상한
+### DM-25 `in` 쿼리 30개 상한
 
 ID 배열로 문서를 모아 읽는 경로는 모두 Firestore `in` 절의 **값 30개 상한**에 걸린다. 상한 초과는 네트워크 오류가 아니라 **쿼리 생성 시점의 클라이언트 검증 예외**라, 해당 문서에서는 매번 결정적으로 실패한다.
 
@@ -495,4 +495,4 @@ ID 배열로 문서를 모아 읽는 경로는 모두 Firestore `in` 절의 **�
 ## 8. 미해결 질문
 
 - 탈퇴 시 댓글(`gear-comments`)·박지 유저 후기(`camp-spot-user-review` DM-20)는 남는다 — 완전 삭제 정책은 [Auth.md](Auth.md) AU-8 미해결 질문 참조.
-- ~~`bag` 목록 조회(`where('__name__', 'in', bagIds)`)는 Firestore `in` 절 30개 제한의 영향권~~ → DM-23으로 규칙화(청크 분할). 배낭 목록은 GD-10, 배낭 장비는 BD-1에서 해소.
+- ~~`bag` 목록 조회(`where('__name__', 'in', bagIds)`)는 Firestore `in` 절 30개 제한의 영향권~~ → DM-25로 규칙화(청크 분할). 배낭 목록은 [Bag.md](Bag.md) BAG-1, 장비 상세의 함께한 여행 타임라인은 [GearDetail.md](GearDetail.md) GD-10, 배낭 장비는 [BagDetail.md](BagDetail.md) BD-1에서 해소.
