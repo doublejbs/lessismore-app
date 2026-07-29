@@ -38,8 +38,6 @@ import GearUsageStatus from './GearUsageStatus';
 // 덜어내기 시그널(GD-12) 판정 대상 최근 기록 수.
 const DECLUTTER_RECENT_TRIP_COUNT = 3;
 // createDate 신뢰 하한(2010-01-01 UTC, ms) — 이보다 작으면 초 단위·쓰레기 값으로 보고 보유 일수를 숨긴다(GD-9).
-const MIN_TRUSTED_CREATE_DATE_MS = 1262304000000;
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 // GD-9 사용 지표 히어로 표시값.
 export interface GearUsageStats {
@@ -401,23 +399,6 @@ class WarehouseDetail {
       uselessCount,
       unrecordedCount: Math.max(0, bagCount - usedCount - uselessCount),
     };
-  }
-
-  // GD-9: 보유 D일째(등록일 포함해 1일째부터). createDate가 누락·미래·비정상 값이면 null(미표시).
-  public getOwnedDays(): number | null {
-    const createDate = this.getGear()?.getCreateDate();
-    const now = Date.now();
-
-    if (
-      typeof createDate !== 'number' ||
-      !Number.isFinite(createDate) ||
-      createDate < MIN_TRUSTED_CREATE_DATE_MS ||
-      createDate > now
-    ) {
-      return null;
-    }
-
-    return Math.floor((now - createDate) / DAY_MS) + 1;
   }
 
   // GD-10: 여행 타임라인 — startDate 내림차순, 날짜 없는 배낭은 뒤로, 동순위는 editDate 내림차순.

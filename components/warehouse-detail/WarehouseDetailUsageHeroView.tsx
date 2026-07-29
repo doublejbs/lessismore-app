@@ -21,26 +21,6 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
 
   const { bagCount, usedCount, uselessCount, unrecordedCount } =
     warehouseDetail.getUsageStats();
-  const ownedDays = warehouseDetail.getOwnedDays();
-  // 사용률의 모수 — 정의(`used/(used+useless)`)상 미기록은 분모에서 빠진다(GD-9).
-  // 위 지표와 같은 `getUsageStats()`(실제 로드된 배낭 기준)에서 뽑아야 화면 안에서 어긋나지 않는다.
-  const recordedCount = usedCount + uselessCount;
-  // 사용률·보유 일수를 한 줄 보조 문구로 합친다. 둘 다 없으면 라인 미노출.
-  const footerParts: string[] = [];
-
-  // 기록이 하나도 없으면 미표시. 모수를 병기하지 않으면 6번 담고 2번만 기록한 장비가
-  // `사용률 100%`로 보여 "여섯 번 다 썼다"로 읽힌다(GD-9).
-  // 모수는 점으로 나열하지 않고 괄호로 묶어 사용률에 붙인다 — 나열하면 `사용률 100% ·
-  // 2건 기준 · 보유 244일째`처럼 덩어리가 셋이 되어 읽기 부담이 커진다(GD-9).
-  if (recordedCount > 0) {
-    const usedRate = Math.round((usedCount / recordedCount) * 100);
-
-    footerParts.push(`사용률 ${usedRate}%(${recordedCount}건)`);
-  }
-
-  if (ownedDays !== null) {
-    footerParts.push(`보유 ${ownedDays.toLocaleString()}일째`);
-  }
 
   const renderStat = (label: string, value: number, muted: boolean) => (
     <View style={styles.statItem}>
@@ -77,11 +57,6 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
               {unrecordedCount > 0 &&
                 renderStat('미기록', unrecordedCount, false)}
             </View>
-            {footerParts.length > 0 && (
-              <PretendardText style={styles.footerText}>
-                {footerParts.join(' · ')}
-              </PretendardText>
-            )}
           </>
         )}
       </View>
@@ -127,11 +102,6 @@ const styles = StyleSheet.create({
   },
   statMuted: {
     // 0회 지표는 값·라벨을 낮춰 유효 정보 스캔을 돕는다(GD-2 톤 유지).
-    color: Color.textSecondary,
-  },
-  footerText: {
-    marginTop: 10,
-    fontSize: 13,
     color: Color.textSecondary,
   },
 });
