@@ -137,7 +137,7 @@
 | `name` | string | 배낭 이름 |
 | `weight` | number | 총 무게(g). 담긴 장비 weight 합 (BD-스펙 참조) |
 | `gears` | string[] | 담긴 장비 ID 배열 (`users/{uid}/gears` 참조) |
-| `startDate` | string | ISO 8601 문자열 |
+| `startDate` | string | ISO 8601 문자열. 생성·복사가 항상 `toISOString()`으로 쓰지만, **레거시 문서에는 없을 수 있다** — 목록 정렬 시 뒤로 보낸다([Bag.md](Bag.md) BAG-1, DM-23) |
 | `endDate` | string | ISO 8601 문자열 |
 | `editDate` | string | ISO 8601 문자열, 수정 시 갱신 |
 | `shared` | boolean | 링크 공유 여부 (배낭 공유 BD-7). 후기 첨부 공개와는 별개 |
@@ -481,9 +481,10 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 
 ID 배열로 문서를 모아 읽는 경로는 모두 Firestore `in` 절의 **값 30개 상한**에 걸린다. 상한 초과는 네트워크 오류가 아니라 **쿼리 생성 시점의 클라이언트 검증 예외**라, 해당 문서에서는 매번 결정적으로 실패한다.
 
-- 이런 경로는 `IN_QUERY_CHUNK_SIZE`(30) 단위로 **청크 분할해 병렬 조회한 뒤 병합**한다. 현재 대상: `users/{uid}.bags` → `bag`([GearDetail.md](GearDetail.md) GD-10), `bag.gears` → `users/{userId}/gears`([BagDetail.md](BagDetail.md) BD-1).
-- **`orderBy`는 청크별로만 걸리므로 청크 분할 경로에서는 서버 정렬에 의존하지 않는다.** 순서에 요구사항이 있는 경로라면 병합 뒤 클라이언트에서 정렬해야 하고, 기준은 Firestore와 같게 둔다(문자열은 코드포인트 순 — `localeCompare` 아님).
-  - `bag.gears` 경로는 **어느 화면도 순서에 의존하지 않는다** — 상세는 카테고리 그룹핑([BagDetail.md](BagDetail.md) BD-1), 편집(BD-4)은 담김 여부·무게 계산용, 사용 기록(BD-5)·공유 배낭(BD-7)은 정렬 UI가 없다. 따라서 이 경로는 서버 정렬을 걷어내고 **`bag.gears` 배열 순서를 그대로 유지**해 배낭 크기와 무관하게 같은 순서를 준다.
+- 이런 경로는 `IN_QUERY_CHUNK_SIZE`(30) 단위로 **청크 분할해 병렬 조회한 뒤 병합**한다. 현재 대상: 배낭 목록 `users/{uid}.bags` → `bag`([Bag.md](Bag.md) BAG-1, [GearDetail.md](GearDetail.md) GD-10), 배낭 장비 `bag.gears` → `users/{userId}/gears`([BagDetail.md](BagDetail.md) BD-1).
+- **`orderBy`는 청크별로만 걸리므로 청크 분할 경로에서는 서버 정렬에 의존하지 않는다.** 병합 뒤 클라이언트에서 정렬하고, 기준은 Firestore와 결과가 같도록 둔다 — **문자열 필드는 코드포인트 순**(`localeCompare` 아님), 날짜·숫자는 값 비교(ISO 8601 날짜는 epoch 변환 비교가 문자열 비교와 동치라 어느 쪽이든 무방).
+  - 동률 항목은 **문서 ID 오름차순**으로 타이브레이크한다 — Firestore가 `orderBy` 동률에서 `__name__` 오름차순을 주므로, 그래야 청크 분할 전후 순서가 같다.
+  - **정렬 필드가 없는 문서에 주의한다.** Firestore `orderBy(F)`는 `F`가 없는 문서를 결과에서 **제외**하지만, 클라이언트 정렬은 포함한다 — 청크 분할을 도입하면 이전에 안 보이던 문서가 나타날 수 있다. 각 경로에서 이 문서들을 어디에 둘지 스펙에 명시한다(현재 두 경로 모두 **뒤로**).
 
 ## 7. 운영 스크립트 (DM-12)
 
