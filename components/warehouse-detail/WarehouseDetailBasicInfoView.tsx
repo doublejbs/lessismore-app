@@ -20,9 +20,9 @@ interface Props {
  * **보유 장비에서만 렌더한다** — 호출부(WarehouseDetailView)가 `isAdded`로 가른다.
  * 업로드 상태·핸들러는 전부 `GearImageUpload`가 들고 있고 이 뷰는 조립만 한다.
  *
- * 레이아웃을 가르는 조건이 "지금 화면에 사진이 있느냐"(업로드·삭제로 바뀐다)라서, 그 상태를
- * 들고 있는 이 뷰가 조립 지점이 된다(GD-1) — 사진이 있으면 정보 뷰에 사진 슬롯을 넘겨 2열로
- * 그리고, 없으면 `사진 추가` 행을 정보 뷰 **위** 전체 폭에 둔 기존 1열 그대로다.
+ * "지금 화면에 사진이 있느냐"(업로드·삭제로 바뀐다)를 아는 곳이 여기라서 조립 지점이 된다(GD-1).
+ * 사진이 있으면 정보 뷰에 사진 슬롯을 넘겨 **가운데 사진 줄**을 그리게 하고, 없으면 그 자리에
+ * `사진 추가` 행을 정보 뷰 **위** 전체 폭에 둔다 — 정체 줄은 어느 쪽이든 동일하다.
  */
 const WarehouseDetailBasicInfoView: FC<Props> = ({ gear }) => {
   // 진입 시점의 사진 URL로 한 번만 씨를 받는다 — 이후 화면의 소스는 모델이다
@@ -92,31 +92,26 @@ const WarehouseDetailBasicInfoView: FC<Props> = ({ gear }) => {
         },
       ];
 
+  // 사진 줄(1층)의 내용물. 없으면 정보 뷰가 줄 자체를 렌더하지 않는다(GD-1).
+  const photo = imageUrl ? (
+    <WarehouseDetailImagePreviewView
+      imageUrl={imageUrl}
+      busy={busy}
+      onPress={handlePressImage}
+      onError={handleImageError}
+    />
+  ) : null;
+
   return (
     <>
-      {imageUrl ? (
-        // 사진이 있으면 좌우 2열 — 사진은 정보 뷰의 좌측 슬롯으로 들어간다(GD-1).
-        <WarehouseDetailInformationView
-          gear={gear}
-          photo={
-            <WarehouseDetailImagePreviewView
-              imageUrl={imageUrl}
-              busy={busy}
-              onPress={handlePressImage}
-              onError={handleImageError}
-            />
-          }
-        />
-      ) : (
-        // 사진이 없으면 텍스트 우선 1열 — `사진 추가`는 이미지 자리를 대신하는 플레이스홀더가
-        // 아니라 액션이라 2열 좌측이 아니라 정보 블록 위 전체 폭 행으로 둔다(GD-1·GD-13).
-        <>
-          <View style={styles.addRow}>
-            <WarehouseDetailImageAddView busy={busy} onPress={handlePressAdd} />
-          </View>
-          <WarehouseDetailInformationView gear={gear} />
-        </>
+      {/* `사진 추가`는 이미지 자리를 대신하는 플레이스홀더가 아니라 액션이라 정보 블록 위
+          전체 폭 행으로 둔다. 사진이 생기면 그 자리가 가운데 사진 줄로 바뀐다(GD-1·GD-13). */}
+      {photo ? null : (
+        <View style={styles.addRow}>
+          <WarehouseDetailImageAddView busy={busy} onPress={handlePressAdd} />
+        </View>
       )}
+      <WarehouseDetailInformationView gear={gear} photo={photo} />
       <BottomMenuModalView
         visible={gearImageUpload.isSheetVisible()}
         onClose={handleCloseSheet}

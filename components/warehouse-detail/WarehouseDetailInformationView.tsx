@@ -9,19 +9,18 @@ import { GEAR_FILTER_NAMES } from '@/model/gear/GearFilterName';
 interface Props {
   gear: Gear;
   // 사용자가 올린 본인 사진 슬롯(GD-13). 사진이 있는지는 업로드 상태를 가진 상위
-  // (WarehouseDetailBasicInfoView)만 알 수 있어 노드로 받는다. 없으면 1열이다.
+  // (WarehouseDetailBasicInfoView)만 알 수 있어 노드로 받는다. 없으면 사진 줄을 그리지 않는다.
   photo?: ReactNode;
 }
 
-// GD-1 기본 정보 섹션. 카탈로그 크롤 이미지는 쓰지 않고(DataModel §1) 사용자가 올린 본인 사진만
-// `photo` 슬롯으로 받는다.
-// - 사진이 있으면 좌우 2열(좌: 100pt 정사각 사진 / 우: 브랜드 → 이름 → 메타 → **무게**). 사진을
-//   위에 두고 정체 정보를 아래로 쌓으면 393pt 폭에서 우측 250pt 이상이 빈 채로 남아 핵심 지표가
-//   밀린다. 2열을 만들고 무게만 그 아래 전체 폭에 남기면 상단이 「사진+정보」와 「무게」 두 덩어리로
-//   갈라져 세로로 늘어지므로(사진을 줄여 확보한 공간을 여백이 도로 먹는다) 무게도 우측 컬럼에 넣는다.
-// - 사진이 없으면 빈 칸·플레이스홀더 없는 텍스트 우선 1열 + 무게 히어로(40pt + 캡션) 그대로다
-//   (이미지 없는 장비가 다수라 이쪽이 기본 모습이다).
-// 어느 쪽이든 화면의 시각 앵커는 무게다 — 그래서 사진을 140pt가 아닌 100pt로 둔다.
+// GD-1 기본 정보 섹션 — **사진 줄 + 정체 줄** 두 층 구성(2026-07-29 사용자 결정).
+// - 1층(사진): 140pt 정사각을 **가운데 단독 줄**로 둔다. 카탈로그 크롤 이미지는 쓰지 않고
+//   (DataModel §1) 사용자가 올린 본인 사진만 `photo` 슬롯으로 받는다. 사진이 없으면 **이 줄 자체를
+//   렌더하지 않는다** — 빈 칸·플레이스홀더를 남기지 않는다(이미지 없는 장비가 다수라 그게 기본 모습).
+// - 2층(정체): 좌측 브랜드 → 이름 → 메타, 우측 무게. **사진 유무와 무관하게 항상 같은 형태**다.
+//   좌 정체 · 우 지표는 창고 목록(WH-1)·배낭 목록(BAG-1)과 공유하는 앱 전역 행 문법이라 무게가 늘
+//   같은 자리에 온다. 사진이 있을 때만 무게를 컬럼에 넣고 없을 때 히어로로 키우면 같은 화면이 두
+//   얼굴이 되므로, 사진 유무는 **1층 렌더 여부만** 가른다.
 const WarehouseDetailInformationView: FC<Props> = ({ gear, photo }) => {
   // 한글 표시명 우선 — 창고/검색 리스트와 동일한 이름으로 보이게 한다(GD-1).
   const company = gear.getDisplayCompany();
@@ -36,90 +35,68 @@ const WarehouseDetailInformationView: FC<Props> = ({ gear, photo }) => {
     : '';
   // 카테고리 · 색상 · 사이즈 메타 라인 — 빈 항목 생략, 모두 없으면 라인 미노출
   const metaLine = [categoryLabel, color, size].filter(Boolean).join(' · ');
-  const hasPhoto = Boolean(photo);
-  // 2열에서는 우측 컬럼이 좁아 긴 브랜드·이름이 여러 줄로 흘러 사진 옆 균형을 깬다 — 말줄임한다(GD-1).
-  // 1열에서는 지금처럼 전체 폭을 다 쓰며 자유롭게 줄바꿈한다(제한 없음).
-  const singleLine = hasPhoto ? 1 : undefined;
-  const nameLines = hasPhoto ? 2 : undefined;
-  // 2열의 무게 — 우측 컬럼 폭이 좁아 40pt가 들어가지 않으므로 28pt로 낮추고 `무게` 캡션은
-  // 생략한다(`g` 단위가 이미 무엇인지 말해준다). 낮춰도 컬럼에서 가장 큰 활자라 앵커는 유지된다(GD-1).
-  const columnWeight =
-    hasPhoto && weight ? (
-      <PretendardText weight='bold' style={styles.weightColumnText}>
-        {weight}g
-      </PretendardText>
-    ) : null;
-  const identity = (
-    <View style={[styles.productInfo, hasPhoto && styles.identityColumn]}>
-      <PretendardText
-        style={styles.companyText}
-        weight='bold'
-        numberOfLines={singleLine}
-      >
-        {company}
-      </PretendardText>
-      <PretendardText
-        weight='bold'
-        style={styles.nameText}
-        lineBreakStrategyIOS='hangul-word'
-        numberOfLines={nameLines}
-      >
-        {name}
-      </PretendardText>
-      {metaLine ? (
-        <PretendardText style={styles.metaText} numberOfLines={singleLine}>
-          {metaLine}
-        </PretendardText>
-      ) : null}
-      {columnWeight}
-    </View>
-  );
-
-  if (hasPhoto) {
-    // 상단 전체가 사진 높이 한 덩어리로 수렴한다 — 아래에 무게 블록이 따로 없으므로
-    // 1열용 세로 간격(stackedContainer)도 두지 않는다(GD-1).
-    return (
-      <View style={styles.container}>
-        <View style={styles.identityRow}>
-          {photo}
-          {identity}
-        </View>
-      </View>
-    );
-  }
 
   return (
-    <View style={[styles.container, styles.stackedContainer]}>
-      {identity}
-      {/* 사진이 없으면 무게가 화면의 유일한 앵커라 40pt + `무게` 캡션 히어로를 그대로 쓴다(GD-1). */}
-      {weight ? (
-        <View style={styles.weightHero}>
-          <PretendardText style={styles.weightCaption}>무게</PretendardText>
-          <PretendardText weight='bold' style={styles.weightText}>
+    <View style={styles.container}>
+      {photo ? <View style={styles.photoRow}>{photo}</View> : null}
+
+      <View style={styles.identityRow}>
+        <View style={styles.identityColumn}>
+          <PretendardText
+            style={styles.companyText}
+            weight='bold'
+            numberOfLines={1}
+          >
+            {company}
+          </PretendardText>
+          <PretendardText
+            weight='bold'
+            style={styles.nameText}
+            lineBreakStrategyIOS='hangul-word'
+            numberOfLines={2}
+          >
+            {name}
+          </PretendardText>
+          {metaLine ? (
+            <PretendardText style={styles.metaText} numberOfLines={1}>
+              {metaLine}
+            </PretendardText>
+          ) : null}
+        </View>
+
+        {/* 무게는 32pt 우측 정렬, `무게` 캡션은 생략한다 — `g` 단위가 이미 무엇인지 말해주고
+            목록 행에도 캡션이 없다. 캡션 없이도 화면에서 가장 큰 활자라 시각 앵커는 무게다(GD-1). */}
+        {weight ? (
+          <PretendardText
+            weight='bold'
+            style={styles.weightText}
+            numberOfLines={1}
+          >
             {weight}g
           </PretendardText>
-        </View>
-      ) : null}
+        ) : null}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  // 층 사이 간격(gap)은 바깥 여백(20)보다 좁게 둬 두 층이 한 덩어리로 읽히게 한다.
+  // 사진이 없으면 자식이 정체 줄 하나뿐이라 gap은 적용되지 않는다(GD-1).
   container: {
     flexDirection: 'column',
-    marginBottom: 20,
-    paddingTop: 20,
-    paddingHorizontal: 20,
+    gap: Spacing.item,
+    paddingTop: Spacing.screenH,
+    paddingHorizontal: Spacing.screenH,
+    marginBottom: Spacing.screenH,
   },
-  // 1열(사진 없음)에서만 정보 블록과 무게 히어로 사이를 벌린다 — 2열에서는 무게가 우측 컬럼
-  // 안으로 들어가 이 간격이 목적을 잃고 상단만 늘어뜨린다(GD-1).
-  stackedContainer: {
-    gap: Spacing.section,
+  // 1층 — 사진은 가운데 단독 줄(GD-1).
+  photoRow: {
+    alignItems: 'center',
   },
-  productInfo: {
-    flexDirection: 'column',
-  },
-  // GD-1 2열: 좌측 사진 + 우측 정체 정보. 사진 상단과 브랜드 첫 줄을 맞춘다.
+  // 2층 — 좌 정체 · 우 무게. 세로는 **상단 정렬**이다. 좌측이 3줄이라 목록 행(GearView)의 가운데
+  // 정렬을 그대로 쓰면 무게가 이름 줄 옆으로 내려앉아 브랜드 줄과 짝지어 읽히지 않는다.
+  // 32pt/40 무게와 24pt/32 브랜드는 행간 비율이 비슷해 상단 정렬만으로 글자 윗선이 거의 맞는다.
   identityRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -127,7 +104,7 @@ const styles = StyleSheet.create({
   },
   identityColumn: {
     flex: 1,
-    // 긴 이름이 컬럼을 밀어내 사진을 침범하지 않도록 최소 폭을 0으로 둔다(GD-1).
+    // 긴 브랜드·이름이 컬럼을 밀어내 우측 무게를 침범하지 않도록 최소 폭을 0으로 둔다(GD-1).
     minWidth: 0,
   },
   // GD-1: 브랜드는 제품명(nameText)과 동일한 타이포로 표시한다.
@@ -147,26 +124,13 @@ const styles = StyleSheet.create({
     color: Color.textSecondary,
     marginTop: 6,
   },
-  // 2열 우측 컬럼의 무게 — 메타 라인과 같은 간격으로 붙여 컬럼을 한 덩어리로 유지한다(GD-1).
-  weightColumnText: {
-    fontSize: 28,
-    lineHeight: 36,
-    color: Color.textPrimary,
-    marginTop: 6,
-  },
-  // 무게 히어로(1열) — 이미지가 하던 시각 위계를 대신하는 화면의 앵커(GD-1).
-  weightHero: {
-    flexDirection: 'column',
-  },
-  weightCaption: {
-    fontSize: 12,
-    color: Color.textSecondary,
-    marginBottom: 2,
-  },
+  // 무게 — 고정 폭이 아니라 콘텐츠 폭이되 줄어들거나 줄바꿈되지 않게 한다(GD-1).
   weightText: {
-    fontSize: 40,
-    lineHeight: 48,
+    fontSize: 32,
+    lineHeight: 40,
     color: Color.textPrimary,
+    textAlign: 'right',
+    flexShrink: 0,
   },
 });
 
