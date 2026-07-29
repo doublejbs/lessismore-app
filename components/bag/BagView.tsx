@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,9 +9,12 @@ import Bag from '@/model/bag/Bag';
 import LoadingView from '@/components/ui/LoadingView';
 import BagItem from '@/model/bag/BagItem';
 import PretendardText from '@/components/PretendardText';
+import OrderButtonView from '@/components/order/OrderButtonView';
+import OrderOption from '@/model/order/OrderOption';
 import { useFocusEffect } from 'expo-router/react-navigation';
 import Layout from '../Layout';
 import { Color } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 // iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
 const IOS_EDGES = ['top', 'left', 'right'] as const;
@@ -28,6 +31,19 @@ const BagView = () => {
       bag.getList();
     }, [bag])
   );
+
+  // Bag이 로그인 상태 reaction을 들고 있으므로 언마운트 시 정리한다.
+  useEffect(() => {
+    return () => {
+      bag.dispose();
+    };
+  }, [bag]);
+
+  const handleSelectOrder = (option: OrderOption) => {
+    app
+      .getAnalyticsManager()
+      ?.logClick('bag_sort', { order: option.getName() });
+  };
 
   const render = () => {
     switch (true) {
@@ -50,6 +66,10 @@ const BagView = () => {
               <PretendardText weight='bold' style={styles.headerText}>
                 총 {bags.length}개의 배낭이 있어요
               </PretendardText>
+              <OrderButtonView
+                order={bag.getOrder()}
+                onSelectOption={handleSelectOrder}
+              />
             </View>
             <ScrollView
               style={styles.scrollContainer}
@@ -113,10 +133,17 @@ const styles = StyleSheet.create({
     fontSize: 30,
     color: Color.textPrimary,
   },
+  // 좌: 개수 텍스트 / 우: 정렬 드롭다운 (창고 컨트롤 행과 같은 문법, BAG-6)
+  // gap은 좁은 화면에서 텍스트가 접혔을 때 드롭다운과 맞닿지 않게 한다.
   headerContainer: {
     paddingVertical: 24,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
   },
   headerText: {
+    flexShrink: 1,
     fontSize: 20,
     color: Color.textPrimary,
   },

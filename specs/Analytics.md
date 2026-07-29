@@ -53,6 +53,7 @@
 | `click_bag_copy_confirm` | 복사 모달 확정 (성공 시) | `source`: 위와 동일 |
 | `click_bag_delete` | 목록 행 삭제 → 다이얼로그에서 `삭제` 확정 | — |
 | `click_bag_item` | 배낭 행 클릭 (상세 진입) | — |
+| `click_bag_sort` | 배낭 목록 정렬 변경 (BAG-6) | `order`: 정렬 값 |
 | `click_bag_share` | 상세 공유 버튼 (BD-7) | — |
 | `click_bag_info_edit` | 상세 이름·날짜 행 클릭 (수정 모달, BD-1) | — |
 | `click_bag_chart_toggle` | [폐기] 상세 무게 차트 접이식이 요약 영역 상시 표시로 대체(BD-3 재설계)되어 더 이상 발생하지 않음 | `expanded`: boolean |

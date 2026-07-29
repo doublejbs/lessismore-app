@@ -5,6 +5,8 @@ const enum OrderType {
     WeightDesc = 'weightDesc',
     CreatedAsc = 'createdAsc',
     CreatedDesc = 'createdDesc',
+    StartDateAsc = 'startDateAsc',
+    StartDateDesc = 'startDateDesc',
   }
   
 export default OrderType;
