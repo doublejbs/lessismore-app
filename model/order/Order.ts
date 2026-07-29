@@ -2,34 +2,23 @@ import { makeAutoObservable } from 'mobx';
 import OrderType from './OrderType';
 import OrderOption from './OrderOption';
 import LocalStorageManager from '../storage/LocalStorageManager';
+import { createGearOrderOptions } from './GearOrderOptions';
 
 class Order {
-  public static new(key: string) {
-    return new Order(key);
+  /**
+   * options를 넘기지 않으면 장비 목록 기본 옵션을 쓴다.
+   * OrderOption은 선택 상태를 갖는 observable이라 상수 배열을 공유하면 Order 인스턴스끼리
+   * 선택이 섞인다 — 옵션은 항상 `create*OrderOptions` 팩토리로 새 배열을 만들어 넘긴다.
+   */
+  public static new(key: string, options?: OrderOption[]) {
+    return new Order(key, options ?? createGearOrderOptions());
   }
 
-  private orderOptions: OrderOption[] = [
-    {
-      name: '이름순',
-      order: OrderType.NameAsc,
-    },
-    {
-      name: '가벼운순',
-      order: OrderType.WeightAsc,
-    },
-    {
-      name: '무거운순',
-      order: OrderType.WeightDesc,
-    },
-    {
-      name: '최근 추가순',
-      order: OrderType.CreatedDesc,
-    },
-  ].map(option => OrderOption.from(option.name, option.order));
-
-  private constructor(private readonly key: string) {
+  private constructor(
+    private readonly key: string,
+    private readonly orderOptions: OrderOption[]
+  ) {
     makeAutoObservable(this);
-    this.key = key;
     this.orderOptions[0].select();
   }
 
