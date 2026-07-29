@@ -7,7 +7,7 @@ import {
 } from '@firebase/firestore';
 import { SearchResponse } from 'algoliasearch';
 import { Hit, liteClient } from 'algoliasearch/lite';
-import Gear, { toGearExtra } from '../gear/Gear';
+import Gear, { toGearExtra, toOwnerGearExtra } from '../gear/Gear';
 import GearFilter from '../gear/GearFilter';
 import { GROUP_MEMBERS, getGroupMembers } from '../gear/GearCategoryGroups';
 import Firebase from '../firebase/Firebase';
@@ -448,6 +448,7 @@ class SearchStore {
         nameKorean,
         category,
         // 신규 옵셔널 필드 — hit에 없으면 키를 생략한다(exactOptionalPropertyTypes).
+        // 검색 hit은 카탈로그(`gear`) 색인이라 imageUrl은 크롤 이미지다 — 읽지 않는다(DataModel §1).
         ...toGearExtra(hit),
       };
     });
@@ -471,13 +472,19 @@ class SearchStore {
         companyKorean,
         nameKorean,
       } = item;
+      const myGear = this.findMyGear(id, myGears);
+      // 검색 결과 행도 창고와 같은 GearView를 쓰므로, 보유 장비면 창고 문서에서 읽은 본인
+      // 사진을 이어받아 같은 장비가 화면마다 달라 보이지 않게 한다(WH-1·SR-2, GD-13).
+      // 보유 목록은 이미 위에서 읽었으니 Firestore 추가 조회는 없다. 미보유 카탈로그 장비는
+      // 크롤 이미지를 쓰지 않으므로 그대로 사진 없음이다(DataModel §1).
+      const imageUrl = myGear?.getImageUrl();
 
       return new Gear(
         id,
         name,
         company,
         weight,
-        this.hasGear(id, myGears),
+        Boolean(myGear),
         false,
         category,
         useless,
@@ -487,7 +494,10 @@ class SearchStore {
         color,
         companyKorean,
         nameKorean,
-        toGearExtra(item)
+        {
+          ...toGearExtra(item),
+          ...(imageUrl ? { imageUrl } : {}),
+        }
       );
     });
   }
@@ -541,7 +551,10 @@ class SearchStore {
             color,
             companyKorean,
             nameKorean,
-            toGearExtra(data)
+            // 이 목록 자체는 화면에 나가지 않지만(보유 여부 판정용), `convertWithMyGears`가
+            // 검색 결과 행에 이어 붙일 본인 사진을 여기서 가져온다 — 그래서 owner용으로 읽는다.
+            // 보는 사람이 곧 업로더 본인이고, 크롤 URL은 Storage 경로 판별에서 걸러진다(§1, GD-13).
+            toOwnerGearExtra(data, this.getUserId())
           );
         });
       } else {
@@ -550,8 +563,9 @@ class SearchStore {
     }
   }
 
-  private hasGear(id: string, myGears: Gear[]) {
-    return myGears.some(myGear => {
+  // 보유 여부와 이어받을 사진을 한 번에 얻으려고 boolean 대신 장비 자체를 돌려준다.
+  private findMyGear(id: string, myGears: Gear[]) {
+    return myGears.find(myGear => {
       return myGear.hasId(id);
     });
   }

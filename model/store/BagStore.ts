@@ -17,7 +17,7 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore';
-import Gear, { toGearExtra } from '../gear/Gear';
+import Gear, { toGearExtra, toOwnerGearExtra } from '../gear/Gear';
 import { getGroupForCategory } from '../gear/GearCategoryGroups';
 import GearFilter from '../gear/GearFilter';
 import Firebase from '../firebase/Firebase';
@@ -132,6 +132,11 @@ class BagStore {
                   color,
                   companyKorean,
                   nameKorean,
+                  // **여기를 toOwnerGearExtra로 바꾸면 안 된다.** 공유 배낭은 소유자의
+                  // 사용자 문서를 읽지만 **보는 사람은 제3자**(다른 계정·비로그인)라,
+                  // 업로더 본인 화면이 아니다 — 사용자 업로드 사진을 읽는 순간 비공개 원칙이
+                  // 깨지고 2026-07-28에 우려한 UGC 재유포 경로가 그대로 열린다
+                  // (DataModel §1, BD-7). 사용자 문서를 읽는 경로 중 유일한 예외다.
                   toGearExtra(gearData)
                 );
               })
@@ -248,7 +253,9 @@ class BagStore {
                 color,
                 companyKorean,
                 nameKorean,
-                toGearExtra(gearData)
+                // 본인이 보는 본인 배낭 상세라 본인이 올린 장비 사진을 읽는다(BD-1, GD-13).
+                // 복사돼 남은 카탈로그 크롤 URL은 Storage 경로 판별에서 걸러진다(§1).
+                toOwnerGearExtra(gearData, this.getUserID())
               );
             })
           : [],

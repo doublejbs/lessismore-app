@@ -97,6 +97,8 @@
 | `click_gear_edit` | 장비 상세 `수정하기` (WH-4) | — |
 | `click_gear_save` | 장비 등록/편집 저장 (GE-3/GE-4) | `mode`: `create` \| `edit` |
 | `click_gear_photo_change` | [폐기] 공유 이미지 갤러리(GD-4)가 제거되어 더 이상 발생하지 않음 (장비 이미지 미제공, 2026-07-28) | — |
+| `click_gear_photo_upload` | 내 장비 사진 업로드 시도 — 앨범·카메라에서 사진을 고른 직후 (GD-13) | `source`: `library` \| `camera`, `mode`: `create` \| `replace` |
+| `click_gear_photo_delete` | 내 장비 사진 삭제 확정 (GD-13) | — |
 | `click_gear_purchase` | 장비 상세 최저가 구입하기 (GD-5) | — |
 
 **리뷰 / 검색 / 인증·정보** ([Reply.md](Reply.md), [Search.md](Search.md), [Auth.md](Auth.md))

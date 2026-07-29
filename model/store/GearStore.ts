@@ -1,13 +1,15 @@
 import { collection, doc, getDoc, getDocs, query } from 'firebase/firestore';
 import Firebase from '../firebase/Firebase';
-import Gear, { toGearExtra } from '../gear/Gear';
+import Gear, { toGearExtra, toOwnerGearExtra } from '../gear/Gear';
 import { getGroupMembers } from '../gear/GearCategoryGroups';
 import {
   addDoc,
   arrayRemove,
   deleteDoc,
+  deleteField,
   orderBy,
   setDoc,
+  updateDoc,
   where,
   writeBatch,
   increment,
@@ -32,6 +34,8 @@ export interface GearData {
   color: string;
   companyKorean: string;
   nameKorean: string;
+  // 문서 경로에 따라 의미가 다르다(DM-3): 사용자 문서는 본인 업로드 사진, 카탈로그는 크롤 이미지.
+  imageUrl?: string;
   coupangUrl?: string;
   colorKorean?: string;
   size?: string;
@@ -93,6 +97,7 @@ class GearStore {
           color,
           companyKorean,
           nameKorean,
+          // 카탈로그(`gear/{id}`) 문서라 imageUrl은 크롤 이미지다 — 읽지 않는다(DataModel §1, DM-3).
           toGearExtra(data)
         );
       } else {
@@ -139,7 +144,9 @@ class GearStore {
           color,
           companyKorean,
           nameKorean,
-          toGearExtra(data)
+          // 본인이 보는 본인 창고 문서다 — imageUrl을 읽는다(GD-13). 단 사용자 문서라는
+          // 사실만으로는 본인 사진임이 보장되지 않아 Storage 경로로 한 번 더 거른다(§1).
+          toOwnerGearExtra(data, this.getUserId())
         );
       } else {
         return null;
@@ -211,7 +218,9 @@ class GearStore {
         color,
         companyKorean,
         nameKorean,
-        toGearExtra(data)
+        // 본인이 보는 본인 창고 목록이라 imageUrl을 읽는다 — 창고 행 썸네일(WH-1, GD-13).
+        // 크롤 URL이 복사돼 남은 문서는 Storage 경로 판별에서 걸러진다(§1).
+        toOwnerGearExtra(data, this.getUserId())
       );
     });
 
@@ -323,10 +332,45 @@ class GearStore {
         'gears',
         gear.getId()
       );
-      await setDoc(gearRef, gear.getData());
+      // 부분 갱신(merge)으로 쓴다 — 전체 덮어쓰기는 `Gear.getData()` 페이로드에 없는 필드를
+      // 전부 지운다. 실제로 이 경로로 imageUrl이 유실됐고, 크롤 파이프라인이 넣는
+      // specs·groupId 등 앱이 모델에 담지 않는 필드도 같은 위험에 있다(DM-11).
+      await setDoc(gearRef, gear.getData(), { merge: true });
     } catch (error) {
       console.error('Error updating gear:', error);
     }
+  }
+
+  /**
+   * 장비 사진 URL 저장 (GD-13). Storage 업로드가 성공한 뒤에만 호출한다.
+   * 부분 갱신이라 다른 필드는 건드리지 않는다(DM-11).
+   * 실패는 삼키지 않는다 — 호출부가 토스트로 알리고 기존 상태를 유지해야 한다.
+   */
+  public async saveImageUrl(gearId: string, imageUrl: string): Promise<void> {
+    await updateDoc(this.getUserGearRef(gearId), { imageUrl });
+  }
+
+  /**
+   * 장비 사진 제거 (GD-13).
+   * merge 쓰기에서 **키 누락은 삭제가 아니므로** `deleteField()`로 명시 제거해야 한다 —
+   * `Gear.getData()`는 값이 없으면 키를 빼기만 해 문서의 옛 값이 남는다(DM-11).
+   * 이전 Storage 파일 삭제(DM-9)는 호출부가 GearImageStorage와 조합한다.
+   */
+  public async removeImageUrl(gearId: string): Promise<void> {
+    await updateDoc(this.getUserGearRef(gearId), { imageUrl: deleteField() });
+  }
+
+  // 사용자 문서 참조를 만드는 단일 지점. userId가 비면 Firestore는 `users//gears/{id}`라는
+  // 잘못된 경로로 조용히 실패하므로(빈 세그먼트) 여기서 명확한 에러로 끊는다 —
+  // `GearImageStorage.uploadImage`의 로그인 가드와 같은 기준이다(GD-13).
+  private getUserGearRef(gearId: string) {
+    const userId = this.getUserId();
+
+    if (!userId) {
+      throw new Error('로그인해야 장비 사진을 저장할 수 있습니다.');
+    }
+
+    return doc(this.getStore(), 'users', userId, 'gears', gearId);
   }
 
   public async updateGears(gears: Gear[]) {

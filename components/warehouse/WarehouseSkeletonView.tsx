@@ -58,7 +58,9 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     gap: 4,
   },
-  // WH-1 텍스트 우선 · 좌 정체/우 지표 2열 행에 맞춘 로딩 자리 — 썸네일 자리는 두지 않는다(DataModel §1).
+  // WH-1 텍스트 우선 · 좌 정체/우 지표 2열 행에 맞춘 로딩 자리.
+  // 썸네일 자리는 두지 않는다 — 사진은 사용자가 올린 행에만 붙고 대다수 장비에는 없어
+  // 텍스트 행이 기본 모습이다(DataModel §1 2026-07-29 개정). 썸네일 박스를 두면 오히려 대부분 어긋난다.
   skeletonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
