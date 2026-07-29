@@ -8,6 +8,7 @@ import {
 } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router/react-navigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Color } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
@@ -79,6 +80,13 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     longitude: number;
   } | null>(null);
   const locationWatchRef = useRef<Location.LocationSubscription | null>(null);
+  // 현재 구독을 소유한 포커스 구간의 토큰. 구독을 여는 즉시(await 이전에) 채워 두므로
+  // await 사이에 blur가 나면 토큰이 어긋나고, 늦게 도착한 구독을 그 자리에서 해제할 수 있다.
+  const locationWatchTokenRef = useRef<object | null>(null);
+  // 보관 중인 좌표가 **이번 구독 구간에서** 전달된 값인지(CS-1). 구독을 새로 열 때 false가
+  // 되고 첫 전달에 true가 된다. 탭을 벗어난 동안 사용자가 이동했을 수 있어, 재진입 직후에는
+  // 현재 위치 버튼이 이전 좌표를 1순위로 쓰지 않게 하는 판단 근거다.
+  const isWatchedPositionFreshRef = useRef(false);
   const mountedRef = useRef(true);
   // 사용자가 직접(제스처로) 지도를 움직였는지. 뒤늦게 도착한 초기 위치가
   // 사용자의 조작을 덮어쓰지 않게 하는 가드(CS-1).
@@ -110,6 +118,67 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       setCurrentLocation(next);
     },
     []
+  );
+
+  // 위치 구독을 닫는다(CS-1). blur·언마운트에서 호출한다.
+  // 여행지 선택기(useBagDestinationPickerState, DST-3)는 같은 자리에서 보관 좌표까지
+  // 비우지만 지도 탭은 **의도적으로 좌표를 유지**한다 — 파란 점이 좌표를 그리고 있어서
+  // 탭을 오갈 때마다 비우면 점이 사라졌다 나타나는 깜빡임이 된다(선택기는 좌표를 화면에
+  // 그리지 않아 비워도 보이는 변화가 없다). 대신 신선도 플래그만 내려 현재 위치 버튼이
+  // 낡은 좌표를 1순위로 쓰지 않게 한다.
+  const stopLocationWatch = useCallback(() => {
+    locationWatchTokenRef.current = null;
+    locationWatchRef.current?.remove();
+    locationWatchRef.current = null;
+    isWatchedPositionFreshRef.current = false;
+  }, []);
+
+  // 내 위치 파란 점을 이후 이동에도 갱신한다(카메라는 따라가지 않음 = 기존 NoFollow와 동일).
+  // watchToken은 이번 포커스 구간의 식별자다 — 구독이 열리기까지 await가 있어 그 사이에
+  // blur가 나면 토큰이 어긋나고, 늦게 도착한 구독을 여기서 해제한다.
+  const startLocationWatch = useCallback(
+    async (watchToken: object) => {
+      // 소유권을 await 이전에 잡는다 — 이 시점 이후 시작되는 구독이 앞선 시도를 무효화하므로
+      // 포커스가 여러 번 발생해도 살아남는 구독은 항상 하나뿐이다.
+      locationWatchTokenRef.current = watchToken;
+      isWatchedPositionFreshRef.current = false;
+
+      try {
+        const subscription = await Location.watchPositionAsync(
+          { accuracy: Location.Accuracy.Balanced, distanceInterval: 10 },
+          next => {
+            // 해제 직전에 도착한 전달이 낡은 좌표를 "신선"으로 표시하지 않게 한다.
+            if (locationWatchTokenRef.current !== watchToken) {
+              return;
+            }
+
+            isWatchedPositionFreshRef.current = true;
+
+            updateCurrentLocation({
+              latitude: next.coords.latitude,
+              longitude: next.coords.longitude,
+            });
+          }
+        );
+
+        // await 사이에 blur/언마운트됐으면 여기가 이 구독의 유일한 해제 지점이다.
+        if (locationWatchTokenRef.current !== watchToken) {
+          subscription.remove();
+
+          return;
+        }
+
+        locationWatchRef.current = subscription;
+      } catch (error) {
+        // 구독을 못 열어도(위치 서비스 꺼짐 등) 버튼은 캐시·새 fix로 폴백하므로 화면은 살아 있다.
+        console.error('현재 위치 구독 실패:', error);
+
+        if (locationWatchTokenRef.current === watchToken) {
+          locationWatchTokenRef.current = null;
+        }
+      }
+    },
+    [updateCurrentLocation]
   );
 
   const flushPendingCamera = useCallback(() => {
@@ -176,10 +245,17 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         cancelAnimationFrame(pendingCameraFrameRef.current);
         pendingCameraFrameRef.current = null;
       }
+
+      // 포커스 상태에서 언마운트되면 useFocusEffect 정리가 돌지만, 포커스를 잃은 뒤
+      // 언마운트되는 경로까지 포함해 구독이 반드시 닫히도록 여기서도 해제한다(멱등).
+      stopLocationWatch();
     };
-  }, []);
+  }, [stopLocationWatch]);
 
   // 지도 최초 진입 시 위치 권한 요청 → 허용 시 현재 위치로 카메라 이동(CS-1).
+  // **권한 요청과 초기 카메라 이동은 여기서 1회만** 한다 — 이것까지 포커스에 묶으면
+  // 탭을 오갈 때마다 카메라가 현재 위치로 되돌아가 사용자가 옮겨 둔 화면이 초기화된다.
+  // 반대로 위치 **구독**은 아래 useFocusEffect가 포커스 기준으로 관리한다.
   useEffect(() => {
     let cancelled = false;
 
@@ -226,28 +302,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
 
         if (lastKnown) {
           applyInitialCamera(lastKnown.coords);
-        }
 
-        // 내 위치 파란 점을 이후 이동에도 갱신한다(카메라는 따라가지 않음 = 기존 NoFollow와 동일).
-        const subscription = await Location.watchPositionAsync(
-          { accuracy: Location.Accuracy.Balanced, distanceInterval: 10 },
-          next => {
-            updateCurrentLocation({
-              latitude: next.coords.latitude,
-              longitude: next.coords.longitude,
-            });
-          }
-        );
-
-        if (cancelled) {
-          subscription.remove();
-
-          return;
-        }
-
-        locationWatchRef.current = subscription;
-
-        if (lastKnown) {
           return;
         }
 
@@ -268,10 +323,32 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
 
     return () => {
       cancelled = true;
-      locationWatchRef.current?.remove();
-      locationWatchRef.current = null;
     };
   }, [moveCamera, updateCurrentLocation]);
+
+  // 위치 구독은 **포커스** 기준으로 시작·해제한다(CS-1).
+  // 하단 탭 화면은 한 번 방문하면 다른 탭으로 옮겨도 마운트가 유지되므로, 언마운트에만
+  // 해제를 걸면(= 평범한 useEffect) 지도를 보고 있지 않은 동안에도 앱이 살아 있는 내내
+  // 구독이 돌아 배터리를 쓴다. **useEffect로 되돌리지 말 것 — 그 순간 규칙이 깨진다.**
+  // 권한이 허용된 경우에만 구독하며, locationGranted가 의존성이라 권한을 처음 허용받은
+  // 직후(포커스 상태)에도 이 이펙트가 다시 돌아 구독이 시작된다.
+  useFocusEffect(
+    useCallback(() => {
+      if (!locationGranted) {
+        return;
+      }
+
+      // 이번 포커스 구간을 식별하는 토큰. 매 포커스마다 새로 만들어 이전 구간의
+      // 늦게 도착한 구독과 구분한다.
+      const watchToken = {};
+
+      void startLocationWatch(watchToken);
+
+      return () => {
+        stopLocationWatch();
+      };
+    }, [locationGranted, startLocationWatch, stopLocationWatch])
+  );
 
   // 최초 진입 1회 규제 고지(CS-4) — 토스트로 노출 후 기기에 표시 완료 저장.
   useEffect(() => {
@@ -312,7 +389,12 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     };
 
     // ① 구독 값이 있으면 즉시 이동 — 대부분 이 경로로 끝난다.
-    const watched = currentLocationRef.current;
+    // 단 **이번 구독 구간의 전달을 받은 뒤**여야 한다(CS-1). 탭을 벗어난 동안 사용자가
+    // 이동했을 수 있어, 재진입 직후 보관 좌표를 그대로 쓰면 낡은 위치로 즉시 이동해 버린다.
+    // 첫 전달 전에는 ②캐시 → ③상한 건 새 fix 폴백으로 넘긴다.
+    const watched = isWatchedPositionFreshRef.current
+      ? currentLocationRef.current
+      : null;
 
     if (watched) {
       moveToLocation(watched.latitude, watched.longitude);
