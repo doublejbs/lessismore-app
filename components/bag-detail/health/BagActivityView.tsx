@@ -125,7 +125,11 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
     }
 
     if (phase === BagActivityPhase.Empty) {
-      return <BagActivityEmptyView />;
+      return (
+        <BagActivityEmptyView
+          isWorkoutReadConfirmed={bagActivity.isWorkoutReadConfirmed()}
+        />
+      );
     }
 
     return (
