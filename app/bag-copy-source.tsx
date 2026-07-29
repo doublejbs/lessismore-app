@@ -1,136 +1,16 @@
-import { useEffect, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
-import app from '@/model/app/App';
-import BagItem from '@/model/bag/BagItem';
+import BagCopySourceWrapper from '@/components/bag/BagCopySourceWrapper';
 
-// BAG-5: 배낭 추가 → '기존 배낭 복사하기'에서 원본을 고르는 네이티브 formSheet.
-// 목록은 전역 BagStore에서 직접 읽고, 선택 시 시트를 닫은 뒤 복사 폼(JS 모달)을 연다.
-const BagCopySourceScreen = () => {
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const [bags, setBags] = useState<BagItem[]>([]);
-
-  useEffect(() => {
-    let mounted = true;
-    app
-      .getBagStore()
-      ?.getList()
-      .then(list => {
-        if (mounted) {
-          setBags(list);
-        }
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const handleSelect = (bagItem: BagItem) => {
-    router.push({
-      pathname: '/bag-copy',
-      params: {
-        sourceId: bagItem.getID(),
-        sourceName: bagItem.getName(),
-        entrySource: 'add_sheet',
-      },
-    });
-  };
-
-  return (
-    <View
-      style={[styles.container, { paddingBottom: Math.max(insets.bottom - 16, 12) }]}
-    >
-      <View style={styles.header}>
-        <PretendardText style={styles.title} weight='bold'>
-          복사할 배낭 선택
-        </PretendardText>
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        bounces={true}
-      >
-        {bags.map((bagItem, index) => (
-          <TouchableOpacity
-            key={bagItem.getID()}
-            style={[styles.row, index === 0 && styles.rowFirst]}
-            activeOpacity={0.7}
-            onPress={() => handleSelect(bagItem)}
-          >
-            <View style={styles.rowText}>
-              <PretendardText weight='semibold' style={styles.name}>
-                {bagItem.getName()}
-              </PretendardText>
-              <PretendardText style={styles.date}>
-                {bagItem.getDate()}
-              </PretendardText>
-            </View>
-            <PretendardText weight='semibold' style={styles.weight}>
-              {bagItem.getWeight()}kg
-            </PretendardText>
-            <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </View>
-  );
+// BAG-5: 배낭 추가 → '기존 배낭 복사하기'에서 복사할 원본 배낭을 고르는 네이티브 formSheet 라우트.
+// 실측 사실: 이 시트에서 `paddingHorizontal`을 가진 flex 래퍼 View + 자식 ScrollView 구조는 레이아웃이
+//   깨졌다(제목이 첫 행에 가림·좌우 여백 소실·하단 행 잘림). detent 조정·`contentStyle: { bottom: 0 }`·
+//   `flex: 1`로는 해결되지 않았고, ScrollView를 화면 루트로 올리면 정상 동작한다. 정확한 트리거는
+//   미확정이고 CampSiteFavoritesListView는 래핑 구조로도 정상이므로, 구조를 바꾸면 실기기에서 이 시트를
+//   반드시 확인할 것. `contentStyle: { bottom: 0 }`이 필요한 이유는 app/_layout.tsx의 camp-site 주석 참고.
+// 복사 폼은 push가 아니라 replace로 연다 — formSheet 라우트가 2단으로 쌓인 상태에서 복사 확정 후
+//   상세·편집으로 이동하면 내비게이션 옵션 적용이 무한 리렌더에 빠져 흰 화면이 된다
+//   (`Maximum update depth exceeded`). bag-add-options가 시트를 교체하는 것과 같은 규칙이다.
+const BagCopySourceRoute = () => {
+  return <BagCopySourceWrapper />;
 };
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Color.background,
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    // formSheet fitToContents가 지나치게 커지지 않도록 상한.
-    maxHeight: 520,
-  },
-  header: {
-    paddingVertical: 12,
-  },
-  title: {
-    fontSize: 18,
-    lineHeight: 26,
-    color: Color.textPrimary,
-  },
-  scrollView: {
-    flexGrow: 0,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderTopColor: Color.borderLight,
-  },
-  rowFirst: {
-    borderTopWidth: 0,
-  },
-  rowText: {
-    flex: 1,
-    gap: 4,
-  },
-  name: {
-    fontSize: 16,
-    lineHeight: 22,
-    color: Color.textPrimary,
-  },
-  date: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: Color.textSecondary,
-  },
-  weight: {
-    fontSize: 15,
-    color: Color.textPrimary,
-  },
-});
-
-export default BagCopySourceScreen;
+export default BagCopySourceRoute;
