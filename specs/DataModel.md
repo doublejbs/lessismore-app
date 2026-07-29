@@ -477,6 +477,14 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 
 **양방향 참조 불변식**: `gear.bags[]` ↔ `bag.gears[]`는 항상 쌍으로 갱신되어야 한다. `bag.weight`는 담긴 장비 `weight` 합과 일치해야 한다.
 
+### DM-23 `in` 쿼리 30개 상한
+
+ID 배열로 문서를 모아 읽는 경로는 모두 Firestore `in` 절의 **값 30개 상한**에 걸린다. 상한 초과는 네트워크 오류가 아니라 **쿼리 생성 시점의 클라이언트 검증 예외**라, 해당 문서에서는 매번 결정적으로 실패한다.
+
+- 이런 경로는 `IN_QUERY_CHUNK_SIZE`(30) 단위로 **청크 분할해 병렬 조회한 뒤 병합**한다. 현재 대상: `users/{uid}.bags` → `bag`([GearDetail.md](GearDetail.md) GD-10), `bag.gears` → `users/{userId}/gears`([BagDetail.md](BagDetail.md) BD-1).
+- **`orderBy`는 청크별로만 걸리므로 청크 분할 경로에서는 서버 정렬에 의존하지 않는다.** 순서에 요구사항이 있는 경로라면 병합 뒤 클라이언트에서 정렬해야 하고, 기준은 Firestore와 같게 둔다(문자열은 코드포인트 순 — `localeCompare` 아님).
+  - `bag.gears` 경로는 **어느 화면도 순서에 의존하지 않는다** — 상세는 카테고리 그룹핑([BagDetail.md](BagDetail.md) BD-1), 편집(BD-4)은 담김 여부·무게 계산용, 사용 기록(BD-5)·공유 배낭(BD-7)은 정렬 UI가 없다. 따라서 이 경로는 서버 정렬을 걷어내고 **`bag.gears` 배열 순서를 그대로 유지**해 배낭 크기와 무관하게 같은 순서를 준다.
+
 ## 7. 운영 스크립트 (DM-12)
 
 - Firestore 일괄 변경은 admin 키가 없어 **클라이언트 SDK + public config**로 작성한다 (`scripts/migrate-name-korean.mjs`, `scripts/swap-namekorean.mjs`, `scripts/migrate-gear-rank.ts` 참고).
@@ -486,4 +494,4 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 ## 8. 미해결 질문
 
 - 탈퇴 시 댓글(`gear-comments`)·박지 유저 후기(`camp-spot-user-review` DM-20)는 남는다 — 완전 삭제 정책은 [Auth.md](Auth.md) AU-8 미해결 질문 참조.
-- `bag` 목록 조회(`where('__name__', 'in', bagIds)`)는 Firestore `in` 절 30개 제한의 영향권 — 배낭이 30개를 넘는 사용자 처리 미정.
+- ~~`bag` 목록 조회(`where('__name__', 'in', bagIds)`)는 Firestore `in` 절 30개 제한의 영향권~~ → DM-23으로 규칙화(청크 분할). 배낭 목록은 GD-10, 배낭 장비는 BD-1에서 해소.
