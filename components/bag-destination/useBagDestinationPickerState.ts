@@ -21,7 +21,8 @@ import { CampSiteMapViewport } from '@/components/camp-site/CampSiteMapMarkersVi
 import { deltaToZoom } from '@/model/map/MapZoom';
 import {
   CURRENT_LOCATION_FAILED_MESSAGE,
-  getCurrentPositionWithinTimeout,
+  FirstPositionWatch,
+  startFirstPositionWatch,
 } from '@/model/location/CurrentLocation';
 
 // 저장된 여행지도 없고 위치 권한도 없을 때의 기본 중심(DST-3).
@@ -148,6 +149,8 @@ const useBagDestinationPickerState = ({
   const pendingCameraTargetRef = useRef<PendingCameraTarget | null>(null);
   const pendingCameraFrameRef = useRef<number | null>(null);
   const mapReadyFallbackFrameRef = useRef<number | null>(null);
+  // 현재 위치 버튼이 연 짧은 구독(DST-3). 화면이 닫히거나 언마운트될 때 닫으려고 들고 있는다.
+  const currentPositionWatchRef = useRef<FirstPositionWatch | null>(null);
   // 프롭 변화로 초기화 이펙트가 다시 돌지 않도록(열릴 때 1회만 읽는다).
   const currentLocationRef = useRef(currentLocation);
 
@@ -166,6 +169,13 @@ const useBagDestinationPickerState = ({
       cancelAnimationFrame(mapReadyFallbackFrameRef.current);
       mapReadyFallbackFrameRef.current = null;
     }
+  }, []);
+
+  // 현재 위치 구독을 닫는다(DST-3). 첫 전달·상한·예외로 이미 끝난 구독이면 내부에서 무시되므로
+  // 화면 닫힘·언마운트 경로에서 불러도 해제는 정확히 한 번만 일어난다.
+  const cancelCurrentPositionWatch = useCallback(() => {
+    currentPositionWatchRef.current?.cancel();
+    currentPositionWatchRef.current = null;
   }, []);
 
   const resetMapCommandState = useCallback(() => {
@@ -315,8 +325,9 @@ const useBagDestinationPickerState = ({
     return () => {
       mountedRef.current = false;
       resetMapCommandState();
+      cancelCurrentPositionWatch();
     };
-  }, [resetMapCommandState]);
+  }, [cancelCurrentPositionWatch, resetMapCommandState]);
 
   useEffect(() => {
     if (visible && !saving) {
@@ -395,10 +406,13 @@ const useBagDestinationPickerState = ({
     return () => {
       cancelled = true;
       resetMapCommandState();
+      // 선택기가 닫히면 열려 있던 현재 위치 구독도 함께 닫는다(DST-3).
+      cancelCurrentPositionWatch();
     };
   }, [
     visible,
     isMapSupported,
+    cancelCurrentPositionWatch,
     isCurrentInteraction,
     mapGeneration,
     resetMapCommandState,
@@ -789,7 +803,13 @@ const useBagDestinationPickerState = ({
   }, [markUserInteraction]);
 
   // 현재 위치 버튼에서만 권한을 요청한다(DST-3).
+  // 조회는 **탭한 시점에 짧게 구독**해 첫 전달을 받는 즉시 이동하고 구독을 닫는다.
+  // 왜 일회성 요청이 아니라 구독인가 — 아무도 구독하지 않는 동안 fused provider는
+  // `ProviderRequest[OFF]`라 OS가 위치를 계산조차 하지 않는다(2026-07-29 dumpsys 확인).
+  // 그 상태에서 일회성으로 새 fix를 요구하면 provider 기동 + 정지 스로틀이 겹쳐 오래 걸린다
+  // (자세한 내용은 model/location/CurrentLocation.ts 주석 참고). **일회성 요청으로 되돌리지 말 것.**
   const handleMoveToCurrentLocation = useCallback(async () => {
+    // locating이 풀리기 전 연타는 무시한다 — 구독이 여러 개 열리면 안 된다(DST-3).
     if (!isMapSupported || savingRef.current || locating) {
       return;
     }
@@ -818,17 +838,34 @@ const useBagDestinationPickerState = ({
         return;
       }
 
-      // 캐시를 **먼저** 쓴다(DST-3, 지도 탭 CS-1과 같은 폴백 사슬).
-      // 예전엔 "직접 누른 경로라 신선도 우선"으로 새 fix를 먼저 시도하고 상한(5초)을
-      // 넘기면 캐시로 폴백했는데, 안드로이드 정지 스로틀링이 걸린 상태에서는 새 fix가
-      // 상한 안에 오지 않아 **매번 5초를 통째로 기다린 뒤에야** 캐시로 넘어갔다
-      // (2026-07-29 실기기 재보고). 상한은 최악을 30초에서 5초로 줄일 뿐 "멈춘 것 같은"
-      // 대기 자체를 없애지 못한다 — 그래서 순서를 뒤집어 즉시 이동을 우선한다.
-      // 이 화면은 지도 중심을 눈으로 보고 조정한 뒤 확정하는 구조라 캐시 정확도로 충분하다.
-      const cached = await Location.getLastKnownPositionAsync();
-      // 캐시가 없을 때만 새 fix를 기다린다. 여기서도 상한은 유지한다 — 무기한 대기 금지
-      // (원인은 model/location/CurrentLocation.ts 주석 참고).
-      const position = cached ?? (await getCurrentPositionWithinTimeout());
+      // 직전 시도가 남아 있으면 먼저 닫는다 — 구독이 겹쳐 열리는 경로를 원천 차단한다.
+      cancelCurrentPositionWatch();
+
+      const watch = startFirstPositionWatch();
+
+      currentPositionWatchRef.current = watch;
+
+      let watched: Location.LocationObject | null = null;
+
+      try {
+        watched = await watch.waitForFirstPosition();
+      } catch (error) {
+        // 구독 자체가 실패해도(위치 서비스 꺼짐 등) 캐시까지는 확인한다 — 여기서 끝내면
+        // 쓸 수 있는 캐시가 있는데도 실패 안내가 뜬다.
+        console.error('현재 위치 구독 실패:', error);
+      } finally {
+        // 첫 전달·상한·예외 어느 쪽으로 끝나도 여기서 확실히 닫는다(이미 닫혔으면 무시된다).
+        watch.cancel();
+
+        if (currentPositionWatchRef.current === watch) {
+          currentPositionWatchRef.current = null;
+        }
+      }
+
+      // 캐시는 **최후 폴백**이다(DST-3 정정 이력 ③). 캐시는 우리 앱이 아니라 기기 전체가
+      // 채우는 값이라 실측 시점엔 8분 32초 전 것이었고, 걸어가며 쓰면 수백 미터 밖을
+      // "현재 위치"로 내놓는다. 구독이 상한 안에 아무것도 주지 못했을 때만 쓴다.
+      const position = watched ?? (await Location.getLastKnownPositionAsync());
 
       if (
         savingRef.current ||
@@ -837,7 +874,7 @@ const useBagDestinationPickerState = ({
         return;
       }
 
-      // 캐시도 새 fix도 없으면 반드시 알린다 — 조용히 끝내면 버튼이 죽은 것으로 보인다(DST-3).
+      // 구독도 캐시도 좌표를 주지 못하면 반드시 알린다 — 조용히 끝내면 버튼이 죽은 것으로 보인다(DST-3).
       // 이 화면은 풀스크린 모달이라 전역 토스트가 모달 뒤에 가려지므로 Alert를 쓴다.
       if (!position) {
         Alert.alert('현재 위치 확인 실패', CURRENT_LOCATION_FAILED_MESSAGE);
@@ -886,6 +923,7 @@ const useBagDestinationPickerState = ({
   }, [
     ensureOrigin,
     isMapSupported,
+    cancelCurrentPositionWatch,
     focusSpot,
     isCurrentInteraction,
     locating,
