@@ -30,10 +30,12 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
 
   // 기록이 하나도 없으면 미표시. 모수를 병기하지 않으면 6번 담고 2번만 기록한 장비가
   // `사용률 100%`로 보여 "여섯 번 다 썼다"로 읽힌다(GD-9).
+  // 모수는 점으로 나열하지 않고 괄호로 묶어 사용률에 붙인다 — 나열하면 `사용률 100% ·
+  // 2건 기준 · 보유 244일째`처럼 덩어리가 셋이 되어 읽기 부담이 커진다(GD-9).
   if (recordedCount > 0) {
     const usedRate = Math.round((usedCount / recordedCount) * 100);
 
-    footerParts.push(`사용률 ${usedRate}% · ${recordedCount}건 기준`);
+    footerParts.push(`사용률 ${usedRate}%(${recordedCount}건)`);
   }
 
   if (ownedDays !== null) {
