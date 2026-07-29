@@ -41,11 +41,15 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
         </View>
       );
     } else {
-      // 미기록 — 기존 "사용 여부 입력" 유도를 유지한다(GD-10).
+      // 미기록 — `사용`·`안 씀`과 같은 시각 문법의 태그 한 단어로 둔다(GD-10).
+      // 태그 자리에 문장("사용 여부를 입력해주세요")을 넣으면 보조 문구가 배낭 이름보다
+      // 넓은 자리를 차지해 이름이 말줄임된다. 입력 유도는 우측 꺾쇠(›)와 탭 동작이 맡는다.
       return (
-        <PretendardText style={styles.placeholderText}>
-          사용 여부를 입력해주세요
-        </PretendardText>
+        <View style={styles.unrecordedTag}>
+          <PretendardText style={styles.unrecordedTagText}>
+            미기록
+          </PretendardText>
+        </View>
       );
     }
   };
@@ -74,7 +78,15 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
         onPress={handlePress}
         // 커스텀 라벨을 두면 자식 텍스트(기간·여행지·날씨·상태)가 스크린리더에서
         // 전부 가려지므로, 라벨 없이 자식 평탄화에 맡긴다(HIG 접근성).
+        // 상태는 태그 텍스트(`사용`·`안 씀`·`미기록`)로 라벨에 그대로 들어간다.
         accessibilityRole='button'
+        // 미기록 행에서만 입력 유도를 힌트로 남긴다 — 태그를 한 단어로 줄이면서(GD-10)
+        // 문장이 하던 안내를 시각 대신 접근성 레이어가 맡는다.
+        accessibilityHint={
+          status === GearUsageStatus.Unrecorded
+            ? '사용 여부를 입력할 수 있어요'
+            : undefined
+        }
       >
         <View style={styles.tripContent}>
           <View style={styles.tripHeaderRow}>
@@ -194,9 +206,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: Color.textTertiary,
   },
-  placeholderText: {
-    color: Color.textSecondary,
+  // 미기록 태그 — `사용`(채움)·`안 씀`(흰 칩)과 같은 크기·모서리에 가장 낮은 대비를 준다(GD-10).
+  unrecordedTag: {
+    backgroundColor: Color.chipInactiveBg,
+    borderRadius: Radius.card,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+  },
+  unrecordedTagText: {
     fontSize: 11,
+    color: Color.textSecondary,
   },
 });
 

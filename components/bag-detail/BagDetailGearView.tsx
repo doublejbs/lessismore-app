@@ -167,9 +167,11 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
             >
               {gear.getDisplayName()}
             </PretendardText>
-            {gear.getColor() ? (
+            {/* 표시는 getDisplayColor()로 통일한다(DM-3) — getColor()는 원본값이라
+                같은 장비가 창고에서 `Black`, 여기서 `black`으로 갈렸다. */}
+            {gear.getDisplayColor() ? (
               <PretendardText style={styles.colorText} numberOfLines={1}>
-                {gear.getColor()}
+                {gear.getDisplayColor()}
               </PretendardText>
             ) : null}
           </View>
