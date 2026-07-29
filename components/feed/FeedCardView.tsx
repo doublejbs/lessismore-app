@@ -35,7 +35,7 @@ interface Props {
 
 // FD-2: 피드 텍스트 카드(2컬럼 그리드 셀). 장비 이미지를 쓰지 않으므로(DataModel §1 장비 이미지
 // 미제공 원칙) 이미지 칸·플레이스홀더 없이 카드 면(inputBg + radius)만으로 그리드 리듬을 만든다.
-// 구성은 위→아래로 브랜드 → 이름(2줄) → 무게이며, 이미지가 하던 시각 위계는 무게가 대신한다.
+// 구성은 위→아래로 브랜드 → 이름(2줄) → 색상 → 무게이며, 이미지가 하던 시각 위계는 무게가 대신한다.
 // 담기 CTA는 카드 우상단, coupangUrl이 있으면 하단 축약 링크.
 // 수수료 고지는 카드마다 반복하지 않고 FeedView 리스트 푸터에서 1회 노출한다.
 // coupangUrl은 Algolia hit·Gear에 없고 /gear 문서에만 있어(WarehouseDetail과 동일 경로) 마운트 시 지연 로드한다.
@@ -43,6 +43,7 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
   const router = useRouter();
   const isAdded = gear.isAdded();
   const weight = gear.getWeight();
+  const color = gear.getDisplayColor();
 
   // GE-8 배낭 컨텍스트: 이 배낭에 담는 흐름. 창고 보유 여부와 무관하게 파괴적 제거 대신 담기로 동작한다.
   const bagCtxId =
@@ -247,6 +248,16 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
             {gear.getDisplayName()}
           </PretendardText>
 
+          {color ? (
+            <PretendardText
+              style={styles.color}
+              weight='regular'
+              numberOfLines={1}
+            >
+              {color}
+            </PretendardText>
+          ) : null}
+
           {weight ? (
             <PretendardText
               style={styles.weight}
@@ -341,6 +352,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 19,
     color: Color.textPrimary,
+  },
+  // FD-2: 색상은 이름보다 작은 활자로, 이름 아래 한 줄 표시.
+  // 위치(이름 아래)는 창고 목록(WH-1)과 같지만 톤은 각 화면 규칙을 따른다 — 피드는 12/textSecondary.
+  color: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: Color.textSecondary,
   },
   // 카드에서 가장 큰 활자 — 이미지가 하던 시각 앵커를 무게가 대신한다(FD-2).
   weight: {

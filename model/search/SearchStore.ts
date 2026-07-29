@@ -27,11 +27,35 @@ const getBrowseSortIndexName = (sort: BrowseSort): string => {
   return BROWSE_SORT_INDEX[sort];
 };
 
+const BROWSE_HITS_PER_PAGE = 100;
+
+// 인덱스(`useless-gear-search`)의 `paginationLimitedTo`와 같은 값이다.
+// 이 상한보다 뒤 페이지를 요청하면 에러가 아니라 빈 결과(`hits: []`·`nbHits: 0`·`nbPages: 0`)가
+// 돌아오고, 상한 안에서는 `nbPages`가 상한으로 클램프돼 응답만 봐서는 실제 총량을 알 수 없다.
+// 그래서 페이지 상한은 응답이 아니라 이 상수로 계산한다(FD-3).
+const ALGOLIA_PAGINATION_LIMIT = 1000;
+
+// 한 필터 조합에서 실제로 넘길 수 있는 최대 페이지 수.
+const MAX_BROWSE_PAGES = Math.floor(
+  ALGOLIA_PAGINATION_LIMIT / BROWSE_HITS_PER_PAGE
+);
+
+// `가벼운순` 2단 조회용 numericFilter — 0g(무게 미입력)을 실제 무게와 분리한다(FD-3).
+const WEIGHT_ASC_MEASURED_FILTER = 'weight>0';
+const WEIGHT_ASC_UNMEASURED_FILTER = 'weight=0';
+
 class SearchStore {
   private readonly searchClient = liteClient(
     'BWS6CWRXRM',
     'dafcc0c015856d4ca5fb6d0626cf8f9f'
   );
+
+  // FD-3 `가벼운순` 1단(실제 무게)의 페이지 수 = 2단(0g)이 시작되는 경계.
+  // 경계는 요청 page와 무관하고 필터 조합(카테고리 + 브랜드)만으로 정해지므로 조합별로 한 번만 계산해
+  // 재사용한다. 키를 필터 조합으로 잡는 이유도 그것 — 필터가 달라지면 1단 총건수가 달라진다.
+  // 페이지마다 다시 계산하면 `weight>0`의 nbHits가 비exhaustive 추정치라 값이 흔들려 경계가 밀리고,
+  // Browse.appendResult가 중복 제거를 하지 않으므로 같은 장비가 두 번 붙어 React key까지 중복된다.
+  private readonly weightAscMeasuredPages = new Map<string, number>();
 
   public constructor(private readonly firebase: Firebase) {}
 
@@ -128,22 +152,256 @@ class SearchStore {
 
     const facetFilters = this.buildFacetFilters(category, brands);
 
+    if (sort === BrowseSort.WeightAsc) {
+      return this.browseWeightAsc(
+        facetFilters,
+        this.buildFilterKey(category, brands),
+        page
+      );
+    }
+
     const { results } = await this.searchClient.search<GearType>({
       requests: [
         {
           indexName: getBrowseSortIndexName(sort),
           query: '',
           page,
-          hitsPerPage: 100,
+          hitsPerPage: BROWSE_HITS_PER_PAGE,
           facetFilters,
         },
       ],
     });
-    const { hits, page: resultPage, nbPages } = results[0] as SearchResponse<GearType>;
+    const {
+      hits,
+      page: resultPage,
+      nbPages,
+    } = results[0] as SearchResponse<GearType>;
 
     return {
       gears: await this.convertWithMyGears(this.mapHitsToGearType(hits)),
       hasMore: (resultPage ?? 0) + 1 < (nbPages ?? 0),
+    };
+  }
+
+  // 경계 캐시 키 — buildFacetFilters와 같은 입력(카테고리 + 브랜드)으로 만든다.
+  // 브랜드는 선택 순서가 결과에 영향을 주지 않으므로 정렬해 같은 조합이 같은 키가 되게 한다.
+  private buildFilterKey(category?: string, brands?: string[]): string {
+    const brandKey = brands ? [...brands].sort().join(',') : '';
+
+    return `${category ?? ''}|${brandKey}`;
+  }
+
+  // `가벼운순` 조회 요청 하나 — 단계(numericFilter)와 페이지·페이지 크기만 갈아 끼운다.
+  // 건수만 필요할 때는 hitsPerPage 0으로 부른다.
+  private buildWeightAscRequest(
+    facetFilters: string[][],
+    numericFilter: string,
+    page: number,
+    hitsPerPage: number
+  ) {
+    return {
+      indexName: getBrowseSortIndexName(BrowseSort.WeightAsc),
+      query: '',
+      page,
+      hitsPerPage,
+      facetFilters,
+      numericFilters: [numericFilter],
+    };
+  }
+
+  // 1단 총건수 → 경계 페이지 수로 환산해 캐시한다.
+  // 경계 = min(ceil(1단 총건수 / 페이지 크기), 페이지 상한).
+  private cacheMeasuredPages(filterKey: string, measuredHits: number): number {
+    const measuredPages = Math.min(
+      Math.ceil(measuredHits / BROWSE_HITS_PER_PAGE),
+      MAX_BROWSE_PAGES
+    );
+
+    this.weightAscMeasuredPages.set(filterKey, measuredPages);
+
+    return measuredPages;
+  }
+
+  // `가벼운순`만 2단 페이지네이션으로 조회한다(FD-3).
+  // 카탈로그의 `weight: 0`은 "가장 가벼움"이 아니라 무게 미입력이고 그 비중이 커서, replica를 그대로
+  // 넘기면 페이지 상한 안이 전부 0g으로 채워져 정렬이 사실상 죽는다(실측 수치는 specs/Feed.md §8).
+  // 그래서 1단은 `weight>0`으로 실제 무게 오름차순을 **페이지 상한까지** 넘기고, 상한에 닿으면 2단으로
+  // `weight=0`을 이어 붙인다. 즉 0g은 목록 맨 뒤가 아니라 가장 가벼운 1,000건 뒤에 온다.
+  // 0g끼리의 순서는 의미가 없어 별도 정렬을 두지 않으며, `weight` 속성이 아예 없는 레코드는 두 단계
+  // 모두에 걸리지 않는다(실측상 극소수).
+  // 호출자는 단계를 몰라도 되며 `page`는 두 단계를 관통하는 연속 인덱스다.
+  private async browseWeightAsc(
+    facetFilters: string[][],
+    filterKey: string,
+    page: number
+  ): Promise<{ gears: Gear[]; hasMore: boolean }> {
+    const cachedPages = this.weightAscMeasuredPages.get(filterKey);
+
+    if (cachedPages !== undefined) {
+      if (page < cachedPages) {
+        return this.browseMeasuredPage(facetFilters, page, cachedPages);
+      }
+
+      return this.browseUnmeasuredPage(facetFilters, page - cachedPages);
+    }
+
+    // 경계 미측정 상태. 페이지 상한 이상의 page는 경계가 얼마든 2단이 확실하므로(경계 ≤ 상한)
+    // 어차피 빈 결과가 올 1단 히트 요청은 보내지 않고 건수만 세어 경계를 확정한다.
+    if (page >= MAX_BROWSE_PAGES) {
+      const measuredPages = await this.measureWeightAscPages(
+        facetFilters,
+        filterKey
+      );
+
+      return this.browseUnmeasuredPage(facetFilters, page - measuredPages);
+    }
+
+    return this.browseFirstMeasuredPage(facetFilters, filterKey, page);
+  }
+
+  // 1단 총건수만 세어 경계를 확정한다(page와 무관한 건수 요청 — HTTP 1회).
+  private async measureWeightAscPages(
+    facetFilters: string[][],
+    filterKey: string
+  ): Promise<number> {
+    const { results } = await this.searchClient.search<GearType>({
+      requests: [
+        this.buildWeightAscRequest(
+          facetFilters,
+          WEIGHT_ASC_MEASURED_FILTER,
+          0,
+          0
+        ),
+      ],
+    });
+    const { nbHits } = results[0] as SearchResponse<GearType>;
+
+    return this.cacheMeasuredPages(filterKey, nbHits ?? 0);
+  }
+
+  // 이 필터 조합의 첫 요청 — 1단 히트와 경계 계산용 건수(1단·2단)를 한 번의 HTTP 호출에 함께 싣는다.
+  // 경계는 반드시 **page와 무관한 건수 요청**에서 구한다. 페이지 응답의 nbPages/nbHits는 상한을 넘는
+  // page에서 0으로 돌아오므로 그걸로 경계를 잡으면 2단 오프셋이 밀려 목록이 빈 채로 끊긴다.
+  private async browseFirstMeasuredPage(
+    facetFilters: string[][],
+    filterKey: string,
+    page: number
+  ): Promise<{ gears: Gear[]; hasMore: boolean }> {
+    const { results } = await this.searchClient.search<GearType>({
+      requests: [
+        this.buildWeightAscRequest(
+          facetFilters,
+          WEIGHT_ASC_MEASURED_FILTER,
+          page,
+          BROWSE_HITS_PER_PAGE
+        ),
+        this.buildWeightAscRequest(
+          facetFilters,
+          WEIGHT_ASC_MEASURED_FILTER,
+          0,
+          0
+        ),
+        this.buildWeightAscRequest(
+          facetFilters,
+          WEIGHT_ASC_UNMEASURED_FILTER,
+          0,
+          0
+        ),
+      ],
+    });
+    const measured = results[0] as SearchResponse<GearType>;
+    const measuredCount = results[1] as SearchResponse<GearType>;
+    const unmeasuredCount = results[2] as SearchResponse<GearType>;
+    const measuredPages = this.cacheMeasuredPages(
+      filterKey,
+      measuredCount.nbHits ?? 0
+    );
+
+    // 이 조합의 1단이 요청 page보다 짧았다 — 함께 받아 온 히트는 버리고 2단으로 넘긴다.
+    if (page >= measuredPages) {
+      return this.browseUnmeasuredPage(facetFilters, page - measuredPages);
+    }
+
+    return {
+      gears: await this.convertWithMyGears(
+        this.mapHitsToGearType(measured.hits)
+      ),
+      // 1단에 남은 페이지가 있거나 이어 붙일 0g이 하나라도 있으면 더 불러올 수 있다.
+      hasMore: page + 1 < measuredPages || (unmeasuredCount.nbHits ?? 0) > 0,
+    };
+  }
+
+  // 경계가 확정된 뒤의 1단 페이지 — 히트만 받아 HTTP 1회로 끝낸다.
+  // 2단 잔량(0g 건수)은 **1단 마지막 페이지에서만** 같은 호출에 실어 묻는다. 1단에 남은 페이지가
+  // 있으면 0g이 몇 건이든 hasMore는 true라 답을 바꾸지 못하기 때문이다.
+  private async browseMeasuredPage(
+    facetFilters: string[][],
+    page: number,
+    measuredPages: number
+  ): Promise<{ gears: Gear[]; hasMore: boolean }> {
+    const isLastMeasuredPage = page + 1 >= measuredPages;
+    const requests = [
+      this.buildWeightAscRequest(
+        facetFilters,
+        WEIGHT_ASC_MEASURED_FILTER,
+        page,
+        BROWSE_HITS_PER_PAGE
+      ),
+    ];
+
+    if (isLastMeasuredPage) {
+      requests.push(
+        this.buildWeightAscRequest(
+          facetFilters,
+          WEIGHT_ASC_UNMEASURED_FILTER,
+          0,
+          0
+        )
+      );
+    }
+
+    const { results } = await this.searchClient.search<GearType>({ requests });
+    const measured = results[0] as SearchResponse<GearType>;
+    const gears = await this.convertWithMyGears(
+      this.mapHitsToGearType(measured.hits)
+    );
+
+    if (!isLastMeasuredPage) {
+      return { gears, hasMore: true };
+    }
+
+    const unmeasuredCount = results[1] as SearchResponse<GearType>;
+
+    return { gears, hasMore: (unmeasuredCount.nbHits ?? 0) > 0 };
+  }
+
+  // 2단(0g) 페이지. `page`는 1단 경계를 뺀 2단 내부 인덱스다.
+  // 2단도 같은 페이지 상한을 받으므로 상한 밖이면 요청하지 않고 소진으로 본다(빈 응답과 결과가 같다).
+  private async browseUnmeasuredPage(
+    facetFilters: string[][],
+    unmeasuredPage: number
+  ): Promise<{ gears: Gear[]; hasMore: boolean }> {
+    if (unmeasuredPage >= MAX_BROWSE_PAGES) {
+      return { gears: [], hasMore: false };
+    }
+
+    const { results } = await this.searchClient.search<GearType>({
+      requests: [
+        this.buildWeightAscRequest(
+          facetFilters,
+          WEIGHT_ASC_UNMEASURED_FILTER,
+          unmeasuredPage,
+          BROWSE_HITS_PER_PAGE
+        ),
+      ],
+    });
+    const { hits, nbPages } = results[0] as SearchResponse<GearType>;
+    // 2단 자체 페이지네이션을 따르되 상한으로 함께 클램프한다.
+    const unmeasuredPages = Math.min(nbPages ?? 0, MAX_BROWSE_PAGES);
+
+    return {
+      gears: await this.convertWithMyGears(this.mapHitsToGearType(hits)),
+      hasMore: unmeasuredPage + 1 < unmeasuredPages,
     };
   }
 

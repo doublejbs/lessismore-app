@@ -2,7 +2,7 @@ import { FC, useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
 import { Color, Radius, Spacing } from '@/constants/DesignTokens';
 
-// FD-2: 피드 2컬럼 그리드용 스켈레톤. FeedCardView의 텍스트 카드 레이아웃(카드 면 위 브랜드/이름/무게 바)과
+// FD-2: 피드 2컬럼 그리드용 스켈레톤. FeedCardView의 텍스트 카드 레이아웃(카드 면 위 브랜드/이름/색상/무게 바)과
 // 동일한 형태로, FeedView의 셀 폭/간격(FEED_COLUMN_GAP / FEED_ROW_GAP)에 맞춰 정렬한다.
 // 장비 이미지 미제공 원칙(DataModel §1)에 따라 정방형 이미지 자리는 두지 않는다.
 // SearchSkeletonView와 동일한 은은한 펄스 애니메이션을 사용한다.
@@ -42,13 +42,14 @@ const SkeletonCard: FC = () => {
 
   return (
     <View style={styles.cell}>
-      {/* 카드 면 위 (브랜드 + CTA) 행 · 이름 · 무게 바 — FeedCardView와 동일한 구조로 로딩→렌더 점프를 줄인다. */}
+      {/* 카드 면 위 (브랜드 + CTA) 행 · 이름 · 색상 · 무게 바 — FeedCardView와 동일한 구조로 로딩→렌더 점프를 줄인다. */}
       <View style={styles.cardFace}>
         <View style={styles.cardHeader}>
           <Animated.View style={[styles.companyBar, { opacity }]} />
           <Animated.View style={[styles.ctaCircle, { opacity }]} />
         </View>
         <Animated.View style={[styles.nameBar, { opacity }]} />
+        <Animated.View style={[styles.colorBar, { opacity }]} />
         <Animated.View style={[styles.weightBar, { opacity }]} />
       </View>
     </View>
@@ -116,6 +117,14 @@ const styles = StyleSheet.create({
   nameBar: {
     height: 19,
     width: '80%',
+    backgroundColor: PLACEHOLDER_COLOR,
+    borderRadius: 2,
+  },
+  // 실제 색상 텍스트의 lineHeight(16)와 맞춘다. 색상은 값이 있을 때만 렌더되는 줄이지만,
+  // 대부분의 카드에 색상이 있어 바를 두는 쪽이 로딩→렌더 점프가 작다.
+  colorBar: {
+    height: 16,
+    width: '40%',
     backgroundColor: PLACEHOLDER_COLOR,
     borderRadius: 2,
   },
