@@ -30,14 +30,18 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
   const renderStatusTag = (status: GearUsageStatus) => {
     if (status === GearUsageStatus.Useless) {
       return (
-        <View style={styles.uselessTag}>
-          <PretendardText style={styles.uselessTagText}>안 씀</PretendardText>
+        <View style={[styles.statusTag, styles.uselessTag]}>
+          <PretendardText style={[styles.statusTagText, styles.uselessTagText]}>
+            안 씀
+          </PretendardText>
         </View>
       );
     } else if (status === GearUsageStatus.Used) {
       return (
-        <View style={styles.usedTag}>
-          <PretendardText style={styles.usedTagText}>사용</PretendardText>
+        <View style={[styles.statusTag, styles.usedTag]}>
+          <PretendardText style={[styles.statusTagText, styles.usedTagText]}>
+            사용
+          </PretendardText>
         </View>
       );
     } else {
@@ -45,8 +49,10 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
       // 태그 자리에 문장("사용 여부를 입력해주세요")을 넣으면 보조 문구가 배낭 이름보다
       // 넓은 자리를 차지해 이름이 말줄임된다. 입력 유도는 우측 꺾쇠(›)와 탭 동작이 맡는다.
       return (
-        <View style={styles.unrecordedTag}>
-          <PretendardText style={styles.unrecordedTagText}>
+        <View style={[styles.statusTag, styles.unrecordedTag]}>
+          <PretendardText
+            style={[styles.statusTagText, styles.unrecordedTagText]}
+          >
             미기록
           </PretendardText>
         </View>
@@ -100,7 +106,10 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
             {renderStatusTag(status)}
           </View>
           {metaParts.length > 0 && (
-            <PretendardText style={styles.tripMetaText}>
+            // 1줄 말줄임 — `location.name`에 짧은 지명 대신 전체 주소가 저장된 배낭이 있어
+            // 그대로 흘리면 메타가 2줄이 되면서 행 높이가 제각각이 되고, 주 정보인 배낭 이름보다
+            // 보조 정보가 길어져 위계가 뒤집힌다(GD-10). 날씨는 별도 줄이라 영향을 받지 않는다.
+            <PretendardText style={styles.tripMetaText} numberOfLines={1}>
               {metaParts.join(' · ')}
             </PretendardText>
           )}
@@ -186,36 +195,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  usedTag: {
-    backgroundColor: Color.textTertiary,
+  // 세 상태 태그의 공통 형태 — 색만 다르고 크기·모서리는 같다. 테두리는 세 태그의 높이를
+  // 맞추려고 공통으로 두고, 아웃라인이 아닌 태그는 배경과 같은 색을 줘 보이지 않게 한다(GD-10).
+  statusTag: {
     borderRadius: Radius.card,
+    borderWidth: 1,
     paddingVertical: 4,
     paddingHorizontal: 12,
+  },
+  statusTagText: {
+    fontSize: 11,
+  },
+  // `사용`은 끝난 기록이라 한 단계 낮춘 회색 채움으로 둔다 — 가장 강한 검정 채움은
+  // 사용자가 눌러주길 바라는 `미기록`에 넘긴다(GD-10).
+  usedTag: {
+    backgroundColor: Color.chipInactiveBg,
+    borderColor: Color.chipInactiveBg,
   },
   usedTagText: {
-    fontSize: 11,
-    color: Color.background,
-  },
-  uselessTag: {
-    backgroundColor: Color.background,
-    borderRadius: Radius.card,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-  },
-  uselessTagText: {
-    fontSize: 11,
     color: Color.textTertiary,
   },
-  // 미기록 태그 — `사용`(채움)·`안 씀`(흰 칩)과 같은 크기·모서리에 가장 낮은 대비를 준다(GD-10).
+  // `안 씀`도 끝난 기록 — 셋 중 가장 조용한 아웃라인. 카드 배경(inputBg) 위에서 흰 칩이
+  // 사라지지 않도록 테두리를 보이게 둔다(GD-10).
+  uselessTag: {
+    backgroundColor: Color.background,
+    borderColor: Color.chipBorder,
+  },
+  uselessTagText: {
+    color: Color.textSecondary,
+  },
+  // 미기록 태그 — 사용자가 눌러주길 바라는 유일한 상태라 셋 중 가장 도드라지게 검정 채움을
+  // 준다. 저대비 회색은 완료 상태보다 약해 위계가 정반대였다(GD-10).
   unrecordedTag: {
-    backgroundColor: Color.chipInactiveBg,
-    borderRadius: Radius.card,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
+    backgroundColor: Color.chipActiveBg,
+    borderColor: Color.chipActiveBg,
   },
   unrecordedTagText: {
-    fontSize: 11,
-    color: Color.textSecondary,
+    color: Color.background,
   },
 });
 
