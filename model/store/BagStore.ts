@@ -28,7 +28,6 @@ import app from '../app/App';
 import { BagLocation } from '../bag-destination/BagLocation';
 import { BagActivitySummary } from '../bag/BagActivitySummary';
 import { WeatherSnapshot } from '../weather/WeatherTypes';
-import { moveUnweightedLast } from '../order/WeightOrder';
 
 // Firestore `in` 쿼리 값 상한(30개). 초과분은 청크로 나눠 조회한다(GD-10).
 const IN_QUERY_CHUNK_SIZE = 30;
@@ -107,7 +106,7 @@ class BagStore {
         );
         // 세분 카테고리는 그룹으로 매핑해 비교한다(DM-4).
         // (기존 category.includes(filter)는 'tent_acc'.includes('tent') 같은 부분 문자열 오탐이 있었다.)
-        const filteredGears = warehouseSnapshot.docs
+        const warehouseGears = warehouseSnapshot.docs
           .filter(doc =>
             filters.length === 1 && filters[0] === GearFilter.All
               ? true
@@ -121,12 +120,6 @@ class BagStore {
             ...(doc.data() as GearData),
             id: doc.id,
           }));
-
-        const warehouseGears = moveUnweightedLast(
-          filteredGears,
-          order,
-          gearData => gearData.weight
-        );
 
         return {
           name,
@@ -243,7 +236,7 @@ class BagStore {
         )
       );
       // 세분 카테고리는 그룹으로 매핑해 비교한다(DM-4) — getSharedBag과 동일한 부분 문자열 오탐 수정.
-      const filteredGears = warehouseSnapshot.docs
+      const warehouseGears = warehouseSnapshot.docs
         .filter(doc =>
           filters.length === 1 && filters[0] === GearFilter.All
             ? true
@@ -257,12 +250,6 @@ class BagStore {
           ...(doc.data() as GearData),
           id: doc.id,
         }));
-
-      const warehouseGears = moveUnweightedLast(
-        filteredGears,
-        order,
-        gearData => gearData.weight
-      );
 
       return {
         name,
