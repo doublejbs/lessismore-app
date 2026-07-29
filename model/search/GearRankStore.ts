@@ -93,6 +93,7 @@ class GearRankStore {
             color: gearData.color || '',
             companyKorean: gearData.companyKorean || '',
             nameKorean: gearData.nameKorean || '',
+            // 인기 장비는 카탈로그(`gear`) 문서라 imageUrl은 크롤 이미지다 — 읽지 않는다(DataModel §1).
             extra: toGearExtra(gearData),
           });
         } else {
@@ -187,6 +188,9 @@ class GearRankStore {
           data.color || '',
           data.companyKorean || '',
           data.nameKorean || '',
+          // 여기서 만든 Gear는 `hasGear` 보유 여부 판정에만 쓰이고 화면에 도달하지 않는다
+          // (`convertToGears`는 순위 데이터의 extra를 쓴다) — extra는 소비되지 않으므로
+          // 기본형으로 둔다.
           toGearExtra(data)
         );
       });

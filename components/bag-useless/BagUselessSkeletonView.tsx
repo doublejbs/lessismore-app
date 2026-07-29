@@ -36,7 +36,8 @@ const BagUselessSkeletonView: FC<Props> = () => {
           gap: Spacing.item,
         }}
       >
-        {/* 좌 정체 컬럼(브랜드·이름·색상) — 장비 썸네일이 없어 이미지 자리도 두지 않는다(DataModel §1) */}
+        {/* 좌 정체 컬럼(브랜드·이름·색상) — 사진 있는 행에만 썸네일이 붙고 대다수 장비에는 없으므로
+            기본 모습인 텍스트 행에 맞춘다(DataModel §1 2026-07-29 개정) */}
         <View
           style={{
             flexDirection: 'column',

@@ -14,6 +14,9 @@ import Gear from '@/model/gear/Gear';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
+import GearThumbnailView, {
+  GEAR_THUMBNAIL_SIZE,
+} from '@/components/gear/GearThumbnailView';
 import { Color, Radius } from '@/constants/DesignTokens';
 
 // 삭제 스와이프 액션 배경 — 파괴적 액션 시맨틱 색(DesignTokens 예외, CLAUDE.md 참고).
@@ -80,8 +83,13 @@ interface Props {
   bagDetail: BagDetail;
 }
 
-// 배낭 상세의 장비 행. 장비 썸네일은 표시하지 않는다(DataModel §1 장비 이미지 미제공 원칙).
-// BD-5의 useless 표기는 유지하되, 썸네일이 사라져 로고 마크를 행 우측에 둔다(로고는 장비 이미지가 아님).
+// 배낭 상세의 장비 행. 썸네일 규칙은 창고 목록과 같다(BD-1 → WH-1) — 사용자가 올린 본인 사진이
+// 있을 때만 좌측에 정사각 썸네일을 두고, 없으면 빈 칸 없이 텍스트 우선 행을 쓴다.
+// 이 컴포넌트는 **본인 배낭 상세 전용**이다 — 공유 배낭(BD-7)은 여기를 쓰지 않고
+// `components/shared-bag/SharedBagView.tsx`가 자체 행을 그린다. 제3자 표면의 비공개는
+// 그쪽 화면과 데이터 레이어(`BagStore.getSharedBag`가 imageUrl을 채우지 않음)가 함께 지킨다
+// (DataModel §1 비공개 원칙).
+// BD-5의 useless 표기는 로고 마크를 행 우측(지표 컬럼 왼쪽)에 둔다(로고는 장비 이미지가 아님).
 const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
   const isUseless = bagDetail.isUseless(gear);
   // BD-5: useless 장비는 행 본문(정체·지표 컬럼)을 50% 투명으로 낮춘다. 로고 마크는 자체 투명도를 갖는다.
@@ -138,6 +146,12 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
               : `${gear.getDisplayName()}, ${gear.getWeight()}g`
           }
         >
+          {/* BD-5: 썸네일도 행 본문이라 useless일 때 함께 50% 투명해진다(로고 마크는 자체 투명도). */}
+          <GearThumbnailView
+            imageUrl={gear.getImageUrl()}
+            style={[styles.thumbnail, { opacity: bodyOpacity }]}
+          />
+
           <View style={[styles.identityColumn, { opacity: bodyOpacity }]}>
             <PretendardText
               style={styles.companyText}
@@ -190,13 +204,22 @@ const styles = StyleSheet.create({
   rowBackground: {
     backgroundColor: Color.background,
   },
+  // BD-1: minHeight를 썸네일 높이에 맞춰 **모든 행에** 걸어, 이미지 있는 행과 없는 행이 섞여도
+  // 행 높이가 달라지지 않게 한다(=지표 컬럼의 세로 간격 유지). useless 로고 마크가 이미 같은 44라
+  // 이 목록에는 원래 있던 높이다.
   gearItemContainer: {
     flexDirection: 'row',
     width: '100%',
     alignItems: 'center',
     gap: 6,
+    minHeight: GEAR_THUMBNAIL_SIZE,
   },
-  // BD-5 useless 표기 — 썸네일이 사라져 행 우측의 로고 마크로 낸다(본문은 50% 투명도).
+  // 행 gap이 6이라 썸네일 뒤에만 6을 더해 창고 행과 같은 12 간격을 만든다.
+  thumbnail: {
+    marginRight: 6,
+  },
+  // BD-5 useless 표기 — 지표 컬럼 왼쪽의 로고 마크로 낸다(본문은 50% 투명도).
+  // 좌측 썸네일(있을 때)과 크기가 같아 둘이 함께 보여도 행 높이·정렬이 흔들리지 않는다.
   uselessMark: {
     width: 44,
     height: 44,
