@@ -78,8 +78,10 @@ npm run web:preview          # 웹 빌드 후 로컬에서 미리보기 (serve d
 
 ### 기술 스택
 
-- **Expo 54** + React Native 0.81 + React 19.1 (iOS / Android / Web 모두 지원)
-- **레거시 아키텍처 유지** (`newArchEnabled: false`) — 이 때문에 `react-native-reanimated`는 3.x로 고정 (4.x는 New Arch 전용, `expo.install.exclude`에 등록됨). SDK 55+(RN 0.82+)는 New Arch가 강제라 업그레이드 전 마이그레이션 필요
+- **Expo 57** + React Native 0.86 + React 19.2 (iOS / Android / Web 모두 지원)
+- **신아키텍처(New Architecture)** — `app.json`의 `newArchEnabled: true`. `react-native-reanimated`는 **4.x**(현재 4.5)를 쓴다.
+  - **[이력] 이전에는 레거시 아키텍처 + reanimated 3.x 고정이었다.** `expo.install.exclude`의 reanimated 제외 항목도 지금은 없다. 옛 서술을 근거로 "reanimated는 3.x여야 한다"고 판단하지 말 것.
+  - 신아키텍처에서만 나는 문제가 있다. 예: 다른 Activity(사진 피커 등)에서 돌아올 때 안드로이드가 네이티브 뷰를 다시 만들면 **Reanimated 애니메이션 스타일이 생성 시점 초기값에 멈춘다** — 공유 값을 다시 써도 소용없고 뷰를 새로 붙여야 한다([BagShare.md](specs/BagShare.md) BS-9).
 - **MobX** 상태 관리 (`makeAutoObservable` 사용)
 - **Expo Router** 파일 기반 라우팅
 - **Firebase** (Auth, Firestore, Storage) + **Algolia** 검색
@@ -252,7 +254,21 @@ const MyComponent = observer(() => {
 - 배포 명령 예 (1.1.5 이후 통일 체계): `npx hot-updater deploy -p ios -t 1.1.5 -c production` / `-p android -t 1.1.5 -c production`. 레거시 바이너리 대상이면 `-t 1.0.6`(iOS) / `-t 1.0.5`(Android).
 - 관리 콘솔: `npx hot-updater console` (http://localhost:1422)
 
-**실제 출시 흐름**: EAS로 iOS/Android 빌드 → 스토어에 수동 제출/출시. 스토어 공개 버전 확인은 iTunes Lookup(`https://itunes.apple.com/lookup?bundleId=com.doublejbs.useless`)·Play Store 페이지로 가능(둘 다 공개 출시본만 노출).
+**실제 출시 흐름**: EAS로 iOS/Android 빌드 → 스토어에 제출/출시. 스토어 공개 버전 확인은 iTunes Lookup(`https://itunes.apple.com/lookup?bundleId=com.doublejbs.useless`)·Play Store 페이지로 가능(둘 다 공개 출시본만 노출).
+
+**iOS 로컬 빌드 + 제출** (클라우드 대신 이 맥에서 굽는 경로):
+
+```bash
+# 저장소 루트에서. CocoaPods가 Ruby 3.4에서 인코딩으로 죽으므로 로케일을 붙인다.
+LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 npx eas-cli build --platform ios --profile production --local
+npx eas-cli submit --platform ios --profile production --path build-<타임스탬프>.ipa
+```
+
+- **`.env`는 gitignore라 빌드에 들어가지 않지만 문제 없다** — EAS가 서버에 등록된 `production` 환경 변수를 주입한다(빌드 로그의 `Resolved "production" environment` 줄로 확인). `eas env:list --environment production`로 목록을 볼 수 있고, **로컬 `.env`와 값이 다를 수 있다**(로컬이 옛 값인 경우가 있었다).
+- 번들에 값이 박혔는지 확인할 때 `grep`을 쓰지 말 것 — `main.jsbundle`은 **Hermes 바이트코드(바이너리)** 라 매칭이 0으로 잘못 나온다. 파이썬 등으로 바이트 검색할 것.
+- `submit`에는 `eas.json`의 `submit.production.ios.ascAppId`가 필요하다(없으면 인터랙티브 모드를 요구하며 실패). **App Store Connect API 키는 레포에 넣지 않는다** — 실행 시 인자로 넘기거나 EAS에 등록해 쓴다.
+- 디스크를 많이 먹는다. **10GB 이상 비워두고 시작할 것** — 부족하면 링커 단계에서 죽는다. `~/Library/Developer/Xcode/DerivedData`, `~/Library/Developer/Xcode/iOS DeviceSupport`(재연결 시 재생성), `~/Library/Caches/CocoaPods`가 회수 대상이다.
+- `expo doctor`가 `app.json` 스키마 오류(`newArchEnabled`·`android.edgeToEdgeEnabled`는 SDK 57 스키마에서 제거됨)를 잡지만 **로컬 빌드는 그대로 진행된다.** 클라우드 빌드에서는 중단될 수 있다.
 
 **EAS 빌드 실패 디버깅:**
 
