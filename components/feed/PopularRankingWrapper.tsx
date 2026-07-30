@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Bag from '@/model/bag/Bag';
+import { Color } from '@/constants/DesignTokens';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import SearchTopKeywordsView from '@/components/search/SearchTopKeywordsView';
@@ -46,8 +47,17 @@ const PopularRankingWrapper: FC = () => {
       />
       {!IS_IOS && (
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Ionicons name='chevron-back' size={24} color='#191F28' />
+          <TouchableOpacity
+            onPress={handleBack}
+            style={styles.backButton}
+            accessibilityRole='button'
+            accessibilityLabel='뒤로 가기'
+          >
+            <Ionicons
+              name='chevron-back'
+              size={24}
+              color={Color.textPrimary}
+            />
           </TouchableOpacity>
           <PretendardText style={styles.headerTitle} weight='bold'>
             인기 장비 순위
@@ -78,18 +88,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    height: 48,
+    height: 56,
   },
+  // HIG 최소 터치 타깃 44×44pt. 아이콘은 좌측 정렬이라 화면 가장자리 여백은 그대로 유지된다.
   backButton: {
-    width: 32,
-    height: 32,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'flex-start',
   },
   headerTitle: {
     flex: 1,
     fontSize: 17,
-    color: '#000',
+    color: Color.textPrimary,
   },
   content: {
     flex: 1,

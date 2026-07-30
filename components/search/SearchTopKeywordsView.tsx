@@ -54,6 +54,14 @@ const categories: CategoryItem[] = SEARCH_RANK_CATEGORY_FILTERS.map(filter => {
   return { filter, name: getGearFilterName(filter) };
 });
 
+/**
+ * 추가·보유 버튼의 터치 여유(SR-4).
+ *
+ * 버튼은 28pt로 그리되 HIG 최소 타깃 44×44pt를 만족시켜야 한다 —
+ * 시각 크기를 키우면 행이 버튼에 눌리므로 여유로만 확보한다. (44 − 28) / 2 = 8.
+ */
+const BUTTON_HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
+
 // SR-4: 승계 카테고리를 이 화면의 8개 탭 중 하나로 해석한다(없으면 전체).
 const resolveInitialCategory = (category?: string): GearFilter => {
   const matched = SEARCH_RANK_CATEGORY_FILTERS.find(
@@ -256,19 +264,26 @@ const SearchTopKeywordsView: FC<Props> = ({
                     <TouchableOpacity
                       style={styles.ownedBadge}
                       onPress={e => handleRemovePress(e, gear)}
+                      // 체크 아이콘만으로는 "누르면 제거"가 드러나지 않는다(SR-4).
+                      accessibilityRole='button'
+                      accessibilityLabel={`${gear.getDisplayName()} 창고에서 제거`}
+                      hitSlop={BUTTON_HIT_SLOP}
                     >
                       <Ionicons
                         name='checkmark'
                         size={16}
-                        color={Color.background}
+                        color={Color.textSecondary}
                       />
                     </TouchableOpacity>
                   ) : (
                     <TouchableOpacity
                       style={styles.addButton}
                       onPress={e => handleAddPress(e, gear)}
+                      accessibilityRole='button'
+                      accessibilityLabel={`${gear.getDisplayName()} 창고에 추가`}
+                      hitSlop={BUTTON_HIT_SLOP}
                     >
-                      <Ionicons name='add' size={16} color={Color.textPrimary} />
+                      <Ionicons name='add' size={18} color={Color.textPrimary} />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -302,7 +317,11 @@ const styles = StyleSheet.create({
   categoryScrollView: {
     // 고정 높이를 주면 칩(minHeight 34 + 테두리)이 잘린다 — 내용 높이에 맞추되 세로로 늘어나지 않게만 제한.
     flexGrow: 0,
+    // 아래 리스트가 칩 밑으로 흘러 들어가므로 경계를 그어 스크롤 영역의 시작을 드러낸다.
+    paddingBottom: 12,
     marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Color.borderLight,
   },
   categoryScrollContent: {
     flexDirection: 'row',
@@ -330,7 +349,9 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: Color.borderLight,
+    // 행 배경(surfaceMuted)과 값이 5/255밖에 차이 나지 않던 borderLight를 쓰면 배지 원형이
+    // 사라져 4위 이하가 "배지 없음"으로 보인다(SR-4). 흰 채움으로 원형을 세운다.
+    backgroundColor: Color.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -369,16 +390,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  /**
+   * 보유 상태 배지(SR-4). **추가 버튼보다 약하다.**
+   * 예전에는 검정 채움이라 이미 보유한 항목이 시선을 독점하고, 정작 눌러야 할 추가 버튼은
+   * 행 배경과 같은 색이라 사라져 있었다 — 위계가 뒤집혀 있었다.
+   */
   ownedBadge: {
-    backgroundColor: Color.chipActiveBg,
+    backgroundColor: Color.chipInactiveBg,
     borderRadius: 14,
     width: 28,
     height: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // 이 화면의 주 액션(SR-4). 행 배경(surfaceMuted)과 같은 색이면 버튼으로 보이지 않으므로
+  // 흰 채움 + 테두리로 세운다.
   addButton: {
-    backgroundColor: Color.surfaceMuted,
+    backgroundColor: Color.background,
+    borderWidth: 1,
+    borderColor: Color.chipBorder,
     borderRadius: 14,
     width: 28,
     height: 28,
@@ -393,8 +423,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Color.textSecondary,
   },
+  // 스크롤 끝 여백. 탭바가 없는 전용 화면이라 예전 100pt는 근거 없이 컸다.
   bottomContainer: {
-    height: 100,
+    height: 24,
   },
 });
 
