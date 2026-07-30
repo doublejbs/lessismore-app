@@ -1,5 +1,6 @@
-import { FC, ReactNode, RefObject } from 'react';
+import { FC, ReactNode, RefObject, useEffect, useState } from 'react';
 import {
+  AppState,
   Image,
   LayoutChangeEvent,
   StyleProp,
@@ -131,6 +132,27 @@ const renderShadowLayers = (baseWidth: number, spec: ShadowSpec) => {
 };
 
 /**
+ * 앱이 포그라운드로 돌아온 횟수. 요소를 **다시 마운트시키기 위한 key 재료**다(아래 사용처 참고).
+ */
+const useResumeSeq = () => {
+  const [resumeSeq, setResumeSeq] = useState(0);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        setResumeSeq(seq => seq + 1);
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  return resumeSeq;
+};
+
+/**
  * 캡처 대상 캔버스(BS-2, BS-5, BS-10).
  *
  * **캔버스는 언제나 사진이다** — 고른 사진이 `cover`로 화면을 채우고(없으면 단색),
@@ -152,6 +174,7 @@ const BagFilmCardCanvasView: FC<Props> = ({
 }) => {
   const photoUri = filmCard.getPhotoUri();
   const capturing = filmCard.isCapturing();
+  const resumeSeq = useResumeSeq();
 
   // 요소는 자기 그림자와 함께 한 덩어리로 그려진다 — 그림자 레이어를 내용보다 먼저 선언해
   // 뒤에 깔리게 한다(RN은 웹과 달리 absolute 자식을 자동으로 위로 올리지 않는다).
@@ -225,7 +248,22 @@ const BagFilmCardCanvasView: FC<Props> = ({
         // 캔버스를 덮는 투명 레이어로 요소를 가운데에 세운다. `box-none`이라 요소 바깥의
         // 탭은 아래 사진 영역으로 그대로 통과하고, 레이어끼리도 서로를 막지 않는다.
         <View
-          key={item.element}
+          /**
+           * key에 **포그라운드 복귀 횟수를 섞어 요소를 다시 마운트시킨다**(안드로이드 전용 문제).
+           *
+           * 사진 피커는 안드로이드에서 별도 Activity라, 돌아올 때 안드로이드가 요소의 네이티브
+           * 뷰를 다시 만든다. 그러면 Reanimated가 그 뷰에 물려 있던 애니메이션 스타일을 잃고
+           * **생성 시점 초기값**(`이동 0 · 배율 0.7 · opacity 0`)으로 되돌아간 채 멈춘다 —
+           * 요소가 캔버스 정가운데에 투명하게 놓여 화면·내보낸 이미지·접근성 트리 어디에도
+           * 나타나지 않는다. 실제로 측정해 확인한 값이다.
+           *
+           * **같은 값을 다시 써서는 고칠 수 없다.** 공유 값은 이미 정상이라 Reanimated가
+           * "변화 없음"으로 보고 새 뷰에 아무것도 밀어 넣지 않는다. 요소를 껐다 켜면 낫는 것도
+           * 값이 아니라 **뷰가 새로 붙기** 때문이다 — 그 경로를 복귀 시에도 그대로 태운다.
+           *
+           * iOS는 피커가 같은 화면 위 모달이라 뷰가 다시 만들어지지 않아 애초에 해당이 없다.
+           */
+          key={`${item.element}-${resumeSeq}`}
           style={styles.elementLayer}
           pointerEvents='box-none'
         >
