@@ -31,6 +31,15 @@ interface Props {
   bag: Bag;
   // GE-8: 장비 추가 검색(/search) 진입 시 담기 동작 컨텍스트. 미지정이면 탐색 기본(배낭 담기 모달).
   gearAddContext?: GearAddContext | undefined;
+  /**
+   * 이 카드에 쿠팡 링크가 실제로 붙었을 때 알린다(FD-2).
+   *
+   * 수수료 고지는 리스트 푸터가 1회만 노출하는데, `coupangUrl`이 카드마다 마운트 후
+   * **지연 로드**돼 부모가 미리 알 수 없다. 그래서 카드가 알려 준다.
+   * **참조가 고정된 콜백을 넘긴다**(`useCallback`) — 로드 effect의 의존성이라 매 렌더 새 함수를
+   * 넘기면 쿠팡 URL을 계속 다시 조회한다.
+   */
+  onCoupangLinkLoaded?: (() => void) | undefined;
 }
 
 // FD-2: 피드 텍스트 카드(2컬럼 그리드 셀). 장비 이미지를 쓰지 않으므로(DataModel §1 장비 이미지
@@ -39,7 +48,13 @@ interface Props {
 // 담기 CTA는 카드 우상단, coupangUrl이 있으면 하단 축약 링크.
 // 수수료 고지는 카드마다 반복하지 않고 FeedView 리스트 푸터에서 1회 노출한다.
 // coupangUrl은 Algolia hit·Gear에 없고 /gear 문서에만 있어(WarehouseDetail과 동일 경로) 마운트 시 지연 로드한다.
-const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
+const FeedCardView: FC<Props> = ({
+  gear,
+  actions,
+  bag,
+  gearAddContext,
+  onCoupangLinkLoaded,
+}) => {
   const router = useRouter();
   const isAdded = gear.isAdded();
   const weight = gear.getWeight();
@@ -66,8 +81,15 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
 
       const url = await gearStore.getCoupangUrl(gear.getId());
 
-      if (active) {
-        setCoupangUrl(url);
+      if (!active) {
+        return;
+      }
+
+      setCoupangUrl(url);
+
+      // 링크가 실제로 붙은 카드만 알린다 — 푸터 수수료 고지의 노출 조건이다(위 prop 주석).
+      if (url) {
+        onCoupangLinkLoaded?.();
       }
     };
 
@@ -76,7 +98,7 @@ const FeedCardView: FC<Props> = ({ gear, actions, bag, gearAddContext }) => {
     return () => {
       active = false;
     };
-  }, [gear]);
+  }, [gear, onCoupangLinkLoaded]);
 
   const handleCardPress = () => {
     app.getAnalyticsManager()?.logClick('feed_card');
