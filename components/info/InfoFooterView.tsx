@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet, Image, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
@@ -6,31 +6,19 @@ import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { Color } from '@/constants/DesignTokens';
 
+// 한 줄 푸터 링크의 44pt 터치 타깃 확보용 여유.
+const LINK_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
+
 interface Props {
   isLoggedIn: boolean;
 }
 
-/**
- * 사업자 정보 표시 항목(AU-4).
- *
- * **주소·통신판매업 신고번호·생년월일은 넣지 않는다** — 스펙에 근거가 적혀 있다.
- * 통신판매업 신고를 하면 영업소 소재지가 표시 의무가 되므로 그때 주소를 추가한다.
- */
-const BUSINESS_INFO: { label: string; value: string }[] = [
-  { label: '상호', value: '마그마' },
-  { label: '대표자', value: '장하림' },
-  { label: '사업자등록번호', value: '167-58-00828' },
-  { label: '이메일', value: 'doublejbs@naver.com' },
-];
-
 const InfoFooterView: FC<Props> = ({ isLoggedIn }) => {
   const router = useRouter();
   const appVersion = Constants.expoConfig?.version || '1.0.0';
-  // 접힘이 기본이다(AU-4) — 펼쳐 두면 하단이 법무 텍스트로 무거워진다.
-  const [isBusinessInfoOpen, setIsBusinessInfoOpen] = useState(false);
 
-  const handleToggleBusinessInfo = () => {
-    setIsBusinessInfoOpen(open => !open);
+  const handleOpenBusinessInfo = () => {
+    router.push('/info/business');
   };
 
   return (
@@ -45,57 +33,47 @@ const InfoFooterView: FC<Props> = ({ isLoggedIn }) => {
           </PretendardText>
         </TouchableOpacity>
       )}
-      <PretendardText style={styles.versionText}>
-        버전 {appVersion}
-      </PretendardText>
-      <TouchableOpacity
-        style={styles.businessToggle}
-        onPress={handleToggleBusinessInfo}
-        activeOpacity={0.7}
-        accessibilityRole='button'
-        accessibilityState={{ expanded: isBusinessInfoOpen }}
-        accessibilityLabel='사업자 정보'
-      >
-        <PretendardText style={styles.businessToggleText}>
-          사업자 정보
-        </PretendardText>
-        <Ionicons
-          name={isBusinessInfoOpen ? 'chevron-up' : 'chevron-down'}
-          size={12}
-          color={Color.textSecondary}
-        />
-      </TouchableOpacity>
-
-      {isBusinessInfoOpen ? (
-        <View style={styles.businessInfoContainer}>
-          {BUSINESS_INFO.map(({ label, value }) => (
-            <View key={label} style={styles.businessInfoRow}>
-              <PretendardText style={styles.businessInfoLabel}>
-                {label}
-              </PretendardText>
-              <PretendardText style={styles.businessInfoValue} selectable>
-                {value}
-              </PretendardText>
-            </View>
-          ))}
+      {/* 버전과 사업자 정보를 한 줄 양 끝에 둔다(AU-4). 예전에는 사업자 정보가 접히는 행이었는데,
+          펼치면 가운데 정렬 푸터 안에 좌측 정렬 2열 블록이 끼어 축이 어긋났다. 전문은 별도 화면이 맡는다. */}
+      <View style={styles.metaRow}>
+        <View style={styles.metaLeft}>
+          <PretendardText style={styles.versionText}>
+            버전 {appVersion}
+          </PretendardText>
+          <PretendardText style={styles.versionText}>
+            © 2026 useless
+          </PretendardText>
         </View>
-      ) : null}
-
-      <View style={styles.appInfoContainer}>
-        <PretendardText style={styles.appInfoText}>
-          Copyright 2026 useless. All rights reserved.
-        </PretendardText>
+        <TouchableOpacity
+          style={styles.businessLink}
+          onPress={handleOpenBusinessInfo}
+          activeOpacity={0.7}
+          accessibilityRole='button'
+          accessibilityLabel='사업자 정보'
+          hitSlop={LINK_HIT_SLOP}
+        >
+          <PretendardText style={styles.versionText}>사업자 정보</PretendardText>
+          <Ionicons
+            name='chevron-forward'
+            size={12}
+            color={Color.textSecondary}
+          />
+        </TouchableOpacity>
       </View>
-      <View style={styles.imageContainer}>
+
+      {/* 장식용 배지다 — 스크린 리더가 읽을 내용이 없으므로 접근성 트리에서 제외한다. */}
+      <View style={styles.imageContainer} accessibilityElementsHidden importantForAccessibility='no-hide-descendants'>
         <Image
           source={require('@/assets/images/internet.png')}
           style={styles.image}
           resizeMode='contain'
+          accessible={false}
         />
         <Image
           source={require('@/assets/images/magma.png')}
           style={styles.image}
           resizeMode='contain'
+          accessible={false}
         />
       </View>
     </View>
@@ -118,48 +96,28 @@ const styles = StyleSheet.create({
     color: Color.textTertiary,
     textDecorationLine: 'underline',
   },
-  versionText: {
-    fontSize: 11,
-    color: Color.textSecondary,
-  },
-  // 아이콘까지 한 덩어리로 눌리게 하고, 세로 여백으로 44pt 터치 타깃을 만든다.
-  businessToggle: {
+  /**
+   * 푸터 메타 줄(AU-4). **축을 좌·우 둘로만 둔다.**
+   * 예전에는 버전(좌)·사업자 정보(우)·카피라이트(중앙)로 정렬이 세 방향이라 한 덩어리로
+   * 읽히지 않았다. 카피라이트를 버전 아래로 붙여 좌측 묶음에 합쳤다.
+   */
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
+    justifyContent: 'space-between',
+    alignSelf: 'stretch',
+    paddingHorizontal: 4,
+    paddingVertical: 10,
   },
-  businessToggleText: {
-    fontSize: 11,
-    color: Color.textSecondary,
+  metaLeft: {
+    gap: 2,
   },
-  businessInfoContainer: {
-    gap: 4,
-    paddingBottom: 4,
-  },
-  // 라벨 폭을 고정해 값의 시작 위치를 세로로 맞춘다.
-  businessInfoRow: {
+  businessLink: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+    gap: 2,
   },
-  businessInfoLabel: {
-    width: 84,
-    fontSize: 11,
-    color: Color.textTertiary,
-  },
-  // `flex: 1`을 주면 안 된다 — 푸터가 가운데 정렬이라 이 행의 폭이 내용으로 정해지는데,
-  // 그 안에서 flex가 0으로 접혀 값이 통째로 사라진다. 라벨 폭 고정만으로 열이 맞는다.
-  businessInfoValue: {
-    fontSize: 11,
-    color: Color.textSecondary,
-  },
-  appInfoContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  appInfoText: {
+  versionText: {
     fontSize: 11,
     color: Color.textSecondary,
   },
@@ -167,9 +125,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
+  // 정체를 알기 어려운 장식 배지라 크게 둘 이유가 없다(AU-4). 목록 썸네일과 같은 44pt.
   image: {
-    width: 70,
-    height: 70,
+    width: 44,
+    height: 44,
   },
 });
 
