@@ -239,11 +239,19 @@ const createStyles = (width: number) => {
       paddingHorizontal: 5 * scale,
       paddingBottom: 4 * scale,
     },
+    /**
+     * 폭이 모자라면 **줄어드는 쪽은 언제나 이 열**이다(BS-3).
+     *
+     * 이름만 길이가 예측되지 않는 자유 입력이라는 이유도 있지만, 이 열이 줄어들어야
+     * 이름이 줄바꿈되고 그래야 위 `renderBagName`의 첫 줄 측정이 발동한다 —
+     * 반대로 두면 잘림 규칙 자체가 죽는다.
+     */
     leftColumn: {
-      flexShrink: 0,
-    },
-    rightColumn: {
       flexShrink: 1,
+    },
+    // 무게·거리는 짧은 고정 형식이라 줄이지 않는다 — 줄어들면 `3.8 KG`가 글자 단위로 접힌다(BS-3).
+    rightColumn: {
+      flexShrink: 0,
       alignItems: 'flex-end',
     },
     // 총 무게.
