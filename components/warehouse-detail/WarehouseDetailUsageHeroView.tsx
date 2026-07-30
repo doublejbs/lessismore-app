@@ -19,8 +19,7 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
     return null;
   }
 
-  const { bagCount, usedCount, uselessCount, unrecordedCount } =
-    warehouseDetail.getUsageStats();
+  const { bagCount, usedCount, uselessCount } = warehouseDetail.getUsageStats();
 
   const renderStat = (label: string, value: number, muted: boolean) => (
     <View style={styles.statItem}>
@@ -49,13 +48,12 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
           </PretendardText>
         ) : (
           <>
+            {/* 사용·안 씀 두 지표만 둔다(GD-9, 2026-07-30 사용자 결정).
+                담김 수는 아래 `함께한 여행 N회` 헤더가 이미 같은 값을 말하고,
+                미기록은 타임라인의 `미기록` 태그로 행마다 드러난다. */}
             <View style={styles.statsRow}>
-              {renderStat('담김', bagCount, false)}
               {renderStat('사용', usedCount, usedCount === 0)}
               {renderStat('안 씀', uselessCount, uselessCount === 0)}
-              {/* 미기록은 0이면 숨긴다(GD-9). '안 씀'으로 합산하지 않는다(3-상태 원칙). */}
-              {unrecordedCount > 0 &&
-                renderStat('미기록', unrecordedCount, false)}
             </View>
           </>
         )}
