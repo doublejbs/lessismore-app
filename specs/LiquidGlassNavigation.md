@@ -49,7 +49,7 @@ iOS 네이티브 헤더 화면의 공통 구성:
 푸시 화면 19곳. 그룹별 진행:
 
 **A. 단순(back + 타이틀)** — browse, brand-directory, popular-ranking, shared-bag/[id], reply/[id], reply/[id]/[commentId], info/notification, bag/[id]/weather
-**B. 우측 액션** — bag/[id](복사·공유), gear-detail/[id](공유·수정, **파일럿**), gear-edit/[id](삭제), bag/[id]/memo(완료), reply/…/edit(완료), bag/[id]/activity(다시 선택), useless/[id], custom(닫기/back 분기)
+**B. 우측 액션** — bag/[id](복사·공유), gear-detail/[id](공유·수정, **파일럿**), gear-edit/[id](삭제), bag/[id]/memo(완료), reply/…/edit(완료), bag/[id]/activity(다시 선택), useless/[id], ~~custom(닫기/back 분기)~~ — **custom은 전환 대상에서 제외**(2026-07-31, GearEdit GE-8): pageSheet 모달이라 형제 화면인 검색 모달과 같은 [핸들바 + 우상단 닫기] JS 헤더를 전 플랫폼 공통으로 쓴다
 **C. 특수** — bag/[id]/edit(무게 카운트업 타이틀 → `headerTitle` 커스텀 컴포넌트로 이식), bag/[id]/packing(진행률 블록은 본문 유지, 내비 행만 네이티브로)
 
 **수용 기준**
