@@ -374,7 +374,7 @@ class WarehouseDetail {
     this.bags = value;
   }
 
-  // GD-9: 담김/사용/안 씀/미기록 지표. 미기록은 음수 방지(max 0) — 3-상태 원칙상 '안 씀'에 합산하지 않는다.
+  // GD-9: 담김/사용/사용 안함/미기록 지표. 미기록은 음수 방지(max 0) — 3-상태 원칙상 '사용 안함'에 합산하지 않는다.
   // 기준은 gear.bags 배열이 아니라 **실제 로드된 배낭 목록** — 삭제 잔여 id가 남아 있어도
   // 타임라인 행 수·"함께한 여행 N회" 헤더와 수치가 항상 일치한다.
   public getUsageStats(): GearUsageStats {
@@ -489,7 +489,7 @@ class WarehouseDetail {
     };
   }
 
-  // GD-12: 기록된 여행 3회 이상 + 기록 기준 최근 3회 모두 '안 씀'이면 덜어내기 시그널.
+  // GD-12: 기록된 여행 3회 이상 + 기록 기준 최근 3회 모두 '사용 안함'이면 덜어내기 시그널.
   // 최근 판정은 startDate 내림차순, 날짜 없으면 editDate로 대체한다.
   public getDeclutterSignal(): GearDeclutterSignal | null {
     const gear = this.getGear();

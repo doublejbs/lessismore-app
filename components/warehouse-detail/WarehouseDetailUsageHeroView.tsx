@@ -48,12 +48,12 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
           </PretendardText>
         ) : (
           <>
-            {/* 사용·안 씀 두 지표만 둔다(GD-9, 2026-07-30 사용자 결정).
+            {/* 사용·사용 안함 두 지표만 둔다(GD-9, 2026-07-30 사용자 결정).
                 담김 수는 아래 `함께한 여행 N회` 헤더가 이미 같은 값을 말하고,
                 미기록은 타임라인의 `미기록` 태그로 행마다 드러난다. */}
             <View style={styles.statsRow}>
               {renderStat('사용', usedCount, usedCount === 0)}
-              {renderStat('안 씀', uselessCount, uselessCount === 0)}
+              {renderStat('사용 안함', uselessCount, uselessCount === 0)}
             </View>
           </>
         )}

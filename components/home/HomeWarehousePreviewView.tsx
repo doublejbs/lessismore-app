@@ -63,15 +63,6 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
         <PretendardText weight='bold' style={styles.sectionTitle}>
           내 창고
         </PretendardText>
-        <TouchableOpacity
-          onPress={handleOpenWarehouse}
-          activeOpacity={0.7}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          accessibilityRole='button'
-          accessibilityLabel='창고 전체 보기'
-        >
-          <PretendardText style={styles.sectionMore}>전체 보기</PretendardText>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
@@ -148,6 +139,25 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
                 </TouchableOpacity>
               ))}
 
+              {/* 목록이 끊기는 자리에 이어보기를 둔다(HM-4). 헤더 우측에 있을 때보다
+                  "여기서 더 있다"가 분명하고, 미리보기를 다 훑은 시점에 손이 가는 자리다.
+                  장비 행과 같은 행 문법을 쓰되 글자색을 낮춰 장비 항목과 구분한다. */}
+              <TouchableOpacity
+                style={styles.moreRow}
+                onPress={handleOpenWarehouse}
+                activeOpacity={0.7}
+                accessibilityRole='button'
+                accessibilityLabel='창고 전체 보기'
+              >
+                <PretendardText weight='semibold' style={styles.moreText}>
+                  전체 보기
+                </PretendardText>
+                <Ionicons
+                  name='chevron-forward'
+                  size={16}
+                  color={Color.iconMuted}
+                />
+              </TouchableOpacity>
             </View>
           </>
         )}
@@ -161,18 +171,11 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   sectionHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     marginBottom: 10,
   },
   sectionTitle: {
     fontSize: 15,
     color: Color.textPrimary,
-  },
-  sectionMore: {
-    fontSize: 13,
-    color: Color.textSecondary,
   },
   // 목록은 카드로 감싸지 않는다 — 정보 탭·창고 목록과 같은 평평한 행 관용구를 따른다.
   card: {
@@ -199,6 +202,17 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     borderBottomWidth: 1,
     borderBottomColor: Color.borderLight,
+  },
+  // 마지막 장비 행의 하단 구분선을 그대로 이어받아 목록의 일부로 읽히게 한다.
+  moreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+  },
+  moreText: {
+    fontSize: 14,
+    color: Color.textSecondary,
   },
   gearIdentity: {
     flex: 1,
