@@ -54,6 +54,17 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
     router.push(`/warehouse?category=${selectedFilter}`);
   };
 
+  /**
+   * 정리 유도 줄 — 창고를 **그 묶음만 보이는 상태**로 연다.
+   *
+   * 카테고리는 넘기지 않는다. 이 줄의 개수는 선택한 칩과 무관하게 창고 전체에서 세므로,
+   * 카테고리를 함께 넘기면 목록 개수가 줄의 숫자와 어긋난다.
+   */
+  const handleOpenUnused = () => {
+    app.getAnalyticsManager()?.logClick('home_warehouse_unused');
+    router.push({ pathname: '/warehouse', params: { unused: '1' } });
+  };
+
   const handleOpenGear = (gear: Gear) => {
     router.push(`/gear-detail/${gear.getId()}`);
   };
@@ -152,12 +163,11 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
                   />
                 </TouchableOpacity>
               ))}
-            </View>
 
             {unusedCount >= UNUSED_THRESHOLD && (
               <TouchableOpacity
                 style={styles.unusedRow}
-                onPress={handleOpenWarehouse}
+                onPress={handleOpenUnused}
                 activeOpacity={0.7}
                 accessibilityRole='button'
                 accessibilityLabel={`한 번도 안 쓴 장비 ${unusedCount}개 보기`}
@@ -172,6 +182,7 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
                 />
               </TouchableOpacity>
             )}
+            </View>
           </>
         )}
       </View>

@@ -32,6 +32,8 @@ class Warehouse {
   private query = '';
   // WH-2 2차(세분) 카테고리 필터 — null이면 전체(세분 미적용)
   private fineCategory: string | null = null;
+  // WH-2 `안 쓴 장비만` — 홈 창고 카드(HM-4)의 정리 유도 줄로 들어올 때 켜진다.
+  private unusedOnly = false;
   private loading = false;
   private initialized = false;
 
@@ -147,11 +149,12 @@ class Warehouse {
       : this.gears;
 
     // 세분 필터는 추가 쿼리 없이 표시 단계에서만 적용한다(WH-2)
-    if (this.fineCategory) {
-      return queried.filter(gear => gear.getCategory() === this.fineCategory);
-    }
+    const fined = this.fineCategory
+      ? queried.filter(gear => gear.getCategory() === this.fineCategory)
+      : queried;
 
-    return queried;
+    // `안 쓴 장비만`도 같은 방식으로 표시 단계에서 거른다(추가 쿼리 없음).
+    return this.unusedOnly ? fined.filter(gear => gear.isNeverUsed()) : fined;
   }
 
   public getQuery() {
@@ -207,6 +210,20 @@ class Warehouse {
 
   private setFineCategory(value: string | null) {
     this.fineCategory = value;
+  }
+
+  // 홈에서 정리 유도 줄로 들어올 때 켠다(HM-4). initialize() 전에 부른다.
+  public applyUnusedOnly() {
+    this.unusedOnly = true;
+  }
+
+  public isUnusedOnly() {
+    return this.unusedOnly;
+  }
+
+  // 좁힌 상태를 푼다 — 사용자가 칩을 눌러 해제할 때.
+  public clearUnusedOnly() {
+    this.unusedOnly = false;
   }
 
   public getFineCategory() {

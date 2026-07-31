@@ -30,6 +30,7 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
   const totalCount = warehouse.getGears().length;
   const fineCategoryOptions = warehouse.getFineCategoryOptions();
   const fineCategory = warehouse.getFineCategory();
+  const isUnusedOnly = warehouse.isUnusedOnly();
   const selectedFilterName = warehouse.getSelectedFilter().getName();
 
   /**
@@ -174,6 +175,19 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
           ))}
         </ScrollView>
       )}
+      {/* 홈의 정리 유도 줄로 들어오면 목록이 좁혀진 채 열린다(HM-4) — 그 사실이 보이고
+          되돌릴 수 있어야 한다. 눌러서 해제한다. */}
+      {isUnusedOnly && (
+        <View style={styles.unusedRow}>
+          <CategoryChipView
+            label='한 번도 안 쓴 장비 ✕'
+            variant='secondary'
+            selected
+            onPress={() => warehouse.clearUnusedOnly()}
+            accessibilityLabel='한 번도 안 쓴 장비만 보기 해제'
+          />
+        </View>
+      )}
       <View style={styles.orderContainer}>
         <PretendardText weight='semibold' style={styles.titleText}>
           총 {totalCount}개
@@ -205,6 +219,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: 0,
+  },
+  unusedRow: {
+    flexDirection: 'row',
   },
   orderContainer: {
     width: '100%',
