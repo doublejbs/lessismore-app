@@ -125,8 +125,13 @@ const BagFormContent: FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Color.background,
-    // 네이티브 그래버가 시트 상단에 겹쳐 렌더되므로 그 아래로 제목이 오도록 여백을 준다.
-    paddingTop: 52,
+    /**
+     * 그래버 아래 여백. **앞 단계인 `배낭 추가` 시트(`app/bag-add-options.tsx`)와 같은 20pt**를 쓴다
+     * — 두 시트가 연달아 뜨므로 상단 여백이 다르면 화면이 튄 것처럼 보인다.
+     * 예전 52pt는 그래버를 피하려던 값인데, 같은 네이티브 formSheet인 배낭 추가 시트가
+     * 20pt로도 가려지지 않는 것으로 확인돼 과했다.
+     */
+    paddingTop: 20,
   },
   // Android는 고정 높이(0.9) 시트라 컨테이너를 채워 버튼을 하단에 고정한다.
   containerFill: {
@@ -140,9 +145,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 20,
   },
+  // 크기도 `배낭 추가` 시트 타이틀과 맞춘다(18/26).
   title: {
-    fontSize: 20,
-    lineHeight: 28,
+    fontSize: 18,
+    lineHeight: 26,
     color: Color.textPrimary,
     marginBottom: 24,
   },

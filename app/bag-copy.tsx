@@ -56,8 +56,8 @@ const BagCopyScreen = () => {
       if (bagID) {
         app.getAnalyticsManager()?.logClick('bag_copy_confirm', { source });
         app.getToastManager()?.show({ message: '복사됐습니다' });
+        // 만든 뒤 상세로만 보낸다(BAG-2) — 장비 편집 화면을 겹쳐 열지 않는다.
         router.replace(`/bag/${bagID}`);
-        router.push(`/bag/${bagID}/edit`);
       }
     } catch (error) {
       console.error('배낭 복사 중 오류 발생:', error);

@@ -7,7 +7,9 @@ import BagFormContent from '@/components/bag/BagFormContent';
 import BagWeather from '@/model/bag/BagWeather';
 import { takePendingBagLocation } from '@/model/bag/PendingBagLocationHandoff';
 
-// BAG-2: 배낭 생성 폼 — 네이티브 formSheet 라우트. 상태를 직접 소유하고 BagStore로 생성한다.
+// BAG-2: 배낭 생성 폼 — 네이티브 formSheet 라우트.
+// **박지 상세(CS-5) '새 배낭 만들기' 전용 경로다.** 배낭 탭의 `새로 만들기`는 입력을 받지 않고
+// 즉시 생성하므로(BAG-2) 이 화면을 거치지 않는다 — 여기는 여행지 이름·날씨를 함께 붙인다.
 const BagNewScreen = () => {
   const router = useRouter();
   // 박지 상세(CS-5) '새 배낭 만들기'로 진입했다면 여행지 위치를 마운트 시 1회 받아
@@ -72,8 +74,8 @@ const BagNewScreen = () => {
           }
         }
 
+        // 만든 뒤 상세로만 보낸다(BAG-2) — 장비 편집 화면을 겹쳐 열지 않는다.
         router.replace(`/bag/${bagID}`);
-        router.push(`/bag/${bagID}/edit`);
 
         if (weatherFailed) {
           Alert.alert(
