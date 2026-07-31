@@ -55,9 +55,3 @@ export const getPreviewGears = (
     .sort((a, b) => b.getCreateDate() - a.getCreateDate())
     .slice(0, limit);
 };
-
-// 한 번도 안 쓴 장비 수. 판정 규칙은 `Gear.isNeverUsed()`가 단일 소스다 —
-// 창고의 `안 쓴 장비만`(WH-2)과 같은 규칙이어야 개수와 목록이 어긋나지 않는다.
-export const getUnusedCount = (gears: Gear[]): number => {
-  return gears.filter(gear => gear.isNeverUsed()).length;
-};
