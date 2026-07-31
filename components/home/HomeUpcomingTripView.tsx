@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { observer } from 'mobx-react-lite';
+import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import BagItem from '@/model/bag/BagItem';
@@ -129,9 +130,29 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
             {primary.getName()}
           </PretendardText>
 
-          {(displayDate !== null || locationName !== null) && (
+          {/* 여행지는 날짜 뒤에 `·`로 붙이지 않고 **제 줄**을 준다. 꼬리표로 달면
+              긴 기간 문자열 끝에 회색으로 묻혀 "어디 가는지"가 안 읽힌다.
+              아이콘 + 본문색은 배낭 상세 여행지 타일(DST-2)이 쓰는 표현과 같다. */}
+          {locationName !== null && (
+            <View style={styles.locationRow}>
+              <Ionicons
+                name='location-outline'
+                size={15}
+                color={Color.textPrimary}
+              />
+              <PretendardText
+                weight='semibold'
+                style={styles.locationText}
+                numberOfLines={1}
+              >
+                {locationName}
+              </PretendardText>
+            </View>
+          )}
+
+          {displayDate !== null && (
             <PretendardText style={styles.tripMeta} numberOfLines={1}>
-              {[displayDate, locationName].filter(Boolean).join(' · ')}
+              {displayDate}
             </PretendardText>
           )}
 
@@ -242,7 +263,18 @@ const styles = StyleSheet.create({
   tripName: {
     fontSize: 21,
     color: Color.textPrimary,
-    marginBottom: 4,
+    marginBottom: 6,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 2,
+  },
+  locationText: {
+    flexShrink: 1,
+    fontSize: 14,
+    color: Color.textPrimary,
   },
   tripMeta: {
     fontSize: 13,
