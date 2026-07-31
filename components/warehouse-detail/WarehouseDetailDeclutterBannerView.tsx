@@ -10,7 +10,7 @@ interface Props {
   warehouseDetail: WarehouseDetail;
 }
 
-// 덜어내기 시그널(GD-12) — 최근 기록 3회 연속 '안 씀'일 때만 조용히 알려주는 정보성 배너.
+// 덜어내기 시그널(GD-12) — 최근 기록 3회 연속 '사용 안함'일 때만 조용히 알려주는 정보성 배너.
 // 탭 액션 없음, 삭제 유도 아님. 경고 빨강 대신 차분한 톤(surfaceMuted)을 쓴다.
 const WarehouseDetailDeclutterBannerView: FC<Props> = ({ warehouseDetail }) => {
   const signal = warehouseDetail.getDeclutterSignal();
