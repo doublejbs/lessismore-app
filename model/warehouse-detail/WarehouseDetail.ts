@@ -133,6 +133,31 @@ class WarehouseDetail {
     }
   }
 
+  /**
+   * 화면에 다시 돌아왔을 때 **전체를 다시 읽는다**(GD-9/GD-10).
+   *
+   * 사용 여부 기록(`/useless/{id}`)·배낭 편집·리뷰 작성 등에서 돌아오면 장비 문서
+   * (`used`/`useless`/`bags`)도, 함께한 여행 목록도, 리뷰도 바뀌어 있을 수 있다.
+   * 무엇이 바뀌었는지 화면이 알 방법이 없어 통째로 다시 읽는다.
+   *
+   * **`initialize()`를 다시 부르지 않는다** — `initialized`가 false로 내려가면 래퍼가
+   * 잠깐 아무것도 안 그려 화면이 깜빡인다. 읽는 내용은 같고 그 플래그만 건드리지 않는다.
+   *
+   * 첫 진입에서는 `initialize()`가 이미 읽으므로 아무것도 하지 않는다(아래 초기화 가드).
+   */
+  public async reload() {
+    if (!this.isInitialized() || !this.id) {
+      return;
+    }
+
+    try {
+      await this.getGearData();
+    } catch (e) {
+      // 조용히 실패한다 — 이미 그려진 값이 있으므로 화면을 비우는 것보다 낫다.
+      console.error('장비 상세 갱신 실패:', e);
+    }
+  }
+
   private async getGearData() {
     const gear = await this.gearStore.getGear(this.id);
     this.setGear(gear);
@@ -374,7 +399,7 @@ class WarehouseDetail {
     this.bags = value;
   }
 
-  // GD-9: 담김/사용/안 씀/미기록 지표. 미기록은 음수 방지(max 0) — 3-상태 원칙상 '안 씀'에 합산하지 않는다.
+  // GD-9: 담김/사용/사용 안함/미기록 지표. 미기록은 음수 방지(max 0) — 3-상태 원칙상 '사용 안함'에 합산하지 않는다.
   // 기준은 gear.bags 배열이 아니라 **실제 로드된 배낭 목록** — 삭제 잔여 id가 남아 있어도
   // 타임라인 행 수·"함께한 여행 N회" 헤더와 수치가 항상 일치한다.
   public getUsageStats(): GearUsageStats {
@@ -489,7 +514,7 @@ class WarehouseDetail {
     };
   }
 
-  // GD-12: 기록된 여행 3회 이상 + 기록 기준 최근 3회 모두 '안 씀'이면 덜어내기 시그널.
+  // GD-12: 기록된 여행 3회 이상 + 기록 기준 최근 3회 모두 '사용 안함'이면 덜어내기 시그널.
   // 최근 판정은 startDate 내림차순, 날짜 없으면 editDate로 대체한다.
   public getDeclutterSignal(): GearDeclutterSignal | null {
     const gear = this.getGear();

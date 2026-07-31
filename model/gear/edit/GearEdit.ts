@@ -127,7 +127,9 @@ class GearEdit extends AbstractGearEdit {
     await this.dispatcher.remove(this.gear);
     app.getAnalyticsManager()?.logClick('gear_delete', { from: 'edit' });
     this.toastManager.show({ message: '삭제 되었습니다.' });
-    this.navigate.replace('/(tabs)/(warehouse)');
+    // 삭제한 장비의 상세로 돌아갈 수는 없으니 목록으로 보낸다. 창고는 탭이 아니라
+    // 푸시 라우트가 됐다(HM-0) — 경로만 바뀌고 도착지는 그대로다.
+    this.navigate.replace('/warehouse');
   }
 
   @action
