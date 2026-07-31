@@ -71,7 +71,7 @@ app/warehouse/index.tsx → WarehouseWrapper(showBack, initialCategory) → Ware
 
 - `startDate`가 오늘 이후인 배낭 중 **가장 가까운 하나**를 주 카드로 삼는다.
 - 여행 중(`startDate ≤ 오늘 ≤ endDate`)인 배낭이 있으면 **그쪽이 우선**한다.
-- 그 다음 일정이 더 있으면 주 카드 아래 **한 줄 요약**으로 최대 2개까지 덧붙인다.
+- 그 다음 일정이 더 있으면 주 카드 아래 **한 줄 요약**(D-day + 배낭 이름)으로 최대 2개까지 덧붙인다. 눌러서 배낭 상세로 가므로 **행 끝에 화살표(`chevron-forward`)를 둔다** — 창고 미리보기 장비 행·정보 탭 메뉴와 같은 규칙이다.
 
 **수용 기준**
 

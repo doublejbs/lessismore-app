@@ -222,6 +222,8 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
           <PretendardText style={styles.nextName} numberOfLines={1}>
             {bag.getName()}
           </PretendardText>
+          {/* 눌리는 행에는 화살표를 둔다 — 창고 미리보기 장비 행·정보 탭 메뉴와 같은 규칙이다. */}
+          <Ionicons name='chevron-forward' size={16} color={Color.iconMuted} />
         </TouchableOpacity>
       ))}
     </View>
