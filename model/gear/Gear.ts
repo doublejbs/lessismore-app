@@ -249,19 +249,6 @@ class Gear {
     );
   }
 
-  /**
-   * 한 번도 안 쓴 장비 — `useless` 기록만 있고 `used`가 없다.
-   *
-   * 기록이 아예 없는 장비는 해당하지 않는다. "안 썼다"고 답한 적이 있어야 정리 대상이지,
-   * 담아 두고 아직 여행을 안 간 장비까지 세면 신규 사용자에게 잔소리가 된다.
-   *
-   * 홈 창고 미리보기(HM-4)와 창고의 `안 쓴 장비만`(WH-2)이 **같은 규칙을 써야** 하므로
-   * 여기 한 곳에 둔다 — 각자 정의하면 개수와 목록이 어긋난다.
-   */
-  public isNeverUsed(): boolean {
-    return this.getUselessCount() > 0 && this.getUsedCount() === 0;
-  }
-
   public getUselessCount() {
     return this.useless.length;
   }

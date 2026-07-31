@@ -11,16 +11,12 @@ import GearFilter from '@/model/gear/GearFilter';
 import {
   getCategoryChips,
   getPreviewGears,
-  getUnusedCount,
 } from '@/model/home/HomeWarehousePreview';
 import app from '@/model/app/App';
 
 interface Props {
   gears: Gear[];
 }
-
-// 이보다 적으면 정리 유도가 잔소리가 된다.
-const UNUSED_THRESHOLD = 3;
 
 /**
  * HM-4 창고 미리보기.
@@ -39,7 +35,6 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
 
   const chips = getCategoryChips(gears);
   const previewGears = getPreviewGears(gears, selectedFilter);
-  const unusedCount = getUnusedCount(gears);
 
   const handleSelectFilter = (filter: GearFilter) => {
     setSelectedFilter(filter);
@@ -52,17 +47,6 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
     app.getAnalyticsManager()?.logClick('home_warehouse_more');
     // 홈에서 좁힌 카테고리를 그대로 넘긴다 — 들어가서 다시 고르게 하지 않는다.
     router.push(`/warehouse?category=${selectedFilter}`);
-  };
-
-  /**
-   * 정리 유도 줄 — 창고를 **그 묶음만 보이는 상태**로 연다.
-   *
-   * 카테고리는 넘기지 않는다. 이 줄의 개수는 선택한 칩과 무관하게 창고 전체에서 세므로,
-   * 카테고리를 함께 넘기면 목록 개수가 줄의 숫자와 어긋난다.
-   */
-  const handleOpenUnused = () => {
-    app.getAnalyticsManager()?.logClick('home_warehouse_unused');
-    router.push({ pathname: '/warehouse', params: { unused: '1' } });
   };
 
   const handleOpenGear = (gear: Gear) => {
@@ -164,24 +148,6 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
                 </TouchableOpacity>
               ))}
 
-            {unusedCount >= UNUSED_THRESHOLD && (
-              <TouchableOpacity
-                style={styles.unusedRow}
-                onPress={handleOpenUnused}
-                activeOpacity={0.7}
-                accessibilityRole='button'
-                accessibilityLabel={`한 번도 안 쓴 장비 ${unusedCount}개 보기`}
-              >
-                <PretendardText style={styles.unusedText}>
-                  {`한 번도 안 쓴 장비 ${unusedCount}개`}
-                </PretendardText>
-                <Ionicons
-                  name='chevron-forward'
-                  size={16}
-                  color={Color.iconMuted}
-                />
-              </TouchableOpacity>
-            )}
             </View>
           </>
         )}
@@ -247,16 +213,6 @@ const styles = StyleSheet.create({
     color: Color.textSecondary,
   },
   gearWeight: {
-    fontSize: 13,
-    color: Color.textTertiary,
-  },
-  unusedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 14,
-  },
-  unusedText: {
     fontSize: 13,
     color: Color.textTertiary,
   },

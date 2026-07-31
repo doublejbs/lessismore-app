@@ -30,8 +30,6 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
   const totalCount = warehouse.getGears().length;
   const fineCategoryOptions = warehouse.getFineCategoryOptions();
   const fineCategory = warehouse.getFineCategory();
-  const isUnusedOnly = warehouse.isUnusedOnly();
-  const hasNeverUsedGear = warehouse.hasNeverUsedGear();
   const selectedFilterName = warehouse.getSelectedFilter().getName();
 
   /**
@@ -121,13 +119,6 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
     warehouse.selectFineCategory(key);
   };
 
-  const handleToggleUnusedOnly = () => {
-    app.getAnalyticsManager()?.logClick('warehouse_unused_filter', {
-      enabled: String(!isUnusedOnly),
-    });
-    warehouse.toggleUnusedOnly();
-  };
-
   const handleSelectOrder = (option: OrderOption) => {
     app
       .getAnalyticsManager()
@@ -183,23 +174,6 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
           ))}
         </ScrollView>
       )}
-      {/* 정리용 토글(WH-2). 창고에서 직접 켜고 끌 수 있어야 한다 — 홈에서 켠 채로 들어왔을
-          때만 보이면 끄기만 되고 켤 수가 없다. 해당 장비가 없으면 그리지 않는다. */}
-      {hasNeverUsedGear && (
-        <View style={styles.unusedRow}>
-          <CategoryChipView
-            label='한 번도 안 쓴 장비'
-            variant='secondary'
-            selected={isUnusedOnly}
-            onPress={handleToggleUnusedOnly}
-            accessibilityLabel={
-              isUnusedOnly
-                ? '한 번도 안 쓴 장비만 보기 해제'
-                : '한 번도 안 쓴 장비만 보기'
-            }
-          />
-        </View>
-      )}
       <View style={styles.orderContainer}>
         <PretendardText weight='semibold' style={styles.titleText}>
           총 {totalCount}개
@@ -231,9 +205,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: 0,
-  },
-  unusedRow: {
-    flexDirection: 'row',
   },
   orderContainer: {
     width: '100%',

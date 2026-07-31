@@ -32,8 +32,6 @@ class Warehouse {
   private query = '';
   // WH-2 2차(세분) 카테고리 필터 — null이면 전체(세분 미적용)
   private fineCategory: string | null = null;
-  // WH-2 `안 쓴 장비만` — 홈 창고 카드(HM-4)의 정리 유도 줄로 들어올 때 켜진다.
-  private unusedOnly = false;
   private loading = false;
   private initialized = false;
 
@@ -149,12 +147,11 @@ class Warehouse {
       : this.gears;
 
     // 세분 필터는 추가 쿼리 없이 표시 단계에서만 적용한다(WH-2)
-    const fined = this.fineCategory
-      ? queried.filter(gear => gear.getCategory() === this.fineCategory)
-      : queried;
+    if (this.fineCategory) {
+      return queried.filter(gear => gear.getCategory() === this.fineCategory);
+    }
 
-    // `안 쓴 장비만`도 같은 방식으로 표시 단계에서 거른다(추가 쿼리 없음).
-    return this.unusedOnly ? fined.filter(gear => gear.isNeverUsed()) : fined;
+    return queried;
   }
 
   public getQuery() {
@@ -210,31 +207,6 @@ class Warehouse {
 
   private setFineCategory(value: string | null) {
     this.fineCategory = value;
-  }
-
-  // 홈에서 정리 유도 줄로 들어올 때 켠다(HM-4). initialize() 전에 부른다.
-  public applyUnusedOnly() {
-    this.unusedOnly = true;
-  }
-
-  public isUnusedOnly() {
-    return this.unusedOnly;
-  }
-
-  // 창고에서 직접 켜고 끈다(WH-2). 홈에서 켠 채로 들어온 경우도 같은 칩으로 해제한다.
-  public toggleUnusedOnly() {
-    this.unusedOnly = !this.unusedOnly;
-  }
-
-  /**
-   * 지금 보고 있는 범위에 한 번도 안 쓴 장비가 있는지.
-   *
-   * 칩 노출 조건이다 — 눌러도 빈 목록만 나오는 칩은 노이즈라 없을 때는 아예 그리지 않는다.
-   * **`unusedOnly` 적용 전 집합**으로 판단해야 한다. 켠 뒤에 목록이 그 장비들로만 채워졌다고
-   * 조건이 유지되는 건 맞지만, 반대로 끈 상태와 켠 상태에서 칩이 나타났다 사라지면 안 된다.
-   */
-  public hasNeverUsedGear() {
-    return this.gears.some(gear => gear.isNeverUsed());
   }
 
   public getFineCategory() {
