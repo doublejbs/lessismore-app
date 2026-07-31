@@ -70,11 +70,6 @@ class BagItem {
     return this.endDate.isValid() ? this.endDate.valueOf() : null;
   }
 
-  // 담긴 장비 수. 여행지 날씨가 없을 때 홈 카드의 보조 지표로 쓴다(HM-1).
-  public getGearCount(): number {
-    return this.gears.length;
-  }
-
   /**
    * 추가 순 정렬용 값(BAG-6). `createdAt`이 없으면 `editDate`로 대체한다 —
    * 수정한 적 없는 배낭은 두 값이 같고, 수정한 배낭은 실제 생성보다 뒤로 잡힌다.

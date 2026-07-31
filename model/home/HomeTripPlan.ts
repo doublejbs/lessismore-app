@@ -103,24 +103,29 @@ export const getDDayLabel = (
 };
 
 /**
- * 시점별 주 액션(HM-1). **알림(NT-2/NT-3)이 유도하는 행동과 같은 목적지여야 한다** —
- * 알림을 놓쳐도 홈에서 같은 할 일에 닿는 것이 이 카드의 존재 이유다.
+ * 시점별 주 액션(HM-1). 해당 시점에 할 일이 없으면 null — 버튼을 비운다.
+ *
+ * **홈은 패킹으로 보내지 않는다**(2026-07-31 결정). 그래서 D-1 패킹 알림(NT-2)과 짝이 되는
+ * 목적지는 홈에 없다 — 패킹 진입은 알림과 배낭 상세가 계속 담당한다. 여행 후 기록(NT-3)
+ * 대응만 남는다.
  */
 export const getPrimaryAction = (
   bag: BagItem,
   stage: HomeTripStage
-): HomeTripAction => {
+): HomeTripAction | null => {
   const id = bag.getID();
 
   switch (stage) {
-    case HomeTripStage.Planning: {
-      return { label: '장비 담기', route: `/bag/${id}/edit` };
-    }
+    // 출발 전에는 남은 일수와 무관하게 담을 것을 담는 게 할 일이다.
+    // 장비 편집 화면으로 바로 보내지 않고 **배낭 상세**로 보낸다 — 담기 말고도 여행지·날짜
+    // 같은 손볼 거리가 있어서, 한 화면 먼저 보여주고 고르게 한다.
+    case HomeTripStage.Planning:
     case HomeTripStage.Imminent: {
-      return { label: '패킹 시작', route: `/bag/${id}/packing` };
+      return { label: '장비 담기', route: `/bag/${id}` };
     }
+    // 여행 중에 홈에서 시킬 일은 없다. 카드를 누르면 배낭 상세로는 갈 수 있다.
     case HomeTripStage.Ongoing: {
-      return { label: '패킹 확인', route: `/bag/${id}/packing` };
+      return null;
     }
     case HomeTripStage.JustFinished: {
       return { label: '사용 기록하기', route: `/useless/${id}` };
