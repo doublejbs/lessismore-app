@@ -29,6 +29,7 @@
 | [Feed.md](Feed.md) | `FD` | 장비 피드 — 개인화 둘러보기(탐색 탭) + 카테고리·브랜드 필터 |
 | [Weather.md](Weather.md) | `WT` | 배낭 여행지 좌표 기반 기간 예보 |
 | [CampSite.md](CampSite.md) | `CS` | 박지 지도 — 지도 탭 / 박지 정보 / 규제 고지 `[기획]` |
+| [Home.md](Home.md) | `HM` | 홈 대시보드 — 다가오는 일정 / 남은 할 일 / 장비 추천 `[기획]` |
 | [HealthActivity.md](HealthActivity.md) | `HA` | 운동 기록 — 배낭 여행의 실측(거리·경로) 을 HealthKit·Health Connect에서 읽어 표시 `[기획]` |
 
 신규 도메인 스펙은 [Template.md](Template.md)를 복사해서 시작한다.

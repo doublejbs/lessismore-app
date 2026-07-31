@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
@@ -24,13 +24,16 @@ import { josa } from 'josa';
 
 interface Props {
   warehouse: Warehouse;
+  // 푸시 화면으로 열렸을 때만 뒤로 가기를 그린다(HM-4). 탭 루트에는 돌아갈 곳이 없다.
+  showBack?: boolean;
 }
 
 // iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어만 빼고,
 // 콘텐츠 하단 여백으로 마지막 항목이 탭바·플로팅 버튼에 가리지 않게 한다.
 const IOS_EDGES = ['top', 'left', 'right'] as const;
 
-const WarehouseView: FC<Props> = ({ warehouse }) => {
+const WarehouseView: FC<Props> = ({ warehouse, showBack = false }) => {
+  const router = useRouter();
   const gears = warehouse.getGears();
   const isEmpty = warehouse.isEmpty();
   const isLoading = warehouse.isLoading();
@@ -161,6 +164,21 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
               // 전 플랫폼 공통: HIG large title 톤의 좌측 타이틀 + 같은 행 우측 원형 검색 버튼(LG-3).
               // (네이티브 바는 바 버튼이 large title과 다른 행에 놓여 커스텀 행으로 그린다.)
               <View style={styles.titleRow}>
+                {showBack && (
+                  <TouchableOpacity
+                    onPress={() => router.back()}
+                    style={styles.backButton}
+                    hitSlop={8}
+                    accessibilityRole='button'
+                    accessibilityLabel='뒤로 가기'
+                  >
+                    <Ionicons
+                      name='chevron-back'
+                      size={26}
+                      color={Color.textPrimary}
+                    />
+                  </TouchableOpacity>
+                )}
                 <PretendardText weight='bold' style={styles.titleText}>
                   창고
                 </PretendardText>
@@ -194,6 +212,14 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 8,
     marginTop: 8,
+  },
+  // HIG 최소 터치 타깃 44×44pt. 큰 타이틀과 baseline을 맞추려 좌측 여백을 상쇄한다.
+  backButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    marginLeft: -8,
   },
   // 탭 루트 타이틀 행(전 플랫폼) — HIG large title 톤(좌측 큰 제목) + 같은 행 우측 검색 버튼.
   // 검색 모드(searchRow, 44)와 높이를 맞춰 토글 시 레이아웃 점프를 없앤다.

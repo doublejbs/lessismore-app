@@ -6,6 +6,11 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 
 // iOS는 네이티브 UITabBar(NativeTabs)로 iOS 26 리퀴드 글래스를 받고,
 // Android/Web은 기존 커스텀 JS 탭바(react-navigation)를 그대로 쓴다.
+//
+// 첫 탭은 창고가 아니라 **홈**이다(HM-0 A안, 2026-07-31). iPhone 탭바는 다섯 개가
+// 실질 상한이라 홈을 넣으려면 하나를 빼야 했고, 창고는 목적이 분명할 때 가는 화면이라
+// 한 뎁스 내려가도 손해가 작다고 보았다. 창고는 `/warehouse` 푸시 라우트로 남으며
+// 홈의 창고 미리보기 카드(HM-4)가 그 입구다.
 const NativeTabLayout = () => {
   return (
     <NativeTabs
@@ -17,9 +22,9 @@ const NativeTabLayout = () => {
       }}
       minimizeBehavior='onScrollDown'
     >
-      <NativeTabs.Trigger name='(warehouse)'>
+      <NativeTabs.Trigger name='index'>
         <NativeTabs.Trigger.Icon sf='house.fill' drawable='ic_menu_home' />
-        <NativeTabs.Trigger.Label>창고</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>홈</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='search'>
         <NativeTabs.Trigger.Icon sf='magnifyingglass' drawable='ic_menu_search' />
@@ -58,9 +63,9 @@ const JsTabLayout = () => {
   return (
     <Tabs screenOptions={screenOptions}>
       <Tabs.Screen
-        name='(warehouse)'
+        name='index'
         options={{
-          title: '창고',
+          title: '홈',
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name='house.fill' color={color} />
           ),
