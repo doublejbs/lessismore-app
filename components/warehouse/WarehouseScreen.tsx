@@ -32,6 +32,8 @@ const IS_IOS = Platform.OS === 'ios';
 const NATIVE_HEADER_HEIGHT = 44;
 // 헤더와 카테고리 칩 사이 숨 쉴 틈. 붙으면 뒤로가기와 필터가 한 덩어리로 뭉친다(FD-3과 동일).
 const HEADER_CONTENT_GAP = 12;
+// 상단 고정 영역(headerContainer)의 행 간격. 검색 행 높이를 계산할 때 함께 빼야 한다.
+const HEADER_ROW_GAP = 8;
 // iOS는 네이티브 투명 헤더가 상단을 덮으므로 top 세이프에어리어를 빼 이중 인셋을 막는다.
 const IOS_EDGES = ['left', 'right', 'bottom'] as const;
 
@@ -123,7 +125,10 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
             검색 버튼을 나란히 두던 배치(LG-3)는 그 화면이 탭 루트일 때의 제약이었다. */}
         <Stack.Screen
           options={{
-            headerShown: IS_IOS,
+            // 검색 중에는 헤더를 내린다. 그래야 검색 행이 헤더 자리를 **차지**해
+            // 아래 콘텐츠가 밀리지 않는다(원래 타이틀 행 44 ↔ 검색 행 44 맞교환이던 것을
+            // 네이티브 헤더로 바꾸면서 깨졌다). `창고` 타이틀도 검색 모드에선 군더더기다.
+            headerShown: IS_IOS && !isSearching,
             headerTransparent: true,
             headerTitle: '창고',
             headerBackButtonDisplayMode: 'minimal',
@@ -146,13 +151,16 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
           style={[
             styles.headerContainer,
             // 투명 헤더(상태바 + 44pt) 아래에서 고정 상단 콘텐츠가 시작하게 한다.
+            // 검색 중에는 헤더가 없으므로 상태바 몫만 띄운다.
             IS_IOS && {
-              paddingTop: insets.top + NATIVE_HEADER_HEIGHT + HEADER_CONTENT_GAP,
+              paddingTop: isSearching
+                ? insets.top
+                : insets.top + NATIVE_HEADER_HEIGHT + HEADER_CONTENT_GAP,
             },
           ]}
         >
           {isSearching ? (
-              <View style={styles.searchRow}>
+              <View style={[styles.searchRow, IS_IOS && styles.searchRowIos]}>
                 <View style={styles.searchBox}>
                   <Ionicons name='search' size={18} color={Color.textSecondary} />
                   <TextInput
@@ -246,7 +254,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     flexDirection: 'column',
-    gap: 8,
+    gap: HEADER_ROW_GAP,
     marginTop: 8,
   },
   // HIG 최소 터치 타깃 44×44pt.
@@ -289,6 +297,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginBottom: 8,
+  },
+  /**
+   * iOS에서 검색 행은 **네이티브 헤더가 비운 자리를 정확히 채운다**.
+   *
+   * 높이를 눈대중으로 맞추면 토글할 때마다 아래 콘텐츠가 몇 pt씩 튄다(실제로 그랬다).
+   * 헤더를 감출 때 사라지는 높이가 `NATIVE_HEADER_HEIGHT + HEADER_CONTENT_GAP`이므로
+   * 그 값을 그대로 행 높이로 준다 — 계산이 아니라 구조로 같아진다.
+   */
+  searchRowIos: {
+    // 검색 행이 생기면 컨테이너의 `gap`이 한 번 더 들어가므로 그만큼 빼야 정확히 상쇄된다.
+    height: NATIVE_HEADER_HEIGHT + HEADER_CONTENT_GAP - HEADER_ROW_GAP,
+    marginBottom: 0,
   },
   cancelButton: {
     minWidth: 44,
