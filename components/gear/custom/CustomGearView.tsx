@@ -17,6 +17,7 @@ import { Color, Radius } from '@/constants/DesignTokens';
 import CustomGearConfirmView from '@/components/gear/custom/CustomGearConfirmView';
 import CustomGear from '@/model/gear/custom/CustomGear';
 import LoadingIconView from '@/components/ui/LoadingIconView';
+import SheetGrabberView from '@/components/ui/SheetGrabberView';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import CustomGearWeightView from '@/components/gear/custom/CustomGearWeightView';
 import CustomGearColorView from '@/components/gear/custom/CustomGearColorView';
@@ -156,7 +157,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
         {/* GE-8 직접 입력 모달의 이탈 경로 — 핸들바 + 우상단 닫기. 같은 시트에서 갈라지는
             검색 모달(SearchWarehouseView)과 같은 얼개다. 네이티브 formSheet가 아니라
             pageSheet 모달이라 OS 그래버가 없어 핸들바를 직접 그린다. */}
-        <View style={styles.grabber} />
+        <SheetGrabberView />
         <View style={styles.header}>
           <PretendardText weight='bold' style={styles.headerTitle}>
             장비 추가
@@ -376,16 +377,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-  },
-  // 모달 카드 상단 핸들바 — 드래그 닫기 어포던스(SearchWarehouseView와 동일 치수).
-  grabber: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Color.iconMuted,
-    alignSelf: 'center',
-    marginTop: 8,
-    marginBottom: 4,
   },
   header: {
     flexDirection: 'row',
