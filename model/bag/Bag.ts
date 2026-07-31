@@ -28,7 +28,12 @@ class Bag {
   }
 
   private bags: BagItem[] = [];
-  private loading = false;
+  /**
+   * 첫 조회 전에는 **로딩으로 시작한다**(BAG-1). false로 시작하면 목록이 오기 전 한 프레임 동안
+   * 빈 상태 문구가 번쩍인다 — 배낭이 있는 사용자에게도 "배낭이 없어요"가 잠깐 보였다.
+   * 비로그인은 조회하지 않으므로 아래 `getList`가 곧바로 끈다.
+   */
+  private loading = true;
   // 저장된 정렬 복원(order.initialize())을 1회만 수행하기 위한 가드.
   // 목록 조회는 재포커스마다 반복되지만 AsyncStorage 복원은 첫 조회 때 한 번이면 된다(BAG-6).
   private initialized = false;
@@ -71,6 +76,8 @@ class Bag {
       this.setLoading(false);
     } else {
       this.setBags([]);
+      // 비로그인은 조회할 것이 없으므로 초기 로딩을 바로 끈다(위 loading 주석 참고).
+      this.setLoading(false);
     }
   }
 

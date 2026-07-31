@@ -18,6 +18,8 @@ const BagAddView: FC<Props> = ({ bag }) => {
 
   // iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) Layout 하단 세이프에어리어를 빼서
   // 화면 하단 기준이 된다 → 버튼을 탭바(=insets.bottom) 위 20pt에 띄운다.
+  // **로딩 중에는 이 버튼을 렌더하지 않는다**(호출부 참고) — 첫 프레임 인셋이 정착하기 전이라
+  // 여기서 계산한 위치가 탭바 뒤로 들어간다.
   const bottom = Platform.select({
     ios: insets.bottom + 20,
     android: 0,

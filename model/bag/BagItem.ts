@@ -18,7 +18,12 @@ class BagItem {
     // 여행지 날씨 스냅샷(DM 날씨 계약). 장비 상세 타임라인의 날씨 요약에 쓴다(GD-10). 없으면 null.
     private readonly weather: WeatherSnapshot | null = null,
     // 연결된 운동 기록 요약(DM-22). 장비 상세 활동 누적에 쓴다(GD-11). 없으면 null.
-    private readonly activity: BagActivitySummary | null = null
+    private readonly activity: BagActivitySummary | null = null,
+    /**
+     * 생성 시각(BAG-6 `최근 추가순`). **2026-07-31 이전 문서에는 없다**(DM-5) —
+     * 없으면 `editDate`로 대체하므로 여기서는 null을 허용한다.
+     */
+    private readonly createdAt: Dayjs | null = null
   ) {}
 
   public getID() {
@@ -58,6 +63,19 @@ class BagItem {
   // 여행 시작일 epoch(ms). 날짜가 없거나 파싱 불가면 null — 타임라인 정렬에서 뒤로 보낸다(GD-10).
   public getStartDateValue(): number | null {
     return this.startDate.isValid() ? this.startDate.valueOf() : null;
+  }
+
+  /**
+   * 추가 순 정렬용 값(BAG-6). `createdAt`이 없으면 `editDate`로 대체한다 —
+   * 수정한 적 없는 배낭은 두 값이 같고, 수정한 배낭은 실제 생성보다 뒤로 잡힌다.
+   * 둘 다 쓸 수 없으면 null이며, 호출부가 날짜 정렬과 같은 규칙으로 맨 뒤에 둔다.
+   */
+  public getCreatedValue(): number | null {
+    if (this.createdAt?.isValid()) {
+      return this.createdAt.valueOf();
+    }
+
+    return this.editDate.isValid() ? this.editDate.valueOf() : null;
   }
 
   public getWeight() {
