@@ -81,8 +81,8 @@ const HomeView: FC<Props> = ({ home }) => {
 
   return (
     <Layout edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}>
-      <View style={styles.titleRow}>
-        <PretendardText weight='bold' style={styles.titleText}>
+      <View style={styles.header}>
+        <PretendardText weight='bold' style={styles.headerText}>
           홈
         </PretendardText>
       </View>
@@ -92,22 +92,21 @@ const HomeView: FC<Props> = ({ home }) => {
 };
 
 const styles = StyleSheet.create({
-  // 창고 탭과 같은 large title 톤 — 탭을 옮겨도 위계가 흔들리지 않게 한다(LG-3).
-  titleRow: {
-    height: 44,
-    justifyContent: 'center',
-    marginTop: 8,
-    marginBottom: 10,
+  // 탭 루트 타이틀 — 정보(`내 정보`)·배낭 탭과 같은 문법(20pt bold + paddingVertical 24).
+  // 예전 창고 탭의 32pt large title은 검색 버튼을 같은 행에 두려던 그 화면만의 예외였고,
+  // 창고가 탭에서 내려온 지금 홈이 그걸 물려받을 이유가 없다.
+  header: {
+    paddingVertical: 24,
   },
-  titleText: {
-    fontSize: 32,
+  headerText: {
+    fontSize: 20,
     color: Color.textPrimary,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 8,
+    flexGrow: 1,
   },
   signedOut: {
     flex: 1,

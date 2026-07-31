@@ -8,16 +8,11 @@ import WarehouseScreen from '@/components/warehouse/WarehouseScreen';
 import LoadingIconView from '../ui/LoadingIconView';
 
 interface Props {
-  /**
-   * 홈에서 들어온 푸시 화면이면 true — 타이틀 앞에 뒤로 가기를 그린다(HM-4).
-   * 탭 루트로 쓰일 때는 돌아갈 곳이 없어 그리지 않는다.
-   */
-  showBack?: boolean;
   // 홈 미리보기에서 좁힌 1차 카테고리. 첫 조회부터 이 카테고리로 나간다.
   initialCategory?: GearFilter | undefined;
 }
 
-const WarehouseWrapper: FC<Props> = ({ showBack = false, initialCategory }) => {
+const WarehouseWrapper: FC<Props> = ({ initialCategory }) => {
   const [warehouse] = useState(() => {
     const created = Warehouse.from(
       WarehouseDispatcher.new(),
@@ -35,7 +30,7 @@ const WarehouseWrapper: FC<Props> = ({ showBack = false, initialCategory }) => {
   const isFirebaseInitialized = warehouse.isFirebaseInitialized();
 
   if (isFirebaseInitialized) {
-    return <WarehouseScreen warehouse={warehouse} showBack={showBack} />;
+    return <WarehouseScreen warehouse={warehouse} />;
   } else {
     return <LoadingIconView />;
   }

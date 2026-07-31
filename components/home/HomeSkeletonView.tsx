@@ -44,7 +44,7 @@ const HomeSkeletonView: FC = () => {
     <View style={styles.container}>
       {/* 다가오는 일정 카드 자리 */}
       <Animated.View style={[styles.sectionTitleBar, { opacity }]} />
-      <View style={styles.card}>
+      <View style={styles.tile}>
         <Animated.View style={[styles.badgeBar, { opacity }]} />
         <Animated.View style={[styles.titleBar, { opacity }]} />
         <Animated.View style={[styles.metaBar, { opacity }]} />
@@ -54,7 +54,7 @@ const HomeSkeletonView: FC = () => {
 
       {/* 창고 미리보기 카드 자리 */}
       <Animated.View style={[styles.sectionTitleBar, { opacity }]} />
-      <View style={styles.card}>
+      <View style={styles.list}>
         <Animated.View style={[styles.chipsBar, { opacity }]} />
         {[...Array(PREVIEW_ROWS)].map((_unused, index) => (
           <View key={index} style={styles.gearRow}>
@@ -78,43 +78,47 @@ const styles = StyleSheet.create({
     backgroundColor: Color.borderLight,
     marginBottom: 10,
   },
-  card: {
-    borderWidth: 1,
-    borderColor: Color.chipBorder,
-    borderRadius: Radius.modal,
+  // 들어올 화면과 같은 골격이어야 덜컥거리지 않는다 — 일정은 회색 타일, 창고는 평평한 목록.
+  tile: {
+    backgroundColor: Color.surfaceMuted,
+    borderRadius: Radius.card,
     padding: 18,
     marginBottom: 28,
   },
+  list: {
+    marginBottom: 28,
+  },
+  // 회색 타일 위에서는 borderLight(#F0F0F0)가 배경(#F5F5F5)에 묻힌다 — 한 톤 진한 값을 쓴다.
   badgeBar: {
     width: 52,
     height: 24,
     borderRadius: Radius.card,
-    backgroundColor: Color.borderLight,
+    backgroundColor: Color.chipInactiveBg,
     marginBottom: 10,
   },
   titleBar: {
     width: 170,
     height: 26,
     borderRadius: Radius.listThumb,
-    backgroundColor: Color.borderLight,
+    backgroundColor: Color.chipInactiveBg,
     marginBottom: 8,
   },
   metaBar: {
     width: 210,
     height: 16,
     borderRadius: Radius.listThumb,
-    backgroundColor: Color.borderLight,
+    backgroundColor: Color.chipInactiveBg,
   },
   statsBar: {
     height: 56,
     borderRadius: Radius.listThumb,
-    backgroundColor: Color.borderLight,
+    backgroundColor: Color.chipInactiveBg,
     marginTop: 16,
   },
   ctaBar: {
     height: 50,
     borderRadius: Radius.card,
-    backgroundColor: Color.borderLight,
+    backgroundColor: Color.chipInactiveBg,
     marginTop: 16,
   },
   chipsBar: {

@@ -13,7 +13,6 @@ export default function WarehousePage() {
 
   return (
     <WarehouseWrapper
-      showBack
       initialCategory={category ? (category as GearFilter) : undefined}
     />
   );
