@@ -1,8 +1,8 @@
-import { FC } from 'react';
+import { FC, useCallback, useRef } from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
@@ -18,6 +18,7 @@ interface Props {
 
 // 배낭 상세의 여행지 타일(DST-2/BD-10). 위치명이 주 정보고 날씨는 보조 정보다.
 // 미설정이면 중간 날씨 화면을 거치지 않고 공용 선택기를 바로 연다.
+// 선택기에서 여행지를 저장하면 **여행지 상세로 이어서 보낸다**(DST-2) — 아래 ref 주석 참고.
 const BagDetailDestinationView: FC<Props> = ({ bagDetail, emphasized = false }) => {
   const router = useRouter();
   const bagWeather = bagDetail.getBagWeather();
@@ -27,7 +28,28 @@ const BagDetailDestinationView: FC<Props> = ({ bagDetail, emphasized = false }) 
   // 실패는 선택기가 알리고 열린 채 유지하도록 그대로 던진다(DST-6).
   const handleConfirmLocation = async (next: BagLocation) => {
     await bagWeather.updateLocation(next);
+    // 선택기가 닫힌 **뒤에** 이동해야 한다 — 여기서 바로 push하면 선택기의 back()이
+    // 방금 띄운 화면을 도로 닫는다. 저장 성공만 기억해 두고 아래 포커스 시점에 옮긴다.
+    shouldOpenDestinationRef.current = true;
   };
+
+  /**
+   * 선택기에서 여행지를 저장했는지(DST-2). 저장 직후가 아니라 **배낭 상세가 다시 포커스될 때**
+   * 여행지 상세로 옮기기 위한 표시다. 방금 정한 여행지의 날씨를 바로 보게 하려는 것으로,
+   * 저장하고 배낭 상세에 그대로 머무르면 무엇이 저장됐는지 확인하려 한 번 더 눌러야 했다.
+   */
+  const shouldOpenDestinationRef = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!shouldOpenDestinationRef.current) {
+        return;
+      }
+
+      shouldOpenDestinationRef.current = false;
+      router.push(`/bag/${bagDetail.getId()}/weather`);
+    }, [router, bagDetail])
+  );
 
   const handlePress = () => {
     app.getAnalyticsManager()?.logClick('bag_weather');
