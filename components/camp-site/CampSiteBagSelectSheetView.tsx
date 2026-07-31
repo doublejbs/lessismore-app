@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
+import SheetGrabberView from '@/components/ui/SheetGrabberView';
 import { Color } from '@/constants/DesignTokens';
 import BagItem from '@/model/bag/BagItem';
 
@@ -54,7 +55,8 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
   // 시트 본문(헤더 + 목록). iOS는 pageSheet 전체, Android는 하단 바텀시트에 담는다.
   const sheetContent = (
     <>
-      {isAndroid && <View style={styles.grabber} />}
+      {/* iOS pageSheet Modal에도 OS 그래버가 없다 — 양쪽 다 핸들바를 직접 그린다. */}
+      <SheetGrabberView />
       <View style={styles.header}>
           <View style={styles.headerText}>
             <PretendardText style={styles.title} weight='bold'>
@@ -227,16 +229,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     paddingHorizontal: 20,
-  },
-  // 상단 그래버 핸들(다른 시트와 톤 통일).
-  grabber: {
-    alignSelf: 'center',
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Color.borderLight,
-    marginTop: 8,
-    marginBottom: 4,
   },
   // Android는 내용 높이에 맞춰 시트가 줄어들도록 flex를 강제하지 않는다.
   listAndroid: {

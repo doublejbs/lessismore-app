@@ -23,6 +23,7 @@ import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import SearchSkeletonView from '@/components/search/SearchSkeletonView';
 import BrandRowView from '@/components/browse/BrandRowView';
+import SheetGrabberView from '@/components/ui/SheetGrabberView';
 import app from '@/model/app/App';
 
 const CONFIRM_LABEL = '확인';
@@ -190,21 +191,36 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
         behavior='height'
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
+        {/* pageSheet Modal은 OS 그래버가 없다 — 핸들바를 직접 그리고 닫기를 둔다.
+            하단이 `확인` 하나뿐이라, 없으면 적용하지 않고 나가는 길이 스와이프뿐이었다. */}
+        <SheetGrabberView />
         <View style={styles.header}>
           <PretendardText style={styles.title} weight='bold'>
             브랜드
           </PretendardText>
-          {hasStagedFilter ? (
+          <View style={styles.headerActions}>
+            {hasStagedFilter ? (
+              <TouchableOpacity
+                onPress={handleReset}
+                activeOpacity={0.7}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
+                <PretendardText style={styles.resetText} weight='semibold'>
+                  초기화
+                </PretendardText>
+              </TouchableOpacity>
+            ) : null}
+            {/* 스와이프 닫기와 같은 경로 — 스테이징을 폐기하고 닫는다(적용 브랜드 유지). */}
             <TouchableOpacity
-              onPress={handleReset}
-              activeOpacity={0.7}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              onPress={handleCancel}
+              style={styles.closeButton}
+              accessibilityRole='button'
+              accessibilityLabel='닫기'
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <PretendardText style={styles.resetText} weight='semibold'>
-                초기화
-              </PretendardText>
+              <Ionicons name='close' size={24} color={Color.textPrimary} />
             </TouchableOpacity>
-          ) : null}
+          </View>
         </View>
 
         <View style={styles.brandSection}>
@@ -297,7 +313,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
+    paddingVertical: 8,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    // 닫기 버튼의 44pt 박스가 시트 우측 여백(20)을 먹고 들어가 아이콘이 안쪽으로 밀리지 않게 한다.
+    marginRight: -10,
   },
   title: {
     fontSize: 18,
@@ -307,6 +330,13 @@ const styles = StyleSheet.create({
   resetText: {
     fontSize: 14,
     color: Color.textTertiary,
+  },
+  // HIG 최소 터치 타깃 44×44pt.
+  closeButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   brandSection: {
     flex: 1,
