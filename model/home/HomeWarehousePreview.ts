@@ -56,14 +56,8 @@ export const getPreviewGears = (
     .slice(0, limit);
 };
 
-/**
- * 한 번도 안 쓴 장비 수 — `useless` 기록만 있고 `used`가 없는 것.
- *
- * 기록이 아예 없는 장비는 세지 않는다. "안 썼다"고 답한 적이 있어야 정리 대상이지,
- * 담아 두고 아직 여행을 안 간 장비까지 세면 신규 사용자에게 잔소리가 된다.
- */
+// 한 번도 안 쓴 장비 수. 판정 규칙은 `Gear.isNeverUsed()`가 단일 소스다 —
+// 창고의 `안 쓴 장비만`(WH-2)과 같은 규칙이어야 개수와 목록이 어긋나지 않는다.
 export const getUnusedCount = (gears: Gear[]): number => {
-  return gears.filter(
-    gear => gear.getUselessCount() > 0 && gear.getUsedCount() === 0
-  ).length;
+  return gears.filter(gear => gear.isNeverUsed()).length;
 };
