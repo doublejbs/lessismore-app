@@ -5,7 +5,6 @@ import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 import BagItem from '@/model/bag/BagItem';
-import HomeTripStage from '@/model/home/HomeTripStage';
 import {
   getDDayLabel,
   getPrimaryAction,
@@ -45,6 +44,10 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
     }
 
     const action = getPrimaryAction(primary, stage);
+
+    if (!action) {
+      return;
+    }
 
     app.getAnalyticsManager()?.logClick('home_trip_action', { stage });
     router.push(action.route as never);
@@ -90,10 +93,6 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
   const weatherSummary = summarizeWeatherPeriod(
     primary.getWeather()?.daily ?? []
   );
-  // 이미 시작한 일은 주 액션이 아니다 — 여행 중에는 보조 버튼으로 내린다.
-  const isSecondaryAction = stage === HomeTripStage.Ongoing;
-  const packingPercent = primary.getPackingPercent();
-  const hasPackingRecord = primary.hasPackingRecord();
 
   return (
     <View style={styles.section}>
@@ -134,6 +133,8 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
             </PretendardText>
           )}
 
+          {/* 날씨가 없으면 그 칸을 비워 두지 않고 아예 두지 않는다 — 채우려고 장비 수 같은
+              다른 지표를 끼워 넣으면 칸의 뜻이 배낭마다 달라진다. */}
           <View style={styles.stats}>
             <View style={styles.stat}>
               <PretendardText style={styles.statKey}>총 무게</PretendardText>
@@ -141,51 +142,30 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
                 {`${primary.getWeight()}kg`}
               </PretendardText>
             </View>
-            <View style={[styles.stat, styles.statDivided]}>
-              <PretendardText style={styles.statKey}>
-                {weatherSummary ? '예보' : '장비'}
-              </PretendardText>
-              <PretendardText weight='bold' style={styles.statValue}>
-                {weatherSummary
-                  ? `${weatherSummary.cond} ${weatherSummary.low}° / ${weatherSummary.high}°`
-                  : `${primary.getGearCount()}개`}
-              </PretendardText>
-            </View>
+            {weatherSummary ? (
+              <View style={[styles.stat, styles.statDivided]}>
+                <PretendardText style={styles.statKey}>예보</PretendardText>
+                <PretendardText weight='bold' style={styles.statValue}>
+                  {`${weatherSummary.cond} ${weatherSummary.low}° / ${weatherSummary.high}°`}
+                </PretendardText>
+              </View>
+            ) : null}
           </View>
         </TouchableOpacity>
 
-        {hasPackingRecord && (
-          <View style={styles.progressWrap}>
-            <View style={styles.progressTop}>
-              <PretendardText style={styles.progressLabel}>
-                패킹 진행
-              </PretendardText>
-              <PretendardText style={styles.progressLabel}>
-                {`${packingPercent}%`}
-              </PretendardText>
-            </View>
-            <View style={styles.progressTrack}>
-              <View
-                style={[styles.progressFill, { width: `${packingPercent}%` }]}
-              />
-            </View>
-          </View>
-        )}
-
-        <TouchableOpacity
-          style={[styles.cta, isSecondaryAction && styles.ctaGhost]}
-          onPress={handlePrimaryAction}
-          activeOpacity={0.8}
-          accessibilityRole='button'
-          accessibilityLabel={action.label}
-        >
-          <PretendardText
-            weight='bold'
-            style={[styles.ctaText, isSecondaryAction && styles.ctaGhostText]}
+        {action ? (
+          <TouchableOpacity
+            style={styles.cta}
+            onPress={handlePrimaryAction}
+            activeOpacity={0.8}
+            accessibilityRole='button'
+            accessibilityLabel={action.label}
           >
-            {action.label}
-          </PretendardText>
-        </TouchableOpacity>
+            <PretendardText weight='bold' style={styles.ctaText}>
+              {action.label}
+            </PretendardText>
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       {next.map(bag => (
@@ -276,29 +256,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Color.textPrimary,
   },
-  progressWrap: {
-    marginTop: 16,
-  },
-  progressTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  progressLabel: {
-    fontSize: 12,
-    color: Color.textSecondary,
-  },
-  progressTrack: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Color.background,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 3,
-    backgroundColor: Color.chipActiveBg,
-  },
   cta: {
     marginTop: 16,
     paddingVertical: 15,
@@ -307,16 +264,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // 회색 타일 위 보조 버튼 — inputBg는 타일 배경과 같은 값이라 흰 배경으로 세운다.
-  ctaGhost: {
-    backgroundColor: Color.background,
-  },
   ctaText: {
     fontSize: 15,
     color: Color.background,
-  },
-  ctaGhostText: {
-    color: Color.textPrimary,
   },
   emptyTitle: {
     fontSize: 17,
