@@ -50,6 +50,8 @@ app/(tabs)/index.tsx → WarehouseWrapper → WarehouseScreen
 - 이름은 `Gear.getDisplayName()`(= `nameKorean || name`)으로 표시한다 — `getName()` 직접 표시 금지.
 - 무게는 `{weight}g` 형식으로 표시한다.
 - 사용 기록이 있는 장비는 사용률 배지(`사용률 XX%` — `used`/`useless` 기록 기반)를 표시한다.
+- **상단 바 액션은 `[검색][+ 장비 추가]` 둘이다**(2026-07-31). 플로팅 `장비 추가` pill은 폐기 — 창고가 푸시 화면이 되며 헤더에 자리가 생겼고, 하단 플로팅 하나로 주 액션을 대표하던 이유가 사라졌다.
+  - iOS 검색은 네이티브 검색 바가 맡는다([LiquidGlassNavigation.md](LiquidGlassNavigation.md) LG-3 정정). Android·Web은 커스텀 헤더 행에 같은 순서로 두고, 탭하면 기존 검색 행이 열린다.
 - 목록은 전체 일괄 로드한다 (페이지네이션/무한 스크롤 없음).
 
 ### WH-2 카테고리 필터

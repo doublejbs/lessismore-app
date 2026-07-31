@@ -6,6 +6,8 @@ import {
   TextInput,
   TouchableOpacity,
   Platform,
+  NativeSyntheticEvent,
+  TextInputFocusEventData,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -18,7 +20,7 @@ import { Color, Radius } from '@/constants/DesignTokens';
 import Warehouse from '@/model/warehouse/Warehouse';
 import WarehouseFiltersView from '@/components/warehouse/WarehouseFiltersView';
 import WarehouseGearView from '@/components/warehouse/WarehouseGearView';
-import AddButtonView from '@/components/warehouse/AddButtonView';
+import useGearAddAction from '@/components/warehouse/useGearAddAction';
 import WarehouseSkeletonView from '@/components/warehouse/WarehouseSkeletonView';
 import { josa } from 'josa';
 
@@ -39,6 +41,7 @@ const IOS_EDGES = ['left', 'right', 'bottom'] as const;
 
 const WarehouseView: FC<Props> = ({ warehouse }) => {
   const router = useRouter();
+  const handleAddGear = useGearAddAction();
   const gears = warehouse.getGears();
   const isEmpty = warehouse.isEmpty();
   const isLoading = warehouse.isLoading();
@@ -53,7 +56,9 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
         warehouse.setQuery('');
         setIsSearching(false);
       };
-    }, [warehouse])
+      // setIsSearching은 setState라 안정적이지만, 빠뜨리면 React Compiler가 추론한
+      // 의존성과 어긋나 이 컴포넌트 최적화를 통째로 건너뛴다.
+    }, [warehouse, setIsSearching])
   );
 
   useEffect(() => {
@@ -128,23 +133,51 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
             // 검색 중에는 헤더를 내린다. 그래야 검색 행이 헤더 자리를 **차지**해
             // 아래 콘텐츠가 밀리지 않는다(원래 타이틀 행 44 ↔ 검색 행 44 맞교환이던 것을
             // 네이티브 헤더로 바꾸면서 깨졌다). `창고` 타이틀도 검색 모드에선 군더더기다.
-            headerShown: IS_IOS && !isSearching,
+            headerShown: IS_IOS,
             headerTransparent: true,
             headerTitle: '창고',
             headerBackButtonDisplayMode: 'minimal',
-            // 빈 창고·검색 중에는 버튼을 비운다. `undefined`를 넣을 수 없어(옵션 타입이
-            // 함수를 요구한다) 아무것도 그리지 않는 함수를 돌려준다.
-            headerRight: () =>
-              isEmpty || isSearching ? null : (
-                <TouchableOpacity
-                  onPress={() => setIsSearching(true)}
-                  hitSlop={8}
-                  accessibilityRole='button'
-                  accessibilityLabel='검색'
-                >
-                  <Ionicons name='search' size={20} color={Color.textPrimary} />
-                </TouchableOpacity>
-              ),
+            // 주 액션인 `장비 추가`를 바 버튼으로 올린다(2026-07-31). 검색은 하단 우측
+            // 플로팅으로 내렸다 — 창고에서 자주 하는 일은 담기지 찾기가 아니다.
+            headerRight: () => (
+              <TouchableOpacity
+                onPress={handleAddGear}
+                hitSlop={8}
+                accessibilityRole='button'
+                accessibilityLabel='장비 추가'
+              >
+                <Ionicons name='add' size={26} color={Color.textPrimary} />
+              </TouchableOpacity>
+            ),
+            /**
+             * iOS 26 네이티브 검색(LG-3 재검토, 2026-07-31).
+             *
+             * `integratedButton`은 비활성 상태를 **버튼**으로 두고 탭하면 필드로 펼친다.
+             * 다만 기본값(`allowToolbarIntegration: true`)이면 iPhone에서 **하단 툴바 가운데**로
+             * 내려가므로 꺼서 상단 바에 남긴다 — 캘린더 앱과 같은 모습이다.
+             *
+             * 이 조합이 되면서 LG-3이 커스텀 행을 택했던 이유가 사라졌다. 그때 기각 사유는
+             * "large title과 같은 행에 못 둔다"였는데, 창고가 푸시 화면이 되며 large title이 없다.
+             */
+            ...(isEmpty
+              ? {}
+              : {
+                  headerSearchBarOptions: {
+                    placement: 'integratedButton' as const,
+                    allowToolbarIntegration: false,
+                    // 검색을 펼칠 때 내비게이션 바를 감추지 않는다. iOS 26은 이 값을 문맥으로
+                    // 정하는데, 감추는 쪽으로 판단되면 좌측 뒤로가기가 잠깐 가려졌다 사라진다.
+                    // 뒤로가기는 검색 중에도 살아 있어야 하므로 명시적으로 끈다.
+                    hideNavigationBar: false,
+                    placeholder: '장비 검색',
+                    cancelButtonText: '취소',
+                    hideWhenScrolling: false,
+                    onChangeText: (
+                      event: NativeSyntheticEvent<TextInputFocusEventData>
+                    ) => warehouse.setQuery(event.nativeEvent.text),
+                    onClose: () => warehouse.setQuery(''),
+                  },
+                }),
           }}
         />
         <View
@@ -153,13 +186,11 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
             // 투명 헤더(상태바 + 44pt) 아래에서 고정 상단 콘텐츠가 시작하게 한다.
             // 검색 중에는 헤더가 없으므로 상태바 몫만 띄운다.
             IS_IOS && {
-              paddingTop: isSearching
-                ? insets.top
-                : insets.top + NATIVE_HEADER_HEIGHT + HEADER_CONTENT_GAP,
+              paddingTop: insets.top + NATIVE_HEADER_HEIGHT + HEADER_CONTENT_GAP,
             },
           ]}
         >
-          {isSearching ? (
+          {isSearching && !IS_IOS ? (
               <View style={[styles.searchRow, IS_IOS && styles.searchRowIos]}>
                 <View style={styles.searchBox}>
                   <Ionicons name='search' size={18} color={Color.textSecondary} />
@@ -221,13 +252,15 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                   <PretendardText weight='bold' style={styles.titleText}>
                     창고
                   </PretendardText>
+                  {/* iOS는 네이티브 바가 [검색][+]를 그린다 — 여기서도 같은 순서·같은 자리에
+                      둬서 플랫폼 간 배치가 어긋나지 않게 한다. */}
                   {!isEmpty && (
                     <TouchableOpacity
                       onPress={() => setIsSearching(true)}
                       style={styles.circleSearchButton}
                       hitSlop={8}
                       accessibilityRole='button'
-                      accessibilityLabel='검색'
+                      accessibilityLabel='장비 검색'
                     >
                       <Ionicons
                         name='search'
@@ -236,13 +269,21 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                       />
                     </TouchableOpacity>
                   )}
+                  <TouchableOpacity
+                    onPress={handleAddGear}
+                    style={styles.circleSearchButton}
+                    hitSlop={8}
+                    accessibilityRole='button'
+                    accessibilityLabel='장비 추가'
+                  >
+                    <Ionicons name='add' size={24} color={Color.textPrimary} />
+                  </TouchableOpacity>
                 </View>
               )
             )}
             {!isEmpty && <WarehouseFiltersView warehouse={warehouse} />}
         </View>
         <View style={styles.contentContainer}>{renderGears()}</View>
-        <AddButtonView />
       </Layout>
     </GestureHandlerRootView>
   );
