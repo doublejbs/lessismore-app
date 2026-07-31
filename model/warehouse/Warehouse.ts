@@ -221,9 +221,20 @@ class Warehouse {
     return this.unusedOnly;
   }
 
-  // 좁힌 상태를 푼다 — 사용자가 칩을 눌러 해제할 때.
-  public clearUnusedOnly() {
-    this.unusedOnly = false;
+  // 창고에서 직접 켜고 끈다(WH-2). 홈에서 켠 채로 들어온 경우도 같은 칩으로 해제한다.
+  public toggleUnusedOnly() {
+    this.unusedOnly = !this.unusedOnly;
+  }
+
+  /**
+   * 지금 보고 있는 범위에 한 번도 안 쓴 장비가 있는지.
+   *
+   * 칩 노출 조건이다 — 눌러도 빈 목록만 나오는 칩은 노이즈라 없을 때는 아예 그리지 않는다.
+   * **`unusedOnly` 적용 전 집합**으로 판단해야 한다. 켠 뒤에 목록이 그 장비들로만 채워졌다고
+   * 조건이 유지되는 건 맞지만, 반대로 끈 상태와 켠 상태에서 칩이 나타났다 사라지면 안 된다.
+   */
+  public hasNeverUsedGear() {
+    return this.gears.some(gear => gear.isNeverUsed());
   }
 
   public getFineCategory() {
