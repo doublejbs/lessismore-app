@@ -116,12 +116,12 @@ export const getPrimaryAction = (
   const id = bag.getID();
 
   switch (stage) {
-    // 출발 전에는 남은 일수와 무관하게 담을 것을 담는 게 할 일이다.
-    // 장비 편집 화면으로 바로 보내지 않고 **배낭 상세**로 보낸다 — 담기 말고도 여행지·날짜
-    // 같은 손볼 거리가 있어서, 한 화면 먼저 보여주고 고르게 한다.
+    // 출발 전에는 배낭 상세로 보낸다 — 담을 것 말고도 여행지·날짜처럼 손볼 거리가 있어서
+    // 한 화면 먼저 보여주고 고르게 한다. 라벨도 도착지에 맞춘다: `장비 담기`라고 하면
+    // 담기 화면이 열릴 것처럼 읽힌다(컨트롤은 실제로 일어나는 일을 말해야 한다).
     case HomeTripStage.Planning:
     case HomeTripStage.Imminent: {
-      return { label: '장비 담기', route: `/bag/${id}` };
+      return { label: '배낭 보기', route: `/bag/${id}` };
     }
     // 여행 중에 홈에서 시킬 일은 없다. 카드를 누르면 배낭 상세로는 갈 수 있다.
     case HomeTripStage.Ongoing: {
