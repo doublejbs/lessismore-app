@@ -18,6 +18,7 @@ import { Color, Radius } from '@/constants/DesignTokens';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
+import SheetGrabberView from '@/components/ui/SheetGrabberView';
 import app from '@/model/app/App';
 
 interface Props {
@@ -111,9 +112,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
             activeOpacity={1}
             onPress={e => e.stopPropagation()}
           >
-            <View style={styles.drawerHandle}>
-              <View style={styles.drawerBar} />
-            </View>
+            <SheetGrabberView />
             <View style={styles.titleSection}>
               <PretendardText style={styles.title} weight='bold'>
                 창고에 추가됐습니다.
@@ -214,15 +213,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     paddingBottom: 32,
-  },
-  drawerHandle: {
-    alignItems: 'center',
-  },
-  drawerBar: {
-    width: 36,
-    height: 4,
-    backgroundColor: '#D1D1D6',
-    borderRadius: 2,
   },
   closeButton: {
     backgroundColor: Color.chipActiveBg,
