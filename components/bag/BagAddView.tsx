@@ -4,13 +4,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Bag from '@/model/bag/Bag';
 import app from '@/model/app/App';
+import { createQuickBag } from '@/model/bag/QuickBagDefaults';
 import FloatingPillButton from '@/components/FloatingPillButton';
 
 interface Props {
   bag: Bag;
 }
 
-// 배낭 추가 진입점. 배낭이 없으면 바로 생성 폼, 있으면 추가 액션시트(모두 네이티브 formSheet 라우트).
+// 배낭 추가 진입점(BAG-2). 배낭이 없으면 **입력 없이 즉시 생성**, 있으면 추가 액션시트.
 const BagAddView: FC<Props> = ({ bag }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -23,7 +24,7 @@ const BagAddView: FC<Props> = ({ bag }) => {
     default: 80,
   });
 
-  const handlePressAdd = () => {
+  const handlePressAdd = async () => {
     app.getAnalyticsManager()?.logClick('bag_add');
 
     if (!app.getFirebase()?.isLoggedIn()) {
@@ -33,7 +34,7 @@ const BagAddView: FC<Props> = ({ bag }) => {
     }
 
     if (bag.isEmpty()) {
-      router.push('/bag-new');
+      await createQuickBag(router);
     } else {
       router.push('/bag-add-options');
     }

@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Color, Radius } from '@/constants/DesignTokens';
+import { createQuickBag } from '@/model/bag/QuickBagDefaults';
 
 // BAG-2: 배낭 추가 진입 시트 — iOS/Android 네이티브 formSheet(react-native-screens)로 표시.
 // 그래버·드래그 닫기는 OS 레벨. 항목 선택 시 시트를 먼저 닫고, 브리지로 다음 모달을 연다.
@@ -12,9 +13,17 @@ const BagAddOptionsScreen = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const select = (type: 'create' | 'copy') => {
-    // 탭으로 돌아가지 않고 다음 시트로 바로 교체 (중간 탭 리로드 노출 방지).
-    router.replace(type === 'create' ? '/bag-new' : '/bag-copy-source');
+  const select = async (type: 'create' | 'copy') => {
+    if (type === 'copy') {
+      // 탭으로 돌아가지 않고 다음 시트로 바로 교체 (중간 탭 리로드 노출 방지).
+      router.replace('/bag-copy-source');
+
+      return;
+    }
+
+    // 새로 만들기는 입력을 받지 않는다(BAG-2) — 시트를 닫고 바로 만들어 상세로 보낸다.
+    router.back();
+    await createQuickBag(router);
   };
 
   return (

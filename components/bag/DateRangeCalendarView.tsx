@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { FC, useEffect, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
 
@@ -23,6 +24,11 @@ const DateRangeCalendarView: FC<Props> = ({
     initialMonth ? initialMonth.startOf('month') : dayjs().startOf('month')
   );
   const [calendarDays, setCalendarDays] = useState<dayjs.Dayjs[]>([]);
+  /**
+   * 캘린더 펼침 상태(BAG-2). **기본은 접힘**이다 — 대다수는 기본 날짜(오늘~내일)를 그대로
+   * 쓰는데 캘린더가 항상 펼쳐져 있으면 정작 먼저 손대는 이름 입력이 위로 밀린다.
+   */
+  const [isOpen, setIsOpen] = useState(false);
   const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
 
   useEffect(() => {
@@ -50,6 +56,10 @@ const DateRangeCalendarView: FC<Props> = ({
     setCalendarDays([...prevMonthDays, ...currentMonthDays, ...nextMonthDays]);
   }, [currentMonth]);
 
+  const handleToggle = () => {
+    setIsOpen(open => !open);
+  };
+
   const handleDateClick = (day: dayjs.Dayjs) => {
     // 1. startDate와 endDate가 모두 있으면 - 새 startDate 선택하고 endDate는 해제
     if (startDate && endDate) {
@@ -63,8 +73,11 @@ const DateRangeCalendarView: FC<Props> = ({
     // 3. startDate만 있고, 선택한 날짜가 startDate보다 나중이면 - endDate 선택
     else if (startDate && !endDate && day.isAfter(startDate)) {
       onEndDateChange(day);
+      // 범위 선택이 끝났으므로 접는다(BAG-2) — 다시 누르면 열린다.
+      setIsOpen(false);
     } else if (startDate && day.isSame(startDate)) {
       onEndDateChange(day);
+      setIsOpen(false);
     }
     // 4. startDate가 없으면 (또는 기타 경우) - startDate 선택
     else {
@@ -95,6 +108,9 @@ const DateRangeCalendarView: FC<Props> = ({
     return day.month() === currentMonth.month();
   };
 
+  // 두 날짜가 모두 있어야 기간으로 읽힌다 — 값 표기와 플레이스홀더를 가른다.
+  const hasRange = startDate !== null && endDate !== null;
+
   const navigateToPreviousMonth = () => {
     setCurrentMonth(currentMonth.subtract(1, 'month'));
   };
@@ -105,31 +121,44 @@ const DateRangeCalendarView: FC<Props> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.dateSelectionContainer}>
-        <View style={styles.dateSection}>
-          <PretendardText weight='semibold' style={styles.dateLabel}>
-            시작일
+      {/**
+        * 여행 기간은 **필드 하나**다(BAG-2).
+        *
+        * 예전에는 `시작일`·`종료일`을 각각 라벨 + 값 박스로 나눠 두 필드처럼 보였는데,
+        * 실제 컨트롤은 행 전체 하나이고 열리는 것도 **범위 선택기 하나**였다. 종료일 박스를
+        * 눌러도 범위 규칙(먼저 누른 날이 시작일)으로 동작해 기대와 어긋났다.
+        * 구조를 동작에 맞춰 하나로 합치고, 이름 입력과 같은 높이·같은 면을 쓴다.
+        */}
+      <View style={styles.fieldSection}>
+        <PretendardText weight='semibold' style={styles.fieldLabel}>
+          여행 기간
+        </PretendardText>
+        <TouchableOpacity
+          style={styles.periodField}
+          onPress={handleToggle}
+          activeOpacity={0.7}
+          accessibilityRole='button'
+          accessibilityState={{ expanded: isOpen }}
+          accessibilityLabel='여행 기간 선택'
+        >
+          <PretendardText
+            style={[styles.periodText, !hasRange && styles.periodPlaceholder]}
+          >
+            {hasRange
+              ? `${startDate.format('YYYY.MM.DD')} – ${endDate.format('YYYY.MM.DD')}`
+              : '기간을 선택해주세요'}
           </PretendardText>
-          <View style={styles.dateDisplay}>
-            <PretendardText style={styles.dateText}>
-              {startDate ? startDate.format('YYYY.MM.DD') : '선택 안됨'}
-            </PretendardText>
-          </View>
-        </View>
-
-        <View style={styles.dateSection}>
-          <PretendardText weight='semibold' style={styles.dateLabel}>
-            종료일
-          </PretendardText>
-          <View style={styles.dateDisplay}>
-            <PretendardText style={styles.dateText}>
-              {endDate ? endDate.format('YYYY.MM.DD') : '선택 안됨'}
-            </PretendardText>
-          </View>
-        </View>
+          <Ionicons
+            name={isOpen ? 'chevron-up' : 'chevron-down'}
+            size={18}
+            color={Color.textSecondary}
+          />
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.navigationContainer}>
+      {isOpen ? (
+        <>
+          <View style={styles.navigationContainer}>
         <TouchableOpacity
           onPress={navigateToPreviousMonth}
           style={styles.navigationButton}
@@ -222,6 +251,8 @@ const DateRangeCalendarView: FC<Props> = ({
           })}
         </View>
       </View>
+        </>
+      ) : null}
     </View>
   );
 };
@@ -230,29 +261,30 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
   },
-  dateSelectionContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 10,
+  fieldSection: {
+    gap: 8,
   },
-  dateSection: {
-    flex: 1,
-    gap: 5,
-  },
-  dateLabel: {
+  fieldLabel: {
     fontSize: 15,
     lineHeight: 20,
     color: Color.textPrimary,
   },
-  dateDisplay: {
+  // 이름 입력과 같은 면·높이를 쓴다 — 같은 폼 안에서 필드 문법이 갈리지 않게 한다.
+  periodField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: Color.surfaceMuted,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: Radius.card,
+    borderRadius: Radius.input,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
   },
-  dateText: {
-    textAlign: 'center',
+  periodText: {
+    fontSize: 16,
     color: Color.textPrimary,
+  },
+  periodPlaceholder: {
+    color: Color.textSecondary,
   },
   navigationContainer: {
     flexDirection: 'row',
