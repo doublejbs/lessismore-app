@@ -375,6 +375,7 @@ class BagStore {
         location,
         weather,
         activity,
+        createdAt,
       } = doc.data();
 
       result.push(
@@ -390,7 +391,8 @@ class BagStore {
           packedGears ?? [],
           location ?? null,
           weather ?? null,
-          activity ?? null
+          activity ?? null,
+          createdAt ? dayjs(createdAt) : null
         )
       );
     });
@@ -403,6 +405,8 @@ class BagStore {
       weight: 0,
       gears: [],
       editDate: new Date().toISOString(),
+      // 생성 시 1회만 쓰고 갱신하지 않는다 — `최근 추가순` 정렬 기준(BAG-6, DM-5).
+      createdAt: new Date().toISOString(),
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
       shared: false,
@@ -445,6 +449,8 @@ class BagStore {
       weight,
       gears,
       editDate: new Date().toISOString(),
+      // 복사도 새로 만든 배낭이므로 생성 시각을 남긴다(BAG-6).
+      createdAt: new Date().toISOString(),
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
       shared: false,

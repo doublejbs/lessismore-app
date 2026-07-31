@@ -54,6 +54,29 @@ const compareByStartDateDesc = (a: BagItem, b: BagItem): number =>
 const compareByStartDateAsc = (a: BagItem, b: BagItem): number =>
   compareByStartDate(a, b, false);
 
+/**
+ * 추가 순 비교(BAG-6) — 값 없음은 방향과 무관하게 항상 뒤로 보낸다.
+ * `createdAt`이 없는 레거시 문서는 `editDate`로 대체된 값이 들어온다(BagItem.getCreatedValue).
+ */
+const compareByCreatedDesc = (a: BagItem, b: BagItem): number => {
+  const aValue = a.getCreatedValue();
+  const bValue = b.getCreatedValue();
+
+  if (aValue === null && bValue !== null) {
+    return 1;
+  }
+
+  if (aValue !== null && bValue === null) {
+    return -1;
+  }
+
+  if (aValue !== null && bValue !== null && aValue !== bValue) {
+    return bValue - aValue;
+  }
+
+  return compareByCodePoint(a.getID(), b.getID());
+};
+
 // 무게 비교 — 배낭의 0g은 무게 미입력이 아니라 빈 배낭이므로 창고 WH-3의 0g 예외를 적용하지 않는다(BAG-6).
 const compareByBagWeight = (
   a: BagItem,
@@ -98,13 +121,16 @@ const compareByBagNameAsc = (a: BagItem, b: BagItem): number => {
 };
 
 // 선택된 정렬에 해당하는 비교자를 준다(BAG-6).
-// 정렬 미복원(undefined)·알 수 없는 값은 기본 정렬(최근 여행순)로 떨어진다.
+// 정렬 미복원(undefined)·알 수 없는 값은 기본 정렬(최근 추가순)로 떨어진다.
 export const getBagComparator = (
   order?: OrderType
 ): ((a: BagItem, b: BagItem) => number) => {
   switch (order) {
     case OrderType.StartDateAsc: {
       return compareByStartDateAsc;
+    }
+    case OrderType.StartDateDesc: {
+      return compareByStartDateDesc;
     }
     case OrderType.WeightDesc: {
       return compareByBagWeightDesc;
@@ -115,9 +141,9 @@ export const getBagComparator = (
     case OrderType.NameAsc: {
       return compareByBagNameAsc;
     }
-    case OrderType.StartDateDesc:
+    case OrderType.CreatedDesc:
     default: {
-      return compareByStartDateDesc;
+      return compareByCreatedDesc;
     }
   }
 };
