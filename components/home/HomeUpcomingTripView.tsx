@@ -45,10 +45,6 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
 
     const action = getPrimaryAction(primary, stage);
 
-    if (!action) {
-      return;
-    }
-
     app.getAnalyticsManager()?.logClick('home_trip_action', { stage });
     router.push(action.route as never);
   };
@@ -93,6 +89,12 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
   const weatherSummary = summarizeWeatherPeriod(
     primary.getWeather()?.daily ?? []
   );
+  // 챙긴 무게는 장비 문서를 따로 읽어야 나오는데(BagItem은 ID만 들고 있다) 그러면 홈의
+  // `네트워크 호출 없음`이 깨진다 — 개수와 진행 바까지만 보여준다.
+  const hasPackingRecord = primary.hasPackingRecord();
+  const packedCount = primary.getPackedGearCount();
+  const gearCount = primary.getGearCount();
+  const packingPercent = primary.getPackingPercent();
 
   return (
     <View style={styles.section}>
@@ -153,19 +155,35 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
           </View>
         </TouchableOpacity>
 
-        {action ? (
-          <TouchableOpacity
-            style={styles.cta}
-            onPress={handlePrimaryAction}
-            activeOpacity={0.8}
-            accessibilityRole='button'
-            accessibilityLabel={action.label}
-          >
-            <PretendardText weight='bold' style={styles.ctaText}>
-              {action.label}
-            </PretendardText>
-          </TouchableOpacity>
+        {hasPackingRecord ? (
+          <View style={styles.progressWrap}>
+            <View style={styles.progressTop}>
+              <PretendardText style={styles.progressLabel}>
+                챙긴 장비
+              </PretendardText>
+              <PretendardText weight='semibold' style={styles.progressValue}>
+                {`${packedCount}/${gearCount}`}
+              </PretendardText>
+            </View>
+            <View style={styles.progressTrack}>
+              <View
+                style={[styles.progressFill, { width: `${packingPercent}%` }]}
+              />
+            </View>
+          </View>
         ) : null}
+
+        <TouchableOpacity
+          style={styles.cta}
+          onPress={handlePrimaryAction}
+          activeOpacity={0.8}
+          accessibilityRole='button'
+          accessibilityLabel={action.label}
+        >
+          <PretendardText weight='bold' style={styles.ctaText}>
+            {action.label}
+          </PretendardText>
+        </TouchableOpacity>
       </View>
 
       {next.map(bag => (
@@ -255,6 +273,35 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 16,
     color: Color.textPrimary,
+  },
+  progressWrap: {
+    marginTop: 16,
+  },
+  progressTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 6,
+  },
+  progressLabel: {
+    fontSize: 12,
+    color: Color.textSecondary,
+  },
+  progressValue: {
+    fontSize: 13,
+    color: Color.textPrimary,
+  },
+  // 회색 타일 위라 트랙은 흰색으로 — chipInactiveBg는 타일 배경과 거의 같아 묻힌다.
+  progressTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Color.background,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+    backgroundColor: Color.chipActiveBg,
   },
   cta: {
     marginTop: 16,

@@ -103,29 +103,31 @@ export const getDDayLabel = (
 };
 
 /**
- * 시점별 주 액션(HM-1). 해당 시점에 할 일이 없으면 null — 버튼을 비운다.
+ * 시점별 주 액션(HM-1).
  *
- * **홈은 패킹으로 보내지 않는다**(2026-07-31 결정). 그래서 D-1 패킹 알림(NT-2)과 짝이 되는
- * 목적지는 홈에 없다 — 패킹 진입은 알림과 배낭 상세가 계속 담당한다. 여행 후 기록(NT-3)
- * 대응만 남는다.
+ * **패킹 버튼은 D-1부터 낸다.** 그 전에는 아직 담는 단계라 짐 싸기를 권할 때가 아니고,
+ * 배낭 상세로 보내 담기·여행지·날짜 중 필요한 걸 고르게 한다.
+ *
+ * 알림과 목적지를 맞춘다 — D-1 패킹 알림(NT-2)도, 여행 후 기록 알림(NT-3)도 홈에서
+ * 같은 화면에 닿는다. 알림을 놓쳐도 홈에서 같은 할 일에 도달하는 것이 이 카드의 존재 이유다.
  */
 export const getPrimaryAction = (
   bag: BagItem,
   stage: HomeTripStage
-): HomeTripAction | null => {
+): HomeTripAction => {
   const id = bag.getID();
 
   switch (stage) {
-    // 출발 전에는 배낭 상세로 보낸다 — 담을 것 말고도 여행지·날짜처럼 손볼 거리가 있어서
-    // 한 화면 먼저 보여주고 고르게 한다. 라벨도 도착지에 맞춘다: `장비 담기`라고 하면
-    // 담기 화면이 열릴 것처럼 읽힌다(컨트롤은 실제로 일어나는 일을 말해야 한다).
-    case HomeTripStage.Planning:
-    case HomeTripStage.Imminent: {
+    // 라벨은 도착지에 맞춘다 — `장비 담기`라고 하면 담기 화면이 열릴 것처럼 읽힌다.
+    case HomeTripStage.Planning: {
       return { label: '배낭 보기', route: `/bag/${id}` };
     }
-    // 여행 중에 홈에서 시킬 일은 없다. 카드를 누르면 배낭 상세로는 갈 수 있다.
+    case HomeTripStage.Imminent: {
+      return { label: '패킹 시작', route: `/bag/${id}/packing` };
+    }
+    // 이미 시작한 일이라 `시작`이 아니다.
     case HomeTripStage.Ongoing: {
-      return null;
+      return { label: '패킹 확인', route: `/bag/${id}/packing` };
     }
     case HomeTripStage.JustFinished: {
       return { label: '사용 기록하기', route: `/useless/${id}` };

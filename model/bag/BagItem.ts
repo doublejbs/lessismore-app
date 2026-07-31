@@ -125,6 +125,29 @@ class BagItem {
     return this.endDate.format('YYYY.MM.DD');
   }
 
+  // 담긴 장비 수. 홈 카드가 패킹 진행을 개수로 보여준다(HM-1).
+  public getGearCount(): number {
+    return this.gears.length;
+  }
+
+  /**
+   * 실제로 챙긴 장비 수(PK-2). `getPackingPercent()`와 같은 교집합을 센다 —
+   * 퍼센트만으로는 `12/18` 같은 표시를 되돌릴 수 없어 개수를 따로 낸다.
+   */
+  public getPackedGearCount(): number {
+    const gearsSet = new Set(this.gears);
+    const packedGearsSet = new Set(this.packedGears);
+    let count = 0;
+
+    gearsSet.forEach(gearId => {
+      if (packedGearsSet.has(gearId)) {
+        count++;
+      }
+    });
+
+    return count;
+  }
+
   public getPackingPercent(): number {
     // gears가 비면 0 반환
     if (this.gears.length === 0) {
