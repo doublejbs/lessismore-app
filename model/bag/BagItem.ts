@@ -65,6 +65,11 @@ class BagItem {
     return this.startDate.isValid() ? this.startDate.valueOf() : null;
   }
 
+  // 여행 종료일 epoch(ms). 홈이 "여행 중 / 종료 후"를 가르는 데 쓴다(HM-1).
+  public getEndDateValue(): number | null {
+    return this.endDate.isValid() ? this.endDate.valueOf() : null;
+  }
+
   /**
    * 추가 순 정렬용 값(BAG-6). `createdAt`이 없으면 `editDate`로 대체한다 —
    * 수정한 적 없는 배낭은 두 값이 같고, 수정한 배낭은 실제 생성보다 뒤로 잡힌다.
@@ -118,6 +123,29 @@ class BagItem {
 
   public getEndDate() {
     return this.endDate.format('YYYY.MM.DD');
+  }
+
+  // 담긴 장비 수. 홈 카드가 패킹 진행을 개수로 보여준다(HM-1).
+  public getGearCount(): number {
+    return this.gears.length;
+  }
+
+  /**
+   * 실제로 챙긴 장비 수(PK-2). `getPackingPercent()`와 같은 교집합을 센다 —
+   * 퍼센트만으로는 `12/18` 같은 표시를 되돌릴 수 없어 개수를 따로 낸다.
+   */
+  public getPackedGearCount(): number {
+    const gearsSet = new Set(this.gears);
+    const packedGearsSet = new Set(this.packedGears);
+    let count = 0;
+
+    gearsSet.forEach(gearId => {
+      if (packedGearsSet.has(gearId)) {
+        count++;
+      }
+    });
+
+    return count;
   }
 
   public getPackingPercent(): number {

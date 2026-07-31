@@ -32,7 +32,7 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
       return (
         <View style={[styles.statusTag, styles.uselessTag]}>
           <PretendardText style={[styles.statusTagText, styles.uselessTagText]}>
-            안 씀
+            사용 안함
           </PretendardText>
         </View>
       );
@@ -45,7 +45,7 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
         </View>
       );
     } else {
-      // 미기록 — `사용`·`안 씀`과 같은 시각 문법의 태그 한 단어로 둔다(GD-10).
+      // 미기록 — `사용`·`사용 안함`과 같은 시각 문법의 태그로 둔다(GD-10).
       // 태그 자리에 문장("사용 여부를 입력해주세요")을 넣으면 보조 문구가 배낭 이름보다
       // 넓은 자리를 차지해 이름이 말줄임된다. 입력 유도는 우측 꺾쇠(›)와 탭 동작이 맡는다.
       return (
@@ -84,7 +84,7 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
         onPress={handlePress}
         // 커스텀 라벨을 두면 자식 텍스트(기간·여행지·날씨·상태)가 스크린리더에서
         // 전부 가려지므로, 라벨 없이 자식 평탄화에 맡긴다(HIG 접근성).
-        // 상태는 태그 텍스트(`사용`·`안 씀`·`미기록`)로 라벨에 그대로 들어간다.
+        // 상태는 태그 텍스트(`사용`·`사용 안함`·`미기록`)로 라벨에 그대로 들어간다.
         accessibilityRole='button'
         // 미기록 행에서만 입력 유도를 힌트로 남긴다 — 태그를 한 단어로 줄이면서(GD-10)
         // 문장이 하던 안내를 시각 대신 접근성 레이어가 맡는다.
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   usedTagText: {
     color: Color.textTertiary,
   },
-  // `안 씀`도 끝난 기록 — 셋 중 가장 조용한 아웃라인. 카드 배경(inputBg) 위에서 흰 칩이
+  // `사용 안함`도 끝난 기록 — 셋 중 가장 조용한 아웃라인. 카드 배경(inputBg) 위에서 흰 칩이
   // 사라지지 않도록 테두리를 보이게 둔다(GD-10).
   uselessTag: {
     backgroundColor: Color.background,

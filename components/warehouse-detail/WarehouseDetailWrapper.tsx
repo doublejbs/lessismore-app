@@ -1,9 +1,9 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WarehouseDetailView from './WarehouseDetailView';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import WarehouseDispatcher from '../../model/warehouse/WarehouseDispatcher';
 import Layout from '../Layout';
 
@@ -32,6 +32,15 @@ const WarehouseDetailWrapper: FC<Props> = ({}) => {
 
     warehouseDetail.initialize(id);
   }, [id, bagId]);
+
+  // 사용 여부 기록(`/useless/{id}`)·배낭 편집·리뷰 작성에서 돌아오면 기록도 여행 목록도
+  // 바뀌어 있을 수 있어 통째로 다시 읽는다. 첫 진입에서는 위 initialize가 이미 읽으므로
+  // reload가 초기화 전에는 아무것도 하지 않는다.
+  useFocusEffect(
+    useCallback(() => {
+      void warehouseDetail.reload();
+    }, [warehouseDetail])
+  );
 
   if (initialized) {
     return (

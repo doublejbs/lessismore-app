@@ -67,6 +67,29 @@ class Warehouse {
     this.setInitialized(true);
   }
 
+  /**
+   * 초기 1차 필터를 세운다 — 홈 미리보기(HM-4)에서 카테고리를 좁힌 채 들어올 때 쓴다.
+   * 들어가서 다시 고르게 하지 않는다.
+   *
+   * `initialize()`보다 **먼저** 불러야 첫 조회가 그 카테고리로 나간다. 이미 선택된
+   * 필터거나 알 수 없는 키면 아무것도 하지 않는다(조회를 두 번 내지 않는다).
+   */
+  public applyInitialFilter(filter: GearFilter) {
+    if (filter === GearFilter.All) {
+      return;
+    }
+
+    const target = this.filterManager
+      .mapFilters(candidate => candidate)
+      .find(candidate => candidate.isSame(filter));
+
+    if (!target || target.isSelected()) {
+      return;
+    }
+
+    this.filterManager.selectFilter(target);
+  }
+
   private async refreshWithLoading() {
     this.setLoading(true);
     await this.refresh();

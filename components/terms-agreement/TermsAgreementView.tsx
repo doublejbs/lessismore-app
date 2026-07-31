@@ -45,7 +45,8 @@ const TermsAgreementView: FC = () => {
         personalInfoAgreed,
         over14Agreed
       );
-      router.replace('/(tabs)/(warehouse)');
+      // 약관 동의 후 앱 첫 화면으로 — 창고가 아니라 홈이다(HM-0).
+      router.replace('/');
     } catch (error) {
       console.error('약관 동의 저장 오류:', error);
       Alert.alert(
