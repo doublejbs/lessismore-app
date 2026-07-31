@@ -15,6 +15,8 @@ import SearchTopKeywordsView from '@/components/search/SearchTopKeywordsView';
 const IS_IOS = Platform.OS === 'ios';
 // iOS 네이티브 내비게이션 바 높이 — 고정(비스크롤) 상단 콘텐츠의 시작 위치 보정용.
 const NATIVE_HEADER_HEIGHT = 44;
+// 헤더와 카테고리 칩 사이 숨 쉴 틈. 헤더 바로 아래에 칩이 붙으면 뒤로가기와 필터가 한 덩어리로 뭉친다.
+const HEADER_CONTENT_GAP = 12;
 // iOS는 네이티브 투명 헤더가 상단을 덮으므로 top 세이프에어리어를 빼 이중 인셋을 막는다.
 const IOS_EDGES = ['left', 'right', 'bottom'] as const;
 
@@ -69,7 +71,9 @@ const PopularRankingWrapper: FC = () => {
           styles.content,
           // LG-1: 카테고리 칩 행이 상단 고정 콘텐츠라 헤더 뒤로 흐를 수 없다 —
           // 투명 헤더(상태바+44pt) 아래에서 시작하도록 여백을 준다.
-          IS_IOS && { paddingTop: insets.top + NATIVE_HEADER_HEIGHT },
+          IS_IOS && {
+            paddingTop: insets.top + NATIVE_HEADER_HEIGHT + HEADER_CONTENT_GAP,
+          },
         ]}
       >
         <SearchTopKeywordsView
@@ -105,6 +109,8 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
+    // Android 커스텀 헤더 아래 간격(iOS는 위에서 인셋과 함께 더한다).
+    paddingTop: HEADER_CONTENT_GAP,
   },
 });
 
