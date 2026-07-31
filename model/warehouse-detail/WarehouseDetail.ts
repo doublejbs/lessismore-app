@@ -133,6 +133,31 @@ class WarehouseDetail {
     }
   }
 
+  /**
+   * 화면에 다시 돌아왔을 때 **전체를 다시 읽는다**(GD-9/GD-10).
+   *
+   * 사용 여부 기록(`/useless/{id}`)·배낭 편집·리뷰 작성 등에서 돌아오면 장비 문서
+   * (`used`/`useless`/`bags`)도, 함께한 여행 목록도, 리뷰도 바뀌어 있을 수 있다.
+   * 무엇이 바뀌었는지 화면이 알 방법이 없어 통째로 다시 읽는다.
+   *
+   * **`initialize()`를 다시 부르지 않는다** — `initialized`가 false로 내려가면 래퍼가
+   * 잠깐 아무것도 안 그려 화면이 깜빡인다. 읽는 내용은 같고 그 플래그만 건드리지 않는다.
+   *
+   * 첫 진입에서는 `initialize()`가 이미 읽으므로 아무것도 하지 않는다(아래 초기화 가드).
+   */
+  public async reload() {
+    if (!this.isInitialized() || !this.id) {
+      return;
+    }
+
+    try {
+      await this.getGearData();
+    } catch (e) {
+      // 조용히 실패한다 — 이미 그려진 값이 있으므로 화면을 비우는 것보다 낫다.
+      console.error('장비 상세 갱신 실패:', e);
+    }
+  }
+
   private async getGearData() {
     const gear = await this.gearStore.getGear(this.id);
     this.setGear(gear);
