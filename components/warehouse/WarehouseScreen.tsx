@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
@@ -24,15 +24,18 @@ import { josa } from 'josa';
 
 interface Props {
   warehouse: Warehouse;
-  // 푸시 화면으로 열렸을 때만 뒤로 가기를 그린다(HM-4). 탭 루트에는 돌아갈 곳이 없다.
-  showBack?: boolean;
 }
 
-// iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어만 빼고,
-// 콘텐츠 하단 여백으로 마지막 항목이 탭바·플로팅 버튼에 가리지 않게 한다.
-const IOS_EDGES = ['top', 'left', 'right'] as const;
+// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 커스텀 JS 헤더를 유지한다.
+const IS_IOS = Platform.OS === 'ios';
+// iOS 네이티브 내비게이션 바 높이 — 고정(비스크롤) 상단 콘텐츠의 시작 위치 보정용.
+const NATIVE_HEADER_HEIGHT = 44;
+// 헤더와 카테고리 칩 사이 숨 쉴 틈. 붙으면 뒤로가기와 필터가 한 덩어리로 뭉친다(FD-3과 동일).
+const HEADER_CONTENT_GAP = 12;
+// iOS는 네이티브 투명 헤더가 상단을 덮으므로 top 세이프에어리어를 빼 이중 인셋을 막는다.
+const IOS_EDGES = ['left', 'right', 'bottom'] as const;
 
-const WarehouseView: FC<Props> = ({ warehouse, showBack = false }) => {
+const WarehouseView: FC<Props> = ({ warehouse }) => {
   const router = useRouter();
   const gears = warehouse.getGears();
   const isEmpty = warehouse.isEmpty();
@@ -102,13 +105,9 @@ const WarehouseView: FC<Props> = ({ warehouse, showBack = false }) => {
       >
         {renderGearItems()}
         <View
-          style={{
-            height: Platform.select({
-              ios: insets.bottom + 100,
-              android: 100,
-              default: 100,
-            }),
-          }}
+          // 플로팅 `장비 추가` 버튼에 마지막 행이 가리지 않게 한다. 하단 세이프에어리어는
+          // Layout이 이미 넣으므로 여기서 다시 더하지 않는다(탭 루트일 때와 달라진 점).
+          style={styles.listBottomSpace}
         />
       </ScrollView>
     );
@@ -116,8 +115,42 @@ const WarehouseView: FC<Props> = ({ warehouse, showBack = false }) => {
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <Layout edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}>
-        <View style={styles.headerContainer}>
+      <Layout edges={IS_IOS ? IOS_EDGES : undefined}>
+        {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
+            시스템에 위임한다(headerBlurEffect·headerStyle.backgroundColor 지정 금지).
+            창고는 탭 루트가 아니라 홈에서 들어오는 푸시 화면이라(HM-0) 다른 푸시 화면과
+            같은 헤더를 쓴다. 검색은 우측 바 버튼으로 옮긴다 — 탭 루트 시절 large title 행에
+            검색 버튼을 나란히 두던 배치(LG-3)는 그 화면이 탭 루트일 때의 제약이었다. */}
+        <Stack.Screen
+          options={{
+            headerShown: IS_IOS,
+            headerTransparent: true,
+            headerTitle: '창고',
+            headerBackButtonDisplayMode: 'minimal',
+            // 빈 창고·검색 중에는 버튼을 비운다. `undefined`를 넣을 수 없어(옵션 타입이
+            // 함수를 요구한다) 아무것도 그리지 않는 함수를 돌려준다.
+            headerRight: () =>
+              isEmpty || isSearching ? null : (
+                <TouchableOpacity
+                  onPress={() => setIsSearching(true)}
+                  hitSlop={8}
+                  accessibilityRole='button'
+                  accessibilityLabel='검색'
+                >
+                  <Ionicons name='search' size={20} color={Color.textPrimary} />
+                </TouchableOpacity>
+              ),
+          }}
+        />
+        <View
+          style={[
+            styles.headerContainer,
+            // 투명 헤더(상태바 + 44pt) 아래에서 고정 상단 콘텐츠가 시작하게 한다.
+            IS_IOS && {
+              paddingTop: insets.top + NATIVE_HEADER_HEIGHT + HEADER_CONTENT_GAP,
+            },
+          ]}
+        >
           {isSearching ? (
               <View style={styles.searchRow}>
                 <View style={styles.searchBox}>
@@ -161,10 +194,9 @@ const WarehouseView: FC<Props> = ({ warehouse, showBack = false }) => {
                 </TouchableOpacity>
               </View>
             ) : (
-              // 전 플랫폼 공통: HIG large title 톤의 좌측 타이틀 + 같은 행 우측 원형 검색 버튼(LG-3).
-              // (네이티브 바는 바 버튼이 large title과 다른 행에 놓여 커스텀 행으로 그린다.)
-              <View style={styles.titleRow}>
-                {showBack && (
+              // Android/Web 커스텀 헤더 — 뒤로가기 + 타이틀 + 우측 검색(iOS는 네이티브 바가 대신한다).
+              !IS_IOS && (
+                <View style={styles.titleRow}>
                   <TouchableOpacity
                     onPress={() => router.back()}
                     style={styles.backButton}
@@ -174,26 +206,30 @@ const WarehouseView: FC<Props> = ({ warehouse, showBack = false }) => {
                   >
                     <Ionicons
                       name='chevron-back'
-                      size={26}
+                      size={24}
                       color={Color.textPrimary}
                     />
                   </TouchableOpacity>
-                )}
-                <PretendardText weight='bold' style={styles.titleText}>
-                  창고
-                </PretendardText>
-                {!isEmpty && (
-                  <TouchableOpacity
-                    onPress={() => setIsSearching(true)}
-                    style={styles.circleSearchButton}
-                    hitSlop={8}
-                    accessibilityRole='button'
-                    accessibilityLabel='검색'
-                  >
-                    <Ionicons name='search' size={20} color={Color.textPrimary} />
-                  </TouchableOpacity>
-                )}
-              </View>
+                  <PretendardText weight='bold' style={styles.titleText}>
+                    창고
+                  </PretendardText>
+                  {!isEmpty && (
+                    <TouchableOpacity
+                      onPress={() => setIsSearching(true)}
+                      style={styles.circleSearchButton}
+                      hitSlop={8}
+                      accessibilityRole='button'
+                      accessibilityLabel='검색'
+                    >
+                      <Ionicons
+                        name='search'
+                        size={20}
+                        color={Color.textPrimary}
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )
             )}
             {!isEmpty && <WarehouseFiltersView warehouse={warehouse} />}
         </View>
@@ -213,13 +249,16 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 8,
   },
-  // HIG 최소 터치 타깃 44×44pt. 큰 타이틀과 baseline을 맞추려 좌측 여백을 상쇄한다.
+  // HIG 최소 터치 타깃 44×44pt.
   backButton: {
     width: 44,
     height: 44,
     alignItems: 'flex-start',
     justifyContent: 'center',
-    marginLeft: -8,
+    marginLeft: -10,
+  },
+  listBottomSpace: {
+    height: 100,
   },
   // 탭 루트 타이틀 행(전 플랫폼) — HIG large title 톤(좌측 큰 제목) + 같은 행 우측 검색 버튼.
   // 검색 모드(searchRow, 44)와 높이를 맞춰 토글 시 레이아웃 점프를 없앤다.

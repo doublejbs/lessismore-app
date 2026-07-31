@@ -220,10 +220,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Color.textPrimary,
   },
+  // 요약 타일 톤 — 배낭 상세 액션 타일(BD-10)과 같은 문법(surfaceMuted 채움 + Radius.card).
+  // Radius.modal(16)은 이 앱에서 모달·시트 전용이라 콘텐츠 카드에 쓰지 않는다.
   card: {
-    borderWidth: 1,
-    borderColor: Color.chipBorder,
-    borderRadius: Radius.modal,
+    backgroundColor: Color.surfaceMuted,
+    borderRadius: Radius.card,
     padding: 18,
   },
   dDayRow: {
@@ -249,12 +250,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Color.textSecondary,
   },
+  // 회색 타일 위에서는 borderLight(#F0F0F0)가 배경(#F5F5F5)에 묻힌다 — 한 톤 진한 선을 쓴다.
   stats: {
     flexDirection: 'row',
     marginTop: 16,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: Color.borderLight,
+    borderColor: Color.chipBorder,
   },
   stat: {
     flex: 1,
@@ -263,7 +265,7 @@ const styles = StyleSheet.create({
   },
   statDivided: {
     borderLeftWidth: 1,
-    borderLeftColor: Color.borderLight,
+    borderLeftColor: Color.chipBorder,
     paddingLeft: 14,
   },
   statKey: {
@@ -289,7 +291,7 @@ const styles = StyleSheet.create({
   progressTrack: {
     height: 6,
     borderRadius: 3,
-    backgroundColor: Color.chipInactiveBg,
+    backgroundColor: Color.background,
     overflow: 'hidden',
   },
   progressFill: {
@@ -305,8 +307,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // 회색 타일 위 보조 버튼 — inputBg는 타일 배경과 같은 값이라 흰 배경으로 세운다.
   ctaGhost: {
-    backgroundColor: Color.inputBg,
+    backgroundColor: Color.background,
   },
   ctaText: {
     fontSize: 15,

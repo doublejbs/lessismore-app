@@ -197,20 +197,18 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Color.textSecondary,
   },
+  // 목록은 카드로 감싸지 않는다 — 정보 탭·창고 목록과 같은 평평한 행 관용구를 따른다.
   card: {
-    borderWidth: 1,
-    borderColor: Color.chipBorder,
-    borderRadius: Radius.modal,
-    padding: 18,
+    marginTop: 2,
   },
-  // 칩 줄이 카드 안쪽 여백을 넘어 좌우로 흐르게 한다(스크롤 여지를 보여준다).
+  // 칩 줄이 화면 좌우 여백을 넘어 흐르게 한다(스크롤 여지를 보여준다).
   chipsScroll: {
-    marginHorizontal: -18,
+    marginHorizontal: -20,
   },
   chips: {
     flexDirection: 'row',
     gap: 8,
-    paddingHorizontal: 18,
+    paddingHorizontal: 20,
   },
   gearList: {
     marginTop: 14,
@@ -253,7 +251,7 @@ const styles = StyleSheet.create({
   },
   empty: {
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 24,
   },
   emptyTitle: {
     fontSize: 17,
