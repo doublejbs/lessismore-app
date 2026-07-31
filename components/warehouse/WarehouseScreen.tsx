@@ -318,10 +318,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 8,
   },
+  /**
+   * Android·Web 헤더 타이틀. 32pt는 **탭 루트 시절 large title** 크기였는데, 푸시 화면에
+   * 뒤로가기 + 버튼 둘까지 한 행에 들어가면서 과해졌다(실기기 확인). 푸시 화면 톤으로 낮춘다.
+   *
+   * `flex: 1`로 가운데 공간을 차지해 좌측 정렬로 두고 버튼을 오른쪽 끝으로 민다 — 억지로
+   * 가운데 맞추면 좌우 버튼 수가 달라(1 대 2) 실제 중앙에서 어긋나 보인다(iOS 네이티브 바는
+   * 시스템이 진짜 중앙에 놓으므로 그쪽과 다르게 가도 된다 — 안드로이드는 좌측 정렬이 표준).
+   */
   titleText: {
-    fontSize: 32,
-    lineHeight: 40,
+    flex: 1,
+    fontSize: 20,
+    lineHeight: 28,
     color: Color.textPrimary,
+    marginLeft: 4,
   },
   // 원형 검색 버튼 — 시스템 바 버튼(44pt 원형)과 동일한 지오메트리.
   circleSearchButton: {
