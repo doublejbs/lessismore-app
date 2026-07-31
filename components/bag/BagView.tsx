@@ -5,8 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import BagItemView from './BagItemView';
 import BagAddView from './BagAddView';
+import BagListSkeletonView from './BagListSkeletonView';
 import Bag from '@/model/bag/Bag';
-import LoadingView from '@/components/ui/LoadingView';
 import BagItem from '@/model/bag/BagItem';
 import PretendardText from '@/components/PretendardText';
 import OrderButtonView from '@/components/order/OrderButtonView';
@@ -48,7 +48,8 @@ const BagView = () => {
   const render = () => {
     switch (true) {
       case isLoading: {
-        return <LoadingView />;
+        // 스피너 대신 들어올 화면과 같은 골격을 그린다(BAG-1) — 구조가 안 바뀌어야 덜컥거리지 않는다.
+        return <BagListSkeletonView />;
       }
       case isEmpty: {
         return (
@@ -103,7 +104,11 @@ const BagView = () => {
     <GestureHandlerRootView style={styles.root}>
       <Layout edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}>
         {render()}
-        <BagAddView bag={bag} />
+        {/* 로딩 중에는 띄우지 않는다(BAG-1). 탭이 막 마운트된 첫 프레임에는 네이티브 탭바 몫이
+            반영되기 전이라 `insets.bottom`이 작게 잡혀 버튼이 **탭바 뒤로 내려간다.**
+            목록이 온 뒤(= inset 정착 후)에 노출하면 위치가 정확하고, 로딩 위에 CTA가 겹치지도
+            않는다 — 피드(FD-2)가 같은 이유로 같은 처리를 한다. */}
+        {!isLoading && <BagAddView bag={bag} />}
       </Layout>
     </GestureHandlerRootView>
   );

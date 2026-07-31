@@ -160,6 +160,7 @@
 | `startDate` | string | ISO 8601 문자열. 생성·복사가 항상 `toISOString()`으로 쓰지만, **레거시 문서에는 없을 수 있다** — 배낭 목록의 **날짜 정렬**에서 방향과 무관하게 뒤로 보낸다([Bag.md](Bag.md) BAG-6, DM-25) |
 | `endDate` | string | ISO 8601 문자열 |
 | `editDate` | string | ISO 8601 문자열, 수정 시 갱신 |
+| `createdAt` | string | ISO 8601 문자열, **생성 시 1회만** 쓰고 이후 갱신하지 않는다. 배낭 목록의 `최근 추가순` 정렬 기준([Bag.md](Bag.md) BAG-6). **옵셔널** — 2026-07-31 이전에 만든 문서엔 없다. 없으면 `editDate`로 대체한다(수정한 적 없는 배낭은 두 값이 같고, 수정한 배낭은 실제 생성보다 뒤로 잡힌다) |
 | `shared` | boolean | 링크 공유 여부 (배낭 공유 BD-7). 후기 첨부 공개와는 별개 |
 | `reviewShared` | boolean | 박지 후기에 첨부돼 공개된 배낭 여부 ([CampSite.md](CampSite.md) CS-8, DM-20). `shared`와 독립 플래그. 옵셔널(기존 문서엔 없음) |
 | `memo` | string | 옵셔널 |
