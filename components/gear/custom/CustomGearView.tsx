@@ -10,7 +10,6 @@ import {
   Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
@@ -28,9 +27,6 @@ import app from '@/model/app/App';
 interface Props {
   customGear: CustomGear;
 }
-
-// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
-const IS_IOS = Platform.OS === 'ios';
 
 const CustomGearView: FC<Props> = ({ customGear }) => {
   const scrollViewRef = useRef<ScrollView>(null);
@@ -151,59 +147,30 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
             : ['bottom', 'left', 'right']
         }
       >
-        {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 바 버튼·scroll edge effect는 시스템에
-            위임한다(headerBlurEffect·headerStyle.backgroundColor 지정 금지). 모달이라
-            스택 히스토리가 없어 시스템 back이 안 나온다 — 기존 닫기 핸들러를 headerLeft에
-            임베드한다. 커스텀 드래그 바(iOS 전용 어포던스)는 네이티브 헤더로 대체. */}
-        <Stack.Screen
-          options={{
-            headerShown: IS_IOS,
-            headerTransparent: true,
-            headerTitle: '장비 추가',
-            headerLeft: () => (
-              <TouchableOpacity
-                onPress={handleClickHide}
-                style={styles.nativeCloseButton}
-                accessibilityRole='button'
-                accessibilityLabel='닫기'
-              >
-                <Ionicons name='close' size={24} color={Color.textPrimary} />
-              </TouchableOpacity>
-            ),
-          }}
-        />
         {isLoading && (
           <View style={styles.loadingOverlay}>
             <LoadingIconView />
           </View>
         )}
 
-        {/* 헤더 (Android/Web 커스텀 유지) */}
-        {!IS_IOS && (
-          <View style={styles.header}>
-            {Platform.OS === 'android' && (
-              <TouchableOpacity
-                onPress={handleClickHide}
-                style={styles.backButton}
-                accessibilityRole='button'
-                accessibilityLabel='닫기'
-              >
-                <Ionicons
-                  name='chevron-back'
-                  size={24}
-                  color={Color.textPrimary}
-                />
-              </TouchableOpacity>
-            )}
-            <PretendardText
-              weight='semibold'
-              style={[styles.headerTitle, styles.headerTitleWithBackButton]}
-            >
-              장비 추가
-            </PretendardText>
-            <View style={styles.backButtonPlaceholder} />
-          </View>
-        )}
+        {/* GE-8 직접 입력 모달의 이탈 경로 — 핸들바 + 우상단 닫기. 같은 시트에서 갈라지는
+            검색 모달(SearchWarehouseView)과 같은 얼개다. 네이티브 formSheet가 아니라
+            pageSheet 모달이라 OS 그래버가 없어 핸들바를 직접 그린다. */}
+        <View style={styles.grabber} />
+        <View style={styles.header}>
+          <PretendardText weight='bold' style={styles.headerTitle}>
+            장비 추가
+          </PretendardText>
+          <TouchableOpacity
+            onPress={handleClickHide}
+            style={styles.closeButton}
+            accessibilityRole='button'
+            accessibilityLabel='닫기'
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name='close' size={24} color={Color.textPrimary} />
+          </TouchableOpacity>
+        </View>
 
         <KeyboardAvoidingView
           style={styles.keyboardAvoidingView}
@@ -214,8 +181,8 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
           <ScrollView
             ref={scrollViewRef}
             style={styles.scrollView}
-            // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
-            contentInsetAdjustmentBehavior='automatic'
+            // 헤더가 JS 행이라 시스템 인셋 보정이 필요 없다 — 자동 보정은 끄고 패딩만 쓴다.
+            contentInsetAdjustmentBehavior='never'
             contentContainerStyle={[
               styles.scrollContent,
               isKeyboardVisible && styles.scrollContentKeyboardVisible,
@@ -410,37 +377,31 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
+  // 모달 카드 상단 핸들바 — 드래그 닫기 어포던스(SearchWarehouseView와 동일 치수).
+  grabber: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Color.iconMuted,
+    alignSelf: 'center',
+    marginTop: 8,
+    marginBottom: 4,
+  },
   header: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
-    backgroundColor: Color.background,
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: -12,
+    justifyContent: 'space-between',
+    paddingLeft: 20,
+    paddingRight: 12,
+    height: 56,
   },
   headerTitle: {
     fontSize: 18,
+    lineHeight: 26,
     color: Color.textPrimary,
-    textAlign: 'center',
-    flex: 1,
   },
-  headerTitleWithBackButton: {
-    textAlign: 'center',
-  },
-  backButtonPlaceholder: {
-    width: 44,
-    height: 44,
-  },
-  // iOS 네이티브 headerLeft 닫기 버튼 — HIG 최소 터치 타깃 44×44pt, 바 안 정렬은 시스템에 위임.
-  nativeCloseButton: {
+  // HIG 최소 터치 타깃 44×44pt.
+  closeButton: {
     width: 44,
     height: 44,
     alignItems: 'center',
