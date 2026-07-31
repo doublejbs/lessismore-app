@@ -158,9 +158,9 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
         {hasPackingRecord ? (
           <View style={styles.progressWrap}>
             <View style={styles.progressTop}>
-              <PretendardText style={styles.progressLabel}>
-                챙긴 장비
-              </PretendardText>
+              {/* 배낭 상세 하단 바가 쓰는 `패킹 {n}/{m}`(PK-2)과 같은 말이다 —
+                  같은 값을 두 화면이 다르게 부르면 같은 것인지 알아보기 어렵다. */}
+              <PretendardText style={styles.progressLabel}>패킹</PretendardText>
               <PretendardText weight='semibold' style={styles.progressValue}>
                 {`${packedCount}/${gearCount}`}
               </PretendardText>
