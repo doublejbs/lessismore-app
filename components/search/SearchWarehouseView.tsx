@@ -9,6 +9,7 @@ import Bag from '@/model/bag/Bag';
 import Feed from '@/model/feed/Feed';
 import { GearAddContext } from '@/model/gear/GearAddContext';
 import useSearchFilterInheritance from '@/hooks/useSearchFilterInheritance';
+import SheetGrabberView from '@/components/ui/SheetGrabberView';
 import SearchBarView from './SearchBarView';
 import SearchResultView from './SearchResultView';
 
@@ -38,7 +39,7 @@ const SearchWarehouseView: FC<Props> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.grabber} />
+      <SheetGrabberView />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={handleClose}
@@ -68,16 +69,6 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: Color.background,
     paddingTop: Platform.OS === 'android' ? 16 : 0,
-  },
-  // iOS 모달 카드 상단 핸들바. 드래그 닫기 어포던스.
-  grabber: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Color.iconMuted,
-    alignSelf: 'center',
-    marginTop: 8,
-    marginBottom: 4,
   },
   header: {
     flexDirection: 'row',
