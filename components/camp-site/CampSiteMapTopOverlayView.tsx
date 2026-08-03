@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgShadow, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgShadow, Color, Radius } from '@/constants/DesignTokens';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
@@ -52,7 +52,6 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
           {/* 박지 검색(CS-6) — 카드 프레임 없이 지도 위에 바로 뜨는 흰 pill(그림자) */}
           <View style={styles.searchWrap}>
             <View style={styles.searchBox}>
-              <Ionicons name='search' size={20} color={Color.textPrimary} />
               <TextInput
                 style={styles.searchInput}
                 placeholder='박지 검색'
@@ -73,8 +72,8 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
                 >
                   <Ionicons
                     name='close-circle'
-                    size={18}
-                    color={Color.textSecondary}
+                    size={20}
+                    color={Color.iconMuted}
                   />
                 </TouchableOpacity>
               )}
@@ -188,28 +187,28 @@ const styles = StyleSheet.create({
   },
   // 검색 pill + 결과 카드 묶음(CS-6).
   searchWrap: {
-    marginHorizontal: 12,
+    marginHorizontal: AcgLayout.screenH,
     gap: 8,
   },
-  // 카드 프레임 없이 지도 위에 바로 뜨는 흰 pill — 그림자로 지도와 분리해 시인성 확보.
-  // **유리를 쓰지 않는다.** 유리 면은 뒤가 단색 지면일 때만 성립하는데 지도는 뒤가
-  // 지형·도로·라벨이라 반투명이면 입력값이 그 위에 겹쳐 읽힌다(2026-08-03 실기기 확인).
-  // 아래 결과 카드·다른 화면 인풋과 같은 불투명 흰 면으로 맞춘다.
+  // 탐색 탭 검색 필드(`SearchBarView`)와 같은 형태 — 각진 모서리, 같은 패딩·폰트,
+  // 선행 아이콘 없음. 채움만 다르다: 유리(반투명)는 뒤가 단색 지면일 때만 성립하는데
+  // 지도는 뒤가 지형·도로·라벨이라 입력값이 그 위에 겹쳐 읽힌다(2026-08-03 실기기 확인).
+  // 불투명 종이 면 + 그림자로 지도와 분리한다.
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    height: 48,
-    paddingHorizontal: 18,
-    borderRadius: Radius.pill,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 0,
     backgroundColor: Acg.paper,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     borderColor: Acg.line2,
     boxShadow: AcgShadow.card,
   },
   searchInput: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: 'Pretendard-Regular',
     color: Acg.ink,
     padding: 0,
@@ -274,7 +273,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    marginHorizontal: 12,
+    marginHorizontal: AcgLayout.screenH,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: Radius.card,
