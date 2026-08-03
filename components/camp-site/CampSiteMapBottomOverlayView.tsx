@@ -64,16 +64,17 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   // 원형 아이콘 버튼은 시안에서도 각지지 않는 예외다(46px).
+  // 검색 인풋·칩과 같은 이유로 불투명이다 — 지도 위에서 반투명이면 아이콘이 지형에 묻힌다.
   button: {
     width: 46,
     height: 46,
     borderRadius: 23,
-    backgroundColor: Acg.glassFill,
+    backgroundColor: Acg.paper,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Acg.glassStroke,
+    borderColor: Acg.line2,
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: AcgShadow.glass,
+    boxShadow: AcgShadow.card,
   },
   locateButton: {
     backgroundColor: Acg.lime,

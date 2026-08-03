@@ -192,8 +192,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   // 카드 프레임 없이 지도 위에 바로 뜨는 흰 pill — 그림자로 지도와 분리해 시인성 확보.
-  // 유리 검색 pill 48px(ACG). 지도 위라 실제 블러 대신 반투명 채움 + 광택 헤어라인으로
-  // 근사한다 — `AcgGlassView`는 지도 오버레이의 절대 배치와 섞기 어려워 값만 옮겼다.
+  // **유리를 쓰지 않는다.** 유리 면은 뒤가 단색 지면일 때만 성립하는데 지도는 뒤가
+  // 지형·도로·라벨이라 반투명이면 입력값이 그 위에 겹쳐 읽힌다(2026-08-03 실기기 확인).
+  // 아래 결과 카드·다른 화면 인풋과 같은 불투명 흰 면으로 맞춘다.
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -201,16 +202,16 @@ const styles = StyleSheet.create({
     height: 48,
     paddingHorizontal: 18,
     borderRadius: Radius.pill,
-    backgroundColor: Acg.glassFill,
+    backgroundColor: Acg.paper,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Acg.glassStroke,
-    boxShadow: AcgShadow.glass,
+    borderColor: Acg.line2,
+    boxShadow: AcgShadow.card,
   },
   searchInput: {
     flex: 1,
     fontSize: 15,
     fontFamily: 'Pretendard-Regular',
-    color: Color.textPrimary,
+    color: Acg.ink,
     padding: 0,
   },
   // 결과는 별도 카드로 (날씨 피커 resultsCard와 동일).
