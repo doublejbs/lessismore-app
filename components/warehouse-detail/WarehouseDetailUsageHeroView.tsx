@@ -2,9 +2,9 @@ import { FC } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
-import SeperaterView from '../ui/SeperaterView';
 import PretendardText from '../PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
+import AcgDisplayText from '@/components/acg/AcgDisplayText';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -23,12 +23,10 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
 
   const renderStat = (label: string, value: number, muted: boolean) => (
     <View style={styles.statItem}>
-      <PretendardText
-        weight='semibold'
-        style={[styles.statValue, muted && styles.statMuted]}
-      >
-        {value}
-      </PretendardText>
+      {/* 숫자라 콘덴스드로 키운다 — 두 지표가 이 섹션의 앵커(ACG). */}
+      <AcgDisplayText style={[styles.statValue, muted && styles.statMuted]}>
+        {String(value)}
+      </AcgDisplayText>
       <PretendardText style={[styles.statLabel, muted && styles.statMuted]}>
         {label}
       </PretendardText>
@@ -36,9 +34,7 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
   );
 
   return (
-    <>
-      <SeperaterView />
-      <View style={styles.container}>
+    <View style={styles.container}>
         <PretendardText weight='bold' style={styles.title}>
           사용 기록
         </PretendardText>
@@ -55,52 +51,58 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
               {renderStat('사용', usedCount, usedCount === 0)}
               {renderStat('사용 안함', uselessCount, uselessCount === 0)}
             </View>
-          </>
-        )}
-      </View>
-    </>
+        </>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  // 섹션은 지면 위에 얹은 종이 면이다(ACG). 예전에는 흰 배경 위에서 10px 회색 띠로
+  // 섹션을 갈랐는데, 지면이 생기면서 띠가 아니라 면의 경계가 구분을 맡는다.
   container: {
     flexDirection: 'column',
-    paddingHorizontal: 20,
-    marginVertical: 20,
+    marginHorizontal: AcgLayout.screenH,
+    marginBottom: 12,
+    padding: 16,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
   },
   title: {
     fontSize: 17,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   emptyText: {
     marginTop: 12,
     fontSize: 14,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   statsRow: {
     flexDirection: 'row',
     gap: 8,
     marginTop: 12,
   },
+  // 종이 면 위 타일이라 채움은 지면색을 쓴다 — 회색 면을 또 두면 층이 하나 늘어난다.
   statItem: {
     flex: 1,
     alignItems: 'center',
     paddingVertical: 14,
-    backgroundColor: Color.inputBg,
-    borderRadius: Radius.card,
+    backgroundColor: Acg.bg,
+    borderRadius: 0,
     gap: 2,
   },
   statValue: {
-    fontSize: 18,
-    color: Color.textPrimary,
+    fontSize: 28,
+    lineHeight: 32,
+    color: Acg.ink,
   },
   statLabel: {
     fontSize: 12,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   statMuted: {
     // 0회 지표는 값·라벨을 낮춰 유효 정보 스캔을 돕는다(GD-2 톤 유지).
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
 });
 

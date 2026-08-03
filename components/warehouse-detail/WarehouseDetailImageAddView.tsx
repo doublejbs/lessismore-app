@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '../PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   busy: boolean;
@@ -23,9 +23,9 @@ const WarehouseDetailImageAddView: FC<Props> = ({ busy, onPress }) => {
       accessibilityState={{ disabled: busy }}
     >
       {busy ? (
-        <ActivityIndicator size='small' color={Color.textSecondary} />
+        <ActivityIndicator size='small' color={Acg.textSecondary} />
       ) : (
-        <Ionicons name='camera-outline' size={20} color={Color.textSecondary} />
+        <Ionicons name='camera-outline' size={20} color={Acg.textSecondary} />
       )}
       <PretendardText style={styles.text}>
         {busy ? '사진 올리는 중' : '사진 추가'}
@@ -46,12 +46,12 @@ const styles = StyleSheet.create({
     gap: 8,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: Color.chipBorder,
+    borderColor: Acg.line2,
     borderRadius: Radius.card,
   },
   text: {
     fontSize: 14,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
 });
 

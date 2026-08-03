@@ -7,9 +7,8 @@ import WarehouseDetail, {
 import GearUsageStatus from '../../model/warehouse-detail/GearUsageStatus';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
-import SeperaterView from '../ui/SeperaterView';
 import PretendardText from '../PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 
 interface Props {
@@ -119,7 +118,7 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
                 <Ionicons
                   name={weatherSummary.icon}
                   size={13}
-                  color={Color.textSecondary}
+                  color={Acg.textSecondary}
                 />
               )}
               <PretendardText style={styles.tripMetaText}>
@@ -128,46 +127,49 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
             </View>
           )}
         </View>
-        <Ionicons name='chevron-forward' size={24} color={Color.textTertiary} />
+        <Ionicons name='chevron-forward' size={24} color={Acg.textTertiary} />
       </TouchableOpacity>
     );
   };
 
   return (
-    <>
-      <SeperaterView />
-      <View style={styles.container}>
+    <View style={styles.container}>
         <PretendardText weight='bold' style={styles.headerText}>
           함께한 여행 {bagCount}회
         </PretendardText>
         <View style={styles.listContainer}>
           {warehouseDetail.getTripRecords().map(renderTripCard)}
-        </View>
       </View>
-    </>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  // 섹션은 지면 위에 얹은 종이 면이다(ACG). 예전에는 흰 배경 위에서 10px 회색 띠로
+  // 섹션을 갈랐는데, 지면이 생기면서 띠가 아니라 면의 경계가 구분을 맡는다.
   container: {
     flexDirection: 'column',
-    paddingHorizontal: 20,
-    marginVertical: 20,
+    marginHorizontal: AcgLayout.screenH,
+    marginBottom: 12,
+    padding: 16,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
   },
   headerText: {
     fontSize: 17,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   listContainer: {
     flexDirection: 'column',
   },
+  // 종이 면 위 행이라 채움은 지면색이다 — 흰 면 위 회색 면을 또 두면 층이 하나 늘어난다.
   tripCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
     paddingHorizontal: 16,
-    backgroundColor: Color.inputBg,
-    borderRadius: Radius.card,
+    backgroundColor: Acg.bg,
+    borderRadius: 0,
     marginTop: 12,
   },
   tripContent: {
@@ -184,11 +186,11 @@ const styles = StyleSheet.create({
   tripName: {
     flex: 1,
     fontSize: 15,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   tripMetaText: {
     fontSize: 12,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   weatherRow: {
     flexDirection: 'row',
@@ -198,7 +200,7 @@ const styles = StyleSheet.create({
   // 세 상태 태그의 공통 형태 — 색만 다르고 크기·모서리는 같다. 테두리는 세 태그의 높이를
   // 맞추려고 공통으로 두고, 아웃라인이 아닌 태그는 배경과 같은 색을 줘 보이지 않게 한다(GD-10).
   statusTag: {
-    borderRadius: Radius.card,
+    borderRadius: 0,
     borderWidth: 1,
     paddingVertical: 4,
     paddingHorizontal: 12,
@@ -209,29 +211,29 @@ const styles = StyleSheet.create({
   // `사용`은 끝난 기록이라 한 단계 낮춘 회색 채움으로 둔다 — 가장 강한 검정 채움은
   // 사용자가 눌러주길 바라는 `미기록`에 넘긴다(GD-10).
   usedTag: {
-    backgroundColor: Color.chipInactiveBg,
-    borderColor: Color.chipInactiveBg,
+    backgroundColor: Acg.line2,
+    borderColor: Acg.line2,
   },
   usedTagText: {
-    color: Color.textTertiary,
+    color: Acg.textTertiary,
   },
   // `사용 안함`도 끝난 기록 — 셋 중 가장 조용한 아웃라인. 카드 배경(inputBg) 위에서 흰 칩이
   // 사라지지 않도록 테두리를 보이게 둔다(GD-10).
   uselessTag: {
-    backgroundColor: Color.background,
-    borderColor: Color.chipBorder,
+    backgroundColor: Acg.paper,
+    borderColor: Acg.line2,
   },
   uselessTagText: {
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   // 미기록 태그 — 사용자가 눌러주길 바라는 유일한 상태라 셋 중 가장 도드라지게 검정 채움을
   // 준다. 저대비 회색은 완료 상태보다 약해 위계가 정반대였다(GD-10).
   unrecordedTag: {
-    backgroundColor: Color.chipActiveBg,
-    borderColor: Color.chipActiveBg,
+    backgroundColor: Acg.ink,
+    borderColor: Acg.ink,
   },
   unrecordedTagText: {
-    color: Color.background,
+    color: Acg.paper,
   },
 });
 

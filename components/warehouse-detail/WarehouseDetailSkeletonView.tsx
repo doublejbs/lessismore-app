@@ -1,7 +1,7 @@
 import { FC, useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import { observer } from 'mobx-react-lite';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
 
 interface Props {}
 
@@ -12,7 +12,8 @@ const WarehouseDetailSkeletonView: FC<Props> = ({}) => {
     <Animated.View
       style={[
         {
-          backgroundColor: '#E5E7EB',
+          // 스켈레톤 셰이딩은 토큰 예외다. 지면(#F4F3EF) 위라 기존 회색은 푸르게 떠 보였다.
+          backgroundColor: '#E3E1DA',
           opacity: fadeAnim,
         },
         style,
@@ -91,7 +92,7 @@ const WarehouseDetailSkeletonView: FC<Props> = ({}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
   },
   header: {
     width: '100%',
@@ -99,27 +100,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingVertical: 7,
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenH,
     position: 'absolute',
     top: 0,
     zIndex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: 'transparent',
   },
   headerIcon: {
     width: 25,
     height: 24,
-    borderRadius: 4,
+    borderRadius: 0,
   },
   content: {
     flexDirection: 'column',
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenH,
     marginTop: 46,
     paddingBottom: 100,
   },
   gearImage: {
     width: '100%',
     height: 200,
-    borderRadius: 8,
+    borderRadius: 0,
     marginBottom: 16,
   },
   gearInfoSection: {
@@ -128,25 +129,25 @@ const styles = StyleSheet.create({
   titleSkeleton: {
     width: '80%',
     height: 24,
-    borderRadius: 4,
+    borderRadius: 0,
     marginBottom: 12,
   },
   descriptionLine1: {
     width: '60%',
     height: 16,
-    borderRadius: 4,
+    borderRadius: 0,
     marginBottom: 8,
   },
   descriptionLine2: {
     width: '40%',
     height: 16,
-    borderRadius: 4,
+    borderRadius: 0,
     marginBottom: 8,
   },
   descriptionLine3: {
     width: '50%',
     height: 16,
-    borderRadius: 4,
+    borderRadius: 0,
   },
   bagSection: {
     // 백 섹션 컨테이너
@@ -154,7 +155,7 @@ const styles = StyleSheet.create({
   bagSectionTitle: {
     width: '30%',
     height: 20,
-    borderRadius: 4,
+    borderRadius: 0,
     marginBottom: 16,
   },
   bagItem: {
@@ -162,13 +163,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
     padding: 12,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 8,
+    backgroundColor: Acg.paper,
+    borderRadius: 0,
   },
   bagItemIcon: {
     width: 40,
     height: 40,
-    borderRadius: 6,
+    borderRadius: 0,
     marginRight: 12,
   },
   bagItemContent: {
@@ -177,13 +178,13 @@ const styles = StyleSheet.create({
   bagItemTitle: {
     width: '70%',
     height: 16,
-    borderRadius: 4,
+    borderRadius: 0,
     marginBottom: 6,
   },
   bagItemSubtitle: {
     width: '50%',
     height: 14,
-    borderRadius: 4,
+    borderRadius: 0,
   },
   bottomButtons: {
     flexDirection: 'row',
@@ -195,12 +196,12 @@ const styles = StyleSheet.create({
     right: 0,
     paddingVertical: 12,
     paddingHorizontal: 24,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.paper,
   },
   bottomButton: {
     flex: 1,
     height: 54,
-    borderRadius: 10,
+    borderRadius: 0,
   },
 });
 

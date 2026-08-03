@@ -4,9 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
-import SeperaterView from '../ui/SeperaterView';
 import WarehouseDetailBrandPreviewView from './WarehouseDetailBrandPreviewView';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import { getBrandLinkLabel } from '../../model/gear/GearBrandLink';
 
 interface Props {
@@ -25,7 +24,7 @@ const WarehouseDetailPurchaseView: FC<Props> = ({ warehouseDetail }) => {
   const coupangUrl = warehouseDetail.getCoupangUrl();
   const productUrl = warehouseDetail.getProductUrl();
 
-  // 둘 다 없으면 섹션 자체를 그리지 않는다(구분선까지).
+  // 둘 다 없으면 섹션 자체를 그리지 않는다.
   if (!coupangUrl && !productUrl) {
     return null;
   }
@@ -45,60 +44,58 @@ const WarehouseDetailPurchaseView: FC<Props> = ({ warehouseDetail }) => {
       onPress={onPress}
       activeOpacity={0.6}
       accessibilityRole='link'
-      accessibilityLabel={`${label}, 외부 브라우저로 이동`}
+      accessibilityLabel={`${label}, 상품 페이지 열기`}
     >
       <PretendardText style={styles.linkText}>{label}</PretendardText>
-      <Ionicons name='chevron-forward' size={14} color={Color.textTertiary} />
+      <Ionicons name='chevron-forward' size={14} color={Acg.textTertiary} />
     </TouchableOpacity>
   );
 
   return (
-    <>
-      <SeperaterView />
-      <View style={styles.container}>
-        <PretendardText weight='semibold' style={styles.title}>
-          공식 링크
-        </PretendardText>
+    <View style={styles.container}>
+      <PretendardText weight='semibold' style={styles.title}>
+        공식 링크
+      </PretendardText>
 
-        {/* 브랜드 행은 링크 미리보기 카드로 낸다(GD-5a) — 라벨과 도메인만으로 구성한다. */}
-        {productUrl ? (
-          <WarehouseDetailBrandPreviewView
-            warehouseDetail={warehouseDetail}
-            label={brandLabel}
-            productUrl={productUrl}
-            imageUrl={warehouseDetail.getProductImageUrl()}
-            loading={warehouseDetail.getIsProductImageLoading()}
-          />
-        ) : null}
+      {/* 브랜드 행은 링크 미리보기 카드로 낸다(GD-5a). */}
+      {productUrl ? (
+        <WarehouseDetailBrandPreviewView
+          warehouseDetail={warehouseDetail}
+          label={brandLabel}
+          productUrl={productUrl}
+          imageUrl={warehouseDetail.getProductImageUrl()}
+          loading={warehouseDetail.getIsProductImageLoading()}
+        />
+      ) : null}
 
-        {/* 파트너스 고지는 **쿠팡 행에만** 딸린다 — 브랜드 링크는 수수료와 무관해서
-            고지가 그 아래로 내려가면 사실과 다르다. */}
-        {coupangUrl ? (
-          <View style={styles.coupangGroup}>
-            {renderLink('쿠팡에서 최저가 보기', () =>
-              warehouseDetail.openCoupangUrl()
-            )}
-            <PretendardText style={styles.disclaimerText}>
-              쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를
-              제공받습니다.
-            </PretendardText>
-          </View>
-        ) : null}
-      </View>
-    </>
+      {/* 파트너스 고지는 **쿠팡 행에만** 딸린다 — 브랜드 링크는 수수료와 무관해서
+          고지가 그 아래로 내려가면 사실과 다르다. */}
+      {coupangUrl ? (
+        <View style={styles.coupangGroup}>
+          {renderLink('쿠팡에서 최저가 보기', () =>
+            warehouseDetail.openCoupangUrl()
+          )}
+          <PretendardText style={styles.disclaimerText}>
+            쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를
+            제공받습니다.
+          </PretendardText>
+        </View>
+      ) : null}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  // 이 섹션만은 종이 면을 두지 않는다(ACG) — 미리보기 카드가 이미 면을 갖고 있어
+  // 종이 위에 종이를 얹으면 후기 섹션과 같은 무게로 읽힌다.
   container: {
-    // 다른 섹션(스펙·리뷰)과 같은 여백 리듬을 쓴다.
-    paddingHorizontal: 20,
-    marginVertical: 20,
+    paddingHorizontal: AcgLayout.screenH,
+    marginBottom: 12,
     gap: 12,
   },
   title: {
     fontSize: 17,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   coupangGroup: {
     paddingBottom: 12,
@@ -114,11 +111,11 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 14,
-    color: Color.textTertiary,
+    color: Acg.textTertiary,
   },
   disclaimerText: {
     fontSize: 11,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
     textAlign: 'center',
   },
 });
