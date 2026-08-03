@@ -10,7 +10,8 @@ import GearThumbnailView, {
   GEAR_THUMBNAIL_SIZE,
 } from '@/components/gear/GearThumbnailView';
 import Gear from '@/model/gear/Gear';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgShadow } from '@/constants/DesignTokens';
+import AcgDisplayText from '@/components/acg/AcgDisplayText';
 
 interface Props {
   gear: Gear;
@@ -73,10 +74,11 @@ const GearView: FC<Props> = ({ gear, children, onPress }) => {
             </View>
           )}
 
+          {/* 숫자라 콘덴스드를 쓴다 — 행의 시각 앵커(ACG). */}
           {weight ? (
-            <PretendardText style={styles.weightText} weight='bold'>
-              {weight}g
-            </PretendardText>
+            <AcgDisplayText style={styles.weightText}>
+              {`${weight}g`}
+            </AcgDisplayText>
           ) : null}
         </View>
       ) : null}
@@ -108,14 +110,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: ROW_VERTICAL_PADDING,
-    paddingHorizontal: 0,
+    paddingHorizontal: 14,
     gap: 12,
     minHeight: GEAR_THUMBNAIL_SIZE + ROW_VERTICAL_PADDING * 2,
-    // WH-1: 행 하단 구분선. 여백만으로는 줄 수가 다른 행(1~3줄)이 섞일 때 경계가 잡히지
-    // 않아, 정보가 적은 행이 떠 있는 문자열처럼 읽힌다. 배낭 목록(BAG-1)이 쓰는 것과
-    // 같은 토큰·같은 처리라 새 문법이 아니다.
-    borderBottomWidth: 1,
-    borderBottomColor: Color.divider,
+    // ACG: 구분선 대신 지면 위 각진 종이 면. 홈·배낭 목록과 같은 행 문법이라
+    // 줄 수가 다른 행(1~3줄)이 섞여도 면 경계가 구분을 맡는다.
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
   },
   // 좌 정체 컬럼 — 브랜드·이름·색상. flex:1이라 썸네일이 붙으면 정체 컬럼만 좁아지고
   // 우측 지표 컬럼은 오른쪽 끝에 그대로 붙어 있다(= 무게의 세로 정렬 유지).
@@ -133,30 +134,31 @@ const styles = StyleSheet.create({
   companyText: {
     fontSize: 15,
     lineHeight: 19,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   usedRateBadge: {
-    borderRadius: Radius.card,
-    backgroundColor: Color.chipInactiveBg,
+    borderRadius: 0,
+    backgroundColor: Acg.bg,
     paddingVertical: 2,
     paddingHorizontal: 5,
   },
   usedRateText: {
-    color: Color.textPrimary,
+    color: Acg.textSecondary,
     fontSize: 11,
   },
   nameText: {
     fontSize: 15,
     lineHeight: 19,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   colorText: {
     fontSize: 13,
-    color: Color.textTertiary,
+    color: Acg.textSecondary,
   },
   weightText: {
-    fontSize: 15,
-    color: Color.textPrimary,
+    fontSize: 16,
+    lineHeight: 20,
+    color: Acg.ink,
     textAlign: 'right',
   },
 });

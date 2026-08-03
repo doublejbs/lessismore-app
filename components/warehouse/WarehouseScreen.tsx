@@ -15,8 +15,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import Layout from '@/components/Layout';
+import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import Warehouse from '@/model/warehouse/Warehouse';
 import WarehouseFiltersView from '@/components/warehouse/WarehouseFiltersView';
 import WarehouseGearView from '@/components/warehouse/WarehouseGearView';
@@ -122,7 +123,11 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <Layout edges={IS_IOS ? IOS_EDGES : undefined}>
+      <Layout
+        edges={IS_IOS ? IOS_EDGES : undefined}
+        paddingHorizontal={AcgLayout.screenH}
+        background={<AcgScreenBackground />}
+      >
         {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
             시스템에 위임한다(headerBlurEffect·headerStyle.backgroundColor 지정 금지).
             창고는 탭 루트가 아니라 홈에서 들어오는 푸시 화면이라(HM-0) 다른 푸시 화면과
@@ -146,7 +151,7 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                 accessibilityRole='button'
                 accessibilityLabel='장비 추가'
               >
-                <Ionicons name='add' size={26} color={Color.textPrimary} />
+                <Ionicons name='add' size={26} color={Acg.ink} />
               </TouchableOpacity>
             ),
             /**
@@ -186,102 +191,95 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
             // 투명 헤더(상태바 + 44pt) 아래에서 고정 상단 콘텐츠가 시작하게 한다.
             // 검색 중에는 헤더가 없으므로 상태바 몫만 띄운다.
             IS_IOS && {
-              paddingTop: insets.top + NATIVE_HEADER_HEIGHT + HEADER_CONTENT_GAP,
+              paddingTop:
+                insets.top + NATIVE_HEADER_HEIGHT + HEADER_CONTENT_GAP,
             },
           ]}
         >
           {isSearching && !IS_IOS ? (
-              <View style={[styles.searchRow, IS_IOS && styles.searchRowIos]}>
-                <View style={styles.searchBox}>
-                  <Ionicons name='search' size={18} color={Color.textSecondary} />
-                  <TextInput
-                    style={styles.searchInput}
-                    placeholder='장비 검색'
-                    placeholderTextColor={Color.textSecondary}
-                    value={warehouse.getQuery()}
-                    onChangeText={value => warehouse.setQuery(value)}
-                    autoCorrect={false}
-                    returnKeyType='search'
-                    autoFocus
-                  />
-                  {warehouse.getQuery().length > 0 && (
-                    <TouchableOpacity
-                      onPress={() => warehouse.setQuery('')}
-                      hitSlop={8}
-                      accessibilityRole='button'
-                      accessibilityLabel='검색어 지우기'
-                    >
-                      <Ionicons
-                        name='close-circle'
-                        size={18}
-                        color={Color.textSecondary}
-                      />
-                    </TouchableOpacity>
-                  )}
-                </View>
-                <TouchableOpacity
-                  onPress={() => {
-                    setIsSearching(false);
-                    warehouse.setQuery('');
-                  }}
-                  style={styles.cancelButton}
-                  hitSlop={8}
-                  accessibilityRole='button'
-                  accessibilityLabel='검색 닫기'
-                >
-                  <PretendardText style={styles.cancelText}>취소</PretendardText>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              // Android/Web 커스텀 헤더 — 뒤로가기 + 타이틀 + 우측 검색(iOS는 네이티브 바가 대신한다).
-              !IS_IOS && (
-                <View style={styles.titleRow}>
+            <View style={[styles.searchRow, IS_IOS && styles.searchRowIos]}>
+              <View style={styles.searchBox}>
+                <Ionicons name='search' size={18} color={Acg.textSecondary} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder='장비 검색'
+                  placeholderTextColor={Acg.textSecondary}
+                  value={warehouse.getQuery()}
+                  onChangeText={value => warehouse.setQuery(value)}
+                  autoCorrect={false}
+                  returnKeyType='search'
+                  autoFocus
+                />
+                {warehouse.getQuery().length > 0 && (
                   <TouchableOpacity
-                    onPress={() => router.back()}
-                    style={styles.backButton}
+                    onPress={() => warehouse.setQuery('')}
                     hitSlop={8}
                     accessibilityRole='button'
-                    accessibilityLabel='뒤로 가기'
+                    accessibilityLabel='검색어 지우기'
                   >
                     <Ionicons
-                      name='chevron-back'
-                      size={24}
-                      color={Color.textPrimary}
+                      name='close-circle'
+                      size={18}
+                      color={Acg.textSecondary}
                     />
                   </TouchableOpacity>
-                  <PretendardText weight='bold' style={styles.titleText}>
-                    창고
-                  </PretendardText>
-                  {/* iOS는 네이티브 바가 [검색][+]를 그린다 — 여기서도 같은 순서·같은 자리에
+                )}
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  setIsSearching(false);
+                  warehouse.setQuery('');
+                }}
+                style={styles.cancelButton}
+                hitSlop={8}
+                accessibilityRole='button'
+                accessibilityLabel='검색 닫기'
+              >
+                <PretendardText style={styles.cancelText}>취소</PretendardText>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            // Android/Web 커스텀 헤더 — 뒤로가기 + 타이틀 + 우측 검색(iOS는 네이티브 바가 대신한다).
+            !IS_IOS && (
+              <View style={styles.titleRow}>
+                <TouchableOpacity
+                  onPress={() => router.back()}
+                  style={styles.backButton}
+                  hitSlop={8}
+                  accessibilityRole='button'
+                  accessibilityLabel='뒤로 가기'
+                >
+                  <Ionicons name='chevron-back' size={24} color={Acg.ink} />
+                </TouchableOpacity>
+                <PretendardText weight='bold' style={styles.titleText}>
+                  창고
+                </PretendardText>
+                {/* iOS는 네이티브 바가 [검색][+]를 그린다 — 여기서도 같은 순서·같은 자리에
                       둬서 플랫폼 간 배치가 어긋나지 않게 한다. */}
-                  {!isEmpty && (
-                    <TouchableOpacity
-                      onPress={() => setIsSearching(true)}
-                      style={styles.circleSearchButton}
-                      hitSlop={8}
-                      accessibilityRole='button'
-                      accessibilityLabel='장비 검색'
-                    >
-                      <Ionicons
-                        name='search'
-                        size={20}
-                        color={Color.textPrimary}
-                      />
-                    </TouchableOpacity>
-                  )}
+                {!isEmpty && (
                   <TouchableOpacity
-                    onPress={handleAddGear}
+                    onPress={() => setIsSearching(true)}
                     style={styles.circleSearchButton}
                     hitSlop={8}
                     accessibilityRole='button'
-                    accessibilityLabel='장비 추가'
+                    accessibilityLabel='장비 검색'
                   >
-                    <Ionicons name='add' size={24} color={Color.textPrimary} />
+                    <Ionicons name='search' size={20} color={Acg.ink} />
                   </TouchableOpacity>
-                </View>
-              )
-            )}
-            {!isEmpty && <WarehouseFiltersView warehouse={warehouse} />}
+                )}
+                <TouchableOpacity
+                  onPress={handleAddGear}
+                  style={styles.circleSearchButton}
+                  hitSlop={8}
+                  accessibilityRole='button'
+                  accessibilityLabel='장비 추가'
+                >
+                  <Ionicons name='add' size={24} color={Acg.ink} />
+                </TouchableOpacity>
+              </View>
+            )
+          )}
+          {!isEmpty && <WarehouseFiltersView warehouse={warehouse} />}
         </View>
         <View style={styles.contentContainer}>{renderGears()}</View>
       </Layout>
@@ -330,7 +328,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 20,
     lineHeight: 28,
-    color: Color.textPrimary,
+    color: Acg.ink,
     marginLeft: 4,
   },
   // 원형 검색 버튼 — 시스템 바 버튼(44pt 원형)과 동일한 지오메트리.
@@ -340,7 +338,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Color.surfaceMuted,
+    backgroundColor: Acg.paper,
   },
   searchRow: {
     minHeight: 44,
@@ -370,15 +368,16 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     fontSize: 15,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
+  // 지면 위 각진 종이 면 인풋(ACG) — 회색 채움은 지면과 붙어 입력 영역이 안 보인다.
   searchBox: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: Color.surfaceMuted,
-    borderRadius: Radius.input,
+    backgroundColor: Acg.paper,
+    borderRadius: 0,
     paddingHorizontal: 14,
     height: 44,
   },
@@ -386,7 +385,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontFamily: 'Pretendard-Regular',
-    color: Color.textPrimary,
+    color: Acg.ink,
     padding: 0,
   },
   contentContainer: {
@@ -396,9 +395,10 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  // 행이 각자 종이 면이라 홈·배낭 목록과 같은 8px 간격을 준다(ACG).
   scrollContent: {
     flexDirection: 'column',
-    gap: 4,
+    gap: 8,
   },
   emptyContainer: {
     flex: 1,
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     textAlign: 'center',
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
 });
 

@@ -1,6 +1,8 @@
 import { FC, useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Color } from '@/constants/DesignTokens';
+
+// 스켈레톤 셰이딩은 토큰 예외다. 지면(#F4F3EF) 위라 기존 회색은 푸르게 떠 보였다.
+const SKELETON_SHADE = '#E3E1DA';
 
 const SkeletonItem: FC = () => {
   const opacity = useRef(new Animated.Value(0.3)).current;
@@ -81,32 +83,32 @@ const styles = StyleSheet.create({
   skeletonCompanyText: {
     height: 16,
     width: 60,
-    backgroundColor: Color.chipInactiveBg,
-    borderRadius: 4,
+    backgroundColor: SKELETON_SHADE,
+    borderRadius: 0,
   },
   skeletonUsedRateBadge: {
     height: 16,
     width: 70,
-    backgroundColor: Color.chipInactiveBg,
-    borderRadius: 8,
+    backgroundColor: SKELETON_SHADE,
+    borderRadius: 0,
   },
   skeletonNameText: {
     height: 16,
     width: '80%',
-    backgroundColor: Color.chipInactiveBg,
-    borderRadius: 4,
+    backgroundColor: SKELETON_SHADE,
+    borderRadius: 0,
   },
   skeletonColorText: {
     height: 14,
     width: '50%',
-    backgroundColor: Color.chipInactiveBg,
-    borderRadius: 4,
+    backgroundColor: SKELETON_SHADE,
+    borderRadius: 0,
   },
   skeletonWeightText: {
     height: 14,
     width: 40,
-    backgroundColor: Color.chipInactiveBg,
-    borderRadius: 4,
+    backgroundColor: SKELETON_SHADE,
+    borderRadius: 0,
   },
 });
 

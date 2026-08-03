@@ -14,7 +14,7 @@ import app from '@/model/app/App';
 import GearView from '@/components/warehouse/GearView';
 import PretendardText from '@/components/PretendardText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Acg, Color } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 
 // 삭제 스와이프 액션 배경 — 파괴적 액션 시맨틱 색(DesignTokens 예외, CLAUDE.md 참고).
 const DELETE_RED = '#FF3B30';
@@ -45,7 +45,7 @@ const RightActions: FC<RightActionsProps> = ({ drag, label, onDelete }) => {
         accessibilityRole='button'
         accessibilityLabel={label}
       >
-        <IconSymbol name='trash.fill' size={20} color={Color.background} />
+        <IconSymbol name='trash.fill' size={20} color={Acg.paper} />
         <PretendardText style={styles.actionLabel} weight='medium'>
           삭제
         </PretendardText>
@@ -71,7 +71,9 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse }) => {
       confirmText: '삭제하기',
       onConfirm: async () => {
         await warehouse.remove(gear);
-        app.getAnalyticsManager()?.logClick('gear_delete', { from: 'warehouse' });
+        app
+          .getAnalyticsManager()
+          ?.logClick('gear_delete', { from: 'warehouse' });
       },
     });
   };
@@ -109,13 +111,17 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse }) => {
 };
 
 const styles = StyleSheet.create({
+  // 면은 행(GearView)이 직접 그린다 — 여기서 흰 면을 또 깔면 행 사이 지면이 덮인다.
   rowBackground: {
-    backgroundColor: Color.background,
+    backgroundColor: 'transparent',
   },
+  // 행 카드가 아래로 8px 벌어져 있어(목록 gap) 액션 패널에도 같은 여백을 줘야
+  // 위아래 끝이 카드와 맞는다.
   actionsContainer: {
     width: ACTION_WIDTH,
     flexDirection: 'row',
     alignItems: 'stretch',
+    marginBottom: 8,
   },
   actionButton: {
     width: ACTION_WIDTH,

@@ -15,7 +15,7 @@ import OrderOption from '@/model/order/OrderOption';
 import PretendardText from '@/components/PretendardText';
 import CategoryChipView from '@/components/browse/CategoryChipView';
 import { getFineCategoryLabel } from '@/model/gear/GearCategoryGroups';
-import { Color } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 interface Props {
@@ -188,7 +188,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
     gap: 4,
-    backgroundColor: Color.background,
+    // 지면이 비쳐야 한다 — 흰 면을 깔면 필터 바만 종이처럼 떠 보인다.
+    backgroundColor: 'transparent',
   },
   scrollView: {
     width: '100%',
@@ -214,7 +215,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontSize: 16,
-    color: Color.textPrimary,
+    color: Acg.textTertiary,
   },
 });
 
