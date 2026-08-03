@@ -3,7 +3,6 @@ import { FC, useRef, useEffect } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import FilterButtonView from './FilterButtonView';
-import { Color } from '@/constants/DesignTokens';
 
 interface BagWithFilters {
   toggleFilter: (filter: WarehouseFilter) => void;
@@ -59,7 +58,8 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingBottom: 15,
     paddingLeft: 20,
-    backgroundColor: Color.background,
+    // 지면이 비쳐야 한다 — 흰 면을 깔면 필터 영역만 종이처럼 떠 보인다(ACG).
+    backgroundColor: 'transparent',
   },
   scrollView: {
     width: '100%',
