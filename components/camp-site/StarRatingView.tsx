@@ -25,7 +25,19 @@ const StarRatingView: FC<Props> = ({ rating, editable = false, onChange, size })
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      // 읽기 전용은 별 5개가 라벨 없는 아이콘이라 VoiceOver에 평점이 아예 안 읽혔다
+      // (2026-08-03 리뷰). 그룹으로 묶어 `별점 4점`처럼 한 번에 읽히게 한다.
+      // 편집 모드는 각 별이 버튼이라 그룹으로 묶으면 개별 선택을 막게 되므로 그대로 둔다.
+      accessible={!editable}
+      {...(editable
+        ? {}
+        : {
+            accessibilityRole: 'text' as const,
+            accessibilityLabel: `별점 ${rating.toFixed(1)}점`,
+          })}
+    >
       {[0, 1, 2, 3, 4].map(index => {
         const filled = index < filledCount;
         const iconName = filled ? 'star' : 'star-outline';

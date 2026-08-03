@@ -1,8 +1,9 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 import PretendardText from '@/components/PretendardText';
+import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
 import { Color, Radius } from '@/constants/DesignTokens';
 import StarRatingView from './StarRatingView';
 import { CampReview } from '@/model/camp-review/CampReviewTypes';
@@ -15,8 +16,17 @@ interface Props {
   onDelete?: () => void;
 }
 
-// 유저 후기 단건 카드(CS-8) — 순수 표시 컴포넌트.
-// 작성자·별점·글·첨부 배낭을 보여주고, 내 후기면 수정/삭제 액션을 노출한다.
+/**
+ * 유저 후기 단건 카드(CS-8).
+ *
+ * 내 후기면 헤더 우측에 `⋯`를 두고 수정·삭제를 바텀 메뉴로 낸다 — 장비 리뷰
+ * (`ReplyItemView`)가 쓰는 앱 공용 패턴이다.
+ *
+ * 예전에는 카드 하단에 `수정`/`삭제` 텍스트 버튼을 우측 정렬로 뒀는데(2026-08-03 리뷰),
+ * 카드에 배경·테두리가 없어 **다음 후기 작성자 이름 바로 위**에 놓였다. 내 후기가 최상단
+ * 고정이라 항상 남의 후기와 맞닿았고, 파괴적 액션의 대상이 모호했다. 빨간 `삭제`가 카드에서
+ * 가장 먼저 눈에 들어와 하단 주 CTA와 시선을 다투기도 했다.
+ */
 const CampUserReviewItemView: FC<Props> = ({
   review,
   isMine,
@@ -24,7 +34,17 @@ const CampUserReviewItemView: FC<Props> = ({
   onEdit,
   onDelete,
 }) => {
+  const [showMenu, setShowMenu] = useState(false);
   const dateLabel = dayjs(review.updatedAt).format('YYYY.MM.DD');
+  const hasMenu = isMine && Boolean(onEdit || onDelete);
+
+  /**
+   * 날짜·무게는 `·`로 잇는다 — 후기 작성 화면의 첨부 배낭 칩과 같은 문법이다.
+   * 구분자 없이 나열하면 `2026.07.17 ~ 2026.07.18 1.34kg`이 한 덩어리로 읽힌다.
+   */
+  const bagMeta = [review.bagDate, review.bagWeight ? `${review.bagWeight}kg` : '']
+    .filter(Boolean)
+    .join(' · ');
 
   const handlePressBag = () => {
     if (!review.bagId) {
@@ -34,15 +54,37 @@ const CampUserReviewItemView: FC<Props> = ({
     onPressBag(review.bagId);
   };
 
+  const handlePressEdit = () => {
+    setShowMenu(false);
+    onEdit?.();
+  };
+
   const handlePressDelete = () => {
+    setShowMenu(false);
     Alert.alert('후기 삭제', '내 후기를 삭제할까요?', [
       { text: '취소', style: 'cancel' },
       { text: '삭제', style: 'destructive', onPress: onDelete },
     ]);
   };
 
+  const menuItems = [
+    ...(onEdit
+      ? [{ icon: 'pencil' as const, text: '수정하기', onPress: handlePressEdit }]
+      : []),
+    ...(onDelete
+      ? [
+          {
+            icon: 'trash-outline' as const,
+            text: '삭제하기',
+            onPress: handlePressDelete,
+          },
+        ]
+      : []),
+  ];
+
   return (
-    <View style={styles.card}>
+    <>
+      <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.authorRow}>
           <PretendardText style={styles.author} weight='semibold'>
@@ -56,7 +98,24 @@ const CampUserReviewItemView: FC<Props> = ({
             </View>
           ) : null}
         </View>
-        <PretendardText style={styles.date}>{dateLabel}</PretendardText>
+        <View style={styles.headerTrailing}>
+          <PretendardText style={styles.date}>{dateLabel}</PretendardText>
+          {hasMenu ? (
+            <TouchableOpacity
+              style={styles.moreButton}
+              onPress={() => setShowMenu(true)}
+              activeOpacity={0.7}
+              accessibilityRole='button'
+              accessibilityLabel='내 후기 더보기'
+            >
+              <Ionicons
+                name='ellipsis-horizontal'
+                size={16}
+                color={Color.iconMuted}
+              />
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </View>
 
       <StarRatingView rating={review.rating} size={14} />
@@ -72,23 +131,19 @@ const CampUserReviewItemView: FC<Props> = ({
           activeOpacity={0.7}
           accessibilityRole='button'
           accessibilityLabel={`배낭 ${review.bagName ?? ''} 열기`}
+          // 시각 높이는 낮추고 터치 타깃 44pt는 hitSlop으로 확보한다(정보 탭 AU-4와 같은 방식).
+          hitSlop={{ top: 8, bottom: 8, left: 0, right: 0 }}
         >
-          <Ionicons
-            name='briefcase-outline'
-            size={14}
-            color={Color.textSecondary}
-          />
-          <PretendardText style={styles.bagName} weight='medium'>
+          <PretendardText
+            style={styles.bagName}
+            weight='medium'
+            numberOfLines={1}
+          >
             {review.bagName ?? '배낭'}
           </PretendardText>
-          {review.bagDate ? (
-            <PretendardText style={styles.bagMeta}>
-              {review.bagDate}
-            </PretendardText>
-          ) : null}
-          {review.bagWeight ? (
-            <PretendardText style={styles.bagMeta}>
-              {review.bagWeight}kg
+          {bagMeta ? (
+            <PretendardText style={styles.bagMeta} numberOfLines={1}>
+              {bagMeta}
             </PretendardText>
           ) : null}
           {/* 탭 가능(읽기전용 배낭 뷰어로 이동)함을 나타내는 chevron. */}
@@ -100,37 +155,14 @@ const CampUserReviewItemView: FC<Props> = ({
         </TouchableOpacity>
       ) : null}
 
-      {isMine && (onEdit || onDelete) ? (
-        <View style={styles.actionRow}>
-          {onEdit ? (
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={onEdit}
-              activeOpacity={0.7}
-              accessibilityRole='button'
-              accessibilityLabel='후기 수정'
-            >
-              <PretendardText style={styles.actionText} weight='medium'>
-                수정
-              </PretendardText>
-            </TouchableOpacity>
-          ) : null}
-          {onDelete ? (
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={handlePressDelete}
-              activeOpacity={0.7}
-              accessibilityRole='button'
-              accessibilityLabel='후기 삭제'
-            >
-              <PretendardText style={styles.deleteText} weight='medium'>
-                삭제
-              </PretendardText>
-            </TouchableOpacity>
-          ) : null}
-        </View>
-      ) : null}
-    </View>
+      </View>
+
+      <BottomMenuModalView
+        visible={showMenu}
+        onClose={() => setShowMenu(false)}
+        menuItems={menuItems}
+      />
+    </>
   );
 };
 
@@ -176,45 +208,46 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: Color.textPrimary,
   },
+  /**
+   * 첨부 배낭 칩. **후기 본문보다 무거우면 안 된다** — 첨부물이 내용을 누른다(2026-08-03 리뷰).
+   * 예전에는 `minHeight: 44` + `chipInactiveBg`라 한 줄짜리 후기 글보다 커 보였다.
+   * 표면색은 후기 작성 화면의 첨부 칩과 같은 `surfaceMuted`로 맞춘다 — 같은 배낭을
+   * 두 화면이 다른 톤으로 그리면 같은 것인지 알아보기 어렵고, `내 후기` 배지와도 구분된다.
+   */
   bagChip: {
     alignSelf: 'flex-start',
+    maxWidth: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    minHeight: 44,
+    paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: Radius.chip,
-    backgroundColor: Color.chipInactiveBg,
+    backgroundColor: Color.surfaceMuted,
   },
+  // 긴 배낭 이름이 날짜·무게·chevron을 밀어내지 않게 이름만 줄인다(2026-08-03 리뷰).
   bagName: {
+    flexShrink: 1,
     fontSize: 13,
     color: Color.textPrimary,
   },
   bagMeta: {
+    flexShrink: 1,
     fontSize: 12,
     color: Color.textSecondary,
   },
-  actionRow: {
+  headerTrailing: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    alignItems: 'center',
     gap: 4,
-    // 배낭 칩과 붙지 않도록 위 여백을 준다(디자인 리뷰).
-    marginTop: 4,
   },
-  actionButton: {
-    minHeight: 44,
-    paddingHorizontal: 10,
+  // 아이콘은 16pt지만 HIG 최소 터치 타깃 44pt를 확보한다(ReplyItemView와 동일).
+  moreButton: {
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  actionText: {
-    fontSize: 13,
-    color: Color.textSecondary,
-  },
-  // 삭제는 위험 액션이라 빨강 시맨틱색으로 구분(토큰 예외 허용).
-  deleteText: {
-    fontSize: 13,
-    color: '#E5484D',
+    marginRight: -10,
   },
 });
 
