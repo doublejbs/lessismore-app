@@ -176,7 +176,8 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
           }}
         />
         <View style={styles.container}>
-              <AcgScreenBackground />
+          {/* 상세 화면은 지형 마크 없이 지면 + 그레인만 쓴다(ACG). */}
+          <AcgScreenBackground terrain={false} />
           {!IS_IOS && (
             <View style={styles.header}>
               <TouchableOpacity
