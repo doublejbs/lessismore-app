@@ -9,7 +9,7 @@ import Bag from '@/model/bag/Bag';
 import { GearAddContext } from '@/model/gear/GearAddContext';
 import FeedCardView from '@/components/feed/FeedCardView';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { AcgLayout, Color } from '@/constants/DesignTokens';
 import { useFocusEffect } from 'expo-router';
 
 // SR-2: 피드 카드(FD-2)와 동일한 2컬럼 그리드 간격.
@@ -59,7 +59,12 @@ const SearchResultContentView: FC<Props> = ({
   }, []);
 
   // iOS는 결과 리스트가 탭바 뒤로 흐르므로(edge-to-edge) 마지막 카드가 가리지 않게 탭바 영역만큼 더한다.
-  const listBottomPadding = Platform.OS === 'ios' ? insets.bottom + 40 : 80;
+  // ACG 플로팅 탭바 아래로 콘텐츠가 흐르므로 시안대로 130을 비운다 —
+  // 40으로는 마지막 카드가 탭바에 잘렸다(2026-08-03 실기기 확인).
+  const listBottomPadding =
+    Platform.OS === 'ios'
+      ? insets.bottom + AcgLayout.scrollBottom
+      : AcgLayout.scrollBottom;
 
   useFocusEffect(
     useCallback(() => {

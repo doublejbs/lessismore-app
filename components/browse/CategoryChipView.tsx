@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import PretendardText from '../PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   label: string;
@@ -14,6 +14,10 @@ interface Props {
   // 'primary'(기본): 큰 아웃라인 칩, 선택 시 검정 채움.
   // 'secondary': 2차(세분) 필터용 — 한 단계 작고 연한 톤(선택 시 연회색 채움)으로 1차와 위계 구분.
   variant?: 'primary' | 'secondary';
+  // 'acg': ACG 리디자인 화면(홈·탐색·지도)용 톤. 비선택은 유리 면(반투명 흰 채움 + 광택 테두리),
+  //   선택은 잉크 채움이다. 지면이 흰색이 아니라(#F4F3EF) 기본 톤의 흰 칩은 배경과 붙어 보였다.
+  //   실제 블러는 쓰지 않는다 — 가로 스크롤에 칩 수만큼 BlurView를 얹는 비용이 얻는 것보다 크다.
+  tone?: 'default' | 'acg';
 }
 
 // 앱 공용 선택형 필터·카테고리 칩. 아웃라인 톤(비선택 테두리 / 선택 검정 채움),
@@ -28,10 +32,12 @@ const CategoryChipView = forwardRef<View, Props>(
       dotColor,
       accessibilityLabel,
       variant = 'primary',
+      tone = 'default',
     },
     ref
   ) => {
     const isSecondary = variant === 'secondary';
+    const isAcg = tone === 'acg';
 
     return (
       <View ref={ref}>
@@ -46,6 +52,8 @@ const CategoryChipView = forwardRef<View, Props>(
               : selected
                 ? styles.chipSelected
                 : styles.chipUnselected,
+            isAcg &&
+              (selected ? styles.chipAcgSelected : styles.chipAcgUnselected),
           ]}
           onPress={onPress}
           activeOpacity={0.7}
@@ -76,6 +84,10 @@ const CategoryChipView = forwardRef<View, Props>(
                 : selected
                   ? styles.chipTextSelected
                   : styles.chipTextUnselected,
+            isAcg &&
+              (selected
+                ? styles.chipTextAcgSelected
+                : styles.chipTextAcgUnselected),
             ]}
           >
             {label}
@@ -138,6 +150,16 @@ const styles = StyleSheet.create({
     backgroundColor: Color.background,
     borderColor: Color.chipBorder,
   },
+  // ACG 유리 칩 — 채움은 시안(흰 50%)보다 올린다. RN에는 backdrop-filter가 없어
+  // 블러가 만들던 밝기를 채움으로 대신 낸다.
+  chipAcgUnselected: {
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    borderColor: Acg.glassStroke,
+  },
+  chipAcgSelected: {
+    backgroundColor: Acg.ink,
+    borderColor: Acg.ink,
+  },
   dot: {
     width: 8,
     height: 8,
@@ -162,6 +184,12 @@ const styles = StyleSheet.create({
   // 2차 선택 시 연회색 채움 위 검정 텍스트(볼드감은 medium 유지).
   chipTextSecondarySelected: {
     color: Color.textPrimary,
+  },
+  chipTextAcgUnselected: {
+    color: Acg.textSecondary,
+  },
+  chipTextAcgSelected: {
+    color: Acg.paper,
   },
   countBadge: {
     minWidth: 18,

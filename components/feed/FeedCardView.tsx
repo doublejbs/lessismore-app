@@ -16,7 +16,8 @@ import GearRowActions from '@/model/browse/GearRowActions';
 import { GearAddContext } from '@/model/gear/GearAddContext';
 import GearAddMode from '@/model/gear/GearAddMode';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import { Acg, AcgShadow, Color } from '@/constants/DesignTokens';
 import LoadingView from '@/components/ui/LoadingView';
 import SearchGearAddToBagModalView from '@/components/search/SearchGearAddToBagModalView';
 import app from '@/model/app/App';
@@ -282,11 +283,9 @@ const FeedCardView: FC<Props> = ({
             </PretendardText>
           ) : null}
 
+          {/* 무게는 숫자라 콘덴스드를 쓴다 — 카드의 시각 앵커(ACG). */}
           {weight ? (
-            <PretendardText
-              style={styles.weight}
-              weight='bold'
-            >{`${weight}g`}</PretendardText>
+            <AcgDisplayText style={styles.weight}>{`${weight}g`}</AcgDisplayText>
           ) : null}
         </View>
 
@@ -324,12 +323,14 @@ const styles = StyleSheet.create({
   },
   // 텍스트 카드 면 — 이미지 대신 이 면이 2컬럼 그리드의 리듬을 만든다. 높이는 콘텐츠 기준(정방형 강제 없음).
   // flex: 1 로 같은 행의 카드 면을 늘려 면 아래 빈 공간이 뜨지 않게 한다(카드 전체 하단 기준 정렬).
+  // ACG: 흰 종이 면 + 각진 모서리. 회색 면(inputBg)은 지면과 붙어 카드가 안 떠 보였다.
   cardFace: {
     flex: 1,
     width: '100%',
-    borderRadius: Radius.card,
-    backgroundColor: Color.inputBg,
-    padding: Spacing.item,
+    borderRadius: 0,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
+    padding: 14,
     gap: 6,
   },
   // 브랜드(좌) + 담기 CTA(우상단) 한 행.
@@ -343,7 +344,7 @@ const styles = StyleSheet.create({
     width: CTA_SIZE,
     height: CTA_SIZE,
     borderRadius: CTA_SIZE / 2,
-    backgroundColor: Color.chipActiveBg,
+    backgroundColor: Acg.ink,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -351,7 +352,7 @@ const styles = StyleSheet.create({
     width: CTA_SIZE,
     height: CTA_SIZE,
     borderRadius: CTA_SIZE / 2,
-    backgroundColor: Color.chipActiveBg,
+    backgroundColor: Acg.ink,
     justifyContent: 'center',
     alignItems: 'center',
     opacity: 0.9,
@@ -361,7 +362,7 @@ const styles = StyleSheet.create({
     width: CTA_SIZE,
     height: CTA_SIZE,
     borderRadius: CTA_SIZE / 2,
-    backgroundColor: Color.chipActiveBg,
+    backgroundColor: Acg.ink,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -370,25 +371,26 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     lineHeight: 19,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   name: {
     fontSize: 14,
     lineHeight: 19,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   // FD-2: 색상은 이름보다 작은 활자로, 이름 아래 한 줄 표시.
   // 위치(이름 아래)는 창고 목록(WH-1)과 같지만 톤은 각 화면 규칙을 따른다 — 피드는 12/textSecondary.
   color: {
     fontSize: 12,
     lineHeight: 16,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   // 카드에서 가장 큰 활자 — 이미지가 하던 시각 앵커를 무게가 대신한다(FD-2).
+  // ACG는 이 앵커를 30px 콘덴스드로 키운다.
   weight: {
-    fontSize: 26,
-    lineHeight: 32,
-    color: Color.textPrimary,
+    fontSize: 30,
+    lineHeight: 34,
+    color: Acg.ink,
   },
   coupangLink: {
     flexDirection: 'row',

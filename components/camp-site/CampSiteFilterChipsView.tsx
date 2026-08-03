@@ -97,6 +97,7 @@ const CampSiteFilterChipsView: FC<Props> = observer(
             <CategoryChipView
               key={filter.label}
               label={filter.label}
+              tone='acg'
               {...(filter.dotColor !== undefined
                 ? { dotColor: filter.dotColor }
                 : {})}
