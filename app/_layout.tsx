@@ -319,6 +319,19 @@ const RootLayout = () => {
               contentStyle: { backgroundColor: '#FFFFFF' },
             }}
           />
+          {/* 공유 배낭 뷰어(CS-8). **일반 push로 두면 안 된다** — 박지 상세가 `formSheet`라
+              그 위에서 push하면 시트 안에서 부모 스크린 컨트롤러를 못 찾아
+              (`Failed to find parent screen controller`) 화면이 마운트되고 데이터도 다
+              들어왔는데 레이아웃이 깨져 빈 화면 + 헤더 없음으로 보였다(2026-08-03).
+              시트 위에 얹히는 자기 자신의 프레젠테이션을 주면 해결된다.
+              공유 링크 콜드스타트(스택 없음)에서도 전체 화면이라 자연스럽다. */}
+          <Stack.Screen
+            name='shared-bag/[id]'
+            options={{
+              headerShown: false,
+              presentation: 'fullScreenModal',
+            }}
+          />
           <Stack.Screen name='+not-found' />
         </Stack>
         <StatusBar style='auto' />
