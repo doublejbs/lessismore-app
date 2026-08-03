@@ -21,6 +21,10 @@ import Comment, {
   CommentUpdateRequest,
 } from '../reply/Comment';
 
+// 미리보기용 최신 댓글을 고를 때 훑는 건수. 삭제된 댓글이 연달아 있을 수 있어 1건만
+// 받으면 빈 미리보기가 된다. 5건이면 실사용에서 충분하고 읽기 비용도 무시할 만하다.
+const LATEST_COMMENT_SCAN_LIMIT = 5;
+
 class ReplyStore {
   public constructor(private readonly firebase: Firebase) {}
 
@@ -650,6 +654,14 @@ class ReplyStore {
   }
 
   // 가장 최근 댓글 하나 조회
+  /**
+   * 장비 상세 리뷰 미리보기에 쓰는 최신 댓글 1건.
+   *
+   * **삭제된 댓글은 건너뛴다.** 답글이 달린 댓글은 스레드를 지키려고 논리 삭제
+   * (`isDeleted`, 본문은 `[삭제된 댓글입니다]`)로 남는데, 그게 최신이면 미리보기에
+   * 그 문구가 그대로 떴다. `where('isDeleted','==',false)`는 복합 색인이 필요한 데다
+   * 필드가 없는 옛 문서가 통째로 빠지므로, 몇 건 받아 와 코드에서 고른다.
+   */
   public async getLatestComment(gearId: string): Promise<Comment | null> {
     const commentsRef = collection(
       this.getStore(),
@@ -657,15 +669,20 @@ class ReplyStore {
       gearId,
       'comments'
     );
-    const q = query(commentsRef, orderBy('createdAt', 'desc'), limit(1));
+    const q = query(
+      commentsRef,
+      orderBy('createdAt', 'desc'),
+      limit(LATEST_COMMENT_SCAN_LIMIT)
+    );
 
     const snapshot = await getDocs(q);
 
-    if (snapshot.empty) {
+    const doc = snapshot.docs.find(item => !item.data().isDeleted);
+
+    if (!doc) {
       return null;
     }
 
-    const doc = snapshot.docs[0];
     const data = doc.data();
 
     return {
