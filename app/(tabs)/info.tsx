@@ -94,7 +94,7 @@ const InfoView: FC = () => {
   return (
     <Layout
       paddingHorizontal={AcgLayout.screenH}
-      background={<AcgScreenBackground photo terrain={false} />}
+      background={<AcgScreenBackground />}
     >
       <ScrollView
         style={styles.container}

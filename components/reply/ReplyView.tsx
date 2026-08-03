@@ -37,8 +37,7 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
 
   return (
     <View style={styles.container}>
-      {/* 상세 화면은 지형 마크 없이 지면 + 그레인만 쓴다(ACG). */}
-      <AcgScreenBackground terrain={false} />
+      <AcgScreenBackground />
       {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
           시스템에 위임한다(headerBlurEffect·headerStyle.backgroundColor 지정 금지). */}
       <Stack.Screen
