@@ -3,7 +3,8 @@ import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import Gear from '../../model/gear/Gear';
 import PretendardText from '../PretendardText';
-import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
+import WarehouseDetailSectionView from './WarehouseDetailSectionView';
+import { Acg } from '@/constants/DesignTokens';
 import {
   formatSpecValue,
   getSpecsSchemaFor,
@@ -51,42 +52,25 @@ const WarehouseDetailSpecsView: FC<Props> = ({ gear }) => {
   }
 
   return (
-    <View style={styles.container}>
-        <PretendardText weight='semibold' style={styles.title}>
-          스펙
-        </PretendardText>
-        <View style={styles.table}>
-          {rows.map((row, index) => (
-            <View
-              key={row.key}
-              style={[styles.row, index > 0 && styles.rowDivider]}
-            >
-              <PretendardText style={styles.label}>{row.label}</PretendardText>
-              <PretendardText style={styles.value}>{row.value}</PretendardText>
-            </View>
-          ))}
+    <WarehouseDetailSectionView title='스펙'>
+      <View style={styles.table}>
+        {rows.map((row, index) => (
+          <View
+            key={row.key}
+            style={[styles.row, index > 0 && styles.rowDivider]}
+          >
+            <PretendardText style={styles.label}>{row.label}</PretendardText>
+            <PretendardText style={styles.value}>{row.value}</PretendardText>
+          </View>
+        ))}
       </View>
-    </View>
+    </WarehouseDetailSectionView>
   );
 };
 
 const styles = StyleSheet.create({
-  // 섹션은 지면 위에 얹은 종이 면이다(ACG). 예전에는 흰 배경 위에서 10px 회색 띠로
-  // 섹션을 갈랐는데, 지면이 생기면서 띠가 아니라 면의 경계가 구분을 맡는다.
-  container: {
-    flexDirection: 'column',
-    marginHorizontal: AcgLayout.screenH,
-    marginBottom: 12,
-    padding: 16,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
-  },
-  title: {
-    fontSize: 17,
-    color: Acg.ink,
-  },
   table: {
-    marginTop: 12,
+    flexDirection: 'column',
   },
   row: {
     flexDirection: 'row',

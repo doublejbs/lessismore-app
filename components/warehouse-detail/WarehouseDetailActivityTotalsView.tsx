@@ -3,7 +3,8 @@ import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
-import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
+import WarehouseDetailSectionView from './WarehouseDetailSectionView';
+import { Acg } from '@/constants/DesignTokens';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -55,49 +56,29 @@ const WarehouseDetailActivityTotalsView: FC<Props> = ({ warehouseDetail }) => {
   }
 
   return (
-    <View style={styles.container}>
-        <PretendardText weight='bold' style={styles.title}>
-          함께한 활동
-        </PretendardText>
-        <PretendardText weight='semibold' style={styles.headlineText}>
-          이 장비와 {distanceKm}km를 걸었어요
-        </PretendardText>
-        <View style={styles.rowsContainer}>
-          {rows.map((row, index) => (
-            <View
-              key={row.label}
-              style={[styles.row, index > 0 && styles.rowDivider]}
-            >
-              <PretendardText style={styles.rowLabel}>
-                {row.label}
-              </PretendardText>
-              <PretendardText weight='medium' style={styles.rowValue}>
-                {row.value}
-              </PretendardText>
-            </View>
-          ))}
+    <WarehouseDetailSectionView title='함께한 활동'>
+      <PretendardText weight='semibold' style={styles.headlineText}>
+        이 장비와 {distanceKm}km를 걸었어요
+      </PretendardText>
+      <View style={styles.rowsContainer}>
+        {rows.map((row, index) => (
+          <View
+            key={row.label}
+            style={[styles.row, index > 0 && styles.rowDivider]}
+          >
+            <PretendardText style={styles.rowLabel}>{row.label}</PretendardText>
+            <PretendardText weight='medium' style={styles.rowValue}>
+              {row.value}
+            </PretendardText>
+          </View>
+        ))}
       </View>
-    </View>
+    </WarehouseDetailSectionView>
   );
 };
 
 const styles = StyleSheet.create({
-  // 섹션은 지면 위에 얹은 종이 면이다(ACG). 예전에는 흰 배경 위에서 10px 회색 띠로
-  // 섹션을 갈랐는데, 지면이 생기면서 띠가 아니라 면의 경계가 구분을 맡는다.
-  container: {
-    flexDirection: 'column',
-    marginHorizontal: AcgLayout.screenH,
-    marginBottom: 12,
-    padding: 16,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
-  },
-  title: {
-    fontSize: 17,
-    color: Acg.ink,
-  },
   headlineText: {
-    marginTop: 12,
     fontSize: 16,
     color: Acg.ink,
   },
