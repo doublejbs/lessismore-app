@@ -17,7 +17,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import StarRatingView from '@/components/camp-site/StarRatingView';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 const MAX_CONTENT_LENGTH = 1000;
@@ -93,7 +93,7 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
         <TextInput
           style={styles.contentInput}
           placeholder='장비가 어땠나요? (선택)'
-          placeholderTextColor={Color.textSecondary}
+          placeholderTextColor={Acg.textSecondary}
           value={content}
           onChangeText={setContent}
           maxLength={MAX_CONTENT_LENGTH}
@@ -160,7 +160,7 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
           disabled={confirmDisabled}
         >
           {isLoading ? (
-            <ActivityIndicator size='small' color={Color.background} />
+            <ActivityIndicator size='small' color={Acg.paper} />
           ) : (
             <PretendardText weight='semibold' style={styles.confirmButtonText}>
               확인
@@ -191,8 +191,9 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
 };
 
 const styles = StyleSheet.create({
+  // 시트는 종이 면이다 — 지면(그레인)은 시트 뒤 화면이 이미 깔고 있다.
   container: {
-    backgroundColor: Color.background,
+    backgroundColor: Acg.paper,
     // 네이티브 그래버가 시트 상단에 겹쳐 렌더되므로 그 아래로 제목이 오도록 여백을 준다.
     paddingTop: 52,
   },
@@ -204,13 +205,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   body: {
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenH,
     marginBottom: 20,
   },
   title: {
     fontSize: 20,
     lineHeight: 28,
-    color: Color.textPrimary,
+    color: Acg.ink,
     marginBottom: 24,
   },
   section: {
@@ -221,45 +222,46 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 15,
     lineHeight: 20,
-    color: Color.textPrimary,
+    color: Acg.textTertiary,
   },
+  // 종이 면 위 인풋이라 채움은 지면색이다 — 흰 면 위 회색 면을 또 두면 층이 하나 늘어난다.
   contentInput: {
-    borderRadius: Radius.input,
-    backgroundColor: Color.surfaceMuted,
+    borderRadius: 0,
+    backgroundColor: Acg.bg,
     paddingHorizontal: 14,
     paddingVertical: 14,
     fontSize: 16,
     fontFamily: 'Pretendard-Regular',
-    color: Color.textPrimary,
+    color: Acg.ink,
     minHeight: 100,
   },
   counter: {
     alignSelf: 'flex-end',
     fontSize: 12,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   buttonContainer: {
     flexDirection: 'row',
     gap: 8,
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenH,
   },
   cancelButton: {
     flex: 1,
     height: 52,
-    backgroundColor: Color.surfaceMuted,
-    borderRadius: Radius.input,
+    backgroundColor: Acg.bg,
+    borderRadius: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cancelButtonText: {
     fontSize: 16,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   confirmButton: {
     flex: 1,
     height: 52,
-    backgroundColor: Color.chipActiveBg,
-    borderRadius: Radius.input,
+    backgroundColor: Acg.ink,
+    borderRadius: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -268,7 +270,7 @@ const styles = StyleSheet.create({
   },
   confirmButtonText: {
     fontSize: 16,
-    color: Color.background,
+    color: Acg.paper,
   },
   accessoryBar: {
     flexDirection: 'row',
@@ -276,13 +278,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: Color.surfaceMuted,
-    borderTopWidth: 1,
-    borderTopColor: Color.borderLight,
+    backgroundColor: Acg.bg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Acg.line2,
   },
   accessoryDone: {
     fontSize: 16,
-    color: Color.textPrimary,
+    color: Acg.ink,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
