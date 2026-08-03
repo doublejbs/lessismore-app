@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
-import { Acg } from '@/constants/DesignTokens';
+import { Acg, AcgShadow } from '@/constants/DesignTokens';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 
 interface Props {
@@ -128,33 +128,31 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
             </View>
           )}
         </View>
-        <Ionicons name='chevron-forward' size={24} color={Acg.textTertiary} />
+        <Ionicons name='chevron-forward' size={13} color={Acg.textSecondary} />
       </TouchableOpacity>
     );
   };
 
   return (
-    <WarehouseDetailSectionView title={`함께한 여행 ${bagCount}회`}>
-      <View style={styles.listContainer}>
-        {warehouseDetail.getTripRecords().map(renderTripCard)}
-      </View>
+    <WarehouseDetailSectionView
+      title={`함께한 여행 ${bagCount}회`}
+      variant='list'
+    >
+      {warehouseDetail.getTripRecords().map(renderTripCard)}
     </WarehouseDetailSectionView>
   );
 };
 
 const styles = StyleSheet.create({
-  listContainer: {
-    flexDirection: 'column',
-    gap: 10,
-  },
-  // 종이 면 위 행이라 채움은 지면색이다 — 흰 면 위 회색 면을 또 두면 층이 하나 늘어난다.
+  // 홈 탭 리스트와 같은 행 문법 — 지면 위에 각진 종이 면, 행 사이는 섹션이 8px로 띄운다.
   tripCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    paddingHorizontal: 16,
-    backgroundColor: Acg.bg,
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+    backgroundColor: Acg.paper,
     borderRadius: 0,
+    boxShadow: AcgShadow.paper,
   },
   tripContent: {
     flex: 1,
@@ -169,7 +167,7 @@ const styles = StyleSheet.create({
   },
   tripName: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 14,
     color: Acg.ink,
   },
   tripMetaText: {

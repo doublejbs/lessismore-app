@@ -5,7 +5,7 @@ import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
-import { Acg } from '@/constants/DesignTokens';
+import { Acg, AcgShadow } from '@/constants/DesignTokens';
 import StarRatingView from '../camp-site/StarRatingView';
 
 interface Props {
@@ -36,7 +36,11 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
     ) : null;
 
   return (
-    <WarehouseDetailSectionView title='리뷰' accessory={ratingSummary}>
+    <WarehouseDetailSectionView
+      title='리뷰'
+      accessory={ratingSummary}
+      variant='list'
+    >
       <View style={styles.repliesContainer}>
         {hasReplies ? (
           <>
@@ -63,7 +67,11 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
               <PretendardText style={styles.moreReviewButtonText}>
                 더 많은 의견 보기
               </PretendardText>
-              <Ionicons name='chevron-forward' size={14} color={Acg.ink} />
+              <Ionicons
+                name='chevron-forward'
+                size={13}
+                color={Acg.textSecondary}
+              />
             </TouchableOpacity>
           </>
         ) : (
@@ -99,41 +107,47 @@ const styles = StyleSheet.create({
   repliesContainer: {
     flex: 1,
     flexDirection: 'column',
-    gap: 12,
+    gap: 8,
     alignItems: 'center',
   },
   addReviewButton: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
     gap: 4,
-    padding: 16,
-    paddingHorizontal: 20,
-    backgroundColor: Acg.bg,
+    paddingVertical: 15,
+    paddingHorizontal: 14,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
     borderRadius: 0,
     width: '100%',
   },
   addReviewButtonText: {
     fontSize: 14,
-    color: Acg.ink,
+    color: Acg.textSecondary,
   },
   moreReviewButtonText: {
     fontSize: 14,
-    color: Acg.ink,
+    color: Acg.textSecondary,
   },
+  // 홈의 `전체 보기` 행과 같은 문법 — 가운데 정렬 대신 좌 텍스트·우 셰브론.
   moreReviewButton: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 20,
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
     borderRadius: 0,
     width: '100%',
   },
   replyItem: {
-    padding: 14,
-    paddingHorizontal: 20,
-    backgroundColor: Acg.bg,
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
     borderRadius: 0,
     width: '100%',
   },
@@ -142,6 +156,7 @@ const styles = StyleSheet.create({
   },
   replyName: {
     fontSize: 14,
+    color: Acg.ink,
   },
   replyDate: {
     fontSize: 10,
