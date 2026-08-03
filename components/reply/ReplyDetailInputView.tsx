@@ -22,6 +22,9 @@ interface Props {
   scrollViewRef: React.RefObject<ScrollView>;
 }
 
+// 입력 바 위아래 여백. 키보드가 올라왔을 때 키보드와의 간격이기도 하다.
+const INPUT_BAR_GAP = 12;
+
 const ReplyDetailInputView: FC<Props> = observer(
   ({ replyDetail, scrollViewRef }) => {
     const [isInputMode, setIsInputMode] = useState(false);
@@ -91,14 +94,20 @@ const ReplyDetailInputView: FC<Props> = observer(
     };
 
     return (
-      // 오프셋 76은 키보드 위에 그만큼 빈 지면을 남겼다(2026-08-03 실기기 확인).
-      // 아래 컨테이너가 홈 인디케이터만큼 패딩을 갖는데, 키보드가 올라오면 그 패딩이
-      // 키보드 위 빈칸이 된다 — 음수 오프셋으로 정확히 그만큼만 상쇄한다.
+      // KeyboardAvoidingView의 padding은 `키보드 높이 + 오프셋`이라 양수 오프셋이 그대로
+      // 키보드 위 빈칸이 된다(옛 76pt가 그랬다). 컨테이너는 홈 인디케이터를 피할 만큼
+      // 패딩을 갖는데 키보드가 올라오면 그 몫이 빈칸이 되므로, 음수 오프셋으로 상쇄하고
+      // 위아래 여백(INPUT_BAR_GAP)만 남긴다 — 키보드에 딱 붙으면 입력칸이 눌린 것처럼 보인다.
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? -insets.bottom : 0}
       >
-        <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+        <View
+          style={[
+            styles.container,
+            { paddingBottom: insets.bottom + INPUT_BAR_GAP },
+          ]}
+        >
           <View style={styles.content}>
             {!isInputMode ? (
               <TouchableOpacity
@@ -153,7 +162,7 @@ const ReplyDetailInputView: FC<Props> = observer(
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 12,
-    paddingTop: 12,
+    paddingTop: INPUT_BAR_GAP,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Acg.line2,
     backgroundColor: Acg.paper,
