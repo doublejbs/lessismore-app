@@ -20,6 +20,8 @@ import BagPackingHeaderView from './BagPackingHeaderView';
 import BagPackingCategorySectionView from './BagPackingCategorySectionView';
 import BagPackingCompleteView from './BagPackingCompleteView';
 import AlertView from '@/components/alert/AlertView';
+import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 interface Props {
@@ -96,6 +98,8 @@ const BagPackingView: FC<Props> = ({ bagPacking }) => {
   return (
     <SafeAreaView style={styles.container} edges={SAFE_AREA_EDGES}>
       {stackScreen}
+      {/* 배낭 상세와 같은 지형 이미지 지면(ACG). */}
+      <AcgScreenBackground photo terrain={false} />
       <View
         style={[
           styles.container,
@@ -106,7 +110,7 @@ const BagPackingView: FC<Props> = ({ bagPacking }) => {
         {!IS_IOS && (
           <View style={styles.header}>
             <TouchableOpacity onPress={handlePressBack} activeOpacity={0.7}>
-              <Ionicons name='chevron-back' size={24} color='#191F28' />
+              <Ionicons name='chevron-back' size={24} color={Acg.ink} />
             </TouchableOpacity>
             {!isEmpty && (
               <TouchableOpacity onPress={handlePressReset} activeOpacity={0.7}>
@@ -154,7 +158,8 @@ const BagPackingView: FC<Props> = ({ bagPacking }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    // 지면은 AcgScreenBackground가 깐다.
+    backgroundColor: 'transparent',
   },
   header: {
     flexDirection: 'row',
@@ -165,7 +170,7 @@ const styles = StyleSheet.create({
   },
   resetText: {
     fontSize: 15,
-    color: '#8B95A1',
+    color: Acg.textSecondary,
   },
   // iOS 네이티브 headerRight 텍스트 버튼 — HIG 최소 터치 타깃 44pt 확보.
   nativeResetButton: {
@@ -176,7 +181,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenH,
     paddingBottom: 80,
     gap: 24,
   },
@@ -187,7 +192,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#8B95A1',
+    color: Acg.textSecondary,
   },
 });
 

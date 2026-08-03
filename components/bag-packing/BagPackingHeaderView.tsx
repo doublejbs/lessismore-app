@@ -6,8 +6,9 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import PretendardText from '@/components/PretendardText';
 import BagPacking from '@/model/bag-packing/BagPacking';
+import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
 
 interface Props {
   bagPacking: BagPacking;
@@ -38,27 +39,28 @@ const BagPackingHeaderView: FC<Props> = ({ bagPacking }) => {
 
   return (
     <View style={styles.container}>
+      {/* 숫자라 콘덴스드를 쓴다 — 이 화면의 시각 앵커(ACG). */}
       <View style={styles.countRow}>
-        <PretendardText style={styles.countText} weight='bold'>
-          {packedCount} / {totalCount}
-        </PretendardText>
-        <PretendardText style={styles.percentText} weight='bold'>
-          {percent}%
-        </PretendardText>
+        <AcgDisplayText style={styles.countText}>
+          {`${packedCount} / ${totalCount}`}
+        </AcgDisplayText>
+        <AcgDisplayText style={styles.percentText}>
+          {`${percent}%`}
+        </AcgDisplayText>
       </View>
       <View style={styles.barTrack}>
         <Animated.View style={[styles.barFill, barStyle]} />
       </View>
-      <PretendardText style={styles.weightText} weight='medium'>
-        {packedWeight}kg / {totalWeight}kg
-      </PretendardText>
+      <AcgDisplayText style={styles.weightText}>
+        {`${packedWeight}kg / ${totalWeight}kg`}
+      </AcgDisplayText>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenH,
     paddingBottom: 16,
     gap: 10,
   },
@@ -68,28 +70,32 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   countText: {
-    fontSize: 28,
-    color: '#191F28',
+    fontSize: 34,
+    lineHeight: 38,
+    color: Acg.ink,
   },
+  // 진행률은 라임 — 이 화면에서 유일한 액센트다(ACG).
   percentText: {
-    fontSize: 20,
-    color: '#191F28',
+    fontSize: 24,
+    lineHeight: 28,
+    color: Acg.limeText,
   },
+  // 각진 진행 바(ACG). 채움은 라임이라 남은 양이 한눈에 갈린다.
   barTrack: {
     width: '100%',
     height: 10,
-    borderRadius: 5,
-    backgroundColor: '#F2F4F6',
+    borderRadius: 0,
+    backgroundColor: Acg.line2,
     overflow: 'hidden',
   },
   barFill: {
     height: '100%',
-    borderRadius: 5,
-    backgroundColor: '#191F28',
+    borderRadius: 0,
+    backgroundColor: Acg.lime,
   },
   weightText: {
     fontSize: 15,
-    color: '#8B95A1',
+    color: Acg.textSecondary,
   },
 });
 

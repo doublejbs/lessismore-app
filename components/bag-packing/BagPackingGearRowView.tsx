@@ -11,6 +11,7 @@ import Animated, {
 import GearView from '@/components/warehouse/GearView';
 import Gear from '@/model/gear/Gear';
 import BagPacking from '@/model/bag-packing/BagPacking';
+import { Acg, AcgShadow } from '@/constants/DesignTokens';
 
 interface Props {
   gear: Gear;
@@ -20,6 +21,8 @@ interface Props {
 // 체크 배지(24pt)가 차지하는 우측 레인 폭 — GearView 지표 컬럼과의 간격 12 포함.
 const CHECK_BADGE_SIZE = 24;
 const CHECK_BADGE_LANE = CHECK_BADGE_SIZE + 12;
+// 행 좌우 여백 — 다른 목록 행(홈·창고)과 같은 값.
+const ROW_PADDING = 14;
 
 const SPRING_CONFIG = {
   damping: 16,
@@ -37,7 +40,8 @@ const BagPackingGearRowView: FC<Props> = ({ gear, bagPacking }) => {
   }, [packed, progress]);
 
   const rowStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0, 1], [1, 0.4]),
+    // 챙긴 행을 0.4까지 흐리면 종이 면 위에서 글자가 거의 안 읽힌다 — 상태는 체크 원이 말한다.
+    opacity: interpolate(progress.value, [0, 1], [1, 0.65]),
   }));
 
   const checkStyle = useAnimatedStyle(() => ({
@@ -56,13 +60,16 @@ const BagPackingGearRowView: FC<Props> = ({ gear, bagPacking }) => {
       activeOpacity={0.7}
     >
       <Animated.View style={[styles.row, rowStyle]}>
-        <GearView gear={gear} />
+        <GearView gear={gear} plain />
       </Animated.View>
-      <Animated.View style={[styles.checkBadge, checkStyle]} pointerEvents='none'>
-        <View style={styles.checkCircle}>
-          <Ionicons name='checkmark' size={16} color='white' />
-        </View>
-      </Animated.View>
+      {/* 빈 원은 항상 보인다 — 챙기기 전에도 이 행이 고를 수 있는 항목임을 드러낸다.
+          채움(잉크 원 + 체크)만 챙길 때 스프링으로 나타난다. */}
+      <View style={styles.checkBadge} pointerEvents='none'>
+        <View style={styles.checkOutline} />
+        <Animated.View style={[styles.checkCircle, checkStyle]}>
+          <Ionicons name='checkmark' size={16} color={Acg.paper} />
+        </Animated.View>
+      </View>
     </TouchableOpacity>
   );
 };
@@ -71,24 +78,36 @@ const styles = StyleSheet.create({
   touchable: {
     width: '100%',
   },
-  // GearView 우측에 지표 컬럼(무게·사용률)이 생겼으므로, 절대배치 체크 배지가 겹치지 않도록
-  // 행 오른쪽에 배지 레인(배지 24 + 간격 12)만큼 패딩을 둬 지표 컬럼이 그 앞에서 끝나게 한다.
+  // 절대배치 체크 배지가 지표 컬럼(무게·사용률)과 겹치지 않도록 행 오른쪽에 배지 레인을
+  // 비운다. 체크까지 한 장의 종이 면에 담는다(ACG) — 배지만 지면 위에 떨어지면 따로 논다.
   row: {
     width: '100%',
-    paddingRight: CHECK_BADGE_LANE,
+    paddingLeft: ROW_PADDING,
+    paddingRight: ROW_PADDING + CHECK_BADGE_LANE,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
   },
   checkBadge: {
     position: 'absolute',
-    right: 0,
+    right: ROW_PADDING,
     top: 0,
     bottom: 0,
     justifyContent: 'center',
   },
-  checkCircle: {
+  // 빈 상태의 테두리 원 — 채움 원과 정확히 같은 자리에 겹쳐 둔다.
+  checkOutline: {
     width: CHECK_BADGE_SIZE,
     height: CHECK_BADGE_SIZE,
     borderRadius: CHECK_BADGE_SIZE / 2,
-    backgroundColor: '#191F28',
+    borderWidth: 1.5,
+    borderColor: Acg.line,
+  },
+  checkCircle: {
+    position: 'absolute',
+    width: CHECK_BADGE_SIZE,
+    height: CHECK_BADGE_SIZE,
+    borderRadius: CHECK_BADGE_SIZE / 2,
+    backgroundColor: Acg.ink,
     alignItems: 'center',
     justifyContent: 'center',
   },
