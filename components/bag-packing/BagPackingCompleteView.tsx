@@ -3,6 +3,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import BagPacking from '@/model/bag-packing/BagPacking';
+import { Acg } from '@/constants/DesignTokens';
 
 interface Props {
   bagPacking: BagPacking;
@@ -61,8 +62,8 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-    backgroundColor: 'white',
-    borderRadius: 16,
+    backgroundColor: Acg.paper,
+    borderRadius: 0,
     paddingVertical: 32,
     paddingHorizontal: 24,
     alignItems: 'center',
@@ -70,15 +71,15 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    color: '#191F28',
+    color: Acg.ink,
   },
   weightText: {
     fontSize: 32,
-    color: '#191F28',
+    color: Acg.ink,
   },
   dDayText: {
     fontSize: 15,
-    color: '#8B95A1',
+    color: Acg.textSecondary,
   },
   actions: {
     width: '100%',
@@ -87,13 +88,13 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     width: '100%',
-    backgroundColor: 'black',
+    backgroundColor: Acg.ink,
     paddingVertical: 16,
-    borderRadius: 10,
+    borderRadius: 0,
     alignItems: 'center',
   },
   primaryButtonText: {
-    color: 'white',
+    color: Acg.paper,
     fontSize: 16,
   },
 });

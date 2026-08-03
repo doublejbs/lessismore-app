@@ -6,6 +6,7 @@ import Gear from '@/model/gear/Gear';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import BagPacking from '@/model/bag-packing/BagPacking';
 import BagPackingGearRowView from './BagPackingGearRowView';
+import { Acg } from '@/constants/DesignTokens';
 
 interface Props {
   category: WarehouseFilter;
@@ -40,13 +41,15 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: 8,
   },
+  // 지면 위 섹션 제목 — 홈·배낭 상세와 같은 18px/700 textTertiary(ACG).
   categoryTitle: {
     fontSize: 18,
-    marginBottom: 12,
-    color: '#333',
+    marginBottom: 10,
+    color: Acg.textTertiary,
   },
+  // 행이 각자 종이 면이라 홈 목록과 같은 8px로 벌린다.
   gearList: {
-    gap: 16,
+    gap: 8,
   },
 });
 
