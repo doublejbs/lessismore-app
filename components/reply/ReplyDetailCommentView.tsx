@@ -1,7 +1,7 @@
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, AcgShadow } from '@/constants/DesignTokens';
 import Comment from '@/model/reply/Comment';
 import dayjs from 'dayjs';
 import { FC, useRef, useState } from 'react';
@@ -15,6 +15,9 @@ interface Props {
   comment: Comment;
   replyDetail: ReplyDetail;
 }
+
+// 좋아요 빨강은 의미색이라 ACG 액센트(라임)로 바꾸지 않는다.
+const LIKED_COLOR = '#FF6B6B';
 
 const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
   const ref = useRef<View>(null);
@@ -67,13 +70,12 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
   return (
     <>
       <View style={styles.container} ref={ref}>
-        <View style={styles.divider} />
         <View style={styles.content}>
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <PretendardText
                 weight='bold'
-                style={[styles.name, isMyComment && { color: '#9CCC65' }]}
+                style={[styles.name, isMyComment && styles.myName]}
               >
                 {comment.authorName}
               </PretendardText>
@@ -89,7 +91,7 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
                 <Ionicons
                   name='ellipsis-horizontal'
                   size={16}
-                  color={Color.iconMuted}
+                  color={Acg.textSecondary}
                 />
               </TouchableOpacity>
             )}
@@ -111,16 +113,18 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
               <Ionicons
                 name={isLiked ? 'heart' : 'heart-outline'}
                 size={18}
-                color={isLiked ? '#FF6B6B' : Color.iconMuted}
+                color={isLiked ? LIKED_COLOR : Acg.textSecondary}
               />
               <PretendardText
-                style={[styles.likeCount, isLiked && { color: '#FF6B6B' }]}
+                style={[styles.likeCount, isLiked && styles.likeCountActive]}
               >
                 {comment.likeCount}
               </PretendardText>
             </TouchableOpacity>
             <TouchableOpacity onPress={handlePressReply} activeOpacity={0.7}>
-              <PretendardText style={styles.replyButton}>답글달기</PretendardText>
+              <PretendardText style={styles.replyButton}>
+                답글달기
+              </PretendardText>
             </TouchableOpacity>
           </View>
         </View>
@@ -136,18 +140,17 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
 };
 
 const styles = StyleSheet.create({
+  // 원 리뷰와 같은 종이 면이되 좌측을 들여 답글임을 드러낸다(ACG).
   container: {
     flexDirection: 'column',
-  },
-  divider: {
-    height: 1.83,
-    backgroundColor: Color.divider,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
+    marginLeft: 20,
   },
   content: {
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-    paddingLeft: 42,
-    gap: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+    gap: 10,
   },
   header: {
     flexDirection: 'row',
@@ -160,11 +163,15 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Acg.ink,
+  },
+  // 내 답글 표시 — 앱의 단 하나뿐인 액센트(라임)를 쓴다.
+  myName: {
+    color: Acg.limeText,
   },
   date: {
     fontSize: 12,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -172,32 +179,32 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   tag: {
-    backgroundColor: '#D9D9D9',
+    backgroundColor: Acg.line2,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 5,
+    borderRadius: 0,
   },
   tagText: {
     fontSize: 12,
     fontWeight: '500',
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   moreButton: {
     opacity: 0.3,
   },
   commentText: {
-    fontSize: 17,
-    color: Color.textPrimary,
-    lineHeight: 20.28,
+    fontSize: 15,
+    color: Acg.ink,
+    lineHeight: 21,
   },
   mention: {
-    fontSize: 17,
-    color: '#9CCC65',
-    lineHeight: 20.28,
+    fontSize: 15,
+    color: Acg.limeText,
+    lineHeight: 21,
   },
   replyButton: {
     fontSize: 14,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   footer: {
     flexDirection: 'row',
@@ -212,7 +219,10 @@ const styles = StyleSheet.create({
   },
   likeCount: {
     fontSize: 14,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
+  },
+  likeCountActive: {
+    color: LIKED_COLOR,
   },
 });
 

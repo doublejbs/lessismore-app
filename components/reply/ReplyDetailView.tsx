@@ -13,6 +13,8 @@ import ReplyDetailOriginalView from './ReplyDetailOriginalView';
 import ReplyDetailCommentView from './ReplyDetailCommentView';
 import ReplyDetailInputView from './ReplyDetailInputView';
 import { useRef } from 'react';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 
 interface Props {
   replyDetail: ReplyDetail;
@@ -32,6 +34,8 @@ const ReplyDetailView = ({ replyDetail, originalComment }: Props) => {
 
   return (
     <View style={styles.container}>
+      {/* 상세 화면은 지형 마크 없이 지면 + 그레인만 쓴다(ACG). */}
+      <AcgScreenBackground terrain={false} />
       {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
           시스템에 위임한다. 원 리뷰에 달린 댓글(답글) 화면이라 타이틀은 '댓글'. */}
       <Stack.Screen
@@ -45,12 +49,13 @@ const ReplyDetailView = ({ replyDetail, originalComment }: Props) => {
       {!IS_IOS && (
         <View style={styles.header}>
           <TouchableOpacity onPress={handlePressBack} activeOpacity={0.7}>
-            <Ionicons name='chevron-back-outline' size={24} color='#191F28' />
+            <Ionicons name='chevron-back-outline' size={24} color={Acg.ink} />
           </TouchableOpacity>
         </View>
       )}
       <ScrollView
         style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         ref={scrollViewRef}
         // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
         contentInsetAdjustmentBehavior='automatic'
@@ -78,7 +83,8 @@ const ReplyDetailView = ({ replyDetail, originalComment }: Props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    // 지면은 AcgScreenBackground가 깐다.
+    backgroundColor: 'transparent',
   },
   header: {
     paddingHorizontal: 10,
@@ -86,6 +92,12 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  // 원 리뷰 + 답글이 각자 종이 면이라 홈 리스트와 같은 8px 간격을 준다.
+  scrollContent: {
+    paddingTop: 12,
+    paddingHorizontal: AcgLayout.screenH,
+    gap: 8,
   },
 });
 

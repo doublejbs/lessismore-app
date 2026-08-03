@@ -75,7 +75,12 @@ const ReplyEditView: FC<Props> = ({
 
       await app
         .getReplyStore()
-        ?.updateComment(gearId, commentId, app.getFirebase().getUserId(), request);
+        ?.updateComment(
+          gearId,
+          commentId,
+          app.getFirebase().getUserId(),
+          request
+        );
       router.back();
     } catch (error) {
       app.getAlertManager()?.show({

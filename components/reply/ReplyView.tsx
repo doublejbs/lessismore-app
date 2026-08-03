@@ -8,7 +8,8 @@ import {
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 import PretendardText from '../PretendardText';
 import ReplyInputButtonView from './ReplyInputButtonView';
 import { observer } from 'mobx-react-lite';
@@ -28,6 +29,8 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
 
   return (
     <View style={styles.container}>
+      {/* 상세 화면은 지형 마크 없이 지면 + 그레인만 쓴다(ACG). */}
+      <AcgScreenBackground terrain={false} />
       {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
           시스템에 위임한다(headerBlurEffect·headerStyle.backgroundColor 지정 금지). */}
       <Stack.Screen
@@ -42,11 +45,7 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <TouchableOpacity onPress={handlePressBack} activeOpacity={0.7}>
-              <Ionicons
-                name='chevron-back'
-                size={24}
-                color={Color.textPrimary}
-              />
+              <Ionicons name='chevron-back' size={24} color={Acg.ink} />
             </TouchableOpacity>
             <PretendardText weight='semibold' style={styles.titleText}>
               리뷰
@@ -71,11 +70,7 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
         {!hasComments ? (
           // 리뷰가 없을 때 빈 여백 대신 안내를 남은 공간 중앙에 표시한다.
           <View style={styles.emptyState}>
-            <Ionicons
-              name='star-outline'
-              size={40}
-              color={Color.chipBorder}
-            />
+            <Ionicons name='star-outline' size={40} color={Acg.line2} />
             <PretendardText weight='semibold' style={styles.emptyTitle}>
               아직 등록된 리뷰가 없어요
             </PretendardText>
@@ -104,11 +99,12 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    // 지면은 AcgScreenBackground가 깐다.
+    backgroundColor: 'transparent',
   },
   header: {
-    backgroundColor: Color.background,
-    paddingHorizontal: 20,
+    backgroundColor: 'transparent',
+    paddingHorizontal: AcgLayout.screenH,
   },
   headerContent: {
     flexDirection: 'row',
@@ -120,7 +116,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: 'center',
     flex: 1,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   placeholder: {
     width: 24,
@@ -128,17 +124,21 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
   },
+  // 홈 탭 리스트와 같은 문법 — 행이 각자 종이 면을 갖고 8px 간격으로 놓인다.
   content: {
     flex: 1,
-    paddingTop: 20,
+    paddingTop: 12,
+    paddingHorizontal: AcgLayout.screenH,
+    gap: 8,
   },
   replyHeader: {
     paddingTop: 20,
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenH,
   },
+  // 지면 위 제목이라 본문보다 한 단계 낮은 색이다(장비 상세 섹션 제목과 동일).
   replyHeaderText: {
-    fontSize: 20,
-    color: Color.textPrimary,
+    fontSize: 18,
+    color: Acg.textTertiary,
   },
   emptyState: {
     flex: 1,
@@ -149,11 +149,11 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 16,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   emptyDesc: {
     fontSize: 14,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
 });
 
