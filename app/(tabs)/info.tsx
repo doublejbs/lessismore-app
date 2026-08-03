@@ -99,6 +99,7 @@ const InfoView: FC = () => {
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
           {/* AU-4: 화면 타이틀은 로그인 여부와 무관하게 고정한다. 닉네임은 아래 프로필 행이 맡는다 —
