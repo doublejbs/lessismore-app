@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgShadow, Color } from '@/constants/DesignTokens';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
   getCampSiteTypeLabel,
@@ -146,14 +146,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   listContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenH,
+    paddingVertical: 8,
+    gap: 8,
   },
+  // 지면 위 각진 종이 면 행(ACG) — 구분선 대신 면의 경계가 행을 가른다.
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     minHeight: 56,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
+    paddingHorizontal: 14,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
   },
   rowMain: {
     flex: 1,
@@ -178,8 +182,8 @@ const styles = StyleSheet.create({
   typeBadge: {
     paddingVertical: 4,
     paddingHorizontal: 10,
-    borderRadius: Radius.chip,
-    backgroundColor: Color.chipInactiveBg,
+    borderRadius: 0,
+    backgroundColor: Acg.bg,
   },
   typeBadgeText: {
     fontSize: 12,

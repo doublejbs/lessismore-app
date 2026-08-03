@@ -64,7 +64,8 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
     bagUseless.initialize();
   }, []);
 
-  const percent = allCount > 0 ? Math.round((selectedCount / allCount) * 100) : 0;
+  const percent =
+    allCount > 0 ? Math.round((selectedCount / allCount) * 100) : 0;
 
   // 진행 바를 패킹모드 헤더와 동일한 스프링으로 채운다(오버슈트 없이 목표치까지).
   // 훅은 early return보다 위에 둔다(조건부 훅 금지).
@@ -247,7 +248,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    gap: 16,
+    // 행이 각자 종이 면이라 홈 목록과 같은 8px로 벌린다(ACG).
+    gap: 8,
     paddingBottom: 16,
   },
   confirmWrapper: {

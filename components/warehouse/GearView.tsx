@@ -17,6 +17,9 @@ interface Props {
   gear: Gear;
   children?: ReactNode;
   onPress?: (e: GestureResponderEvent) => void;
+  // 종이 면을 끈다. 검색·탐색처럼 행 바깥에 담기 버튼이 함께 놓이는 목록은 바깥 래퍼가
+  // 면을 그려야 버튼까지 한 카드로 읽힌다 — 그때 안쪽이 면을 또 그리면 카드 안 카드가 된다.
+  plain?: boolean;
 }
 
 // 행 상하 여백. minHeight가 border-box 기준이라 썸네일 높이를 보장하려면 이 값을 더해야 한다.
@@ -27,13 +30,13 @@ const ROW_VERTICAL_PADDING = 14;
 // 행은 **좌 정체(브랜드·이름·색상) · 우 지표** 2열로 나눈다. 지표 컬럼은 사용률 배지가 위, 무게가 아래
 // (보조 지표가 위·앵커가 아래인 메트릭 문법) — 무게가 행마다 같은 자리에 오므로 세로 스캔으로 비교할 수
 // 있다. 정체 텍스트는 말줄임해 지표 컬럼을 침범하지 않는다.
-const GearView: FC<Props> = ({ gear, children, onPress }) => {
+const GearView: FC<Props> = ({ gear, children, onPress, plain = false }) => {
   const weight = gear.getWeight();
   const hasUsedRate = gear.hasUsedRate();
   const hasMetrics = !!weight || hasUsedRate;
 
   const content = (
-    <View style={styles.container}>
+    <View style={[styles.container, plain && styles.plainContainer]}>
       <GearThumbnailView imageUrl={gear.getImageUrl()} />
 
       <View style={styles.identityColumn}>
@@ -117,6 +120,11 @@ const styles = StyleSheet.create({
     // 줄 수가 다른 행(1~3줄)이 섞여도 면 경계가 구분을 맡는다.
     backgroundColor: Acg.paper,
     boxShadow: AcgShadow.paper,
+  },
+  plainContainer: {
+    backgroundColor: 'transparent',
+    boxShadow: 'none',
+    paddingHorizontal: 0,
   },
   // 좌 정체 컬럼 — 브랜드·이름·색상. flex:1이라 썸네일이 붙으면 정체 컬럼만 좁아지고
   // 우측 지표 컬럼은 오른쪽 끝에 그대로 붙어 있다(= 무게의 세로 정렬 유지).

@@ -31,8 +31,10 @@ export const Color = {
   chipInactiveBg: '#E8E6DF',
   chipActiveBg: '#1A1A1A',
   chipBorder: '#E2E0D8', // 아웃라인 칩(비선택) 테두리
-  inputBg: '#F4F3EF', // = Acg.bg (지면색)
-  surfaceMuted: '#F4F3EF',
+  // 인풋·보조 표면은 지면(#F4F3EF)보다 한 단계 어둡게 둔다. 지면색과 같게 두면 화면 루트가
+  // 지면인 곳에서 입력 영역이 통째로 사라지고, 종이 면 위에서만 보이는 반쪽 값이 된다.
+  inputBg: '#EAE8E1',
+  surfaceMuted: '#EAE8E1',
   thumbBg: '#EDEBE4',
 
   // 토스트 배경 — 흰 텍스트 대비를 유지하는 진회색(검정보다 부드럽게)

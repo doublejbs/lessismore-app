@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Color, Spacing } from '@/constants/DesignTokens';
+import { Acg, Color, Spacing } from '@/constants/DesignTokens';
 import CampSiteDetailTab from '@/model/camp-site/CampSiteDetailTab';
 import { getCampSiteDetailTabLabel } from '@/model/camp-site/CampSiteLabels';
 
@@ -60,9 +60,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     // 위로 스크롤해 이 탭 바가 시트 상단에 고정될 때 그래버 핸들과 붙지 않도록 상단 여백을 준다(CS-3).
     paddingTop: Spacing.item,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
-    backgroundColor: Color.background,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Acg.line2,
+    // 지면이 비쳐야 한다 — 흰 면을 깔면 탭 바만 종이처럼 떠 보인다.
+    backgroundColor: 'transparent',
   },
   // 고정 높이 대신 최소 높이 + 패딩으로 44pt 터치 타깃을 확보한다(Dynamic Type 대응).
   tab: {
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   selectedIndicator: {
-    backgroundColor: Color.textPrimary,
+    backgroundColor: Acg.ink,
   },
 });
 

@@ -11,7 +11,7 @@ import Animated, {
 import GearView from '../warehouse/GearView';
 import Gear from '../../model/gear/Gear';
 import BagUseless from '../../model/bag-useless/BagUseless';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, AcgShadow } from '@/constants/DesignTokens';
 
 interface Props {
   gear: Gear;
@@ -59,9 +59,12 @@ const BagUselessGearView: FC<Props> = ({ gear, bagUseless }) => {
       activeOpacity={0.7}
     >
       <Animated.View style={[styles.row, rowStyle]}>
-        <GearView gear={gear} />
+        <GearView gear={gear} plain />
       </Animated.View>
-      <Animated.View style={[styles.checkBadge, checkStyle]} pointerEvents='none'>
+      <Animated.View
+        style={[styles.checkBadge, checkStyle]}
+        pointerEvents='none'
+      >
         <View style={styles.checkCircle}>
           <Ionicons name='checkmark' size={16} color='white' />
         </View>
@@ -76,13 +79,17 @@ const styles = StyleSheet.create({
   },
   // GearView 우측에 지표 컬럼(무게·사용률)이 생겼으므로, 절대배치 체크 배지가 겹치지 않도록
   // 행 오른쪽에 배지 레인(배지 24 + 간격 12)만큼 패딩을 둬 지표 컬럼이 그 앞에서 끝나게 한다.
+  // 체크 배지까지 한 장의 종이 면에 담는다(ACG) — 배지만 지면 위에 떨어지면 행과 따로 논다.
   row: {
     width: '100%',
     paddingRight: CHECK_BADGE_LANE,
+    paddingHorizontal: 14,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
   },
   checkBadge: {
     position: 'absolute',
-    right: 0,
+    right: 14,
     top: 0,
     bottom: 0,
     justifyContent: 'center',
@@ -91,7 +98,7 @@ const styles = StyleSheet.create({
     width: CHECK_BADGE_SIZE,
     height: CHECK_BADGE_SIZE,
     borderRadius: CHECK_BADGE_SIZE / 2,
-    backgroundColor: Color.textPrimary,
+    backgroundColor: Acg.ink,
     alignItems: 'center',
     justifyContent: 'center',
   },

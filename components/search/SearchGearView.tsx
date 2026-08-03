@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, AcgShadow, Color } from '@/constants/DesignTokens';
 import GearRowActions from '@/model/browse/GearRowActions';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
@@ -69,7 +69,7 @@ const SearchGearView: FC<Props> = ({ gear, searchWarehouse, bag }) => {
     <>
       <Pressable style={styles.wrapper} onPress={handleGearPress}>
         <View style={styles.gearContainer}>
-          <GearView gear={gear} />
+          <GearView gear={gear} plain />
         </View>
         <View style={styles.buttonContainer}>
           {loading ? (
@@ -101,12 +101,17 @@ const SearchGearView: FC<Props> = ({ gear, searchWarehouse, bag }) => {
 };
 
 const styles = StyleSheet.create({
+  // 담기 버튼까지 한 장의 종이 면에 담는다(ACG) — 버튼만 지면 위에 떨어져 있으면
+  // 행과 따로 논다.
   wrapper: {
     flexDirection: 'row',
     width: '100%',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 28,
+    gap: 20,
+    paddingHorizontal: 14,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
   },
   gearContainer: {
     flex: 1,
