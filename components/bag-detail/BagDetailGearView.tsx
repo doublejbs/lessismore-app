@@ -17,7 +17,7 @@ import PretendardText from '@/components/PretendardText';
 import GearThumbnailView, {
   GEAR_THUMBNAIL_SIZE,
 } from '@/components/gear/GearThumbnailView';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, Color, Radius } from '@/constants/DesignTokens';
 
 // 삭제 스와이프 액션 배경 — 파괴적 액션 시맨틱 색(DesignTokens 예외, CLAUDE.md 참고).
 const DELETE_RED = '#FF3B30';
@@ -284,14 +284,14 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   editAction: {
-    backgroundColor: Color.chipActiveBg,
+    backgroundColor: Acg.ink,
   },
   deleteAction: {
     backgroundColor: DELETE_RED,
   },
   actionLabel: {
     fontSize: 12,
-    color: Color.background,
+    color: Acg.paper,
   },
 });
 

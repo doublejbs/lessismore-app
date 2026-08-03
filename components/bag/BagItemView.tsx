@@ -45,7 +45,7 @@ const RightActions: FC<RightActionsProps> = ({ drag, onCopy, onDelete }) => {
         accessibilityRole='button'
         accessibilityLabel='배낭 복사'
       >
-        <IconSymbol name='doc.on.doc' size={20} color={Color.background} />
+        <IconSymbol name='doc.on.doc' size={20} color={Acg.paper} />
         <PretendardText style={styles.actionLabel} weight='medium'>
           복사
         </PretendardText>
@@ -57,7 +57,7 @@ const RightActions: FC<RightActionsProps> = ({ drag, onCopy, onDelete }) => {
         accessibilityRole='button'
         accessibilityLabel='배낭 삭제'
       >
-        <IconSymbol name='trash.fill' size={20} color={Color.background} />
+        <IconSymbol name='trash.fill' size={20} color={Acg.paper} />
         <PretendardText style={styles.actionLabel} weight='medium'>
           삭제
         </PretendardText>
@@ -245,10 +245,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Color.textPrimary,
   },
+  // 행 카드가 아래로 8px 벌어져 있어(container.marginBottom) 액션 패널에도 같은 여백을
+  // 줘야 위아래 끝이 카드와 맞는다 — 없으면 패널만 다음 행 틈까지 흘러내린다.
   actionsContainer: {
     width: ACTIONS_TOTAL_WIDTH,
     flexDirection: 'row',
     alignItems: 'stretch',
+    marginBottom: 8,
   },
   actionButton: {
     width: ACTION_WIDTH,
@@ -257,14 +260,14 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   copyAction: {
-    backgroundColor: Color.chipActiveBg,
+    backgroundColor: Acg.ink,
   },
   deleteAction: {
     backgroundColor: DELETE_RED,
   },
   actionLabel: {
     fontSize: 12,
-    color: Color.background,
+    color: Acg.paper,
   },
 });
 

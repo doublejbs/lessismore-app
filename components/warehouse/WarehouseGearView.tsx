@@ -14,7 +14,7 @@ import app from '@/model/app/App';
 import GearView from '@/components/warehouse/GearView';
 import PretendardText from '@/components/PretendardText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, Color } from '@/constants/DesignTokens';
 
 // 삭제 스와이프 액션 배경 — 파괴적 액션 시맨틱 색(DesignTokens 예외, CLAUDE.md 참고).
 const DELETE_RED = '#FF3B30';
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   },
   actionLabel: {
     fontSize: 12,
-    color: Color.background,
+    color: Acg.paper,
   },
 });
 
