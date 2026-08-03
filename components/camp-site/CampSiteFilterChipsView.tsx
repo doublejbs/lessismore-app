@@ -10,6 +10,7 @@ import {
   getCampSiteTypeLabel,
 } from '@/model/camp-site/CampSiteLabels';
 import CategoryChipView from '@/components/browse/CategoryChipView';
+import { AcgLayout } from '@/constants/DesignTokens';
 
 interface Props {
   campSiteMap: CampSiteMap;
@@ -112,7 +113,7 @@ const CampSiteFilterChipsView: FC<Props> = observer(
           ref={tagScrollRef}
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterRow}
+          contentContainerStyle={[styles.filterRow, styles.tagRow]}
           keyboardShouldPersistTaps='handled'
         >
           {TAG_FILTERS.map(filter => (
@@ -124,6 +125,7 @@ const CampSiteFilterChipsView: FC<Props> = observer(
             >
               <CategoryChipView
                 label={filter.label}
+                variant='secondary'
                 selected={campSiteMap.getSelectedTag() === filter.value}
                 onPress={() => handlePressTag(filter.value)}
               />
@@ -145,8 +147,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    // 검색 카드(marginHorizontal 12)와 좌측 정렬.
-    paddingHorizontal: 12,
+    // 검색 필드·다른 탭 필터와 같은 화면 축(18).
+    paddingHorizontal: AcgLayout.screenH,
+  },
+  // 2차(태그) 행은 탐색 탭 세분 카테고리 행과 같은 간격을 쓴다.
+  tagRow: {
+    gap: 6,
   },
 });
 
