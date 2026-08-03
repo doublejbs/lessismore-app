@@ -3,9 +3,8 @@ import { View, StyleSheet, Pressable } from 'react-native';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import { observer } from 'mobx-react-lite';
 import SearchBarInputView, { SearchBarInputHandle } from './SearchInputView';
-import { Acg, AcgLayout, Spacing } from '@/constants/DesignTokens';
+import { AcgLayout, Spacing } from '@/constants/DesignTokens';
 import AcgGlassView from '@/components/acg/AcgGlassView';
-import PretendardText from '@/components/PretendardText';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
@@ -20,12 +19,6 @@ const SearchBarView: FC<Props> = ({ searchWarehouse }) => {
 
   return (
     <View>
-      {/* 화면 제목 44px(ACG). 형광펜 띠 없음 — 한글이라 콘덴스드도 쓰지 않는다. */}
-      <View style={styles.titleRow}>
-        <PretendardText weight='bold' style={styles.titleText}>
-          탐색
-        </PretendardText>
-      </View>
       <View style={styles.container}>
         {/* 검색 필드는 유리 면(ACG). */}
         <AcgGlassView style={styles.searchGlass}>
@@ -41,24 +34,13 @@ const SearchBarView: FC<Props> = ({ searchWarehouse }) => {
   );
 };
 
-const TITLE_SIZE = 44;
-
 const styles = StyleSheet.create({
-  titleRow: {
-    paddingHorizontal: AcgLayout.screenH,
-    paddingTop: 20,
-    paddingBottom: 14,
-  },
-  titleText: {
-    fontSize: TITLE_SIZE,
-    letterSpacing: -0.88,
-    lineHeight: TITLE_SIZE,
-    color: Acg.ink,
-  },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: AcgLayout.screenH,
+    // 제목을 걷어내 검색 필드가 화면 최상단이 됐다 — 제목이 쓰던 여백을 여기서 낸다.
+    paddingTop: 20,
     // 필터바까지 리듬 = 이 값 + 필터 paddingTop(8) = 20(Spacing.screenH). height 고정은 Dynamic Type에서 잘려 제거.
     paddingBottom: Spacing.item,
     gap: 4,

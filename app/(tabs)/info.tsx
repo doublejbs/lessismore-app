@@ -233,9 +233,11 @@ const InfoView: FC = () => {
             </PretendardText>
           </TouchableOpacity>
         ) : null}
-      </ScrollView>
 
-      <InfoFooterView isLoggedIn={isLoggedIn} />
+        {/* 푸터는 스크롤 안 마지막에 둔다. 밖에 고정하면 남는 높이를 흰 면이 다 채워
+            플로팅 탭바 뒤까지 빈 흰 덩어리가 생겼다(2026-08-03 실기기 확인). */}
+        <InfoFooterView isLoggedIn={isLoggedIn} />
+      </ScrollView>
 
       <Modal
         visible={isEditingNickname}
