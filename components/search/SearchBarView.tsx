@@ -5,7 +5,6 @@ import { observer } from 'mobx-react-lite';
 import SearchBarInputView, { SearchBarInputHandle } from './SearchInputView';
 import { Acg, AcgLayout, Spacing } from '@/constants/DesignTokens';
 import AcgGlassView from '@/components/acg/AcgGlassView';
-import AcgHighlightText from '@/components/acg/AcgHighlightText';
 import PretendardText from '@/components/PretendardText';
 
 interface Props {
@@ -21,13 +20,11 @@ const SearchBarView: FC<Props> = ({ searchWarehouse }) => {
 
   return (
     <View>
-      {/* 화면 제목 44px + 형광펜(ACG). 한글이라 콘덴스드를 쓰지 않는다. */}
+      {/* 화면 제목 44px(ACG). 형광펜 띠 없음 — 한글이라 콘덴스드도 쓰지 않는다. */}
       <View style={styles.titleRow}>
-        <AcgHighlightText fontSize={TITLE_SIZE}>
-          <PretendardText weight='bold' style={styles.titleText}>
-            탐색
-          </PretendardText>
-        </AcgHighlightText>
+        <PretendardText weight='bold' style={styles.titleText}>
+          탐색
+        </PretendardText>
       </View>
       <View style={styles.container}>
         {/* 검색 필드는 유리 면(ACG). */}

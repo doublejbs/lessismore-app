@@ -7,7 +7,6 @@ import dayjs from 'dayjs';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
-import AcgHighlightText from '@/components/acg/AcgHighlightText';
 import HomeUpcomingTripView from '@/components/home/HomeUpcomingTripView';
 import HomeWarehousePreviewView from '@/components/home/HomeWarehousePreviewView';
 import HomeSkeletonView from '@/components/home/HomeSkeletonView';
@@ -90,14 +89,14 @@ const HomeView: FC<Props> = ({ home }) => {
       paddingHorizontal={AcgLayout.screenH}
       background={<AcgScreenBackground />}
     >
-      {/* 화면 제목 — 44px에 형광펜 띠(ACG). 한글이라 콘덴스드(Archivo Narrow) 대신
-          Pretendard Bold를 쓴다 — 그 서체에는 한글 글리프가 없어 글자가 깨진다. */}
+      {/* 화면 제목 44px(ACG). 형광펜 띠는 두지 않는다(2026-08-03 사용자 결정) —
+          섹션 제목에만 남겨 강조가 한 화면에서 두 층으로 겹치지 않게 한다.
+          한글이라 콘덴스드(Archivo Narrow) 대신 Pretendard Bold를 쓴다 — 그 서체에는
+          한글 글리프가 없어 글자가 깨진다. */}
       <View style={styles.header}>
-        <AcgHighlightText fontSize={TITLE_SIZE}>
-          <PretendardText weight='bold' style={styles.headerText}>
-            홈
-          </PretendardText>
-        </AcgHighlightText>
+        <PretendardText weight='bold' style={styles.headerText}>
+          홈
+        </PretendardText>
       </View>
       {render()}
     </Layout>

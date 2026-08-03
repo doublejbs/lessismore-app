@@ -20,7 +20,6 @@ import InfoFooterView from '@/components/info/InfoFooterView';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, Color, Radius } from '@/constants/DesignTokens';
 import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
-import AcgHighlightText from '@/components/acg/AcgHighlightText';
 
 
 // 화면 제목 크기(ACG).
@@ -104,12 +103,10 @@ const InfoView: FC = () => {
         <View style={styles.header}>
           {/* AU-4: 화면 타이틀은 로그인 여부와 무관하게 고정한다. 닉네임은 아래 프로필 행이 맡는다 —
               닉네임은 `내 정보`의 값이지 화면 이름이 아니다. */}
-          {/* 화면 제목 44px + 형광펜(ACG). 한글이라 콘덴스드를 쓰지 않는다. */}
-          <AcgHighlightText fontSize={TITLE_SIZE}>
-            <PretendardText weight='bold' style={styles.headerText}>
-              내 정보
-            </PretendardText>
-          </AcgHighlightText>
+          {/* 화면 제목 44px(ACG). 형광펜 띠 없음 — 한글이라 콘덴스드도 쓰지 않는다. */}
+          <PretendardText weight='bold' style={styles.headerText}>
+            내 정보
+          </PretendardText>
         </View>
 
         {isLoggedIn ? (

@@ -113,7 +113,11 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
       </View>
 
       {/* D-day 스티커는 카드 좌상단에 걸친다(ACG) — 카드보다 먼저 그리면 잘리므로
-          형제로 두고 absolute로 얹는다. */}
+          형제로 두고 absolute로 얹는다.
+          **좌측으로는 내보내지 않는다**(2026-08-03 실기기 확인): 바깥 ScrollView의 경계가
+          화면 좌우 패딩(18pt)과 같아 그 밖으로 나간 부분이 잘린다. 시안의 `left: -6`을
+          그대로 쓰면 스티커 왼쪽 변이 수직으로 잘려 보였다. 걸침은 위쪽(top: -13)으로만
+          낸다 — 위는 섹션 제목 여백이 있어 잘리지 않는다. */}
       <View style={styles.cardWrap}>
         {dDayLabel !== null && (
           <View style={styles.dDaySticker}>
@@ -266,7 +270,8 @@ const styles = StyleSheet.create({
   // D-day 스티커 — 잉크 면 + 라임 글자, 좌상단에 비스듬히 얹는다(ACG).
   dDaySticker: {
     position: 'absolute',
-    left: -6,
+    // 회전(-5deg)으로 좌하단 모서리가 1~2px 더 나가므로 0이 아니라 2에서 시작한다.
+    left: 2,
     top: -13,
     zIndex: 2,
     minHeight: 28,
