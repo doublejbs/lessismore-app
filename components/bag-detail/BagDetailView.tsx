@@ -19,6 +19,7 @@ import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
 import { Acg, Color, Spacing } from '@/constants/DesignTokens';
 import BagDetailCategoryView from './BagDetailCategoryView';
+import AcgHighlightText from '@/components/acg/AcgHighlightText';
 import BagDetailDateView from './BagDetailDateView';
 import BagDetailFiltersView from './BagDetailFiltersView';
 import BagDetailNameView from './BagDetailNameView';
@@ -221,9 +222,12 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                 }}
               >
                 <View style={styles.gearHeaderContent}>
-                  <PretendardText style={styles.gearCountText} weight='bold'>
-                    총 {gears.length}개의 장비
-                  </PretendardText>
+                  {/* 형광펜은 화면당 한 곳에만 — 이 화면의 주 섹션이다(ACG). */}
+                  <AcgHighlightText fontSize={GEAR_COUNT_SIZE}>
+                    <PretendardText style={styles.gearCountText} weight='bold'>
+                      총 {gears.length}개의 장비
+                    </PretendardText>
+                  </AcgHighlightText>
                 </View>
                 <BagDetailFiltersView bagDetail={bagDetail} />
               </View>
@@ -272,6 +276,9 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     );
   }
 };
+
+// 섹션 제목 크기(ACG) — 홈·장비 상세와 같은 18px/700.
+const GEAR_COUNT_SIZE = 18;
 
 const styles = StyleSheet.create({
   container: {
@@ -346,8 +353,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   gearCountText: {
-    fontSize: 17,
-    color: Color.textPrimary,
+    fontSize: GEAR_COUNT_SIZE,
+    color: Acg.textTertiary,
   },
   gearListContainer: {
     alignItems: 'center',

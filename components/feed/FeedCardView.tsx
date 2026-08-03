@@ -285,7 +285,9 @@ const FeedCardView: FC<Props> = ({
 
           {/* 무게는 숫자라 콘덴스드를 쓴다 — 카드의 시각 앵커(ACG). */}
           {weight ? (
-            <AcgDisplayText style={styles.weight}>{`${weight}g`}</AcgDisplayText>
+            <AcgDisplayText
+              style={styles.weight}
+            >{`${weight}g`}</AcgDisplayText>
           ) : null}
         </View>
 
@@ -387,10 +389,11 @@ const styles = StyleSheet.create({
   },
   // 카드에서 가장 큰 활자 — 이미지가 하던 시각 앵커를 무게가 대신한다(FD-2).
   // ACG는 이 앵커를 30px 콘덴스드로 키운다.
+  // 카드의 시각 앵커 — 목록 행과 같은 라임 텍스트로 액센트를 통일한다.
   weight: {
     fontSize: 30,
     lineHeight: 34,
-    color: Acg.ink,
+    color: Acg.limeText,
   },
   coupangLink: {
     flexDirection: 'row',

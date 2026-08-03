@@ -210,10 +210,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
     color: Acg.textSecondary,
   },
+  // 무게는 라임 텍스트 — 목록에서 이 값 하나만 액센트로 세운다(홈 창고 미리보기와 동일).
   weight: {
     fontSize: 16,
     lineHeight: 20,
-    color: Acg.ink,
+    color: Acg.limeText,
     textAlign: 'right',
   },
   // 우 지표 컬럼 — 패킹 칩(위) + 무게(아래).
