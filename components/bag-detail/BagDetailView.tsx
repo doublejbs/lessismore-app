@@ -20,6 +20,7 @@ import PretendardText from '@/components/PretendardText';
 import { Acg, Color, Spacing } from '@/constants/DesignTokens';
 import BagDetailCategoryView from './BagDetailCategoryView';
 import AcgHighlightText from '@/components/acg/AcgHighlightText';
+import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 import BagDetailDateView from './BagDetailDateView';
 import BagDetailFiltersView from './BagDetailFiltersView';
 import BagDetailNameView from './BagDetailNameView';
@@ -151,6 +152,9 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     return (
       <GestureHandlerRootView style={styles.container}>
         {stackScreen}
+        {/* 홈·정보 탭과 같은 지형 이미지 지면(2026-08-04 사용자 결정). 세이프에어리어
+            여백까지 이어져야 하므로 SafeAreaView 바깥에 둔다. */}
+        <AcgScreenBackground photo terrain={false} />
         <SafeAreaView style={styles.container} edges={SAFE_AREA_EDGES}>
           <View style={styles.container}>
             {!IS_IOS && (
@@ -283,10 +287,11 @@ const GEAR_COUNT_SIZE = 18;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Acg.bg,
+    // 지면은 AcgScreenBackground가 깐다 — 여기 색을 두면 그 위를 덮는다.
+    backgroundColor: 'transparent',
   },
   header: {
-    backgroundColor: Color.background,
+    backgroundColor: 'transparent',
     marginBottom: 8,
     paddingHorizontal: Spacing.screenH,
   },
@@ -316,8 +321,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 80,
   },
+  // 지면이 이어져야 한다 — 흰 면을 깔면 배낭명·요약 영역만 종이처럼 떠 보인다(ACG).
   infoSection: {
-    backgroundColor: Color.background,
+    backgroundColor: 'transparent',
     paddingTop: 8,
     paddingHorizontal: Spacing.screenH,
   },
@@ -330,21 +336,23 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 8,
   },
+  // 지면이 구분을 맡으므로 띠는 색 없이 간격만 낸다(ACG).
   separator: {
     width: '100%',
-    backgroundColor: Color.divider,
     minHeight: 10,
   },
   gearHeader: {
-    backgroundColor: Color.background,
+    backgroundColor: 'transparent',
   },
   // iOS sticky 대체 오버레이 — 화면 상단 고정, 헤더 높이만큼 paddingTop을 준다(렌더에서 주입).
+  // 스크롤 위에 떠서 목록을 가려야 하므로 여기만은 불투명하다. 지면과 같은 색이라
+  // 고정된 동안에도 배경이 이어져 보인다.
   pinnedGearHeader: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
   },
   gearHeaderContent: {
     width: '100%',
