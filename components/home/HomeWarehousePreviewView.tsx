@@ -5,7 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import CategoryChipView from '@/components/browse/CategoryChipView';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
+import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import AcgHighlightText from '@/components/acg/AcgHighlightText';
 import Gear from '@/model/gear/Gear';
 import GearFilter from '@/model/gear/GearFilter';
 import {
@@ -60,9 +62,11 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHead}>
-        <PretendardText weight='bold' style={styles.sectionTitle}>
-          내 창고
-        </PretendardText>
+        <AcgHighlightText fontSize={SECTION_TITLE_SIZE}>
+          <PretendardText weight='bold' style={styles.sectionTitle}>
+            내 창고
+          </PretendardText>
+        </AcgHighlightText>
       </View>
 
       <View style={styles.card}>
@@ -128,13 +132,13 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
                         .join(' · ')}
                     </PretendardText>
                   </View>
-                  <PretendardText weight='bold' style={styles.gearWeight}>
+                  <AcgDisplayText style={styles.gearWeight}>
                     {`${gear.getWeight()}g`}
-                  </PretendardText>
+                  </AcgDisplayText>
                   <Ionicons
                     name='chevron-forward'
-                    size={16}
-                    color={Color.iconMuted}
+                    size={13}
+                    color={Acg.textSecondary}
                   />
                 </TouchableOpacity>
               ))}
@@ -154,8 +158,8 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
                 </PretendardText>
                 <Ionicons
                   name='chevron-forward'
-                  size={16}
-                  color={Color.iconMuted}
+                  size={13}
+                  color={Acg.textSecondary}
                 />
               </TouchableOpacity>
             </View>
@@ -166,53 +170,44 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
   );
 };
 
+// 섹션 제목 크기(ACG) — 18px/700.
+const SECTION_TITLE_SIZE = 18;
+
 const styles = StyleSheet.create({
   section: {
     marginBottom: 28,
   },
   sectionHead: {
-    marginBottom: 10,
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 15,
-    color: Color.textPrimary,
+    fontSize: SECTION_TITLE_SIZE,
+    color: Acg.textTertiary,
   },
-  // 목록은 카드로 감싸지 않는다 — 정보 탭·창고 목록과 같은 평평한 행 관용구를 따른다.
   card: {
     marginTop: 2,
   },
-  // 칩 줄이 화면 좌우 여백을 넘어 흐르게 한다(스크롤 여지를 보여준다).
   chipsScroll: {
-    marginHorizontal: -20,
+    marginHorizontal: -18,
   },
   chips: {
     flexDirection: 'row',
     gap: 8,
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
   },
   gearList: {
     marginTop: 14,
-    borderTopWidth: 1,
-    borderTopColor: Color.borderLight,
   },
+  // 장비 행은 종이 면 — 행 사이는 8px로 띄운다(ACG).
   gearRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     paddingVertical: 13,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
-  },
-  // 마지막 장비 행의 하단 구분선을 그대로 이어받아 목록의 일부로 읽히게 한다.
-  moreRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-  },
-  moreText: {
-    fontSize: 14,
-    color: Color.textSecondary,
+    paddingHorizontal: 14,
+    marginBottom: 8,
+    backgroundColor: Acg.paper,
+    boxShadow: '0 1px 0 rgba(26,26,26,0.06)',
   },
   gearIdentity: {
     flex: 1,
@@ -220,40 +215,56 @@ const styles = StyleSheet.create({
   },
   gearName: {
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   gearSub: {
     fontSize: 12,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
+  // 무게는 라임 텍스트로 — 밝은 종이 면 위 액센트(ACG).
   gearWeight: {
-    fontSize: 13,
-    color: Color.textTertiary,
+    fontSize: 14,
+    color: Acg.limeText,
+  },
+  moreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+    backgroundColor: Acg.paper,
+    boxShadow: '0 1px 0 rgba(26,26,26,0.06)',
+  },
+  moreText: {
+    fontSize: 14,
+    color: Acg.textSecondary,
   },
   empty: {
     alignItems: 'center',
     paddingVertical: 24,
+    backgroundColor: Acg.paper,
+    boxShadow: '0 1px 0 rgba(26,26,26,0.06)',
   },
   emptyTitle: {
     fontSize: 17,
-    color: Color.textPrimary,
+    color: Acg.ink,
     marginBottom: 6,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
     marginBottom: 20,
   },
   addButton: {
     alignSelf: 'stretch',
+    marginHorizontal: 18,
     paddingVertical: 15,
-    borderRadius: Radius.card,
-    backgroundColor: Color.inputBg,
     alignItems: 'center',
+    backgroundColor: Acg.ink,
   },
   addButtonText: {
     fontSize: 15,
-    color: Color.textPrimary,
+    color: Acg.paper,
   },
 });
 

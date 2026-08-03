@@ -18,9 +18,13 @@ import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import InfoFooterView from '@/components/info/InfoFooterView';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, Color, Radius } from '@/constants/DesignTokens';
+import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
+import AcgHighlightText from '@/components/acg/AcgHighlightText';
 
 
+// 화면 제목 크기(ACG).
+const TITLE_SIZE = 44;
 // 편집 아이콘(20pt)에 44pt 터치 타깃을 만들기 위한 여유(AU-4). (44 − 20) / 2 = 12.
 const EDIT_ICON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
 
@@ -89,14 +93,23 @@ const InfoView: FC = () => {
   };
 
   return (
-    <Layout>
-      <ScrollView style={styles.container}>
+    <Layout
+      paddingHorizontal={AcgLayout.screenH}
+      background={<AcgScreenBackground />}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.header}>
           {/* AU-4: 화면 타이틀은 로그인 여부와 무관하게 고정한다. 닉네임은 아래 프로필 행이 맡는다 —
               닉네임은 `내 정보`의 값이지 화면 이름이 아니다. */}
-          <PretendardText weight='bold' style={styles.headerText}>
-            내 정보
-          </PretendardText>
+          {/* 화면 제목 44px + 형광펜(ACG). 한글이라 콘덴스드를 쓰지 않는다. */}
+          <AcgHighlightText fontSize={TITLE_SIZE}>
+            <PretendardText weight='bold' style={styles.headerText}>
+              내 정보
+            </PretendardText>
+          </AcgHighlightText>
         </View>
 
         {isLoggedIn ? (
@@ -322,11 +335,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingVertical: 24,
+    paddingTop: 20,
+    paddingBottom: 14,
   },
   headerText: {
-    fontSize: 20,
-    color: Color.textPrimary,
+    fontSize: TITLE_SIZE,
+    letterSpacing: -0.88,
+    lineHeight: TITLE_SIZE,
+    color: Acg.ink,
+  },
+  scrollContent: {
+    paddingBottom: AcgLayout.scrollBottom,
   },
   // 타이틀 아래 프로필 행(AU-4). 닉네임과 편집 아이콘을 한 줄로 둔다.
   profileRow: {
@@ -353,24 +372,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textDecorationLine: 'underline',
   },
+  // 종이 면 버튼 — 구분선 대신 면을 띄우고 아래 여백 12px(ACG).
   button: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 16,
-    backgroundColor: Color.background,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    backgroundColor: Acg.paper,
+    boxShadow: '0 1px 0 rgba(26,26,26,0.06)',
   },
   buttonText: {
     fontSize: 16,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   // 로그아웃(AU-4). 행 구조는 일반 메뉴와 같게 두고 **글자색만** 낮춰 성격 차이를 낸다.
   logoutText: {
     fontSize: 16,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   privacyContainer: {
     marginBottom: 24,

@@ -13,7 +13,8 @@ import OrderButtonView from '@/components/order/OrderButtonView';
 import OrderOption from '@/model/order/OrderOption';
 import { useFocusEffect } from 'expo-router/react-navigation';
 import Layout from '../Layout';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 import app from '@/model/app/App';
 
 // iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
@@ -64,8 +65,9 @@ const BagView = () => {
         return (
           <>
             <View style={styles.headerContainer}>
+              {/* 시안: "배낭 N개" 34px. 한글이라 콘덴스드 대신 Pretendard Bold. */}
               <PretendardText weight='bold' style={styles.headerText}>
-                총 {bags.length}개의 배낭이 있어요
+                배낭 {bags.length}개
               </PretendardText>
               <OrderButtonView
                 order={bag.getOrder()}
@@ -87,9 +89,9 @@ const BagView = () => {
               <View
                 style={{
                   minHeight: Platform.select({
-                    ios: insets.bottom + 80,
-                    android: 64,
-                    default: 80,
+                    ios: insets.bottom + AcgLayout.scrollBottom,
+                    android: AcgLayout.scrollBottom,
+                    default: AcgLayout.scrollBottom,
                   }),
                 }}
               />
@@ -102,7 +104,11 @@ const BagView = () => {
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <Layout edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}>
+      <Layout
+        edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
+        paddingHorizontal={AcgLayout.screenH}
+        background={<AcgScreenBackground />}
+      >
         {render()}
         {/* 로딩 중에는 띄우지 않는다(BAG-1). 탭이 막 마운트된 첫 프레임에는 네이티브 탭바 몫이
             반영되기 전이라 `insets.bottom`이 작게 잡혀 버튼이 **탭바 뒤로 내려간다.**
@@ -121,7 +127,6 @@ const styles = StyleSheet.create({
   container: {
     position: 'relative',
     flex: 1,
-    backgroundColor: Color.background,
   },
   contentContainer: {
     flex: 1,
@@ -136,12 +141,13 @@ const styles = StyleSheet.create({
     top: '30%',
     left: 0,
     fontSize: 30,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   // 좌: 개수 텍스트 / 우: 정렬 드롭다운 (창고 컨트롤 행과 같은 문법, BAG-6)
   // gap은 좁은 화면에서 텍스트가 접혔을 때 드롭다운과 맞닿지 않게 한다.
   headerContainer: {
-    paddingVertical: 24,
+    paddingTop: 20,
+    paddingBottom: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -149,8 +155,10 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flexShrink: 1,
-    fontSize: 20,
-    color: Color.textPrimary,
+    fontSize: 34,
+    letterSpacing: -0.68,
+    lineHeight: 38,
+    color: Acg.ink,
   },
   scrollContainer: {
     flex: 1,

@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, AcgShadow } from '@/constants/DesignTokens';
 
 // 즐겨찾기 상징 노랑 — 마커 캠핑장색과 동일한 시맨틱 리터럴(CS-9).
 const FAVORITE_COLOR = '#FFD700';
@@ -39,16 +39,16 @@ const CampSiteMapBottomOverlayView: FC<Props> = ({
         <Ionicons name='star' size={22} color={FAVORITE_COLOR} />
       </TouchableOpacity>
 
-      {/* 현재 위치 버튼 — 권한 허용 시에만 노출 */}
+      {/* 현재 위치 버튼 — 권한 허용 시에만 노출. 시안에서 이 버튼만 라임 면이다(ACG). */}
       {locationGranted ? (
         <TouchableOpacity
-          style={styles.button}
+          style={[styles.button, styles.locateButton]}
           onPress={onMoveToCurrentLocation}
           activeOpacity={0.8}
           accessibilityRole='button'
           accessibilityLabel='현재 위치로 이동'
         >
-          <Ionicons name='locate' size={22} color={Color.textPrimary} />
+          <Ionicons name='locate' size={22} color={Acg.ink} />
         </TouchableOpacity>
       ) : null}
     </View>
@@ -63,18 +63,21 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: 12,
   },
+  // 원형 아이콘 버튼은 시안에서도 각지지 않는 예외다(46px).
   button: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Color.background,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: Acg.glassFill,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Acg.glassStroke,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 5,
+    boxShadow: AcgShadow.glass,
+  },
+  locateButton: {
+    backgroundColor: Acg.lime,
+    borderColor: Acg.lime,
   },
 });
 

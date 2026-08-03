@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgShadow, Color, Radius } from '@/constants/DesignTokens';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
@@ -192,6 +192,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   // 카드 프레임 없이 지도 위에 바로 뜨는 흰 pill — 그림자로 지도와 분리해 시인성 확보.
+  // 유리 검색 pill 48px(ACG). 지도 위라 실제 블러 대신 반투명 채움 + 광택 헤어라인으로
+  // 근사한다 — `AcgGlassView`는 지도 오버레이의 절대 배치와 섞기 어려워 값만 옮겼다.
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -199,12 +201,10 @@ const styles = StyleSheet.create({
     height: 48,
     paddingHorizontal: 18,
     borderRadius: Radius.pill,
-    backgroundColor: Color.background,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 6,
+    backgroundColor: Acg.glassFill,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Acg.glassStroke,
+    boxShadow: AcgShadow.glass,
   },
   searchInput: {
     flex: 1,
