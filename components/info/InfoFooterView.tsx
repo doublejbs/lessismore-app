@@ -1,10 +1,10 @@
 import { FC } from 'react';
-import { View, TouchableOpacity, StyleSheet, Image, Platform } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 
 // 한 줄 푸터 링크의 44pt 터치 타깃 확보용 여유.
 const LINK_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
@@ -56,7 +56,7 @@ const InfoFooterView: FC<Props> = ({ isLoggedIn }) => {
           <Ionicons
             name='chevron-forward'
             size={12}
-            color={Color.textSecondary}
+            color={Acg.textSecondary}
           />
         </TouchableOpacity>
       </View>
@@ -83,17 +83,19 @@ const InfoFooterView: FC<Props> = ({ isLoggedIn }) => {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
+    // 목록 마지막 행과 붙지 않게 띄운다. 아래 여백은 스크롤 컨테이너가 낸다.
+    marginTop: 12,
     paddingTop: 16,
-    paddingBottom: Platform.OS === 'ios' ? 60 : 0,
     paddingHorizontal: 16,
-    borderTopWidth: 1,
-    borderTopColor: Color.borderLight,
-    backgroundColor: Color.background,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Acg.line2,
+    // 면을 깔지 않는다 — 지면(지형 배경)이 그대로 비쳐야 목록 카드와 위계가 갈린다.
+    backgroundColor: 'transparent',
     gap: 8,
   },
   deleteAccountText: {
     fontSize: 12,
-    color: Color.textTertiary,
+    color: Acg.textTertiary,
     textDecorationLine: 'underline',
   },
   /**
@@ -119,7 +121,7 @@ const styles = StyleSheet.create({
   },
   versionText: {
     fontSize: 11,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   imageContainer: {
     flexDirection: 'row',
