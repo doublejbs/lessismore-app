@@ -2,9 +2,8 @@ import { FC } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
-import SeperaterView from '../ui/SeperaterView';
 import PretendardText from '../PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -56,9 +55,7 @@ const WarehouseDetailActivityTotalsView: FC<Props> = ({ warehouseDetail }) => {
   }
 
   return (
-    <>
-      <SeperaterView />
-      <View style={styles.container}>
+    <View style={styles.container}>
         <PretendardText weight='bold' style={styles.title}>
           함께한 활동
         </PretendardText>
@@ -79,26 +76,30 @@ const WarehouseDetailActivityTotalsView: FC<Props> = ({ warehouseDetail }) => {
               </PretendardText>
             </View>
           ))}
-        </View>
       </View>
-    </>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  // 섹션은 지면 위에 얹은 종이 면이다(ACG). 예전에는 흰 배경 위에서 10px 회색 띠로
+  // 섹션을 갈랐는데, 지면이 생기면서 띠가 아니라 면의 경계가 구분을 맡는다.
   container: {
     flexDirection: 'column',
-    paddingHorizontal: 20,
-    marginVertical: 20,
+    marginHorizontal: AcgLayout.screenH,
+    marginBottom: 12,
+    padding: 16,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
   },
   title: {
     fontSize: 17,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   headlineText: {
     marginTop: 12,
     fontSize: 16,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   rowsContainer: {
     marginTop: 8,
@@ -110,16 +111,16 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   rowDivider: {
-    borderTopWidth: 1,
-    borderTopColor: Color.borderLight,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Acg.line2,
   },
   rowLabel: {
     fontSize: 14,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   rowValue: {
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
 });
 

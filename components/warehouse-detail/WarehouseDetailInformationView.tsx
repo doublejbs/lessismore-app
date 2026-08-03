@@ -3,7 +3,8 @@ import { View, StyleSheet } from 'react-native';
 import Gear from '../../model/gear/Gear';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '../PretendardText';
-import { Color, Spacing } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, Spacing } from '@/constants/DesignTokens';
+import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { GEAR_FILTER_NAMES } from '@/model/gear/GearFilterName';
 
 interface Props {
@@ -71,13 +72,9 @@ const WarehouseDetailInformationView: FC<Props> = ({ gear, photo }) => {
         {/* 무게는 32pt 우측 정렬, `무게` 캡션은 생략한다 — `g` 단위가 이미 무엇인지 말해주고
             목록 행에도 캡션이 없다. 캡션 없이도 화면에서 가장 큰 활자라 시각 앵커는 무게다(GD-1). */}
         {weight ? (
-          <PretendardText
-            weight='bold'
-            style={styles.weightText}
-            numberOfLines={1}
-          >
-            {weight}g
-          </PretendardText>
+          <AcgDisplayText style={styles.weightText} numberOfLines={1}>
+            {`${weight}g`}
+          </AcgDisplayText>
         ) : null}
       </View>
     </View>
@@ -91,7 +88,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: Spacing.item,
     paddingTop: Spacing.screenH,
-    paddingHorizontal: Spacing.screenH,
+    paddingHorizontal: AcgLayout.screenH,
     marginBottom: Spacing.screenH,
   },
   // 1층 — 사진은 가운데 단독 줄(GD-1).
@@ -115,24 +112,25 @@ const styles = StyleSheet.create({
   companyText: {
     fontSize: 24,
     lineHeight: 32,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   nameText: {
     fontSize: 24,
     lineHeight: 32,
-    color: Color.textPrimary,
+    color: Acg.ink,
     marginTop: 2,
   },
   metaText: {
     fontSize: 13,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
     marginTop: 6,
   },
   // 무게 — 고정 폭이 아니라 콘텐츠 폭이되 줄어들거나 줄바꿈되지 않게 한다(GD-1).
+  // 숫자라 콘덴스드를 쓴다 — 이 화면의 시각 앵커(ACG).
   weightText: {
     fontSize: 32,
     lineHeight: 40,
-    color: Color.textPrimary,
+    color: Acg.ink,
     textAlign: 'right',
     flexShrink: 0,
   },

@@ -26,7 +26,8 @@ import WarehouseDetailReviewSectionView from './WarehouseDetailReviewSectionView
 import WarehouseDetailExternalReviewView from './WarehouseDetailExternalReviewView';
 import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '../PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 import SearchGearAddToBagModalView from '../search/SearchGearAddToBagModalView';
 import Bag from '@/model/bag/Bag';
 import app from '@/model/app/App';
@@ -130,7 +131,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
             accessibilityLabel='공유'
             accessibilityRole='button'
           >
-            <Ionicons name='share-outline' size={22} color={Color.textPrimary} />
+            <Ionicons name='share-outline' size={22} color={Acg.ink} />
           </TouchableOpacity>
         )}
         {isAdded && (
@@ -167,6 +168,8 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
           }}
         />
         <View style={styles.container}>
+          {/* 상세 화면은 지형 마크 없이 지면 + 그레인만 쓴다(ACG). */}
+          <AcgScreenBackground terrain={false} />
           {!IS_IOS && (
             <View style={styles.header}>
               <TouchableOpacity
@@ -175,11 +178,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
                 accessibilityLabel='뒤로 가기'
                 accessibilityRole='button'
               >
-                <Ionicons
-                  name='chevron-back'
-                  size={24}
-                  color={Color.textPrimary}
-                />
+                <Ionicons name='chevron-back' size={24} color={Acg.ink} />
               </TouchableOpacity>
               {showHeaderTitle && (
                 <View style={styles.headerTitleContainer} pointerEvents='none'>
@@ -302,15 +301,16 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    // 지면은 AcgScreenBackground가 깐다 — 여기 흰 면을 두면 그 위를 덮는다.
+    backgroundColor: 'transparent',
   },
   header: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    backgroundColor: Color.background,
+    paddingHorizontal: AcgLayout.screenH,
+    backgroundColor: 'transparent',
   },
   backButton: {
     // HIG 최소 터치 타깃 44×44pt, 아이콘 중앙 정렬 (헤더 좌측 정렬 유지)
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 16,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   // 헤더 우측 액션 묶음(공유 + 수정).
   headerRight: {
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     fontSize: 15,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   content: {
     flexDirection: 'column',
@@ -377,15 +377,16 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenH,
     paddingVertical: 20,
-    backgroundColor: Color.background,
-    borderTopWidth: 1,
-    borderTopColor: Color.borderLight,
+    backgroundColor: Acg.paper,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Acg.line2,
   },
+  // 화면의 주 액션 — 각진 잉크 면(ACG).
   addButton: {
-    backgroundColor: Color.textPrimary,
-    borderRadius: Radius.card,
+    backgroundColor: Acg.ink,
+    borderRadius: 0,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -400,7 +401,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   addButtonText: {
-    color: Color.background,
+    color: Acg.paper,
     fontSize: 16,
   },
 });

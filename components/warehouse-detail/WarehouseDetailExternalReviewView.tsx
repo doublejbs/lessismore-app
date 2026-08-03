@@ -2,10 +2,9 @@ import { FC } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
-import SeperaterView from '../ui/SeperaterView';
 import ReviewSectionView from '../review/ReviewSectionView';
 import PretendardText from '../PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
 import { BlogReview, VideoReview } from '@/model/review/ReviewTypes';
 
 interface Props {
@@ -31,9 +30,7 @@ const WarehouseDetailExternalReviewView: FC<Props> = ({ warehouseDetail }) => {
   };
 
   return (
-    <>
-      <SeperaterView />
-      <View style={styles.container}>
+    <View style={styles.container}>
         {/* 앱 내 사용자 `리뷰` 섹션과 구분되는 타이틀 — 이 화면의 섹션 타이틀 톤(bold 16). */}
         <PretendardText weight='bold' style={styles.title}>
           블로그·유튜브 후기
@@ -43,21 +40,25 @@ const WarehouseDetailExternalReviewView: FC<Props> = ({ warehouseDetail }) => {
           videos={videos}
           onPressReview={handlePressReview}
           onPressVideo={handlePressVideo}
-        />
-      </View>
-    </>
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  // 섹션은 지면 위에 얹은 종이 면이다(ACG). 예전에는 흰 배경 위에서 10px 회색 띠로
+  // 섹션을 갈랐는데, 지면이 생기면서 띠가 아니라 면의 경계가 구분을 맡는다.
   container: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    marginHorizontal: AcgLayout.screenH,
+    marginBottom: 12,
+    padding: 16,
     gap: 12,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
   },
   title: {
     fontSize: 16,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
 });
 

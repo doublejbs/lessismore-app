@@ -2,10 +2,9 @@ import { FC } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
-import SeperaterView from '../ui/SeperaterView';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '../PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
 import StarRatingView from '../camp-site/StarRatingView';
 
 interface Props {
@@ -23,9 +22,7 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
   };
 
   return (
-    <>
-      <SeperaterView />
-      <View style={styles.container}>
+    <View style={styles.container}>
         <View style={styles.header}>
           <PretendardText weight='bold' style={styles.title}>
             리뷰
@@ -68,7 +65,7 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
                 <PretendardText style={styles.moreReviewButtonText}>
                   더 많은 의견 보기
                 </PretendardText>
-                <Ionicons name='chevron-forward' size={14} color={Color.textPrimary} />
+                <Ionicons name='chevron-forward' size={14} color={Acg.ink} />
               </TouchableOpacity>
             </>
           ) : (
@@ -79,21 +76,25 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
               <PretendardText style={styles.addReviewButtonText}>
                 첫번째 리뷰 남기기
               </PretendardText>
-              <Ionicons name='chevron-forward' size={14} color={Color.textPrimary} />
+              <Ionicons name='chevron-forward' size={14} color={Acg.ink} />
             </TouchableOpacity>
           )}
-        </View>
       </View>
-    </>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  // 섹션은 지면 위에 얹은 종이 면이다(ACG). 예전에는 흰 배경 위에서 10px 회색 띠로
+  // 섹션을 갈랐는데, 지면이 생기면서 띠가 아니라 면의 경계가 구분을 맡는다.
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    marginHorizontal: AcgLayout.screenH,
+    marginBottom: 12,
+    padding: 16,
     gap: 12,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
   },
   header: {
     flexDirection: 'row',
@@ -103,7 +104,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   ratingSummary: {
     flexDirection: 'row',
@@ -112,11 +113,11 @@ const styles = StyleSheet.create({
   },
   ratingAvgText: {
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   ratingCountText: {
     fontSize: 12,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   repliesContainer: {
     flex: 1,
@@ -131,17 +132,17 @@ const styles = StyleSheet.create({
     gap: 4,
     padding: 16,
     paddingHorizontal: 20,
-    backgroundColor: Color.inputBg,
-    borderRadius: Radius.card,
+    backgroundColor: Acg.bg,
+    borderRadius: 0,
     width: '100%',
   },
   addReviewButtonText: {
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   moreReviewButtonText: {
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   moreReviewButton: {
     flexDirection: 'row',
@@ -149,14 +150,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: 20,
-    borderRadius: Radius.card,
+    borderRadius: 0,
     width: '100%',
   },
   replyItem: {
     padding: 14,
     paddingHorizontal: 20,
-    backgroundColor: Color.inputBg,
-    borderRadius: Radius.card,
+    backgroundColor: Acg.bg,
+    borderRadius: 0,
     width: '100%',
   },
   replyContent: {
@@ -167,7 +168,7 @@ const styles = StyleSheet.create({
   },
   replyDate: {
     fontSize: 10,
-    color: Color.textTertiary,
+    color: Acg.textTertiary,
   },
 });
 
