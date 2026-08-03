@@ -4,6 +4,7 @@ import {
   ThemeProvider,
 } from 'expo-router/react-navigation';
 import { useFonts } from 'expo-font';
+import { ArchivoNarrow_700Bold } from '@expo-google-fonts/archivo-narrow';
 import { Stack, useRouter, usePathname, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -43,6 +44,9 @@ const RootLayout = () => {
     'Pretendard-Medium': require('../assets/fonts/Pretendard-Medium.ttf'),
     'Pretendard-SemiBold': require('../assets/fonts/Pretendard-SemiBold.ttf'),
     'Pretendard-Bold': require('../assets/fonts/Pretendard-Bold.ttf'),
+    // ACG 리디자인의 디스플레이·수치 서체(콘덴스드). 본문·UI는 그대로 Pretendard를 쓰고
+    // 화면 제목·무게·D-day·기간에만 쓴다 — `AcgDisplayText`가 유일한 통로다.
+    ArchivoNarrow_700Bold: ArchivoNarrow_700Bold,
     // 필름 카드 캡션 손글씨(BS-3) — 라틴·숫자·한글을 이 폰트 하나로 렌더한다.
     // 미래나무는 Google Fonts 패키지가 아니라 번들한 로컬 TTF다(assets/fonts/LICENSE-Nanum.txt).
     NanumMiRaeNaMu: require('../assets/fonts/NanumMiRaeNaMu.ttf'),

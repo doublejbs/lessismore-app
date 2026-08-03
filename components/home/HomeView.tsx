@@ -6,10 +6,12 @@ import { observer } from 'mobx-react-lite';
 import dayjs from 'dayjs';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
+import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
+import AcgHighlightText from '@/components/acg/AcgHighlightText';
 import HomeUpcomingTripView from '@/components/home/HomeUpcomingTripView';
 import HomeWarehousePreviewView from '@/components/home/HomeWarehousePreviewView';
 import HomeSkeletonView from '@/components/home/HomeSkeletonView';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import Home from '@/model/home/Home';
 import { selectTripPlan } from '@/model/home/HomeTripPlan';
 
@@ -19,6 +21,8 @@ interface Props {
 
 // iOS는 콘텐츠가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
 const IOS_EDGES = ['top', 'left', 'right'] as const;
+// 화면 제목 크기(ACG) — 콘덴스드 44px.
+const TITLE_SIZE = 44;
 
 const HomeView: FC<Props> = ({ home }) => {
   const insets = useSafeAreaInsets();
@@ -69,9 +73,10 @@ const HomeView: FC<Props> = ({ home }) => {
         <HomeWarehousePreviewView gears={home.getGears()} />
         <View
           style={{
+            // 플로팅 탭바 아래로 콘텐츠가 흐르므로 시안대로 130을 비운다(ACG).
             height: Platform.select({
-              ios: insets.bottom + 40,
-              default: 40,
+              ios: insets.bottom + AcgLayout.scrollBottom,
+              default: AcgLayout.scrollBottom,
             }),
           }}
         />
@@ -80,11 +85,19 @@ const HomeView: FC<Props> = ({ home }) => {
   };
 
   return (
-    <Layout edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}>
+    <Layout
+      edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
+      paddingHorizontal={AcgLayout.screenH}
+      background={<AcgScreenBackground />}
+    >
+      {/* 화면 제목 — 44px에 형광펜 띠(ACG). 한글이라 콘덴스드(Archivo Narrow) 대신
+          Pretendard Bold를 쓴다 — 그 서체에는 한글 글리프가 없어 글자가 깨진다. */}
       <View style={styles.header}>
-        <PretendardText weight='bold' style={styles.headerText}>
-          홈
-        </PretendardText>
+        <AcgHighlightText fontSize={TITLE_SIZE}>
+          <PretendardText weight='bold' style={styles.headerText}>
+            홈
+          </PretendardText>
+        </AcgHighlightText>
       </View>
       {render()}
     </Layout>
@@ -92,15 +105,16 @@ const HomeView: FC<Props> = ({ home }) => {
 };
 
 const styles = StyleSheet.create({
-  // 탭 루트 타이틀 — 정보(`내 정보`)·배낭 탭과 같은 문법(20pt bold + paddingVertical 24).
-  // 예전 창고 탭의 32pt large title은 검색 버튼을 같은 행에 두려던 그 화면만의 예외였고,
-  // 창고가 탭에서 내려온 지금 홈이 그걸 물려받을 이유가 없다.
   header: {
-    paddingVertical: 24,
+    paddingTop: 20,
+    paddingBottom: 14,
   },
   headerText: {
-    fontSize: 20,
-    color: Color.textPrimary,
+    fontSize: TITLE_SIZE,
+    letterSpacing: -0.88, // -.02em
+    // 시안은 line-height .9지만 한글은 그 값에서 위가 잘린다 — 글자 크기만큼 준다.
+    lineHeight: TITLE_SIZE,
+    color: Acg.ink,
   },
   scrollView: {
     flex: 1,
@@ -117,7 +131,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     textAlign: 'center',
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
 });
 

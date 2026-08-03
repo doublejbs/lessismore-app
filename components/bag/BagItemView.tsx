@@ -13,7 +13,7 @@ import BagItem from '@/model/bag/BagItem';
 import PretendardText from '@/components/PretendardText';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, Color, Radius } from '@/constants/DesignTokens';
 
 // 삭제 스와이프 액션 배경 — 파괴적 액션 시맨틱 색(DesignTokens 예외, CLAUDE.md 참고).
 const DELETE_RED = '#FF3B30';
@@ -181,14 +181,15 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
 };
 
 const styles = StyleSheet.create({
+  // 배낭 행은 종이 면 — 구분선 대신 면을 띄우고 8px씩 벌린다(ACG).
   container: {
     width: '100%',
     flexDirection: 'column',
-    paddingVertical: 12,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.divider,
-    backgroundColor: Color.background,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    marginBottom: 8,
+    backgroundColor: Acg.paper,
+    boxShadow: '0 1px 0 rgba(26,26,26,0.06)',
   },
   // BAG-1: 좌 정체 · 우 지표 2열(WH-1 공통 행 레이아웃과 동일 문법).
   header: {
@@ -204,11 +205,12 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 16,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   date: {
-    fontSize: 12,
-    color: Color.textSecondary,
+    fontSize: 12.5,
+    letterSpacing: 0.3,
+    color: Acg.textSecondary,
   },
   weight: {
     fontSize: 16,

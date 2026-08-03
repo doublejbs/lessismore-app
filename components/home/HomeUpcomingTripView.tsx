@@ -4,7 +4,10 @@ import { useRouter } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgShadow } from '@/constants/DesignTokens';
+import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import AcgHighlightText from '@/components/acg/AcgHighlightText';
+import AcgPaperView from '@/components/acg/AcgPaperView';
 import BagItem from '@/model/bag/BagItem';
 import {
   getDDayLabel,
@@ -54,11 +57,13 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
     return (
       <View style={styles.section}>
         <View style={styles.sectionHead}>
-          <PretendardText weight='bold' style={styles.sectionTitle}>
-            다가오는 일정
-          </PretendardText>
+          <AcgHighlightText fontSize={SECTION_TITLE_SIZE}>
+            <PretendardText weight='bold' style={styles.sectionTitle}>
+              다가오는 일정
+            </PretendardText>
+          </AcgHighlightText>
         </View>
-        <View style={styles.card}>
+        <View style={styles.emptyCard}>
           <PretendardText weight='bold' style={styles.emptyTitle}>
             아직 계획한 여행이 없어요
           </PretendardText>
@@ -100,28 +105,28 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHead}>
-        <PretendardText weight='bold' style={styles.sectionTitle}>
-          다가오는 일정
-        </PretendardText>
+        <AcgHighlightText fontSize={SECTION_TITLE_SIZE}>
+          <PretendardText weight='bold' style={styles.sectionTitle}>
+            다가오는 일정
+          </PretendardText>
+        </AcgHighlightText>
       </View>
 
-      <View style={styles.card}>
+      {/* D-day 스티커는 카드 좌상단에 걸친다(ACG) — 카드보다 먼저 그리면 잘리므로
+          형제로 두고 absolute로 얹는다. */}
+      <View style={styles.cardWrap}>
+        {dDayLabel !== null && (
+          <View style={styles.dDaySticker}>
+            <AcgDisplayText style={styles.dDayText}>{dDayLabel}</AcgDisplayText>
+          </View>
+        )}
+        <View style={styles.card}>
         <TouchableOpacity
           onPress={() => handleOpenBag(primary)}
           activeOpacity={0.7}
           accessibilityRole='button'
           accessibilityLabel={`${primary.getName()} 배낭 상세`}
         >
-          {dDayLabel !== null && (
-            <View style={styles.dDayRow}>
-              <View style={styles.dDayBadge}>
-                <PretendardText weight='bold' style={styles.dDayText}>
-                  {dDayLabel}
-                </PretendardText>
-              </View>
-            </View>
-          )}
-
           <PretendardText
             weight='bold'
             style={styles.tripName}
@@ -137,8 +142,8 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
             <View style={styles.locationRow}>
               <Ionicons
                 name='location-outline'
-                size={15}
-                color={Color.textPrimary}
+                size={14}
+                color={Acg.ink}
               />
               <PretendardText
                 weight='semibold'
@@ -151,9 +156,9 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
           )}
 
           {displayDate !== null && (
-            <PretendardText style={styles.tripMeta} numberOfLines={1}>
+            <AcgDisplayText style={styles.tripMeta} numberOfLines={1}>
               {displayDate}
-            </PretendardText>
+            </AcgDisplayText>
           )}
 
           {/* 날씨가 없으면 그 칸을 비워 두지 않고 아예 두지 않는다 — 채우려고 장비 수 같은
@@ -161,15 +166,20 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
           <View style={styles.stats}>
             <View style={styles.stat}>
               <PretendardText style={styles.statKey}>총 무게</PretendardText>
-              <PretendardText weight='bold' style={styles.statValue}>
+              <AcgDisplayText style={styles.statValue}>
                 {`${primary.getWeight()}kg`}
-              </PretendardText>
+              </AcgDisplayText>
             </View>
             {weatherSummary ? (
               <View style={[styles.stat, styles.statDivided]}>
                 <PretendardText style={styles.statKey}>예보</PretendardText>
-                <PretendardText weight='bold' style={styles.statValue}>
-                  {`${weatherSummary.cond} ${weatherSummary.low}° / ${weatherSummary.high}°`}
+                {/* 날씨는 `흐림` 같은 한글이 섞여 콘덴스드를 못 쓴다(한글 글리프 없음). */}
+                <PretendardText
+                  weight='bold'
+                  style={styles.statValueMixed}
+                  numberOfLines={1}
+                >
+                  {`${weatherSummary.cond} ${weatherSummary.low}°/${weatherSummary.high}°`}
                 </PretendardText>
               </View>
             ) : null}
@@ -182,9 +192,9 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
               {/* 배낭 상세 하단 바가 쓰는 `패킹 {n}/{m}`(PK-2)과 같은 말이다 —
                   같은 값을 두 화면이 다르게 부르면 같은 것인지 알아보기 어렵다. */}
               <PretendardText style={styles.progressLabel}>패킹</PretendardText>
-              <PretendardText weight='semibold' style={styles.progressValue}>
+              <AcgDisplayText style={styles.progressValue}>
                 {`${packedCount}/${gearCount}`}
-              </PretendardText>
+              </AcgDisplayText>
             </View>
             <View style={styles.progressTrack}>
               <View
@@ -194,6 +204,7 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
           </View>
         ) : null}
 
+        <View style={styles.ctaWrap}>
         <TouchableOpacity
           style={styles.cta}
           onPress={handlePrimaryAction}
@@ -205,11 +216,13 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
             {action.label}
           </PretendardText>
         </TouchableOpacity>
+        </View>
+        </View>
       </View>
 
       {next.map(bag => (
+        <AcgPaperView key={bag.getID()} style={styles.nextRowWrap}>
         <TouchableOpacity
-          key={bag.getID()}
           style={styles.nextRow}
           onPress={() => handleOpenBag(bag)}
           activeOpacity={0.7}
@@ -223,158 +236,204 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
             {bag.getName()}
           </PretendardText>
           {/* 눌리는 행에는 화살표를 둔다 — 창고 미리보기 장비 행·정보 탭 메뉴와 같은 규칙이다. */}
-          <Ionicons name='chevron-forward' size={16} color={Color.iconMuted} />
+          <Ionicons name='chevron-forward' size={13} color={Acg.textSecondary} />
         </TouchableOpacity>
+        </AcgPaperView>
       ))}
     </View>
   );
 };
+
+// 섹션 제목 크기(ACG) — 18px/700.
+const SECTION_TITLE_SIZE = 18;
 
 const styles = StyleSheet.create({
   section: {
     marginBottom: 28,
   },
   sectionHead: {
-    marginBottom: 10,
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 15,
-    color: Color.textPrimary,
+    fontSize: SECTION_TITLE_SIZE,
+    color: Acg.textTertiary,
   },
-  // 요약 타일 톤 — 배낭 상세 액션 타일(BD-10)과 같은 문법(surfaceMuted 채움 + Radius.card).
-  // Radius.modal(16)은 이 앱에서 모달·시트 전용이라 콘텐츠 카드에 쓰지 않는다.
-  card: {
-    backgroundColor: Color.surfaceMuted,
-    borderRadius: Radius.card,
-    padding: 18,
+  // 스티커가 카드 밖으로 걸치므로 잘리지 않게 감싸는 래퍼를 둔다.
+  cardWrap: {
+    position: 'relative',
+    marginTop: 22,
   },
-  dDayRow: {
-    flexDirection: 'row',
-    marginBottom: 10,
-  },
-  dDayBadge: {
-    paddingVertical: 4,
-    paddingHorizontal: 9,
-    borderRadius: Radius.card,
-    backgroundColor: Color.chipActiveBg,
+  // D-day 스티커 — 잉크 면 + 라임 글자, 좌상단에 비스듬히 얹는다(ACG).
+  dDaySticker: {
+    position: 'absolute',
+    left: -6,
+    top: -13,
+    zIndex: 2,
+    minHeight: 28,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Acg.ink,
+    transform: [{ rotate: '-5deg' }],
+    boxShadow: AcgShadow.sticker,
   },
   dDayText: {
-    fontSize: 12,
-    color: Color.background,
+    fontSize: 15,
+    letterSpacing: 1.2, // .08em
+    color: Acg.lime,
+  },
+  // 일정 카드는 라임 면이 통째로 액센트다 — 이 화면의 유일한 큰 액센트 면.
+  card: {
+    backgroundColor: Acg.lime,
+    boxShadow: AcgShadow.card,
   },
   tripName: {
     fontSize: 21,
-    color: Color.textPrimary,
-    marginBottom: 6,
+    letterSpacing: -0.5,
+    lineHeight: 26,
+    color: Acg.ink,
+    paddingTop: 20,
+    paddingHorizontal: 18,
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginBottom: 2,
+    gap: 5,
+    marginTop: 8,
+    paddingHorizontal: 18,
   },
   locationText: {
     flexShrink: 1,
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   tripMeta: {
+    marginTop: 4,
+    paddingHorizontal: 18,
+    paddingBottom: 18,
     fontSize: 13,
-    color: Color.textSecondary,
+    letterSpacing: 0.78, // .06em
+    color: Acg.textSecondary,
   },
-  // 회색 타일 위에서는 borderLight(#F0F0F0)가 배경(#F5F5F5)에 묻힌다 — 한 톤 진한 선을 쓴다.
+  // 총 무게 / 예보 2열 — 라임 면 위라 구분선은 잉크 계열 `line2`를 쓴다.
   stats: {
     flexDirection: 'row',
-    marginTop: 16,
     borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: Color.chipBorder,
+    borderTopColor: Acg.line2,
   },
   stat: {
     flex: 1,
-    paddingVertical: 12,
-    gap: 2,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
   },
   statDivided: {
     borderLeftWidth: 1,
-    borderLeftColor: Color.chipBorder,
-    paddingLeft: 14,
+    borderLeftColor: Acg.line2,
   },
   statKey: {
     fontSize: 11,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   statValue: {
-    fontSize: 16,
-    color: Color.textPrimary,
+    marginTop: 6,
+    fontSize: 26,
+    letterSpacing: -0.52,
+    lineHeight: 26,
+    color: Acg.ink,
+  },
+  // 한글이 섞인 값 — 콘덴스드가 아니라 한 단계 작게 잡아 폭을 맞춘다.
+  statValueMixed: {
+    marginTop: 6,
+    fontSize: 20,
+    letterSpacing: -0.4,
+    lineHeight: 26,
+    color: Acg.ink,
   },
   progressWrap: {
-    marginTop: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderTopWidth: 1,
+    borderTopColor: Acg.line2,
   },
   progressTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'baseline',
-    marginBottom: 6,
   },
   progressLabel: {
     fontSize: 12,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   progressValue: {
-    fontSize: 13,
-    color: Color.textPrimary,
+    fontSize: 14,
+    color: Acg.ink,
   },
-  // 회색 타일 위라 트랙은 흰색으로 — chipInactiveBg는 타일 배경과 거의 같아 묻힌다.
+  // 라임 면 위 트랙은 흰색, 채움은 잉크(ACG).
   progressTrack: {
     height: 6,
-    borderRadius: 3,
-    backgroundColor: Color.background,
+    marginTop: 8,
+    backgroundColor: Acg.paper,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    borderRadius: 3,
-    backgroundColor: Color.chipActiveBg,
+    backgroundColor: Acg.ink,
   },
+  ctaWrap: {
+    paddingTop: 14,
+    paddingHorizontal: 18,
+    paddingBottom: 16,
+    borderTopWidth: 1,
+    borderTopColor: Acg.line2,
+  },
+  // 주 액션 — 잉크 면을 살짝 비틀어 종이에 붙인 라벨처럼 보이게 한다(ACG).
   cta: {
-    marginTop: 16,
-    paddingVertical: 15,
-    borderRadius: Radius.card,
-    backgroundColor: Color.chipActiveBg,
+    minHeight: 52,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Acg.ink,
+    transform: [{ rotate: '-1.2deg' }],
+    boxShadow: '0 6px 16px rgba(26,26,26,0.18)',
   },
   ctaText: {
     fontSize: 15,
-    color: Color.background,
+    color: Acg.paper,
+  },
+  emptyCard: {
+    marginTop: 22,
+    padding: 18,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
   },
   emptyTitle: {
     fontSize: 17,
-    color: Color.textPrimary,
+    color: Acg.ink,
     marginBottom: 6,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
+  },
+  nextRowWrap: {
+    marginTop: 8,
   },
   nextRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     paddingVertical: 13,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
+    paddingHorizontal: 14,
   },
   nextDDay: {
-    fontSize: 12,
-    color: Color.textSecondary,
     minWidth: 44,
+    fontSize: 12,
+    color: Acg.textSecondary,
   },
   nextName: {
     flex: 1,
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
 });
 

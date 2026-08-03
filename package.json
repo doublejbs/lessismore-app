@@ -20,6 +20,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
+    "@expo-google-fonts/archivo-narrow": "^0.4.2",
     "@expo-google-fonts/gaegu": "^0.4.1",
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo-google-fonts/playwrite-nz": "^0.4.1",

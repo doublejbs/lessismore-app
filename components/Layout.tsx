@@ -10,6 +10,12 @@ import { Color } from '@/constants/DesignTokens';
 
 interface Props {
   children: ReactNode;
+  /**
+   * 콘텐츠 아래에 까는 지면 레이어(ACG 리디자인). 지정하면 `safeAreaStyle`의 단색 배경
+   * 대신 이 노드가 화면 전체를 덮는다 — 세이프에어리어 여백까지 지형이 이어져야 하므로
+   * 패딩이 걸리는 컨테이너가 아니라 그 **바깥**에 둔다.
+   */
+  background?: ReactNode;
   paddingHorizontal?: number;
   // 토스트를 화면 하단에서 띄우는 높이. 하단 CTA가 있는 화면은 낮춰서
   // 토스트가 버튼 위에 떠 겹쳐 보이지 않게 한다(기본 100).
@@ -24,6 +30,7 @@ const ALL_EDGES = ['top', 'right', 'bottom', 'left'] as const;
 
 const Layout: FC<Props> = ({
   children,
+  background,
   paddingHorizontal = 20,
   toastBottom = 100,
   edges = ALL_EDGES,
@@ -42,6 +49,7 @@ const Layout: FC<Props> = ({
 
   return (
     <View style={[safeAreaStyle, edgeInsets]}>
+      {background}
       <View style={[containerStyle, { paddingHorizontal }]}>{children}</View>
       <LogInView logInAlertManager={app.getLogInAlertManager()!} />
       <AlertView alertManager={app.getAlertManager()!} />
