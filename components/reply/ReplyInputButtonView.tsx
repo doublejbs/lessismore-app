@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import Reply from '@/model/reply/Reply';
 
 interface Props {
@@ -28,17 +28,19 @@ const ReplyInputButtonView: FC<Props> = ({ reply }) => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
+    paddingHorizontal: AcgLayout.screenH,
     paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: Color.borderLight,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Acg.line2,
+    backgroundColor: Acg.paper,
     width: '100%',
   },
+  // 각진 인풋 + 지면색 채움(ACG) — 종이 면 위 인풋이라 회색을 또 두지 않는다.
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Color.inputBg,
-    borderRadius: Radius.input,
+    backgroundColor: Acg.bg,
+    borderRadius: 0,
     paddingHorizontal: 16,
     paddingVertical: 12,
     minHeight: 44,
@@ -51,7 +53,7 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     fontSize: 16,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
     flex: 1,
     ...Platform.select({
       ios: {

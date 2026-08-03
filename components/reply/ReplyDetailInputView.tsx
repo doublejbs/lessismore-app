@@ -11,7 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 import ReplyDetail from '@/model/reply/ReplyDetail';
 import { observer } from 'mobx-react-lite';
 import app from '@/model/app/App';
@@ -110,7 +110,7 @@ const ReplyDetailInputView: FC<Props> = observer(
                   ref={inputRef}
                   style={styles.textInput}
                   placeholder='답글을 남겨보세요'
-                  placeholderTextColor={Color.textSecondary}
+                  placeholderTextColor={Acg.textSecondary}
                   value={text}
                   onChangeText={setText}
                   onBlur={handleBlur}
@@ -126,7 +126,7 @@ const ReplyDetailInputView: FC<Props> = observer(
                   disabled={!text.trim() || isSaving}
                 >
                   {isSaving ? (
-                    <ActivityIndicator size='small' color={Color.background} />
+                    <ActivityIndicator size='small' color={Acg.paper} />
                   ) : (
                     <PretendardText
                       weight='semibold'
@@ -149,7 +149,9 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 12,
     paddingTop: 12,
-    backgroundColor: Color.background,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Acg.line2,
+    backgroundColor: Acg.paper,
   },
   content: {
     flexDirection: 'row',
@@ -159,27 +161,27 @@ const styles = StyleSheet.create({
   authorButton: {
     width: 40,
     height: 40,
-    backgroundColor: Color.chipActiveBg,
-    borderRadius: Radius.input,
+    backgroundColor: Acg.ink,
+    borderRadius: 0,
     justifyContent: 'center',
     alignItems: 'center',
   },
   authorText: {
     fontSize: 16,
     fontWeight: '500',
-    color: Color.background,
+    color: Acg.paper,
   },
   inputButton: {
     flex: 1,
     height: 40,
-    backgroundColor: Color.inputBg,
-    borderRadius: Radius.input,
+    backgroundColor: Acg.bg,
+    borderRadius: 0,
     justifyContent: 'center',
     paddingHorizontal: 16,
   },
   placeholder: {
     fontSize: 16,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   inputContainer: {
     flex: 1,
@@ -191,17 +193,17 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 40,
     maxHeight: 100,
-    backgroundColor: Color.inputBg,
-    borderRadius: Radius.input,
+    backgroundColor: Acg.bg,
+    borderRadius: 0,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 16,
     fontWeight: '500',
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   saveButton: {
-    backgroundColor: Color.chipActiveBg,
-    borderRadius: Radius.input,
+    backgroundColor: Acg.ink,
+    borderRadius: 0,
     paddingHorizontal: 16,
     height: 40,
     justifyContent: 'center',
@@ -214,7 +216,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     fontSize: 16,
-    color: Color.background,
+    color: Acg.paper,
   },
 });
 

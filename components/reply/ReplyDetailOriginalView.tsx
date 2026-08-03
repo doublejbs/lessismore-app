@@ -1,7 +1,7 @@
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, AcgShadow } from '@/constants/DesignTokens';
 import Comment from '@/model/reply/Comment';
 import ReplyDetail from '@/model/reply/ReplyDetail';
 import dayjs from 'dayjs';
@@ -15,6 +15,9 @@ interface Props {
   comment: Comment;
   replyDetail: ReplyDetail;
 }
+
+// 좋아요 빨강은 의미색이라 ACG 액센트(라임)로 바꾸지 않는다.
+const LIKED_COLOR = '#FF6B6B';
 
 const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
   const router = useRouter();
@@ -62,7 +65,6 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
   return (
     <>
       <View style={styles.container}>
-        <View style={styles.divider} />
         <View style={styles.content}>
           <View style={styles.header}>
             <View style={styles.headerLeft}>
@@ -81,7 +83,7 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
                 <Ionicons
                   name='ellipsis-horizontal'
                   size={16}
-                  color={Color.iconMuted}
+                  color={Acg.textSecondary}
                 />
               </TouchableOpacity>
             )}
@@ -98,10 +100,10 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
               <Ionicons
                 name={isLiked ? 'heart' : 'heart-outline'}
                 size={20}
-                color={isLiked ? '#FF6B6B' : Color.textPrimary}
+                color={isLiked ? LIKED_COLOR : Acg.textSecondary}
               />
               <PretendardText
-                style={[styles.count, isLiked && { color: '#FF6B6B' }]}
+                style={[styles.count, isLiked && styles.countActive]}
               >
                 {comment.likeCount}
               </PretendardText>
@@ -110,7 +112,7 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
               <Ionicons
                 name='chatbubble-outline'
                 size={20}
-                color={Color.textPrimary}
+                color={Acg.textSecondary}
               />
               <PretendardText style={styles.count}>
                 {comment.replyCount}
@@ -118,7 +120,6 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
             </View>
           </View>
         </View>
-        <View style={styles.divider} />
       </View>
 
       <BottomMenuModalView
@@ -131,16 +132,16 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
 };
 
 const styles = StyleSheet.create({
+  // 지면 위 각진 종이 면(ACG). 위아래 회색 띠로 원 리뷰를 감싸던 방식은 지면이
+  // 생기면서 필요 없어졌다 — 면 자체가 경계다.
   container: {
     flexDirection: 'column',
-  },
-  divider: {
-    height: 1.83,
-    backgroundColor: Color.divider,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
   },
   content: {
-    paddingVertical: 24,
-    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 14,
     gap: 12,
   },
   header: {
@@ -155,11 +156,11 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   date: {
     fontSize: 12,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -167,23 +168,23 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   tag: {
-    backgroundColor: '#D9D9D9',
+    backgroundColor: Acg.line2,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 5,
+    borderRadius: 0,
   },
   tagText: {
     fontSize: 12,
     fontWeight: '500',
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   moreButton: {
     opacity: 0.3,
   },
   commentText: {
-    fontSize: 17,
-    color: Color.textPrimary,
-    lineHeight: 20.28,
+    fontSize: 15,
+    color: Acg.ink,
+    lineHeight: 21,
   },
   footer: {
     flexDirection: 'row',
@@ -196,8 +197,11 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   count: {
-    fontSize: 17,
-    color: Color.textPrimary,
+    fontSize: 14,
+    color: Acg.textSecondary,
+  },
+  countActive: {
+    color: LIKED_COLOR,
   },
 });
 
