@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { NaverMapMarkerOverlay } from '@mj-studio/react-native-naver-map';
-import { Color } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import { getCampSiteTypeColor } from '@/model/camp-site/CampSiteLabels';
 
@@ -32,8 +32,12 @@ const CampSiteMarkerView = memo<Props>(({ spot, selected, onTapSpot }) => {
         align: 'Top',
         // 선택 시 마커가 커지므로 캡션을 조금 더 위로 올리고 살짝 키운다.
         textSize: selected ? 13 : 12,
-        color: Color.textPrimary,
-        haloColor: Color.background,
+        // 시안은 라벨을 종이 면(선택 시 라임 면)으로 그리지만, 네이티브 캡션은 배경을 받지
+        // 않고 글자 halo만 지원한다. 커스텀 뷰로 라벨을 그리면 면은 얻지만 겹침 자동 숨김
+        // (isHideCollidedCaptions)을 잃어 밀집 구간에서 이름이 서로 포개진다 — 기능을 지키고
+        // halo 색으로 면 색을 대신한다.
+        color: Acg.ink,
+        haloColor: selected ? Acg.lime : Acg.paper,
         offset: selected ? -12 : -8,
       }}
       // 겹치는 마커는 캡션만 숨긴다(마커 자체는 유지). 단, **선택(탭)한 마커는 캡션을 강제로 표시**한다 —
@@ -43,7 +47,7 @@ const CampSiteMarkerView = memo<Props>(({ spot, selected, onTapSpot }) => {
       // 심볼이 마커 탭을 가로채 반응이 없어 보이는 문제를 막는다.
       isHideCollidedSymbols
     >
-      {/* 44pt 히트 영역 안에 20pt 원 — 작은 마커의 탭 인식률 확보.
+      {/* 44pt 히트 영역 안에 18pt 사각 — 작은 마커의 탭 인식률 확보.
           커스텀 View 마커는 최상위 자식에 생김새 의존성(색)을 key로 넘기고
           collapsable=false로 렌더를 보장해야 한다(라이브러리 요구사항). */}
       <View
@@ -51,7 +55,7 @@ const CampSiteMarkerView = memo<Props>(({ spot, selected, onTapSpot }) => {
         collapsable={false}
         style={styles.markerHitArea}
       >
-        {/* 선택 시: 유형색 원을 키우고 두꺼운 흰 테두리 + 그림자로 지도에서 "떠오르게"(유형색 유지).
+        {/* 선택 시: 유형색 면을 키우고 흰 테두리 + 그림자로 지도에서 "떠오르게"(유형색 유지).
             시선 유도 펄스·카메라 포커스는 지도 화면(CampSiteSelectedPulseView/handleMarkerTap)이 담당. */}
         <View
           style={[
@@ -73,23 +77,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     // 사실상 보이지 않는 배경 — 아이콘 이미지의 투명 픽셀 영역 탭이 아래 심볼/지도로
-    // 통과하지 않게 44pt 전체를 탭 표면으로 만든다(원(20pt) 밖을 눌러도 마커가 반응).
+    // 통과하지 않게 44pt 전체를 탭 표면으로 만든다(면(18pt) 밖을 눌러도 마커가 반응).
     backgroundColor: 'rgba(255, 255, 255, 0.01)',
   },
+  // 각진 사각 18pt + 흰 2px 아웃라인(ACG). 채움색은 유형 의미색이라 그대로 둔다.
   marker: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 18,
+    height: 18,
+    borderRadius: 0,
     borderWidth: 2,
-    borderColor: Color.background,
+    borderColor: Acg.paper,
   },
-  // 선택 마커: 크게 + 두꺼운 흰 테두리 + 진한 그림자로 지도 위에 떠오르게(유형색 유지).
+  // 선택 마커: 크게 + 진한 그림자로 지도 위에 떠오르게(각진 형태·유형색 유지).
   markerSelected: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 3,
-    borderColor: Color.background,
+    width: 26,
+    height: 26,
+    borderRadius: 0,
+    borderWidth: 2,
+    borderColor: Acg.paper,
     shadowColor: '#000',
     shadowOpacity: 0.35,
     shadowRadius: 4,
