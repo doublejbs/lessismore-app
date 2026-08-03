@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Image } from 'react-native';
 import Svg, {
   Circle,
   Defs,
@@ -16,22 +16,34 @@ import { Acg } from '@/constants/DesignTokens';
  *
  * 지면 위에 시안 SVG의 측량 요소 — 십자 마크, 구역 문자(A/B/C), 라임 트레일 곡선 — 만 얹는다.
  *
- * 디자이너 원본 지형 PNG(`assets/images/acg-terrain.png`)를 깔아 봤으나 **되돌렸다**
- * (2026-08-03 실기기 확인). 카드가 촘촘한 화면(탐색·배낭)에서 카드 사이 틈으로 격자와
- * 라임 트레일이 대각선으로 지나가 목록을 훑기 어려웠다. 배경이 콘텐츠를 이겨서는 안 된다.
- * 다시 쓰려면 이 컴포넌트에 `<Image>` 한 겹을 SVG 아래 얹으면 된다 — 그때는 투명도를
- * 충분히 낮춰야 한다(0.9로는 시끄러웠다).
+ * 디자이너 원본 지형 PNG(`assets/images/acg-terrain.png`)는 `photo`로 켠다 —
+ * **홈·정보 탭에서만 쓴다**(2026-08-03 실기기 확인). 카드가 촘촘한 화면(탐색·배낭)에서는
+ * 카드 사이 틈으로 격자와 트레일이 대각선으로 지나가 목록을 훑기 어려웠다.
+ * 홈·정보는 면이 크고 성겨서 지형이 콘텐츠를 이기지 않는다.
  *
  * 그레인은 CSS `radial-gradient` 두 겹인데 RN에 없어 SVG `Pattern`으로 낸다.
  * 상세 화면은 지형 없이 지면 + 그레인만 쓰므로 `terrain={false}`로 끈다.
  */
 interface Props {
   terrain?: boolean;
+  // 원본 지형 PNG를 지면 위에 깐다. 켜면 SVG 측량 마크는 이미지에 이미 들어 있어 겹치므로
+  // 함께 끄는 걸 권한다(호출측에서 `terrain={false}`).
+  photo?: boolean;
 }
 
-const AcgScreenBackground: FC<Props> = ({ terrain = true }) => {
+// 원본 그대로(1.0)는 격자가 콘텐츠보다 세게 읽혔다. 지면색이 비쳐 종이 질감으로 가라앉는 값.
+const TERRAIN_OPACITY = 0.5;
+
+const AcgScreenBackground: FC<Props> = ({ terrain = true, photo = false }) => {
   return (
     <View style={styles.container} pointerEvents='none'>
+      {photo ? (
+        <Image
+          source={require('@/assets/images/acg-terrain.png')}
+          style={styles.terrainPhoto}
+          resizeMode='cover'
+        />
+      ) : null}
 
       <Svg width='100%' height='100%' viewBox='0 0 402 874'>
         <Defs>
@@ -97,6 +109,14 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: Acg.bg,
+  },
+  terrainPhoto: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    opacity: TERRAIN_OPACITY,
   },
 });
 
