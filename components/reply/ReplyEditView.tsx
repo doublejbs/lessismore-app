@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import StarRatingView from '@/components/camp-site/StarRatingView';
 import { CommentUpdateRequest } from '@/model/reply/Comment';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
 import useKeyboard from '@/hooks/useKeyboard';
 import app from '@/model/app/App';
 
@@ -106,7 +106,7 @@ const ReplyEditView: FC<Props> = ({
       accessibilityRole='button'
     >
       {isLoading ? (
-        <ActivityIndicator size='small' color={Color.textPrimary} />
+        <ActivityIndicator size='small' color={Acg.ink} />
       ) : (
         <PretendardText
           weight='semibold'
@@ -148,11 +148,7 @@ const ReplyEditView: FC<Props> = ({
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <TouchableOpacity onPress={handlePressBack} activeOpacity={0.7}>
-              <Ionicons
-                name='chevron-back'
-                size={24}
-                color={Color.textPrimary}
-              />
+              <Ionicons name='chevron-back' size={24} color={Acg.ink} />
             </TouchableOpacity>
           </View>
         </View>
@@ -169,7 +165,7 @@ const ReplyEditView: FC<Props> = ({
         <TextInput
           style={styles.textInput}
           placeholder='장비가 어땠나요?'
-          placeholderTextColor={Color.textSecondary}
+          placeholderTextColor={Acg.textSecondary}
           multiline
           textAlignVertical='top'
           value={content}
@@ -198,7 +194,7 @@ const ReplyEditView: FC<Props> = ({
             disabled={!canSubmit}
           >
             {isLoading ? (
-              <ActivityIndicator size='small' color={Color.background} />
+              <ActivityIndicator size='small' color={Acg.paper} />
             ) : (
               <PretendardText
                 weight='semibold'
@@ -222,11 +218,11 @@ const ReplyEditView: FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
     paddingHorizontal: 0,
   },
   header: {
-    backgroundColor: Color.background,
+    backgroundColor: 'transparent',
     paddingVertical: 4,
     paddingTop: 8,
     paddingBottom: 8,
@@ -238,7 +234,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: AcgLayout.screenH,
   },
   ratingSection: {
     gap: 10,
@@ -247,39 +243,42 @@ const styles = StyleSheet.create({
   ratingLabel: {
     fontSize: 15,
     lineHeight: 20,
-    color: Color.textPrimary,
+    color: Acg.textTertiary,
   },
+  // 지면 위 각진 종이 면 인풋(ACG) — 회색 채움을 두면 지면과 붙어 입력 영역이 안 보인다.
   textInput: {
     flex: 1,
-    borderRadius: Radius.input,
-    backgroundColor: Color.inputBg,
+    borderRadius: 0,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
     padding: 16,
     fontSize: 16,
+    color: Acg.ink,
     minHeight: 200,
   },
   buttonContainer: {
-    paddingHorizontal: 16,
-    backgroundColor: Color.background,
+    paddingHorizontal: AcgLayout.screenH,
+    backgroundColor: 'transparent',
   },
   completeButton: {
     paddingVertical: 16,
-    borderRadius: Radius.input,
+    borderRadius: 0,
     alignItems: 'center',
   },
   completeButtonActive: {
-    backgroundColor: Color.chipActiveBg,
+    backgroundColor: Acg.ink,
   },
   completeButtonDisabled: {
-    backgroundColor: Color.borderLight,
+    backgroundColor: Acg.line2,
   },
   completeButtonText: {
     fontSize: 16,
   },
   completeButtonTextActive: {
-    color: Color.background,
+    color: Acg.paper,
   },
   completeButtonTextDisabled: {
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   // iOS 네이티브 headerRight 완료 버튼 — HIG 최소 터치 타깃 44pt.
   headerCompleteButton: {
@@ -290,10 +289,10 @@ const styles = StyleSheet.create({
   },
   headerCompleteText: {
     fontSize: 15,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   headerCompleteTextDisabled: {
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
 });
 
