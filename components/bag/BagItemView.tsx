@@ -11,9 +11,10 @@ import app from '@/model/app/App';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
 import PretendardText from '@/components/PretendardText';
+import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Acg, Color, Radius } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 
 // 삭제 스와이프 액션 배경 — 파괴적 액션 시맨틱 색(DesignTokens 예외, CLAUDE.md 참고).
 const DELETE_RED = '#FF3B30';
@@ -136,11 +137,7 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
         <View style={styles.header}>
           {/* 좌 정체 컬럼 — 이름(말줄임)·날짜 */}
           <View style={styles.identityColumn}>
-            <PretendardText
-              weight='bold'
-              style={styles.name}
-              numberOfLines={1}
-            >
+            <PretendardText weight='bold' style={styles.name} numberOfLines={1}>
               {bagItem.getName()}
             </PretendardText>
             <PretendardText style={styles.date}>{date}</PretendardText>
@@ -170,9 +167,10 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
                 </PretendardText>
               </View>
             )}
-            <PretendardText weight='bold' style={styles.weight}>
-              {bagItem.getWeight()}kg
-            </PretendardText>
+            {/* 숫자라 콘덴스드를 쓴다 — 행의 시각 앵커(ACG). */}
+            <AcgDisplayText style={styles.weight}>
+              {`${bagItem.getWeight()}kg`}
+            </AcgDisplayText>
           </View>
         </View>
       </TouchableOpacity>
@@ -214,7 +212,8 @@ const styles = StyleSheet.create({
   },
   weight: {
     fontSize: 16,
-    color: Color.textPrimary,
+    lineHeight: 20,
+    color: Acg.ink,
     textAlign: 'right',
   },
   // 우 지표 컬럼 — 패킹 칩(위) + 무게(아래).
@@ -223,27 +222,28 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: 8,
   },
+  // 각진 칩(ACG). 완료는 잉크 채움, 진행 중은 아웃라인 — 위계는 그대로다.
   packingCompleteChip: {
-    backgroundColor: Color.textPrimary,
-    borderRadius: Radius.chip,
+    backgroundColor: Acg.ink,
+    borderRadius: 0,
     paddingHorizontal: 10,
     paddingVertical: 3,
   },
   packingCompleteChipText: {
     fontSize: 12,
-    color: Color.background,
+    color: Acg.paper,
   },
   packingProgressChip: {
-    backgroundColor: Color.background,
+    backgroundColor: Acg.paper,
     borderWidth: 1,
-    borderColor: Color.textPrimary,
-    borderRadius: Radius.chip,
+    borderColor: Acg.ink,
+    borderRadius: 0,
     paddingHorizontal: 10,
     paddingVertical: 2,
   },
   packingProgressChipText: {
     fontSize: 12,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   // 행 카드가 아래로 8px 벌어져 있어(container.marginBottom) 액션 패널에도 같은 여백을
   // 줘야 위아래 끝이 카드와 맞는다 — 없으면 패널만 다음 행 틈까지 흘러내린다.

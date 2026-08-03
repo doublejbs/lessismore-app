@@ -6,6 +6,8 @@ import Warehouse from '@/model/warehouse/Warehouse';
 import LoadingIconView from '../ui/LoadingIconView';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
+import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
 
 interface Props {
   warehouse: Warehouse;
@@ -15,7 +17,10 @@ const WarehouseEmptyView: FC<Props> = ({ warehouse }) => {
   const isLoading = warehouse.isLoading();
 
   return (
-    <Layout>
+    <Layout
+      paddingHorizontal={AcgLayout.screenH}
+      background={<AcgScreenBackground />}
+    >
       <View style={styles.headerContainer}>
         <PretendardText weight='extraBold' style={styles.title}>
           useless
@@ -49,6 +54,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 48,
     letterSpacing: -4.5,
+    color: Acg.ink,
   },
   messageContainer: {
     width: '100%',
@@ -59,6 +65,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 24,
+    color: Acg.ink,
   },
   loadingContainer: {
     flex: 1,
