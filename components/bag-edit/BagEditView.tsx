@@ -182,7 +182,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
     alignItems: 'center',
-    backgroundColor: Color.background,
   },
   titleText: {
     fontSize: 20,
@@ -219,7 +218,6 @@ const styles = StyleSheet.create({
   buttonContainer: {
     paddingTop: Spacing.item,
     paddingHorizontal: Spacing.screenH,
-    backgroundColor: Color.background,
   },
   confirmButton: {
     backgroundColor: Color.chipActiveBg,
