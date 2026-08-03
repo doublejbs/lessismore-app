@@ -102,6 +102,7 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
                 <CategoryChipView
                   key={chip.filter}
                   label={chip.label}
+                  tone='acg'
                   selected={chip.filter === selectedFilter}
                   onPress={() => handleSelectFilter(chip.filter)}
                 />

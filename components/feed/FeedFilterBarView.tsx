@@ -13,7 +13,7 @@ import {
 } from '@/model/feed/FeedSort';
 import { BROWSE_CATEGORIES } from '@/model/browse/BrowseCategory';
 import { getFineCategoryLabel } from '@/model/gear/GearCategoryGroups';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, Radius } from '@/constants/DesignTokens';
 import PretendardText from '@/components/PretendardText';
 import CategoryChipView from '@/components/browse/CategoryChipView';
 import FeedFilterSheetView from './FeedFilterSheetView';
@@ -120,6 +120,7 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
       >
         <CategoryChipView
           label={ALL_LABEL}
+          tone='acg'
           selected={currentCategory === null}
           onPress={handleSelectAllCategory}
         />
@@ -127,6 +128,7 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
           <CategoryChipView
             key={item.filter}
             label={item.name}
+            tone='acg'
             selected={currentCategory === item.filter}
             onPress={() => handleSelectCategory(item.filter)}
           />
@@ -142,6 +144,7 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
           <CategoryChipView
             label={ALL_LABEL}
             variant='secondary'
+            tone='acg'
             selected={fineCategory === null}
             onPress={handleSelectAllFine}
           />
@@ -150,6 +153,7 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
               key={key}
               label={getFineCategoryLabel(key)}
               variant='secondary'
+              tone='acg'
               selected={fineCategory === key}
               onPress={() => handleSelectFine(key)}
             />
@@ -166,7 +170,7 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
           <Ionicons
             name='options-outline'
             size={16}
-            color={brandActive ? Color.background : Color.textPrimary}
+            color={brandActive ? Acg.paper : Acg.ink}
           />
           <PretendardText
             style={[
@@ -191,7 +195,7 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
             <Ionicons
               name='chevron-down'
               size={16}
-              color={Color.textSecondary}
+              color={Acg.textSecondary}
             />
           </TouchableOpacity>
         ) : null}
@@ -212,25 +216,25 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     gap: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Color.borderLight,
+    borderBottomColor: Acg.line2,
   },
   categoryRowContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenH,
   },
   fineCategoryRowContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenH,
   },
   controlRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenH,
   },
   brandButton: {
     flexDirection: 'row',
@@ -240,19 +244,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: Radius.chip,
     borderWidth: 1,
-    borderColor: Color.chipBorder,
-    backgroundColor: Color.background,
+    borderColor: Acg.glassStroke,
+    backgroundColor: 'rgba(255,255,255,0.72)',
   },
   brandButtonActive: {
-    backgroundColor: Color.chipActiveBg,
-    borderColor: Color.chipActiveBg,
+    backgroundColor: Acg.ink,
+    borderColor: Acg.ink,
   },
   brandButtonText: {
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   brandButtonTextActive: {
-    color: Color.background,
+    color: Acg.paper,
   },
   sortButton: {
     flexDirection: 'row',
@@ -263,7 +267,7 @@ const styles = StyleSheet.create({
   },
   sortButtonText: {
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
 });
 
