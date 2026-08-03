@@ -6,40 +6,55 @@
  * 색상 값 성격상 enum 대신 `as const` 객체로 둔다.
  */
 
+/**
+ * 앱 공통 색.
+ *
+ * **ACG 리디자인 이후 이 그룹의 값은 `Acg` 팔레트를 따른다**(2026-08-03). 화면을 하나씩
+ * 옮기는 대신 토큰 자체를 갈아 끼워, 아직 개별 적용하지 않은 화면도 같은 톤(따뜻한 회색
+ * 계열 + 잉크)으로 읽히게 한다. 이름은 그대로 두어 120여 개 파일을 건드리지 않는다.
+ *
+ * 새 UI는 `Acg`를 직접 참조하는 쪽이 의도가 분명하다. 이 그룹은 옛 화면 호환용이다.
+ */
 export const Color = {
   // 배경 / 텍스트
-  background: '#FFFFFF',
-  textPrimary: '#000000',
-  textSecondary: '#767676', // WCAG AA(4.5:1) 충족 — 흰 배경 보조 텍스트
-  textTertiary: '#555555',
-  iconMuted: '#B0B8C1',
+  background: '#FFFFFF', // = Acg.paper
+  textPrimary: '#1A1A1A', // = Acg.ink
+  textSecondary: '#5F5D57', // AA 5.4 (= Acg.textSecondary)
+  textTertiary: '#4A4A45', // AA 7.4 (= Acg.textTertiary)
+  iconMuted: '#A8A69E', // 푸른 회색(#B0B8C1)은 따뜻한 지면 위에서 떠 보였다
 
-  // 경계 / 구분선
-  borderLight: '#F0F0F0',
-  divider: '#F2F4F6',
+  // 경계 / 구분선 — 지면(#F4F3EF)과 같은 계열의 따뜻한 회색
+  borderLight: '#E8E6DF',
+  divider: '#EDEBE4',
 
   // 칩 / 인풋 / 표면
-  chipInactiveBg: '#EBEBEB',
-  chipActiveBg: '#000000',
-  chipBorder: '#E5E5E5', // 아웃라인 칩(비선택) 테두리
-  inputBg: '#F5F5F5',
-  surfaceMuted: '#F5F5F5',
-  thumbBg: '#F1F1F1',
+  chipInactiveBg: '#E8E6DF',
+  chipActiveBg: '#1A1A1A',
+  chipBorder: '#E2E0D8', // 아웃라인 칩(비선택) 테두리
+  inputBg: '#F4F3EF', // = Acg.bg (지면색)
+  surfaceMuted: '#F4F3EF',
+  thumbBg: '#EDEBE4',
 
   // 토스트 배경 — 흰 텍스트 대비를 유지하는 진회색(검정보다 부드럽게)
-  toastBg: '#333333',
+  toastBg: '#2A2A28',
 
   // 오버레이
   overlay: 'rgba(0,0,0,0.5)',
 } as const;
 
+/**
+ * 모서리.
+ *
+ * **ACG는 각진 면이 기본이다** — 카드·인풋·칩·모달·시트를 0으로 둔다(2026-08-03).
+ * 예외는 `pill` 하나뿐이다: 원형 아이콘 버튼과 알약 버튼은 시안에서도 둥글다.
+ */
 export const Radius = {
-  listThumb: 4,
-  card: 8,
-  input: 8,
-  chip: 8,
-  sheet: 20,
-  modal: 16,
+  listThumb: 0,
+  card: 0,
+  input: 0,
+  chip: 0,
+  sheet: 0,
+  modal: 0,
   pill: 32,
 } as const;
 
