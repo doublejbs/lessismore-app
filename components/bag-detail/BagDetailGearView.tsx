@@ -274,10 +274,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Acg.ink,
   },
+  // 무게는 라임 텍스트 — 목록에서 이 값 하나만 액센트로 세운다(홈 창고 미리보기와 동일).
   weightText: {
     fontSize: 15,
     lineHeight: 19,
-    color: Acg.ink,
+    color: Acg.limeText,
     textAlign: 'right',
   },
   // 행 카드가 8px씩 벌어져 있어 액션 패널에도 같은 여백을 줘야 끝이 맞는다.

@@ -10,6 +10,7 @@ import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
+import AcgHighlightText from '@/components/acg/AcgHighlightText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '../PretendardText';
 import ReplyInputButtonView from './ReplyInputButtonView';
@@ -25,6 +26,9 @@ const IS_IOS = Platform.OS === 'ios';
 // 자동 인셋을 끄고 헤더 높이를 직접 비운다.
 const NATIVE_HEADER_HEIGHT = 44;
 
+// 섹션 제목 크기(ACG) — 홈·장비 상세와 같은 18px/700.
+const SECTION_TITLE_SIZE = 18;
+
 const ReplyView = ({ reply }: { reply: Reply }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -37,8 +41,7 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
 
   return (
     <View style={styles.container}>
-      {/* 상세 화면은 지형 마크 없이 지면 + 그레인만 쓴다(ACG). */}
-      <AcgScreenBackground terrain={false} />
+      <AcgScreenBackground />
       {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
           시스템에 위임한다(headerBlurEffect·headerStyle.backgroundColor 지정 금지). */}
       <Stack.Screen
@@ -73,9 +76,12 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
         scrollEnabled={hasComments}
       >
         <View style={styles.replyHeader}>
-          <PretendardText weight='semibold' style={styles.replyHeaderText}>
-            리뷰
-          </PretendardText>
+          {/* 형광펜은 화면당 한 곳에만 — 이 화면의 주 섹션이다(ACG). */}
+          <AcgHighlightText fontSize={SECTION_TITLE_SIZE}>
+            <PretendardText weight='bold' style={styles.replyHeaderText}>
+              리뷰
+            </PretendardText>
+          </AcgHighlightText>
         </View>
         {!hasComments ? (
           // 리뷰가 없을 때 빈 여백 대신 안내를 남은 공간 중앙에 표시한다.
@@ -147,7 +153,7 @@ const styles = StyleSheet.create({
   },
   // 지면 위 제목이라 본문보다 한 단계 낮은 색이다(장비 상세 섹션 제목과 동일).
   replyHeaderText: {
-    fontSize: 18,
+    fontSize: SECTION_TITLE_SIZE,
     color: Acg.textTertiary,
   },
   emptyState: {
