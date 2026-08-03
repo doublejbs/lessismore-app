@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import GearFilter from '@/model/gear/GearFilter';
 import PretendardText from '@/components/PretendardText';
+import AcgPenCircleView from '@/components/acg/AcgPenCircleView';
 import { Color, Spacing } from '@/constants/DesignTokens';
 
 interface Props {
@@ -45,7 +46,7 @@ const PALETTE = [
 ];
 
 const label = (category: string) =>
-  category === BASE_KEY ? '베이스' : CATEGORY_LABEL[category] ?? category;
+  category === BASE_KEY ? '베이스' : (CATEGORY_LABEL[category] ?? category);
 
 const BagDetailSummaryView: FC<Props> = ({ bagDetail }) => {
   const total = bagDetail.getWeight();
@@ -71,12 +72,17 @@ const BagDetailSummaryView: FC<Props> = ({ bagDetail }) => {
   return (
     <View style={styles.wrap}>
       <View style={styles.weightRow}>
-        <PretendardText style={styles.value} weight='bold'>
-          {total}
-        </PretendardText>
-        <PretendardText style={styles.unit} weight='bold'>
-          kg
-        </PretendardText>
+        {/* 이 화면의 주 수치라 손그림 라임 동그라미로 두른다(ACG). */}
+        <AcgPenCircleView style={styles.weightCircle}>
+          <View style={styles.weightValueRow}>
+            <PretendardText style={styles.value} weight='bold'>
+              {total}
+            </PretendardText>
+            <PretendardText style={styles.unit} weight='bold'>
+              kg
+            </PretendardText>
+          </View>
+        </AcgPenCircleView>
         <PretendardText style={styles.label}>총 무게</PretendardText>
       </View>
 
@@ -121,6 +127,15 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   weightRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  // 동그라미 여백이 좌측 정렬선을 밀지 않게 그만큼 당긴다.
+  weightCircle: {
+    marginLeft: -12,
+  },
+  weightValueRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 4,
