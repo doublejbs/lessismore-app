@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import Layout from '../Layout';
 import PretendardText from '@/components/PretendardText';
 import { TERMS_OF_SERVICE_TEXT } from '@/constants/LegalTexts';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { Acg, Color, Radius, Spacing } from '@/constants/DesignTokens';
 
 const TermsAgreementView: FC = () => {
   const [termsAgreed, setTermsAgreed] = useState(false);
@@ -76,7 +76,7 @@ const TermsAgreementView: FC = () => {
             ]}
           >
             {isChecked && (
-              <PretendardText style={styles.checkmark} weight="bold">
+              <PretendardText style={styles.checkmark} weight='bold'>
                 ✓
               </PretendardText>
             )}
@@ -116,7 +116,7 @@ const TermsAgreementView: FC = () => {
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
       >
-        <PretendardText style={styles.title} weight="bold">
+        <PretendardText style={styles.title} weight='bold'>
           약관 동의
         </PretendardText>
         <View style={styles.sectionContainer}>
@@ -199,8 +199,8 @@ const TermsAgreementView: FC = () => {
           )}
           <ScrollView style={styles.shortTextContainer}>
             <PretendardText style={styles.termsText}>
-              서비스와 관련된 신상품 소식, 이벤트 안내, 고객 혜택 등 다양한 정보를
-              제공합니다.
+              서비스와 관련된 신상품 소식, 이벤트 안내, 고객 혜택 등 다양한
+              정보를 제공합니다.
             </PretendardText>
           </ScrollView>
         </View>
@@ -234,7 +234,7 @@ const TermsAgreementView: FC = () => {
         ]}
         disabled={!allRequiredChecked}
       >
-        <PretendardText style={styles.submitButtonText} weight="semibold">
+        <PretendardText style={styles.submitButtonText} weight='semibold'>
           동의하고 계속하기
         </PretendardText>
       </TouchableOpacity>
@@ -245,7 +245,7 @@ const TermsAgreementView: FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
   },
   contentContainer: {
     maxWidth: 500,

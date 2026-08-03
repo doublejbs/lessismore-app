@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { Stack, useRouter } from 'expo-router';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, Color } from '@/constants/DesignTokens';
 import SharedBag from '@/model/shared-bag/SharedBag';
 import Gear from '@/model/gear/Gear';
 
@@ -163,7 +163,7 @@ const GearRow: FC<GearRowProps> = ({ gear }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
   },
   header: {
     width: '100%',

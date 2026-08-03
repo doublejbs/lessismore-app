@@ -23,7 +23,7 @@ import AlertView from '@/components/alert/AlertView';
 import CategoryChipView from '@/components/browse/CategoryChipView';
 import useKeyboard from '@/hooks/useKeyboard';
 import app from '@/model/app/App';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   gearEdit: GearEdit;
@@ -139,184 +139,184 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
         edges={IS_IOS ? IOS_EDGES : ALL_EDGES}
       >
         <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-      >
-        {!IS_IOS && (
-          <View style={styles.header}>
-            <TouchableOpacity
-              onPress={handlePressBack}
-              style={styles.headerButton}
-              accessibilityLabel='뒤로 가기'
-              accessibilityRole='button'
-            >
-              <Ionicons
-                name='chevron-back'
-                size={24}
-                color={Color.textPrimary}
-              />
-            </TouchableOpacity>
-            <PretendardText weight='semibold' style={styles.headerTitle}>
-              수정하기
-            </PretendardText>
-            <TouchableOpacity
-              onPress={handlePressDelete}
-              style={styles.headerButton}
-              accessibilityLabel='삭제'
-              accessibilityRole='button'
-            >
-              <Ionicons
-                name='trash-outline'
-                size={22}
-                color={Color.textPrimary}
-              />
-            </TouchableOpacity>
-          </View>
-        )}
-      {isLoading && (
-        <View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 100,
-          }}
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
-          <LoadingIconView />
-        </View>
-      )}
-      <ScrollView
-        ref={scrollViewRef}
-        style={{
-          flex: 1,
-        }}
-        // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
-        contentInsetAdjustmentBehavior='automatic'
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: 16,
-          paddingBottom: 120,
-          backgroundColor: Color.background,
-        }}
-      >
-        <View
-          style={{
-            width: '100%',
-            flexDirection: 'column',
-            gap: 16,
-          }}
-        >
-          <View
-            style={{
-              flexDirection: 'column',
-              gap: 6,
-            }}
-          >
-            <PretendardText
-              weight='medium'
-              style={{
-                fontSize: 14,
-              }}
-            >
-              제품명
-            </PretendardText>
-            <TextInput
-              ref={nameInputRef}
-              style={{
-                borderRadius: Radius.input,
-                backgroundColor: Color.inputBg,
-                paddingHorizontal: 12,
-                paddingVertical: 12,
-                fontSize: 16,
-              }}
-              placeholder='제품명을 입력해주세요'
-              onChangeText={handleChangeName}
-              value={name}
-              placeholderTextColor={Color.textSecondary}
-              onFocus={() => setFocusedInput('name')}
-            />
-          </View>
-          <View
-            style={{
-              flexDirection: 'column',
-              gap: 6,
-            }}
-          >
-            <PretendardText
-              weight='medium'
-              style={{
-                fontSize: 14,
-              }}
-            >
-              브랜드
-            </PretendardText>
-            <TextInput
-              ref={companyInputRef}
-              style={{
-                borderRadius: Radius.input,
-                backgroundColor: Color.inputBg,
-                paddingHorizontal: 12,
-                paddingVertical: 12,
-                fontSize: 16,
-              }}
-              placeholder='브랜드를 입력해주세요'
-              onChangeText={handleChangeCompany}
-              value={company}
-              placeholderTextColor={Color.textSecondary}
-              onFocus={() => setFocusedInput('company')}
-            />
-          </View>
-          <GearEditColorView gearEdit={gearEdit} />
-          <View
-            style={{
-              flexDirection: 'column',
-              gap: 6,
-            }}
-          >
-            <PretendardText
-              weight='medium'
-              style={{
-                fontSize: 14,
-              }}
-            >
-              카테고리
-            </PretendardText>
+          {!IS_IOS && (
+            <View style={styles.header}>
+              <TouchableOpacity
+                onPress={handlePressBack}
+                style={styles.headerButton}
+                accessibilityLabel='뒤로 가기'
+                accessibilityRole='button'
+              >
+                <Ionicons
+                  name='chevron-back'
+                  size={24}
+                  color={Color.textPrimary}
+                />
+              </TouchableOpacity>
+              <PretendardText weight='semibold' style={styles.headerTitle}>
+                수정하기
+              </PretendardText>
+              <TouchableOpacity
+                onPress={handlePressDelete}
+                style={styles.headerButton}
+                accessibilityLabel='삭제'
+                accessibilityRole='button'
+              >
+                <Ionicons
+                  name='trash-outline'
+                  size={22}
+                  color={Color.textPrimary}
+                />
+              </TouchableOpacity>
+            </View>
+          )}
+          {isLoading && (
             <View
               style={{
-                flexDirection: 'row',
-                flexWrap: 'wrap',
-                gap: 4,
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 100,
               }}
             >
-              {gearEdit.mapFilters(filter => (
-                <CategoryChipView
-                  key={filter.getFilter()}
-                  label={filter.getName()}
-                  selected={filter.isSelected()}
-                  onPress={() => handleClickSelectFilter(filter)}
-                />
-              ))}
+              <LoadingIconView />
             </View>
-          </View>
-          {isInitialized && (
-            <GearEditWeightView
-              ref={weightInputRef}
-              gearEdit={gearEdit}
-              onFocus={() => setFocusedInput('weight')}
-            />
           )}
-        </View>
-      </ScrollView>
-        <View
-          style={{
-            backgroundColor: 'transparent',
-          }}
-        >
-          <GearEditConfirmView gearEdit={gearEdit} />
-        </View>
+          <ScrollView
+            ref={scrollViewRef}
+            style={{
+              flex: 1,
+            }}
+            // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
+            contentInsetAdjustmentBehavior='automatic'
+            contentContainerStyle={{
+              paddingHorizontal: 16,
+              paddingTop: 16,
+              paddingBottom: 120,
+              backgroundColor: Color.background,
+            }}
+          >
+            <View
+              style={{
+                width: '100%',
+                flexDirection: 'column',
+                gap: 16,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: 'column',
+                  gap: 6,
+                }}
+              >
+                <PretendardText
+                  weight='medium'
+                  style={{
+                    fontSize: 14,
+                  }}
+                >
+                  제품명
+                </PretendardText>
+                <TextInput
+                  ref={nameInputRef}
+                  style={{
+                    borderRadius: Radius.input,
+                    backgroundColor: Color.inputBg,
+                    paddingHorizontal: 12,
+                    paddingVertical: 12,
+                    fontSize: 16,
+                  }}
+                  placeholder='제품명을 입력해주세요'
+                  onChangeText={handleChangeName}
+                  value={name}
+                  placeholderTextColor={Color.textSecondary}
+                  onFocus={() => setFocusedInput('name')}
+                />
+              </View>
+              <View
+                style={{
+                  flexDirection: 'column',
+                  gap: 6,
+                }}
+              >
+                <PretendardText
+                  weight='medium'
+                  style={{
+                    fontSize: 14,
+                  }}
+                >
+                  브랜드
+                </PretendardText>
+                <TextInput
+                  ref={companyInputRef}
+                  style={{
+                    borderRadius: Radius.input,
+                    backgroundColor: Color.inputBg,
+                    paddingHorizontal: 12,
+                    paddingVertical: 12,
+                    fontSize: 16,
+                  }}
+                  placeholder='브랜드를 입력해주세요'
+                  onChangeText={handleChangeCompany}
+                  value={company}
+                  placeholderTextColor={Color.textSecondary}
+                  onFocus={() => setFocusedInput('company')}
+                />
+              </View>
+              <GearEditColorView gearEdit={gearEdit} />
+              <View
+                style={{
+                  flexDirection: 'column',
+                  gap: 6,
+                }}
+              >
+                <PretendardText
+                  weight='medium'
+                  style={{
+                    fontSize: 14,
+                  }}
+                >
+                  카테고리
+                </PretendardText>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    gap: 4,
+                  }}
+                >
+                  {gearEdit.mapFilters(filter => (
+                    <CategoryChipView
+                      key={filter.getFilter()}
+                      label={filter.getName()}
+                      selected={filter.isSelected()}
+                      onPress={() => handleClickSelectFilter(filter)}
+                    />
+                  ))}
+                </View>
+              </View>
+              {isInitialized && (
+                <GearEditWeightView
+                  ref={weightInputRef}
+                  gearEdit={gearEdit}
+                  onFocus={() => setFocusedInput('weight')}
+                />
+              )}
+            </View>
+          </ScrollView>
+          <View
+            style={{
+              backgroundColor: 'transparent',
+            }}
+          >
+            <GearEditConfirmView gearEdit={gearEdit} />
+          </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
       <AlertView alertManager={app.getAlertManager()!} />
@@ -327,7 +327,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
   },
   header: {
     flexDirection: 'row',

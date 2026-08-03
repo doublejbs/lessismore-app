@@ -14,7 +14,7 @@ import { Stack, useRouter } from 'expo-router';
 import BrandDirectory from '@/model/browse/BrandDirectory';
 import { BrandRankData } from '@/model/search/BrandRankStore';
 import PretendardText from '../PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, Color, Radius } from '@/constants/DesignTokens';
 import SearchSkeletonView from '../search/SearchSkeletonView';
 import BrandRowView from './BrandRowView';
 import app from '@/model/app/App';
@@ -145,7 +145,7 @@ const BrandDirectoryView: FC<Props> = ({ brandDirectory }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
   },
   header: {
     flexDirection: 'row',

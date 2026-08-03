@@ -19,7 +19,7 @@ import BagEditHeaderView from './BagEditHeaderView';
 import BagEditWeightTitleView from './BagEditWeightTitleView';
 import Layout from '../Layout';
 import { Stack, useFocusEffect } from 'expo-router';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { Acg, Color, Radius, Spacing } from '@/constants/DesignTokens';
 
 interface Props {
   bagEdit: BagEdit;
@@ -91,10 +91,7 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
     return stackScreen;
   } else {
     return (
-      <Layout
-        paddingHorizontal={0}
-        edges={IS_IOS ? IOS_EDGES : undefined}
-      >
+      <Layout paddingHorizontal={0} edges={IS_IOS ? IOS_EDGES : undefined}>
         {stackScreen}
         {IS_IOS ? (
           // 고정 레이아웃 화면 — 투명 헤더 높이만큼 상단 여백을 직접 확보한다.
@@ -109,7 +106,12 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
           </View>
         )}
         <View style={styles.mainContent}>
-          <View style={[styles.titleSection, { paddingHorizontal: Spacing.screenH }]}>
+          <View
+            style={[
+              styles.titleSection,
+              { paddingHorizontal: Spacing.screenH },
+            ]}
+          >
             <PretendardText style={styles.titleText} weight='bold'>
               내 장비
             </PretendardText>
@@ -170,7 +172,7 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
   },
   mainContent: {
     flex: 1,

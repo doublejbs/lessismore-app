@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, Color, Radius } from '@/constants/DesignTokens';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
   getCampSiteTypeLabel,
@@ -124,7 +124,7 @@ const CampSiteFavoritesListView: FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
   },
   header: {
     flexDirection: 'row',

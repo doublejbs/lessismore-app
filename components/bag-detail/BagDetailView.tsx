@@ -17,7 +17,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Color, Spacing } from '@/constants/DesignTokens';
+import { Acg, Color, Spacing } from '@/constants/DesignTokens';
 import BagDetailCategoryView from './BagDetailCategoryView';
 import BagDetailDateView from './BagDetailDateView';
 import BagDetailFiltersView from './BagDetailFiltersView';
@@ -201,7 +201,10 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                   </>
                 ) : (
                   <>
-                    <BagDetailDestinationView bagDetail={bagDetail} emphasized />
+                    <BagDetailDestinationView
+                      bagDetail={bagDetail}
+                      emphasized
+                    />
                     <BagDetailMemoView bagDetail={bagDetail} />
                     <BagDetailUselessDescriptionView bagDetail={bagDetail} />
                     <BagDetailActivityView bagDetail={bagDetail} />
@@ -273,7 +276,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
   },
   header: {
     backgroundColor: Color.background,

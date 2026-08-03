@@ -12,7 +12,7 @@ import { Stack, useRouter } from 'expo-router';
 import { Dayjs } from 'dayjs';
 import { Edge, SafeAreaView } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { Acg, Color, Radius, Spacing } from '@/constants/DesignTokens';
 import BagWeather from '@/model/bag/BagWeather';
 import { getPhaseLabel } from '@/model/bag/TripPhaseHelper';
 import BagDestinationMapPreviewView from './BagDestinationMapPreviewView';
@@ -166,7 +166,7 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
   },
   header: {
     flexDirection: 'row',

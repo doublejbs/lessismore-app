@@ -10,7 +10,7 @@ import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router/react-navigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Color } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
@@ -751,7 +751,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
   },
 });
 

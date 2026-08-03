@@ -17,7 +17,7 @@ import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { Acg, Color, Radius, Spacing } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
@@ -438,7 +438,7 @@ const BagDestinationPickerView: FC<Props> = observer(
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
   },
   centerPin: {
     position: 'absolute',
