@@ -10,6 +10,7 @@ import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '../PretendardText';
 import ReplyInputButtonView from './ReplyInputButtonView';
 import { observer } from 'mobx-react-lite';
@@ -18,8 +19,15 @@ import ReplyItemView from './ReplyItemView';
 // LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
 const IS_IOS = Platform.OS === 'ios';
 
+// 투명 네이티브 헤더 높이(상태바 제외). `contentInsetAdjustmentBehavior='automatic'`은
+// 스크롤 뷰가 화면의 첫 자식일 때만 적용되는데, 지면 배경(AcgScreenBackground)이 앞에
+// 깔리면서 그 조건이 깨져 첫 항목이 헤더 뒤로 숨었다(2026-08-03 실기기 확인).
+// 자동 인셋을 끄고 헤더 높이를 직접 비운다.
+const NATIVE_HEADER_HEIGHT = 44;
+
 const ReplyView = ({ reply }: { reply: Reply }) => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const comments = reply.getComments();
   const hasComments = comments.length > 0;
 
@@ -55,9 +63,11 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
         </View>
       )}
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
-        contentInsetAdjustmentBehavior='automatic'
+        contentContainerStyle={[
+          styles.scrollContent,
+          IS_IOS && { paddingTop: insets.top + NATIVE_HEADER_HEIGHT },
+        ]}
+        contentInsetAdjustmentBehavior='never'
         // 리뷰가 없을 땐 스크롤을 끈다 — flexGrow(중앙 정렬용)와 헤더 자동 인셋이 겹쳐
         // 빈 화면인데도 헤더 높이만큼 스크롤이 생기는 것을 막는다.
         scrollEnabled={hasComments}
