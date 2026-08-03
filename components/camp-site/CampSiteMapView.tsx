@@ -490,12 +490,15 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     [campSiteMap, handleMoveToSpot, router]
   );
 
-  // 검색 결과 탭 → 키보드/드롭다운 닫기 + 카메라 이동(줌인) + 상세 시트 오픈(CS-6). 검색어는 유지.
+  // 검색 결과 탭 → 키보드/드롭다운 닫기 + 필터 해제 + 카메라 이동(줌인) + 상세 시트 오픈(CS-6).
+  // 검색어는 유지한다.
   const handleSelectResult = useCallback(
     (spot: CampSpot) => {
       Keyboard.dismiss();
 
       campSiteMap.setSearchFocused(false);
+      // 고른 박지가 필터에 걸려 마커까지 사라지면 카메라만 옮겨간 빈 지도가 남는다.
+      campSiteMap.resetFilters();
       openDetail(spot);
 
       moveCamera({

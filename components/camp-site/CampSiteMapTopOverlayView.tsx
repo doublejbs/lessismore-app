@@ -11,10 +11,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout, AcgShadow, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgShadow, Color } from '@/constants/DesignTokens';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
+  getCampSiteTypeColor,
   getCampSiteTypeLabel,
   getCampSpotRegionLabel,
 } from '@/model/camp-site/CampSiteLabels';
@@ -102,32 +103,30 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
                         accessibilityRole='button'
                         accessibilityLabel={`${spot.name} 지도에서 보기`}
                       >
-                        <Ionicons
-                          name='location-outline'
-                          size={18}
-                          color={Color.textSecondary}
+                        {/* 지도 마커와 같은 각진 유형색 면 — 목록에서 고른 것이 지도에서
+                            어떤 마커인지 색으로 이어진다. 색만으로는 못 읽으므로 유형
+                            이름은 아래 줄에 글자로도 둔다. */}
+                        <View
+                          style={[
+                            styles.resultTypeMark,
+                            { backgroundColor: getCampSiteTypeColor(spot.type) },
+                          ]}
                         />
-                        <PretendardText
-                          style={styles.resultName}
-                          weight='medium'
-                          numberOfLines={1}
-                        >
-                          {spot.name}
-                        </PretendardText>
-                        <View style={styles.resultBadge}>
+                        <View style={styles.resultTexts}>
                           <PretendardText
-                            style={styles.resultBadgeText}
-                            weight='medium'
+                            style={styles.resultName}
+                            weight='semibold'
+                            numberOfLines={1}
                           >
-                            {getCampSiteTypeLabel(spot.type)}
+                            {spot.name}
+                          </PretendardText>
+                          <PretendardText
+                            style={styles.resultMeta}
+                            numberOfLines={1}
+                          >
+                            {`${getCampSiteTypeLabel(spot.type)} · ${getCampSpotRegionLabel(spot)}`}
                           </PretendardText>
                         </View>
-                        <PretendardText
-                          style={styles.resultRegion}
-                          numberOfLines={1}
-                        >
-                          {getCampSpotRegionLabel(spot)}
-                        </PretendardText>
                       </TouchableOpacity>
                     ))
                   )}
@@ -168,7 +167,7 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
 
         {campSiteMap.isLoading() && (
           <View style={styles.loadingWrap} pointerEvents='none'>
-            <ActivityIndicator size='small' color={Color.textPrimary} />
+            <ActivityIndicator size='small' color={Acg.ink} />
           </View>
         )}
       </>
@@ -213,18 +212,17 @@ const styles = StyleSheet.create({
     color: Acg.ink,
     padding: 0,
   },
-  // 결과는 별도 카드로 (날씨 피커 resultsCard와 동일).
+  // 결과는 검색 필드 바로 아래 종이 면으로 이어 붙인다 — 각진 모서리·같은 좌우 패딩이라
+  // 필드와 한 덩어리로 읽힌다(ACG).
   dropdown: {
     maxHeight: 260,
-    borderRadius: Radius.card,
-    backgroundColor: Color.background,
-    paddingHorizontal: 12,
+    borderRadius: 0,
+    backgroundColor: Acg.paper,
+    paddingHorizontal: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
+    borderWidth: 1,
+    borderColor: Acg.line2,
+    boxShadow: AcgShadow.card,
   },
   dropdownScroll: {
     flexGrow: 0,
@@ -236,37 +234,36 @@ const styles = StyleSheet.create({
   },
   dropdownEmptyText: {
     fontSize: 14,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
+  // 이름 + 메타 두 줄이라 축이 왼쪽 하나다. 예전에는 이름·유형 배지·지역이 한 줄에
+  // 나란히 놓여 이름이 밀리고 지역은 오른쪽 끝에 떨어져 한 항목으로 안 읽혔다.
   resultRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
     minHeight: 44,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Acg.line2,
+  },
+  // 지도 마커(사각 18pt)의 축소판.
+  resultTypeMark: {
+    width: 10,
+    height: 10,
+    borderRadius: 0,
+  },
+  resultTexts: {
+    flex: 1,
+    gap: 2,
   },
   resultName: {
-    flexShrink: 1,
     fontSize: 15,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
-  resultBadge: {
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: Radius.chip,
-    backgroundColor: Color.chipInactiveBg,
-  },
-  resultBadgeText: {
+  resultMeta: {
     fontSize: 12,
-    color: Color.textTertiary,
-  },
-  resultRegion: {
-    flex: 1,
-    fontSize: 13,
-    textAlign: 'right',
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   errorBanner: {
     flexDirection: 'row',
@@ -276,28 +273,28 @@ const styles = StyleSheet.create({
     marginHorizontal: AcgLayout.screenH,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: Radius.card,
-    backgroundColor: Color.background,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
+    // 검색 필드·결과 카드와 같은 종이 면(ACG). 같은 오버레이 스택에 얹히는 면이라
+    // 혼자 둥근 모서리·회색이면 다른 화면 요소로 읽힌다.
+    borderRadius: 0,
+    backgroundColor: Acg.paper,
+    borderWidth: 1,
+    borderColor: Acg.line2,
+    boxShadow: AcgShadow.card,
   },
   errorText: {
     flex: 1,
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   retryButton: {
     paddingVertical: 6,
     paddingHorizontal: 14,
-    borderRadius: Radius.chip,
-    backgroundColor: Color.chipActiveBg,
+    borderRadius: 0,
+    backgroundColor: Acg.ink,
   },
   retryText: {
     fontSize: 13,
-    color: Color.background,
+    color: Acg.paper,
   },
   loadingWrap: {
     position: 'absolute',

@@ -219,6 +219,21 @@ class CampSiteMap {
     this.selectedType = type;
   }
 
+  /**
+   * 유형·태그 필터를 모두 해제한다(CS-6).
+   *
+   * 검색은 필터와 독립이라 필터에 걸러진 박지도 결과에 나온다. 그 항목을 고르면 카메라는
+   * 그리로 가는데 마커는 필터에 막혀 안 보여, 빈 지도만 남는다. 선택한 박지를 보여주는 게
+   * 필터 유지보다 우선이라 이때 필터를 푼다.
+   *
+   * 즐겨찾기 전용(`favoriteOnly`)은 건드리지 않는다 — 칩이 아니라 시트 열림 상태에
+   * 묶인 값이라 여기서 끄면 시트와 어긋난다.
+   */
+  public resetFilters() {
+    this.selectedType = null;
+    this.selectedTag = null;
+  }
+
   // 즐겨찾기 리스트 시트(CS-9) 열림/닫힘에 맞춰 즐겨찾기 전용 마커 필터를 토글한다.
   public setFavoriteOnly(value: boolean) {
     this.favoriteOnly = value;
