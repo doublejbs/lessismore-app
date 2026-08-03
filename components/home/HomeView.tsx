@@ -87,7 +87,7 @@ const HomeView: FC<Props> = ({ home }) => {
     <Layout
       edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
       paddingHorizontal={AcgLayout.screenH}
-      background={<AcgScreenBackground />}
+      background={<AcgScreenBackground photo terrain={false} />}
     >
       {/* 화면 제목 44px(ACG). 형광펜 띠는 두지 않는다(2026-08-03 사용자 결정) —
           섹션 제목에만 남겨 강조가 한 화면에서 두 층으로 겹치지 않게 한다.

@@ -42,7 +42,8 @@ const ReplyDetailView = ({ replyDetail, originalComment }: Props) => {
 
   return (
     <View style={styles.container}>
-      <AcgScreenBackground />
+      {/* 상세 화면은 지형 마크 없이 지면 + 그레인만 쓴다(ACG). */}
+      <AcgScreenBackground terrain={false} />
       {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
           시스템에 위임한다. 원 리뷰에 달린 댓글(답글) 화면이라 타이틀은 '댓글'. */}
       <Stack.Screen
