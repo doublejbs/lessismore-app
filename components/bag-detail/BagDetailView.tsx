@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     // iOS는 44pt 박스 + gap 8 = 아이콘 중심 간격 ~52pt(시스템 캡슐 지오메트리).
     // Android 커스텀 헤더는 기존 간격 유지.
-    gap: IS_IOS ? 8 : 12,
+    gap: 8,
   },
   // iOS 글래스 캡슐 내부 여백·높이를 맞추는 아이콘 박스(터치 타깃 44pt).
   headerIconBox: {
