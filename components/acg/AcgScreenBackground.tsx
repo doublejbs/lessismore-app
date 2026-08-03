@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Image } from 'react-native';
 import Svg, {
   Circle,
   Defs,
@@ -14,10 +14,10 @@ import { Acg } from '@/constants/DesignTokens';
 /**
  * 탭 5화면의 지면 레이어(ACG) — 지면색 + 그레인 + 와이어프레임 지형 마크.
  *
- * **지형 배경 PNG는 핸드오프 번들에 없다**(README §Assets: "디자이너에게 원본 PNG를 받아
- * `assets/images/`에 넣고 참조하세요"). 그래서 시안 SVG에 들어 있던 요소 — 십자 마크,
- * 구역 문자(A/B/C), 라임 트레일 곡선 — 만 재현했다. PNG를 받으면 이 컴포넌트 안에
- * `<Image>` 한 겹을 SVG 위에 얹으면 된다(`resizeMode: 'cover'`, 위치 52%/42%).
+ * 지형은 디자이너 원본 PNG(`assets/images/acg-terrain.png`)를 깔고, 그 위에 시안 SVG의
+ * 측량 요소 — 십자 마크, 구역 문자(A/B/C), 라임 트레일 곡선 — 를 얹는다.
+ * 시안 CSS의 `object-position: 52% 42%`를 RN에서 그대로 낼 수 없어, `cover`로 채우고
+ * 컨테이너를 그 비율만큼 밀어 근사한다.
  *
  * 그레인은 CSS `radial-gradient` 두 겹인데 RN에 없어 SVG `Pattern`으로 낸다.
  * 상세 화면은 지형 없이 지면 + 그레인만 쓰므로 `terrain={false}`로 끈다.
@@ -29,6 +29,14 @@ interface Props {
 const AcgScreenBackground: FC<Props> = ({ terrain = true }) => {
   return (
     <View style={styles.container} pointerEvents='none'>
+      {terrain ? (
+        <Image
+          source={require('@/assets/images/acg-terrain.png')}
+          style={styles.terrain}
+          resizeMode='cover'
+        />
+      ) : null}
+
       <Svg width='100%' height='100%' viewBox='0 0 402 874'>
         <Defs>
           {/* 시안의 3px / 5px 두 겹 도트를 각각 한 패턴으로 낸다. */}
@@ -93,6 +101,18 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: Acg.bg,
+  },
+  // 시안의 `object-position: 52% 42%` 근사 — 세로가 긴 원본이라 위쪽 산등성이가
+  // 화면 상단에 걸치도록 조금 올려 붙인다.
+  terrain: {
+    position: 'absolute',
+    top: '-4%',
+    left: '2%',
+    right: 0,
+    bottom: 0,
+    width: '104%',
+    height: '104%',
+    opacity: 0.9,
   },
 });
 
