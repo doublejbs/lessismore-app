@@ -45,7 +45,12 @@ const CampUserReviewSectionView: FC<Props> = ({ campSiteDetail }) => {
 
   return (
     <View style={styles.section}>
-      {/* 탭 이름이 이미 '후기'라 섹션 제목을 다시 달지 않는다 — 요약(또는 빈 상태 안내)이 헤더 역할(CS-8). */}
+      {/* 아래 `블로그·영상`과 나란한 제목을 둔다(2026-08-03 리뷰) — 한쪽에만 제목이 있으면
+          위 섹션이 제목 없는 덩어리로 뜬다. 탭 이름(`후기`)과 겹치지 않게 `이용자 후기`로 쓴다. */}
+      <PretendardText style={styles.sectionTitle} weight='semibold'>
+        이용자 후기
+      </PretendardText>
+
       {summary ? (
         <View style={styles.summaryRow}>
           <StarRatingView rating={summary.ratingAvg} size={16} />
@@ -102,8 +107,9 @@ const CampUserReviewSectionView: FC<Props> = ({ campSiteDetail }) => {
         </View>
       ) : null}
 
-      {/* 아래 '블로그·영상' 섹션과 경계를 명확히 하는 구분선(CS-8 디자인 리뷰). */}
-      <View style={styles.divider} />
+      {/* 아래 `블로그·영상`과의 경계. 후기가 하나라도 있으면 마지막 후기 카드의 하단선이
+          이미 섹션을 닫으므로 그리지 않는다 — 겹치면 하드라인이 두 줄로 보인다(2026-08-03 리뷰). */}
+      {isEmpty ? <View style={styles.divider} /> : null}
     </View>
   );
 };
@@ -112,6 +118,10 @@ const styles = StyleSheet.create({
   section: {
     gap: 12,
     marginTop: 4,
+  },
+  sectionTitle: {
+    fontSize: 15,
+    color: Color.textPrimary,
   },
   summaryRow: {
     flexDirection: 'row',
