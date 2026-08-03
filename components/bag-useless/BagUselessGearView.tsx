@@ -21,6 +21,8 @@ interface Props {
 // 체크 배지(24pt)가 차지하는 우측 레인 폭 — GearView 지표 컬럼과의 간격 12 포함.
 const CHECK_BADGE_SIZE = 24;
 const CHECK_BADGE_LANE = CHECK_BADGE_SIZE + 12;
+// 행 좌우 여백 — 다른 목록 행(홈·창고)과 같은 값.
+const ROW_PADDING = 14;
 
 const SPRING_CONFIG = {
   damping: 16,
@@ -40,7 +42,8 @@ const BagUselessGearView: FC<Props> = ({ gear, bagUseless }) => {
   }, [selected, progress]);
 
   const rowStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0, 1], [0.4, 1]),
+    // 0.4는 종이 면 위에서 글자가 거의 안 읽혔다 — 선택 여부는 체크 원이 이미 말한다.
+    opacity: interpolate(progress.value, [0, 1], [0.65, 1]),
   }));
 
   const checkStyle = useAnimatedStyle(() => ({
@@ -61,14 +64,14 @@ const BagUselessGearView: FC<Props> = ({ gear, bagUseless }) => {
       <Animated.View style={[styles.row, rowStyle]}>
         <GearView gear={gear} plain />
       </Animated.View>
-      <Animated.View
-        style={[styles.checkBadge, checkStyle]}
-        pointerEvents='none'
-      >
-        <View style={styles.checkCircle}>
-          <Ionicons name='checkmark' size={16} color='white' />
-        </View>
-      </Animated.View>
+      {/* 빈 원은 항상 보인다 — 선택 전에도 이 행이 고를 수 있는 항목임을 드러낸다.
+          채움(잉크 원 + 체크)만 선택 시 스프링으로 나타난다. */}
+      <View style={styles.checkBadge} pointerEvents='none'>
+        <View style={styles.checkOutline} />
+        <Animated.View style={[styles.checkCircle, checkStyle]}>
+          <Ionicons name='checkmark' size={16} color={Acg.paper} />
+        </Animated.View>
+      </View>
     </TouchableOpacity>
   );
 };
@@ -77,24 +80,34 @@ const styles = StyleSheet.create({
   touchable: {
     width: '100%',
   },
-  // GearView 우측에 지표 컬럼(무게·사용률)이 생겼으므로, 절대배치 체크 배지가 겹치지 않도록
-  // 행 오른쪽에 배지 레인(배지 24 + 간격 12)만큼 패딩을 둬 지표 컬럼이 그 앞에서 끝나게 한다.
+  // 절대배치 체크 배지가 지표 컬럼(무게·사용률)과 겹치지 않도록 행 오른쪽에 배지 레인
+  // (배지 + 간격 12)을 비운다. `paddingHorizontal`과 함께 쓰면 뒤에 온 쪽이 이겨
+  // 레인이 사라지므로(실제로 그랬다) 좌·우를 따로 지정한다.
   // 체크 배지까지 한 장의 종이 면에 담는다(ACG) — 배지만 지면 위에 떨어지면 행과 따로 논다.
   row: {
     width: '100%',
-    paddingRight: CHECK_BADGE_LANE,
-    paddingHorizontal: 14,
+    paddingLeft: ROW_PADDING,
+    paddingRight: ROW_PADDING + CHECK_BADGE_LANE,
     backgroundColor: Acg.paper,
     boxShadow: AcgShadow.paper,
   },
   checkBadge: {
     position: 'absolute',
-    right: 14,
+    right: ROW_PADDING,
     top: 0,
     bottom: 0,
     justifyContent: 'center',
   },
+  // 빈 상태의 테두리 원 — 채움 원과 정확히 같은 자리에 겹쳐 둔다.
+  checkOutline: {
+    width: CHECK_BADGE_SIZE,
+    height: CHECK_BADGE_SIZE,
+    borderRadius: CHECK_BADGE_SIZE / 2,
+    borderWidth: 1.5,
+    borderColor: Acg.line,
+  },
   checkCircle: {
+    position: 'absolute',
     width: CHECK_BADGE_SIZE,
     height: CHECK_BADGE_SIZE,
     borderRadius: CHECK_BADGE_SIZE / 2,
