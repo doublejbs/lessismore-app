@@ -1,5 +1,6 @@
 import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import Reply from '@/model/reply/Reply';
@@ -9,12 +10,15 @@ interface Props {
 }
 
 const ReplyInputButtonView: FC<Props> = ({ reply }) => {
+  const insets = useSafeAreaInsets();
+
   const handlePress = () => {
     reply.moveToInput();
   };
 
   return (
-    <View style={styles.container}>
+    // 화면 맨 아래 바라 홈 인디케이터를 피한다.
+    <View style={[styles.container, { paddingBottom: insets.bottom + 12 }]}>
       <TouchableOpacity style={styles.inputContainer} onPress={handlePress}>
         <View style={styles.inputWrapper}>
           <PretendardText style={styles.placeholder}>

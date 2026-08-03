@@ -14,6 +14,7 @@ import PretendardText from '@/components/PretendardText';
 import { Acg } from '@/constants/DesignTokens';
 import ReplyDetail from '@/model/reply/ReplyDetail';
 import { observer } from 'mobx-react-lite';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import app from '@/model/app/App';
 
 interface Props {
@@ -27,6 +28,7 @@ const ReplyDetailInputView: FC<Props> = observer(
     const [text, setText] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const inputRef = useRef<TextInput>(null);
+    const insets = useSafeAreaInsets();
     const replyTarget = replyDetail.getReplyTarget();
 
     useEffect(() => {
@@ -89,11 +91,14 @@ const ReplyDetailInputView: FC<Props> = observer(
     };
 
     return (
+      // 오프셋 76은 키보드 위에 그만큼 빈 지면을 남겼다(2026-08-03 실기기 확인).
+      // 아래 컨테이너가 홈 인디케이터만큼 패딩을 갖는데, 키보드가 올라오면 그 패딩이
+      // 키보드 위 빈칸이 된다 — 음수 오프셋으로 정확히 그만큼만 상쇄한다.
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 76 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? -insets.bottom : 0}
       >
-        <View style={[styles.container]}>
+        <View style={[styles.container, { paddingBottom: insets.bottom }]}>
           <View style={styles.content}>
             {!isInputMode ? (
               <TouchableOpacity
