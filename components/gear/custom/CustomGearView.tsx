@@ -337,7 +337,6 @@ const styles = StyleSheet.create({
     height: 20,
   },
   confirmButtonContainer: {
-    backgroundColor: Color.background,
     padding: 16,
     borderTopColor: Color.borderLight,
   },

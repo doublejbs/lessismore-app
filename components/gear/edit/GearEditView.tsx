@@ -199,7 +199,6 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
               paddingHorizontal: 16,
               paddingTop: 16,
               paddingBottom: 120,
-              backgroundColor: Color.background,
             }}
           >
             <View
@@ -335,7 +334,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: Color.background,
   },
   headerButton: {},
   // iOS 네이티브 headerRight 삭제 버튼 — HIG 최소 터치 타깃 44×44pt, 바 안 정렬은 시스템에 위임.
