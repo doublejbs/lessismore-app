@@ -93,13 +93,14 @@ const CampSiteFilterChipsView: FC<Props> = observer(
     // 밖으로 사라지고 태그 발견 가능성이 떨어진다(디자인 리뷰로 확정).
     return (
       <View style={styles.container}>
-        {/* 지도 위라 유리 톤(tone='acg')을 쓰지 않는다 — 반투명이면 칩 라벨과
-            지도 라벨이 겹쳐 읽힌다. 기본 톤의 불투명 흰 면으로 둔다. */}
+        {/* 지도 위라 불투명 톤을 쓴다 — 유리(반투명)면 칩 라벨과 지도 라벨이 겹쳐 읽힌다.
+            선택 상태는 다른 탭과 같은 잉크 채움이다(2차 태그 칩도 회색이 아니라 잉크). */}
         <View style={styles.filterRow}>
           {TYPE_FILTERS.map(filter => (
             <CategoryChipView
               key={filter.label}
               label={filter.label}
+              tone='acgSolid'
               {...(filter.dotColor !== undefined
                 ? { dotColor: filter.dotColor }
                 : {})}
@@ -126,6 +127,7 @@ const CampSiteFilterChipsView: FC<Props> = observer(
               <CategoryChipView
                 label={filter.label}
                 variant='secondary'
+                tone='acgSolid'
                 selected={campSiteMap.getSelectedTag() === filter.value}
                 onPress={() => handlePressTag(filter.value)}
               />
