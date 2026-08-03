@@ -8,7 +8,8 @@ import GearUsageStatus from '../../model/warehouse-detail/GearUsageStatus';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '../PretendardText';
-import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
+import WarehouseDetailSectionView from './WarehouseDetailSectionView';
+import { Acg } from '@/constants/DesignTokens';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 
 interface Props {
@@ -133,34 +134,18 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
   };
 
   return (
-    <View style={styles.container}>
-        <PretendardText weight='bold' style={styles.headerText}>
-          함께한 여행 {bagCount}회
-        </PretendardText>
-        <View style={styles.listContainer}>
-          {warehouseDetail.getTripRecords().map(renderTripCard)}
+    <WarehouseDetailSectionView title={`함께한 여행 ${bagCount}회`}>
+      <View style={styles.listContainer}>
+        {warehouseDetail.getTripRecords().map(renderTripCard)}
       </View>
-    </View>
+    </WarehouseDetailSectionView>
   );
 };
 
 const styles = StyleSheet.create({
-  // 섹션은 지면 위에 얹은 종이 면이다(ACG). 예전에는 흰 배경 위에서 10px 회색 띠로
-  // 섹션을 갈랐는데, 지면이 생기면서 띠가 아니라 면의 경계가 구분을 맡는다.
-  container: {
-    flexDirection: 'column',
-    marginHorizontal: AcgLayout.screenH,
-    marginBottom: 12,
-    padding: 16,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
-  },
-  headerText: {
-    fontSize: 17,
-    color: Acg.ink,
-  },
   listContainer: {
     flexDirection: 'column',
+    gap: 10,
   },
   // 종이 면 위 행이라 채움은 지면색이다 — 흰 면 위 회색 면을 또 두면 층이 하나 늘어난다.
   tripCard: {
@@ -170,7 +155,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: Acg.bg,
     borderRadius: 0,
-    marginTop: 12,
   },
   tripContent: {
     flex: 1,

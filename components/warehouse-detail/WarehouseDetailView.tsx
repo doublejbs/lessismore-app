@@ -276,7 +276,10 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
                   <LoadingView duration={1000} />
                 ) : (
                   <View style={styles.buttonContent}>
-                    <PretendardText weight='semibold' style={styles.addButtonText}>
+                    <PretendardText
+                      weight='semibold'
+                      style={styles.addButtonText}
+                    >
                       {isBagContext ? '이 배낭에 담기' : '내 창고에 추가하기'}
                     </PretendardText>
                   </View>

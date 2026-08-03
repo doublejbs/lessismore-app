@@ -27,11 +27,7 @@ const WarehouseDetailDeclutterBannerView: FC<Props> = ({ warehouseDetail }) => {
   return (
     <View style={styles.container}>
       <View style={styles.banner} accessibilityLabel={message}>
-        <Ionicons
-          name='bag-remove-outline'
-          size={18}
-          color={Acg.warnText}
-        />
+        <Ionicons name='bag-remove-outline' size={18} color={Acg.warnText} />
         <PretendardText weight='medium' style={styles.messageText}>
           {message}
         </PretendardText>

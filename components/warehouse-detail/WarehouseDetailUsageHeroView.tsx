@@ -3,7 +3,8 @@ import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
-import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
+import WarehouseDetailSectionView from './WarehouseDetailSectionView';
+import { Acg } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 
 interface Props {
@@ -33,54 +34,36 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
     </View>
   );
 
+  // 형광펜 띠는 이 섹션에만 준다 — `이 장비를 계속 데려갈까`에 답하는 화면의 주 정보다.
   return (
-    <View style={styles.container}>
-        <PretendardText weight='bold' style={styles.title}>
-          사용 기록
+    <WarehouseDetailSectionView title='사용 기록' highlight>
+      {bagCount === 0 ? (
+        <PretendardText style={styles.emptyText}>
+          아직 배낭에 담은 적이 없어요
         </PretendardText>
-        {bagCount === 0 ? (
-          <PretendardText style={styles.emptyText}>
-            아직 배낭에 담은 적이 없어요
-          </PretendardText>
-        ) : (
-          <>
-            {/* 사용·사용 안함 두 지표만 둔다(GD-9, 2026-07-30 사용자 결정).
+      ) : (
+        <>
+          {/* 사용·사용 안함 두 지표만 둔다(GD-9, 2026-07-30 사용자 결정).
                 담김 수는 아래 `함께한 여행 N회` 헤더가 이미 같은 값을 말하고,
                 미기록은 타임라인의 `미기록` 태그로 행마다 드러난다. */}
-            <View style={styles.statsRow}>
-              {renderStat('사용', usedCount, usedCount === 0)}
-              {renderStat('사용 안함', uselessCount, uselessCount === 0)}
-            </View>
+          <View style={styles.statsRow}>
+            {renderStat('사용', usedCount, usedCount === 0)}
+            {renderStat('사용 안함', uselessCount, uselessCount === 0)}
+          </View>
         </>
       )}
-    </View>
+    </WarehouseDetailSectionView>
   );
 };
 
 const styles = StyleSheet.create({
-  // 섹션은 지면 위에 얹은 종이 면이다(ACG). 예전에는 흰 배경 위에서 10px 회색 띠로
-  // 섹션을 갈랐는데, 지면이 생기면서 띠가 아니라 면의 경계가 구분을 맡는다.
-  container: {
-    flexDirection: 'column',
-    marginHorizontal: AcgLayout.screenH,
-    marginBottom: 12,
-    padding: 16,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
-  },
-  title: {
-    fontSize: 17,
-    color: Acg.ink,
-  },
   emptyText: {
-    marginTop: 12,
     fontSize: 14,
     color: Acg.textSecondary,
   },
   statsRow: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 12,
   },
   // 종이 면 위 타일이라 채움은 지면색을 쓴다 — 회색 면을 또 두면 층이 하나 늘어난다.
   statItem: {
