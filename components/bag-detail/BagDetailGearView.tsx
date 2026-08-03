@@ -14,10 +14,11 @@ import Gear from '@/model/gear/Gear';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
+import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import GearThumbnailView, {
   GEAR_THUMBNAIL_SIZE,
 } from '@/components/gear/GearThumbnailView';
-import { Acg, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgShadow } from '@/constants/DesignTokens';
 
 // 삭제 스와이프 액션 배경 — 파괴적 액션 시맨틱 색(DesignTokens 예외, CLAUDE.md 참고).
 const DELETE_RED = '#FF3B30';
@@ -57,7 +58,7 @@ const RightActions: FC<RightActionsProps> = ({
         accessibilityRole='button'
         accessibilityLabel={editLabel}
       >
-        <Ionicons name='create-outline' size={20} color={Color.background} />
+        <Ionicons name='create-outline' size={20} color={Acg.paper} />
         <PretendardText style={styles.actionLabel} weight='medium'>
           수정
         </PretendardText>
@@ -69,7 +70,7 @@ const RightActions: FC<RightActionsProps> = ({
         accessibilityRole='button'
         accessibilityLabel={deleteLabel}
       >
-        <Ionicons name='trash' size={20} color={Color.background} />
+        <Ionicons name='trash' size={20} color={Acg.paper} />
         <PretendardText style={styles.actionLabel} weight='medium'>
           삭제
         </PretendardText>
@@ -196,9 +197,10 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
                 </PretendardText>
               </View>
             )}
-            <PretendardText style={styles.weightText} weight='bold'>
-              {gear.getWeight()}g
-            </PretendardText>
+            {/* 숫자라 콘덴스드를 쓴다 — 행의 시각 앵커(ACG). */}
+            <AcgDisplayText style={styles.weightText}>
+              {`${gear.getWeight()}g`}
+            </AcgDisplayText>
           </View>
         </TouchableOpacity>
       </View>
@@ -207,8 +209,13 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
 };
 
 const styles = StyleSheet.create({
+  // 지면 위 각진 종이 면(ACG) — 홈·창고·배낭 목록과 같은 행 문법이다. 불투명이라
+  // 스와이프 전환 중 뒤 액션색이 행 밑으로 비치지도 않는다.
   rowBackground: {
-    backgroundColor: Color.background,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
   },
   // BD-1: minHeight를 썸네일 높이에 맞춰 **모든 행에** 걸어, 이미지 있는 행과 없는 행이 섞여도
   // 행 높이가 달라지지 않게 한다(=지표 컬럼의 세로 간격 유지). useless 로고 마크가 이미 같은 44라
@@ -247,32 +254,35 @@ const styles = StyleSheet.create({
   // 브랜드는 이름(nameText)과 동일한 타이포로 표시한다.
   companyText: {
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   usageRateBadge: {
-    borderRadius: Radius.card,
-    backgroundColor: Color.chipInactiveBg,
+    borderRadius: 0,
+    backgroundColor: Acg.bg,
     paddingVertical: 3,
     paddingHorizontal: 6,
   },
   usageRateText: {
     fontSize: 10,
-    color: Color.textPrimary,
+    color: Acg.textSecondary,
   },
   nameText: {
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   colorText: {
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   weightText: {
-    fontSize: 14,
-    color: Color.textPrimary,
+    fontSize: 15,
+    lineHeight: 19,
+    color: Acg.ink,
     textAlign: 'right',
   },
+  // 행 카드가 8px씩 벌어져 있어 액션 패널에도 같은 여백을 줘야 끝이 맞는다.
   actionsContainer: {
+    marginBottom: 8,
     width: ACTIONS_TOTAL_WIDTH,
     flexDirection: 'row',
     alignItems: 'stretch',
