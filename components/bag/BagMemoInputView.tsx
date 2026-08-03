@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   bagMemo: BagMemo;
@@ -168,7 +168,7 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
     paddingHorizontal: 0,
   },
   header: {

@@ -12,7 +12,7 @@ import { observer } from 'mobx-react-lite';
 import { Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { Acg, Color, Radius, Spacing } from '@/constants/DesignTokens';
 import BagActivity from '@/model/bag/BagActivity';
 import BagActivityPhase from '@/model/bag/BagActivityPhase';
 import {
@@ -282,7 +282,7 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
   },
   header: {
     flexDirection: 'row',

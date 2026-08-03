@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, Color } from '@/constants/DesignTokens';
 
 interface Props {}
 
@@ -120,7 +120,7 @@ const BagDetailSkeletonView: FC<Props> = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
   },
   header: {
     flexDirection: 'row',

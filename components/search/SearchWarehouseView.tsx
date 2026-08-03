@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import { View, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, Color } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Bag from '@/model/bag/Bag';
 import Feed from '@/model/feed/Feed';
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     width: '100%',
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
     paddingTop: Platform.OS === 'android' ? 16 : 0,
   },
   header: {

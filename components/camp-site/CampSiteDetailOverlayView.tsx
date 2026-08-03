@@ -3,7 +3,7 @@ import { ActivityIndicator, Modal, StyleSheet, View } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, Color } from '@/constants/DesignTokens';
 import CampSiteDetail from '@/model/camp-site/CampSiteDetail';
 import CampSiteDetailDispatcher from '@/model/camp-site/CampSiteDetailDispatcher';
 import CampSiteDetailView from './CampSiteDetailView';
@@ -77,7 +77,7 @@ const CampSiteDetailOverlayView: FC<Props> = observer(
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
   },
   loadingWrap: {
     flex: 1,

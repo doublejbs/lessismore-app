@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, Color, Radius } from '@/constants/DesignTokens';
 import CustomGearConfirmView from '@/components/gear/custom/CustomGearConfirmView';
 import CustomGear from '@/model/gear/custom/CustomGear';
 import LoadingIconView from '@/components/ui/LoadingIconView';
@@ -308,7 +308,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
     justifyContent: 'flex-end',
   },
   keyboardAvoidingView: {

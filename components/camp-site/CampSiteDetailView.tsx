@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, Color, Radius } from '@/constants/DesignTokens';
 import CampSiteBagSelectSheetView from './CampSiteBagSelectSheetView';
 import CampSiteDetailHeaderView from './CampSiteDetailHeaderView';
 import CampSiteDetailTabBarView from './CampSiteDetailTabBarView';
@@ -236,7 +236,7 @@ const CampSiteDetailView: FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.background,
+    backgroundColor: Acg.bg,
   },
   scroll: {
     flex: 1,
