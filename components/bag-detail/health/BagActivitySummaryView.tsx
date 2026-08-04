@@ -1,7 +1,8 @@
 import { FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { Acg, AcgShadow, Spacing } from '@/constants/DesignTokens';
+import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { BagActivitySummary } from '@/model/bag/BagActivitySummary';
 import {
   formatBagWeight,
@@ -47,8 +48,15 @@ const BagActivitySummaryView: FC<Props> = ({ summary, weightGrams }) => {
       {/* 이 기능의 핵심 서사 — 무게와 이동을 한 문장으로 잇는다(HA-4). */}
       {weightGrams > 0 && (
         <PretendardText style={styles.headline} weight='bold'>
-          {formatBagWeight(weightGrams)} 메고{'\n'}
-          {formatDistance(summary.distance)} 걸었어요
+          {/* 두 수치가 이 문장의 결론이라 라임으로 세운다 — 앱의 유일한 액센트(ACG). */}
+          <PretendardText style={styles.headlineValue} weight='bold'>
+            {formatBagWeight(weightGrams)}
+          </PretendardText>
+          {' 메고\n'}
+          <PretendardText style={styles.headlineValue} weight='bold'>
+            {formatDistance(summary.distance)}
+          </PretendardText>
+          {' 걸었어요'}
         </PretendardText>
       )}
       <View style={styles.grid}>
@@ -57,9 +65,17 @@ const BagActivitySummaryView: FC<Props> = ({ summary, weightGrams }) => {
             <PretendardText style={styles.metricLabel}>
               {metric.label}
             </PretendardText>
-            <PretendardText style={styles.metricValue} weight='semibold'>
-              {metric.value}
-            </PretendardText>
+            {/* 숫자라 콘덴스드를 쓴다 — 이 화면은 수치가 전부다(ACG). `기록 없음`은
+                한글이라 콘덴스드에 글리프가 없어 본문 서체로 떨어뜨린다. */}
+            {metric.value === EMPTY_METRIC ? (
+              <PretendardText style={styles.metricEmpty}>
+                {metric.value}
+              </PretendardText>
+            ) : (
+              <AcgDisplayText style={styles.metricValue}>
+                {metric.value}
+              </AcgDisplayText>
+            )}
           </View>
         ))}
       </View>
@@ -74,14 +90,20 @@ const styles = StyleSheet.create({
   headline: {
     fontSize: 22,
     lineHeight: 32,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
+  headlineValue: {
+    color: Acg.limeText,
+  },
+  // 이 화면의 주 정보라 종이 면으로 띄운다 — 회색 면은 지면과 톤이 가까워 안 떠 보였다
+  // (2026-08-05 디자인 리뷰).
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     padding: 14,
-    borderRadius: Radius.card,
-    backgroundColor: Color.surfaceMuted,
+    borderRadius: 0,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
   },
   metric: {
     // 2열 그리드. 고정 높이를 두지 않아 Dynamic Type에서 값이 잘리지 않는다.
@@ -91,11 +113,17 @@ const styles = StyleSheet.create({
   },
   metricLabel: {
     fontSize: 13,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   metricValue: {
-    fontSize: 17,
-    color: Color.textPrimary,
+    fontSize: 22,
+    lineHeight: 26,
+    color: Acg.ink,
+  },
+  metricEmpty: {
+    fontSize: 15,
+    lineHeight: 26,
+    color: Acg.textSecondary,
   },
 });
 

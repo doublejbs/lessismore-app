@@ -2,7 +2,7 @@ import { FC, useState } from 'react';
 import { LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { AcgShadow, Acg, Color, Spacing } from '@/constants/DesignTokens';
 import { HealthSeriesPoint } from '@/model/health/HealthTypes';
 import { formatClockTime } from '@/model/health/HealthFormat';
 
@@ -139,13 +139,13 @@ const BagActivityChartView: FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
+  // 요약 카드와 같은 종이 면(ACG) — 테두리로 경계를 내던 방식은 다른 카드와 갈렸다.
   container: {
     gap: 6,
     padding: 14,
-    borderRadius: Radius.card,
-    borderWidth: 1,
-    borderColor: Color.chipBorder,
-    backgroundColor: Color.background,
+    borderRadius: 0,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
   },
   header: {
     flexDirection: 'row',

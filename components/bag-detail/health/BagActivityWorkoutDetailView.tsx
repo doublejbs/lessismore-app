@@ -16,6 +16,12 @@ import {
 import BagActivityChartView from './BagActivityChartView';
 
 interface Props {
+  /**
+   * 이 운동 하나가 곧 전체 요약인지. 운동이 하나뿐이면 위 요약 카드가 이미 같은 네 값을
+   * 보여주므로 메타 줄에서 값을 빼고 시각만 남긴다 — 화면에 같은 숫자가 세 번 나왔다
+   * (2026-08-05 디자인 리뷰).
+   */
+  isOnly: boolean;
   detail: BagActivityWorkoutDetail;
 }
 
@@ -27,7 +33,7 @@ const PACE_COLOR = '#2F6BFF';
 //
 // 그래프를 운동별로 두는 이유: 1박 2일이 날짜별로 나뉘어 기록되면 시간축을 합쳤을 때
 // 사이의 빈 구간(잠자는 시간)이 그래프 대부분을 차지해 추이를 읽을 수 없다.
-const BagActivityWorkoutDetailView: FC<Props> = ({ detail }) => {
+const BagActivityWorkoutDetailView: FC<Props> = ({ detail, isOnly }) => {
   const { workout, heartRateSeries, paceSeries } = detail;
   const metrics = [
     workout.distanceMeters !== undefined
@@ -51,7 +57,9 @@ const BagActivityWorkoutDetailView: FC<Props> = ({ detail }) => {
           {getWorkoutTypeLabel(workout.type)}
         </PretendardText>
         <PretendardText style={styles.subtitle}>
-          {formatWorkoutStartedAt(workout.startDate)} · {metrics}
+          {isOnly
+            ? formatWorkoutStartedAt(workout.startDate)
+            : `${formatWorkoutStartedAt(workout.startDate)} · ${metrics}`}
         </PretendardText>
       </View>
       {/* 데이터가 없는 항목은 그래프를 통째로 생략한다(HA-4). */}
