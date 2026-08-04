@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgShadow } from '@/constants/DesignTokens';
 
 interface Props {
   bagMemo: BagMemo;
@@ -103,11 +103,7 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <TouchableOpacity onPress={handlePressBack} activeOpacity={0.7}>
-              <Ionicons
-                name='chevron-back'
-                size={24}
-                color={Color.textPrimary}
-              />
+              <Ionicons name='chevron-back' size={24} color={Acg.ink} />
             </TouchableOpacity>
             {bagMemo.getMemo() && (
               <TouchableOpacity
@@ -125,7 +121,7 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
         <TextInput
           style={styles.textInput}
           placeholder='메모를 작성하세요'
-          placeholderTextColor={Color.textSecondary}
+          placeholderTextColor={Acg.textSecondary}
           multiline
           textAlignVertical='top'
           value={content}
@@ -145,7 +141,7 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
           disabled={!content.trim() || isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator size='small' color={Color.background} />
+            <ActivityIndicator size='small' color={Acg.paper} />
           ) : (
             <PretendardText
               weight='semibold'
@@ -172,7 +168,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   header: {
-    backgroundColor: Color.background,
+    backgroundColor: 'transparent',
     paddingVertical: 4,
     paddingTop: 8,
     paddingBottom: 8,
@@ -194,37 +190,42 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  // 지면 위 인풋이라 종이 면으로 띄운다(ACG) — 회색 채움은 지면과 붙어 입력 영역
+  // 경계가 안 보였다(2026-08-04 시뮬레이터 확인).
   textInput: {
     flex: 1,
-    borderRadius: Radius.input,
-    backgroundColor: Color.surfaceMuted,
+    borderRadius: 0,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
     padding: 16,
     fontSize: 16,
+    color: Acg.ink,
     minHeight: 200,
   },
   buttonContainer: {
     paddingHorizontal: 16,
-    backgroundColor: Color.background,
+    backgroundColor: 'transparent',
   },
   completeButton: {
     paddingVertical: 16,
-    borderRadius: Radius.input,
+    borderRadius: 0,
     alignItems: 'center',
   },
   completeButtonActive: {
-    backgroundColor: Color.chipActiveBg,
+    backgroundColor: Acg.ink,
   },
+  // 비활성도 버튼으로는 보여야 한다 — 지면색 채움은 배경과 붙어 버튼이 사라졌다.
   completeButtonDisabled: {
-    backgroundColor: Color.borderLight,
+    backgroundColor: Acg.line2,
   },
   completeButtonText: {
     fontSize: 16,
   },
   completeButtonTextActive: {
-    color: Color.background,
+    color: Acg.paper,
   },
   completeButtonTextDisabled: {
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
 });
 

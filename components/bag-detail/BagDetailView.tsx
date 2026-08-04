@@ -17,7 +17,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color, Spacing } from '@/constants/DesignTokens';
+import { Acg, AcgShadow, Color, Spacing } from '@/constants/DesignTokens';
 import BagDetailCategoryView from './BagDetailCategoryView';
 import AcgHighlightText from '@/components/acg/AcgHighlightText';
 import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
@@ -237,6 +237,22 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               </View>
               <View style={styles.gearListContainer}>
                 <View style={styles.gearList}>
+                  {/* 빈 배낭이면 목록 자리가 통째로 비어 뭘 해야 할지 알 수 없었다
+                      (2026-08-04 시뮬레이터 확인). 새 액션은 두지 않는다 — 담는 경로는
+                      아래 `수정하기` 하나뿐이라 그리로 안내한다. */}
+                  {gears.length === 0 ? (
+                    <View style={styles.gearEmpty}>
+                      <PretendardText
+                        weight='bold'
+                        style={styles.gearEmptyTitle}
+                      >
+                        담긴 장비가 없어요
+                      </PretendardText>
+                      <PretendardText style={styles.gearEmptyText}>
+                        아래 수정하기에서 장비를 담아보세요
+                      </PretendardText>
+                    </View>
+                  ) : null}
                   {bagDetail.getGearsByCategory().map(({ category, gears }) => (
                     <BagDetailCategoryView
                       key={category.getFilter()}
@@ -363,6 +379,23 @@ const styles = StyleSheet.create({
   gearCountText: {
     fontSize: GEAR_COUNT_SIZE,
     color: Acg.textTertiary,
+  },
+  // 지면 위 종이 면 안내(ACG).
+  gearEmpty: {
+    alignItems: 'center',
+    paddingVertical: 28,
+    marginHorizontal: Spacing.screenH,
+    gap: 6,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
+  },
+  gearEmptyTitle: {
+    fontSize: 16,
+    color: Acg.ink,
+  },
+  gearEmptyText: {
+    fontSize: 13,
+    color: Acg.textSecondary,
   },
   gearListContainer: {
     alignItems: 'center',
