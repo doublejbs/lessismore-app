@@ -42,6 +42,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import ToastView from '../toast/ToastView';
+import AlertView from '@/components/alert/AlertView';
 import app from '@/model/app/App';
 
 interface Props {
@@ -304,6 +305,10 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
             <BagDetailBottomBar bagDetail={bagDetail} />
           </View>
           <ToastView toastManager={app.getToastManager()!} bottom={100} />
+          {/* 이 화면은 `Layout`을 쓰지 않아 알럿을 그리는 뷰가 없다 — 직접 얹는다.
+              없으면 확인 알럿을 띄우는 동작(장비 빼기)이 조용히 아무 일도 하지 않는다
+              (2026-08-05 시뮬레이터 확인). 패킹 모드도 같은 이유로 직접 얹는다. */}
+          <AlertView alertManager={app.getAlertManager()!} />
         </SafeAreaView>
       </GestureHandlerRootView>
     );

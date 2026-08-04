@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { makeAutoObservable } from 'mobx';
 import app from '@/model/app/App';
+import { josa } from 'josa';
 import BagStore from '@/model/store/BagStore';
 import Firebase from '@/model/firebase/Firebase';
 import GearStore from '@/model/store/GearStore';
@@ -349,12 +350,32 @@ class BagDetail {
     this.router.push(`/custom`);
   }
 
+  /**
+   * 배낭에서 장비를 뺀다(BD-1 스와이프 삭제).
+   *
+   * **되돌릴 수 없어 확인을 받는다**(2026-08-05 사용자 요청). 스와이프는 목록을 훑다가
+   * 실수로 열리기 쉬운 제스처라, 누르는 즉시 사라지면 무엇이 빠졌는지도 모른 채 지나간다.
+   * 창고의 장비 자체는 지우지 않으므로 문구도 `삭제`가 아니라 `빼기`로 쓴다.
+   */
   public async delete(gear: Gear) {
-    const filteredGears = this.gears.filter(g => !g.isSame(gear));
+    const name = gear.getDisplayName();
 
-    await this.bagStore.save(this.id, this.toAddGears, [gear], filteredGears);
-    this.setGears(filteredGears);
-    this.updateWeight();
+    app.getAlertManager()?.show({
+      message: josa(`${name}#{을} 이 배낭에서 뺄까요?`),
+      confirmText: '빼기',
+      onConfirm: async () => {
+        const filteredGears = this.gears.filter(g => !g.isSame(gear));
+
+        await this.bagStore.save(
+          this.id,
+          this.toAddGears,
+          [gear],
+          filteredGears
+        );
+        this.setGears(filteredGears);
+        this.updateWeight();
+      },
+    });
   }
 
   private setUsedWeight(value: number) {
@@ -664,7 +685,10 @@ class BagDetail {
           !endDate.isSame(this.getEndDate(), 'day');
 
         if (datesChanged) {
-          await this.updateDates(startDate.toISOString(), endDate.toISOString());
+          await this.updateDates(
+            startDate.toISOString(),
+            endDate.toISOString()
+          );
         }
       },
     });
