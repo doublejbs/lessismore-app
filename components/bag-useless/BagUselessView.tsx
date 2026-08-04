@@ -18,8 +18,9 @@ import { observer } from 'mobx-react-lite';
 import app from '../../model/app/App';
 import BagUselessGearView from './BagUselessGearView';
 import PretendardText from '@/components/PretendardText';
+import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { Ionicons } from '@expo/vector-icons';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { Acg, Color, Radius, Spacing } from '@/constants/DesignTokens';
 import Gear from '@/model/gear/Gear';
 
 interface Props {
@@ -145,13 +146,15 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
 
       <View style={styles.progress}>
         <View style={styles.countRow}>
-          <PretendardText weight='bold' style={styles.count}>
-            {selectedCount}
+          {/* 숫자라 콘덴스드를 쓴다 — 패킹 모드 진행률과 같은 문법(ACG). */}
+          <View style={styles.countGroup}>
+            <AcgDisplayText style={styles.count}>
+              {String(selectedCount)}
+            </AcgDisplayText>
             <PretendardText weight='medium' style={styles.countTotal}>
-              {' '}
-              / {allCount} 사용
+              {`/ ${allCount} 사용`}
             </PretendardText>
-          </PretendardText>
+          </View>
           <TouchableOpacity onPress={handlePressToggleSelectAll} hitSlop={8}>
             <PretendardText weight='medium' style={styles.selectAllText}>
               {selectedCount ? '전체 해제' : '전체 선택'}
@@ -216,33 +219,40 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-end',
   },
+  countGroup: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+  },
   count: {
-    fontSize: 28,
-    color: Color.textPrimary,
+    fontSize: 34,
+    lineHeight: 38,
+    color: Acg.ink,
   },
   countTotal: {
     fontSize: 16,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   selectAllText: {
     fontSize: 15,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
+  // 각진 진행 바 + 라임 채움(ACG) — 패킹 모드와 같은 값이라 두 화면이 같은 문법으로 읽힌다.
   barTrack: {
     width: '100%',
     height: 10,
-    borderRadius: 5,
-    backgroundColor: Color.divider,
+    borderRadius: 0,
+    backgroundColor: Acg.line2,
     overflow: 'hidden',
   },
   barFill: {
     height: '100%',
-    borderRadius: 5,
-    backgroundColor: Color.textPrimary,
+    borderRadius: 0,
+    backgroundColor: Acg.lime,
   },
   weightText: {
     fontSize: 15,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   list: {
     flex: 1,
