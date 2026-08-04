@@ -115,13 +115,12 @@ const styles = StyleSheet.create({
   rowBackground: {
     backgroundColor: 'transparent',
   },
-  // 행 카드가 아래로 8px 벌어져 있어(목록 gap) 액션 패널에도 같은 여백을 줘야
-  // 위아래 끝이 카드와 맞는다.
+  // 여백을 주지 않는다. 행 간격은 카드의 margin이 아니라 스크롤 컨테이너의 gap(외부)이라,
+  // 패널에 여백을 주면 카드보다 그만큼 짧아진다.
   actionsContainer: {
     width: ACTION_WIDTH,
     flexDirection: 'row',
     alignItems: 'stretch',
-    marginBottom: 8,
   },
   actionButton: {
     width: ACTION_WIDTH,

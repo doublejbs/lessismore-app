@@ -281,9 +281,9 @@ const styles = StyleSheet.create({
     color: Acg.limeText,
     textAlign: 'right',
   },
-  // 행 카드가 8px씩 벌어져 있어 액션 패널에도 같은 여백을 줘야 끝이 맞는다.
+  // 여백을 주지 않는다. 이 목록의 행 간격은 카드의 margin이 아니라 컨테이너의 flex gap
+  // (외부)이라, 패널에 여백을 주면 카드보다 그만큼 짧아진다(2026-08-04 사용자 지적).
   actionsContainer: {
-    marginBottom: 8,
     width: ACTIONS_TOTAL_WIDTH,
     flexDirection: 'row',
     alignItems: 'stretch',
