@@ -11,7 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
 import ReplyDetail from '@/model/reply/ReplyDetail';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -161,11 +161,10 @@ const ReplyDetailInputView: FC<Props> = observer(
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 12,
+    paddingHorizontal: AcgLayout.screenH,
     paddingTop: INPUT_BAR_GAP,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Acg.line2,
-    backgroundColor: Acg.paper,
+    // 지면 위에 놓인 바라 면을 깔지 않는다 — 흰 띠가 화면 하단을 가로지르면 지형이 끊긴다.
+    backgroundColor: 'transparent',
   },
   content: {
     flexDirection: 'row',
@@ -188,7 +187,8 @@ const styles = StyleSheet.create({
   inputButton: {
     flex: 1,
     height: 40,
-    backgroundColor: Acg.bg,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
     borderRadius: 0,
     justifyContent: 'center',
     paddingHorizontal: 16,
@@ -207,7 +207,8 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 40,
     maxHeight: 100,
-    backgroundColor: Acg.bg,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
     borderRadius: 0,
     paddingHorizontal: 16,
     paddingVertical: 10,
