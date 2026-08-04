@@ -129,8 +129,9 @@ const CampSiteFavoritesListView: FC<Props> = ({
   );
 };
 
-// 네이티브 시트 그래버가 차지하는 높이 + 여유.
-const SHEET_GRABBER_CLEARANCE = 36;
+// 네이티브 시트 그래버(약 8pt) 아래 여유. 목록 컨테이너가 이미 8pt를 더하므로
+// 제목 위 총 여백은 이 값 + 8이 된다 — 36은 제목이 너무 내려앉았다.
+const SHEET_GRABBER_CLEARANCE = 12;
 
 const styles = StyleSheet.create({
   container: {
