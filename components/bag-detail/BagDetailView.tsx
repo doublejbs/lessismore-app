@@ -65,7 +65,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     bagDetail.back();
   };
 
-  // 빈 배낭 안내의 CTA — 하단 `수정하기`와 같은 경로·같은 로그를 쓴다.
+  // 빈 배낭 안내의 CTA — 하단 `장비 추가`와 같은 경로·같은 로그를 쓴다.
   const handlePressAddGear = () => {
     app.getAnalyticsManager()?.logClick('bag_edit');
     bagDetail.goToEdit();
@@ -244,7 +244,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               <View style={styles.gearListContainer}>
                 <View style={styles.gearList}>
                   {/* 빈 배낭이면 목록 자리가 통째로 비어 뭘 해야 할지 알 수 없었다
-                      (2026-08-04 시뮬레이터 확인). 하단 `수정하기`와 같은 경로를
+                      (2026-08-04 시뮬레이터 확인). 하단 `장비 추가`와 같은 경로를
                       바로 누를 수 있게 둔다 — 빈 배낭에서 할 일은 이것 하나뿐이다. */}
                   {gears.length === 0 ? (
                     <View style={styles.gearEmpty}>
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     color: Acg.textSecondary,
     marginBottom: 14,
   },
-  // 하단 `수정하기`와 같은 경로라 같은 잉크 면을 쓴다(ACG).
+  // 하단 `장비 추가`와 같은 경로라 같은 잉크 면을 쓴다(ACG).
   gearEmptyButton: {
     alignSelf: 'stretch',
     marginHorizontal: Spacing.screenH,

@@ -59,7 +59,7 @@ const BagDetailBottomBar: FC<Props> = ({ bagDetail }) => {
           accessibilityRole='button'
         >
           <PretendardText style={styles.primaryText} weight='semibold'>
-            수정하기
+            장비 추가
           </PretendardText>
         </TouchableOpacity>
       </View>
