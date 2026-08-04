@@ -42,7 +42,10 @@ const CampUserReviewItemView: FC<Props> = ({
    * 날짜·무게는 `·`로 잇는다 — 후기 작성 화면의 첨부 배낭 칩과 같은 문법이다.
    * 구분자 없이 나열하면 `2026.07.17 ~ 2026.07.18 1.34kg`이 한 덩어리로 읽힌다.
    */
-  const bagMeta = [review.bagDate, review.bagWeight ? `${review.bagWeight}kg` : '']
+  const bagMeta = [
+    review.bagDate,
+    review.bagWeight ? `${review.bagWeight}kg` : '',
+  ]
     .filter(Boolean)
     .join(' · ');
 
@@ -69,7 +72,13 @@ const CampUserReviewItemView: FC<Props> = ({
 
   const menuItems = [
     ...(onEdit
-      ? [{ icon: 'pencil' as const, text: '수정하기', onPress: handlePressEdit }]
+      ? [
+          {
+            icon: 'pencil' as const,
+            text: '수정하기',
+            onPress: handlePressEdit,
+          },
+        ]
       : []),
     ...(onDelete
       ? [
@@ -85,76 +94,77 @@ const CampUserReviewItemView: FC<Props> = ({
   return (
     <>
       <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <View style={styles.authorRow}>
-          <PretendardText style={styles.author} weight='semibold'>
-            {review.authorName}
-          </PretendardText>
-          {isMine ? (
-            <View style={styles.mineBadge}>
-              <PretendardText style={styles.mineBadgeText} weight='medium'>
-                내 후기
-              </PretendardText>
-            </View>
-          ) : null}
-        </View>
-        <View style={styles.headerTrailing}>
-          <PretendardText style={styles.date}>{dateLabel}</PretendardText>
-          {hasMenu ? (
-            <TouchableOpacity
-              style={styles.moreButton}
-              onPress={() => setShowMenu(true)}
-              activeOpacity={0.7}
-              accessibilityRole='button'
-              accessibilityLabel='내 후기 더보기'
-            >
-              <Ionicons
-                name='ellipsis-horizontal'
-                size={16}
-                color={Color.iconMuted}
-              />
-            </TouchableOpacity>
-          ) : null}
-        </View>
-      </View>
-
-      <StarRatingView rating={review.rating} size={14} />
-
-      {review.content ? (
-        <PretendardText style={styles.content}>{review.content}</PretendardText>
-      ) : null}
-
-      {review.bagId ? (
-        <TouchableOpacity
-          style={styles.bagChip}
-          onPress={handlePressBag}
-          activeOpacity={0.7}
-          accessibilityRole='button'
-          accessibilityLabel={`배낭 ${review.bagName ?? ''} 열기`}
-          // 시각 높이는 낮추고 터치 타깃 44pt는 hitSlop으로 확보한다(정보 탭 AU-4와 같은 방식).
-          hitSlop={{ top: 8, bottom: 8, left: 0, right: 0 }}
-        >
-          <PretendardText
-            style={styles.bagName}
-            weight='medium'
-            numberOfLines={1}
-          >
-            {review.bagName ?? '배낭'}
-          </PretendardText>
-          {bagMeta ? (
-            <PretendardText style={styles.bagMeta} numberOfLines={1}>
-              {bagMeta}
+        <View style={styles.headerRow}>
+          <View style={styles.authorRow}>
+            <PretendardText style={styles.author} weight='semibold'>
+              {review.authorName}
             </PretendardText>
-          ) : null}
-          {/* 탭 가능(읽기전용 배낭 뷰어로 이동)함을 나타내는 chevron. */}
-          <Ionicons
-            name='chevron-forward'
-            size={14}
-            color={Color.textSecondary}
-          />
-        </TouchableOpacity>
-      ) : null}
+            {isMine ? (
+              <View style={styles.mineBadge}>
+                <PretendardText style={styles.mineBadgeText} weight='medium'>
+                  내 후기
+                </PretendardText>
+              </View>
+            ) : null}
+          </View>
+          <View style={styles.headerTrailing}>
+            <PretendardText style={styles.date}>{dateLabel}</PretendardText>
+            {hasMenu ? (
+              <TouchableOpacity
+                style={styles.moreButton}
+                onPress={() => setShowMenu(true)}
+                activeOpacity={0.7}
+                accessibilityRole='button'
+                accessibilityLabel='내 후기 더보기'
+              >
+                <Ionicons
+                  name='ellipsis-horizontal'
+                  size={16}
+                  color={Color.iconMuted}
+                />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        </View>
 
+        <StarRatingView rating={review.rating} size={14} />
+
+        {review.content ? (
+          <PretendardText style={styles.content}>
+            {review.content}
+          </PretendardText>
+        ) : null}
+
+        {review.bagId ? (
+          <TouchableOpacity
+            style={styles.bagChip}
+            onPress={handlePressBag}
+            activeOpacity={0.7}
+            accessibilityRole='button'
+            accessibilityLabel={`배낭 ${review.bagName ?? ''} 열기`}
+            // 시각 높이는 낮추고 터치 타깃 44pt는 hitSlop으로 확보한다(정보 탭 AU-4와 같은 방식).
+            hitSlop={{ top: 8, bottom: 8, left: 0, right: 0 }}
+          >
+            <PretendardText
+              style={styles.bagName}
+              weight='medium'
+              numberOfLines={1}
+            >
+              {review.bagName ?? '배낭'}
+            </PretendardText>
+            {bagMeta ? (
+              <PretendardText style={styles.bagMeta} numberOfLines={1}>
+                {bagMeta}
+              </PretendardText>
+            ) : null}
+            {/* 탭 가능(읽기전용 배낭 뷰어로 이동)함을 나타내는 chevron. */}
+            <Ionicons
+              name='chevron-forward'
+              size={14}
+              color={Color.textSecondary}
+            />
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <BottomMenuModalView

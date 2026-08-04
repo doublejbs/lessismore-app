@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, Color, Radius } from '@/constants/DesignTokens';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
@@ -164,7 +164,7 @@ const CampSiteDetailHeaderView: FC<Props> = ({
 
 const styles = StyleSheet.create({
   header: {
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenH,
     // 시트 상단엔 네이티브 그래버가 그려진다 — 여유를 안 주면 제목·닫기가 그래버에 붙는다.
     paddingTop: 12,
     paddingBottom: 12,

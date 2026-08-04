@@ -15,7 +15,12 @@ interface Props {
 
 // 재사용 별점 컴포넌트 — 표시/편집 겸용(CS-8).
 // editable이면 각 별을 탭해 1~5점을 고르고, 아니면 별만 렌더한다.
-const StarRatingView: FC<Props> = ({ rating, editable = false, onChange, size }) => {
+const StarRatingView: FC<Props> = ({
+  rating,
+  editable = false,
+  onChange,
+  size,
+}) => {
   const starSize = size ?? (editable ? 24 : 16);
   // 채움 개수 — 반올림해 정수 별 개수로 표현한다.
   const filledCount = Math.round(rating);
@@ -45,7 +50,12 @@ const StarRatingView: FC<Props> = ({ rating, editable = false, onChange, size })
 
         if (!editable) {
           return (
-            <Ionicons key={index} name={iconName} size={starSize} color={iconColor} />
+            <Ionicons
+              key={index}
+              name={iconName}
+              size={starSize}
+              color={iconColor}
+            />
           );
         }
 

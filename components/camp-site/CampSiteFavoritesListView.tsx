@@ -13,9 +13,9 @@ interface Props {
   // 즐겨찾기한 박지 목록(campSiteMap.getFavoriteSpots()). 로드된 활성 박지와 즐겨찾기 id 조인 결과.
   spots: CampSpot[];
   // 항목 탭 — 지도 탭은 카메라 이동, 선택기는 이 박지 선택으로 이어진다(CS-9).
-  onSelect: (spot: CampSpot) => void;
+
   // 항목 우측 상세 버튼 — 있으면 표시하고 탭 시 박지 상세로 이동한다(지도 탭, CS-9).
-  onOpenDetail?: ((spot: CampSpot) => void) | undefined;
+  onOpenDetail: (spot: CampSpot) => void;
   // 헤더 닫기 버튼 표시 여부 — 선택기 pageSheet는 넘기고, formSheet 라우트는 그래버로 닫아 생략한다.
   onClose?: () => void;
 }
@@ -24,7 +24,6 @@ interface Props {
 // 호출자가 감싼다. 지도 탭 formSheet 라우트와 선택기 pageSheet가 이 뷰를 공유한다.
 const CampSiteFavoritesListView: FC<Props> = ({
   spots,
-  onSelect,
   onOpenDetail,
   onClose,
 }) => {
@@ -35,17 +34,10 @@ const CampSiteFavoritesListView: FC<Props> = ({
      * 행을 누른 사용자가 예상과 다른 결과를 얻었다(2026-08-04 UX 리뷰).
      *
      * 카메라 이동 단독 동작은 잃지 않는다 — 상세를 열 때도 같은 좌표로 이동하고, 이 시트는
-     * 딤이 없어 뒤 지도가 계속 보인다. 상세 진입 경로가 없을 때(`onOpenDetail` 미제공)만
-     * 기존대로 카메라 이동으로 떨어진다.
+     * 딤이 없어 뒤 지도가 계속 보인다.
      */
     const handlePress = () => {
-      if (onOpenDetail) {
-        onOpenDetail(item);
-
-        return;
-      }
-
-      onSelect(item);
+      onOpenDetail(item);
     };
 
     return (
@@ -75,15 +67,13 @@ const CampSiteFavoritesListView: FC<Props> = ({
         </View>
 
         {/* 셰브론은 장식이다 — 행 전체가 하나의 터치 타깃이라 별도 버튼으로 두지 않는다. */}
-        {onOpenDetail ? (
-          <View style={styles.detailButton} pointerEvents='none'>
-            <Ionicons
-              name='chevron-forward'
-              size={20}
-              color={Acg.textSecondary}
-            />
-          </View>
-        ) : null}
+        <View style={styles.detailButton} pointerEvents='none'>
+          <Ionicons
+            name='chevron-forward'
+            size={20}
+            color={Acg.textSecondary}
+          />
+        </View>
       </TouchableOpacity>
     );
   };
@@ -149,7 +139,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingRight: 12,
+    // 아이콘의 시각 중심을 화면 여백에 맞추려 컨테이너를 바깥으로 당긴다(상세 시트와 동일).
+    marginRight: -10,
     paddingTop: SHEET_GRABBER_CLEARANCE,
     paddingBottom: 12,
   },

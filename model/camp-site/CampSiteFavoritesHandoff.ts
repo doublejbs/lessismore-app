@@ -9,7 +9,7 @@ export interface CampSiteFavoritesSheetParams {
   // 시트 화면은 observer라 이 함수를 렌더에서 호출해 즐겨찾기 변화에 반응한다.
   getSpots: () => CampSpot[];
   // 항목 본체 탭 — 시트를 유지한 채 그 박지로 카메라를 이동한다(CS-9).
-  onSelect: (spot: CampSpot) => void;
+
   // 항목 우측 상세 버튼 탭 — 즐겨찾기 시트를 그 박지 상세로 교체한다(CS-9).
   onOpenDetail: (spot: CampSpot) => void;
   // 시트가 완전히 닫힐 때 즐겨찾기 전용 마커 필터를 해제한다.
