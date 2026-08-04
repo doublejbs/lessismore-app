@@ -8,7 +8,7 @@ import BagDetail from '@/model/bag-detail/BagDetail';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import { setBagDestinationPicker } from '@/model/bag-destination/BagDestinationPickerHandoff';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgShadow, Acg, Color, Radius } from '@/constants/DesignTokens';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 
 interface Props {
@@ -19,7 +19,10 @@ interface Props {
 // 배낭 상세의 여행지 타일(DST-2/BD-10). 위치명이 주 정보고 날씨는 보조 정보다.
 // 미설정이면 중간 날씨 화면을 거치지 않고 공용 선택기를 바로 연다.
 // 선택기에서 여행지를 저장하면 **여행지 상세로 이어서 보낸다**(DST-2) — 아래 ref 주석 참고.
-const BagDetailDestinationView: FC<Props> = ({ bagDetail, emphasized = false }) => {
+const BagDetailDestinationView: FC<Props> = ({
+  bagDetail,
+  emphasized = false,
+}) => {
   const router = useRouter();
   const bagWeather = bagDetail.getBagWeather();
   const location = bagWeather.getLocation();
@@ -71,11 +74,16 @@ const BagDetailDestinationView: FC<Props> = ({ bagDetail, emphasized = false }) 
 
   // 여행 기간에 해당하는 일자만으로 요약(스냅샷이 옛 더 넓은 기간을 담고 있어도 기간으로 제한).
   const tripDaily = bagWeather.getDailyInRange();
-  const summary = tripDaily.length > 0 ? summarizeWeatherPeriod(tripDaily) : null;
+  const summary =
+    tripDaily.length > 0 ? summarizeWeatherPeriod(tripDaily) : null;
   const fg = emphasized ? Color.background : Color.textPrimary;
   const subFg = emphasized ? Color.iconMuted : Color.textSecondary;
   // 날씨가 있으면 대표 상태 아이콘을, 없으면 여행지 자체를 나타내는 아이콘을 쓴다.
-  const iconName = summary ? summary.icon : location ? 'location-outline' : 'map-outline';
+  const iconName = summary
+    ? summary.icon
+    : location
+      ? 'location-outline'
+      : 'map-outline';
   // 등록된 박지 연결은 색이 아니라 📍로 구분한다(DST-2).
   const title = location
     ? `${location.campSpotId ? '📍 ' : ''}${location.name}`
@@ -123,7 +131,10 @@ const styles = StyleSheet.create({
   tile: {
     width: '48%',
     minHeight: 92,
-    backgroundColor: Color.surfaceMuted,
+    // 지면 위 타일이라 종이 면을 쓴다 — 회색(surfaceMuted)은 지면과 가까워 타일이
+    // 떠 보이지 않았다(2026-08-04 사용자 지적). 강조 타일만 잉크 면이다.
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
     borderRadius: Radius.card,
     padding: 14,
     justifyContent: 'space-between',
