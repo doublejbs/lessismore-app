@@ -68,7 +68,11 @@ const CampSiteOverviewTabView: FC<Props> = ({ spot }) => {
 
       {hasWarnings ? (
         <View style={styles.warningBox}>
-          <Ionicons name='warning-outline' size={18} color={WARNING_TEXT_COLOR} />
+          <Ionicons
+            name='warning-outline'
+            size={18}
+            color={WARNING_TEXT_COLOR}
+          />
           <PretendardText style={styles.warningText}>
             {spot.warnings}
           </PretendardText>

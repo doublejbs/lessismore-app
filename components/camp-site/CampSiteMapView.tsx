@@ -608,7 +608,6 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
 
     setCampSiteFavoritesSheet({
       getSpots: () => campSiteMap.getFavoriteSpots(),
-      onSelect: handleSelectFavorite,
       onOpenDetail: handleOpenFavoriteDetail,
       onClose: () => campSiteMap.setFavoriteOnly(false),
     });

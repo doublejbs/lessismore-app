@@ -199,7 +199,6 @@ const BagDestinationPickerView: FC<Props> = observer(
 
       setCampSiteFavoritesSheet({
         getSpots: () => campSiteMap.getFavoriteSpots(),
-        onSelect: handleTapFavorite,
         onOpenDetail: handleTapFavorite,
         onClose: () => {
           campSiteMap.setFavoriteOnly(false);

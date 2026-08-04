@@ -58,111 +58,111 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
       {/* iOS pageSheet Modal에도 OS 그래버가 없다 — 양쪽 다 핸들바를 직접 그린다. */}
       <SheetGrabberView />
       <View style={styles.header}>
-          <View style={styles.headerText}>
-            <PretendardText style={styles.title} weight='bold'>
-              배낭 선택
-            </PretendardText>
-            <PretendardText style={styles.subtitle} numberOfLines={1}>
-              {subtitleOverride ?? `${spotName}을 여행지로 설정해요`}
-            </PretendardText>
-          </View>
-          <TouchableOpacity
-            onPress={onClose}
-            style={styles.closeButton}
-            accessibilityLabel='닫기'
-            accessibilityRole='button'
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          >
-            <Ionicons name='close' size={24} color={Color.textPrimary} />
-          </TouchableOpacity>
+        <View style={styles.headerText}>
+          <PretendardText style={styles.title} weight='bold'>
+            배낭 선택
+          </PretendardText>
+          <PretendardText style={styles.subtitle} numberOfLines={1}>
+            {subtitleOverride ?? `${spotName}을 여행지로 설정해요`}
+          </PretendardText>
         </View>
-
-        <ScrollView
-          style={[styles.list, isAndroid && styles.listAndroid]}
-          contentContainerStyle={[
-            styles.listContent,
-            { paddingBottom: isAndroid ? 8 : Math.max(insets.bottom, 16) },
-          ]}
-          showsVerticalScrollIndicator={false}
+        <TouchableOpacity
+          onPress={onClose}
+          style={styles.closeButton}
+          accessibilityLabel='닫기'
+          accessibilityRole='button'
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
-          {/* 새 배낭 만들기 — 여기로 진입해 만든 배낭에 이 박지가 여행지로 설정된다(CS-5). */}
-          {!hideCreateNew && (
-            <TouchableOpacity
-              style={styles.createRow}
-              onPress={onCreateNew}
-              activeOpacity={0.7}
-              accessibilityRole='button'
-              accessibilityLabel='새 배낭 만들기'
-            >
-              <View style={styles.createIcon}>
-                <Ionicons name='add' size={22} color={Color.background} />
-              </View>
-              <PretendardText style={styles.createText} weight='semibold'>
-                새 배낭 만들기
-              </PretendardText>
-            </TouchableOpacity>
-          )}
+          <Ionicons name='close' size={24} color={Color.textPrimary} />
+        </TouchableOpacity>
+      </View>
 
-          {bags.length === 0 ? (
-            <PretendardText style={styles.emptyText}>
-              아직 배낭이 없어요. 새 배낭을 만들어 여행지를 설정하세요.
+      <ScrollView
+        style={[styles.list, isAndroid && styles.listAndroid]}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingBottom: isAndroid ? 8 : Math.max(insets.bottom, 16) },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* 새 배낭 만들기 — 여기로 진입해 만든 배낭에 이 박지가 여행지로 설정된다(CS-5). */}
+        {!hideCreateNew && (
+          <TouchableOpacity
+            style={styles.createRow}
+            onPress={onCreateNew}
+            activeOpacity={0.7}
+            accessibilityRole='button'
+            accessibilityLabel='새 배낭 만들기'
+          >
+            <View style={styles.createIcon}>
+              <Ionicons name='add' size={22} color={Color.background} />
+            </View>
+            <PretendardText style={styles.createText} weight='semibold'>
+              새 배낭 만들기
             </PretendardText>
-          ) : (
-            <>
-              {/* 만들기 액션과 선택 목록을 구분하는 소제목(디자인 리뷰). */}
-              <PretendardText style={styles.sectionLabel} weight='semibold'>
-                내 배낭
-              </PretendardText>
+          </TouchableOpacity>
+        )}
 
-              {sortedBags.map(bag => {
-                const locationName = bag.getLocationName();
+        {bags.length === 0 ? (
+          <PretendardText style={styles.emptyText}>
+            아직 배낭이 없어요. 새 배낭을 만들어 여행지를 설정하세요.
+          </PretendardText>
+        ) : (
+          <>
+            {/* 만들기 액션과 선택 목록을 구분하는 소제목(디자인 리뷰). */}
+            <PretendardText style={styles.sectionLabel} weight='semibold'>
+              내 배낭
+            </PretendardText>
 
-                return (
-                  <TouchableOpacity
-                    key={bag.getID()}
-                    style={styles.row}
-                    onPress={() => handleSelect(bag)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.rowText}>
-                      <PretendardText
-                        style={styles.rowName}
-                        weight='semibold'
-                        numberOfLines={1}
-                      >
-                        {bag.getName()}
-                      </PretendardText>
-                      <PretendardText style={styles.rowDate}>
-                        {bag.getDate()}
-                      </PretendardText>
-                      {/* 이미 여행지가 설정된 배낭 — 덮어쓰기 전에 인지하도록 표시(디자인 리뷰). */}
-                      {locationName && (
-                        <View style={styles.locationRow}>
-                          <Ionicons
-                            name='location'
-                            size={12}
-                            color={Color.textSecondary}
-                          />
-                          <PretendardText
-                            style={styles.locationText}
-                            numberOfLines={1}
-                          >
-                            {locationName}
-                          </PretendardText>
-                        </View>
-                      )}
-                    </View>
-                    <Ionicons
-                      name='chevron-forward'
-                      size={20}
-                      color={Color.iconMuted}
-                    />
-                  </TouchableOpacity>
-                );
-              })}
-            </>
-          )}
-        </ScrollView>
+            {sortedBags.map(bag => {
+              const locationName = bag.getLocationName();
+
+              return (
+                <TouchableOpacity
+                  key={bag.getID()}
+                  style={styles.row}
+                  onPress={() => handleSelect(bag)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.rowText}>
+                    <PretendardText
+                      style={styles.rowName}
+                      weight='semibold'
+                      numberOfLines={1}
+                    >
+                      {bag.getName()}
+                    </PretendardText>
+                    <PretendardText style={styles.rowDate}>
+                      {bag.getDate()}
+                    </PretendardText>
+                    {/* 이미 여행지가 설정된 배낭 — 덮어쓰기 전에 인지하도록 표시(디자인 리뷰). */}
+                    {locationName && (
+                      <View style={styles.locationRow}>
+                        <Ionicons
+                          name='location'
+                          size={12}
+                          color={Color.textSecondary}
+                        />
+                        <PretendardText
+                          style={styles.locationText}
+                          numberOfLines={1}
+                        >
+                          {locationName}
+                        </PretendardText>
+                      </View>
+                    )}
+                  </View>
+                  <Ionicons
+                    name='chevron-forward'
+                    size={20}
+                    color={Color.iconMuted}
+                  />
+                </TouchableOpacity>
+              );
+            })}
+          </>
+        )}
+      </ScrollView>
     </>
   );
 

@@ -41,10 +41,6 @@ const CampSiteFavoritesWrapper: FC = () => {
   // observer라 getSpots()를 렌더에서 호출해 즐겨찾기 로드 진행에 반응한다.
   const spots = sheetParams ? sheetParams.getSpots() : [];
 
-  const handleSelect = (spot: CampSpot) => {
-    sheetParams?.onSelect(spot);
-  };
-
   const handleOpenDetail = (spot: CampSpot) => {
     sheetParams?.onOpenDetail(spot);
   };
@@ -59,7 +55,6 @@ const CampSiteFavoritesWrapper: FC = () => {
       <Layout paddingHorizontal={0} edges={SHEET_EDGES}>
         <CampSiteFavoritesListView
           spots={spots}
-          onSelect={handleSelect}
           onOpenDetail={handleOpenDetail}
           onClose={handleClose}
         />

@@ -109,7 +109,9 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
                         <View
                           style={[
                             styles.resultTypeMark,
-                            { backgroundColor: getCampSiteTypeColor(spot.type) },
+                            {
+                              backgroundColor: getCampSiteTypeColor(spot.type),
+                            },
                           ]}
                         />
                         <View style={styles.resultTexts}>
