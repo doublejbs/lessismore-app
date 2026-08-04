@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import BagEdit from '../../model/bag-edit/BagEdit';
 import BagEditWarehouseGearView from './BagEditWarehouseGearView';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 
 interface Props {
   bagEdit: BagEdit;
@@ -42,8 +42,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  // 행이 각자 종이 면이라 붙여 두면 한 덩어리 흰 면으로 읽힌다 — 홈 목록과 같은 8px로
+  // 벌린다(2026-08-04 시뮬레이터 확인).
   contentContainer: {
     paddingBottom: 20,
+    gap: 8,
     flexGrow: 1,
   },
   empty: {
@@ -54,7 +57,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
 });
 
