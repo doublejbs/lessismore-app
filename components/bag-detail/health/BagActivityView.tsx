@@ -139,7 +139,7 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
         showsVerticalScrollIndicator={false}
       >
         <PretendardText style={styles.listGuide}>
-          여행 기간에 기록된 운동이에요. 이 여행에 해당하는 것을 모두 선택해
+          최근 1년의 운동 기록이에요. 이 여행에 해당하는 것을 모두 선택해
           주세요.
         </PretendardText>
         {bagActivity.getCandidates().map(workout => (

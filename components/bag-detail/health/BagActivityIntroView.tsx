@@ -25,8 +25,8 @@ const BagActivityIntroView: FC<Props> = ({ onRequestPermission }) => {
           건강 앱의 운동 기록을 가져옵니다
         </PretendardText>
         <PretendardText style={styles.description}>
-          이 여행 기간에 기록된 운동을 골라 배낭에 연결합니다. 아래 항목만 읽고,
-          건강 앱에 쓰거나 서버에 저장하지 않습니다.
+          최근 운동 기록을 골라 배낭에 연결합니다. 아래 항목만 읽고, 건강 앱에
+          쓰거나 서버에 저장하지 않습니다.
         </PretendardText>
         <View style={styles.itemList}>
           {READ_ITEMS.map(item => (
