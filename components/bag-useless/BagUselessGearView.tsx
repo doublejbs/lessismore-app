@@ -61,9 +61,13 @@ const BagUselessGearView: FC<Props> = ({ gear, bagUseless }) => {
       onPress={handlePress}
       activeOpacity={0.7}
     >
-      <Animated.View style={[styles.row, rowStyle]}>
-        <GearView gear={gear} plain />
-      </Animated.View>
+      {/* 흐림은 **안쪽 콘텐츠에만** 준다 — 종이 면까지 흐려지면 카드가 지면에 반쯤
+          잠긴 것처럼 보여 경계가 흐려진다(2026-08-04 시뮬레이터 확인). */}
+      <View style={styles.row}>
+        <Animated.View style={rowStyle}>
+          <GearView gear={gear} plain />
+        </Animated.View>
+      </View>
       {/* 빈 원은 항상 보인다 — 선택 전에도 이 행이 고를 수 있는 항목임을 드러낸다.
           채움(잉크 원 + 체크)만 선택 시 스프링으로 나타난다. */}
       <View style={styles.checkBadge} pointerEvents='none'>
