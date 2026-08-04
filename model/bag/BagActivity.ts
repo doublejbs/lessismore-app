@@ -26,6 +26,9 @@ const REMATCH_DURATION_TOLERANCE_SECONDS = 60;
  * 건강 허브 접근은 `HealthService` 인터페이스로만 하고, Firestore에는
  * 참조와 요약 스냅샷만 저장한다(HA-5, DM-22).
  */
+// 후보로 훑는 최근 기간(개월). 여행 기간으로 거르지 않는 대신 이 창으로 양을 제한한다.
+const WORKOUT_WINDOW_MONTHS = 12;
+
 class BagActivity {
   public static of(
     bagId: string,
@@ -211,6 +214,8 @@ class BagActivity {
    * 연결된 운동의 상세를 기기에서 읽는다(HA-4).
    *
    * 저장된 건 참조(`workoutIds`)뿐이라(HA-5) 기간으로 다시 조회해 id로 맞춘다.
+   * 조회 창은 **여행 기간과 최근 창의 합집합**이다 — 후보를 여행 기간 밖까지 넓히면서
+   * 여행 밖 운동도 연결될 수 있게 됐고, 반대로 오래된 여행의 연결도 깨지면 안 된다.
    * 경로는 운동과 **별개 권한**이라 운동은 읽히는데 경로만 실패할 수 있고, 그 경우
    * 조용히 지도만 생략한다 — 요약까지 막지 않는다.
    */
@@ -224,9 +229,16 @@ class BagActivity {
     this.setDetailStatus(BagActivityDetailStatus.Loading);
 
     try {
+      const recentFrom = dayjs().subtract(WORKOUT_WINDOW_MONTHS, 'month');
+      const from = this.startDate.isBefore(recentFrom)
+        ? this.startDate
+        : recentFrom;
+      const now = dayjs();
+      const to = this.endDate.isAfter(now) ? this.endDate : now;
+
       const workouts = await this.healthService.queryWorkouts({
-        from: this.startDate.startOf('day').toDate(),
-        to: this.endDate.endOf('day').toDate(),
+        from: from.startOf('day').toDate(),
+        to: to.endOf('day').toDate(),
       });
       let linkedWorkouts = linked.workoutIds
         .map(id => workouts.find(workout => workout.id === id))
@@ -371,8 +383,11 @@ class BagActivity {
 
     try {
       const workouts = await this.healthService.queryWorkouts({
-        from: this.startDate.startOf('day').toDate(),
-        to: this.endDate.endOf('day').toDate(),
+        from: dayjs()
+          .subtract(WORKOUT_WINDOW_MONTHS, 'month')
+          .startOf('day')
+          .toDate(),
+        to: dayjs().endOf('day').toDate(),
       });
 
       this.setCandidates(workouts);
