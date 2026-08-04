@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
 import WarehouseDetailBrandPreviewView from './WarehouseDetailBrandPreviewView';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
 import { getBrandLinkLabel } from '../../model/gear/GearBrandLink';
 
 interface Props {
@@ -38,16 +38,20 @@ const WarehouseDetailPurchaseView: FC<Props> = ({ warehouseDetail }) => {
     gear?.getDisplayCompany()
   );
 
+  // 쿠팡 행 — 종이 면 위 좌측 정렬 행(ACG, 2026-08-04 디자인 리뷰).
+  // 외부로 나가는 링크라 후기 카드와 같은 open-outline 기호를 쓴다.
   const renderLink = (label: string, onPress: () => void): ReactNode => (
     <TouchableOpacity
       style={styles.link}
       onPress={onPress}
       activeOpacity={0.6}
       accessibilityRole='link'
-      accessibilityLabel={`${label}, 상품 페이지 열기`}
+      accessibilityLabel={`${label}, 외부 브라우저로 이동`}
     >
-      <PretendardText style={styles.linkText}>{label}</PretendardText>
-      <Ionicons name='chevron-forward' size={14} color={Acg.textTertiary} />
+      <PretendardText style={styles.linkText} weight='medium'>
+        {label}
+      </PretendardText>
+      <Ionicons name='open-outline' size={16} color={Acg.textSecondary} />
     </TouchableOpacity>
   );
 
@@ -86,11 +90,11 @@ const WarehouseDetailPurchaseView: FC<Props> = ({ warehouseDetail }) => {
 };
 
 const styles = StyleSheet.create({
-  // 이 섹션만은 종이 면을 두지 않는다(ACG) — 미리보기 카드가 이미 면을 갖고 있어
+  // 섹션 자체는 종이 면을 두지 않는다(ACG) — 미리보기 카드·쿠팡 행이 각자 면을 갖고 있어
   // 종이 위에 종이를 얹으면 후기 섹션과 같은 무게로 읽힌다.
   container: {
     paddingHorizontal: AcgLayout.screenH,
-    marginBottom: 12,
+    marginBottom: 22,
     gap: 12,
   },
   title: {
@@ -98,25 +102,35 @@ const styles = StyleSheet.create({
     color: Acg.ink,
   },
   coupangGroup: {
-    paddingBottom: 12,
+    gap: 8,
   },
+  /**
+   * 종이 면 행(ACG). 이 화면의 다른 요소가 전부 좌측 정렬인데 이 블록만 가운데 정렬이라
+   * 페이지 축에서 떨어져 나왔고, 면도 테두리도 없어 누를 수 있는 것으로 읽히지 않았다
+   * (2026-08-04 디자인 리뷰). 잉크 버튼으로 세우지는 않는다 — 시안에서도 조용한 고지다.
+   *
+   * 세로 패딩으로 44pt 터치 타깃을 만든다(고정 높이는 Dynamic Type에서 잘린다).
+   */
   link: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    // 텍스트 높이(≈20pt)만으로는 HIG 최소 터치 타깃에 못 미친다. 고정 높이가 아니라
-    // minHeight라 Dynamic Type으로 글자가 커져도 잘리지 않는다.
+    justifyContent: 'space-between',
     minHeight: 44,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    gap: 8,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
   },
   linkText: {
     fontSize: 14,
-    color: Acg.textTertiary,
+    color: Acg.ink,
   },
+  // 고지는 조용히 둔다 — 면 밖, 좌측 정렬.
   disclaimerText: {
     fontSize: 11,
+    lineHeight: 15,
     color: Acg.textSecondary,
-    textAlign: 'center',
   },
 });
 
