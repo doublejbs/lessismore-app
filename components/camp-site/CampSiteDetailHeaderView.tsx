@@ -1,14 +1,9 @@
 import { FC } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, Color, Radius } from '@/constants/DesignTokens';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
@@ -115,7 +110,9 @@ const CampSiteDetailHeaderView: FC<Props> = ({
 
       {/* 설명 — "어떤 곳인지"가 사진·탭보다 먼저 읽히도록 이름 바로 아래에 둔다. 비면 생략(CS-3). */}
       {description ? (
-        <PretendardText style={styles.description}>{description}</PretendardText>
+        <PretendardText style={styles.description}>
+          {description}
+        </PretendardText>
       ) : null}
 
       {/* 주요 기능 버튼 행 — 넘치면 가로 스크롤. 좌우 패딩을 상쇄해 화면 폭을 온전히 쓴다(CS-3). */}
@@ -132,7 +129,11 @@ const CampSiteDetailHeaderView: FC<Props> = ({
           label={isFavorite ? '즐겨찾기됨' : '즐겨찾기'}
           onPress={onPressFavorite}
         />
-        <FeatureButton icon='share-outline' label='공유' onPress={onPressShare} />
+        <FeatureButton
+          icon='share-outline'
+          label='공유'
+          onPress={onPressShare}
+        />
         {/* 외부 길찾기 성격이라 조준 아이콘(위치로 이동)과 구분되는 방향 화살표를 쓴다(CS-3). */}
         <FeatureButton
           icon='navigate-outline'
@@ -193,7 +194,7 @@ const styles = StyleSheet.create({
   },
   typeBadge: {
     backgroundColor: Color.chipInactiveBg,
-    borderRadius: Radius.chip,
+    borderRadius: 0,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
@@ -220,20 +221,23 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 20,
   },
+  // 앱의 다른 버튼·칩과 같은 각진 아웃라인이다(2026-08-04 사용자 지적). 핸드오프는 이 줄을
+  // `pill`이라 불렀지만, 알약 모양은 앱에서 원형 아이콘 버튼에만 남긴 예외다 — 라벨이 붙는
+  // 버튼이 여기만 둥글면 다른 화면과 문법이 갈린다.
   featureButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     minHeight: 44,
     paddingHorizontal: 16,
-    borderRadius: Radius.pill,
+    borderRadius: 0,
     borderWidth: 1,
-    borderColor: Color.chipBorder,
-    backgroundColor: Color.background,
+    borderColor: Acg.line2,
+    backgroundColor: Acg.paper,
   },
   featureLabel: {
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   image: {
     marginTop: 16,
