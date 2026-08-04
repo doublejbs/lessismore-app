@@ -62,3 +62,6 @@ scripts/backup-camp-spot-*.json
 
 # 로컬 EAS 빌드 산출물
 *.ipa
+
+# EAS 제출용 App Store Connect API 키 정보(로컬 전용)
+.env.submit
