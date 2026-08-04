@@ -83,37 +83,45 @@ const CampSiteFavoritesListView: FC<Props> = ({
     );
   };
 
+  // 제목 줄은 목록의 헤더로 넣는다. 형제로 두면 시트 안에서 목록이 그 위로 겹쳐 그려져
+  // 제목이 행 밑에 깔렸다(2026-08-04 시뮬레이터 확인).
+  const header = (
+    <View style={styles.header}>
+      <PretendardText style={styles.headerTitle} weight='bold'>
+        즐겨찾기
+      </PretendardText>
+      {onClose ? (
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={onClose}
+          accessibilityRole='button'
+          accessibilityLabel='닫기'
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons name='close' size={24} color={Acg.ink} />
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  );
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <PretendardText style={styles.headerTitle} weight='bold'>
-          즐겨찾기
-        </PretendardText>
-        {onClose ? (
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={onClose}
-            accessibilityRole='button'
-            accessibilityLabel='닫기'
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Ionicons name='close' size={24} color={Color.textPrimary} />
-          </TouchableOpacity>
-        ) : null}
-      </View>
-
       {spots.length === 0 ? (
         // 로그인했으나 즐겨찾기가 0건일 때의 빈 상태(CS-9).
-        <View style={styles.emptyWrap}>
-          <PretendardText style={styles.emptyText}>
-            아직 즐겨찾기한 박지가 없어요
-          </PretendardText>
-        </View>
+        <>
+          {header}
+          <View style={styles.emptyWrap}>
+            <PretendardText style={styles.emptyText}>
+              아직 즐겨찾기한 박지가 없어요
+            </PretendardText>
+          </View>
+        </>
       ) : (
         <FlatList
           data={spots}
           keyExtractor={spot => spot.id}
           renderItem={renderItem}
+          ListHeaderComponent={header}
           contentContainerStyle={styles.listContent}
         />
       )}
@@ -121,23 +129,27 @@ const CampSiteFavoritesListView: FC<Props> = ({
   );
 };
 
+// 네이티브 시트 그래버가 차지하는 높이 + 여유.
+const SHEET_GRABBER_CLEARANCE = 36;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Acg.bg,
   },
+  // 네이티브 그래버가 시트 상단에 겹쳐 렌더되므로 그 아래로 제목이 오도록 여백을 준다
+  // — 12로는 제목이 그래버에 붙어 위가 답답했다(2026-08-04 사용자 지적).
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingLeft: 20,
     paddingRight: 12,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingTop: SHEET_GRABBER_CLEARANCE,
+    paddingBottom: 12,
   },
   headerTitle: {
     fontSize: 20,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   closeButton: {
     width: 44,
