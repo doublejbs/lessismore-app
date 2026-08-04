@@ -175,7 +175,10 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                     // 뒤로가기는 검색 중에도 살아 있어야 하므로 명시적으로 끈다.
                     hideNavigationBar: false,
                     placeholder: '장비 검색',
-                    cancelButtonText: '취소',
+                    // `cancelButtonText`는 iOS 26부터 무시된다 — 취소 버튼이 글자 없는
+                    // X 아이콘으로 바뀌었다(react-native-screens에서도 deprecated).
+                    // 그래서 지우기(⊗, 필드 안)와 검색 닫기(X, 필드 밖)가 나란히 보이는데,
+                    // 둘 다 시스템이 그리는 것이라 앱에서 끄거나 합칠 수 없다.
                     hideWhenScrolling: false,
                     onChangeText: (
                       event: NativeSyntheticEvent<TextInputFocusEventData>
