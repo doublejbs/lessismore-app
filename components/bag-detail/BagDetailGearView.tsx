@@ -23,16 +23,14 @@ import { Acg, AcgShadow } from '@/constants/DesignTokens';
 // 삭제 스와이프 액션 배경 — 파괴적 액션 시맨틱 색(DesignTokens 예외, CLAUDE.md 참고).
 const DELETE_RED = '#FF3B30';
 
-// 액션 버튼 1개 너비. 전체 액션 영역 = ACTION_WIDTH * 2.
-const ACTION_WIDTH = 72;
-const ACTIONS_TOTAL_WIDTH = ACTION_WIDTH * 2;
+// 액션 버튼 1개 너비. 스와이프 액션은 `삭제` 하나뿐이라 전체 영역과 같다
+// (`수정`은 걷었다 — 2026-08-05 사용자 결정).
+const ACTION_WIDTH = 88;
 
 interface RightActionsProps {
   // ReanimatedSwipeable가 넘겨주는 드래그 변위(열릴수록 음수, 닫히면 0).
   drag: SharedValue<number>;
-  editLabel: string;
   deleteLabel: string;
-  onEdit: () => void;
   onDelete: () => void;
 }
 
@@ -40,29 +38,15 @@ interface RightActionsProps {
 // 살짝 드래그했을 때 액션이 통째로 깜빡이는 문제를 방지한다.
 const RightActions: FC<RightActionsProps> = ({
   drag,
-  editLabel,
   deleteLabel,
-  onEdit,
   onDelete,
 }) => {
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: drag.value + ACTIONS_TOTAL_WIDTH }],
+    transform: [{ translateX: drag.value + ACTION_WIDTH }],
   }));
 
   return (
     <Reanimated.View style={[styles.actionsContainer, animatedStyle]}>
-      <TouchableOpacity
-        style={[styles.actionButton, styles.editAction]}
-        onPress={onEdit}
-        activeOpacity={0.7}
-        accessibilityRole='button'
-        accessibilityLabel={editLabel}
-      >
-        <Ionicons name='create-outline' size={20} color={Acg.paper} />
-        <PretendardText style={styles.actionLabel} weight='medium'>
-          수정
-        </PretendardText>
-      </TouchableOpacity>
       <TouchableOpacity
         style={[styles.actionButton, styles.deleteAction]}
         onPress={onDelete}
@@ -103,11 +87,6 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
     router.push(`/gear-detail/${gear.getId()}`);
   };
 
-  const handlePressEdit = () => {
-    swipeableRef.current?.close();
-    bagDetail.goToEditGear(gear);
-  };
-
   const handlePressDelete = () => {
     swipeableRef.current?.close();
     bagDetail.delete(gear);
@@ -119,9 +98,7 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
   ) => (
     <RightActions
       drag={drag}
-      editLabel={`${gear.getDisplayName()} 수정`}
       deleteLabel={`${gear.getDisplayName()} 삭제`}
-      onEdit={handlePressEdit}
       onDelete={handlePressDelete}
     />
   );
@@ -284,7 +261,7 @@ const styles = StyleSheet.create({
   // 여백을 주지 않는다. 이 목록의 행 간격은 카드의 margin이 아니라 컨테이너의 flex gap
   // (외부)이라, 패널에 여백을 주면 카드보다 그만큼 짧아진다(2026-08-04 사용자 지적).
   actionsContainer: {
-    width: ACTIONS_TOTAL_WIDTH,
+    width: ACTION_WIDTH,
     flexDirection: 'row',
     alignItems: 'stretch',
   },
@@ -293,9 +270,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
-  },
-  editAction: {
-    backgroundColor: Acg.ink,
   },
   deleteAction: {
     backgroundColor: DELETE_RED,

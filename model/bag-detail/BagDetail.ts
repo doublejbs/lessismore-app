@@ -355,14 +355,15 @@ class BagDetail {
    *
    * **되돌릴 수 없어 확인을 받는다**(2026-08-05 사용자 요청). 스와이프는 목록을 훑다가
    * 실수로 열리기 쉬운 제스처라, 누르는 즉시 사라지면 무엇이 빠졌는지도 모른 채 지나간다.
-   * 창고의 장비 자체는 지우지 않으므로 문구도 `삭제`가 아니라 `빼기`로 쓴다.
+   * 창고의 장비 자체는 지우지 않으므로 안내 문구는 `삭제`가 아니라 `빼기`로 쓰고,
+   * 확인 버튼은 `확인`으로 둔다(2026-08-05 사용자 결정).
    */
   public async delete(gear: Gear) {
     const name = gear.getDisplayName();
 
     app.getAlertManager()?.show({
       message: josa(`${name}#{을} 이 배낭에서 뺄까요?`),
-      confirmText: '빼기',
+      confirmText: '확인',
       onConfirm: async () => {
         const filteredGears = this.gears.filter(g => !g.isSame(gear));
 
