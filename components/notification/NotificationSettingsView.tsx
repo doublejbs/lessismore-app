@@ -11,7 +11,7 @@ import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgShadow, Acg, Color } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 type ToggleKey = 'packing' | 'useless' | 'notice';
@@ -157,12 +157,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
   },
+  // 정보 탭 메뉴와 같은 문법 — 행마다 종이 면, 8px 간격(ACG). 한 카드 안에 구분선으로
+  // 묶던 형태는 앱의 다른 목록과 문법이 갈렸다(2026-08-04 시뮬레이터 확인).
   list: {
-    borderRadius: Radius.card,
-    borderWidth: 1,
-    borderColor: Color.borderLight,
-    backgroundColor: Color.background,
-    overflow: 'hidden',
+    gap: 8,
   },
   row: {
     flexDirection: 'row',
@@ -170,15 +168,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 16,
     paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
   },
-  rowLast: {
-    borderBottomWidth: 0,
-  },
+  rowLast: {},
   rowLabel: {
     fontSize: 16,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
 });
 
