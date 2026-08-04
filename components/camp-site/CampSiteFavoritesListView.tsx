@@ -29,23 +29,34 @@ const CampSiteFavoritesListView: FC<Props> = ({
   onClose,
 }) => {
   const renderItem = ({ item }: { item: CampSpot }) => {
+    /**
+     * 행 전체가 상세를 연다. 예전에는 행 본체(카메라 이동)와 우측 셰브론(상세)이 다른 일을
+     * 하는 두 개의 터치 타깃이었는데, 셰브론 달린 행은 "눌러서 상세로"가 플랫폼 관례라
+     * 행을 누른 사용자가 예상과 다른 결과를 얻었다(2026-08-04 UX 리뷰).
+     *
+     * 카메라 이동 단독 동작은 잃지 않는다 — 상세를 열 때도 같은 좌표로 이동하고, 이 시트는
+     * 딤이 없어 뒤 지도가 계속 보인다. 상세 진입 경로가 없을 때(`onOpenDetail` 미제공)만
+     * 기존대로 카메라 이동으로 떨어진다.
+     */
     const handlePress = () => {
+      if (onOpenDetail) {
+        onOpenDetail(item);
+
+        return;
+      }
+
       onSelect(item);
     };
 
-    const handlePressDetail = () => {
-      onOpenDetail?.(item);
-    };
-
     return (
-      <View style={styles.row}>
-        <TouchableOpacity
-          style={styles.rowMain}
-          onPress={handlePress}
-          activeOpacity={0.7}
-          accessibilityRole='button'
-          accessibilityLabel={`${item.name} 선택`}
-        >
+      <TouchableOpacity
+        style={styles.row}
+        onPress={handlePress}
+        activeOpacity={0.7}
+        accessibilityRole='button'
+        accessibilityLabel={`${item.name} 상세 보기`}
+      >
+        <View style={styles.rowMain}>
           <PretendardText
             style={styles.rowName}
             weight='medium'
@@ -61,25 +72,19 @@ const CampSiteFavoritesListView: FC<Props> = ({
           <PretendardText style={styles.rowRegion} numberOfLines={1}>
             {getCampSpotRegionLabel(item)}
           </PretendardText>
-        </TouchableOpacity>
+        </View>
 
-        {/* 우측 상세 버튼(CS-9) — 행 본체(카메라 이동)와 분리된 별도 터치. */}
+        {/* 셰브론은 장식이다 — 행 전체가 하나의 터치 타깃이라 별도 버튼으로 두지 않는다. */}
         {onOpenDetail ? (
-          <TouchableOpacity
-            style={styles.detailButton}
-            onPress={handlePressDetail}
-            accessibilityRole='button'
-            accessibilityLabel={`${item.name} 상세 보기`}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
+          <View style={styles.detailButton} pointerEvents='none'>
             <Ionicons
               name='chevron-forward'
               size={20}
-              color={Color.textSecondary}
+              color={Acg.textSecondary}
             />
-          </TouchableOpacity>
+          </View>
         ) : null}
-      </View>
+      </TouchableOpacity>
     );
   };
 

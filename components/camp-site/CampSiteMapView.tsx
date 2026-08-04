@@ -569,12 +569,17 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     [campSiteMap, moveCamera]
   );
 
-  // 즐겨찾기 리스트 항목의 상세 버튼 탭(CS-9) — 즐겨찾기 시트를 그 박지 상세로 교체하고
-  // (forceReplace로 위로 쌓지 않음) 근접 줌으로 이동한다.
+  /**
+   * 즐겨찾기 리스트 항목 탭(CS-9) — 상세를 즐겨찾기 시트 **위에 쌓는다**.
+   *
+   * 예전에는 `forceReplace`로 즐겨찾기를 상세로 교체해, 상세를 닫으면 지도로 빠져나갔다.
+   * 쌓아 두면 닫을 때 즐겨찾기가 그대로 드러나 목록을 이어서 훑을 수 있다(2026-08-04 사용자
+   * 요청). 시스템 dismiss가 알아서 이전 시트를 보여주므로 재오픈 로직·타이밍 처리가 없다.
+   */
   const handleOpenFavoriteDetail = useCallback(
     (spot: CampSpot) => {
       campSiteMap.resetFilters();
-      openDetail(spot, true);
+      openDetail(spot);
 
       moveCamera({
         latitude: spot.location.latitude,
