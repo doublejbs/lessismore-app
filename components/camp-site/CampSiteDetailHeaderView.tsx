@@ -76,26 +76,27 @@ const CampSiteDetailHeaderView: FC<Props> = ({
 }) => {
   return (
     <View style={styles.header}>
-      {/* 상세는 지도 위 바텀 시트(CS-2)라 뒤로 가기가 아니라 우상단 닫기(X)만 둔다. */}
-      <View style={styles.closeRow}>
+      {/* 상세는 지도 위 바텀 시트(CS-2)라 뒤로 가기가 아니라 우상단 닫기(X)만 둔다.
+          제목과 **같은 줄**에 둔다 — 즐겨찾기 시트와 형태를 맞춘다(2026-08-04 사용자 지적).
+          닫기만 있는 줄을 따로 두면 시트 상단에 빈 띠가 생기기도 했다. */}
+      <View style={styles.titleRow}>
+        <PretendardText
+          style={styles.name}
+          weight='bold'
+          numberOfLines={1}
+          ellipsizeMode='tail'
+        >
+          {name}
+        </PretendardText>
         <TouchableOpacity
           onPress={onPressClose}
           style={styles.closeButton}
           accessibilityLabel='닫기'
           accessibilityRole='button'
         >
-          <Ionicons name='close' size={24} color={Color.textPrimary} />
+          <Ionicons name='close' size={24} color={Acg.ink} />
         </TouchableOpacity>
       </View>
-
-      <PretendardText
-        style={styles.name}
-        weight='bold'
-        numberOfLines={1}
-        ellipsizeMode='tail'
-      >
-        {name}
-      </PretendardText>
 
       <View style={styles.metaRow}>
         <View style={styles.typeBadge}>
@@ -164,13 +165,16 @@ const CampSiteDetailHeaderView: FC<Props> = ({
 const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
-    // 시트 상단엔 네이티브 그래버가 그려진다 — 여유를 안 주면 닫기 버튼이 그래버에 붙는다.
-    paddingTop: 6,
+    // 시트 상단엔 네이티브 그래버가 그려진다 — 여유를 안 주면 제목·닫기가 그래버에 붙는다.
+    paddingTop: 12,
     paddingBottom: 12,
   },
-  closeRow: {
+  // 제목 + 닫기 한 줄(즐겨찾기 시트와 같은 형태).
+  titleRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
     // 아이콘의 시각 중심을 화면 여백에 맞추려 컨테이너를 바깥으로 당긴다.
     marginRight: -10,
   },
@@ -181,7 +185,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   name: {
-    marginTop: 2,
+    flex: 1,
     fontSize: 22,
     lineHeight: 30,
     color: Color.textPrimary,
