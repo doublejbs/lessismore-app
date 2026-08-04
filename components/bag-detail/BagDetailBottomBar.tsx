@@ -68,10 +68,12 @@ const BagDetailBottomBar: FC<Props> = ({ bagDetail }) => {
 };
 
 const styles = StyleSheet.create({
+  // 지면 위에 놓인 바라 면을 깔지 않는다 — 흰 띠가 버튼 주위를 감싸면 지형이 끊긴다
+  // (2026-08-04 사용자 지적). 버튼 자체가 잉크/지면색 면이라 이미 충분히 읽힌다.
   container: {
     paddingTop: 12,
     paddingHorizontal: Spacing.screenH,
-    backgroundColor: Color.background,
+    backgroundColor: 'transparent',
   },
   row: {
     flexDirection: 'row',
