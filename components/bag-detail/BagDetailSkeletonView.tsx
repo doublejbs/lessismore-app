@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Acg, Color } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 
 interface Props {}
 
@@ -39,7 +39,7 @@ const BagDetailSkeletonView: FC<Props> = () => {
         <Animated.View
           style={[
             StyleSheet.absoluteFill,
-            { opacity: pulseAnim, backgroundColor: Color.chipInactiveBg },
+            { opacity: pulseAnim, backgroundColor: SKELETON_SHADE },
           ]}
         />
       </View>
@@ -117,6 +117,9 @@ const BagDetailSkeletonView: FC<Props> = () => {
   );
 };
 
+// 스켈레톤 셰이딩은 토큰 예외다. 지면(#F4F3EF) 위에서 튀지 않는 따뜻한 회색.
+const SKELETON_SHADE = '#E3E1DA';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -128,9 +131,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
     paddingTop: 60, // Status bar 고려
-    borderBottomWidth: 1,
-    borderBottomColor: Color.divider,
-    backgroundColor: Color.background,
   },
   headerRight: {
     flexDirection: 'row',
@@ -143,20 +143,15 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingHorizontal: 20,
     gap: 12,
-    backgroundColor: Color.background,
   },
   description: {
     padding: 16,
     paddingHorizontal: 20,
-    backgroundColor: Color.background,
     gap: 8,
   },
   filterSection: {
-    backgroundColor: Color.background,
     padding: 15,
     paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.divider,
     gap: 12,
   },
   filterButtons: {

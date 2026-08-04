@@ -202,8 +202,11 @@ const styles = StyleSheet.create({
     color: Acg.ink,
     minHeight: 200,
   },
+  // 키보드가 올라오면 버튼 아래가 키보드 상단에 딱 붙어 눌린 것처럼 보였다
+  // (2026-08-04 사용자 지적). 하단 세이프에어리어는 Layout이 이미 잡으므로 여백만 준다.
   buttonContainer: {
     paddingHorizontal: 16,
+    paddingBottom: 12,
     backgroundColor: 'transparent',
   },
   completeButton: {
