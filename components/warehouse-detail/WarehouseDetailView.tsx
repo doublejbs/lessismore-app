@@ -386,6 +386,8 @@ const styles = StyleSheet.create({
   bottomSpacing: {
     height: 100,
   },
+  // 스크롤 콘텐츠 **위에 떠 있어** 불투명이어야 한다 — 투명하면 뒤 카드가 버튼과 겹쳐
+  // 읽힌다. 흰 면 대신 지면색을 써서 버튼 주위에 흰 띠가 생기지 않게 한다(ACG).
   bottomBar: {
     position: 'absolute',
     bottom: 0,
@@ -393,9 +395,7 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: AcgLayout.screenH,
     paddingVertical: 20,
-    backgroundColor: Acg.paper,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Acg.line2,
+    backgroundColor: Acg.bg,
   },
   // 화면의 주 액션 — 각진 잉크 면(ACG).
   addButton: {
