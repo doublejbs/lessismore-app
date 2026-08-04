@@ -138,11 +138,17 @@ class Warehouse {
 
   public getGears() {
     const q = this.query.trim().toLowerCase();
+    // 표시명(한글 우선)뿐 아니라 캐논컬 원본명·브랜드까지 본다. `랜드네스트S텐트타프세트`처럼
+    // 표시명이 한글인 장비는 원본명(`Land Nest S Tent Tarp Set`)으로 찾을 수 없었다
+    // (2026-08-04 시뮬레이터 확인 — `tent` 검색 결과 0건).
     const queried = q
-      ? this.gears.filter(
-          gear =>
-            gear.getDisplayName().toLowerCase().includes(q) ||
-            gear.getDisplayCompany().toLowerCase().includes(q)
+      ? this.gears.filter(gear =>
+          [
+            gear.getDisplayName(),
+            gear.getName(),
+            gear.getDisplayCompany(),
+            gear.getCompany(),
+          ].some(value => value.toLowerCase().includes(q))
         )
       : this.gears;
 
