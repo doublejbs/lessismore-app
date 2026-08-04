@@ -2,6 +2,7 @@ import CampSiteType from './CampSiteType';
 import CampSiteTag from './CampSiteTag';
 import CampSiteDetailTab from './CampSiteDetailTab';
 import { CampSpotData } from './CampSpotTypes';
+import { AcgSemantic } from '@/constants/DesignTokens';
 
 // 박지 상세(CampSite CS-3/CS-4)에서 쓰는 표시 라벨·문구 매핑.
 
@@ -32,13 +33,19 @@ const TAG_LABEL: Record<CampSiteTag, string> = {
   [CampSiteTag.Forest]: '숲',
 };
 
-// 유형별 마커 색 — 배낭 상세 카테고리 팔레트(BagDetailSummaryView PALETTE) 재사용:
-// 백패킹(wild)=파랑, 대피소=초록, 캠핑장(campground)=골드 (데이터 시각화 의미색 예외 — DesignTokens 컨벤션상 허용).
-// 지도 마커(CampSiteMarkerView)와 유형 필터 칩의 색 도트(범례)가 함께 쓴다.
+/**
+ * 유형별 마커 색 — 백패킹=파랑, 대피소=초록, 캠핑장=골드.
+ * 지도 마커(CampSiteMarkerView)와 유형 필터 칩의 색 도트(범례)가 함께 쓴다.
+ *
+ * **ACG 팔레트의 채도로 맞춘 값이다**(2026-08-04). 원래는 웹 기본색(#4A90E2·#50C878·
+ * #FFD700)이라 따뜻한 지면·잉크·라임 사이에서 혼자 쨍하게 튀었다. 색상(hue)은 그대로 두고
+ * 채도만 낮춰 유형 구분은 유지한다. 값은 핸드오프가 배낭 카테고리에 쓰라고 준 것과 같은
+ * 계열이다(`AcgSemantic.bagBase`·`bagClothing`·`bagCooking`).
+ */
 const TYPE_COLOR: Record<CampSiteType, string> = {
-  [CampSiteType.Campground]: '#FFD700',
-  [CampSiteType.Shelter]: '#50C878',
-  [CampSiteType.Wild]: '#4A90E2',
+  [CampSiteType.Campground]: AcgSemantic.bagCooking,
+  [CampSiteType.Shelter]: AcgSemantic.bagClothing,
+  [CampSiteType.Wild]: AcgSemantic.bagBase,
 };
 
 // 상세 시트 탭 바의 표시 라벨(CS-3).

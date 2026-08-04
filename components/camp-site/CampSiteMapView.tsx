@@ -547,7 +547,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         duration: 400,
       });
     },
-    [moveCamera, openDetail]
+    [campSiteMap, moveCamera, openDetail]
   );
 
   // 즐겨찾기 리스트 항목 본체 탭(CS-9) — 시트를 유지한 채 그 박지로 카메라만 이동한다.
@@ -555,6 +555,10 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   // 근접 줌(deltaToZoom 0.05)으로 맞춰 그 박지가 잘 보이게 한다.
   const handleSelectFavorite = useCallback(
     (spot: CampSpot) => {
+      // 고른 박지가 유형·태그 필터에 걸려 마커까지 사라지면 카메라만 옮겨간 빈 지도가 남는다
+      // (검색 결과 선택과 같은 처리, 2026-08-04 사용자 지적).
+      campSiteMap.resetFilters();
+
       moveCamera({
         latitude: spot.location.latitude,
         longitude: spot.location.longitude,
@@ -562,13 +566,14 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         duration: 500,
       });
     },
-    [moveCamera]
+    [campSiteMap, moveCamera]
   );
 
   // 즐겨찾기 리스트 항목의 상세 버튼 탭(CS-9) — 즐겨찾기 시트를 그 박지 상세로 교체하고
   // (forceReplace로 위로 쌓지 않음) 근접 줌으로 이동한다.
   const handleOpenFavoriteDetail = useCallback(
     (spot: CampSpot) => {
+      campSiteMap.resetFilters();
       openDetail(spot, true);
 
       moveCamera({
@@ -578,7 +583,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         duration: 500,
       });
     },
-    [moveCamera, openDetail]
+    [campSiteMap, moveCamera, openDetail]
   );
 
   // 즐겨찾기 ★ 칩 → 리스트 시트 열기(CS-9). 로그인 가드는 상단 오버레이가 이미 통과시킨 뒤 호출한다.
