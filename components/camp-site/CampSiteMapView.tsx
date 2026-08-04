@@ -465,14 +465,38 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   // 즉 시트가 떠 있는 채로 다른 마커를 탭할 수 있으므로, 그때는 기존 시트를 닫고 새로 연다.
   // forceReplace: 즐겨찾기 시트 등 다른 시트가 떠 있는 상태에서 상세로 갈 때, 그 시트를
   // 상세로 교체한다(위로 쌓지 않음). 상세끼리 교체는 기존대로 isCampSiteDetailSheetOpen로 판단.
+  // 화면에 떠 있는 상세 시트의 박지 id. 같은 박지를 다시 열지 않기 위한 기준이다.
+  const openDetailSpotIdRef = useRef<string | null>(null);
+
   const openDetail = useCallback(
     (spot: CampSpot, forceReplace = false) => {
+      // 같은 박지의 상세가 이미 떠 있으면 **다시 열지 않는다**. 예전에는 같은 라우트로
+      // `replace`가 일어나 나가는 화면의 onClose가 방금 세운 선택을 도로 지웠고, 그 뒤로는
+      // 몇 번을 눌러도 선택이 붙지 않았다(2026-08-04 사용자 제보). 선택만 세워 복구한다.
+      if (
+        !forceReplace &&
+        isCampSiteDetailSheetOpen() &&
+        openDetailSpotIdRef.current === spot.id
+      ) {
+        campSiteMap.selectSpot(spot);
+
+        return;
+      }
+
       campSiteMap.selectSpot(spot);
+      openDetailSpotIdRef.current = spot.id;
 
       setCampSiteDetailSheet({
         onMoveToSpot: handleMoveToSpot,
-        // 닫히는 시트가 이미 다른 박지로 넘어간 선택을 지우지 않게, 자기 박지일 때만 해제한다.
+        // 닫히는 시트가 이미 다른 박지로 넘어간 선택을 지우지 않게, 화면의 상세가 여전히
+        // 자기 박지일 때만 정리한다.
         onClose: () => {
+          if (openDetailSpotIdRef.current !== spot.id) {
+            return;
+          }
+
+          openDetailSpotIdRef.current = null;
+
           if (campSiteMap.getSelectedSpot()?.id === spot.id) {
             campSiteMap.selectSpot(null);
           }

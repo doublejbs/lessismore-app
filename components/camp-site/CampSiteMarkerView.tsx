@@ -37,7 +37,9 @@ const CampSiteMarkerView = memo<Props>(({ spot, selected, onTapSpot }) => {
         // (isHideCollidedCaptions)을 잃어 밀집 구간에서 이름이 서로 포개진다 — 기능을 지키고
         // halo 색으로 면 색을 대신한다.
         color: Acg.ink,
-        haloColor: selected ? Acg.lime : Acg.paper,
+        // halo는 글자 테두리라 라임을 주면 글자에 형광 번짐처럼 붙어 지저분했다
+        // (2026-08-04 사용자 지적). 선택 표시는 마커 쪽 라임 테두리가 맡는다.
+        haloColor: Acg.paper,
         offset: selected ? -12 : -8,
       }}
       // 겹치는 마커는 캡션만 숨긴다(마커 자체는 유지). 단, **선택(탭)한 마커는 캡션을 강제로 표시**한다 —
@@ -55,12 +57,18 @@ const CampSiteMarkerView = memo<Props>(({ spot, selected, onTapSpot }) => {
         collapsable={false}
         style={styles.markerHitArea}
       >
-        {/* 선택 시: 유형색 면을 키우고 흰 테두리 + 그림자로 지도에서 "떠오르게"(유형색 유지).
-            시선 유도 펄스·카메라 포커스는 지도 화면(CampSiteSelectedPulseView/handleMarkerTap)이 담당. */}
+        {/* 선택 마커는 **라임 채움**이다(2026-08-04 사용자 결정). 유형색을 덮지만 선택은
+            한 번에 하나뿐인 일시 상태이고, 그 박지의 유형은 바로 아래 시트가 배지로 말한다.
+            캡션 halo에 라임을 주는 방식은 글자에 번짐처럼 붙어 걷었다.
+            시선 유도 펄스·카메라 포커스는 지도 화면이 담당한다. */}
         <View
           style={[
             selected ? styles.markerSelected : styles.marker,
-            { backgroundColor: getCampSiteTypeColor(spot.type) },
+            {
+              backgroundColor: selected
+                ? Acg.lime
+                : getCampSiteTypeColor(spot.type),
+            },
           ]}
         />
       </View>
@@ -88,13 +96,14 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Acg.paper,
   },
-  // 선택 마커: 크게 + 진한 그림자로 지도 위에 떠오르게(각진 형태·유형색 유지).
+  // 선택 마커: 라임 채움 + 잉크 테두리로 키운다. 밝은 라임은 흰 테두리로는 지도 위에서
+  // 경계가 사라져, 여기만 테두리를 잉크로 쓴다.
   markerSelected: {
     width: 26,
     height: 26,
     borderRadius: 0,
     borderWidth: 2,
-    borderColor: Acg.paper,
+    borderColor: Acg.ink,
     shadowColor: '#000',
     shadowOpacity: 0.35,
     shadowRadius: 4,
