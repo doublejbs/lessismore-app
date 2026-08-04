@@ -12,7 +12,7 @@ import Gear from '../../model/gear/Gear';
 import BagEdit from '../../model/bag-edit/BagEdit';
 import app from '../../model/app/App';
 import GearView from '../warehouse/GearView';
-import { Color } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 
 interface Props {
   gear: Gear;
@@ -59,7 +59,7 @@ const BagEditWarehouseGearView: FC<Props> = ({ gear, bagEdit }) => {
       >
         <View style={styles.hollowCircle} />
         <Animated.View style={[styles.checkCircle, checkStyle]}>
-          <Ionicons name='checkmark' size={16} color={Color.background} />
+          <Ionicons name='checkmark' size={16} color={Acg.paper} />
         </Animated.View>
       </TouchableOpacity>
     </GearView>
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: Color.chipInactiveBg,
+    borderColor: Acg.line,
   },
   checkCircle: {
     position: 'absolute',
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     borderRadius: 14,
-    backgroundColor: Color.chipActiveBg,
+    backgroundColor: Acg.ink,
     alignItems: 'center',
     justifyContent: 'center',
   },
