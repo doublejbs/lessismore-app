@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgShadow, Acg, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -25,8 +25,7 @@ const BagDetailUselessDescriptionView: FC<Props> = ({
     bagDetail.goToUseless();
   };
 
-  const subtitle =
-    phase === 'after' ? '줄어든 무게 확인' : '여행 후 기록';
+  const subtitle = phase === 'after' ? '줄어든 무게 확인' : '여행 후 기록';
 
   const fg = emphasized ? Color.background : Color.textPrimary;
   const subFg = emphasized ? EMPHASIZED_SUB : Color.textSecondary;
@@ -42,7 +41,10 @@ const BagDetailUselessDescriptionView: FC<Props> = ({
       </PretendardText>
     </View>
   ) : (
-    <PretendardText style={[styles.subtitle, { color: subFg }]} numberOfLines={1}>
+    <PretendardText
+      style={[styles.subtitle, { color: subFg }]}
+      numberOfLines={1}
+    >
       {subtitle}
     </PretendardText>
   );
@@ -71,7 +73,10 @@ const styles = StyleSheet.create({
   tile: {
     width: '48%',
     minHeight: 92,
-    backgroundColor: Color.surfaceMuted,
+    // 지면 위 타일이라 종이 면을 쓴다 — 회색(surfaceMuted)은 지면과 가까워 타일이
+    // 떠 보이지 않았다(2026-08-04 사용자 지적). 강조 타일만 잉크 면이다.
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
     borderRadius: Radius.card,
     padding: 14,
     justifyContent: 'space-between',
