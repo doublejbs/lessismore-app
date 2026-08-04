@@ -26,8 +26,8 @@ const IS_IOS = Platform.OS === 'ios';
 // 자동 인셋을 끄고 헤더 높이를 직접 비운다.
 const NATIVE_HEADER_HEIGHT = 44;
 
-// 섹션 제목 크기(ACG) — 홈·장비 상세와 같은 18px/700.
-const SECTION_TITLE_SIZE = 18;
+// 푸시 화면의 큰 제목(ACG) — 배낭 이름과 같은 28px/700.
+const SECTION_TITLE_SIZE = 28;
 
 const ReplyView = ({ reply }: { reply: Reply }) => {
   const router = useRouter();
@@ -48,7 +48,9 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
         options={{
           headerShown: IS_IOS,
           headerTransparent: true,
-          headerTitle: '리뷰',
+          // 화면 제목은 콘텐츠 안 큰 제목이 맡는다 — 네이티브 타이틀까지 두면 `리뷰`가
+          // 100pt 안에 두 번 나온다(2026-08-04 시뮬레이터 확인).
+          headerTitle: '',
           headerBackButtonDisplayMode: 'minimal',
         }}
       />
@@ -154,7 +156,8 @@ const styles = StyleSheet.create({
   // 지면 위 제목이라 본문보다 한 단계 낮은 색이다(장비 상세 섹션 제목과 동일).
   replyHeaderText: {
     fontSize: SECTION_TITLE_SIZE,
-    color: Acg.textTertiary,
+    lineHeight: SECTION_TITLE_SIZE + 6,
+    color: Acg.ink,
   },
   emptyState: {
     flex: 1,

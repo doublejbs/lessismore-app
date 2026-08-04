@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
 import Reply from '@/model/reply/Reply';
 
 interface Props {
@@ -31,19 +31,19 @@ const ReplyInputButtonView: FC<Props> = ({ reply }) => {
 };
 
 const styles = StyleSheet.create({
+  // 지면 위에 놓인 바라 면을 깔지 않는다 — 흰 띠가 화면 하단을 가로지르면 지형이 끊긴다.
+  // 대신 인풋이 종이 면이 된다(뒤가 지면이면 종이, 뒤가 종이면 지면색 — 앱 공통 규칙).
   container: {
     paddingHorizontal: AcgLayout.screenH,
     paddingTop: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Acg.line2,
-    backgroundColor: Acg.paper,
+    backgroundColor: 'transparent',
     width: '100%',
   },
-  // 각진 인풋 + 지면색 채움(ACG) — 종이 면 위 인풋이라 회색을 또 두지 않는다.
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Acg.bg,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
     borderRadius: 0,
     paddingHorizontal: 16,
     paddingVertical: 12,
