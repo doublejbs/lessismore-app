@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { AcgShadow, Acg } from '@/constants/DesignTokens';
 import InfoSubScreenHeaderView, {
   IOS_EDGES,
   IS_IOS,
@@ -38,14 +38,21 @@ const InfoBusinessView: FC = () => {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {BUSINESS_INFO.map(({ label, value }) => (
-          <View key={label} style={styles.row}>
-            <PretendardText style={styles.label}>{label}</PretendardText>
-            <PretendardText style={styles.value} selectable>
-              {value}
-            </PretendardText>
-          </View>
-        ))}
+        {/* 정보 표라 종이 면 위에 올린다(ACG) — 지면 위에 표만 떠 있으면 측량 마크·
+            라임 트레일이 행 사이를 지나가 산만하다(2026-08-04 시뮬레이터 확인). */}
+        <View style={styles.paper}>
+          {BUSINESS_INFO.map(({ label, value }, index) => (
+            <View
+              key={label}
+              style={[styles.row, index > 0 && styles.rowDivider]}
+            >
+              <PretendardText style={styles.label}>{label}</PretendardText>
+              <PretendardText style={styles.value} selectable>
+                {value}
+              </PretendardText>
+            </View>
+          ))}
+        </View>
       </ScrollView>
     </Layout>
   );
@@ -56,24 +63,31 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 40,
   },
+  paper: {
+    paddingHorizontal: 16,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
     paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
+  },
+  rowDivider: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Acg.line2,
   },
   // 라벨 폭을 고정해 값의 시작 위치를 세로로 맞춘다.
   label: {
     width: 110,
     fontSize: 14,
-    color: Color.textSecondary,
+    color: Acg.textSecondary,
   },
   value: {
     flex: 1,
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
 });
 
