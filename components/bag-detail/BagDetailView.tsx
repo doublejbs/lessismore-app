@@ -65,6 +65,12 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     bagDetail.back();
   };
 
+  // 빈 배낭 안내의 CTA — 하단 `수정하기`와 같은 경로·같은 로그를 쓴다.
+  const handlePressAddGear = () => {
+    app.getAnalyticsManager()?.logClick('bag_edit');
+    bagDetail.goToEdit();
+  };
+
   const handleCategoryRefReady = (categoryFilter: string, ref: any) => {
     categoryRefsMap.current.set(categoryFilter, ref);
     bagDetail.setCategoryRefs(categoryRefsMap.current);
@@ -238,8 +244,8 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               <View style={styles.gearListContainer}>
                 <View style={styles.gearList}>
                   {/* 빈 배낭이면 목록 자리가 통째로 비어 뭘 해야 할지 알 수 없었다
-                      (2026-08-04 시뮬레이터 확인). 새 액션은 두지 않는다 — 담는 경로는
-                      아래 `수정하기` 하나뿐이라 그리로 안내한다. */}
+                      (2026-08-04 시뮬레이터 확인). 하단 `수정하기`와 같은 경로를
+                      바로 누를 수 있게 둔다 — 빈 배낭에서 할 일은 이것 하나뿐이다. */}
                   {gears.length === 0 ? (
                     <View style={styles.gearEmpty}>
                       <PretendardText
@@ -249,8 +255,22 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                         담긴 장비가 없어요
                       </PretendardText>
                       <PretendardText style={styles.gearEmptyText}>
-                        아래 수정하기에서 장비를 담아보세요
+                        창고에서 장비를 골라 담아보세요
                       </PretendardText>
+                      <TouchableOpacity
+                        style={styles.gearEmptyButton}
+                        onPress={handlePressAddGear}
+                        activeOpacity={0.8}
+                        accessibilityRole='button'
+                        accessibilityLabel='장비 추가하기'
+                      >
+                        <PretendardText
+                          weight='bold'
+                          style={styles.gearEmptyButtonText}
+                        >
+                          장비 추가하기
+                        </PretendardText>
+                      </TouchableOpacity>
                     </View>
                   ) : null}
                   {bagDetail.getGearsByCategory().map(({ category, gears }) => (
@@ -396,6 +416,19 @@ const styles = StyleSheet.create({
   gearEmptyText: {
     fontSize: 13,
     color: Acg.textSecondary,
+    marginBottom: 14,
+  },
+  // 하단 `수정하기`와 같은 경로라 같은 잉크 면을 쓴다(ACG).
+  gearEmptyButton: {
+    alignSelf: 'stretch',
+    marginHorizontal: Spacing.screenH,
+    paddingVertical: 15,
+    alignItems: 'center',
+    backgroundColor: Acg.ink,
+  },
+  gearEmptyButtonText: {
+    fontSize: 15,
+    color: Acg.paper,
   },
   gearListContainer: {
     alignItems: 'center',
