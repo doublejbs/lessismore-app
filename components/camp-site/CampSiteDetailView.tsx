@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color, Radius } from '@/constants/DesignTokens';
+import { AcgLayout, Acg, Color, Radius } from '@/constants/DesignTokens';
 import CampSiteBagSelectSheetView from './CampSiteBagSelectSheetView';
 import CampSiteDetailHeaderView from './CampSiteDetailHeaderView';
 import CampSiteDetailTabBarView from './CampSiteDetailTabBarView';
@@ -248,12 +248,15 @@ const styles = StyleSheet.create({
   tabContent: {
     paddingBottom: 12,
   },
+  // 이 바는 스크롤 콘텐츠 **위에 떠 있어** 불투명이어야 한다 — 투명하게 두면 뒤 탭 행
+  // (개요·날씨·후기)이 버튼과 겹쳐 읽힌다(2026-08-04 시뮬레이터 확인).
+  // 흰 면 대신 시트와 같은 지면색을 써서 하단만 다른 톤으로 갈리지 않게 한다.
   bottomBar: {
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenH,
     paddingVertical: 16,
-    backgroundColor: Color.background,
-    borderTopWidth: 1,
-    borderTopColor: Color.borderLight,
+    backgroundColor: Acg.bg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Acg.line2,
   },
   setBagButton: {
     backgroundColor: Color.textPrimary,
