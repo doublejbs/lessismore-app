@@ -21,7 +21,6 @@ import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, Color, Radius } from '@/constants/DesignTokens';
 import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 
-
 // 화면 제목 크기(ACG).
 const TITLE_SIZE = 44;
 // 편집 아이콘(20pt)에 44pt 터치 타깃을 만들기 위한 여유(AU-4). (44 − 20) / 2 = 12.
@@ -330,6 +329,9 @@ const InfoView: FC = () => {
 
 const { height: screenHeight } = Dimensions.get('window');
 
+// 모달 하단과 키보드 사이 여백. 0이면 버튼이 키보드에 눌린 것처럼 보인다.
+const MODAL_KEYBOARD_GAP = 12;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -418,6 +420,8 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: Radius.sheet,
     borderTopRightRadius: Radius.sheet,
     padding: 16,
+    // 버튼 아래가 키보드에 딱 붙어 눌린 것처럼 보였다(2026-08-04 시뮬레이터 확인).
+    paddingBottom: 16 + MODAL_KEYBOARD_GAP,
     maxHeight: screenHeight * 0.7,
   },
   modalScrollView: {
@@ -439,7 +443,7 @@ const styles = StyleSheet.create({
   textInput: {
     padding: 14,
     borderWidth: 1,
-    borderColor: Color.borderLight,
+    borderColor: Acg.line2,
     backgroundColor: Color.inputBg,
     borderRadius: Radius.input,
     fontSize: 16,
@@ -449,6 +453,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
+  // 흰 면 위 아웃라인이라 테두리가 거의 안 보였다 — 한 단계 진한 선을 쓴다.
   modalCancelButton: {
     flex: 1,
     backgroundColor: Color.background,
