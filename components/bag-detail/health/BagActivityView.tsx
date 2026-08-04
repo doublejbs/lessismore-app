@@ -38,6 +38,9 @@ const IOS_HEADER_BAR_HEIGHT = 44;
 
 // 운동 기록 후보 선택·연결 화면(HA-3).
 // 화면당 주 액션은 하나다 — 하단 CTA가 선택 상태에 따라 `연결`/`연결 해제`로 바뀐다.
+// 투명 헤더 아래 숨 쉴 여백.
+const HEADER_CONTENT_GAP = 12;
+
 const BagActivityView: FC<Props> = ({ bagActivity }) => {
   const insets = useSafeAreaInsets();
   const phase = bagActivity.getPhase();
@@ -166,7 +169,11 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
       style={[
         styles.container,
         // 고정 레이아웃(단계별 본문) 화면 — iOS는 투명 헤더 높이만큼 상단 여백을 직접 확보한다.
-        IS_IOS && { paddingTop: insets.top + IOS_HEADER_BAR_HEIGHT },
+        // 헤더 높이만 비우면 콘텐츠가 헤더 바닥에 딱 붙어 카드가 눌린 것처럼 보인다
+        // (2026-08-05 사용자 지적) — 한 칸 더 띄운다.
+        IS_IOS && {
+          paddingTop: insets.top + IOS_HEADER_BAR_HEIGHT + HEADER_CONTENT_GAP,
+        },
       ]}
     >
       {/* LG-1: iOS만 네이티브 투명 헤더 — 우측 '다시 선택'은 상세 단계에서만 노출(기존과 동일). */}
