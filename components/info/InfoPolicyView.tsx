@@ -8,7 +8,7 @@ import InfoSubScreenHeaderView, {
   NATIVE_HEADER_HEIGHT,
 } from '@/components/info/InfoSubScreenHeaderView';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgShadow, Acg, Color, Radius } from '@/constants/DesignTokens';
 import {
   PRIVACY_POLICY_TEXT,
   TERMS_OF_SERVICE_TEXT,
@@ -85,9 +85,11 @@ const InfoPolicyView: FC<Props> = ({ initialTab }) => {
         contentContainerStyle={styles.contentInner}
         showsVerticalScrollIndicator={false}
       >
-        <PretendardText style={styles.bodyText} selectable>
-          {TAB_TEXTS[selectedTab]}
-        </PretendardText>
+        <View style={styles.paper}>
+          <PretendardText style={styles.bodyText} selectable>
+            {TAB_TEXTS[selectedTab]}
+          </PretendardText>
+        </View>
       </ScrollView>
     </Layout>
   );
@@ -122,13 +124,21 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  // 긴 법률 문서라 종이 면 위에 올린다(ACG) — 지면의 그레인·측량 마크·라임 트레일이
+  // 글줄 사이로 지나가 읽기 어려웠다(2026-08-04 시뮬레이터 확인).
   contentInner: {
     paddingBottom: 40,
+  },
+  paper: {
+    padding: 16,
+    marginBottom: 24,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.paper,
   },
   bodyText: {
     fontSize: 13,
     lineHeight: 20,
-    color: Color.textTertiary,
+    color: Acg.textTertiary,
   },
 });
 
