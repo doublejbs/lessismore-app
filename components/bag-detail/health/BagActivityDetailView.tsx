@@ -75,23 +75,15 @@ const BagActivityDetailView: FC<Props> = ({ bagActivity }) => {
 
     return (
       <>
-        {/* 경로가 없으면(실내 운동·서드파티 동기화) 지도 대신 이유를 알린다 — 지도가
-            말없이 사라지면 고장으로 보인다. 웹은 건강 허브가 미지원이라 상세 자체가
-            비므로(details 0건) 이 안내도 뜨지 않는다. */}
-        {routes.length > 0 ? (
-          <BagActivityRouteMapView routes={routes} />
-        ) : (
-          details.length > 0 && (
-            <PretendardText style={styles.noticeText}>
-              이 운동에는 GPS 경로가 없어요. 가민 등 외부 기기가 건강 앱으로
-              보내는 기록에는 경로가 포함되지 않아요.
-            </PretendardText>
-          )
-        )}
+        {/* 경로가 없으면 지도만 빼고 넘어간다. 예전에는 이유를 문장으로 알렸는데,
+            서드파티 동기화 기록에는 경로가 거의 없어 대부분의 사용자에게 늘 뜨는
+            안내가 됐다 — 고칠 수 없는 사실을 매번 알리는 셈이었다(2026-08-05 사용자 결정). */}
+        {routes.length > 0 ? <BagActivityRouteMapView routes={routes} /> : null}
         {details.map(detail => (
           <BagActivityWorkoutDetailView
             key={detail.workout.id}
             detail={detail}
+            isOnly={details.length === 1}
           />
         ))}
       </>
@@ -148,10 +140,11 @@ const styles = StyleSheet.create({
     color: Color.textSecondary,
     textAlign: 'center',
   },
+  // 화면의 다른 요소가 전부 좌측 정렬인데 이 버튼만 가운데라 축이 어긋났다
+  // (2026-08-05 디자인 리뷰). 좌측으로 붙이고 좌우 패딩은 뺀다.
   textButton: {
     minHeight: 44,
-    alignSelf: 'center',
-    paddingHorizontal: Spacing.section,
+    alignSelf: 'flex-start',
     justifyContent: 'center',
   },
   textButtonLabel: {
