@@ -398,7 +398,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Acg.ink,
-    transform: [{ rotate: '-1.2deg' }],
+    // 기울이지 않는다(2026-08-05 사용자 결정). 시안은 손으로 붙인 느낌을 내려고 -1.2deg를
+    // 줬는데, 눌러야 하는 버튼이 비뚤면 정렬이 어긋난 것처럼 읽힌다. 기울기는 D-day
+    // 스티커에만 남긴다 — 그건 붙인 표식이라 비뚤어도 자연스럽다.
     boxShadow: '0 6px 16px rgba(26,26,26,0.18)',
   },
   ctaText: {
