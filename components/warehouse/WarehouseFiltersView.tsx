@@ -184,9 +184,12 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
           개수를 함께 보여줘야 몇 개가 걸러지는지 알고 덜어낼 판단을 할 수 있다. */}
       {unusedCount > 0 || unusedOnly ? (
         <View style={styles.usageRow}>
+          {/* 켜짐은 카테고리 칩과 같은 잉크 채움으로 낸다 — 2차 칩 기본 톤(연회색 채움)은
+              켠 건지 아닌지 한눈에 안 갈렸다. 크기는 2차 그대로 둬 카테고리와 축을 구분한다. */}
           <CategoryChipView
             label={`안 쓴 장비 ${unusedCount}`}
             variant='secondary'
+            tone='acgSolid'
             selected={unusedOnly}
             onPress={handleToggleUnused}
             accessibilityLabel={`안 쓴 장비만 보기, ${unusedCount}개`}
