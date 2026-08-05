@@ -4,6 +4,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import BagItemView from './BagItemView';
+import { groupBagsByTripSection } from '@/model/bag/BagTripSection';
 import BagAddView from './BagAddView';
 import BagListSkeletonView from './BagListSkeletonView';
 import Bag from '@/model/bag/Bag';
@@ -79,12 +80,21 @@ const BagView = () => {
               contentContainerStyle={styles.scrollContent}
               showsVerticalScrollIndicator={false}
             >
-              {bags.map((bagItem: BagItem) => (
-                <BagItemView
-                  key={bagItem.getID()}
-                  bag={bag}
-                  bagItem={bagItem}
-                />
+              {/* 여행 중 / 예정 / 지난 세 구간(BAG-1). 구간 안의 차례는 정렬 선택을
+                  그대로 따르고, 빈 구간은 제목까지 렌더하지 않는다. */}
+              {groupBagsByTripSection(bags).map(group => (
+                <View key={group.section} style={styles.section}>
+                  <PretendardText weight='bold' style={styles.sectionTitle}>
+                    {group.label}
+                  </PretendardText>
+                  {group.bags.map((bagItem: BagItem) => (
+                    <BagItemView
+                      key={bagItem.getID()}
+                      bag={bag}
+                      bagItem={bagItem}
+                    />
+                  ))}
+                </View>
               ))}
               <View
                 style={{
@@ -165,6 +175,16 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+  },
+  // 구간 사이는 넉넉히 벌려 제목이 앞 구간 끝에 붙지 않게 한다.
+  section: {
+    marginBottom: 14,
+  },
+  // 지면 위 섹션 제목 — 앱 공통 18px/700 textTertiary(ACG).
+  sectionTitle: {
+    fontSize: 18,
+    color: Acg.textTertiary,
+    marginBottom: 10,
   },
 });
 

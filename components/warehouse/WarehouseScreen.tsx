@@ -83,9 +83,12 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
       return (
         <View style={styles.emptyContainer}>
           <PretendardText style={styles.emptyText}>
-            {warehouse.getQuery().trim()
-              ? '검색 결과가 없어요'
-              : `${josa(`${selectedFilter.getName()}#{가}`)} 없습니다`}
+            {/* 필터가 걸려 0건인 경우를 구분한다 — 전체가 빈 것(위 분기)과 원인이 다르다. */}
+            {warehouse.isUnusedOnly()
+              ? '안 쓴 장비가 없어요'
+              : warehouse.getQuery().trim()
+                ? '검색 결과가 없어요'
+                : `${josa(`${selectedFilter.getName()}#{가}`)} 없습니다`}
           </PretendardText>
         </View>
       );
