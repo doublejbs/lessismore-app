@@ -11,6 +11,15 @@ import WarehouseDispatcher from './WarehouseDispatcher';
 import WarehouseDispatcherType from './WarehouseDispatcherType';
 import WarehouseFilter from './WarehouseFilter';
 
+/**
+ * 사용률 0% 판정(WH-2-1).
+ *
+ * **담긴 적이 아예 없는 장비는 제외한다** — 쓸 기회가 없었던 것과 담아 가고도 안 쓴 것은
+ * 다르다. 전자를 섞으면 새로 산 장비가 곧바로 덜어낼 후보로 잡힌다.
+ */
+const isUnusedGear = (gear: Gear): boolean =>
+  gear.hasUsedRate() && gear.getUsedRate() === 0;
+
 class Warehouse {
   public static readonly ORDER_KEY = 'warehouse';
 
@@ -32,6 +41,8 @@ class Warehouse {
   private query = '';
   // WH-2 2차(세분) 카테고리 필터 — null이면 전체(세분 미적용)
   private fineCategory: string | null = null;
+  // WH-2-1 사용 여부 필터 — 켜면 사용률 0%인 장비만 남긴다(카테고리와 별개 축).
+  private unusedOnly = false;
   private loading = false;
   private initialized = false;
 
@@ -153,11 +164,48 @@ class Warehouse {
       : this.gears;
 
     // 세분 필터는 추가 쿼리 없이 표시 단계에서만 적용한다(WH-2)
-    if (this.fineCategory) {
-      return queried.filter(gear => gear.getCategory() === this.fineCategory);
-    }
+    const fineFiltered = this.fineCategory
+      ? queried.filter(gear => gear.getCategory() === this.fineCategory)
+      : queried;
 
-    return queried;
+    return this.unusedOnly ? fineFiltered.filter(isUnusedGear) : fineFiltered;
+  }
+
+  /**
+   * WH-2-1 사용 여부 필터. 카테고리·검색과 **함께** 적용된다.
+   *
+   * 필터를 끈 상태의 개수를 함께 노출해야 "몇 개가 걸러졌는지"를 알 수 있으므로
+   * (스펙 WH-2-1), 개수는 `getUnusedCount()`가 따로 센다.
+   */
+  public isUnusedOnly(): boolean {
+    return this.unusedOnly;
+  }
+
+  public toggleUnusedOnly() {
+    this.unusedOnly = !this.unusedOnly;
+  }
+
+  /**
+   * 사용률 0% 장비 수. **현재 카테고리 필터·검색까지 반영한 모수**에서 센다 —
+   * 칩 옆 숫자가 켰을 때 실제로 남을 개수와 달라지면 안 된다.
+   */
+  public getUnusedCount(): number {
+    const q = this.query.trim().toLowerCase();
+    const queried = q
+      ? this.gears.filter(gear =>
+          [
+            gear.getDisplayName(),
+            gear.getName(),
+            gear.getDisplayCompany(),
+            gear.getCompany(),
+          ].some(value => value.toLowerCase().includes(q))
+        )
+      : this.gears;
+    const fineFiltered = this.fineCategory
+      ? queried.filter(gear => gear.getCategory() === this.fineCategory)
+      : queried;
+
+    return fineFiltered.filter(isUnusedGear).length;
   }
 
   public getQuery() {

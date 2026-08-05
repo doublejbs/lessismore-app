@@ -31,6 +31,8 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
   const fineCategoryOptions = warehouse.getFineCategoryOptions();
   const fineCategory = warehouse.getFineCategory();
   const selectedFilterName = warehouse.getSelectedFilter().getName();
+  const unusedOnly = warehouse.isUnusedOnly();
+  const unusedCount = warehouse.getUnusedCount();
 
   /**
    * 1차 칩 행의 가로 스크롤을 선택 칩에 맞춘다.
@@ -119,6 +121,10 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
     warehouse.selectFineCategory(key);
   };
 
+  const handleToggleUnused = () => {
+    warehouse.toggleUnusedOnly();
+  };
+
   const handleSelectOrder = (option: OrderOption) => {
     app
       .getAnalyticsManager()
@@ -174,6 +180,19 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
           ))}
         </ScrollView>
       )}
+      {/* WH-2-1 사용 여부 필터 — 카테고리와 별개 축이라 칩 행이 아니라 이 줄에 둔다.
+          개수를 함께 보여줘야 몇 개가 걸러지는지 알고 덜어낼 판단을 할 수 있다. */}
+      {unusedCount > 0 || unusedOnly ? (
+        <View style={styles.usageRow}>
+          <CategoryChipView
+            label={`안 쓴 장비 ${unusedCount}`}
+            variant='secondary'
+            selected={unusedOnly}
+            onPress={handleToggleUnused}
+            accessibilityLabel={`안 쓴 장비만 보기, ${unusedCount}개`}
+          />
+        </View>
+      ) : null}
       <View style={styles.orderContainer}>
         <PretendardText weight='semibold' style={styles.titleText}>
           총 {totalCount}개
@@ -206,6 +225,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: 0,
+  },
+  usageRow: {
+    flexDirection: 'row',
+    paddingTop: 2,
   },
   orderContainer: {
     width: '100%',

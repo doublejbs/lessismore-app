@@ -9,6 +9,7 @@ import PretendardText from '@/components/PretendardText';
 import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 import HomeUpcomingTripView from '@/components/home/HomeUpcomingTripView';
 import HomeWarehousePreviewView from '@/components/home/HomeWarehousePreviewView';
+import HomeRecordSummaryView from '@/components/home/HomeRecordSummaryView';
 import HomeSkeletonView from '@/components/home/HomeSkeletonView';
 import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import Home from '@/model/home/Home';
@@ -70,6 +71,7 @@ const HomeView: FC<Props> = ({ home }) => {
       >
         <HomeUpcomingTripView plan={selectTripPlan(home.getBags(), today)} />
         <HomeWarehousePreviewView gears={home.getGears()} />
+        <HomeRecordSummaryView gears={home.getGears()} bags={home.getBags()} />
         <View
           style={{
             // 플로팅 탭바 아래로 콘텐츠가 흐르므로 시안대로 130을 비운다(ACG).
