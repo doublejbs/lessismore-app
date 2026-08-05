@@ -23,10 +23,11 @@ if [ ! -f .env.submit ]; then
   exit 1
 fi
 
-# `$HOME`이 값에 들어 있어 eval로 펼친다.
+# `.env.submit`은 값이 따옴표로 감싸여 있어 그대로 읽을 수 있다(`$HOME`도 펼쳐진다).
+# `source <(...)`는 macOS 기본 bash 3.2에서 조용히 아무것도 정의하지 않는다 — 쓰지 않는다.
 set -a
 # shellcheck disable=SC1091
-source <(sed 's/^\([A-Z_]*\)=\(.*\)$/\1="\2"/' .env.submit)
+. ./.env.submit
 set +a
 
 if [ ! -r "$ASC_API_KEY_PATH" ]; then
