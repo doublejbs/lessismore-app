@@ -57,7 +57,7 @@ const WarehouseDetailPurchaseView: FC<Props> = ({ warehouseDetail }) => {
       <SeperaterView />
       <View style={styles.container}>
         <PretendardText weight='semibold' style={styles.title}>
-          구매
+          공식 링크
         </PretendardText>
 
         {/* 브랜드 행은 링크 미리보기 카드로 낸다(GD-5a) — 라벨과 도메인만으로 구성한다. */}
