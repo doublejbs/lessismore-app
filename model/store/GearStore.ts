@@ -37,6 +37,11 @@ export interface GearData {
   // 문서 경로에 따라 의미가 다르다(DM-3): 사용자 문서는 본인 업로드 사진, 카탈로그는 크롤 이미지.
   imageUrl?: string;
   coupangUrl?: string;
+  // 브랜드 공식몰 상품 페이지(DM-3). 카탈로그에만 있고 사용자 사본엔 복사하지 않는다.
+  productUrl?: string;
+  // productUrl 페이지의 og:image(브랜드 CDN 절대 URL, DM-3). 미리보기 카드(GD-5a) 전용.
+  // 처음 그 장비를 연 클라이언트가 채운다 — 백필로 미리 모아두지 않는다.
+  productImageUrl?: string;
   colorKorean?: string;
   size?: string;
   sizeKorean?: string;
@@ -44,14 +49,23 @@ export interface GearData {
   specs?: Record<string, string | number | boolean>;
 }
 
-class GearStore {
-  // coupangUrl은 /gear 문서에만 있어 카드 마운트마다 getDoc이 반복된다.
-  // 동일 id 재요청 시 Firestore를 다시 읽지 않도록 결과와 in-flight Promise를 캐시한다.
-  private readonly coupangUrlCache = new Map<string, string | undefined>();
+/** 카탈로그 장비의 외부 링크 묶음(GD-5). 값이 없으면 키를 생략한다. */
+export interface GearExternalLinks {
+  coupangUrl?: string;
+  productUrl?: string;
+  /** 미리보기 카드용 og:image(GD-5a). 아직 수집 전이면 없다. */
+  productImageUrl?: string;
+}
 
-  private readonly coupangUrlInFlight = new Map<
+class GearStore {
+  // 외부 링크(coupangUrl·productUrl)는 /gear 문서에만 있어 카드 마운트마다 getDoc이 반복된다.
+  // 동일 id 재요청 시 Firestore를 다시 읽지 않도록 결과와 in-flight Promise를 캐시한다.
+  // **두 링크를 한 번의 읽기로 함께 가져온다**(GD-5) — 링크가 늘었다고 조회가 늘면 안 된다.
+  private readonly externalLinksCache = new Map<string, GearExternalLinks>();
+
+  private readonly externalLinksInFlight = new Map<
     string,
-    Promise<string | undefined>
+    Promise<GearExternalLinks>
   >();
 
   public constructor(private readonly firebase: Firebase) {}
@@ -474,45 +488,73 @@ class GearStore {
     }
   }
 
-  public async getCoupangUrl(id: string): Promise<string | undefined> {
-    if (this.coupangUrlCache.has(id)) {
-      return this.coupangUrlCache.get(id);
+  public async getExternalLinks(id: string): Promise<GearExternalLinks> {
+    const cached = this.externalLinksCache.get(id);
+
+    if (cached) {
+      return cached;
     }
 
-    const inFlight = this.coupangUrlInFlight.get(id);
+    const inFlight = this.externalLinksInFlight.get(id);
 
     if (inFlight) {
       return inFlight;
     }
 
-    const request = this.fetchCoupangUrl(id);
+    const request = this.fetchExternalLinks(id);
 
-    this.coupangUrlInFlight.set(id, request);
+    this.externalLinksInFlight.set(id, request);
 
     try {
-      const coupangUrl = await request;
+      const links = await request;
 
-      this.coupangUrlCache.set(id, coupangUrl);
+      this.externalLinksCache.set(id, links);
 
-      return coupangUrl;
+      return links;
     } finally {
-      this.coupangUrlInFlight.delete(id);
+      this.externalLinksInFlight.delete(id);
     }
   }
 
-  private async fetchCoupangUrl(id: string): Promise<string | undefined> {
+  /**
+   * 처음 수집한 미리보기 이미지 URL을 카탈로그 문서에 남긴다(GD-5a).
+   *
+   * 다음 조회부터는 `getExternalLinks`에 함께 실려 와 추가 요청이 사라진다.
+   * 실패는 조용히 무시한다 — 화면은 이미 이미지를 그린 뒤다.
+   */
+  public async saveProductImageUrl(id: string, productImageUrl: string) {
+    try {
+      await updateDoc(doc(this.getStore(), 'gear', id), { productImageUrl });
+
+      const cached = this.externalLinksCache.get(id);
+
+      if (cached) {
+        this.externalLinksCache.set(id, { ...cached, productImageUrl });
+      }
+    } catch {
+      // 권한·네트워크 실패는 무시한다. 다음 진입에서 다시 시도된다.
+    }
+  }
+
+  private async fetchExternalLinks(id: string): Promise<GearExternalLinks> {
     try {
       const docData = await getDoc(doc(this.getStore(), 'gear', id));
 
-      if (docData.exists()) {
-        const { coupangUrl } = docData.data() as GearData;
-
-        return coupangUrl;
-      } else {
-        return undefined;
+      if (!docData.exists()) {
+        return {};
       }
+
+      const { coupangUrl, productUrl, productImageUrl } =
+        docData.data() as GearData;
+
+      // 빈 문자열은 값이 없는 것으로 본다 — 크롤 문서에 ''가 섞여 있으면 빈 행이 그려진다.
+      return {
+        ...(coupangUrl ? { coupangUrl } : {}),
+        ...(productUrl ? { productUrl } : {}),
+        ...(productImageUrl ? { productImageUrl } : {}),
+      };
     } catch {
-      return undefined;
+      return {};
     }
   }
 

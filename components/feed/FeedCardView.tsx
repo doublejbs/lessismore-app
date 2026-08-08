@@ -79,7 +79,9 @@ const FeedCardView: FC<Props> = ({
         return;
       }
 
-      const url = await gearStore.getCoupangUrl(gear.getId());
+      const { coupangUrl: url } = await gearStore.getExternalLinks(
+        gear.getId()
+      );
 
       if (!active) {
         return;
