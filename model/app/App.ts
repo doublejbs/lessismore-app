@@ -15,6 +15,7 @@ import NotificationManager from '../notification/NotificationManager';
 import AnnouncementManager from '../announcement/AnnouncementManager';
 import ForceUpdateManager from '../app-update/ForceUpdateManager';
 import FeaturePopupManager from '../feature-popup/FeaturePopupManager';
+import GearPreviewStore from '../gear-preview/GearPreviewStore';
 
 class App {
   private readonly firebase = new Firebase();
@@ -33,6 +34,8 @@ class App {
   private announcementManager: AnnouncementManager | null = null;
   private forceUpdateManager: ForceUpdateManager | null = null;
   private featurePopupManager: FeaturePopupManager | null = null;
+
+  private gearPreviewStore: GearPreviewStore | null = null;
   private initialized = false;
   // 초기화 진행 중 재진입 방지 — _layout의 useEffect가 초기화 완료 전에
   // 의존성 변경으로 재실행되면 initialize가 중복 호출된다(auth/already-initialized).
@@ -72,6 +75,7 @@ class App {
     this.featurePopupManager = FeaturePopupManager.new(this.firebase);
     // config/featurePopup 실시간 구독을 시작한다(닫음 목록 로드 후 구독, 웹 포함). 실패는 조용히 통과(FP-2).
     void this.featurePopupManager.initialize();
+    this.gearPreviewStore = GearPreviewStore.new(this.gearStore);
     this.setInitialized(true);
     this.initializing = false;
   }
@@ -154,6 +158,10 @@ class App {
 
   public getFeaturePopupManager() {
     return this.featurePopupManager;
+  }
+
+  public getGearPreviewStore() {
+    return this.gearPreviewStore;
   }
 }
 

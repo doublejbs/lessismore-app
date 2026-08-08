@@ -1,5 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 import { Linking, Share } from 'react-native';
+import { openBrowserAsync } from 'expo-web-browser';
 import { ImperativeRouter } from 'expo-router';
 import WarehouseDispatcherType from '../warehouse/WarehouseDispatcherType';
 import BagStore from '../store/BagStore';
@@ -19,6 +20,7 @@ import Order from '../order/Order';
 import Warehouse from '../warehouse/Warehouse';
 import BagDetail from '../bag-detail/BagDetail';
 import { getGearShareUrl } from '@/constants/WebLinks';
+import { Color } from '@/constants/DesignTokens';
 import reviewSearchService from '../review/ReviewSearchService';
 import {
   buildBrandTokens,
@@ -100,6 +102,14 @@ class WarehouseDetail {
   // GE-8: 배낭 장비 추가 검색에서 상세로 들어온 경우의 대상 배낭. 있으면 담기 버튼이 그 배낭에 바로 담는다.
   private bagContextId: string | null = null;
   private coupangUrl: string | undefined = undefined;
+  // 브랜드 공식몰 링크(GD-5). 쿠팡과 같은 카탈로그 문서에서 함께 읽는다.
+  private productUrl: string | undefined = undefined;
+  // 미리보기 카드 이미지(GD-5a). 저장된 값이 없으면 이 화면에서 한 번 긁어와 채운다.
+  private productImageUrl: string | undefined = undefined;
+  // 로드에 실패한 이미지는 아이콘으로 되돌린다 — 깨진 썸네일을 남기지 않는다.
+  private productImageFailed = false;
+  // og 수집이 진행 중인지. 카드가 이 동안 스켈레톤을 그려 레이아웃 점프를 막는다.
+  private productImageLoading = false;
   private reviews: BlogReview[] = [];
   private videos: VideoReview[] = [];
   private reviewRatingAvg: number = 0;
@@ -170,11 +180,23 @@ class WarehouseDetail {
     await this.fetchReplies();
     await this.fetchReviewSummary();
 
-    // 쿠팡 최저가 링크는 카탈로그 장비(isCustom === false)에서만 읽는다(GD-5).
+    // 외부 링크는 카탈로그 장비(isCustom === false)에서만 읽는다(GD-5).
+    // 커스텀 장비는 카탈로그 문서가 없어 자연히 미노출된다.
     if (gear && !gear.getIsCustom()) {
-      this.setCoupangUrl(await this.gearStore.getCoupangUrl(this.id));
+      const links = await this.gearStore.getExternalLinks(this.id);
+
+      this.setCoupangUrl(links.coupangUrl);
+      this.setProductUrl(links.productUrl);
+      this.setProductImageUrl(links.productImageUrl);
+
+      // 아직 수집 전이면 지금 한 번 가져온다(GD-5a). 화면을 막지 않는다.
+      if (links.productUrl && !links.productImageUrl) {
+        void this.loadProductImage(links.productUrl);
+      }
     } else {
       this.setCoupangUrl(undefined);
+      this.setProductUrl(undefined);
+      this.setProductImageUrl(undefined);
     }
   }
 
@@ -328,6 +350,100 @@ class WarehouseDetail {
     return this.coupangUrl;
   }
 
+  private setProductUrl(value: string | undefined) {
+    this.productUrl = value;
+  }
+
+  public getProductUrl() {
+    return this.productUrl;
+  }
+
+  private setProductImageUrl(value: string | undefined) {
+    this.productImageUrl = value;
+    this.productImageFailed = false;
+  }
+
+  /** 미리보기 이미지를 처음 한 번 수집한다(GD-5a). 실패는 조용히 넘긴다. */
+  private async loadProductImage(productUrl: string) {
+    const gearId = this.id;
+
+    this.setProductImageLoading(true);
+
+    try {
+      const imageUrl = await app.getGearPreviewStore()?.load(gearId, productUrl);
+
+      // 그 사이에 다른 장비로 옮겨갔으면 버린다.
+      if (imageUrl && this.id === gearId) {
+        this.setProductImageUrl(imageUrl);
+      }
+    } finally {
+      if (this.id === gearId) {
+        this.setProductImageLoading(false);
+      }
+    }
+  }
+
+  private setProductImageLoading(value: boolean) {
+    this.productImageLoading = value;
+  }
+
+  /** og 수집 중인지 — 카드가 스켈레톤을 그릴 구간(GD-5a). */
+  public getIsProductImageLoading() {
+    return this.productImageLoading;
+  }
+
+  /** 카드에 그릴 이미지. 없거나 로드에 실패했으면 undefined — 카드는 아이콘으로 떨어진다. */
+  public getProductImageUrl() {
+    if (this.productImageFailed) {
+      return undefined;
+    }
+
+    if (!app.getGearPreviewStore()?.isHostAllowed(this.productUrl)) {
+      return undefined;
+    }
+
+    return this.productImageUrl;
+  }
+
+  /** 이미지 로드 실패(404·Referer 차단 등)를 기록한다. */
+  public markProductImageFailed() {
+    this.productImageFailed = true;
+  }
+
+
+  /**
+   * 브랜드 공식몰 상품 페이지를 **인앱 브라우저**로 연다(GD-5).
+   *
+   * 쿠팡(`openCoupangUrl`)과 달리 `Linking`을 쓰지 않는다 — 제품 정보를 확인하고
+   * 돌아오는 동선이라 앱을 떠날 이유가 없다. 실패는 조용히 무시한다.
+   */
+  public async openProductUrl() {
+    const url = this.getProductUrl();
+
+    if (!url) {
+      return;
+    }
+
+    app.getAnalyticsManager()?.logClick('gear_purchase', { source: 'brand' });
+
+    try {
+      await openBrowserAsync(url, {
+        toolbarColor: Color.background,
+        controlsColor: Color.textPrimary,
+        dismissButtonStyle: 'close',
+      });
+    } catch {
+      // 인앱 브라우저 열기 실패는 조용히 무시
+    }
+  }
+
+  /**
+   * 쿠팡 파트너스 링크를 연다(GD-5).
+   *
+   * 브랜드 링크와 달리 인앱 브라우저로 감싸지 않는다 — 파트너스 링크는 유니버설
+   * 링크라 쿠팡 앱이 깔려 있으면 앱으로 넘어가는데, 인앱 브라우저는 그 전환을
+   * 막아 수수료 귀속에 불리하다.
+   */
   public async openCoupangUrl() {
     const url = this.getCoupangUrl();
 
@@ -335,7 +451,7 @@ class WarehouseDetail {
       return;
     }
 
-    app.getAnalyticsManager()?.logClick('gear_purchase');
+    app.getAnalyticsManager()?.logClick('gear_purchase', { source: 'coupang' });
 
     try {
       await Linking.openURL(url);
