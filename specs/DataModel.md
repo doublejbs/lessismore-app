@@ -149,12 +149,14 @@
 | `backpack` 배낭 | `backpack` 배낭 / `vest_pack` 베스트 배낭 / `backpack_cover` 배낭 커버 / `pouch` 파우치·수납가방 |
 | `clothing` 의류 | `clothing` 의류 / `gloves` 장갑 / `gaiter` 스패츠 / `sunglasses` 선글라스 |
 | `furniture` 가구 | `furniture` 가구 / `chair` 체어 / `table` 테이블 |
-| `lantern` 랜턴 | `lantern` 랜턴 / `lighting` 조명 |
+| `lantern` 랜턴 | `lantern` 랜턴 / `lighting` 조명 / `headlamp` 헤드랜턴 |
 | `cooking` 조리 | `cooking` 조리 / `stove` 버너 / `torch` 토치 / `cup` 컵 / `bowl` 그릇 / `cookware_etc` 식기류 기타 / `cutlery` 수저 / `bottle` 물통 |
 | `electronic` 전자기기 | `electronic` 전자기기 |
 | `food` 음식 | `food` 식품 |
 | `etc` 기타 | `etc` 기타 / `towel` 수건 / `hand_warmer` 핫팩 / `shovel` 삽 / `hammer` 망치 / `microspikes` 아이젠 / `trekking_pole` 트레킹폴 |
 
+- **`headlamp`는 2026-08-09에 추가했다.** 그 전에는 랜턴과 헤드랜턴이 `lighting` 하나에 섞여 있었다 — 실데이터 221건 중 98건이 헤드랜턴이라 절반 가까이가 잘못 묶여 있던 셈이다. 기존 문서 이관은 `scripts/migrate-headlamp-category.mjs`(백업 우선, `--apply` opt-in)로 하고, 판정은 이름의 `헤드+램프/랜턴/라이트`에 **모델명 규칙**을 더한다 — 나이트코어 NU·HC 시리즈와 블랙다이아몬드 코스모는 이름에 '헤드'가 없지만 전 모델이 헤드랜턴이다(BD 랜턴 라인은 모지·올빗·아폴로라 겹치지 않는다).
+  - **`[미해결]` 크롤 파이프라인**: 새로 들어오는 상품의 `category`는 별도 레포(`lessismore`)의 `specs-schema.js`가 정한다. **거기에도 `headlamp`를 추가하지 않으면 신규 헤드랜턴이 계속 `lighting`으로 쌓인다.**
 - 그룹 필터의 Firestore 쿼리는 `where('category','in', 그룹 멤버 배열)` — 최대 멤버 8개(cooking)로 Firestore `in` 30개 제한 안. 매핑에 없는 미지의 키는 `etc` 그룹으로 폴백.
 - 세분 카테고리 한글 라벨은 웹 `CATEGORY_LABELS`와 동일하게 유지한다(위 표). 상세 화면 메타 라인은 세분 라벨을 표시.
 - 사용자 직접 등록(`CustomGearCategory`)은 기존 11개 그룹 키를 그대로 저장한다(세분 선택 UI 없음).
