@@ -10,12 +10,15 @@ export const GROUP_MEMBERS: Partial<Record<GearFilter, string[]>> = {
   [GearFilter.Mat]: ['mat', 'pillow'],
   [GearFilter.Backpack]: ['backpack', 'vest_pack', 'backpack_cover', 'pouch'],
   [GearFilter.Clothing]: ['clothing', 'gloves', 'gaiter', 'sunglasses'],
-  [GearFilter.Furniture]: ['furniture', 'chair', 'table'],
+  // 'furniture'는 세분 카테고리에서 뺐지만(DM-4) 그룹 멤버로는 남긴다 — lantern과 같은 이유.
+  [GearFilter.Furniture]: ['furniture', 'chair', 'table', 'furniture_etc'],
   // 'lantern'은 세분 카테고리에서 뺐지만(DM-4, 2026-08-09) 그룹 멤버로는 남긴다 —
   // 커스텀 장비 등록이 아직 이 키를 저장하므로 빼면 랜턴 필터에서 빠져 기타로 떨어진다.
   [GearFilter.Lantern]: ['lantern', 'lighting', 'headlamp'],
+  // 'cooking'도 마찬가지로 세분에서만 빼고 그룹 멤버로는 남긴다.
   [GearFilter.Cooking]: [
     'cooking',
+    'cookware',
     'stove',
     'torch',
     'cup',
@@ -59,7 +62,7 @@ export const getGroupForCategory = (category: string): GearFilter => {
 };
 
 // 세분 카테고리 한글 라벨 — 웹 CATEGORY_LABELS와 동일하게 유지한다(DM-4).
-// 레거시 그룹 키(furniture/cooking/electronic) 라벨도 포함.
+// 레거시 그룹 키(electronic) 라벨도 포함.
 export const FINE_CATEGORY_LABELS: Record<string, string> = {
   backpack: '배낭',
   vest_pack: '베스트 배낭',
@@ -77,10 +80,12 @@ export const FINE_CATEGORY_LABELS: Record<string, string> = {
   stove: '버너',
   torch: '토치',
   bottle: '물통',
+  cookware: '코펠·쿡웨어',
   cookware_etc: '식기류 기타',
   chair: '체어',
   table: '테이블',
-  clothing: '의류',
+  furniture_etc: '그 외 기타',
+  clothing: '일반',
   sunglasses: '선글라스',
   gaiter: '스패츠',
   gloves: '장갑',
@@ -95,10 +100,8 @@ export const FINE_CATEGORY_LABELS: Record<string, string> = {
   microspikes: '아이젠',
   trekking_pole: '트레킹폴',
   etc: '그 외 기타',
-  // 레거시 그룹 키 라벨 — 'lantern'은 세분 카테고리에서 제외했다(DM-4).
-  // 라벨이 없으면 화면이 그룹 라벨('랜턴')로 폴백하므로 표시는 그대로다.
-  furniture: '가구',
-  cooking: '조리',
+  // 레거시 그룹 키 라벨 — 'lantern'·'furniture'·'cooking'은 세분 카테고리에서 제외했다(DM-4).
+  // 라벨이 없으면 화면이 그룹 라벨로 폴백하므로 표시는 그대로다.
   electronic: '전자기기',
 };
 
