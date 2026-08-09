@@ -18,6 +18,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { writeFileSync } from 'node:fs';
+import { isHeadlamp, toLabel } from './lib/HeadlampRule.mjs';
 
 const config = {
   apiKey: 'AIzaSyBhg7PCSJY7Zm6p804Y5dTad4Qoi8Tr6MU',
@@ -31,22 +32,6 @@ const config = {
 const isApply = process.argv.includes('--apply');
 const BATCH_SIZE = 400;
 
-/**
- * 헤드랜턴 판정.
- *
- * 1차는 이름의 '헤드 + 램프/랜턴/라이트'다. 다만 **모델명만 적힌 상품은 이걸로 못 잡는다** —
- * 나이트코어 NU 시리즈, 블랙다이아몬드 코스모가 그렇다. 두 라인은 전 모델이 헤드랜턴이라
- * 브랜드+모델 규칙을 따로 둔다(BD 랜턴 라인은 모지·올빗·아폴로라 겹치지 않는다).
- */
-const NAME_RULE = /헤드\s*(램프|랜턴|라이트)|head\s*(lamp|torch)|headlamp|headlight/i;
-const MODEL_RULES = [
-  /나이트코어.*\b(NU|HC)\s?\d/i,
-  /블랙다이아몬드.*코스모/,
-];
-
-const isHeadlamp = label =>
-  NAME_RULE.test(label) || MODEL_RULES.some(re => re.test(label));
-
 const db = getFirestore(initializeApp(config));
 const snap = await getDocs(
   query(collection(db, 'gear'), where('category', '==', 'lighting'))
@@ -57,7 +42,7 @@ const stay = [];
 
 snap.forEach(d => {
   const g = d.data();
-  const label = `${g.companyKorean ?? ''} ${g.nameKorean ?? ''} ${g.name ?? ''}`.trim();
+  const label = toLabel(g);
   const row = { id: d.id, label, category: g.category };
 
   (isHeadlamp(label) ? move : stay).push(row);
