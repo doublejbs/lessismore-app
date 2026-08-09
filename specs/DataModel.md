@@ -147,10 +147,10 @@
 | `sleeping_bag` 침낭 | `sleeping_bag` 침낭 |
 | `mat` 매트 | `mat` 매트 / `pillow` 필로우 |
 | `backpack` 배낭 | `backpack` 배낭 / `vest_pack` 베스트 배낭 / `backpack_cover` 배낭 커버 / `pouch` 파우치·수납가방 |
-| `clothing` 의류 | `clothing` 의류 / `gloves` 장갑 / `gaiter` 스패츠 / `sunglasses` 선글라스 |
-| `furniture` 가구 | `furniture` 가구 / `chair` 체어 / `table` 테이블 |
+| `clothing` 의류 | `clothing` 일반 / `gloves` 장갑 / `gaiter` 스패츠 / `sunglasses` 선글라스 |
+| `furniture` 가구 | `chair` 체어 / `table` 테이블 / `furniture_etc` 그 외 기타 |
 | `lantern` 랜턴 | `lighting` 조명 / `headlamp` 헤드랜턴 |
-| `cooking` 조리 | `cooking` 조리 / `stove` 버너 / `torch` 토치 / `cup` 컵 / `bowl` 그릇 / `cookware_etc` 식기류 기타 / `cutlery` 수저 / `bottle` 물통 |
+| `cooking` 조리 | `cookware` 코펠·쿡웨어 / `stove` 버너 / `torch` 토치 / `cup` 컵 / `bowl` 그릇 / `cutlery` 수저 / `bottle` 물통 / `cookware_etc` 식기류 기타 |
 | `electronic` 전자기기 | `electronic` 전자기기 |
 | `food` 음식 | `food` 식품 |
 | `etc` 기타 | `etc` 기타 / `towel` 수건 / `hand_warmer` 핫팩 / `shovel` 삽 / `hammer` 망치 / `microspikes` 아이젠 / `trekking_pole` 트레킹폴 |
@@ -160,7 +160,14 @@
   - **사용자 창고 사본도 함께 옮긴다.** 카탈로그만 고치면 같은 장비가 카탈로그에서는 `헤드랜턴`, 내 창고에서는 `랜턴`으로 보인다. 실측 결과 사용자 문서(총 3,279건)에는 `lighting`이 0건이고 **`lantern`이 268건**이었다 — 카탈로그 0건만 보고 판단하면 안 된다. `scripts/migrate-headlamp-user-gears.mjs`로 268건을 `headlamp` 66 / `lighting` 202로 갈랐다. 판정 규칙은 카탈로그 이관과 **같은 모듈**(`scripts/lib/HeadlampRule.mjs`)을 쓴다 — 두 곳이 갈리면 불일치가 다시 생긴다.
   - 사용자 등록 장비는 표기가 제각각(`Black Diamond 스프린트 225`, `크레모아 헤디플러스`)이라 이름 규칙만으로는 샌다. 모델명 규칙에 영문 브랜드명과 축약 표기를 함께 넣은 이유다.
   - **`[미해결]` 크롤 파이프라인**: 새로 들어오는 상품의 `category`는 별도 레포(`lessismore`)의 `specs-schema.js`가 정한다. **거기에도 `headlamp`를 추가하지 않으면 신규 헤드랜턴이 계속 `lighting`으로 쌓인다.**
-- 그룹 필터의 Firestore 쿼리는 `where('category','in', 그룹 멤버 배열)` — 최대 멤버 8개(cooking)로 Firestore `in` 30개 제한 안. 매핑에 없는 미지의 키는 `etc` 그룹으로 폴백.
+**2026-08-09 개정 — 레거시 세분 키 정리.** 그룹 키와 이름이 같아 "큰 분류인지 세부 분류인지" 구분이 안 되던 `furniture`·`lantern`·`cooking`을 **세분 카테고리에서 뺐다**. `clothing`은 값을 유지하되 세분 라벨을 **`일반`** 으로 바꿔 같은 문제를 해소했다(22,889건이라 이동 비용이 크고, 그룹 라벨 `의류`와 세분 라벨 `일반`이 겹치지 않으면 그것으로 충분하다).
+
+- **세 키 모두 그룹 멤버 배열에는 남긴다.** 커스텀 장비 등록(`CustomGearCategory`)이 아직 이 키들을 저장하므로, 멤버에서 빼면 그 장비가 필터에서 빠져 `etc`로 떨어진다. 세분 라벨만 지우면 화면은 그룹 라벨로 폴백하므로 표시는 그대로다.
+- **새 세분 키**: `cookware` 코펠·쿡웨어, `furniture_etc` 그 외 기타. 특히 조리 그룹에는 **코펠 자리가 없어서** 쿡셋·쿠커·포트가 갈 곳 없이 `cooking`에 남아 있었다(카탈로그 475건 중 174건).
+- **기존 문서 이관**은 `scripts/migrate-legacy-categories.mjs`(백업 우선, `--apply` opt-in). 카탈로그 475건 + 사용자 창고 838건 = **1,313건**을 규칙(`scripts/lib/CategorySplitRules.mjs`)으로 갈랐다. 카탈로그와 사용자 문서가 **같은 규칙**을 쓴다 — 갈리면 같은 장비가 두 곳에서 다르게 보인다.
+- **`[함정]` 한글 뒤에 `\b`를 쓰지 말 것.** `\b`는 ASCII 단어문자 기준이라 `컵\b`가 `싱글컵 320ml`을 못 잡는다(한글도 공백도 비단어라 경계가 서지 않는다). 이 실수로 컵·팬·볼이 전부 `식기류 기타`로 떨어졌었다 — 규칙 수정 시 재발 주의.
+
+- 그룹 필터의 Firestore 쿼리는 `where('category','in', 그룹 멤버 배열)` — 최대 멤버 9개(cooking)로 Firestore `in` 30개 제한 안. 매핑에 없는 미지의 키는 `etc` 그룹으로 폴백.
 - 세분 카테고리 한글 라벨은 웹 `CATEGORY_LABELS`와 동일하게 유지한다(위 표). 상세 화면 메타 라인은 세분 라벨을 표시.
 - 사용자 직접 등록(`CustomGearCategory`)은 기존 11개 그룹 키를 그대로 저장한다(세분 선택 UI 없음).
 
