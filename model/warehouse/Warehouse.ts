@@ -2,7 +2,7 @@ import { makeAutoObservable, reaction } from 'mobx';
 import Firebase from '../firebase/Firebase';
 import Gear from '../gear/Gear';
 import GearFilter from '../gear/GearFilter';
-import { getGroupMembers } from '../gear/GearCategoryGroups';
+import { getSelectableFineCategories } from '../gear/GearCategoryGroups';
 import Order from '../order/Order';
 import OrderType from '../order/OrderType';
 import ToastManager from '../toast/ToastManager';
@@ -221,7 +221,8 @@ class Warehouse {
       return [];
     }
 
-    const members = getGroupMembers(selected);
+    // 라벨 없는 레거시 키를 빼고 센다 — 그대로 넘기면 빈 칩이 생긴다(DM-4).
+    const members = getSelectableFineCategories(selected);
 
     if (members.length < 2) {
       return [];

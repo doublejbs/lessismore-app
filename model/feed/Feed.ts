@@ -7,7 +7,7 @@ import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Firebase from '@/model/firebase/Firebase';
 import GearStore from '@/model/store/GearStore';
 import GearFilter from '@/model/gear/GearFilter';
-import { getGroupMembers } from '@/model/gear/GearCategoryGroups';
+import { getSelectableFineCategories } from '@/model/gear/GearCategoryGroups';
 import OrderType from '@/model/order/OrderType';
 import GearRowActions from '@/model/browse/GearRowActions';
 import app from '@/model/app/App';
@@ -602,7 +602,10 @@ class Feed implements GearRowActions {
       return [];
     }
 
-    const members = getGroupMembers(this.filterCategory as GearFilter);
+    // 라벨 없는 레거시 키를 빼고 센다 — 그대로 넘기면 빈 칩이 생긴다(DM-4).
+    const members = getSelectableFineCategories(
+      this.filterCategory as GearFilter
+    );
 
     if (members.length < 2) {
       return [];

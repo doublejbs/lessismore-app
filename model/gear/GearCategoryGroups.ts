@@ -109,3 +109,16 @@ export const FINE_CATEGORY_LABELS: Record<string, string> = {
 export const getFineCategoryLabel = (category: string): string => {
   return FINE_CATEGORY_LABELS[category] ?? '';
 };
+
+/**
+ * **칩으로 낼 수 있는** 세분 카테고리만 추린다(DM-4).
+ *
+ * 그룹 멤버에는 라벨 없는 레거시 그룹 키(`cooking`·`furniture`·`lantern`)가 섞여 있다 —
+ * 조회(`where('category','in', ...)`)에는 필요하지만 칩으로 그리면 **글자 없는 빈 칩**이 된다.
+ * 멤버 배열을 그대로 칩에 넘기지 말고 이 함수를 쓸 것.
+ */
+export const getSelectableFineCategories = (filter: GearFilter): string[] => {
+  return getGroupMembers(filter).filter(key =>
+    Boolean(FINE_CATEGORY_LABELS[key])
+  );
+};
