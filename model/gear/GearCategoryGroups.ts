@@ -11,7 +11,7 @@ export const GROUP_MEMBERS: Partial<Record<GearFilter, string[]>> = {
   [GearFilter.Backpack]: ['backpack', 'vest_pack', 'backpack_cover', 'pouch'],
   [GearFilter.Clothing]: ['clothing', 'gloves', 'gaiter', 'sunglasses'],
   [GearFilter.Furniture]: ['furniture', 'chair', 'table'],
-  [GearFilter.Lantern]: ['lantern', 'lighting'],
+  [GearFilter.Lantern]: ['lantern', 'lighting', 'headlamp'],
   [GearFilter.Cooking]: [
     'cooking',
     'stove',
@@ -83,6 +83,7 @@ export const FINE_CATEGORY_LABELS: Record<string, string> = {
   gaiter: '스패츠',
   gloves: '장갑',
   lighting: '조명',
+  headlamp: '헤드랜턴',
   food: '식품',
   towel: '수건',
   pouch: '파우치/수납가방',
