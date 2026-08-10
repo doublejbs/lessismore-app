@@ -2,7 +2,7 @@ import CampSiteType from './CampSiteType';
 import CampSiteTag from './CampSiteTag';
 import CampSiteDetailTab from './CampSiteDetailTab';
 import { CampSpotData } from './CampSpotTypes';
-import { LiquidSemantic } from '@/constants/DesignTokens';
+import { Liquid, LiquidSemantic } from '@/constants/DesignTokens';
 
 // 박지 상세(CampSite CS-3/CS-4)에서 쓰는 표시 라벨·문구 매핑.
 
@@ -67,7 +67,8 @@ export const getCampSiteTypeLabel = (type: CampSiteType): string => {
 };
 
 export const getCampSiteTypeColor = (type: CampSiteType): string => {
-  return TYPE_COLOR[type] ?? '#000000';
+  // 알 수 없는 유형의 폴백. 순수 검정은 이 팔레트에 없어 잉크로 떨어뜨린다.
+  return TYPE_COLOR[type] ?? Liquid.ink;
 };
 
 export const getCampSiteTagLabel = (tag: CampSiteTag): string => {

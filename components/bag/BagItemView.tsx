@@ -12,6 +12,7 @@ import app from '@/model/app/App';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
 import BagTripSection from '@/model/bag/BagTripSection';
+import { isCondensedLabel } from '@/model/home/HomeTripPlan';
 import PretendardText from '@/components/PretendardText';
 import LiquidProgressBar from '@/components/liquid/LiquidProgressBar';
 import { useRouter } from 'expo-router';
@@ -29,10 +30,6 @@ import {
 // 액션 버튼 1개 너비. 전체 액션 영역 = ACTION_WIDTH * 2.
 const ACTION_WIDTH = 72;
 const ACTIONS_TOTAL_WIDTH = ACTION_WIDTH * 2;
-
-// `D-6`처럼 숫자·라틴만인 라벨에만 콘덴스드를 쓴다. `여행 중`·`오늘 출발`은 한글이라
-// Archivo Narrow에 글리프가 없어 글자가 깨진다(핸드오프 타입 규칙).
-const CONDENSED_LABEL_PATTERN = /^D-\d+$/;
 
 interface RightActionsProps {
   // ReanimatedSwipeable가 넘겨주는 드래그 변위(열릴수록 음수, 닫히면 0).
@@ -204,7 +201,8 @@ const BagItemView: FC<Props> = ({
       );
     }
 
-    const isCondensed = CONDENSED_LABEL_PATTERN.test(badgeLabel);
+    // `D-6`은 콘덴스드, `오늘 출발`·`패킹 40%`는 본문 서체 — 홈 히어로와 같은 판정을 쓴다.
+    const isCondensed = isCondensedLabel(badgeLabel);
 
     return (
       <View

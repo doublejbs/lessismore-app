@@ -5,8 +5,8 @@ import Constants from 'expo-constants';
 import PretendardText from '@/components/PretendardText';
 import { Liquid, LiquidFont, LiquidMotion } from '@/constants/DesignTokens';
 
-// 한 줄 푸터 링크의 44pt 터치 타깃 확보용 여유.
-const LINK_HIT_SLOP = { top: 14, bottom: 14, left: 12, right: 12 };
+// 한 줄 푸터 링크의 44pt 터치 타깃 확보용 여유. 11.5px 한 줄(≈15)이라 (44 − 15) / 2 = 15다.
+const LINK_HIT_SLOP = { top: 15, bottom: 15, left: 12, right: 12 };
 
 interface Props {
   isLoggedIn: boolean;

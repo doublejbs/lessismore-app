@@ -7,7 +7,12 @@ import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import Feed from '@/model/feed/Feed';
 import PretendardText from '@/components/PretendardText';
-import { Liquid, LiquidLayout, LiquidMotion } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidShadow,
+} from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 interface Props {
@@ -91,10 +96,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     borderRadius: 23,
     overflow: 'hidden',
-    boxShadow: '0 10px 26px rgba(16,16,18,0.28)',
+    boxShadow: LiquidShadow.floatingPill,
   },
   pillFill: {
-    backgroundColor: 'rgba(16,16,18,0.88)',
+    backgroundColor: Liquid.inkFloating,
   },
   pillLabel: {
     fontSize: 15,

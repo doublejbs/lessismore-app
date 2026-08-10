@@ -188,10 +188,12 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
               가진 장비를 하나씩 담아보세요
             </PretendardText>
             {/* 상단 크롬의 `+`와 같은 곳으로 가는 버튼이라 잉크로 두지 않는다 —
-                주 액션은 화면에 하나이고, 여기는 그 자리로 가는 조용한 안내다. */}
+                주 액션은 화면에 하나이고, 여기는 그 자리로 가는 조용한 안내다.
+                흰 카드 위라 `secondary`(흰 면 + 헤어라인)는 테두리만 남아 버튼으로
+                읽히지 않는다 — 면을 한 단계 가라앉히는 `quiet`을 쓴다. */}
             <LiquidPillButton
               label='첫 장비 담기'
-              variant='secondary'
+              variant='quiet'
               block
               onPress={handleAddGear}
               style={styles.emptyCta}

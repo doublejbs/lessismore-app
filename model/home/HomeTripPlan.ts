@@ -102,6 +102,20 @@ export const getDDayLabel = (
   return daysUntilStart === 0 ? '오늘 출발' : `D-${daysUntilStart}`;
 };
 
+// `D-6`처럼 숫자·라틴만인 라벨. `여행 중`·`여행 완료`·`오늘 출발`이나 배낭 목록 카드의
+// `패킹 완료`·`패킹 40%`는 걸러진다.
+const CONDENSED_LABEL_PATTERN = /^D-\d+$/;
+
+/**
+ * 이 라벨을 콘덴스드(Archivo Narrow)로 그려도 되는가.
+ *
+ * Archivo Narrow에는 한글 글리프가 없어 한글 라벨에 얹으면 글자가 깨진다(핸드오프 타입 규칙).
+ * `getDDayLabel()`이 같은 자리에 한글과 `D-n`을 섞어 돌려주므로 판정을 라벨을 만드는 곳 옆에
+ * 두어, 홈 히어로와 배낭 목록 카드가 같은 기준으로 서체를 가르게 한다.
+ */
+export const isCondensedLabel = (label: string): boolean =>
+  CONDENSED_LABEL_PATTERN.test(label);
+
 /**
  * 시점별 주 액션(HM-1).
  *

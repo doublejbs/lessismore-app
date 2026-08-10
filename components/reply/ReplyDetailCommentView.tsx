@@ -26,10 +26,10 @@ interface Props {
 }
 
 /**
- * 좋아요 버튼 터치 여유. 아이콘 18 + 숫자라 시각 높이가 20 남짓이다 — 키우면 답글 안에서
- * 하트가 본문보다 무거워 보이므로 여유로만 44pt를 채운다.
+ * 좋아요 버튼 터치 여유. 아이콘 18 + 숫자를 여백 없는 행에 놓아 시각 높이가 18이다 — 키우면
+ * 답글 안에서 하트가 본문보다 무거워 보이므로 여유로만 44pt를 채운다: (44 − 18) / 2 = 13.
  */
-const LIKE_HIT_SLOP = { top: 12, bottom: 12, left: 8, right: 8 };
+const LIKE_HIT_SLOP = { top: 13, bottom: 13, left: 8, right: 8 };
 
 /**
  * RP-2 답글 한 항목 (Liquid Depth, 2026-08-11 이식).
@@ -271,9 +271,11 @@ const styles = StyleSheet.create({
     color: LiquidSemantic.like,
   },
   // 시각 높이는 낮추고 터치 타깃은 세로 여유로 채운다 — 답글 줄이 본문보다 무거워지지 않게.
+  // 13px 한 줄(≈17)이라 44를 채우려면 위아래 14가 필요하다. 음수 마진으로 되돌려
+  // 레이아웃 높이는 글자 줄 그대로 두고 터치 영역만 넓힌다.
   replyButton: {
-    paddingVertical: 12,
-    marginVertical: -12,
+    paddingVertical: 14,
+    marginVertical: -14,
   },
   replyButtonText: {
     fontSize: 13,

@@ -52,6 +52,14 @@ interface Props {
 // 담기 CTA는 카드 우상단, coupangUrl이 있으면 하단 축약 링크.
 // 수수료 고지는 카드마다 반복하지 않고 FeedView 리스트 푸터에서 1회 노출한다.
 // coupangUrl은 Algolia hit·Gear에 없고 /gear 문서에만 있어(WarehouseDetail과 동일 경로) 마운트 시 지연 로드한다.
+
+/**
+ * 쿠팡 링크 줄의 터치 여유. 12px 한 줄(≈16) + `paddingTop` 8 = 24뿐이라 그대로는 HIG 44에
+ * 크게 못 미친다. 카드 안 마지막 줄이라 시각 높이를 키우면 카드가 늘어나므로 세로 여유로만
+ * 채운다: (44 − 24) / 2 = 10 → 11. 가로는 0 — 카드 폭 안에서 이미 넉넉하다.
+ */
+const COUPANG_HIT_SLOP = { top: 11, bottom: 11, left: 0, right: 0 };
+
 const FeedCardView: FC<Props> = ({
   gear,
   actions,
@@ -286,6 +294,9 @@ const FeedCardView: FC<Props> = ({
               style={styles.coupangLink}
               onPress={handleCoupangPress}
               activeOpacity={LiquidMotion.pressOpacity}
+              hitSlop={COUPANG_HIT_SLOP}
+              accessibilityRole='link'
+              accessibilityLabel='쿠팡 최저가 보기'
             >
               <PretendardText weight='medium' style={styles.coupangText}>
                 쿠팡 최저가

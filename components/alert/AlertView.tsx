@@ -58,6 +58,9 @@ const AlertView: FC<Props> = ({ alertManager }) => {
     <Modal
       visible={isVisible}
       transparent={true}
+      // 안드로이드는 이 값이 없으면 딤이 상태바 아래에서 끊겨 지면이 그대로 비친다
+      // (로그인 시트 선례). 딤은 화면 전체를 덮어야 카드가 유일한 초점이 된다.
+      statusBarTranslucent
       animationType='fade'
       onRequestClose={handleClickCancel}
     >

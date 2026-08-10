@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { NaverMapMarkerOverlay } from '@mj-studio/react-native-naver-map';
+import { Liquid, LiquidShadow } from '@/constants/DesignTokens';
 
 interface Props {
   latitude: number;
@@ -49,18 +50,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(45, 140, 255, 0.18)',
   },
   // 흰 테두리 + 파란 코어 + 그림자로 지도 위에서 떠오르는 표준 현위치 점.
+  // 테두리·그림자는 박지 마커(CampSiteMarkerView)와 같은 값을 쓴다 — 같은 지도 위에 나란히
+  // 놓이는 점이라 떠 있는 정도가 갈리면 한쪽이 다른 층에 있는 것처럼 보인다.
   dot: {
     width: 16,
     height: 16,
     borderRadius: 8,
     backgroundColor: MY_LOCATION_BLUE,
     borderWidth: 3,
-    borderColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 4,
+    borderColor: Liquid.surface,
+    boxShadow: LiquidShadow.markerOnMap,
   },
 });
 

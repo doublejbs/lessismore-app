@@ -173,6 +173,8 @@ const AnnouncementSheetView = () => {
     <Modal
       visible={visible}
       transparent={true}
+      // 안드로이드는 이 값이 없으면 딤이 상태바 아래에서 끊겨 지면이 비친다(로그인 시트 선례).
+      statusBarTranslucent
       animationType='none'
       onRequestClose={handleDismissForSession}
     >

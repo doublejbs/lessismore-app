@@ -64,12 +64,12 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
     setHasCoupangLink(true);
   }, []);
 
-  // 플로팅 `인기 순위` 버튼(탭바 위 20pt, 높이 ~48)이 마지막 카드를 가리지 않도록 리스트 하단 여백을 확보한다.
+  // 플로팅 탭바·`인기 순위` 버튼 아래로 콘텐츠가 흐르므로 시안대로 130을 비운다
+  // (검색 결과 그리드와 같은 값 — 같은 카드가 두 화면에서 다른 높이에 끊기면 안 된다).
   // iOS는 edge-to-edge라 탭바 영역(insets.bottom)까지 더한다. Android는 커스텀 탭이라 고정값.
   const listBottomPadding = Platform.select({
-    ios: insets.bottom + 90,
-    android: 120,
-    default: 150,
+    ios: insets.bottom + LiquidLayout.scrollBottom,
+    default: LiquidLayout.scrollBottom,
   });
 
   useEffect(() => {

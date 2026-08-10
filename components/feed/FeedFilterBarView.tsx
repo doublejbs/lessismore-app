@@ -37,6 +37,13 @@ const ALL_LABEL = '전체';
 
 const BRAND_LABEL = '브랜드';
 
+/**
+ * 브랜드 버튼은 목업 §2대로 h32 아웃라인 칩이라 시각 높이를 키울 수 없다(같은 줄 칩 리듬이
+ * 깨진다). 칩 프리미티브와 같은 방식으로 세로 여유만 얹어 44를 채운다: (44 − 32) / 2 = 6.
+ * 가로는 0 — 옆 정렬 버튼과 겹친다.
+ */
+const BRAND_HIT_SLOP = { top: 6, bottom: 6, left: 0, right: 0 };
+
 // FD-3: 피드 상단 고정 필터 바.
 // 위계상 카테고리를 주 축(칩 행)으로 노출하고, 보조 축인 브랜드(진입 버튼)·정렬(드롭다운)은
 // 그 아래 컨트롤 행에 둔다. 카테고리는 탭 즉시 적용, 브랜드/정렬은 각각 전용 시트로 진입한다.
@@ -173,6 +180,9 @@ const FeedFilterBarView: FC<Props> = ({
           style={[styles.brandButton, brandActive && styles.brandButtonActive]}
           onPress={handleOpenBrand}
           activeOpacity={LiquidMotion.pressOpacity}
+          hitSlop={BRAND_HIT_SLOP}
+          accessibilityRole='button'
+          accessibilityState={{ selected: brandActive }}
         >
           <Ionicons
             name='options-outline'

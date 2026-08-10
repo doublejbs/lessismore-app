@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { NoAnimationTab } from '@/components/NoAnimationTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { Liquid } from '@/constants/DesignTokens';
 
 // iOS는 네이티브 UITabBar(NativeTabs)로 iOS 26 리퀴드 글래스를 받고,
 // Android/Web은 기존 커스텀 JS 탭바(react-navigation)를 그대로 쓴다.
@@ -13,12 +14,14 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 // 홈의 창고 미리보기 카드(HM-4)가 그 입구다.
 const NativeTabLayout = () => {
   return (
+    // 탭바 아이콘은 SF Symbols를 유지하되(핸드오프 웹→RN 변환 규칙) 색은 잉크 스케일에서
+    // 가져온다 — 순수 검정과 iOS 시스템 회색은 이 팔레트에 없는 값이다.
     <NativeTabs
-      tintColor='#000000'
-      iconColor={{ default: '#8E8E93', selected: '#000000' }}
+      tintColor={Liquid.ink}
+      iconColor={{ default: Liquid.tabInactive, selected: Liquid.ink }}
       labelStyle={{
-        default: { color: '#8E8E93' },
-        selected: { color: '#000000' },
+        default: { color: Liquid.tabInactive },
+        selected: { color: Liquid.ink },
       }}
       minimizeBehavior='onScrollDown'
     >
@@ -48,7 +51,8 @@ const NativeTabLayout = () => {
 
 const JsTabLayout = () => {
   const screenOptions: any = {
-    tabBarActiveTintColor: 'black',
+    tabBarActiveTintColor: Liquid.ink,
+    tabBarInactiveTintColor: Liquid.tabInactive,
     headerShown: false,
     tabBarButton: NoAnimationTab,
     tabBarStyle: Platform.select({

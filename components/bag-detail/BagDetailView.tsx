@@ -280,10 +280,11 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                     </PretendardText>
                     {/* 하단 바의 `장비 추가`가 이 화면의 주 액션이다 — 같은 곳으로 가는
                         이 카드 안 버튼까지 잉크로 두면 잉크 CTA가 화면에 둘이 된다.
-                        조용한 위계(흰 면 + 아웃라인)로 낮춘다. */}
+                        흰 카드 위라 `secondary`(흰 면 + 헤어라인)는 테두리만 남아 버튼으로
+                        읽히지 않는다 — 면을 한 단계 가라앉히는 `quiet`으로 낮춘다. */}
                     <LiquidPillButton
                       label='장비 추가하기'
-                      variant='secondary'
+                      variant='quiet'
                       block
                       onPress={handlePressAddGear}
                       style={styles.gearEmptyCta}

@@ -20,6 +20,7 @@ import {
   getDDayLabel,
   getPrimaryAction,
   HomeTripPlan,
+  isCondensedLabel,
 } from '@/model/home/HomeTripPlan';
 import { createQuickBag } from '@/model/bag/QuickBagDefaults';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
@@ -110,7 +111,17 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
           <View style={styles.heroIdentity}>
             {dDayLabel !== null && (
               <View style={styles.dDayBadge}>
-                <PretendardText style={styles.dDayText}>
+                {/* `여행 중`·`오늘 출발`이 오는 자리라 라벨을 보고 서체를 가른다 —
+                    콘덴스드에는 한글 글리프가 없어 얹으면 글자가 깨진다. */}
+                <PretendardText
+                  weight='semibold'
+                  style={[
+                    styles.dDayText,
+                    isCondensedLabel(dDayLabel)
+                      ? styles.dDayTextCondensed
+                      : styles.dDayTextKorean,
+                  ]}
+                >
                   {dDayLabel}
                 </PretendardText>
               </View>
@@ -228,28 +239,44 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
       </View>
 
       {/* 다음 여행 한 줄 카드 — 히어로 다음 순번들. */}
-      {next.map(bag => (
-        <TouchableOpacity
-          key={bag.getID()}
-          style={styles.nextRow}
-          onPress={() => handleOpenBag(bag)}
-          activeOpacity={LiquidMotion.pressOpacity}
-          accessibilityRole='button'
-          accessibilityLabel={`${bag.getName()} 배낭 상세`}
-        >
-          <PretendardText style={styles.nextDDay}>
-            {getDDayLabel(bag) ?? ''}
-          </PretendardText>
-          <PretendardText
-            weight='medium'
-            style={styles.nextName}
-            numberOfLines={1}
+      {next.map(bag => {
+        const nextLabel = getDDayLabel(bag) ?? '';
+
+        return (
+          <TouchableOpacity
+            key={bag.getID()}
+            style={styles.nextRow}
+            onPress={() => handleOpenBag(bag)}
+            activeOpacity={LiquidMotion.pressOpacity}
+            accessibilityRole='button'
+            accessibilityLabel={`${bag.getName()} 배낭 상세`}
           >
-            {bag.getName()}
-          </PretendardText>
-          <Ionicons name='chevron-forward' size={14} color={Liquid.inkSubtle} />
-        </TouchableOpacity>
-      ))}
+            {/* 히어로 배지와 같은 기준으로 서체를 가른다 — 한글이 오면 콘덴스드를 벗긴다. */}
+            <PretendardText
+              style={[
+                styles.nextDDay,
+                isCondensedLabel(nextLabel)
+                  ? styles.nextDDayCondensed
+                  : styles.nextDDayKorean,
+              ]}
+            >
+              {nextLabel}
+            </PretendardText>
+            <PretendardText
+              weight='medium'
+              style={styles.nextName}
+              numberOfLines={1}
+            >
+              {bag.getName()}
+            </PretendardText>
+            <Ionicons
+              name='chevron-forward'
+              size={14}
+              color={Liquid.inkSubtle}
+            />
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 };
@@ -285,10 +312,17 @@ const styles = StyleSheet.create({
     backgroundColor: Liquid.ink,
   },
   dDayText: {
+    color: Liquid.lime,
+  },
+  // `D-6`처럼 숫자·라틴만인 라벨만 콘덴스드로 간다.
+  dDayTextCondensed: {
     fontFamily: LiquidFont.condensed,
     fontSize: 14,
     letterSpacing: 1.12, // .08em
-    color: Liquid.lime,
+  },
+  // 한글 라벨은 본문 서체로 떨어뜨린다. 콘덴스드보다 폭이 넓어 한 급 낮춰야 배지가 안 벌어진다.
+  dDayTextKorean: {
+    fontSize: 12.5,
   },
   tripName: {
     marginTop: 12,
@@ -399,9 +433,14 @@ const styles = StyleSheet.create({
     boxShadow: LiquidShadow.tile,
   },
   nextDDay: {
+    color: Liquid.inkTertiary,
+  },
+  nextDDayCondensed: {
     fontFamily: LiquidFont.condensed,
     fontSize: 15,
-    color: Liquid.inkTertiary,
+  },
+  nextDDayKorean: {
+    fontSize: 13.5,
   },
   nextName: {
     flex: 1,
