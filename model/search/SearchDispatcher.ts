@@ -26,7 +26,7 @@ class SearchDispatcher implements SearchDispatcherType {
     keyword: string,
     index: number,
     filters?: { category?: string; brands?: string[] }
-  ): Promise<{ gears: Gear[]; hasMore: boolean }> {
+  ): Promise<{ gears: Gear[]; hasMore: boolean; totalCount: number }> {
     return await this.searchStore.searchList(keyword, index, filters);
   }
 

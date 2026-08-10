@@ -2,19 +2,19 @@ import { FC, useCallback, useState } from 'react';
 import { FlatList, StyleSheet, View, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Gear from '@/model/gear/Gear';
-import SearchSkeletonView from './SearchSkeletonView';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import { observer } from 'mobx-react-lite';
 import Bag from '@/model/bag/Bag';
 import { GearAddContext } from '@/model/gear/GearAddContext';
 import FeedCardView from '@/components/feed/FeedCardView';
+import FeedSkeletonView from '@/components/feed/FeedSkeletonView';
 import PretendardText from '@/components/PretendardText';
-import { AcgLayout, Color } from '@/constants/DesignTokens';
+import { Liquid, LiquidLayout } from '@/constants/DesignTokens';
 import { useFocusEffect } from 'expo-router';
 
-// SR-2: 피드 카드(FD-2)와 동일한 2컬럼 그리드 간격.
+// SR-2: 피드 카드(FD-2)와 동일한 2컬럼 그리드 간격 — 두 화면이 같은 그리드를 공유한다.
 const COLUMN_GAP = 12;
-const ROW_GAP = 24;
+const ROW_GAP = 14;
 
 // 쿠팡 링크가 **실제로 노출된 카드가 있을 때만** 푸터에서 1회 고지한다(FD-2와 동일, GD-5 취지).
 // 링크가 하나도 없는 결과에까지 문구를 띄우지 않는다.
@@ -59,12 +59,12 @@ const SearchResultContentView: FC<Props> = ({
   }, []);
 
   // iOS는 결과 리스트가 탭바 뒤로 흐르므로(edge-to-edge) 마지막 카드가 가리지 않게 탭바 영역만큼 더한다.
-  // ACG 플로팅 탭바 아래로 콘텐츠가 흐르므로 시안대로 130을 비운다 —
+  // 플로팅 탭바 아래로 콘텐츠가 흐르므로 시안대로 130을 비운다 —
   // 40으로는 마지막 카드가 탭바에 잘렸다(2026-08-03 실기기 확인).
   const listBottomPadding =
     Platform.OS === 'ios'
-      ? insets.bottom + AcgLayout.scrollBottom
-      : AcgLayout.scrollBottom;
+      ? insets.bottom + LiquidLayout.scrollBottom
+      : LiquidLayout.scrollBottom;
 
   useFocusEffect(
     useCallback(() => {
@@ -94,15 +94,15 @@ const SearchResultContentView: FC<Props> = ({
       ListFooterComponent={
         <>
           {children}
-          {isLoading && (
-            <View style={styles.skeletonContainer}>
-              <SearchSkeletonView />
-            </View>
-          )}
+          {/* 로딩 자리는 스피너가 아니라 도착할 카드와 같은 모양의 스켈레톤이다(핸드오프 로딩 규칙).
+              그리드 화면이라 목록형이 아니라 2열 카드 스켈레톤을 쓴다 — 로드 후 점프가 없다. */}
+          {isLoading ? <FeedSkeletonView count={4} /> : null}
           {hasCoupangLink && !isLoading ? (
-            <PretendardText style={styles.disclaimer}>
-              {COUPANG_DISCLAIMER}
-            </PretendardText>
+            <View style={styles.footer}>
+              <PretendardText style={styles.disclaimer}>
+                {COUPANG_DISCLAIMER}
+              </PretendardText>
+            </View>
           ) : null}
         </>
       }
@@ -127,14 +127,17 @@ const styles = StyleSheet.create({
   },
   flatListContent: {
     flexGrow: 1,
-    paddingTop: 12,
+    // 칩 줄과 그리드 사이 — 목업 기준 16(탐색 피드와 같은 값).
+    paddingTop: 16,
   },
-  skeletonContainer: {
-    marginTop: 10,
+  footer: {
+    paddingVertical: 24,
+    alignItems: 'center',
   },
   disclaimer: {
     fontSize: 11,
-    color: Color.textSecondary,
+    lineHeight: 16,
+    color: Liquid.inkSubtle,
     textAlign: 'center',
   },
 });

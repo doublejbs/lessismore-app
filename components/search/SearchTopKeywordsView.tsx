@@ -3,21 +3,24 @@ import { FC, useCallback, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
-  Pressable,
   ScrollView,
-  TouchableOpacity,
   GestureResponderEvent,
   LayoutChangeEvent,
 } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidRadius,
+  LiquidShadow,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
-import SearchSkeletonView from './SearchSkeletonView';
+import SearchRankSkeletonView from './SearchRankSkeletonView';
+import SearchRankRowView from './SearchRankRowView';
 import GearFilter from '@/model/gear/GearFilter';
 import { getGearFilterName } from '@/model/gear/GearFilterName';
-import CategoryChipView from '../browse/CategoryChipView';
-import { Ionicons } from '@expo/vector-icons';
-import LoadingView from '../ui/LoadingView';
+import LiquidChip from '@/components/liquid/LiquidChip';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import SearchGearAddToBagModalView from './SearchGearAddToBagModalView';
@@ -53,14 +56,6 @@ const SEARCH_RANK_CATEGORY_FILTERS: GearFilter[] = [
 const categories: CategoryItem[] = SEARCH_RANK_CATEGORY_FILTERS.map(filter => {
   return { filter, name: getGearFilterName(filter) };
 });
-
-/**
- * 추가·보유 버튼의 터치 여유(SR-4).
- *
- * 버튼은 28pt로 그리되 HIG 최소 타깃 44×44pt를 만족시켜야 한다 —
- * 시각 크기를 키우면 행이 버튼에 눌리므로 여유로만 확보한다. (44 − 28) / 2 = 8.
- */
-const BUTTON_HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
 
 // SR-4: 승계 카테고리를 이 화면의 8개 탭 중 하나로 해석한다(없으면 전체).
 const resolveInitialCategory = (category?: string): GearFilter => {
@@ -103,21 +98,25 @@ const SearchTopKeywordsView: FC<Props> = ({
 
   // 진입 시 승계된 카테고리 칩이 화면 밖(오른쪽)에 있으면 그 칩이 보이도록 1회 스크롤한다.
   // 칩의 x 오프셋을 알아야 하므로 해당 칩의 onLayout에서 처리한다(전체는 이미 좌측이라 제외).
-  const handleChipLayout = (category: GearFilter) => (event: LayoutChangeEvent) => {
-    if (
-      didInitialScrollRef.current ||
-      category !== selectedCategory ||
-      selectedCategory === GearFilter.All
-    ) {
-      return;
-    }
+  const handleChipLayout =
+    (category: GearFilter) => (event: LayoutChangeEvent) => {
+      if (
+        didInitialScrollRef.current ||
+        category !== selectedCategory ||
+        selectedCategory === GearFilter.All
+      ) {
+        return;
+      }
 
-    didInitialScrollRef.current = true;
+      didInitialScrollRef.current = true;
 
-    const { x } = event.nativeEvent.layout;
+      const { x } = event.nativeEvent.layout;
 
-    categoryScrollRef.current?.scrollTo({ x: Math.max(0, x - 16), animated: false });
-  };
+      categoryScrollRef.current?.scrollTo({
+        x: Math.max(0, x - 16),
+        animated: false,
+      });
+    };
 
   const handleGearPress = (gear: Gear) => {
     app.getAnalyticsManager()?.logClick('search_rank_item');
@@ -129,8 +128,10 @@ const SearchTopKeywordsView: FC<Props> = ({
     e.stopPropagation();
 
     setLoadingGearIds(prev => new Set(prev).add(gear.getId()));
+
     try {
       const success = await searchRank.registerSingle(gear);
+
       if (success) {
         app
           .getAnalyticsManager()
@@ -141,7 +142,9 @@ const SearchTopKeywordsView: FC<Props> = ({
     } finally {
       setLoadingGearIds(prev => {
         const newSet = new Set(prev);
+
         newSet.delete(gear.getId());
+
         return newSet;
       });
     }
@@ -152,12 +155,15 @@ const SearchTopKeywordsView: FC<Props> = ({
     e.stopPropagation();
 
     setLoadingGearIds(prev => new Set(prev).add(gear.getId()));
+
     try {
       await searchRank.removeSingle(gear);
     } finally {
       setLoadingGearIds(prev => {
         const newSet = new Set(prev);
+
         newSet.delete(gear.getId());
+
         return newSet;
       });
     }
@@ -165,6 +171,40 @@ const SearchTopKeywordsView: FC<Props> = ({
 
   const handleCloseModal = () => {
     setShowModal(false);
+  };
+
+  const renderRows = () => {
+    if (isLoading) {
+      return <SearchRankSkeletonView count={10} />;
+    }
+
+    if (gears.length === 0) {
+      // 빈 상태는 사실 + 다음 걸음 두 줄.
+      return (
+        <View style={styles.emptyContainer}>
+          <PretendardText weight='semibold' style={styles.emptyTitle}>
+            아직 순위에 오른 장비가 없어요
+          </PretendardText>
+          <PretendardText style={styles.emptyText}>
+            다른 카테고리를 둘러볼까요?
+          </PretendardText>
+        </View>
+      );
+    }
+
+    // 두 번째 행부터 헤어라인으로 나눈다 — 카드 안에서는 면이 아니라 선이 구획을 맡는다.
+    return gears.map((gear, index) => (
+      <SearchRankRowView
+        key={gear.getId()}
+        gear={gear}
+        rank={index + 1}
+        loading={loadingGearIds.has(gear.getId())}
+        divider={index > 0}
+        onPress={handleGearPress}
+        onAdd={handleAddPress}
+        onRemove={handleRemovePress}
+      />
+    ));
   };
 
   return (
@@ -188,7 +228,7 @@ const SearchTopKeywordsView: FC<Props> = ({
             key={category.filter}
             onLayout={handleChipLayout(category.filter)}
           >
-            <CategoryChipView
+            <LiquidChip
               label={category.name}
               selected={selectedCategory === category.filter}
               onPress={() => handleCategoryPress(category.filter)}
@@ -196,103 +236,19 @@ const SearchTopKeywordsView: FC<Props> = ({
           </View>
         ))}
       </ScrollView>
-      {/* 순위 리스트 */}
+
+      {/* 순위 리스트 — 한 장의 종이 카드 안에 행을 쌓는다. */}
       <ScrollView
         style={styles.listScrollView}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.listContainer}>
-          {isLoading ? (
-            <SearchSkeletonView count={10} />
-          ) : gears.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <PretendardText style={styles.emptyText}>
-                아직 등록된 장비가 없습니다
-              </PretendardText>
-            </View>
-          ) : (
-            gears.map((gear, index) => (
-              <Pressable
-                key={gear.getId()}
-                style={({ pressed }) => [
-                  styles.rankItem,
-                  pressed && styles.rankItemPressed,
-                ]}
-                onPress={() => handleGearPress(gear)}
-              >
-                <View
-                  style={[styles.rankBadge, index < 3 && styles.rankBadgeTop3]}
-                >
-                  <PretendardText
-                    style={[
-                      styles.rankNumber,
-                      index < 3 && styles.rankNumberTop3,
-                    ]}
-                    weight='bold'
-                  >
-                    {index + 1}
-                  </PretendardText>
-                </View>
-
-                <View style={styles.gearInfo}>
-                  {gear.getCompany() && (
-                    <PretendardText
-                      style={styles.gearCompany}
-                      numberOfLines={1}
-                    >
-                      {gear.getCompany()}
-                    </PretendardText>
-                  )}
-                  <PretendardText
-                    style={styles.gearName}
-                    weight='semibold'
-                    numberOfLines={1}
-                  >
-                    {gear.getDisplayName()}
-                  </PretendardText>
-                  <PretendardText style={styles.gearCount}>
-                    {gear.getWeight()}g
-                  </PretendardText>
-                </View>
-
-                <View style={styles.buttonContainer}>
-                  {loadingGearIds.has(gear.getId()) ? (
-                    <View style={styles.loadingContainer}>
-                      <LoadingView duration={1000} />
-                    </View>
-                  ) : gear.isAdded() ? (
-                    <TouchableOpacity
-                      style={styles.ownedBadge}
-                      onPress={e => handleRemovePress(e, gear)}
-                      // 체크 아이콘만으로는 "누르면 제거"가 드러나지 않는다(SR-4).
-                      accessibilityRole='button'
-                      accessibilityLabel={`${gear.getDisplayName()} 창고에서 제거`}
-                      hitSlop={BUTTON_HIT_SLOP}
-                    >
-                      <Ionicons
-                        name='checkmark'
-                        size={16}
-                        color={Color.textSecondary}
-                      />
-                    </TouchableOpacity>
-                  ) : (
-                    <TouchableOpacity
-                      style={styles.addButton}
-                      onPress={e => handleAddPress(e, gear)}
-                      accessibilityRole='button'
-                      accessibilityLabel={`${gear.getDisplayName()} 창고에 추가`}
-                      hitSlop={BUTTON_HIT_SLOP}
-                    >
-                      <Ionicons name='add' size={18} color={Color.textPrimary} />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </Pressable>
-            ))
-          )}
+        {/* 그림자는 바깥 래퍼가 진다 — overflow:'hidden'과 같은 뷰에 두면 그림자까지 잘린다. */}
+        <View style={styles.listCardShadow}>
+          <View style={styles.listCard}>{renderRows()}</View>
         </View>
-        <View style={styles.bottomContainer}></View>
+        <View style={styles.bottomContainer} />
       </ScrollView>
+
       {selectedGear && (
         <SearchGearAddToBagModalView
           visible={showModal}
@@ -310,120 +266,54 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 18,
-    color: Color.textPrimary,
+    fontSize: LiquidType.title3.fontSize,
+    lineHeight: LiquidType.title3.lineHeight,
+    letterSpacing: LiquidType.title3.letterSpacing,
+    color: Liquid.ink,
     marginBottom: 12,
   },
   categoryScrollView: {
     // 고정 높이를 주면 칩(minHeight 34 + 테두리)이 잘린다 — 내용 높이에 맞추되 세로로 늘어나지 않게만 제한.
     flexGrow: 0,
-    // 아래 리스트가 칩 밑으로 흘러 들어가므로 경계를 그어 스크롤 영역의 시작을 드러낸다.
-    paddingBottom: 12,
-    marginBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
+    // 경계선을 두지 않는다 — Liquid에서는 지면 위 카드가 구획을 맡는다.
+    marginBottom: 14,
   },
   categoryScrollContent: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   listScrollView: {
     flex: 1,
   },
-  listContainer: {
-    gap: 8,
-    paddingBottom: 20,
+  listCardShadow: {
+    borderRadius: LiquidRadius.card,
+    boxShadow: LiquidShadow.card,
   },
-  rankItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: Color.surfaceMuted,
-    borderRadius: Radius.card,
-  },
-  rankItemPressed: {
-    backgroundColor: Color.thumbBg,
-  },
-  rankBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    // 행 배경(surfaceMuted)과 값이 5/255밖에 차이 나지 않던 borderLight를 쓰면 배지 원형이
-    // 사라져 4위 이하가 "배지 없음"으로 보인다(SR-4). 흰 채움으로 원형을 세운다.
-    backgroundColor: Color.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  rankBadgeTop3: {
-    backgroundColor: Color.chipActiveBg,
-  },
-  rankNumber: {
-    fontSize: 13,
-    color: Color.textTertiary,
-  },
-  rankNumberTop3: {
-    color: Color.background,
-  },
-  gearInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  gearCompany: {
-    fontSize: 11,
-    color: Color.textSecondary,
-  },
-  gearName: {
-    fontSize: 15,
-    color: Color.textPrimary,
-  },
-  gearCount: {
-    fontSize: 12,
-    color: Color.textTertiary,
-  },
-  buttonContainer: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  /**
-   * 보유 상태 배지(SR-4). **추가 버튼보다 약하다.**
-   * 예전에는 검정 채움이라 이미 보유한 항목이 시선을 독점하고, 정작 눌러야 할 추가 버튼은
-   * 행 배경과 같은 색이라 사라져 있었다 — 위계가 뒤집혀 있었다.
-   */
-  ownedBadge: {
-    backgroundColor: Color.chipInactiveBg,
-    borderRadius: 14,
-    width: 28,
-    height: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  // 이 화면의 주 액션(SR-4). 행 배경(surfaceMuted)과 같은 색이면 버튼으로 보이지 않으므로
-  // 흰 채움 + 테두리로 세운다.
-  addButton: {
-    backgroundColor: Color.background,
-    borderWidth: 1,
-    borderColor: Color.chipBorder,
-    borderRadius: 14,
-    width: 28,
-    height: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
+  listCard: {
+    borderRadius: LiquidRadius.card,
+    backgroundColor: Liquid.surface,
+    overflow: 'hidden',
   },
   emptyContainer: {
     paddingVertical: 40,
+    paddingHorizontal: LiquidLayout.cardPad,
     alignItems: 'center',
+    gap: 6,
+  },
+  emptyTitle: {
+    fontSize: LiquidType.heading.fontSize,
+    lineHeight: LiquidType.heading.lineHeight,
+    color: Liquid.ink,
+    textAlign: 'center',
   },
   emptyText: {
-    fontSize: 14,
-    color: Color.textSecondary,
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.inkTertiary,
+    textAlign: 'center',
   },
-  // 스크롤 끝 여백. 탭바가 없는 전용 화면이라 예전 100pt는 근거 없이 컸다.
+  // 스크롤 끝 여백. 탭바가 없는 전용 화면이라 130까지 비우지 않는다.
   bottomContainer: {
     height: 24,
   },

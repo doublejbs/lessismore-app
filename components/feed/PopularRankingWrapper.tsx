@@ -6,15 +6,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Bag from '@/model/bag/Bag';
-import { Color } from '@/constants/DesignTokens';
+import { Liquid, LiquidLayout, LiquidType } from '@/constants/DesignTokens';
 import Layout from '@/components/Layout';
+import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
 import PretendardText from '@/components/PretendardText';
 import SearchTopKeywordsView from '@/components/search/SearchTopKeywordsView';
 
 // LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
 const IS_IOS = Platform.OS === 'ios';
 // iOS 네이티브 내비게이션 바 높이 — 고정(비스크롤) 상단 콘텐츠의 시작 위치 보정용.
-const NATIVE_HEADER_HEIGHT = 44;
+const NATIVE_HEADER_HEIGHT = LiquidLayout.navBar;
 // 헤더와 카테고리 칩 사이 숨 쉴 틈. 헤더 바로 아래에 칩이 붙으면 뒤로가기와 필터가 한 덩어리로 뭉친다.
 const HEADER_CONTENT_GAP = 12;
 // iOS는 네이티브 투명 헤더가 상단을 덮으므로 top 세이프에어리어를 빼 이중 인셋을 막는다.
@@ -36,7 +37,11 @@ const PopularRankingWrapper: FC = () => {
   };
 
   return (
-    <Layout paddingHorizontal={0} edges={IS_IOS ? IOS_EDGES : undefined}>
+    <Layout
+      paddingHorizontal={0}
+      edges={IS_IOS ? IOS_EDGES : undefined}
+      background={<LiquidBackdrop screen='none' glowPosition='topRight' />}
+    >
       {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
           시스템에 위임한다(headerBlurEffect·headerStyle.backgroundColor 지정 금지). */}
       <Stack.Screen
@@ -55,11 +60,7 @@ const PopularRankingWrapper: FC = () => {
             accessibilityRole='button'
             accessibilityLabel='뒤로 가기'
           >
-            <Ionicons
-              name='chevron-back'
-              size={24}
-              color={Color.textPrimary}
-            />
+            <Ionicons name='chevron-back' size={24} color={Liquid.ink} />
           </TouchableOpacity>
           <PretendardText style={styles.headerTitle} weight='bold'>
             인기 장비 순위
@@ -91,24 +92,25 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: LiquidLayout.screenH,
     height: 56,
   },
   // HIG 최소 터치 타깃 44×44pt. 아이콘은 좌측 정렬이라 화면 가장자리 여백은 그대로 유지된다.
   backButton: {
-    width: 44,
-    height: 44,
+    width: LiquidLayout.touchMin,
+    height: LiquidLayout.touchMin,
     justifyContent: 'center',
     alignItems: 'flex-start',
   },
   headerTitle: {
     flex: 1,
-    fontSize: 17,
-    color: Color.textPrimary,
+    fontSize: LiquidType.heading.fontSize,
+    lineHeight: LiquidType.heading.lineHeight,
+    color: Liquid.ink,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: LiquidLayout.screenH,
     // Android 커스텀 헤더 아래 간격(iOS는 위에서 인셋과 함께 더한다).
     paddingTop: HEADER_CONTENT_GAP,
   },

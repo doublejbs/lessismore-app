@@ -163,7 +163,13 @@ export const Liquid = {
   //    BlurView 위에 glassFill을 덮고, 0.5px glassStroke 보더로 광택을 근사한다.
   glassFill: 'rgba(255,255,255,0.66)', // 탭바·헤더 캡슐
   glassFillStrong: 'rgba(255,255,255,0.85)', // 검색 필드·시트
+  // 빈 검색 필드. 목업 §2 탐색의 검색 필드가 `rgba(255,255,255,.75)`로, 탭바(glassFill)보다
+  // 진하고 채워진 필드(glassFillStrong)보다 옅은 중간 값이다.
+  glassFillField: 'rgba(255,255,255,0.75)',
   glassStroke: 'rgba(255,255,255,0.95)',
+  // 비선택 칩·아웃라인 필터 버튼(핸드오프 Chip: `rgba(255,255,255,.8)` + 0.5px 보더).
+  chipFill: 'rgba(255,255,255,0.8)',
+  chipStroke: 'rgba(16,16,18,0.06)',
   glassBlurIntensity: 70, // BlurView intensity (tint: 'light')
 
   // ── 액센트 — 이 하나뿐. 면으로만 쓰고 글자는 ink를 얹는다.
@@ -259,6 +265,9 @@ export const LiquidShadow = {
   tile: '0 1px 2px rgba(16,16,18,0.04), 0 8px 22px rgba(16,16,18,0.05)',
   glass: '0 10px 30px rgba(16,16,18,0.14)',
   glassSm: '0 4px 14px rgba(16,16,18,0.08)',
+  // 검색 필드. 목업 §2·§3의 필드는 유리 캡슐(glassSm)보다 낮고 넓게 깔려, 지면 위에
+  // 살짝 떠 있는 정도로만 읽힌다.
+  field: '0 6px 20px rgba(16,16,18,0.07)',
   cta: '0 12px 30px rgba(16,16,18,0.26)',
   accent: '0 12px 32px rgba(160,200,40,0.35)',
   sheet: '0 -12px 44px rgba(16,16,18,0.14)',

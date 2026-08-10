@@ -20,6 +20,14 @@ export interface SearchBarInputHandle {
   focus: () => void;
 }
 
+/**
+ * 지우기 버튼 터치 여유.
+ *
+ * 버튼은 28pt로 그린다 — 키우면 유리 필드(h48) 안쪽 여백을 먹어 입력줄이 눌린다.
+ * HIG 최소 타깃 44는 여유로만 채운다. (44 − 28) / 2 = 8.
+ */
+const CLEAR_HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
+
 const SuggestionKeywords = [
   '니모',
   '하이퍼라이트마운틴기어',
@@ -74,6 +82,9 @@ const SearchBarInputView = forwardRef<SearchBarInputHandle, Props>(
           onPress={handleClickClear}
           style={[styles.clearButton, !keyword && styles.hidden]}
           disabled={!keyword}
+          hitSlop={CLEAR_HIT_SLOP}
+          accessibilityRole='button'
+          accessibilityLabel='검색어 지우기'
         >
           <Ionicons name='close-circle' size={20} color={Liquid.inkSubtle} />
         </TouchableOpacity>
@@ -90,6 +101,9 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    // TextInput은 PretendardText로 감쌀 수 없어 서체를 직접 지정한다 —
+    // 지정하지 않으면 입력값만 시스템 서체로 렌더돼 화면에서 튄다. 값은 15.5/500(핸드오프 §3).
+    fontFamily: 'Pretendard-Medium',
     fontSize: 15.5,
     color: Liquid.ink,
     padding: 0,

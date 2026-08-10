@@ -14,7 +14,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidShadow,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
@@ -27,6 +34,9 @@ interface Props {
   gear: Gear;
   bag: Bag;
 }
+
+// 닫기는 주 액션이 아니다 — 이 시트의 주 액션은 배낭 고르기라, 닫기는 조용한 알약으로 둔다.
+const CLOSE_PILL_HEIGHT = 54;
 
 const SearchGearAddToBagModalView: FC<Props> = ({
   visible,
@@ -52,6 +62,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
     e.preventDefault();
     e.stopPropagation();
     setLoading(true);
+
     try {
       const today = dayjs();
       const newBagId = await bag.add('새 배낭', today, today);
@@ -73,8 +84,10 @@ const SearchGearAddToBagModalView: FC<Props> = ({
     e.preventDefault();
     e.stopPropagation();
     setLoading(true);
+
     try {
       const success = await bag.addGearToBag(bagItem.getID(), gear);
+
       if (success) {
         app.getAnalyticsManager()?.logClick('search_add', { target: 'bag' });
         onClose();
@@ -103,8 +116,8 @@ const SearchGearAddToBagModalView: FC<Props> = ({
         activeOpacity={1}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'height' : 'height'}
-          style={{ flex: 1 }}
+          behavior='height'
+          style={styles.keyboardAvoider}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
           <TouchableOpacity
@@ -115,10 +128,10 @@ const SearchGearAddToBagModalView: FC<Props> = ({
             <SheetGrabberView />
             <View style={styles.titleSection}>
               <PretendardText style={styles.title} weight='bold'>
-                창고에 추가됐습니다.
+                창고에 담았어요.
               </PretendardText>
               <PretendardText style={styles.title} weight='bold'>
-                배낭에도 추가할까요?
+                배낭에도 담을까요?
               </PretendardText>
             </View>
             <ScrollView
@@ -130,18 +143,21 @@ const SearchGearAddToBagModalView: FC<Props> = ({
                 style={styles.newBagButton}
                 onPress={handleNewBagPress}
                 disabled={loading}
-                activeOpacity={0.7}
+                activeOpacity={LiquidMotion.pressOpacity}
               >
                 <View style={styles.bagItemContent}>
                   <View style={styles.bagInfo}>
-                    <PretendardText style={styles.bagItemTitle} weight='semibold'>
-                      새 배낭에 추가
+                    <PretendardText
+                      style={styles.bagItemTitle}
+                      weight='semibold'
+                    >
+                      새 배낭에 담기
                     </PretendardText>
                   </View>
                   <Ionicons
                     name='chevron-forward'
                     size={20}
-                    color={Color.textPrimary}
+                    color={Liquid.inkSubtle}
                   />
                 </View>
               </TouchableOpacity>
@@ -149,6 +165,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
                 <View style={styles.bagsList}>
                   {bag.getBags().map(bagItem => {
                     const isInBag = isGearInBag(bagItem);
+
                     return (
                       <TouchableOpacity
                         key={bagItem.getID()}
@@ -158,7 +175,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
                         ]}
                         onPress={e => handleBagPress(e, bagItem)}
                         disabled={isInBag || loading}
-                        activeOpacity={0.7}
+                        activeOpacity={LiquidMotion.pressOpacity}
                       >
                         <View style={styles.bagItemContent}>
                           <View style={styles.bagInfo}>
@@ -178,7 +195,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
                               ]}
                             >
                               {isInBag
-                                ? '이미 이 배낭에 있는 제품'
+                                ? '이미 이 배낭에 담긴 장비예요'
                                 : bagItem.getDate()}
                             </PretendardText>
                           </View>
@@ -192,7 +209,9 @@ const SearchGearAddToBagModalView: FC<Props> = ({
             <TouchableOpacity
               style={styles.closeButton}
               onPress={onClose}
-              activeOpacity={0.7}
+              activeOpacity={LiquidMotion.pressOpacity}
+              accessibilityRole='button'
+              accessibilityLabel='닫기'
             >
               <PretendardText style={styles.closeButtonText} weight='semibold'>
                 닫기
@@ -208,22 +227,29 @@ const SearchGearAddToBagModalView: FC<Props> = ({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
+    // 지면 위 종이 카드로 읽히게 시트 배경을 지면색으로 둔다(기본 흰 배경에서는 카드 경계가 사라진다).
+    backgroundColor: Liquid.canvas,
+  },
+  keyboardAvoider: {
+    flex: 1,
   },
   modalContent: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: LiquidLayout.screenH,
     paddingBottom: 32,
   },
   closeButton: {
-    backgroundColor: Color.chipActiveBg,
-    borderRadius: Radius.card,
-    paddingVertical: 16,
+    height: CLOSE_PILL_HEIGHT,
+    borderRadius: LiquidRadius.pill,
+    backgroundColor: Liquid.surfaceQuiet,
+    borderWidth: 0.5,
+    borderColor: Liquid.hairline,
     alignItems: 'center',
     justifyContent: 'center',
   },
   closeButtonText: {
     fontSize: 16,
-    color: Color.background,
+    color: Liquid.inkSecondary,
   },
   scrollView: {
     flexGrow: 1,
@@ -234,37 +260,38 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   title: {
-    fontSize: 20,
-    lineHeight: 28,
-    color: Color.textPrimary,
+    fontSize: LiquidType.title3.fontSize,
+    lineHeight: LiquidType.title3.lineHeight,
+    letterSpacing: LiquidType.title3.letterSpacing,
+    color: Liquid.ink,
   },
   newBagButton: {
-    backgroundColor: Color.surfaceMuted,
-    borderRadius: Radius.card,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    marginBottom: 8,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.tile,
+    borderRadius: LiquidRadius.tile,
+    paddingHorizontal: LiquidLayout.cardPad,
+    paddingVertical: LiquidLayout.cardPad,
+    marginBottom: LiquidLayout.listGap,
   },
   existingBagsSection: {
-    marginTop: 8,
-  },
-  sectionLabel: {
-    fontSize: 14,
-    color: Color.textTertiary,
-    marginBottom: 12,
-    paddingLeft: 4,
+    marginTop: LiquidLayout.listGap,
   },
   bagsList: {
-    gap: 8,
+    gap: LiquidLayout.listGap,
   },
   bagItem: {
-    backgroundColor: Color.surfaceMuted,
-    borderRadius: Radius.card,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.tile,
+    borderRadius: LiquidRadius.tile,
+    paddingHorizontal: LiquidLayout.cardPad,
+    paddingVertical: LiquidLayout.cardPad,
   },
+  // 이미 담긴 배낭은 지우지 않고 조용한 면으로 낮춘다(핸드오프: 완료 항목은 자리에 남긴다).
   bagItemDisabled: {
-    backgroundColor: Color.thumbBg,
+    backgroundColor: Liquid.surfaceQuiet,
+    boxShadow: 'none',
+    borderWidth: 0.5,
+    borderColor: Liquid.hairline,
   },
   bagItemContent: {
     flexDirection: 'row',
@@ -275,18 +302,20 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   bagItemTitle: {
-    fontSize: 15,
-    color: Color.textPrimary,
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.ink,
   },
   bagItemTitleDisabled: {
-    color: Color.textSecondary,
+    color: Liquid.inkSecondary,
   },
   bagItemSubtitle: {
-    fontSize: 12,
-    color: Color.textTertiary,
+    fontSize: LiquidType.caption.fontSize,
+    lineHeight: LiquidType.caption.lineHeight,
+    color: Liquid.inkMuted,
   },
   bagItemSubtitleDisabled: {
-    color: Color.textSecondary,
+    color: Liquid.inkSubtle,
   },
 });
 

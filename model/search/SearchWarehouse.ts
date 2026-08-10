@@ -53,6 +53,13 @@ class SearchWarehouse {
   @observable private selected: Gear[] = [];
   @observable private loading = false;
   @observable private hasMore = false;
+  /**
+   * 이 검색의 **총 히트 수**(Algolia `nbHits`) — `result.length`(지금까지 받은 건수)와 다르다.
+   *
+   * 화면 제목 옆 개수는 첫 페이지만 받은 시점에도 총량이어야 한다(SR-2). 누적 건수를 쓰면
+   * 스크롤할 때마다 숫자가 커져 틀린 수처럼 읽힌다.
+   */
+  @observable private totalCount = 0;
   @observable private topSearches: string[] = [];
   @observable private loadingTopSearches = false;
   private page = 0;
@@ -95,6 +102,8 @@ class SearchWarehouse {
     this.setLoading(true);
     this.setKeyword(keyword);
     this.setResult([]);
+    // 이전 키워드의 개수를 새 검색 제목 옆에 남기지 않는다.
+    this.setTotalCount(0);
 
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
@@ -158,6 +167,7 @@ class SearchWarehouse {
         this.setHasMore(hasMore);
       } else {
         this.setResult([]);
+        this.setTotalCount(0);
       }
       this.setLoading(false);
     }
@@ -168,16 +178,19 @@ class SearchWarehouse {
     this.clearPage();
 
     if (this.getKeyword()) {
-      const { gears, hasMore } = await this.searchDispatcher.searchList(
-        this.getKeyword(),
-        this.plusPage(),
-        this.searchFilterProvider?.()
-      );
+      const { gears, hasMore, totalCount } =
+        await this.searchDispatcher.searchList(
+          this.getKeyword(),
+          this.plusPage(),
+          this.searchFilterProvider?.()
+        );
 
       this.setResult(gears);
       this.setHasMore(hasMore);
+      this.setTotalCount(totalCount);
     } else {
       this.setResult([]);
+      this.setTotalCount(0);
     }
     this.setLoading(false);
   }
@@ -227,11 +240,21 @@ class SearchWarehouse {
     return this.hasMore;
   }
 
+  @action
+  private setTotalCount(value: number) {
+    this.totalCount = value;
+  }
+
+  public getTotalCount() {
+    return this.totalCount;
+  }
+
   protected clear() {
     this.clearKeyword();
     this.clearPage();
     this.setResult([]);
     this.setHasMore(false);
+    this.setTotalCount(0);
     this.setLoading(false);
     this.clearSelected();
   }

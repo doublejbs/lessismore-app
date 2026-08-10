@@ -12,6 +12,8 @@ interface Props {
   unit?: string;
   /** 라임 텍스트로 강조 */
   accent?: boolean;
+  /** 정체 앞에 붙는 자리 — 순위 배지처럼 행을 여는 표식용 */
+  leading?: ReactNode;
   trailing?: ReactNode;
   /** 행 위 헤어라인(좌측 16 들여쓰기) — 카드 안에서 두 번째 행부터 켠다 */
   divider?: boolean;
@@ -33,15 +35,19 @@ const LiquidMetricRow: FC<Props> = ({
   value,
   unit = 'g',
   accent = false,
+  leading,
   trailing,
   divider = false,
   size = 'md',
 }) => {
   const isSmall = size === 'sm';
+
   return (
     <View>
       {divider ? <View style={styles.divider} /> : null}
       <View style={styles.row}>
+        {leading}
+
         <View style={styles.identity}>
           {brand ? (
             <PretendardText
@@ -52,7 +58,11 @@ const LiquidMetricRow: FC<Props> = ({
               {brand}
             </PretendardText>
           ) : null}
-          <PretendardText weight='semibold' style={styles.name} numberOfLines={1}>
+          <PretendardText
+            weight='semibold'
+            style={styles.name}
+            numberOfLines={1}
+          >
             {name}
           </PretendardText>
           {meta ? (
@@ -143,7 +153,9 @@ const styles = StyleSheet.create({
   valueAccent: {
     color: Liquid.limeInk,
   },
+  // 단위도 Archivo — 목업이 g를 숫자와 같은 스팬에 넣는다(라틴 전용이라 안전).
   unit: {
+    fontFamily: LiquidFont.condensed,
     fontSize: 12,
     color: Liquid.inkSubtle,
   },

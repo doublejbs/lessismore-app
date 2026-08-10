@@ -114,11 +114,15 @@ class SearchStore {
     return facetFilters;
   }
 
+  // `totalCount`는 응답의 `nbHits` — 지금까지 받은 건수가 아니라 **이 검색의 총 히트 수**다.
+  // 검색 결과 화면이 첫 페이지만 받은 시점에도 총 개수를 붙일 수 있어야 하므로 함께 돌려준다
+  // (SR-2). Algolia가 큰 결과 집합에서 근사값을 줄 수 있으나(`exhaustiveNbHits: false`)
+  // 화면에 붙는 개수는 근사라도 페이지 누적에 따라 커지는 값보다 정확하다.
   public async searchList(
     value: string,
     index: number,
     filters?: { category?: string; brands?: string[] }
-  ): Promise<{ gears: Gear[]; hasMore: boolean }> {
+  ): Promise<{ gears: Gear[]; hasMore: boolean; totalCount: number }> {
     const keyword = value.trim();
     const { results } = await this.searchClient.search<GearType>({
       requests: [
@@ -134,11 +138,13 @@ class SearchStore {
         },
       ],
     });
-    const { hits, page, nbPages } = results[0] as SearchResponse<GearType>;
+    const { hits, page, nbPages, nbHits } =
+      results[0] as SearchResponse<GearType>;
 
     return {
       gears: await this.convertWithMyGears(this.mapHitsToGearType(hits)),
       hasMore: (page ?? 0) + 1 < (nbPages ?? 0),
+      totalCount: nbHits ?? 0,
     };
   }
 

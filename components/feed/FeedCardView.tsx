@@ -23,13 +23,9 @@ import {
   LiquidShadow,
   LiquidMotion,
 } from '@/constants/DesignTokens';
-import LoadingView from '@/components/ui/LoadingView';
+import LiquidAddCta from '@/components/liquid/LiquidAddCta';
 import SearchGearAddToBagModalView from '@/components/search/SearchGearAddToBagModalView';
 import app from '@/model/app/App';
-
-// FD-2: 2컬럼 그리드 셀 기준. CTA 원형 버튼 크기(축소하되 hitSlop으로 44 실효 터치 타깃 확보).
-const CTA_SIZE = 32;
-const CTA_HIT_SLOP = { top: 6, bottom: 6, left: 6, right: 6 };
 
 interface Props {
   gear: Gear;
@@ -51,7 +47,7 @@ interface Props {
 // FD-2: 피드 텍스트 카드(2컬럼 그리드 셀, Liquid Depth). 장비 이미지를 쓰지 않으므로
 // (DataModel §1 장비 이미지 미제공 원칙) 이미지 칸 없이 종이 면만으로 그리드 리듬을 만든다.
 // 구성은 위→아래로 브랜드 → 이름(2줄) → 색상 → 무게이며, 이미지가 하던 시각 위계는 무게가 대신한다.
-// 담기 CTA는 **미담김 = 라임 면 + add / 담김 = 잉크 면 + 라임 checkmark**로 뒤집힌다 —
+// 담기 CTA는 공용 `LiquidAddCta`(미담김 = 라임 면 + add / 담김 = 잉크 면 + 라임 checkmark)를 쓴다 —
 // 라임이 "아직 안 담김"을 뜻하는 자리라 담긴 카드에서 라임 면이 사라져야 스캔이 된다.
 // 담기 CTA는 카드 우상단, coupangUrl이 있으면 하단 축약 링크.
 // 수수료 고지는 카드마다 반복하지 않고 FeedView 리스트 푸터에서 1회 노출한다.
@@ -205,54 +201,40 @@ const FeedCardView: FC<Props> = ({
   };
 
   const renderCta = () => {
-    if (loading) {
-      return (
-        <View style={styles.ctaLoading}>
-          <LoadingView duration={1000} color={Liquid.lime} />
-        </View>
-      );
-    }
-
     // GE-8 배낭 컨텍스트: 이미 이 배낭에 담긴 장비는 비파괴 체크 배지(중복 담기 방지),
     // 그 외에는 담기(+) — 창고 보유 여부와 무관하게 제거 동작을 노출하지 않는다.
     if (bagCtxId) {
       if (isInThisBag) {
         return (
-          <View style={styles.ownedBadge}>
-            <Ionicons name='checkmark' size={18} color={Liquid.lime} />
-          </View>
+          <LiquidAddCta
+            added
+            loading={loading}
+            accessibilityLabel='이미 이 배낭에 담긴 장비'
+          />
         );
       }
-    } else if (isAdded) {
+
       return (
-        <TouchableOpacity
-          style={styles.ownedBadge}
-          onPress={handleRemovePress}
-          hitSlop={CTA_HIT_SLOP}
-          activeOpacity={LiquidMotion.pressOpacity}
-          accessibilityRole='button'
-          accessibilityLabel={`${gear.getDisplayName()} 창고에서 빼기`}
-        >
-          <Ionicons name='checkmark' size={18} color={Liquid.lime} />
-        </TouchableOpacity>
+        <LiquidAddCta
+          added={false}
+          loading={loading}
+          onPress={handleAddPress}
+          accessibilityLabel={`${gear.getDisplayName()} 배낭에 담기`}
+        />
       );
     }
 
     return (
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={handleAddPress}
-        hitSlop={CTA_HIT_SLOP}
-        activeOpacity={LiquidMotion.pressOpacity}
-        accessibilityRole='button'
+      <LiquidAddCta
+        added={isAdded}
+        loading={loading}
+        onPress={isAdded ? handleRemovePress : handleAddPress}
         accessibilityLabel={
-          bagCtxId
-            ? `${gear.getDisplayName()} 배낭에 담기`
+          isAdded
+            ? `${gear.getDisplayName()} 창고에서 빼기`
             : `${gear.getDisplayName()} 창고에 담기`
         }
-      >
-        <Ionicons name='add' size={18} color={Liquid.limeOn} />
-      </TouchableOpacity>
+      />
     );
   };
 
@@ -300,20 +282,20 @@ const FeedCardView: FC<Props> = ({
           ) : null}
 
           {coupangUrl ? (
-          <TouchableOpacity
-            style={styles.coupangLink}
-            onPress={handleCoupangPress}
-            activeOpacity={LiquidMotion.pressOpacity}
-          >
-            <PretendardText weight='medium' style={styles.coupangText}>
-              쿠팡 최저가
-            </PretendardText>
-            <Ionicons
-              name='chevron-forward'
-              size={11}
-              color={Liquid.limeInk}
-            />
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.coupangLink}
+              onPress={handleCoupangPress}
+              activeOpacity={LiquidMotion.pressOpacity}
+            >
+              <PretendardText weight='medium' style={styles.coupangText}>
+                쿠팡 최저가
+              </PretendardText>
+              <Ionicons
+                name='chevron-forward'
+                size={11}
+                color={Liquid.limeInk}
+              />
+            </TouchableOpacity>
           ) : null}
         </View>
       </Pressable>
@@ -349,32 +331,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 6,
   },
-  // 미담김 = 라임 면. 이 화면에서 라임은 "아직 내 것이 아님"을 뜻한다.
-  addButton: {
-    width: CTA_SIZE,
-    height: CTA_SIZE,
-    borderRadius: CTA_SIZE / 2,
-    backgroundColor: Liquid.lime,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  // 담김 = 잉크 면 + 라임 체크. 면이 뒤집혀야 담긴 카드가 한눈에 걸러진다.
-  ownedBadge: {
-    width: CTA_SIZE,
-    height: CTA_SIZE,
-    borderRadius: CTA_SIZE / 2,
-    backgroundColor: Liquid.ink,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  ctaLoading: {
-    width: CTA_SIZE,
-    height: CTA_SIZE,
-    borderRadius: CTA_SIZE / 2,
-    backgroundColor: Liquid.ink,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   company: {
     flex: 1,
     fontSize: 12.5,
@@ -401,7 +357,9 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
     color: Liquid.ink,
   },
+  // 목업은 단위 g까지 Archivo 스팬 안에 넣는다 — 라틴 1자라 콘덴스드로 안전하다.
   weightUnit: {
+    fontFamily: LiquidFont.condensed,
     fontSize: 16,
     color: Liquid.inkMuted,
   },

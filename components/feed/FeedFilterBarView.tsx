@@ -29,6 +29,8 @@ interface Props {
   feed: Feed;
   // 검색 결과 화면(SR-1 검색 승계)에서는 정렬이 검색에 적용되지 않으므로 정렬 드롭다운을 숨긴다.
   showSort?: boolean;
+  // 칩 줄 위 여백 — 목업 §2 탐색은 16, §3 검색 결과는 14로 갈린다.
+  topGap?: number;
 }
 
 const ALL_LABEL = '전체';
@@ -38,7 +40,11 @@ const BRAND_LABEL = '브랜드';
 // FD-3: 피드 상단 고정 필터 바.
 // 위계상 카테고리를 주 축(칩 행)으로 노출하고, 보조 축인 브랜드(진입 버튼)·정렬(드롭다운)은
 // 그 아래 컨트롤 행에 둔다. 카테고리는 탭 즉시 적용, 브랜드/정렬은 각각 전용 시트로 진입한다.
-const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
+const FeedFilterBarView: FC<Props> = ({
+  feed,
+  showSort = true,
+  topGap = 16,
+}) => {
   const router = useRouter();
   const [brandVisible, setBrandVisible] = useState(false);
 
@@ -117,7 +123,7 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
   const sortLabel = getFeedSortLabel(currentSort);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: topGap }]}>
       <ScrollView
         horizontal={true}
         showsHorizontalScrollIndicator={false}
@@ -214,7 +220,6 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
 const styles = StyleSheet.create({
   // 구분 헤어라인을 두지 않는다 — Liquid에서는 지면 위 카드가 구획을 맡는다.
   container: {
-    paddingTop: 16,
     gap: 14,
   },
   categoryRowContent: {
@@ -244,8 +249,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: LiquidRadius.pill,
     borderWidth: 0.5,
-    borderColor: 'rgba(16,16,18,0.06)',
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    borderColor: Liquid.chipStroke,
+    backgroundColor: Liquid.chipFill,
   },
   brandButtonActive: {
     backgroundColor: Liquid.ink,
