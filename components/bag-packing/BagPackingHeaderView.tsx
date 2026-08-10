@@ -1,101 +1,134 @@
-import { FC, useEffect } from 'react';
+import { FC } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated';
+import PretendardText from '@/components/PretendardText';
 import BagPacking from '@/model/bag-packing/BagPacking';
-import AcgDisplayText from '@/components/acg/AcgDisplayText';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import LiquidCard from '@/components/liquid/LiquidCard';
+import LiquidProgressBar from '@/components/liquid/LiquidProgressBar';
+import {
+  Liquid,
+  LiquidFont,
+  LiquidLayout,
+  LiquidRadius,
+} from '@/constants/DesignTokens';
 
 interface Props {
   bagPacking: BagPacking;
 }
 
+// 진행 바 두께. 히어로 자리라 목록 카드의 6보다 굵다(핸드오프 ProgressBar h8).
+const BAR_HEIGHT = 8;
+
+// 챙긴 개수 글자 크기(목업 §7). 부모 라인박스가 같은 값을 써야 어센더가 깎이지 않는다.
+const COUNT_FONT_SIZE = 52;
+
+/**
+ * PK-3 진행 유리 카드 (Liquid Depth, 목업 §7).
+ *
+ * 이 화면의 시각 앵커라 지면 위에 뜬 **유리 면**에 담는다 — 챙긴 개수(콘덴스드 52) ·
+ * 라임 퍼센트 알약 · 진행 바 · 누적 무게가 한 카드에서 같은 값을 세 방식으로 말한다.
+ * 값은 홈 히어로·배낭 목록 카드와 같은 `packedGears ∩ gears` 규칙에서 나온다
+ * ([Bag.md](../../specs/Bag.md) BAG-1 — 세 곳이 어긋나면 안 된다).
+ */
 const BagPackingHeaderView: FC<Props> = ({ bagPacking }) => {
   const packedCount = bagPacking.getPackedCount();
   const totalCount = bagPacking.getTotalCount();
   const percent = bagPacking.getProgressPercent();
   const packedWeight = bagPacking.getPackedWeight();
   const totalWeight = bagPacking.getTotalWeight();
-  const progress = useSharedValue(percent);
-
-  useEffect(() => {
-    progress.value = withSpring(percent, {
-      damping: 18,
-      stiffness: 120,
-      // 오버슈트 제거 — 바가 목표치를 지나쳤다 돌아오는 과장 바운스를 없앤다.
-      overshootClamping: true,
-    });
-  }, [percent, progress]);
-
-  const barStyle = useAnimatedStyle(() => ({
-    // 스프링 오버슈트로 0 미만/100 초과가 되면 width 퍼센트가 무효 값이 되어
-    // 순간 풀폭으로 렌더되는 버그가 있어 0~100으로 클램프한다.
-    width: `${Math.min(100, Math.max(0, progress.value))}%`,
-  }));
 
   return (
-    <View style={styles.container}>
-      {/* 숫자라 콘덴스드를 쓴다 — 이 화면의 시각 앵커(ACG). */}
-      <View style={styles.countRow}>
-        <AcgDisplayText style={styles.countText}>
-          {`${packedCount} / ${totalCount}`}
-        </AcgDisplayText>
-        <AcgDisplayText style={styles.percentText}>
-          {`${percent}%`}
-        </AcgDisplayText>
-      </View>
-      <View style={styles.barTrack}>
-        <Animated.View style={[styles.barFill, barStyle]} />
-      </View>
-      <AcgDisplayText style={styles.weightText}>
-        {`${packedWeight}kg / ${totalWeight}kg`}
-      </AcgDisplayText>
+    <View style={styles.wrap}>
+      <LiquidCard tone='glass' radius='hero' padding={LiquidLayout.cardPadLg}>
+        {/* 개수와 퍼센트는 같은 사실의 두 표현이라 한 덩어리로 읽는다. */}
+        <View
+          style={styles.countRow}
+          accessible
+          accessibilityLabel={`패킹 ${packedCount}/${totalCount}, ${percent}%`}
+        >
+          {/* 부모 라인박스를 자식 최대 크기로 잡는다 — 없으면 큰 숫자의 어센더가 깎인다. */}
+          <PretendardText style={styles.countWrap} numberOfLines={1}>
+            <PretendardText style={styles.countValue}>
+              {packedCount}
+            </PretendardText>
+            <PretendardText style={styles.countTotal}>
+              {` / ${totalCount}`}
+            </PretendardText>
+          </PretendardText>
+          {/* 이 화면의 유일한 라임 면 — 진행률 하나만 액센트를 받는다. */}
+          <View style={styles.percentBadge}>
+            <PretendardText style={styles.percentText}>
+              {`${percent}%`}
+            </PretendardText>
+          </View>
+        </View>
+
+        {/* 유리 면 위라 채움은 잉크다(라임은 위 알약이 이미 갖고 있다). */}
+        <View style={styles.bar}>
+          <LiquidProgressBar percent={percent} tone='ink' height={BAR_HEIGHT} />
+        </View>
+
+        {/* 이 앱의 차별점 — 개수가 아니라 **무게가 차오르는** 감각을 같은 카드에 둔다. */}
+        <PretendardText
+          style={styles.weightText}
+          accessibilityLabel={`챙긴 무게 ${packedWeight}kg, 총 무게 ${totalWeight}kg`}
+        >
+          {`${packedWeight}kg / ${totalWeight}kg`}
+        </PretendardText>
+      </LiquidCard>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: AcgLayout.screenH,
-    paddingBottom: 16,
-    gap: 10,
+  wrap: {
+    paddingHorizontal: LiquidLayout.screenH,
+    marginTop: 8,
   },
   countRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'flex-end',
+    justifyContent: 'space-between',
   },
-  countText: {
-    fontSize: 34,
-    lineHeight: 38,
-    color: Acg.ink,
+  countWrap: {
+    flexShrink: 1,
+    fontSize: COUNT_FONT_SIZE,
+    lineHeight: COUNT_FONT_SIZE,
   },
-  // 진행률은 라임 — 이 화면에서 유일한 액센트다(ACG).
-  percentText: {
+  countValue: {
+    fontFamily: LiquidFont.condensed,
+    fontSize: COUNT_FONT_SIZE,
+    lineHeight: COUNT_FONT_SIZE,
+    letterSpacing: -1.5,
+    color: Liquid.ink,
+  },
+  // 전체 개수는 한 단계 낮춘다 — 시선이 먼저 닿아야 하는 값은 챙긴 개수다.
+  countTotal: {
+    fontFamily: LiquidFont.condensed,
     fontSize: 24,
-    lineHeight: 28,
-    color: Acg.limeText,
+    color: Liquid.inkSubtle,
   },
-  // 각진 진행 바(ACG). 채움은 라임이라 남은 양이 한눈에 갈린다.
-  barTrack: {
-    width: '100%',
-    height: 10,
-    borderRadius: 0,
-    backgroundColor: Acg.line2,
-    overflow: 'hidden',
+  // 고정 높이 대신 minHeight — Dynamic Type으로 글자가 커져도 알약이 깨지지 않는다.
+  percentBadge: {
+    minHeight: 30,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    borderRadius: LiquidRadius.pill,
+    backgroundColor: Liquid.lime,
   },
-  barFill: {
-    height: '100%',
-    borderRadius: 0,
-    backgroundColor: Acg.lime,
+  percentText: {
+    fontFamily: LiquidFont.condensed,
+    fontSize: 16,
+    color: Liquid.limeOn,
+  },
+  bar: {
+    marginTop: 16,
   },
   weightText: {
-    fontSize: 15,
-    color: Acg.textSecondary,
+    marginTop: 12,
+    fontFamily: LiquidFont.condensed,
+    fontSize: 14,
+    color: Liquid.inkTertiary,
   },
 });
 

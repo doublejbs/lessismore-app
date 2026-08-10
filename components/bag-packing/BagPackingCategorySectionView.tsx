@@ -1,12 +1,12 @@
 import { FC } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
-import PretendardText from '@/components/PretendardText';
 import Gear from '@/model/gear/Gear';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import BagPacking from '@/model/bag-packing/BagPacking';
 import BagPackingGearRowView from './BagPackingGearRowView';
-import { Acg } from '@/constants/DesignTokens';
+import LiquidSectionLabel from '@/components/liquid/LiquidSectionLabel';
+import { LiquidLayout } from '@/constants/DesignTokens';
 
 interface Props {
   category: WarehouseFilter;
@@ -14,16 +14,20 @@ interface Props {
   bagPacking: BagPacking;
 }
 
+/**
+ * PK-2 카테고리 그룹. 마이크로 섹션 라벨 + 그 카테고리의 행 카드들(목업 §7).
+ *
+ * 배낭 상세와 달리 행을 한 카드에 묶지 않는다 — 행마다 면이 갈려야(흰 면 ↔ 가라앉은 면)
+ * 무엇을 챙겼는지 한눈에 스캔된다.
+ */
 const BagPackingCategorySectionView: FC<Props> = ({
   category,
   gears,
   bagPacking,
 }) => {
   return (
-    <View style={styles.container}>
-      <PretendardText style={styles.categoryTitle} weight='bold'>
-        {category.getName()}
-      </PretendardText>
+    <View>
+      <LiquidSectionLabel>{category.getName()}</LiquidSectionLabel>
       <View style={styles.gearList}>
         {gears.map(gear => (
           <BagPackingGearRowView
@@ -38,18 +42,8 @@ const BagPackingCategorySectionView: FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: 8,
-  },
-  // 지면 위 섹션 제목 — 홈·배낭 상세와 같은 18px/700 textTertiary(ACG).
-  categoryTitle: {
-    fontSize: 18,
-    marginBottom: 10,
-    color: Acg.textTertiary,
-  },
-  // 행이 각자 종이 면이라 홈 목록과 같은 8px로 벌린다.
   gearList: {
-    gap: 8,
+    gap: LiquidLayout.listGap,
   },
 });
 

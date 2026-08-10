@@ -156,8 +156,19 @@ export const Liquid = {
   surface: '#FFFFFF',
   surfaceSunken: '#EDEDF2', // 진행 트랙, 카드 안 타일
   surfaceQuiet: 'rgba(255,255,255,0.72)', // 지난 항목·비활성 카드
+  /**
+   * 완료 처리된 항목 면. 목업 §7 패킹 모드의 체크된 행이 이 값이다 — 지난 항목
+   * (`surfaceQuiet` .72)보다 한 단계 더 가라앉는다. 완료 항목은 목록에서 지우지 않고
+   * 면과 투명도만 낮추므로(핸드오프 Interactions) 그 "낮춘 면"이 여기 해당한다.
+   */
+  surfaceDone: 'rgba(255,255,255,0.62)',
   hairline: 'rgba(16,16,18,0.08)',
   hairlineStrong: 'rgba(16,16,18,0.12)',
+  /**
+   * 전체 화면 오버레이 뒤 지면을 어둡히는 막. 잉크 계열이라 지면(`canvas`)과 같은
+   * 색 계열로 가라앉는다 — 순수 검정은 이 팔레트에 없다.
+   */
+  scrim: 'rgba(16,16,18,0.4)',
 
   // ── 유리 — 실제 블러는 expo-blur의 BlurView가 담당한다(RN에 backdrop-filter가 없다).
   //    BlurView 위에 glassFill을 덮고, 0.5px glassStroke 보더로 광택을 근사한다.

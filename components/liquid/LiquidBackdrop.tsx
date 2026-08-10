@@ -24,6 +24,12 @@ interface Props {
   screen: Screen | 'none';
   /** 라임 글로우 자리 — 홈·목록은 좌상단, 탐색은 우상단, 배낭 상세는 좌측 중단 */
   glowPosition?: GlowPosition;
+  /**
+   * 라임 글로우를 끌 때 false. 패킹 모드(목업 §7)는 지형 + 강한 베일만 쓴다 — 유리 진행
+   * 카드가 지면 최상단(헤더 바로 아래)에 앉아, 모서리 글로우가 그 카드 뒤에서 얼룩으로
+   * 읽힌다. 아래 `coolGlow`는 이 값과 무관하게 따로 켠다.
+   */
+  limeGlow?: boolean;
   /** 홈처럼 보조 글로우가 더 필요한 화면에서만 켠다 */
   coolGlow?: boolean;
 }
@@ -77,40 +83,41 @@ const COOL_GLOW: Glow = {
 const LiquidBackdrop: FC<Props> = ({
   screen,
   glowPosition = 'topLeft',
+  limeGlow = true,
   coolGlow = false,
 }) => {
   const veil = screen === 'none' ? null : Backdrop.veil[screen];
   const terrainOpacity = screen === 'none' ? 0 : Backdrop.terrain[screen];
 
-  const renderGlow = (glow: Glow, id: string) => (
+  const renderGlow = (spec: Glow, id: string) => (
     <Svg
       key={id}
-      width={glow.size}
-      height={glow.size}
+      width={spec.size}
+      height={spec.size}
       style={[
         styles.glow,
         {
-          top: glow.top,
-          ...(glow.left !== undefined ? { left: glow.left } : {}),
-          ...(glow.right !== undefined ? { right: glow.right } : {}),
+          top: spec.top,
+          ...(spec.left !== undefined ? { left: spec.left } : {}),
+          ...(spec.right !== undefined ? { right: spec.right } : {}),
         },
       ]}
     >
       <Defs>
         <RadialGradient id={id} cx='50%' cy='50%' r='50%'>
-          <Stop offset='0%' stopColor={glow.rgb} stopOpacity={glow.opacity} />
+          <Stop offset='0%' stopColor={spec.rgb} stopOpacity={spec.opacity} />
           {/* 목업과 같이 70%에서 완전히 사라진다 — 중간 스톱을 두면 원 가장자리가 띠로 보인다. */}
           <Stop
             offset={`${Backdrop.glow.fade * 100}%`}
-            stopColor={glow.rgb}
+            stopColor={spec.rgb}
             stopOpacity={0}
           />
         </RadialGradient>
       </Defs>
       <Circle
-        cx={glow.size / 2}
-        cy={glow.size / 2}
-        r={glow.size / 2}
+        cx={spec.size / 2}
+        cy={spec.size / 2}
+        r={spec.size / 2}
         fill={`url(#${id})`}
       />
     </Svg>
@@ -135,7 +142,7 @@ const LiquidBackdrop: FC<Props> = ({
       ) : null}
 
       {/* 라임 글로우 하나가 브랜드 온기를 맡는다 — UI를 지배하지 않게 지면 모서리에만 둔다. */}
-      {renderGlow(LIME_GLOW[glowPosition], 'liquidLimeGlow')}
+      {limeGlow ? renderGlow(LIME_GLOW[glowPosition], 'liquidLimeGlow') : null}
       {coolGlow ? renderGlow(COOL_GLOW, 'liquidCoolGlow') : null}
     </View>
   );
