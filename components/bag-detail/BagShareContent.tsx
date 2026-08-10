@@ -1,12 +1,25 @@
 import { FC, useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidType,
+} from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -77,29 +90,35 @@ const BagShareContent: FC<Props> = ({ bagDetail }) => {
             <TouchableOpacity
               style={styles.copyButton}
               onPress={handleCopyLink}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              activeOpacity={LiquidMotion.pressOpacity}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               accessibilityRole='button'
               accessibilityLabel='링크 복사'
             >
-              <Ionicons name='copy-outline' size={18} color={Color.textSecondary} />
+              <Ionicons
+                name='copy-outline'
+                size={18}
+                color={Liquid.inkSecondary}
+              />
             </TouchableOpacity>
           </View>
         )}
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.mainButton, isLoading && styles.mainButtonDisabled]}
+        {/* 처리 중에도 라벨을 유지하고 앞에 진행 표시만 붙인다 — 라벨이 `처리 중...`으로
+            바뀌면 무엇을 기다리는지 사라진다. */}
+        <LiquidPillButton
+          label={shared ? '공유 취소' : '공유하기'}
+          variant='primary'
+          block
           onPress={handleShare}
           disabled={isLoading}
-          activeOpacity={0.7}
-          accessibilityRole='button'
-          accessibilityLabel={shared ? '공유 취소' : '공유하기'}
-        >
-          <PretendardText weight='semibold' style={styles.buttonText}>
-            {isLoading ? '처리 중...' : shared ? '공유 취소' : '공유하기'}
-          </PretendardText>
-        </TouchableOpacity>
+          busy={isLoading}
+          leading={
+            isLoading ? <ActivityIndicator color={Liquid.surface} /> : null
+          }
+        />
       </View>
     </View>
   );
@@ -107,60 +126,56 @@ const BagShareContent: FC<Props> = ({ bagDetail }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Color.background,
+    // 폼 시트는 종이 면이다 — 링크 면만 한 단계 가라앉힌다.
+    backgroundColor: Liquid.surface,
     // 네이티브 그래버가 시트 상단에 겹쳐 렌더되므로 그 아래로 제목이 오도록 여백을 준다.
     paddingTop: 52,
   },
   body: {
-    paddingHorizontal: 20,
+    paddingHorizontal: LiquidLayout.screenH,
     marginBottom: 20,
   },
+  // 시트 제목은 화면 대상이라 title3(다른 배낭 시트와 같은 값).
   title: {
-    fontSize: 20,
-    lineHeight: 28,
-    color: Color.textPrimary,
+    fontSize: LiquidType.title3.fontSize,
+    lineHeight: LiquidType.title3.lineHeight,
+    letterSpacing: LiquidType.title3.letterSpacing,
+    color: Liquid.ink,
     marginBottom: 8,
   },
   description: {
     fontSize: 14,
     lineHeight: 20,
-    color: Color.textSecondary,
+    color: Liquid.inkTertiary,
+    // 세로 여백이라 `LiquidLayout.screenH`(가로축 토큰)를 쓰지 않는다 — 값이 같아도 축이 다르다.
     marginBottom: 20,
   },
+  // 두 줄까지 늘어나는 면이라 알약이 아니라 타일(20)이다.
   urlContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: Color.surfaceMuted,
-    borderRadius: Radius.input,
-    paddingHorizontal: 14,
+    backgroundColor: Liquid.surfaceSunken,
+    borderRadius: LiquidRadius.tile,
+    paddingHorizontal: 16,
     paddingVertical: 14,
   },
   urlText: {
     flex: 1,
-    fontSize: 14,
-    color: Color.textSecondary,
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: Liquid.inkSecondary,
   },
+  // 아이콘 전용 컨트롤 — 28 프레임 + 상하좌우 `hitSlop` 8로 44×44pt를 채운다(HIG).
+  // 링크 줄 높이를 밀지 않으려고 프레임은 44가 아니라 28이다.
   copyButton: {
     alignItems: 'center',
     justifyContent: 'center',
+    width: 28,
+    height: 28,
   },
   buttonContainer: {
-    paddingHorizontal: 20,
-  },
-  mainButton: {
-    height: 52,
-    backgroundColor: Color.chipActiveBg,
-    borderRadius: Radius.input,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mainButtonDisabled: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    fontSize: 16,
-    color: Color.background,
+    paddingHorizontal: LiquidLayout.screenH,
   },
 });
 

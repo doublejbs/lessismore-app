@@ -4,7 +4,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import LoadingView from '@/components/ui/LoadingView';
-import { Color, Spacing } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidFont,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import BagItem from '@/model/bag/BagItem';
 
 // 하단 여백은 마지막 행의 세로 패딩과 합쳐져 실효 여백이 insets.bottom이 되도록 그만큼 빼서 준다.
@@ -41,10 +47,14 @@ const BagCopySourceListView: FC<Props> = ({ bags, isLoading, onSelect }) => {
     }
 
     if (bags.length === 0) {
+      // 빈 상태는 사실 + 다음 걸음 두 줄이다(핸드오프 Interactions).
       return (
         <View style={styles.stateWrap}>
-          <PretendardText style={styles.emptyText}>
+          <PretendardText style={styles.emptyFact} weight='semibold'>
             복사할 배낭이 없어요
+          </PretendardText>
+          <PretendardText style={styles.emptyNext}>
+            먼저 배낭을 하나 만들어요
           </PretendardText>
         </View>
       );
@@ -61,7 +71,7 @@ const BagCopySourceListView: FC<Props> = ({ bags, isLoading, onSelect }) => {
         <TouchableOpacity
           key={bagItem.getID()}
           style={[styles.row, index === 0 && styles.rowFirst]}
-          activeOpacity={0.7}
+          activeOpacity={LiquidMotion.pressOpacity}
           onPress={handlePress}
           accessibilityRole='button'
           accessibilityLabel={`${bagItem.getName()}, ${date}, ${bagItem.getWeight()}kg`}
@@ -72,10 +82,11 @@ const BagCopySourceListView: FC<Props> = ({ bags, isLoading, onSelect }) => {
             </PretendardText>
             <PretendardText style={styles.date}>{date}</PretendardText>
           </View>
-          <PretendardText weight='semibold' style={styles.weight}>
-            {bagItem.getWeight()}kg
+          {/* 값과 단위를 한 덩어리로 쓴다 — 숫자와 라틴 단위뿐이라 콘덴스드가 안전하다. */}
+          <PretendardText style={styles.weight}>
+            {`${bagItem.getWeight()}kg`}
           </PretendardText>
-          <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />
+          <Ionicons name='chevron-forward' size={18} color={Liquid.inkSubtle} />
         </TouchableOpacity>
       );
     });
@@ -104,60 +115,74 @@ const BagCopySourceListView: FC<Props> = ({ bags, isLoading, onSelect }) => {
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    backgroundColor: Color.background,
+    // 시트는 종이 면이다 — 고를 목록만 담아 카드를 겹치지 않고 헤어라인으로 행을 나눈다.
+    backgroundColor: Liquid.surface,
   },
   scrollContent: {
-    paddingHorizontal: Spacing.screenH,
+    paddingHorizontal: LiquidLayout.screenH,
     paddingTop: 8,
   },
   header: {
     // 고정 헤더 — 행이 아래로 지나가도 가려지지 않게 불투명 배경을 준다.
-    backgroundColor: Color.background,
-    paddingVertical: Spacing.item,
+    backgroundColor: Liquid.surface,
+    paddingVertical: 12,
   },
+  // 시트 제목은 화면 대상이라 title3 — 행 제목(15)과 위계가 갈린다(sort-sheet 선례).
   title: {
-    fontSize: 18,
-    lineHeight: 26,
-    color: Color.textPrimary,
+    fontSize: LiquidType.title3.fontSize,
+    lineHeight: LiquidType.title3.lineHeight,
+    letterSpacing: LiquidType.title3.letterSpacing,
+    color: Liquid.ink,
   },
   stateWrap: {
     minHeight: STATE_MIN_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 4,
   },
-  emptyText: {
-    fontSize: 15,
-    color: Color.textSecondary,
+  emptyFact: {
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.ink,
+    textAlign: 'center',
+  },
+  emptyNext: {
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: Liquid.inkTertiary,
     textAlign: 'center',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    minHeight: LiquidLayout.touchMin,
     paddingVertical: ROW_VERTICAL_PADDING,
-    borderTopWidth: 1,
-    borderTopColor: Color.borderLight,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Liquid.hairline,
   },
   rowFirst: {
     borderTopWidth: 0,
   },
   rowText: {
     flex: 1,
-    gap: 4,
+    gap: 2,
   },
   name: {
-    fontSize: 16,
-    lineHeight: 22,
-    color: Color.textPrimary,
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.ink,
   },
   date: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: Color.textSecondary,
+    fontSize: LiquidType.caption.fontSize,
+    lineHeight: LiquidType.caption.lineHeight,
+    color: Liquid.inkMuted,
   },
   weight: {
-    fontSize: 15,
-    color: Color.textPrimary,
+    flexShrink: 0,
+    fontFamily: LiquidFont.condensed,
+    fontSize: 17,
+    color: Liquid.ink,
   },
 });
 

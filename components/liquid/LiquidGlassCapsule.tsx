@@ -28,6 +28,13 @@ interface Props {
   width?: number;
   /** 넘기면 캡슐 자체가 버튼이 된다 — 44pt 터치 여유·`button` 롤이 함께 붙는다 */
   onPress?: () => void;
+  /**
+   * 누를 수 없는 상태 — 요청이 오가는 동안 재탭을 막는다(`onPress`가 있을 때만 뜻이 있다).
+   * 면·투명도는 건드리지 않는다: 유리 크롬은 뒤 지면이 그대로 비쳐 흐리면 사라진 것처럼
+   * 보이고, 이 화면들은 진행 표시를 주 액션 쪽에서 이미 내고 있다(지도 선택기의 현재 위치
+   * 버튼과 같은 처리).
+   */
+  disabled?: boolean;
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
 }
@@ -51,6 +58,7 @@ const LiquidGlassCapsule: FC<Props> = ({
   gap,
   width,
   onPress,
+  disabled = false,
   accessibilityLabel,
   style,
 }) => {
@@ -79,10 +87,12 @@ const LiquidGlassCapsule: FC<Props> = ({
       <TouchableOpacity
         style={[styles.shadow, style]}
         onPress={onPress}
+        disabled={disabled}
         activeOpacity={LiquidMotion.pressOpacity}
         hitSlop={TOUCH_SLOP}
         accessibilityRole='button'
         accessibilityLabel={accessibilityLabel}
+        accessibilityState={{ disabled }}
       >
         {surface}
       </TouchableOpacity>

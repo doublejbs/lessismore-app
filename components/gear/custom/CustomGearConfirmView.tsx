@@ -1,11 +1,10 @@
 import { FC } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import CustomGear from '@/model/gear/custom/CustomGear';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
-
-const ERROR_RED = '#FF3B30';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import { LiquidSemantic, LiquidType } from '@/constants/DesignTokens';
 
 interface Props {
   customGear: CustomGear;
@@ -26,17 +25,13 @@ const CustomGearConfirmView: FC<Props> = ({ customGear }) => {
           {errorMessage}
         </PretendardText>
       )}
-      <TouchableOpacity
-        style={[styles.confirmButton, isDisabled && styles.confirmButtonDisabled]}
+      <LiquidPillButton
+        label='확인'
+        variant='primary'
+        block
         onPress={handleClickConfirm}
         disabled={isDisabled}
-        accessibilityRole='button'
-        accessibilityState={{ disabled: isDisabled }}
-      >
-        <PretendardText weight='semibold' style={styles.confirmButtonText}>
-          확인
-        </PretendardText>
-      </TouchableOpacity>
+      />
     </View>
   );
 };
@@ -44,27 +39,15 @@ const CustomGearConfirmView: FC<Props> = ({ customGear }) => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
-    gap: 16,
+    gap: 12,
   },
+  // 검증 실패는 의미색 — 리디자인해도 바꾸지 않는다.
   errorMessage: {
     width: '100%',
     textAlign: 'center',
-    color: ERROR_RED,
-  },
-  confirmButton: {
-    width: '100%',
-    backgroundColor: Color.textPrimary,
-    paddingVertical: 18,
-    borderRadius: Radius.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  confirmButtonDisabled: {
-    opacity: 0.4,
-  },
-  confirmButtonText: {
-    color: Color.background,
-    textAlign: 'center',
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: LiquidSemantic.danger,
   },
 });
 

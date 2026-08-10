@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | as-built (2026-07-15 여행지 책임 분리) |
+| 상태 | as-built (2026-07-15 여행지 책임 분리) · **2026-08-11 개정(as-built)**: 기간 날씨 블록을 Liquid Depth로 이식 — 섹션 머리를 마이크로 라벨로, 일별 행을 헤어라인으로(WT-4) |
 | ID 프리픽스 | `WT` |
 | 주요 코드 | `app/bag/[id]/weather.tsx`, `components/weather/`, `model/bag/BagWeather.ts`, `model/weather/`(`WeatherService`, `WeatherCode`), `model/store/BagStore.ts`(날씨 메서드) |
 | 관련 스펙 | [BagDestination.md](BagDestination.md), [DataModel.md](DataModel.md)(DM-5, DM-15), [BagDetail.md](BagDetail.md) |
@@ -47,6 +47,8 @@
 - 일별 행: 날짜·요일 / 날씨 아이콘 / 한글 설명 + 강수(확률% 또는 mm) + 바람·돌풍 / **최고(↑) → 최저(↓) 순** 온도. (출처 배지 `예보/실측/평년`은 표기하지 않음 — 최근 과거가 forecast 소스라 라벨이 오해를 줘서 제거.)
 - **표시는 항상 현재 여행 기간(startDate~endDate)으로 제한**한다(`BagWeather.getDailyInRange`). 스냅샷은 조회 시점 기간을 담으므로, 이후 여행 날짜를 줄이면 옛 더 넓은 기간이 스냅샷에 남을 수 있다(WT-5 신선도는 경계일 포함만 확인해 재조회를 건너뜀). 일별 목록·기간 요약 모두 잘린 일자를 쓴다. 여행 날짜 변경 시 `updateDates`가 `BagWeather`에 새 기간을 전달해(확장 시 재조회) 상세 카드도 갱신한다.
 - 화면 하단에 안내 문구: `예보는 향후 16일까지 제공되며, 그 이후는 과거 평년값을 참고로 표시합니다.`
+- **시각 (as-built 2026-08-11 — Liquid Depth)**: 섹션 머리(`여행 기간 날씨`)는 큰 제목이 아니라 **대문자 마이크로 라벨**이고 갱신 중에는 그 오른쪽에 인디케이터를 붙인다. 일별 행은 면 없이 **헤어라인**으로만 갈리며 최고 온도가 잉크·최저가 보조 잉크다. 일별 행 컴포넌트(`WeatherDailyView`)는 박지 상세 날씨 탭(CS-3)과 공유하므로 두 화면이 같은 값을 본다.
+- **로딩은 여전히 플랫폼 `ActivityIndicator`(`Liquid.ink`)다** — Liquid Depth는 로딩을 스켈레톤으로 말하는 시스템이라 문법 이탈이며, 박지 상세 날씨 탭과 함께 공용 스켈레톤 프리미티브가 생기는 시점에 옮긴다([CampSite.md](CampSite.md) §2.1의 같은 항목).
 
 ### WT-5 스냅샷 캐시와 신선도
 

@@ -1,14 +1,20 @@
 import { FC } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import GearEdit from '@/model/gear/edit/GearEdit';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import {
+  LiquidLayout,
+  LiquidSemantic,
+  LiquidType,
+} from '@/constants/DesignTokens';
 
 interface Props {
   gearEdit: GearEdit;
 }
 
+// GE-2 하단 확인 바 — 이 화면의 주 액션 하나. 검증 실패 문구는 버튼 위에 둔다.
 const GearEditConfirmView: FC<Props> = ({ gearEdit }) => {
   const errorMessage = gearEdit.getErrorMessage();
 
@@ -17,55 +23,41 @@ const GearEditConfirmView: FC<Props> = ({ gearEdit }) => {
   };
 
   return (
-    <View
-      style={{
-        bottom: 16,
-        left: 0,
-        right: 0,
-        flexDirection: 'column',
-        paddingHorizontal: 16,
-        gap: 16,
-      }}
-    >
+    <View style={styles.container}>
       {errorMessage && (
-        <View
-          style={{
-            width: '100%',
-            alignItems: 'center',
-          }}
-        >
-          <PretendardText
-            style={{
-              color: 'red',
-              fontSize: 14,
-            }}
-          >
+        <View style={styles.errorRow}>
+          {/* 검증 실패는 의미색 — 리디자인해도 바꾸지 않는다. */}
+          <PretendardText style={styles.errorText} weight='medium'>
             {errorMessage}
           </PretendardText>
         </View>
       )}
-      <TouchableOpacity
-        style={{
-          width: '100%',
-          backgroundColor: Color.textPrimary,
-          paddingVertical: 12,
-          borderRadius: Radius.card,
-          alignItems: 'center',
-        }}
+      <LiquidPillButton
+        label='확인'
+        variant='primary'
+        block
         onPress={handleClickConfirm}
-      >
-        <PretendardText
-          weight='semibold'
-          style={{
-            color: Color.background,
-            fontSize: 16,
-          }}
-        >
-          확인
-        </PretendardText>
-      </TouchableOpacity>
+      />
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'column',
+    gap: 12,
+    paddingHorizontal: LiquidLayout.screenH,
+    paddingBottom: 16,
+  },
+  errorRow: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: LiquidSemantic.danger,
+  },
+});
 
 export default observer(GearEditConfirmView);

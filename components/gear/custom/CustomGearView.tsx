@@ -13,7 +13,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color, Radius } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import CustomGearConfirmView from '@/components/gear/custom/CustomGearConfirmView';
 import CustomGear from '@/model/gear/custom/CustomGear';
 import LoadingIconView from '@/components/ui/LoadingIconView';
@@ -21,7 +27,8 @@ import SheetGrabberView from '@/components/ui/SheetGrabberView';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import CustomGearWeightView from '@/components/gear/custom/CustomGearWeightView';
 import CustomGearColorView from '@/components/gear/custom/CustomGearColorView';
-import CategoryChipView from '@/components/browse/CategoryChipView';
+import LiquidChip from '@/components/liquid/LiquidChip';
+import LiquidFieldLabel from '@/components/liquid/LiquidFieldLabel';
 import AlertView from '@/components/alert/AlertView';
 import app from '@/model/app/App';
 
@@ -165,18 +172,18 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
           <TouchableOpacity
             onPress={handleClickHide}
             style={styles.closeButton}
+            activeOpacity={LiquidMotion.pressOpacity}
             accessibilityRole='button'
             accessibilityLabel='닫기'
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name='close' size={24} color={Color.textPrimary} />
+            <Ionicons name='close' size={24} color={Liquid.ink} />
           </TouchableOpacity>
         </View>
 
         <KeyboardAvoidingView
           style={styles.keyboardAvoidingView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
           enabled={Platform.OS === 'ios'}
         >
           <ScrollView
@@ -199,26 +206,23 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
             scrollEventThrottle={16}
           >
             <View style={styles.inputSection}>
-              <PretendardText weight='medium' style={styles.label}>
-                제품명
-                <PretendardText weight='medium' style={styles.requiredMark}>
-                  {' '}
-                  *
-                </PretendardText>
-              </PretendardText>
+              <LiquidFieldLabel required>제품명</LiquidFieldLabel>
               <View style={styles.inputContainer}>
                 <TextInput
                   ref={nameInputRef}
                   style={styles.input}
                   placeholder='제품명을 입력해주세요'
+                  placeholderTextColor={Liquid.inkMuted}
                   value={name}
                   onChangeText={handleChangeName}
                   onFocus={() => setFocusedInput('name')}
+                  accessibilityLabel='제품명'
                 />
                 {name ? (
                   <TouchableOpacity
                     onPress={() => customGear.setName('')}
                     style={styles.clearButton}
+                    activeOpacity={LiquidMotion.pressOpacity}
                     accessibilityRole='button'
                     accessibilityLabel='입력 지우기'
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -226,29 +230,30 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
                     <Ionicons
                       name='close-circle'
                       size={20}
-                      color={Color.iconMuted}
+                      color={Liquid.inkSubtle}
                     />
                   </TouchableOpacity>
                 ) : null}
               </View>
             </View>
             <View style={styles.inputSection}>
-              <PretendardText weight='medium' style={styles.label}>
-                브랜드
-              </PretendardText>
+              <LiquidFieldLabel>브랜드</LiquidFieldLabel>
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
                   placeholder='브랜드를 입력해주세요'
+                  placeholderTextColor={Liquid.inkMuted}
                   value={company}
                   onChangeText={handleChangeCompany}
                   onFocus={() => setFocusedInput('company')}
                   ref={companyInputRef}
+                  accessibilityLabel='브랜드'
                 />
                 {company ? (
                   <TouchableOpacity
                     onPress={() => customGear.setCompany('')}
                     style={styles.clearButton}
+                    activeOpacity={LiquidMotion.pressOpacity}
                     accessibilityRole='button'
                     accessibilityLabel='입력 지우기'
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -256,7 +261,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
                     <Ionicons
                       name='close-circle'
                       size={20}
-                      color={Color.iconMuted}
+                      color={Liquid.inkSubtle}
                     />
                   </TouchableOpacity>
                 ) : null}
@@ -264,12 +269,10 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
             </View>
             <CustomGearColorView customGear={customGear} />
             <View style={styles.inputSection}>
-              <PretendardText weight='medium' style={styles.label}>
-                카테고리
-              </PretendardText>
+              <LiquidFieldLabel>카테고리</LiquidFieldLabel>
               <View style={styles.filterContainer}>
                 {customGear.mapFilters(filter => (
-                  <CategoryChipView
+                  <LiquidChip
                     key={filter.getFilter()}
                     label={filter.getName()}
                     selected={filter.isSelected()}
@@ -308,7 +311,8 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Acg.bg,
+    // 이 화면은 pageSheet 모달이라 지면을 스스로 깐다(지형 없는 중성 지면).
+    backgroundColor: Liquid.canvas,
     justifyContent: 'flex-end',
   },
   keyboardAvoidingView: {
@@ -324,10 +328,11 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: LiquidLayout.screenH,
   },
   scrollContent: {
-    gap: 28,
+    gap: LiquidLayout.section,
+    // 세로 여백이라 `LiquidLayout.screenH`(가로축 토큰)를 쓰지 않는다 — 값이 같아도 축이 다르다.
     paddingTop: 20,
   },
   scrollContentKeyboardVisible: {
@@ -337,36 +342,36 @@ const styles = StyleSheet.create({
     height: 20,
   },
   confirmButtonContainer: {
-    padding: 16,
-    borderTopColor: Color.borderLight,
+    paddingHorizontal: LiquidLayout.screenH,
+    paddingTop: LiquidLayout.cardPad,
   },
+  // 라벨(`LiquidFieldLabel`)이 자기 아래 여백 10을 들고 있어 gap을 겹치지 않는다.
   inputSection: {
     flexDirection: 'column',
-    gap: 12,
-  },
-  label: {
-    fontSize: 14,
-  },
-  requiredMark: {
-    color: '#FF3B30',
   },
   inputContainer: {
     position: 'relative',
     flexDirection: 'row',
     alignItems: 'center',
   },
+  /**
+   * 폼 안 모든 필드가 같은 알약을 쓴다 — `PretendardText`를 쓸 수 없어 서체를 직접 건다.
+   * 지우기 버튼이 겹쳐 앉으므로 우측 여백을 더 비운다.
+   */
   input: {
     flex: 1,
-    borderRadius: Radius.input,
-    backgroundColor: Color.inputBg,
-    borderWidth: 1,
-    borderColor: Color.borderLight,
-    padding: 16,
+    height: LiquidLayout.pillHeight,
+    paddingLeft: 20,
+    paddingRight: 48,
+    borderRadius: LiquidRadius.pill,
+    backgroundColor: Liquid.surfaceSunken,
+    fontFamily: 'Pretendard-Medium',
+    fontSize: LiquidType.body.fontSize,
+    color: Liquid.ink,
   },
   clearButton: {
     position: 'absolute',
-    right: 16,
-    padding: 4,
+    right: 14,
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: 28,
@@ -381,19 +386,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingLeft: 20,
+    paddingLeft: LiquidLayout.screenH,
     paddingRight: 12,
-    height: 56,
+    minHeight: 56,
   },
+  // 시트 제목은 화면 대상이라 title3 — 폼 라벨(마이크로)과 위계가 갈린다.
   headerTitle: {
-    fontSize: 18,
-    lineHeight: 26,
-    color: Color.textPrimary,
+    fontSize: LiquidType.title3.fontSize,
+    lineHeight: LiquidType.title3.lineHeight,
+    letterSpacing: LiquidType.title3.letterSpacing,
+    color: Liquid.ink,
   },
   // HIG 최소 터치 타깃 44×44pt.
   closeButton: {
-    width: 44,
-    height: 44,
+    width: LiquidLayout.touchMin,
+    height: LiquidLayout.touchMin,
     alignItems: 'center',
     justifyContent: 'center',
   },

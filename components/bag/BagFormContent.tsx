@@ -2,16 +2,23 @@ import { FC } from 'react';
 import {
   View,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import dayjs from 'dayjs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import DateRangeCalendar from './DateRangeCalendarView';
-import { Color, Radius } from '@/constants/DesignTokens';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import LiquidFieldLabel from '@/components/liquid/LiquidFieldLabel';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidRadius,
+  LiquidType,
+} from '@/constants/DesignTokens';
 
 interface Props {
   title: string;
@@ -19,6 +26,10 @@ interface Props {
   startDate: dayjs.Dayjs | null;
   endDate: dayjs.Dayjs | null;
   confirmText: string;
+  /**
+   * 저장 요청이 오가는 중 — 세 호출부(생성·복사·정보 수정) 모두 이 뜻으로 넘긴다.
+   * 입력 검증 결과가 아니라 **진행 중** 상태라, 재탭을 막으면서 진행 표시까지 붙인다.
+   */
   disabled?: boolean;
   onChangeName: (text: string) => void;
   onStartDateChange: (date: dayjs.Dayjs) => void;
@@ -52,15 +63,14 @@ const BagFormContent: FC<Props> = ({
         {title}
       </PretendardText>
       <View style={styles.inputSection}>
-        <PretendardText weight='semibold' style={styles.inputLabel}>
-          배낭 이름
-        </PretendardText>
+        <LiquidFieldLabel>배낭 이름</LiquidFieldLabel>
         <TextInput
           style={styles.textInput}
           placeholder='배낭 이름을 입력해주세요'
           value={inputValue}
           onChangeText={onChangeName}
-          placeholderTextColor={Color.textSecondary}
+          placeholderTextColor={Liquid.inkMuted}
+          accessibilityLabel='배낭 이름'
         />
       </View>
       <DateRangeCalendar
@@ -98,25 +108,25 @@ const BagFormContent: FC<Props> = ({
         <View style={styles.body}>{bodyContent}</View>
       )}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.cancelButton}
+        <LiquidPillButton
+          label='취소'
+          variant='secondary'
           onPress={onCancel}
-          activeOpacity={0.7}
-        >
-          <PretendardText weight='semibold' style={styles.cancelButtonText}>
-            취소
-          </PretendardText>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.confirmButton, disabled && styles.confirmButtonDisabled]}
+          style={styles.button}
+        />
+        {/* 처리 중에도 라벨을 유지하고 앞에 진행 표시만 붙인다 — 라벨이 사라지면
+            무엇을 기다리는지 알 수 없다(공유 시트 BD-7과 같은 처리). */}
+        <LiquidPillButton
+          label={confirmText}
+          variant='primary'
           onPress={onConfirm}
-          activeOpacity={0.7}
           disabled={disabled}
-        >
-          <PretendardText weight='semibold' style={styles.confirmButtonText}>
-            {confirmText}
-          </PretendardText>
-        </TouchableOpacity>
+          busy={disabled}
+          leading={
+            disabled ? <ActivityIndicator color={Liquid.surface} /> : null
+          }
+          style={styles.button}
+        />
       </View>
     </View>
   );
@@ -124,7 +134,8 @@ const BagFormContent: FC<Props> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Color.background,
+    // 폼 시트는 종이 면이다 — 입력이 곧 화면이라 카드를 겹치지 않고, 입력 면만 가라앉힌다.
+    backgroundColor: Liquid.surface,
     /**
      * 그래버 아래 여백. **앞 단계인 `배낭 추가` 시트(`app/bag-add-options.tsx`)와 같은 20pt**를 쓴다
      * — 두 시트가 연달아 뜨므로 상단 여백이 다르면 화면이 튄 것처럼 보인다.
@@ -142,66 +153,43 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   body: {
-    paddingHorizontal: 20,
+    paddingHorizontal: LiquidLayout.screenH,
     marginBottom: 20,
   },
-  // 크기도 `배낭 추가` 시트 타이틀과 맞춘다(18/26).
+  // 시트 제목은 화면 대상이라 title3 — 폼 라벨(마이크로)과 위계가 갈린다(sort-sheet 선례).
   title: {
-    fontSize: 18,
-    lineHeight: 26,
-    color: Color.textPrimary,
+    fontSize: LiquidType.title3.fontSize,
+    lineHeight: LiquidType.title3.lineHeight,
+    letterSpacing: LiquidType.title3.letterSpacing,
+    color: Liquid.ink,
     marginBottom: 24,
   },
+  // 라벨(`LiquidFieldLabel`)이 자기 아래 여백 10을 들고 있어 gap을 겹치지 않는다.
   inputSection: {
     flexDirection: 'column',
-    gap: 10,
     marginBottom: 28,
   },
-  inputLabel: {
-    fontSize: 15,
-    lineHeight: 20,
-    color: Color.textPrimary,
-  },
+  /**
+   * `PretendardText`를 쓸 수 없는 자리라 서체를 직접 건다(TextInput 예외).
+   * 한 줄 입력이라 아래 버튼 줄과 같은 알약이다 — 입력과 액션이 한 덩어리로 읽힌다
+   * (닉네임 편집 시트와 같은 값).
+   */
   textInput: {
-    borderRadius: Radius.input,
-    backgroundColor: Color.surfaceMuted,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    fontSize: 16,
-    fontFamily: 'Pretendard-Regular',
-    color: Color.textPrimary,
+    height: LiquidLayout.pillHeight,
+    paddingHorizontal: 20,
+    borderRadius: LiquidRadius.pill,
+    backgroundColor: Liquid.surfaceSunken,
+    fontFamily: 'Pretendard-Medium',
+    fontSize: LiquidType.body.fontSize,
+    color: Liquid.ink,
   },
   buttonContainer: {
     flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 20,
+    gap: LiquidLayout.listGap,
+    paddingHorizontal: LiquidLayout.screenH,
   },
-  cancelButton: {
+  button: {
     flex: 1,
-    height: 52,
-    backgroundColor: Color.surfaceMuted,
-    borderRadius: Radius.input,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    color: Color.textPrimary,
-  },
-  confirmButton: {
-    flex: 1,
-    height: 52,
-    backgroundColor: Color.chipActiveBg,
-    borderRadius: Radius.input,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  confirmButtonDisabled: {
-    opacity: 0.5,
-  },
-  confirmButtonText: {
-    fontSize: 16,
-    color: Color.background,
   },
 });
 

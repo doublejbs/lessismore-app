@@ -6,7 +6,7 @@ import {
   NaverMapViewRef,
 } from '@mj-studio/react-native-naver-map';
 import { Ionicons } from '@expo/vector-icons';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Liquid, LiquidRadius, LiquidShadow } from '@/constants/DesignTokens';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import { getCampSiteTypeColor } from '@/model/camp-site/CampSiteLabels';
@@ -27,9 +27,7 @@ const BagDestinationMapPreviewView: FC<Props> = ({
   linkedSpot,
   onPress,
 }) => {
-  const markerColor = linkedSpot
-    ? getCampSiteTypeColor(linkedSpot.type)
-    : null;
+  const markerColor = linkedSpot ? getCampSiteTypeColor(linkedSpot.type) : null;
 
   const mapRef = useRef<NaverMapViewRef>(null);
   const zoom = deltaToZoom(0.05);
@@ -95,7 +93,7 @@ const BagDestinationMapPreviewView: FC<Props> = ({
             height={40}
           >
             <View key='pin' collapsable={false} style={styles.pinWrap}>
-              <Ionicons name='location' size={32} color={Color.textPrimary} />
+              <Ionicons name='location' size={32} color={Liquid.ink} />
             </View>
           </NaverMapMarkerOverlay>
         )}
@@ -113,11 +111,13 @@ const BagDestinationMapPreviewView: FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
+  // 지도 타일을 담는 면이라 그림자 없이 모서리만 깎는다(같은 뷰에 overflow와 boxShadow를
+  // 함께 걸면 그림자가 자기 경계에서 잘린다).
   container: {
     height: 180,
-    borderRadius: Radius.card,
+    borderRadius: LiquidRadius.card,
     overflow: 'hidden',
-    backgroundColor: Color.thumbBg,
+    backgroundColor: Liquid.surfaceSunken,
   },
   markerHitArea: {
     width: 28,
@@ -125,12 +125,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // 지도 탭의 마커와 같은 지오메트리 — 원 16 + 흰 2.5px 테두리 + 지도용 그림자(목업 §4).
+  // 채움색은 박지 유형 의미색이라 호출부가 그대로 넘긴다.
   markerDot: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Color.background,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 2.5,
+    borderColor: Liquid.surface,
+    boxShadow: LiquidShadow.markerOnMap,
   },
   pinWrap: {
     width: 32,

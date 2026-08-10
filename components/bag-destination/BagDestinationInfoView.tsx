@@ -2,7 +2,14 @@ import { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidShadow,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
@@ -19,8 +26,17 @@ interface Props {
   onOpenDirections: () => void;
 }
 
-// 여행지 허브(DST-8)의 여행지 정보 + 액션. 박지 연결이면 박지 카드(상세 이동),
-// 자유 위치면 위치명 행을 보여주고, 아래에 변경·길찾기 액션을 둔다.
+// 액션 칩 높이 — 박지 상세(§10)의 액션 칩과 같은 값이다. 시각 높이 40을 44로 채우는 여유.
+const ACTION_CHIP_HEIGHT = 40;
+const ACTION_CHIP_HIT_SLOP = { top: 2, bottom: 2, left: 0, right: 0 };
+
+/**
+ * 여행지 허브(DST-8)의 여행지 정보 + 액션 (Liquid Depth).
+ *
+ * 박지 연결이면 종이 카드(상세 이동), 자유 위치면 위치명 행을 보여주고, 아래에 변경·길찾기
+ * 액션 칩을 둔다. 유형 배지는 박지 상세와 같은 문법(잉크 면 + 라임 글자)이라 두 화면에서
+ * 같은 사실이 같은 모양으로 읽힌다.
+ */
 const BagDestinationInfoView: FC<Props> = ({
   location,
   linkedSpot,
@@ -36,7 +52,7 @@ const BagDestinationInfoView: FC<Props> = ({
     <TouchableOpacity
       style={styles.card}
       onPress={onOpenSpotDetail}
-      activeOpacity={0.7}
+      activeOpacity={LiquidMotion.pressOpacity}
       accessibilityRole='button'
       accessibilityLabel={`${location.name} 박지 상세 보기`}
     >
@@ -61,7 +77,7 @@ const BagDestinationInfoView: FC<Props> = ({
         <PretendardText style={styles.detailHintText} weight='medium'>
           박지 상세 보기
         </PretendardText>
-        <Ionicons name='chevron-forward' size={16} color={Color.textSecondary} />
+        <Ionicons name='chevron-forward' size={16} color={Liquid.inkSubtle} />
       </View>
     </TouchableOpacity>
   ) : isLinked ? (
@@ -76,7 +92,7 @@ const BagDestinationInfoView: FC<Props> = ({
   ) : (
     // 자유 위치 — 박지 카드 대신 위치명 행만 표시한다.
     <View style={styles.freeRow}>
-      <Ionicons name='location-outline' size={20} color={Color.textPrimary} />
+      <Ionicons name='location-outline' size={20} color={Liquid.ink} />
       <PretendardText
         style={styles.freeName}
         weight='semibold'
@@ -93,27 +109,29 @@ const BagDestinationInfoView: FC<Props> = ({
 
       <View style={styles.actionRow}>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={styles.actionChip}
           onPress={onOpenPicker}
-          activeOpacity={0.7}
+          activeOpacity={LiquidMotion.pressOpacity}
+          hitSlop={ACTION_CHIP_HIT_SLOP}
           accessibilityRole='button'
           accessibilityLabel='여행지 변경'
         >
-          <Ionicons name='swap-horizontal' size={18} color={Color.textPrimary} />
-          <PretendardText style={styles.actionText} weight='medium'>
+          <Ionicons name='swap-horizontal' size={17} color={Liquid.ink} />
+          <PretendardText style={styles.actionLabel} weight='medium'>
             변경
           </PretendardText>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.actionButton}
+          style={styles.actionChip}
           onPress={onOpenDirections}
-          activeOpacity={0.7}
+          activeOpacity={LiquidMotion.pressOpacity}
+          hitSlop={ACTION_CHIP_HIT_SLOP}
           accessibilityRole='button'
           accessibilityLabel='네이버 지도로 길찾기'
         >
-          <Ionicons name='navigate-outline' size={18} color={Color.textPrimary} />
-          <PretendardText style={styles.actionText} weight='medium'>
+          <Ionicons name='navigate-outline' size={17} color={Liquid.ink} />
+          <PretendardText style={styles.actionLabel} weight='medium'>
             길찾기
           </PretendardText>
         </TouchableOpacity>
@@ -131,38 +149,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: Color.surfaceMuted,
-    borderRadius: Radius.card,
-    padding: 16,
-    minHeight: 44,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.card,
+    borderRadius: LiquidRadius.card,
+    padding: LiquidLayout.cardPad,
+    minHeight: LiquidLayout.touchMin,
   },
   cardText: {
     flex: 1,
     gap: 6,
   },
   name: {
-    fontSize: 17,
-    color: Color.textPrimary,
-    lineHeight: 22,
+    fontSize: LiquidType.heading.fontSize,
+    lineHeight: LiquidType.heading.lineHeight,
+    color: Liquid.ink,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
+  // 박지 상세(§10)와 같은 유형 배지 — 잉크 면 위 라임 글자. 고정 높이 대신 minHeight.
   badge: {
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.chipInactiveBg,
+    minHeight: 24,
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+    borderRadius: LiquidRadius.pill,
+    backgroundColor: Liquid.ink,
   },
   badgeText: {
-    fontSize: 11,
-    color: Color.textTertiary,
+    fontSize: 11.5,
+    color: Liquid.lime,
   },
   metaText: {
+    flexShrink: 1,
     fontSize: 13,
-    color: Color.textSecondary,
+    color: Liquid.inkTertiary,
   },
   detailHint: {
     flexDirection: 'row',
@@ -170,39 +192,41 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   detailHintText: {
-    fontSize: 13,
-    color: Color.textSecondary,
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: Liquid.inkTertiary,
   },
   freeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    minHeight: 44,
+    minHeight: LiquidLayout.touchMin,
   },
   freeName: {
     flex: 1,
-    fontSize: 17,
-    color: Color.textPrimary,
-    lineHeight: 22,
+    fontSize: LiquidType.heading.fontSize,
+    lineHeight: LiquidType.heading.lineHeight,
+    color: Liquid.ink,
   },
   actionRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: LiquidLayout.listGap,
   },
-  actionButton: {
+  actionChip: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    minHeight: 44,
-    borderRadius: Radius.input,
-    borderWidth: 1,
-    borderColor: Color.chipBorder,
+    minHeight: ACTION_CHIP_HEIGHT,
+    paddingHorizontal: 15,
+    borderRadius: LiquidRadius.pill,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.tile,
   },
-  actionText: {
-    fontSize: 14,
-    color: Color.textPrimary,
+  actionLabel: {
+    fontSize: LiquidType.bodySm.fontSize,
+    color: Liquid.ink,
   },
 });
 

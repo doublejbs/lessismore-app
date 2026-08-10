@@ -12,7 +12,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import SheetGrabberView from '@/components/ui/SheetGrabberView';
-import { Color } from '@/constants/DesignTokens';
+import LiquidSectionLabel from '@/components/liquid/LiquidSectionLabel';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidShadow,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import BagItem from '@/model/bag/BagItem';
 
 interface Props {
@@ -29,7 +37,17 @@ interface Props {
   subtitleOverride?: string;
 }
 
-// CS-5: 박지를 여행지로 설정할 배낭을 고르는 시트. iOS 네이티브 pageSheet 프레젠테이션.
+// 만들기 행의 잉크 원 지름. 목업 §5 FAB와 같은 표식(잉크 면 + 라임 `add`)을 행 안에 축약한 크기다.
+const CREATE_MARK_SIZE = 32;
+
+/**
+ * CS-5: 박지를 여행지로 설정할 배낭을 고르는 시트 (Liquid Depth).
+ *
+ * iOS는 네이티브 pageSheet, Android는 RN `Modal` + 하단 시트다. 두 경우 다 **지면(canvas) 위
+ * 종이 카드** 문법으로 그린다 — 배낭 목록을 고르는 같은 성격의 시트(`SearchGearAddToBagModalView`)와
+ * 한 벌로 읽혀야 한다. 유리 면을 깔지 않는 이유는 그 위에 흰 카드가 얹히면 두 면이 겹쳐
+ * 카드 경계가 사라지기 때문이다.
+ */
 const CampSiteBagSelectSheetView: FC<Props> = ({
   visible,
   bags,
@@ -69,11 +87,12 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
         <TouchableOpacity
           onPress={onClose}
           style={styles.closeButton}
+          activeOpacity={LiquidMotion.pressOpacity}
           accessibilityLabel='닫기'
           accessibilityRole='button'
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
-          <Ionicons name='close' size={24} color={Color.textPrimary} />
+          <Ionicons name='close' size={24} color={Liquid.ink} />
         </TouchableOpacity>
       </View>
 
@@ -90,76 +109,86 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
           <TouchableOpacity
             style={styles.createRow}
             onPress={onCreateNew}
-            activeOpacity={0.7}
+            activeOpacity={LiquidMotion.pressOpacity}
             accessibilityRole='button'
             accessibilityLabel='새 배낭 만들기'
           >
-            <View style={styles.createIcon}>
-              <Ionicons name='add' size={22} color={Color.background} />
+            <View style={styles.createMark}>
+              <Ionicons name='add' size={20} color={Liquid.lime} />
             </View>
             <PretendardText style={styles.createText} weight='semibold'>
               새 배낭 만들기
             </PretendardText>
+            <Ionicons
+              name='chevron-forward'
+              size={20}
+              color={Liquid.inkSubtle}
+            />
           </TouchableOpacity>
         )}
 
         {bags.length === 0 ? (
-          <PretendardText style={styles.emptyText}>
-            아직 배낭이 없어요. 새 배낭을 만들어 여행지를 설정하세요.
-          </PretendardText>
+          // 빈 상태는 사실 + 다음 걸음 두 줄(핸드오프 Interactions).
+          <View style={styles.empty}>
+            <PretendardText style={styles.emptyFact} weight='semibold'>
+              아직 만든 배낭이 없어요
+            </PretendardText>
+            <PretendardText style={styles.emptyNext}>
+              {hideCreateNew
+                ? '배낭을 만들면 여기에서 고를 수 있어요'
+                : '새 배낭을 만들어 여행지를 설정해요'}
+            </PretendardText>
+          </View>
         ) : (
           <>
-            {/* 만들기 액션과 선택 목록을 구분하는 소제목(디자인 리뷰). */}
-            <PretendardText style={styles.sectionLabel} weight='semibold'>
-              내 배낭
-            </PretendardText>
+            {/* 만들기 액션과 선택 목록을 구분하는 섹션 라벨. */}
+            <LiquidSectionLabel>내 배낭</LiquidSectionLabel>
 
-            {sortedBags.map(bag => {
-              const locationName = bag.getLocationName();
+            <View style={styles.bagList}>
+              {sortedBags.map(bag => {
+                const locationName = bag.getLocationName();
 
-              return (
-                <TouchableOpacity
-                  key={bag.getID()}
-                  style={styles.row}
-                  onPress={() => handleSelect(bag)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.rowText}>
-                    <PretendardText
-                      style={styles.rowName}
-                      weight='semibold'
-                      numberOfLines={1}
-                    >
-                      {bag.getName()}
-                    </PretendardText>
-                    <PretendardText style={styles.rowDate}>
-                      {bag.getDate()}
-                    </PretendardText>
-                    {/* 이미 여행지가 설정된 배낭 — 덮어쓰기 전에 인지하도록 표시(디자인 리뷰). */}
-                    {locationName && (
-                      <View style={styles.locationRow}>
-                        <Ionicons
-                          name='location'
-                          size={12}
-                          color={Color.textSecondary}
-                        />
+                return (
+                  <TouchableOpacity
+                    key={bag.getID()}
+                    style={styles.row}
+                    onPress={() => handleSelect(bag)}
+                    activeOpacity={LiquidMotion.pressOpacity}
+                    accessibilityRole='button'
+                    accessibilityLabel={`배낭 ${bag.getName()}`}
+                  >
+                    <View style={styles.rowText}>
+                      <PretendardText
+                        style={styles.rowName}
+                        weight='semibold'
+                        numberOfLines={1}
+                      >
+                        {bag.getName()}
+                      </PretendardText>
+                      <PretendardText style={styles.rowDate}>
+                        {bag.getDate()}
+                      </PretendardText>
+                      {/* 이미 여행지가 설정된 배낭 — 덮어쓰기 전에 인지하도록 표시(디자인 리뷰).
+                          `📍` 접두는 이 앱이 허용하는 유일한 이모지다(CLAUDE.md) — 여행지 허브
+                          (DST-8)·배낭 상세와 같은 표기라 아이콘으로 갈라 두지 않는다. */}
+                      {locationName && (
                         <PretendardText
                           style={styles.locationText}
                           numberOfLines={1}
                         >
-                          {locationName}
+                          📍 {locationName}
                         </PretendardText>
-                      </View>
-                    )}
-                  </View>
-                  <Ionicons
-                    name='chevron-forward'
-                    size={20}
-                    color={Color.iconMuted}
-                  />
-                </TouchableOpacity>
-              );
-            })}
+                      )}
+                    </View>
+                    <Ionicons
+                      name='chevron-forward'
+                      size={20}
+                      color={Liquid.inkSubtle}
+                    />
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </>
         )}
       </ScrollView>
@@ -204,14 +233,14 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
 const styles = StyleSheet.create({
   sheet: {
     flex: 1,
-    backgroundColor: Color.background,
-    paddingHorizontal: 20,
+    backgroundColor: Liquid.canvas,
+    paddingHorizontal: LiquidLayout.screenH,
     paddingTop: 12,
   },
   // Android 딤 배경 — 하단에 시트를 정렬한다.
   androidBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: Liquid.scrim,
     justifyContent: 'flex-end',
   },
   // 배경 탭 시 닫힘 영역(시트 위쪽 여백 전체).
@@ -223,12 +252,14 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   // Android 바텀시트 컨테이너 — 상단 라운드 + 최대 높이로 전체화면 방지.
+  // 화면 폭을 꽉 채운 채 아래가 잘린 면이라 시트 모서리는 `sheetLg`다(로그인 시트와 같은 자리).
   androidSheet: {
     maxHeight: '85%',
-    backgroundColor: Color.background,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingHorizontal: 20,
+    backgroundColor: Liquid.canvas,
+    borderTopLeftRadius: LiquidRadius.sheetLg,
+    borderTopRightRadius: LiquidRadius.sheetLg,
+    boxShadow: LiquidShadow.sheet,
+    paddingHorizontal: LiquidLayout.screenH,
   },
   // Android는 내용 높이에 맞춰 시트가 줄어들도록 flex를 강제하지 않는다.
   listAndroid: {
@@ -245,18 +276,21 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
+  // 시트 제목은 화면 대상이라 title3 — 목록 행(15)과 위계가 갈린다(sort-sheet 선례).
   title: {
-    fontSize: 18,
-    lineHeight: 26,
-    color: Color.textPrimary,
+    fontSize: LiquidType.title3.fontSize,
+    lineHeight: LiquidType.title3.lineHeight,
+    letterSpacing: LiquidType.title3.letterSpacing,
+    color: Liquid.ink,
   },
   subtitle: {
-    fontSize: 13,
-    color: Color.textSecondary,
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: Liquid.inkTertiary,
   },
   closeButton: {
-    width: 44,
-    height: 44,
+    width: LiquidLayout.touchMin,
+    height: LiquidLayout.touchMin,
     alignItems: 'flex-end',
     justifyContent: 'center',
     marginRight: -4,
@@ -267,68 +301,78 @@ const styles = StyleSheet.create({
   listContent: {
     paddingTop: 4,
   },
-  // 생성 액션은 목록과 구분되게 아래 여백을 크게 준다(디자인 리뷰).
+  // 만들기 액션도 목록과 같은 종이 카드다 — 아래 여백으로 선택 목록과 구분한다.
   createRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 16,
-    marginBottom: 8,
+    padding: LiquidLayout.cardPad,
+    borderRadius: LiquidRadius.tile,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.tile,
+    marginBottom: LiquidLayout.section,
   },
-  createIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Color.chipActiveBg,
+  // 잉크 면 + 라임 글리프 — 목업 §5 `배낭 추가` FAB와 같은 표식이다.
+  createMark: {
+    width: CREATE_MARK_SIZE,
+    height: CREATE_MARK_SIZE,
+    borderRadius: CREATE_MARK_SIZE / 2,
+    backgroundColor: Liquid.ink,
     alignItems: 'center',
     justifyContent: 'center',
   },
   createText: {
-    fontSize: 16,
-    color: Color.textPrimary,
-  },
-  sectionLabel: {
-    fontSize: 13,
-    color: Color.textSecondary,
-    paddingBottom: 4,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: Color.textSecondary,
-    paddingVertical: 20,
-    textAlign: 'center',
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    marginTop: 2,
-  },
-  locationText: {
     flex: 1,
-    fontSize: 12,
-    color: Color.textSecondary,
+    fontSize: LiquidType.heading.fontSize,
+    lineHeight: LiquidType.heading.lineHeight,
+    color: Liquid.ink,
+  },
+  empty: {
+    paddingVertical: 32,
+    gap: 4,
+    alignItems: 'center',
+  },
+  emptyFact: {
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.ink,
+  },
+  emptyNext: {
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: Liquid.inkTertiary,
+  },
+  bagList: {
+    gap: LiquidLayout.listGap,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
+    padding: LiquidLayout.cardPad,
+    borderRadius: LiquidRadius.tile,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.tile,
   },
   rowText: {
     flex: 1,
-    gap: 4,
+    gap: 2,
   },
   rowName: {
-    fontSize: 16,
-    color: Color.textPrimary,
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.ink,
   },
   rowDate: {
-    fontSize: 13,
-    color: Color.textSecondary,
+    fontSize: LiquidType.caption.fontSize,
+    lineHeight: LiquidType.caption.lineHeight,
+    color: Liquid.inkMuted,
+  },
+  locationText: {
+    marginTop: 2,
+    fontSize: 12,
+    color: Liquid.inkSubtle,
   },
 });
 

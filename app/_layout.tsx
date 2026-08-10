@@ -162,7 +162,7 @@ const RootLayout = () => {
               sheetAllowedDetents: 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
-              contentStyle: { backgroundColor: '#FFFFFF' },
+              contentStyle: { backgroundColor: Liquid.surface },
             }}
           />
           <Stack.Screen
@@ -173,7 +173,7 @@ const RootLayout = () => {
               sheetAllowedDetents: 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
-              contentStyle: { backgroundColor: '#FFFFFF' },
+              contentStyle: { backgroundColor: Liquid.surface },
             }}
           />
           <Stack.Screen
@@ -238,7 +238,7 @@ const RootLayout = () => {
               sheetInitialDetentIndex: 0,
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
-              contentStyle: { backgroundColor: '#FFFFFF', bottom: 0 },
+              contentStyle: { backgroundColor: Liquid.surface, bottom: 0 },
             }}
           />
           <Stack.Screen
@@ -250,7 +250,7 @@ const RootLayout = () => {
                 Platform.OS === 'android' ? [0.76] : 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
-              contentStyle: { backgroundColor: '#FFFFFF' },
+              contentStyle: { backgroundColor: Liquid.surface },
             }}
           />
           <Stack.Screen
@@ -262,7 +262,7 @@ const RootLayout = () => {
                 Platform.OS === 'android' ? [0.76] : 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
-              contentStyle: { backgroundColor: '#FFFFFF' },
+              contentStyle: { backgroundColor: Liquid.surface },
             }}
           />
           <Stack.Screen
@@ -273,7 +273,7 @@ const RootLayout = () => {
               sheetAllowedDetents: 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
-              contentStyle: { backgroundColor: '#FFFFFF' },
+              contentStyle: { backgroundColor: Liquid.surface },
             }}
           />
           <Stack.Screen
@@ -285,7 +285,7 @@ const RootLayout = () => {
                 Platform.OS === 'android' ? [0.76] : 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
-              contentStyle: { backgroundColor: '#FFFFFF' },
+              contentStyle: { backgroundColor: Liquid.surface },
             }}
           />
           <Stack.Screen
@@ -297,7 +297,7 @@ const RootLayout = () => {
                 Platform.OS === 'android' ? [0.9] : 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
-              contentStyle: { backgroundColor: '#FFFFFF' },
+              contentStyle: { backgroundColor: Liquid.surface },
             }}
           />
           {/* LG-1: reply 중첩 레이아웃(Stack)을 삭제하고 루트 스택으로 호이스팅 —
@@ -323,7 +323,7 @@ const RootLayout = () => {
               sheetAllowedDetents: 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
-              contentStyle: { backgroundColor: '#FFFFFF' },
+              contentStyle: { backgroundColor: Liquid.surface },
             }}
           />
           {/* 공유 배낭 뷰어(CS-8). **일반 push로 두면 안 된다** — 박지 상세가 `formSheet`라

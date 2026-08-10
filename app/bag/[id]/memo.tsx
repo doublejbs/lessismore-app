@@ -4,6 +4,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Platform } from 'react-native';
 import Layout from '@/components/Layout';
+import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
 import app from '@/model/app/App';
 
 // LG-1: iOS는 네이티브 투명 헤더가 상단을 덮으므로 top 세이프에어리어를 빼
@@ -26,6 +27,7 @@ const BagMemoInput = () => {
     <Layout
       paddingHorizontal={0}
       edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
+      background={<LiquidBackdrop screen='none' glowPosition='topRight' />}
     >
       <BagMemoInputView bagMemo={bagMemo} />
     </Layout>

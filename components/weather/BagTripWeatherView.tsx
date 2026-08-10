@@ -1,8 +1,19 @@
 import { FC } from 'react';
-import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import LiquidSectionLabel from '@/components/liquid/LiquidSectionLabel';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+} from '@/constants/DesignTokens';
 import BagWeather from '@/model/bag/BagWeather';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 import WeatherDailyView from './WeatherDailyView';
@@ -22,12 +33,13 @@ const BagTripWeatherView: FC<Props> = ({ bagWeather }) => {
   const tripDaily = bagWeather.getDailyInRange();
 
   // 기간 요약(대표 날씨 + 최고/최저 + 강한 돌풍). 카드와 동일 규칙 공유.
-  const summary = tripDaily.length > 0 ? summarizeWeatherPeriod(tripDaily) : null;
+  const summary =
+    tripDaily.length > 0 ? summarizeWeatherPeriod(tripDaily) : null;
 
   if (loading && !weather) {
     return (
       <View style={styles.centerState}>
-        <ActivityIndicator color={Color.textSecondary} />
+        <ActivityIndicator color={Liquid.ink} />
       </View>
     );
   }
@@ -41,10 +53,11 @@ const BagTripWeatherView: FC<Props> = ({ bagWeather }) => {
         <TouchableOpacity
           style={styles.retryButton}
           onPress={() => bagWeather.ensureFresh()}
+          activeOpacity={LiquidMotion.pressOpacity}
           accessibilityRole='button'
           accessibilityLabel='날씨 다시 시도'
         >
-          <PretendardText style={styles.retryText} weight='medium'>
+          <PretendardText style={styles.retryText} weight='semibold'>
             다시 시도
           </PretendardText>
         </TouchableOpacity>
@@ -59,14 +72,15 @@ const BagTripWeatherView: FC<Props> = ({ bagWeather }) => {
   return (
     <View>
       <View style={styles.sectionHeader}>
-        <View style={styles.sectionTitleRow}>
-          <PretendardText style={styles.sectionTitle} weight='bold'>
-            여행 기간 날씨
-          </PretendardText>
-          {loading && (
-            <ActivityIndicator size='small' color={Color.textSecondary} />
-          )}
-        </View>
+        <LiquidSectionLabel
+          trailing={
+            loading ? (
+              <ActivityIndicator size='small' color={Liquid.ink} />
+            ) : undefined
+          }
+        >
+          여행 기간 날씨
+        </LiquidSectionLabel>
         {summary && (
           <PretendardText style={styles.summaryText} weight='medium'>
             {summary.cond} · ↑{summary.high}° ↓{summary.low}°
@@ -78,7 +92,8 @@ const BagTripWeatherView: FC<Props> = ({ bagWeather }) => {
       </View>
       <WeatherDailyView daily={tripDaily} />
       <PretendardText style={styles.disclaimer}>
-        예보는 향후 16일까지 제공되며, 그 이후는 과거 평년값을 참고로 표시합니다.
+        예보는 향후 16일까지 제공되며, 그 이후는 과거 평년값을 참고로
+        표시합니다.
       </PretendardText>
     </View>
   );
@@ -87,48 +102,41 @@ const BagTripWeatherView: FC<Props> = ({ bagWeather }) => {
 const styles = StyleSheet.create({
   centerState: {
     alignItems: 'center',
-    gap: 12,
+    gap: 16,
     paddingVertical: 40,
   },
   emptyText: {
     fontSize: 14,
-    color: Color.textSecondary,
-    textAlign: 'center',
     lineHeight: 20,
+    color: Liquid.inkTertiary,
+    textAlign: 'center',
   },
+  // 흰 알약 — 이 화면의 주 액션과 다투지 않는 보조 복구 액션이다(박지 상세 날씨 탭과 같은 처리).
   retryButton: {
-    minHeight: 44,
-    paddingHorizontal: 16,
+    minHeight: LiquidLayout.touchMin,
+    paddingHorizontal: 20,
     justifyContent: 'center',
-    borderRadius: Radius.input,
-    backgroundColor: Color.surfaceMuted,
+    borderRadius: LiquidRadius.pill,
+    backgroundColor: Liquid.surface,
+    borderWidth: 0.5,
+    borderColor: Liquid.hairlineStrong,
   },
   retryText: {
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Liquid.ink,
   },
   sectionHeader: {
     marginBottom: 12,
-    gap: 3,
-  },
-  sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    color: Color.textPrimary,
   },
   summaryText: {
     fontSize: 13,
-    color: Color.textPrimary,
+    color: Liquid.inkSecondary,
   },
   disclaimer: {
-    fontSize: 12,
-    color: Color.textSecondary,
-    lineHeight: 18,
     marginTop: 16,
+    fontSize: 12,
+    lineHeight: 18,
+    color: Liquid.inkMuted,
   },
 });
 

@@ -11,6 +11,8 @@ interface Props {
   onPress: () => void;
   /** 아이콘 전용 컨트롤이라 라벨이 필수다(HIG) */
   accessibilityLabel: string;
+  /** 누를 수 없는 상태 — 요청이 오가는 동안 재탭을 막는다(셸이 처리한다) */
+  disabled?: boolean;
   iconSize?: number;
   style?: StyleProp<ViewStyle>;
 }
@@ -25,12 +27,14 @@ const LiquidGlassCircleButton: FC<Props> = ({
   icon,
   onPress,
   accessibilityLabel,
+  disabled = false,
   iconSize = 20,
   style,
 }) => (
   <LiquidGlassCapsule
     width={LIQUID_CHROME_HEIGHT}
     onPress={onPress}
+    disabled={disabled}
     accessibilityLabel={accessibilityLabel}
     style={style}
   >

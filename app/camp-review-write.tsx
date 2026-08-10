@@ -10,6 +10,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   InputAccessoryView,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,10 +19,18 @@ import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
 import StarRatingView from '@/components/camp-site/StarRatingView';
 import CampSiteBagSelectSheetView from '@/components/camp-site/CampSiteBagSelectSheetView';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import LiquidFieldLabel from '@/components/liquid/LiquidFieldLabel';
 import { takeCampReviewWrite } from '@/model/camp-review/CampReviewWriteHandoff';
 import BagItem from '@/model/bag/BagItem';
 import { CampReviewInput } from '@/model/camp-review/CampReviewTypes';
-import { Color, Radius } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidType,
+} from '@/constants/DesignTokens';
 
 const MAX_CONTENT_LENGTH = 1000;
 // iOS 멀티라인 입력은 리턴키로 키보드를 못 닫으므로 키보드 위 '완료' 액세서리를 붙인다.
@@ -194,26 +203,23 @@ const CampReviewWriteScreen = () => {
       </PretendardText>
 
       <View style={styles.section}>
-        <PretendardText weight='semibold' style={styles.label}>
-          별점
-        </PretendardText>
+        <LiquidFieldLabel>별점</LiquidFieldLabel>
         <StarRatingView editable rating={rating} onChange={setRating} />
       </View>
 
       <View style={styles.section}>
-        <PretendardText weight='semibold' style={styles.label}>
-          후기 글
-        </PretendardText>
+        <LiquidFieldLabel>후기 글</LiquidFieldLabel>
         <TextInput
           style={styles.contentInput}
           placeholder='이 박지는 어땠나요? (선택)'
-          placeholderTextColor={Color.textSecondary}
+          placeholderTextColor={Liquid.inkMuted}
           value={content}
           onChangeText={setContent}
           maxLength={MAX_CONTENT_LENGTH}
           multiline
           textAlignVertical='top'
           inputAccessoryViewID={isAndroid ? undefined : CONTENT_ACCESSORY_ID}
+          accessibilityLabel='후기 글'
         />
         <PretendardText style={styles.counter}>
           {content.length}/{MAX_CONTENT_LENGTH}
@@ -221,9 +227,7 @@ const CampReviewWriteScreen = () => {
       </View>
 
       <View style={styles.section}>
-        <PretendardText weight='semibold' style={styles.label}>
-          다녀온 배낭
-        </PretendardText>
+        <LiquidFieldLabel>다녀온 배낭</LiquidFieldLabel>
         {attachedBag ? (
           <View style={styles.bagChip}>
             <View style={styles.bagChipText}>
@@ -243,27 +247,30 @@ const CampReviewWriteScreen = () => {
             <TouchableOpacity
               onPress={handleRemoveBag}
               style={styles.bagChipRemove}
+              activeOpacity={LiquidMotion.pressOpacity}
               accessibilityRole='button'
               accessibilityLabel='배낭 첨부 해제'
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
-              <Ionicons name='close' size={20} color={Color.textSecondary} />
+              <Ionicons name='close' size={20} color={Liquid.inkSecondary} />
             </TouchableOpacity>
           </View>
         ) : (
           <TouchableOpacity
             style={styles.bagSelectRow}
             onPress={() => setSheetVisible(true)}
-            activeOpacity={0.7}
+            activeOpacity={LiquidMotion.pressOpacity}
             accessibilityRole='button'
             accessibilityLabel='배낭 선택'
           >
             <Ionicons
               name='briefcase-outline'
               size={20}
-              color={Color.textSecondary}
+              color={Liquid.inkSecondary}
             />
-            <PretendardText style={styles.bagSelectText}>배낭 선택</PretendardText>
+            <PretendardText style={styles.bagSelectText}>
+              배낭 선택
+            </PretendardText>
           </TouchableOpacity>
         )}
       </View>
@@ -301,28 +308,25 @@ const CampReviewWriteScreen = () => {
       )}
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.cancelButton}
+        <LiquidPillButton
+          label='취소'
+          variant='secondary'
           onPress={() => router.back()}
-          activeOpacity={0.7}
-        >
-          <PretendardText weight='semibold' style={styles.cancelButtonText}>
-            취소
-          </PretendardText>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.confirmButton,
-            confirmDisabled && styles.confirmButtonDisabled,
-          ]}
+          style={styles.button}
+        />
+        {/* 저장 중에도 라벨을 유지하고 앞에 진행 표시만 붙인다 — 라벨이 사라지면
+            무엇을 기다리는지 알 수 없다(공유 시트 BD-7과 같은 처리). */}
+        <LiquidPillButton
+          label='확인'
+          variant='primary'
           onPress={handleSubmit}
-          activeOpacity={0.7}
           disabled={confirmDisabled}
-        >
-          <PretendardText weight='semibold' style={styles.confirmButtonText}>
-            확인
-          </PretendardText>
-        </TouchableOpacity>
+          busy={submitting}
+          leading={
+            submitting ? <ActivityIndicator color={Liquid.surface} /> : null
+          }
+          style={styles.button}
+        />
       </View>
 
       <CampSiteBagSelectSheetView
@@ -359,7 +363,9 @@ const CampReviewWriteScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Color.background,
+    // 폼 시트는 종이 면이다 — 지면 위 카드가 아니라 입력이 곧 화면이라 카드를 겹치지 않는다
+    // (입력·선택 면만 `surfaceSunken`으로 가라앉힌다).
+    backgroundColor: Liquid.surface,
     // 네이티브 그래버가 시트 상단에 겹쳐 렌더되므로 그 아래로 제목이 오도록 여백을 준다.
     paddingTop: 52,
   },
@@ -371,73 +377,78 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   body: {
-    paddingHorizontal: 20,
+    paddingHorizontal: LiquidLayout.screenH,
     marginBottom: 20,
   },
   title: {
-    fontSize: 20,
-    lineHeight: 28,
-    color: Color.textPrimary,
+    fontSize: LiquidType.title3.fontSize,
+    lineHeight: LiquidType.title3.lineHeight,
+    letterSpacing: LiquidType.title3.letterSpacing,
+    color: Liquid.ink,
     marginBottom: 24,
   },
+  // 라벨(`LiquidFieldLabel`)이 자기 아래 여백 10을 들고 있어 gap을 겹치지 않는다.
   section: {
     flexDirection: 'column',
-    gap: 10,
-    marginBottom: 24,
+    marginBottom: LiquidLayout.section,
   },
-  label: {
-    fontSize: 15,
-    lineHeight: 20,
-    color: Color.textPrimary,
-  },
+  /**
+   * `PretendardText`를 쓸 수 없는 자리라 서체를 직접 건다(TextInput 예외).
+   * 여러 줄 입력이라 모서리는 알약이 아니라 타일(20)이다.
+   */
   contentInput: {
-    borderRadius: Radius.input,
-    backgroundColor: Color.surfaceMuted,
-    paddingHorizontal: 14,
+    borderRadius: LiquidRadius.tile,
+    backgroundColor: Liquid.surfaceSunken,
+    paddingHorizontal: 16,
     paddingVertical: 14,
-    fontSize: 16,
-    fontFamily: 'Pretendard-Regular',
-    color: Color.textPrimary,
+    fontSize: LiquidType.body.fontSize,
+    fontFamily: 'Pretendard-Medium',
+    color: Liquid.ink,
     minHeight: 100,
   },
   counter: {
     alignSelf: 'flex-end',
-    fontSize: 12,
-    color: Color.textSecondary,
+    marginTop: 6,
+    fontSize: LiquidType.caption.fontSize,
+    lineHeight: LiquidType.caption.lineHeight,
+    color: Liquid.inkMuted,
   },
   bagSelectRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    minHeight: 52,
-    paddingHorizontal: 14,
-    borderRadius: Radius.input,
-    backgroundColor: Color.surfaceMuted,
+    minHeight: LiquidLayout.pillHeight,
+    paddingHorizontal: 16,
+    borderRadius: LiquidRadius.tile,
+    backgroundColor: Liquid.surfaceSunken,
   },
   bagSelectText: {
-    fontSize: 16,
-    color: Color.textSecondary,
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.inkSecondary,
   },
   bagChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: Radius.input,
-    backgroundColor: Color.surfaceMuted,
+    borderRadius: LiquidRadius.tile,
+    backgroundColor: Liquid.surfaceSunken,
   },
   bagChipText: {
     flex: 1,
     gap: 2,
   },
   bagChipName: {
-    fontSize: 16,
-    color: Color.textPrimary,
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.ink,
   },
   bagChipMeta: {
-    fontSize: 13,
-    color: Color.textSecondary,
+    fontSize: LiquidType.caption.fontSize,
+    lineHeight: LiquidType.caption.lineHeight,
+    color: Liquid.inkTertiary,
   },
   bagChipRemove: {
     width: 32,
@@ -447,35 +458,11 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 20,
+    gap: LiquidLayout.listGap,
+    paddingHorizontal: LiquidLayout.screenH,
   },
-  cancelButton: {
+  button: {
     flex: 1,
-    height: 52,
-    backgroundColor: Color.surfaceMuted,
-    borderRadius: Radius.input,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    color: Color.textPrimary,
-  },
-  confirmButton: {
-    flex: 1,
-    height: 52,
-    backgroundColor: Color.chipActiveBg,
-    borderRadius: Radius.input,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  confirmButtonDisabled: {
-    opacity: 0.5,
-  },
-  confirmButtonText: {
-    fontSize: 16,
-    color: Color.background,
   },
   accessoryBar: {
     flexDirection: 'row',
@@ -483,13 +470,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: Color.surfaceMuted,
-    borderTopWidth: 1,
-    borderTopColor: Color.borderLight,
+    backgroundColor: Liquid.surfaceSunken,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Liquid.hairline,
   },
   accessoryDone: {
-    fontSize: 16,
-    color: Color.textPrimary,
+    fontSize: LiquidType.heading.fontSize,
+    lineHeight: LiquidType.heading.lineHeight,
+    color: Liquid.ink,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },

@@ -29,11 +29,10 @@ const ROW_VERTICAL_PADDING = 14;
  * 구세대(ACG) 장비 목록 행.
  *
  * **창고는 더 이상 이 행을 쓰지 않는다**(2026-08-11 Liquid Depth 이식 — 창고 목록 행은
- * `WarehouseGearView`가 `LiquidMetricRow`로 그린다). 아직 이식하지 않은 화면 세 곳이
- * 이 행을 공유한다: 검색 모달의 담기 목록(`search/SearchGearView`)·배낭 편집의 창고
- * 리스트(`bag-edit/BagEditWarehouseGearView`)·사용 기록(`bag-useless/BagUselessGearView`).
- * 그 화면들이 ACG 톤이라 여기도 ACG 토큰을 유지한다 — 한 화면 안에서 두 세대를 섞지 않는다.
- * 세 화면을 이식할 때 이 파일을 지운다.
+ * `WarehouseGearView`가 `LiquidMetricRow`로 그린다). 배낭 편집·사용 기록도 같은 날
+ * 이식돼(`LiquidMetricRow` + 체크 원) 이 행을 떠났으므로, **남은 사용처는 검색 모달의
+ * 담기 목록(`search/SearchGearView`) 하나뿐이다.** 그 화면이 아직 ACG 톤이라 여기도 ACG
+ * 토큰을 유지한다 — 한 화면 안에서 두 세대를 섞지 않는다. 그 화면을 이식할 때 이 파일을 지운다.
  */
 // WH-1: 사용자가 올린 본인 사진이 있을 때만 좌측에 정사각 썸네일을 두고,
 // 없으면 빈 박스 없이 텍스트 우선 행 레이아웃을 그대로 쓴다(DataModel §1 2026-07-29 개정).

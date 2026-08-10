@@ -3,7 +3,15 @@ import { FC, useEffect, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import LiquidFieldLabel from '@/components/liquid/LiquidFieldLabel';
+import {
+  Liquid,
+  LiquidFont,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidType,
+} from '@/constants/DesignTokens';
 
 interface Props {
   startDate: dayjs.Dayjs | null;
@@ -122,21 +130,19 @@ const DateRangeCalendarView: FC<Props> = ({
   return (
     <View style={styles.container}>
       {/**
-        * 여행 기간은 **필드 하나**다(BAG-2).
-        *
-        * 예전에는 `시작일`·`종료일`을 각각 라벨 + 값 박스로 나눠 두 필드처럼 보였는데,
-        * 실제 컨트롤은 행 전체 하나이고 열리는 것도 **범위 선택기 하나**였다. 종료일 박스를
-        * 눌러도 범위 규칙(먼저 누른 날이 시작일)으로 동작해 기대와 어긋났다.
-        * 구조를 동작에 맞춰 하나로 합치고, 이름 입력과 같은 높이·같은 면을 쓴다.
-        */}
+       * 여행 기간은 **필드 하나**다(BAG-2).
+       *
+       * 예전에는 `시작일`·`종료일`을 각각 라벨 + 값 박스로 나눠 두 필드처럼 보였는데,
+       * 실제 컨트롤은 행 전체 하나이고 열리는 것도 **범위 선택기 하나**였다. 종료일 박스를
+       * 눌러도 범위 규칙(먼저 누른 날이 시작일)으로 동작해 기대와 어긋났다.
+       * 구조를 동작에 맞춰 하나로 합치고, 이름 입력과 같은 높이·같은 면을 쓴다.
+       */}
       <View style={styles.fieldSection}>
-        <PretendardText weight='semibold' style={styles.fieldLabel}>
-          여행 기간
-        </PretendardText>
+        <LiquidFieldLabel>여행 기간</LiquidFieldLabel>
         <TouchableOpacity
           style={styles.periodField}
           onPress={handleToggle}
-          activeOpacity={0.7}
+          activeOpacity={LiquidMotion.pressOpacity}
           accessibilityRole='button'
           accessibilityState={{ expanded: isOpen }}
           accessibilityLabel='여행 기간 선택'
@@ -151,7 +157,7 @@ const DateRangeCalendarView: FC<Props> = ({
           <Ionicons
             name={isOpen ? 'chevron-up' : 'chevron-down'}
             size={18}
-            color={Color.textSecondary}
+            color={Liquid.inkSubtle}
           />
         </TouchableOpacity>
       </View>
@@ -159,98 +165,104 @@ const DateRangeCalendarView: FC<Props> = ({
       {isOpen ? (
         <>
           <View style={styles.navigationContainer}>
-        <TouchableOpacity
-          onPress={navigateToPreviousMonth}
-          style={styles.navigationButton}
-        >
-          <PretendardText weight='bold' style={styles.navigationArrow}>
-            ‹
-          </PretendardText>
-        </TouchableOpacity>
-        <PretendardText weight='bold' style={styles.monthTitle}>
-          {currentMonth.format('YYYY년 M월')}
-        </PretendardText>
-        <TouchableOpacity
-          onPress={navigateToNextMonth}
-          style={styles.navigationButton}
-        >
-          <PretendardText weight='bold' style={styles.navigationArrow}>
-            ›
-          </PretendardText>
-        </TouchableOpacity>
-      </View>
+            {/* 아이콘은 Ionicons로 통일한다 — 글자 화살표(‹ ›)는 서체마다 두께가 갈린다. */}
+            <TouchableOpacity
+              onPress={navigateToPreviousMonth}
+              style={styles.navigationButton}
+              activeOpacity={LiquidMotion.pressOpacity}
+              accessibilityRole='button'
+              accessibilityLabel='지난달'
+            >
+              <Ionicons name='chevron-back' size={20} color={Liquid.ink} />
+            </TouchableOpacity>
+            <PretendardText weight='semibold' style={styles.monthTitle}>
+              {currentMonth.format('YYYY년 M월')}
+            </PretendardText>
+            <TouchableOpacity
+              onPress={navigateToNextMonth}
+              style={styles.navigationButton}
+              activeOpacity={LiquidMotion.pressOpacity}
+              accessibilityRole='button'
+              accessibilityLabel='다음달'
+            >
+              <Ionicons name='chevron-forward' size={20} color={Liquid.ink} />
+            </TouchableOpacity>
+          </View>
 
-      <View style={styles.calendarContainer}>
-        <View style={styles.weekdaysContainer}>
-          {weekdays.map((day, index) => (
-            <View key={index} style={styles.weekdayCell}>
-              <PretendardText
-                weight='bold'
-                style={[
-                  styles.weekdayText,
-                  index === 0 && styles.sundayText,
-                  index === 6 && styles.saturdayText,
-                ]}
-              >
-                {day}
-              </PretendardText>
-            </View>
-          ))}
-        </View>
-
-        <View
-          style={[
-            styles.daysContainer,
-            { height: Math.ceil(calendarDays.length / 7) * 44 },
-          ]}
-        >
-          {calendarDays.map((day, index) => {
-            const isStart = isSelectedStart(day);
-            const isEnd = isSelectedEnd(day);
-            const isSelected = isStart || isEnd;
-            const isRange = isInRange(day);
-
-            return (
-              <TouchableOpacity
-                key={index}
-                onPress={() => handleDateClick(day)}
-                style={styles.dayContainer}
-              >
-                <View
-                  style={[
-                    styles.dayCell,
-                    isSelected && styles.selectedDay,
-                    isRange && !isSelected && styles.rangeDay,
-                  ]}
-                >
+          <View style={styles.calendarContainer}>
+            <View style={styles.weekdaysContainer}>
+              {weekdays.map((day, index) => (
+                <View key={index} style={styles.weekdayCell}>
                   <PretendardText
-                    weight={isToday(day) || isSelected ? 'bold' : 'regular'}
+                    weight='bold'
                     style={[
-                      styles.dayText,
-                      !isCurrentMonth(day) && styles.otherMonthText,
-                      index % 7 === 0 &&
-                        isCurrentMonth(day) &&
-                        !isSelected &&
-                        styles.sundayText,
-                      index % 7 === 6 &&
-                        isCurrentMonth(day) &&
-                        !isSelected &&
-                        styles.saturdayText,
-                      (isToday(day) || isSelected) && styles.boldText,
-                      isSelected && styles.selectedDayText,
+                      styles.weekdayText,
+                      index === 0 && styles.sundayText,
+                      index === 6 && styles.saturdayText,
                     ]}
                   >
-                    {day.date()}
+                    {day}
                   </PretendardText>
                 </View>
-                {isToday(day) && !isSelected && (
-                  <View style={styles.todayIndicator} />
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
+              ))}
+            </View>
+
+            <View
+              style={[
+                styles.daysContainer,
+                { height: Math.ceil(calendarDays.length / 7) * 44 },
+              ]}
+            >
+              {calendarDays.map((day, index) => {
+                const isStart = isSelectedStart(day);
+                const isEnd = isSelectedEnd(day);
+                const isSelected = isStart || isEnd;
+                const isRange = isInRange(day);
+
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => handleDateClick(day)}
+                    style={styles.dayContainer}
+                    activeOpacity={LiquidMotion.pressOpacity}
+                    accessibilityRole='button'
+                    accessibilityState={{ selected: isSelected }}
+                    accessibilityLabel={day.format('YYYY년 M월 D일')}
+                  >
+                    <View
+                      style={[
+                        styles.dayCell,
+                        isSelected && styles.selectedDay,
+                        isRange && !isSelected && styles.rangeDay,
+                      ]}
+                    >
+                      <PretendardText
+                        weight={isToday(day) || isSelected ? 'bold' : 'regular'}
+                        style={[
+                          styles.dayText,
+                          !isCurrentMonth(day) && styles.otherMonthText,
+                          index % 7 === 0 &&
+                            isCurrentMonth(day) &&
+                            !isSelected &&
+                            styles.sundayText,
+                          index % 7 === 6 &&
+                            isCurrentMonth(day) &&
+                            !isSelected &&
+                            styles.saturdayText,
+                          isSelected && styles.selectedDayText,
+                        ]}
+                      >
+                        {day.date()}
+                      </PretendardText>
+                    </View>
+                    {isToday(day) && !isSelected && (
+                      <View style={styles.todayIndicator} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
         </>
       ) : null}
     </View>
@@ -261,30 +273,32 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
   },
+  // 라벨(`LiquidFieldLabel`)이 자기 아래 여백 10을 들고 있어 gap을 겹치지 않는다.
   fieldSection: {
-    gap: 8,
+    flexDirection: 'column',
   },
-  fieldLabel: {
-    fontSize: 15,
-    lineHeight: 20,
-    color: Color.textPrimary,
-  },
-  // 이름 입력과 같은 면·높이를 쓴다 — 같은 폼 안에서 필드 문법이 갈리지 않게 한다.
+  // 이름 입력과 같은 면·높이(알약)를 쓴다 — 같은 폼 안에서 필드 문법이 갈리지 않게 한다.
   periodField: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Color.surfaceMuted,
-    borderRadius: Radius.input,
-    paddingHorizontal: 14,
+    minHeight: LiquidLayout.pillHeight,
+    backgroundColor: Liquid.surfaceSunken,
+    borderRadius: LiquidRadius.pill,
+    paddingHorizontal: 20,
     paddingVertical: 14,
   },
+  // 날짜·구분자뿐이라 콘덴스드를 쓴다(한글이 섞이지 않는 문자열).
   periodText: {
+    fontFamily: LiquidFont.condensed,
     fontSize: 16,
-    color: Color.textPrimary,
+    color: Liquid.ink,
   },
+  // 플레이스홀더는 한글이라 콘덴스드를 벗긴다 — Archivo Narrow에 한글 글리프가 없다.
   periodPlaceholder: {
-    color: Color.textSecondary,
+    fontFamily: 'Pretendard-Medium',
+    fontSize: LiquidType.body.fontSize,
+    color: Liquid.inkMuted,
   },
   navigationContainer: {
     flexDirection: 'row',
@@ -292,15 +306,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
   },
+  // 아이콘 전용 컨트롤이라 HIG 최소 터치 타깃 44pt를 채운다.
   navigationButton: {
-    padding: 10,
-  },
-  navigationArrow: {
-    fontSize: 24,
+    minWidth: LiquidLayout.touchMin,
+    minHeight: LiquidLayout.touchMin,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   monthTitle: {
-    fontSize: 16,
-    color: Color.textPrimary,
+    fontSize: LiquidType.heading.fontSize,
+    lineHeight: LiquidType.heading.lineHeight,
+    color: Liquid.ink,
   },
   calendarContainer: {
     flex: 1,
@@ -315,8 +331,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   weekdayText: {
-    color: Color.textPrimary,
+    fontSize: LiquidType.caption.fontSize,
+    color: Liquid.inkSecondary,
   },
+  // 달력 요일색은 시맨틱 예외다(CLAUDE.md) — 리디자인해도 바꾸지 않는다.
   sundayText: {
     color: '#FF5252',
   },
@@ -341,32 +359,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 18,
   },
+  // 고른 양 끝은 잉크 채움(선택 칩과 같은 문법), 그 사이는 가라앉은 면으로 잇는다.
   selectedDay: {
-    backgroundColor: Color.chipActiveBg,
+    backgroundColor: Liquid.ink,
   },
   rangeDay: {
-    backgroundColor: Color.surfaceMuted,
+    backgroundColor: Liquid.surfaceSunken,
   },
   dayText: {
     textAlign: 'center',
-    color: Color.textPrimary,
+    color: Liquid.ink,
   },
   otherMonthText: {
-    color: Color.textSecondary,
+    color: Liquid.inkSubtle,
   },
   selectedDayText: {
-    color: Color.background,
+    color: Liquid.surface,
   },
-  boldText: {
-    color: Color.textPrimary,
-  },
+  /**
+   * 오늘 표식. 라임 계열 잉크를 쓴다 — 잉크로 두면 고른 날(잉크 채움)과 같은 값이라
+   * 시스템이 알려 주는 사실(오늘)과 사용자가 고른 값이 구분되지 않는다. 라임 원색은
+   * 4px 점으로는 흰 면에서 거의 보이지 않아 한 단계 어두운 값을 쓴다.
+   */
   todayIndicator: {
     position: 'absolute',
     bottom: 6,
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#4A90E2',
+    backgroundColor: Liquid.limeInk,
   },
 });
 

@@ -17,7 +17,20 @@ import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color, Radius, Spacing } from '@/constants/DesignTokens';
+import LiquidGlassCapsule, {
+  LIQUID_CHROME_HEIGHT,
+} from '@/components/liquid/LiquidGlassCapsule';
+import LiquidGlassCircleButton from '@/components/liquid/LiquidGlassCircleButton';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidSemantic,
+  LiquidShadow,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
@@ -32,8 +45,14 @@ import CampSiteFilterChipsView from '@/components/camp-site/CampSiteFilterChipsV
 import BagDestinationSearchResultsView from './BagDestinationSearchResultsView';
 import useBagDestinationPickerState from './useBagDestinationPickerState';
 
-// 즐겨찾기 상징 노랑 — 마커 캠핑장색과 동일한 시맨틱 리터럴(CS-9). 지도 탭 오버레이와 동일.
-const FAVORITE_COLOR = '#FFD700';
+// 지도 위 유리 검색 필드 높이 — 지도 탭 상단 오버레이와 같은 값이다(목업 §4).
+const FIELD_HEIGHT = 48;
+
+// 지우기 버튼 터치 여유. 버튼은 28로 그리고 HIG 44는 여유로만 채운다: (44 − 28) / 2 = 8.
+const CLEAR_HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
+
+// 플로팅 원형 버튼 지름 — 지도 탭 하단 오버레이와 같은 값이다(목업 §4).
+const FLOATING_BUTTON_SIZE = 48;
 
 interface Props {
   // 현재 저장된 여행지. 없으면 미설정 상태로 연다.
@@ -255,7 +274,7 @@ const BagDestinationPickerView: FC<Props> = observer(
             <Ionicons
               name='location'
               size={40}
-              color={Color.textPrimary}
+              color={Liquid.ink}
               style={styles.pinIcon}
             />
           </View>
@@ -271,56 +290,70 @@ const BagDestinationPickerView: FC<Props> = observer(
         )}
 
         <View style={[styles.headerWrap, { paddingTop: insets.top }]}>
-          <View style={styles.headerCard}>
-            <View style={styles.headerRow}>
-              <TouchableOpacity
-                style={styles.headerButton}
-                onPress={handleClose}
-                disabled={saving}
-                accessibilityRole='button'
-                accessibilityLabel='닫기'
-                accessibilityState={{ disabled: saving }}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              >
-                <Ionicons name='close' size={24} color={Color.textPrimary} />
-              </TouchableOpacity>
-              <PretendardText style={styles.headerTitle} weight='bold'>
+          {/* 지도 위 크롬은 유리다(목업 §4) — 흰 카드로 덮지 않고 닫기 원·타이틀 알약·검색
+              필드를 각각 떠 있게 둔다. 지도가 크롬 사이로 계속 보여야 어디를 고르는지 읽힌다. */}
+          <View style={styles.headerRow}>
+            {/* 저장 중에는 닫기를 막는다 — 요청이 오가는 동안 화면이 사라지면 결과를
+                받을 자리가 없다(지도 탭·확정 버튼과 같은 처리). */}
+            <LiquidGlassCircleButton
+              icon='close'
+              onPress={handleClose}
+              accessibilityLabel='닫기'
+              disabled={saving}
+            />
+            <LiquidGlassCapsule paddingHorizontal={14}>
+              <PretendardText style={styles.headerTitle} weight='semibold'>
                 여행지 선택
               </PretendardText>
-              <View style={styles.headerButton} />
-            </View>
+            </LiquidGlassCapsule>
+            {/* 좌측 닫기 원과 폭을 맞춰 타이틀을 가운데 둔다. */}
+            <View style={styles.headerSpacer} />
+          </View>
 
-            <View style={styles.searchBox}>
-              <Ionicons name='search' size={18} color={Color.textSecondary} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder='박지나 장소를 검색하세요'
-                placeholderTextColor={Color.textSecondary}
-                value={query}
-                onChangeText={handleChangeQuery}
-                onFocus={handleFocusSearch}
-                editable={!saving}
-                autoCorrect={false}
-                returnKeyType='search'
-                accessibilityLabel='박지와 장소 검색'
-                accessibilityState={{ disabled: saving }}
-              />
-              {query.length > 0 && (
-                <TouchableOpacity
-                  style={styles.searchClearButton}
-                  onPress={handleClearQuery}
-                  disabled={saving}
-                  accessibilityRole='button'
-                  accessibilityLabel='검색어 지우기'
-                  accessibilityState={{ disabled: saving }}
-                >
+          {/* 검색 필드는 지도 탭과 같은 유리 알약이다 — 채움이 진해(`glassFillOnMap`) 뒤
+              지형·라벨 위에서도 입력값이 겹쳐 읽히지 않는다. 실제 블러는 쓰지 않는다(같은 이유). */}
+          <View style={styles.searchWrap}>
+            <View style={styles.fieldShadow}>
+              <View style={styles.field}>
+                <View style={styles.fieldBody}>
                   <Ionicons
-                    name='close-circle'
+                    name='search'
                     size={18}
-                    color={Color.textSecondary}
+                    color={query.length > 0 ? Liquid.ink : Liquid.inkMuted}
                   />
-                </TouchableOpacity>
-              )}
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder='박지나 장소를 검색하세요'
+                    placeholderTextColor={Liquid.inkMuted}
+                    value={query}
+                    onChangeText={handleChangeQuery}
+                    onFocus={handleFocusSearch}
+                    editable={!saving}
+                    autoCorrect={false}
+                    returnKeyType='search'
+                    accessibilityLabel='박지와 장소 검색'
+                    accessibilityState={{ disabled: saving }}
+                  />
+                  {query.length > 0 && (
+                    <TouchableOpacity
+                      style={styles.searchClearButton}
+                      onPress={handleClearQuery}
+                      disabled={saving}
+                      activeOpacity={LiquidMotion.pressOpacity}
+                      hitSlop={CLEAR_HIT_SLOP}
+                      accessibilityRole='button'
+                      accessibilityLabel='검색어 지우기'
+                      accessibilityState={{ disabled: saving }}
+                    >
+                      <Ionicons
+                        name='close-circle'
+                        size={20}
+                        color={Liquid.inkSubtle}
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
             </View>
           </View>
 
@@ -354,34 +387,36 @@ const BagDestinationPickerView: FC<Props> = observer(
                   (배낭은 로그인 전용이라 빈 상태는 사실상 없어 리스트를 곧바로 연다). */}
                 {campSiteMap.hasFavorites() && (
                   <TouchableOpacity
-                    style={styles.locateButton}
+                    style={[styles.floatingButton, styles.glassButton]}
                     onPress={handleOpenFavorites}
                     disabled={saving}
-                    activeOpacity={0.8}
+                    activeOpacity={LiquidMotion.pressOpacity}
                     accessibilityRole='button'
                     accessibilityLabel='즐겨찾기 목록'
                     accessibilityState={{ disabled: saving }}
                   >
-                    <Ionicons name='star' size={22} color={FAVORITE_COLOR} />
+                    <Ionicons
+                      name='star'
+                      size={22}
+                      color={LiquidSemantic.favorite}
+                    />
                   </TouchableOpacity>
                 )}
+                {/* 지도 크롬에서 라임 면은 이 버튼 하나다(지도 탭과 같은 자리) — 하단 패널의
+                    주 액션은 잉크라 라임과 다투지 않는다. */}
                 <TouchableOpacity
-                  style={styles.locateButton}
+                  style={[styles.floatingButton, styles.locateButton]}
                   onPress={handleMoveToCurrentLocation}
                   disabled={locating || saving}
-                  activeOpacity={0.8}
+                  activeOpacity={LiquidMotion.pressOpacity}
                   accessibilityRole='button'
                   accessibilityLabel='현재 위치로 이동'
                   accessibilityState={{ disabled: locating || saving }}
                 >
                   {locating ? (
-                    <ActivityIndicator size='small' color={Color.textPrimary} />
+                    <ActivityIndicator size='small' color={Liquid.limeOn} />
                   ) : (
-                    <Ionicons
-                      name='locate'
-                      size={22}
-                      color={Color.textPrimary}
-                    />
+                    <Ionicons name='locate' size={22} color={Liquid.limeOn} />
                   )}
                 </TouchableOpacity>
               </View>
@@ -393,7 +428,7 @@ const BagDestinationPickerView: FC<Props> = observer(
                 <Ionicons
                   name='location-outline'
                   size={18}
-                  color={Color.textPrimary}
+                  color={Liquid.ink}
                 />
                 <PretendardText
                   style={styles.nameText}
@@ -406,26 +441,19 @@ const BagDestinationPickerView: FC<Props> = observer(
                 </PretendardText>
               </View>
 
-              <TouchableOpacity
-                style={[
-                  styles.confirmButton,
-                  (saving || !origin) && styles.confirmDisabled,
-                ]}
+              {/* 저장 중에도 라벨을 유지하고 앞에 진행 표시만 붙인다 — 라벨이 사라지면
+                  무엇을 기다리는지 알 수 없다(박지 상세 CTA와 같은 처리). */}
+              <LiquidPillButton
+                label='이 위치로 설정'
+                variant='primary'
+                block
                 onPress={handleConfirm}
                 disabled={saving || !origin}
-                activeOpacity={0.8}
-                accessibilityRole='button'
-                accessibilityLabel='이 위치로 여행지 설정'
-                accessibilityState={{ disabled: saving || !origin }}
-              >
-                {saving ? (
-                  <ActivityIndicator color={Color.background} />
-                ) : (
-                  <PretendardText style={styles.confirmText} weight='semibold'>
-                    이 위치로 설정
-                  </PretendardText>
-                )}
-              </TouchableOpacity>
+                busy={saving}
+                leading={
+                  saving ? <ActivityIndicator color={Liquid.surface} /> : null
+                }
+              />
             </View>
           </View>
         )}
@@ -437,7 +465,7 @@ const BagDestinationPickerView: FC<Props> = observer(
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Acg.bg,
+    backgroundColor: Liquid.canvas,
   },
   centerPin: {
     position: 'absolute',
@@ -457,52 +485,61 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-  },
-  headerCard: {
-    margin: Spacing.item,
-    padding: Spacing.item,
-    borderRadius: Radius.card,
-    backgroundColor: Color.background,
     gap: 10,
-    shadowColor: Color.textPrimary,
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
+    paddingTop: 10,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    minHeight: 28,
+    paddingHorizontal: LiquidLayout.screenH,
   },
-  headerButton: {
-    width: 24,
+  // 좌측 닫기 원과 같은 폭 — 타이틀 알약이 화면 가운데 온다. 같은 유리 크롬 지오메트리를 참조한다.
+  headerSpacer: {
+    width: LIQUID_CHROME_HEIGHT,
   },
   headerTitle: {
-    fontSize: 16,
-    color: Color.textPrimary,
+    fontSize: LiquidType.bodySm.fontSize,
+    color: Liquid.ink,
   },
-  searchBox: {
+  searchWrap: {
+    marginHorizontal: LiquidLayout.screenH,
+  },
+  // 그림자는 바깥 래퍼가 진다 — 안쪽에서 모서리를 깎으므로(overflow) 같은 뷰에 두면 잘린다.
+  fieldShadow: {
+    borderRadius: FIELD_HEIGHT / 2,
+    boxShadow: LiquidShadow.glass,
+  },
+  field: {
+    minHeight: FIELD_HEIGHT,
+    borderRadius: FIELD_HEIGHT / 2,
+    borderWidth: 0.5,
+    borderColor: Liquid.glassStroke,
+    backgroundColor: Liquid.glassFillOnMap,
+    overflow: 'hidden',
+    justifyContent: 'center',
+  },
+  fieldBody: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: Color.inputBg,
-    borderRadius: Radius.input,
-    paddingHorizontal: 14,
-    minHeight: 44,
+    gap: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 13,
   },
+  // TextInput은 PretendardText로 감쌀 수 없어 서체를 직접 지정한다(지도 탭 필드와 같은 값).
   searchInput: {
     flex: 1,
-    fontSize: 15,
-    fontFamily: 'Pretendard-Regular',
-    color: Color.textPrimary,
+    fontFamily: 'Pretendard-Medium',
+    fontSize: 15.5,
+    color: Liquid.ink,
     padding: 0,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
   },
   searchClearButton: {
-    width: 44,
-    minHeight: 44,
-    alignItems: 'flex-end',
+    minWidth: 28,
+    minHeight: 28,
+    alignItems: 'center',
     justifyContent: 'center',
   },
   bottomWrap: {
@@ -513,34 +550,38 @@ const styles = StyleSheet.create({
   },
   locateRow: {
     alignItems: 'flex-end',
-    paddingHorizontal: 16,
-    marginBottom: 10,
+    paddingHorizontal: 18,
+    marginBottom: 12,
     gap: 12,
   },
-  locateButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Color.background,
+  // 두 버튼이 같은 지오메트리(지름 48 원)를 공유한다 — 채움만 갈린다(지도 탭과 같은 값).
+  floatingButton: {
+    width: FLOATING_BUTTON_SIZE,
+    height: FLOATING_BUTTON_SIZE,
+    borderRadius: FLOATING_BUTTON_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Color.textPrimary,
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 5,
+    boxShadow: LiquidShadow.glass,
   },
+  glassButton: {
+    backgroundColor: Liquid.glassFillOnMap,
+    borderWidth: 0.5,
+    borderColor: Liquid.glassStroke,
+  },
+  locateButton: {
+    backgroundColor: Liquid.lime,
+    boxShadow: LiquidShadow.accent,
+  },
+  // 지도 위에 뜬 종이 카드 — 유리로 두면 주소 글자가 지도 라벨과 겹쳐 읽힌다
+  // (지도 탭 검색 결과 카드와 같은 판단).
   bottomPanel: {
-    margin: 16,
-    padding: 16,
-    borderRadius: Radius.modal,
-    backgroundColor: Color.background,
+    marginHorizontal: LiquidLayout.screenH,
+    marginBottom: 16,
+    padding: LiquidLayout.cardPad,
+    borderRadius: LiquidRadius.card,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.card,
     gap: 14,
-    shadowColor: Color.textPrimary,
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
   },
   infoRow: {
     flexDirection: 'row',
@@ -550,24 +591,9 @@ const styles = StyleSheet.create({
   // 아이콘 옆 가로 배치라 남은 폭을 채운다.
   nameText: {
     flex: 1,
-    fontSize: 15,
-    color: Color.textPrimary,
-    lineHeight: 20,
-  },
-  confirmButton: {
-    minHeight: 52,
-    borderRadius: Radius.input,
-    backgroundColor: Color.chipActiveBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-  },
-  confirmDisabled: {
-    opacity: 0.6,
-  },
-  confirmText: {
-    fontSize: 16,
-    color: Color.background,
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.ink,
   },
 });
 

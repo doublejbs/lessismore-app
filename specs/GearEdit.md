@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | as-built (2026-06-10 코드 기준) · **2026-07-28 개정(as-built)**: 장비 이미지 미제공([DataModel.md](DataModel.md) §1) — 이미지 필드·업로드 제거 |
+| 상태 | as-built (2026-06-10 코드 기준) · **2026-07-28 개정(as-built)**: 장비 이미지 미제공([DataModel.md](DataModel.md) §1) — 이미지 필드·업로드 제거 · **2026-08-11 개정(as-built)**: 직접 입력·수정 폼과 추가 선택 시트를 Liquid Depth로 이식 — §2 폼 문법 신설, 카테고리 칩 교체·터치 여유 값 정정(GE-7), 선택 시트 시각(GE-8) · **2026-08-11 정정**: 폼 필드 라벨을 섹션 라벨에서 전용 `LiquidFieldLabel`로 분리 — 대문자 변환 제거·대비 상향·필수 표식 위치(§2 폼 문법) |
 | ID 프리픽스 | `GE` |
 | 주요 코드 | `app/custom/`, `app/gear-edit/`, `components/gear/`, `model/gear/` (AbstractGearEdit, custom/, edit/) |
 | 관련 스펙 | [DataModel.md](DataModel.md), [Warehouse.md](Warehouse.md), [BagDetail.md](BagDetail.md), [Search.md](Search.md) |
@@ -23,6 +23,24 @@
 | `/gear-edit/[id]` | `GearEdit` | 창고 행 메뉴 `수정하기`, 배낭 상세 장비 메뉴 |
 
 단계(스텝) 없는 단일 폼 + 하단 고정 `확인` 버튼(수동 폼).
+
+### 폼 문법 (as-built, 2026-08-11 — Liquid Depth)
+
+직접 입력(`/custom`·`/custom/bag-gear/{bagId}`)과 수정(`/gear-edit/{id}`)이 같은 문법을 쓴다. 목업에 없는
+화면이라 이식된 12화면의 관례로 유도 적용했다 — 값의 단일 소스는 `constants/DesignTokens.ts`의 `Liquid*`다.
+
+- 필드 라벨은 큰 제목이 아니라 **작은 라벨**(12.5/600 · `inkTertiary`)이며 전용 프리미티브
+  `LiquidFieldLabel`이 그린다. **섹션 머리 라벨(`LiquidSectionLabel`)을 쓰지 않는다** — 대문자 변환이
+  `무게(g)`를 `무게(G)`로 깨뜨리고, 11px `inkMuted`(3.9:1)는 입력을 식별하는 유일한 라벨로는 AA에 못 미친다
+  (2026-08-11 정정. 그전에는 대문자 마이크로 라벨을 그대로 썼다).
+- 필수 표식(`*`)은 **라벨 바로 뒤 4px**에 의미색으로 붙인다 — 섹션 라벨의 `trailing`(우측 정렬)에 넣으면
+  화면 우측 끝으로 떨어져 어느 필드의 표식인지 읽히지 않는다.
+- 각 입력에는 라벨 문구와 같은 `accessibilityLabel`을 준다 — `TextInput`은 시각 라벨과 자동으로 묶이지 않는다.
+- 입력은 **가라앉은 면(`surfaceSunken`)의 알약**(h54)이다. 각진 면·테두리는 쓰지 않는다. 무게 필드는 값이
+  들어오면 **콘덴스드(Archivo Narrow)** 로 바뀌고, 플레이스홀더는 한글이라 본문 서체를 유지한다.
+- 카테고리는 공용 **`LiquidChip`**(알약, 선택 시 잉크 채움)으로 고른다 — 구세대 `CategoryChipView`는 참조가 끊겨 삭제했다(2026-08-11).
+- 지면은 지형 없는 중성 지면(수정 화면) 또는 `canvas` 면(직접 입력 pageSheet)이고, 주 액션은 화면당 하나인
+  **잉크 알약**(h54)이다. 검증 실패 문구는 버튼 위에 의미색으로 둔다.
 
 ## 3. 요구사항
 
@@ -98,7 +116,8 @@ WCAG 1.1.1(Non-text Content)·4.1.2(Name/Role/Value)·2.5.5(Target Size 44×44) 
   | 확인 | `button` | (텍스트 `확인`) |
 - 카테고리 칩은 `accessibilityRole='button'` + `accessibilityState={{ selected }}`로 선택 상태를 보조기술에 노출한다(4.1.2).
 - 모든 상호작용 컨트롤은 터치 타깃 **최소 44×44pt**를 확보한다(2.5.5):
-  - 카테고리 칩(높이 32pt)은 `hitSlop`으로 세로 터치 영역 44pt 확보.
+  - 카테고리 칩(시각 높이 34pt — `LiquidChip`)은 `hitSlop`으로 세로 터치 영역 44pt를 확보한다(2026-08-11 as-built: 32 → 34, 프리미티브가 값을 소유한다).
+  - 입력 지우기(×) 버튼은 시각 28pt이고 `hitSlop`으로 44pt를 채운다.
 
 ### GE-8 장비 추가 진입 (검색 / 직접 선택)
 
@@ -107,6 +126,7 @@ WCAG 1.1.1(Non-text Content)·4.1.2(Name/Role/Value)·2.5.5(Target Size 44×44) 
 **수용 기준**
 
 - **선택 시트 `gear-add-options`**: `bag-add-options`(BAG-2)와 동일한 네이티브 formSheet(그래버·드래그 닫기·`fitToContents`·radius 20). 두 행 — **`검색으로 추가`**(돋보기 아이콘) / **`직접 입력`**(연필/＋ 아이콘). 각 행에 보조 설명(예: `카탈로그에서 찾아 담기` / `제품 정보를 직접 입력`).
+  - **시각 (as-built 2026-08-11 — Liquid Depth)**: 종이 면 + 제목 22/700 → 행(아이콘 타일 44 `surfaceSunken` radius 18 → 제목 17/600 + 보조 설명 13.5 → 쉐브론), 행 사이 헤어라인 하나. 배낭 추가 시트(BAG-2)와 **같은 값을 공유한다** — 두 시트가 나란한데 시각이 갈리면 다른 기능처럼 읽힌다.
   - 컨텍스트: 창고는 파라미터 없음, 배낭 편집은 `bagId`를 넘긴다.
   - 항목 선택 시 시트를 다음 화면으로 **`replace`** 한다(중간 탭 리로드 노출 방지, BAG-2와 동일).
 - **`직접 입력` 분기**: 창고 → `/custom`, 배낭 → `/custom/bag-gear/{bagId}`(기존 수동 폼, GE-1/GE-3).

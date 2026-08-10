@@ -1,27 +1,32 @@
 import { FC, useEffect } from 'react';
 import {
   View,
-  TouchableOpacity,
   FlatList,
   StyleSheet,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
-import BagUseless from '../../model/bag-useless/BagUseless';
 import { observer } from 'mobx-react-lite';
-import app from '../../model/app/App';
+import BagUseless from '@/model/bag-useless/BagUseless';
+import app from '@/model/app/App';
+import Gear from '@/model/gear/Gear';
 import BagUselessGearView from './BagUselessGearView';
 import PretendardText from '@/components/PretendardText';
-import AcgDisplayText from '@/components/acg/AcgDisplayText';
-import { Ionicons } from '@expo/vector-icons';
-import { Acg, Color, Radius, Spacing } from '@/constants/DesignTokens';
-import Gear from '@/model/gear/Gear';
+import LiquidCard from '@/components/liquid/LiquidCard';
+import LiquidGlassCapsule from '@/components/liquid/LiquidGlassCapsule';
+import LiquidGlassCircleButton from '@/components/liquid/LiquidGlassCircleButton';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import LiquidProgressBar from '@/components/liquid/LiquidProgressBar';
+import {
+  Liquid,
+  LiquidFont,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidType,
+} from '@/constants/DesignTokens';
 
 interface Props {
   bagUseless: BagUseless;
@@ -29,11 +34,29 @@ interface Props {
 
 // LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
 const IS_IOS = Platform.OS === 'ios';
-// iOS 네이티브 내비게이션 바 높이 — 고정(비스크롤) 상단 콘텐츠의 시작 위치 보정용.
-const NATIVE_HEADER_HEIGHT = 44;
+
+// 투명 헤더와 본문 타이틀 사이 간격(창고 화면과 같은 값) — 바 버튼과 타이틀이 붙어 보이지 않게 한다.
+const HEADER_TOP_GAP = 6;
+
+// 진행 바 두께. 히어로 자리라 목록 카드의 6보다 굵다(핸드오프 ProgressBar h8).
+const BAR_HEIGHT = 8;
+
+// 고른 개수 글자 크기(패킹 진행 카드와 같은 값). 부모 라인박스가 같은 값을 써야 어센더가 깎이지 않는다.
+const COUNT_FONT_SIZE = 52;
+
+// 텍스트 알약 내부 좌우 여백(목업 §7) — 아이콘 칸을 담는 캡슐(5)보다 넓다.
+const SELECT_ALL_PILL_PAD_H = 14;
 
 const toKg = (grams: number) => Math.round((grams / 1000) * 100) / 100;
 
+/**
+ * BD-5 사용 기록 화면 (Liquid Depth).
+ *
+ * 여행에서 실제로 쓴 장비를 고르는 **할 일 목록**이라 패킹 모드(목업 §7)와 같은 얼개를 쓴다 —
+ * 지형 + 짙은 베일 지면, 상단에 고정된 유리 진행 카드, 그 아래로 흐르는 체크 행 목록.
+ * `전체 선택`/`전체 해제`는 패킹의 `처음부터 다시`와 같은 자리(유리 텍스트 알약)에 둔다 —
+ * 진행 카드 안에 두면 라임 퍼센트 알약과 자리를 다툰다.
+ */
 const BagUselessView: FC<Props> = ({ bagUseless }) => {
   const insets = useSafeAreaInsets();
   const isInitialized = bagUseless.isInitialized();
@@ -67,26 +90,37 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
 
   const percent =
     allCount > 0 ? Math.round((selectedCount / allCount) * 100) : 0;
+  const selectAllLabel = selectedCount ? '전체 해제' : '전체 선택';
 
-  // 진행 바를 패킹모드 헤더와 동일한 스프링으로 채운다(오버슈트 없이 목표치까지).
-  // 훅은 early return보다 위에 둔다(조건부 훅 금지).
-  const progress = useSharedValue(percent);
-
-  useEffect(() => {
-    progress.value = withSpring(percent, {
-      damping: 18,
-      stiffness: 120,
-      overshootClamping: true,
-    });
-  }, [percent, progress]);
-
-  const barStyle = useAnimatedStyle(() => ({
-    // 0~100 클램프 — 무효 width 퍼센트로 순간 풀폭 렌더되는 것을 막는다.
-    width: `${Math.min(100, Math.max(0, progress.value))}%`,
-  }));
+  // LG-1: iOS만 네이티브 투명 헤더 — 큰 안내 문구는 내비 타이틀이 아니라 본문 콘텐츠라
+  // headerTitle은 비워 둔다. 우측은 전체 선택·해제 토글이다.
+  const stackScreen = (
+    <Stack.Screen
+      options={{
+        headerShown: IS_IOS,
+        headerTransparent: true,
+        headerTitle: '',
+        headerBackButtonDisplayMode: 'minimal',
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={handlePressToggleSelectAll}
+            activeOpacity={LiquidMotion.pressOpacity}
+            style={styles.nativeSelectAllButton}
+            accessibilityRole='button'
+            accessibilityLabel={selectAllLabel}
+          >
+            <PretendardText style={styles.selectAllLabel} weight='semibold'>
+              {selectAllLabel}
+            </PretendardText>
+          </TouchableOpacity>
+        ),
+      }}
+    />
+  );
 
   if (!isInitialized) {
-    return null;
+    // 초기화 전에는 목록을 그리지 않는다 — 지면만 먼저 깔아 빈 화면이 번쩍이지 않게 한다.
+    return <View style={styles.container}>{stackScreen}</View>;
   }
 
   const totalKg = toKg(
@@ -102,36 +136,33 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
     <View
       style={[
         styles.container,
-        // LG-1: 큰 안내 타이틀이 상단 고정 콘텐츠라 헤더 뒤로 흐를 수 없다 —
-        // 투명 헤더(상태바+44pt) 아래에서 시작하도록 여백을 준다.
-        // 헤더 높이 + 여백 — back 버튼과 본문 타이틀이 붙어 보이지 않게 간격을 둔다.
+        // LG-1: 큰 안내 타이틀이 상단 고정 콘텐츠라 헤더 뒤로 흐를 수 없다 — 투명 헤더
+        // (상태바 + 44pt) 아래에서 시작하도록 여백을 주고, 바 버튼과 타이틀이 붙어 보이지
+        // 않게 간격을 더한다(창고 화면과 같은 값).
         IS_IOS && {
-          paddingTop: insets.top + NATIVE_HEADER_HEIGHT + Spacing.section,
+          paddingTop: insets.top + LiquidLayout.navBar + HEADER_TOP_GAP,
         },
       ]}
     >
-      {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)은 시스템에 위임한다
-          (headerBlurEffect·headerStyle.backgroundColor 지정 금지). 큰 안내 문구
-          ('실제로 사용했던 장비만 선택해주세요')는 내비 타이틀이 아니라 본문 콘텐츠라
-          headerTitle은 비워 둔다. 하단 '완료' 버튼은 본문 유지. */}
-      <Stack.Screen
-        options={{
-          headerShown: IS_IOS,
-          headerTransparent: true,
-          headerTitle: '',
-          headerBackButtonDisplayMode: 'minimal',
-        }}
-      />
+      {stackScreen}
+
       {!IS_IOS && (
-        <View style={styles.backRow}>
-          <TouchableOpacity
+        <View style={styles.chrome}>
+          <LiquidGlassCircleButton
+            icon='chevron-back'
             onPress={handlePressBack}
-            hitSlop={12}
-            accessibilityRole='button'
             accessibilityLabel='뒤로가기'
+          />
+          <LiquidGlassCapsule
+            paddingHorizontal={SELECT_ALL_PILL_PAD_H}
+            onPress={handlePressToggleSelectAll}
+            accessibilityLabel={selectAllLabel}
           >
-            <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
-          </TouchableOpacity>
+            {/* 한글이라 콘덴스드를 쓰지 않는다 — Archivo Narrow에 한글 글리프가 없다. */}
+            <PretendardText weight='semibold' style={styles.selectAllLabel}>
+              {selectAllLabel}
+            </PretendardText>
+          </LiquidGlassCapsule>
         </View>
       )}
 
@@ -144,29 +175,47 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
         </PretendardText>
       </View>
 
-      <View style={styles.progress}>
-        <View style={styles.countRow}>
-          {/* 숫자라 콘덴스드를 쓴다 — 패킹 모드 진행률과 같은 문법(ACG). */}
-          <View style={styles.countGroup}>
-            <AcgDisplayText style={styles.count}>
-              {String(selectedCount)}
-            </AcgDisplayText>
-            <PretendardText weight='medium' style={styles.countTotal}>
-              {`/ ${allCount} 사용`}
+      <View style={styles.progressWrap}>
+        <LiquidCard tone='glass' radius='hero' padding={LiquidLayout.cardPadLg}>
+          {/* 개수와 퍼센트는 같은 사실의 두 표현이라 한 덩어리로 읽는다. */}
+          <View
+            style={styles.countRow}
+            accessible
+            accessibilityLabel={`사용 ${selectedCount}/${allCount}, ${percent}%`}
+          >
+            {/* 부모 라인박스를 자식 최대 크기로 잡는다 — 없으면 큰 숫자의 어센더가 깎인다. */}
+            <PretendardText style={styles.countWrap} numberOfLines={1}>
+              <PretendardText style={styles.countValue}>
+                {selectedCount}
+              </PretendardText>
+              <PretendardText style={styles.countTotal}>
+                {` / ${allCount}`}
+              </PretendardText>
             </PretendardText>
+            {/* 이 화면의 유일한 라임 면 — 진행률 하나만 액센트를 받는다. */}
+            <View style={styles.percentBadge}>
+              <PretendardText style={styles.percentText}>
+                {`${percent}%`}
+              </PretendardText>
+            </View>
           </View>
-          <TouchableOpacity onPress={handlePressToggleSelectAll} hitSlop={8}>
-            <PretendardText weight='medium' style={styles.selectAllText}>
-              {selectedCount ? '전체 해제' : '전체 선택'}
-            </PretendardText>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.barTrack}>
-          <Animated.View style={[styles.barFill, barStyle]} />
-        </View>
-        <PretendardText weight='medium' style={styles.weightText}>
-          {selectedKg}kg / {totalKg}kg
-        </PretendardText>
+
+          {/* 유리 면 위라 채움은 잉크다(라임은 위 알약이 이미 갖고 있다). */}
+          <View style={styles.bar}>
+            <LiquidProgressBar
+              percent={percent}
+              tone='ink'
+              height={BAR_HEIGHT}
+            />
+          </View>
+
+          <PretendardText
+            style={styles.weightText}
+            accessibilityLabel={`사용한 무게 ${selectedKg}kg, 총 무게 ${totalKg}kg`}
+          >
+            {`${selectedKg}kg / ${totalKg}kg`}
+          </PretendardText>
+        </LiquidCard>
       </View>
 
       <FlatList
@@ -179,15 +228,12 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
       />
 
       <View style={styles.confirmWrapper}>
-        <TouchableOpacity
-          style={styles.confirmButton}
+        <LiquidPillButton
+          label='완료'
+          variant='primary'
+          block
           onPress={handlePressConfirm}
-          activeOpacity={0.8}
-        >
-          <PretendardText weight='semibold' style={styles.confirmLabel}>
-            완료
-          </PretendardText>
-        </TouchableOpacity>
+        />
       </View>
     </View>
   );
@@ -198,84 +244,91 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     height: '100%',
   },
-  backRow: {
-    width: '100%',
-    paddingVertical: 7,
+  // Android·Web 크롬 — iOS는 같은 그림을 네이티브 투명 헤더가 내준다(LG-1).
+  chrome: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 8,
+  },
+  // iOS 네이티브 headerRight 텍스트 버튼 — HIG 최소 터치 타깃 44pt 확보.
+  nativeSelectAllButton: {
+    minHeight: LiquidLayout.touchMin,
+    justifyContent: 'center',
+  },
+  selectAllLabel: {
+    fontSize: 14,
+    color: Liquid.inkSecondary,
   },
   titleColumn: {
     flexDirection: 'column',
   },
   title: {
-    fontSize: 28,
-    color: Color.textPrimary,
+    fontSize: LiquidType.title2.fontSize,
+    lineHeight: LiquidType.title2.lineHeight,
+    letterSpacing: LiquidType.title2.letterSpacing,
+    color: Liquid.ink,
   },
-  progress: {
-    marginTop: Spacing.section,
-    marginBottom: 16,
-    gap: 10,
+  progressWrap: {
+    marginTop: LiquidLayout.section,
+    marginBottom: LiquidLayout.cardPad,
   },
   countRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'flex-end',
+    justifyContent: 'space-between',
   },
-  countGroup: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
+  countWrap: {
+    flexShrink: 1,
+    fontSize: COUNT_FONT_SIZE,
+    lineHeight: COUNT_FONT_SIZE,
   },
-  count: {
-    fontSize: 34,
-    lineHeight: 38,
-    color: Acg.ink,
+  countValue: {
+    fontFamily: LiquidFont.condensed,
+    fontSize: COUNT_FONT_SIZE,
+    lineHeight: COUNT_FONT_SIZE,
+    letterSpacing: -1.5,
+    color: Liquid.ink,
   },
+  // 전체 개수는 한 단계 낮춘다 — 시선이 먼저 닿아야 하는 값은 고른 개수다.
   countTotal: {
+    fontFamily: LiquidFont.condensed,
+    fontSize: 24,
+    color: Liquid.inkSubtle,
+  },
+  // 고정 높이 대신 minHeight — Dynamic Type으로 글자가 커져도 알약이 깨지지 않는다.
+  percentBadge: {
+    minHeight: 30,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    borderRadius: LiquidRadius.pill,
+    backgroundColor: Liquid.lime,
+  },
+  percentText: {
+    fontFamily: LiquidFont.condensed,
     fontSize: 16,
-    color: Acg.textSecondary,
+    color: Liquid.limeOn,
   },
-  selectAllText: {
-    fontSize: 15,
-    color: Acg.textSecondary,
-  },
-  // 각진 진행 바 + 라임 채움(ACG) — 패킹 모드와 같은 값이라 두 화면이 같은 문법으로 읽힌다.
-  barTrack: {
-    width: '100%',
-    height: 10,
-    borderRadius: 0,
-    backgroundColor: Acg.line2,
-    overflow: 'hidden',
-  },
-  barFill: {
-    height: '100%',
-    borderRadius: 0,
-    backgroundColor: Acg.lime,
+  bar: {
+    marginTop: 16,
   },
   weightText: {
-    fontSize: 15,
-    color: Acg.textSecondary,
+    marginTop: 12,
+    fontFamily: LiquidFont.condensed,
+    fontSize: 14,
+    color: Liquid.inkTertiary,
   },
   list: {
     flex: 1,
   },
   listContent: {
-    // 행이 각자 종이 면이라 홈 목록과 같은 8px로 벌린다(ACG).
-    gap: 8,
-    paddingBottom: 16,
+    // 행이 각자 카드 면이라 카드 사이 간격으로 벌린다.
+    gap: LiquidLayout.listGap,
+    paddingBottom: LiquidLayout.cardPad,
   },
   confirmWrapper: {
     width: '100%',
-    paddingVertical: Spacing.item,
-  },
-  confirmButton: {
-    width: '100%',
-    backgroundColor: Color.textPrimary,
-    paddingVertical: 16,
-    borderRadius: Radius.card,
-    alignItems: 'center',
-  },
-  confirmLabel: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    paddingVertical: 12,
   },
 });
 

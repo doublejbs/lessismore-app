@@ -12,7 +12,15 @@ import { Stack, useRouter } from 'expo-router';
 import { Dayjs } from 'dayjs';
 import { Edge, SafeAreaView } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color, Radius, Spacing } from '@/constants/DesignTokens';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import LiquidSectionLabel from '@/components/liquid/LiquidSectionLabel';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import BagWeather from '@/model/bag/BagWeather';
 import { getPhaseLabel } from '@/model/bag/TripPhaseHelper';
 import BagDestinationMapPreviewView from './BagDestinationMapPreviewView';
@@ -77,10 +85,11 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
           <TouchableOpacity
             style={styles.headerButton}
             onPress={() => router.back()}
+            activeOpacity={LiquidMotion.pressOpacity}
             accessibilityRole='button'
             accessibilityLabel='뒤로가기'
           >
-            <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
+            <Ionicons name='chevron-back' size={24} color={Liquid.ink} />
           </TouchableOpacity>
           <PretendardText style={styles.headerTitle} weight='bold'>
             여행지
@@ -91,20 +100,21 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
 
       {!location ? (
         <View style={styles.emptyState}>
-          <Ionicons name='map-outline' size={40} color={Color.iconMuted} />
-          <PretendardText style={styles.emptyText}>
-            여행지를 설정하면{'\n'}그때의 날씨까지 볼 수 있어요
-          </PretendardText>
-          <TouchableOpacity
-            style={styles.selectButton}
-            onPress={handleOpenPicker}
-            accessibilityRole='button'
-            accessibilityLabel='여행지 선택'
-          >
-            <PretendardText style={styles.selectText} weight='semibold'>
-              여행지 선택
+          <Ionicons name='map-outline' size={40} color={Liquid.inkSubtle} />
+          {/* 빈 상태는 사실 + 다음 걸음 두 줄(핸드오프 Interactions). */}
+          <View style={styles.emptyTexts}>
+            <PretendardText style={styles.emptyFact} weight='semibold'>
+              아직 여행지를 정하지 않았어요
             </PretendardText>
-          </TouchableOpacity>
+            <PretendardText style={styles.emptyNext}>
+              여행지를 설정하면 그때의 날씨까지 볼 수 있어요
+            </PretendardText>
+          </View>
+          <LiquidPillButton
+            label='여행지 선택'
+            variant='primary'
+            onPress={handleOpenPicker}
+          />
         </View>
       ) : (
         <ScrollView
@@ -133,9 +143,7 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
           <View style={styles.divider} />
 
           <View style={styles.periodSection}>
-            <PretendardText style={styles.periodTitle} weight='bold'>
-              여행 기간
-            </PretendardText>
+            <LiquidSectionLabel>여행 기간</LiquidSectionLabel>
             <View style={styles.periodRow}>
               <PretendardText style={styles.periodText} weight='medium'>
                 {periodLabel}
@@ -166,25 +174,26 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Acg.bg,
+    backgroundColor: Liquid.canvas,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.screenH,
+    paddingHorizontal: LiquidLayout.screenH,
     height: 52,
   },
   headerTitle: {
-    fontSize: 17,
-    color: Color.textPrimary,
+    fontSize: LiquidType.heading.fontSize,
+    lineHeight: LiquidType.heading.lineHeight,
+    color: Liquid.ink,
   },
   headerSpacer: {
-    width: 44,
+    width: LiquidLayout.touchMin,
   },
   headerButton: {
-    width: 44,
-    minHeight: 44,
+    width: LiquidLayout.touchMin,
+    minHeight: LiquidLayout.touchMin,
     alignItems: 'flex-start',
     justifyContent: 'center',
   },
@@ -192,21 +201,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: Spacing.screenH,
+    paddingHorizontal: LiquidLayout.screenH,
     paddingBottom: 40,
   },
   divider: {
-    height: 1,
-    backgroundColor: Color.borderLight,
-    marginVertical: 20,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Liquid.hairline,
+    marginVertical: LiquidLayout.section,
   },
   periodSection: {
-    marginBottom: 20,
-    gap: 8,
-  },
-  periodTitle: {
-    fontSize: 16,
-    color: Color.textPrimary,
+    marginBottom: LiquidLayout.section,
   },
   periodRow: {
     flexDirection: 'row',
@@ -215,41 +219,41 @@ const styles = StyleSheet.create({
   },
   periodText: {
     fontSize: 14,
-    color: Color.textSecondary,
+    color: Liquid.inkSecondary,
   },
+  // 중립 배지 — 라임·잉크 배지보다 한 단계 낮은 자리(목업 §5의 임박하지 않은 D-day와 같은 값).
   phaseBadge: {
+    minHeight: 24,
+    justifyContent: 'center',
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: Radius.pill,
-    backgroundColor: Color.chipInactiveBg,
+    borderRadius: LiquidRadius.pill,
+    backgroundColor: Liquid.badgeFill,
   },
   phaseText: {
     fontSize: 12,
-    color: Color.textPrimary,
+    color: Liquid.inkSecondary,
   },
   emptyState: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 16,
-    paddingHorizontal: Spacing.screenH,
+    paddingHorizontal: LiquidLayout.screenH,
   },
-  emptyText: {
-    fontSize: 14,
-    color: Color.textSecondary,
+  emptyTexts: {
+    gap: 4,
+    alignItems: 'center',
+  },
+  emptyFact: {
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.ink,
+  },
+  emptyNext: {
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: Liquid.inkTertiary,
     textAlign: 'center',
-    lineHeight: 20,
-  },
-  selectButton: {
-    minHeight: 48,
-    paddingHorizontal: 20,
-    justifyContent: 'center',
-    borderRadius: Radius.input,
-    backgroundColor: Color.chipActiveBg,
-  },
-  selectText: {
-    fontSize: 15,
-    color: Color.background,
   },
 });
 

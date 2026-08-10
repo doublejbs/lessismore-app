@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { Liquid, LiquidType } from '@/constants/DesignTokens';
 import { getWeatherCodeInfo } from '@/model/weather/WeatherCode';
 import { WeatherDaily } from '@/model/weather/WeatherTypes';
 
@@ -43,7 +43,7 @@ const WeatherDailyRow: FC<{ item: WeatherDaily; isLast: boolean }> = ({
         <PretendardText style={styles.weekdayText}>{weekday}</PretendardText>
       </View>
 
-      <Ionicons name={info.icon} size={22} color={Color.textPrimary} />
+      <Ionicons name={info.icon} size={22} color={Liquid.ink} />
 
       <View style={styles.descCol}>
         <PretendardText style={styles.descText}>{info.ko}</PretendardText>
@@ -52,9 +52,11 @@ const WeatherDailyRow: FC<{ item: WeatherDaily; isLast: boolean }> = ({
             <Ionicons
               name='water-outline'
               size={12}
-              color={Color.textSecondary}
+              color={Liquid.inkTertiary}
             />
-            <PretendardText style={styles.metaText}>{precipText}</PretendardText>
+            <PretendardText style={styles.metaText}>
+              {precipText}
+            </PretendardText>
           </View>
           {windText && (
             <PretendardText style={styles.metaText}>{windText}</PretendardText>
@@ -92,14 +94,15 @@ const styles = StyleSheet.create({
   container: {
     gap: 4,
   },
+  // 행 사이는 헤어라인 하나로만 나눈다 — 구획은 면이 맡고 선은 최소로 둔다.
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     paddingVertical: 12,
     paddingHorizontal: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Liquid.hairline,
   },
   rowLast: {
     borderBottomWidth: 0,
@@ -109,12 +112,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dateText: {
-    fontSize: 15,
-    color: Color.textPrimary,
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.ink,
   },
   weekdayText: {
     fontSize: 12,
-    color: Color.textSecondary,
+    color: Liquid.inkMuted,
   },
   descCol: {
     flex: 1,
@@ -122,7 +126,7 @@ const styles = StyleSheet.create({
   },
   descText: {
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Liquid.ink,
   },
   metaRow: {
     flexDirection: 'row',
@@ -138,7 +142,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    color: Color.textSecondary,
+    color: Liquid.inkTertiary,
   },
   tempCol: {
     flexDirection: 'row',
@@ -147,11 +151,12 @@ const styles = StyleSheet.create({
   },
   tempMinText: {
     fontSize: 14,
-    color: Color.textSecondary,
+    color: Liquid.inkTertiary,
   },
   tempMaxText: {
-    fontSize: 15,
-    color: Color.textPrimary,
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.ink,
   },
 });
 

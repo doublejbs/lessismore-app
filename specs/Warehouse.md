@@ -82,7 +82,7 @@ app/warehouse/index.tsx → WarehouseWrapper → WarehouseScreen
 **수용 기준**
 
 - 필터는 `전체` + 11개 카테고리([DataModel.md](DataModel.md) DM-4)로 구성되고 기본값은 `전체`다.
-- 칩 UI는 Liquid Depth 공용 `LiquidChip`(완전한 알약 h34 · 비선택 = 흰 유리 톤 채움 + 0.5px 보더 + `inkSecondary` · 선택 = 잉크 채움 + 흰 글자 600)을 쓴다(2026-08-11 이식). 고정 높이 없이 `minHeight`+패딩으로 큰 글씨(Dynamic Type)에서도 잘리지 않으며, `hitSlop`으로 44pt 터치를 확보한다. 홈 미리보기(HM-4)와 같은 컴포넌트다. (아직 이식하지 않은 화면은 구세대 `CategoryChipView`를 쓴다 — 한 화면 안에서 두 세대를 섞지 않는다.)
+- 칩 UI는 Liquid Depth 공용 `LiquidChip`(완전한 알약 h34 · 비선택 = 흰 유리 톤 채움 + 0.5px 보더 + `inkSecondary` · 선택 = 잉크 채움 + 흰 글자 600)을 쓴다(2026-08-11 이식). 고정 높이 없이 `minHeight`+패딩으로 큰 글씨(Dynamic Type)에서도 잘리지 않으며, `hitSlop`으로 44pt 터치를 확보한다. 홈 미리보기(HM-4)와 같은 컴포넌트다. (2026-08-11: 구세대 `CategoryChipView`는 참조가 끊겨 삭제했다 — 선택형 칩은 이제 이 컴포넌트 하나뿐이다.)
 - 한 번에 하나만 선택된다 — 다른 필터 선택 시 기존 선택은 해제된다.
 - 이미 선택된 필터를 다시 눌러도 **해제되지 않고 그대로 유지**된다(선택 칩 재탭은 무시). `전체`로 돌아가려면 `전체` 칩을 누른다.
 - **1차 필터는 그룹 쿼리**: 선택한 그룹의 세분 카테고리 배열(DM-4 매핑, 레거시 키 포함)로 `where('category','in', 멤버들)` 조회한다. `전체`는 전체 조회.
