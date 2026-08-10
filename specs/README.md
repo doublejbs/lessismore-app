@@ -63,6 +63,7 @@ UI가 바뀌는 작업은 **실행 중인 앱의 스크린샷**(iOS/Android 필�
   - 네이티브 `formSheet` 라우트 → `sheetGrabberVisible: true`로 **OS가 그래버를 그린다**. 별도 닫기 버튼을 두지 않는다.
   - `presentation: 'modal'`(pageSheet) 라우트와 RN `Modal` 기반 시트 → **OS 그래버가 없다.** 스와이프로 닫히긴 하나 어포던스가 안 보이므로 공용 `SheetGrabberView`(핸들바)를 직접 얹고, 하단이 주 액션(`확인` 등) 하나뿐이면 **적용하지 않고 나가는 길**(우상단 닫기 ×)을 함께 둔다.
   - 핸들바는 시트마다 새로 그리지 않는다 — 예전에 치수·색이 네 갈래로 갈렸고 그중 하나(`borderLight`)는 흰 배경에서 거의 안 보였다.
+- **공용 프리미티브 우선** — 같은 그림을 화면에서 다시 그리지 않는다(핸들바와 같은 이유: 복제는 반드시 값이 갈린다). `components/liquid/`에 있는 것을 먼저 찾는다: 카드·알약·칩·필드(`LiquidCard`·`LiquidPillButton`·`LiquidChip`·`LiquidSearchField`·`LiquidGlassField`), 유리 크롬(`LiquidHeaderChrome` — 헤더 행 + 유리 원 back + 우측 캡슐 + 가운데 타이틀, `LiquidGlassCapsule`·`LiquidGlassCircleButton`), 시트(`LiquidBottomSheet`·`LiquidSheetCloseButton`), 지면(`LiquidBackdrop`), 로딩 셔머(`useLiquidShimmer` + `LiquidSkeletonBar`). 값이 프리미티브와 어긋나면 **프리미티브 값이 목업 수치보다 우선**한다(GD-1·CS-3 선례). 새 프리미티브가 필요하면 화면 안에 두지 말고 `components/liquid/`에 만든다.
 - **상태 커버리지** — 로딩/빈/에러/비로그인 상태의 UI가 처리되어 있는가.
 - **문구** — 한글 문구의 톤(존댓말)·용어가 기존 문구와 일관적인가.
 - **플랫폼 렌더링** — 아이콘 매핑(iOS SF Symbol ↔ Android/웹), 키보드 회피, 세이프에어리어가 세 플랫폼에서 깨지지 않는가.

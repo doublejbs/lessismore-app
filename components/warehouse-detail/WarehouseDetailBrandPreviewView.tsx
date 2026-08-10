@@ -1,15 +1,11 @@
-import { FC, useEffect, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  Animated,
-} from 'react-native';
+import { FC, useState } from 'react';
+import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
+import LiquidSkeletonBar from '@/components/liquid/LiquidSkeletonBar';
+import useLiquidShimmer from '@/components/liquid/useLiquidShimmer';
 import {
   Liquid,
   LiquidMotion,
@@ -22,6 +18,12 @@ import { getDisplayHost } from '../../model/gear/GearBrandLink';
 const IMAGE_HEIGHT = 180;
 /** 이미지가 없을 때 쓰는 좌측 아이콘 타일. */
 const TILE_SIZE = 56;
+/**
+ * 이 밴드의 셔머는 다른 스켈레톤(반 주기 600)보다 느리다 — 180pt 면 하나뿐인 큰 덩어리라
+ * 빠른 맥박이 눈에 튄다(홈 스켈레톤과 같은 판단).
+ */
+const SHIMMER_TO = 0.5;
+const SHIMMER_HALF_DURATION = 800;
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -45,29 +47,10 @@ interface BandProps {
  */
 const PreviewImageBand: FC<BandProps> = ({ imageUrl, onFailed }) => {
   const [settled, setSettled] = useState(false);
-  // useRef(new Animated.Value()).current는 렌더 중 ref 접근이라 lint가 막는다.
-  const [pulse] = useState(() => new Animated.Value(1));
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, {
-          toValue: 0.5,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulse, {
-          toValue: 1,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-
-    loop.start();
-
-    return () => loop.stop();
-  }, [pulse]);
+  const opacity = useLiquidShimmer({
+    to: SHIMMER_TO,
+    halfDuration: SHIMMER_HALF_DURATION,
+  });
 
   return (
     <View style={styles.band}>
@@ -86,10 +69,16 @@ const PreviewImageBand: FC<BandProps> = ({ imageUrl, onFailed }) => {
         />
       ) : null}
 
+      {/* 골격은 이미지 **위**를 덮는다 — 자리를 미리 잡아 두면 도착할 때 높이가 튀지 않는다.
+          공용 막대를 절대 채움으로 눌러 쓴다. 모서리는 0인데, 밴드가 카드 상단을 꽉 채우고
+          카드가 `overflow: 'hidden'`으로 이미 모양을 깎으므로 여기서 또 깎으면 어긋난다. */}
       {settled ? null : (
-        <Animated.View
-          style={[styles.skeleton, { opacity: pulse }]}
-          accessibilityElementsHidden
+        <LiquidSkeletonBar
+          opacity={opacity}
+          height={IMAGE_HEIGHT}
+          radius={0}
+          color={Liquid.surfaceSunken}
+          style={StyleSheet.absoluteFill}
         />
       )}
     </View>
@@ -196,14 +185,6 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
-  },
-  skeleton: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: Liquid.surfaceSunken,
   },
   captionRow: {
     flexDirection: 'row',

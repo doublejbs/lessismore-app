@@ -17,7 +17,7 @@ import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import GearEditWeightView from '@/components/gear/edit/GearEditWeightView';
 import GearEditConfirmView from '@/components/gear/edit/GearEditConfirmView';
 import GearEditColorView from '@/components/gear/edit/GearEditColorView';
-import LoadingIconView from '@/components/ui/LoadingIconView';
+import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '@/components/PretendardText';
 import AlertView from '@/components/alert/AlertView';
 import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
@@ -178,7 +178,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
             )}
             {isLoading && (
               <View style={styles.loadingOverlay}>
-                <LoadingIconView />
+                <LoadingView />
               </View>
             )}
             <ScrollView

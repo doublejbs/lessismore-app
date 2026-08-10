@@ -1,5 +1,7 @@
-import { FC, useEffect, useState } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
+import { FC } from 'react';
+import { View, StyleSheet } from 'react-native';
+import LiquidSkeletonBar from '@/components/liquid/LiquidSkeletonBar';
+import useLiquidShimmer from '@/components/liquid/useLiquidShimmer';
 import {
   Liquid,
   LiquidLayout,
@@ -22,33 +24,21 @@ const SHIMMER_HALF_DURATION = 600;
 const SHIMMER_MIN = 0.35;
 const SHIMMER_MAX = 0.75;
 
-const useShimmerOpacity = () => {
-  // `useRef(...).current`를 렌더 중 읽으면 react-hooks 규칙에 걸린다 — 초기화 함수로 1회만 만든다.
-  const [opacity] = useState(() => new Animated.Value(SHIMMER_MIN));
+// 이 스켈레톤의 셔머 폭은 다른 화면(1 ↔ 0.5)보다 좁다 — 값을 명시해 넘긴다.
+const useShimmerOpacity = () =>
+  useLiquidShimmer({
+    from: SHIMMER_MIN,
+    to: SHIMMER_MAX,
+    halfDuration: SHIMMER_HALF_DURATION,
+  });
 
-  useEffect(() => {
-    const animate = () => {
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: SHIMMER_MAX,
-          duration: SHIMMER_HALF_DURATION,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: SHIMMER_MIN,
-          duration: SHIMMER_HALF_DURATION,
-          useNativeDriver: true,
-        }),
-      ]).start(() => animate());
-    };
-
-    animate();
-  }, [opacity]);
-
-  return opacity;
-};
-
-// 도착할 카드와 같은 모양 — radius 22 흰 카드, 좌 [배지 · 이름 · 기간] / 우 [무게].
+/**
+ * 도착할 카드와 같은 모양 — radius 22 흰 카드, 좌 [배지 · 이름 · 기간] / 우 [무게].
+ *
+ * 카드 안 자리는 `surfaceSunken`이 정본이지만 흰 면 위에서 셔머로 투명도를 내리면 거의
+ * 사라져 빈 카드처럼 읽힌다 — 막대의 기본값(`inkFaint`)을 그대로 써서 한 단계 진하게 두고
+ * 지면 위 헤더 자리와도 톤을 맞춘다.
+ */
 const SkeletonCard: FC = () => {
   const opacity = useShimmerOpacity();
 
@@ -56,11 +46,31 @@ const SkeletonCard: FC = () => {
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={styles.identityColumn}>
-          <Animated.View style={[styles.badgeBar, { opacity }]} />
-          <Animated.View style={[styles.nameBar, { opacity }]} />
-          <Animated.View style={[styles.dateBar, { opacity }]} />
+          <LiquidSkeletonBar
+            opacity={opacity}
+            width={52}
+            height={22}
+            radius={11}
+          />
+          <LiquidSkeletonBar
+            opacity={opacity}
+            width='68%'
+            height={17}
+            radius={6}
+          />
+          <LiquidSkeletonBar
+            opacity={opacity}
+            width='84%'
+            height={12.5}
+            radius={6}
+          />
         </View>
-        <Animated.View style={[styles.weightBar, { opacity }]} />
+        <LiquidSkeletonBar
+          opacity={opacity}
+          width={64}
+          height={30}
+          radius={8}
+        />
       </View>
     </View>
   );
@@ -74,13 +84,35 @@ const BagListSkeletonView: FC = () => {
       {/* `배낭` 제목 + `N개 · 평균 N.Nkg` 요약 · 우측 정렬 드롭다운 자리 */}
       <View style={styles.header}>
         <View style={styles.headerIdentity}>
-          <Animated.View style={[styles.headerTitleBar, { opacity }]} />
-          <Animated.View style={[styles.headerSummaryBar, { opacity }]} />
+          {/* 실제 헤더의 라인박스(제목 lineHeight 38, 요약 ~17)와 같은 높이 — 로딩 해제 시 튀지 않게. */}
+          <LiquidSkeletonBar
+            opacity={opacity}
+            width={96}
+            height={38}
+            radius={8}
+          />
+          <LiquidSkeletonBar
+            opacity={opacity}
+            width={132}
+            height={17}
+            radius={6}
+          />
         </View>
-        <Animated.View style={[styles.headerOrderBar, { opacity }]} />
+        <LiquidSkeletonBar
+          opacity={opacity}
+          width={78}
+          height={16}
+          radius={8}
+        />
       </View>
 
-      <Animated.View style={[styles.sectionLabelBar, { opacity }]} />
+      <LiquidSkeletonBar
+        opacity={opacity}
+        width={64}
+        height={16}
+        radius={5}
+        style={styles.sectionLabelBar}
+      />
 
       {[...Array(CARD_COUNT)].map((_unused, index) => (
         <SkeletonCard key={index} />
@@ -103,32 +135,9 @@ const styles = StyleSheet.create({
   headerIdentity: {
     gap: 8,
   },
-  // 실제 헤더의 라인박스(제목 lineHeight 38, 요약 ~17)와 같은 높이 — 로딩 해제 시 튀지 않게.
-  headerTitleBar: {
-    width: 96,
-    height: 38,
-    borderRadius: 8,
-    backgroundColor: Liquid.inkFaint,
-  },
-  headerSummaryBar: {
-    width: 132,
-    height: 17,
-    borderRadius: 6,
-    backgroundColor: Liquid.inkFaint,
-  },
-  headerOrderBar: {
-    width: 78,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: Liquid.inkFaint,
-  },
   sectionLabelBar: {
-    width: 64,
-    height: 16,
-    borderRadius: 5,
     marginTop: 24,
     marginBottom: 10,
-    backgroundColor: Liquid.inkFaint,
   },
   card: {
     padding: 18,
@@ -146,35 +155,6 @@ const styles = StyleSheet.create({
   identityColumn: {
     flex: 1,
     gap: 8,
-  },
-  /**
-   * 카드 안 자리는 `surfaceSunken`이 정본이지만 흰 면 위에서 셔머로 투명도를 내리면
-   * 거의 사라져 빈 카드처럼 읽힌다 — 한 단계 진한 `inkFaint`를 같은 값으로 쓰고
-   * 지면 위 헤더 자리와도 톤을 맞춘다.
-   */
-  badgeBar: {
-    width: 52,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: Liquid.inkFaint,
-  },
-  nameBar: {
-    width: '68%',
-    height: 17,
-    borderRadius: 6,
-    backgroundColor: Liquid.inkFaint,
-  },
-  dateBar: {
-    width: '84%',
-    height: 12.5,
-    borderRadius: 6,
-    backgroundColor: Liquid.inkFaint,
-  },
-  weightBar: {
-    width: 64,
-    height: 30,
-    borderRadius: 8,
-    backgroundColor: Liquid.inkFaint,
   },
 });
 

@@ -13,9 +13,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import app from '@/model/app/App';
 import { useEffect } from 'react';
-import SplashLoadingView from '@/components/ui/SplashLoadingView';
-import { View, Text, Platform, Image } from 'react-native';
+import SplashLoadingView, {
+  SPLASH_BACKGROUND,
+} from '@/components/ui/SplashLoadingView';
+import { View, Platform, Image, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
+import PretendardText from '@/components/PretendardText';
 import ForceUpdateGateView from '@/components/app-update/ForceUpdateGateView';
 import AnnouncementSheetView from '@/components/announcement/AnnouncementSheetView';
 import FeaturePopupSheetView from '@/components/feature-popup/FeaturePopupSheetView';
@@ -25,12 +28,15 @@ import { Liquid, LiquidRadius } from '@/constants/DesignTokens';
 // (SplashLoadingView — 하단 team magma 로고)가 보이게 한다. 자동 숨김을 막아둔다.
 SplashScreen.preventAutoHideAsync();
 
-// 커스텀 라이트 테마 - 텍스트 색상을 검은색으로 설정
+/**
+ * 네비게이션 테마의 기본 글자색. 앱 텍스트는 전부 `PretendardText`가 색을 정하므로 이 값이
+ * 실제로 보이는 자리는 거의 없지만, 남는 한 곳도 잉크 스케일 위에 있어야 한다(순검정 금지).
+ */
 const CustomDefaultTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    text: '#000000', // 검은색으로 변경
+    text: Liquid.ink,
   },
 };
 
@@ -371,6 +377,14 @@ const createAppComponent = () => {
       requestHeaders: {
         // if you want to use the request headers, you can add them here
       },
+      /**
+       * OTA 확인·다운로드 동안의 폴백(APP-2). **Liquid 지면이 아니라 스플래시의 연장이다** —
+       * 이 화면은 React 앱보다 먼저 뜨므로(폰트 로드 전, `SplashLoadingView`보다도 앞) 앱
+       * 지면색으로 칠하면 스플래시에서 흰 화면으로 튄 뒤 다시 스플래시로 돌아온다.
+       * 같은 이유로 글자는 `PretendardText`를 쓰되 **폰트가 아직 로드되지 않아** 시스템 서체로
+       * 떨어진다 — 그러면 `weight` prop이 가리키는 fontFamily가 사라지므로 굵기는
+       * `fallbackStyles.status`의 `fontWeight`가 든다(아래 주석 참고).
+       */
       fallbackComponent: ({
         progress,
         status,
@@ -378,33 +392,49 @@ const createAppComponent = () => {
         progress: number;
         status: string;
       }) => (
-        <View
-          style={{
-            flex: 1,
-            padding: 20,
-            borderRadius: 10,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: '#151515',
-          }}
-        >
+        <View style={fallbackStyles.container}>
           <Image
             source={require('../assets/images/splash-icon.png')}
-            style={{ width: 200, height: 200 }}
+            style={fallbackStyles.icon}
             resizeMode='contain'
           />
-          <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
+          <PretendardText weight='bold' style={fallbackStyles.status}>
             {status === 'UPDATING' ? '업데이트 중...' : '업데이트 확인 중...'}
-          </Text>
+          </PretendardText>
           {progress > 0 ? (
-            <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
+            <PretendardText weight='bold' style={fallbackStyles.status}>
               {Math.round(progress * 100)}%
-            </Text>
+            </PretendardText>
           ) : null}
         </View>
       ),
     })(observer(RootLayout));
   }
 };
+
+const fallbackStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // 네이티브 스플래시와 같은 면(`SplashLoadingView`도 이 값이다) — 앱 지면 토큰이 아니다.
+    backgroundColor: SPLASH_BACKGROUND,
+  },
+  icon: {
+    width: 200,
+    height: 200,
+  },
+  /**
+   * `PretendardText weight='bold'`가 가리키는 `Pretendard-Bold`는 이 구간에 아직 없다
+   * (폰트 로드 전에 뜨는 화면이다) — fontFamily가 해석되지 않아 시스템 서체로 떨어지고,
+   * 그러면 굵기 지정이 함께 사라진다. `fontWeight`를 직접 걸어 시스템 서체의 bold를 쓴다.
+   */
+  status: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Liquid.surface,
+  },
+});
 
 export default createAppComponent();

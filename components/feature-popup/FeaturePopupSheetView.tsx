@@ -9,25 +9,38 @@ import {
   Modal,
   Animated,
   Linking,
-  ViewStyle,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
 import FeaturePopupItemView from '@/components/feature-popup/FeaturePopupItemView';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import LiquidCard from '@/components/liquid/LiquidCard';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidType,
+} from '@/constants/DesignTokens';
 
 // http(s) 링크 판별 — 이 경우만 외부 브라우저로 연다(FP-3/FP-4).
 const EXTERNAL_LINK_PATTERN = /^https?:\/\//i;
 
-// 신기능 안내 팝업(FP-2). 화면 중앙 카드형 모달.
-// AnnouncementSheetView 패턴(RN Modal transparent + Animated fade + useSafeAreaInsets + observer)을 따른다.
-// 전역 1곳(app/_layout.tsx 최상위)에서 렌더한다.
+/**
+ * 신기능 안내 팝업 (Liquid Depth, FP-2). 화면 중앙 카드형 모달.
+ *
+ * 잉크 막(`Liquid.scrim`) 위에 흰 카드 하나 — 전역 알럿(APP-3)과 같은 문법이라 두 중앙
+ * 오버레이가 한 가족으로 읽힌다. 다른 점은 카드 안에 목록과 주 액션이 들어 있다는 것뿐이다.
+ *
+ * 아이템 그룹은 면을 더 얹지 않고 **조용한 아웃라인**으로만 갈린다(브랜드 링크 카드와 같은
+ * 0.5px 헤어라인) — 흰 카드 위에 회색 면을 또 깔면 카드 안에 카드가 생긴다.
+ *
+ * 전역 1곳(app/_layout.tsx 최상위)에서 렌더한다.
+ */
 const FeaturePopupSheetView = () => {
   // 훅은 모두 컴포넌트 최상단에서 무조건 같은 순서로 호출한다(조건부 훅 금지).
   // 매니저 접근·표시 판정 같은 분기는 훅을 전부 부른 뒤로 미룬다.
   const router = useRouter();
-  const insets = useSafeAreaInsets();
 
   // Animated 값은 lazy 초기화로 한 번만 만든다(렌더 중 ref.current 접근을 피한다).
   const [fadeAnim] = useState(() => new Animated.Value(0));
@@ -140,16 +153,15 @@ const FeaturePopupSheetView = () => {
         <View style={styles.centerArea} pointerEvents='box-none'>
           {/* 카드 자체 탭은 딤 닫힘으로 전파되지 않게 activeOpacity=1 래퍼로 감싼다. */}
           <TouchableOpacity activeOpacity={1} style={styles.cardTouchable}>
-            <View
-              style={[
-                styles.card,
-                { paddingBottom: Spacing.section + insets.bottom },
-              ]}
+            <LiquidCard
+              tone='paper'
+              radius='card'
+              padding={LiquidLayout.cardPadLg}
+              style={styles.card}
             >
               <ScrollView
                 style={styles.scroll}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.cardContent}
               >
                 <PretendardText weight='bold' style={styles.title}>
                   {title}
@@ -177,20 +189,16 @@ const FeaturePopupSheetView = () => {
                 ) : null}
               </ScrollView>
 
-              {/* 메인 버튼(FP-4) — 필수 채움형 풀폭 버튼.
+              {/* 메인 버튼(FP-4) — 이 카드의 주 액션이라 잉크 알약 하나다.
                   강제 모드에서 buttonLink가 없으면 버튼은 닫기 역할뿐이라 숨긴다(FP-7). */}
               {!forced || buttonLink ? (
-                <TouchableOpacity
-                  style={styles.mainButton}
+                <LiquidPillButton
+                  label={buttonLabel}
+                  variant='primary'
+                  block
                   onPress={handlePressButton}
-                  activeOpacity={0.8}
-                  accessibilityRole='button'
-                  accessibilityLabel={buttonLabel}
-                >
-                  <PretendardText weight='bold' style={styles.mainButtonText}>
-                    {buttonLabel}
-                  </PretendardText>
-                </TouchableOpacity>
+                  style={styles.mainButton}
+                />
               ) : null}
 
               {/* 건너뛰기(FP-5) — showSkip !== false일 때만 노출. 강제 모드는 showSkip 값과 무관하게 숨긴다(FP-7). */}
@@ -198,6 +206,7 @@ const FeaturePopupSheetView = () => {
                 <TouchableOpacity
                   style={styles.skipButton}
                   onPress={handleSkip}
+                  activeOpacity={LiquidMotion.pressOpacity}
                   accessibilityRole='button'
                   accessibilityLabel='건너뛰기'
                 >
@@ -206,7 +215,7 @@ const FeaturePopupSheetView = () => {
                   </PretendardText>
                 </TouchableOpacity>
               ) : null}
-            </View>
+            </LiquidCard>
           </TouchableOpacity>
         </View>
       </Animated.View>
@@ -217,8 +226,8 @@ const FeaturePopupSheetView = () => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: Color.overlay,
-  } as ViewStyle,
+    backgroundColor: Liquid.scrim,
+  },
   // 딤 전체를 덮는 탭 영역 — 카드 뒤에 깔아 배경 탭으로 닫는다.
   overlayTouchable: {
     position: 'absolute',
@@ -226,79 +235,71 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-  } as ViewStyle,
+  },
   // 카드를 화면 중앙에 배치한다. box-none으로 카드 밖 영역 탭은 딤으로 전달한다.
   centerArea: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: Spacing.screenH,
-  } as ViewStyle,
+    paddingHorizontal: LiquidLayout.screenH,
+  },
+  /**
+   * 카드는 화면 높이의 85%까지만 자란다 — 중앙 정렬이라 위아래로 7.5%가 남고, 그 여백이
+   * 홈 인디케이터(34)보다 넉넉해 세이프에어리어를 따로 비울 필요가 없다(이식 전에는 카드
+   * 안쪽에 `insets.bottom`을 더해 중앙 카드가 아래로 치우쳐 보였다).
+   */
   cardTouchable: {
     width: '100%',
     maxWidth: 400,
     maxHeight: '85%',
-  } as ViewStyle,
+  },
+  // 콘텐츠가 많아도 카드가 cardTouchable maxHeight(85%) 안으로 줄어들도록 shrink 허용.
   card: {
-    // 콘텐츠가 많아도 카드가 cardTouchable maxHeight(85%) 안으로 줄어들도록 shrink 허용.
     flexShrink: 1,
-    backgroundColor: Color.background,
-    borderRadius: Radius.modal,
-    paddingTop: Spacing.section,
-    paddingHorizontal: Spacing.section,
-  } as ViewStyle,
+  },
   // 스크롤 영역만 축소되게 해, 남는 높이가 부족해도 아래 메인 버튼·건너뛰기는 밀리지 않는다.
   scroll: {
     flexShrink: 1,
-  } as ViewStyle,
-  cardContent: {
-    paddingTop: Spacing.item,
-  } as ViewStyle,
+  },
   title: {
-    fontSize: 22,
-    lineHeight: 30,
-    color: Color.textPrimary,
+    fontSize: LiquidType.title3.fontSize,
+    lineHeight: LiquidType.title3.lineHeight,
+    letterSpacing: LiquidType.title3.letterSpacing,
+    color: Liquid.ink,
     textAlign: 'center',
   },
+  // 제목 아래 한 단계 낮은 줄 — 로그인 시트의 제목·부제 짝과 같은 값이다.
   subtitle: {
-    marginTop: Spacing.item,
-    fontSize: 15,
-    lineHeight: 22,
-    color: Color.textSecondary,
+    marginTop: 8,
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: Liquid.inkTertiary,
     textAlign: 'center',
   },
-  // 아이템 그룹 — 아웃라인 컨테이너 안에 행을 담고 행 사이만 구분선을 긋는다(앱 리스트 톤).
+  /**
+   * 아이템 그룹 — 조용한 아웃라인 컨테이너 안에 행을 담고 행 사이만 구분선을 긋는다.
+   * 모서리는 부모 카드(22)보다 낮아야 안쪽 면이 카드 모서리를 밀어내지 않는다.
+   */
   itemGroup: {
-    marginTop: Spacing.section,
-    borderWidth: 1,
-    borderColor: Color.chipBorder,
-    borderRadius: Radius.card,
+    marginTop: LiquidLayout.section,
+    borderWidth: 0.5,
+    borderColor: Liquid.hairline,
+    borderRadius: LiquidRadius.tileSm,
     overflow: 'hidden',
-    backgroundColor: Color.background,
-  } as ViewStyle,
-  // 메인 버튼 — 검은 채움 풀폭. 44pt 이상 터치 타깃.
-  mainButton: {
-    marginTop: Spacing.section,
-    minHeight: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: Radius.pill,
-    backgroundColor: Color.chipActiveBg,
-  } as ViewStyle,
-  mainButtonText: {
-    fontSize: 16,
-    color: Color.background,
   },
-  // 건너뛰기 — 하단 텍스트 버튼. 44pt 이상 터치 타깃.
+  mainButton: {
+    marginTop: LiquidLayout.section,
+  },
+  // 건너뛰기 — 3차 액션이라 면을 두지 않는다. 44pt 터치 타깃은 채운다(HIG).
   skipButton: {
-    marginTop: Spacing.item,
-    minHeight: 44,
+    marginTop: 4,
+    minHeight: LiquidLayout.touchMin,
     alignItems: 'center',
     justifyContent: 'center',
-  } as ViewStyle,
+  },
   skipText: {
-    fontSize: 15,
-    color: Color.textTertiary,
+    fontSize: 14,
+    color: Liquid.inkMuted,
   },
 });
 

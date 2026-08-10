@@ -14,12 +14,14 @@ import TripPhase from '@/model/bag/TripPhase';
 import PretendardText from '@/components/PretendardText';
 import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
 import LiquidCard from '@/components/liquid/LiquidCard';
+import LiquidHeaderChrome, {
+  LIQUID_HEADER_ICON_BOX,
+} from '@/components/liquid/LiquidHeaderChrome';
 import LiquidPillButton from '@/components/liquid/LiquidPillButton';
 import { Liquid, LiquidLayout, LiquidType } from '@/constants/DesignTokens';
 import BagDetailCategoryView from './BagDetailCategoryView';
 import BagDetailDateView from './BagDetailDateView';
 import BagDetailFiltersView from './BagDetailFiltersView';
-import BagDetailHeaderView, { HEADER_ICON_BOX } from './BagDetailHeaderView';
 import BagDetailNameView from './BagDetailNameView';
 import BagDetailUselessDescriptionView from './BagDetailUselessDescriptionView';
 import BagDetailSummaryView from './BagDetailSummaryView';
@@ -185,8 +187,10 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
         <LiquidBackdrop screen='bagDetail' glowPosition='leftMid' />
         <SafeAreaView style={styles.container} edges={SAFE_AREA_EDGES}>
           <View style={styles.container}>
+            {/* Android·Web 유리 크롬 — iOS는 네이티브 투명 헤더가 같은 그림(원형 글래스
+                back + 글래스 바 버튼)을 시스템에서 내준다(LG-1). */}
             {!IS_IOS && (
-              <BagDetailHeaderView
+              <LiquidHeaderChrome
                 onPressBack={handlePressBack}
                 actions={renderHeaderActions()}
               />
@@ -347,8 +351,8 @@ const styles = StyleSheet.create({
   },
   // Android/Web 유리 캡슐 안 칸(목업 §6). 아이콘 중심 간격 36 = 34 + 캡슐 gap 2.
   headerIconBox: {
-    width: HEADER_ICON_BOX,
-    height: HEADER_ICON_BOX,
+    width: LIQUID_HEADER_ICON_BOX,
+    height: LIQUID_HEADER_ICON_BOX,
     alignItems: 'center',
     justifyContent: 'center',
   },

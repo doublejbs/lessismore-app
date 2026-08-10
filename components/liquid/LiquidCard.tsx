@@ -21,9 +21,10 @@ interface Props {
    * 자식을 카드 모서리로 깎는다 — 목록 행을 담아 첫·마지막 행이 카드 밖으로 새지 않게
    * 하거나(창고·리뷰 목록), 스와이프 액션 면을 카드 안에서 끝낼 때 켠다.
    *
-   * **그림자와 클리핑을 다른 뷰가 든다** — 같은 뷰에 `overflow: 'hidden'`과 `boxShadow`를
-   * 함께 주면 그림자가 자기 경계에서 잘려 카드가 지면에서 떠 보이지 않는다. 그래서 켜면
-   * 껍데기(그림자)와 안쪽(클리핑)을 나눠 렌더한다 — 호출부마다 두 겹을 손으로 쌓지 않는다.
+   * **그림자와 클리핑을 다른 뷰가 든다** — 켜면 껍데기(그림자)와 안쪽(면 + 클리핑)을 나눠
+   * 렌더한다. RN 0.86 Fabric은 뷰의 `boxShadow`를 자기 `overflow: 'hidden'`으로 자르지
+   * 않는 것으로 보이지만, 웹과 옛 아키텍처에서는 잘렸고 두 겹으로 나눠 두면 어느 쪽에서도
+   * 결과가 같다. 호출부마다 두 겹을 손으로 쌓지 않게 프리미티브가 든다.
    */
   clip?: boolean;
   /**
@@ -36,7 +37,7 @@ interface Props {
 /**
  * Liquid Depth 콘텐츠 면(핸드오프 Card). 이 시스템에서 구획은 그림자가 아니라 면이 맡는다.
  *
- * glass 톤만 BlurView를 깐다 — RN에 backdrop-filter가 없어 블러 + `glassFill` 오버레이 +
+ * glass 톤만 BlurView를 깐다 — RN에 backdrop-filter가 없어 블러 + `glassFillCard` 오버레이 +
  * 0.5px `glassStroke` 보더로 유리를 근사한다(핸드오프 웹→RN 변환 규칙).
  */
 const LiquidCard: FC<Props> = ({
@@ -51,15 +52,19 @@ const LiquidCard: FC<Props> = ({
 
   if (tone === 'glass') {
     return (
+      // 껍데기가 그림자를, 안쪽이 유리 면과 클리핑을 든다(위 `clip` 주석과 같은 이유이며
+      // `LiquidBottomSheet`·`LiquidGlassCapsule`도 같은 두 겹이다).
       <View style={[styles.glassShell, { borderRadius }, style]}>
-        <BlurView
-          tint='light'
-          intensity={Liquid.glassBlurIntensity}
-          style={StyleSheet.absoluteFill}
-        />
-        {/* 블러 위 유리 채움 — BlurView 배경색은 블러를 가리므로 별도 레이어로 얹는다. */}
-        <View style={[StyleSheet.absoluteFill, styles.glassOverlay]} />
-        <View style={{ padding }}>{children}</View>
+        <View style={[styles.glassClip, { borderRadius }]}>
+          <BlurView
+            tint='light'
+            intensity={Liquid.glassBlurIntensity}
+            style={StyleSheet.absoluteFill}
+          />
+          {/* 블러 위 유리 채움 — BlurView 배경색은 블러를 가리므로 별도 레이어로 얹는다. */}
+          <View style={[StyleSheet.absoluteFill, styles.glassFill]} />
+          <View style={{ padding }}>{children}</View>
+        </View>
       </View>
     );
   }
@@ -124,13 +129,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   glassShell: {
+    boxShadow: LiquidShadow.glass,
+  },
+  glassClip: {
     overflow: 'hidden',
     borderWidth: 0.5,
     borderColor: Liquid.glassStroke,
-    boxShadow: LiquidShadow.glass,
   },
-  glassOverlay: {
-    backgroundColor: 'rgba(255,255,255,0.82)',
+  glassFill: {
+    backgroundColor: Liquid.glassFillCard,
   },
 });
 

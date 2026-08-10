@@ -22,7 +22,7 @@ import {
 } from '@/constants/DesignTokens';
 import CustomGearConfirmView from '@/components/gear/custom/CustomGearConfirmView';
 import CustomGear from '@/model/gear/custom/CustomGear';
-import LoadingIconView from '@/components/ui/LoadingIconView';
+import LoadingView from '@/components/ui/LoadingView';
 import SheetGrabberView from '@/components/ui/SheetGrabberView';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import CustomGearWeightView from '@/components/gear/custom/CustomGearWeightView';
@@ -157,7 +157,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
       >
         {isLoading && (
           <View style={styles.loadingOverlay}>
-            <LoadingIconView />
+            <LoadingView />
           </View>
         )}
 

@@ -1,5 +1,7 @@
-import { FC, useEffect, useState } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
+import { FC } from 'react';
+import { View, StyleSheet } from 'react-native';
+import LiquidSkeletonBar from '@/components/liquid/LiquidSkeletonBar';
+import useLiquidShimmer from '@/components/liquid/useLiquidShimmer';
 import {
   Liquid,
   LiquidLayout,
@@ -11,12 +13,6 @@ interface Props {
   count?: number; // 스켈레톤 행 개수
 }
 
-// 셔머 반 주기 — 왕복 1.2s(핸드오프 로딩 규칙). 스피너는 쓰지 않는다.
-const SHIMMER_HALF_DURATION = 600;
-// 잉크 스케일의 가장 옅은 값. 가라앉은 면(surfaceSunken)은 흰 카드와 값이 붙어 형태가 사라진다.
-const PLACEHOLDER_COLOR = Liquid.inkFaint;
-const BAR_RADIUS = 4;
-
 /**
  * WH-1 창고 목록 스켈레톤 (Liquid Depth).
  *
@@ -24,31 +20,8 @@ const BAR_RADIUS = 4;
  * 튀지 않는다 — 카드 모서리·행 여백·헤어라인·우측 무게 자리를 그대로 둔다.
  */
 const SkeletonRow: FC<{ divider: boolean }> = ({ divider }) => {
-  // ref로 잡으면 렌더 중 `.current`를 읽어 React Compiler가 최적화를 포기한다 — 값을 상태로 든다.
-  const [opacity] = useState(() => new Animated.Value(1));
-
-  useEffect(() => {
-    // 재귀 start 콜백 대신 loop — 언마운트 후에도 다음 주기가 스스로 살아나는 일이 없고,
-    // cleanup에서 한 번 멈추면 끝난다(BagDetailSkeletonView와 같은 패턴).
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 0.5,
-          duration: SHIMMER_HALF_DURATION,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: SHIMMER_HALF_DURATION,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-
-    animation.start();
-
-    return () => animation.stop();
-  }, [opacity]);
+  // 셔머·막대 색·모서리 모두 기본값(1 ↔ 0.5 / 반 주기 600ms / inkFaint / 4)을 그대로 쓴다.
+  const opacity = useLiquidShimmer();
 
   return (
     <View>
@@ -56,13 +29,13 @@ const SkeletonRow: FC<{ divider: boolean }> = ({ divider }) => {
       <View style={styles.row}>
         {/* 좌 정체 — 브랜드(12) → 이름(15) → 색상·사용률(12) */}
         <View style={styles.identity}>
-          <Animated.View style={[styles.brandBar, { opacity }]} />
-          <Animated.View style={[styles.nameBar, { opacity }]} />
-          <Animated.View style={[styles.metaBar, { opacity }]} />
+          <LiquidSkeletonBar opacity={opacity} width={64} height={16} />
+          <LiquidSkeletonBar opacity={opacity} width='70%' height={20} />
+          <LiquidSkeletonBar opacity={opacity} width='45%' height={16} />
         </View>
 
         {/* 우 무게 — 콘덴스드 20 자리 */}
-        <Animated.View style={[styles.weightBar, { opacity }]} />
+        <LiquidSkeletonBar opacity={opacity} width={52} height={22} />
       </View>
     </View>
   );
@@ -108,30 +81,6 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     gap: 2,
-  },
-  brandBar: {
-    height: 16,
-    width: 64,
-    backgroundColor: PLACEHOLDER_COLOR,
-    borderRadius: BAR_RADIUS,
-  },
-  nameBar: {
-    height: 20,
-    width: '70%',
-    backgroundColor: PLACEHOLDER_COLOR,
-    borderRadius: BAR_RADIUS,
-  },
-  metaBar: {
-    height: 16,
-    width: '45%',
-    backgroundColor: PLACEHOLDER_COLOR,
-    borderRadius: BAR_RADIUS,
-  },
-  weightBar: {
-    height: 22,
-    width: 52,
-    backgroundColor: PLACEHOLDER_COLOR,
-    borderRadius: BAR_RADIUS,
   },
 });
 

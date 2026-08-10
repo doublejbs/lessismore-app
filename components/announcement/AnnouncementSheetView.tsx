@@ -10,12 +10,19 @@ import {
   Animated,
   PanResponder,
   Linking,
-  ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import SheetGrabberView from '@/components/ui/SheetGrabberView';
+import LiquidBottomSheet from '@/components/liquid/LiquidBottomSheet';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidType,
+} from '@/constants/DesignTokens';
 
 // http(s) 링크 판별 — 이 경우만 외부 브라우저로 연다(AN-3).
 const EXTERNAL_LINK_PATTERN = /^https?:\/\//i;
@@ -27,9 +34,21 @@ const SHEET_OFFSET = 320;
 const SWIPE_CLOSE_DISTANCE = 80;
 const SWIPE_CLOSE_VELOCITY = 0.5;
 
-// 인앱 공지 바텀 시트(AN-2/AN-3/AN-4).
-// BottomMenuModalView 패턴(RN Modal transparent + Animated fade/slide-up + useSafeAreaInsets)을 따른다.
-// 전역 1곳(app/_layout.tsx 최상위)에서 렌더한다.
+// 메시지가 길면 시트 안에서 스크롤된다(AN-2 — 레이아웃이 깨지지 않게).
+const MESSAGE_MAX_HEIGHT = 320;
+
+/**
+ * 인앱 공지 바텀 시트 (Liquid Depth, AN-2/AN-3/AN-4).
+ *
+ * 잉크 막(`Liquid.scrim`) 위로 유리 시트(`LiquidBottomSheet`)가 올라온다 — 로그인·닉네임
+ * 편집 시트와 같은 면이라 RN `Modal` 기반 시트가 앱 안에서 한 가지 형태로 읽힌다.
+ *
+ * **위계를 뒤집어 놓았다**(2026-08-11 이식): 이식 전에는 닫기 두 개가 큰 회색 채움 버튼이고
+ * 정작 이동(`자세히 보기`)이 본문 안 작은 밑줄 링크였다. 지금은 이동이 잉크 알약(주 액션
+ * 하나)이고 닫기 둘은 글자 버튼이다 — 무게가 하는 일의 크기를 따라간다.
+ *
+ * 전역 1곳(app/_layout.tsx 최상위)에서 렌더한다.
+ */
 const AnnouncementSheetView = () => {
   // 훅은 모두 컴포넌트 최상단에서 무조건 같은 순서로 호출한다(조건부 훅 금지).
   // 매니저 접근·표시 판정 같은 분기는 훅을 전부 부른 뒤로 미룬다.
@@ -62,8 +81,11 @@ const AnnouncementSheetView = () => {
           return;
         }
 
+        // 되돌아오는 스프링에도 `overshootClamping`을 건다 — 시트가 제자리를 지나쳤다
+        // 돌아오면 손을 뗀 위치가 잘못 읽힌 것처럼 보인다(공용 모션 토큰).
         Animated.spring(slideAnim, {
           toValue: 0,
+          ...LiquidMotion.spring,
           useNativeDriver: true,
         }).start();
       },
@@ -165,67 +187,74 @@ const AnnouncementSheetView = () => {
         />
 
         <Animated.View
-          style={[
-            styles.sheet,
-            {
-              transform: [{ translateY: slideAnim }],
-              paddingBottom: Math.max(insets.bottom, Spacing.section),
-            },
-          ]}
+          style={{
+            transform: [{ translateY: slideAnim }],
+          }}
         >
-          {/* 그랩 핸들 — 아래로 스와이프하면 닫힌다. */}
-          <View style={styles.handleZone} {...panResponder.panHandlers}>
-            <View style={styles.handle} />
-          </View>
-
-          <ScrollView
-            style={styles.messageScroll}
-            contentContainerStyle={styles.messageContent}
-            showsVerticalScrollIndicator={false}
+          <LiquidBottomSheet
+            contentStyle={[
+              styles.sheetContent,
+              // 홈 인디케이터 자리를 비운다. 인디케이터가 없는 기기(inset 0)에서도
+              // 시트 아래 여백이 사라지지 않게 하한을 둔다.
+              { paddingBottom: Math.max(insets.bottom, LiquidLayout.section) },
+            ]}
           >
-            <PretendardText weight='medium' style={styles.message}>
-              {message}
-            </PretendardText>
+            {/* 그랩 핸들 — 아래로 스와이프하면 닫힌다. */}
+            <View style={styles.handleZone} {...panResponder.panHandlers}>
+              <SheetGrabberView />
+            </View>
 
-            {/* 자세히 보기(AN-3)는 본문 안에 링크로 둔다. link가 없으면 표시하지 않는다. */}
+            <ScrollView
+              style={styles.messageScroll}
+              contentContainerStyle={styles.messageContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <PretendardText weight='medium' style={styles.message}>
+                {message}
+              </PretendardText>
+            </ScrollView>
+
+            {/* 이동(AN-3)은 이 시트의 주 액션이라 잉크 알약이다. link가 없으면 두지 않는다 —
+                그때 시트는 읽고 닫는 알림뿐이라 알약이 하나도 없는 것이 맞다. */}
             {link ? (
-              <TouchableOpacity
-                style={styles.detailLink}
+              <LiquidPillButton
+                label='자세히 보기'
+                variant='primary'
+                block
                 onPress={handlePressCta}
+                style={styles.cta}
+              />
+            ) : null}
+
+            {/* 닫기 두 가지(AN-4)는 3차 액션이라 면을 두지 않는다. 채움 알약 두 개를 나란히
+                두면 `하루동안 보지않기`가 말줄임되고(고정 높이 + 한 줄), 무엇보다 닫기가
+                이동보다 무거워 보인다. */}
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={handleDismissForSession}
+                activeOpacity={LiquidMotion.pressOpacity}
                 accessibilityRole='button'
-                accessibilityLabel='자세히 보기'
+                accessibilityLabel='닫기'
               >
-                <PretendardText weight='semibold' style={styles.detailLinkText}>
-                  자세히 보기
+                <PretendardText weight='medium' style={styles.buttonText}>
+                  닫기
                 </PretendardText>
               </TouchableOpacity>
-            ) : null}
-          </ScrollView>
 
-          {/* 하단은 두 가지 닫기 옵션을 가로로 둔다(AN-4). */}
-          <View style={styles.buttonRow}>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={handleDismissForSession}
-              accessibilityRole='button'
-              accessibilityLabel='닫기'
-            >
-              <PretendardText weight='medium' style={styles.buttonText}>
-                닫기
-              </PretendardText>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={handleDismissForDay}
-              accessibilityRole='button'
-              accessibilityLabel='하루동안 보지않기'
-            >
-              <PretendardText weight='medium' style={styles.buttonText}>
-                하루동안 보지않기
-              </PretendardText>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={handleDismissForDay}
+                activeOpacity={LiquidMotion.pressOpacity}
+                accessibilityRole='button'
+                accessibilityLabel='하루동안 보지않기'
+              >
+                <PretendardText weight='medium' style={styles.buttonText}>
+                  하루동안 보지않기
+                </PretendardText>
+              </TouchableOpacity>
+            </View>
+          </LiquidBottomSheet>
         </Animated.View>
       </Animated.View>
     </Modal>
@@ -235,71 +264,50 @@ const AnnouncementSheetView = () => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: Color.overlay,
+    backgroundColor: Liquid.scrim,
     justifyContent: 'flex-end',
-  } as ViewStyle,
+  },
   overlayTouchable: {
     flex: 1,
-  } as ViewStyle,
-  sheet: {
-    backgroundColor: Color.background,
-    borderTopLeftRadius: Radius.sheet,
-    borderTopRightRadius: Radius.sheet,
-    paddingTop: Spacing.item,
-    paddingHorizontal: Spacing.screenH,
-  } as ViewStyle,
-  // 그랩 핸들 터치 영역 — 스와이프 제스처를 넉넉히 받도록 상하 여백을 둔다.
+  },
+  // 시트 위쪽은 그래버가 자기 여백(marginTop 8)을 들고 있어 프리미티브 기본값(28)을 비운다.
+  sheetContent: {
+    paddingTop: 4,
+  },
+  // 그랩 핸들 터치 영역 — 스와이프 제스처를 넉넉히 받도록 아래 여백을 둔다.
   handleZone: {
     alignItems: 'center',
-    paddingVertical: Spacing.item,
-  } as ViewStyle,
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.chipInactiveBg,
-  } as ViewStyle,
-  // 메시지가 길면 시트 안에서 스크롤된다(AN-2 — 레이아웃이 깨지지 않게).
+    paddingBottom: 8,
+  },
   messageScroll: {
-    maxHeight: 320,
-  } as ViewStyle,
+    maxHeight: MESSAGE_MAX_HEIGHT,
+  },
   messageContent: {
-    paddingVertical: Spacing.item,
-  } as ViewStyle,
+    paddingVertical: 12,
+  },
   message: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: Color.textPrimary,
+    fontSize: LiquidType.body.fontSize,
+    // 본문 토큰의 행간(20)은 한 줄 라벨 기준이라, 여러 줄로 흐르는 공지 문장에는 빽빽하다.
+    lineHeight: 22,
+    color: Liquid.ink,
   },
-  // 본문 안 '자세히 보기' 링크(AN-3). 메시지 아래에 밑줄 텍스트로 둔다.
-  detailLink: {
-    marginTop: Spacing.item,
-    minHeight: 44,
-    justifyContent: 'center',
-  } as ViewStyle,
-  detailLinkText: {
-    fontSize: 15,
-    color: Color.textPrimary,
-    textDecorationLine: 'underline',
+  cta: {
+    marginTop: 8,
   },
-  // 하단 두 닫기 옵션을 가로로 나란히 배치한다. 각 버튼이 폭을 반씩 차지한다.
   buttonRow: {
     flexDirection: 'row',
-    marginTop: Spacing.item,
-    gap: Spacing.item,
-  } as ViewStyle,
-  // 닫기 / 하루동안 보지않기 — 회색 채움 버튼. 44pt 이상 터치 타깃.
+    marginTop: 4,
+  },
+  // 글자 버튼 — 면이 없어도 44pt 터치 타깃은 채운다(HIG).
   closeButton: {
     flex: 1,
-    minHeight: 52,
+    minHeight: LiquidLayout.touchMin,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: Radius.card,
-    backgroundColor: Color.chipInactiveBg,
-  } as ViewStyle,
+  },
   buttonText: {
-    fontSize: 15,
-    color: Color.textPrimary,
+    fontSize: 14,
+    color: Liquid.inkMuted,
   },
 });
 

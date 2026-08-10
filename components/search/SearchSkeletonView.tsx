@@ -1,5 +1,7 @@
-import { FC, useEffect, useState } from 'react';
-import { View, Animated, StyleSheet } from 'react-native';
+import { FC } from 'react';
+import { View, StyleSheet } from 'react-native';
+import LiquidSkeletonBar from '@/components/liquid/LiquidSkeletonBar';
+import useLiquidShimmer from '@/components/liquid/useLiquidShimmer';
 import {
   Liquid,
   LiquidLayout,
@@ -24,56 +26,33 @@ interface Props {
  * 막대 높이 합(약 86)은 실제 행의 최소 높이(썸네일 44 + 세로 패딩 30 = 74)를 넘으므로
  * 행 키도 도착 후 줄어들지 않는다 — 막대를 낮출 때 이 하한을 함께 확인한다.
  */
-// 셔머 반 주기 — 왕복 1.2s(핸드오프 로딩 규칙). 스피너는 쓰지 않는다.
-const SHIMMER_HALF_DURATION = 600;
-// 스켈레톤 막대는 잉크 스케일의 가장 옅은 값이다 — 흰 카드와 같은 값을 쓰면 형태가 사라진다.
-const PLACEHOLDER_COLOR = Liquid.inkFaint;
-const BAR_RADIUS = 4;
-// 실제 행의 담기 CTA 지름.
+// 실제 행의 담기 CTA 지름. 원이라 모서리는 지름의 절반이다.
 const CTA_SIZE = 32;
 
 const SkeletonRow: FC = () => {
-  // ref로 잡으면 렌더 중 `.current`를 읽어 React Compiler가 최적화를 포기한다 — 값을 상태로 든다.
-  const [opacity] = useState(() => new Animated.Value(1));
-
-  useEffect(() => {
-    // 재귀 start 콜백 대신 loop — 언마운트 후 다음 주기가 스스로 살아나지 않고,
-    // cleanup에서 한 번 멈추면 끝난다(SearchRankSkeletonView와 같은 패턴).
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 0.5,
-          duration: SHIMMER_HALF_DURATION,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: SHIMMER_HALF_DURATION,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-
-    animation.start();
-
-    return () => animation.stop();
-  }, [opacity]);
+  // 셔머·막대 색·모서리 모두 기본값(1 ↔ 0.5 / 반 주기 600ms / inkFaint / 4)을 그대로 쓴다.
+  const opacity = useLiquidShimmer();
 
   return (
     <View style={styles.card}>
       <View style={styles.row}>
-        {/* 브랜드 + 이름 + 메타 */}
+        {/* 브랜드(12/16) + 이름(15/20) + 색상·사용률(12/16) — 실제 줄과 같은 높이 */}
         <View style={styles.identity}>
-          <Animated.View style={[styles.companyBar, { opacity }]} />
-          <Animated.View style={[styles.nameBar, { opacity }]} />
-          <Animated.View style={[styles.metaBar, { opacity }]} />
+          <LiquidSkeletonBar opacity={opacity} width={60} height={16} />
+          <LiquidSkeletonBar opacity={opacity} width={140} height={20} />
+          <LiquidSkeletonBar opacity={opacity} width={80} height={16} />
         </View>
 
-        {/* 우측 무게 */}
-        <Animated.View style={[styles.weightBar, { opacity }]} />
+        {/* 우측 무게 — 콘덴스드 20, 고정 폭 */}
+        <LiquidSkeletonBar opacity={opacity} width={44} height={22} />
 
         {/* 담기 CTA */}
-        <Animated.View style={[styles.ctaCircle, { opacity }]} />
+        <LiquidSkeletonBar
+          opacity={opacity}
+          width={CTA_SIZE}
+          height={CTA_SIZE}
+          radius={CTA_SIZE / 2}
+        />
       </View>
     </View>
   );
@@ -112,40 +91,6 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     gap: 2,
-  },
-  // 브랜드 줄(12/16).
-  companyBar: {
-    height: 16,
-    width: 60,
-    backgroundColor: PLACEHOLDER_COLOR,
-    borderRadius: BAR_RADIUS,
-  },
-  // 제품명 줄(15/20).
-  nameBar: {
-    height: 20,
-    width: 140,
-    backgroundColor: PLACEHOLDER_COLOR,
-    borderRadius: BAR_RADIUS,
-  },
-  // 색상·사용률 줄(12/16).
-  metaBar: {
-    height: 16,
-    width: 80,
-    backgroundColor: PLACEHOLDER_COLOR,
-    borderRadius: BAR_RADIUS,
-  },
-  // 무게는 콘덴스드 20 — 우측 고정 폭.
-  weightBar: {
-    height: 22,
-    width: 44,
-    backgroundColor: PLACEHOLDER_COLOR,
-    borderRadius: BAR_RADIUS,
-  },
-  ctaCircle: {
-    width: CTA_SIZE,
-    height: CTA_SIZE,
-    borderRadius: CTA_SIZE / 2,
-    backgroundColor: PLACEHOLDER_COLOR,
   },
 });
 

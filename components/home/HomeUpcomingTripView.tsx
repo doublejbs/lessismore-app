@@ -98,7 +98,7 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
   return (
     <View>
       {/* 히어로 — 라임 면(radius 28, shadow accent). LiquidCard의 hero(26)보다 한 단계
-          크게 잡는 자리라 로컬 radius를 쓴다. */}
+          크게 잡는 자리라 프리미티브 대신 직접 그린다. */}
       <View style={styles.hero}>
         <TouchableOpacity
           style={styles.heroHead}
@@ -124,7 +124,11 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
             </PretendardText>
             {locationName !== null && (
               <View style={styles.locationRow}>
-                <Ionicons name='location' size={14} color={Liquid.limeOnQuiet} />
+                <Ionicons
+                  name='location'
+                  size={14}
+                  color={Liquid.limeOnQuiet}
+                />
                 <PretendardText
                   weight='medium'
                   style={styles.locationText}
@@ -148,7 +152,11 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
 
         {/* 라임 면 위 유리 판 — 진행·날씨·기간을 한 덩어리로 묶는다. */}
         <View style={styles.heroPanel}>
-          <BlurView tint='light' intensity={30} style={StyleSheet.absoluteFill} />
+          <BlurView
+            tint='light'
+            intensity={30}
+            style={StyleSheet.absoluteFill}
+          />
           <View style={[StyleSheet.absoluteFill, styles.heroPanelFill]} />
 
           <View style={styles.panelBody}>
@@ -239,11 +247,7 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
           >
             {bag.getName()}
           </PretendardText>
-          <Ionicons
-            name='chevron-forward'
-            size={14}
-            color={Liquid.inkSubtle}
-          />
+          <Ionicons name='chevron-forward' size={14} color={Liquid.inkSubtle} />
         </TouchableOpacity>
       ))}
     </View>
@@ -251,8 +255,10 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
 };
 
 const styles = StyleSheet.create({
+  // 목업 §1의 히어로는 28이라 카드 계열(`hero` 26)보다 한 단계 크다 — 값이 같은
+  // `LiquidRadius.sheet`를 참조해 리터럴을 두지 않는다(로딩 골격도 같은 토큰을 읽는다).
   hero: {
-    borderRadius: 28,
+    borderRadius: LiquidRadius.sheet,
     backgroundColor: Liquid.lime,
     boxShadow: LiquidShadow.accent,
     overflow: 'hidden',

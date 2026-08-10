@@ -1,8 +1,8 @@
 import { FC } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import PretendardText from '@/components/PretendardText';
 import LiquidGlassCapsule from '@/components/liquid/LiquidGlassCapsule';
-import LiquidGlassCircleButton from '@/components/liquid/LiquidGlassCircleButton';
+import LiquidHeaderChrome from '@/components/liquid/LiquidHeaderChrome';
 import { Liquid } from '@/constants/DesignTokens';
 
 interface Props {
@@ -18,48 +18,32 @@ const RESET_PILL_PAD_H = 14;
 /**
  * Android·Web용 패킹 모드 크롬 (Liquid Depth, 목업 §7).
  *
- * iOS는 네이티브 투명 헤더가 같은 그림(원형 글래스 back + 글래스 바 버튼)을 시스템에서
- * 내주므로 이 컴포넌트를 쓰지 않는다(LG-1) — 두 플랫폼이 같은 그림을 보되 만드는 주체만 다르다.
- * 배낭 상세와 달리 우측은 아이콘 캡슐이 아니라 **텍스트 알약** 하나다.
+ * 유리 크롬 한 줄은 `LiquidHeaderChrome`이 그리고(iOS가 이 크롬을 안 쓰는 이유도 거기 있다 —
+ * LG-1), 이 파일은 이 화면만의 우측 노드를 얹는다: 배낭 상세와 달리 우측이 아이콘 캡슐이
+ * 아니라 **텍스트 알약** 하나이고, 캡슐 자체가 버튼이다.
  */
 const BagPackingChromeView: FC<Props> = ({
   onPressBack,
   onPressReset,
   showReset,
 }) => {
-  return (
-    <View style={styles.header}>
-      <LiquidGlassCircleButton
-        icon='chevron-back'
-        onPress={onPressBack}
-        accessibilityLabel='뒤로가기'
-      />
+  const resetPill = showReset ? (
+    <LiquidGlassCapsule
+      paddingHorizontal={RESET_PILL_PAD_H}
+      onPress={onPressReset}
+      accessibilityLabel='처음부터 다시'
+    >
+      {/* 한글이라 콘덴스드를 쓰지 않는다 — Archivo Narrow에 한글 글리프가 없다. */}
+      <PretendardText weight='semibold' style={styles.resetLabel}>
+        처음부터 다시
+      </PretendardText>
+    </LiquidGlassCapsule>
+  ) : null;
 
-      {showReset ? (
-        <LiquidGlassCapsule
-          paddingHorizontal={RESET_PILL_PAD_H}
-          onPress={onPressReset}
-          accessibilityLabel='처음부터 다시'
-        >
-          {/* 한글이라 콘덴스드를 쓰지 않는다 — Archivo Narrow에 한글 글리프가 없다. */}
-          <PretendardText weight='semibold' style={styles.resetLabel}>
-            처음부터 다시
-          </PretendardText>
-        </LiquidGlassCapsule>
-      ) : null}
-    </View>
-  );
+  return <LiquidHeaderChrome onPressBack={onPressBack} right={resetPill} />;
 };
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingBottom: 8,
-    backgroundColor: 'transparent',
-  },
   resetLabel: {
     fontSize: 14,
     color: Liquid.inkSecondary,

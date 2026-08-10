@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
+import LiquidSheetCloseButton from '@/components/liquid/LiquidSheetCloseButton';
 import {
   Liquid,
   LiquidLayout,
@@ -27,10 +28,6 @@ interface Props {
   // 헤더 닫기 버튼 표시 여부 — 선택기 pageSheet는 넘기고, formSheet 라우트는 그래버로 닫아 생략한다.
   onClose?: () => void;
 }
-
-// 닫기 원(상세 시트와 같은 값)은 36이고, HIG 44는 여유로 채운다: (44 − 36) / 2 = 4.
-const CLOSE_BUTTON_SIZE = 36;
-const CLOSE_HIT_SLOP = { top: 4, bottom: 4, left: 4, right: 4 };
 
 // 즐겨찾기 리스트 시트(CS-9)의 콘텐츠 — 헤더 + 리스트 + 빈 상태. 컨테이너(Modal·formSheet 라우트)는
 // 호출자가 감싼다. 지도 탭 formSheet 라우트와 선택기 pageSheet가 이 뷰를 공유한다.
@@ -99,18 +96,7 @@ const CampSiteFavoritesListView: FC<Props> = ({
       <PretendardText style={styles.headerTitle} weight='bold'>
         즐겨찾기
       </PretendardText>
-      {onClose ? (
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={onClose}
-          activeOpacity={LiquidMotion.pressOpacity}
-          accessibilityRole='button'
-          accessibilityLabel='닫기'
-          hitSlop={CLOSE_HIT_SLOP}
-        >
-          <Ionicons name='close' size={20} color={Liquid.ink} />
-        </TouchableOpacity>
-      ) : null}
+      {onClose ? <LiquidSheetCloseButton onPress={onClose} /> : null}
     </View>
   );
 
@@ -173,14 +159,6 @@ const styles = StyleSheet.create({
     lineHeight: LiquidType.title3.lineHeight,
     letterSpacing: LiquidType.title3.letterSpacing,
     color: Liquid.ink,
-  },
-  closeButton: {
-    width: CLOSE_BUTTON_SIZE,
-    height: CLOSE_BUTTON_SIZE,
-    borderRadius: CLOSE_BUTTON_SIZE / 2,
-    backgroundColor: Liquid.badgeFill,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   listContent: {
     paddingHorizontal: LiquidLayout.screenH,

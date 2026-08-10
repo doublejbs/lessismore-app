@@ -1,5 +1,7 @@
-import { FC, useEffect, useState } from 'react';
-import { View, StyleSheet, Animated, ViewStyle } from 'react-native';
+import { FC } from 'react';
+import { View, StyleSheet, ViewStyle } from 'react-native';
+import LiquidSkeletonBar from '@/components/liquid/LiquidSkeletonBar';
+import useLiquidShimmer from '@/components/liquid/useLiquidShimmer';
 import PretendardText from '@/components/PretendardText';
 import {
   Liquid,
@@ -38,6 +40,8 @@ interface Props {
 
 // 셔머 반 주기 — 왕복 1.2s(핸드오프 로딩 규칙). 스피너는 쓰지 않는다.
 const SHIMMER_HALF_DURATION = 600;
+// 막대 하나뿐이라 진폭을 스켈레톤 화면(0.5)보다 넓게 둔다 — 얕으면 멈춘 것처럼 보인다.
+const SHIMMER_MIN = 0.4;
 
 const VALUE_SIZE: Record<TileSize, number> = { md: 34, sm: 24 };
 
@@ -56,43 +60,22 @@ const LiquidStatTile: FC<Props> = ({
 }) => {
   const isAccent = tone === 'accent';
   const isSmall = size === 'sm';
-  // ref로 잡으면 렌더 중 `.current`를 읽어 React Compiler가 최적화를 포기한다 — 값을 상태로 든다.
-  const [shimmer] = useState(() => new Animated.Value(1));
-
-  useEffect(() => {
-    if (!loading) {
-      return;
-    }
-
-    // 재귀 start 콜백 대신 loop — 언마운트 후 다음 주기가 스스로 살아나지 않는다.
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmer, {
-          toValue: 0.4,
-          duration: SHIMMER_HALF_DURATION,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmer, {
-          toValue: 1,
-          duration: SHIMMER_HALF_DURATION,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-
-    animation.start();
-
-    return () => animation.stop();
-  }, [loading, shimmer]);
+  // 값이 도착하면 멈춘다 — 숫자가 그려지는 동안 도는 애니메이션은 배터리만 먹는다.
+  const shimmer = useLiquidShimmer({
+    from: 1,
+    to: SHIMMER_MIN,
+    halfDuration: SHIMMER_HALF_DURATION,
+    enabled: loading,
+  });
 
   const renderValue = () => {
     if (loading) {
       return (
-        <Animated.View
-          style={[
-            styles.shimmerBar,
-            { height: VALUE_SIZE[size], opacity: shimmer },
-          ]}
+        <LiquidSkeletonBar
+          opacity={shimmer}
+          width='55%'
+          height={VALUE_SIZE[size]}
+          style={styles.shimmerBar}
         />
       );
     }
@@ -189,15 +172,9 @@ const styles = StyleSheet.create({
   valueHighlight: {
     color: Liquid.limeInk,
   },
-  /**
-   * 잉크 스케일의 가장 옅은 값. 가라앉은 면(`surfaceSunken`)과 같은 값을 쓰면 타일 안에서
-   * 막대 형태가 사라진다(창고 스켈레톤과 같은 처리).
-   */
+  // 막대는 숫자처럼 왼쪽에 붙는다 — 타일 폭을 채우면 진행 바로 읽힌다.
   shimmerBar: {
     alignSelf: 'flex-start',
-    width: '55%',
-    borderRadius: 4,
-    backgroundColor: Liquid.inkFaint,
   },
   /**
    * 라벨은 `inkSecondary` + 600이다 — 목업의 `inkMuted`/500은 12.5px에서 흰 면 대비 AA(4.5:1)에

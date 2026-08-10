@@ -4,12 +4,17 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  ViewStyle,
   ImageStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidType,
+} from '@/constants/DesignTokens';
 
 // 부모(FeaturePopupSheetView)가 넘기는 아이템 shape. re-export 금지라 여기서 로컬로 선언한다.
 type FeaturePopupItem = {
@@ -30,8 +35,12 @@ type Props = {
 
 const THUMBNAIL_SIZE = 48;
 
-// 신기능 팝업 아이템 한 행([썸네일 | 제목 + 설명 | (링크 시)chevron], FP-3).
-// 앱의 그룹 리스트 톤(흰 배경 + 행 사이 구분선)을 따른다. props로만 받으므로 순수 FC.
+/**
+ * 신기능 팝업 아이템 한 행([썸네일 | 제목 + 설명 | (링크 시)chevron], FP-3).
+ *
+ * Liquid Depth: 흰 카드 안에 놓이는 목록 행이라 면을 따로 두지 않고 헤어라인으로만 갈린다.
+ * props로만 받으므로 순수 FC다.
+ */
 const FeaturePopupItemView: FC<Props> = ({
   item,
   onPress,
@@ -78,7 +87,7 @@ const FeaturePopupItemView: FC<Props> = ({
         <Ionicons
           name='chevron-forward'
           size={18}
-          color={Color.iconMuted}
+          color={Liquid.inkSubtle}
           style={styles.chevron}
         />
       ) : null}
@@ -93,7 +102,7 @@ const FeaturePopupItemView: FC<Props> = ({
       <TouchableOpacity
         style={rowStyle}
         onPress={onPress}
-        activeOpacity={0.6}
+        activeOpacity={LiquidMotion.pressOpacity}
         accessibilityRole='button'
         accessibilityLabel={item.title}
       >
@@ -109,41 +118,42 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.item,
-    minHeight: 44,
+    gap: 12,
+    minHeight: LiquidLayout.touchMin,
     paddingVertical: 14,
-    paddingHorizontal: Spacing.item + 4,
-  } as ViewStyle,
-  // 그룹 안 행 사이 얇은 구분선(앱 리스트 톤).
+    paddingHorizontal: LiquidLayout.cardPad,
+  },
+  // 그룹 안 행 사이 구분선 — 면이 아니라 실선 하나로 갈린다(장비 상세 표와 같은 문법).
   rowDivider: {
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
-  } as ViewStyle,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Liquid.hairline,
+  },
   thumbnail: {
     width: THUMBNAIL_SIZE,
     height: THUMBNAIL_SIZE,
-    borderRadius: Radius.card,
-    backgroundColor: Color.thumbBg,
+    borderRadius: LiquidRadius.thumb,
+    backgroundColor: Liquid.surfaceSunken,
   } as ImageStyle,
+  // 이미지가 없거나 깨졌을 때의 자리. 썸네일과 같은 치수라 행 높이가 흔들리지 않는다.
   thumbnailPlaceholder: {
     width: THUMBNAIL_SIZE,
     height: THUMBNAIL_SIZE,
-    borderRadius: Radius.card,
-    backgroundColor: Color.thumbBg,
-  } as ViewStyle,
+    borderRadius: LiquidRadius.thumb,
+    backgroundColor: Liquid.surfaceSunken,
+  },
   textArea: {
     flex: 1,
     gap: 2,
-  } as ViewStyle,
+  },
   title: {
-    fontSize: 15,
-    lineHeight: 20,
-    color: Color.textPrimary,
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.ink,
   },
   description: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: Color.textSecondary,
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: Liquid.inkSecondary,
   },
   chevron: {
     marginLeft: 2,

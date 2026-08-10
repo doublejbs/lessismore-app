@@ -14,9 +14,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Stack } from 'expo-router';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import WarehouseDetailBasicInfoView from './WarehouseDetailBasicInfoView';
-import WarehouseDetailChromeView, {
-  HEADER_ICON_BOX,
-} from './WarehouseDetailChromeView';
 import WarehouseDetailInformationView from './WarehouseDetailInformationView';
 import WarehouseDetailSpecsView from './WarehouseDetailSpecsView';
 import WarehouseDetailPurchaseView from './WarehouseDetailPurchaseView';
@@ -30,6 +27,9 @@ import WarehouseDetailReviewSectionView from './WarehouseDetailReviewSectionView
 import WarehouseDetailExternalReviewView from './WarehouseDetailExternalReviewView';
 import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '../PretendardText';
+import LiquidHeaderChrome, {
+  LIQUID_HEADER_ICON_BOX,
+} from '@/components/liquid/LiquidHeaderChrome';
 import LiquidPillButton from '@/components/liquid/LiquidPillButton';
 import {
   Liquid,
@@ -221,8 +221,10 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
           }}
         />
         <View style={styles.container}>
+          {/* Android·Web 유리 크롬 — iOS는 위 네이티브 투명 헤더가 같은 그림을 내준다(LG-1).
+              타이틀도 두 플랫폼이 같은 스크롤 게이트 값(headerTitle)을 나눠 쓴다. */}
           {!IS_IOS && (
-            <WarehouseDetailChromeView
+            <LiquidHeaderChrome
               onPressBack={handlePressClose}
               {...(hasHeaderActions ? { actions: renderHeaderActions() } : {})}
               title={headerTitle}
@@ -360,8 +362,8 @@ const styles = StyleSheet.create({
   },
   // Android/Web 유리 캡슐 안 칸(목업 §9). 아이콘 중심 간격 36 = 34 + 캡슐 gap 2.
   headerIconBox: {
-    width: HEADER_ICON_BOX,
-    height: HEADER_ICON_BOX,
+    width: LIQUID_HEADER_ICON_BOX,
+    height: LIQUID_HEADER_ICON_BOX,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -374,7 +376,7 @@ const styles = StyleSheet.create({
   },
   // `수정`은 글자라 칸 폭을 글자에 맞추고 좌우 여백만 준다(목업 §9: 높이 34 · 좌우 8).
   editButton: {
-    height: HEADER_ICON_BOX,
+    height: LIQUID_HEADER_ICON_BOX,
     paddingHorizontal: 8,
     alignItems: 'center',
     justifyContent: 'center',

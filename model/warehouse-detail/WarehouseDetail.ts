@@ -20,7 +20,7 @@ import Order from '../order/Order';
 import Warehouse from '../warehouse/Warehouse';
 import BagDetail from '../bag-detail/BagDetail';
 import { getGearShareUrl } from '@/constants/WebLinks';
-import { Color } from '@/constants/DesignTokens';
+import { Liquid } from '@/constants/DesignTokens';
 import reviewSearchService from '../review/ReviewSearchService';
 import {
   buildBrandTokens,
@@ -427,9 +427,11 @@ class WarehouseDetail {
     app.getAnalyticsManager()?.logClick('gear_purchase', { source: 'brand' });
 
     try {
+      // 시스템이 그리는 크롬이지만 색은 우리가 준다 — 장비 상세가 Liquid 화면이라
+      // 툴바도 같은 세대 값(흰 면 + 잉크 컨트롤)이어야 시트가 이어져 보인다.
       await openBrowserAsync(url, {
-        toolbarColor: Color.background,
-        controlsColor: Color.textPrimary,
+        toolbarColor: Liquid.surface,
+        controlsColor: Liquid.ink,
         dismissButtonStyle: 'close',
       });
     } catch {

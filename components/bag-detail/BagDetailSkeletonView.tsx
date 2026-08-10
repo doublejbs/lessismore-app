@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC } from 'react';
 import {
   View,
   StyleSheet,
@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
+import LiquidSkeletonBar from '@/components/liquid/LiquidSkeletonBar';
+import useLiquidShimmer from '@/components/liquid/useLiquidShimmer';
 import {
   Liquid,
   LiquidLayout,
@@ -25,15 +27,16 @@ const PULSE_MIN = 0.4;
 
 interface BoxProps {
   pulse: Animated.Value;
-  width?: DimensionValue;
+  width?: DimensionValue | undefined;
   height: number;
-  radius?: number;
+  radius?: number | undefined;
   style?: StyleProp<ViewStyle>;
 }
 
 /**
- * 셰이딩은 반투명 잉크를 쓴다 — 지면(canvas)과 흰 카드 **양쪽**에 얹히므로 불투명
- * `surfaceSunken`으로 두면 지면 위에서 거의 보이지 않는다.
+ * 이 화면의 기본값을 실은 막대. 셰이딩은 반투명 잉크를 쓴다 — 지면(canvas)과 흰 카드
+ * **양쪽**에 얹히므로 불투명 `surfaceSunken`으로 두면 지면 위에서 거의 보이지 않는다.
+ * 모서리 기본값도 다른 스켈레톤(4)보다 한 단계 큰 6이다 — 이 화면 막대가 대체로 크다.
  */
 const SkeletonBox: FC<BoxProps> = ({
   pulse,
@@ -43,17 +46,13 @@ const SkeletonBox: FC<BoxProps> = ({
   style,
 }) => {
   return (
-    <Animated.View
-      style={[
-        {
-          width,
-          height,
-          borderRadius: radius,
-          backgroundColor: Liquid.hairlineStrong,
-          opacity: pulse,
-        },
-        style,
-      ]}
+    <LiquidSkeletonBar
+      opacity={pulse}
+      width={width}
+      height={height}
+      radius={radius}
+      color={Liquid.hairlineStrong}
+      style={style}
     />
   );
 };
@@ -66,28 +65,11 @@ const SkeletonBox: FC<BoxProps> = ({
  */
 const BagDetailSkeletonView: FC = () => {
   const insets = useSafeAreaInsets();
-  const [pulse] = useState(() => new Animated.Value(PULSE_MIN));
-
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, {
-          toValue: 1,
-          duration: PULSE_DURATION,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulse, {
-          toValue: PULSE_MIN,
-          duration: PULSE_DURATION,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-
-    animation.start();
-
-    return () => animation.stop();
-  }, [pulse]);
+  const pulse = useLiquidShimmer({
+    from: PULSE_MIN,
+    to: 1,
+    halfDuration: PULSE_DURATION,
+  });
 
   const renderGearRow = (index: number) => (
     <View key={index} style={styles.gearRow}>

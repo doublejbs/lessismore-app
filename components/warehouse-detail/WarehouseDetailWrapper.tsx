@@ -8,12 +8,12 @@ import {
   useRouter,
 } from 'expo-router';
 import WarehouseDetailView from './WarehouseDetailView';
-import WarehouseDetailChromeView from './WarehouseDetailChromeView';
 import WarehouseDetailSkeletonView from './WarehouseDetailSkeletonView';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import WarehouseDispatcher from '../../model/warehouse/WarehouseDispatcher';
 import Layout from '../Layout';
 import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
+import LiquidHeaderChrome from '@/components/liquid/LiquidHeaderChrome';
 
 interface Props {}
 
@@ -79,9 +79,7 @@ const WarehouseDetailWrapper: FC<Props> = ({}) => {
               headerBackButtonDisplayMode: 'minimal',
             }}
           />
-          {!IS_IOS && (
-            <WarehouseDetailChromeView onPressBack={handlePressBack} />
-          )}
+          {!IS_IOS && <LiquidHeaderChrome onPressBack={handlePressBack} />}
           <WarehouseDetailSkeletonView />
         </>
       )}

@@ -45,7 +45,7 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
 - **공용 프리미티브에 맞춰 목업과 갈린 값**(의도적): 2차 칩(지형·해시태그)은 `LiquidChip` `sm`의 좌우 15·13.5px를 그대로 써서 목업의 12·12.5px보다 조금 크다. 경고 배너 모서리는 목업 18 대신 토큰 `LiquidRadius.tile`(20)이다(창고 장비 상세의 경고 배너와 같은 값). 화면 하나를 위해 프리미티브·토큰을 갈라 두는 비용이 더 크다.
 - **내 위치 파란 점은 이식 대상이 아니다**(`CampSiteMyLocationMarkerView`). 플랫폼 관례색(`#2D8CFF`)이라 리디자인해도 바뀌지 않는다 — 지도 위 파란 점이 다른 색이면 "내 위치"로 읽히지 않는다.
 - **아직 이식하지 않은 조각**(한 화면 안에 두 세대가 섞여 있는 구간): 날씨 탭이 쓰는 `WeatherDailyView`, **배낭 여행지 선택기·허브**(`components/bag-destination/` — 공유 뷰(`CampSiteFilterChipsView`·`CampSiteMapMarkersView`·`CampSiteDetailOverlayView`)를 통해 일부 Liquid 표현이 그 화면에 **먼저 보인다**. 공용 뷰를 세대별로 갈라 두는 비용이 더 커 variant를 두지 않았고, 선택기 이식([BagDestination.md](BagDestination.md) DST-3)으로 해소된다). 각 모듈의 이식 태스크에서 정리한다. (후기 작성 화면·배낭 선택 시트는 2026-08-11 편집·추가 플로우 이식에서, 공용 후기 모듈(`components/review`)은 같은 날 보조 화면 이식에서 끝났다 — CS-3 `모듈 문법` 참고.)
-- **로딩 표시는 스켈레톤으로 전환하지 않았다**(후속): 상세 오버레이·상세 래퍼·날씨 탭·지도 검색 결과 네 곳이 여전히 플랫폼 `ActivityIndicator`(`Liquid.ink`)다. Liquid Depth는 로딩을 콘텐츠 모양의 스켈레톤 셰이딩으로 말하는 시스템이라 이 넷은 문법 이탈이며, 스켈레톤 프리미티브가 공용으로 생기는 시점에 함께 옮긴다 — 화면 하나를 위해 자체 스켈레톤을 만들면 다음 화면과 톤이 갈린다.
+- **로딩 표시는 스켈레톤으로 전환하지 않았다**(후속): 상세 오버레이·상세 래퍼·날씨 탭·지도 검색 결과 네 곳이 여전히 플랫폼 `ActivityIndicator`(`Liquid.ink`)다. Liquid Depth는 로딩을 콘텐츠 모양의 스켈레톤 셰이딩으로 말하는 시스템이라 이 넷은 문법 이탈이며, 스켈레톤 프리미티브가 공용으로 생기는 시점에 함께 옮긴다 — 화면 하나를 위해 자체 스켈레톤을 만들면 다음 화면과 톤이 갈린다. (2026-08-11: 그 프리미티브가 생겼다 — `components/liquid/useLiquidShimmer.ts` + `LiquidSkeletonBar.tsx`. 네 곳의 전환은 이 화면들의 골격을 정하는 일이라 별 태스크로 남긴다.)
 
 ## 3. 요구사항
 

@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
+import LiquidSheetCloseButton from '@/components/liquid/LiquidSheetCloseButton';
 import {
   Liquid,
   LiquidLayout,
@@ -43,10 +44,6 @@ interface ActionChipProps {
 // 액션 칩 높이(목업 §10). HIG 44는 세로 여유로만 채운다: (44 − 40) / 2 = 2 → 3.
 const ACTION_CHIP_HEIGHT = 40;
 const ACTION_CHIP_HIT_SLOP = { top: 3, bottom: 3, left: 0, right: 0 };
-
-// 닫기 원(목업 §10)은 36이고, HIG 44는 여유로 채운다: (44 − 36) / 2 = 4.
-const CLOSE_BUTTON_SIZE = 36;
-const CLOSE_HIT_SLOP = { top: 4, bottom: 4, left: 4, right: 4 };
 
 /**
  * 박지 상세 시트의 액션 칩(즐겨찾기·공유·네이버 지도·위치로 이동, CS-3).
@@ -124,15 +121,7 @@ const CampSiteDetailHeaderView: FC<Props> = ({
           </PretendardText>
         </View>
 
-        <TouchableOpacity
-          onPress={onPressClose}
-          style={styles.closeButton}
-          hitSlop={CLOSE_HIT_SLOP}
-          accessibilityLabel='닫기'
-          accessibilityRole='button'
-        >
-          <Ionicons name='close' size={20} color={Liquid.ink} />
-        </TouchableOpacity>
+        <LiquidSheetCloseButton onPress={onPressClose} />
       </View>
 
       {/* 설명 — "어떤 곳인지"가 사진·탭보다 먼저 읽히도록 이름 바로 아래에 둔다. 비면 생략(CS-3). */}
@@ -229,14 +218,6 @@ const styles = StyleSheet.create({
     lineHeight: 32,
     letterSpacing: -0.8,
     color: Liquid.ink,
-  },
-  closeButton: {
-    width: CLOSE_BUTTON_SIZE,
-    height: CLOSE_BUTTON_SIZE,
-    borderRadius: CLOSE_BUTTON_SIZE / 2,
-    backgroundColor: Liquid.badgeFill,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   description: {
     marginTop: 12,

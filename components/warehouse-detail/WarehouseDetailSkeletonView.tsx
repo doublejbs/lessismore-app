@@ -1,6 +1,8 @@
-import { FC, useEffect, useState } from 'react';
-import { View, StyleSheet, Animated, Platform } from 'react-native';
+import { FC } from 'react';
+import { View, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import LiquidSkeletonBar from '@/components/liquid/LiquidSkeletonBar';
+import useLiquidShimmer from '@/components/liquid/useLiquidShimmer';
 import {
   Liquid,
   LiquidLayout,
@@ -8,11 +10,8 @@ import {
   LiquidShadow,
 } from '@/constants/DesignTokens';
 
-// 셔머 반 주기 — 왕복 1.2s(핸드오프 로딩 규칙). 스피너는 쓰지 않는다.
-const SHIMMER_HALF_DURATION = 600;
-// 잉크 스케일의 가장 옅은 값. 가라앉은 면(surfaceSunken)은 흰 카드와 값이 붙어 형태가 사라진다.
-const PLACEHOLDER_COLOR = Liquid.inkFaint;
-const BAR_RADIUS = 4;
+// 태그 칩만 알약에 가깝게 깎는다(h28) — 나머지 막대는 공용 기본값 4를 쓴다.
+const TAG_CHIP_RADIUS = 14;
 // iOS는 투명 네이티브 헤더가 상단을 덮으므로 그 높이를 직접 비운다(본 화면과 같은 처리).
 const IS_IOS = Platform.OS === 'ios';
 /**
@@ -30,38 +29,9 @@ const CONTENT_PAD_TOP = 14;
  * 튀지 않는다 — 좌우 정렬선·섹션 여백·카드 모서리를 본 화면과 같은 토큰으로 둔다.
  * 하단 CTA는 그리지 않는다: 보유 여부를 아직 몰라 버튼이 있을지부터 정해지지 않았다.
  */
-const useShimmer = (): Animated.Value => {
-  // ref로 잡으면 렌더 중 `.current`를 읽어 React Compiler가 최적화를 포기한다 — 값을 상태로 든다.
-  const [opacity] = useState(() => new Animated.Value(1));
-
-  useEffect(() => {
-    // 재귀 start 콜백 대신 loop — 언마운트 후에도 다음 주기가 스스로 살아나는 일이 없고,
-    // cleanup에서 한 번 멈추면 끝난다(WarehouseSkeletonView와 같은 패턴).
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 0.5,
-          duration: SHIMMER_HALF_DURATION,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: SHIMMER_HALF_DURATION,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-
-    animation.start();
-
-    return () => animation.stop();
-  }, [opacity]);
-
-  return opacity;
-};
-
 const WarehouseDetailSkeletonView: FC = () => {
-  const opacity = useShimmer();
+  // 셔머는 기본값(1 ↔ 0.5 / 반 주기 600ms = 왕복 1.2s)을 그대로 쓴다.
+  const opacity = useLiquidShimmer();
   const insets = useSafeAreaInsets();
 
   return (
@@ -77,26 +47,45 @@ const WarehouseDetailSkeletonView: FC = () => {
     >
       {/* 정체 블록 — 브랜드(13) → 이름(28) → 태그 칩 줄 + 우측 무게(42) */}
       <View style={styles.identity}>
-        <Animated.View style={[styles.brandBar, { opacity }]} />
-        <Animated.View style={[styles.nameBar, { opacity }]} />
+        <LiquidSkeletonBar opacity={opacity} width={96} height={14} />
+        <LiquidSkeletonBar opacity={opacity} width='72%' height={30} />
         <View style={styles.metaRow}>
           <View style={styles.tags}>
-            <Animated.View style={[styles.tagChip, { opacity }]} />
-            <Animated.View style={[styles.tagChip, { opacity }]} />
+            <LiquidSkeletonBar
+              opacity={opacity}
+              width={72}
+              height={28}
+              radius={TAG_CHIP_RADIUS}
+            />
+            <LiquidSkeletonBar
+              opacity={opacity}
+              width={72}
+              height={28}
+              radius={TAG_CHIP_RADIUS}
+            />
           </View>
-          <Animated.View style={[styles.weightBar, { opacity }]} />
+          <LiquidSkeletonBar opacity={opacity} width={88} height={34} />
         </View>
       </View>
 
       {/* 섹션 하나 — 라벨 + 카드 */}
       <View style={styles.section}>
-        <Animated.View style={[styles.sectionLabel, { opacity }]} />
+        <LiquidSkeletonBar
+          opacity={opacity}
+          width={64}
+          height={11}
+          style={styles.sectionLabel}
+        />
         <View style={styles.cardShell}>
           <View style={styles.cardClip}>
             {[0, 1, 2].map(index => (
               <View key={index} style={styles.specRow}>
-                <Animated.View style={[styles.specLabel, { opacity }]} />
-                <Animated.View style={[styles.specValue, { opacity }]} />
+                <LiquidSkeletonBar opacity={opacity} width={96} height={14} />
+                <LiquidSkeletonBar
+                  opacity={opacity}
+                  height={14}
+                  style={styles.specValue}
+                />
               </View>
             ))}
           </View>
@@ -118,18 +107,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: LiquidLayout.screenH,
     gap: 8,
   },
-  brandBar: {
-    height: 14,
-    width: 96,
-    backgroundColor: PLACEHOLDER_COLOR,
-    borderRadius: BAR_RADIUS,
-  },
-  nameBar: {
-    height: 30,
-    width: '72%',
-    backgroundColor: PLACEHOLDER_COLOR,
-    borderRadius: BAR_RADIUS,
-  },
   metaRow: {
     marginTop: 6,
     flexDirection: 'row',
@@ -141,28 +118,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 6,
   },
-  tagChip: {
-    height: 28,
-    width: 72,
-    backgroundColor: PLACEHOLDER_COLOR,
-    borderRadius: 14,
-  },
-  weightBar: {
-    height: 34,
-    width: 88,
-    backgroundColor: PLACEHOLDER_COLOR,
-    borderRadius: BAR_RADIUS,
-  },
   section: {
     marginTop: 24,
     marginHorizontal: LiquidLayout.screenH,
   },
   sectionLabel: {
-    height: 11,
-    width: 64,
     marginBottom: 10,
-    backgroundColor: PLACEHOLDER_COLOR,
-    borderRadius: BAR_RADIUS,
   },
   // 그림자는 껍데기가 든다 — 안쪽에서 모서리를 깎으므로 같은 뷰에 그림자를 걸면 잘린다.
   cardShell: {
@@ -183,17 +144,9 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 13,
   },
-  specLabel: {
-    height: 14,
-    width: 96,
-    backgroundColor: PLACEHOLDER_COLOR,
-    borderRadius: BAR_RADIUS,
-  },
+  // 값 막대는 라벨이 가져간 폭의 나머지를 채운다.
   specValue: {
-    height: 14,
     flex: 1,
-    backgroundColor: PLACEHOLDER_COLOR,
-    borderRadius: BAR_RADIUS,
   },
 });
 
