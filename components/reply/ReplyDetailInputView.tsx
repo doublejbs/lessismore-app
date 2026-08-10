@@ -10,8 +10,18 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
+import LiquidGlassField, {
+  LIQUID_FIELD_HEIGHT,
+} from '@/components/liquid/LiquidGlassField';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidShadow,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import ReplyDetail from '@/model/reply/ReplyDetail';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,7 +34,21 @@ interface Props {
 
 // 입력 바 위아래 여백. 키보드가 올라왔을 때 키보드와의 간격이기도 하다.
 const INPUT_BAR_GAP = 12;
+// 답글 길이 상한 — 리뷰 글(RP-1)과 같은 값이다.
+const MAX_CONTENT_LENGTH = 1000;
+// 여러 줄 답글이 자랄 수 있는 최대 높이. 넘으면 필드 안에서 스크롤한다.
+const GROWN_MAX_HEIGHT = 120;
+// 포커스가 실제로 붙기까지의 지연 — 필드가 렌더된 다음 프레임에 focus를 건다.
+const FOCUS_DELAY = 100;
 
+/**
+ * RP-2 답글 입력 바 (Liquid Depth, 2026-08-11 이식).
+ *
+ * 지면 위에 놓인 바라 띠 면을 깔지 않는다 — 흰 띠가 화면 하단을 가로지르면 지면이 끊긴다.
+ * 대신 **필드가 유리**이고(공용 `LiquidGlassField` — 검색 필드·리뷰 쓰기 진입과 같은 셸),
+ * 값이 들어오면 채움을 한 단계 진하게 덮는다. 저장은 잉크 알약이되 주 액션 높이(54)가 아니라
+ * 필드와 같은 48이다 — 바 안에 든 인라인 액션이라 화면의 주 액션 자리를 가져가지 않는다.
+ */
 const ReplyDetailInputView: FC<Props> = observer(
   ({ replyDetail, scrollViewRef }) => {
     const [isInputMode, setIsInputMode] = useState(false);
@@ -43,11 +67,12 @@ const ReplyDetailInputView: FC<Props> = observer(
     useEffect(() => {
       if (replyTarget) {
         const mention = `@${replyTarget.authorName} `;
+
         setText(mention);
         setIsInputMode(true);
         setTimeout(() => {
           inputRef.current?.focus();
-        }, 100);
+        }, FOCUS_DELAY);
       }
     }, [replyTarget]);
 
@@ -55,13 +80,16 @@ const ReplyDetailInputView: FC<Props> = observer(
       setIsInputMode(true);
       setTimeout(() => {
         inputRef.current?.focus();
-      }, 100);
+      }, FOCUS_DELAY);
     };
 
     const handleSave = async () => {
-      if (!text.trim() || isSaving) return;
+      if (!text.trim() || isSaving) {
+        return;
+      }
 
       setIsSaving(true);
+
       try {
         // @멘션 제거하고 내용만 저장
         const content = replyTarget
@@ -70,6 +98,7 @@ const ReplyDetailInputView: FC<Props> = observer(
 
         if (!content) {
           setIsSaving(false);
+
           return;
         }
 
@@ -93,6 +122,8 @@ const ReplyDetailInputView: FC<Props> = observer(
       }
     };
 
+    const canSave = Boolean(text.trim()) && !isSaving;
+
     return (
       // KeyboardAvoidingView의 padding은 `키보드 높이 + 오프셋`이라 양수 오프셋이 그대로
       // 키보드 위 빈칸이 된다(옛 76pt가 그랬다). 컨테이너는 홈 인디케이터를 피할 만큼
@@ -110,48 +141,64 @@ const ReplyDetailInputView: FC<Props> = observer(
         >
           <View style={styles.content}>
             {!isInputMode ? (
-              <TouchableOpacity
-                style={styles.inputButton}
+              <LiquidGlassField
                 onPress={handlePressInput}
+                accessibilityLabel='답글 쓰기'
+                style={styles.field}
               >
-                <PretendardText weight='medium' style={styles.placeholder}>
-                  답글을 남겨보세요
-                </PretendardText>
-              </TouchableOpacity>
+                <View style={styles.fieldBody}>
+                  <Ionicons
+                    name='chatbubble-outline'
+                    size={18}
+                    color={Liquid.inkMuted}
+                  />
+                  <PretendardText style={styles.placeholder}>
+                    답글을 남겨보세요
+                  </PretendardText>
+                </View>
+              </LiquidGlassField>
             ) : (
-              <View style={styles.inputContainer}>
-                <TextInput
-                  ref={inputRef}
-                  style={styles.textInput}
-                  placeholder='답글을 남겨보세요'
-                  placeholderTextColor={Acg.textSecondary}
-                  value={text}
-                  onChangeText={setText}
-                  onBlur={handleBlur}
-                  multiline
-                  maxLength={1000}
-                />
-                <TouchableOpacity
-                  style={[
-                    styles.saveButton,
-                    (!text.trim() || isSaving) && styles.saveButtonDisabled,
-                  ]}
-                  onPress={handleSave}
-                  disabled={!text.trim() || isSaving}
-                >
-                  {isSaving ? (
-                    <ActivityIndicator size='small' color={Acg.paper} />
-                  ) : (
-                    <PretendardText
-                      weight='semibold'
-                      style={styles.saveButtonText}
-                    >
-                      저장
-                    </PretendardText>
-                  )}
-                </TouchableOpacity>
-              </View>
+              <LiquidGlassField
+                filled
+                grownMaxHeight={GROWN_MAX_HEIGHT}
+                style={styles.field}
+              >
+                <View style={styles.fieldBody}>
+                  <TextInput
+                    ref={inputRef}
+                    style={styles.textInput}
+                    placeholder='답글을 남겨보세요'
+                    placeholderTextColor={Liquid.inkMuted}
+                    value={text}
+                    onChangeText={setText}
+                    onBlur={handleBlur}
+                    multiline
+                    maxLength={MAX_CONTENT_LENGTH}
+                    accessibilityLabel='답글 입력'
+                  />
+                </View>
+              </LiquidGlassField>
             )}
+
+            {isInputMode ? (
+              <TouchableOpacity
+                style={[styles.saveButton, !canSave && styles.saveDisabled]}
+                onPress={handleSave}
+                disabled={!canSave}
+                activeOpacity={LiquidMotion.pressOpacity}
+                accessibilityRole='button'
+                accessibilityLabel='답글 저장'
+                accessibilityState={{ disabled: !canSave, busy: isSaving }}
+              >
+                {isSaving ? (
+                  <ActivityIndicator size='small' color={Liquid.surface} />
+                ) : (
+                  <PretendardText weight='semibold' style={styles.saveText}>
+                    저장
+                  </PretendardText>
+                )}
+              </TouchableOpacity>
+            ) : null}
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -161,77 +208,60 @@ const ReplyDetailInputView: FC<Props> = observer(
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: LiquidLayout.screenH,
     paddingTop: INPUT_BAR_GAP,
-    // 지면 위에 놓인 바라 면을 깔지 않는다 — 흰 띠가 화면 하단을 가로지르면 지형이 끊긴다.
     backgroundColor: 'transparent',
   },
   content: {
     flexDirection: 'row',
-    gap: 12,
-    alignItems: 'flex-start',
+    alignItems: 'flex-end',
+    gap: 8,
   },
-  authorButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: Acg.ink,
-    borderRadius: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  authorText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: Acg.paper,
-  },
-  inputButton: {
+  // 행 안에서 저장 버튼을 뺀 남는 폭을 채운다.
+  field: {
     flex: 1,
-    height: 40,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
-    borderRadius: 0,
-    justifyContent: 'center',
-    paddingHorizontal: 16,
+  },
+  fieldBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 13,
   },
   placeholder: {
-    fontSize: 16,
-    color: Acg.textSecondary,
-  },
-  inputContainer: {
     flex: 1,
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'flex-end',
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.inkMuted,
   },
   textInput: {
     flex: 1,
-    minHeight: 40,
-    maxHeight: 100,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
-    borderRadius: 0,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 16,
-    fontWeight: '500',
-    color: Acg.ink,
+    // TextInput은 PretendardText로 감쌀 수 없어 서체를 직접 지정한다 — 지정하지 않으면
+    // 입력값만 시스템 서체로 렌더돼 화면에서 튄다.
+    fontFamily: 'Pretendard-Medium',
+    fontSize: 15.5,
+    lineHeight: 21,
+    color: Liquid.ink,
+    padding: 0,
   },
+  // 바 안에 든 인라인 액션이라 주 액션 알약 높이(54)를 쓰지 않는다. 필드와 같은 48이라
+  // HIG 44pt를 넘는다.
   saveButton: {
-    backgroundColor: Acg.ink,
-    borderRadius: 0,
-    paddingHorizontal: 16,
-    height: 40,
-    justifyContent: 'center',
+    minHeight: LIQUID_FIELD_HEIGHT,
+    paddingHorizontal: 20,
+    borderRadius: LIQUID_FIELD_HEIGHT / 2,
+    backgroundColor: Liquid.ink,
     alignItems: 'center',
-    minWidth: 60,
+    justifyContent: 'center',
+    boxShadow: LiquidShadow.glassSm,
   },
-  saveButtonDisabled: {
-    backgroundColor: '#CCCCCC',
-    opacity: 0.5,
+  // 누를 수 없는 상태 — 면·모서리는 그대로 두고 투명도만 낮춘다(색을 바꾸면 다른 버튼처럼 읽힌다).
+  saveDisabled: {
+    opacity: LiquidMotion.disabledOpacity,
   },
-  saveButtonText: {
-    fontSize: 16,
-    color: Acg.paper,
+  saveText: {
+    fontSize: LiquidType.body.fontSize,
+    color: Liquid.surface,
   },
 });
 

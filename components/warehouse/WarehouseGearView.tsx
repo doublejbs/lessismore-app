@@ -152,12 +152,7 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse, divider = false }) => {
             divider={divider}
             // 썸네일이 붙은 행과 없는 행의 키를 같게 묶는다(GearThumbnailView의 행 높이 계약).
             minContentHeight={GEAR_THUMBNAIL_SIZE}
-            leading={
-              <GearThumbnailView
-                variant='liquid'
-                imageUrl={gear.getImageUrl()}
-              />
-            }
+            leading={<GearThumbnailView imageUrl={gear.getImageUrl()} />}
             {...(gear.getDisplayCompany()
               ? { brand: gear.getDisplayCompany() }
               : {})}

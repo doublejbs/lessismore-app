@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | as-built (2026-07-10 검색·정렬 시트 반영) · **2026-07-28 개정(as-built)**: 장비 이미지 미제공([DataModel.md](DataModel.md) §1) — 행 썸네일 제거(WH-1) · **2026-08-11 개정(as-built)**: 창고를 Liquid Depth로 이식 — §2 화면 문법 신설, 상단 유리 크롬·제목 블록(WH-1), 행 문법 전환(WH-1), `총 N개` 행 → 헤더 요약(WH-2), 알림 칩 시각·라벨 대비 조정(WH-2-1), 빈 상태 2줄(WH-6), Android·Web 유리 검색 필드(WH-8), 상단 고정 블록 이탈 명시(§2) |
+| 상태 | as-built (2026-07-10 검색·정렬 시트 반영) · **2026-07-28 개정(as-built)**: 장비 이미지 미제공([DataModel.md](DataModel.md) §1) — 행 썸네일 제거(WH-1) · **2026-08-11 개정(as-built)**: 창고를 Liquid Depth로 이식 — §2 화면 문법 신설, 상단 유리 크롬·제목 블록(WH-1), 행 문법 전환(WH-1), `총 N개` 행 → 헤더 요약(WH-2), 알림 칩 시각·라벨 대비 조정(WH-2-1), 빈 상태 2줄(WH-6), Android·Web 유리 검색 필드(WH-8), 상단 고정 블록 이탈 명시(§2) · **같은 날 후속**: 유리 검색 필드를 공용 프리미티브로 추출(WH-8), 썸네일 세대 갈래(`variant`) 제거 — 구세대 ACG 행이 사라져 `GearThumbnailView`가 Liquid 하나만 그린다(WH-1) |
 | ID 프리픽스 | `WH` |
 | 주요 코드 | `app/warehouse/index.tsx`, `components/warehouse/`, `components/liquid/`, `model/warehouse/`, `model/order/`, `model/filter/FilterManager.ts` |
 | 관련 스펙 | [DataModel.md](DataModel.md), [GearEdit.md](GearEdit.md), [GearDetail.md](GearDetail.md), [LiquidGlassNavigation.md](LiquidGlassNavigation.md) |
@@ -178,7 +178,7 @@ app/warehouse/index.tsx → WarehouseWrapper → WarehouseScreen
 **수용 기준**
 
 - 검색 인풋은 **기본으로 감춰져 있고**, 상단 크롬의 **검색 버튼**(돋보기, `accessibilityLabel='장비 검색'`)을 눌러야 노출된다. iOS는 이 버튼과 필드를 네이티브 검색 바가 내주고(LG-3), Android·Web은 아래 유리 필드를 쓴다.
-  - Android·Web 검색 모드 진입 시: 제목 블록이 **유리 검색 필드**(h48 · 알약 · 블러 + 유리 채움 + 0.5px 흰 보더, placeholder `장비 검색`, 자동 포커스) + `취소` 버튼 행으로 바뀐다. 값이 들어오면 채움을 한 단계 진하게 덮어 입력 상태를 드러내고 돋보기도 잉크로 올린다(탐색 필드와 같은 문법). 검색 버튼은 이 동안 숨긴다.
+  - Android·Web 검색 모드 진입 시: 제목 블록이 **유리 검색 필드**(공용 `components/liquid/LiquidSearchField.tsx` — h48 · 알약 · 블러 + 유리 채움 + 0.5px 흰 보더, placeholder `장비 검색`, 자동 포커스) + `취소` 버튼 행으로 바뀐다. 필드는 2026-08-11에 프리미티브로 추출돼 브랜드 디렉토리([Search.md](Search.md) SR-8)·브랜드 필터 시트([Feed.md](Feed.md) FD-3)와 **같은 컴포넌트**를 쓴다 — 세 곳이 각자 그리면 값이 갈린다. 유리 면은 한 겹 아래 셸(`components/liquid/LiquidGlassField.tsx`)이 그리며 리뷰·답글 입력 바도 같은 셸을 공유한다([Reply.md](Reply.md) §2.1). 값이 들어오면 채움을 한 단계 진하게 덮어 입력 상태를 드러내고 돋보기도 잉크로 올린다(탐색 필드와 같은 문법). 검색 버튼은 이 동안 숨긴다.
   - `취소`를 누르면 검색 인풋을 닫고 **검색어를 초기화**한다(제목 블록 복귀).
   - 검색 버튼·인풋 모두 창고가 완전히 빈 상태(WH-6)에서는 렌더하지 않는다. 카테고리 필터 칩(WH-2)은 검색 모드와 무관하게 계속 노출된다.
 - 입력값으로 **현재 로드된 목록을 클라이언트에서 필터**한다(추가 Firestore 조회 없음): `getDisplayName()` 또는 `getDisplayCompany()`에 검색어 포함(대소문자 무시). 카테고리 필터(WH-2)와 함께 적용된다.

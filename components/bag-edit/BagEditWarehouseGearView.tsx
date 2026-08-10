@@ -116,9 +116,7 @@ const BagEditWarehouseGearView: FC<Props> = ({ gear, bagEdit }) => {
         name={gear.getDisplayName()}
         // 썸네일이 붙은 행과 없는 행의 키를 같게 묶는다(BD-1 → WH-1 행 높이 계약).
         minContentHeight={GEAR_THUMBNAIL_SIZE}
-        leading={
-          <GearThumbnailView variant='liquid' imageUrl={gear.getImageUrl()} />
-        }
+        leading={<GearThumbnailView imageUrl={gear.getImageUrl()} />}
         trailing={renderCheck()}
         {...(gear.getDisplayCompany()
           ? { brand: gear.getDisplayCompany() }

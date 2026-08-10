@@ -9,19 +9,37 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import StarRatingView from '@/components/camp-site/StarRatingView';
+import LiquidFieldLabel from '@/components/liquid/LiquidFieldLabel';
+import LiquidGlassCircleButton from '@/components/liquid/LiquidGlassCircleButton';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
 import { CommentUpdateRequest } from '@/model/reply/Comment';
-import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidShadow,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import useKeyboard from '@/hooks/useKeyboard';
 import app from '@/model/app/App';
 
-// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
+// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 유리 크롬을 직접 그린다.
 const IS_IOS = Platform.OS === 'ios';
 // 고정(비스크롤) 화면 — 자동 인셋을 줄 스크롤 뷰가 없어 네이티브 헤더 높이(44pt)만큼 직접 내린다.
-const NATIVE_HEADER_HEIGHT = 44;
+const NATIVE_HEADER_HEIGHT = LiquidLayout.navBar;
+/**
+ * Android·Web 하단 버튼이 키보드를 피하는 몫.
+ *
+ * `KeyboardAvoidingView`(`height`)가 이미 컨테이너를 줄이므로 키보드 높이를 그대로 더하면
+ * 두 번 밀린다 — 실측으로 잡은 이 값만큼 되돌린다. 키보드가 낮은 기기에서 음수가 되지 않게
+ * 기본 여백(16)을 하한으로 둔다.
+ */
+const KEYBOARD_BUTTON_OFFSET = 260;
+const BUTTON_BOTTOM_GAP = 16;
 
 interface Props {
   readonly gearId: string;
@@ -32,6 +50,13 @@ interface Props {
   readonly initialRating: number;
 }
 
+/**
+ * RP-4 리뷰·답글 수정 화면 (Liquid Depth, 2026-08-11 이식).
+ *
+ * 지면 위에 **종이 카드 인풋** 하나가 놓인 화면이다 — 회색 채움을 두면 지면과 붙어 입력
+ * 영역이 사라진다(뒤가 지면이면 종이, 뒤가 종이면 가라앉은 면 — 앱 공통 규칙).
+ * 완료는 iOS는 네이티브 headerRight 바 버튼, Android·Web은 하단 잉크 알약이 맡는다.
+ */
 const ReplyEditView: FC<Props> = ({
   gearId,
   commentId,
@@ -96,17 +121,19 @@ const ReplyEditView: FC<Props> = ({
     }
   };
 
-  // LG-2: 완료 액션 — iOS는 네이티브 headerRight로, Android/Web은 기존 하단 버튼으로 렌더.
+  // LG-2: 완료 액션 — iOS는 네이티브 headerRight로, Android/Web은 하단 알약으로 렌더.
   const renderHeaderComplete = () => (
     <TouchableOpacity
       onPress={handlePressComplete}
       disabled={!canSubmit}
       style={styles.headerCompleteButton}
+      activeOpacity={LiquidMotion.pressOpacity}
       accessibilityLabel='완료'
       accessibilityRole='button'
+      accessibilityState={{ disabled: !canSubmit, busy: isLoading }}
     >
       {isLoading ? (
-        <ActivityIndicator size='small' color={Acg.ink} />
+        <ActivityIndicator size='small' color={Liquid.ink} />
       ) : (
         <PretendardText
           weight='semibold'
@@ -145,32 +172,34 @@ const ReplyEditView: FC<Props> = ({
         }}
       />
       {!IS_IOS && (
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <TouchableOpacity onPress={handlePressBack} activeOpacity={0.7}>
-              <Ionicons name='chevron-back' size={24} color={Acg.ink} />
-            </TouchableOpacity>
-          </View>
+        <View style={styles.chrome}>
+          <LiquidGlassCircleButton
+            icon='chevron-back'
+            onPress={handlePressBack}
+            disabled={isLoading}
+            accessibilityLabel='뒤로가기'
+          />
         </View>
       )}
       <View style={styles.content}>
         {isTopLevel && (
           <View style={styles.ratingSection}>
-            <PretendardText weight='semibold' style={styles.ratingLabel}>
-              별점
-            </PretendardText>
+            <LiquidFieldLabel required>별점</LiquidFieldLabel>
             <StarRatingView editable rating={rating} onChange={setRating} />
           </View>
         )}
+        {/* 답글에는 별점이 없고 글만 고친다(RP-2) — 라벨도 무엇을 고치는지 그대로 말한다. */}
+        <LiquidFieldLabel>{isTopLevel ? '리뷰 글' : '답글'}</LiquidFieldLabel>
         <TextInput
           style={styles.textInput}
-          placeholder='장비가 어땠나요?'
-          placeholderTextColor={Acg.textSecondary}
+          placeholder={isTopLevel ? '장비가 어땠나요?' : '답글을 남겨보세요'}
+          placeholderTextColor={Liquid.inkMuted}
           multiline
           textAlignVertical='top'
           value={content}
           onChangeText={setContent}
           editable={!isLoading}
+          accessibilityLabel={isTopLevel ? '리뷰 글' : '답글'}
         />
       </View>
       {/* Android/Web 전용 하단 완료 버튼 — iOS는 headerRight 바 버튼으로 대체(주 액션 1개 유지). */}
@@ -179,36 +208,28 @@ const ReplyEditView: FC<Props> = ({
           style={[
             styles.buttonContainer,
             {
-              paddingBottom: isKeyboardVisible ? keyboardHeight - 260 : 16,
+              paddingBottom: isKeyboardVisible
+                ? Math.max(
+                    keyboardHeight - KEYBOARD_BUTTON_OFFSET,
+                    BUTTON_BOTTOM_GAP
+                  )
+                : BUTTON_BOTTOM_GAP,
             },
           ]}
         >
-          <TouchableOpacity
-            style={[
-              styles.completeButton,
-              canSubmit
-                ? styles.completeButtonActive
-                : styles.completeButtonDisabled,
-            ]}
+          {/* 저장 중에도 라벨을 유지하고 앞에 진행 표시만 붙인다 — 라벨이 사라지면
+              무엇을 기다리는지 알 수 없다. */}
+          <LiquidPillButton
+            label='완료'
+            variant='primary'
+            block
             onPress={handlePressComplete}
             disabled={!canSubmit}
-          >
-            {isLoading ? (
-              <ActivityIndicator size='small' color={Acg.paper} />
-            ) : (
-              <PretendardText
-                weight='semibold'
-                style={[
-                  styles.completeButtonText,
-                  canSubmit
-                    ? styles.completeButtonTextActive
-                    : styles.completeButtonTextDisabled,
-                ]}
-              >
-                완료
-              </PretendardText>
-            )}
-          </TouchableOpacity>
+            busy={isLoading}
+            leading={
+              isLoading ? <ActivityIndicator color={Liquid.surface} /> : null
+            }
+          />
         </View>
       )}
     </KeyboardAvoidingView>
@@ -218,81 +239,56 @@ const ReplyEditView: FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Acg.bg,
-    paddingHorizontal: 0,
-  },
-  header: {
+    // 지면은 Layout이 받는 LiquidBackdrop이 깐다.
     backgroundColor: 'transparent',
-    paddingVertical: 4,
-    paddingTop: 8,
-    paddingBottom: 8,
-    paddingHorizontal: 20,
   },
-  headerContent: {
+  // 크롬 좌우 여백은 콘텐츠(20)보다 좁다 — 유리 원이 화면 가장자리에 가깝게 앉는다(목업 §8).
+  chrome: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingBottom: 8,
   },
   content: {
     flex: 1,
-    padding: AcgLayout.screenH,
+    padding: LiquidLayout.screenH,
   },
+  // 라벨(`LiquidFieldLabel`)이 자기 아래 여백 10을 들고 있어 gap을 겹치지 않는다.
   ratingSection: {
-    gap: 10,
-    marginBottom: 16,
+    marginBottom: LiquidLayout.section,
   },
-  ratingLabel: {
-    fontSize: 15,
-    lineHeight: 20,
-    color: Acg.textTertiary,
-  },
-  // 지면 위 각진 종이 면 인풋(ACG) — 회색 채움을 두면 지면과 붙어 입력 영역이 안 보인다.
+  /**
+   * 지면 위 종이 카드 인풋. `PretendardText`를 쓸 수 없는 자리라 서체를 직접 건다
+   * (TextInput 예외). 여러 줄 입력이라 모서리는 알약이 아니라 타일(20)이다.
+   */
   textInput: {
     flex: 1,
-    borderRadius: 0,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    borderRadius: LiquidRadius.tile,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.card,
     padding: 16,
-    fontSize: 16,
-    color: Acg.ink,
+    fontSize: LiquidType.body.fontSize,
+    fontFamily: 'Pretendard-Medium',
+    color: Liquid.ink,
     minHeight: 200,
   },
   buttonContainer: {
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: LiquidLayout.screenH,
     backgroundColor: 'transparent',
-  },
-  completeButton: {
-    paddingVertical: 16,
-    borderRadius: 0,
-    alignItems: 'center',
-  },
-  completeButtonActive: {
-    backgroundColor: Acg.ink,
-  },
-  completeButtonDisabled: {
-    backgroundColor: Acg.line2,
-  },
-  completeButtonText: {
-    fontSize: 16,
-  },
-  completeButtonTextActive: {
-    color: Acg.paper,
-  },
-  completeButtonTextDisabled: {
-    color: Acg.textSecondary,
   },
   // iOS 네이티브 headerRight 완료 버튼 — HIG 최소 터치 타깃 44pt.
   headerCompleteButton: {
-    height: 44,
-    minWidth: 44,
+    minHeight: LiquidLayout.touchMin,
+    minWidth: LiquidLayout.touchMin,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerCompleteText: {
     fontSize: 15,
-    color: Acg.ink,
+    color: Liquid.ink,
   },
   headerCompleteTextDisabled: {
-    color: Acg.textSecondary,
+    color: Liquid.inkMuted,
   },
 });
 

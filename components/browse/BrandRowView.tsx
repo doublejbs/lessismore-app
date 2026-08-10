@@ -1,40 +1,45 @@
 import { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';
 import { BrandRankData } from '@/model/search/BrandRankStore';
-import PretendardText from '../PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import PretendardText from '@/components/PretendardText';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidShadow,
+  LiquidType,
+} from '@/constants/DesignTokens';
 
 interface Props {
   brand: BrandRankData;
   onPress: () => void;
+  /**
+   * 여러 개를 골라 두는 목록(피드 브랜드 필터 시트)이면 true. 우측 표식이 쉐브론(이동)
+   * 대신 체크 원(선택)으로 바뀌고 스크린리더 롤도 `checkbox`가 된다 — 같은 알약 문법이라도
+   * 다음 화면으로 가는 것과 값을 고르는 것은 다른 약속이다.
+   */
+  selectable?: boolean;
   selected?: boolean;
   showCount?: boolean;
 }
 
-// 선택 행 우측에 노출하는 검정 체크(✓) 아이콘 — BrowseSortButtonView의 CheckIcon 패턴 재사용.
-const CheckIcon = () => (
-  <Svg width={20} height={20} viewBox='0 0 20 20' fill='none'>
-    <Path
-      d='M4 10.5L8 14.5L16 5.5'
-      stroke={Color.textPrimary}
-      strokeWidth={2}
-      strokeLinecap='round'
-      strokeLinejoin='round'
-    />
-  </Svg>
-);
+// 체크 원 지름 — 패킹 행(PK-2)·배낭 편집과 같은 값이다.
+const CHECK_SIZE = 26;
 
-// 브랜드 디렉토리와 탐색 홈 브랜드 미리보기가 공유하는 브랜드 행.
-// 이름 + (옵션)`제품 n` 보조 라벨 + 하단 구분선으로 밀도를 통일한다.
-// `showCount`가 false면 제품 수를 숨긴다(피드 브랜드 필터 시트).
-// 보유 수(ownerCount)는 정렬 키로만 쓰고 노출하지 않는다.
-// selected는 피드 필터 시트에서 현재 선택된 브랜드 행을 강조하는 용도(기본 미강조).
-// 선택 시 은은한 배경 + 브랜드명 bold + 우측 검정 체크(✓)로 대비를 준다.
-// 브랜드 디렉토리(단일 화면)는 selected를 넘기지 않으므로 기존 동작에 영향이 없다.
+/**
+ * 브랜드 행 (Liquid Depth, 2026-08-11 이식).
+ *
+ * 브랜드 디렉토리(SR-8)와 피드 브랜드 필터 시트(FD-3)가 공유한다. **행 하나가 곧 카드**이며
+ * (탐색 목록 행·패킹과 같은 문법) 좌측은 정체(이름 + `제품 n`), 우측은 표식 하나다.
+ * `showCount`가 false면 제품 수를 숨긴다(필터 시트). 보유 수(ownerCount)는 정렬 키로만 쓰고
+ * 노출하지 않는다(SR-8).
+ */
 const BrandRowView: FC<Props> = ({
   brand,
   onPress,
+  selectable = false,
   selected = false,
   showCount = true,
 }) => {
@@ -44,59 +49,90 @@ const BrandRowView: FC<Props> = ({
       ? `제품 ${brand.gearCount}`
       : '';
 
+  const renderTrailing = () => {
+    if (!selectable) {
+      // 다음 화면(브랜드 장비 목록)으로 간다는 어포던스.
+      return (
+        <Ionicons name='chevron-forward' size={20} color={Liquid.inkSubtle} />
+      );
+    }
+
+    // 잉크 면 + 라임 글리프 — 앱 공통 체크 표식이다(패킹·배낭 편집과 같은 자리).
+    if (selected) {
+      return (
+        <View style={styles.checkFill}>
+          <Ionicons name='checkmark' size={16} color={Liquid.lime} />
+        </View>
+      );
+    }
+
+    return <View style={styles.checkOutline} />;
+  };
+
   return (
     <TouchableOpacity
-      style={[styles.brandItem, selected && styles.brandItemSelected]}
+      style={styles.card}
       onPress={onPress}
-      activeOpacity={0.7}
+      activeOpacity={LiquidMotion.pressOpacity}
+      accessibilityRole={selectable ? 'checkbox' : 'button'}
+      accessibilityLabel={name}
+      {...(selectable ? { accessibilityState: { checked: selected } } : {})}
     >
-      <View style={styles.brandInfo}>
-        <PretendardText
-          style={[styles.brandName, selected && styles.brandNameSelected]}
-          weight={selected ? 'bold' : 'semibold'}
-        >
+      <View style={styles.identity}>
+        <PretendardText style={styles.name} weight='semibold' numberOfLines={1}>
           {name}
         </PretendardText>
         {meta.length > 0 ? (
-          <PretendardText style={styles.brandMeta}>{meta}</PretendardText>
+          <PretendardText style={styles.meta}>{meta}</PretendardText>
         ) : null}
       </View>
-      {selected ? <CheckIcon /> : null}
+      {renderTrailing()}
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  brandItem: {
+  // 행 하나가 곧 카드다. 패딩(16) + 내용 높이라 HIG 44pt 터치 타깃을 자연히 넘긴다.
+  card: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    marginHorizontal: -12,
-    borderRadius: Radius.card,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
-    gap: 8,
+    gap: 12,
+    padding: LiquidLayout.cardPad,
+    borderRadius: LiquidRadius.tile,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.tile,
   },
-  brandItemSelected: {
-    backgroundColor: Color.surfaceMuted,
-    borderBottomColor: 'transparent',
-  },
-  brandInfo: {
+  identity: {
     flex: 1,
-    gap: 4,
+    minWidth: 0,
+    gap: 2,
   },
-  brandName: {
-    fontSize: 16,
-    color: Color.textPrimary,
+  name: {
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.ink,
   },
-  brandNameSelected: {
-    color: Color.textPrimary,
+  meta: {
+    fontSize: LiquidType.caption.fontSize,
+    lineHeight: LiquidType.caption.lineHeight,
+    color: Liquid.inkMuted,
   },
-  brandMeta: {
-    fontSize: 13,
-    color: Color.textSecondary,
+  // 빈 체크 원 — 테두리는 잉크 스케일의 가장 옅은 값이다(핸드오프).
+  checkOutline: {
+    width: CHECK_SIZE,
+    height: CHECK_SIZE,
+    borderRadius: CHECK_SIZE / 2,
+    borderWidth: 1.5,
+    borderColor: Liquid.inkFaint,
+  },
+  checkFill: {
+    width: CHECK_SIZE,
+    height: CHECK_SIZE,
+    borderRadius: CHECK_SIZE / 2,
+    backgroundColor: Liquid.ink,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

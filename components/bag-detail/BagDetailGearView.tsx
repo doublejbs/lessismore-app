@@ -160,7 +160,6 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divider = false }) => {
             dim={isUseless}
             leading={
               <GearThumbnailView
-                variant='liquid'
                 imageUrl={gear.getImageUrl()}
                 style={isUseless ? styles.thumbnailDim : undefined}
               />

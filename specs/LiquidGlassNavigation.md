@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | proposed `[기획]` · **2026-08-11 개정(as-built)**: LG-3 창고 검색 헤더를 실제 구현에 맞게 정정 — iOS 네이티브 바 타이틀 비움(본문 제목 블록이 화면 대상), 커스텀 타이틀 행 서술 `[이력]` 강등, Android·Web은 유리 크롬 + 유리 검색 필드, 콘텐츠 인셋은 수동 paddingTop |
+| 상태 | proposed `[기획]` · **2026-08-11 개정(as-built)**: LG-3 창고 검색 헤더를 실제 구현에 맞게 정정 — iOS 네이티브 바 타이틀 비움(본문 제목 블록이 화면 대상), 커스텀 타이틀 행 서술 `[이력]` 강등, Android·Web은 유리 크롬 + 유리 검색 필드, 콘텐츠 인셋은 수동 paddingTop · **2026-08-11 추가 정정(as-built)**: 그룹 A 중 Liquid Depth로 이식된 네 화면(browse·brand-directory·shared-bag·reply)도 바 타이틀을 비우고 Android·Web을 유리 크롬으로 그린다(LG-2) |
 | ID 프리픽스 | `LG` |
 | 주요 코드 | `app/_layout.tsx`(Stack 옵션), 각 푸시 화면 컴포넌트(커스텀 헤더 제거), `app/(tabs)/_layout.tsx`(기존 NativeTabs), `components/warehouse/WarehouseScreen.tsx`·`WarehouseChromeView.tsx`·`WarehouseSearchFieldView.tsx`(LG-3) |
 | 관련 스펙 | [GearDetail.md](GearDetail.md), [BagDetail.md](BagDetail.md), [Warehouse.md](Warehouse.md), [Search.md](Search.md) |
@@ -49,6 +49,10 @@ iOS 네이티브 헤더 화면의 공통 구성:
 푸시 화면 19곳. 그룹별 진행:
 
 **A. 단순(back + 타이틀)** — browse, brand-directory, popular-ranking, shared-bag/[id], reply/[id], reply/[id]/[commentId], info/notification, bag/[id]/weather
+
+- **[정정] 2026-08-11 (as-built)** — Liquid Depth로 이식한 화면은 **바 타이틀을 비운다**(`headerTitle: ''`): browse(카테고리·브랜드 이름)·brand-directory(`브랜드별 탐색`)·shared-bag/[id](배낭 이름)·reply/[id](`리뷰`)의 화면 대상은 본문 **제목 블록**(32/38)이 들고, 같은 말을 바에 또 두면 중복이다 — 창고(LG-3)·배낭 상세와 같은 처리다. 예외는 `reply/[id]/[commentId]`로, 본문 제목 블록 없이 원 리뷰 카드로 바로 시작하므로 바 타이틀을 남긴다 — 값은 `답글`이다(2026-08-11 카피 통일, 옛 `댓글`).
+- 같은 화면들의 **Android·Web 헤더도 커스텀 JS 헤더가 아니라 유리 크롬**이다(`LiquidGlassCircleButton` 원형 back). 정렬처럼 우측에 있던 컨트롤은 제목 블록 줄로 옮겨 두 플랫폼이 같은 자리를 쓴다([Search.md](Search.md) SR-7).
+- 제목 블록·검색 필드가 상단에 고정되는 화면(browse·brand-directory·reply)은 `contentInsetAdjustmentBehavior='never'` + 수동 `paddingTop`(세이프에어리어 + 44 + 6)이다 — 창고와 같은 as-built 이탈이다.
 **B. 우측 액션** — bag/[id](복사·공유), gear-detail/[id](공유·수정, **파일럿**), gear-edit/[id](삭제), bag/[id]/memo(완료), reply/…/edit(완료), bag/[id]/activity(다시 선택), useless/[id], ~~custom(닫기/back 분기)~~ — **custom은 전환 대상에서 제외**(2026-07-31, GearEdit GE-8): pageSheet 모달이라 형제 화면인 검색 모달과 같은 [핸들바 + 우상단 닫기] JS 헤더를 전 플랫폼 공통으로 쓴다
 **C. 특수** — bag/[id]/edit(무게 카운트업 타이틀 → `headerTitle` 커스텀 컴포넌트로 이식), bag/[id]/packing(진행률 블록은 본문 유지, 내비 행만 네이티브로)
 

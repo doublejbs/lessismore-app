@@ -125,15 +125,18 @@ RN 자간은 em이 아니라 px이므로 `letterSpacing: fontSize * 0.16`처럼 
 목업 전체가 이 7개 + 지면 레이어로 조립됩니다. 원본 저장소에 대응 컴포넌트가 있으므로
 새로 만들기보다 **기존 컴포넌트를 이 스펙으로 고치는** 쪽을 우선하세요.
 
-| 컴포넌트 | 스펙 | 원본 |
+(`원본` 열은 2026-08-11 이식 완료 기준의 **실제 구현 경로**로 갱신했습니다 — 이전 값들은
+이식 전 화면별 컴포넌트라 일부가 이미 사라진 경로였습니다.)
+
+| 컴포넌트 | 스펙 | 구현 |
 | --- | --- | --- |
-| `Chip` | h34(2차 28) · pad 0 15 · radius h/2 · 선택 = ink 면 + 흰 글자 600 / 비선택 = `rgba(255,255,255,.8)` + 0.5px `rgba(16,16,18,.06)` 보더 + `inkSecondary` 500 · 13.5px · 줄바꿈 금지 | `browse/CategoryChipView.tsx` |
-| `PillButton` | 주: h54 · radius 27 · ink 면 · 흰 글자 16/600 · shadow cta. 액센트: 라임 면 + ink 글자 + shadow accent. 유리: `glassFillStrong` + blur | `FloatingPillButton.tsx` |
-| `Card` | paper: `#FFF` · radius 22 · pad 16~18 · shadow card. glass: `rgba(255,255,255,.82)` + blur24 + 0.5px 흰 보더 · radius 26 · shadow glass. quiet: `rgba(255,255,255,.72)` + 보더, 지난 항목용 | `acg/AcgPaperView.tsx`, `AcgGlassView.tsx` |
-| `MetricRow` | 목록 한 줄. pad 15/16 · 브랜드 12/600 `inkMuted` → 이름 15/600 ink → 메타 12 `inkSubtle`, 우측 숫자 Archivo 16~20 · 행 사이 0.5px 헤어라인(좌측 16 들여쓰기) | `warehouse/GearView.tsx` |
-| `SectionLabel` | 11px/600 · `letterSpacing .16em` · UPPERCASE · `inkMuted` · 아래 여백 10. **이 시스템의 서명** | `AcgHighlightText` 대체 |
-| `ProgressBar` | h6(작게) / h8(히어로) · radius h/2 · 트랙 `surfaceSunken` 또는 `rgba(16,16,18,.14)` · 채움 ink(유리·라임 면 위) 또는 라임(흰 카드 위) | `bag-packing/BagPackingHeaderView.tsx` |
-| `StatTile` | radius 20 · pad 16 · 숫자 Archivo 34/34 → 라벨 12.5/600. 강조 1개만 라임 면 | `warehouse-detail/WarehouseDetailUsageHeroView.tsx` |
+| `Chip` | h34(2차 28) · pad 0 15 · radius h/2 · 선택 = ink 면 + 흰 글자 600 / 비선택 = `rgba(255,255,255,.8)` + 0.5px `rgba(16,16,18,.06)` 보더 + `inkSecondary` 500 · 13.5px · 줄바꿈 금지 | `liquid/LiquidChip.tsx` |
+| `PillButton` | 주: h54 · radius 27 · ink 면 · 흰 글자 16/600 · shadow cta. 액센트: 라임 면 + ink 글자 + shadow accent. 유리: `glassFillStrong` + blur | `liquid/LiquidPillButton.tsx` |
+| `Card` | paper: `#FFF` · radius 22 · pad 16~18 · shadow card. glass: `rgba(255,255,255,.82)` + blur24 + 0.5px 흰 보더 · radius 26 · shadow glass. quiet: `rgba(255,255,255,.72)` + 보더, 지난 항목용 | `liquid/LiquidCard.tsx` |
+| `MetricRow` | 목록 한 줄. pad 15/16 · 브랜드 12/600 `inkMuted` → 이름 15/600 ink → 메타 12 `inkSubtle`, 우측 숫자 Archivo 16~20 · 행 사이 0.5px 헤어라인(좌측 16 들여쓰기) | `liquid/LiquidMetricRow.tsx` |
+| `SectionLabel` | 11px/600 · `letterSpacing .16em` · UPPERCASE · `inkMuted` · 아래 여백 10. **이 시스템의 서명** | `liquid/LiquidSectionLabel.tsx` |
+| `ProgressBar` | h6(작게) / h8(히어로) · radius h/2 · 트랙 `surfaceSunken` 또는 `rgba(16,16,18,.14)` · 채움 ink(유리·라임 면 위) 또는 라임(흰 카드 위) | `liquid/LiquidProgressBar.tsx` |
+| `StatTile` | radius 20 · pad 16 · 숫자 Archivo 34/34 → 라벨 12.5/600. 강조 1개만 라임 면 | `liquid/LiquidStatTile.tsx` |
 
 각 컴포넌트의 `.jsx` 참조 구현과 `.d.ts` 인터페이스, 사용 규칙 `.prompt.md`가
 `components/core/`에 있습니다. RN 포팅 시 props 이름은 그대로 가져가세요.

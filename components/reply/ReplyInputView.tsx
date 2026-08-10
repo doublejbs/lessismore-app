@@ -17,7 +17,14 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import StarRatingView from '@/components/camp-site/StarRatingView';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import LiquidFieldLabel from '@/components/liquid/LiquidFieldLabel';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidRadius,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 const MAX_CONTENT_LENGTH = 1000;
@@ -28,7 +35,13 @@ interface Props {
   reply: Reply;
 }
 
-// 장비 리뷰 작성 화면 — 네이티브 formSheet 라우트. 별점(필수) + 리뷰 글(선택)로 구성한다.
+/**
+ * RP-1 장비 리뷰 작성 화면 (Liquid Depth, 2026-08-11 이식) — 네이티브 formSheet 라우트.
+ *
+ * 별점(필수) + 리뷰 글(선택)로 구성한다. **시트는 종이 면이다** — 지면 위 카드가 아니라
+ * 입력이 곧 화면이라 카드를 겹치지 않고, 입력 면만 `surfaceSunken`으로 가라앉힌다
+ * (박지 후기 작성 CS-8과 같은 문법).
+ */
 const ReplyInputView: FC<Props> = ({ reply }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -80,20 +93,16 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
       </PretendardText>
 
       <View style={styles.section}>
-        <PretendardText weight='semibold' style={styles.label}>
-          별점
-        </PretendardText>
+        <LiquidFieldLabel required>별점</LiquidFieldLabel>
         <StarRatingView editable rating={rating} onChange={setRating} />
       </View>
 
       <View style={styles.section}>
-        <PretendardText weight='semibold' style={styles.label}>
-          리뷰 글
-        </PretendardText>
+        <LiquidFieldLabel>리뷰 글</LiquidFieldLabel>
         <TextInput
           style={styles.contentInput}
           placeholder='장비가 어땠나요? (선택)'
-          placeholderTextColor={Acg.textSecondary}
+          placeholderTextColor={Liquid.inkMuted}
           value={content}
           onChangeText={setContent}
           maxLength={MAX_CONTENT_LENGTH}
@@ -101,6 +110,7 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
           textAlignVertical='top'
           editable={!isLoading}
           inputAccessoryViewID={isAndroid ? undefined : CONTENT_ACCESSORY_ID}
+          accessibilityLabel='리뷰 글'
         />
         <PretendardText style={styles.counter}>
           {content.length}/{MAX_CONTENT_LENGTH}
@@ -140,33 +150,26 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
       )}
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.cancelButton}
+        <LiquidPillButton
+          label='취소'
+          variant='secondary'
           onPress={handlePressCancel}
-          activeOpacity={0.7}
           disabled={isLoading}
-        >
-          <PretendardText weight='semibold' style={styles.cancelButtonText}>
-            취소
-          </PretendardText>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.confirmButton,
-            confirmDisabled && styles.confirmButtonDisabled,
-          ]}
+          style={styles.button}
+        />
+        {/* 저장 중에도 라벨을 유지하고 앞에 진행 표시만 붙인다 — 라벨이 사라지면
+            무엇을 기다리는지 알 수 없다(박지 후기 작성 CS-8과 같은 처리). */}
+        <LiquidPillButton
+          label='확인'
+          variant='primary'
           onPress={handlePressComplete}
-          activeOpacity={0.7}
           disabled={confirmDisabled}
-        >
-          {isLoading ? (
-            <ActivityIndicator size='small' color={Acg.paper} />
-          ) : (
-            <PretendardText weight='semibold' style={styles.confirmButtonText}>
-              확인
-            </PretendardText>
-          )}
-        </TouchableOpacity>
+          busy={isLoading}
+          leading={
+            isLoading ? <ActivityIndicator color={Liquid.surface} /> : null
+          }
+          style={styles.button}
+        />
       </View>
 
       {/* iOS 키보드 위 '완료' 바 — 멀티라인 입력에서 키보드를 내린다. */}
@@ -191,9 +194,9 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
 };
 
 const styles = StyleSheet.create({
-  // 시트는 종이 면이다 — 지면(그레인)은 시트 뒤 화면이 이미 깔고 있다.
   container: {
-    backgroundColor: Acg.paper,
+    // 폼 시트는 종이 면이다 — 입력·선택 면만 `surfaceSunken`으로 가라앉힌다.
+    backgroundColor: Liquid.surface,
     // 네이티브 그래버가 시트 상단에 겹쳐 렌더되므로 그 아래로 제목이 오도록 여백을 준다.
     paddingTop: 52,
   },
@@ -205,72 +208,49 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   body: {
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: LiquidLayout.screenH,
     marginBottom: 20,
   },
   title: {
-    fontSize: 20,
-    lineHeight: 28,
-    color: Acg.ink,
+    fontSize: LiquidType.title3.fontSize,
+    lineHeight: LiquidType.title3.lineHeight,
+    letterSpacing: LiquidType.title3.letterSpacing,
+    color: Liquid.ink,
     marginBottom: 24,
   },
+  // 라벨(`LiquidFieldLabel`)이 자기 아래 여백 10을 들고 있어 gap을 겹치지 않는다.
   section: {
     flexDirection: 'column',
-    gap: 10,
-    marginBottom: 24,
+    marginBottom: LiquidLayout.section,
   },
-  label: {
-    fontSize: 15,
-    lineHeight: 20,
-    color: Acg.textTertiary,
-  },
-  // 종이 면 위 인풋이라 채움은 지면색이다 — 흰 면 위 회색 면을 또 두면 층이 하나 늘어난다.
+  /**
+   * `PretendardText`를 쓸 수 없는 자리라 서체를 직접 건다(TextInput 예외).
+   * 여러 줄 입력이라 모서리는 알약이 아니라 타일(20)이다.
+   */
   contentInput: {
-    borderRadius: 0,
-    backgroundColor: Acg.bg,
-    paddingHorizontal: 14,
+    borderRadius: LiquidRadius.tile,
+    backgroundColor: Liquid.surfaceSunken,
+    paddingHorizontal: 16,
     paddingVertical: 14,
-    fontSize: 16,
-    fontFamily: 'Pretendard-Regular',
-    color: Acg.ink,
+    fontSize: LiquidType.body.fontSize,
+    fontFamily: 'Pretendard-Medium',
+    color: Liquid.ink,
     minHeight: 100,
   },
   counter: {
     alignSelf: 'flex-end',
-    fontSize: 12,
-    color: Acg.textSecondary,
+    marginTop: 6,
+    fontSize: LiquidType.caption.fontSize,
+    lineHeight: LiquidType.caption.lineHeight,
+    color: Liquid.inkMuted,
   },
   buttonContainer: {
     flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: AcgLayout.screenH,
+    gap: LiquidLayout.listGap,
+    paddingHorizontal: LiquidLayout.screenH,
   },
-  cancelButton: {
+  button: {
     flex: 1,
-    height: 52,
-    backgroundColor: Acg.bg,
-    borderRadius: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    color: Acg.ink,
-  },
-  confirmButton: {
-    flex: 1,
-    height: 52,
-    backgroundColor: Acg.ink,
-    borderRadius: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  confirmButtonDisabled: {
-    opacity: 0.5,
-  },
-  confirmButtonText: {
-    fontSize: 16,
-    color: Acg.paper,
   },
   accessoryBar: {
     flexDirection: 'row',
@@ -278,13 +258,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: Acg.bg,
+    backgroundColor: Liquid.surfaceSunken,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Acg.line2,
+    borderTopColor: Liquid.hairline,
   },
   accessoryDone: {
-    fontSize: 16,
-    color: Acg.ink,
+    fontSize: LiquidType.heading.fontSize,
+    lineHeight: LiquidType.heading.lineHeight,
+    color: Liquid.ink,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },

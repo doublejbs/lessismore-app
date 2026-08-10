@@ -479,7 +479,7 @@ class SearchStore {
         nameKorean,
       } = item;
       const myGear = this.findMyGear(id, myGears);
-      // 검색 결과 행도 창고와 같은 GearView를 쓰므로, 보유 장비면 창고 문서에서 읽은 본인
+      // 탐색 목록 행도 창고와 같은 행 문법(LiquidMetricRow)을 쓰므로, 보유 장비면 창고 문서에서 읽은 본인
       // 사진을 이어받아 같은 장비가 화면마다 달라 보이지 않게 한다(WH-1·SR-2, GD-13).
       // 보유 목록은 이미 위에서 읽었으니 Firestore 추가 조회는 없다. 미보유 카탈로그 장비는
       // 크롤 이미지를 쓰지 않으므로 그대로 사진 없음이다(DataModel §1).

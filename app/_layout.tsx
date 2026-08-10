@@ -45,8 +45,9 @@ const RootLayout = () => {
     'Pretendard-Medium': require('../assets/fonts/Pretendard-Medium.ttf'),
     'Pretendard-SemiBold': require('../assets/fonts/Pretendard-SemiBold.ttf'),
     'Pretendard-Bold': require('../assets/fonts/Pretendard-Bold.ttf'),
-    // ACG 리디자인의 디스플레이·수치 서체(콘덴스드). 본문·UI는 그대로 Pretendard를 쓰고
-    // 화면 제목·무게·D-day·기간에만 쓴다 — `AcgDisplayText`가 유일한 통로다.
+    // 디스플레이·수치 서체(콘덴스드). 본문·UI는 그대로 Pretendard를 쓰고 **숫자·라틴**
+    // (무게·D-day·기간·진행률·버전)에만 쓴다 — 한글 글리프가 없어 한글에 걸면 글자가 깨진다.
+    // 통로는 `LiquidFont.condensed` 토큰이다(구세대 `AcgDisplayText`는 2026-08-11 삭제).
     ArchivoNarrow_700Bold: ArchivoNarrow_700Bold,
     // 필름 카드 캡션 손글씨(BS-3) — 라틴·숫자·한글을 이 폰트 하나로 렌더한다.
     // 미래나무는 Google Fonts 패키지가 아니라 번들한 로컬 TTF다(assets/fonts/LICENSE-Nanum.txt).
@@ -312,7 +313,7 @@ const RootLayout = () => {
                 Platform.OS === 'android' ? [0.9] : 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
-              contentStyle: { backgroundColor: '#FFFFFF' },
+              contentStyle: { backgroundColor: Liquid.surface },
             }}
           />
           <Stack.Screen

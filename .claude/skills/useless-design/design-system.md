@@ -80,17 +80,24 @@
 
 ## Intentional additions
 
-원본 앱에는 대응 컴포넌트가 있으나 이름이 다른 것들입니다. 새로 발명한 프리미티브는 없습니다.
+**이식이 끝난 지금 대응 구현은 모두 `components/liquid/`에 있습니다**(2026-08-11 갱신 —
+아래 `원본` 열은 이식 전 화면별 컴포넌트를 가리켜 이미 사라진 경로가 섞여 있었습니다).
+새 화면은 이 표의 구현을 그대로 쓰고, 없는 것만 새로 만드세요.
 
-| 여기 | 원본 |
+| 여기 | 구현 |
 | --- | --- |
-| `Chip` | `components/browse/CategoryChipView.tsx` |
-| `PillButton` | `components/FloatingPillButton.tsx` |
-| `Card` | `components/acg/AcgPaperView.tsx` + `AcgGlassView.tsx` |
-| `MetricRow` | `components/warehouse/GearView.tsx` |
-| `SectionLabel` | `AcgHighlightText`가 맡던 섹션 제목 (형광펜 → 마이크로 라벨로 교체) |
-| `ProgressBar` | `components/bag-packing/BagPackingHeaderView.tsx` |
-| `StatTile` | `components/warehouse-detail/WarehouseDetailUsageHeroView.tsx` |
+| `Chip` | `components/liquid/LiquidChip.tsx` |
+| `PillButton` | `components/liquid/LiquidPillButton.tsx` |
+| `Card` | `components/liquid/LiquidCard.tsx` (`tone` paper·quiet·glass·accent·ink · `clip`으로 목록 행을 카드 모서리에 깎음) |
+| `MetricRow` | `components/liquid/LiquidMetricRow.tsx` |
+| `SectionLabel` | `components/liquid/LiquidSectionLabel.tsx` (폼 라벨은 `LiquidFieldLabel.tsx`) |
+| `ProgressBar` | `components/liquid/LiquidProgressBar.tsx` |
+| `StatTile` | `components/liquid/LiquidStatTile.tsx` |
+
+목업에 표로 정리돼 있지 않지만 여러 화면이 공유하는 프리미티브도 `components/liquid/`에 있습니다:
+`LiquidGlassCapsule`·`LiquidGlassCircleButton`(유리 크롬) · `LiquidGlassField`(유리 한 줄 셸,
+높이 48) · `LiquidSearchField`(그 셸 + 돋보기·인풋·지우기) · `LiquidBottomSheet` ·
+`LiquidBackdrop`(지면) · `LiquidAddCta`(담기) · `LiquidNoticeChip` · `LiquidMetricRow`.
 
 ---
 

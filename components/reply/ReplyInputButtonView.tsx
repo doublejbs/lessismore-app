@@ -1,14 +1,27 @@
 import { FC } from 'react';
-import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
+import LiquidGlassField from '@/components/liquid/LiquidGlassField';
+import { Liquid, LiquidLayout, LiquidType } from '@/constants/DesignTokens';
 import Reply from '@/model/reply/Reply';
 
 interface Props {
   reply: Reply;
 }
 
+// 입력 바 위아래 여백.
+const INPUT_BAR_GAP = 12;
+
+/**
+ * RP-1 리뷰 쓰기 진입 바 (Liquid Depth, 2026-08-11 이식).
+ *
+ * 지면 위에 놓인 바라 띠 면을 깔지 않는다 — 흰 띠가 화면 하단을 가로지르면 지면이 끊긴다.
+ * 대신 **필드 자체가 유리**다(공용 `LiquidGlassField` — 검색 필드와 같은 셸).
+ * 실제 입력은 formSheet(`ReplyInputView`)가 받으므로 이 자리는 버튼이며, 카피도 시트가
+ * 무엇을 받는지 그대로 말한다(`리뷰를 남겨보세요`).
+ */
 const ReplyInputButtonView: FC<Props> = ({ reply }) => {
   const insets = useSafeAreaInsets();
 
@@ -19,57 +32,37 @@ const ReplyInputButtonView: FC<Props> = ({ reply }) => {
   return (
     // 화면 맨 아래 바라 홈 인디케이터를 피한다.
     <View style={[styles.container, { paddingBottom: insets.bottom + 12 }]}>
-      <TouchableOpacity style={styles.inputContainer} onPress={handlePress}>
-        <View style={styles.inputWrapper}>
+      <LiquidGlassField onPress={handlePress} accessibilityLabel='리뷰 쓰기'>
+        <View style={styles.body}>
+          <Ionicons name='create-outline' size={18} color={Liquid.inkMuted} />
           <PretendardText style={styles.placeholder}>
-            댓글을 입력해보세요
+            리뷰를 남겨보세요
           </PretendardText>
         </View>
-      </TouchableOpacity>
+      </LiquidGlassField>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  // 지면 위에 놓인 바라 면을 깔지 않는다 — 흰 띠가 화면 하단을 가로지르면 지형이 끊긴다.
-  // 대신 인풋이 종이 면이 된다(뒤가 지면이면 종이, 뒤가 종이면 지면색 — 앱 공통 규칙).
   container: {
-    paddingHorizontal: AcgLayout.screenH,
-    paddingTop: 12,
-    backgroundColor: 'transparent',
     width: '100%',
+    paddingHorizontal: LiquidLayout.screenH,
+    paddingTop: INPUT_BAR_GAP,
+    backgroundColor: 'transparent',
   },
-  inputContainer: {
+  body: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
-    borderRadius: 0,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    minHeight: 44,
-  },
-  inputWrapper: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 13,
   },
   placeholder: {
-    fontSize: 16,
-    color: Acg.textSecondary,
     flex: 1,
-    ...Platform.select({
-      ios: {
-        lineHeight: 20,
-      },
-      android: {
-        lineHeight: 22,
-      },
-    }),
-  },
-  sendIcon: {
-    marginLeft: 8,
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.inkMuted,
   },
 });
 

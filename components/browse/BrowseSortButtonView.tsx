@@ -1,9 +1,9 @@
 import { FC } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import Svg, { Path } from 'react-native-svg';
-import PretendardText from '../PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { Ionicons } from '@expo/vector-icons';
+import PretendardText from '@/components/PretendardText';
+import { Liquid, LiquidLayout, LiquidMotion } from '@/constants/DesignTokens';
 import BrowseSort from '@/model/search/BrowseSort';
 import {
   BROWSE_SORT_OPTIONS,
@@ -16,19 +16,13 @@ interface Props {
   onSelect: (sort: BrowseSort) => void;
 }
 
-const DownArrowIcon = () => (
-  <Svg width={25} height={24} viewBox='0 0 25 24' fill='none'>
-    <Path
-      d='M7.5 10L12.5008 14.58L17.5 10'
-      stroke={Color.textPrimary}
-      strokeWidth={2}
-      strokeLinecap='round'
-      strokeLinejoin='round'
-    />
-  </Svg>
-);
-
-// SR-7 정렬 진입 버튼. 옵션·현재값·선택 콜백을 모듈 핸드오프에 넣고 공용 formSheet 라우트로 위임한다.
+/**
+ * SR-7 정렬 진입 버튼 (Liquid Depth, 2026-08-11 이식).
+ *
+ * 옵션·현재값·선택 콜백을 모듈 핸드오프에 넣고 공용 formSheet 라우트로 위임한다.
+ * 면을 두지 않는 글자 + 쉐브론이다 — 피드 필터 줄의 정렬 버튼과 같은 문법이라야
+ * 두 화면에서 같은 것이 같게 읽힌다(FD-3).
+ */
 const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
   const router = useRouter();
 
@@ -47,35 +41,33 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.button} onPress={handleOpen}>
-        <PretendardText style={styles.buttonText} weight='bold'>
-          {getBrowseSortName(sort)}
-        </PretendardText>
-        <DownArrowIcon />
-      </TouchableOpacity>
-    </View>
+    <TouchableOpacity
+      style={styles.button}
+      onPress={handleOpen}
+      activeOpacity={LiquidMotion.pressOpacity}
+      accessibilityRole='button'
+      accessibilityLabel={`정렬 ${getBrowseSortName(sort)}`}
+    >
+      <PretendardText style={styles.label} weight='medium'>
+        {getBrowseSortName(sort)}
+      </PretendardText>
+      <Ionicons name='chevron-down' size={15} color={Liquid.inkMuted} />
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    height: 32,
-  },
+  // 고정 높이 대신 minHeight로 HIG 44pt를 채운다 — Dynamic Type에서도 글자가 잘리지 않는다.
   button: {
-    height: '100%',
-    paddingVertical: 8,
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    gap: 0,
+    gap: 2,
+    minHeight: LiquidLayout.touchMin,
+    paddingLeft: 12,
   },
-  buttonText: {
-    fontSize: 14,
-    color: Color.textPrimary,
-    lineHeight: 16,
-    includeFontPadding: false,
-    textAlignVertical: 'center',
+  label: {
+    fontSize: 13.5,
+    color: Liquid.ink,
   },
 });
 

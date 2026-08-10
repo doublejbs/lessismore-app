@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import BrandDirectory from '@/model/browse/BrandDirectory';
 import Layout from '../Layout';
+import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
 import BrandDirectoryView from './BrandDirectoryView';
 
 // LG-1: iOS는 네이티브 투명 헤더가 상단을 덮으므로 top 세이프에어리어를 빼
@@ -27,6 +28,8 @@ const BrandDirectoryWrapper: FC = () => {
     <Layout
       paddingHorizontal={0}
       edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
+      // 지형 없이 지면 + 우상단 라임 글로우 — 훑어 찾는 목록이라 산세를 깔지 않는다(창고와 같은 판단).
+      background={<LiquidBackdrop screen='none' glowPosition='topRight' />}
     >
       <BrandDirectoryView brandDirectory={brandDirectory} />
     </Layout>

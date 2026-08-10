@@ -115,7 +115,6 @@ const BagPackingGearRowView: FC<Props> = ({ gear, bagPacking }) => {
         minContentHeight={GEAR_THUMBNAIL_SIZE}
         leading={
           <GearThumbnailView
-            variant='liquid'
             imageUrl={gear.getImageUrl()}
             style={packed ? styles.thumbnailDim : undefined}
           />

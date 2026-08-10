@@ -111,7 +111,6 @@ const BagUselessGearView: FC<Props> = ({ gear, bagUseless }) => {
         minContentHeight={GEAR_THUMBNAIL_SIZE}
         leading={
           <GearThumbnailView
-            variant='liquid'
             imageUrl={gear.getImageUrl()}
             style={selected ? undefined : styles.thumbnailDim}
           />

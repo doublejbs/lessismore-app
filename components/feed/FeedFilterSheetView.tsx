@@ -4,7 +4,6 @@ import {
   StyleSheet,
   Modal,
   ScrollView,
-  TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
@@ -20,13 +19,33 @@ import { BrandRankData } from '@/model/search/BrandRankStore';
 import { FeedBrandInterest } from '@/model/feed/FeedInterestProfile';
 import { toBrandKey } from '@/model/store/BrandKey';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
-import SearchSkeletonView from '@/components/search/SearchSkeletonView';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import LiquidSearchField from '@/components/liquid/LiquidSearchField';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidType,
+} from '@/constants/DesignTokens';
+import BrandRowSkeletonView from '@/components/browse/BrandRowSkeletonView';
 import BrandRowView from '@/components/browse/BrandRowView';
 import SheetGrabberView from '@/components/ui/SheetGrabberView';
 import app from '@/model/app/App';
 
 const CONFIRM_LABEL = '확인';
+
+// 선택 요약 칩 높이 — 2차 칩(28)보다 한 단계 크다. 안에 지우기 글리프를 함께 담는다.
+const SUMMARY_CHIP_HEIGHT = 32;
+
+/**
+ * 요약 칩 터치 여유. 칩은 32로 그린다 — 키우면 칩 줄이 두꺼워져 아래 목록과 위계가 흔들린다.
+ * HIG 44는 세로 여유로만 채운다: (44 − 32) / 2 = 6. 가로는 0 — 가로 스크롤에서 이웃 칩과 겹친다.
+ */
+const SUMMARY_CHIP_HIT_SLOP = { top: 6, bottom: 6, left: 0, right: 0 };
+
+// 닫기 아이콘(24) 터치 여유 — 버튼 박스가 이미 44pt라 남는 여유만 더한다.
+const CLOSE_HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
 
 interface Props {
   feed: Feed;
@@ -34,10 +53,18 @@ interface Props {
   onClose: () => void;
 }
 
-// FD-3: 브랜드 전용 시트. iOS 네이티브 pageSheet 프레젠테이션(카드 슬라이드·스와이프 닫기·라운드 코너는 OS 처리).
-// 브랜드 검색/목록(내부 스크롤) + 선택 요약 칩 + 초기화 + 하단 고정 `확인`으로 구성된다.
-// 브랜드 목록·검색은 BrandDirectory 모델을 재사용하고, 선택은 시트 안에서 스테이징돼 `확인`으로 일괄 적용된다.
-// 스와이프 다운 닫기/뒤로가기 = 취소(스테이징 폐기). 스와이프 닫힘 시 onDismiss로 부모 visible을 반드시 초기화한다.
+/**
+ * FD-3 브랜드 필터 시트 (Liquid Depth, 2026-08-11 이식).
+ *
+ * iOS 네이티브 pageSheet 프레젠테이션(카드 슬라이드·스와이프 닫기·라운드 코너는 OS 처리).
+ * **지면(canvas) 위 종이 카드** 문법이다 — 브랜드 행이 각자 카드로 놓이고, 검색 필드는
+ * 그 위에 뜬 유리다(배낭 선택 시트 CS-5와 같은 판단: 유리 시트 면 위에 흰 카드를 얹으면
+ * 두 면이 겹쳐 카드 경계가 사라진다).
+ *
+ * 브랜드 목록·검색은 BrandDirectory 모델을 재사용하고, 선택은 시트 안에서 스테이징돼
+ * `확인`으로 일괄 적용된다. 스와이프 다운 닫기/뒤로가기 = 취소(스테이징 폐기).
+ * 스와이프 닫힘 시 onDismiss로 부모 visible을 반드시 초기화한다.
+ */
 const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -137,21 +164,43 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
     );
   };
 
+  // 빈 상태는 사실 + 다음 걸음 두 줄이다(핸드오프 Interactions). 원인마다 다음 걸음이
+  // 다르다 — 검색어를 넣지 않았는데 비어 있으면 철자를 확인하라고 말할 수 없다
+  // (brand-rank 로드 실패도 빈 배열로 온다). 브랜드 디렉토리(SR-8)와 같은 두 갈래다.
+  const getEmptyMessage = (): { fact: string; next: string } => {
+    if (keyword.trim()) {
+      return {
+        fact: '찾는 브랜드가 없어요',
+        next: '이름을 다시 확인해볼까요?',
+      };
+    }
+
+    return {
+      fact: '아직 브랜드가 없어요',
+      next: '잠시 뒤에 다시 열어볼까요?',
+    };
+  };
+
   const renderBrandList = () => {
     if (isLoading && isEmpty) {
+      // 스피너 대신 도착할 목록과 같은 골격을 그린다.
       return (
         <View style={styles.skeletonContainer}>
-          <SearchSkeletonView count={8} />
+          {/* 이 시트의 행은 `제품 n` 줄이 없다(`showCount={false}`) — 스켈레톤도 한 줄이다. */}
+          <BrandRowSkeletonView count={8} showMeta={false} />
         </View>
       );
     }
 
     if (isEmpty) {
+      const { fact, next } = getEmptyMessage();
+
       return (
         <View style={styles.emptyContainer}>
-          <PretendardText style={styles.emptyText}>
-            브랜드가 없습니다
+          <PretendardText weight='bold' style={styles.emptyTitle}>
+            {fact}
           </PretendardText>
+          <PretendardText style={styles.emptyText}>{next}</PretendardText>
         </View>
       );
     }
@@ -167,6 +216,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
           <BrandRowView
             key={brand.brandKey}
             brand={brand}
+            selectable
             selected={isSelectedBrand(brand)}
             onPress={() => handleSelectBrand(brand)}
             showCount={false}
@@ -201,9 +251,11 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
           <View style={styles.headerActions}>
             {hasStagedFilter ? (
               <TouchableOpacity
+                style={styles.resetButton}
                 onPress={handleReset}
-                activeOpacity={0.7}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                activeOpacity={LiquidMotion.pressOpacity}
+                accessibilityRole='button'
+                accessibilityLabel='선택한 브랜드 초기화'
               >
                 <PretendardText style={styles.resetText} weight='semibold'>
                   초기화
@@ -214,40 +266,25 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
             <TouchableOpacity
               onPress={handleCancel}
               style={styles.closeButton}
+              activeOpacity={LiquidMotion.pressOpacity}
               accessibilityRole='button'
               accessibilityLabel='닫기'
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              hitSlop={CLOSE_HIT_SLOP}
             >
-              <Ionicons name='close' size={24} color={Color.textPrimary} />
+              <Ionicons name='close' size={24} color={Liquid.ink} />
             </TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.brandSection}>
-          <View style={styles.searchInputWrapper}>
-            <TextInput
-              style={styles.searchInput}
-              value={keyword}
-              onChangeText={handleChangeKeyword}
-              placeholder='브랜드명을 검색해보세요'
-              placeholderTextColor={Color.textSecondary}
-              autoCapitalize='none'
-              autoCorrect={false}
-            />
-            {keyword ? (
-              <TouchableOpacity
-                onPress={handleClearKeyword}
-                style={styles.clearButton}
-              >
-                <Ionicons
-                  name='close-circle'
-                  size={20}
-                  color={Color.iconMuted}
-                />
-              </TouchableOpacity>
-            ) : null}
-          </View>
-          {stagedBrands.length > 0 ? (
+          <LiquidSearchField
+            value={keyword}
+            onChangeText={handleChangeKeyword}
+            onClear={handleClearKeyword}
+            placeholder='브랜드명을 검색해보세요'
+            accessibilityLabel='브랜드명 검색'
+          />
+          {hasStagedFilter ? (
             <ScrollView
               horizontal={true}
               showsHorizontalScrollIndicator={false}
@@ -260,11 +297,16 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
                 const label = brand.companyKorean || brand.company;
 
                 return (
+                  // 고른 것은 선택 칩과 같은 잉크 채움이고, 지우기 글리프가 뒤에 붙는다 —
+                  // 칩 자체가 해제 버튼이라 롤은 `button`이다.
                   <TouchableOpacity
                     key={key}
                     style={styles.summaryChip}
                     onPress={() => handleRemoveStagedBrand(brand)}
-                    activeOpacity={0.7}
+                    activeOpacity={LiquidMotion.pressOpacity}
+                    hitSlop={SUMMARY_CHIP_HIT_SLOP}
+                    accessibilityRole='button'
+                    accessibilityLabel={`${label} 선택 해제`}
                   >
                     <PretendardText
                       style={styles.summaryChipText}
@@ -272,7 +314,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
                     >
                       {label}
                     </PretendardText>
-                    <Ionicons name='close' size={14} color={Color.background} />
+                    <Ionicons name='close' size={14} color={Liquid.surface} />
                   </TouchableOpacity>
                 );
               })}
@@ -287,15 +329,12 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
             { paddingBottom: Math.max(insets.bottom, 16) },
           ]}
         >
-          <TouchableOpacity
-            style={styles.confirmButton}
+          <LiquidPillButton
+            label={confirmLabel}
+            variant='primary'
+            block
             onPress={handleApply}
-            activeOpacity={0.7}
-          >
-            <PretendardText style={styles.confirmButtonText} weight='semibold'>
-              {confirmLabel}
-            </PretendardText>
-          </TouchableOpacity>
+          />
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -305,15 +344,15 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
 const styles = StyleSheet.create({
   sheet: {
     flex: 1,
-    backgroundColor: Color.background,
-    paddingHorizontal: 20,
+    backgroundColor: Liquid.canvas,
+    paddingHorizontal: LiquidLayout.screenH,
     paddingTop: 12,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 12,
   },
   headerActions: {
     flexDirection: 'row',
@@ -322,106 +361,91 @@ const styles = StyleSheet.create({
     // 닫기 버튼의 44pt 박스가 시트 우측 여백(20)을 먹고 들어가 아이콘이 안쪽으로 밀리지 않게 한다.
     marginRight: -10,
   },
+  // 시트 제목은 화면 대상이라 title3 — 목록 행(15)과 위계가 갈린다(sort-sheet 선례).
   title: {
-    fontSize: 18,
-    lineHeight: 26,
-    color: Color.textPrimary,
+    fontSize: LiquidType.title3.fontSize,
+    lineHeight: LiquidType.title3.lineHeight,
+    letterSpacing: LiquidType.title3.letterSpacing,
+    color: Liquid.ink,
+  },
+  // 글자만 있는 버튼이라 시각 높이가 라인박스뿐이다 — HIG 44pt를 박스로 채운다.
+  resetButton: {
+    minHeight: LiquidLayout.touchMin,
+    justifyContent: 'center',
   },
   resetText: {
     fontSize: 14,
-    color: Color.textTertiary,
+    color: Liquid.inkSecondary,
   },
   // HIG 최소 터치 타깃 44×44pt.
   closeButton: {
-    width: 44,
-    height: 44,
+    width: LiquidLayout.touchMin,
+    height: LiquidLayout.touchMin,
     alignItems: 'center',
     justifyContent: 'center',
   },
   brandSection: {
     flex: 1,
   },
-  searchInputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Color.inputBg,
-    borderRadius: Radius.input,
-    paddingHorizontal: 12,
-    height: 40,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    padding: 0,
-    borderWidth: 0,
-    backgroundColor: 'transparent',
-  },
-  clearButton: {
-    marginLeft: 8,
-    padding: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   summaryChips: {
     flexGrow: 0,
-    marginTop: 8,
+    marginTop: 10,
   },
   summaryChipsContent: {
     gap: 8,
     paddingRight: 8,
   },
+  // 고정 높이 대신 minHeight — Dynamic Type으로 글자가 커져도 알약이 깨지지 않는다.
   summaryChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: Color.chipActiveBg,
-    borderRadius: Radius.modal,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    minHeight: SUMMARY_CHIP_HEIGHT,
+    paddingHorizontal: 14,
+    borderRadius: LiquidRadius.pill,
+    backgroundColor: Liquid.ink,
   },
   summaryChipText: {
     fontSize: 13,
-    lineHeight: 16,
-    color: Color.background,
+    color: Liquid.surface,
   },
   brandListContainer: {
     flex: 1,
-    marginTop: 8,
+    marginTop: 10,
   },
   brandList: {
     flex: 1,
   },
   brandListContent: {
+    paddingTop: 2,
     paddingBottom: 8,
+    gap: LiquidLayout.listGap,
   },
   skeletonContainer: {
-    marginTop: 10,
+    paddingTop: 2,
   },
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 6,
     paddingVertical: 60,
   },
+  emptyTitle: {
+    fontSize: LiquidType.heading.fontSize,
+    lineHeight: LiquidType.heading.lineHeight,
+    color: Liquid.ink,
+    textAlign: 'center',
+  },
   emptyText: {
-    fontSize: 16,
-    color: Color.textSecondary,
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: Liquid.inkTertiary,
     textAlign: 'center',
   },
   footer: {
     paddingTop: 12,
-    backgroundColor: Color.background,
-  },
-  confirmButton: {
-    backgroundColor: Color.chipActiveBg,
-    borderRadius: Radius.card,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  confirmButtonText: {
-    fontSize: 16,
-    color: Color.background,
+    backgroundColor: Liquid.canvas,
   },
 });
 

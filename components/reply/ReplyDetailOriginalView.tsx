@@ -1,7 +1,15 @@
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgShadow } from '@/constants/DesignTokens';
+import LiquidCard from '@/components/liquid/LiquidCard';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidSemantic,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import Comment from '@/model/reply/Comment';
 import ReplyDetail from '@/model/reply/ReplyDetail';
 import dayjs from 'dayjs';
@@ -9,6 +17,7 @@ import { FC, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import app from '@/model/app/App';
 import BottomMenuModalView from '../ui/BottomMenuModalView';
+import StarRatingView from '../camp-site/StarRatingView';
 import { useRouter } from 'expo-router';
 
 interface Props {
@@ -16,9 +25,19 @@ interface Props {
   replyDetail: ReplyDetail;
 }
 
-// 좋아요 빨강은 의미색이라 ACG 액센트(라임)로 바꾸지 않는다.
-const LIKED_COLOR = '#FF6B6B';
+/**
+ * 좋아요 버튼 터치 여유. 아이콘 20 + 숫자라 시각 높이가 22 남짓이다 — 키우면 카드 안에서
+ * 하트가 본문보다 무거워 보이므로 여유로만 44pt를 채운다.
+ */
+const LIKE_HIT_SLOP = { top: 11, bottom: 11, left: 8, right: 8 };
 
+/**
+ * RP-2 리뷰 상세의 원 리뷰 카드 (Liquid Depth, 2026-08-11 이식).
+ *
+ * 이 화면의 주인공이라 **자기 종이 카드**를 갖는다(답글 묶음은 아래 들여쓴 카드 하나).
+ * 별점을 함께 보여 목록(RP-6)과 같은 사실을 말한다 — 목록에서 별점을 보고 들어왔는데
+ * 상세에 없으면 다른 리뷰처럼 읽힌다.
+ */
 const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
@@ -64,63 +83,87 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
 
   return (
     <>
-      <View style={styles.container}>
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <PretendardText weight='bold' style={styles.name}>
-                {comment.authorName}
-              </PretendardText>
-              <PretendardText style={styles.date}>
-                {dayjs(comment.createdAt).format('YYYY. M. D')}
-              </PretendardText>
-            </View>
-            {isMyComment && (
+      <LiquidCard
+        tone='paper'
+        padding={LiquidLayout.cardPad}
+        style={styles.card}
+      >
+        <View style={styles.header}>
+          <View style={styles.authorRow}>
+            <PretendardText weight='semibold' style={styles.name}>
+              {comment.authorName}
+            </PretendardText>
+            {isMyComment ? (
+              <View style={styles.mineBadge}>
+                <PretendardText weight='medium' style={styles.mineBadgeText}>
+                  내 리뷰
+                </PretendardText>
+              </View>
+            ) : null}
+          </View>
+          <View style={styles.headerTrailing}>
+            <PretendardText style={styles.date}>
+              {dayjs(comment.createdAt).format('YYYY.MM.DD')}
+            </PretendardText>
+            {isMyComment ? (
               <TouchableOpacity
                 style={styles.moreButton}
                 onPress={handlePressMore}
+                activeOpacity={LiquidMotion.pressOpacity}
+                accessibilityRole='button'
+                accessibilityLabel='내 리뷰 더보기'
               >
                 <Ionicons
                   name='ellipsis-horizontal'
                   size={16}
-                  color={Acg.textSecondary}
+                  color={Liquid.inkSubtle}
                 />
               </TouchableOpacity>
-            )}
-          </View>
-          <PretendardText style={styles.commentText}>
-            {comment.content}
-          </PretendardText>
-          <View style={styles.footer}>
-            <TouchableOpacity
-              style={styles.iconWithText}
-              onPress={handleLikePress}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name={isLiked ? 'heart' : 'heart-outline'}
-                size={20}
-                color={isLiked ? LIKED_COLOR : Acg.textSecondary}
-              />
-              <PretendardText
-                style={[styles.count, isLiked && styles.countActive]}
-              >
-                {comment.likeCount}
-              </PretendardText>
-            </TouchableOpacity>
-            <View style={styles.iconWithText}>
-              <Ionicons
-                name='chatbubble-outline'
-                size={20}
-                color={Acg.textSecondary}
-              />
-              <PretendardText style={styles.count}>
-                {comment.replyCount}
-              </PretendardText>
-            </View>
+            ) : null}
           </View>
         </View>
-      </View>
+
+        {comment.rating !== undefined && (
+          <StarRatingView rating={comment.rating} size={14} />
+        )}
+
+        <PretendardText style={styles.content}>
+          {comment.content}
+        </PretendardText>
+
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={styles.iconWithText}
+            onPress={handleLikePress}
+            activeOpacity={LiquidMotion.pressOpacity}
+            hitSlop={LIKE_HIT_SLOP}
+            accessibilityRole='button'
+            accessibilityLabel={isLiked ? '좋아요 취소' : '좋아요'}
+            accessibilityState={{ selected: isLiked }}
+          >
+            <Ionicons
+              name={isLiked ? 'heart' : 'heart-outline'}
+              size={20}
+              color={isLiked ? LiquidSemantic.like : Liquid.inkMuted}
+            />
+            <PretendardText
+              style={[styles.count, isLiked && styles.countActive]}
+            >
+              {comment.likeCount}
+            </PretendardText>
+          </TouchableOpacity>
+          <View style={styles.iconWithText}>
+            <Ionicons
+              name='chatbubble-outline'
+              size={20}
+              color={Liquid.inkMuted}
+            />
+            <PretendardText style={styles.count}>
+              {comment.replyCount}
+            </PretendardText>
+          </View>
+        </View>
+      </LiquidCard>
 
       <BottomMenuModalView
         visible={showMenu}
@@ -132,76 +175,75 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
 };
 
 const styles = StyleSheet.create({
-  // 지면 위 각진 종이 면(ACG). 위아래 회색 띠로 원 리뷰를 감싸던 방식은 지면이
-  // 생기면서 필요 없어졌다 — 면 자체가 경계다.
-  container: {
-    flexDirection: 'column',
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
-  },
-  content: {
-    paddingVertical: 16,
-    paddingHorizontal: 14,
-    gap: 12,
+  // 카드 면·그림자·모서리는 `LiquidCard`가 든다 — 여기서는 안쪽 줄 간격만 정한다.
+  card: {
+    gap: 8,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    height: 41,
+    alignItems: 'center',
+    gap: 8,
   },
-  headerLeft: {
-    flex: 1,
-    gap: 4,
+  authorRow: {
+    flexShrink: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   name: {
     fontSize: 14,
-    color: Acg.ink,
+    color: Liquid.ink,
+  },
+  mineBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: LiquidRadius.pill,
+    backgroundColor: Liquid.badgeFill,
+  },
+  mineBadgeText: {
+    fontSize: 11,
+    color: Liquid.inkSecondary,
+  },
+  headerTrailing: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   date: {
-    fontSize: 12,
-    color: Acg.textSecondary,
+    fontSize: LiquidType.caption.fontSize,
+    lineHeight: LiquidType.caption.lineHeight,
+    color: Liquid.inkMuted,
   },
-  tagsContainer: {
-    flexDirection: 'row',
-    gap: 2,
-    marginTop: 4,
-  },
-  tag: {
-    backgroundColor: Acg.line2,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 0,
-  },
-  tagText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Acg.ink,
-  },
+  // 아이콘은 16pt지만 HIG 최소 터치 타깃 44pt를 확보한다.
   moreButton: {
-    opacity: 0.3,
+    width: LiquidLayout.touchMin,
+    height: LiquidLayout.touchMin,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: -10,
   },
-  commentText: {
-    fontSize: 15,
-    color: Acg.ink,
-    lineHeight: 21,
+  content: {
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: 22,
+    color: Liquid.inkSecondary,
   },
   footer: {
     flexDirection: 'row',
-    gap: 24,
-    height: 21,
+    alignItems: 'center',
+    gap: 20,
   },
   iconWithText: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: 4,
   },
   count: {
-    fontSize: 14,
-    color: Acg.textSecondary,
+    fontSize: 13,
+    color: Liquid.inkMuted,
   },
   countActive: {
-    color: LIKED_COLOR,
+    color: LiquidSemantic.like,
   },
 });
 

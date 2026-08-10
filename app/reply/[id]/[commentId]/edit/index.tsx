@@ -2,6 +2,8 @@ import ReplyEditView from '@/components/reply/ReplyEditView';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
+import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
+import { Liquid } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import Comment from '@/model/reply/Comment';
 import { ActivityIndicator, View, StyleSheet, Platform } from 'react-native';
@@ -42,6 +44,8 @@ const ReplyEdit = () => {
       <Layout
         paddingHorizontal={0}
         edges={IS_IOS ? IOS_EDGES : undefined}
+        // 지형 없이 지면 + 우상단 라임 글로우 — 입력 화면이라 산세를 깔지 않는다(목록과 같은 판단).
+        background={<LiquidBackdrop screen='none' glowPosition='topRight' />}
       >
         {/* 로딩 중에도 네이티브 헤더(back)를 미리 띄워 로드 완료 시 헤더가 튀지 않게 한다. */}
         <Stack.Screen
@@ -53,7 +57,7 @@ const ReplyEdit = () => {
           }}
         />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size='large' color='#000' />
+          <ActivityIndicator size='large' color={Liquid.inkMuted} />
         </View>
       </Layout>
     );
@@ -63,7 +67,12 @@ const ReplyEdit = () => {
   const isTopLevel = comment.parentId == null;
 
   return (
-    <Layout paddingHorizontal={0} edges={IS_IOS ? IOS_EDGES : undefined}>
+    <Layout
+      paddingHorizontal={0}
+      edges={IS_IOS ? IOS_EDGES : undefined}
+      // 지형 없이 지면 + 우상단 라임 글로우 — 입력 화면이라 산세를 깔지 않는다(목록과 같은 판단).
+      background={<LiquidBackdrop screen='none' glowPosition='topRight' />}
+    >
       <ReplyEditView
         gearId={id}
         commentId={commentId}
