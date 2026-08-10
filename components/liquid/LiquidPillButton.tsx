@@ -32,6 +32,11 @@ interface Props {
    * 전체 투명도만 낮춘다(색을 바꾸면 다른 버튼처럼 읽힌다).
    */
   disabled?: boolean;
+  /**
+   * 요청이 오가는 중임을 스크린리더에 알린다. 진행 표시(`leading` 스피너)는 시각 정보뿐이라
+   * 이 값이 없으면 VoiceOver에는 그냥 "비활성 버튼"으로만 읽힌다.
+   */
+  busy?: boolean;
   /** TouchableOpacity와 같은 시그니처 — 이벤트를 쓰는 호출부(하단 CTA)가 있다 */
   onPress?: (event: GestureResponderEvent) => void;
   style?: StyleProp<ViewStyle>;
@@ -55,6 +60,7 @@ const LiquidPillButton: FC<Props> = ({
   trailing,
   block = false,
   disabled = false,
+  busy = false,
   onPress,
   style,
 }) => {
@@ -88,7 +94,7 @@ const LiquidPillButton: FC<Props> = ({
         activeOpacity={LiquidMotion.pressOpacity}
         accessibilityRole='button'
         accessibilityLabel={label}
-        accessibilityState={{ disabled }}
+        accessibilityState={{ disabled, busy }}
       >
         <BlurView
           tint='light'
@@ -115,7 +121,7 @@ const LiquidPillButton: FC<Props> = ({
       activeOpacity={LiquidMotion.pressOpacity}
       accessibilityRole='button'
       accessibilityLabel={label}
-      accessibilityState={{ disabled }}
+      accessibilityState={{ disabled, busy }}
     >
       {content}
     </TouchableOpacity>

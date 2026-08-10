@@ -85,11 +85,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // 마커가 각져서 링도 각지게 둔다 — 원형으로 두면 펄스만 형태가 어긋난다(ACG).
+  // 마커가 원이라 링도 원으로 둔다 — 각지게 두면 펄스만 형태가 어긋난다.
   ring: {
     width: RING_SIZE,
     height: RING_SIZE,
-    borderRadius: 0,
+    borderRadius: RING_SIZE / 2,
     borderWidth: 3,
   },
 });

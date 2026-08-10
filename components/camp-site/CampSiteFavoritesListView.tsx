@@ -2,9 +2,17 @@ import { FC } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout, AcgShadow, Color } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidShadow,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
+  getCampSiteTypeColor,
   getCampSiteTypeLabel,
   getCampSpotRegionLabel,
 } from '@/model/camp-site/CampSiteLabels';
@@ -19,6 +27,10 @@ interface Props {
   // 헤더 닫기 버튼 표시 여부 — 선택기 pageSheet는 넘기고, formSheet 라우트는 그래버로 닫아 생략한다.
   onClose?: () => void;
 }
+
+// 닫기 원(상세 시트와 같은 값)은 36이고, HIG 44는 여유로 채운다: (44 − 36) / 2 = 4.
+const CLOSE_BUTTON_SIZE = 36;
+const CLOSE_HIT_SLOP = { top: 4, bottom: 4, left: 4, right: 4 };
 
 // 즐겨찾기 리스트 시트(CS-9)의 콘텐츠 — 헤더 + 리스트 + 빈 상태. 컨테이너(Modal·formSheet 라우트)는
 // 호출자가 감싼다. 지도 탭 formSheet 라우트와 선택기 pageSheet가 이 뷰를 공유한다.
@@ -44,36 +56,38 @@ const CampSiteFavoritesListView: FC<Props> = ({
       <TouchableOpacity
         style={styles.row}
         onPress={handlePress}
-        activeOpacity={0.7}
+        activeOpacity={LiquidMotion.pressOpacity}
         accessibilityRole='button'
         accessibilityLabel={`${item.name} 상세 보기`}
       >
-        <View style={styles.rowMain}>
+        {/* 지도 마커와 같은 유형색 원 — 목록에서 고른 것이 지도에서 어떤 마커인지 색으로 잇는다. */}
+        <View
+          style={[
+            styles.typeMark,
+            { backgroundColor: getCampSiteTypeColor(item.type) },
+          ]}
+        />
+
+        <View style={styles.rowTexts}>
           <PretendardText
             style={styles.rowName}
-            weight='medium'
+            weight='semibold'
             numberOfLines={1}
           >
             {item.name}
           </PretendardText>
-          <View style={styles.typeBadge}>
-            <PretendardText style={styles.typeBadgeText} weight='semibold'>
-              {getCampSiteTypeLabel(item.type)}
-            </PretendardText>
-          </View>
-          <PretendardText style={styles.rowRegion} numberOfLines={1}>
-            {getCampSpotRegionLabel(item)}
+          <PretendardText style={styles.rowMeta} numberOfLines={1}>
+            {`${getCampSiteTypeLabel(item.type)} · ${getCampSpotRegionLabel(item)}`}
           </PretendardText>
         </View>
 
         {/* 셰브론은 장식이다 — 행 전체가 하나의 터치 타깃이라 별도 버튼으로 두지 않는다. */}
-        <View style={styles.detailButton} pointerEvents='none'>
-          <Ionicons
-            name='chevron-forward'
-            size={20}
-            color={Acg.textSecondary}
-          />
-        </View>
+        <Ionicons
+          name='chevron-forward'
+          size={18}
+          color={Liquid.inkSubtle}
+          style={styles.chevron}
+        />
       </TouchableOpacity>
     );
   };
@@ -89,11 +103,12 @@ const CampSiteFavoritesListView: FC<Props> = ({
         <TouchableOpacity
           style={styles.closeButton}
           onPress={onClose}
+          activeOpacity={LiquidMotion.pressOpacity}
           accessibilityRole='button'
           accessibilityLabel='닫기'
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          hitSlop={CLOSE_HIT_SLOP}
         >
-          <Ionicons name='close' size={24} color={Acg.ink} />
+          <Ionicons name='close' size={20} color={Liquid.ink} />
         </TouchableOpacity>
       ) : null}
     </View>
@@ -102,12 +117,15 @@ const CampSiteFavoritesListView: FC<Props> = ({
   return (
     <View style={styles.container}>
       {spots.length === 0 ? (
-        // 로그인했으나 즐겨찾기가 0건일 때의 빈 상태(CS-9).
+        // 로그인했으나 즐겨찾기가 0건일 때의 빈 상태(CS-9) — 사실 + 다음 걸음 두 줄.
         <>
-          {header}
+          <View style={styles.emptyHeader}>{header}</View>
           <View style={styles.emptyWrap}>
-            <PretendardText style={styles.emptyText}>
+            <PretendardText style={styles.emptyTitle} weight='semibold'>
               아직 즐겨찾기한 박지가 없어요
+            </PretendardText>
+            <PretendardText style={styles.emptyHint}>
+              지도에서 마음에 든 곳의 별을 눌러 모아 둘까요?
             </PretendardText>
           </View>
         </>
@@ -129,9 +147,10 @@ const CampSiteFavoritesListView: FC<Props> = ({
 const SHEET_GRABBER_CLEARANCE = 12;
 
 const styles = StyleSheet.create({
+  // 시트 지면. 네이티브 시트가 상단 모서리와 그림자를 그리고, 이 면이 그 안을 채운다.
   container: {
     flex: 1,
-    backgroundColor: Acg.bg,
+    backgroundColor: Liquid.canvas,
   },
   // 네이티브 그래버가 시트 상단에 겹쳐 렌더되므로 그 아래로 제목이 오도록 여백을 준다
   // — 12로는 제목이 그래버에 붙어 위가 답답했다(2026-08-04 사용자 지적).
@@ -139,79 +158,87 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    // 아이콘의 시각 중심을 화면 여백에 맞추려 컨테이너를 바깥으로 당긴다(상세 시트와 동일).
-    marginRight: -10,
+    gap: 10,
     paddingTop: SHEET_GRABBER_CLEARANCE,
     paddingBottom: 12,
   },
+  // 빈 상태에서는 헤더가 리스트 밖에 놓여 좌우 축(과 목록 컨테이너가 더하던 상단 8)을
+  // 스스로 잡아야 한다 — 두 상태에서 제목 높이가 갈리면 시트가 열릴 때 제목이 튄다.
+  emptyHeader: {
+    paddingHorizontal: LiquidLayout.screenH,
+    paddingTop: 8,
+  },
   headerTitle: {
-    fontSize: 20,
-    color: Acg.ink,
+    fontSize: LiquidType.title3.fontSize,
+    lineHeight: LiquidType.title3.lineHeight,
+    letterSpacing: LiquidType.title3.letterSpacing,
+    color: Liquid.ink,
   },
   closeButton: {
-    width: 44,
-    height: 44,
+    width: CLOSE_BUTTON_SIZE,
+    height: CLOSE_BUTTON_SIZE,
+    borderRadius: CLOSE_BUTTON_SIZE / 2,
+    backgroundColor: Liquid.badgeFill,
     alignItems: 'center',
     justifyContent: 'center',
   },
   listContent: {
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: LiquidLayout.screenH,
+    // 상단 8은 헤더 주석이 전제하는 값이다 — 그래버 여유(12)만으로는 제목이 그래버에 붙는다.
     paddingVertical: 8,
-    gap: 8,
+    gap: LiquidLayout.listGap,
   },
-  // 지면 위 각진 종이 면 행(ACG) — 구분선 대신 면의 경계가 행을 가른다.
+  // 지면 위 흰 카드 행 — 구분선 대신 카드 사이 간격이 행을 가른다.
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 56,
-    paddingHorizontal: 14,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    gap: 10,
+    minHeight: 60,
+    paddingVertical: 14,
+    paddingHorizontal: LiquidLayout.cardPad,
+    borderRadius: LiquidRadius.tile,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.tile,
   },
-  rowMain: {
+  typeMark: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  rowTexts: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    minHeight: 56,
-    paddingVertical: 12,
-  },
-  detailButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 4,
+    minWidth: 0,
+    gap: 2,
   },
   rowName: {
-    flexShrink: 1,
     fontSize: 15,
-    color: Color.textPrimary,
+    color: Liquid.ink,
   },
-  typeBadge: {
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 0,
-    backgroundColor: Acg.bg,
+  rowMeta: {
+    fontSize: 12.5,
+    color: Liquid.inkMuted,
   },
-  typeBadgeText: {
-    fontSize: 12,
-    color: Color.textTertiary,
-  },
-  rowRegion: {
-    flexShrink: 1,
-    fontSize: 13,
-    color: Color.textSecondary,
+  chevron: {
+    marginRight: -4,
   },
   emptyWrap: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 6,
     paddingHorizontal: 32,
+    // 헤더 높이만큼 위로 치우친 중심을 되돌린다.
+    paddingBottom: 48,
   },
-  emptyText: {
+  emptyTitle: {
     fontSize: 15,
-    color: Color.textSecondary,
+    color: Liquid.ink,
+    textAlign: 'center',
+  },
+  emptyHint: {
+    fontSize: 13.5,
+    lineHeight: 19,
+    color: Liquid.inkTertiary,
     textAlign: 'center',
   },
 });

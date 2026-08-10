@@ -2,7 +2,7 @@ import { FC, useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Color } from '@/constants/DesignTokens';
+import { Liquid } from '@/constants/DesignTokens';
 import CampSiteDetail from '@/model/camp-site/CampSiteDetail';
 import CampSiteDetailDispatcher from '@/model/camp-site/CampSiteDetailDispatcher';
 import {
@@ -91,7 +91,7 @@ const CampSiteDetailWrapper: FC = () => {
       <View style={styles.sheet}>
         <Layout paddingHorizontal={0} edges={SHEET_EDGES}>
           <View style={styles.loadingWrap}>
-            <ActivityIndicator color={Color.textPrimary} />
+            <ActivityIndicator color={Liquid.ink} />
           </View>
         </Layout>
       </View>

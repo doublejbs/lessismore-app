@@ -1,8 +1,8 @@
 import { FC } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
-import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import LiquidSectionLabel from '@/components/liquid/LiquidSectionLabel';
+import { LiquidLayout } from '@/constants/DesignTokens';
 import CampUserReviewSectionView from './CampUserReviewSectionView';
 import ReviewSectionView from '@/components/review/ReviewSectionView';
 import CampSiteDetail from '@/model/camp-site/CampSiteDetail';
@@ -35,9 +35,7 @@ const CampSiteReviewTabView: FC<Props> = ({ campSiteDetail }) => {
       {/* 외부 후기(CS-3) — 공용 후기 콘텐츠(유튜브 카드 + 블로그 리스트) */}
       {reviews.length > 0 || videos.length > 0 ? (
         <View style={styles.section}>
-          <PretendardText style={styles.sectionTitle} weight='semibold'>
-            블로그·영상
-          </PretendardText>
+          <LiquidSectionLabel>블로그·영상</LiquidSectionLabel>
           <ReviewSectionView
             reviews={reviews}
             videos={videos}
@@ -52,18 +50,14 @@ const CampSiteReviewTabView: FC<Props> = ({ campSiteDetail }) => {
 
 const styles = StyleSheet.create({
   content: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingHorizontal: LiquidLayout.screenH,
+    paddingTop: 18,
     paddingBottom: 20,
     gap: 12,
   },
+  // 섹션 라벨이 자체 하단 여백(10)을 가지므로 여기서는 섹션 사이만 띄운다.
   section: {
-    gap: 8,
     marginTop: 4,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    color: Color.textPrimary,
   },
 });
 

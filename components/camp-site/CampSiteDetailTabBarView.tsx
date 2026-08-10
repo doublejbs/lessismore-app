@@ -1,7 +1,12 @@
 import { FC } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color, Spacing } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+} from '@/constants/DesignTokens';
 import CampSiteDetailTab from '@/model/camp-site/CampSiteDetailTab';
 import { getCampSiteDetailTabLabel } from '@/model/camp-site/CampSiteLabels';
 
@@ -17,7 +22,14 @@ const TABS: CampSiteDetailTab[] = [
   CampSiteDetailTab.Review,
 ];
 
-// 상세 시트 고정 영역의 탭 바(CS-3) — 선택 탭은 라벨을 진하게 + 하단 인디케이터(구글 지도 톤).
+// 세그먼트 높이(목업 §10). HIG 44는 세로 여유로만 채운다: (44 − 38) / 2 = 3.
+const SEGMENT_HEIGHT = 38;
+const SEGMENT_HIT_SLOP = { top: 3, bottom: 3, left: 0, right: 0 };
+
+/**
+ * 상세 시트의 탭 바(CS-3) — 폭을 3등분한 세그먼트이고 활성 탭만 잉크 알약으로 채운다.
+ * 밑줄 인디케이터를 쓰지 않는 이유는 이 시스템에 각진 선이 없기 때문이다(면으로 말한다).
+ */
 const CampSiteDetailTabBarView: FC<Props> = ({ selectedTab, onSelectTab }) => {
   return (
     <View style={styles.container}>
@@ -31,22 +43,20 @@ const CampSiteDetailTabBarView: FC<Props> = ({ selectedTab, onSelectTab }) => {
         return (
           <TouchableOpacity
             key={tab}
-            style={styles.tab}
+            style={[styles.segment, selected && styles.segmentSelected]}
             onPress={handlePress}
-            activeOpacity={0.7}
+            activeOpacity={LiquidMotion.pressOpacity}
+            hitSlop={SEGMENT_HIT_SLOP}
             accessibilityRole='tab'
             accessibilityState={{ selected }}
             accessibilityLabel={getCampSiteDetailTabLabel(tab)}
           >
             <PretendardText
               style={selected ? styles.selectedLabel : styles.label}
-              weight={selected ? 'bold' : 'medium'}
+              weight={selected ? 'semibold' : 'medium'}
             >
               {getCampSiteDetailTabLabel(tab)}
             </PretendardText>
-            <View
-              style={[styles.indicator, selected && styles.selectedIndicator]}
-            />
           </TouchableOpacity>
         );
       })}
@@ -57,40 +67,33 @@ const CampSiteDetailTabBarView: FC<Props> = ({ selectedTab, onSelectTab }) => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    // 위로 스크롤해 이 탭 바가 시트 상단에 고정될 때 그래버 핸들과 붙지 않도록 상단 여백을 준다(CS-3).
-    paddingTop: Spacing.item,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Acg.line2,
-    // 지면이 비쳐야 한다 — 흰 면을 깔면 탭 바만 종이처럼 떠 보인다.
-    backgroundColor: 'transparent',
+    gap: 6,
+    paddingHorizontal: LiquidLayout.screenH,
+    paddingTop: 18,
+    paddingBottom: 4,
+    // sticky로 시트 상단에 붙는 행이라 **불투명**해야 한다 — 투명하면 뒤 콘텐츠가 탭 라벨과
+    // 겹쳐 읽힌다. 시트 지면색이라 붙어 있는 동안에도 별도 면으로 보이지 않는다.
+    backgroundColor: Liquid.canvas,
   },
-  // 고정 높이 대신 최소 높이 + 패딩으로 44pt 터치 타깃을 확보한다(Dynamic Type 대응).
-  tab: {
+  // 고정 높이 대신 최소 높이로 Dynamic Type에 대응한다.
+  segment: {
     flex: 1,
-    minHeight: 44,
+    minHeight: SEGMENT_HEIGHT,
+    borderRadius: LiquidRadius.pill,
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingTop: 6,
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  segmentSelected: {
+    backgroundColor: Liquid.ink,
   },
   label: {
-    fontSize: 15,
-    lineHeight: 20,
-    color: Color.textSecondary,
+    fontSize: 13.5,
+    color: Liquid.inkTertiary,
   },
   selectedLabel: {
-    fontSize: 15,
-    lineHeight: 20,
-    color: Color.textPrimary,
-  },
-  // 비선택 탭도 같은 높이를 차지해야(색만 없음) 라벨 baseline이 어긋나지 않는다.
-  indicator: {
-    marginTop: 8,
-    height: 2,
-    width: '100%',
-  },
-  selectedIndicator: {
-    backgroundColor: Acg.ink,
+    fontSize: 13.5,
+    color: Liquid.surface,
   },
 });
 

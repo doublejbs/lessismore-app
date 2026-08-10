@@ -2,7 +2,15 @@ import { FC } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import LiquidCard from '@/components/liquid/LiquidCard';
+import LiquidChip from '@/components/liquid/LiquidChip';
+import LiquidSectionLabel from '@/components/liquid/LiquidSectionLabel';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidRadius,
+  LiquidSemantic,
+} from '@/constants/DesignTokens';
 import CampSiteType from '@/model/camp-site/CampSiteType';
 import CampSiteFacility from '@/model/camp-site/CampSiteFacility';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
@@ -11,10 +19,6 @@ import {
   getCampSiteSourceLabel,
   getCampSiteTagLabel,
 } from '@/model/camp-site/CampSiteLabels';
-
-// 주의·규제 경고(CS-4)용 시맨틱 색(주황 계열) — 디자인 토큰에 없는 경고 전용 리터럴.
-const WARNING_BG_COLOR = '#FFF4E5';
-const WARNING_TEXT_COLOR = '#B65A00';
 
 interface Props {
   spot: CampSpot;
@@ -53,38 +57,34 @@ const CampSiteOverviewTabView: FC<Props> = ({ spot }) => {
 
   return (
     <View style={styles.body}>
-      {/* 지형·특징 태그(CS-3) — 비인터랙티브 칩 */}
+      {/* 지형·특징 태그(CS-3) — 누를 수 없는 표시용 칩이라 onPress를 주지 않는다. */}
       {tags.length > 0 ? (
         <View style={styles.tagRow}>
           {tags.map(tag => (
-            <View key={tag} style={styles.tagChip}>
-              <PretendardText style={styles.tagChipText} weight='medium'>
-                #{getCampSiteTagLabel(tag)}
-              </PretendardText>
-            </View>
+            <LiquidChip
+              key={tag}
+              label={`#${getCampSiteTagLabel(tag)}`}
+              size='sm'
+            />
           ))}
         </View>
       ) : null}
 
       {hasWarnings ? (
         <View style={styles.warningBox}>
-          <Ionicons
-            name='warning-outline'
-            size={18}
-            color={WARNING_TEXT_COLOR}
-          />
+          <Ionicons name='warning' size={18} color={LiquidSemantic.warnInk} />
           <PretendardText style={styles.warningText}>
             {spot.warnings}
           </PretendardText>
         </View>
       ) : null}
-      {/* 유형 전체에 붙는 일반 안내라 박지별 경고 박스보다 약하게 — 배경 없이 아이콘 + 한 줄(CS-4). */}
+      {/* 유형 전체에 붙는 일반 안내라 박지별 경고 박스보다 약하게 — 면 없이 아이콘 + 한 줄(CS-4). */}
       {hasWildNotice ? (
         <View style={styles.wildNoticeRow}>
           <Ionicons
             name='warning-outline'
             size={14}
-            color={WARNING_TEXT_COLOR}
+            color={LiquidSemantic.warnInk}
             style={styles.wildNoticeIcon}
           />
           <PretendardText style={styles.wildNoticeText}>
@@ -94,10 +94,8 @@ const CampSiteOverviewTabView: FC<Props> = ({ spot }) => {
       ) : null}
 
       {facilities.length > 0 ? (
-        <View style={styles.section}>
-          <PretendardText style={styles.sectionTitle} weight='semibold'>
-            시설
-          </PretendardText>
+        <LiquidCard radius='tile'>
+          <LiquidSectionLabel>시설</LiquidSectionLabel>
           <View style={styles.facilityRow}>
             {facilities.map(facility => {
               const meta = FACILITY_META[facility];
@@ -106,8 +104,8 @@ const CampSiteOverviewTabView: FC<Props> = ({ spot }) => {
                 <View key={facility} style={styles.facilityItem}>
                   <Ionicons
                     name={meta.icon}
-                    size={18}
-                    color={Color.textSecondary}
+                    size={17}
+                    color={Liquid.inkSecondary}
                   />
                   <PretendardText style={styles.facilityLabel}>
                     {meta.label}
@@ -116,18 +114,16 @@ const CampSiteOverviewTabView: FC<Props> = ({ spot }) => {
               );
             })}
           </View>
-        </View>
+        </LiquidCard>
       ) : null}
 
       {spot.accessInfo ? (
-        <View style={styles.section}>
-          <PretendardText style={styles.sectionTitle} weight='semibold'>
-            접근 정보
-          </PretendardText>
+        <LiquidCard radius='tile'>
+          <LiquidSectionLabel>접근 정보</LiquidSectionLabel>
           <PretendardText style={styles.accessInfo}>
             {spot.accessInfo}
           </PretendardText>
-        </View>
+        </LiquidCard>
       ) : null}
 
       <PretendardText style={styles.source}>
@@ -139,8 +135,8 @@ const CampSiteOverviewTabView: FC<Props> = ({ spot }) => {
 
 const styles = StyleSheet.create({
   body: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingHorizontal: LiquidLayout.screenH,
+    paddingTop: 18,
     paddingBottom: 20,
     gap: 12,
   },
@@ -149,29 +145,22 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 6,
   },
-  tagChip: {
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: Radius.chip,
-    backgroundColor: Color.chipInactiveBg,
-  },
-  tagChipText: {
-    fontSize: 12,
-    color: Color.textTertiary,
-  },
+  // 의미색(warn)은 액센트 체계 밖이라 리디자인해도 값이 바뀌지 않는다 — 면·모서리만 옮긴다
+  // (창고 장비 상세의 덜어내기 배너와 같은 문법).
   warningBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 8,
-    backgroundColor: WARNING_BG_COLOR,
-    borderRadius: Radius.card,
-    padding: 12,
+    gap: 10,
+    backgroundColor: LiquidSemantic.warnBg,
+    borderRadius: LiquidRadius.tile,
+    paddingVertical: 14,
+    paddingHorizontal: LiquidLayout.cardPad,
   },
   warningText: {
     flex: 1,
     fontSize: 13,
     lineHeight: 20,
-    color: WARNING_TEXT_COLOR,
+    color: LiquidSemantic.warnInkStrong,
   },
   wildNoticeRow: {
     flexDirection: 'row',
@@ -186,21 +175,13 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 12,
     lineHeight: 18,
-    color: WARNING_TEXT_COLOR,
-  },
-  section: {
-    gap: 8,
-    marginTop: 4,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    color: Color.textPrimary,
+    color: LiquidSemantic.warnInkStrong,
   },
   facilityRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    columnGap: 16,
-    rowGap: 8,
+    columnGap: 18,
+    rowGap: 10,
   },
   facilityItem: {
     flexDirection: 'row',
@@ -208,18 +189,18 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   facilityLabel: {
-    fontSize: 14,
-    color: Color.textPrimary,
+    fontSize: 13.5,
+    color: Liquid.ink,
   },
   accessInfo: {
-    fontSize: 14,
-    lineHeight: 22,
-    color: Color.textPrimary,
+    fontSize: 13.5,
+    lineHeight: 21,
+    color: Liquid.inkSecondary,
   },
   source: {
-    marginTop: 8,
-    fontSize: 12,
-    color: Color.textSecondary,
+    marginTop: 4,
+    fontSize: 12.5,
+    color: Liquid.inkMuted,
   },
 });
 

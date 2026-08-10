@@ -3,7 +3,7 @@ import { ActivityIndicator, Modal, StyleSheet, View } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { Acg, Color } from '@/constants/DesignTokens';
+import { Liquid } from '@/constants/DesignTokens';
 import CampSiteDetail from '@/model/camp-site/CampSiteDetail';
 import CampSiteDetailDispatcher from '@/model/camp-site/CampSiteDetailDispatcher';
 import CampSiteDetailView from './CampSiteDetailView';
@@ -64,7 +64,7 @@ const CampSiteDetailOverlayView: FC<Props> = observer(
             ) : (
               // 박지 데이터를 불러오는 동안 빈 화면 대신 로딩 인디케이터를 표시한다(CS-3).
               <View style={styles.loadingWrap}>
-                <ActivityIndicator color={Color.textPrimary} />
+                <ActivityIndicator color={Liquid.ink} />
               </View>
             )}
           </SafeAreaView>
@@ -77,7 +77,7 @@ const CampSiteDetailOverlayView: FC<Props> = observer(
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Acg.bg,
+    backgroundColor: Liquid.canvas,
   },
   loadingWrap: {
     flex: 1,

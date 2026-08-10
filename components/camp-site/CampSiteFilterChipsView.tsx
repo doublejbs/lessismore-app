@@ -9,8 +9,8 @@ import {
   getCampSiteTypeColor,
   getCampSiteTypeLabel,
 } from '@/model/camp-site/CampSiteLabels';
-import CategoryChipView from '@/components/browse/CategoryChipView';
-import { AcgLayout } from '@/constants/DesignTokens';
+import LiquidChip from '@/components/liquid/LiquidChip';
+import { LiquidLayout } from '@/constants/DesignTokens';
 
 interface Props {
   campSiteMap: CampSiteMap;
@@ -93,14 +93,15 @@ const CampSiteFilterChipsView: FC<Props> = observer(
     // 밖으로 사라지고 태그 발견 가능성이 떨어진다(디자인 리뷰로 확정).
     return (
       <View style={styles.container}>
-        {/* 지도 위라 불투명 톤을 쓴다 — 유리(반투명)면 칩 라벨과 지도 라벨이 겹쳐 읽힌다.
-            선택 상태는 다른 탭과 같은 잉크 채움이다(2차 태그 칩도 회색이 아니라 잉크). */}
+        {/* 지도 위라 비선택 채움을 한 단계 진하게 쓴다(`onMap`) — 지면 위 톤은 칩 라벨과
+            지도 라벨이 겹쳐 읽힌다. 선택 상태는 다른 탭과 같은 잉크 채움이다
+            (2차 태그 칩도 회색이 아니라 잉크). */}
         <View style={styles.filterRow}>
           {TYPE_FILTERS.map(filter => (
-            <CategoryChipView
+            <LiquidChip
               key={filter.label}
               label={filter.label}
-              tone='acgSolid'
+              onMap
               {...(filter.dotColor !== undefined
                 ? { dotColor: filter.dotColor }
                 : {})}
@@ -124,10 +125,10 @@ const CampSiteFilterChipsView: FC<Props> = observer(
                 tagChipOffsets.current.set(filter.value, e.nativeEvent.layout.x)
               }
             >
-              <CategoryChipView
+              <LiquidChip
                 label={filter.label}
-                variant='secondary'
-                tone='acgSolid'
+                size='sm'
+                onMap
                 selected={campSiteMap.getSelectedTag() === filter.value}
                 onPress={() => handlePressTag(filter.value)}
               />
@@ -149,8 +150,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    // 검색 필드·다른 탭 필터와 같은 화면 축(18).
-    paddingHorizontal: AcgLayout.screenH,
+    // 검색 필드·다른 탭 필터와 같은 화면 축(20).
+    paddingHorizontal: LiquidLayout.screenH,
   },
   // 2차(태그) 행은 탐색 탭 세분 카테고리 행과 같은 간격을 쓴다.
   tagRow: {

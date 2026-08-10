@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Liquid, LiquidMotion } from '@/constants/DesignTokens';
+import { Liquid, LiquidMotion, LiquidShadow } from '@/constants/DesignTokens';
 
 interface Props {
   label: string;
@@ -11,6 +11,12 @@ interface Props {
   size?: 'md' | 'sm';
   /** 라벨 앞 색 도트 — 지도 마커 색 범례를 겸할 때 */
   dotColor?: string;
+  /**
+   * **지도 타일 위**에 얹는 칩(목업 §4). 비선택 채움을 한 단계 진하게 하고 그림자를 깔아
+   * 지형·도로·라벨에서 칩을 떼어 놓는다 — 지면 위 톤(`chipFill`)은 지도 위에서 라벨이 겹쳐
+   * 읽혔다(2026-08-03 실기기 확인). 선택(잉크 채움)은 지면 위와 같다.
+   */
+  onMap?: boolean;
   /**
    * 없으면 **표시용 태그**로 그린다(누를 수 없음). 장비 상세의 카테고리·색상 태그처럼
    * 같은 알약 문법으로 사실만 말하는 자리에 쓴다 — 누를 수 없는 것에 `button` 롤을 붙이면
@@ -39,6 +45,7 @@ const LiquidChip: FC<Props> = ({
   selected = false,
   size = 'md',
   dotColor,
+  onMap = false,
   onPress,
 }) => {
   const height = size === 'sm' ? 28 : 34;
@@ -46,12 +53,21 @@ const LiquidChip: FC<Props> = ({
     styles.chip,
     { minHeight: height, borderRadius: height / 2 },
     selected ? styles.chipSelected : styles.chipIdle,
+    !selected && onMap && styles.chipIdleOnMap,
   ];
 
   const content = (
     <>
       {dotColor ? (
-        <View style={[styles.dot, { backgroundColor: dotColor }]} />
+        <View
+          style={[
+            styles.dot,
+            { backgroundColor: dotColor },
+            // 잉크 채움 위에서 어두운 도트가 묻히지 않게 흰 테두리를 두른다 — 도트는 지도 마커
+            // 색 범례를 겸하므로 선택 상태에서도 색이 읽혀야 한다(CS-2).
+            selected && styles.dotSelected,
+          ]}
+        />
       ) : null}
       <PretendardText
         weight={selected ? 'semibold' : 'medium'}
@@ -98,6 +114,10 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: Liquid.chipStroke,
   },
+  chipIdleOnMap: {
+    backgroundColor: Liquid.glassFillOnMap,
+    boxShadow: LiquidShadow.glassSm,
+  },
   chipSelected: {
     backgroundColor: Liquid.ink,
   },
@@ -105,6 +125,10 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
+  },
+  dotSelected: {
+    borderWidth: 1,
+    borderColor: Liquid.surface,
   },
   label: {
     fontSize: 13.5,

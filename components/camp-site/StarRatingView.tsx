@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Color } from '@/constants/DesignTokens';
+import { Liquid } from '@/constants/DesignTokens';
 
 // 별점 시맨틱색 — 토큰이 아닌 별점 전용 색이라 하드코딩 허용(CLAUDE.md 예외 규정).
 const STAR_FILLED_COLOR = '#FFB300';
@@ -46,7 +46,8 @@ const StarRatingView: FC<Props> = ({
       {[0, 1, 2, 3, 4].map(index => {
         const filled = index < filledCount;
         const iconName = filled ? 'star' : 'star-outline';
-        const iconColor = filled ? STAR_FILLED_COLOR : Color.chipBorder;
+        // 빈 별은 빈 체크 원과 같은 값으로 둔다 — 채운 별과 같은 무게로 보이면 점수가 잘못 읽힌다.
+        const iconColor = filled ? STAR_FILLED_COLOR : Liquid.inkFaint;
 
         if (!editable) {
           return (

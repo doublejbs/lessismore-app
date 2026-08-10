@@ -102,10 +102,24 @@ export const Acg = {
  * (핸드오프 명시: "의미색 — 변경 금지")
  */
 export const AcgSemantic = {
+  /**
+   * ⚠️ **박지 유형색은 이 셋이 아니다.** 2026-08-04에 채도를 낮춘 값으로 바뀌고 2026-08-11
+   * 지도 이식에서 `LiquidSemantic.spot*`으로 이름까지 옮겨, 지금 앱에서 참조하는 곳이 없다.
+   * 마커·필터 도트 색을 찾는다면 `CampSiteLabels.TYPE_COLOR`를 보라.
+   */
   spotBackpacking: '#4A90E2',
   spotShelter: '#50C878',
   spotCamping: '#FFD700',
+  /**
+   * ⚠️ **죽은 값이다.** 즐겨찾기 별은 2026-08-11 지도·박지 상세 이식에서 핸드오프가 지정한
+   * `LiquidSemantic.favorite`(#FFC83D)로 옮겼고, 이 토큰을 읽는 곳은 남아 있지 않다
+   * (미이식 여행지 선택기는 토큰이 아니라 자체 리터럴을 쓴다 — 그 화면 이식 시 정리된다).
+   */
   favorite: '#FFD700',
+  /**
+   * ⚠️ **죽은 값들이다.** 배낭 카테고리 색은 `LiquidSemantic.cat*`(값 동일)으로 옮겨
+   * 참조하는 곳이 없다 — `spot*`과 같은 처지다. 카테고리 색을 찾는다면 그쪽을 보라.
+   */
   bagBase: '#2F6F8F',
   bagClothing: '#4E8C5A',
   bagCooking: '#C9A227',
@@ -184,6 +198,13 @@ export const Liquid = {
   // 진하고 채워진 필드(glassFillStrong)보다 옅은 중간 값이다.
   glassFillField: 'rgba(255,255,255,0.75)',
   glassStroke: 'rgba(255,255,255,0.95)',
+  /**
+   * **지도 타일 위** 유리 면. 지면 위 유리(.66~.85)보다 진하다 — 뒤가 단색 지면이 아니라
+   * 지형·도로·라벨이라 옅은 유리로는 글자가 지도 글자와 겹쳐 읽힌다(2026-08-03 실기기 확인).
+   * 목업 §4는 검색 필드 `.9` · 칩 `.92`로 그렸는데, 두 값의 차이는 눈에 보이지 않고 같은
+   * 오버레이 스택에 얹히는 면이라 하나로 합쳤다.
+   */
+  glassFillOnMap: 'rgba(255,255,255,0.92)',
   // 비선택 칩·아웃라인 필터 버튼(핸드오프 Chip: `rgba(255,255,255,.8)` + 0.5px 보더).
   chipFill: 'rgba(255,255,255,0.8)',
   chipStroke: 'rgba(16,16,18,0.06)',
@@ -238,8 +259,12 @@ export const Liquid = {
 /**
  * 액센트 체계 밖의 의미색. 뜻이 값에 묶여 있어 리디자인해도 바꾸지 않는다.
  *
- * ⚠️ 기존 `AcgSemantic.spot*`(#4A90E2 / #50C878 / #FFD700)과 값이 다르다.
- * 목업은 아래 차분한 값으로 그려져 있다 — 어느 쪽으로 통일할지 먼저 정하고 쓸 것.
+ * **이 그룹이 의미색의 현행 단일 소스다**(2026-08-11). `spot*`는 지도·박지 상세가
+ * `CampSiteLabels.TYPE_COLOR`를 통해 쓰고 있고, `cat*`은 배낭 무게 분해가 쓴다 —
+ * 채도를 낮춘 박지 유형색(#2F6F8F / #4E8C5A / #C9A227)이 목업 값과 이미 같아 이름만
+ * 옮겼으므로 통일 여부를 따질 것이 남아 있지 않다. `cat*`도 `AcgSemantic.bag*`과 값이
+ * 같다. 옛 `AcgSemantic.spot*`(#4A90E2 / #50C878 / #FFD700)·`bag*`·`favorite`는
+ * 참조가 끊긴 죽은 값이다.
  */
 export const LiquidSemantic = {
   spotBackpacking: '#2F6F8F',
@@ -248,6 +273,12 @@ export const LiquidSemantic = {
   favorite: '#FFC83D',
   warnBg: '#FFF3DC',
   warnInk: '#B65A00',
+  /**
+   * 경고 면 위 **본문** 글자. `warnInk`는 아이콘·강조용이고, 이 값이 문장용이다 —
+   * `warnBg` 위에서 `warnInk`는 4.29:1로 작은 글자의 AA(4.5)에 못 미치는데 이 값은 6.2:1이다.
+   * 목업 §10의 경고 배너도 아이콘만 `warnInk`, 문장은 이 값으로 그려져 있다.
+   */
+  warnInkStrong: '#8A4A00',
   danger: '#FF3B30',
 
   // 배낭 카테고리 데이터 시각화 (기존 AcgSemantic.bag*과 동일한 값)
@@ -375,6 +406,13 @@ export const LiquidShadow = {
   cta: '0 12px 30px rgba(16,16,18,0.26)',
   accent: '0 12px 32px rgba(160,200,40,0.35)',
   sheet: '0 -12px 44px rgba(16,16,18,0.14)',
+  /**
+   * **지도 타일 위** 마커를 지형에서 떼어 놓는 그림자(목업 §4 `0 2px 6px rgba(0,0,0,.2)`).
+   * 위 값들은 뒤가 단색 지면인 것을 전제로 잉크 계열(rgba(16,16,18,…))로 옅게 깔려 있어
+   * 지형·도로·라벨 위에서는 묻힌다 — 검정 계열로 진하게 가는 지도 예외다
+   * ([CampSite.md](../specs/CampSite.md) §2.1).
+   */
+  markerOnMap: '0 2px 6px rgba(0,0,0,0.2)',
 } as const;
 
 export const LiquidLayout = {

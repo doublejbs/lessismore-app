@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 import PretendardText from '@/components/PretendardText';
 import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Liquid, LiquidMotion, LiquidRadius } from '@/constants/DesignTokens';
 import StarRatingView from './StarRatingView';
 import { CampReview } from '@/model/camp-review/CampReviewTypes';
 
@@ -113,14 +113,14 @@ const CampUserReviewItemView: FC<Props> = ({
               <TouchableOpacity
                 style={styles.moreButton}
                 onPress={() => setShowMenu(true)}
-                activeOpacity={0.7}
+                activeOpacity={LiquidMotion.pressOpacity}
                 accessibilityRole='button'
                 accessibilityLabel='내 후기 더보기'
               >
                 <Ionicons
                   name='ellipsis-horizontal'
                   size={16}
-                  color={Color.iconMuted}
+                  color={Liquid.inkSubtle}
                 />
               </TouchableOpacity>
             ) : null}
@@ -139,7 +139,7 @@ const CampUserReviewItemView: FC<Props> = ({
           <TouchableOpacity
             style={styles.bagChip}
             onPress={handlePressBag}
-            activeOpacity={0.7}
+            activeOpacity={LiquidMotion.pressOpacity}
             accessibilityRole='button'
             accessibilityLabel={`배낭 ${review.bagName ?? ''} 열기`}
             // 시각 높이는 낮추고 터치 타깃 44pt는 hitSlop으로 확보한다(정보 탭 AU-4와 같은 방식).
@@ -161,7 +161,7 @@ const CampUserReviewItemView: FC<Props> = ({
             <Ionicons
               name='chevron-forward'
               size={14}
-              color={Color.textSecondary}
+              color={Liquid.inkSubtle}
             />
           </TouchableOpacity>
         ) : null}
@@ -180,8 +180,8 @@ const styles = StyleSheet.create({
   card: {
     gap: 8,
     paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Liquid.hairline,
   },
   headerRow: {
     flexDirection: 'row',
@@ -197,32 +197,32 @@ const styles = StyleSheet.create({
   },
   author: {
     fontSize: 14,
-    color: Color.textPrimary,
+    color: Liquid.ink,
   },
   mineBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: Radius.chip,
-    backgroundColor: Color.chipInactiveBg,
+    borderRadius: LiquidRadius.pill,
+    backgroundColor: Liquid.badgeFill,
   },
   mineBadgeText: {
     fontSize: 11,
-    color: Color.textTertiary,
+    color: Liquid.inkSecondary,
   },
   date: {
     fontSize: 12,
-    color: Color.textSecondary,
+    color: Liquid.inkMuted,
   },
   content: {
     fontSize: 14,
     lineHeight: 22,
-    color: Color.textPrimary,
+    color: Liquid.inkSecondary,
   },
   /**
    * 첨부 배낭 칩. **후기 본문보다 무거우면 안 된다** — 첨부물이 내용을 누른다(2026-08-03 리뷰).
-   * 예전에는 `minHeight: 44` + `chipInactiveBg`라 한 줄짜리 후기 글보다 커 보였다.
-   * 표면색은 후기 작성 화면의 첨부 칩과 같은 `surfaceMuted`로 맞춘다 — 같은 배낭을
-   * 두 화면이 다른 톤으로 그리면 같은 것인지 알아보기 어렵고, `내 후기` 배지와도 구분된다.
+   * 예전에는 `minHeight: 44` + 칩 채움이라 한 줄짜리 후기 글보다 커 보였다.
+   * 면은 카드 안 타일과 같은 `surfaceSunken`으로 둔다 — 후기 카드가 지면 위에 면 없이 놓이므로
+   * 이 칩만 한 단계 가라앉혀야 첨부물로 읽히고, `내 후기` 배지(`badgeFill`)와도 구분된다.
    */
   bagChip: {
     alignSelf: 'flex-start',
@@ -232,19 +232,19 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: Radius.chip,
-    backgroundColor: Color.surfaceMuted,
+    borderRadius: LiquidRadius.pill,
+    backgroundColor: Liquid.surfaceSunken,
   },
   // 긴 배낭 이름이 날짜·무게·chevron을 밀어내지 않게 이름만 줄인다(2026-08-03 리뷰).
   bagName: {
     flexShrink: 1,
     fontSize: 13,
-    color: Color.textPrimary,
+    color: Liquid.ink,
   },
   bagMeta: {
     flexShrink: 1,
     fontSize: 12,
-    color: Color.textSecondary,
+    color: Liquid.inkMuted,
   },
   headerTrailing: {
     flexDirection: 'row',

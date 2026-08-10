@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | as-built (2026-07-15) |
+| 상태 | as-built (2026-07-15) · **2026-08-11 주석(as-built)**: 선택기·허브는 Liquid Depth 미이식이나 공유 뷰를 통해 일부 Liquid 표현이 먼저 보이는 상태(DST-3) |
 | ID 프리픽스 | `DST` |
 | 주요 코드 | `components/bag-destination/`, `model/bag-destination/`, `components/bag-detail/`, `components/camp-site/`, `model/store/BagStore.ts` |
 | 관련 스펙 | [DataModel.md](DataModel.md)(DM-5, DM-15), [BagDetail.md](BagDetail.md), [CampSite.md](CampSite.md), [Weather.md](Weather.md) |
@@ -68,6 +68,7 @@
 **수용 기준**
 
 - 지도에는 중앙 고정 핀과 뷰포트 안의 활성 박지 마커를 함께 표시한다. 마커 데이터·유형색·뷰포트 렌더링은 CS-1/CS-2를 재사용한다.
+- **[as-built 2026-08-11] 선택기·허브(DST-8)는 아직 Liquid Depth로 이식하지 않았지만, 지도 탭과 공유하는 뷰(`CampSiteFilterChipsView`·`CampSiteMapMarkersView`·`CampSiteDetailOverlayView`)를 통해 일부 Liquid 표현(알약 필터 칩, 라임 선택 핀)이 이 화면에 먼저 보인다** — 두 세대가 한 화면에 섞인 일시 상태다. 공용 뷰에 세대별 variant를 두지 않는다(화면 하나를 위해 프리미티브를 갈라 두는 비용이 더 크고, 곧 이 화면도 이식된다). 선택기·허브 이식 태스크에서 해소한다([CampSite.md](CampSite.md) §2.1).
 - **필터 칩**: 지도 탭(CS-2)과 동일한 필터 칩을 검색바 아래에 둔다 — 1행 유형(전체/백패킹/대피소/캠핑장), 2행 태그(가로 스크롤·토글). 마커 표시 대상에 유형·태그·즐겨찾기 AND 필터가 그대로 적용된다(같은 `CampSiteMap` 모델 상태). 칩 UI는 지도 탭과 **공용 뷰로 공유**한다(중복 구현 금지).
   - 지도 탭의 **결과 수 토스트(CS-2)는 선택기에서 띄우지 않는다** — 전역 토스트가 풀스크린 모달 뒤에 그려져 보이지 않고, 선택기의 목적은 탐색이 아니라 지정이라 피드백 필요도 낮다.
   - **★(즐겨찾기)는 지도 탭과 동일하게 하단 현재 위치 버튼 위 플로팅 버튼**으로 노출한다(칩 아님, CS-9). 단 **즐겨찾기가 1건 이상일 때만 노출**한다 — 배낭은 로그인 전용이라 선택기의 비로그인 가드 상황이 사실상 없고, 전역 로그인 모달·토스트가 모달 뒤에 가려지는 문제를 피한다(CS-9의 지도 탭 가드와 다른 점). 시트는 지도 탭 formSheet와 같은 40% 높이 바텀시트(CS-9 참고).

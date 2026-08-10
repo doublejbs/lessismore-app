@@ -10,7 +10,7 @@ import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router/react-navigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Acg } from '@/constants/DesignTokens';
+import { Liquid } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
@@ -782,9 +782,10 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
 };
 
 const styles = StyleSheet.create({
+  // 지도 타일이 뜨기 전 한 프레임 동안만 보이는 면 — 지면색으로 둔다.
   container: {
     flex: 1,
-    backgroundColor: Acg.bg,
+    backgroundColor: Liquid.canvas,
   },
 });
 

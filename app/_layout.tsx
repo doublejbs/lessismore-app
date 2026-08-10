@@ -19,6 +19,7 @@ import { observer } from 'mobx-react-lite';
 import ForceUpdateGateView from '@/components/app-update/ForceUpdateGateView';
 import AnnouncementSheetView from '@/components/announcement/AnnouncementSheetView';
 import FeaturePopupSheetView from '@/components/feature-popup/FeaturePopupSheetView';
+import { Liquid, LiquidRadius } from '@/constants/DesignTokens';
 
 // 네이티브 스플래시를 폰트 로드 후 직접 내려, 초기화(Firebase) 동안 React 스플래시
 // (SplashLoadingView — 하단 team magma 로고)가 보이게 한다. 자동 숨김을 막아둔다.
@@ -185,7 +186,9 @@ const RootLayout = () => {
               sheetAllowedDetents: [0.24, 0.4, 1],
               sheetInitialDetentIndex: 1,
               sheetGrabberVisible: true,
-              sheetCornerRadius: 20,
+              // 시트 상단 모서리 28 + 지면색 면 — 박지 상세는 Liquid Depth로 이식된 화면이라
+              // 시트 크롬(네이티브가 그리는 모서리·면)도 그 값을 따른다.
+              sheetCornerRadius: LiquidRadius.sheet,
               // 딤 없음 — 시트가 떠 있어도 뒤 지도를 계속 조작할 수 있다(구글맵 동작).
               sheetLargestUndimmedDetentIndex: 'last',
               // bottom: 0이 핵심이다. react-native-screens는 formSheet 콘텐츠 래퍼를
@@ -194,7 +197,7 @@ const RootLayout = () => {
               // 콘텐츠 높이만큼 늘어나 스크롤이 죽는다. contentStyle은 그 스타일 뒤에
               // 병합되므로 여기서 bottom을 되돌리면 래퍼 높이 = 시트 높이가 되고,
               // detent를 끌어 바꿔도 네이티브가 알아서 따라온다.
-              contentStyle: { backgroundColor: '#FFFFFF', bottom: 0 },
+              contentStyle: { backgroundColor: Liquid.canvas, bottom: 0 },
             }}
           />
           {/* 즐겨찾기 리스트 시트(CS-9) — 박지 상세 시트와 동일한 formSheet 얼개.
@@ -208,9 +211,9 @@ const RootLayout = () => {
               sheetAllowedDetents: [0.2, 0.4, 1],
               sheetInitialDetentIndex: 1,
               sheetGrabberVisible: true,
-              sheetCornerRadius: 20,
+              sheetCornerRadius: LiquidRadius.sheet,
               sheetLargestUndimmedDetentIndex: 'last',
-              contentStyle: { backgroundColor: '#FFFFFF', bottom: 0 },
+              contentStyle: { backgroundColor: Liquid.canvas, bottom: 0 },
             }}
           />
           {/* 공용 여행지 선택기(DST-3) — 풀스크린 모달 라우트. RN Modal이 아니라 라우트라

@@ -309,15 +309,8 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
             // 버튼 주위에 각진 면이 생겨 카드가 그 뒤에서 잘려 보인다.
             <View style={styles.bottomBar} pointerEvents='box-none'>
               <LinearGradient
-                colors={
-                  LiquidBackdrop.ctaVeil.colors as unknown as [string, string]
-                }
-                locations={
-                  LiquidBackdrop.ctaVeil.locations as unknown as [
-                    number,
-                    number,
-                  ]
-                }
+                colors={LiquidBackdrop.ctaVeil.colors}
+                locations={LiquidBackdrop.ctaVeil.locations}
                 style={StyleSheet.absoluteFill}
                 pointerEvents='none'
               />

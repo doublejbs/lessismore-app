@@ -1,14 +1,11 @@
 import { FC, useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { observer } from 'mobx-react-lite';
-import PretendardText from '@/components/PretendardText';
-import { AcgLayout, Acg, Color, Radius } from '@/constants/DesignTokens';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import LoadingView from '@/components/ui/LoadingView';
+import { Liquid, LiquidBackdrop, LiquidLayout } from '@/constants/DesignTokens';
 import CampSiteBagSelectSheetView from './CampSiteBagSelectSheetView';
 import CampSiteDetailHeaderView from './CampSiteDetailHeaderView';
 import CampSiteDetailTabBarView from './CampSiteDetailTabBarView';
@@ -43,11 +40,14 @@ interface Props {
 
 // stickyHeaderIndices는 ScrollView 직계 자식 기준. 상단 블록(0) → 탭 바(1) → 탭 콘텐츠(2)라
 // 탭 바 인덱스는 1이며, 위로 스크롤될 때 상단에 고정(sticky)된다(CS-3).
-// 탭 바 뷰의 컨테이너는 이미 불투명 배경(Color.background)을 가져 고정 시 뒤 콘텐츠가 비치지 않는다.
+// 탭 바 뷰의 컨테이너는 이미 불투명 지면색(Liquid.canvas)을 가져 고정 시 뒤 콘텐츠가 비치지 않는다.
 const TAB_BAR_INDEX = 1;
 
 // 하단 고정 CTA가 스크롤 마지막 콘텐츠를 가리지 않도록 확보하는 여유(버튼 높이 약 84 + 여유).
 const CTA_CLEARANCE = 96;
+
+// CTA 진행 표시 회전 주기(창고 장비 상세 CTA와 같은 값).
+const SPINNER_DURATION = 1000;
 
 // 박지 상세 시트(CS-3) — 상단 블록·탭 바·탭 콘텐츠가 하나의 세로 스크롤 안에 있고,
 // 탭 바만 sticky로 상단에 붙는다. 주 액션(배낭 여행지로 설정)만 하단에 고정한다.
@@ -191,32 +191,48 @@ const CampSiteDetailView: FC<Props> = ({
         </ScrollView>
 
         {/* 박지 단위의 주 액션이라 어느 탭·스크롤 위치에서도 닿도록 하단에 고정한다(CS-3/CS-5).
-            여행지 허브에서 연 상세는 이미 이 배낭의 여행지라 이 버튼을 숨긴다(DST-8). */}
+            여행지 허브에서 연 상세는 이미 이 배낭의 여행지라 이 버튼을 숨긴다(DST-8).
+            **앱에서 라임을 주 액션에 쓰는 유일한 자리다**(핸드오프 §10). */}
         {showSetBag ? (
-          <View style={styles.bottomBar}>
-            <TouchableOpacity
-              style={[
-                styles.setBagButton,
-                settingBag && styles.setBagButtonDisabled,
-              ]}
-              onPress={handlePressSetBag}
+          <View style={styles.bottomBar} pointerEvents='box-none'>
+            {/* 불투명 띠 대신 지면색 그라디언트로 받는다 — 띠를 두면 버튼 주위에 각진 면이
+                생겨 콘텐츠가 그 뒤에서 잘려 보인다. */}
+            <LinearGradient
+              colors={LiquidBackdrop.ctaVeil.colors}
+              locations={LiquidBackdrop.ctaVeil.locations}
+              style={StyleSheet.absoluteFill}
+              pointerEvents='none'
+            />
+            {/* 저장 중에도 라벨을 유지하고 앞에 진행 표시만 붙인다 — 라벨이 사라지면 무엇을
+                기다리는지 알 수 없다. 스피너는 창고 장비 상세의 CTA와 같은 컴포넌트다. */}
+            <LiquidPillButton
+              label='배낭 여행지로 설정'
+              variant='accent'
+              block
               disabled={settingBag}
-              activeOpacity={0.7}
-              accessibilityLabel='배낭 여행지로 설정'
-              accessibilityRole='button'
-              accessibilityState={{ disabled: settingBag, busy: settingBag }}
-            >
-              {settingBag ? (
-                <ActivityIndicator color={Color.background} />
-              ) : (
-                <PretendardText
-                  style={styles.setBagButtonText}
-                  weight='semibold'
-                >
-                  배낭 여행지로 설정
-                </PretendardText>
-              )}
-            </TouchableOpacity>
+              busy={settingBag}
+              onPress={handlePressSetBag}
+              {...(settingBag
+                ? {
+                    leading: (
+                      <View style={styles.ctaSpinner}>
+                        <LoadingView
+                          duration={SPINNER_DURATION}
+                          color={Liquid.limeOn}
+                        />
+                      </View>
+                    ),
+                  }
+                : {
+                    trailing: (
+                      <Ionicons
+                        name='arrow-forward'
+                        size={17}
+                        color={Liquid.limeOn}
+                      />
+                    ),
+                  })}
+            />
           </View>
         ) : null}
       </View>
@@ -234,9 +250,10 @@ const CampSiteDetailView: FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
+  // 시트 지면. 네이티브 시트가 상단 모서리(radius 28)와 그림자를 그리고, 이 면이 그 안을 채운다.
   container: {
     flex: 1,
-    backgroundColor: Acg.bg,
+    backgroundColor: Liquid.canvas,
   },
   scroll: {
     flex: 1,
@@ -248,30 +265,26 @@ const styles = StyleSheet.create({
   tabContent: {
     paddingBottom: 12,
   },
-  // 이 바는 스크롤 콘텐츠 **위에 떠 있어** 불투명이어야 한다 — 투명하게 두면 뒤 탭 행
-  // (개요·날씨·후기)이 버튼과 겹쳐 읽힌다(2026-08-04 시뮬레이터 확인).
-  // 흰 면 대신 시트와 같은 지면색을 써서 하단만 다른 톤으로 갈리지 않게 한다.
+  /**
+   * 콘텐츠가 이 아래로 흐르도록 절대 배치한다 — 흐르지 않으면 위 그라디언트가 지면 위 지면을
+   * 덮는 셈이라 아무것도 끊지 않는다(창고 장비 상세 CTA와 같은 구조).
+   * 스크롤 끝은 `CTA_CLEARANCE`가 비워 둔다.
+   */
   bottomBar: {
-    paddingHorizontal: AcgLayout.screenH,
-    paddingVertical: 16,
-    backgroundColor: Acg.bg,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Acg.line2,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: LiquidLayout.screenH,
+    paddingTop: 14,
+    // 시트는 이미 홈 인디케이터 위로 떠 있어 하단 세이프에어리어를 더하지 않는다(CS-3).
+    paddingBottom: 16,
   },
-  setBagButton: {
-    backgroundColor: Color.textPrimary,
-    borderRadius: Radius.card,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 52,
-  },
-  setBagButtonDisabled: {
-    opacity: 0.6,
-  },
-  setBagButtonText: {
-    fontSize: 16,
-    color: Color.background,
+  // LoadingView는 flex:1로 자리를 다 먹으므로 칸에 담아 라벨을 밀지 않게 한다.
+  // 24는 LoadingView 내부 SVG 크기 — 더 작게 주면 스피너가 칸에 잘린다.
+  ctaSpinner: {
+    width: 24,
+    height: 24,
   },
 });
 

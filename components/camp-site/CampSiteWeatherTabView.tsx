@@ -7,7 +7,12 @@ import {
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+} from '@/constants/DesignTokens';
 import WeatherDailyView from '@/components/weather/WeatherDailyView';
 import CampSiteWeather from '@/model/camp-site/CampSiteWeather';
 
@@ -31,7 +36,7 @@ const CampSiteWeatherTabView: FC<Props> = ({ campSiteWeather }) => {
   if (!initialized || loading) {
     return (
       <View style={styles.centerBox}>
-        <ActivityIndicator color={Color.textPrimary} />
+        <ActivityIndicator color={Liquid.ink} />
       </View>
     );
   }
@@ -45,7 +50,7 @@ const CampSiteWeatherTabView: FC<Props> = ({ campSiteWeather }) => {
         <TouchableOpacity
           style={styles.retryButton}
           onPress={handlePressRetry}
-          activeOpacity={0.7}
+          activeOpacity={LiquidMotion.pressOpacity}
           accessibilityLabel='다시 시도'
           accessibilityRole='button'
         >
@@ -66,8 +71,8 @@ const CampSiteWeatherTabView: FC<Props> = ({ campSiteWeather }) => {
 
 const styles = StyleSheet.create({
   content: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingHorizontal: LiquidLayout.screenH,
+    paddingTop: 12,
     paddingBottom: 20,
   },
   // 바깥 스크롤 안에서는 flex:1로 뷰포트를 채울 수 없어, 로딩·에러 상태에 최소 높이를 준다.
@@ -76,23 +81,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 16,
-    paddingHorizontal: 20,
+    paddingHorizontal: LiquidLayout.screenH,
   },
   errorText: {
-    fontSize: 15,
-    color: Color.textSecondary,
+    fontSize: 14,
+    color: Liquid.inkTertiary,
   },
+  // 흰 알약 — 화면의 주 액션(라임 CTA)과 다투지 않는 보조 복구 액션이다.
   retryButton: {
-    minHeight: 44,
+    minHeight: LiquidLayout.touchMin,
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Color.chipBorder,
-    borderRadius: Radius.card,
+    borderRadius: LiquidRadius.pill,
     paddingHorizontal: 20,
+    backgroundColor: Liquid.surface,
+    borderWidth: 0.5,
+    borderColor: Liquid.hairlineStrong,
   },
   retryText: {
-    fontSize: 15,
-    color: Color.textPrimary,
+    fontSize: 14,
+    color: Liquid.ink,
   },
 });
 
