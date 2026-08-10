@@ -1,10 +1,21 @@
 import { FC, useEffect, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Image, Animated } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Animated,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import { getDisplayHost } from '../../model/gear/GearBrandLink';
 
 /** 이미지 밴드 높이. 상품 사진이 대부분 정사각이라 밴드가 너무 납작하면 크게 letterbox 된다. */
@@ -124,7 +135,7 @@ const WarehouseDetailBrandPreviewView: FC<Props> = ({
         ) : null}
       </View>
 
-      <Ionicons name='chevron-forward' size={16} color={Color.iconMuted} />
+      <Ionicons name='chevron-forward' size={16} color={Liquid.inkSubtle} />
     </>
   );
 
@@ -132,7 +143,7 @@ const WarehouseDetailBrandPreviewView: FC<Props> = ({
     <TouchableOpacity
       style={styles.card}
       onPress={() => warehouseDetail.openProductUrl()}
-      activeOpacity={0.7}
+      activeOpacity={LiquidMotion.pressOpacity}
       accessibilityRole='link'
       accessibilityLabel={`${label}, 상품 페이지 열기`}
     >
@@ -154,7 +165,7 @@ const WarehouseDetailBrandPreviewView: FC<Props> = ({
             <Ionicons
               name='storefront-outline'
               size={20}
-              color={Color.textTertiary}
+              color={Liquid.inkSecondary}
             />
           </View>
           {renderText()}
@@ -165,17 +176,22 @@ const WarehouseDetailBrandPreviewView: FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
+  /**
+   * 흰 카드. 그림자와 클리핑을 한 뷰에 함께 주면 그림자가 자기 경계에서 잘리는데,
+   * 이 카드는 **테두리 없이 면만으로** 서고 이미지가 모서리를 넘지 않아야 하므로
+   * 그림자를 포기하고 클리핑을 택한다 — 링크 미리보기는 주 액션이 아니라 조용한 카드다.
+   */
   card: {
-    borderRadius: Radius.card,
-    borderWidth: 1,
-    borderColor: Color.borderLight,
-    // 이미지가 카드 모서리를 넘지 않게 자른다.
+    borderRadius: LiquidRadius.card,
+    backgroundColor: Liquid.surface,
+    borderWidth: 0.5,
+    borderColor: Liquid.hairline,
     overflow: 'hidden',
   },
   band: {
     width: '100%',
     height: IMAGE_HEIGHT,
-    backgroundColor: Color.background,
+    backgroundColor: Liquid.surface,
   },
   image: {
     width: '100%',
@@ -187,27 +203,27 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: Color.surfaceMuted,
+    backgroundColor: Liquid.surfaceSunken,
   },
   captionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    padding: 12,
-    borderTopWidth: 1,
-    borderTopColor: Color.borderLight,
+    padding: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Liquid.hairline,
   },
   compactRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    padding: 12,
+    padding: 14,
   },
   iconBox: {
     width: TILE_SIZE,
     height: TILE_SIZE,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.surfaceMuted,
+    borderRadius: LiquidRadius.thumb,
+    backgroundColor: Liquid.surfaceSunken,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -216,12 +232,13 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   label: {
-    fontSize: 14,
-    color: Color.textPrimary,
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.ink,
   },
   host: {
     fontSize: 12,
-    color: Color.textSecondary,
+    color: Liquid.inkMuted,
   },
 });
 

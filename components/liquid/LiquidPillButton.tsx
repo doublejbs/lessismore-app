@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleProp,
   ViewStyle,
+  GestureResponderEvent,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import PretendardText from '@/components/PretendardText';
@@ -26,7 +27,13 @@ interface Props {
   trailing?: ReactNode;
   /** 폭을 꽉 채운다 (하단 고정 바) */
   block?: boolean;
-  onPress?: () => void;
+  /**
+   * 누를 수 없는 상태 — 요청이 오가는 동안 재탭을 막는다. 면·모서리는 그대로 두고
+   * 전체 투명도만 낮춘다(색을 바꾸면 다른 버튼처럼 읽힌다).
+   */
+  disabled?: boolean;
+  /** TouchableOpacity와 같은 시그니처 — 이벤트를 쓰는 호출부(하단 CTA)가 있다 */
+  onPress?: (event: GestureResponderEvent) => void;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -47,6 +54,7 @@ const LiquidPillButton: FC<Props> = ({
   leading,
   trailing,
   block = false,
+  disabled = false,
   onPress,
   style,
 }) => {
@@ -72,12 +80,15 @@ const LiquidPillButton: FC<Props> = ({
           styles.glassShell,
           styles.clipped,
           block && styles.block,
+          disabled && styles.disabled,
           style,
         ]}
         onPress={onPress}
+        disabled={disabled}
         activeOpacity={LiquidMotion.pressOpacity}
         accessibilityRole='button'
         accessibilityLabel={label}
+        accessibilityState={{ disabled }}
       >
         <BlurView
           tint='light'
@@ -96,12 +107,15 @@ const LiquidPillButton: FC<Props> = ({
         styles.pill,
         VARIANT_STYLES[variant],
         block && styles.block,
+        disabled && styles.disabled,
         style,
       ]}
       onPress={onPress}
+      disabled={disabled}
       activeOpacity={LiquidMotion.pressOpacity}
       accessibilityRole='button'
       accessibilityLabel={label}
+      accessibilityState={{ disabled }}
     >
       {content}
     </TouchableOpacity>
@@ -145,6 +159,9 @@ const styles = StyleSheet.create({
   },
   block: {
     alignSelf: 'stretch',
+  },
+  disabled: {
+    opacity: LiquidMotion.disabledOpacity,
   },
   glassShell: {
     borderWidth: 0.5,

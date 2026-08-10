@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Liquid, LiquidMotion, LiquidRadius } from '@/constants/DesignTokens';
 
 // GD-1 1층(사진 줄) 크기. 가운데 단독 줄이라 좌우 컬럼 폭을 나눠 쓸 필요가 없어,
 // "내 물건이 맞나"를 한눈에 알아볼 수 있는 140pt 정사각으로 둔다.
@@ -32,7 +32,7 @@ const WarehouseDetailImagePreviewView: FC<Props> = ({
       style={styles.container}
       onPress={onPress}
       disabled={busy}
-      activeOpacity={0.8}
+      activeOpacity={LiquidMotion.pressOpacity}
       accessibilityRole='button'
       accessibilityLabel='장비 사진'
       accessibilityHint='사진을 교체하거나 삭제할 수 있어요'
@@ -48,7 +48,7 @@ const WarehouseDetailImagePreviewView: FC<Props> = ({
       />
       {busy && (
         <View style={styles.overlay}>
-          <ActivityIndicator color={Color.background} />
+          <ActivityIndicator color={Liquid.surface} />
         </View>
       )}
     </TouchableOpacity>
@@ -59,9 +59,9 @@ const styles = StyleSheet.create({
   container: {
     width: IMAGE_SIZE,
     height: IMAGE_SIZE,
-    borderRadius: Radius.card,
-    // 로드 전·실패 직전의 빈 영역이 흰 배경 위에서 떠 보이지 않게 표면색을 깐다.
-    backgroundColor: Color.thumbBg,
+    borderRadius: LiquidRadius.card,
+    // 로드 전·실패 직전의 빈 영역이 지면 위에서 떠 보이지 않게 가라앉은 면을 깐다.
+    backgroundColor: Liquid.surfaceSunken,
     overflow: 'hidden',
   },
   image: {
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     left: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Color.overlay,
+    backgroundColor: Liquid.scrim,
   },
 });
 

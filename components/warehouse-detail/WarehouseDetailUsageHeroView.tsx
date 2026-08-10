@@ -4,15 +4,22 @@ import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
-import { Acg } from '@/constants/DesignTokens';
-import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import LiquidCard from '@/components/liquid/LiquidCard';
+import LiquidStatTile from '@/components/liquid/LiquidStatTile';
+import { Liquid, LiquidLayout, LiquidType } from '@/constants/DesignTokens';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
 }
 
-// 사용 지표 히어로(GD-9) — 보유 장비 전용. "이 장비를 계속 데려갈까"에 답하는 내 기록 요약.
-// 모든 값은 이미 로드된 데이터의 파생값이다(추가 읽기 0회).
+/**
+ * 사용 지표 히어로(GD-9) — 보유 장비 전용. "이 장비를 계속 데려갈까"에 답하는 내 기록 요약.
+ * 모든 값은 이미 로드된 데이터의 파생값이다(추가 읽기 0회).
+ *
+ * **화면의 라임 면은 이 타일 하나뿐이다**(목업 §9) — 지표 줄의 첫 타일이 화면에서 가장 먼저
+ * 답해야 하는 값(`사용`)을 든다. 형광펜 띠로 섹션 제목을 강조하던 ACG 문법은 라임 면이
+ * 대신하므로 함께 걷었다.
+ */
 const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
   const gear = warehouseDetail.getGear();
 
@@ -22,70 +29,57 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
 
   const { bagCount, usedCount, uselessCount } = warehouseDetail.getUsageStats();
 
-  const renderStat = (label: string, value: number, muted: boolean) => (
-    <View style={styles.statItem}>
-      {/* 숫자라 콘덴스드로 키운다 — 두 지표가 이 섹션의 앵커(ACG). */}
-      <AcgDisplayText style={[styles.statValue, muted && styles.statMuted]}>
-        {String(value)}
-      </AcgDisplayText>
-      <PretendardText style={[styles.statLabel, muted && styles.statMuted]}>
-        {label}
-      </PretendardText>
-    </View>
-  );
-
-  // 형광펜 띠는 이 섹션에만 준다 — `이 장비를 계속 데려갈까`에 답하는 화면의 주 정보다.
   return (
-    <WarehouseDetailSectionView title='사용 기록' highlight>
+    <WarehouseDetailSectionView title='사용 기록' variant='list'>
       {bagCount === 0 ? (
-        <PretendardText style={styles.emptyText}>
-          아직 배낭에 담은 적이 없어요
-        </PretendardText>
+        // 지표 대신 안내만 오는 경우 — 타일과 같은 모서리를 쓰되 조용한 면으로 낮춘다.
+        // 빈 상태는 **사실 + 다음 걸음** 두 줄이다(핸드오프 카피 규칙) — 첫 줄만 두면
+        // 왜 비었는지는 알려주면서 무엇을 하면 채워지는지는 말하지 않는다.
+        <LiquidCard tone='quiet' radius='tile'>
+          <PretendardText style={styles.emptyText}>
+            아직 배낭에 담은 적이 없어요
+          </PretendardText>
+          <PretendardText style={styles.emptyHintText}>
+            다음 여행 배낭에 담아볼까요?
+          </PretendardText>
+        </LiquidCard>
       ) : (
-        <>
-          {/* 사용·사용 안함 두 지표만 둔다(GD-9, 2026-07-30 사용자 결정).
-                담김 수는 아래 `함께한 여행 N회` 헤더가 이미 같은 값을 말하고,
-                미기록은 타임라인의 `미기록` 태그로 행마다 드러난다. */}
-          <View style={styles.statsRow}>
-            {renderStat('사용', usedCount, usedCount === 0)}
-            {renderStat('사용 안함', uselessCount, uselessCount === 0)}
-          </View>
-        </>
+        // 사용·사용 안함 두 지표만 둔다(GD-9, 2026-07-30 사용자 결정) — 목업 §9의 세 번째
+        // 타일(`여행`)은 아래 `함께한 여행 N회` 헤더가 같은 값을 말해 그때 걷어낸 지표다.
+        <View style={styles.statsRow}>
+          <LiquidStatTile
+            value={usedCount}
+            label='사용'
+            tone='accent'
+            dim={usedCount === 0}
+          />
+          <LiquidStatTile
+            value={uselessCount}
+            label='사용 안함'
+            dim={uselessCount === 0}
+          />
+        </View>
       )}
     </WarehouseDetailSectionView>
   );
 };
 
 const styles = StyleSheet.create({
-  emptyText: {
-    fontSize: 14,
-    color: Acg.textSecondary,
-  },
   statsRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: LiquidLayout.listGap,
   },
-  // 종이 면 위 타일이라 채움은 지면색을 쓴다 — 회색 면을 또 두면 층이 하나 늘어난다.
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 14,
-    backgroundColor: Acg.bg,
-    borderRadius: 0,
-    gap: 2,
+  emptyText: {
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: Liquid.inkTertiary,
   },
-  statValue: {
-    fontSize: 28,
-    lineHeight: 32,
-    color: Acg.ink,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: Acg.textSecondary,
-  },
-  statMuted: {
-    // 0회 지표는 값·라벨을 낮춰 유효 정보 스캔을 돕는다(GD-2 톤 유지).
-    color: Acg.textSecondary,
+  // 다음 걸음은 사실보다 한 단계 옅게 — 두 줄이 같은 무게면 어느 쪽이 상황인지 흐려진다.
+  emptyHintText: {
+    marginTop: 2,
+    fontSize: LiquidType.caption.fontSize,
+    lineHeight: LiquidType.caption.lineHeight,
+    color: Liquid.inkSubtle,
   },
 });
 

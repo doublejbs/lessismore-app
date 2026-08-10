@@ -11,6 +11,11 @@ interface Props {
   size?: 'md' | 'sm';
   /** 라벨 앞 색 도트 — 지도 마커 색 범례를 겸할 때 */
   dotColor?: string;
+  /**
+   * 없으면 **표시용 태그**로 그린다(누를 수 없음). 장비 상세의 카테고리·색상 태그처럼
+   * 같은 알약 문법으로 사실만 말하는 자리에 쓴다 — 누를 수 없는 것에 `button` 롤을 붙이면
+   * 스크린리더가 하지도 못할 동작을 약속한다(`LiquidAddCta`와 같은 처리).
+   */
   onPress?: () => void;
 }
 
@@ -37,21 +42,14 @@ const LiquidChip: FC<Props> = ({
   onPress,
 }) => {
   const height = size === 'sm' ? 28 : 34;
+  const shape = [
+    styles.chip,
+    { minHeight: height, borderRadius: height / 2 },
+    selected ? styles.chipSelected : styles.chipIdle,
+  ];
 
-  return (
-    <TouchableOpacity
-      style={[
-        styles.chip,
-        { minHeight: height, borderRadius: height / 2 },
-        selected ? styles.chipSelected : styles.chipIdle,
-      ]}
-      onPress={onPress}
-      activeOpacity={LiquidMotion.pressOpacity}
-      hitSlop={CHIP_HIT_SLOP[size]}
-      accessibilityRole='button'
-      accessibilityState={{ selected }}
-      accessibilityLabel={label}
-    >
+  const content = (
+    <>
       {dotColor ? (
         <View style={[styles.dot, { backgroundColor: dotColor }]} />
       ) : null}
@@ -65,6 +63,24 @@ const LiquidChip: FC<Props> = ({
       >
         {label}
       </PretendardText>
+    </>
+  );
+
+  if (!onPress) {
+    return <View style={shape}>{content}</View>;
+  }
+
+  return (
+    <TouchableOpacity
+      style={shape}
+      onPress={onPress}
+      activeOpacity={LiquidMotion.pressOpacity}
+      hitSlop={CHIP_HIT_SLOP[size]}
+      accessibilityRole='button'
+      accessibilityState={{ selected }}
+      accessibilityLabel={label}
+    >
+      {content}
     </TouchableOpacity>
   );
 };

@@ -28,8 +28,10 @@ const WarehouseDetailExternalReviewView: FC<Props> = ({ warehouseDetail }) => {
   };
 
   return (
-    // 앱 내 사용자 `리뷰` 섹션과 구분되는 타이틀.
-    <WarehouseDetailSectionView title='블로그·유튜브 후기'>
+    // 앱 내 사용자 `리뷰` 섹션과 구분되는 타이틀. 공용 후기 모듈(박지 상세와 공유)이 자기
+    // 행·카드를 직접 그리므로 섹션은 면을 두지 않는다(`list`) — 영상 가로 스크롤의
+    // 풀블리드(-20)도 이때만 화면 좌우 정렬선과 맞는다.
+    <WarehouseDetailSectionView title='블로그·유튜브 후기' variant='list'>
       <ReviewSectionView
         reviews={reviews}
         videos={videos}

@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
-import { Acg } from '@/constants/DesignTokens';
+import { Liquid, LiquidType } from '@/constants/DesignTokens';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -57,51 +57,57 @@ const WarehouseDetailActivityTotalsView: FC<Props> = ({ warehouseDetail }) => {
 
   return (
     <WarehouseDetailSectionView title='함께한 활동'>
-      <PretendardText weight='semibold' style={styles.headlineText}>
-        이 장비와 {distanceKm}km를 걸었어요
-      </PretendardText>
-      <View style={styles.rowsContainer}>
-        {rows.map((row, index) => (
-          <View
-            key={row.label}
-            style={[styles.row, index > 0 && styles.rowDivider]}
-          >
+      <View style={styles.headlineRow}>
+        <PretendardText weight='semibold' style={styles.headlineText}>
+          이 장비와 {distanceKm}km를 걸었어요
+        </PretendardText>
+      </View>
+      {rows.map(row => (
+        <View key={row.label}>
+          <View style={styles.divider} />
+          <View style={styles.row}>
             <PretendardText style={styles.rowLabel}>{row.label}</PretendardText>
             <PretendardText weight='medium' style={styles.rowValue}>
               {row.value}
             </PretendardText>
           </View>
-        ))}
-      </View>
+        </View>
+      ))}
     </WarehouseDetailSectionView>
   );
 };
 
 const styles = StyleSheet.create({
-  headlineText: {
-    fontSize: 16,
-    color: Acg.ink,
+  // 첫 줄은 문장이라 아래 라벨·값 행보다 여백을 넉넉히 둔다 — 요약을 먼저 읽고 표로 내려간다.
+  headlineRow: {
+    paddingTop: 12,
+    paddingBottom: 14,
   },
-  rowsContainer: {
-    marginTop: 8,
+  headlineText: {
+    fontSize: LiquidType.heading.fontSize,
+    lineHeight: LiquidType.heading.lineHeight,
+    color: Liquid.ink,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    gap: 12,
+    paddingVertical: 13,
   },
-  rowDivider: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Acg.line2,
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Liquid.hairline,
   },
   rowLabel: {
-    fontSize: 14,
-    color: Acg.textSecondary,
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: Liquid.inkMuted,
   },
   rowValue: {
-    fontSize: 14,
-    color: Acg.ink,
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: Liquid.ink,
   },
 });
 

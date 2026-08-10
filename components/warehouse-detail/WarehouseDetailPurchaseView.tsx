@@ -5,7 +5,15 @@ import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
 import WarehouseDetailBrandPreviewView from './WarehouseDetailBrandPreviewView';
-import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
+import LiquidSectionLabel from '@/components/liquid/LiquidSectionLabel';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidShadow,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import { getBrandLinkLabel } from '../../model/gear/GearBrandLink';
 
 interface Props {
@@ -38,28 +46,26 @@ const WarehouseDetailPurchaseView: FC<Props> = ({ warehouseDetail }) => {
     gear?.getDisplayCompany()
   );
 
-  // 쿠팡 행 — 종이 면 위 좌측 정렬 행(ACG, 2026-08-04 디자인 리뷰).
-  // 외부로 나가는 링크라 후기 카드와 같은 open-outline 기호를 쓴다.
+  // 쿠팡 행 — 흰 카드 위 좌 라벨 · 우 기호 행. 외부로 나가는 링크라 후기 카드와 같은
+  // open-outline 기호를 쓴다.
   const renderLink = (label: string, onPress: () => void): ReactNode => (
     <TouchableOpacity
       style={styles.link}
       onPress={onPress}
-      activeOpacity={0.6}
+      activeOpacity={LiquidMotion.pressOpacity}
       accessibilityRole='link'
       accessibilityLabel={`${label}, 외부 브라우저로 이동`}
     >
       <PretendardText style={styles.linkText} weight='medium'>
         {label}
       </PretendardText>
-      <Ionicons name='open-outline' size={16} color={Acg.textSecondary} />
+      <Ionicons name='open-outline' size={16} color={Liquid.inkSubtle} />
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <PretendardText weight='semibold' style={styles.title}>
-        공식 링크
-      </PretendardText>
+      <LiquidSectionLabel>공식 링크</LiquidSectionLabel>
 
       {/* 브랜드 행은 링크 미리보기 카드로 낸다(GD-5a). */}
       {productUrl ? (
@@ -90,22 +96,15 @@ const WarehouseDetailPurchaseView: FC<Props> = ({ warehouseDetail }) => {
 };
 
 const styles = StyleSheet.create({
-  // 섹션 자체는 종이 면을 두지 않는다(ACG) — 미리보기 카드·쿠팡 행이 각자 면을 갖고 있어
-  // 종이 위에 종이를 얹으면 후기 섹션과 같은 무게로 읽힌다.
+  // 섹션 자체는 면을 두지 않는다 — 미리보기 카드·쿠팡 행이 각자 면을 갖고 있어
+  // 면 위에 면을 얹으면 후기 섹션과 같은 무게로 읽힌다.
   container: {
-    paddingHorizontal: AcgLayout.screenH,
-    marginBottom: 22,
-    gap: 12,
-  },
-  title: {
-    fontSize: 17,
-    color: Acg.ink,
-  },
-  coupangGroup: {
-    gap: 8,
+    paddingHorizontal: LiquidLayout.screenH,
+    marginBottom: LiquidLayout.section,
+    gap: LiquidLayout.listGap,
   },
   /**
-   * 종이 면 행(ACG). 이 화면의 다른 요소가 전부 좌측 정렬인데 이 블록만 가운데 정렬이라
+   * 흰 카드 한 줄. 이 화면의 다른 요소가 전부 좌측 정렬인데 이 블록만 가운데 정렬이라
    * 페이지 축에서 떨어져 나왔고, 면도 테두리도 없어 누를 수 있는 것으로 읽히지 않았다
    * (2026-08-04 디자인 리뷰). 잉크 버튼으로 세우지는 않는다 — 시안에서도 조용한 고지다.
    *
@@ -115,22 +114,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    minHeight: 44,
+    minHeight: LiquidLayout.touchMin,
     paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: LiquidLayout.cardPad,
     gap: 8,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    backgroundColor: Liquid.surface,
+    borderRadius: LiquidRadius.tile,
+    boxShadow: LiquidShadow.tile,
   },
   linkText: {
-    fontSize: 14,
-    color: Acg.ink,
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.ink,
+  },
+  coupangGroup: {
+    gap: 8,
   },
   // 고지는 조용히 둔다 — 면 밖, 좌측 정렬.
   disclaimerText: {
     fontSize: 11,
     lineHeight: 15,
-    color: Acg.textSecondary,
+    color: Liquid.inkTertiary,
   },
 });
 

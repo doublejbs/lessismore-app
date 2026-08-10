@@ -165,6 +165,12 @@ export const Liquid = {
   hairline: 'rgba(16,16,18,0.08)',
   hairlineStrong: 'rgba(16,16,18,0.12)',
   /**
+   * 점선 테두리. 목업 §9 장비 상세의 `사진 추가` 슬롯이 1.5px dashed로 이 값을 쓴다 —
+   * 실선 헤어라인(0.5px)보다 굵게 그려지므로 같은 농도를 쓰면 실선보다 무거워 보인다.
+   * `hairlineOnAccent`와 값은 같지만 뜻이 다르다(그쪽은 라임 면 위 세로 구분선).
+   */
+  dashedStroke: 'rgba(16,16,18,0.16)',
+  /**
    * 전체 화면 오버레이 뒤 지면을 어둡히는 막. 잉크 계열이라 지면(`canvas`)과 같은
    * 색 계열로 가라앉는다 — 순수 검정은 이 팔레트에 없다.
    */
@@ -443,6 +449,16 @@ export const LiquidBackdrop = {
   },
   // 라임 라디얼 글로우 하나를 지면 모서리에 둔다 — 브랜드 색이 UI를 지배하지 않으면서 온기를 준다.
   glow: { size: 340, color: 'rgba(200,242,68,0.5)', fade: 0.7 },
+  /**
+   * 하단 고정 CTA를 받치는 지면 그라디언트(목업 §9 `to top, #F2F2F6 60%, transparent`).
+   * 아래는 지면색으로 꽉 채워 뒤 콘텐츠를 끊고, 위로 갈수록 사라져 띠 경계가 보이지 않는다 —
+   * 불투명 띠를 두면 버튼 주위에 각진 면이 생겨 콘텐츠가 그 뒤에서 잘려 보인다.
+   * 위→아래 순서라 CSS의 `to top`을 뒤집어 둔 값이다.
+   */
+  ctaVeil: {
+    colors: ['rgba(242,242,246,0)', 'rgba(242,242,246,1)'],
+    locations: [0, 0.4],
+  },
 } as const;
 
 /** 전환은 스프링, 오버슈트 없음 — 진행 바가 목표를 지나쳤다 돌아오면 값이 틀린 것처럼 보인다. */
@@ -450,4 +466,8 @@ export const LiquidMotion = {
   spring: { damping: 22, stiffness: 220, mass: 1, overshootClamping: true },
   pressOpacity: 0.8, // activeOpacity 0.7~0.85
   doneOpacity: 0.6, // 완료 항목은 지우지 않고 낮춘다
+  // 누를 수 없는 컨트롤 — 면·모서리는 그대로 두고 투명도만 낮춘다.
+  // `doneOpacity`와 값은 같지만 뜻이 다르다(완료된 기록 vs 지금 못 누르는 버튼) —
+  // 한쪽 값을 조정할 때 다른 쪽이 끌려가지 않도록 이름을 갈라 둔다.
+  disabledOpacity: 0.6,
 } as const;

@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import Gear from '../../model/gear/Gear';
 import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
-import { Acg } from '@/constants/DesignTokens';
+import { Liquid, LiquidType } from '@/constants/DesignTokens';
 import {
   formatSpecValue,
   getSpecsSchemaFor,
@@ -19,6 +19,9 @@ interface SpecRow {
   label: string;
   value: string;
 }
+
+// 라벨 컬럼 고정 폭(목업 §9) — 값의 왼쪽 선이 모든 행에서 같아야 표로 읽힌다.
+const LABEL_WIDTH = 96;
 
 // 카테고리별 스펙 표(GD-8) — specs에 값이 있는 필드만 `라벨 : 값` 2열로 표시한다.
 const WarehouseDetailSpecsView: FC<Props> = ({ gear }) => {
@@ -53,44 +56,45 @@ const WarehouseDetailSpecsView: FC<Props> = ({ gear }) => {
 
   return (
     <WarehouseDetailSectionView title='스펙'>
-      <View style={styles.table}>
-        {rows.map((row, index) => (
-          <View
-            key={row.key}
-            style={[styles.row, index > 0 && styles.rowDivider]}
-          >
+      {rows.map((row, index) => (
+        <View key={row.key}>
+          {index > 0 ? <View style={styles.divider} /> : null}
+          <View style={styles.row}>
             <PretendardText style={styles.label}>{row.label}</PretendardText>
-            <PretendardText style={styles.value}>{row.value}</PretendardText>
+            <PretendardText weight='medium' style={styles.value}>
+              {row.value}
+            </PretendardText>
           </View>
-        ))}
-      </View>
+        </View>
+      ))}
     </WarehouseDetailSectionView>
   );
 };
 
 const styles = StyleSheet.create({
-  table: {
-    flexDirection: 'column',
-  },
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingVertical: 12,
+    paddingVertical: 13,
     gap: 12,
   },
-  rowDivider: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Acg.line2,
+  // 카드 안쪽 여백을 그대로 가로지른다 — 스펙 표는 라벨 컬럼이 이미 왼쪽 선을 만들어,
+  // 목록 행처럼 구분선을 들여쓰면 표가 두 덩어리로 갈려 보인다(목업 §9).
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Liquid.hairline,
   },
   label: {
-    width: 100,
-    fontSize: 14,
-    color: Acg.textSecondary,
+    width: LABEL_WIDTH,
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: Liquid.inkMuted,
   },
   value: {
     flex: 1,
-    fontSize: 14,
-    color: Acg.ink,
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: Liquid.ink,
   },
 });
 

@@ -4,14 +4,18 @@ import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import {
+  LiquidLayout,
+  LiquidRadius,
+  LiquidSemantic,
+} from '@/constants/DesignTokens';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
 }
 
 // 덜어내기 시그널(GD-12) — 최근 기록 3회 연속 '사용 안함'일 때만 조용히 알려주는 정보성 배너.
-// 탭 액션 없음, 삭제 유도 아님. 경고 빨강 대신 차분한 톤(surfaceMuted)을 쓴다.
+// 탭 액션 없음, 삭제 유도 아님. 경고 빨강(`danger`)이 아니라 차분한 경고 면을 쓴다.
 const WarehouseDetailDeclutterBannerView: FC<Props> = ({ warehouseDetail }) => {
   const signal = warehouseDetail.getDeclutterSignal();
 
@@ -27,7 +31,11 @@ const WarehouseDetailDeclutterBannerView: FC<Props> = ({ warehouseDetail }) => {
   return (
     <View style={styles.container}>
       <View style={styles.banner} accessibilityLabel={message}>
-        <Ionicons name='bag-remove-outline' size={18} color={Acg.warnText} />
+        <Ionicons
+          name='bag-remove-outline'
+          size={18}
+          color={LiquidSemantic.warnInk}
+        />
         <PretendardText weight='medium' style={styles.messageText}>
           {message}
         </PretendardText>
@@ -38,24 +46,25 @@ const WarehouseDetailDeclutterBannerView: FC<Props> = ({ warehouseDetail }) => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: AcgLayout.screenH,
-    marginBottom: 12,
+    paddingHorizontal: LiquidLayout.screenH,
+    // 위 섹션이 하단 여백을 이미 비워 두므로 아래쪽만 띄운다.
+    marginBottom: LiquidLayout.section,
   },
-  // 정보성 경고 톤(ACG) — 앱의 회색 면 대신 핸드오프의 경고 면을 쓴다. 삭제 유도가 아니라
-  // 알림이라 빨강은 여전히 쓰지 않는다.
+  // 의미색(warn)은 액센트 체계 밖이라 리디자인해도 값이 바뀌지 않는다 — 면·모서리만 옮긴다.
   banner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     paddingVertical: 14,
-    paddingHorizontal: 16,
-    backgroundColor: Acg.warnBg,
-    borderRadius: 0,
+    paddingHorizontal: LiquidLayout.cardPad,
+    backgroundColor: LiquidSemantic.warnBg,
+    borderRadius: LiquidRadius.tile,
   },
   messageText: {
     flex: 1,
     fontSize: 13,
-    color: Acg.warnText,
+    lineHeight: 20,
+    color: LiquidSemantic.warnInk,
   },
 });
 

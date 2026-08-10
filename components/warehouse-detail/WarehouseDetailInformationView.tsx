@@ -3,8 +3,13 @@ import { View, StyleSheet } from 'react-native';
 import Gear from '../../model/gear/Gear';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '../PretendardText';
-import { Acg, AcgLayout, Spacing } from '@/constants/DesignTokens';
-import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import LiquidChip from '@/components/liquid/LiquidChip';
+import {
+  Liquid,
+  LiquidFont,
+  LiquidLayout,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import { GEAR_FILTER_NAMES } from '@/model/gear/GearFilterName';
 
 interface Props {
@@ -18,10 +23,10 @@ interface Props {
 // - 1층(사진): 140pt 정사각을 **가운데 단독 줄**로 둔다. 카탈로그 크롤 이미지는 쓰지 않고
 //   (DataModel §1) 사용자가 올린 본인 사진만 `photo` 슬롯으로 받는다. 사진이 없으면 **이 줄 자체를
 //   렌더하지 않는다** — 빈 칸·플레이스홀더를 남기지 않는다(이미지 없는 장비가 다수라 그게 기본 모습).
-// - 2층(정체): 좌측 브랜드 → 이름 → 메타, 우측 무게. **사진 유무와 무관하게 항상 같은 형태**다.
-//   좌 정체 · 우 지표는 창고 목록(WH-1)·배낭 목록(BAG-1)과 공유하는 앱 전역 행 문법이라 무게가 늘
-//   같은 자리에 온다. 사진이 있을 때만 무게를 컬럼에 넣고 없을 때 히어로로 키우면 같은 화면이 두
-//   얼굴이 되므로, 사진 유무는 **1층 렌더 여부만** 가른다.
+// - 2층(정체): 브랜드 → 이름 위로 쌓고, 그 아래 **태그 칩 줄 + 우측 무게**를 한 행에 둔다
+//   (Liquid Depth, 목업 §9). 무게가 우측 같은 자리에 오는 앱 전역 문법(창고 WH-1·배낭 BAG-1)은
+//   그대로이고, 카테고리·색상·사이즈만 메타 텍스트에서 **칩**으로 바뀌었다 — 화면 대상(이름)이
+//   28pt로 커지면서 그 아래 회색 한 줄은 이름에 딸린 부제처럼 읽혔다.
 const WarehouseDetailInformationView: FC<Props> = ({ gear, photo }) => {
   // 한글 표시명 우선 — 창고/검색 리스트와 동일한 이름으로 보이게 한다(GD-1).
   const company = gear.getDisplayCompany();
@@ -34,47 +39,52 @@ const WarehouseDetailInformationView: FC<Props> = ({ gear, photo }) => {
   const categoryLabel = category
     ? gear.getFineCategoryLabel() || GEAR_FILTER_NAMES[gear.getGroupCategory()]
     : '';
-  // 카테고리 · 색상 · 사이즈 메타 라인 — 빈 항목 생략, 모두 없으면 라인 미노출
-  const metaLine = [categoryLabel, color, size].filter(Boolean).join(' · ');
+  // 카테고리 · 색상 · 사이즈 태그 — 빈 항목은 생략하고, 모두 없으면 칩 줄이 비어 있게 둔다.
+  const tags = [categoryLabel, color, size].filter(Boolean);
 
   return (
     <View style={styles.container}>
       {photo ? <View style={styles.photoRow}>{photo}</View> : null}
 
-      <View style={styles.identityRow}>
-        <View style={styles.identityColumn}>
-          {/* 값이 없으면 줄 자체를 렌더하지 않는다(GD-1) — 빈 텍스트를 두면 정체 줄에
-              죽은 공백이 생겨 이름이 아래로 밀린다. 메타 라인과 같은 규칙. */}
-          {company ? (
-            <PretendardText
-              style={styles.companyText}
-              weight='bold'
-              numberOfLines={1}
-            >
-              {company}
-            </PretendardText>
-          ) : null}
-          <PretendardText
-            weight='bold'
-            style={styles.nameText}
-            lineBreakStrategyIOS='hangul-word'
-            numberOfLines={2}
-          >
-            {name}
-          </PretendardText>
-          {metaLine ? (
-            <PretendardText style={styles.metaText} numberOfLines={1}>
-              {metaLine}
-            </PretendardText>
-          ) : null}
+      {/* 값이 없으면 줄 자체를 렌더하지 않는다(GD-1) — 빈 텍스트를 두면 죽은 공백이 생겨
+          이름이 아래로 밀린다. 태그 줄과 같은 규칙. */}
+      {company ? (
+        <PretendardText
+          weight='semibold'
+          style={styles.companyText}
+          numberOfLines={1}
+        >
+          {company}
+        </PretendardText>
+      ) : null}
+      <PretendardText
+        weight='bold'
+        style={styles.nameText}
+        lineBreakStrategyIOS='hangul-word'
+        numberOfLines={2}
+      >
+        {name}
+      </PretendardText>
+
+      {/* 태그 줄과 무게는 **글자 아랫선을 맞춘다**(flex-end) — 칩 줄이 두 줄로 늘어나도
+          무게가 마지막 줄과 나란히 앉아 두 정보가 한 행으로 읽힌다. */}
+      <View style={styles.metaRow}>
+        <View style={styles.tags}>
+          {/* 세 값이 서로 다른 축이라 같은 문자열이 겹칠 수 있다(색상 `블랙` · 사이즈 `블랙`
+              같은 데이터가 실제로 있다) — 라벨만으로 키를 만들면 중복 키가 된다. */}
+          {tags.map((tag, index) => (
+            <LiquidChip key={`${index}-${tag}`} label={tag} size='sm' />
+          ))}
         </View>
 
-        {/* 무게는 32pt 우측 정렬, `무게` 캡션은 생략한다 — `g` 단위가 이미 무엇인지 말해주고
-            목록 행에도 캡션이 없다. 캡션 없이도 화면에서 가장 큰 활자라 시각 앵커는 무게다(GD-1). */}
+        {/* 무게는 우측 정렬, `무게` 캡션은 생략한다 — `g` 단위가 이미 무엇인지 말해주고
+            목록 행에도 캡션이 없다. 캡션 없이도 화면에서 가장 큰 숫자라 시각 앵커는 무게다(GD-1).
+            콘덴스드는 한글 글리프가 없어 숫자·단위에만 쓴다. */}
         {weight ? (
-          <AcgDisplayText style={styles.weightText} numberOfLines={1}>
-            {`${weight}g`}
-          </AcgDisplayText>
+          <PretendardText style={styles.weightText} numberOfLines={1}>
+            {weight}
+            <PretendardText style={styles.weightUnit}>g</PretendardText>
+          </PretendardText>
         ) : null}
       </View>
     </View>
@@ -82,57 +92,57 @@ const WarehouseDetailInformationView: FC<Props> = ({ gear, photo }) => {
 };
 
 const styles = StyleSheet.create({
-  // 층 사이 간격(gap)은 바깥 여백(20)보다 좁게 둬 두 층이 한 덩어리로 읽히게 한다.
-  // 사진이 없으면 자식이 정체 줄 하나뿐이라 gap은 적용되지 않는다(GD-1).
   container: {
     flexDirection: 'column',
-    gap: Spacing.item,
-    paddingTop: Spacing.screenH,
-    paddingHorizontal: AcgLayout.screenH,
-    marginBottom: Spacing.screenH,
+    paddingTop: 14,
+    paddingHorizontal: LiquidLayout.screenH,
   },
   // 1층 — 사진은 가운데 단독 줄(GD-1).
   photoRow: {
     alignItems: 'center',
+    marginBottom: 16,
   },
-  // 2층 — 좌 정체 · 우 무게. 세로는 **상단 정렬**이다. 좌측이 3줄이라 목록 행(GearView)의 가운데
-  // 정렬을 그대로 쓰면 무게가 이름 줄 옆으로 내려앉아 브랜드 줄과 짝지어 읽히지 않는다.
-  // 32pt/40 무게와 24pt/32 브랜드는 행간 비율이 비슷해 상단 정렬만으로 글자 윗선이 거의 맞는다.
-  identityRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: Spacing.item,
-  },
-  identityColumn: {
-    flex: 1,
-    // 긴 브랜드·이름이 컬럼을 밀어내 우측 무게를 침범하지 않도록 최소 폭을 0으로 둔다(GD-1).
-    minWidth: 0,
-  },
-  // GD-1: 브랜드는 제품명(nameText)과 동일한 타이포로 표시한다.
+  // 브랜드는 이름을 여는 라벨이다 — 이름과 같은 크기로 두던 ACG 문법과 달리 한 단계 낮춘다.
   companyText: {
-    fontSize: 24,
-    lineHeight: 32,
-    color: Acg.ink,
+    fontSize: 13,
+    lineHeight: 18,
+    color: Liquid.inkMuted,
   },
   nameText: {
-    fontSize: 24,
-    lineHeight: 32,
-    color: Acg.ink,
-    marginTop: 2,
+    marginTop: 4,
+    fontSize: LiquidType.title2.fontSize,
+    lineHeight: LiquidType.title2.lineHeight,
+    letterSpacing: LiquidType.title2.letterSpacing,
+    color: Liquid.ink,
   },
-  metaText: {
-    fontSize: 13,
-    color: Acg.textSecondary,
-    marginTop: 6,
+  metaRow: {
+    marginTop: 14,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: 12,
   },
-  // 무게 — 고정 폭이 아니라 콘텐츠 폭이되 줄어들거나 줄바꿈되지 않게 한다(GD-1).
-  // 숫자라 콘덴스드를 쓴다 — 이 화면의 시각 앵커(ACG).
+  tags: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  // 고정 폭이 아니라 콘텐츠 폭이되 줄어들거나 줄바꿈되지 않게 한다(GD-1).
   weightText: {
-    fontSize: 32,
-    lineHeight: 40,
-    color: Acg.ink,
-    textAlign: 'right',
     flexShrink: 0,
+    fontFamily: LiquidFont.condensed,
+    fontSize: LiquidType.numXl.fontSize,
+    lineHeight: LiquidType.numXl.lineHeight,
+    letterSpacing: LiquidType.numXl.letterSpacing,
+    textAlign: 'right',
+    color: Liquid.ink,
+  },
+  // 단위는 값보다 작고 낮다. 부모 라인박스 안에 중첩하므로 행간은 부모가 정한다.
+  weightUnit: {
+    fontFamily: LiquidFont.condensed,
+    fontSize: 18,
+    color: Liquid.inkMuted,
   },
 });
 

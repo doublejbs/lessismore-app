@@ -2,7 +2,7 @@ import { FC, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import Gear from '@/model/gear/Gear';
-import { Spacing } from '@/constants/DesignTokens';
+import { LiquidLayout } from '@/constants/DesignTokens';
 import GearImageSource from '@/model/gear-image/GearImageSource';
 import GearImageUpload from '@/model/gear-image/GearImageUpload';
 import BottomMenuModalView from '../ui/BottomMenuModalView';
@@ -104,14 +104,16 @@ const WarehouseDetailBasicInfoView: FC<Props> = ({ gear }) => {
 
   return (
     <>
-      {/* `사진 추가`는 이미지 자리를 대신하는 플레이스홀더가 아니라 액션이라 정보 블록 위
-          전체 폭 행으로 둔다. 사진이 생기면 그 자리가 가운데 사진 줄로 바뀐다(GD-1·GD-13). */}
+      <WarehouseDetailInformationView gear={gear} photo={photo} />
+      {/* `사진 추가`는 이미지 자리를 대신하는 플레이스홀더가 아니라 **액션**이라 정체 블록
+          아래 전체 폭 점선 행으로 둔다(목업 §9). 화면 대상은 장비 이름이라 그 위에 점선 행이
+          먼저 오면 위계가 뒤집힌다. 사진이 생기면 정체 블록 위 가운데 사진 줄로 바뀐다
+          (GD-1·GD-13). */}
       {photo ? null : (
         <View style={styles.addRow}>
           <WarehouseDetailImageAddView busy={busy} onPress={handlePressAdd} />
         </View>
       )}
-      <WarehouseDetailInformationView gear={gear} photo={photo} />
       <BottomMenuModalView
         visible={gearImageUpload.isSheetVisible()}
         onClose={handleCloseSheet}
@@ -123,9 +125,9 @@ const WarehouseDetailBasicInfoView: FC<Props> = ({ gear }) => {
 
 const styles = StyleSheet.create({
   addRow: {
-    // 아래 기본 정보 섹션과 같은 좌우 정렬선(20pt). 하단 여백은 정보 섹션의 paddingTop이 맡는다.
-    paddingTop: Spacing.screenH,
-    paddingHorizontal: Spacing.screenH,
+    // 정체 블록과 같은 좌우 정렬선(20pt) — 목업 §9의 `margin: 20px 20px 0`.
+    marginTop: LiquidLayout.screenH,
+    paddingHorizontal: LiquidLayout.screenH,
   },
 });
 
