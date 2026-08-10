@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import SortOptionRow from '@/components/sort/SortOptionRow';
-import { Color } from '@/constants/DesignTokens';
+import { Liquid, LiquidLayout, LiquidType } from '@/constants/DesignTokens';
 import {
   getSortSheetContext,
   clearSortSheetContext,
@@ -65,17 +65,19 @@ const SortSheetScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Color.background,
-    paddingHorizontal: 20,
+    backgroundColor: Liquid.surface,
+    paddingHorizontal: LiquidLayout.screenH,
     paddingTop: 8,
   },
   header: {
     paddingVertical: 12,
   },
+  // 시트 제목은 화면 대상이라 title3 — 옵션 행(15)과 위계가 갈린다.
   title: {
-    fontSize: 18,
-    lineHeight: 26,
-    color: Color.textPrimary,
+    fontSize: LiquidType.title3.fontSize,
+    lineHeight: LiquidType.title3.lineHeight,
+    letterSpacing: LiquidType.title3.letterSpacing,
+    color: Liquid.ink,
   },
 });
 

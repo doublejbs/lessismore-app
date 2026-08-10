@@ -14,10 +14,14 @@ enum BagTripSection {
   Past = 'past',
 }
 
+/**
+ * 구간 라벨. 마이크로 섹션 라벨 한 줄만 보고도 무엇이 묶인 구간인지 읽혀야 해서
+ * `예정`·`지난` 대신 `여행 예정`·`지난 여행`으로 쓴다(2026-08-10, 핸드오프 §5 카피).
+ */
 export const BAG_TRIP_SECTION_LABEL: Record<BagTripSection, string> = {
   [BagTripSection.Ongoing]: '여행 중',
-  [BagTripSection.Upcoming]: '예정',
-  [BagTripSection.Past]: '지난',
+  [BagTripSection.Upcoming]: '여행 예정',
+  [BagTripSection.Past]: '지난 여행',
 };
 
 // 화면에 쌓는 차례. `여행 중`이 가장 급하고 `지난`이 회고다.

@@ -66,7 +66,13 @@ const LiquidPillButton: FC<Props> = ({
   if (variant === 'glass') {
     return (
       <TouchableOpacity
-        style={[styles.pill, styles.glassShell, block && styles.block, style]}
+        style={[
+          styles.pill,
+          styles.glassShell,
+          styles.clipped,
+          block && styles.block,
+          style,
+        ]}
         onPress={onPress}
         activeOpacity={LiquidMotion.pressOpacity}
         accessibilityRole='button'
@@ -122,6 +128,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     alignSelf: 'flex-start',
+  },
+  /**
+   * 유리 변형만 클리핑한다 — BlurView·채움 레이어를 알약 모양으로 깎으려면 필요하다.
+   * **잉크·라임 변형에는 걸지 않는다**: 같은 뷰에 `overflow: 'hidden'`과 `boxShadow`를
+   * 함께 주면 그림자가 자기 경계에서 잘려 CTA가 지면에서 떠 보이지 않는다.
+   */
+  clipped: {
     overflow: 'hidden',
   },
   block: {

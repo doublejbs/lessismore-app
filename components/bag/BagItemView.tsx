@@ -7,21 +7,32 @@ import Reanimated, {
   SharedValue,
   useAnimatedStyle,
 } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import app from '@/model/app/App';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
+import BagTripSection from '@/model/bag/BagTripSection';
 import PretendardText from '@/components/PretendardText';
-import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import LiquidProgressBar from '@/components/liquid/LiquidProgressBar';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Acg } from '@/constants/DesignTokens';
-
-// 삭제 스와이프 액션 배경 — 파괴적 액션 시맨틱 색(DesignTokens 예외, CLAUDE.md 참고).
-const DELETE_RED = '#FF3B30';
+import {
+  Liquid,
+  LiquidFont,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+  LiquidSemantic,
+  LiquidShadow,
+} from '@/constants/DesignTokens';
 
 // 액션 버튼 1개 너비. 전체 액션 영역 = ACTION_WIDTH * 2.
 const ACTION_WIDTH = 72;
 const ACTIONS_TOTAL_WIDTH = ACTION_WIDTH * 2;
+
+// `D-6`처럼 숫자·라틴만인 라벨에만 콘덴스드를 쓴다. `여행 중`·`오늘 출발`은 한글이라
+// Archivo Narrow에 글리프가 없어 글자가 깨진다(핸드오프 타입 규칙).
+const CONDENSED_LABEL_PATTERN = /^D-\d+$/;
 
 interface RightActionsProps {
   // ReanimatedSwipeable가 넘겨주는 드래그 변위(열릴수록 음수, 닫히면 0).
@@ -42,11 +53,11 @@ const RightActions: FC<RightActionsProps> = ({ drag, onCopy, onDelete }) => {
       <TouchableOpacity
         style={[styles.actionButton, styles.copyAction]}
         onPress={onCopy}
-        activeOpacity={0.7}
+        activeOpacity={LiquidMotion.pressOpacity}
         accessibilityRole='button'
         accessibilityLabel='배낭 복사'
       >
-        <IconSymbol name='doc.on.doc' size={20} color={Acg.paper} />
+        <IconSymbol name='doc.on.doc' size={20} color={Liquid.surface} />
         <PretendardText style={styles.actionLabel} weight='medium'>
           복사
         </PretendardText>
@@ -54,11 +65,11 @@ const RightActions: FC<RightActionsProps> = ({ drag, onCopy, onDelete }) => {
       <TouchableOpacity
         style={[styles.actionButton, styles.deleteAction]}
         onPress={onDelete}
-        activeOpacity={0.7}
+        activeOpacity={LiquidMotion.pressOpacity}
         accessibilityRole='button'
         accessibilityLabel='배낭 삭제'
       >
-        <IconSymbol name='trash.fill' size={20} color={Acg.paper} />
+        <IconSymbol name='trash.fill' size={20} color={Liquid.surface} />
         <PretendardText style={styles.actionLabel} weight='medium'>
           삭제
         </PretendardText>
@@ -70,12 +81,37 @@ const RightActions: FC<RightActionsProps> = ({ drag, onCopy, onDelete }) => {
 interface Props {
   bagItem: BagItem;
   bag: Bag;
+  // 카드 톤을 가르는 구간. 지난 여행은 조용한 면으로 낮춘다(핸드오프 §5).
+  section: BagTripSection;
+  // 예정·여행 중 카드의 D-day 라벨. 계산은 호출측이 한다 — 자정 기준 날짜를 화면이 들고 있다.
+  dDayLabel?: string | null;
+  // 가장 임박한 배낭 한 장. 라임 배지와 진행 줄은 이 카드에만 붙는다(화면당 라임 면 1개).
+  imminent?: boolean;
 }
 
-const BagItemView: FC<Props> = ({ bagItem, bag }) => {
-  const date = bagItem.getDate();
+/**
+ * BAG-1 배낭 카드 (Liquid Depth).
+ *
+ * 예정은 흰 종이 카드, 지난 여행은 `surfaceQuiet` + 0.5px 보더로 낮춘다 —
+ * 목록을 훑을 때 **앞으로 갈 여행만** 눈에 걸려야 한다.
+ * 진행 줄(`{n}/{m}`)은 홈 히어로·패킹 헤더와 같은 `BagItem` 값을 읽는다(세 곳이 어긋나면 안 됨).
+ */
+const BagItemView: FC<Props> = ({
+  bagItem,
+  bag,
+  section,
+  dDayLabel = null,
+  imminent = false,
+}) => {
+  // 날짜 없는 레거시 배낭은 null(GD-10) — 'Invalid Date'를 그리지 않는다.
+  const date = bagItem.getDisplayDate();
   const router = useRouter();
   const swipeableRef = useRef<SwipeableMethods>(null);
+  const isPast = section === BagTripSection.Past;
+  const gearCount = bagItem.getGearCount();
+  const packedCount = bagItem.getPackedGearCount();
+  // 진행 줄은 가장 임박한 카드에만 둔다. 담긴 장비가 없으면 그릴 값이 없다.
+  const showProgress = imminent && gearCount > 0;
 
   const handleClick = () => {
     app.getAnalyticsManager()?.logClick('bag_item');
@@ -117,142 +153,294 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
     />
   );
 
-  const rowAccessibilityLabel = `${bagItem.getName()}, ${date}, ${bagItem.getWeight()}kg`;
+  /**
+   * 배지는 구간마다 뜻이 다르다 — 예정은 **언제 떠나는지**(D-day), 지난 여행은
+   * **다 챙겼는지**(패킹)가 남는 정보다. 두 개를 함께 달면 카드마다 배지가 두 줄이 된다.
+   */
+  const getBadgeLabel = (): string | null => {
+    if (isPast) {
+      if (bagItem.isPackingComplete()) {
+        return '패킹 완료';
+      }
+
+      return bagItem.hasPackingRecord()
+        ? `패킹 ${bagItem.getPackingPercent()}%`
+        : null;
+    }
+
+    return dDayLabel;
+  };
+
+  const badgeLabel = getBadgeLabel();
+
+  const renderBadge = () => {
+    if (badgeLabel === null) {
+      return null;
+    }
+
+    if (isPast) {
+      const isComplete = bagItem.isPackingComplete();
+
+      return (
+        <View
+          style={[
+            styles.badge,
+            isComplete ? styles.badgeInk : styles.badgeQuiet,
+          ]}
+        >
+          {isComplete ? (
+            <Ionicons name='checkmark' size={12} color={Liquid.lime} />
+          ) : null}
+          <PretendardText
+            weight='semibold'
+            style={[
+              styles.badgeTextKorean,
+              isComplete ? styles.badgeTextOnInk : styles.badgeTextOnQuiet,
+            ]}
+          >
+            {badgeLabel}
+          </PretendardText>
+        </View>
+      );
+    }
+
+    const isCondensed = CONDENSED_LABEL_PATTERN.test(badgeLabel);
+
+    return (
+      <View
+        style={[styles.badge, imminent ? styles.badgeLime : styles.badgeQuiet]}
+      >
+        <PretendardText
+          weight='semibold'
+          style={[
+            isCondensed ? styles.badgeTextCondensed : styles.badgeTextKorean,
+            imminent ? styles.badgeTextOnLime : styles.badgeTextOnQuiet,
+          ]}
+        >
+          {badgeLabel}
+        </PretendardText>
+      </View>
+    );
+  };
+
+  // 배지·진행은 카드 안 텍스트지만 행 전체가 하나의 버튼이라 라벨에 함께 실어야 읽힌다.
+  const accessibilityLabel = [
+    badgeLabel,
+    bagItem.getName(),
+    date,
+    `${bagItem.getWeight()}kg`,
+    showProgress ? `패킹 ${packedCount}/${gearCount}` : null,
+  ]
+    .filter(part => part !== null)
+    .join(', ');
 
   return (
-    <ReanimatedSwipeable
-      ref={swipeableRef}
-      friction={2}
-      rightThreshold={40}
-      overshootRight={false}
-      renderRightActions={renderRightActions}
-    >
-      <TouchableOpacity
-        style={styles.container}
-        onPress={handleClick}
-        activeOpacity={0.7}
-        accessibilityRole='button'
-        accessibilityLabel={rowAccessibilityLabel}
+    <View style={[styles.shell, !isPast && styles.shellPaper]}>
+      <ReanimatedSwipeable
+        ref={swipeableRef}
+        friction={2}
+        rightThreshold={40}
+        overshootRight={false}
+        renderRightActions={renderRightActions}
+        // 기본 컨테이너가 overflow: hidden이라 카드 모서리를 여기서 깎는다 —
+        // 그림자는 바깥 껍데기(shell)가 들고 있어 잘리지 않는다.
+        containerStyle={[
+          styles.swipeContainer,
+          isPast && styles.swipeContainerQuiet,
+        ]}
       >
-        <View style={styles.header}>
-          {/* 좌 정체 컬럼 — 이름(말줄임)·날짜 */}
-          <View style={styles.identityColumn}>
-            <PretendardText weight='bold' style={styles.name} numberOfLines={1}>
-              {bagItem.getName()}
+        <TouchableOpacity
+          style={[styles.card, isPast ? styles.cardQuiet : styles.cardPaper]}
+          onPress={handleClick}
+          activeOpacity={LiquidMotion.pressOpacity}
+          accessibilityRole='button'
+          accessibilityLabel={accessibilityLabel}
+        >
+          <View style={styles.header}>
+            {/* 좌 정체 컬럼 — 배지·이름(말줄임)·기간 */}
+            <View style={styles.identityColumn}>
+              {renderBadge()}
+              <PretendardText
+                weight='semibold'
+                style={styles.name}
+                numberOfLines={1}
+              >
+                {bagItem.getName()}
+              </PretendardText>
+              {/* 기간은 숫자·구분자뿐이라 콘덴스드가 안전하다. */}
+              {date ? (
+                <PretendardText style={styles.date} numberOfLines={1}>
+                  {date}
+                </PretendardText>
+              ) : null}
+            </View>
+
+            {/* 우 지표 컬럼 — 총 무게. 행마다 같은 자리에 와야 배낭끼리 비교된다. */}
+            <PretendardText style={styles.weightWrap} numberOfLines={1}>
+              <PretendardText
+                style={[styles.weightValue, isPast && styles.weightValueQuiet]}
+              >
+                {bagItem.getWeight()}
+              </PretendardText>
+              <PretendardText
+                style={[styles.weightUnit, isPast && styles.weightUnitQuiet]}
+              >
+                kg
+              </PretendardText>
             </PretendardText>
-            <PretendardText style={styles.date}>{date}</PretendardText>
           </View>
 
-          {/* 우 지표 컬럼 — 패킹 칩(위, 기록 있을 때만) + 총 무게(아래) */}
-          <View style={styles.metricsColumn}>
-            {bagItem.hasPackingRecord() && (
-              <View
-                style={
-                  bagItem.isPackingComplete()
-                    ? styles.packingCompleteChip
-                    : styles.packingProgressChip
-                }
-              >
-                <PretendardText
-                  style={
-                    bagItem.isPackingComplete()
-                      ? styles.packingCompleteChipText
-                      : styles.packingProgressChipText
-                  }
-                  weight='medium'
-                >
-                  {bagItem.isPackingComplete()
-                    ? '패킹 완료'
-                    : `패킹 ${bagItem.getPackingPercent()}%`}
-                </PretendardText>
+          {showProgress ? (
+            <View style={styles.progressRow}>
+              <View style={styles.progressTrack}>
+                <LiquidProgressBar
+                  percent={bagItem.getPackingPercent()}
+                  height={6}
+                />
               </View>
-            )}
-            {/* 숫자라 콘덴스드를 쓴다 — 행의 시각 앵커(ACG). */}
-            <AcgDisplayText style={styles.weight}>
-              {`${bagItem.getWeight()}kg`}
-            </AcgDisplayText>
-          </View>
-        </View>
-      </TouchableOpacity>
-    </ReanimatedSwipeable>
+              <PretendardText style={styles.progressValue}>
+                {`${packedCount}/${gearCount}`}
+              </PretendardText>
+            </View>
+          ) : null}
+        </TouchableOpacity>
+      </ReanimatedSwipeable>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  // 배낭 행은 종이 면 — 구분선 대신 면을 띄우고 8px씩 벌린다(ACG).
-  container: {
-    width: '100%',
-    flexDirection: 'column',
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    marginBottom: 8,
-    backgroundColor: Acg.paper,
-    boxShadow: '0 1px 0 rgba(26,26,26,0.06)',
+  // 그림자는 껍데기가 든다 — 스와이프 컨테이너가 overflow: hidden이라 안쪽에 걸면 잘린다.
+  shell: {
+    borderRadius: LiquidRadius.card,
+    marginBottom: LiquidLayout.listGap,
   },
-  // BAG-1: 좌 정체 · 우 지표 2열(WH-1 공통 행 레이아웃과 동일 문법).
+  // 지난 카드는 그림자 없이 보더로만 지면과 떨어진다 — 이 스타일이 붙지 않는다.
+  shellPaper: {
+    boxShadow: LiquidShadow.card,
+  },
+  swipeContainer: {
+    borderRadius: LiquidRadius.card,
+  },
+  // 지난 카드는 그림자 대신 0.5px 보더로 지면에서 떨어뜨린다(핸드오프 quiet 카드).
+  swipeContainerQuiet: {
+    borderWidth: 0.5,
+    borderColor: Liquid.hairline,
+  },
+  card: {
+    padding: 18,
+  },
+  cardPaper: {
+    backgroundColor: Liquid.surface,
+  },
+  cardQuiet: {
+    backgroundColor: Liquid.surfaceQuiet,
+  },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
     gap: 12,
   },
   identityColumn: {
     flex: 1,
-    flexDirection: 'column',
-    gap: 9,
-    overflow: 'hidden',
+    minWidth: 0,
+  },
+  // 고정 높이 대신 minHeight — Dynamic Type으로 글자가 커져도 잘리지 않는다.
+  badge: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minHeight: 22,
+    paddingHorizontal: 8,
+    // pill(999) — 고정 반지름이면 Dynamic Type으로 높이가 22를 넘을 때 알약이 깨진다.
+    borderRadius: LiquidRadius.pill,
+    marginBottom: 8,
+  },
+  badgeLime: {
+    backgroundColor: Liquid.lime,
+  },
+  badgeQuiet: {
+    backgroundColor: Liquid.badgeFill,
+  },
+  badgeInk: {
+    backgroundColor: Liquid.ink,
+  },
+  // 크기와 색을 나눠 둔다 — 합치면 뒤에 온 색 스타일이 콘덴스드 크기를 덮는다.
+  badgeTextCondensed: {
+    fontFamily: LiquidFont.condensed,
+    fontSize: 12,
+  },
+  badgeTextKorean: {
+    fontSize: 11.5,
+  },
+  badgeTextOnLime: {
+    color: Liquid.limeOn,
+  },
+  badgeTextOnQuiet: {
+    color: Liquid.inkSecondary,
+  },
+  badgeTextOnInk: {
+    color: Liquid.surface,
   },
   name: {
-    fontSize: 16,
-    color: Acg.ink,
+    fontSize: 17,
+    lineHeight: 24,
+    color: Liquid.ink,
   },
   date: {
+    marginTop: 4,
+    fontFamily: LiquidFont.condensed,
     fontSize: 12.5,
-    letterSpacing: 0.3,
-    color: Acg.textSecondary,
+    letterSpacing: 0.63, // .05em
+    color: Liquid.inkMuted,
   },
-  // 무게는 라임 텍스트 — 목록에서 이 값 하나만 액센트로 세운다(홈 창고 미리보기와 동일).
-  weight: {
-    fontSize: 16,
-    lineHeight: 20,
-    color: Acg.limeText,
+  // 부모 라인박스를 자식 최대 크기(30)로 잡는다 — 없으면 numberOfLines={1}에서
+  // 큰 자식이 잘릴 수 있다(특히 Android).
+  weightWrap: {
+    flexShrink: 0,
     textAlign: 'right',
+    fontSize: 30,
+    lineHeight: 32,
   },
-  // 우 지표 컬럼 — 패킹 칩(위) + 무게(아래).
-  metricsColumn: {
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-    gap: 8,
+  weightValue: {
+    fontFamily: LiquidFont.condensed,
+    fontSize: 30,
+    lineHeight: 30,
+    letterSpacing: -0.6,
+    color: Liquid.ink,
   },
-  // 각진 칩(ACG). 완료는 잉크 채움, 진행 중은 아웃라인 — 위계는 그대로다.
-  packingCompleteChip: {
-    backgroundColor: Acg.ink,
-    borderRadius: 0,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
+  weightValueQuiet: {
+    color: Liquid.inkSecondary,
   },
-  packingCompleteChipText: {
-    fontSize: 12,
-    color: Acg.paper,
+  // 단위도 Archivo — 목업이 kg를 숫자와 같은 스팬에 넣는다(라틴 전용이라 안전).
+  weightUnit: {
+    fontFamily: LiquidFont.condensed,
+    fontSize: 14,
+    color: Liquid.inkMuted,
   },
-  packingProgressChip: {
-    backgroundColor: Acg.paper,
-    borderWidth: 1,
-    borderColor: Acg.ink,
-    borderRadius: 0,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
+  weightUnitQuiet: {
+    color: Liquid.inkSubtle,
   },
-  packingProgressChipText: {
-    fontSize: 12,
-    color: Acg.ink,
+  progressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 16,
   },
-  // 행 카드가 아래로 8px 벌어져 있어(container.marginBottom) 액션 패널에도 같은 여백을
-  // 줘야 위아래 끝이 카드와 맞는다 — 없으면 패널만 다음 행 틈까지 흘러내린다.
+  progressTrack: {
+    flex: 1,
+  },
+  progressValue: {
+    fontFamily: LiquidFont.condensed,
+    fontSize: 13,
+    color: Liquid.inkSecondary,
+  },
   actionsContainer: {
     width: ACTIONS_TOTAL_WIDTH,
     flexDirection: 'row',
     alignItems: 'stretch',
-    marginBottom: 8,
   },
   actionButton: {
     width: ACTION_WIDTH,
@@ -261,14 +449,15 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   copyAction: {
-    backgroundColor: Acg.ink,
+    backgroundColor: Liquid.ink,
   },
+  // 파괴적 액션은 의미색 — 리디자인해도 바꾸지 않는다.
   deleteAction: {
-    backgroundColor: DELETE_RED,
+    backgroundColor: LiquidSemantic.danger,
   },
   actionLabel: {
     fontSize: 12,
-    color: Acg.paper,
+    color: Liquid.surface,
   },
 });
 

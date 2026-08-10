@@ -4,8 +4,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Bag from '@/model/bag/Bag';
 import app from '@/model/app/App';
+import { Ionicons } from '@expo/vector-icons';
 import { createQuickBag } from '@/model/bag/QuickBagDefaults';
-import FloatingPillButton from '@/components/FloatingPillButton';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import { Liquid, LiquidLayout } from '@/constants/DesignTokens';
 
 interface Props {
   bag: Bag;
@@ -42,11 +44,14 @@ const BagAddView: FC<Props> = ({ bag }) => {
     }
   };
 
+  // 잉크 알약 + 라임 `add`(핸드오프 §5 FAB). 공용 FloatingPillButton은 아직 ACG인
+  // 창고가 함께 쓰고 있어 건드리지 않고, 이 화면만 Liquid 프리미티브로 옮긴다.
   return (
-    <FloatingPillButton
+    <LiquidPillButton
       label='배낭 추가'
       onPress={handlePressAdd}
       variant='primary'
+      leading={<Ionicons name='add' size={20} color={Liquid.lime} />}
       style={[styles.floatingButton, { bottom }]}
     />
   );
@@ -55,7 +60,7 @@ const BagAddView: FC<Props> = ({ bag }) => {
 const styles = StyleSheet.create({
   floatingButton: {
     position: 'absolute',
-    right: 20,
+    right: LiquidLayout.screenH,
   },
 });
 

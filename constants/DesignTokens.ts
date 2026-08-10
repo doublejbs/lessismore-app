@@ -172,6 +172,13 @@ export const Liquid = {
   chipStroke: 'rgba(16,16,18,0.06)',
   glassBlurIntensity: 70, // BlurView intensity (tint: 'light')
 
+  /**
+   * 중립 배지 면. 흰 카드 위에서 라임·잉크 배지보다 한 단계 낮은 자리에 쓴다 —
+   * 목업 §5 배낭 목록의 `D-21`(임박하지 않은 예정)·패킹 진행 배지가 이 값이다.
+   * 카드 면과 구분은 되지만 시선을 끌지 않는 최소 대비다.
+   */
+  badgeFill: 'rgba(16,16,18,0.07)',
+
   // ── 액센트 — 이 하나뿐. 면으로만 쓰고 글자는 ink를 얹는다.
   lime: '#C8F244',
   limeOn: '#101012',
