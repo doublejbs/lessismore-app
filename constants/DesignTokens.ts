@@ -209,6 +209,12 @@ export const Liquid = {
   chipFill: 'rgba(255,255,255,0.8)',
   chipStroke: 'rgba(16,16,18,0.06)',
   glassBlurIntensity: 70, // BlurView intensity (tint: 'light')
+  /**
+   * 바텀 시트의 유리. 목업 §12 로그인 시트는 blur36으로, 지면 위에 뜬 유리(blur30 =
+   * `glassBlurIntensity`)보다 한 단계 두껍다 — 시트는 뒤 화면을 **가리는** 면이라
+   * 뒤 형태가 읽히면 시트가 얇은 막처럼 보인다.
+   */
+  glassBlurIntensityStrong: 85,
 
   /**
    * 중립 배지 면. 흰 카드 위에서 라임·잉크 배지보다 한 단계 낮은 자리에 쓴다 —
@@ -385,9 +391,20 @@ export const LiquidRadius = {
    */
   thumb: 12,
   tile: 20, // 지표 타일, 리스트 카드
+  /**
+   * 카드 **안**에 겹쳐 놓는 작은 타일(목업 §11 내 정보 프로필 카드의 지표 3개).
+   * 부모 카드(26)보다 낮아야 안쪽 면이 카드 모서리를 밀어내지 않는다.
+   */
+  tileSm: 18,
   card: 22,
   hero: 26, // 히어로·유리 카드
   sheet: 28,
+  /**
+   * 바텀 시트 상단(목업 §12 로그인). 화면 폭을 꽉 채운 채 아래가 잘린 면이라
+   * `sheet`(28)보다 한 단계 크다 — 콘텐츠를 감싸는 시트(박지 상세)와 화면을 덮는
+   * 시트(로그인)의 차이다.
+   */
+  sheetLg: 32,
   pill: 999, // CTA, 탭바, 검색 필드
 } as const;
 

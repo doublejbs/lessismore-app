@@ -3,7 +3,14 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
-import { AcgShadow, Acg } from '@/constants/DesignTokens';
+import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidRadius,
+  LiquidShadow,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import InfoSubScreenHeaderView, {
   IOS_EDGES,
   IS_IOS,
@@ -23,11 +30,17 @@ const BUSINESS_INFO: { label: string; value: string }[] = [
   { label: '이메일', value: 'doublejbs@naver.com' },
 ];
 
+// 라벨 컬럼 고정 폭(목업 §9) — 값의 왼쪽 선이 모든 행에서 같아야 표로 읽힌다.
+const LABEL_WIDTH = 96;
+
 const InfoBusinessView: FC = () => {
   const insets = useSafeAreaInsets();
 
   return (
-    <Layout edges={IS_IOS ? IOS_EDGES : undefined}>
+    <Layout
+      edges={IS_IOS ? IOS_EDGES : undefined}
+      background={<LiquidBackdrop screen='none' glowPosition='topRight' />}
+    >
       <InfoSubScreenHeaderView title='사업자 정보' />
 
       <ScrollView
@@ -38,20 +51,26 @@ const InfoBusinessView: FC = () => {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* 정보 표라 종이 면 위에 올린다(ACG) — 지면 위에 표만 떠 있으면 측량 마크·
-            라임 트레일이 행 사이를 지나가 산만하다(2026-08-04 시뮬레이터 확인). */}
-        <View style={styles.paper}>
-          {BUSINESS_INFO.map(({ label, value }, index) => (
-            <View
-              key={label}
-              style={[styles.row, index > 0 && styles.rowDivider]}
-            >
-              <PretendardText style={styles.label}>{label}</PretendardText>
-              <PretendardText style={styles.value} selectable>
-                {value}
-              </PretendardText>
-            </View>
-          ))}
+        {/* 그림자는 껍데기가 든다 — 안쪽에서 모서리를 깎으므로(overflow) 같은 뷰에 그림자를
+            걸면 자기 경계에서 잘린다(장비 상세 스펙 표와 같은 구조). */}
+        <View style={styles.cardShell}>
+          <View style={styles.cardClip}>
+            {BUSINESS_INFO.map(({ label, value }, index) => (
+              <View key={label}>
+                {index > 0 ? <View style={styles.divider} /> : null}
+                <View style={styles.row}>
+                  <PretendardText style={styles.label}>{label}</PretendardText>
+                  <PretendardText
+                    weight='medium'
+                    style={styles.value}
+                    selectable
+                  >
+                    {value}
+                  </PretendardText>
+                </View>
+              </View>
+            ))}
+          </View>
         </View>
       </ScrollView>
     </Layout>
@@ -63,31 +82,41 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 40,
   },
-  paper: {
-    paddingHorizontal: 16,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+  cardShell: {
+    borderRadius: LiquidRadius.card,
+    boxShadow: LiquidShadow.card,
+  },
+  cardClip: {
+    borderRadius: LiquidRadius.card,
+    overflow: 'hidden',
+    backgroundColor: Liquid.surface,
+    paddingHorizontal: LiquidLayout.cardPad,
+    // 첫 행·마지막 행이 모서리에 붙지 않을 정도만 — 행 자체가 세로 여백을 갖는다.
+    paddingVertical: 4,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    paddingVertical: 14,
+    paddingVertical: 13,
   },
-  rowDivider: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Acg.line2,
+  // 카드 안쪽 여백을 그대로 가로지른다 — 라벨 컬럼이 이미 왼쪽 선을 만들어, 목록 행처럼
+  // 구분선을 들여쓰면 표가 두 덩어리로 갈려 보인다(장비 상세 스펙 표와 같은 판단).
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Liquid.hairline,
   },
-  // 라벨 폭을 고정해 값의 시작 위치를 세로로 맞춘다.
   label: {
-    width: 110,
-    fontSize: 14,
-    color: Acg.textSecondary,
+    width: LABEL_WIDTH,
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: Liquid.inkMuted,
   },
   value: {
     flex: 1,
-    fontSize: 14,
-    color: Acg.ink,
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: Liquid.ink,
   },
 });
 

@@ -23,6 +23,12 @@ interface Props {
    * 스크린리더가 하지도 못할 동작을 약속한다(`LiquidAddCta`와 같은 처리).
    */
   onPress?: () => void;
+  /**
+   * 스크린리더 롤. 기본은 `button`이고, 한 줄에서 하나만 골라 화면 내용을 바꾸는 구간
+   * 전환(약관·정책 문서 탭)은 `tab`을 넘긴다 — 같은 알약이라도 필터를 켜는 것과 보고 있는
+   * 문서를 바꾸는 것은 다른 약속이다.
+   */
+  role?: 'button' | 'tab';
 }
 
 /**
@@ -47,6 +53,7 @@ const LiquidChip: FC<Props> = ({
   dotColor,
   onMap = false,
   onPress,
+  role = 'button',
 }) => {
   const height = size === 'sm' ? 28 : 34;
   const shape = [
@@ -92,7 +99,7 @@ const LiquidChip: FC<Props> = ({
       onPress={onPress}
       activeOpacity={LiquidMotion.pressOpacity}
       hitSlop={CHIP_HIT_SLOP[size]}
-      accessibilityRole='button'
+      accessibilityRole={role}
       accessibilityState={{ selected }}
       accessibilityLabel={label}
     >

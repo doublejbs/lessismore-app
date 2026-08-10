@@ -1,8 +1,7 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import BagItem from '@/model/bag/BagItem';
 import Gear from '@/model/gear/Gear';
-import GearFilter from '@/model/gear/GearFilter';
-import OrderType from '@/model/order/OrderType';
+import { loadHomeRecordSources } from '@/model/home/HomeRecordSources';
 import BagStore from '@/model/store/BagStore';
 import GearStore from '@/model/store/GearStore';
 import Firebase from '@/model/firebase/Firebase';
@@ -18,11 +17,7 @@ import app from '@/model/app/App';
  */
 class Home {
   public static new() {
-    return new Home(
-      app.getBagStore()!,
-      app.getGearStore()!,
-      app.getFirebase()
-    );
+    return new Home(app.getBagStore()!, app.getGearStore()!, app.getFirebase());
   }
 
   private bags: BagItem[] = [];
@@ -47,10 +42,9 @@ class Home {
   }
 
   /**
-   * 배낭·장비를 함께 읽는다.
-   *
-   * **두 조회를 병렬로 낸다** — 순차로 하면 첫 진입 대기가 두 배가 되고, 둘 사이에
-   * 의존이 없다. 한쪽이 실패해도 다른 쪽 카드는 그려야 하므로 개별로 감싼다.
+   * 배낭·장비를 함께 읽는다. 조회 자체는 정보 탭(AU-4)과 공유하는
+   * `loadHomeRecordSources`가 맡는다 — 두 화면의 수가 어긋나지 않으려면 같은 인자로
+   * 같은 쿼리를 내야 한다.
    */
   public async load() {
     if (!this.firebase.isLoggedIn()) {
@@ -66,38 +60,14 @@ class Home {
       this.setLoading(true);
     }
 
-    const [bags, gears] = await Promise.all([
-      this.loadBags(),
-      this.loadGears(),
-    ]);
+    const { bags, gears } = await loadHomeRecordSources(
+      this.bagStore,
+      this.gearStore
+    );
 
     this.setBags(bags);
     this.setGears(gears);
     this.setLoading(false);
-  }
-
-  private async loadBags(): Promise<BagItem[]> {
-    try {
-      return await this.bagStore.getList();
-    } catch (e) {
-      console.error('홈 배낭 조회 실패:', e);
-
-      return [];
-    }
-  }
-
-  private async loadGears(): Promise<Gear[]> {
-    try {
-      // 카테고리 필터는 홈에서 클라이언트로 거르므로 전체를 한 번만 읽는다.
-      return await this.gearStore.getList(
-        [GearFilter.All],
-        OrderType.CreatedDesc
-      );
-    } catch (e) {
-      console.error('홈 창고 조회 실패:', e);
-
-      return [];
-    }
   }
 
   public getBags() {

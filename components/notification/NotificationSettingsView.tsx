@@ -1,17 +1,21 @@
 import { FC, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  Switch,
-  TouchableOpacity,
-  Platform,
-} from 'react-native';
+import { View, StyleSheet, Switch } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
-import { AcgShadow, Acg, Color } from '@/constants/DesignTokens';
+import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
+import InfoSubScreenHeaderView, {
+  IOS_EDGES,
+  IS_IOS,
+  NATIVE_HEADER_HEIGHT,
+} from '@/components/info/InfoSubScreenHeaderView';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidRadius,
+  LiquidShadow,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 type ToggleKey = 'packing' | 'useless' | 'notice';
@@ -27,15 +31,7 @@ const TOGGLE_ROWS: ToggleRow[] = [
   { key: 'notice', label: '공지 알림' },
 ];
 
-// LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
-const IS_IOS = Platform.OS === 'ios';
-// iOS 네이티브 내비게이션 바 높이 — 고정(비스크롤) 상단 콘텐츠의 시작 위치 보정용.
-const NATIVE_HEADER_HEIGHT = 44;
-// iOS는 네이티브 투명 헤더가 상단을 덮으므로 top 세이프에어리어를 빼 이중 인셋을 막는다.
-const IOS_EDGES = ['left', 'right', 'bottom'] as const;
-
 const NotificationSettingsView: FC = () => {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const notificationManager = app.getNotificationManager();
   const [settings, setSettings] = useState(
@@ -46,10 +42,6 @@ const NotificationSettingsView: FC = () => {
         notice: true,
       }
   );
-
-  const handlePressBack = () => {
-    router.back();
-  };
 
   const handleToggle = async (key: ToggleKey, value: boolean) => {
     setSettings(prev => ({ ...prev, [key]: value }));
@@ -68,113 +60,89 @@ const NotificationSettingsView: FC = () => {
   };
 
   return (
-    <Layout edges={IS_IOS ? IOS_EDGES : undefined}>
-      {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)은 시스템에 위임하고
-          (headerBlurEffect·headerStyle.backgroundColor 지정 금지), 화면 타이틀은
-          네이티브 headerTitle로 통합한다(본문 타이틀 행과 중복 표시 금지). */}
-      <Stack.Screen
-        options={{
-          headerShown: IS_IOS,
-          headerTransparent: true,
-          headerTitle: '알림 설정',
-          headerBackButtonDisplayMode: 'minimal',
-        }}
-      />
-      {!IS_IOS && (
-        <>
-          <View style={styles.header}>
-            <TouchableOpacity
-              onPress={handlePressBack}
-              style={styles.backButton}
-            >
-              <Ionicons
-                name='chevron-back'
-                size={24}
-                color={Color.textPrimary}
-              />
-            </TouchableOpacity>
-          </View>
+    <Layout
+      edges={IS_IOS ? IOS_EDGES : undefined}
+      background={<LiquidBackdrop screen='none' glowPosition='topRight' />}
+    >
+      <InfoSubScreenHeaderView title='알림 설정' />
 
-          <View style={styles.titleContainer}>
-            <PretendardText weight='bold' style={styles.title}>
-              알림 설정
-            </PretendardText>
-          </View>
-        </>
-      )}
-
+      {/* 그림자는 껍데기가 든다 — 안쪽에서 모서리를 깎으므로(overflow) 같은 뷰에 그림자를
+          걸면 자기 경계에서 잘린다(장비 상세 섹션 카드와 같은 구조). */}
       <View
         style={[
-          styles.list,
-          // LG-1: 고정(비스크롤) 화면이라 토글 리스트가 투명 헤더(상태바+44pt) 아래에서
+          styles.cardShell,
+          // LG-1: 고정(비스크롤) 화면이라 토글 카드가 투명 헤더(상태바+44pt) 아래에서
           // 시작하도록 여백을 준다. 헤더 아래 살짝 띄우는 여백은 기존 톤(24pt)을 따른다.
           IS_IOS && {
             marginTop: insets.top + NATIVE_HEADER_HEIGHT + 24,
           },
         ]}
       >
-        {TOGGLE_ROWS.map((row, index) => (
-          <View
-            key={row.key}
-            style={[
-              styles.row,
-              index === TOGGLE_ROWS.length - 1 && styles.rowLast,
-            ]}
-          >
-            <PretendardText weight='medium' style={styles.rowLabel}>
-              {row.label}
-            </PretendardText>
-            <Switch
-              value={settings[row.key]}
-              onValueChange={value => handleToggle(row.key, value)}
-              trackColor={{
-                false: Color.borderLight,
-                true: Color.textPrimary,
-              }}
-              thumbColor={Color.background}
-              ios_backgroundColor={Color.borderLight}
-            />
-          </View>
-        ))}
+        <View style={styles.cardClip}>
+          {TOGGLE_ROWS.map((row, index) => (
+            <View key={row.key}>
+              {index > 0 ? <View style={styles.divider} /> : null}
+              <View style={styles.row}>
+                <PretendardText weight='medium' style={styles.rowLabel}>
+                  {row.label}
+                </PretendardText>
+                <Switch
+                  value={settings[row.key]}
+                  onValueChange={value => handleToggle(row.key, value)}
+                  // 스위치는 별도 요소로 포커스되므로 행 라벨과 같은 문구를 직접 건다 —
+                  // 없으면 VoiceOver에 "켬/끔"만 읽혀 어느 알림인지 알 수 없다.
+                  accessibilityLabel={row.label}
+                  trackColor={{
+                    false: Liquid.surfaceSunken,
+                    true: Liquid.ink,
+                  }}
+                  thumbColor={Liquid.surface}
+                  ios_backgroundColor={Liquid.surfaceSunken}
+                />
+              </View>
+            </View>
+          ))}
+        </View>
       </View>
     </Layout>
   );
 };
 
 const styles = StyleSheet.create({
-  header: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
+  cardShell: {
+    // Android·Web은 커스텀 헤더 행(56) 바로 아래라 카드가 헤더에 붙지 않을 만큼만 띄운다.
+    // iOS는 아래 인라인 스타일이 이 값을 투명 헤더 보정값으로 덮는다.
+    marginTop: 12,
+    borderRadius: LiquidRadius.card,
+    boxShadow: LiquidShadow.card,
   },
-  backButton: {
-    paddingVertical: 8,
+  cardClip: {
+    borderRadius: LiquidRadius.card,
+    overflow: 'hidden',
+    backgroundColor: Liquid.surface,
   },
-  titleContainer: {
-    paddingVertical: 24,
+  // 목록 행이라 구분선을 라벨 시작선까지 들여쓴다 — 스펙 표(라벨 컬럼이 왼쪽 선을 만드는
+  // 경우)와 달리 여기선 행마다 라벨이 곧 첫 글자다.
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    marginLeft: LiquidLayout.cardPad,
+    backgroundColor: Liquid.hairline,
   },
-  title: {
-    fontSize: 20,
-  },
-  // 정보 탭 메뉴와 같은 문법 — 행마다 종이 면, 8px 간격(ACG). 한 카드 안에 구분선으로
-  // 묶던 형태는 앱의 다른 목록과 문법이 갈렸다(2026-08-04 시뮬레이터 확인).
-  list: {
-    gap: 8,
-  },
+  // 고정 높이를 주지 않는다 — Dynamic Type에서 라벨이 잘린다. 세로 여백으로 44pt를 만든다.
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    gap: 12,
+    minHeight: LiquidLayout.touchMin,
+    paddingVertical: LiquidLayout.cardPad,
+    paddingHorizontal: LiquidLayout.cardPad,
   },
-  rowLast: {},
   rowLabel: {
-    fontSize: 16,
-    color: Acg.ink,
+    flex: 1,
+    fontSize: LiquidType.body.fontSize,
+    lineHeight: LiquidType.body.lineHeight,
+    color: Liquid.ink,
   },
 });
 

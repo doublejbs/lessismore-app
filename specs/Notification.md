@@ -2,9 +2,9 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | as-built (2026-07-05 구현) |
+| 상태 | as-built (2026-07-05 구현) · **2026-08-11 개정(as-built)**: 알림 설정 화면을 Liquid Depth로 이식 — 공용 헤더 사용 + 토글 카드 문법(NT-6) |
 | ID 프리픽스 | `NT` |
-| 주요 코드 | `model/notification/`, `app/_layout.tsx`, `model/bag/`·`model/store/BagStore.ts`(예약 트리거) |
+| 주요 코드 | `model/notification/`, `components/notification/`, `app/_layout.tsx`, `model/bag/`·`model/store/BagStore.ts`(예약 트리거) |
 | 관련 스펙 | [Bag.md](Bag.md), [BagDetail.md](BagDetail.md), [AppLifecycle.md](AppLifecycle.md), [DataModel.md](DataModel.md) |
 
 ## 1. 개요
@@ -90,6 +90,8 @@
   - 공지 → 토픽 `all` 구독 해제. ON → 재구독.
 - 설정은 **기기 로컬 저장**(AsyncStorage 등). 로컬 리마인더가 기기 종속이므로 설정도 기기 단위(재설치 시 초기화 — known issue).
 - OS 레벨에서 앱 알림이 꺼져 있으면 앱 내 토글과 무관하게 표시되지 않음(별도 처리 없음).
+- **화면 문법 (as-built, 2026-08-11 — Liquid Depth)**: 지형 없는 지면 + 정보 탭 하위 화면 **공용 헤더**(`InfoSubScreenHeaderView` — iOS 네이티브 투명 헤더 / Android·Web 커스텀 헤더 행, [Auth.md](Auth.md) §2)를 쓰고, 토글 세 줄은 **흰 카드 하나** 안에서 좌측 16 들여쓴 헤어라인으로 갈린다. 스위치는 켜짐이 잉크 면이다.
+  - **[이력] 2026-08-10까지**: 자체 back 행 + 20pt 타이틀 블록(Android·Web)에 행마다 각진 종이 면 + 8px 간격. 화면 이름을 헤더와 본문에서 두 번 말하고 있었다.
 
 ## 4. 데이터
 

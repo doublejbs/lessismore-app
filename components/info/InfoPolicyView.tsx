@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Layout from '@/components/Layout';
 import InfoSubScreenHeaderView, {
@@ -8,7 +8,14 @@ import InfoSubScreenHeaderView, {
   NATIVE_HEADER_HEIGHT,
 } from '@/components/info/InfoSubScreenHeaderView';
 import PretendardText from '@/components/PretendardText';
-import { AcgShadow, Acg, Color, Radius } from '@/constants/DesignTokens';
+import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
+import LiquidChip from '@/components/liquid/LiquidChip';
+import {
+  Liquid,
+  LiquidRadius,
+  LiquidShadow,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import {
   PRIVACY_POLICY_TEXT,
   TERMS_OF_SERVICE_TEXT,
@@ -47,37 +54,31 @@ const InfoPolicyView: FC<Props> = ({ initialTab }) => {
   const insets = useSafeAreaInsets();
 
   return (
-    <Layout edges={IS_IOS ? IOS_EDGES : undefined}>
+    <Layout
+      edges={IS_IOS ? IOS_EDGES : undefined}
+      background={<LiquidBackdrop screen='none' glowPosition='topRight' />}
+    >
       <InfoSubScreenHeaderView title='약관 및 정책' />
 
+      {/* 칩 하나하나가 `tab`이므로 감싸는 줄은 `tablist`다 — 스크린리더가 "2개 중 1번째 탭"으로
+          읽어야 두 문서 사이를 오갈 수 있다는 것이 전해진다. */}
       <View
+        accessibilityRole='tablist'
         style={[
           styles.tabRow,
           // iOS는 투명 네이티브 헤더가 상단을 덮으므로 그만큼 내려서 시작한다(LG-1).
           IS_IOS && { marginTop: insets.top + NATIVE_HEADER_HEIGHT },
         ]}
       >
-        {TAB_ORDER.map(tab => {
-          const selected = tab === selectedTab;
-
-          return (
-            <TouchableOpacity
-              key={tab}
-              style={[styles.tab, selected && styles.tabSelected]}
-              onPress={() => setSelectedTab(tab)}
-              activeOpacity={0.7}
-              accessibilityRole='tab'
-              accessibilityState={{ selected }}
-            >
-              <PretendardText
-                style={[styles.tabText, selected && styles.tabTextSelected]}
-                weight={selected ? 'bold' : 'medium'}
-              >
-                {TAB_LABELS[tab]}
-              </PretendardText>
-            </TouchableOpacity>
-          );
-        })}
+        {TAB_ORDER.map(tab => (
+          <LiquidChip
+            key={tab}
+            label={TAB_LABELS[tab]}
+            selected={tab === selectedTab}
+            onPress={() => setSelectedTab(tab)}
+            role='tab'
+          />
+        ))}
       </View>
 
       <ScrollView
@@ -85,6 +86,8 @@ const InfoPolicyView: FC<Props> = ({ initialTab }) => {
         contentContainerStyle={styles.contentInner}
         showsVerticalScrollIndicator={false}
       >
+        {/* 긴 법률 문서라 흰 카드 위에 올린다 — 지면의 라임 글로우가 글줄 사이로 지나가면
+            읽기 흐름이 끊긴다. */}
         <View style={styles.paper}>
           <PretendardText style={styles.bodyText} selectable>
             {TAB_TEXTS[selectedTab]}
@@ -101,44 +104,23 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 12,
   },
-  // 고정 높이를 주지 않는다 — Dynamic Type에서 라벨이 잘린다. 세로 여백으로 44pt를 만든다.
-  tab: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: Radius.chip,
-    borderWidth: 1,
-    borderColor: Color.chipBorder,
-    backgroundColor: Color.background,
-  },
-  tabSelected: {
-    backgroundColor: Color.chipActiveBg,
-    borderColor: Color.chipActiveBg,
-  },
-  tabText: {
-    fontSize: 14,
-    color: Color.textSecondary,
-  },
-  tabTextSelected: {
-    color: Color.background,
-  },
   content: {
     flex: 1,
   },
-  // 긴 법률 문서라 종이 면 위에 올린다(ACG) — 지면의 그레인·측량 마크·라임 트레일이
-  // 글줄 사이로 지나가 읽기 어려웠다(2026-08-04 시뮬레이터 확인).
   contentInner: {
     paddingBottom: 40,
   },
   paper: {
-    padding: 16,
-    marginBottom: 24,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    padding: 18,
+    borderRadius: LiquidRadius.card,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.card,
   },
   bodyText: {
-    fontSize: 13,
-    lineHeight: 20,
-    color: Acg.textTertiary,
+    fontSize: LiquidType.bodySm.fontSize,
+    // 수천 자를 잇는 전문이라 본문 스케일(19)보다 줄간을 벌린다.
+    lineHeight: 21,
+    color: Liquid.inkSecondary,
   },
 });
 

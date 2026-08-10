@@ -13,15 +13,21 @@ import {
   Liquid,
   LiquidLayout,
   LiquidRadius,
+  LiquidSemantic,
   LiquidShadow,
   LiquidMotion,
 } from '@/constants/DesignTokens';
 
-type PillVariant = 'primary' | 'accent' | 'secondary' | 'glass';
+type PillVariant = 'primary' | 'accent' | 'secondary' | 'glass' | 'danger';
 
 interface Props {
   label: string;
-  /** primary=잉크 · accent=라임 · secondary=흰 아웃라인 · glass=유리 */
+  /**
+   * primary=잉크 · accent=라임 · secondary=흰 아웃라인 · glass=유리 ·
+   * danger=되돌릴 수 없는 액션(회원 탈퇴). `danger`는 의미색이라 액센트 체계 밖이며,
+   * 앱에서 이 변형을 쓰는 자리는 탈퇴 확정 하나뿐이다 — 지우기·해제처럼 되돌릴 수 있는
+   * 액션에는 쓰지 않는다.
+   */
   variant?: PillVariant;
   leading?: ReactNode;
   trailing?: ReactNode;
@@ -47,6 +53,7 @@ const LABEL_COLOR: Record<PillVariant, string> = {
   accent: Liquid.limeOn,
   secondary: Liquid.ink,
   glass: Liquid.ink,
+  danger: Liquid.surface,
 };
 
 /**
@@ -141,6 +148,11 @@ const VARIANT_STYLES: Record<Exclude<PillVariant, 'glass'>, ViewStyle> = {
     backgroundColor: Liquid.surface,
     borderWidth: 1,
     borderColor: Liquid.hairlineStrong,
+  },
+  // 잉크 CTA와 같은 무게로 떠 있어야 한다 — 그림자는 잉크 계열 그대로 쓴다.
+  danger: {
+    backgroundColor: LiquidSemantic.danger,
+    boxShadow: LiquidShadow.cta,
   },
 };
 
