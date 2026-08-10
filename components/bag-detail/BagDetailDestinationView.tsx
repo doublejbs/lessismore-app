@@ -1,14 +1,11 @@
 import { FC, useCallback, useRef } from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useFocusEffect, useRouter } from 'expo-router';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import { setBagDestinationPicker } from '@/model/bag-destination/BagDestinationPickerHandoff';
-import PretendardText from '@/components/PretendardText';
-import { AcgShadow, Acg, Color, Radius } from '@/constants/DesignTokens';
+import BagDetailTileView from './BagDetailTileView';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 
 interface Props {
@@ -76,8 +73,6 @@ const BagDetailDestinationView: FC<Props> = ({
   const tripDaily = bagWeather.getDailyInRange();
   const summary =
     tripDaily.length > 0 ? summarizeWeatherPeriod(tripDaily) : null;
-  const fg = emphasized ? Color.background : Color.textPrimary;
-  const subFg = emphasized ? Color.iconMuted : Color.textSecondary;
   // 날씨가 있으면 대표 상태 아이콘을, 없으면 여행지 자체를 나타내는 아이콘을 쓴다.
   const iconName = summary
     ? summary.icon
@@ -96,61 +91,16 @@ const BagDetailDestinationView: FC<Props> = ({
         : null
     : '여행지 선택';
 
-  // 강조여도 48% 그리드 세로 카드는 그대로 두고 배경/전경색만 검정으로 바꾼다.
   return (
-    <TouchableOpacity
-      style={[styles.tile, emphasized && styles.tileEmphasized]}
+    <BagDetailTileView
+      icon={iconName}
+      emphasized={emphasized}
+      title={title}
+      subtitle={subtitle}
       onPress={handlePress}
-      activeOpacity={0.7}
-      accessibilityRole='button'
       accessibilityLabel={location ? `여행지 ${location.name}` : '여행지 선택'}
-    >
-      <Ionicons name={iconName} size={24} color={fg} />
-      <View style={styles.textWrap}>
-        <PretendardText
-          style={[styles.title, { color: fg }]}
-          weight='semibold'
-          numberOfLines={1}
-        >
-          {title}
-        </PretendardText>
-        {subtitle && (
-          <PretendardText
-            style={[styles.subtitle, { color: subFg }]}
-            numberOfLines={1}
-          >
-            {subtitle}
-          </PretendardText>
-        )}
-      </View>
-    </TouchableOpacity>
+    />
   );
 };
-
-const styles = StyleSheet.create({
-  tile: {
-    width: '48%',
-    minHeight: 92,
-    // 지면 위 타일이라 종이 면을 쓴다 — 회색(surfaceMuted)은 지면과 가까워 타일이
-    // 떠 보이지 않았다(2026-08-04 사용자 지적). 강조 타일만 잉크 면이다.
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
-    borderRadius: Radius.card,
-    padding: 14,
-    justifyContent: 'space-between',
-  },
-  tileEmphasized: {
-    backgroundColor: Color.chipActiveBg,
-  },
-  textWrap: {
-    gap: 2,
-  },
-  title: {
-    fontSize: 15,
-  },
-  subtitle: {
-    fontSize: 12,
-  },
-});
 
 export default observer(BagDetailDestinationView);

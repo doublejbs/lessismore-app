@@ -5,7 +5,7 @@ import {
   NaverMapPathOverlay,
   NaverMapView,
 } from '@mj-studio/react-native-naver-map';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Liquid, LiquidRadius, LiquidShadow } from '@/constants/DesignTokens';
 import {
   HealthRoutePoint,
   HealthWorkoutRoute,
@@ -15,15 +15,19 @@ interface Props {
   routes: HealthWorkoutRoute[];
 }
 
-/** 폴리라인 색. 데이터 시각화 색이라 토큰 예외로 하드코딩한다(CLAUDE.md). */
+/**
+ * 경로선·마커 색. 데이터 시각화 색이라 토큰 예외로 하드코딩한다(CLAUDE.md).
+ *
+ * **지도 타일 위에 얹히는 색이라 채도를 낮추지 않는다.** 흰 카드 위 그래프(`LiquidSemantic`
+ * 시각화 팔레트)와 달리 배경이 위성·지형 타일이어서, 차분한 값으로 바꾸면 경로가 타일에 묻는다.
+ * 마커는 지도 관례(초록=시작, 빨강=종료)를 따른다.
+ */
 const ROUTE_COLOR = '#2F6BFF';
-const ROUTE_OUTLINE_COLOR = '#FFFFFF';
-const ROUTE_WIDTH = 5;
-const ROUTE_OUTLINE_WIDTH = 2;
-
-/** 시작/종료 마커 색. */
 const START_MARKER_COLOR = '#22C55E';
 const END_MARKER_COLOR = '#EF4444';
+
+const ROUTE_WIDTH = 5;
+const ROUTE_OUTLINE_WIDTH = 2;
 const MARKER_SIZE = 16;
 
 /** 경로선은 좌표가 2개 미만이면 지도에 추가되지 않는다(라이브러리 제약). */
@@ -37,6 +41,8 @@ const CAMERA_PADDING_RATIO = 1.3;
  * 그대로 쓰면 최대 줌으로 붙어 버린다. 약 100m 스팬으로 하한을 둔다.
  */
 const MIN_REGION_DELTA = 0.001;
+
+const MAP_HEIGHT = 220;
 
 const toCoords = (points: HealthRoutePoint[]) => {
   // 네이티브로 넘길 땐 좌표만 남긴다 — timestamp·altitude는 오버레이가 쓰지 않는다.
@@ -92,88 +98,100 @@ const BagActivityRouteMapView: FC<Props> = ({ routes }) => {
   const allPoints = drawable.flatMap(route => route.points);
 
   return (
+    // 그림자는 바깥 껍데기가 든다 — 지도 모서리를 깎으려면 안쪽에 `overflow: hidden`이
+    // 필요하고, 같은 뷰에 그림자를 함께 주면 자기 경계에서 잘린다.
     <View
-      style={styles.container}
+      style={styles.shell}
       accessible
       accessibilityLabel={`이동 경로 지도, 경로 ${drawable.length}개`}
     >
-      <NaverMapView
-        style={StyleSheet.absoluteFill}
-        initialRegion={getRegion(allPoints)}
-        isShowLocationButton={false}
-        isShowZoomControls={false}
-        isShowScaleBar={false}
-        isShowCompass={false}
-        isScrollGesturesEnabled={false}
-        isZoomGesturesEnabled={false}
-        isTiltGesturesEnabled={false}
-        isRotateGesturesEnabled={false}
-        isStopGesturesEnabled={false}
-      >
-        {drawable.map(route => (
-          <NaverMapPathOverlay
-            key={route.workoutId}
-            coords={toCoords(route.points)}
-            width={ROUTE_WIDTH}
-            color={ROUTE_COLOR}
-            outlineWidth={ROUTE_OUTLINE_WIDTH}
-            outlineColor={ROUTE_OUTLINE_COLOR}
-          />
-        ))}
-        {drawable.map(route => {
-          const start = route.points[0];
-          const end = route.points[route.points.length - 1];
+      <View style={styles.clip}>
+        <NaverMapView
+          style={StyleSheet.absoluteFill}
+          initialRegion={getRegion(allPoints)}
+          isShowLocationButton={false}
+          isShowZoomControls={false}
+          isShowScaleBar={false}
+          isShowCompass={false}
+          isScrollGesturesEnabled={false}
+          isZoomGesturesEnabled={false}
+          isTiltGesturesEnabled={false}
+          isRotateGesturesEnabled={false}
+          isStopGesturesEnabled={false}
+        >
+          {drawable.map(route => (
+            <NaverMapPathOverlay
+              key={route.workoutId}
+              coords={toCoords(route.points)}
+              width={ROUTE_WIDTH}
+              color={ROUTE_COLOR}
+              outlineWidth={ROUTE_OUTLINE_WIDTH}
+              outlineColor={Liquid.surface}
+            />
+          ))}
+          {drawable.map(route => {
+            const start = route.points[0];
+            const end = route.points[route.points.length - 1];
 
-          return [
-            <NaverMapMarkerOverlay
-              key={`${route.workoutId}-start`}
-              latitude={start.latitude}
-              longitude={start.longitude}
-              anchor={{ x: 0.5, y: 0.5 }}
-              width={MARKER_SIZE}
-              height={MARKER_SIZE}
-            >
-              {/* 커스텀 View 마커는 최상위 자식에 collapsable=false를 줘야 렌더가 보장된다(라이브러리 요구). */}
-              <View
-                key={START_MARKER_COLOR}
-                collapsable={false}
-                style={[styles.marker, { backgroundColor: START_MARKER_COLOR }]}
-              />
-            </NaverMapMarkerOverlay>,
-            <NaverMapMarkerOverlay
-              key={`${route.workoutId}-end`}
-              latitude={end.latitude}
-              longitude={end.longitude}
-              anchor={{ x: 0.5, y: 0.5 }}
-              width={MARKER_SIZE}
-              height={MARKER_SIZE}
-            >
-              <View
-                key={END_MARKER_COLOR}
-                collapsable={false}
-                style={[styles.marker, { backgroundColor: END_MARKER_COLOR }]}
-              />
-            </NaverMapMarkerOverlay>,
-          ];
-        })}
-      </NaverMapView>
+            return [
+              <NaverMapMarkerOverlay
+                key={`${route.workoutId}-start`}
+                latitude={start.latitude}
+                longitude={start.longitude}
+                anchor={{ x: 0.5, y: 0.5 }}
+                width={MARKER_SIZE}
+                height={MARKER_SIZE}
+              >
+                {/* 커스텀 View 마커는 최상위 자식에 collapsable=false를 줘야 렌더가 보장된다(라이브러리 요구). */}
+                <View
+                  key={START_MARKER_COLOR}
+                  collapsable={false}
+                  style={[
+                    styles.marker,
+                    { backgroundColor: START_MARKER_COLOR },
+                  ]}
+                />
+              </NaverMapMarkerOverlay>,
+              <NaverMapMarkerOverlay
+                key={`${route.workoutId}-end`}
+                latitude={end.latitude}
+                longitude={end.longitude}
+                anchor={{ x: 0.5, y: 0.5 }}
+                width={MARKER_SIZE}
+                height={MARKER_SIZE}
+              >
+                <View
+                  key={END_MARKER_COLOR}
+                  collapsable={false}
+                  style={[styles.marker, { backgroundColor: END_MARKER_COLOR }]}
+                />
+              </NaverMapMarkerOverlay>,
+            ];
+          })}
+        </NaverMapView>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    height: 220,
-    borderRadius: Radius.card,
+  shell: {
+    borderRadius: LiquidRadius.card,
+    boxShadow: LiquidShadow.card,
+  },
+  clip: {
+    height: MAP_HEIGHT,
+    borderRadius: LiquidRadius.card,
     overflow: 'hidden',
-    backgroundColor: Color.thumbBg,
+    // 지도 타일이 오기 전 빈 면. 지면보다 한 단계 어두워 자리가 비어 있음이 읽힌다.
+    backgroundColor: Liquid.surfaceSunken,
   },
   marker: {
     width: MARKER_SIZE,
     height: MARKER_SIZE,
     borderRadius: MARKER_SIZE / 2,
     borderWidth: 2,
-    borderColor: Color.background,
+    borderColor: Liquid.surface,
   },
 });
 

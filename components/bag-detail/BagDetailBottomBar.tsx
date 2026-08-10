@@ -1,17 +1,21 @@
 import { FC } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PackingButtonState from '@/model/bag-detail/PackingButtonState';
-import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import { Liquid, LiquidLayout } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
 }
 
+/**
+ * 패킹 진행 라벨(PK-1). 진행 중에는 `패킹 {n}/{m}` — 홈 히어로·배낭 목록 카드와 **같은 말**을
+ * 쓴다(핸드오프 카피: 패킹 진행은 어디서나 `패킹 {n}/{m}`).
+ */
 const getPackingLabel = (bagDetail: BagDetail): string => {
   switch (bagDetail.getPackingButtonState()) {
     case PackingButtonState.Completed:
@@ -23,7 +27,7 @@ const getPackingLabel = (bagDetail: BagDetail): string => {
   }
 };
 
-// 하단 고정 액션 바: (패킹 보조) + 장비 편집(주). 플로팅 버튼이 리스트를 가리던 문제 해소.
+// BD-9 하단 고정 액션 바: (패킹 보조 = 유리 알약) + 장비 추가(주 = 잉크 CTA, 폭 채움).
 const BagDetailBottomBar: FC<Props> = ({ bagDetail }) => {
   const showPacking = bagDetail.shouldShowPackingButton();
 
@@ -32,77 +36,47 @@ const BagDetailBottomBar: FC<Props> = ({ bagDetail }) => {
     bagDetail.goToEdit();
   };
 
+  const handlePacking = () => {
+    bagDetail.goToPacking();
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.row}>
-        {showPacking && (
-          <TouchableOpacity
-            style={styles.secondary}
-            onPress={() => bagDetail.goToPacking()}
-            activeOpacity={0.7}
-            accessibilityRole='button'
-          >
-            <Ionicons
-              name='bag-check-outline'
-              size={18}
-              color={Color.textPrimary}
-            />
-            <PretendardText style={styles.secondaryText} weight='semibold'>
-              {getPackingLabel(bagDetail)}
-            </PretendardText>
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity
-          style={styles.primary}
-          onPress={handleEdit}
-          activeOpacity={0.8}
-          accessibilityRole='button'
-        >
-          <PretendardText style={styles.primaryText} weight='semibold'>
-            장비 추가
-          </PretendardText>
-        </TouchableOpacity>
-      </View>
+      {showPacking && (
+        <LiquidPillButton
+          label={getPackingLabel(bagDetail)}
+          variant='glass'
+          onPress={handlePacking}
+          leading={
+            <Ionicons name='bag-check-outline' size={18} color={Liquid.ink} />
+          }
+        />
+      )}
+      {/* 화면당 주 액션은 하나 — 이 CTA가 남은 폭을 다 가져간다. */}
+      <LiquidPillButton
+        label='장비 추가'
+        onPress={handleEdit}
+        style={styles.primary}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   // 지면 위에 놓인 바라 면을 깔지 않는다 — 흰 띠가 버튼 주위를 감싸면 지형이 끊긴다
-  // (2026-08-04 사용자 지적). 버튼 자체가 잉크/지면색 면이라 이미 충분히 읽힌다.
+  // (2026-08-04 사용자 지적). 버튼 자체가 유리·잉크 면이라 이미 충분히 읽힌다.
   container: {
+    flexDirection: 'row',
+    gap: 10,
     paddingTop: 12,
-    paddingHorizontal: Spacing.screenH,
+    // 목업의 `12px 20px calc(34px + 10px)` — 34는 세이프에어리어(SafeAreaView가 처리)이고
+    // 여기서는 그 위에 얹는 10만 준다. 0이면 알약이 화면 밑변에 붙는다.
+    paddingBottom: 10,
+    paddingHorizontal: LiquidLayout.screenH,
     backgroundColor: 'transparent',
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  secondary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    borderRadius: Radius.card,
-    backgroundColor: Color.surfaceMuted,
-  },
-  secondaryText: {
-    fontSize: 15,
-    color: Color.textPrimary,
   },
   primary: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: Radius.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Color.chipActiveBg,
-  },
-  primaryText: {
-    fontSize: 16,
-    color: Color.background,
   },
 });
 

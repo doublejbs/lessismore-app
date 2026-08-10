@@ -186,6 +186,13 @@ export const Liquid = {
   limeInk: '#5C7A12', // 밝은 면 위 라임 계열 글자 (AA 4.6)
 
   /**
+   * 잉크 면 위 보조 글자. 흰 글자(=`surface`)가 주 정보를 맡고 그 아래 한 단계 낮은
+   * 줄이 이 값이다 — 목업 §6 배낭 상세의 잉크 타일 부제가 여기 해당한다(잉크 위 6.8:1).
+   * `inkSubtle`을 그대로 쓰면 밝은 면 위 단위 색과 뜻이 갈린다.
+   */
+  inkOnQuiet: '#9A9AA4',
+
+  /**
    * ── 라임·유리 면 **위**에 얹는 값. 핸드오프 색 표에는 이름이 없지만 목업에서
    * 반복 등장한다(히어로 안쪽 유리 판, 그 위 진행 트랙·구분선). 컴포넌트에
    * 리터럴로 흩어지면 값이 갈리므로 여기에 모은다.
@@ -224,6 +231,18 @@ export const LiquidSemantic = {
 } as const;
 
 /**
+ * 데이터 시각화 전용 팔레트. 액센트 체계 밖(그래프 선·추이)이라 라임·잉크 스케일을 쓰지 않는다.
+ *
+ * `LiquidSemantic.cat*`과 값이 겹치지만 **뜻은 분리한다** — 카테고리 색은 배낭 무게 분해가
+ * 소유한 의미색이고, 이 값들은 그래프 선 색일 뿐이다. 한쪽을 바꿔도 다른 쪽이 끌려가지 않게
+ * 이름부터 갈라 둔다.
+ */
+export const LiquidViz = {
+  heartRate: '#B2604F',
+  pace: '#2F6F8F',
+} as const;
+
+/**
  * 타입 스케일. 한글·UI는 Pretendard, 숫자·라틴만 Archivo Narrow 700.
  *
  * **Archivo Narrow에는 한글 글리프가 없다** — 무게·D-day·기간·진행률·버전에만 쓴다.
@@ -235,21 +254,66 @@ export const LiquidFont = {
 } as const;
 
 export const LiquidType = {
-  display: { fontSize: 34, lineHeight: 40, fontWeight: '700', letterSpacing: -1.2 },
-  title1: { fontSize: 32, lineHeight: 38, fontWeight: '700', letterSpacing: -1 },
-  title2: { fontSize: 28, lineHeight: 36, fontWeight: '700', letterSpacing: -0.9 },
-  title3: { fontSize: 22, lineHeight: 30, fontWeight: '700', letterSpacing: -0.6 },
+  display: {
+    fontSize: 34,
+    lineHeight: 40,
+    fontWeight: '700',
+    letterSpacing: -1.2,
+  },
+  title1: {
+    fontSize: 32,
+    lineHeight: 38,
+    fontWeight: '700',
+    letterSpacing: -1,
+  },
+  title2: {
+    fontSize: 28,
+    lineHeight: 36,
+    fontWeight: '700',
+    letterSpacing: -0.9,
+  },
+  title3: {
+    fontSize: 22,
+    lineHeight: 30,
+    fontWeight: '700',
+    letterSpacing: -0.6,
+  },
   heading: { fontSize: 17, lineHeight: 24, fontWeight: '600' },
   body: { fontSize: 15, lineHeight: 20, fontWeight: '500' },
   bodySm: { fontSize: 13.5, lineHeight: 19, fontWeight: '400' },
   caption: { fontSize: 12.5, lineHeight: 17, fontWeight: '400' },
   // 섹션은 큰 제목 대신 대문자 마이크로 라벨로 연다 — 이 시스템의 서명.
-  micro: { fontSize: 11, lineHeight: 16, fontWeight: '600', letterSpacing: 1.76 },
-  numHero: { fontFamily: 'ArchivoNarrow_700Bold', fontSize: 72, lineHeight: 64, letterSpacing: -2.5 },
-  numXl: { fontFamily: 'ArchivoNarrow_700Bold', fontSize: 42, lineHeight: 38, letterSpacing: -1.2 },
-  numLg: { fontFamily: 'ArchivoNarrow_700Bold', fontSize: 32, lineHeight: 36, letterSpacing: -0.5 },
+  micro: {
+    fontSize: 11,
+    lineHeight: 16,
+    fontWeight: '600',
+    letterSpacing: 1.76,
+  },
+  numHero: {
+    fontFamily: 'ArchivoNarrow_700Bold',
+    fontSize: 72,
+    lineHeight: 64,
+    letterSpacing: -2.5,
+  },
+  numXl: {
+    fontFamily: 'ArchivoNarrow_700Bold',
+    fontSize: 42,
+    lineHeight: 38,
+    letterSpacing: -1.2,
+  },
+  numLg: {
+    fontFamily: 'ArchivoNarrow_700Bold',
+    fontSize: 32,
+    lineHeight: 36,
+    letterSpacing: -0.5,
+  },
   numMd: { fontFamily: 'ArchivoNarrow_700Bold', fontSize: 22, lineHeight: 26 },
-  numSm: { fontFamily: 'ArchivoNarrow_700Bold', fontSize: 14, lineHeight: 18, letterSpacing: 0.7 },
+  numSm: {
+    fontFamily: 'ArchivoNarrow_700Bold',
+    fontSize: 14,
+    lineHeight: 18,
+    letterSpacing: 0.7,
+  },
 } as const;
 
 /** 칩·버튼은 완전한 알약(height/2), 카드는 20~26, 시트는 상단만 28. 각진 면은 없다. */
@@ -287,6 +351,9 @@ export const LiquidLayout = {
   listGap: 10, // 카드 사이
   section: 26, // 섹션 사이
   navBar: 44, // 투명 네이티브 헤더
+  // 주 액션 알약 높이. 화면마다 버튼 키가 다르면 주 액션의 무게가 흔들리므로
+  // `LiquidPillButton`과 그 자리를 대신하는 비활성 면이 같은 값을 참조한다.
+  pillHeight: 54,
   // 플로팅 탭바 아래로 콘텐츠가 흐르므로 스크롤 끝에 이만큼 비운다.
   scrollBottom: 130,
   touchMin: 44,
@@ -306,11 +373,46 @@ export const LiquidBackdrop = {
   },
   // expo-linear-gradient colors/locations. canvas(#F2F2F6)의 알파만 바뀐다.
   veil: {
-    home: { colors: ['rgba(242,242,246,0.10)', 'rgba(242,242,246,0.36)', 'rgba(242,242,246,0.52)'], locations: [0, 0.45, 1] },
-    bagDetail: { colors: ['rgba(242,242,246,0.14)', 'rgba(242,242,246,0.42)', 'rgba(242,242,246,0.58)'], locations: [0, 0.45, 1] },
-    packing: { colors: ['rgba(242,242,246,0.16)', 'rgba(242,242,246,0.50)', 'rgba(242,242,246,0.70)'], locations: [0, 0.4, 1] },
-    info: { colors: ['rgba(242,242,246,0.14)', 'rgba(242,242,246,0.50)', 'rgba(242,242,246,0.72)'], locations: [0, 0.4, 1] },
-    login: { colors: ['rgba(242,242,246,0.30)', 'rgba(242,242,246,0.60)', 'rgba(242,242,246,0.80)'], locations: [0, 0.5, 1] },
+    home: {
+      colors: [
+        'rgba(242,242,246,0.10)',
+        'rgba(242,242,246,0.36)',
+        'rgba(242,242,246,0.52)',
+      ],
+      locations: [0, 0.45, 1],
+    },
+    bagDetail: {
+      colors: [
+        'rgba(242,242,246,0.14)',
+        'rgba(242,242,246,0.42)',
+        'rgba(242,242,246,0.58)',
+      ],
+      locations: [0, 0.45, 1],
+    },
+    packing: {
+      colors: [
+        'rgba(242,242,246,0.16)',
+        'rgba(242,242,246,0.50)',
+        'rgba(242,242,246,0.70)',
+      ],
+      locations: [0, 0.4, 1],
+    },
+    info: {
+      colors: [
+        'rgba(242,242,246,0.14)',
+        'rgba(242,242,246,0.50)',
+        'rgba(242,242,246,0.72)',
+      ],
+      locations: [0, 0.4, 1],
+    },
+    login: {
+      colors: [
+        'rgba(242,242,246,0.30)',
+        'rgba(242,242,246,0.60)',
+        'rgba(242,242,246,0.80)',
+      ],
+      locations: [0, 0.5, 1],
+    },
   },
   // 라임 라디얼 글로우 하나를 지면 모서리에 둔다 — 브랜드 색이 UI를 지배하지 않으면서 온기를 준다.
   glow: { size: 340, color: 'rgba(200,242,68,0.5)', fade: 0.7 },

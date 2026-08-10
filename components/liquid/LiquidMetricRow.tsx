@@ -1,7 +1,7 @@
 import { FC, ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Liquid, LiquidFont } from '@/constants/DesignTokens';
+import { Liquid, LiquidFont, LiquidMotion } from '@/constants/DesignTokens';
 
 interface Props {
   brand?: string;
@@ -14,7 +14,18 @@ interface Props {
   accent?: boolean;
   /** 정체 앞에 붙는 자리 — 순위 배지처럼 행을 여는 표식용 */
   leading?: ReactNode;
+  /**
+   * 정체와 수치 **사이**의 자리. 행에 표식을 달면서도 수치 컬럼의 세로 정렬을 지켜야 할 때
+   * 쓴다(배낭 상세 BD-5의 useless 로고 마크) — `trailing`에 두면 수치가 표식만큼 밀려
+   * 행마다 무게 위치가 갈린다.
+   */
+  aside?: ReactNode;
   trailing?: ReactNode;
+  /**
+   * 정체·수치를 낮춘다 — 완료·미사용처럼 목록에서 지우지 않고 무게만 빼는 항목
+   * (핸드오프 Interactions). `leading`·`aside`는 자체 투명도를 갖는다(호출측이 정한다).
+   */
+  dim?: boolean;
   /** 행 위 헤어라인(좌측 16 들여쓰기) — 카드 안에서 두 번째 행부터 켠다 */
   divider?: boolean;
   /**
@@ -22,7 +33,17 @@ interface Props {
    * 같은 색으로 붙이며, 메타를 inkMuted로 올린다(목업 홈 절). 'md'는 창고 목록 기준.
    */
   size?: 'md' | 'sm';
+  /**
+   * 행 **본문**(패딩 제외)의 최소 높이. 같은 목록에서 `leading`(썸네일)이 붙은 행과 안 붙은
+   * 행의 키가 갈리지 않게 호출부가 썸네일 한 변을 넘긴다(BD-1/WH-1의 `GEAR_THUMBNAIL_SIZE`).
+   * 세로 패딩은 이 컴포넌트가 알아서 더하므로 호출부가 계산하지 않는다.
+   * 주지 않으면 콘텐츠 높이를 그대로 따른다.
+   */
+  minContentHeight?: number;
 }
+
+// 행 세로 패딩. `minContentHeight`를 행 높이로 환산할 때도 쓰므로 상수로 둔다.
+const ROW_PAD_V = 15;
 
 /**
  * Liquid Depth 목록 한 행(핸드오프 MetricRow). 좌측은 정체(브랜드·이름·메타),
@@ -36,19 +57,29 @@ const LiquidMetricRow: FC<Props> = ({
   unit = 'g',
   accent = false,
   leading,
+  aside,
   trailing,
   divider = false,
+  dim = false,
   size = 'md',
+  minContentHeight,
 }) => {
   const isSmall = size === 'sm';
 
   return (
     <View>
       {divider ? <View style={styles.divider} /> : null}
-      <View style={styles.row}>
+      <View
+        style={[
+          styles.row,
+          minContentHeight !== undefined && {
+            minHeight: minContentHeight + ROW_PAD_V * 2,
+          },
+        ]}
+      >
         {leading}
 
-        <View style={styles.identity}>
+        <View style={[styles.identity, dim && styles.dimmed]}>
           {brand ? (
             <PretendardText
               weight='semibold'
@@ -75,8 +106,13 @@ const LiquidMetricRow: FC<Props> = ({
           ) : null}
         </View>
 
+        {aside}
+
         {value !== undefined && value !== null ? (
-          <PretendardText style={styles.valueWrap} numberOfLines={1}>
+          <PretendardText
+            style={[styles.valueWrap, dim && styles.dimmed]}
+            numberOfLines={1}
+          >
             <PretendardText
               style={[
                 styles.value,
@@ -115,13 +151,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 15,
+    paddingVertical: ROW_PAD_V,
     paddingHorizontal: 16,
   },
   identity: {
     flex: 1,
     minWidth: 0,
     gap: 2,
+  },
+  dimmed: {
+    opacity: LiquidMotion.doneOpacity,
   },
   brand: {
     fontSize: 12,

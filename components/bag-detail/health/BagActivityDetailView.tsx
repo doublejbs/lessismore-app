@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { Color, Spacing } from '@/constants/DesignTokens';
+import { Liquid, LiquidLayout, LiquidMotion } from '@/constants/DesignTokens';
 import BagActivity from '@/model/bag/BagActivity';
 import BagActivityDetailStatus from '@/model/bag/BagActivityDetailStatus';
 import BagActivityRouteMapView from './BagActivityRouteMapView';
@@ -46,7 +46,7 @@ const BagActivityDetailView: FC<Props> = ({ bagActivity }) => {
     if (status === BagActivityDetailStatus.Loading) {
       return (
         <View style={styles.detailPlaceholder}>
-          <ActivityIndicator color={Color.textSecondary} />
+          <ActivityIndicator color={Liquid.inkSubtle} />
         </View>
       );
     }
@@ -61,7 +61,7 @@ const BagActivityDetailView: FC<Props> = ({ bagActivity }) => {
           <TouchableOpacity
             style={styles.textButton}
             onPress={handleRetry}
-            activeOpacity={0.7}
+            activeOpacity={LiquidMotion.pressOpacity}
             accessibilityRole='button'
             accessibilityLabel='상세 다시 불러오기'
           >
@@ -106,7 +106,7 @@ const BagActivityDetailView: FC<Props> = ({ bagActivity }) => {
         style={styles.textButton}
         onPress={handleUnlink}
         disabled={saving}
-        activeOpacity={0.7}
+        activeOpacity={LiquidMotion.pressOpacity}
         accessibilityRole='button'
         accessibilityState={{ disabled: saving }}
         accessibilityLabel='운동 기록 연결 해제'
@@ -124,38 +124,39 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    gap: Spacing.section,
-    paddingHorizontal: Spacing.screenH,
-    paddingBottom: Spacing.section,
+    gap: LiquidLayout.section,
+    paddingHorizontal: LiquidLayout.screenH,
+    paddingBottom: LiquidLayout.section,
   },
   detailPlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.item,
-    paddingVertical: Spacing.section,
+    gap: 12,
+    paddingVertical: LiquidLayout.section,
   },
+  // 여러 줄 설명은 목업 박지 상세의 설명 값(14/22)을 쓴다 — 문단이 숨 쉬어야 읽힌다.
   noticeText: {
     fontSize: 14,
-    lineHeight: 21,
-    color: Color.textSecondary,
+    lineHeight: 22,
+    color: Liquid.inkTertiary,
     textAlign: 'center',
   },
   // 화면의 다른 요소가 전부 좌측 정렬인데 이 버튼만 가운데라 축이 어긋났다
   // (2026-08-05 디자인 리뷰). 좌측으로 붙이고 좌우 패딩은 뺀다.
   textButton: {
-    minHeight: 44,
+    minHeight: LiquidLayout.touchMin,
     alignSelf: 'flex-start',
     justifyContent: 'center',
   },
   textButtonLabel: {
     fontSize: 15,
-    color: Color.textPrimary,
+    color: Liquid.ink,
     textDecorationLine: 'underline',
   },
   // 연결 해제는 되돌리기 쉬운(다시 연결하면 되는) 동작이라 경고색 대신 보조 톤을 쓴다.
   unlinkLabel: {
     fontSize: 15,
-    color: Color.textSecondary,
+    color: Liquid.inkSecondary,
     textDecorationLine: 'underline',
   },
 });

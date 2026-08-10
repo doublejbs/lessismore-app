@@ -1,11 +1,12 @@
 import { FC } from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
+import TripPhase from '@/model/bag/TripPhase';
 import PretendardText from '@/components/PretendardText';
-import { AcgShadow, Acg, Color, Radius } from '@/constants/DesignTokens';
+import BagDetailTileView from './BagDetailTileView';
+import { Liquid, LiquidFont } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -25,85 +26,71 @@ const BagDetailUselessDescriptionView: FC<Props> = ({
     bagDetail.goToUseless();
   };
 
-  const subtitle = phase === 'after' ? '줄어든 무게 확인' : '여행 후 기록';
+  const subtitle =
+    phase === TripPhase.After ? '줄어든 무게 확인' : '여행 후 기록';
 
-  const fg = emphasized ? Color.background : Color.textPrimary;
-  const subFg = emphasized ? EMPHASIZED_SUB : Color.textSecondary;
+  if (!isUselessChecked) {
+    return (
+      <BagDetailTileView
+        icon='trending-down-outline'
+        emphasized={emphasized}
+        title='사용 기록'
+        subtitle={subtitle}
+        onPress={handlePressUseless}
+        accessibilityLabel={`사용 기록, ${subtitle}`}
+      />
+    );
+  }
 
-  const weightBlock = isUselessChecked ? (
-    // 기록이 있으면 줄어드는 무게를 히어로 숫자로 강조한다.
-    <View style={styles.weightRow}>
-      <PretendardText style={[styles.weightValue, { color: fg }]} weight='bold'>
-        {usedWeight}kg
-      </PretendardText>
-      <PretendardText style={[styles.weightSuffix, { color: subFg }]}>
-        로 줄어요
-      </PretendardText>
-    </View>
-  ) : (
-    <PretendardText
-      style={[styles.subtitle, { color: subFg }]}
-      numberOfLines={1}
-    >
-      {subtitle}
-    </PretendardText>
-  );
-
-  // 강조여도 48% 그리드 세로 카드는 그대로 두고 배경/전경색만 검정으로 바꾼다.
+  // 기록이 있으면 줄어드는 무게를 히어로 숫자로 강조한다.
   return (
-    <TouchableOpacity
-      style={[styles.tile, emphasized && styles.tileEmphasized]}
+    <BagDetailTileView
+      icon='trending-down-outline'
+      emphasized={emphasized}
+      title='사용 기록'
       onPress={handlePressUseless}
-      activeOpacity={0.7}
+      accessibilityLabel={`사용 기록, ${usedWeight}kg로 줄어요`}
     >
-      <Ionicons name='trending-down-outline' size={22} color={fg} />
-      <View style={styles.textWrap}>
-        <PretendardText style={[styles.title, { color: fg }]} weight='medium'>
-          사용 기록
+      <View style={styles.weightRow}>
+        {/* 숫자 + kg라 콘덴스드를 쓴다. `로 줄어요`는 한글이라 본문 서체로 떨어뜨린다. */}
+        <PretendardText
+          style={[styles.weightValue, emphasized && styles.weightValueOnInk]}
+        >
+          {`${usedWeight}kg`}
         </PretendardText>
-        {weightBlock}
+        <PretendardText
+          style={[styles.weightSuffix, emphasized && styles.weightSuffixOnInk]}
+        >
+          로 줄어요
+        </PretendardText>
       </View>
-    </TouchableOpacity>
+    </BagDetailTileView>
   );
 };
 
-const EMPHASIZED_SUB = '#B9B9B9';
-
 const styles = StyleSheet.create({
-  tile: {
-    width: '48%',
-    minHeight: 92,
-    // 지면 위 타일이라 종이 면을 쓴다 — 회색(surfaceMuted)은 지면과 가까워 타일이
-    // 떠 보이지 않았다(2026-08-04 사용자 지적). 강조 타일만 잉크 면이다.
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
-    borderRadius: Radius.card,
-    padding: 14,
-    justifyContent: 'space-between',
-  },
-  tileEmphasized: {
-    backgroundColor: Color.chipActiveBg,
-  },
-  textWrap: {
-    gap: 2,
-  },
-  title: {
-    fontSize: 15,
-  },
-  subtitle: {
-    fontSize: 12,
-  },
+  // baseline 정렬로 두 서체(콘덴스드 18 + 본문 12)의 밑선을 맞춘다.
   weightRow: {
+    marginTop: 2,
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 3,
   },
   weightValue: {
-    fontSize: 18,
-    lineHeight: 22,
+    fontFamily: LiquidFont.condensed,
+    fontSize: 20,
+    lineHeight: 24,
+    color: Liquid.ink,
+  },
+  weightValueOnInk: {
+    color: Liquid.surface,
   },
   weightSuffix: {
     fontSize: 12,
+    color: Liquid.inkMuted,
+  },
+  weightSuffixOnInk: {
+    color: Liquid.inkOnQuiet,
   },
 });
 

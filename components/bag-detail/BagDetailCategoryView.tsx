@@ -4,8 +4,8 @@ import Gear from '@/model/gear/Gear';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import BagDetailGearView from './BagDetailGearView';
 import BagDetail from '@/model/bag-detail/BagDetail';
-import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import LiquidSectionLabel from '@/components/liquid/LiquidSectionLabel';
+import { LiquidRadius, LiquidShadow } from '@/constants/DesignTokens';
 
 interface Props {
   category: WarehouseFilter;
@@ -14,6 +14,10 @@ interface Props {
   onRefReady?: (categoryFilter: string, ref: View | null) => void;
 }
 
+/**
+ * BD-1 카테고리 그룹. 마이크로 섹션 라벨 + 그 카테고리의 장비 행을 담은 흰 카드 하나
+ * (핸드오프 §6: 칩 줄 → MetricRow 카드).
+ */
 const BagDetailCategoryView: FC<Props> = ({
   category,
   gears,
@@ -29,34 +33,35 @@ const BagDetailCategoryView: FC<Props> = ({
   }, [category, onRefReady]);
 
   return (
-    <View ref={categoryRef} style={styles.container}>
-      <PretendardText style={styles.categoryTitle} weight='bold'>
-        {category.getName()}
-      </PretendardText>
-      <View style={styles.gearList}>
-        {gears.map(gear => (
-          <BagDetailGearView
-            key={gear.getId()}
-            gear={gear}
-            bagDetail={bagDetail}
-          />
-        ))}
+    <View ref={categoryRef}>
+      <LiquidSectionLabel>{category.getName()}</LiquidSectionLabel>
+      {/* 그림자는 껍데기가 든다 — 안쪽에서 모서리를 깎으므로(overflow: hidden) 같은 뷰에
+          그림자를 걸면 자기 경계에서 잘린다. */}
+      <View style={styles.cardShell}>
+        <View style={styles.cardClip}>
+          {gears.map((gear, index) => (
+            <BagDetailGearView
+              key={gear.getId()}
+              gear={gear}
+              bagDetail={bagDetail}
+              divider={index > 0}
+            />
+          ))}
+        </View>
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: 8,
+  cardShell: {
+    borderRadius: LiquidRadius.card,
+    boxShadow: LiquidShadow.card,
   },
-  categoryTitle: {
-    fontSize: 18,
-    marginBottom: 12,
-    color: Color.textTertiary,
-  },
-  gearList: {
-    gap: 16,
+  // 스와이프 액션 면이 카드 밖으로 새지 않게 여기서 깎는다.
+  cardClip: {
+    borderRadius: LiquidRadius.card,
+    overflow: 'hidden',
   },
 });
 

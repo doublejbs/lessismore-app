@@ -2,7 +2,9 @@ import { FC, useState } from 'react';
 import { LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import PretendardText from '@/components/PretendardText';
-import { AcgShadow, Acg, Color, Spacing } from '@/constants/DesignTokens';
+import LiquidCard from '@/components/liquid/LiquidCard';
+import LiquidSectionLabel from '@/components/liquid/LiquidSectionLabel';
+import { Liquid } from '@/constants/DesignTokens';
 import { HealthSeriesPoint } from '@/model/health/HealthTypes';
 import { formatClockTime } from '@/model/health/HealthFormat';
 
@@ -11,7 +13,7 @@ interface Props {
   /** 축 라벨에 붙는 보조 설명. 페이스처럼 값의 방향이 직관적이지 않을 때 쓴다. */
   hint?: string;
   points: HealthSeriesPoint[];
-  /** 데이터 시각화 색 — 디자인 토큰 예외로 하드코딩을 허용한다(CLAUDE.md). */
+  /** 데이터 시각화 색 — 의미색 예외라 호출측이 `LiquidViz`에서 골라 넘긴다. */
   color: string;
   formatValue: (value: number) => string;
 }
@@ -100,15 +102,18 @@ const BagActivityChartView: FC<Props> = ({
     .join(' ');
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <PretendardText style={styles.title} weight='semibold'>
-          {title}
-        </PretendardText>
-        {hint !== undefined && (
-          <PretendardText style={styles.hint}>{hint}</PretendardText>
-        )}
-      </View>
+    // 요약 카드와 같은 종이 면 — 테두리로 경계를 내던 방식은 다른 카드와 갈렸다.
+    <LiquidCard tone='paper' radius='card' style={styles.card}>
+      {/* 카드 머리는 대문자 마이크로 라벨(이 시스템의 서명). 힌트는 같은 줄 우측에 붙인다. */}
+      <LiquidSectionLabel
+        trailing={
+          hint !== undefined ? (
+            <PretendardText style={styles.hint}>{hint}</PretendardText>
+          ) : undefined
+        }
+      >
+        {title}
+      </LiquidSectionLabel>
       <View style={styles.chart} onLayout={handleLayout}>
         {width > 0 && (
           <Svg width={width} height={CHART_HEIGHT}>
@@ -134,32 +139,18 @@ const BagActivityChartView: FC<Props> = ({
           {formatClockTime(lastPoint.timestamp)}
         </PretendardText>
       </View>
-    </View>
+    </LiquidCard>
   );
 };
 
 const styles = StyleSheet.create({
-  // 요약 카드와 같은 종이 면(ACG) — 테두리로 경계를 내던 방식은 다른 카드와 갈렸다.
-  container: {
+  card: {
     gap: 6,
-    padding: 14,
-    borderRadius: 0,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  title: {
-    fontSize: 14,
-    color: Color.textPrimary,
   },
   hint: {
     fontSize: 12,
-    color: Color.textSecondary,
+    lineHeight: 17,
+    color: Liquid.inkTertiary,
   },
   chart: {
     height: CHART_HEIGHT,
@@ -168,11 +159,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: Spacing.item,
+    gap: 12,
   },
+  // 축 라벨은 수치지만 캡션 자리라 본문 서체를 쓴다 — 콘덴스드는 무게·진행률처럼
+  // 값 자체를 보여주는 자리에만 쓴다(핸드오프 타입 규칙).
   axisText: {
     fontSize: 12,
-    color: Color.textSecondary,
+    lineHeight: 17,
+    color: Liquid.inkMuted,
   },
 });
 

@@ -1,185 +1,305 @@
-import { FC, useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
-import { Acg } from '@/constants/DesignTokens';
+import { FC, useEffect, useState } from 'react';
+import {
+  View,
+  StyleSheet,
+  Animated,
+  Platform,
+  DimensionValue,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidRadius,
+  LiquidShadow,
+} from '@/constants/DesignTokens';
 
-interface Props {}
+const IS_IOS = Platform.OS === 'ios';
 
-const BagDetailSkeletonView: FC<Props> = () => {
-  const pulseAnim = useRef(new Animated.Value(0.3)).current;
+// 셔머 한 주기 1.2초(핸드오프 Interactions: 스피너 대신 셔머).
+const PULSE_DURATION = 600;
+const PULSE_MIN = 0.4;
+
+interface BoxProps {
+  pulse: Animated.Value;
+  width?: DimensionValue;
+  height: number;
+  radius?: number;
+  style?: StyleProp<ViewStyle>;
+}
+
+/**
+ * 셰이딩은 반투명 잉크를 쓴다 — 지면(canvas)과 흰 카드 **양쪽**에 얹히므로 불투명
+ * `surfaceSunken`으로 두면 지면 위에서 거의 보이지 않는다.
+ */
+const SkeletonBox: FC<BoxProps> = ({
+  pulse,
+  width,
+  height,
+  radius = 6,
+  style,
+}) => {
+  return (
+    <Animated.View
+      style={[
+        {
+          width,
+          height,
+          borderRadius: radius,
+          backgroundColor: Liquid.hairlineStrong,
+          opacity: pulse,
+        },
+        style,
+      ]}
+    />
+  );
+};
+
+/**
+ * BD-1 상세 로딩 골격 (Liquid Depth).
+ *
+ * 들어올 화면과 **같은 골격**을 그린다 — 지형 지면, 타이틀 블록, 히어로 카드, 2×2 타일,
+ * 섹션 머리, 장비 카드. 라인박스 높이까지 실제 값과 맞춰 로딩이 풀릴 때 콘텐츠가 튀지 않게 한다.
+ */
+const BagDetailSkeletonView: FC = () => {
+  const insets = useSafeAreaInsets();
+  const [pulse] = useState(() => new Animated.Value(PULSE_MIN));
 
   useEffect(() => {
-    const pulseAnimation = Animated.loop(
+    const animation = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, {
+        Animated.timing(pulse, {
           toValue: 1,
-          duration: 800,
+          duration: PULSE_DURATION,
           useNativeDriver: true,
         }),
-        Animated.timing(pulseAnim, {
-          toValue: 0.3,
-          duration: 800,
+        Animated.timing(pulse, {
+          toValue: PULSE_MIN,
+          duration: PULSE_DURATION,
           useNativeDriver: true,
         }),
       ])
     );
-    pulseAnimation.start();
-    return () => pulseAnimation.stop();
-  }, [pulseAnim]);
 
-  const SkeletonBox = ({
-    width,
-    height,
-  }: {
-    width: number | string;
-    height: number;
-  }) => {
-    const widthValue = typeof width === 'string' ? (width as any) : width;
-    return (
-      <View style={[styles.skeletonBox, { width: widthValue, height }]}>
-        <Animated.View
-          style={[
-            StyleSheet.absoluteFill,
-            { opacity: pulseAnim, backgroundColor: SKELETON_SHADE },
-          ]}
-        />
-      </View>
-    );
-  };
+    animation.start();
 
-  // BD-1: 썸네일은 사용자가 올린 사진이 있는 행에만 붙고 대다수 장비에는 없으므로,
-  // 로딩 자리는 기본 모습인 텍스트 우선 행에 맞춘다(썸네일 박스를 두면 대부분의 행과 어긋난다).
-  const renderGearSkeletonItem = (index: number) => {
-    return (
-      <View key={index} style={styles.gearItem}>
-        <View style={styles.gearInfo}>
-          <SkeletonBox width='70%' height={16} />
-          <SkeletonBox width='50%' height={14} />
-        </View>
-        <SkeletonBox width={50} height={16} />
-      </View>
-    );
-  };
+    return () => animation.stop();
+  }, [pulse]);
 
-  const renderCategorySkeleton = (index: number) => {
-    return (
-      <View key={index} style={styles.category}>
-        <SkeletonBox width={120} height={18} />
-        {Array.from({ length: 3 }, (_, itemIndex) =>
-          renderGearSkeletonItem(itemIndex)
-        )}
+  const renderGearRow = (index: number) => (
+    <View key={index} style={styles.gearRow}>
+      <View style={styles.gearRowIdentity}>
+        <SkeletonBox pulse={pulse} width='60%' height={20} />
+        <SkeletonBox pulse={pulse} width='40%' height={17} />
       </View>
-    );
-  };
+      <SkeletonBox pulse={pulse} width={44} height={20} />
+    </View>
+  );
+
+  const renderCategory = (index: number) => (
+    <View key={index}>
+      <SkeletonBox
+        pulse={pulse}
+        width={64}
+        height={16}
+        style={styles.categoryLabel}
+      />
+      <View style={styles.gearCard}>
+        {Array.from({ length: 3 }, (_, rowIndex) => renderGearRow(rowIndex))}
+      </View>
+    </View>
+  );
+
+  const renderTile = (index: number) => (
+    <View key={index} style={styles.tile}>
+      <SkeletonBox pulse={pulse} width={21} height={21} radius={4} />
+      <View style={styles.tileText}>
+        <SkeletonBox pulse={pulse} width='70%' height={20} />
+        <SkeletonBox pulse={pulse} width='45%' height={17} />
+      </View>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      {/* 헤더 */}
-      <View style={styles.header}>
-        <SkeletonBox width={24} height={24} />
-        <View style={styles.headerRight}>
-          <SkeletonBox width={60} height={24} />
-          <SkeletonBox width={24} height={24} />
+      <LiquidBackdrop screen='bagDetail' glowPosition='leftMid' />
+
+      {/* iOS는 네이티브 투명 헤더가 이미 상단을 그리므로 자리만 비운다.
+          Android/Web은 유리 크롬(원 38 + 캡슐)의 자리를 골격으로 표시한다. */}
+      {IS_IOS ? (
+        <View style={{ height: insets.top + LiquidLayout.navBar }} />
+      ) : (
+        <View style={[styles.header, { paddingTop: insets.top }]}>
+          <SkeletonBox pulse={pulse} width={38} height={38} radius={19} />
+          <SkeletonBox pulse={pulse} width={112} height={38} radius={19} />
         </View>
+      )}
+
+      <View style={styles.titleBlock}>
+        <SkeletonBox
+          pulse={pulse}
+          width={104}
+          height={26}
+          radius={LiquidRadius.pill}
+        />
+        <SkeletonBox
+          pulse={pulse}
+          width='72%'
+          height={38}
+          style={styles.titleName}
+        />
+        <SkeletonBox
+          pulse={pulse}
+          width='48%'
+          height={18}
+          style={styles.titleDate}
+        />
       </View>
 
-      {/* 메인 콘텐츠 */}
-      <View style={styles.mainContent}>
-        {/* 백팩 정보 */}
-        <View style={styles.bagInfo}>
-          <SkeletonBox width='80%' height={24} />
-          <SkeletonBox width='60%' height={18} />
-        </View>
+      {/* 무게 히어로 카드 — 큰 숫자 54 + 스택 바 10 + 범례 한 줄. */}
+      <View style={styles.hero}>
+        <SkeletonBox pulse={pulse} width={132} height={54} />
+        <SkeletonBox
+          pulse={pulse}
+          width='100%'
+          height={10}
+          radius={5}
+          style={styles.heroBar}
+        />
+        <SkeletonBox
+          pulse={pulse}
+          width='64%'
+          height={17}
+          style={styles.heroLegend}
+        />
+      </View>
 
-        {/* 설명 영역 */}
-        <View style={styles.description}>
-          <SkeletonBox width='100%' height={16} />
-          <SkeletonBox width='70%' height={16} />
-        </View>
+      <View style={styles.tileGrid}>
+        {Array.from({ length: 4 }, (_, index) => renderTile(index))}
+      </View>
 
-        {/* 필터 영역 */}
-        <View style={styles.filterSection}>
-          <SkeletonBox width={120} height={18} />
-          <View style={styles.filterButtons}>
-            {Array.from({ length: 5 }, (_, index) => (
-              <SkeletonBox key={index} width={80} height={32} />
-            ))}
-          </View>
-        </View>
+      <View style={styles.gearHeaderTitleRow}>
+        <SkeletonBox pulse={pulse} width={92} height={26} />
+        <SkeletonBox pulse={pulse} width={34} height={18} />
+      </View>
+      <View style={styles.chipRow}>
+        {Array.from({ length: 4 }, (_, index) => (
+          <SkeletonBox
+            key={index}
+            pulse={pulse}
+            width={68}
+            height={34}
+            radius={17}
+          />
+        ))}
+      </View>
 
-        {/* 장비 리스트 */}
-        <View style={styles.gearList}>
-          {Array.from({ length: 4 }, (_, index) =>
-            renderCategorySkeleton(index)
-          )}
-        </View>
+      <View style={styles.gearList}>
+        {Array.from({ length: 2 }, (_, index) => renderCategory(index))}
       </View>
     </View>
   );
 };
 
-// 스켈레톤 셰이딩은 토큰 예외다. 지면(#F4F3EF) 위에서 튀지 않는 따뜻한 회색.
-const SKELETON_SHADE = '#E3E1DA';
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Acg.bg,
+    // 지면은 LiquidBackdrop이 깐다.
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    paddingTop: 60, // Status bar 고려
+    paddingHorizontal: 12,
+    paddingBottom: 8,
   },
-  headerRight: {
+  titleBlock: {
+    paddingTop: 8,
+    paddingHorizontal: LiquidLayout.screenH,
+  },
+  titleName: {
+    marginTop: 10,
+  },
+  titleDate: {
+    marginTop: 2,
+  },
+  hero: {
+    marginTop: 18,
+    marginHorizontal: LiquidLayout.screenH,
+    padding: LiquidLayout.cardPadLg,
+    borderRadius: LiquidRadius.hero,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.card,
+  },
+  heroBar: {
+    marginTop: 16,
+  },
+  heroLegend: {
+    marginTop: 14,
+  },
+  tileGrid: {
     flexDirection: 'row',
-    gap: 8,
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 10,
+    marginTop: 12,
+    paddingHorizontal: LiquidLayout.screenH,
   },
-  mainContent: {
-    flex: 1,
-  },
-  bagInfo: {
+  tile: {
+    width: '48%',
+    minHeight: 96,
+    borderRadius: LiquidRadius.card,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.tile,
     padding: 16,
-    paddingHorizontal: 20,
+    justifyContent: 'space-between',
     gap: 12,
   },
-  description: {
-    padding: 16,
-    paddingHorizontal: 20,
-    gap: 8,
+  tileText: {
+    gap: 2,
   },
-  filterSection: {
-    padding: 15,
-    paddingHorizontal: 20,
-    gap: 12,
-  },
-  filterButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  gearList: {
-    padding: 16,
-    paddingHorizontal: 20,
-    paddingBottom: 96,
-    gap: 24,
-  },
-  category: {
-    gap: 12,
-  },
-  gearItem: {
+  gearHeaderTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    justifyContent: 'space-between',
+    paddingTop: LiquidLayout.section,
+    paddingBottom: 12,
+    paddingHorizontal: LiquidLayout.screenH,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: LiquidLayout.screenH,
+    paddingBottom: 12,
+  },
+  gearList: {
+    gap: LiquidLayout.section,
+    paddingHorizontal: LiquidLayout.screenH,
+  },
+  categoryLabel: {
+    marginBottom: 10,
+  },
+  gearCard: {
+    borderRadius: LiquidRadius.card,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.card,
+  },
+  // 실제 행(LiquidMetricRow: paddingVertical 15 / paddingHorizontal 16 / gap 12)과 같은 리듬.
+  gearRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
+    paddingVertical: 15,
+    paddingHorizontal: 16,
   },
-  gearInfo: {
+  gearRowIdentity: {
     flex: 1,
-    gap: 6,
-  },
-  skeletonBox: {
-    borderRadius: 4,
-    overflow: 'hidden',
+    gap: 2,
   },
 });
 

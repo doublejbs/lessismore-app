@@ -16,17 +16,20 @@ interface Glow {
   right?: number;
 }
 
+/** 글로우 자리. 화면마다 지면 구성이 달라 세기까지 같이 갈린다(아래 LIME_GLOW). */
+type GlowPosition = 'topLeft' | 'topRight' | 'leftMid';
+
 interface Props {
   /** 지형 이미지·베일 농도 프리셋. 목록 화면(탐색 등)은 지형 없이 글로우만 → 'none' */
   screen: Screen | 'none';
-  /** 라임 글로우 위치 — 홈·목록은 좌상단, 탐색은 우상단 */
-  glowPosition?: 'topLeft' | 'topRight';
+  /** 라임 글로우 자리 — 홈·목록은 좌상단, 탐색은 우상단, 배낭 상세는 좌측 중단 */
+  glowPosition?: GlowPosition;
   /** 홈처럼 보조 글로우가 더 필요한 화면에서만 켠다 */
   coolGlow?: boolean;
 }
 
 // 목업 값 그대로 — 좌상단 라임 340, 우측 파랑 300(top 180).
-const LIME_GLOW: Record<'topLeft' | 'topRight', Glow> = {
+const LIME_GLOW: Record<GlowPosition, Glow> = {
   topLeft: {
     size: Backdrop.glow.size,
     rgb: 'rgb(200,242,68)',
@@ -41,6 +44,18 @@ const LIME_GLOW: Record<'topLeft' | 'topRight', Glow> = {
     opacity: 0.4,
     top: -70,
     right: -90,
+  },
+  /**
+   * 배낭 상세(목업 §6) — 글로우가 화면 안쪽(top 120)으로 내려와 있고 세기도 가장 낮다.
+   * 이 화면은 지형 0.8 + 짙은 베일 위에 흰 히어로 카드가 얹히므로, 모서리에서 강하게
+   * 번지면 카드 뒤가 얼룩처럼 읽힌다.
+   */
+  leftMid: {
+    size: 300,
+    rgb: 'rgb(200,242,68)',
+    opacity: 0.35,
+    top: 120,
+    left: -60,
   },
 };
 

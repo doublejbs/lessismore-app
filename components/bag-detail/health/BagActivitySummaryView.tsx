@@ -1,8 +1,8 @@
 import { FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgShadow, Spacing } from '@/constants/DesignTokens';
-import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import LiquidCard from '@/components/liquid/LiquidCard';
+import { Liquid, LiquidFont, LiquidLayout } from '@/constants/DesignTokens';
 import { BagActivitySummary } from '@/model/bag/BagActivitySummary';
 import {
   formatBagWeight,
@@ -24,15 +24,28 @@ const EMPTY_METRIC = '기록 없음';
 // 연결된 운동의 합산 요약(HA-4). 값은 Firestore에 저장된 스냅샷(DM-22)이라
 // 기기 조회가 실패해도 항상 그릴 수 있다(HA-5).
 const BagActivitySummaryView: FC<Props> = ({ summary, weightGrams }) => {
+  // `condensed`는 값에 한글이 섞이는지로 갈린다 — Archivo Narrow에는 한글 글리프가 없어
+  // 한글을 얹으면 글자가 깨진다. `formatDuration`은 `3시간 20분`을, `EMPTY_METRIC`은
+  // `기록 없음`을 돌려주므로 이 둘만 본문 서체로 떨어뜨린다.
+  // (`formatElevation`의 `850m↑`은 화살표 U+2191까지 Archivo Narrow에 있어 콘덴스드로 둔다.)
   const metrics = [
-    { label: '총 거리', value: formatDistance(summary.distance) },
-    { label: '총 시간', value: formatDuration(summary.duration) },
+    {
+      label: '총 거리',
+      value: formatDistance(summary.distance),
+      condensed: true,
+    },
+    {
+      label: '총 시간',
+      value: formatDuration(summary.duration),
+      condensed: false,
+    },
     {
       label: '누적 상승',
       value:
         summary.elevationGain !== undefined
           ? formatElevation(summary.elevationGain)
           : EMPTY_METRIC,
+      condensed: summary.elevationGain !== undefined,
     },
     {
       label: '소모 칼로리',
@@ -40,6 +53,7 @@ const BagActivitySummaryView: FC<Props> = ({ summary, weightGrams }) => {
         summary.activeEnergy !== undefined
           ? formatEnergy(summary.activeEnergy)
           : EMPTY_METRIC,
+      condensed: summary.activeEnergy !== undefined,
     },
   ];
 
@@ -48,7 +62,9 @@ const BagActivitySummaryView: FC<Props> = ({ summary, weightGrams }) => {
       {/* 이 기능의 핵심 서사 — 무게와 이동을 한 문장으로 잇는다(HA-4). */}
       {weightGrams > 0 && (
         <PretendardText style={styles.headline} weight='bold'>
-          {/* 두 수치가 이 문장의 결론이라 라임으로 세운다 — 앱의 유일한 액센트(ACG). */}
+          {/* 두 수치가 이 문장의 결론이라 라임 계열로 세운다. 밝은 면 위에서는 라임을
+              글자색으로 쓸 수 없어 `limeInk`를 쓴다. 한글 문장 안에 섞이는 자리라
+              콘덴스드가 아니라 본문 서체를 유지한다. */}
           <PretendardText style={styles.headlineValue} weight='bold'>
             {formatBagWeight(weightGrams)}
           </PretendardText>
@@ -59,51 +75,46 @@ const BagActivitySummaryView: FC<Props> = ({ summary, weightGrams }) => {
           {' 걸었어요'}
         </PretendardText>
       )}
-      <View style={styles.grid}>
+      {/* 이 화면의 주 정보라 종이 면으로 띄운다 — 회색 면은 지면과 톤이 가까워 안 떠 보였다
+          (2026-08-05 디자인 리뷰). */}
+      <LiquidCard tone='paper' radius='card' style={styles.grid}>
         {metrics.map(metric => (
           <View key={metric.label} style={styles.metric}>
-            <PretendardText style={styles.metricLabel}>
+            <PretendardText style={styles.metricLabel} weight='semibold'>
               {metric.label}
             </PretendardText>
-            {/* 숫자라 콘덴스드를 쓴다 — 이 화면은 수치가 전부다(ACG). `기록 없음`은
-                한글이라 콘덴스드에 글리프가 없어 본문 서체로 떨어뜨린다. */}
-            {metric.value === EMPTY_METRIC ? (
-              <PretendardText style={styles.metricEmpty}>
+            {metric.condensed ? (
+              <PretendardText style={styles.metricValue}>
                 {metric.value}
               </PretendardText>
             ) : (
-              <AcgDisplayText style={styles.metricValue}>
+              <PretendardText style={styles.metricKorean}>
                 {metric.value}
-              </AcgDisplayText>
+              </PretendardText>
             )}
           </View>
         ))}
-      </View>
+      </LiquidCard>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    gap: Spacing.item,
+    gap: LiquidLayout.cardPad,
   },
   headline: {
     fontSize: 22,
-    lineHeight: 32,
-    color: Acg.ink,
+    lineHeight: 30,
+    letterSpacing: -0.6,
+    color: Liquid.ink,
   },
   headlineValue: {
-    color: Acg.limeText,
+    color: Liquid.limeInk,
   },
-  // 이 화면의 주 정보라 종이 면으로 띄운다 — 회색 면은 지면과 톤이 가까워 안 떠 보였다
-  // (2026-08-05 디자인 리뷰).
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: 14,
-    borderRadius: 0,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
   },
   metric: {
     // 2열 그리드. 고정 높이를 두지 않아 Dynamic Type에서 값이 잘리지 않는다.
@@ -112,18 +123,21 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   metricLabel: {
-    fontSize: 13,
-    color: Acg.textSecondary,
+    fontSize: 12.5,
+    lineHeight: 17,
+    color: Liquid.inkMuted,
   },
   metricValue: {
+    fontFamily: LiquidFont.condensed,
     fontSize: 22,
     lineHeight: 26,
-    color: Acg.ink,
+    color: Liquid.ink,
   },
-  metricEmpty: {
+  // 한글이 섞인 값. 행간을 콘덴스드 값과 같게 두어 2열 그리드의 기준선이 어긋나지 않게 한다.
+  metricKorean: {
     fontSize: 15,
     lineHeight: 26,
-    color: Acg.textSecondary,
+    color: Liquid.inkTertiary,
   },
 });
 

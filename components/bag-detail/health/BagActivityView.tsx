@@ -12,7 +12,13 @@ import { observer } from 'mobx-react-lite';
 import { Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color, Radius, Spacing } from '@/constants/DesignTokens';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidRadius,
+} from '@/constants/DesignTokens';
 import BagActivity from '@/model/bag/BagActivity';
 import BagActivityPhase from '@/model/bag/BagActivityPhase';
 import {
@@ -34,12 +40,14 @@ interface Props {
 const IS_IOS = Platform.OS === 'ios';
 // iOS 26 투명 헤더는 배경이 없어(고정 레이아웃 화면) 콘텐츠 상단 여백을
 // 세이프에어리어 + 컴팩트 바 높이(44pt)로 직접 확보한다.
-const IOS_HEADER_BAR_HEIGHT = 44;
+const IOS_HEADER_BAR_HEIGHT = LiquidLayout.navBar;
 
 // 운동 기록 후보 선택·연결 화면(HA-3).
 // 화면당 주 액션은 하나다 — 하단 CTA가 선택 상태에 따라 `연결`/`연결 해제`로 바뀐다.
 // 투명 헤더 아래 숨 쉴 여백.
 const HEADER_CONTENT_GAP = 12;
+// LiquidPillButton과 같은 높이 — 비활성 면이 활성 CTA와 같은 자리를 지켜야 한다.
+const PRIMARY_PILL_HEIGHT = LiquidLayout.pillHeight;
 
 const BagActivityView: FC<Props> = ({ bagActivity }) => {
   const insets = useSafeAreaInsets();
@@ -72,6 +80,7 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
   // 선택을 모두 풀면 연결 해제가 주 액션이 된다 — 별도 파괴 버튼을 두지 않는다.
   const isUnlinkAction = selectedCount === 0 && hasLinked;
   const primaryEnabled = !saving && (selectedCount > 0 || isUnlinkAction);
+  const primaryLabel = isUnlinkAction ? '연결 해제' : '연결';
 
   const handlePressPrimary = () => {
     if (isUnlinkAction) {
@@ -90,7 +99,7 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
     ) {
       return (
         <View style={styles.centered}>
-          <ActivityIndicator color={Color.textSecondary} />
+          <ActivityIndicator color={Liquid.inkSubtle} />
         </View>
       );
     }
@@ -115,7 +124,7 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
           <TouchableOpacity
             style={styles.retryButton}
             onPress={handleRetry}
-            activeOpacity={0.7}
+            activeOpacity={LiquidMotion.pressOpacity}
             accessibilityRole='button'
             accessibilityLabel='다시 시도'
           >
@@ -189,7 +198,7 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
                   <TouchableOpacity
                     style={styles.headerAction}
                     onPress={handleReselect}
-                    activeOpacity={0.7}
+                    activeOpacity={LiquidMotion.pressOpacity}
                     accessibilityRole='button'
                     accessibilityLabel='연결할 운동 다시 선택'
                   >
@@ -213,7 +222,7 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
             accessibilityRole='button'
             accessibilityLabel='뒤로가기'
           >
-            <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
+            <Ionicons name='chevron-back' size={24} color={Liquid.ink} />
           </TouchableOpacity>
           <PretendardText style={styles.headerTitle} weight='bold'>
             운동 기록
@@ -223,7 +232,7 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
             <TouchableOpacity
               style={styles.headerAction}
               onPress={handleReselect}
-              activeOpacity={0.7}
+              activeOpacity={LiquidMotion.pressOpacity}
               accessibilityRole='button'
               accessibilityLabel='연결할 운동 다시 선택'
             >
@@ -258,28 +267,30 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
               </PretendardText>
             </View>
           )}
-          <TouchableOpacity
-            style={[
-              styles.primaryButton,
-              !primaryEnabled && styles.primaryButtonDisabled,
-            ]}
-            onPress={handlePressPrimary}
-            disabled={!primaryEnabled}
-            activeOpacity={0.8}
-            accessibilityRole='button'
-            accessibilityState={{ disabled: !primaryEnabled }}
-            accessibilityLabel={isUnlinkAction ? '연결 해제' : '운동 기록 연결'}
-          >
-            <PretendardText
-              style={[
-                styles.primaryButtonText,
-                !primaryEnabled && styles.primaryButtonTextDisabled,
-              ]}
-              weight='semibold'
+          {primaryEnabled ? (
+            <LiquidPillButton
+              label={primaryLabel}
+              variant='primary'
+              block
+              onPress={handlePressPrimary}
+            />
+          ) : (
+            /* 공용 LiquidPillButton에 비활성 변형이 없어 같은 치수의 로컬 면으로 낮춘다 —
+               잉크 면 + 흰 글자는 "누를 수 있다"는 신호라 그대로 두면 안 된다. */
+            <View
+              style={styles.primaryDisabled}
+              accessibilityRole='button'
+              accessibilityState={{ disabled: true }}
+              accessibilityLabel={primaryLabel}
             >
-              {isUnlinkAction ? '연결 해제' : '연결'}
-            </PretendardText>
-          </TouchableOpacity>
+              <PretendardText
+                style={styles.primaryDisabledLabel}
+                weight='semibold'
+              >
+                {primaryLabel}
+              </PretendardText>
+            </View>
+          )}
         </View>
       )}
     </View>
@@ -287,102 +298,103 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
 };
 
 const styles = StyleSheet.create({
+  // 부차 화면이라 지형·글로우 없이 평평한 지면만 깐다.
   container: {
     flex: 1,
-    backgroundColor: Acg.bg,
+    backgroundColor: Liquid.canvas,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.item,
-    paddingHorizontal: Spacing.screenH,
+    gap: 12,
+    paddingHorizontal: LiquidLayout.screenH,
     paddingVertical: 12,
   },
   headerTitle: {
     fontSize: 18,
-    color: Color.textPrimary,
+    color: Liquid.ink,
   },
   headerAction: {
     // 헤더 오른쪽 끝으로 밀되 44pt 터치 타깃을 확보한다.
     marginLeft: 'auto',
-    minHeight: 44,
+    minHeight: LiquidLayout.touchMin,
     justifyContent: 'center',
   },
   headerActionText: {
     fontSize: 15,
-    color: Color.textPrimary,
+    color: Liquid.ink,
   },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.item,
+    gap: 12,
   },
   errorText: {
     fontSize: 15,
-    color: Color.textSecondary,
+    lineHeight: 20,
+    color: Liquid.inkSecondary,
   },
   retryButton: {
-    minHeight: 44,
-    paddingHorizontal: Spacing.section,
+    minHeight: LiquidLayout.touchMin,
+    paddingHorizontal: LiquidLayout.section,
     justifyContent: 'center',
   },
   retryButtonText: {
     fontSize: 15,
-    color: Color.textPrimary,
+    color: Liquid.ink,
     textDecorationLine: 'underline',
   },
   list: {
     flex: 1,
   },
   listContent: {
-    gap: 10,
-    paddingHorizontal: Spacing.screenH,
-    paddingBottom: Spacing.section,
+    gap: LiquidLayout.listGap,
+    paddingHorizontal: LiquidLayout.screenH,
+    paddingBottom: LiquidLayout.section,
   },
   listGuide: {
-    fontSize: 13,
-    lineHeight: 20,
-    color: Color.textSecondary,
+    fontSize: 13.5,
+    lineHeight: 19,
+    color: Liquid.inkTertiary,
     marginBottom: 4,
   },
+  // 하단 고정 푸터는 콘텐츠를 덮지 않는 flex 형제라 유리(BlurView)를 쓸 이유가 없다 —
+  // 종이 면 + 0.5px 헤어라인으로 지면과 가른다.
   footer: {
-    gap: Spacing.item,
-    paddingHorizontal: Spacing.screenH,
-    paddingTop: Spacing.item,
-    paddingBottom: Spacing.item,
-    borderTopWidth: 1,
-    borderTopColor: Color.borderLight,
-    backgroundColor: Color.background,
+    gap: 12,
+    paddingHorizontal: LiquidLayout.screenH,
+    paddingTop: 12,
+    paddingBottom: 12,
+    borderTopWidth: 0.5,
+    borderTopColor: Liquid.hairline,
+    backgroundColor: Liquid.surface,
   },
   summary: {
     gap: 2,
   },
   summaryCount: {
     fontSize: 15,
-    color: Color.textPrimary,
+    lineHeight: 20,
+    color: Liquid.ink,
   },
   summaryMetrics: {
-    fontSize: 13,
-    color: Color.textSecondary,
+    fontSize: 12.5,
+    lineHeight: 17,
+    color: Liquid.inkTertiary,
   },
-  primaryButton: {
-    minHeight: 52,
-    borderRadius: Radius.card,
-    backgroundColor: Color.chipActiveBg,
+  primaryDisabled: {
+    height: PRIMARY_PILL_HEIGHT,
+    borderRadius: LiquidRadius.pill,
+    backgroundColor: Liquid.surfaceSunken,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  primaryButtonDisabled: {
-    backgroundColor: Color.chipInactiveBg,
-  },
-  primaryButtonText: {
+  // `inkSubtle`은 이 면(surfaceSunken) 위에서 라벨이 거의 읽히지 않는다 — 무엇을 누르게 될지
+  // 미리 읽혀야 하는 주 액션이라 AA를 넘기는 `inkTertiary`까지 올린다(`inkMuted`는 3.9로 미달).
+  primaryDisabledLabel: {
     fontSize: 16,
-    color: Color.background,
-  },
-  // 비활성 배경(밝은 회색) 위에서는 흰 글씨가 읽히지 않아 대비를 확보한 색으로 바꾼다.
-  primaryButtonTextDisabled: {
-    color: Color.textTertiary,
+    color: Liquid.inkTertiary,
   },
 });
 

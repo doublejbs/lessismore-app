@@ -1,13 +1,10 @@
 import { FC } from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
-import PretendardText from '@/components/PretendardText';
-import { AcgShadow, Acg, Color, Radius } from '@/constants/DesignTokens';
+import BagDetailTileView from './BagDetailTileView';
 import { getHealthService } from '@/model/health/HealthService';
 import { formatDistance, formatElevation } from '@/model/health/HealthFormat';
 
@@ -54,55 +51,16 @@ const BagDetailActivityView: FC<Props> = ({ bagDetail }) => {
     : '기록 연결하기';
 
   return (
-    <TouchableOpacity
-      style={styles.tile}
+    <BagDetailTileView
+      icon='footsteps-outline'
+      title='운동 기록'
+      subtitle={subtitle}
       onPress={handlePress}
-      activeOpacity={0.7}
-      accessibilityRole='button'
       accessibilityLabel={
         activity ? `운동 기록 ${subtitle}` : '운동 기록 연결하기'
       }
-    >
-      <Ionicons name='footsteps-outline' size={24} color={Color.textPrimary} />
-      <View style={styles.textWrap}>
-        <PretendardText
-          style={styles.title}
-          weight='semibold'
-          numberOfLines={1}
-        >
-          운동 기록
-        </PretendardText>
-        <PretendardText style={styles.subtitle} numberOfLines={1}>
-          {subtitle}
-        </PretendardText>
-      </View>
-    </TouchableOpacity>
+    />
   );
 };
-
-const styles = StyleSheet.create({
-  tile: {
-    width: '48%',
-    minHeight: 92,
-    // 지면 위 타일이라 종이 면을 쓴다 — 회색(surfaceMuted)은 지면과 가까워 타일이
-    // 떠 보이지 않았다(2026-08-04 사용자 지적). 강조 타일만 잉크 면이다.
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
-    borderRadius: Radius.card,
-    padding: 14,
-    justifyContent: 'space-between',
-  },
-  textWrap: {
-    gap: 2,
-  },
-  title: {
-    fontSize: 15,
-    color: Color.textPrimary,
-  },
-  subtitle: {
-    fontSize: 12,
-    color: Color.textSecondary,
-  },
-});
 
 export default observer(BagDetailActivityView);

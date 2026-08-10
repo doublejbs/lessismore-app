@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Color, Spacing } from '@/constants/DesignTokens';
+import { Liquid, LiquidViz } from '@/constants/DesignTokens';
 import { BagActivityWorkoutDetail } from '@/model/bag/BagActivityWorkoutDetail';
 import {
   formatDistance,
@@ -25,9 +25,13 @@ interface Props {
   detail: BagActivityWorkoutDetail;
 }
 
-/** 데이터 시각화 색 — 토큰 예외로 하드코딩한다(CLAUDE.md). */
-const HEART_RATE_COLOR = '#FF4D4F';
-const PACE_COLOR = '#2F6BFF';
+/**
+ * 그래프 선 색. 데이터 시각화는 액센트 체계 밖이라 시각화 전용 팔레트(`LiquidViz`)에서
+ * 가져온다 — 값이 배낭 카테고리 의미색과 겹치지만 뜻은 분리돼 있다. 흰 종이 카드 위에 놓이므로
+ * 옛 형광 계열(#FF4D4F·#2F6BFF)보다 차분한 이 값들이 리디자인 톤에 맞는다.
+ */
+const HEART_RATE_COLOR = LiquidViz.heartRate;
+const PACE_COLOR = LiquidViz.pace;
 
 // 연결된 운동 한 건의 개별 값 + 추이 그래프(HA-4).
 //
@@ -56,6 +60,7 @@ const BagActivityWorkoutDetailView: FC<Props> = ({ detail, isOnly }) => {
         <PretendardText style={styles.title} weight='semibold'>
           {getWorkoutTypeLabel(workout.type)}
         </PretendardText>
+        {/* 날짜·지표가 한글과 섞인 한 줄이라 본문 서체를 쓴다(콘덴스드에 한글 글리프 없음). */}
         <PretendardText style={styles.subtitle}>
           {isOnly
             ? formatWorkoutStartedAt(workout.startDate)
@@ -82,18 +87,20 @@ const BagActivityWorkoutDetailView: FC<Props> = ({ detail, isOnly }) => {
 
 const styles = StyleSheet.create({
   container: {
-    gap: Spacing.item,
+    gap: 12,
   },
   header: {
     gap: 4,
   },
   title: {
-    fontSize: 16,
-    color: Color.textPrimary,
+    fontSize: 17,
+    lineHeight: 24,
+    color: Liquid.ink,
   },
   subtitle: {
-    fontSize: 13,
-    color: Color.textSecondary,
+    fontSize: 13.5,
+    lineHeight: 19,
+    color: Liquid.inkTertiary,
   },
 });
 

@@ -10,6 +10,7 @@ import { BlurView } from 'expo-blur';
 import PretendardText from '@/components/PretendardText';
 import {
   Liquid,
+  LiquidLayout,
   LiquidRadius,
   LiquidShadow,
   LiquidMotion,
@@ -37,8 +38,8 @@ const LABEL_COLOR: Record<PillVariant, string> = {
 };
 
 /**
- * Liquid Depth 주 액션 버튼(핸드오프 PillButton). 항상 알약이고 높이 54 고정 —
- * 화면마다 버튼 키가 다르면 주 액션의 무게가 흔들린다.
+ * Liquid Depth 주 액션 버튼(핸드오프 PillButton). 항상 알약이고 높이는
+ * `LiquidLayout.pillHeight` 고정 — 화면마다 버튼 키가 다르면 주 액션의 무게가 흔들린다.
  */
 const LiquidPillButton: FC<Props> = ({
   label,
@@ -91,7 +92,12 @@ const LiquidPillButton: FC<Props> = ({
 
   return (
     <TouchableOpacity
-      style={[styles.pill, VARIANT_STYLES[variant], block && styles.block, style]}
+      style={[
+        styles.pill,
+        VARIANT_STYLES[variant],
+        block && styles.block,
+        style,
+      ]}
       onPress={onPress}
       activeOpacity={LiquidMotion.pressOpacity}
       accessibilityRole='button'
@@ -120,7 +126,7 @@ const VARIANT_STYLES: Record<Exclude<PillVariant, 'glass'>, ViewStyle> = {
 
 const styles = StyleSheet.create({
   pill: {
-    height: 54,
+    height: LiquidLayout.pillHeight,
     paddingHorizontal: 24,
     borderRadius: LiquidRadius.pill,
     flexDirection: 'row',

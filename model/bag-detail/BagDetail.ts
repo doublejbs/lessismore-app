@@ -13,6 +13,7 @@ import BagDetailFilterManager from '@/model/bag-detail/BagDetailFilterManager';
 import PackingButtonState from '@/model/bag-detail/PackingButtonState';
 import { ImperativeRouter } from 'expo-router';
 import BagWeather from '@/model/bag/BagWeather';
+import TripPhase from '@/model/bag/TripPhase';
 import { BagActivitySummary } from '@/model/bag/BagActivitySummary';
 import { setBagInfoEditContext } from '@/model/bag-detail/BagInfoEditHandoff';
 import { getBagShareUrl } from '@/constants/WebLinks';
@@ -244,26 +245,26 @@ class BagDetail {
   }
 
   // 여행 상태: 출발 전 / 여행 중 / 지난 여행.
-  public getTripPhase(): 'before' | 'ongoing' | 'after' {
+  public getTripPhase(): TripPhase {
     const today = dayjs().startOf('day');
     if (this.endDate.startOf('day').isBefore(today)) {
-      return 'after';
+      return TripPhase.After;
     }
     if (this.startDate.startOf('day').isAfter(today)) {
-      return 'before';
+      return TripPhase.Before;
     }
-    return 'ongoing';
+    return TripPhase.Ongoing;
   }
 
   // 날짜 부제에 붙일 상황 라벨(D-day / 여행 중 / 지난 여행).
   public getPhaseLabel(): string {
     const today = dayjs().startOf('day');
     const phase = this.getTripPhase();
-    if (phase === 'before') {
+    if (phase === TripPhase.Before) {
       const d = this.startDate.startOf('day').diff(today, 'day');
       return d === 0 ? '오늘 출발' : `D-${d}`;
     }
-    if (phase === 'ongoing') {
+    if (phase === TripPhase.Ongoing) {
       return '여행 중';
     }
     return '지난 여행';
