@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@700&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:Pretendard;src:url("assets/fonts/Pretendard-Regular.ttf") format("truetype");font-weight:400;font-display:swap}
+@font-face{font-family:Pretendard;src:url("assets/fonts/Pretendard-Medium.ttf") format("truetype");font-weight:500;font-display:swap}
+@font-face{font-family:Pretendard;src:url("assets/fonts/Pretendard-SemiBold.ttf") format("truetype");font-weight:600;font-display:swap}
+@font-face{font-family:Pretendard;src:url("assets/fonts/Pretendard-Bold.ttf") format("truetype");font-weight:700;font-display:swap}
+body{margin:0;background:#E6E6EA;font-family:Pretendard,-apple-system,sans-serif}
+a{color:#5C7A12;text-decoration:none}
+a:hover{color:#101012}
+ion-icon{vertical-align:middle}
+</style>
+<script type="module" src="https://cdn.jsdelivr.net/npm/ionicons@7.4.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://cdn.jsdelivr.net/npm/ionicons@7.4.0/dist/ionicons/ionicons.js"></script>
+</helmet>
+
+<div style="padding:64px;display:flex;flex-wrap:wrap;gap:72px 56px;align-items:flex-start;background:#E6E6EA;min-height:100vh;box-sizing:border-box">
+
+<div style="width:100%;max-width:900px">
+  <div style="font-size:13px;font-weight:600;letter-spacing:.14em;color:#8A8A94;text-transform:uppercase">방향 A</div>
+  <div style="font-size:38px;font-weight:700;letter-spacing:-1px;color:#101012;margin-top:8px">Liquid Depth</div>
+  <div style="font-size:16px;line-height:26px;color:#5E5E68;margin-top:12px;max-width:620px">iOS 26 리퀴드 글래스 결. 밝은 지면 위에 부드러운 라운드(20–28px) 카드를 겹치고, 반투명 유리 크롬이 콘텐츠 위를 떠다닙니다. 라임은 브랜드 앵커로 남기되 큰 면 하나에만 씁니다. 숫자는 크게, 여백은 넉넉하게.</div>
+</div>
+
+<!-- 홈 -->
+<div style="display:flex;flex-direction:column;gap:16px;width:402px">
+<div><div style="font-size:15px;font-weight:700;color:#101012">홈</div></div>
+<div style="position:relative;width:402px;height:874px;border-radius:54px;overflow:hidden;box-shadow:0 0 0 11px #1c1c1e,0 0 0 13px #4a4a4c,0 26px 60px rgba(0,0,0,.28)">
+  <div style="position:absolute;inset:0;background:#F2F2F6"></div>
+  <img src="assets/images/acg-terrain.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85"></img>
+  <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(242,242,246,.1) 0%,rgba(242,242,246,.36) 45%,rgba(242,242,246,.52) 100%)"></div>
+  <div style="position:absolute;left:-80px;top:-60px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(200,242,68,.5),rgba(200,242,68,0) 70%)"></div>
+  <div style="position:absolute;right:-100px;top:180px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(120,150,255,.22),rgba(120,150,255,0) 70%)"></div>
+
+  <div style="position:absolute;inset:0;padding:62px 20px 0;box-sizing:border-box;overflow:hidden">
+    <div style="padding:18px 0 6px;display:flex;align-items:center;justify-content:space-between">
+      <div><div style="font-size:13px;font-weight:500;color:#78787F">금요일, 8월 9일</div><div style="font-size:32px;line-height:38px;font-weight:700;letter-spacing:-1px;color:#101012;margin-top:2px">다음 여행까지</div></div>
+      <div style="width:42px;height:42px;border-radius:21px;background:rgba(255,255,255,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:.5px solid rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(16,16,18,.08)"><ion-icon name="notifications-outline" style="font-size:20px;color:#101012"></ion-icon></div>
+    </div>
+
+    <div style="margin-top:18px;border-radius:28px;background:#C8F244;box-shadow:0 12px 32px rgba(160,200,40,.35);overflow:hidden">
+      <div style="padding:22px 22px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:14px;background:#101012"><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:14px;letter-spacing:.08em;color:#C8F244">D-6</span></div>
+          <div style="font-size:24px;line-height:30px;font-weight:700;letter-spacing:-.6px;color:#101012;margin-top:12px">설악산 1박 2일</div>
+          <div style="display:flex;align-items:center;gap:5px;margin-top:6px"><ion-icon name="location" style="font-size:14px;color:#3E4A16"></ion-icon><span style="font-size:14px;font-weight:500;color:#3E4A16">설악산 소공원</span></div>
+        </div>
+        <div style="text-align:right"><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:44px;line-height:44px;letter-spacing:-1px;color:#101012">8.4<span style="font-size:22px;letter-spacing:0;margin-left:4px">kg</span></div></div>
+      </div>
+      <div style="margin:20px 14px 0;border-radius:20px;background:rgba(255,255,255,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;font-weight:600;color:#3E4A16">패킹 진행</span><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:15px;color:#101012">7/12</span></div>
+        <div style="height:8px;border-radius:4px;background:rgba(16,16,18,.14);margin-top:10px;overflow:hidden"><div style="height:100%;width:58%;border-radius:4px;background:#101012"></div></div>
+      </div>
+      <div style="margin:8px 14px 0;display:flex;gap:8px">
+        <div style="flex:1;border-radius:20px;background:rgba(255,255,255,.4);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:13px 14px;display:flex;align-items:center;gap:6px"><ion-icon name="partly-sunny" style="font-size:18px;color:#101012"></ion-icon><span style="font-size:14.5px;font-weight:600;color:#101012">맑음 18°/27°</span></div>
+        <div style="flex:1;border-radius:20px;background:rgba(255,255,255,.4);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:13px 14px;display:flex;align-items:center;justify-content:center"><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:14.5px;letter-spacing:.06em;color:#101012">08.15 — 08.16</span></div>
+      </div>
+      <div style="padding:14px 14px 14px"><div style="height:54px;border-radius:27px;background:#101012;display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#FFFFFF">패킹 시작하기</span><ion-icon name="arrow-forward" style="font-size:17px;color:#C8F244"></ion-icon></div></div>
+    </div>
+
+    <div style="margin-top:12px;border-radius:20px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 8px 22px rgba(16,16,18,.05);padding:13px 16px;display:flex;align-items:center;gap:12px">
+      <div style="display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:13px;background:rgba(16,16,18,.06);flex-shrink:0"><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:13px;color:#5E5E68">D-21</span></div>
+      <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:600;color:#101012;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">지리산 종주</div><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:12px;letter-spacing:.05em;color:#8A8A94;margin-top:2px">08.30 — 09.01</div></div>
+      <span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:18px;color:#101012">9.7<span style="font-size:12px;color:#8A8A94">kg</span></span>
+      <ion-icon name="chevron-forward" style="font-size:15px;color:#B4B4BC"></ion-icon>
+    </div>
+
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin:26px 2px 12px"><span style="font-size:19px;font-weight:700;letter-spacing:-.4px;color:#101012">내 창고</span><span style="font-size:13px;font-weight:600;color:#78787F">42개</span></div>
+
+    <div style="display:flex;gap:8px;overflow:hidden;margin:0 -20px;padding:0 20px">
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:#101012;display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:600;color:#FFFFFF">전체</span></div>
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:500;color:#5E5E68">배낭</span></div>
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:500;color:#5E5E68">텐트</span></div>
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:500;color:#5E5E68">침낭</span></div>
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:500;color:#5E5E68">의류</span></div>
+    </div>
+
+    <div style="margin-top:12px;border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:12px;padding:15px 16px"><div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:600;color:#101012;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">사우스웨스트 55</div><div style="font-size:12.5px;color:#8A8A94;margin-top:2px">하이퍼라이트마운틴기어</div></div><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:16px;color:#101012">907g</span></div>
+      <div style="height:.5px;background:rgba(16,16,18,.08);margin-left:16px"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:15px 16px"><div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:600;color:#101012">헥사라이트 솔로</div><div style="font-size:12.5px;color:#8A8A94;margin-top:2px">야마토미치</div></div><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:16px;color:#101012">480g</span></div>
+      <div style="height:.5px;background:rgba(16,16,18,.08);margin-left:16px"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 16px"><span style="font-size:14px;font-weight:600;color:#5C7A12">전체 보기</span><ion-icon name="chevron-forward" style="font-size:14px;color:#5C7A12"></ion-icon></div>
+    </div>
+  </div>
+
+  <div style="position:absolute;top:0;left:0;right:0;height:62px;z-index:20">
+    <div style="position:absolute;left:34px;top:19px;font-size:17px;font-weight:600;color:#101012;letter-spacing:-.2px">9:41</div>
+    <div style="position:absolute;right:30px;top:21px;display:flex;align-items:center;gap:6px">
+      <svg width="18" height="12" viewBox="0 0 18 12"><rect y="8" width="3" height="4" rx="1" fill="#101012"/><rect x="5" y="6" width="3" height="6" rx="1" fill="#101012"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#101012"/><rect x="15" width="3" height="12" rx="1" fill="#101012"/></svg>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 11.2 6.4 8.9a3 3 0 0 1 4.2 0z" fill="#101012"/><path d="M4.2 6.2a6.2 6.2 0 0 1 8.6 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/><path d="M1.3 3.2a10.4 10.4 0 0 1 14.4 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="#101012" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="17" height="9" rx="2" fill="#101012"/><path d="M24.5 4.5c1 .3 1.5 1 1.5 2s-.5 1.7-1.5 2z" fill="#101012" fill-opacity=".4"/></svg>
+    </div>
+    <div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:125px;height:37px;border-radius:19px;background:#000"></div>
+  </div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;z-index:15;padding:0 14px 8px">
+    <div style="height:60px;border-radius:30px;background:rgba(255,255,255,.66);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border:.5px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(16,16,18,.14);display:flex;align-items:center;justify-content:space-around;padding:0 6px">
+      <div style="display:flex;align-items:center;justify-content:center;gap:7px;height:44px;padding:0 16px;border-radius:22px;background:#101012"><ion-icon name="home" style="font-size:19px;color:#C8F244"></ion-icon><span style="font-size:13px;font-weight:600;color:#FFFFFF">홈</span></div>
+      <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="search" style="font-size:22px;color:#8A8A94"></ion-icon></div>
+      <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="map" style="font-size:22px;color:#8A8A94"></ion-icon></div>
+      <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="walk" style="font-size:22px;color:#8A8A94"></ion-icon></div>
+      <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="person" style="font-size:22px;color:#8A8A94"></ion-icon></div>
+    </div>
+    <div style="width:139px;height:5px;border-radius:3px;background:#101012;opacity:.3;margin:8px auto 0"></div>
+  </div>
+</div>
+</div>
+
+<!-- 탐색 -->
+<div style="display:flex;flex-direction:column;gap:16px;width:402px">
+<div><div style="font-size:15px;font-weight:700;color:#101012">탐색</div></div>
+<div style="position:relative;width:402px;height:874px;border-radius:54px;overflow:hidden;box-shadow:0 0 0 11px #1c1c1e,0 0 0 13px #4a4a4c,0 26px 60px rgba(0,0,0,.28)">
+  <div style="position:absolute;inset:0;background:#F2F2F6"></div>
+  <div style="position:absolute;right:-90px;top:-70px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(200,242,68,.4),rgba(200,242,68,0) 70%)"></div>
+
+  <div style="position:absolute;inset:0;padding-top:62px;box-sizing:border-box;overflow:hidden">
+    <div style="padding:16px 20px 0"><div style="font-size:32px;line-height:38px;font-weight:700;letter-spacing:-1px;color:#101012">탐색</div></div>
+    <div style="padding:14px 20px 0"><div style="height:48px;border-radius:24px;background:rgba(255,255,255,.75);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:.5px solid rgba(255,255,255,.95);box-shadow:0 6px 20px rgba(16,16,18,.07);display:flex;align-items:center;gap:10px;padding:0 18px"><ion-icon name="search" style="font-size:18px;color:#8A8A94"></ion-icon><span style="font-size:15.5px;color:#8A8A94">'헬리녹스'를 검색해보세요</span></div></div>
+
+    <div style="display:flex;gap:8px;overflow:hidden;padding:16px 20px 0">
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:500;color:#5E5E68">전체</span></div>
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:#101012;display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:600;color:#FFFFFF">가구</span></div>
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:500;color:#5E5E68">배낭</span></div>
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:500;color:#5E5E68">텐트</span></div>
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:500;color:#5E5E68">침낭</span></div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px 0">
+      <div style="height:32px;padding:0 14px;border-radius:16px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;gap:5px"><ion-icon name="options-outline" style="font-size:15px;color:#101012"></ion-icon><span style="font-size:13.5px;font-weight:500;color:#101012">브랜드 2</span></div>
+      <div style="display:flex;align-items:center;gap:2px"><span style="font-size:13.5px;font-weight:600;color:#101012">가벼운 순</span><ion-icon name="chevron-down" style="font-size:15px;color:#8A8A94"></ion-icon></div>
+    </div>
+
+    <div style="padding:16px 20px 0;display:grid;grid-template-columns:1fr 1fr;column-gap:12px;row-gap:14px">
+      <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);padding:16px;display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px"><span style="flex:1;font-size:12.5px;font-weight:600;color:#8A8A94">헬리녹스</span><div style="width:32px;height:32px;border-radius:16px;background:#C8F244;display:flex;align-items:center;justify-content:center"><ion-icon name="add" style="font-size:18px;color:#101012"></ion-icon></div></div><div style="font-size:15px;line-height:20px;font-weight:600;color:#101012">체어 원</div><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:32px;line-height:36px;letter-spacing:-.5px;color:#101012;margin-top:6px">890<span style="font-size:16px;color:#8A8A94">g</span></div><div style="display:flex;align-items:center;gap:3px;margin-top:8px"><span style="font-size:12px;font-weight:500;color:#5C7A12">쿠팡 최저가</span><ion-icon name="chevron-forward" style="font-size:11px;color:#5C7A12"></ion-icon></div></div>
+      <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);padding:16px;display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px"><span style="flex:1;font-size:12.5px;font-weight:600;color:#8A8A94">헬리녹스</span><div style="width:32px;height:32px;border-radius:16px;background:#101012;display:flex;align-items:center;justify-content:center"><ion-icon name="checkmark" style="font-size:18px;color:#C8F244"></ion-icon></div></div><div style="font-size:15px;line-height:20px;font-weight:600;color:#101012">택티컬 테이블 S</div><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:32px;line-height:36px;letter-spacing:-.5px;color:#101012;margin-top:6px">1120<span style="font-size:16px;color:#8A8A94">g</span></div></div>
+      <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);padding:16px;display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px"><span style="flex:1;font-size:12.5px;font-weight:600;color:#8A8A94">니모</span><div style="width:32px;height:32px;border-radius:16px;background:#C8F244;display:flex;align-items:center;justify-content:center"><ion-icon name="add" style="font-size:18px;color:#101012"></ion-icon></div></div><div style="font-size:15px;line-height:20px;font-weight:600;color:#101012">문라이트 리클라이닝</div><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:32px;line-height:36px;letter-spacing:-.5px;color:#101012;margin-top:6px">1000<span style="font-size:16px;color:#8A8A94">g</span></div><div style="display:flex;align-items:center;gap:3px;margin-top:8px"><span style="font-size:12px;font-weight:500;color:#5C7A12">쿠팡 최저가</span><ion-icon name="chevron-forward" style="font-size:11px;color:#5C7A12"></ion-icon></div></div>
+      <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);padding:16px;display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px"><span style="flex:1;font-size:12.5px;font-weight:600;color:#8A8A94">야마토미치</span><div style="width:32px;height:32px;border-radius:16px;background:#C8F244;display:flex;align-items:center;justify-content:center"><ion-icon name="add" style="font-size:18px;color:#101012"></ion-icon></div></div><div style="font-size:15px;line-height:20px;font-weight:600;color:#101012">미니멀리스트 패드</div><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:32px;line-height:36px;letter-spacing:-.5px;color:#101012;margin-top:6px">95<span style="font-size:16px;color:#8A8A94">g</span></div></div>
+      <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);padding:16px;display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px"><span style="flex:1;font-size:12.5px;font-weight:600;color:#8A8A94">꼴로르</span><div style="width:32px;height:32px;border-radius:16px;background:#C8F244;display:flex;align-items:center;justify-content:center"><ion-icon name="add" style="font-size:18px;color:#101012"></ion-icon></div></div><div style="font-size:15px;line-height:20px;font-weight:600;color:#101012">셸터 타프</div><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:32px;line-height:36px;letter-spacing:-.5px;color:#101012;margin-top:6px">340<span style="font-size:16px;color:#8A8A94">g</span></div></div>
+      <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);padding:16px;display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px"><span style="flex:1;font-size:12.5px;font-weight:600;color:#8A8A94">케일</span><div style="width:32px;height:32px;border-radius:16px;background:#C8F244;display:flex;align-items:center;justify-content:center"><ion-icon name="add" style="font-size:18px;color:#101012"></ion-icon></div></div><div style="font-size:15px;line-height:20px;font-weight:600;color:#101012">알파인 스툴</div><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:32px;line-height:36px;letter-spacing:-.5px;color:#101012;margin-top:6px">210<span style="font-size:16px;color:#8A8A94">g</span></div></div>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:0;right:0;bottom:130px;display:flex;justify-content:center;z-index:14"><div style="height:46px;padding:0 22px;border-radius:23px;background:rgba(16,16,18,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;gap:7px;box-shadow:0 10px 26px rgba(16,16,18,.28)"><ion-icon name="trending-up" style="font-size:17px;color:#C8F244"></ion-icon><span style="font-size:15px;font-weight:600;color:#FFFFFF">인기 순위</span></div></div>
+
+  <div style="position:absolute;top:0;left:0;right:0;height:62px;z-index:20">
+    <div style="position:absolute;left:34px;top:19px;font-size:17px;font-weight:600;color:#101012;letter-spacing:-.2px">9:41</div>
+    <div style="position:absolute;right:30px;top:21px;display:flex;align-items:center;gap:6px">
+      <svg width="18" height="12" viewBox="0 0 18 12"><rect y="8" width="3" height="4" rx="1" fill="#101012"/><rect x="5" y="6" width="3" height="6" rx="1" fill="#101012"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#101012"/><rect x="15" width="3" height="12" rx="1" fill="#101012"/></svg>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 11.2 6.4 8.9a3 3 0 0 1 4.2 0z" fill="#101012"/><path d="M4.2 6.2a6.2 6.2 0 0 1 8.6 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/><path d="M1.3 3.2a10.4 10.4 0 0 1 14.4 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="#101012" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="17" height="9" rx="2" fill="#101012"/><path d="M24.5 4.5c1 .3 1.5 1 1.5 2s-.5 1.7-1.5 2z" fill="#101012" fill-opacity=".4"/></svg>
+    </div>
+    <div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:125px;height:37px;border-radius:19px;background:#000"></div>
+  </div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;z-index:15;padding:0 14px 8px">
+    <div style="height:60px;border-radius:30px;background:rgba(255,255,255,.66);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border:.5px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(16,16,18,.14);display:flex;align-items:center;justify-content:space-around;padding:0 6px">
+      <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="home" style="font-size:22px;color:#8A8A94"></ion-icon></div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:7px;height:44px;padding:0 16px;border-radius:22px;background:#101012"><ion-icon name="search" style="font-size:19px;color:#C8F244"></ion-icon><span style="font-size:13px;font-weight:600;color:#FFFFFF">탐색</span></div>
+      <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="map" style="font-size:22px;color:#8A8A94"></ion-icon></div>
+      <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="walk" style="font-size:22px;color:#8A8A94"></ion-icon></div>
+      <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="person" style="font-size:22px;color:#8A8A94"></ion-icon></div>
+    </div>
+    <div style="width:139px;height:5px;border-radius:3px;background:#101012;opacity:.3;margin:8px auto 0"></div>
+  </div>
+</div>
+</div>
+
+<!-- 배낭 상세 -->
+<div style="display:flex;flex-direction:column;gap:16px;width:402px">
+<div><div style="font-size:15px;font-weight:700;color:#101012">배낭 상세</div></div>
+<div style="position:relative;width:402px;height:874px;border-radius:54px;overflow:hidden;box-shadow:0 0 0 11px #1c1c1e,0 0 0 13px #4a4a4c,0 26px 60px rgba(0,0,0,.28)">
+  <div style="position:absolute;inset:0;background:#F2F2F6"></div>
+  <img src="assets/images/acg-terrain.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.8"></img>
+  <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(242,242,246,.14) 0%,rgba(242,242,246,.42) 45%,rgba(242,242,246,.58) 100%)"></div>
+  <div style="position:absolute;left:-60px;top:120px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(200,242,68,.35),rgba(200,242,68,0) 70%)"></div>
+
+  <div style="position:absolute;inset:0;padding-top:106px;box-sizing:border-box;overflow:hidden">
+    <div style="padding:8px 20px 0">
+      <div style="display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 11px;border-radius:13px;background:rgba(16,16,18,.06)"><span style="font-size:12px;font-weight:600;color:#5E5E68">여행 예정 · D-6</span></div>
+      <div style="font-size:30px;line-height:38px;font-weight:700;letter-spacing:-.9px;color:#101012;margin-top:10px">설악산 1박 2일</div>
+      <div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:14px;letter-spacing:.06em;color:#8A8A94;margin-top:2px">2026.08.15 — 08.16</div>
+    </div>
+
+    <div style="margin:18px 20px 0;border-radius:26px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 12px 30px rgba(16,16,18,.06);padding:20px">
+      <div style="display:flex;align-items:flex-end;gap:6px"><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:54px;line-height:50px;letter-spacing:-1.5px;color:#101012">8.4</span><span style="font-size:18px;font-weight:600;color:#8A8A94;margin-bottom:4px">kg</span><span style="flex:1"></span><div style="display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 10px;border-radius:13px;background:#C8F244;margin-bottom:4px"><ion-icon name="trending-down" style="font-size:13px;color:#101012"></ion-icon><span style="font-size:12px;font-weight:600;color:#101012">-0.6kg</span></div></div>
+      <div style="display:flex;height:10px;border-radius:5px;overflow:hidden;gap:3px;margin-top:16px"><div style="flex:38;background:#101012;border-radius:5px"></div><div style="flex:22;background:#5C7A12;border-radius:5px"></div><div style="flex:16;background:#C8F244;border-radius:5px"></div><div style="flex:14;background:#B4B4BC;border-radius:5px"></div><div style="flex:10;background:#DEDEE4;border-radius:5px"></div></div>
+      <div style="display:flex;flex-wrap:wrap;column-gap:14px;row-gap:8px;margin-top:14px">
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:4px;background:#101012;display:block"></span><span style="font-size:12.5px;color:#5E5E68">베이스 38%</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:4px;background:#5C7A12;display:block"></span><span style="font-size:12.5px;color:#5E5E68">의류 22%</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:4px;background:#C8F244;display:block"></span><span style="font-size:12.5px;color:#5E5E68">조리 16%</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:4px;background:#B4B4BC;display:block"></span><span style="font-size:12.5px;color:#5E5E68">전자기기 14%</span></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 20px 0">
+      <div style="border-radius:22px;background:#101012;padding:16px;min-height:96px;display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box"><ion-icon name="partly-sunny" style="font-size:22px;color:#C8F244"></ion-icon><div><div style="font-size:14.5px;font-weight:600;color:#FFFFFF">설악산 소공원</div><div style="font-size:12px;color:#9A9AA4;margin-top:2px">맑음 · 18~27°</div></div></div>
+      <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 8px 22px rgba(16,16,18,.05);padding:16px;min-height:96px;display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box"><ion-icon name="document-text-outline" style="font-size:21px;color:#101012"></ion-icon><div style="font-size:14px;line-height:20px;font-weight:500;color:#101012">비 예보 있으면 타프 추가</div></div>
+      <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 8px 22px rgba(16,16,18,.05);padding:16px;min-height:96px;display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box"><ion-icon name="trending-down-outline" style="font-size:21px;color:#101012"></ion-icon><div><div style="font-size:14.5px;font-weight:600;color:#101012">사용 기록</div><div style="font-size:12px;color:#8A8A94;margin-top:2px">여행 후 기록</div></div></div>
+      <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 8px 22px rgba(16,16,18,.05);padding:16px;min-height:96px;display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box"><ion-icon name="footsteps-outline" style="font-size:21px;color:#101012"></ion-icon><div><div style="font-size:14.5px;font-weight:600;color:#101012">운동 기록</div><div style="font-size:12px;color:#8A8A94;margin-top:2px">기록 연결하기</div></div></div>
+    </div>
+
+    <div style="display:flex;align-items:baseline;justify-content:space-between;padding:26px 20px 12px"><span style="font-size:19px;font-weight:700;letter-spacing:-.4px;color:#101012">담긴 장비</span><span style="font-size:13px;font-weight:600;color:#78787F">12개</span></div>
+    <div style="display:flex;gap:8px;overflow:hidden;padding:0 20px">
+      <div style="height:32px;padding:0 14px;border-radius:16px;background:#101012;display:flex;align-items:center;white-space:nowrap"><span style="font-size:13px;font-weight:600;color:#FFFFFF">배낭</span></div>
+      <div style="height:32px;padding:0 14px;border-radius:16px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13px;font-weight:500;color:#5E5E68">텐트</span></div>
+      <div style="height:32px;padding:0 14px;border-radius:16px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13px;font-weight:500;color:#5E5E68">침낭</span></div>
+      <div style="height:32px;padding:0 14px;border-radius:16px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13px;font-weight:500;color:#5E5E68">의류</span></div>
+    </div>
+    <div style="margin:12px 20px 0;border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:12px;padding:15px 16px"><div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:600;color:#101012">사우스웨스트 55</div><div style="font-size:12.5px;color:#8A8A94;margin-top:2px">하이퍼라이트마운틴기어 · Black</div></div><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:16px;color:#101012">907g</span></div>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:12px 20px calc(34px + 10px);z-index:16">
+    <div style="display:flex;gap:10px">
+      <div style="height:54px;padding:0 18px;border-radius:27px;background:rgba(255,255,255,.78);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:.5px solid rgba(255,255,255,.95);display:flex;align-items:center;gap:7px;box-shadow:0 8px 24px rgba(16,16,18,.1)"><ion-icon name="bag-check-outline" style="font-size:18px;color:#101012"></ion-icon><span style="font-size:15px;font-weight:600;color:#101012">7/12</span></div>
+      <div style="flex:1;height:54px;border-radius:27px;background:#101012;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 26px rgba(16,16,18,.24)"><span style="font-size:16px;font-weight:600;color:#FFFFFF">장비 추가</span></div>
+    </div>
+  </div>
+
+  <div style="position:absolute;top:62px;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;z-index:18">
+    <div style="width:38px;height:38px;border-radius:19px;background:rgba(255,255,255,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:.5px solid rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(16,16,18,.08)"><ion-icon name="chevron-back" style="font-size:20px;color:#101012"></ion-icon></div>
+    <div style="display:flex;align-items:center;gap:2px;height:38px;padding:0 5px;border-radius:19px;background:rgba(255,255,255,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:.5px solid rgba(255,255,255,.95);box-shadow:0 4px 14px rgba(16,16,18,.08)">
+      <div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center"><ion-icon name="copy-outline" style="font-size:20px;color:#101012"></ion-icon></div>
+      <div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center"><ion-icon name="share-outline" style="font-size:20px;color:#101012"></ion-icon></div>
+      <div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center"><ion-icon name="film-outline" style="font-size:20px;color:#101012"></ion-icon></div>
+    </div>
+  </div>
+
+  <div style="position:absolute;top:0;left:0;right:0;height:62px;z-index:20">
+    <div style="position:absolute;left:34px;top:19px;font-size:17px;font-weight:600;color:#101012;letter-spacing:-.2px">9:41</div>
+    <div style="position:absolute;right:30px;top:21px;display:flex;align-items:center;gap:6px">
+      <svg width="18" height="12" viewBox="0 0 18 12"><rect y="8" width="3" height="4" rx="1" fill="#101012"/><rect x="5" y="6" width="3" height="6" rx="1" fill="#101012"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#101012"/><rect x="15" width="3" height="12" rx="1" fill="#101012"/></svg>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 11.2 6.4 8.9a3 3 0 0 1 4.2 0z" fill="#101012"/><path d="M4.2 6.2a6.2 6.2 0 0 1 8.6 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/><path d="M1.3 3.2a10.4 10.4 0 0 1 14.4 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="#101012" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="17" height="9" rx="2" fill="#101012"/><path d="M24.5 4.5c1 .3 1.5 1 1.5 2s-.5 1.7-1.5 2z" fill="#101012" fill-opacity=".4"/></svg>
+    </div>
+    <div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:125px;height:37px;border-radius:19px;background:#000"></div>
+  </div>
+  <div style="position:absolute;left:50%;bottom:9px;transform:translateX(-50%);width:139px;height:5px;border-radius:3px;background:#101012;opacity:.3;z-index:20"></div>
+</div>
+</div>
+
+<!-- 검색 결과 -->
+<div style="display:flex;flex-direction:column;gap:16px;width:402px">
+<div><div style="font-size:15px;font-weight:700;color:#101012">검색 결과</div></div>
+<div style="position:relative;width:402px;height:874px;border-radius:54px;overflow:hidden;box-shadow:0 0 0 11px #1c1c1e,0 0 0 13px #4a4a4c,0 26px 60px rgba(0,0,0,.28)">
+  <div style="position:absolute;inset:0;background:#F2F2F6"></div>
+  <div style="position:absolute;right:-90px;top:-70px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(200,242,68,.38),rgba(200,242,68,0) 70%)"></div>
+  <div style="position:absolute;inset:0;padding-top:62px;box-sizing:border-box;overflow:hidden">
+    <div style="padding:16px 20px 0"><div style="height:48px;border-radius:24px;background:rgba(255,255,255,.85);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:.5px solid rgba(255,255,255,.95);box-shadow:0 6px 20px rgba(16,16,18,.07);display:flex;align-items:center;gap:10px;padding:0 18px"><ion-icon name="search" style="font-size:18px;color:#101012"></ion-icon><span style="flex:1;font-size:15.5px;font-weight:500;color:#101012">니모</span><ion-icon name="close-circle" style="font-size:19px;color:#B4B4BC"></ion-icon></div></div>
+    <div style="display:flex;align-items:baseline;gap:8px;padding:18px 20px 0"><span style="font-size:22px;font-weight:700;letter-spacing:-.6px;color:#101012">검색 결과</span><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:17px;color:#8A8A94">18</span></div>
+    <div style="display:flex;gap:8px;overflow:hidden;padding:14px 20px 0">
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:#101012;display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:600;color:#FFFFFF">전체</span></div>
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:500;color:#5E5E68">텐트</span></div>
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:500;color:#5E5E68">침낭</span></div>
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:500;color:#5E5E68">매트</span></div>
+    </div>
+    <div style="padding:16px 20px 0;display:grid;grid-template-columns:1fr 1fr;column-gap:12px;row-gap:14px">
+      <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);padding:16px;display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px"><span style="flex:1;font-size:12.5px;font-weight:600;color:#8A8A94">니모</span><div style="width:32px;height:32px;border-radius:16px;background:#C8F244;display:flex;align-items:center;justify-content:center"><ion-icon name="add" style="font-size:18px;color:#101012"></ion-icon></div></div><div style="font-size:15px;line-height:20px;font-weight:600;color:#101012">텐서 인슐레이티드</div><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:32px;line-height:36px;letter-spacing:-.5px;color:#101012;margin-top:6px">480<span style="font-size:16px;color:#8A8A94">g</span></div><div style="display:flex;align-items:center;gap:3px;margin-top:8px"><span style="font-size:12px;font-weight:500;color:#5C7A12">쿠팡 최저가</span><ion-icon name="chevron-forward" style="font-size:11px;color:#5C7A12"></ion-icon></div></div>
+      <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);padding:16px;display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px"><span style="flex:1;font-size:12.5px;font-weight:600;color:#8A8A94">니모</span><div style="width:32px;height:32px;border-radius:16px;background:#101012;display:flex;align-items:center;justify-content:center"><ion-icon name="checkmark" style="font-size:18px;color:#C8F244"></ion-icon></div></div><div style="font-size:15px;line-height:20px;font-weight:600;color:#101012">호넷 엘리트 2P</div><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:32px;line-height:36px;letter-spacing:-.5px;color:#101012;margin-top:6px">830<span style="font-size:16px;color:#8A8A94">g</span></div></div>
+      <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);padding:16px;display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px"><span style="flex:1;font-size:12.5px;font-weight:600;color:#8A8A94">니모</span><div style="width:32px;height:32px;border-radius:16px;background:#C8F244;display:flex;align-items:center;justify-content:center"><ion-icon name="add" style="font-size:18px;color:#101012"></ion-icon></div></div><div style="font-size:15px;line-height:20px;font-weight:600;color:#101012">디스코 15 침낭</div><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:32px;line-height:36px;letter-spacing:-.5px;color:#101012;margin-top:6px">1080<span style="font-size:16px;color:#8A8A94">g</span></div></div>
+      <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);padding:16px;display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px"><span style="flex:1;font-size:12.5px;font-weight:600;color:#8A8A94">니모</span><div style="width:32px;height:32px;border-radius:16px;background:#C8F244;display:flex;align-items:center;justify-content:center"><ion-icon name="add" style="font-size:18px;color:#101012"></ion-icon></div></div><div style="font-size:15px;line-height:20px;font-weight:600;color:#101012">스위치백 폼 패드</div><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:32px;line-height:36px;letter-spacing:-.5px;color:#101012;margin-top:6px">415<span style="font-size:16px;color:#8A8A94">g</span></div></div>
+      <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);padding:16px;display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px"><span style="flex:1;font-size:12.5px;font-weight:600;color:#8A8A94">니모</span><div style="width:32px;height:32px;border-radius:16px;background:#C8F244;display:flex;align-items:center;justify-content:center"><ion-icon name="add" style="font-size:18px;color:#101012"></ion-icon></div></div><div style="font-size:15px;line-height:20px;font-weight:600;color:#101012">필로 엘리트</div><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:32px;line-height:36px;letter-spacing:-.5px;color:#101012;margin-top:6px">78<span style="font-size:16px;color:#8A8A94">g</span></div></div>
+      <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);padding:16px;display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px"><span style="flex:1;font-size:12.5px;font-weight:600;color:#8A8A94">니모</span><div style="width:32px;height:32px;border-radius:16px;background:#C8F244;display:flex;align-items:center;justify-content:center"><ion-icon name="add" style="font-size:18px;color:#101012"></ion-icon></div></div><div style="font-size:15px;line-height:20px;font-weight:600;color:#101012">헬리오 샤워</div><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:32px;line-height:36px;letter-spacing:-.5px;color:#101012;margin-top:6px">640<span style="font-size:16px;color:#8A8A94">g</span></div></div>
+    </div>
+  </div>
+  <div style="position:absolute;top:0;left:0;right:0;height:62px;z-index:20"><div style="position:absolute;left:34px;top:19px;font-size:17px;font-weight:600;color:#101012;letter-spacing:-.2px">9:41</div><div style="position:absolute;right:30px;top:21px;display:flex;align-items:center;gap:6px"><svg width="18" height="12" viewBox="0 0 18 12"><rect y="8" width="3" height="4" rx="1" fill="#101012"/><rect x="5" y="6" width="3" height="6" rx="1" fill="#101012"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#101012"/><rect x="15" width="3" height="12" rx="1" fill="#101012"/></svg><svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 11.2 6.4 8.9a3 3 0 0 1 4.2 0z" fill="#101012"/><path d="M4.2 6.2a6.2 6.2 0 0 1 8.6 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/><path d="M1.3 3.2a10.4 10.4 0 0 1 14.4 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="#101012" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="17" height="9" rx="2" fill="#101012"/><path d="M24.5 4.5c1 .3 1.5 1 1.5 2s-.5 1.7-1.5 2z" fill="#101012" fill-opacity=".4"/></svg></div><div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:125px;height:37px;border-radius:19px;background:#000"></div></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;z-index:15;padding:0 14px 8px"><div style="height:60px;border-radius:30px;background:rgba(255,255,255,.66);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border:.5px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(16,16,18,.14);display:flex;align-items:center;justify-content:space-around;padding:0 6px"><div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="home" style="font-size:22px;color:#8A8A94"></ion-icon></div><div style="display:flex;align-items:center;justify-content:center;gap:7px;height:44px;padding:0 16px;border-radius:22px;background:#101012"><ion-icon name="search" style="font-size:19px;color:#C8F244"></ion-icon><span style="font-size:13px;font-weight:600;color:#FFFFFF">탐색</span></div><div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="map" style="font-size:22px;color:#8A8A94"></ion-icon></div><div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="walk" style="font-size:22px;color:#8A8A94"></ion-icon></div><div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="person" style="font-size:22px;color:#8A8A94"></ion-icon></div></div><div style="width:139px;height:5px;border-radius:3px;background:#101012;opacity:.3;margin:8px auto 0"></div></div>
+</div>
+</div>
+
+<!-- 지도 -->
+<div style="display:flex;flex-direction:column;gap:16px;width:402px">
+<div><div style="font-size:15px;font-weight:700;color:#101012">지도</div></div>
+<div style="position:relative;width:402px;height:874px;border-radius:54px;overflow:hidden;box-shadow:0 0 0 11px #1c1c1e,0 0 0 13px #4a4a4c,0 26px 60px rgba(0,0,0,.28)">
+  <svg viewBox="0 0 402 874" style="position:absolute;inset:0;width:100%;height:100%"><rect width="402" height="874" fill="#EFEEEA"/><path d="M0 0h402v300H0z" fill="#E6EBE3"/><path d="M-20 300c60-30 120 10 180-20s140 40 260 0v340c-120 30-200-10-280 10s-120-20-160-10z" fill="#DFE7D9"/><path d="M0 640h402v234H0z" fill="#DCE7EF"/><path d="M-10 470c80 20 150-20 220 0s120 60 200 40" stroke="#CBD8C2" stroke-width="26" fill="none"/><path d="M40 0c20 180-30 300 20 460s10 260 60 414" stroke="#FAFAF9" stroke-width="9" fill="none"/><path d="M402 210c-120 20-200 70-300 60S-20 300-40 320" stroke="#FAFAF9" stroke-width="7" fill="none"/><g fill="#9AA394" font-size="10" font-family="Pretendard"><text x="60" y="180">설악산국립공원</text><text x="250" y="620">양양군</text></g></svg>
+  <div style="position:absolute;left:96px;top:392px"><div style="width:16px;height:16px;border-radius:8px;background:#2F6F8F;border:2.5px solid #fff;box-sizing:border-box;box-shadow:0 2px 6px rgba(0,0,0,.2)"></div><div style="position:absolute;left:50%;transform:translateX(-50%);top:-18px;white-space:nowrap;font-size:12px;font-weight:600;color:#101012;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff">십이선녀탕</div></div>
+  <div style="position:absolute;left:280px;top:470px"><div style="width:16px;height:16px;border-radius:8px;background:#C9A227;border:2.5px solid #fff;box-sizing:border-box;box-shadow:0 2px 6px rgba(0,0,0,.2)"></div><div style="position:absolute;left:50%;transform:translateX(-50%);top:-18px;white-space:nowrap;font-size:12px;font-weight:600;color:#101012;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff">오토캠핑장</div></div>
+  <div style="position:absolute;left:150px;top:560px"><div style="width:16px;height:16px;border-radius:8px;background:#4E8C5A;border:2.5px solid #fff;box-sizing:border-box;box-shadow:0 2px 6px rgba(0,0,0,.2)"></div><div style="position:absolute;left:50%;transform:translateX(-50%);top:-18px;white-space:nowrap;font-size:12px;font-weight:600;color:#101012;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff">중청대피소</div></div>
+  <div style="position:absolute;left:196px;top:400px;width:34px;height:44px;transform:translate(-17px,-44px)"><svg width="34" height="44" viewBox="0 0 34 44"><path d="M17 43s14-17 14-26A14 14 0 1 0 3 17c0 9 14 26 14 26z" fill="#C8F244" stroke="#101012" stroke-width="2" stroke-linejoin="round"/><circle cx="17" cy="16" r="5" fill="#101012"/></svg><div style="position:absolute;left:50%;transform:translateX(-50%);top:48px;white-space:nowrap;font-size:13px;font-weight:600;color:#101012;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff">비선대 야영장</div></div>
+  <div style="position:absolute;top:62px;left:0;right:0;padding-top:10px;display:flex;flex-direction:column;gap:12px;z-index:12">
+    <div style="margin:0 20px"><div style="height:48px;border-radius:24px;background:rgba(255,255,255,.9);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:.5px solid rgba(255,255,255,.95);box-shadow:0 8px 24px rgba(16,16,18,.14);display:flex;align-items:center;gap:10px;padding:0 18px"><ion-icon name="search" style="font-size:18px;color:#8A8A94"></ion-icon><span style="font-size:15.5px;color:#8A8A94">박지 검색</span></div></div>
+    <div style="display:flex;align-items:center;gap:8px;padding:0 20px;overflow:hidden">
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:#101012;display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:600;color:#FFFFFF">전체</span></div>
+      <div style="height:34px;padding:0 14px;border-radius:17px;background:rgba(255,255,255,.92);border:.5px solid rgba(16,16,18,.06);box-shadow:0 4px 12px rgba(16,16,18,.08);display:flex;align-items:center;gap:6px;white-space:nowrap"><span style="width:8px;height:8px;border-radius:4px;background:#2F6F8F;display:block"></span><span style="font-size:13.5px;font-weight:500;color:#5E5E68">백패킹</span></div>
+      <div style="height:34px;padding:0 14px;border-radius:17px;background:rgba(255,255,255,.92);border:.5px solid rgba(16,16,18,.06);box-shadow:0 4px 12px rgba(16,16,18,.08);display:flex;align-items:center;gap:6px;white-space:nowrap"><span style="width:8px;height:8px;border-radius:4px;background:#4E8C5A;display:block"></span><span style="font-size:13.5px;font-weight:500;color:#5E5E68">대피소</span></div>
+      <div style="height:34px;padding:0 14px;border-radius:17px;background:rgba(255,255,255,.92);border:.5px solid rgba(16,16,18,.06);box-shadow:0 4px 12px rgba(16,16,18,.08);display:flex;align-items:center;gap:6px;white-space:nowrap"><span style="width:8px;height:8px;border-radius:4px;background:#C9A227;display:block"></span><span style="font-size:13.5px;font-weight:500;color:#5E5E68">캠핑장</span></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;padding:0 20px;overflow:hidden">
+      <div style="height:28px;padding:0 12px;border-radius:14px;background:#101012;display:flex;align-items:center;white-space:nowrap"><span style="font-size:12.5px;font-weight:600;color:#FFFFFF">산</span></div>
+      <div style="height:28px;padding:0 12px;border-radius:14px;background:rgba(255,255,255,.92);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:12.5px;font-weight:500;color:#5E5E68">해변</span></div>
+      <div style="height:28px;padding:0 12px;border-radius:14px;background:rgba(255,255,255,.92);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:12.5px;font-weight:500;color:#5E5E68">계곡</span></div>
+      <div style="height:28px;padding:0 12px;border-radius:14px;background:rgba(255,255,255,.92);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:12.5px;font-weight:500;color:#5E5E68">섬</span></div>
+      <div style="height:28px;padding:0 12px;border-radius:14px;background:rgba(255,255,255,.92);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:12.5px;font-weight:500;color:#5E5E68">호수</span></div>
+    </div>
+  </div>
+  <div style="position:absolute;right:18px;bottom:150px;display:flex;flex-direction:column;gap:12px;z-index:13">
+    <div style="width:48px;height:48px;border-radius:24px;background:rgba(255,255,255,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:.5px solid rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(16,16,18,.16)"><ion-icon name="star" style="font-size:22px;color:#FFC83D"></ion-icon></div>
+    <div style="width:48px;height:48px;border-radius:24px;background:#C8F244;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(160,200,40,.4)"><ion-icon name="locate" style="font-size:22px;color:#101012"></ion-icon></div>
+  </div>
+  <div style="position:absolute;top:0;left:0;right:0;height:62px;z-index:20"><div style="position:absolute;left:34px;top:19px;font-size:17px;font-weight:600;color:#101012;letter-spacing:-.2px">9:41</div><div style="position:absolute;right:30px;top:21px;display:flex;align-items:center;gap:6px"><svg width="18" height="12" viewBox="0 0 18 12"><rect y="8" width="3" height="4" rx="1" fill="#101012"/><rect x="5" y="6" width="3" height="6" rx="1" fill="#101012"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#101012"/><rect x="15" width="3" height="12" rx="1" fill="#101012"/></svg><svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 11.2 6.4 8.9a3 3 0 0 1 4.2 0z" fill="#101012"/><path d="M4.2 6.2a6.2 6.2 0 0 1 8.6 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/><path d="M1.3 3.2a10.4 10.4 0 0 1 14.4 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="#101012" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="17" height="9" rx="2" fill="#101012"/><path d="M24.5 4.5c1 .3 1.5 1 1.5 2s-.5 1.7-1.5 2z" fill="#101012" fill-opacity=".4"/></svg></div><div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:125px;height:37px;border-radius:19px;background:#000"></div></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;z-index:15;padding:0 14px 8px"><div style="height:60px;border-radius:30px;background:rgba(255,255,255,.66);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border:.5px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(16,16,18,.14);display:flex;align-items:center;justify-content:space-around;padding:0 6px"><div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="home" style="font-size:22px;color:#8A8A94"></ion-icon></div><div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="search" style="font-size:22px;color:#8A8A94"></ion-icon></div><div style="display:flex;align-items:center;justify-content:center;gap:7px;height:44px;padding:0 16px;border-radius:22px;background:#101012"><ion-icon name="map" style="font-size:19px;color:#C8F244"></ion-icon><span style="font-size:13px;font-weight:600;color:#FFFFFF">지도</span></div><div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="walk" style="font-size:22px;color:#8A8A94"></ion-icon></div><div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="person" style="font-size:22px;color:#8A8A94"></ion-icon></div></div><div style="width:139px;height:5px;border-radius:3px;background:#101012;opacity:.3;margin:8px auto 0"></div></div>
+</div>
+</div>
+
+<!-- 배낭 목록 -->
+<div style="display:flex;flex-direction:column;gap:16px;width:402px">
+<div><div style="font-size:15px;font-weight:700;color:#101012">배낭 목록</div></div>
+<div style="position:relative;width:402px;height:874px;border-radius:54px;overflow:hidden;box-shadow:0 0 0 11px #1c1c1e,0 0 0 13px #4a4a4c,0 26px 60px rgba(0,0,0,.28)">
+  <div style="position:absolute;inset:0;background:#F2F2F6"></div>
+  <div style="position:absolute;left:-90px;top:-60px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(200,242,68,.34),rgba(200,242,68,0) 70%)"></div>
+  <div style="position:absolute;inset:0;padding:62px 20px 0;box-sizing:border-box;overflow:hidden">
+    <div style="padding:18px 0 0;display:flex;align-items:flex-end;justify-content:space-between">
+      <div><div style="font-size:32px;line-height:38px;font-weight:700;letter-spacing:-1px;color:#101012">배낭</div><div style="font-size:13px;font-weight:500;color:#78787F;margin-top:4px">4개 · 평균 8.0kg</div></div>
+      <div style="height:32px;display:flex;align-items:center;gap:3px"><span style="font-size:13.5px;font-weight:600;color:#101012">최신순</span><ion-icon name="chevron-down" style="font-size:15px;color:#8A8A94"></ion-icon></div>
+    </div>
+
+    <div style="font-size:11px;font-weight:600;letter-spacing:.16em;color:#8A8A94;text-transform:uppercase;margin:24px 0 10px">여행 예정</div>
+    <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);padding:18px;margin-bottom:10px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div style="flex:1;min-width:0"><div style="display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:11px;background:#C8F244;margin-bottom:8px"><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:12px;color:#101012">D-6</span></div><div style="font-size:17px;font-weight:600;color:#101012">설악산 1박 2일</div><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:12.5px;letter-spacing:.05em;color:#8A8A94;margin-top:4px">2026.08.15 — 08.16</div></div>
+        <div style="text-align:right"><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:30px;line-height:30px;letter-spacing:-.6px;color:#101012">8.4<span style="font-size:14px;color:#8A8A94">kg</span></div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:16px"><div style="flex:1;height:6px;border-radius:3px;background:#EDEDF2;overflow:hidden"><div style="height:100%;width:58%;border-radius:3px;background:#C8F244"></div></div><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:13px;color:#5E5E68">7/12</span></div>
+    </div>
+    <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);padding:18px;margin-bottom:10px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div style="flex:1;min-width:0"><div style="display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:11px;background:rgba(16,16,18,.07);margin-bottom:8px"><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:12px;color:#5E5E68">D-21</span></div><div style="font-size:17px;font-weight:600;color:#101012">지리산 종주</div><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:12.5px;letter-spacing:.05em;color:#8A8A94;margin-top:4px">2026.08.30 — 09.01</div></div>
+        <div style="text-align:right"><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:30px;line-height:30px;letter-spacing:-.6px;color:#101012">9.7<span style="font-size:14px;color:#8A8A94">kg</span></div></div>
+      </div>
+    </div>
+
+    <div style="font-size:11px;font-weight:600;letter-spacing:.16em;color:#8A8A94;text-transform:uppercase;margin:22px 0 10px">지난 여행</div>
+    <div style="border-radius:22px;background:rgba(255,255,255,.72);border:.5px solid rgba(16,16,18,.05);padding:18px;margin-bottom:10px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div style="flex:1;min-width:0"><div style="display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:11px;background:#101012;margin-bottom:8px"><ion-icon name="checkmark" style="font-size:12px;color:#C8F244"></ion-icon><span style="font-size:11.5px;font-weight:600;color:#FFFFFF">패킹 완료</span></div><div style="font-size:17px;font-weight:600;color:#101012">제주 올레 3박</div><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:12.5px;letter-spacing:.05em;color:#8A8A94;margin-top:4px">2026.06.11 — 06.14</div></div>
+        <div style="text-align:right"><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:30px;line-height:30px;letter-spacing:-.6px;color:#5E5E68">7.2<span style="font-size:14px;color:#B4B4BC">kg</span></div></div>
+      </div>
+    </div>
+    <div style="border-radius:22px;background:rgba(255,255,255,.72);border:.5px solid rgba(16,16,18,.05);padding:18px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div style="flex:1;min-width:0"><div style="display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:11px;background:#101012;margin-bottom:8px"><ion-icon name="checkmark" style="font-size:12px;color:#C8F244"></ion-icon><span style="font-size:11.5px;font-weight:600;color:#FFFFFF">패킹 완료</span></div><div style="font-size:17px;font-weight:600;color:#101012">덕유산 향적봉</div><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:12.5px;letter-spacing:.05em;color:#8A8A94;margin-top:4px">2026.05.03 — 05.04</div></div>
+        <div style="text-align:right"><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:30px;line-height:30px;letter-spacing:-.6px;color:#5E5E68">6.8<span style="font-size:14px;color:#B4B4BC">kg</span></div></div>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;right:20px;bottom:130px;z-index:14"><div style="height:52px;padding:0 22px;border-radius:26px;background:#101012;display:flex;align-items:center;gap:8px;box-shadow:0 12px 30px rgba(16,16,18,.28)"><ion-icon name="add" style="font-size:20px;color:#C8F244"></ion-icon><span style="font-size:15.5px;font-weight:600;color:#FFFFFF">배낭 추가</span></div></div>
+  <div style="position:absolute;top:0;left:0;right:0;height:62px;z-index:20"><div style="position:absolute;left:34px;top:19px;font-size:17px;font-weight:600;color:#101012;letter-spacing:-.2px">9:41</div><div style="position:absolute;right:30px;top:21px;display:flex;align-items:center;gap:6px"><svg width="18" height="12" viewBox="0 0 18 12"><rect y="8" width="3" height="4" rx="1" fill="#101012"/><rect x="5" y="6" width="3" height="6" rx="1" fill="#101012"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#101012"/><rect x="15" width="3" height="12" rx="1" fill="#101012"/></svg><svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 11.2 6.4 8.9a3 3 0 0 1 4.2 0z" fill="#101012"/><path d="M4.2 6.2a6.2 6.2 0 0 1 8.6 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/><path d="M1.3 3.2a10.4 10.4 0 0 1 14.4 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="#101012" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="17" height="9" rx="2" fill="#101012"/><path d="M24.5 4.5c1 .3 1.5 1 1.5 2s-.5 1.7-1.5 2z" fill="#101012" fill-opacity=".4"/></svg></div><div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:125px;height:37px;border-radius:19px;background:#000"></div></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;z-index:15;padding:0 14px 8px"><div style="height:60px;border-radius:30px;background:rgba(255,255,255,.66);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border:.5px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(16,16,18,.14);display:flex;align-items:center;justify-content:space-around;padding:0 6px"><div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="home" style="font-size:22px;color:#8A8A94"></ion-icon></div><div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="search" style="font-size:22px;color:#8A8A94"></ion-icon></div><div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="map" style="font-size:22px;color:#8A8A94"></ion-icon></div><div style="display:flex;align-items:center;justify-content:center;gap:7px;height:44px;padding:0 16px;border-radius:22px;background:#101012"><ion-icon name="walk" style="font-size:19px;color:#C8F244"></ion-icon><span style="font-size:13px;font-weight:600;color:#FFFFFF">배낭</span></div><div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="person" style="font-size:22px;color:#8A8A94"></ion-icon></div></div><div style="width:139px;height:5px;border-radius:3px;background:#101012;opacity:.3;margin:8px auto 0"></div></div>
+</div>
+</div>
+
+<!-- 패킹 모드 -->
+<div style="display:flex;flex-direction:column;gap:16px;width:402px">
+<div><div style="font-size:15px;font-weight:700;color:#101012">패킹 모드</div></div>
+<div style="position:relative;width:402px;height:874px;border-radius:54px;overflow:hidden;box-shadow:0 0 0 11px #1c1c1e,0 0 0 13px #4a4a4c,0 26px 60px rgba(0,0,0,.28)">
+  <div style="position:absolute;inset:0;background:#F2F2F6"></div>
+  <img src="assets/images/acg-terrain.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.8"></img>
+  <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(242,242,246,.16) 0%,rgba(242,242,246,.5) 40%,rgba(242,242,246,.7) 100%)"></div>
+  <div style="position:absolute;inset:0;padding-top:106px;box-sizing:border-box;overflow:hidden">
+    <div style="margin:8px 20px 0;border-radius:26px;background:rgba(255,255,255,.82);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:.5px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(16,16,18,.1);padding:20px">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between">
+        <div style="display:flex;align-items:baseline;gap:6px"><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:52px;line-height:48px;letter-spacing:-1.5px;color:#101012">7</span><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:24px;color:#B4B4BC">/ 12</span></div>
+        <div style="display:inline-flex;align-items:center;height:30px;padding:0 12px;border-radius:15px;background:#C8F244"><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:16px;color:#101012">58%</span></div>
+      </div>
+      <div style="height:8px;border-radius:4px;background:#EDEDF2;margin-top:16px;overflow:hidden"><div style="height:100%;width:58%;border-radius:4px;background:#101012"></div></div>
+      <div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:14px;color:#78787F;margin-top:12px">4.9kg / 8.4kg</div>
+    </div>
+
+    <div style="padding:20px 20px 0">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.16em;color:#8A8A94;text-transform:uppercase;margin-bottom:10px">배낭</div>
+      <div style="border-radius:20px;background:rgba(255,255,255,.62);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:10px"><div style="flex:1;min-width:0;opacity:.6"><div style="font-size:12px;font-weight:600;color:#8A8A94">하이퍼라이트마운틴기어</div><div style="font-size:15px;font-weight:600;color:#101012;margin-top:2px">사우스웨스트 55</div></div><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:17px;color:#B4B4BC">907g</span><div style="width:26px;height:26px;border-radius:13px;background:#101012;display:flex;align-items:center;justify-content:center"><ion-icon name="checkmark" style="font-size:16px;color:#C8F244"></ion-icon></div></div>
+
+      <div style="font-size:11px;font-weight:600;letter-spacing:.16em;color:#8A8A94;text-transform:uppercase;margin:20px 0 10px">텐트</div>
+      <div style="border-radius:20px;background:rgba(255,255,255,.62);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:10px"><div style="flex:1;min-width:0;opacity:.6"><div style="font-size:12px;font-weight:600;color:#8A8A94">야마토미치</div><div style="font-size:15px;font-weight:600;color:#101012;margin-top:2px">헥사라이트 솔로</div></div><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:17px;color:#B4B4BC">480g</span><div style="width:26px;height:26px;border-radius:13px;background:#101012;display:flex;align-items:center;justify-content:center"><ion-icon name="checkmark" style="font-size:16px;color:#C8F244"></ion-icon></div></div>
+      <div style="border-radius:20px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 8px 22px rgba(16,16,18,.05);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:10px"><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:#8A8A94">MSR</div><div style="font-size:15px;font-weight:600;color:#101012;margin-top:2px">그라운드호그 팩</div></div><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:17px;color:#101012">130g</span><div style="width:26px;height:26px;border-radius:13px;border:1.5px solid #D4D4DC;box-sizing:border-box"></div></div>
+
+      <div style="font-size:11px;font-weight:600;letter-spacing:.16em;color:#8A8A94;text-transform:uppercase;margin:20px 0 10px">의류</div>
+      <div style="border-radius:20px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 8px 22px rgba(16,16,18,.05);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:10px"><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:#8A8A94">아크테릭스</div><div style="font-size:15px;font-weight:600;color:#101012;margin-top:2px">아톰 LT 후디</div></div><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:17px;color:#101012">315g</span><div style="width:26px;height:26px;border-radius:13px;border:1.5px solid #D4D4DC;box-sizing:border-box"></div></div>
+      <div style="border-radius:20px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 8px 22px rgba(16,16,18,.05);padding:14px 16px;display:flex;align-items:center;gap:12px"><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:#8A8A94">코오롱스포츠</div><div style="font-size:15px;font-weight:600;color:#101012;margin-top:2px">윈드셸 자켓</div></div><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:17px;color:#101012">180g</span><div style="width:26px;height:26px;border-radius:13px;border:1.5px solid #D4D4DC;box-sizing:border-box"></div></div>
+    </div>
+  </div>
+  <div style="position:absolute;top:62px;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;z-index:18">
+    <div style="width:38px;height:38px;border-radius:19px;background:rgba(255,255,255,.78);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:.5px solid rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(16,16,18,.08)"><ion-icon name="chevron-back" style="font-size:20px;color:#101012"></ion-icon></div>
+    <div style="height:38px;padding:0 14px;border-radius:19px;background:rgba(255,255,255,.78);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:.5px solid rgba(255,255,255,.95);display:flex;align-items:center;box-shadow:0 4px 14px rgba(16,16,18,.08)"><span style="font-size:14px;font-weight:600;color:#5E5E68">처음부터 다시</span></div>
+  </div>
+  <div style="position:absolute;top:0;left:0;right:0;height:62px;z-index:20"><div style="position:absolute;left:34px;top:19px;font-size:17px;font-weight:600;color:#101012;letter-spacing:-.2px">9:41</div><div style="position:absolute;right:30px;top:21px;display:flex;align-items:center;gap:6px"><svg width="18" height="12" viewBox="0 0 18 12"><rect y="8" width="3" height="4" rx="1" fill="#101012"/><rect x="5" y="6" width="3" height="6" rx="1" fill="#101012"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#101012"/><rect x="15" width="3" height="12" rx="1" fill="#101012"/></svg><svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 11.2 6.4 8.9a3 3 0 0 1 4.2 0z" fill="#101012"/><path d="M4.2 6.2a6.2 6.2 0 0 1 8.6 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/><path d="M1.3 3.2a10.4 10.4 0 0 1 14.4 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="#101012" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="17" height="9" rx="2" fill="#101012"/><path d="M24.5 4.5c1 .3 1.5 1 1.5 2s-.5 1.7-1.5 2z" fill="#101012" fill-opacity=".4"/></svg></div><div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:125px;height:37px;border-radius:19px;background:#000"></div></div>
+  <div style="position:absolute;left:50%;bottom:9px;transform:translateX(-50%);width:139px;height:5px;border-radius:3px;background:#101012;opacity:.3;z-index:20"></div>
+</div>
+</div>
+
+<!-- 창고 -->
+<div style="display:flex;flex-direction:column;gap:16px;width:402px">
+<div><div style="font-size:15px;font-weight:700;color:#101012">창고</div></div>
+<div style="position:relative;width:402px;height:874px;border-radius:54px;overflow:hidden;box-shadow:0 0 0 11px #1c1c1e,0 0 0 13px #4a4a4c,0 26px 60px rgba(0,0,0,.28)">
+  <div style="position:absolute;inset:0;background:#F2F2F6"></div>
+  <div style="position:absolute;right:-90px;top:-60px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(200,242,68,.3),rgba(200,242,68,0) 70%)"></div>
+  <div style="position:absolute;inset:0;padding:106px 20px 0;box-sizing:border-box;overflow:hidden">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;padding-top:6px">
+      <div><div style="font-size:32px;line-height:38px;font-weight:700;letter-spacing:-1px;color:#101012">창고</div><div style="font-size:13px;font-weight:500;color:#78787F;margin-top:4px">42개 · 18.6kg</div></div>
+      <div style="height:32px;display:flex;align-items:center;gap:3px"><span style="font-size:13.5px;font-weight:600;color:#101012">무거운 순</span><ion-icon name="chevron-down" style="font-size:15px;color:#8A8A94"></ion-icon></div>
+    </div>
+    <div style="display:flex;gap:8px;overflow:hidden;margin:16px -20px 0;padding:0 20px">
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:#101012;display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:600;color:#FFFFFF">전체</span></div>
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:500;color:#5E5E68">배낭</span></div>
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:500;color:#5E5E68">텐트</span></div>
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:500;color:#5E5E68">침낭</span></div>
+      <div style="height:34px;padding:0 15px;border-radius:17px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center;white-space:nowrap"><span style="font-size:13.5px;font-weight:500;color:#5E5E68">매트</span></div>
+    </div>
+    <div style="display:flex;margin-top:10px"><div style="height:30px;padding:0 13px;border-radius:15px;background:rgba(200,242,68,.35);border:.5px solid rgba(160,200,40,.5);display:flex;align-items:center;gap:5px"><ion-icon name="alert-circle-outline" style="font-size:14px;color:#5C7A12"></ion-icon><span style="font-size:12.5px;font-weight:600;color:#5C7A12">안 쓴 장비 7</span></div></div>
+
+    <div style="margin-top:16px;border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:12px;padding:15px 16px"><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:#8A8A94">헬리녹스</div><div style="font-size:15px;font-weight:600;color:#101012;margin-top:2px">택티컬 테이블 S</div><div style="font-size:12px;color:#B4B4BC;margin-top:2px">Coyote Tan · 사용률 22%</div></div><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:20px;color:#101012">1120g</span></div>
+      <div style="height:.5px;background:rgba(16,16,18,.08);margin-left:16px"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:15px 16px"><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:#8A8A94">니모</div><div style="font-size:15px;font-weight:600;color:#101012;margin-top:2px">디스코 15 침낭</div><div style="font-size:12px;color:#B4B4BC;margin-top:2px">Abyss · 사용률 55%</div></div><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:20px;color:#101012">1080g</span></div>
+      <div style="height:.5px;background:rgba(16,16,18,.08);margin-left:16px"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:15px 16px"><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:#8A8A94">하이퍼라이트마운틴기어</div><div style="font-size:15px;font-weight:600;color:#101012;margin-top:2px">사우스웨스트 55</div><div style="font-size:12px;color:#B4B4BC;margin-top:2px">Black · 사용률 82%</div></div><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:20px;color:#101012">907g</span></div>
+      <div style="height:.5px;background:rgba(16,16,18,.08);margin-left:16px"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:15px 16px"><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:#8A8A94">니모</div><div style="font-size:15px;font-weight:600;color:#101012;margin-top:2px">호넷 엘리트 오즈모 2P</div><div style="font-size:12px;color:#B4B4BC;margin-top:2px">Birch Bud</div></div><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:20px;color:#101012">830g</span></div>
+      <div style="height:.5px;background:rgba(16,16,18,.08);margin-left:16px"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:15px 16px"><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:#8A8A94">니모</div><div style="font-size:15px;font-weight:600;color:#101012;margin-top:2px">텐서 인슐레이티드</div><div style="font-size:12px;color:#B4B4BC;margin-top:2px">Grey · 사용률 91%</div></div><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:20px;color:#101012">480g</span></div>
+      <div style="height:.5px;background:rgba(16,16,18,.08);margin-left:16px"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:15px 16px"><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:#8A8A94">아크테릭스</div><div style="font-size:15px;font-weight:600;color:#101012;margin-top:2px">아톰 LT 후디</div><div style="font-size:12px;color:#B4B4BC;margin-top:2px">Black Sapphire · 사용률 64%</div></div><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:20px;color:#101012">315g</span></div>
+    </div>
+  </div>
+  <div style="position:absolute;top:62px;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;z-index:18">
+    <div style="width:38px;height:38px;border-radius:19px;background:rgba(255,255,255,.78);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:.5px solid rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(16,16,18,.08)"><ion-icon name="chevron-back" style="font-size:20px;color:#101012"></ion-icon></div>
+    <div style="display:flex;align-items:center;gap:2px;height:38px;padding:0 5px;border-radius:19px;background:rgba(255,255,255,.78);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:.5px solid rgba(255,255,255,.95);box-shadow:0 4px 14px rgba(16,16,18,.08)"><div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center"><ion-icon name="search" style="font-size:19px;color:#101012"></ion-icon></div><div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center"><ion-icon name="add" style="font-size:23px;color:#101012"></ion-icon></div></div>
+  </div>
+  <div style="position:absolute;top:0;left:0;right:0;height:62px;z-index:20"><div style="position:absolute;left:34px;top:19px;font-size:17px;font-weight:600;color:#101012;letter-spacing:-.2px">9:41</div><div style="position:absolute;right:30px;top:21px;display:flex;align-items:center;gap:6px"><svg width="18" height="12" viewBox="0 0 18 12"><rect y="8" width="3" height="4" rx="1" fill="#101012"/><rect x="5" y="6" width="3" height="6" rx="1" fill="#101012"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#101012"/><rect x="15" width="3" height="12" rx="1" fill="#101012"/></svg><svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 11.2 6.4 8.9a3 3 0 0 1 4.2 0z" fill="#101012"/><path d="M4.2 6.2a6.2 6.2 0 0 1 8.6 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/><path d="M1.3 3.2a10.4 10.4 0 0 1 14.4 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="#101012" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="17" height="9" rx="2" fill="#101012"/><path d="M24.5 4.5c1 .3 1.5 1 1.5 2s-.5 1.7-1.5 2z" fill="#101012" fill-opacity=".4"/></svg></div><div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:125px;height:37px;border-radius:19px;background:#000"></div></div>
+  <div style="position:absolute;left:50%;bottom:9px;transform:translateX(-50%);width:139px;height:5px;border-radius:3px;background:#101012;opacity:.3;z-index:20"></div>
+</div>
+</div>
+
+<!-- 장비 상세 -->
+<div style="display:flex;flex-direction:column;gap:16px;width:402px">
+<div><div style="font-size:15px;font-weight:700;color:#101012">장비 상세</div></div>
+<div style="position:relative;width:402px;height:874px;border-radius:54px;overflow:hidden;box-shadow:0 0 0 11px #1c1c1e,0 0 0 13px #4a4a4c,0 26px 60px rgba(0,0,0,.28)">
+  <div style="position:absolute;inset:0;background:#F2F2F6"></div>
+  <div style="position:absolute;left:-70px;top:60px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(200,242,68,.32),rgba(200,242,68,0) 70%)"></div>
+  <div style="position:absolute;inset:0;padding-top:106px;box-sizing:border-box;overflow:hidden">
+    <div style="padding:14px 20px 0">
+      <div style="font-size:13px;font-weight:600;color:#8A8A94">하이퍼라이트마운틴기어</div>
+      <div style="font-size:28px;line-height:36px;font-weight:700;letter-spacing:-.9px;color:#101012;margin-top:4px">사우스웨스트 55</div>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:14px">
+        <div style="display:flex;gap:6px">
+          <div style="height:28px;padding:0 12px;border-radius:14px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center"><span style="font-size:12.5px;font-weight:500;color:#5E5E68">백패킹 배낭</span></div>
+          <div style="height:28px;padding:0 12px;border-radius:14px;background:rgba(255,255,255,.8);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center"><span style="font-size:12.5px;font-weight:500;color:#5E5E68">Black</span></div>
+        </div>
+        <span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:42px;line-height:38px;letter-spacing:-1.2px;color:#101012">907<span style="font-size:18px;color:#8A8A94">g</span></span>
+      </div>
+    </div>
+
+    <div style="margin:20px 20px 0"><div style="height:56px;border-radius:20px;border:1.5px dashed rgba(16,16,18,.16);display:flex;align-items:center;justify-content:center;gap:8px"><ion-icon name="camera-outline" style="font-size:19px;color:#8A8A94"></ion-icon><span style="font-size:14px;font-weight:500;color:#8A8A94">사진 추가</span></div></div>
+
+    <div style="padding:24px 20px 0"><div style="font-size:11px;font-weight:600;letter-spacing:.16em;color:#8A8A94;text-transform:uppercase;margin-bottom:10px">사용 기록</div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1;border-radius:20px;background:#C8F244;padding:16px;box-shadow:0 8px 22px rgba(160,200,40,.3)"><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:34px;line-height:34px;color:#101012">9</div><div style="font-size:12.5px;font-weight:600;color:#3E4A16;margin-top:4px">사용</div></div>
+        <div style="flex:1;border-radius:20px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 8px 22px rgba(16,16,18,.05);padding:16px"><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:34px;line-height:34px;color:#8A8A94">2</div><div style="font-size:12.5px;font-weight:500;color:#8A8A94;margin-top:4px">사용 안함</div></div>
+        <div style="flex:1;border-radius:20px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 8px 22px rgba(16,16,18,.05);padding:16px"><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:34px;line-height:34px;color:#101012">11</div><div style="font-size:12.5px;font-weight:500;color:#8A8A94;margin-top:4px">여행</div></div>
+      </div>
+    </div>
+
+    <div style="padding:24px 20px 0"><div style="font-size:11px;font-weight:600;letter-spacing:.16em;color:#8A8A94;text-transform:uppercase;margin-bottom:10px">스펙</div>
+      <div style="border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);padding:4px 16px">
+        <div style="display:flex;gap:12px;padding:13px 0"><span style="width:96px;font-size:13.5px;color:#8A8A94">용량</span><span style="flex:1;font-size:13.5px;font-weight:500;color:#101012">55 L</span></div>
+        <div style="height:.5px;background:rgba(16,16,18,.08)"></div>
+        <div style="display:flex;gap:12px;padding:13px 0"><span style="width:96px;font-size:13.5px;color:#8A8A94">소재</span><span style="flex:1;font-size:13.5px;font-weight:500;color:#101012">DCH50 다이니마</span></div>
+        <div style="height:.5px;background:rgba(16,16,18,.08)"></div>
+        <div style="display:flex;gap:12px;padding:13px 0"><span style="width:96px;font-size:13.5px;color:#8A8A94">최대 적재</span><span style="flex:1;font-size:13.5px;font-weight:500;color:#101012">18 kg</span></div>
+        <div style="height:.5px;background:rgba(16,16,18,.08)"></div>
+        <div style="display:flex;gap:12px;padding:13px 0"><span style="width:96px;font-size:13.5px;color:#8A8A94">토르소</span><span style="flex:1;font-size:13.5px;font-weight:500;color:#101012">43–48 cm</span></div>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:12px 20px 44px;background:linear-gradient(to top,#F2F2F6 60%,rgba(242,242,246,0));z-index:16"><div style="height:54px;border-radius:27px;background:#101012;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 30px rgba(16,16,18,.26)"><span style="font-size:16px;font-weight:600;color:#FFFFFF">내 창고에 추가하기</span></div></div>
+  <div style="position:absolute;top:62px;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;z-index:18">
+    <div style="width:38px;height:38px;border-radius:19px;background:rgba(255,255,255,.78);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:.5px solid rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(16,16,18,.08)"><ion-icon name="chevron-back" style="font-size:20px;color:#101012"></ion-icon></div>
+    <div style="display:flex;align-items:center;gap:2px;height:38px;padding:0 6px;border-radius:19px;background:rgba(255,255,255,.78);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:.5px solid rgba(255,255,255,.95);box-shadow:0 4px 14px rgba(16,16,18,.08)"><div style="width:32px;height:34px;display:flex;align-items:center;justify-content:center"><ion-icon name="share-outline" style="font-size:20px;color:#101012"></ion-icon></div><div style="height:34px;display:flex;align-items:center;padding:0 8px"><span style="font-size:14px;font-weight:600;color:#101012">수정</span></div></div>
+  </div>
+  <div id="__A_GEAR_SB" style="position:absolute;top:0;left:0;right:0;height:62px;z-index:20"><div style="position:absolute;left:34px;top:19px;font-size:17px;font-weight:600;color:#101012;letter-spacing:-.2px">9:41</div><div style="position:absolute;right:30px;top:21px;display:flex;align-items:center;gap:6px"><svg width="18" height="12" viewBox="0 0 18 12"><rect y="8" width="3" height="4" rx="1" fill="#101012"/><rect x="5" y="6" width="3" height="6" rx="1" fill="#101012"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#101012"/><rect x="15" width="3" height="12" rx="1" fill="#101012"/></svg><svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 11.2 6.4 8.9a3 3 0 0 1 4.2 0z" fill="#101012"/><path d="M4.2 6.2a6.2 6.2 0 0 1 8.6 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/><path d="M1.3 3.2a10.4 10.4 0 0 1 14.4 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="#101012" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="17" height="9" rx="2" fill="#101012"/><path d="M24.5 4.5c1 .3 1.5 1 1.5 2s-.5 1.7-1.5 2z" fill="#101012" fill-opacity=".4"/></svg></div><div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:125px;height:37px;border-radius:19px;background:#000"></div></div>
+  <div style="position:absolute;left:50%;bottom:9px;transform:translateX(-50%);width:139px;height:5px;border-radius:3px;background:#101012;opacity:.3;z-index:20"></div>
+</div>
+</div>
+
+<!-- 박지 상세 -->
+<div style="display:flex;flex-direction:column;gap:16px;width:402px">
+<div><div style="font-size:15px;font-weight:700;color:#101012">박지 상세</div></div>
+<div style="position:relative;width:402px;height:874px;border-radius:54px;overflow:hidden;box-shadow:0 0 0 11px #1c1c1e,0 0 0 13px #4a4a4c,0 26px 60px rgba(0,0,0,.28)">
+  <svg viewBox="0 0 402 874" style="position:absolute;inset:0;width:100%;height:100%"><rect width="402" height="874" fill="#EFEEEA"/><path d="M0 0h402v300H0z" fill="#E6EBE3"/><path d="M-20 220c60-30 120 10 180-20s140 40 260 0v200H-20z" fill="#DFE7D9"/><path d="M40 0c20 180-30 260 20 400" stroke="#FAFAF9" stroke-width="9" fill="none"/></svg>
+  <div style="position:absolute;inset:0;background:rgba(16,16,18,.16)"></div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;top:96px;background:#F2F2F6;border-radius:28px 28px 0 0;overflow:hidden;box-shadow:0 -10px 40px rgba(16,16,18,.22)">
+    <div style="width:38px;height:5px;border-radius:3px;background:rgba(16,16,18,.18);margin:8px auto 0"></div>
+    <div style="padding:14px 20px 0">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px"><div style="height:24px;padding:0 10px;border-radius:12px;background:#101012;display:flex;align-items:center"><span style="font-size:11.5px;font-weight:600;color:#C8F244">백패킹</span></div><span style="font-size:13px;color:#78787F">강원 속초시</span></div>
+          <div style="font-size:26px;line-height:32px;font-weight:700;letter-spacing:-.8px;color:#101012;margin-top:10px">비선대 야영장</div>
+        </div>
+        <div style="width:36px;height:36px;border-radius:18px;background:rgba(16,16,18,.06);display:flex;align-items:center;justify-content:center"><ion-icon name="close" style="font-size:20px;color:#101012"></ion-icon></div>
+      </div>
+      <div style="font-size:14px;line-height:22px;color:#5E5E68;margin-top:12px">천불동 계곡 초입의 평탄지. 공식 지정 야영지는 아니며 성수기에는 통제되는 구간이 있습니다.</div>
+      <div style="display:flex;gap:8px;margin:16px -20px 0;padding:0 20px;overflow:hidden">
+        <div style="height:40px;padding:0 15px;border-radius:20px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 6px 18px rgba(16,16,18,.06);display:flex;align-items:center;gap:6px;white-space:nowrap"><ion-icon name="star" style="font-size:17px;color:#FFC83D"></ion-icon><span style="font-size:13.5px;font-weight:600;color:#101012">즐겨찾기됨</span></div>
+        <div style="height:40px;padding:0 15px;border-radius:20px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 6px 18px rgba(16,16,18,.06);display:flex;align-items:center;gap:6px;white-space:nowrap"><ion-icon name="share-outline" style="font-size:17px;color:#101012"></ion-icon><span style="font-size:13.5px;font-weight:500;color:#101012">공유</span></div>
+        <div style="height:40px;padding:0 15px;border-radius:20px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 6px 18px rgba(16,16,18,.06);display:flex;align-items:center;gap:6px;white-space:nowrap"><ion-icon name="navigate-outline" style="font-size:17px;color:#101012"></ion-icon><span style="font-size:13.5px;font-weight:500;color:#101012">길찾기</span></div>
+      </div>
+      <div style="margin-top:16px;width:100%;aspect-ratio:16/9;border-radius:20px;background:linear-gradient(140deg,#DCE4D6,#CBD8C2)"></div>
+    </div>
+
+    <div style="display:flex;gap:6px;padding:18px 20px 0">
+      <div style="flex:1;height:38px;border-radius:19px;background:#101012;display:flex;align-items:center;justify-content:center"><span style="font-size:13.5px;font-weight:600;color:#FFFFFF">개요</span></div>
+      <div style="flex:1;height:38px;border-radius:19px;display:flex;align-items:center;justify-content:center"><span style="font-size:13.5px;font-weight:500;color:#78787F">날씨</span></div>
+      <div style="flex:1;height:38px;border-radius:19px;display:flex;align-items:center;justify-content:center"><span style="font-size:13.5px;font-weight:500;color:#78787F">후기</span></div>
+    </div>
+
+    <div style="padding:18px 20px 0;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <div style="height:28px;padding:0 12px;border-radius:14px;background:rgba(255,255,255,.85);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center"><span style="font-size:12.5px;font-weight:500;color:#5E5E68">#산</span></div>
+        <div style="height:28px;padding:0 12px;border-radius:14px;background:rgba(255,255,255,.85);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center"><span style="font-size:12.5px;font-weight:500;color:#5E5E68">#계곡</span></div>
+        <div style="height:28px;padding:0 12px;border-radius:14px;background:rgba(255,255,255,.85);border:.5px solid rgba(16,16,18,.06);display:flex;align-items:center"><span style="font-size:12.5px;font-weight:500;color:#5E5E68">#숲</span></div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;background:#FFF3DC;border-radius:18px;padding:14px 16px"><ion-icon name="warning" style="font-size:18px;color:#B65A00"></ion-icon><span style="flex:1;font-size:13px;line-height:20px;color:#8A4A00">7~8월 성수기에는 계곡 구간 야영이 전면 통제됩니다.</span></div>
+      <div style="border-radius:20px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 8px 22px rgba(16,16,18,.05);padding:16px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.16em;color:#8A8A94;text-transform:uppercase">시설</div>
+        <div style="display:flex;flex-wrap:wrap;column-gap:18px;row-gap:10px;margin-top:12px">
+          <div style="display:flex;align-items:center;gap:6px"><ion-icon name="male-female-outline" style="font-size:17px;color:#5E5E68"></ion-icon><span style="font-size:13.5px;color:#101012">화장실</span></div>
+          <div style="display:flex;align-items:center;gap:6px"><ion-icon name="water-outline" style="font-size:17px;color:#5E5E68"></ion-icon><span style="font-size:13.5px;color:#101012">식수</span></div>
+          <div style="display:flex;align-items:center;gap:6px"><ion-icon name="grid-outline" style="font-size:17px;color:#5E5E68"></ion-icon><span style="font-size:13.5px;color:#101012">데크</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 20px 44px;background:linear-gradient(to top,#F2F2F6 62%,rgba(242,242,246,0));z-index:16"><div style="height:54px;border-radius:27px;background:#C8F244;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 12px 30px rgba(160,200,40,.35)"><span style="font-size:16px;font-weight:700;color:#101012">배낭 여행지로 설정</span><ion-icon name="arrow-forward" style="font-size:17px;color:#101012"></ion-icon></div></div>
+
+  <div style="position:absolute;top:0;left:0;right:0;height:62px;z-index:20"><div style="position:absolute;left:34px;top:19px;font-size:17px;font-weight:600;color:#FFFFFF;letter-spacing:-.2px">9:41</div><div style="position:absolute;right:30px;top:21px;display:flex;align-items:center;gap:6px"><svg width="18" height="12" viewBox="0 0 18 12"><rect y="8" width="3" height="4" rx="1" fill="#FFFFFF"/><rect x="5" y="6" width="3" height="6" rx="1" fill="#FFFFFF"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#FFFFFF"/><rect x="15" width="3" height="12" rx="1" fill="#FFFFFF"/></svg><svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 11.2 6.4 8.9a3 3 0 0 1 4.2 0z" fill="#FFFFFF"/><path d="M4.2 6.2a6.2 6.2 0 0 1 8.6 0" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round"/><path d="M1.3 3.2a10.4 10.4 0 0 1 14.4 0" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="#FFFFFF" stroke-opacity=".45" fill="none"/><rect x="2" y="2" width="17" height="9" rx="2" fill="#FFFFFF"/><path d="M24.5 4.5c1 .3 1.5 1 1.5 2s-.5 1.7-1.5 2z" fill="#FFFFFF" fill-opacity=".5"/></svg></div><div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:125px;height:37px;border-radius:19px;background:#000"></div></div>
+  <div style="position:absolute;left:50%;bottom:9px;transform:translateX(-50%);width:139px;height:5px;border-radius:3px;background:#101012;opacity:.3;z-index:20"></div>
+</div>
+</div>
+
+<!-- 내 정보 -->
+<div style="display:flex;flex-direction:column;gap:16px;width:402px">
+<div><div style="font-size:15px;font-weight:700;color:#101012">내 정보</div></div>
+<div style="position:relative;width:402px;height:874px;border-radius:54px;overflow:hidden;box-shadow:0 0 0 11px #1c1c1e,0 0 0 13px #4a4a4c,0 26px 60px rgba(0,0,0,.28)">
+  <div style="position:absolute;inset:0;background:#F2F2F6"></div>
+  <img src="assets/images/acg-terrain.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.8"></img>
+  <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(242,242,246,.14) 0%,rgba(242,242,246,.5) 40%,rgba(242,242,246,.72) 100%)"></div>
+
+  <div style="position:absolute;inset:0;padding:62px 20px 0;box-sizing:border-box;overflow:hidden">
+    <div style="padding:18px 0 0;font-size:32px;line-height:38px;font-weight:700;letter-spacing:-1px;color:#101012">내 정보</div>
+
+    <div style="margin-top:18px;border-radius:26px;background:rgba(255,255,255,.82);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:.5px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(16,16,18,.1);padding:20px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:48px;height:48px;border-radius:24px;background:#C8F244;display:flex;align-items:center;justify-content:center"><span style="font-size:19px;font-weight:700;color:#101012">가</span></div>
+        <div style="flex:1;min-width:0"><div style="font-size:18px;font-weight:700;color:#101012">가벼운짐꾼</div><div style="font-size:12.5px;color:#78787F;margin-top:2px">Google 로그인</div></div>
+        <ion-icon name="create-outline" style="font-size:20px;color:#8A8A94"></ion-icon>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:18px">
+        <div style="flex:1;border-radius:18px;background:#F2F2F6;padding:12px 14px"><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:24px;line-height:24px;color:#101012">42</div><div style="font-size:11.5px;color:#78787F;margin-top:3px">장비</div></div>
+        <div style="flex:1;border-radius:18px;background:#F2F2F6;padding:12px 14px"><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:24px;line-height:24px;color:#101012">9</div><div style="font-size:11.5px;color:#78787F;margin-top:3px">여행</div></div>
+        <div style="flex:1;border-radius:18px;background:#F2F2F6;padding:12px 14px"><div style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:24px;line-height:24px;color:#5C7A12">7</div><div style="font-size:11.5px;color:#78787F;margin-top:3px">안 쓴 장비</div></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;border-radius:22px;background:#FFFFFF;box-shadow:0 1px 2px rgba(16,16,18,.04),0 10px 26px rgba(16,16,18,.05);overflow:hidden">
+      <div style="display:flex;align-items:center;gap:12px;padding:16px"><ion-icon name="notifications-outline" style="font-size:20px;color:#5E5E68"></ion-icon><span style="flex:1;font-size:15px;font-weight:500;color:#101012">알림 설정</span><ion-icon name="chevron-forward" style="font-size:15px;color:#B4B4BC"></ion-icon></div>
+      <div style="height:.5px;background:rgba(16,16,18,.08);margin-left:48px"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:16px"><ion-icon name="chatbubble-ellipses-outline" style="font-size:20px;color:#5E5E68"></ion-icon><span style="flex:1;font-size:15px;font-weight:500;color:#101012">서비스 문의</span><ion-icon name="chevron-forward" style="font-size:15px;color:#B4B4BC"></ion-icon></div>
+      <div style="height:.5px;background:rgba(16,16,18,.08);margin-left:48px"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:16px"><ion-icon name="shield-checkmark-outline" style="font-size:20px;color:#5E5E68"></ion-icon><span style="flex:1;font-size:15px;font-weight:500;color:#101012">개인정보 처리방침</span><ion-icon name="chevron-forward" style="font-size:15px;color:#B4B4BC"></ion-icon></div>
+      <div style="height:.5px;background:rgba(16,16,18,.08);margin-left:48px"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:16px"><ion-icon name="document-text-outline" style="font-size:20px;color:#5E5E68"></ion-icon><span style="flex:1;font-size:15px;font-weight:500;color:#101012">이용약관</span><ion-icon name="chevron-forward" style="font-size:15px;color:#B4B4BC"></ion-icon></div>
+    </div>
+
+    <div style="margin-top:12px;border-radius:22px;background:rgba(255,255,255,.7);border:.5px solid rgba(16,16,18,.05);padding:16px;display:flex;align-items:center;gap:12px"><ion-icon name="log-out-outline" style="font-size:20px;color:#8A8A94"></ion-icon><span style="flex:1;font-size:15px;font-weight:500;color:#78787F">로그아웃</span></div>
+
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:24px">
+      <div style="display:flex;gap:10px"><img src="assets/images/internet.png" alt="" style="width:40px;height:40px;object-fit:contain;opacity:.75"><img src="assets/images/magma.png" alt="" style="width:40px;height:40px;object-fit:contain;opacity:.75"></div>
+      <div style="display:flex;align-items:center;gap:8px"><span style="font-family:'Archivo Narrow',Pretendard;font-weight:700;font-size:11.5px;letter-spacing:.06em;color:#9A9AA2">VERSION 1.1.5</span><span style="width:3px;height:3px;border-radius:2px;background:#C2C2C8;display:block"></span><span style="font-size:11.5px;color:#9A9AA2">사업자 정보</span></div>
+      <span style="font-size:11.5px;color:#B4B4BC;text-decoration:underline">탈퇴하기</span>
+    </div>
+  </div>
+
+  <div style="position:absolute;top:0;left:0;right:0;height:62px;z-index:20"><div style="position:absolute;left:34px;top:19px;font-size:17px;font-weight:600;color:#101012;letter-spacing:-.2px">9:41</div><div style="position:absolute;right:30px;top:21px;display:flex;align-items:center;gap:6px"><svg width="18" height="12" viewBox="0 0 18 12"><rect y="8" width="3" height="4" rx="1" fill="#101012"/><rect x="5" y="6" width="3" height="6" rx="1" fill="#101012"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#101012"/><rect x="15" width="3" height="12" rx="1" fill="#101012"/></svg><svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 11.2 6.4 8.9a3 3 0 0 1 4.2 0z" fill="#101012"/><path d="M4.2 6.2a6.2 6.2 0 0 1 8.6 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/><path d="M1.3 3.2a10.4 10.4 0 0 1 14.4 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="#101012" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="17" height="9" rx="2" fill="#101012"/><path d="M24.5 4.5c1 .3 1.5 1 1.5 2s-.5 1.7-1.5 2z" fill="#101012" fill-opacity=".4"/></svg></div><div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:125px;height:37px;border-radius:19px;background:#000"></div></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;z-index:15;padding:0 14px 8px"><div style="height:60px;border-radius:30px;background:rgba(255,255,255,.66);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border:.5px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(16,16,18,.14);display:flex;align-items:center;justify-content:space-around;padding:0 6px"><div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="home" style="font-size:22px;color:#8A8A94"></ion-icon></div><div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="search" style="font-size:22px;color:#8A8A94"></ion-icon></div><div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="map" style="font-size:22px;color:#8A8A94"></ion-icon></div><div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><ion-icon name="walk" style="font-size:22px;color:#8A8A94"></ion-icon></div><div style="display:flex;align-items:center;justify-content:center;gap:7px;height:44px;padding:0 16px;border-radius:22px;background:#101012"><ion-icon name="person" style="font-size:19px;color:#C8F244"></ion-icon><span style="font-size:13px;font-weight:600;color:#FFFFFF">정보</span></div></div><div style="width:139px;height:5px;border-radius:3px;background:#101012;opacity:.3;margin:8px auto 0"></div></div>
+</div>
+</div>
+
+<!-- 로그인 -->
+<div style="display:flex;flex-direction:column;gap:16px;width:402px">
+<div><div style="font-size:15px;font-weight:700;color:#101012">로그인</div></div>
+<div style="position:relative;width:402px;height:874px;border-radius:54px;overflow:hidden;box-shadow:0 0 0 11px #1c1c1e,0 0 0 13px #4a4a4c,0 26px 60px rgba(0,0,0,.28)">
+  <div style="position:absolute;inset:0;background:#F2F2F6"></div>
+  <img src="assets/images/acg-terrain.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.7"></img>
+  <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(242,242,246,.3) 0%,rgba(242,242,246,.6) 50%,rgba(242,242,246,.8) 100%)"></div>
+  <div style="position:absolute;inset:0;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)"></div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:28px 20px 44px;border-radius:32px 32px 0 0;background:rgba(255,255,255,.88);backdrop-filter:blur(36px) saturate(180%);-webkit-backdrop-filter:blur(36px) saturate(180%);border-top:.5px solid rgba(255,255,255,.95);box-shadow:0 -12px 44px rgba(16,16,18,.14);z-index:22">
+    <img src="assets/images/logo.png" alt="useless" style="height:30px;object-fit:contain;display:block;margin:0 auto">
+    <div style="text-align:center;font-size:22px;line-height:30px;font-weight:700;letter-spacing:-.6px;color:#101012;margin-top:20px">가진 것을 알면<br>더 가볍게 떠날 수 있어요</div>
+    <div style="text-align:center;font-size:13.5px;color:#78787F;margin-top:8px">로그인하고 창고와 배낭을 동기화하세요</div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:26px">
+      <div style="height:54px;border-radius:27px;background:#101012;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 10px 26px rgba(16,16,18,.24)">
+        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        <span style="font-size:16px;font-weight:600;color:#FFFFFF">Google로 계속하기</span>
+      </div>
+      <div style="height:54px;border-radius:27px;background:#FFFFFF;border:1px solid rgba(16,16,18,.12);display:flex;align-items:center;justify-content:center;gap:10px">
+        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#101012" d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+        <span style="font-size:16px;font-weight:600;color:#101012">Apple로 계속하기</span>
+      </div>
+      <div style="height:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:14px;font-weight:500;color:#8A8A94">이메일로 로그인</span></div>
+    </div>
+    <div style="text-align:center;font-size:11.5px;line-height:18px;color:#B4B4BC;margin-top:6px">계속하면 이용약관 및 개인정보 처리방침에<br>동의하는 것으로 간주합니다</div>
+  </div>
+
+  <div style="position:absolute;top:0;left:0;right:0;height:62px;z-index:24"><div style="position:absolute;left:34px;top:19px;font-size:17px;font-weight:600;color:#101012;letter-spacing:-.2px">9:41</div><div style="position:absolute;right:30px;top:21px;display:flex;align-items:center;gap:6px"><svg width="18" height="12" viewBox="0 0 18 12"><rect y="8" width="3" height="4" rx="1" fill="#101012"/><rect x="5" y="6" width="3" height="6" rx="1" fill="#101012"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#101012"/><rect x="15" width="3" height="12" rx="1" fill="#101012"/></svg><svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 11.2 6.4 8.9a3 3 0 0 1 4.2 0z" fill="#101012"/><path d="M4.2 6.2a6.2 6.2 0 0 1 8.6 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/><path d="M1.3 3.2a10.4 10.4 0 0 1 14.4 0" stroke="#101012" stroke-width="1.7" stroke-linecap="round"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="#101012" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="17" height="9" rx="2" fill="#101012"/><path d="M24.5 4.5c1 .3 1.5 1 1.5 2s-.5 1.7-1.5 2z" fill="#101012" fill-opacity=".4"/></svg></div><div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:125px;height:37px;border-radius:19px;background:#000"></div></div>
+  <div style="position:absolute;left:50%;bottom:9px;transform:translateX(-50%);width:139px;height:5px;border-radius:3px;background:#101012;opacity:.3;z-index:24"></div>
+</div>
+</div>
+
+</div>
+</x-dc>
+</body>
+</html>

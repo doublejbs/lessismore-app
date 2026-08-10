@@ -1,0 +1,50 @@
+:root{
+  /* ── 잉크 스케일 ───────────────────────────── */
+  --ink: #101012;          /* 본문·제목·주 액션 면 */
+  --ink-secondary: #5E5E68;/* 보조 본문 (AA 7.0) */
+  --ink-tertiary: #78787F; /* 메타·설명 (AA 4.9) */
+  --ink-muted: #8A8A94;    /* 라벨·비활성 (AA 3.9 — 12px 이상 보조용) */
+  --ink-subtle: #B4B4BC;   /* 단위·쉐브론 */
+  --ink-faint: #D4D4DC;    /* 빈 체크 원 테두리 */
+
+  /* ── 지면 / 면 ─────────────────────────────── */
+  --canvas: #F2F2F6;       /* 화면 지면 */
+  --surface: #FFFFFF;      /* 종이 카드 */
+  --surface-sunken: #EDEDF2;/* 진행 트랙, 카드 안 타일 */
+  --surface-quiet: rgba(255,255,255,.72); /* 지난 항목·비활성 카드 */
+  --hairline: rgba(16,16,18,.08);
+  --hairline-strong: rgba(16,16,18,.12);
+
+  /* ── 유리 (iOS 26 리퀴드 글래스 근사) ───────── */
+  --glass-fill: rgba(255,255,255,.66);
+  --glass-fill-strong: rgba(255,255,255,.85);
+  --glass-stroke: rgba(255,255,255,.95);
+  --glass-blur: blur(30px) saturate(180%);
+
+  /* ── 액센트 ────────────────────────────────── */
+  --lime: #C8F244;         /* 유일한 브랜드 액센트. 면으로 쓴다 */
+  --lime-on: #101012;      /* 라임 면 위 글자 */
+  --lime-on-quiet: #3E4A16;/* 라임 면 위 보조 글자 (AA 6.4) */
+  --lime-ink: #5C7A12;     /* 밝은 면 위 라임 계열 글자 (AA 4.6) */
+
+  /* ── 의미색 — 뜻이 값에 묶여 있어 리디자인해도 바꾸지 않는다 ── */
+  --spot-backpacking: #2F6F8F;
+  --spot-shelter: #4E8C5A;
+  --spot-campground: #C9A227;
+  --favorite: #FFC83D;
+  --warn-bg: #FFF3DC;
+  --warn-ink: #B65A00;
+  --danger: #FF3B30;
+
+  /* ── 배낭 카테고리 데이터 시각화 ─────────────── */
+  --cat-base: #2F6F8F;
+  --cat-clothing: #4E8C5A;
+  --cat-cooking: #C9A227;
+  --cat-safety: #B2604F;
+  --cat-etc: #7A6A8F;
+
+  /* ── 탭바 ──────────────────────────────────── */
+  --tab-inactive: #8A8A94;
+  --tab-active-bg: #101012;
+  --tab-active-icon: #C8F244;
+}

@@ -1,0 +1,22 @@
+:root{
+  /* 한글 제목·본문 — Pretendard. 자간은 크기가 커질수록 좁힌다. */
+  --type-display: 700 34px/40px var(--font-ui);   --tracking-display: -1.2px;
+  --type-title-1: 700 32px/38px var(--font-ui);   --tracking-title-1: -1px;
+  --type-title-2: 700 28px/36px var(--font-ui);   --tracking-title-2: -.9px;
+  --type-title-3: 700 22px/30px var(--font-ui);   --tracking-title-3: -.6px;
+  --type-heading:  600 17px/24px var(--font-ui);
+  --type-body:     500 15px/20px var(--font-ui);
+  --type-body-sm:  400 13.5px/19px var(--font-ui);
+  --type-caption:  400 12.5px/17px var(--font-ui);
+
+  /* 섹션 라벨 — 대문자 + 넓은 자간. 이 시스템의 서명 같은 요소다. */
+  --type-micro: 600 11px/16px var(--font-ui);
+  --tracking-micro: .16em;
+
+  /* 숫자 — Archivo Narrow 700. 무게·D-day·진행률·기간에만 쓴다. */
+  --type-num-hero: 700 72px/64px var(--font-num);  --tracking-num-hero: -2.5px;
+  --type-num-xl:   700 42px/38px var(--font-num);  --tracking-num-xl: -1.2px;
+  --type-num-lg:   700 32px/36px var(--font-num);  --tracking-num-lg: -.5px;
+  --type-num-md:   700 22px/26px var(--font-num);
+  --type-num-sm:   700 14px/18px var(--font-num);  --tracking-num-sm: .05em;
+}

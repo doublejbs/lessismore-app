@@ -1,0 +1,18 @@
+:root{
+  --space-1: 2px;  --space-2: 4px;  --space-3: 6px;  --space-4: 8px;
+  --space-5: 10px; --space-6: 12px; --space-7: 14px; --space-8: 16px;
+  --space-9: 18px; --space-10: 20px; --space-12: 24px; --space-14: 26px;
+  --space-16: 30px;
+
+  --screen-h: 20px;        /* 화면 좌우 패딩 */
+  --card-pad: 16px;        /* 카드 내부 */
+  --card-pad-lg: 20px;     /* 히어로 카드 내부 */
+  --list-gap: 10px;        /* 카드 사이 */
+  --section-gap: 26px;     /* 섹션 사이 */
+
+  --safe-top: 62px;        /* iPhone 다이나믹 아일랜드 */
+  --safe-bottom: 34px;
+  --nav-bar-h: 44px;       /* 투명 네이티브 헤더 */
+  --tabbar-clearance: 130px;/* 플로팅 탭바 아래로 흐르는 콘텐츠 여백 */
+  --touch-min: 44px;
+}

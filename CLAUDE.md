@@ -275,3 +275,70 @@ npx eas-cli submit --platform ios --profile production --path build-<타임스�
 - 먼저 `npx eas-cli build:list --platform <ios|android> --limit 1 --json --non-interactive`의 `error.errorCode`로 원인을 구분한다 — `SERVER_ERROR`("We've lost connection to the worker")는 EAS 인프라 장애라 **그냥 재시도**하면 되고, `EAS_BUILD_UNKNOWN_GRADLE_ERROR` 등 프로젝트 에러는 같은 자리에서 재발하므로 로그를 확인해 고친 뒤 재빌드한다.
 - 같은 응답의 `logFiles` URL(서명 만료 900초)은 **brotli 압축 JSONL**이다: `curl -s "$URL" -o log.br && brotli -d -f log.br -o log.jsonl`로 풀고, 각 줄 JSON의 `phase`/`msg` 필드를 본다. Gradle 에러는 `RUN_GRADLEW` phase에서 `FAILURE`·`What went wrong`을 찾으면 된다.
 - 네이티브 매니페스트/프로젝트 설정 수정은 `android/`·`ios/`가 gitignore라(managed 워크플로우, EAS 워커가 prebuild로 재생성) 직접 고쳐도 빌드에 반영되지 않는다 — **config plugin**으로 고치고 `npx expo prebuild -p android --no-install` 산출물로 검증한다 (`plugins/WithMlKitVisionDependencies.js` 참고).
+
+# useless — 코드 규칙 (Liquid Depth)
+
+> 리포지토리 루트의 `CLAUDE.md`에 이 내용을 붙여넣거나, 기존 `CLAUDE.md`의
+> "디자인" 절로 합치세요. Claude Code가 매 대화마다 자동으로 읽습니다.
+
+## 디자인 소스
+- 디자인 정본은 `.claude/skills/useless-design/`입니다. UI를 만들거나 고치기 전에
+  `README.md`(화면별 스펙)와 `design-system.md`(원칙)를 읽으세요.
+- 값이 애매하면 추측하지 말고 `mockup-liquid-depth.dc.html`의 해당 화면을 여세요.
+  목업이 픽셀 기준 정본입니다.
+
+## 토큰
+- 색·간격·모서리·그림자·타이포는 **반드시** `constants/DesignTokens.ts`의
+  `Liquid*` 그룹에서 가져옵니다. 리터럴 hex(`#101012`, `#C8F244` …)를 컴포넌트에
+  직접 쓰지 않습니다.
+- 기존 `Acg*` 그룹은 지우지 않습니다. 아직 이식하지 않은 화면이 씁니다.
+  한 화면 안에서 두 세대를 섞지는 마세요.
+- 의미색(`spotBackpacking` `spotShelter` `spotCampground` `favorite` `warn*` `danger`,
+  배낭 카테고리 색)은 뜻이 값에 묶여 있어 리디자인 대상이 아닙니다. 바꾸지 마세요.
+
+## 타이포
+- UI 전부 **Pretendard**. `PretendardText`를 통해서만 렌더합니다.
+- **Archivo Narrow는 숫자·라틴 전용**입니다. 한글 글리프가 없어 한글 문자열에 쓰면
+  글자가 깨집니다 — 무게, D-day, 기간, 진행률, 버전에만 씁니다.
+- 섹션 제목은 큰 제목이 아니라 **대문자 + letterSpacing .16em 마이크로 라벨**입니다.
+
+## 색 사용
+- 액센트는 **라임 하나뿐**입니다. 라임은 **면으로만** 쓰고, 그 위 글자는 `limeOn`(잉크).
+- 밝은 면 위에 라임 계열 **글자**가 필요하면 `limeInk #5C7A12`를 씁니다.
+  라임을 텍스트 색으로 직접 쓰지 마세요(대비 미달).
+- 한 화면에 라임 면은 하나까지. 주 액션도 화면당 하나입니다.
+
+## 레이아웃
+- 화면 좌우 20px, 카드 사이 10px, 섹션 사이 26px.
+- 터치 타깃 최소 44×44.
+- 플로팅 탭바 아래로 콘텐츠가 흐릅니다 — 스크롤 컨테이너 하단 여백 **130px**를 비웁니다.
+- 모서리: 칩·버튼은 완전한 알약(height/2), 카드 20~26px, 시트 상단만 28px. 각진 면 없음.
+
+## 모션·상태
+- 스프링 전환에는 항상 `overshootClamping: true`. 진행 바나 체크가 목표를 지나쳤다
+  돌아오면 값이 틀린 것처럼 보입니다.
+- 누름은 `activeOpacity 0.7~0.85`. 색을 바꾸거나 크기를 줄이지 않습니다.
+- 완료된 항목은 opacity 0.6~0.65로 낮추고 목록에서 지우지 않습니다.
+
+## 플랫폼
+- 유리 면은 `expo-blur`의 `BlurView`로 만듭니다(`backdrop-filter`는 웹 표현입니다).
+- 아이콘은 `@expo/vector-icons`의 **Ionicons**. 탭바만 네이티브 **SF Symbols**를 유지합니다
+  — 웹 목업의 Ionicons 탭 아이콘은 대체품이니 따라 하지 마세요.
+- 그림자는 RN 0.76+ `boxShadow` 문자열을 씁니다.
+
+## 카피
+- 한국어 **해요체**. 명령형(`하십시오`)이나 광고체를 쓰지 않습니다.
+- 사용자를 '나'로 부릅니다 — `내 창고`, `내 정보`, `내 기록`.
+- 숫자는 단위까지 한 덩어리로: `8.4kg`, `907g`, `7/12`, `D-6`.
+- 같은 것은 같은 말로: 패킹 진행은 어디서나 `패킹 {n}/{m}`, 여행지는 어디서나 `여행지`.
+- 빈 상태는 **사실 + 다음 걸음** 두 줄.
+- **이모지를 쓰지 않습니다.** 예외는 등록된 박지를 표시하는 `📍` 접두 하나뿐입니다.
+
+## PR 전 자가 점검
+- [ ] 컴포넌트에 리터럴 hex가 없다
+- [ ] Archivo Narrow가 한글 문자열에 쓰이지 않았다
+- [ ] 라임이 글자색으로 쓰이지 않았다
+- [ ] 44 미만 터치 타깃이 없다
+- [ ] 스프링에 `overshootClamping`이 빠지지 않았다
+- [ ] 스크롤 하단 여백 130px가 있다
+- [ ] 패킹 진행값이 홈·배낭 목록·패킹 헤더에서 같은 소스를 쓴다

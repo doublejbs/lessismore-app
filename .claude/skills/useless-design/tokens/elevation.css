@@ -1,0 +1,16 @@
+:root{
+  /* 종이 카드 — 아주 얕은 접지 그림자 + 넓고 옅은 확산. 두 겹이 기본이다. */
+  --shadow-card: 0 1px 2px rgba(16,16,18,.04), 0 10px 26px rgba(16,16,18,.05);
+  --shadow-tile: 0 1px 2px rgba(16,16,18,.04), 0 8px 22px rgba(16,16,18,.05);
+
+  /* 유리 크롬 — 콘텐츠 위에 떠 있으므로 더 깊다. */
+  --shadow-glass: 0 10px 30px rgba(16,16,18,.14);
+  --shadow-glass-sm: 0 4px 14px rgba(16,16,18,.08);
+
+  /* 주 액션 */
+  --shadow-cta: 0 12px 30px rgba(16,16,18,.26);
+  --shadow-accent: 0 12px 32px rgba(160,200,40,.35);
+
+  /* 바텀 시트 — 위쪽으로 드리운다. */
+  --shadow-sheet: 0 -12px 44px rgba(16,16,18,.14);
+}

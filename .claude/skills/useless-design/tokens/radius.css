@@ -1,0 +1,10 @@
+:root{
+  --radius-chip: 17px;     /* 34px 칩 = 완전한 알약 */
+  --radius-chip-sm: 14px;  /* 28px 2차 칩 */
+  --radius-tile: 20px;     /* 지표 타일, 리스트 카드 */
+  --radius-card: 22px;     /* 기본 카드 */
+  --radius-hero: 26px;     /* 히어로·유리 카드 */
+  --radius-sheet: 28px;    /* 바텀 시트 상단 */
+  --radius-pill: 999px;    /* CTA, 탭바, 검색 필드 */
+  --radius-device: 54px;   /* 목업 베젤 */
+}

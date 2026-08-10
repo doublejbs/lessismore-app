@@ -1,0 +1,43 @@
+<!-- dsCard(handoff copy) group="Components" viewport="700x460" name="Core" subtitle="칩 · 알약 버튼 · 면 · 목록 행 · 라벨 · 진행률 · 지표 타일" -->
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<style>
+body{margin:0;padding:20px;font-family:var(--font-ui);background:var(--canvas);box-sizing:border-box}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.grp{margin-bottom:18px}
+.k{font:var(--type-micro);letter-spacing:var(--tracking-micro);color:var(--ink-muted);text-transform:uppercase;margin-bottom:8px}
+.chip{height:34px;padding:0 15px;border-radius:var(--radius-chip);display:inline-flex;align-items:center;gap:6px;box-sizing:border-box;white-space:nowrap;flex-shrink:0;border:.5px solid rgba(16,16,18,.06);background:rgba(255,255,255,.8);font:var(--type-body-sm);font-weight:500;color:var(--ink-secondary)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+.chip.sm{height:28px;padding:0 12px;border-radius:var(--radius-chip-sm);font:var(--type-caption);font-weight:500}
+.chip.sm.on{background:var(--ink);color:#fff;font-weight:600}
+.dot{width:8px;height:8px;border-radius:4px;display:block}
+.pill{height:48px;padding:0 22px;border-radius:var(--radius-pill);display:inline-flex;align-items:center;justify-content:center;gap:8px;font:var(--type-heading);font-weight:600}
+</style></head><body>
+
+<div class="grp"><div class="k">Chip</div><div class="row">
+<span class="chip on">전체</span><span class="chip">배낭</span><span class="chip"><span class="dot" style="background:var(--spot-backpacking)"></span>백패킹</span><span class="chip"><span class="dot" style="background:var(--spot-campground)"></span>캠핑장</span><span class="chip sm on">체어</span><span class="chip sm">테이블</span>
+</div></div>
+
+<div class="grp"><div class="k">PillButton</div><div class="row">
+<span class="pill" style="background:var(--ink);color:#fff;box-shadow:var(--shadow-cta)">장비 추가</span>
+<span class="pill" style="background:var(--lime);color:var(--lime-on);box-shadow:var(--shadow-accent)">패킹 시작하기</span>
+<span class="pill" style="background:var(--surface);color:var(--ink);border:1px solid rgba(16,16,18,.12)">인기 순위</span>
+<span class="pill" style="background:var(--glass-fill-strong);color:var(--ink);border:.5px solid var(--glass-stroke);box-shadow:var(--shadow-glass-sm);backdrop-filter:var(--glass-blur)">처음부터 다시</span>
+</div></div>
+
+<div class="grp"><div class="k">Card · MetricRow · SectionLabel</div>
+<div style="display:flex;gap:12px;align-items:flex-start">
+<div style="flex:1.5">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font:var(--type-micro);letter-spacing:var(--tracking-micro);color:var(--ink-muted);text-transform:uppercase">Warehouse — 42</span><span style="font:var(--type-caption);font-weight:600;color:var(--lime-ink)">전체 보기</span></div>
+<div style="border-radius:var(--radius-card);background:var(--surface);box-shadow:var(--shadow-card);overflow:hidden">
+<div style="display:flex;align-items:center;gap:12px;padding:15px 16px"><div style="flex:1;min-width:0"><div style="font:var(--type-caption);font-weight:600;color:var(--ink-muted)">니모</div><div style="font:var(--type-body);font-weight:600;color:var(--ink);margin-top:2px">텐서 인슐레이티드</div><div style="font:var(--type-caption);color:var(--ink-subtle);margin-top:2px">Grey · 사용률 91%</div></div><span style="font:var(--type-num-md);color:var(--ink)">480<span style="font-size:12px;color:var(--ink-subtle)">g</span></span></div>
+<div style="height:.5px;background:var(--hairline);margin-left:16px"></div>
+<div style="display:flex;align-items:center;gap:12px;padding:15px 16px"><div style="flex:1;min-width:0"><div style="font:var(--type-caption);font-weight:600;color:var(--ink-muted)">아크테릭스</div><div style="font:var(--type-body);font-weight:600;color:var(--ink);margin-top:2px">아톰 LT 후디</div></div><span style="font:var(--type-num-md);color:var(--lime-ink)">315<span style="font-size:12px;color:var(--ink-subtle)">g</span></span></div>
+</div></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:10px">
+<div style="border-radius:var(--radius-tile);background:var(--surface);box-shadow:var(--shadow-tile);padding:16px"><div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font:var(--type-caption);color:var(--ink-muted)">패킹</span><span style="font:var(--type-num-md);color:var(--ink)">7/12</span></div><div style="height:8px;border-radius:4px;background:var(--surface-sunken);margin-top:10px;overflow:hidden"><div style="height:100%;width:58%;border-radius:4px;background:var(--lime)"></div></div></div>
+<div style="display:flex;gap:8px">
+<div style="flex:1;border-radius:var(--radius-tile);background:var(--lime);box-shadow:var(--shadow-accent);padding:14px"><div style="font:var(--type-num-lg);letter-spacing:var(--tracking-num-lg);color:var(--ink)">9</div><div style="font:var(--type-caption);font-weight:600;color:var(--lime-on-quiet);margin-top:3px">사용</div></div>
+<div style="flex:1;border-radius:var(--radius-tile);background:var(--surface);box-shadow:var(--shadow-tile);padding:14px"><div style="font:var(--type-num-lg);letter-spacing:var(--tracking-num-lg);color:var(--ink-muted)">2</div><div style="font:var(--type-caption);color:var(--ink-muted);margin-top:3px">사용 안함</div></div>
+</div></div></div></div>
+</body></html>

@@ -1,0 +1,14 @@
+/* Pretendard — 본문·UI 전용 한글 서체. 원본 앱 assets/fonts에서 그대로 가져왔다. */
+@font-face{font-family:Pretendard;src:url("../assets/fonts/Pretendard-Regular.ttf") format("truetype");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:Pretendard;src:url("../assets/fonts/Pretendard-Medium.ttf") format("truetype");font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:Pretendard;src:url("../assets/fonts/Pretendard-SemiBold.ttf") format("truetype");font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:Pretendard;src:url("../assets/fonts/Pretendard-Bold.ttf") format("truetype");font-weight:700;font-style:normal;font-display:swap}
+
+/* Archivo Narrow 700 — 숫자·라틴 전용 콘덴스드. 한글 글리프가 없으므로 한글에 절대 쓰지 않는다.
+   앱은 @expo-google-fonts/archivo-narrow로 로드한다. 웹에서는 Google Fonts CDN. */
+@import url("https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@700&display=swap");
+
+:root{
+  --font-ui: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-num: "Archivo Narrow", Pretendard, sans-serif;
+}
