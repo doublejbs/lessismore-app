@@ -6,12 +6,12 @@ import { observer } from 'mobx-react-lite';
 import dayjs from 'dayjs';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
-import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
+import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
 import HomeUpcomingTripView from '@/components/home/HomeUpcomingTripView';
 import HomeWarehousePreviewView from '@/components/home/HomeWarehousePreviewView';
 import HomeRecordSummaryView from '@/components/home/HomeRecordSummaryView';
 import HomeSkeletonView from '@/components/home/HomeSkeletonView';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import { Liquid, LiquidLayout, LiquidType } from '@/constants/DesignTokens';
 import Home from '@/model/home/Home';
 import { selectTripPlan } from '@/model/home/HomeTripPlan';
 
@@ -21,8 +21,6 @@ interface Props {
 
 // iOS는 콘텐츠가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
 const IOS_EDGES = ['top', 'left', 'right'] as const;
-// 화면 제목 크기(ACG) — 콘덴스드 44px.
-const TITLE_SIZE = 44;
 
 const HomeView: FC<Props> = ({ home }) => {
   const insets = useSafeAreaInsets();
@@ -56,8 +54,11 @@ const HomeView: FC<Props> = ({ home }) => {
     if (!isLoggedIn) {
       return (
         <View style={styles.signedOut}>
-          <PretendardText weight='bold' style={styles.signedOutText}>
-            로그인하면{'\n'}다음 여행과 창고를 볼 수 있어요
+          <PretendardText weight='bold' style={styles.signedOutTitle}>
+            로그인하면 다음 여행이 보여요
+          </PretendardText>
+          <PretendardText style={styles.signedOutSubtitle}>
+            창고와 배낭도 함께 따라옵니다
           </PretendardText>
         </View>
       );
@@ -74,10 +75,10 @@ const HomeView: FC<Props> = ({ home }) => {
         <HomeRecordSummaryView gears={home.getGears()} bags={home.getBags()} />
         <View
           style={{
-            // 플로팅 탭바 아래로 콘텐츠가 흐르므로 시안대로 130을 비운다(ACG).
+            // 플로팅 탭바 아래로 콘텐츠가 흐르므로 130을 비운다(핸드오프 레이아웃).
             height: Platform.select({
-              ios: insets.bottom + AcgLayout.scrollBottom,
-              default: AcgLayout.scrollBottom,
+              ios: insets.bottom + LiquidLayout.scrollBottom,
+              default: LiquidLayout.scrollBottom,
             }),
           }}
         />
@@ -88,16 +89,20 @@ const HomeView: FC<Props> = ({ home }) => {
   return (
     <Layout
       edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
-      paddingHorizontal={AcgLayout.screenH}
-      background={<AcgScreenBackground photo terrain={false} />}
+      paddingHorizontal={LiquidLayout.screenH}
+      background={<LiquidBackdrop screen='home' glowPosition='topLeft' coolGlow />}
     >
-      {/* 화면 제목 44px(ACG). 형광펜 띠는 두지 않는다(2026-08-03 사용자 결정) —
-          섹션 제목에만 남겨 강조가 한 화면에서 두 층으로 겹치지 않게 한다.
-          한글이라 콘덴스드(Archivo Narrow) 대신 Pretendard Bold를 쓴다 — 그 서체에는
-          한글 글리프가 없어 글자가 깨진다. */}
+      {/*
+        헤더는 화면 이름(`홈`)이 아니라 **오늘과 다음 할 일**을 말한다(목업 홈 절).
+        탭바가 이미 어느 탭인지 알려주므로 제목으로 한 번 더 말하지 않는다.
+        목업 우측의 알림 버튼은 두지 않았다 — 이 앱에 알림함 화면이 없어 눌러도 갈 곳이 없다.
+      */}
       <View style={styles.header}>
-        <PretendardText weight='bold' style={styles.headerText}>
-          홈
+        <PretendardText weight='medium' style={styles.headerDate}>
+          {today.format('dddd, M월 D일')}
+        </PretendardText>
+        <PretendardText weight='bold' style={styles.headerTitle}>
+          다음 여행까지
         </PretendardText>
       </View>
       {render()}
@@ -107,18 +112,23 @@ const HomeView: FC<Props> = ({ home }) => {
 
 const styles = StyleSheet.create({
   header: {
-    paddingTop: 20,
-    paddingBottom: 14,
+    paddingTop: 18,
+    paddingBottom: 6,
+    gap: 2,
   },
-  headerText: {
-    fontSize: TITLE_SIZE,
-    letterSpacing: -0.88, // -.02em
-    // 시안은 line-height .9지만 한글은 그 값에서 위가 잘린다 — 글자 크기만큼 준다.
-    lineHeight: TITLE_SIZE,
-    color: Acg.ink,
+  headerDate: {
+    fontSize: 13,
+    color: Liquid.inkTertiary,
+  },
+  headerTitle: {
+    fontSize: LiquidType.title1.fontSize,
+    lineHeight: LiquidType.title1.lineHeight,
+    letterSpacing: LiquidType.title1.letterSpacing,
+    color: Liquid.ink,
   },
   scrollView: {
     flex: 1,
+    marginTop: 18,
   },
   scrollContent: {
     flexGrow: 1,
@@ -127,12 +137,19 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 6,
   },
-  signedOutText: {
-    fontSize: 16,
+  signedOutTitle: {
+    fontSize: 17,
     lineHeight: 24,
     textAlign: 'center',
-    color: Acg.textSecondary,
+    color: Liquid.ink,
+  },
+  signedOutSubtitle: {
+    fontSize: 13.5,
+    lineHeight: 19,
+    textAlign: 'center',
+    color: Liquid.inkTertiary,
   },
 });
 

@@ -4,10 +4,16 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import CategoryChipView from '@/components/browse/CategoryChipView';
-import { Acg } from '@/constants/DesignTokens';
-import AcgDisplayText from '@/components/acg/AcgDisplayText';
-import AcgHighlightText from '@/components/acg/AcgHighlightText';
+import LiquidChip from '@/components/liquid/LiquidChip';
+import LiquidMetricRow from '@/components/liquid/LiquidMetricRow';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidRadius,
+  LiquidShadow,
+  LiquidMotion,
+} from '@/constants/DesignTokens';
 import Gear from '@/model/gear/Gear';
 import GearFilter from '@/model/gear/GearFilter';
 import {
@@ -21,7 +27,7 @@ interface Props {
 }
 
 /**
- * HM-4 창고 미리보기.
+ * HM-4 창고 미리보기 (Liquid Depth).
  *
  * 총 개수·총 무게 같은 집계는 두지 않는다 — 홈에서 알고 싶은 건 "몇 개 있나"가 아니라
  * "뭐가 있나"다. 대신 대분류 칩으로 좁혀 보고, 더 보려면 `전체 보기`로 창고에 들어간다.
@@ -62,210 +68,168 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHead}>
-        <AcgHighlightText fontSize={SECTION_TITLE_SIZE}>
-          <PretendardText weight='bold' style={styles.sectionTitle}>
-            내 창고
-          </PretendardText>
-        </AcgHighlightText>
+        <PretendardText weight='bold' style={styles.sectionTitle}>
+          내 창고
+        </PretendardText>
+        <PretendardText weight='semibold' style={styles.sectionCount}>
+          {`${gears.length}개`}
+        </PretendardText>
       </View>
 
-      <View style={styles.card}>
-        {gears.length === 0 ? (
-          <View style={styles.empty}>
-            <PretendardText weight='bold' style={styles.emptyTitle}>
-              창고가 비어 있어요
-            </PretendardText>
-            <PretendardText style={styles.emptySubtitle}>
-              가진 장비를 하나씩 담아보세요
-            </PretendardText>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={handleAddGear}
-              activeOpacity={0.8}
-              accessibilityRole='button'
-              accessibilityLabel='첫 장비 담기'
-            >
-              <PretendardText weight='bold' style={styles.addButtonText}>
-                첫 장비 담기
-              </PretendardText>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.chips}
-              style={styles.chipsScroll}
-            >
-              {chips.map(chip => (
-                <CategoryChipView
-                  key={chip.filter}
-                  label={chip.label}
-                  tone='acg'
-                  selected={chip.filter === selectedFilter}
-                  onPress={() => handleSelectFilter(chip.filter)}
-                />
-              ))}
-            </ScrollView>
+      {gears.length === 0 ? (
+        <View style={styles.emptyCard}>
+          <PretendardText weight='bold' style={styles.emptyTitle}>
+            창고가 비어 있어요
+          </PretendardText>
+          <PretendardText style={styles.emptySubtitle}>
+            가진 장비를 하나씩 담아보세요
+          </PretendardText>
+          <LiquidPillButton
+            label='첫 장비 담기'
+            block
+            onPress={handleAddGear}
+            style={styles.emptyCta}
+          />
+        </View>
+      ) : (
+        <>
+          {/* 칩 줄은 화면 좌우로 블리드시킨다 — 스크롤이 가장자리에서 끊기지 않게. */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chips}
+            style={styles.chipsScroll}
+          >
+            {chips.map(chip => (
+              <LiquidChip
+                key={chip.filter}
+                label={chip.label}
+                selected={chip.filter === selectedFilter}
+                onPress={() => handleSelectFilter(chip.filter)}
+              />
+            ))}
+          </ScrollView>
 
-            <View style={styles.gearList}>
-              {previewGears.map(gear => (
-                <TouchableOpacity
-                  key={gear.getId()}
-                  style={styles.gearRow}
-                  onPress={() => handleOpenGear(gear)}
-                  activeOpacity={0.7}
-                  accessibilityRole='button'
-                  accessibilityLabel={`${gear.getDisplayName()} 상세`}
-                >
-                  <View style={styles.gearIdentity}>
-                    <PretendardText
-                      weight='bold'
-                      style={styles.gearName}
-                      numberOfLines={1}
-                    >
-                      {gear.getDisplayName()}
-                    </PretendardText>
-                    <PretendardText style={styles.gearSub} numberOfLines={1}>
-                      {[gear.getDisplayCompany(), gear.getFineCategoryLabel()]
-                        .filter(Boolean)
-                        .join(' · ')}
-                    </PretendardText>
-                  </View>
-                  <AcgDisplayText style={styles.gearWeight}>
-                    {`${gear.getWeight()}g`}
-                  </AcgDisplayText>
-                  <Ionicons
-                    name='chevron-forward'
-                    size={13}
-                    color={Acg.textSecondary}
-                  />
-                </TouchableOpacity>
-              ))}
-
-              {/* 목록이 끊기는 자리에 이어보기를 둔다(HM-4). 헤더 우측에 있을 때보다
-                  "여기서 더 있다"가 분명하고, 미리보기를 다 훑은 시점에 손이 가는 자리다.
-                  장비 행과 같은 행 문법을 쓰되 글자색을 낮춰 장비 항목과 구분한다. */}
+          {/* 장비 행은 카드 하나 안에 헤어라인으로 나눈다 — 행마다 면을 두면 목록이
+              카드 더미로 보인다. */}
+          <View style={styles.listCard}>
+            {previewGears.map((gear, index) => (
               <TouchableOpacity
-                style={styles.moreRow}
-                onPress={handleOpenWarehouse}
-                activeOpacity={0.7}
+                key={gear.getId()}
+                onPress={() => handleOpenGear(gear)}
+                activeOpacity={LiquidMotion.pressOpacity}
                 accessibilityRole='button'
-                accessibilityLabel='창고 전체 보기'
+                accessibilityLabel={`${gear.getDisplayName()} 상세`}
               >
-                <PretendardText weight='semibold' style={styles.moreText}>
-                  전체 보기
-                </PretendardText>
-                <Ionicons
-                  name='chevron-forward'
-                  size={13}
-                  color={Acg.textSecondary}
+                <LiquidMetricRow
+                  name={gear.getDisplayName()}
+                  meta={gear.getDisplayCompany()}
+                  value={gear.getWeight()}
+                  unit='g'
+                  size='sm'
+                  divider={index > 0}
                 />
               </TouchableOpacity>
-            </View>
-          </>
-        )}
-      </View>
+            ))}
+
+            {/* 목록이 끊기는 자리에 이어보기를 둔다(HM-4) — 미리보기를 다 훑은 시점에
+                손이 가는 자리다. */}
+            <View style={styles.moreDivider} />
+            <TouchableOpacity
+              style={styles.moreRow}
+              onPress={handleOpenWarehouse}
+              activeOpacity={LiquidMotion.pressOpacity}
+              accessibilityRole='button'
+              accessibilityLabel='창고 전체 보기'
+            >
+              <PretendardText weight='semibold' style={styles.moreText}>
+                전체 보기
+              </PretendardText>
+              <Ionicons
+                name='chevron-forward'
+                size={14}
+                color={Liquid.limeInk}
+              />
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
     </View>
   );
 };
 
-// 섹션 제목 크기(ACG) — 18px/700.
-const SECTION_TITLE_SIZE = 18;
-
 const styles = StyleSheet.create({
   section: {
-    marginBottom: 28,
+    marginTop: LiquidLayout.section,
   },
   sectionHead: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    paddingHorizontal: 2,
     marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: SECTION_TITLE_SIZE,
-    color: Acg.textTertiary,
+    fontSize: 19,
+    letterSpacing: -0.4,
+    color: Liquid.ink,
   },
-  card: {
-    marginTop: 2,
+  sectionCount: {
+    fontSize: 13,
+    color: Liquid.inkTertiary,
   },
   chipsScroll: {
-    marginHorizontal: -18,
+    marginHorizontal: -LiquidLayout.screenH,
   },
   chips: {
     flexDirection: 'row',
     gap: 8,
-    paddingHorizontal: 18,
+    paddingHorizontal: LiquidLayout.screenH,
   },
-  gearList: {
-    marginTop: 14,
+  listCard: {
+    marginTop: 12,
+    borderRadius: LiquidRadius.card,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.card,
+    overflow: 'hidden',
   },
-  // 장비 행은 종이 면 — 행 사이는 8px로 띄운다(ACG).
-  gearRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 13,
-    paddingHorizontal: 14,
-    marginBottom: 8,
-    backgroundColor: Acg.paper,
-    boxShadow: '0 1px 0 rgba(26,26,26,0.06)',
-  },
-  gearIdentity: {
-    flex: 1,
-    gap: 2,
-  },
-  gearName: {
-    fontSize: 14,
-    color: Acg.ink,
-  },
-  gearSub: {
-    fontSize: 12,
-    color: Acg.textSecondary,
-  },
-  // 무게는 라임 텍스트로 — 밝은 종이 면 위 액센트(ACG).
-  gearWeight: {
-    fontSize: 14,
-    color: Acg.limeText,
+  moreDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Liquid.hairline,
+    marginLeft: 16,
   },
   moreRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 13,
-    paddingHorizontal: 14,
-    backgroundColor: Acg.paper,
-    boxShadow: '0 1px 0 rgba(26,26,26,0.06)',
+    minHeight: LiquidLayout.touchMin,
+    paddingVertical: 15,
+    paddingHorizontal: 16,
   },
+  // 밝은 면 위 라임 계열 글자는 limeInk — 라임을 글자색으로 직접 쓰지 않는다.
   moreText: {
     fontSize: 14,
-    color: Acg.textSecondary,
+    color: Liquid.limeInk,
   },
-  empty: {
-    alignItems: 'center',
-    paddingVertical: 24,
-    backgroundColor: Acg.paper,
-    boxShadow: '0 1px 0 rgba(26,26,26,0.06)',
+  emptyCard: {
+    borderRadius: LiquidRadius.card,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.card,
+    padding: 20,
   },
   emptyTitle: {
     fontSize: 17,
-    color: Acg.ink,
+    lineHeight: 24,
+    color: Liquid.ink,
     marginBottom: 6,
   },
   emptySubtitle: {
-    fontSize: 13,
-    color: Acg.textSecondary,
-    marginBottom: 20,
+    fontSize: 13.5,
+    lineHeight: 19,
+    color: Liquid.inkTertiary,
   },
-  addButton: {
-    alignSelf: 'stretch',
-    marginHorizontal: 18,
-    paddingVertical: 15,
-    alignItems: 'center',
-    backgroundColor: Acg.ink,
-  },
-  addButtonText: {
-    fontSize: 15,
-    color: Acg.paper,
+  emptyCta: {
+    marginTop: 18,
   },
 });
 

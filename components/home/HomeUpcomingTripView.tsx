@@ -3,11 +3,18 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgShadow } from '@/constants/DesignTokens';
-import AcgDisplayText from '@/components/acg/AcgDisplayText';
-import AcgHighlightText from '@/components/acg/AcgHighlightText';
-import AcgPaperView from '@/components/acg/AcgPaperView';
+import LiquidCard from '@/components/liquid/LiquidCard';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import LiquidProgressBar from '@/components/liquid/LiquidProgressBar';
+import {
+  Liquid,
+  LiquidFont,
+  LiquidRadius,
+  LiquidShadow,
+  LiquidMotion,
+} from '@/constants/DesignTokens';
 import BagItem from '@/model/bag/BagItem';
 import {
   getDDayLabel,
@@ -23,11 +30,12 @@ interface Props {
 }
 
 /**
- * HM-1 다가오는 일정.
+ * HM-1 다가오는 일정 (Liquid Depth).
  *
  * 이 카드의 핵심은 **주 액션이 남은 일수에 따라 갈린다**는 것이고, 그 분기는
- * 알림(NT-2/NT-3)이 유도하는 행동과 같은 목적지여야 한다 — 알림을 놓쳐도 홈에서
- * 같은 할 일에 닿게 하는 것이 존재 이유다. 분기 계산은 `HomeTripPlan`이 맡는다.
+ * 알림(NT-2/NT-3)이 유도하는 행동과 같은 목적지여야 한다. 분기 계산은 `HomeTripPlan`이 맡는다.
+ *
+ * 히어로는 이 화면의 **유일한 라임 면**이다 — 아래 창고·기록 섹션은 종이 면으로만 간다.
  */
 const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
   const router = useRouter();
@@ -55,34 +63,20 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
 
   if (!primary || stage === null) {
     return (
-      <View style={styles.section}>
-        <View style={styles.sectionHead}>
-          <AcgHighlightText fontSize={SECTION_TITLE_SIZE}>
-            <PretendardText weight='bold' style={styles.sectionTitle}>
-              다가오는 일정
-            </PretendardText>
-          </AcgHighlightText>
-        </View>
-        <View style={styles.emptyCard}>
-          <PretendardText weight='bold' style={styles.emptyTitle}>
-            아직 계획한 여행이 없어요
-          </PretendardText>
-          <PretendardText style={styles.emptySubtitle}>
-            이번 주말 1박으로 하나 만들어 둘까요?
-          </PretendardText>
-          <TouchableOpacity
-            style={styles.cta}
-            onPress={handleCreate}
-            activeOpacity={0.8}
-            accessibilityRole='button'
-            accessibilityLabel='새 배낭 만들기'
-          >
-            <PretendardText weight='bold' style={styles.ctaText}>
-              새 배낭 만들기
-            </PretendardText>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <LiquidCard tone='paper' radius='hero' padding={20} style={styles.empty}>
+        <PretendardText weight='bold' style={styles.emptyTitle}>
+          아직 계획한 여행이 없어요
+        </PretendardText>
+        <PretendardText style={styles.emptySubtitle}>
+          이번 주말 1박으로 하나 만들어 둘까요?
+        </PretendardText>
+        <LiquidPillButton
+          label='새 배낭 만들기'
+          block
+          onPress={handleCreate}
+          style={styles.emptyCta}
+        />
+      </LiquidCard>
     );
   }
 
@@ -90,8 +84,7 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
   const action = getPrimaryAction(primary, stage);
   const locationName = primary.getLocationName();
   const displayDate = primary.getDisplayDate();
-  // 배낭에 저장된 스냅샷을 읽을 뿐 새로 조회하지 않는다(HM-1). 요약 규칙(눈>비>맑음)은
-  // 배낭 상세·날씨 화면과 같은 함수를 공유해 표시가 갈리지 않게 한다.
+  // 배낭에 저장된 스냅샷을 읽을 뿐 새로 조회하지 않는다(HM-1).
   const weatherSummary = summarizeWeatherPeriod(
     primary.getWeather()?.daily ?? []
   );
@@ -103,344 +96,328 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
   const packingPercent = primary.getPackingPercent();
 
   return (
-    <View style={styles.section}>
-      <View style={styles.sectionHead}>
-        <AcgHighlightText fontSize={SECTION_TITLE_SIZE}>
-          <PretendardText weight='bold' style={styles.sectionTitle}>
-            다가오는 일정
-          </PretendardText>
-        </AcgHighlightText>
-      </View>
-
-      {/* D-day 스티커는 카드 좌상단에 걸친다(ACG) — 카드보다 먼저 그리면 잘리므로
-          형제로 두고 absolute로 얹는다.
-          **좌측으로는 내보내지 않는다**(2026-08-03 실기기 확인): 바깥 ScrollView의 경계가
-          화면 좌우 패딩(18pt)과 같아 그 밖으로 나간 부분이 잘린다. 시안의 `left: -6`을
-          그대로 쓰면 스티커 왼쪽 변이 수직으로 잘려 보였다. 걸침은 위쪽(top: -13)으로만
-          낸다 — 위는 섹션 제목 여백이 있어 잘리지 않는다. */}
-      <View style={styles.cardWrap}>
-        {dDayLabel !== null && (
-          <View style={styles.dDaySticker}>
-            <AcgDisplayText style={styles.dDayText}>{dDayLabel}</AcgDisplayText>
-          </View>
-        )}
-        <View style={styles.card}>
+    <View>
+      {/* 히어로 — 라임 면(radius 28, shadow accent). LiquidCard의 hero(26)보다 한 단계
+          크게 잡는 자리라 로컬 radius를 쓴다. */}
+      <View style={styles.hero}>
         <TouchableOpacity
+          style={styles.heroHead}
           onPress={() => handleOpenBag(primary)}
-          activeOpacity={0.7}
+          activeOpacity={LiquidMotion.pressOpacity}
           accessibilityRole='button'
           accessibilityLabel={`${primary.getName()} 배낭 상세`}
         >
-          <PretendardText
-            weight='bold'
-            style={styles.tripName}
-            numberOfLines={1}
-          >
-            {primary.getName()}
-          </PretendardText>
-
-          {/* 여행지는 날짜 뒤에 `·`로 붙이지 않고 **제 줄**을 준다. 꼬리표로 달면
-              긴 기간 문자열 끝에 회색으로 묻혀 "어디 가는지"가 안 읽힌다.
-              아이콘 + 본문색은 배낭 상세 여행지 타일(DST-2)이 쓰는 표현과 같다. */}
-          {locationName !== null && (
-            <View style={styles.locationRow}>
-              <Ionicons
-                name='location-outline'
-                size={14}
-                color={Acg.ink}
-              />
-              <PretendardText
-                weight='semibold'
-                style={styles.locationText}
-                numberOfLines={1}
-              >
-                {locationName}
-              </PretendardText>
-            </View>
-          )}
-
-          {displayDate !== null && (
-            <AcgDisplayText style={styles.tripMeta} numberOfLines={1}>
-              {displayDate}
-            </AcgDisplayText>
-          )}
-
-          {/* 날씨가 없으면 그 칸을 비워 두지 않고 아예 두지 않는다 — 채우려고 장비 수 같은
-              다른 지표를 끼워 넣으면 칸의 뜻이 배낭마다 달라진다. */}
-          <View style={styles.stats}>
-            <View style={styles.stat}>
-              <PretendardText style={styles.statKey}>총 무게</PretendardText>
-              <AcgDisplayText style={styles.statValue}>
-                {`${primary.getWeight()}kg`}
-              </AcgDisplayText>
-            </View>
-            {weatherSummary ? (
-              <View style={[styles.stat, styles.statDivided]}>
-                <PretendardText style={styles.statKey}>예보</PretendardText>
-                {/* 날씨는 `흐림` 같은 한글이 섞여 콘덴스드를 못 쓴다(한글 글리프 없음). */}
+          <View style={styles.heroIdentity}>
+            {dDayLabel !== null && (
+              <View style={styles.dDayBadge}>
+                <PretendardText style={styles.dDayText}>
+                  {dDayLabel}
+                </PretendardText>
+              </View>
+            )}
+            <PretendardText
+              weight='bold'
+              style={styles.tripName}
+              numberOfLines={2}
+            >
+              {primary.getName()}
+            </PretendardText>
+            {locationName !== null && (
+              <View style={styles.locationRow}>
+                <Ionicons name='location' size={14} color={Liquid.limeOnQuiet} />
                 <PretendardText
-                  weight='bold'
-                  style={styles.statValueMixed}
+                  weight='medium'
+                  style={styles.locationText}
                   numberOfLines={1}
                 >
-                  {`${weatherSummary.cond} ${weatherSummary.low}°/${weatherSummary.high}°`}
+                  {locationName}
                 </PretendardText>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.heroWeight}>
+            <PretendardText style={styles.weightValue}>
+              {primary.getWeight()}
+            </PretendardText>
+            <PretendardText weight='semibold' style={styles.weightUnit}>
+              kg 총 무게
+            </PretendardText>
+          </View>
+        </TouchableOpacity>
+
+        {/* 라임 면 위 유리 판 — 진행·날씨·기간을 한 덩어리로 묶는다. */}
+        <View style={styles.heroPanel}>
+          <BlurView tint='light' intensity={30} style={StyleSheet.absoluteFill} />
+          <View style={[StyleSheet.absoluteFill, styles.heroPanelFill]} />
+
+          <View style={styles.panelBody}>
+            {hasPackingRecord ? (
+              <>
+                <View style={styles.panelRow}>
+                  {/* 배낭 상세 하단 바가 쓰는 `패킹 {n}/{m}`(PK-2)과 같은 말이다. */}
+                  <PretendardText weight='semibold' style={styles.panelLabel}>
+                    패킹 진행
+                  </PretendardText>
+                  <PretendardText style={styles.panelValue}>
+                    {`${packedCount}/${gearCount}`}
+                  </PretendardText>
+                </View>
+                <View style={styles.panelProgress}>
+                  <LiquidProgressBar
+                    percent={packingPercent}
+                    tone='ink'
+                    height={8}
+                    trackColor={Liquid.trackOnAccent}
+                  />
+                </View>
+              </>
+            ) : null}
+
+            {weatherSummary || displayDate !== null ? (
+              <View
+                style={[
+                  styles.panelMeta,
+                  hasPackingRecord && styles.panelMetaSpaced,
+                ]}
+              >
+                {weatherSummary ? (
+                  <View style={styles.weatherRow}>
+                    <Ionicons
+                      name='partly-sunny'
+                      size={16}
+                      color={Liquid.limeOnQuiet}
+                    />
+                    {/* 날씨는 `흐림` 같은 한글이 섞여 콘덴스드를 못 쓴다(한글 글리프 없음). */}
+                    <PretendardText weight='medium' style={styles.weatherText}>
+                      {`${weatherSummary.cond} ${weatherSummary.low}°/${weatherSummary.high}°`}
+                    </PretendardText>
+                  </View>
+                ) : null}
+                {weatherSummary && displayDate !== null ? (
+                  <View style={styles.metaDivider} />
+                ) : null}
+                {displayDate !== null ? (
+                  <PretendardText style={styles.periodText} numberOfLines={1}>
+                    {displayDate}
+                  </PretendardText>
+                ) : null}
               </View>
             ) : null}
           </View>
-        </TouchableOpacity>
-
-        {hasPackingRecord ? (
-          <View style={styles.progressWrap}>
-            <View style={styles.progressTop}>
-              {/* 배낭 상세 하단 바가 쓰는 `패킹 {n}/{m}`(PK-2)과 같은 말이다 —
-                  같은 값을 두 화면이 다르게 부르면 같은 것인지 알아보기 어렵다. */}
-              <PretendardText style={styles.progressLabel}>패킹</PretendardText>
-              <AcgDisplayText style={styles.progressValue}>
-                {`${packedCount}/${gearCount}`}
-              </AcgDisplayText>
-            </View>
-            <View style={styles.progressTrack}>
-              <View
-                style={[styles.progressFill, { width: `${packingPercent}%` }]}
-              />
-            </View>
-          </View>
-        ) : null}
-
-        <View style={styles.ctaWrap}>
-        <TouchableOpacity
-          style={styles.cta}
-          onPress={handlePrimaryAction}
-          activeOpacity={0.8}
-          accessibilityRole='button'
-          accessibilityLabel={action.label}
-        >
-          <PretendardText weight='bold' style={styles.ctaText}>
-            {action.label}
-          </PretendardText>
-        </TouchableOpacity>
         </View>
+
+        <View style={styles.heroCta}>
+          <LiquidPillButton
+            label={action.label}
+            block
+            onPress={handlePrimaryAction}
+            trailing={
+              <Ionicons name='arrow-forward' size={17} color={Liquid.lime} />
+            }
+          />
         </View>
       </View>
 
+      {/* 다음 여행 한 줄 카드 — 히어로 다음 순번들. */}
       {next.map(bag => (
-        <AcgPaperView key={bag.getID()} style={styles.nextRowWrap}>
         <TouchableOpacity
+          key={bag.getID()}
           style={styles.nextRow}
           onPress={() => handleOpenBag(bag)}
-          activeOpacity={0.7}
+          activeOpacity={LiquidMotion.pressOpacity}
           accessibilityRole='button'
           accessibilityLabel={`${bag.getName()} 배낭 상세`}
         >
           <PretendardText style={styles.nextDDay}>
             {getDDayLabel(bag) ?? ''}
           </PretendardText>
-          <PretendardText style={styles.nextName} numberOfLines={1}>
+          <PretendardText
+            weight='medium'
+            style={styles.nextName}
+            numberOfLines={1}
+          >
             {bag.getName()}
           </PretendardText>
-          {/* 눌리는 행에는 화살표를 둔다 — 창고 미리보기 장비 행·정보 탭 메뉴와 같은 규칙이다. */}
-          <Ionicons name='chevron-forward' size={13} color={Acg.textSecondary} />
+          <Ionicons
+            name='chevron-forward'
+            size={14}
+            color={Liquid.inkSubtle}
+          />
         </TouchableOpacity>
-        </AcgPaperView>
       ))}
     </View>
   );
 };
 
-// 섹션 제목 크기(ACG) — 18px/700.
-const SECTION_TITLE_SIZE = 18;
-
 const styles = StyleSheet.create({
-  section: {
-    marginBottom: 28,
+  hero: {
+    borderRadius: 28,
+    backgroundColor: Liquid.lime,
+    boxShadow: LiquidShadow.accent,
+    overflow: 'hidden',
   },
-  sectionHead: {
-    marginBottom: 12,
+  heroHead: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingTop: 22,
+    paddingHorizontal: 22,
   },
-  sectionTitle: {
-    fontSize: SECTION_TITLE_SIZE,
-    color: Acg.textTertiary,
+  heroIdentity: {
+    flex: 1,
+    minWidth: 0,
   },
-  // 스티커가 카드 밖으로 걸치므로 잘리지 않게 감싸는 래퍼를 둔다.
-  cardWrap: {
-    position: 'relative',
-    marginTop: 22,
-  },
-  // D-day 스티커 — 잉크 면 + 라임 글자, 좌상단에 비스듬히 얹는다(ACG).
-  dDaySticker: {
-    position: 'absolute',
-    // 회전(-5deg)으로 좌하단 모서리가 1~2px 더 나가므로 0이 아니라 2에서 시작한다.
-    left: 2,
-    top: -13,
-    zIndex: 2,
+  // D-day는 라임 면 위 잉크 배지 — 라임 위 라임 글자가 안 되므로 면을 뒤집는다.
+  dDayBadge: {
+    alignSelf: 'flex-start',
     minHeight: 28,
     paddingHorizontal: 12,
-    paddingVertical: 5,
-    alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Acg.ink,
-    transform: [{ rotate: '-5deg' }],
-    boxShadow: AcgShadow.sticker,
+    borderRadius: 14,
+    backgroundColor: Liquid.ink,
   },
   dDayText: {
-    fontSize: 15,
-    letterSpacing: 1.2, // .08em
-    color: Acg.lime,
-  },
-  // 일정 카드는 라임 면이 통째로 액센트다 — 이 화면의 유일한 큰 액센트 면.
-  card: {
-    backgroundColor: Acg.lime,
-    boxShadow: AcgShadow.card,
+    fontFamily: LiquidFont.condensed,
+    fontSize: 14,
+    letterSpacing: 1.12, // .08em
+    color: Liquid.lime,
   },
   tripName: {
-    fontSize: 21,
-    letterSpacing: -0.5,
-    lineHeight: 26,
-    color: Acg.ink,
-    paddingTop: 20,
-    paddingHorizontal: 18,
+    marginTop: 12,
+    fontSize: 24,
+    lineHeight: 30,
+    letterSpacing: -0.6,
+    color: Liquid.ink,
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    marginTop: 8,
-    paddingHorizontal: 18,
+    marginTop: 6,
   },
   locationText: {
     flexShrink: 1,
     fontSize: 14,
-    color: Acg.ink,
+    color: Liquid.limeOnQuiet,
   },
-  tripMeta: {
-    marginTop: 4,
-    paddingHorizontal: 18,
-    paddingBottom: 18,
-    fontSize: 13,
-    letterSpacing: 0.78, // .06em
-    color: Acg.textSecondary,
+  heroWeight: {
+    alignItems: 'flex-end',
   },
-  // 총 무게 / 예보 2열 — 라임 면 위라 구분선은 잉크 계열 `line2`를 쓴다.
-  stats: {
-    flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: Acg.line2,
+  weightValue: {
+    fontFamily: LiquidFont.condensed,
+    fontSize: 44,
+    lineHeight: 44,
+    letterSpacing: -1,
+    color: Liquid.ink,
   },
-  stat: {
-    flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-  },
-  statDivided: {
-    borderLeftWidth: 1,
-    borderLeftColor: Acg.line2,
-  },
-  statKey: {
-    fontSize: 11,
-    color: Acg.textSecondary,
-  },
-  statValue: {
-    marginTop: 6,
-    fontSize: 26,
-    letterSpacing: -0.52,
-    lineHeight: 26,
-    color: Acg.ink,
-  },
-  // 한글이 섞인 값 — 콘덴스드가 아니라 한 단계 작게 잡아 폭을 맞춘다.
-  statValueMixed: {
-    marginTop: 6,
-    fontSize: 20,
-    letterSpacing: -0.4,
-    lineHeight: 26,
-    color: Acg.ink,
-  },
-  progressWrap: {
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    borderTopWidth: 1,
-    borderTopColor: Acg.line2,
-  },
-  progressTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-  },
-  progressLabel: {
+  weightUnit: {
+    marginTop: 2,
     fontSize: 12,
-    color: Acg.textSecondary,
+    color: Liquid.limeOnQuiet,
   },
-  progressValue: {
-    fontSize: 14,
-    color: Acg.ink,
-  },
-  // 라임 면 위 트랙은 흰색, 채움은 잉크(ACG).
-  progressTrack: {
-    height: 6,
-    marginTop: 8,
-    backgroundColor: Acg.paper,
+  heroPanel: {
+    marginTop: 20,
+    marginHorizontal: 14,
+    marginBottom: 14,
+    borderRadius: LiquidRadius.tile,
     overflow: 'hidden',
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: Acg.ink,
+  heroPanelFill: {
+    backgroundColor: Liquid.glassFillSoft,
   },
-  ctaWrap: {
-    paddingTop: 14,
-    paddingHorizontal: 18,
-    paddingBottom: 16,
-    borderTopWidth: 1,
-    borderTopColor: Acg.line2,
+  panelBody: {
+    padding: 16,
   },
-  // 주 액션 — 잉크 면을 살짝 비틀어 종이에 붙인 라벨처럼 보이게 한다(ACG).
-  cta: {
-    minHeight: 52,
+  panelRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Acg.ink,
-    // 기울이지 않는다(2026-08-05 사용자 결정). 시안은 손으로 붙인 느낌을 내려고 -1.2deg를
-    // 줬는데, 눌러야 하는 버튼이 비뚤면 정렬이 어긋난 것처럼 읽힌다. 기울기는 D-day
-    // 스티커에만 남긴다 — 그건 붙인 표식이라 비뚤어도 자연스럽다.
-    boxShadow: '0 6px 16px rgba(26,26,26,0.18)',
+    justifyContent: 'space-between',
   },
-  ctaText: {
-    fontSize: 15,
-    color: Acg.paper,
-  },
-  emptyCard: {
-    marginTop: 22,
-    padding: 18,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
-  },
-  emptyTitle: {
-    fontSize: 17,
-    color: Acg.ink,
-    marginBottom: 6,
-  },
-  emptySubtitle: {
+  panelLabel: {
     fontSize: 13,
-    color: Acg.textSecondary,
+    color: Liquid.limeOnQuiet,
   },
-  nextRowWrap: {
-    marginTop: 8,
+  panelValue: {
+    fontFamily: LiquidFont.condensed,
+    fontSize: 15,
+    color: Liquid.ink,
+  },
+  panelProgress: {
+    marginTop: 10,
+  },
+  panelMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  panelMetaSpaced: {
+    marginTop: 14,
+  },
+  weatherRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  weatherText: {
+    fontSize: 13,
+    color: Liquid.limeOnQuiet,
+  },
+  metaDivider: {
+    width: 1,
+    height: 12,
+    backgroundColor: Liquid.hairlineOnAccent,
+  },
+  periodText: {
+    flexShrink: 1,
+    fontFamily: LiquidFont.condensed,
+    fontSize: 13,
+    letterSpacing: 0.78, // .06em
+    color: Liquid.limeOnQuiet,
+  },
+  heroCta: {
+    paddingHorizontal: 14,
+    paddingBottom: 14,
   },
   nextRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    paddingVertical: 13,
-    paddingHorizontal: 14,
+    marginTop: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    minHeight: 44,
+    borderRadius: LiquidRadius.tile,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.tile,
   },
   nextDDay: {
-    minWidth: 44,
-    fontSize: 12,
-    color: Acg.textSecondary,
+    fontFamily: LiquidFont.condensed,
+    fontSize: 15,
+    color: Liquid.inkTertiary,
   },
   nextName: {
     flex: 1,
     fontSize: 14,
-    color: Acg.ink,
+    color: Liquid.ink,
+  },
+  empty: {
+    alignItems: 'flex-start',
+  },
+  emptyTitle: {
+    fontSize: 17,
+    lineHeight: 24,
+    color: Liquid.ink,
+    marginBottom: 6,
+  },
+  emptySubtitle: {
+    fontSize: 13.5,
+    lineHeight: 19,
+    color: Liquid.inkTertiary,
+  },
+  emptyCta: {
+    marginTop: 18,
   },
 });
 

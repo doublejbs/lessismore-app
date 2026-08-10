@@ -1,6 +1,10 @@
 import { FC, useEffect, useState } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Color, Radius } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidRadius,
+} from '@/constants/DesignTokens';
 
 /**
  * 홈 로딩 스켈레톤(HM-6).
@@ -8,6 +12,9 @@ import { Color, Radius } from '@/constants/DesignTokens';
  * 가운데 스피너를 쓰지 않는다 — 스피너는 화면 정중앙인데 실제 홈은 상단 타이틀 +
  * 카드 두 장이라, 데이터가 오는 순간 구조가 통째로 바뀌며 덜컥거린다.
  * 창고(WH-1)·배낭(BAG-1)이 쓰는 방식과 같다.
+ *
+ * Liquid Depth: 셔머 면은 `surfaceSunken`, 골격은 실제 화면과 같은 라운드를 쓴다 —
+ * 스켈레톤이 각지면 데이터가 도착하는 순간 모서리가 둥글어지며 덜컥거린다.
  */
 const PREVIEW_ROWS = 4;
 
@@ -74,77 +81,77 @@ const styles = StyleSheet.create({
   sectionTitleBar: {
     width: 96,
     height: 20,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.borderLight,
+    borderRadius: LiquidRadius.tile,
+    backgroundColor: Liquid.surfaceSunken,
     marginBottom: 10,
   },
   // 들어올 화면과 같은 골격이어야 덜컥거리지 않는다 — 일정은 회색 타일, 창고는 평평한 목록.
   tile: {
-    backgroundColor: Color.surfaceMuted,
-    borderRadius: Radius.card,
-    padding: 18,
-    marginBottom: 28,
+    backgroundColor: Liquid.surface,
+    borderRadius: 28,
+    padding: 20,
+    marginBottom: LiquidLayout.section,
   },
   list: {
-    marginBottom: 28,
+    marginBottom: LiquidLayout.section,
   },
-  // 회색 타일 위에서는 borderLight(#F0F0F0)가 배경(#F5F5F5)에 묻힌다 — 한 톤 진한 값을 쓴다.
+  // 셔머 면은 전부 surfaceSunken 하나로 통일한다 — 종이 면(#FFF) 위에서 충분히 읽힌다.
   badgeBar: {
     width: 52,
     height: 24,
-    borderRadius: Radius.card,
-    backgroundColor: Color.chipInactiveBg,
+    borderRadius: LiquidRadius.card,
+    backgroundColor: Liquid.surfaceSunken,
     marginBottom: 10,
   },
   titleBar: {
     width: 170,
     height: 26,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.chipInactiveBg,
+    borderRadius: LiquidRadius.tile,
+    backgroundColor: Liquid.surfaceSunken,
     marginBottom: 8,
   },
   metaBar: {
     width: 210,
     height: 16,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.chipInactiveBg,
+    borderRadius: LiquidRadius.tile,
+    backgroundColor: Liquid.surfaceSunken,
   },
   statsBar: {
     height: 56,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.chipInactiveBg,
+    borderRadius: LiquidRadius.tile,
+    backgroundColor: Liquid.surfaceSunken,
     marginTop: 16,
   },
   ctaBar: {
     height: 50,
-    borderRadius: Radius.card,
-    backgroundColor: Color.chipInactiveBg,
+    borderRadius: LiquidRadius.card,
+    backgroundColor: Liquid.surfaceSunken,
     marginTop: 16,
   },
   chipsBar: {
     height: 34,
-    borderRadius: Radius.chip,
-    backgroundColor: Color.borderLight,
+    borderRadius: LiquidRadius.pill,
+    backgroundColor: Liquid.surfaceSunken,
   },
   gearRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Liquid.hairline,
   },
   gearNameBar: {
     width: 150,
     height: 16,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.borderLight,
+    borderRadius: LiquidRadius.tile,
+    backgroundColor: Liquid.surfaceSunken,
   },
   gearWeightBar: {
     width: 44,
     height: 14,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.borderLight,
+    borderRadius: LiquidRadius.tile,
+    backgroundColor: Liquid.surfaceSunken,
   },
 });
 
