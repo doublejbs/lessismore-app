@@ -13,9 +13,14 @@ import {
 } from '@/model/feed/FeedSort';
 import { BROWSE_CATEGORIES } from '@/model/browse/BrowseCategory';
 import { getFineCategoryLabel } from '@/model/gear/GearCategoryGroups';
-import { Acg, AcgLayout, Radius } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidRadius,
+  LiquidMotion,
+} from '@/constants/DesignTokens';
 import PretendardText from '@/components/PretendardText';
-import CategoryChipView from '@/components/browse/CategoryChipView';
+import LiquidChip from '@/components/liquid/LiquidChip';
 import FeedFilterSheetView from './FeedFilterSheetView';
 import { setSortSheetContext } from '@/model/sort/SortSheetHandoff';
 import app from '@/model/app/App';
@@ -118,17 +123,15 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.categoryRowContent}
       >
-        <CategoryChipView
+        <LiquidChip
           label={ALL_LABEL}
-          tone='acg'
           selected={currentCategory === null}
           onPress={handleSelectAllCategory}
         />
         {BROWSE_CATEGORIES.map(item => (
-          <CategoryChipView
+          <LiquidChip
             key={item.filter}
             label={item.name}
-            tone='acg'
             selected={currentCategory === item.filter}
             onPress={() => handleSelectCategory(item.filter)}
           />
@@ -141,19 +144,17 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.fineCategoryRowContent}
         >
-          <CategoryChipView
+          <LiquidChip
             label={ALL_LABEL}
-            variant='secondary'
-            tone='acg'
+            size='sm'
             selected={fineCategory === null}
             onPress={handleSelectAllFine}
           />
           {fineOptions.map(key => (
-            <CategoryChipView
+            <LiquidChip
               key={key}
               label={getFineCategoryLabel(key)}
-              variant='secondary'
-              tone='acg'
+              size='sm'
               selected={fineCategory === key}
               onPress={() => handleSelectFine(key)}
             />
@@ -165,12 +166,12 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
         <TouchableOpacity
           style={[styles.brandButton, brandActive && styles.brandButtonActive]}
           onPress={handleOpenBrand}
-          activeOpacity={0.7}
+          activeOpacity={LiquidMotion.pressOpacity}
         >
           <Ionicons
             name='options-outline'
             size={16}
-            color={brandActive ? Acg.paper : Acg.ink}
+            color={brandActive ? Liquid.surface : Liquid.ink}
           />
           <PretendardText
             style={[
@@ -187,15 +188,15 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
           <TouchableOpacity
             style={styles.sortButton}
             onPress={handleOpenSort}
-            activeOpacity={0.7}
+            activeOpacity={LiquidMotion.pressOpacity}
           >
             <PretendardText style={styles.sortButtonText} weight='medium'>
               {sortLabel}
             </PretendardText>
             <Ionicons
               name='chevron-down'
-              size={16}
-              color={Acg.textSecondary}
+              size={15}
+              color={Liquid.inkMuted}
             />
           </TouchableOpacity>
         ) : null}
@@ -211,63 +212,62 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
 };
 
 const styles = StyleSheet.create({
+  // 구분 헤어라인을 두지 않는다 — Liquid에서는 지면 위 카드가 구획을 맡는다.
   container: {
-    paddingTop: 8,
-    paddingBottom: 8,
-    gap: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Acg.line2,
+    paddingTop: 16,
+    gap: 14,
   },
   categoryRowContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: LiquidLayout.screenH,
   },
   fineCategoryRowContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: LiquidLayout.screenH,
   },
   controlRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: LiquidLayout.screenH,
   },
+  // 브랜드 필터는 h32 아웃라인 칩 — 칩 줄과 같은 알약이되 한 단계 낮은 위계다.
   brandButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
     minHeight: 32,
     paddingHorizontal: 14,
-    borderRadius: Radius.chip,
-    borderWidth: 1,
-    borderColor: Acg.glassStroke,
-    backgroundColor: 'rgba(255,255,255,0.72)',
+    borderRadius: LiquidRadius.pill,
+    borderWidth: 0.5,
+    borderColor: 'rgba(16,16,18,0.06)',
+    backgroundColor: 'rgba(255,255,255,0.8)',
   },
   brandButtonActive: {
-    backgroundColor: Acg.ink,
-    borderColor: Acg.ink,
+    backgroundColor: Liquid.ink,
+    borderColor: Liquid.ink,
   },
   brandButtonText: {
-    fontSize: 14,
-    color: Acg.ink,
+    fontSize: 13.5,
+    color: Liquid.ink,
   },
   brandButtonTextActive: {
-    color: Acg.paper,
+    color: Liquid.surface,
   },
   sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
-    minHeight: 32,
+    minHeight: LiquidLayout.touchMin,
     paddingLeft: 12,
   },
   sortButtonText: {
-    fontSize: 14,
-    color: Acg.ink,
+    fontSize: 13.5,
+    color: Liquid.ink,
   },
 });
 

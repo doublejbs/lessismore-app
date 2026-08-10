@@ -1,10 +1,17 @@
 import { FC } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import Feed from '@/model/feed/Feed';
-import FloatingPillButton from '@/components/FloatingPillButton';
+import PretendardText from '@/components/PretendardText';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+} from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 interface Props {
@@ -48,11 +55,22 @@ const FeedRankingButtonView: FC<Props> = ({ feed }) => {
 
   return (
     <View style={[styles.container, { bottom }]} pointerEvents='box-none'>
-      <FloatingPillButton
-        label={RANKING_LABEL}
+      {/* 잉크 유리 알약(Liquid) — 공용 FloatingPillButton을 쓰지 않는다. 그 컴포넌트는
+          아직 ACG인 창고·배낭 화면이 함께 쓰고 있어 여기서 바꾸면 그쪽까지 흔들린다. */}
+      <TouchableOpacity
+        style={styles.pill}
         onPress={handleGoToRanking}
-        variant='secondary'
-      />
+        activeOpacity={LiquidMotion.pressOpacity}
+        accessibilityRole='button'
+        accessibilityLabel={RANKING_LABEL}
+      >
+        <BlurView tint='dark' intensity={30} style={StyleSheet.absoluteFill} />
+        <View style={[StyleSheet.absoluteFill, styles.pillFill]} />
+        <Ionicons name='trending-up' size={17} color={Liquid.lime} />
+        <PretendardText weight='semibold' style={styles.pillLabel}>
+          {RANKING_LABEL}
+        </PretendardText>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -65,7 +83,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: LiquidLayout.screenH,
+  },
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    minHeight: 46,
+    paddingHorizontal: 22,
+    borderRadius: 23,
+    overflow: 'hidden',
+    boxShadow: '0 10px 26px rgba(16,16,18,0.28)',
+  },
+  pillFill: {
+    backgroundColor: 'rgba(16,16,18,0.88)',
+  },
+  pillLabel: {
+    fontSize: 15,
+    color: Liquid.surface,
   },
 });
 

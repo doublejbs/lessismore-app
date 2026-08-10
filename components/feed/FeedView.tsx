@@ -16,7 +16,7 @@ import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import { GearAddContext } from '@/model/gear/GearAddContext';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { Liquid, LiquidLayout } from '@/constants/DesignTokens';
 import FeedSkeletonView from './FeedSkeletonView';
 import FeedFilterBarView from './FeedFilterBarView';
 import FeedRankingButtonView from './FeedRankingButtonView';
@@ -27,8 +27,8 @@ const END_REACHED_THRESHOLD = 0.3;
 
 // FD-2: 2컬럼 그리드. 카드 사이 간격과 카드 아래 세로 간격.
 const FEED_COLUMN_GAP = 12;
-const FEED_ROW_GAP = 24;
-const LIST_HORIZONTAL_PADDING = 20;
+const FEED_ROW_GAP = 14;
+const LIST_HORIZONTAL_PADDING = LiquidLayout.screenH;
 
 // 쿠팡 링크가 **실제로 노출된 카드가 있을 때만** 리스트 푸터에서 1회 고지한다(FD-2).
 // 링크가 하나도 없는 목록에까지 문구를 띄우지 않는다.
@@ -127,7 +127,7 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
     return (
       <View style={styles.footer}>
         {isLoading ? (
-          <ActivityIndicator size='small' color={Color.textSecondary} />
+          <ActivityIndicator size='small' color={Liquid.inkMuted} />
         ) : null}
         {hasCoupangLink ? (
           <PretendardText style={styles.disclaimer}>
@@ -141,8 +141,11 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   const renderEmpty = useCallback(() => {
     return (
       <View style={styles.emptyContainer}>
+        <PretendardText weight='semibold' style={styles.emptyTitle}>
+          조건에 맞는 장비가 없어요
+        </PretendardText>
         <PretendardText style={styles.emptyText}>
-          장비가 없습니다
+          필터를 하나 풀어보면 어떨까요?
         </PretendardText>
       </View>
     );
@@ -188,7 +191,7 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor={Color.textSecondary}
+            tintColor={Liquid.inkMuted}
           />
         }
       />
@@ -204,8 +207,8 @@ const styles = StyleSheet.create({
   listContent: {
     flexGrow: 1,
     paddingHorizontal: LIST_HORIZONTAL_PADDING,
-    // 필터바 하단 헤어라인이 분리 역할을 하므로 위(검색바↔필터 20)보다 의도적으로 타이트하게.
-    paddingTop: 8,
+    // 필터 줄과 그리드 사이 — 목업 기준 16.
+    paddingTop: 16,
   },
   columnWrapper: {
     gap: FEED_COLUMN_GAP,
@@ -219,7 +222,7 @@ const styles = StyleSheet.create({
   skeletonContainer: {
     flex: 1,
     // 로드 완료 상태(listContent)와 동일한 상단 여백으로 전환 시 점프를 없앤다.
-    paddingTop: 8,
+    paddingTop: 16,
     paddingHorizontal: LIST_HORIZONTAL_PADDING,
   },
   footer: {
@@ -229,7 +232,8 @@ const styles = StyleSheet.create({
   },
   disclaimer: {
     fontSize: 11,
-    color: Color.textSecondary,
+    lineHeight: 16,
+    color: Liquid.inkSubtle,
     textAlign: 'center',
   },
   emptyContainer: {
@@ -237,10 +241,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 120,
+    gap: 6,
+  },
+  emptyTitle: {
+    fontSize: 17,
+    lineHeight: 24,
+    color: Liquid.ink,
+    textAlign: 'center',
   },
   emptyText: {
-    fontSize: 16,
-    color: Color.textSecondary,
+    fontSize: 15,
+    lineHeight: 20,
+    color: Liquid.inkTertiary,
     textAlign: 'center',
   },
 });

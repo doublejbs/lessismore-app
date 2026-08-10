@@ -7,7 +7,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Color } from '@/constants/DesignTokens';
+import { Liquid } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import { josa } from 'josa';
 import { observer } from 'mobx-react-lite';
@@ -66,7 +66,7 @@ const SearchBarInputView = forwardRef<SearchBarInputHandle, Props>(
           value={keyword}
           onChangeText={handleChange}
           placeholder={placeholder}
-          placeholderTextColor={Color.textSecondary}
+          placeholderTextColor={Liquid.inkMuted}
           autoCapitalize='none'
           autoCorrect={false}
         />
@@ -75,7 +75,7 @@ const SearchBarInputView = forwardRef<SearchBarInputHandle, Props>(
           style={[styles.clearButton, !keyword && styles.hidden]}
           disabled={!keyword}
         >
-          <Ionicons name='close-circle' size={20} color={Color.iconMuted} />
+          <Ionicons name='close-circle' size={20} color={Liquid.inkSubtle} />
         </TouchableOpacity>
       </View>
     );
@@ -90,7 +90,8 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15.5,
+    color: Liquid.ink,
     padding: 0,
     borderWidth: 0,
     backgroundColor: 'transparent',

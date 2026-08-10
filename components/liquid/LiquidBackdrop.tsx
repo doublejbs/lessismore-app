@@ -34,11 +34,12 @@ const LIME_GLOW: Record<'topLeft' | 'topRight', Glow> = {
     top: -60,
     left: -80,
   },
+  // 탐색처럼 지형 없이 글로우만 쓰는 화면 — 지면이 밝아 한 단계 옅게 둔다(목업 탐색 절).
   topRight: {
-    size: Backdrop.glow.size,
+    size: 320,
     rgb: 'rgb(200,242,68)',
-    opacity: 0.5,
-    top: -80,
+    opacity: 0.4,
+    top: -70,
     right: -90,
   },
 };

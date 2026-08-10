@@ -8,7 +8,7 @@ import Bag from '@/model/bag/Bag';
 import Feed from '@/model/feed/Feed';
 import useSearchFilterInheritance from '@/hooks/useSearchFilterInheritance';
 import Layout from '../Layout';
-import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
+import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
@@ -27,9 +27,9 @@ const SearchPageView: FC<Props> = ({ searchWarehouse, bag, feed }) => {
     <Layout
       paddingHorizontal={0}
       edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
-      background={<AcgScreenBackground />}
+      background={<LiquidBackdrop screen='none' glowPosition='topRight' />}
     >
-      <SearchBarView searchWarehouse={searchWarehouse} />
+      <SearchBarView searchWarehouse={searchWarehouse} title='탐색' />
       <SearchResultView
         searchWarehouse={searchWarehouse}
         bag={bag}

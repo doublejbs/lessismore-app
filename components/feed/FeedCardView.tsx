@@ -16,15 +16,20 @@ import GearRowActions from '@/model/browse/GearRowActions';
 import { GearAddContext } from '@/model/gear/GearAddContext';
 import GearAddMode from '@/model/gear/GearAddMode';
 import PretendardText from '@/components/PretendardText';
-import AcgDisplayText from '@/components/acg/AcgDisplayText';
-import { Acg, AcgShadow, Color } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidFont,
+  LiquidRadius,
+  LiquidShadow,
+  LiquidMotion,
+} from '@/constants/DesignTokens';
 import LoadingView from '@/components/ui/LoadingView';
 import SearchGearAddToBagModalView from '@/components/search/SearchGearAddToBagModalView';
 import app from '@/model/app/App';
 
 // FD-2: 2컬럼 그리드 셀 기준. CTA 원형 버튼 크기(축소하되 hitSlop으로 44 실효 터치 타깃 확보).
-const CTA_SIZE = 36;
-const CTA_HIT_SLOP = { top: 4, bottom: 4, left: 4, right: 4 };
+const CTA_SIZE = 32;
+const CTA_HIT_SLOP = { top: 6, bottom: 6, left: 6, right: 6 };
 
 interface Props {
   gear: Gear;
@@ -43,9 +48,11 @@ interface Props {
   onCoupangLinkLoaded?: (() => void) | undefined;
 }
 
-// FD-2: 피드 텍스트 카드(2컬럼 그리드 셀). 장비 이미지를 쓰지 않으므로(DataModel §1 장비 이미지
-// 미제공 원칙) 이미지 칸·플레이스홀더 없이 카드 면(inputBg + radius)만으로 그리드 리듬을 만든다.
+// FD-2: 피드 텍스트 카드(2컬럼 그리드 셀, Liquid Depth). 장비 이미지를 쓰지 않으므로
+// (DataModel §1 장비 이미지 미제공 원칙) 이미지 칸 없이 종이 면만으로 그리드 리듬을 만든다.
 // 구성은 위→아래로 브랜드 → 이름(2줄) → 색상 → 무게이며, 이미지가 하던 시각 위계는 무게가 대신한다.
+// 담기 CTA는 **미담김 = 라임 면 + add / 담김 = 잉크 면 + 라임 checkmark**로 뒤집힌다 —
+// 라임이 "아직 안 담김"을 뜻하는 자리라 담긴 카드에서 라임 면이 사라져야 스캔이 된다.
 // 담기 CTA는 카드 우상단, coupangUrl이 있으면 하단 축약 링크.
 // 수수료 고지는 카드마다 반복하지 않고 FeedView 리스트 푸터에서 1회 노출한다.
 // coupangUrl은 Algolia hit·Gear에 없고 /gear 문서에만 있어(WarehouseDetail과 동일 경로) 마운트 시 지연 로드한다.
@@ -201,7 +208,7 @@ const FeedCardView: FC<Props> = ({
     if (loading) {
       return (
         <View style={styles.ctaLoading}>
-          <LoadingView duration={1000} color={Color.background} />
+          <LoadingView duration={1000} color={Liquid.lime} />
         </View>
       );
     }
@@ -212,7 +219,7 @@ const FeedCardView: FC<Props> = ({
       if (isInThisBag) {
         return (
           <View style={styles.ownedBadge}>
-            <Ionicons name='checkmark' size={18} color={Color.background} />
+            <Ionicons name='checkmark' size={18} color={Liquid.lime} />
           </View>
         );
       }
@@ -222,11 +229,11 @@ const FeedCardView: FC<Props> = ({
           style={styles.ownedBadge}
           onPress={handleRemovePress}
           hitSlop={CTA_HIT_SLOP}
-          activeOpacity={0.8}
+          activeOpacity={LiquidMotion.pressOpacity}
           accessibilityRole='button'
           accessibilityLabel={`${gear.getDisplayName()} 창고에서 빼기`}
         >
-          <Ionicons name='checkmark' size={18} color={Color.background} />
+          <Ionicons name='checkmark' size={18} color={Liquid.lime} />
         </TouchableOpacity>
       );
     }
@@ -236,7 +243,7 @@ const FeedCardView: FC<Props> = ({
         style={styles.addButton}
         onPress={handleAddPress}
         hitSlop={CTA_HIT_SLOP}
-        activeOpacity={0.8}
+        activeOpacity={LiquidMotion.pressOpacity}
         accessibilityRole='button'
         accessibilityLabel={
           bagCtxId
@@ -244,7 +251,7 @@ const FeedCardView: FC<Props> = ({
             : `${gear.getDisplayName()} 창고에 담기`
         }
       >
-        <Ionicons name='add' size={18} color={Color.background} />
+        <Ionicons name='add' size={18} color={Liquid.limeOn} />
       </TouchableOpacity>
     );
   };
@@ -283,30 +290,32 @@ const FeedCardView: FC<Props> = ({
             </PretendardText>
           ) : null}
 
-          {/* 무게는 숫자라 콘덴스드를 쓴다 — 카드의 시각 앵커(ACG). */}
+          {/* 무게는 숫자라 콘덴스드를 쓴다 — 카드의 시각 앵커. 단위는 한 단계 낮춰
+              숫자가 먼저 읽히게 한다. */}
           {weight ? (
-            <AcgDisplayText
-              style={styles.weight}
-            >{`${weight}g`}</AcgDisplayText>
+            <PretendardText style={styles.weightWrap} numberOfLines={1}>
+              <PretendardText style={styles.weight}>{weight}</PretendardText>
+              <PretendardText style={styles.weightUnit}>g</PretendardText>
+            </PretendardText>
           ) : null}
-        </View>
 
-        {coupangUrl ? (
+          {coupangUrl ? (
           <TouchableOpacity
             style={styles.coupangLink}
             onPress={handleCoupangPress}
-            activeOpacity={0.6}
+            activeOpacity={LiquidMotion.pressOpacity}
           >
-            <PretendardText style={styles.coupangText}>
+            <PretendardText weight='medium' style={styles.coupangText}>
               쿠팡 최저가
             </PretendardText>
             <Ionicons
               name='chevron-forward'
-              size={12}
-              color={Color.textTertiary}
+              size={11}
+              color={Liquid.limeInk}
             />
           </TouchableOpacity>
-        ) : null}
+          ) : null}
+        </View>
       </Pressable>
 
       <SearchGearAddToBagModalView
@@ -323,87 +332,89 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
   },
-  // 텍스트 카드 면 — 이미지 대신 이 면이 2컬럼 그리드의 리듬을 만든다. 높이는 콘텐츠 기준(정방형 강제 없음).
-  // flex: 1 로 같은 행의 카드 면을 늘려 면 아래 빈 공간이 뜨지 않게 한다(카드 전체 하단 기준 정렬).
-  // ACG: 흰 종이 면 + 각진 모서리. 회색 면(inputBg)은 지면과 붙어 카드가 안 떠 보였다.
+  // 종이 카드 — 같은 행의 카드 높이를 맞추려 flex:1로 늘린다.
   cardFace: {
     flex: 1,
     width: '100%',
-    borderRadius: 0,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
-    padding: 14,
-    gap: 6,
+    borderRadius: LiquidRadius.card,
+    backgroundColor: Liquid.surface,
+    boxShadow: LiquidShadow.card,
+    padding: 16,
+    gap: 4,
   },
   // 브랜드(좌) + 담기 CTA(우상단) 한 행.
   cardHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 6,
   },
+  // 미담김 = 라임 면. 이 화면에서 라임은 "아직 내 것이 아님"을 뜻한다.
   addButton: {
     width: CTA_SIZE,
     height: CTA_SIZE,
     borderRadius: CTA_SIZE / 2,
-    backgroundColor: Acg.ink,
+    backgroundColor: Liquid.lime,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  // 담김 = 잉크 면 + 라임 체크. 면이 뒤집혀야 담긴 카드가 한눈에 걸러진다.
   ownedBadge: {
     width: CTA_SIZE,
     height: CTA_SIZE,
     borderRadius: CTA_SIZE / 2,
-    backgroundColor: Acg.ink,
+    backgroundColor: Liquid.ink,
     justifyContent: 'center',
     alignItems: 'center',
-    opacity: 0.9,
   },
-  // 로딩 중에도 담기/보유 CTA와 같은 대비를 유지한다(카드 면 inputBg 위에서 흰 배경은 묻힌다).
   ctaLoading: {
     width: CTA_SIZE,
     height: CTA_SIZE,
     borderRadius: CTA_SIZE / 2,
-    backgroundColor: Acg.ink,
+    backgroundColor: Liquid.ink,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  // FD-2: 브랜드는 제품 식별의 첫 축이라 이름(name)과 동일한 타이포로 표시한다(길면 1줄 말줄임).
   company: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 19,
-    color: Acg.ink,
+    fontSize: 12.5,
+    lineHeight: 17,
+    color: Liquid.inkMuted,
   },
   name: {
-    fontSize: 14,
-    lineHeight: 19,
-    color: Acg.ink,
+    fontSize: 15,
+    lineHeight: 20,
+    color: Liquid.ink,
   },
-  // FD-2: 색상은 이름보다 작은 활자로, 이름 아래 한 줄 표시.
-  // 위치(이름 아래)는 창고 목록(WH-1)과 같지만 톤은 각 화면 규칙을 따른다 — 피드는 12/textSecondary.
   color: {
     fontSize: 12,
     lineHeight: 16,
-    color: Acg.textSecondary,
+    color: Liquid.inkSubtle,
   },
-  // 카드에서 가장 큰 활자 — 이미지가 하던 시각 앵커를 무게가 대신한다(FD-2).
-  // ACG는 이 앵커를 30px 콘덴스드로 키운다.
-  // 카드의 시각 앵커 — 목록 행과 같은 라임 텍스트로 액센트를 통일한다.
+  weightWrap: {
+    marginTop: 6,
+  },
   weight: {
-    fontSize: 30,
-    lineHeight: 34,
-    color: Acg.limeText,
+    fontFamily: LiquidFont.condensed,
+    fontSize: 32,
+    lineHeight: 36,
+    letterSpacing: -0.5,
+    color: Liquid.ink,
+  },
+  weightUnit: {
+    fontSize: 16,
+    color: Liquid.inkMuted,
   },
   coupangLink: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
-    paddingTop: 6,
+    gap: 3,
+    paddingTop: 8,
   },
+  // 밝은 면 위 라임 계열 글자는 limeInk — 라임을 글자색으로 직접 쓰지 않는다.
   coupangText: {
     fontSize: 12,
-    color: Color.textTertiary,
+    color: Liquid.limeInk,
   },
 });
 
