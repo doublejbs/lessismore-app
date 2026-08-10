@@ -108,30 +108,20 @@ const LiquidMetricRow: FC<Props> = ({
 
         {aside}
 
+        {/* 값과 단위를 한 덩어리로 쓴다 — `907g`이 두 조각으로 갈리면 단위가 다른 값의
+            일부처럼 읽힌다(카피 규칙: 숫자는 단위까지 한 덩어리). 목업도 §6·§7·§8 모두
+            한 스팬이다. 콘덴스드는 라틴 전용이라 `g`·`kg`에 안전하다. */}
         {value !== undefined && value !== null ? (
           <PretendardText
-            style={[styles.valueWrap, dim && styles.dimmed]}
+            style={[
+              styles.value,
+              isSmall && styles.valueSm,
+              accent && styles.valueAccent,
+              dim && styles.dimmed,
+            ]}
             numberOfLines={1}
           >
-            <PretendardText
-              style={[
-                styles.value,
-                isSmall && styles.valueSm,
-                accent && styles.valueAccent,
-              ]}
-            >
-              {String(value)}
-            </PretendardText>
-            <PretendardText
-              style={[
-                styles.unit,
-                // 축약 행은 단위를 따로 낮추지 않는다 — `907g`이 한 덩어리로 읽혀야 한다.
-                isSmall && styles.unitSm,
-                isSmall && accent && styles.valueAccent,
-              ]}
-            >
-              {unit}
-            </PretendardText>
+            {`${value}${unit}`}
           </PretendardText>
         ) : null}
 
@@ -178,10 +168,8 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     color: Liquid.inkMuted,
   },
-  valueWrap: {
-    flexShrink: 0,
-  },
   value: {
+    flexShrink: 0,
     fontFamily: LiquidFont.condensed,
     fontSize: 20,
     color: Liquid.ink,
@@ -191,17 +179,6 @@ const styles = StyleSheet.create({
   },
   valueAccent: {
     color: Liquid.limeInk,
-  },
-  // 단위도 Archivo — 목업이 g를 숫자와 같은 스팬에 넣는다(라틴 전용이라 안전).
-  unit: {
-    fontFamily: LiquidFont.condensed,
-    fontSize: 12,
-    color: Liquid.inkSubtle,
-  },
-  unitSm: {
-    fontFamily: LiquidFont.condensed,
-    fontSize: 16,
-    color: Liquid.ink,
   },
 });
 

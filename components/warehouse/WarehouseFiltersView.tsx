@@ -10,12 +10,10 @@ import {
 import Warehouse from '@/model/warehouse/Warehouse';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import { observer } from 'mobx-react-lite';
-import OrderButtonView from '@/components/order/OrderButtonView';
-import OrderOption from '@/model/order/OrderOption';
-import PretendardText from '@/components/PretendardText';
-import CategoryChipView from '@/components/browse/CategoryChipView';
+import LiquidChip from '@/components/liquid/LiquidChip';
+import LiquidNoticeChip from '@/components/liquid/LiquidNoticeChip';
 import { getFineCategoryLabel } from '@/model/gear/GearCategoryGroups';
-import { Acg } from '@/constants/DesignTokens';
+import { LiquidLayout } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 interface Props {
@@ -25,9 +23,14 @@ interface Props {
 // 선택 칩을 스크롤 안으로 들일 때 가장자리에 남기는 여백 — 딱 붙으면 잘린 것처럼 보인다.
 const CHIP_EDGE_PADDING = 16;
 
+/**
+ * WH-2 창고 필터 줄 (Liquid Depth, 목업 §8).
+ *
+ * 1차 카테고리 칩 줄 → (해당 그룹이면) 세분 칩 줄 → 별개 축인 사용 여부 알림 칩 순이다.
+ * 개수·정렬은 이 줄이 아니라 **화면 제목 블록**이 든다(목업 §8) — 목록의 규모와 정렬은
+ * 화면 대상(`창고`)에 딸린 정보라 제목 옆이 자리다.
+ */
 const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
-  const order = warehouse.getOrder();
-  const totalCount = warehouse.getGears().length;
   const fineCategoryOptions = warehouse.getFineCategoryOptions();
   const fineCategory = warehouse.getFineCategory();
   const selectedFilterName = warehouse.getSelectedFilter().getName();
@@ -65,7 +68,7 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
     const right = layout.x + layout.width;
     const animated = hasAlignedRef.current;
 
-    // 이미 보이는 칩은 건드리지 않는다 — 탭할 때마다 목록이 흔들리면 거슬린다.
+    // 이미 보이는 칩은 건드리지 않는다 — 탭할 때마다 행이 흔들리면 거슬린다.
     if (left < offset + CHIP_EDGE_PADDING) {
       scrollRef.current?.scrollTo({
         x: Math.max(0, left - CHIP_EDGE_PADDING),
@@ -125,19 +128,13 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
     warehouse.toggleUnusedOnly();
   };
 
-  const handleSelectOrder = (option: OrderOption) => {
-    app
-      .getAnalyticsManager()
-      ?.logClick('warehouse_sort', { order: option.getName() });
-  };
-
   return (
     <View style={styles.container}>
       <ScrollView
         ref={scrollRef}
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={styles.scrollView}
+        style={[styles.scrollView, styles.primaryRow]}
         contentContainerStyle={styles.scrollContent}
         onLayout={handleScrollViewLayout}
         onScroll={handleScroll}
@@ -148,7 +145,7 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
             key={filter.getName()}
             onLayout={handleChipLayout(filter.getName())}
           >
-            <CategoryChipView
+            <LiquidChip
               label={filter.getName()}
               selected={filter.isSelected()}
               onPress={() => handleClick(filter)}
@@ -160,48 +157,40 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={styles.scrollView}
+          style={[styles.scrollView, styles.fineRow]}
           contentContainerStyle={styles.fineScrollContent}
         >
-          <CategoryChipView
+          <LiquidChip
             label='전체'
-            variant='secondary'
+            size='sm'
             selected={fineCategory === null}
             onPress={() => handleClickFineCategory(null)}
           />
           {fineCategoryOptions.map(key => (
-            <CategoryChipView
+            <LiquidChip
               key={key}
               label={getFineCategoryLabel(key)}
-              variant='secondary'
+              size='sm'
               selected={fineCategory === key}
               onPress={() => handleClickFineCategory(key)}
             />
           ))}
         </ScrollView>
       )}
-      {/* WH-2-1 사용 여부 필터 — 카테고리와 별개 축이라 칩 행이 아니라 이 줄에 둔다.
-          개수를 함께 보여줘야 몇 개가 걸러지는지 알고 덜어낼 판단을 할 수 있다. */}
+      {/* WH-2-1 사용 여부 필터 — 카테고리와 별개 축이라 칩 줄이 아니라 이 줄에 둔다.
+          개수를 함께 보여줘야 몇 개가 걸러지는지 알고 덜어낼 판단을 할 수 있다.
+          라임 톤 알림 칩(목업 §8) — 창고에서 이 앱의 이름값을 말하는 자리다. */}
       {unusedCount > 0 || unusedOnly ? (
         <View style={styles.usageRow}>
-          {/* 켜짐은 카테고리 칩과 같은 잉크 채움으로 낸다 — 2차 칩 기본 톤(연회색 채움)은
-              켠 건지 아닌지 한눈에 안 갈렸다. 크기는 2차 그대로 둬 카테고리와 축을 구분한다. */}
-          <CategoryChipView
+          <LiquidNoticeChip
             label={`안 쓴 장비 ${unusedCount}`}
-            variant='secondary'
-            tone='acgSolid'
+            icon='alert-circle-outline'
             selected={unusedOnly}
             onPress={handleToggleUnused}
             accessibilityLabel={`안 쓴 장비만 보기, ${unusedCount}개`}
           />
         </View>
       ) : null}
-      <View style={styles.orderContainer}>
-        <PretendardText weight='semibold' style={styles.titleText}>
-          총 {totalCount}개
-        </PretendardText>
-        <OrderButtonView order={order} onSelectOption={handleSelectOrder} />
-      </View>
     </View>
   );
 };
@@ -209,39 +198,40 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
-    gap: 4,
     // 지면이 비쳐야 한다 — 흰 면을 깔면 필터 바만 종이처럼 떠 보인다.
     backgroundColor: 'transparent',
   },
+  /**
+   * 칩 줄은 화면 좌우로 블리드시킨다 — 스크롤이 가장자리에서 끊기지 않게(목업 §8: margin 0 -20).
+   * 폭을 지정하지 않는다 — `width: '100%'`를 주면 음수 마진만큼 오른쪽이 잘려 마지막 칩이
+   * 화면 안에서 끝난다. 늘어나는 대로(stretch) 두면 부모 폭 + 40이 된다.
+   */
   scrollView: {
-    width: '100%',
+    marginHorizontal: -LiquidLayout.screenH,
+  },
+  primaryRow: {
+    marginTop: 16,
+  },
+  // 세분 줄은 1차 줄에 딸린 보조 줄이라 붙여 둔다.
+  fineRow: {
+    marginTop: 8,
   },
   scrollContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 0,
+    paddingHorizontal: LiquidLayout.screenH,
   },
-  // 세분 칩 행 — 1차 행과 구분되게 보조적으로(간격 축소) 배치
+  // 세분 칩 줄 — 1차 줄과 구분되게 보조적으로(간격 축소) 배치
   fineScrollContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 0,
+    paddingHorizontal: LiquidLayout.screenH,
   },
   usageRow: {
     flexDirection: 'row',
-    paddingTop: 2,
-  },
-  orderContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  titleText: {
-    fontSize: 16,
-    color: Acg.textTertiary,
+    marginTop: 10,
   },
 });
 

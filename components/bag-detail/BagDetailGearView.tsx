@@ -109,8 +109,26 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divider = false }) => {
     gear.getDisplayColor(),
     gear.hasUsedRate() ? `사용률 ${gear.getUsedRate()}%` : null,
   ]
-    .filter(part => part)
+    .filter(Boolean)
     .join(' · ');
+  const weight = gear.getWeight();
+
+  /**
+   * 창고 목록 행과 같은 문법으로 읽는다(WH-1) — 브랜드는 이름을 여는 라벨이라 쉼표 없이
+   * 붙이고, 그 뒤 사실들만 쉼표로 나눈다. 없는 값은 조각째 뺀다.
+   * BD-5 `사용 안 함`은 눈으로는 로고 마크가 말하는 상태라 문장 끝에 덧붙인다.
+   */
+  const getAccessibilityLabel = (): string =>
+    [
+      [gear.getDisplayCompany(), gear.getDisplayName()]
+        .filter(Boolean)
+        .join(' '),
+      weight ? `${weight}g` : null,
+      gear.hasUsedRate() ? `사용률 ${gear.getUsedRate()}%` : null,
+      isUseless ? '사용 안 함' : null,
+    ]
+      .filter(Boolean)
+      .join(', ');
 
   return (
     <ReanimatedSwipeable
@@ -126,17 +144,13 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divider = false }) => {
           onPress={handlePressGear}
           activeOpacity={LiquidMotion.pressOpacity}
           accessibilityRole='button'
-          accessibilityLabel={
-            isUseless
-              ? `${gear.getDisplayName()}, ${gear.getWeight()}g, 사용 안 함`
-              : `${gear.getDisplayName()}, ${gear.getWeight()}g`
-          }
+          accessibilityLabel={getAccessibilityLabel()}
         >
           <LiquidMetricRow
             size='sm'
             name={gear.getDisplayName()}
             meta={meta}
-            value={gear.getWeight()}
+            value={weight}
             unit='g'
             divider={divider}
             // 썸네일이 붙은 행과 없는 행의 키를 같게 묶는다(GearThumbnailView 주석의 행 높이 계약).
@@ -146,6 +160,7 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divider = false }) => {
             dim={isUseless}
             leading={
               <GearThumbnailView
+                variant='liquid'
                 imageUrl={gear.getImageUrl()}
                 style={isUseless ? styles.thumbnailDim : undefined}
               />

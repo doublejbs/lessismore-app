@@ -15,7 +15,7 @@ import { Liquid, LiquidMotion, LiquidShadow } from '@/constants/DesignTokens';
  */
 export const LIQUID_CHROME_HEIGHT = 38;
 
-// 시각 높이 38을 HIG 최소 터치 타깃 44pt로 채우는 여유.
+// 시각 높이 38을 HIG 최소 터치 타깃 44pt로 채우는 여유. 캡슐 **자체가** 버튼일 때만 쓴다.
 const TOUCH_SLOP = { top: 3, bottom: 3, left: 3, right: 3 };
 
 interface Props {
@@ -38,6 +38,12 @@ interface Props {
  * 지면 위에 뜬 반투명 알약 하나를 그린다 — BlurView + `glassFill` 오버레이 + 0.5px
  * `glassStroke` 보더로 유리를 근사한다(RN에 backdrop-filter가 없다).
  * 아이콘 여러 개를 담는 액션 캡슐, 글자 하나를 담는 텍스트 알약이 같은 문법을 쓴다.
+ *
+ * **아이콘을 여러 개 담을 때의 터치 타깃**: 겉면이 알약으로 클리핑하므로(`surface`의
+ * `overflow: 'hidden'`) 안쪽 아이콘의 히트 영역은 캡슐 높이(38) 밖으로 나가면 전달되지
+ * 않는다 — 현 프리미티브 구조상의 제약이며 34×38이 그 안에서의 상한이다. 44가 필요하면
+ * 클리핑을 안쪽 레이어로 한 겹 더 내리거나(채움만 깎고 히트 영역은 밖에 두기) 캡슐 자체를
+ * 버튼으로 쓰면 된다 — 지오메트리가 아니라 구조가 정하는 값이다.
  */
 const LiquidGlassCapsule: FC<Props> = ({
   children,

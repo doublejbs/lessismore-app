@@ -26,7 +26,9 @@ const SkeletonRow: FC = () => {
   const [opacity] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
-    const animate = () => {
+    // 재귀 start 콜백 대신 loop — 언마운트 후에도 다음 주기가 스스로 살아나는 일이 없고,
+    // cleanup에서 한 번 멈추면 끝난다(BagDetailSkeletonView와 같은 패턴).
+    const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(opacity, {
           toValue: 0.5,
@@ -38,10 +40,12 @@ const SkeletonRow: FC = () => {
           duration: SHIMMER_HALF_DURATION,
           useNativeDriver: true,
         }),
-      ]).start(() => animate());
-    };
+      ])
+    );
 
-    animate();
+    animation.start();
+
+    return () => animation.stop();
   }, [opacity]);
 
   return (

@@ -7,11 +7,7 @@ import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import Feed from '@/model/feed/Feed';
 import PretendardText from '@/components/PretendardText';
-import {
-  Liquid,
-  LiquidLayout,
-  LiquidMotion,
-} from '@/constants/DesignTokens';
+import { Liquid, LiquidLayout, LiquidMotion } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 interface Props {
@@ -55,8 +51,9 @@ const FeedRankingButtonView: FC<Props> = ({ feed }) => {
 
   return (
     <View style={[styles.container, { bottom }]} pointerEvents='box-none'>
-      {/* 잉크 유리 알약(Liquid) — 공용 FloatingPillButton을 쓰지 않는다. 그 컴포넌트는
-          아직 ACG인 창고·배낭 화면이 함께 쓰고 있어 여기서 바꾸면 그쪽까지 흔들린다. */}
+      {/* 잉크 유리 알약(Liquid) — 이 화면만의 어두운 유리라 공용 프리미티브를 쓰지 않는다.
+          (구세대 공용 `FloatingPillButton`은 마지막 소비처인 창고 플로팅 `장비 추가`가
+          상단 크롬으로 올라가며 2026-08-11에 지워졌다.) */}
       <TouchableOpacity
         style={styles.pill}
         onPress={handleGoToRanking}

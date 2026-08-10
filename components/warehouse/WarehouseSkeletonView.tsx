@@ -1,114 +1,137 @@
-import { FC, useEffect, useRef } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidRadius,
+  LiquidShadow,
+} from '@/constants/DesignTokens';
 
-// 스켈레톤 셰이딩은 토큰 예외다. 지면(#F4F3EF) 위라 기존 회색은 푸르게 떠 보였다.
-const SKELETON_SHADE = '#E3E1DA';
+interface Props {
+  count?: number; // 스켈레톤 행 개수
+}
 
-const SkeletonItem: FC = () => {
-  const opacity = useRef(new Animated.Value(0.3)).current;
+// 셔머 반 주기 — 왕복 1.2s(핸드오프 로딩 규칙). 스피너는 쓰지 않는다.
+const SHIMMER_HALF_DURATION = 600;
+// 잉크 스케일의 가장 옅은 값. 가라앉은 면(surfaceSunken)은 흰 카드와 값이 붙어 형태가 사라진다.
+const PLACEHOLDER_COLOR = Liquid.inkFaint;
+const BAR_RADIUS = 4;
+
+/**
+ * WH-1 창고 목록 스켈레톤 (Liquid Depth).
+ *
+ * 도착할 목록(흰 카드 하나 + `LiquidMetricRow` 행들)과 **같은 골격**이라야 로드 후 자리가
+ * 튀지 않는다 — 카드 모서리·행 여백·헤어라인·우측 무게 자리를 그대로 둔다.
+ */
+const SkeletonRow: FC<{ divider: boolean }> = ({ divider }) => {
+  // ref로 잡으면 렌더 중 `.current`를 읽어 React Compiler가 최적화를 포기한다 — 값을 상태로 든다.
+  const [opacity] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
-    const animateLoading = () => {
+    // 재귀 start 콜백 대신 loop — 언마운트 후에도 다음 주기가 스스로 살아나는 일이 없고,
+    // cleanup에서 한 번 멈추면 끝난다(BagDetailSkeletonView와 같은 패턴).
+    const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(opacity, {
-          toValue: 0.7,
-          duration: 800,
+          toValue: 0.5,
+          duration: SHIMMER_HALF_DURATION,
           useNativeDriver: true,
         }),
         Animated.timing(opacity, {
-          toValue: 0.3,
-          duration: 800,
+          toValue: 1,
+          duration: SHIMMER_HALF_DURATION,
           useNativeDriver: true,
         }),
-      ]).start(() => animateLoading());
-    };
+      ])
+    );
 
-    animateLoading();
+    animation.start();
+
+    return () => animation.stop();
   }, [opacity]);
 
   return (
-    <View style={styles.skeletonContainer}>
-      {/* 좌 정체 컬럼 — 브랜드·이름·색상 */}
-      <View style={styles.skeletonIdentityColumn}>
-        <Animated.View style={[styles.skeletonCompanyText, { opacity }]} />
-        <Animated.View style={[styles.skeletonNameText, { opacity }]} />
-        <Animated.View style={[styles.skeletonColorText, { opacity }]} />
-      </View>
+    <View>
+      {divider ? <View style={styles.divider} /> : null}
+      <View style={styles.row}>
+        {/* 좌 정체 — 브랜드(12) → 이름(15) → 색상·사용률(12) */}
+        <View style={styles.identity}>
+          <Animated.View style={[styles.brandBar, { opacity }]} />
+          <Animated.View style={[styles.nameBar, { opacity }]} />
+          <Animated.View style={[styles.metaBar, { opacity }]} />
+        </View>
 
-      {/* 우 지표 컬럼 — 사용률 배지(위) + 무게(아래) */}
-      <View style={styles.skeletonMetricsColumn}>
-        <Animated.View style={[styles.skeletonUsedRateBadge, { opacity }]} />
-        <Animated.View style={[styles.skeletonWeightText, { opacity }]} />
+        {/* 우 무게 — 콘덴스드 20 자리 */}
+        <Animated.View style={[styles.weightBar, { opacity }]} />
       </View>
     </View>
   );
 };
 
-const WarehouseSkeletonView: FC = () => {
+const WarehouseSkeletonView: FC<Props> = ({ count = 6 }) => {
   return (
-    <View style={styles.container}>
-      {[...Array(5)].map((_, index) => (
-        <SkeletonItem key={index} />
-      ))}
+    // 그림자는 껍데기가 든다 — 안쪽에서 모서리를 깎으므로 같은 뷰에 그림자를 걸면 잘린다.
+    <View style={styles.cardShell}>
+      <View style={styles.cardClip}>
+        {Array.from({ length: count }, (_, index) => (
+          <SkeletonRow key={index} divider={index > 0} />
+        ))}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 10,
-    gap: 4,
+  cardShell: {
+    borderRadius: LiquidRadius.card,
+    boxShadow: LiquidShadow.card,
   },
-  // WH-1 텍스트 우선 · 좌 정체/우 지표 2열 행에 맞춘 로딩 자리.
-  // 썸네일 자리는 두지 않는다 — 사진은 사용자가 올린 행에만 붙고 대다수 장비에는 없어
-  // 텍스트 행이 기본 모습이다(DataModel §1 2026-07-29 개정). 썸네일 박스를 두면 오히려 대부분 어긋난다.
-  skeletonContainer: {
+  cardClip: {
+    borderRadius: LiquidRadius.card,
+    overflow: 'hidden',
+    backgroundColor: Liquid.surface,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Liquid.hairline,
+    marginLeft: LiquidLayout.cardPad,
+  },
+  // 실제 행(LiquidMetricRow: paddingVertical 15 / paddingHorizontal 16 / gap 12)과 같은 리듬.
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 0,
     gap: 12,
+    paddingVertical: 15,
+    paddingHorizontal: LiquidLayout.cardPad,
   },
-  skeletonIdentityColumn: {
+  identity: {
     flex: 1,
-    gap: 6,
-    overflow: 'hidden',
+    minWidth: 0,
+    gap: 2,
   },
-  skeletonMetricsColumn: {
-    alignItems: 'flex-end',
-    gap: 4,
-  },
-  // 브랜드는 이름과 동일한 타이포라 바 높이도 skeletonNameText와 같게 둔다.
-  skeletonCompanyText: {
+  brandBar: {
     height: 16,
-    width: 60,
-    backgroundColor: SKELETON_SHADE,
-    borderRadius: 0,
+    width: 64,
+    backgroundColor: PLACEHOLDER_COLOR,
+    borderRadius: BAR_RADIUS,
   },
-  skeletonUsedRateBadge: {
+  nameBar: {
+    height: 20,
+    width: '70%',
+    backgroundColor: PLACEHOLDER_COLOR,
+    borderRadius: BAR_RADIUS,
+  },
+  metaBar: {
     height: 16,
-    width: 70,
-    backgroundColor: SKELETON_SHADE,
-    borderRadius: 0,
+    width: '45%',
+    backgroundColor: PLACEHOLDER_COLOR,
+    borderRadius: BAR_RADIUS,
   },
-  skeletonNameText: {
-    height: 16,
-    width: '80%',
-    backgroundColor: SKELETON_SHADE,
-    borderRadius: 0,
-  },
-  skeletonColorText: {
-    height: 14,
-    width: '50%',
-    backgroundColor: SKELETON_SHADE,
-    borderRadius: 0,
-  },
-  skeletonWeightText: {
-    height: 14,
-    width: 40,
-    backgroundColor: SKELETON_SHADE,
-    borderRadius: 0,
+  weightBar: {
+    height: 22,
+    width: 52,
+    backgroundColor: PLACEHOLDER_COLOR,
+    borderRadius: BAR_RADIUS,
   },
 });
 

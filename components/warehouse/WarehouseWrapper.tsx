@@ -1,11 +1,12 @@
 import { FC, useState } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import Warehouse from '@/model/warehouse/Warehouse';
 import WarehouseDispatcher from '@/model/warehouse/WarehouseDispatcher';
 import GearFilter from '@/model/gear/GearFilter';
 import app from '@/model/app/App';
 import WarehouseScreen from '@/components/warehouse/WarehouseScreen';
-import LoadingIconView from '../ui/LoadingIconView';
+import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
 
 interface Props {
   // 홈 미리보기에서 좁힌 1차 카테고리. 첫 조회부터 이 카테고리로 나간다.
@@ -41,8 +42,20 @@ const WarehouseWrapper: FC<Props> = ({
   if (isFirebaseInitialized) {
     return <WarehouseScreen warehouse={warehouse} />;
   } else {
-    return <LoadingIconView />;
+    // Firebase 초기화 전에는 지면만 깐다 — 스피너는 쓰지 않고(핸드오프 로딩 규칙), 아무것도
+    // 렌더하지 않으면 진입 순간 흰 화면이 번쩍인다(패킹 모드와 같은 처리).
+    return (
+      <View style={styles.container}>
+        <LiquidBackdrop screen='none' glowPosition='topRight' />
+      </View>
+    );
   }
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
 
 export default observer(WarehouseWrapper);
