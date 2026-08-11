@@ -147,6 +147,17 @@ export const AcgFontSize = {
   control: 15,
 } as const;
 
+/**
+ * 레퍼런스 탐색 화면의 모서리(2026-08-11).
+ *
+ * 앱 기본 `Radius`는 ACG의 각진 면이라 전부 0이다 — 그 그룹의 값을 올리면 아직 ACG인
+ * 화면들이 같이 둥글어지므로 별 그룹으로 둔다. `thumb`는 썸네일 자리(사진이 없는 이 앱에서는
+ * 브랜드·제품명을 담는 면)의 모서리다.
+ */
+export const AcgRadius = {
+  thumb: 12,
+} as const;
+
 // New Architecture의 `boxShadow`를 쓴다(RN 0.76+). 문자열 문법이 핸드오프 CSS와 1:1이라
 // 값을 옮길 때 오차가 생기지 않는다.
 export const AcgShadow = {
