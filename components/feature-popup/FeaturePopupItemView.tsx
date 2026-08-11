@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius, Spacing } from '@/constants/DesignTokens';
 
 // 부모(FeaturePopupSheetView)가 넘기는 아이템 shape. re-export 금지라 여기서 로컬로 선언한다.
 type FeaturePopupItem = {
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     color: Color.textPrimary,
   },
   description: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     lineHeight: 18,
     color: Color.textSecondary,
   },

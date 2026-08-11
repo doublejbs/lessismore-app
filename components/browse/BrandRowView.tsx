@@ -3,7 +3,7 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { BrandRankData } from '@/model/search/BrandRankStore';
 import PretendardText from '../PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   brand: BrandRankData;
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     color: Color.textPrimary,
   },
   brandMeta: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
 });

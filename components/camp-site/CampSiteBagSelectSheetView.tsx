@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import SheetGrabberView from '@/components/ui/SheetGrabberView';
-import { Color } from '@/constants/DesignTokens';
+import { AcgFontSize, Color } from '@/constants/DesignTokens';
 import BagItem from '@/model/bag/BagItem';
 
 interface Props {
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     color: Color.textPrimary,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
   closeButton: {
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     color: Color.textPrimary,
   },
   sectionLabel: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
     paddingBottom: 4,
   },
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     flex: 1,
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
   row: {
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     color: Color.textPrimary,
   },
   rowDate: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
 });

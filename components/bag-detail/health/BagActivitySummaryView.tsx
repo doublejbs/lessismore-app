@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Spacing } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, Spacing } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { BagActivitySummary } from '@/model/bag/BagActivitySummary';
 import {
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   metricLabel: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     color: Acg.textMuted,
   },
   metricValue: {

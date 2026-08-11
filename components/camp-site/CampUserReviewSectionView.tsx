@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { AcgFontSize, Color } from '@/constants/DesignTokens';
 import StarRatingView from './StarRatingView';
 import CampUserReviewItemView from './CampUserReviewItemView';
 import CampSiteDetail from '@/model/camp-site/CampSiteDetail';
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     color: Color.textPrimary,
   },
   summaryCount: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
   // 하단 고정 CTA(배낭 여행지로 설정)와 폭이 같으면 주 액션이 둘로 보인다 —

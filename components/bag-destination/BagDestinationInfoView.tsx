@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
@@ -169,11 +169,11 @@ const styles = StyleSheet.create({
     backgroundColor: Color.chipInactiveBg,
   },
   badgeText: {
-    fontSize: 11,
+    fontSize: AcgFontSize.meta,
     color: Color.textTertiary,
   },
   metaText: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
   detailHint: {
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   detailHintText: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
   freeRow: {

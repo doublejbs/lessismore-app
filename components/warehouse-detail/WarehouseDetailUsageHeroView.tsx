@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
-import { Acg } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 
 interface Props {
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     color: Acg.ink,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Acg.textMuted,
   },
   statMuted: {

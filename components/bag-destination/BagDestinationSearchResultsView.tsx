@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius, Spacing } from '@/constants/DesignTokens';
 import { GeocodeResult } from '@/model/bag-destination/GeocodeResult';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   sectionLabel: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
     paddingTop: 12,
     paddingBottom: 4,
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.chipInactiveBg,
   },
   badgeText: {
-    fontSize: 11,
+    fontSize: AcgFontSize.meta,
     color: Color.textTertiary,
   },
   rowText: {
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     color: Color.textPrimary,
   },
   rowSubtitle: {
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
   searchingRow: {
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   searchingText: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
   emptyText: {

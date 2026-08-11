@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius, Spacing } from '@/constants/DesignTokens';
 import { HealthWorkout } from '@/model/health/HealthTypes';
 import {
   formatDistance,
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     color: Color.textPrimary,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
 });

@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     color: Acg.ink,
   },
   labelCompact: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
   },
   labelSelected: {
     color: Acg.paper,

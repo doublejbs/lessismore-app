@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
 import { BlogReview, VideoReview } from '@/model/review/ReviewTypes';
 
 interface Props {
@@ -135,12 +135,12 @@ const styles = StyleSheet.create({
     backgroundColor: Color.thumbBg,
   },
   videoTitle: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     lineHeight: 18,
     color: Color.textPrimary,
   },
   videoChannel: {
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
   reviewList: {
@@ -165,12 +165,12 @@ const styles = StyleSheet.create({
     color: Color.textPrimary,
   },
   reviewSummary: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     lineHeight: 18,
     color: Color.textSecondary,
   },
   reviewMeta: {
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
 });

@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import Gear from '../../model/gear/Gear';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '../PretendardText';
-import { Acg, AcgLayout, Spacing } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgLayout, Spacing } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { GEAR_FILTER_NAMES } from '@/model/gear/GearFilterName';
 
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   metaText: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     color: Acg.textMuted,
     marginTop: 6,
   },
