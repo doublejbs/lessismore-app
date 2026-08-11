@@ -95,6 +95,14 @@ export const Acg = {
   limeText: '#4F6A04', // 밝은 면 위 라임 텍스트 (AA 5.2)
   warnBg: '#FFF4E5',
   warnText: '#9A4B00',
+
+  // ── 레퍼런스 탐색 화면(2026-08-11 이식) ──
+  // 순백 지면(`paper`) 위에 놓이는 컨트롤 면과 그 위 보조 텍스트다. 위 `bg`·`line2` 계열은
+  // 종이 지면(#F4F3EF) 기준으로 뽑은 따뜻한 회색이라 순백 위에서는 누렇게 뜬다.
+  // `controlFill`은 검색 필드·필터 칩·담기 버튼의 채움.
+  controlFill: '#F2F2F2',
+  // 순백 위 중간 회색 — 플레이스홀더와 목록 행의 브랜드 줄. 대비 4.5:1로 AA를 넘긴다.
+  textMuted: '#767676',
 } as const;
 
 /**
@@ -119,6 +127,20 @@ export const AcgSemantic = {
  */
 export const AcgFont = {
   condensed: 'ArchivoNarrow_700Bold',
+} as const;
+
+/**
+ * 레퍼런스 탐색 화면의 타입 단계(2026-08-11 이식). 서체가 아니라 **크기**만 담는다
+ * (서체는 위 `AcgFont`).
+ *
+ * 레퍼런스는 네 자리에 세 크기를 쓴다 — 목록 행의 앵커(이름) 24, 그 아래 브랜드 19,
+ * 그리고 메타 줄·칩 라벨·정렬 라벨·검색 입력이 모두 17이다. 17이 여러 곳에서 반복돼
+ * 값으로 둔다.
+ */
+export const AcgFontSize = {
+  rowTitle: 24,
+  rowSubtitle: 19,
+  body: 17,
 } as const;
 
 // New Architecture의 `boxShadow`를 쓴다(RN 0.76+). 문자열 문법이 핸드오프 CSS와 1:1이라

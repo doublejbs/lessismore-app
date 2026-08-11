@@ -3,19 +3,46 @@ import { View, StyleSheet, Pressable } from 'react-native';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import { observer } from 'mobx-react-lite';
 import SearchBarInputView, { SearchBarInputHandle } from './SearchInputView';
-import { AcgLayout, Spacing } from '@/constants/DesignTokens';
+import SearchBarVariant from './SearchBarVariant';
+import { Acg, AcgLayout, Spacing } from '@/constants/DesignTokens';
 import AcgGlassView from '@/components/acg/AcgGlassView';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
+  // 기본은 기존 유리 면(장비 추가 검색 시트가 그대로 쓴다).
+  // 탐색 탭만 `Plain`(레퍼런스 연회색 알약)을 넘긴다.
+  variant?: SearchBarVariant;
 }
 
-const SearchBarView: FC<Props> = ({ searchWarehouse }) => {
+// 레퍼런스 검색 필드 — 높이 56 알약, 좌우 여백 16.
+const PLAIN_FIELD_HEIGHT = 56;
+
+const PLAIN_SCREEN_H = 16;
+
+const SearchBarView: FC<Props> = ({
+  searchWarehouse,
+  variant = SearchBarVariant.Glass,
+}) => {
   const inputRef = useRef<SearchBarInputHandle>(null);
 
   const handlePressContainer = () => {
     inputRef.current?.focus();
   };
+
+  if (variant === SearchBarVariant.Plain) {
+    // FD-2: 순백 지면 위 연회색 단색 알약. 테두리·유리·그림자를 두지 않는다.
+    return (
+      <View style={styles.plainContainer}>
+        <Pressable style={styles.plainField} onPress={handlePressContainer}>
+          <SearchBarInputView
+            ref={inputRef}
+            searchWarehouse={searchWarehouse}
+            variant={variant}
+          />
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
     <View>
@@ -26,7 +53,10 @@ const SearchBarView: FC<Props> = ({ searchWarehouse }) => {
             style={styles.searchContainer}
             onPress={handlePressContainer}
           >
-            <SearchBarInputView ref={inputRef} searchWarehouse={searchWarehouse} />
+            <SearchBarInputView
+              ref={inputRef}
+              searchWarehouse={searchWarehouse}
+            />
           </Pressable>
         </AcgGlassView>
       </View>
@@ -56,6 +86,21 @@ const styles = StyleSheet.create({
   searchContainer: {
     paddingHorizontal: 16,
     paddingVertical: 12,
+  },
+  plainContainer: {
+    paddingHorizontal: PLAIN_SCREEN_H,
+    paddingTop: 12,
+    paddingBottom: 12,
+  },
+  plainField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    // 고정 높이가 아니라 최소 높이로 둬 Dynamic Type에서 입력이 잘리지 않게 한다.
+    minHeight: PLAIN_FIELD_HEIGHT,
+    // 높이가 커져도 알약을 유지한다(레퍼런스: radius full).
+    borderRadius: PLAIN_FIELD_HEIGHT,
+    backgroundColor: Acg.controlFill,
+    paddingHorizontal: 20,
   },
 });
 

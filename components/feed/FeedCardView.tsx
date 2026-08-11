@@ -1,26 +1,17 @@
-import { FC, useEffect, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Pressable,
-  Linking,
-  GestureResponderEvent,
-} from 'react-native';
+import { FC } from 'react';
+import { View, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
 import { observer } from 'mobx-react-lite';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import GearRowActions from '@/model/browse/GearRowActions';
 import { GearAddContext } from '@/model/gear/GearAddContext';
-import GearAddMode from '@/model/gear/GearAddMode';
 import PretendardText from '@/components/PretendardText';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { Acg, AcgShadow, Color } from '@/constants/DesignTokens';
 import LoadingView from '@/components/ui/LoadingView';
 import SearchGearAddToBagModalView from '@/components/search/SearchGearAddToBagModalView';
-import app from '@/model/app/App';
+import useGearRowState from './useGearRowState';
 
 // FD-2: 2컬럼 그리드 셀 기준. CTA 원형 버튼 크기(축소하되 hitSlop으로 44 실효 터치 타깃 확보).
 const CTA_SIZE = 36;
@@ -32,23 +23,18 @@ interface Props {
   bag: Bag;
   // GE-8: 장비 추가 검색(/search) 진입 시 담기 동작 컨텍스트. 미지정이면 탐색 기본(배낭 담기 모달).
   gearAddContext?: GearAddContext | undefined;
-  /**
-   * 이 카드에 쿠팡 링크가 실제로 붙었을 때 알린다(FD-2).
-   *
-   * 수수료 고지는 리스트 푸터가 1회만 노출하는데, `coupangUrl`이 카드마다 마운트 후
-   * **지연 로드**돼 부모가 미리 알 수 없다. 그래서 카드가 알려 준다.
-   * **참조가 고정된 콜백을 넘긴다**(`useCallback`) — 로드 effect의 의존성이라 매 렌더 새 함수를
-   * 넘기면 쿠팡 URL을 계속 다시 조회한다.
-   */
+  // 쿠팡 링크가 실제로 붙었을 때 부모(리스트 푸터 고지)에 알린다 — 자세한 규칙은 `useGearRowState` 참고.
   onCoupangLinkLoaded?: (() => void) | undefined;
 }
 
-// FD-2: 피드 텍스트 카드(2컬럼 그리드 셀). 장비 이미지를 쓰지 않으므로(DataModel §1 장비 이미지
-// 미제공 원칙) 이미지 칸·플레이스홀더 없이 카드 면(inputBg + radius)만으로 그리드 리듬을 만든다.
+// FD-2: 검색 결과(SR-2) 2컬럼 카드 그리드 셀. 장비 이미지를 쓰지 않으므로(DataModel §1 장비 이미지
+// 미제공 원칙) 이미지 칸·플레이스홀더 없이 카드 면(종이 면 + 각진 모서리)만으로 그리드 리듬을 만든다.
 // 구성은 위→아래로 브랜드 → 이름(2줄) → 색상 → 무게이며, 이미지가 하던 시각 위계는 무게가 대신한다.
 // 담기 CTA는 카드 우상단, coupangUrl이 있으면 하단 축약 링크.
-// 수수료 고지는 카드마다 반복하지 않고 FeedView 리스트 푸터에서 1회 노출한다.
-// coupangUrl은 Algolia hit·Gear에 없고 /gear 문서에만 있어(WarehouseDetail과 동일 경로) 마운트 시 지연 로드한다.
+// 수수료 고지는 카드마다 반복하지 않고 리스트 푸터에서 1회 노출한다.
+//
+// **탐색 탭 피드 본문은 이 카드가 아니라 단일 컬럼 행(`FeedRowView`)을 쓴다**(레퍼런스 이식,
+// 2026-08-11). 동작은 두 뷰가 `useGearRowState`를 공유한다.
 const FeedCardView: FC<Props> = ({
   gear,
   actions,
@@ -56,146 +42,28 @@ const FeedCardView: FC<Props> = ({
   gearAddContext,
   onCoupangLinkLoaded,
 }) => {
-  const router = useRouter();
-  const isAdded = gear.isAdded();
   const weight = gear.getWeight();
   const color = gear.getDisplayColor();
 
-  // GE-8 배낭 컨텍스트: 이 배낭에 담는 흐름. 창고 보유 여부와 무관하게 파괴적 제거 대신 담기로 동작한다.
-  const bagCtxId =
-    gearAddContext?.mode === GearAddMode.Bag ? gearAddContext.bagId : undefined;
-  const isInThisBag = !!bagCtxId && gear.getData().bags.includes(bagCtxId);
-
-  const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [coupangUrl, setCoupangUrl] = useState<string | undefined>(undefined);
-
-  useEffect(() => {
-    let active = true;
-
-    const loadCoupangUrl = async () => {
-      const gearStore = app.getGearStore();
-
-      if (!gearStore) {
-        return;
-      }
-
-      const { coupangUrl: url } = await gearStore.getExternalLinks(
-        gear.getId()
-      );
-
-      if (!active) {
-        return;
-      }
-
-      setCoupangUrl(url);
-
-      // 링크가 실제로 붙은 카드만 알린다 — 푸터 수수료 고지의 노출 조건이다(위 prop 주석).
-      if (url) {
-        onCoupangLinkLoaded?.();
-      }
-    };
-
-    loadCoupangUrl();
-
-    return () => {
-      active = false;
-    };
-  }, [gear, onCoupangLinkLoaded]);
-
-  const handleCardPress = () => {
-    app.getAnalyticsManager()?.logClick('feed_card');
-
-    // GE-8 배낭 컨텍스트: 상세에서도 그 배낭에 담도록 bagId를 넘긴다.
-    if (bagCtxId) {
-      router.push(`/gear-detail/${gear.getId()}?bagId=${bagCtxId}`);
-    } else {
-      actions.goToGearDetail(gear);
-    }
-  };
-
-  const handleAddPress = async (e: GestureResponderEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setLoading(true);
-
-    try {
-      // GE-8 배낭 컨텍스트: 창고에 없으면 등록 후, 그 배낭에 바로 담는다(재선택 모달 없음).
-      // 이미 창고 보유 장비는 재등록하지 않아 gear-rank 중복 집계를 피한다.
-      if (bagCtxId) {
-        if (!isAdded) {
-          const registered = await actions.registerSingle(gear);
-
-          if (!registered) {
-            return;
-          }
-        }
-
-        app.getAnalyticsManager()?.logClick('feed_add', { added: true });
-
-        const added = await bag.addGearToBag(bagCtxId, gear);
-
-        if (added) {
-          app.getToastManager()?.show({ message: '배낭에 담았어요.' });
-        }
-
-        return;
-      }
-
-      // 창고 컨텍스트 / 탐색 기본: 창고 등록.
-      const success = await actions.registerSingle(gear);
-
-      if (!success) {
-        return;
-      }
-
-      app.getAnalyticsManager()?.logClick('feed_add', { added: true });
-
-      if (gearAddContext) {
-        // 창고 장비 추가: 창고 등록만(배낭 담기 모달 생략).
-        app.getToastManager()?.show({ message: '창고에 담았어요.' });
-      } else {
-        // 탐색 기본: 창고 등록 후 배낭 담기 모달(SR-3).
-        setShowModal(true);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRemovePress = async (e: GestureResponderEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setLoading(true);
-
-    try {
-      app.getAnalyticsManager()?.logClick('feed_add', { added: false });
-      await actions.removeSingle(gear);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-  };
-
-  const handleCoupangPress = async (e: GestureResponderEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!coupangUrl) {
-      return;
-    }
-
-    app.getAnalyticsManager()?.logClick('feed_coupang');
-
-    try {
-      await Linking.openURL(coupangUrl);
-    } catch {
-      // 링크 열기 실패는 조용히 무시
-    }
-  };
+  const {
+    isAdded,
+    isInThisBag,
+    bagCtxId,
+    loading,
+    showModal,
+    coupangUrl,
+    handleCardPress,
+    handleAddPress,
+    handleRemovePress,
+    handleCloseModal,
+    handleCoupangPress,
+  } = useGearRowState({
+    gear,
+    actions,
+    bag,
+    gearAddContext,
+    onCoupangLinkLoaded,
+  });
 
   const renderCta = () => {
     if (loading) {

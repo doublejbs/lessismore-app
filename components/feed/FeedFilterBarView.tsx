@@ -13,16 +13,16 @@ import {
 } from '@/model/feed/FeedSort';
 import { BROWSE_CATEGORIES } from '@/model/browse/BrowseCategory';
 import { getFineCategoryLabel } from '@/model/gear/GearCategoryGroups';
-import { Acg, AcgLayout, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize } from '@/constants/DesignTokens';
 import PretendardText from '@/components/PretendardText';
-import CategoryChipView from '@/components/browse/CategoryChipView';
+import FeedChipView from './FeedChipView';
 import FeedFilterSheetView from './FeedFilterSheetView';
 import { setSortSheetContext } from '@/model/sort/SortSheetHandoff';
 import app from '@/model/app/App';
 
 interface Props {
   feed: Feed;
-  // 검색 결과 화면(SR-1 검색 승계)에서는 정렬이 검색에 적용되지 않으므로 정렬 드롭다운을 숨긴다.
+  // 검색 결과 화면(SR-1 검색 승계)에서는 정렬이 검색에 적용되지 않으므로 정렬 줄을 숨긴다.
   showSort?: boolean;
 }
 
@@ -30,9 +30,19 @@ const ALL_LABEL = '전체';
 
 const BRAND_LABEL = '브랜드';
 
-// FD-3: 피드 상단 고정 필터 바.
-// 위계상 카테고리를 주 축(칩 행)으로 노출하고, 보조 축인 브랜드(진입 버튼)·정렬(드롭다운)은
-// 그 아래 컨트롤 행에 둔다. 카테고리는 탭 즉시 적용, 브랜드/정렬은 각각 전용 시트로 진입한다.
+// 레퍼런스: 화면 좌우 여백 16, 칩 사이 12.
+const SCREEN_H = 16;
+
+const CHIP_GAP = 12;
+
+// 필터 칩의 좌측 아이콘(가로선 3줄 + 점) · 정렬 셰브론.
+const FILTER_ICON_SIZE = 22;
+
+const CHEVRON_SIZE = 18;
+
+// FD-3: 탐색 탭 필터 바(레퍼런스 이식, 2026-08-11).
+// 한 줄 가로 스크롤 칩 행 — **필터 시트를 여는 칩이 맨 앞**이고 그 뒤로 카테고리 칩이 이어진다.
+// 정렬은 칩 행이 아니라 그 아래 우측 정렬 줄(면 없음)에 둔다.
 const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
   const router = useRouter();
   const [brandVisible, setBrandVisible] = useState(false);
@@ -65,7 +75,9 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
   };
 
   const handleSelectAllFine = () => {
-    app.getAnalyticsManager()?.logClick('feed_fine_filter', { category: 'all' });
+    app
+      .getAnalyticsManager()
+      ?.logClick('feed_fine_filter', { category: 'all' });
     feed.selectFineCategory(null);
   };
 
@@ -84,7 +96,7 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
   };
 
   // FD-3: 정렬 시트 진입 — 공용 formSheet 라우트로 위임한다.
-  // 옵션·현재값·선택 콜백을 모듈 핸드오프에 넣고 push한다(FeedSortSheetView의 적용 로직 그대로 이관).
+  // 옵션·현재값·선택 콜백을 모듈 핸드오프에 넣고 push한다.
   const handleOpenSort = () => {
     app.getAnalyticsManager()?.logClick('feed_sort');
     setSortSheetContext({
@@ -116,19 +128,30 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
       <ScrollView
         horizontal={true}
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoryRowContent}
+        contentContainerStyle={styles.chipRowContent}
       >
-        <CategoryChipView
+        <FeedChipView
+          label={brandLabel}
+          selected={brandActive}
+          onPress={handleOpenBrand}
+          leadingIcon={
+            <Ionicons
+              name='options-outline'
+              size={FILTER_ICON_SIZE}
+              color={brandActive ? Acg.paper : Acg.ink}
+            />
+          }
+          accessibilityLabel={`${brandLabel} 필터`}
+        />
+        <FeedChipView
           label={ALL_LABEL}
-          tone='acg'
           selected={currentCategory === null}
           onPress={handleSelectAllCategory}
         />
         {BROWSE_CATEGORIES.map(item => (
-          <CategoryChipView
+          <FeedChipView
             key={item.filter}
             label={item.name}
-            tone='acg'
             selected={currentCategory === item.filter}
             onPress={() => handleSelectCategory(item.filter)}
           />
@@ -139,21 +162,19 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
         <ScrollView
           horizontal={true}
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.fineCategoryRowContent}
+          contentContainerStyle={styles.chipRowContent}
         >
-          <CategoryChipView
+          <FeedChipView
             label={ALL_LABEL}
-            variant='secondary'
-            tone='acg'
+            compact={true}
             selected={fineCategory === null}
             onPress={handleSelectAllFine}
           />
           {fineOptions.map(key => (
-            <CategoryChipView
+            <FeedChipView
               key={key}
               label={getFineCategoryLabel(key)}
-              variant='secondary'
-              tone='acg'
+              compact={true}
               selected={fineCategory === key}
               onPress={() => handleSelectFine(key)}
             />
@@ -161,45 +182,24 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
         </ScrollView>
       ) : null}
 
-      <View style={styles.controlRow}>
-        <TouchableOpacity
-          style={[styles.brandButton, brandActive && styles.brandButtonActive]}
-          onPress={handleOpenBrand}
-          activeOpacity={0.7}
-        >
-          <Ionicons
-            name='options-outline'
-            size={16}
-            color={brandActive ? Acg.paper : Acg.ink}
-          />
-          <PretendardText
-            style={[
-              styles.brandButtonText,
-              brandActive && styles.brandButtonTextActive,
-            ]}
-            weight='medium'
-          >
-            {brandLabel}
-          </PretendardText>
-        </TouchableOpacity>
-
-        {showSort ? (
+      {showSort ? (
+        // 레퍼런스의 `개수 + 정렬` 줄. 피드는 총 건수를 알 수 없어(무한 스크롤 인터리브)
+        // 좌측 개수를 두지 않고 정렬만 우측에 둔다 — 추측한 수를 표시하지 않는다.
+        <View style={styles.sortRow}>
           <TouchableOpacity
             style={styles.sortButton}
             onPress={handleOpenSort}
             activeOpacity={0.7}
+            accessibilityRole='button'
+            accessibilityLabel={`정렬 ${sortLabel}`}
           >
-            <PretendardText style={styles.sortButtonText} weight='medium'>
+            <PretendardText style={styles.sortLabel}>
               {sortLabel}
             </PretendardText>
-            <Ionicons
-              name='chevron-down'
-              size={16}
-              color={Acg.textSecondary}
-            />
+            <Ionicons name='chevron-down' size={CHEVRON_SIZE} color={Acg.ink} />
           </TouchableOpacity>
-        ) : null}
-      </View>
+        </View>
+      ) : null}
 
       <FeedFilterSheetView
         feed={feed}
@@ -211,62 +211,33 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
 };
 
 const styles = StyleSheet.create({
+  // 면·헤어라인 없이 순백 지면에 그대로 놓인다(레퍼런스).
   container: {
-    paddingTop: 8,
-    paddingBottom: 8,
     gap: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Acg.line2,
   },
-  categoryRowContent: {
+  chipRowContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: AcgLayout.screenH,
+    gap: CHIP_GAP,
+    // 콘텐츠가 화면 끝까지 흐르게 두고 페이드 마스크를 두지 않는다 — 레퍼런스는 그냥 잘린다.
+    paddingHorizontal: SCREEN_H,
   },
-  fineCategoryRowContent: {
+  sortRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: AcgLayout.screenH,
-  },
-  controlRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: AcgLayout.screenH,
-  },
-  brandButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    minHeight: 32,
-    paddingHorizontal: 14,
-    borderRadius: Radius.chip,
-    borderWidth: 1,
-    borderColor: Acg.glassStroke,
-    backgroundColor: 'rgba(255,255,255,0.72)',
-  },
-  brandButtonActive: {
-    backgroundColor: Acg.ink,
-    borderColor: Acg.ink,
-  },
-  brandButtonText: {
-    fontSize: 14,
-    color: Acg.ink,
-  },
-  brandButtonTextActive: {
-    color: Acg.paper,
+    justifyContent: 'flex-end',
+    paddingHorizontal: SCREEN_H,
   },
   sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
-    minHeight: 32,
+    gap: 4,
+    // 아이콘 옆 라벨만으로는 터치 타깃이 얕아 최소 높이를 확보한다.
+    minHeight: 44,
     paddingLeft: 12,
   },
-  sortButtonText: {
-    fontSize: 14,
+  sortLabel: {
+    fontSize: AcgFontSize.body,
     color: Acg.ink,
   },
 });

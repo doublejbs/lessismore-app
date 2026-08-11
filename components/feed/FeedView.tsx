@@ -16,21 +16,21 @@ import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import { GearAddContext } from '@/model/gear/GearAddContext';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize } from '@/constants/DesignTokens';
 import FeedSkeletonView from './FeedSkeletonView';
 import FeedFilterBarView from './FeedFilterBarView';
 import FeedRankingButtonView from './FeedRankingButtonView';
-import FeedCardView from './FeedCardView';
+import FeedRowView from './FeedRowView';
 import app from '@/model/app/App';
 
 const END_REACHED_THRESHOLD = 0.3;
 
-// FD-2: 2컬럼 그리드. 카드 사이 간격과 카드 아래 세로 간격.
-const FEED_COLUMN_GAP = 12;
+// FD-2: 단일 컬럼 목록(레퍼런스 이식). 행 사이 여백 24, 화면 좌우 여백 16.
 const FEED_ROW_GAP = 24;
-const LIST_HORIZONTAL_PADDING = 20;
 
-// 쿠팡 링크가 **실제로 노출된 카드가 있을 때만** 리스트 푸터에서 1회 고지한다(FD-2).
+const LIST_HORIZONTAL_PADDING = 16;
+
+// 쿠팡 링크가 **실제로 노출된 행이 있을 때만** 리스트 푸터에서 1회 고지한다(FD-2).
 // 링크가 하나도 없는 목록에까지 문구를 띄우지 않는다.
 const COUPANG_DISCLAIMER =
   '쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.';
@@ -39,32 +39,33 @@ interface Props {
   bag: Bag;
   // 탐색 탭이 검색 승계(FD-3)를 위해 상위에서 소유·공유하는 피드. 없으면 내부에서 생성한다.
   feed?: Feed;
-  // GE-8: 장비 추가 검색 진입 시 담기 동작 컨텍스트(카드로 전달).
+  // GE-8: 장비 추가 검색 진입 시 담기 동작 컨텍스트(행으로 전달).
   gearAddContext?: GearAddContext | undefined;
 }
 
-// FD-2/FD-4: 장비 피드 본체. Feed 도메인 객체를 1회 생성·초기화하고 카드 FlatList(2컬럼 그리드)로 렌더한다.
-// FD-3: 상단 필터 바 대신, FlatList 위에 하단 플로팅 버튼(필터·인기 순위)을 absolute로 얹는다.
+// FD-2/FD-4: 장비 피드 본체. Feed 도메인 객체를 1회 생성·초기화하고 단일 컬럼 FlatList로 렌더한다.
+// 목록에는 면·테두리·그림자·구분선이 없다 — 순백 지면에 행이 직접 놓인다(레퍼런스).
+// FD-3: 상단 필터 바(칩 행 + 정렬 줄) 아래로 목록이 흐르고, 하단 플로팅 `인기 순위` 버튼을 absolute로 얹는다.
 const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [feed] = useState(() => externalFeed ?? Feed.new(router));
   const ownsFeed = !externalFeed;
   /**
-   * 이 화면에서 쿠팡 링크가 붙은 카드를 한 번이라도 봤는지.
+   * 이 화면에서 쿠팡 링크가 붙은 행을 한 번이라도 봤는지.
    *
    * **한 번 켜지면 되돌리지 않는다.** 필터를 바꿔 링크 없는 목록이 와도 고지가 남는데, 그쪽이
    * 안전하다 — 이미 제휴 링크를 노출한 화면이고, 추가 로드(페이지네이션)마다 초기화하면 이미
-   * 마운트된 카드가 다시 알려주지 않아 고지가 사라진다.
+   * 마운트된 행이 다시 알려주지 않아 고지가 사라진다.
    */
   const [hasCoupangLink, setHasCoupangLink] = useState(false);
 
-  // 카드 로드 effect의 의존성이라 참조를 고정한다(FeedCardView의 prop 주석 참고).
+  // 행 로드 effect의 의존성이라 참조를 고정한다(useGearRowState의 prop 주석 참고).
   const handleCoupangLinkLoaded = useCallback(() => {
     setHasCoupangLink(true);
   }, []);
 
-  // 플로팅 `인기 순위` 버튼(탭바 위 20pt, 높이 ~48)이 마지막 카드를 가리지 않도록 리스트 하단 여백을 확보한다.
+  // 플로팅 `인기 순위` 버튼(탭바 위 20pt, 높이 ~48)이 마지막 행을 가리지 않도록 리스트 하단 여백을 확보한다.
   // iOS는 edge-to-edge라 탭바 영역(insets.bottom)까지 더한다. Android는 커스텀 탭이라 고정값.
   const listBottomPadding = Platform.select({
     ios: insets.bottom + 90,
@@ -100,24 +101,25 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
 
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<Gear>) => {
-      // 각 셀을 flex 컨테이너로 감싸 절반 폭을 차지하게 하고, 마지막 홀수 카드가
-      // 우측으로 늘어나지 않도록 셀 폭을 고정(좌측 정렬)한다.
       return (
-        <View style={styles.cell}>
-          <FeedCardView
-            gear={item}
-            actions={feed}
-            bag={bag}
-            gearAddContext={gearAddContext}
-            onCoupangLinkLoaded={handleCoupangLinkLoaded}
-          />
-        </View>
+        <FeedRowView
+          gear={item}
+          actions={feed}
+          bag={bag}
+          gearAddContext={gearAddContext}
+          onCoupangLinkLoaded={handleCoupangLinkLoaded}
+        />
       );
     },
     [feed, bag, gearAddContext, handleCoupangLinkLoaded]
   );
 
   const keyExtractor = useCallback((gear: Gear) => gear.getId(), []);
+
+  // 구분선이 아니라 여백만 둔다 — 목록에 선을 두지 않는다(레퍼런스).
+  const renderSeparator = useCallback(() => {
+    return <View style={styles.separator} />;
+  }, []);
 
   const renderFooter = useCallback(() => {
     if (isEmpty) {
@@ -127,7 +129,7 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
     return (
       <View style={styles.footer}>
         {isLoading ? (
-          <ActivityIndicator size='small' color={Color.textSecondary} />
+          <ActivityIndicator size='small' color={Acg.textMuted} />
         ) : null}
         {hasCoupangLink ? (
           <PretendardText style={styles.disclaimer}>
@@ -148,7 +150,7 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
     );
   }, []);
 
-  // 최초 로딩(초기화 전 또는 데이터 없이 로딩 중)에는 2컬럼 스켈레톤으로 화면을 채운다.
+  // 최초 로딩(초기화 전 또는 데이터 없이 로딩 중)에는 행 골격 스켈레톤으로 화면을 채운다.
   // isInitialized가 초기 렌더에서 false이므로, 로드가 빨라도 스켈레톤이 먼저 보인다.
   const showSkeleton = (!isInitialized || isLoading) && items.length === 0;
 
@@ -160,7 +162,7 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
       <View style={styles.container}>
         <FeedFilterBarView feed={feed} />
         <View style={styles.skeletonContainer}>
-          <FeedSkeletonView count={6} />
+          <FeedSkeletonView count={5} />
         </View>
       </View>
     );
@@ -173,8 +175,7 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
         data={items}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        numColumns={2}
-        columnWrapperStyle={styles.columnWrapper}
+        ItemSeparatorComponent={renderSeparator}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.listContent,
@@ -188,7 +189,7 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor={Color.textSecondary}
+            tintColor={Acg.textMuted}
           />
         }
       />
@@ -204,17 +205,10 @@ const styles = StyleSheet.create({
   listContent: {
     flexGrow: 1,
     paddingHorizontal: LIST_HORIZONTAL_PADDING,
-    // 필터바 하단 헤어라인이 분리 역할을 하므로 위(검색바↔필터 20)보다 의도적으로 타이트하게.
     paddingTop: 8,
   },
-  columnWrapper: {
-    gap: FEED_COLUMN_GAP,
-    marginBottom: FEED_ROW_GAP,
-  },
-  cell: {
-    flex: 1,
-    // 마지막 홀수 카드가 남는 폭 전체로 늘어나지 않도록 최대 절반으로 제한한다.
-    maxWidth: '50%',
+  separator: {
+    height: FEED_ROW_GAP,
   },
   skeletonContainer: {
     flex: 1,
@@ -229,7 +223,7 @@ const styles = StyleSheet.create({
   },
   disclaimer: {
     fontSize: 11,
-    color: Color.textSecondary,
+    color: Acg.textMuted,
     textAlign: 'center',
   },
   emptyContainer: {
@@ -239,8 +233,8 @@ const styles = StyleSheet.create({
     paddingVertical: 120,
   },
   emptyText: {
-    fontSize: 16,
-    color: Color.textSecondary,
+    fontSize: AcgFontSize.body,
+    color: Acg.textMuted,
     textAlign: 'center',
   },
 });
