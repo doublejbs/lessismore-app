@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react-lite';
-import { FC } from 'react';
+import { FC, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import PretendardText from '@/components/PretendardText';
 import { Color } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
@@ -29,8 +30,22 @@ const SearchResultView: FC<Props> = ({
   const keyword = searchWarehouse.getKeyword();
   const isEmpty = searchWarehouse.isEmpty();
   const canLoadMore = searchWarehouse.canLoadMore();
-  const isLoading = searchWarehouse.isLoading();
   const result = searchWarehouse.getResult();
+
+  /**
+   * SR-1: 화면 포커스 복귀 시 현재 키워드로 재검색해 보유 배지를 맞춘다.
+   *
+   * **결과 뷰가 아니라 이 컴포넌트가 갖는다.** 이 컴포넌트는 키워드·결과 유무와 무관하게 검색
+   * 화면이 떠 있는 동안 계속 마운트돼 있어 포커스가 바뀔 때만 실행된다. 결과 뷰에 두면
+   * 빈 상태 ↔ 결과 전환마다 재검색이 돌아 타이핑 중 화면이 깜빡였다.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      if (searchWarehouse.getKeyword()) {
+        searchWarehouse.executeSearch();
+      }
+    }, [searchWarehouse])
+  );
 
   const handleLoadMore = () => {
     searchWarehouse.searchMore();
@@ -51,7 +66,9 @@ const SearchResultView: FC<Props> = ({
 
   const render = () => {
     switch (true) {
-      case isEmpty && !isLoading: {
+      // 빈 상태 문구는 **검색이 끝난 뒤에만** 띄운다(`isSettled`) — 디바운스 대기 중이거나
+      // 요청이 진행 중일 때의 빈 결과는 "없다"는 뜻이 아니다.
+      case isEmpty && searchWarehouse.isSettled(): {
         return (
           <View style={styles.emptyContainer}>
             <PretendardText style={styles.emptyText}>

@@ -1,4 +1,4 @@
-import { FC, useCallback } from 'react';
+import { FC } from 'react';
 import { FlatList, StyleSheet, View, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Gear from '@/model/gear/Gear';
@@ -9,7 +9,6 @@ import { GearAddContext } from '@/model/gear/GearAddContext';
 import FeedGridCellView from '@/components/feed/FeedGridCellView';
 import FeedSkeletonView from '@/components/feed/FeedSkeletonView';
 import { AcgLayout } from '@/constants/DesignTokens';
-import { useFocusEffect } from 'expo-router';
 
 // SR-2: 피드 그리드(FD-2)와 **같은 간격**을 쓴다. 같은 탭 안에서 키워드 유무로만 갈리는 목록이라
 // 간격이 다르면 검색어를 넣는 순간 레이아웃이 흔들린다.
@@ -28,6 +27,11 @@ interface Props {
 
 // SR-2: 검색 결과를 피드와 **같은 2열 그리드 셀**(`FeedGridCellView`)로 렌더한다.
 // SearchWarehouse가 GearRowActions(담기/제거/상세 이동)를 구현하므로 actions로 그대로 넘긴다.
+//
+// **포커스 복귀 재검색(SR-1)은 이 컴포넌트에 두지 않는다.** 이 뷰는 결과 유무에 따라 붙었다
+// 떨어지므로, 마운트마다 재검색하면 타이핑 중 디바운스와 별개로 검색이 한 번 더 돌아
+// 문구 ↔ 스켈레톤이 번갈아 뜬다. 재검색은 화면이 떠 있는 동안 계속 붙어 있는
+// `SearchResultView`가 맡는다.
 const SearchResultContentView: FC<Props> = ({
   result,
   canLoadMore,
@@ -45,12 +49,6 @@ const SearchResultContentView: FC<Props> = ({
     Platform.OS === 'ios'
       ? insets.bottom + AcgLayout.scrollBottom
       : AcgLayout.scrollBottom;
-
-  useFocusEffect(
-    useCallback(() => {
-      searchWarehouse.executeSearch();
-    }, [searchWarehouse])
-  );
 
   return (
     <FlatList
