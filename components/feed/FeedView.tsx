@@ -20,13 +20,16 @@ import { Acg, AcgFontSize } from '@/constants/DesignTokens';
 import FeedSkeletonView from './FeedSkeletonView';
 import FeedFilterBarView from './FeedFilterBarView';
 import FeedRankingButtonView from './FeedRankingButtonView';
-import FeedRowView from './FeedRowView';
+import FeedGridCellView from './FeedGridCellView';
 import app from '@/model/app/App';
 
 const END_REACHED_THRESHOLD = 0.3;
 
 // FD-2: 단일 컬럼 목록(레퍼런스 이식). 행 사이 여백 24, 화면 좌우 여백 16.
 const FEED_ROW_GAP = 24;
+
+// 열 사이 간격. 셀 안 텍스트가 이웃 셀과 붙어 읽히지 않을 만큼만 둔다.
+const FEED_COLUMN_GAP = 16;
 
 const LIST_HORIZONTAL_PADDING = 16;
 
@@ -102,7 +105,7 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<Gear>) => {
       return (
-        <FeedRowView
+        <FeedGridCellView
           gear={item}
           actions={feed}
           bag={bag}
@@ -115,11 +118,6 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   );
 
   const keyExtractor = useCallback((gear: Gear) => gear.getId(), []);
-
-  // 구분선이 아니라 여백만 둔다 — 목록에 선을 두지 않는다(레퍼런스).
-  const renderSeparator = useCallback(() => {
-    return <View style={styles.separator} />;
-  }, []);
 
   const renderFooter = useCallback(() => {
     if (isEmpty) {
@@ -175,7 +173,8 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
         data={items}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        ItemSeparatorComponent={renderSeparator}
+        numColumns={2}
+        columnWrapperStyle={styles.columnWrapper}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.listContent,
@@ -207,8 +206,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: LIST_HORIZONTAL_PADDING,
     paddingTop: 8,
   },
-  separator: {
-    height: FEED_ROW_GAP,
+  // 열 사이 여백 + 행 사이 여백. 구분선은 두지 않는다 — 목록에 선을 두지 않는다(레퍼런스).
+  columnWrapper: {
+    gap: FEED_COLUMN_GAP,
+    marginBottom: FEED_ROW_GAP,
   },
   skeletonContainer: {
     flex: 1,
