@@ -193,14 +193,12 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
 
   const renderProviderMode = () => (
     <>
-      <PretendardText weight='bold' style={styles.title}>
-        {'가진 것을 알면\n더 가볍게 떠날 수 있어요'}
-      </PretendardText>
-      <PretendardText style={styles.subtitle}>
-        로그인하고 창고와 배낭을 동기화하세요
-      </PretendardText>
-
-      <View style={styles.stack}>
+      {/*
+        워드마크 아래 설명 문구를 두지 않는다 — 어느 화면에서 올라와도 할 일은 제공자를
+        고르는 것 하나이고, 왜 로그인하는지는 눌러서 온 그 화면이 이미 말했다.
+        약관 안내만 남긴다(동의로 간주된다는 고지라 지울 수 없다).
+      */}
+      <View style={[styles.stack, styles.stackFirst]}>
         <LiquidPillButton
           label='Google로 계속하기'
           variant='primary'
@@ -311,6 +309,10 @@ const styles = StyleSheet.create({
   stack: {
     marginTop: 26,
     gap: 10,
+  },
+  // 설명 문구가 없는 제공자 모드는 워드마크 바로 아래가 버튼이라 간격을 한 단계 넓힌다.
+  stackFirst: {
+    marginTop: 32,
   },
   /**
    * 알약 버튼 줄에 섞이는 3차 액션이라 면을 두지 않는다. 높이 48은 목업 값이자

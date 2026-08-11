@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
 import HomeUpcomingTripView from '@/components/home/HomeUpcomingTripView';
 import HomeWarehousePreviewView from '@/components/home/HomeWarehousePreviewView';
 import HomeRecordSummaryView from '@/components/home/HomeRecordSummaryView';
@@ -14,6 +15,7 @@ import HomeSkeletonView from '@/components/home/HomeSkeletonView';
 import { Liquid, LiquidLayout, LiquidType } from '@/constants/DesignTokens';
 import Home from '@/model/home/Home';
 import { selectTripPlan } from '@/model/home/HomeTripPlan';
+import app from '@/model/app/App';
 
 interface Props {
   home: Home;
@@ -46,20 +48,26 @@ const HomeView: FC<Props> = ({ home }) => {
     };
   }, [home]);
 
+  const handleLogin = () => {
+    app.getLogInAlertManager()?.show();
+  };
+
   const render = () => {
     if (isLoading) {
       return <HomeSkeletonView />;
     }
 
     if (!isLoggedIn) {
+      // 할 수 있는 일이 로그인 하나뿐인 자리라 설명을 두지 않고 버튼만 세운다 — 무엇을
+      // 얻는지는 시트가 말한다.
       return (
         <View style={styles.signedOut}>
-          <PretendardText weight='bold' style={styles.signedOutTitle}>
-            로그인하면 다음 여행이 보여요
-          </PretendardText>
-          <PretendardText style={styles.signedOutSubtitle}>
-            창고와 배낭도 함께 따라옵니다
-          </PretendardText>
+          <LiquidPillButton
+            label='로그인'
+            variant='primary'
+            block
+            onPress={handleLogin}
+          />
         </View>
       );
     }
@@ -90,7 +98,9 @@ const HomeView: FC<Props> = ({ home }) => {
     <Layout
       edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
       paddingHorizontal={LiquidLayout.screenH}
-      background={<LiquidBackdrop screen='home' glowPosition='topLeft' coolGlow />}
+      background={
+        <LiquidBackdrop screen='home' glowPosition='topLeft' coolGlow />
+      }
     >
       {/*
         헤더는 화면 이름(`홈`)이 아니라 **오늘과 다음 할 일**을 말한다(목업 홈 절).
@@ -135,21 +145,7 @@ const styles = StyleSheet.create({
   },
   signedOut: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-  },
-  signedOutTitle: {
-    fontSize: 17,
-    lineHeight: 24,
-    textAlign: 'center',
-    color: Liquid.ink,
-  },
-  signedOutSubtitle: {
-    fontSize: 13.5,
-    lineHeight: 19,
-    textAlign: 'center',
-    color: Liquid.inkTertiary,
   },
 });
 

@@ -142,18 +142,11 @@ const InfoScreen: FC<Props> = ({ infoStats }) => {
      */
     return (
       <LiquidCard tone='glass' radius='hero' padding={LiquidLayout.cardPadLg}>
-        <PretendardText weight='bold' style={styles.signedOutTitle}>
-          로그인하면 창고와 배낭이 따라와요
-        </PretendardText>
-        <PretendardText style={styles.signedOutSubtitle}>
-          다음 여행 준비도 이어서 볼 수 있어요
-        </PretendardText>
         <LiquidPillButton
           label='로그인'
           variant='primary'
           block
           onPress={handleLogin}
-          style={styles.signedOutButton}
         />
       </LiquidCard>
     );
@@ -253,20 +246,6 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   menu: {
-    marginTop: 16,
-  },
-  signedOutTitle: {
-    fontSize: 17,
-    lineHeight: 24,
-    color: Liquid.ink,
-  },
-  signedOutSubtitle: {
-    marginTop: 4,
-    fontSize: 13.5,
-    lineHeight: 19,
-    color: Liquid.inkTertiary,
-  },
-  signedOutButton: {
     marginTop: 16,
   },
   logoutCard: {
