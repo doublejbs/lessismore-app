@@ -36,9 +36,9 @@ const SCREEN_H = 16;
 const CHIP_GAP = 12;
 
 // 필터 칩의 좌측 아이콘(가로선 3줄 + 점) · 정렬 셰브론.
-const FILTER_ICON_SIZE = 22;
+const FILTER_ICON_SIZE = 18;
 
-const CHEVRON_SIZE = 18;
+const CHEVRON_SIZE = 16;
 
 // FD-3: 탐색 탭 필터 바(레퍼런스 이식, 2026-08-11).
 // 한 줄 가로 스크롤 칩 행 — **필터 시트를 여는 칩이 맨 앞**이고 그 뒤로 카테고리 칩이 이어진다.
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
   },
   sortLabel: {
-    fontSize: AcgFontSize.body,
+    fontSize: AcgFontSize.control,
     color: Acg.ink,
   },
 });

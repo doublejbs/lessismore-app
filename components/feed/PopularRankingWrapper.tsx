@@ -55,11 +55,7 @@ const PopularRankingWrapper: FC = () => {
             accessibilityRole='button'
             accessibilityLabel='뒤로 가기'
           >
-            <Ionicons
-              name='chevron-back'
-              size={24}
-              color={Color.textPrimary}
-            />
+            <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
           </TouchableOpacity>
           <PretendardText style={styles.headerTitle} weight='bold'>
             인기 장비 순위

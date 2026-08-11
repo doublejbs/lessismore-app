@@ -17,9 +17,9 @@ interface Props {
 // FD-3: 탐색 탭 필터 칩(레퍼런스 톤). 연회색 채움 + 알약, 선택 시 잉크 채움 + 흰 글자.
 // 공용 `CategoryChipView`는 앱 전 화면이 쓰는 아웃라인 칩이라 값이 다르고,
 // 탐색 탭만 이 톤을 쓰므로 별도 컴포넌트로 둔다.
-const CHIP_HEIGHT = 48;
+const CHIP_HEIGHT = 36;
 
-const COMPACT_CHIP_HEIGHT = 40;
+const COMPACT_CHIP_HEIGHT = 32;
 
 const FeedChipView: FC<Props> = ({
   label,
@@ -65,14 +65,14 @@ const styles = StyleSheet.create({
     gap: 8,
     // 고정 높이 대신 최소 높이 — Dynamic Type에서 라벨이 잘리지 않게 한다.
     minHeight: CHIP_HEIGHT,
-    paddingHorizontal: 20,
+    paddingHorizontal: 14,
     // 높이가 커져도 알약을 유지한다(레퍼런스: radius full).
     borderRadius: CHIP_HEIGHT,
     backgroundColor: Acg.controlFill,
   },
   chipCompact: {
     minHeight: COMPACT_CHIP_HEIGHT,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     borderRadius: COMPACT_CHIP_HEIGHT,
     gap: 6,
   },
@@ -80,11 +80,11 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.ink,
   },
   label: {
-    fontSize: AcgFontSize.body,
+    fontSize: AcgFontSize.control,
     color: Acg.ink,
   },
   labelCompact: {
-    fontSize: 15,
+    fontSize: 13,
   },
   labelSelected: {
     color: Acg.paper,

@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     paddingVertical: 120,
   },
   emptyText: {
-    fontSize: AcgFontSize.body,
+    fontSize: AcgFontSize.control,
     color: Acg.textMuted,
     textAlign: 'center',
   },

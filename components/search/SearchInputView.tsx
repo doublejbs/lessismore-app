@@ -36,7 +36,7 @@ const SuggestionKeywords = [
 ];
 
 // 레퍼런스: 좌측 돋보기 24pt 잉크.
-const PLAIN_LEADING_ICON_SIZE = 24;
+const PLAIN_LEADING_ICON_SIZE = 20;
 
 const SearchBarInputView = forwardRef<SearchBarInputHandle, Props>(
   ({ searchWarehouse, variant = SearchBarVariant.Glass }, ref) => {
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     }),
   },
   plainInput: {
-    fontSize: AcgFontSize.body,
+    fontSize: AcgFontSize.control,
     color: Acg.ink,
   },
   clearButton: {

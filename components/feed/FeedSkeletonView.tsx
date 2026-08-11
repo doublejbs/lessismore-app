@@ -12,7 +12,7 @@ import { Acg } from '@/constants/DesignTokens';
 const FEED_ROW_GAP = 24;
 
 // FeedRowView의 담기 버튼 원형 크기와 동일하게 유지한다.
-const CTA_SIZE = 44;
+const CTA_SIZE = 36;
 
 const PLACEHOLDER_COLOR = Acg.controlFill;
 
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   // 실제 이름 텍스트의 lineHeight(30)와 맞춘다 — 행의 앵커라 가장 넓은 막대다.
   nameBar: {
     flex: 1,
-    height: 30,
+    height: 25,
     backgroundColor: PLACEHOLDER_COLOR,
     borderRadius: 2,
   },
@@ -94,14 +94,14 @@ const styles = StyleSheet.create({
   },
   // 실제 브랜드 텍스트의 lineHeight(25)와 맞춘다.
   companyBar: {
-    height: 25,
+    height: 20,
     width: '45%',
     backgroundColor: PLACEHOLDER_COLOR,
     borderRadius: 2,
   },
   // 실제 메타 줄(무게 · 색상)의 lineHeight(23)와 맞춘다.
   metaBar: {
-    height: 23,
+    height: 20,
     width: '30%',
     backgroundColor: PLACEHOLDER_COLOR,
     borderRadius: 2,

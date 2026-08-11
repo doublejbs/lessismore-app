@@ -15,7 +15,7 @@ interface Props {
 }
 
 // 레퍼런스 검색 필드 — 높이 56 알약, 좌우 여백 16.
-const PLAIN_FIELD_HEIGHT = 56;
+const PLAIN_FIELD_HEIGHT = 44;
 
 const PLAIN_SCREEN_H = 16;
 
