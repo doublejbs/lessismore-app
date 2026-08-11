@@ -219,8 +219,8 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     backgroundColor: Color.chipActiveBg,
-    borderRadius: Radius.card,
-    paddingVertical: 16,
+    borderRadius: 26,
+    minHeight: 52,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -243,9 +243,10 @@ const styles = StyleSheet.create({
   },
   newBagButton: {
     backgroundColor: Color.surfaceMuted,
-    borderRadius: Radius.card,
+    borderRadius: 26,
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    minHeight: 52,
+    justifyContent: 'center',
     marginBottom: 8,
   },
   existingBagsSection: {

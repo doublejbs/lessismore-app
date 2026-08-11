@@ -414,8 +414,8 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     backgroundColor: Color.chipActiveBg,
-    borderRadius: Radius.card,
-    paddingVertical: 16,
+    borderRadius: 26,
+    minHeight: 52,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     padding: 15,
-    borderRadius: Radius.card,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
   },

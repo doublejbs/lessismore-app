@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Color } from '@/constants/DesignTokens';
 import StarRatingView from './StarRatingView';
 import CampUserReviewItemView from './CampUserReviewItemView';
 import CampSiteDetail from '@/model/camp-site/CampSiteDetail';
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     borderWidth: 1,
     borderColor: Color.chipBorder,
-    borderRadius: Radius.card,
+    borderRadius: 26,
     paddingHorizontal: 14,
     paddingVertical: 10,
     minHeight: 44,

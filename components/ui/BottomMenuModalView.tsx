@@ -152,8 +152,9 @@ const styles = StyleSheet.create({
   closeButton: {
     width: '100%',
     backgroundColor: Color.chipActiveBg,
-    borderRadius: Radius.card,
-    paddingVertical: 18,
+    borderRadius: 26,
+    minHeight: 52,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   closeButtonText: {

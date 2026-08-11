@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { Color, Spacing } from '@/constants/DesignTokens';
 
 interface Props {
   onRequestPermission: () => void;
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     minHeight: 52,
-    borderRadius: Radius.card,
+    borderRadius: 26,
     backgroundColor: Color.chipActiveBg,
     alignItems: 'center',
     justifyContent: 'center',

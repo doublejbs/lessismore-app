@@ -20,13 +20,7 @@ import BagUselessGearView from './BagUselessGearView';
 import PretendardText from '@/components/PretendardText';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  Acg,
-  AcgFontSize,
-  Color,
-  Radius,
-  Spacing,
-} from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, Color, Spacing } from '@/constants/DesignTokens';
 import Gear from '@/model/gear/Gear';
 
 interface Props {
@@ -279,8 +273,9 @@ const styles = StyleSheet.create({
   confirmButton: {
     width: '100%',
     backgroundColor: Color.textPrimary,
-    paddingVertical: 16,
-    borderRadius: Radius.card,
+    minHeight: 52,
+    justifyContent: 'center',
+    borderRadius: 26,
     alignItems: 'center',
   },
   confirmLabel: {

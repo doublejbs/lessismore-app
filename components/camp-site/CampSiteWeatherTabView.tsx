@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Color } from '@/constants/DesignTokens';
 import WeatherDailyView from '@/components/weather/WeatherDailyView';
 import CampSiteWeather from '@/model/camp-site/CampSiteWeather';
 
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: Color.chipBorder,
-    borderRadius: Radius.card,
+    borderRadius: 26,
     paddingHorizontal: 20,
   },
   retryText: {
