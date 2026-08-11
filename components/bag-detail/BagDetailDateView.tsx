@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -26,7 +26,7 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
       <PretendardText style={styles.dateText} numberOfLines={2}>
         {bagDetail.getDate()} · {bagDetail.getPhaseLabel()}
       </PretendardText>
-      <Ionicons name='pencil' size={12} color={Color.textSecondary} />
+      <Ionicons name='pencil' size={12} color={Acg.textMuted} />
     </TouchableOpacity>
   );
 };
@@ -40,13 +40,13 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     flexDirection: 'row',
     paddingVertical: 4,
-    borderRadius: Radius.listThumb,
     gap: 6,
     marginBottom: 4,
   },
   dateText: {
-    fontSize: 14,
-    color: Color.textSecondary,
+    fontSize: AcgFontSize.rowSubtitle,
+    lineHeight: 20,
+    color: Acg.textMuted,
     flexShrink: 1,
   },
 });

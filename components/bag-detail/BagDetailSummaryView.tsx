@@ -4,8 +4,8 @@ import { observer } from 'mobx-react-lite';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import GearFilter from '@/model/gear/GearFilter';
 import PretendardText from '@/components/PretendardText';
-import AcgPenCircleView from '@/components/acg/AcgPenCircleView';
-import { Color, Spacing } from '@/constants/DesignTokens';
+import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -71,19 +71,14 @@ const BagDetailSummaryView: FC<Props> = ({ bagDetail }) => {
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.weightRow}>
-        {/* 이 화면의 주 수치라 손그림 라임 동그라미로 두른다(ACG). */}
-        <AcgPenCircleView style={styles.weightCircle}>
-          <View style={styles.weightValueRow}>
-            <PretendardText style={styles.value} weight='bold'>
-              {total}
-            </PretendardText>
-            <PretendardText style={styles.unit} weight='bold'>
-              kg
-            </PretendardText>
-          </View>
-        </AcgPenCircleView>
+      {/*
+        이 화면의 주 수치다. 손그림 라임 동그라미로 두르던 것을 걷었다(2026-08-11) —
+        라임은 화면당 하나(하단 주 액션)이고, 큰 숫자는 장식 없이도 이미 앵커다.
+        라벨을 값 위에 두는 건 홈·레퍼런스의 지표 문법과 같다.
+      */}
+      <View style={styles.weightBlock}>
         <PretendardText style={styles.label}>총 무게</PretendardText>
+        <AcgDisplayText style={styles.value}>{`${total}kg`}</AcgDisplayText>
       </View>
 
       {breakdown.length > 0 && (
@@ -122,36 +117,22 @@ const BagDetailSummaryView: FC<Props> = ({ bagDetail }) => {
 
 const styles = StyleSheet.create({
   wrap: {
-    paddingHorizontal: Spacing.screenH,
-    marginTop: 10,
+    paddingHorizontal: AcgLayout.screenPadding,
+    marginTop: 12,
     gap: 12,
   },
-  weightRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  // 동그라미 여백이 좌측 정렬선을 밀지 않게 그만큼 당긴다.
-  weightCircle: {
-    marginLeft: -12,
-  },
-  weightValueRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 4,
-  },
-  value: {
-    fontSize: 32,
-    color: Color.textPrimary,
-  },
-  unit: {
-    fontSize: 18,
-    color: Color.textPrimary,
+  weightBlock: {
+    gap: 2,
   },
   label: {
-    fontSize: 13,
-    color: Color.textSecondary,
-    marginLeft: 4,
+    fontSize: AcgFontSize.meta,
+    lineHeight: 18,
+    color: Acg.textMuted,
+  },
+  value: {
+    fontSize: 34,
+    lineHeight: 38,
+    color: Acg.ink,
   },
   bar: {
     flexDirection: 'row',
@@ -177,8 +158,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   legendText: {
-    fontSize: 12,
-    color: Color.textSecondary,
+    fontSize: AcgFontSize.meta,
+    color: Acg.textMuted,
   },
 });
 

@@ -18,7 +18,7 @@ import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import GearThumbnailView, {
   GEAR_THUMBNAIL_SIZE,
 } from '@/components/gear/GearThumbnailView';
-import { Acg, AcgShadow } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgRow } from '@/constants/DesignTokens';
 
 // 삭제 스와이프 액션 배경 — 파괴적 액션 시맨틱 색(DesignTokens 예외, CLAUDE.md 참고).
 const DELETE_RED = '#FF3B30';
@@ -66,6 +66,8 @@ const RightActions: FC<RightActionsProps> = ({
 interface Props {
   gear: Gear;
   bagDetail: BagDetail;
+  // 위 행과 가르는 헤어라인을 그릴지. 카테고리 첫 행에는 그리지 않는다(제목 밑줄처럼 읽힌다).
+  divided?: boolean;
 }
 
 // 배낭 상세의 장비 행. 썸네일 규칙은 창고 목록과 같다(BD-1 → WH-1) — 사용자가 올린 본인 사진이
@@ -75,7 +77,7 @@ interface Props {
 // 그쪽 화면과 데이터 레이어(`BagStore.getSharedBag`가 imageUrl을 채우지 않음)가 함께 지킨다
 // (DataModel §1 비공개 원칙).
 // BD-5의 useless 표기는 로고 마크를 행 우측(지표 컬럼 왼쪽)에 둔다(로고는 장비 이미지가 아님).
-const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
+const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divided = false }) => {
   const isUseless = bagDetail.isUseless(gear);
   // BD-5: useless 장비는 행 본문(정체·지표 컬럼)을 50% 투명으로 낮춘다. 로고 마크는 자체 투명도를 갖는다.
   const bodyOpacity = isUseless ? 0.5 : 1;
@@ -112,7 +114,7 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
       renderRightActions={renderRightActions}
     >
       {/* 불투명 배경 — 스와이프 전환 중 뒤 액션색이 행 밑으로 비치지 않게 한다(BagItemView와 동일). */}
-      <View style={styles.rowBackground}>
+      <View style={[styles.rowBackground, divided && styles.divided]}>
         <TouchableOpacity
           style={styles.gearItemContainer}
           onPress={handlePressGear}
@@ -130,35 +132,38 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
             style={[styles.thumbnail, { opacity: bodyOpacity }]}
           />
 
-          <View style={[styles.identityColumn, { opacity: bodyOpacity }]}>
-            {/* 값이 없으면 줄 자체를 렌더하지 않는다(WH-1 공통 행 규칙) — 빈 텍스트를
-                두면 행에 죽은 공백이 생긴다. 아래 색상 줄과 같은 규칙. */}
-            {gear.getDisplayCompany() ? (
-              <PretendardText
-                style={styles.companyText}
-                weight='bold'
-                numberOfLines={1}
-              >
-                {gear.getDisplayCompany()}
-              </PretendardText>
-            ) : null}
+          <View style={[styles.rowText, { opacity: bodyOpacity }]}>
             <PretendardText
-              style={styles.nameText}
-              weight='bold'
-              numberOfLines={1}
+              style={styles.name}
+              weight='semibold'
+              numberOfLines={2}
             >
               {gear.getDisplayName()}
             </PretendardText>
-            {/* 표시는 getDisplayColor()로 통일한다(DM-3) — getColor()는 원본값이라
-                같은 장비가 창고에서 `Black`, 여기서 `black`으로 갈렸다. */}
-            {gear.getDisplayColor() ? (
-              <PretendardText style={styles.colorText} numberOfLines={1}>
-                {gear.getDisplayColor()}
-              </PretendardText>
-            ) : null}
+
+            {/*
+              레퍼런스 목록 문법 — 값을 한 줄에 `·`로 묶는다: 무게 · 브랜드 · 색상 · 사용률.
+              무게가 맨 앞이라 행마다 같은 자리에서 비교되고, 숫자만 중첩 Text로 콘덴스드다.
+              값이 없는 조각은 붙이지 않는다(빈 텍스트를 두면 `·`만 남는다).
+              사용률도 배지 면을 걷고 이 줄의 조각으로 넣는다 — 면 없이 헤어라인으로만 가르는
+              목록에서 배지는 유일한 예외 면이 된다.
+            */}
+            <PretendardText style={styles.meta} numberOfLines={1}>
+              <AcgDisplayText style={styles.metaNumber}>
+                {`${gear.getWeight()}g`}
+              </AcgDisplayText>
+              {[
+                gear.getDisplayCompany(),
+                gear.getDisplayColor(),
+                gear.hasUsedRate() ? `사용률 ${gear.getUsedRate()}%` : '',
+              ]
+                .filter(Boolean)
+                .map(part => ` · ${part}`)
+                .join('')}
+            </PretendardText>
           </View>
 
-          {/* BD-5: useless 로고 마크는 지표 컬럼의 **왼쪽**에 둬 무게 컬럼의 세로 정렬을 유지한다. */}
+          {/* BD-5: useless 로고 마크는 셰브론 왼쪽에 둔다 — 행의 오른쪽 끝은 이동 표시의 자리다. */}
           {isUseless && (
             <Image
               source={require('@/assets/images/logo.png')}
@@ -166,19 +171,7 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
             />
           )}
 
-          <View style={[styles.metricsColumn, { opacity: bodyOpacity }]}>
-            {gear.hasUsedRate() && (
-              <View style={styles.usageRateBadge}>
-                <PretendardText style={styles.usageRateText}>
-                  사용률 {gear.getUsedRate()}%
-                </PretendardText>
-              </View>
-            )}
-            {/* 숫자라 콘덴스드를 쓴다 — 행의 시각 앵커(ACG). */}
-            <AcgDisplayText style={styles.weightText}>
-              {`${gear.getWeight()}g`}
-            </AcgDisplayText>
-          </View>
+          <Ionicons name='chevron-forward' size={16} color={Acg.textMuted} />
         </TouchableOpacity>
       </View>
     </ReanimatedSwipeable>
@@ -186,80 +179,58 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail }) => {
 };
 
 const styles = StyleSheet.create({
-  // 지면 위 각진 종이 면(ACG) — 홈·창고·배낭 목록과 같은 행 문법이다. 불투명이라
-  // 스와이프 전환 중 뒤 액션색이 행 밑으로 비치지도 않는다.
+  /**
+   * 레퍼런스 목록 행(2026-08-11) — 면·그림자 없이 순백 지면에 놓고 헤어라인으로만 가른다.
+   * 지면색을 깔아 두는 이유는 표현이 아니라 기능이다: 스와이프 전환 중 뒤 액션색이 행 밑으로
+   * 비치지 않아야 한다.
+   */
   rowBackground: {
     backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    paddingVertical: AcgRow.paddingVertical,
   },
-  // BD-1: minHeight를 썸네일 높이에 맞춰 **모든 행에** 걸어, 이미지 있는 행과 없는 행이 섞여도
-  // 행 높이가 달라지지 않게 한다(=지표 컬럼의 세로 간격 유지). useless 로고 마크가 이미 같은 44라
-  // 이 목록에는 원래 있던 높이다.
+  divided: {
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
+  },
   gearItemContainer: {
     flexDirection: 'row',
     width: '100%',
     alignItems: 'center',
-    gap: 6,
+    gap: 12,
+    // 썸네일이 있는 행과 없는 행이 섞여도 높이가 달라지지 않게 최소 높이를 걸어 둔다.
     minHeight: GEAR_THUMBNAIL_SIZE,
   },
-  // 행 gap이 6이라 썸네일 뒤에만 6을 더해 창고 행과 같은 12 간격을 만든다.
-  thumbnail: {
-    marginRight: 6,
+  // 썸네일은 행 gap(12)이 간격을 맡으므로 자체 여백을 두지 않는다.
+  thumbnail: {},
+  rowText: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
   },
-  // BD-5 useless 표기 — 지표 컬럼 왼쪽의 로고 마크로 낸다(본문은 50% 투명도).
-  // 좌측 썸네일(있을 때)과 크기가 같아 둘이 함께 보여도 행 높이·정렬이 흔들리지 않는다.
+  name: {
+    fontSize: AcgFontSize.rowTitle,
+    lineHeight: 25,
+    color: Acg.ink,
+  },
+  // 메타는 회색이 아니라 잉크다(레퍼런스) — 무게·브랜드·사용률은 장식이 아니라 정보다.
+  meta: {
+    fontSize: AcgFontSize.rowSubtitle,
+    lineHeight: 20,
+    color: Acg.ink,
+  },
+  metaNumber: {
+    fontSize: AcgFontSize.rowSubtitle,
+    color: Acg.ink,
+  },
+  // BD-5 useless 표기 — 본문은 50% 투명, 마크는 자체 투명도.
   uselessMark: {
-    width: 44,
-    height: 44,
+    width: 32,
+    height: 32,
     resizeMode: 'contain',
     opacity: 0.5,
     transform: [{ rotate: '-10.78deg' }],
   },
-  // 좌 정체 컬럼 — 브랜드·이름·색상.
-  identityColumn: {
-    flex: 1,
-    alignItems: 'flex-start',
-    gap: 4,
-  },
-  // 우 지표 컬럼 — 사용률 배지(위) + 무게(아래).
-  metricsColumn: {
-    alignItems: 'flex-end',
-    gap: 4,
-  },
-  // 브랜드는 이름(nameText)과 동일한 타이포로 표시한다.
-  companyText: {
-    fontSize: 14,
-    color: Acg.ink,
-  },
-  usageRateBadge: {
-    borderRadius: 0,
-    backgroundColor: Acg.bg,
-    paddingVertical: 3,
-    paddingHorizontal: 6,
-  },
-  usageRateText: {
-    fontSize: 10,
-    color: Acg.textSecondary,
-  },
-  nameText: {
-    fontSize: 14,
-    color: Acg.ink,
-  },
-  colorText: {
-    fontSize: 14,
-    color: Acg.ink,
-  },
-  // 무게는 라임 텍스트 — 목록에서 이 값 하나만 액센트로 세운다(홈 창고 미리보기와 동일).
-  weightText: {
-    fontSize: 15,
-    lineHeight: 19,
-    color: Acg.limeText,
-    textAlign: 'right',
-  },
-  // 여백을 주지 않는다. 이 목록의 행 간격은 카드의 margin이 아니라 컨테이너의 flex gap
-  // (외부)이라, 패널에 여백을 주면 카드보다 그만큼 짧아진다(2026-08-04 사용자 지적).
+  // 여백을 주지 않는다 — 행이 헤어라인으로 붙어 있어 패널도 행 높이에 그대로 맞아야 한다.
   actionsContainer: {
     width: ACTION_WIDTH,
     flexDirection: 'row',

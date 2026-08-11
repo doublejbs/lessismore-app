@@ -37,9 +37,6 @@ const IOS_EDGES = ['top', 'left', 'right'] as const;
  */
 const TITLE_SIZE = 28;
 
-// 화면 좌우 패딩 — 탐색 탭(FD-2)과 같은 16.
-const SCREEN_H = 16;
-
 const LOGIN_CTA_HEIGHT = 48;
 
 const HomeView: FC<Props> = ({ home }) => {
@@ -120,7 +117,7 @@ const HomeView: FC<Props> = ({ home }) => {
   return (
     <Layout
       edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
-      paddingHorizontal={SCREEN_H}
+      paddingHorizontal={AcgLayout.screenPadding}
       /**
        * 홈만 지형 그래픽 지면을 쓴다(2026-08-11 사용자 결정) — 첫 화면이라 앱의 성격을
        * 지면이 말해 주는 자리다. 탐색·검색은 목록이 빽빽해 순백을 쓴다.

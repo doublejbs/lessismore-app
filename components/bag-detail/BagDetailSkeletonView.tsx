@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Acg } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgRow } from '@/constants/DesignTokens';
 
 interface Props {}
 
@@ -52,10 +52,10 @@ const BagDetailSkeletonView: FC<Props> = () => {
     return (
       <View key={index} style={styles.gearItem}>
         <View style={styles.gearInfo}>
-          <SkeletonBox width='70%' height={16} />
-          <SkeletonBox width='50%' height={14} />
+          {/* 실제 행은 이름(19) + 메타 한 줄(15)이다. */}
+          <SkeletonBox width='70%' height={22} />
+          <SkeletonBox width='55%' height={18} />
         </View>
-        <SkeletonBox width={50} height={16} />
       </View>
     );
   };
@@ -117,13 +117,15 @@ const BagDetailSkeletonView: FC<Props> = () => {
   );
 };
 
-// 스켈레톤 셰이딩은 토큰 예외다. 지면(#F4F3EF) 위에서 튀지 않는 따뜻한 회색.
-const SKELETON_SHADE = '#E3E1DA';
+// 스켈레톤 셰이딩은 토큰 예외다. 순백 지면 위에서 튀지 않는 중성 회색
+// (지면이 흰색이 되면서 옛 따뜻한 회색 #E3E1DA는 누렇게 떴다).
+const SKELETON_SHADE = '#E8E8E8';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Acg.bg,
+    // 들어올 화면과 같은 순백 지면.
+    backgroundColor: Acg.paper,
   },
   header: {
     flexDirection: 'row',
@@ -141,17 +143,17 @@ const styles = StyleSheet.create({
   },
   bagInfo: {
     padding: 16,
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenPadding,
     gap: 12,
   },
   description: {
     padding: 16,
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenPadding,
     gap: 8,
   },
   filterSection: {
     padding: 15,
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenPadding,
     gap: 12,
   },
   filterButtons: {
@@ -160,25 +162,29 @@ const styles = StyleSheet.create({
   },
   gearList: {
     padding: 16,
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenPadding,
     paddingBottom: 96,
-    gap: 24,
+    gap: 20,
   },
   category: {
-    gap: 12,
+    gap: 2,
   },
+  // 실제 행과 같은 치수(AcgRow) + 행 사이 헤어라인.
   gearItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    minHeight: AcgRow.minHeight,
+    paddingVertical: AcgRow.paddingVertical,
     gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
   },
   gearInfo: {
     flex: 1,
-    gap: 6,
+    gap: 4,
   },
   skeletonBox: {
-    borderRadius: 4,
+    borderRadius: 2,
     overflow: 'hidden',
   },
 });

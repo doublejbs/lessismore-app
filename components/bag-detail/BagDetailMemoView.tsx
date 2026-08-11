@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { AcgShadow, Acg, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgRadius, Color } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -61,11 +61,13 @@ const styles = StyleSheet.create({
   tile: {
     width: '48%',
     minHeight: 92,
-    // 지면 위 타일이라 종이 면을 쓴다 — 회색(surfaceMuted)은 지면과 가까워 타일이
-    // 떠 보이지 않았다(2026-08-04 사용자 지적). 강조 타일만 잉크 면이다.
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
-    borderRadius: Radius.card,
+    /**
+     * 순백 지면 위 연회색 면(2026-08-11) — 지면이 흰색이 되면서 흰 종이 면은 보이지 않고
+     * 그림자만 남았다. 그림자를 걷고 채움으로 면을 만든다(탐색 셀과 같은 규칙).
+     * 강조 타일만 잉크 면이다 — 라임은 하단 주 액션 하나뿐이다.
+     */
+    backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
     padding: 14,
     justifyContent: 'space-between',
   },
@@ -73,12 +75,14 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   title: {
-    fontSize: 15,
-    color: Color.textPrimary,
+    fontSize: AcgFontSize.rowSubtitle,
+    lineHeight: 20,
+    color: Acg.ink,
   },
   subtitle: {
-    fontSize: 12,
-    color: Color.textSecondary,
+    fontSize: AcgFontSize.meta,
+    lineHeight: 18,
+    color: Acg.textMuted,
   },
   memoContent: {
     fontSize: 15,

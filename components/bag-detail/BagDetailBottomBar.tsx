@@ -6,7 +6,7 @@ import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PackingButtonState from '@/model/bag-detail/PackingButtonState';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -42,11 +42,7 @@ const BagDetailBottomBar: FC<Props> = ({ bagDetail }) => {
             activeOpacity={0.7}
             accessibilityRole='button'
           >
-            <Ionicons
-              name='bag-check-outline'
-              size={18}
-              color={Color.textPrimary}
-            />
+            <Ionicons name='bag-check-outline' size={18} color={Acg.ink} />
             <PretendardText style={styles.secondaryText} weight='semibold'>
               {getPackingLabel(bagDetail)}
             </PretendardText>
@@ -67,42 +63,46 @@ const BagDetailBottomBar: FC<Props> = ({ bagDetail }) => {
   );
 };
 
+// 알약 높이 — 모서리는 그 절반이다(완전한 알약).
+const PILL_HEIGHT = 48;
+
 const styles = StyleSheet.create({
-  // 지면 위에 놓인 바라 면을 깔지 않는다 — 흰 띠가 버튼 주위를 감싸면 지형이 끊긴다
-  // (2026-08-04 사용자 지적). 버튼 자체가 잉크/지면색 면이라 이미 충분히 읽힌다.
+  // 지면 위에 놓인 바라 면을 깔지 않는다 — 흰 띠가 버튼 주위를 감싸면 지면이 끊긴다.
   container: {
     paddingTop: 12,
-    paddingHorizontal: Spacing.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
     backgroundColor: 'transparent',
   },
   row: {
     flexDirection: 'row',
     gap: 8,
   },
+  // 보조는 연회색 알약이다(라임·잉크 면은 주 액션 몫).
   secondary: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: 18,
-    paddingVertical: 14,
-    borderRadius: Radius.card,
-    backgroundColor: Color.surfaceMuted,
+    minHeight: PILL_HEIGHT,
+    borderRadius: PILL_HEIGHT / 2,
+    backgroundColor: Acg.controlFill,
   },
   secondaryText: {
-    fontSize: 15,
-    color: Color.textPrimary,
+    fontSize: AcgFontSize.control,
+    color: Acg.ink,
   },
+  // 이 화면의 유일한 라임 면 — 눌러야 하는 것 하나(홈 주 액션·플로팅 알약과 같은 문법).
   primary: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: Radius.card,
+    minHeight: PILL_HEIGHT,
+    borderRadius: PILL_HEIGHT / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Color.chipActiveBg,
+    backgroundColor: Acg.lime,
   },
   primaryText: {
-    fontSize: 16,
-    color: Color.background,
+    fontSize: AcgFontSize.control,
+    color: Acg.ink,
   },
 });
 
