@@ -14,7 +14,9 @@ import SearchGearAddToBagModalView from '@/components/search/SearchGearAddToBagM
 import useGearRowState from './useGearRowState';
 
 // 담기 버튼은 그 자체로 44pt 터치 타깃이다(레퍼런스는 사진 위 흰 원, 여기선 연회색 원).
-const CTA_SIZE = 44;
+const CTA_SIZE = 36;
+// 시각 크기를 키우면 행이 두꺼워지므로 여유로만 HIG 44를 채운다: (44 − 36) / 2 = 4.
+const CTA_HIT_SLOP = { top: 4, bottom: 4, left: 4, right: 4 };
 
 const CTA_ICON_SIZE = 24;
 
@@ -90,6 +92,7 @@ const FeedRowView: FC<Props> = ({
         <TouchableOpacity
           style={[styles.cta, styles.ctaAdded]}
           onPress={handleRemovePress}
+          hitSlop={CTA_HIT_SLOP}
           activeOpacity={0.8}
           accessibilityRole='button'
           accessibilityLabel={`${gear.getDisplayName()} 창고에서 빼기`}
@@ -103,6 +106,7 @@ const FeedRowView: FC<Props> = ({
       <TouchableOpacity
         style={styles.cta}
         onPress={handleAddPress}
+        hitSlop={CTA_HIT_SLOP}
         activeOpacity={0.8}
         accessibilityRole='button'
         accessibilityLabel={
@@ -188,21 +192,21 @@ const styles = StyleSheet.create({
   name: {
     flex: 1,
     fontSize: AcgFontSize.rowTitle,
-    lineHeight: 30,
+    lineHeight: 25,
     color: Acg.ink,
   },
   company: {
     fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 25,
+    lineHeight: 20,
     color: Acg.textMuted,
   },
   meta: {
-    fontSize: AcgFontSize.body,
-    lineHeight: 23,
+    fontSize: AcgFontSize.meta,
+    lineHeight: 20,
     color: Acg.ink,
   },
   metaWeight: {
-    fontSize: AcgFontSize.body,
+    fontSize: AcgFontSize.meta,
     color: Acg.ink,
   },
   // 연회색 원 — 순백 지면에서는 레퍼런스의 흰 원이 보이지 않는다.
@@ -226,7 +230,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   coupangText: {
-    fontSize: AcgFontSize.body,
+    fontSize: AcgFontSize.meta,
     color: Acg.textMuted,
   },
 });

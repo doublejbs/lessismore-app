@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     boxShadow: AcgShadow.card,
   },
   label: {
-    fontSize: AcgFontSize.body,
+    fontSize: AcgFontSize.control,
     color: Acg.ink,
   },
 });
