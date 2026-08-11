@@ -2,8 +2,8 @@ import { FC, useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
 import { Acg } from '@/constants/DesignTokens';
 
-// FD-2: 피드 2열 그리드용 스켈레톤(레퍼런스 이식). FeedGridCellView의 셀 구조(이름 2줄 자리 /
-// 브랜드 / 푸터[메타 | 담기 버튼])와 동일한 텍스트 폭 막대로, FeedView의 열·행 간격에 맞춰 정렬한다.
+// FD-2: 피드 2열 그리드용 스켈레톤(레퍼런스 이식). FeedGridCellView의 셀 구조(브랜드 /
+// 이름+색상 2줄 자리 / 푸터[무게 | 담기 버튼])와 동일한 텍스트 폭 막대로, FeedView의 열·행 간격에 맞춰 정렬한다.
 // 카드 면·테두리를 두지 않는다 — 실제 행도 순백 지면에 콘텐츠만 놓인다.
 // 장비 이미지 미제공 원칙(DataModel §1)에 따라 사진 자리는 두지 않는다.
 // SearchSkeletonView와 동일한 은은한 펄스 애니메이션을 사용한다.
@@ -45,11 +45,11 @@ const SkeletonCell: FC = () => {
 
   return (
     <View style={styles.cell}>
-      {/* 이름(2줄 자리) · 브랜드 · 푸터[메타 | 담기 원] — 실제 셀과 같은 구조로 로딩→렌더 점프를 줄인다. */}
-      <Animated.View style={[styles.nameBar, { opacity }]} />
+      {/* 브랜드 · 이름(2줄 자리) · 푸터[무게 | 담기 원] — 실제 셀과 같은 구조로 로딩→렌더 점프를 줄인다. */}
       <Animated.View style={[styles.companyBar, { opacity }]} />
+      <Animated.View style={[styles.nameBar, { opacity }]} />
       <View style={styles.footer}>
-        <Animated.View style={[styles.metaBar, { opacity }]} />
+        <Animated.View style={[styles.weightBar, { opacity }]} />
         <Animated.View style={[styles.ctaCircle, { opacity }]} />
       </View>
     </View>
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 8,
   },
-  // 실제 이름 텍스트의 lineHeight(30)와 맞춘다 — 행의 앵커라 가장 넓은 막대다.
+  // 실제 이름 두 줄 자리(lineHeight 25 × 2)와 맞춘다.
   nameBar: {
     height: 50,
     backgroundColor: PLACEHOLDER_COLOR,
@@ -108,17 +108,17 @@ const styles = StyleSheet.create({
     borderRadius: CTA_SIZE / 2,
     backgroundColor: PLACEHOLDER_COLOR,
   },
-  // 실제 브랜드 텍스트의 lineHeight(25)와 맞춘다.
+  // 실제 브랜드 텍스트의 lineHeight(18)와 맞춘다.
   companyBar: {
-    height: 20,
+    height: 18,
     width: '45%',
     backgroundColor: PLACEHOLDER_COLOR,
     borderRadius: 2,
   },
-  // 실제 메타 줄(무게 · 색상)의 lineHeight(23)와 맞춘다.
-  metaBar: {
-    height: 20,
-    width: '55%',
+  // 셀의 앵커인 무게 — 실제 텍스트의 lineHeight(30)와 맞춘다.
+  weightBar: {
+    height: 30,
+    width: '60%',
     backgroundColor: PLACEHOLDER_COLOR,
     borderRadius: 2,
   },
