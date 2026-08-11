@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { AcgLayout, Acg, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgLayout, Color } from '@/constants/DesignTokens';
 import CampSiteBagSelectSheetView from './CampSiteBagSelectSheetView';
 import CampSiteDetailHeaderView from './CampSiteDetailHeaderView';
 import CampSiteDetailTabBarView from './CampSiteDetailTabBarView';
@@ -233,6 +233,9 @@ const CampSiteDetailView: FC<Props> = ({
   );
 };
 
+// 시트 주 액션 알약 높이. 모서리는 그 절반이다.
+const SHEET_CTA_HEIGHT = 52;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -252,26 +255,32 @@ const styles = StyleSheet.create({
   // (개요·날씨·후기)이 버튼과 겹쳐 읽힌다(2026-08-04 시뮬레이터 확인).
   // 흰 면 대신 시트와 같은 지면색을 써서 하단만 다른 톤으로 갈리지 않게 한다.
   bottomBar: {
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
     paddingVertical: 16,
-    backgroundColor: Acg.bg,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Acg.line2,
+    // 시트와 같은 지면색(순백)이라 하단만 다른 톤으로 갈리지 않는다.
+    backgroundColor: Acg.paper,
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
   },
+  /**
+   * 이 시트의 주 액션 — **라임 알약**이다(2026-08-12). 잉크 사각 버튼이었는데, 새 문법에서
+   * 잉크는 글자·선의 색이고 화면(여기서는 시트)에서 눌러야 하는 하나가 라임 면을 갖는다.
+   * 시트가 지도 위 `현재 위치`(라임 원)를 덮으므로 한 화면에 라임이 둘로 보이지 않는다.
+   */
   setBagButton: {
-    backgroundColor: Color.textPrimary,
-    borderRadius: Radius.card,
-    paddingVertical: 16,
+    backgroundColor: Acg.lime,
+    borderRadius: SHEET_CTA_HEIGHT / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 52,
+    minHeight: SHEET_CTA_HEIGHT,
   },
   setBagButtonDisabled: {
     opacity: 0.6,
   },
+  // 라임 면 위 글자는 잉크다.
   setBagButtonText: {
-    fontSize: 16,
-    color: Color.background,
+    fontSize: AcgFontSize.control,
+    color: Acg.ink,
   },
 });
 

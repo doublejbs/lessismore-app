@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import PretendardText from '../PretendardText';
-import { Acg, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgShadow, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   label: string;
@@ -168,12 +168,17 @@ const styles = StyleSheet.create({
   },
   chipAcgSelected: {
     backgroundColor: Acg.ink,
+    // 지도 위 칩은 선택 상태에도 같은 그림자를 유지한다 — 없으면 선택하는 순간 칩이 지도에 붙는다.
+    boxShadow: AcgShadow.card,
   },
-  // 지도 위처럼 뒤가 단색이 아닌 곳 — 지도 라벨이 비쳐 겹치지 않게 불투명 흰 면 + 헤어라인.
+  /**
+   * 지도 위처럼 뒤가 단색이 아닌 곳. **연회색 채움은 다른 화면과 같고**(불투명이라 지도 라벨이
+   * 비치지 않는다) 그림자만 더해 지도에서 떠 보이게 한다 — 흰 면 + 테두리로 두면 지도 위에서
+   * 칩이 다른 앱 요소처럼 읽혔다(2026-08-12 사용자 지적).
+   */
   chipAcgSolidUnselected: {
-    backgroundColor: Acg.paper,
-    borderWidth: 1,
-    borderColor: Acg.hairline,
+    backgroundColor: Color.chipInactiveBg,
+    boxShadow: AcgShadow.card,
   },
   // 지도 마커가 각진 사각이라 범례도 같은 형태로 둔다 — 원이면 범례와 마커가 따로 논다.
   dot: {
