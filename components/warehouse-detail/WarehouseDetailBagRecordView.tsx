@@ -119,7 +119,7 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
                 <Ionicons
                   name={weatherSummary.icon}
                   size={13}
-                  color={Acg.textSecondary}
+                  color={Acg.textMuted}
                 />
               )}
               <PretendardText style={styles.tripMetaText}>
@@ -128,7 +128,7 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
             </View>
           )}
         </View>
-        <Ionicons name='chevron-forward' size={13} color={Acg.textSecondary} />
+        <Ionicons name='chevron-forward' size={13} color={Acg.textMuted} />
       </TouchableOpacity>
     );
   };
@@ -151,7 +151,6 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     paddingHorizontal: 14,
     backgroundColor: Acg.paper,
-    borderRadius: 0,
   },
   tripContent: {
     flex: 1,
@@ -171,7 +170,7 @@ const styles = StyleSheet.create({
   },
   tripMetaText: {
     fontSize: 12,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   weatherRow: {
     flexDirection: 'row',
@@ -181,7 +180,6 @@ const styles = StyleSheet.create({
   // 세 상태 태그의 공통 형태 — 색만 다르고 크기·모서리는 같다. 테두리는 세 태그의 높이를
   // 맞추려고 공통으로 두고, 아웃라인이 아닌 태그는 배경과 같은 색을 줘 보이지 않게 한다(GD-10).
   statusTag: {
-    borderRadius: 0,
     borderWidth: 1,
     paddingVertical: 4,
     paddingHorizontal: 12,
@@ -192,20 +190,20 @@ const styles = StyleSheet.create({
   // `사용`은 끝난 기록이라 한 단계 낮춘 회색 채움으로 둔다 — 가장 강한 검정 채움은
   // 사용자가 눌러주길 바라는 `미기록`에 넘긴다(GD-10).
   usedTag: {
-    backgroundColor: Acg.line2,
-    borderColor: Acg.line2,
+    backgroundColor: Acg.hairline,
+    borderColor: Acg.hairline,
   },
   usedTagText: {
-    color: Acg.textTertiary,
+    color: Acg.textMuted,
   },
   // `사용 안함`도 끝난 기록 — 셋 중 가장 조용한 아웃라인. 카드 배경(inputBg) 위에서 흰 칩이
   // 사라지지 않도록 테두리를 보이게 둔다(GD-10).
   uselessTag: {
     backgroundColor: Acg.paper,
-    borderColor: Acg.line2,
+    borderColor: Acg.hairline,
   },
   uselessTagText: {
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   // 미기록 태그 — 사용자가 눌러주길 바라는 유일한 상태라 셋 중 가장 도드라지게 검정 채움을
   // 준다. 저대비 회색은 완료 상태보다 약해 위계가 정반대였다(GD-10).

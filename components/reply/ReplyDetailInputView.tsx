@@ -124,7 +124,7 @@ const ReplyDetailInputView: FC<Props> = observer(
                   ref={inputRef}
                   style={styles.textInput}
                   placeholder='답글을 남겨보세요'
-                  placeholderTextColor={Acg.textSecondary}
+                  placeholderTextColor={Acg.textMuted}
                   value={text}
                   onChangeText={setText}
                   onBlur={handleBlur}
@@ -175,7 +175,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     backgroundColor: Acg.ink,
-    borderRadius: 0,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -188,13 +187,12 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 40,
     backgroundColor: Acg.controlFill,
-    borderRadius: 0,
     justifyContent: 'center',
     paddingHorizontal: 16,
   },
   placeholder: {
     fontSize: 16,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   inputContainer: {
     flex: 1,
@@ -207,7 +205,6 @@ const styles = StyleSheet.create({
     minHeight: 40,
     maxHeight: 100,
     backgroundColor: Acg.controlFill,
-    borderRadius: 0,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 16,
@@ -216,7 +213,6 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: Acg.ink,
-    borderRadius: 0,
     paddingHorizontal: 16,
     height: 40,
     justifyContent: 'center',

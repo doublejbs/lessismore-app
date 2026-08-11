@@ -92,12 +92,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   rowDivider: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Acg.line2,
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
   },
   rowLabel: {
     fontSize: 14,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   rowValue: {
     fontSize: 14,

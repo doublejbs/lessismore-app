@@ -184,7 +184,6 @@ const styles = StyleSheet.create({
   dot: {
     width: 8,
     height: 8,
-    borderRadius: 0,
   },
   dotSelected: {
     borderWidth: 1,

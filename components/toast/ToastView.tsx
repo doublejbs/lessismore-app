@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.toastBg,
     borderRadius: Radius.card,
     // 진회색 토스트가 아래 요소와 붙어 보이지 않게 그림자 + 얇은 밝은 테두리로 경계를 만든다.
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.25)',
     shadowColor: '#000',
     shadowOpacity: 0.3,

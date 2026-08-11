@@ -43,7 +43,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Acg.controlFill,
-    borderRadius: 0,
     paddingHorizontal: 16,
     paddingVertical: 12,
     minHeight: 44,
@@ -56,7 +55,7 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     fontSize: 16,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
     flex: 1,
     ...Platform.select({
       ios: {

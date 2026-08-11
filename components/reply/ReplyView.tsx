@@ -85,7 +85,7 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
         {!hasComments ? (
           // 리뷰가 없을 때 빈 여백 대신 안내를 남은 공간 중앙에 표시한다.
           <View style={styles.emptyState}>
-            <Ionicons name='star-outline' size={40} color={Acg.line2} />
+            <Ionicons name='star-outline' size={40} color={Acg.hairline} />
             <PretendardText weight='semibold' style={styles.emptyTitle}>
               아직 등록된 리뷰가 없어요
             </PretendardText>
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   },
   emptyDesc: {
     fontSize: 14,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
 });
 

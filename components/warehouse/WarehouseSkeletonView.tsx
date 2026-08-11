@@ -84,31 +84,26 @@ const styles = StyleSheet.create({
     height: 16,
     width: 60,
     backgroundColor: SKELETON_SHADE,
-    borderRadius: 0,
   },
   skeletonUsedRateBadge: {
     height: 16,
     width: 70,
     backgroundColor: SKELETON_SHADE,
-    borderRadius: 0,
   },
   skeletonNameText: {
     height: 16,
     width: '80%',
     backgroundColor: SKELETON_SHADE,
-    borderRadius: 0,
   },
   skeletonColorText: {
     height: 14,
     width: '50%',
     backgroundColor: SKELETON_SHADE,
-    borderRadius: 0,
   },
   skeletonWeightText: {
     height: 14,
     width: 40,
     backgroundColor: SKELETON_SHADE,
-    borderRadius: 0,
   },
 });
 

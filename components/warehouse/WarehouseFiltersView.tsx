@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontSize: 16,
-    color: Acg.textTertiary,
+    color: Acg.textMuted,
   },
 });
 

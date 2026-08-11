@@ -165,7 +165,7 @@ const ReplyEditView: FC<Props> = ({
         <TextInput
           style={styles.textInput}
           placeholder='장비가 어땠나요?'
-          placeholderTextColor={Acg.textSecondary}
+          placeholderTextColor={Acg.textMuted}
           multiline
           textAlignVertical='top'
           value={content}
@@ -243,12 +243,11 @@ const styles = StyleSheet.create({
   ratingLabel: {
     fontSize: 15,
     lineHeight: 20,
-    color: Acg.textTertiary,
+    color: Acg.textMuted,
   },
   // 지면 위 각진 종이 면 인풋(ACG) — 회색 채움을 두면 지면과 붙어 입력 영역이 안 보인다.
   textInput: {
     flex: 1,
-    borderRadius: 0,
     backgroundColor: Acg.controlFill,
     padding: 16,
     fontSize: 16,
@@ -261,14 +260,13 @@ const styles = StyleSheet.create({
   },
   completeButton: {
     paddingVertical: 16,
-    borderRadius: 0,
     alignItems: 'center',
   },
   completeButtonActive: {
     backgroundColor: Acg.ink,
   },
   completeButtonDisabled: {
-    backgroundColor: Acg.line2,
+    backgroundColor: Acg.hairline,
   },
   completeButtonText: {
     fontSize: 16,
@@ -277,7 +275,7 @@ const styles = StyleSheet.create({
     color: Acg.paper,
   },
   completeButtonTextDisabled: {
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   // iOS 네이티브 headerRight 완료 버튼 — HIG 최소 터치 타깃 44pt.
   headerCompleteButton: {
@@ -291,7 +289,7 @@ const styles = StyleSheet.create({
     color: Acg.ink,
   },
   headerCompleteTextDisabled: {
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
 });
 

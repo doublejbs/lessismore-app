@@ -85,18 +85,16 @@ const styles = StyleSheet.create({
   barTrack: {
     width: '100%',
     height: 10,
-    borderRadius: 0,
-    backgroundColor: Acg.line2,
+    backgroundColor: Acg.hairline,
     overflow: 'hidden',
   },
   barFill: {
     height: '100%',
-    borderRadius: 0,
     backgroundColor: Acg.lime,
   },
   weightText: {
     fontSize: 15,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
 });
 

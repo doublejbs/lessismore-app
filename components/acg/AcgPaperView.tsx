@@ -15,7 +15,6 @@ const AcgPaperView: FC<Props> = ({ children, style }) => {
 const styles = StyleSheet.create({
   paper: {
     backgroundColor: Acg.paper,
-    borderRadius: 0,
     boxShadow: AcgShadow.paper,
   },
 });

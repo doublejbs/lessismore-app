@@ -143,7 +143,6 @@ const styles = StyleSheet.create({
   container: {
     gap: 6,
     padding: 14,
-    borderRadius: 0,
     backgroundColor: Acg.controlFill,
   },
   header: {

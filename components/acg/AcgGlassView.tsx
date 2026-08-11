@@ -36,7 +36,6 @@ const AcgGlassView: FC<Props> = ({ children, style, elevated = true }) => {
 const styles = StyleSheet.create({
   container: {
     // 시안은 모서리를 각지게 둔다 — 원형 아이콘 버튼만 예외이며 호출측이 지정한다.
-    borderRadius: 0,
     overflow: 'hidden',
     // 지면(#F4F3EF)과 유리(흰 50%)의 대비가 작아 헤어라인으로는 경계가 안 보였다
     // (2026-08-03 실기기 확인) — 1px로 올리고 광택을 더 밝게 준다.

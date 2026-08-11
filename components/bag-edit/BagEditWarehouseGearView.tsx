@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: Acg.line,
+    borderColor: Acg.hairline,
   },
   checkCircle: {
     position: 'absolute',

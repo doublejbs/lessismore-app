@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   },
   resetText: {
     fontSize: 15,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   // iOS 네이티브 headerRight 텍스트 버튼 — HIG 최소 터치 타깃 44pt 확보.
   nativeResetButton: {
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
 });
 

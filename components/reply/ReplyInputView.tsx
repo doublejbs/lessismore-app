@@ -93,7 +93,7 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
         <TextInput
           style={styles.contentInput}
           placeholder='장비가 어땠나요? (선택)'
-          placeholderTextColor={Acg.textSecondary}
+          placeholderTextColor={Acg.textMuted}
           value={content}
           onChangeText={setContent}
           maxLength={MAX_CONTENT_LENGTH}
@@ -222,11 +222,10 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 15,
     lineHeight: 20,
-    color: Acg.textTertiary,
+    color: Acg.textMuted,
   },
   // 종이 면 위 인풋이라 채움은 지면색이다 — 흰 면 위 회색 면을 또 두면 층이 하나 늘어난다.
   contentInput: {
-    borderRadius: 0,
     backgroundColor: Acg.controlFill,
     paddingHorizontal: 14,
     paddingVertical: 14,
@@ -238,7 +237,7 @@ const styles = StyleSheet.create({
   counter: {
     alignSelf: 'flex-end',
     fontSize: 12,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -249,7 +248,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 52,
     backgroundColor: Acg.controlFill,
-    borderRadius: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -261,7 +259,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 52,
     backgroundColor: Acg.ink,
-    borderRadius: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -279,8 +276,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     backgroundColor: Acg.bg,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Acg.line2,
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
   },
   accessoryDone: {
     fontSize: 16,

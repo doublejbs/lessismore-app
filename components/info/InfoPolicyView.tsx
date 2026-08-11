@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   bodyText: {
     fontSize: 13,
     lineHeight: 20,
-    color: Acg.textTertiary,
+    color: Acg.textMuted,
   },
 });
 

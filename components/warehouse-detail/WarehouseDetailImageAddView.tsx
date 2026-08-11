@@ -23,9 +23,9 @@ const WarehouseDetailImageAddView: FC<Props> = ({ busy, onPress }) => {
       accessibilityState={{ disabled: busy }}
     >
       {busy ? (
-        <ActivityIndicator size='small' color={Acg.textSecondary} />
+        <ActivityIndicator size='small' color={Acg.textMuted} />
       ) : (
-        <Ionicons name='camera-outline' size={20} color={Acg.textSecondary} />
+        <Ionicons name='camera-outline' size={20} color={Acg.textMuted} />
       )}
       <PretendardText style={styles.text}>
         {busy ? '사진 올리는 중' : '사진 추가'}
@@ -46,12 +46,12 @@ const styles = StyleSheet.create({
     gap: 8,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: Acg.line2,
+    borderColor: Acg.hairline,
     borderRadius: Radius.card,
   },
   text: {
     fontSize: 14,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
 });
 

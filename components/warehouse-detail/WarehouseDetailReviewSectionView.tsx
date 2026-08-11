@@ -70,7 +70,7 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
               <Ionicons
                 name='chevron-forward'
                 size={13}
-                color={Acg.textSecondary}
+                color={Acg.textMuted}
               />
             </TouchableOpacity>
           </>
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   },
   ratingCountText: {
     fontSize: 12,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   repliesContainer: {
     flex: 1,
@@ -118,16 +118,15 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 14,
     backgroundColor: Acg.controlFill,
-    borderRadius: 0,
     width: '100%',
   },
   addReviewButtonText: {
     fontSize: 14,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   moreReviewButtonText: {
     fontSize: 14,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   // 홈의 `전체 보기` 행과 같은 문법 — 가운데 정렬 대신 좌 텍스트·우 셰브론.
   moreReviewButton: {
@@ -138,14 +137,12 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     paddingHorizontal: 14,
     backgroundColor: Acg.controlFill,
-    borderRadius: 0,
     width: '100%',
   },
   replyItem: {
     paddingVertical: 13,
     paddingHorizontal: 14,
     backgroundColor: Acg.controlFill,
-    borderRadius: 0,
     width: '100%',
   },
   replyContent: {
@@ -157,7 +154,7 @@ const styles = StyleSheet.create({
   },
   replyDate: {
     fontSize: 10,
-    color: Acg.textTertiary,
+    color: Acg.textMuted,
   },
 });
 

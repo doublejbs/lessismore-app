@@ -50,7 +50,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     backgroundColor: Acg.warnBg,
-    borderRadius: 0,
   },
   messageText: {
     flex: 1,
