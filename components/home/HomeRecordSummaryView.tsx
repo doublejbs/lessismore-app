@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import LiquidSectionLabel from '@/components/liquid/LiquidSectionLabel';
 import Gear from '@/model/gear/Gear';
@@ -30,8 +31,10 @@ interface Props {
  * **누를 수 있는 건 `안 쓴 장비` 하나뿐이다.** 나머지 셋은 다음 행동이 없어 표시로 족하고,
  * 이 지표만 "덜어내기"라는 분명한 다음 걸음이 있어 창고를 그 필터가 걸린 채로 연다.
  *
- * 라임 **면**은 쓰지 않는다 — 이 화면의 라임 면은 위쪽 히어로 하나뿐이라는 규칙 때문이다.
- * 대신 그 숫자만 `limeInk` 글자로 세운다.
+ * **강조는 색이 아니라 동작으로 한다**(2026-08-11 디자인 리뷰). 그 숫자만 `limeInk`로 세워
+ * 두었더니 카드에서 가장 덜 중요한 값이 앱의 액센트를 입어 시선을 먼저 끌었다 — 숫자는 넷
+ * 모두 잉크로 두고, 이 지표에만 쉐브론을 붙여 눌러서 갈 수 있는 자리임을 밝힌다.
+ * 라임 **면**도 쓰지 않는다 — 이 화면의 라임 면은 위쪽 히어로 하나뿐이다.
  */
 const HomeRecordSummaryView: FC<Props> = ({ gears, bags }) => {
   const router = useRouter();
@@ -67,7 +70,7 @@ const HomeRecordSummaryView: FC<Props> = ({ gears, bags }) => {
         {/* 배낭 탭·배낭 상세와 같은 말을 쓴다 — `여행`은 여행지·여행 중과 겹친다. */}
         {renderMetric('배낭', String(summary.bagCount))}
 
-        {/* 유일하게 다음 걸음이 있는 지표라 누를 수 있게 둔다. */}
+        {/* 유일하게 다음 걸음이 있는 지표라 누를 수 있게 둔다 — 라벨 옆 쉐브론이 그 신호다. */}
         <TouchableOpacity
           style={styles.metric}
           onPress={handlePressUnused}
@@ -75,12 +78,19 @@ const HomeRecordSummaryView: FC<Props> = ({ gears, bags }) => {
           accessibilityRole='button'
           accessibilityLabel={`안 쓴 장비 ${summary.unusedCount}개, 창고에서 보기`}
         >
-          <PretendardText style={[styles.metricValue, styles.metricAccent]}>
+          <PretendardText style={styles.metricValue}>
             {String(summary.unusedCount)}
           </PretendardText>
-          <PretendardText weight='semibold' style={styles.metricLabel}>
-            안 쓴 장비
-          </PretendardText>
+          <View style={styles.metricLinkRow}>
+            <PretendardText weight='semibold' style={styles.metricLabel}>
+              안 쓴 장비
+            </PretendardText>
+            <Ionicons
+              name='chevron-forward'
+              size={13}
+              color={Liquid.inkMuted}
+            />
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -117,9 +127,12 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     color: Liquid.inkSecondary,
   },
-  // 덜어낼 후보라 앱의 액센트로 세운다 — 이 숫자만 누를 수 있다는 신호도 겸한다.
-  metricAccent: {
-    color: Liquid.limeInk,
+  // 라벨과 쉐브론이 한 덩어리로 링크처럼 읽혀야 한다 — 라벨 폭에 붙인다.
+  metricLinkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 2,
   },
 });
 

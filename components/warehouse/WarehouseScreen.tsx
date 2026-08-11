@@ -49,15 +49,20 @@ const IS_IOS = Platform.OS === 'ios';
 const IOS_EDGES = ['left', 'right', 'bottom'] as const;
 // 크롬 아래 제목 블록이 시작하는 여백(목업 §8: 콘텐츠 106 + 제목 블록 6).
 const HEADER_TOP_GAP = 6;
+// 요약 줄 행간 — 아래 제목 블록 높이가 계산으로 성립하려면 행간을 서체 기본값에 맡기지 않는다.
+const SUMMARY_LINE_HEIGHT = 18;
+// 타이틀과 요약 행 사이.
+const SUMMARY_ROW_GAP = 4;
+// 요약 행의 높이는 그 안에서 가장 큰 것(정렬 칩 32)이 정한다 — 요약 글자 줄(18)보다 크다.
+const SUMMARY_ROW_HEIGHT = 32;
 /**
- * 제목 블록의 자연 높이(타이틀 32/38 + 4 + 요약 13/18).
+ * 제목 블록의 자연 높이(타이틀 32/38 + 4 + 요약 행 32).
  *
  * 검색 행이 이 자리를 **정확히 대체**해야 토글할 때 아래 칩·목록이 밀리지 않는다(WH-2-1).
  * 두 블록이 같은 상수를 참조해 계산이 아니라 구조로 같아진다.
  */
-const HEADER_ROW_MIN_HEIGHT = 60;
-// 요약 줄 행간 — 위 상수가 성립하려면 행간을 서체 기본값에 맡기지 않고 고정해야 한다.
-const SUMMARY_LINE_HEIGHT = 18;
+const HEADER_ROW_MIN_HEIGHT =
+  LiquidType.title1.lineHeight + SUMMARY_ROW_GAP + SUMMARY_ROW_HEIGHT;
 
 /**
  * WH-1 창고 화면 (Liquid Depth, 목업 §8).
@@ -144,27 +149,36 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
     };
   };
 
+  /**
+   * 타이틀 아래에 **요약과 정렬을 한 행**으로 둔다(2026-08-11 디자인 리뷰, WH-2·WH-3).
+   *
+   * 예전에는 정렬이 타이틀 블록 우측에 붙어 32/38 타이틀과 아래를 맞췄는데, 요약 줄과
+   * 베이스라인이 어긋나 헤더 오른쪽에 라벨만 떠 있는 모양이 됐다. 규모(`57개 · 44.7kg`)와
+   * 그 규모를 어떤 순서로 볼지는 같은 축의 정보라 한 행에서 짝지어 읽혀야 한다 —
+   * 행 높이를 정렬 칩(32)이 잡고 두 글자 줄이 그 안에서 가운데 놓여 베이스라인이 맞는다.
+   */
   const renderTitleBlock = () => (
-    <View style={styles.titleRow}>
-      <View style={styles.titleIdentity}>
-        <PretendardText weight='bold' style={styles.title}>
-          창고
-        </PretendardText>
+    <View style={styles.titleBlock}>
+      <PretendardText weight='bold' style={styles.title}>
+        창고
+      </PretendardText>
+      <View style={styles.summaryRow}>
         {/* 완전히 빈 창고에서는 `0개`를 말하지 않는다 — 빈 상태 문구가 같은 사실을 더 잘 말한다.
             로딩 중에도 비운다: 아직 세지 못한 값을 `0개`로 단정하면 스켈레톤과 어긋난다.
-            제목 행은 최소 높이를 들고 있어 요약이 빠져도 아래가 밀리지 않는다. */}
+            제목 블록은 최소 높이를 들고 있어 요약이 빠져도 아래가 밀리지 않는다. */}
         {!isEmpty && !isLoading && (
           <PretendardText weight='medium' style={styles.summary}>
             {getSummary()}
           </PretendardText>
         )}
+        {!isEmpty && (
+          <OrderButtonView
+            chip
+            order={warehouse.getOrder()}
+            onSelectOption={handleSelectOrder}
+          />
+        )}
       </View>
-      {!isEmpty && (
-        <OrderButtonView
-          order={warehouse.getOrder()}
-          onSelectOption={handleSelectOrder}
-        />
-      )}
     </View>
   );
 
@@ -350,16 +364,10 @@ const styles = StyleSheet.create({
     paddingTop: HEADER_TOP_GAP,
     paddingHorizontal: LiquidLayout.screenH,
   },
-  // 좌: 제목 + 요약 / 우: 정렬 드롭다운. 아래를 맞춰(flex-end) 드롭다운이 요약 줄과 나란히 앉는다.
-  titleRow: {
+  // 위: 제목 / 아래: 요약 + 정렬 칩 한 행.
+  titleBlock: {
     minHeight: HEADER_ROW_MIN_HEIGHT,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    gap: 8,
-  },
-  titleIdentity: {
-    flexShrink: 1,
+    flexDirection: 'column',
   },
   title: {
     fontSize: LiquidType.title1.fontSize,
@@ -367,8 +375,20 @@ const styles = StyleSheet.create({
     letterSpacing: LiquidType.title1.letterSpacing,
     color: Liquid.ink,
   },
+  /**
+   * 요약이 좌측 남은 폭을 다 먹고 정렬 칩이 우측에 붙는다 — 요약이 없는 구간(로딩·빈 창고)에도
+   * 칩이 오른쪽 자리를 지킨다. 두 글자 줄은 이 행 안에서 가운데 놓여 베이스라인이 맞는다.
+   */
+  summaryRow: {
+    marginTop: SUMMARY_ROW_GAP,
+    minHeight: SUMMARY_ROW_HEIGHT,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
   summary: {
-    marginTop: 4,
+    flex: 1,
     fontSize: 13,
     lineHeight: SUMMARY_LINE_HEIGHT,
     color: Liquid.inkTertiary,

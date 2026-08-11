@@ -1,5 +1,6 @@
 import { FC } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { Liquid, LiquidMotion, LiquidShadow } from '@/constants/DesignTokens';
 
@@ -11,6 +12,12 @@ interface Props {
   size?: 'md' | 'sm';
   /** 라벨 앞 색 도트 — 지도 마커 색 범례를 겸할 때 */
   dotColor?: string;
+  /**
+   * 라벨 **뒤** 아이콘. 고르는 칩이 아니라 **여닫는 칩**(접힌 줄을 펼치거나 시트를 여는
+   * 자리)에만 준다 — 탐색 필터 바의 컨트롤 칩이 쓰는 문법(쉐브론은 라벨 뒤)과 같다.
+   * 색은 선택 여부에 따라 라벨과 같은 계열로 따라간다.
+   */
+  trailingIcon?: keyof typeof Ionicons.glyphMap;
   /**
    * **지도 타일 위**에 얹는 칩(목업 §4). 비선택 채움을 한 단계 진하게 하고 그림자를 깔아
    * 지형·도로·라벨에서 칩을 떼어 놓는다 — 지면 위 톤(`chipFill`)은 지도 위에서 라벨이 겹쳐
@@ -51,6 +58,7 @@ const LiquidChip: FC<Props> = ({
   selected = false,
   size = 'md',
   dotColor,
+  trailingIcon,
   onMap = false,
   onPress,
   role = 'button',
@@ -86,6 +94,13 @@ const LiquidChip: FC<Props> = ({
       >
         {label}
       </PretendardText>
+      {trailingIcon ? (
+        <Ionicons
+          name={trailingIcon}
+          size={15}
+          color={selected ? Liquid.surface : Liquid.inkMuted}
+        />
+      ) : null}
     </>
   );
 

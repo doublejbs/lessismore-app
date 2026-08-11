@@ -23,8 +23,6 @@ const SearchPageView: FC<Props> = ({ searchWarehouse, bag, feed }) => {
   // 검색 승계(SR-1): 현재 피드 필터를 검색 facet으로 넘기고 필터 변경 시 재검색.
   useSearchFilterInheritance(searchWarehouse, feed);
 
-  const hasKeyword = !!searchWarehouse.getKeyword().length;
-
   return (
     <Layout
       paddingHorizontal={0}
@@ -32,15 +30,13 @@ const SearchPageView: FC<Props> = ({ searchWarehouse, bag, feed }) => {
       background={<LiquidBackdrop screen='none' glowPosition='topRight' />}
     >
       {/**
-       * 검색어가 있으면 `탐색` 타이틀을 내린다(핸드오프 §2·§3).
+       * `탐색` 타이틀은 검색어가 있어도 **내리지 않는다**(2026-08-11 디자인 리뷰).
        *
-       * 검색 결과 화면의 화면 대상은 `검색 결과`(SearchResultView)라 두 타이틀이 겹치면
-       * 위계가 둘로 갈린다 — 필드 위는 비우고 결과 제목에 자리를 넘긴다.
+       * 검색어에 따라 타이틀을 걷으면 같은 탭 안에서 검색 필드가 위로 점프해 화면 구조가
+       * 뒤집힌다 — 필드 자리를 고정하고, 결과 라벨은 `검색 결과 234` 서브라인으로 내려
+       * 위계를 갈랐다(SearchResultView).
        */}
-      <SearchBarView
-        searchWarehouse={searchWarehouse}
-        {...(hasKeyword ? {} : { title: '탐색' })}
-      />
+      <SearchBarView searchWarehouse={searchWarehouse} title='탐색' />
       <SearchResultView
         searchWarehouse={searchWarehouse}
         bag={bag}

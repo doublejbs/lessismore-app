@@ -4,6 +4,7 @@ import {
   getGroupForCategory,
 } from './GearCategoryGroups';
 import { isOwnGearImageUrl } from '../gear-image/GearImageOwnership';
+import { stripNameAnnotation } from './GearDisplayName';
 
 // 웹 크롤 파이프라인이 기록하는 신규 옵셔널 필드 + 사용자 업로드 사진(imageUrl) 묶음(DM-3).
 // exactOptionalPropertyTypes — 값이 없으면 키 자체를 생략한다.
@@ -46,9 +47,7 @@ export const toGearExtra = (data: {
   const isSpecsObject = (
     value: unknown
   ): value is Record<string, string | number | boolean> => {
-    return (
-      typeof value === 'object' && value !== null && !Array.isArray(value)
-    );
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
   };
 
   return {
@@ -121,8 +120,13 @@ class Gear {
     return this.name;
   }
 
+  /**
+   * 화면에 내놓는 이름 — 한글 우선(`nameKorean || name`)에 카탈로그 주석 정리를 더한다(DM-3).
+   * 재고 상태 대괄호 접미(`[품절]`)를 떼는 곳이 여기 하나라, 창고·배낭·검색이 같은 이름을 쓴다.
+   * 캐논컬 값이 필요한 자리(편집 프리필·중복 판정·정렬)는 `getName()`을 쓴다.
+   */
   public getDisplayName() {
-    return this.nameKorean || this.name;
+    return stripNameAnnotation(this.nameKorean || this.name);
   }
 
   public getNameKorean() {

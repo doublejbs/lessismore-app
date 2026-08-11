@@ -29,6 +29,12 @@ export interface GearRankData {
   extra: GearExtra;
 }
 
+/** 순위 한 칸 — 장비와 그 장비를 담은 횟수(`gear-rank.count`, DM-6). */
+export interface RankedGear {
+  gear: Gear;
+  count: number;
+}
+
 class GearRankStore {
   public constructor(private readonly firebase: Firebase) {}
 
@@ -125,11 +131,23 @@ class GearRankStore {
     }
   }
 
-  public async loadRankingAsGears(
+  /**
+   * 순위 목록을 **담은 횟수와 함께** 넘긴다.
+   *
+   * `Gear`에는 count 자리가 없어(카탈로그 장비 모델이라 순위 지표를 들지 않는다) 화면이 쓸
+   * 수 있도록 짝을 만들어 준다 — 순위 화면이 왜 이 순서인지 보여주지 못하면 임의 목록으로
+   * 읽힌다(SR-4). 순서는 `convertToGears`가 입력 배열을 그대로 map하므로 보존된다.
+   */
+  public async loadRankedGears(
     category: GearFilter = GearFilter.All
-  ): Promise<Gear[]> {
+  ): Promise<RankedGear[]> {
     const rankData = await this.loadRanking(category);
-    return this.convertToGears(rankData);
+    const gears = await this.convertToGears(rankData);
+
+    return gears.map((gear, index) => ({
+      gear,
+      count: rankData[index]?.count ?? 0,
+    }));
   }
 
   private async convertToGears(data: GearRankData[]): Promise<Gear[]> {

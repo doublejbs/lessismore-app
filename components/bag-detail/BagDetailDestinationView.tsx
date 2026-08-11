@@ -11,6 +11,7 @@ import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 interface Props {
   bagDetail: BagDetail;
   emphasized?: boolean;
+  columns?: 2 | 3;
 }
 
 // 배낭 상세의 여행지 타일(DST-2/BD-10). 위치명이 주 정보고 날씨는 보조 정보다.
@@ -19,6 +20,7 @@ interface Props {
 const BagDetailDestinationView: FC<Props> = ({
   bagDetail,
   emphasized = false,
+  columns = 2,
 }) => {
   const router = useRouter();
   const bagWeather = bagDetail.getBagWeather();
@@ -95,6 +97,7 @@ const BagDetailDestinationView: FC<Props> = ({
     <BagDetailTileView
       icon={iconName}
       emphasized={emphasized}
+      columns={columns}
       title={title}
       subtitle={subtitle}
       onPress={handlePress}

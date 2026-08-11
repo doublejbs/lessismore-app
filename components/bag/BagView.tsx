@@ -1,18 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet, Platform } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import dayjs from 'dayjs';
 import BagItemView from './BagItemView';
 import BagTripSection, {
+  BagTripGroup,
   groupBagsByTripSection,
 } from '@/model/bag/BagTripSection';
-import BagAddView from './BagAddView';
+import BagAddView, { getBagAddButtonClearance } from './BagAddView';
 import BagListSkeletonView from './BagListSkeletonView';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
-import { formatBagWeight } from '@/model/gear/WeightFormat';
 import PretendardText from '@/components/PretendardText';
 import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
 import LiquidSectionLabel from '@/components/liquid/LiquidSectionLabel';
@@ -27,21 +28,37 @@ import app from '@/model/app/App';
 // iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
 const IOS_EDGES = ['top', 'left', 'right'] as const;
 
-// 첫 섹션은 헤더에서 24, 뒤 섹션은 앞 카드에서 22 떨어진다(목업 §5).
-const FIRST_SECTION_GAP = 24;
-const SECTION_GAP = 22;
+/**
+ * 섹션 라벨 띠 위쪽 숨. 아래는 라벨 자체가 10을 들고 있어(`LiquidSectionLabel`) 띠 높이는
+ * 16 + 라벨 + 10이다 — 앞 카드의 아래 여백(10)까지 더하면 섹션 사이가 26으로 맞는다.
+ */
+const SECTION_HEADER_PAD_TOP = 16;
 
-// 헤더 보조 줄. 개수와 평균 무게를 한 덩어리로 읽힌다 — 총합은 여행마다 따로인 값을 더해
-// 뜻이 없다(배낭 4개 무게를 합칠 일이 없다).
-// 평균도 g에서 내 다른 합계와 같은 표기를 쓴다(DM-26) — 표시용 kg를 평균하면 오차가 쌓인다.
-const getAverageWeight = (bags: BagItem[]): string => {
-  if (bags.length === 0) {
-    return formatBagWeight(0);
+/**
+ * 헤더 보조 줄. **지금 중요한 수 하나만** 붙인다(2026-08-11 개정).
+ *
+ * 예전에는 `{개수}개 · 평균 {무게}`였는데, 평균 무게는 여행마다 다른 값을 평균한 수라
+ * 어떤 행동으로도 이어지지 않았다(1박과 3박의 무게를 평균할 이유가 없다).
+ * 지금 손댈 여행이 있으면 그 수를 세고, 없으면 개수만 둔다 — 구간 이름은 섹션 라벨과 같은
+ * 말을 쓴다([Bag.md](../../specs/Bag.md) BAG-1).
+ */
+const getHeaderSummary = (bags: BagItem[], groups: BagTripGroup[]): string => {
+  const countLabel = `${bags.length}개`;
+  const countOf = (section: BagTripSection): number =>
+    groups.find(group => group.section === section)?.bags.length ?? 0;
+  const ongoing = countOf(BagTripSection.Ongoing);
+
+  if (ongoing > 0) {
+    return `${countLabel} · 여행 중 ${ongoing}개`;
   }
 
-  const total = bags.reduce((sum, bagItem) => sum + bagItem.getWeightGram(), 0);
+  const upcoming = countOf(BagTripSection.Upcoming);
 
-  return formatBagWeight(total / bags.length);
+  if (upcoming > 0) {
+    return `${countLabel} · 예정 ${upcoming}개`;
+  }
+
+  return countLabel;
 };
 
 const BagView = () => {
@@ -110,40 +127,73 @@ const BagView = () => {
       }
       default: {
         const imminentBagId = getImminentBagId();
+        // 여행 중 / 여행 예정 / 지난 여행 세 구간(BAG-1). 구간 안의 차례는 정렬 선택을
+        // 그대로 따르고, 빈 구간은 라벨까지 렌더하지 않는다.
+        const groups = groupBagsByTripSection(bags, today);
+        /**
+         * 섹션 라벨을 스크롤 상단에 고정한다(2026-08-11 개정) — 목록은 구간마다 카드 문법이
+         * 거의 같아, 라벨이 위로 사라지면 화면에 남은 첫 카드가 예정인지 지난 여행인지
+         * 알 수 없었다. RN sticky는 **직계 자식 인덱스**로 지정하므로 `[라벨, 카드묶음]`
+         * 순서로 펴서 라벨이 짝수 자리에 오게 한다.
+         */
+        const stickyIndices = groups.map((_group, index) => index * 2);
+        const bottomClearance = Math.max(
+          // 플로팅 탭바 아래로 콘텐츠가 흐르므로 130을 비운다(핸드오프 레이아웃).
+          Platform.select({
+            ios: insets.bottom + LiquidLayout.scrollBottom,
+            default: LiquidLayout.scrollBottom,
+          }),
+          // 마지막 카드의 무게가 `배낭 추가` FAB에 가리지 않는 높이(BAG-1).
+          getBagAddButtonClearance(insets.bottom)
+        );
 
         return (
           <>
             <View style={styles.headerContainer}>
-              {/* 화면 대상은 `배낭` 하나 — 개수·평균은 그 아래 보조 줄로 내린다(목업 §5). */}
+              {/* 화면 대상은 `배낭` 하나 — 개수·구간 수는 그 아래 보조 줄로 내린다(목업 §5). */}
               <View style={styles.headerIdentity}>
                 <PretendardText weight='bold' style={styles.headerTitle}>
                   배낭
                 </PretendardText>
                 <PretendardText weight='medium' style={styles.headerSummary}>
-                  {`${bags.length}개 · 평균 ${getAverageWeight(bags)}`}
+                  {getHeaderSummary(bags, groups)}
                 </PretendardText>
               </View>
+              {/* 이 화면의 유일한 조작이라 알약 칩 면을 깐다(2026-08-11 개정) — 글자 +
+                  작은 쉐브론만으로는 상태 텍스트로 읽혀 누를 생각을 못 했다. 면은 공용
+                  `OrderButtonView`의 `chip` 옵션이 들어(창고 WH-3와 같은 값) 화면마다
+                  칩 문법이 갈리지 않는다. */}
               <OrderButtonView
                 order={bag.getOrder()}
                 onSelectOption={handleSelectOrder}
+                chip
               />
             </View>
             <ScrollView
               style={styles.scrollContainer}
               contentContainerStyle={styles.scrollContent}
+              stickyHeaderIndices={stickyIndices}
               showsVerticalScrollIndicator={false}
             >
-              {/* 여행 중 / 여행 예정 / 지난 여행 세 구간(BAG-1). 구간 안의 차례는 정렬 선택을
-                  그대로 따르고, 빈 구간은 라벨까지 렌더하지 않는다. */}
-              {groupBagsByTripSection(bags, today).map((group, groupIndex) => (
+              {groups.flatMap((group: BagTripGroup) => [
                 <View
-                  key={group.section}
-                  style={{
-                    marginTop:
-                      groupIndex === 0 ? FIRST_SECTION_GAP : SECTION_GAP,
-                  }}
+                  key={`${group.section}-label`}
+                  style={styles.sectionLabel}
                 >
+                  {/* 고정된 라벨 뒤로 카드가 지나가므로 면이 필요하다 — 지면색을 깔면 좌상단
+                      라임 글로우 위에 각진 패치가 생겨, 배낭 상세의 핀 필터 띠와 같은
+                      유리 띠로 둔다. */}
+                  <BlurView
+                    tint='light'
+                    intensity={Liquid.glassBlurIntensity}
+                    style={StyleSheet.absoluteFill}
+                  />
+                  <View
+                    style={[StyleSheet.absoluteFill, styles.sectionLabelFill]}
+                  />
                   <LiquidSectionLabel>{group.label}</LiquidSectionLabel>
+                </View>,
+                <View key={`${group.section}-bags`}>
                   {group.bags.map((bagItem: BagItem) => (
                     <BagItemView
                       key={bagItem.getID()}
@@ -157,17 +207,9 @@ const BagView = () => {
                       }
                     />
                   ))}
-                </View>
-              ))}
-              <View
-                style={{
-                  // 플로팅 탭바 아래로 콘텐츠가 흐르므로 130을 비운다(핸드오프 레이아웃).
-                  minHeight: Platform.select({
-                    ios: insets.bottom + LiquidLayout.scrollBottom,
-                    default: LiquidLayout.scrollBottom,
-                  }),
-                }}
-              />
+                </View>,
+              ])}
+              <View style={{ minHeight: bottomClearance }} />
             </ScrollView>
           </>
         );
@@ -243,6 +285,15 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+  },
+  // 유리 띠를 자식(블러·채움)에서 깎으므로 모서리는 두지 않는다 — 스크롤 폭을 그대로 채워
+  // 카드와 좌우 끝이 맞는다.
+  sectionLabel: {
+    paddingTop: SECTION_HEADER_PAD_TOP,
+    overflow: 'hidden',
+  },
+  sectionLabelFill: {
+    backgroundColor: Liquid.glassFill,
   },
 });
 

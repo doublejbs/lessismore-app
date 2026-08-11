@@ -70,7 +70,7 @@ interface Props {
  * WH-1 창고 목록 행 (Liquid Depth, 목업 §8).
  *
  * 행마다 면을 두지 않는다 — 목록 전체가 흰 카드 하나이고 행은 헤어라인으로만 갈린다
- * (카드는 `WarehouseScreen`이 그린다). 좌측은 정체(브랜드 → 이름 → 색상·사용률 한 줄),
+ * (카드는 `WarehouseScreen`이 그린다). 좌측은 정체(브랜드 → 이름 → 사용률 한 줄),
  * 우측은 무게 하나다 — 무게가 행마다 같은 자리에 와야 세로로 비교된다.
  * 썸네일 규칙은 배낭 상세와 같다(BD-1 → WH-1): 사용자가 올린 본인 사진이 있을 때만 붙는다.
  */
@@ -109,14 +109,19 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse, divider = false }) => {
     />
   );
 
-  // 색상·사용률을 한 줄로 잇는다(목업 §8 `Black · 사용률 82%`) — 값이 없는 조각은 빼서
-  // ` · `가 홀로 남지 않게 한다. 색상 표시는 getDisplayColor()로 통일한다(DM-3).
-  const meta = [
-    gear.getDisplayColor(),
-    gear.hasUsedRate() ? `사용률 ${gear.getUsedRate()}%` : null,
-  ]
-    .filter(Boolean)
-    .join(' · ');
+  /**
+   * 서브라인은 **`사용률 {n}%` 한 종류**로 고정한다(2026-08-11 디자인 리뷰 · WH-1).
+   *
+   * 색상까지 이어 붙이던 구 문법(`{색상} · 사용률 {n}%`)에서는 한 슬롯에 네 종류가 섞였다 —
+   * `핑크` · `STONE GREEN`(정규화 안 된 크롤 원본) · `라지 [품절]`(이름 뒷부분과 중복) ·
+   * `Beluga · 사용률 100%`. 종류가 행마다 갈리면 눈이 세 번째 줄에서 무엇을 읽을지 학습하지
+   * 못한다. 색상은 사실이지만 목록에서 **할 일을 만들지 않는 값**이라 상세의 태그 칩으로
+   * 내리고, 창고에는 덜어낼 후보를 고르게 하는 값만 남긴다.
+   *
+   * 사용 기록이 없으면 줄째로 뺀다 — `사용률 0%`로 적으면 "담아 갔지만 안 썼다"는 뜻이 되어
+   * 담은 적 없는 장비를 잘못 말한다(WH-2-1의 판정과 같은 전제).
+   */
+  const meta = gear.hasUsedRate() ? `사용률 ${gear.getUsedRate()}%` : '';
   const weight = formatGearWeightOrNull(gear.getWeight());
 
   /**
@@ -130,7 +135,7 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse, divider = false }) => {
         .filter(Boolean)
         .join(' '),
       weight ?? MISSING_WEIGHT_LABEL,
-      gear.hasUsedRate() ? `사용률 ${gear.getUsedRate()}%` : null,
+      meta,
     ]
       .filter(Boolean)
       .join(', ');

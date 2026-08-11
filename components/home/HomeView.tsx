@@ -1,9 +1,10 @@
 import { FC, useCallback, useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from 'expo-router';
 import { observer } from 'mobx-react-lite';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
@@ -12,8 +13,14 @@ import HomeUpcomingTripView from '@/components/home/HomeUpcomingTripView';
 import HomeWarehousePreviewView from '@/components/home/HomeWarehousePreviewView';
 import HomeRecordSummaryView from '@/components/home/HomeRecordSummaryView';
 import HomeSkeletonView from '@/components/home/HomeSkeletonView';
-import { Liquid, LiquidLayout, LiquidType } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidBackdrop as Backdrop,
+  LiquidLayout,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import Home from '@/model/home/Home';
+import { formatHeaderDate } from '@/model/home/HomeDateFormat';
 import { selectTripPlan } from '@/model/home/HomeTripPlan';
 import app from '@/model/app/App';
 
@@ -25,15 +32,36 @@ interface Props {
 const IOS_EDGES = ['top', 'left', 'right'] as const;
 
 /**
- * 헤더 날짜의 요일. dayjs 한국어 로케일을 등록하지 않은 저장소라 `ddd`/`dddd`는 영문으로
- * 나오고, 로케일을 전역에 걸면 앱의 다른 날짜 표기까지 함께 바뀐다 — 날씨·여행지 화면과
- * 같은 방식으로 배열을 직접 매핑한다.
+ * 지면색 페이드에 쓰는 알파 짝. 하단 고정 CTA를 받치는 `ctaVeil`과 **같은 두 값**을 읽어
+ * 새 색을 만들지 않는다 — 상단 경계는 이 짝을 뒤집어 쓴다.
  */
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const [VEIL_CLEAR, VEIL_SOLID] = Backdrop.ctaVeil.colors;
+const TOP_FADE_COLORS = [VEIL_SOLID, VEIL_CLEAR] as const;
+const BOTTOM_FADE_COLORS = [VEIL_CLEAR, VEIL_SOLID] as const;
 
-// `8월 11일 화요일` — 영문 요일과 한글 날짜를 섞지 않는다.
-const formatHeaderDate = (date: Dayjs): string =>
-  `${date.format('M월 D일')} ${WEEKDAYS[date.day()]}요일`;
+/**
+ * 고정 제목과 스크롤 콘텐츠의 경계에 얹는 지면색 페이드 높이(2026-08-11 디자인 리뷰).
+ *
+ * 제목 바로 아래에서 장비 행이 반토막으로 잘려 렌더 오류처럼 보였다 — iOS의 scroll edge
+ * effect와 같은 처리로, 콘텐츠가 지면색으로 사라지면서 경계가 의도된 것으로 읽힌다.
+ *
+ * **스크롤 오프셋을 추적하지 않는다.** 오프셋에 따라 제목 블록에 유리 면을 입히는 쪽이
+ * 이론상 곱지만 onScroll·보간·리렌더가 붙고 최상단/최하단 상태를 따로 관리해야 한다.
+ * 대신 콘텐츠 상단 패딩을 **이 값과 같게** 두어(`scrollContent`) 최상단에서는 페이드가
+ * 히어로 위가 아니라 제목과 히어로 사이의 빈 자리에 놓이게 했다 — 그 자리의 지면은 이미
+ * 거의 `canvas`라 띠가 도드라지지 않고, 스크롤하면 그 자리로 콘텐츠가 들어와 녹는다.
+ */
+const SCROLL_TOP_FADE_HEIGHT = 20;
+
+/**
+ * 떠 있는 iOS 26 유리 탭바가 콘텐츠 위에 차지하는 높이(핸드오프: 바 h60 · 화면 아래 여백 8)
+ * + 홈인디케이터(`insets.bottom`). 스크롤 하단 여백(`scrollBottom` 130 + insets)이 이 값보다
+ * 커야 마지막 행이 탭바에 걸리지 않는다.
+ */
+const TAB_BAR_HEIGHT = 60;
+const TAB_BAR_BOTTOM_GAP = 8;
+// 탭바 위에서 콘텐츠가 지면색으로 녹아드는 구간.
+const TAB_BAR_FADE_FEATHER = 36;
 
 const HomeView: FC<Props> = ({ home }) => {
   const insets = useSafeAreaInsets();
@@ -63,6 +91,26 @@ const HomeView: FC<Props> = ({ home }) => {
     app.getLogInAlertManager()?.show();
   };
 
+  /**
+   * 스크롤 끝에 비우는 자리. iOS는 콘텐츠가 탭바 뒤로 흐르므로 홈인디케이터까지 더한다 —
+   * 130(핸드오프) + insets.bottom은 탭바 실측(8 + 60 + insets)보다 크다.
+   */
+  const scrollBottomSpace = Platform.select({
+    ios: insets.bottom + LiquidLayout.scrollBottom,
+    default: LiquidLayout.scrollBottom,
+  });
+  const tabBarOverlay = insets.bottom + TAB_BAR_BOTTOM_GAP + TAB_BAR_HEIGHT;
+  const bottomFadeHeight = tabBarOverlay + TAB_BAR_FADE_FEATHER;
+  /**
+   * 지면색이 꽉 차는 지점 = **탭바 세로 중앙**. 위쪽 절반은 유리가 굴절시킬 콘텐츠를 남기고
+   * (핸드오프: 콘텐츠는 탭바 아래로 흐른다), 그 아래 탭바 하단·홈인디케이터 영역에는 지면만
+   * 남는다 — 떠 있는 탭바 밑으로 행이 비쳐 레이아웃 버그처럼 보였던 자리다.
+   */
+  const bottomFadeSolidAt =
+    (bottomFadeHeight -
+      (insets.bottom + TAB_BAR_BOTTOM_GAP + TAB_BAR_HEIGHT / 2)) /
+    bottomFadeHeight;
+
   const render = () => {
     if (isLoading) {
       return <HomeSkeletonView />;
@@ -84,24 +132,42 @@ const HomeView: FC<Props> = ({ home }) => {
     }
 
     return (
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <HomeUpcomingTripView plan={selectTripPlan(home.getBags(), today)} />
-        <HomeWarehousePreviewView gears={home.getGears()} />
-        <HomeRecordSummaryView gears={home.getGears()} bags={home.getBags()} />
-        <View
-          style={{
-            // 플로팅 탭바 아래로 콘텐츠가 흐르므로 130을 비운다(핸드오프 레이아웃).
-            height: Platform.select({
-              ios: insets.bottom + LiquidLayout.scrollBottom,
-              default: LiquidLayout.scrollBottom,
-            }),
-          }}
+      <View style={styles.scrollRegion}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <HomeUpcomingTripView
+            plan={selectTripPlan(home.getBags(), today)}
+            today={today}
+          />
+          <HomeWarehousePreviewView gears={home.getGears()} />
+          <HomeRecordSummaryView
+            gears={home.getGears()}
+            bags={home.getBags()}
+          />
+          <View style={{ height: scrollBottomSpace }} />
+        </ScrollView>
+
+        {/* 고정 제목과 스크롤의 경계 — 콘텐츠가 지면색으로 사라진다. */}
+        <LinearGradient
+          colors={TOP_FADE_COLORS}
+          style={styles.topFade}
+          pointerEvents='none'
         />
-      </ScrollView>
+
+        {/* 떠 있는 유리 탭바 자리 — iOS만. Android·Web의 탭바는 불투명하고 콘텐츠 영역
+            밖에 있어 아래로 흐르는 콘텐츠가 없다. */}
+        {Platform.OS === 'ios' ? (
+          <LinearGradient
+            colors={BOTTOM_FADE_COLORS}
+            locations={[0, bottomFadeSolidAt] as const}
+            style={[styles.bottomFade, { height: bottomFadeHeight }]}
+            pointerEvents='none'
+          />
+        ) : null}
+      </View>
     );
   };
 
@@ -147,12 +213,34 @@ const styles = StyleSheet.create({
     letterSpacing: LiquidType.title1.letterSpacing,
     color: Liquid.ink,
   },
+  // 페이드를 스크롤 뷰 위에 절대 배치하려면 둘을 감싸는 자리가 필요하다.
+  scrollRegion: {
+    flex: 1,
+  },
   scrollView: {
     flex: 1,
-    marginTop: 18,
   },
+  // 상단 패딩은 페이드 높이와 **같아야** 한다 — 최상단에서 히어로가 베일에 씻기지 않는다.
   scrollContent: {
     flexGrow: 1,
+    paddingTop: SCROLL_TOP_FADE_HEIGHT,
+  },
+  /**
+   * 페이드는 화면 좌우 패딩 밖까지 덮는다 — 창고 미리보기의 칩 줄이 화면 가장자리까지
+   * 블리드하므로(`chipsScroll`) 패딩 안쪽만 덮으면 칩이 경계에서 잘린 채 남는다.
+   */
+  topFade: {
+    position: 'absolute',
+    top: 0,
+    left: -LiquidLayout.screenH,
+    right: -LiquidLayout.screenH,
+    height: SCROLL_TOP_FADE_HEIGHT,
+  },
+  bottomFade: {
+    position: 'absolute',
+    bottom: 0,
+    left: -LiquidLayout.screenH,
+    right: -LiquidLayout.screenH,
   },
   signedOut: {
     flex: 1,

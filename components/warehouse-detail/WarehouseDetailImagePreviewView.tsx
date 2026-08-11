@@ -1,12 +1,6 @@
-import { FC } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { Liquid, LiquidMotion, LiquidRadius } from '@/constants/DesignTokens';
+import { FC, useState } from 'react';
+import { Image, StyleSheet, View } from 'react-native';
+import { Liquid, LiquidRadius } from '@/constants/DesignTokens';
 
 // GD-1 1층(사진 줄) 크기. 가운데 단독 줄이라 좌우 컬럼 폭을 나눠 쓸 필요가 없어,
 // "내 물건이 맞나"를 한눈에 알아볼 수 있는 140pt 정사각으로 둔다.
@@ -14,44 +8,45 @@ const IMAGE_SIZE = 140;
 
 interface Props {
   imageUrl: string;
-  busy: boolean;
-  onPress: () => void;
-  onError: () => void;
 }
 
-// 사용자가 올린 본인 장비 사진(GD-1·GD-13). 탭하면 교체·삭제 시트가 열린다.
-// 정사각 크롭으로 받으므로(GearImageUpload) 표시도 정사각이다.
-const WarehouseDetailImagePreviewView: FC<Props> = ({
-  imageUrl,
-  busy,
-  onPress,
-  onError,
-}) => {
+/**
+ * 사용자가 올린 본인 장비 사진(GD-1·GD-13) — **보여주기만 한다.**
+ *
+ * 추가·교체·삭제는 `수정` 화면이 맡는다(2026-08-11 디자인 리뷰) — 상세는 장비를 판단하는
+ * 화면이라 관리 조작이 자리를 차지하지 않아야 하고, 사진의 단일 소스가 편집 화면 하나로
+ * 모이면 상세는 `Gear.getImageUrl()`만 그리면 되어 화면을 다시 읽을 때 값이 어긋나지 않는다.
+ * 정사각 크롭으로 받으므로(`GearImageUpload`) 표시도 정사각이다.
+ */
+const WarehouseDetailImagePreviewView: FC<Props> = ({ imageUrl }) => {
+  /**
+   * 참조가 끊긴 레거시 URL은 로드에 실패한다(DataModel §1) — 깨진 아이콘을 남기지 않고
+   * 사진 없음과 똑같이 줄째 비운다(GD-13). 실패한 **URL**을 기억해 사진이 바뀌면
+   * (수정 화면에서 새로 올린 뒤 돌아온 경우) 다시 그려 본다.
+   */
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+
+  const handleError = () => {
+    setFailedUrl(imageUrl);
+  };
+
+  if (failedUrl === imageUrl) {
+    return null;
+  }
+
   return (
-    <TouchableOpacity
+    <View
       style={styles.container}
-      onPress={onPress}
-      disabled={busy}
-      activeOpacity={LiquidMotion.pressOpacity}
-      accessibilityRole='button'
+      accessibilityRole='image'
       accessibilityLabel='장비 사진'
-      accessibilityHint='사진을 교체하거나 삭제할 수 있어요'
-      accessibilityState={{ disabled: busy }}
     >
       <Image
         source={{ uri: imageUrl }}
         style={styles.image}
         resizeMode='cover'
-        // 참조가 끊긴 레거시 URL은 로드에 실패한다 — 깨진 아이콘을 남기지 않고
-        // 사진 없음 상태로 되돌린다(GD-13).
-        onError={onError}
+        onError={handleError}
       />
-      {busy && (
-        <View style={styles.overlay}>
-          <ActivityIndicator color={Liquid.surface} />
-        </View>
-      )}
-    </TouchableOpacity>
+    </View>
   );
 };
 
@@ -67,16 +62,6 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Liquid.scrim,
   },
 });
 

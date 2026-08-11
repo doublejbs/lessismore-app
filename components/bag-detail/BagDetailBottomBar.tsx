@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PackingButtonState from '@/model/bag-detail/PackingButtonState';
+import TripPhase from '@/model/bag/TripPhase';
 import LiquidPillButton from '@/components/liquid/LiquidPillButton';
 import { Liquid, LiquidLayout } from '@/constants/DesignTokens';
 
@@ -27,9 +28,17 @@ const getPackingLabel = (bagDetail: BagDetail): string => {
   }
 };
 
-// BD-9 하단 고정 액션 바: (패킹 보조 = 유리 알약) + 장비 추가(주 = 잉크 CTA, 폭 채움).
+/**
+ * BD-9 하단 고정 액션 바.
+ *
+ * **주 액션은 여행 단계가 정한다**(2026-08-11 개정). 지난 여행에서 권할 일은 짐 싸기가
+ * 아니라 `사용 기록`이다 — 이미 끝난 여행에 `패킹 시작`을 주 액션으로 세우면 할 수 없는
+ * 일을 시킨다. 같은 이유로 지난 여행에서는 패킹 진입점을 바에서 내리고(화면당 주 액션 하나,
+ * 알약 셋은 좁은 폭에서 말줄임된다) 보조 자리를 `장비 추가`가 잇는다.
+ */
 const BagDetailBottomBar: FC<Props> = ({ bagDetail }) => {
-  const showPacking = bagDetail.shouldShowPackingButton();
+  const isAfterTrip = bagDetail.getTripPhase() === TripPhase.After;
+  const showPacking = !isAfterTrip && bagDetail.shouldShowPackingButton();
 
   const handleEdit = () => {
     app.getAnalyticsManager()?.logClick('bag_edit');
@@ -38,6 +47,11 @@ const BagDetailBottomBar: FC<Props> = ({ bagDetail }) => {
 
   const handlePacking = () => {
     bagDetail.goToPacking();
+  };
+
+  const handleUseless = () => {
+    app.getAnalyticsManager()?.logClick('bag_useless');
+    bagDetail.goToUseless();
   };
 
   return (
@@ -52,10 +66,17 @@ const BagDetailBottomBar: FC<Props> = ({ bagDetail }) => {
           }
         />
       )}
+      {isAfterTrip && (
+        <LiquidPillButton
+          label='장비 추가'
+          variant='glass'
+          onPress={handleEdit}
+        />
+      )}
       {/* 화면당 주 액션은 하나 — 이 CTA가 남은 폭을 다 가져간다. */}
       <LiquidPillButton
-        label='장비 추가'
-        onPress={handleEdit}
+        label={isAfterTrip ? '사용 기록' : '장비 추가'}
+        onPress={isAfterTrip ? handleUseless : handleEdit}
         style={styles.primary}
       />
     </View>

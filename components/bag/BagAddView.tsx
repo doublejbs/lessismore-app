@@ -13,20 +13,39 @@ interface Props {
   bag: Bag;
 }
 
+// FAB과 마지막 카드 사이 숨. 카드 사이 간격(10)보다 넓어야 버튼이 목록에 붙어 보이지 않는다.
+const CARD_GAP = 20;
+
+/**
+ * FAB이 지면 밑변에서 떠 있는 높이.
+ *
+ * iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) Layout 하단 세이프에어리어를 빼서
+ * 화면 하단 기준이 된다 → 버튼을 탭바(=insets.bottom) 위 20pt에 띄운다.
+ * **로딩 중에는 이 버튼을 렌더하지 않는다**(호출부 참고) — 첫 프레임 인셋이 정착하기 전이라
+ * 여기서 계산한 위치가 탭바 뒤로 들어간다.
+ */
+export const getBagAddButtonBottom = (insetBottom: number): number =>
+  Platform.select({
+    ios: insetBottom + CARD_GAP,
+    android: 0,
+    default: 80,
+  });
+
+/**
+ * 목록 스크롤 끝에 비워야 하는 높이(BAG-1).
+ *
+ * 마지막 카드가 FAB 아래로 들어가면 카드 **우측 무게**가 버튼에 가린다 — 목록 우측은
+ * 배낭끼리 무게를 비교하는 축이라 한 장이라도 가려지면 비교가 끊긴다(2026-08-11 디자인 리뷰).
+ * 버튼 자리(탭바 몫 포함) + 버튼 높이 + 숨을 그대로 더해 계산한다.
+ */
+export const getBagAddButtonClearance = (insetBottom: number): number =>
+  getBagAddButtonBottom(insetBottom) + LiquidLayout.pillHeight + CARD_GAP;
+
 // 배낭 추가 진입점(BAG-2). 배낭이 없으면 **입력 없이 즉시 생성**, 있으면 추가 액션시트.
 const BagAddView: FC<Props> = ({ bag }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-
-  // iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) Layout 하단 세이프에어리어를 빼서
-  // 화면 하단 기준이 된다 → 버튼을 탭바(=insets.bottom) 위 20pt에 띄운다.
-  // **로딩 중에는 이 버튼을 렌더하지 않는다**(호출부 참고) — 첫 프레임 인셋이 정착하기 전이라
-  // 여기서 계산한 위치가 탭바 뒤로 들어간다.
-  const bottom = Platform.select({
-    ios: insets.bottom + 20,
-    android: 0,
-    default: 80,
-  });
+  const bottom = getBagAddButtonBottom(insets.bottom);
 
   const handlePressAdd = async () => {
     app.getAnalyticsManager()?.logClick('bag_add');

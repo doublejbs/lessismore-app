@@ -26,7 +26,7 @@ const CHIP_EDGE_PADDING = 16;
 /**
  * WH-2 창고 필터 줄 (Liquid Depth, 목업 §8).
  *
- * 1차 카테고리 칩 줄 → (해당 그룹이면) 세분 칩 줄 → 별개 축인 사용 여부 알림 칩 순이다.
+ * 1차 칩 줄(사용 여부 알림 칩 + 카테고리 칩) → (해당 그룹이면) 세분 칩 줄 순이다.
  * 개수·정렬은 이 줄이 아니라 **화면 제목 블록**이 든다(목업 §8) — 목록의 규모와 정렬은
  * 화면 대상(`창고`)에 딸린 정보라 제목 옆이 자리다.
  */
@@ -140,6 +140,22 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
+        {/* WH-2-1 사용 여부 필터 — 카테고리와 별개 축이지만 **같은 줄 맨 앞**에 둔다
+            (2026-08-11 디자인 리뷰). 칩 줄 아래 혼자 뜬 자리에서는 필터인지 경고 배지인지
+            갈리지 않았다. 필터들과 같은 줄에 서면 누르면 목록이 걸러진다는 약속이 자리로
+            드러나고, 라임 틴트·낮은 높이(30)가 별개 축임을 계속 말한다.
+            개수를 함께 보여줘야 몇 개가 걸러지는지 알고 덜어낼 판단을 할 수 있다.
+            선택 칩 스크롤 정렬(위)에는 넣지 않는다 — 줄 맨 앞이라 진입 시점(offset 0)에는 항상
+            보이고, 멀리 있는 카테고리를 골라 줄이 흐른 뒤에는 다른 필터들과 같이 밀린다. */}
+        {unusedCount > 0 || unusedOnly ? (
+          <LiquidNoticeChip
+            label={`안 쓴 장비 ${unusedCount}`}
+            icon='alert-circle-outline'
+            selected={unusedOnly}
+            onPress={handleToggleUnused}
+            accessibilityLabel={`안 쓴 장비만 보기, ${unusedCount}개`}
+          />
+        ) : null}
         {warehouse.mapFilters(filter => (
           <View
             key={filter.getName()}
@@ -177,20 +193,6 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
           ))}
         </ScrollView>
       )}
-      {/* WH-2-1 사용 여부 필터 — 카테고리와 별개 축이라 칩 줄이 아니라 이 줄에 둔다.
-          개수를 함께 보여줘야 몇 개가 걸러지는지 알고 덜어낼 판단을 할 수 있다.
-          라임 톤 알림 칩(목업 §8) — 창고에서 이 앱의 이름값을 말하는 자리다. */}
-      {unusedCount > 0 || unusedOnly ? (
-        <View style={styles.usageRow}>
-          <LiquidNoticeChip
-            label={`안 쓴 장비 ${unusedCount}`}
-            icon='alert-circle-outline'
-            selected={unusedOnly}
-            onPress={handleToggleUnused}
-            accessibilityLabel={`안 쓴 장비만 보기, ${unusedCount}개`}
-          />
-        </View>
-      ) : null}
     </View>
   );
 };
@@ -228,10 +230,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: LiquidLayout.screenH,
-  },
-  usageRow: {
-    flexDirection: 'row',
-    marginTop: 10,
   },
 });
 

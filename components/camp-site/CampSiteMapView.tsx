@@ -7,10 +7,11 @@ import {
   CameraChangeReason,
 } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router/react-navigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Liquid } from '@/constants/DesignTokens';
+import { Liquid, LiquidBackdrop } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
@@ -58,6 +59,10 @@ const NOTICE_STORAGE_KEY = 'campSiteNoticeShown';
 // iOS 네이티브 탭바(리퀴드 글래스)는 풀블리드 지도 위에 떠 있으므로
 // 하단 플로팅 요소는 탭바 높이만큼 띄운다. Android JS 탭바는 레이아웃 공간을 차지해 불필요.
 const TAB_BAR_HEIGHT = 49;
+
+// 상태바 스크림이 세이프에어리어 아래로 더 흘러 완전히 사라지는 여유(CS-2).
+// 세이프에어리어 경계에서 알파가 뚝 끊기면 그 선이 띠로 보인다.
+const STATUS_SCRIM_TAIL = 8;
 
 // 박지 지도 화면(CS-1/CS-2/CS-6)의 조립 컴포넌트. 지도(카메라·권한)만 직접 다루고,
 // MobX 상태를 읽는 UI는 마커 레이어·상단(검색/칩) observer로 분리했다 —
@@ -763,6 +768,17 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         ) : null}
       </NaverMapView>
 
+      {/* 상태바 스크림(CS-2) — 지도 최상단에 상태바 높이만큼 지면색 그라디언트를 깔아
+          시각·배터리가 어떤 지형 위에서도 읽히게 한다. 흰 지형 위에서는 없어도 읽히지만
+          초록 숲·물 위로 팬하면 판독이 불가능해진다(2026-08-11 디자인 리뷰).
+          상단 오버레이(검색 필드)보다 **아래**에 둔다 — 필드가 이 막에 흐려지면 안 된다. */}
+      <LinearGradient
+        colors={LiquidBackdrop.statusVeil.colors}
+        locations={LiquidBackdrop.statusVeil.locations}
+        style={[styles.statusScrim, { height: insets.top + STATUS_SCRIM_TAIL }]}
+        pointerEvents='none'
+      />
+
       {/* A: 선택 박지 강조 펄스(화면 중앙 = 카메라 이징이 옮긴 위치). pointerEvents none. */}
       <CampSiteSelectedPulseView campSiteMap={campSiteMap} />
 
@@ -786,6 +802,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Liquid.canvas,
+  },
+  // 높이는 세이프에어리어 기준으로 렌더에서 지정한다.
+  statusScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
   },
 });
 

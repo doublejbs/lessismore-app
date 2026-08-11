@@ -1,9 +1,10 @@
-import { FC, ReactNode } from 'react';
+import { FC } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Gear from '../../model/gear/Gear';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '../PretendardText';
 import LiquidChip from '@/components/liquid/LiquidChip';
+import WarehouseDetailImagePreviewView from './WarehouseDetailImagePreviewView';
 import {
   Liquid,
   LiquidFont,
@@ -11,28 +12,30 @@ import {
   LiquidType,
 } from '@/constants/DesignTokens';
 import { GEAR_FILTER_NAMES } from '@/model/gear/GearFilterName';
-import { formatGearWeightValue, hasWeight } from '@/model/gear/WeightFormat';
+import { formatGearWeight, hasWeight } from '@/model/gear/WeightFormat';
 
 interface Props {
   gear: Gear;
-  // 사용자가 올린 본인 사진 슬롯(GD-13). 사진이 있는지는 업로드 상태를 가진 상위
-  // (WarehouseDetailBasicInfoView)만 알 수 있어 노드로 받는다. 없으면 사진 줄을 그리지 않는다.
-  photo?: ReactNode;
 }
 
 // GD-1 기본 정보 섹션 — **사진 줄 + 정체 줄** 두 층 구성(2026-07-29 사용자 결정).
 // - 1층(사진): 140pt 정사각을 **가운데 단독 줄**로 둔다. 카탈로그 크롤 이미지는 쓰지 않고
-//   (DataModel §1) 사용자가 올린 본인 사진만 `photo` 슬롯으로 받는다. 사진이 없으면 **이 줄 자체를
-//   렌더하지 않는다** — 빈 칸·플레이스홀더를 남기지 않는다(이미지 없는 장비가 다수라 그게 기본 모습).
-// - 2층(정체): 브랜드 → 이름 위로 쌓고, 그 아래 **태그 칩 줄 + 우측 무게**를 한 행에 둔다
-//   (Liquid Depth, 목업 §9). 무게가 우측 같은 자리에 오는 앱 전역 문법(창고 WH-1·배낭 BAG-1)은
-//   그대로이고, 카테고리·색상·사이즈만 메타 텍스트에서 **칩**으로 바뀌었다 — 화면 대상(이름)이
-//   28pt로 커지면서 그 아래 회색 한 줄은 이름에 딸린 부제처럼 읽혔다.
-const WarehouseDetailInformationView: FC<Props> = ({ gear, photo }) => {
+//   (DataModel §1) 사용자가 올린 본인 사진(`Gear.getImageUrl()`)만 그린다. 사진이 없으면
+//   **이 줄 자체를 렌더하지 않는다** — 빈 칸·플레이스홀더·`사진 추가` 점선 박스를 두지 않는다.
+//   이 앱은 장비 이미지를 취급하지 않기로 한 제품이라 사진 없는 장비가 기본 모습이고,
+//   비어 있을 자리를 화면에서 가장 큰 요소로 두면 대다수 사용자에게 영구히 빈 칸이 된다
+//   (2026-08-11 디자인 리뷰). 사진을 올리는 경로는 `수정` 안에 있다(GD-13).
+// - 2층(정체): 브랜드 → 이름 → **무게** → 태그 칩 순으로 쌓는다(2026-08-11 디자인 리뷰).
+//   무게는 이 화면의 핵심 수치이자 시각 앵커라 이름 바로 아래 **독립 줄**에 좌측 정렬로 둔다 —
+//   태그 칩 줄 우측에 매달려 있을 때는 칩 줄에도 속하지 않고 아래 블록에 붙어 보여 소속이 없었고,
+//   단위 `g`를 작게 앉히니 아래첨자처럼 매달려 더 불안정했다. 이제 숫자와 단위가 한 덩어리다
+//   (DM-26 `formatGearWeight`).
+const WarehouseDetailInformationView: FC<Props> = ({ gear }) => {
   // 한글 표시명 우선 — 창고/검색 리스트와 동일한 이름으로 보이게 한다(GD-1).
   const company = gear.getDisplayCompany();
   const name = gear.getDisplayName();
   const weight = gear.getWeight();
+  const imageUrl = gear.getImageUrl();
   const color = gear.getDisplayColor();
   const size = gear.getDisplaySize();
   const category = gear.getCategory();
@@ -45,10 +48,14 @@ const WarehouseDetailInformationView: FC<Props> = ({ gear, photo }) => {
 
   return (
     <View style={styles.container}>
-      {photo ? <View style={styles.photoRow}>{photo}</View> : null}
+      {imageUrl ? (
+        <View style={styles.photoRow}>
+          <WarehouseDetailImagePreviewView imageUrl={imageUrl} />
+        </View>
+      ) : null}
 
       {/* 값이 없으면 줄 자체를 렌더하지 않는다(GD-1) — 빈 텍스트를 두면 죽은 공백이 생겨
-          이름이 아래로 밀린다. 태그 줄과 같은 규칙. */}
+          이름이 아래로 밀린다. 무게 줄·태그 줄과 같은 규칙. */}
       {company ? (
         <PretendardText
           weight='semibold'
@@ -67,9 +74,17 @@ const WarehouseDetailInformationView: FC<Props> = ({ gear, photo }) => {
         {name}
       </PretendardText>
 
-      {/* 태그 줄과 무게는 **글자 아랫선을 맞춘다**(flex-end) — 칩 줄이 두 줄로 늘어나도
-          무게가 마지막 줄과 나란히 앉아 두 정보가 한 행으로 읽힌다. */}
-      <View style={styles.metaRow}>
+      {/* 무게는 이름 아래 독립 줄이고 `무게` 캡션은 생략한다 — `g` 단위가 이미 무엇인지
+          말해주고 목록 행에도 캡션이 없다. 캡션 없이도 화면에서 가장 큰 숫자라 시각 앵커는
+          무게다(GD-1). 콘덴스드는 한글 글리프가 없어 숫자·단위에만 쓴다. */}
+      {hasWeight(weight) ? (
+        <PretendardText style={styles.weightText} numberOfLines={1}>
+          {formatGearWeight(weight)}
+        </PretendardText>
+      ) : null}
+
+      {/* 태그가 하나도 없으면 줄째로 뺀다 — 빈 줄을 남기면 위 여백만큼 죽은 공백이 생긴다. */}
+      {tags.length > 0 ? (
         <View style={styles.tags}>
           {/* 세 값이 서로 다른 축이라 같은 문자열이 겹칠 수 있다(색상 `블랙` · 사이즈 `블랙`
               같은 데이터가 실제로 있다) — 라벨만으로 키를 만들면 중복 키가 된다. */}
@@ -77,17 +92,7 @@ const WarehouseDetailInformationView: FC<Props> = ({ gear, photo }) => {
             <LiquidChip key={`${index}-${tag}`} label={tag} size='sm' />
           ))}
         </View>
-
-        {/* 무게는 우측 정렬, `무게` 캡션은 생략한다 — `g` 단위가 이미 무엇인지 말해주고
-            목록 행에도 캡션이 없다. 캡션 없이도 화면에서 가장 큰 숫자라 시각 앵커는 무게다(GD-1).
-            콘덴스드는 한글 글리프가 없어 숫자·단위에만 쓴다. */}
-        {hasWeight(weight) ? (
-          <PretendardText style={styles.weightText} numberOfLines={1}>
-            {formatGearWeightValue(weight)}
-            <PretendardText style={styles.weightUnit}>g</PretendardText>
-          </PretendardText>
-        ) : null}
-      </View>
+      ) : null}
     </View>
   );
 };
@@ -116,34 +121,21 @@ const styles = StyleSheet.create({
     letterSpacing: LiquidType.title2.letterSpacing,
     color: Liquid.ink,
   },
-  metaRow: {
-    marginTop: 14,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  tags: {
-    flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  // 고정 폭이 아니라 콘텐츠 폭이되 줄어들거나 줄바꿈되지 않게 한다(GD-1).
+  // 이름 바로 아래 좌측 독립 줄. 숫자와 단위가 한 덩어리라 같은 베이스라인에 앉는다.
   weightText: {
-    flexShrink: 0,
+    marginTop: 8,
     fontFamily: LiquidFont.condensed,
     fontSize: LiquidType.numXl.fontSize,
     lineHeight: LiquidType.numXl.lineHeight,
     letterSpacing: LiquidType.numXl.letterSpacing,
-    textAlign: 'right',
     color: Liquid.ink,
   },
-  // 단위는 값보다 작고 낮다. 부모 라인박스 안에 중첩하므로 행간은 부모가 정한다.
-  weightUnit: {
-    fontFamily: LiquidFont.condensed,
-    fontSize: 18,
-    color: Liquid.inkMuted,
+  // 태그는 정체의 마지막 층 — 이름·무게를 읽은 뒤 확인하는 사실들이다.
+  tags: {
+    marginTop: 14,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
   },
 });
 

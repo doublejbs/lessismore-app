@@ -67,11 +67,21 @@ const BagPackingView: FC<Props> = ({ bagPacking }) => {
     });
   };
 
-  // LG-1: iOS만 네이티브 투명 헤더 — 우측 '처음부터 다시'는 장비가 있을 때만(기존과 동일).
-  // 진행률 블록(BagPackingHeaderView)은 내비가 아니라 본문에 그대로 둔다.
-  // 완료 카드가 떠 있는 동안은 headerRight를 아예 내린다 — 스크림은 JS 뷰라 iOS 네이티브
-  // 헤더 위로 올라가지 못해, 가리지 못하는 버튼만 모달 위에서 눌리게 된다.
-  const showReset = initialized && !bagPacking.isEmpty() && !showCompleteCard;
+  /**
+   * LG-1: iOS만 네이티브 투명 헤더 — 우측 `처음부터 다시`. 진행률 블록
+   * (BagPackingHeaderView)은 내비가 아니라 본문에 그대로 둔다.
+   *
+   * 완료 카드가 떠 있는 동안은 headerRight를 아예 내린다 — 스크림은 JS 뷰라 iOS 네이티브
+   * 헤더 위로 올라가지 못해, 가리지 못하는 버튼만 모달 위에서 눌리게 된다.
+   *
+   * **아직 하나도 챙기지 않았으면 내린다**(2026-08-11 개정, PK-4) — 0/2인 사용자에게
+   * 화면의 유일한 액션이 초기화면 위계가 뒤집힌다. 지울 기록도 아직 없다.
+   */
+  const showReset =
+    initialized &&
+    !bagPacking.isEmpty() &&
+    !showCompleteCard &&
+    bagPacking.getPackedCount() > 0;
   const stackScreen = (
     <Stack.Screen
       options={{
@@ -134,7 +144,7 @@ const BagPackingView: FC<Props> = ({ bagPacking }) => {
             <BagPackingChromeView
               onPressBack={handlePressBack}
               onPressReset={handlePressReset}
-              showReset={!isEmpty}
+              showReset={showReset}
             />
           ) : null}
 
@@ -164,6 +174,9 @@ const BagPackingView: FC<Props> = ({ bagPacking }) => {
                     category={category}
                     gears={gears}
                     bagPacking={bagPacking}
+                    // 카테고리가 한 종류면 라벨이 가르는 것이 없다 — 라벨 한 줄이 행 하나만큼
+                    // 자리를 쓰므로 생략하고 목록을 위로 올린다(2026-08-11 개정).
+                    showLabel={categories.length > 1}
                   />
                 ))}
               </ScrollView>

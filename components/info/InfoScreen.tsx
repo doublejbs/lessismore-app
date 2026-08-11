@@ -8,6 +8,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,6 +25,7 @@ import app from '@/model/app/App';
 import InfoStats from '@/model/info/InfoStats';
 import {
   Liquid,
+  LiquidBackdrop as Backdrop,
   LiquidLayout,
   LiquidMotion,
   LiquidRadius,
@@ -93,6 +95,11 @@ const InfoScreen: FC<Props> = ({ infoStats }) => {
     router.push('/info/policy?tab=terms');
   };
 
+  // 프로필 카드의 `안 쓴 장비` 타일(AU-4) — 홈 내 기록(HM-7)과 같은 라우트로 보낸다.
+  const handleOpenUnusedGears = () => {
+    router.push('/warehouse?unusedOnly=1');
+  };
+
   const handleEditNickname = () => {
     setEditedNickname(nickname || '');
     setIsEditingNickname(true);
@@ -132,6 +139,7 @@ const InfoScreen: FC<Props> = ({ infoStats }) => {
           provider={firebase.getLoginProvider()}
           summary={infoStats.getSummary()}
           onPressEdit={handleEditNickname}
+          onPressUnused={handleOpenUnusedGears}
         />
       );
     }
@@ -201,19 +209,35 @@ const InfoScreen: FC<Props> = ({ infoStats }) => {
           </TouchableOpacity>
         ) : null}
 
-        {/* 푸터는 스크롤 안 마지막에 둔다. 밖에 고정하면 남는 높이를 면이 다 채워
-            플로팅 탭바 뒤까지 빈 덩어리가 생겼다(2026-08-03 실기기 확인). */}
-        <InfoFooterView isLoggedIn={isLoggedIn} />
+        {/**
+         * 푸터는 스크롤 안 마지막에 둔다. 밖에 고정하면 남는 높이를 면이 다 채워
+         * 플로팅 탭바 뒤까지 빈 덩어리가 생겼다(2026-08-03 실기기 확인).
+         *
+         * 푸터 구간에서는 지면의 지형 등고선을 그라디언트로 걷어낸다 — 아래로 갈수록 무늬가
+         * 진해져 배지·버전·탈퇴 글자와 대비를 다퉜다(2026-08-11 디자인 리뷰). 공용
+         * `LiquidBackdrop`은 건드리지 않고 이 화면에서 지면색을 덮으며, 푸터와 **함께
+         * 스크롤**되므로 위로 올라오는 콘텐츠가 이 막에 씻기지 않는다.
+         */}
+        <View style={styles.footerBlock}>
+          <LinearGradient
+            colors={Backdrop.footerVeil.colors}
+            locations={Backdrop.footerVeil.locations}
+            style={styles.footerVeil}
+            pointerEvents='none'
+          />
 
-        <View
-          style={{
-            // 플로팅 탭바 아래로 콘텐츠가 흐르므로 130을 비운다(핸드오프 레이아웃).
-            height: Platform.select({
-              ios: insets.bottom + LiquidLayout.scrollBottom,
-              default: LiquidLayout.scrollBottom,
-            }),
-          }}
-        />
+          <InfoFooterView isLoggedIn={isLoggedIn} />
+
+          <View
+            style={{
+              // 플로팅 탭바 아래로 콘텐츠가 흐르므로 130을 비운다(핸드오프 레이아웃).
+              height: Platform.select({
+                ios: insets.bottom + LiquidLayout.scrollBottom,
+                default: LiquidLayout.scrollBottom,
+              }),
+            }}
+          />
+        </View>
       </ScrollView>
 
       <InfoNicknameEditView
@@ -264,6 +288,21 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     color: Liquid.inkTertiary,
+  },
+  footerBlock: {
+    position: 'relative',
+  },
+  /**
+   * 좌우로 화면 패딩(20)만큼 번지게 해 지면을 끝까지 덮는다 — 카드 폭에만 깔면 양옆에
+   * 등고선이 띠로 남는다. 위로도 푸터 밖(60)까지 올려 **투명한 구간을 푸터 위 여백에서**
+   * 쓰게 한다 — 푸터 첫 줄부터 이미 절반쯤 덮여 있어야 배지·글자 뒤 무늬가 걷힌다.
+   */
+  footerVeil: {
+    position: 'absolute',
+    top: -60,
+    bottom: 0,
+    left: -LiquidLayout.screenH,
+    right: -LiquidLayout.screenH,
   },
 });
 

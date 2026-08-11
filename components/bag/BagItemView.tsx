@@ -113,6 +113,11 @@ const BagItemView: FC<Props> = ({
   const packedCount = bagItem.getPackedGearCount();
   // 진행 줄은 가장 임박한 카드에만 둔다. 담긴 장비가 없으면 그릴 값이 없다.
   const showProgress = imminent && gearCount > 0;
+  // 소수점 정렬용으로 정수부·소수부를 갈라 둔다(DM-26 표기라 소수는 최대 한 자리).
+  const [weightInteger, weightFractionPart] = formatBagWeightValue(
+    bagItem.getWeightGram()
+  ).split('.');
+  const weightFraction = weightFractionPart ?? null;
 
   const handleClick = () => {
     app.getAnalyticsManager()?.logClick('bag_item');
@@ -157,16 +162,15 @@ const BagItemView: FC<Props> = ({
   /**
    * 배지는 구간마다 뜻이 다르다 — 예정은 **언제 떠나는지**(D-day), 지난 여행은
    * **다 챙겼는지**(패킹)가 남는 정보다. 두 개를 함께 달면 카드마다 배지가 두 줄이 된다.
+   *
+   * 지난 카드의 패킹 배지는 **`패킹 {n}/{m}` 한 문법**이다(2026-08-11 개정).
+   * 예전에는 `패킹 완료`·`패킹 50%`·무표시 세 갈래여서, 아직 아무것도 안 챙긴 배낭과
+   * 패킹을 쓰지 않는 배낭이 똑같이 배지 없이 보여 구분되지 않았다. 완료는 문법을 바꾸는
+   * 대신 면을 채워(잉크 + 라임 체크) 말한다. 담긴 장비가 0이면 그릴 값이 없어 생략한다.
    */
   const getBadgeLabel = (): string | null => {
     if (isPast) {
-      if (bagItem.isPackingComplete()) {
-        return '패킹 완료';
-      }
-
-      return bagItem.hasPackingRecord()
-        ? `패킹 ${bagItem.getPackingPercent()}%`
-        : null;
+      return gearCount > 0 ? `패킹 ${packedCount}/${gearCount}` : null;
     }
 
     return dDayLabel;
@@ -205,7 +209,8 @@ const BagItemView: FC<Props> = ({
       );
     }
 
-    // `D-6`은 콘덴스드, `오늘 출발`·`패킹 40%`는 본문 서체 — 홈 히어로와 같은 판정을 쓴다.
+    // `D-6`은 콘덴스드, `오늘 출발`·`여행 중`은 본문 서체 — 홈 히어로와 같은 판정을 쓴다.
+    // (지난 카드의 `패킹 {n}/{m}`은 한글이 섞여 위 분기에서 이미 본문 서체로 나간다.)
     const isCondensed = isCondensedLabel(badgeLabel);
 
     return (
@@ -282,7 +287,20 @@ const BagItemView: FC<Props> = ({
               <PretendardText
                 style={[styles.weightValue, isPast && styles.weightValueQuiet]}
               >
-                {formatBagWeightValue(bagItem.getWeightGram())}
+                {weightInteger}
+              </PretendardText>
+              {/* 소수 자리는 값이 없어도 **폭을 비워 둔다** — `0kg`·`10kg`처럼 소수가 없는
+                  카드가 섞이면 우측 정렬만으로는 소수점 열이 어긋나 숫자가 계단처럼 읽힌다
+                  (2026-08-11 디자인 리뷰). 폭을 pt로 박는 대신 같은 글리프를 투명하게 두어
+                  서체·자간이 바뀌어도 자리가 따라온다(콘덴스드 숫자는 tabular). */}
+              <PretendardText
+                style={[
+                  styles.weightValue,
+                  isPast && styles.weightValueQuiet,
+                  weightFraction === null && styles.weightFractionBlank,
+                ]}
+              >
+                {weightFraction === null ? '.0' : `.${weightFraction}`}
               </PretendardText>
               <PretendardText
                 style={[styles.weightUnit, isPast && styles.weightUnitQuiet]}
@@ -415,6 +433,10 @@ const styles = StyleSheet.create({
   },
   weightValueQuiet: {
     color: Liquid.inkSecondary,
+  },
+  // 자리만 차지하는 소수부 — 색만 지운다(폭·라인박스는 그대로 남아야 열이 맞는다).
+  weightFractionBlank: {
+    color: 'transparent',
   },
   // 단위도 Archivo — 목업이 kg를 숫자와 같은 스팬에 넣는다(라틴 전용이라 안전).
   weightUnit: {

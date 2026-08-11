@@ -42,10 +42,10 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
 };
 
 const styles = StyleSheet.create({
+  // 행 전체가 탭 영역이다 — 연필(12pt)만으로는 터치 타깃이 서지 않는다
+  // (이름 행과 같은 처리, `BagDetailNameView` 주석 참고).
   dateContainer: {
-    alignSelf: 'flex-start',
-    // 이름 행과 같은 이유로 폭을 부모로 제한한다(BagDetailNameView 주석 참고).
-    maxWidth: '100%',
+    alignSelf: 'stretch',
     marginTop: 2,
     alignItems: 'center',
     justifyContent: 'flex-start',

@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import PretendardText from '@/components/PretendardText';
 import {
   Liquid,
   LiquidMotion,
@@ -30,8 +31,8 @@ const BUTTON_SIZE = 48;
  */
 const BUTTON_STACK_CLEARANCE = 64;
 
-// 지도 하단 오버레이(CS-2/CS-9): 즐겨찾기 버튼 + 현재 위치 버튼(우하단 세로 스택).
-// 즐겨찾기 버튼은 현재 위치 버튼 위에 두고 항상 노출한다(위치 권한과 무관).
+// 지도 하단 오버레이(CS-2/CS-9): 즐겨찾기 알약 + 현재 위치 원(우하단 세로 스택).
+// 즐겨찾기는 현재 위치 버튼 위에 두고 항상 노출한다(위치 권한과 무관).
 const CampSiteMapBottomOverlayView: FC<Props> = ({
   bottomClearance,
   locationGranted,
@@ -46,17 +47,29 @@ const CampSiteMapBottomOverlayView: FC<Props> = ({
       ]}
       pointerEvents='box-none'
     >
-      {/* 즐겨찾기 목록 열기 — 현재 위치 버튼 위(CS-9). 채움은 지도용 진한 유리 톤이고
-          **실제 블러는 쓰지 않는다** — 채움이 92%라 블러가 보이지 않는데 지도 팬·줌 중
-          매 프레임 비용만 남는다(검색 필드·필터 칩과 같은 판단). */}
+      {/**
+       * 즐겨찾기 **목록 열기** — 현재 위치 버튼 위(CS-9).
+       *
+       * 아이콘만 있는 원이던 시절엔 "즐겨찾기만 보는 필터"인지 "저장 목록"인지 알 수 없었다
+       * (2026-08-11 디자인 리뷰) — 별 하나로는 상태 토글로도 읽힌다. 그래서 라벨을 붙여
+       * 알약으로 바꿨다: 하는 일을 색이 아니라 **말**로 밝힌다. 별과 노란색은 그대로 둔다 —
+       * 즐겨찾기는 앱 전체에서 별이고(박지 상세 액션 칩·빈 상태 카피 `별을 눌러`),
+       * `favorite`는 뜻이 값에 묶인 의미색이라 리디자인 대상이 아니다.
+       *
+       * 채움은 지도용 진한 유리 톤이고 **실제 블러는 쓰지 않는다** — 채움이 92%라 블러가
+       * 보이지 않는데 지도 팬·줌 중 매 프레임 비용만 남는다(검색 필드·필터 칩과 같은 판단).
+       */}
       <TouchableOpacity
-        style={[styles.buttonShadow, styles.glassButton]}
+        style={[styles.favoriteButton, styles.glassButton]}
         onPress={onOpenFavorites}
         activeOpacity={LiquidMotion.pressOpacity}
         accessibilityRole='button'
         accessibilityLabel='즐겨찾기 목록'
       >
-        <Ionicons name='star' size={22} color={LiquidSemantic.favorite} />
+        <Ionicons name='star' size={18} color={LiquidSemantic.favorite} />
+        <PretendardText weight='semibold' style={styles.favoriteLabel}>
+          즐겨찾기
+        </PretendardText>
       </TouchableOpacity>
 
       {/* 현재 위치 버튼 — 권한 허용 시에만 노출. **지도 크롬(검색·필터·플로팅 버튼) 계층에서
@@ -64,7 +77,7 @@ const CampSiteMapBottomOverlayView: FC<Props> = ({
           크롬과 자리를 다투지 않는다(CS-2). */}
       {locationGranted ? (
         <TouchableOpacity
-          style={[styles.buttonShadow, styles.locateButton]}
+          style={[styles.circleButton, styles.locateButton]}
           onPress={onMoveToCurrentLocation}
           activeOpacity={LiquidMotion.pressOpacity}
           accessibilityRole='button'
@@ -85,14 +98,31 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: 12,
   },
-  // 두 버튼이 같은 지오메트리(지름 48 원)를 공유한다 — 채움만 갈린다.
-  buttonShadow: {
+  // 아이콘만 있는 원(현재 위치). 지름 48.
+  circleButton: {
     width: BUTTON_SIZE,
     height: BUTTON_SIZE,
     borderRadius: BUTTON_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
     boxShadow: LiquidShadow.glass,
+  },
+  /**
+   * 아이콘 + 라벨 알약(즐겨찾기). 원 버튼과 **높이는 같고**(48) 모서리도 완전한 알약이라
+   * 두 버튼이 한 가족으로 읽힌다 — 폭만 라벨만큼 늘어난다.
+   */
+  favoriteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    minHeight: BUTTON_SIZE,
+    paddingHorizontal: 16,
+    borderRadius: BUTTON_SIZE / 2,
+    boxShadow: LiquidShadow.glass,
+  },
+  favoriteLabel: {
+    fontSize: 14,
+    color: Liquid.ink,
   },
   glassButton: {
     backgroundColor: Liquid.glassFillOnMap,

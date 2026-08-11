@@ -207,9 +207,14 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
           {/* 검색 결과가 열려 있는 동안 필터 칩은 숨긴다 — 검색은 필터와 독립이라 무의미하고,
               드롭다운에 밀려 지도 한가운데 떠 보이는 문제(디자인 리뷰)를 막는다. */}
           {/* 유형·태그 필터 칩(CS-2). ★ 즐겨찾기는 하단 오버레이 플로팅 버튼으로 옮겨
-              칩 행에선 노출하지 않는다(CS-9). 선택기와 공용 뷰로 공유한다. */}
+              칩 행에선 노출하지 않는다(CS-9). 선택기와 공용 뷰로 공유한다.
+              지도에서는 지형 줄을 접어 두고 유형 줄 끝의 `지형` 칩으로 펼친다 — 오버레이가
+              두 줄이면 상단 150pt를 지도에서 뺏는다(2026-08-11 디자인 리뷰). */}
           {!showSearchResults && (
-            <CampSiteFilterChipsView campSiteMap={campSiteMap} />
+            <CampSiteFilterChipsView
+              campSiteMap={campSiteMap}
+              collapsibleTags
+            />
           )}
         </SafeAreaView>
 

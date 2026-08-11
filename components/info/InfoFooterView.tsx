@@ -95,11 +95,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
   },
-  // 정체를 알기 어려운 장식 배지라 크게 둘 이유가 없다(목업 §11: 40px · 투명도 0.75).
+  /**
+   * 정체를 알기 어려운 장식 배지라 크게 둘 이유가 없다(목업 §11: 40px · 투명도 0.75).
+   * **목업 값보다 더 줄이고 더 낮췄다** — 저해상도 풀컬러 래스터라 모노 + 라임 톤에서 이
+   * 두 개만 이질적이고, 40px에서도 글자가 뭉개져 어차피 판독되지 않았다(2026-08-11 디자인
+   * 리뷰). 지우지 않는 이유는 목업이 이 자리에 배지를 명시하고 있어서다 — 브랜드 표식이라
+   * 조용하게 두는 쪽을 택했다.
+   */
   badge: {
-    width: 40,
-    height: 40,
-    opacity: 0.75,
+    width: 30,
+    height: 30,
+    opacity: 0.5,
   },
   metaRow: {
     flexDirection: 'row',
@@ -108,7 +114,7 @@ const styles = StyleSheet.create({
   },
   /**
    * 목업의 `#9A9AA2`(≈2.9:1)·`inkSubtle`(≈2.2:1)은 11.5px에서 AA(4.5:1)에 못 미쳐 한 단계
-   * 올렸다(창고 알림 칩 WH-2-1과 같은 처리). 위계는 색이 아니라 서체·밑줄이 낸다.
+   * 올렸다(창고 알림 칩 WH-2-1과 같은 처리). 위계는 색이 아니라 서체와 자리가 낸다.
    */
   version: {
     fontFamily: LiquidFont.condensed,
@@ -126,10 +132,14 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     color: Liquid.inkTertiary,
   },
+  /**
+   * `사업자 정보`와 **같은 규칙**을 쓴다 — 성격이 같은 두 텍스트 버튼인데 한쪽만 밑줄이라
+   * 규칙이 갈려 보였고, 웹 스타일 밑줄은 iOS에서 이질적이다(2026-08-11 디자인 리뷰).
+   * 위계는 자리(마지막 줄)와 여백이 낸다.
+   */
   deleteAccount: {
     fontSize: 11.5,
     color: Liquid.inkTertiary,
-    textDecorationLine: 'underline',
   },
 });
 

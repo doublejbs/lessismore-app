@@ -20,6 +20,7 @@ import SearchRankSkeletonView from './SearchRankSkeletonView';
 import SearchRankRowView from './SearchRankRowView';
 import GearFilter from '@/model/gear/GearFilter';
 import { getGearFilterName } from '@/model/gear/GearFilterName';
+import { getGroupForCategory } from '@/model/gear/GearCategoryGroups';
 import LiquidChip from '@/components/liquid/LiquidChip';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
@@ -66,6 +67,37 @@ const resolveInitialCategory = (category?: string): GearFilter => {
   return matched ?? GearFilter.All;
 };
 
+// 세분 카테고리 키(DM-4)를 1차 그룹 한글 라벨로 옮긴다 — 행에는 `텐트`처럼 그룹 이름만 놓는다.
+const getCategoryLabel = (category: string): string => {
+  return getGearFilterName(getGroupForCategory(category));
+};
+
+/**
+ * **표시 단계 중복 제거**(2026-08-11 디자인 리뷰: 4위와 10위가 같은 `헬리녹스 체어제로`였다).
+ *
+ * 카탈로그에 같은 제품이 여러 문서로 있으면 `gear-rank`에도 각각 오르고, 같은 항목이 두 번
+ * 보이는 순위는 그 자체로 신뢰를 깎는다. 브랜드+이름이 같으면 **가장 높은 순위만 남기고**
+ * 뒤 순위를 당긴다(공백·대소문자 차이는 무시). 목록이 10개에서 줄어드는 것은 감수한다 —
+ * 근본 원인인 카탈로그 중복 정리는 데이터 몫이다.
+ */
+const dedupeByIdentity = (gears: Gear[]): Gear[] => {
+  const seen = new Set<string>();
+
+  return gears.filter(gear => {
+    const key = `${gear.getDisplayCompany()}|${gear.getDisplayName()}`
+      .replace(/\s+/g, '')
+      .toLowerCase();
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+
+    return true;
+  });
+};
+
 const SearchTopKeywordsView: FC<Props> = ({
   searchWarehouse,
   bag,
@@ -84,6 +116,8 @@ const SearchTopKeywordsView: FC<Props> = ({
   const [selectedGear, setSelectedGear] = useState<Gear | null>(null);
   const gears = searchRank.getGears();
   const isLoading = searchRank.isLoading();
+  // `전체` 탭에서만 카테고리를 행에 밝힌다 — 서로 다른 카테고리의 무게가 나란히 놓이는 자리다.
+  const isAllCategory = selectedCategory === GearFilter.All;
 
   useFocusEffect(
     useCallback(() => {
@@ -178,7 +212,9 @@ const SearchTopKeywordsView: FC<Props> = ({
       return <SearchRankSkeletonView count={10} />;
     }
 
-    if (gears.length === 0) {
+    const rankedGears = dedupeByIdentity(gears);
+
+    if (rankedGears.length === 0) {
       // 빈 상태는 사실 + 다음 걸음 두 줄.
       return (
         <View style={styles.emptyContainer}>
@@ -193,13 +229,17 @@ const SearchTopKeywordsView: FC<Props> = ({
     }
 
     // 두 번째 행부터 헤어라인으로 나눈다 — 카드 안에서는 면이 아니라 선이 구획을 맡는다.
-    return gears.map((gear, index) => (
+    return rankedGears.map((gear, index) => (
       <SearchRankRowView
         key={gear.getId()}
         gear={gear}
         rank={index + 1}
         loading={loadingGearIds.has(gear.getId())}
         divider={index > 0}
+        count={searchRank.getCount(gear.getId())}
+        {...(isAllCategory
+          ? { categoryLabel: getCategoryLabel(gear.getCategory()) }
+          : {})}
         onPress={handleGearPress}
         onAdd={handleAddPress}
         onRemove={handleRemovePress}

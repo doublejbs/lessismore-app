@@ -4,19 +4,26 @@ import { useRouter } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { Dayjs } from 'dayjs';
 import PretendardText from '@/components/PretendardText';
 import LiquidCard from '@/components/liquid/LiquidCard';
 import LiquidPillButton from '@/components/liquid/LiquidPillButton';
 import LiquidProgressBar from '@/components/liquid/LiquidProgressBar';
+import LiquidSectionLabel from '@/components/liquid/LiquidSectionLabel';
 import {
   Liquid,
   LiquidFont,
+  LiquidLayout,
   LiquidRadius,
   LiquidShadow,
   LiquidMotion,
 } from '@/constants/DesignTokens';
 import BagItem from '@/model/bag/BagItem';
-import { formatBagWeightValue } from '@/model/gear/WeightFormat';
+import {
+  formatBagWeight,
+  formatBagWeightValue,
+} from '@/model/gear/WeightFormat';
+import { formatTripPeriod } from '@/model/home/HomeDateFormat';
 import {
   getDDayLabel,
   getPrimaryAction,
@@ -29,7 +36,41 @@ import app from '@/model/app/App';
 
 interface Props {
   plan: HomeTripPlan;
+  /**
+   * D-day·기간의 기준 날짜. 화면이 포커스마다 새로 잡는 값을 그대로 받는다(HM-6) —
+   * 여기서 `dayjs()`를 다시 부르면 자정을 넘긴 순간 히어로의 시점 계산(`plan`)과
+   * 라벨이 서로 다른 날짜를 말한다.
+   */
+  today: Dayjs;
 }
+
+/**
+ * 히어로 아래 한 줄 카드의 D-day 칸 최소 폭. `D-4`와 `D-45`처럼 자릿수가 다른 라벨이
+ * 오면 이름의 좌측 축이 밀려 목록이 흔들린다 — 칸 폭을 고정해 축을 하나로 붙인다
+ * (2026-08-11 디자인 리뷰). `오늘 출발`처럼 더 긴 한글 라벨은 잘리는 대신 칸을 넓힌다.
+ */
+const D_DAY_COLUMN_WIDTH = 60;
+
+/** 한 줄 카드의 보조 줄(`4.9kg · 패킹 3/12`)을 잇는 구분자. */
+const NEXT_META_SEPARATOR = ' · ';
+
+/**
+ * 한 줄 카드의 보조 줄. 히어로와 **같은 말**을 쓴다 — 무게는 DM-26 표기,
+ * 패킹은 배낭 상세 하단 바(PK-2)와 같은 `패킹 {n}/{m}`이다. 없는 조각은 생략한다.
+ */
+const buildNextMeta = (bag: BagItem): string | null => {
+  const parts: string[] = [];
+
+  if (bag.getWeightGram() > 0) {
+    parts.push(formatBagWeight(bag.getWeightGram()));
+  }
+
+  if (bag.hasPackingRecord()) {
+    parts.push(`패킹 ${bag.getPackedGearCount()}/${bag.getGearCount()}`);
+  }
+
+  return parts.length > 0 ? parts.join(NEXT_META_SEPARATOR) : null;
+};
 
 /**
  * HM-1 다가오는 일정 (Liquid Depth).
@@ -39,7 +80,7 @@ interface Props {
  *
  * 히어로는 이 화면의 **유일한 라임 면**이다 — 아래 창고·기록 섹션은 종이 면으로만 간다.
  */
-const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
+const HomeUpcomingTripView: FC<Props> = ({ plan, today }) => {
   const router = useRouter();
   const { primary, stage, next } = plan;
 
@@ -82,10 +123,15 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
     );
   }
 
-  const dDayLabel = getDDayLabel(primary);
+  const dDayLabel = getDDayLabel(primary, today);
   const action = getPrimaryAction(primary, stage);
   const locationName = primary.getLocationName();
-  const displayDate = primary.getDisplayDate();
+  // `8.15 토 ~ 8.16 일` — 연도는 해가 바뀌는 여행에서만 붙는다(HomeDateFormat).
+  const displayDate = formatTripPeriod(
+    primary.getStartDateValue(),
+    primary.getEndDateValue(),
+    today
+  );
   // 배낭에 저장된 스냅샷을 읽을 뿐 새로 조회하지 않는다(HM-1).
   const weatherSummary = summarizeWeatherPeriod(
     primary.getWeather()?.daily ?? []
@@ -96,6 +142,9 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
   const packedCount = primary.getPackedGearCount();
   const gearCount = primary.getGearCount();
   const packingPercent = primary.getPackingPercent();
+  // 세 조각이 다 없으면 판 자체를 그리지 않는다 — 안 그러면 빈 유리 알약만 남는다(HM 원칙).
+  const hasHeroPanel =
+    hasPackingRecord || Boolean(weatherSummary) || displayDate !== null;
 
   return (
     <View>
@@ -164,70 +213,84 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
           </PretendardText>
         </TouchableOpacity>
 
-        {/* 라임 면 위 유리 판 — 진행·날씨·기간을 한 덩어리로 묶는다. */}
-        <View style={styles.heroPanel}>
-          <BlurView
-            tint='light'
-            intensity={30}
-            style={StyleSheet.absoluteFill}
-          />
-          <View style={[StyleSheet.absoluteFill, styles.heroPanelFill]} />
+        {/* 라임 면 위 유리 판 — 진행·날씨·기간을 한 덩어리로 묶는다.
+            **폭을 다 쓰는 이유는 진행 바 하나뿐이다.** 패킹 기록이 없는 배낭에서는 판에
+            날짜(+날씨) 한 줄만 남아, 카드 폭 알약의 우측 절반이 비어 보였다(2026-08-11
+            디자인 리뷰) — 그때는 내용 폭으로 줄여 날짜 알약으로 읽히게 한다. */}
+        {hasHeroPanel ? (
+          <View
+            style={[styles.heroPanel, !hasPackingRecord && styles.heroPanelHug]}
+          >
+            <BlurView
+              tint='light'
+              intensity={30}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={[StyleSheet.absoluteFill, styles.heroPanelFill]} />
 
-          <View style={styles.panelBody}>
-            {hasPackingRecord ? (
-              <>
-                <View style={styles.panelRow}>
-                  {/* 배낭 상세 하단 바가 쓰는 `패킹 {n}/{m}`(PK-2)과 같은 말이다. */}
-                  <PretendardText weight='semibold' style={styles.panelLabel}>
-                    패킹 진행
-                  </PretendardText>
-                  <PretendardText style={styles.panelValue}>
-                    {`${packedCount}/${gearCount}`}
-                  </PretendardText>
-                </View>
-                <View style={styles.panelProgress}>
-                  <LiquidProgressBar
-                    percent={packingPercent}
-                    tone='ink'
-                    height={8}
-                    trackColor={Liquid.trackOnAccent}
-                  />
-                </View>
-              </>
-            ) : null}
-
-            {weatherSummary || displayDate !== null ? (
-              <View
-                style={[
-                  styles.panelMeta,
-                  hasPackingRecord && styles.panelMetaSpaced,
-                ]}
-              >
-                {weatherSummary ? (
-                  <View style={styles.weatherRow}>
-                    <Ionicons
-                      name='partly-sunny'
-                      size={16}
-                      color={Liquid.limeOnQuiet}
-                    />
-                    {/* 날씨는 `흐림` 같은 한글이 섞여 콘덴스드를 못 쓴다(한글 글리프 없음). */}
-                    <PretendardText weight='medium' style={styles.weatherText}>
-                      {`${weatherSummary.cond} ${weatherSummary.low}°/${weatherSummary.high}°`}
+            <View style={styles.panelBody}>
+              {hasPackingRecord ? (
+                <>
+                  <View style={styles.panelRow}>
+                    {/* 배낭 상세 하단 바가 쓰는 `패킹 {n}/{m}`(PK-2)과 같은 말이다. */}
+                    <PretendardText weight='semibold' style={styles.panelLabel}>
+                      패킹 진행
+                    </PretendardText>
+                    <PretendardText style={styles.panelValue}>
+                      {`${packedCount}/${gearCount}`}
                     </PretendardText>
                   </View>
-                ) : null}
-                {weatherSummary && displayDate !== null ? (
-                  <View style={styles.metaDivider} />
-                ) : null}
-                {displayDate !== null ? (
-                  <PretendardText style={styles.periodText} numberOfLines={1}>
-                    {displayDate}
-                  </PretendardText>
-                ) : null}
-              </View>
-            ) : null}
+                  <View style={styles.panelProgress}>
+                    <LiquidProgressBar
+                      percent={packingPercent}
+                      tone='ink'
+                      height={8}
+                      trackColor={Liquid.trackOnAccent}
+                    />
+                  </View>
+                </>
+              ) : null}
+
+              {weatherSummary || displayDate !== null ? (
+                <View
+                  style={[
+                    styles.panelMeta,
+                    hasPackingRecord && styles.panelMetaSpaced,
+                  ]}
+                >
+                  {weatherSummary ? (
+                    <View style={styles.weatherRow}>
+                      <Ionicons
+                        name='partly-sunny'
+                        size={16}
+                        color={Liquid.limeOnQuiet}
+                      />
+                      {/* 날씨는 `흐림` 같은 한글이 섞여 콘덴스드를 못 쓴다(한글 글리프 없음). */}
+                      <PretendardText
+                        weight='medium'
+                        style={styles.weatherText}
+                      >
+                        {`${weatherSummary.cond} ${weatherSummary.low}°/${weatherSummary.high}°`}
+                      </PretendardText>
+                    </View>
+                  ) : null}
+                  {weatherSummary && displayDate !== null ? (
+                    <View style={styles.metaDivider} />
+                  ) : null}
+                  {displayDate !== null ? (
+                    <PretendardText
+                      weight='medium'
+                      style={styles.periodText}
+                      numberOfLines={1}
+                    >
+                      {displayDate}
+                    </PretendardText>
+                  ) : null}
+                </View>
+              ) : null}
+            </View>
           </View>
-        </View>
+        ) : null}
 
         <View style={styles.heroCta}>
           <LiquidPillButton
@@ -241,45 +304,76 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
         </View>
       </View>
 
-      {/* 다음 여행 한 줄 카드 — 히어로 다음 순번들. */}
-      {next.map(bag => {
-        const nextLabel = getDDayLabel(bag) ?? '';
+      {/*
+        다음 여행 한 줄 카드 — 히어로 다음 순번들.
 
-        return (
-          <TouchableOpacity
-            key={bag.getID()}
-            style={styles.nextRow}
-            onPress={() => handleOpenBag(bag)}
-            activeOpacity={LiquidMotion.pressOpacity}
-            accessibilityRole='button'
-            accessibilityLabel={`${bag.getName()} 배낭 상세`}
-          >
-            {/* 히어로 배지와 같은 기준으로 서체를 가른다 — 한글이 오면 콘덴스드를 벗긴다. */}
-            <PretendardText
-              style={[
-                styles.nextDDay,
-                isCondensedLabel(nextLabel)
-                  ? styles.nextDDayCondensed
-                  : styles.nextDDayKorean,
-              ]}
-            >
-              {nextLabel}
-            </PretendardText>
-            <PretendardText
-              weight='medium'
-              style={styles.nextName}
-              numberOfLines={1}
-            >
-              {bag.getName()}
-            </PretendardText>
-            <Ionicons
-              name='chevron-forward'
-              size={14}
-              color={Liquid.inkSubtle}
-            />
-          </TouchableOpacity>
-        );
-      })}
+        섹션 라벨을 붙여 히어로와의 관계를 밝힌다(2026-08-11 디자인 리뷰). 라벨이 없을 때는
+        같은 배낭 목록의 일부인데도 위 히어로와 다른 것으로 읽혔다. 말은 배낭 탭·배낭 상세와
+        같은 `배낭`이다 — `여행`은 여행지·여행 중과 겹친다.
+      */}
+      {next.length > 0 ? (
+        <View style={styles.nextSection}>
+          <LiquidSectionLabel>다가오는 배낭</LiquidSectionLabel>
+
+          {next.map((bag, index) => {
+            const nextLabel = getDDayLabel(bag, today) ?? '';
+            const nextMeta = buildNextMeta(bag);
+
+            return (
+              <TouchableOpacity
+                key={bag.getID()}
+                style={[styles.nextRow, index > 0 && styles.nextRowSpaced]}
+                onPress={() => handleOpenBag(bag)}
+                activeOpacity={LiquidMotion.pressOpacity}
+                accessibilityRole='button'
+                accessibilityLabel={`${nextLabel} ${bag.getName()}${
+                  nextMeta !== null ? `, ${nextMeta}` : ''
+                }, 배낭 상세`}
+              >
+                {/* 고정폭 칸 — 자릿수가 달라도 이름의 좌측 축이 하나로 남는다. */}
+                <View style={styles.nextDDayColumn}>
+                  {/* 히어로 배지와 같은 기준으로 서체를 가른다 — 한글이 오면 콘덴스드를 벗긴다. */}
+                  <PretendardText
+                    weight='semibold'
+                    style={[
+                      styles.nextDDay,
+                      isCondensedLabel(nextLabel)
+                        ? styles.nextDDayCondensed
+                        : styles.nextDDayKorean,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {nextLabel}
+                  </PretendardText>
+                </View>
+
+                <View style={styles.nextBody}>
+                  <PretendardText
+                    weight='medium'
+                    style={styles.nextName}
+                    numberOfLines={1}
+                  >
+                    {bag.getName()}
+                  </PretendardText>
+                  {/* 무게·패킹은 목록 탭·히어로와 같은 값·같은 말이다 — 홈에서만 사라지면
+                      같은 배낭이 화면마다 다른 것으로 읽힌다. */}
+                  {nextMeta !== null ? (
+                    <PretendardText style={styles.nextMeta} numberOfLines={1}>
+                      {nextMeta}
+                    </PretendardText>
+                  ) : null}
+                </View>
+
+                <Ionicons
+                  name='chevron-forward'
+                  size={14}
+                  color={Liquid.inkSubtle}
+                />
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      ) : null}
     </View>
   );
 };
@@ -373,6 +467,10 @@ const styles = StyleSheet.create({
     borderRadius: LiquidRadius.tile,
     overflow: 'hidden',
   },
+  // 진행 바가 없는 판은 내용 폭까지 줄인다(위 주석).
+  heroPanelHug: {
+    alignSelf: 'flex-start',
+  },
   heroPanelFill: {
     backgroundColor: Liquid.glassFillSoft,
   },
@@ -418,43 +516,68 @@ const styles = StyleSheet.create({
     height: 12,
     backgroundColor: Liquid.hairlineOnAccent,
   },
+  /**
+   * 기간은 `8.15 토`처럼 한글 요일이 섞여 **콘덴스드를 쓸 수 없다**(Archivo Narrow에
+   * 한글 글리프가 없다). 자간도 본문 서체 기본값으로 둔다.
+   */
   periodText: {
     flexShrink: 1,
-    fontFamily: LiquidFont.condensed,
     fontSize: 13,
-    letterSpacing: 0.78, // .06em
     color: Liquid.limeOnQuiet,
   },
   heroCta: {
     paddingHorizontal: 14,
     paddingBottom: 14,
   },
+  nextSection: {
+    marginTop: LiquidLayout.section,
+  },
   nextRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginTop: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    minHeight: 44,
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    minHeight: LiquidLayout.touchMin,
     borderRadius: LiquidRadius.tile,
     backgroundColor: Liquid.surface,
     boxShadow: LiquidShadow.tile,
   },
+  nextRowSpaced: {
+    marginTop: LiquidLayout.listGap,
+  },
+  // 중립 배지 — 배낭 목록의 `D-21` 배지와 같은 면이다(목업 §5).
+  nextDDayColumn: {
+    minWidth: D_DAY_COLUMN_WIDTH,
+    minHeight: 26,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: LiquidRadius.chipSm,
+    backgroundColor: Liquid.badgeFill,
+  },
   nextDDay: {
-    color: Liquid.inkTertiary,
+    color: Liquid.inkSecondary,
   },
   nextDDayCondensed: {
     fontFamily: LiquidFont.condensed,
     fontSize: 15,
   },
   nextDDayKorean: {
-    fontSize: 13.5,
+    fontSize: 12.5,
+  },
+  nextBody: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
   },
   nextName: {
-    flex: 1,
     fontSize: 14,
     color: Liquid.ink,
+  },
+  nextMeta: {
+    fontSize: 12.5,
+    color: Liquid.inkTertiary,
   },
   empty: {
     alignItems: 'flex-start',

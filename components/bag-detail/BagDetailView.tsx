@@ -7,8 +7,15 @@ import {
   useRef,
   useState,
 } from 'react';
-import { View, ScrollView, StyleSheet, Platform } from 'react-native';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Platform,
+  TouchableOpacity,
+} from 'react-native';
 import { BlurView } from 'expo-blur';
+import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import TripPhase from '@/model/bag/TripPhase';
 import PretendardText from '@/components/PretendardText';
@@ -17,8 +24,12 @@ import LiquidCard from '@/components/liquid/LiquidCard';
 import LiquidHeaderChrome, {
   LIQUID_HEADER_ICON_BOX,
 } from '@/components/liquid/LiquidHeaderChrome';
-import LiquidPillButton from '@/components/liquid/LiquidPillButton';
-import { Liquid, LiquidLayout, LiquidType } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidType,
+} from '@/constants/DesignTokens';
 import BagDetailCategoryView from './BagDetailCategoryView';
 import BagDetailDateView from './BagDetailDateView';
 import BagDetailFiltersView from './BagDetailFiltersView';
@@ -28,10 +39,10 @@ import BagDetailSummaryView from './BagDetailSummaryView';
 import BagDetailBottomBar from './BagDetailBottomBar';
 import BagDetailMemoView from './BagDetailMemoView';
 import BagDetailDestinationView from './BagDetailDestinationView';
-import BagDetailActivityView from './BagDetailActivityView';
-import ShareButtonView from './ShareButtonView';
-import BagFilmCardButtonView from './BagFilmCardButtonView';
-import BagDetailCopyView from '../bag/BagDetailCopyView';
+import BagDetailActivityView, {
+  shouldShowActivityTile,
+} from './BagDetailActivityView';
+import BagDetailActionMenuView from './BagDetailActionMenuView';
 import { Stack, useFocusEffect } from 'expo-router';
 import BagDetailSkeletonView from './BagDetailSkeletonView';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -50,8 +61,6 @@ interface Props {
 
 // LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
 const IS_IOS = Platform.OS === 'ios';
-// 웹은 필름 카드 진입점이 없다(BS-1) — 아이콘을 담는 칸까지 함께 빼야 한다.
-const IS_WEB = Platform.OS === 'web';
 // iOS는 네이티브 투명 헤더가 상단을 덮고 스크롤 뷰가 자동 인셋을 받으므로
 // top 세이프에어리어를 빼 이중 인셋을 막는다. 하단은 기존 동작 유지.
 const SAFE_AREA_EDGES: readonly Edge[] = IS_IOS
@@ -61,19 +70,28 @@ const SAFE_AREA_EDGES: readonly Edge[] = IS_IOS
 // 섹션 제목(`담긴 장비`) 크기 — 목업 §6.
 const GEAR_TITLE_SIZE = 19;
 
+// 오버플로 메뉴와 크롬 사이 숨.
+const ACTION_MENU_GAP = 6;
+
 const BagDetailView: FC<Props> = ({ bagDetail }) => {
   const initialized = bagDetail.isInitialized();
   const scrollViewRef = useRef<ScrollView>(null);
   const categoryRefsMap = useRef<Map<string, any>>(new Map());
+  // 헤더 오버플로 메뉴(⋯)가 펼쳐져 있는지(BD-1).
+  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
+  // Android·Web 유리 크롬 높이 — 메뉴가 그 바로 아래에서 시작한다(iOS는 네이티브 헤더 몫).
+  const [chromeHeight, setChromeHeight] = useState(0);
 
   const handlePressBack = () => {
     bagDetail.back();
   };
 
-  // 빈 배낭 안내의 CTA — 하단 `장비 추가`와 같은 경로·같은 로그를 쓴다.
-  const handlePressAddGear = () => {
-    app.getAnalyticsManager()?.logClick('bag_edit');
-    bagDetail.goToEdit();
+  const handleToggleActionMenu = () => {
+    setIsActionMenuOpen(open => !open);
+  };
+
+  const handleCloseActionMenu = () => {
+    setIsActionMenuOpen(false);
   };
 
   const handleCategoryRefReady = (categoryFilter: string, ref: any) => {
@@ -125,27 +143,29 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     }
   }, [initialized]);
 
-  // 헤더 우측 액션(복사·공유·필름 카드) — iOS 네이티브 headerRight와 Android/Web 유리 캡슐이 공유한다.
-  // 각 아이콘을 칸에 담아 캡슐의 내부 여백·아이콘 중심 간격을 맞춘다. iOS는 시스템 바 버튼
-  // 지오메트리(44pt 칸)에, Android/Web은 목업 §6 캡슐(34pt 칸)에 맞춘다.
+  /**
+   * 헤더 우측 액션 — iOS 네이티브 headerRight와 Android/Web 유리 캡슐이 공유한다.
+   * 아이콘을 칸에 담아 캡슐의 내부 여백을 맞춘다. iOS는 시스템 바 버튼 지오메트리(44pt 칸),
+   * Android/Web은 목업 §6 캡슐(34pt 칸)이다.
+   *
+   * 복사·공유·필름 카드 셋은 **오버플로 하나(⋯)로 접었다**(2026-08-11 개정) — 무라벨 아이콘
+   * 세 개로는 무엇을 하는 버튼인지 읽히지 않았다(특히 필름). 라벨은 펼친 메뉴가 든다.
+   */
   const renderHeaderActions = () => (
     <View style={styles.headerActions}>
       <View style={IS_IOS ? styles.headerIconBoxIos : styles.headerIconBox}>
-        <BagDetailCopyView
-          sourceId={bagDetail.getId()}
-          sourceName={bagDetail.getName()}
-        />
+        <TouchableOpacity
+          onPress={handleToggleActionMenu}
+          activeOpacity={LiquidMotion.pressOpacity}
+          // 시각 크기는 아이콘 20pt이고 칸은 헤더가 잡는다 — 여유로 44pt를 채운다.
+          hitSlop={{ top: 12, bottom: 12, left: 7, right: 7 }}
+          accessibilityRole='button'
+          accessibilityLabel='더보기'
+          accessibilityState={{ expanded: isActionMenuOpen }}
+        >
+          <Ionicons name='ellipsis-horizontal' size={20} color={Liquid.ink} />
+        </TouchableOpacity>
       </View>
-      <View style={IS_IOS ? styles.headerIconBoxIos : styles.headerIconBox}>
-        <ShareButtonView bagDetail={bagDetail} />
-      </View>
-      {/* 웹에서는 BagFilmCardButtonView가 아무것도 그리지 않으므로 칸도 렌더하지 않는다 —
-          래퍼만 남기면 캡슐 오른쪽에 34pt 죽은 칸이 생겨 아이콘 두 개가 중심에서 밀린다. */}
-      {!IS_WEB && (
-        <View style={IS_IOS ? styles.headerIconBoxIos : styles.headerIconBox}>
-          <BagFilmCardButtonView bagDetail={bagDetail} />
-        </View>
-      )}
     </View>
   );
 
@@ -167,6 +187,16 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
 
   if (initialized) {
     const gears = bagDetail.getGears();
+    const isEmptyBag = gears.length === 0;
+    const isAfterTrip = bagDetail.getTripPhase() === TripPhase.After;
+    /**
+     * 액션 타일 열 수(BD-10). 운동 기록 타일이 빠지면 3장이라 2열 격자에 빈 칸이 남고,
+     * 그만큼 `담긴 장비` 목록이 첫 화면에서 밀려났다 — 3장은 한 줄 3열로 눌러 목록을 올린다.
+     */
+    const tileColumns = shouldShowActivityTile(bagDetail) ? 2 : 3;
+    // 메뉴는 크롬 바로 아래에서 시작한다(iOS는 네이티브 헤더 바닥, 그 외는 유리 크롬 바닥).
+    const actionMenuTop =
+      (IS_IOS ? headerBottom : chromeHeight) + ACTION_MENU_GAP;
 
     const renderGearHeaderTitle = () => (
       <View style={styles.gearHeaderTitleRow}>
@@ -190,10 +220,14 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
             {/* Android·Web 유리 크롬 — iOS는 네이티브 투명 헤더가 같은 그림(원형 글래스
                 back + 글래스 바 버튼)을 시스템에서 내준다(LG-1). */}
             {!IS_IOS && (
-              <LiquidHeaderChrome
-                onPressBack={handlePressBack}
-                actions={renderHeaderActions()}
-              />
+              <View
+                onLayout={e => setChromeHeight(e.nativeEvent.layout.height)}
+              >
+                <LiquidHeaderChrome
+                  onPressBack={handlePressBack}
+                  actions={renderHeaderActions()}
+                />
+              </View>
             )}
             <ScrollView
               ref={scrollViewRef}
@@ -202,7 +236,8 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
               contentInsetAdjustmentBehavior='automatic'
               // iOS는 sticky가 투명 헤더 뒤(화면 최상단)에 붙어 가려지므로 오버레이로 대체한다.
-              stickyHeaderIndices={IS_IOS ? undefined : [3]}
+              // 빈 배낭은 장비 헤더 자체를 렌더하지 않아(아래) 고정할 자식이 없다.
+              stickyHeaderIndices={!IS_IOS && !isEmptyBag ? [3] : undefined}
               onScroll={handleScroll}
               scrollEventThrottle={16}
               showsVerticalScrollIndicator={false}
@@ -213,60 +248,88 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               </View>
               <BagDetailSummaryView bagDetail={bagDetail} />
               <View style={styles.tileGrid}>
-                {bagDetail.getTripPhase() === TripPhase.After ? (
+                {isAfterTrip ? (
+                  /* 지난 여행에서는 `사용 기록`이 하단 바의 **주 액션**이라(BD-9) 같은 일을
+                     그리드에서 잉크로 또 세우지 않는다 — 잉크 면이 둘이면 어느 쪽이 이 화면의
+                     주 액션인지 갈린다(2026-08-11 개정). 순서는 그대로 첫 칸이다. */
                   <>
                     <BagDetailUselessDescriptionView
                       bagDetail={bagDetail}
-                      emphasized
+                      columns={tileColumns}
                     />
-                    <BagDetailMemoView bagDetail={bagDetail} />
-                    <BagDetailDestinationView bagDetail={bagDetail} />
-                    <BagDetailActivityView bagDetail={bagDetail} />
+                    <BagDetailMemoView
+                      bagDetail={bagDetail}
+                      columns={tileColumns}
+                    />
+                    <BagDetailDestinationView
+                      bagDetail={bagDetail}
+                      columns={tileColumns}
+                    />
+                    <BagDetailActivityView
+                      bagDetail={bagDetail}
+                      columns={tileColumns}
+                    />
                   </>
                 ) : (
                   <>
                     <BagDetailDestinationView
                       bagDetail={bagDetail}
                       emphasized
+                      columns={tileColumns}
                     />
-                    <BagDetailMemoView bagDetail={bagDetail} />
-                    <BagDetailUselessDescriptionView bagDetail={bagDetail} />
-                    <BagDetailActivityView bagDetail={bagDetail} />
+                    <BagDetailMemoView
+                      bagDetail={bagDetail}
+                      columns={tileColumns}
+                    />
+                    <BagDetailUselessDescriptionView
+                      bagDetail={bagDetail}
+                      columns={tileColumns}
+                    />
+                    <BagDetailActivityView
+                      bagDetail={bagDetail}
+                      columns={tileColumns}
+                    />
                   </>
                 )}
               </View>
-              <View
-                style={[
-                  styles.gearHeader,
-                  // Android/Web은 이 뷰가 그대로 sticky 헤더가 된다 — 투명하면 아래로 지나가는
-                  // 흰 장비 카드가 제목·칩 뒤로 비쳐 글자가 겹쳐 읽힌다. 지면색으로 막는다.
-                  // (iOS는 이 자리를 유리 띠 오버레이가 맡아 여기에 면을 깔 필요가 없다.)
-                  !IS_IOS && styles.gearHeaderOpaque,
-                ]}
-                onLayout={e => {
-                  bagDetail.setGearHeaderHeight(e.nativeEvent.layout.height);
-                  // iOS 오버레이 핀 판정용 — 콘텐츠 내 y 위치를 기록한다.
-                  setGearHeaderY(e.nativeEvent.layout.y);
-                }}
-                // 핀 상태에서 이 인라인 헤더는 유리 띠 오버레이·네이티브 헤더 뒤로 가려진다 —
-                // 보이지 않는 쪽을 접근성 트리에서 빼 같은 제목·칩이 두 벌 읽히지 않게 한다.
-                accessibilityElementsHidden={isPinnedHeaderVisible}
-                importantForAccessibility={
-                  isPinnedHeaderVisible ? 'no-hide-descendants' : 'auto'
-                }
-              >
-                {renderGearHeaderTitle()}
-                {/* 모델의 필터 ref 슬롯은 하나뿐이라 보이는 인스턴스만 등록한다(BD-2). */}
-                <BagDetailFiltersView
-                  bagDetail={bagDetail}
-                  registerRefs={!isPinnedHeaderVisible}
-                />
-              </View>
+              {/* 빈 배낭에서는 장비 헤더를 렌더하지 않는다(2026-08-11 개정) —
+                  `담긴 장비` + `0개` + 카드 제목 `담긴 장비가 없어요`가 같은 사실을 세 번
+                  말했고, 고정할 필터 칩도 없다. 빈 상태 카드 한 장이 그 자리를 맡는다. */}
+              {!isEmptyBag ? (
+                <View
+                  style={[
+                    styles.gearHeader,
+                    // Android/Web은 이 뷰가 그대로 sticky 헤더가 된다 — 투명하면 아래로 지나가는
+                    // 흰 장비 카드가 제목·칩 뒤로 비쳐 글자가 겹쳐 읽힌다. 지면색으로 막는다.
+                    // (iOS는 이 자리를 유리 띠 오버레이가 맡아 여기에 면을 깔 필요가 없다.)
+                    !IS_IOS && styles.gearHeaderOpaque,
+                  ]}
+                  onLayout={e => {
+                    bagDetail.setGearHeaderHeight(e.nativeEvent.layout.height);
+                    // iOS 오버레이 핀 판정용 — 콘텐츠 내 y 위치를 기록한다.
+                    setGearHeaderY(e.nativeEvent.layout.y);
+                  }}
+                  // 핀 상태에서 이 인라인 헤더는 유리 띠 오버레이·네이티브 헤더 뒤로 가려진다 —
+                  // 보이지 않는 쪽을 접근성 트리에서 빼 같은 제목·칩이 두 벌 읽히지 않게 한다.
+                  accessibilityElementsHidden={isPinnedHeaderVisible}
+                  importantForAccessibility={
+                    isPinnedHeaderVisible ? 'no-hide-descendants' : 'auto'
+                  }
+                >
+                  {renderGearHeaderTitle()}
+                  {/* 모델의 필터 ref 슬롯은 하나뿐이라 보이는 인스턴스만 등록한다(BD-2). */}
+                  <BagDetailFiltersView
+                    bagDetail={bagDetail}
+                    registerRefs={!isPinnedHeaderVisible}
+                  />
+                </View>
+              ) : null}
               <View style={styles.gearList}>
                 {/* 빈 배낭이면 목록 자리가 통째로 비어 뭘 해야 할지 알 수 없었다
-                    (2026-08-04 시뮬레이터 확인). 하단 `장비 추가`와 같은 경로를
-                    바로 누를 수 있게 둔다 — 빈 배낭에서 할 일은 이것 하나뿐이다. */}
-                {gears.length === 0 ? (
+                    (2026-08-04 시뮬레이터 확인). 다음 걸음만 말하고 **버튼은 두지 않는다** —
+                    하단 고정 바의 `장비 추가`가 이 화면의 주 액션이라, 같은 곳으로 가는
+                    알약을 카드 안에 또 두면 화면에 주 액션이 둘로 읽혔다(2026-08-11 개정). */}
+                {isEmptyBag ? (
                   <LiquidCard
                     tone='paper'
                     padding={24}
@@ -278,17 +341,6 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                     <PretendardText style={styles.gearEmptyText}>
                       창고에서 장비를 골라 담아보세요
                     </PretendardText>
-                    {/* 하단 바의 `장비 추가`가 이 화면의 주 액션이다 — 같은 곳으로 가는
-                        이 카드 안 버튼까지 잉크로 두면 잉크 CTA가 화면에 둘이 된다.
-                        흰 카드 위라 `secondary`(흰 면 + 헤어라인)는 테두리만 남아 버튼으로
-                        읽히지 않는다 — 면을 한 단계 가라앉히는 `quiet`으로 낮춘다. */}
-                    <LiquidPillButton
-                      label='장비 추가하기'
-                      variant='quiet'
-                      block
-                      onPress={handlePressAddGear}
-                      style={styles.gearEmptyCta}
-                    />
                   </LiquidCard>
                 ) : null}
                 {bagDetail.getGearsByCategory().map(({ category, gears }) => (
@@ -300,8 +352,10 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                     onRefReady={handleCategoryRefReady}
                   />
                 ))}
-                {/* 마지막 카테고리도 필터 탭으로 화면 상단까지 올릴 수 있게 남기는 여유(BD-2). */}
-                <View style={styles.scrollHeadroom} />
+                {/* 마지막 카테고리도 필터 탭으로 화면 상단까지 올릴 수 있게 남기는 여유(BD-2).
+                    빈 배낭에는 올릴 카테고리가 없어 두지 않는다 — 안내 카드 아래로 빈 화면만
+                    200pt 스크롤된다. */}
+                {!isEmptyBag ? <View style={styles.scrollHeadroom} /> : null}
               </View>
             </ScrollView>
             {/* iOS: sticky 대체 오버레이 — 필터를 투명 헤더 '아래'에 유리 띠로 고정한다.
@@ -321,6 +375,14 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               </View>
             )}
             <BagDetailBottomBar bagDetail={bagDetail} />
+            {/* 헤더 오버플로 메뉴(BD-1). 콘텐츠·하단 바 위에 떠야 하므로 형제 중 마지막이다. */}
+            {isActionMenuOpen && (
+              <BagDetailActionMenuView
+                bagDetail={bagDetail}
+                top={actionMenuTop}
+                onClose={handleCloseActionMenu}
+              />
+            )}
           </View>
           <ToastView toastManager={app.getToastManager()!} bottom={100} />
           {/* 이 화면은 `Layout`을 쓰지 않아 알럿을 그리는 뷰가 없다 — 직접 얹는다.
@@ -425,7 +487,9 @@ const styles = StyleSheet.create({
     gap: LiquidLayout.section,
     paddingHorizontal: LiquidLayout.screenH,
   },
+  // 장비 헤더 없이 지면 위에 바로 놓이므로 섹션 간격을 카드가 든다.
   gearEmpty: {
+    marginTop: LiquidLayout.section,
     alignItems: 'center',
   },
   gearEmptyTitle: {
@@ -438,9 +502,6 @@ const styles = StyleSheet.create({
     fontSize: LiquidType.bodySm.fontSize,
     lineHeight: LiquidType.bodySm.lineHeight,
     color: Liquid.inkTertiary,
-  },
-  gearEmptyCta: {
-    marginTop: 18,
   },
   scrollHeadroom: {
     height: 200,

@@ -105,6 +105,19 @@ class GearEdit extends AbstractGearEdit {
     return this.initialized;
   }
 
+  /**
+   * 사진 필드가 쓰는 두 값(GD-13). 사진은 폼 입력이 아니라 **그 자리에서 저장되는 값**이라
+   * `GearImageUpload`가 따로 들고 있고, 이 모델은 대상 문서(`gearId`)와 진입 시점 URL만 내준다.
+   * 초기화 전에는 대상을 모르므로 빈 값이며, 화면은 `isInitialized()` 뒤에 렌더된다.
+   */
+  public getGearId(): string {
+    return this.gear?.getId() ?? '';
+  }
+
+  public getImageUrl(): string | undefined {
+    return this.gear?.getImageUrl();
+  }
+
   public override hide(): void {
     this.navigate.back();
   }

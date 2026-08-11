@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Layout from '@/components/Layout';
@@ -21,6 +21,7 @@ import {
   TERMS_OF_SERVICE_TEXT,
 } from '@/constants/LegalTexts';
 import PolicyTab from '@/components/info/PolicyTab';
+import PolicyLineKind from '@/components/info/PolicyLineKind';
 
 interface Props {
   // 진입 시 펼쳐 둘 문서(AU-4). 정보 탭의 어느 행을 눌렀는지에 따라 갈린다.
@@ -39,6 +40,53 @@ const TAB_TEXTS: Record<PolicyTab, string> = {
   [PolicyTab.Terms]: TERMS_OF_SERVICE_TEXT,
 };
 
+// 조항 머리(`제1조 (…)`, `부칙 …`). 원문에 `제10조(…)`처럼 공백이 없는 줄도 있어 느슨하게 잡는다.
+const HEADING_PATTERN = /^(제\s*\d+\s*조|부칙)/;
+
+// 조항 안 항목 머리(`1. …`, `▶ …`). 번호 뒤 점이 없는 줄(`1 관계 법령…`)은 본문이다.
+const SUB_HEADING_PATTERN = /^(\d+\.\s|▶)/;
+
+interface PolicyBlock {
+  key: string;
+  kind: PolicyLineKind;
+  text: string;
+  /** 단락이 갈리는 자리(원문의 빈 줄 뒤 · 조항 머리) — 위 여백을 준다 */
+  spaced: boolean;
+}
+
+/**
+ * 원문 문자열을 줄 단위 블록으로 나눈다. **원문은 건드리지 않는다** — 굵기·여백만 렌더에서 낸다.
+ * 빈 줄은 블록으로 만들지 않고 다음 블록의 `spaced`로 옮긴다(빈 Text를 그리면 여백이 두 겹이 된다).
+ */
+const buildPolicyBlocks = (text: string): PolicyBlock[] => {
+  const blocks: PolicyBlock[] = [];
+  let spaced = false;
+
+  text.split('\n').forEach((rawLine, index) => {
+    const line = rawLine.trim();
+
+    if (line.length === 0) {
+      spaced = true;
+
+      return;
+    }
+
+    const kind = HEADING_PATTERN.test(line)
+      ? PolicyLineKind.Heading
+      : SUB_HEADING_PATTERN.test(line)
+        ? PolicyLineKind.SubHeading
+        : PolicyLineKind.Body;
+    // 조항 머리는 원문에 빈 줄이 없어도 항상 벌린다. 첫 블록만 예외 — 카드 여백이 이미 있다.
+    const needsSpace =
+      blocks.length > 0 && (spaced || kind === PolicyLineKind.Heading);
+
+    blocks.push({ key: `${index}`, kind, text: line, spaced: needsSpace });
+    spaced = false;
+  });
+
+  return blocks;
+};
+
 /**
  * AU-4: 개인정보 처리방침 · 이용약관 전용 화면.
  *
@@ -52,6 +100,30 @@ const TAB_TEXTS: Record<PolicyTab, string> = {
 const InfoPolicyView: FC<Props> = ({ initialTab }) => {
   const [selectedTab, setSelectedTab] = useState<PolicyTab>(initialTab);
   const insets = useSafeAreaInsets();
+  // 수천 자를 매 렌더마다 다시 쪼개지 않는다 — 문서는 탭을 바꿀 때만 갈린다.
+  const blocks = useMemo(
+    () => buildPolicyBlocks(TAB_TEXTS[selectedTab]),
+    [selectedTab]
+  );
+
+  const renderBlock = (block: PolicyBlock) => {
+    const isTitle = block.kind !== PolicyLineKind.Body;
+
+    return (
+      <PretendardText
+        key={block.key}
+        weight={isTitle ? 'semibold' : 'regular'}
+        style={[
+          styles.line,
+          isTitle ? styles.titleLine : styles.bodyLine,
+          block.spaced && styles.lineSpaced,
+        ]}
+        selectable
+      >
+        {block.text}
+      </PretendardText>
+    );
+  };
 
   return (
     <Layout
@@ -87,12 +159,13 @@ const InfoPolicyView: FC<Props> = ({ initialTab }) => {
         showsVerticalScrollIndicator={false}
       >
         {/* 긴 법률 문서라 흰 카드 위에 올린다 — 지면의 라임 글로우가 글줄 사이로 지나가면
-            읽기 흐름이 끊긴다. */}
-        <View style={styles.paper}>
-          <PretendardText style={styles.bodyText} selectable>
-            {TAB_TEXTS[selectedTab]}
-          </PretendardText>
-        </View>
+            읽기 흐름이 끊긴다. 조항 제목만 굵기를 올려 훑을 수 있게 한다(2026-08-11 리뷰). */}
+        <View style={styles.paper}>{blocks.map(renderBlock)}</View>
+
+        {/* 문서가 여기서 끝난다는 표시 — 스크롤이 수천 pt라 끝까지 읽었는지 알 수 없었다. */}
+        <PretendardText style={styles.endMark}>
+          문서가 여기서 끝나요.
+        </PretendardText>
       </ScrollView>
     </Layout>
   );
@@ -107,6 +180,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  // 마지막 줄이 화면 밑변에서 잘리지 않게 비운다(끝 표시 + 여백).
   contentInner: {
     paddingBottom: 40,
   },
@@ -116,11 +190,30 @@ const styles = StyleSheet.create({
     backgroundColor: Liquid.surface,
     boxShadow: LiquidShadow.card,
   },
-  bodyText: {
+  line: {
     fontSize: LiquidType.bodySm.fontSize,
     // 수천 자를 잇는 전문이라 본문 스케일(19)보다 줄간을 벌린다.
     lineHeight: 21,
+  },
+  bodyLine: {
     color: Liquid.inkSecondary,
+  },
+  /**
+   * 조항·항목 머리는 본문보다 굵고 진하다. **크기는 본문과 같게 둔다** — 법무 문서라
+   * 제목이 커지면 문서가 목차처럼 보이고, 훑기에 필요한 건 굵기와 여백뿐이다.
+   */
+  titleLine: {
+    color: Liquid.ink,
+  },
+  lineSpaced: {
+    marginTop: 14,
+  },
+  endMark: {
+    marginTop: 16,
+    fontSize: LiquidType.caption.fontSize,
+    lineHeight: LiquidType.caption.lineHeight,
+    color: Liquid.inkMuted,
+    textAlign: 'center',
   },
 });
 

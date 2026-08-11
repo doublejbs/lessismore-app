@@ -191,9 +191,23 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
                 {` / ${allCount}`}
               </PretendardText>
             </PretendardText>
-            {/* 이 화면의 유일한 라임 면 — 진행률 하나만 액센트를 받는다. */}
-            <View style={styles.percentBadge}>
-              <PretendardText style={styles.percentText}>
+            {/* 이 화면의 유일한 라임 면 — 진행률 하나만 액센트를 받는다.
+                단 **값이 0이면 라임을 걷는다**(2026-08-11 개정, 패킹 헤더 PK-3과 같은 규칙):
+                하나도 고르지 않은 상태가 화면에서 가장 강조되면 액센트가 뜻을 잃는다. */}
+            <View
+              style={[
+                styles.percentBadge,
+                percent > 0
+                  ? styles.percentBadgeAccent
+                  : styles.percentBadgeQuiet,
+              ]}
+            >
+              <PretendardText
+                style={[
+                  styles.percentText,
+                  percent === 0 && styles.percentTextQuiet,
+                ]}
+              >
                 {`${percent}%`}
               </PretendardText>
             </View>
@@ -301,12 +315,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 12,
     borderRadius: LiquidRadius.pill,
+  },
+  percentBadgeAccent: {
     backgroundColor: Liquid.lime,
+  },
+  // 진행 0의 자리 — 중립 배지 면(카드 위에서 구분은 되지만 시선을 끌지 않는 최소 대비).
+  percentBadgeQuiet: {
+    backgroundColor: Liquid.badgeFill,
   },
   percentText: {
     fontFamily: LiquidFont.condensed,
     fontSize: 16,
     color: Liquid.limeOn,
+  },
+  percentTextQuiet: {
+    color: Liquid.inkSecondary,
   },
   bar: {
     marginTop: 16,

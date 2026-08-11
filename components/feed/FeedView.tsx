@@ -19,7 +19,6 @@ import PretendardText from '@/components/PretendardText';
 import { Liquid, LiquidLayout } from '@/constants/DesignTokens';
 import FeedSkeletonView from './FeedSkeletonView';
 import FeedFilterBarView from './FeedFilterBarView';
-import FeedRankingButtonView from './FeedRankingButtonView';
 import FeedCardView from './FeedCardView';
 import app from '@/model/app/App';
 
@@ -44,7 +43,8 @@ interface Props {
 }
 
 // FD-2/FD-4: 장비 피드 본체. Feed 도메인 객체를 1회 생성·초기화하고 카드 FlatList(2컬럼 그리드)로 렌더한다.
-// FD-3: 상단 필터 바 대신, FlatList 위에 하단 플로팅 버튼(필터·인기 순위)을 absolute로 얹는다.
+// FD-3: 필터·정렬·인기 순위는 모두 상단 필터 바 한 줄에 있다 — 하단 플로팅 알약은 두지 않는다
+// (2026-08-11 디자인 리뷰: 화면 하단 중앙에 떠서 카드 두 장의 제품명을 덮었다).
 const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -64,7 +64,7 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
     setHasCoupangLink(true);
   }, []);
 
-  // 플로팅 탭바·`인기 순위` 버튼 아래로 콘텐츠가 흐르므로 시안대로 130을 비운다
+  // 플로팅 탭바 아래로 콘텐츠가 흐르므로 시안대로 130을 비운다
   // (검색 결과 그리드와 같은 값 — 같은 카드가 두 화면에서 다른 높이에 끊기면 안 된다).
   // iOS는 edge-to-edge라 탭바 영역(insets.bottom)까지 더한다. Android는 커스텀 탭이라 고정값.
   const listBottomPadding = Platform.select({
@@ -156,12 +156,9 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   const showSkeleton = (!isInitialized || isLoading) && items.length === 0;
 
   if (showSkeleton) {
-    // 플로팅 `인기 순위` 버튼은 스켈레톤 위에 띄우지 않는다. 탭이 막 마운트된 첫 프레임에는
-    // 네이티브 탭바 몫이 반영되기 전이라 insets.bottom이 작게 잡혀 버튼이 탭바 뒤로 내려간다.
-    // 피드가 로드된 뒤(= inset 정착 후)에만 노출하면 위치가 정확하고, 로딩 위 CTA 겹침도 없다.
     return (
       <View style={styles.container}>
-        <FeedFilterBarView feed={feed} />
+        <FeedFilterBarView feed={feed} showRanking={!gearAddContext} />
         <View style={styles.skeletonContainer}>
           <FeedSkeletonView count={6} />
         </View>
@@ -171,7 +168,7 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
 
   return (
     <View style={styles.container}>
-      <FeedFilterBarView feed={feed} />
+      <FeedFilterBarView feed={feed} showRanking={!gearAddContext} />
       <FlatList
         data={items}
         renderItem={renderItem}
@@ -195,7 +192,6 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
           />
         }
       />
-      {!gearAddContext && <FeedRankingButtonView feed={feed} />}
     </View>
   );
 };

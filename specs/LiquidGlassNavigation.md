@@ -4,6 +4,7 @@
 | --- | --- |
 | 상태 | proposed `[기획]` · **2026-08-11 개정(as-built)**: LG-3 창고 검색 헤더를 실제 구현에 맞게 정정 — iOS 네이티브 바 타이틀 비움(본문 제목 블록이 화면 대상), 커스텀 타이틀 행 서술 `[이력]` 강등, Android·Web은 유리 크롬 + 유리 검색 필드, 콘텐츠 인셋은 수동 paddingTop · **2026-08-11 추가 정정(as-built)**: 그룹 A 중 Liquid Depth로 이식된 네 화면(browse·brand-directory·shared-bag·reply)도 바 타이틀을 비우고 Android·Web을 유리 크롬으로 그린다(LG-2) |
 | ID 프리픽스 | `LG` |
+| 추가 | **2026-08-11 (as-built)**: 탭바 절(LG-4) 추가 — 활성 색 `limeInk`, 배낭 탭 `backpack.fill`, 정보 탭 라벨 `내 정보` |
 | 주요 코드 | `app/_layout.tsx`(Stack 옵션), 각 푸시 화면 컴포넌트(커스텀 헤더 제거), `app/(tabs)/_layout.tsx`(기존 NativeTabs), `components/warehouse/WarehouseScreen.tsx`·`WarehouseChromeView.tsx`·`WarehouseSearchFieldView.tsx`(LG-3) |
 | 관련 스펙 | [GearDetail.md](GearDetail.md), [BagDetail.md](BagDetail.md), [Warehouse.md](Warehouse.md), [Search.md](Search.md) |
 
@@ -137,3 +138,19 @@ iOS 네이티브 헤더 화면의 공통 구성:
 - [ ] iOS 창고: 제목 블록·필터·첫 장비가 헤더에 가리지 않음
 - [ ] iOS: 탐색 탭·지도 오버레이 검색이 변경되지 않음
 - [ ] Android/Web: 유리 크롬 `[검색][+]` → 제목 블록 자리에 유리 검색 필드 + `취소`가 맞교환되고 아래 칩 줄·목록이 밀리지 않음. 검색 중에도 뒤로가기가 남음
+
+## 7. 탭바 (LG-4) — as-built 2026-08-11
+
+탭바는 이 스펙의 나머지(상단 내비)와 달리 **처음부터 네이티브**다(iOS `NativeTabs`, Android·Web은 react-navigation JS 탭바). 아이콘도 탭바만 **SF Symbols를 유지**한다 — 목업의 Ionicons 탭 아이콘은 웹 대체품이다(핸드오프 웹→RN 변환 규칙). 2026-08-11 디자인 리뷰로 아래 셋을 고쳤다.
+
+- **활성 색은 `limeInk`(#5C7A12)** 다. 잉크(#101012)와 비활성 회색(#8A8A94)은 명도만 다른 같은 계열이라, 유리 캡슐 안에서 어느 탭이 켜졌는지 한눈에 갈리지 않았다 — 색상까지 다른 라임 계열로 올려 캡슐 말고도 신호를 하나 더 준다. `tintColor`·`iconColor.selected`·`labelStyle.selected`에 같은 값을 주고, Android·Web JS 탭바의 `tabBarActiveTintColor`도 같다.
+  - 목업의 **`잉크 캡슐 + 라임 아이콘`**(`Liquid.tabActiveBg`·`tabActiveIcon`)은 직접 그리는 웹 탭바의 값이고 **네이티브 UITabBar에는 옮길 수 없다** — iOS 26의 선택 캡슐은 시스템이 그려 채움색을 지정하는 API가 없다. 밝은 유리 면 위 라임 계열 글자·아이콘은 `limeInk`가 정본이다(라임 원색은 글자색으로 쓰지 않는다).
+- **배낭 탭 아이콘은 `backpack.fill`** 이다(옛 `figure.hiking`). 걷는 사람은 활동을 말해 배낭·창고·여행지 어디로든 읽혔고, 이 탭이 여는 것은 배낭 목록이다. `backpack.fill`은 SF Symbols 2022(iOS 16.0)라 이 앱의 최소 버전(16.4)에서 안전하다. Android·Web은 `IconSymbol`의 Material 짝(`backpack`)을 쓴다.
+- **정보 탭 라벨은 `내 정보`** 다(옛 `정보`). 앱이 사용자를 '나'로 부르는 카피 규칙(`내 창고`·`내 기록`)이고, 도착 화면의 제목 블록과 같은 말이다([Auth.md](Auth.md) AU-4).
+
+**수동 검증**
+
+- [ ] iOS 26: 탭을 옮기면 활성 아이콘·라벨이 라임 계열(`limeInk`)로 바뀌어 비활성과 한눈에 갈린다
+- [ ] iOS: 배낭 탭 아이콘이 배낭 모양으로 나온다(빈 칸이 아니다 — 심볼 미지원이면 아이콘이 사라진다)
+- [ ] Android/Web: 배낭 탭 아이콘이 Material `backpack`이고 활성 색이 iOS와 같다
+- [ ] 다섯 탭 라벨이 `홈 / 탐색 / 지도 / 배낭 / 내 정보`다

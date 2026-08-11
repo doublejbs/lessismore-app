@@ -17,6 +17,7 @@ import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import GearEditWeightView from '@/components/gear/edit/GearEditWeightView';
 import GearEditConfirmView from '@/components/gear/edit/GearEditConfirmView';
 import GearEditColorView from '@/components/gear/edit/GearEditColorView';
+import GearEditPhotoView from '@/components/gear/edit/GearEditPhotoView';
 import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '@/components/PretendardText';
 import AlertView from '@/components/alert/AlertView';
@@ -234,6 +235,18 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                     ref={weightInputRef}
                     gearEdit={gearEdit}
                     onFocus={() => setFocusedInput('weight')}
+                  />
+                )}
+                {/* 사진은 폼의 **마지막 필드**다(GD-13, 2026-08-11 디자인 리뷰) — 이름·브랜드·
+                    무게가 장비를 정하는 값이고 사진은 있으면 좋은 값이라, 판단 순서대로 아래에
+                    둔다. 장비 상세에 있던 `사진 추가` 점선 박스가 이 자리로 내려왔다.
+                    `key`로 대상이 바뀌면 업로드 모델을 확실히 재생성한다 — 진입 시점 URL로 한 번만
+                    씨를 받으므로 같은 자리에 다른 장비가 들어오면 이전 사진이 그대로 남는다. */}
+                {isInitialized && (
+                  <GearEditPhotoView
+                    key={gearEdit.getGearId()}
+                    gearId={gearEdit.getGearId()}
+                    imageUrl={gearEdit.getImageUrl()}
                   />
                 )}
               </View>

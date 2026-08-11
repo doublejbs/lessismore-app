@@ -47,19 +47,29 @@ interface Props {
 
 // FD-2: 피드 텍스트 카드(2컬럼 그리드 셀, Liquid Depth). 장비 이미지를 쓰지 않으므로
 // (DataModel §1 장비 이미지 미제공 원칙) 이미지 칸 없이 종이 면만으로 그리드 리듬을 만든다.
-// 구성은 위→아래로 브랜드 → 이름(2줄) → 색상 → 무게이며, 이미지가 하던 시각 위계는 무게가 대신한다.
-// 담기 CTA는 공용 `LiquidAddCta`(미담김 = 라임 면 + add / 담김 = 잉크 면 + 라임 checkmark)를 쓴다 —
-// 라임이 "아직 안 담김"을 뜻하는 자리라 담긴 카드에서 라임 면이 사라져야 스캔이 된다.
-// 담기 CTA는 카드 우상단, coupangUrl이 있으면 하단 축약 링크.
+// 구성은 위→아래로 브랜드 → 이름(2줄) → [고정 푸터: 색상 → 무게 + 쿠팡]이며,
+// 이미지가 하던 시각 위계는 무게가 대신한다.
+// 담기 CTA는 공용 `LiquidAddCta`(미담김 = 아웃라인 원 + add / 담김 = 라임 면 + 잉크 checkmark)를 쓴다 —
+// 라임은 "담긴 것" 하나만 뜻한다(2026-08-11 리뷰: 미담김이 라임이던 시절엔 한 화면에 라임 원이 12개였다).
 // 수수료 고지는 카드마다 반복하지 않고 FeedView 리스트 푸터에서 1회 노출한다.
 // coupangUrl은 Algolia hit·Gear에 없고 /gear 문서에만 있어(WarehouseDetail과 동일 경로) 마운트 시 지연 로드한다.
 
 /**
- * 쿠팡 링크 줄의 터치 여유. 12px 한 줄(≈16) + `paddingTop` 8 = 24뿐이라 그대로는 HIG 44에
- * 크게 못 미친다. 카드 안 마지막 줄이라 시각 높이를 키우면 카드가 늘어나므로 세로 여유로만
- * 채운다: (44 − 24) / 2 = 10 → 11. 가로는 0 — 카드 폭 안에서 이미 넉넉하다.
+ * 쿠팡 링크 버튼 지름과 터치 여유. 28pt로 그리되 HIG 최소 타깃 44를 여유로만 채운다:
+ * (44 − 28) / 2 = 8. 시각 크기를 키우면 무게 줄이 눌린다.
  */
-const COUPANG_HIT_SLOP = { top: 11, bottom: 11, left: 0, right: 0 };
+const COUPANG_BUTTON_SIZE = 28;
+const COUPANG_HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
+
+/**
+ * 푸터에서 색상 줄이 차지하는 높이. **값이 없어도 이만큼 비운다** — 색상 줄 유무로 카드
+ * 안쪽 높이가 갈리면 같은 행 두 카드의 무게가 서로 다른 바닥에 앉아, 무게로 비교하는
+ * 그리드에서 비교 대상이 지그재그로 놓인다(2026-08-11 디자인 리뷰: 40pt 어긋남).
+ */
+const COLOR_SLOT_HEIGHT = 16;
+
+/** 무게 줄 높이. 무게가 없는 카드도 이 높이를 유지해 푸터 키가 카드마다 갈리지 않는다. */
+const WEIGHT_ROW_HEIGHT = 36;
 
 const FeedCardView: FC<Props> = ({
   gear,
@@ -251,66 +261,75 @@ const FeedCardView: FC<Props> = ({
     <>
       <Pressable style={styles.card} onPress={handleCardPress}>
         <View style={styles.cardFace}>
-          <View style={styles.cardHeader}>
+          <View style={styles.cardBody}>
+            <View style={styles.cardHeader}>
+              <PretendardText
+                style={styles.company}
+                weight='semibold'
+                numberOfLines={1}
+              >
+                {gear.getDisplayCompany()}
+              </PretendardText>
+              {renderCta()}
+            </View>
+
             <PretendardText
-              style={styles.company}
+              style={styles.name}
               weight='semibold'
-              numberOfLines={1}
+              numberOfLines={2}
+              lineBreakStrategyIOS='hangul-word'
             >
-              {gear.getDisplayCompany()}
+              {gear.getDisplayName()}
             </PretendardText>
-            {renderCta()}
           </View>
 
-          <PretendardText
-            style={styles.name}
-            weight='semibold'
-            numberOfLines={2}
-            lineBreakStrategyIOS='hangul-word'
-          >
-            {gear.getDisplayName()}
-          </PretendardText>
+          {/* 고정 푸터 — 카드 바닥에 붙어 무게를 같은 선에 앉힌다. 색상·쿠팡 링크는
+              있을 때만 그리되 자리는 늘 비워 둔다(위 상수 주석). */}
+          <View style={styles.footer}>
+            <View style={styles.colorSlot}>
+              {color ? (
+                <PretendardText
+                  style={styles.color}
+                  weight='regular'
+                  numberOfLines={1}
+                >
+                  {color}
+                </PretendardText>
+              ) : null}
+            </View>
 
-          {color ? (
-            <PretendardText
-              style={styles.color}
-              weight='regular'
-              numberOfLines={1}
-            >
-              {color}
-            </PretendardText>
-          ) : null}
+            <View style={styles.weightRow}>
+              {/* 무게는 숫자라 콘덴스드를 쓴다 — 카드의 시각 앵커. 단위는 한 단계 낮춰
+                  숫자가 먼저 읽히게 한다. */}
+              {hasWeight(weight) ? (
+                <PretendardText style={styles.weightWrap} numberOfLines={1}>
+                  <PretendardText style={styles.weight}>
+                    {formatGearWeightValue(weight)}
+                  </PretendardText>
+                  <PretendardText style={styles.weightUnit}>g</PretendardText>
+                </PretendardText>
+              ) : null}
 
-          {/* 무게는 숫자라 콘덴스드를 쓴다 — 카드의 시각 앵커. 단위는 한 단계 낮춰
-              숫자가 먼저 읽히게 한다. */}
-          {hasWeight(weight) ? (
-            <PretendardText style={styles.weightWrap} numberOfLines={1}>
-              <PretendardText style={styles.weight}>
-                {formatGearWeightValue(weight)}
-              </PretendardText>
-              <PretendardText style={styles.weightUnit}>g</PretendardText>
-            </PretendardText>
-          ) : null}
-
-          {coupangUrl ? (
-            <TouchableOpacity
-              style={styles.coupangLink}
-              onPress={handleCoupangPress}
-              activeOpacity={LiquidMotion.pressOpacity}
-              hitSlop={COUPANG_HIT_SLOP}
-              accessibilityRole='link'
-              accessibilityLabel='쿠팡 최저가 보기'
-            >
-              <PretendardText weight='medium' style={styles.coupangText}>
-                쿠팡 최저가
-              </PretendardText>
-              <Ionicons
-                name='chevron-forward'
-                size={11}
-                color={Liquid.limeInk}
-              />
-            </TouchableOpacity>
-          ) : null}
+              {/* 쿠팡 링크는 푸터 우측 작은 쉐브론이다 — 글자 링크였을 때는 링크가 있는
+                  카드만 한 줄 길어져 옆 카드와 무게가 어긋났다(2026-08-11 리뷰). */}
+              {coupangUrl ? (
+                <TouchableOpacity
+                  style={styles.coupangButton}
+                  onPress={handleCoupangPress}
+                  activeOpacity={LiquidMotion.pressOpacity}
+                  hitSlop={COUPANG_HIT_SLOP}
+                  accessibilityRole='link'
+                  accessibilityLabel='쿠팡 최저가 보기'
+                >
+                  <Ionicons
+                    name='chevron-forward'
+                    size={14}
+                    color={Liquid.limeInk}
+                  />
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          </View>
         </View>
       </Pressable>
 
@@ -336,6 +355,8 @@ const styles = StyleSheet.create({
     backgroundColor: Liquid.surface,
     boxShadow: LiquidShadow.card,
     padding: 16,
+  },
+  cardBody: {
     gap: 4,
   },
   // 브랜드(좌) + 담기 CTA(우상단) 한 행.
@@ -356,13 +377,28 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: Liquid.ink,
   },
+  // 이름 블록과 무게 사이를 벌리면서 푸터를 카드 바닥으로 밀어낸다.
+  footer: {
+    marginTop: 'auto',
+    paddingTop: 10,
+  },
+  colorSlot: {
+    height: COLOR_SLOT_HEIGHT,
+    justifyContent: 'center',
+  },
   color: {
     fontSize: 12,
     lineHeight: 16,
     color: Liquid.inkSubtle,
   },
+  // 무게(좌) + 쿠팡 쉐브론(우) 한 행. 무게가 없어도 높이를 지켜 푸터 키를 고정한다.
+  weightRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: WEIGHT_ROW_HEIGHT,
+  },
   weightWrap: {
-    marginTop: 6,
+    flexShrink: 1,
   },
   weight: {
     fontFamily: LiquidFont.condensed,
@@ -377,16 +413,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Liquid.inkMuted,
   },
-  coupangLink: {
-    flexDirection: 'row',
+  /**
+   * 쿠팡 쉐브론 버튼. 아이콘 하나뿐이라 면이 없으면 누를 곳으로 읽히지 않아 카드 안 타일과
+   * 같은 가라앉은 면을 깐다. 글리프는 `limeInk` — 밝은 면 위에서 라임을 글자색으로 직접
+   * 쓰지 않는다.
+   */
+  coupangButton: {
+    // 무게가 없는 카드에서도 우측에 붙는다 — `space-between`으로는 홀로 남을 때 좌측으로 간다.
+    marginLeft: 'auto',
+    width: COUPANG_BUTTON_SIZE,
+    height: COUPANG_BUTTON_SIZE,
+    borderRadius: COUPANG_BUTTON_SIZE / 2,
+    backgroundColor: Liquid.surfaceSunken,
     alignItems: 'center',
-    gap: 3,
-    paddingTop: 8,
-  },
-  // 밝은 면 위 라임 계열 글자는 limeInk — 라임을 글자색으로 직접 쓰지 않는다.
-  coupangText: {
-    fontSize: 12,
-    color: Liquid.limeInk,
+    justifyContent: 'center',
   },
 });
 

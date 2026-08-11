@@ -10,13 +10,19 @@ import {
   LiquidShadow,
 } from '@/constants/DesignTokens';
 
-type TileTone = 'paper' | 'accent' | 'sunken';
+type TileTone = 'paper' | 'accent' | 'sunken' | 'accentTint';
 type TileSize = 'md' | 'sm';
 
 interface Props {
   value: string | number;
   label: string;
-  /** paper=흰 카드 · accent=강조할 지표 하나 · sunken=카드 **안**에 겹쳐 놓는 타일 */
+  /**
+   * paper=흰 카드 · accent=강조할 지표 하나 · sunken=카드 **안**에 겹쳐 놓는 타일 ·
+   * accentTint=라임 틴트 면(조치가 필요한 지표). `accentTint`는 숫자를 잉크로 그대로 두고
+   * **면으로** 강조하는 자리다 — 라임 원색 면(`accent`)이 아니라 틴트라 "화면당 라임 면 하나"
+   * 규칙과 자리를 다투지 않고, 창고의 `안 쓴 장비` 알림 칩과 같은 면을 써서 같은 뜻이 같은
+   * 값으로 읽힌다.
+   */
   tone?: TileTone;
   /** 'sm'은 카드 안 타일(목업 §11 내 정보 프로필 카드) — 숫자 24, 라벨 11.5 */
   size?: TileSize;
@@ -139,6 +145,15 @@ const TONE_STYLES: Record<TileTone, ViewStyle> = {
   // 카드 안 타일은 그림자를 깔지 않는다 — 이미 카드가 지면에서 떠 있다.
   sunken: {
     backgroundColor: Liquid.surfaceSunken,
+  },
+  /**
+   * 라임 틴트 면. `sunken`과 같은 자리(카드 안)에 놓이므로 그림자를 깔지 않고, 테두리만
+   * 한 겹 둘러 가라앉은 타일과 면이 갈리게 한다(창고 알림 칩과 같은 조합).
+   */
+  accentTint: {
+    backgroundColor: Liquid.limeTint,
+    borderWidth: 0.5,
+    borderColor: Liquid.limeTintStroke,
   },
 };
 

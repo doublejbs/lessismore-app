@@ -26,9 +26,9 @@ const SPINNER_DURATION = 1000;
 const CROSSFADE_DURATION = 150;
 
 interface Props {
-  /** true면 담김 = 잉크 면 + 라임 체크, false면 미담김 = 라임 면 + add */
+  /** true면 담김 = 라임 면 + 잉크 체크, false면 미담김 = 무채색 아웃라인 원 + 잉크 add */
   added: boolean;
-  /** 담기·빼기 요청 중 — 잉크 면 위에 라임 스피너를 둔다 */
+  /** 담기·빼기 요청 중 — 아웃라인 원 안에 잉크 스피너를 둔다 */
   loading?: boolean;
   /**
    * 없으면 **정보 배지**로 그린다(누를 수 없음).
@@ -43,9 +43,13 @@ interface Props {
 /**
  * 탐색·검색·순위가 공유하는 담기 CTA(핸드오프 §2·§3).
  *
- * **미담김 = 라임 면 + `add` / 담김 = 잉크 면 + 라임 `checkmark`** 로 면이 뒤집힌다 —
- * 이 앱에서 라임은 "아직 내 것이 아님"을 뜻하는 자리라, 담긴 항목에서 라임 면이 사라져야
- * 목록을 훑을 때 남은 것만 눈에 걸린다.
+ * **미담김 = 무채색 아웃라인 원 + 잉크 `add` / 담김 = 라임 면 + 잉크 `checkmark`**
+ * (2026-08-11 디자인 리뷰로 뒤집힘 — 핸드오프 §2의 반대다).
+ *
+ * 라임은 **"담긴 것"** 하나만 뜻한다. 뒤집기 전에는 미담김이 라임 면이라 탐색 그리드 한
+ * 화면에 라임 원이 12개 떠서 액센트가 아무것도 가리키지 않았다 — 액센트는 드물어야 액센트다.
+ * 미담김은 아직 아무 일도 일어나지 않은 상태이므로 조용한 아웃라인이 맞고, 담김은 내가 남긴
+ * 표시이므로 라임 면이 맞다. 담긴 항목을 훑어 찾는 것도 이쪽이 쉽다.
  */
 const LiquidAddCta: FC<Props> = ({
   added,
@@ -56,9 +60,9 @@ const LiquidAddCta: FC<Props> = ({
   /**
    * 0 = 미담김, 1 = 담김.
    *
-   * 아이콘만 페이드시키고 면은 즉시 뒤집으면, 전환 150ms 동안 잉크 면 위에 잉크색
-   * `add`(limeOn)가 얹혀 아이콘이 사라진다. 그래서 면을 얹은 라임 레이어째로 함께
-   * 페이드해 아이콘 교차가 항상 보이게 한다 — 잉크 면은 늘 아래에 깔려 있다.
+   * 두 상태를 **면째로** 겹쳐 두고 투명도만 교차시킨다 — 아이콘만 페이드시키고 면을 즉시
+   * 뒤집으면 전환 150ms 동안 아이콘과 면의 짝이 어긋나(라임 면 위에 add, 아웃라인 위에 체크)
+   * 글리프가 한 번 사라져 보인다.
    *
    * ref로 잡으면 렌더 중 `.current`를 읽어 React Compiler가 최적화를 포기하므로 상태로 든다.
    */
@@ -80,24 +84,26 @@ const LiquidAddCta: FC<Props> = ({
   const renderFace = () => {
     if (loading) {
       return (
-        <View style={styles.center}>
-          <LoadingView duration={SPINNER_DURATION} color={Liquid.lime} />
+        <View style={[styles.center, styles.idleFace]}>
+          <LoadingView duration={SPINNER_DURATION} color={Liquid.ink} />
         </View>
       );
     }
 
     return (
       <>
-        {/* 담김 — 잉크 면 위 라임 체크. */}
-        <Animated.View style={[styles.center, { opacity: progress }]}>
-          <Ionicons name='checkmark' size={18} color={Liquid.lime} />
-        </Animated.View>
-
-        {/* 미담김 — 라임 면 + 잉크 add. 위에 얹혀 있다가 담기면 걷힌다. */}
+        {/* 미담김 — 무채색 아웃라인 원 + 잉크 add. */}
         <Animated.View
           style={[styles.center, styles.idleFace, { opacity: idleOpacity }]}
         >
-          <Ionicons name='add' size={18} color={Liquid.limeOn} />
+          <Ionicons name='add' size={18} color={Liquid.ink} />
+        </Animated.View>
+
+        {/* 담김 — 라임 면 + 잉크 체크. 위에 얹혀 있다가 빼면 걷힌다. */}
+        <Animated.View
+          style={[styles.center, styles.addedFace, { opacity: progress }]}
+        >
+          <Ionicons name='checkmark' size={18} color={Liquid.limeOn} />
         </Animated.View>
       </>
     );
@@ -133,12 +139,11 @@ const LiquidAddCta: FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
-  // 잉크 면이 바탕 — 라임 레이어가 걷혀도 원이 비지 않는다.
+  // 자리만 잡는 껍데기 — 면은 두 상태 레이어가 각자 든다.
   cta: {
     width: CTA_SIZE,
     height: CTA_SIZE,
     borderRadius: CTA_SIZE / 2,
-    backgroundColor: Liquid.ink,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -149,11 +154,17 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
+    borderRadius: CTA_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // 미담김 — 아직 아무 일도 없었다는 뜻이라 채우지 않고 테두리만 두른다(빈 체크 원과 같은 값).
   idleFace: {
-    borderRadius: CTA_SIZE / 2,
+    borderWidth: 1,
+    borderColor: Liquid.inkFaint,
+    backgroundColor: Liquid.surface,
+  },
+  addedFace: {
     backgroundColor: Liquid.lime,
   },
 });

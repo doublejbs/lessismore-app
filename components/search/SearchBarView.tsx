@@ -15,7 +15,10 @@ import {
 
 interface Props {
   searchWarehouse: SearchWarehouse;
-  /** 화면 제목 — 탐색 탭은 `탐색`, 검색 결과 화면은 제목 없이 필드만 */
+  /**
+   * 화면 제목. 탐색 탭은 검색 전·후 모두 `탐색`이다 — 검색어에 따라 걷으면 필드가 위로
+   * 점프한다(SR-2, 2026-08-11 디자인 리뷰). 장비 추가 검색 모달만 제목 없이 필드만 둔다.
+   */
   title?: string;
 }
 
@@ -48,7 +51,8 @@ const SearchBarView: FC<Props> = ({ searchWarehouse, title }) => {
         </View>
       ) : null}
 
-      {/* 필드 위 여백은 타이틀이 있을 때 14, 없을 때(검색 결과 상태) 16이다(목업 §2·§3). */}
+      {/* 필드 위 여백은 타이틀이 있을 때 14, 없을 때(장비 추가 검색 모달 — 위에 시트 헤더가
+          있다) 16이다(목업 §2·§3). 검색 결과 화면도 타이틀을 유지하므로 자리가 고정된다. */}
       <View style={[styles.container, !title && styles.containerNoTitle]}>
         {/* 그림자는 바깥 래퍼가 진다 — overflow:'hidden'과 같은 뷰에 두면 그림자까지 잘린다. */}
         <View style={styles.fieldShadow}>

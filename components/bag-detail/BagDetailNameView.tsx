@@ -80,12 +80,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Liquid.inkSecondary,
   },
+  /**
+   * **행 전체가 탭 영역이다**(2026-08-11 개정). 연필 글리프는 15pt라 그것만으로는 44pt
+   * 터치 타깃이 서지 않는데, 예전에는 컨테이너가 콘텐츠 폭(`flex-start`)이라 글자 오른쪽
+   * 빈자리는 눌러도 아무 일이 없었다 — 줄을 부모 폭까지 늘려 이름 어디를 눌러도 열리게 한다.
+   * 늘어난 폭에서도 연필은 텍스트 바로 뒤에 붙는다(`justifyContent: flex-start`).
+   */
   nameContainer: {
-    alignSelf: 'flex-start',
-    // alignSelf: flex-start면 컨테이너가 콘텐츠 크기로 잡혀 부모 폭을 넘어서고,
-    // 그 안에서는 자식이 넘치지 않으니 nameText의 flexShrink가 발동하지 않는다.
-    // 폭을 부모로 제한해야 텍스트가 줄어들고 연필이 화면 안에 남는다.
-    maxWidth: '100%',
+    alignSelf: 'stretch',
     marginTop: 10,
     alignItems: 'center',
     justifyContent: 'flex-start',

@@ -23,6 +23,8 @@ interface Props {
   /** 아직 도착하지 않았으면 null — 타일은 자리를 지키고 숫자만 셔머가 된다 */
   summary: HomeRecordSummary | null;
   onPressEdit: () => void;
+  /** `안 쓴 장비` 타일 탭 — 창고를 그 필터가 걸린 채로 연다(홈 HM-7과 같은 다음 걸음) */
+  onPressUnused: () => void;
 }
 
 const PROVIDER_LABEL: Record<LoginProvider, string> = {
@@ -41,17 +43,21 @@ const AVATAR_SIZE = 48;
  * 놓였고 지표는 아예 없었다. 내 정보는 "내가 누구이고 무엇을 얼마나 갖고 있나"를 한 번에
  * 말하는 자리라, 정체 한 줄과 지표 세 개가 같은 면 위에 있어야 한 덩어리로 읽힌다.
  *
- * 카드 전체가 아니라 **정체 행만** 누를 수 있다 — 지표 타일은 다음 걸음이 없어 표시로 족하다.
+ * 누를 수 있는 것은 **정체 행**과 **`안 쓴 장비` 타일** 둘이다 — 앞의 둘(장비·배낭)은 다음
+ * 걸음이 없어 표시로 족하고, 안 쓴 장비만 "덜어내기"라는 다음 걸음이 있어 창고를 그 필터가
+ * 걸린 채로 연다(홈 내 기록 HM-7과 같은 문법).
  */
 const InfoProfileCardView: FC<Props> = ({
   nickname,
   provider,
   summary,
   onPressEdit,
+  onPressUnused,
 }) => {
   const isLoading = summary === null;
   const hasNickname = nickname.length > 0;
   const providerLabel = provider ? PROVIDER_LABEL[provider] : '';
+  const unusedCount = summary ? summary.unusedCount : 0;
 
   return (
     <LiquidCard tone='glass' radius='hero' padding={LiquidLayout.cardPadLg}>
@@ -60,9 +66,14 @@ const InfoProfileCardView: FC<Props> = ({
         onPress={onPressEdit}
         activeOpacity={LiquidMotion.pressOpacity}
         accessibilityRole='button'
-        accessibilityLabel={hasNickname ? '닉네임 수정' : '닉네임 설정'}
+        // 행 전체가 하나의 타깃이라 아이콘은 접근성 트리에서 빠져 있다 — 닉네임을 라벨에
+        // 함께 넣지 않으면 스크린리더는 지금 닉네임이 무엇인지 듣지 못한다.
+        accessibilityLabel={
+          hasNickname ? `${nickname}, 닉네임 수정` : '닉네임 설정'
+        }
       >
-        {/* 이 화면의 라임 면은 아바타 하나뿐이다(핸드오프: 화면당 라임 면 1개). */}
+        {/* 이 화면의 라임 **원색** 면은 아바타 하나뿐이다(핸드오프: 화면당 라임 면 1개).
+            아래 `안 쓴 장비` 타일은 원색이 아니라 틴트라 이 셈에 들어오지 않는다. */}
         <View style={styles.avatar}>
           {hasNickname ? (
             <PretendardText weight='bold' style={styles.avatarInitial}>
@@ -113,15 +124,32 @@ const InfoProfileCardView: FC<Props> = ({
           value={summary ? summary.bagCount : 0}
           label='배낭'
         />
-        {/* 셋 중 이 하나만 덜어낼 후보라 라임 계열 잉크로 세운다(홈 HM-7과 같은 처리). */}
-        <LiquidStatTile
-          tone='sunken'
-          size='sm'
-          highlight
-          loading={isLoading}
-          value={summary ? summary.unusedCount : 0}
-          label='안 쓴 장비'
-        />
+        {/**
+         * 셋 중 이 하나만 덜어낼 후보다. **숫자는 검정으로 두고 면으로 세운다** — 라임 계열
+         * 잉크(`limeInk`)로 값을 세웠더니 조치가 필요한 유일한 지표가 옆의 두 숫자보다 대비가
+         * 낮아졌다(2026-08-11 디자인 리뷰). 그리고 강조를 색이 아니라 **동작**으로 옮겨,
+         * 누르면 창고가 그 필터로 열린다.
+         */}
+        <TouchableOpacity
+          style={styles.unusedTile}
+          onPress={onPressUnused}
+          disabled={isLoading}
+          activeOpacity={LiquidMotion.pressOpacity}
+          accessibilityRole='button'
+          accessibilityLabel={
+            isLoading
+              ? '안 쓴 장비 불러오는 중'
+              : `안 쓴 장비 ${unusedCount}개, 창고에서 보기`
+          }
+        >
+          <LiquidStatTile
+            tone='accentTint'
+            size='sm'
+            loading={isLoading}
+            value={unusedCount}
+            label='안 쓴 장비'
+          />
+        </TouchableOpacity>
       </View>
     </LiquidCard>
   );
@@ -164,6 +192,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     marginTop: 18,
+  },
+  // 타일을 감싸는 터치 래퍼 — 타일이 자기 폭을 flex로 잡으므로 래퍼가 그 자리를 대신 받는다.
+  unusedTile: {
+    flex: 1,
   },
 });
 

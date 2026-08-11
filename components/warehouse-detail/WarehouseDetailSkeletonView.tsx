@@ -45,26 +45,26 @@ const WarehouseDetailSkeletonView: FC = () => {
           : null,
       ]}
     >
-      {/* 정체 블록 — 브랜드(13) → 이름(28) → 태그 칩 줄 + 우측 무게(42) */}
+      {/* 정체 블록 — 브랜드(13) → 이름(28) → 무게(42) → 태그 칩 줄.
+          무게가 이름 아래 독립 줄로 내려온 본 화면(GD-1)과 **같은 순서**라야 로드 직후 자리가
+          튀지 않는다. */}
       <View style={styles.identity}>
         <LiquidSkeletonBar opacity={opacity} width={96} height={14} />
         <LiquidSkeletonBar opacity={opacity} width='72%' height={30} />
-        <View style={styles.metaRow}>
-          <View style={styles.tags}>
-            <LiquidSkeletonBar
-              opacity={opacity}
-              width={72}
-              height={28}
-              radius={TAG_CHIP_RADIUS}
-            />
-            <LiquidSkeletonBar
-              opacity={opacity}
-              width={72}
-              height={28}
-              radius={TAG_CHIP_RADIUS}
-            />
-          </View>
-          <LiquidSkeletonBar opacity={opacity} width={88} height={34} />
+        <LiquidSkeletonBar opacity={opacity} width={104} height={34} />
+        <View style={styles.tags}>
+          <LiquidSkeletonBar
+            opacity={opacity}
+            width={72}
+            height={28}
+            radius={TAG_CHIP_RADIUS}
+          />
+          <LiquidSkeletonBar
+            opacity={opacity}
+            width={72}
+            height={28}
+            radius={TAG_CHIP_RADIUS}
+          />
         </View>
       </View>
 
@@ -107,14 +107,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: LiquidLayout.screenH,
     gap: 8,
   },
-  metaRow: {
-    marginTop: 6,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
+  // 태그 줄은 무게 줄과 조금 더 벌어진다(본 화면 14 · identity의 gap 8 위에 더한다).
   tags: {
+    marginTop: 6,
     flexDirection: 'row',
     gap: 6,
   },

@@ -10,24 +10,34 @@ import { formatDistance, formatElevation } from '@/model/health/HealthFormat';
 
 interface Props {
   bagDetail: BagDetail;
+  columns?: 2 | 3;
 }
 
-// 배낭 상세의 운동 기록 타일(HA-1). 액션 타일 2열 그리드의 4번째.
-// 권한 요청은 여기서 하지 않는다 — 탭 이후 연결 화면에서만 띄운다(HA-2).
-const BagDetailActivityView: FC<Props> = ({ bagDetail }) => {
-  const router = useRouter();
-  const healthService = getHealthService();
-  const activity = bagDetail.getActivity();
-
-  // 누를 수 없는 진입점을 남기지 않는다(HA-1): 건강 허브가 없는 플랫폼·기기(웹,
-  // Android 14 미만, 미지원 기기)와, 기록이 존재할 수 없는 미래 여행에서는
-  // 타일 자체를 렌더하지 않는다.
+/**
+ * 이 배낭에 운동 기록 타일을 그릴지(HA-1).
+ *
+ * 누를 수 없는 진입점을 남기지 않는다: 건강 허브가 없는 플랫폼·기기(웹, Android 14 미만,
+ * 미지원 기기)와, 기록이 존재할 수 없는 미래 여행에서는 타일 자체를 렌더하지 않는다.
+ *
+ * 판정을 내보내는 이유는 **그리드 열 수가 타일 개수로 갈리기 때문**이다(BD-10) — 부모가
+ * 같은 조건을 따로 세우면 한 줄 3열로 눌러야 할 화면이 빈 칸을 남긴 2열로 남는다.
+ */
+export const shouldShowActivityTile = (bagDetail: BagDetail): boolean => {
   const isFutureTrip = bagDetail
     .getStartDate()
     .startOf('day')
     .isAfter(dayjs().startOf('day'));
 
-  if (!healthService.isAvailable() || isFutureTrip) {
+  return getHealthService().isAvailable() && !isFutureTrip;
+};
+
+// 배낭 상세의 운동 기록 타일(HA-1). 액션 타일 그리드의 4번째.
+// 권한 요청은 여기서 하지 않는다 — 탭 이후 연결 화면에서만 띄운다(HA-2).
+const BagDetailActivityView: FC<Props> = ({ bagDetail, columns = 2 }) => {
+  const router = useRouter();
+  const activity = bagDetail.getActivity();
+
+  if (!shouldShowActivityTile(bagDetail)) {
     return null;
   }
 
@@ -53,6 +63,7 @@ const BagDetailActivityView: FC<Props> = ({ bagDetail }) => {
   return (
     <BagDetailTileView
       icon='footsteps-outline'
+      columns={columns}
       title='운동 기록'
       subtitle={subtitle}
       onPress={handlePress}

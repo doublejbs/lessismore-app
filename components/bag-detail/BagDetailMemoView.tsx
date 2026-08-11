@@ -10,9 +10,10 @@ import { Liquid } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
+  columns?: 2 | 3;
 }
 
-const BagDetailMemoView: FC<Props> = ({ bagDetail }) => {
+const BagDetailMemoView: FC<Props> = ({ bagDetail, columns = 2 }) => {
   const router = useRouter();
   const hasMemo = bagDetail.hasMemo();
   const memo = bagDetail.getMemo();
@@ -28,6 +29,7 @@ const BagDetailMemoView: FC<Props> = ({ bagDetail }) => {
     return (
       <BagDetailTileView
         icon='document-text-outline'
+        columns={columns}
         onPress={handlePressMemo}
         accessibilityLabel={`메모 ${memo}`}
       >
@@ -45,6 +47,7 @@ const BagDetailMemoView: FC<Props> = ({ bagDetail }) => {
   return (
     <BagDetailTileView
       icon='document-text-outline'
+      columns={columns}
       title='메모'
       subtitle='작성하기'
       onPress={handlePressMemo}

@@ -101,15 +101,31 @@ const BagDetailSummaryView: FC<Props> = ({ bagDetail }) => {
     }))
     .sort((a, b) => b.percentage - a.percentage);
 
-  // 무게 행은 숫자·단위·배지가 한 뜻이라 통째로 하나의 접근성 요소다 —
-  // 부모가 `accessible`이면 자식 라벨은 개별로 읽히지 않으므로 델타까지 한 문장에 합친다.
+  /**
+   * 히어로 우측 상태 요약(2026-08-11 신설). 큰 수치 오른쪽 2/3이 비어 있었는데, 상세
+   * 최상단은 "이 여행이 지금 어떤 상태인가"를 한 번에 읽는 자리다 — 담긴 개수와 패킹
+   * 진행을 여기 붙인다. 패킹 진행은 어디서나 `패킹 {n}/{m}`이다(핸드오프 카피).
+   * 빈 배낭은 셀 것이 없어 두지 않는다(목록 자리의 빈 상태가 그 사실을 말한다).
+   */
+  const gearCount = bagDetail.getCount();
+  const statusLabel =
+    gearCount > 0
+      ? `장비 ${gearCount}개 · 패킹 ${bagDetail.getPackedCount()}/${gearCount}`
+      : null;
+
+  // 무게 행은 숫자·단위·배지·상태 요약이 한 뜻이라 통째로 하나의 접근성 요소다 —
+  // 부모가 `accessible`이면 자식 라벨은 개별로 읽히지 않으므로 한 문장에 모두 합친다.
   const totalLabel = formatBagWeight(totalGram);
-  const weightLabel =
+  const weightLabel = [
     reducibleGram > 0
       ? `총 무게 ${totalLabel}, 사용 기록 기준 ${formatBagWeight(
           reducibleGram
         )} 줄일 수 있어요`
-      : `총 무게 ${totalLabel}`;
+      : `총 무게 ${totalLabel}`,
+    statusLabel,
+  ]
+    .filter(part => part !== null)
+    .join(', ');
 
   return (
     <View style={styles.wrap}>
@@ -128,17 +144,34 @@ const BagDetailSummaryView: FC<Props> = ({ bagDetail }) => {
             kg
           </PretendardText>
           <View style={styles.weightSpacer} />
-          {reducibleGram > 0 ? (
-            <View style={styles.deltaBadge}>
-              <Ionicons name='trending-down' size={13} color={Liquid.limeOn} />
-              <PretendardText weight='semibold' style={styles.deltaText}>
-                {`-${formatBagWeight(reducibleGram)}`}
+          <View style={styles.statusColumn}>
+            {reducibleGram > 0 ? (
+              <View style={styles.deltaBadge}>
+                <Ionicons
+                  name='trending-down'
+                  size={13}
+                  color={Liquid.limeOn}
+                />
+                <PretendardText weight='semibold' style={styles.deltaText}>
+                  {`-${formatBagWeight(reducibleGram)}`}
+                </PretendardText>
+              </View>
+            ) : null}
+            {statusLabel !== null ? (
+              <PretendardText
+                weight='medium'
+                style={styles.statusText}
+                numberOfLines={1}
+              >
+                {statusLabel}
               </PretendardText>
-            </View>
-          ) : null}
+            ) : null}
+          </View>
         </View>
 
-        {breakdown.length > 0 && (
+        {/* 카테고리가 한 종류면 스택 바는 `베이스 100%` 한 색 줄이라 읽을 정보가 없다 —
+            두 종류 이상일 때만 그린다(2026-08-11 개정). */}
+        {breakdown.length > 1 && (
           <>
             <View style={styles.bar}>
               {breakdown.map((item, index) => (
@@ -207,13 +240,25 @@ const styles = StyleSheet.create({
   weightSpacer: {
     flex: 1,
   },
+  // 델타 배지(있으면) 위, 상태 요약 아래로 쌓아 우측 끝을 맞춘다. 아래 여백은 이 컬럼이
+  // 들어야 두 조각 중 하나만 있을 때도 큰 수치의 밑선에 맞는다.
+  statusColumn: {
+    flexShrink: 1,
+    alignItems: 'flex-end',
+    gap: 6,
+    marginBottom: 4,
+  },
+  statusText: {
+    fontSize: 12.5,
+    textAlign: 'right',
+    color: Liquid.inkTertiary,
+  },
   // 고정 높이 대신 minHeight — Dynamic Type으로 글자가 커져도 알약이 깨지지 않는다.
   deltaBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     minHeight: 26,
-    marginBottom: 4,
     paddingHorizontal: 10,
     borderRadius: LiquidRadius.pill,
     backgroundColor: Liquid.lime,

@@ -7,6 +7,7 @@ import PretendardText from '@/components/PretendardText';
 import LiquidChip from '@/components/liquid/LiquidChip';
 import LiquidMetricRow from '@/components/liquid/LiquidMetricRow';
 import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import LiquidSectionLabel from '@/components/liquid/LiquidSectionLabel';
 import {
   Liquid,
   LiquidLayout,
@@ -111,6 +112,15 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
             ))}
           </ScrollView>
 
+          {/*
+            4개를 고른 기준을 밝힌다(2026-08-11 디자인 리뷰). 라벨이 없을 때는 왜 이 넷인지
+            화면에서 알 방법이 없었다 — 실제 기준은 `getPreviewGears()`의 **최근 추가순**이고,
+            말은 창고 정렬 옵션(`GearOrderOptions`)과 같은 것을 쓴다.
+          */}
+          <View style={styles.criterionLabel}>
+            <LiquidSectionLabel>최근 추가순</LiquidSectionLabel>
+          </View>
+
           {/* 장비 행은 카드 하나 안에 헤어라인으로 나눈다 — 행마다 면을 두면 목록이
               카드 더미로 보인다. */}
           <View style={styles.listCard}>
@@ -186,8 +196,11 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: LiquidLayout.screenH,
   },
+  // 라벨 자체가 아래 여백 10을 들고 있어(`LiquidSectionLabel`) 위 간격만 준다.
+  criterionLabel: {
+    marginTop: 16,
+  },
   listCard: {
-    marginTop: 12,
     borderRadius: LiquidRadius.card,
     backgroundColor: Liquid.surface,
     boxShadow: LiquidShadow.card,

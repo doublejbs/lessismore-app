@@ -135,8 +135,9 @@ const styles = StyleSheet.create({
   headerIdentity: {
     gap: 8,
   },
+  // 실제 목록의 sticky 라벨 띠와 같은 위·아래 여백(16 / 10) — 로딩이 풀릴 때 카드가 튀지 않게.
   sectionLabelBar: {
-    marginTop: 24,
+    marginTop: 16,
     marginBottom: 10,
   },
   card: {

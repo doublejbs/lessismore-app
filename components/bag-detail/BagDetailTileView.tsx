@@ -16,6 +16,12 @@ interface Props {
    * **그리드에서 한 장만** 켠다(목업 §6: 첫 타일만 잉크).
    */
   emphasized?: boolean;
+  /**
+   * 그리드 열 수(BD-10). 타일이 3장뿐이면 2열 격자에 빈 칸이 하나 남으므로 **한 줄 3열**로
+   * 눌러, 그 아래 `담긴 장비` 목록이 첫 화면에 올라오게 한다(2026-08-11 개정).
+   * 3열은 칸이 좁아 부제를 두 줄까지 흘린다.
+   */
+  columns?: 2 | 3;
   title?: string;
   subtitle?: string | null;
   /** title/subtitle 대신 본문을 직접 그릴 때(메모 내용·줄어든 무게) */
@@ -34,6 +40,7 @@ interface Props {
 const BagDetailTileView: FC<Props> = ({
   icon,
   emphasized = false,
+  columns = 2,
   title,
   subtitle,
   children,
@@ -42,7 +49,11 @@ const BagDetailTileView: FC<Props> = ({
 }) => {
   return (
     <TouchableOpacity
-      style={[styles.tile, emphasized ? styles.tileInk : styles.tilePaper]}
+      style={[
+        styles.tile,
+        columns === 3 ? styles.tileThird : styles.tileHalf,
+        emphasized ? styles.tileInk : styles.tilePaper,
+      ]}
       onPress={onPress}
       activeOpacity={LiquidMotion.pressOpacity}
       accessibilityRole='button'
@@ -66,7 +77,7 @@ const BagDetailTileView: FC<Props> = ({
         {subtitle ? (
           <PretendardText
             style={[styles.subtitle, emphasized && styles.subtitleOnInk]}
-            numberOfLines={1}
+            numberOfLines={columns === 3 ? 2 : 1}
           >
             {subtitle}
           </PretendardText>
@@ -81,12 +92,18 @@ const styles = StyleSheet.create({
   // 폭은 %로 둔다 — 타일 개수가 3~4개로 갈리므로(운동 기록은 렌더되지 않을 수 있다)
   // 고정 폭이면 마지막 줄에서 화면 좌우 여백이 어긋난다.
   tile: {
-    width: '48%',
     minHeight: 96,
     borderRadius: LiquidRadius.card,
     padding: 16,
     justifyContent: 'space-between',
     gap: 12,
+  },
+  tileHalf: {
+    width: '48%',
+  },
+  // 남는 4.5%가 칸 사이 두 틈(≈10)이 된다 — 카드 사이 간격 토큰과 같은 값이다.
+  tileThird: {
+    width: '31.5%',
   },
   tilePaper: {
     backgroundColor: Liquid.surface,

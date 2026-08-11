@@ -12,6 +12,11 @@ interface Props {
   category: WarehouseFilter;
   gears: Gear[];
   bagPacking: BagPacking;
+  /**
+   * 카테고리 머리 라벨을 그릴지. 담긴 장비가 **한 카테고리뿐이면** 라벨이 가르는 것이 없는데도
+   * 행 하나만큼 자리를 쓴다 — 호출부가 카테고리 수를 보고 끈다(2026-08-11 개정).
+   */
+  showLabel?: boolean;
 }
 
 /**
@@ -24,10 +29,13 @@ const BagPackingCategorySectionView: FC<Props> = ({
   category,
   gears,
   bagPacking,
+  showLabel = true,
 }) => {
   return (
     <View>
-      <LiquidSectionLabel>{category.getName()}</LiquidSectionLabel>
+      {showLabel ? (
+        <LiquidSectionLabel>{category.getName()}</LiquidSectionLabel>
+      ) : null}
       <View style={styles.gearList}>
         {gears.map(gear => (
           <BagPackingGearRowView

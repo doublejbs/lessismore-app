@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { View, StyleSheet } from 'react-native';
 import LiquidSkeletonBar from '@/components/liquid/LiquidSkeletonBar';
 import useLiquidShimmer from '@/components/liquid/useLiquidShimmer';
+import { GEAR_THUMBNAIL_SIZE } from '@/components/gear/GearThumbnailView';
 import {
   Liquid,
   LiquidLayout,
@@ -12,6 +13,9 @@ import {
 interface Props {
   count?: number; // 스켈레톤 행 개수
 }
+
+// 실제 행(`LiquidMetricRow`)의 세로 패딩. 프리미티브가 내보내지 않는 값이라 여기서 맞춘다.
+const ROW_PAD_V = 15;
 
 /**
  * WH-1 창고 목록 스켈레톤 (Liquid Depth).
@@ -27,11 +31,13 @@ const SkeletonRow: FC<{ divider: boolean }> = ({ divider }) => {
     <View>
       {divider ? <View style={styles.divider} /> : null}
       <View style={styles.row}>
-        {/* 좌 정체 — 브랜드(12) → 이름(15) → 색상·사용률(12) */}
+        {/* 좌 정체 — 브랜드(12) → 이름(15).
+            서브라인(`사용률 {n}%`)은 그리지 않는다 — 사용 기록이 있는 장비에만 붙어(WH-1,
+            2026-08-11 디자인 리뷰) 대부분의 행이 두 줄이다. 있을지 없을지 모르는 줄을 미리
+            그리면 로드 후 목록이 줄어드는 쪽으로 튄다. 행 높이는 아래 `minHeight`가 지킨다. */}
         <View style={styles.identity}>
           <LiquidSkeletonBar opacity={opacity} width={64} height={16} />
           <LiquidSkeletonBar opacity={opacity} width='70%' height={20} />
-          <LiquidSkeletonBar opacity={opacity} width='45%' height={16} />
         </View>
 
         {/* 우 무게 — 콘덴스드 20 자리 */}
@@ -70,11 +76,14 @@ const styles = StyleSheet.create({
     marginLeft: LiquidLayout.cardPad,
   },
   // 실제 행(LiquidMetricRow: paddingVertical 15 / paddingHorizontal 16 / gap 12)과 같은 리듬.
+  // 높이도 실제 행과 같게 잡는다 — 창고 행은 썸네일 한 변(44)을 본문 최소 높이로 걸어(WH-1)
+  // 정체가 두 줄인 행이 모두 이 키로 묶인다.
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 15,
+    minHeight: GEAR_THUMBNAIL_SIZE + ROW_PAD_V * 2,
+    paddingVertical: ROW_PAD_V,
     paddingHorizontal: LiquidLayout.cardPad,
   },
   identity: {

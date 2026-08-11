@@ -17,6 +17,7 @@ import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
 import { Liquid, LiquidMotion } from '@/constants/DesignTokens';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
+import { shortenLocationName } from '@/model/warehouse-detail/TripLocationName';
 
 interface Props {
   gear: Gear;
@@ -92,10 +93,13 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
   const renderTripRow = (record: GearTripRecord, index: number) => {
     const { bag, status } = record;
     const displayDate = bag.getDisplayDate();
+    // 전체 주소가 저장된 배낭은 시·군·구까지만 남긴다 — 뒤를 말줄임에 맡기면 단어 중간에서
+    // 잘려(`경기도 성남시 분당구 미금일로…`) 어디였는지도 알 수 없다(2026-08-11 디자인 리뷰).
     const locationName = bag.getLocationName();
-    const metaParts = [displayDate, locationName].filter(
-      (part): part is string => part !== null
-    );
+    const metaParts = [
+      displayDate,
+      locationName === null ? null : shortenLocationName(locationName),
+    ].filter((part): part is string => part !== null);
     const weatherSummary = summarizeWeatherPeriod(
       bag.getWeather()?.daily ?? []
     );
@@ -137,7 +141,7 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
               {renderStatusTag(status)}
             </View>
             {metaParts.length > 0 && (
-              // 1줄 말줄임 — `location.name`에 짧은 지명 대신 전체 주소가 저장된 배낭이 있어
+              // 1줄 말줄임 — 주소를 시·군·구까지 줄여도(위) 긴 지명은 남으므로 안전망은 유지한다.
               // 그대로 흘리면 메타가 2줄이 되면서 행 높이가 제각각이 되고, 주 정보인 배낭 이름보다
               // 보조 정보가 길어져 위계가 뒤집힌다(GD-10). 날씨는 별도 줄이라 영향을 받지 않는다.
               <PretendardText style={styles.tripMetaText} numberOfLines={1}>

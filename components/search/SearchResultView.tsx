@@ -1,7 +1,9 @@
 import { observer } from 'mobx-react-lite';
 import { FC } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 import PretendardText from '@/components/PretendardText';
+import LiquidPillButton from '@/components/liquid/LiquidPillButton';
 import {
   Liquid,
   LiquidFont,
@@ -11,6 +13,7 @@ import {
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Bag from '@/model/bag/Bag';
 import { GearAddContext } from '@/model/gear/GearAddContext';
+import GearAddMode from '@/model/gear/GearAddMode';
 import Feed from '@/model/feed/Feed';
 import FeedView from '../feed/FeedView';
 import FeedFilterBarView from '../feed/FeedFilterBarView';
@@ -24,8 +27,17 @@ interface Props {
   children?: React.ReactNode;
 }
 
-// SR-2(Liquid Depth): 검색 결과 화면 상단 — 채워진 검색 필드 아래 `검색 결과` + 개수, 그 아래 칩 줄.
+// SR-2(Liquid Depth): 검색 결과 화면 상단 — 검색 필드 자리는 탐색과 같고, 결과 라벨은
+// 개수를 품은 서브라인으로 내려온다.
 const RESULT_TITLE = '검색 결과';
+
+const EMPTY_TITLE = '찾는 장비가 없어요';
+
+const EMPTY_TEXT = '카탈로그에 없으면 직접 추가할 수 있어요';
+
+const ADD_CUSTOM_LABEL = '직접 추가하기';
+
+const BROWSE_BRAND_LABEL = '브랜드로 찾기';
 
 const SearchResultView: FC<Props> = ({
   searchWarehouse,
@@ -34,6 +46,7 @@ const SearchResultView: FC<Props> = ({
   gearAddContext,
   children,
 }) => {
+  const router = useRouter();
   const keyword = searchWarehouse.getKeyword();
   const isEmpty = searchWarehouse.isEmpty();
   const canLoadMore = searchWarehouse.canLoadMore();
@@ -43,6 +56,25 @@ const SearchResultView: FC<Props> = ({
 
   const handleLoadMore = () => {
     searchWarehouse.searchMore();
+  };
+
+  /**
+   * 빈 상태의 주 액션 — 이 앱의 핵심 흐름이 "카탈로그에 없으면 내가 등록"인데 그 경로가
+   * 화면에 없었다(2026-08-11 디자인 리뷰). 진입 컨텍스트를 그대로 이어 간다:
+   * 배낭 컨텍스트면 그 배낭의 커스텀 장비 등록으로, 그 외에는 창고 커스텀 등록으로 간다
+   * (`gear-add-options`의 `직접 입력`과 같은 갈래).
+   */
+  const handleAddCustom = () => {
+    const bagId =
+      gearAddContext?.mode === GearAddMode.Bag
+        ? gearAddContext.bagId
+        : undefined;
+
+    router.push(bagId ? `/custom/bag-gear/${bagId}` : '/custom');
+  };
+
+  const handleGoToBrandDirectory = () => {
+    router.push('/brand-directory');
   };
 
   // FD-2: 키워드가 없으면 검색 홈(SR-6) 대신 장비 피드를 렌더한다.
@@ -58,59 +90,86 @@ const SearchResultView: FC<Props> = ({
     );
   }
 
+  const showEmpty = isEmpty && !isLoading;
+
   const render = () => {
-    switch (true) {
-      case isEmpty && !isLoading: {
-        // 빈 상태는 사실 + 다음 걸음 두 줄(Liquid Depth 카피 규칙).
-        return (
-          <View style={styles.emptyContainer}>
+    if (showEmpty) {
+      /**
+       * 빈 상태는 사실 + 다음 걸음 두 줄(Liquid Depth 카피 규칙)에 액션 두 개를 붙인다.
+       *
+       * 가운데 정렬 대신 **남은 영역 상단 1/3**에 앵커한다 — 세로 가운데에 두면 메시지가
+       * 어디에도 정렬되지 않고 떠 있고 아래로 화면 절반이 빈다(2026-08-11 리뷰).
+       * 위아래 스페이서 비율(1 : 2)이 그 1/3을 만든다.
+       */
+      return (
+        <View style={styles.emptyContainer}>
+          <View style={styles.emptySpacerTop} />
+          <View style={styles.emptyBlock}>
             <PretendardText weight='semibold' style={styles.emptyTitle}>
-              찾는 장비가 없어요
+              {EMPTY_TITLE}
             </PretendardText>
             <PretendardText style={styles.emptyText}>
-              브랜드 이름으로 다시 찾아볼까요?
+              {EMPTY_TEXT}
             </PretendardText>
+            <View style={styles.emptyActions}>
+              <LiquidPillButton
+                label={ADD_CUSTOM_LABEL}
+                onPress={handleAddCustom}
+              />
+              <LiquidPillButton
+                label={BROWSE_BRAND_LABEL}
+                variant='secondary'
+                onPress={handleGoToBrandDirectory}
+              />
+            </View>
           </View>
-        );
-      }
-      default: {
-        return (
-          <SearchResultContentView
-            result={result}
-            canLoadMore={canLoadMore}
-            handleLoadMore={handleLoadMore}
-            searchWarehouse={searchWarehouse}
-            bag={bag}
-            gearAddContext={gearAddContext}
-          >
-            {children}
-          </SearchResultContentView>
-        );
-      }
+          <View style={styles.emptySpacerBottom} />
+        </View>
+      );
     }
+
+    return (
+      <SearchResultContentView
+        result={result}
+        canLoadMore={canLoadMore}
+        handleLoadMore={handleLoadMore}
+        searchWarehouse={searchWarehouse}
+        bag={bag}
+        gearAddContext={gearAddContext}
+      >
+        {children}
+      </SearchResultContentView>
+    );
   };
 
   // 검색 승계(SR-1): 검색 결과 위에도 필터 바를 유지 노출한다(정렬은 검색 미적용이라 숨김).
   return (
     <View style={styles.resultContainer}>
       {/**
-       * 개수는 숫자라 콘덴스드를 쓴다. 제목과 베이스라인을 맞춰 한 덩어리로 읽히게 한다.
+       * 결과 라벨은 화면 대상이 아니라 **서브라인**이다 — 탐색은 `탐색` 제목 → 검색 필드,
+       * 결과는 검색 필드 → `검색 결과` 제목이라 같은 탭에서 필드가 위로 점프했다
+       * (2026-08-11 리뷰). 필드 자리를 고정하고 라벨을 아래로 내렸다.
        *
-       * 값은 **총 히트 수**(`nbHits`)라 첫 응답부터 확정이다 — 누적 건수를 쓰면 스크롤할 때마다
-       * 숫자가 커지고, 로딩 상태로 가렸다 붙이면 개수가 깜빡인다. 0이면(아직 못 받았거나
-       * 결과 없음) 자리만 비운다.
+       * 개수는 **총 히트 수**(`nbHits`)라 첫 응답부터 확정이다 — 누적 건수를 쓰면 스크롤할
+       * 때마다 숫자가 커지고, 로딩 상태로 가렸다 붙이면 개수가 깜빡인다. 0이면(아직 못 받았거나
+       * 결과 없음) 자리만 비운다. 숫자만 콘덴스드다(라틴 전용 — 한글은 본문 서체).
        */}
-      <View style={styles.titleRow}>
-        <PretendardText weight='bold' style={styles.title}>
+      <View style={styles.subtitleRow}>
+        <PretendardText weight='medium' style={styles.subtitle}>
           {RESULT_TITLE}
+          {totalCount > 0 ? (
+            <PretendardText style={styles.count}> {totalCount}</PretendardText>
+          ) : null}
         </PretendardText>
-        {totalCount > 0 ? (
-          <PretendardText style={styles.count}>{totalCount}</PretendardText>
-        ) : null}
       </View>
 
       {feed ? (
-        <FeedFilterBarView feed={feed} showSort={false} topGap={14} />
+        <FeedFilterBarView
+          feed={feed}
+          showSort={false}
+          collapsed={showEmpty}
+          topGap={12}
+        />
       ) : null}
       <View style={styles.container}>{render()}</View>
     </View>
@@ -121,32 +180,35 @@ const styles = StyleSheet.create({
   resultContainer: {
     flex: 1,
   },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 8,
+  subtitleRow: {
     paddingHorizontal: LiquidLayout.screenH,
-    paddingTop: 18,
+    paddingTop: 14,
   },
-  title: {
-    fontSize: LiquidType.title3.fontSize,
-    lineHeight: LiquidType.title3.lineHeight,
-    letterSpacing: LiquidType.title3.letterSpacing,
-    color: Liquid.ink,
+  subtitle: {
+    fontSize: LiquidType.bodySm.fontSize,
+    lineHeight: LiquidType.bodySm.lineHeight,
+    color: Liquid.inkTertiary,
   },
   count: {
     fontFamily: LiquidFont.condensed,
-    fontSize: 17,
-    color: Liquid.inkMuted,
+    fontSize: 14,
+    color: Liquid.inkSecondary,
   },
   container: {
     flex: 1,
     paddingHorizontal: LiquidLayout.screenH,
   },
   emptyContainer: {
+    flex: 1,
+  },
+  emptySpacerTop: {
+    flex: 1,
+  },
+  emptySpacerBottom: {
+    flex: 2,
+  },
+  emptyBlock: {
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 80,
     gap: 6,
   },
   emptyTitle: {
@@ -160,6 +222,12 @@ const styles = StyleSheet.create({
     lineHeight: LiquidType.body.lineHeight,
     color: Liquid.inkTertiary,
     textAlign: 'center',
+  },
+  // 주 액션(잉크) 위에 여백을 두고, 보조는 그 아래 흰 아웃라인으로 한 단계 낮춘다.
+  emptyActions: {
+    alignItems: 'center',
+    gap: 10,
+    paddingTop: 14,
   },
 });
 

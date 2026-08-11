@@ -42,6 +42,12 @@ interface Props {
    */
   size?: 'md' | 'sm';
   /**
+   * 이름 줄 수. 기본 1줄이며, **이름 자체가 콘텐츠인 목록**만 2를 준다(인기 순위 SR-4 —
+   * 1위 제품명이 말줄임됐다). 기본을 늘리지 않는 이유는 창고·배낭 목록이 한 줄 고정 높이로
+   * 세로 리듬을 만들기 때문이다.
+   */
+  nameLines?: number;
+  /**
    * 행 **본문**(패딩 제외)의 최소 높이. 같은 목록에서 `leading`(썸네일)이 붙은 행과 안 붙은
    * 행의 키가 갈리지 않게 호출부가 썸네일 한 변을 넘긴다(BD-1/WH-1의 `GEAR_THUMBNAIL_SIZE`).
    * 세로 패딩은 이 컴포넌트가 알아서 더하므로 호출부가 계산하지 않는다.
@@ -69,6 +75,7 @@ const LiquidMetricRow: FC<Props> = ({
   divider = false,
   dim = false,
   size = 'md',
+  nameLines = 1,
   minContentHeight,
 }) => {
   const isSmall = size === 'sm';
@@ -99,7 +106,7 @@ const LiquidMetricRow: FC<Props> = ({
           <PretendardText
             weight='semibold'
             style={styles.name}
-            numberOfLines={1}
+            numberOfLines={nameLines}
           >
             {name}
           </PretendardText>

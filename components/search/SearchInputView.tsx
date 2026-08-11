@@ -50,12 +50,13 @@ const SearchBarInputView = forwardRef<SearchBarInputHandle, Props>(
         inputRef.current?.focus();
       },
     }));
+    // 따옴표는 타이포용(‘ ’)이다 — 직선 따옴표(')는 코드에서 온 글자처럼 읽힌다.
     const placeholder = `${josa(
-      `'${
+      `‘${
         SuggestionKeywords[
           Math.floor(Math.random() * SuggestionKeywords.length)
         ]
-      }'#{을}`
+      }’#{을}`
     )} 검색해보세요`;
 
     const handleChange = (text: string) => {
