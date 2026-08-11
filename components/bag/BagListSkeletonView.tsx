@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Color } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 
 /**
  * 배낭 목록 로딩 스켈레톤(BAG-1).
@@ -38,7 +38,7 @@ const useBreathingOpacity = () => {
   return opacity;
 };
 
-// 배낭 행: 좌 [이름 · 기간] / 우 [무게]. 실제 행(BagItemView)과 같은 배치다.
+// 배낭 행: 이름 + 메타 한 줄(무게 · 기간 · 패킹). 실제 행(BagItemView)과 같은 배치다.
 const SkeletonRow: FC = () => {
   const opacity = useBreathingOpacity();
 
@@ -46,9 +46,8 @@ const SkeletonRow: FC = () => {
     <View style={styles.row}>
       <View style={styles.identityColumn}>
         <Animated.View style={[styles.nameBar, { opacity }]} />
-        <Animated.View style={[styles.dateBar, { opacity }]} />
+        <Animated.View style={[styles.metaBar, { opacity }]} />
       </View>
-      <Animated.View style={[styles.weightBar, { opacity }]} />
     </View>
   );
 };
@@ -79,48 +78,47 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
+    paddingTop: 12,
+    paddingBottom: 16,
   },
+  // 실제 화면 제목(28pt/lineHeight 32)과 같은 자리·높이.
   headerTitleBar: {
-    width: 180,
-    height: 24,
-    borderRadius: 4,
-    backgroundColor: Color.borderLight,
+    width: 160,
+    height: 32,
+    borderRadius: 2,
+    backgroundColor: Acg.controlFill,
   },
   headerOrderBar: {
     width: 84,
     height: 20,
-    borderRadius: 4,
-    backgroundColor: Color.borderLight,
+    borderRadius: 2,
+    backgroundColor: Acg.controlFill,
   },
+  // 실제 행(최소 높이 64 + 위 헤어라인)과 같은 리듬.
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
+    minHeight: 64,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
   },
   identityColumn: {
-    gap: 8,
+    gap: 4,
   },
+  // 이름(19) / 메타(15) 두 단.
   nameBar: {
-    width: 160,
+    width: 170,
+    height: 22,
+    borderRadius: 2,
+    backgroundColor: Acg.controlFill,
+  },
+  metaBar: {
+    width: 220,
     height: 18,
-    borderRadius: 4,
-    backgroundColor: Color.borderLight,
-  },
-  dateBar: {
-    width: 200,
-    height: 14,
-    borderRadius: 4,
-    backgroundColor: Color.borderLight,
-  },
-  weightBar: {
-    width: 64,
-    height: 20,
-    borderRadius: 4,
-    backgroundColor: Color.borderLight,
+    borderRadius: 2,
+    backgroundColor: Acg.controlFill,
   },
 });
 
