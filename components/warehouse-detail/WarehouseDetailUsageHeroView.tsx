@@ -22,8 +22,13 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
 
   const { bagCount, usedCount, uselessCount } = warehouseDetail.getUsageStats();
 
-  const renderStat = (label: string, value: number, muted: boolean) => (
-    <View style={styles.statItem}>
+  const renderStat = (
+    label: string,
+    value: number,
+    muted: boolean,
+    divided = false
+  ) => (
+    <View style={[styles.statItem, divided && styles.statDivided]}>
       {/* 숫자라 콘덴스드로 키운다 — 두 지표가 이 섹션의 앵커(ACG). */}
       <AcgDisplayText style={[styles.statValue, muted && styles.statMuted]}>
         {String(value)}
@@ -34,9 +39,8 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
     </View>
   );
 
-  // 형광펜 띠는 이 섹션에만 준다 — `이 장비를 계속 데려갈까`에 답하는 화면의 주 정보다.
   return (
-    <WarehouseDetailSectionView title='사용 기록' highlight>
+    <WarehouseDetailSectionView title='사용 기록'>
       {bagCount === 0 ? (
         <PretendardText style={styles.emptyText}>
           아직 배낭에 담은 적이 없어요
@@ -48,7 +52,7 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
                 미기록은 타임라인의 `미기록` 태그로 행마다 드러난다. */}
           <View style={styles.statsRow}>
             {renderStat('사용', usedCount, usedCount === 0)}
-            {renderStat('사용 안함', uselessCount, uselessCount === 0)}
+            {renderStat('사용 안함', uselessCount, uselessCount === 0, true)}
           </View>
         </>
       )}
@@ -63,19 +67,24 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
-    gap: 8,
   },
-  // 종이 면 위 타일이라 채움은 지면색을 쓴다 — 회색 면을 또 두면 층이 하나 늘어난다.
+  /**
+   * 지표는 **면을 나누지 않고 세로 헤어라인으로 가른다**(2026-08-12). 타일 두 장을 8px 띄우면
+   * 섹션 면 안에 면이 또 생겨 층이 하나 늘어난다 — 홈 일정 카드의 `총 무게 | 예보`와 같은 문법이다.
+   */
   statItem: {
     flex: 1,
     alignItems: 'center',
     paddingVertical: 14,
-    backgroundColor: Acg.controlFill,
     gap: 2,
   },
+  statDivided: {
+    borderLeftWidth: 1,
+    borderLeftColor: Acg.hairline,
+  },
   statValue: {
-    fontSize: 24,
-    lineHeight: 32,
+    fontSize: 22,
+    lineHeight: 28,
     color: Acg.ink,
   },
   statLabel: {

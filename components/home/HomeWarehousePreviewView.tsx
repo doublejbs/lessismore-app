@@ -220,13 +220,13 @@ const styles = StyleSheet.create({
   },
   rowTitle: {
     fontSize: AcgFontSize.rowTitle,
-    lineHeight: 24,
+    lineHeight: 22,
     color: Acg.ink,
   },
   // 메타는 회색이 아니라 잉크다(레퍼런스) — 무게·브랜드는 장식이 아니라 정보다.
   rowMeta: {
     fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 20,
+    lineHeight: 19,
     color: Acg.ink,
   },
   // 메타 줄 안의 숫자 조각 — 크기는 상속하고 서체만 콘덴스드로 바꾼다.
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: AcgFontSize.rowTitle,
-    lineHeight: 24,
+    lineHeight: 22,
     color: Acg.ink,
   },
   emptySubtitle: {

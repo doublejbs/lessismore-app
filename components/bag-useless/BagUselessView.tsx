@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   count: {
-    fontSize: 34,
+    fontSize: 30,
     lineHeight: 38,
     color: Acg.ink,
   },

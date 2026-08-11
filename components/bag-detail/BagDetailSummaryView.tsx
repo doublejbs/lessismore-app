@@ -126,12 +126,12 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: AcgFontSize.meta,
-    lineHeight: 18,
+    lineHeight: 17,
     color: Acg.textMuted,
   },
   value: {
-    fontSize: 34,
-    lineHeight: 38,
+    fontSize: 30,
+    lineHeight: 34,
     color: Acg.ink,
   },
   bar: {

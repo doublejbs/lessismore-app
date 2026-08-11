@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 20,
+    lineHeight: 19,
     color: Acg.textMuted,
     flexShrink: 1,
   },

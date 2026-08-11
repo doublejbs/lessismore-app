@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: AcgFontSize.meta,
-    lineHeight: 18,
+    lineHeight: 17,
     color: Color.textSecondary,
   },
   chevron: {

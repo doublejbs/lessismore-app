@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '../PretendardText';
-import { Acg, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgRadius } from '@/constants/DesignTokens';
 
 interface Props {
   busy: boolean;
@@ -47,10 +47,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderStyle: 'dashed',
     borderColor: Acg.hairline,
-    borderRadius: Radius.card,
+    borderRadius: AcgRadius.thumb,
   },
   text: {
-    fontSize: 14,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Acg.textMuted,
   },
 });

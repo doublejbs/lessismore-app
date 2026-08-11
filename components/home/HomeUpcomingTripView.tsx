@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
   },
   tripName: {
     fontSize: AcgFontSize.rowTitle,
-    lineHeight: 24,
+    lineHeight: 22,
     color: Acg.ink,
   },
   locationRow: {
@@ -339,19 +339,19 @@ const styles = StyleSheet.create({
   locationText: {
     flexShrink: 1,
     fontSize: AcgFontSize.meta,
-    lineHeight: 18,
+    lineHeight: 17,
     color: Acg.textMuted,
   },
   tripDate: {
     fontSize: AcgFontSize.meta,
-    lineHeight: 18,
+    lineHeight: 17,
     letterSpacing: 0.5,
     color: Acg.textMuted,
   },
   // 남은 일수는 이 면에서 가장 큰 숫자다 — 훑을 때 먼저 걸려야 하는 값이다.
   dDay: {
-    fontSize: 26,
-    lineHeight: 28,
+    fontSize: 24,
+    lineHeight: 26,
     color: Acg.ink,
   },
   // `여행 중`처럼 한글이 섞인 라벨 — 콘덴스드를 못 쓰므로 한 단계 작게 잡아 폭을 맞춘다.
@@ -375,12 +375,12 @@ const styles = StyleSheet.create({
   },
   statKey: {
     fontSize: AcgFontSize.meta,
-    lineHeight: 18,
+    lineHeight: 17,
     color: Acg.textMuted,
   },
   statValue: {
-    fontSize: 26,
-    lineHeight: 30,
+    fontSize: 24,
+    lineHeight: 28,
     color: Acg.ink,
   },
   // 한글이 섞인 값 — 콘덴스드가 아니라 한 단계 작게 잡아 폭을 맞춘다.
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: AcgFontSize.rowTitle,
-    lineHeight: 24,
+    lineHeight: 22,
     color: Acg.ink,
   },
   emptySubtitle: {

@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: AcgFontSize.screenTitle,
-    lineHeight: 30,
+    lineHeight: 28,
     color: Acg.ink,
   },
   // 정보 탭 메뉴와 같은 문법(HM-8) — 면 없이 지면에 놓고 행 사이 헤어라인으로 가른다.

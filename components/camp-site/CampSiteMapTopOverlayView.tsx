@@ -272,12 +272,12 @@ const styles = StyleSheet.create({
   // 목록 행 문법(HM-8): 이름 18 + 메타 한 줄 15 잉크.
   resultName: {
     fontSize: AcgFontSize.rowTitle,
-    lineHeight: 24,
+    lineHeight: 22,
     color: Acg.ink,
   },
   resultMeta: {
     fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 20,
+    lineHeight: 19,
     color: Acg.ink,
   },
   errorBanner: {

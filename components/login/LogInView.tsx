@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -10,11 +10,14 @@ import {
   TextInput,
   Alert,
   Platform,
+  Animated,
+  KeyboardAvoidingView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Svg, Path } from 'react-native-svg';
 import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '@/components/PretendardText';
-import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
 import LogInAlertManager from '@/model/login/LogInAlertManager';
 import app from '@/model/app/App';
 
@@ -22,12 +25,74 @@ interface Props {
   logInAlertManager: LogInAlertManager;
 }
 
+/** 시트가 올라오는 거리. 실제 시트 높이보다 넉넉히 잡아 어떤 내용 높이에서도 화면 밖에서 시작한다. */
+const SHEET_TRAVEL = 420;
+
+const SHEET_DURATION = 260;
+
 const LogInView: FC<Props> = ({ logInAlertManager }) => {
   const isVisible = logInAlertManager.isVisible();
   const isLoading = logInAlertManager.isLoading();
   const [isEmailLoginMode, setIsEmailLoginMode] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const insets = useSafeAreaInsets();
+
+  /**
+   * 닫히는 애니메이션이 끝난 뒤에 언마운트하기 위한 로컬 상태.
+   *
+   * `Modal visible`을 곧바로 false로 내리면 슬라이드-아웃이 그려질 프레임이 없어 시트가
+   * 순간 사라진다 — 다른 시트(공지·하단 메뉴)도 같은 이유로 이 구조를 쓴다.
+   */
+  const [mounted, setMounted] = useState(isVisible);
+  // `useRef(...).current`를 렌더 중 읽으면 react-hooks 규칙에 걸린다 — 초기화 함수로 1회만 만든다.
+  const [fadeAnim] = useState(() => new Animated.Value(0));
+  const [slideAnim] = useState(() => new Animated.Value(SHEET_TRAVEL));
+
+  /**
+   * 열릴 때 마운트하고, 닫힐 때는 애니메이션이 끝난 뒤 언마운트한다.
+   *
+   * 여기 `setMounted(true)`는 lint(`set-state-in-effect`)가 경고하는 형태다. 마운트 토글은
+   * 애니메이션의 전제라 effect 밖으로 뺄 수 없고(가시성은 매니저가 외부에서 바꾼다),
+   * 이 저장소의 다른 시트들도 같은 구조를 쓴다 — 규칙이 걱정하는 연쇄 렌더는 열림/닫힘
+   * 각 1회뿐이다.
+   */
+  useEffect(() => {
+    if (isVisible) {
+      setMounted(true);
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: SHEET_DURATION,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: SHEET_DURATION,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      return;
+    }
+
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: SHEET_DURATION,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: SHEET_TRAVEL,
+        duration: SHEET_DURATION,
+        useNativeDriver: true,
+      }),
+    ]).start(({ finished }) => {
+      if (finished) {
+        setMounted(false);
+      }
+    });
+  }, [isVisible, fadeAnim, slideAnim]);
 
   const handleClickCancel = () => {
     logInAlertManager.hide();
@@ -66,28 +131,49 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
     await logInAlertManager.loginWithApple();
   };
 
-  if (!isVisible) {
+  if (!mounted) {
     return null;
   }
 
   return (
     <Modal
-      visible={isVisible}
+      visible={mounted}
       transparent={true}
+      animationType='none'
       onRequestClose={handleClickCancel}
     >
-      <Pressable style={styles.overlay} onPress={handleClickCancel}>
-        <Pressable style={styles.modal} onPress={e => e.stopPropagation()}>
+      {/* 딤은 시트와 함께 페이드한다 — 딤만 즉시 사라지면 시트가 허공에서 내려가 보인다. */}
+      <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
+        <Pressable
+          style={styles.overlayTouchable}
+          onPress={handleClickCancel}
+        />
+      </Animated.View>
+
+      <KeyboardAvoidingView
+        style={styles.sheetWrap}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        pointerEvents='box-none'
+      >
+        <Animated.View
+          style={[
+            styles.sheet,
+            {
+              transform: [{ translateY: slideAnim }],
+              paddingBottom: Math.max(insets.bottom, 20) + 8,
+            },
+          ]}
+        >
+          {/* 그래버 — 이 시트는 라우트가 아니라 Modal이라 시스템이 그려주지 않는다. */}
+          <View style={styles.grabber} />
+
           <Image
             source={require('@/assets/images/logo.png')}
             style={styles.logo}
             resizeMode='contain'
           />
-          {!isEmailLoginMode && (
-            <PretendardText weight='bold' style={styles.subtitle}>
-              {'로그인 후 이용 가능합니다'}
-            </PretendardText>
-          )}
+          {/* 안내 문구를 두지 않는다(2026-08-05 사용자 결정) — 이 시트에서 할 일은
+              로그인 하나뿐이라 설명이 없어도 통하고, 문구가 있으면 그게 시트의 앵커가 된다. */}
           <View style={styles.buttonContainer}>
             {isLoading ? (
               <LoadingView />
@@ -199,26 +285,48 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
               </>
             )}
           </View>
-        </Pressable>
-      </Pressable>
+        </Animated.View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
+  // 딤은 화면 전체를 덮고, 시트는 그 위에 따로 얹는다 — 한 계층에 두면 딤 탭이 시트까지 먹는다.
   overlay: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: Color.overlay,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  modal: {
-    width: 350,
-    backgroundColor: Color.background,
-    borderRadius: Radius.modal,
-    padding: 24,
-    paddingBottom: 20,
-    gap: 24,
+  overlayTouchable: {
+    flex: 1,
+  },
+  sheetWrap: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  /**
+   * 하단 시트(2026-08-12). 가운데 뜨는 350pt 모달이었는데, 로그인은 **화면을 가로막는 알림이
+   * 아니라 다음 걸음**이라 앱의 다른 시트(공지·하단 메뉴·정렬)와 같은 자리에서 올라와야 한다.
+   * 상단 모서리만 둥글다(`Radius.sheet`).
+   */
+  sheet: {
+    backgroundColor: Acg.paper,
+    borderTopLeftRadius: Radius.sheet,
+    borderTopRightRadius: Radius.sheet,
+    paddingTop: 10,
+    paddingHorizontal: 24,
+    gap: 20,
+  },
+  grabber: {
+    alignSelf: 'center',
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Acg.hairline,
   },
   logo: {
     width: '100%',
@@ -230,11 +338,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 48,
     letterSpacing: -4.5,
-    color: Color.textPrimary,
-  },
-  subtitle: {
-    textAlign: 'center',
-    fontSize: AcgFontSize.rowSubtitle,
     color: Color.textPrimary,
   },
   buttonContainer: {

@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   // 시트 제목 — 화면 제목과 같은 층이다.
   headerTitle: {
     fontSize: AcgFontSize.screenTitle,
-    lineHeight: 30,
+    lineHeight: 28,
     color: Acg.ink,
   },
   closeButton: {
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   rowName: {
     flexShrink: 1,
     fontSize: AcgFontSize.rowTitle,
-    lineHeight: 24,
+    lineHeight: 22,
     color: Acg.ink,
   },
   /**
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   rowMeta: {
     flexShrink: 1,
     fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 20,
+    lineHeight: 19,
     color: Acg.ink,
   },
   emptyWrap: {
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 20,
+    lineHeight: 19,
     color: Acg.textMuted,
     textAlign: 'center',
   },

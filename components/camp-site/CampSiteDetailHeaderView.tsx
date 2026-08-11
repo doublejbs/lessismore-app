@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   name: {
     flex: 1,
     fontSize: AcgFontSize.screenTitle,
-    lineHeight: 30,
+    lineHeight: 28,
     color: Acg.ink,
   },
   metaRow: {
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   meta: {
     flexShrink: 1,
     fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 20,
+    lineHeight: 19,
     color: Acg.ink,
   },
   description: {

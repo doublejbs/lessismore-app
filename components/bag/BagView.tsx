@@ -171,12 +171,12 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: AcgFontSize.rowTitle,
-    lineHeight: 24,
+    lineHeight: 22,
     color: Acg.ink,
   },
   emptySubtitle: {
     fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 20,
+    lineHeight: 19,
     color: Acg.textMuted,
   },
   // 좌: 개수 텍스트 / 우: 정렬 드롭다운 (창고 컨트롤 행과 같은 문법, BAG-6)
