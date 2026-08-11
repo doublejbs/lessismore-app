@@ -83,13 +83,13 @@ class BagItem {
     return this.editDate.isValid() ? this.editDate.valueOf() : null;
   }
 
-  public getWeight() {
-    return Number((Number(this.weight) / 1000).toFixed(2));
-  }
-
-  // 무게 정렬용 저장값(g). 표시용 getWeight()는 kg로 반올림해 동률이 뭉개지므로 정렬에 쓰지 않는다(BAG-6).
-  // 둘 다 number라 단위를 이름에 박아 구분한다.
-  // 값이 없거나 숫자가 아니면 0(빈 배낭)으로 본다.
+  /**
+   * 배낭 총 무게의 저장값(g). **정렬·합산·표시 모두 이 값 하나에서 나온다**(DM-26) —
+   * kg로 미리 반올림한 값을 내면 정렬에서 동률이 뭉개지고(BAG-6), 화면마다 다시 서식을
+   * 만들면 같은 배낭이 `0.00kg`·`3.23kg`으로 갈린다. 표시는 `formatBagWeight()`가 맡는다.
+   *
+   * 값이 없거나 숫자가 아니면 0(빈 배낭)으로 본다.
+   */
   public getWeightGram(): number {
     return Number(this.weight) || 0;
   }

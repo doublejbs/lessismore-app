@@ -16,6 +16,7 @@ import {
 } from '@/constants/DesignTokens';
 import Gear from '@/model/gear/Gear';
 import GearFilter from '@/model/gear/GearFilter';
+import { formatGearWeightOrNull } from '@/model/gear/WeightFormat';
 import {
   getCategoryChips,
   getPreviewGears,
@@ -124,8 +125,7 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
                 <LiquidMetricRow
                   name={gear.getDisplayName()}
                   meta={gear.getDisplayCompany()}
-                  value={gear.getWeight()}
-                  unit='g'
+                  value={formatGearWeightOrNull(gear.getWeight())}
                   size='sm'
                   divider={index > 0}
                 />

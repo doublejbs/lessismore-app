@@ -14,6 +14,7 @@ import {
 } from '@/constants/DesignTokens';
 import SharedBag from '@/model/shared-bag/SharedBag';
 import Gear from '@/model/gear/Gear';
+import { formatGearWeightOrNull } from '@/model/gear/WeightFormat';
 
 interface Props {
   sharedBag: SharedBag;
@@ -106,7 +107,7 @@ const SharedBagView: FC<Props> = ({ sharedBag }) => {
           </PretendardText>
 
           {/* 이 화면의 주 수치라 흰 히어로 카드 하나에 총 무게 → 기간 → 규모를 쌓는다.
-              무게는 라틴만 든 문자열이라(`3.45kg`) 콘덴스드를 한 덩어리로 쓴다. */}
+              무게는 라틴만 든 문자열이라(`3.5kg`) 콘덴스드를 한 덩어리로 쓴다. */}
           <LiquidCard
             tone='paper'
             radius='hero'
@@ -160,15 +161,14 @@ interface GearRowProps {
  */
 const GearRow: FC<GearRowProps> = ({ gear, divider }) => {
   const company = gear.getDisplayCompany();
-  const weight = gear.getWeight();
 
   return (
     <LiquidMetricRow
       size='sm'
       name={gear.getDisplayName()}
       divider={divider}
+      value={formatGearWeightOrNull(gear.getWeight())}
       {...(company ? { brand: company } : {})}
-      {...(weight ? { value: weight } : {})}
     />
   );
 };

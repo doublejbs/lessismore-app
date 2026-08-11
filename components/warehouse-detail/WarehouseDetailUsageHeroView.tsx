@@ -44,7 +44,7 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
           </PretendardText>
         </LiquidCard>
       ) : (
-        // 사용·사용 안함 두 지표만 둔다(GD-9, 2026-07-30 사용자 결정) — 목업 §9의 세 번째
+        // 사용·안 쓴 장비 두 지표만 둔다(GD-9, 2026-07-30 사용자 결정) — 목업 §9의 세 번째
         // 타일(`여행`)은 아래 `함께한 여행 N회` 헤더가 같은 값을 말해 그때 걷어낸 지표다.
         <View style={styles.statsRow}>
           <LiquidStatTile
@@ -53,9 +53,11 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
             tone='accent'
             dim={usedCount === 0}
           />
+          {/* 창고 칩(WH-2-1)·내 정보 지표와 같은 말을 쓴다 — 예전 `사용 안함`은 같은 뜻을
+              화면마다 다르게 말했다(2026-08-11 사용자 결정). */}
           <LiquidStatTile
             value={uselessCount}
-            label='사용 안함'
+            label='안 쓴 장비'
             dim={uselessCount === 0}
           />
         </View>

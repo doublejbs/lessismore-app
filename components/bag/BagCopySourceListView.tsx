@@ -12,6 +12,7 @@ import {
   LiquidType,
 } from '@/constants/DesignTokens';
 import BagItem from '@/model/bag/BagItem';
+import { formatBagWeight } from '@/model/gear/WeightFormat';
 
 // 하단 여백은 마지막 행의 세로 패딩과 합쳐져 실효 여백이 insets.bottom이 되도록 그만큼 빼서 준다.
 const ROW_VERTICAL_PADDING = 16;
@@ -62,6 +63,7 @@ const BagCopySourceListView: FC<Props> = ({ bags, isLoading, onSelect }) => {
 
     return bags.map((bagItem, index) => {
       const date = bagItem.getDate();
+      const weight = formatBagWeight(bagItem.getWeightGram());
 
       const handlePress = () => {
         onSelect(bagItem);
@@ -74,7 +76,7 @@ const BagCopySourceListView: FC<Props> = ({ bags, isLoading, onSelect }) => {
           activeOpacity={LiquidMotion.pressOpacity}
           onPress={handlePress}
           accessibilityRole='button'
-          accessibilityLabel={`${bagItem.getName()}, ${date}, ${bagItem.getWeight()}kg`}
+          accessibilityLabel={`${bagItem.getName()}, ${date}, ${weight}`}
         >
           <View style={styles.rowText}>
             <PretendardText weight='semibold' style={styles.name}>
@@ -83,9 +85,7 @@ const BagCopySourceListView: FC<Props> = ({ bags, isLoading, onSelect }) => {
             <PretendardText style={styles.date}>{date}</PretendardText>
           </View>
           {/* 값과 단위를 한 덩어리로 쓴다 — 숫자와 라틴 단위뿐이라 콘덴스드가 안전하다. */}
-          <PretendardText style={styles.weight}>
-            {`${bagItem.getWeight()}kg`}
-          </PretendardText>
+          <PretendardText style={styles.weight}>{weight}</PretendardText>
           <Ionicons name='chevron-forward' size={18} color={Liquid.inkSubtle} />
         </TouchableOpacity>
       );

@@ -12,6 +12,10 @@ import app from '@/model/app/App';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
 import BagTripSection from '@/model/bag/BagTripSection';
+import {
+  formatBagWeight,
+  formatBagWeightValue,
+} from '@/model/gear/WeightFormat';
 import { isCondensedLabel } from '@/model/home/HomeTripPlan';
 import PretendardText from '@/components/PretendardText';
 import LiquidProgressBar from '@/components/liquid/LiquidProgressBar';
@@ -226,7 +230,7 @@ const BagItemView: FC<Props> = ({
     badgeLabel,
     bagItem.getName(),
     date,
-    `${bagItem.getWeight()}kg`,
+    formatBagWeight(bagItem.getWeightGram()),
     showProgress ? `패킹 ${packedCount}/${gearCount}` : null,
   ]
     .filter(part => part !== null)
@@ -278,7 +282,7 @@ const BagItemView: FC<Props> = ({
               <PretendardText
                 style={[styles.weightValue, isPast && styles.weightValueQuiet]}
               >
-                {bagItem.getWeight()}
+                {formatBagWeightValue(bagItem.getWeightGram())}
               </PretendardText>
               <PretendardText
                 style={[styles.weightUnit, isPast && styles.weightUnitQuiet]}

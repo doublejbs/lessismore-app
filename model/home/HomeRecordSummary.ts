@@ -9,7 +9,11 @@ import Gear from '@/model/gear/Gear';
 
 export interface HomeRecordSummary {
   gearCount: number;
-  totalWeightKg: number;
+  /**
+   * 창고 전체 무게 합의 **저장 단위(g)**. 표시 서식은 뷰가 `formatBagWeight()`로 만든다
+   * (DM-26) — 여기서 kg로 미리 반올림하면 같은 합이 화면마다 다른 자리수로 갈린다.
+   */
+  totalWeightGram: number;
   bagCount: number;
   unusedCount: number;
 }
@@ -34,8 +38,7 @@ export const getHomeRecordSummary = (
 
   return {
     gearCount: gears.length,
-    // 소수 한 자리까지만 — 창고 총합은 수십 kg이라 g 단위는 읽는 데 방해만 된다.
-    totalWeightKg: Math.round((totalWeightGram / 1000) * 10) / 10,
+    totalWeightGram,
     bagCount: bags.length,
     unusedCount: gears.filter(isUnusedGear).length,
   };

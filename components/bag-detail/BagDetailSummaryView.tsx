@@ -4,6 +4,10 @@ import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import GearFilter from '@/model/gear/GearFilter';
+import {
+  formatBagWeight,
+  formatBagWeightValue,
+} from '@/model/gear/WeightFormat';
 import PretendardText from '@/components/PretendardText';
 import LiquidCard from '@/components/liquid/LiquidCard';
 import {
@@ -69,11 +73,12 @@ const label = (category: string) =>
  * 우측 라임 델타 배지는 **이 화면의 유일한 라임 면**이다(핸드오프: 화면당 라임 면 1개).
  */
 const BagDetailSummaryView: FC<Props> = ({ bagDetail }) => {
-  const total = bagDetail.getWeight();
+  const totalGram = bagDetail.getWeightGram();
   // 사용 기록(BD-5)이 있으면 실제 쓴 무게와의 차이가 "줄일 수 있는 무게"다 — 앱의 정체성인
   // 값이라 히어로에 배지로 세운다. 기록이 없거나 차이가 없으면 배지를 달지 않는다.
-  const reducible = bagDetail.isUselessChecked()
-    ? Math.round((total - bagDetail.getUsedWeight()) * 100) / 100
+  // 차이는 g로 뺀다 — kg로 반올림한 값끼리 빼면 오차가 배지 숫자에 그대로 실린다(DM-26).
+  const reducibleGram = bagDetail.isUselessChecked()
+    ? totalGram - bagDetail.getUsedWeightGram()
     : 0;
 
   const map = new Map<string, number>();
@@ -98,10 +103,13 @@ const BagDetailSummaryView: FC<Props> = ({ bagDetail }) => {
 
   // 무게 행은 숫자·단위·배지가 한 뜻이라 통째로 하나의 접근성 요소다 —
   // 부모가 `accessible`이면 자식 라벨은 개별로 읽히지 않으므로 델타까지 한 문장에 합친다.
+  const totalLabel = formatBagWeight(totalGram);
   const weightLabel =
-    reducible > 0
-      ? `총 무게 ${total}kg, 사용 기록 기준 ${reducible}kg 줄일 수 있어요`
-      : `총 무게 ${total}kg`;
+    reducibleGram > 0
+      ? `총 무게 ${totalLabel}, 사용 기록 기준 ${formatBagWeight(
+          reducibleGram
+        )} 줄일 수 있어요`
+      : `총 무게 ${totalLabel}`;
 
   return (
     <View style={styles.wrap}>
@@ -113,16 +121,18 @@ const BagDetailSummaryView: FC<Props> = ({ bagDetail }) => {
         >
           {/* 숫자·단위 모두 라틴이라 콘덴스드가 안전하다. 라인박스를 글자 크기와 같게 잡아
               큰 숫자가 잘리지 않게 한다(목업은 54/50이지만 RN에서는 어센더가 깎인다). */}
-          <PretendardText style={styles.weightValue}>{total}</PretendardText>
+          <PretendardText style={styles.weightValue}>
+            {formatBagWeightValue(totalGram)}
+          </PretendardText>
           <PretendardText weight='semibold' style={styles.weightUnit}>
             kg
           </PretendardText>
           <View style={styles.weightSpacer} />
-          {reducible > 0 ? (
+          {reducibleGram > 0 ? (
             <View style={styles.deltaBadge}>
               <Ionicons name='trending-down' size={13} color={Liquid.limeOn} />
               <PretendardText weight='semibold' style={styles.deltaText}>
-                {`-${reducible}kg`}
+                {`-${formatBagWeight(reducibleGram)}`}
               </PretendardText>
             </View>
           ) : null}

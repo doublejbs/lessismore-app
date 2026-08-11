@@ -3,6 +3,10 @@ import { GestureResponderEvent, Pressable, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import GearRowActions from '@/model/browse/GearRowActions';
 import Gear from '@/model/gear/Gear';
+import {
+  formatGearWeightOrNull,
+  MISSING_WEIGHT_LABEL,
+} from '@/model/gear/WeightFormat';
 import Bag from '@/model/bag/Bag';
 import LiquidAddCta from '@/components/liquid/LiquidAddCta';
 import LiquidMetricRow from '@/components/liquid/LiquidMetricRow';
@@ -88,7 +92,7 @@ const SearchGearView: FC<Props> = ({ gear, searchWarehouse, bag }) => {
   ]
     .filter(Boolean)
     .join(' · ');
-  const weight = gear.getWeight();
+  const weight = formatGearWeightOrNull(gear.getWeight());
   const company = gear.getDisplayCompany();
 
   /**
@@ -98,7 +102,7 @@ const SearchGearView: FC<Props> = ({ gear, searchWarehouse, bag }) => {
   const getAccessibilityLabel = (): string =>
     [
       [company, gear.getDisplayName()].filter(Boolean).join(' '),
-      weight ? `${weight}g` : null,
+      weight ?? MISSING_WEIGHT_LABEL,
     ]
       .filter(Boolean)
       .join(', ');
@@ -130,9 +134,9 @@ const SearchGearView: FC<Props> = ({ gear, searchWarehouse, bag }) => {
               }
             />
           }
+          value={weight}
           {...(company ? { brand: company } : {})}
           {...(meta ? { meta } : {})}
-          {...(weight ? { value: weight } : {})}
         />
       </Pressable>
 

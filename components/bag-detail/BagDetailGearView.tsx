@@ -10,6 +10,10 @@ import Reanimated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import Gear from '@/model/gear/Gear';
+import {
+  formatGearWeightOrNull,
+  MISSING_WEIGHT_LABEL,
+} from '@/model/gear/WeightFormat';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import app from '@/model/app/App';
 import { Ionicons } from '@expo/vector-icons';
@@ -111,7 +115,7 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divider = false }) => {
   ]
     .filter(Boolean)
     .join(' · ');
-  const weight = gear.getWeight();
+  const weight = formatGearWeightOrNull(gear.getWeight());
 
   /**
    * 창고 목록 행과 같은 문법으로 읽는다(WH-1) — 브랜드는 이름을 여는 라벨이라 쉼표 없이
@@ -123,7 +127,7 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divider = false }) => {
       [gear.getDisplayCompany(), gear.getDisplayName()]
         .filter(Boolean)
         .join(' '),
-      weight ? `${weight}g` : null,
+      weight ?? MISSING_WEIGHT_LABEL,
       gear.hasUsedRate() ? `사용률 ${gear.getUsedRate()}%` : null,
       isUseless ? '사용 안 함' : null,
     ]
@@ -151,7 +155,6 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divider = false }) => {
             name={gear.getDisplayName()}
             meta={meta}
             value={weight}
-            unit='g'
             divider={divider}
             // 썸네일이 붙은 행과 없는 행의 키를 같게 묶는다(GearThumbnailView 주석의 행 높이 계약).
             minContentHeight={GEAR_THUMBNAIL_SIZE}

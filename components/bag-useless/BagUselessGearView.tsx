@@ -3,6 +3,10 @@ import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import Gear from '@/model/gear/Gear';
+import {
+  formatGearWeightOrNull,
+  MISSING_WEIGHT_LABEL,
+} from '@/model/gear/WeightFormat';
 import BagUseless from '@/model/bag-useless/BagUseless';
 import LiquidMetricRow from '@/components/liquid/LiquidMetricRow';
 import GearThumbnailView, {
@@ -33,6 +37,9 @@ const CHECK_SIZE = 26;
  */
 const BagUselessGearView: FC<Props> = ({ gear, bagUseless }) => {
   const selected = bagUseless.isSelected(gear);
+  // 무게가 없으면 행이 `무게 미입력`을 그리므로 라벨도 같은 말을 읽는다(DM-26).
+  const weight = formatGearWeightOrNull(gear.getWeight());
+  const weightLabel = weight ?? MISSING_WEIGHT_LABEL;
   // 생성 시점 값이 현재 상태 — 재마운트되어도 애니메이션 없이 맞는 그림에서 시작한다.
   const [fill] = useState(() => new Animated.Value(selected ? 1 : 0));
   const animatedSelected = useRef(selected);
@@ -96,14 +103,13 @@ const BagUselessGearView: FC<Props> = ({ gear, bagUseless }) => {
       activeOpacity={LiquidMotion.pressOpacity}
       accessibilityRole='checkbox'
       accessibilityState={{ checked: selected }}
-      accessibilityLabel={`${gear.getDisplayName()}, ${gear.getWeight()}g`}
+      accessibilityLabel={`${gear.getDisplayName()}, ${weightLabel}`}
     >
       <LiquidMetricRow
         size='sm'
         brand={gear.getDisplayCompany()}
         name={gear.getDisplayName()}
-        value={gear.getWeight()}
-        unit='g'
+        value={weight}
         // 안 쓴 행은 정체·무게를 함께 낮춘다(핸드오프 doneOpacity). 체크 원은 상태를
         // 말하는 표식이라 낮추지 않는다.
         dim={!selected}

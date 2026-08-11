@@ -23,6 +23,10 @@ import LiquidPillButton from '@/components/liquid/LiquidPillButton';
 import LiquidFieldLabel from '@/components/liquid/LiquidFieldLabel';
 import { takeCampReviewWrite } from '@/model/camp-review/CampReviewWriteHandoff';
 import BagItem from '@/model/bag/BagItem';
+import {
+  formatBagWeightFromKilograms,
+  formatBagWeightValue,
+} from '@/model/gear/WeightFormat';
 import { CampReviewInput } from '@/model/camp-review/CampReviewTypes';
 import {
   Liquid,
@@ -44,12 +48,14 @@ interface AttachedBag {
   bagWeight: string;
 }
 
-// BagItem을 첨부 스냅샷으로 변환한다. getWeight()는 number(kg)라 소수 2자리 문자열로 맞춘다.
+// BagItem을 첨부 스냅샷으로 변환한다. `bagWeight`는 **kg 문자열**이라는 계약(DM-20)이라
+// 저장값(g)을 앱 전역 표기(DM-26)의 숫자 부분으로 바꿔 넣는다 — 옛 문서에 남은 `8.40` 같은
+// 두 자리 값은 표시 시점(`formatBagWeightFromKilograms`)에서 정규화된다.
 const toAttachedBag = (bag: BagItem): AttachedBag => ({
   bagId: bag.getID(),
   bagName: bag.getName(),
   bagDate: bag.getDate(),
-  bagWeight: bag.getWeight().toFixed(2),
+  bagWeight: formatBagWeightValue(bag.getWeightGram()),
 });
 
 // CS-8: 박지 후기 작성/수정 화면 — 네이티브 formSheet 라우트. 상태를 직접 소유한다.
@@ -239,7 +245,10 @@ const CampReviewWriteScreen = () => {
                 {attachedBag.bagName}
               </PretendardText>
               <PretendardText style={styles.bagChipMeta} numberOfLines={1}>
-                {[attachedBag.bagDate, `${attachedBag.bagWeight}kg`]
+                {[
+                  attachedBag.bagDate,
+                  formatBagWeightFromKilograms(attachedBag.bagWeight),
+                ]
                   .filter(Boolean)
                   .join(' · ')}
               </PretendardText>

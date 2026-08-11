@@ -146,7 +146,7 @@ bag/[id] (배낭 상세)
   | --- | --- | --- | --- |
   | 좌·위 | 배낭 이름 | `설악산 백패킹` | `BagDetail.getName()` |
   | 좌·아래 | 날짜 | `26.07.26` (YY.MM.DD) | `BagDetail.getStartDate()` |
-  | 우·위 | 배낭 총 무게 | `7.2 KG` | `BagDetail.getWeight()` |
+  | 우·위 | 배낭 총 무게 | `7.2 KG` | `BagDetail.getWeightGram()` → DM-26 표기 + 대문자 단위 |
   | 우·아래 | 이동 거리 | `12.4 KM` | `BagActivitySummary.distance`(m) |
 
   좌측에 이름·날짜를 묶어 "언제 어디" 를 한 덩어리로, 우측에 무게·거리를 묶어 "얼마를 지고 얼마나" 를 한 덩어리로 읽히게 한 배치다.
@@ -235,8 +235,8 @@ bag/[id] (배낭 상세)
 | --- | --- | --- |
 | 브랜드 | `ARC'TERYX` (대문자) | `Gear.getCompany()` → 비었으면 `getCompanyKorean()` |
 | 장비명 | `보라 60` | `Gear.getName()` → 비었으면 `getDisplayName()` |
-| 장비 무게 | `1840g` | `Gear.getWeight()` — **문자열 g**이므로 `Number()` 캐스팅 |
-| 총 무게 | `6.61KG` | `BagDetail.getWeight()` — 이미 kg |
+| 장비 무게 | `1840g` | `Gear.getWeight()` — **문자열 g**이므로 `Number()` 캐스팅. 표기는 앱 목록 행과 같다([DataModel.md](DataModel.md) DM-26) |
+| 총 무게 | `6.6KG` | `BagDetail.getWeightGram()` → DM-26 표기(kg 한 자리) + 대문자 단위. **2026-08-11 개정** — 예전에는 여기만 소수 두 자리(`6.61KG`)여서 같은 배낭이 폴라로이드(`6.6 KG`)와 패킹리스트에서 다르게 보였다. 이제 자리수는 같고 **공백 구분만** 다르다 |
 | 장비 수 | `14` | `BagDetail.getCount()` |
 
 - **이 템플릿은 `CLAUDE.md`의 "표시에는 항상 `getDisplayName()`" 규약에 대한 의도적 예외다.** 앱 UI가 아니라 내보내기 캔버스라 캐논컬 값을 우선한다. 규약 위반으로 오해해 되돌리지 말 것.

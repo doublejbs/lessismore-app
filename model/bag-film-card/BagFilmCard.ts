@@ -9,6 +9,10 @@ import FilmCardRatio from '@/model/bag-film-card/FilmCardRatio';
 import PhotoPickTarget from '@/model/bag-film-card/PhotoPickTarget';
 import { PackingListItem } from '@/model/bag-film-card/PackingListItem';
 import Gear from '@/model/gear/Gear';
+import {
+  formatBagWeightValue,
+  formatGearWeight,
+} from '@/model/gear/WeightFormat';
 import ToastManager from '@/model/toast/ToastManager';
 
 // 아래 두 모듈은 웹 변형이 없어 동적으로만 불러온다(getMediaLibrary·getSharing 주석 참고).
@@ -220,9 +224,13 @@ class BagFilmCard {
     return this.bagDetail.getStartDate().format('YY.MM.DD');
   }
 
-  // 좌·작: 배낭 총 무게. getWeight()가 이미 kg이라 단위 환산 없이 소수 1자리로 자른다.
+  /**
+   * 좌·작: 배낭 총 무게 — `8.4 KG`.
+   *
+   * 값은 앱 전역과 같은 규칙(DM-26)이고, 대문자 단위와 공백 구분만 이 캔버스의 디자인이다.
+   */
   public getWeightText() {
-    return `${this.bagDetail.getWeight().toFixed(1)} KG`;
+    return `${formatBagWeightValue(this.bagDetail.getWeightGram())} KG`;
   }
 
   public hasActivity() {
@@ -264,8 +272,9 @@ class BagFilmCard {
         return {
           brand,
           name: BagFilmCard.toLabelName(gear),
-          // 패킹리스트 본문의 무게 표기는 소문자 g다(BS-8 데이터 표 — `1840g`).
-          weightText: `${BagFilmCard.toGramWeight(gear)}g`,
+          // 패킹리스트 본문의 무게 표기는 소문자 g다(BS-8 데이터 표 — `1840g`) —
+          // 장비 개별 무게라 앱 목록 행과 같은 표기다(DM-26).
+          weightText: formatGearWeight(BagFilmCard.toGramWeight(gear)),
           hasKoreanBrand: KOREAN_PATTERN.test(brand),
         };
       });
@@ -277,15 +286,15 @@ class BagFilmCard {
   }
 
   /**
-   * 패킹리스트 푸터 `TOTAL WEIGHT`의 **값**(BS-8) — `6.61KG`.
+   * 패킹리스트 푸터 `TOTAL WEIGHT`의 **값**(BS-8) — `6.6KG`.
    *
-   * 라벨은 뷰가 따로 찍으므로 여기서는 값만 만든다. `getWeight()`가 이미 kg이라
-   * 단위 환산 없이 소수 2자리로 자른다(폴라로이드의 `getWeightText()`는 소수 1자리 +
-   * 공백 구분이라 형식이 다르다 — 둘을 합치지 말 것).
+   * 라벨은 뷰가 따로 찍으므로 여기서는 값만 만든다. 자리수는 앱 전역 규칙(DM-26)을 따르고
+   * 폴라로이드의 `getWeightText()`와 값이 같다 — 공백 구분만 다르다(예전에는 여기만
+   * 소수 두 자리여서 같은 배낭이 카드 안에서 `6.6`과 `6.61`로 갈렸다).
    * 잘라낸 항목과 무관하게 항상 배낭 전량 기준이다.
    */
   public getTotalWeightText() {
-    return `${this.bagDetail.getWeight().toFixed(2)}KG`;
+    return `${formatBagWeightValue(this.bagDetail.getWeightGram())}KG`;
   }
 
   // 패킹리스트 푸터 `TOTAL ITEMS`의 **값**(BS-8) — `14`. 이것도 전량 기준이다.

@@ -168,26 +168,20 @@ class BagPacking {
     return Math.round((this.getPackedCount() / total) * 100);
   }
 
-  // 챙긴 장비 무게 합(kg, 소수점 둘째 자리 반올림).
-  public getPackedWeight() {
-    const gram = this.gears.reduce(
+  // 챙긴 장비 무게 합의 저장값(g). 표시 서식은 헤더가 `formatBagWeight()`로 만든다(DM-26).
+  public getPackedWeightGram() {
+    return this.gears.reduce(
       (acc, gear) =>
         this.packedIds.has(gear.getId())
           ? acc + Number(gear.getWeight() || 0)
           : acc,
       0
     );
-
-    return this.toKg(gram);
   }
 
-  // 배낭 총 무게(kg, 소수점 둘째 자리 반올림).
-  public getTotalWeight() {
-    return this.toKg(this.weight);
-  }
-
-  private toKg(gram: number) {
-    return Math.round((gram / 1000) * 100) / 100;
+  // 배낭 총 무게의 저장값(g).
+  public getTotalWeightGram() {
+    return this.weight;
   }
 
   public isComplete() {

@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
+import { formatBagWeight } from '@/model/gear/WeightFormat';
 import TripPhase from '@/model/bag/TripPhase';
 import PretendardText from '@/components/PretendardText';
 import BagDetailTileView from './BagDetailTileView';
@@ -18,7 +19,7 @@ const BagDetailUselessDescriptionView: FC<Props> = ({
   emphasized = false,
 }) => {
   const isUselessChecked = bagDetail.isUselessChecked();
-  const usedWeight = bagDetail.getUsedWeight();
+  const usedWeight = formatBagWeight(bagDetail.getUsedWeightGram());
   const phase = bagDetail.getTripPhase();
 
   const handlePressUseless = () => {
@@ -49,14 +50,14 @@ const BagDetailUselessDescriptionView: FC<Props> = ({
       emphasized={emphasized}
       title='사용 기록'
       onPress={handlePressUseless}
-      accessibilityLabel={`사용 기록, ${usedWeight}kg로 줄어요`}
+      accessibilityLabel={`사용 기록, ${usedWeight}로 줄어요`}
     >
       <View style={styles.weightRow}>
         {/* 숫자 + kg라 콘덴스드를 쓴다. `로 줄어요`는 한글이라 본문 서체로 떨어뜨린다. */}
         <PretendardText
           style={[styles.weightValue, emphasized && styles.weightValueOnInk]}
         >
-          {`${usedWeight}kg`}
+          {usedWeight}
         </PretendardText>
         <PretendardText
           style={[styles.weightSuffix, emphasized && styles.weightSuffixOnInk]}

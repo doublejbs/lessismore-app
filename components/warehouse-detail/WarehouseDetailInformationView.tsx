@@ -11,6 +11,7 @@ import {
   LiquidType,
 } from '@/constants/DesignTokens';
 import { GEAR_FILTER_NAMES } from '@/model/gear/GearFilterName';
+import { formatGearWeightValue, hasWeight } from '@/model/gear/WeightFormat';
 
 interface Props {
   gear: Gear;
@@ -80,9 +81,9 @@ const WarehouseDetailInformationView: FC<Props> = ({ gear, photo }) => {
         {/* 무게는 우측 정렬, `무게` 캡션은 생략한다 — `g` 단위가 이미 무엇인지 말해주고
             목록 행에도 캡션이 없다. 캡션 없이도 화면에서 가장 큰 숫자라 시각 앵커는 무게다(GD-1).
             콘덴스드는 한글 글리프가 없어 숫자·단위에만 쓴다. */}
-        {weight ? (
+        {hasWeight(weight) ? (
           <PretendardText style={styles.weightText} numberOfLines={1}>
-            {weight}
+            {formatGearWeightValue(weight)}
             <PretendardText style={styles.weightUnit}>g</PretendardText>
           </PretendardText>
         ) : null}

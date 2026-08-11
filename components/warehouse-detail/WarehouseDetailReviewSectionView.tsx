@@ -95,7 +95,7 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
           accessibilityRole='button'
         >
           <PretendardText weight='medium' style={styles.actionText}>
-            첫번째 리뷰 남기기
+            첫 번째 리뷰 남기기
           </PretendardText>
           <Ionicons name='chevron-forward' size={16} color={Liquid.inkSubtle} />
         </TouchableOpacity>

@@ -12,6 +12,7 @@ import BagAddView from './BagAddView';
 import BagListSkeletonView from './BagListSkeletonView';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
+import { formatBagWeight } from '@/model/gear/WeightFormat';
 import PretendardText from '@/components/PretendardText';
 import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
 import LiquidSectionLabel from '@/components/liquid/LiquidSectionLabel';
@@ -32,14 +33,15 @@ const SECTION_GAP = 22;
 
 // 헤더 보조 줄. 개수와 평균 무게를 한 덩어리로 읽힌다 — 총합은 여행마다 따로인 값을 더해
 // 뜻이 없다(배낭 4개 무게를 합칠 일이 없다).
+// 평균도 g에서 내 다른 합계와 같은 표기를 쓴다(DM-26) — 표시용 kg를 평균하면 오차가 쌓인다.
 const getAverageWeight = (bags: BagItem[]): string => {
   if (bags.length === 0) {
-    return '0.0';
+    return formatBagWeight(0);
   }
 
   const total = bags.reduce((sum, bagItem) => sum + bagItem.getWeightGram(), 0);
 
-  return (total / bags.length / 1000).toFixed(1);
+  return formatBagWeight(total / bags.length);
 };
 
 const BagView = () => {
@@ -118,7 +120,7 @@ const BagView = () => {
                   배낭
                 </PretendardText>
                 <PretendardText weight='medium' style={styles.headerSummary}>
-                  {`${bags.length}개 · 평균 ${getAverageWeight(bags)}kg`}
+                  {`${bags.length}개 · 평균 ${getAverageWeight(bags)}`}
                 </PretendardText>
               </View>
               <OrderButtonView

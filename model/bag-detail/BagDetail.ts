@@ -218,11 +218,17 @@ class BagDetail {
     this.weight = value;
   }
 
-  public getWeight() {
-    return Math.round((Number(this.weight) / 1000) * 100) / 100;
+  /**
+   * 배낭 총 무게의 저장값(g) — 담긴 장비 무게 합과 같다(DM-11 불변식).
+   *
+   * 이 모델의 무게는 전 구간 g다(DM-26). kg 반올림값을 내면 화면마다 다시 서식을 만들면서
+   * 같은 배낭이 `3.23kg`·`3.2kg`으로 갈린다 — 표시는 `formatBagWeight()`가 맡는다.
+   */
+  public getWeightGram() {
+    return Number(this.weight) || 0;
   }
 
-  // 베이스 무게(배낭/텐트/침낭/매트) — UL 핵심 지표. kg 반올림.
+  // 베이스 무게(배낭/텐트/침낭/매트) — UL 핵심 지표.
   private static readonly BASE_CATEGORIES: string[] = [
     GearFilter.Backpack,
     GearFilter.Tent,
@@ -230,18 +236,17 @@ class BagDetail {
     GearFilter.Mat,
   ];
 
-  public getBaseWeight() {
-    const grams = this.gears
+  public getBaseWeightGram() {
+    return this.gears
       .filter(gear =>
         BagDetail.BASE_CATEGORIES.includes(gear.getGroupCategory())
       )
       .reduce((acc, gear) => acc + Number(gear.getWeight()), 0);
-    return Math.round((grams / 1000) * 100) / 100;
   }
 
-  // 베이스를 제외한 나머지(휴대품·소모품 등) 무게. kg 반올림.
-  public getRestWeight() {
-    return Math.round((this.getWeight() - this.getBaseWeight()) * 100) / 100;
+  // 베이스를 제외한 나머지(휴대품·소모품 등) 무게.
+  public getRestWeightGram() {
+    return this.getWeightGram() - this.getBaseWeightGram();
   }
 
   // 여행 상태: 출발 전 / 여행 중 / 지난 여행.
@@ -384,8 +389,9 @@ class BagDetail {
     this.usedWeight = value;
   }
 
-  public getUsedWeight() {
-    return Math.round((Number(this.usedWeight) / 1000) * 100) / 100;
+  /** 이 배낭에서 실제로 쓴 장비 무게 합의 저장값(g) — BD-5. 표시 서식은 뷰가 만든다(DM-26). */
+  public getUsedWeightGram() {
+    return Number(this.usedWeight) || 0;
   }
 
   private setUselessChecked(value: boolean) {

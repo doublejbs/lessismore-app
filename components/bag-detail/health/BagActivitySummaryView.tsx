@@ -5,12 +5,12 @@ import LiquidCard from '@/components/liquid/LiquidCard';
 import { Liquid, LiquidFont, LiquidLayout } from '@/constants/DesignTokens';
 import { BagActivitySummary } from '@/model/bag/BagActivitySummary';
 import {
-  formatBagWeight,
   formatDistance,
   formatDuration,
   formatElevation,
   formatEnergy,
 } from '@/model/health/HealthFormat';
+import { formatBagWeight } from '@/model/gear/WeightFormat';
 
 interface Props {
   summary: BagActivitySummary;

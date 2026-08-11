@@ -216,7 +216,8 @@ class Warehouse {
     this.query = value;
   }
 
-  public getTotalWeight() {
+  // 현재 목록(필터·검색 적용) 무게 합의 저장값(g). 표시 서식은 화면이 만든다(DM-26).
+  public getTotalWeightGram() {
     return this.getGears().reduce(
       (sum, gear) => sum + (Number(gear.getWeight()) || 0),
       0

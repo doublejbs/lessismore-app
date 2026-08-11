@@ -5,6 +5,7 @@ import PretendardText from '@/components/PretendardText';
 import LiquidSectionLabel from '@/components/liquid/LiquidSectionLabel';
 import Gear from '@/model/gear/Gear';
 import BagItem from '@/model/bag/BagItem';
+import { formatBagWeight } from '@/model/gear/WeightFormat';
 import { getHomeRecordSummary } from '@/model/home/HomeRecordSummary';
 import {
   Liquid,
@@ -21,7 +22,7 @@ interface Props {
 }
 
 /**
- * HM-7 내 기록 — 장비·총 무게·여행·안 쓴 장비 네 수치 (Liquid Depth).
+ * HM-7 내 기록 — 장비·창고 무게·배낭·안 쓴 장비 네 수치 (Liquid Depth).
  *
  * 홈 맨 아래에 둔다. 위쪽은 "다음에 할 일"(HM-1·HM-4)이고 이건 훑고 내려온 끝에 놓이는
  * 회고성 정보다.
@@ -60,8 +61,11 @@ const HomeRecordSummaryView: FC<Props> = ({ gears, bags }) => {
 
       <View style={styles.card}>
         {renderMetric('장비', String(summary.gearCount))}
-        {renderMetric('총 무게', `${summary.totalWeightKg}kg`)}
-        {renderMetric('여행', String(summary.bagCount))}
+        {/* `총 무게`가 아니라 `창고 무게`다 — 홈 히어로(그 배낭 무게)·배낭 상세(그 배낭)와
+            같은 말을 쓰면 세 화면에서 뜻이 셋으로 갈린다(2026-08-11 사용자 결정). */}
+        {renderMetric('창고 무게', formatBagWeight(summary.totalWeightGram))}
+        {/* 배낭 탭·배낭 상세와 같은 말을 쓴다 — `여행`은 여행지·여행 중과 겹친다. */}
+        {renderMetric('배낭', String(summary.bagCount))}
 
         {/* 유일하게 다음 걸음이 있는 지표라 누를 수 있게 둔다. */}
         <TouchableOpacity

@@ -3,6 +3,7 @@ import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import Gear from '@/model/gear/Gear';
+import { formatGearWeightOrNull } from '@/model/gear/WeightFormat';
 import BagEdit from '@/model/bag-edit/BagEdit';
 import app from '@/model/app/App';
 import LiquidMetricRow from '@/components/liquid/LiquidMetricRow';
@@ -72,7 +73,7 @@ const BagEditWarehouseGearView: FC<Props> = ({ gear, bagEdit }) => {
   ]
     .filter(Boolean)
     .join(' · ');
-  const weight = gear.getWeight();
+  const weight = formatGearWeightOrNull(gear.getWeight());
 
   // 빈 원은 항상 보인다 — 담기 전에도 이 행이 고를 수 있는 항목임을 드러낸다.
   // 채움(잉크 원 + 라임 체크)만 스프링으로 나타난다.
@@ -118,11 +119,11 @@ const BagEditWarehouseGearView: FC<Props> = ({ gear, bagEdit }) => {
         minContentHeight={GEAR_THUMBNAIL_SIZE}
         leading={<GearThumbnailView imageUrl={gear.getImageUrl()} />}
         trailing={renderCheck()}
+        value={weight}
         {...(gear.getDisplayCompany()
           ? { brand: gear.getDisplayCompany() }
           : {})}
         {...(meta ? { meta } : {})}
-        {...(weight ? { value: weight } : {})}
       />
     </TouchableOpacity>
   );

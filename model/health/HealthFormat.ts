@@ -4,9 +4,11 @@ import HealthWorkoutType from './HealthWorkoutType';
 // 운동 기록(HA)의 표시 문자열 변환. 도메인 값은 전 구간 SI(m/초)로 다루고
 // 사람이 읽는 단위 변환은 여기 한 곳에서만 한다 — 타일 부제(HA-1)와
 // 후보 목록·합산 요약(HA-3)이 같은 표기를 쓰게 하기 위함이다.
+//
+// 무게는 예외다 — 운동 기록만의 값이 아니라 앱 전역 지표라 정본이
+// `model/gear/WeightFormat.ts`에 있다(DM-26). 여기에 다시 두지 않는다.
 
 const METERS_PER_KILOMETER = 1000;
-const GRAMS_PER_KILOGRAM = 1000;
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 3600;
 
@@ -51,15 +53,6 @@ export const formatDuration = (seconds: number): string => {
 /** 활동 에너지(kcal) → `420kcal`. */
 export const formatEnergy = (kilocalories: number): string => {
   return `${Math.round(kilocalories)}kcal`;
-};
-
-/**
- * 배낭 무게(g) → `8.4kg`(HA-4).
- *
- * `bag.weight`는 그램 단위 정수다. 배낭 상세(BD-3)와 같은 소수 첫째 자리 표기를 쓴다.
- */
-export const formatBagWeight = (grams: number): string => {
-  return `${(grams / GRAMS_PER_KILOGRAM).toFixed(1)}kg`;
 };
 
 /** 심박(bpm) → `132bpm`. */

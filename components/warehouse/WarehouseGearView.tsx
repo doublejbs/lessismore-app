@@ -11,6 +11,10 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Warehouse from '@/model/warehouse/Warehouse';
 import Gear from '@/model/gear/Gear';
+import {
+  formatGearWeightOrNull,
+  MISSING_WEIGHT_LABEL,
+} from '@/model/gear/WeightFormat';
 import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
 import LiquidMetricRow from '@/components/liquid/LiquidMetricRow';
@@ -113,7 +117,7 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse, divider = false }) => {
   ]
     .filter(Boolean)
     .join(' · ');
-  const weight = gear.getWeight();
+  const weight = formatGearWeightOrNull(gear.getWeight());
 
   /**
    * 스크린리더는 행을 한 문장으로 읽는다 — 눈으로 훑는 세 줄(브랜드 · 이름 · 메타)과 우측
@@ -125,7 +129,7 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse, divider = false }) => {
       [gear.getDisplayCompany(), gear.getDisplayName()]
         .filter(Boolean)
         .join(' '),
-      weight ? `${weight}g` : null,
+      weight ?? MISSING_WEIGHT_LABEL,
       gear.hasUsedRate() ? `사용률 ${gear.getUsedRate()}%` : null,
     ]
       .filter(Boolean)
@@ -153,11 +157,11 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse, divider = false }) => {
             // 썸네일이 붙은 행과 없는 행의 키를 같게 묶는다(GearThumbnailView의 행 높이 계약).
             minContentHeight={GEAR_THUMBNAIL_SIZE}
             leading={<GearThumbnailView imageUrl={gear.getImageUrl()} />}
+            value={weight}
             {...(gear.getDisplayCompany()
               ? { brand: gear.getDisplayCompany() }
               : {})}
             {...(meta ? { meta } : {})}
-            {...(weight ? { value: weight } : {})}
           />
         </TouchableOpacity>
       </View>

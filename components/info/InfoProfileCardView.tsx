@@ -105,12 +105,13 @@ const InfoProfileCardView: FC<Props> = ({
           value={summary ? summary.gearCount : 0}
           label='장비'
         />
+        {/* 홈 내 기록(HM-7)과 같은 값이라 같은 말을 쓴다 — `여행`은 여행지·여행 중과 겹친다. */}
         <LiquidStatTile
           tone='sunken'
           size='sm'
           loading={isLoading}
           value={summary ? summary.bagCount : 0}
-          label='여행'
+          label='배낭'
         />
         {/* 셋 중 이 하나만 덜어낼 후보라 라임 계열 잉크로 세운다(홈 HM-7과 같은 처리). */}
         <LiquidStatTile

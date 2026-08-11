@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import BagPacking from '@/model/bag-packing/BagPacking';
+import { formatBagWeight } from '@/model/gear/WeightFormat';
 import LiquidCard from '@/components/liquid/LiquidCard';
 import LiquidProgressBar from '@/components/liquid/LiquidProgressBar';
 import {
@@ -34,8 +35,9 @@ const BagPackingHeaderView: FC<Props> = ({ bagPacking }) => {
   const packedCount = bagPacking.getPackedCount();
   const totalCount = bagPacking.getTotalCount();
   const percent = bagPacking.getProgressPercent();
-  const packedWeight = bagPacking.getPackedWeight();
-  const totalWeight = bagPacking.getTotalWeight();
+  // 헤더는 kg 합계, 아래 행은 장비 개별 g — 축이 달라서 단위가 다른 게 맞다(DM-26).
+  const packedWeight = formatBagWeight(bagPacking.getPackedWeightGram());
+  const totalWeight = formatBagWeight(bagPacking.getTotalWeightGram());
 
   return (
     <View style={styles.wrap}>
@@ -71,9 +73,9 @@ const BagPackingHeaderView: FC<Props> = ({ bagPacking }) => {
         {/* 이 앱의 차별점 — 개수가 아니라 **무게가 차오르는** 감각을 같은 카드에 둔다. */}
         <PretendardText
           style={styles.weightText}
-          accessibilityLabel={`챙긴 무게 ${packedWeight}kg, 총 무게 ${totalWeight}kg`}
+          accessibilityLabel={`챙긴 무게 ${packedWeight}, 총 무게 ${totalWeight}`}
         >
-          {`${packedWeight}kg / ${totalWeight}kg`}
+          {`${packedWeight} / ${totalWeight}`}
         </PretendardText>
       </LiquidCard>
     </View>

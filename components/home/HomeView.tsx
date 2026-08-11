@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { observer } from 'mobx-react-lite';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
@@ -23,6 +23,17 @@ interface Props {
 
 // iOS는 콘텐츠가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
 const IOS_EDGES = ['top', 'left', 'right'] as const;
+
+/**
+ * 헤더 날짜의 요일. dayjs 한국어 로케일을 등록하지 않은 저장소라 `ddd`/`dddd`는 영문으로
+ * 나오고, 로케일을 전역에 걸면 앱의 다른 날짜 표기까지 함께 바뀐다 — 날씨·여행지 화면과
+ * 같은 방식으로 배열을 직접 매핑한다.
+ */
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+
+// `8월 11일 화요일` — 영문 요일과 한글 날짜를 섞지 않는다.
+const formatHeaderDate = (date: Dayjs): string =>
+  `${date.format('M월 D일')} ${WEEKDAYS[date.day()]}요일`;
 
 const HomeView: FC<Props> = ({ home }) => {
   const insets = useSafeAreaInsets();
@@ -109,7 +120,7 @@ const HomeView: FC<Props> = ({ home }) => {
       */}
       <View style={styles.header}>
         <PretendardText weight='medium' style={styles.headerDate}>
-          {today.format('dddd, M월 D일')}
+          {formatHeaderDate(today)}
         </PretendardText>
         <PretendardText weight='bold' style={styles.headerTitle}>
           다음 여행까지

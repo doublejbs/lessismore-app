@@ -11,6 +11,7 @@ import LiquidAddCta from '@/components/liquid/LiquidAddCta';
 import LiquidMetricRow from '@/components/liquid/LiquidMetricRow';
 import { Liquid, LiquidMotion, LiquidType } from '@/constants/DesignTokens';
 import Gear from '@/model/gear/Gear';
+import { formatGearWeightOrNull } from '@/model/gear/WeightFormat';
 
 // 순위 배지 지름.
 const RANK_BADGE_SIZE = 28;
@@ -50,7 +51,7 @@ const SearchRankRowView: FC<Props> = ({
   onRemove,
 }) => {
   const isAdded = gear.isAdded();
-  const weight = gear.getWeight();
+  const weight = formatGearWeightOrNull(gear.getWeight());
   const company = gear.getDisplayCompany();
 
   const badge = (
@@ -90,8 +91,8 @@ const SearchRankRowView: FC<Props> = ({
         name={gear.getDisplayName()}
         divider={divider}
         trailing={cta}
+        value={weight}
         {...(company ? { brand: company } : {})}
-        {...(weight ? { value: weight } : {})}
       />
     </Pressable>
   );

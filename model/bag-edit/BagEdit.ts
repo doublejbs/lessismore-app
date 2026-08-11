@@ -89,8 +89,9 @@ class BagEdit {
     this.weight = weight;
   }
 
-  public getWeight() {
-    return Number(this.weight) / 1000;
+  // 선택한 장비 무게 합의 저장값(g). 헤더 카운트업이 이 값을 보간하고 서식은 표시 쪽이 만든다(DM-26).
+  public getWeightGram() {
+    return Number(this.weight) || 0;
   }
 
   public getCount() {

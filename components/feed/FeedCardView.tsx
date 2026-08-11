@@ -11,6 +11,7 @@ import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Gear from '@/model/gear/Gear';
+import { formatGearWeightValue, hasWeight } from '@/model/gear/WeightFormat';
 import Bag from '@/model/bag/Bag';
 import GearRowActions from '@/model/browse/GearRowActions';
 import { GearAddContext } from '@/model/gear/GearAddContext';
@@ -282,9 +283,11 @@ const FeedCardView: FC<Props> = ({
 
           {/* 무게는 숫자라 콘덴스드를 쓴다 — 카드의 시각 앵커. 단위는 한 단계 낮춰
               숫자가 먼저 읽히게 한다. */}
-          {weight ? (
+          {hasWeight(weight) ? (
             <PretendardText style={styles.weightWrap} numberOfLines={1}>
-              <PretendardText style={styles.weight}>{weight}</PretendardText>
+              <PretendardText style={styles.weight}>
+                {formatGearWeightValue(weight)}
+              </PretendardText>
               <PretendardText style={styles.weightUnit}>g</PretendardText>
             </PretendardText>
           ) : null}

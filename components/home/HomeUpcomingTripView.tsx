@@ -16,6 +16,7 @@ import {
   LiquidMotion,
 } from '@/constants/DesignTokens';
 import BagItem from '@/model/bag/BagItem';
+import { formatBagWeightValue } from '@/model/gear/WeightFormat';
 import {
   getDDayLabel,
   getPrimaryAction,
@@ -151,14 +152,16 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
             )}
           </View>
 
-          <View style={styles.heroWeight}>
+          {/* 숫자와 단위는 한 덩어리다(DM-26) — 목업은 `44`(Archivo) 아래 `kg 총 무게` 한 줄을
+              두었지만, 그러면 값이 `44`와 `kg`로 갈려 단위가 라벨의 일부처럼 읽히고 `총 무게`가
+              배낭 상세·내 기록의 같은 말과 뜻이 겹친다(2026-08-11 사용자 결정 — 라벨 줄을 걷고
+              `8.4kg`을 한 덩어리로 둔다). 단위만 한 급 낮춰 숫자가 먼저 읽히게 한다. */}
+          <PretendardText style={styles.weightWrap} numberOfLines={1}>
             <PretendardText style={styles.weightValue}>
-              {primary.getWeight()}
+              {formatBagWeightValue(primary.getWeightGram())}
             </PretendardText>
-            <PretendardText weight='semibold' style={styles.weightUnit}>
-              kg 총 무게
-            </PretendardText>
-          </View>
+            <PretendardText style={styles.weightUnit}>kg</PretendardText>
+          </PretendardText>
         </TouchableOpacity>
 
         {/* 라임 면 위 유리 판 — 진행·날씨·기간을 한 덩어리로 묶는다. */}
@@ -342,8 +345,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Liquid.limeOnQuiet,
   },
-  heroWeight: {
-    alignItems: 'flex-end',
+  // 부모 라인박스를 자식 최대 크기(44)로 잡는다 — 없으면 numberOfLines={1}에서 큰 자식의
+  // 어센더가 깎인다(배낭 카드 `weightWrap`과 같은 처리).
+  weightWrap: {
+    flexShrink: 0,
+    textAlign: 'right',
+    fontSize: 44,
+    lineHeight: 46,
   },
   weightValue: {
     fontFamily: LiquidFont.condensed,
@@ -352,9 +360,10 @@ const styles = StyleSheet.create({
     letterSpacing: -1,
     color: Liquid.ink,
   },
+  // 단위도 Archivo — 라틴 전용이라 `kg`에 안전하고, 숫자와 한 스팬에 있어야 한 값으로 읽힌다.
   weightUnit: {
-    marginTop: 2,
-    fontSize: 12,
+    fontFamily: LiquidFont.condensed,
+    fontSize: 18,
     color: Liquid.limeOnQuiet,
   },
   heroPanel: {

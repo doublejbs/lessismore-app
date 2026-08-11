@@ -81,7 +81,7 @@ const BagListSkeletonView: FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* `배낭` 제목 + `N개 · 평균 N.Nkg` 요약 · 우측 정렬 드롭다운 자리 */}
+      {/* `배낭` 제목 + `4개 · 평균 8.4kg` 요약 · 우측 정렬 드롭다운 자리 */}
       <View style={styles.header}>
         <View style={styles.headerIdentity}>
           {/* 실제 헤더의 라인박스(제목 lineHeight 38, 요약 ~17)와 같은 높이 — 로딩 해제 시 튀지 않게. */}

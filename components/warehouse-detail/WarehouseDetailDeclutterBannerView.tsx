@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
+import { formatGearWeight } from '@/model/gear/WeightFormat';
 import PretendardText from '../PretendardText';
 import {
   LiquidLayout,
@@ -23,9 +24,13 @@ const WarehouseDetailDeclutterBannerView: FC<Props> = ({ warehouseDetail }) => {
     return null;
   }
 
+  // 장비 개별 무게라 g 고정이고 천 단위 구분자를 넣지 않는다(DM-26) —
+  // 목록 행의 `7200g`과 같은 값이 여기서 `7,200g`으로 보이면 다른 값처럼 읽힌다.
   const message =
     signal.weightG !== null
-      ? `최근 3번의 여행에서 쓰지 않았어요 — 배낭에서 빼면 −${signal.weightG.toLocaleString()}g`
+      ? `최근 3번의 여행에서 쓰지 않았어요 — 배낭에서 빼면 −${formatGearWeight(
+          signal.weightG
+        )}`
       : '최근 3번의 여행에서 쓰지 않았어요';
 
   return (

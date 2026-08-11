@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import BagPacking from '@/model/bag-packing/BagPacking';
+import { formatBagWeightValue } from '@/model/gear/WeightFormat';
 import LiquidCard from '@/components/liquid/LiquidCard';
 import LiquidPillButton from '@/components/liquid/LiquidPillButton';
 import { Liquid, LiquidFont, LiquidType } from '@/constants/DesignTokens';
@@ -26,7 +27,7 @@ const MARK_SIZE = 44;
  * 얹는다. 접근성 포커스도 같은 규칙으로 이 카드 안에 갇힌다(`accessibilityViewIsModal`).
  */
 const BagPackingCompleteView: FC<Props> = ({ bagPacking }) => {
-  const totalWeight = bagPacking.getTotalWeight();
+  const totalWeight = formatBagWeightValue(bagPacking.getTotalWeightGram());
   const showDDay = bagPacking.hasUpcomingDeparture();
   const dDay = bagPacking.getDDay();
 

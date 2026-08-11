@@ -30,6 +30,7 @@ import {
   LiquidType,
 } from '@/constants/DesignTokens';
 import Warehouse from '@/model/warehouse/Warehouse';
+import { formatBagWeight } from '@/model/gear/WeightFormat';
 import WarehouseChromeView from '@/components/warehouse/WarehouseChromeView';
 import WarehouseFiltersView from '@/components/warehouse/WarehouseFiltersView';
 import WarehouseGearView from '@/components/warehouse/WarehouseGearView';
@@ -109,16 +110,16 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
 
   /**
    * 개수와 총 무게를 한 덩어리로 읽힌다(목업 §8). 필터·검색을 적용한 **현재 목록** 기준이라
-   * 아래 목록과 같은 사실을 말한다. 무게가 모두 미입력이면 `0.0kg`은 뜻이 없어 뺀다.
+   * 아래 목록과 같은 사실을 말한다. 무게가 모두 미입력이면 `0kg`은 뜻이 없어 뺀다.
    */
   const getSummary = (): string => {
-    const totalWeight = warehouse.getTotalWeight();
+    const totalWeightGram = warehouse.getTotalWeightGram();
 
-    if (totalWeight === 0) {
+    if (totalWeightGram === 0) {
       return `${gears.length}개`;
     }
 
-    return `${gears.length}개 · ${(totalWeight / 1000).toFixed(1)}kg`;
+    return `${gears.length}개 · ${formatBagWeight(totalWeightGram)}`;
   };
 
   // 빈 상태는 사실 + 다음 걸음 두 줄이다(핸드오프 Interactions). 원인마다 다음 걸음이 다르다.

@@ -4,6 +4,7 @@ import app from '@/model/app/App';
 import BagStore from '@/model/store/BagStore';
 import Gear from '@/model/gear/Gear';
 import GearFilter from '@/model/gear/GearFilter';
+import { formatBagWeight } from '@/model/gear/WeightFormat';
 
 // 공유 배낭(다녀온 배낭) 읽기전용 뷰어 도메인(CS-8).
 // 소유자의 장비 구성을 편집·패킹 없이 열람만 한다.
@@ -85,14 +86,12 @@ class SharedBag {
     return `${start} ~ ${end}`;
   }
 
+  /**
+   * 배낭 총 무게 표시값. 1kg 미만이어도 g로 떨어뜨리지 않는다 — 배낭 합계는 어디서나
+   * kg 한 자리이고(DM-26), 단위가 값 크기에 따라 갈리면 배낭끼리 비교가 안 된다.
+   */
   public getTotalWeightLabel(): string {
-    const weight = this.bag?.weight ?? 0;
-
-    if (weight >= 1000) {
-      return `${(weight / 1000).toFixed(2)}kg`;
-    }
-
-    return `${weight}g`;
+    return formatBagWeight(this.bag?.weight ?? 0);
   }
 }
 

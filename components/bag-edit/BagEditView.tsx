@@ -45,7 +45,7 @@ const CLEAR_HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
 
 const BagEditView: FC<Props> = ({ bagEdit }) => {
   const insets = useSafeAreaInsets();
-  const weight = bagEdit.getWeight();
+  const weightGram = bagEdit.getWeightGram();
   const hasQuery = bagEdit.getQuery().length > 0;
 
   const handlePressBack = () => {
@@ -75,7 +75,7 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
         headerShown: IS_IOS,
         headerTransparent: true,
         headerTitle: () => (
-          <BagEditWeightTitleView weight={weight.toString()} fontSize={17} />
+          <BagEditWeightTitleView weightGram={weightGram} fontSize={17} />
         ),
         headerBackButtonDisplayMode: 'minimal',
         headerRight: () => (
@@ -110,7 +110,7 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
         ) : (
           <View style={styles.sectionWrap}>
             <BagEditHeaderView
-              weight={weight.toString()}
+              weightGram={weightGram}
               onPressBack={handlePressBack}
               onPressAddGear={handlePressAddGear}
             />

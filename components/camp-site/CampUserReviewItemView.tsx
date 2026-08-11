@@ -7,6 +7,7 @@ import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
 import { Liquid, LiquidMotion, LiquidRadius } from '@/constants/DesignTokens';
 import StarRatingView from './StarRatingView';
 import { CampReview } from '@/model/camp-review/CampReviewTypes';
+import { formatBagWeightFromKilograms } from '@/model/gear/WeightFormat';
 
 interface Props {
   review: CampReview;
@@ -40,11 +41,12 @@ const CampUserReviewItemView: FC<Props> = ({
 
   /**
    * 날짜·무게는 `·`로 잇는다 — 후기 작성 화면의 첨부 배낭 칩과 같은 문법이다.
-   * 구분자 없이 나열하면 `2026.07.17 ~ 2026.07.18 1.34kg`이 한 덩어리로 읽힌다.
+   * 구분자 없이 나열하면 `2026.07.17 ~ 2026.07.18 1.3kg`이 한 덩어리로 읽힌다.
+   * 저장된 스냅샷은 kg 문자열이고 옛 문서에 두 자리 값이 남아 있어 표시 시점에 정규화한다(DM-26).
    */
   const bagMeta = [
     review.bagDate,
-    review.bagWeight ? `${review.bagWeight}kg` : '',
+    review.bagWeight ? formatBagWeightFromKilograms(review.bagWeight) : '',
   ]
     .filter(Boolean)
     .join(' · ');

@@ -4,7 +4,8 @@ import BagEditWeightTitleView from './BagEditWeightTitleView';
 import LiquidGlassCircleButton from '@/components/liquid/LiquidGlassCircleButton';
 
 interface Props {
-  weight: string;
+  // 배낭 총 무게의 저장값(g) — 서식은 타이틀 컴포넌트가 만든다(DM-26).
+  weightGram: number;
   onPressBack: () => void;
   onPressAddGear: () => void;
 }
@@ -17,7 +18,7 @@ interface Props {
  * `headerTitle`과 같은 컴포넌트를 공유해 두 플랫폼이 같은 값을 같은 서체로 말한다.
  */
 const BagEditHeaderView: FC<Props> = ({
-  weight,
+  weightGram,
   onPressBack,
   onPressAddGear,
 }) => {
@@ -29,7 +30,7 @@ const BagEditHeaderView: FC<Props> = ({
         accessibilityLabel='뒤로가기'
       />
       <BagEditWeightTitleView
-        weight={weight}
+        weightGram={weightGram}
         fontSize={28}
         style={styles.weightText}
       />

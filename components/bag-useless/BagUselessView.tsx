@@ -12,6 +12,7 @@ import { observer } from 'mobx-react-lite';
 import BagUseless from '@/model/bag-useless/BagUseless';
 import app from '@/model/app/App';
 import Gear from '@/model/gear/Gear';
+import { formatBagWeight } from '@/model/gear/WeightFormat';
 import BagUselessGearView from './BagUselessGearView';
 import PretendardText from '@/components/PretendardText';
 import LiquidCard from '@/components/liquid/LiquidCard';
@@ -47,7 +48,9 @@ const COUNT_FONT_SIZE = 52;
 // 텍스트 알약 내부 좌우 여백(목업 §7) — 아이콘 칸을 담는 캡슐(5)보다 넓다.
 const SELECT_ALL_PILL_PAD_H = 14;
 
-const toKg = (grams: number) => Math.round((grams / 1000) * 100) / 100;
+// 합산은 g로 하고 표시만 kg로 바꾼다(DM-26) — 패킹 진행 카드와 같은 표기여야 한다.
+const sumWeightGram = (gears: Gear[]) =>
+  gears.reduce((acc, gear) => acc + Number(gear.getWeight() || 0), 0);
 
 /**
  * BD-5 사용 기록 화면 (Liquid Depth).
@@ -123,13 +126,9 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
     return <View style={styles.container}>{stackScreen}</View>;
   }
 
-  const totalKg = toKg(
-    gears.reduce((acc, gear) => acc + Number(gear.getWeight()), 0)
-  );
-  const selectedKg = toKg(
-    gears
-      .filter(gear => bagUseless.isSelected(gear))
-      .reduce((acc, gear) => acc + Number(gear.getWeight()), 0)
+  const totalWeight = formatBagWeight(sumWeightGram(gears));
+  const selectedWeight = formatBagWeight(
+    sumWeightGram(gears.filter(gear => bagUseless.isSelected(gear)))
   );
 
   return (
@@ -211,9 +210,9 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
 
           <PretendardText
             style={styles.weightText}
-            accessibilityLabel={`사용한 무게 ${selectedKg}kg, 총 무게 ${totalKg}kg`}
+            accessibilityLabel={`사용한 무게 ${selectedWeight}, 총 무게 ${totalWeight}`}
           >
-            {`${selectedKg}kg / ${totalKg}kg`}
+            {`${selectedWeight} / ${totalWeight}`}
           </PretendardText>
         </LiquidCard>
       </View>
