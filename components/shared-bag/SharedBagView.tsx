@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { Stack, useRouter } from 'expo-router';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, Color } from '@/constants/DesignTokens';
 import SharedBag from '@/model/shared-bag/SharedBag';
 import Gear from '@/model/gear/Gear';
 
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     flex: 1,
-    fontSize: 17,
+    fontSize: AcgFontSize.rowTitle,
     color: Color.textPrimary,
     marginLeft: 4,
   },

@@ -3,7 +3,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import BagPacking from '@/model/bag-packing/BagPacking';
-import { Acg, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   bagPacking: BagPacking;
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: Acg.paper,
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
   },
 });
 

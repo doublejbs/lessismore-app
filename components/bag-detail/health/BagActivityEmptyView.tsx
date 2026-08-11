@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Spacing } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Spacing } from '@/constants/DesignTokens';
 
 interface Props {
   isWorkoutReadConfirmed: boolean;
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.screenH,
   },
   title: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.textPrimary,
     textAlign: 'center',
   },

@@ -14,7 +14,7 @@ import BrowseSort from '@/model/search/BrowseSort';
 import Bag from '@/model/bag/Bag';
 import Gear from '@/model/gear/Gear';
 import PretendardText from '../PretendardText';
-import { Acg, Color } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, Color } from '@/constants/DesignTokens';
 import SearchGearView from '../search/SearchGearView';
 import SearchSkeletonView from '../search/SearchSkeletonView';
 import BrowseSortButtonView from './BrowseSortButtonView';
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     flex: 1,
-    fontSize: 17,
+    fontSize: AcgFontSize.rowTitle,
     color: Color.textPrimary,
   },
   headerRight: {
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     paddingVertical: 80,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.textSecondary,
     textAlign: 'center',
   },

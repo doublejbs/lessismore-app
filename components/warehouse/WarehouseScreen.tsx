@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     textAlign: 'center',
     color: Acg.textMuted,
   },

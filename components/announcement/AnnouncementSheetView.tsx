@@ -15,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius, Spacing } from '@/constants/DesignTokens';
 
 // http(s) 링크 판별 — 이 경우만 외부 브라우저로 연다(AN-3).
 const EXTERNAL_LINK_PATTERN = /^https?:\/\//i;
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.item,
   } as ViewStyle,
   message: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     lineHeight: 24,
     color: Color.textPrimary,
   },

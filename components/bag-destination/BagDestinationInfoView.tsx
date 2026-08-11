@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   name: {
-    fontSize: 17,
+    fontSize: AcgFontSize.rowTitle,
     color: Color.textPrimary,
     lineHeight: 22,
   },
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   },
   freeName: {
     flex: 1,
-    fontSize: 17,
+    fontSize: AcgFontSize.rowTitle,
     color: Color.textPrimary,
     lineHeight: 22,
   },

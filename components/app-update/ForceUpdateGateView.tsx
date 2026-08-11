@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
-import { Color, Spacing } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Spacing } from '@/constants/DesignTokens';
 
 // 스토어 이동 URL (APP-7). Android는 마켓 스킴 우선, 실패 시 웹으로 폴백.
 const IOS_STORE_URL = 'https://apps.apple.com/app/id6751174681';
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.background,
   },
   buttonText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.textPrimary,
   },
 });

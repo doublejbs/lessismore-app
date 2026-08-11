@@ -11,7 +11,7 @@ import dayjs from 'dayjs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import DateRangeCalendar from './DateRangeCalendarView';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   title: string;
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.surfaceMuted,
     paddingHorizontal: 14,
     paddingVertical: 14,
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     fontFamily: 'Pretendard-Regular',
     color: Color.textPrimary,
   },
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cancelButtonText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.textPrimary,
   },
   confirmButton: {
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   confirmButtonText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.background,
   },
 });

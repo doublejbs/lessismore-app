@@ -23,7 +23,7 @@ import AlertView from '@/components/alert/AlertView';
 import CategoryChipView from '@/components/browse/CategoryChipView';
 import useKeyboard from '@/hooks/useKeyboard';
 import app from '@/model/app/App';
-import { Acg, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   gearEdit: GearEdit;
@@ -229,7 +229,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                     backgroundColor: Color.inputBg,
                     paddingHorizontal: 12,
                     paddingVertical: 12,
-                    fontSize: 16,
+                    fontSize: AcgFontSize.rowSubtitle,
                   }}
                   placeholder='제품명을 입력해주세요'
                   onChangeText={handleChangeName}
@@ -259,7 +259,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                     backgroundColor: Color.inputBg,
                     paddingHorizontal: 12,
                     paddingVertical: 12,
-                    fontSize: 16,
+                    fontSize: AcgFontSize.rowSubtitle,
                   }}
                   placeholder='브랜드를 입력해주세요'
                   onChangeText={handleChangeCompany}
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 17,
+    fontSize: AcgFontSize.rowTitle,
     color: Color.textPrimary,
   },
 });

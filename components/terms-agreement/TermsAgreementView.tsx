@@ -12,7 +12,13 @@ import { useRouter } from 'expo-router';
 import Layout from '../Layout';
 import PretendardText from '@/components/PretendardText';
 import { TERMS_OF_SERVICE_TEXT } from '@/constants/LegalTexts';
-import { Acg, Color, Radius, Spacing } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgFontSize,
+  Color,
+  Radius,
+  Spacing,
+} from '@/constants/DesignTokens';
 
 const TermsAgreementView: FC = () => {
   const [termsAgreed, setTermsAgreed] = useState(false);
@@ -288,11 +294,11 @@ const styles = StyleSheet.create({
   },
   checkmark: {
     color: Color.background,
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
   },
   checkboxLabel: {
     flex: 1,
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.textPrimary,
   },
   termsTextContainer: {
@@ -347,7 +353,7 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     color: Color.background,
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
   },
 });
 

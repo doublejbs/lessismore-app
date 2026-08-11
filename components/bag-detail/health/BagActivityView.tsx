@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.chipInactiveBg,
   },
   primaryButtonText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.background,
   },
   // 비활성 배경(밝은 회색) 위에서는 흰 글씨가 읽히지 않아 대비를 확보한 색으로 바꾼다.

@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     color: Acg.ink,
   },
   countTotal: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Acg.textMuted,
   },
   selectAllText: {
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   },
   confirmLabel: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
   },
 });
 
