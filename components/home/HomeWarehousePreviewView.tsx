@@ -36,7 +36,9 @@ const CTA_HEIGHT = 48;
  * 칩 선택은 **이 컴포넌트의 로컬 상태**다. 창고 화면의 `FilterManager`를 건드리면
  * 홈에서 훑어본 게 창고 화면 상태까지 바꿔 버린다 — 훑기와 작업은 분리한다.
  *
- * 표현은 탐색 탭(FD-2/FD-3)과 같다(2026-08-11): 칩은 탐색과 같은 `FeedChipView`, 장비 행은
+ * 표현은 탐색 탭(FD-2/FD-3)과 같다(2026-08-11): 칩은 탐색과 같은 `FeedChipView`를 **같은 크기로**
+ * 쓰고(`compact`는 탐색에서 1차 칩 행 아래 2차 세분 카테고리를 뜻하는 크기라, 위에 1차 행이 없는
+ * 홈에서는 그냥 작아 보인다), 장비 행은
  * 면 없이 순백 지면에 놓고 헤어라인으로만 가른다. 행마다 흰 종이 면을 두면 순백 지면에서
  * 면이 보이지 않아 그림자만 남고, 카드가 여럿이면 위 일정 면과 위계가 뒤엉킨다.
  */
@@ -117,7 +119,6 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
           <FeedChipView
             key={chip.filter}
             label={chip.label}
-            compact={true}
             selected={chip.filter === selectedFilter}
             onPress={() => handleSelectFilter(chip.filter)}
           />
@@ -191,7 +192,8 @@ const styles = StyleSheet.create({
   chips: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    // 탐색 탭 칩 행과 같은 간격(FD-3).
+    gap: 12,
     paddingHorizontal: SCREEN_H,
   },
   gearList: {
