@@ -86,8 +86,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     rowGap: 16,
-    // 지형 지면 위라 흰 종이 면이다(HomeUpcomingTripView의 면과 같은 규칙).
-    backgroundColor: Acg.paper,
+    // 순백 지면 위 연회색 면(HomeUpcomingTripView의 면과 같은 규칙).
+    backgroundColor: Acg.controlFill,
     borderRadius: AcgRadius.thumb,
     padding: 16,
   },

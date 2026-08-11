@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   },
   // 들어올 화면과 같은 골격이어야 덜컥거리지 않는다 — 일정은 회색 면, 창고는 평평한 목록.
   tile: {
-    backgroundColor: Acg.paper,
+    backgroundColor: Acg.controlFill,
     borderRadius: AcgRadius.thumb,
     padding: 16,
     marginBottom: 26,
@@ -91,38 +91,38 @@ const styles = StyleSheet.create({
   list: {
     marginBottom: 26,
   },
-  // 흰 면 위 막대는 연회색이다(지면 위 막대와 같은 값을 쓰면 면에서 안 보인다).
+  // 연회색 면 위 막대는 한 톤 진한 헤어라인 값이다(면과 같은 값이면 아무것도 안 보인다).
   badgeBar: {
     width: 48,
     height: 20,
     borderRadius: 2,
-    backgroundColor: Acg.controlFill,
+    backgroundColor: Acg.hairline,
     marginBottom: 10,
   },
   titleBar: {
     width: 170,
     height: 25,
     borderRadius: 2,
-    backgroundColor: Acg.controlFill,
+    backgroundColor: Acg.hairline,
     marginBottom: 6,
   },
   metaBar: {
     width: 210,
     height: 18,
     borderRadius: 2,
-    backgroundColor: Acg.controlFill,
+    backgroundColor: Acg.hairline,
   },
   statsBar: {
     height: 48,
     borderRadius: 2,
-    backgroundColor: Acg.controlFill,
+    backgroundColor: Acg.hairline,
     marginTop: 14,
   },
   // 실제 주 액션 알약(높이 48, 완전한 알약)과 같은 모양.
   ctaBar: {
     height: 48,
     borderRadius: 24,
-    backgroundColor: Acg.controlFill,
+    backgroundColor: Acg.hairline,
     marginTop: 14,
   },
   chipsBar: {
@@ -130,14 +130,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: Acg.controlFill,
   },
-  // 실제 장비 행과 같은 치수(AcgRow) + 상단 헤어라인. 지면 위 선이라 `line2`다.
+  // 실제 장비 행과 같은 치수(AcgRow) + 상단 헤어라인. 순백 지면 위라 중성 회색이다.
   gearRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     height: AcgRow.minHeight,
     borderTopWidth: 1,
-    borderTopColor: Acg.line2,
+    borderTopColor: Acg.hairline,
   },
   listGap: {
     height: 6,
