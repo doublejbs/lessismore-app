@@ -1,12 +1,15 @@
 import { FC, ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
 import PretendardText from '../PretendardText';
-import AcgHighlightText from '@/components/acg/AcgHighlightText';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
 
 interface Props {
   title: string;
-  // 형광펜 띠. **화면당 한 섹션에만 준다** — 여러 곳에 주면 강조가 강조를 지운다.
+  /**
+   * **더 이상 쓰지 않는다**(2026-08-11). 형광펜 띠로 화면의 주 섹션을 표시했는데, 새 문법에서
+   * 라임은 화면당 하나 — 그 하나는 눌러야 하는 면(주 액션)의 몫이다. 호출부가 남아 있어
+   * prop만 무해하게 유지한다.
+   */
   highlight?: boolean;
   // 제목 줄 우측에 붙는 요약(예: 리뷰 평점). 제목이 면 밖으로 나가면서 제목과 짝지어
   // 읽히던 요약도 같이 나와야 한다.
@@ -26,27 +29,16 @@ interface Props {
  */
 const WarehouseDetailSectionView: FC<Props> = ({
   title,
-  highlight = false,
   accessory,
   variant = 'card',
   children,
 }) => {
-  const titleText = (
-    <PretendardText weight='bold' style={styles.title}>
-      {title}
-    </PretendardText>
-  );
-
   return (
     <View style={styles.section}>
       <View style={styles.head}>
-        {highlight ? (
-          <AcgHighlightText fontSize={SECTION_TITLE_SIZE}>
-            {titleText}
-          </AcgHighlightText>
-        ) : (
-          titleText
-        )}
+        <PretendardText weight='semibold' style={styles.title}>
+          {title}
+        </PretendardText>
         {accessory}
       </View>
 
@@ -57,12 +49,9 @@ const WarehouseDetailSectionView: FC<Props> = ({
   );
 };
 
-// 섹션 제목 크기(ACG) — 홈 탭과 같은 18px/700.
-const SECTION_TITLE_SIZE = 18;
-
 const styles = StyleSheet.create({
   section: {
-    marginHorizontal: AcgLayout.screenH,
+    marginHorizontal: AcgLayout.screenPadding,
     marginBottom: 22,
   },
   head: {
@@ -74,8 +63,10 @@ const styles = StyleSheet.create({
   },
   // 지면 위 제목이라 본문보다 한 단계 낮은 색이다(홈 탭과 동일).
   title: {
-    fontSize: SECTION_TITLE_SIZE,
-    color: Acg.textTertiary,
+    // 공용 섹션 머리와 같은 19pt semibold 잉크(HM-8).
+    fontSize: AcgFontSize.rowTitle,
+    lineHeight: 25,
+    color: Acg.ink,
   },
   card: {
     padding: 16,

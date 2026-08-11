@@ -9,7 +9,6 @@ import {
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Acg, AcgLayout } from '@/constants/DesignTokens';
-import AcgHighlightText from '@/components/acg/AcgHighlightText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '../PretendardText';
 import ReplyInputButtonView from './ReplyInputButtonView';
@@ -77,12 +76,11 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
         scrollEnabled={hasComments}
       >
         <View style={styles.replyHeader}>
-          {/* 형광펜은 화면당 한 곳에만 — 이 화면의 주 섹션이다(ACG). */}
-          <AcgHighlightText fontSize={SECTION_TITLE_SIZE}>
-            <PretendardText weight='bold' style={styles.replyHeaderText}>
-              리뷰
-            </PretendardText>
-          </AcgHighlightText>
+          {/* 형광펜 띠를 걷었다(2026-08-11) — 라임은 화면당 하나이고, 그 하나는 눌러야 하는
+              면의 몫이다. 섹션 제목은 공용 머리와 같은 19pt semibold 잉크다(HM-8). */}
+          <PretendardText weight='semibold' style={styles.replyHeaderText}>
+            리뷰
+          </PretendardText>
         </View>
         {!hasComments ? (
           // 리뷰가 없을 때 빈 여백 대신 안내를 남은 공간 중앙에 표시한다.
