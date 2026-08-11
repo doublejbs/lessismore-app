@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Acg } from '@/constants/DesignTokens';
+import { Acg, AcgRow } from '@/constants/DesignTokens';
 
 /**
  * 배낭 목록 로딩 스켈레톤(BAG-1).
@@ -94,13 +94,13 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: Acg.controlFill,
   },
-  // 실제 행(최소 높이 64 + 위 헤어라인)과 같은 리듬.
+  // 실제 행과 같은 치수(AcgRow) + 위 헤어라인.
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    minHeight: 64,
-    paddingVertical: 10,
+    minHeight: AcgRow.minHeight,
+    paddingVertical: AcgRow.paddingVertical,
     borderTopWidth: 1,
     borderTopColor: Acg.hairline,
   },

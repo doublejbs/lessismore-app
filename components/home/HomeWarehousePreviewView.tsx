@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import FeedChipView from '@/components/feed/FeedChipView';
-import { Acg, AcgFontSize, AcgRadius } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgRadius, AcgRow } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import Gear from '@/model/gear/Gear';
@@ -22,9 +22,6 @@ interface Props {
 
 // 화면 좌우 패딩(HomeView) — 칩 행만 이 값만큼 밖으로 빼 지면 끝까지 흐르게 한다.
 const SCREEN_H = 16;
-
-// 목록 행 최소 높이(레퍼런스 문법) — 이름 + 메타 두 줄이 들어가고 44pt를 넘긴다.
-const ROW_MIN_HEIGHT = 64;
 
 const CTA_HEIGHT = 48;
 
@@ -207,8 +204,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    minHeight: ROW_MIN_HEIGHT,
-    paddingVertical: 10,
+    minHeight: AcgRow.minHeight,
+    paddingVertical: AcgRow.paddingVertical,
   },
   rowDivided: {
     borderTopWidth: 1,

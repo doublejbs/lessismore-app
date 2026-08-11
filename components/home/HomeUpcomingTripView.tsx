@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, AcgRadius } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgRadius, AcgRow } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import BagItem from '@/model/bag/BagItem';
@@ -24,9 +24,6 @@ interface Props {
 
 // 주 액션 알약. 높이의 절반이 모서리다(완전한 알약).
 const CTA_HEIGHT = 48;
-
-// 목록 행 최소 높이(레퍼런스 문법) — 이름 + 메타 두 줄이 들어가고 44pt를 넘긴다.
-const ROW_MIN_HEIGHT = 64;
 
 /**
  * HM-1 다가오는 일정.
@@ -445,8 +442,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    minHeight: ROW_MIN_HEIGHT,
-    paddingVertical: 10,
+    minHeight: AcgRow.minHeight,
+    paddingVertical: AcgRow.paddingVertical,
   },
   rowDivided: {
     borderTopWidth: 1,

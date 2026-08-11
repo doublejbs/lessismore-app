@@ -173,6 +173,20 @@ export const AcgShadow = {
   sticker: '0 4px 12px rgba(26,26,26,0.22)',
 } as const;
 
+/**
+ * 목록 행 치수(레퍼런스 목록 문법, 2026-08-11).
+ *
+ * 홈·배낭·창고가 **같은 값**을 써야 탭을 옮겨도 목록의 리듬이 같다 — 화면마다 상수를 두면
+ * 한쪽만 고쳐지고 그때부터 어긋난다.
+ *
+ * `minHeight`는 이름 한 줄(25) + 메타 한 줄(20)에 위아래 여유를 더한 값이고, 이름이 두 줄로
+ * 늘면 행이 그만큼 자란다. 44pt 터치 타깃은 이 값으로 충분히 넘긴다.
+ */
+export const AcgRow = {
+  minHeight: 72,
+  paddingVertical: 14,
+} as const;
+
 export const AcgLayout = {
   screenH: 18, // 화면 좌우 패딩(핸드오프: 리스트 18px)
   section: 22,
