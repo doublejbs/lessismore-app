@@ -22,8 +22,13 @@ interface Props {
   tone?: 'default' | 'acg' | 'acgSolid';
 }
 
-// 앱 공용 선택형 필터·카테고리 칩. 아웃라인 톤(비선택 테두리 / 선택 검정 채움),
-// Dynamic Type 대응(고정 높이 없이 minHeight+패딩으로 확장), 44pt 터치(hitSlop).
+// 앱 공용 선택형 필터·카테고리 칩.
+//
+// **2026-08-11 레퍼런스 이식**: 아웃라인(흰 면 + 테두리)에서 **연회색 채움 알약**으로 바꿨다 —
+// 탐색 탭의 `FeedChipView`와 같은 값이다. 두 칩이 같은 동작을 하는데 생김새가 달랐고, 순백
+// 지면에서는 흰 칩이 지면과 붙어 테두리만 남았다. 여기 값을 갈아 끼우면 이 칩을 쓰는 화면
+// (창고·지도·브랜드·순위 등)이 함께 따라온다.
+// Dynamic Type 대응(고정 높이 없이 minHeight+패딩으로 확장), 44pt 터치(hitSlop)는 그대로다.
 const CategoryChipView = forwardRef<View, Props>(
   (
     {
@@ -125,53 +130,50 @@ CategoryChipView.displayName = 'CategoryChipView';
 
 const styles = StyleSheet.create({
   chip: {
-    minHeight: 34,
-    paddingVertical: 7,
+    // 탐색 칩(FeedChipView)과 같은 크기·모서리.
+    minHeight: 36,
+    paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: Radius.chip,
-    borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: 8,
   },
+  // 테두리를 두지 않는다 — 채움이 이미 면을 만들고, 둘을 겹치면 칩이 두꺼워 보인다.
   chipUnselected: {
-    backgroundColor: Color.background,
-    borderColor: Color.chipBorder,
+    backgroundColor: Color.chipInactiveBg,
   },
   chipSelected: {
     backgroundColor: Color.chipActiveBg,
-    borderColor: Color.chipActiveBg,
   },
-  // 2차(세분) 칩 — 한 단계 작게(높이·패딩·폰트↓).
+  // 2차(세분) 칩 — 한 단계 작게(높이·패딩·폰트↓). FeedChipView의 compact와 같은 값이다.
   chipSecondary: {
-    minHeight: 28,
-    paddingVertical: 5,
-    paddingHorizontal: 11,
-    gap: 4,
+    minHeight: 32,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    gap: 6,
   },
-  // 선택 시 검정 대신 연회색 채움(테두리 없음) — 1차 검정 칩과 위계 구분.
+  // 2차도 선택은 잉크 채움이다 — 연회색 선택은 비선택 칩과 구분되지 않았다.
   chipSecondarySelected: {
-    backgroundColor: Color.chipInactiveBg,
-    borderColor: Color.chipInactiveBg,
+    backgroundColor: Color.chipActiveBg,
   },
   chipSecondaryUnselected: {
-    backgroundColor: Color.background,
-    borderColor: Color.chipBorder,
+    backgroundColor: Color.chipInactiveBg,
   },
   // ACG 유리 칩 — 채움은 시안(흰 50%)보다 올린다. RN에는 backdrop-filter가 없어
   // 블러가 만들던 밝기를 채움으로 대신 낸다.
   chipAcgUnselected: {
-    backgroundColor: 'rgba(255,255,255,0.72)',
-    borderColor: Acg.glassStroke,
+    backgroundColor: Acg.controlFill,
   },
   chipAcgSelected: {
     backgroundColor: Acg.ink,
-    borderColor: Acg.ink,
   },
+  // 지도 위처럼 뒤가 단색이 아닌 곳 — 지도 라벨이 비쳐 겹치지 않게 불투명 흰 면 + 헤어라인.
   chipAcgSolidUnselected: {
     backgroundColor: Acg.paper,
-    borderColor: Acg.line2,
+    borderWidth: 1,
+    borderColor: Acg.hairline,
   },
   // 지도 마커가 각진 사각이라 범례도 같은 형태로 둔다 — 원이면 범례와 마커가 따로 논다.
   dot: {
@@ -184,23 +186,25 @@ const styles = StyleSheet.create({
     borderColor: Color.background,
   },
   chipText: {
-    fontSize: 14,
+    fontSize: 15,
   },
   chipTextSecondary: {
     fontSize: 13,
   },
+  // 비선택 라벨은 회색이 아니라 잉크다 — 연회색 면 위에서 회색 글자는 눌러야 하는 컨트롤로
+  // 읽히지 않는다(탐색 칩과 같은 규칙).
   chipTextUnselected: {
-    color: Color.textSecondary,
+    color: Color.textPrimary,
   },
   chipTextSelected: {
     color: Color.background,
   },
   // 2차 선택 시 연회색 채움 위 검정 텍스트(볼드감은 medium 유지).
   chipTextSecondarySelected: {
-    color: Color.textPrimary,
+    color: Color.background,
   },
   chipTextAcgUnselected: {
-    color: Acg.textSecondary,
+    color: Acg.ink,
   },
   chipTextAcgSelected: {
     color: Acg.paper,

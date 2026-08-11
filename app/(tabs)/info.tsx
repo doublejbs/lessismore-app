@@ -21,7 +21,9 @@ import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, Color, Radius } from '@/constants/DesignTokens';
 
 // 화면 제목 크기(ACG).
-const TITLE_SIZE = 44;
+// 화면 제목 — 홈·배낭·배낭 상세와 같은 28(44에서 내렸다). 제목은 읽고 넘기는 이름표라
+// 화면의 앵커가 될 값이 아니다(HM-8).
+const TITLE_SIZE = 28;
 // 편집 아이콘(20pt)에 44pt 터치 타깃을 만들기 위한 여유(AU-4). (44 − 20) / 2 = 12.
 const EDIT_ICON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
 
@@ -339,7 +341,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: TITLE_SIZE,
     letterSpacing: -0.88,
-    lineHeight: TITLE_SIZE,
+    lineHeight: TITLE_SIZE + 4,
     color: Acg.ink,
   },
   scrollContent: {
