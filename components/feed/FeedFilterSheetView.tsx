@@ -155,7 +155,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
       return (
         <View style={styles.emptyContainer}>
           <PretendardText style={styles.emptyText}>
-            브랜드가 없습니다
+            브랜드가 없어요
           </PretendardText>
         </View>
       );

@@ -77,7 +77,7 @@ const BrowseListView: FC<Props> = ({ browse, bag, title }) => {
       return (
         <View style={styles.emptyContainer}>
           <PretendardText style={styles.emptyText}>
-            장비가 없습니다
+            장비가 없어요
           </PretendardText>
         </View>
       );

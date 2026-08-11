@@ -217,7 +217,7 @@ const SearchTopKeywordsView: FC<Props> = ({
           ) : gears.length === 0 ? (
             <View style={styles.emptyContainer}>
               <PretendardText style={styles.emptyText}>
-                아직 등록된 장비가 없습니다
+                아직 등록된 장비가 없어요
               </PretendardText>
             </View>
           ) : (
