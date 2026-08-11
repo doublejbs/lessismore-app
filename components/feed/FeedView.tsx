@@ -16,7 +16,7 @@ import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import { GearAddContext } from '@/model/gear/GearAddContext';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
 import FeedSkeletonView from './FeedSkeletonView';
 import FeedFilterBarView from './FeedFilterBarView';
 import FeedRankingButtonView from './FeedRankingButtonView';
@@ -30,8 +30,6 @@ const FEED_ROW_GAP = 24;
 
 // 열 사이 간격. 셀 안 텍스트가 이웃 셀과 붙어 읽히지 않을 만큼만 둔다.
 const FEED_COLUMN_GAP = 16;
-
-const LIST_HORIZONTAL_PADDING = 16;
 
 interface Props {
   bag: Bag;
@@ -178,7 +176,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     flexGrow: 1,
-    paddingHorizontal: LIST_HORIZONTAL_PADDING,
+    paddingHorizontal: AcgLayout.screenPadding,
     paddingTop: 8,
   },
   // 열 사이 여백 + 행 사이 여백. 구분선은 두지 않는다 — 목록에 선을 두지 않는다(레퍼런스).
@@ -190,7 +188,7 @@ const styles = StyleSheet.create({
     flex: 1,
     // 로드 완료 상태(listContent)와 동일한 상단 여백으로 전환 시 점프를 없앤다.
     paddingTop: 8,
-    paddingHorizontal: LIST_HORIZONTAL_PADDING,
+    paddingHorizontal: AcgLayout.screenPadding,
   },
   footer: {
     paddingVertical: 24,

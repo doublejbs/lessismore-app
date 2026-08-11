@@ -3,7 +3,7 @@ import { FC, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { AcgLayout, Color } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Bag from '@/model/bag/Bag';
 import { GearAddContext } from '@/model/gear/GearAddContext';
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     // 피드 그리드와 같은 값(FD-2) — 검색어를 넣는 순간 좌우 여백이 달라지면 목록이 흔들린다.
-    paddingHorizontal: 16,
+    paddingHorizontal: AcgLayout.screenPadding,
   },
   emptyContainer: {
     alignItems: 'center',
