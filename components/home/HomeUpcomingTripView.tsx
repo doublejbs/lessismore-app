@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgFontSize, AcgRadius } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import BagItem from '@/model/bag/BagItem';
 import {
   getDDayLabel,
@@ -24,8 +25,8 @@ interface Props {
 // 주 액션 알약. 높이의 절반이 모서리다(완전한 알약).
 const CTA_HEIGHT = 48;
 
-// 다음 일정 행 — 44pt 터치 타깃.
-const NEXT_ROW_HEIGHT = 52;
+// 목록 행 최소 높이(레퍼런스 문법) — 이름 + 메타 두 줄이 들어가고 44pt를 넘긴다.
+const ROW_MIN_HEIGHT = 64;
 
 /**
  * HM-1 다가오는 일정.
@@ -63,13 +64,13 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
   };
 
   // D-day는 숫자 라벨일 때만 콘덴스드다 — `여행 중` 같은 한글은 글리프가 없어 깨진다.
-  const renderDDay = (label: string, style: object) => {
+  const renderDDay = (label: string) => {
     if (isCondensedDDayLabel(label)) {
-      return <AcgDisplayText style={style}>{label}</AcgDisplayText>;
+      return <AcgDisplayText style={styles.dDay}>{label}</AcgDisplayText>;
     }
 
     return (
-      <PretendardText weight='semibold' style={style}>
+      <PretendardText weight='semibold' style={styles.dDayMixed}>
         {label}
       </PretendardText>
     );
@@ -78,9 +79,7 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
   if (!primary || stage === null) {
     return (
       <View style={styles.section}>
-        <PretendardText weight='semibold' style={styles.sectionTitle}>
-          다가오는 일정
-        </PretendardText>
+        <AcgSectionHeaderView title='다가오는 일정' />
 
         {/* 빈 상태는 사실 + 다음 걸음 두 줄, 그리고 그 걸음을 떼는 버튼 하나. */}
         <View style={styles.tile}>
@@ -124,9 +123,14 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
 
   return (
     <View style={styles.section}>
-      <PretendardText weight='semibold' style={styles.sectionTitle}>
-        다가오는 일정
-      </PretendardText>
+      <AcgSectionHeaderView
+        title='다가오는 일정'
+        subtitle={
+          next.length > 0
+            ? `가장 가까운 일정과 다음 ${next.length}개`
+            : undefined
+        }
+      />
 
       <View style={styles.tile}>
         {/*
@@ -172,7 +176,7 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
             )}
           </View>
 
-          {dDayLabel !== null ? renderDDay(dDayLabel, styles.dDay) : null}
+          {dDayLabel !== null ? renderDDay(dDayLabel) : null}
         </TouchableOpacity>
 
         {/* 총 무게 / 예보 — 레퍼런스의 지표 줄과 같은 문법(라벨 위, 값 아래, 세로 헤어라인).
@@ -233,29 +237,52 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
       </View>
 
       {/* 다음 일정들은 면을 갖지 않는다 — 면이 여럿이면 어느 것이 지금 할 일인지 흐려진다.
-          행 사이 헤어라인만으로 목록임을 알린다. */}
+          행 문법은 레퍼런스 목록과 같다: 이름(19, 두 줄까지) + 메타 한 줄(15, `·`로 이어 붙임)
+          + 우측 셰브론, 행 사이 헤어라인. */}
       {next.length > 0 ? (
         <View style={styles.nextList}>
           {next.map((bag, index) => {
             const label = getDDayLabel(bag);
+            const date = bag.getDisplayDate();
 
             return (
               <TouchableOpacity
                 key={bag.getID()}
-                style={[styles.nextRow, index > 0 && styles.nextRowDivided]}
+                style={[styles.row, index > 0 && styles.rowDivided]}
                 onPress={() => handleOpenBag(bag)}
                 activeOpacity={0.7}
                 accessibilityRole='button'
                 accessibilityLabel={`${bag.getName()} 배낭 상세`}
               >
-                <View style={styles.nextDDay}>
-                  {label !== null
-                    ? renderDDay(label, styles.nextDDayText)
-                    : null}
+                <View style={styles.rowText}>
+                  <PretendardText
+                    weight='semibold'
+                    style={styles.rowTitle}
+                    numberOfLines={2}
+                  >
+                    {bag.getName()}
+                  </PretendardText>
+
+                  {/* D-day를 왼쪽 고정 열로 두지 않고 메타 첫 조각으로 넣는다 — 레퍼런스가
+                      별점·난이도·거리를 한 줄에 묶는 방식과 같고, 이름이 한 선에서 시작한다.
+                      숫자 라벨만 콘덴스드라 중첩 Text로 갈아 끼운다. */}
+                  <PretendardText style={styles.rowMeta} numberOfLines={1}>
+                    {label !== null ? (
+                      <>
+                        {isCondensedDDayLabel(label) ? (
+                          <AcgDisplayText style={styles.rowMetaStrong}>
+                            {label}
+                          </AcgDisplayText>
+                        ) : (
+                          label
+                        )}
+                        {date !== null ? ' · ' : ''}
+                      </>
+                    ) : null}
+                    {date ?? ''}
+                  </PretendardText>
                 </View>
-                <PretendardText style={styles.nextName} numberOfLines={1}>
-                  {bag.getName()}
-                </PretendardText>
+
                 <Ionicons
                   name='chevron-forward'
                   size={16}
@@ -275,17 +302,11 @@ const styles = StyleSheet.create({
     marginBottom: 26,
   },
   /**
-   * 섹션 제목은 크게 세우지 않는다 — 제목이 커지면 화면의 앵커가 "이름표"가 된다.
-   * 레퍼런스처럼 작은 반굵기 잉크 라벨로 두고, 형광펜 띠도 두지 않는다.
+   * 홈의 정보 면. 지형 지면(#F4F3EF) 위라 **흰 종이**다 — 탐색의 연회색 면(#F2F2F2)을 그대로
+   * 쓰면 지면색과 붙어 사라진다. 공유하는 규칙은 값이 아니라 모서리 12·그림자 없음이다.
    */
-  sectionTitle: {
-    marginBottom: 10,
-    fontSize: AcgFontSize.control,
-    color: Acg.ink,
-  },
-  // 홈의 정보 면. 탐색 셀과 같은 채움·모서리를 쓴다(FD-2).
   tile: {
-    backgroundColor: Acg.controlFill,
+    backgroundColor: Acg.paper,
     borderRadius: AcgRadius.thumb,
     padding: 16,
     gap: 14,
@@ -330,6 +351,12 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     color: Acg.ink,
   },
+  // `여행 중`처럼 한글이 섞인 라벨 — 콘덴스드를 못 쓰므로 한 단계 작게 잡아 폭을 맞춘다.
+  dDayMixed: {
+    fontSize: AcgFontSize.rowTitle,
+    lineHeight: 28,
+    color: Acg.ink,
+  },
   stats: {
     flexDirection: 'row',
   },
@@ -371,11 +398,12 @@ const styles = StyleSheet.create({
     fontSize: AcgFontSize.control,
     color: Acg.ink,
   },
-  // 트랙은 면보다 밝은 흰색, 채움은 잉크. 라임을 여기 쓰면 화면에 라임이 둘이 된다.
+  // 흰 면 위 트랙이라 연회색이다(반대로 두면 트랙이 안 보인다). 채움은 잉크 —
+  // 라임을 여기 쓰면 화면에 라임 면이 둘이 된다.
   progressTrack: {
     height: 4,
     borderRadius: 2,
-    backgroundColor: Acg.paper,
+    backgroundColor: Acg.controlFill,
     overflow: 'hidden',
   },
   progressFill: {
@@ -407,29 +435,44 @@ const styles = StyleSheet.create({
     color: Acg.textMuted,
   },
   nextList: {
-    marginTop: 6,
+    marginTop: 8,
   },
-  nextRow: {
+  /**
+   * 레퍼런스 목록 행. 이름 + 메타 한 줄이라 두 줄 이름에서도 44pt를 넘긴다.
+   * 헤어라인은 지형 지면 위라 `line2`(잉크 알파) — 순백용 `hairline`은 이 지면에서 안 보인다.
+   */
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    minHeight: NEXT_ROW_HEIGHT,
+    minHeight: ROW_MIN_HEIGHT,
+    paddingVertical: 10,
   },
-  nextRowDivided: {
+  rowDivided: {
     borderTopWidth: 1,
-    borderTopColor: Acg.hairline,
+    borderTopColor: Acg.line2,
   },
-  // D-day 열 폭을 고정해 이름들이 한 선에서 시작한다.
-  nextDDay: {
-    width: 44,
-  },
-  nextDDayText: {
-    fontSize: AcgFontSize.meta,
-    color: Acg.textMuted,
-  },
-  nextName: {
+  rowText: {
     flex: 1,
     minWidth: 0,
+    gap: 2,
+  },
+  rowTitle: {
+    fontSize: AcgFontSize.rowTitle,
+    lineHeight: 25,
+    color: Acg.ink,
+  },
+  /**
+   * 메타는 회색이 아니라 **잉크**다(레퍼런스). 값이 여럿 붙는 줄이라 회색으로 낮추면
+   * 무게·기간 같은 실제 정보가 장식처럼 읽힌다.
+   */
+  rowMeta: {
+    fontSize: AcgFontSize.rowSubtitle,
+    lineHeight: 20,
+    color: Acg.ink,
+  },
+  // 메타 줄 안의 숫자 조각(중첩 Text) — 크기는 상속하고 서체만 콘덴스드로 바꾼다.
+  rowMetaStrong: {
     fontSize: AcgFontSize.rowSubtitle,
     color: Acg.ink,
   },

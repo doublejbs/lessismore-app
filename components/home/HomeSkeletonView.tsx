@@ -73,16 +73,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   // 실제 섹션 제목(15pt/lineHeight 20)과 같은 자리·높이.
+  // 실제 섹션 제목(19pt/lineHeight 25)과 같은 자리·높이.
   sectionTitleBar: {
-    width: 88,
-    height: 20,
+    width: 96,
+    height: 25,
     borderRadius: 2,
     backgroundColor: Acg.controlFill,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   // 들어올 화면과 같은 골격이어야 덜컥거리지 않는다 — 일정은 회색 면, 창고는 평평한 목록.
   tile: {
-    backgroundColor: Acg.controlFill,
+    backgroundColor: Acg.paper,
     borderRadius: AcgRadius.thumb,
     padding: 16,
     marginBottom: 26,
@@ -90,41 +91,38 @@ const styles = StyleSheet.create({
   list: {
     marginBottom: 26,
   },
-  /**
-   * 회색 면(#F2F2F2) 위의 막대는 지면 위 막대와 같은 값을 쓸 수 없다 — 같은 색이면
-   * 아무것도 안 보인다. 면 위에서만 한 톤 진한 헤어라인 값을 쓴다.
-   */
+  // 흰 면 위 막대는 연회색이다(지면 위 막대와 같은 값을 쓰면 면에서 안 보인다).
   badgeBar: {
     width: 48,
     height: 20,
     borderRadius: 2,
-    backgroundColor: Acg.hairline,
+    backgroundColor: Acg.controlFill,
     marginBottom: 10,
   },
   titleBar: {
     width: 170,
     height: 25,
     borderRadius: 2,
-    backgroundColor: Acg.hairline,
+    backgroundColor: Acg.controlFill,
     marginBottom: 6,
   },
   metaBar: {
     width: 210,
     height: 18,
     borderRadius: 2,
-    backgroundColor: Acg.hairline,
+    backgroundColor: Acg.controlFill,
   },
   statsBar: {
     height: 48,
     borderRadius: 2,
-    backgroundColor: Acg.hairline,
+    backgroundColor: Acg.controlFill,
     marginTop: 14,
   },
   // 실제 주 액션 알약(높이 48, 완전한 알약)과 같은 모양.
   ctaBar: {
     height: 48,
     borderRadius: 24,
-    backgroundColor: Acg.hairline,
+    backgroundColor: Acg.controlFill,
     marginTop: 14,
   },
   chipsBar: {
@@ -132,26 +130,27 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: Acg.controlFill,
   },
-  // 실제 장비 행(높이 56 + 상단 헤어라인)과 같은 리듬.
+  // 실제 장비 행(최소 높이 64 + 상단 헤어라인)과 같은 리듬. 지면 위 선이라 `line2`다.
   gearRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: 56,
+    height: 64,
     borderTopWidth: 1,
-    borderTopColor: Acg.hairline,
+    borderTopColor: Acg.line2,
   },
   listGap: {
     height: 6,
   },
+  // 실제 행은 이름(19) + 메타(15) 두 줄이라 지면 위 막대도 두 단이다.
   gearNameBar: {
-    width: 150,
-    height: 18,
+    width: 170,
+    height: 22,
     borderRadius: 2,
     backgroundColor: Acg.controlFill,
   },
   gearWeightBar: {
-    width: 44,
+    width: 90,
     height: 18,
     borderRadius: 2,
     backgroundColor: Acg.controlFill,
