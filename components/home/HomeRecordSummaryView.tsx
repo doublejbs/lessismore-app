@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import Gear from '@/model/gear/Gear';
 import BagItem from '@/model/bag/BagItem';
 import { getHomeRecordSummary } from '@/model/home/HomeRecordSummary';
@@ -47,9 +48,7 @@ const HomeRecordSummaryView: FC<Props> = ({ gears, bags }) => {
 
   return (
     <View style={styles.section}>
-      <PretendardText weight='semibold' style={styles.sectionTitle}>
-        내 기록
-      </PretendardText>
+      <AcgSectionHeaderView title='내 기록' />
 
       {/* 2×2 격자. 지표가 넷이라 한 줄에 넷을 넣으면 큰 숫자에서 값이 잘린다. */}
       <View style={styles.tile}>
@@ -83,16 +82,12 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 26,
   },
-  sectionTitle: {
-    marginBottom: 10,
-    fontSize: AcgFontSize.control,
-    color: Acg.ink,
-  },
   tile: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     rowGap: 16,
-    backgroundColor: Acg.controlFill,
+    // 지형 지면 위라 흰 종이 면이다(HomeUpcomingTripView의 면과 같은 규칙).
+    backgroundColor: Acg.paper,
     borderRadius: AcgRadius.thumb,
     padding: 16,
   },

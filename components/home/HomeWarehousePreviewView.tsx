@@ -7,6 +7,7 @@ import PretendardText from '@/components/PretendardText';
 import FeedChipView from '@/components/feed/FeedChipView';
 import { Acg, AcgFontSize, AcgRadius } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import Gear from '@/model/gear/Gear';
 import GearFilter from '@/model/gear/GearFilter';
 import {
@@ -22,8 +23,8 @@ interface Props {
 // 화면 좌우 패딩(HomeView) — 칩 행만 이 값만큼 밖으로 빼 지면 끝까지 흐르게 한다.
 const SCREEN_H = 16;
 
-// 장비 행 — 44pt 터치 타깃을 넘긴다.
-const GEAR_ROW_HEIGHT = 56;
+// 목록 행 최소 높이(레퍼런스 문법) — 이름 + 메타 두 줄이 들어가고 44pt를 넘긴다.
+const ROW_MIN_HEIGHT = 64;
 
 const CTA_HEIGHT = 48;
 
@@ -36,11 +37,12 @@ const CTA_HEIGHT = 48;
  * 칩 선택은 **이 컴포넌트의 로컬 상태**다. 창고 화면의 `FilterManager`를 건드리면
  * 홈에서 훑어본 게 창고 화면 상태까지 바꿔 버린다 — 훑기와 작업은 분리한다.
  *
- * 표현은 탐색 탭(FD-2/FD-3)과 같다(2026-08-11): 칩은 탐색과 같은 `FeedChipView`를 **같은 크기로**
- * 쓰고(`compact`는 탐색에서 1차 칩 행 아래 2차 세분 카테고리를 뜻하는 크기라, 위에 1차 행이 없는
- * 홈에서는 그냥 작아 보인다), 장비 행은
- * 면 없이 순백 지면에 놓고 헤어라인으로만 가른다. 행마다 흰 종이 면을 두면 순백 지면에서
- * 면이 보이지 않아 그림자만 남고, 카드가 여럿이면 위 일정 면과 위계가 뒤엉킨다.
+ * 칩은 탐색 탭과 같은 `FeedChipView`를 **같은 크기로** 쓴다(`compact`는 탐색에서 1차 칩 행 아래
+ * 2차 세분 카테고리를 뜻하는 크기라, 위에 1차 행이 없는 홈에서는 그냥 작아 보인다).
+ *
+ * 장비 행은 **레퍼런스 목록 문법**이다(2026-08-11): 면 없이 지면에 놓고 이름(19, 두 줄까지) +
+ * 메타 한 줄(15 잉크, `무게 · 브랜드 · 카테고리`) + 우측 셰브론, 행 사이 헤어라인.
+ * 행마다 면을 두면 카드가 여럿이 되어 위 일정 면과 위계가 뒤엉킨다.
  */
 const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
   const router = useRouter();
@@ -75,9 +77,7 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
   if (gears.length === 0) {
     return (
       <View style={styles.section}>
-        <PretendardText weight='semibold' style={styles.sectionTitle}>
-          내 창고
-        </PretendardText>
+        <AcgSectionHeaderView title='내 창고' />
 
         <View style={styles.tile}>
           <PretendardText weight='semibold' style={styles.emptyTitle}>
@@ -105,9 +105,8 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
 
   return (
     <View style={styles.section}>
-      <PretendardText weight='semibold' style={styles.sectionTitle}>
-        내 창고
-      </PretendardText>
+      {/* 부제는 목록의 **기준**을 밝힌다(레퍼런스) — 미리보기가 왜 이 4개인지 말해 준다. */}
+      <AcgSectionHeaderView title='내 창고' subtitle='최근 담은 장비' />
 
       <ScrollView
         horizontal={true}
@@ -129,30 +128,36 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
         {previewGears.map((gear, index) => (
           <TouchableOpacity
             key={gear.getId()}
-            style={[styles.gearRow, index > 0 && styles.gearRowDivided]}
+            style={[styles.row, index > 0 && styles.rowDivided]}
             onPress={() => handleOpenGear(gear)}
             activeOpacity={0.7}
             accessibilityRole='button'
             accessibilityLabel={`${gear.getDisplayName()} 상세`}
           >
-            <View style={styles.gearIdentity}>
+            <View style={styles.rowText}>
               <PretendardText
                 weight='semibold'
-                style={styles.gearName}
-                numberOfLines={1}
+                style={styles.rowTitle}
+                numberOfLines={2}
               >
                 {gear.getDisplayName()}
               </PretendardText>
-              <PretendardText style={styles.gearSub} numberOfLines={1}>
+
+              {/* 레퍼런스처럼 값을 **한 줄에 `·`로** 묶는다(별점·난이도·거리 → 무게·브랜드·카테고리).
+                  무게를 맨 앞에 둬 행마다 같은 자리에서 비교된다 — 우측 정렬 열로 빼면
+                  이름이 두 줄인 행에서 숫자가 아래로 밀려 오히려 비교가 어긋난다.
+                  숫자만 콘덴스드라 중첩 Text로 서체를 갈아 끼운다. */}
+              <PretendardText style={styles.rowMeta} numberOfLines={1}>
+                <AcgDisplayText style={styles.rowMetaStrong}>
+                  {`${gear.getWeight()}g`}
+                </AcgDisplayText>
                 {[gear.getDisplayCompany(), gear.getFineCategoryLabel()]
                   .filter(Boolean)
-                  .join(' · ')}
+                  .map(part => ` · ${part}`)
+                  .join('')}
               </PretendardText>
             </View>
-            {/* 무게는 탐색 셀과 같은 앵커 값이라 콘덴스드 잉크로 둔다(라임 텍스트 아님). */}
-            <AcgDisplayText style={styles.gearWeight}>
-              {`${gear.getWeight()}g`}
-            </AcgDisplayText>
+
             <Ionicons name='chevron-forward' size={16} color={Acg.textMuted} />
           </TouchableOpacity>
         ))}
@@ -160,7 +165,7 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
         {/* 목록이 끊기는 자리에 이어보기를 둔다(HM-4). 헤더 우측에 있을 때보다
             "여기서 더 있다"가 분명하고, 미리보기를 다 훑은 시점에 손이 가는 자리다. */}
         <TouchableOpacity
-          style={[styles.gearRow, styles.gearRowDivided]}
+          style={[styles.row, styles.rowDivided]}
           onPress={handleOpenWarehouse}
           activeOpacity={0.7}
           accessibilityRole='button'
@@ -180,11 +185,6 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 26,
   },
-  sectionTitle: {
-    marginBottom: 10,
-    fontSize: AcgFontSize.control,
-    color: Acg.ink,
-  },
   // 칩 행만 화면 패딩 밖으로 빼 지면 끝까지 흐르게 한다(탐색 탭과 같은 규칙).
   chipsScroll: {
     marginHorizontal: -SCREEN_H,
@@ -199,33 +199,39 @@ const styles = StyleSheet.create({
   gearList: {
     marginTop: 6,
   },
-  gearRow: {
+  /**
+   * 레퍼런스 목록 행 — 이름(두 줄까지) + 메타 한 줄. 헤어라인은 지형 지면 위라
+   * `line2`(잉크 알파)다. 순백용 `hairline`은 이 지면에서 보이지 않는다.
+   */
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    minHeight: GEAR_ROW_HEIGHT,
+    minHeight: ROW_MIN_HEIGHT,
+    paddingVertical: 10,
   },
-  gearRowDivided: {
+  rowDivided: {
     borderTopWidth: 1,
-    borderTopColor: Acg.hairline,
+    borderTopColor: Acg.line2,
   },
-  gearIdentity: {
+  rowText: {
     flex: 1,
     minWidth: 0,
     gap: 2,
   },
-  gearName: {
+  rowTitle: {
+    fontSize: AcgFontSize.rowTitle,
+    lineHeight: 25,
+    color: Acg.ink,
+  },
+  // 메타는 회색이 아니라 잉크다(레퍼런스) — 무게·브랜드는 장식이 아니라 정보다.
+  rowMeta: {
     fontSize: AcgFontSize.rowSubtitle,
     lineHeight: 20,
     color: Acg.ink,
   },
-  gearSub: {
-    fontSize: AcgFontSize.meta,
-    lineHeight: 18,
-    color: Acg.textMuted,
-  },
-  gearWeight: {
-    fontSize: AcgFontSize.rowTitle,
+  rowMetaStrong: {
+    fontSize: AcgFontSize.rowSubtitle,
     color: Acg.ink,
   },
   moreText: {
@@ -234,7 +240,7 @@ const styles = StyleSheet.create({
     color: Acg.textMuted,
   },
   tile: {
-    backgroundColor: Acg.controlFill,
+    backgroundColor: Acg.paper,
     borderRadius: AcgRadius.thumb,
     padding: 16,
     gap: 4,
