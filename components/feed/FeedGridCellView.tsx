@@ -28,14 +28,15 @@ const WEIGHT_FONT_SIZE = 26;
 
 const WEIGHT_LINE_HEIGHT = 30;
 
+// 면 최소 높이 — 이름이 한 줄뿐인 항목도 면이 납작해지지 않을 만큼만 둔다.
+const THUMB_MIN_HEIGHT = 150;
+
 interface Props {
   gear: Gear;
   actions: GearRowActions;
   bag: Bag;
   // GE-8: 장비 추가 검색(/search) 진입 시 담기 동작 컨텍스트. 미지정이면 탐색 기본(배낭 담기 모달).
   gearAddContext?: GearAddContext | undefined;
-  // 쿠팡 링크가 실제로 붙었을 때 부모(리스트 푸터 고지)에 알린다 — 자세한 규칙은 `useGearRowState` 참고.
-  onCoupangLinkLoaded?: (() => void) | undefined;
 }
 
 // FD-2: 탐색 탭 피드의 **2열 그리드 셀**(레퍼런스 이식 2026-08-11, 그리드 전환 같은 날).
@@ -44,17 +45,19 @@ interface Props {
 // 대신 채운다** — 연회색 면 하나가 셀의 덩어리가 되어, 텍스트만 흐르던 그리드에서 시선이
 // 걸릴 곳이 생긴다. 카테고리 썸네일을 쓰지 않는 이유는 같은 카테고리 항목이 전부 같은 그림이
 // 되어 시선은 끌지만 항목을 **구분해주지 못하기** 때문이다.
-// 구성은 위→아래로 썸네일 면[브랜드 · 담기 버튼 / 제품명+색상] → 무게 → 쿠팡이다.
+// 구성은 면 하나 안에 위→아래로 [브랜드 · 담기 버튼] / 제품명+색상 / 무게다.
+// **쿠팡 최저가 링크는 두지 않는다**(2026-08-11) — 실데이터 커버리지가 0.1%(27건)라 셀 문법에
+// 자리를 잡아 두면 대부분 빈 줄이고, 목록 푸터의 수수료 고지까지 딸려 온다. 커머스 동선은
+// 고의도 화면인 장비 상세(GD-5)에만 둔다.
 //
 // 레퍼런스가 단일 컬럼인 이유는 사진이 세로를 다 먹기 때문이다. 사진이 없는 이 앱에서는
 // 같은 세로에 두 배가 들어가고 이름·무게 비교도 쉬워, 문법만 가져오고 열 수는 2로 둔다.
-// 동작(담기·제거·상세 이동·쿠팡 지연 로드)은 검색 결과 카드와 `useGearRowState`를 공유한다.
+// 동작(담기·제거·상세 이동)은 검색 결과 카드와 `useGearRowState`를 공유한다.
 const FeedGridCellView: FC<Props> = ({
   gear,
   actions,
   bag,
   gearAddContext,
-  onCoupangLinkLoaded,
 }) => {
   const weight = gear.getWeight();
   const color = gear.getDisplayColor();
@@ -65,18 +68,15 @@ const FeedGridCellView: FC<Props> = ({
     bagCtxId,
     loading,
     showModal,
-    coupangUrl,
     handleCardPress,
     handleAddPress,
     handleRemovePress,
     handleCloseModal,
-    handleCoupangPress,
   } = useGearRowState({
     gear,
     actions,
     bag,
     gearAddContext,
-    onCoupangLinkLoaded,
   });
 
   const renderCta = () => {
@@ -135,8 +135,9 @@ const FeedGridCellView: FC<Props> = ({
     <>
       <Pressable style={styles.cell} onPress={handleCardPress}>
         {/*
-          사진 자리 — 사진 대신 브랜드·제품명이 들어간다. 면이 있어야 셀이 덩어리로 읽히고,
-          그 안에서는 밖(순백 지면)보다 대비가 확보돼 브랜드도 또렷해진다.
+          레퍼런스에서 사진이 차지하던 면 하나에 셀의 정보를 **다 넣는다** — 면 안팎으로
+          정보가 나뉘면 셀의 경계가 흐려지고, 밖으로 나간 값은 순백 지면 위에서 다시 약해진다.
+          위→아래로 브랜드·담기 / 제품명+색상 / 무게·쿠팡이다.
         */}
         <View style={styles.thumb}>
           <View style={styles.thumbHeader}>
@@ -152,14 +153,13 @@ const FeedGridCellView: FC<Props> = ({
               {gear.getDisplayCompany()}
             </PretendardText>
 
-            {/* 레퍼런스처럼 담기 버튼은 썸네일 면 우상단에 얹힌다(면 안이라 흰 원이 보인다). */}
+            {/* 레퍼런스처럼 담기 버튼은 면 우상단에 얹힌다(면 안이라 흰 원이 보인다). */}
             {renderCta()}
           </View>
 
           {/*
-            제품명은 면 바닥에 붙는다(`marginTop: auto`) — 브랜드와 사이가 벌어져 둘이
-            한 덩어리로 뭉치지 않는다. 색상은 이름의 변종 표기라 줄을 따로 두지 않고
-            중첩 Text로 이어 붙인다.
+            색상은 이름의 변종 표기라 줄을 따로 두지 않고 중첩 Text로 이어 붙인다 —
+            이름이 접히면 색상도 따라 접힌다.
           */}
           <PretendardText
             style={styles.name}
@@ -173,38 +173,23 @@ const FeedGridCellView: FC<Props> = ({
               >{` ${color}`}</PretendardText>
             ) : null}
           </PretendardText>
-        </View>
 
-        {/*
-          무게는 면 밖 숫자 앵커다 — 항목마다 다르고 사람들이 탐색하는 이유인 값이라
-          비교가 되도록 셀에서 가장 큰 활자로 둔다.
-        */}
-        <View style={styles.weightRow}>
-          {weight ? (
-            <AcgDisplayText
-              style={styles.weight}
-            >{`${weight}g`}</AcgDisplayText>
-          ) : (
-            // 무게가 없는 항목도 같은 높이를 차지해야 두 열의 썸네일 면이 한 선에서
-            // 시작한다. 값을 지어내지 않고 자리만 대시로 표시한다.
-            <PretendardText style={styles.weightEmpty}>—</PretendardText>
-          )}
+          {/*
+            무게가 면의 바닥을 잡는다(`marginTop: auto`) — 항목마다 다르고 사람들이 탐색하는
+            이유인 값이라 비교가 되도록 셀에서 가장 큰 활자로 둔다.
+            같은 행 두 면은 `flex: 1`로 높이가 같아지므로 무게 줄도 한 선에 온다.
+          */}
+          <View style={styles.footer}>
+            {weight ? (
+              <AcgDisplayText
+                style={styles.weight}
+              >{`${weight}g`}</AcgDisplayText>
+            ) : (
+              // 값을 지어내지 않고 자리만 대시로 표시한다.
+              <PretendardText style={styles.weightEmpty}>—</PretendardText>
+            )}
+          </View>
         </View>
-
-        {coupangUrl ? (
-          <TouchableOpacity
-            style={styles.coupangLink}
-            onPress={handleCoupangPress}
-            activeOpacity={0.7}
-            accessibilityRole='link'
-            accessibilityLabel={`${gear.getDisplayName()} 쿠팡 최저가`}
-          >
-            <PretendardText style={styles.coupangText} numberOfLines={1}>
-              쿠팡 최저가
-            </PretendardText>
-            <Ionicons name='chevron-forward' size={14} color={Acg.textMuted} />
-          </TouchableOpacity>
-        ) : null}
       </Pressable>
 
       <SearchGearAddToBagModalView
@@ -218,20 +203,24 @@ const FeedGridCellView: FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
-  // `flex: 1`로 같은 행 두 셀의 폭을 맞춘다. 셀 자체는 면·테두리를 갖지 않는다 — 면은 썸네일뿐이다.
+  // 셀 자체는 면을 갖지 않는다 — 보이는 면은 `thumb` 하나뿐이다.
   cell: {
     flex: 1,
-    gap: 8,
   },
   /**
-   * 사진 자리. 레퍼런스 사진과 같은 비율(4:3)로 두어 그리드의 리듬이 사진판과 같아진다.
-   * 정사각으로 두면 텍스트 두세 줄에 비해 빈 회색이 너무 넓어 보인다.
+   * 셀의 유일한 면. 사진 자리를 그대로 물려받아 정보를 다 담는다.
+   *
+   * 고정 비율(4:3) 대신 `flex: 1` + `minHeight`를 쓴다 — 비율로 묶으면 이름이 세 줄인 항목의
+   * 무게가 면 밖으로 밀리고, 반대로 한 줄인 항목은 가운데가 텅 빈다. 같은 행 두 셀은 부모의
+   * stretch로 높이가 같아지므로 면 크기는 열끼리 어긋나지 않는다.
    */
   thumb: {
-    aspectRatio: 4 / 3,
+    flex: 1,
+    minHeight: THUMB_MIN_HEIGHT,
     backgroundColor: Acg.controlFill,
     borderRadius: AcgRadius.thumb,
     padding: 12,
+    gap: 6,
   },
   thumbHeader: {
     flexDirection: 'row',
@@ -248,7 +237,6 @@ const styles = StyleSheet.create({
     color: Acg.ink,
   },
   name: {
-    marginTop: 'auto',
     fontSize: AcgFontSize.rowSubtitle,
     lineHeight: 21,
     color: Acg.ink,
@@ -258,16 +246,17 @@ const styles = StyleSheet.create({
     fontSize: AcgFontSize.meta,
     color: Acg.textMuted,
   },
+  // 면 바닥 줄. 무게 하나뿐이지만 없는 항목도 같은 높이를 유지해 두 열이 한 선에 온다.
+  footer: {
+    marginTop: 'auto',
+    minHeight: WEIGHT_LINE_HEIGHT,
+    justifyContent: 'flex-end',
+  },
   /**
    * 셀의 숫자 앵커 — 콘덴스드라 같은 크기의 본문보다 좁고 또렷하다.
    * 제품명(15)보다 크게 두는 이유: 이름은 **읽는** 값이고 무게는 **비교하는** 값이라,
    * 훑는 동안 눈에 걸려야 하는 쪽은 무게다.
    */
-  // 무게 유무와 무관하게 같은 높이를 차지한다 — 없으면 열이 한 줄씩 밀려 어긋난다.
-  weightRow: {
-    minHeight: WEIGHT_LINE_HEIGHT,
-    justifyContent: 'center',
-  },
   weight: {
     fontSize: WEIGHT_FONT_SIZE,
     lineHeight: WEIGHT_LINE_HEIGHT,
@@ -275,6 +264,7 @@ const styles = StyleSheet.create({
   },
   weightEmpty: {
     fontSize: AcgFontSize.rowSubtitle,
+    lineHeight: WEIGHT_LINE_HEIGHT,
     color: Acg.textMuted,
   },
   // 회색 면 위이므로 레퍼런스와 같이 흰 원이다.
@@ -289,17 +279,6 @@ const styles = StyleSheet.create({
   // 담긴 상태는 잉크 채움 + 라임 체크(기존 규칙).
   ctaAdded: {
     backgroundColor: Acg.ink,
-  },
-  coupangLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    // 링크 자체로 44pt 터치 타깃을 확보한다.
-    minHeight: 44,
-  },
-  coupangText: {
-    fontSize: AcgFontSize.meta,
-    color: Acg.textMuted,
   },
 });
 

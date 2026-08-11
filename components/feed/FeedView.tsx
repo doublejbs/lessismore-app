@@ -33,11 +33,6 @@ const FEED_COLUMN_GAP = 16;
 
 const LIST_HORIZONTAL_PADDING = 16;
 
-// 쿠팡 링크가 **실제로 노출된 행이 있을 때만** 리스트 푸터에서 1회 고지한다(FD-2).
-// 링크가 하나도 없는 목록에까지 문구를 띄우지 않는다.
-const COUPANG_DISCLAIMER =
-  '쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.';
-
 interface Props {
   bag: Bag;
   // 탐색 탭이 검색 승계(FD-3)를 위해 상위에서 소유·공유하는 피드. 없으면 내부에서 생성한다.
@@ -54,20 +49,6 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   const insets = useSafeAreaInsets();
   const [feed] = useState(() => externalFeed ?? Feed.new(router));
   const ownsFeed = !externalFeed;
-  /**
-   * 이 화면에서 쿠팡 링크가 붙은 행을 한 번이라도 봤는지.
-   *
-   * **한 번 켜지면 되돌리지 않는다.** 필터를 바꿔 링크 없는 목록이 와도 고지가 남는데, 그쪽이
-   * 안전하다 — 이미 제휴 링크를 노출한 화면이고, 추가 로드(페이지네이션)마다 초기화하면 이미
-   * 마운트된 행이 다시 알려주지 않아 고지가 사라진다.
-   */
-  const [hasCoupangLink, setHasCoupangLink] = useState(false);
-
-  // 행 로드 effect의 의존성이라 참조를 고정한다(useGearRowState의 prop 주석 참고).
-  const handleCoupangLinkLoaded = useCallback(() => {
-    setHasCoupangLink(true);
-  }, []);
-
   // 플로팅 `인기 순위` 버튼(탭바 위 20pt, 높이 ~48)이 마지막 행을 가리지 않도록 리스트 하단 여백을 확보한다.
   // iOS는 edge-to-edge라 탭바 영역(insets.bottom)까지 더한다. Android는 커스텀 탭이라 고정값.
   const listBottomPadding = Platform.select({
@@ -110,11 +91,10 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
           actions={feed}
           bag={bag}
           gearAddContext={gearAddContext}
-          onCoupangLinkLoaded={handleCoupangLinkLoaded}
         />
       );
     },
-    [feed, bag, gearAddContext, handleCoupangLinkLoaded]
+    [feed, bag, gearAddContext]
   );
 
   const keyExtractor = useCallback((gear: Gear) => gear.getId(), []);
@@ -129,14 +109,9 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
         {isLoading ? (
           <ActivityIndicator size='small' color={Acg.textMuted} />
         ) : null}
-        {hasCoupangLink ? (
-          <PretendardText style={styles.disclaimer}>
-            {COUPANG_DISCLAIMER}
-          </PretendardText>
-        ) : null}
       </View>
     );
-  }, [isLoading, isEmpty, hasCoupangLink]);
+  }, [isLoading, isEmpty]);
 
   const renderEmpty = useCallback(() => {
     return (
@@ -220,12 +195,6 @@ const styles = StyleSheet.create({
   footer: {
     paddingVertical: 24,
     alignItems: 'center',
-    gap: 16,
-  },
-  disclaimer: {
-    fontSize: 11,
-    color: Acg.textMuted,
-    textAlign: 'center',
   },
   emptyContainer: {
     flex: 1,

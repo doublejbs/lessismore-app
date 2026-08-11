@@ -2,11 +2,14 @@ import { FC, useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
 import { Acg, AcgRadius } from '@/constants/DesignTokens';
 
-// FD-2: 피드 2열 그리드용 스켈레톤(레퍼런스 이식). FeedGridCellView의 셀 구조(썸네일 면 4:3 /
-// 무게)와 같은 덩어리로, FeedView의 열·행 간격에 맞춰 정렬한다.
+// FD-2: 피드 2열 그리드용 스켈레톤(레퍼런스 이식). FeedGridCellView와 같은 면 하나짜리
+// 덩어리로, FeedView의 열·행 간격에 맞춰 정렬한다.
 // 장비 이미지 미제공 원칙(DataModel §1)에 따라 썸네일 자리에는 사진이 아니라 브랜드·제품명이
 // 들어가지만, 로딩 중에는 그 면만 비워 두면 실제 셀과 덩어리가 같아진다.
 // SearchSkeletonView와 동일한 은은한 펄스 애니메이션을 사용한다.
+
+// FeedGridCellView의 면 최소 높이와 동일하게 유지한다.
+const THUMB_MIN_HEIGHT = 150;
 
 // FeedView의 행 간격과 동일하게 유지한다(리스트 ItemSeparatorComponent).
 const FEED_ROW_GAP = 24;
@@ -42,9 +45,8 @@ const SkeletonCell: FC = () => {
 
   return (
     <View style={styles.cell}>
-      {/* 썸네일 면 · 무게 — 실제 셀과 같은 덩어리로 로딩→렌더 점프를 줄인다. */}
+      {/* 면 하나 — 실제 셀도 정보를 면 안에 다 담으므로 로딩 중에는 그 면만 비워 둔다. */}
       <Animated.View style={[styles.thumb, { opacity }]} />
-      <Animated.View style={[styles.weightBar, { opacity }]} />
     </View>
   );
 };
@@ -80,20 +82,13 @@ const styles = StyleSheet.create({
   },
   cell: {
     flex: 1,
-    gap: 8,
   },
-  // 실제 썸네일 면과 같은 비율·모서리.
+  // 실제 면의 최소 높이·모서리와 같게 둔다.
   thumb: {
-    aspectRatio: 4 / 3,
+    flex: 1,
+    minHeight: THUMB_MIN_HEIGHT,
     backgroundColor: PLACEHOLDER_COLOR,
     borderRadius: AcgRadius.thumb,
-  },
-  // 셀의 숫자 앵커인 무게 — 실제 텍스트의 lineHeight(30)와 맞춘다.
-  weightBar: {
-    height: 30,
-    width: '60%',
-    backgroundColor: PLACEHOLDER_COLOR,
-    borderRadius: 2,
   },
 });
 
