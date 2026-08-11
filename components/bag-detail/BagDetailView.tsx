@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
   },
   gearEmptyTitle: {
     fontSize: AcgFontSize.rowTitle,
-    lineHeight: 25,
+    lineHeight: 24,
     color: Acg.ink,
   },
   gearEmptyText: {

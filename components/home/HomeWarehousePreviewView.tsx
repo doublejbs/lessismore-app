@@ -145,10 +145,10 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
                 {gear.getDisplayName()}
               </PretendardText>
 
-              {/* 레퍼런스처럼 값을 **한 줄에 `·`로** 묶는다(별점·난이도·거리 → 무게·브랜드·카테고리).
-                  무게를 맨 앞에 둬 행마다 같은 자리에서 비교된다 — 우측 정렬 열로 빼면
-                  이름이 두 줄인 행에서 숫자가 아래로 밀려 오히려 비교가 어긋난다.
-                  숫자만 콘덴스드라 중첩 Text로 서체를 갈아 끼운다. */}
+              {/* 메타는 레퍼런스처럼 한 줄에 `·`로 묶는다(★4.5 · Hard · 3.2km →
+                  무게 · 브랜드 · 카테고리). 사진 자리를 두지 않으므로(DataModel §1 — 장비
+                  사진 미제공) 무게가 줄 맨 앞이고, 그래서 어느 행에서나 같은 자리다.
+                  숫자만 중첩 Text로 콘덴스드로 갈아 끼운다. */}
               <PretendardText style={styles.rowMeta} numberOfLines={1}>
                 <AcgDisplayText style={styles.rowMetaStrong}>
                   {`${gear.getWeight()}g`}
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   },
   rowTitle: {
     fontSize: AcgFontSize.rowTitle,
-    lineHeight: 25,
+    lineHeight: 24,
     color: Acg.ink,
   },
   // 메타는 회색이 아니라 잉크다(레퍼런스) — 무게·브랜드는 장식이 아니라 정보다.
@@ -232,6 +232,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: Acg.ink,
   },
+  // 메타 줄 안의 숫자 조각 — 크기는 상속하고 서체만 콘덴스드로 바꾼다.
   rowMetaStrong: {
     fontSize: AcgFontSize.rowSubtitle,
     color: Acg.ink,
@@ -249,7 +250,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: AcgFontSize.rowTitle,
-    lineHeight: 25,
+    lineHeight: 24,
     color: Acg.ink,
   },
   emptySubtitle: {

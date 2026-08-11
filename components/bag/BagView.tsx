@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: AcgFontSize.rowTitle,
-    lineHeight: 25,
+    lineHeight: 24,
     color: Acg.ink,
   },
   emptySubtitle: {
