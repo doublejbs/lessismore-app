@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: AcgFontSize.rowTitle,
-    lineHeight: 25,
+    lineHeight: 24,
     color: Acg.ink,
   },
   // 메타는 회색이 아니라 잉크다(레퍼런스) — 무게·브랜드·사용률은 장식이 아니라 정보다.

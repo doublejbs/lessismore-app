@@ -34,16 +34,18 @@ const AcgSectionHeaderView: FC<Props> = ({ title, subtitle }) => {
 const styles = StyleSheet.create({
   container: {
     marginBottom: 12,
-    gap: 2,
+    // 제목과 부제는 붙여 둔다(레퍼런스) — 벌리면 부제가 다음 항목의 머리처럼 읽힌다.
+    gap: 0,
   },
+  // 레퍼런스 실측: 제목 20 / 부제 17. 부제가 제목과 거의 같은 크기라 두 줄이 한 덩어리로 읽힌다.
   title: {
-    fontSize: AcgFontSize.rowTitle,
-    lineHeight: 25,
+    fontSize: AcgFontSize.sectionTitle,
+    lineHeight: 26,
     color: Acg.ink,
   },
   subtitle: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 20,
+    fontSize: AcgFontSize.sectionSubtitle,
+    lineHeight: 23,
     color: Acg.textMuted,
   },
 });
