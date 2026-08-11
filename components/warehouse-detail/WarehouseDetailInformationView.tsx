@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 13,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
     marginTop: 6,
   },
   // 무게 — 고정 폭이 아니라 콘텐츠 폭이되 줄어들거나 줄바꿈되지 않게 한다(GD-1).

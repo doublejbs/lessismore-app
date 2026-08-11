@@ -407,7 +407,6 @@ const styles = StyleSheet.create({
   // 화면의 주 액션 — 각진 잉크 면(ACG).
   addButton: {
     backgroundColor: Acg.ink,
-    borderRadius: 0,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',

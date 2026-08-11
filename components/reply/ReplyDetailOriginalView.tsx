@@ -83,7 +83,7 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
                 <Ionicons
                   name='ellipsis-horizontal'
                   size={16}
-                  color={Acg.textSecondary}
+                  color={Acg.textMuted}
                 />
               </TouchableOpacity>
             )}
@@ -100,7 +100,7 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
               <Ionicons
                 name={isLiked ? 'heart' : 'heart-outline'}
                 size={20}
-                color={isLiked ? LIKED_COLOR : Acg.textSecondary}
+                color={isLiked ? LIKED_COLOR : Acg.textMuted}
               />
               <PretendardText
                 style={[styles.count, isLiked && styles.countActive]}
@@ -112,7 +112,7 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
               <Ionicons
                 name='chatbubble-outline'
                 size={20}
-                color={Acg.textSecondary}
+                color={Acg.textMuted}
               />
               <PretendardText style={styles.count}>
                 {comment.replyCount}
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 12,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -167,10 +167,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   tag: {
-    backgroundColor: Acg.line2,
+    backgroundColor: Acg.hairline,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 0,
   },
   tagText: {
     fontSize: 12,
@@ -197,7 +196,7 @@ const styles = StyleSheet.create({
   },
   count: {
     fontSize: 14,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   countActive: {
     color: LIKED_COLOR,

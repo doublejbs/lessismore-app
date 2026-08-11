@@ -117,7 +117,6 @@ const styles = StyleSheet.create({
   marker: {
     width: 18,
     height: 18,
-    borderRadius: 0,
     borderWidth: 2,
     borderColor: Acg.paper,
   },

@@ -51,7 +51,7 @@ const WarehouseDetailPurchaseView: FC<Props> = ({ warehouseDetail }) => {
       <PretendardText style={styles.linkText} weight='medium'>
         {label}
       </PretendardText>
-      <Ionicons name='open-outline' size={16} color={Acg.textSecondary} />
+      <Ionicons name='open-outline' size={16} color={Acg.textMuted} />
     </TouchableOpacity>
   );
 
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   disclaimerText: {
     fontSize: 11,
     lineHeight: 15,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
 });
 

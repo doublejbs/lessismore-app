@@ -121,7 +121,7 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
         <TextInput
           style={styles.textInput}
           placeholder='메모를 작성하세요'
-          placeholderTextColor={Acg.textSecondary}
+          placeholderTextColor={Acg.textMuted}
           multiline
           textAlignVertical='top'
           value={content}
@@ -194,7 +194,6 @@ const styles = StyleSheet.create({
   // 경계가 안 보였다(2026-08-04 시뮬레이터 확인).
   textInput: {
     flex: 1,
-    borderRadius: 0,
     backgroundColor: Acg.controlFill,
     padding: 16,
     fontSize: 16,
@@ -210,7 +209,6 @@ const styles = StyleSheet.create({
   },
   completeButton: {
     paddingVertical: 16,
-    borderRadius: 0,
     alignItems: 'center',
   },
   completeButtonActive: {
@@ -218,7 +216,7 @@ const styles = StyleSheet.create({
   },
   // 비활성도 버튼으로는 보여야 한다 — 지면색 채움은 배경과 붙어 버튼이 사라졌다.
   completeButtonDisabled: {
-    backgroundColor: Acg.line2,
+    backgroundColor: Acg.hairline,
   },
   completeButtonText: {
     fontSize: 16,
@@ -227,7 +225,7 @@ const styles = StyleSheet.create({
     color: Acg.paper,
   },
   completeButtonTextDisabled: {
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
 });
 

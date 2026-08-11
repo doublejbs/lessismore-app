@@ -109,7 +109,6 @@ const styles = StyleSheet.create({
   headerIcon: {
     width: 25,
     height: 24,
-    borderRadius: 0,
   },
   content: {
     flexDirection: 'column',
@@ -120,7 +119,6 @@ const styles = StyleSheet.create({
   gearImage: {
     width: '100%',
     height: 200,
-    borderRadius: 0,
     marginBottom: 16,
   },
   gearInfoSection: {
@@ -129,25 +127,21 @@ const styles = StyleSheet.create({
   titleSkeleton: {
     width: '80%',
     height: 24,
-    borderRadius: 0,
     marginBottom: 12,
   },
   descriptionLine1: {
     width: '60%',
     height: 16,
-    borderRadius: 0,
     marginBottom: 8,
   },
   descriptionLine2: {
     width: '40%',
     height: 16,
-    borderRadius: 0,
     marginBottom: 8,
   },
   descriptionLine3: {
     width: '50%',
     height: 16,
-    borderRadius: 0,
   },
   bagSection: {
     // 백 섹션 컨테이너
@@ -155,7 +149,6 @@ const styles = StyleSheet.create({
   bagSectionTitle: {
     width: '30%',
     height: 20,
-    borderRadius: 0,
     marginBottom: 16,
   },
   bagItem: {
@@ -164,12 +157,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     padding: 12,
     backgroundColor: Acg.paper,
-    borderRadius: 0,
   },
   bagItemIcon: {
     width: 40,
     height: 40,
-    borderRadius: 0,
     marginRight: 12,
   },
   bagItemContent: {
@@ -178,13 +169,11 @@ const styles = StyleSheet.create({
   bagItemTitle: {
     width: '70%',
     height: 16,
-    borderRadius: 0,
     marginBottom: 6,
   },
   bagItemSubtitle: {
     width: '50%',
     height: 14,
-    borderRadius: 0,
   },
   bottomButtons: {
     flexDirection: 'row',
@@ -201,7 +190,6 @@ const styles = StyleSheet.create({
   bottomButton: {
     flex: 1,
     height: 54,
-    borderRadius: 0,
   },
 });
 

@@ -235,28 +235,26 @@ const styles = StyleSheet.create({
   },
   countTotal: {
     fontSize: 16,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   selectAllText: {
     fontSize: 15,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   // 각진 진행 바 + 라임 채움(ACG) — 패킹 모드와 같은 값이라 두 화면이 같은 문법으로 읽힌다.
   barTrack: {
     width: '100%',
     height: 10,
-    borderRadius: 0,
-    backgroundColor: Acg.line2,
+    backgroundColor: Acg.hairline,
     overflow: 'hidden',
   },
   barFill: {
     height: '100%',
-    borderRadius: 0,
     backgroundColor: Acg.lime,
   },
   weightText: {
     fontSize: 15,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   list: {
     flex: 1,

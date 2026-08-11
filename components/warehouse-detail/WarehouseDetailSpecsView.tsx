@@ -79,13 +79,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   rowDivider: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Acg.line2,
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
   },
   label: {
     width: 100,
     fontSize: 14,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   value: {
     flex: 1,

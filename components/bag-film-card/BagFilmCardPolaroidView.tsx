@@ -212,7 +212,7 @@ const createStyles = (width: number) => {
       overflow: 'hidden',
       // 사진과 흰 프레임 사이의 아주 옅은 경계 — 실물 인화지에서 유제면이 종이보다
       // 살짝 들어가 보이는 느낌. 밝은 사진이 프레임과 뭉개지는 것도 막아준다.
-      borderWidth: Math.max(StyleSheet.hairlineWidth, 0.6 * scale),
+      borderWidth: Math.max(1, 0.6 * scale),
       borderColor: PHOTO_EDGE_COLOR,
     },
     photoImage: {

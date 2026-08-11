@@ -101,7 +101,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     padding: 14,
-    borderRadius: 0,
     backgroundColor: Acg.controlFill,
   },
   metric: {
@@ -112,7 +111,7 @@ const styles = StyleSheet.create({
   },
   metricLabel: {
     fontSize: 13,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   metricValue: {
     fontSize: 22,
@@ -122,7 +121,7 @@ const styles = StyleSheet.create({
   metricEmpty: {
     fontSize: 15,
     lineHeight: 26,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
 });
 

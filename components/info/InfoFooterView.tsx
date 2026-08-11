@@ -55,11 +55,7 @@ const InfoFooterView: FC<Props> = ({ isLoggedIn }) => {
           <PretendardText style={styles.versionText}>
             사업자 정보
           </PretendardText>
-          <Ionicons
-            name='chevron-forward'
-            size={12}
-            color={Acg.textSecondary}
-          />
+          <Ionicons name='chevron-forward' size={12} color={Acg.textMuted} />
         </TouchableOpacity>
       </View>
 
@@ -93,15 +89,15 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 16,
     paddingHorizontal: 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Acg.line2,
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
     // 면을 깔지 않는다 — 지면(지형 배경)이 그대로 비쳐야 목록 카드와 위계가 갈린다.
     backgroundColor: 'transparent',
     gap: 8,
   },
   deleteAccountText: {
     fontSize: 12,
-    color: Acg.textTertiary,
+    color: Acg.textMuted,
     textDecorationLine: 'underline',
   },
   /**
@@ -127,7 +123,7 @@ const styles = StyleSheet.create({
   },
   versionText: {
     fontSize: 11,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   imageContainer: {
     flexDirection: 'row',

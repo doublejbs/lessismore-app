@@ -204,11 +204,11 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
           {isSearching && !IS_IOS ? (
             <View style={[styles.searchRow, IS_IOS && styles.searchRowIos]}>
               <View style={styles.searchBox}>
-                <Ionicons name='search' size={18} color={Acg.textSecondary} />
+                <Ionicons name='search' size={18} color={Acg.textMuted} />
                 <TextInput
                   style={styles.searchInput}
                   placeholder='장비 검색'
-                  placeholderTextColor={Acg.textSecondary}
+                  placeholderTextColor={Acg.textMuted}
                   value={warehouse.getQuery()}
                   onChangeText={value => warehouse.setQuery(value)}
                   autoCorrect={false}
@@ -225,7 +225,7 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                     <Ionicons
                       name='close-circle'
                       size={18}
-                      color={Acg.textSecondary}
+                      color={Acg.textMuted}
                     />
                   </TouchableOpacity>
                 )}
@@ -382,7 +382,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     backgroundColor: Acg.paper,
-    borderRadius: 0,
     paddingHorizontal: 14,
     height: 44,
   },
@@ -414,7 +413,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     textAlign: 'center',
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
 });
 

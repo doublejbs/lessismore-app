@@ -89,7 +89,6 @@ const styles = StyleSheet.create({
   ring: {
     width: RING_SIZE,
     height: RING_SIZE,
-    borderRadius: 0,
     borderWidth: 3,
   },
 });

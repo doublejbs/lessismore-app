@@ -264,7 +264,6 @@ const styles = StyleSheet.create({
   resultTypeMark: {
     width: 10,
     height: 10,
-    borderRadius: 0,
   },
   resultTexts: {
     flex: 1,

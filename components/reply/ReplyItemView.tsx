@@ -97,7 +97,7 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
               <Ionicons
                 name='ellipsis-horizontal'
                 size={16}
-                color={Acg.textSecondary}
+                color={Acg.textMuted}
               />
             </TouchableOpacity>
           )}
@@ -118,7 +118,7 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
               <Ionicons
                 name={isLiked ? 'heart' : 'heart-outline'}
                 size={20}
-                color={isLiked ? LIKED_COLOR : Acg.textSecondary}
+                color={isLiked ? LIKED_COLOR : Acg.textMuted}
               />
               <PretendardText
                 style={[styles.likeCount, isLiked && styles.likeCountActive]}
@@ -130,7 +130,7 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
               <Ionicons
                 name='chatbubble-outline'
                 size={20}
-                color={Acg.textSecondary}
+                color={Acg.textMuted}
               />
               <PretendardText style={styles.replyCount}>
                 {comment.replyCount}
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 12,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   moreButton: {
     opacity: 0.3,
@@ -204,14 +204,14 @@ const styles = StyleSheet.create({
   },
   likeCount: {
     fontSize: 14,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   likeCountActive: {
     color: LIKED_COLOR,
   },
   replyCount: {
     fontSize: 14,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
 });
 

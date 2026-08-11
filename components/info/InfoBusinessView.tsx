@@ -74,14 +74,14 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   rowDivider: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Acg.line2,
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
   },
   // 라벨 폭을 고정해 값의 시작 위치를 세로로 맞춘다.
   label: {
     width: 110,
     fontSize: 14,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   value: {
     flex: 1,

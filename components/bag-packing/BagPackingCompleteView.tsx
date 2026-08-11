@@ -63,7 +63,6 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     backgroundColor: Acg.paper,
-    borderRadius: 0,
     paddingVertical: 32,
     paddingHorizontal: 24,
     alignItems: 'center',
@@ -79,7 +78,7 @@ const styles = StyleSheet.create({
   },
   dDayText: {
     fontSize: 15,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   actions: {
     width: '100%',
@@ -90,7 +89,6 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: Acg.ink,
     paddingVertical: 16,
-    borderRadius: 0,
     alignItems: 'center',
   },
   primaryButtonText: {

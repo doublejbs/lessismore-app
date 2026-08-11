@@ -59,7 +59,7 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
 const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   statsRow: {
     flexDirection: 'row',
@@ -71,7 +71,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     backgroundColor: Acg.controlFill,
-    borderRadius: 0,
     gap: 2,
   },
   statValue: {
@@ -81,11 +80,11 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   statMuted: {
     // 0회 지표는 값·라벨을 낮춰 유효 정보 스캔을 돕는다(GD-2 톤 유지).
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
 });
 

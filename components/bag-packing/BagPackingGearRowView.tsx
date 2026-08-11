@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     height: CHECK_BADGE_SIZE,
     borderRadius: CHECK_BADGE_SIZE / 2,
     borderWidth: 1.5,
-    borderColor: Acg.line,
+    borderColor: Acg.hairline,
   },
   checkCircle: {
     position: 'absolute',
