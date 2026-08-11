@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import Reply from '@/model/reply/Reply';
 
 interface Props {
@@ -42,8 +42,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    backgroundColor: Acg.controlFill,
     borderRadius: 0,
     paddingHorizontal: 16,
     paddingVertical: 12,

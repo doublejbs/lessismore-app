@@ -2,7 +2,7 @@ import { FC, ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
 import PretendardText from '../PretendardText';
 import AcgHighlightText from '@/components/acg/AcgHighlightText';
-import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
 
 interface Props {
   title: string;
@@ -79,8 +79,7 @@ const styles = StyleSheet.create({
   },
   card: {
     padding: 16,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    backgroundColor: Acg.controlFill,
   },
   // 행 사이 8px — 홈 탭 리스트와 같은 값.
   list: {

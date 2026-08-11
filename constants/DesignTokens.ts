@@ -9,9 +9,11 @@
 /**
  * 앱 공통 색.
  *
- * **ACG 리디자인 이후 이 그룹의 값은 `Acg` 팔레트를 따른다**(2026-08-03). 화면을 하나씩
- * 옮기는 대신 토큰 자체를 갈아 끼워, 아직 개별 적용하지 않은 화면도 같은 톤(따뜻한 회색
- * 계열 + 잉크)으로 읽히게 한다. 이름은 그대로 두어 120여 개 파일을 건드리지 않는다.
+ * **레퍼런스 이식(2026-08-11) 이후 이 그룹의 값은 새 팔레트를 따른다.** 화면을 하나씩
+ * 옮기는 대신 **토큰 자체를 갈아 끼워**, 아직 개별 이식하지 않은 화면도 같은 톤(순백 지면 +
+ * 중성 회색 + 잉크)으로 읽히게 한다 — 이름을 그대로 둬 200여 참조를 건드리지 않는다.
+ * (ACG 세대에는 같은 자리에 따뜻한 회색 계열이 들어 있었다: `textSecondary` #5F5D57,
+ * `borderLight` #E8E6DF, `inputBg` #EAE8E1 …)
  *
  * 새 UI는 `Acg`를 직접 참조하는 쪽이 의도가 분명하다. 이 그룹은 옛 화면 호환용이다.
  */
@@ -19,26 +21,24 @@ export const Color = {
   // 배경 / 텍스트
   background: '#FFFFFF', // = Acg.paper
   textPrimary: '#1A1A1A', // = Acg.ink
-  textSecondary: '#5F5D57', // AA 5.4 (= Acg.textSecondary)
-  textTertiary: '#4A4A45', // AA 7.4 (= Acg.textTertiary)
-  iconMuted: '#A8A69E', // 푸른 회색(#B0B8C1)은 따뜻한 지면 위에서 떠 보였다
+  textSecondary: '#767676', // = Acg.textMuted (순백 위 AA 4.5)
+  textTertiary: '#555555', // 순백 위 AA 7.4
+  iconMuted: '#9E9E9E',
 
-  // 경계 / 구분선 — 지면(#F4F3EF)과 같은 계열의 따뜻한 회색
-  borderLight: '#E8E6DF',
-  divider: '#EDEBE4',
+  // 경계 / 구분선 — 순백 위 중성 헤어라인
+  borderLight: '#EDEDED', // = Acg.hairline
+  divider: '#EDEDED',
 
-  // 칩 / 인풋 / 표면
-  chipInactiveBg: '#E8E6DF',
+  // 칩 / 인풋 / 표면 — 순백 위 연회색 면
+  chipInactiveBg: '#F2F2F2', // = Acg.controlFill
   chipActiveBg: '#1A1A1A',
-  chipBorder: '#E2E0D8', // 아웃라인 칩(비선택) 테두리
-  // 인풋·보조 표면은 지면(#F4F3EF)보다 한 단계 어둡게 둔다. 지면색과 같게 두면 화면 루트가
-  // 지면인 곳에서 입력 영역이 통째로 사라지고, 종이 면 위에서만 보이는 반쪽 값이 된다.
-  inputBg: '#EAE8E1',
-  surfaceMuted: '#EAE8E1',
-  thumbBg: '#EDEBE4',
+  chipBorder: '#E5E5E5',
+  inputBg: '#F2F2F2',
+  surfaceMuted: '#F2F2F2',
+  thumbBg: '#F2F2F2',
 
-  // 토스트 배경 — 흰 텍스트 대비를 유지하는 진회색(검정보다 부드럽게)
-  toastBg: '#2A2A28',
+  // 토스트 배경 — 흰 텍스트 대비를 유지하는 진회색
+  toastBg: '#262626',
 
   // 오버레이
   overlay: 'rgba(0,0,0,0.5)',
@@ -47,16 +47,19 @@ export const Color = {
 /**
  * 모서리.
  *
- * **ACG는 각진 면이 기본이다** — 카드·인풋·칩·모달·시트를 0으로 둔다(2026-08-03).
- * 예외는 `pill` 하나뿐이다: 원형 아이콘 버튼과 알약 버튼은 시안에서도 둥글다.
+ * **레퍼런스 이식(2026-08-11)으로 다시 둥글어졌다.** ACG 세대에는 각진 면이 기본이라 카드·인풋·
+ * 칩·모달·시트가 전부 0이었는데, 새 문법은 면 12 · 칩/버튼 알약 · 모달 16이다.
+ * 여기 값을 갈아 끼우면 아직 개별 이식하지 않은 화면도 같은 모서리를 따른다
+ * (이식한 화면은 `AcgRadius.thumb`를 직접 참조한다).
  */
 export const Radius = {
-  listThumb: 0,
-  card: 0,
-  input: 0,
-  chip: 0,
-  sheet: 0,
-  modal: 0,
+  listThumb: 8,
+  card: 12,
+  input: 12,
+  // 칩은 알약이다 — 높이가 커져도 유지되도록 큰 값을 둔다(RN이 높이의 절반으로 클램프한다).
+  chip: 999,
+  sheet: 20,
+  modal: 16,
   pill: 32,
 } as const;
 
@@ -194,6 +197,12 @@ export const AcgLayout = {
    * 탭을 옮길 때 좌측 정렬선이 2px씩 움직이면 화면이 흔들려 보인다.
    */
   screenPadding: 16,
+  /**
+   * 필터 칩 사이 간격. 12로 뒀다가 8로 줄였다(2026-08-11 사용자 지적) — 칩은 알약이라
+   * 좌우 패딩(14)이 이미 시각 여백을 만들고, 여기에 12를 더하면 칩들이 서로 무관한 버튼처럼
+   * 흩어져 한 줄의 선택지로 읽히지 않는다.
+   */
+  chipGap: 8,
   section: 22,
   // 플로팅 탭바 아래로 콘텐츠가 흐르므로 스크롤 끝에 이만큼 비운다.
   scrollBottom: 130,

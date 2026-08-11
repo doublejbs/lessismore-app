@@ -13,7 +13,7 @@ import {
 } from '@/model/feed/FeedSort';
 import { BROWSE_CATEGORIES } from '@/model/browse/BrowseCategory';
 import { getFineCategoryLabel } from '@/model/gear/GearCategoryGroups';
-import { Acg, AcgFontSize } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
 import PretendardText from '@/components/PretendardText';
 import FeedChipView from './FeedChipView';
 import FeedFilterSheetView from './FeedFilterSheetView';
@@ -29,11 +29,6 @@ interface Props {
 const ALL_LABEL = '전체';
 
 const BRAND_LABEL = '브랜드';
-
-// 레퍼런스: 화면 좌우 여백 16, 칩 사이 12.
-const SCREEN_H = 16;
-
-const CHIP_GAP = 12;
 
 // 필터 칩의 좌측 아이콘(가로선 3줄 + 점) · 정렬 셰브론.
 const FILTER_ICON_SIZE = 18;
@@ -218,15 +213,15 @@ const styles = StyleSheet.create({
   chipRowContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: CHIP_GAP,
+    gap: AcgLayout.chipGap,
     // 콘텐츠가 화면 끝까지 흐르게 두고 페이드 마스크를 두지 않는다 — 레퍼런스는 그냥 잘린다.
-    paddingHorizontal: SCREEN_H,
+    paddingHorizontal: AcgLayout.screenPadding,
   },
   sortRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    paddingHorizontal: SCREEN_H,
+    paddingHorizontal: AcgLayout.screenPadding,
   },
   sortButton: {
     flexDirection: 'row',

@@ -27,7 +27,10 @@ const CustomGearConfirmView: FC<Props> = ({ customGear }) => {
         </PretendardText>
       )}
       <TouchableOpacity
-        style={[styles.confirmButton, isDisabled && styles.confirmButtonDisabled]}
+        style={[
+          styles.confirmButton,
+          isDisabled && styles.confirmButtonDisabled,
+        ]}
         onPress={handleClickConfirm}
         disabled={isDisabled}
         accessibilityRole='button'

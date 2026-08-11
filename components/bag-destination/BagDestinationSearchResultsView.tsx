@@ -106,7 +106,10 @@ const BagDestinationSearchResultsView: FC<Props> = ({
                     {place.name}
                   </PretendardText>
                   {place.subtitle && (
-                    <PretendardText style={styles.rowSubtitle} numberOfLines={1}>
+                    <PretendardText
+                      style={styles.rowSubtitle}
+                      numberOfLines={1}
+                    >
                       {place.subtitle}
                     </PretendardText>
                   )}

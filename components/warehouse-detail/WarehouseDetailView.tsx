@@ -27,7 +27,6 @@ import WarehouseDetailExternalReviewView from './WarehouseDetailExternalReviewVi
 import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '../PretendardText';
 import { Acg, AcgLayout } from '@/constants/DesignTokens';
-import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SearchGearAddToBagModalView from '../search/SearchGearAddToBagModalView';
 import Bag from '@/model/bag/Bag';
@@ -49,7 +48,7 @@ const HEADER_TITLE_INSET = 60;
 const IS_IOS = Platform.OS === 'ios';
 
 // 투명 네이티브 헤더 높이(상태바 제외). `contentInsetAdjustmentBehavior='automatic'`은
-// 스크롤 뷰가 화면의 첫 자식일 때만 적용되는데, 지면 배경(AcgScreenBackground)이 앞에
+// 스크롤 뷰가 화면의 첫 자식일 때만 적용되는데, 지면 배경(`ground`)이 앞에
 // 깔리면서 그 조건이 깨져 첫 항목이 헤더 뒤로 숨었다(2026-08-03 실기기 확인).
 // 자동 인셋을 끄고 헤더 높이를 직접 비운다.
 const NATIVE_HEADER_HEIGHT = 44;
@@ -176,7 +175,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
           }}
         />
         <View style={styles.container}>
-          <AcgScreenBackground />
+          <View style={styles.ground} />
           {!IS_IOS && (
             <View style={styles.header}>
               <TouchableOpacity
@@ -313,9 +312,17 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
 };
 
 const styles = StyleSheet.create({
+  ground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: Acg.paper,
+  },
   container: {
     flex: 1,
-    // 지면은 AcgScreenBackground가 깐다 — 여기 흰 면을 두면 그 위를 덮는다.
+    // 지면은 아래 `ground`가 깐다 — 여기 색을 두면 그 위를 덮는다.
     backgroundColor: 'transparent',
   },
   header: {

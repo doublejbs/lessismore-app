@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgShadow, Spacing } from '@/constants/DesignTokens';
+import { Acg, Spacing } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { BagActivitySummary } from '@/model/bag/BagActivitySummary';
 import {
@@ -102,8 +102,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     padding: 14,
     borderRadius: 0,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    backgroundColor: Acg.controlFill,
   },
   metric: {
     // 2열 그리드. 고정 높이를 두지 않아 Dynamic Type에서 값이 잘리지 않는다.

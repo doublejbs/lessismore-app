@@ -11,7 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import ReplyDetail from '@/model/reply/ReplyDetail';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -187,8 +187,7 @@ const styles = StyleSheet.create({
   inputButton: {
     flex: 1,
     height: 40,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    backgroundColor: Acg.controlFill,
     borderRadius: 0,
     justifyContent: 'center',
     paddingHorizontal: 16,
@@ -207,8 +206,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 40,
     maxHeight: 100,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    backgroundColor: Acg.controlFill,
     borderRadius: 0,
     paddingHorizontal: 16,
     paddingVertical: 10,

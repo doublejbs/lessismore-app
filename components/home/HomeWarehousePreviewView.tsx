@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     // 탐색 탭 칩 행과 같은 간격(FD-3).
-    gap: 12,
+    gap: AcgLayout.chipGap,
     paddingHorizontal: AcgLayout.screenPadding,
   },
   gearList: {

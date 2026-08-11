@@ -48,11 +48,7 @@ const InfoSubScreenHeaderView: FC<Props> = ({ title }) => {
             accessibilityRole='button'
             accessibilityLabel='뒤로 가기'
           >
-            <Ionicons
-              name='chevron-back'
-              size={24}
-              color={Color.textPrimary}
-            />
+            <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
           </TouchableOpacity>
           <PretendardText style={styles.headerTitle} weight='bold'>
             {title}

@@ -11,9 +11,11 @@ import Animated, {
 import GearView from '@/components/warehouse/GearView';
 import Gear from '@/model/gear/Gear';
 import BagPacking from '@/model/bag-packing/BagPacking';
-import { Acg, AcgShadow } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 
 interface Props {
+  // 위 행과 가르는 헤어라인(목록 첫 행에는 없다).
+  divided?: boolean;
   gear: Gear;
   bagPacking: BagPacking;
 }
@@ -31,7 +33,11 @@ const SPRING_CONFIG = {
   overshootClamping: true,
 };
 
-const BagPackingGearRowView: FC<Props> = ({ gear, bagPacking }) => {
+const BagPackingGearRowView: FC<Props> = ({
+  gear,
+  bagPacking,
+  divided = false,
+}) => {
   const packed = bagPacking.isPacked(gear);
   const progress = useSharedValue(packed ? 1 : 0);
 
@@ -61,7 +67,7 @@ const BagPackingGearRowView: FC<Props> = ({ gear, bagPacking }) => {
     >
       {/* 흐림은 **안쪽 콘텐츠에만** 준다 — 종이 면까지 흐려지면 카드가 지면에 반쯤
           잠긴 것처럼 보여 경계가 흐려진다(2026-08-04 시뮬레이터 확인). */}
-      <View style={styles.row}>
+      <View style={[styles.row, divided && styles.divided]}>
         <Animated.View style={rowStyle}>
           <GearView gear={gear} plain />
         </Animated.View>
@@ -84,12 +90,18 @@ const styles = StyleSheet.create({
   },
   // 절대배치 체크 배지가 지표 컬럼(무게·사용률)과 겹치지 않도록 행 오른쪽에 배지 레인을
   // 비운다. 체크까지 한 장의 종이 면에 담는다(ACG) — 배지만 지면 위에 떨어지면 따로 논다.
+  /**
+   * 면을 두지 않는다(2026-08-11 레퍼런스 목록 문법) — 순백 지면에 행이 직접 놓이고 위 행과는
+   * 헤어라인으로 갈린다. 우측에는 체크 배지 레인을 비워 배지가 메타 줄과 겹치지 않게 한다.
+   */
   row: {
     width: '100%',
     paddingLeft: ROW_PADDING,
     paddingRight: ROW_PADDING + CHECK_BADGE_LANE,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+  },
+  divided: {
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
   },
   checkBadge: {
     position: 'absolute',

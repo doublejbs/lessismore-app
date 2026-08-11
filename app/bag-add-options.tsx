@@ -28,7 +28,10 @@ const BagAddOptionsScreen = () => {
 
   return (
     <View
-      style={[styles.container, { paddingBottom: Math.max(insets.bottom - 16, 12) }]}
+      style={[
+        styles.container,
+        { paddingBottom: Math.max(insets.bottom - 16, 12) },
+      ]}
     >
       <View style={styles.header}>
         <PretendardText style={styles.title} weight='bold'>

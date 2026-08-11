@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     alignItems: 'center',
     // 탐색 탭 칩 행과 같은 간격(FD-3).
-    gap: 12,
+    gap: AcgLayout.chipGap,
     // 마지막 칩이 화면 오른쪽 끝에 붙지 않게 한다.
     paddingRight: AcgLayout.screenPadding,
   },

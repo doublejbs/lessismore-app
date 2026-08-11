@@ -27,9 +27,7 @@ const BagDestinationMapPreviewView: FC<Props> = ({
   linkedSpot,
   onPress,
 }) => {
-  const markerColor = linkedSpot
-    ? getCampSiteTypeColor(linkedSpot.type)
-    : null;
+  const markerColor = linkedSpot ? getCampSiteTypeColor(linkedSpot.type) : null;
 
   const mapRef = useRef<NaverMapViewRef>(null);
   const zoom = deltaToZoom(0.05);

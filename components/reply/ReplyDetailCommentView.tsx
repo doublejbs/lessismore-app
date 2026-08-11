@@ -1,7 +1,7 @@
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgShadow } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 import Comment from '@/model/reply/Comment';
 import dayjs from 'dayjs';
 import { FC, useRef, useState } from 'react';
@@ -143,8 +143,7 @@ const styles = StyleSheet.create({
   // 원 리뷰와 같은 종이 면이되 좌측을 들여 답글임을 드러낸다(ACG).
   container: {
     flexDirection: 'column',
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    backgroundColor: Acg.controlFill,
     marginLeft: 20,
   },
   content: {

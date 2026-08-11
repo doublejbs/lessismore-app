@@ -11,7 +11,7 @@ import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
-import { AcgShadow, Acg, Color } from '@/constants/DesignTokens';
+import { Acg, Color } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 type ToggleKey = 'packing' | 'useless' | 'notice';
@@ -168,8 +168,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 16,
     paddingHorizontal: 16,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    backgroundColor: Acg.controlFill,
   },
   rowLast: {},
   rowLabel: {

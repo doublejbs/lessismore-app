@@ -54,7 +54,9 @@ const WeatherDailyRow: FC<{ item: WeatherDaily; isLast: boolean }> = ({
               size={12}
               color={Color.textSecondary}
             />
-            <PretendardText style={styles.metaText}>{precipText}</PretendardText>
+            <PretendardText style={styles.metaText}>
+              {precipText}
+            </PretendardText>
           </View>
           {windText && (
             <PretendardText style={styles.metaText}>{windText}</PretendardText>

@@ -24,20 +24,14 @@ const SharedBagWrapper: FC = () => {
 
   if (initialized) {
     return (
-      <Layout
-        paddingHorizontal={0}
-        edges={IS_IOS ? IOS_EDGES : undefined}
-      >
+      <Layout paddingHorizontal={0} edges={IS_IOS ? IOS_EDGES : undefined}>
         <SharedBagView sharedBag={sharedBag} />
       </Layout>
     );
   } else {
     // 공유 배낭 데이터를 불러오는 동안 로딩 인디케이터를 표시한다.
     return (
-      <Layout
-        paddingHorizontal={0}
-        edges={IS_IOS ? IOS_EDGES : undefined}
-      >
+      <Layout paddingHorizontal={0} edges={IS_IOS ? IOS_EDGES : undefined}>
         {/* LG-1: 로딩 중에도 iOS는 네이티브 헤더(빈 타이틀 + 시스템 back)를 유지해
             데이터 로드 동안 뒤로가기 어포던스가 사라지지 않게 한다. */}
         <Stack.Screen

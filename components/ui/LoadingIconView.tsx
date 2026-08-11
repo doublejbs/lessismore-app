@@ -31,22 +31,22 @@ const LoadingIconView = () => {
       <AnimatedSvg
         width={24}
         height={24}
-        viewBox="0 0 24 24"
+        viewBox='0 0 24 24'
         style={{
           transform: [{ rotate }],
         }}
       >
         <G>
           <Circle
-            cx="12"
-            cy="12"
-            r="9.5"
-            fill="none"
-            stroke="#000"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeDasharray="42 150"
-            strokeDashoffset="-16"
+            cx='12'
+            cy='12'
+            r='9.5'
+            fill='none'
+            stroke='#000'
+            strokeWidth='3'
+            strokeLinecap='round'
+            strokeDasharray='42 150'
+            strokeDashoffset='-16'
           />
         </G>
       </AnimatedSvg>
@@ -63,4 +63,3 @@ const styles = StyleSheet.create({
 });
 
 export default LoadingIconView;
-  

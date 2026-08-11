@@ -93,10 +93,10 @@ const CategoryChipView = forwardRef<View, Props>(
                 : selected
                   ? styles.chipTextSelected
                   : styles.chipTextUnselected,
-            isAcg &&
-              (selected
-                ? styles.chipTextAcgSelected
-                : styles.chipTextAcgUnselected),
+              isAcg &&
+                (selected
+                  ? styles.chipTextAcgSelected
+                  : styles.chipTextAcgUnselected),
             ]}
           >
             {label}

@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import StarRatingView from '@/components/camp-site/StarRatingView';
 import { CommentUpdateRequest } from '@/model/reply/Comment';
-import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import useKeyboard from '@/hooks/useKeyboard';
 import app from '@/model/app/App';
 
@@ -249,8 +249,7 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     borderRadius: 0,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    backgroundColor: Acg.controlFill,
     padding: 16,
     fontSize: 16,
     color: Acg.ink,

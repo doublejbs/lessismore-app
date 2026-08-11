@@ -103,21 +103,25 @@ const SearchTopKeywordsView: FC<Props> = ({
 
   // 진입 시 승계된 카테고리 칩이 화면 밖(오른쪽)에 있으면 그 칩이 보이도록 1회 스크롤한다.
   // 칩의 x 오프셋을 알아야 하므로 해당 칩의 onLayout에서 처리한다(전체는 이미 좌측이라 제외).
-  const handleChipLayout = (category: GearFilter) => (event: LayoutChangeEvent) => {
-    if (
-      didInitialScrollRef.current ||
-      category !== selectedCategory ||
-      selectedCategory === GearFilter.All
-    ) {
-      return;
-    }
+  const handleChipLayout =
+    (category: GearFilter) => (event: LayoutChangeEvent) => {
+      if (
+        didInitialScrollRef.current ||
+        category !== selectedCategory ||
+        selectedCategory === GearFilter.All
+      ) {
+        return;
+      }
 
-    didInitialScrollRef.current = true;
+      didInitialScrollRef.current = true;
 
-    const { x } = event.nativeEvent.layout;
+      const { x } = event.nativeEvent.layout;
 
-    categoryScrollRef.current?.scrollTo({ x: Math.max(0, x - 16), animated: false });
-  };
+      categoryScrollRef.current?.scrollTo({
+        x: Math.max(0, x - 16),
+        animated: false,
+      });
+    };
 
   const handleGearPress = (gear: Gear) => {
     app.getAnalyticsManager()?.logClick('search_rank_item');
@@ -283,7 +287,11 @@ const SearchTopKeywordsView: FC<Props> = ({
                       accessibilityLabel={`${gear.getDisplayName()} 창고에 추가`}
                       hitSlop={BUTTON_HIT_SLOP}
                     >
-                      <Ionicons name='add' size={18} color={Color.textPrimary} />
+                      <Ionicons
+                        name='add'
+                        size={18}
+                        color={Color.textPrimary}
+                      />
                     </TouchableOpacity>
                   )}
                 </View>
