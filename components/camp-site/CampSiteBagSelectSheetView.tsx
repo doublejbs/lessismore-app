@@ -5,7 +5,6 @@ import {
   Modal,
   ScrollView,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import SheetGrabberView from '@/components/ui/SheetGrabberView';
 import LiquidSectionLabel from '@/components/liquid/LiquidSectionLabel';
+import LiquidSheetModal from '@/components/liquid/LiquidSheetModal';
 import {
   Liquid,
   LiquidLayout,
@@ -196,26 +196,19 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
   );
 
   // Android: presentationStyle는 iOS 전용이라 Modal이 전체화면으로 뜬다.
-  // 딤 배경 + 하단 라운드 바텀시트(최대 높이)로 감싸 시트처럼 보이게 한다.
+  // 하단 라운드 바텀시트(최대 높이)로 감싸 시트처럼 보이게 하고, 막·슬라이드는 공용
+  // 프리미티브가 든다 — RN 기본 `animationType='slide'`는 막까지 함께 밀어 올려 어색했다(CS-5).
   if (isAndroid) {
     return (
-      <Modal
+      <LiquidSheetModal
         visible={visible}
-        animationType='slide'
-        transparent
-        // 이 값이 없으면 딤이 상태바 아래에서 끊겨 지면이 비친다(로그인 시트 선례).
-        statusBarTranslucent
         onRequestClose={onClose}
+        closeAccessibilityLabel='배낭 선택 닫기'
       >
-        <View style={styles.androidBackdrop}>
-          <TouchableWithoutFeedback onPress={onClose}>
-            <View style={styles.backdropTouchable} />
-          </TouchableWithoutFeedback>
-          <View style={[styles.androidSheet, { paddingBottom: insets.bottom }]}>
-            {sheetContent}
-          </View>
+        <View style={[styles.androidSheet, { paddingBottom: insets.bottom }]}>
+          {sheetContent}
         </View>
-      </Modal>
+      </LiquidSheetModal>
     );
   }
 
@@ -239,22 +232,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: LiquidLayout.screenH,
     paddingTop: 12,
   },
-  // Android 딤 배경 — 하단에 시트를 정렬한다.
-  androidBackdrop: {
-    flex: 1,
-    backgroundColor: Liquid.scrim,
-    justifyContent: 'flex-end',
-  },
-  // 배경 탭 시 닫힘 영역(시트 위쪽 여백 전체).
-  backdropTouchable: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-  },
   // Android 바텀시트 컨테이너 — 상단 라운드 + 최대 높이로 전체화면 방지.
   // 화면 폭을 꽉 채운 채 아래가 잘린 면이라 시트 모서리는 `sheetLg`다(로그인 시트와 같은 자리).
+  // 최대 높이가 퍼센트라 부모(프리미티브의 슬라이드 컨테이너)가 확정 높이를 들어야 한다.
   androidSheet: {
     maxHeight: '85%',
     backgroundColor: Liquid.canvas,

@@ -1,16 +1,9 @@
 import { FC } from 'react';
-import {
-  View,
-  StyleSheet,
-  Modal,
-  Pressable,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { View, StyleSheet, TextInput } from 'react-native';
 import PretendardText from '@/components/PretendardText';
 import LiquidBottomSheet from '@/components/liquid/LiquidBottomSheet';
 import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import LiquidSheetModal from '@/components/liquid/LiquidSheetModal';
 import {
   Liquid,
   LiquidLayout,
@@ -43,74 +36,55 @@ const InfoNicknameEditView: FC<Props> = ({
   onSubmit,
 }) => {
   return (
-    <Modal
+    // 막·슬라이드는 공용 프리미티브가 든다. 입력이 곧 키보드를 부르므로 `avoidKeyboard`다.
+    <LiquidSheetModal
       visible={visible}
-      transparent
-      statusBarTranslucent
       onRequestClose={onCancel}
+      avoidKeyboard
+      closeAccessibilityLabel='닉네임 편집 닫기'
     >
-      {/* 시트 밖을 눌러 닫는다 — 시트 자체는 아래 KeyboardAvoidingView가 든다. */}
-      <Pressable
-        style={[StyleSheet.absoluteFill, styles.overlay]}
-        onPress={onCancel}
-        accessibilityRole='button'
-        accessibilityLabel='닉네임 편집 닫기'
-      />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.sheetHolder}
-        pointerEvents='box-none'
-      >
-        <LiquidBottomSheet contentStyle={styles.sheetContent}>
-          <PretendardText weight='bold' style={styles.title}>
-            {hasNickname ? '닉네임 수정' : '닉네임 설정'}
-          </PretendardText>
-          <PretendardText style={styles.description}>
-            {hasNickname
-              ? '새로 쓸 닉네임을 알려주세요'
-              : '창고와 배낭에 함께 보일 이름이에요'}
-          </PretendardText>
+      <LiquidBottomSheet contentStyle={styles.sheetContent}>
+        <PretendardText weight='bold' style={styles.title}>
+          {hasNickname ? '닉네임 수정' : '닉네임 설정'}
+        </PretendardText>
+        <PretendardText style={styles.description}>
+          {hasNickname
+            ? '새로 쓸 닉네임을 알려주세요'
+            : '창고와 배낭에 함께 보일 이름이에요'}
+        </PretendardText>
 
-          <TextInput
-            value={value}
-            onChangeText={onChangeValue}
-            placeholder='닉네임을 입력하세요'
-            placeholderTextColor={Liquid.inkMuted}
-            style={styles.input}
-            autoFocus
-            onSubmitEditing={onSubmit}
-            returnKeyType='done'
+        <TextInput
+          value={value}
+          onChangeText={onChangeValue}
+          placeholder='닉네임을 입력하세요'
+          placeholderTextColor={Liquid.inkMuted}
+          style={styles.input}
+          autoFocus
+          onSubmitEditing={onSubmit}
+          returnKeyType='done'
+        />
+
+        <View style={styles.buttonRow}>
+          <LiquidPillButton
+            label='취소'
+            variant='secondary'
+            onPress={onCancel}
+            style={styles.button}
           />
-
-          <View style={styles.buttonRow}>
-            <LiquidPillButton
-              label='취소'
-              variant='secondary'
-              onPress={onCancel}
-              style={styles.button}
-            />
-            <LiquidPillButton
-              label='저장'
-              variant='primary'
-              onPress={onSubmit}
-              disabled={value.trim() === ''}
-              style={styles.button}
-            />
-          </View>
-        </LiquidBottomSheet>
-      </KeyboardAvoidingView>
-    </Modal>
+          <LiquidPillButton
+            label='저장'
+            variant='primary'
+            onPress={onSubmit}
+            disabled={value.trim() === ''}
+            style={styles.button}
+          />
+        </View>
+      </LiquidBottomSheet>
+    </LiquidSheetModal>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    backgroundColor: Liquid.scrim,
-  },
-  sheetHolder: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
   // 키보드가 올라오면 시트가 그 위에 붙으므로 기본(44)보다 좁게 둔다.
   sheetContent: {
     paddingBottom: 28,

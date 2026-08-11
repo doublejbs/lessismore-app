@@ -3,20 +3,18 @@ import { FC, useState } from 'react';
 import {
   View,
   TouchableOpacity,
-  Modal,
   StyleSheet,
-  Pressable,
   Image,
   TextInput,
   Alert,
   Platform,
   ActivityIndicator,
-  KeyboardAvoidingView,
 } from 'react-native';
 import { Svg, Path } from 'react-native-svg';
 import PretendardText from '@/components/PretendardText';
 import LiquidBottomSheet from '@/components/liquid/LiquidBottomSheet';
 import LiquidPillButton from '@/components/liquid/LiquidPillButton';
+import LiquidSheetModal from '@/components/liquid/LiquidSheetModal';
 import {
   Liquid,
   LiquidLayout,
@@ -259,52 +257,29 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
   );
 
   return (
-    <Modal
+    // 막·슬라이드는 공용 프리미티브가 든다. 시트 밖 탭이 유일한 취소 경로라(시트에 닫기
+    // 버튼이 없다) 막 라벨이 무엇이 닫히는지 말한다. 입력이 키보드를 부르므로 `avoidKeyboard`다.
+    <LiquidSheetModal
       visible={isVisible}
-      transparent
-      statusBarTranslucent
       onRequestClose={handleClickCancel}
+      avoidKeyboard
+      closeAccessibilityLabel='로그인 창 닫기'
     >
-      <View style={styles.root}>
-        {/* 시트 밖을 눌러 닫는다. 시트에는 닫기 버튼이 없어 이 영역이 유일한 취소 경로다. */}
-        <Pressable
-          style={StyleSheet.absoluteFill}
-          onPress={handleClickCancel}
-          accessibilityRole='button'
-          accessibilityLabel='로그인 창 닫기'
+      <LiquidBottomSheet
+        contentStyle={isEmailLoginMode ? styles.emailSheetContent : undefined}
+      >
+        <Image
+          source={require('@/assets/images/logo.png')}
+          style={styles.logo}
+          resizeMode='contain'
         />
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.sheetHolder}
-          pointerEvents='box-none'
-        >
-          <LiquidBottomSheet
-            contentStyle={
-              isEmailLoginMode ? styles.emailSheetContent : undefined
-            }
-          >
-            <Image
-              source={require('@/assets/images/logo.png')}
-              style={styles.logo}
-              resizeMode='contain'
-            />
-            {isEmailLoginMode ? renderEmailMode() : renderProviderMode()}
-          </LiquidBottomSheet>
-        </KeyboardAvoidingView>
-      </View>
-    </Modal>
+        {isEmailLoginMode ? renderEmailMode() : renderProviderMode()}
+      </LiquidBottomSheet>
+    </LiquidSheetModal>
   );
 };
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: Liquid.scrim,
-  },
-  sheetHolder: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
   /**
    * 이메일 모드는 입력이 곧 키보드를 부르고, 그러면 시트가 키보드 위에 붙는다 — 홈 인디케이터
    * 자리를 비울 필요가 없어 기본(44)보다 좁게 둔다(닉네임 편집 시트와 같은 판단).
