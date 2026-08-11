@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     minHeight: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: Radius.card,
+    borderRadius: 26,
     backgroundColor: Color.chipInactiveBg,
   } as ViewStyle,
   buttonText: {

@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.chipActiveBg,
     width: '100%',
     padding: 14,
-    borderRadius: Radius.card,
+    borderRadius: 26,
     alignItems: 'center',
   },
   confirmButtonText: {

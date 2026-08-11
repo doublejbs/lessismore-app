@@ -3,7 +3,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import CustomGear from '@/model/gear/custom/CustomGear';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Color } from '@/constants/DesignTokens';
 
 const ERROR_RED = '#FF3B30';
 
@@ -57,8 +57,8 @@ const styles = StyleSheet.create({
   confirmButton: {
     width: '100%',
     backgroundColor: Color.textPrimary,
-    paddingVertical: 18,
-    borderRadius: Radius.card,
+    minHeight: 52,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
   },

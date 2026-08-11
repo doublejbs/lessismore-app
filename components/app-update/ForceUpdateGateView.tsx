@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { Color, Spacing } from '@/constants/DesignTokens';
 
 // 스토어 이동 URL (APP-7). Android는 마켓 스킴 우선, 실패 시 웹으로 폴백.
 const IOS_STORE_URL = 'https://apps.apple.com/app/id6751174681';
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Spacing.section,
-    borderRadius: Radius.card,
+    borderRadius: 26,
     backgroundColor: Color.background,
   },
   buttonText: {

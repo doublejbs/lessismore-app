@@ -10,7 +10,13 @@ import {
   LayoutChangeEvent,
 } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, AcgLayout, AcgRow, Color } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgFontSize,
+  AcgLayout,
+  AcgRow,
+  Color,
+} from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import SearchSkeletonView from './SearchSkeletonView';
 import GearFilter from '@/model/gear/GearFilter';

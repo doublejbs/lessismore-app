@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     backgroundColor: Color.surfaceMuted,
-    borderRadius: Radius.card,
+    borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   confirmButton: {
     flex: 1,
     backgroundColor: Color.textPrimary,
-    borderRadius: Radius.card,
+    borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
   },

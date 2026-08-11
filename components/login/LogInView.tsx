@@ -247,9 +247,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Color.textPrimary,
-    paddingVertical: 12,
+    minHeight: 52,
     paddingHorizontal: 20,
-    borderRadius: Radius.card,
+    borderRadius: 26,
     width: '100%',
   },
   googleIcon: {
@@ -260,9 +260,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Color.textPrimary,
-    paddingVertical: 12,
+    minHeight: 52,
     paddingHorizontal: 20,
-    borderRadius: Radius.card,
+    borderRadius: 26,
     width: '100%',
   },
   appleIcon: {

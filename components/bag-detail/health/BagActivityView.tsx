@@ -12,7 +12,7 @@ import { observer } from 'mobx-react-lite';
 import { Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { Acg, Color, Spacing } from '@/constants/DesignTokens';
 import BagActivity from '@/model/bag/BagActivity';
 import BagActivityPhase from '@/model/bag/BagActivityPhase';
 import {
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     minHeight: 52,
-    borderRadius: Radius.card,
+    borderRadius: 26,
     backgroundColor: Color.chipActiveBg,
     alignItems: 'center',
     justifyContent: 'center',
