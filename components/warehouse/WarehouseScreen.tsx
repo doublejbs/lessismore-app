@@ -92,7 +92,7 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
               ? '안 쓴 장비가 없어요'
               : warehouse.getQuery().trim()
                 ? '검색 결과가 없어요'
-                : `${josa(`${selectedFilter.getName()}#{가}`)} 없습니다`}
+                : `${josa(`${selectedFilter.getName()}#{가}`)} 없어요`}
           </PretendardText>
         </View>
       );

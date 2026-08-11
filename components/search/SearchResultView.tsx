@@ -72,7 +72,7 @@ const SearchResultView: FC<Props> = ({
         return (
           <View style={styles.emptyContainer}>
             <PretendardText style={styles.emptyText}>
-              검색 결과가 없습니다
+              검색 결과가 없어요
             </PretendardText>
           </View>
         );
