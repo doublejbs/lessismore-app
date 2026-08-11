@@ -11,7 +11,7 @@ import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, Color } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 type ToggleKey = 'packing' | 'useless' | 'notice';
@@ -118,7 +118,8 @@ const NotificationSettingsView: FC = () => {
             key={row.key}
             style={[
               styles.row,
-              index === TOGGLE_ROWS.length - 1 && styles.rowLast,
+              // 첫 행에는 선을 두지 않는다 — 바로 위가 화면 제목이라 밑줄처럼 읽힌다.
+              index === 0 && styles.rowFirst,
             ]}
           >
             <PretendardText weight='medium' style={styles.rowLabel}>
@@ -155,24 +156,27 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
   },
   title: {
-    fontSize: 20,
+    fontSize: AcgFontSize.screenTitle,
+    lineHeight: 30,
+    color: Acg.ink,
   },
-  // 정보 탭 메뉴와 같은 문법 — 행마다 종이 면, 8px 간격(ACG). 한 카드 안에 구분선으로
-  // 묶던 형태는 앱의 다른 목록과 문법이 갈렸다(2026-08-04 시뮬레이터 확인).
-  list: {
-    gap: 8,
-  },
+  // 정보 탭 메뉴와 같은 문법(HM-8) — 면 없이 지면에 놓고 행 사이 헤어라인으로 가른다.
+  list: {},
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: Acg.controlFill,
+    minHeight: 60,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
   },
-  rowLast: {},
+  // 첫 행에는 선을 두지 않는다 — 바로 위가 화면 제목이라 밑줄처럼 읽힌다.
+  rowFirst: {
+    borderTopWidth: 0,
+  },
   rowLabel: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowTitle,
     color: Acg.ink,
   },
 });

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '../PretendardText';
 import ReplyInputButtonView from './ReplyInputButtonView';
@@ -25,7 +25,7 @@ const IS_IOS = Platform.OS === 'ios';
 const NATIVE_HEADER_HEIGHT = 44;
 
 // 푸시 화면의 큰 제목(ACG) — 배낭 이름과 같은 28px/700.
-const SECTION_TITLE_SIZE = 28;
+const SECTION_TITLE_SIZE = AcgFontSize.sectionTitle;
 
 const ReplyView = ({ reply }: { reply: Reply }) => {
   const router = useRouter();

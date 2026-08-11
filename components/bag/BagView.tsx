@@ -23,7 +23,7 @@ const IOS_EDGES = ['top', 'left', 'right'] as const;
 
 // 화면 제목 크기 — 홈과 같은 값. 34는 이 화면에서 가장 큰 활자였는데, 제목은 이름표라
 // 앵커가 될 값이 아니다(HM-8과 같은 판단).
-const TITLE_SIZE = 28;
+const TITLE_SIZE = AcgFontSize.screenTitle;
 
 const BagView = () => {
   const [bag] = useState(() => Bag.new());

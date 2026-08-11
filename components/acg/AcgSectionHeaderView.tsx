@@ -37,15 +37,15 @@ const styles = StyleSheet.create({
     // 제목과 부제는 붙여 둔다(레퍼런스) — 벌리면 부제가 다음 항목의 머리처럼 읽힌다.
     gap: 0,
   },
-  // 제목 24 / 부제 17(실측 20·17에서 제목만 올림 — 토큰 주석 참고).
+  // 실측값(제목 20 / 부제 16). 층은 크기가 아니라 굵기로 가른다 — 제목만 semibold다.
   title: {
     fontSize: AcgFontSize.sectionTitle,
-    lineHeight: 30,
+    lineHeight: 26,
     color: Acg.ink,
   },
   subtitle: {
     fontSize: AcgFontSize.sectionSubtitle,
-    lineHeight: 23,
+    lineHeight: 22,
     color: Acg.textMuted,
   },
 });

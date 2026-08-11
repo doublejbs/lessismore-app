@@ -10,7 +10,7 @@ import {
   LayoutChangeEvent,
 } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { AcgLayout, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgLayout, AcgRow, Color } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import SearchSkeletonView from './SearchSkeletonView';
 import GearFilter from '@/model/gear/GearFilter';
@@ -220,6 +220,7 @@ const SearchTopKeywordsView: FC<Props> = ({
                 key={gear.getId()}
                 style={({ pressed }) => [
                   styles.rankItem,
+                  index > 0 && styles.rankItemDivided,
                   pressed && styles.rankItemPressed,
                 ]}
                 onPress={() => handleGearPress(gear)}
@@ -238,24 +239,20 @@ const SearchTopKeywordsView: FC<Props> = ({
                   </PretendardText>
                 </View>
 
+                {/* 목록 행 문법(HM-8): 이름 + 메타 한 줄(`무게 · 브랜드`). 브랜드가 이름 위
+                    작은 줄이던 것을 메타로 내렸다 — 위에 두면 순위·브랜드·이름 세 층이 된다. */}
                 <View style={styles.gearInfo}>
-                  {gear.getCompany() && (
-                    <PretendardText
-                      style={styles.gearCompany}
-                      numberOfLines={1}
-                    >
-                      {gear.getCompany()}
-                    </PretendardText>
-                  )}
                   <PretendardText
                     style={styles.gearName}
-                    weight='semibold'
-                    numberOfLines={1}
+                    weight='medium'
+                    numberOfLines={2}
                   >
                     {gear.getDisplayName()}
                   </PretendardText>
-                  <PretendardText style={styles.gearCount}>
-                    {gear.getWeight()}g
+                  <PretendardText style={styles.gearMeta} numberOfLines={1}>
+                    {[`${gear.getWeight()}g`, gear.getDisplayCompany()]
+                      .filter(Boolean)
+                      .join(' · ')}
                   </PretendardText>
                 </View>
 
@@ -318,8 +315,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 18,
-    color: Color.textPrimary,
+    fontSize: AcgFontSize.sectionTitle,
+    lineHeight: 26,
+    color: Acg.ink,
     marginBottom: 12,
   },
   categoryScrollView: {
@@ -329,7 +327,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     marginBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
+    borderBottomColor: Acg.hairline,
   },
   categoryScrollContent: {
     flexDirection: 'row',
@@ -339,56 +337,63 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContainer: {
-    gap: 8,
     paddingBottom: 20,
   },
+  /**
+   * 레퍼런스 목록 행(HM-8) — 면 없이 지면에 놓고 행 사이 헤어라인으로 가른다.
+   * 행마다 회색 면을 두던 것을 걷었다(2026-08-12): 면이 순위마다 반복되면 정작 순위 숫자와
+   * 이름이 그 안에 갇혀 목록이 카드 나열로 읽힌다.
+   */
   rankItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: Color.surfaceMuted,
-    borderRadius: Radius.card,
+    minHeight: AcgRow.minHeight,
+    paddingVertical: AcgRow.paddingVertical,
+  },
+  rankItemDivided: {
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
   },
   rankItemPressed: {
-    backgroundColor: Color.thumbBg,
+    backgroundColor: Acg.controlFill,
   },
+  /**
+   * 순위는 배지 원이 아니라 **숫자 그 자체**다. 상위 3위만 잉크 채움 원으로 세운다 —
+   * 4위 이하까지 원을 두면 원이 목록의 리듬을 만들어 이름보다 먼저 읽힌다.
+   */
   rankBadge: {
     width: 28,
     height: 28,
-    borderRadius: 14,
-    // 행 배경(surfaceMuted)과 값이 5/255밖에 차이 나지 않던 borderLight를 쓰면 배지 원형이
-    // 사라져 4위 이하가 "배지 없음"으로 보인다(SR-4). 흰 채움으로 원형을 세운다.
-    backgroundColor: Color.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   rankBadgeTop3: {
-    backgroundColor: Color.chipActiveBg,
+    borderRadius: 14,
+    backgroundColor: Acg.ink,
   },
   rankNumber: {
-    fontSize: 13,
-    color: Color.textTertiary,
+    fontSize: AcgFontSize.rowSubtitle,
+    color: Acg.textMuted,
   },
   rankNumberTop3: {
-    color: Color.background,
+    color: Acg.paper,
   },
   gearInfo: {
     flex: 1,
+    minWidth: 0,
     gap: 2,
   },
-  gearCompany: {
-    fontSize: 11,
-    color: Color.textSecondary,
-  },
+  // 이름 + 메타 한 줄(브랜드·무게)로 묶는다 — 브랜드가 이름 위 작은 줄이던 것을 내렸다.
   gearName: {
-    fontSize: 15,
-    color: Color.textPrimary,
+    fontSize: AcgFontSize.rowTitle,
+    lineHeight: 24,
+    color: Acg.ink,
   },
-  gearCount: {
-    fontSize: 12,
-    color: Color.textTertiary,
+  gearMeta: {
+    fontSize: AcgFontSize.rowSubtitle,
+    lineHeight: 20,
+    color: Acg.ink,
   },
   buttonContainer: {
     flexDirection: 'column',

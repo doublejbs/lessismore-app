@@ -20,7 +20,13 @@ import BagUselessGearView from './BagUselessGearView';
 import PretendardText from '@/components/PretendardText';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { Ionicons } from '@expo/vector-icons';
-import { Acg, Color, Radius, Spacing } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgFontSize,
+  Color,
+  Radius,
+  Spacing,
+} from '@/constants/DesignTokens';
 import Gear from '@/model/gear/Gear';
 
 interface Props {
@@ -210,7 +216,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   title: {
-    fontSize: 28,
+    fontSize: AcgFontSize.screenTitle,
     color: Color.textPrimary,
   },
   progress: {

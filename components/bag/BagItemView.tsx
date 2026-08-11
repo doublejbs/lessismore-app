@@ -141,11 +141,7 @@ const BagItemView: FC<Props> = ({ bagItem, bag, divided = false }) => {
         accessibilityLabel={rowAccessibilityLabel}
       >
         <View style={styles.rowText}>
-          <PretendardText
-            weight='semibold'
-            style={styles.name}
-            numberOfLines={2}
-          >
+          <PretendardText weight='medium' style={styles.name} numberOfLines={2}>
             {bagItem.getName()}
           </PretendardText>
 
