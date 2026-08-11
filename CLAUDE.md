@@ -275,3 +275,55 @@ npx eas-cli submit --platform ios --profile production --path build-<타임스�
 - 먼저 `npx eas-cli build:list --platform <ios|android> --limit 1 --json --non-interactive`의 `error.errorCode`로 원인을 구분한다 — `SERVER_ERROR`("We've lost connection to the worker")는 EAS 인프라 장애라 **그냥 재시도**하면 되고, `EAS_BUILD_UNKNOWN_GRADLE_ERROR` 등 프로젝트 에러는 같은 자리에서 재발하므로 로그를 확인해 고친 뒤 재빌드한다.
 - 같은 응답의 `logFiles` URL(서명 만료 900초)은 **brotli 압축 JSONL**이다: `curl -s "$URL" -o log.br && brotli -d -f log.br -o log.jsonl`로 풀고, 각 줄 JSON의 `phase`/`msg` 필드를 본다. Gradle 에러는 `RUN_GRADLEW` phase에서 `FAILURE`·`What went wrong`을 찾으면 된다.
 - 네이티브 매니페스트/프로젝트 설정 수정은 `android/`·`ios/`가 gitignore라(managed 워크플로우, EAS 워커가 prebuild로 재생성) 직접 고쳐도 빌드에 반영되지 않는다 — **config plugin**으로 고치고 `npx expo prebuild -p android --no-install` 산출물로 검증한다 (`plugins/WithMlKitVisionDependencies.js` 참고).
+
+## 디자인 시스템 (2026-08-12, 레퍼런스 이식)
+
+앱 전 화면이 하나의 문법을 쓴다. 값은 전부 `constants/DesignTokens.ts`에 있고, 화면에 리터럴로
+쓰지 않는다. 근거와 화면별 수용 기준은 [specs/Home.md](specs/Home.md) **HM-8 시각 문법**이 정본이다.
+
+**지면과 면**
+
+- 지면은 **순백**이다(`Acg.paper`). 지형 그래픽·그레인·텍스처를 쓰지 않는다.
+- 면은 지면과 한 단 갈리는 **연회색 채움**(`Acg.controlFill` #F2F2F2) + 모서리 12(`AcgRadius.thumb`),
+  **그림자 없음**. 순백 위에서 흰 면은 보이지 않고 그림자만 남는다.
+- 그림자는 **지도 위 요소와 플로팅 알약**에만 둔다(콘텐츠 위에 떠 있는 것들).
+- 화면 좌우 패딩 24(`AcgLayout.screenPadding`). 행 사이는 헤어라인(`Acg.hairline` #EDEDED).
+
+**목록 행 = 이름 + 메타 한 줄**
+
+- 이름 18 medium(두 줄까지) / 메타 15 **잉크**(회색이 아니다 — 무게·브랜드는 정보다).
+- 메타는 값을 ` · `로 이어 붙이고 **숫자를 맨 앞**에 둔다(`652g · 꼴로르 · 침낭`). 숫자 조각만
+  중첩 Text로 콘덴스드로 갈아 끼운다.
+- 값을 우측 정렬 열로 빼지 않는다 — 이름이 두 줄인 행에서 숫자가 아래로 밀려 비교가 어긋난다.
+- **배지·칩을 행 안에 두지 않는다**(패킹·사용률·유형 등). 면 없이 헤어라인으로 가르는 목록에서
+  배지는 유일한 예외 면이 되고, 값 하나 때문에 행마다 작은 사각형이 생긴다 → 메타 줄의 조각으로.
+- 치수는 `AcgRow`(최소 높이 72 · 위아래 패딩 14). 첫 행에는 헤어라인을 두지 않는다(제목 밑줄로 읽힌다).
+
+**타입 6단** (레퍼런스 실측: 스크린샷 923px ÷ 논리 폭 393pt = 2.35배)
+
+| 단 | 값 | 자리 |
+| --- | --- | --- |
+| 화면 제목 | 24 semibold | 탭·화면·시트 제목 |
+| 섹션 제목 | 20 semibold | 섹션·구간 머리(`AcgSectionHeaderView`), 부제 16 회색 |
+| 항목 이름 | 18 medium | 목록 행 제목 |
+| 본문·컨트롤 | 15 | 메타 줄, 칩 라벨, 버튼 라벨, 입력값 |
+| 메타 | 14 | 라벨·보조 |
+| 수치 | 26·34 콘덴스드 | 무게·D-day 등 **비교하는 값**(`AcgDisplayText`) |
+
+- 섹션 제목과 항목 이름은 20 대 18로 2pt 차이다 — 층은 **굵기**가 가른다(semibold vs medium).
+- 콘덴스드(Archivo Narrow)는 **숫자·라틴 전용**이다. 한글이 섞인 값(`비 23°/30°`·`여행 중`)은
+  Pretendard로 두고 한 단 작게 잡는다.
+
+**컨트롤**
+
+- 칩(선택지): 연회색 채움 + **모서리 10**(`AcgRadius.chip`), 선택은 잉크 채움 + 흰 글자.
+  간격 `AcgLayout.chipGap`(6), 좌우 패딩 12. 라벨은 비선택도 **잉크**다.
+- 버튼(액션): **알약**(높이의 절반). 형태로 "선택지 vs 액션"이 갈린다.
+- **라임은 화면당 하나** — 그 화면에서 눌러야 하는 주 액션 면이다. 라임을 글자색으로 쓰지 않고,
+  그 위 글자는 잉크다. 정보·강조·형광펜에 쓰지 않는다.
+- 누를 수 있음은 색이 아니라 **셰브론**으로 알린다(색만으로 말하면 색맹 사용자에게 신호가 사라진다).
+
+**예외(하드코딩 허용)**
+
+의미색(별점·삭제 red·박지 유형색·달력 요일색·배낭 카테고리색), 데이터 시각화 팔레트,
+스켈레톤 셰이딩(#E8E8E8), 공유 이미지 **내보내기 캔버스**(별도 폰트·팔레트), 스플래시.
