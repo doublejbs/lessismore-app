@@ -15,7 +15,7 @@ import OrderOption from '@/model/order/OrderOption';
 import PretendardText from '@/components/PretendardText';
 import CategoryChipView from '@/components/browse/CategoryChipView';
 import { getFineCategoryLabel } from '@/model/gear/GearCategoryGroups';
-import { Acg } from '@/constants/DesignTokens';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 interface Props {
@@ -219,14 +219,14 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: AcgLayout.chipGap,
     paddingHorizontal: 0,
   },
   // 세분 칩 행 — 1차 행과 구분되게 보조적으로(간격 축소) 배치
   fineScrollContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: AcgLayout.chipGap,
     paddingHorizontal: 0,
   },
   usageRow: {

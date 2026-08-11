@@ -24,7 +24,7 @@ interface Props {
 
 // 앱 공용 선택형 필터·카테고리 칩.
 //
-// **2026-08-11 레퍼런스 이식**: 아웃라인(흰 면 + 테두리)에서 **연회색 채움 알약**으로 바꿨다 —
+// **2026-08-11 레퍼런스 이식**: 아웃라인(흰 면 + 테두리)에서 **연회색 채움 + 둥근 사각**으로 바꿨다 —
 // 탐색 탭의 `FeedChipView`와 같은 값이다. 두 칩이 같은 동작을 하는데 생김새가 달랐고, 순백
 // 지면에서는 흰 칩이 지면과 붙어 테두리만 남았다. 여기 값을 갈아 끼우면 이 칩을 쓰는 화면
 // (창고·지도·브랜드·순위 등)이 함께 따라온다.
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     // 탐색 칩(FeedChipView)과 같은 크기·모서리.
     minHeight: 36,
     paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     borderRadius: Radius.chip,
     flexDirection: 'row',
     alignItems: 'center',

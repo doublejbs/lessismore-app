@@ -148,13 +148,13 @@ const styles = StyleSheet.create({
   filterRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    // 검색 필드·다른 탭 필터와 같은 화면 축(18).
-    paddingHorizontal: AcgLayout.screenH,
+    gap: AcgLayout.chipGap,
+    // 검색 필드·다른 탭 필터와 같은 화면 축.
+    paddingHorizontal: AcgLayout.screenPadding,
   },
-  // 2차(태그) 행은 탐색 탭 세분 카테고리 행과 같은 간격을 쓴다.
+  // 2차(태그) 행도 같은 간격을 쓴다 — 칩 간격은 앱 전체가 한 값이다.
   tagRow: {
-    gap: 6,
+    gap: AcgLayout.chipGap,
   },
 });
 

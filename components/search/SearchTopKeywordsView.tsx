@@ -10,7 +10,7 @@ import {
   LayoutChangeEvent,
 } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgLayout, Color, Radius } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import SearchSkeletonView from './SearchSkeletonView';
 import GearFilter from '@/model/gear/GearFilter';
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
   },
   categoryScrollContent: {
     flexDirection: 'row',
-    gap: 8,
+    gap: AcgLayout.chipGap,
   },
   listScrollView: {
     flex: 1,
