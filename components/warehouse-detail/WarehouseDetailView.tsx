@@ -28,6 +28,7 @@ import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '../PretendardText';
 import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
+import AcgGlassView from '@/components/acg/AcgGlassView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SearchGearAddToBagModalView from '../search/SearchGearAddToBagModalView';
 import Bag from '@/model/bag/Bag';
@@ -278,6 +279,8 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
 
           {showAddButton && (
             <View style={styles.bottomBar}>
+              {/* 유리 바 — 스크롤 콘텐츠가 이 아래로 흐르며 비친다. */}
+              <AcgGlassView elevated={false} style={styles.bottomBarGlass} />
               <TouchableOpacity
                 style={[styles.addButton, loading && styles.disabledButton]}
                 onPress={handleAddPress}
@@ -386,8 +389,9 @@ const styles = StyleSheet.create({
   bottomSpacing: {
     height: 100,
   },
-  // 스크롤 콘텐츠 **위에 떠 있어** 불투명이어야 한다 — 투명하면 뒤 카드가 버튼과 겹쳐
-  // 읽힌다. 흰 면 대신 지면색을 써서 버튼 주위에 흰 띠가 생기지 않게 한다(ACG).
+  // 스크롤 콘텐츠 **위에 떠 있는** 바. 면은 유리 레이어(bottomBarGlass)가 낸다.
+  // 예전 주석의 "투명하면 뒤 카드가 버튼과 겹쳐 읽힌다"는 지금도 유효하다 — 유리는
+  // 투명이 아니라 블러 + 반투명 채움이라 뒤 카드가 흐르되 겹쳐 읽히지는 않는다.
   bottomBar: {
     position: 'absolute',
     bottom: 0,
@@ -395,7 +399,18 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: AcgLayout.screenH,
     paddingVertical: 20,
-    backgroundColor: Acg.bg,
+    backgroundColor: 'transparent',
+  },
+  // 하단 바의 스펙큘러는 위쪽 엣지 하나다 — 좌우·아래는 화면 밖이다.
+  bottomBarGlass: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderWidth: 0,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Acg.glassStrokeTop,
   },
   // 화면의 주 액션 — 각진 잉크 면(ACG).
   addButton: {

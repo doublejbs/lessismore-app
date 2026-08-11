@@ -2,11 +2,13 @@ import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PackingButtonState from '@/model/bag-detail/PackingButtonState';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import AcgGlassView from '@/components/acg/AcgGlassView';
+import { Acg, Color, Radius, Spacing } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -26,6 +28,7 @@ const getPackingLabel = (bagDetail: BagDetail): string => {
 // 하단 고정 액션 바: (패킹 보조) + 장비 편집(주). 플로팅 버튼이 리스트를 가리던 문제 해소.
 const BagDetailBottomBar: FC<Props> = ({ bagDetail }) => {
   const showPacking = bagDetail.shouldShowPackingButton();
+  const insets = useSafeAreaInsets();
 
   const handleEdit = () => {
     app.getAnalyticsManager()?.logClick('bag_edit');
@@ -34,6 +37,13 @@ const BagDetailBottomBar: FC<Props> = ({ bagDetail }) => {
 
   return (
     <View style={styles.container}>
+      {/* 유리 바 — 목록이 이 아래로 흐르며 비친다. 부모 SafeAreaView가 하단 인셋을
+          이미 소비하므로, 유리만 그만큼 아래로 늘려 홈 인디케이터 영역까지 덮는다
+          (콘텐츠 배치는 그대로 둔 채 재질만 아래로 이어 붙이는 것). */}
+      <AcgGlassView
+        elevated={false}
+        style={[styles.glassLayer, { bottom: -insets.bottom }]}
+      />
       <View style={styles.row}>
         {showPacking && (
           <TouchableOpacity
@@ -68,12 +78,25 @@ const BagDetailBottomBar: FC<Props> = ({ bagDetail }) => {
 };
 
 const styles = StyleSheet.create({
-  // 지면 위에 놓인 바라 면을 깔지 않는다 — 흰 띠가 버튼 주위를 감싸면 지형이 끊긴다
-  // (2026-08-04 사용자 지적). 버튼 자체가 잉크/지면색 면이라 이미 충분히 읽힌다.
+  // 컨테이너는 계속 투명이고, 면은 유리 레이어가 낸다.
+  // **주의**: 2026-08-04에 여기 불투명 흰 띠를 걷어낸 적이 있다("버튼 주위 흰 띠가
+  // 지형을 끊는다" — 사용자 지적). 유리는 뒤 지형이 비쳐 흐르므로 그때의 단색 띠와는
+  // 다르지만, 띠가 다시 생긴 것으로 읽힌다면 이 레이어를 빼는 것이 그때 결정에 맞다.
   container: {
     paddingTop: 12,
     paddingHorizontal: Spacing.screenH,
     backgroundColor: 'transparent',
+  },
+  // 하단 바의 스펙큘러는 위쪽 엣지 하나다 — 좌우·아래는 화면 밖이라 테두리를 두르면
+  // 바가 아니라 떠 있는 상자로 보인다.
+  glassLayer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    borderWidth: 0,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Acg.glassStrokeTop,
   },
   row: {
     flexDirection: 'row',

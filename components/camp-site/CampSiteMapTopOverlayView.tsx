@@ -20,6 +20,7 @@ import {
   getCampSpotRegionLabel,
 } from '@/model/camp-site/CampSiteLabels';
 import CampSiteFilterChipsView from './CampSiteFilterChipsView';
+import AcgGlassView from '@/components/acg/AcgGlassView';
 
 interface Props {
   campSiteMap: CampSiteMap;
@@ -52,7 +53,7 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
         >
           {/* 박지 검색(CS-6) — 카드 프레임 없이 지도 위에 바로 뜨는 흰 pill(그림자) */}
           <View style={styles.searchWrap}>
-            <View style={styles.searchBox}>
+            <AcgGlassView dense elevated={false} style={styles.searchBox}>
               <TextInput
                 style={styles.searchInput}
                 placeholder='박지 검색'
@@ -78,7 +79,7 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
                   />
                 </TouchableOpacity>
               )}
-            </View>
+            </AcgGlassView>
 
             {showSearchResults && (
               <View style={styles.dropdown}>
@@ -192,9 +193,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   // 탐색 탭 검색 필드(`SearchBarView`)와 같은 형태 — 각진 모서리, 같은 패딩·폰트,
-  // 선행 아이콘 없음. 채움만 다르다: 유리(반투명)는 뒤가 단색 지면일 때만 성립하는데
-  // 지도는 뒤가 지형·도로·라벨이라 입력값이 그 위에 겹쳐 읽힌다(2026-08-03 실기기 확인).
-  // 불투명 종이 면 + 그림자로 지도와 분리한다.
+  // 선행 아이콘 없음. 채움만 다르다: **지도 전용 dense 유리**를 쓴다.
+  // 표준 유리 채움은 뒤가 단색 지면일 때만 성립하는데 지도는 뒤가 지형·도로·라벨이라
+  // 입력값이 그 위에 겹쳐 읽혔다(2026-08-03 실기기 확인) — blur intensity만으로는 못 덮어
+  // 채움을 `glassFillDense`까지 올려 가독성을 지키고, 남은 반투명으로 지도가 은은히 비친다.
+  // 테두리는 유리 기본값(흰 광택) 대신 어두운 헤어라인이어야 지도 위에서 경계가 읽힌다
+  // — 위쪽(borderTopColor)만 유리의 스펙큘러로 남는다.
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -202,10 +206,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 0,
-    backgroundColor: Acg.paper,
     borderWidth: 1,
     borderColor: Acg.line2,
     boxShadow: AcgShadow.card,
+    // 각진 면이라 유리 레이어를 잘라낼 것이 없다. 유리 기본값(`overflow: 'hidden'`)을
+    // 그대로 두면 iOS에서 위 그림자가 잘린다.
+    overflow: 'visible',
   },
   searchInput: {
     flex: 1,

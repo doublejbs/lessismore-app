@@ -1,8 +1,10 @@
-import { Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { NoAnimationTab } from '@/components/NoAnimationTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import AcgGlassView from '@/components/acg/AcgGlassView';
+import { Acg } from '@/constants/DesignTokens';
 
 // iOS는 네이티브 UITabBar(NativeTabs)로 iOS 26 리퀴드 글래스를 받고,
 // Android/Web은 기존 커스텀 JS 탭바(react-navigation)를 그대로 쓴다.
@@ -27,7 +29,10 @@ const NativeTabLayout = () => {
         <NativeTabs.Trigger.Label>홈</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='search'>
-        <NativeTabs.Trigger.Icon sf='magnifyingglass' drawable='ic_menu_search' />
+        <NativeTabs.Trigger.Icon
+          sf='magnifyingglass'
+          drawable='ic_menu_search'
+        />
         <NativeTabs.Trigger.Label>탐색</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='map'>
@@ -35,7 +40,10 @@ const NativeTabLayout = () => {
         <NativeTabs.Trigger.Label>지도</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='bag'>
-        <NativeTabs.Trigger.Icon sf='figure.hiking' drawable='ic_menu_compass' />
+        <NativeTabs.Trigger.Icon
+          sf='figure.hiking'
+          drawable='ic_menu_compass'
+        />
         <NativeTabs.Trigger.Label>배낭</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='info'>
@@ -46,18 +54,28 @@ const NativeTabLayout = () => {
   );
 };
 
+// Android·Web 탭바(JS). iOS는 `NativeTabs`가 시스템 리퀴드 글래스를 그리므로 여기 오지 않는다.
+// 이 두 플랫폼은 `BlurView` 비용 대비 결과가 약해 반투명 채움 + 상단 헤어라인으로만 맞춘다
+// (`AcgGlassView`가 플랫폼별로 알아서 폴백한다).
 const JsTabLayout = () => {
   const screenOptions: any = {
     tabBarActiveTintColor: 'black',
     headerShown: false,
     tabBarButton: NoAnimationTab,
-    tabBarStyle: Platform.select({
-      web: {
-        height: 65,
-        paddingBottom: 8,
-      },
-      default: {},
-    }),
+    // 채움을 유리 레이어에 넘기려면 바 자체는 투명이어야 한다. 높이·패딩은 그대로 둔다.
+    tabBarStyle: [
+      styles.tabBar,
+      Platform.select({
+        web: {
+          height: 65,
+          paddingBottom: 8,
+        },
+        default: {},
+      }),
+    ],
+    tabBarBackground: () => (
+      <AcgGlassView elevated={false} style={styles.tabBarGlass} />
+    ),
   };
 
   return (
@@ -112,6 +130,27 @@ const JsTabLayout = () => {
     </Tabs>
   );
 };
+
+const styles = StyleSheet.create({
+  tabBar: {
+    backgroundColor: 'transparent',
+    // 채움이 투명해진 만큼 기본 테두리·그림자를 걷어내고, 경계는 유리 레이어가 낸다.
+    borderTopWidth: 0,
+    elevation: 0,
+  },
+  // 탭바의 스펙큘러는 위쪽 엣지 하나다. 밝은 바 위에서 흰 광택은 읽히지 않아
+  // 어두운 헤어라인(line2)을 쓴다 — 콘텐츠와 탭바를 가르는 선이 사라지면 안 된다.
+  tabBarGlass: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderWidth: 0,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Acg.line2,
+  },
+});
 
 export default function TabLayout() {
   if (Platform.OS === 'ios') {

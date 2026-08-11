@@ -3,6 +3,8 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import ToastManager from '@/model/toast/ToastManager';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
+import AcgGlassView from '@/components/acg/AcgGlassView';
+import AcgGlassTint from '@/components/acg/AcgGlassTint';
 import { Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
@@ -25,7 +27,12 @@ const ToastView: FC<Props> = ({ toastManager, bottom }) => {
 
   if (isVisible) {
     return (
-      <View style={[styles.container, { bottom }]}>
+      <AcgGlassView
+        tint={AcgGlassTint.Ink}
+        dense
+        elevated={false}
+        style={[styles.container, { bottom }]}
+      >
         <View style={styles.content}>
           <PretendardText
             style={[styles.text, buttonText ? styles.textWithButton : null]}
@@ -46,7 +53,7 @@ const ToastView: FC<Props> = ({ toastManager, bottom }) => {
             </TouchableOpacity>
           )}
         </View>
-      </View>
+      </AcgGlassView>
     );
   } else {
     return null;
@@ -63,11 +70,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     zIndex: 90,
-    backgroundColor: Color.toastBg,
     borderRadius: Radius.card,
-    // 진회색 토스트가 아래 요소와 붙어 보이지 않게 그림자 + 얇은 밝은 테두리로 경계를 만든다.
+    // 채움은 잉크 유리 레이어가 낸다. 배경을 고를 수 없는 자리(어떤 화면 위에도 뜬다)라
+    // dense를 켜 흰 글자 대비를 지킨다 — 순백 배경 최악 합성에서도 10:1이다.
+    // 밝은 테두리는 유리의 스펙큘러 엣지로 대체됐고, 아래 그림자는 그대로 둔다.
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
     shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowRadius: 16,

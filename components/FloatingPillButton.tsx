@@ -6,7 +6,9 @@ import {
   ViewStyle,
 } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import AcgGlassView from '@/components/acg/AcgGlassView';
+import AcgGlassTint from '@/components/acg/AcgGlassTint';
+import { Acg, AcgShadow, Color, Radius } from '@/constants/DesignTokens';
 
 type FloatingPillVariant = 'primary' | 'secondary';
 
@@ -31,9 +33,7 @@ const FloatingPillButton: FC<Props> = ({
 }) => {
   const isSecondary = variant === 'secondary';
   const pillStyle = isSecondary ? styles.secondaryPill : styles.primaryPill;
-  const textStyle = isSecondary
-    ? styles.secondaryLabel
-    : styles.primaryLabel;
+  const textStyle = isSecondary ? styles.secondaryLabel : styles.primaryLabel;
 
   return (
     <TouchableOpacity
@@ -42,6 +42,14 @@ const FloatingPillButton: FC<Props> = ({
       activeOpacity={0.85}
       disabled={disabled}
     >
+      {/* 채움을 내는 유리 레이어. 알약 지오메트리(높이·패딩·정렬)는 이 버튼이 그대로
+          들고 있고, 유리는 뒤에 깔리기만 한다 — 레이어를 더할 뿐 배치를 바꾸지 않는다.
+          그림자는 이 버튼이 내므로(overflow로 잘리지 않게) 유리는 elevated를 끈다. */}
+      <AcgGlassView
+        tint={isSecondary ? AcgGlassTint.Clear : AcgGlassTint.Ink}
+        elevated={false}
+        style={styles.glassLayer}
+      />
       {leadingIcon}
       <PretendardText style={textStyle} weight='semibold'>
         {label}
@@ -61,14 +69,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     gap: 6,
+    // 유리는 단색 면과 달리 뒤가 비쳐 경계가 약하다 — 콘텐츠 위에 떠 있다는 것을
+    // 그림자로 알린다. 좌표·크기가 아니라 깊이(재질)에 속하는 값이다.
+    // 여기에 `overflow: 'hidden'`을 주면 iOS에서 이 그림자까지 잘린다 — 유리 레이어는
+    // 자기 borderRadius로 스스로 잘리므로 알약 쪽에서 자를 필요가 없다.
+    boxShadow: AcgShadow.glass,
   },
+  // 채움은 유리 레이어가 낸다. 여기 남는 건 스펙큘러 엣지뿐이다.
   primaryPill: {
-    backgroundColor: Color.chipActiveBg,
-    borderColor: Color.textPrimary,
+    backgroundColor: 'transparent',
+    borderColor: Acg.glassInkStroke,
+    borderTopColor: Acg.glassInkStrokeTop,
   },
   secondaryPill: {
-    backgroundColor: Color.background,
-    borderColor: Color.textPrimary,
+    backgroundColor: 'transparent',
+    borderColor: Acg.glassStroke,
+    borderTopColor: Acg.glassStrokeTop,
+  },
+  glassLayer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    // 테두리는 알약 쪽이 그린다 — 여기서 또 그리면 두 겹이 된다.
+    borderWidth: 0,
+    borderRadius: Radius.pill,
   },
   primaryLabel: {
     fontSize: 16,
