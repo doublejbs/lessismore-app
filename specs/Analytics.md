@@ -133,7 +133,7 @@
 | `click_browse_sort` | 탐색 목록 정렬 변경 (SR-7) | `sort`: 정렬 값 |
 | `click_feed_card` | 피드 카드 클릭 → 장비 상세 (FD-2) | — |
 | `click_feed_add` | 피드 카드 담기/제거 토글 (FD-2) | `added`: boolean |
-| `click_feed_coupang` | 피드 카드 쿠팡 최저가 링크 (FD-2) | — |
+| `click_feed_coupang` | [폐기 2026-08-11] 목록 셀에서 쿠팡 최저가 링크를 없애 더 이상 발생하지 않는다 (FD-2). 커머스 링크는 장비 상세(GD-5)에만 있다 | — |
 | `click_feed_brand` | 피드 상단 `브랜드` 진입 버튼 → 브랜드 시트 (FD-3) | — |
 | `click_feed_sort` | 피드 상단 `정렬` 드롭다운 → 정렬 시트 (FD-3) | — |
 | `click_feed_filter_apply` | 피드 필터 적용 — 카테고리 칩 즉시 적용, 브랜드 시트 `확인`, 정렬 시트 선택 (FD-3) | `category`: 카테고리 값 \| `all`, `brand_count`: 선택 브랜드 수, `sort`: 정렬 라벨(추천/인기순/최신순/가벼운순/무거운순) |
