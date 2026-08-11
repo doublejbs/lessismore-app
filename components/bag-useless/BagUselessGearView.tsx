@@ -11,9 +11,11 @@ import Animated, {
 import GearView from '../warehouse/GearView';
 import Gear from '../../model/gear/Gear';
 import BagUseless from '../../model/bag-useless/BagUseless';
-import { Acg, AcgShadow } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 
 interface Props {
+  // 위 행과 가르는 헤어라인(목록 첫 행에는 없다).
+  divided?: boolean;
   gear: Gear;
   bagUseless: BagUseless;
 }
@@ -33,7 +35,11 @@ const SPRING_CONFIG = {
 
 // 패킹 모드 행과 동일한 인터랙션: 원형 체크 + 행 dim.
 // (패킹은 '챙긴' 항목을 흐리게 하지만, 여기선 '안 쓴'(미선택) 장비가 흐려진다.)
-const BagUselessGearView: FC<Props> = ({ gear, bagUseless }) => {
+const BagUselessGearView: FC<Props> = ({
+  gear,
+  bagUseless,
+  divided = false,
+}) => {
   const selected = bagUseless.isSelected(gear);
   const progress = useSharedValue(selected ? 1 : 0);
 
@@ -63,7 +69,7 @@ const BagUselessGearView: FC<Props> = ({ gear, bagUseless }) => {
     >
       {/* 흐림은 **안쪽 콘텐츠에만** 준다 — 종이 면까지 흐려지면 카드가 지면에 반쯤
           잠긴 것처럼 보여 경계가 흐려진다(2026-08-04 시뮬레이터 확인). */}
-      <View style={styles.row}>
+      <View style={[styles.row, divided && styles.divided]}>
         <Animated.View style={rowStyle}>
           <GearView gear={gear} plain />
         </Animated.View>
@@ -88,12 +94,18 @@ const styles = StyleSheet.create({
   // (배지 + 간격 12)을 비운다. `paddingHorizontal`과 함께 쓰면 뒤에 온 쪽이 이겨
   // 레인이 사라지므로(실제로 그랬다) 좌·우를 따로 지정한다.
   // 체크 배지까지 한 장의 종이 면에 담는다(ACG) — 배지만 지면 위에 떨어지면 행과 따로 논다.
+  /**
+   * 면을 두지 않는다(2026-08-11 레퍼런스 목록 문법) — 순백 지면에 행이 직접 놓이고 위 행과는
+   * 헤어라인으로 갈린다. 우측에는 체크 배지 레인을 비워 배지가 메타 줄과 겹치지 않게 한다.
+   */
   row: {
     width: '100%',
     paddingLeft: ROW_PADDING,
     paddingRight: ROW_PADDING + CHECK_BADGE_LANE,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+  },
+  divided: {
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
   },
   checkBadge: {
     position: 'absolute',

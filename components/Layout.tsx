@@ -7,19 +7,19 @@ import { observer } from 'mobx-react-lite';
 import AlertView from './alert/AlertView';
 import ToastView from './toast/ToastView';
 import { Acg } from '@/constants/DesignTokens';
-import AcgScreenBackground from './acg/AcgScreenBackground';
 
 interface Props {
   children: ReactNode;
   /**
-   * 콘텐츠 아래에 까는 지면 레이어(ACG 리디자인).
+   * 콘텐츠 아래에 까는 지면 레이어.
    *
-   * **기본값이 공통 지면(`AcgScreenBackground`)이다** — 앱 전 화면이 같은 지면 위에
-   * 놓이게 하려고 화면마다 넘기는 대신 여기서 깐다(2026-08-04). 세이프에어리어 여백까지
-   * 이어져야 하므로 패딩이 걸리는 컨테이너가 아니라 그 **바깥**에 둔다.
+   * **기본값은 순백**이다(2026-08-11 레퍼런스 이식). 이전 기본값은 공통 지면
+   * `AcgScreenBackground`(따뜻한 회색 + 그레인 + 지형 마크)였는데, 목록이 빽빽한 화면에서
+   * 무늬가 행 사이 헤어라인·글자와 섞여 지저분해진다. **지형 그래픽은 홈만 명시로 쓴다.**
+   * 세이프에어리어 여백까지 이어져야 하므로 패딩이 걸리는 컨테이너 바깥에 둔다.
    *
-   * 다른 지면을 쓰려면 노드를 넘기고(홈·정보 탭의 지형 이미지), 지면을 아예 원치 않으면
-   * `null`을 넘긴다(공유 이미지 내보내기처럼 자체 캔버스를 그리는 화면).
+   * 다른 지면을 쓰려면 노드를 넘기고, 지면을 아예 원치 않으면 `null`을 넘긴다
+   * (공유 이미지 내보내기처럼 자체 캔버스를 그리는 화면).
    */
   background?: ReactNode;
   paddingHorizontal?: number;
@@ -36,7 +36,7 @@ const ALL_EDGES = ['top', 'right', 'bottom', 'left'] as const;
 
 const Layout: FC<Props> = ({
   children,
-  background = <AcgScreenBackground />,
+  background = <View style={groundStyle} />,
   paddingHorizontal = 20,
   toastBottom = 100,
   edges = ALL_EDGES,
@@ -64,11 +64,20 @@ const Layout: FC<Props> = ({
   );
 };
 
+const groundStyle: ViewStyle = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: Acg.paper,
+};
+
 const safeAreaStyle: ViewStyle = {
   flex: 1,
   // 지면 노드가 덮지만, 그 노드가 뜨기 전 한 프레임과 `background={null}` 화면을 위해
   // 같은 지면색을 깔아 둔다.
-  backgroundColor: Acg.bg,
+  backgroundColor: Acg.paper,
 };
 
 const containerStyle: ViewStyle = {

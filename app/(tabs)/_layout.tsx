@@ -27,7 +27,10 @@ const NativeTabLayout = () => {
         <NativeTabs.Trigger.Label>홈</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='search'>
-        <NativeTabs.Trigger.Icon sf='magnifyingglass' drawable='ic_menu_search' />
+        <NativeTabs.Trigger.Icon
+          sf='magnifyingglass'
+          drawable='ic_menu_search'
+        />
         <NativeTabs.Trigger.Label>탐색</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='map'>
@@ -35,7 +38,10 @@ const NativeTabLayout = () => {
         <NativeTabs.Trigger.Label>지도</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='bag'>
-        <NativeTabs.Trigger.Icon sf='figure.hiking' drawable='ic_menu_compass' />
+        <NativeTabs.Trigger.Icon
+          sf='figure.hiking'
+          drawable='ic_menu_compass'
+        />
         <NativeTabs.Trigger.Label>배낭</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='info'>

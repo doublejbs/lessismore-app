@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgShadow } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 
 interface Props {
   bagMemo: BagMemo;
@@ -195,8 +195,7 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     borderRadius: 0,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    backgroundColor: Acg.controlFill,
     padding: 16,
     fontSize: 16,
     color: Acg.ink,

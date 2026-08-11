@@ -61,7 +61,11 @@ const BagDestinationInfoView: FC<Props> = ({
         <PretendardText style={styles.detailHintText} weight='medium'>
           박지 상세 보기
         </PretendardText>
-        <Ionicons name='chevron-forward' size={16} color={Color.textSecondary} />
+        <Ionicons
+          name='chevron-forward'
+          size={16}
+          color={Color.textSecondary}
+        />
       </View>
     </TouchableOpacity>
   ) : isLinked ? (
@@ -99,7 +103,11 @@ const BagDestinationInfoView: FC<Props> = ({
           accessibilityRole='button'
           accessibilityLabel='여행지 변경'
         >
-          <Ionicons name='swap-horizontal' size={18} color={Color.textPrimary} />
+          <Ionicons
+            name='swap-horizontal'
+            size={18}
+            color={Color.textPrimary}
+          />
           <PretendardText style={styles.actionText} weight='medium'>
             변경
           </PretendardText>
@@ -112,7 +120,11 @@ const BagDestinationInfoView: FC<Props> = ({
           accessibilityRole='button'
           accessibilityLabel='네이버 지도로 길찾기'
         >
-          <Ionicons name='navigate-outline' size={18} color={Color.textPrimary} />
+          <Ionicons
+            name='navigate-outline'
+            size={18}
+            color={Color.textPrimary}
+          />
           <PretendardText style={styles.actionText} weight='medium'>
             길찾기
           </PretendardText>

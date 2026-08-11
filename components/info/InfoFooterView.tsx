@@ -52,7 +52,9 @@ const InfoFooterView: FC<Props> = ({ isLoggedIn }) => {
           accessibilityLabel='사업자 정보'
           hitSlop={LINK_HIT_SLOP}
         >
-          <PretendardText style={styles.versionText}>사업자 정보</PretendardText>
+          <PretendardText style={styles.versionText}>
+            사업자 정보
+          </PretendardText>
           <Ionicons
             name='chevron-forward'
             size={12}
@@ -62,7 +64,11 @@ const InfoFooterView: FC<Props> = ({ isLoggedIn }) => {
       </View>
 
       {/* 장식용 배지다 — 스크린 리더가 읽을 내용이 없으므로 접근성 트리에서 제외한다. */}
-      <View style={styles.imageContainer} accessibilityElementsHidden importantForAccessibility='no-hide-descendants'>
+      <View
+        style={styles.imageContainer}
+        accessibilityElementsHidden
+        importantForAccessibility='no-hide-descendants'
+      >
         <Image
           source={require('@/assets/images/internet.png')}
           style={styles.image}

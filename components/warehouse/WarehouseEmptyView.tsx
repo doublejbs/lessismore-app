@@ -6,7 +6,6 @@ import Warehouse from '@/model/warehouse/Warehouse';
 import LoadingIconView from '../ui/LoadingIconView';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 import { Acg, AcgLayout } from '@/constants/DesignTokens';
 
 interface Props {
@@ -17,10 +16,7 @@ const WarehouseEmptyView: FC<Props> = ({ warehouse }) => {
   const isLoading = warehouse.isLoading();
 
   return (
-    <Layout
-      paddingHorizontal={AcgLayout.screenH}
-      background={<AcgScreenBackground />}
-    >
+    <Layout paddingHorizontal={AcgLayout.screenH}>
       <View style={styles.headerContainer}>
         <PretendardText weight='extraBold' style={styles.title}>
           useless

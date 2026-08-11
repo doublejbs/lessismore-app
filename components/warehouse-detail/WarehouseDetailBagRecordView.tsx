@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
-import { Acg, AcgShadow } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 
 interface Props {
@@ -152,7 +152,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     backgroundColor: Acg.paper,
     borderRadius: 0,
-    boxShadow: AcgShadow.paper,
   },
   tripContent: {
     flex: 1,

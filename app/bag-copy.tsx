@@ -61,7 +61,10 @@ const BagCopyScreen = () => {
       }
     } catch (error) {
       console.error('배낭 복사 중 오류 발생:', error);
-      Alert.alert('오류', '배낭 복사 중 문제가 발생했습니다. 다시 시도해주세요.');
+      Alert.alert(
+        '오류',
+        '배낭 복사 중 문제가 발생했습니다. 다시 시도해주세요.'
+      );
     } finally {
       setIsCopying(false);
     }

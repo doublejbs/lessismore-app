@@ -1,7 +1,7 @@
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgShadow } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 import Comment from '@/model/reply/Comment';
 import ReplyDetail from '@/model/reply/ReplyDetail';
 import dayjs from 'dayjs';
@@ -136,8 +136,7 @@ const styles = StyleSheet.create({
   // 생기면서 필요 없어졌다 — 면 자체가 경계다.
   container: {
     flexDirection: 'column',
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    backgroundColor: Acg.controlFill,
   },
   content: {
     paddingVertical: 16,

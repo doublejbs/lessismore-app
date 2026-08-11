@@ -134,7 +134,10 @@ const SearchGearAddToBagModalView: FC<Props> = ({
               >
                 <View style={styles.bagItemContent}>
                   <View style={styles.bagInfo}>
-                    <PretendardText style={styles.bagItemTitle} weight='semibold'>
+                    <PretendardText
+                      style={styles.bagItemTitle}
+                      weight='semibold'
+                    >
                       새 배낭에 추가
                     </PretendardText>
                   </View>

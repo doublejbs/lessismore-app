@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
 import WarehouseDetailBrandPreviewView from './WarehouseDetailBrandPreviewView';
-import { Acg, AcgLayout, AcgShadow } from '@/constants/DesignTokens';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import { getBrandLinkLabel } from '../../model/gear/GearBrandLink';
 
 interface Props {
@@ -119,8 +119,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     gap: 8,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    backgroundColor: Acg.controlFill,
   },
   linkText: {
     fontSize: 14,

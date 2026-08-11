@@ -6,9 +6,7 @@ import app from '@/model/app/App';
 
 const BagWeatherScreen = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [bagWeather] = useState(() =>
-    BagWeather.of(id, app.getBagStore()!)
-  );
+  const [bagWeather] = useState(() => BagWeather.of(id, app.getBagStore()!));
 
   useEffect(() => {
     void bagWeather.load();

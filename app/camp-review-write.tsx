@@ -263,7 +263,9 @@ const CampReviewWriteScreen = () => {
               size={20}
               color={Color.textSecondary}
             />
-            <PretendardText style={styles.bagSelectText}>배낭 선택</PretendardText>
+            <PretendardText style={styles.bagSelectText}>
+              배낭 선택
+            </PretendardText>
           </TouchableOpacity>
         )}
       </View>

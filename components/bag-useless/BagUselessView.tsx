@@ -57,8 +57,12 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
     bagUseless.back();
   };
 
-  const renderGearItem = ({ item }: { item: Gear }) => (
-    <BagUselessGearView gear={item} bagUseless={bagUseless} />
+  const renderGearItem = ({ item, index }: { item: Gear; index: number }) => (
+    <BagUselessGearView
+      gear={item}
+      bagUseless={bagUseless}
+      divided={index > 0}
+    />
   );
 
   useEffect(() => {

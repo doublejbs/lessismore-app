@@ -108,7 +108,10 @@ const BagFormContent: FC<Props> = ({
           </PretendardText>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.confirmButton, disabled && styles.confirmButtonDisabled]}
+          style={[
+            styles.confirmButton,
+            disabled && styles.confirmButtonDisabled,
+          ]}
           onPress={onConfirm}
           activeOpacity={0.7}
           disabled={disabled}

@@ -122,13 +122,13 @@ const DateRangeCalendarView: FC<Props> = ({
   return (
     <View style={styles.container}>
       {/**
-        * 여행 기간은 **필드 하나**다(BAG-2).
-        *
-        * 예전에는 `시작일`·`종료일`을 각각 라벨 + 값 박스로 나눠 두 필드처럼 보였는데,
-        * 실제 컨트롤은 행 전체 하나이고 열리는 것도 **범위 선택기 하나**였다. 종료일 박스를
-        * 눌러도 범위 규칙(먼저 누른 날이 시작일)으로 동작해 기대와 어긋났다.
-        * 구조를 동작에 맞춰 하나로 합치고, 이름 입력과 같은 높이·같은 면을 쓴다.
-        */}
+       * 여행 기간은 **필드 하나**다(BAG-2).
+       *
+       * 예전에는 `시작일`·`종료일`을 각각 라벨 + 값 박스로 나눠 두 필드처럼 보였는데,
+       * 실제 컨트롤은 행 전체 하나이고 열리는 것도 **범위 선택기 하나**였다. 종료일 박스를
+       * 눌러도 범위 규칙(먼저 누른 날이 시작일)으로 동작해 기대와 어긋났다.
+       * 구조를 동작에 맞춰 하나로 합치고, 이름 입력과 같은 높이·같은 면을 쓴다.
+       */}
       <View style={styles.fieldSection}>
         <PretendardText weight='semibold' style={styles.fieldLabel}>
           여행 기간
@@ -159,98 +159,98 @@ const DateRangeCalendarView: FC<Props> = ({
       {isOpen ? (
         <>
           <View style={styles.navigationContainer}>
-        <TouchableOpacity
-          onPress={navigateToPreviousMonth}
-          style={styles.navigationButton}
-        >
-          <PretendardText weight='bold' style={styles.navigationArrow}>
-            ‹
-          </PretendardText>
-        </TouchableOpacity>
-        <PretendardText weight='bold' style={styles.monthTitle}>
-          {currentMonth.format('YYYY년 M월')}
-        </PretendardText>
-        <TouchableOpacity
-          onPress={navigateToNextMonth}
-          style={styles.navigationButton}
-        >
-          <PretendardText weight='bold' style={styles.navigationArrow}>
-            ›
-          </PretendardText>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.calendarContainer}>
-        <View style={styles.weekdaysContainer}>
-          {weekdays.map((day, index) => (
-            <View key={index} style={styles.weekdayCell}>
-              <PretendardText
-                weight='bold'
-                style={[
-                  styles.weekdayText,
-                  index === 0 && styles.sundayText,
-                  index === 6 && styles.saturdayText,
-                ]}
-              >
-                {day}
+            <TouchableOpacity
+              onPress={navigateToPreviousMonth}
+              style={styles.navigationButton}
+            >
+              <PretendardText weight='bold' style={styles.navigationArrow}>
+                ‹
               </PretendardText>
-            </View>
-          ))}
-        </View>
+            </TouchableOpacity>
+            <PretendardText weight='bold' style={styles.monthTitle}>
+              {currentMonth.format('YYYY년 M월')}
+            </PretendardText>
+            <TouchableOpacity
+              onPress={navigateToNextMonth}
+              style={styles.navigationButton}
+            >
+              <PretendardText weight='bold' style={styles.navigationArrow}>
+                ›
+              </PretendardText>
+            </TouchableOpacity>
+          </View>
 
-        <View
-          style={[
-            styles.daysContainer,
-            { height: Math.ceil(calendarDays.length / 7) * 44 },
-          ]}
-        >
-          {calendarDays.map((day, index) => {
-            const isStart = isSelectedStart(day);
-            const isEnd = isSelectedEnd(day);
-            const isSelected = isStart || isEnd;
-            const isRange = isInRange(day);
-
-            return (
-              <TouchableOpacity
-                key={index}
-                onPress={() => handleDateClick(day)}
-                style={styles.dayContainer}
-              >
-                <View
-                  style={[
-                    styles.dayCell,
-                    isSelected && styles.selectedDay,
-                    isRange && !isSelected && styles.rangeDay,
-                  ]}
-                >
+          <View style={styles.calendarContainer}>
+            <View style={styles.weekdaysContainer}>
+              {weekdays.map((day, index) => (
+                <View key={index} style={styles.weekdayCell}>
                   <PretendardText
-                    weight={isToday(day) || isSelected ? 'bold' : 'regular'}
+                    weight='bold'
                     style={[
-                      styles.dayText,
-                      !isCurrentMonth(day) && styles.otherMonthText,
-                      index % 7 === 0 &&
-                        isCurrentMonth(day) &&
-                        !isSelected &&
-                        styles.sundayText,
-                      index % 7 === 6 &&
-                        isCurrentMonth(day) &&
-                        !isSelected &&
-                        styles.saturdayText,
-                      (isToday(day) || isSelected) && styles.boldText,
-                      isSelected && styles.selectedDayText,
+                      styles.weekdayText,
+                      index === 0 && styles.sundayText,
+                      index === 6 && styles.saturdayText,
                     ]}
                   >
-                    {day.date()}
+                    {day}
                   </PretendardText>
                 </View>
-                {isToday(day) && !isSelected && (
-                  <View style={styles.todayIndicator} />
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
+              ))}
+            </View>
+
+            <View
+              style={[
+                styles.daysContainer,
+                { height: Math.ceil(calendarDays.length / 7) * 44 },
+              ]}
+            >
+              {calendarDays.map((day, index) => {
+                const isStart = isSelectedStart(day);
+                const isEnd = isSelectedEnd(day);
+                const isSelected = isStart || isEnd;
+                const isRange = isInRange(day);
+
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => handleDateClick(day)}
+                    style={styles.dayContainer}
+                  >
+                    <View
+                      style={[
+                        styles.dayCell,
+                        isSelected && styles.selectedDay,
+                        isRange && !isSelected && styles.rangeDay,
+                      ]}
+                    >
+                      <PretendardText
+                        weight={isToday(day) || isSelected ? 'bold' : 'regular'}
+                        style={[
+                          styles.dayText,
+                          !isCurrentMonth(day) && styles.otherMonthText,
+                          index % 7 === 0 &&
+                            isCurrentMonth(day) &&
+                            !isSelected &&
+                            styles.sundayText,
+                          index % 7 === 6 &&
+                            isCurrentMonth(day) &&
+                            !isSelected &&
+                            styles.saturdayText,
+                          (isToday(day) || isSelected) && styles.boldText,
+                          isSelected && styles.selectedDayText,
+                        ]}
+                      >
+                        {day.date()}
+                      </PretendardText>
+                    </View>
+                    {isToday(day) && !isSelected && (
+                      <View style={styles.todayIndicator} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
         </>
       ) : null}
     </View>

@@ -1,5 +1,10 @@
 import { FC } from 'react';
-import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Color, Radius } from '@/constants/DesignTokens';
@@ -22,7 +27,8 @@ const BagTripWeatherView: FC<Props> = ({ bagWeather }) => {
   const tripDaily = bagWeather.getDailyInRange();
 
   // 기간 요약(대표 날씨 + 최고/최저 + 강한 돌풍). 카드와 동일 규칙 공유.
-  const summary = tripDaily.length > 0 ? summarizeWeatherPeriod(tripDaily) : null;
+  const summary =
+    tripDaily.length > 0 ? summarizeWeatherPeriod(tripDaily) : null;
 
   if (loading && !weather) {
     return (
@@ -78,7 +84,8 @@ const BagTripWeatherView: FC<Props> = ({ bagWeather }) => {
       </View>
       <WeatherDailyView daily={tripDaily} />
       <PretendardText style={styles.disclaimer}>
-        예보는 향후 16일까지 제공되며, 그 이후는 과거 평년값을 참고로 표시합니다.
+        예보는 향후 16일까지 제공되며, 그 이후는 과거 평년값을 참고로
+        표시합니다.
       </PretendardText>
     </View>
   );

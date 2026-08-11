@@ -10,81 +10,72 @@ import GearThumbnailView, {
   GEAR_THUMBNAIL_SIZE,
 } from '@/components/gear/GearThumbnailView';
 import Gear from '@/model/gear/Gear';
-import { Acg, AcgShadow } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgRow } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 
 interface Props {
   gear: Gear;
   children?: ReactNode;
   onPress?: (e: GestureResponderEvent) => void;
-  // 종이 면을 끈다. 검색·탐색처럼 행 바깥에 담기 버튼이 함께 놓이는 목록은 바깥 래퍼가
-  // 면을 그려야 버튼까지 한 카드로 읽힌다 — 그때 안쪽이 면을 또 그리면 카드 안 카드가 된다.
+  // 면·좌우 패딩을 끈다. 검색·탐색처럼 행 바깥에 담기 버튼이 함께 놓이는 목록은 바깥 래퍼가
+  // 면을 그려야 버튼까지 한 덩어리로 읽힌다 — 그때 안쪽이 면을 또 그리면 면 안 면이 된다.
   plain?: boolean;
+  // 위 행과 가르는 헤어라인. 목록 첫 행에는 그리지 않는다(섹션 제목 밑줄처럼 읽힌다).
+  divided?: boolean;
 }
 
-// 행 상하 여백. minHeight가 border-box 기준이라 썸네일 높이를 보장하려면 이 값을 더해야 한다.
-const ROW_VERTICAL_PADDING = 14;
-
-// WH-1 창고 목록 행. 사용자가 올린 본인 사진이 있을 때만 좌측에 정사각 썸네일을 두고,
-// 없으면 빈 박스 없이 텍스트 우선 행 레이아웃을 그대로 쓴다(DataModel §1 2026-07-29 개정).
-// 행은 **좌 정체(브랜드·이름·색상) · 우 지표** 2열로 나눈다. 지표 컬럼은 사용률 배지가 위, 무게가 아래
-// (보조 지표가 위·앵커가 아래인 메트릭 문법) — 무게가 행마다 같은 자리에 오므로 세로 스캔으로 비교할 수
-// 있다. 정체 텍스트는 말줄임해 지표 컬럼을 침범하지 않는다.
-const GearView: FC<Props> = ({ gear, children, onPress, plain = false }) => {
+// WH-1 창고 목록 행(레퍼런스 목록 문법으로 이식 2026-08-11 — [Home.md] HM-8).
+// 사용자가 올린 본인 사진이 있을 때만 좌측에 정사각 썸네일을 두고, 없으면 빈 박스 없이
+// 텍스트 우선 행을 쓴다(DataModel §1 2026-07-29 개정).
+//
+// 구성은 **이름(두 줄까지) + 메타 한 줄**이다. 좌 정체·우 지표 2열이었는데, 값을 우측 컬럼으로
+// 빼면 이름이 두 줄인 행에서 숫자가 아래로 밀려 오히려 행끼리 비교가 어긋난다. 메타 맨 앞의
+// 무게는 어느 행에서나 같은 자리다.
+const GearView: FC<Props> = ({
+  gear,
+  children,
+  onPress,
+  plain = false,
+  divided = false,
+}) => {
   const weight = gear.getWeight();
-  const hasUsedRate = gear.hasUsedRate();
-  const hasMetrics = !!weight || hasUsedRate;
+  const meta = [
+    gear.getDisplayCompany(),
+    gear.getDisplayColor(),
+    gear.hasUsedRate() ? `사용률 ${gear.getUsedRate()}%` : '',
+  ].filter(Boolean);
 
   const content = (
-    <View style={[styles.container, plain && styles.plainContainer]}>
+    <View
+      style={[
+        styles.container,
+        plain && styles.plainContainer,
+        divided && styles.divided,
+      ]}
+    >
       <GearThumbnailView imageUrl={gear.getImageUrl()} />
 
-      <View style={styles.identityColumn}>
-        {/* 값이 없으면 줄 자체를 렌더하지 않는다(WH-1) — 빈 텍스트를 두면 행에 죽은
-            공백이 생겨 이름이 아래로 밀려 보인다. 색상 줄과 같은 규칙. */}
-        {gear.getDisplayCompany() ? (
-          <PretendardText
-            style={styles.companyText}
-            weight='bold'
-            numberOfLines={1}
-          >
-            {gear.getDisplayCompany()}
-          </PretendardText>
-        ) : null}
-
-        <PretendardText style={styles.nameText} weight='bold' numberOfLines={2}>
+      <View style={styles.rowText}>
+        <PretendardText style={styles.name} weight='semibold' numberOfLines={2}>
           {gear.getDisplayName()}
         </PretendardText>
 
-        {gear.getDisplayColor() ? (
-          <PretendardText
-            style={styles.colorText}
-            weight='regular'
-            numberOfLines={1}
-          >
-            {gear.getDisplayColor()}
+        {/* 값을 한 줄에 `·`로 묶는다(레퍼런스). 무게가 없으면 그 조각을 붙이지 않고,
+            조각이 하나도 없으면 줄 자체를 렌더하지 않는다 — 빈 줄은 죽은 공백이다.
+            숫자만 중첩 Text로 콘덴스드다. */}
+        {weight || meta.length > 0 ? (
+          <PretendardText style={styles.meta} numberOfLines={1}>
+            {weight ? (
+              <AcgDisplayText style={styles.metaNumber}>
+                {`${weight}g`}
+              </AcgDisplayText>
+            ) : null}
+            {meta.map((part, index) =>
+              index === 0 && !weight ? part : ` · ${part}`
+            )}
           </PretendardText>
         ) : null}
       </View>
-
-      {hasMetrics ? (
-        <View style={styles.metricsColumn}>
-          {hasUsedRate && (
-            <View style={styles.usedRateBadge}>
-              <PretendardText style={styles.usedRateText} weight='regular'>
-                사용률 {gear.getUsedRate()}%
-              </PretendardText>
-            </View>
-          )}
-
-          {/* 숫자라 콘덴스드를 쓴다 — 행의 시각 앵커(ACG). */}
-          {weight ? (
-            <AcgDisplayText style={styles.weightText}>
-              {`${weight}g`}
-            </AcgDisplayText>
-          ) : null}
-        </View>
-      ) : null}
 
       {children}
     </View>
@@ -105,70 +96,47 @@ const styles = StyleSheet.create({
   touchable: {
     flex: 1,
   },
-  // WH-1: minHeight를 썸네일 높이에 맞춰 **모든 행에** 걸어, 같은 목록에 이미지 있는 행과 없는 행이
-  // 섞여도 행 높이가 들쭉날쭉해지지 않게 한다. 정체 컬럼의 최소 높이(19+6+19)와 같은 값이라
-  // 이미지 없는 행의 겉모습은 그대로다. gap 12는 썸네일이 없으면 아예 적용되지 않으므로
-  // (렌더 자체를 건너뛴다) 좌측에 빈 여백도 남지 않는다.
+  /**
+   * 면 없이 지면에 놓이고 행 사이 헤어라인으로만 갈린다(HM-8). `minHeight`는 썸네일 높이와
+   * 토큰 값 중 큰 쪽이라, 이미지 있는 행과 없는 행이 섞여도 높이가 들쭉날쭉해지지 않는다.
+   */
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: ROW_VERTICAL_PADDING,
-    paddingHorizontal: 14,
+    paddingVertical: AcgRow.paddingVertical,
     gap: 12,
-    minHeight: GEAR_THUMBNAIL_SIZE + ROW_VERTICAL_PADDING * 2,
-    // ACG: 구분선 대신 지면 위 각진 종이 면. 홈·배낭 목록과 같은 행 문법이라
-    // 줄 수가 다른 행(1~3줄)이 섞여도 면 경계가 구분을 맡는다.
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    minHeight: Math.max(
+      AcgRow.minHeight,
+      GEAR_THUMBNAIL_SIZE + AcgRow.paddingVertical * 2
+    ),
   },
+  divided: {
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
+  },
+  // 바깥 래퍼가 면을 그리는 목록(검색·탐색)용 — 헤어라인도 그쪽이 맡는다.
   plainContainer: {
-    backgroundColor: 'transparent',
-    boxShadow: 'none',
-    paddingHorizontal: 0,
+    borderTopWidth: 0,
   },
-  // 좌 정체 컬럼 — 브랜드·이름·색상. flex:1이라 썸네일이 붙으면 정체 컬럼만 좁아지고
-  // 우측 지표 컬럼은 오른쪽 끝에 그대로 붙어 있다(= 무게의 세로 정렬 유지).
-  identityColumn: {
+  rowText: {
     flex: 1,
-    gap: 6,
-    overflow: 'hidden',
+    minWidth: 0,
+    gap: 2,
   },
-  // 우 지표 컬럼 — 사용률 배지(위) + 무게(아래). 우측 정렬로 행마다 무게가 같은 자리에 온다.
-  metricsColumn: {
-    alignItems: 'flex-end',
-    gap: 4,
-  },
-  // WH-1: 브랜드는 제품 식별의 첫 축이라 이름(nameText)과 동일한 타이포로 표시한다.
-  companyText: {
-    fontSize: 15,
-    lineHeight: 19,
+  name: {
+    fontSize: AcgFontSize.rowTitle,
+    lineHeight: 25,
     color: Acg.ink,
   },
-  usedRateBadge: {
-    borderRadius: 0,
-    backgroundColor: Acg.bg,
-    paddingVertical: 2,
-    paddingHorizontal: 5,
-  },
-  usedRateText: {
-    color: Acg.textSecondary,
-    fontSize: 11,
-  },
-  nameText: {
-    fontSize: 15,
-    lineHeight: 19,
-    color: Acg.ink,
-  },
-  colorText: {
-    fontSize: 13,
-    color: Acg.textSecondary,
-  },
-  // 무게는 라임 텍스트 — 목록에서 이 값 하나만 액센트로 세운다(홈 창고 미리보기와 동일).
-  weightText: {
-    fontSize: 16,
+  // 메타는 회색이 아니라 잉크다(레퍼런스) — 무게·브랜드·사용률은 장식이 아니라 정보다.
+  meta: {
+    fontSize: AcgFontSize.rowSubtitle,
     lineHeight: 20,
-    color: Acg.limeText,
-    textAlign: 'right',
+    color: Acg.ink,
+  },
+  metaNumber: {
+    fontSize: AcgFontSize.rowSubtitle,
+    color: Acg.ink,
   },
 });
 

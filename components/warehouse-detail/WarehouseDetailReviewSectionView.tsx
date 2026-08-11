@@ -5,7 +5,7 @@ import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
-import { Acg, AcgShadow } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 import StarRatingView from '../camp-site/StarRatingView';
 
 interface Props {
@@ -117,8 +117,7 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: 15,
     paddingHorizontal: 14,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    backgroundColor: Acg.controlFill,
     borderRadius: 0,
     width: '100%',
   },
@@ -138,16 +137,14 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: 13,
     paddingHorizontal: 14,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    backgroundColor: Acg.controlFill,
     borderRadius: 0,
     width: '100%',
   },
   replyItem: {
     paddingVertical: 13,
     paddingHorizontal: 14,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    backgroundColor: Acg.controlFill,
     borderRadius: 0,
     width: '100%',
   },

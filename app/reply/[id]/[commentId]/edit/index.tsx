@@ -39,10 +39,7 @@ const ReplyEdit = () => {
 
   if (isLoading || comment === null) {
     return (
-      <Layout
-        paddingHorizontal={0}
-        edges={IS_IOS ? IOS_EDGES : undefined}
-      >
+      <Layout paddingHorizontal={0} edges={IS_IOS ? IOS_EDGES : undefined}>
         {/* 로딩 중에도 네이티브 헤더(back)를 미리 띄워 로드 완료 시 헤더가 튀지 않게 한다. */}
         <Stack.Screen
           options={{

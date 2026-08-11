@@ -55,11 +55,13 @@ const RightActions: FC<RightActionsProps> = ({ drag, label, onDelete }) => {
 };
 
 interface Props {
+  // 위 행과 가르는 헤어라인(목록 첫 행에는 없다) — 공용 `GearView`로 그대로 넘긴다.
+  divided?: boolean;
   gear: Gear;
   warehouse: Warehouse;
 }
 
-const WarehouseGearView: FC<Props> = ({ gear, warehouse }) => {
+const WarehouseGearView: FC<Props> = ({ gear, warehouse, divided = false }) => {
   const alertManager = app.getAlertManager();
   const router = useRouter();
   const swipeableRef = useRef<SwipeableMethods>(null);
@@ -104,14 +106,14 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse }) => {
     >
       {/* 불투명 배경 — 스와이프 전환 중 뒤 삭제색이 행 밑으로 비치지 않게 한다(BagItemView와 동일). */}
       <View style={styles.rowBackground}>
-        <GearView gear={gear} onPress={handlePressDetail} />
+        <GearView gear={gear} onPress={handlePressDetail} divided={divided} />
       </View>
     </ReanimatedSwipeable>
   );
 };
 
 const styles = StyleSheet.create({
-  // 면은 행(GearView)이 직접 그린다 — 여기서 흰 면을 또 깔면 행 사이 지면이 덮인다.
+  // 행 표현(헤어라인·타이포)은 공용 `GearView`가 그린다 — 여기는 스와이프 액션만 맡는다.
   rowBackground: {
     backgroundColor: 'transparent',
   },

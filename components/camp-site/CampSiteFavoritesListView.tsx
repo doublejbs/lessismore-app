@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout, AcgShadow, Color } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, Color } from '@/constants/DesignTokens';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
   getCampSiteTypeLabel,
@@ -165,8 +165,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minHeight: 56,
     paddingHorizontal: 14,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    backgroundColor: Acg.controlFill,
   },
   rowMain: {
     flex: 1,

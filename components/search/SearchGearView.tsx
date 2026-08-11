@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
-import { Acg, AcgShadow, Color } from '@/constants/DesignTokens';
+import { Acg, Color } from '@/constants/DesignTokens';
 import GearRowActions from '@/model/browse/GearRowActions';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
@@ -110,8 +110,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 20,
     paddingHorizontal: 14,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    backgroundColor: Acg.controlFill,
   },
   gearContainer: {
     flex: 1,

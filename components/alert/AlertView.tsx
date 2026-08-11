@@ -40,7 +40,7 @@ const AlertView: FC<Props> = ({ alertManager }) => {
     <Modal
       visible={isVisible}
       transparent={true}
-      animationType="fade"
+      animationType='fade'
       onRequestClose={handleClickCancel}
     >
       <View style={styles.overlay}>

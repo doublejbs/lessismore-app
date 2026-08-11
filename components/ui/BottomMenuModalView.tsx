@@ -87,7 +87,11 @@ const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
                 style={styles.menuItem}
                 onPress={item.onPress}
               >
-                <Ionicons name={item.icon} size={20} color={Color.textPrimary} />
+                <Ionicons
+                  name={item.icon}
+                  size={20}
+                  color={Color.textPrimary}
+                />
                 <PretendardText style={styles.menuItemText}>
                   {item.text}
                 </PretendardText>

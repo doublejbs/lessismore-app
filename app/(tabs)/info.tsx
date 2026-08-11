@@ -19,7 +19,6 @@ import { Ionicons } from '@expo/vector-icons';
 import InfoFooterView from '@/components/info/InfoFooterView';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, Color, Radius } from '@/constants/DesignTokens';
-import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 
 // 화면 제목 크기(ACG).
 const TITLE_SIZE = 44;
@@ -91,10 +90,7 @@ const InfoView: FC = () => {
   };
 
   return (
-    <Layout
-      paddingHorizontal={AcgLayout.screenH}
-      background={<AcgScreenBackground photo terrain={false} />}
-    >
+    <Layout paddingHorizontal={AcgLayout.screenH}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
