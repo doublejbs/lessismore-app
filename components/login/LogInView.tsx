@@ -15,7 +15,6 @@ import {
 } from 'react-native';
 import { Svg, Path } from 'react-native-svg';
 import PretendardText from '@/components/PretendardText';
-import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
 import LiquidBottomSheet from '@/components/liquid/LiquidBottomSheet';
 import LiquidPillButton from '@/components/liquid/LiquidPillButton';
 import {
@@ -42,7 +41,11 @@ const PROVIDER_LOGO_SIZE = 20;
  * 아니라 "여기서 이어 하자"는 제안이고, 엄지가 닿는 아래에서 올라오는 편이 짧다.
  * 라우트가 아니라 전역 모달인 구조는 그대로다(`LogInAlertManager.show()`로 어디서든 호출).
  *
- * 뒤 화면은 지형 0.7 + 베일로 덮는다 — 어디서 눌렀든 로그인은 같은 자리로 읽혀야 한다.
+ * **뒤 화면은 잉크 막(`Liquid.scrim`)으로만 덮는다** — 목업 §12는 지형 0.7 + 베일을 그리지만
+ * 그건 로그인을 독립 화면으로 그린 목업의 지면이다. 이 앱에서 로그인은 어느 화면에서든
+ * 올라오는 오버레이라, 불투명 지면을 깔면 이전 화면이 통째로 지워져 **페이지 이동으로
+ * 읽힌다**(하던 일이 사라진 것처럼 보인다). 공지·닉네임 편집 시트와 같은 막을 써서
+ * "위에 올라온 시트"임을 유지한다.
  */
 const LogInView: FC<Props> = ({ logInAlertManager }) => {
   const isVisible = logInAlertManager.isVisible();
@@ -263,7 +266,6 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
       onRequestClose={handleClickCancel}
     >
       <View style={styles.root}>
-        <LiquidBackdrop screen='login' glowPosition='topLeft' />
         {/* 시트 밖을 눌러 닫는다. 시트에는 닫기 버튼이 없어 이 영역이 유일한 취소 경로다. */}
         <Pressable
           style={StyleSheet.absoluteFill}
@@ -297,6 +299,7 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: Liquid.scrim,
   },
   sheetHolder: {
     flex: 1,
