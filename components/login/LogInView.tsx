@@ -14,7 +14,7 @@ import {
 import { Svg, Path } from 'react-native-svg';
 import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
 import LogInAlertManager from '@/model/login/LogInAlertManager';
 import app from '@/model/app/App';
 
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.textPrimary,
   },
   buttonContainer: {
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     color: Color.background,
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
   },
   emailLoginButton: {
     paddingVertical: 8,
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.inputBg,
     borderRadius: Radius.input,
     paddingHorizontal: 16,
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     fontFamily: 'Pretendard-Regular',
     color: Color.textPrimary,
   },

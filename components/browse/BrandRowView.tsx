@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   brandName: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.textPrimary,
   },
   brandNameSelected: {

@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   name: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     lineHeight: 22,
     color: Color.textPrimary,
   },

@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.textPrimary,
   },
   summaryText: {

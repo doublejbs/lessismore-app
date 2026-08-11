@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Bag from '@/model/bag/Bag';
-import { Color } from '@/constants/DesignTokens';
+import { AcgFontSize, Color } from '@/constants/DesignTokens';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import SearchTopKeywordsView from '@/components/search/SearchTopKeywordsView';
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     flex: 1,
-    fontSize: 17,
+    fontSize: AcgFontSize.rowTitle,
     color: Color.textPrimary,
   },
   content: {

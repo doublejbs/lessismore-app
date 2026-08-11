@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { AcgFontSize, Color } from '@/constants/DesignTokens';
 
 interface Props {
   label: string;
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   label: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     lineHeight: 20,
     color: Color.textSecondary,
   },

@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import StarRatingView from '@/components/camp-site/StarRatingView';
 import { CommentUpdateRequest } from '@/model/reply/Comment';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
 import useKeyboard from '@/hooks/useKeyboard';
 import app from '@/model/app/App';
 
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Acg.controlFill,
     padding: 16,
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Acg.ink,
     minHeight: 200,
   },
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.hairline,
   },
   completeButtonText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
   },
   completeButtonTextActive: {
     color: Acg.paper,

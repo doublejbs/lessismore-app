@@ -26,7 +26,7 @@ import WarehouseDetailReviewSectionView from './WarehouseDetailReviewSectionView
 import WarehouseDetailExternalReviewView from './WarehouseDetailExternalReviewView';
 import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '../PretendardText';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SearchGearAddToBagModalView from '../search/SearchGearAddToBagModalView';
 import Bag from '@/model/bag/Bag';
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Acg.ink,
   },
   // 헤더 우측 액션 묶음(공유 + 수정).
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     color: Acg.paper,
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
   },
 });
 

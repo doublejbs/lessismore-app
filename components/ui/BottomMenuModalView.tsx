@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { FC, useRef, useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
 
 interface MenuItem {
   readonly icon: keyof typeof Ionicons.glyphMap;
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   menuItemText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     lineHeight: 18,
     color: Color.textPrimary,
   },
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     color: Color.background,
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
   },
 });
 

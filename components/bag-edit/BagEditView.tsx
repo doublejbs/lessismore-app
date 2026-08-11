@@ -19,7 +19,13 @@ import BagEditHeaderView from './BagEditHeaderView';
 import BagEditWeightTitleView from './BagEditWeightTitleView';
 import Layout from '../Layout';
 import { Stack, useFocusEffect } from 'expo-router';
-import { Acg, Color, Radius, Spacing } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgFontSize,
+  Color,
+  Radius,
+  Spacing,
+} from '@/constants/DesignTokens';
 
 interface Props {
   bagEdit: BagEdit;
@@ -228,7 +234,7 @@ const styles = StyleSheet.create({
   },
   confirmButtonText: {
     color: Color.background,
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
   },
 });
 

@@ -3,7 +3,7 @@ import { FC, useEffect, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   startDate: dayjs.Dayjs | null;
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   periodText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.textPrimary,
   },
   periodPlaceholder: {
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   monthTitle: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.textPrimary,
   },
   calendarContainer: {

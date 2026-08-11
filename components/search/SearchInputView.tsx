@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     padding: 0,
     borderWidth: 0,
     backgroundColor: 'transparent',

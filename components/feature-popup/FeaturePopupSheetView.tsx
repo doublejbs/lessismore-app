@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
 import FeaturePopupItemView from '@/components/feature-popup/FeaturePopupItemView';
-import { Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius, Spacing } from '@/constants/DesignTokens';
 
 // http(s) 링크 판별 — 이 경우만 외부 브라우저로 연다(FP-3/FP-4).
 const EXTERNAL_LINK_PATTERN = /^https?:\/\//i;
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.chipActiveBg,
   } as ViewStyle,
   mainButtonText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.background,
   },
   // 건너뛰기 — 하단 텍스트 버튼. 44pt 이상 터치 타깃.

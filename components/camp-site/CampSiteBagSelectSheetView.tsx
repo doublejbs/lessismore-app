@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   createText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.textPrimary,
   },
   sectionLabel: {
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   rowName: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.textPrimary,
   },
   rowDate: {

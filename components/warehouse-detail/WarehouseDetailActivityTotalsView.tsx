@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
-import { Acg } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize } from '@/constants/DesignTokens';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -79,7 +79,7 @@ const WarehouseDetailActivityTotalsView: FC<Props> = ({ warehouseDetail }) => {
 
 const styles = StyleSheet.create({
   headlineText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Acg.ink,
   },
   rowsContainer: {

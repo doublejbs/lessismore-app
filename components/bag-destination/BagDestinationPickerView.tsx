@@ -17,7 +17,13 @@ import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color, Radius, Spacing } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgFontSize,
+  Color,
+  Radius,
+  Spacing,
+} from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
@@ -480,7 +486,7 @@ const styles = StyleSheet.create({
     width: 24,
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.textPrimary,
   },
   searchBox: {
@@ -566,7 +572,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   confirmText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.background,
   },
 });

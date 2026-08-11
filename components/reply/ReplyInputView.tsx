@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.controlFill,
     paddingHorizontal: 14,
     paddingVertical: 14,
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     fontFamily: 'Pretendard-Regular',
     color: Acg.ink,
     minHeight: 100,
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cancelButtonText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Acg.ink,
   },
   confirmButton: {
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   confirmButtonText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Acg.paper,
   },
   accessoryBar: {
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     borderTopColor: Acg.hairline,
   },
   accessoryDone: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Acg.ink,
     paddingHorizontal: 8,
     paddingVertical: 4,

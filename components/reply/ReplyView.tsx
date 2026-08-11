@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   emptyTitle: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Acg.ink,
   },
   emptyDesc: {

@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize } from '@/constants/DesignTokens';
 
 interface Props {
   bagMemo: BagMemo;
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Acg.controlFill,
     padding: 16,
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Acg.ink,
     minHeight: 200,
   },
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.hairline,
   },
   completeButtonText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
   },
   completeButtonTextActive: {
     color: Acg.paper,

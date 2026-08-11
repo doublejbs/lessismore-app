@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Spacing } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Spacing } from '@/constants/DesignTokens';
 
 interface Props {
   onRequestPermission: () => void;
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   primaryButtonText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.background,
   },
 });

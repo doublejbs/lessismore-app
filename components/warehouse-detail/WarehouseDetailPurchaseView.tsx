@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   title: {
-    fontSize: 17,
+    fontSize: AcgFontSize.rowTitle,
     color: Acg.ink,
   },
   coupangGroup: {

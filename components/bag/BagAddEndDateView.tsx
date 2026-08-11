@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   endDate: dayjs.Dayjs;
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dateText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.textPrimary,
   },
 });

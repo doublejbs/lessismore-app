@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     height: 52,
   },
   headerTitle: {
-    fontSize: 17,
+    fontSize: AcgFontSize.rowTitle,
     color: Color.textPrimary,
   },
   headerSpacer: {
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   periodTitle: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.textPrimary,
   },
   periodRow: {

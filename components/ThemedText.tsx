@@ -1,4 +1,5 @@
 import { StyleSheet, Text, type TextProps } from 'react-native';
+import { AcgFontSize } from '@/constants/DesignTokens';
 
 import { useThemeColor } from '@/hooks/useThemeColor';
 
@@ -35,13 +36,13 @@ export function ThemedText({
 
 const styles = StyleSheet.create({
   default: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     lineHeight: 24,
     fontFamily: 'Pretendard-Regular',
     color: '#000000',
   },
   defaultSemiBold: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     lineHeight: 24,
     fontFamily: 'Pretendard-SemiBold',
     color: '#000000',
@@ -59,7 +60,7 @@ const styles = StyleSheet.create({
   },
   link: {
     lineHeight: 30,
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: '#0a7ea4',
     fontFamily: 'Pretendard-Medium',
   },

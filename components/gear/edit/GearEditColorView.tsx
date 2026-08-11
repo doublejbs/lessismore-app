@@ -3,7 +3,7 @@ import { View, TextInput } from 'react-native';
 import GearEdit from '@/model/gear/edit/GearEdit';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
 
 interface GearEditColorViewProps {
   gearEdit: GearEdit;
@@ -37,7 +37,7 @@ const GearEditColorView: FC<GearEditColorViewProps> = ({ gearEdit }) => {
           backgroundColor: Color.inputBg,
           paddingHorizontal: 12,
           paddingVertical: 12,
-          fontSize: 16,
+          fontSize: AcgFontSize.rowSubtitle,
         }}
         placeholder='색상을 입력해주세요'
         onChangeText={handleChangeColor}

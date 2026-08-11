@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     padding: 0,
     borderWidth: 0,
     backgroundColor: 'transparent',
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.textSecondary,
     textAlign: 'center',
   },
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   confirmButtonText: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     color: Color.background,
   },
 });

@@ -3,7 +3,7 @@ import { FC, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import PretendardText from '@/components/PretendardText';
-import { AcgLayout, Color } from '@/constants/DesignTokens';
+import { AcgFontSize, AcgLayout, Color } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Bag from '@/model/bag/Bag';
 import { GearAddContext } from '@/model/gear/GearAddContext';
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: Color.textSecondary,
-    fontSize: 16,
+    fontSize: AcgFontSize.rowSubtitle,
     textAlign: 'center',
   },
   flatListContent: {
