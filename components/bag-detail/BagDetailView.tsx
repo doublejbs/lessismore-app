@@ -17,10 +17,15 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgShadow, Color, Spacing } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgFontSize,
+  AcgLayout,
+  AcgRadius,
+  Color,
+} from '@/constants/DesignTokens';
 import BagDetailCategoryView from './BagDetailCategoryView';
-import AcgHighlightText from '@/components/acg/AcgHighlightText';
-import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
+import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import BagDetailDateView from './BagDetailDateView';
 import BagDetailFiltersView from './BagDetailFiltersView';
 import BagDetailNameView from './BagDetailNameView';
@@ -159,9 +164,9 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     return (
       <GestureHandlerRootView style={styles.container}>
         {stackScreen}
-        {/* 홈·정보 탭과 같은 지형 이미지 지면(2026-08-04 사용자 결정). 세이프에어리어
-            여백까지 이어져야 하므로 SafeAreaView 바깥에 둔다. */}
-        <AcgScreenBackground photo terrain={false} />
+        {/* 목록 화면은 순백 지면이다 — 지형 그래픽은 홈에만 둔다(2026-08-11 사용자 결정).
+            세이프에어리어 여백까지 이어져야 하므로 SafeAreaView 바깥에 둔다. */}
+        <View style={styles.ground} />
         <SafeAreaView style={styles.container} edges={SAFE_AREA_EDGES}>
           <View style={styles.container}>
             {!IS_IOS && (
@@ -233,12 +238,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                 }}
               >
                 <View style={styles.gearHeaderContent}>
-                  {/* 형광펜은 화면당 한 곳에만 — 이 화면의 주 섹션이다(ACG). */}
-                  <AcgHighlightText fontSize={GEAR_COUNT_SIZE}>
-                    <PretendardText style={styles.gearCountText} weight='bold'>
-                      총 {gears.length}개의 장비
-                    </PretendardText>
-                  </AcgHighlightText>
+                  <AcgSectionHeaderView title={`장비 ${gears.length}개`} />
                 </View>
                 <BagDetailFiltersView bagDetail={bagDetail} />
               </View>
@@ -250,7 +250,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                   {gears.length === 0 ? (
                     <View style={styles.gearEmpty}>
                       <PretendardText
-                        weight='bold'
+                        weight='semibold'
                         style={styles.gearEmptyTitle}
                       >
                         담긴 장비가 없어요
@@ -258,6 +258,8 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                       <PretendardText style={styles.gearEmptyText}>
                         창고에서 장비를 골라 담아보세요
                       </PretendardText>
+                      {/* 하단 바의 `장비 추가`와 같은 경로다. 라임은 그쪽 하나뿐이라
+                          여기는 잉크 알약으로 둔다. */}
                       <TouchableOpacity
                         style={styles.gearEmptyButton}
                         onPress={handlePressAddGear}
@@ -266,7 +268,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                         accessibilityLabel='장비 추가하기'
                       >
                         <PretendardText
-                          weight='bold'
+                          weight='semibold'
                           style={styles.gearEmptyButtonText}
                         >
                           장비 추가하기
@@ -295,9 +297,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                 style={[styles.pinnedGearHeader, { paddingTop: headerBottom }]}
               >
                 <View style={styles.gearHeaderContent}>
-                  <PretendardText style={styles.gearCountText} weight='bold'>
-                    총 {gears.length}개의 장비
-                  </PretendardText>
+                  <AcgSectionHeaderView title={`장비 ${gears.length}개`} />
                 </View>
                 <BagDetailFiltersView bagDetail={bagDetail} />
               </View>
@@ -322,19 +322,27 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
   }
 };
 
-// 섹션 제목 크기(ACG) — 홈·장비 상세와 같은 18px/700.
-const GEAR_COUNT_SIZE = 18;
+// 빈 상태 버튼 알약 높이. 모서리는 그 절반이다.
+const EMPTY_CTA_HEIGHT = 48;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // 지면은 AcgScreenBackground가 깐다 — 여기 색을 두면 그 위를 덮는다.
+    // 지면은 아래 `ground`가 깐다 — 여기 색을 두면 그 위를 덮는다.
     backgroundColor: 'transparent',
+  },
+  ground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: Acg.paper,
   },
   header: {
     backgroundColor: 'transparent',
     marginBottom: 8,
-    paddingHorizontal: Spacing.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
   },
   headerContent: {
     flexDirection: 'row',
@@ -366,14 +374,14 @@ const styles = StyleSheet.create({
   infoSection: {
     backgroundColor: 'transparent',
     paddingTop: 8,
-    paddingHorizontal: Spacing.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
   },
   actionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     rowGap: 10,
-    paddingHorizontal: Spacing.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
     marginTop: 12,
     marginBottom: 8,
   },
@@ -393,55 +401,54 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: Acg.bg,
+    backgroundColor: Acg.paper,
   },
   gearHeaderContent: {
     width: '100%',
     flexDirection: 'row',
-    padding: Spacing.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
+    paddingTop: AcgLayout.screenPadding,
     justifyContent: 'space-between',
   },
-  gearCountText: {
-    fontSize: GEAR_COUNT_SIZE,
-    color: Acg.textTertiary,
-  },
-  // 지면 위 종이 면 안내(ACG).
+  // 순백 지면 위 연회색 면 — 흰 면은 지면과 붙어 보이지 않는다.
   gearEmpty: {
-    alignItems: 'center',
-    paddingVertical: 28,
-    marginHorizontal: Spacing.screenH,
-    gap: 6,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    marginHorizontal: AcgLayout.screenPadding,
+    gap: 4,
+    backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
   },
   gearEmptyTitle: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowTitle,
+    lineHeight: 25,
     color: Acg.ink,
   },
   gearEmptyText: {
-    fontSize: 13,
-    color: Acg.textSecondary,
-    marginBottom: 14,
+    fontSize: AcgFontSize.rowSubtitle,
+    lineHeight: 20,
+    color: Acg.textMuted,
+    marginBottom: 12,
   },
-  // 하단 `장비 추가`와 같은 경로라 같은 잉크 면을 쓴다(ACG).
   gearEmptyButton: {
-    alignSelf: 'stretch',
-    marginHorizontal: Spacing.screenH,
-    paddingVertical: 15,
+    minHeight: EMPTY_CTA_HEIGHT,
+    borderRadius: EMPTY_CTA_HEIGHT / 2,
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: Acg.ink,
   },
   gearEmptyButtonText: {
-    fontSize: 15,
+    fontSize: AcgFontSize.control,
     color: Acg.paper,
   },
   gearListContainer: {
     alignItems: 'center',
-    paddingHorizontal: Spacing.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
   },
   gearList: {
     width: '100%',
-    gap: 24,
+    // 카테고리 묶음 사이 간격. 묶음 **안**의 행은 헤어라인이 가른다(간격 0).
+    gap: 20,
     paddingBottom: 80,
   },
   dummy: {

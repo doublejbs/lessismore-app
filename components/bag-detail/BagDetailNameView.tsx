@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -23,10 +23,14 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
       accessibilityRole='button'
       accessibilityLabel='배낭 정보 수정'
     >
-      <PretendardText style={styles.nameText} weight='bold' numberOfLines={2}>
+      <PretendardText
+        style={styles.nameText}
+        weight='semibold'
+        numberOfLines={2}
+      >
         {bagDetail.getName()}
       </PretendardText>
-      <Ionicons name='pencil' size={15} color={Color.textSecondary} />
+      <Ionicons name='pencil' size={15} color={Acg.textMuted} />
     </TouchableOpacity>
   );
 };
@@ -42,14 +46,15 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     flexDirection: 'row',
     paddingVertical: 4,
-    borderRadius: Radius.listThumb,
     gap: 6,
   },
+  // 화면 제목 — 홈·배낭 목록과 같은 28pt.
   nameText: {
     fontSize: 28,
     // 2줄까지 늘어나므로 한글 받침이 잘리지 않게 줄 간격을 명시한다.
-    lineHeight: 36,
-    color: Color.textPrimary,
+    lineHeight: 34,
+    letterSpacing: -0.5,
+    color: Acg.ink,
     flexShrink: 1,
   },
 });

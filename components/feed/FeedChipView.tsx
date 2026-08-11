@@ -1,5 +1,5 @@
-import { FC, ReactNode } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { forwardRef, ReactNode } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgFontSize } from '@/constants/DesignTokens';
 
@@ -14,23 +14,30 @@ interface Props {
   accessibilityLabel?: string;
 }
 
-// FD-3: 탐색 탭 필터 칩(레퍼런스 톤). 연회색 채움 + 알약, 선택 시 잉크 채움 + 흰 글자.
-// 공용 `CategoryChipView`는 앱 전 화면이 쓰는 아웃라인 칩이라 값이 다르고,
-// 탐색 탭만 이 톤을 쓰므로 별도 컴포넌트로 둔다.
+// FD-3: 필터 칩(레퍼런스 톤). 연회색 채움 + 알약, 선택 시 잉크 채움 + 흰 글자.
+// 탐색 탭에서 시작해 홈·배낭 상세로 넓혔다 — 같은 동작에는 같은 컨트롤이어야 한다.
+// 아웃라인 톤의 공용 `CategoryChipView`는 아직 이식하지 않은 화면들이 쓴다.
+//
+// **ref를 받는다**: 배낭 상세(BD-2)는 선택한 칩이 가로 스크롤 밖일 때 보이도록 스크롤하는데,
+// 그 계산이 칩의 화면 좌표를 재야 한다 — 계산은 모델이 하고 여기서는 노드만 넘긴다.
 const CHIP_HEIGHT = 36;
 
 const COMPACT_CHIP_HEIGHT = 32;
 
-const FeedChipView: FC<Props> = ({
-  label,
-  onPress,
-  selected = false,
-  leadingIcon,
-  compact = false,
-  accessibilityLabel,
-}) => {
+const FeedChipView = forwardRef<View, Props>(function FeedChipView(
+  {
+    label,
+    onPress,
+    selected = false,
+    leadingIcon,
+    compact = false,
+    accessibilityLabel,
+  },
+  ref
+) {
   return (
     <TouchableOpacity
+      ref={ref}
       style={[
         styles.chip,
         compact && styles.chipCompact,
@@ -55,7 +62,7 @@ const FeedChipView: FC<Props> = ({
       </PretendardText>
     </TouchableOpacity>
   );
-};
+});
 
 const styles = StyleSheet.create({
   chip: {

@@ -25,9 +25,6 @@ const IOS_EDGES = ['top', 'left', 'right'] as const;
 // 앵커가 될 값이 아니다(HM-8과 같은 판단).
 const TITLE_SIZE = 28;
 
-// 화면 좌우 패딩 — 탐색·홈과 같은 16.
-const SCREEN_H = 16;
-
 const BagView = () => {
   const [bag] = useState(() => Bag.new());
   const insets = useSafeAreaInsets();
@@ -127,7 +124,7 @@ const BagView = () => {
     <GestureHandlerRootView style={styles.root}>
       <Layout
         edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
-        paddingHorizontal={SCREEN_H}
+        paddingHorizontal={AcgLayout.screenPadding}
         /**
          * 목록 화면은 순백이다 — 지형 그래픽은 홈에만 둔다(2026-08-11 사용자 결정).
          * 목록이 빽빽한 화면에서 지면 무늬는 행 사이 헤어라인·글자와 섞여 지저분해진다.

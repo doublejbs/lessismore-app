@@ -5,7 +5,7 @@ import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import BagDetailGearView from './BagDetailGearView';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize } from '@/constants/DesignTokens';
 
 interface Props {
   category: WarehouseFilter;
@@ -34,11 +34,12 @@ const BagDetailCategoryView: FC<Props> = ({
         {category.getName()}
       </PretendardText>
       <View style={styles.gearList}>
-        {gears.map(gear => (
+        {gears.map((gear, index) => (
           <BagDetailGearView
             key={gear.getId()}
             gear={gear}
             bagDetail={bagDetail}
+            divided={index > 0}
           />
         ))}
       </View>
@@ -50,13 +51,18 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: 8,
   },
+  /**
+   * 카테고리는 **묶음 안의 라벨**이라 섹션 제목(19)보다 한 단 작다 — 같은 크기로 두면
+   * 목록 안에 섹션이 여럿 있는 것처럼 읽힌다. 행 이름과도 크기가 갈려야 한다.
+   */
   categoryTitle: {
-    fontSize: 18,
-    marginBottom: 12,
-    color: Color.textTertiary,
+    fontSize: AcgFontSize.rowSubtitle,
+    marginBottom: 2,
+    color: Acg.textMuted,
   },
+  // 행 사이 간격은 두지 않는다 — 헤어라인이 가르고, 여백은 행 자체의 패딩이 맡는다.
   gearList: {
-    gap: 16,
+    gap: 0,
   },
 });
 

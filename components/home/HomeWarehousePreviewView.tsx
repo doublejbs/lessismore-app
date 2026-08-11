@@ -5,7 +5,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import FeedChipView from '@/components/feed/FeedChipView';
-import { Acg, AcgFontSize, AcgRadius, AcgRow } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgFontSize,
+  AcgLayout,
+  AcgRadius,
+  AcgRow,
+} from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import Gear from '@/model/gear/Gear';
@@ -20,8 +26,7 @@ interface Props {
   gears: Gear[];
 }
 
-// 화면 좌우 패딩(HomeView) — 칩 행만 이 값만큼 밖으로 빼 지면 끝까지 흐르게 한다.
-const SCREEN_H = 16;
+// 칩 행만 화면 패딩(`AcgLayout.screenPadding`)만큼 밖으로 빼 지면 끝까지 흐르게 한다.
 
 const CTA_HEIGHT = 48;
 
@@ -184,14 +189,14 @@ const styles = StyleSheet.create({
   },
   // 칩 행만 화면 패딩 밖으로 빼 지면 끝까지 흐르게 한다(탐색 탭과 같은 규칙).
   chipsScroll: {
-    marginHorizontal: -SCREEN_H,
+    marginHorizontal: -AcgLayout.screenPadding,
   },
   chips: {
     flexDirection: 'row',
     alignItems: 'center',
     // 탐색 탭 칩 행과 같은 간격(FD-3).
     gap: 12,
-    paddingHorizontal: SCREEN_H,
+    paddingHorizontal: AcgLayout.screenPadding,
   },
   gearList: {
     marginTop: 6,

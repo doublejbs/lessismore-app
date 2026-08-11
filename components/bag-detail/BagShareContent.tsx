@@ -81,7 +81,11 @@ const BagShareContent: FC<Props> = ({ bagDetail }) => {
               accessibilityRole='button'
               accessibilityLabel='링크 복사'
             >
-              <Ionicons name='copy-outline' size={18} color={Color.textSecondary} />
+              <Ionicons
+                name='copy-outline'
+                size={18}
+                color={Color.textSecondary}
+              />
             </TouchableOpacity>
           </View>
         )}

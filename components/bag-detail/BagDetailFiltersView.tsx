@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import { FC, useRef, useEffect } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
+import { AcgLayout } from '@/constants/DesignTokens';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import FilterButtonView from './FilterButtonView';
 
@@ -56,9 +57,10 @@ const BagDetailFiltersView: FC<Props> = ({ bagDetail }) => {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    paddingBottom: 15,
-    paddingLeft: 20,
-    // 지면이 비쳐야 한다 — 흰 면을 깔면 필터 영역만 종이처럼 떠 보인다(ACG).
+    paddingTop: 10,
+    paddingBottom: 14,
+    paddingLeft: AcgLayout.screenPadding,
+    // 지면이 비쳐야 한다 — 흰 면을 깔면 필터 영역만 따로 떠 보인다.
     backgroundColor: 'transparent',
   },
   scrollView: {
@@ -66,7 +68,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     alignItems: 'center',
-    gap: 8,
+    // 탐색 탭 칩 행과 같은 간격(FD-3).
+    gap: 12,
+    // 마지막 칩이 화면 오른쪽 끝에 붙지 않게 한다.
+    paddingRight: AcgLayout.screenPadding,
   },
 });
 

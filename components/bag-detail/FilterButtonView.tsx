@@ -2,7 +2,7 @@ import { observer } from 'mobx-react-lite';
 import { FC, useRef, useEffect } from 'react';
 import { View } from 'react-native';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
-import CategoryChipView from '@/components/browse/CategoryChipView';
+import FeedChipView from '@/components/feed/FeedChipView';
 
 interface BagWithFilters {
   toggleFilterWithScroll: (filter: WarehouseFilter) => void;
@@ -28,7 +28,7 @@ const FilterButtonView: FC<Props> = ({ filter, bagDetail, onRef }) => {
   };
 
   return (
-    <CategoryChipView
+    <FeedChipView
       ref={viewRef}
       label={filter.getName()}
       selected={filter.isSelected()}

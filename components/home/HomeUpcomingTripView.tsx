@@ -122,11 +122,8 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
     <View style={styles.section}>
       <AcgSectionHeaderView
         title='다가오는 일정'
-        subtitle={
-          next.length > 0
-            ? `가장 가까운 일정과 다음 ${next.length}개`
-            : undefined
-        }
+        // 부제는 목록의 기준만 밝힌다 — 개수를 넣으면 셀 수 있는 것을 글로 또 세는 셈이다.
+        subtitle={next.length > 0 ? '가까운 일정 순' : undefined}
       />
 
       <View style={styles.tile}>

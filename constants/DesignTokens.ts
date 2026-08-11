@@ -188,7 +188,12 @@ export const AcgRow = {
 } as const;
 
 export const AcgLayout = {
-  screenH: 18, // 화면 좌우 패딩(핸드오프: 리스트 18px)
+  screenH: 18, // [옛 ACG] 아직 이식하지 않은 화면의 좌우 패딩
+  /**
+   * 레퍼런스 이식 화면의 화면 좌우 패딩(2026-08-11). 탐색·홈·배낭·배낭 상세가 같은 값을 쓴다 —
+   * 탭을 옮길 때 좌측 정렬선이 2px씩 움직이면 화면이 흔들려 보인다.
+   */
+  screenPadding: 16,
   section: 22,
   // 플로팅 탭바 아래로 콘텐츠가 흐르므로 스크롤 끝에 이만큼 비운다.
   scrollBottom: 130,
