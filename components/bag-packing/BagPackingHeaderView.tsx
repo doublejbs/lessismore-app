@@ -70,7 +70,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   countText: {
-    fontSize: 34,
+    // 화면 제목 — 다른 화면과 같은 28(34에서 내렸다).
+    fontSize: 28,
     lineHeight: 38,
     color: Acg.ink,
   },
