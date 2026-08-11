@@ -1,20 +1,18 @@
 import { FC } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import Gear from '@/model/gear/Gear';
 import BagItem from '@/model/bag/BagItem';
 import { getHomeRecordSummary } from '@/model/home/HomeRecordSummary';
-import { Acg, AcgShadow } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgRadius } from '@/constants/DesignTokens';
 
 interface Props {
   gears: Gear[];
   bags: BagItem[];
 }
-
-// 섹션 제목 크기(ACG) — 홈의 다른 섹션과 같은 18px/700.
-const SECTION_TITLE_SIZE = 18;
 
 /**
  * HM-7 내 기록 — 장비·총 무게·여행·안 쓴 장비 네 수치.
@@ -24,6 +22,8 @@ const SECTION_TITLE_SIZE = 18;
  *
  * **누를 수 있는 건 `안 쓴 장비` 하나뿐이다.** 나머지 셋은 다음 행동이 없어 표시로 족하고,
  * 이 지표만 "덜어내기"라는 분명한 다음 걸음이 있어 창고를 그 필터가 걸린 채로 연다.
+ * 그 하나를 라임 숫자가 아니라 **셰브론**으로 알린다(2026-08-11) — 홈의 라임은 일정 면의
+ * 주 액션 하나뿐이고, 색으로 누를 수 있음을 말하면 색맹 사용자에게는 신호가 사라진다.
  */
 const HomeRecordSummaryView: FC<Props> = ({ gears, bags }) => {
   const router = useRouter();
@@ -47,18 +47,16 @@ const HomeRecordSummaryView: FC<Props> = ({ gears, bags }) => {
 
   return (
     <View style={styles.section}>
-      <View style={styles.sectionHead}>
-        <PretendardText weight='bold' style={styles.sectionTitle}>
-          내 기록
-        </PretendardText>
-      </View>
+      <PretendardText weight='semibold' style={styles.sectionTitle}>
+        내 기록
+      </PretendardText>
 
-      <View style={styles.card}>
+      {/* 2×2 격자. 지표가 넷이라 한 줄에 넷을 넣으면 큰 숫자에서 값이 잘린다. */}
+      <View style={styles.tile}>
         {renderMetric('장비', String(summary.gearCount))}
         {renderMetric('총 무게', `${summary.totalWeightKg}kg`)}
         {renderMetric('여행', String(summary.bagCount))}
 
-        {/* 유일하게 다음 걸음이 있는 지표라 누를 수 있게 둔다. */}
         <TouchableOpacity
           style={styles.metric}
           onPress={handlePressUnused}
@@ -66,8 +64,13 @@ const HomeRecordSummaryView: FC<Props> = ({ gears, bags }) => {
           accessibilityRole='button'
           accessibilityLabel={`안 쓴 장비 ${summary.unusedCount}개, 창고에서 보기`}
         >
-          <PretendardText style={styles.metricLabel}>안 쓴 장비</PretendardText>
-          <AcgDisplayText style={[styles.metricValue, styles.metricAccent]}>
+          <View style={styles.metricLabelRow}>
+            <PretendardText style={styles.metricLabel}>
+              안 쓴 장비
+            </PretendardText>
+            <Ionicons name='chevron-forward' size={14} color={Acg.textMuted} />
+          </View>
+          <AcgDisplayText style={styles.metricValue}>
             {String(summary.unusedCount)}
           </AcgDisplayText>
         </TouchableOpacity>
@@ -78,41 +81,39 @@ const HomeRecordSummaryView: FC<Props> = ({ gears, bags }) => {
 
 const styles = StyleSheet.create({
   section: {
-    marginBottom: 28,
-  },
-  sectionHead: {
-    marginBottom: 12,
+    marginBottom: 26,
   },
   sectionTitle: {
-    fontSize: SECTION_TITLE_SIZE,
-    color: Acg.textTertiary,
+    marginBottom: 10,
+    fontSize: AcgFontSize.control,
+    color: Acg.ink,
   },
-  // 2×2 격자. 지표가 넷이라 한 줄에 넷을 넣으면 큰 글씨에서 값이 잘린다.
-  card: {
+  tile: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.paper,
+    rowGap: 16,
+    backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
+    padding: 16,
   },
   metric: {
     width: '50%',
     gap: 2,
-    paddingVertical: 10,
+  },
+  metricLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
   metricLabel: {
-    fontSize: 12,
-    color: Acg.textSecondary,
+    fontSize: AcgFontSize.meta,
+    lineHeight: 18,
+    color: Acg.textMuted,
   },
   metricValue: {
-    fontSize: 24,
-    lineHeight: 28,
+    fontSize: 26,
+    lineHeight: 30,
     color: Acg.ink,
-  },
-  // 덜어낼 후보라 앱의 액센트로 세운다 — 이 숫자만 누를 수 있다는 신호도 겸한다.
-  metricAccent: {
-    color: Acg.limeText,
   },
 });
 

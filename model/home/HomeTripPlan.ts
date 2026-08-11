@@ -111,6 +111,16 @@ export const getDDayLabel = (
  * 알림과 목적지를 맞춘다 — D-1 패킹 알림(NT-2)도, 여행 후 기록 알림(NT-3)도 홈에서
  * 같은 화면에 닿는다. 알림을 놓쳐도 홈에서 같은 할 일에 도달하는 것이 이 카드의 존재 이유다.
  */
+/**
+ * D-day 라벨을 콘덴스드(Archivo Narrow)로 그려도 되는지.
+ *
+ * `getDDayLabel`은 `D-6` 같은 숫자 라벨과 `여행 중`·`여행 완료` 같은 한글 라벨을 함께
+ * 돌려준다. **콘덴스드에는 한글 글리프가 없어** 한글 라벨에 쓰면 글자가 깨진다. 판단을
+ * 표시하는 쪽마다 정규식으로 흉내내지 않도록 여기 한 곳에 둔다.
+ */
+export const isCondensedDDayLabel = (label: string): boolean =>
+  /^D-\d+$/.test(label);
+
 export const getPrimaryAction = (
   bag: BagItem,
   stage: HomeTripStage
