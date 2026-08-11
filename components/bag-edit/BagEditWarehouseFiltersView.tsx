@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import { FC } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
+import { AcgLayout } from '@/constants/DesignTokens';
 import OrderButtonView from '../order/OrderButtonView';
 import GearFilter from '../../model/gear/GearFilter';
 import WarehouseFilter from '../../model/warehouse/WarehouseFilter';
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: AcgLayout.chipGap,
   },
   orderContainer: {
     width: '100%',

@@ -1,7 +1,7 @@
 import { forwardRef, ReactNode } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgRadius } from '@/constants/DesignTokens';
 
 interface Props {
   label: string;
@@ -14,7 +14,7 @@ interface Props {
   accessibilityLabel?: string;
 }
 
-// FD-3: 필터 칩(레퍼런스 톤). 연회색 채움 + 알약, 선택 시 잉크 채움 + 흰 글자.
+// FD-3: 필터 칩(레퍼런스 톤). 연회색 채움 + 둥근 사각(`AcgRadius.chip`), 선택 시 잉크 채움 + 흰 글자.
 // 탐색 탭에서 시작해 홈·배낭 상세로 넓혔다 — 같은 동작에는 같은 컨트롤이어야 한다.
 // 아웃라인 톤의 공용 `CategoryChipView`는 아직 이식하지 않은 화면들이 쓴다.
 //
@@ -72,15 +72,14 @@ const styles = StyleSheet.create({
     gap: 8,
     // 고정 높이 대신 최소 높이 — Dynamic Type에서 라벨이 잘리지 않게 한다.
     minHeight: CHIP_HEIGHT,
-    paddingHorizontal: 14,
-    // 높이가 커져도 알약을 유지한다(레퍼런스: radius full).
-    borderRadius: CHIP_HEIGHT,
+    paddingHorizontal: 12,
+    borderRadius: AcgRadius.chip,
     backgroundColor: Acg.controlFill,
   },
   chipCompact: {
     minHeight: COMPACT_CHIP_HEIGHT,
-    paddingHorizontal: 12,
-    borderRadius: COMPACT_CHIP_HEIGHT,
+    paddingHorizontal: 10,
+    borderRadius: AcgRadius.chip,
     gap: 6,
   },
   chipSelected: {
