@@ -7,13 +7,16 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Color } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, Color } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
+import SearchBarVariant from './SearchBarVariant';
 import { josa } from 'josa';
 import { observer } from 'mobx-react-lite';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
+  // 기본은 기존 유리 면 톤. `Plain`은 레퍼런스 톤 — 좌측 돋보기 + 17pt 입력·플레이스홀더.
+  variant?: SearchBarVariant;
 }
 
 export interface SearchBarInputHandle {
@@ -32,10 +35,14 @@ const SuggestionKeywords = [
   '헬리녹스',
 ];
 
+// 레퍼런스: 좌측 돋보기 24pt 잉크.
+const PLAIN_LEADING_ICON_SIZE = 24;
+
 const SearchBarInputView = forwardRef<SearchBarInputHandle, Props>(
-  ({ searchWarehouse }, ref) => {
+  ({ searchWarehouse, variant = SearchBarVariant.Glass }, ref) => {
     const keyword = searchWarehouse.getKeyword();
     const inputRef = useRef<TextInput>(null);
+    const isPlain = variant === SearchBarVariant.Plain;
 
     useImperativeHandle(ref, () => ({
       focus: () => {
@@ -60,13 +67,21 @@ const SearchBarInputView = forwardRef<SearchBarInputHandle, Props>(
 
     return (
       <View style={styles.container}>
+        {isPlain ? (
+          <Ionicons
+            name='search'
+            size={PLAIN_LEADING_ICON_SIZE}
+            color={Acg.ink}
+            style={styles.leadingIcon}
+          />
+        ) : null}
         <TextInput
           ref={inputRef}
-          style={styles.input}
+          style={[styles.input, isPlain && styles.plainInput]}
           value={keyword}
           onChangeText={handleChange}
           placeholder={placeholder}
-          placeholderTextColor={Color.textSecondary}
+          placeholderTextColor={isPlain ? Acg.textMuted : Color.textSecondary}
           autoCapitalize='none'
           autoCorrect={false}
         />
@@ -88,6 +103,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
   },
+  leadingIcon: {
+    marginRight: 12,
+  },
   input: {
     flex: 1,
     fontSize: 16,
@@ -102,6 +120,10 @@ const styles = StyleSheet.create({
         paddingVertical: 0,
       },
     }),
+  },
+  plainInput: {
+    fontSize: AcgFontSize.body,
+    color: Acg.ink,
   },
   clearButton: {
     marginLeft: 8,
