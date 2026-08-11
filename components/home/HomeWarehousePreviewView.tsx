@@ -206,10 +206,12 @@ const styles = StyleSheet.create({
     boxShadow: LiquidShadow.card,
     overflow: 'hidden',
   },
+  // 좌우 같은 값으로 들여쓴다 — 한쪽만 들여쓰면 카드 모서리와 만나는 지점이 좌우로 달라
+  // 선이 기울어 보인다(`LiquidMetricRow`의 divider와 같은 판단).
   moreDivider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: Liquid.hairline,
-    marginLeft: 16,
+    marginHorizontal: 16,
   },
   moreRow: {
     flexDirection: 'row',

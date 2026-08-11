@@ -10,11 +10,9 @@ import {
 import Bag from '@/model/bag/Bag';
 import LiquidAddCta from '@/components/liquid/LiquidAddCta';
 import LiquidMetricRow from '@/components/liquid/LiquidMetricRow';
-import GearThumbnailView, {
-  GEAR_THUMBNAIL_SIZE,
-} from '@/components/gear/GearThumbnailView';
 import {
   Liquid,
+  LiquidLayout,
   LiquidMotion,
   LiquidRadius,
   LiquidShadow,
@@ -118,9 +116,8 @@ const SearchGearView: FC<Props> = ({ gear, searchWarehouse, bag }) => {
       >
         <LiquidMetricRow
           name={gear.getDisplayName()}
-          // 썸네일이 붙은 행과 없는 행의 키를 같게 묶는다(GearThumbnailView의 행 높이 계약).
-          minContentHeight={GEAR_THUMBNAIL_SIZE}
-          leading={<GearThumbnailView imageUrl={gear.getImageUrl()} />}
+          // 정체가 두 줄인 행과 세 줄인 행의 키를 같게 묶는다(SR → WH-1 행 높이 계약).
+          minContentHeight={LiquidLayout.rowMinContent}
           trailing={
             <LiquidAddCta
               added={isAdded}

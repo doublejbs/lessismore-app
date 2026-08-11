@@ -19,10 +19,12 @@ import app from '@/model/app/App';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import LiquidMetricRow from '@/components/liquid/LiquidMetricRow';
-import GearThumbnailView, {
-  GEAR_THUMBNAIL_SIZE,
-} from '@/components/gear/GearThumbnailView';
-import { Liquid, LiquidMotion, LiquidSemantic } from '@/constants/DesignTokens';
+import {
+  Liquid,
+  LiquidLayout,
+  LiquidMotion,
+  LiquidSemantic,
+} from '@/constants/DesignTokens';
 
 // 액션 버튼 1개 너비. 스와이프 액션은 `삭제` 하나뿐이라 전체 영역과 같다
 // (`수정`은 걷었다 — 2026-08-05 사용자 결정).
@@ -156,17 +158,10 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divider = false }) => {
             meta={meta}
             value={weight}
             divider={divider}
-            // 썸네일이 붙은 행과 없는 행의 키를 같게 묶는다(GearThumbnailView 주석의 행 높이 계약).
-            minContentHeight={GEAR_THUMBNAIL_SIZE}
-            // BD-5: useless 장비는 행 본문(정체·수치)을 낮춘다. 썸네일도 본문이라 함께 낮추고,
-            // 로고 마크는 자체 투명도를 갖는다.
+            // 정체가 두 줄인 행과 세 줄인 행의 키를 같게 묶는다(BD-1 행 높이 계약).
+            minContentHeight={LiquidLayout.rowMinContent}
+            // BD-5: useless 장비는 행 본문(정체·수치)을 낮춘다. 로고 마크는 자체 투명도를 갖는다.
             dim={isUseless}
-            leading={
-              <GearThumbnailView
-                imageUrl={gear.getImageUrl()}
-                style={isUseless ? styles.thumbnailDim : undefined}
-              />
-            }
             // BD-5: 로고 마크는 지표 컬럼의 **왼쪽**에 둬 무게 컬럼의 세로 정렬을 유지한다.
             aside={
               isUseless ? (
@@ -187,14 +182,11 @@ const styles = StyleSheet.create({
   rowSurface: {
     backgroundColor: Liquid.surface,
   },
-  thumbnailDim: {
-    opacity: LiquidMotion.doneOpacity,
-  },
-  // BD-5 useless 로고 마크. 좌측 썸네일과 같은 한 변을 쓴다 — 둘이 함께 보여도 행 높이·정렬이
-  // 흔들리지 않고, 행 최소 높이 계약(minContentHeight)과도 같은 값을 공유한다.
+  // BD-5 useless 로고 마크. 행 최소 높이 계약(`minContentHeight`)과 같은 한 변을 쓴다 —
+  // 마크가 붙은 행만 키가 커지지 않는다.
   uselessMark: {
-    width: GEAR_THUMBNAIL_SIZE,
-    height: GEAR_THUMBNAIL_SIZE,
+    width: LiquidLayout.rowMinContent,
+    height: LiquidLayout.rowMinContent,
     resizeMode: 'contain',
     opacity: 0.5,
     transform: [{ rotate: '-10.78deg' }],

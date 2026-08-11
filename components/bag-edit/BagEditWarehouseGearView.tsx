@@ -7,11 +7,9 @@ import { formatGearWeightOrNull } from '@/model/gear/WeightFormat';
 import BagEdit from '@/model/bag-edit/BagEdit';
 import app from '@/model/app/App';
 import LiquidMetricRow from '@/components/liquid/LiquidMetricRow';
-import GearThumbnailView, {
-  GEAR_THUMBNAIL_SIZE,
-} from '@/components/gear/GearThumbnailView';
 import {
   Liquid,
+  LiquidLayout,
   LiquidMotion,
   LiquidRadius,
   LiquidShadow,
@@ -115,9 +113,8 @@ const BagEditWarehouseGearView: FC<Props> = ({ gear, bagEdit }) => {
       <LiquidMetricRow
         size='sm'
         name={gear.getDisplayName()}
-        // 썸네일이 붙은 행과 없는 행의 키를 같게 묶는다(BD-1 → WH-1 행 높이 계약).
-        minContentHeight={GEAR_THUMBNAIL_SIZE}
-        leading={<GearThumbnailView imageUrl={gear.getImageUrl()} />}
+        // 정체가 두 줄인 행과 세 줄인 행의 키를 같게 묶는다(BD-4 → WH-1 행 높이 계약).
+        minContentHeight={LiquidLayout.rowMinContent}
         trailing={renderCheck()}
         value={weight}
         {...(gear.getDisplayCompany()

@@ -9,11 +9,9 @@ import {
 } from '@/model/gear/WeightFormat';
 import BagPacking from '@/model/bag-packing/BagPacking';
 import LiquidMetricRow from '@/components/liquid/LiquidMetricRow';
-import GearThumbnailView, {
-  GEAR_THUMBNAIL_SIZE,
-} from '@/components/gear/GearThumbnailView';
 import {
   Liquid,
+  LiquidLayout,
   LiquidMotion,
   LiquidRadius,
   LiquidShadow,
@@ -117,14 +115,8 @@ const BagPackingGearRowView: FC<Props> = ({ gear, bagPacking }) => {
         // 챙긴 행은 정체·무게를 함께 낮춘다(핸드오프 doneOpacity). 체크 원은 상태를
         // 말하는 표식이라 낮추지 않는다.
         dim={packed}
-        // 썸네일이 붙은 행과 없는 행의 키를 같게 묶는다(BD-1 → WH-1 행 높이 계약).
-        minContentHeight={GEAR_THUMBNAIL_SIZE}
-        leading={
-          <GearThumbnailView
-            imageUrl={gear.getImageUrl()}
-            style={packed ? styles.thumbnailDim : undefined}
-          />
-        }
+        // 정체가 두 줄인 행과 세 줄인 행의 키를 같게 묶는다(PK-2 → WH-1 행 높이 계약).
+        minContentHeight={LiquidLayout.rowMinContent}
         trailing={renderCheck()}
       />
     </TouchableOpacity>
@@ -142,9 +134,6 @@ const styles = StyleSheet.create({
   // 챙긴 카드는 그림자를 걷는다 — 면이 가라앉으면서 지면과 같은 층으로 내려간다.
   cardDone: {
     backgroundColor: Liquid.surfaceDone,
-  },
-  thumbnailDim: {
-    opacity: LiquidMotion.doneOpacity,
   },
   checkSlot: {
     width: CHECK_SIZE,

@@ -26,9 +26,8 @@ interface MenuRow {
 /**
  * AU-4 정보 탭 메뉴 (Liquid Depth).
  *
- * **네 줄이 흰 카드 하나**이고 행은 좌측 48 들여쓴 헤어라인으로만 갈린다(목업 §11) —
- * 행마다 면을 두면 목록이 카드 더미로 보인다. 48은 아이콘(20) + 간격(12) + 카드 여백(16)
- * 이라 구분선이 라벨의 시작선에서 출발한다.
+ * **네 줄이 흰 카드 하나**이고 행은 좌우 16 들여쓴 헤어라인으로만 갈린다(목업 §11) —
+ * 행마다 면을 두면 목록이 카드 더미로 보인다.
  */
 const InfoMenuCardView: FC<Props> = ({
   onPressNotification,
@@ -119,9 +118,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Liquid.ink,
   },
+  /**
+   * 들여쓰기는 **좌우 같은 값**(카드 여백 16)이다.
+   *
+   * 예전에는 좌측만 48(아이콘 20 + 간격 12 + 여백 16) 들여써 선이 라벨 시작선에서
+   * 출발했는데, 오른쪽이 카드 엣지까지 흐르니 카드 모서리와 만나는 지점이 좌우로 달라
+   * 선이 기울어 보였다(2026-08-11 디자인 리뷰). 카드 안 헤어라인은 좌우 대칭이 기준이다
+   * (`LiquidMetricRow`의 divider와 같은 판단).
+   */
   divider: {
     height: 0.5,
-    marginLeft: 48,
+    marginHorizontal: LiquidLayout.cardPad,
     backgroundColor: Liquid.hairline,
   },
 });

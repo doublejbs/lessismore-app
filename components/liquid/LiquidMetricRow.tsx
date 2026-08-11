@@ -34,7 +34,7 @@ interface Props {
    * (핸드오프 Interactions). `leading`·`aside`는 자체 투명도를 갖는다(호출측이 정한다).
    */
   dim?: boolean;
-  /** 행 위 헤어라인(좌측 16 들여쓰기) — 카드 안에서 두 번째 행부터 켠다 */
+  /** 행 위 헤어라인(좌우 16 들여쓰기) — 카드 안에서 두 번째 행부터 켠다 */
   divider?: boolean;
   /**
    * 'sm'은 홈 창고 미리보기용 축약 행 — 수치를 Archivo 16으로 낮추고 메타를 inkMuted로
@@ -48,8 +48,8 @@ interface Props {
    */
   nameLines?: number;
   /**
-   * 행 **본문**(패딩 제외)의 최소 높이. 같은 목록에서 `leading`(썸네일)이 붙은 행과 안 붙은
-   * 행의 키가 갈리지 않게 호출부가 썸네일 한 변을 넘긴다(BD-1/WH-1의 `GEAR_THUMBNAIL_SIZE`).
+   * 행 **본문**(패딩 제외)의 최소 높이. 같은 목록에서 정체 컬럼이 두 줄인 행과 세 줄인 행의
+   * 키가 갈리지 않게 호출부가 `LiquidLayout.rowMinContent`를 넘긴다(BD-1/WH-1 행 높이 계약).
    * 세로 패딩은 이 컴포넌트가 알아서 더하므로 호출부가 계산하지 않는다.
    * 주지 않으면 콘텐츠 높이를 그대로 따른다.
    */
@@ -155,10 +155,18 @@ const LiquidMetricRow: FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
+  /**
+   * 들여쓰기는 **좌우 같은 값**이다 — 행 좌우 여백(`row.paddingHorizontal`)과 같은 16이라
+   * 선이 행 내용의 좌우 끝에서 함께 시작하고 끝난다.
+   *
+   * 핸드오프 MetricRow는 좌측 들여쓰기만 적었는데, 왼쪽만 16 들어가고 오른쪽이 카드 엣지까지
+   * 흐르면 카드 모서리(radius 20)와 만나는 지점이 좌우로 달라 선이 기울어 보인다
+   * (2026-08-11 디자인 리뷰 실측). 카드 안 헤어라인은 좌우 대칭이 기준이다.
+   */
   divider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: Liquid.hairline,
-    marginLeft: 16,
+    marginHorizontal: 16,
   },
   row: {
     flexDirection: 'row',

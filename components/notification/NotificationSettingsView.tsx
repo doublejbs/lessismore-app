@@ -180,11 +180,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: Liquid.surface,
   },
-  // 목록 행이라 구분선을 라벨 시작선까지 들여쓴다 — 스펙 표(라벨 컬럼이 왼쪽 선을 만드는
-  // 경우)와 달리 여기선 행마다 라벨이 곧 첫 글자다.
+  // 들여쓰기는 좌우 같은 값(카드 여백)이다 — 한쪽만 들여쓰면 카드 모서리와 만나는 지점이
+  // 좌우로 달라 선이 기울어 보인다(`LiquidMetricRow`의 divider와 같은 판단).
   divider: {
     height: StyleSheet.hairlineWidth,
-    marginLeft: LiquidLayout.cardPad,
+    marginHorizontal: LiquidLayout.cardPad,
     backgroundColor: Liquid.hairline,
   },
   // 고정 높이를 주지 않는다 — Dynamic Type에서 라벨이 잘린다. 세로 여백으로 44pt를 만든다.
