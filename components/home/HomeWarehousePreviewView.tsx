@@ -4,10 +4,9 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import CategoryChipView from '@/components/browse/CategoryChipView';
-import { Acg } from '@/constants/DesignTokens';
+import FeedChipView from '@/components/feed/FeedChipView';
+import { Acg, AcgFontSize, AcgRadius } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
-import AcgHighlightText from '@/components/acg/AcgHighlightText';
 import Gear from '@/model/gear/Gear';
 import GearFilter from '@/model/gear/GearFilter';
 import {
@@ -20,6 +19,14 @@ interface Props {
   gears: Gear[];
 }
 
+// 화면 좌우 패딩(HomeView) — 칩 행만 이 값만큼 밖으로 빼 지면 끝까지 흐르게 한다.
+const SCREEN_H = 16;
+
+// 장비 행 — 44pt 터치 타깃을 넘긴다.
+const GEAR_ROW_HEIGHT = 56;
+
+const CTA_HEIGHT = 48;
+
 /**
  * HM-4 창고 미리보기.
  *
@@ -28,6 +35,10 @@ interface Props {
  *
  * 칩 선택은 **이 컴포넌트의 로컬 상태**다. 창고 화면의 `FilterManager`를 건드리면
  * 홈에서 훑어본 게 창고 화면 상태까지 바꿔 버린다 — 훑기와 작업은 분리한다.
+ *
+ * 표현은 탐색 탭(FD-2/FD-3)과 같다(2026-08-11): 칩은 탐색과 같은 `FeedChipView`, 장비 행은
+ * 면 없이 순백 지면에 놓고 헤어라인으로만 가른다. 행마다 흰 종이 면을 두면 순백 지면에서
+ * 면이 보이지 않아 그림자만 남고, 카드가 여럿이면 위 일정 면과 위계가 뒤엉킨다.
  */
 const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
   const router = useRouter();
@@ -59,212 +70,193 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
     router.push('/gear-add-options');
   };
 
+  if (gears.length === 0) {
+    return (
+      <View style={styles.section}>
+        <PretendardText weight='semibold' style={styles.sectionTitle}>
+          내 창고
+        </PretendardText>
+
+        <View style={styles.tile}>
+          <PretendardText weight='semibold' style={styles.emptyTitle}>
+            창고가 비어 있어요
+          </PretendardText>
+          <PretendardText style={styles.emptySubtitle}>
+            가진 장비를 하나씩 담아보세요
+          </PretendardText>
+          {/* 홈의 라임은 일정 면의 주 액션 하나뿐이라, 이 버튼은 잉크 알약이다. */}
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={handleAddGear}
+            activeOpacity={0.8}
+            accessibilityRole='button'
+            accessibilityLabel='첫 장비 담기'
+          >
+            <PretendardText weight='semibold' style={styles.addButtonText}>
+              첫 장비 담기
+            </PretendardText>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.section}>
-      <View style={styles.sectionHead}>
-        <AcgHighlightText fontSize={SECTION_TITLE_SIZE}>
-          <PretendardText weight='bold' style={styles.sectionTitle}>
-            내 창고
-          </PretendardText>
-        </AcgHighlightText>
-      </View>
+      <PretendardText weight='semibold' style={styles.sectionTitle}>
+        내 창고
+      </PretendardText>
 
-      <View style={styles.card}>
-        {gears.length === 0 ? (
-          <View style={styles.empty}>
-            <PretendardText weight='bold' style={styles.emptyTitle}>
-              창고가 비어 있어요
-            </PretendardText>
-            <PretendardText style={styles.emptySubtitle}>
-              가진 장비를 하나씩 담아보세요
-            </PretendardText>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={handleAddGear}
-              activeOpacity={0.8}
-              accessibilityRole='button'
-              accessibilityLabel='첫 장비 담기'
-            >
-              <PretendardText weight='bold' style={styles.addButtonText}>
-                첫 장비 담기
-              </PretendardText>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.chips}
-              style={styles.chipsScroll}
-            >
-              {chips.map(chip => (
-                <CategoryChipView
-                  key={chip.filter}
-                  label={chip.label}
-                  tone='acg'
-                  selected={chip.filter === selectedFilter}
-                  onPress={() => handleSelectFilter(chip.filter)}
-                />
-              ))}
-            </ScrollView>
+      <ScrollView
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
+        style={styles.chipsScroll}
+        contentContainerStyle={styles.chips}
+      >
+        {chips.map(chip => (
+          <FeedChipView
+            key={chip.filter}
+            label={chip.label}
+            compact={true}
+            selected={chip.filter === selectedFilter}
+            onPress={() => handleSelectFilter(chip.filter)}
+          />
+        ))}
+      </ScrollView>
 
-            <View style={styles.gearList}>
-              {previewGears.map(gear => (
-                <TouchableOpacity
-                  key={gear.getId()}
-                  style={styles.gearRow}
-                  onPress={() => handleOpenGear(gear)}
-                  activeOpacity={0.7}
-                  accessibilityRole='button'
-                  accessibilityLabel={`${gear.getDisplayName()} 상세`}
-                >
-                  <View style={styles.gearIdentity}>
-                    <PretendardText
-                      weight='bold'
-                      style={styles.gearName}
-                      numberOfLines={1}
-                    >
-                      {gear.getDisplayName()}
-                    </PretendardText>
-                    <PretendardText style={styles.gearSub} numberOfLines={1}>
-                      {[gear.getDisplayCompany(), gear.getFineCategoryLabel()]
-                        .filter(Boolean)
-                        .join(' · ')}
-                    </PretendardText>
-                  </View>
-                  <AcgDisplayText style={styles.gearWeight}>
-                    {`${gear.getWeight()}g`}
-                  </AcgDisplayText>
-                  <Ionicons
-                    name='chevron-forward'
-                    size={13}
-                    color={Acg.textSecondary}
-                  />
-                </TouchableOpacity>
-              ))}
-
-              {/* 목록이 끊기는 자리에 이어보기를 둔다(HM-4). 헤더 우측에 있을 때보다
-                  "여기서 더 있다"가 분명하고, 미리보기를 다 훑은 시점에 손이 가는 자리다.
-                  장비 행과 같은 행 문법을 쓰되 글자색을 낮춰 장비 항목과 구분한다. */}
-              <TouchableOpacity
-                style={styles.moreRow}
-                onPress={handleOpenWarehouse}
-                activeOpacity={0.7}
-                accessibilityRole='button'
-                accessibilityLabel='창고 전체 보기'
+      <View style={styles.gearList}>
+        {previewGears.map((gear, index) => (
+          <TouchableOpacity
+            key={gear.getId()}
+            style={[styles.gearRow, index > 0 && styles.gearRowDivided]}
+            onPress={() => handleOpenGear(gear)}
+            activeOpacity={0.7}
+            accessibilityRole='button'
+            accessibilityLabel={`${gear.getDisplayName()} 상세`}
+          >
+            <View style={styles.gearIdentity}>
+              <PretendardText
+                weight='semibold'
+                style={styles.gearName}
+                numberOfLines={1}
               >
-                <PretendardText weight='semibold' style={styles.moreText}>
-                  전체 보기
-                </PretendardText>
-                <Ionicons
-                  name='chevron-forward'
-                  size={13}
-                  color={Acg.textSecondary}
-                />
-              </TouchableOpacity>
+                {gear.getDisplayName()}
+              </PretendardText>
+              <PretendardText style={styles.gearSub} numberOfLines={1}>
+                {[gear.getDisplayCompany(), gear.getFineCategoryLabel()]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </PretendardText>
             </View>
-          </>
-        )}
+            {/* 무게는 탐색 셀과 같은 앵커 값이라 콘덴스드 잉크로 둔다(라임 텍스트 아님). */}
+            <AcgDisplayText style={styles.gearWeight}>
+              {`${gear.getWeight()}g`}
+            </AcgDisplayText>
+            <Ionicons name='chevron-forward' size={16} color={Acg.textMuted} />
+          </TouchableOpacity>
+        ))}
+
+        {/* 목록이 끊기는 자리에 이어보기를 둔다(HM-4). 헤더 우측에 있을 때보다
+            "여기서 더 있다"가 분명하고, 미리보기를 다 훑은 시점에 손이 가는 자리다. */}
+        <TouchableOpacity
+          style={[styles.gearRow, styles.gearRowDivided]}
+          onPress={handleOpenWarehouse}
+          activeOpacity={0.7}
+          accessibilityRole='button'
+          accessibilityLabel='창고 전체 보기'
+        >
+          <PretendardText weight='semibold' style={styles.moreText}>
+            전체 보기
+          </PretendardText>
+          <Ionicons name='chevron-forward' size={16} color={Acg.textMuted} />
+        </TouchableOpacity>
       </View>
     </View>
   );
 };
 
-// 섹션 제목 크기(ACG) — 18px/700.
-const SECTION_TITLE_SIZE = 18;
-
 const styles = StyleSheet.create({
   section: {
-    marginBottom: 28,
-  },
-  sectionHead: {
-    marginBottom: 12,
+    marginBottom: 26,
   },
   sectionTitle: {
-    fontSize: SECTION_TITLE_SIZE,
-    color: Acg.textTertiary,
+    marginBottom: 10,
+    fontSize: AcgFontSize.control,
+    color: Acg.ink,
   },
-  card: {
-    marginTop: 2,
-  },
+  // 칩 행만 화면 패딩 밖으로 빼 지면 끝까지 흐르게 한다(탐색 탭과 같은 규칙).
   chipsScroll: {
-    marginHorizontal: -18,
+    marginHorizontal: -SCREEN_H,
   },
   chips: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 18,
+    paddingHorizontal: SCREEN_H,
   },
   gearList: {
-    marginTop: 14,
+    marginTop: 6,
   },
-  // 장비 행은 종이 면 — 행 사이는 8px로 띄운다(ACG).
   gearRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 13,
-    paddingHorizontal: 14,
-    marginBottom: 8,
-    backgroundColor: Acg.paper,
-    boxShadow: '0 1px 0 rgba(26,26,26,0.06)',
+    minHeight: GEAR_ROW_HEIGHT,
+  },
+  gearRowDivided: {
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
   },
   gearIdentity: {
     flex: 1,
+    minWidth: 0,
     gap: 2,
   },
   gearName: {
-    fontSize: 14,
+    fontSize: AcgFontSize.rowSubtitle,
+    lineHeight: 20,
     color: Acg.ink,
   },
   gearSub: {
-    fontSize: 12,
-    color: Acg.textSecondary,
+    fontSize: AcgFontSize.meta,
+    lineHeight: 18,
+    color: Acg.textMuted,
   },
-  // 무게는 라임 텍스트로 — 밝은 종이 면 위 액센트(ACG).
   gearWeight: {
-    fontSize: 14,
-    color: Acg.limeText,
-  },
-  moreRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 13,
-    paddingHorizontal: 14,
-    backgroundColor: Acg.paper,
-    boxShadow: '0 1px 0 rgba(26,26,26,0.06)',
+    fontSize: AcgFontSize.rowTitle,
+    color: Acg.ink,
   },
   moreText: {
-    fontSize: 14,
-    color: Acg.textSecondary,
+    flex: 1,
+    fontSize: AcgFontSize.rowSubtitle,
+    color: Acg.textMuted,
   },
-  empty: {
-    alignItems: 'center',
-    paddingVertical: 24,
-    backgroundColor: Acg.paper,
-    boxShadow: '0 1px 0 rgba(26,26,26,0.06)',
+  tile: {
+    backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
+    padding: 16,
+    gap: 4,
   },
   emptyTitle: {
-    fontSize: 17,
+    fontSize: AcgFontSize.rowTitle,
+    lineHeight: 25,
     color: Acg.ink,
-    marginBottom: 6,
   },
   emptySubtitle: {
-    fontSize: 13,
-    color: Acg.textSecondary,
-    marginBottom: 20,
+    fontSize: AcgFontSize.meta,
+    lineHeight: 20,
+    color: Acg.textMuted,
   },
   addButton: {
-    alignSelf: 'stretch',
-    marginHorizontal: 18,
-    paddingVertical: 15,
+    marginTop: 10,
+    minHeight: CTA_HEIGHT,
+    borderRadius: CTA_HEIGHT / 2,
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: Acg.ink,
   },
   addButtonText: {
-    fontSize: 15,
+    fontSize: AcgFontSize.control,
     color: Acg.paper,
   },
 });

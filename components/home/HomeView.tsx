@@ -1,18 +1,24 @@
 import { FC, useCallback, useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, Platform } from 'react-native';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Platform,
+  TouchableOpacity,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import dayjs from 'dayjs';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
-import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 import HomeUpcomingTripView from '@/components/home/HomeUpcomingTripView';
 import HomeWarehousePreviewView from '@/components/home/HomeWarehousePreviewView';
 import HomeRecordSummaryView from '@/components/home/HomeRecordSummaryView';
 import HomeSkeletonView from '@/components/home/HomeSkeletonView';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
 import Home from '@/model/home/Home';
+import app from '@/model/app/App';
 import { selectTripPlan } from '@/model/home/HomeTripPlan';
 
 interface Props {
@@ -21,8 +27,19 @@ interface Props {
 
 // iOS는 콘텐츠가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
 const IOS_EDGES = ['top', 'left', 'right'] as const;
-// 화면 제목 크기(ACG) — 콘덴스드 44px.
-const TITLE_SIZE = 44;
+
+/**
+ * 화면 제목 크기(2026-08-11). 44 → 28로 내렸다.
+ *
+ * 44는 이 화면에서 가장 큰 활자였는데, 제목은 **읽고 넘기는 이름표**라 앵커가 될 값이 아니다.
+ * 화면의 앵커는 남은 일수와 무게처럼 항목마다 달라지는 숫자여야 한다.
+ */
+const TITLE_SIZE = 28;
+
+// 화면 좌우 패딩 — 탐색 탭(FD-2)과 같은 16.
+const SCREEN_H = 16;
+
+const LOGIN_CTA_HEIGHT = 48;
 
 const HomeView: FC<Props> = ({ home }) => {
   const insets = useSafeAreaInsets();
@@ -33,6 +50,10 @@ const HomeView: FC<Props> = ({ home }) => {
    * 포커스마다 새로 잡는다(HM-6). 상태로 들고 있어야 다시 렌더된다.
    */
   const [today, setToday] = useState(() => dayjs());
+
+  const handleLogin = () => {
+    app.getLogInAlertManager()?.show();
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -54,11 +75,21 @@ const HomeView: FC<Props> = ({ home }) => {
     }
 
     if (!isLoggedIn) {
+      // 문구 없이 버튼만 둔다(2026-08-05 사용자 결정) — 비로그인 홈에서 할 일은 하나뿐이라
+      // 설명이 없어도 통하고, 문구를 붙이면 그게 화면의 앵커가 된다.
       return (
         <View style={styles.signedOut}>
-          <PretendardText weight='bold' style={styles.signedOutText}>
-            로그인하면{'\n'}다음 여행과 창고를 볼 수 있어요
-          </PretendardText>
+          <TouchableOpacity
+            style={styles.loginCta}
+            onPress={handleLogin}
+            activeOpacity={0.8}
+            accessibilityRole='button'
+            accessibilityLabel='로그인'
+          >
+            <PretendardText weight='semibold' style={styles.loginCtaText}>
+              로그인
+            </PretendardText>
+          </TouchableOpacity>
         </View>
       );
     }
@@ -88,15 +119,15 @@ const HomeView: FC<Props> = ({ home }) => {
   return (
     <Layout
       edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
-      paddingHorizontal={AcgLayout.screenH}
-      background={<AcgScreenBackground photo terrain={false} />}
+      paddingHorizontal={SCREEN_H}
+      // 지면은 순백이다 — 탐색 탭과 같은 지면 위에 놓아야 두 탭이 같은 앱으로 읽힌다.
+      // 지형 그래픽은 두지 않는다: 콘텐츠 뒤에서 회색 면·헤어라인과 무늬가 섞여 지저분해진다.
+      background={<View style={styles.ground} />}
     >
-      {/* 화면 제목 44px(ACG). 형광펜 띠는 두지 않는다(2026-08-03 사용자 결정) —
-          섹션 제목에만 남겨 강조가 한 화면에서 두 층으로 겹치지 않게 한다.
-          한글이라 콘덴스드(Archivo Narrow) 대신 Pretendard Bold를 쓴다 — 그 서체에는
+      {/* 한글이라 콘덴스드(Archivo Narrow) 대신 Pretendard를 쓴다 — 그 서체에는
           한글 글리프가 없어 글자가 깨진다. */}
       <View style={styles.header}>
-        <PretendardText weight='bold' style={styles.headerText}>
+        <PretendardText weight='semibold' style={styles.headerText}>
           홈
         </PretendardText>
       </View>
@@ -106,15 +137,23 @@ const HomeView: FC<Props> = ({ home }) => {
 };
 
 const styles = StyleSheet.create({
+  ground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: Acg.paper,
+  },
   header: {
-    paddingTop: 20,
-    paddingBottom: 14,
+    paddingTop: 12,
+    paddingBottom: 16,
   },
   headerText: {
     fontSize: TITLE_SIZE,
-    letterSpacing: -0.88, // -.02em
-    // 시안은 line-height .9지만 한글은 그 값에서 위가 잘린다 — 글자 크기만큼 준다.
-    lineHeight: TITLE_SIZE,
+    letterSpacing: -0.5,
+    // 한글은 line-height를 글자 크기 아래로 주면 위가 잘린다.
+    lineHeight: TITLE_SIZE + 4,
     color: Acg.ink,
   },
   scrollView: {
@@ -125,14 +164,19 @@ const styles = StyleSheet.create({
   },
   signedOut: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: 'stretch',
     justifyContent: 'center',
   },
-  signedOutText: {
-    fontSize: 16,
-    lineHeight: 24,
-    textAlign: 'center',
-    color: Acg.textSecondary,
+  loginCta: {
+    minHeight: LOGIN_CTA_HEIGHT,
+    borderRadius: LOGIN_CTA_HEIGHT / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Acg.ink,
+  },
+  loginCtaText: {
+    fontSize: AcgFontSize.control,
+    color: Acg.paper,
   },
 });
 

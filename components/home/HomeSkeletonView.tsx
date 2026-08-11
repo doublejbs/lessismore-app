@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgRadius } from '@/constants/DesignTokens';
 
 /**
  * 홈 로딩 스켈레톤(HM-6).
@@ -56,6 +56,7 @@ const HomeSkeletonView: FC = () => {
       <Animated.View style={[styles.sectionTitleBar, { opacity }]} />
       <View style={styles.list}>
         <Animated.View style={[styles.chipsBar, { opacity }]} />
+        <View style={styles.listGap} />
         {[...Array(PREVIEW_ROWS)].map((_unused, index) => (
           <View key={index} style={styles.gearRow}>
             <Animated.View style={[styles.gearNameBar, { opacity }]} />
@@ -71,80 +72,89 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  // 실제 섹션 제목(15pt/lineHeight 20)과 같은 자리·높이.
   sectionTitleBar: {
-    width: 96,
+    width: 88,
     height: 20,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.borderLight,
+    borderRadius: 2,
+    backgroundColor: Acg.controlFill,
     marginBottom: 10,
   },
-  // 들어올 화면과 같은 골격이어야 덜컥거리지 않는다 — 일정은 회색 타일, 창고는 평평한 목록.
+  // 들어올 화면과 같은 골격이어야 덜컥거리지 않는다 — 일정은 회색 면, 창고는 평평한 목록.
   tile: {
-    backgroundColor: Color.surfaceMuted,
-    borderRadius: Radius.card,
-    padding: 18,
-    marginBottom: 28,
+    backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
+    padding: 16,
+    marginBottom: 26,
   },
   list: {
-    marginBottom: 28,
+    marginBottom: 26,
   },
-  // 회색 타일 위에서는 borderLight(#F0F0F0)가 배경(#F5F5F5)에 묻힌다 — 한 톤 진한 값을 쓴다.
+  /**
+   * 회색 면(#F2F2F2) 위의 막대는 지면 위 막대와 같은 값을 쓸 수 없다 — 같은 색이면
+   * 아무것도 안 보인다. 면 위에서만 한 톤 진한 헤어라인 값을 쓴다.
+   */
   badgeBar: {
-    width: 52,
-    height: 24,
-    borderRadius: Radius.card,
-    backgroundColor: Color.chipInactiveBg,
+    width: 48,
+    height: 20,
+    borderRadius: 2,
+    backgroundColor: Acg.hairline,
     marginBottom: 10,
   },
   titleBar: {
     width: 170,
-    height: 26,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.chipInactiveBg,
-    marginBottom: 8,
+    height: 25,
+    borderRadius: 2,
+    backgroundColor: Acg.hairline,
+    marginBottom: 6,
   },
   metaBar: {
     width: 210,
-    height: 16,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.chipInactiveBg,
+    height: 18,
+    borderRadius: 2,
+    backgroundColor: Acg.hairline,
   },
   statsBar: {
-    height: 56,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.chipInactiveBg,
-    marginTop: 16,
+    height: 48,
+    borderRadius: 2,
+    backgroundColor: Acg.hairline,
+    marginTop: 14,
   },
+  // 실제 주 액션 알약(높이 48, 완전한 알약)과 같은 모양.
   ctaBar: {
-    height: 50,
-    borderRadius: Radius.card,
-    backgroundColor: Color.chipInactiveBg,
-    marginTop: 16,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Acg.hairline,
+    marginTop: 14,
   },
   chipsBar: {
-    height: 34,
-    borderRadius: Radius.chip,
-    backgroundColor: Color.borderLight,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Acg.controlFill,
   },
+  // 실제 장비 행(높이 56 + 상단 헤어라인)과 같은 리듬.
   gearRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: Color.borderLight,
+    height: 56,
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
+  },
+  listGap: {
+    height: 6,
   },
   gearNameBar: {
     width: 150,
-    height: 16,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.borderLight,
+    height: 18,
+    borderRadius: 2,
+    backgroundColor: Acg.controlFill,
   },
   gearWeightBar: {
     width: 44,
-    height: 14,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.borderLight,
+    height: 18,
+    borderRadius: 2,
+    backgroundColor: Acg.controlFill,
   },
 });
 
