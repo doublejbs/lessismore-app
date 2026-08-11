@@ -4,7 +4,7 @@
 | --- | --- |
 | 상태 | as-built (2026-07-07 구현) · **2026-07-28 개정(as-built)**: 장비 이미지 미제공([DataModel.md](DataModel.md) §1) — 텍스트 카드 개편(FD-2), 이미지 제외 규칙 삭제(FD-1) · **2026-08-11 개정(as-built)**: 레퍼런스 탐색 화면 이식 — 순백 지면 + 2열 그리드(FD-2, 정보를 면 하나에 담고 쿠팡 링크 제거), 칩 한 줄 + 정렬 줄(FD-3), 화면 문법 §9 |
 | ID 프리픽스 | `FD` |
-| 주요 코드 | `model/feed/`, `components/feed/`(`FeedView`·`FeedGridCellView`·`FeedChipView`·`useGearRowState`·`FeedCardView`·`FeedFilterBarView`·`FeedFilterSheetView`·`FeedSkeletonView`·`FeedRankingButtonView`·`PopularRankingWrapper`), `components/search-page/SearchPageView.tsx`(탐색 탭 지면·검색 필드), `components/search/`(`SearchBarView`·`SearchInputView`·`SearchBarVariant`), `app/popular-ranking/`(인기 순위 라우트), `components/search/SearchTopKeywordsView.tsx`(인기 순위 화면 재사용), `components/search/SearchResultView.tsx`(키워드 빈 상태에서 피드 렌더) |
+| 주요 코드 | `model/feed/`, `components/feed/`(`FeedView`·`FeedGridCellView`·`FeedChipView`·`useGearRowState`·`FeedFilterBarView`·`FeedFilterSheetView`·`FeedSkeletonView`·`FeedRankingButtonView`·`PopularRankingWrapper`), `components/search-page/SearchPageView.tsx`(탐색 탭 지면·검색 필드), `components/search/`(`SearchBarView`·`SearchInputView`·`SearchBarVariant`), `app/popular-ranking/`(인기 순위 라우트), `components/search/SearchTopKeywordsView.tsx`(인기 순위 화면 재사용), `components/search/SearchResultView.tsx`(키워드 빈 상태에서 피드 렌더) |
 | 관련 스펙 | [Search.md](Search.md), [DataModel.md](DataModel.md), [GearDetail.md](GearDetail.md), [Analytics.md](Analytics.md) |
 
 ## 1. 개요
@@ -59,13 +59,13 @@
 - 셀 탭 → `/gear-detail/{id}`.
 - 담기/제거 후에도 피드 스크롤 위치는 유지된다(전체 리로드 금지).
 - **스켈레톤은 목록과 같은 덩어리다** — 셀마다 같은 비율·모서리의 면 하나만 두고(면 안 텍스트 막대를 그리지 않는다) 열·행 간격을 목록과 같게 맞춰 로딩→렌더 점프를 없앤다.
-- **동작은 표현과 분리해 둔다** — 담기·제거·상세 이동은 `useGearRowState` 훅 하나가 갖고, 그리드 셀(`FeedGridCellView`)과 검색 결과 카드(`FeedCardView`)가 이를 공유한다. 쿠팡 지연 로드도 이 훅에 남아 있으나 현재는 검색 결과 카드만 쓴다. 애널리틱스 이벤트 이름(FD-5)도 이 훅에서만 정해진다.
+- **동작은 표현과 분리해 둔다** — 담기·제거·상세 이동은 `useGearRowState` 훅 하나가 갖고, 피드와 검색 결과(SR-2)가 **같은 셀 컴포넌트**(`FeedGridCellView`)로 이를 쓴다. 애널리틱스 이벤트 이름(FD-5)도 이 훅에서만 정해진다. 쿠팡 지연 로드는 훅에서 제거했다 — 링크가 사라져 쓰이지 않는데도 **보이는 항목마다 `/gear` 문서를 한 번씩 읽고 있었다**.
 
 > **[이력] 2026-08-11 (단일 컬럼 텍스트 행)**: 레퍼런스를 처음 이식할 때는 단일 컬럼이었고 행 구성은 [이름 24 + 담기] / 브랜드 19 / 메타 17(`무게 · 색상`) / 쿠팡 링크였다. 두 번 고쳤다. ① 크기가 1.3~1.4배 컸다 — 레퍼런스 스크린샷의 **픽셀을 pt로 읽은 실수**(923px ÷ 393pt ≈ 2.35배). ② 크기를 바로잡고 2열로 바꾸니 **텍스트만으로는 시선이 걸리는 데가 없었다**(이름 19·브랜드 15·메타 14가 크기·톤이 비슷). 무게를 앵커로 올리고, 다시 브랜드·제품명까지 사진 자리 면 안으로 넣어 지금 형태가 됐다.
 
 > **[이력] 2026-07-28 ~ 2026-08-10 (2컬럼 텍스트 카드)**: 피드는 `FlatList numColumns={2}` 2컬럼 그리드였고(마지막 홀수 카드는 좌측 정렬), 각 셀은 종이 면(`Acg.paper`, 각진 모서리, `AcgShadow.paper`) 위에 브랜드(14) → 이름(14, 2줄) → 색상(12) → **무게 30pt 콘덴스드**를 쌓은 텍스트 카드였다. 이미지가 하던 시각 위계를 **무게가 앵커로** 대신했고 담기 CTA는 카드 우상단 36pt 원형(hitSlop으로 44 확보), 쿠팡 링크는 카드 하단 축약 라벨(12pt)이었다. 지면은 공통 회색 지면(`AcgScreenBackground`)이었다.
 >
-> **검색 결과 화면(SR-2)은 이 2컬럼 카드를 그대로 쓰고 있다** — 레퍼런스 이식 범위가 탐색 탭의 피드 본문(키워드 없음 상태)이라, `FeedCardView`와 `SearchResultContentView`는 이번 개정에서 손대지 않았다. 검색 결과까지 넓힐지는 §8 미해결 참고.
+> 이 카드(`FeedCardView`)는 검색 결과 화면이 마지막까지 쓰다가 **2026-08-11 검색 결과도 같은 그리드 셀로 옮기면서 삭제**했다. 지금 목록 셀은 앱 전체에 `FeedGridCellView` 하나다.
 
 ### FD-3 필터 (칩 한 줄 + 정렬 줄)
 
@@ -175,7 +175,7 @@
 - **탐색 탭만 먼저 이식한다.** 다른 탭(홈·지도·배낭·정보·창고·상세)과 **검색 결과 화면(SR-2)** 은 기존 세대를 유지한다 — 화면 문법(§9)을 확인받은 뒤 넓힌다.
 - **결과 개수는 표시하지 않는다.** 모델에 총 건수가 없고(버킷 인터리브 무한 스크롤), 로드된 개수는 총량이 아니다.
 - **사진 대신 이름이 행의 앵커다.** 장비 이미지 미제공 원칙([DataModel.md](DataModel.md) §1)은 그대로다. 무게는 앵커에서 내려와 메타 줄의 첫 항목이 됐다.
-- 공용 컴포넌트(`CategoryChipView`·`FloatingPillButton`·`FeedCardView`)는 **고치지 않고** 탐색 탭 전용 대응물(`FeedChipView`·자체 라임 알약·`FeedGridCellView`)을 뒀다. 검색 필드만 예외로 공용 `SearchBarView`에 옵셔널 `variant`(기본 `Glass`)를 더해 기존 화면 동작을 그대로 남겼다.
+- 공용 컴포넌트(`CategoryChipView`·`FloatingPillButton`)는 **고치지 않고** 탐색 탭 전용 대응물(`FeedChipView`·자체 라임 알약)을 뒀다. 목록 셀은 예외로, 검색 결과까지 `FeedGridCellView` 하나로 합치고 옛 `FeedCardView`를 지웠다 — 같은 탭에서 키워드 유무로 두 세대가 갈리는 상태를 남길 수 없었다. 검색 필드만 예외로 공용 `SearchBarView`에 옵셔널 `variant`(기본 `Glass`)를 더해 기존 화면 동작을 그대로 남겼다.
 
 **실측 (2026-07-29)** — 아래 수치는 실측값이라 카탈로그·인덱스 설정이 바뀌면 낡는다. FD-3의 동작 규칙은 수치에 의존하지 않게 서술한다.
 
@@ -186,7 +186,7 @@
 **미해결**
 
 - 같은 세션에서 이미 본 카드 제외(로컬 노출 이력) 여부 — v1 미포함.
-- **검색 결과 화면(SR-2)을 이 그리드 셀로 넓힐지** — 지금은 옛 2컬럼 카드(흰 종이 면)다. 같은 탭 안에서 키워드 유무로 두 세대가 갈리므로 다음 확장 대상 1순위다. 넓힐 때 `SearchResultContentView`는 장비 추가 검색 시트도 함께 쓰므로 그 화면까지 같이 바뀐다.
+- ~~**검색 결과 화면(SR-2)을 이 그리드 셀로 넓힐지**~~ → **완료(2026-08-11)**. 같은 셀·같은 간격(좌우 16 / 열 16 / 행 24)을 쓰고 옛 `FeedCardView`는 삭제했다. `SearchResultContentView`는 장비 추가 검색 시트(GE-8)도 함께 쓰므로 그 화면의 결과 목록도 같이 바뀌었다 — 시트의 검색 **필드**는 기존 유리 면 그대로다.
 - 나머지 탭(홈·지도·배낭·정보·창고·상세) 확장 순서.
 
 ## 9. 레퍼런스 화면 문법 (탭 확장 기준)
