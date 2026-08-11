@@ -37,10 +37,10 @@ const styles = StyleSheet.create({
     // 제목과 부제는 붙여 둔다(레퍼런스) — 벌리면 부제가 다음 항목의 머리처럼 읽힌다.
     gap: 0,
   },
-  // 레퍼런스 실측: 제목 20 / 부제 17. 부제가 제목과 거의 같은 크기라 두 줄이 한 덩어리로 읽힌다.
+  // 제목 24 / 부제 17(실측 20·17에서 제목만 올림 — 토큰 주석 참고).
   title: {
     fontSize: AcgFontSize.sectionTitle,
-    lineHeight: 26,
+    lineHeight: 30,
     color: Acg.ink,
   },
   subtitle: {
