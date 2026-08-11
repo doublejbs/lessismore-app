@@ -52,16 +52,31 @@ class SearchWarehouse {
   @observable private result: Gear[] = [];
   @observable private selected: Gear[] = [];
   @observable private loading = false;
+  /**
+   * 디바운스 대기 중(입력했지만 아직 검색을 시작하지 않은 상태).
+   *
+   * `loading`과 갈라 두는 이유는 **빈 상태 문구의 조건**이다. 대기 중에도 결과는 비어 있을 수
+   * 있는데 그때 `검색 결과가 없습니다`를 띄우면, 300ms마다 문구 ↔ 스켈레톤이 번갈아 뜬다.
+   */
+  @observable private pending = false;
   @observable private hasMore = false;
   @observable private topSearches: string[] = [];
   @observable private loadingTopSearches = false;
   private page = 0;
+  /**
+   * 응답 도착 순서를 보장하기 위한 요청 일련번호.
+   *
+   * 타이핑 중에는 검색이 여러 개 겹치는데(디바운스 + 포커스 재검색 + 등록 후 재검색) 응답이
+   * 보낸 순서대로 오지 않는다. 번호가 최신이 아닌 응답은 **결과·로딩 플래그를 건드리지 않고
+   * 버린다** — 예전 응답이 늦게 도착해 최신 결과를 덮어쓰거나, 아직 검색 중인데 로딩을 끄는
+   * 것이 문구 깜빡임의 직접 원인이었다.
+   */
+  private searchSeq = 0;
   private disposeLoginReaction: () => void;
   private debounceTimer: NodeJS.Timeout | null = null;
   // 검색 승계(SR-1) — 탐색 탭이 피드 필터(카테고리·브랜드)를 주입한다. 없으면 필터 없이 검색.
   private searchFilterProvider:
-    | (() => { category?: string; brands?: string[] })
-    | null = null;
+    (() => { category?: string; brands?: string[] }) | null = null;
 
   protected constructor(
     private readonly searchDispatcher: SearchDispatcherType,
@@ -85,29 +100,38 @@ class SearchWarehouse {
 
   public dispose() {
     this.disposeLoginReaction();
+
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
       this.debounceTimer = null;
+      this.setPending(false);
     }
   }
 
   public changeKeyword(keyword: string) {
     this.setLoading(true);
+    this.setPending(true);
     this.setKeyword(keyword);
-    this.setResult([]);
+
+    // **직전 결과를 비우지 않는다.** 글자마다 비우면 300ms 동안 목록이 사라져 스켈레톤이
+    // 깜빡이고, 그 사이 응답이 0건이면 빈 상태 문구까지 스친다. 새 결과가 도착할 때 교체한다.
 
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
     }
 
     this.debounceTimer = setTimeout(() => {
+      this.debounceTimer = null;
+
       if (this.getKeyword()) {
         app
           .getAnalyticsManager()
           ?.logEvent('search', { search_term: this.getKeyword() });
       }
 
-      this.executeSearch();
+      this.executeSearch().finally(() => {
+        this.setPending(false);
+      });
     }, 300) as unknown as NodeJS.Timeout;
   }
 
@@ -164,6 +188,8 @@ class SearchWarehouse {
   }
 
   public async executeSearch() {
+    const seq = ++this.searchSeq;
+
     this.setLoading(true);
     this.clearPage();
 
@@ -174,11 +200,21 @@ class SearchWarehouse {
         this.searchFilterProvider?.()
       );
 
+      // 더 최신 검색이 시작됐으면 이 응답은 버린다(위 `searchSeq` 주석).
+      if (seq !== this.searchSeq) {
+        return;
+      }
+
       this.setResult(gears);
       this.setHasMore(hasMore);
     } else {
+      if (seq !== this.searchSeq) {
+        return;
+      }
+
       this.setResult([]);
     }
+
     this.setLoading(false);
   }
 
@@ -214,6 +250,21 @@ class SearchWarehouse {
     return this.loading;
   }
 
+  @action
+  private setPending(value: boolean) {
+    this.pending = value;
+  }
+
+  /**
+   * 검색이 끝나 결과를 신뢰할 수 있는 상태인지.
+   *
+   * `검색 결과가 없습니다`는 이 값이 참일 때만 띄운다 — 디바운스 대기 중이거나 요청이
+   * 진행 중이면 결과가 비어 있는 것이 "없다"는 뜻이 아니다.
+   */
+  public isSettled() {
+    return !this.loading && !this.pending;
+  }
+
   public isEmpty() {
     return !this.result.length;
   }
@@ -233,6 +284,7 @@ class SearchWarehouse {
     this.setResult([]);
     this.setHasMore(false);
     this.setLoading(false);
+    this.setPending(false);
     this.clearSelected();
   }
 
