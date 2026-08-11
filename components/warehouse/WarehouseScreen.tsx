@@ -15,7 +15,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import Layout from '@/components/Layout';
-import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import Warehouse from '@/model/warehouse/Warehouse';
@@ -129,7 +128,6 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
       <Layout
         edges={IS_IOS ? IOS_EDGES : undefined}
         paddingHorizontal={AcgLayout.screenH}
-        background={<AcgScreenBackground />}
       >
         {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
             시스템에 위임한다(headerBlurEffect·headerStyle.backgroundColor 지정 금지).

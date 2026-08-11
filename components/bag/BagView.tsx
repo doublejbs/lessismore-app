@@ -15,7 +15,6 @@ import OrderOption from '@/model/order/OrderOption';
 import { useFocusEffect } from 'expo-router/react-navigation';
 import Layout from '../Layout';
 import { Acg, AcgLayout } from '@/constants/DesignTokens';
-import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 import app from '@/model/app/App';
 
 // iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
@@ -117,7 +116,6 @@ const BagView = () => {
       <Layout
         edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
         paddingHorizontal={AcgLayout.screenH}
-        background={<AcgScreenBackground />}
       >
         {render()}
         {/* 로딩 중에는 띄우지 않는다(BAG-1). 탭이 막 마운트된 첫 프레임에는 네이티브 탭바 몫이

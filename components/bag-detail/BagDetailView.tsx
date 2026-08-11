@@ -20,7 +20,6 @@ import PretendardText from '@/components/PretendardText';
 import { Acg, AcgShadow, Color, Spacing } from '@/constants/DesignTokens';
 import BagDetailCategoryView from './BagDetailCategoryView';
 import AcgHighlightText from '@/components/acg/AcgHighlightText';
-import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 import BagDetailDateView from './BagDetailDateView';
 import BagDetailFiltersView from './BagDetailFiltersView';
 import BagDetailNameView from './BagDetailNameView';
@@ -161,7 +160,6 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
         {stackScreen}
         {/* 홈·정보 탭과 같은 지형 이미지 지면(2026-08-04 사용자 결정). 세이프에어리어
             여백까지 이어져야 하므로 SafeAreaView 바깥에 둔다. */}
-        <AcgScreenBackground photo terrain={false} />
         <SafeAreaView style={styles.container} edges={SAFE_AREA_EDGES}>
           <View style={styles.container}>
             {!IS_IOS && (

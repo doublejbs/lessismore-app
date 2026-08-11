@@ -27,7 +27,6 @@ import WarehouseDetailExternalReviewView from './WarehouseDetailExternalReviewVi
 import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '../PretendardText';
 import { Acg, AcgLayout } from '@/constants/DesignTokens';
-import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 import AcgGlassView from '@/components/acg/AcgGlassView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SearchGearAddToBagModalView from '../search/SearchGearAddToBagModalView';
@@ -177,7 +176,6 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
           }}
         />
         <View style={styles.container}>
-          <AcgScreenBackground />
           {!IS_IOS && (
             <View style={styles.header}>
               <TouchableOpacity

@@ -14,7 +14,6 @@ import ReplyDetailCommentView from './ReplyDetailCommentView';
 import ReplyDetailInputView from './ReplyDetailInputView';
 import { useRef } from 'react';
 import { Acg, AcgLayout } from '@/constants/DesignTokens';
-import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
@@ -42,7 +41,6 @@ const ReplyDetailView = ({ replyDetail, originalComment }: Props) => {
 
   return (
     <View style={styles.container}>
-      <AcgScreenBackground />
       {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
           시스템에 위임한다. 원 리뷰에 달린 댓글(답글) 화면이라 타이틀은 '댓글'. */}
       <Stack.Screen

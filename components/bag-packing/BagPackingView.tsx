@@ -20,7 +20,6 @@ import BagPackingHeaderView from './BagPackingHeaderView';
 import BagPackingCategorySectionView from './BagPackingCategorySectionView';
 import BagPackingCompleteView from './BagPackingCompleteView';
 import AlertView from '@/components/alert/AlertView';
-import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 import { Acg, AcgLayout } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
@@ -99,7 +98,6 @@ const BagPackingView: FC<Props> = ({ bagPacking }) => {
     <SafeAreaView style={styles.container} edges={SAFE_AREA_EDGES}>
       {stackScreen}
       {/* 배낭 상세와 같은 지형 이미지 지면(ACG). */}
-      <AcgScreenBackground photo terrain={false} />
       <View
         style={[
           styles.container,

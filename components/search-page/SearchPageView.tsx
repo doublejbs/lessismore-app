@@ -8,7 +8,6 @@ import Bag from '@/model/bag/Bag';
 import Feed from '@/model/feed/Feed';
 import useSearchFilterInheritance from '@/hooks/useSearchFilterInheritance';
 import Layout from '../Layout';
-import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
@@ -27,7 +26,6 @@ const SearchPageView: FC<Props> = ({ searchWarehouse, bag, feed }) => {
     <Layout
       paddingHorizontal={0}
       edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
-      background={<AcgScreenBackground />}
     >
       <SearchBarView searchWarehouse={searchWarehouse} />
       <SearchResultView

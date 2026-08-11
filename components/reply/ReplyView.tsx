@@ -9,7 +9,6 @@ import {
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Acg, AcgLayout } from '@/constants/DesignTokens';
-import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 import AcgHighlightText from '@/components/acg/AcgHighlightText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '../PretendardText';
@@ -41,7 +40,6 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
 
   return (
     <View style={styles.container}>
-      <AcgScreenBackground />
       {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
           시스템에 위임한다(headerBlurEffect·headerStyle.backgroundColor 지정 금지). */}
       <Stack.Screen
