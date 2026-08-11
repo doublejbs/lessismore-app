@@ -48,6 +48,8 @@ const FloatingPillButton: FC<Props> = ({
       <AcgGlassView
         tint={isSecondary ? AcgGlassTint.Clear : AcgGlassTint.Ink}
         elevated={false}
+        // 면 자체가 컨트롤이라 시스템 유리의 터치 반응(빛이 손가락 쪽으로 휘는 것)을 켠다.
+        interactive
         style={styles.glassLayer}
       />
       {leadingIcon}
