@@ -20,6 +20,9 @@ const CTA_HIT_SLOP = { top: 4, bottom: 4, left: 4, right: 4 };
 
 const CTA_ICON_SIZE = 24;
 
+// 이름 줄간. 두 줄 자리를 미리 비우는 계산에 쓰이므로 상수로 둔다.
+const NAME_LINE_HEIGHT = 25;
+
 interface Props {
   gear: Gear;
   actions: GearRowActions;
@@ -30,14 +33,17 @@ interface Props {
   onCoupangLinkLoaded?: (() => void) | undefined;
 }
 
-// FD-2: 탐색 탭 피드의 단일 컬럼 행(레퍼런스 이식, 2026-08-11).
+// FD-2: 탐색 탭 피드의 **2열 그리드 셀**(레퍼런스 이식 2026-08-11, 그리드 전환 같은 날).
 //
-// 면·테두리·그림자·모서리·구분선을 갖지 않는다 — 순백 지면에 콘텐츠가 직접 놓인다.
-// 레퍼런스는 사진이 행의 앵커지만 이 앱은 장비 사진을 취급하지 않으므로(DataModel §1)
-// **이름이 앵커**다. 구성은 위→아래로 [이름 + 담기 버튼] → 브랜드 → 메타(`무게 · 색상`)이며,
-// 쿠팡 링크가 있으면 메타 아래 별도 줄로 붙는다.
+// 면·테두리·그림자·모서리·구분선을 갖지 않는다 — 순백 지면에 콘텐츠가 직접 놓이고 그리드의
+// 리듬은 셀 사이 여백만으로 만든다. 레퍼런스는 사진이 셀의 앵커지만 이 앱은 장비 사진을
+// 취급하지 않으므로(DataModel §1) **이름이 앵커**다.
+// 구성은 위→아래로 이름(2줄 자리 고정) → 브랜드 → 푸터[메타·쿠팡 | 담기 버튼]이다.
+//
+// 레퍼런스가 단일 컬럼인 이유는 사진이 세로를 다 먹기 때문이다. 사진이 없는 이 앱에서는
+// 같은 세로에 두 배가 들어가고 이름·무게 비교도 쉬워, 문법만 가져오고 열 수는 2로 둔다.
 // 동작(담기·제거·상세 이동·쿠팡 지연 로드)은 검색 결과 카드와 `useGearRowState`를 공유한다.
-const FeedRowView: FC<Props> = ({
+const FeedGridCellView: FC<Props> = ({
   gear,
   actions,
   bag,
@@ -122,49 +128,59 @@ const FeedRowView: FC<Props> = ({
 
   return (
     <>
-      <Pressable style={styles.row} onPress={handleCardPress}>
-        <View style={styles.titleRow}>
-          <PretendardText
-            style={styles.name}
-            weight='semibold'
-            numberOfLines={2}
-          >
-            {gear.getDisplayName()}
-          </PretendardText>
-          {renderCta()}
-        </View>
+      <Pressable style={styles.cell} onPress={handleCardPress}>
+        {/*
+          이름은 셀 폭을 다 쓴다 — 담기 버튼을 이름 옆에 두면 좁은 셀에서 이름이 두 배로
+          접혀 읽기가 나빠진다. 버튼은 아래 푸터 우측에 놓는다.
+          두 줄 자리를 **비워 두고** 시작해 한 줄 이름과 두 줄 이름의 셀 키가 같아진다 —
+          면이 없는 그리드에서 셀 키가 어긋나면 열이 톱니처럼 보인다.
+        */}
+        <PretendardText style={styles.name} weight='semibold' numberOfLines={2}>
+          {gear.getDisplayName()}
+        </PretendardText>
 
         <PretendardText style={styles.company} numberOfLines={1}>
           {gear.getDisplayCompany()}
         </PretendardText>
 
-        {hasMeta ? (
-          <PretendardText style={styles.meta} numberOfLines={1}>
-            {/* 무게 숫자만 콘덴스드로 살짝 세운다 — 한글에는 쓰지 않는다(글리프 없음). */}
-            {weight ? (
-              <AcgDisplayText style={styles.metaWeight}>
-                {`${weight}g`}
-              </AcgDisplayText>
+        {/* 푸터는 `marginTop: auto`로 셀 바닥에 붙는다 — 같은 행 두 셀의 담기 버튼이 한 선에 온다. */}
+        <View style={styles.footer}>
+          <View style={styles.footerText}>
+            {hasMeta ? (
+              <PretendardText style={styles.meta} numberOfLines={1}>
+                {/* 무게 숫자만 콘덴스드로 살짝 세운다 — 한글에는 쓰지 않는다(글리프 없음). */}
+                {weight ? (
+                  <AcgDisplayText style={styles.metaWeight}>
+                    {`${weight}g`}
+                  </AcgDisplayText>
+                ) : null}
+                {weight && color ? ' · ' : null}
+                {color}
+              </PretendardText>
             ) : null}
-            {weight && color ? ' · ' : null}
-            {color}
-          </PretendardText>
-        ) : null}
 
-        {coupangUrl ? (
-          <TouchableOpacity
-            style={styles.coupangLink}
-            onPress={handleCoupangPress}
-            activeOpacity={0.7}
-            accessibilityRole='link'
-            accessibilityLabel={`${gear.getDisplayName()} 쿠팡 최저가`}
-          >
-            <PretendardText style={styles.coupangText}>
-              쿠팡 최저가
-            </PretendardText>
-            <Ionicons name='chevron-forward' size={14} color={Acg.textMuted} />
-          </TouchableOpacity>
-        ) : null}
+            {coupangUrl ? (
+              <TouchableOpacity
+                style={styles.coupangLink}
+                onPress={handleCoupangPress}
+                activeOpacity={0.7}
+                accessibilityRole='link'
+                accessibilityLabel={`${gear.getDisplayName()} 쿠팡 최저가`}
+              >
+                <PretendardText style={styles.coupangText} numberOfLines={1}>
+                  쿠팡 최저가
+                </PretendardText>
+                <Ionicons
+                  name='chevron-forward'
+                  size={14}
+                  color={Acg.textMuted}
+                />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+
+          {renderCta()}
+        </View>
       </Pressable>
 
       <SearchGearAddToBagModalView
@@ -178,21 +194,24 @@ const FeedRowView: FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
-  row: {
-    gap: 6,
-  },
-  // 이름(좌, 최대 2줄) + 담기 버튼(우). 이름이 여러 줄로 늘어도 버튼은 첫 줄에 붙는다.
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  // 사진이 없으므로 이름이 행의 앵커다 — 행에서 가장 큰 활자.
-  name: {
+  /**
+   * `flex: 1`로 같은 행 두 셀의 키를 맞춘다(행 높이 = 더 긴 셀). 면·테두리·그림자는 없다 —
+   * 그리드의 리듬은 셀 사이 여백이 만든다.
+   */
+  cell: {
     flex: 1,
+    gap: 4,
+  },
+  /**
+   * 사진이 없으므로 이름이 셀의 앵커다 — 셀에서 가장 큰 활자.
+   *
+   * `minHeight`로 **두 줄 자리를 미리 비운다**. 한 줄 이름과 두 줄 이름이 섞이면 카드 면이
+   * 없는 그리드에서 브랜드·메타 줄이 셀마다 다른 높이에서 시작해 열이 톱니처럼 어긋난다.
+   */
+  name: {
     fontSize: AcgFontSize.rowTitle,
-    lineHeight: 25,
+    lineHeight: NAME_LINE_HEIGHT,
+    minHeight: NAME_LINE_HEIGHT * 2,
     color: Acg.ink,
   },
   company: {
@@ -222,6 +241,24 @@ const styles = StyleSheet.create({
   ctaAdded: {
     backgroundColor: Acg.ink,
   },
+  /**
+   * 셀 바닥에 붙는 줄 — `marginTop: 'auto'`가 위 여백을 다 먹어 같은 행 두 셀의 담기 버튼이
+   * 한 선에 온다. 좌측 텍스트(메타·쿠팡)와 우측 버튼을 아래 끝으로 맞춘다.
+   */
+  footer: {
+    marginTop: 'auto',
+    paddingTop: 4,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  // `minWidth: 0`이 없으면 긴 메타가 담기 버튼을 셀 밖으로 밀어낸다.
+  footerText: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
   coupangLink: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -235,4 +272,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default observer(FeedRowView);
+export default observer(FeedGridCellView);
