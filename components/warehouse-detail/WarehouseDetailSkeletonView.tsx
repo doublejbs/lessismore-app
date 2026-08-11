@@ -13,7 +13,7 @@ const WarehouseDetailSkeletonView: FC<Props> = ({}) => {
       style={[
         {
           // 스켈레톤 셰이딩은 토큰 예외다. 지면(#F4F3EF) 위라 기존 회색은 푸르게 떠 보였다.
-          backgroundColor: '#E3E1DA',
+          backgroundColor: SKELETON_SHADE,
           opacity: fadeAnim,
         },
         style,
@@ -88,6 +88,9 @@ const WarehouseDetailSkeletonView: FC<Props> = ({}) => {
     </View>
   );
 };
+
+// 스켈레톤 셰이딩은 토큰 예외다(면·글자가 아니라 로딩 표시). 순백 지면 위 중성 회색 하나로 통일한다.
+const SKELETON_SHADE = '#E8E8E8';
 
 const styles = StyleSheet.create({
   container: {

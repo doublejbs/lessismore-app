@@ -75,6 +75,9 @@ const SearchSkeletonView: FC<Props> = ({ count = 5 }) => {
   );
 };
 
+// 스켈레톤 셰이딩은 토큰 예외다(면·글자가 아니라 로딩 표시). 순백 지면 위 중성 회색 하나로 통일한다.
+const SKELETON_SHADE = '#E8E8E8';
+
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
@@ -110,25 +113,25 @@ const styles = StyleSheet.create({
   companyBar: {
     height: 14,
     width: 60,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: SKELETON_SHADE,
     borderRadius: 2,
   },
   nameBar: {
     height: 14,
     width: 120,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: SKELETON_SHADE,
     borderRadius: 2,
   },
   colorBar: {
     height: 14,
     width: 80,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: SKELETON_SHADE,
     borderRadius: 2,
   },
   weightBar: {
     height: 14,
     width: 50,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: SKELETON_SHADE,
     borderRadius: 2,
   },
   checkboxSection: {
@@ -146,7 +149,7 @@ const styles = StyleSheet.create({
   checkboxBar: {
     width: 24,
     height: 24,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: SKELETON_SHADE,
     borderRadius: Radius.listThumb,
   },
 });
