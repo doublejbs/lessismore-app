@@ -131,6 +131,9 @@ const BagEditSkeletonView: FC<Props> = () => {
   );
 };
 
+// 스켈레톤 셰이딩은 토큰 예외다(면·글자가 아니라 로딩 표시). 순백 지면 위 중성 회색 하나로 통일한다.
+const SKELETON_SHADE = '#E8E8E8';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -152,7 +155,7 @@ const styles = StyleSheet.create({
   backButtonPlaceholder: {
     width: 24,
     height: 24,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: SKELETON_SHADE,
     borderRadius: 4,
   },
   headerContent: {
@@ -167,7 +170,7 @@ const styles = StyleSheet.create({
   flipCounterPlaceholder: {
     width: 200,
     height: 50,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: SKELETON_SHADE,
     borderRadius: 8,
   },
   titleButtonContainer: {
@@ -179,13 +182,13 @@ const styles = StyleSheet.create({
   titlePlaceholder: {
     width: 80,
     height: 24,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: SKELETON_SHADE,
     borderRadius: 4,
   },
   addButtonPlaceholder: {
     width: 100,
     height: 40,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: SKELETON_SHADE,
     borderRadius: 26,
   },
   filterContainer: {
@@ -196,7 +199,7 @@ const styles = StyleSheet.create({
   filterButtonPlaceholder: {
     width: 80,
     height: 32,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: SKELETON_SHADE,
     borderRadius: 16,
   },
   mainContent: {
@@ -226,7 +229,7 @@ const styles = StyleSheet.create({
   bottomButtonPlaceholder: {
     width: '100%',
     height: 48,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: SKELETON_SHADE,
     borderRadius: 10,
   },
   gearItemContainer: {
@@ -251,25 +254,25 @@ const styles = StyleSheet.create({
   companyPlaceholder: {
     height: 14,
     width: 60,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: SKELETON_SHADE,
     borderRadius: 2,
   },
   productPlaceholder: {
     height: 14,
     width: 120,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: SKELETON_SHADE,
     borderRadius: 2,
   },
   colorPlaceholder: {
     height: 14,
     width: 80,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: SKELETON_SHADE,
     borderRadius: 2,
   },
   weightPlaceholder: {
     height: 14,
     width: 50,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: SKELETON_SHADE,
     borderRadius: 2,
   },
   checkboxContainer: {
@@ -285,7 +288,7 @@ const styles = StyleSheet.create({
   checkboxPlaceholder: {
     width: 24,
     height: 24,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: SKELETON_SHADE,
     borderRadius: 4,
   },
 });
