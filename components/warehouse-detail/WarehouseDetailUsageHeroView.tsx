@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   statValue: {
-    fontSize: 28,
+    fontSize: 24,
     lineHeight: 32,
     color: Acg.ink,
   },

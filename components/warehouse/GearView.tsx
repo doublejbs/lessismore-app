@@ -56,7 +56,7 @@ const GearView: FC<Props> = ({
       <GearThumbnailView imageUrl={gear.getImageUrl()} />
 
       <View style={styles.rowText}>
-        <PretendardText style={styles.name} weight='semibold' numberOfLines={2}>
+        <PretendardText style={styles.name} weight='medium' numberOfLines={2}>
           {gear.getDisplayName()}
         </PretendardText>
 

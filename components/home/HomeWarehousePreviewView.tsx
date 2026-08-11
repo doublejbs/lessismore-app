@@ -138,7 +138,7 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
           >
             <View style={styles.rowText}>
               <PretendardText
-                weight='semibold'
+                weight='medium'
                 style={styles.rowTitle}
                 numberOfLines={2}
               >

@@ -135,7 +135,7 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divided = false }) => {
           <View style={[styles.rowText, { opacity: bodyOpacity }]}>
             <PretendardText
               style={styles.name}
-              weight='semibold'
+              weight='medium'
               numberOfLines={2}
             >
               {gear.getDisplayName()}

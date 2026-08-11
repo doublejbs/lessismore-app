@@ -185,10 +185,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // 시트 제목 — 화면 제목·즐겨찾기 시트와 같은 층(24).
+  // 시트 제목 — 화면 제목·즐겨찾기 시트와 같은 층.
   name: {
     flex: 1,
-    fontSize: 24,
+    fontSize: AcgFontSize.screenTitle,
     lineHeight: 30,
     color: Acg.ink,
   },

@@ -34,7 +34,7 @@ const IOS_EDGES = ['top', 'left', 'right'] as const;
  * 44는 이 화면에서 가장 큰 활자였는데, 제목은 **읽고 넘기는 이름표**라 앵커가 될 값이 아니다.
  * 화면의 앵커는 남은 일수와 무게처럼 항목마다 달라지는 숫자여야 한다.
  */
-const TITLE_SIZE = 28;
+const TITLE_SIZE = AcgFontSize.screenTitle;
 
 const LOGIN_CTA_HEIGHT = 48;
 

@@ -8,7 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import BagPacking from '@/model/bag-packing/BagPacking';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
 
 interface Props {
   bagPacking: BagPacking;
@@ -70,8 +70,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   countText: {
-    // 화면 제목 — 다른 화면과 같은 28(34에서 내렸다).
-    fontSize: 28,
+    // 화면 제목 — 앱 공통 값.
+    fontSize: AcgFontSize.screenTitle,
     lineHeight: 38,
     color: Acg.ink,
   },

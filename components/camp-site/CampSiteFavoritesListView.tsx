@@ -53,7 +53,7 @@ const CampSiteFavoritesListView: FC<Props> = ({
           <View style={styles.rowText}>
             <PretendardText
               style={styles.rowName}
-              weight='semibold'
+              weight='medium'
               numberOfLines={2}
             >
               {item.name}
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   },
   // 시트 제목 — 화면 제목과 같은 층이다.
   headerTitle: {
-    fontSize: 24,
+    fontSize: AcgFontSize.screenTitle,
     lineHeight: 30,
     color: Acg.ink,
   },
