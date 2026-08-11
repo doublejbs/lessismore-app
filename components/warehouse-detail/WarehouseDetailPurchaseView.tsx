@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
 import WarehouseDetailBrandPreviewView from './WarehouseDetailBrandPreviewView';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
 import { getBrandLinkLabel } from '../../model/gear/GearBrandLink';
 
 interface Props {
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   },
   // 고지는 조용히 둔다 — 면 밖, 좌측 정렬.
   disclaimerText: {
-    fontSize: 11,
+    fontSize: AcgFontSize.meta,
     lineHeight: 15,
     color: Acg.textMuted,
   },

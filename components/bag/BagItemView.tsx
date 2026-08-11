@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     backgroundColor: DELETE_RED,
   },
   actionLabel: {
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Acg.paper,
   },
 });

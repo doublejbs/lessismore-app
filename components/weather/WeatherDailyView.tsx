@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { AcgFontSize, Color } from '@/constants/DesignTokens';
 import { getWeatherCodeInfo } from '@/model/weather/WeatherCode';
 import { WeatherDaily } from '@/model/weather/WeatherTypes';
 
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     color: Color.textPrimary,
   },
   weekdayText: {
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
   descCol: {
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   metaText: {
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
   tempCol: {

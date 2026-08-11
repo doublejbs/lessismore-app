@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
-import { Acg } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize } from '@/constants/DesignTokens';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 
 interface Props {
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     color: Acg.ink,
   },
   tripMetaText: {
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Acg.textMuted,
   },
   weatherRow: {
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   statusTagText: {
-    fontSize: 11,
+    fontSize: AcgFontSize.meta,
   },
   // `사용`은 끝난 기록이라 한 단계 낮춘 회색 채움으로 둔다 — 가장 강한 검정 채움은
   // 사용자가 눌러주길 바라는 `미기록`에 넘긴다(GD-10).

@@ -8,7 +8,7 @@ import InfoSubScreenHeaderView, {
   NATIVE_HEADER_HEIGHT,
 } from '@/components/info/InfoSubScreenHeaderView';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
 import {
   PRIVACY_POLICY_TEXT,
   TERMS_OF_SERVICE_TEXT,
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.controlFill,
   },
   bodyText: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     lineHeight: 20,
     color: Acg.textMuted,
   },

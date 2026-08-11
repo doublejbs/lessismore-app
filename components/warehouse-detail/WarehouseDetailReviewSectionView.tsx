@@ -5,7 +5,7 @@ import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
-import { Acg } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize } from '@/constants/DesignTokens';
 import StarRatingView from '../camp-site/StarRatingView';
 
 interface Props {
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     color: Acg.ink,
   },
   ratingCountText: {
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Acg.textMuted,
   },
   repliesContainer: {

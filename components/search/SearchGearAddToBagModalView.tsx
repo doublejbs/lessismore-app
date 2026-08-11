@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
     color: Color.textSecondary,
   },
   bagItemSubtitle: {
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Color.textTertiary,
   },
   bagItemSubtitleDisabled: {

@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
 import CampSiteType from '@/model/camp-site/CampSiteType';
 import CampSiteFacility from '@/model/camp-site/CampSiteFacility';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.chipInactiveBg,
   },
   tagChipText: {
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Color.textTertiary,
   },
   warningBox: {
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   warningText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     lineHeight: 20,
     color: WARNING_TEXT_COLOR,
   },
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   },
   wildNoticeText: {
     flex: 1,
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     lineHeight: 18,
     color: WARNING_TEXT_COLOR,
   },
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   },
   source: {
     marginTop: 8,
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
 });

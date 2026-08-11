@@ -12,7 +12,7 @@ import { observer } from 'mobx-react-lite';
 import { Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color, Spacing } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, Color, Spacing } from '@/constants/DesignTokens';
 import BagActivity from '@/model/bag/BagActivity';
 import BagActivityPhase from '@/model/bag/BagActivityPhase';
 import {
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.section,
   },
   listGuide: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     lineHeight: 20,
     color: Color.textSecondary,
     marginBottom: 4,
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
     color: Color.textPrimary,
   },
   summaryMetrics: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
   primaryButton: {

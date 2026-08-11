@@ -20,7 +20,12 @@ import { BrandRankData } from '@/model/search/BrandRankStore';
 import { FeedBrandInterest } from '@/model/feed/FeedInterestProfile';
 import { toBrandKey } from '@/model/store/BrandKey';
 import PretendardText from '@/components/PretendardText';
-import { AcgLayout, Color, Radius } from '@/constants/DesignTokens';
+import {
+  AcgFontSize,
+  AcgLayout,
+  Color,
+  Radius,
+} from '@/constants/DesignTokens';
 import SearchSkeletonView from '@/components/search/SearchSkeletonView';
 import BrandRowView from '@/components/browse/BrandRowView';
 import SheetGrabberView from '@/components/ui/SheetGrabberView';
@@ -380,7 +385,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   summaryChipText: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     lineHeight: 16,
     color: Color.background,
   },

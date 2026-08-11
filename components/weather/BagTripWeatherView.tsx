@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
 import BagWeather from '@/model/bag/BagWeather';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 import WeatherDailyView from './WeatherDailyView';
@@ -128,11 +128,11 @@ const styles = StyleSheet.create({
     color: Color.textPrimary,
   },
   summaryText: {
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     color: Color.textPrimary,
   },
   disclaimer: {
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
     lineHeight: 18,
     marginTop: 16,

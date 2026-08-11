@@ -12,7 +12,13 @@ import { Stack, useRouter } from 'expo-router';
 import { Dayjs } from 'dayjs';
 import { Edge, SafeAreaView } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color, Radius, Spacing } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgFontSize,
+  Color,
+  Radius,
+  Spacing,
+} from '@/constants/DesignTokens';
 import BagWeather from '@/model/bag/BagWeather';
 import { getPhaseLabel } from '@/model/bag/TripPhaseHelper';
 import BagDestinationMapPreviewView from './BagDestinationMapPreviewView';
@@ -224,7 +230,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.chipInactiveBg,
   },
   phaseText: {
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Color.textPrimary,
   },
   emptyState: {

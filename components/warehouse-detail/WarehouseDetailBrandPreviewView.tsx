@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
 import { getDisplayHost } from '../../model/gear/GearBrandLink';
 
 /** 이미지 밴드 높이. 상품 사진이 대부분 정사각이라 밴드가 너무 납작하면 크게 letterbox 된다. */
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     color: Color.textPrimary,
   },
   host: {
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
 });

@@ -1,7 +1,7 @@
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize } from '@/constants/DesignTokens';
 import Comment from '@/model/reply/Comment';
 import Reply from '@/model/reply/Reply';
 import dayjs from 'dayjs';
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     color: Acg.limeText,
   },
   date: {
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Acg.textMuted,
   },
   moreButton: {

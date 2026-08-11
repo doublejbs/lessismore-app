@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 import PretendardText from '@/components/PretendardText';
 import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
 import StarRatingView from './StarRatingView';
 import { CampReview } from '@/model/camp-review/CampReviewTypes';
 
@@ -206,11 +206,11 @@ const styles = StyleSheet.create({
     backgroundColor: Color.chipInactiveBg,
   },
   mineBadgeText: {
-    fontSize: 11,
+    fontSize: AcgFontSize.meta,
     color: Color.textTertiary,
   },
   date: {
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
   content: {
@@ -238,12 +238,12 @@ const styles = StyleSheet.create({
   // 긴 배낭 이름이 날짜·무게·chevron을 밀어내지 않게 이름만 줄인다(2026-08-03 리뷰).
   bagName: {
     flexShrink: 1,
-    fontSize: 13,
+    fontSize: AcgFontSize.meta,
     color: Color.textPrimary,
   },
   bagMeta: {
     flexShrink: 1,
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
   headerTrailing: {

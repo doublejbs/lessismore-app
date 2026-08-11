@@ -17,7 +17,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import StarRatingView from '@/components/camp-site/StarRatingView';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 const MAX_CONTENT_LENGTH = 1000;
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   },
   counter: {
     alignSelf: 'flex-end',
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
     color: Acg.textMuted,
   },
   buttonContainer: {

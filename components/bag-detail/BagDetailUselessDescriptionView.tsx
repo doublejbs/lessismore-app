@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   weightSuffix: {
-    fontSize: 12,
+    fontSize: AcgFontSize.meta,
   },
 });
 
