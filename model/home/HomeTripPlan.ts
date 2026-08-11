@@ -16,16 +16,24 @@ export interface HomeTripAction {
   route: string;
 }
 
-export interface HomeTripPlan {
-  // 주 카드에 세울 배낭. 없으면 빈 상태를 그린다.
-  primary: BagItem | null;
-  stage: HomeTripStage | null;
-  // 주 카드 아래 한 줄 요약(최대 2개).
-  next: BagItem[];
+export interface HomeTripEntry {
+  bag: BagItem;
+  stage: HomeTripStage;
 }
 
-// 주 카드 아래 덧붙이는 다음 일정 개수.
-const NEXT_LIMIT = 2;
+export interface HomeTripPlan {
+  /**
+   * 홈 캐러셀에 세울 일정들. **앞이 지금 할 일**이고(여행 중 > 임박 > 계획 > 종료 직후),
+   * 비어 있으면 빈 상태를 그린다.
+   *
+   * 예전에는 `primary` 하나 + `next` 요약 줄로 나뉘어 있었는데, 카드를 옆으로 넘기게 되면서
+   * (2026-08-11) 둘의 표현이 같아졌다 — 나눠 두면 뷰가 같은 카드를 두 벌로 그리게 된다.
+   */
+  trips: HomeTripEntry[];
+}
+
+// 캐러셀에 세우는 최대 일정 수. 넷을 넘기면 홈에서 훑는 양이 목록 화면만큼 된다.
+const TRIP_LIMIT = 3;
 
 /**
  * 배낭의 시점을 가른다. 판단 불가(날짜 없음)거나 홈에 세울 이유가 없으면 null.
@@ -176,22 +184,22 @@ export const selectTripPlan = (
         return byStage;
       }
 
-      return (a.bag.getStartDateValue() ?? 0) - (b.bag.getStartDateValue() ?? 0);
+      return (
+        (a.bag.getStartDateValue() ?? 0) - (b.bag.getStartDateValue() ?? 0)
+      );
     });
 
   const head = staged[0];
 
   if (!head) {
-    return { primary: null, stage: null, next: [] };
+    return { trips: [] };
   }
 
-  // 아래 한 줄 요약은 **앞으로 갈 여행만** 담는다 — 이미 끝난 여행을 "다음 일정"으로
-  // 세우면 목록의 뜻이 흐려진다.
-  const next = staged
+  // 두 번째 이후는 **앞으로 갈 여행만** 담는다 — 이미 끝난 여행을 "다가오는 일정"으로
+  // 세우면 섹션의 뜻이 흐려진다. 첫 장은 종료 직후여도 남긴다(기록 유도가 그 카드의 몫이다).
+  const rest = staged
     .slice(1)
-    .filter(entry => entry.stage !== HomeTripStage.JustFinished)
-    .slice(0, NEXT_LIMIT)
-    .map(entry => entry.bag);
+    .filter(entry => entry.stage !== HomeTripStage.JustFinished);
 
-  return { primary: head.bag, stage: head.stage, next };
+  return { trips: [head, ...rest].slice(0, TRIP_LIMIT) };
 };
