@@ -1,10 +1,7 @@
 import { FC } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import LiquidHeaderChrome, {
-  LIQUID_HEADER_ICON_BOX,
-} from '@/components/liquid/LiquidHeaderChrome';
-import { Liquid, LiquidMotion } from '@/constants/DesignTokens';
+import { LedgerColor, LedgerLayout } from '@/constants/LedgerTokens';
 
 interface Props {
   onPressBack: () => void;
@@ -14,21 +11,18 @@ interface Props {
   showSearch: boolean;
 }
 
-/**
- * 아이콘 칸(34)을 캡슐 높이(38)까지 넓히는 여유. **현 프리미티브 구조상의 제약**이다 —
- * `LiquidGlassCapsule`의 겉면이 알약으로 클리핑하므로(`overflow: 'hidden'`) 그 밖으로
- * 나간 히트 영역이 전달되지 않아, 아이콘 두 개를 담는 캡슐에서는 시스템 바 버튼과 같은
- * 38이 상한이다(배낭 상세·패킹 헤더와 같은 자리). 클리핑을 안쪽 레이어로 내리면 44까지
- * 넓힐 수 있다 — 지오메트리가 막는 것이 아니다.
- */
-const ICON_HIT_SLOP = { top: 2, bottom: 2, left: 0, right: 0 };
+const BACK_ICON_SIZE = 26;
+const ACTION_ICON_SIZE = 22;
+const ADD_ICON_SIZE = 26;
+
+const PRESS_OPACITY = 0.7;
 
 /**
- * Android·Web용 창고 헤더 크롬 (Liquid Depth, 목업 §8).
+ * Android·Web용 창고 크롬 (Ledger). iOS는 네이티브 투명 헤더가 같은 자리를 맡는다.
  *
- * 유리 크롬 한 줄은 `LiquidHeaderChrome`이 그리고(iOS가 이 크롬을 안 쓰는 이유도 거기 있다 —
- * LG-1), 이 파일은 이 화면만의 액션 두 개를 캡슐 칸에 담는다. 버튼 순서도 iOS 바 버튼과
- * 같게 `[검색][+]`로 둔다(WH-1).
+ * **유리 캡슐이 아니라 아이콘만**이다 — 면·테두리·그림자·블러가 없다. 크롬이 떠 있지
+ * 않으므로 그림자를 둘 이유도 없다. 아이콘 상자는 44라 글리프 중심이 22에 놓여, 시스템
+ * 내비게이션 바와 같은 좌우 축을 갖는다.
  */
 const WarehouseChromeView: FC<Props> = ({
   onPressBack,
@@ -36,42 +30,63 @@ const WarehouseChromeView: FC<Props> = ({
   onPressAdd,
   showSearch,
 }) => {
-  const actions = (
-    <>
+  return (
+    <View style={styles.row}>
+      <TouchableOpacity
+        style={styles.iconBox}
+        onPress={onPressBack}
+        activeOpacity={PRESS_OPACITY}
+        accessibilityRole='button'
+        accessibilityLabel='뒤로'
+      >
+        <Ionicons
+          name='chevron-back'
+          size={BACK_ICON_SIZE}
+          color={LedgerColor.ink}
+        />
+      </TouchableOpacity>
+      <View style={styles.spacer} />
       {showSearch ? (
         <TouchableOpacity
           style={styles.iconBox}
           onPress={onPressSearch}
-          activeOpacity={LiquidMotion.pressOpacity}
-          hitSlop={ICON_HIT_SLOP}
+          activeOpacity={PRESS_OPACITY}
           accessibilityRole='button'
           accessibilityLabel='장비 검색'
         >
-          <Ionicons name='search' size={19} color={Liquid.ink} />
+          <Ionicons
+            name='search'
+            size={ACTION_ICON_SIZE}
+            color={LedgerColor.ink}
+          />
         </TouchableOpacity>
       ) : null}
       <TouchableOpacity
         style={styles.iconBox}
         onPress={onPressAdd}
-        activeOpacity={LiquidMotion.pressOpacity}
-        hitSlop={ICON_HIT_SLOP}
+        activeOpacity={PRESS_OPACITY}
         accessibilityRole='button'
         accessibilityLabel='장비 추가'
       >
-        <Ionicons name='add' size={23} color={Liquid.ink} />
+        <Ionicons name='add' size={ADD_ICON_SIZE} color={LedgerColor.ink} />
       </TouchableOpacity>
-    </>
+    </View>
   );
-
-  return <LiquidHeaderChrome onPressBack={onPressBack} actions={actions} />;
 };
 
 const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   iconBox: {
-    width: LIQUID_HEADER_ICON_BOX,
-    height: LIQUID_HEADER_ICON_BOX,
+    width: LedgerLayout.rowMin,
+    height: LedgerLayout.rowMin,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  spacer: {
+    flex: 1,
   },
 });
 

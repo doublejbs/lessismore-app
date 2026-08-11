@@ -1,198 +1,146 @@
-import { FC, useCallback, useEffect, useRef } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  LayoutChangeEvent,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-} from 'react-native';
-import Warehouse from '@/model/warehouse/Warehouse';
-import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
+import { FC } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
-import LiquidChip from '@/components/liquid/LiquidChip';
-import LiquidNoticeChip from '@/components/liquid/LiquidNoticeChip';
+import Warehouse from '@/model/warehouse/Warehouse';
+import OrderOption from '@/model/order/OrderOption';
+import LedgerTextTabs, {
+  LedgerTextTabItem,
+} from '@/components/ledger/LedgerTextTabs';
+import LedgerTextTabsSize from '@/components/ledger/LedgerTextTabsSize';
+import WarehouseSortView from '@/components/warehouse/WarehouseSortView';
 import { getFineCategoryLabel } from '@/model/gear/GearCategoryGroups';
-import { LiquidLayout } from '@/constants/DesignTokens';
+import {
+  LedgerColor,
+  LedgerLayout,
+  LedgerLine,
+  LedgerSpace,
+} from '@/constants/LedgerTokens';
 import app from '@/model/app/App';
 
 interface Props {
   warehouse: Warehouse;
+  onSelectOrder: (option: OrderOption) => void;
 }
 
-// 선택 칩을 스크롤 안으로 들일 때 가장자리에 남기는 여백 — 딱 붙으면 잘린 것처럼 보인다.
-const CHIP_EDGE_PADDING = 16;
+/**
+ * 카테고리 이름과 겹치지 않는 키. 탭 줄이 두 축(카테고리 단일 선택 + 사용 여부 토글)을 한
+ * 배열로 들기 때문에 키 공간을 갈라 둔다.
+ */
+const UNUSED_TAB_KEY = '__unused__';
+const FINE_ALL_TAB_KEY = '__fineAll__';
 
 /**
- * WH-2 창고 필터 줄 (Liquid Depth, 목업 §8).
+ * WH-2 창고 컨트롤 줄 (Ledger).
  *
- * 1차 칩 줄(사용 여부 알림 칩 + 카테고리 칩) → (해당 그룹이면) 세분 칩 줄 순이다.
- * 개수·정렬은 이 줄이 아니라 **화면 제목 블록**이 든다(목업 §8) — 목록의 규모와 정렬은
- * 화면 대상(`창고`)에 딸린 정보라 제목 옆이 자리다.
+ * 알약 칩 줄을 **텍스트 탭**으로 바꿨다. 좌측은 무엇을 볼지(카테고리 + 사용 여부), 우측은
+ * 어떤 순서로 볼지(정렬 WH-3)이고, 그 아래 1px 구역 경계가 컨트롤과 원장을 가른다 —
+ * 목록 첫 행 위에 헤어라인을 두지 않는 이유가 이 선이다.
+ *
+ * 세분(2차) 줄은 1차 선택이 있을 때만 나타나며 같은 프리미티브를 한 급 작은 크기로 쓴다.
  */
-const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
+const WarehouseFiltersView: FC<Props> = ({ warehouse, onSelectOrder }) => {
   const fineCategoryOptions = warehouse.getFineCategoryOptions();
   const fineCategory = warehouse.getFineCategory();
   const selectedFilterName = warehouse.getSelectedFilter().getName();
   const unusedOnly = warehouse.isUnusedOnly();
   const unusedCount = warehouse.getUnusedCount();
+  const filters = warehouse.mapFilters(filter => filter);
 
   /**
-   * 1차 칩 행의 가로 스크롤을 선택 칩에 맞춘다.
+   * WH-2-1 `안 쓴 장비 n`을 **탭 줄의 두 번째 항목으로 흡수**한다(Ledger 이식).
    *
-   * 홈 미리보기에서 카테고리를 좁힌 채 들어오면(HM-4) 선택된 칩이 **스크롤 밖에 있어
-   * 보이지 않는다** — 필터가 걸린 줄 모른 채 목록이 적게 나온 것처럼 읽힌다.
+   * Liquid 세대에서는 카테고리 칩 줄 안에 라임 틴트 알림 칩으로 앉아 있어, 누르면 목록이
+   * 걸러지는 필터인지 "안 쓴 장비가 4개 있다"는 배지인지 갈리지 않았다. 실제로는 필터이므로
+   * 다른 필터와 같은 자리·같은 문법을 쓴다.
    *
-   * 측정은 `onLayout`으로 모은다. `measureLayout`은 마운트 직후 타이밍을 타는데, 여기서
-   * 필요한 건 레이아웃이 확정된 시점의 좌표뿐이라 콜백으로 받는 편이 확실하다.
+   * 다만 카테고리는 단일 선택이고 이것은 **함께 걸리는 토글**이라, 선택 표시를 라임 계열
+   * 잉크로 갈라 둔다(`accent`) — 같은 잉크 밑줄이면 카테고리 선택을 대체한 것처럼 읽히는데
+   * 실제로는 카테고리 필터가 그대로 남아 있다.
    */
-  const scrollRef = useRef<ScrollView>(null);
-  const chipLayoutsRef = useRef<Record<string, { x: number; width: number }>>(
-    {}
-  );
-  const viewportWidthRef = useRef(0);
-  const offsetRef = useRef(0);
-  // 첫 정렬은 애니메이션 없이 — 진입하자마자 칩이 흐르면 사용자가 건드린 것처럼 보인다.
-  const hasAlignedRef = useRef(false);
+  const primaryItems: LedgerTextTabItem[] = filters.map(filter => ({
+    key: filter.getName(),
+    label: filter.getName(),
+    selected: filter.isSelected(),
+  }));
 
-  const ensureChipVisible = useCallback((name: string) => {
-    const layout = chipLayoutsRef.current[name];
-    const viewport = viewportWidthRef.current;
+  if (unusedCount > 0 || unusedOnly) {
+    primaryItems.splice(1, 0, {
+      key: UNUSED_TAB_KEY,
+      label: '안 쓴 장비',
+      count: unusedCount,
+      selected: unusedOnly,
+      accent: true,
+      accessibilityLabel: `안 쓴 장비만 보기, ${unusedCount}개`,
+    });
+  }
 
-    if (!layout || viewport === 0) {
+  const fineItems: LedgerTextTabItem[] = [
+    {
+      key: FINE_ALL_TAB_KEY,
+      label: '전체',
+      selected: fineCategory === null,
+    },
+    ...fineCategoryOptions.map(key => ({
+      key,
+      label: getFineCategoryLabel(key),
+      selected: fineCategory === key,
+    })),
+  ];
+
+  const handleSelectPrimary = (key: string) => {
+    if (key === UNUSED_TAB_KEY) {
+      warehouse.toggleUnusedOnly();
+
       return;
     }
 
-    const offset = offsetRef.current;
-    const left = layout.x;
-    const right = layout.x + layout.width;
-    const animated = hasAlignedRef.current;
+    const filter = filters.find(candidate => candidate.getName() === key);
 
-    // 이미 보이는 칩은 건드리지 않는다 — 탭할 때마다 행이 흔들리면 거슬린다.
-    if (left < offset + CHIP_EDGE_PADDING) {
-      scrollRef.current?.scrollTo({
-        x: Math.max(0, left - CHIP_EDGE_PADDING),
-        animated,
-      });
-    } else if (right > offset + viewport - CHIP_EDGE_PADDING) {
-      scrollRef.current?.scrollTo({
-        x: right - viewport + CHIP_EDGE_PADDING,
-        animated,
-      });
+    if (!filter) {
+      return;
     }
 
-    hasAlignedRef.current = true;
-  }, []);
-
-  // 선택이 바뀔 때마다 맞춘다(진입 시 승계된 카테고리 · 사용자가 반쯤 걸친 칩을 탭한 경우 모두).
-  useEffect(() => {
-    ensureChipVisible(selectedFilterName);
-  }, [selectedFilterName, ensureChipVisible]);
-
-  const handleChipLayout = (name: string) => (event: LayoutChangeEvent) => {
-    const { x, width } = event.nativeEvent.layout;
-
-    chipLayoutsRef.current[name] = { x, width };
-
-    // 마운트 직후에는 위 effect가 좌표보다 먼저 돌기 때문에 여기서 한 번 더 맞춘다.
-    if (name === selectedFilterName) {
-      ensureChipVisible(name);
-    }
-  };
-
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    offsetRef.current = event.nativeEvent.contentOffset.x;
-  };
-
-  const handleScrollViewLayout = (event: LayoutChangeEvent) => {
-    viewportWidthRef.current = event.nativeEvent.layout.width;
-    ensureChipVisible(selectedFilterName);
-  };
-
-  const handleClick = (filter: WarehouseFilter) => {
-    app
-      .getAnalyticsManager()
-      ?.logClick('warehouse_filter', { category: filter.getName() });
+    app.getAnalyticsManager()?.logClick('warehouse_filter', { category: key });
     warehouse.toggleFilter(filter);
   };
 
-  // 세분 칩 탭 — 전체 칩은 null, 재탭 토글은 Warehouse가 처리한다
-  const handleClickFineCategory = (key: string | null) => {
+  const handleSelectFine = (key: string) => {
+    const fineKey = key === FINE_ALL_TAB_KEY ? null : key;
+
     app
       .getAnalyticsManager()
-      ?.logClick('warehouse_fine_filter', { category: key ?? 'all' });
-    warehouse.selectFineCategory(key);
-  };
-
-  const handleToggleUnused = () => {
-    warehouse.toggleUnusedOnly();
+      ?.logClick('warehouse_fine_filter', { category: fineKey ?? 'all' });
+    void warehouse.selectFineCategory(fineKey);
   };
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={[styles.scrollView, styles.primaryRow]}
-        contentContainerStyle={styles.scrollContent}
-        onLayout={handleScrollViewLayout}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-      >
-        {/* WH-2-1 사용 여부 필터 — 카테고리와 별개 축이지만 **같은 줄 맨 앞**에 둔다
-            (2026-08-11 디자인 리뷰). 칩 줄 아래 혼자 뜬 자리에서는 필터인지 경고 배지인지
-            갈리지 않았다. 필터들과 같은 줄에 서면 누르면 목록이 걸러진다는 약속이 자리로
-            드러나고, 라임 틴트·낮은 높이(30)가 별개 축임을 계속 말한다.
-            개수를 함께 보여줘야 몇 개가 걸러지는지 알고 덜어낼 판단을 할 수 있다.
-            선택 칩 스크롤 정렬(위)에는 넣지 않는다 — 줄 맨 앞이라 진입 시점(offset 0)에는 항상
-            보이고, 멀리 있는 카테고리를 골라 줄이 흐른 뒤에는 다른 필터들과 같이 밀린다. */}
-        {unusedCount > 0 || unusedOnly ? (
-          <LiquidNoticeChip
-            label={`안 쓴 장비 ${unusedCount}`}
-            icon='alert-circle-outline'
-            selected={unusedOnly}
-            onPress={handleToggleUnused}
-            accessibilityLabel={`안 쓴 장비만 보기, ${unusedCount}개`}
-          />
-        ) : null}
-        {warehouse.mapFilters(filter => (
-          <View
-            key={filter.getName()}
-            onLayout={handleChipLayout(filter.getName())}
-          >
-            <LiquidChip
-              label={filter.getName()}
-              selected={filter.isSelected()}
-              onPress={() => handleClick(filter)}
-            />
-          </View>
-        ))}
-      </ScrollView>
+      <View style={styles.primaryRow}>
+        <LedgerTextTabs
+          items={primaryItems}
+          onSelect={handleSelectPrimary}
+          alignKey={selectedFilterName}
+          style={styles.primaryTabs}
+          contentContainerStyle={styles.primaryContent}
+        />
+        <WarehouseSortView
+          order={warehouse.getOrder()}
+          onSelectOption={onSelectOrder}
+        />
+      </View>
       {fineCategoryOptions.length > 0 && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={[styles.scrollView, styles.fineRow]}
-          contentContainerStyle={styles.fineScrollContent}
-        >
-          <LiquidChip
-            label='전체'
-            size='sm'
-            selected={fineCategory === null}
-            onPress={() => handleClickFineCategory(null)}
-          />
-          {fineCategoryOptions.map(key => (
-            <LiquidChip
-              key={key}
-              label={getFineCategoryLabel(key)}
-              size='sm'
-              selected={fineCategory === key}
-              onPress={() => handleClickFineCategory(key)}
-            />
-          ))}
-        </ScrollView>
+        <LedgerTextTabs
+          items={fineItems}
+          onSelect={handleSelectFine}
+          size={LedgerTextTabsSize.Sm}
+          {...(fineCategory ? { alignKey: fineCategory } : {})}
+          style={styles.fineTabs}
+          contentContainerStyle={styles.fineContent}
+        />
       )}
+      {/* 구역 경계 — 행 사이 헤어라인보다 한 단 굵어 "컨트롤과 목록"의 경계임이 두께로 읽힌다.
+          선택 탭의 2px 밑줄이 이 선에 앉아 탭이 경계에 붙어 보인다. */}
+      <View style={styles.rule} />
     </View>
   );
 };
@@ -200,36 +148,41 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
-    // 지면이 비쳐야 한다 — 흰 면을 깔면 필터 바만 종이처럼 떠 보인다.
-    backgroundColor: 'transparent',
+    marginTop: LedgerSpace.sm,
   },
   /**
-   * 칩 줄은 화면 좌우로 블리드시킨다 — 스크롤이 가장자리에서 끊기지 않게(목업 §8: margin 0 -20).
-   * 폭을 지정하지 않는다 — `width: '100%'`를 주면 음수 마진만큼 오른쪽이 잘려 마지막 칩이
-   * 화면 안에서 끝난다. 늘어나는 대로(stretch) 두면 부모 폭 + 40이 된다.
+   * 높이를 44로 못 박는다 — 안의 가로 `ScrollView`는 세로로 콘텐츠를 감싸는데, 그 계산에
+   * 기대면 탭 항목의 터치 타깃(44)이 줄에 반영되지 않을 수 있다. 정렬(44)과 밑단을 맞춘다.
    */
-  scrollView: {
-    marginHorizontal: -LiquidLayout.screenH,
-  },
   primaryRow: {
-    marginTop: 16,
-  },
-  // 세분 줄은 1차 줄에 딸린 보조 줄이라 붙여 둔다.
-  fineRow: {
-    marginTop: 8,
-  },
-  scrollContent: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: LiquidLayout.screenH,
+    alignItems: 'flex-end',
+    minHeight: LedgerLayout.rowMin,
+    gap: LedgerSpace.md,
   },
-  // 세분 칩 줄 — 1차 줄과 구분되게 보조적으로(간격 축소) 배치
-  fineScrollContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: LiquidLayout.screenH,
+  /**
+   * 좌측만 화면 끝까지 블리드시킨다 — 스크롤이 좌측 가장자리에서 끊기지 않게. 우측은
+   * 정렬이 서 있어 거터까지 갈 수 없다.
+   */
+  primaryTabs: {
+    flex: 1,
+    minWidth: 0,
+    marginLeft: -LedgerLayout.pageX,
+  },
+  primaryContent: {
+    paddingLeft: LedgerLayout.pageX,
+    paddingRight: LedgerSpace.md,
+  },
+  // 세분 줄은 우측에 컨트롤이 없어 양쪽 모두 블리드한다.
+  fineTabs: {
+    marginHorizontal: -LedgerLayout.pageX,
+  },
+  fineContent: {
+    paddingHorizontal: LedgerLayout.pageX,
+  },
+  rule: {
+    height: LedgerLine.thin,
+    backgroundColor: LedgerColor.lineStrong,
   },
 });
 

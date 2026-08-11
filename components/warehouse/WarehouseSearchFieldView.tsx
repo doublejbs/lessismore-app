@@ -2,22 +2,27 @@ import { FC } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import LiquidSearchField from '@/components/liquid/LiquidSearchField';
+import LedgerField from '@/components/ledger/LedgerField';
 import Warehouse from '@/model/warehouse/Warehouse';
-import { Liquid, LiquidLayout, LiquidMotion } from '@/constants/DesignTokens';
+import {
+  LedgerColor,
+  LedgerLayout,
+  LedgerSpace,
+  LedgerType,
+} from '@/constants/LedgerTokens';
 
 interface Props {
   warehouse: Warehouse;
   onClose: () => void;
 }
 
+const PRESS_OPACITY = 0.7;
+
 /**
- * Android·Web용 창고 검색 필드 (Liquid Depth, WH-8).
+ * Android·Web용 창고 검색 필드 (Ledger, WH-8).
  *
- * iOS는 네이티브 검색 바(`headerSearchBarOptions`)가 이 자리를 맡으므로 쓰지 않는다
- * ([LiquidGlassNavigation.md](../../specs/LiquidGlassNavigation.md) LG-3).
- * 필드 자체는 공용 프리미티브(`LiquidSearchField`)가 그린다 — 브랜드 디렉토리·브랜드 필터
- * 시트와 같은 유리 문법이라야 값이 갈리지 않는다. 이 화면은 그 옆에 `취소`만 더한다.
+ * iOS는 네이티브 검색 바(`headerSearchBarOptions`)가 이 자리를 맡으므로 쓰지 않는다.
+ * 필드는 면 없이 하단 헤어라인만 있는 `LedgerField`이고, 이 파일은 그 옆에 `취소`만 더한다.
  */
 const WarehouseSearchFieldView: FC<Props> = ({ warehouse, onClose }) => {
   const query = warehouse.getQuery();
@@ -28,11 +33,13 @@ const WarehouseSearchFieldView: FC<Props> = ({ warehouse, onClose }) => {
 
   return (
     <View style={styles.row}>
-      <LiquidSearchField
+      <LedgerField
         value={query}
         onChangeText={handleChangeText}
         placeholder='장비 검색'
         accessibilityLabel='장비 검색'
+        clearLabel='검색어 지우기'
+        showSearchIcon
         autoFocus
         style={styles.field}
       />
@@ -40,7 +47,7 @@ const WarehouseSearchFieldView: FC<Props> = ({ warehouse, onClose }) => {
       <TouchableOpacity
         onPress={onClose}
         style={styles.cancelButton}
-        activeOpacity={LiquidMotion.pressOpacity}
+        activeOpacity={PRESS_OPACITY}
         accessibilityRole='button'
         accessibilityLabel='검색 닫기'
       >
@@ -56,21 +63,22 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: LedgerSpace.md,
   },
-  // 행 안에서 `취소`를 뺀 남는 폭을 채운다 — 셸은 기본이 부모 폭이라 여기서 늘린다.
+  // 행 안에서 `취소`를 뺀 남는 폭을 채운다.
   field: {
     flex: 1,
+    minWidth: 0,
   },
   cancelButton: {
-    minWidth: LiquidLayout.touchMin,
-    minHeight: LiquidLayout.touchMin,
+    minHeight: LedgerLayout.rowMin,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cancelText: {
-    fontSize: 14,
-    color: Liquid.inkSecondary,
+    fontSize: LedgerType.label.fontSize,
+    lineHeight: LedgerType.label.lineHeight,
+    color: LedgerColor.inkSecondary,
   },
 });
 

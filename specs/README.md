@@ -34,6 +34,10 @@
 
 신규 도메인 스펙은 [Template.md](Template.md)를 복사해서 시작한다.
 
+## 디자인 시스템 (2세대 병존, 2026-08-11)
+
+앱에는 지금 **두 개의 디자인 시스템이 병존한다.** 화면마다 어느 쪽인지가 정해져 있고, **한 화면 안에서 둘을 섞지 않는다.** **Liquid Depth**(토큰 `constants/DesignTokens.ts`의 `Liquid*` 그룹 · 프리미티브 `components/liquid/`)는 유리 면(`expo-blur`)·큰 모서리·알약·떠 있는 카드·지형 지면(`LiquidBackdrop`)을 문법으로 하며 **창고를 제외한 전 화면**이 이 세대다. **Ledger**(장비 원장 — 토큰 `constants/LedgerTokens.ts` · 프리미티브 `components/ledger/`의 `LedgerRow`·`LedgerTextTabs`·`LedgerField`)는 지면이 흰 종이 하나이고 구분을 `여백 → 글자급 → 정렬 → 헤어라인` 순서로만 내며, 카드로 감싸지 않고 목록은 카드가 아니라 행이고 그림자는 실제로 떠 있는 것에만 쓰며 액센트(라임)를 주 액션이 아니라 **선택 상태·활성 지표**에만 쓴다 — **현재 적용 범위는 창고 화면 하나뿐이다**([Warehouse.md](Warehouse.md) §2 화면 문법). 새 UI는 그 화면이 어느 세대인지 먼저 확인하고 해당 토큰·프리미티브만 쓴다. Ledger 화면이 Liquid에서 빌려 쓰는 것은 스켈레톤 셔머 두 개(`useLiquidShimmer`·`LiquidSkeletonBar`)뿐이며(왕복 로직을 두 벌 유지할 이유가 없고 막대는 형태만 갖는 자리라 세대 문법이 걸리지 않는다), 의미색(`danger`·`warn*`·박지·배낭 카테고리 색 등)은 뜻이 값에 묶여 있어 두 세대 모두에서 리디자인 대상이 아니다.
+
 ## 스펙 주도 개발 워크플로우
 
 구현 작업(기능 추가, 버그 수정, 리팩토링)은 반드시 아래 순서를 따른다.
@@ -63,7 +67,7 @@ UI가 바뀌는 작업은 **실행 중인 앱의 스크린샷**(iOS/Android 필�
   - 네이티브 `formSheet` 라우트 → `sheetGrabberVisible: true`로 **OS가 그래버를 그린다**. 별도 닫기 버튼을 두지 않는다.
   - `presentation: 'modal'`(pageSheet) 라우트와 RN `Modal` 기반 시트 → **OS 그래버가 없다.** 스와이프로 닫히긴 하나 어포던스가 안 보이므로 공용 `SheetGrabberView`(핸들바)를 직접 얹고, 하단이 주 액션(`확인` 등) 하나뿐이면 **적용하지 않고 나가는 길**(우상단 닫기 ×)을 함께 둔다.
   - 핸들바는 시트마다 새로 그리지 않는다 — 예전에 치수·색이 네 갈래로 갈렸고 그중 하나(`borderLight`)는 흰 배경에서 거의 안 보였다.
-- **공용 프리미티브 우선** — 같은 그림을 화면에서 다시 그리지 않는다(핸들바와 같은 이유: 복제는 반드시 값이 갈린다). `components/liquid/`에 있는 것을 먼저 찾는다: 카드·알약·칩·필드(`LiquidCard`·`LiquidPillButton`·`LiquidChip`·`LiquidSearchField`·`LiquidGlassField`), 유리 크롬(`LiquidHeaderChrome` — 헤더 행 + 유리 원 back + 우측 캡슐 + 가운데 타이틀, `LiquidGlassCapsule`·`LiquidGlassCircleButton`), 시트(`LiquidBottomSheet`·`LiquidSheetCloseButton`), 지면(`LiquidBackdrop`), 로딩 셔머(`useLiquidShimmer` + `LiquidSkeletonBar`). 값이 프리미티브와 어긋나면 **프리미티브 값이 목업 수치보다 우선**한다(GD-1·CS-3 선례). 새 프리미티브가 필요하면 화면 안에 두지 말고 `components/liquid/`에 만든다.
+- **공용 프리미티브 우선** — 같은 그림을 화면에서 다시 그리지 않는다(핸들바와 같은 이유: 복제는 반드시 값이 갈린다). **먼저 그 화면의 세대를 확인한다**(위 디자인 시스템 절): Ledger 화면(현재 창고)은 `components/ledger/`의 `LedgerRow`·`LedgerTextTabs`·`LedgerField`를 쓰고 Liquid 프리미티브를 들이지 않는다(예외는 스켈레톤 셔머 2종). Liquid Depth 화면은 `components/liquid/`에 있는 것을 먼저 찾는다: 카드·알약·칩·필드(`LiquidCard`·`LiquidPillButton`·`LiquidChip`·`LiquidSearchField`·`LiquidGlassField`), 유리 크롬(`LiquidHeaderChrome` — 헤더 행 + 유리 원 back + 우측 캡슐 + 가운데 타이틀, `LiquidGlassCapsule`·`LiquidGlassCircleButton`), 시트(`LiquidBottomSheet`·`LiquidSheetCloseButton`), 지면(`LiquidBackdrop`), 로딩 셔머(`useLiquidShimmer` + `LiquidSkeletonBar`). 값이 프리미티브와 어긋나면 **프리미티브 값이 목업 수치보다 우선**한다(GD-1·CS-3 선례). 새 프리미티브가 필요하면 화면 안에 두지 말고 `components/liquid/`에 만든다.
 - **상태 커버리지** — 로딩/빈/에러/비로그인 상태의 UI가 처리되어 있는가.
 - **문구** — 한글 문구의 톤(존댓말)·용어가 기존 문구와 일관적인가.
 - **플랫폼 렌더링** — 아이콘 매핑(iOS SF Symbol ↔ Android/웹), 키보드 회피, 세이프에어리어가 세 플랫폼에서 깨지지 않는가.

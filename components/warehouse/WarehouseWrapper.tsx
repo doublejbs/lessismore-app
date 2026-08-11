@@ -6,7 +6,7 @@ import WarehouseDispatcher from '@/model/warehouse/WarehouseDispatcher';
 import GearFilter from '@/model/gear/GearFilter';
 import app from '@/model/app/App';
 import WarehouseScreen from '@/components/warehouse/WarehouseScreen';
-import LiquidBackdrop from '@/components/liquid/LiquidBackdrop';
+import { LedgerColor } from '@/constants/LedgerTokens';
 
 interface Props {
   // 홈 미리보기에서 좁힌 1차 카테고리. 첫 조회부터 이 카테고리로 나간다.
@@ -42,19 +42,16 @@ const WarehouseWrapper: FC<Props> = ({
   if (isFirebaseInitialized) {
     return <WarehouseScreen warehouse={warehouse} />;
   } else {
-    // Firebase 초기화 전에는 지면만 깐다 — 스피너는 쓰지 않고(핸드오프 로딩 규칙), 아무것도
-    // 렌더하지 않으면 진입 순간 흰 화면이 번쩍인다(패킹 모드와 같은 처리).
-    return (
-      <View style={styles.container}>
-        <LiquidBackdrop screen='none' glowPosition='topRight' />
-      </View>
-    );
+    // Firebase 초기화 전에는 지면만 깐다 — 스피너는 쓰지 않고, 아무것도 렌더하지 않으면
+    // 진입 순간 배경색이 번쩍인다. 원장의 지면은 흰 종이 하나다.
+    return <View style={styles.page} />;
   }
 };
 
 const styles = StyleSheet.create({
-  container: {
+  page: {
     flex: 1,
+    backgroundColor: LedgerColor.page,
   },
 });
 
