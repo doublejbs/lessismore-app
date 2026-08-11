@@ -24,7 +24,7 @@ const CTA_ICON_SIZE = 24;
 const NAME_MAX_LINES = 3;
 
 // 앵커 무게. 셀에서 가장 큰 활자다.
-const WEIGHT_FONT_SIZE = 26;
+const WEIGHT_FONT_SIZE = 24;
 
 const WEIGHT_LINE_HEIGHT = 30;
 
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     fontSize: AcgFontSize.meta,
-    lineHeight: 18,
+    lineHeight: 17,
     color: Acg.ink,
   },
   name: {

@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: AcgFontSize.sectionTitle,
-    lineHeight: 26,
+    lineHeight: 24,
     color: Acg.ink,
     marginBottom: 12,
   },
@@ -393,12 +393,12 @@ const styles = StyleSheet.create({
   // 이름 + 메타 한 줄(브랜드·무게)로 묶는다 — 브랜드가 이름 위 작은 줄이던 것을 내렸다.
   gearName: {
     fontSize: AcgFontSize.rowTitle,
-    lineHeight: 24,
+    lineHeight: 22,
     color: Acg.ink,
   },
   gearMeta: {
     fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 20,
+    lineHeight: 19,
     color: Acg.ink,
   },
   buttonContainer: {

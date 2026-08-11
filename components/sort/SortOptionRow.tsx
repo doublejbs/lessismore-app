@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 20,
+    lineHeight: 19,
     color: Color.textSecondary,
   },
   labelSelected: {

@@ -88,16 +88,15 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: Spacing.item,
     paddingTop: Spacing.screenH,
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
     marginBottom: Spacing.screenH,
   },
   // 1층 — 사진은 가운데 단독 줄(GD-1).
   photoRow: {
     alignItems: 'center',
   },
-  // 2층 — 좌 정체 · 우 무게. 세로는 **상단 정렬**이다. 좌측이 3줄이라 목록 행(GearView)의 가운데
-  // 정렬을 그대로 쓰면 무게가 이름 줄 옆으로 내려앉아 브랜드 줄과 짝지어 읽히지 않는다.
-  // 32pt/40 무게와 24pt/32 브랜드는 행간 비율이 비슷해 상단 정렬만으로 글자 윗선이 거의 맞는다.
+  // 2층 — 좌 정체 · 우 무게. 세로는 **상단 정렬**이다 — 좌측이 여러 줄이라 가운데 정렬로 두면
+  // 무게가 이름 줄 옆으로 내려앉아 브랜드 줄과 짝지어 읽히지 않는다.
   identityRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -108,15 +107,20 @@ const styles = StyleSheet.create({
     // 긴 브랜드·이름이 컬럼을 밀어내 우측 무게를 침범하지 않도록 최소 폭을 0으로 둔다(GD-1).
     minWidth: 0,
   },
-  // GD-1: 브랜드는 제품명(nameText)과 동일한 타이포로 표시한다.
+  /**
+   * 브랜드는 **이름 위 보조 줄**이다(2026-08-12). 이름과 같은 24pt로 두던 것을 내렸다 —
+   * 같은 크기면 브랜드·이름·무게 세 덩어리가 같은 층이 되어 무엇이 이 화면의 대상인지 흐려진다.
+   * 이름은 화면 제목 단(22)이고, 브랜드는 메타 단이다.
+   */
   companyText: {
-    fontSize: 24,
-    lineHeight: 32,
-    color: Acg.ink,
+    fontSize: AcgFontSize.rowSubtitle,
+    lineHeight: 19,
+    color: Acg.textMuted,
   },
   nameText: {
-    fontSize: 24,
-    lineHeight: 32,
+    fontSize: AcgFontSize.screenTitle,
+    lineHeight: 28,
+    letterSpacing: -0.4,
     color: Acg.ink,
     marginTop: 2,
   },
@@ -125,11 +129,10 @@ const styles = StyleSheet.create({
     color: Acg.textMuted,
     marginTop: 6,
   },
-  // 무게 — 고정 폭이 아니라 콘텐츠 폭이되 줄어들거나 줄바꿈되지 않게 한다(GD-1).
-  // 숫자라 콘덴스드를 쓴다 — 이 화면의 시각 앵커(ACG).
+  // 무게 — 이 화면의 숫자 앵커(콘덴스드). 이름(22)보다 크게 둬 비교하는 값임을 드러낸다.
   weightText: {
-    fontSize: 32,
-    lineHeight: 40,
+    fontSize: 28,
+    lineHeight: 34,
     color: Acg.ink,
     textAlign: 'right',
     flexShrink: 0,

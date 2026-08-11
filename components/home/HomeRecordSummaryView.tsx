@@ -102,12 +102,12 @@ const styles = StyleSheet.create({
   },
   metricLabel: {
     fontSize: AcgFontSize.meta,
-    lineHeight: 18,
+    lineHeight: 17,
     color: Acg.textMuted,
   },
   metricValue: {
-    fontSize: 26,
-    lineHeight: 30,
+    fontSize: 24,
+    lineHeight: 28,
     color: Acg.ink,
   },
 });

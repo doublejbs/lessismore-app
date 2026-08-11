@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   tripName: {
     flex: 1,
     fontSize: AcgFontSize.rowTitle,
-    lineHeight: 24,
+    lineHeight: 22,
     color: Acg.ink,
   },
   tripMetaText: {

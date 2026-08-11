@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   wildNoticeText: {
     flex: 1,
     fontSize: AcgFontSize.meta,
-    lineHeight: 18,
+    lineHeight: 17,
     color: WARNING_TEXT_COLOR,
   },
   section: {

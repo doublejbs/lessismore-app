@@ -40,12 +40,12 @@ const styles = StyleSheet.create({
   // 실측값(제목 20 / 부제 16). 층은 크기가 아니라 굵기로 가른다 — 제목만 semibold다.
   title: {
     fontSize: AcgFontSize.sectionTitle,
-    lineHeight: 26,
+    lineHeight: 24,
     color: Acg.ink,
   },
   subtitle: {
     fontSize: AcgFontSize.sectionSubtitle,
-    lineHeight: 22,
+    lineHeight: 21,
     color: Acg.textMuted,
   },
 });

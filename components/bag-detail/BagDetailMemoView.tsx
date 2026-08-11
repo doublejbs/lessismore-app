@@ -76,12 +76,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 20,
+    lineHeight: 19,
     color: Acg.ink,
   },
   subtitle: {
     fontSize: AcgFontSize.meta,
-    lineHeight: 18,
+    lineHeight: 17,
     color: Acg.textMuted,
   },
   memoContent: {

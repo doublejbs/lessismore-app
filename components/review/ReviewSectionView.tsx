@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   },
   videoTitle: {
     fontSize: AcgFontSize.meta,
-    lineHeight: 18,
+    lineHeight: 17,
     color: Color.textPrimary,
   },
   videoChannel: {
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   },
   reviewSummary: {
     fontSize: AcgFontSize.meta,
-    lineHeight: 18,
+    lineHeight: 17,
     color: Color.textSecondary,
   },
   reviewMeta: {

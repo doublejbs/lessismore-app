@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: AcgFontSize.meta,
-    lineHeight: 18,
+    lineHeight: 17,
     color: Color.textSecondary,
   },
   weight: {
