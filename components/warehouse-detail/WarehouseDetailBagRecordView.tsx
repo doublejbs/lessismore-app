@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
-import { Acg, AcgFontSize } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgRadius, AcgRow } from '@/constants/DesignTokens';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 
 interface Props {
@@ -60,7 +60,7 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
     }
   };
 
-  const renderTripCard = (record: GearTripRecord) => {
+  const renderTripCard = (record: GearTripRecord, index: number) => {
     const { bag, status } = record;
     const displayDate = bag.getDisplayDate();
     const locationName = bag.getLocationName();
@@ -80,7 +80,7 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
     return (
       <TouchableOpacity
         key={bag.getID()}
-        style={styles.tripCard}
+        style={[styles.tripCard, index > 0 && styles.tripCardDivided]}
         onPress={handlePress}
         // 커스텀 라벨을 두면 자식 텍스트(기간·여행지·날씨·상태)가 스크린리더에서
         // 전부 가려지므로, 라벨 없이 자식 평탄화에 맡긴다(HIG 접근성).
@@ -144,13 +144,16 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
 };
 
 const styles = StyleSheet.create({
-  // 홈 탭 리스트와 같은 행 문법 — 지면 위에 각진 종이 면, 행 사이는 섹션이 8px로 띄운다.
+  // 목록 행 문법(HM-8) — 면 없이 놓고 위 행과는 헤어라인으로 가른다.
   tripCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 13,
-    paddingHorizontal: 14,
-    backgroundColor: Acg.paper,
+    minHeight: AcgRow.minHeight,
+    paddingVertical: AcgRow.paddingVertical,
+  },
+  tripCardDivided: {
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
   },
   tripContent: {
     flex: 1,
@@ -165,7 +168,8 @@ const styles = StyleSheet.create({
   },
   tripName: {
     flex: 1,
-    fontSize: 14,
+    fontSize: AcgFontSize.rowTitle,
+    lineHeight: 24,
     color: Acg.ink,
   },
   tripMetaText: {
@@ -179,10 +183,12 @@ const styles = StyleSheet.create({
   },
   // 세 상태 태그의 공통 형태 — 색만 다르고 크기·모서리는 같다. 테두리는 세 태그의 높이를
   // 맞추려고 공통으로 두고, 아웃라인이 아닌 태그는 배경과 같은 색을 줘 보이지 않게 한다(GD-10).
+  // 칩과 같은 모서리 — 세 상태가 나란히 놓이므로 형태는 하나다.
   statusTag: {
     borderWidth: 1,
+    borderRadius: AcgRadius.chip,
     paddingVertical: 4,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
   },
   statusTagText: {
     fontSize: AcgFontSize.meta,
