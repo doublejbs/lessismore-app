@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingVertical: 14,
-    backgroundColor: Acg.bg,
+    backgroundColor: Acg.controlFill,
     borderRadius: 0,
     gap: 2,
   },

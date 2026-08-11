@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   // 종이 면 위 인풋이라 채움은 지면색이다 — 흰 면 위 회색 면을 또 두면 층이 하나 늘어난다.
   contentInput: {
     borderRadius: 0,
-    backgroundColor: Acg.bg,
+    backgroundColor: Acg.controlFill,
     paddingHorizontal: 14,
     paddingVertical: 14,
     fontSize: 16,
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     height: 52,
-    backgroundColor: Acg.bg,
+    backgroundColor: Acg.controlFill,
     borderRadius: 0,
     alignItems: 'center',
     justifyContent: 'center',
