@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Acg, AcgRadius } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgRow } from '@/constants/DesignTokens';
 
 /**
  * 홈 로딩 스켈레톤(HM-6).
@@ -130,12 +130,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: Acg.controlFill,
   },
-  // 실제 장비 행(최소 높이 64 + 상단 헤어라인)과 같은 리듬. 지면 위 선이라 `line2`다.
+  // 실제 장비 행과 같은 치수(AcgRow) + 상단 헤어라인. 지면 위 선이라 `line2`다.
   gearRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: 64,
+    height: AcgRow.minHeight,
     borderTopWidth: 1,
     borderTopColor: Acg.line2,
   },

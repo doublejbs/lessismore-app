@@ -15,7 +15,7 @@ import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Ionicons } from '@expo/vector-icons';
-import { Acg, AcgFontSize } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgRow } from '@/constants/DesignTokens';
 
 // 삭제 스와이프 액션 배경 — 파괴적 액션 시맨틱 색(DesignTokens 예외, CLAUDE.md 참고).
 const DELETE_RED = '#FF3B30';
@@ -67,9 +67,6 @@ const RightActions: FC<RightActionsProps> = ({ drag, onCopy, onDelete }) => {
     </Reanimated.View>
   );
 };
-
-// 목록 행 최소 높이(레퍼런스 문법) — 이름 + 메타 두 줄이 들어가고 44pt를 넘긴다.
-const ROW_MIN_HEIGHT = 64;
 
 interface Props {
   bagItem: BagItem;
@@ -187,8 +184,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    minHeight: ROW_MIN_HEIGHT,
-    paddingVertical: 10,
+    minHeight: AcgRow.minHeight,
+    paddingVertical: AcgRow.paddingVertical,
     // 스와이프 액션이 행 뒤에서 드러나므로 행에 지면색을 깔아 둔다(투명이면 액션이 비친다).
     backgroundColor: Acg.paper,
   },
