@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color, Spacing } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgLayout, Spacing } from '@/constants/DesignTokens';
 import CampSiteDetailTab from '@/model/camp-site/CampSiteDetailTab';
 import { getCampSiteDetailTabLabel } from '@/model/camp-site/CampSiteLabels';
 
@@ -57,11 +57,11 @@ const CampSiteDetailTabBarView: FC<Props> = ({ selectedTab, onSelectTab }) => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenPadding,
     // 위로 스크롤해 이 탭 바가 시트 상단에 고정될 때 그래버 핸들과 붙지 않도록 상단 여백을 준다(CS-3).
     paddingTop: Spacing.item,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Acg.line2,
+    borderBottomWidth: 1,
+    borderBottomColor: Acg.hairline,
     // 지면이 비쳐야 한다 — 흰 면을 깔면 탭 바만 종이처럼 떠 보인다.
     backgroundColor: 'transparent',
   },
@@ -73,15 +73,17 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     paddingTop: 6,
   },
+  // 레퍼런스의 텍스트 탭(You/Community/Following)과 같은 문법 — 비선택은 회색, 선택은 잉크 +
+  // 밑줄. 크기는 컨트롤 단(15)이다.
   label: {
-    fontSize: 15,
+    fontSize: AcgFontSize.control,
     lineHeight: 20,
-    color: Color.textSecondary,
+    color: Acg.textMuted,
   },
   selectedLabel: {
-    fontSize: 15,
+    fontSize: AcgFontSize.control,
     lineHeight: 20,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   // 비선택 탭도 같은 높이를 차지해야(색만 없음) 라벨 baseline이 어긋나지 않는다.
   indicator: {

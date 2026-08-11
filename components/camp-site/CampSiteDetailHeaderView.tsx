@@ -3,7 +3,12 @@ import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout, Color, Radius } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgFontSize,
+  AcgLayout,
+  AcgRadius,
+} from '@/constants/DesignTokens';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
@@ -50,7 +55,7 @@ const FeatureButton: FC<FeatureButtonProps> = ({
       accessibilityRole='button'
       accessibilityLabel={label}
     >
-      <Ionicons name={icon} size={18} color={iconColor ?? Color.textPrimary} />
+      <Ionicons name={icon} size={18} color={iconColor ?? Acg.ink} />
       <PretendardText style={styles.featureLabel} weight='medium'>
         {label}
       </PretendardText>
@@ -98,14 +103,10 @@ const CampSiteDetailHeaderView: FC<Props> = ({
         </TouchableOpacity>
       </View>
 
+      {/* 유형·지역을 `·`로 이어 붙인 메타 한 줄 — 배지를 걷었다(목록 행과 같은 규칙). */}
       <View style={styles.metaRow}>
-        <View style={styles.typeBadge}>
-          <PretendardText style={styles.typeBadgeText} weight='semibold'>
-            {typeLabel}
-          </PretendardText>
-        </View>
-        <PretendardText style={styles.region} numberOfLines={1}>
-          {region}
+        <PretendardText style={styles.meta} numberOfLines={1}>
+          {[typeLabel, region].filter(Boolean).join(' · ')}
         </PretendardText>
       </View>
 
@@ -164,7 +165,7 @@ const CampSiteDetailHeaderView: FC<Props> = ({
 
 const styles = StyleSheet.create({
   header: {
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
     // 시트 상단엔 네이티브 그래버가 그려진다 — 여유를 안 주면 제목·닫기가 그래버에 붙는다.
     paddingTop: 12,
     paddingBottom: 12,
@@ -184,11 +185,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // 시트 제목 — 화면 제목·즐겨찾기 시트와 같은 층(24).
   name: {
     flex: 1,
-    fontSize: 22,
+    fontSize: 24,
     lineHeight: 30,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   metaRow: {
     flexDirection: 'row',
@@ -196,59 +198,50 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 6,
   },
-  typeBadge: {
-    backgroundColor: Color.chipInactiveBg,
-    borderRadius: 0,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  typeBadgeText: {
-    fontSize: 12,
-    color: Color.textTertiary,
-  },
-  region: {
+  /**
+   * 유형은 **배지가 아니라 메타 글자**다(2026-08-12). 목록·행에서 배지를 걷은 것과 같은 이유로,
+   * 값 하나 때문에 제목 아래 작은 사각형을 만들지 않는다. 지역과 `·`로 이어 붙인다.
+   */
+  meta: {
     flexShrink: 1,
-    fontSize: 14,
-    color: Color.textSecondary,
+    fontSize: AcgFontSize.rowSubtitle,
+    lineHeight: 20,
+    color: Acg.ink,
   },
   description: {
     marginTop: 10,
-    fontSize: 14,
+    fontSize: AcgFontSize.rowSubtitle,
     lineHeight: 22,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   featureScrollBleed: {
     marginTop: 14,
-    marginHorizontal: -20,
+    marginHorizontal: -AcgLayout.screenPadding,
   },
   featureRow: {
-    gap: 8,
-    paddingHorizontal: 20,
+    gap: AcgLayout.chipGap,
+    paddingHorizontal: AcgLayout.screenPadding,
   },
-  // 앱의 다른 버튼·칩과 같은 각진 아웃라인이다(2026-08-04 사용자 지적). 핸드오프는 이 줄을
-  // `pill`이라 불렀지만, 알약 모양은 앱에서 원형 아이콘 버튼에만 남긴 예외다 — 라벨이 붙는
-  // 버튼이 여기만 둥글면 다른 화면과 문법이 갈린다.
+  // 앱의 칩과 같은 연회색 채움 + 모서리 10 — 아웃라인은 순백 지면에서 테두리만 남았다.
   featureButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    minHeight: 44,
-    paddingHorizontal: 16,
-    borderRadius: 0,
-    borderWidth: 1,
-    borderColor: Acg.line2,
-    backgroundColor: Acg.paper,
+    minHeight: 36,
+    paddingHorizontal: 12,
+    borderRadius: AcgRadius.chip,
+    backgroundColor: Acg.controlFill,
   },
   featureLabel: {
-    fontSize: 14,
+    fontSize: AcgFontSize.control,
     color: Acg.ink,
   },
   image: {
     marginTop: 16,
     width: '100%',
     aspectRatio: 16 / 9,
-    borderRadius: Radius.card,
-    backgroundColor: Color.thumbBg,
+    borderRadius: AcgRadius.thumb,
+    backgroundColor: Acg.controlFill,
   },
 });
 

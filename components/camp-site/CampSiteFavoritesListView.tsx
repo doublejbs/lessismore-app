@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout, Color } from '@/constants/DesignTokens';
+import { Acg, AcgFontSize, AcgLayout, AcgRow } from '@/constants/DesignTokens';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
   getCampSiteTypeLabel,
@@ -27,7 +27,7 @@ const CampSiteFavoritesListView: FC<Props> = ({
   onOpenDetail,
   onClose,
 }) => {
-  const renderItem = ({ item }: { item: CampSpot }) => {
+  const renderItem = ({ item, index }: { item: CampSpot; index: number }) => {
     /**
      * 행 전체가 상세를 연다. 예전에는 행 본체(카메라 이동)와 우측 셰브론(상세)이 다른 일을
      * 하는 두 개의 터치 타깃이었는데, 셰브론 달린 행은 "눌러서 상세로"가 플랫폼 관례라
@@ -42,37 +42,33 @@ const CampSiteFavoritesListView: FC<Props> = ({
 
     return (
       <TouchableOpacity
-        style={styles.row}
+        style={[styles.row, index > 0 && styles.rowDivided]}
         onPress={handlePress}
         activeOpacity={0.7}
         accessibilityRole='button'
         accessibilityLabel={`${item.name} 상세 보기`}
       >
+        {/* 목록 행 문법(HM-8): 이름 + 메타 한 줄. 유형·지역을 `·`로 이어 붙여 배지를 없앤다. */}
         <View style={styles.rowMain}>
-          <PretendardText
-            style={styles.rowName}
-            weight='medium'
-            numberOfLines={1}
-          >
-            {item.name}
-          </PretendardText>
-          <View style={styles.typeBadge}>
-            <PretendardText style={styles.typeBadgeText} weight='semibold'>
-              {getCampSiteTypeLabel(item.type)}
+          <View style={styles.rowText}>
+            <PretendardText
+              style={styles.rowName}
+              weight='semibold'
+              numberOfLines={2}
+            >
+              {item.name}
+            </PretendardText>
+            <PretendardText style={styles.rowMeta} numberOfLines={1}>
+              {[getCampSiteTypeLabel(item.type), getCampSpotRegionLabel(item)]
+                .filter(Boolean)
+                .join(' · ')}
             </PretendardText>
           </View>
-          <PretendardText style={styles.rowRegion} numberOfLines={1}>
-            {getCampSpotRegionLabel(item)}
-          </PretendardText>
         </View>
 
         {/* 셰브론은 장식이다 — 행 전체가 하나의 터치 타깃이라 별도 버튼으로 두지 않는다. */}
         <View style={styles.detailButton} pointerEvents='none'>
-          <Ionicons
-            name='chevron-forward'
-            size={20}
-            color={Acg.textSecondary}
-          />
+          <Ionicons name='chevron-forward' size={16} color={Acg.textMuted} />
         </View>
       </TouchableOpacity>
     );
@@ -131,7 +127,8 @@ const SHEET_GRABBER_CLEARANCE = 12;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Acg.bg,
+    // 시트 지면도 순백이다 — 옛 종이 회색(#F4F3EF)은 새 지면과 갈렸다.
+    backgroundColor: Acg.paper,
   },
   // 네이티브 그래버가 시트 상단에 겹쳐 렌더되므로 그 아래로 제목이 오도록 여백을 준다
   // — 12로는 제목이 그래버에 붙어 위가 답답했다(2026-08-04 사용자 지적).
@@ -144,8 +141,10 @@ const styles = StyleSheet.create({
     paddingTop: SHEET_GRABBER_CLEARANCE,
     paddingBottom: 12,
   },
+  // 시트 제목 — 화면 제목과 같은 층이다.
   headerTitle: {
-    fontSize: 20,
+    fontSize: 24,
+    lineHeight: 30,
     color: Acg.ink,
   },
   closeButton: {
@@ -155,25 +154,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   listContent: {
-    paddingHorizontal: AcgLayout.screenH,
-    paddingVertical: 8,
-    gap: 8,
+    paddingHorizontal: AcgLayout.screenPadding,
   },
-  // 지면 위 각진 종이 면 행(ACG) — 구분선 대신 면의 경계가 행을 가른다.
+  // 레퍼런스 목록 행(HM-8) — 면 없이 지면에 놓고 행 사이 헤어라인으로만 가른다.
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 56,
-    paddingHorizontal: 14,
-    backgroundColor: Acg.controlFill,
+  },
+  rowDivided: {
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
   },
   rowMain: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    minHeight: 56,
-    paddingVertical: 12,
+    minHeight: AcgRow.minHeight,
+    paddingVertical: AcgRow.paddingVertical,
+  },
+  rowText: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
   },
   detailButton: {
     width: 44,
@@ -184,23 +186,19 @@ const styles = StyleSheet.create({
   },
   rowName: {
     flexShrink: 1,
-    fontSize: 15,
-    color: Color.textPrimary,
+    fontSize: AcgFontSize.rowTitle,
+    lineHeight: 24,
+    color: Acg.ink,
   },
-  typeBadge: {
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 0,
-    backgroundColor: Acg.bg,
-  },
-  typeBadgeText: {
-    fontSize: 12,
-    color: Color.textTertiary,
-  },
-  rowRegion: {
+  /**
+   * 유형·지역은 **배지가 아니라 메타 글자**다(2026-08-12). 면 없이 헤어라인으로만 가르는
+   * 목록에서 배지는 유일한 예외 면이 되고, 값 하나 때문에 행마다 작은 사각형이 생긴다.
+   */
+  rowMeta: {
     flexShrink: 1,
-    fontSize: 13,
-    color: Color.textSecondary,
+    fontSize: AcgFontSize.rowSubtitle,
+    lineHeight: 20,
+    color: Acg.ink,
   },
   emptyWrap: {
     flex: 1,
@@ -209,8 +207,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   emptyText: {
-    fontSize: 15,
-    color: Color.textSecondary,
+    fontSize: AcgFontSize.rowSubtitle,
+    lineHeight: 20,
+    color: Acg.textMuted,
     textAlign: 'center',
   },
 });
