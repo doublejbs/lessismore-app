@@ -3,7 +3,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import BagPacking from '@/model/bag-packing/BagPacking';
-import { Acg } from '@/constants/DesignTokens';
+import { Acg, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   bagPacking: BagPacking;
@@ -60,9 +60,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 24,
   },
+  // 딤 위 흰 카드 — 여기서는 지면이 어두운 딤이라 흰 면이 맞다. 모서리는 모달 값(16)이다.
   card: {
     width: '100%',
     backgroundColor: Acg.paper,
+    borderRadius: Radius.modal,
     paddingVertical: 32,
     paddingHorizontal: 24,
     alignItems: 'center',

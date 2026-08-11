@@ -16,7 +16,12 @@ import { observer } from 'mobx-react-lite';
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgFontSize,
+  AcgLayout,
+  AcgRadius,
+} from '@/constants/DesignTokens';
 import Warehouse from '@/model/warehouse/Warehouse';
 import WarehouseFiltersView from '@/components/warehouse/WarehouseFiltersView';
 import WarehouseGearView from '@/components/warehouse/WarehouseGearView';
@@ -337,13 +342,14 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   // 원형 검색 버튼 — 시스템 바 버튼(44pt 원형)과 동일한 지오메트리.
+  // 순백 지면 위라 연회색 원이다 — 흰 원은 지면과 붙어 사라진다.
   circleSearchButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Acg.paper,
+    backgroundColor: Acg.controlFill,
   },
   searchRow: {
     minHeight: 44,
@@ -375,19 +381,20 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Acg.ink,
   },
-  // 지면 위 각진 종이 면 인풋(ACG) — 회색 채움은 지면과 붙어 입력 영역이 안 보인다.
+  // 탐색 탭 검색 필드와 같은 형태 — 연회색 채움 + 모서리 12(순백 지면에서 흰 면은 사라진다).
   searchBox: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: Acg.paper,
+    backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
     paddingHorizontal: 14,
-    height: 44,
+    height: 48,
   },
   searchInput: {
     flex: 1,
-    fontSize: 15,
+    fontSize: AcgFontSize.control,
     fontFamily: 'Pretendard-Regular',
     color: Acg.ink,
     padding: 0,
