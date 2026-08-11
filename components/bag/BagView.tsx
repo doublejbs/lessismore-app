@@ -14,12 +14,19 @@ import OrderButtonView from '@/components/order/OrderButtonView';
 import OrderOption from '@/model/order/OrderOption';
 import { useFocusEffect } from 'expo-router/react-navigation';
 import Layout from '../Layout';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
-import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
+import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import app from '@/model/app/App';
 
 // iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
 const IOS_EDGES = ['top', 'left', 'right'] as const;
+
+// 화면 제목 크기 — 홈과 같은 값. 34는 이 화면에서 가장 큰 활자였는데, 제목은 이름표라
+// 앵커가 될 값이 아니다(HM-8과 같은 판단).
+const TITLE_SIZE = 28;
+
+// 화면 좌우 패딩 — 탐색·홈과 같은 16.
+const SCREEN_H = 16;
 
 const BagView = () => {
   const [bag] = useState(() => Bag.new());
@@ -54,10 +61,14 @@ const BagView = () => {
         return <BagListSkeletonView />;
       }
       case isEmpty: {
+        // 빈 상태는 사실 + 다음 걸음 두 줄이다(플로팅 `배낭 추가`가 그 걸음을 맡는다).
         return (
           <View style={styles.emptyContainer}>
-            <PretendardText weight='bold' style={styles.emptyText}>
-              아직 등록한{'\n'}배낭이 없어요:(
+            <PretendardText weight='semibold' style={styles.emptyTitle}>
+              아직 만든 배낭이 없어요
+            </PretendardText>
+            <PretendardText style={styles.emptySubtitle}>
+              첫 배낭을 만들면 여기에 쌓여요
             </PretendardText>
           </View>
         );
@@ -66,8 +77,9 @@ const BagView = () => {
         return (
           <>
             <View style={styles.headerContainer}>
-              {/* 시안: "배낭 N개" 34px. 한글이라 콘덴스드 대신 Pretendard Bold. */}
-              <PretendardText weight='bold' style={styles.headerText}>
+              {/* 한글이라 콘덴스드 대신 Pretendard를 쓴다(그 서체엔 한글 글리프가 없다).
+                  개수는 제목에 남긴다 — 목록 길이는 훑기 전에 알면 쓸모가 있는 값이다. */}
+              <PretendardText weight='semibold' style={styles.headerText}>
                 배낭 {bags.length}개
               </PretendardText>
               <OrderButtonView
@@ -84,14 +96,13 @@ const BagView = () => {
                   그대로 따르고, 빈 구간은 제목까지 렌더하지 않는다. */}
               {groupBagsByTripSection(bags).map(group => (
                 <View key={group.section} style={styles.section}>
-                  <PretendardText weight='bold' style={styles.sectionTitle}>
-                    {group.label}
-                  </PretendardText>
-                  {group.bags.map((bagItem: BagItem) => (
+                  <AcgSectionHeaderView title={group.label} />
+                  {group.bags.map((bagItem: BagItem, index: number) => (
                     <BagItemView
                       key={bagItem.getID()}
                       bag={bag}
                       bagItem={bagItem}
+                      divided={index > 0}
                     />
                   ))}
                 </View>
@@ -116,8 +127,12 @@ const BagView = () => {
     <GestureHandlerRootView style={styles.root}>
       <Layout
         edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
-        paddingHorizontal={AcgLayout.screenH}
-        background={<AcgScreenBackground />}
+        paddingHorizontal={SCREEN_H}
+        /**
+         * 목록 화면은 순백이다 — 지형 그래픽은 홈에만 둔다(2026-08-11 사용자 결정).
+         * 목록이 빽빽한 화면에서 지면 무늬는 행 사이 헤어라인·글자와 섞여 지저분해진다.
+         */
+        background={<View style={styles.ground} />}
       >
         {render()}
         {/* 로딩 중에는 띄우지 않는다(BAG-1). 탭이 막 마운트된 첫 프레임에는 네이티브 탭바 몫이
@@ -134,6 +149,14 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
+  ground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: Acg.paper,
+  },
   container: {
     position: 'relative',
     flex: 1,
@@ -144,20 +167,26 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    position: 'relative',
+    justifyContent: 'center',
+    gap: 4,
+    // 플로팅 `배낭 추가` 버튼과 겹치지 않도록 살짝 위로 올린다.
+    paddingBottom: 80,
   },
-  emptyText: {
-    position: 'absolute',
-    top: '30%',
-    left: 0,
-    fontSize: 30,
+  emptyTitle: {
+    fontSize: AcgFontSize.rowTitle,
+    lineHeight: 25,
     color: Acg.ink,
+  },
+  emptySubtitle: {
+    fontSize: AcgFontSize.rowSubtitle,
+    lineHeight: 20,
+    color: Acg.textMuted,
   },
   // 좌: 개수 텍스트 / 우: 정렬 드롭다운 (창고 컨트롤 행과 같은 문법, BAG-6)
   // gap은 좁은 화면에서 텍스트가 접혔을 때 드롭다운과 맞닿지 않게 한다.
   headerContainer: {
-    paddingTop: 20,
-    paddingBottom: 14,
+    paddingTop: 12,
+    paddingBottom: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -165,9 +194,9 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flexShrink: 1,
-    fontSize: 34,
-    letterSpacing: -0.68,
-    lineHeight: 38,
+    fontSize: TITLE_SIZE,
+    letterSpacing: -0.5,
+    lineHeight: TITLE_SIZE + 4,
     color: Acg.ink,
   },
   scrollContainer: {
@@ -178,13 +207,7 @@ const styles = StyleSheet.create({
   },
   // 구간 사이는 넉넉히 벌려 제목이 앞 구간 끝에 붙지 않게 한다.
   section: {
-    marginBottom: 14,
-  },
-  // 지면 위 섹션 제목 — 앱 공통 18px/700 textTertiary(ACG).
-  sectionTitle: {
-    fontSize: 18,
-    color: Acg.textTertiary,
-    marginBottom: 10,
+    marginBottom: 26,
   },
 });
 

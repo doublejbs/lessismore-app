@@ -14,7 +14,8 @@ import PretendardText from '@/components/PretendardText';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Acg } from '@/constants/DesignTokens';
+import { Ionicons } from '@expo/vector-icons';
+import { Acg, AcgFontSize } from '@/constants/DesignTokens';
 
 // 삭제 스와이프 액션 배경 — 파괴적 액션 시맨틱 색(DesignTokens 예외, CLAUDE.md 참고).
 const DELETE_RED = '#FF3B30';
@@ -67,12 +68,20 @@ const RightActions: FC<RightActionsProps> = ({ drag, onCopy, onDelete }) => {
   );
 };
 
+// 목록 행 최소 높이(레퍼런스 문법) — 이름 + 메타 두 줄이 들어가고 44pt를 넘긴다.
+const ROW_MIN_HEIGHT = 64;
+
 interface Props {
   bagItem: BagItem;
   bag: Bag;
+  /**
+   * 위 행과 가르는 헤어라인을 그릴지. 구간(여행 중/예정/지난) **첫 행에는 그리지 않는다** —
+   * 바로 위가 구간 제목이라 선이 제목에 붙어 밑줄처럼 읽힌다.
+   */
+  divided?: boolean;
 }
 
-const BagItemView: FC<Props> = ({ bagItem, bag }) => {
+const BagItemView: FC<Props> = ({ bagItem, bag, divided = false }) => {
   const date = bagItem.getDate();
   const router = useRouter();
   const swipeableRef = useRef<SwipeableMethods>(null);
@@ -128,131 +137,91 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
       renderRightActions={renderRightActions}
     >
       <TouchableOpacity
-        style={styles.container}
+        style={[styles.container, divided && styles.divided]}
         onPress={handleClick}
         activeOpacity={0.7}
         accessibilityRole='button'
         accessibilityLabel={rowAccessibilityLabel}
       >
-        <View style={styles.header}>
-          {/* 좌 정체 컬럼 — 이름(말줄임)·날짜 */}
-          <View style={styles.identityColumn}>
-            <PretendardText weight='bold' style={styles.name} numberOfLines={1}>
-              {bagItem.getName()}
-            </PretendardText>
-            <PretendardText style={styles.date}>{date}</PretendardText>
-          </View>
+        <View style={styles.rowText}>
+          <PretendardText
+            weight='semibold'
+            style={styles.name}
+            numberOfLines={2}
+          >
+            {bagItem.getName()}
+          </PretendardText>
 
-          {/* 우 지표 컬럼 — 패킹 칩(위, 기록 있을 때만) + 총 무게(아래) */}
-          <View style={styles.metricsColumn}>
-            {bagItem.hasPackingRecord() && (
-              <View
-                style={
-                  bagItem.isPackingComplete()
-                    ? styles.packingCompleteChip
-                    : styles.packingProgressChip
-                }
-              >
-                <PretendardText
-                  style={
-                    bagItem.isPackingComplete()
-                      ? styles.packingCompleteChipText
-                      : styles.packingProgressChipText
-                  }
-                  weight='medium'
-                >
-                  {bagItem.isPackingComplete()
-                    ? '패킹 완료'
-                    : `패킹 ${bagItem.getPackingPercent()}%`}
-                </PretendardText>
-              </View>
-            )}
-            {/* 숫자라 콘덴스드를 쓴다 — 행의 시각 앵커(ACG). */}
-            <AcgDisplayText style={styles.weight}>
+          {/*
+            레퍼런스처럼 값을 한 줄에 `·`로 묶는다 — 무게 · 기간 · 패킹.
+            무게가 맨 앞이라 행마다 같은 자리에서 비교되고, 숫자만 중첩 Text로 콘덴스드다.
+            패킹은 칩을 없애고 이 줄의 마지막 조각으로 넣는다: 칩은 면·테두리를 하나 더
+            만들어, 면 없이 헤어라인으로만 가르는 이 목록에서 유일한 예외가 된다.
+          */}
+          <PretendardText style={styles.meta} numberOfLines={1}>
+            <AcgDisplayText style={styles.metaNumber}>
               {`${bagItem.getWeight()}kg`}
             </AcgDisplayText>
-          </View>
+            {` · ${date}`}
+            {bagItem.hasPackingRecord()
+              ? bagItem.isPackingComplete()
+                ? ' · 패킹 완료'
+                : ` · 패킹 ${bagItem.getPackingPercent()}%`
+              : ''}
+          </PretendardText>
         </View>
+
+        <Ionicons name='chevron-forward' size={16} color={Acg.textMuted} />
       </TouchableOpacity>
     </ReanimatedSwipeable>
   );
 };
 
 const styles = StyleSheet.create({
-  // 배낭 행은 종이 면 — 구분선 대신 면을 띄우고 8px씩 벌린다(ACG).
+  /**
+   * 배낭 행(레퍼런스 목록 문법 2026-08-11). 종이 면 + 그림자를 걷어내고 순백 지면에
+   * 콘텐츠만 놓는다 — 지면이 순백이 되면서 흰 면은 보이지 않고 그림자만 남았다.
+   */
   container: {
     width: '100%',
-    flexDirection: 'column',
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    marginBottom: 8,
-    backgroundColor: Acg.paper,
-    boxShadow: '0 1px 0 rgba(26,26,26,0.06)',
-  },
-  // BAG-1: 좌 정체 · 우 지표 2열(WH-1 공통 행 레이아웃과 동일 문법).
-  header: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    minHeight: ROW_MIN_HEIGHT,
+    paddingVertical: 10,
+    // 스와이프 액션이 행 뒤에서 드러나므로 행에 지면색을 깔아 둔다(투명이면 액션이 비친다).
+    backgroundColor: Acg.paper,
   },
-  identityColumn: {
+  divided: {
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
+  },
+  rowText: {
     flex: 1,
-    flexDirection: 'column',
-    gap: 9,
-    overflow: 'hidden',
+    minWidth: 0,
+    gap: 2,
   },
   name: {
-    fontSize: 16,
+    fontSize: AcgFontSize.rowTitle,
+    lineHeight: 25,
     color: Acg.ink,
   },
-  date: {
-    fontSize: 12.5,
-    letterSpacing: 0.3,
-    color: Acg.textSecondary,
-  },
-  // 무게는 라임 텍스트 — 목록에서 이 값 하나만 액센트로 세운다(홈 창고 미리보기와 동일).
-  weight: {
-    fontSize: 16,
+  // 메타는 회색이 아니라 잉크다(레퍼런스) — 무게·기간·패킹은 장식이 아니라 정보다.
+  meta: {
+    fontSize: AcgFontSize.rowSubtitle,
     lineHeight: 20,
-    color: Acg.limeText,
-    textAlign: 'right',
-  },
-  // 우 지표 컬럼 — 패킹 칩(위) + 무게(아래).
-  metricsColumn: {
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-    gap: 8,
-  },
-  // 각진 칩(ACG). 완료는 잉크 채움, 진행 중은 아웃라인 — 위계는 그대로다.
-  packingCompleteChip: {
-    backgroundColor: Acg.ink,
-    borderRadius: 0,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-  },
-  packingCompleteChipText: {
-    fontSize: 12,
-    color: Acg.paper,
-  },
-  packingProgressChip: {
-    backgroundColor: Acg.paper,
-    borderWidth: 1,
-    borderColor: Acg.ink,
-    borderRadius: 0,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-  },
-  packingProgressChipText: {
-    fontSize: 12,
     color: Acg.ink,
   },
-  // 행 카드가 아래로 8px 벌어져 있어(container.marginBottom) 액션 패널에도 같은 여백을
-  // 줘야 위아래 끝이 카드와 맞는다 — 없으면 패널만 다음 행 틈까지 흘러내린다.
+  // 메타 줄 안의 숫자 조각 — 크기는 상속하고 서체만 콘덴스드로 바꾼다.
+  metaNumber: {
+    fontSize: AcgFontSize.rowSubtitle,
+    color: Acg.ink,
+  },
+  // 행이 면 없이 붙어 있으므로 액션 패널도 행 높이에 그대로 맞춘다(카드 시절의 하단 여백 없음).
   actionsContainer: {
     width: ACTIONS_TOTAL_WIDTH,
     flexDirection: 'row',
     alignItems: 'stretch',
-    marginBottom: 8,
   },
   actionButton: {
     width: ACTION_WIDTH,

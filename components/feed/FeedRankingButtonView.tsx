@@ -1,12 +1,12 @@
 import { FC } from 'react';
-import { View, StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Feed from '@/model/feed/Feed';
-import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, AcgShadow } from '@/constants/DesignTokens';
+import FloatingPillButton from '@/components/FloatingPillButton';
+import { Acg } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 interface Props {
@@ -23,15 +23,12 @@ const RANKING_LABEL = '인기 순위';
 // (2026-08-03 실기기 확인). 부모 하단 기준 이 값이면 탭바 위로 충분히 뜬다.
 const RANKING_BUTTON_CLEARANCE = 20;
 
-// 알약 높이. 레퍼런스의 하단 중앙 액센트 알약과 같은 크기다.
-const PILL_HEIGHT = 48;
-
 const ICON_SIZE = 20;
 
 // 레퍼런스 이식(2026-08-11): 이 버튼이 탐색 탭의 **유일한 액센트 면**이다 —
 // 라임 채움 + 잉크 글자·아이콘. 그림자도 화면에서 이 버튼에만 둔다(목록·컨트롤은 없음).
-// 앱 공용 `FloatingPillButton`(흰/검 아웃라인)은 아직 이식하지 않은 화면들이 쓰므로 건드리지 않고,
-// 이 화면만 자체 알약을 그린다.
+// 자체 알약을 그리던 것을 공용 `FloatingPillButton`로 되돌렸다 — 그 컴포넌트의 주 액션이
+// 같은 라임 문법이 되면서 두 벌로 둘 이유가 사라졌다.
 const FeedRankingButtonView: FC<Props> = ({ feed }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -58,18 +55,13 @@ const FeedRankingButtonView: FC<Props> = ({ feed }) => {
 
   return (
     <View style={[styles.container, { bottom }]} pointerEvents='box-none'>
-      <TouchableOpacity
-        style={styles.pill}
+      <FloatingPillButton
+        label={RANKING_LABEL}
         onPress={handleGoToRanking}
-        activeOpacity={0.85}
-        accessibilityRole='button'
-        accessibilityLabel={RANKING_LABEL}
-      >
-        <Ionicons name='trending-up' size={ICON_SIZE} color={Acg.ink} />
-        <PretendardText style={styles.label} weight='semibold'>
-          {RANKING_LABEL}
-        </PretendardText>
-      </TouchableOpacity>
+        leadingIcon={
+          <Ionicons name='trending-up' size={ICON_SIZE} color={Acg.ink} />
+        }
+      />
     </View>
   );
 };
@@ -83,24 +75,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
-  },
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    // 고정 높이 대신 최소 높이 — Dynamic Type에서 라벨이 잘리지 않게 한다.
-    minHeight: PILL_HEIGHT,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    // 높이가 커져도 알약을 유지한다.
-    borderRadius: PILL_HEIGHT,
-    backgroundColor: Acg.lime,
-    boxShadow: AcgShadow.card,
-  },
-  label: {
-    fontSize: AcgFontSize.control,
-    color: Acg.ink,
   },
 });
 
