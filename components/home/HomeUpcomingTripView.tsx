@@ -1,10 +1,21 @@
 import { FC } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  useWindowDimensions,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, AcgRadius, AcgRow } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgFontSize,
+  AcgLayout,
+  AcgRadius,
+} from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import BagItem from '@/model/bag/BagItem';
@@ -12,6 +23,7 @@ import {
   getDDayLabel,
   getPrimaryAction,
   isCondensedDDayLabel,
+  HomeTripEntry,
   HomeTripPlan,
 } from '@/model/home/HomeTripPlan';
 import { createQuickBag } from '@/model/bag/QuickBagDefaults';
@@ -22,23 +34,46 @@ interface Props {
   plan: HomeTripPlan;
 }
 
-// 주 액션 알약. 높이의 절반이 모서리다(완전한 알약).
+// 주 액션 알약. 높이의 절반이 모서리다(완전한 알약) — 칩과 달리 낱개로 놓이는 액션이다.
 const CTA_HEIGHT = 48;
+
+// 카드 사이 간격.
+const CARD_GAP = 10;
+
+/**
+ * 다음 카드가 화면 오른쪽에 걸치는 폭.
+ *
+ * 이만큼 보여야 **옆으로 넘길 게 더 있다**는 걸 알 수 있다 — 딱 맞게 자르면 한 장뿐인 것과
+ * 구분되지 않는다. 점(page indicator)을 두는 대신 이 걸침으로 알린다: 점은 카드 아래 한 층을
+ * 더 만들고, 세 장까지인 목록에서는 굳이 셀 필요가 없다.
+ */
+const CARD_PEEK = 28;
 
 /**
  * HM-1 다가오는 일정.
  *
- * 이 카드의 핵심은 **주 액션이 남은 일수에 따라 갈린다**는 것이고, 그 분기는
+ * 이 섹션의 핵심은 **주 액션이 남은 일수에 따라 갈린다**는 것이고, 그 분기는
  * 알림(NT-2/NT-3)이 유도하는 행동과 같은 목적지여야 한다 — 알림을 놓쳐도 홈에서
  * 같은 할 일에 닿게 하는 것이 존재 이유다. 분기 계산은 `HomeTripPlan`이 맡는다.
  *
- * 표현은 탐색 탭(FD-2)과 같은 문법이다(2026-08-11): 순백 지면 + 연회색 면 하나 + 잉크 글자.
+ * **일정이 여럿이면 옆으로 넘기는 캐러셀이다**(2026-08-11). 이전에는 첫 일정만 카드로 세우고
+ * 나머지는 아래 한 줄 요약이었는데, 그러면 두 번째 일정의 무게·예보·패킹을 보려면 배낭 상세까지
+ * 들어가야 했다. 카드를 같은 문법으로 넘기면 홈에서 비교가 끝난다.
+ *
+ * 표현은 탐색 탭(FD-2)과 같은 문법이다: 연회색/흰 면 하나 + 잉크 글자 + 콘덴스드 숫자.
  * **라임은 주 액션 알약 하나에만 쓴다** — 이전에는 카드 면 전체가 라임이라 화면에서 가장
  * 강한 것이 "정보"였고, 정작 눌러야 하는 버튼은 그 위의 검은 사각형이었다.
  */
 const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
   const router = useRouter();
-  const { primary, stage, next } = plan;
+  const { width } = useWindowDimensions();
+  const { trips } = plan;
+
+  // 한 장뿐이면 화면 폭을 다 쓴다 — 걸침만 남으면 카드가 잘린 것처럼 보인다.
+  const cardWidth =
+    trips.length > 1
+      ? width - AcgLayout.screenPadding * 2 - CARD_PEEK
+      : width - AcgLayout.screenPadding * 2;
 
   const handleCreate = async () => {
     await createQuickBag(router);
@@ -49,12 +84,8 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
     router.push(`/bag/${bag.getID()}`);
   };
 
-  const handlePrimaryAction = () => {
-    if (!primary || stage === null) {
-      return;
-    }
-
-    const action = getPrimaryAction(primary, stage);
+  const handlePrimaryAction = ({ bag, stage }: HomeTripEntry) => {
+    const action = getPrimaryAction(bag, stage);
 
     app.getAnalyticsManager()?.logClick('home_trip_action', { stage });
     router.push(action.route as never);
@@ -73,60 +104,23 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
     );
   };
 
-  if (!primary || stage === null) {
-    return (
-      <View style={styles.section}>
-        <AcgSectionHeaderView title='다가오는 일정' />
-
-        {/* 빈 상태는 사실 + 다음 걸음 두 줄, 그리고 그 걸음을 떼는 버튼 하나. */}
-        <View style={styles.tile}>
-          <PretendardText weight='semibold' style={styles.emptyTitle}>
-            아직 계획한 여행이 없어요
-          </PretendardText>
-          <PretendardText style={styles.emptySubtitle}>
-            이번 주말 1박으로 하나 만들어 둘까요?
-          </PretendardText>
-          <TouchableOpacity
-            style={styles.cta}
-            onPress={handleCreate}
-            activeOpacity={0.8}
-            accessibilityRole='button'
-            accessibilityLabel='새 배낭 만들기'
-          >
-            <PretendardText weight='semibold' style={styles.ctaText}>
-              새 배낭 만들기
-            </PretendardText>
-          </TouchableOpacity>
-        </View>
-      </View>
+  const renderCard = (entry: HomeTripEntry) => {
+    const { bag, stage } = entry;
+    const dDayLabel = getDDayLabel(bag);
+    const action = getPrimaryAction(bag, stage);
+    const locationName = bag.getLocationName();
+    const displayDate = bag.getDisplayDate();
+    // 배낭에 저장된 스냅샷을 읽을 뿐 새로 조회하지 않는다(HM-1). 요약 규칙(눈>비>맑음)은
+    // 배낭 상세·날씨 화면과 같은 함수를 공유해 표시가 갈리지 않게 한다.
+    const weatherSummary = summarizeWeatherPeriod(
+      bag.getWeather()?.daily ?? []
     );
-  }
+    // 챙긴 무게는 장비 문서를 따로 읽어야 나오는데(BagItem은 ID만 들고 있다) 그러면 홈의
+    // `네트워크 호출 없음`이 깨진다 — 개수와 진행 바까지만 보여준다.
+    const hasPackingRecord = bag.hasPackingRecord();
 
-  const dDayLabel = getDDayLabel(primary);
-  const action = getPrimaryAction(primary, stage);
-  const locationName = primary.getLocationName();
-  const displayDate = primary.getDisplayDate();
-  // 배낭에 저장된 스냅샷을 읽을 뿐 새로 조회하지 않는다(HM-1). 요약 규칙(눈>비>맑음)은
-  // 배낭 상세·날씨 화면과 같은 함수를 공유해 표시가 갈리지 않게 한다.
-  const weatherSummary = summarizeWeatherPeriod(
-    primary.getWeather()?.daily ?? []
-  );
-  // 챙긴 무게는 장비 문서를 따로 읽어야 나오는데(BagItem은 ID만 들고 있다) 그러면 홈의
-  // `네트워크 호출 없음`이 깨진다 — 개수와 진행 바까지만 보여준다.
-  const hasPackingRecord = primary.hasPackingRecord();
-  const packedCount = primary.getPackedGearCount();
-  const gearCount = primary.getGearCount();
-  const packingPercent = primary.getPackingPercent();
-
-  return (
-    <View style={styles.section}>
-      <AcgSectionHeaderView
-        title='다가오는 일정'
-        // 부제는 목록의 기준만 밝힌다 — 개수를 넣으면 셀 수 있는 것을 글로 또 세는 셈이다.
-        subtitle={next.length > 0 ? '가까운 일정 순' : undefined}
-      />
-
-      <View style={styles.tile}>
+    return (
+      <View key={bag.getID()} style={[styles.tile, { width: cardWidth }]}>
         {/*
           면 안에서 이름과 D-day를 한 줄에 둔다. D-day를 스티커로 면 밖에 얹지 않는다 —
           걸침·회전·그림자는 면 하나로 정리한 이 톤에서 유일한 예외가 되고, 스크롤 컨테이너
@@ -134,10 +128,10 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
         */}
         <TouchableOpacity
           style={styles.head}
-          onPress={() => handleOpenBag(primary)}
+          onPress={() => handleOpenBag(bag)}
           activeOpacity={0.7}
           accessibilityRole='button'
-          accessibilityLabel={`${primary.getName()} 배낭 상세`}
+          accessibilityLabel={`${bag.getName()} 배낭 상세`}
         >
           <View style={styles.headText}>
             <PretendardText
@@ -145,7 +139,7 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
               style={styles.tripName}
               numberOfLines={1}
             >
-              {primary.getName()}
+              {bag.getName()}
             </PretendardText>
 
             {/* 여행지는 날짜 뒤에 `·`로 붙이지 않고 제 줄을 준다 — 꼬리표로 달면
@@ -180,7 +174,7 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
           <View style={styles.stat}>
             <PretendardText style={styles.statKey}>총 무게</PretendardText>
             <AcgDisplayText style={styles.statValue}>
-              {`${primary.getWeight()}kg`}
+              {`${bag.getWeight()}kg`}
             </AcgDisplayText>
           </View>
           {weatherSummary ? (
@@ -205,88 +199,96 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
                   같은 값을 두 화면이 다르게 부르면 같은 것인지 알아보기 어렵다. */}
               <PretendardText style={styles.statKey}>패킹</PretendardText>
               <AcgDisplayText style={styles.progressValue}>
-                {`${packedCount}/${gearCount}`}
+                {`${bag.getPackedGearCount()}/${bag.getGearCount()}`}
               </AcgDisplayText>
             </View>
             <View style={styles.progressTrack}>
               <View
-                style={[styles.progressFill, { width: `${packingPercent}%` }]}
+                style={[
+                  styles.progressFill,
+                  { width: `${bag.getPackingPercent()}%` },
+                ]}
               />
             </View>
           </View>
         ) : null}
 
-        {/* 화면의 유일한 라임 면 — 홈에서 눌러야 하는 것 하나. */}
+        {/* 화면의 유일한 라임 면 — 홈에서 눌러야 하는 것 하나.
+            `marginTop: auto`로 카드 바닥에 붙여, 카드마다 내용 줄 수가 달라도(예보·패킹 유무)
+            넘길 때 버튼이 같은 자리에 온다. */}
         <TouchableOpacity
           style={styles.cta}
-          onPress={handlePrimaryAction}
+          onPress={() => handlePrimaryAction(entry)}
           activeOpacity={0.8}
           accessibilityRole='button'
-          accessibilityLabel={action.label}
+          accessibilityLabel={`${bag.getName()} ${action.label}`}
         >
           <PretendardText weight='semibold' style={styles.ctaText}>
             {action.label}
           </PretendardText>
         </TouchableOpacity>
       </View>
+    );
+  };
 
-      {/* 다음 일정들은 면을 갖지 않는다 — 면이 여럿이면 어느 것이 지금 할 일인지 흐려진다.
-          행 문법은 레퍼런스 목록과 같다: 이름(19, 두 줄까지) + 메타 한 줄(15, `·`로 이어 붙임)
-          + 우측 셰브론, 행 사이 헤어라인. */}
-      {next.length > 0 ? (
-        <View style={styles.nextList}>
-          {next.map((bag, index) => {
-            const label = getDDayLabel(bag);
-            const date = bag.getDisplayDate();
+  if (trips.length === 0) {
+    return (
+      <View style={styles.section}>
+        <AcgSectionHeaderView title='다가오는 일정' />
 
-            return (
-              <TouchableOpacity
-                key={bag.getID()}
-                style={[styles.row, index > 0 && styles.rowDivided]}
-                onPress={() => handleOpenBag(bag)}
-                activeOpacity={0.7}
-                accessibilityRole='button'
-                accessibilityLabel={`${bag.getName()} 배낭 상세`}
-              >
-                <View style={styles.rowText}>
-                  <PretendardText
-                    weight='semibold'
-                    style={styles.rowTitle}
-                    numberOfLines={2}
-                  >
-                    {bag.getName()}
-                  </PretendardText>
-
-                  {/* D-day를 왼쪽 고정 열로 두지 않고 메타 첫 조각으로 넣는다 — 레퍼런스가
-                      별점·난이도·거리를 한 줄에 묶는 방식과 같고, 이름이 한 선에서 시작한다.
-                      숫자 라벨만 콘덴스드라 중첩 Text로 갈아 끼운다. */}
-                  <PretendardText style={styles.rowMeta} numberOfLines={1}>
-                    {label !== null ? (
-                      <>
-                        {isCondensedDDayLabel(label) ? (
-                          <AcgDisplayText style={styles.rowMetaStrong}>
-                            {label}
-                          </AcgDisplayText>
-                        ) : (
-                          label
-                        )}
-                        {date !== null ? ' · ' : ''}
-                      </>
-                    ) : null}
-                    {date ?? ''}
-                  </PretendardText>
-                </View>
-
-                <Ionicons
-                  name='chevron-forward'
-                  size={16}
-                  color={Acg.textMuted}
-                />
-              </TouchableOpacity>
-            );
-          })}
+        {/* 빈 상태는 사실 + 다음 걸음 두 줄, 그리고 그 걸음을 떼는 버튼 하나. */}
+        <View style={styles.tile}>
+          <PretendardText weight='semibold' style={styles.emptyTitle}>
+            아직 계획한 여행이 없어요
+          </PretendardText>
+          <PretendardText style={styles.emptySubtitle}>
+            이번 주말 1박으로 하나 만들어 둘까요?
+          </PretendardText>
+          <TouchableOpacity
+            style={styles.cta}
+            onPress={handleCreate}
+            activeOpacity={0.8}
+            accessibilityRole='button'
+            accessibilityLabel='새 배낭 만들기'
+          >
+            <PretendardText weight='semibold' style={styles.ctaText}>
+              새 배낭 만들기
+            </PretendardText>
+          </TouchableOpacity>
         </View>
-      ) : null}
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.section}>
+      <AcgSectionHeaderView
+        title='다가오는 일정'
+        // 부제는 목록의 기준만 밝힌다 — 개수를 넣으면 셀 수 있는 것을 글로 또 세는 셈이다.
+        subtitle={trips.length > 1 ? '가까운 일정 순' : undefined}
+      />
+
+      {trips.length === 1 ? (
+        renderCard(trips[0]!)
+      ) : (
+        /**
+         * 한 장씩 딱 멈추는 캐러셀. `pagingEnabled`는 **화면 폭** 단위로 멈춰서 걸침이 있는
+         * 카드와 어긋나므로, 카드 폭 + 간격을 스냅 간격으로 준다.
+         * 화면 패딩 밖으로 빼(`marginHorizontal: -패딩`) 카드가 지면 끝까지 흐르게 하고,
+         * 첫 장·끝 장은 콘텐츠 패딩으로 화면 축에 맞춘다 — 칩 행과 같은 규칙이다.
+         */
+        <ScrollView
+          horizontal={true}
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={cardWidth + CARD_GAP}
+          snapToAlignment='start'
+          decelerationRate='fast'
+          style={styles.carousel}
+          contentContainerStyle={styles.carouselContent}
+        >
+          {trips.map(entry => renderCard(entry))}
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -294,6 +296,16 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
 const styles = StyleSheet.create({
   section: {
     marginBottom: 26,
+  },
+  carousel: {
+    marginHorizontal: -AcgLayout.screenPadding,
+  },
+  carouselContent: {
+    paddingHorizontal: AcgLayout.screenPadding,
+    gap: CARD_GAP,
+    // 카드마다 내용 줄 수가 달라도 높이를 맞춘다 — 넘길 때 면 아래 끝이 들쭉날쭉하면
+    // 카드가 흔들리는 것처럼 보인다.
+    alignItems: 'stretch',
   },
   /**
    * 홈의 정보 면. 지형 지면(#F4F3EF) 위라 **흰 종이**다 — 탐색의 연회색 면(#F2F2F2)을 그대로
@@ -405,6 +417,7 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.ink,
   },
   cta: {
+    marginTop: 'auto',
     minHeight: CTA_HEIGHT,
     borderRadius: CTA_HEIGHT / 2,
     alignItems: 'center',
@@ -427,48 +440,6 @@ const styles = StyleSheet.create({
     fontSize: AcgFontSize.meta,
     lineHeight: 20,
     color: Acg.textMuted,
-  },
-  nextList: {
-    marginTop: 8,
-  },
-  /**
-   * 레퍼런스 목록 행. 이름 + 메타 한 줄이라 두 줄 이름에서도 44pt를 넘긴다.
-   * 헤어라인은 지형 지면 위라 `line2`(잉크 알파) — 순백용 `hairline`은 이 지면에서 안 보인다.
-   */
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    minHeight: AcgRow.minHeight,
-    paddingVertical: AcgRow.paddingVertical,
-  },
-  rowDivided: {
-    borderTopWidth: 1,
-    borderTopColor: Acg.line2,
-  },
-  rowText: {
-    flex: 1,
-    minWidth: 0,
-    gap: 2,
-  },
-  rowTitle: {
-    fontSize: AcgFontSize.rowTitle,
-    lineHeight: 25,
-    color: Acg.ink,
-  },
-  /**
-   * 메타는 회색이 아니라 **잉크**다(레퍼런스). 값이 여럿 붙는 줄이라 회색으로 낮추면
-   * 무게·기간 같은 실제 정보가 장식처럼 읽힌다.
-   */
-  rowMeta: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 20,
-    color: Acg.ink,
-  },
-  // 메타 줄 안의 숫자 조각(중첩 Text) — 크기는 상속하고 서체만 콘덴스드로 바꾼다.
-  rowMetaStrong: {
-    fontSize: AcgFontSize.rowSubtitle,
-    color: Acg.ink,
   },
 });
 
