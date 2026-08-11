@@ -12,7 +12,6 @@ import { observer } from 'mobx-react-lite';
 import dayjs from 'dayjs';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
-import AcgScreenBackground from '@/components/acg/AcgScreenBackground';
 import HomeUpcomingTripView from '@/components/home/HomeUpcomingTripView';
 import HomeWarehousePreviewView from '@/components/home/HomeWarehousePreviewView';
 import HomeRecordSummaryView from '@/components/home/HomeRecordSummaryView';
@@ -119,14 +118,12 @@ const HomeView: FC<Props> = ({ home }) => {
       edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
       paddingHorizontal={AcgLayout.screenPadding}
       /**
-       * 홈만 지형 그래픽 지면을 쓴다(2026-08-11 사용자 결정) — 첫 화면이라 앱의 성격을
-       * 지면이 말해 주는 자리다. 탐색·검색은 목록이 빽빽해 순백을 쓴다.
-       *
-       * 이 지면(#F4F3EF)이 탐색의 순백과 달라, 그 위 면은 **흰 종이**다 — 탐색의 연회색
-       * 면(#F2F2F2)을 그대로 쓰면 지면색과 붙어 면이 사라진다. 두 탭이 공유하는 규칙은
-       * 값이 아니라 "면은 지면보다 밝고, 모서리 12, 그림자 없음"이다.
+       * 지면은 순백이다(2026-08-11 사용자 결정 — 지형 그래픽을 되살렸다가 다시 걷었다).
+       * 앱의 모든 탭이 같은 지면 위에 놓이고, 그 위 면은 연회색(`controlFill`)이다.
+       * 두 세대가 공유하는 규칙은 값이 아니라 **"면은 지면보다 밝거나 어둡게 한 단 갈리고,
+       * 모서리 12, 그림자 없음"** 이다.
        */
-      background={<AcgScreenBackground photo={true} terrain={false} />}
+      background={<View style={styles.ground} />}
     >
       {/* 한글이라 콘덴스드(Archivo Narrow) 대신 Pretendard를 쓴다 — 그 서체에는
           한글 글리프가 없어 글자가 깨진다. */}
@@ -141,6 +138,14 @@ const HomeView: FC<Props> = ({ home }) => {
 };
 
 const styles = StyleSheet.create({
+  ground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: Acg.paper,
+  },
   header: {
     paddingTop: 12,
     paddingBottom: 16,

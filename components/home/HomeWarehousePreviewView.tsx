@@ -201,10 +201,7 @@ const styles = StyleSheet.create({
   gearList: {
     marginTop: 6,
   },
-  /**
-   * 레퍼런스 목록 행 — 이름(두 줄까지) + 메타 한 줄. 헤어라인은 지형 지면 위라
-   * `line2`(잉크 알파)다. 순백용 `hairline`은 이 지면에서 보이지 않는다.
-   */
+  // 레퍼런스 목록 행 — 이름(두 줄까지) + 메타 한 줄. 순백 지면 위라 헤어라인은 중성 회색이다.
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -214,7 +211,7 @@ const styles = StyleSheet.create({
   },
   rowDivided: {
     borderTopWidth: 1,
-    borderTopColor: Acg.line2,
+    borderTopColor: Acg.hairline,
   },
   rowText: {
     flex: 1,
@@ -243,7 +240,7 @@ const styles = StyleSheet.create({
     color: Acg.textMuted,
   },
   tile: {
-    backgroundColor: Acg.paper,
+    backgroundColor: Acg.controlFill,
     borderRadius: AcgRadius.thumb,
     padding: 16,
     gap: 4,

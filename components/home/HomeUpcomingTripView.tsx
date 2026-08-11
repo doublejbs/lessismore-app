@@ -307,12 +307,9 @@ const styles = StyleSheet.create({
     // 카드가 흔들리는 것처럼 보인다.
     alignItems: 'stretch',
   },
-  /**
-   * 홈의 정보 면. 지형 지면(#F4F3EF) 위라 **흰 종이**다 — 탐색의 연회색 면(#F2F2F2)을 그대로
-   * 쓰면 지면색과 붙어 사라진다. 공유하는 규칙은 값이 아니라 모서리 12·그림자 없음이다.
-   */
+  // 홈의 정보 면 — 탐색 셀과 같은 채움·모서리다(FD-2). 순백 지면 위라 연회색이 한 단 갈린다.
   tile: {
-    backgroundColor: Acg.paper,
+    backgroundColor: Acg.controlFill,
     borderRadius: AcgRadius.thumb,
     padding: 16,
     gap: 14,
@@ -404,12 +401,12 @@ const styles = StyleSheet.create({
     fontSize: AcgFontSize.control,
     color: Acg.ink,
   },
-  // 흰 면 위 트랙이라 연회색이다(반대로 두면 트랙이 안 보인다). 채움은 잉크 —
+  // 연회색 면 위 트랙이라 흰색이다(같은 값을 두면 트랙이 안 보인다). 채움은 잉크 —
   // 라임을 여기 쓰면 화면에 라임 면이 둘이 된다.
   progressTrack: {
     height: 4,
     borderRadius: 2,
-    backgroundColor: Acg.controlFill,
+    backgroundColor: Acg.paper,
     overflow: 'hidden',
   },
   progressFill: {
