@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text, TextProps } from 'react-native';
+import { Acg } from '@/constants/DesignTokens';
 
 interface PretendardTextProps extends TextProps {
   weight?: 'regular' | 'medium' | 'semibold' | 'bold' | 'extraBold';
@@ -15,7 +16,7 @@ const PretendardText: React.FC<PretendardTextProps> = ({
 
   return (
     <Text
-      style={[{ fontFamily, color: '#000000' }, style]}
+      style={[{ fontFamily, color: Acg.ink }, style]}
       lineBreakStrategyIOS={lineBreakStrategyIOS}
       {...props}
     />

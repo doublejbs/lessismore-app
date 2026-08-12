@@ -146,33 +146,40 @@ export const AcgFont = {
 } as const;
 
 /**
- * 레퍼런스 탐색 화면의 타입 단계(2026-08-11 이식). 서체가 아니라 **크기**만 담는다
- * (서체는 위 `AcgFont`).
+ * 타입 스케일 — 크기·줄간·자간 세트. 크기만 담던 옛 `AcgFontSize`(2026-08-11)를
+ * 대체한다(2026-08-12).
  *
- * **[정정 2026-08-11]** 처음에 24/19/17로 뒀는데 레퍼런스 스크린샷의 **픽셀을 그대로
- * pt로 읽은 실수**였다. 이미지 폭 923px ÷ 논리 폭 393pt ≈ 2.35배라, 실측을 환산하면
- * 이름 ~19 · 보조 ~15 · 메타 ~14다. 처음 값은 1.3~1.4배 커서 화면이 확대판으로 보였다.
+ * 단을 크기·줄간·자간 묶음으로 고정해, 화면은 `...AcgType.<단>`을 스타일에 스프레드하기만
+ * 하면 된다 — 화면마다 줄간·자간을 다시 정하지 않는다.
  *
- * `control`(칩 라벨·정렬 라벨·검색 입력)을 `meta`와 갈라 둔다 — 컨트롤은 눌러야 하므로
- * 메타보다 한 단 위여야 하고, 한 값으로 묶으면 한쪽을 고칠 때 다른 쪽이 끌려온다.
+ * **자간은 크기별이다.** Pretendard는 큰 글자에서 자간이 벌어져 보여 제목 단은 음수를 준다.
+ * 본문 단은 0, 메타는 반대로 +0.1을 준다(작은 글자는 촘촘해 보여 살짝 벌린다).
+ * `letterSpacing: 0`도 값을 명시해 둔 이유는, 스프레드했을 때 화면에 남아 있던 임의 자간
+ * 값을 확실히 덮어쓰기 위해서다(생략하면 스프레드 순서에 따라 옛 값이 남을 수 있다).
+ *
+ * **줄간은 제목이 타이트하고(127%) 본문 이하가 여유롭다(133~150%)** — 한글 받침이 잘리지 않게
+ * 작은 단일수록 비율 여유를 둔다.
+ *
+ * **굵기는 이 토큰에 없다** — `PretendardText`의 `weight` prop으로 지정한다(서체 파일이
+ * 굵기별로 나뉘어 있어 `fontWeight` 스타일로는 못 싣는다). 굵기 짝: 화면 제목 semibold ·
+ * 섹션 제목 semibold · 항목 이름 medium.
+ *
+ * `display*` 3단(large/medium/small)은 콘덴스드 수치 전용이다(`AcgDisplayText`) — 무게·
+ * D-day 등 화면 안에서 서로 비교하는 값에만 쓴다.
  */
-export const AcgFontSize = {
-  /**
-   * 타입 6단. **실측(24/20/18/16/15/14)에서 한 단 더 내린 값이다**(2026-08-12 사용자 지적 2회).
-   *
-   * 레퍼런스는 영문이고 이 앱은 한글이다 — 같은 pt에서 한글은 글자당 획이 많아 더 크고
-   * 빽빽하게 읽힌다. 그래서 실측을 그대로 쓰면 화면이 확대판처럼 보인다.
-   * 단 **간격은 유지**한다(2단마다 2pt): 22 · 18 · 16 · 15 · 14 · 13.
-   *
-   * 층은 크기만으로 만들지 않는다 — 섹션 제목은 semibold, 항목 이름은 medium이다.
-   */
-  screenTitle: 22,
-  sectionTitle: 18,
-  rowTitle: 16,
-  sectionSubtitle: 15,
-  rowSubtitle: 14,
-  control: 14,
-  meta: 13,
+export const AcgType = {
+  screenTitle: { fontSize: 22, lineHeight: 28, letterSpacing: -0.4 },
+  sectionTitle: { fontSize: 18, lineHeight: 24, letterSpacing: -0.2 },
+  rowTitle: { fontSize: 16, lineHeight: 22, letterSpacing: 0 },
+  sectionSubtitle: { fontSize: 15, lineHeight: 21, letterSpacing: 0 },
+  rowSubtitle: { fontSize: 14, lineHeight: 20, letterSpacing: 0 },
+  // 여러 줄 문단(설명·안내문) — 한 줄 메타(rowSubtitle)보다 줄간에 여유를 둔다.
+  body: { fontSize: 14, lineHeight: 21, letterSpacing: 0 },
+  control: { fontSize: 14, lineHeight: 20, letterSpacing: 0 },
+  meta: { fontSize: 13, lineHeight: 18, letterSpacing: 0.1 },
+  displayLarge: { fontSize: 30, lineHeight: 34, letterSpacing: 0 },
+  displayMedium: { fontSize: 28, lineHeight: 32, letterSpacing: 0 },
+  displaySmall: { fontSize: 24, lineHeight: 28, letterSpacing: 0 },
 } as const;
 
 /**

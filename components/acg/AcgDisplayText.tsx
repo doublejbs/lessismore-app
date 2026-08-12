@@ -20,10 +20,19 @@ interface Props {
  * **RN은 폰트 폴백을 지원하지 않아** 글자가 깨진다(실기기 확인: `홈` → `옴`).
  * 그래서 쓰는 곳은 **숫자·라틴 문자**뿐이다 — 무게, D-day, 기간, 진행 수치.
  * 한글 제목·본문·버튼 라벨은 `PretendardText`를 쓴다.
+ *
+ * `fontVariant: ['tabular-nums']`를 두는 이유: 세로로 나열해 서로 비교하는 수치(무게 등)가
+ * 자릿수마다 폭이 달라 흔들리지 않게 고정폭 숫자로 렌더링한다.
+ * `maxFontSizeMultiplier={1.5}`를 두는 이유: 이 수치는 화면의 시각 앵커라, 접근성 글자 확대가
+ * 걸려도 레이아웃이 무너지지 않도록 배율을 1.5배로 상한을 둔다.
  */
 const AcgDisplayText: FC<Props> = ({ children, style, numberOfLines }) => {
   return (
-    <Text style={[styles.text, style]} numberOfLines={numberOfLines}>
+    <Text
+      style={[styles.text, style]}
+      numberOfLines={numberOfLines}
+      maxFontSizeMultiplier={1.5}
+    >
       {children}
     </Text>
   );
@@ -33,6 +42,7 @@ const styles = StyleSheet.create({
   text: {
     fontFamily: AcgFont.condensed,
     color: Acg.ink,
+    fontVariant: ['tabular-nums'],
   },
 });
 
