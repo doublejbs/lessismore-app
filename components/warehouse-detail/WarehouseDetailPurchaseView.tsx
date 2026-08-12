@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
 import WarehouseDetailBrandPreviewView from './WarehouseDetailBrandPreviewView';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import { getBrandLinkLabel } from '../../model/gear/GearBrandLink';
 
 interface Props {
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   title: {
-    fontSize: AcgFontSize.rowTitle,
+    ...AcgType.sectionTitle,
     color: Acg.ink,
   },
   coupangGroup: {
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
    * 페이지 축에서 떨어져 나왔고, 면도 테두리도 없어 누를 수 있는 것으로 읽히지 않았다
    * (2026-08-04 디자인 리뷰). 잉크 버튼으로 세우지는 않는다 — 시안에서도 조용한 고지다.
    *
-   * 세로 패딩으로 44pt 터치 타깃을 만든다(고정 높이는 Dynamic Type에서 잘린다).
+   * 세로 패딩으로 HIG 최소 터치 타깃 44pt를 만든다.
    */
   link: {
     flexDirection: 'row',
@@ -120,15 +120,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     gap: 8,
     backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
   },
   linkText: {
-    fontSize: 14,
+    ...AcgType.control,
     color: Acg.ink,
   },
   // 고지는 조용히 둔다 — 면 밖, 좌측 정렬.
   disclaimerText: {
-    fontSize: AcgFontSize.meta,
-    lineHeight: 15,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
 });

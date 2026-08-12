@@ -1,7 +1,7 @@
 import { FC, ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
 import PretendardText from '../PretendardText';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
 
 interface Props {
   title: string;
@@ -22,7 +22,7 @@ interface Props {
 }
 
 /**
- * 장비 상세의 섹션 껍데기(ACG).
+ * 장비 상세의 섹션 껍데기(HM-8/GD-0).
  *
  * 홈 탭과 같은 문법이다: 제목은 지면 위에 두고 내용만 종이 면에 얹는다. 제목까지 면 안에
  * 넣으면 카드가 제목·내용 두 층을 품어 스크롤에서 섹션 경계가 흐려진다.
@@ -61,16 +61,15 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 10,
   },
-  // 지면 위 제목이라 본문보다 한 단계 낮은 색이다(홈 탭과 동일).
+  // 섹션 머리 18 semibold 잉크(GD-0) — 항목 이름(16 medium)과 층이 갈린다.
   title: {
-    // 공용 섹션 머리와 같은 19pt semibold 잉크(HM-8).
-    fontSize: AcgFontSize.rowTitle,
-    lineHeight: 25,
+    ...AcgType.sectionTitle,
     color: Acg.ink,
   },
   card: {
     padding: 16,
     backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
   },
   // 행 사이 8px — 홈 탭 리스트와 같은 값.
   list: {

@@ -5,7 +5,7 @@ import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
-import { Acg, AcgFontSize } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import StarRatingView from '../camp-site/StarRatingView';
 
 interface Props {
@@ -97,11 +97,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   ratingAvgText: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
   ratingCountText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
   repliesContainer: {
@@ -118,14 +118,15 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 14,
     backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
     width: '100%',
   },
   addReviewButtonText: {
-    fontSize: 14,
+    ...AcgType.control,
     color: Acg.textMuted,
   },
   moreReviewButtonText: {
-    fontSize: 14,
+    ...AcgType.control,
     color: Acg.textMuted,
   },
   // 홈의 `전체 보기` 행과 같은 문법 — 가운데 정렬 대신 좌 텍스트·우 셰브론.
@@ -137,23 +138,26 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     paddingHorizontal: 14,
     backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
     width: '100%',
   },
   replyItem: {
     paddingVertical: 13,
     paddingHorizontal: 14,
     backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
     width: '100%',
   },
   replyContent: {
     flexDirection: 'column',
   },
   replyName: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
   replyDate: {
-    fontSize: 10,
+    // 스케일 최소 단으로 올림 — 10pt는 가독 한계
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
 });
