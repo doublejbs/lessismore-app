@@ -26,7 +26,7 @@ import WarehouseDetailReviewSectionView from './WarehouseDetailReviewSectionView
 import WarehouseDetailExternalReviewView from './WarehouseDetailExternalReviewView';
 import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '../PretendardText';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SearchGearAddToBagModalView from '../search/SearchGearAddToBagModalView';
 import Bag from '@/model/bag/Bag';
@@ -52,6 +52,9 @@ const IS_IOS = Platform.OS === 'ios';
 // 깔리면서 그 조건이 깨져 첫 항목이 헤더 뒤로 숨었다(2026-08-03 실기기 확인).
 // 자동 인셋을 끄고 헤더 높이를 직접 비운다.
 const NATIVE_HEADER_HEIGHT = 44;
+// 알약 — 높이의 절반. Dynamic Type 확대로 실높이가 이보다 커지면 완전한 반원에서
+// 살짝 벗어나지만 시각 차는 무시할 수준이다(자매 컴포넌트 `BagDetailBottomBar` 패턴).
+const CTA_PILL_HEIGHT = 52;
 
 const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
   const gear = warehouseDetail.getGear();
@@ -353,7 +356,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
   // 헤더 우측 액션 묶음(공유 + 수정).
@@ -377,14 +380,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   editButton: {
-    // HIG 최소 터치 타깃 44pt, 우측 정렬선(20px) 복원
-    height: 44,
+    // HIG 최소 터치 타깃 44pt, 우측 정렬선(20px) 복원. 글자를 담는 버튼이라
+    minHeight: 44,
     justifyContent: 'center',
     alignItems: 'flex-end',
     paddingHorizontal: 4,
   },
   editButtonText: {
-    fontSize: 15,
+    ...AcgType.control,
     color: Acg.ink,
   },
   content: {
@@ -404,13 +407,14 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     backgroundColor: Acg.bg,
   },
-  // 화면의 주 액션 — 각진 잉크 면(ACG).
+  // 화면의 주 액션 — 라임 알약, 화면당 라임 하나(GD-0).
   addButton: {
-    backgroundColor: Acg.ink,
+    backgroundColor: Acg.lime,
+    borderRadius: CTA_PILL_HEIGHT / 2,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 52,
+    minHeight: CTA_PILL_HEIGHT,
   },
   disabledButton: {
     opacity: 0.6,
@@ -421,8 +425,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   addButtonText: {
-    color: Acg.paper,
-    fontSize: AcgFontSize.rowSubtitle,
+    color: Acg.ink, // 라임 위 글자는 잉크(HM-8)
+    ...AcgType.control,
   },
 });
 
