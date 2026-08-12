@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 import PretendardText from '@/components/PretendardText';
 import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
-import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
+import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 import StarRatingView from './StarRatingView';
 import { CampReview } from '@/model/camp-review/CampReviewTypes';
 
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   author: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Color.textPrimary,
   },
   mineBadge: {
@@ -206,16 +206,15 @@ const styles = StyleSheet.create({
     backgroundColor: Color.chipInactiveBg,
   },
   mineBadgeText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textTertiary,
   },
   date: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textSecondary,
   },
   content: {
-    fontSize: 14,
-    lineHeight: 22,
+    ...AcgType.body,
     color: Color.textPrimary,
   },
   /**
@@ -237,13 +236,13 @@ const styles = StyleSheet.create({
   },
   // 긴 배낭 이름이 날짜·무게·chevron을 밀어내지 않게 이름만 줄인다(2026-08-03 리뷰).
   bagName: {
+    ...AcgType.meta,
     flexShrink: 1,
-    fontSize: AcgFontSize.meta,
     color: Color.textPrimary,
   },
   bagMeta: {
+    ...AcgType.meta,
     flexShrink: 1,
-    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
   headerTrailing: {

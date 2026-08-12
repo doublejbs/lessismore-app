@@ -11,7 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import ReplyDetail from '@/model/reply/ReplyDetail';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -179,19 +179,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   authorText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     fontWeight: '500',
     color: Acg.paper,
   },
   inputButton: {
     flex: 1,
-    height: 40,
+    minHeight: 40,
     backgroundColor: Acg.controlFill,
     justifyContent: 'center',
     paddingHorizontal: 16,
   },
   placeholder: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
   inputContainer: {
@@ -207,14 +207,14 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.controlFill,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     fontWeight: '500',
     color: Acg.ink,
   },
   saveButton: {
     backgroundColor: Acg.ink,
     paddingHorizontal: 16,
-    height: 40,
+    minHeight: 40,
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 60,
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   saveButtonText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Acg.paper,
   },
 });

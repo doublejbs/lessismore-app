@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import Gear from '../../model/gear/Gear';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '../PretendardText';
-import { Acg, AcgFontSize, AcgLayout, Spacing } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType, Spacing } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { GEAR_FILTER_NAMES } from '@/model/gear/GearFilterName';
 
@@ -113,26 +113,22 @@ const styles = StyleSheet.create({
    * 이름은 화면 제목 단(22)이고, 브랜드는 메타 단이다.
    */
   companyText: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 19,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
   nameText: {
-    fontSize: AcgFontSize.screenTitle,
-    lineHeight: 28,
-    letterSpacing: -0.4,
+    ...AcgType.screenTitle,
     color: Acg.ink,
     marginTop: 2,
   },
   metaText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Acg.textMuted,
     marginTop: 6,
   },
   // 무게 — 이 화면의 숫자 앵커(콘덴스드). 이름(22)보다 크게 둬 비교하는 값임을 드러낸다.
   weightText: {
-    fontSize: 28,
-    lineHeight: 34,
+    ...AcgType.displayMedium,
     color: Acg.ink,
     textAlign: 'right',
     flexShrink: 0,

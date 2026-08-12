@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { AcgFontSize, Color, Spacing } from '@/constants/DesignTokens';
+import { AcgType, Color, Spacing } from '@/constants/DesignTokens';
 import { BagActivityWorkoutDetail } from '@/model/bag/BagActivityWorkoutDetail';
 import {
   formatDistance,
@@ -88,11 +88,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   title: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Color.textPrimary,
   },
   subtitle: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textSecondary,
   },
 });

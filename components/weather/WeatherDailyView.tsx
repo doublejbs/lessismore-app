@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { AcgFontSize, Color } from '@/constants/DesignTokens';
+import { AcgType, Color } from '@/constants/DesignTokens';
 import { getWeatherCodeInfo } from '@/model/weather/WeatherCode';
 import { WeatherDaily } from '@/model/weather/WeatherTypes';
 
@@ -111,11 +111,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dateText: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Color.textPrimary,
   },
   weekdayText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textSecondary,
   },
   descCol: {
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   descText: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Color.textPrimary,
   },
   metaRow: {
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   metaText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textSecondary,
   },
   tempCol: {
@@ -148,11 +148,11 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   tempMinText: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Color.textSecondary,
   },
   tempMaxText: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Color.textPrimary,
   },
 });

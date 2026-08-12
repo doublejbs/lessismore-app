@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { AcgFontSize, Color, Spacing } from '@/constants/DesignTokens';
+import { AcgType, Color, Spacing } from '@/constants/DesignTokens';
 
 interface Props {
   isWorkoutReadConfirmed: boolean;
@@ -66,13 +66,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.screenH,
   },
   title: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Color.textPrimary,
     textAlign: 'center',
   },
   description: {
-    fontSize: 14,
-    lineHeight: 21,
+    ...AcgType.body,
     color: Color.textSecondary,
     textAlign: 'center',
   },
@@ -82,7 +81,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   settingsButtonText: {
-    fontSize: 15,
+    ...AcgType.control,
     color: Color.textPrimary,
     textDecorationLine: 'underline',
   },

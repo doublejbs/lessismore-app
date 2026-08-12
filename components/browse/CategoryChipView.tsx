@@ -3,8 +3,8 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import PretendardText from '../PretendardText';
 import {
   Acg,
-  AcgFontSize,
   AcgShadow,
+  AcgType,
   Color,
   Radius,
 } from '@/constants/DesignTokens';
@@ -196,10 +196,10 @@ const styles = StyleSheet.create({
     borderColor: Color.background,
   },
   chipText: {
-    fontSize: 15,
+    ...AcgType.control,
   },
   chipTextSecondary: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
   },
   // 비선택 라벨은 회색이 아니라 잉크다 — 연회색 면 위에서 회색 글자는 눌러야 하는 컨트롤로
   // 읽히지 않는다(탐색 칩과 같은 규칙).
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.background,
   },
   countText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textPrimary,
   },
 });

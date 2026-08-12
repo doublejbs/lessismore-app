@@ -8,7 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import BagPacking from '@/model/bag-packing/BagPacking';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 
 interface Props {
   bagPacking: BagPacking;
@@ -70,15 +70,13 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   countText: {
-    // 화면 제목 — 앱 공통 값.
-    fontSize: AcgFontSize.screenTitle,
-    lineHeight: 38,
+    // 옆 percentText와 나란히 비교하는 콘덴스드 수치라 같은 단·같은 트래킹을 쓴다.
+    ...AcgType.displaySmall,
     color: Acg.ink,
   },
   // 진행률은 라임 — 이 화면에서 유일한 액센트다(ACG).
   percentText: {
-    fontSize: 24,
-    lineHeight: 28,
+    ...AcgType.displaySmall,
     color: Acg.limeText,
   },
   // 각진 진행 바(ACG). 채움은 라임이라 남은 양이 한눈에 갈린다.
@@ -93,7 +91,7 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.lime,
   },
   weightText: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Acg.textMuted,
   },
 });

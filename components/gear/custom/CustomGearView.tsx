@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgType, Color, Radius } from '@/constants/DesignTokens';
 import CustomGearConfirmView from '@/components/gear/custom/CustomGearConfirmView';
 import CustomGear from '@/model/gear/custom/CustomGear';
 import LoadingIconView from '@/components/ui/LoadingIconView';
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   label: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
   },
   requiredMark: {
     color: '#FF3B30',
@@ -357,6 +357,9 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    // 단일행 TextInput — 줄간을 얹지 않는다(HM-8, 안드로이드 커서 이슈).
+    fontSize: AcgType.control.fontSize,
+    letterSpacing: AcgType.control.letterSpacing,
     borderRadius: Radius.input,
     backgroundColor: Color.inputBg,
     borderWidth: 1,
@@ -383,11 +386,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingLeft: 20,
     paddingRight: 12,
-    height: 56,
+    minHeight: 56,
   },
   headerTitle: {
-    fontSize: 18,
-    lineHeight: 26,
+    ...AcgType.sectionTitle,
     color: Color.textPrimary,
   },
   // HIG 최소 터치 타깃 44×44pt.

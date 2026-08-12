@@ -15,7 +15,7 @@ import OrderOption from '@/model/order/OrderOption';
 import PretendardText from '@/components/PretendardText';
 import CategoryChipView from '@/components/browse/CategoryChipView';
 import { getFineCategoryLabel } from '@/model/gear/GearCategoryGroups';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 interface Props {
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   titleText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
 });

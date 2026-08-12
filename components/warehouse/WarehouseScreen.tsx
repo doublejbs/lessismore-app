@@ -16,12 +16,7 @@ import { observer } from 'mobx-react-lite';
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
-import {
-  Acg,
-  AcgFontSize,
-  AcgLayout,
-  AcgRadius,
-} from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import Warehouse from '@/model/warehouse/Warehouse';
 import WarehouseFiltersView from '@/components/warehouse/WarehouseFiltersView';
 import WarehouseGearView from '@/components/warehouse/WarehouseGearView';
@@ -336,8 +331,7 @@ const styles = StyleSheet.create({
    */
   titleText: {
     flex: 1,
-    fontSize: 20,
-    lineHeight: 28,
+    ...AcgType.screenTitle,
     color: Acg.ink,
     marginLeft: 4,
   },
@@ -378,7 +372,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelText: {
-    fontSize: 15,
+    ...AcgType.control,
     color: Acg.ink,
   },
   // 탐색 탭 검색 필드와 같은 형태 — 연회색 채움 + 모서리 12(순백 지면에서 흰 면은 사라진다).
@@ -390,11 +384,13 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.controlFill,
     borderRadius: AcgRadius.thumb,
     paddingHorizontal: 14,
-    height: 48,
+    minHeight: 48,
   },
   searchInput: {
     flex: 1,
-    fontSize: AcgFontSize.control,
+    // 단일행 입력이라 lineHeight를 얹지 않는다(안드로이드에서 커서 높이가 어긋난다).
+    fontSize: AcgType.control.fontSize,
+    letterSpacing: AcgType.control.letterSpacing,
     fontFamily: 'Pretendard-Regular',
     color: Acg.ink,
     padding: 0,
@@ -418,7 +414,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     textAlign: 'center',
     color: Acg.textMuted,
   },

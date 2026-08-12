@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import AlertManager from '@/model/alert/AlertManager';
 import PretendardText from '@/components/PretendardText';
-import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
+import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   alertManager: AlertManager;
@@ -87,35 +87,37 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   messageText: {
-    fontSize: 20,
+    ...AcgType.screenTitle,
     marginBottom: 24,
     color: Color.textPrimary,
   },
   buttonContainer: {
     flexDirection: 'row',
     gap: 12,
-    height: 51,
+    minHeight: 51,
   },
   cancelButton: {
     flex: 1,
     backgroundColor: Color.surfaceMuted,
     borderRadius: 26,
+    paddingVertical: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   cancelButtonText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.control,
     color: Color.textPrimary,
   },
   confirmButton: {
     flex: 1,
     backgroundColor: Color.textPrimary,
     borderRadius: 26,
+    paddingVertical: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   confirmButtonText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.control,
     color: '#FFFFFF',
   },
 });

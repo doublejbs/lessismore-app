@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '../PretendardText';
 import ReplyInputButtonView from './ReplyInputButtonView';
@@ -23,9 +23,6 @@ const IS_IOS = Platform.OS === 'ios';
 // 깔리면서 그 조건이 깨져 첫 항목이 헤더 뒤로 숨었다(2026-08-03 실기기 확인).
 // 자동 인셋을 끄고 헤더 높이를 직접 비운다.
 const NATIVE_HEADER_HEIGHT = 44;
-
-// 푸시 화면의 큰 제목(ACG) — 배낭 이름과 같은 28px/700.
-const SECTION_TITLE_SIZE = AcgFontSize.sectionTitle;
 
 const ReplyView = ({ reply }: { reply: Reply }) => {
   const router = useRouter();
@@ -77,7 +74,7 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
       >
         <View style={styles.replyHeader}>
           {/* 형광펜 띠를 걷었다(2026-08-11) — 라임은 화면당 하나이고, 그 하나는 눌러야 하는
-              면의 몫이다. 섹션 제목은 공용 머리와 같은 19pt semibold 잉크다(HM-8). */}
+              면의 몫이다. */}
           <PretendardText weight='semibold' style={styles.replyHeaderText}>
             리뷰
           </PretendardText>
@@ -136,7 +133,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   titleText: {
-    fontSize: 18,
+    ...AcgType.sectionTitle,
     textAlign: 'center',
     flex: 1,
     color: Acg.ink,
@@ -160,8 +157,7 @@ const styles = StyleSheet.create({
   },
   // 지면 위 제목이라 본문보다 한 단계 낮은 색이다(장비 상세 섹션 제목과 동일).
   replyHeaderText: {
-    fontSize: SECTION_TITLE_SIZE,
-    lineHeight: SECTION_TITLE_SIZE + 6,
+    ...AcgType.sectionTitle,
     color: Acg.ink,
   },
   emptyState: {
@@ -172,11 +168,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   emptyTitle: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
   emptyDesc: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
 });

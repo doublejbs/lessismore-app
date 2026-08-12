@@ -17,13 +17,7 @@ import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import {
-  Acg,
-  AcgFontSize,
-  Color,
-  Radius,
-  Spacing,
-} from '@/constants/DesignTokens';
+import { Acg, AcgType, Color, Radius, Spacing } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
@@ -486,7 +480,7 @@ const styles = StyleSheet.create({
     width: 24,
   },
   headerTitle: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Color.textPrimary,
   },
   searchBox: {
@@ -500,7 +494,9 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontSize: 15,
+    // 단일행 입력이라 lineHeight를 얹지 않는다(안드로이드에서 커서 높이가 어긋난다).
+    fontSize: AcgType.control.fontSize,
+    letterSpacing: AcgType.control.letterSpacing,
     fontFamily: 'Pretendard-Regular',
     color: Color.textPrimary,
     padding: 0,
@@ -556,9 +552,8 @@ const styles = StyleSheet.create({
   // 아이콘 옆 가로 배치라 남은 폭을 채운다.
   nameText: {
     flex: 1,
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Color.textPrimary,
-    lineHeight: 20,
   },
   confirmButton: {
     minHeight: 52,
@@ -572,7 +567,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   confirmText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Color.background,
   },
 });

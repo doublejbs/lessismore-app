@@ -1,5 +1,5 @@
 import { StyleSheet, Text, type TextProps } from 'react-native';
-import { AcgFontSize } from '@/constants/DesignTokens';
+import { Acg, AcgType } from '@/constants/DesignTokens';
 
 import { useThemeColor } from '@/hooks/useThemeColor';
 
@@ -9,13 +9,13 @@ export type ThemedTextProps = TextProps & {
   type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
 };
 
-export function ThemedText({
+export const ThemedText = ({
   style,
   lightColor,
   darkColor,
   type = 'default',
   ...rest
-}: ThemedTextProps) {
+}: ThemedTextProps) => {
   const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
 
   return (
@@ -32,35 +32,33 @@ export function ThemedText({
       {...rest}
     />
   );
-}
+};
 
 const styles = StyleSheet.create({
   default: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 24,
+    ...AcgType.rowSubtitle,
     fontFamily: 'Pretendard-Regular',
-    color: '#000000',
+    color: Acg.ink,
   },
   defaultSemiBold: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 24,
+    ...AcgType.rowSubtitle,
     fontFamily: 'Pretendard-SemiBold',
-    color: '#000000',
+    color: Acg.ink,
   },
   title: {
+    // 스케일 밖 — 템플릿 히어로 크기
     fontSize: 32,
     lineHeight: 32,
     fontFamily: 'Pretendard-Bold',
-    color: '#000000',
+    color: Acg.ink,
   },
   subtitle: {
-    fontSize: 20,
+    ...AcgType.sectionTitle,
     fontFamily: 'Pretendard-Bold',
-    color: '#000000',
+    color: Acg.ink,
   },
   link: {
-    lineHeight: 30,
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: '#0a7ea4',
     fontFamily: 'Pretendard-Medium',
   },

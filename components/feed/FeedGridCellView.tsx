@@ -8,7 +8,7 @@ import GearRowActions from '@/model/browse/GearRowActions';
 import { GearAddContext } from '@/model/gear/GearAddContext';
 import PretendardText from '@/components/PretendardText';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
-import { Acg, AcgFontSize, AcgRadius } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import LoadingView from '@/components/ui/LoadingView';
 import SearchGearAddToBagModalView from '@/components/search/SearchGearAddToBagModalView';
 import useGearRowState from './useGearRowState';
@@ -23,10 +23,9 @@ const CTA_ICON_SIZE = 24;
 // 썸네일 면 안에서 제품명이 차지할 최대 줄 수. 면 높이 계산과 짝이라 상수로 둔다.
 const NAME_MAX_LINES = 3;
 
-// 앵커 무게. 셀에서 가장 큰 활자다.
-const WEIGHT_FONT_SIZE = 24;
-
-const WEIGHT_LINE_HEIGHT = 30;
+// 앵커 무게의 줄박스. 셀에서 가장 큰 활자(`AcgType.displaySmall`)의 줄간을 그대로 쓴다 —
+// 면 바닥 줄(footer)의 최소 높이와 무게 없는 항목의 대시가 이 값에 맞춰 한 선에 온다.
+const WEIGHT_LINE_HEIGHT = AcgType.displaySmall.lineHeight;
 
 // 면 최소 높이 — 이름이 한 줄뿐인 항목도 면이 납작해지지 않을 만큼만 둔다.
 const THUMB_MIN_HEIGHT = 150;
@@ -232,18 +231,16 @@ const styles = StyleSheet.create({
   company: {
     flex: 1,
     minWidth: 0,
-    fontSize: AcgFontSize.meta,
-    lineHeight: 17,
+    ...AcgType.meta,
     color: Acg.ink,
   },
   name: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 21,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
   // 이름 뒤에 이어 붙는 색상 — 중첩 Text라 크기·색만 되돌려 굵기는 상속되지 않는다.
   color: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
   // 면 바닥 줄. 무게 하나뿐이지만 없는 항목도 같은 높이를 유지해 두 열이 한 선에 온다.
@@ -254,16 +251,16 @@ const styles = StyleSheet.create({
   },
   /**
    * 셀의 숫자 앵커 — 콘덴스드라 같은 크기의 본문보다 좁고 또렷하다.
-   * 제품명(15)보다 크게 두는 이유: 이름은 **읽는** 값이고 무게는 **비교하는** 값이라,
+   * 제품명(본문 단)보다 크게 두는 이유: 이름은 **읽는** 값이고 무게는 **비교하는** 값이라,
    * 훑는 동안 눈에 걸려야 하는 쪽은 무게다.
    */
   weight: {
-    fontSize: WEIGHT_FONT_SIZE,
-    lineHeight: WEIGHT_LINE_HEIGHT,
+    ...AcgType.displaySmall,
     color: Acg.ink,
   },
   weightEmpty: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
+    // 콘덴스드 무게(displaySmall)가 있는 셀과 줄박스를 맞춰야 두 열의 바닥 줄이 한 선에 온다.
     lineHeight: WEIGHT_LINE_HEIGHT,
     color: Acg.textMuted,
   },

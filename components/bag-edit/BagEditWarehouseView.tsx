@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import BagEdit from '../../model/bag-edit/BagEdit';
 import BagEditWarehouseGearView from './BagEditWarehouseGearView';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize } from '@/constants/DesignTokens';
+import { Acg, AcgType } from '@/constants/DesignTokens';
 
 interface Props {
   bagEdit: BagEdit;
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
 });

@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 import { createQuickBag } from '@/model/bag/QuickBagDefaults';
 
 // BAG-2: 배낭 추가 진입 시트 — iOS/Android 네이티브 formSheet(react-native-screens)로 표시.
@@ -92,8 +92,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   title: {
-    fontSize: 18,
-    lineHeight: 26,
+    ...AcgType.sectionTitle,
     color: Color.textPrimary,
   },
   row: {
@@ -115,13 +114,11 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   rowTitle: {
-    fontSize: 16,
-    lineHeight: 22,
+    ...AcgType.rowTitle,
     color: Color.textPrimary,
   },
   rowSubtitle: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...AcgType.meta,
     color: Color.textSecondary,
   },
   divider: {

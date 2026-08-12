@@ -18,7 +18,7 @@ import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import GearThumbnailView, {
   GEAR_THUMBNAIL_SIZE,
 } from '@/components/gear/GearThumbnailView';
-import { Acg, AcgFontSize, AcgRow } from '@/constants/DesignTokens';
+import { Acg, AcgRow, AcgType } from '@/constants/DesignTokens';
 
 // 삭제 스와이프 액션 배경 — 파괴적 액션 시맨틱 색(DesignTokens 예외, CLAUDE.md 참고).
 const DELETE_RED = '#FF3B30';
@@ -208,18 +208,16 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   name: {
-    fontSize: AcgFontSize.rowTitle,
-    lineHeight: 22,
+    ...AcgType.rowTitle,
     color: Acg.ink,
   },
   // 메타는 회색이 아니라 잉크다(레퍼런스) — 무게·브랜드·사용률은 장식이 아니라 정보다.
   meta: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 19,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
   metaNumber: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
   // BD-5 useless 표기 — 본문은 50% 투명, 마크는 자체 투명도.
@@ -246,7 +244,7 @@ const styles = StyleSheet.create({
     backgroundColor: DELETE_RED,
   },
   actionLabel: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Acg.paper,
   },
 });

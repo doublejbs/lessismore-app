@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 const DeleteInfoView = () => {
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
   },
   title: {
-    fontSize: 20,
+    ...AcgType.screenTitle,
   },
   warningContainer: {
     padding: 24,
@@ -157,23 +157,25 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   warningTitle: {
-    fontSize: 16,
+    ...AcgType.rowTitle,
     color: '#e74c3c',
     marginBottom: 8,
   },
   warningMainText: {
-    fontSize: 16,
+    ...AcgType.rowTitle,
+    // 여러 줄 경고 문단 — 줄간 여유(HM-8 예외 ②)
     lineHeight: 24,
     color: Color.textPrimary,
     marginBottom: 8,
   },
   warningBullet: {
-    fontSize: 16,
+    ...AcgType.rowTitle,
+    // 여러 줄 경고 문단 — 줄간 여유(HM-8 예외 ②)
     lineHeight: 24,
     color: Color.textTertiary,
   },
   warningFooter: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Color.textSecondary,
     marginTop: 8,
   },
@@ -205,7 +207,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.surfaceMuted,
   },
   cancelButtonText: {
-    fontSize: 16,
+    ...AcgType.control,
     color: Color.textPrimary,
   },
   confirmButton: {
@@ -218,7 +220,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#c0392b',
   },
   confirmButtonText: {
-    fontSize: 16,
+    ...AcgType.control,
     color: Color.background,
   },
 });

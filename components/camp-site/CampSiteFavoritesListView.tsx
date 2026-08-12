@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, AcgLayout, AcgRow } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgRow, AcgType } from '@/constants/DesignTokens';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
   getCampSiteTypeLabel,
@@ -143,8 +143,7 @@ const styles = StyleSheet.create({
   },
   // 시트 제목 — 화면 제목과 같은 층이다.
   headerTitle: {
-    fontSize: AcgFontSize.screenTitle,
-    lineHeight: 28,
+    ...AcgType.screenTitle,
     color: Acg.ink,
   },
   closeButton: {
@@ -185,9 +184,8 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   rowName: {
+    ...AcgType.rowTitle,
     flexShrink: 1,
-    fontSize: AcgFontSize.rowTitle,
-    lineHeight: 22,
     color: Acg.ink,
   },
   /**
@@ -195,9 +193,8 @@ const styles = StyleSheet.create({
    * 목록에서 배지는 유일한 예외 면이 되고, 값 하나 때문에 행마다 작은 사각형이 생긴다.
    */
   rowMeta: {
+    ...AcgType.rowSubtitle,
     flexShrink: 1,
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 19,
     color: Acg.ink,
   },
   emptyWrap: {
@@ -207,8 +204,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   emptyText: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 19,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
     textAlign: 'center',
   },

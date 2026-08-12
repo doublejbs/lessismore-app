@@ -10,12 +10,7 @@ import { useRouter } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import {
-  Acg,
-  AcgFontSize,
-  AcgLayout,
-  AcgRadius,
-} from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import BagItem from '@/model/bag/BagItem';
@@ -327,8 +322,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   tripName: {
-    fontSize: AcgFontSize.rowTitle,
-    lineHeight: 22,
+    ...AcgType.rowTitle,
     color: Acg.ink,
   },
   locationRow: {
@@ -338,25 +332,22 @@ const styles = StyleSheet.create({
   },
   locationText: {
     flexShrink: 1,
-    fontSize: AcgFontSize.meta,
-    lineHeight: 17,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
   tripDate: {
-    fontSize: AcgFontSize.meta,
-    lineHeight: 17,
-    letterSpacing: 0.5,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
   // 남은 일수는 이 면에서 가장 큰 숫자다 — 훑을 때 먼저 걸려야 하는 값이다.
   dDay: {
-    fontSize: 24,
-    lineHeight: 26,
+    ...AcgType.displaySmall,
     color: Acg.ink,
   },
   // `여행 중`처럼 한글이 섞인 라벨 — 콘덴스드를 못 쓰므로 한 단계 작게 잡아 폭을 맞춘다.
   dDayMixed: {
-    fontSize: AcgFontSize.rowTitle,
+    ...AcgType.rowTitle,
+    // 옆의 콘덴스드 D-day(displaySmall)와 줄박스를 맞추려 줄간만 남긴다.
     lineHeight: 28,
     color: Acg.ink,
   },
@@ -374,18 +365,17 @@ const styles = StyleSheet.create({
     borderLeftColor: Acg.hairline,
   },
   statKey: {
-    fontSize: AcgFontSize.meta,
-    lineHeight: 17,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
   statValue: {
-    fontSize: 24,
-    lineHeight: 28,
+    ...AcgType.displaySmall,
     color: Acg.ink,
   },
   // 한글이 섞인 값 — 콘덴스드가 아니라 한 단계 작게 잡아 폭을 맞춘다.
   statValueMixed: {
-    fontSize: 18,
+    ...AcgType.sectionTitle,
+    // 옆 칸의 콘덴스드 총 무게(displaySmall)와 줄박스를 맞추려 줄간만 남긴다.
     lineHeight: 30,
     color: Acg.ink,
   },
@@ -398,7 +388,7 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
   },
   progressValue: {
-    fontSize: AcgFontSize.control,
+    ...AcgType.control,
     color: Acg.ink,
   },
   // 연회색 면 위 트랙이라 흰색이다(같은 값을 두면 트랙이 안 보인다). 채움은 잉크 —
@@ -423,19 +413,17 @@ const styles = StyleSheet.create({
   },
   // 라임 면 위 글자는 잉크다 — 라임을 글자색으로 쓰면 대비가 모자란다.
   ctaText: {
-    fontSize: AcgFontSize.control,
+    ...AcgType.control,
     color: Acg.ink,
   },
   emptyTitle: {
-    fontSize: AcgFontSize.rowTitle,
-    lineHeight: 22,
+    ...AcgType.rowTitle,
     color: Acg.ink,
   },
   emptySubtitle: {
     // 위 제목과 한 덩어리로 읽히도록 면의 기본 간격(14)을 좁힌다.
     marginTop: -10,
-    fontSize: AcgFontSize.meta,
-    lineHeight: 20,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
 });

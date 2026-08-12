@@ -6,7 +6,7 @@ import Gear from '@/model/gear/Gear';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import BagPacking from '@/model/bag-packing/BagPacking';
 import BagPackingGearRowView from './BagPackingGearRowView';
-import { Acg, AcgFontSize } from '@/constants/DesignTokens';
+import { Acg, AcgType } from '@/constants/DesignTokens';
 
 interface Props {
   category: WarehouseFilter;
@@ -42,10 +42,9 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: 8,
   },
-  // 지면 위 섹션 제목 — 홈·배낭 상세와 같은 18px/700 textTertiary(ACG).
+  // 묶음 안 라벨이라 섹션 제목보다 한 단 작다 — 홈·배낭 상세와 같은 값이다(HM-8).
   categoryTitle: {
-    // 묶음 안 라벨이라 섹션 제목(19)보다 한 단 작다(HM-8).
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     marginBottom: 2,
     color: Acg.textMuted,
   },

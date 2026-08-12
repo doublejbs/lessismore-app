@@ -1,7 +1,7 @@
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize } from '@/constants/DesignTokens';
+import { Acg, AcgType } from '@/constants/DesignTokens';
 import Comment from '@/model/reply/Comment';
 import dayjs from 'dayjs';
 import { FC, useRef, useState } from 'react';
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   name: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
   // 내 답글 표시 — 앱의 단 하나뿐인 액센트(라임)를 쓴다.
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     color: Acg.limeText,
   },
   date: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
   tagsContainer: {
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   tagText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     fontWeight: '500',
     color: Acg.ink,
   },
@@ -191,17 +191,15 @@ const styles = StyleSheet.create({
     opacity: 0.3,
   },
   commentText: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Acg.ink,
-    lineHeight: 21,
   },
   mention: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Acg.limeText,
-    lineHeight: 21,
   },
   replyButton: {
-    fontSize: 14,
+    ...AcgType.control,
     color: Acg.textMuted,
   },
   footer: {
@@ -216,7 +214,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   likeCount: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
   likeCountActive: {

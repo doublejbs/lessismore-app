@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { AcgFontSize, Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { AcgType, Color, Radius, Spacing } from '@/constants/DesignTokens';
 import { GeocodeResult } from '@/model/bag-destination/GeocodeResult';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   sectionLabel: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textSecondary,
     paddingTop: 12,
     paddingBottom: 4,
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    // 고정 높이 대신 여백으로 44pt 이상을 확보해 Dynamic Type에 대응한다.
+    // 여백으로 HIG 최소 터치 타깃 44pt를 확보한다.
     paddingVertical: 12,
     minHeight: 44,
     borderBottomWidth: 1,
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.chipInactiveBg,
   },
   badgeText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textTertiary,
   },
   rowText: {
@@ -183,11 +183,11 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   rowTitle: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Color.textPrimary,
   },
   rowSubtitle: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textSecondary,
   },
   searchingRow: {
@@ -198,11 +198,11 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   searchingText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textSecondary,
   },
   emptyText: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Color.textSecondary,
     textAlign: 'center',
     paddingVertical: 20,

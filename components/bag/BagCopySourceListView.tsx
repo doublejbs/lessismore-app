@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import LoadingView from '@/components/ui/LoadingView';
-import { AcgFontSize, Color, Spacing } from '@/constants/DesignTokens';
+import { AcgType, Color, Spacing } from '@/constants/DesignTokens';
 import BagItem from '@/model/bag/BagItem';
 
 // 하단 여백은 마지막 행의 세로 패딩과 합쳐져 실효 여백이 insets.bottom이 되도록 그만큼 빼서 준다.
@@ -116,8 +116,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.item,
   },
   title: {
-    fontSize: 18,
-    lineHeight: 26,
+    ...AcgType.sectionTitle,
     color: Color.textPrimary,
   },
   stateWrap: {
@@ -126,7 +125,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   emptyText: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Color.textSecondary,
     textAlign: 'center',
   },
@@ -146,17 +145,15 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   name: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 22,
+    ...AcgType.rowSubtitle,
     color: Color.textPrimary,
   },
   date: {
-    fontSize: AcgFontSize.meta,
-    lineHeight: 17,
+    ...AcgType.meta,
     color: Color.textSecondary,
   },
   weight: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Color.textPrimary,
   },
 });

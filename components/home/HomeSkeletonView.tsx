@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Acg, AcgRadius, AcgRow } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgRow, AcgType } from '@/constants/DesignTokens';
 
 /**
  * 홈 로딩 스켈레톤(HM-6).
@@ -10,6 +10,11 @@ import { Acg, AcgRadius, AcgRow } from '@/constants/DesignTokens';
  * 창고(WH-1)·배낭(BAG-1)이 쓰는 방식과 같다.
  */
 const PREVIEW_ROWS = 4;
+
+// 일정 카드의 지표 블록(라벨 meta + 값 displaySmall, 사이 간격 2)이 차지하는 높이.
+const STAT_GAP = 2;
+const STAT_BLOCK_HEIGHT =
+  AcgType.meta.lineHeight + STAT_GAP + AcgType.displaySmall.lineHeight;
 
 const useBreathingOpacity = () => {
   // `useRef(...).current`를 렌더 중 읽으면 react-hooks 규칙에 걸린다 — 초기화 함수로 1회만 만든다.
@@ -72,11 +77,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  // 실제 섹션 제목(15pt/lineHeight 20)과 같은 자리·높이.
-  // 실제 섹션 제목(19pt/lineHeight 25)과 같은 자리·높이.
+  // 실제 섹션 제목과 같은 자리·높이 — 줄박스를 타입 스케일에서 그대로 가져온다.
   sectionTitleBar: {
     width: 96,
-    height: 25,
+    height: AcgType.sectionTitle.lineHeight,
     borderRadius: 2,
     backgroundColor: Acg.controlFill,
     marginBottom: 12,
@@ -94,26 +98,26 @@ const styles = StyleSheet.create({
   // 연회색 면 위 막대는 한 톤 진한 헤어라인 값이다(면과 같은 값이면 아무것도 안 보인다).
   badgeBar: {
     width: 48,
-    height: 20,
+    height: AcgType.meta.lineHeight,
     borderRadius: 2,
     backgroundColor: Acg.hairline,
     marginBottom: 10,
   },
   titleBar: {
     width: 170,
-    height: 25,
+    height: AcgType.rowTitle.lineHeight,
     borderRadius: 2,
     backgroundColor: Acg.hairline,
     marginBottom: 6,
   },
   metaBar: {
     width: 210,
-    height: 18,
+    height: AcgType.meta.lineHeight,
     borderRadius: 2,
     backgroundColor: Acg.hairline,
   },
   statsBar: {
-    height: 48,
+    height: STAT_BLOCK_HEIGHT,
     borderRadius: 2,
     backgroundColor: Acg.hairline,
     marginTop: 14,
@@ -142,16 +146,16 @@ const styles = StyleSheet.create({
   listGap: {
     height: 6,
   },
-  // 실제 행은 이름(19) + 메타(15) 두 줄이라 지면 위 막대도 두 단이다.
+  // 실제 행은 이름(rowTitle) + 메타(rowSubtitle) 두 단이라 막대도 각 줄박스를 따른다.
   gearNameBar: {
     width: 170,
-    height: 22,
+    height: AcgType.rowTitle.lineHeight,
     borderRadius: 2,
     backgroundColor: Acg.controlFill,
   },
   gearWeightBar: {
     width: 90,
-    height: 18,
+    height: AcgType.rowSubtitle.lineHeight,
     borderRadius: 2,
     backgroundColor: Acg.controlFill,
   },

@@ -12,13 +12,7 @@ import { Stack, useRouter } from 'expo-router';
 import { Dayjs } from 'dayjs';
 import { Edge, SafeAreaView } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import {
-  Acg,
-  AcgFontSize,
-  Color,
-  Radius,
-  Spacing,
-} from '@/constants/DesignTokens';
+import { Acg, AcgType, Color, Radius, Spacing } from '@/constants/DesignTokens';
 import BagWeather from '@/model/bag/BagWeather';
 import { getPhaseLabel } from '@/model/bag/TripPhaseHelper';
 import BagDestinationMapPreviewView from './BagDestinationMapPreviewView';
@@ -179,10 +173,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.screenH,
-    height: 52,
+    minHeight: 52,
   },
   headerTitle: {
-    fontSize: AcgFontSize.rowTitle,
+    ...AcgType.rowTitle,
     color: Color.textPrimary,
   },
   headerSpacer: {
@@ -211,7 +205,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   periodTitle: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Color.textPrimary,
   },
   periodRow: {
@@ -220,7 +214,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   periodText: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Color.textSecondary,
   },
   phaseBadge: {
@@ -230,7 +224,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.chipInactiveBg,
   },
   phaseText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textPrimary,
   },
   emptyState: {
@@ -241,10 +235,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.screenH,
   },
   emptyText: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Color.textSecondary,
     textAlign: 'center',
-    lineHeight: 20,
   },
   selectButton: {
     minHeight: 48,
@@ -254,7 +247,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.chipActiveBg,
   },
   selectText: {
-    fontSize: 15,
+    ...AcgType.control,
     color: Color.background,
   },
 });

@@ -8,7 +8,7 @@ import BagDetail from '@/model/bag-detail/BagDetail';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import { setBagDestinationPicker } from '@/model/bag-destination/BagDestinationPickerHandoff';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, AcgRadius, Color } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType, Color } from '@/constants/DesignTokens';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 
 interface Props {
@@ -148,12 +148,10 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   title: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 19,
+    ...AcgType.rowSubtitle,
   },
   subtitle: {
-    fontSize: AcgFontSize.meta,
-    lineHeight: 17,
+    ...AcgType.meta,
   },
 });
 

@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
+import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 import CampSiteType from '@/model/camp-site/CampSiteType';
 import CampSiteFacility from '@/model/camp-site/CampSiteFacility';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.chipInactiveBg,
   },
   tagChipText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textTertiary,
   },
   warningBox: {
@@ -168,9 +168,8 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   warningText: {
+    ...AcgType.meta,
     flex: 1,
-    fontSize: AcgFontSize.meta,
-    lineHeight: 20,
     color: WARNING_TEXT_COLOR,
   },
   wildNoticeRow: {
@@ -183,9 +182,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   wildNoticeText: {
+    ...AcgType.meta,
     flex: 1,
-    fontSize: AcgFontSize.meta,
-    lineHeight: 17,
     color: WARNING_TEXT_COLOR,
   },
   section: {
@@ -193,7 +191,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   sectionTitle: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Color.textPrimary,
   },
   facilityRow: {
@@ -208,17 +206,16 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   facilityLabel: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Color.textPrimary,
   },
   accessInfo: {
-    fontSize: 14,
-    lineHeight: 22,
+    ...AcgType.body,
     color: Color.textPrimary,
   },
   source: {
+    ...AcgType.meta,
     marginTop: 8,
-    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
 });

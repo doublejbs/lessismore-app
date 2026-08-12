@@ -20,12 +20,7 @@ import { BrandRankData } from '@/model/search/BrandRankStore';
 import { FeedBrandInterest } from '@/model/feed/FeedInterestProfile';
 import { toBrandKey } from '@/model/store/BrandKey';
 import PretendardText from '@/components/PretendardText';
-import {
-  AcgFontSize,
-  AcgLayout,
-  Color,
-  Radius,
-} from '@/constants/DesignTokens';
+import { AcgLayout, AcgType, Color, Radius } from '@/constants/DesignTokens';
 import SearchSkeletonView from '@/components/search/SearchSkeletonView';
 import BrandRowView from '@/components/browse/BrandRowView';
 import SheetGrabberView from '@/components/ui/SheetGrabberView';
@@ -328,12 +323,11 @@ const styles = StyleSheet.create({
     marginRight: -10,
   },
   title: {
-    fontSize: 18,
-    lineHeight: 26,
+    ...AcgType.sectionTitle,
     color: Color.textPrimary,
   },
   resetText: {
-    fontSize: 14,
+    ...AcgType.control,
     color: Color.textTertiary,
   },
   // HIG 최소 터치 타깃 44×44pt.
@@ -352,11 +346,14 @@ const styles = StyleSheet.create({
     backgroundColor: Color.inputBg,
     borderRadius: Radius.input,
     paddingHorizontal: 12,
-    height: 40,
+    paddingVertical: 8,
+    minHeight: 40,
   },
   searchInput: {
     flex: 1,
-    fontSize: AcgFontSize.rowSubtitle,
+    // 단일행 입력이라 줄간은 싣지 않는다(안드로이드에서 커서가 어긋난다).
+    fontSize: AcgType.control.fontSize,
+    letterSpacing: AcgType.control.letterSpacing,
     padding: 0,
     borderWidth: 0,
     backgroundColor: 'transparent',
@@ -385,8 +382,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   summaryChipText: {
-    fontSize: AcgFontSize.meta,
-    lineHeight: 16,
+    ...AcgType.meta,
     color: Color.background,
   },
   brandListContainer: {
@@ -409,7 +405,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Color.textSecondary,
     textAlign: 'center',
   },
@@ -425,7 +421,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   confirmButtonText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.control,
     color: Color.background,
   },
 });

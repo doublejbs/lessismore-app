@@ -7,7 +7,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Acg, AcgFontSize, Color } from '@/constants/DesignTokens';
+import { Acg, AcgType, Color } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import SearchBarVariant from './SearchBarVariant';
 import { josa } from 'josa';
@@ -107,8 +107,10 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   input: {
+    // 단일행 입력이라 줄간은 싣지 않는다(안드로이드에서 커서가 어긋난다).
+    fontSize: AcgType.control.fontSize,
+    letterSpacing: AcgType.control.letterSpacing,
     flex: 1,
-    fontSize: AcgFontSize.rowSubtitle,
     padding: 0,
     borderWidth: 0,
     backgroundColor: 'transparent',
@@ -122,7 +124,6 @@ const styles = StyleSheet.create({
     }),
   },
   plainInput: {
-    fontSize: AcgFontSize.control,
     color: Acg.ink,
   },
   clearButton: {

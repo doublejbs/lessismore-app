@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import CustomGear from '@/model/gear/custom/CustomGear';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   customGear: CustomGear;
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   label: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
   },
   inputContainer: {
     position: 'relative',
@@ -60,6 +60,9 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    // 단일행 TextInput — 줄간을 얹지 않는다(HM-8, 안드로이드 커서 이슈).
+    fontSize: AcgType.control.fontSize,
+    letterSpacing: AcgType.control.letterSpacing,
     borderRadius: Radius.input,
     backgroundColor: Color.inputBg,
     borderWidth: 1,

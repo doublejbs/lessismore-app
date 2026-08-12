@@ -21,7 +21,7 @@ import CampSiteBagSelectSheetView from '@/components/camp-site/CampSiteBagSelect
 import { takeCampReviewWrite } from '@/model/camp-review/CampReviewWriteHandoff';
 import BagItem from '@/model/bag/BagItem';
 import { CampReviewInput } from '@/model/camp-review/CampReviewTypes';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 
 const MAX_CONTENT_LENGTH = 1000;
 // iOS 멀티라인 입력은 리턴키로 키보드를 못 닫으므로 키보드 위 '완료' 액세서리를 붙인다.
@@ -377,8 +377,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   title: {
-    fontSize: 20,
-    lineHeight: 28,
+    ...AcgType.screenTitle,
     color: Color.textPrimary,
     marginBottom: 24,
   },
@@ -388,23 +387,23 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   label: {
-    fontSize: 15,
-    lineHeight: 20,
+    ...AcgType.sectionSubtitle,
     color: Color.textPrimary,
   },
   contentInput: {
+    ...AcgType.control,
     borderRadius: Radius.input,
     backgroundColor: Color.surfaceMuted,
     paddingHorizontal: 14,
     paddingVertical: 14,
-    fontSize: 16,
     fontFamily: 'Pretendard-Regular',
     color: Color.textPrimary,
     minHeight: 100,
   },
   counter: {
+    ...AcgType.meta,
     alignSelf: 'flex-end',
-    fontSize: 12,
+    // 스케일 최소 단으로 올림 — 12는 가독 한계
     color: Color.textSecondary,
   },
   bagSelectRow: {
@@ -417,7 +416,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.surfaceMuted,
   },
   bagSelectText: {
-    fontSize: 16,
+    ...AcgType.rowTitle,
     color: Color.textSecondary,
   },
   bagChip: {
@@ -434,11 +433,11 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   bagChipName: {
-    fontSize: 16,
+    ...AcgType.rowTitle,
     color: Color.textPrimary,
   },
   bagChipMeta: {
-    fontSize: 13,
+    ...AcgType.meta,
     color: Color.textSecondary,
   },
   bagChipRemove: {
@@ -454,19 +453,19 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    height: 52,
+    minHeight: 52,
     backgroundColor: Color.surfaceMuted,
     borderRadius: Radius.input,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cancelButtonText: {
-    fontSize: 16,
+    ...AcgType.control,
     color: Color.textPrimary,
   },
   confirmButton: {
     flex: 1,
-    height: 52,
+    minHeight: 52,
     backgroundColor: Color.chipActiveBg,
     borderRadius: Radius.input,
     alignItems: 'center',
@@ -476,7 +475,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   confirmButtonText: {
-    fontSize: 16,
+    ...AcgType.control,
     color: Color.background,
   },
   accessoryBar: {
@@ -490,7 +489,7 @@ const styles = StyleSheet.create({
     borderTopColor: Color.borderLight,
   },
   accessoryDone: {
-    fontSize: 16,
+    ...AcgType.control,
     color: Color.textPrimary,
     paddingHorizontal: 8,
     paddingVertical: 4,

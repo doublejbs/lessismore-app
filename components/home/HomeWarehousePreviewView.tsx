@@ -7,10 +7,10 @@ import PretendardText from '@/components/PretendardText';
 import FeedChipView from '@/components/feed/FeedChipView';
 import {
   Acg,
-  AcgFontSize,
   AcgLayout,
   AcgRadius,
   AcgRow,
+  AcgType,
 } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
@@ -219,24 +219,23 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   rowTitle: {
-    fontSize: AcgFontSize.rowTitle,
-    lineHeight: 22,
+    ...AcgType.rowTitle,
     color: Acg.ink,
   },
   // 메타는 회색이 아니라 잉크다(레퍼런스) — 무게·브랜드는 장식이 아니라 정보다.
   rowMeta: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 19,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
-  // 메타 줄 안의 숫자 조각 — 크기는 상속하고 서체만 콘덴스드로 바꾼다.
+  // 메타 줄 안의 숫자 조각 — 디스플레이 단이 아니라 둘러싼 글줄과 같은 단이다.
+  // 서체만 콘덴스드로 바뀌고 크기·줄박스는 메타 줄을 따른다.
   rowMetaStrong: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
   moreText: {
     flex: 1,
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
   tile: {
@@ -246,13 +245,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   emptyTitle: {
-    fontSize: AcgFontSize.rowTitle,
-    lineHeight: 22,
+    ...AcgType.rowTitle,
     color: Acg.ink,
   },
   emptySubtitle: {
-    fontSize: AcgFontSize.meta,
-    lineHeight: 20,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
   addButton: {
@@ -264,7 +261,7 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.ink,
   },
   addButtonText: {
-    fontSize: AcgFontSize.control,
+    ...AcgType.control,
     color: Acg.paper,
   },
 });

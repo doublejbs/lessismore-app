@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import PretendardText from '@/components/PretendardText';
-import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
+import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   closeButtonText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.control,
     color: Color.background,
   },
   scrollView: {
@@ -237,8 +237,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   title: {
-    fontSize: 20,
-    lineHeight: 28,
+    ...AcgType.screenTitle,
     color: Color.textPrimary,
   },
   newBagButton: {
@@ -253,7 +252,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   sectionLabel: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Color.textTertiary,
     marginBottom: 12,
     paddingLeft: 4,
@@ -279,14 +278,14 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   bagItemTitle: {
-    fontSize: 15,
+    ...AcgType.rowTitle,
     color: Color.textPrimary,
   },
   bagItemTitleDisabled: {
     color: Color.textSecondary,
   },
   bagItemSubtitle: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textTertiary,
   },
   bagItemSubtitleDisabled: {

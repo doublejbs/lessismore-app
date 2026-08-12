@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { AcgType, Color } from '@/constants/DesignTokens';
 import CampUserReviewSectionView from './CampUserReviewSectionView';
 import ReviewSectionView from '@/components/review/ReviewSectionView';
 import CampSiteDetail from '@/model/camp-site/CampSiteDetail';
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   sectionTitle: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Color.textPrimary,
   },
 });

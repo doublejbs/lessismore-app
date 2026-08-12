@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Acg, AcgRow } from '@/constants/DesignTokens';
+import { Acg, AcgRow, AcgType } from '@/constants/DesignTokens';
 
 /**
  * 배낭 목록 로딩 스켈레톤(BAG-1).
@@ -81,16 +81,16 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 16,
   },
-  // 실제 화면 제목(28pt/lineHeight 32)과 같은 자리·높이.
+  // 막대 높이는 실제 글자의 줄박스에서 그대로 딴다 — 값이 갈리면 데이터가 오는 순간 행이 튄다.
   headerTitleBar: {
     width: 160,
-    height: 32,
+    height: AcgType.screenTitle.lineHeight,
     borderRadius: 2,
     backgroundColor: Acg.controlFill,
   },
   headerOrderBar: {
     width: 84,
-    height: 20,
+    height: AcgType.control.lineHeight,
     borderRadius: 2,
     backgroundColor: Acg.controlFill,
   },
@@ -107,16 +107,16 @@ const styles = StyleSheet.create({
   identityColumn: {
     gap: 4,
   },
-  // 이름(19) / 메타(15) 두 단.
+  // 이름(rowTitle) / 메타(rowSubtitle) 두 단.
   nameBar: {
     width: 170,
-    height: 22,
+    height: AcgType.rowTitle.lineHeight,
     borderRadius: 2,
     backgroundColor: Acg.controlFill,
   },
   metaBar: {
     width: 220,
-    height: 18,
+    height: AcgType.rowSubtitle.lineHeight,
     borderRadius: 2,
     backgroundColor: Acg.controlFill,
   },

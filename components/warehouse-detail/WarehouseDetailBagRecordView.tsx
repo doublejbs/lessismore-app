@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
-import { Acg, AcgFontSize, AcgRadius, AcgRow } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgRow, AcgType } from '@/constants/DesignTokens';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 
 interface Props {
@@ -168,12 +168,11 @@ const styles = StyleSheet.create({
   },
   tripName: {
     flex: 1,
-    fontSize: AcgFontSize.rowTitle,
-    lineHeight: 22,
+    ...AcgType.rowTitle,
     color: Acg.ink,
   },
   tripMetaText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
   weatherRow: {
@@ -191,7 +190,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   statusTagText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
   },
   // `사용`은 끝난 기록이라 한 단계 낮춘 회색 채움으로 둔다 — 가장 강한 검정 채움은
   // 사용자가 눌러주길 바라는 `미기록`에 넘긴다(GD-10).

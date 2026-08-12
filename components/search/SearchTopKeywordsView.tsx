@@ -12,9 +12,9 @@ import {
 import PretendardText from '@/components/PretendardText';
 import {
   Acg,
-  AcgFontSize,
   AcgLayout,
   AcgRow,
+  AcgType,
   Color,
 } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
@@ -321,8 +321,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: AcgFontSize.sectionTitle,
-    lineHeight: 24,
+    ...AcgType.sectionTitle,
     color: Acg.ink,
     marginBottom: 12,
   },
@@ -379,7 +378,7 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.ink,
   },
   rankNumber: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
   rankNumberTop3: {
@@ -392,13 +391,11 @@ const styles = StyleSheet.create({
   },
   // 이름 + 메타 한 줄(브랜드·무게)로 묶는다 — 브랜드가 이름 위 작은 줄이던 것을 내렸다.
   gearName: {
-    fontSize: AcgFontSize.rowTitle,
-    lineHeight: 22,
+    ...AcgType.rowTitle,
     color: Acg.ink,
   },
   gearMeta: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 19,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
   buttonContainer: {
@@ -439,7 +436,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Color.textSecondary,
   },
   // 스크롤 끝 여백. 탭바가 없는 전용 화면이라 예전 100pt는 근거 없이 컸다.

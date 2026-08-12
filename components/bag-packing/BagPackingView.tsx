@@ -20,7 +20,7 @@ import BagPackingHeaderView from './BagPackingHeaderView';
 import BagPackingCategorySectionView from './BagPackingCategorySectionView';
 import BagPackingCompleteView from './BagPackingCompleteView';
 import AlertView from '@/components/alert/AlertView';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 interface Props {
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   resetText: {
-    fontSize: 15,
+    ...AcgType.control,
     color: Acg.textMuted,
   },
   // iOS 네이티브 headerRight 텍스트 버튼 — HIG 최소 터치 타깃 44pt 확보.
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   emptyText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
 });

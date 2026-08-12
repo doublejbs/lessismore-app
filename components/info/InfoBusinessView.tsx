@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
-import { Acg } from '@/constants/DesignTokens';
+import { Acg, AcgType } from '@/constants/DesignTokens';
 import InfoSubScreenHeaderView, {
   IOS_EDGES,
   IS_IOS,
@@ -80,12 +80,12 @@ const styles = StyleSheet.create({
   // 라벨 폭을 고정해 값의 시작 위치를 세로로 맞춘다.
   label: {
     width: 110,
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
   value: {
     flex: 1,
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
 });

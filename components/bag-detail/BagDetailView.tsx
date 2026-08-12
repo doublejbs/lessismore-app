@@ -17,13 +17,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import {
-  Acg,
-  AcgFontSize,
-  AcgLayout,
-  AcgRadius,
-  Color,
-} from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgRadius, AcgType, Color } from '@/constants/DesignTokens';
 import BagDetailCategoryView from './BagDetailCategoryView';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import BagDetailDateView from './BagDetailDateView';
@@ -420,13 +414,11 @@ const styles = StyleSheet.create({
     borderRadius: AcgRadius.thumb,
   },
   gearEmptyTitle: {
-    fontSize: AcgFontSize.rowTitle,
-    lineHeight: 22,
+    ...AcgType.rowTitle,
     color: Acg.ink,
   },
   gearEmptyText: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 19,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
     marginBottom: 12,
   },
@@ -438,7 +430,7 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.ink,
   },
   gearEmptyButtonText: {
-    fontSize: AcgFontSize.control,
+    ...AcgType.control,
     color: Acg.paper,
   },
   gearListContainer: {
