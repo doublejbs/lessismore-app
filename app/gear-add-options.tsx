@@ -3,7 +3,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 
 // GE-8: 장비 추가 진입 시트 — 배낭 추가 시트(BAG-2, bag-add-options)와 동일한 네이티브 formSheet.
 // 검색으로 추가 / 직접 입력 두 갈래. 배낭 편집에서 진입하면 bagId를 넘겨 해당 배낭 컨텍스트로 이어간다.
@@ -92,8 +92,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   title: {
-    fontSize: 18,
-    lineHeight: 26,
+    ...AcgType.sectionTitle,
     color: Color.textPrimary,
   },
   row: {
@@ -115,13 +114,11 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   rowTitle: {
-    fontSize: 16,
-    lineHeight: 22,
+    ...AcgType.rowTitle,
     color: Color.textPrimary,
   },
   rowSubtitle: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...AcgType.meta,
     color: Color.textSecondary,
   },
   divider: {

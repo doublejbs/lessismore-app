@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, AcgLayout, Color } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType, Color } from '@/constants/DesignTokens';
 import CampSiteBagSelectSheetView from './CampSiteBagSelectSheetView';
 import CampSiteDetailHeaderView from './CampSiteDetailHeaderView';
 import CampSiteDetailTabBarView from './CampSiteDetailTabBarView';
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
   },
   // 라임 면 위 글자는 잉크다.
   setBagButtonText: {
-    fontSize: AcgFontSize.control,
+    ...AcgType.control,
     color: Acg.ink,
   },
 });

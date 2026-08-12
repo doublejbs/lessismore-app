@@ -20,16 +20,12 @@ import InfoFooterView from '@/components/info/InfoFooterView';
 import PretendardText from '@/components/PretendardText';
 import {
   Acg,
-  AcgFontSize,
   AcgLayout,
+  AcgType,
   Color,
   Radius,
 } from '@/constants/DesignTokens';
 
-// 화면 제목 크기(ACG).
-// 화면 제목 — 홈·배낭·배낭 상세와 같은 28(44에서 내렸다). 제목은 읽고 넘기는 이름표라
-// 화면의 앵커가 될 값이 아니다(HM-8).
-const TITLE_SIZE = AcgFontSize.screenTitle;
 // 편집 아이콘(20pt)에 44pt 터치 타깃을 만들기 위한 여유(AU-4). (44 − 20) / 2 = 12.
 const EDIT_ICON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
 
@@ -345,9 +341,7 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
   },
   headerText: {
-    fontSize: TITLE_SIZE,
-    letterSpacing: -0.88,
-    lineHeight: TITLE_SIZE + 4,
+    ...AcgType.screenTitle,
     color: Acg.ink,
   },
   scrollContent: {
@@ -362,7 +356,7 @@ const styles = StyleSheet.create({
   },
   // 사용자 정체성이라 부가정보처럼 물러나 보이면 안 된다 — 본문색으로 세운다.
   profileNickname: {
-    fontSize: 16,
+    ...AcgType.rowTitle,
     color: Color.textPrimary,
     flexShrink: 1,
   },
@@ -375,7 +369,8 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   setNicknameButtonText: {
-    fontSize: 16,
+    // 닉네임 자리를 대신하는 링크라 프로필 이름과 같은 단으로 둔다.
+    ...AcgType.rowTitle,
     textDecorationLine: 'underline',
   },
   // 종이 면 버튼 — 구분선 대신 면을 띄우고 아래 여백 12px(ACG).
@@ -391,12 +386,12 @@ const styles = StyleSheet.create({
     boxShadow: '0 1px 0 rgba(26,26,26,0.06)',
   },
   buttonText: {
-    fontSize: 16,
+    ...AcgType.rowTitle,
     color: Acg.ink,
   },
   // 로그아웃(AU-4). 행 구조는 일반 메뉴와 같게 두고 **글자색만** 낮춰 성격 차이를 낸다.
   logoutText: {
-    fontSize: 16,
+    ...AcgType.rowTitle,
     color: Acg.textSecondary,
   },
   privacyContainer: {
@@ -410,8 +405,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.background,
   },
   privacyText: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...AcgType.sectionSubtitle,
     color: Color.textTertiary,
   },
   modalOverlay: {
@@ -433,13 +427,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   modalTitle: {
-    fontSize: 18,
+    ...AcgType.sectionTitle,
     color: Color.textPrimary,
     marginBottom: 8,
     textAlign: 'center',
   },
   modalDescription: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Color.textSecondary,
     textAlign: 'center',
     marginBottom: 20,
@@ -450,7 +444,9 @@ const styles = StyleSheet.create({
     borderColor: Acg.line2,
     backgroundColor: Color.inputBg,
     borderRadius: Radius.input,
-    fontSize: 16,
+    // 단일행 입력이라 줄간은 싣지 않는다(안드로이드에서 커서가 어긋난다).
+    fontSize: AcgType.control.fontSize,
+    letterSpacing: AcgType.control.letterSpacing,
     marginBottom: 20,
   },
   modalButtonContainer: {
@@ -468,8 +464,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalCancelButtonText: {
+    ...AcgType.control,
     color: Color.textSecondary,
-    fontSize: 16,
   },
   modalSaveButton: {
     flex: 1,
@@ -478,8 +474,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalSaveButtonText: {
+    ...AcgType.control,
     color: Color.background,
-    fontSize: 16,
   },
   imageContainer: {
     marginTop: 24,

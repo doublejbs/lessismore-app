@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import Gear from '../../model/gear/Gear';
 import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
-import { Acg } from '@/constants/DesignTokens';
+import { Acg, AcgType } from '@/constants/DesignTokens';
 import {
   formatSpecValue,
   getSpecsSchemaFor,
@@ -84,12 +84,12 @@ const styles = StyleSheet.create({
   },
   label: {
     width: 100,
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
   value: {
     flex: 1,
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
 });

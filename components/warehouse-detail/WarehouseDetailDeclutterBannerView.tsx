@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   },
   messageText: {
     flex: 1,
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Acg.warnText,
   },
 });

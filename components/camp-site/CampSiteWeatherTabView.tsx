@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { AcgType, Color } from '@/constants/DesignTokens';
 import WeatherDailyView from '@/components/weather/WeatherDailyView';
 import CampSiteWeather from '@/model/camp-site/CampSiteWeather';
 
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   errorText: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Color.textSecondary,
   },
   retryButton: {
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   retryText: {
-    fontSize: 15,
+    ...AcgType.control,
     color: Color.textPrimary,
   },
 });

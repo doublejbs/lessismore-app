@@ -3,7 +3,7 @@ import { View, TouchableOpacity } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import GearEdit from '@/model/gear/edit/GearEdit';
 import PretendardText from '@/components/PretendardText';
-import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
+import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   gearEdit: GearEdit;
@@ -37,7 +37,7 @@ const GearEditConfirmView: FC<Props> = ({ gearEdit }) => {
           <PretendardText
             style={{
               color: 'red',
-              fontSize: 14,
+              ...AcgType.rowSubtitle,
             }}
           >
             {errorMessage}
@@ -58,7 +58,7 @@ const GearEditConfirmView: FC<Props> = ({ gearEdit }) => {
           weight='semibold'
           style={{
             color: Color.background,
-            fontSize: AcgFontSize.rowSubtitle,
+            ...AcgType.rowSubtitle,
           }}
         >
           확인

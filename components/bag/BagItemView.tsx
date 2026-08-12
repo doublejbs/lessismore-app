@@ -15,7 +15,7 @@ import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Ionicons } from '@expo/vector-icons';
-import { Acg, AcgFontSize, AcgRow } from '@/constants/DesignTokens';
+import { Acg, AcgRow, AcgType } from '@/constants/DesignTokens';
 
 // 삭제 스와이프 액션 배경 — 파괴적 액션 시맨틱 색(DesignTokens 예외, CLAUDE.md 참고).
 const DELETE_RED = '#FF3B30';
@@ -195,19 +195,17 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   name: {
-    fontSize: AcgFontSize.rowTitle,
-    lineHeight: 22,
+    ...AcgType.rowTitle,
     color: Acg.ink,
   },
   // 메타는 회색이 아니라 잉크다(레퍼런스) — 무게·기간·패킹은 장식이 아니라 정보다.
   meta: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 19,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
   // 메타 줄 안의 숫자 조각 — 크기는 상속하고 서체만 콘덴스드로 바꾼다.
   metaNumber: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
   // 행이 면 없이 붙어 있으므로 액션 패널도 행 높이에 그대로 맞춘다(카드 시절의 하단 여백 없음).
@@ -229,7 +227,7 @@ const styles = StyleSheet.create({
     backgroundColor: DELETE_RED,
   },
   actionLabel: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Acg.paper,
   },
 });

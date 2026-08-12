@@ -10,7 +10,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { Stack, useRouter } from 'expo-router';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, Color } from '@/constants/DesignTokens';
+import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import { Acg, AcgType, Color } from '@/constants/DesignTokens';
 import SharedBag from '@/model/shared-bag/SharedBag';
 import Gear from '@/model/gear/Gear';
 
@@ -104,9 +105,9 @@ const SharedBagView: FC<Props> = ({ sharedBag }) => {
             <PretendardText style={styles.dateRange}>
               {sharedBag.getDateRange()}
             </PretendardText>
-            <PretendardText style={styles.totalWeight} weight='bold'>
+            <AcgDisplayText style={styles.totalWeight}>
               {sharedBag.getTotalWeightLabel()}
-            </PretendardText>
+            </AcgDisplayText>
           </View>
 
           <View style={styles.divider} />
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     flex: 1,
-    fontSize: AcgFontSize.rowTitle,
+    ...AcgType.rowTitle,
     color: Color.textPrimary,
     marginLeft: 4,
   },
@@ -204,12 +205,11 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   dateRange: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Color.textSecondary,
   },
   totalWeight: {
-    fontSize: 22,
-    lineHeight: 28,
+    ...AcgType.displaySmall,
     color: Color.textPrimary,
   },
   divider: {
@@ -229,19 +229,17 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   gearName: {
-    fontSize: 15,
-    lineHeight: 19,
+    ...AcgType.sectionSubtitle,
     color: Color.textPrimary,
   },
   // 브랜드는 이름(gearName)과 동일한 타이포로 표시한다.
   gearCompany: {
-    fontSize: 15,
-    lineHeight: 19,
+    ...AcgType.sectionSubtitle,
     color: Color.textPrimary,
   },
   // 우 지표 — 무게. 우측 정렬로 행마다 같은 자리에 온다(WH-1 공통 행 레이아웃).
   gearWeight: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Color.textPrimary,
     textAlign: 'right',
   },
@@ -252,7 +250,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   emptyText: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Color.textSecondary,
   },
 });

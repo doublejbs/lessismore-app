@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize } from '@/constants/DesignTokens';
+import { Acg, AcgType } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -48,12 +48,9 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     gap: 6,
   },
-  // 화면 제목 — 앱 공통 값.
+  // 화면 제목 — 앱 공통 값. 2줄까지 늘어나도 같은 단(22/28)을 쓴다.
   nameText: {
-    fontSize: AcgFontSize.screenTitle,
-    // 2줄까지 늘어나므로 한글 받침이 잘리지 않게 줄 간격을 명시한다.
-    lineHeight: 34,
-    letterSpacing: -0.5,
+    ...AcgType.screenTitle,
     color: Acg.ink,
     flexShrink: 1,
   },

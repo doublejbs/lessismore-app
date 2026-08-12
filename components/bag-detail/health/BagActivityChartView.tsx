@@ -2,7 +2,7 @@ import { FC, useState } from 'react';
 import { LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, Color, Spacing } from '@/constants/DesignTokens';
+import { Acg, AcgType, Color, Spacing } from '@/constants/DesignTokens';
 import { HealthSeriesPoint } from '@/model/health/HealthTypes';
 import { formatClockTime } from '@/model/health/HealthFormat';
 
@@ -152,11 +152,11 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   title: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Color.textPrimary,
   },
   hint: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textSecondary,
   },
   chart: {
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     gap: Spacing.item,
   },
   axisText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textSecondary,
   },
 });

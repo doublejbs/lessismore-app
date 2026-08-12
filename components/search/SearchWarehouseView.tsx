@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
     paddingHorizontal: 12,
-    height: 44,
+    minHeight: 44,
   },
   closeButton: {
     width: 44,

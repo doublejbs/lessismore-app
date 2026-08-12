@@ -14,16 +14,12 @@ import OrderButtonView from '@/components/order/OrderButtonView';
 import OrderOption from '@/model/order/OrderOption';
 import { useFocusEffect } from 'expo-router/react-navigation';
 import Layout from '../Layout';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import app from '@/model/app/App';
 
 // iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
 const IOS_EDGES = ['top', 'left', 'right'] as const;
-
-// 화면 제목 크기 — 홈과 같은 값. 34는 이 화면에서 가장 큰 활자였는데, 제목은 이름표라
-// 앵커가 될 값이 아니다(HM-8과 같은 판단).
-const TITLE_SIZE = AcgFontSize.screenTitle;
 
 const BagView = () => {
   const [bag] = useState(() => Bag.new());
@@ -170,13 +166,11 @@ const styles = StyleSheet.create({
     paddingBottom: 80,
   },
   emptyTitle: {
-    fontSize: AcgFontSize.rowTitle,
-    lineHeight: 22,
+    ...AcgType.rowTitle,
     color: Acg.ink,
   },
   emptySubtitle: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 19,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
   // 좌: 개수 텍스트 / 우: 정렬 드롭다운 (창고 컨트롤 행과 같은 문법, BAG-6)
@@ -191,9 +185,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flexShrink: 1,
-    fontSize: TITLE_SIZE,
-    letterSpacing: -0.5,
-    lineHeight: TITLE_SIZE + 4,
+    ...AcgType.screenTitle,
     color: Acg.ink,
   },
   scrollContainer: {

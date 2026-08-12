@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
+import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 import BagWeather from '@/model/bag/BagWeather';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 import WeatherDailyView from './WeatherDailyView';
@@ -98,10 +98,9 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyText: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Color.textSecondary,
     textAlign: 'center',
-    lineHeight: 20,
   },
   retryButton: {
     minHeight: 44,
@@ -111,7 +110,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.surfaceMuted,
   },
   retryText: {
-    fontSize: 14,
+    ...AcgType.control,
     color: Color.textPrimary,
   },
   sectionHeader: {
@@ -124,17 +123,16 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Color.textPrimary,
   },
   summaryText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textPrimary,
   },
   disclaimer: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textSecondary,
-    lineHeight: 18,
     marginTop: 16,
   },
 });

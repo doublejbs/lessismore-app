@@ -13,11 +13,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import {
   Acg,
-  AcgFontSize,
   AcgLayout,
   AcgRadius,
   AcgRow,
   AcgShadow,
+  AcgType,
 } from '@/constants/DesignTokens';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
@@ -222,8 +222,10 @@ const styles = StyleSheet.create({
     boxShadow: AcgShadow.card,
   },
   searchInput: {
+    // 단일행 입력이라 줄간은 싣지 않는다(안드로이드에서 커서가 어긋난다).
+    fontSize: AcgType.control.fontSize,
+    letterSpacing: AcgType.control.letterSpacing,
     flex: 1,
-    fontSize: AcgFontSize.control,
     fontFamily: 'Pretendard-Regular',
     color: Acg.ink,
     padding: 0,
@@ -246,7 +248,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dropdownEmptyText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
   // 이름 + 메타 두 줄이라 축이 왼쪽 하나다. 예전에는 이름·유형 배지·지역이 한 줄에
@@ -269,15 +271,13 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
-  // 목록 행 문법(HM-8): 이름 18 + 메타 한 줄 15 잉크.
+  // 목록 행 문법(HM-8): 이름(항목 이름 단) + 메타 한 줄 잉크.
   resultName: {
-    fontSize: AcgFontSize.rowTitle,
-    lineHeight: 22,
+    ...AcgType.rowTitle,
     color: Acg.ink,
   },
   resultMeta: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 19,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
   errorBanner: {
@@ -295,8 +295,8 @@ const styles = StyleSheet.create({
     boxShadow: AcgShadow.card,
   },
   errorText: {
+    ...AcgType.rowSubtitle,
     flex: 1,
-    fontSize: AcgFontSize.rowSubtitle,
     color: Acg.ink,
   },
   // 알약 — 낱개로 놓이는 액션이다(칩과 형태를 가른다).
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.ink,
   },
   retryText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Acg.paper,
   },
   loadingWrap: {

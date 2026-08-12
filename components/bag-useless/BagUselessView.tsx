@@ -20,7 +20,7 @@ import BagUselessGearView from './BagUselessGearView';
 import PretendardText from '@/components/PretendardText';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { Ionicons } from '@expo/vector-icons';
-import { Acg, AcgFontSize, Color, Spacing } from '@/constants/DesignTokens';
+import { Acg, AcgType, Color, Spacing } from '@/constants/DesignTokens';
 import Gear from '@/model/gear/Gear';
 
 interface Props {
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   title: {
-    fontSize: AcgFontSize.screenTitle,
+    ...AcgType.screenTitle,
     color: Color.textPrimary,
   },
   progress: {
@@ -229,16 +229,15 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   count: {
-    fontSize: 30,
-    lineHeight: 38,
+    ...AcgType.displayLarge,
     color: Acg.ink,
   },
   countTotal: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
   selectAllText: {
-    fontSize: 15,
+    ...AcgType.control,
     color: Acg.textMuted,
   },
   // 각진 진행 바 + 라임 채움(ACG) — 패킹 모드와 같은 값이라 두 화면이 같은 문법으로 읽힌다.
@@ -253,7 +252,7 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.lime,
   },
   weightText: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Acg.textMuted,
   },
   list: {
@@ -278,7 +277,7 @@ const styles = StyleSheet.create({
   },
   confirmLabel: {
     color: '#FFFFFF',
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.control,
   },
 });
 

@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, AcgRadius, Color } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType, Color } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -75,18 +75,15 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   title: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 19,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
   subtitle: {
-    fontSize: AcgFontSize.meta,
-    lineHeight: 17,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
   memoContent: {
-    fontSize: 15,
-    lineHeight: 21,
+    ...AcgType.sectionSubtitle,
     color: Color.textPrimary,
   },
 });

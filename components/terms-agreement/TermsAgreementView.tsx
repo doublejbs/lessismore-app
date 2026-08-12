@@ -14,7 +14,7 @@ import PretendardText from '@/components/PretendardText';
 import { TERMS_OF_SERVICE_TEXT } from '@/constants/LegalTexts';
 import {
   Acg,
-  AcgFontSize,
+  AcgType,
   Color,
   Radius,
   Spacing,
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: 'center',
-    fontSize: 24,
+    ...AcgType.screenTitle,
     marginBottom: Spacing.screenH,
     color: Color.textPrimary,
   },
@@ -294,11 +294,11 @@ const styles = StyleSheet.create({
   },
   checkmark: {
     color: Color.background,
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
   },
   checkboxLabel: {
     flex: 1,
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Color.textPrimary,
   },
   termsTextContainer: {
@@ -318,8 +318,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   termsText: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...AcgType.rowSubtitle,
     color: Color.textTertiary,
   },
   requiredCheckboxContainer: {
@@ -353,7 +352,7 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     color: Color.background,
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.control,
   },
 });
 

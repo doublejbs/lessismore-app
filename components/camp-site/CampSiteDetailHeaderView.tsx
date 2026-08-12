@@ -3,12 +3,7 @@ import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import {
-  Acg,
-  AcgFontSize,
-  AcgLayout,
-  AcgRadius,
-} from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
@@ -187,9 +182,8 @@ const styles = StyleSheet.create({
   },
   // 시트 제목 — 화면 제목·즐겨찾기 시트와 같은 층.
   name: {
+    ...AcgType.screenTitle,
     flex: 1,
-    fontSize: AcgFontSize.screenTitle,
-    lineHeight: 28,
     color: Acg.ink,
   },
   metaRow: {
@@ -203,15 +197,13 @@ const styles = StyleSheet.create({
    * 값 하나 때문에 제목 아래 작은 사각형을 만들지 않는다. 지역과 `·`로 이어 붙인다.
    */
   meta: {
+    ...AcgType.rowSubtitle,
     flexShrink: 1,
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 19,
     color: Acg.ink,
   },
   description: {
+    ...AcgType.body,
     marginTop: 10,
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 22,
     color: Acg.ink,
   },
   featureScrollBleed: {
@@ -233,7 +225,7 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.controlFill,
   },
   featureLabel: {
-    fontSize: AcgFontSize.control,
+    ...AcgType.control,
     color: Acg.ink,
   },
   image: {

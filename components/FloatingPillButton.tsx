@@ -6,7 +6,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, AcgShadow } from '@/constants/DesignTokens';
+import { Acg, AcgShadow, AcgType } from '@/constants/DesignTokens';
 
 type FloatingPillVariant = 'primary' | 'secondary';
 
@@ -59,7 +59,6 @@ const FloatingPillButton: FC<Props> = ({
 
 const styles = StyleSheet.create({
   pill: {
-    // 고정 높이 대신 최소 높이 — Dynamic Type에서 라벨이 잘리지 않게 한다.
     minHeight: PILL_HEIGHT,
     // 높이가 커져도 알약을 유지한다.
     borderRadius: PILL_HEIGHT,
@@ -82,13 +81,11 @@ const styles = StyleSheet.create({
     borderColor: Acg.ink,
   },
   primaryLabel: {
-    fontSize: AcgFontSize.control,
-    lineHeight: 20,
+    ...AcgType.control,
     color: Acg.ink,
   },
   secondaryLabel: {
-    fontSize: AcgFontSize.control,
-    lineHeight: 20,
+    ...AcgType.control,
     color: Acg.ink,
   },
 });

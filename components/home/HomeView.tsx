@@ -16,7 +16,7 @@ import HomeUpcomingTripView from '@/components/home/HomeUpcomingTripView';
 import HomeWarehousePreviewView from '@/components/home/HomeWarehousePreviewView';
 import HomeRecordSummaryView from '@/components/home/HomeRecordSummaryView';
 import HomeSkeletonView from '@/components/home/HomeSkeletonView';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import Home from '@/model/home/Home';
 import app from '@/model/app/App';
 import { selectTripPlan } from '@/model/home/HomeTripPlan';
@@ -27,14 +27,6 @@ interface Props {
 
 // iOS는 콘텐츠가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
 const IOS_EDGES = ['top', 'left', 'right'] as const;
-
-/**
- * 화면 제목 크기(2026-08-11). 44 → 28로 내렸다.
- *
- * 44는 이 화면에서 가장 큰 활자였는데, 제목은 **읽고 넘기는 이름표**라 앵커가 될 값이 아니다.
- * 화면의 앵커는 남은 일수와 무게처럼 항목마다 달라지는 숫자여야 한다.
- */
-const TITLE_SIZE = AcgFontSize.screenTitle;
 
 const LOGIN_CTA_HEIGHT = 48;
 
@@ -150,11 +142,15 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 16,
   },
+  /**
+   * 화면 제목(2026-08-11). 44 → 화면 제목 단으로 내렸다.
+   *
+   * 44는 이 화면에서 가장 큰 활자였는데, 제목은 **읽고 넘기는 이름표**라 앵커가 될 값이 아니다.
+   * 화면의 앵커는 남은 일수와 무게처럼 항목마다 달라지는 숫자여야 한다.
+   * 크기·줄간·자간은 전부 `AcgType.screenTitle`이 정한다(화면에서 다시 정하지 않는다).
+   */
   headerText: {
-    fontSize: TITLE_SIZE,
-    letterSpacing: -0.5,
-    // 한글은 line-height를 글자 크기 아래로 주면 위가 잘린다.
-    lineHeight: TITLE_SIZE + 4,
+    ...AcgType.screenTitle,
     color: Acg.ink,
   },
   scrollView: {
@@ -176,7 +172,7 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.ink,
   },
   loginCtaText: {
-    fontSize: AcgFontSize.control,
+    ...AcgType.control,
     color: Acg.paper,
   },
 });

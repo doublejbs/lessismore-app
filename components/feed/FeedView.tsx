@@ -16,7 +16,7 @@ import Gear from '@/model/gear/Gear';
 import Bag from '@/model/bag/Bag';
 import { GearAddContext } from '@/model/gear/GearAddContext';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import FeedSkeletonView from './FeedSkeletonView';
 import FeedFilterBarView from './FeedFilterBarView';
 import FeedRankingButtonView from './FeedRankingButtonView';
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     paddingVertical: 120,
   },
   emptyText: {
-    fontSize: AcgFontSize.control,
+    ...AcgType.control,
     color: Acg.textMuted,
     textAlign: 'center',
   },

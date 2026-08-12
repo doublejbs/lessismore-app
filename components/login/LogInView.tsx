@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Svg, Path } from 'react-native-svg';
 import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgType, Color, Radius } from '@/constants/DesignTokens';
 import LogInAlertManager from '@/model/login/LogInAlertManager';
 import app from '@/model/app/App';
 
@@ -333,13 +333,6 @@ const styles = StyleSheet.create({
     height: 32,
     alignSelf: 'center',
   },
-  title: {
-    fontSize: 48,
-    textAlign: 'center',
-    lineHeight: 48,
-    letterSpacing: -4.5,
-    color: Color.textPrimary,
-  },
   buttonContainer: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -373,23 +366,25 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     color: Color.background,
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.control,
   },
   emailLoginButton: {
     paddingVertical: 8,
   },
   emailLoginButtonText: {
     color: Color.textTertiary,
-    fontSize: 14,
+    ...AcgType.control,
     textDecorationLine: 'underline',
   },
   input: {
     width: '100%',
-    height: 48,
+    minHeight: 48,
     backgroundColor: Color.inputBg,
     borderRadius: Radius.input,
     paddingHorizontal: 16,
-    fontSize: AcgFontSize.rowSubtitle,
+    // 단일행 입력이라 lineHeight를 얹지 않는다(안드로이드에서 커서 높이가 어긋난다).
+    fontSize: AcgType.control.fontSize,
+    letterSpacing: AcgType.control.letterSpacing,
     fontFamily: 'Pretendard-Regular',
     color: Color.textPrimary,
   },
@@ -401,7 +396,7 @@ const styles = StyleSheet.create({
   },
   linkText: {
     color: Color.textTertiary,
-    fontSize: 14,
+    ...AcgType.control,
     textDecorationLine: 'underline',
   },
 });

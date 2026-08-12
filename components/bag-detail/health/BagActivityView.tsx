@@ -12,7 +12,7 @@ import { observer } from 'mobx-react-lite';
 import { Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, Color, Spacing } from '@/constants/DesignTokens';
+import { Acg, AcgType, Color, Spacing } from '@/constants/DesignTokens';
 import BagActivity from '@/model/bag/BagActivity';
 import BagActivityPhase from '@/model/bag/BagActivityPhase';
 import {
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   headerTitle: {
-    fontSize: 18,
+    ...AcgType.sectionTitle,
     color: Color.textPrimary,
   },
   headerAction: {
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerActionText: {
-    fontSize: 15,
+    ...AcgType.control,
     color: Color.textPrimary,
   },
   centered: {
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     gap: Spacing.item,
   },
   errorText: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Color.textSecondary,
   },
   retryButton: {
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   retryButtonText: {
-    fontSize: 15,
+    ...AcgType.control,
     color: Color.textPrimary,
     textDecorationLine: 'underline',
   },
@@ -341,8 +341,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.section,
   },
   listGuide: {
-    fontSize: AcgFontSize.meta,
-    lineHeight: 20,
+    ...AcgType.meta,
     color: Color.textSecondary,
     marginBottom: 4,
   },
@@ -359,11 +358,11 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   summaryCount: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Color.textPrimary,
   },
   summaryMetrics: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textSecondary,
   },
   primaryButton: {
@@ -377,7 +376,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.chipInactiveBg,
   },
   primaryButtonText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Color.background,
   },
   // 비활성 배경(밝은 회색) 위에서는 흰 글씨가 읽히지 않아 대비를 확보한 색으로 바꾼다.

@@ -15,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
-import { AcgFontSize, Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { AcgType, Color, Radius, Spacing } from '@/constants/DesignTokens';
 
 // http(s) 링크 판별 — 이 경우만 외부 브라우저로 연다(AN-3).
 const EXTERNAL_LINK_PATTERN = /^https?:\/\//i;
@@ -267,8 +267,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.item,
   } as ViewStyle,
   message: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 24,
+    ...AcgType.body,
     color: Color.textPrimary,
   },
   // 본문 안 '자세히 보기' 링크(AN-3). 메시지 아래에 밑줄 텍스트로 둔다.
@@ -278,7 +277,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   } as ViewStyle,
   detailLinkText: {
-    fontSize: 15,
+    ...AcgType.control,
     color: Color.textPrimary,
     textDecorationLine: 'underline',
   },
@@ -298,7 +297,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.chipInactiveBg,
   } as ViewStyle,
   buttonText: {
-    fontSize: 15,
+    ...AcgType.control,
     color: Color.textPrimary,
   },
 });

@@ -8,7 +8,7 @@ import InfoSubScreenHeaderView, {
   NATIVE_HEADER_HEIGHT,
 } from '@/components/info/InfoSubScreenHeaderView';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgType, Color, Radius } from '@/constants/DesignTokens';
 import {
   PRIVACY_POLICY_TEXT,
   TERMS_OF_SERVICE_TEXT,
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 12,
   },
-  // 고정 높이를 주지 않는다 — Dynamic Type에서 라벨이 잘린다. 세로 여백으로 44pt를 만든다.
+  // 세로 여백으로 HIG 최소 터치 타깃 44pt를 만든다.
   tab: {
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     borderColor: Color.chipActiveBg,
   },
   tabText: {
-    fontSize: 14,
+    ...AcgType.control,
     color: Color.textSecondary,
   },
   tabTextSelected: {
@@ -135,8 +135,7 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.controlFill,
   },
   bodyText: {
-    fontSize: AcgFontSize.meta,
-    lineHeight: 20,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
 });

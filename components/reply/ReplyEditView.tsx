@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import StarRatingView from '@/components/camp-site/StarRatingView';
 import { CommentUpdateRequest } from '@/model/reply/Comment';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import useKeyboard from '@/hooks/useKeyboard';
 import app from '@/model/app/App';
 
@@ -241,8 +241,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   ratingLabel: {
-    fontSize: 15,
-    lineHeight: 20,
+    ...AcgType.sectionSubtitle,
     color: Acg.textMuted,
   },
   // 지면 위 각진 종이 면 인풋(ACG) — 회색 채움을 두면 지면과 붙어 입력 영역이 안 보인다.
@@ -250,7 +249,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Acg.controlFill,
     padding: 16,
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
     minHeight: 200,
   },
@@ -269,7 +268,7 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.hairline,
   },
   completeButtonText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
   },
   completeButtonTextActive: {
     color: Acg.paper,
@@ -279,13 +278,13 @@ const styles = StyleSheet.create({
   },
   // iOS 네이티브 headerRight 완료 버튼 — HIG 최소 터치 타깃 44pt.
   headerCompleteButton: {
-    height: 44,
+    minHeight: 44,
     minWidth: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerCompleteText: {
-    fontSize: 15,
+    ...AcgType.control,
     color: Acg.ink,
   },
   headerCompleteTextDisabled: {

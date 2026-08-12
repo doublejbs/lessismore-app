@@ -11,7 +11,7 @@ import dayjs from 'dayjs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import DateRangeCalendar from './DateRangeCalendarView';
-import { AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
+import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   title: string;
@@ -150,8 +150,7 @@ const styles = StyleSheet.create({
   },
   // 크기도 `배낭 추가` 시트 타이틀과 맞춘다(18/26).
   title: {
-    fontSize: 18,
-    lineHeight: 26,
+    ...AcgType.sectionTitle,
     color: Color.textPrimary,
     marginBottom: 24,
   },
@@ -161,8 +160,7 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   inputLabel: {
-    fontSize: 15,
-    lineHeight: 20,
+    ...AcgType.sectionSubtitle,
     color: Color.textPrimary,
   },
   textInput: {
@@ -170,7 +168,9 @@ const styles = StyleSheet.create({
     backgroundColor: Color.surfaceMuted,
     paddingHorizontal: 14,
     paddingVertical: 14,
-    fontSize: AcgFontSize.rowSubtitle,
+    // 단일행 입력이라 lineHeight를 얹지 않는다(안드로이드에서 커서 높이가 어긋난다).
+    fontSize: AcgType.control.fontSize,
+    letterSpacing: AcgType.control.letterSpacing,
     fontFamily: 'Pretendard-Regular',
     color: Color.textPrimary,
   },
@@ -181,19 +181,20 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    height: 52,
+    minHeight: 52,
     backgroundColor: Color.surfaceMuted,
     borderRadius: Radius.input,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cancelButtonText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.control,
     color: Color.textPrimary,
+    paddingVertical: 12,
   },
   confirmButton: {
     flex: 1,
-    height: 52,
+    minHeight: 52,
     backgroundColor: Color.chipActiveBg,
     borderRadius: Radius.input,
     alignItems: 'center',
@@ -203,8 +204,9 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   confirmButtonText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.control,
     color: Color.background,
+    paddingVertical: 12,
   },
 });
 

@@ -17,7 +17,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import StarRatingView from '@/components/camp-site/StarRatingView';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 const MAX_CONTENT_LENGTH = 1000;
@@ -209,8 +209,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   title: {
-    fontSize: 20,
-    lineHeight: 28,
+    ...AcgType.screenTitle,
     color: Acg.ink,
     marginBottom: 24,
   },
@@ -220,8 +219,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   label: {
-    fontSize: 15,
-    lineHeight: 20,
+    ...AcgType.sectionSubtitle,
     color: Acg.textMuted,
   },
   // 종이 면 위 인풋이라 채움은 지면색이다 — 흰 면 위 회색 면을 또 두면 층이 하나 늘어난다.
@@ -229,14 +227,14 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.controlFill,
     paddingHorizontal: 14,
     paddingVertical: 14,
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     fontFamily: 'Pretendard-Regular',
     color: Acg.ink,
     minHeight: 100,
   },
   counter: {
     alignSelf: 'flex-end',
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
   buttonContainer: {
@@ -246,18 +244,19 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    height: 52,
+    minHeight: 52,
     backgroundColor: Acg.controlFill,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cancelButtonText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.control,
     color: Acg.ink,
+    paddingVertical: 12,
   },
   confirmButton: {
     flex: 1,
-    height: 52,
+    minHeight: 52,
     backgroundColor: Acg.ink,
     alignItems: 'center',
     justifyContent: 'center',
@@ -266,8 +265,9 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   confirmButtonText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.control,
     color: Acg.paper,
+    paddingVertical: 12,
   },
   accessoryBar: {
     flexDirection: 'row',
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     borderTopColor: Acg.hairline,
   },
   accessoryDone: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.control,
     color: Acg.ink,
     paddingHorizontal: 8,
     paddingVertical: 4,

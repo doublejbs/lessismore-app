@@ -5,7 +5,7 @@ import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import BagDetailGearView from './BagDetailGearView';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize } from '@/constants/DesignTokens';
+import { Acg, AcgType } from '@/constants/DesignTokens';
 
 interface Props {
   category: WarehouseFilter;
@@ -52,11 +52,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   /**
-   * 카테고리는 **묶음 안의 라벨**이라 섹션 제목(19)보다 한 단 작다 — 같은 크기로 두면
+   * 카테고리는 **묶음 안의 라벨**이라 섹션 제목보다 한 단 작다 — 같은 크기로 두면
    * 목록 안에 섹션이 여럿 있는 것처럼 읽힌다. 행 이름과도 크기가 갈려야 한다.
    */
   categoryTitle: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     marginBottom: 2,
     color: Acg.textMuted,
   },

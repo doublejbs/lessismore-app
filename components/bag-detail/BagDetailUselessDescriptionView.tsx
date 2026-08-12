@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, AcgRadius, Color } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType, Color } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -90,12 +90,10 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   title: {
-    fontSize: AcgFontSize.rowSubtitle,
-    lineHeight: 19,
+    ...AcgType.rowSubtitle,
   },
   subtitle: {
-    fontSize: AcgFontSize.meta,
-    lineHeight: 17,
+    ...AcgType.meta,
   },
   weightRow: {
     flexDirection: 'row',
@@ -103,11 +101,10 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   weightValue: {
-    fontSize: 18,
-    lineHeight: 22,
+    ...AcgType.sectionTitle,
   },
   weightSuffix: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
   },
 });
 

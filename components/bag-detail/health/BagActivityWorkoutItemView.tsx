@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { AcgFontSize, Color, Radius, Spacing } from '@/constants/DesignTokens';
+import { AcgType, Color, Radius, Spacing } from '@/constants/DesignTokens';
 import { HealthWorkout } from '@/model/health/HealthTypes';
 import {
   formatDistance,
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.item,
-    // 고정 높이 대신 최소 높이로 Dynamic Type에 대응한다(44pt 터치 타깃 확보).
+    // HIG 최소 터치 타깃 44pt.
     minHeight: 64,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -86,11 +86,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   title: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Color.textPrimary,
   },
   subtitle: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textSecondary,
   },
 });

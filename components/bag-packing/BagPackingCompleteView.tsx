@@ -2,8 +2,9 @@ import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
+import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import BagPacking from '@/model/bag-packing/BagPacking';
-import { Acg, AcgFontSize, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgType, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   bagPacking: BagPacking;
@@ -24,9 +25,9 @@ const BagPackingCompleteView: FC<Props> = ({ bagPacking }) => {
         <PretendardText style={styles.title} weight='extraBold'>
           패킹 완료
         </PretendardText>
-        <PretendardText style={styles.weightText} weight='bold'>
-          {totalWeight}kg
-        </PretendardText>
+        <AcgDisplayText
+          style={styles.weightText}
+        >{`${totalWeight}kg`}</AcgDisplayText>
         {showDDay && (
           <PretendardText style={styles.dDayText} weight='medium'>
             출발까지 {dDay}일 남았어요
@@ -71,15 +72,15 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    fontSize: 24,
+    ...AcgType.screenTitle,
     color: Acg.ink,
   },
   weightText: {
-    fontSize: 32,
+    ...AcgType.displayLarge,
     color: Acg.ink,
   },
   dDayText: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Acg.textMuted,
   },
   actions: {
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: Acg.paper,
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.control,
   },
 });
 

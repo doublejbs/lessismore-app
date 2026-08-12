@@ -1,7 +1,7 @@
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize } from '@/constants/DesignTokens';
+import { Acg, AcgType } from '@/constants/DesignTokens';
 import Comment from '@/model/reply/Comment';
 import ReplyDetail from '@/model/reply/ReplyDetail';
 import dayjs from 'dayjs';
@@ -147,18 +147,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    height: 41,
+    minHeight: 41,
   },
   headerLeft: {
     flex: 1,
     gap: 4,
   },
   name: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
   date: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
   tagsContainer: {
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   tagText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     fontWeight: '500',
     color: Acg.ink,
   },
@@ -180,14 +180,13 @@ const styles = StyleSheet.create({
     opacity: 0.3,
   },
   commentText: {
-    fontSize: 15,
+    ...AcgType.sectionSubtitle,
     color: Acg.ink,
-    lineHeight: 21,
   },
   footer: {
     flexDirection: 'row',
     gap: 24,
-    height: 21,
+    minHeight: 21,
   },
   iconWithText: {
     flexDirection: 'row',
@@ -195,7 +194,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   count: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
   countActive: {

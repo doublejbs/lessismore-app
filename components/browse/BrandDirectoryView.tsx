@@ -14,7 +14,7 @@ import { Stack, useRouter } from 'expo-router';
 import BrandDirectory from '@/model/browse/BrandDirectory';
 import { BrandRankData } from '@/model/search/BrandRankStore';
 import PretendardText from '../PretendardText';
-import { Acg, AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgType, Color, Radius } from '@/constants/DesignTokens';
 import SearchSkeletonView from '../search/SearchSkeletonView';
 import BrandRowView from './BrandRowView';
 import app from '@/model/app/App';
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    height: 48,
+    minHeight: 48,
   },
   backButton: {
     width: 32,
@@ -160,8 +160,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   headerTitle: {
+    ...AcgType.rowTitle,
     flex: 1,
-    fontSize: AcgFontSize.rowTitle,
     color: Color.textPrimary,
   },
   searchContainer: {
@@ -174,11 +174,13 @@ const styles = StyleSheet.create({
     backgroundColor: Color.inputBg,
     borderRadius: Radius.input,
     paddingHorizontal: 12,
-    height: 36,
+    minHeight: 36,
   },
   searchInput: {
+    // 단일행 입력이라 줄간은 싣지 않는다(안드로이드에서 커서가 어긋난다).
+    fontSize: AcgType.control.fontSize,
+    letterSpacing: AcgType.control.letterSpacing,
     flex: 1,
-    fontSize: AcgFontSize.rowSubtitle,
     padding: 0,
     borderWidth: 0,
     backgroundColor: 'transparent',
@@ -207,7 +209,7 @@ const styles = StyleSheet.create({
     paddingVertical: 80,
   },
   emptyText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Color.textSecondary,
     textAlign: 'center',
   },

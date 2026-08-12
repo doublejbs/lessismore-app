@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import SheetGrabberView from '@/components/ui/SheetGrabberView';
-import { AcgFontSize, Color } from '@/constants/DesignTokens';
+import { AcgType, Color } from '@/constants/DesignTokens';
 import BagItem from '@/model/bag/BagItem';
 
 interface Props {
@@ -246,12 +246,11 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   title: {
-    fontSize: 18,
-    lineHeight: 26,
+    ...AcgType.sectionTitle,
     color: Color.textPrimary,
   },
   subtitle: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textSecondary,
   },
   closeButton: {
@@ -284,16 +283,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   createText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Color.textPrimary,
   },
   sectionLabel: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textSecondary,
     paddingBottom: 4,
   },
   emptyText: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Color.textSecondary,
     paddingVertical: 20,
     textAlign: 'center',
@@ -305,8 +304,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   locationText: {
+    ...AcgType.meta,
     flex: 1,
-    fontSize: AcgFontSize.meta,
     color: Color.textSecondary,
   },
   row: {
@@ -323,11 +322,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   rowName: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Color.textPrimary,
   },
   rowDate: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Color.textSecondary,
   },
 });

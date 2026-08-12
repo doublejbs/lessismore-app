@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, Spacing } from '@/constants/DesignTokens';
+import { Acg, AcgType, Spacing } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { BagActivitySummary } from '@/model/bag/BagActivitySummary';
 import {
@@ -88,8 +88,7 @@ const styles = StyleSheet.create({
     gap: Spacing.item,
   },
   headline: {
-    fontSize: 22,
-    lineHeight: 32,
+    ...AcgType.screenTitle,
     color: Acg.ink,
   },
   headlineValue: {
@@ -104,23 +103,24 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.controlFill,
   },
   metric: {
-    // 2열 그리드. 고정 높이를 두지 않아 Dynamic Type에서 값이 잘리지 않는다.
+    // 2열 그리드.
     width: '50%',
     gap: 4,
     paddingVertical: 8,
   },
   metricLabel: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
   metricValue: {
-    fontSize: 22,
-    lineHeight: 26,
+    ...AcgType.displaySmall,
     color: Acg.ink,
   },
   metricEmpty: {
-    fontSize: 15,
-    lineHeight: 26,
+    ...AcgType.sectionSubtitle,
+    // 콘덴스드 수치(`metricValue`)와 같은 자리에 번갈아 놓이는 한글 값이라
+    // 줄박스를 맞춰야 그리드 행이 어긋나지 않는다.
+    lineHeight: AcgType.displaySmall.lineHeight,
     color: Acg.textMuted,
   },
 });

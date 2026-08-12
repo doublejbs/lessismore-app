@@ -3,7 +3,7 @@ import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { AcgFontSize, Color } from '@/constants/DesignTokens';
+import { AcgType, Color } from '@/constants/DesignTokens';
 
 // LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 커스텀 JS 헤더를 유지한다.
 export const IS_IOS = Platform.OS === 'ios';
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     flex: 1,
-    fontSize: AcgFontSize.rowTitle,
+    ...AcgType.rowTitle,
     color: Color.textPrimary,
   },
 });

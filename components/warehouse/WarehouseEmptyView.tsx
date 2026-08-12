@@ -6,7 +6,7 @@ import Warehouse from '@/model/warehouse/Warehouse';
 import LoadingIconView from '../ui/LoadingIconView';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 
 interface Props {
   warehouse: Warehouse;
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     paddingBottom: 53,
   },
   message: {
-    fontSize: 24,
+    ...AcgType.screenTitle,
     color: Acg.ink,
   },
   loadingContainer: {

@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize } from '@/constants/DesignTokens';
+import { Acg, AcgType } from '@/constants/DesignTokens';
 
 // 한 줄 푸터 링크의 44pt 터치 타깃 확보용 여유.
 const LINK_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   deleteAccountText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Acg.textMuted,
     textDecorationLine: 'underline',
   },
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   versionText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
   imageContainer: {

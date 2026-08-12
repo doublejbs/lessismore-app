@@ -8,7 +8,7 @@ import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import Gear from '@/model/gear/Gear';
 import BagItem from '@/model/bag/BagItem';
 import { getHomeRecordSummary } from '@/model/home/HomeRecordSummary';
-import { Acg, AcgFontSize, AcgRadius } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 
 interface Props {
   gears: Gear[];
@@ -101,13 +101,11 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   metricLabel: {
-    fontSize: AcgFontSize.meta,
-    lineHeight: 17,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
   metricValue: {
-    fontSize: 24,
-    lineHeight: 28,
+    ...AcgType.displaySmall,
     color: Acg.ink,
   },
 });

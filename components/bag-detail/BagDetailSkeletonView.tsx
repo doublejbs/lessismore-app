@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Acg, AcgLayout, AcgRow } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgRow, AcgType } from '@/constants/DesignTokens';
 
 interface Props {}
 
@@ -52,9 +52,9 @@ const BagDetailSkeletonView: FC<Props> = () => {
     return (
       <View key={index} style={styles.gearItem}>
         <View style={styles.gearInfo}>
-          {/* 실제 행은 이름(19) + 메타 한 줄(15)이다. */}
-          <SkeletonBox width='70%' height={22} />
-          <SkeletonBox width='55%' height={18} />
+          {/* 막대 높이는 실제 글자의 줄박스에서 그대로 딴다 — 이름 + 메타 한 줄. */}
+          <SkeletonBox width='70%' height={AcgType.rowTitle.lineHeight} />
+          <SkeletonBox width='55%' height={AcgType.rowSubtitle.lineHeight} />
         </View>
       </View>
     );
@@ -63,7 +63,7 @@ const BagDetailSkeletonView: FC<Props> = () => {
   const renderCategorySkeleton = (index: number) => {
     return (
       <View key={index} style={styles.category}>
-        <SkeletonBox width={120} height={18} />
+        <SkeletonBox width={120} height={AcgType.rowSubtitle.lineHeight} />
         {Array.from({ length: 3 }, (_, itemIndex) =>
           renderGearSkeletonItem(itemIndex)
         )}
@@ -86,19 +86,19 @@ const BagDetailSkeletonView: FC<Props> = () => {
       <View style={styles.mainContent}>
         {/* 백팩 정보 */}
         <View style={styles.bagInfo}>
-          <SkeletonBox width='80%' height={24} />
-          <SkeletonBox width='60%' height={18} />
+          <SkeletonBox width='80%' height={AcgType.screenTitle.lineHeight} />
+          <SkeletonBox width='60%' height={AcgType.rowSubtitle.lineHeight} />
         </View>
 
         {/* 설명 영역 */}
         <View style={styles.description}>
-          <SkeletonBox width='100%' height={16} />
-          <SkeletonBox width='70%' height={16} />
+          <SkeletonBox width='100%' height={AcgType.rowSubtitle.lineHeight} />
+          <SkeletonBox width='70%' height={AcgType.rowSubtitle.lineHeight} />
         </View>
 
         {/* 필터 영역 */}
         <View style={styles.filterSection}>
-          <SkeletonBox width={120} height={18} />
+          <SkeletonBox width={120} height={AcgType.rowSubtitle.lineHeight} />
           <View style={styles.filterButtons}>
             {Array.from({ length: 5 }, (_, index) => (
               <SkeletonBox key={index} width={80} height={32} />

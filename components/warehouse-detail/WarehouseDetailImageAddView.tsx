@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '../PretendardText';
-import { Acg, AcgFontSize, AcgRadius } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 
 interface Props {
   busy: boolean;
@@ -37,7 +37,6 @@ const WarehouseDetailImageAddView: FC<Props> = ({ busy, onPress }) => {
 const styles = StyleSheet.create({
   container: {
     // HIG 최소 터치 타깃 44pt 이상(GD-13). 고정 높이가 아니라 **바닥값**이라야 OS 글자 크기를
-    // 키웠을 때 아이콘·문구가 잘리지 않고 행이 함께 늘어난다(Dynamic Type).
     minHeight: 56,
     paddingVertical: 16,
     flexDirection: 'row',
@@ -50,7 +49,7 @@ const styles = StyleSheet.create({
     borderRadius: AcgRadius.thumb,
   },
   text: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
 });

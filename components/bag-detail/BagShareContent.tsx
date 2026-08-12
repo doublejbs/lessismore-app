@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Color, Radius } from '@/constants/DesignTokens';
+import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -120,14 +120,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   title: {
-    fontSize: 20,
-    lineHeight: 28,
+    ...AcgType.screenTitle,
     color: Color.textPrimary,
     marginBottom: 8,
   },
   description: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...AcgType.rowSubtitle,
     color: Color.textSecondary,
     marginBottom: 20,
   },
@@ -142,7 +140,7 @@ const styles = StyleSheet.create({
   },
   urlText: {
     flex: 1,
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Color.textSecondary,
   },
   copyButton: {
@@ -153,7 +151,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   mainButton: {
-    height: 52,
+    minHeight: 52,
     backgroundColor: Color.chipActiveBg,
     borderRadius: Radius.input,
     alignItems: 'center',
@@ -163,7 +161,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonText: {
-    fontSize: 16,
+    ...AcgType.control,
     color: Color.background,
   },
 });

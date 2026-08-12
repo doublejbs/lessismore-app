@@ -3,7 +3,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 import PretendardText from '../PretendardText';
-import { Color } from '@/constants/DesignTokens';
+import { AcgType, Color } from '@/constants/DesignTokens';
 import BrowseSort from '@/model/search/BrowseSort';
 import {
   BROWSE_SORT_OPTIONS,
@@ -60,10 +60,10 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
 
 const styles = StyleSheet.create({
   container: {
-    height: 32,
+    minHeight: 32,
   },
   button: {
-    height: '100%',
+    // 높이 100%는 부모가 고정 높이일 때만 성립했다 — 이제 라벨 줄박스 + 세로 패딩이 높이를 정한다.
     paddingVertical: 8,
     flexDirection: 'row',
     justifyContent: 'center',
@@ -71,9 +71,8 @@ const styles = StyleSheet.create({
     gap: 0,
   },
   buttonText: {
-    fontSize: 14,
+    ...AcgType.control,
     color: Color.textPrimary,
-    lineHeight: 16,
     includeFontPadding: false,
     textAlignVertical: 'center',
   },

@@ -1,7 +1,7 @@
 import { forwardRef, ReactNode } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, AcgRadius } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 
 interface Props {
   label: string;
@@ -70,7 +70,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    // 고정 높이 대신 최소 높이 — Dynamic Type에서 라벨이 잘리지 않게 한다.
     minHeight: CHIP_HEIGHT,
     paddingHorizontal: 12,
     borderRadius: AcgRadius.chip,
@@ -86,11 +85,11 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.ink,
   },
   label: {
-    fontSize: AcgFontSize.control,
+    ...AcgType.control,
     color: Acg.ink,
   },
   labelCompact: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
   },
   labelSelected: {
     color: Acg.paper,

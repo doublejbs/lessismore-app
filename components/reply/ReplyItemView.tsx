@@ -1,7 +1,7 @@
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize } from '@/constants/DesignTokens';
+import { Acg, AcgType } from '@/constants/DesignTokens';
 import Comment from '@/model/reply/Comment';
 import Reply from '@/model/reply/Reply';
 import dayjs from 'dayjs';
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   name: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
   // 내 리뷰 표시 — 앱의 단 하나뿐인 액센트(라임)를 쓴다.
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     color: Acg.limeText,
   },
   date: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
   moreButton: {
@@ -198,19 +198,18 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   content: {
-    fontSize: 15,
-    lineHeight: 21,
+    ...AcgType.sectionSubtitle,
     color: Acg.ink,
   },
   likeCount: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
   likeCountActive: {
     color: LIKED_COLOR,
   },
   replyCount: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
 });

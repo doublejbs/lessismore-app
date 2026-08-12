@@ -13,7 +13,7 @@ import {
 } from '@/model/feed/FeedSort';
 import { BROWSE_CATEGORIES } from '@/model/browse/BrowseCategory';
 import { getFineCategoryLabel } from '@/model/gear/GearCategoryGroups';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import PretendardText from '@/components/PretendardText';
 import FeedChipView from './FeedChipView';
 import FeedFilterSheetView from './FeedFilterSheetView';
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
   },
   sortLabel: {
-    fontSize: AcgFontSize.control,
+    ...AcgType.control,
     color: Acg.ink,
   },
 });

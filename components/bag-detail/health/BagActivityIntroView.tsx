@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { AcgFontSize, Color, Spacing } from '@/constants/DesignTokens';
+import { AcgType, Color, Spacing } from '@/constants/DesignTokens';
 
 interface Props {
   onRequestPermission: () => void;
@@ -69,12 +69,11 @@ const styles = StyleSheet.create({
     gap: Spacing.item,
   },
   title: {
-    fontSize: 20,
+    ...AcgType.screenTitle,
     color: Color.textPrimary,
   },
   description: {
-    fontSize: 14,
-    lineHeight: 21,
+    ...AcgType.body,
     color: Color.textSecondary,
   },
   itemList: {
@@ -87,7 +86,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   itemText: {
-    fontSize: 14,
+    ...AcgType.rowSubtitle,
     color: Color.textTertiary,
   },
   primaryButton: {
@@ -98,7 +97,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   primaryButtonText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.control,
     color: Color.background,
   },
 });

@@ -19,13 +19,7 @@ import BagEditHeaderView from './BagEditHeaderView';
 import BagEditWeightTitleView from './BagEditWeightTitleView';
 import Layout from '../Layout';
 import { Stack, useFocusEffect } from 'expo-router';
-import {
-  Acg,
-  AcgFontSize,
-  Color,
-  Radius,
-  Spacing,
-} from '@/constants/DesignTokens';
+import { Acg, AcgType, Color, Radius, Spacing } from '@/constants/DesignTokens';
 
 interface Props {
   bagEdit: BagEdit;
@@ -190,7 +184,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   titleText: {
-    fontSize: 20,
+    ...AcgType.screenTitle,
     color: Color.textPrimary,
   },
   searchBox: {
@@ -200,12 +194,14 @@ const styles = StyleSheet.create({
     backgroundColor: Color.surfaceMuted,
     borderRadius: Radius.input,
     paddingHorizontal: 14,
-    height: 44,
+    minHeight: 44,
     marginBottom: 8,
   },
   searchInput: {
     flex: 1,
-    fontSize: 15,
+    // 단일행 입력이라 lineHeight를 얹지 않는다(안드로이드에서 커서 높이가 어긋난다).
+    fontSize: AcgType.control.fontSize,
+    letterSpacing: AcgType.control.letterSpacing,
     fontFamily: 'Pretendard-Regular',
     color: Color.textPrimary,
     padding: 0,
@@ -234,7 +230,7 @@ const styles = StyleSheet.create({
   },
   confirmButtonText: {
     color: Color.background,
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.control,
   },
 });
 

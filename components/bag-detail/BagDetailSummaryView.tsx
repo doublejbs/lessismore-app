@@ -5,7 +5,7 @@ import BagDetail from '@/model/bag-detail/BagDetail';
 import GearFilter from '@/model/gear/GearFilter';
 import PretendardText from '@/components/PretendardText';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -125,13 +125,11 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   label: {
-    fontSize: AcgFontSize.meta,
-    lineHeight: 17,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
   value: {
-    fontSize: 30,
-    lineHeight: 34,
+    ...AcgType.displayLarge,
     color: Acg.ink,
   },
   bar: {
@@ -158,7 +156,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   legendText: {
-    fontSize: AcgFontSize.meta,
+    ...AcgType.meta,
     color: Acg.textMuted,
   },
 });

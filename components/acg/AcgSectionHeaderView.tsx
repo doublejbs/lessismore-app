@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { View, StyleSheet } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize } from '@/constants/DesignTokens';
+import { Acg, AcgType } from '@/constants/DesignTokens';
 
 interface Props {
   title: string;
@@ -37,15 +37,13 @@ const styles = StyleSheet.create({
     // 제목과 부제는 붙여 둔다(레퍼런스) — 벌리면 부제가 다음 항목의 머리처럼 읽힌다.
     gap: 0,
   },
-  // 실측값(제목 20 / 부제 16). 층은 크기가 아니라 굵기로 가른다 — 제목만 semibold다.
+  // 층은 크기가 아니라 굵기로 가른다 — 제목만 semibold다(단은 AcgType 토큰).
   title: {
-    fontSize: AcgFontSize.sectionTitle,
-    lineHeight: 24,
+    ...AcgType.sectionTitle,
     color: Acg.ink,
   },
   subtitle: {
-    fontSize: AcgFontSize.sectionSubtitle,
-    lineHeight: 21,
+    ...AcgType.sectionSubtitle,
     color: Acg.textMuted,
   },
 });

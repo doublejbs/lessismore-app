@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
-import { AcgFontSize, Color, Spacing } from '@/constants/DesignTokens';
+import { AcgType, Color, Spacing } from '@/constants/DesignTokens';
 
 // 스토어 이동 URL (APP-7). Android는 마켓 스킴 우선, 실패 시 웹으로 폴백.
 const IOS_STORE_URL = 'https://apps.apple.com/app/id6751174681';
@@ -113,14 +113,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 22,
+    ...AcgType.screenTitle,
     color: Color.background,
     textAlign: 'center',
   },
   description: {
+    ...AcgType.sectionSubtitle,
     marginTop: Spacing.item,
-    fontSize: 15,
-    lineHeight: 22,
     // 검은 배경 위 보조 문구 — iconMuted(#B0B8C1)가 흰 배경 보조색보다 대비가 잘 나온다.
     color: Color.iconMuted,
     textAlign: 'center',
@@ -136,7 +135,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.background,
   },
   buttonText: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.control,
     color: Color.textPrimary,
   },
 });

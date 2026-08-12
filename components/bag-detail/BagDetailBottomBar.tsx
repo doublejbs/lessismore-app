@@ -6,7 +6,7 @@ import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PackingButtonState from '@/model/bag-detail/PackingButtonState';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 
 interface Props {
   bagDetail: BagDetail;
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.controlFill,
   },
   secondaryText: {
-    fontSize: AcgFontSize.control,
+    ...AcgType.control,
     color: Acg.ink,
   },
   // 이 화면의 유일한 라임 면 — 눌러야 하는 것 하나(홈 주 액션·플로팅 알약과 같은 문법).
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.lime,
   },
   primaryText: {
-    fontSize: AcgFontSize.control,
+    ...AcgType.control,
     color: Acg.ink,
   },
 });

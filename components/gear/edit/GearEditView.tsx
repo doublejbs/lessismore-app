@@ -23,7 +23,7 @@ import AlertView from '@/components/alert/AlertView';
 import CategoryChipView from '@/components/browse/CategoryChipView';
 import useKeyboard from '@/hooks/useKeyboard';
 import app from '@/model/app/App';
-import { Acg, AcgFontSize, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgType, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
   gearEdit: GearEdit;
@@ -217,7 +217,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                 <PretendardText
                   weight='medium'
                   style={{
-                    fontSize: 14,
+                    ...AcgType.rowSubtitle,
                   }}
                 >
                   제품명
@@ -229,7 +229,9 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                     backgroundColor: Color.inputBg,
                     paddingHorizontal: 12,
                     paddingVertical: 12,
-                    fontSize: AcgFontSize.rowSubtitle,
+                    // 단일행 입력이라 lineHeight를 얹지 않는다(안드로이드에서 커서 높이가 어긋난다).
+                    fontSize: AcgType.control.fontSize,
+                    letterSpacing: AcgType.control.letterSpacing,
                   }}
                   placeholder='제품명을 입력해주세요'
                   onChangeText={handleChangeName}
@@ -247,7 +249,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                 <PretendardText
                   weight='medium'
                   style={{
-                    fontSize: 14,
+                    ...AcgType.rowSubtitle,
                   }}
                 >
                   브랜드
@@ -259,7 +261,9 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                     backgroundColor: Color.inputBg,
                     paddingHorizontal: 12,
                     paddingVertical: 12,
-                    fontSize: AcgFontSize.rowSubtitle,
+                    // 단일행 입력이라 lineHeight를 얹지 않는다(안드로이드에서 커서 높이가 어긋난다).
+                    fontSize: AcgType.control.fontSize,
+                    letterSpacing: AcgType.control.letterSpacing,
                   }}
                   placeholder='브랜드를 입력해주세요'
                   onChangeText={handleChangeCompany}
@@ -278,7 +282,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                 <PretendardText
                   weight='medium'
                   style={{
-                    fontSize: 14,
+                    ...AcgType.rowSubtitle,
                   }}
                 >
                   카테고리
@@ -344,7 +348,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: AcgFontSize.rowTitle,
+    ...AcgType.rowTitle,
     color: Color.textPrimary,
   },
 });

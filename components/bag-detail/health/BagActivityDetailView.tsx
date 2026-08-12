@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { Color, Spacing } from '@/constants/DesignTokens';
+import { AcgType, Color, Spacing } from '@/constants/DesignTokens';
 import BagActivity from '@/model/bag/BagActivity';
 import BagActivityDetailStatus from '@/model/bag/BagActivityDetailStatus';
 import BagActivityRouteMapView from './BagActivityRouteMapView';
@@ -135,8 +135,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.section,
   },
   noticeText: {
-    fontSize: 14,
-    lineHeight: 21,
+    ...AcgType.body,
     color: Color.textSecondary,
     textAlign: 'center',
   },
@@ -148,13 +147,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   textButtonLabel: {
-    fontSize: 15,
+    ...AcgType.control,
     color: Color.textPrimary,
     textDecorationLine: 'underline',
   },
   // 연결 해제는 되돌리기 쉬운(다시 연결하면 되는) 동작이라 경고색 대신 보조 톤을 쓴다.
   unlinkLabel: {
-    fontSize: 15,
+    ...AcgType.control,
     color: Color.textSecondary,
     textDecorationLine: 'underline',
   },

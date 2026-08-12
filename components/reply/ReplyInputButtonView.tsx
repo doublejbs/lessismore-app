@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import Reply from '@/model/reply/Reply';
 
 interface Props {
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   placeholder: {
-    fontSize: AcgFontSize.rowSubtitle,
+    ...AcgType.rowSubtitle,
     color: Acg.textMuted,
     flex: 1,
     ...Platform.select({

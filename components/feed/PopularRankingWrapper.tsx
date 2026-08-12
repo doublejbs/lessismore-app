@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Bag from '@/model/bag/Bag';
-import { AcgFontSize, Color } from '@/constants/DesignTokens';
+import { AcgType, Color } from '@/constants/DesignTokens';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import SearchTopKeywordsView from '@/components/search/SearchTopKeywordsView';
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    height: 56,
+    minHeight: 56,
   },
   // HIG 최소 터치 타깃 44×44pt. 아이콘은 좌측 정렬이라 화면 가장자리 여백은 그대로 유지된다.
   backButton: {
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     flex: 1,
-    fontSize: AcgFontSize.rowTitle,
+    ...AcgType.rowTitle,
     color: Color.textPrimary,
   },
   content: {

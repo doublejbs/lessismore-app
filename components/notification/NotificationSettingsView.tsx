@@ -11,7 +11,7 @@ import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, Color } from '@/constants/DesignTokens';
+import { Acg, AcgType, Color } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 type ToggleKey = 'packing' | 'useless' | 'notice';
@@ -156,8 +156,7 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
   },
   title: {
-    fontSize: AcgFontSize.screenTitle,
-    lineHeight: 28,
+    ...AcgType.screenTitle,
     color: Acg.ink,
   },
   // 정보 탭 메뉴와 같은 문법(HM-8) — 면 없이 지면에 놓고 행 사이 헤어라인으로 가른다.
@@ -176,7 +175,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
   },
   rowLabel: {
-    fontSize: AcgFontSize.rowTitle,
+    ...AcgType.rowTitle,
     color: Acg.ink,
   },
 });

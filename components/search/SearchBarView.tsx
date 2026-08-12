@@ -95,7 +95,6 @@ const styles = StyleSheet.create({
   plainField: {
     flexDirection: 'row',
     alignItems: 'center',
-    // 고정 높이가 아니라 최소 높이로 둬 Dynamic Type에서 입력이 잘리지 않게 한다.
     minHeight: PLAIN_FIELD_HEIGHT,
     // 높이가 커져도 알약을 유지한다(레퍼런스: radius full).
     borderRadius: PLAIN_FIELD_HEIGHT,

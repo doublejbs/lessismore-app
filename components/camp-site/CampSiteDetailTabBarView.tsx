@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgFontSize, AcgLayout, Spacing } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType, Spacing } from '@/constants/DesignTokens';
 import CampSiteDetailTab from '@/model/camp-site/CampSiteDetailTab';
 import { getCampSiteDetailTabLabel } from '@/model/camp-site/CampSiteLabels';
 
@@ -65,7 +65,6 @@ const styles = StyleSheet.create({
     // 지면이 비쳐야 한다 — 흰 면을 깔면 탭 바만 종이처럼 떠 보인다.
     backgroundColor: 'transparent',
   },
-  // 고정 높이 대신 최소 높이 + 패딩으로 44pt 터치 타깃을 확보한다(Dynamic Type 대응).
   tab: {
     flex: 1,
     minHeight: 44,
@@ -74,15 +73,13 @@ const styles = StyleSheet.create({
     paddingTop: 6,
   },
   // 레퍼런스의 텍스트 탭(You/Community/Following)과 같은 문법 — 비선택은 회색, 선택은 잉크 +
-  // 밑줄. 크기는 컨트롤 단(15)이다.
+  // 밑줄. 크기는 컨트롤 단이다.
   label: {
-    fontSize: AcgFontSize.control,
-    lineHeight: 20,
+    ...AcgType.control,
     color: Acg.textMuted,
   },
   selectedLabel: {
-    fontSize: AcgFontSize.control,
-    lineHeight: 20,
+    ...AcgType.control,
     color: Acg.ink,
   },
   // 비선택 탭도 같은 높이를 차지해야(색만 없음) 라벨 baseline이 어긋나지 않는다.
