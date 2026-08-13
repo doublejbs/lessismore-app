@@ -19,6 +19,9 @@ interface Props {
   onChangeFilter?: (() => void) | undefined;
 }
 
+// 칩 그림자(AcgShadow.chip: 0 2px 8px)가 스크롤 경계 밖으로 번지는 최대 거리.
+const SHADOW_BLEED = 10;
+
 // 유형 필터(CS-2) — 단일 선택. 칩의 색 도트가 지도 마커 색 범례를 겸한다.
 // 무필터인 `전체`를 맨 앞에 두고 백패킹(wild)→대피소→캠핑장(campground) 순으로 잇는다 —
 // 필터 해제 수단이 항상 첫 자리에 있어야 찾기 쉽다.
@@ -114,6 +117,7 @@ const CampSiteFilterChipsView: FC<Props> = observer(
           ref={tagScrollRef}
           horizontal
           showsHorizontalScrollIndicator={false}
+          style={styles.tagScroll}
           contentContainerStyle={[styles.filterRow, styles.tagRow]}
           keyboardShouldPersistTaps='handled'
         >
@@ -152,9 +156,16 @@ const styles = StyleSheet.create({
     // 검색 필드·다른 탭 필터와 같은 화면 축.
     paddingHorizontal: AcgLayout.screenPadding,
   },
+  // 태그 행은 가로 ScrollView라 자식 그림자가 스크롤 영역 경계에서 잘린다.
+  // 콘텐츠에 그림자 반경(blur 8 + offset 2)만큼 세로 패딩을 주고, 스크롤 뷰
+  // 바깥에서 같은 값을 당겨 두 행 사이 간격은 그대로 둔다.
+  tagScroll: {
+    marginVertical: -SHADOW_BLEED,
+  },
   // 2차(태그) 행도 같은 간격을 쓴다 — 칩 간격은 앱 전체가 한 값이다.
   tagRow: {
     gap: AcgLayout.chipGap,
+    paddingVertical: SHADOW_BLEED,
   },
 });
 
