@@ -17,21 +17,52 @@ import Layout from '../Layout';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import app from '@/model/app/App';
+import BagViewSegment from '@/model/bag/BagViewSegment';
+import BagTemplate from '@/model/bag/BagTemplate';
+import BagTemplateItemView from './BagTemplateItemView';
+import BagTemplateListSkeletonView from './BagTemplateListSkeletonView';
+import CategoryChipView from '@/components/browse/CategoryChipView';
 
 // iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
 const IOS_EDGES = ['top', 'left', 'right'] as const;
 
 const BagView = () => {
   const [bag] = useState(() => Bag.new());
+  const [segment, setSegment] = useState(BagViewSegment.Bags);
+  const [templates, setTemplates] = useState<BagTemplate[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(true);
   const insets = useSafeAreaInsets();
+  const isLoggedIn = app.getFirebase().isLoggedIn();
   const isLoading = bag.isLoading();
   const bags = bag.getBags();
   const isEmpty = bag.isEmpty();
+  const isTemplateSegment = segment === BagViewSegment.Templates;
+
+  const loadTemplates = useCallback(async () => {
+    if (!isLoggedIn) {
+      setTemplates([]);
+      setTemplatesLoading(false);
+
+      return;
+    }
+
+    setTemplatesLoading(true);
+
+    try {
+      setTemplates((await app.getBagTemplateStore()!.getList()) ?? []);
+    } catch (error) {
+      console.error('템플릿 목록 조회 중 오류 발생:', error);
+      setTemplates([]);
+    } finally {
+      setTemplatesLoading(false);
+    }
+  }, [isLoggedIn]);
 
   useFocusEffect(
     useCallback(() => {
-      bag.getList();
-    }, [bag])
+      void bag.getList();
+      void loadTemplates();
+    }, [bag, loadTemplates])
   );
 
   // Bag이 로그인 상태 reaction을 들고 있으므로 언마운트 시 정리한다.
@@ -47,31 +78,58 @@ const BagView = () => {
       ?.logClick('bag_sort', { order: option.getName() });
   };
 
-  const render = () => {
+  const handleDeleteTemplate = async (template: BagTemplate) => {
+    try {
+      await app.getBagTemplateStore()!.delete(template.getID());
+      await loadTemplates();
+    } catch (error) {
+      console.error('템플릿 삭제 중 오류 발생:', error);
+    }
+  };
+
+  const renderSegment = () => (
+    <View style={styles.segmentContainer}>
+      <CategoryChipView
+        label='배낭'
+        selected={!isTemplateSegment}
+        onPress={() => setSegment(BagViewSegment.Bags)}
+      />
+      <CategoryChipView
+        label='템플릿'
+        selected={isTemplateSegment}
+        onPress={() => setSegment(BagViewSegment.Templates)}
+      />
+    </View>
+  );
+
+  const renderBagContent = () => {
     switch (true) {
       case isLoading: {
-        // 스피너 대신 들어올 화면과 같은 골격을 그린다(BAG-1) — 구조가 안 바뀌어야 덜컥거리지 않는다.
         return <BagListSkeletonView />;
       }
       case isEmpty: {
-        // 빈 상태는 사실 + 다음 걸음 두 줄이다(플로팅 `배낭 추가`가 그 걸음을 맡는다).
         return (
-          <View style={styles.emptyContainer}>
-            <PretendardText weight='semibold' style={styles.emptyTitle}>
-              아직 만든 배낭이 없어요
-            </PretendardText>
-            <PretendardText style={styles.emptySubtitle}>
-              첫 배낭을 만들면 여기에 쌓여요
-            </PretendardText>
-          </View>
+          <>
+            <View style={styles.headerContainer}>
+              <PretendardText weight='semibold' style={styles.headerText}>
+                배낭 {bags.length}개
+              </PretendardText>
+            </View>
+            <View style={styles.emptyContainer}>
+              <PretendardText weight='semibold' style={styles.emptyTitle}>
+                아직 만든 배낭이 없어요
+              </PretendardText>
+              <PretendardText style={styles.emptySubtitle}>
+                첫 배낭을 만들면 여기에 쌓여요
+              </PretendardText>
+            </View>
+          </>
         );
       }
       default: {
         return (
           <>
             <View style={styles.headerContainer}>
-              {/* 한글이라 콘덴스드 대신 Pretendard를 쓴다(그 서체엔 한글 글리프가 없다).
-                  개수는 제목에 남긴다 — 목록 길이는 훑기 전에 알면 쓸모가 있는 값이다. */}
               <PretendardText weight='semibold' style={styles.headerText}>
                 배낭 {bags.length}개
               </PretendardText>
@@ -85,13 +143,9 @@ const BagView = () => {
               contentContainerStyle={styles.scrollContent}
               showsVerticalScrollIndicator={false}
             >
-              {/* 여행 중 / 예정 / 지난 세 구간(BAG-1). 구간 안의 차례는 정렬 선택을
-                  그대로 따르고, 빈 구간은 제목까지 렌더하지 않는다. */}
               {groupBagsByTripSection(bags).map(group => (
                 <View key={group.section} style={styles.section}>
                   <AcgSectionHeaderView title={group.label} />
-                  {/* 카드 문법(BAG-1)이라 항목 사이 헤어라인이 없다 — 카드 사이 간격 12가
-                      그 일을 한다. 선과 면을 함께 쓰면 경계가 두 겹이 된다. */}
                   {group.bags.map((bagItem: BagItem) => (
                     <BagItemView
                       key={bagItem.getID()}
@@ -117,6 +171,64 @@ const BagView = () => {
     }
   };
 
+  const renderTemplateContent = () => {
+    if (templatesLoading) {
+      return <BagTemplateListSkeletonView />;
+    }
+
+    if (!templates.length) {
+      return (
+        <>
+          <View style={styles.headerContainer}>
+            <PretendardText weight='semibold' style={styles.headerText}>
+              템플릿 {templates.length}개
+            </PretendardText>
+          </View>
+          <View style={styles.emptyContainer}>
+            <PretendardText weight='semibold' style={styles.emptyTitle}>
+              저장한 템플릿이 없어요
+            </PretendardText>
+            <PretendardText style={styles.emptySubtitle}>
+              배낭 카드의 ⋯ 메뉴에서 템플릿으로 저장할 수 있어요
+            </PretendardText>
+          </View>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <View style={styles.headerContainer}>
+          <PretendardText weight='semibold' style={styles.headerText}>
+            템플릿 {templates.length}개
+          </PretendardText>
+        </View>
+        <ScrollView
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {templates.map(template => (
+            <BagTemplateItemView
+              key={template.getID()}
+              template={template}
+              onDelete={handleDeleteTemplate}
+            />
+          ))}
+          <View
+            style={{
+              minHeight: Platform.select({
+                ios: insets.bottom + AcgLayout.scrollBottom,
+                android: AcgLayout.scrollBottom,
+                default: AcgLayout.scrollBottom,
+              }),
+            }}
+          />
+        </ScrollView>
+      </>
+    );
+  };
+
   return (
     <GestureHandlerRootView style={styles.root}>
       <Layout
@@ -128,12 +240,13 @@ const BagView = () => {
          */
         background={<View style={styles.ground} />}
       >
-        {render()}
+        {renderSegment()}
+        {isTemplateSegment ? renderTemplateContent() : renderBagContent()}
         {/* 로딩 중에는 띄우지 않는다(BAG-1). 탭이 막 마운트된 첫 프레임에는 네이티브 탭바 몫이
             반영되기 전이라 `insets.bottom`이 작게 잡혀 버튼이 **탭바 뒤로 내려간다.**
             목록이 온 뒤(= inset 정착 후)에 노출하면 위치가 정확하고, 로딩 위에 CTA가 겹치지도
             않는다 — 피드(FD-2)가 같은 이유로 같은 처리를 한다. */}
-        {!isLoading && <BagAddView bag={bag} />}
+        {!isLoading && !isTemplateSegment && <BagAddView bag={bag} />}
       </Layout>
     </GestureHandlerRootView>
   );
@@ -158,6 +271,12 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     flexDirection: 'column',
+  },
+  segmentContainer: {
+    flexDirection: 'row',
+    gap: AcgLayout.chipGap,
+    paddingTop: 8,
+    paddingBottom: 4,
   },
   emptyContainer: {
     flex: 1,
