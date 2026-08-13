@@ -25,8 +25,10 @@ const CampSiteMapBottomOverlayView: FC<Props> = ({
 }) => {
   return (
     <View
-      // 탭바 여유 위 8 — 24는 스택이 지도 가운데쯤까지 올라와 떠 보였다(2026-08-13 사용자 지적).
-      style={[styles.buttonStack, { bottom: bottomClearance + 8 }]}
+      // 탭바 여유에서 8 안쪽까지 내린다 — +24는 스택이 지도 가운데쯤까지 올라와 떠 보였고,
+      // +8도 높았다(2026-08-13 사용자 지적 2회). 탭바가 플로팅 알약이라 여유 영역에 살짝
+      // 겹쳐도 가리지 않는다.
+      style={[styles.buttonStack, { bottom: bottomClearance - 8 }]}
       pointerEvents='box-none'
     >
       {/* 즐겨찾기 목록 열기 — 현재 위치 버튼 위(CS-9). */}
