@@ -37,15 +37,16 @@ const TAG_LABEL: Record<CampSiteTag, string> = {
  * 유형별 마커 색 — 백패킹=파랑, 대피소=초록, 캠핑장=골드.
  * 지도 마커(CampSiteMarkerView)와 유형 필터 칩의 색 도트(범례)가 함께 쓴다.
  *
- * **ACG 팔레트의 채도로 맞춘 값이다**(2026-08-04). 원래는 웹 기본색(#4A90E2·#50C878·
- * #FFD700)이라 따뜻한 지면·잉크·라임 사이에서 혼자 쨍하게 튀었다. 색상(hue)은 그대로 두고
- * 채도만 낮춰 유형 구분은 유지한다. 값은 핸드오프가 배낭 카테고리에 쓰라고 준 것과 같은
- * 계열이다(`AcgSemantic.bagBase`·`bagClothing`·`bagCooking`).
+ * **라임과 같은 톤이다**(2026-08-13 사용자 결정). 색상(hue)은 유형 구분을 위해 유지하고
+ * 채도·명도를 라임(#C8F244, HSL 74°/87%/61%)에 맞춰 재계산한 `AcgSemantic.spot*` 값을
+ * 쓴다 — 지도의 액센트(라임 현위치 버튼)와 마커·범례가 한 팔레트로 읽힌다.
+ * (이력: 2026-08-04에는 배낭 카테고리 계열(bagBase·bagClothing·bagCooking)의 저채도
+ * 값이었다 — 따뜻한 지면 세대의 선택이라 순백·라임 세대에서는 탁하게 가라앉았다.)
  */
 const TYPE_COLOR: Record<CampSiteType, string> = {
-  [CampSiteType.Campground]: AcgSemantic.bagCooking,
-  [CampSiteType.Shelter]: AcgSemantic.bagClothing,
-  [CampSiteType.Wild]: AcgSemantic.bagBase,
+  [CampSiteType.Campground]: AcgSemantic.spotCamping,
+  [CampSiteType.Shelter]: AcgSemantic.spotShelter,
+  [CampSiteType.Wild]: AcgSemantic.spotBackpacking,
 };
 
 // 상세 시트 탭 바의 표시 라벨(CS-3).

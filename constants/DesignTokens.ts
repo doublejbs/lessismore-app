@@ -124,11 +124,16 @@ export const Acg = {
 /**
  * 액센트 체계 **밖**의 의미색. 뜻이 값에 묶여 있어 리디자인해도 바꾸지 않는다.
  * (핸드오프 명시: "의미색 — 변경 금지")
+ *
+ * **예외 — 박지 유형색 3종(2026-08-13 사용자 결정)**: 색상(hue)은 유지하되 채도·명도를
+ * 라임(#C8F244, HSL 74°/87%/61%)과 같은 톤으로 재계산했다. 지도에서 마커·칩 도트가
+ * 액센트(라임)와 딴 팔레트로 읽히던 것을 한 가족으로 묶는다.
+ * (이전 값: 백패킹 #4A90E2 · 대피소 #50C878 · 캠핑장 #FFD700)
  */
 export const AcgSemantic = {
-  spotBackpacking: '#4A90E2',
-  spotShelter: '#50C878',
-  spotCamping: '#FFD700',
+  spotBackpacking: '#4494F2',
+  spotShelter: '#44F27E',
+  spotCamping: '#F2D744',
   favorite: '#FFD700',
   bagBase: '#2F6F8F',
   bagClothing: '#4E8C5A',
