@@ -130,6 +130,24 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
     bag.delete(bagItem);
   };
 
+  const handleClickSaveTemplate = () => {
+    setShowMenu(false);
+
+    if (!app.getFirebase()?.isLoggedIn()) {
+      app.getLogInAlertManager()?.show();
+
+      return;
+    }
+
+    router.push({
+      pathname: '/bag-template-save',
+      params: {
+        sourceId: bagItem.getID(),
+        sourceName: bagItem.getName(),
+      },
+    });
+  };
+
   const handleClickCopy = () => {
     setShowMenu(false);
 
@@ -154,6 +172,11 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
       icon: 'copy-outline' as const,
       text: '복사',
       onPress: handleClickCopy,
+    },
+    {
+      icon: 'bookmark-outline' as const,
+      text: '템플릿으로 저장',
+      onPress: handleClickSaveTemplate,
     },
     {
       icon: 'trash-outline' as const,
