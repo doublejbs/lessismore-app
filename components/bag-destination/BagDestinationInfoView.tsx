@@ -40,40 +40,36 @@ const BagDestinationInfoView: FC<Props> = ({
       accessibilityRole='button'
       accessibilityLabel={`${location.name} 박지 상세 보기`}
     >
+      {/* 행 문법(2026-08-13 디자인 리뷰): 이름 + 메타 한 줄(`유형 · 지역`) + 우측 셰브론.
+          - 📍 이모지 제거 — 위 지도에 이미 라임 핀이 있고, 팔레트 밖 빨간 핀이 플랫폼마다
+            다르게 그려진다.
+          - `백패킹` 배지 제거 — 채움이 카드 면과 같은 값(#F2F2F2)이라 면이 사라져 굵은
+            글자만 떠 보였다. HM-8대로 메타 줄의 조각으로 넣는다.
+          - `박지 상세 보기` 라벨 제거 — 카드 전체가 탭 대상인데 안에 버튼처럼 보이는 라벨이
+            또 있으면 컨트롤 안 컨트롤로 읽힌다. 문구는 접근성 라벨이 유지한다. */}
       <View style={styles.cardText}>
         <PretendardText style={styles.name} weight='semibold' numberOfLines={2}>
-          📍 {location.name}
+          {location.name}
         </PretendardText>
         {linkedSpot && (
-          <View style={styles.metaRow}>
-            <View style={styles.badge}>
-              <PretendardText style={styles.badgeText} weight='semibold'>
-                {getCampSiteTypeLabel(linkedSpot.type)}
-              </PretendardText>
-            </View>
-            <PretendardText style={styles.metaText} numberOfLines={1}>
-              {getCampSpotRegionLabel(linkedSpot)}
-            </PretendardText>
-          </View>
+          <PretendardText style={styles.metaText} numberOfLines={1}>
+            {[
+              getCampSiteTypeLabel(linkedSpot.type),
+              getCampSpotRegionLabel(linkedSpot),
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </PretendardText>
         )}
       </View>
-      <View style={styles.detailHint}>
-        <PretendardText style={styles.detailHintText} weight='medium'>
-          박지 상세 보기
-        </PretendardText>
-        <Ionicons
-          name='chevron-forward'
-          size={16}
-          color={Color.textSecondary}
-        />
-      </View>
+      <Ionicons name='chevron-forward' size={16} color={Color.textSecondary} />
     </TouchableOpacity>
   ) : isLinked ? (
     // 박지 참조는 있으나 삭제·비활성·조회 실패 — 저장된 이름만 유지하고 상세 이동은 숨긴다(DST-7).
     <View style={styles.card}>
       <View style={styles.cardText}>
         <PretendardText style={styles.name} weight='semibold' numberOfLines={2}>
-          📍 {location.name}
+          {location.name}
         </PretendardText>
       </View>
     </View>
@@ -156,33 +152,10 @@ const styles = StyleSheet.create({
     ...AcgType.rowTitle,
     color: Color.textPrimary,
   },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  badge: {
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: Radius.listThumb,
-    backgroundColor: Color.chipInactiveBg,
-  },
-  badgeText: {
-    ...AcgType.meta,
-    color: Color.textTertiary,
-  },
   metaText: {
     ...AcgType.meta,
     color: Color.textSecondary,
-  },
-  detailHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-  },
-  detailHintText: {
-    ...AcgType.meta,
-    color: Color.textSecondary,
+    marginTop: 4,
   },
   freeRow: {
     flexDirection: 'row',
