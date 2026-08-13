@@ -5,7 +5,7 @@
 | 상태 | as-built (2026-06-10 코드 기준) |
 | ID 프리픽스 | `BAG` |
 | 주요 코드 | `app/(tabs)/bag.tsx`, `components/bag/`, `model/bag/`, `model/store/BagStore.ts` |
-| 관련 스펙 | [DataModel.md](DataModel.md), [BagDetail.md](BagDetail.md) |
+| 관련 스펙 | [DataModel.md](DataModel.md), [BagDetail.md](BagDetail.md), [BagTemplate.md](BagTemplate.md) |
 
 ## 1. 개요
 
@@ -33,6 +33,7 @@ app/(tabs)/bag.tsx → BagView
 - **배낭이 30개를 넘어도 전부 표시된다.** 이 조회는 `where('__name__','in', bagIDs)`라 Firestore `in` 30개 상한에 걸리므로 30개 단위로 청크 분할해 병렬 조회한다([DataModel.md](DataModel.md) DM-25). `orderBy`는 청크별로만 걸리므로 **병합 후 클라이언트에서 정렬**한다(BAG-6).
 - `startDate`가 없는 배낭은 **날짜 정렬에서** 맨 뒤에 둔다(방향 무관 — BAG-6). 이름·무게 정렬에서는 해당 필드 기준으로 자연 정렬된다. 서버 `orderBy('startDate')`는 이런 문서를 결과에서 제외했으므로, 청크 분할 이후 **이전에는 목록에 안 보이던 레거시 배낭이 새로 나타날 수 있다**(생성·복사 경로가 항상 `toISOString()`을 쓰므로 실제로는 거의 없다 — DM-5).
 - 각 항목에 이름, 날짜, 총 무게(kg)를 표시한다. 복사·삭제는 카드 우측 **`⋯` 메뉴 버튼 → 하단 메뉴 시트**로 제공한다(BAG-3/BAG-4). (`editDate`는 저장되지만 목록에 표시되지 않는다 — 미해결 질문 참조.)
+- `[제안]` 메뉴 시트에 `템플릿으로 저장` 항목을 추가한다 — 순서 `복사` → `템플릿으로 저장` → `삭제`. 동작은 [BagTemplate.md](BagTemplate.md) BT-1.
 - **항목은 카드다 — 지도 이미지 밴드(있으면) + `이름` + `메타 한 줄` + 우측 `⋯` 메뉴 버튼**(2026-08-13 사용자 결정):
   - **카드 문법은 홈 일정 카드(HM-1 `HomeUpcomingTripView`)와 같다**: 연회색 면(`Acg.controlFill`) + 모서리 12(`AcgRadius.thumb`), **그림자 없음**. 카드 사이 간격 12.
   - **이것은 [Home.md](Home.md) HM-8 목록 행 문법의 화면별 예외다.** HM-8은 "면 없이 헤어라인으로 가르는 행"을 앱 공통으로 두는데, 배낭 목록만 카드로 간다 — 배낭은 창고 장비처럼 **한 줄로 훑는 목록**이 아니라 여행 한 건이고, 이 화면에서 가장 먼저 알아보는 단서가 "어디로 가는 여행이냐"다. 지도는 텍스트 한 줄로 대신할 수 없고, 이미지를 담으려면 담을 면이 있어야 한다. 창고(WH-1)·홈 목록·복사 원본 선택 시트(BAG-5)는 **HM-8 행 문법을 그대로 유지한다** — 바꾸는 것은 이 화면뿐이다.
