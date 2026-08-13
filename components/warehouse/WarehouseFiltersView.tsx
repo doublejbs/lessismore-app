@@ -31,8 +31,6 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
   const fineCategoryOptions = warehouse.getFineCategoryOptions();
   const fineCategory = warehouse.getFineCategory();
   const selectedFilterName = warehouse.getSelectedFilter().getName();
-  const unusedOnly = warehouse.isUnusedOnly();
-  const unusedCount = warehouse.getUnusedCount();
 
   /**
    * 1차 칩 행의 가로 스크롤을 선택 칩에 맞춘다.
@@ -121,10 +119,6 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
     warehouse.selectFineCategory(key);
   };
 
-  const handleToggleUnused = () => {
-    warehouse.toggleUnusedOnly();
-  };
-
   const handleSelectOrder = (option: OrderOption) => {
     app
       .getAnalyticsManager()
@@ -180,23 +174,9 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
           ))}
         </ScrollView>
       )}
-      {/* WH-2-1 사용 여부 필터 — 카테고리와 별개 축이라 칩 행이 아니라 이 줄에 둔다.
-          개수를 함께 보여줘야 몇 개가 걸러지는지 알고 덜어낼 판단을 할 수 있다. */}
-      {unusedCount > 0 || unusedOnly ? (
-        <View style={styles.usageRow}>
-          {/* 켜짐은 카테고리 칩과 같은 잉크 채움으로 낸다 — 2차 칩 기본 톤(연회색 채움)은
-              켠 건지 아닌지 한눈에 안 갈렸다. 크기는 2차 그대로 둬 카테고리와 축을 구분한다. */}
-          {/* 기본 톤(연회색 채움) — acgSolid는 지도 위 전용(흰 면 + 그림자, CS-2)이라
-              순백 지면인 이 화면에 쓰면 칩이 지면과 붙고 그림자만 남는다(HM-8). */}
-          <CategoryChipView
-            label={`안 쓴 장비 ${unusedCount}`}
-            variant='secondary'
-            selected={unusedOnly}
-            onPress={handleToggleUnused}
-            accessibilityLabel={`안 쓴 장비만 보기, ${unusedCount}개`}
-          />
-        </View>
-      ) : null}
+      {/* WH-2-1 `안 쓴 장비`는 이 행에 없다 — 카테고리와 별개 축이라 같은 칩 문법으로 두면
+          카테고리를 하나 더 고르는 것처럼 읽혔다. 하단 우측 플로팅 버튼
+          (`WarehouseUnusedButtonView`)으로 나가 전용 화면을 연다(2026-08-13). */}
       <View style={styles.orderContainer}>
         <PretendardText weight='semibold' style={styles.titleText}>
           총 {totalCount}개
@@ -229,10 +209,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: AcgLayout.chipGap,
     paddingHorizontal: 0,
-  },
-  usageRow: {
-    flexDirection: 'row',
-    paddingTop: 2,
   },
   orderContainer: {
     width: '100%',
