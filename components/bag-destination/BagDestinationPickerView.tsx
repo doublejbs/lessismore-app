@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgType, Color, Radius, Spacing } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
+import SpotPinView from '@/components/camp-site/SpotPinView';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
@@ -252,12 +253,11 @@ const BagDestinationPickerView: FC<Props> = observer(
         {/* 중앙 고정 핀 — 자유 위치 UI의 일부라 박지 상세가 떠 있는 동안엔 함께 숨긴다(DST-3). */}
         {isMapSupported && !sheetOpen && !focusedSpot && (
           <View style={styles.centerPin} pointerEvents='none'>
-            <Ionicons
-              name='location'
-              size={40}
-              color={Color.textPrimary}
-              style={styles.pinIcon}
-            />
+            {/* 앱 공통 라임 핀(2026-08-13 사용자 결정) — 지도 탭 선택 마커·배낭 카드
+                밴드와 같은 SpotPinView 단일 소스. 잉크 Ionicons 핀은 걷었다. */}
+            <View style={styles.pinIcon}>
+              <SpotPinView />
+            </View>
           </View>
         )}
 
