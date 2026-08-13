@@ -18,7 +18,7 @@ import {
   Color,
 } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
-import SearchSkeletonView from './SearchSkeletonView';
+import SearchRankSkeletonView from './SearchRankSkeletonView';
 import GearFilter from '@/model/gear/GearFilter';
 import { getGearFilterName } from '@/model/gear/GearFilterName';
 import CategoryChipView from '../browse/CategoryChipView';
@@ -213,7 +213,8 @@ const SearchTopKeywordsView: FC<Props> = ({
       >
         <View style={styles.listContainer}>
           {isLoading ? (
-            <SearchSkeletonView count={10} />
+            // 검색 결과용 스켈레톤이 아니라 **순위 행 모양**을 비춘다(SR-4, 2026-08-13).
+            <SearchRankSkeletonView count={10} />
           ) : gears.length === 0 ? (
             <View style={styles.emptyContainer}>
               <PretendardText style={styles.emptyText}>
