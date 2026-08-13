@@ -29,7 +29,8 @@ const BagDetailCopyView: FC<Props> = ({ sourceId, sourceName }) => {
       accessibilityRole='button'
       accessibilityLabel='복사'
     >
-      <IconSymbol name='doc.on.doc' size={26} color={Color.textPrimary} />
+      {/* 이웃 버튼(공유·필름 카드)의 Ionicons 24와 시각 크기를 맞춘다(2026-08-13). */}
+      <IconSymbol name='doc.on.doc' size={24} color={Color.textPrimary} />
     </TouchableOpacity>
   );
 };
