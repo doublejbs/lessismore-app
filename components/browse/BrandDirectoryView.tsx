@@ -14,7 +14,7 @@ import { Stack, useRouter } from 'expo-router';
 import BrandDirectory from '@/model/browse/BrandDirectory';
 import { BrandRankData } from '@/model/search/BrandRankStore';
 import PretendardText from '../PretendardText';
-import { Acg, AcgType, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType, Color, Radius } from '@/constants/DesignTokens';
 import SearchSkeletonView from '../search/SearchSkeletonView';
 import BrandRowView from './BrandRowView';
 import app from '@/model/app/App';
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenPadding,
     minHeight: 48,
   },
   backButton: {
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     color: Color.textPrimary,
   },
   searchContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenPadding,
     paddingVertical: 12,
   },
   searchInputWrapper: {
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenPadding,
   },
   listContent: {
     flexGrow: 1,
