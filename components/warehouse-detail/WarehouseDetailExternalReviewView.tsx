@@ -29,7 +29,9 @@ const WarehouseDetailExternalReviewView: FC<Props> = ({ warehouseDetail }) => {
 
   return (
     // 앱 내 사용자 `리뷰` 섹션과 구분되는 타이틀.
-    <WarehouseDetailSectionView title='블로그·유튜브 후기'>
+    // 면 없이 흰 지면에 그대로 둔다(2026-08-13 사용자 결정) — 박지 상세 후기와 같은 문법.
+    // 카드·리스트가 이미 자체 썸네일 면을 가져, 회색 면으로 감싸면 면 안의 면이 된다.
+    <WarehouseDetailSectionView title='블로그·유튜브 후기' variant='list'>
       <ReviewSectionView
         reviews={reviews}
         videos={videos}
