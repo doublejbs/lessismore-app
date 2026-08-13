@@ -3,7 +3,6 @@ import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
-import dayjs from 'dayjs';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
@@ -22,15 +21,10 @@ const BagDetailActivityView: FC<Props> = ({ bagDetail }) => {
   const healthService = getHealthService();
   const activity = bagDetail.getActivity();
 
-  // 누를 수 없는 진입점을 남기지 않는다(HA-1): 건강 허브가 없는 플랫폼·기기(웹,
-  // Android 14 미만, 미지원 기기)와, 기록이 존재할 수 없는 미래 여행에서는
-  // 타일 자체를 렌더하지 않는다.
-  const isFutureTrip = bagDetail
-    .getStartDate()
-    .startOf('day')
-    .isAfter(dayjs().startOf('day'));
-
-  if (!healthService.isAvailable() || isFutureTrip) {
+  // 누를 수 없는 진입점만 감춘다(HA-1): 건강 허브가 없는 플랫폼·기기(웹, Android 14
+  // 미만, 미지원 기기). 미래 여행에도 타일은 유지한다(2026-08-13 사용자 결정) —
+  // 여행 시점 따라 생겼다 없어지면 기능의 존재를 학습할 수 없다.
+  if (!healthService.isAvailable()) {
     return null;
   }
 
