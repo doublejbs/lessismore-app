@@ -64,12 +64,14 @@ const WeatherDailyRow: FC<{ item: WeatherDaily; isLast: boolean }> = ({
         </View>
       </View>
 
+      {/* 최저 → 최고 가로 배치 — 홈 카드 예보(`비 23°/31°`)와 같은 순서로, 최고가 항상
+          맨 오른쪽에 온다(2026-08-13 사용자 결정). */}
       <View style={styles.tempCol}>
-        <PretendardText style={styles.tempMaxText} weight='semibold'>
-          ↑{Math.round(item.tempMax)}°
-        </PretendardText>
         <PretendardText style={styles.tempMinText}>
           ↓{Math.round(item.tempMin)}°
+        </PretendardText>
+        <PretendardText style={styles.tempMaxText} weight='semibold'>
+          ↑{Math.round(item.tempMax)}°
         </PretendardText>
       </View>
     </View>
