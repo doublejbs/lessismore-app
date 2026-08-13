@@ -11,11 +11,6 @@ import HomeTripStage from '@/model/home/HomeTripStage';
 // 종료 후 이 기간까지는 "사용 기록하기"를 권한다. 그 뒤로는 홈에서 내린다.
 const JUST_FINISHED_DAYS = 7;
 
-export interface HomeTripAction {
-  label: string;
-  route: string;
-}
-
 export interface HomeTripEntry {
   bag: BagItem;
   stage: HomeTripStage;
@@ -111,15 +106,6 @@ export const getDDayLabel = (
 };
 
 /**
- * 시점별 주 액션(HM-1).
- *
- * **패킹 버튼은 D-1부터 낸다.** 그 전에는 아직 담는 단계라 짐 싸기를 권할 때가 아니고,
- * 배낭 상세로 보내 담기·여행지·날짜 중 필요한 걸 고르게 한다.
- *
- * 알림과 목적지를 맞춘다 — D-1 패킹 알림(NT-2)도, 여행 후 기록 알림(NT-3)도 홈에서
- * 같은 화면에 닿는다. 알림을 놓쳐도 홈에서 같은 할 일에 도달하는 것이 이 카드의 존재 이유다.
- */
-/**
  * D-day 라벨을 콘덴스드(Archivo Narrow)로 그려도 되는지.
  *
  * `getDDayLabel`은 `D-6` 같은 숫자 라벨과 `여행 중`·`여행 완료` 같은 한글 라벨을 함께
@@ -128,30 +114,6 @@ export const getDDayLabel = (
  */
 export const isCondensedDDayLabel = (label: string): boolean =>
   /^D-\d+$/.test(label);
-
-export const getPrimaryAction = (
-  bag: BagItem,
-  stage: HomeTripStage
-): HomeTripAction => {
-  const id = bag.getID();
-
-  switch (stage) {
-    // 라벨은 도착지에 맞춘다 — `장비 담기`라고 하면 담기 화면이 열릴 것처럼 읽힌다.
-    case HomeTripStage.Planning: {
-      return { label: '배낭 보기', route: `/bag/${id}` };
-    }
-    case HomeTripStage.Imminent: {
-      return { label: '패킹 시작', route: `/bag/${id}/packing` };
-    }
-    // 이미 시작한 일이라 `시작`이 아니다.
-    case HomeTripStage.Ongoing: {
-      return { label: '패킹 확인', route: `/bag/${id}/packing` };
-    }
-    case HomeTripStage.JustFinished: {
-      return { label: '사용 기록하기', route: `/useless/${id}` };
-    }
-  }
-};
 
 // 여행 중 > 임박 > 계획 > 종료 직후 순. 같은 등급이면 시작일이 가까운 쪽이 앞선다.
 const STAGE_PRIORITY: Record<HomeTripStage, number> = {

@@ -9,6 +9,7 @@ import {
 import { useRouter } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
@@ -16,7 +17,6 @@ import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import BagItem from '@/model/bag/BagItem';
 import {
   getDDayLabel,
-  getPrimaryAction,
   isCondensedDDayLabel,
   HomeTripEntry,
   HomeTripPlan,
@@ -47,9 +47,8 @@ const CARD_PEEK = 28;
 /**
  * HM-1 다가오는 일정.
  *
- * 이 섹션의 핵심은 **주 액션이 남은 일수에 따라 갈린다**는 것이고, 그 분기는
- * 알림(NT-2/NT-3)이 유도하는 행동과 같은 목적지여야 한다 — 알림을 놓쳐도 홈에서
- * 같은 할 일에 닿게 하는 것이 존재 이유다. 분기 계산은 `HomeTripPlan`이 맡는다.
+ * 이 섹션의 주 액션은 시점과 관계없이 **배낭 보기 하나로 고정한다**. 홈에서 특정 작업을
+ * 바로 강제하지 않고, 배낭 상세에서 여행지·날짜·패킹 상태를 확인한 뒤 다음 행동을 고르게 한다.
  *
  * **일정이 여럿이면 옆으로 넘기는 캐러셀이다**(2026-08-11). 이전에는 첫 일정만 카드로 세우고
  * 나머지는 아래 한 줄 요약이었는데, 그러면 두 번째 일정의 무게·예보·패킹을 보려면 배낭 상세까지
@@ -81,13 +80,6 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
     router.push(`/bag/${bag.getID()}`);
   };
 
-  const handlePrimaryAction = ({ bag, stage }: HomeTripEntry) => {
-    const action = getPrimaryAction(bag, stage);
-
-    app.getAnalyticsManager()?.logClick('home_trip_action', { stage });
-    router.push(action.route as never);
-  };
-
   // D-day는 숫자 라벨일 때만 콘덴스드다 — `여행 중` 같은 한글은 글리프가 없어 깨진다.
   const renderDDay = (label: string) => {
     if (isCondensedDDayLabel(label)) {
@@ -102,9 +94,8 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
   };
 
   const renderCard = (entry: HomeTripEntry) => {
-    const { bag, stage } = entry;
+    const { bag } = entry;
     const dDayLabel = getDDayLabel(bag);
-    const action = getPrimaryAction(bag, stage);
     const locationName = bag.getLocationName();
     const displayDate = bag.getDisplayDate();
     // 배낭에 저장된 스냅샷을 읽을 뿐 새로 조회하지 않는다(HM-1). 요약 규칙(눈>비>맑음)은
@@ -117,7 +108,12 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
     const hasPackingRecord = bag.hasPackingRecord();
 
     return (
-      <View key={bag.getID()} style={[styles.tile, { width: cardWidth }]}>
+      <BlurView
+        key={bag.getID()}
+        intensity={24}
+        tint='light'
+        style={[styles.tile, { width: cardWidth }]}
+      >
         {/*
           면 안에서 이름과 D-day를 한 줄에 둔다. D-day를 스티커로 면 밖에 얹지 않는다 —
           걸침·회전·그림자는 면 하나로 정리한 이 톤에서 유일한 예외가 되고, 스크롤 컨테이너
@@ -145,10 +141,14 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
               <View style={styles.locationRow}>
                 <Ionicons
                   name='location-outline'
-                  size={14}
-                  color={Acg.textMuted}
+                  size={16}
+                  color={Acg.ink}
+                  style={styles.locationIcon}
                 />
-                <PretendardText style={styles.locationText} numberOfLines={1}>
+                <PretendardText
+                  weight='semibold'
+                  style={styles.locationText}
+                >
                   {locationName}
                 </PretendardText>
               </View>
@@ -215,16 +215,16 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
             넘길 때 버튼이 같은 자리에 온다. */}
         <TouchableOpacity
           style={styles.cta}
-          onPress={() => handlePrimaryAction(entry)}
+          onPress={() => handleOpenBag(bag)}
           activeOpacity={0.8}
           accessibilityRole='button'
-          accessibilityLabel={`${bag.getName()} ${action.label}`}
+          accessibilityLabel={`${bag.getName()} 배낭 보기`}
         >
           <PretendardText weight='semibold' style={styles.ctaText}>
-            {action.label}
+            배낭 보기
           </PretendardText>
         </TouchableOpacity>
-      </View>
+      </BlurView>
     );
   };
 
@@ -234,7 +234,7 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
         <AcgSectionHeaderView title='다가오는 일정' />
 
         {/* 빈 상태는 사실 + 다음 걸음 두 줄, 그리고 그 걸음을 떼는 버튼 하나. */}
-        <View style={styles.tile}>
+        <BlurView intensity={24} tint='light' style={styles.tile}>
           <PretendardText weight='semibold' style={styles.emptyTitle}>
             아직 계획한 여행이 없어요
           </PretendardText>
@@ -252,7 +252,7 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
               새 배낭 만들기
             </PretendardText>
           </TouchableOpacity>
-        </View>
+        </BlurView>
       </View>
     );
   }
@@ -344,10 +344,14 @@ const styles = StyleSheet.create({
     // 카드가 흔들리는 것처럼 보인다.
     alignItems: 'stretch',
   },
-  // 홈의 정보 면 — 탐색 셀과 같은 채움·모서리다(FD-2). 순백 지면 위라 연회색이 한 단 갈린다.
+  // 일정 카드는 히어로 위에 놓이는 리퀴드 글래스 면이다(HM-10). Web처럼 블러가 제한되는
+  // 환경에서도 반투명 흰색 채움이 남아 카드와 텍스트를 분리한다.
   tile: {
-    backgroundColor: Acg.controlFill,
+    backgroundColor: Acg.heroCardFill,
     borderRadius: AcgRadius.thumb,
+    borderColor: Acg.glassStroke,
+    borderWidth: 1,
+    overflow: 'hidden',
     padding: 16,
     gap: 14,
   },
@@ -369,13 +373,16 @@ const styles = StyleSheet.create({
   },
   locationRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  locationIcon: {
+    marginTop: 2,
   },
   locationText: {
     flexShrink: 1,
-    ...AcgType.meta,
-    color: Acg.textMuted,
+    ...AcgType.rowSubtitle,
+    color: Acg.ink,
   },
   tripDate: {
     ...AcgType.meta,
