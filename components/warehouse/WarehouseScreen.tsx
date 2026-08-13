@@ -289,9 +289,11 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
           {!isEmpty && <WarehouseFiltersView warehouse={warehouse} />}
         </View>
         <View style={styles.contentContainer}>{renderGears()}</View>
-        {/* WH-2-1 안 쓴 장비 — 창고가 비었거나 덜어낼 후보가 없으면 내지 않는다.
+        {/* WH-2-1 안 쓴 장비 — 창고가 비었을 때만 내지 않는다. 보고 있는 카테고리에
+            안 쓴 장비가 없어도 버튼은 유지한다(2026-08-13 사용자 결정) — 사라지면 입구가
+            카테고리에 따라 생겼다 없어져 위치를 학습할 수 없다. 개수만 라벨에서 뺀다.
             지금 보고 있는 카테고리를 함께 넘겨 도착 화면이 같은 범위로 열리게 한다. */}
-        {!isEmpty && unusedCount > 0 ? (
+        {!isEmpty ? (
           <WarehouseUnusedButtonView
             count={unusedCount}
             category={warehouse.getSelectedFilter().getFilter()}
