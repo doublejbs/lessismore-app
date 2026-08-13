@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import StarRatingView from '@/components/camp-site/StarRatingView';
 import { CommentUpdateRequest } from '@/model/reply/Comment';
-import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import useKeyboard from '@/hooks/useKeyboard';
 import app from '@/model/app/App';
 
@@ -22,6 +22,8 @@ import app from '@/model/app/App';
 const IS_IOS = Platform.OS === 'ios';
 // 고정(비스크롤) 화면 — 자동 인셋을 줄 스크롤 뷰가 없어 네이티브 헤더 높이(44pt)만큼 직접 내린다.
 const NATIVE_HEADER_HEIGHT = 44;
+// RP-7: 액션은 알약이라 모서리가 높이의 절반이다.
+const ACTION_HEIGHT = 52;
 
 interface Props {
   readonly gearId: string;
@@ -147,13 +149,23 @@ const ReplyEditView: FC<Props> = ({
       {!IS_IOS && (
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <TouchableOpacity onPress={handlePressBack} activeOpacity={0.7}>
+            <TouchableOpacity
+              onPress={handlePressBack}
+              activeOpacity={0.7}
+              style={styles.backButton}
+              accessibilityLabel='뒤로'
+              accessibilityRole='button'
+            >
               <Ionicons name='chevron-back' size={24} color={Acg.ink} />
             </TouchableOpacity>
           </View>
         </View>
       )}
       <View style={styles.content}>
+        {/* RP-7: 이전에는 제목이 없어 무엇을 고치는 화면인지 단서가 없었다. */}
+        <PretendardText weight='semibold' style={styles.title}>
+          {isTopLevel ? '리뷰 수정' : '답글 수정'}
+        </PretendardText>
         {isTopLevel && (
           <View style={styles.ratingSection}>
             <PretendardText weight='semibold' style={styles.ratingLabel}>
@@ -194,7 +206,8 @@ const ReplyEditView: FC<Props> = ({
             disabled={!canSubmit}
           >
             {isLoading ? (
-              <ActivityIndicator size='small' color={Acg.paper} />
+              // 라임 면 위라 인디케이터도 잉크다(흰색은 라임 위에서 보이지 않는다).
+              <ActivityIndicator size='small' color={Acg.ink} />
             ) : (
               <PretendardText
                 weight='semibold'
@@ -232,9 +245,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-start',
   },
+  // 아이콘 전용 컨트롤 — HIG 최소 터치 타깃 44×44pt.
+  backButton: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -10,
+  },
   content: {
     flex: 1,
-    padding: AcgLayout.screenH,
+    padding: AcgLayout.screenPadding,
+  },
+  title: {
+    ...AcgType.screenTitle,
+    color: Acg.ink,
+    marginBottom: 24,
   },
   ratingSection: {
     gap: 10,
@@ -244,34 +270,42 @@ const styles = StyleSheet.create({
     ...AcgType.sectionSubtitle,
     color: Acg.textMuted,
   },
-  // 지면 위 각진 종이 면 인풋(ACG) — 회색 채움을 두면 지면과 붙어 입력 영역이 안 보인다.
+  // RP-7: 순백 지면 위 연회색 면 + 모서리 12. 여러 줄 입력이라 `body` 단이고, TextInput은
+  // `PretendardText`를 못 쓰므로 서체를 직접 지정한다(쓰기 시트와 같은 값).
   textInput: {
     flex: 1,
     backgroundColor: Acg.controlFill,
-    padding: 16,
-    ...AcgType.rowSubtitle,
+    borderRadius: AcgRadius.thumb,
+    padding: 14,
+    ...AcgType.body,
+    fontFamily: 'Pretendard-Regular',
     color: Acg.ink,
     minHeight: 200,
   },
   buttonContainer: {
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
     backgroundColor: 'transparent',
   },
+  // Android/Web의 주 액션 — 라임 알약 하나(iOS는 네이티브 바 버튼이라 시스템 문법을 따른다).
   completeButton: {
-    paddingVertical: 16,
+    minHeight: ACTION_HEIGHT,
+    borderRadius: ACTION_HEIGHT / 2,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   completeButtonActive: {
-    backgroundColor: Acg.ink,
+    backgroundColor: Acg.lime,
   },
+  // 비활성은 연회색 면이다 — 라임에 opacity를 얹으면 채도가 빠져 다른 색으로 읽힌다.
   completeButtonDisabled: {
-    backgroundColor: Acg.hairline,
+    backgroundColor: Acg.controlFill,
   },
   completeButtonText: {
-    ...AcgType.rowSubtitle,
+    ...AcgType.control,
   },
+  // 라임 면 위 글자는 잉크다.
   completeButtonTextActive: {
-    color: Acg.paper,
+    color: Acg.ink,
   },
   completeButtonTextDisabled: {
     color: Acg.textMuted,

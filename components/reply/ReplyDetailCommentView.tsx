@@ -1,7 +1,7 @@
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import Comment from '@/model/reply/Comment';
 import dayjs from 'dayjs';
 import { FC, useRef, useState } from 'react';
@@ -73,20 +73,21 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
         <View style={styles.content}>
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <PretendardText
-                weight='bold'
-                style={[styles.name, isMyComment && styles.myName]}
-              >
+              <PretendardText weight='semibold' style={styles.name}>
                 {comment.authorName}
               </PretendardText>
+              {/* RP-7: 내 답글은 메타 줄의 조각으로 밝힌다(라임 글자를 쓰지 않는다). */}
               <PretendardText style={styles.date}>
                 {dayjs(comment.createdAt).format('YYYY. M. D')}
+                {isMyComment ? ' · 내 답글' : ''}
               </PretendardText>
             </View>
             {isMyComment && (
               <TouchableOpacity
-                style={styles.moreButton}
                 onPress={handlePressMore}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                accessibilityRole='button'
+                accessibilityLabel='답글 관리'
               >
                 <Ionicons
                   name='ellipsis-horizontal'
@@ -109,6 +110,10 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
               style={styles.iconWithText}
               onPress={handleLikePress}
               activeOpacity={0.7}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityRole='button'
+              accessibilityLabel={isLiked ? '좋아요 취소' : '좋아요'}
+              accessibilityState={{ selected: isLiked }}
             >
               <Ionicons
                 name={isLiked ? 'heart' : 'heart-outline'}
@@ -121,7 +126,12 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
                 {comment.likeCount}
               </PretendardText>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handlePressReply} activeOpacity={0.7}>
+            <TouchableOpacity
+              onPress={handlePressReply}
+              activeOpacity={0.7}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityRole='button'
+            >
               <PretendardText style={styles.replyButton}>
                 답글달기
               </PretendardText>
@@ -140,10 +150,11 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
 };
 
 const styles = StyleSheet.create({
-  // 원 리뷰와 같은 종이 면이되 좌측을 들여 답글임을 드러낸다(ACG).
+  // RP-7: 원 리뷰와 같은 연회색 면 + 모서리 12이되, 좌측을 들여 답글임을 드러낸다.
   container: {
     flexDirection: 'column',
     backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
     marginLeft: 20,
   },
   content: {
@@ -164,39 +175,19 @@ const styles = StyleSheet.create({
     ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
-  // 내 답글 표시 — 앱의 단 하나뿐인 액센트(라임)를 쓴다.
-  myName: {
-    color: Acg.limeText,
-  },
   date: {
     ...AcgType.meta,
     color: Acg.textMuted,
   },
-  tagsContainer: {
-    flexDirection: 'row',
-    gap: 2,
-    marginTop: 4,
-  },
-  tag: {
-    backgroundColor: Acg.hairline,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  tagText: {
-    ...AcgType.meta,
-    fontWeight: '500',
-    color: Acg.ink,
-  },
-  moreButton: {
-    opacity: 0.3,
-  },
+  // 여러 줄 문단이라 `body`(14/21)다 — 옛 `sectionSubtitle`(15)은 한 줄 부제 단이었다.
   commentText: {
-    ...AcgType.sectionSubtitle,
+    ...AcgType.body,
     color: Acg.ink,
   },
+  // RP-7: @멘션은 색이 아니라 굵기로 가른다(라임을 글자색으로 쓰지 않는다).
   mention: {
-    ...AcgType.sectionSubtitle,
-    color: Acg.limeText,
+    ...AcgType.body,
+    color: Acg.ink,
   },
   replyButton: {
     ...AcgType.control,

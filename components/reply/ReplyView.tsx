@@ -49,16 +49,20 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
           headerBackButtonDisplayMode: 'minimal',
         }}
       />
+      {/* RP-7: 바에는 back만 둔다 — 헤더 타이틀과 콘텐츠 큰 제목이 둘 다 `리뷰`라
+          한 화면에 같은 낱말이 두 번 나왔다(iOS는 이미 headerTitle이 비어 있다). */}
       {!IS_IOS && (
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <TouchableOpacity onPress={handlePressBack} activeOpacity={0.7}>
+            <TouchableOpacity
+              onPress={handlePressBack}
+              activeOpacity={0.7}
+              style={styles.backButton}
+              accessibilityLabel='뒤로'
+              accessibilityRole='button'
+            >
               <Ionicons name='chevron-back' size={24} color={Acg.ink} />
             </TouchableOpacity>
-            <PretendardText weight='semibold' style={styles.titleText}>
-              리뷰
-            </PretendardText>
-            <View style={styles.placeholder} />
           </View>
         </View>
       )}
@@ -74,7 +78,7 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
       >
         <View style={styles.replyHeader}>
           {/* 형광펜 띠를 걷었다(2026-08-11) — 라임은 화면당 하나이고, 그 하나는 눌러야 하는
-              면의 몫이다. */}
+              면의 몫이다. RP-7: 이 화면의 제목이므로 섹션 단(18)이 아니라 화면 제목 단(22)이다. */}
           <PretendardText weight='semibold' style={styles.replyHeaderText}>
             리뷰
           </PretendardText>
@@ -124,40 +128,37 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: 'transparent',
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     width: '100%',
   },
-  titleText: {
-    ...AcgType.sectionTitle,
-    textAlign: 'center',
-    flex: 1,
-    color: Acg.ink,
-  },
-  placeholder: {
-    width: 24,
+  // 아이콘 전용 컨트롤 — HIG 최소 터치 타깃 44×44pt.
+  backButton: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -10,
   },
   scrollContent: {
     flexGrow: 1,
   },
-  // 홈 탭 리스트와 같은 문법 — 행이 각자 종이 면을 갖고 8px 간격으로 놓인다.
+  // 홈 탭 리스트와 같은 문법 — 행이 각자 면을 갖고 8px 간격으로 놓인다.
   content: {
     flex: 1,
     paddingTop: 12,
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
     gap: 8,
   },
   replyHeader: {
     paddingTop: 20,
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
   },
-  // 지면 위 제목이라 본문보다 한 단계 낮은 색이다(장비 상세 섹션 제목과 동일).
   replyHeaderText: {
-    ...AcgType.sectionTitle,
+    ...AcgType.screenTitle,
     color: Acg.ink,
   },
   emptyState: {
@@ -167,8 +168,9 @@ const styles = StyleSheet.create({
     paddingVertical: 80,
     gap: 8,
   },
+  // 빈 상태는 배낭 탭과 같은 문법 — 제목 16 잉크 + 부제 14 뮤트.
   emptyTitle: {
-    ...AcgType.rowSubtitle,
+    ...AcgType.rowTitle,
     color: Acg.ink,
   },
   emptyDesc: {

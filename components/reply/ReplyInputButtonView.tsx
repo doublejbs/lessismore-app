@@ -1,8 +1,8 @@
 import { FC } from 'react';
-import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import Reply from '@/model/reply/Reply';
 
 interface Props {
@@ -19,10 +19,15 @@ const ReplyInputButtonView: FC<Props> = ({ reply }) => {
   return (
     // 화면 맨 아래 바라 홈 인디케이터를 피한다.
     <View style={[styles.container, { paddingBottom: insets.bottom + 12 }]}>
-      <TouchableOpacity style={styles.inputContainer} onPress={handlePress}>
+      <TouchableOpacity
+        style={styles.inputContainer}
+        onPress={handlePress}
+        accessibilityRole='button'
+        accessibilityLabel='리뷰 쓰기'
+      >
         <View style={styles.inputWrapper}>
           <PretendardText style={styles.placeholder}>
-            댓글을 입력해보세요
+            리뷰를 남겨보세요
           </PretendardText>
         </View>
       </TouchableOpacity>
@@ -31,18 +36,20 @@ const ReplyInputButtonView: FC<Props> = ({ reply }) => {
 };
 
 const styles = StyleSheet.create({
-  // 지면 위에 놓인 바라 면을 깔지 않는다 — 흰 띠가 화면 하단을 가로지르면 지형이 끊긴다.
-  // 대신 인풋이 종이 면이 된다(뒤가 지면이면 종이, 뒤가 종이면 지면색 — 앱 공통 규칙).
+  // 지면 위에 놓인 바라 면을 깔지 않는다 — 흰 띠가 화면 하단을 가로지르면 층이 하나 늘어난다.
+  // 대신 입력 유도 칸이 면이 된다.
   container: {
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
     paddingTop: 12,
     backgroundColor: 'transparent',
     width: '100%',
   },
+  // RP-7: 연회색 면 + 모서리 12(앱 공통 입력 면 문법). 높이는 HIG 최소 터치 타깃 44pt.
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
     paddingHorizontal: 16,
     paddingVertical: 12,
     minHeight: 44,
@@ -53,21 +60,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  // 누르는 라벨이라 `control` 단이다. 플랫폼별 임의 줄간(ios 20 / android 22)을 걷었다 —
+  // 줄간은 타입 단이 정한다.
   placeholder: {
-    ...AcgType.rowSubtitle,
+    ...AcgType.control,
     color: Acg.textMuted,
     flex: 1,
-    ...Platform.select({
-      ios: {
-        lineHeight: 20,
-      },
-      android: {
-        lineHeight: 22,
-      },
-    }),
-  },
-  sendIcon: {
-    marginLeft: 8,
   },
 });
 
