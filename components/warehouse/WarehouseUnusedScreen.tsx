@@ -15,6 +15,7 @@ import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import Warehouse from '@/model/warehouse/Warehouse';
+import WarehouseCategoryChipsView from '@/components/warehouse/WarehouseCategoryChipsView';
 import WarehouseGearView from '@/components/warehouse/WarehouseGearView';
 import WarehouseSkeletonView from '@/components/warehouse/WarehouseSkeletonView';
 
@@ -37,9 +38,13 @@ const IOS_EDGES = ['left', 'right', 'bottom'] as const;
  * WH-2-1 `안 쓴 장비` 전용 화면.
  *
  * 창고에서 필터를 켜던 것을 화면으로 분리했다(2026-08-13) — **제목이 무엇이 걸려 있는지를
- * 말해 준다.** 목적이 하나(덜어낼 후보 훑기)라 카테고리 칩·정렬·검색을 두지 않는다.
- * 행은 창고와 같은 `WarehouseGearView`(삭제 스와이프 포함)라, 여기서 지운 장비는 창고에서도
- * 사라진다.
+ * 말해 준다.** 행은 창고와 같은 `WarehouseGearView`(삭제 스와이프 포함)라, 여기서 지운
+ * 장비는 창고에서도 사라진다.
+ *
+ * **1차 카테고리 칩 행을 둔다**(2026-08-13 사용자 결정) — 창고와 공용
+ * `WarehouseCategoryChipsView`이고, 창고에서 보던 카테고리를 `?category=`로 승계해
+ * 선택된 채 열린다. 세분(2차) 칩·정렬·검색은 두지 않는다: 이 화면은 이미 사용률 축으로
+ * 좁혀진 부분집합이라 모수가 작고, 축을 더하면 창고와 같은 화면이 된다.
  */
 const WarehouseUnusedScreen: FC<Props> = ({ warehouse }) => {
   const router = useRouter();
@@ -135,6 +140,14 @@ const WarehouseUnusedScreen: FC<Props> = ({ warehouse }) => {
               </PretendardText>
             </View>
           )}
+          {/* WH-2-1 1차 카테고리 칩 행 — 목록이 0건이어도 계속 낸다(좁혀서 비었을 때
+              넓힐 방법이 화면에 남아 있어야 한다). */}
+          <View style={styles.chipsRow}>
+            <WarehouseCategoryChipsView
+              warehouse={warehouse}
+              analyticsElement='warehouse_unused_filter'
+            />
+          </View>
         </View>
         <View style={styles.contentContainer}>{renderContent()}</View>
       </Layout>
@@ -170,6 +183,10 @@ const styles = StyleSheet.create({
     ...AcgType.screenTitle,
     color: Acg.ink,
     marginLeft: 4,
+  },
+  // 칩 행과 목록 사이 간격 — 창고 필터 영역과 같은 리듬으로 둔다.
+  chipsRow: {
+    marginBottom: 8,
   },
   contentContainer: {
     flex: 1,

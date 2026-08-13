@@ -289,9 +289,13 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
           {!isEmpty && <WarehouseFiltersView warehouse={warehouse} />}
         </View>
         <View style={styles.contentContainer}>{renderGears()}</View>
-        {/* WH-2-1 안 쓴 장비 — 창고가 비었거나 덜어낼 후보가 없으면 내지 않는다. */}
+        {/* WH-2-1 안 쓴 장비 — 창고가 비었거나 덜어낼 후보가 없으면 내지 않는다.
+            지금 보고 있는 카테고리를 함께 넘겨 도착 화면이 같은 범위로 열리게 한다. */}
         {!isEmpty && unusedCount > 0 ? (
-          <WarehouseUnusedButtonView count={unusedCount} />
+          <WarehouseUnusedButtonView
+            count={unusedCount}
+            category={warehouse.getSelectedFilter().getFilter()}
+          />
         ) : null}
       </Layout>
     </GestureHandlerRootView>
