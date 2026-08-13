@@ -109,9 +109,11 @@ const styles = StyleSheet.create({
   rowLast: {
     borderBottomWidth: 0,
   },
+  // 날짜는 왼쪽 정렬(2026-08-13 사용자 지적) — 가운데 정렬이면 글자가 컬럼 안에서
+  // 8pt쯤 밀려 들어가 정렬선(24)에서 떠 보인다. 폭은 아이콘 열 정렬을 위해 고정 유지.
   dateCol: {
     width: 44,
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   dateText: {
     ...AcgType.sectionSubtitle,
