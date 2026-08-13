@@ -38,9 +38,16 @@ const InfoView: FC = () => {
   const nickname = firebase.getNickname();
   const logInAlertManager = app.getLogInAlertManager();
 
-  const handleLogout = async () => {
-    app.getAnalyticsManager()?.logClick('logout');
-    await firebase.logout();
+  // 로그아웃은 되돌리려면 다시 로그인해야 하는 액션이라 확인 알럿을 거친다(AU-4, 2026-08-13).
+  const handleLogout = () => {
+    app.getAlertManager()?.show({
+      message: '로그아웃할까요?',
+      confirmText: '로그아웃',
+      onConfirm: async () => {
+        app.getAnalyticsManager()?.logClick('logout');
+        await firebase.logout();
+      },
+    });
   };
 
   const handleLogin = () => {
