@@ -18,6 +18,7 @@ import CampSiteWeatherTabView from './CampSiteWeatherTabView';
 import useCampSiteDetailTabState from './useCampSiteDetailTabState';
 import CampSiteDetail from '@/model/camp-site/CampSiteDetail';
 import CampSiteDetailTab from '@/model/camp-site/CampSiteDetailTab';
+import CampSiteDetailPresentation from '@/model/camp-site/CampSiteDetailPresentation';
 import BagItem from '@/model/bag/BagItem';
 import {
   getCampSiteTypeLabel,
@@ -28,9 +29,6 @@ interface Props {
   campSiteDetail: CampSiteDetail;
   // 위치로 이동(CS-2) — 지도에서 연 시트에만 있다(공유 딥링크 진입엔 되돌릴 지도가 없어 undefined).
   onMoveToSpot?: (() => void) | undefined;
-  // 오버레이(DST-3)에서 열렸을 때 닫기 동작 — 라우터 대신 오버레이 모달을 닫는다.
-  // 없으면 기존대로 campSiteDetail.close()(router.back)를 쓴다.
-  onClose?: (() => void) | undefined;
   // 배낭 여행지로 설정 동작 오버라이드(DST-3) — 여행지 선택기에서 연 상세는
   // 배낭 리스트를 열지 않고 현재 배낭에 바로 설정한다(= 이 박지로 설정).
   // 저장이 끝날 때까지 CTA가 로딩을 표시하도록 Promise를 반환한다.
@@ -39,6 +37,9 @@ interface Props {
   // 배낭 여행지로 설정 CTA 노출 여부(기본 true). 여행지 허브에서 연 상세는
   // 이미 이 배낭의 여행지라 설정 버튼이 필요 없어 숨긴다(DST-8).
   showSetBag?: boolean | undefined;
+  // 시트(기본)로 떴는지 페이지로 푸시됐는지(CS-3). 페이지는 닫기(X) 대신 뒤로가기 헤더를
+  // 쓰고, iOS 투명 헤더(LG-1)만큼 스크롤 상단 인셋을 자동으로 받는다(DST-8).
+  presentation?: CampSiteDetailPresentation | undefined;
 }
 
 // stickyHeaderIndices는 ScrollView 직계 자식 기준. 상단 블록(0) → 탭 바(1) → 탭 콘텐츠(2)라
@@ -55,11 +56,13 @@ const CTA_CLEARANCE = 96;
 const CampSiteDetailView: FC<Props> = ({
   campSiteDetail,
   onMoveToSpot,
-  onClose,
   onSetBag,
   showSetBag = true,
+  presentation = CampSiteDetailPresentation.Sheet,
 }) => {
   const spot = campSiteDetail.getSpot();
+  // 페이지 진입(DST-8)은 닫기(X)를 그리지 않는다 — 내비 back이 그 역할을 한다.
+  const isPage = presentation === CampSiteDetailPresentation.Page;
   const showBagSheet = campSiteDetail.shouldShowBagSheet();
   // 선택기에서 연 상세의 `배낭 여행지로 설정` 저장 진행 상태(DST-3).
   const [settingBag, setSettingBag] = useState(false);
@@ -78,12 +81,6 @@ const CampSiteDetailView: FC<Props> = ({
     useCampSiteDetailTabState(spot);
 
   const handlePressClose = () => {
-    if (onClose) {
-      onClose();
-
-      return;
-    }
-
     campSiteDetail.close();
   };
 
@@ -153,9 +150,12 @@ const CampSiteDetailView: FC<Props> = ({
             showSetBag ? styles.scrollContentWithCta : undefined
           }
           stickyHeaderIndices={[TAB_BAR_INDEX]}
+          // 페이지는 iOS 투명 헤더(LG-1) 뒤로 콘텐츠가 흐르되 첫 콘텐츠는 시스템이 인셋한다.
+          // 시트는 위에 헤더가 없어 인셋을 받으면 빈 띠만 생긴다(RN 기본값 'never').
+          contentInsetAdjustmentBehavior={isPage ? 'automatic' : 'never'}
           showsVerticalScrollIndicator={false}
         >
-          {/* 상단 블록: 닫기(X)·이름·유형/지역·설명·기능 버튼·대표 사진(CS-3). */}
+          {/* 상단 블록: (시트만)닫기(X)·이름·유형/지역·설명·기능 버튼·대표 사진(CS-3). */}
           <CampSiteDetailHeaderView
             name={spot.name}
             typeLabel={getCampSiteTypeLabel(spot.type)}
@@ -167,7 +167,7 @@ const CampSiteDetailView: FC<Props> = ({
             onPressMoveToSpot={onMoveToSpot ? handlePressMoveToSpot : undefined}
             onPressShare={handlePressShare}
             onPressNaverMap={handlePressNaverMap}
-            onPressClose={handlePressClose}
+            onPressClose={isPage ? undefined : handlePressClose}
           />
 
           {/* 탭 바(index=TAB_BAR_INDEX) — 사진까지 밀어 올려도 상단에 고정돼 탭 전환이 가능하다(CS-3). */}

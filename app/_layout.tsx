@@ -197,6 +197,11 @@ const RootLayout = () => {
               contentStyle: { backgroundColor: '#FFFFFF', bottom: 0 },
             }}
           />
+          {/* 박지 상세 **페이지**(DST-8, 2026-08-13 사용자 결정) — 배낭 상세 > 여행지의
+              `박지 상세 보기` 전용 진입이라 시트가 아니라 **스택 기본 푸시**다(옵션 없음).
+              지도 탭·여행지 선택기의 `/camp-site/{'{id}'}` 시트 진입은 위 그대로 유지한다.
+              헤더는 LG-1대로 화면 컴포넌트(CampSiteDetailPageWrapper)가 지정한다. */}
+          <Stack.Screen name='camp-site-page' />
           {/* 즐겨찾기 리스트 시트(CS-9) — 박지 상세 시트와 동일한 formSheet 얼개.
               기본 40%(sheetInitialDetentIndex: 1)로 뜨고, 위아래로 끌어 20%/100%로 조절한다.
               contentStyle bottom: 0의 이유는 위 camp-site 주석 참고. */}

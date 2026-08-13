@@ -48,9 +48,6 @@ class CampSiteDetail {
   private reviewSummary: CampReviewSummary | null = null;
   private userReviews: CampReview[] = [];
   private myReview: CampReview | null = null;
-  // 상세를 선택기 위 오버레이(DST-3)로 띄울 때, 닫기를 라우터 대신 오버레이 닫기로
-  // 바꾼다. 설정되면 close()가 이 핸들러를 사용한다(로드 실패 Alert의 '확인' 포함).
-  private closeHandler: (() => void) | null = null;
 
   private constructor(
     private readonly router: ImperativeRouter,
@@ -302,19 +299,8 @@ class CampSiteDetail {
     return this.initialized;
   }
 
-  public setCloseHandler(handler: (() => void) | null) {
-    this.closeHandler = handler;
-  }
-
+  // 시트(닫기 X)·페이지(뒤로가기·로드 실패 Alert의 '확인') 모두 이 경로로 화면을 닫는다.
   public close() {
-    // 오버레이(DST-3)에서 열렸으면 라우터가 아니라 오버레이를 닫는다 — router.back은
-    // 선택기의 부모를 pop해버린다.
-    if (this.closeHandler) {
-      this.closeHandler();
-
-      return;
-    }
-
     // 앱이 꺼진 상태에서 공유 딥링크로 상세가 첫 화면으로 열리면 돌아갈 화면이 없어
     // router.back()이 'GO_BACK not handled'로 실패한다 — 이 경우 지도 탭으로 보낸다.
     if (this.router.canGoBack()) {
