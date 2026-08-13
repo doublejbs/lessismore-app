@@ -9,6 +9,7 @@ import Gear from '../gear/Gear';
 import { makeAutoObservable, reaction } from 'mobx';
 import OrderType from '../order/OrderType';
 import WarehouseFilter from '../warehouse/WarehouseFilter';
+import BagTemplateStore from '../store/BagTemplateStore';
 
 class BagEdit {
   private static readonly ORDER_KEY = 'bag';
@@ -20,7 +21,20 @@ class BagEdit {
       app.getBagStore()!,
       WarehouseDispatcher.new(),
       FilterManager.from(),
-      Order.new(BagEdit.ORDER_KEY)
+      Order.new(BagEdit.ORDER_KEY),
+      null
+    );
+  }
+
+  public static fromTemplate(router: ImperativeRouter, id: string) {
+    return new BagEdit(
+      router,
+      id,
+      app.getBagStore()!,
+      WarehouseDispatcher.new(),
+      FilterManager.from(),
+      Order.new(BagEdit.ORDER_KEY),
+      app.getBagTemplateStore()!
     );
   }
 
@@ -38,7 +52,8 @@ class BagEdit {
     private readonly bagStore: BagStore,
     private readonly dispatcher: WarehouseDispatcherType,
     private readonly filterManager: FilterManager,
-    private readonly order: Order
+    private readonly order: Order,
+    private readonly templateStore: BagTemplateStore | null
   ) {
     makeAutoObservable(this);
     this.disposeReaction = reaction(
@@ -59,9 +74,29 @@ class BagEdit {
     } else {
       this.setLoading(true);
       this.order.initialize();
-      const { weight, gears } = await this.bagStore.getBag(this.id, [
-        this.filterManager.getAllFilter(),
-      ]);
+      let gears: Gear[];
+      let weight: number;
+
+      if (this.templateStore) {
+        const data = await this.templateStore.getEditData(this.id);
+
+        if (!data) {
+          this.setLoading(false);
+          this.setInitialized(true);
+
+          return;
+        }
+
+        gears = data.gears;
+        weight = data.template.getWeightGram();
+      } else {
+        const data = await this.bagStore.getBag(this.id, [
+          this.filterManager.getAllFilter(),
+        ]);
+
+        gears = data.gears;
+        weight = +data.weight;
+      }
 
       this.setSelectedGears(gears);
       this.setWeight(+weight);
@@ -98,7 +133,12 @@ class BagEdit {
   }
 
   public async save() {
-    await this.bagStore.save(this.id, [], [], this.selectedGears);
+    if (this.templateStore) {
+      await this.templateStore.updateGears(this.id, this.selectedGears);
+    } else {
+      await this.bagStore.save(this.id, [], [], this.selectedGears);
+    }
+
     this.back();
   }
 
@@ -121,7 +161,11 @@ class BagEdit {
       this.selectedGears.push(gear);
       this.filterManager.addFilterCount(gear.getGroupCategory());
       this.updateWeight();
-      await this.bagStore.save(this.id, [gear], [], this.selectedGears);
+      if (this.templateStore) {
+        await this.templateStore.updateGears(this.id, this.selectedGears);
+      } else {
+        await this.bagStore.save(this.id, [gear], [], this.selectedGears);
+      }
     }
   }
 
@@ -129,7 +173,11 @@ class BagEdit {
     this.selectedGears = this.selectedGears.filter(g => !g.isSame(gear));
     this.filterManager.minusFilterCount(gear.getGroupCategory());
     this.updateWeight();
-    await this.bagStore.save(this.id, [], [gear], this.selectedGears);
+    if (this.templateStore) {
+      await this.templateStore.updateGears(this.id, this.selectedGears);
+    } else {
+      await this.bagStore.save(this.id, [], [gear], this.selectedGears);
+    }
   }
 
   private updateWeight() {

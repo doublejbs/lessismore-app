@@ -13,10 +13,16 @@ const BagAddOptionsScreen = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const select = async (type: 'create' | 'copy') => {
+  const select = async (type: 'create' | 'copy' | 'template') => {
     if (type === 'copy') {
       // 탭으로 돌아가지 않고 다음 시트로 바로 교체 (중간 탭 리로드 노출 방지).
       router.replace('/bag-copy-source');
+
+      return;
+    }
+
+    if (type === 'template') {
+      router.replace('/bag-template-source');
 
       return;
     }
@@ -74,6 +80,27 @@ const BagAddOptionsScreen = () => {
           </PretendardText>
           <PretendardText style={styles.rowSubtitle}>
             이전 배낭을 그대로 가져와요
+          </PretendardText>
+        </View>
+        <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />
+      </TouchableOpacity>
+
+      <View style={styles.divider} />
+
+      <TouchableOpacity
+        style={styles.row}
+        onPress={() => select('template')}
+        activeOpacity={0.7}
+      >
+        <View style={styles.iconTile}>
+          <Ionicons name='bookmark-outline' size={20} color={Color.textPrimary} />
+        </View>
+        <View style={styles.rowTextWrap}>
+          <PretendardText style={styles.rowTitle} weight='semibold'>
+            템플릿으로 만들기
+          </PretendardText>
+          <PretendardText style={styles.rowSubtitle}>
+            저장한 구성으로 시작해요
           </PretendardText>
         </View>
         <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />

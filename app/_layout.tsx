@@ -244,6 +244,19 @@ const RootLayout = () => {
               contentStyle: { backgroundColor: '#FFFFFF', bottom: 0 },
             }}
           />
+          {/* 템플릿 선택 시트(BAG-2) — 배낭 원본 선택과 같은 높이·스크롤 규칙. */}
+          <Stack.Screen
+            name='bag-template-source'
+            options={{
+              headerShown: false,
+              presentation: 'formSheet',
+              sheetAllowedDetents: [0.6, 1],
+              sheetInitialDetentIndex: 0,
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 20,
+              contentStyle: { backgroundColor: '#FFFFFF', bottom: 0 },
+            }}
+          />
           <Stack.Screen
             name='bag-new'
             options={{
