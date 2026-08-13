@@ -22,7 +22,8 @@ interface Props {
  * 회고성 정보다.
  *
  * **누를 수 있는 건 `안 쓴 장비` 하나뿐이다.** 나머지 셋은 다음 행동이 없어 표시로 족하고,
- * 이 지표만 "덜어내기"라는 분명한 다음 걸음이 있어 창고를 그 필터가 걸린 채로 연다.
+ * 이 지표만 "덜어내기"라는 분명한 다음 걸음이 있어 전용 화면(`/warehouse-unused`)을 연다
+ * — 필터가 걸린 창고(`?unusedOnly=1`)로 보내던 것을 옮겼다(2026-08-13, WH-2-1).
  * 그 하나를 라임 숫자가 아니라 **셰브론**으로 알린다(2026-08-11) — 홈의 라임은 일정 면의
  * 주 액션 하나뿐이고, 색으로 누를 수 있음을 말하면 색맹 사용자에게는 신호가 사라진다.
  */
@@ -36,7 +37,7 @@ const HomeRecordSummaryView: FC<Props> = ({ gears, bags }) => {
   }
 
   const handlePressUnused = () => {
-    router.push('/warehouse?unusedOnly=1');
+    router.push('/warehouse-unused');
   };
 
   const renderMetric = (label: string, value: string) => (
@@ -61,7 +62,7 @@ const HomeRecordSummaryView: FC<Props> = ({ gears, bags }) => {
           onPress={handlePressUnused}
           activeOpacity={0.7}
           accessibilityRole='button'
-          accessibilityLabel={`안 쓴 장비 ${summary.unusedCount}개, 창고에서 보기`}
+          accessibilityLabel={`안 쓴 장비 ${summary.unusedCount}개 보기`}
         >
           <View style={styles.metricLabelRow}>
             <PretendardText style={styles.metricLabel}>

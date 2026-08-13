@@ -22,6 +22,7 @@ import WarehouseFiltersView from '@/components/warehouse/WarehouseFiltersView';
 import WarehouseGearView from '@/components/warehouse/WarehouseGearView';
 import useGearAddAction from '@/components/warehouse/useGearAddAction';
 import WarehouseSkeletonView from '@/components/warehouse/WarehouseSkeletonView';
+import WarehouseUnusedButtonView from '@/components/warehouse/WarehouseUnusedButtonView';
 import { josa } from 'josa';
 
 interface Props {
@@ -45,6 +46,8 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
   const gears = warehouse.getGears();
   const isEmpty = warehouse.isEmpty();
   const isLoading = warehouse.isLoading();
+  // WH-2-1 플로팅 버튼 라벨의 개수. 0이면 갈 곳이 없어 버튼 자체를 내지 않는다.
+  const unusedCount = warehouse.getUnusedCount();
   const insets = useSafeAreaInsets();
   const [isSearching, setIsSearching] = useState(false);
 
@@ -82,12 +85,11 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
       return (
         <View style={styles.emptyContainer}>
           <PretendardText style={styles.emptyText}>
-            {/* 필터가 걸려 0건인 경우를 구분한다 — 전체가 빈 것(위 분기)과 원인이 다르다. */}
-            {warehouse.isUnusedOnly()
-              ? '안 쓴 장비가 없어요'
-              : warehouse.getQuery().trim()
-                ? '검색 결과가 없어요'
-                : `${josa(`${selectedFilter.getName()}#{가}`)} 없어요`}
+            {/* 필터가 걸려 0건인 경우를 구분한다 — 전체가 빈 것(위 분기)과 원인이 다르다.
+                `안 쓴 장비` 0건은 이 화면의 경우가 아니다 — 전용 화면(WH-2-1)이 낸다. */}
+            {warehouse.getQuery().trim()
+              ? '검색 결과가 없어요'
+              : `${josa(`${selectedFilter.getName()}#{가}`)} 없어요`}
           </PretendardText>
         </View>
       );
@@ -116,8 +118,8 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
       >
         {renderGearItems()}
         <View
-          // 플로팅 `장비 추가` 버튼에 마지막 행이 가리지 않게 한다. 하단 세이프에어리어는
-          // Layout이 이미 넣으므로 여기서 다시 더하지 않는다(탭 루트일 때와 달라진 점).
+          // 플로팅 `안 쓴 장비` 버튼(WH-2-1)에 마지막 행이 가리지 않게 한다. 하단
+          // 세이프에어리어는 Layout이 이미 넣으므로 여기서 다시 더하지 않는다.
           style={styles.listBottomSpace}
         />
       </ScrollView>
@@ -287,6 +289,10 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
           {!isEmpty && <WarehouseFiltersView warehouse={warehouse} />}
         </View>
         <View style={styles.contentContainer}>{renderGears()}</View>
+        {/* WH-2-1 안 쓴 장비 — 창고가 비었거나 덜어낼 후보가 없으면 내지 않는다. */}
+        {!isEmpty && unusedCount > 0 ? (
+          <WarehouseUnusedButtonView count={unusedCount} />
+        ) : null}
       </Layout>
     </GestureHandlerRootView>
   );

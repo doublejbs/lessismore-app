@@ -39,7 +39,8 @@ app/(tabs)/index.tsx → HomeWrapper → HomeView
                                        ├─ HomeWarehousePreviewView (HM-4 창고 미리보기)
                                        └─ HomeRecordSummaryView    (HM-7 내 기록)
 
-app/warehouse/index.tsx → WarehouseWrapper(showBack, initialCategory) → WarehouseScreen
+app/warehouse/index.tsx → WarehouseWrapper(initialCategory) → WarehouseScreen
+app/warehouse-unused/index.tsx → WarehouseUnusedWrapper → WarehouseUnusedScreen  (HM-7 `안 쓴 장비` 진입)
 ```
 
 ### 탭 배치 — **A안 확정 (HM-0, 2026-07-31)**
@@ -174,7 +175,8 @@ app/warehouse/index.tsx → WarehouseWrapper(showBack, initialCategory) → Ware
   - `여행` — 배낭 수
   - `안 쓴 장비` — 사용률 0%인 장비 수([Warehouse.md](Warehouse.md) WH-2-1과 같은 판정)
 - 숫자는 콘덴스드로 세우고 라벨은 보조 톤에 둔다(앱 공통 수치 문법). 네 지표는 연회색 면 하나 안에 2×2로 놓는다.
-- **`안 쓴 장비`를 누르면 창고를 그 필터가 걸린 채로 연다**(WH-2-1). 나머지 셋은 표시 전용이다 — 이 지표만 다음 행동(덜어내기)이 분명하다.
+- **`안 쓴 장비`를 누르면 안 쓴 장비 화면(`/warehouse-unused`)을 연다**([Warehouse.md](Warehouse.md) WH-2-1). 나머지 셋은 표시 전용이다 — 이 지표만 다음 행동(덜어내기)이 분명하다.
+  - 2026-08-13 이전에는 `/warehouse?unusedOnly=1`(필터가 걸린 채 열리는 창고)이었다. 창고에서 그 토글 칩이 없어지면서 필터가 걸린 것도, 그것을 끄는 방법도 화면에 드러나지 않게 돼 전용 화면으로 도착지를 옮겼다.
   - 누를 수 있음은 **라벨 옆 셰브론**으로 알린다(2026-08-11, 이전에는 라임 숫자). 색으로만 말하면 색맹 사용자에게 신호가 사라지고, 화면당 라임 하나 원칙과도 어긋난다.
 - 새 데이터를 만들지 않는다. 네 값 모두 `GearStore`·`BagStore`가 이미 읽은 데이터에서 파생한다(Firestore 추가 조회 0회).
 - 창고가 비어 있고 배낭도 없으면 섹션을 렌더하지 않는다(§1 "빈 카드는 그리지 않는다").

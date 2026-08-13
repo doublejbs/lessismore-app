@@ -104,6 +104,7 @@
 | `click_gear_item` | 장비 행 클릭 (장비 상세 진입) | `from`: `warehouse` \| `bag_detail` \| `search` |
 | `click_warehouse_filter` | 창고 카테고리 필터 (WH-2) | `category`: 필터 값 |
 | `click_warehouse_sort` | 창고 정렬 변경 (WH-3) | `order`: 정렬 값 |
+| `click_warehouse_unused` | 창고 하단 `안 쓴 장비` 플로팅 버튼 → 전용 화면 (WH-2-1, 2026-08-13) | `from`: `warehouse` |
 | `click_gear_delete` | 장비 삭제 확정 (WH-5 / GE-5) | `from`: `warehouse` \| `edit` |
 | `click_gear_edit` | 장비 상세 `수정하기` (WH-4) | — |
 | `click_gear_save` | 장비 등록/편집 저장 (GE-3/GE-4) | `mode`: `create` \| `edit` |
