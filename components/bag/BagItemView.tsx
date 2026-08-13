@@ -31,6 +31,7 @@ import {
 import {
   BAG_CARD_MAP_LEVEL,
   buildStaticMapUrl,
+  STATIC_MAP_REFERER,
 } from '@/model/map/StaticMapUrl';
 
 // 삭제 스와이프 액션 배경 — 파괴적 액션 시맨틱 색(DesignTokens 예외, CLAUDE.md 참고).
@@ -227,7 +228,8 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
           */}
           {showMapBand ? (
             <Image
-              source={{ uri: mapUrl }}
+              // Referer가 없으면 401(NCP 등록 도메인 검사) — StaticMapUrl.ts 참고.
+              source={{ uri: mapUrl, headers: { Referer: STATIC_MAP_REFERER } }}
               style={styles.mapBand}
               contentFit='cover'
               cachePolicy='memory-disk'
