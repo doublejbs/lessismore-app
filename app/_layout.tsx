@@ -19,6 +19,7 @@ import { observer } from 'mobx-react-lite';
 import ForceUpdateGateView from '@/components/app-update/ForceUpdateGateView';
 import AnnouncementSheetView from '@/components/announcement/AnnouncementSheetView';
 import FeaturePopupSheetView from '@/components/feature-popup/FeaturePopupSheetView';
+import { Acg } from '@/constants/DesignTokens';
 
 // 네이티브 스플래시를 폰트 로드 후 직접 내려, 초기화(Firebase) 동안 React 스플래시
 // (SplashLoadingView — 하단 team magma 로고)가 보이게 한다. 자동 숨김을 막아둔다.
@@ -161,7 +162,7 @@ const RootLayout = () => {
               sheetAllowedDetents: 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
-              contentStyle: { backgroundColor: '#FFFFFF' },
+              contentStyle: { backgroundColor: Acg.paper },
             }}
           />
           <Stack.Screen
@@ -172,7 +173,7 @@ const RootLayout = () => {
               sheetAllowedDetents: 'fitToContents',
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
-              contentStyle: { backgroundColor: '#FFFFFF' },
+              contentStyle: { backgroundColor: Acg.paper },
             }}
           />
           <Stack.Screen
@@ -265,6 +266,29 @@ const RootLayout = () => {
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
               contentStyle: { backgroundColor: '#FFFFFF' },
+            }}
+          />
+          <Stack.Screen
+            name='bag-template-save'
+            options={{
+              headerShown: false,
+              presentation: 'formSheet',
+              sheetAllowedDetents: 'fitToContents',
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 20,
+              contentStyle: { backgroundColor: Acg.paper },
+            }}
+          />
+          <Stack.Screen
+            name='bag-template-create'
+            options={{
+              headerShown: false,
+              presentation: 'formSheet',
+              sheetAllowedDetents:
+                Platform.OS === 'android' ? [0.76] : 'fitToContents',
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 20,
+              contentStyle: { backgroundColor: Acg.paper },
             }}
           />
           <Stack.Screen
