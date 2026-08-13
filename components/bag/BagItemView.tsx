@@ -28,6 +28,7 @@ import {
   AcgRow,
   AcgType,
 } from '@/constants/DesignTokens';
+import SpotPinView from '@/components/camp-site/SpotPinView';
 import {
   BAG_CARD_MAP_LEVEL,
   buildStaticMapUrl,
@@ -139,6 +140,9 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
       widthPx: cardWidth,
       heightPx: MAP_BAND_HEIGHT,
       level: BAG_CARD_MAP_LEVEL,
+      // 마커는 이미지에 싣지 않는다 — NCP 기본 핀은 앱 마커와 다르고 커스텀 아이콘
+      // 파라미터는 렌더되지 않는다(2026-08-13 실측). 앱 핀(SpotPinView)을 위에 얹는다.
+      withMarker: false,
     });
   }, [location, cardWidth]);
 
@@ -227,16 +231,22 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
             `expo-image`의 기기 캐시만 쓴다.
           */}
           {showMapBand ? (
-            <Image
-              // Referer가 없으면 401(NCP 등록 도메인 검사) — StaticMapUrl.ts 참고.
-              source={{ uri: mapUrl, headers: { Referer: STATIC_MAP_REFERER } }}
-              style={styles.mapBand}
-              contentFit='cover'
-              cachePolicy='memory-disk'
-              transition={160}
-              onError={handleMapError}
-              accessible={false}
-            />
+            <View style={styles.mapBand}>
+              <Image
+                // Referer가 없으면 401(NCP 등록 도메인 검사) — StaticMapUrl.ts 참고.
+                source={{ uri: mapUrl, headers: { Referer: STATIC_MAP_REFERER } }}
+                style={StyleSheet.absoluteFill}
+                contentFit='cover'
+                cachePolicy='memory-disk'
+                transition={160}
+                onError={handleMapError}
+                accessible={false}
+              />
+              {/* 앱 공통 박지 핀 — 끝점이 여행지 좌표(이미지 중심)에 닿게 앵커한다. */}
+              <View style={styles.pinOverlay} pointerEvents='none'>
+                <SpotPinView />
+              </View>
+            </View>
           ) : null}
 
           <View style={styles.body}>
@@ -295,6 +305,14 @@ const styles = StyleSheet.create({
   mapBand: {
     width: '100%',
     height: MAP_BAND_HEIGHT,
+  },
+  // 핀 폭 30·높이 40 — 끝점(하단 중앙)이 밴드 중심에 오도록 절반 폭/전체 높이만큼 당긴다.
+  pinOverlay: {
+    position: 'absolute',
+    left: '50%',
+    top: '50%',
+    marginLeft: -15,
+    marginTop: -40,
   },
   // 본문 치수는 목록 공통 토큰(AcgRow)을 그대로 쓴다 — 밴드가 없는 카드도 44pt를 넘긴다.
   body: {

@@ -1,8 +1,8 @@
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Svg, { Circle, Path } from 'react-native-svg';
 import { NaverMapMarkerOverlay } from '@mj-studio/react-native-naver-map';
 import { Acg } from '@/constants/DesignTokens';
+import SpotPinView from '@/components/camp-site/SpotPinView';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import { getCampSiteTypeColor } from '@/model/camp-site/CampSiteLabels';
 
@@ -73,16 +73,7 @@ const CampSiteMarkerView = memo<Props>(({ spot, selected, onTapSpot }) => {
             액센트이고, 그 박지의 유형은 바로 아래 시트가 배지로 말한다.
             시선 유도 펄스·카메라 포커스는 지도 화면이 담당한다. */}
         {selected ? (
-          <Svg width={PIN_WIDTH} height={PIN_HEIGHT} viewBox='0 0 30 40'>
-            <Path
-              d='M15 39 C15 39 28 23.5 28 14 A13 13 0 1 0 2 14 C2 23.5 15 39 15 39 Z'
-              fill={Acg.lime}
-              stroke={Acg.ink}
-              strokeWidth={1.6}
-              strokeLinejoin='round'
-            />
-            <Circle cx={15} cy={14} r={4.6} fill={Acg.ink} />
-          </Svg>
+          <SpotPinView width={PIN_WIDTH} />
         ) : (
           <View
             style={[
