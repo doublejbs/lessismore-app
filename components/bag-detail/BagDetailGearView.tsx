@@ -133,6 +133,14 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divided = false }) => {
           />
 
           <View style={[styles.rowText, { opacity: bodyOpacity }]}>
+            {/* 브랜드는 이름 위 보조 줄이다(2026-08-13 사용자 결정, BD-1) — 탐색 셀
+                (브랜드 → 제품명 → 무게)과 같은 순서로, 메타 줄에서 이 줄로 올렸다. */}
+            {gear.getDisplayCompany() ? (
+              <PretendardText style={styles.company} numberOfLines={1}>
+                {gear.getDisplayCompany()}
+              </PretendardText>
+            ) : null}
+
             <PretendardText
               style={styles.name}
               weight='medium'
@@ -142,7 +150,7 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divided = false }) => {
             </PretendardText>
 
             {/*
-              레퍼런스 목록 문법 — 값을 한 줄에 `·`로 묶는다: 무게 · 브랜드 · 색상 · 사용률.
+              레퍼런스 목록 문법 — 값을 한 줄에 `·`로 묶는다: 무게 · 색상 · 사용률.
               무게가 맨 앞이라 행마다 같은 자리에서 비교되고, 숫자만 중첩 Text로 콘덴스드다.
               값이 없는 조각은 붙이지 않는다(빈 텍스트를 두면 `·`만 남는다).
               사용률도 배지 면을 걷고 이 줄의 조각으로 넣는다 — 면 없이 헤어라인으로만 가르는
@@ -153,7 +161,6 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divided = false }) => {
                 {`${gear.getWeight()}g`}
               </AcgDisplayText>
               {[
-                gear.getDisplayCompany(),
                 gear.getDisplayColor(),
                 gear.hasUsedRate() ? `사용률 ${gear.getUsedRate()}%` : '',
               ]
@@ -206,6 +213,11 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     gap: 2,
+  },
+  // 브랜드 — 이름 위 보조 줄(탐색 셀과 같은 층). 이름보다 물러나야 해서 메타 단·뮤트다.
+  company: {
+    ...AcgType.meta,
+    color: Acg.textMuted,
   },
   name: {
     ...AcgType.rowTitle,
