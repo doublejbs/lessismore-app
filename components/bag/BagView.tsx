@@ -292,8 +292,11 @@ const styles = StyleSheet.create({
   // 좌: 개수 텍스트 / 우: 정렬 드롭다운 (창고 컨트롤 행과 같은 문법, BAG-6)
   // gap은 좁은 화면에서 텍스트가 접혔을 때 드롭다운과 맞닿지 않게 한다.
   headerContainer: {
-    paddingTop: 12,
-    paddingBottom: 16,
+    // OrderButtonView의 실제 콘텐츠 높이(아이콘 24 + 세로 패딩 16)를 확보해
+    // 정렬 버튼이 없는 세그먼트에서도 제목·칩의 시작 위치가 움직이지 않는다(BT-2).
+    minHeight: 40,
+    marginTop: 12,
+    marginBottom: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

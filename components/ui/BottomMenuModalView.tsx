@@ -76,7 +76,9 @@ const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
             styles.modalContent,
             {
               transform: [{ translateY: slideAnim }],
-              paddingBottom: Math.max(insets.bottom, 20),
+              // 닫기 버튼의 최소 여백은 closeSection이 맡고, 여기서는 세이프에어리어만
+              // 더한다. `max(..., 20)`으로 최소 패딩까지 중복하지 않는다.
+              paddingBottom: insets.bottom,
             },
           ]}
         >
@@ -155,7 +157,8 @@ const styles = StyleSheet.create({
   },
   closeSection: {
     paddingHorizontal: 20,
-    paddingVertical: 8,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   closeButton: {
     width: '100%',
