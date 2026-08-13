@@ -18,7 +18,6 @@ import { getPhaseLabel } from '@/model/bag/TripPhaseHelper';
 import BagDestinationMapPreviewView from './BagDestinationMapPreviewView';
 import BagDestinationInfoView from './BagDestinationInfoView';
 import BagTripWeatherView from '@/components/weather/BagTripWeatherView';
-import CampSiteDetailOverlayView from '@/components/camp-site/CampSiteDetailOverlayView';
 import useBagDestinationHubState from './useBagDestinationHubState';
 
 interface Props {
@@ -45,11 +44,9 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
   const {
     location,
     linkedSpot,
-    detailSpotId,
     isMapSupported,
     handleOpenPicker,
     handleOpenSpotDetail,
-    handleCloseSpotDetail,
     handleOpenDirections,
   } = useBagDestinationHubState({ bagWeather });
 
@@ -151,14 +148,6 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
           <BagTripWeatherView bagWeather={bagWeather} />
         </ScrollView>
       )}
-
-      {/* 박지 상세(CS-3)를 풀 시트로 겹쳐 띄운다. 이미 이 배낭의 여행지라
-          '배낭 여행지로 설정' CTA는 숨긴다(DST-8). */}
-      <CampSiteDetailOverlayView
-        spotId={detailSpotId}
-        onClose={handleCloseSpotDetail}
-        showSetBag={false}
-      />
     </SafeAreaView>
   );
 };

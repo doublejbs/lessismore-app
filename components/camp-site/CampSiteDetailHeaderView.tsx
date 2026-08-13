@@ -23,7 +23,8 @@ interface Props {
   onPressMoveToSpot?: (() => void) | undefined;
   onPressShare: () => void;
   onPressNaverMap: () => void;
-  onPressClose: () => void;
+  // 닫기(X) — 시트 진입에만 있다. 페이지 진입(DST-8)은 내비 back이 대신하므로 undefined다.
+  onPressClose?: (() => void) | undefined;
 }
 
 interface FeatureButtonProps {
@@ -76,10 +77,11 @@ const CampSiteDetailHeaderView: FC<Props> = ({
 }) => {
   return (
     <View style={styles.header}>
-      {/* 상세는 지도 위 바텀 시트(CS-2)라 뒤로 가기가 아니라 우상단 닫기(X)만 둔다.
+      {/* 상세가 지도 위 바텀 시트(CS-2)일 때는 뒤로 가기가 아니라 우상단 닫기(X)만 둔다.
           제목과 **같은 줄**에 둔다 — 즐겨찾기 시트와 형태를 맞춘다(2026-08-04 사용자 지적).
-          닫기만 있는 줄을 따로 두면 시트 상단에 빈 띠가 생기기도 했다. */}
-      <View style={styles.titleRow}>
+          닫기만 있는 줄을 따로 두면 시트 상단에 빈 띠가 생기기도 했다.
+          페이지 진입(DST-8)은 닫기가 없어 제목이 줄을 온전히 쓴다. */}
+      <View style={[styles.titleRow, !onPressClose && styles.titleRowNoClose]}>
         <PretendardText
           style={styles.name}
           weight='bold'
@@ -88,14 +90,16 @@ const CampSiteDetailHeaderView: FC<Props> = ({
         >
           {name}
         </PretendardText>
-        <TouchableOpacity
-          onPress={onPressClose}
-          style={styles.closeButton}
-          accessibilityLabel='닫기'
-          accessibilityRole='button'
-        >
-          <Ionicons name='close' size={24} color={Acg.ink} />
-        </TouchableOpacity>
+        {onPressClose ? (
+          <TouchableOpacity
+            onPress={onPressClose}
+            style={styles.closeButton}
+            accessibilityLabel='닫기'
+            accessibilityRole='button'
+          >
+            <Ionicons name='close' size={24} color={Acg.ink} />
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       {/* 유형·지역을 `·`로 이어 붙인 메타 한 줄 — 배지를 걷었다(목록 행과 같은 규칙). */}
@@ -173,6 +177,10 @@ const styles = StyleSheet.create({
     gap: 8,
     // 아이콘의 시각 중심을 화면 여백에 맞추려 컨테이너를 바깥으로 당긴다.
     marginRight: -10,
+  },
+  // 닫기(X)가 없는 페이지 진입에서는 당길 아이콘이 없어 여백을 되돌린다.
+  titleRowNoClose: {
+    marginRight: 0,
   },
   closeButton: {
     width: 44,

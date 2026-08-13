@@ -18,8 +18,6 @@ const useBagDestinationHubState = ({ bagWeather }: Params) => {
   const campSpotId = location?.campSpotId ?? null;
 
   const router = useRouter();
-  // 상세 오버레이로 띄울 박지 id. null이면 닫힘(DST-8).
-  const [detailSpotId, setDetailSpotId] = useState<string | null>(null);
   // 연결 박지 스냅샷(유형색·유형·지역·상세 이동 가능 여부). null이면 자유 위치이거나 조회 불가 상태다.
   const [linkedSpot, setLinkedSpot] = useState<CampSpot | null>(null);
 
@@ -77,19 +75,16 @@ const useBagDestinationHubState = ({ bagWeather }: Params) => {
     router.push('/bag-destination-picker');
   }, [handleConfirmLocation, location, router]);
 
-  // 박지 상세(CS-3)를 오버레이(pageSheet)로 풀로 띄운다(DST-8). 허브는 라우트라
-  // /camp-site/{id} push도 되지만, detent가 아닌 풀 시트 + CTA 숨김을 위해 오버레이를 쓴다.
+  // 박지 상세(CS-3)를 **페이지로 푸시**한다(DST-8, 2026-08-13 사용자 결정) — 허브 뒤에는
+  // 되돌릴 지도가 없어 시트/오버레이로 덮을 이유가 없다. 지도 탭·선택기는 시트 진입을 유지하므로
+  // 시트 라우트(/camp-site/{id})가 아니라 페이지 전용 라우트를 쓴다.
   const handleOpenSpotDetail = useCallback(() => {
     if (!campSpotId) {
       return;
     }
 
-    setDetailSpotId(campSpotId);
-  }, [campSpotId]);
-
-  const handleCloseSpotDetail = useCallback(() => {
-    setDetailSpotId(null);
-  }, []);
+    router.push(`/camp-site-page/${campSpotId}`);
+  }, [campSpotId, router]);
 
   // 길찾기(DST-8): 네이버 지도 앱(nmap://place) → 실패 시 웹 검색 폴백. 좌표만 있으면 박지·자유 위치 모두 동작.
   // CampSiteDetail.openNaverMap과 동일한 패턴(임포트하지 않고 복제).
@@ -119,11 +114,9 @@ const useBagDestinationHubState = ({ bagWeather }: Params) => {
     location,
     campSpotId,
     linkedSpot,
-    detailSpotId,
     isMapSupported: Platform.OS !== 'web',
     handleOpenPicker,
     handleOpenSpotDetail,
-    handleCloseSpotDetail,
     handleOpenDirections,
   };
 };
