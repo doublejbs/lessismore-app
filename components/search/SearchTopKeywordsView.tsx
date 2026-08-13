@@ -363,8 +363,10 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.controlFill,
   },
   /**
-   * 순위는 배지 원이 아니라 **숫자 그 자체**다. 상위 3위만 잉크 채움 원으로 세운다 —
+   * 순위는 배지 원이 아니라 **숫자 그 자체**다. 상위 3위만 채움 원으로 세운다 —
    * 4위 이하까지 원을 두면 원이 목록의 리듬을 만들어 이름보다 먼저 읽힌다.
+   * 채움은 라임(2026-08-13 사용자 결정, SR-4) — "라임은 화면당 하나" 규칙의 명시적 예외로,
+   * 이 화면의 정체가 순위라 1·2·3이 곧 화면의 주인공이다. 숫자는 잉크(라임 위 글자 규칙).
    */
   rankBadge: {
     width: 28,
@@ -375,14 +377,14 @@ const styles = StyleSheet.create({
   },
   rankBadgeTop3: {
     borderRadius: 14,
-    backgroundColor: Acg.ink,
+    backgroundColor: Acg.lime,
   },
   rankNumber: {
     ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
   rankNumberTop3: {
-    color: Acg.paper,
+    color: Acg.ink,
   },
   gearInfo: {
     flex: 1,
