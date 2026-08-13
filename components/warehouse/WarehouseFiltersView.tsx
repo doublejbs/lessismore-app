@@ -186,10 +186,11 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
         <View style={styles.usageRow}>
           {/* 켜짐은 카테고리 칩과 같은 잉크 채움으로 낸다 — 2차 칩 기본 톤(연회색 채움)은
               켠 건지 아닌지 한눈에 안 갈렸다. 크기는 2차 그대로 둬 카테고리와 축을 구분한다. */}
+          {/* 기본 톤(연회색 채움) — acgSolid는 지도 위 전용(흰 면 + 그림자, CS-2)이라
+              순백 지면인 이 화면에 쓰면 칩이 지면과 붙고 그림자만 남는다(HM-8). */}
           <CategoryChipView
             label={`안 쓴 장비 ${unusedCount}`}
             variant='secondary'
-            tone='acgSolid'
             selected={unusedOnly}
             onPress={handleToggleUnused}
             accessibilityLabel={`안 쓴 장비만 보기, ${unusedCount}개`}
