@@ -75,7 +75,8 @@ const BagTripWeatherView: FC<Props> = ({ bagWeather }) => {
         </View>
         {summary && (
           <PretendardText style={styles.summaryText} weight='medium'>
-            {summary.cond} · ↑{summary.high}° ↓{summary.low}°
+            {/* 최저 → 최고 — 일간 행·홈 카드와 같은 순서(최고가 항상 오른쪽, 2026-08-13). */}
+            {summary.cond} · ↓{summary.low}° ↑{summary.high}°
             {summary.maxGust != null &&
               summary.maxGust >= 10 &&
               ` · 돌풍 ${summary.maxGust}m/s`}
