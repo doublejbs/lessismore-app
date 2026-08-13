@@ -6,7 +6,7 @@ import GearFilter from '@/model/gear/GearFilter';
 import app from '@/model/app/App';
 
 interface Props {
-  // 안 쓴 장비 수(WH-2-1). 0이면 갈 곳이 없어 호출측이 렌더하지 않는다.
+  // 안 쓴 장비 수(WH-2-1). 0이어도 버튼은 유지하고 라벨에서 숫자만 뺀다(2026-08-13).
   count: number;
   // 창고에서 보고 있던 1차 카테고리 — 도착 화면이 승계한다(전체면 파라미터를 붙이지 않는다).
   category: GearFilter;
@@ -50,7 +50,7 @@ const WarehouseUnusedButtonView: FC<Props> = ({ count, category }) => {
 
   return (
     <FloatingPillButton
-      label={`안 쓴 장비 ${count}`}
+      label={count > 0 ? `안 쓴 장비 ${count}` : '안 쓴 장비'}
       onPress={handlePress}
       style={styles.position}
     />
