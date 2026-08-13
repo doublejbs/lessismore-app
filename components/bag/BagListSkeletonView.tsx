@@ -7,7 +7,7 @@ import { Acg, AcgRadius, AcgRow, AcgType } from '@/constants/DesignTokens';
  *
  * 예전에는 가운데 스피너 하나였다. 스피너는 화면 정중앙에 뜨는데 실제 목록은 상단 헤더 +
  * 항목 목록이라, 데이터가 오는 순간 **구조가 통째로 바뀌며 덜컥거렸다.**
- * 스켈레톤은 들어올 화면과 같은 골격(헤더 행 + 배낭 카드)을 미리 그려 그 이동을 없앤다.
+ * 스켈레톤은 들어올 화면과 같은 목록 골격(배낭 카드)을 미리 그려 그 이동을 없앤다.
  * 창고(WH-1)·피드가 쓰는 방식과 같다.
  *
  * **카드 골격이다**(2026-08-13, BAG-1 카드 문법). **지도 밴드 자리까지 그린다** — 어떤 배낭에
@@ -78,16 +78,8 @@ const SkeletonCard: FC = () => {
 };
 
 const BagListSkeletonView: FC = () => {
-  const opacity = useBreathingOpacity();
-
   return (
     <View style={styles.container}>
-      {/* `배낭 N개` + 정렬 드롭다운 자리 */}
-      <View style={styles.header}>
-        <Animated.View style={[styles.headerTitleBar, { opacity }]} />
-        <Animated.View style={[styles.headerOrderBar, { opacity }]} />
-      </View>
-
       {[...Array(CARD_COUNT)].map((_unused, index) => (
         <SkeletonCard key={index} />
       ))}
@@ -98,26 +90,6 @@ const BagListSkeletonView: FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 12,
-    paddingBottom: 16,
-  },
-  // 막대 높이는 실제 글자의 줄박스에서 그대로 딴다 — 값이 갈리면 데이터가 오는 순간 행이 튄다.
-  headerTitleBar: {
-    width: 160,
-    height: AcgType.screenTitle.lineHeight,
-    borderRadius: 2,
-    backgroundColor: Acg.controlFill,
-  },
-  headerOrderBar: {
-    width: 84,
-    height: AcgType.control.lineHeight,
-    borderRadius: 2,
-    backgroundColor: Acg.controlFill,
   },
   // 실제 카드와 같은 면·모서리·간격. 헤어라인은 카드 문법에 없다.
   card: {
