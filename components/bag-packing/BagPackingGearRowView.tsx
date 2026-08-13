@@ -23,8 +23,6 @@ interface Props {
 // 체크 배지(24pt)가 차지하는 우측 레인 폭 — GearView 지표 컬럼과의 간격 12 포함.
 const CHECK_BADGE_SIZE = 24;
 const CHECK_BADGE_LANE = CHECK_BADGE_SIZE + 12;
-// 행 좌우 여백 — 다른 목록 행(홈·창고)과 같은 값.
-const ROW_PADDING = 14;
 
 const SPRING_CONFIG = {
   damping: 16,
@@ -94,10 +92,13 @@ const styles = StyleSheet.create({
    * 면을 두지 않는다(2026-08-11 레퍼런스 목록 문법) — 순백 지면에 행이 직접 놓이고 위 행과는
    * 헤어라인으로 갈린다. 우측에는 체크 배지 레인을 비워 배지가 메타 줄과 겹치지 않게 한다.
    */
+  /**
+   * 행 자체 좌우 패딩은 없다(2026-08-13) — 화면 패딩(스크롤 콘텐츠 24) 위에 14를 더 얹어
+   * 행이 섹션 제목보다 38pt에서 시작하던 옛 카드 세대 잔재를 걷었다. 홈·창고 행과 동일.
+   */
   row: {
     width: '100%',
-    paddingLeft: ROW_PADDING,
-    paddingRight: ROW_PADDING + CHECK_BADGE_LANE,
+    paddingRight: CHECK_BADGE_LANE,
   },
   divided: {
     borderTopWidth: 1,
@@ -105,7 +106,7 @@ const styles = StyleSheet.create({
   },
   checkBadge: {
     position: 'absolute',
-    right: ROW_PADDING,
+    right: 0,
     top: 0,
     bottom: 0,
     justifyContent: 'center',
