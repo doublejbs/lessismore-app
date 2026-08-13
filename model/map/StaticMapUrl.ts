@@ -59,6 +59,16 @@ const SCALE = 2;
  */
 export const BAG_CARD_MAP_LEVEL = 13;
 
+/**
+ * 이미지 요청에 반드시 실어야 하는 Referer.
+ *
+ * `raster-cors`는 NCP 콘솔에 등록된 **Web 서비스 URL**을 Referer로 검사한다 — 없으면 401
+ * (2026-08-13 실측: 무헤더 401, `https://lessismore-7e070.web.app/` 200). 네이티브 HTTP
+ * 요청은 Referer를 자동으로 싣지 않으므로 `expo-image`의 `source.headers`로 넣는다.
+ * 웹에서는 브라우저가 페이지 출처를 자동으로 실어 이 값이 무시돼도 같은 도메인이라 통과한다.
+ */
+export const STATIC_MAP_REFERER = 'https://lessismore-7e070.web.app/';
+
 interface StaticMapOptions {
   latitude: number;
   longitude: number;
