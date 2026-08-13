@@ -6,7 +6,7 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { FC, useRef, useEffect } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
@@ -24,8 +24,8 @@ interface Props {
 }
 
 const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(300)).current;
+  const [fadeAnim] = useState(() => new Animated.Value(0));
+  const [slideAnim] = useState(() => new Animated.Value(300));
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -80,7 +80,12 @@ const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
             },
           ]}
         >
-          <View style={styles.menuSection}>
+          <View
+            style={[
+              styles.menuSection,
+              menuItems.length <= 2 && styles.menuSectionFlexible,
+            ]}
+          >
             {menuItems.map((item, index) => (
               <TouchableOpacity
                 key={index}
@@ -129,9 +134,13 @@ const styles = StyleSheet.create({
     minHeight: 229,
   },
   menuSection: {
-    flex: 1,
     paddingHorizontal: 12,
     gap: 8,
+  },
+  // 1·2항목은 기존 시트 높이와 닫기 버튼 위치를 유지하고, 3개부터는
+  // 항목의 실제 높이가 시트 높이에 반영되도록 축소하지 않는다.
+  menuSectionFlexible: {
+    flex: 1,
   },
   menuItem: {
     flexDirection: 'row',

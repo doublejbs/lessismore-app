@@ -1,17 +1,44 @@
-import { FC } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { FC, useEffect, useState } from 'react';
+import { Animated, View, StyleSheet } from 'react-native';
 import { Acg, AcgRow, AcgType } from '@/constants/DesignTokens';
 
+const useBreathingOpacity = () => {
+  const [opacity] = useState(() => new Animated.Value(0.3));
+
+  useEffect(() => {
+    const animate = () => {
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 0.7,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.3,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ]).start(() => animate());
+    };
+
+    animate();
+  }, [opacity]);
+
+  return opacity;
+};
+
 const BagTemplateListSkeletonView: FC = () => {
+  const opacity = useBreathingOpacity();
+
   return (
     <View style={styles.container}>
       {[0, 1, 2, 3].map(index => (
-        <View key={index} style={styles.row}>
+        <View key={index} style={[styles.row, index > 0 && styles.divided]}>
           <View style={styles.body}>
-            <View style={styles.nameBar} />
-            <View style={styles.metaBar} />
+            <Animated.View style={[styles.nameBar, { opacity }]} />
+            <Animated.View style={[styles.metaBar, { opacity }]} />
           </View>
-          <View style={styles.menuBar} />
+          <Animated.View style={[styles.menuBar, { opacity }]} />
         </View>
       ))}
     </View>
@@ -25,8 +52,10 @@ const styles = StyleSheet.create({
   row: {
     minHeight: AcgRow.minHeight,
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: Acg.hairline,
+  },
+  divided: {
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
   },
   body: {
     flex: 1,

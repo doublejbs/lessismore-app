@@ -16,9 +16,10 @@ import {
 interface Props {
   template: BagTemplate;
   onDelete: (template: BagTemplate) => void;
+  divided?: boolean;
 }
 
-const BagTemplateItemView: FC<Props> = ({ template, onDelete }) => {
+const BagTemplateItemView: FC<Props> = ({ template, onDelete, divided = false }) => {
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
 
@@ -40,7 +41,7 @@ const BagTemplateItemView: FC<Props> = ({ template, onDelete }) => {
 
   return (
     <>
-      <View style={styles.row}>
+      <View style={[styles.row, divided && styles.divided]}>
         <TouchableOpacity
           style={styles.body}
           onPress={handlePress}
@@ -87,8 +88,10 @@ const styles = StyleSheet.create({
   row: {
     minHeight: AcgRow.minHeight,
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: Acg.hairline,
+  },
+  divided: {
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
   },
   body: {
     flex: 1,

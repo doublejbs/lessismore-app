@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, Platform } from 'react-native';
+import { Alert, View, ScrollView, StyleSheet, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
@@ -84,6 +84,10 @@ const BagView = () => {
       await loadTemplates();
     } catch (error) {
       console.error('템플릿 삭제 중 오류 발생:', error);
+      Alert.alert(
+        '오류',
+        '템플릿 삭제 중 문제가 발생했습니다. 다시 시도해주세요.'
+      );
     }
   };
 
@@ -102,77 +106,75 @@ const BagView = () => {
     </View>
   );
 
+  const renderHeader = () => (
+    <>
+      <View style={styles.headerContainer}>
+        <PretendardText weight='semibold' style={styles.headerText}>
+          {isTemplateSegment
+            ? templatesLoading
+              ? '템플릿'
+              : `템플릿 ${templates.length}개`
+            : isLoading
+              ? '배낭'
+              : `배낭 ${bags.length}개`}
+        </PretendardText>
+        {!isTemplateSegment && !isLoading && !isEmpty && (
+          <OrderButtonView
+            order={bag.getOrder()}
+            onSelectOption={handleSelectOrder}
+          />
+        )}
+      </View>
+      {renderSegment()}
+    </>
+  );
+
   const renderBagContent = () => {
     switch (true) {
       case isLoading: {
-        return (
-          <>
-            {renderSegment()}
-            <BagListSkeletonView />
-          </>
-        );
+        return <BagListSkeletonView />;
       }
       case isEmpty: {
         return (
-          <>
-            <View style={styles.headerContainer}>
-              <PretendardText weight='semibold' style={styles.headerText}>
-                배낭 {bags.length}개
-              </PretendardText>
-            </View>
-            {renderSegment()}
-            <View style={styles.emptyContainer}>
-              <PretendardText weight='semibold' style={styles.emptyTitle}>
-                아직 만든 배낭이 없어요
-              </PretendardText>
-              <PretendardText style={styles.emptySubtitle}>
-                첫 배낭을 만들면 여기에 쌓여요
-              </PretendardText>
-            </View>
-          </>
+          <View style={styles.emptyContainer}>
+            <PretendardText weight='semibold' style={styles.emptyTitle}>
+              아직 만든 배낭이 없어요
+            </PretendardText>
+            <PretendardText style={styles.emptySubtitle}>
+              첫 배낭을 만들면 여기에 쌓여요
+            </PretendardText>
+          </View>
         );
       }
       default: {
         return (
-          <>
-            <View style={styles.headerContainer}>
-              <PretendardText weight='semibold' style={styles.headerText}>
-                배낭 {bags.length}개
-              </PretendardText>
-              <OrderButtonView
-                order={bag.getOrder()}
-                onSelectOption={handleSelectOrder}
-              />
-            </View>
-            {renderSegment()}
-            <ScrollView
-              style={styles.scrollContainer}
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={false}
-            >
-              {groupBagsByTripSection(bags).map(group => (
-                <View key={group.section} style={styles.section}>
-                  <AcgSectionHeaderView title={group.label} />
-                  {group.bags.map((bagItem: BagItem) => (
-                    <BagItemView
-                      key={bagItem.getID()}
-                      bag={bag}
-                      bagItem={bagItem}
-                    />
-                  ))}
-                </View>
-              ))}
-              <View
-                style={{
-                  minHeight: Platform.select({
-                    ios: insets.bottom + AcgLayout.scrollBottom,
-                    android: AcgLayout.scrollBottom,
-                    default: AcgLayout.scrollBottom,
-                  }),
-                }}
-              />
-            </ScrollView>
-          </>
+          <ScrollView
+            style={styles.scrollContainer}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {groupBagsByTripSection(bags).map(group => (
+              <View key={group.section} style={styles.section}>
+                <AcgSectionHeaderView title={group.label} />
+                {group.bags.map((bagItem: BagItem) => (
+                  <BagItemView
+                    key={bagItem.getID()}
+                    bag={bag}
+                    bagItem={bagItem}
+                  />
+                ))}
+              </View>
+            ))}
+            <View
+              style={{
+                minHeight: Platform.select({
+                  ios: insets.bottom + AcgLayout.scrollBottom,
+                  android: AcgLayout.scrollBottom,
+                  default: AcgLayout.scrollBottom,
+                }),
+              }}
+            />
+          </ScrollView>
         );
       }
     }
@@ -180,66 +182,46 @@ const BagView = () => {
 
   const renderTemplateContent = () => {
     if (templatesLoading) {
-      return (
-        <>
-          {renderSegment()}
-          <BagTemplateListSkeletonView />
-        </>
-      );
+      return <BagTemplateListSkeletonView />;
     }
 
     if (!templates.length) {
       return (
-        <>
-          <View style={styles.headerContainer}>
-            <PretendardText weight='semibold' style={styles.headerText}>
-              템플릿 {templates.length}개
-            </PretendardText>
-          </View>
-          {renderSegment()}
-          <View style={styles.emptyContainer}>
-            <PretendardText weight='semibold' style={styles.emptyTitle}>
-              저장한 템플릿이 없어요
-            </PretendardText>
-            <PretendardText style={styles.emptySubtitle}>
-              배낭 카드의 ⋯ 메뉴에서 템플릿으로 저장할 수 있어요
-            </PretendardText>
-          </View>
-        </>
+        <View style={styles.emptyContainer}>
+          <PretendardText weight='semibold' style={styles.emptyTitle}>
+            저장한 템플릿이 없어요
+          </PretendardText>
+          <PretendardText style={styles.emptySubtitle}>
+            배낭 카드의 ⋯ 메뉴에서 템플릿으로 저장할 수 있어요
+          </PretendardText>
+        </View>
       );
     }
 
     return (
-      <>
-        <View style={styles.headerContainer}>
-          <PretendardText weight='semibold' style={styles.headerText}>
-            템플릿 {templates.length}개
-          </PretendardText>
-        </View>
-        {renderSegment()}
-        <ScrollView
-          style={styles.scrollContainer}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {templates.map(template => (
-            <BagTemplateItemView
-              key={template.getID()}
-              template={template}
-              onDelete={handleDeleteTemplate}
-            />
-          ))}
-          <View
-            style={{
-              minHeight: Platform.select({
-                ios: insets.bottom + AcgLayout.scrollBottom,
-                android: AcgLayout.scrollBottom,
-                default: AcgLayout.scrollBottom,
-              }),
-            }}
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {templates.map((template, index) => (
+          <BagTemplateItemView
+            key={template.getID()}
+            template={template}
+            onDelete={handleDeleteTemplate}
+            divided={index > 0}
           />
-        </ScrollView>
-      </>
+        ))}
+        <View
+          style={{
+            minHeight: Platform.select({
+              ios: insets.bottom + AcgLayout.scrollBottom,
+              android: AcgLayout.scrollBottom,
+              default: AcgLayout.scrollBottom,
+            }),
+          }}
+        />
+      </ScrollView>
     );
   };
 
@@ -254,6 +236,7 @@ const BagView = () => {
          */
         background={<View style={styles.ground} />}
       >
+        {renderHeader()}
         {isTemplateSegment ? renderTemplateContent() : renderBagContent()}
         {/* 로딩 중에는 띄우지 않는다(BAG-1). 탭이 막 마운트된 첫 프레임에는 네이티브 탭바 몫이
             반영되기 전이라 `insets.bottom`이 작게 잡혀 버튼이 **탭바 뒤로 내려간다.**

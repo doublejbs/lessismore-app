@@ -32,9 +32,11 @@ const BagTemplateCreateScreen = () => {
         const value = await app.getBagTemplateStore()!.get(templateId);
 
         if (!value) {
-          Alert.alert('오류', '템플릿을 찾을 수 없습니다.', [
-            { text: '확인', onPress: () => router.back() },
-          ]);
+          if (mounted) {
+            Alert.alert('오류', '템플릿을 찾을 수 없습니다.', [
+              { text: '확인', onPress: () => router.back() },
+            ]);
+          }
 
           return;
         }
@@ -45,9 +47,11 @@ const BagTemplateCreateScreen = () => {
         }
       } catch (error) {
         console.error('템플릿 조회 중 오류 발생:', error);
-        Alert.alert('오류', '템플릿을 불러오지 못했습니다.', [
-          { text: '확인', onPress: () => router.back() },
-        ]);
+        if (mounted) {
+          Alert.alert('오류', '템플릿을 불러오지 못했습니다.', [
+            { text: '확인', onPress: () => router.back() },
+          ]);
+        }
       }
     };
 
