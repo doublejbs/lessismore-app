@@ -96,6 +96,11 @@ export const Acg = {
   paper: '#FFFFFF',
   // 유리 면 채움 — 실제 블러는 `expo-blur`가 담당한다(RN에 backdrop-filter가 없다).
   glassFill: 'rgba(255,255,255,0.5)',
+  /**
+   * 홈 히어로 위 일정 카드 채움(HM-9). `glassFill`(0.5)은 산 무늬가 글자 밑까지 비쳐
+   * 날짜·메타의 대비가 흔들렸다(2026-08-13 QA) — 산이 "은은하게 비치는" 최고 수준으로 올린다.
+   */
+  heroCardFill: 'rgba(255,255,255,0.86)',
   // 유리 광택 — CSS inset 그림자를 RN에서 낼 수 없어 헤어라인 테두리로 근사한다.
   glassStroke: 'rgba(255,255,255,0.9)',
   line: 'rgba(26,26,26,0.24)', // 섹션 경계
@@ -249,6 +254,8 @@ export const AcgLayout = {
    */
   chipGap: 6,
   section: 22,
+  // 홈 상단 히어로 그래픽이 상태바 아래에서 일정 카드 위까지 이어지는 높이.
+  homeHeroHeight: 292,
   // 플로팅 탭바 아래로 콘텐츠가 흐르므로 스크롤 끝에 이만큼 비운다.
   scrollBottom: 130,
 } as const;
