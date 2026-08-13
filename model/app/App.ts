@@ -16,11 +16,13 @@ import AnnouncementManager from '../announcement/AnnouncementManager';
 import ForceUpdateManager from '../app-update/ForceUpdateManager';
 import FeaturePopupManager from '../feature-popup/FeaturePopupManager';
 import GearPreviewStore from '../gear-preview/GearPreviewStore';
+import BagTemplateStore from '../store/BagTemplateStore';
 
 class App {
   private readonly firebase = new Firebase();
   private gearStore: GearStore | null = null;
   private bagStore: BagStore | null = null;
+  private bagTemplateStore: BagTemplateStore | null = null;
   private searchStore: SearchStore | null = null;
   private alertManager: AlertManager | null = null;
   private logInAlertManager: LogInAlertManager | null = null;
@@ -55,6 +57,7 @@ class App {
     await this.firebase.initialize();
     this.gearStore = new GearStore(this.firebase);
     this.setBagStore(new BagStore(this.firebase));
+    this.bagTemplateStore = new BagTemplateStore(this.firebase);
     this.searchStore = new SearchStore(this.firebase);
     this.alertManager = AlertManager.new();
     this.toastManager = ToastManager.new();
@@ -86,6 +89,10 @@ class App {
 
   public getBagStore() {
     return this.bagStore;
+  }
+
+  public getBagTemplateStore() {
+    return this.bagTemplateStore;
   }
 
   public getStore() {
