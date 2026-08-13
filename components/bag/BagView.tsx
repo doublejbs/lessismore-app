@@ -90,12 +90,13 @@ const BagView = () => {
               {groupBagsByTripSection(bags).map(group => (
                 <View key={group.section} style={styles.section}>
                   <AcgSectionHeaderView title={group.label} />
-                  {group.bags.map((bagItem: BagItem, index: number) => (
+                  {/* 카드 문법(BAG-1)이라 항목 사이 헤어라인이 없다 — 카드 사이 간격 12가
+                      그 일을 한다. 선과 면을 함께 쓰면 경계가 두 겹이 된다. */}
+                  {group.bags.map((bagItem: BagItem) => (
                     <BagItemView
                       key={bagItem.getID()}
                       bag={bag}
                       bagItem={bagItem}
-                      divided={index > 0}
                     />
                   ))}
                 </View>
