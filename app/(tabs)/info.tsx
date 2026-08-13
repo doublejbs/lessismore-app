@@ -157,7 +157,7 @@ const InfoView: FC = () => {
             반대로 `로그아웃`은 목록 맨 아래로 내린다(AU-4). */}
         {!isLoggedIn ? (
           <TouchableOpacity
-            style={styles.button}
+            style={[styles.button, styles.buttonFirst]}
             onPress={handleLogin}
             activeOpacity={0.7}
             accessibilityRole='button'
@@ -169,7 +169,7 @@ const InfoView: FC = () => {
         ) : null}
 
         <TouchableOpacity
-          style={styles.button}
+          style={[styles.button, isLoggedIn && styles.buttonFirst]}
           onPress={handleOpenNotificationSettings}
           activeOpacity={0.7}
           accessibilityRole='button'
@@ -373,17 +373,19 @@ const styles = StyleSheet.create({
     ...AcgType.rowTitle,
     textDecorationLine: 'underline',
   },
-  // 종이 면 버튼 — 구분선 대신 면을 띄우고 아래 여백 12px(ACG).
+  // HM-8 목록 문법 — 면 없이 헤어라인으로 가르고, 글자는 화면 패딩 정렬선에 붙는다(AU-4).
   button: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 16,
-    paddingHorizontal: 14,
-    marginBottom: 12,
-    backgroundColor: Acg.paper,
-    boxShadow: '0 1px 0 rgba(26,26,26,0.06)',
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
+  },
+  // 목록의 첫 행에는 헤어라인을 두지 않는다 — 제목 밑줄로 읽힌다(HM-8).
+  buttonFirst: {
+    borderTopWidth: 0,
   },
   buttonText: {
     ...AcgType.rowTitle,
