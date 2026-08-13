@@ -10,7 +10,7 @@ import {
 import { observer } from 'mobx-react-lite';
 import { Stack, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Edge, SafeAreaView } from 'react-native-safe-area-context';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import PretendardText from '@/components/PretendardText';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
@@ -25,6 +25,9 @@ interface Props {
 }
 
 const IS_IOS = Platform.OS === 'ios';
+const SAFE_AREA_EDGES: readonly Edge[] = IS_IOS
+  ? ['left', 'right', 'bottom']
+  : ['top', 'left', 'right', 'bottom'];
 
 const BagTemplateDetailView: FC<Props> = ({ detail }) => {
   useFocusEffect(
@@ -59,7 +62,7 @@ const BagTemplateDetailView: FC<Props> = ({ detail }) => {
       {stackScreen}
       <SafeAreaView
         style={styles.root}
-        {...(IS_IOS ? { edges: ['left', 'right', 'bottom'] as const } : {})}
+        edges={SAFE_AREA_EDGES}
       >
         {!IS_IOS && (
           <View style={styles.header}>
@@ -76,6 +79,9 @@ const BagTemplateDetailView: FC<Props> = ({ detail }) => {
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
+          // iOS 투명 네이티브 헤더 아래로 첫 콘텐츠가 가려지지 않도록 자동 인셋을 적용한다.
+          // Android/Web은 커스텀 헤더가 SafeAreaView 안에서 별도로 공간을 차지한다.
+          contentInsetAdjustmentBehavior='automatic'
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.identity}>
