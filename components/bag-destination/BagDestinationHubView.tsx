@@ -114,7 +114,6 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
           {isMapSupported && (
             <BagDestinationMapPreviewView
               location={location}
-              linkedSpot={linkedSpot}
               onPress={handleOpenPicker}
             />
           )}

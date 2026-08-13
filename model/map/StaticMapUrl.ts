@@ -1,3 +1,5 @@
+import { Acg } from '@/constants/DesignTokens';
+
 /**
  * NCP Static Map 이미지 URL 조립.
  *
@@ -144,7 +146,14 @@ export const buildStaticMapUrl = ({
 
   if (withMarker) {
     // 마커 문법은 `|`로 옵션을 잇고 `pos`는 `경도 위도`(공백 구분)다.
-    params.push(['markers', `type:d|size:mid|pos:${longitude} ${latitude}`]);
+    // 색은 라임(2026-08-13 사용자 결정) — 기본 초록 핀은 앱 팔레트 밖의 색이라 카드에서 튄다.
+    // NCP는 `0xRRGGBB` 표기를 받으므로 토큰(#RRGGBB)에서 파생한다.
+    const markerColor = `0x${Acg.lime.slice(1)}`;
+
+    params.push([
+      'markers',
+      `type:d|size:mid|color:${markerColor}|pos:${longitude} ${latitude}`,
+    ]);
   }
 
   /**
