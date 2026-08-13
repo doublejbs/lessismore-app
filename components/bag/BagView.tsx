@@ -105,7 +105,12 @@ const BagView = () => {
   const renderBagContent = () => {
     switch (true) {
       case isLoading: {
-        return <BagListSkeletonView />;
+        return (
+          <>
+            {renderSegment()}
+            <BagListSkeletonView />
+          </>
+        );
       }
       case isEmpty: {
         return (
@@ -115,6 +120,7 @@ const BagView = () => {
                 배낭 {bags.length}개
               </PretendardText>
             </View>
+            {renderSegment()}
             <View style={styles.emptyContainer}>
               <PretendardText weight='semibold' style={styles.emptyTitle}>
                 아직 만든 배낭이 없어요
@@ -138,6 +144,7 @@ const BagView = () => {
                 onSelectOption={handleSelectOrder}
               />
             </View>
+            {renderSegment()}
             <ScrollView
               style={styles.scrollContainer}
               contentContainerStyle={styles.scrollContent}
@@ -173,7 +180,12 @@ const BagView = () => {
 
   const renderTemplateContent = () => {
     if (templatesLoading) {
-      return <BagTemplateListSkeletonView />;
+      return (
+        <>
+          {renderSegment()}
+          <BagTemplateListSkeletonView />
+        </>
+      );
     }
 
     if (!templates.length) {
@@ -184,6 +196,7 @@ const BagView = () => {
               템플릿 {templates.length}개
             </PretendardText>
           </View>
+          {renderSegment()}
           <View style={styles.emptyContainer}>
             <PretendardText weight='semibold' style={styles.emptyTitle}>
               저장한 템플릿이 없어요
@@ -203,6 +216,7 @@ const BagView = () => {
             템플릿 {templates.length}개
           </PretendardText>
         </View>
+        {renderSegment()}
         <ScrollView
           style={styles.scrollContainer}
           contentContainerStyle={styles.scrollContent}
@@ -240,7 +254,6 @@ const BagView = () => {
          */
         background={<View style={styles.ground} />}
       >
-        {renderSegment()}
         {isTemplateSegment ? renderTemplateContent() : renderBagContent()}
         {/* 로딩 중에는 띄우지 않는다(BAG-1). 탭이 막 마운트된 첫 프레임에는 네이티브 탭바 몫이
             반영되기 전이라 `insets.bottom`이 작게 잡혀 버튼이 **탭바 뒤로 내려간다.**
