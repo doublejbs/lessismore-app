@@ -65,6 +65,7 @@
 | --- | --- | --- |
 | `users/{uid}` | 사용자 문서 (약관 동의, 닉네임, 보유 배낭 ID) | `Firebase.ts` |
 | `users/{uid}/gears/{gearId}` | 사용자 창고의 장비 | `GearStore` |
+| `users/{uid}/bagTemplates/{templateId}` | 배낭 템플릿 — 날짜 없는 재사용 장비 구성 (DM-26) `[제안]` | 배낭 템플릿 ([BagTemplate.md](BagTemplate.md)) |
 | `gear/{gearId}` | 전체 장비 카탈로그 (공용) | `GearStore`, Algolia 동기화 원본 |
 | ~~`gear/{gearId}/images/{imageId}`~~ | **[폐기]** 장비 공유 이미지 갤러리 — 장비 이미지 미제공 원칙(§1). 기존 문서 정리는 §1 운영 절차 | — |
 | `bag/{bagId}` | 배낭 (소유자 무관 단일 컬렉션) | `BagStore` |
@@ -469,6 +470,22 @@
 - **읽기**: 로그인 이전에도 조회하므로 미인증 공개 읽기를 허용한다(`config/app`과 동일 정책). 보안 규칙에 `config/featurePopup` 읽기 허용 추가 필요 — **사용자 콘솔/규칙 배포 작업**.
 - **쓰기**: Firebase 콘솔에서 수동으로만. 클라이언트는 쓰지 않는다.
 - 닫음 상태(닫은 `id` 목록)는 서버에 저장하지 않고 기기 로컬(AsyncStorage)에만 둔다.
+
+### DM-26 배낭 템플릿 (`users/{uid}/bagTemplates/{templateId}`) `[제안]`
+
+배낭 템플릿([BagTemplate.md](BagTemplate.md)) — **날짜 없는 재사용 장비 구성**. 배낭 저장(BT-1)으로만 생성되고, 템플릿에서 배낭 생성(BT-3)의 원본이 된다. `users/{uid}/gears`와 같은 **소유자 전용 서브컬렉션 패턴**이며 공유 경로가 없다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `name` | string | 템플릿 이름 |
+| `gears` | string[] | 장비 ID 배열 (`users/{uid}/gears` 참조 — 카탈로그 `/gear` 아님) |
+| `weight` | number | 저장 시점 합계 무게(g) 캐시 |
+| `createdAt` | string | 생성 시각 ISO 8601 |
+| `editDate` | string | 마지막 수정 시각 ISO 8601 |
+
+- **템플릿은 `gear.bags[]` ↔ `bag.gears[]` 양방향 불변식(DM-11) 대상이 아니다.** 템플릿 저장·삭제와 장비 삭제 어느 쪽도 상대를 갱신하지 않는다 — 장비 삭제 후 템플릿에 남는 stale ID는 템플릿에서 배낭을 만드는 시점([BagTemplate.md](BagTemplate.md) BT-3)에 걸러진다(존재하는 장비만 담고 `weight` 재계산).
+- `weight`는 저장 시점 캐시라 이후 장비 무게 수정을 따라가지 않는다 — BT-3 생성 시 재계산되므로 목록 표시용으로만 쓴다.
+- **보안 규칙 확인 필요**: 규칙 파일이 이 레포에 없어(콘솔 관리) `users/{uid}/bagTemplates` 읽기/쓰기 허용 여부를 구현 전에 확인해야 한다 — [BagTemplate.md](BagTemplate.md) §8 미해결 질문.
 
 ## 4. Storage 경로 (DM-9)
 

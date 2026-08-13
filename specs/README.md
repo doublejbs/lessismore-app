@@ -15,6 +15,7 @@
 | [GearDetail.md](GearDetail.md) | `GD` | 장비 상세 — 정보 / 배낭 기록 / 리뷰·외부 후기 |
 | [Reply.md](Reply.md) | `RP` | 장비 리뷰 — 댓글 / 답글 / 좋아요 |
 | [Bag.md](Bag.md) | `BAG` | 배낭 탭 — 목록 / 생성 / 삭제 |
+| [BagTemplate.md](BagTemplate.md) | `BT` | 배낭 템플릿 — 저장 / 목록 / 템플릿에서 생성 `[제안]` |
 | [BagDetail.md](BagDetail.md) | `BD` | 배낭 상세 / 편집 / 메모 / 사용 여부 기록 / 링크 공유 |
 | [BagDestination.md](BagDestination.md) | `DST` | 배낭 여행지 — 위치 선택 / 박지 연결 / 날씨 연계 |
 | [Packing.md](Packing.md) | `PK` | 패킹 모드 — 출발 전 짐 싸기 체크 |
