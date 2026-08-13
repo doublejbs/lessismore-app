@@ -36,11 +36,10 @@
 ```
 app/(tabs)/index.tsx → HomeWrapper → HomeView
                                        ├─ HomeUpcomingTripView     (HM-1 다가오는 일정)
-                                       ├─ HomeWarehousePreviewView (HM-4 창고 미리보기)
-                                       └─ HomeRecordSummaryView    (HM-7 내 기록)
+                                       └─ HomeWarehousePreviewView (HM-4 창고 미리보기)
 
 app/warehouse/index.tsx → WarehouseWrapper(initialCategory) → WarehouseScreen
-app/warehouse-unused/index.tsx → WarehouseUnusedWrapper → WarehouseUnusedScreen  (HM-7 `안 쓴 장비` 진입)
+app/warehouse-unused/index.tsx → WarehouseUnusedWrapper → WarehouseUnusedScreen  (창고 하단 버튼 진입, WH-2-1)
 ```
 
 ### 탭 배치 — **A안 확정 (HM-0, 2026-07-31)**
@@ -160,7 +159,9 @@ app/warehouse-unused/index.tsx → WarehouseUnusedWrapper → WarehouseUnusedScr
 
 되살릴 때 참고 — 여행 직후가 공유 동기가 가장 높은 시점인데 지금은 배낭 상세까지 들어가야 닿는다는 문제의식은 유효하다. HA가 as-built가 된 뒤 재검토한다.
 
-### HM-7 내 기록 `[제안]`
+### HM-7 내 기록 `[폐기]`
+
+> **폐기(2026-08-13 사용자 결정)** — 홈에서 `내 기록` 섹션을 제거했다(`HomeRecordSummaryView` 삭제). 회고성 지표가 홈의 "다음 할 일" 성격과 겹치지 않았고, `안 쓴 장비` 진입은 창고 하단 플로팅 버튼(WH-2-1)이 대신한다. 아래는 폐기 전 기준의 기록이다.
 
 사용자는 자기 데이터의 누적을 홈에서 한눈에 본다 (2026-08-05).
 
@@ -213,11 +214,11 @@ app/warehouse-unused/index.tsx → WarehouseUnusedWrapper → WarehouseUnusedScr
 | 면 위 요소 | 진행 바 트랙은 **흰색**, 행 헤어라인은 `Acg.hairline`(#EDEDED) | 면과 같은 값을 쓰면 트랙이 사라진다. 지면이 순백이라 헤어라인도 잉크 알파(`line2`)가 아닌 중성 회색이다 |
 | 화면 제목 | **22pt semibold**(44 → 28 → 22) | 제목은 읽고 넘기는 이름표라 화면의 앵커가 될 값이 아니다. 앵커는 남은 일수·무게처럼 항목마다 달라지는 숫자다 |
 | 섹션 머리 | **제목 18pt semibold 잉크 + 회색 부제 15pt**(`AcgSectionHeaderView`, 두 줄 사이 간격 0), 형광펜 띠 없음 | 레퍼런스 목록 문법. 훑을 때 "여기부터 무엇"이 먼저 잡히고, 부제는 **목록을 고른 기준**을 밝힌다(`최근 담은 장비`·`가까운 일정 순`). 개수는 부제에 넣지 않는다 — 셀 수 있는 것을 글로 또 세는 셈이다 |
-| 정보 면(HM-1·HM-7) | 흰 종이 + `AcgRadius.thumb`(12) + 패딩 16 | 위 `면` 참고. 그림자를 두지 않는다 |
+| 정보 면(HM-1) | 흰 종이 + `AcgRadius.thumb`(12) + 패딩 16 | 위 `면` 참고. 그림자를 두지 않는다 |
 | **목록 행**(HM-4) | 면 없이 **이름 16/줄간 22(두 줄까지) + 메타 한 줄 14(잉크, `·`로 이어 붙임) + 우측 셰브론**, 치수는 토큰 `AcgRow`(최소 높이 72 · 위아래 패딩 14 — 홈·배낭·창고가 같은 값을 써야 탭을 옮겨도 리듬이 같다), 행 사이 헤어라인(`Acg.line2` — 지형 지면 위에서는 순백용 `hairline` #EDEDED가 안 보인다) | 레퍼런스 목록 문법(2026-08-11). 값을 우측 정렬 열로 빼지 않는 이유: 이름이 두 줄인 행에서 숫자가 아래로 밀려 오히려 비교가 어긋난다. 메타를 **회색이 아니라 잉크**로 두는 이유: 무게·기간은 장식이 아니라 정보다. 숫자 조각만 중첩 Text로 콘덴스드로 갈아 끼운다 |
 | 수치 | 콘덴스드(`AcgFont.condensed`), 라벨은 `Acg.textMuted` | 앱 공통 수치 문법. **한글이 섞인 값(예보 `비 23°/30°`)은 Pretendard** — 콘덴스드에 한글 글리프가 없다 |
 | 라임 | **주 액션 알약 하나뿐**(HM-1 CTA). 글자색으로 쓰지 않는다 | 이전에는 일정 카드 면 전체가 라임이라 화면에서 가장 강한 것이 "정보"였고 눌러야 하는 버튼은 그 위 검은 사각형이었다 |
-| 누를 수 있음의 표시 | 색이 아니라 **셰브론**(HM-7 `안 쓴 장비`) | 색으로만 말하면 색맹 사용자에게 신호가 사라진다. 라임 하나 원칙과도 어긋난다 |
+| 누를 수 있음의 표시 | 색이 아니라 **셰브론**(HM-4 `전체 보기`) | 색으로만 말하면 색맹 사용자에게 신호가 사라진다. 라임 하나 원칙과도 어긋난다 |
 | 칩(HM-4) | 탐색 탭과 같은 `FeedChipView`를 **같은 크기로**(높이 36 / 라벨 14 `control`, 간격 12) | 같은 동작에 같은 컨트롤. `compact`(32/13)는 탐색에서 **1차 칩 행 아래 2차 세분 카테고리**를 뜻하는 크기라, 위에 1차 행이 없는 홈에서는 그냥 작아 보인다 |
 | D-day | 숫자 라벨(`D-6`)만 콘덴스드, `여행 중`·`여행 완료`는 Pretendard | 판단은 `isCondensedDDayLabel()` 한 곳에 둔다 |
 

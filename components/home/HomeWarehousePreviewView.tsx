@@ -107,8 +107,26 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
 
   return (
     <View style={styles.section}>
-      {/* 부제는 목록의 **기준**을 밝힌다(레퍼런스) — 미리보기가 왜 이 4개인지 말해 준다. */}
-      <AcgSectionHeaderView title='내 창고' subtitle='최근 담은 장비' />
+      {/* 부제는 목록의 **기준**을 밝힌다(레퍼런스) — 미리보기가 왜 이 4개인지 말해 준다.
+          `전체 보기`는 머리 우측(칩 행 위)이다(2026-08-13 사용자 결정 — 목록 끝 행에서 이동). */}
+      <View style={styles.headerRow}>
+        <View style={styles.headerTitle}>
+          <AcgSectionHeaderView title='내 창고' subtitle='최근 담은 장비' />
+        </View>
+        <TouchableOpacity
+          style={styles.moreLink}
+          onPress={handleOpenWarehouse}
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole='button'
+          accessibilityLabel='창고 전체 보기'
+        >
+          <PretendardText weight='semibold' style={styles.moreText}>
+            전체 보기
+          </PretendardText>
+          <Ionicons name='chevron-forward' size={16} color={Acg.textMuted} />
+        </TouchableOpacity>
+      </View>
 
       <ScrollView
         horizontal={true}
@@ -164,20 +182,6 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
           </TouchableOpacity>
         ))}
 
-        {/* 목록이 끊기는 자리에 이어보기를 둔다(HM-4). 헤더 우측에 있을 때보다
-            "여기서 더 있다"가 분명하고, 미리보기를 다 훑은 시점에 손이 가는 자리다. */}
-        <TouchableOpacity
-          style={[styles.row, styles.rowDivided]}
-          onPress={handleOpenWarehouse}
-          activeOpacity={0.7}
-          accessibilityRole='button'
-          accessibilityLabel='창고 전체 보기'
-        >
-          <PretendardText weight='semibold' style={styles.moreText}>
-            전체 보기
-          </PretendardText>
-          <Ionicons name='chevron-forward' size={16} color={Acg.textMuted} />
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -233,9 +237,23 @@ const styles = StyleSheet.create({
     ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
-  moreText: {
+  // 섹션 머리 행 — 좌측 제목(두 줄), 우측 `전체 보기`. 제목 첫 줄과 축을 맞춘다.
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  headerTitle: {
     flex: 1,
-    ...AcgType.rowSubtitle,
+  },
+  moreLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    // 제목(18/24)의 첫 줄 세로 중앙에 링크(14/20)를 맞추는 광학 보정.
+    paddingTop: 2,
+  },
+  moreText: {
+    ...AcgType.control,
     color: Acg.textMuted,
   },
   tile: {
