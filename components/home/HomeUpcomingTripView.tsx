@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { observer } from 'mobx-react-lite';
-import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
@@ -137,14 +136,10 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
 
             {/* 여행지는 날짜 뒤에 `·`로 붙이지 않고 제 줄을 준다 — 꼬리표로 달면
                 긴 기간 문자열 끝에 묻혀 "어디 가는지"가 안 읽힌다. */}
+            {/* 아이콘 없이 이름만(2026-08-13 사용자 결정) — 여행지 허브 카드에서 📍를 걷은
+                것과 같은 결정. 카드 안 지표들이 전부 텍스트라 아이콘 하나만 튄다. */}
             {locationName !== null && (
               <View style={styles.locationRow}>
-                <Ionicons
-                  name='location-outline'
-                  size={16}
-                  color={Acg.ink}
-                  style={styles.locationIcon}
-                />
                 <PretendardText
                   weight='semibold'
                   style={styles.locationText}
@@ -375,9 +370,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 6,
-  },
-  locationIcon: {
-    marginTop: 2,
   },
   locationText: {
     flexShrink: 1,
