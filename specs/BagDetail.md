@@ -5,7 +5,7 @@
 | 상태 | as-built (2026-07-15 여행지 통합 반영) |
 | ID 프리픽스 | `BD` |
 | 주요 코드 | `app/bag/[id]/`, `app/useless/[id]/`, `components/bag-detail/`, `components/bag-edit/`, `components/bag-useless/`, `model/bag-detail/`, `model/bag-edit/`, `model/bag-useless/`, `model/store/BagStore.ts` |
-| 관련 스펙 | [DataModel.md](DataModel.md), [Bag.md](Bag.md), [BagDestination.md](BagDestination.md), [HealthActivity.md](HealthActivity.md), [GearEdit.md](GearEdit.md), [Packing.md](Packing.md), [Weather.md](Weather.md) |
+| 관련 스펙 | [DataModel.md](DataModel.md), [Bag.md](Bag.md), [BagTemplate.md](BagTemplate.md), [BagShare.md](BagShare.md), [BagDestination.md](BagDestination.md), [HealthActivity.md](HealthActivity.md), [GearEdit.md](GearEdit.md), [Packing.md](Packing.md), [Weather.md](Weather.md) |
 
 ## 1. 개요
 
@@ -31,7 +31,15 @@
 
 **수용 기준**
 
-- 내비 바는 뒤로(좌) + 복사·공유·필름 카드 아이콘(우)만 둔다([BagShare.md](BagShare.md) BS-1 — 필름 카드는 웹에서 렌더하지 않아 웹은 2개). **총 무게는 내비 타이틀이 아니다.**
+- 내비 바는 뒤로(좌) + 우측 아이콘만 둔다. **총 무게는 내비 타이틀이 아니다.**
+- `[제안]` **헤더 우측을 2버튼으로 개편한다**(2026-08-13 사용자 확정): **필름 카드([BagShare.md](BagShare.md) BS-1) + `⋯` 메뉴**. 기존 3버튼(복사·공유·필름 카드) 중 복사·공유는 `⋯` 메뉴 안으로 이동한다.
+  - `⋯` 메뉴 버튼: `ellipsis-horizontal` 아이콘, 44pt 히트 영역, `accessibilityRole='button'` + `accessibilityLabel='배낭 메뉴'`(배낭 목록 카드의 `⋯` 버튼과 같은 라벨 — [Bag.md](Bag.md) BAG-1).
+  - 메뉴는 공용 `BottomMenuModalView`로 항목 순서 **`복사` → `공유` → `템플릿으로 저장`**.
+    - `복사` → 기존 복사 아이콘 동작 그대로(BD-8 — 복사 모달).
+    - `공유` → 기존 공유 아이콘 동작 그대로(BD-7 — `/bag-share` 링크 공유 시트).
+    - `템플릿으로 저장` → [BagTemplate.md](BagTemplate.md) **BT-1과 동일 동작**(이름 입력 시트 → 템플릿 저장, 프리필·실패 알럿·토스트·비로그인 규칙 포함). 문구는 배낭 목록 카드 `⋯` 메뉴와 같은 `템플릿으로 저장`을 쓴다 — 배낭 추가 시트의 `템플릿으로 만들기`(템플릿→배낭)와 **방향이 반대**라 라벨을 구분한다(저장은 배낭→템플릿).
+  - 항목 선택 시 **메뉴 시트를 먼저 닫고** 다음 시트/모달을 띄운다 — 시트 위에 시트를 겹쳐 쌓지 않는다([Bag.md](Bag.md) BAG-3과 같은 규칙).
+  - 필름 카드는 웹에서 렌더하지 않으므로([BagShare.md](BagShare.md) BS-1) 웹의 우측 아이콘은 `⋯` 하나다. [이력] 개편 전에는 복사·공유·필름 카드 3아이콘(웹 2개)이었다 — BS-1의 "복사·공유와 같은 행" 서술은 개편 전 기준.
 - **배낭 이름을 라지 타이틀**(좌측 정렬)로, 그 아래 여행 기간 + **상황 라벨**을 표시한다. 상황 라벨: 출발 전 `D-{n}`(당일 `오늘 출발`), 여행 중 `여행 중`, 종료 후 `지난 여행`(`BagDetail.getTripPhase`/`getPhaseLabel`).
   - **이름·기간이 길어도 수정(연필) 아이콘이 잘리지 않는다.** 두 행은 각각 텍스트 + 연필 한 행이고, 텍스트가 폭을 양보해 연필이 항상 화면 안에 남는다. 텍스트는 **최대 2줄**까지 줄바꿈하고 넘치면 말줄임한다 — 그 이상 길어지면 헤더가 화면을 잡아먹으므로, 전체 이름은 수정 시트에서 확인·편집한다. 기간 행도 Dynamic Type 확대 시 2줄까지 늘어나 상황 라벨이 잘리지 않는다.
 - 이름·기간 행은 각각 탭하면 **`배낭 정보 수정` 네이티브 formSheet**(`/bag-info-edit`, 공용 `BagFormContent` = 이름 입력 + 날짜 범위 달력 + 취소/저장 가로 버튼)를 연다 — 배낭 생성(`bag-new`)/복사(`bag-copy`) 시트와 동일한 UI 언어. 현재 이름·날짜가 프리필되며, 이름 공백은 저장 거부, 날짜는 달력이 역순을 방지한다. 배낭 상세의 model 인스턴스는 뷰 스코프라 정렬 시트와 같은 **모듈 핸드오프**(`BagInfoEditHandoff`)로 현재값·저장 콜백을 전달한다.
@@ -110,7 +118,7 @@
 
 **수용 기준**
 
-- 공유 버튼 → **네이티브 formSheet**(`/bag-share`, 배낭 생성/복사/정보수정 시트와 동일한 UI 언어) → 공유 시 `bag.shared = true`로 갱신하고 `{웹 베이스}/bag-share/{bagId}` 링크를 클립보드에 복사한다(웹 베이스는 `constants/WebLinks.ts`의 `WEB_BASE_URL` 단일 소스 — 2026-07-28 `useless.my` → `https://lessismore-7e070.web.app`). 시트는 공유 상태를 관찰(observer)해 공유 중이면 링크 행 + `공유 취소`를 표시한다. BagDetail 인스턴스는 `BagShareHandoff` 모듈로 전달한다.
+- 진입: 헤더 공유 아이콘(`[제안]` 헤더 개편 후에는 `⋯` 메뉴의 `공유` 항목 — BD-1) → **네이티브 formSheet**(`/bag-share`, 배낭 생성/복사/정보수정 시트와 동일한 UI 언어) → 공유 시 `bag.shared = true`로 갱신하고 `{웹 베이스}/bag-share/{bagId}` 링크를 클립보드에 복사한다(웹 베이스는 `constants/WebLinks.ts`의 `WEB_BASE_URL` 단일 소스 — 2026-07-28 `useless.my` → `https://lessismore-7e070.web.app`). 시트는 공유 상태를 관찰(observer)해 공유 중이면 링크 행 + `공유 취소`를 표시한다. BagDetail 인스턴스는 `BagShareHandoff` 모듈로 전달한다.
 - 공유 해제 시 `shared = false`.
 - 공유 조회(`BagStore.getSharedBag`)는 `shared === true`를 확인하고, 아니면 `공유되지 않은 배낭입니다.` 알럿을 띄운다. 장비는 `bag.userId` 경로의 `users/{userId}/gears`에서 읽는다.
 - **공유 화면에는 장비 사진이 오지 않는다**([DataModel.md](DataModel.md) §1 비공개 원칙, 2026-07-29). 이 조회는 소유자의 `users/{userId}/gears`를 읽지만 **보는 사람이 업로더가 아니므로**, 뷰에서 거르는 대신 **데이터 레이어에서 `imageUrl`을 애초에 채우지 않는다**(`getSharedBag`은 사용자 문서용 정규화를 쓰지 않는다). 뷰 차단은 화면이 늘 때마다 빠뜨릴 수 있어 경로 자체를 막는 편이 안전하다. 같은 이유로 박지 후기에 첨부된 배낭([CampSite.md](CampSite.md) CS-8)에서도 표시되지 않는다.
@@ -121,8 +129,8 @@
 
 **수용 기준**
 
-- 헤더 우측 공유 아이콘 왼쪽에 복사 아이콘을 표시한다 (44pt 이상 히트 영역).
-- 복사 아이콘 → 복사 모달을 띄운다. 모달·프리필(`{이름} 복사본`)·날짜 기본값·확정·토스트 동작은 [Bag.md](Bag.md) BAG-4와 동일하다.
+- 진입: 헤더 우측 복사 아이콘(공유 아이콘 왼쪽, 44pt 이상 히트 영역). `[제안]` 헤더 개편 후에는 `⋯` 메뉴의 `복사` 항목이다(BD-1) — 아이콘은 사라지고 동작은 그대로 옮겨간다.
+- 진입 → 복사 모달을 띄운다. 모달·프리필(`{이름} 복사본`)·날짜 기본값·확정·토스트 동작은 [Bag.md](Bag.md) BAG-4와 동일하다.
 - 확정 시 복사본 상세를 push로 열고 **곧바로 장비 편집 화면을 연다** (뒤로가기 → 복사본 상세 → 원본 상세).
 
 ### BD-9 하단 액션 바 (패킹 + 수정)
@@ -181,7 +189,13 @@
 - [ ] 공유 → 링크 복사, 비로그인 브라우저에서 공유 페이지 열람 가능, 해제 후 접근 불가
 - [ ] 이름/날짜 수정 → 목록 화면에 반영
 - [ ] 메모 작성/삭제 왕복
-- [ ] 헤더 복사 아이콘 → 복사 모달(타이틀 `배낭 복사`, 이름 프리필) → 복사본 상세 push + 토스트, 뒤로가기 시 원본 상세
+- [ ] 헤더 우측이 필름 카드 + `⋯` 2버튼(웹은 `⋯` 하나) — 복사·공유 아이콘이 따로 없다 (BD-1 헤더 개편)
+- [ ] `⋯` → 메뉴 시트에 `복사` → `공유` → `템플릿으로 저장` 3항목, 항목 선택 시 시트가 먼저 닫히고 다음 시트/모달이 뜬다
+- [ ] 메뉴 `복사` → 복사 모달(타이틀 `배낭 복사`, 이름 프리필) → 복사본 상세 push + 토스트, 뒤로가기 시 원본 상세
+- [ ] 메뉴 `공유` → `/bag-share` 시트(기존 공유 아이콘과 동일 동작)
+- [ ] 메뉴 `템플릿으로 저장` → 이름 입력 시트 → 저장 토스트, 템플릿 세그먼트에 새 행 ([BagTemplate.md](BagTemplate.md) BT-1과 동일)
+- [ ] 비로그인 → 메뉴 `복사`/`템플릿으로 저장` 탭 시 시트가 닫히고 로그인 모달
+- [ ] VoiceOver: 헤더에서 `필름 카드 만들기` 다음에 `배낭 메뉴` 버튼이 읽히고, 시트 안 3항목이 각각 읽힘
 - [ ] 편집 화면: 검색(이름/브랜드) 동작, 담기/빼기 원형 체크(담김 검정·안 담김 빈 원), 하단 `완료` → 상세로 복귀, 토글 변경사항 반영 (상세 `장비 추가` 경유·생성/복사 직행 두 경로 모두)
 
 ## 8. 미해결 질문
