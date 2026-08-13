@@ -114,16 +114,18 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
   // 지오메트리(내부 ~11pt, 아이콘 중심 간격 ~52pt, 높이 44pt)에 맞춘다. 터치 타깃도 44pt 확보.
   const renderHeaderActions = () => (
     <View style={styles.headerActions}>
-      <View style={IS_IOS ? styles.headerIconBox : null}>
+      {/* 44pt 정렬 박스는 모든 플랫폼 공통(2026-08-13) — Android 커스텀 헤더에서 박스 없이
+          두면 세 버튼의 고유 크기 차이만큼 세로 정렬이 어긋났다. */}
+      <View style={styles.headerIconBox}>
         <BagDetailCopyView
           sourceId={bagDetail.getId()}
           sourceName={bagDetail.getName()}
         />
       </View>
-      <View style={IS_IOS ? styles.headerIconBox : null}>
+      <View style={styles.headerIconBox}>
         <ShareButtonView bagDetail={bagDetail} />
       </View>
-      <View style={IS_IOS ? styles.headerIconBox : null}>
+      <View style={styles.headerIconBox}>
         <BagFilmCardButtonView bagDetail={bagDetail} />
       </View>
     </View>
