@@ -7,15 +7,21 @@ import {
   doc,
   getDoc,
   getDocs,
+  updateDoc,
   writeBatch,
 } from 'firebase/firestore';
 import { Dayjs } from 'dayjs';
 import Firebase from '@/model/firebase/Firebase';
 import BagTemplate from '@/model/bag/BagTemplate';
 import app from '@/model/app/App';
+import Gear from '@/model/gear/Gear';
+import GearStore from '@/model/store/GearStore';
 
 class BagTemplateStore {
-  public constructor(private readonly firebase: Firebase) {
+  public constructor(
+    private readonly firebase: Firebase,
+    private readonly gearStore: GearStore
+  ) {
     makeAutoObservable(this);
   }
 
@@ -85,6 +91,50 @@ class BagTemplateStore {
       gears: Array.isArray(data.gears) ? data.gears : [],
       createdAt: String(data.createdAt ?? ''),
       editDate: String(data.editDate ?? ''),
+    });
+  }
+
+  public async getGears(template: BagTemplate): Promise<Gear[]> {
+    const gears = await Promise.all(
+      Array.from(new Set(template.getGearIDs())).map(gearID =>
+        this.gearStore.getUserGear(gearID)
+      )
+    );
+
+    return gears.filter((gear): gear is Gear => gear !== null);
+  }
+
+  public async getEditData(id: string) {
+    const template = await this.get(id);
+
+    if (!template) {
+      return null;
+    }
+
+    return {
+      template,
+      gears: await this.getGears(template),
+    };
+  }
+
+  public async updateName(id: string, name: string) {
+    await updateDoc(doc(this.getCollection(), id), {
+      name,
+      editDate: new Date().toISOString(),
+    });
+  }
+
+  public async updateGears(id: string, gears: Gear[]) {
+    const now = new Date().toISOString();
+    const weight = gears.reduce(
+      (total, gear) => total + Number(gear.getWeight() || 0),
+      0
+    );
+
+    await updateDoc(doc(this.getCollection(), id), {
+      gears: gears.map(gear => gear.getId()),
+      weight,
+      editDate: now,
     });
   }
 

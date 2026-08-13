@@ -17,21 +17,29 @@ interface Props {
   template: BagTemplate;
   onDelete: (template: BagTemplate) => void;
   divided?: boolean;
+  onPress?: () => void;
+  showMenuButton?: boolean;
 }
 
-const BagTemplateItemView: FC<Props> = ({ template, onDelete, divided = false }) => {
+const BagTemplateItemView: FC<Props> = ({
+  template,
+  onDelete,
+  divided = false,
+  onPress,
+  showMenuButton = true,
+}) => {
   const router = useRouter();
-  const [showMenu, setShowMenu] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
 
-  const handlePress = () => {
+  const handlePressDetail = () => {
     router.push({
-      pathname: '/bag-template-create',
-      params: { templateId: template.getID() },
+      pathname: '/bag-template/[id]',
+      params: { id: template.getID() },
     });
   };
 
   const handleDelete = () => {
-    setShowMenu(false);
+    setMenuVisible(false);
     app.getAlertManager()?.show({
       message: `${template.getName()} 템플릿을 삭제할까요?`,
       confirmText: '삭제',
@@ -44,7 +52,7 @@ const BagTemplateItemView: FC<Props> = ({ template, onDelete, divided = false })
       <View style={[styles.row, divided && styles.divided]}>
         <TouchableOpacity
           style={styles.body}
-          onPress={handlePress}
+          onPress={onPress ?? handlePressDetail}
           activeOpacity={0.7}
           accessibilityRole='button'
           accessibilityLabel={`${template.getName()}, ${template.getWeight()}kg, 장비 ${template.getGearCount()}개`}
@@ -59,27 +67,31 @@ const BagTemplateItemView: FC<Props> = ({ template, onDelete, divided = false })
             {` · 장비 ${template.getGearCount()}개`}
           </PretendardText>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={() => setShowMenu(true)}
-          activeOpacity={0.7}
-          accessibilityRole='button'
-          accessibilityLabel='템플릿 메뉴'
-        >
-          <Ionicons name='ellipsis-horizontal' size={16} color={Acg.textMuted} />
-        </TouchableOpacity>
+        {showMenuButton && (
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={() => setMenuVisible(true)}
+            activeOpacity={0.7}
+            accessibilityRole='button'
+            accessibilityLabel='템플릿 메뉴'
+          >
+            <Ionicons name='ellipsis-horizontal' size={16} color={Acg.textMuted} />
+          </TouchableOpacity>
+        )}
       </View>
-      <BottomMenuModalView
-        visible={showMenu}
-        onClose={() => setShowMenu(false)}
-        menuItems={[
-          {
-            icon: 'trash-outline',
-            text: '삭제',
-            onPress: handleDelete,
-          },
-        ]}
-      />
+      {showMenuButton && (
+        <BottomMenuModalView
+          visible={menuVisible}
+          onClose={() => setMenuVisible(false)}
+          menuItems={[
+            {
+              icon: 'trash-outline',
+              text: '삭제',
+              onPress: handleDelete,
+            },
+          ]}
+        />
+      )}
     </>
   );
 };

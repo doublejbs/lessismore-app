@@ -5,6 +5,7 @@ import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
+  title?: string;
   inputValue: string;
   disabled?: boolean;
   onChangeName: (text: string) => void;
@@ -13,6 +14,7 @@ interface Props {
 }
 
 const BagTemplateSaveContent: FC<Props> = ({
+  title = '템플릿으로 저장',
   inputValue,
   disabled = false,
   onChangeName,
@@ -24,7 +26,7 @@ const BagTemplateSaveContent: FC<Props> = ({
   return (
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 12) }]}>
       <PretendardText weight='bold' style={styles.title}>
-        템플릿으로 저장
+        {title}
       </PretendardText>
       <View style={styles.inputSection}>
         <PretendardText weight='semibold' style={styles.inputLabel}>

@@ -28,10 +28,8 @@ import BagDetailBottomBar from './BagDetailBottomBar';
 import BagDetailMemoView from './BagDetailMemoView';
 import BagDetailDestinationView from './BagDetailDestinationView';
 import BagDetailActivityView from './BagDetailActivityView';
-import ShareButtonView from './ShareButtonView';
 import BagFilmCardButtonView from './BagFilmCardButtonView';
-import BagDetailCopyView from '../bag/BagDetailCopyView';
-import { Stack, useFocusEffect } from 'expo-router';
+import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import BagDetailSkeletonView from './BagDetailSkeletonView';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
@@ -42,6 +40,8 @@ import {
 import ToastView from '../toast/ToastView';
 import AlertView from '@/components/alert/AlertView';
 import app from '@/model/app/App';
+import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
+import { setBagShareContext } from '@/model/bag-detail/BagShareHandoff';
 
 interface Props {
   bagDetail: BagDetail;
@@ -56,6 +56,7 @@ const SAFE_AREA_EDGES: readonly Edge[] = IS_IOS
   : ['top', 'left', 'right', 'bottom'];
 
 const BagDetailView: FC<Props> = ({ bagDetail }) => {
+  const router = useRouter();
   const initialized = bagDetail.isInitialized();
   const scrollViewRef = useRef<ScrollView>(null);
   const categoryRefsMap = useRef<Map<string, any>>(new Map());
@@ -84,6 +85,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
   const [gearHeaderY, setGearHeaderY] = useState<number | null>(null);
   // iOS 전용: 필터가 헤더 아래에 고정 표시돼야 하는지(스크롤 위치 기반).
   const [isFilterPinned, setIsFilterPinned] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   const handleScroll = (event: any) => {
     bagDetail.handleScroll(event);
@@ -109,25 +111,77 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     }
   }, [initialized]);
 
-  // 헤더 우측 액션(복사·공유·필름 카드) — iOS 네이티브 headerRight와 Android/Web 커스텀 헤더가 공유한다.
-  // iOS는 각 아이콘을 44pt 박스로 감싸 글래스 캡슐의 내부 여백·높이를 시스템 바 버튼
-  // 지오메트리(내부 ~11pt, 아이콘 중심 간격 ~52pt, 높이 44pt)에 맞춘다. 터치 타깃도 44pt 확보.
+  const openMenuRoute = (route: () => void) => {
+    setShowMenu(false);
+    // RN Modal이 닫힌 뒤 다음 formSheet가 열리도록 한 프레임 뒤에 이동한다.
+    setTimeout(route, 0);
+  };
+
+  const handleCopy = () => {
+    if (!app.getFirebase().isLoggedIn()) {
+      setShowMenu(false);
+      app.getLogInAlertManager()?.show();
+
+      return;
+    }
+
+    openMenuRoute(() =>
+      router.push({
+        pathname: '/bag-copy',
+        params: {
+          sourceId: bagDetail.getId(),
+          sourceName: bagDetail.getName(),
+          entrySource: 'detail',
+        },
+      })
+    );
+  };
+
+  const handleShare = () => {
+    openMenuRoute(() => {
+      app.getAnalyticsManager()?.logClick('bag_share');
+      setBagShareContext(bagDetail);
+      router.push('/bag-share');
+    });
+  };
+
+  const handleSaveTemplate = () => {
+    if (!app.getFirebase().isLoggedIn()) {
+      setShowMenu(false);
+      app.getLogInAlertManager()?.show();
+
+      return;
+    }
+
+    openMenuRoute(() =>
+      router.push({
+        pathname: '/bag-template-save',
+        params: {
+          sourceId: bagDetail.getId(),
+          sourceName: bagDetail.getName(),
+        },
+      })
+    );
+  };
+
+  // 헤더 우측 액션(필름 카드·메뉴) — iOS 네이티브 headerRight와 Android/Web 커스텀 헤더가 공유한다.
+  // 두 버튼 모두 44pt 박스를 사용해 HIG 터치 타깃을 보장한다.
   const renderHeaderActions = () => (
     <View style={styles.headerActions}>
-      {/* 44pt 정렬 박스는 모든 플랫폼 공통(2026-08-13) — Android 커스텀 헤더에서 박스 없이
-          두면 세 버튼의 고유 크기 차이만큼 세로 정렬이 어긋났다. */}
-      <View style={styles.headerIconBox}>
-        <BagDetailCopyView
-          sourceId={bagDetail.getId()}
-          sourceName={bagDetail.getName()}
-        />
-      </View>
-      <View style={styles.headerIconBox}>
-        <ShareButtonView bagDetail={bagDetail} />
-      </View>
-      <View style={styles.headerIconBox}>
-        <BagFilmCardButtonView bagDetail={bagDetail} />
-      </View>
+      {Platform.OS !== 'web' && (
+        <View style={styles.headerIconBox}>
+          <BagFilmCardButtonView bagDetail={bagDetail} />
+        </View>
+      )}
+      <TouchableOpacity
+        style={styles.headerIconBox}
+        onPress={() => setShowMenu(true)}
+        activeOpacity={0.7}
+        accessibilityRole='button'
+        accessibilityLabel='배낭 메뉴'
+      >
+        <Ionicons name='ellipsis-horizontal' size={24} color={Color.textPrimary} />
+      </TouchableOpacity>
     </View>
   );
 
@@ -263,6 +317,27 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
             )}
             <BagDetailBottomBar bagDetail={bagDetail} />
           </View>
+          <BottomMenuModalView
+            visible={showMenu}
+            onClose={() => setShowMenu(false)}
+            menuItems={[
+              {
+                icon: 'copy-outline',
+                text: '복사',
+                onPress: handleCopy,
+              },
+              {
+                icon: 'share-outline',
+                text: '공유',
+                onPress: handleShare,
+              },
+              {
+                icon: 'bookmark-outline',
+                text: '템플릿으로 저장',
+                onPress: handleSaveTemplate,
+              },
+            ]}
+          />
           <ToastView toastManager={app.getToastManager()!} bottom={100} />
           {/* 이 화면은 `Layout`을 쓰지 않아 알럿을 그리는 뷰가 없다 — 직접 얹는다.
               없으면 확인 알럿을 띄우는 동작(장비 빼기)이 조용히 아무 일도 하지 않는다
