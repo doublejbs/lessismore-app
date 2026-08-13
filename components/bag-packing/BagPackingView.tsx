@@ -172,7 +172,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    // 콘텐츠와 같은 정렬선(2026-08-13) — 20으로 두면 아래 목록(24)과 4pt 어긋난다.
+    paddingHorizontal: AcgLayout.screenPadding,
     paddingVertical: 12,
   },
   resetText: {
