@@ -5,6 +5,7 @@ import Layout from '@/components/Layout';
 import app from '@/model/app/App';
 import Comment from '@/model/reply/Comment';
 import { ActivityIndicator, View, StyleSheet, Platform } from 'react-native';
+import { Acg } from '@/constants/DesignTokens';
 
 // LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스). 네이티브 헤더가 상단을 덮으므로
 // top 세이프에어리어를 빼 이중 인셋을 막는다(콘텐츠 여백은 ReplyEditView가 처리).
@@ -50,7 +51,8 @@ const ReplyEdit = () => {
           }}
         />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size='large' color='#000' />
+          {/* 토큰 밖 #000이 새지 않게 잉크 토큰을 쓴다. */}
+          <ActivityIndicator size='large' color={Acg.ink} />
         </View>
       </Layout>
     );

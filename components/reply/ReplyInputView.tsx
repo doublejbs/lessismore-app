@@ -17,12 +17,14 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import StarRatingView from '@/components/camp-site/StarRatingView';
-import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 const MAX_CONTENT_LENGTH = 1000;
 // iOS 멀티라인 입력은 리턴키로 키보드를 못 닫으므로 키보드 위 '완료' 액세서리를 붙인다.
 const CONTENT_ACCESSORY_ID = 'replyInputContentAccessory';
+// RP-7: 액션은 알약이라 모서리가 높이의 절반이다 — 두 값이 갈리면 알약이 깨진다.
+const ACTION_HEIGHT = 52;
 
 interface Props {
   reply: Reply;
@@ -75,7 +77,7 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
   // 본문(별점 + 리뷰 글) — Android는 스크롤 컨테이너로 감싼다.
   const bodyContent = (
     <>
-      <PretendardText weight='bold' style={styles.title}>
+      <PretendardText weight='semibold' style={styles.title}>
         리뷰 쓰기
       </PretendardText>
 
@@ -160,10 +162,16 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
           disabled={confirmDisabled}
         >
           {isLoading ? (
-            <ActivityIndicator size='small' color={Acg.paper} />
+            <ActivityIndicator size='small' color={Acg.ink} />
           ) : (
-            <PretendardText weight='semibold' style={styles.confirmButtonText}>
-              확인
+            <PretendardText
+              weight='semibold'
+              style={[
+                styles.confirmButtonText,
+                confirmDisabled && styles.confirmButtonTextDisabled,
+              ]}
+            >
+              등록
             </PretendardText>
           )}
         </TouchableOpacity>
@@ -191,7 +199,7 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
 };
 
 const styles = StyleSheet.create({
-  // 시트는 종이 면이다 — 지면(그레인)은 시트 뒤 화면이 이미 깔고 있다.
+  // 시트 지면은 순백이다(앱의 모든 화면·시트가 같은 지면).
   container: {
     backgroundColor: Acg.paper,
     // 네이티브 그래버가 시트 상단에 겹쳐 렌더되므로 그 아래로 제목이 오도록 여백을 준다.
@@ -205,7 +213,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   body: {
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
     marginBottom: 20,
   },
   title: {
@@ -222,12 +230,14 @@ const styles = StyleSheet.create({
     ...AcgType.sectionSubtitle,
     color: Acg.textMuted,
   },
-  // 종이 면 위 인풋이라 채움은 지면색이다 — 흰 면 위 회색 면을 또 두면 층이 하나 늘어난다.
+  // RP-7: 순백 시트 위 연회색 면 + 모서리 12. 여러 줄 입력이라 줄간을 얹은 `body` 단을 쓴다
+  // (TextInput은 `PretendardText`를 못 쓰므로 서체를 직접 지정한다).
   contentInput: {
     backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
     paddingHorizontal: 14,
     paddingVertical: 14,
-    ...AcgType.rowSubtitle,
+    ...AcgType.body,
     fontFamily: 'Pretendard-Regular',
     color: Acg.ink,
     minHeight: 100,
@@ -240,11 +250,13 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     gap: 8,
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
   },
+  // 보조 액션 — 연회색 알약 + 잉크. 형태(알약)가 "액션"을, 채움 단계가 주/보조를 가른다.
   cancelButton: {
     flex: 1,
-    minHeight: 52,
+    minHeight: ACTION_HEIGHT,
+    borderRadius: ACTION_HEIGHT / 2,
     backgroundColor: Acg.controlFill,
     alignItems: 'center',
     justifyContent: 'center',
@@ -254,20 +266,28 @@ const styles = StyleSheet.create({
     color: Acg.ink,
     paddingVertical: 12,
   },
+  // 이 시트의 주 액션 — 라임은 화면당 하나이고 그 하나가 이 면이다.
   confirmButton: {
     flex: 1,
-    minHeight: 52,
-    backgroundColor: Acg.ink,
+    minHeight: ACTION_HEIGHT,
+    borderRadius: ACTION_HEIGHT / 2,
+    backgroundColor: Acg.lime,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // 비활성은 반투명 라임이 아니라 연회색 면이다 — 라임에 opacity를 얹으면 채도가 빠져
+  // 다른 색으로 읽히고, 그 위 글자 대비도 계산할 수 없다.
   confirmButtonDisabled: {
-    opacity: 0.5,
+    backgroundColor: Acg.controlFill,
   },
+  // 라임 면 위 글자는 잉크다(라임을 글자색으로 쓰지 않는다).
   confirmButtonText: {
     ...AcgType.control,
-    color: Acg.paper,
+    color: Acg.ink,
     paddingVertical: 12,
+  },
+  confirmButtonTextDisabled: {
+    color: Acg.textMuted,
   },
   accessoryBar: {
     flexDirection: 'row',

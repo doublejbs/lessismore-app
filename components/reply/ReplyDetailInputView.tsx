@@ -11,7 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import ReplyDetail from '@/model/reply/ReplyDetail';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,6 +24,8 @@ interface Props {
 
 // 입력 바 위아래 여백. 키보드가 올라왔을 때 키보드와의 간격이기도 하다.
 const INPUT_BAR_GAP = 12;
+// RP-7: 입력칸·저장 알약이 같은 높이로 나란히 선다. 알약 모서리는 이 값의 절반이다.
+const INPUT_BAR_HEIGHT = 44;
 
 const ReplyDetailInputView: FC<Props> = observer(
   ({ replyDetail, scrollViewRef }) => {
@@ -113,6 +115,8 @@ const ReplyDetailInputView: FC<Props> = observer(
               <TouchableOpacity
                 style={styles.inputButton}
                 onPress={handlePressInput}
+                accessibilityRole='button'
+                accessibilityLabel='답글 쓰기'
               >
                 <PretendardText weight='medium' style={styles.placeholder}>
                   답글을 남겨보세요
@@ -138,13 +142,20 @@ const ReplyDetailInputView: FC<Props> = observer(
                   ]}
                   onPress={handleSave}
                   disabled={!text.trim() || isSaving}
+                  accessibilityRole='button'
+                  accessibilityLabel='답글 저장'
                 >
                   {isSaving ? (
-                    <ActivityIndicator size='small' color={Acg.paper} />
+                    // 라임 면 위라 인디케이터도 잉크다.
+                    <ActivityIndicator size='small' color={Acg.ink} />
                   ) : (
                     <PretendardText
                       weight='semibold'
-                      style={styles.saveButtonText}
+                      style={[
+                        styles.saveButtonText,
+                        (!text.trim() || isSaving) &&
+                          styles.saveButtonTextDisabled,
+                      ]}
                     >
                       저장
                     </PretendardText>
@@ -161,9 +172,9 @@ const ReplyDetailInputView: FC<Props> = observer(
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
     paddingTop: INPUT_BAR_GAP,
-    // 지면 위에 놓인 바라 면을 깔지 않는다 — 흰 띠가 화면 하단을 가로지르면 지형이 끊긴다.
+    // 지면 위에 놓인 바라 면을 깔지 않는다 — 흰 띠가 화면 하단을 가로지르면 층이 하나 늘어난다.
     backgroundColor: 'transparent',
   },
   content: {
@@ -171,27 +182,17 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: 'flex-start',
   },
-  authorButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: Acg.ink,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  authorText: {
-    ...AcgType.rowSubtitle,
-    fontWeight: '500',
-    color: Acg.paper,
-  },
+  // RP-7: 순백 지면 위 연회색 면 + 모서리 12(앱 공통 입력 면 문법).
   inputButton: {
     flex: 1,
-    minHeight: 40,
+    minHeight: INPUT_BAR_HEIGHT,
     backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
     justifyContent: 'center',
     paddingHorizontal: 16,
   },
   placeholder: {
-    ...AcgType.rowSubtitle,
+    ...AcgType.control,
     color: Acg.textMuted,
   },
   inputContainer: {
@@ -200,32 +201,39 @@ const styles = StyleSheet.create({
     gap: 8,
     alignItems: 'flex-end',
   },
+  // 여러 줄 입력이라 `body` 단을 스프레드한다(TextInput은 서체를 직접 지정).
   textInput: {
     flex: 1,
-    minHeight: 40,
+    minHeight: INPUT_BAR_HEIGHT,
     maxHeight: 100,
     backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    ...AcgType.rowSubtitle,
-    fontWeight: '500',
+    paddingVertical: 12,
+    ...AcgType.body,
+    fontFamily: 'Pretendard-Regular',
     color: Acg.ink,
   },
+  // 이 화면의 주 액션 — 라임 알약 하나.
   saveButton: {
-    backgroundColor: Acg.ink,
+    backgroundColor: Acg.lime,
     paddingHorizontal: 16,
-    minHeight: 40,
+    minHeight: INPUT_BAR_HEIGHT,
+    borderRadius: INPUT_BAR_HEIGHT / 2,
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 60,
   },
+  // 비활성은 연회색 면이다 — 옛 `#CCCCCC` + opacity 0.5는 토큰 밖 값이었다.
   saveButtonDisabled: {
-    backgroundColor: '#CCCCCC',
-    opacity: 0.5,
+    backgroundColor: Acg.controlFill,
   },
   saveButtonText: {
-    ...AcgType.rowSubtitle,
-    color: Acg.paper,
+    ...AcgType.control,
+    color: Acg.ink,
+  },
+  saveButtonTextDisabled: {
+    color: Acg.textMuted,
   },
 });
 

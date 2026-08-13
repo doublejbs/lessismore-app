@@ -54,7 +54,13 @@ const ReplyDetailView = ({ replyDetail, originalComment }: Props) => {
       />
       {!IS_IOS && (
         <View style={styles.header}>
-          <TouchableOpacity onPress={handlePressBack} activeOpacity={0.7}>
+          <TouchableOpacity
+            onPress={handlePressBack}
+            activeOpacity={0.7}
+            style={styles.backButton}
+            accessibilityLabel='뒤로'
+            accessibilityRole='button'
+          >
             <Ionicons name='chevron-back-outline' size={24} color={Acg.ink} />
           </TouchableOpacity>
         </View>
@@ -102,17 +108,25 @@ const styles = StyleSheet.create({
     // 지면은 아래 `ground`가 깐다.
     backgroundColor: 'transparent',
   },
+  // 화면 좌우 정렬선은 콘텐츠와 같은 값이다 — 바만 안쪽으로 들어가면 화면이 흔들려 보인다.
   header: {
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    paddingHorizontal: AcgLayout.screenPadding,
+  },
+  // 아이콘 전용 컨트롤 — HIG 최소 터치 타깃 44×44pt.
+  backButton: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -10,
   },
   scrollView: {
     flex: 1,
   },
-  // 원 리뷰 + 답글이 각자 종이 면이라 홈 리스트와 같은 8px 간격을 준다.
+  // 원 리뷰 + 답글이 각자 면이라 홈 리스트와 같은 8px 간격을 준다.
   scrollContent: {
     paddingTop: 12,
-    paddingHorizontal: AcgLayout.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
     gap: 8,
   },
 });

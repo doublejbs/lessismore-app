@@ -1,7 +1,7 @@
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import Comment from '@/model/reply/Comment';
 import Reply from '@/model/reply/Reply';
 import dayjs from 'dayjs';
@@ -79,20 +79,22 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
       >
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <PretendardText
-              weight='semibold'
-              style={[styles.name, isMyComment && styles.myName]}
-            >
+            <PretendardText weight='semibold' style={styles.name}>
               {comment.authorName}
             </PretendardText>
+            {/* RP-7: 내 리뷰는 라임 글자가 아니라 메타 줄의 조각으로 밝힌다 —
+                라임은 화면당 하나(주 액션 면)이고, 배지는 행 안에 두지 않는다. */}
             <PretendardText style={styles.date}>
               {dayjs(comment.createdAt).format('YYYY.MM.DD')}
+              {isMyComment ? ' · 내 리뷰' : ''}
             </PretendardText>
           </View>
           {isMyComment && (
             <TouchableOpacity
-              style={styles.moreButton}
               onPress={handlePressMore}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityRole='button'
+              accessibilityLabel='리뷰 관리'
             >
               <Ionicons
                 name='ellipsis-horizontal'
@@ -114,6 +116,10 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
               style={styles.iconWithText}
               onPress={handleLikePress}
               activeOpacity={0.7}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityRole='button'
+              accessibilityLabel={isLiked ? '좋아요 취소' : '좋아요'}
+              accessibilityState={{ selected: isLiked }}
             >
               <Ionicons
                 name={isLiked ? 'heart' : 'heart-outline'}
@@ -126,7 +132,11 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
                 {comment.likeCount}
               </PretendardText>
             </TouchableOpacity>
-            <View style={styles.iconWithText}>
+            <View
+              style={styles.iconWithText}
+              accessible
+              accessibilityLabel={`답글 ${comment.replyCount}개`}
+            >
               <Ionicons
                 name='chatbubble-outline'
                 size={20}
@@ -150,14 +160,14 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
 };
 
 const styles = StyleSheet.create({
-  // 홈 탭 리스트와 같은 행 문법 — 지면 위 각진 종이 면. 3px 회색 띠로 행을 가르던
-  // 방식은 지면이 생기면서 필요 없어졌다(간격이 구분을 맡는다).
+  // RP-7: 순백 지면 위 연회색 면 + 모서리 12, 그림자 없음. 행 사이 간격이 구분을 맡는다.
   container: {
     flexDirection: 'column',
     gap: 12,
     paddingVertical: 16,
     paddingHorizontal: 14,
     backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
   },
   header: {
     flexDirection: 'row',
@@ -173,16 +183,9 @@ const styles = StyleSheet.create({
     ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
-  // 내 리뷰 표시 — 앱의 단 하나뿐인 액센트(라임)를 쓴다.
-  myName: {
-    color: Acg.limeText,
-  },
   date: {
     ...AcgType.meta,
     color: Acg.textMuted,
-  },
-  moreButton: {
-    opacity: 0.3,
   },
   likeCountContainer: {
     flexDirection: 'row',
@@ -197,8 +200,9 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 12,
   },
+  // 여러 줄 문단이라 `body`(14/21)다 — 옛 `sectionSubtitle`(15)은 한 줄 부제 단이었다.
   content: {
-    ...AcgType.sectionSubtitle,
+    ...AcgType.body,
     color: Acg.ink,
   },
   likeCount: {
