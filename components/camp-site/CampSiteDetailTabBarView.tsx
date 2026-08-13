@@ -62,8 +62,9 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.item,
     borderBottomWidth: 1,
     borderBottomColor: Acg.hairline,
-    // 지면이 비쳐야 한다 — 흰 면을 깔면 탭 바만 종이처럼 떠 보인다.
-    backgroundColor: 'transparent',
+    // 스티키 헤더라 **불투명**이어야 한다(2026-08-13 사용자 지적) — transparent면 위로
+    // 스크롤한 콘텐츠가 탭 바 뒤로 비친다. 지면이 순백이라 순백 채움은 떠 보이지 않는다.
+    backgroundColor: Acg.paper,
   },
   tab: {
     flex: 1,
