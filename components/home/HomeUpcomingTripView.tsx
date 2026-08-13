@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -63,6 +63,8 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const { trips } = plan;
+  // 캐러셀 활성 페이지(HM-1 인디케이터). 스냅 간격(카드 폭+간격) 기준으로 산출한다.
+  const [activePage, setActivePage] = useState(0);
 
   // 한 장뿐이면 화면 폭을 다 쓴다 — 걸침만 남으면 카드가 잘린 것처럼 보인다.
   const cardWidth =
@@ -272,17 +274,41 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
          * 화면 패딩 밖으로 빼(`marginHorizontal: -패딩`) 카드가 지면 끝까지 흐르게 하고,
          * 첫 장·끝 장은 콘텐츠 패딩으로 화면 축에 맞춘다 — 칩 행과 같은 규칙이다.
          */
-        <ScrollView
-          horizontal={true}
-          showsHorizontalScrollIndicator={false}
-          snapToInterval={cardWidth + CARD_GAP}
-          snapToAlignment='start'
-          decelerationRate='fast'
-          style={styles.carousel}
-          contentContainerStyle={styles.carouselContent}
-        >
-          {trips.map(entry => renderCard(entry))}
-        </ScrollView>
+        <>
+          <ScrollView
+            horizontal={true}
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={cardWidth + CARD_GAP}
+            snapToAlignment='start'
+            decelerationRate='fast'
+            style={styles.carousel}
+            contentContainerStyle={styles.carouselContent}
+            onScroll={event => {
+              const page = Math.round(
+                event.nativeEvent.contentOffset.x / (cardWidth + CARD_GAP)
+              );
+
+              setActivePage(Math.min(Math.max(page, 0), trips.length - 1));
+            }}
+            scrollEventThrottle={16}
+          >
+            {trips.map(entry => renderCard(entry))}
+          </ScrollView>
+
+          {/* 페이지 인디케이터(2026-08-13 사용자 결정 — 걸침만으로는 몇 장인지 몰라 점을
+              되살렸다). 정보이지 컨트롤이 아니라 탭을 받지 않는다. */}
+          <View style={styles.pageDots} accessible={false}>
+            {trips.map((entry, index) => (
+              <View
+                key={entry.bag.getID()}
+                style={[
+                  styles.pageDot,
+                  index === activePage && styles.pageDotActive,
+                ]}
+              />
+            ))}
+          </View>
+        </>
       )}
     </View>
   );
@@ -291,6 +317,22 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
 const styles = StyleSheet.create({
   section: {
     marginBottom: 26,
+  },
+  // 인디케이터 — 활성만 잉크, 나머지는 헤어라인 톤. 정보 표시라 라임을 쓰지 않는다.
+  pageDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 10,
+  },
+  pageDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Acg.hairline,
+  },
+  pageDotActive: {
+    backgroundColor: Acg.ink,
   },
   carousel: {
     marginHorizontal: -AcgLayout.screenPadding,
