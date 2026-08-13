@@ -155,7 +155,7 @@ app/warehouse-unused/index.tsx?category= → WarehouseUnusedWrapper → Warehous
 
 **수용 기준**
 
-- 목록 행을 **왼쪽으로 스와이프**하면 트레일링 액션으로 `삭제`(red 배경)가 노출된다(배낭 리스트 BAG-4와 동일한 `ReanimatedSwipeable` 패턴). 스와이프 액션 버튼은 44pt 이상 히트 영역과 `accessibilityLabel`(`{이름} 삭제`)을 가진다. `[제안]`
+- 목록 행을 **왼쪽으로 스와이프**하면 트레일링 액션으로 `삭제`(red 배경)가 노출된다(`ReanimatedSwipeable` 패턴 — 옛 배낭 목록과 같은 방식이었으나 배낭 목록은 2026-08-13에 스와이프를 걷고 `⋯` 메뉴로 갔다(BAG-1), 창고 행은 그대로 스와이프다). 스와이프 액션 버튼은 44pt 이상 히트 영역과 `accessibilityLabel`(`{이름} 삭제`)을 가진다. `[제안]`
 - `삭제` 탭 → 확인 다이얼로그(`{이름}을 삭제하시겠습니까?`, 확인 버튼 `삭제하기`, 이름은 `getDisplayName()`)를 거친다. 취소하거나 스와이프를 닫으면 아무 일도 일어나지 않는다.
 - 확인 시 장비 문서 삭제와 함께: 장비가 담긴 모든 배낭의 `gears`에서 제거 + 배낭 `weight` 차감 + 카탈로그 장비면 `gear-rank` count 감소([DataModel.md](DataModel.md) DM-6, DM-11).
 - 완료 후 토스트 `삭제 되었습니다.`를 표시하고 목록을 갱신한다.

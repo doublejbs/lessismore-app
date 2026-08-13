@@ -1,4 +1,4 @@
-import { FC, useMemo, useRef, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -6,20 +6,13 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
-import ReanimatedSwipeable, {
-  SwipeableMethods,
-} from 'react-native-gesture-handler/ReanimatedSwipeable';
-import Reanimated, {
-  SharedValue,
-  useAnimatedStyle,
-} from 'react-native-reanimated';
 import app from '@/model/app/App';
 import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
 import PretendardText from '@/components/PretendardText';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
 import { useRouter } from 'expo-router';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Ionicons } from '@expo/vector-icons';
 import {
   Acg,
@@ -35,68 +28,26 @@ import {
   STATIC_MAP_REFERER,
 } from '@/model/map/StaticMapUrl';
 
-// 삭제 스와이프 액션 배경 — 파괴적 액션 시맨틱 색(DesignTokens 예외, CLAUDE.md 참고).
-const DELETE_RED = '#FF3B30';
-
-// 액션 버튼 1개 너비. 전체 액션 영역 = ACTION_WIDTH * 2.
-const ACTION_WIDTH = 72;
-const ACTIONS_TOTAL_WIDTH = ACTION_WIDTH * 2;
-
 /**
  * 지도 밴드 높이(BAG-1). 카드 폭 전체를 쓰는 가로로 긴 띠다 — 정사각 썸네일로 만들면 카드
  * 절반이 지도가 되어 목록에서 이름·무게를 훑는 일이 밀린다.
  */
 const MAP_BAND_HEIGHT = 110;
 
-// 카드 사이 간격(BAG-1). 카드 자체가 아니라 스와이프 래퍼 바깥에 둔다 — 아래 주석 참고.
+// 카드 사이 간격(BAG-1). 스와이프 래퍼가 사라졌으니 카드 자신이 갖는다.
 const CARD_GAP = 12;
 
 // 카드 본문 좌우 패딩. 홈 일정 카드(HM-1)와 같은 값이라 두 화면의 카드가 같은 리듬을 갖는다.
 const CARD_PADDING_HORIZONTAL = 16;
 
-interface RightActionsProps {
-  // ReanimatedSwipeable가 넘겨주는 드래그 변위(열릴수록 음수, 닫히면 0).
-  drag: SharedValue<number>;
-  onCopy: () => void;
-  onDelete: () => void;
-}
+// `⋯` 버튼 폭. 세로는 본문 높이만큼 늘어나므로(stretch) 44×44 터치 타깃을 넘긴다.
+const MENU_BUTTON_WIDTH = 44;
 
-// 드래그 변위에 맞춰 오른쪽에서 슬라이드 인. 닫힘(drag=0) 상태에선 화면 밖으로 밀려 숨겨져
-// 살짝 드래그했을 때 액션이 통째로 깜빡이는 문제를 방지한다.
-const RightActions: FC<RightActionsProps> = ({ drag, onCopy, onDelete }) => {
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: drag.value + ACTIONS_TOTAL_WIDTH }],
-  }));
-
-  return (
-    <Reanimated.View style={[styles.actionsContainer, animatedStyle]}>
-      <TouchableOpacity
-        style={[styles.actionButton, styles.copyAction]}
-        onPress={onCopy}
-        activeOpacity={0.7}
-        accessibilityRole='button'
-        accessibilityLabel='배낭 복사'
-      >
-        <IconSymbol name='doc.on.doc' size={20} color={Acg.paper} />
-        <PretendardText style={styles.actionLabel} weight='medium'>
-          복사
-        </PretendardText>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.actionButton, styles.deleteAction]}
-        onPress={onDelete}
-        activeOpacity={0.7}
-        accessibilityRole='button'
-        accessibilityLabel='배낭 삭제'
-      >
-        <IconSymbol name='trash.fill' size={20} color={Acg.paper} />
-        <PretendardText style={styles.actionLabel} weight='medium'>
-          삭제
-        </PretendardText>
-      </TouchableOpacity>
-    </Reanimated.View>
-  );
-};
+/**
+ * 아이콘(16)이 44 폭 안에 중앙 정렬되면 시각 여백이 (44−16)/2 = 14 생긴다. 카드 좌우 패딩 16과
+ * 광학적으로 맞추기 위해 남는 2만 오른쪽 마진으로 준다 — 죽는 터치 영역이 2pt뿐이다.
+ */
+const MENU_BUTTON_MARGIN_RIGHT = 2;
 
 interface Props {
   bagItem: BagItem;
@@ -113,12 +64,16 @@ interface Props {
  * **[Home.md](../../specs/Home.md) HM-8 행 문법의 화면별 예외다** — 창고·홈 목록·복사 원본
  * 선택 시트는 계속 헤어라인 행이다. 배낭만 카드인 이유는 항목이 "한 줄로 훑는 값"이 아니라
  * 여행 한 건이고, 이미지를 담으려면 담을 면이 필요하기 때문이다.
+ *
+ * 복사·삭제는 우측 `⋯` 메뉴다(BAG-3/BAG-4, 2026-08-13). 예전에는 트레일링 스와이프 액션이었다.
+ * **셰브론도 함께 걷었다**: HM-8의 셰브론 규칙은 헤어라인 행의 것이고, 카드는 카드 전체가 탭
+ * 대상이라(홈 일정 카드도 셰브론이 없다) 우측에 셰브론과 메뉴를 나란히 두면 오탭만 늘어난다.
  */
 const BagItemView: FC<Props> = ({ bagItem, bag }) => {
   const date = bagItem.getDate();
   const router = useRouter();
-  const swipeableRef = useRef<SwipeableMethods>(null);
   const { width: windowWidth } = useWindowDimensions();
+  const [showMenu, setShowMenu] = useState(false);
   /**
    * 로드에 실패한 URL. 실패 플래그를 boolean으로 두면 URL이 바뀌어도(화면 회전 → 폭 변경)
    * 실패 상태가 남는다 — URL을 담아 두면 새 URL에서 자연히 한 번 더 시도한다.
@@ -161,13 +116,22 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
     setFailedMapUrl(mapUrl);
   };
 
+  const handleClickMenu = () => {
+    setShowMenu(true);
+  };
+
+  const handleCloseMenu = () => {
+    setShowMenu(false);
+  };
+
+  // 시트를 먼저 닫고 확인 다이얼로그(Bag.delete)를 띄운다 — 시트 위에 겹치지 않는다(BAG-3).
   const handleClickDelete = () => {
-    swipeableRef.current?.close();
+    setShowMenu(false);
     bag.delete(bagItem);
   };
 
   const handleClickCopy = () => {
-    swipeableRef.current?.close();
+    setShowMenu(false);
 
     if (!app.getFirebase()?.isLoggedIn()) {
       app.getLogInAlertManager()?.show();
@@ -185,19 +149,21 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
     });
   };
 
-  const renderRightActions = (
-    _progress: SharedValue<number>,
-    drag: SharedValue<number>
-  ) => (
-    <RightActions
-      drag={drag}
-      onCopy={handleClickCopy}
-      onDelete={handleClickDelete}
-    />
-  );
+  const menuItems = [
+    {
+      icon: 'copy-outline' as const,
+      text: '복사',
+      onPress: handleClickCopy,
+    },
+    {
+      icon: 'trash-outline' as const,
+      text: '삭제',
+      onPress: handleClickDelete,
+    },
+  ];
 
   /**
-   * 카드는 VoiceOver에서 **하나의 요소**로 읽힌다. 지도 밴드는 `accessible={false}`로 빼고
+   * 카드 본문은 VoiceOver에서 **하나의 요소**로 읽힌다. 지도 밴드는 `accessible={false}`로 빼고
    * 여행지명을 이 라벨에 실어, 밴드가 전하는 "어디"가 사라지지 않게 한다(BAG-1 접근성).
    */
   const locationName = bagItem.getLocationName();
@@ -206,97 +172,112 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
   }`;
 
   return (
-    /**
-     * 간격을 **스와이프 래퍼 바깥**에서 준다. 카드에 `marginBottom`을 주면 액션 패널이
-     * `alignItems: 'stretch'`로 그 여백까지 늘어나 카드 아래로 빨간 띠가 삐져나온다(BAG-4).
-     */
-    <View style={styles.spacing}>
-      <ReanimatedSwipeable
-        ref={swipeableRef}
-        friction={2}
-        rightThreshold={40}
-        overshootRight={false}
-        renderRightActions={renderRightActions}
-      >
-        <TouchableOpacity
-          style={styles.card}
-          onPress={handleClick}
-          activeOpacity={0.7}
-          accessibilityRole='button'
-          accessibilityLabel={cardAccessibilityLabel}
-        >
+    <>
+      <View style={styles.card}>
+        {/*
+          지도 밴드(BAG-1). 이미지 위에 글자·그라디언트를 얹지 않는다 — 응답 이미지에 박힌
+          네이버 로고·저작권 고지를 가리는 것이 NCP 약관 위반이다. 서버에 저장하지 않고
+          `expo-image`의 기기 캐시만 쓴다. 탭은 본문과 같이 상세로 가고, 접근성 트리에서는
+          빠진다(여행지명은 본문 라벨에 실려 있다).
+        */}
+        {showMapBand ? (
+          <TouchableOpacity
+            style={styles.mapBand}
+            onPress={handleClick}
+            activeOpacity={0.7}
+            accessible={false}
+          >
+            <Image
+              // Referer가 없으면 401(NCP 등록 도메인 검사) — StaticMapUrl.ts 참고.
+              source={{ uri: mapUrl, headers: { Referer: STATIC_MAP_REFERER } }}
+              style={StyleSheet.absoluteFill}
+              contentFit='cover'
+              cachePolicy='memory-disk'
+              transition={160}
+              onError={handleMapError}
+              accessible={false}
+            />
+            {/* 앱 공통 박지 핀 — 끝점이 여행지 좌표(이미지 중심)에 닿게 앵커한다. */}
+            <View style={styles.pinOverlay} pointerEvents='none'>
+              <SpotPinView />
+            </View>
+          </TouchableOpacity>
+        ) : null}
+
+        <View style={styles.body}>
           {/*
-            지도 밴드(BAG-1). 이미지 위에 글자·그라디언트를 얹지 않는다 — 응답 이미지에 박힌
-            네이버 로고·저작권 고지를 가리는 것이 NCP 약관 위반이다. 서버에 저장하지 않고
-            `expo-image`의 기기 캐시만 쓴다.
+            상세 이동 영역. 메뉴 버튼을 이 안에 **중첩하지 않는다** — 카드 본문이 라벨을 가진
+            하나의 접근성 요소라, 중첩하면 VoiceOver가 메뉴 버튼에 닿지 못한다(BAG-1 접근성).
+            좌우·위아래 패딩을 이 터치 영역이 삼켜 카드 안쪽에 죽는 영역이 남지 않는다.
           */}
-          {showMapBand ? (
-            <View style={styles.mapBand}>
-              <Image
-                // Referer가 없으면 401(NCP 등록 도메인 검사) — StaticMapUrl.ts 참고.
-                source={{ uri: mapUrl, headers: { Referer: STATIC_MAP_REFERER } }}
-                style={StyleSheet.absoluteFill}
-                contentFit='cover'
-                cachePolicy='memory-disk'
-                transition={160}
-                onError={handleMapError}
-                accessible={false}
-              />
-              {/* 앱 공통 박지 핀 — 끝점이 여행지 좌표(이미지 중심)에 닿게 앵커한다. */}
-              <View style={styles.pinOverlay} pointerEvents='none'>
-                <SpotPinView />
-              </View>
-            </View>
-          ) : null}
+          <TouchableOpacity
+            style={styles.bodyText}
+            onPress={handleClick}
+            activeOpacity={0.7}
+            accessibilityRole='button'
+            accessibilityLabel={cardAccessibilityLabel}
+          >
+            <PretendardText
+              weight='medium'
+              style={styles.name}
+              numberOfLines={2}
+            >
+              {bagItem.getName()}
+            </PretendardText>
 
-          <View style={styles.body}>
-            <View style={styles.bodyText}>
-              <PretendardText
-                weight='medium'
-                style={styles.name}
-                numberOfLines={2}
-              >
-                {bagItem.getName()}
-              </PretendardText>
+            {/*
+              값을 한 줄에 `·`로 묶는다 — 무게 · 기간 · 패킹. 무게가 맨 앞이라 카드마다 같은
+              자리에서 비교되고, 숫자만 중첩 Text로 콘덴스드다. 패킹은 칩이 아니라 이 줄의
+              마지막 조각이다: 카드가 이미 면이라 그 안의 칩은 면 위의 면이 된다.
+            */}
+            <PretendardText style={styles.meta} numberOfLines={1}>
+              <AcgDisplayText style={styles.metaNumber}>
+                {`${bagItem.getWeight()}kg`}
+              </AcgDisplayText>
+              {` · ${date}`}
+              {bagItem.hasPackingRecord()
+                ? bagItem.isPackingComplete()
+                  ? ' · 패킹 완료'
+                  : ` · 패킹 ${bagItem.getPackingPercent()}%`
+                : ''}
+            </PretendardText>
+          </TouchableOpacity>
 
-              {/*
-                값을 한 줄에 `·`로 묶는다 — 무게 · 기간 · 패킹. 무게가 맨 앞이라 카드마다 같은
-                자리에서 비교되고, 숫자만 중첩 Text로 콘덴스드다. 패킹은 칩이 아니라 이 줄의
-                마지막 조각이다: 카드가 이미 면이라 그 안의 칩은 면 위의 면이 된다.
-              */}
-              <PretendardText style={styles.meta} numberOfLines={1}>
-                <AcgDisplayText style={styles.metaNumber}>
-                  {`${bagItem.getWeight()}kg`}
-                </AcgDisplayText>
-                {` · ${date}`}
-                {bagItem.hasPackingRecord()
-                  ? bagItem.isPackingComplete()
-                    ? ' · 패킹 완료'
-                    : ` · 패킹 ${bagItem.getPackingPercent()}%`
-                  : ''}
-              </PretendardText>
-            </View>
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={handleClickMenu}
+            activeOpacity={0.7}
+            accessibilityRole='button'
+            accessibilityLabel='배낭 메뉴'
+          >
+            <Ionicons
+              name='ellipsis-horizontal'
+              size={16}
+              color={Acg.textMuted}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
 
-            <Ionicons name='chevron-forward' size={16} color={Acg.textMuted} />
-          </View>
-        </TouchableOpacity>
-      </ReanimatedSwipeable>
-    </View>
+      <BottomMenuModalView
+        visible={showMenu}
+        onClose={handleCloseMenu}
+        menuItems={menuItems}
+      />
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  spacing: {
-    marginBottom: CARD_GAP,
-  },
   /**
    * 배낭 카드(BAG-1, 2026-08-13). 홈 일정 카드와 같은 연회색 면 + 모서리 12 + 그림자 없음.
    *
-   * `overflow: hidden`이 두 일을 한다: 지도 밴드의 상단 모서리를 카드 모서리로 깎고, 밴드가
-   * 카드 밖으로 새지 않게 한다. 면이 불투명이라 뒤의 스와이프 액션색도 비치지 않는다.
+   * `overflow: hidden`이 지도 밴드의 상단 모서리를 카드 모서리로 깎고, 밴드가 카드 밖으로
+   * 새지 않게 한다.
    */
   card: {
     width: '100%',
+    marginBottom: CARD_GAP,
     backgroundColor: Acg.controlFill,
     borderRadius: AcgRadius.thumb,
     overflow: 'hidden',
@@ -314,19 +295,21 @@ const styles = StyleSheet.create({
     marginLeft: -15,
     marginTop: -40,
   },
-  // 본문 치수는 목록 공통 토큰(AcgRow)을 그대로 쓴다 — 밴드가 없는 카드도 44pt를 넘긴다.
+  /**
+   * 본문 치수는 목록 공통 토큰(AcgRow)을 그대로 쓴다 — 밴드가 없는 카드도 44pt를 넘긴다.
+   * 패딩은 행이 아니라 **자식 터치 영역**이 갖는다(위 주석 참고).
+   */
   body: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
     minHeight: AcgRow.minHeight,
-    paddingVertical: AcgRow.paddingVertical,
-    paddingHorizontal: CARD_PADDING_HORIZONTAL,
   },
   bodyText: {
     flex: 1,
     minWidth: 0,
     gap: 2,
+    paddingVertical: AcgRow.paddingVertical,
+    paddingLeft: CARD_PADDING_HORIZONTAL,
   },
   name: {
     ...AcgType.rowTitle,
@@ -343,32 +326,15 @@ const styles = StyleSheet.create({
     color: Acg.ink,
   },
   /**
-   * 액션 패널은 카드 높이를 따라간다(`stretch`) — 밴드가 있는 카드와 없는 카드가 섞여도 각자
-   * 자기 카드에 맞는다. **오른쪽 모서리만** 카드와 같이 깎아 열렸을 때 실루엣이 이어진다.
+   * `⋯` 메뉴 버튼(BAG-1). `stretch`로 본문 높이를 꽉 채워, 이름이 두 줄인 카드에서도 아이콘이
+   * 세로 중앙에 오고 이 열에 죽는 영역이 없다. 폭 44 + 세로 최소 72로 44×44를 넘긴다.
    */
-  actionsContainer: {
-    width: ACTIONS_TOTAL_WIDTH,
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    borderTopRightRadius: AcgRadius.thumb,
-    borderBottomRightRadius: AcgRadius.thumb,
-    overflow: 'hidden',
-  },
-  actionButton: {
-    width: ACTION_WIDTH,
+  menuButton: {
+    width: MENU_BUTTON_WIDTH,
+    marginRight: MENU_BUTTON_MARGIN_RIGHT,
+    alignSelf: 'stretch',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-  },
-  copyAction: {
-    backgroundColor: Acg.ink,
-  },
-  deleteAction: {
-    backgroundColor: DELETE_RED,
-  },
-  actionLabel: {
-    ...AcgType.meta,
-    color: Acg.paper,
   },
 });
 
