@@ -206,6 +206,8 @@ export const AcgShadow = {
   glass: '0 6px 20px rgba(26,26,26,0.1)',
   card: '0 6px 20px rgba(26,26,26,0.12)',
   sticker: '0 4px 12px rgba(26,26,26,0.22)',
+  // 지도 위 칩처럼 작은 요소용 — 카드 그림자(6px/20px)는 작은 면에서 뿌옇게 번진다.
+  chip: '0 2px 8px rgba(26,26,26,0.16)',
 } as const;
 
 /**

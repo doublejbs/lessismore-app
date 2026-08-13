@@ -175,16 +175,18 @@ const styles = StyleSheet.create({
   chipAcgSelected: {
     backgroundColor: Acg.ink,
     // 지도 위 칩은 선택 상태에도 같은 그림자를 유지한다 — 없으면 선택하는 순간 칩이 지도에 붙는다.
-    boxShadow: AcgShadow.card,
+    boxShadow: AcgShadow.chip,
   },
   /**
-   * 지도 위처럼 뒤가 단색이 아닌 곳. **연회색 채움은 다른 화면과 같고**(불투명이라 지도 라벨이
-   * 비치지 않는다) 그림자만 더해 지도에서 떠 보이게 한다 — 흰 면 + 테두리로 두면 지도 위에서
-   * 칩이 다른 앱 요소처럼 읽혔다(2026-08-12 사용자 지적).
+   * 지도 위처럼 뒤가 단색이 아닌 곳. 지도 위 다른 요소(검색 필드·★·현위치 버튼)는 전부
+   * **불투명 흰 면 + 그림자**인데 칩만 연회색이면 혼자 톤이 달랐다 — 흰 면으로 맞춘다.
+   * 그림자는 칩 크기용 작은 그림자(`AcgShadow.chip`)를 쓴다 — 카드용 큰 그림자(6px/20px
+   * 블러)는 작은 칩에서 뿌옇게 번졌다(2026-08-13 사용자 지적). **테두리는 두지 않는다** —
+   * 이전에 기각된 것은 "흰 면 + 테두리"(아웃라인)이지 흰 면 자체가 아니다.
    */
   chipAcgSolidUnselected: {
-    backgroundColor: Color.chipInactiveBg,
-    boxShadow: AcgShadow.card,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.chip,
   },
   // 지도 마커가 각진 사각이라 범례도 같은 형태로 둔다 — 원이면 범례와 마커가 따로 논다.
   dot: {
