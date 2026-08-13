@@ -16,8 +16,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
-import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout, AcgRadius, AcgType, Color } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, Color } from '@/constants/DesignTokens';
 import BagDetailCategoryView from './BagDetailCategoryView';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import BagDetailDateView from './BagDetailDateView';
@@ -63,12 +62,6 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
 
   const handlePressBack = () => {
     bagDetail.back();
-  };
-
-  // 빈 배낭 안내의 CTA — 하단 `장비 추가`와 같은 경로·같은 로그를 쓴다.
-  const handlePressAddGear = () => {
-    app.getAnalyticsManager()?.logClick('bag_edit');
-    bagDetail.goToEdit();
   };
 
   const handleCategoryRefReady = (categoryFilter: string, ref: any) => {
@@ -238,38 +231,8 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               </View>
               <View style={styles.gearListContainer}>
                 <View style={styles.gearList}>
-                  {/* 빈 배낭이면 목록 자리가 통째로 비어 뭘 해야 할지 알 수 없었다
-                      (2026-08-04 시뮬레이터 확인). 하단 `장비 추가`와 같은 경로를
-                      바로 누를 수 있게 둔다 — 빈 배낭에서 할 일은 이것 하나뿐이다. */}
-                  {gears.length === 0 ? (
-                    <View style={styles.gearEmpty}>
-                      <PretendardText
-                        weight='semibold'
-                        style={styles.gearEmptyTitle}
-                      >
-                        담긴 장비가 없어요
-                      </PretendardText>
-                      <PretendardText style={styles.gearEmptyText}>
-                        창고에서 장비를 골라 담아보세요
-                      </PretendardText>
-                      {/* 하단 바의 `장비 추가`와 같은 경로다. 라임은 그쪽 하나뿐이라
-                          여기는 잉크 알약으로 둔다. */}
-                      <TouchableOpacity
-                        style={styles.gearEmptyButton}
-                        onPress={handlePressAddGear}
-                        activeOpacity={0.8}
-                        accessibilityRole='button'
-                        accessibilityLabel='장비 추가하기'
-                      >
-                        <PretendardText
-                          weight='semibold'
-                          style={styles.gearEmptyButtonText}
-                        >
-                          장비 추가하기
-                        </PretendardText>
-                      </TouchableOpacity>
-                    </View>
-                  ) : null}
+                  {/* 빈 배낭에 안내 면을 두지 않는다(2026-08-13 사용자 결정) —
+                      하단 바의 `장비 추가`가 이미 화면에 있어 빈 목록이 스스로 설명된다. */}
                   {bagDetail.getGearsByCategory().map(({ category, gears }) => (
                     <BagDetailCategoryView
                       key={category.getFilter()}
@@ -315,9 +278,6 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     );
   }
 };
-
-// 빈 상태 버튼 알약 높이. 모서리는 그 절반이다.
-const EMPTY_CTA_HEIGHT = 48;
 
 const styles = StyleSheet.create({
   container: {
@@ -403,35 +363,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: AcgLayout.screenPadding,
     paddingTop: AcgLayout.screenPadding,
     justifyContent: 'space-between',
-  },
-  // 순백 지면 위 연회색 면 — 흰 면은 지면과 붙어 보이지 않는다.
-  gearEmpty: {
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-    marginHorizontal: AcgLayout.screenPadding,
-    gap: 4,
-    backgroundColor: Acg.controlFill,
-    borderRadius: AcgRadius.thumb,
-  },
-  gearEmptyTitle: {
-    ...AcgType.rowTitle,
-    color: Acg.ink,
-  },
-  gearEmptyText: {
-    ...AcgType.rowSubtitle,
-    color: Acg.textMuted,
-    marginBottom: 12,
-  },
-  gearEmptyButton: {
-    minHeight: EMPTY_CTA_HEIGHT,
-    borderRadius: EMPTY_CTA_HEIGHT / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Acg.ink,
-  },
-  gearEmptyButtonText: {
-    ...AcgType.control,
-    color: Acg.paper,
   },
   gearListContainer: {
     alignItems: 'center',
