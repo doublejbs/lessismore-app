@@ -96,12 +96,13 @@ const styles = StyleSheet.create({
   container: {
     gap: 4,
   },
+  // 행 자체 좌우 패딩은 없다(2026-08-13) — 화면 패딩 위에 4를 더 얹어 다른 콘텐츠와
+  // 정렬선이 어긋나던 잔재를 걷었다(패킹·정보 탭과 같은 계열).
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     paddingVertical: 12,
-    paddingHorizontal: 4,
     borderBottomWidth: 1,
     borderBottomColor: Color.borderLight,
   },
