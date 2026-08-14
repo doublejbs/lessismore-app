@@ -25,6 +25,7 @@ import SearchSkeletonView from '@/components/search/SearchSkeletonView';
 import BrandRowView from '@/components/browse/BrandRowView';
 import SheetGrabberView from '@/components/ui/SheetGrabberView';
 import app from '@/model/app/App';
+import useSheetTransition from '@/hooks/useSheetTransition';
 
 const CONFIRM_LABEL = '확인';
 
@@ -41,6 +42,7 @@ interface Props {
 const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { isReduceMotionEnabled } = useSheetTransition();
   const [brandDirectory] = useState(() => BrandDirectory.new(router));
 
   // 스테이징 로컬 상태 — 시트 열릴 때 현재 적용 브랜드로 초기화한다(피드 재조회 없음).
@@ -62,9 +64,15 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
     }
 
     // 열릴 때마다 스테이징을 현재 적용 브랜드로 동기화한다.
-    setStagedBrands([...feed.getFilterBrands()]);
+    const timeoutId = setTimeout(() => {
+      setStagedBrands([...feed.getFilterBrands()]);
+    }, 0);
 
     brandDirectory.initialize();
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [visible, brandDirectory, feed]);
 
   // 취소: 스테이징을 폐기하고 닫는다(적용 브랜드 유지). 스와이프 닫힘·뒤로가기 공통 경로.
@@ -179,7 +187,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
   return (
     <Modal
       visible={visible}
-      animationType='slide'
+      animationType={isReduceMotionEnabled ? 'fade' : 'slide'}
       presentationStyle='pageSheet'
       onRequestClose={handleCancel}
       onDismiss={handleCancel}

@@ -14,6 +14,7 @@ import PretendardText from '@/components/PretendardText';
 import SheetGrabberView from '@/components/ui/SheetGrabberView';
 import { AcgType, Color } from '@/constants/DesignTokens';
 import BagItem from '@/model/bag/BagItem';
+import useSheetTransition from '@/hooks/useSheetTransition';
 
 interface Props {
   visible: boolean;
@@ -42,6 +43,7 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const isAndroid = Platform.OS === 'android';
+  const { isReduceMotionEnabled } = useSheetTransition();
 
   // 방금 만든/최근 수정한 배낭을 위로 — 최근 수정순(편집일 desc).
   const sortedBags = [...bags].sort(
@@ -172,7 +174,7 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
     return (
       <Modal
         visible={visible}
-        animationType='slide'
+        animationType={isReduceMotionEnabled ? 'fade' : 'slide'}
         transparent
         onRequestClose={onClose}
       >
@@ -191,7 +193,7 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
   return (
     <Modal
       visible={visible}
-      animationType='slide'
+      animationType={isReduceMotionEnabled ? 'fade' : 'slide'}
       presentationStyle='pageSheet'
       onRequestClose={onClose}
       onDismiss={onClose}
