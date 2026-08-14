@@ -10,7 +10,6 @@ import InfoSubScreenHeaderView, {
 import PretendardText from '@/components/PretendardText';
 import {
   Acg,
-  AcgLayout,
   AcgRadius,
   AcgType,
   Color,
@@ -139,7 +138,6 @@ const styles = StyleSheet.create({
   paper: {
     padding: 16,
     marginBottom: 24,
-    marginHorizontal: AcgLayout.screenPadding,
     backgroundColor: Acg.controlFill,
     borderRadius: AcgRadius.thumb,
     overflow: 'hidden',
