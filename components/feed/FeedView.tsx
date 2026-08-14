@@ -46,6 +46,7 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [feed] = useState(() => externalFeed ?? Feed.new(router));
+  const [isInitialLoadSettled, setIsInitialLoadSettled] = useState(false);
   const ownsFeed = !externalFeed;
   // 플로팅 `인기 순위` 버튼(탭바 위 20pt, 높이 ~48)이 마지막 행을 가리지 않도록 리스트 하단 여백을 확보한다.
   // iOS는 edge-to-edge라 탭바 영역(insets.bottom)까지 더한다. Android는 커스텀 탭이라 고정값.
@@ -56,9 +57,21 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   });
 
   useEffect(() => {
-    feed.initialize();
+    let isMounted = true;
+
+    const initialize = async () => {
+      await feed.initialize();
+
+      if (isMounted) {
+        setIsInitialLoadSettled(true);
+      }
+    };
+
+    void initialize();
 
     return () => {
+      isMounted = false;
+
       // 외부 소유 피드는 언마운트(검색어 입력) 시에도 상태를 유지해야 하므로 소유자만 dispose한다.
       if (ownsFeed) {
         feed.dispose();
@@ -121,7 +134,10 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
 
   // 최초 로딩(초기화 전 또는 데이터 없이 로딩 중)에는 행 골격 스켈레톤으로 화면을 채운다.
   // isInitialized가 초기 렌더에서 false이므로, 로드가 빨라도 스켈레톤이 먼저 보인다.
-  const showSkeleton = (!isInitialized || isLoading) && items.length === 0;
+  const showSkeleton =
+    (!isInitialLoadSettled || !isInitialized || isLoading) && items.length === 0;
+  const showRankingButton =
+    isInitialLoadSettled && !isLoading && items.length > 0 && !gearAddContext;
 
   if (showSkeleton) {
     // 플로팅 `인기 순위` 버튼은 스켈레톤 위에 띄우지 않는다. 탭이 막 마운트된 첫 프레임에는
@@ -163,7 +179,7 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
           />
         }
       />
-      {!gearAddContext && <FeedRankingButtonView feed={feed} />}
+      {showRankingButton && <FeedRankingButtonView feed={feed} />}
     </View>
   );
 };
