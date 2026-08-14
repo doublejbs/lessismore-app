@@ -48,7 +48,7 @@ const BagEditHeaderView: FC<Props> = ({
           accessibilityRole='button'
           accessibilityLabel='장비 추가'
         >
-          <Svg width={24} height={24} viewBox='0 0 14 14' fill='none'>
+          <Svg width={16} height={16} viewBox='0 0 14 14' fill='none'>
             <Path
               d='M14 8H8V14H6V8H0V6H6V0H8V6H14V8Z'
               fill={Color.textPrimary}
