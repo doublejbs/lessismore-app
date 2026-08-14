@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType, Spacing } from '@/constants/DesignTokens';
 import InfoSubScreenHeaderView, {
   IOS_EDGES,
   IS_IOS,
@@ -34,7 +34,10 @@ const InfoBusinessView: FC = () => {
         contentContainerStyle={[
           styles.content,
           // iOS는 투명 네이티브 헤더가 상단을 덮으므로 그만큼 내려서 시작한다(LG-1).
-          IS_IOS && { paddingTop: insets.top + NATIVE_HEADER_HEIGHT },
+          IS_IOS && {
+            paddingTop:
+              insets.top + NATIVE_HEADER_HEIGHT + Spacing.item,
+          },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -60,7 +63,7 @@ const InfoBusinessView: FC = () => {
 
 const styles = StyleSheet.create({
   content: {
-    paddingTop: 12,
+    paddingTop: Spacing.item,
     paddingBottom: 40,
   },
   paper: {

@@ -14,6 +14,7 @@ import {
   AcgType,
   Color,
   Radius,
+  Spacing,
 } from '@/constants/DesignTokens';
 import {
   PRIVACY_POLICY_TEXT,
@@ -60,7 +61,10 @@ const InfoPolicyView: FC<Props> = ({ initialTab }) => {
         style={[
           styles.tabRow,
           // iOS는 투명 네이티브 헤더가 상단을 덮으므로 그만큼 내려서 시작한다(LG-1).
-          IS_IOS && { marginTop: insets.top + NATIVE_HEADER_HEIGHT },
+          IS_IOS && {
+            marginTop:
+              insets.top + NATIVE_HEADER_HEIGHT + Spacing.item,
+          },
         ]}
       >
         {TAB_ORDER.map(tab => {
@@ -105,7 +109,8 @@ const styles = StyleSheet.create({
   tabRow: {
     flexDirection: 'row',
     gap: 8,
-    paddingVertical: 12,
+    marginTop: Spacing.item,
+    paddingBottom: Spacing.item,
   },
   // 세로 여백으로 HIG 최소 터치 타깃 44pt를 만든다.
   tab: {
