@@ -93,16 +93,24 @@ const BagView = () => {
 
   const renderSegment = () => (
     <View style={styles.segmentContainer}>
-      <CategoryChipView
-        label='배낭'
-        selected={!isTemplateSegment}
-        onPress={() => setSegment(BagViewSegment.Bags)}
-      />
-      <CategoryChipView
-        label='템플릿'
-        selected={isTemplateSegment}
-        onPress={() => setSegment(BagViewSegment.Templates)}
-      />
+      <View style={styles.segmentChips}>
+        <CategoryChipView
+          label='배낭'
+          selected={!isTemplateSegment}
+          onPress={() => setSegment(BagViewSegment.Bags)}
+        />
+        <CategoryChipView
+          label='템플릿'
+          selected={isTemplateSegment}
+          onPress={() => setSegment(BagViewSegment.Templates)}
+        />
+      </View>
+      {!isTemplateSegment && !isLoading && !isEmpty && (
+        <OrderButtonView
+          order={bag.getOrder()}
+          onSelectOption={handleSelectOrder}
+        />
+      )}
     </View>
   );
 
@@ -118,12 +126,6 @@ const BagView = () => {
               ? '배낭'
               : `배낭 ${bags.length}개`}
         </PretendardText>
-        {!isTemplateSegment && !isLoading && !isEmpty && (
-          <OrderButtonView
-            order={bag.getOrder()}
-            onSelectOption={handleSelectOrder}
-          />
-        )}
       </View>
       {renderSegment()}
     </>
@@ -270,9 +272,14 @@ const styles = StyleSheet.create({
   },
   segmentContainer: {
     flexDirection: 'row',
-    gap: AcgLayout.chipGap,
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingTop: 8,
-    paddingBottom: 4,
+    paddingBottom: AcgLayout.section,
+  },
+  segmentChips: {
+    flexDirection: 'row',
+    gap: AcgLayout.chipGap,
   },
   emptyContainer: {
     flex: 1,
@@ -289,18 +296,10 @@ const styles = StyleSheet.create({
     ...AcgType.rowSubtitle,
     color: Acg.textMuted,
   },
-  // 좌: 개수 텍스트 / 우: 정렬 드롭다운 (창고 컨트롤 행과 같은 문법, BAG-6)
-  // gap은 좁은 화면에서 텍스트가 접혔을 때 드롭다운과 맞닿지 않게 한다.
+  // 화면 제목만 남긴 행이다. 정렬 드롭다운은 세그먼트 칩 행 우측에 둔다(BAG-6).
   headerContainer: {
-    // OrderButtonView의 실제 콘텐츠 높이(아이콘 24 + 세로 패딩 16)를 확보해
-    // 정렬 버튼이 없는 세그먼트에서도 제목·칩의 시작 위치가 움직이지 않는다(BT-2).
-    minHeight: 40,
     marginTop: 12,
     marginBottom: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 8,
   },
   headerText: {
     flexShrink: 1,

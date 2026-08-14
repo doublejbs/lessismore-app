@@ -68,7 +68,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     gap: 8,
-    boxShadow: AcgShadow.card,
+    // 지도 위 작은 칩(card/chip)보다 강하게 분리하되, 공용 플로팅 액션에만 쓰는 그림자다.
+    boxShadow: AcgShadow.sticker,
   },
   // 라임 면에는 테두리를 두지 않는다 — 면과 테두리가 겹치면 알약이 두꺼워 보인다.
   primaryPill: {
