@@ -4,13 +4,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  useWindowDimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgType } from '@/constants/DesignTokens';
 
 // 한 줄 푸터 링크의 44pt 터치 타깃 확보용 여유.
 const LINK_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
@@ -21,7 +20,6 @@ interface Props {
 
 const InfoFooterView: FC<Props> = ({ isLoggedIn }) => {
   const router = useRouter();
-  const { width: screenWidth } = useWindowDimensions();
   const appVersion = Constants.expoConfig?.version || '1.0.0';
 
   const handleOpenBusinessInfo = () => {
@@ -85,13 +83,6 @@ const InfoFooterView: FC<Props> = ({ isLoggedIn }) => {
           accessible={false}
         />
       </View>
-
-      <Image
-        source={require('@/assets/images/info-footer-forest.png')}
-        style={[styles.forestImage, { width: screenWidth }]}
-        resizeMode='contain'
-        accessible={false}
-      />
     </View>
   );
 };
@@ -147,11 +138,6 @@ const styles = StyleSheet.create({
   image: {
     width: 44,
     height: 44,
-  },
-  forestImage: {
-    aspectRatio: 1804 / 872,
-    marginTop: AcgLayout.section,
-    alignSelf: 'center',
   },
 });
 
