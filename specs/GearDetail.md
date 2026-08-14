@@ -243,7 +243,7 @@ GD-2의 배낭별 행을 **여행 카드**로 강화한다. 배낭 문서에 이
 
 - **카탈로그 장비(`!isCustom`)** 상세 헤더 우측에 공유 아이콘(수정하기 왼쪽). 커스텀 장비는 웹 랜딩 대상이 아니라 노출하지 않는다.
 - 탭 → OS 공유 시트(`Share.share`)로 URL `{웹 베이스}/gear-share/{encodeURIComponent(gearId)}`**만** 내보낸다. 웹 베이스는 `constants/WebLinks.ts`의 `WEB_BASE_URL` 단일 소스를 쓴다(2026-07-28 커스텀 도메인 `useless.my` → Firebase Hosting 기본 도메인 `https://lessismore-7e070.web.app`). 공유 클릭은 `click_gear_share`로 계측한다.
-- **웹 랜딩**(별도 레포 `lessismore`, `/gear-share/:id`): Firestore `/gear/{id}`(공개 읽기)를 읽어 제조사·이름·무게·카테고리를 보여주고(장비 이미지 미제공 원칙 — 사진 없음), `앱에서 보기` 버튼으로 `lessismoreapp://gear-detail/{id}` 딥링크(미설치 시 스토어 폴백)로 앱을 연다.
+- **웹 랜딩**(별도 레포 `lessismore`, `/gear-share/:id`): Firestore `/gear/{id}`(공개 읽기)를 읽어 제조사·이름·무게·카테고리를 보여주고(장비 이미지 미제공 원칙 — 사진 없음. 장비 `imageUrl` 렌더는 2026-08-14 웹 레포 커밋 4068e33에서 제거됨 — [DataModel.md](DataModel.md) §1 '앱 밖 표면' 해소), `앱에서 보기` 버튼으로 `lessismoreapp://gear-detail/{id}` 딥링크(미설치 시 스토어 폴백)로 앱을 연다.
 
 ### GD-8 카테고리별 스펙 표 `[기획]`
 
