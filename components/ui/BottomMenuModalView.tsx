@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { FC, useState, useEffect } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 
@@ -25,6 +26,7 @@ interface Props {
 const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
   const [fadeAnim] = useState(() => new Animated.Value(0));
   const [slideAnim] = useState(() => new Animated.Value(300));
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible) {
@@ -73,8 +75,6 @@ const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
           style={[
             styles.modalContent,
             {
-              // 네이티브 Modal 호스트가 홈 인디케이터 safe area를 이미 반영한다.
-              // 여기서 insets.bottom을 다시 더하면 닫기 버튼 아래 여백이 두 배가 된다.
               transform: [{ translateY: slideAnim }],
             },
           ]}
@@ -98,7 +98,13 @@ const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
             ))}
           </View>
 
-          <View style={styles.closeSection}>
+          <View
+            style={[
+              styles.closeSection,
+              // 배낭·장비 추가 옵션 시트와 같은 하단 여백 문법을 적용한다.
+              { paddingBottom: Math.max(insets.bottom - 16, 12) },
+            ]}
+          >
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <PretendardText weight='bold' style={styles.closeButtonText}>
                 닫기
@@ -144,7 +150,6 @@ const styles = StyleSheet.create({
   closeSection: {
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 8,
   },
   closeButton: {
     width: '100%',
