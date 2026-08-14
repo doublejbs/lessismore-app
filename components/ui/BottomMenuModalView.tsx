@@ -7,7 +7,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { FC, useState, useEffect } from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 
@@ -26,7 +25,6 @@ interface Props {
 const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
   const [fadeAnim] = useState(() => new Animated.Value(0));
   const [slideAnim] = useState(() => new Animated.Value(300));
-  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible) {
@@ -75,19 +73,13 @@ const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
           style={[
             styles.modalContent,
             {
+              // 네이티브 Modal 호스트가 홈 인디케이터 safe area를 이미 반영한다.
+              // 여기서 insets.bottom을 다시 더하면 닫기 버튼 아래 여백이 두 배가 된다.
               transform: [{ translateY: slideAnim }],
-              // 닫기 버튼의 최소 여백은 closeSection이 맡고, 여기서는 세이프에어리어만
-              // 더한다. `max(..., 20)`으로 최소 패딩까지 중복하지 않는다.
-              paddingBottom: insets.bottom,
             },
           ]}
         >
-          <View
-            style={[
-              styles.menuSection,
-              menuItems.length <= 2 && styles.menuSectionFlexible,
-            ]}
-          >
+          <View style={styles.menuSection}>
             {menuItems.map((item, index) => (
               <TouchableOpacity
                 key={index}
@@ -133,16 +125,10 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: Radius.sheet,
     borderTopRightRadius: Radius.sheet,
     paddingTop: 20,
-    minHeight: 229,
   },
   menuSection: {
     paddingHorizontal: 12,
     gap: 8,
-  },
-  // 1·2항목은 기존 시트 높이와 닫기 버튼 위치를 유지하고, 3개부터는
-  // 항목의 실제 높이가 시트 높이에 반영되도록 축소하지 않는다.
-  menuSectionFlexible: {
-    flex: 1,
   },
   menuItem: {
     flexDirection: 'row',
