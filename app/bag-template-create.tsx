@@ -118,7 +118,7 @@ const BagTemplateCreateScreen = () => {
 
   return (
     <BagFormContent
-      title='템플릿으로 만들기'
+      title='배낭 만들기'
       inputValue={inputValue}
       startDate={startDate}
       endDate={endDate}
