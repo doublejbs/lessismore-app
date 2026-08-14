@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import InfoSubScreenHeaderView, {
   IOS_EDGES,
   IS_IOS,
@@ -65,7 +65,6 @@ const styles = StyleSheet.create({
   },
   paper: {
     paddingHorizontal: 16,
-    marginHorizontal: AcgLayout.screenPadding,
     backgroundColor: Acg.controlFill,
     borderRadius: AcgRadius.thumb,
     overflow: 'hidden',
