@@ -6,10 +6,11 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { FC, useState, useEffect } from 'react';
+import { FC, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import useSheetTransition from '@/hooks/useSheetTransition';
 
 interface MenuItem {
   readonly icon: keyof typeof Ionicons.glyphMap;
@@ -28,35 +29,12 @@ const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
   const [slideAnim] = useState(() => new Animated.Value(300));
   const insets = useSafeAreaInsets();
 
-  useEffect(() => {
-    if (visible) {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 300,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [visible, fadeAnim, slideAnim]);
+  useSheetTransition({
+    visible,
+    fadeAnim,
+    slideAnim,
+    slideOffset: 300,
+  });
 
   return (
     <Modal

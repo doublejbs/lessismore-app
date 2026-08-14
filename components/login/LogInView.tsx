@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import { FC, useEffect, useState } from 'react';
+import { FC, useCallback, useState } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -20,6 +20,7 @@ import PretendardText from '@/components/PretendardText';
 import { Acg, AcgType, Color, Radius } from '@/constants/DesignTokens';
 import LogInAlertManager from '@/model/login/LogInAlertManager';
 import app from '@/model/app/App';
+import useSheetTransition from '@/hooks/useSheetTransition';
 
 interface Props {
   logInAlertManager: LogInAlertManager;
@@ -27,8 +28,6 @@ interface Props {
 
 /** 시트가 올라오는 거리. 실제 시트 높이보다 넉넉히 잡아 어떤 내용 높이에서도 화면 밖에서 시작한다. */
 const SHEET_TRAVEL = 420;
-
-const SHEET_DURATION = 260;
 
 const LogInView: FC<Props> = ({ logInAlertManager }) => {
   const isVisible = logInAlertManager.isVisible();
@@ -49,50 +48,17 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
   const [fadeAnim] = useState(() => new Animated.Value(0));
   const [slideAnim] = useState(() => new Animated.Value(SHEET_TRAVEL));
 
-  /**
-   * 열릴 때 마운트하고, 닫힐 때는 애니메이션이 끝난 뒤 언마운트한다.
-   *
-   * 여기 `setMounted(true)`는 lint(`set-state-in-effect`)가 경고하는 형태다. 마운트 토글은
-   * 애니메이션의 전제라 effect 밖으로 뺄 수 없고(가시성은 매니저가 외부에서 바꾼다),
-   * 이 저장소의 다른 시트들도 같은 구조를 쓴다 — 규칙이 걱정하는 연쇄 렌더는 열림/닫힘
-   * 각 1회뿐이다.
-   */
-  useEffect(() => {
-    if (isVisible) {
-      setMounted(true);
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: SHEET_DURATION,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: SHEET_DURATION,
-          useNativeDriver: true,
-        }),
-      ]).start();
+  const handleCloseComplete = useCallback(() => {
+    setMounted(false);
+  }, []);
 
-      return;
-    }
-
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: SHEET_DURATION,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: SHEET_TRAVEL,
-        duration: SHEET_DURATION,
-        useNativeDriver: true,
-      }),
-    ]).start(({ finished }) => {
-      if (finished) {
-        setMounted(false);
-      }
-    });
-  }, [isVisible, fadeAnim, slideAnim]);
+  useSheetTransition({
+    visible: isVisible,
+    fadeAnim,
+    slideAnim,
+    slideOffset: SHEET_TRAVEL,
+    onCloseComplete: handleCloseComplete,
+  });
 
   const handleClickCancel = () => {
     logInAlertManager.hide();
@@ -131,13 +97,15 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
     await logInAlertManager.loginWithApple();
   };
 
-  if (!mounted) {
+  const shouldRender = mounted || isVisible;
+
+  if (!shouldRender) {
     return null;
   }
 
   return (
     <Modal
-      visible={mounted}
+      visible={shouldRender}
       transparent={true}
       animationType='none'
       onRequestClose={handleClickCancel}

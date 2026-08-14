@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   ScrollView,
@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius, Spacing } from '@/constants/DesignTokens';
+import useSheetTransition from '@/hooks/useSheetTransition';
 
 // http(s) 링크 판별 — 이 경우만 외부 브라우저로 연다(AN-3).
 const EXTERNAL_LINK_PATTERN = /^https?:\/\//i;
@@ -85,38 +86,13 @@ const AnnouncementSheetView = () => {
   const message = manager?.getMessage() ?? '';
   const link = manager?.getLink() ?? null;
 
-  // 표시 조건에 따라 slide-up(진입) / slide-down(정리)을 재생한다.
-  useEffect(() => {
-    if (visible) {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-
-      return;
-    }
-
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: SHEET_OFFSET,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [visible, fadeAnim, slideAnim]);
+  // 표시 조건에 따라 공용 스프링 slide-up/slide-down을 재생한다.
+  useSheetTransition({
+    visible,
+    fadeAnim,
+    slideAnim,
+    slideOffset: SHEET_OFFSET,
+  });
 
   // '닫기'(세션) — 이번 실행 동안만 숨긴다. 표시 조건이 꺼지며 시트가 내려간다(AN-4).
   const handleDismissForSession = () => {
