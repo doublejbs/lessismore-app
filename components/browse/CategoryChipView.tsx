@@ -188,10 +188,11 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.paper,
     boxShadow: AcgShadow.chip,
   },
-  // 지도 마커가 각진 사각이라 범례도 같은 형태로 둔다 — 원이면 범례와 마커가 따로 논다.
+  // 지도 마커가 원형 도트라 범례도 같은 형태로 둔다.
   dot: {
     width: 8,
     height: 8,
+    borderRadius: 4,
   },
   dotSelected: {
     borderWidth: 1,

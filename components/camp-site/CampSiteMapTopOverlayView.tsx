@@ -117,7 +117,7 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
                         accessibilityRole='button'
                         accessibilityLabel={`${spot.name} 지도에서 보기`}
                       >
-                        {/* 지도 마커와 같은 각진 유형색 면 — 목록에서 고른 것이 지도에서
+                        {/* 지도 마커와 같은 원형 도트 — 목록에서 고른 것이 지도에서
                             어떤 마커인지 색으로 이어진다. 색만으로는 못 읽으므로 유형
                             이름은 아래 줄에 글자로도 둔다. */}
                         <View
@@ -262,10 +262,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Acg.hairline,
   },
-  // 지도 마커(사각 18pt)의 축소판.
+  // 지도 마커(원형 도트 18pt)의 축소판.
   resultTypeMark: {
     width: 10,
     height: 10,
+    borderRadius: 5,
   },
   resultTexts: {
     flex: 1,

@@ -15,7 +15,7 @@ interface Props {
 // 박지 마커 1개(CS-2). memo로 분리해 요약 카드 오픈 등 지도 화면의
 // 다른 상태 변경 시 마커 전체가 리렌더(네이티브 동기화)되지 않게 한다 —
 // 마커 탭 → 카드 표시 지연의 원인이었다. props(spot 참조·콜백)가 같으면 건너뛴다.
-// 비선택 마커의 탭 영역. 사각(18pt)보다 넉넉히 잡아 작은 마커도 잘 눌리게 한다.
+// 비선택 마커의 탭 영역. 원형 도트(18pt)보다 넉넉히 잡아 작은 마커도 잘 눌리게 한다.
 const HIT_AREA = 44;
 // 선택 핀 크기.
 const PIN_WIDTH = 30;
@@ -26,7 +26,7 @@ const CampSiteMarkerView = memo<Props>(({ spot, selected, onTapSpot }) => {
     <NaverMapMarkerOverlay
       latitude={spot.location.latitude}
       longitude={spot.location.longitude}
-      // 선택 마커는 핀이라 **끝점이 좌표에 닿아야** 한다(anchor y=1). 비선택 사각은
+      // 선택 마커는 핀이라 **끝점이 좌표에 닿아야** 한다(anchor y=1). 비선택 도트는
       // 중심이 좌표다.
       anchor={selected ? { x: 0.5, y: 1 } : { x: 0.5, y: 0.5 }}
       width={selected ? PIN_WIDTH : HIT_AREA}
@@ -49,7 +49,7 @@ const CampSiteMarkerView = memo<Props>(({ spot, selected, onTapSpot }) => {
         // halo는 글자 테두리라 라임을 주면 글자에 형광 번짐처럼 붙어 지저분했다
         // (2026-08-04 사용자 지적). 선택 표시는 마커 쪽 라임 테두리가 맡는다.
         haloColor: Acg.paper,
-        // 음수 offset은 캡션을 마커 쪽으로 당긴다. 사각(중심 앵커)은 당겨야 붙지만,
+        // 음수 offset은 캡션을 마커 쪽으로 당긴다. 도트(중심 앵커)는 당겨야 붙지만,
         // 핀은 앵커가 끝점이라 같은 방식이면 이름이 핀 머리를 덮는다(2026-08-04 사용자 지적).
         offset: selected ? 4 : -8,
       }}
@@ -60,7 +60,7 @@ const CampSiteMarkerView = memo<Props>(({ spot, selected, onTapSpot }) => {
       // 심볼이 마커 탭을 가로채 반응이 없어 보이는 문제를 막는다.
       isHideCollidedSymbols
     >
-      {/* 44pt 히트 영역 안에 18pt 사각 — 작은 마커의 탭 인식률 확보(선택 시에는 핀 자체가 영역).
+      {/* 44pt 히트 영역 안에 18pt 원형 도트 — 작은 마커의 탭 인식률 확보(선택 시에는 핀 자체가 영역).
           커스텀 View 마커는 최상위 자식에 생김새 의존성(색)을 key로 넘기고
           collapsable=false로 렌더를 보장해야 한다(라이브러리 요구사항). */}
       <View
@@ -68,7 +68,7 @@ const CampSiteMarkerView = memo<Props>(({ spot, selected, onTapSpot }) => {
         collapsable={false}
         style={selected ? styles.pinArea : styles.markerHitArea}
       >
-        {/* 선택 마커는 **지도 관행대로 핀**이다(2026-08-04 사용자 결정). 각진 사각을 키우는
+        {/* 선택 마커는 **지도 관행대로 핀**이다(2026-08-04 사용자 결정). 원형 도트를 키우는
             방식은 "선택됨"보다 "다른 종류의 마커"로 읽혔다. 채움은 라임 — 앱의 유일한
             액센트이고, 그 박지의 유형은 바로 아래 시트가 배지로 말한다.
             시선 유도 펄스·카메라 포커스는 지도 화면이 담당한다. */}
@@ -104,10 +104,11 @@ const styles = StyleSheet.create({
     // 통과하지 않게 44pt 전체를 탭 표면으로 만든다(면(18pt) 밖을 눌러도 마커가 반응).
     backgroundColor: 'rgba(255, 255, 255, 0.01)',
   },
-  // 각진 사각 18pt + 흰 2px 아웃라인(ACG). 채움색은 유형 의미색이라 그대로 둔다.
+  // 원형 도트 18pt + 흰 2px 아웃라인(ACG). 채움색은 유형 의미색이라 그대로 둔다.
   marker: {
     width: 18,
     height: 18,
+    borderRadius: 9,
     borderWidth: 2,
     borderColor: Acg.paper,
   },
