@@ -1,9 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import React, { FC } from 'react';
-import { View, StyleSheet, Platform, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { Acg, Color } from '@/constants/DesignTokens';
+import { View, StyleSheet, Platform } from 'react-native';
+import { Acg } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Bag from '@/model/bag/Bag';
 import Feed from '@/model/feed/Feed';
@@ -11,6 +9,7 @@ import { GearAddContext } from '@/model/gear/GearAddContext';
 import useSearchFilterInheritance from '@/hooks/useSearchFilterInheritance';
 import SheetGrabberView from '@/components/ui/SheetGrabberView';
 import SearchBarView from './SearchBarView';
+import SearchBarVariant from './SearchBarVariant';
 import SearchResultView from './SearchResultView';
 
 interface Props {
@@ -21,7 +20,7 @@ interface Props {
   children?: React.ReactNode;
 }
 
-// 장비 추가 검색 모달(GE-8). 검색바 위에 핸들바 + 닫기(우상단) 헤더를 둔다.
+// 장비 추가 검색 모달(GE-8). 목록형 시트라 그래버로 이탈하고, 검색창은 Plain 문법을 쓴다(SR-10).
 // 탐색 탭과 동일하게 검색 승계(SR-1)를 배선해 검색 시에도 필터 바를 유지한다.
 const SearchWarehouseView: FC<Props> = ({
   searchWarehouse,
@@ -29,29 +28,15 @@ const SearchWarehouseView: FC<Props> = ({
   feed,
   gearAddContext,
 }) => {
-  const router = useRouter();
-
   useSearchFilterInheritance(searchWarehouse, feed);
-
-  const handleClose = () => {
-    router.back();
-  };
 
   return (
     <View style={styles.container}>
       <SheetGrabberView />
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={handleClose}
-          style={styles.closeButton}
-          accessibilityRole='button'
-          accessibilityLabel='닫기'
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Ionicons name='close' size={24} color={Color.textPrimary} />
-        </TouchableOpacity>
-      </View>
-      <SearchBarView searchWarehouse={searchWarehouse} />
+      <SearchBarView
+        searchWarehouse={searchWarehouse}
+        variant={SearchBarVariant.Plain}
+      />
       <SearchResultView
         searchWarehouse={searchWarehouse}
         bag={bag}
@@ -69,19 +54,6 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: Acg.bg,
     paddingTop: Platform.OS === 'android' ? 16 : 0,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    minHeight: 44,
-  },
-  closeButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
 
