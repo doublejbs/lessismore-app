@@ -8,7 +8,14 @@ import InfoSubScreenHeaderView, {
   NATIVE_HEADER_HEIGHT,
 } from '@/components/info/InfoSubScreenHeaderView';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgType, Color, Radius } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgLayout,
+  AcgRadius,
+  AcgType,
+  Color,
+  Radius,
+} from '@/constants/DesignTokens';
 import {
   PRIVACY_POLICY_TEXT,
   TERMS_OF_SERVICE_TEXT,
@@ -132,7 +139,10 @@ const styles = StyleSheet.create({
   paper: {
     padding: 16,
     marginBottom: 24,
+    marginHorizontal: AcgLayout.screenPadding,
     backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
+    overflow: 'hidden',
   },
   bodyText: {
     ...AcgType.meta,
