@@ -99,14 +99,14 @@ const CampSiteFavoritesListView: FC<Props> = ({
     <View style={styles.container}>
       {spots.length === 0 ? (
         // 로그인했으나 즐겨찾기가 0건일 때의 빈 상태(CS-9).
-        <>
+        <View style={styles.emptyContent}>
           {header}
           <View style={styles.emptyWrap}>
             <PretendardText style={styles.emptyText}>
               아직 즐겨찾기한 박지가 없어요
             </PretendardText>
           </View>
-        </>
+        </View>
       ) : (
         <FlatList
           data={spots}
@@ -155,6 +155,11 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: AcgLayout.screenPadding,
   },
+  // 목록이 없을 때도 헤더와 빈 상태를 목록과 같은 좌우 정렬선에 맞춘다.
+  emptyContent: {
+    flex: 1,
+    paddingHorizontal: AcgLayout.screenPadding,
+  },
   // 레퍼런스 목록 행(HM-8) — 면 없이 지면에 놓고 행 사이 헤어라인으로만 가른다.
   row: {
     flexDirection: 'row',
@@ -201,7 +206,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 32,
   },
   emptyText: {
     ...AcgType.rowSubtitle,
