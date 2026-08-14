@@ -10,13 +10,16 @@ import {
   Platform,
   KeyboardAvoidingView,
   Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Layout from '@/components/Layout';
 import app from '@/model/app/App';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import InfoFooterView from '@/components/info/InfoFooterView';
+import InfoFooterBackgroundView from '@/components/info/InfoFooterBackgroundView';
 import PretendardText from '@/components/PretendardText';
 import {
   Acg,
@@ -28,15 +31,24 @@ import {
 
 // 편집 아이콘(20pt)에 44pt 터치 타깃을 만들기 위한 여유(AU-4). (44 − 20) / 2 = 12.
 const EDIT_ICON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
+const FOREST_ASPECT_RATIO = 1804 / 872;
+const IOS_EDGES = ['top', 'left', 'right'] as const;
 
 const InfoView: FC = () => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [editedNickname, setEditedNickname] = useState('');
   const firebase = app.getFirebase();
   const isLoggedIn = firebase.isLoggedIn();
   const nickname = firebase.getNickname();
   const logInAlertManager = app.getLogInAlertManager();
+  const forestHeight = screenWidth / FOREST_ASPECT_RATIO;
+  const scrollBottomPadding =
+    forestHeight +
+    AcgLayout.scrollBottom +
+    (Platform.OS === 'ios' ? insets.bottom : 0);
 
   // 로그아웃은 되돌리려면 다시 로그인해야 하는 액션이라 확인 알럿을 거친다(AU-4, 2026-08-13).
   const handleLogout = () => {
@@ -101,10 +113,18 @@ const InfoView: FC = () => {
   };
 
   return (
-    <Layout paddingHorizontal={0}>
+    <Layout
+      edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
+      paddingHorizontal={0}
+      background={<InfoFooterBackgroundView />}
+    >
+      <View style={styles.contentLayer}>
       <ScrollView
         style={styles.container}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: scrollBottomPadding },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
@@ -241,12 +261,13 @@ const InfoView: FC = () => {
           </TouchableOpacity>
         ) : null}
 
-        {/* 푸터는 스크롤 안 마지막에 둔다. 밖에 고정하면 남는 높이를 흰 면이 다 채워
-            플로팅 탭바 뒤까지 빈 흰 덩어리가 생겼다(2026-08-03 실기기 확인). */}
+        {/* 버전·사업자 정보 푸터는 스크롤 콘텐츠 끝에 둔다. forest 일러스트는
+            Layout의 하단 고정 background 레이어가 맡는다(AU-4). */}
         <View style={styles.footerSlot}>
           <InfoFooterView isLoggedIn={isLoggedIn} />
         </View>
       </ScrollView>
+      </View>
 
       <Modal
         visible={isEditingNickname}
@@ -345,6 +366,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  contentLayer: {
+    flex: 1,
+    position: 'relative',
+    zIndex: 1,
+  },
   header: {
     paddingTop: 20,
     paddingBottom: 14,
@@ -356,7 +382,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: AcgLayout.screenH,
-    paddingBottom: AcgLayout.scrollBottom,
   },
   // 짧은 콘텐츠에서는 푸터를 스크롤 영역 끝으로 밀어 올린다(AU-4).
   footerSlot: {
