@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   ScrollView,
@@ -16,9 +16,12 @@ import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
 import FeaturePopupItemView from '@/components/feature-popup/FeaturePopupItemView';
 import { AcgType, Color, Radius, Spacing } from '@/constants/DesignTokens';
+import useSheetTransition from '@/hooks/useSheetTransition';
 
 // http(s) 링크 판별 — 이 경우만 외부 브라우저로 연다(FP-3/FP-4).
 const EXTERNAL_LINK_PATTERN = /^https?:\/\//i;
+
+const SHEET_OFFSET = 300;
 
 // 신기능 안내 팝업(FP-2). 화면 중앙 카드형 모달.
 // AnnouncementSheetView 패턴(RN Modal transparent + Animated fade + useSafeAreaInsets + observer)을 따른다.
@@ -31,6 +34,7 @@ const FeaturePopupSheetView = () => {
 
   // Animated 값은 lazy 초기화로 한 번만 만든다(렌더 중 ref.current 접근을 피한다).
   const [fadeAnim] = useState(() => new Animated.Value(0));
+  const [slideAnim] = useState(() => new Animated.Value(SHEET_OFFSET));
 
   const manager = app.getFeaturePopupManager();
   const forceUpdateManager = app.getForceUpdateManager();
@@ -50,14 +54,13 @@ const FeaturePopupSheetView = () => {
   // 강제(차단) 모드(FP-7) — 닫기 경로 전부 차단, 아이템 탭 비활성, 버튼은 이동만.
   const forced = manager?.isForced() ?? false;
 
-  // 표시 조건에 따라 fade-in / fade-out을 재생한다.
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: visible ? 1 : 0,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
-  }, [visible, fadeAnim]);
+  // 표시 조건에 따라 공용 스프링 slide-in/out과 fade를 재생한다.
+  useSheetTransition({
+    visible,
+    fadeAnim,
+    slideAnim,
+    slideOffset: SHEET_OFFSET,
+  });
 
   // 링크 이동(FP-3/FP-4) — 내부 경로는 라우터, http(s)는 외부 브라우저. 그 외 형식은 무시(크래시 금지).
   const openLink = (link: string) => {
@@ -138,14 +141,23 @@ const FeaturePopupSheetView = () => {
         )}
 
         <View style={styles.centerArea} pointerEvents='box-none'>
-          {/* 카드 자체 탭은 딤 닫힘으로 전파되지 않게 activeOpacity=1 래퍼로 감싼다. */}
-          <TouchableOpacity activeOpacity={1} style={styles.cardTouchable}>
-            <View
-              style={[
-                styles.card,
-                { paddingBottom: Spacing.section + insets.bottom },
-              ]}
+          <Animated.View
+            style={[
+              styles.cardTouchable,
+              { transform: [{ translateY: slideAnim }] },
+            ]}
+          >
+            {/* 카드 자체 탭은 딤 닫힘으로 전파되지 않게 activeOpacity=1 래퍼로 감싼다. */}
+            <TouchableOpacity
+              activeOpacity={1}
+              style={styles.cardTouchableContent}
             >
+              <View
+                style={[
+                  styles.card,
+                  { paddingBottom: Spacing.section + insets.bottom },
+                ]}
+              >
               <ScrollView
                 style={styles.scroll}
                 showsVerticalScrollIndicator={false}
@@ -206,8 +218,9 @@ const FeaturePopupSheetView = () => {
                   </PretendardText>
                 </TouchableOpacity>
               ) : null}
-            </View>
-          </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
         </View>
       </Animated.View>
     </Modal>
@@ -238,6 +251,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     maxHeight: '85%',
+  } as ViewStyle,
+  cardTouchableContent: {
+    width: '100%',
   } as ViewStyle,
   card: {
     // 콘텐츠가 많아도 카드가 cardTouchable maxHeight(85%) 안으로 줄어들도록 shrink 허용.
