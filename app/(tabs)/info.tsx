@@ -101,7 +101,7 @@ const InfoView: FC = () => {
   };
 
   return (
-    <Layout paddingHorizontal={AcgLayout.screenH}>
+    <Layout paddingHorizontal={0}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
@@ -243,7 +243,9 @@ const InfoView: FC = () => {
 
         {/* 푸터는 스크롤 안 마지막에 둔다. 밖에 고정하면 남는 높이를 흰 면이 다 채워
             플로팅 탭바 뒤까지 빈 흰 덩어리가 생겼다(2026-08-03 실기기 확인). */}
-        <InfoFooterView isLoggedIn={isLoggedIn} />
+        <View style={styles.footerSlot}>
+          <InfoFooterView isLoggedIn={isLoggedIn} />
+        </View>
       </ScrollView>
 
       <Modal
@@ -352,7 +354,13 @@ const styles = StyleSheet.create({
     color: Acg.ink,
   },
   scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: AcgLayout.screenH,
     paddingBottom: AcgLayout.scrollBottom,
+  },
+  // 짧은 콘텐츠에서는 푸터를 스크롤 영역 끝으로 밀어 올린다(AU-4).
+  footerSlot: {
+    marginTop: 'auto',
   },
   // 타이틀 아래 프로필 행(AU-4). 닉네임과 편집 아이콘을 한 줄로 둔다.
   profileRow: {
