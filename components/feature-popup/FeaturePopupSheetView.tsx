@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   View,
   ScrollView,
@@ -35,6 +35,7 @@ const FeaturePopupSheetView = () => {
   // Animated 값은 lazy 초기화로 한 번만 만든다(렌더 중 ref.current 접근을 피한다).
   const [fadeAnim] = useState(() => new Animated.Value(0));
   const [slideAnim] = useState(() => new Animated.Value(SHEET_OFFSET));
+  const [mounted, setMounted] = useState(false);
 
   const manager = app.getFeaturePopupManager();
   const forceUpdateManager = app.getForceUpdateManager();
@@ -53,6 +54,23 @@ const FeaturePopupSheetView = () => {
   const skippable = manager?.isSkippable() ?? true;
   // 강제(차단) 모드(FP-7) — 닫기 경로 전부 차단, 아이템 탭 비활성, 버튼은 이동만.
   const forced = manager?.isForced() ?? false;
+  const handleCloseComplete = useCallback(() => {
+    setMounted(false);
+  }, []);
+
+  useEffect(() => {
+    if (!visible) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [visible]);
 
   // 표시 조건에 따라 공용 스프링 slide-in/out과 fade를 재생한다.
   useSheetTransition({
@@ -60,7 +78,10 @@ const FeaturePopupSheetView = () => {
     fadeAnim,
     slideAnim,
     slideOffset: SHEET_OFFSET,
+    onCloseComplete: handleCloseComplete,
   });
+
+  const shouldRender = mounted || visible;
 
   // 링크 이동(FP-3/FP-4) — 내부 경로는 라우터, http(s)는 외부 브라우저. 그 외 형식은 무시(크래시 금지).
   const openLink = (link: string) => {
@@ -120,7 +141,7 @@ const FeaturePopupSheetView = () => {
 
   return (
     <Modal
-      visible={visible}
+      visible={shouldRender}
       transparent={true}
       animationType='none'
       onRequestClose={handleDismiss}

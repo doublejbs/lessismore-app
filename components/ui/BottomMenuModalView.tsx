@@ -6,7 +6,7 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { FC, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
@@ -25,20 +25,41 @@ interface Props {
 }
 
 const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
+  const [mounted, setMounted] = useState(visible);
   const [fadeAnim] = useState(() => new Animated.Value(0));
   const [slideAnim] = useState(() => new Animated.Value(300));
   const insets = useSafeAreaInsets();
+  const handleCloseComplete = useCallback(() => {
+    setMounted(false);
+  }, []);
+
+  useEffect(() => {
+    if (!visible) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [visible]);
 
   useSheetTransition({
     visible,
     fadeAnim,
     slideAnim,
     slideOffset: 300,
+    onCloseComplete: handleCloseComplete,
   });
+
+  const shouldRender = mounted || visible;
 
   return (
     <Modal
-      visible={visible}
+      visible={shouldRender}
       transparent={true}
       animationType='none'
       onRequestClose={onClose}

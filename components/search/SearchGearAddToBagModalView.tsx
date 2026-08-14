@@ -20,6 +20,7 @@ import Bag from '@/model/bag/Bag';
 import BagItem from '@/model/bag/BagItem';
 import SheetGrabberView from '@/components/ui/SheetGrabberView';
 import app from '@/model/app/App';
+import useSheetTransition from '@/hooks/useSheetTransition';
 
 interface Props {
   visible: boolean;
@@ -37,6 +38,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(visible);
+  const { isReduceMotionEnabled } = useSheetTransition();
 
   useEffect(() => {
     if (visible) {
@@ -45,7 +47,13 @@ const SearchGearAddToBagModalView: FC<Props> = ({
   }, [bag, visible]);
 
   useEffect(() => {
-    setShowModal(visible);
+    const timeoutId = setTimeout(() => {
+      setShowModal(visible);
+    }, 0);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [visible]);
 
   const handleNewBagPress = async (e: GestureResponderEvent) => {
@@ -94,7 +102,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
     <Modal
       visible={showModal}
       onRequestClose={onClose}
-      animationType='slide'
+      animationType={isReduceMotionEnabled ? 'fade' : 'slide'}
       presentationStyle='pageSheet'
     >
       <TouchableOpacity

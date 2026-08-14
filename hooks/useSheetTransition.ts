@@ -28,16 +28,20 @@ const useSheetTransition = ({
   slideOffset,
   onCloseComplete,
 }: Options = {}): Result => {
-  const [isReduceMotionEnabled, setIsReduceMotionEnabled] = useState(false);
+  const [isReduceMotionEnabled, setIsReduceMotionEnabled] = useState<boolean | null>(
+    null
+  );
 
   useEffect(() => {
     let isMounted = true;
 
-    void AccessibilityInfo.isReduceMotionEnabled().then(enabled => {
-      if (isMounted) {
-        setIsReduceMotionEnabled(enabled);
-      }
-    });
+    void AccessibilityInfo.isReduceMotionEnabled()
+      .then(enabled => {
+        if (isMounted) {
+          setIsReduceMotionEnabled(enabled);
+        }
+      })
+      .catch(() => undefined);
 
     const subscription = AccessibilityInfo.addEventListener(
       'reduceMotionChanged',
@@ -55,7 +59,8 @@ const useSheetTransition = ({
       visible === undefined ||
       fadeAnim === undefined ||
       slideAnim === undefined ||
-      slideOffset === undefined
+      slideOffset === undefined ||
+      isReduceMotionEnabled === null
     ) {
       return;
     }
@@ -106,7 +111,7 @@ const useSheetTransition = ({
     visible,
   ]);
 
-  return { isReduceMotionEnabled };
+  return { isReduceMotionEnabled: isReduceMotionEnabled ?? false };
 };
 
 export default useSheetTransition;

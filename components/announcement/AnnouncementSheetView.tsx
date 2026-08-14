@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   View,
   ScrollView,
@@ -40,6 +40,7 @@ const AnnouncementSheetView = () => {
   // Animated 값은 lazy 초기화로 한 번만 만든다(렌더 중 ref.current 접근을 피한다).
   const [fadeAnim] = useState(() => new Animated.Value(0));
   const [slideAnim] = useState(() => new Animated.Value(SHEET_OFFSET));
+  const [mounted, setMounted] = useState(false);
 
   // 그랩 핸들을 아래로 스와이프하면 닫는다(AN-2). 임계값 미만이면 원위치로 스프링백한다.
   // 매니저는 캡처하지 않고 제스처 시점에 싱글톤에서 가져온다(훅 이전 렌더 값에 의존하지 않게).
@@ -85,6 +86,23 @@ const AnnouncementSheetView = () => {
 
   const message = manager?.getMessage() ?? '';
   const link = manager?.getLink() ?? null;
+  const handleCloseComplete = useCallback(() => {
+    setMounted(false);
+  }, []);
+
+  useEffect(() => {
+    if (!visible) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [visible]);
 
   // 표시 조건에 따라 공용 스프링 slide-up/slide-down을 재생한다.
   useSheetTransition({
@@ -92,7 +110,10 @@ const AnnouncementSheetView = () => {
     fadeAnim,
     slideAnim,
     slideOffset: SHEET_OFFSET,
+    onCloseComplete: handleCloseComplete,
   });
+
+  const shouldRender = mounted || visible;
 
   // '닫기'(세션) — 이번 실행 동안만 숨긴다. 표시 조건이 꺼지며 시트가 내려간다(AN-4).
   const handleDismissForSession = () => {
@@ -125,7 +146,7 @@ const AnnouncementSheetView = () => {
 
   return (
     <Modal
-      visible={visible}
+      visible={shouldRender}
       transparent={true}
       animationType='none'
       onRequestClose={handleDismissForSession}

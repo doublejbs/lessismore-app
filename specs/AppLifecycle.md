@@ -93,6 +93,35 @@ app/(tabs)/_layout.tsx → 탭 4개: 창고(index) · 탐색(search) · 배낭(b
 >
 > **운영 타이밍**: 최소 버전은 스토어에 실제 공개된 버전 이하로만 올린다. 예) iOS 스토어에 1.1.6이 이미 공개돼 있으므로 `iosMinVersion`을 1.1.6으로 두면 1.0.6 유저를 지금 바로 1.1.6으로 밀어올릴 수 있다(1.1.7 스토어 공개를 기다릴 필요 없음).
 
+### APP-8 커스텀 시트 전환과 Reduce Motion `[제안]`
+
+앱의 커스텀 시트 열림·닫힘은 공용 `hooks/useSheetTransition.ts`를 사용해
+일관된 전환감과 접근성 설정을 제공한다.
+
+**수용 기준**
+
+- `BottomMenuModalView`, `LogInView`, `AnnouncementSheetView`, `FeaturePopupSheetView`의
+  `translateY` 전환은 `Animated.spring`을 사용한다. 스프링은
+  `stiffness: 300` · `damping: 26` · `mass: 1` · `overshootClamping: true`로
+  오버슈트 없이 정착하며 `useNativeDriver`를 유지한다.
+- 네 시트의 딤은 `Animated.timing`으로 약 220ms 페이드하고, 열림·닫힘 모두
+  현재 애니메이션 값에서 이어진다.
+- `AccessibilityInfo.isReduceMotionEnabled()`와 `reduceMotionChanged` 리스너를
+  공용 훅에서 읽는다. Reduce Motion이 켜져 있으면 시트 위치 전환을 생략하고
+  약 200ms의 페이드만 수행한다.
+- 네이티브 `animationType='slide'`인
+  `SearchGearAddToBagModalView`, `CampSiteBagSelectSheetView`,
+  `FeedFilterSheetView`는 일반 전환을 유지하되 Reduce Motion이 켜져 있으면
+  `animationType='fade'`를 사용한다.
+
+**수동 검증 체크리스트**
+
+- [ ] 네 커스텀 시트 열림·닫힘이 바운스 없이 스프링으로 정착하고 딤이 함께 페이드된다.
+- [ ] 시트가 열리거나 닫히는 중 상태가 바뀌어도 현재 위치에서 이어진다.
+- [ ] iOS Reduce Motion 켜짐 → 커스텀 시트는 위치 이동 없이 짧은 페이드만 하고,
+      네이티브 세 시트는 fade로 표시된다.
+- [ ] iOS Reduce Motion을 시트 표시 중 변경 → 다음 전환부터 즉시 정책이 반영된다.
+
 ## 4. 데이터
 
 - Firebase 초기화 구성: [DataModel.md](DataModel.md) 1장. 로컬 스토리지 키는 APP-6.

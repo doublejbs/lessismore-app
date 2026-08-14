@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import { FC, useCallback, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -51,6 +51,20 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
   const handleCloseComplete = useCallback(() => {
     setMounted(false);
   }, []);
+
+  useEffect(() => {
+    if (!isVisible) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [isVisible]);
 
   useSheetTransition({
     visible: isVisible,
