@@ -22,6 +22,9 @@ import BagTemplate from '@/model/bag/BagTemplate';
 import BagTemplateItemView from './BagTemplateItemView';
 import BagTemplateListSkeletonView from './BagTemplateListSkeletonView';
 import CategoryChipView from '@/components/browse/CategoryChipView';
+import Order from '@/model/order/Order';
+import { createBagTemplateOrderOptions } from '@/model/order/BagTemplateOrderOptions';
+import { getBagTemplateComparator } from '@/model/order/BagTemplateComparators';
 
 // iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
 const IOS_EDGES = ['top', 'left', 'right'] as const;
@@ -31,6 +34,11 @@ const BagView = () => {
   const [segment, setSegment] = useState(BagViewSegment.Bags);
   const [templates, setTemplates] = useState<BagTemplate[]>([]);
   const [templatesLoading, setTemplatesLoading] = useState(true);
+  const [templateOrder] = useState(() =>
+    Order.new('bagTemplateList', createBagTemplateOrderOptions())
+  );
+  const [templateOrderInitialized, setTemplateOrderInitialized] =
+    useState(false);
   const insets = useSafeAreaInsets();
   const isLoggedIn = app.getFirebase().isLoggedIn();
   const isLoading = bag.isLoading();
@@ -49,6 +57,11 @@ const BagView = () => {
     setTemplatesLoading(true);
 
     try {
+      if (!templateOrderInitialized) {
+        await templateOrder.initialize();
+        setTemplateOrderInitialized(true);
+      }
+
       setTemplates((await app.getBagTemplateStore()!.getList()) ?? []);
     } catch (error) {
       console.error('템플릿 목록 조회 중 오류 발생:', error);
@@ -56,7 +69,7 @@ const BagView = () => {
     } finally {
       setTemplatesLoading(false);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, templateOrder, templateOrderInitialized]);
 
   useFocusEffect(
     useCallback(() => {
@@ -108,6 +121,12 @@ const BagView = () => {
       {!isTemplateSegment && !isLoading && !isEmpty && (
         <OrderButtonView
           order={bag.getOrder()}
+          onSelectOption={handleSelectOrder}
+        />
+      )}
+      {isTemplateSegment && !templatesLoading && templates.length > 0 && (
+        <OrderButtonView
+          order={templateOrder}
           onSelectOption={handleSelectOrder}
         />
       )}
@@ -206,14 +225,16 @@ const BagView = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {templates.map((template, index) => (
-          <BagTemplateItemView
-            key={template.getID()}
-            template={template}
-            onDelete={handleDeleteTemplate}
-            divided={index > 0}
-          />
-        ))}
+        {[...templates]
+          .sort(getBagTemplateComparator(templateOrder.getSelectedOrderType()))
+          .map((template, index) => (
+            <BagTemplateItemView
+              key={template.getID()}
+              template={template}
+              onDelete={handleDeleteTemplate}
+              divided={index > 0}
+            />
+          ))}
         <View
           style={{
             minHeight: Platform.select({
