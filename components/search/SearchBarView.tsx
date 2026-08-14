@@ -9,8 +9,7 @@ import AcgGlassView from '@/components/acg/AcgGlassView';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
-  // 기본은 기존 유리 면(장비 추가 검색 시트가 그대로 쓴다).
-  // 탐색 탭만 `Plain`(레퍼런스 연회색 알약)을 넘긴다.
+  // 변형을 넘기지 않은 호출은 유리 면을 쓰고, 순백 지면의 화면·시트는 `Plain`을 넘긴다.
   variant?: SearchBarVariant;
 }
 
