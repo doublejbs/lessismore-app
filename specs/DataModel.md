@@ -75,6 +75,7 @@
 | `gear-comments/{gearId}/comments/{commentId}` | 최상위 댓글 | `ReplyStore` |
 | `gear-comments/{gearId}/comments/{parentId}/comments/{replyId}` | 답글 (중첩 서브컬렉션) | `ReplyStore` |
 | `comment-likes/{userId}_{commentId}` | 댓글 좋아요 (복합 키 문서) | `ReplyStore` |
+| `feed-content/{contentId}` | 운영자 작성 콘텐츠 — 홈 읽을거리 (DM-27) `[기획]` | 홈 피드 섹션 ([Home.md](Home.md) HM-13) |
 | `config/app` | 앱 원격 설정 (강제 업데이트 최소 버전) | 강제 업데이트 게이트 (AppLifecycle APP-7) |
 | `config/announcement` | 인앱 텍스트 공지 (원격 배너) | 공지 시트 (Announcement AN) |
 | `config/featurePopup` | 신기능 안내 팝업 (원격 온보딩) | 신기능 팝업 (FeaturePopup FP) |
@@ -491,6 +492,25 @@
 - `weight`는 저장·수정 시점 캐시라 이후 장비 무게 수정을 따라가지 않는다 — BT-3 생성 시 재계산되므로 목록·상세 표시용으로만 쓴다. BT-4 장비 편집 확정 시에도 재계산돼 캐시가 갱신된다.
 - **보안 규칙 확인 필요**: 규칙 파일이 이 레포에 없어(콘솔 관리) `users/{uid}/bagTemplates` 읽기/쓰기 허용 여부를 구현 전에 확인해야 한다 — [BagTemplate.md](BagTemplate.md) §8 미해결 질문.
 
+### DM-27 운영자 콘텐츠 (`feed-content/{contentId}`) `[기획]`
+
+홈 읽을거리 섹션([Home.md](Home.md) HM-13)의 **운영자 작성 콘텐츠**(박지 소개·장비 소개·아티클). 앱은 읽기 전용이며, 작성·발행 도구는 **별도 레포(lessismore 웹)의 AdminView를 CMS로 확장**해 만든다 — 운영 도구는 웹 레포 몫이고, 이 레포는 스키마 계약과 읽기 경로만 다룬다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `type` | string | `spot_intro`(박지 소개) / `gear_intro`(장비 소개) / `article`(아티클) — string enum `FeedContentType` |
+| `title` | string | 제목 |
+| `summary` | string | 목록용 요약 (홈 목록 카드에 표시) |
+| `body` | string | 본문 **마크다운** 원문 (인앱 뷰어가 렌더 — 렌더 방식은 [Home.md](Home.md) §8 미해결) |
+| `relatedSpotId` | string? | `type == 'spot_intro'`일 때 관련 박지 — `camp-spot/{spotId}`(DM-17) 참조. 본문 하단 연결 버튼의 도착지 |
+| `relatedGearId` | string? | `type == 'gear_intro'`일 때 관련 장비 — `gear/{gearId}`(DM-3) 참조. 본문 하단 연결 버튼의 도착지 |
+| `publishedAt` | string | ISO 8601 — 발행 시각. 목록 정렬 기준(내림차순) |
+| `published` | boolean | 발행 여부. **클라이언트는 `true`만 조회**한다 — `false`는 CMS의 초안 |
+
+- 앱 조회는 `where('published', '==', true)` + `orderBy('publishedAt', 'desc')` + `limit(N)` — **등호 + 정렬 조합이라 복합 색인이 필요할 수 있다**(구현 시 확인).
+- `relatedSpotId`/`relatedGearId`는 **참조만 저장**한다(이름 스냅샷 없음) — 연결 버튼을 누르는 시점에 대상 문서를 읽고, 없거나 hidden이면 버튼을 렌더하지 않는다(HM-13).
+- **보안 규칙(콘솔 관리)**: 읽기 공개 + **쓰기는 admin(운영자) 전용**이 의도다. 규칙 파일이 이 레포에 없고 클라이언트 SDK에는 admin 개념이 없어(웹 CMS의 쓰기 인증 방식 포함) **규칙 구성을 구현 전에 확인해야 한다** — §8 미해결 질문.
+
 ## 4. Storage 경로 (DM-9)
 
 | 경로 패턴 | 용도 | 상태 |
@@ -560,4 +580,6 @@ ID 배열로 문서를 모아 읽는 경로는 모두 Firestore `in` 절의 **�
 ## 8. 미해결 질문
 
 - 탈퇴 시 댓글(`gear-comments`)·박지 유저 후기(`camp-spot-user-review` DM-20)는 남는다 — 완전 삭제 정책은 [Auth.md](Auth.md) AU-8 미해결 질문 참조.
+- **`feed-content`(DM-27) 보안 규칙** — 읽기 공개 + 쓰기 admin(운영자) 전용이 의도인데, 규칙은 콘솔 관리라 이 레포에서 확인 불가. 웹 CMS(AdminView)가 어떤 인증으로 쓰기를 할지(admin SDK 경유 서버·특정 uid 허용 등)와 함께 구현 전 확정 필요 — [Home.md](Home.md) HM-13.
+- **`camp-spot`(DM-17) 등록 시각 필드 부재** — 홈 새로운 박지 섹션([Home.md](Home.md) HM-11)의 "최근 등록순"에 쓸 필드가 없다(`updatedAt`은 재시드마다 갱신). `createdAt` 추가·백필 여부 미확정.
 - ~~`bag` 목록 조회(`where('__name__', 'in', bagIds)`)는 Firestore `in` 절 30개 제한의 영향권~~ → DM-25로 규칙화(청크 분할). 배낭 목록은 [Bag.md](Bag.md) BAG-1, 장비 상세의 함께한 여행 타임라인은 [GearDetail.md](GearDetail.md) GD-10, 배낭 장비는 [BagDetail.md](BagDetail.md) BD-1에서 해소.
