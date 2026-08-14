@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   countBadgeUnselected: {
-    backgroundColor: Color.chipInactiveBg,
+    backgroundColor: Acg.paper,
   },
   countBadgeSelected: {
     backgroundColor: Color.background,
