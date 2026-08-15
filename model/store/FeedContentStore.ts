@@ -6,7 +6,6 @@ import {
   query,
   where,
 } from 'firebase/firestore';
-import { makeAutoObservable } from 'mobx';
 import Firebase from '../firebase/Firebase';
 import CampSpotStore from './CampSpotStore';
 import GearStore from './GearStore';
@@ -19,6 +18,7 @@ import {
 
 // 홈 운영자 추천 조회·참조 조인 (Home HM-11·HM-12, DataModel DM-27).
 class FeedContentStore {
+  private static readonly PUBLISHED_CONTENT_LIMIT = 30;
   public static readonly SPOT_LIMIT = 3;
   public static readonly GEAR_LIMIT = 10;
 
@@ -26,15 +26,12 @@ class FeedContentStore {
     private readonly firebase: Firebase,
     private readonly campSpotStore: CampSpotStore,
     private readonly gearStore: GearStore
-  ) {
-    makeAutoObservable(this);
-  }
+  ) {}
 
   public async getRecommendedSpots(): Promise<RecommendedSpot[]> {
-    const contents = await this.getPublishedContents(
-      FeedContentType.SpotIntro,
-      FeedContentStore.SPOT_LIMIT
-    );
+    const contents = (await this.getPublishedContents())
+      .filter(content => content.type === FeedContentType.SpotIntro)
+      .slice(0, FeedContentStore.SPOT_LIMIT);
 
     const joined = await Promise.all(
       contents.map(async content => {
@@ -58,10 +55,9 @@ class FeedContentStore {
   }
 
   public async getRecommendedGears(): Promise<RecommendedGear[]> {
-    const contents = await this.getPublishedContents(
-      FeedContentType.GearIntro,
-      FeedContentStore.GEAR_LIMIT
-    );
+    const contents = (await this.getPublishedContents())
+      .filter(content => content.type === FeedContentType.GearIntro)
+      .slice(0, FeedContentStore.GEAR_LIMIT);
 
     const joined = await Promise.all(
       contents.map(async content => {
@@ -84,21 +80,23 @@ class FeedContentStore {
     );
   }
 
-  private async getPublishedContents(
-    type: FeedContentType,
-    count: number
-  ): Promise<FeedContentData[]> {
-    const snapshot = await getDocs(
-      query(
-        collection(this.firebase.getStore(), 'feed-content'),
-        where('published', '==', true),
-        where('type', '==', type),
-        orderBy('publishedAt', 'desc'),
-        limit(count)
-      )
-    );
+  private async getPublishedContents(): Promise<FeedContentData[]> {
+    try {
+      const snapshot = await getDocs(
+        query(
+          collection(this.firebase.getStore(), 'feed-content'),
+          where('published', '==', true),
+          orderBy('publishedAt', 'desc'),
+          limit(FeedContentStore.PUBLISHED_CONTENT_LIMIT)
+        )
+      );
 
-    return snapshot.docs.map(document => document.data() as FeedContentData);
+      return snapshot.docs.map(document => document.data() as FeedContentData);
+    } catch (error) {
+      console.error('홈 추천 콘텐츠 조회 실패:', error);
+
+      return [];
+    }
   }
 }
 

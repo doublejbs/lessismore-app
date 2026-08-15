@@ -38,9 +38,11 @@ class Home {
   private gears: Gear[] = [];
   private recommendedSpots: RecommendedSpot[] = [];
   private recommendedGears: RecommendedGear[] = [];
+  private recommendedGearSyncId = 0;
   // 첫 진입에는 스켈레톤이 보여야 하므로 true로 시작한다(HM-6).
   private loading = true;
   private readonly disposeLoginReaction: () => void;
+  private readonly gearRowActions: GearRowActions;
 
   private constructor(
     private readonly bagStore: BagStore,
@@ -50,6 +52,18 @@ class Home {
     private readonly gearActions: SearchWarehouse,
     private readonly bag: Bag
   ) {
+    this.gearRowActions = {
+      registerSingle: gear =>
+        this.gearActions.registerSingle(gear, () =>
+          this.refreshRecommendedGearOwnedState()
+        ),
+      removeSingle: gear =>
+        this.gearActions.removeSingle(gear, () =>
+          this.refreshRecommendedGearOwnedState()
+        ),
+      goToGearDetail: gear => this.gearActions.goToGearDetail(gear),
+    };
+
     this.disposeLoginReaction = reaction(
       () => this.firebase.isLoggedIn(),
       async () => {
@@ -166,7 +180,7 @@ class Home {
   }
 
   public getGearActions(): GearRowActions {
-    return this.gearActions;
+    return this.gearRowActions;
   }
 
   public getBag() {
@@ -195,6 +209,65 @@ class Home {
 
   private setRecommendedGears(value: RecommendedGear[]) {
     this.recommendedGears = value;
+  }
+
+  // FD-2와 같은 보유 배지 동기화 경로. 홈 추천 목록은 재검색하지 않고, 이미 읽은
+  // 추천 항목의 Gear 인스턴스만 보유 상태가 반영된 새 인스턴스로 교체한다.
+  private async refreshRecommendedGearOwnedState() {
+    if (this.recommendedGears.length === 0) {
+      return;
+    }
+
+    const syncId = ++this.recommendedGearSyncId;
+
+    try {
+      const owned = await this.gearStore.getList(
+        [GearFilter.All],
+        OrderType.CreatedDesc
+      );
+
+      if (syncId !== this.recommendedGearSyncId) {
+        return;
+      }
+
+      const ownedIds = new Set(owned.map(gear => gear.getId()));
+      this.setRecommendedGears(
+        this.recommendedGears.map(recommendation => ({
+          ...recommendation,
+          gear: this.withOwnedState(
+            recommendation.gear,
+            ownedIds.has(recommendation.gear.getId())
+          ),
+        }))
+      );
+    } catch (error) {
+      console.error('홈 추천 장비 보유 상태 갱신 실패:', error);
+    }
+  }
+
+  // added만 바뀐 새 Gear 인스턴스를 만든다(Gear에 mutator를 두지 않기 위함).
+  private withOwnedState(gear: Gear, added: boolean): Gear {
+    if (gear.isAdded() === added) {
+      return gear;
+    }
+
+    return new Gear(
+      gear.getId(),
+      gear.getName(),
+      gear.getCompany(),
+      gear.getWeight(),
+      added,
+      gear.getIsCustom(),
+      gear.getCategory(),
+      gear.getUseless(),
+      gear.getUsed(),
+      gear.getBags(),
+      gear.getCreateDate(),
+      gear.getColor(),
+      gear.getCompanyKorean(),
+      gear.getNameKorean(),
+      gear.getExtra()
+    );
   }
 
   private setLoading(value: boolean) {

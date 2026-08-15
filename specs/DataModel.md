@@ -506,7 +506,7 @@
 | `publishedAt` | string | ISO 8601 — 발행 시각. 목록 정렬 기준(내림차순) |
 | `published` | boolean | 발행 여부. **클라이언트는 `true`만 조회**한다 — `false`는 CMS의 초안 |
 
-- 앱 조회는 섹션별로 `where('published', '==', true)` + `where('type', '==', <유형>)` + `orderBy('publishedAt', 'desc')` + `limit(N)` — N은 `spot_intro` 3 · `gear_intro` 10([Home.md](Home.md) HM-14, 2026-08-15 확정). **등호 2개 + 정렬 조합이라 복합 색인이 필요할 수 있다**(구현 시 확인).
+- 앱 조회는 `where('published', '==', true)` + `orderBy('publishedAt', 'desc')` + `limit(30)`으로 전체 발행 콘텐츠를 받아, 클라이언트에서 `type`별로 분리하고 `spot_intro` 3개·`gear_intro` 10개로 제한한다([Home.md](Home.md) HM-14, 2026-08-15 확정). 등호 조건과 정렬만 사용해 복합 색인을 요구하지 않는다.
 - `relatedSpotId`/`relatedGearId`는 유형별로 하나만 존재한다(`spot_intro`는 `relatedSpotId`, `gear_intro`는 `relatedGearId` — 각자 자기 유형에서 **필수**, 다른 유형에는 없음). **참조만 저장**한다(이름 스냅샷 없음) — 카드의 대상 정보(박지 이름·유형·지역, 장비 셀)는 앱이 참조를 따라가 조회하고, 발행 시 유효 참조 보장은 CMS(웹 몫) 책임이며, 대상 부재(hidden·삭제) 처리는 각 진입 경로의 기존 규칙을 따른다(HM-11·HM-12).
 - **보안 규칙(콘솔 관리)**: **읽기 공개 확정**(2026-08-15 사용자 확정 — 비로그인 홈 노출의 전제, HM-14) + **쓰기는 admin(운영자) 전용**. 규칙 파일이 이 레포에 없어 실제 규칙 배포·구성 확인은 미해결이고, 클라이언트 SDK에는 admin 개념이 없어(웹 CMS의 쓰기 인증 방식 포함) **구현 전에 확인해야 한다** — §8 미해결 질문.
 

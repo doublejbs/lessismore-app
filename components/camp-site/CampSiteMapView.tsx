@@ -534,13 +534,13 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         return;
       }
 
+      clearPendingCampSite();
       const spot = campSiteMap.getSpotById(spotId);
 
       if (!spot) {
         return;
       }
 
-      clearPendingCampSite();
       campSiteMap.resetFilters();
       openDetail(spot);
       moveCamera({
