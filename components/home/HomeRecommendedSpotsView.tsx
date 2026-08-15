@@ -47,7 +47,7 @@ const HomeRecommendedSpotsView: FC<Props> = ({ recommendations }) => {
               <PretendardText
                 weight='medium'
                 style={styles.title}
-                numberOfLines={1}
+                numberOfLines={2}
               >
                 {spot.name}
               </PretendardText>
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     color: Acg.ink,
   },
   summary: {
-    ...AcgType.meta,
+    ...AcgType.body,
     color: Acg.textMuted,
   },
 });
