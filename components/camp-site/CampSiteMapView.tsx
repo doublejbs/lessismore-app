@@ -10,6 +10,7 @@ import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router/react-navigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { observer } from 'mobx-react-lite';
 import { Acg } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
@@ -32,6 +33,10 @@ import CampSiteMyLocationMarkerView from './CampSiteMyLocationMarkerView';
 import CampSiteSelectedPulseView from './CampSiteSelectedPulseView';
 import CampSiteMapTopOverlayView from './CampSiteMapTopOverlayView';
 import CampSiteMapBottomOverlayView from './CampSiteMapBottomOverlayView';
+import {
+  clearPendingCampSite,
+  getPendingCampSite,
+} from '@/model/camp-site/CampSiteMapHandoff';
 
 interface Props {
   campSiteMap: CampSiteMap;
@@ -97,6 +102,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   const pendingCameraFrameRef = useRef<number | null>(null);
   // 현재 줌(마커 탭 시 줌은 유지한 채 그 박지를 중앙으로 이징하기 위함).
   const zoomRef = useRef<number>(deltaToZoom(0.2));
+  const spotsLoading = campSiteMap.isLoading();
   const insets = useSafeAreaInsets();
 
   // 하단 플로팅 요소(현재 위치 버튼)가 iOS 플로팅 탭바에 가리지 않게 하는 여유.
@@ -514,6 +520,38 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     [campSiteMap, handleMoveToSpot, router]
   );
 
+  // 홈 추천 박지 진입은 지도 탭을 먼저 열고, 지도 자체의 기존 상세 시트 경로를 재사용한다.
+  // 지도 초기화가 끝난 뒤 포커스를 얻는 시점에 소비하므로 비로그인 홈에서도 동작한다(HM-11).
+  useFocusEffect(
+    useCallback(() => {
+      if (spotsLoading) {
+        return;
+      }
+
+      const spotId = getPendingCampSite();
+
+      if (!spotId) {
+        return;
+      }
+
+      const spot = campSiteMap.getSpotById(spotId);
+
+      if (!spot) {
+        return;
+      }
+
+      clearPendingCampSite();
+      campSiteMap.resetFilters();
+      openDetail(spot);
+      moveCamera({
+        latitude: spot.location.latitude,
+        longitude: spot.location.longitude,
+        zoom: deltaToZoom(0.05),
+        duration: 500,
+      });
+    }, [campSiteMap, moveCamera, openDetail, spotsLoading])
+  );
+
   // 검색 결과 탭 → 키보드/드롭다운 닫기 + 필터 해제 + 카메라 이동(줌인) + 상세 시트 오픈(CS-6).
   // 검색어는 유지한다.
   const handleSelectResult = useCallback(
@@ -788,4 +826,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CampSiteMapView;
+export default observer(CampSiteMapView);

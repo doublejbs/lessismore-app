@@ -17,12 +17,14 @@ import ForceUpdateManager from '../app-update/ForceUpdateManager';
 import FeaturePopupManager from '../feature-popup/FeaturePopupManager';
 import GearPreviewStore from '../gear-preview/GearPreviewStore';
 import BagTemplateStore from '../store/BagTemplateStore';
+import FeedContentStore from '../store/FeedContentStore';
 
 class App {
   private readonly firebase = new Firebase();
   private gearStore: GearStore | null = null;
   private bagStore: BagStore | null = null;
   private bagTemplateStore: BagTemplateStore | null = null;
+  private feedContentStore: FeedContentStore | null = null;
   private searchStore: SearchStore | null = null;
   private alertManager: AlertManager | null = null;
   private logInAlertManager: LogInAlertManager | null = null;
@@ -64,6 +66,11 @@ class App {
     this.logInAlertManager = LogInAlertManager.new(this.firebase);
     this.replyStore = new ReplyStore(this.firebase);
     this.campSpotStore = new CampSpotStore(this.firebase);
+    this.feedContentStore = new FeedContentStore(
+      this.firebase,
+      this.campSpotStore,
+      this.gearStore
+    );
     this.campReviewStore = new CampReviewStore(this.firebase);
     this.campFavoriteStore = new CampFavoriteStore(this.firebase);
     this.analyticsManager = AnalyticsManager.new();
@@ -113,6 +120,10 @@ class App {
 
   public getCampSpotStore() {
     return this.campSpotStore;
+  }
+
+  public getFeedContentStore() {
+    return this.feedContentStore;
   }
 
   public getCampReviewStore() {

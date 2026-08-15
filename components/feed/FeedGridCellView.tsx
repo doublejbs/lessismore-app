@@ -36,6 +36,7 @@ interface Props {
   bag: Bag;
   // GE-8: 장비 추가 검색(/search) 진입 시 담기 동작 컨텍스트. 미지정이면 탐색 기본(배낭 담기 모달).
   gearAddContext?: GearAddContext | undefined;
+  summary?: string | undefined;
 }
 
 // FD-2: 탐색 탭 피드의 **2열 그리드 셀**(레퍼런스 이식 2026-08-11, 그리드 전환 같은 날).
@@ -57,6 +58,7 @@ const FeedGridCellView: FC<Props> = ({
   actions,
   bag,
   gearAddContext,
+  summary,
 }) => {
   const weight = gear.getWeight();
   const color = gear.getDisplayColor();
@@ -191,6 +193,15 @@ const FeedGridCellView: FC<Props> = ({
         </View>
       </Pressable>
 
+      {summary ? (
+        <PretendardText
+          style={styles.summary}
+          numberOfLines={2}
+        >
+          {summary}
+        </PretendardText>
+      ) : null}
+
       <SearchGearAddToBagModalView
         visible={showModal}
         onClose={handleCloseModal}
@@ -276,6 +287,11 @@ const styles = StyleSheet.create({
   // 담긴 상태는 잉크 채움 + 라임 체크(기존 규칙).
   ctaAdded: {
     backgroundColor: Acg.ink,
+  },
+  summary: {
+    ...AcgType.meta,
+    color: Acg.textMuted,
+    marginTop: 8,
   },
 });
 

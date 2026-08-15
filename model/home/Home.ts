@@ -7,6 +7,12 @@ import BagStore from '@/model/store/BagStore';
 import GearStore from '@/model/store/GearStore';
 import Firebase from '@/model/firebase/Firebase';
 import app from '@/model/app/App';
+import { ImperativeRouter } from 'expo-router';
+import Bag from '@/model/bag/Bag';
+import SearchWarehouse from '@/model/search/SearchWarehouse';
+import FeedContentStore from '@/model/store/FeedContentStore';
+import { RecommendedGear, RecommendedSpot } from '@/model/feed/FeedContentTypes';
+import GearRowActions from '@/model/browse/GearRowActions';
 
 /**
  * 홈 화면(HM)의 도메인 모델.
@@ -17,16 +23,21 @@ import app from '@/model/app/App';
  * 추가되지 않는다.
  */
 class Home {
-  public static new() {
+  public static new(router: ImperativeRouter) {
     return new Home(
       app.getBagStore()!,
       app.getGearStore()!,
-      app.getFirebase()
+      app.getFirebase(),
+      app.getFeedContentStore()!,
+      SearchWarehouse.new(router),
+      Bag.new()
     );
   }
 
   private bags: BagItem[] = [];
   private gears: Gear[] = [];
+  private recommendedSpots: RecommendedSpot[] = [];
+  private recommendedGears: RecommendedGear[] = [];
   // 첫 진입에는 스켈레톤이 보여야 하므로 true로 시작한다(HM-6).
   private loading = true;
   private readonly disposeLoginReaction: () => void;
@@ -34,7 +45,10 @@ class Home {
   private constructor(
     private readonly bagStore: BagStore,
     private readonly gearStore: GearStore,
-    private readonly firebase: Firebase
+    private readonly firebase: Firebase,
+    private readonly feedContentStore: FeedContentStore,
+    private readonly gearActions: SearchWarehouse,
+    private readonly bag: Bag
   ) {
     this.disposeLoginReaction = reaction(
       () => this.firebase.isLoggedIn(),
@@ -53,27 +67,62 @@ class Home {
    * 의존이 없다. 한쪽이 실패해도 다른 쪽 카드는 그려야 하므로 개별로 감싼다.
    */
   public async load() {
-    if (!this.firebase.isLoggedIn()) {
-      this.setBags([]);
-      this.setGears([]);
-      this.setLoading(false);
-
-      return;
-    }
-
     // 이미 내용이 있으면(재포커스) 스켈레톤으로 되돌리지 않는다 — 깜빡임 방지.
-    if (this.bags.length === 0 && this.gears.length === 0) {
+    if (
+      this.firebase.isLoggedIn() &&
+      this.bags.length === 0 &&
+      this.gears.length === 0
+    ) {
       this.setLoading(true);
     }
 
-    const [bags, gears] = await Promise.all([
-      this.loadBags(),
-      this.loadGears(),
+    if (this.firebase.isLoggedIn()) {
+      const [bags, gears] = await Promise.all([
+        this.loadBags(),
+        this.loadGears(),
+      ]);
+
+      this.setBags(bags);
+      this.setGears(gears);
+    } else {
+      this.setBags([]);
+      this.setGears([]);
+    }
+
+    this.setLoading(false);
+
+    // 추천은 기존 홈 콘텐츠의 렌더를 막지 않고 각 섹션별로 조용히 붙는다(HM-14).
+    void this.loadRecommendations();
+  }
+
+  private async loadRecommendations() {
+    const [spots, gears] = await Promise.all([
+      this.loadRecommendedSpots(),
+      this.loadRecommendedGears(),
     ]);
 
-    this.setBags(bags);
-    this.setGears(gears);
-    this.setLoading(false);
+    this.setRecommendedSpots(spots);
+    this.setRecommendedGears(gears);
+  }
+
+  private async loadRecommendedSpots(): Promise<RecommendedSpot[]> {
+    try {
+      return await this.feedContentStore.getRecommendedSpots();
+    } catch (error) {
+      console.error('홈 추천 박지 조회 실패:', error);
+
+      return [];
+    }
+  }
+
+  private async loadRecommendedGears(): Promise<RecommendedGear[]> {
+    try {
+      return await this.feedContentStore.getRecommendedGears();
+    } catch (error) {
+      console.error('홈 추천 장비 조회 실패:', error);
+
+      return [];
+    }
   }
 
   private async loadBags(): Promise<BagItem[]> {
@@ -108,6 +157,22 @@ class Home {
     return this.gears;
   }
 
+  public getRecommendedSpots() {
+    return this.recommendedSpots;
+  }
+
+  public getRecommendedGears() {
+    return this.recommendedGears;
+  }
+
+  public getGearActions(): GearRowActions {
+    return this.gearActions;
+  }
+
+  public getBag() {
+    return this.bag;
+  }
+
   public isLoading() {
     return this.loading;
   }
@@ -124,6 +189,14 @@ class Home {
     this.gears = value;
   }
 
+  private setRecommendedSpots(value: RecommendedSpot[]) {
+    this.recommendedSpots = value;
+  }
+
+  private setRecommendedGears(value: RecommendedGear[]) {
+    this.recommendedGears = value;
+  }
+
   private setLoading(value: boolean) {
     this.loading = value;
   }
@@ -131,6 +204,8 @@ class Home {
   // 로그인 상태 reaction을 들고 있으므로 화면 언마운트 시 정리한다.
   public dispose() {
     this.disposeLoginReaction();
+    this.gearActions.dispose();
+    this.bag.dispose();
   }
 }
 
