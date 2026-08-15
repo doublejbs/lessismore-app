@@ -16,6 +16,8 @@ import HomeUpcomingTripView from '@/components/home/HomeUpcomingTripView';
 import HomeWarehousePreviewView from '@/components/home/HomeWarehousePreviewView';
 import HomeSkeletonView from '@/components/home/HomeSkeletonView';
 import HomeHeroBackgroundView from '@/components/home/HomeHeroBackgroundView';
+import HomeRecommendedSpotsView from '@/components/home/HomeRecommendedSpotsView';
+import HomeRecommendedGearsView from '@/components/home/HomeRecommendedGearsView';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import Home from '@/model/home/Home';
 import app from '@/model/app/App';
@@ -44,6 +46,21 @@ const HomeView: FC<Props> = ({ home }) => {
     app.getLogInAlertManager()?.show();
   };
 
+  const renderRecommendations = () => {
+    return (
+      <>
+        <HomeRecommendedSpotsView
+          recommendations={home.getRecommendedSpots()}
+        />
+        <HomeRecommendedGearsView
+          recommendations={home.getRecommendedGears()}
+          actions={home.getGearActions()}
+          bag={home.getBag()}
+        />
+      </>
+    );
+  };
+
   useFocusEffect(
     useCallback(() => {
       setToday(dayjs());
@@ -64,22 +81,28 @@ const HomeView: FC<Props> = ({ home }) => {
     }
 
     if (!isLoggedIn) {
-      // 문구 없이 버튼만 둔다(2026-08-05 사용자 결정) — 비로그인 홈에서 할 일은 하나뿐이라
-      // 설명이 없어도 통하고, 문구를 붙이면 그게 화면의 앵커가 된다.
       return (
-        <View style={styles.signedOut}>
-          <TouchableOpacity
-            style={styles.loginCta}
-            onPress={handleLogin}
-            activeOpacity={0.8}
-            accessibilityRole='button'
-            accessibilityLabel='로그인'
-          >
-            <PretendardText weight='semibold' style={styles.loginCtaText}>
-              로그인
-            </PretendardText>
-          </TouchableOpacity>
-        </View>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* 문구 없이 버튼만 둔다(HM-8). 추천 콘텐츠는 주 액션 아래에 붙는다(HM-14). */}
+          <View style={styles.signedOut}>
+            <TouchableOpacity
+              style={styles.loginCta}
+              onPress={handleLogin}
+              activeOpacity={0.8}
+              accessibilityRole='button'
+              accessibilityLabel='로그인'
+            >
+              <PretendardText weight='semibold' style={styles.loginCtaText}>
+                로그인
+              </PretendardText>
+            </TouchableOpacity>
+          </View>
+          {renderRecommendations()}
+        </ScrollView>
       );
     }
 
@@ -91,6 +114,7 @@ const HomeView: FC<Props> = ({ home }) => {
       >
         <HomeUpcomingTripView plan={selectTripPlan(home.getBags(), today)} />
         <HomeWarehousePreviewView gears={home.getGears()} />
+        {renderRecommendations()}
         <View
           style={{
             // 플로팅 탭바 아래로 콘텐츠가 흐르므로 시안대로 130을 비운다(ACG).

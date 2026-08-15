@@ -120,6 +120,51 @@ class GearStore {
     }
   }
 
+  // 카탈로그 경로(`/gear/{id}`)만 조회한다. 운영자 콘텐츠의 참조 조인은 사용자 창고
+  // 사본보다 카탈로그 원본을 우선해야 하므로 `getGear`와 분리한다(Home HM-12).
+  public async getCatalogGear(id: string): Promise<Gear | null> {
+    const snapshot = await getDoc(doc(this.getStore(), 'gear', id));
+
+    if (!snapshot.exists()) {
+      return null;
+    }
+
+    const data = snapshot.data() as GearData;
+    const {
+      name,
+      company,
+      weight,
+      isCustom,
+      category,
+      useless,
+      used,
+      bags,
+      createDate,
+      color,
+      companyKorean,
+      nameKorean,
+    } = data;
+    const isAdded = await this.hasGear(id);
+
+    return new Gear(
+      id,
+      name,
+      company,
+      weight,
+      isAdded,
+      isCustom,
+      category,
+      useless,
+      used,
+      bags,
+      isAdded ? createDate : Date.now(),
+      color,
+      companyKorean,
+      nameKorean,
+      toGearExtra(data)
+    );
+  }
+
   public async getUserGear(id: string) {
     if (this.getUserId()) {
       const docData = await getDoc(
