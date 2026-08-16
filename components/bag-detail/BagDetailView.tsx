@@ -164,6 +164,18 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     );
   };
 
+  const handleDelete = () => {
+    setShowMenu(false);
+    app.getAlertManager()?.show({
+      message: `${bagDetail.getName()} 배낭을 삭제할까요?`,
+      confirmText: '삭제',
+      onConfirm: async () => {
+        await app.getBagStore()!.delete(bagDetail.getId());
+        router.back();
+      },
+    });
+  };
+
   // 헤더 우측 액션(필름 카드·메뉴) — iOS 네이티브 headerRight와 Android/Web 커스텀 헤더가 공유한다.
   // 두 버튼 모두 44pt 박스를 사용해 HIG 터치 타깃을 보장한다.
   const renderHeaderActions = () => (
@@ -335,6 +347,11 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                 icon: 'bookmark-outline',
                 text: '템플릿으로 저장',
                 onPress: handleSaveTemplate,
+              },
+              {
+                icon: 'trash-outline',
+                text: '삭제',
+                onPress: handleDelete,
               },
             ]}
           />
