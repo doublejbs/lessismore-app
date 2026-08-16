@@ -6,7 +6,7 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { FC, useCallback, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
@@ -28,10 +28,27 @@ const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
   const [mounted, setMounted] = useState(visible);
   const [fadeAnim] = useState(() => new Animated.Value(0));
   const [slideAnim] = useState(() => new Animated.Value(300));
+  const pendingAction = useRef<(() => void) | null>(null);
   const insets = useSafeAreaInsets();
   const handleCloseComplete = useCallback(() => {
     setMounted(false);
+
+    const action = pendingAction.current;
+    pendingAction.current = null;
+
+    if (action) {
+      // Modal의 visible 상태가 반영된 다음 후속 시트·알럿을 열어 겹침을 피한다.
+      setTimeout(action, 0);
+    }
   }, []);
+
+  const handleMenuItemPress = useCallback(
+    (action: () => void) => {
+      pendingAction.current = action;
+      onClose();
+    },
+    [onClose]
+  );
 
   useEffect(() => {
     if (!visible) {
@@ -83,7 +100,7 @@ const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
               <TouchableOpacity
                 key={index}
                 style={styles.menuItem}
-                onPress={item.onPress}
+                onPress={() => handleMenuItemPress(item.onPress)}
               >
                 <Ionicons
                   name={item.icon}
