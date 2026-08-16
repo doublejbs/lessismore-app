@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgType, Spacing } from '@/constants/DesignTokens';
 
 interface Props {
   bagMemo: BagMemo;
@@ -68,7 +68,9 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
       style={[
         styles.container,
         // 고정 레이아웃(비스크롤) 화면 — iOS는 투명 헤더 높이만큼 상단 여백을 직접 확보한다.
-        IS_IOS && { paddingTop: insets.top + IOS_HEADER_BAR_HEIGHT },
+        IS_IOS && {
+          paddingTop: insets.top + IOS_HEADER_BAR_HEIGHT + Spacing.item,
+        },
       ]}
       behavior={IS_IOS ? 'padding' : 'height'}
       // iOS: Layout에서 top 세이프에어리어를 빼 이 뷰가 화면 최상단(y=0)에서 시작하므로 오프셋 불필요.

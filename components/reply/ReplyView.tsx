@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType, Spacing } from '@/constants/DesignTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '../PretendardText';
 import ReplyInputButtonView from './ReplyInputButtonView';
@@ -69,7 +69,9 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          IS_IOS && { paddingTop: insets.top + NATIVE_HEADER_HEIGHT },
+          IS_IOS && {
+            paddingTop: insets.top + NATIVE_HEADER_HEIGHT + Spacing.item,
+          },
         ]}
         contentInsetAdjustmentBehavior='never'
         // 리뷰가 없을 땐 스크롤을 끈다 — flexGrow(중앙 정렬용)와 헤더 자동 인셋이 겹쳐

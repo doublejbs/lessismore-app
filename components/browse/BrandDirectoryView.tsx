@@ -14,7 +14,14 @@ import { Stack, useRouter } from 'expo-router';
 import BrandDirectory from '@/model/browse/BrandDirectory';
 import { BrandRankData } from '@/model/search/BrandRankStore';
 import PretendardText from '../PretendardText';
-import { Acg, AcgLayout, AcgType, Color, Radius } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgLayout,
+  AcgType,
+  Color,
+  Radius,
+  Spacing,
+} from '@/constants/DesignTokens';
 import SearchSkeletonView from '../search/SearchSkeletonView';
 import BrandRowView from './BrandRowView';
 import app from '@/model/app/App';
@@ -93,7 +100,9 @@ const BrandDirectoryView: FC<Props> = ({ brandDirectory }) => {
         styles.container,
         // LG-1: 검색 인풋이 상단 고정 콘텐츠라 헤더 뒤로 흐를 수 없다 —
         // 투명 헤더(상태바+44pt) 아래에서 시작하도록 여백을 준다.
-        IS_IOS && { paddingTop: insets.top + NATIVE_HEADER_HEIGHT },
+        IS_IOS && {
+          paddingTop: insets.top + NATIVE_HEADER_HEIGHT + Spacing.item,
+        },
       ]}
     >
       {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
