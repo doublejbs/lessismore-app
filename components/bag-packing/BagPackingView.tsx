@@ -20,7 +20,7 @@ import BagPackingHeaderView from './BagPackingHeaderView';
 import BagPackingCategorySectionView from './BagPackingCategorySectionView';
 import BagPackingCompleteView from './BagPackingCompleteView';
 import AlertView from '@/components/alert/AlertView';
-import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType, Spacing } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 interface Props {
@@ -103,7 +103,10 @@ const BagPackingView: FC<Props> = ({ bagPacking }) => {
         style={[
           styles.container,
           // 고정 진행률 블록이 상단에 있어 투명 헤더 높이만큼 상단 여백을 직접 확보한다.
-          IS_IOS && { paddingTop: insets.top + IOS_HEADER_BAR_HEIGHT },
+          IS_IOS && {
+            paddingTop:
+              insets.top + IOS_HEADER_BAR_HEIGHT + Spacing.item,
+          },
         ]}
       >
         {!IS_IOS && (

@@ -14,7 +14,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import StarRatingView from '@/components/camp-site/StarRatingView';
 import { CommentUpdateRequest } from '@/model/reply/Comment';
-import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgLayout,
+  AcgRadius,
+  AcgType,
+  Spacing,
+} from '@/constants/DesignTokens';
 import useKeyboard from '@/hooks/useKeyboard';
 import app from '@/model/app/App';
 
@@ -128,7 +134,9 @@ const ReplyEditView: FC<Props> = ({
       style={[
         styles.container,
         // 고정 레이아웃이라 자동 인셋이 없어 상태바 + 네이티브 헤더 높이만큼 직접 내린다.
-        IS_IOS && { paddingTop: insets.top + NATIVE_HEADER_HEIGHT },
+        IS_IOS && {
+          paddingTop: insets.top + NATIVE_HEADER_HEIGHT + Spacing.item,
+        },
       ]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >

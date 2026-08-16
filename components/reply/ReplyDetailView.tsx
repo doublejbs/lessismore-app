@@ -13,7 +13,7 @@ import ReplyDetailOriginalView from './ReplyDetailOriginalView';
 import ReplyDetailCommentView from './ReplyDetailCommentView';
 import ReplyDetailInputView from './ReplyDetailInputView';
 import { useRef } from 'react';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, Spacing } from '@/constants/DesignTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
@@ -69,7 +69,9 @@ const ReplyDetailView = ({ replyDetail, originalComment }: Props) => {
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
-          IS_IOS && { paddingTop: insets.top + NATIVE_HEADER_HEIGHT },
+          IS_IOS && {
+            paddingTop: insets.top + NATIVE_HEADER_HEIGHT + Spacing.item,
+          },
         ]}
         ref={scrollViewRef}
         contentInsetAdjustmentBehavior='never'

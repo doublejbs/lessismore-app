@@ -26,7 +26,7 @@ import WarehouseDetailReviewSectionView from './WarehouseDetailReviewSectionView
 import WarehouseDetailExternalReviewView from './WarehouseDetailExternalReviewView';
 import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '../PretendardText';
-import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType, Spacing } from '@/constants/DesignTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SearchGearAddToBagModalView from '../search/SearchGearAddToBagModalView';
 import Bag from '@/model/bag/Bag';
@@ -207,7 +207,10 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
             style={styles.content}
             contentContainerStyle={
               IS_IOS
-                ? { paddingTop: insets.top + NATIVE_HEADER_HEIGHT }
+                ? {
+                    paddingTop:
+                      insets.top + NATIVE_HEADER_HEIGHT + Spacing.item,
+                  }
                 : undefined
             }
             contentInsetAdjustmentBehavior='never'

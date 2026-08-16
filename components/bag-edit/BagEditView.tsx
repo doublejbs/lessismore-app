@@ -95,7 +95,11 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
         {stackScreen}
         {IS_IOS ? (
           // 고정 레이아웃 화면 — 투명 헤더 높이만큼 상단 여백을 직접 확보한다.
-          <View style={{ height: insets.top + IOS_HEADER_BAR_HEIGHT }} />
+          <View
+            style={{
+              height: insets.top + IOS_HEADER_BAR_HEIGHT + Spacing.item,
+            }}
+          />
         ) : (
           <View style={{ paddingHorizontal: Spacing.screenH }}>
             <BagEditHeaderView
