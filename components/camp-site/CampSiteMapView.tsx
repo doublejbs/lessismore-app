@@ -15,6 +15,7 @@ import { Acg } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
+import { GeocodeResult } from '@/model/bag-destination/GeocodeResult';
 import LocalStorageManager from '@/model/storage/LocalStorageManager';
 import { deltaToZoom } from '@/model/map/MapZoom';
 import {
@@ -573,6 +574,22 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     [campSiteMap, moveCamera, openDetail]
   );
 
+  // 지명 검색 결과 탭 — 검색어·필터는 유지하고, 박지 선택·상세·마커 없이 카메라만 옮긴다(CS-6).
+  const handleSelectPlace = useCallback(
+    (place: GeocodeResult) => {
+      Keyboard.dismiss();
+      campSiteMap.setSearchFocused(false);
+
+      moveCamera({
+        latitude: place.latitude,
+        longitude: place.longitude,
+        zoom: deltaToZoom(0.05),
+        duration: 500,
+      });
+    },
+    [campSiteMap, moveCamera]
+  );
+
   // 마커 탭 콜백 — memo된 마커(CampSiteMarkerView)가 리렌더를 건너뛸 수 있게 참조를 고정한다.
   const handleMarkerTap = useCallback(
     (spot: CampSpot) => {
@@ -807,6 +824,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       <CampSiteMapTopOverlayView
         campSiteMap={campSiteMap}
         onSelectResult={handleSelectResult}
+        onSelectPlace={handleSelectPlace}
       />
 
       <CampSiteMapBottomOverlayView

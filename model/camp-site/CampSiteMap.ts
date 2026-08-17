@@ -6,6 +6,12 @@ import { CampSpot } from './CampSpotTypes';
 import { getCampSiteTagLabel, getCampSpotRegionLabel } from './CampSiteLabels';
 import CampSiteMapDispatcher from './CampSiteMapDispatcher';
 import CampFavoriteStore from '../store/CampFavoriteStore';
+import { GeocodeResult } from '../bag-destination/GeocodeResult';
+import geocodeService, {
+  GEOCODE_DEBOUNCE_MS,
+  GEOCODE_MIN_QUERY_LENGTH,
+} from '../bag-destination/GeocodeService';
+import { getDistanceInMeters } from '../bag-destination/GeoDistance';
 
 // 박지 지도 화면(CS-1/CS-2)의 도메인 모델.
 // /camp-spot 활성 문서를 로드해 유형 필터·선택 상태를 관리한다.
@@ -29,6 +35,10 @@ class CampSiteMap {
   // 시트가 열리면 true, 닫히면 false로 되돌린다. 유형·태그 필터와 AND 결합한다.
   private favoriteOnly = false;
   private query = '';
+  private placeSearchResults: GeocodeResult[] = [];
+  private searchingPlaces = false;
+  private placeSearchTimer: ReturnType<typeof setTimeout> | null = null;
+  private placeSearchGeneration = 0;
   // 검색 인풋 포커스 여부 — 드롭다운은 query가 있고 포커스 상태일 때만 표시(CS-6).
   // 검색 오버레이 컴포넌트와 지도 탭 핸들러가 함께 쓰므로 모델이 들고 있는다.
   private searchFocused = false;
@@ -36,6 +46,8 @@ class CampSiteMap {
 
   // 검색 결과 상한(CS-6).
   private static readonly SEARCH_RESULT_LIMIT = 20;
+  private static readonly PLACE_SEARCH_RESULT_LIMIT = 5;
+  private static readonly SAME_PLACE_METERS = 100;
 
   private constructor(
     private readonly dispatcher: CampSiteMapDispatcher,
@@ -126,6 +138,16 @@ class CampSiteMap {
     return matched.slice(0, CampSiteMap.SEARCH_RESULT_LIMIT);
   }
 
+  // 카카오 지명 검색 결과(CS-6). 박지 검색과 별도로 모델에서 디바운스하므로
+  // 입력 즉시 갱신되는 박지 결과를 네트워크 응답이 막지 않는다.
+  public getPlaceSearchResults(): GeocodeResult[] {
+    return this.placeSearchResults;
+  }
+
+  public isSearchingPlaces(): boolean {
+    return this.searchingPlaces;
+  }
+
   // 배낭 여행지 선택기의 통합 검색(DST-4)용 활성 박지 검색.
   // 지도 탭 드롭다운(CS-6)과 달리 선택기는 자체 검색어 상태를 들고 있어 인자로 받고,
   // 태그 라벨(`산`·`계곡` 등)까지 대상에 넣어 지형으로도 찾을 수 있게 한다.
@@ -201,10 +223,76 @@ class CampSiteMap {
 
   public setQuery(value: string) {
     this.query = value;
+
+    if (this.placeSearchTimer !== null) {
+      clearTimeout(this.placeSearchTimer);
+      this.placeSearchTimer = null;
+    }
+
+    const generation = ++this.placeSearchGeneration;
+    const trimmed = value.trim();
+
+    this.placeSearchResults = [];
+
+    if (trimmed.length < GEOCODE_MIN_QUERY_LENGTH) {
+      this.searchingPlaces = false;
+
+      return;
+    }
+
+    this.searchingPlaces = true;
+    this.placeSearchTimer = setTimeout(() => {
+      this.placeSearchTimer = null;
+      void this.searchPlaces(trimmed, generation);
+    }, GEOCODE_DEBOUNCE_MS);
   }
 
   public clearQuery() {
-    this.query = '';
+    this.setQuery('');
+  }
+
+  private async searchPlaces(query: string, generation: number) {
+    try {
+      const found = await geocodeService.geocode(query);
+
+      if (
+        generation !== this.placeSearchGeneration ||
+        this.query.trim() !== query
+      ) {
+        return;
+      }
+
+      // 등록 박지와 동명이고 100m 이내인 결과는 박지 행을 우선한다(DST-4).
+      const deduplicated = found.filter(place => {
+        return !this.getSpotsByName(place.name).some(
+          spot =>
+            getDistanceInMeters(spot.location, place) <=
+            CampSiteMap.SAME_PLACE_METERS
+        );
+      });
+
+      this.placeSearchResults = deduplicated.slice(
+        0,
+        CampSiteMap.PLACE_SEARCH_RESULT_LIMIT
+      );
+    } catch (error) {
+      // 카카오 실패는 지명 구간만 생략하고 박지 검색은 유지한다(CS-6).
+      console.error('지명 검색 실패:', error);
+
+      if (
+        generation === this.placeSearchGeneration &&
+        this.query.trim() === query
+      ) {
+        this.placeSearchResults = [];
+      }
+    } finally {
+      if (
+        generation === this.placeSearchGeneration &&
+        this.query.trim() === query
+      ) {
+        this.searchingPlaces = false;
+      }
+    }
   }
 
   public selectTag(tag: CampSiteTag | null) {
