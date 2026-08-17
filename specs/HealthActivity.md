@@ -108,6 +108,7 @@ app/(tabs)/bag → bag/[id] (배낭 상세)
 - **복수 선택을 허용한다.** 1박 2일 산행이 날짜별로 나뉘어 기록되는 경우가 흔하므로, 여러 운동을 합산해 하나의 여행 기록으로 표시한다.
 - **연결을 확정하면 화면을 닫지 않고 그 자리에서 상세(HA-4)로 전환한다.** 방금 연결한 기록을 바로 확인하는 것이 자연스럽고, 배낭 상세로 되돌린 뒤 다시 들어오게 만들 이유가 없다.
 - 연결 해제가 가능해야 한다.
+- 연결된 운동이 하나면 상세에서 운동 종류·시작 시각을 **화면 헤드라인 바로 아래, 요약 지표 카드 위**에 먼저 보여준다. 이때 상세 섹션에서는 같은 제목·시각을 중복 표시하지 않는다. 여러 운동이면 합산 요약 아래 각 운동 블록 위에 종류·시작 시각을 표시한다.
 
 ### HA-4 기록 상세 표시 `[제안]`
 
@@ -156,6 +157,8 @@ app/(tabs)/bag → bag/[id] (배낭 상세)
   - **예외 — 연결 해제는 밑줄 텍스트를 유지한다.** 파괴적 액션을 주 액션과 같은 형태로 두어 경쟁시키지 않으려는 의도적 선택이다(변경하려면 기획 확인).
 - **하단 액션 바에 면을 깔지 않는다.** 배경은 투명, 상단 구분선도 두지 않는다 — 순백 지면 위에 흰 띠를 얹으면 지면이 끊겨 보인다([BagDetail.md](BagDetail.md) BD-9 하단 바와 같은 규칙).
 - 타입 단: 화면 제목 `AcgType.screenTitle`(22) + semibold(iOS 네이티브 헤더·Android/Web 커스텀 헤더 공통), 빈 상태 제목 `AcgType.sectionTitle`(18) + semibold, 두 줄 이상 감기는 안내문·에러 문구는 `AcgType.body`(14/21) + `Acg.textMuted`.
+- 기록 상세에서 단건 운동의 종류는 `AcgType.rowTitle` + medium, 시작 시각은 **시작 시각이 먼저인 메타 단** + `Acg.textMuted`로 헤드라인 아래에 둔다. 여러 운동은 각 운동 블록 위에 같은 문법으로 표시한다.
+- 심박수·페이스 그래프는 다운샘플링한 각 표본을 작은 점(`react-native-svg` `Circle`)으로 표시하고 선은 그리지 않는다. 최소 표본 수 가드·`MAX_CHART_POINTS` 상한·기존 접근성 서술은 유지한다. 값의 범위는 그래프 카드 제목 행 우측에 두며, 하단 축은 시작 시각(좌)과 종료 시각(우)만 둔다.
 - **수치는 `AcgDisplayText`(콘덴스드 700 + `tabular-nums`) + `Acg.ink`다.** 요약 헤드라인(총 거리)도 잉크이며, 강조는 색이 아니라 **크기·굵기**로 만든다(아래 `limeText` 폐기 참고).
 - 색·여백·모서리는 `Acg`/`AcgLayout`/`AcgRadius` 계열만 참조한다. **값이 같더라도 구세대 별칭을 남기지 않는다**(`Color.textPrimary`→`Acg.ink`, `Color.textSecondary`·`Color.iconMuted`→`Acg.textMuted`, `Color.background`→`Acg.paper`, `Color.borderLight`→`Acg.hairline`, `Color.chipInactiveBg`·`surfaceMuted`·`thumbBg`→`Acg.controlFill`, `Spacing.screenH`→`AcgLayout.screenPadding`, `Radius.card`→`AcgRadius.thumb`). 이름이 갈리면 다음 개편에서 어느 세대인지 판정할 수 없다.
 - 데이터 시각화 색(심박 `#FF4D4F` · 페이스 `#2F6BFF` · 지도 마커·폴리라인)은 토큰 예외다(CLAUDE.md 「예외」).
