@@ -2,7 +2,12 @@ import { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { AcgType, Color, Radius, Spacing } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgRow,
+  AcgType,
+  Spacing,
+} from '@/constants/DesignTokens';
 import { HealthWorkout } from '@/model/health/HealthTypes';
 import {
   formatDistance,
@@ -14,6 +19,7 @@ import {
 interface Props {
   workout: HealthWorkout;
   selected: boolean;
+  first: boolean;
   onToggle: (workoutId: string) => void;
 }
 
@@ -21,6 +27,7 @@ interface Props {
 const BagActivityWorkoutItemView: FC<Props> = ({
   workout,
   selected,
+  first,
   onToggle,
 }) => {
   const handlePress = () => {
@@ -39,7 +46,7 @@ const BagActivityWorkoutItemView: FC<Props> = ({
 
   return (
     <TouchableOpacity
-      style={[styles.item, selected && styles.itemSelected]}
+      style={[styles.item, first && styles.firstItem]}
       onPress={handlePress}
       activeOpacity={0.7}
       accessibilityRole='checkbox'
@@ -47,7 +54,7 @@ const BagActivityWorkoutItemView: FC<Props> = ({
       accessibilityLabel={`${getWorkoutTypeLabel(workout.type)} ${formatWorkoutStartedAt(workout.startDate)} ${metrics}`}
     >
       <View style={styles.main}>
-        <PretendardText style={styles.title} weight='semibold'>
+        <PretendardText style={styles.title} weight='medium'>
           {getWorkoutTypeLabel(workout.type)}
         </PretendardText>
         <PretendardText style={styles.subtitle}>
@@ -57,7 +64,7 @@ const BagActivityWorkoutItemView: FC<Props> = ({
       <Ionicons
         name={selected ? 'checkmark-circle' : 'ellipse-outline'}
         size={24}
-        color={selected ? Color.textPrimary : Color.iconMuted}
+        color={selected ? Acg.ink : Acg.hairline}
       />
     </TouchableOpacity>
   );
@@ -68,30 +75,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.item,
-    // HIG 최소 터치 타깃 44pt.
-    minHeight: 64,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: Radius.card,
-    borderWidth: 1,
-    borderColor: Color.chipBorder,
-    backgroundColor: Color.background,
+    minHeight: AcgRow.minHeight,
+    paddingVertical: AcgRow.paddingVertical,
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
   },
-  itemSelected: {
-    borderColor: Color.textPrimary,
-    backgroundColor: Color.surfaceMuted,
+  firstItem: {
+    borderTopWidth: 0,
   },
   main: {
     flex: 1,
     gap: 4,
   },
   title: {
-    ...AcgType.sectionSubtitle,
-    color: Color.textPrimary,
+    ...AcgType.rowTitle,
+    color: Acg.ink,
   },
   subtitle: {
-    ...AcgType.meta,
-    color: Color.textSecondary,
+    ...AcgType.rowSubtitle,
+    color: Acg.ink,
   },
 });
 

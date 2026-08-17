@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgType, Spacing } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType, Spacing } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { BagActivitySummary } from '@/model/bag/BagActivitySummary';
 import {
@@ -48,7 +48,6 @@ const BagActivitySummaryView: FC<Props> = ({ summary, weightGrams }) => {
       {/* 이 기능의 핵심 서사 — 무게와 이동을 한 문장으로 잇는다(HA-4). */}
       {weightGrams > 0 && (
         <PretendardText style={styles.headline} weight='bold'>
-          {/* 두 수치가 이 문장의 결론이라 라임으로 세운다 — 앱의 유일한 액센트(ACG). */}
           <PretendardText style={styles.headlineValue} weight='bold'>
             {formatBagWeight(weightGrams)}
           </PretendardText>
@@ -92,7 +91,7 @@ const styles = StyleSheet.create({
     color: Acg.ink,
   },
   headlineValue: {
-    color: Acg.limeText,
+    color: Acg.ink,
   },
   // 이 화면의 주 정보라 종이 면으로 띄운다 — 회색 면은 지면과 톤이 가까워 안 떠 보였다
   // (2026-08-05 디자인 리뷰).
@@ -101,6 +100,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     padding: 14,
     backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
   },
   metric: {
     // 2열 그리드.

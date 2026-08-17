@@ -74,10 +74,10 @@ const styles = StyleSheet.create({
     ...AcgType.displaySmall,
     color: Acg.ink,
   },
-  // 진행률은 라임 — 이 화면에서 유일한 액센트다(ACG).
+  // 진행률은 잉크로 표시한다 — 라임은 누르는 면에만 쓴다(ACG).
   percentText: {
     ...AcgType.displaySmall,
-    color: Acg.limeText,
+    color: Acg.ink,
   },
   // 각진 진행 바(ACG). 채움은 라임이라 남은 양이 한눈에 갈린다.
   barTrack: {
