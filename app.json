@@ -2,7 +2,7 @@
   "expo": {
     "name": "useless",
     "slug": "lessismore-app",
-    "version": "1.1.9",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "lessismoreapp",
