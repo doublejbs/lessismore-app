@@ -35,6 +35,8 @@ class CampSiteMap {
   // 시트가 열리면 true, 닫히면 false로 되돌린다. 유형·태그 필터와 AND 결합한다.
   private favoriteOnly = false;
   private query = '';
+  // 입력 중인 query와 분리된 제출 완료 검색어(CS-6). 빈 문자열이면 검색 필터 없음.
+  private submittedSearchQuery = '';
   private placeSearchResults: GeocodeResult[] = [];
   private searchingPlaces = false;
   private placeSearchTimer: ReturnType<typeof setTimeout> | null = null;
@@ -48,6 +50,10 @@ class CampSiteMap {
   private static readonly SEARCH_RESULT_LIMIT = 20;
   private static readonly PLACE_SEARCH_RESULT_LIMIT = 5;
   private static readonly SAME_PLACE_METERS = 100;
+
+  private static normalizeSearchQuery(value: string): string {
+    return value.trim().toLowerCase();
+  }
 
   private constructor(
     private readonly dispatcher: CampSiteMapDispatcher,
@@ -94,10 +100,22 @@ class CampSiteMap {
     }
   }
 
-  // 선택된 유형·태그 필터(AND)를 적용한 표시 대상 마커 목록.
+  // 제출된 이름 검색·유형·태그·즐겨찾기 필터(AND)를 적용한 표시 대상 마커 목록.
   // 태그 필터 선택 시 태그 미부여 spot은 제외된다(CS-2).
   public getVisibleSpots(): CampSpot[] {
     return this.spots.filter(spot => {
+      if (
+        this.submittedSearchQuery.length > 0 &&
+        !spot.name
+          .trim()
+          .toLowerCase()
+          .includes(
+            CampSiteMap.normalizeSearchQuery(this.submittedSearchQuery)
+          )
+      ) {
+        return false;
+      }
+
       if (this.selectedType !== null && spot.type !== this.selectedType) {
         return false;
       }
@@ -120,7 +138,7 @@ class CampSiteMap {
   // 검색어로 전체 spots를 필터한 결과(CS-6). 유형 필터(CS-2)와 독립.
   // trim이 비면 빈 배열, 아니면 name/region 부분일치(대소문자 무시) 최대 20건.
   public getSearchResults(): CampSpot[] {
-    const keyword = this.query.trim().toLowerCase();
+    const keyword = CampSiteMap.normalizeSearchQuery(this.query);
 
     if (keyword.length === 0) {
       return [];
@@ -213,6 +231,15 @@ class CampSiteMap {
     return this.query;
   }
 
+  public getSubmittedSearchQuery(): string {
+    return this.submittedSearchQuery;
+  }
+
+  // 키보드 검색 제출로 마커 필터를 확정한다(CS-6). 공백만 제출하면 검색 필터를 해제한다.
+  public submitSearchQuery() {
+    this.submittedSearchQuery = this.query.trim();
+  }
+
   public setSearchFocused(value: boolean) {
     this.searchFocused = value;
   }
@@ -231,6 +258,11 @@ class CampSiteMap {
 
     const generation = ++this.placeSearchGeneration;
     const trimmed = value.trim();
+
+    if (trimmed.length === 0) {
+      // 텍스트 삭제와 필드 안 X 버튼은 같은 setQuery 경로를 탄다(CS-6).
+      this.submittedSearchQuery = '';
+    }
 
     this.placeSearchResults = [];
 
@@ -310,9 +342,10 @@ class CampSiteMap {
   /**
    * 유형·태그 필터를 모두 해제한다(CS-6).
    *
-   * 검색은 필터와 독립이라 필터에 걸러진 박지도 결과에 나온다. 그 항목을 고르면 카메라는
-   * 그리로 가는데 마커는 필터에 막혀 안 보여, 빈 지도만 남는다. 선택한 박지를 보여주는 게
-   * 필터 유지보다 우선이라 이때 필터를 푼다.
+   * 드롭다운 검색은 필터와 독립이라 필터에 걸러진 박지도 결과에 나온다. 그 항목을 고르면
+   * 카메라는 그리로 가는데 마커는 필터에 막혀 안 보여, 빈 지도만 남는다. 선택한 박지를
+   * 보여주는 게 필터 유지보다 우선이라 행 탭에서 이 메서드를 호출한다. 제출된 검색 필터는
+   * 별도 상태이므로 건드리지 않는다.
    *
    * 즐겨찾기 전용(`favoriteOnly`)은 건드리지 않는다 — 칩이 아니라 시트 열림 상태에
    * 묶인 값이라 여기서 끄면 시트와 어긋난다.
