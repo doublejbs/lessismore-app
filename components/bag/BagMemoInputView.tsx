@@ -14,7 +14,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgType, Spacing } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgLayout,
+  AcgRadius,
+  AcgType,
+  Spacing,
+} from '@/constants/DesignTokens';
 
 interface Props {
   bagMemo: BagMemo;
@@ -37,21 +43,29 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
       await bagMemo.initialize();
       setContent(bagMemo.getMemo());
     };
-    loadMemo();
+    void loadMemo();
   }, [bagMemo]);
 
   const handlePressBack = () => {
-    if (isLoading) return;
+    if (isLoading) {
+      return;
+    }
+
     router.back();
   };
 
   const handlePressDelete = () => {
-    if (isLoading) return;
+    if (isLoading) {
+      return;
+    }
+
     bagMemo.delete();
   };
 
   const handlePressComplete = async () => {
-    if (!content.trim() || isLoading) return;
+    if (!content.trim() || isLoading) {
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -81,8 +95,20 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
         options={{
           headerShown: IS_IOS,
           headerTransparent: true,
-          headerTitle: '',
-          headerBackButtonDisplayMode: 'minimal',
+          headerTitle: '메모',
+          headerBackVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={handlePressBack}
+              activeOpacity={0.7}
+              disabled={isLoading}
+              style={styles.nativeHeaderIconButton}
+              accessibilityRole='button'
+              accessibilityLabel='뒤로가기'
+            >
+              <Ionicons name='chevron-back' size={24} color={Acg.ink} />
+            </TouchableOpacity>
+          ),
           ...(bagMemo.getMemo()
             ? {
                 headerRight: () => (
@@ -104,14 +130,27 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
       {!IS_IOS && (
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <TouchableOpacity onPress={handlePressBack} activeOpacity={0.7}>
+            <TouchableOpacity
+              onPress={handlePressBack}
+              activeOpacity={0.7}
+              disabled={isLoading}
+              style={styles.backButton}
+              accessibilityRole='button'
+              accessibilityLabel='뒤로가기'
+            >
               <Ionicons name='chevron-back' size={24} color={Acg.ink} />
             </TouchableOpacity>
+            <PretendardText style={styles.headerTitle} weight='semibold'>
+              메모
+            </PretendardText>
             {bagMemo.getMemo() && (
               <TouchableOpacity
                 onPress={handlePressDelete}
                 activeOpacity={0.7}
                 disabled={isLoading}
+                style={styles.deleteButton}
+                accessibilityRole='button'
+                accessibilityLabel='메모 삭제'
               >
                 <Ionicons name='trash-outline' size={24} color='#FF3B30' />
               </TouchableOpacity>
@@ -141,9 +180,12 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
           ]}
           onPress={handlePressComplete}
           disabled={!content.trim() || isLoading}
+          accessibilityRole='button'
+          accessibilityLabel='메모 저장'
+          accessibilityState={{ disabled: !content.trim() || isLoading }}
         >
           {isLoading ? (
-            <ActivityIndicator size='small' color={Acg.paper} />
+            <ActivityIndicator size='small' color={Acg.ink} />
           ) : (
             <PretendardText
               weight='semibold'
@@ -167,19 +209,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Acg.bg,
-    paddingHorizontal: 0,
   },
   header: {
     backgroundColor: 'transparent',
     paddingVertical: 4,
     paddingTop: 8,
     paddingBottom: 8,
-    paddingHorizontal: 20,
+    paddingHorizontal: AcgLayout.screenPadding,
   },
   headerContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  // Android/Web 헤더 아이콘 전용 컨트롤 — HIG 최소 터치 타깃 44×44pt.
+  backButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteButton: {
+    marginLeft: 'auto',
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    ...AcgType.screenTitle,
+    color: Acg.ink,
+    marginLeft: 12,
   },
   // iOS 네이티브 headerRight 아이콘 버튼 — HIG 최소 터치 타깃 44×44pt.
   nativeHeaderIconButton: {
@@ -190,41 +249,45 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: AcgLayout.screenPadding,
   },
   // 지면 위 인풋이라 종이 면으로 띄운다(ACG) — 회색 채움은 지면과 붙어 입력 영역
   // 경계가 안 보였다(2026-08-04 시뮬레이터 확인).
   textInput: {
     flex: 1,
     backgroundColor: Acg.controlFill,
-    padding: 16,
-    ...AcgType.rowSubtitle,
+    borderRadius: AcgRadius.thumb,
+    padding: 14,
+    ...AcgType.body,
+    fontFamily: 'Pretendard-Regular',
     color: Acg.ink,
     minHeight: 200,
   },
   // 키보드가 올라오면 버튼 아래가 키보드 상단에 딱 붙어 눌린 것처럼 보였다
   // (2026-08-04 사용자 지적). 하단 세이프에어리어는 Layout이 이미 잡으므로 여백만 준다.
   buttonContainer: {
-    paddingHorizontal: 16,
+    paddingHorizontal: AcgLayout.screenPadding,
     paddingBottom: 12,
     backgroundColor: 'transparent',
   },
   completeButton: {
+    minHeight: 52,
+    borderRadius: 26,
     paddingVertical: 16,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   completeButtonActive: {
-    backgroundColor: Acg.ink,
+    backgroundColor: Acg.lime,
   },
-  // 비활성도 버튼으로는 보여야 한다 — 지면색 채움은 배경과 붙어 버튼이 사라졌다.
   completeButtonDisabled: {
-    backgroundColor: Acg.hairline,
+    backgroundColor: Acg.controlFill,
   },
   completeButtonText: {
-    ...AcgType.rowSubtitle,
+    ...AcgType.control,
   },
   completeButtonTextActive: {
-    color: Acg.paper,
+    color: Acg.ink,
   },
   completeButtonTextDisabled: {
     color: Acg.textMuted,
