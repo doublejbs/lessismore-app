@@ -432,8 +432,14 @@ const styles = StyleSheet.create({
     width: '100%',
     minHeight: 10,
   },
+  // Android sticky 헤더(BD-2). **투명일 수 없다** — Android는 sticky 뷰를 형제 순서대로 그려서
+  // 뒤에 오는 장비 목록이 이 위에 얹히고, 리스트가 비쳐 보이는 데다 터치까지 목록이 가져간다
+  // (2026-08-17 사용자 지적. 박지 상세 탭 바 CS-3와 같은 원인).
+  // zIndex로 형제보다 위로 올린다 — RN은 zIndex로 그리기 순서와 터치 대상 순서를 함께 바꾼다.
+  // elevation은 쓰지 않는다: Android에서 그림자를 만들어 "면에 그림자 없음"(HM-8)과 충돌한다.
   gearHeader: {
-    backgroundColor: 'transparent',
+    backgroundColor: Acg.paper,
+    zIndex: 1,
   },
   // iOS sticky 대체 오버레이 — 화면 상단 고정, 헤더 높이만큼 paddingTop을 준다(렌더에서 주입).
   // 스크롤 위에 떠서 목록을 가려야 하므로 여기만은 불투명하다. 지면과 같은 색이라
