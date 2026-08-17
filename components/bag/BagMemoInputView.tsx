@@ -116,7 +116,10 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
                     onPress={handlePressDelete}
                     activeOpacity={0.7}
                     disabled={isLoading}
-                    style={styles.nativeHeaderIconButton}
+                    style={[
+                      styles.nativeHeaderIconButton,
+                      styles.nativeHeaderRightIconButton,
+                    ]}
                     accessibilityRole='button'
                     accessibilityLabel='메모 삭제'
                   >
@@ -225,14 +228,14 @@ const styles = StyleSheet.create({
   backButton: {
     width: 44,
     height: 44,
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
   },
   deleteButton: {
     marginLeft: 'auto',
     width: 44,
     height: 44,
-    alignItems: 'center',
+    alignItems: 'flex-end',
     justifyContent: 'center',
   },
   headerTitle: {
@@ -244,8 +247,11 @@ const styles = StyleSheet.create({
   nativeHeaderIconButton: {
     width: 44,
     height: 44,
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
+  },
+  nativeHeaderRightIconButton: {
+    alignItems: 'flex-end',
   },
   content: {
     flex: 1,
