@@ -100,7 +100,7 @@ const AcgScreenBackground: FC<Props> = ({ photo = false, terrain = true }) => {
             {/* 라임 트레일 곡선 + 진행 방향 화살촉 */}
             <Path
               d='M300 592 c26 -12 32 -44 14 -62'
-              stroke={Acg.limeText}
+              stroke={Acg.ink}
               strokeOpacity={0.55}
               strokeWidth={1.6}
               fill='none'
@@ -108,7 +108,7 @@ const AcgScreenBackground: FC<Props> = ({ photo = false, terrain = true }) => {
             />
             <Path
               d='M314 528 l-3 13 l11 -6z'
-              fill={Acg.limeText}
+              fill={Acg.ink}
               fillOpacity={0.55}
             />
           </>

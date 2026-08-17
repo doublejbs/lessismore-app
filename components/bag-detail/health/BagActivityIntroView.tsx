@@ -2,7 +2,13 @@ import { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { AcgType, Color, Spacing } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgLayout,
+  AcgType,
+  Color,
+  Spacing,
+} from '@/constants/DesignTokens';
 
 interface Props {
   onRequestPermission: () => void;
@@ -21,7 +27,7 @@ const BagActivityIntroView: FC<Props> = ({ onRequestPermission }) => {
     <View style={styles.container}>
       <View style={styles.body}>
         <Ionicons name='heart-outline' size={40} color={Color.textPrimary} />
-        <PretendardText style={styles.title} weight='bold'>
+        <PretendardText style={styles.title} weight='semibold'>
           건강 앱의 운동 기록을 가져옵니다
         </PretendardText>
         <PretendardText style={styles.description}>
@@ -60,7 +66,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
     paddingBottom: Spacing.section,
   },
   body: {
@@ -87,18 +93,18 @@ const styles = StyleSheet.create({
   },
   itemText: {
     ...AcgType.rowSubtitle,
-    color: Color.textTertiary,
+    color: Acg.ink,
   },
   primaryButton: {
     minHeight: 52,
     borderRadius: 26,
-    backgroundColor: Color.chipActiveBg,
+    backgroundColor: Acg.lime,
     alignItems: 'center',
     justifyContent: 'center',
   },
   primaryButtonText: {
     ...AcgType.control,
-    color: Color.background,
+    color: Acg.ink,
   },
 });
 

@@ -12,7 +12,13 @@ import { observer } from 'mobx-react-lite';
 import { Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgType, Color, Spacing } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgLayout,
+  AcgType,
+  Color,
+  Spacing,
+} from '@/constants/DesignTokens';
 import BagActivity from '@/model/bag/BagActivity';
 import BagActivityPhase from '@/model/bag/BagActivityPhase';
 import {
@@ -145,11 +151,12 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
           최근 1년의 운동 기록이에요. 이 여행에 해당하는 것을 모두 선택해
           주세요.
         </PretendardText>
-        {bagActivity.getCandidates().map(workout => (
+        {bagActivity.getCandidates().map((workout, index) => (
           <BagActivityWorkoutItemView
             key={workout.id}
             workout={workout}
             selected={bagActivity.isSelected(workout.id)}
+            first={index === 0}
             onToggle={handleToggle}
           />
         ))}
@@ -299,8 +306,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   headerTitle: {
-    ...AcgType.sectionTitle,
-    color: Color.textPrimary,
+    ...AcgType.screenTitle,
+    color: Acg.ink,
   },
   headerAction: {
     // 헤더 오른쪽 끝으로 밀되 44pt 터치 타깃을 확보한다.
@@ -319,40 +326,38 @@ const styles = StyleSheet.create({
     gap: Spacing.item,
   },
   errorText: {
-    ...AcgType.sectionSubtitle,
-    color: Color.textSecondary,
+    ...AcgType.body,
+    color: Acg.textMuted,
   },
   retryButton: {
     minHeight: 44,
-    paddingHorizontal: Spacing.section,
+    paddingHorizontal: 16,
     justifyContent: 'center',
+    borderRadius: 22,
+    backgroundColor: Acg.controlFill,
   },
   retryButtonText: {
     ...AcgType.control,
-    color: Color.textPrimary,
-    textDecorationLine: 'underline',
+    color: Acg.ink,
   },
   list: {
     flex: 1,
   },
   listContent: {
-    gap: 10,
-    paddingHorizontal: Spacing.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
     paddingBottom: Spacing.section,
   },
   listGuide: {
-    ...AcgType.meta,
-    color: Color.textSecondary,
+    ...AcgType.body,
+    color: Acg.textMuted,
     marginBottom: 4,
   },
   footer: {
     gap: Spacing.item,
-    paddingHorizontal: Spacing.screenH,
+    paddingHorizontal: AcgLayout.screenPadding,
     paddingTop: Spacing.item,
     paddingBottom: Spacing.item,
-    borderTopWidth: 1,
-    borderTopColor: Color.borderLight,
-    backgroundColor: Color.background,
+    backgroundColor: 'transparent',
   },
   summary: {
     gap: 2,
@@ -368,20 +373,19 @@ const styles = StyleSheet.create({
   primaryButton: {
     minHeight: 52,
     borderRadius: 26,
-    backgroundColor: Color.chipActiveBg,
+    backgroundColor: Acg.lime,
     alignItems: 'center',
     justifyContent: 'center',
   },
   primaryButtonDisabled: {
-    backgroundColor: Color.chipInactiveBg,
+    backgroundColor: Acg.controlFill,
   },
   primaryButtonText: {
-    ...AcgType.rowSubtitle,
-    color: Color.background,
+    ...AcgType.control,
+    color: Acg.ink,
   },
-  // 비활성 배경(밝은 회색) 위에서는 흰 글씨가 읽히지 않아 대비를 확보한 색으로 바꾼다.
   primaryButtonTextDisabled: {
-    color: Color.textTertiary,
+    color: Acg.textMuted,
   },
 });
 

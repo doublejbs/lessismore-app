@@ -107,7 +107,6 @@ export const Acg = {
   line2: 'rgba(26,26,26,0.14)', // 항목 구분선, 진행 바 트랙
   // 액센트는 이 하나뿐 — 일정 카드, 진행 채움, 형광펜, 별표, 현재위치 버튼.
   lime: '#C8F244',
-  limeText: '#4F6A04', // 밝은 면 위 라임 텍스트 (AA 5.2)
   warnBg: '#FFF4E5',
   warnText: '#9A4B00',
 

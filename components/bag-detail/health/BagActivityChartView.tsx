@@ -2,7 +2,13 @@ import { FC, useState } from 'react';
 import { LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgType, Color, Spacing } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgRadius,
+  AcgType,
+  Color,
+  Spacing,
+} from '@/constants/DesignTokens';
 import { HealthSeriesPoint } from '@/model/health/HealthTypes';
 import { formatClockTime } from '@/model/health/HealthFormat';
 
@@ -144,6 +150,7 @@ const styles = StyleSheet.create({
     gap: 6,
     padding: 14,
     backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
   },
   header: {
     flexDirection: 'row',
