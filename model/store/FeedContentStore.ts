@@ -8,6 +8,7 @@ import {
 import Firebase from '../firebase/Firebase';
 import CampSpotStore from './CampSpotStore';
 import FeedContentType from '../feed/FeedContentType';
+import ImageLicense from '../feed/ImageLicense';
 import { FeedContentData, RecommendedSpot } from '../feed/FeedContentTypes';
 
 // 홈 운영자 추천 박지 조회·참조 조인 (Home HM-11, DataModel DM-27).
@@ -58,13 +59,114 @@ class FeedContentStore {
       );
 
       return snapshot.docs
-        .map(document => document.data() as FeedContentData)
+        .map(document =>
+          FeedContentStore.normalizeContent(
+            document.data() as FeedContentData
+          )
+        )
         .filter(content => content.published === true);
     } catch (error) {
       console.error('홈 추천 콘텐츠 조회 실패:', error);
 
       return [];
     }
+  }
+
+  /**
+   * DM-27 사진 필드는 한 세트로 읽는다. 저장 데이터가 계약을 어겨도 출처 없는 사진이나
+   * ATS가 막는 HTTP 사진이 카드 밴드로 들어가지 않도록, 유효하지 않은 세트는 통째로
+   * 제거한다(CS-10).
+   */
+  private static normalizeContent(
+    content: FeedContentData
+  ): FeedContentData {
+    const {
+      imageUrl: _imageUrl,
+      imageSource: _imageSource,
+      imageLicense: _imageLicense,
+      imageAttribution: _imageAttribution,
+      imageContentId: _imageContentId,
+      imageUpdatedAt: _imageUpdatedAt,
+      ...contentWithoutImage
+    } = content;
+    const image = FeedContentStore.getValidImage(content);
+
+    return {
+      ...contentWithoutImage,
+      ...(image ?? {}),
+    };
+  }
+
+  private static getValidImage(
+    content: FeedContentData
+  ): Pick<
+    FeedContentData,
+    | 'imageUrl'
+    | 'imageSource'
+    | 'imageLicense'
+    | 'imageAttribution'
+    | 'imageContentId'
+    | 'imageUpdatedAt'
+  > | null {
+    const imageUrl = FeedContentStore.getTrimmedString(content.imageUrl);
+
+    if (!imageUrl || !imageUrl.startsWith('https://')) {
+      return null;
+    }
+
+    if (content.imageLicense !== ImageLicense.KoglType1) {
+      return null;
+    }
+
+    const imageSource = FeedContentStore.getTrimmedString(
+      content.imageSource
+    );
+    const storedAttribution = FeedContentStore.getTrimmedString(
+      content.imageAttribution
+    );
+    const imageAttribution =
+      storedAttribution ??
+      (imageSource
+        ? `사진: ${imageSource} (공공누리 제1유형)`
+        : null);
+
+    if (!imageAttribution) {
+      return null;
+    }
+
+    return {
+      imageUrl,
+      ...(imageSource ? { imageSource } : {}),
+      imageLicense: ImageLicense.KoglType1,
+      imageAttribution,
+      ...FeedContentStore.getOptionalImageMetadata(content),
+    };
+  }
+
+  private static getOptionalImageMetadata(
+    content: FeedContentData
+  ): Pick<FeedContentData, 'imageContentId' | 'imageUpdatedAt'> {
+    const imageContentId = FeedContentStore.getTrimmedString(
+      content.imageContentId
+    );
+    const imageUpdatedAt = FeedContentStore.getTrimmedString(
+      content.imageUpdatedAt
+    );
+
+    return {
+      ...(imageContentId ? { imageContentId } : {}),
+      ...(imageUpdatedAt ? { imageUpdatedAt } : {}),
+    };
+  }
+
+  private static getTrimmedString(value: string | undefined): string | null {
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    const trimmed = value.trim();
+
+    return trimmed || null;
   }
 }
 
