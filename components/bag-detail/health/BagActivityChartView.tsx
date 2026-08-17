@@ -1,12 +1,11 @@
 import { FC, useState } from 'react';
 import { LayoutChangeEvent, StyleSheet, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Circle } from 'react-native-svg';
 import PretendardText from '@/components/PretendardText';
 import {
   Acg,
   AcgRadius,
   AcgType,
-  Color,
   Spacing,
 } from '@/constants/DesignTokens';
 import { HealthSeriesPoint } from '@/model/health/HealthTypes';
@@ -27,11 +26,11 @@ const CHART_HEIGHT = 96;
 const CHART_VERTICAL_PADDING = 8;
 /**
  * 그릴 최대 점 개수. 심박은 초 단위로 수천 점이 오는데 화면 폭이 400px 안팎이라
- * 그 이상은 화질에 기여하지 않고 SVG path 문자열만 키운다.
+ * 그 이상은 화질에 기여하지 않고 SVG 점만 과밀하게 만든다.
  */
 const MAX_CHART_POINTS = 120;
 const MIN_CHART_POINTS = 2;
-const LINE_WIDTH = 2;
+const POINT_RADIUS = 1.75;
 
 /** 균등 간격으로 솎아 낸다. 첫 점과 마지막 점은 항상 남긴다. */
 const downsample = (points: HealthSeriesPoint[]): HealthSeriesPoint[] => {
@@ -46,8 +45,8 @@ const downsample = (points: HealthSeriesPoint[]): HealthSeriesPoint[] => {
   });
 };
 
-// 심박·페이스 추이 라인 차트(HA-4). 이 저장소엔 차트 라이브러리가 없어
-// react-native-svg로 직접 그린다 — 축·격자 없는 단순 추이선이라 의존성을 늘릴 이유가 없다.
+// 심박·페이스 추이 점 차트(HA-4). 이 저장소엔 차트 라이브러리가 없어
+// react-native-svg로 직접 그린다 — 축·격자 없는 단순 표본점이라 의존성을 늘릴 이유가 없다.
 const BagActivityChartView: FC<Props> = ({
   title,
   hint,
@@ -97,44 +96,39 @@ const BagActivityChartView: FC<Props> = ({
     );
   };
 
-  const linePath = sampled
-    .map((point, index) => {
-      const command = index === 0 ? 'M' : 'L';
-
-      return `${command}${getX(point, index).toFixed(1)} ${getY(point.value).toFixed(1)}`;
-    })
-    .join(' ');
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <PretendardText style={styles.title} weight='semibold'>
           {title}
         </PretendardText>
-        {hint !== undefined && (
-          <PretendardText style={styles.hint}>{hint}</PretendardText>
-        )}
+        <View style={styles.headerMeta}>
+          {hint !== undefined && (
+            <PretendardText style={styles.hint}>{hint}</PretendardText>
+          )}
+          <PretendardText style={styles.hint}>
+            {formatValue(minValue)} ~ {formatValue(maxValue)}
+          </PretendardText>
+        </View>
       </View>
       <View style={styles.chart} onLayout={handleLayout}>
         {width > 0 && (
           <Svg width={width} height={CHART_HEIGHT}>
-            <Path
-              d={linePath}
-              stroke={color}
-              strokeWidth={LINE_WIDTH}
-              strokeLinejoin='round'
-              strokeLinecap='round'
-              fill='none'
-            />
+            {sampled.map((point, index) => (
+              <Circle
+                key={`${point.timestamp.getTime()}-${index}`}
+                cx={getX(point, index)}
+                cy={getY(point.value)}
+                r={POINT_RADIUS}
+                fill={color}
+              />
+            ))}
           </Svg>
         )}
       </View>
       <View style={styles.axis}>
         <PretendardText style={styles.axisText}>
           {formatClockTime(firstPoint.timestamp)}
-        </PretendardText>
-        <PretendardText style={styles.axisText}>
-          {formatValue(minValue)} ~ {formatValue(maxValue)}
         </PretendardText>
         <PretendardText style={styles.axisText}>
           {formatClockTime(lastPoint.timestamp)}
@@ -155,16 +149,22 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: Spacing.item,
+  },
+  headerMeta: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    flexShrink: 1,
     gap: 6,
   },
   title: {
     ...AcgType.rowSubtitle,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   hint: {
     ...AcgType.meta,
-    color: Color.textSecondary,
+    color: Acg.textMuted,
   },
   chart: {
     height: CHART_HEIGHT,
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   },
   axisText: {
     ...AcgType.meta,
-    color: Color.textSecondary,
+    color: Acg.textMuted,
   },
 });
 

@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { AcgType, Color, Spacing } from '@/constants/DesignTokens';
+import { Acg, AcgType, Spacing } from '@/constants/DesignTokens';
 import { BagActivityWorkoutDetail } from '@/model/bag/BagActivityWorkoutDetail';
 import {
   formatDistance,
@@ -16,11 +16,7 @@ import {
 import BagActivityChartView from './BagActivityChartView';
 
 interface Props {
-  /**
-   * 이 운동 하나가 곧 전체 요약인지. 운동이 하나뿐이면 위 요약 카드가 이미 같은 네 값을
-   * 보여주므로 메타 줄에서 값을 빼고 시각만 남긴다 — 화면에 같은 숫자가 세 번 나왔다
-   * (2026-08-05 디자인 리뷰).
-   */
+  /** 단건이면 운동 종류·시작 시각이 요약 헤드라인 아래에 이미 표시된다. */
   isOnly: boolean;
   detail: BagActivityWorkoutDetail;
 }
@@ -52,16 +48,16 @@ const BagActivityWorkoutDetailView: FC<Props> = ({ detail, isOnly }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <PretendardText style={styles.title} weight='semibold'>
-          {getWorkoutTypeLabel(workout.type)}
-        </PretendardText>
-        <PretendardText style={styles.subtitle}>
-          {isOnly
-            ? formatWorkoutStartedAt(workout.startDate)
-            : `${formatWorkoutStartedAt(workout.startDate)} · ${metrics}`}
-        </PretendardText>
-      </View>
+      {!isOnly && (
+        <View style={styles.header}>
+          <PretendardText style={styles.title} weight='semibold'>
+            {getWorkoutTypeLabel(workout.type)}
+          </PretendardText>
+          <PretendardText style={styles.subtitle}>
+            {formatWorkoutStartedAt(workout.startDate)} · {metrics}
+          </PretendardText>
+        </View>
+      )}
       {/* 데이터가 없는 항목은 그래프를 통째로 생략한다(HA-4). */}
       <BagActivityChartView
         title='심박수'
@@ -89,11 +85,11 @@ const styles = StyleSheet.create({
   },
   title: {
     ...AcgType.rowSubtitle,
-    color: Color.textPrimary,
+    color: Acg.ink,
   },
   subtitle: {
     ...AcgType.meta,
-    color: Color.textSecondary,
+    color: Acg.textMuted,
   },
 });
 

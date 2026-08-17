@@ -99,6 +99,9 @@ const BagActivityDetailView: FC<Props> = ({ bagActivity }) => {
       <BagActivitySummaryView
         summary={summary}
         weightGrams={bagActivity.getWeightGrams()}
+        {...(details.length === 1
+          ? { singleWorkout: details[0].workout }
+          : {})}
       />
       {renderDetailSection()}
       {/* 파괴적 액션이라 화면 맨 아래에 텍스트 버튼으로 둔다 — 주 액션과 경쟁하지 않게. */}
