@@ -5,6 +5,10 @@ import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Bag from '@/model/bag/Bag';
 import Feed from '@/model/feed/Feed';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import AlertView from '@/components/alert/AlertView';
+import app from '@/model/app/App';
+import LogInView from '@/components/login/LogInView';
+import ToastView from '@/components/toast/ToastView';
 import { GearAddContext } from '@/model/gear/GearAddContext';
 import GearAddMode from '@/model/gear/GearAddMode';
 
@@ -29,6 +33,9 @@ const SearchPage = () => {
         feed={feed}
         gearAddContext={gearAddContext}
       />
+      <LogInView logInAlertManager={app.getLogInAlertManager()!} />
+      <AlertView alertManager={app.getAlertManager()!} />
+      <ToastView toastManager={app.getToastManager()!} bottom={100} />
     </>
   );
 };

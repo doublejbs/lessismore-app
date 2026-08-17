@@ -139,9 +139,7 @@ class WarehouseDetail {
       await this.getGearData();
       this.setInitialized(true);
     } catch (e) {
-      console.error('장비 상세 조회 실패:', e);
-      this.setGear(null);
-      this.setInitialized(true);
+      window.alert(`잘못된 접근입니다. ${id} ${e}`);
     }
   }
 
@@ -493,7 +491,6 @@ class WarehouseDetail {
     this.alertManager.show({
       message: `${gear.getName()}을 삭제하시겠습니까?`,
       confirmText: '삭제하기',
-      failureMessage: '삭제하지 못했어요. 다시 시도해주세요.',
       onConfirm: async () => {
         await this.deleteGear(gear);
       },
@@ -687,10 +684,6 @@ class WarehouseDetail {
     } else {
       this.router.replace('/');
     }
-  }
-
-  public canGoBack() {
-    return this.router.canGoBack();
   }
 
   private setId(id: string) {

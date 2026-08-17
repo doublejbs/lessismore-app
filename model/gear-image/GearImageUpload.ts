@@ -190,7 +190,6 @@ class GearImageUpload {
     this.alertManager.show({
       message: '사진을 삭제할까요?',
       confirmText: '삭제하기',
-      failureMessage: '삭제하지 못했어요. 다시 시도해주세요.',
       onConfirm: async () => {
         await this.deleteImage();
       },

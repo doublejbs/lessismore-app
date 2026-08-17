@@ -17,17 +17,6 @@ const DeleteInfoView = () => {
   const handleConfirm = async () => {
     if (isDeleting) return;
 
-    const loginProvider = app.getFirebase().getLoginProvider();
-
-    if (!loginProvider) {
-      Alert.alert(
-        '회원 탈퇴 실패',
-        '로그인 정보를 확인할 수 없습니다. 다시 로그인한 뒤 시도해주세요.'
-      );
-
-      return;
-    }
-
     Alert.alert(
       '회원 탈퇴',
       '정말로 탈퇴하시겠습니까? 모든 데이터가 삭제되며 복구할 수 없습니다.\n\n본인 확인을 위해 재로그인 후 탈퇴합니다.',
@@ -40,12 +29,6 @@ const DeleteInfoView = () => {
           text: '확인',
           style: 'destructive',
           onPress: async () => {
-            if (loginProvider === 'email') {
-              router.push('/info/delete-password');
-
-              return;
-            }
-
             app.getAnalyticsManager()?.logClick('withdraw');
             setIsDeleting(true);
 
@@ -141,7 +124,7 @@ const DeleteInfoView = () => {
           ]}
         >
           <PretendardText weight='bold' style={styles.confirmButtonText}>
-            {isDeleting ? '처리중...' : '탈퇴하기'}
+            {isDeleting ? '처리중...' : '확인'}
           </PretendardText>
         </Pressable>
       </View>

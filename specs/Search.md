@@ -56,7 +56,7 @@
 
 **수용 기준**
 
-- `+` 클릭(로그인 필수): 창고에 등록(`GearStore.register`, `isCustom: false`) 후 **배낭 담기 모달**이 열린다. 시트 열림 상태의 소유 규약은 **SR-11**이 정본이다(현재는 `새 배낭에 추가` 후 두 번째부터 시트가 열리지 않는다).
+- `+` 클릭(로그인 필수): 창고에 등록(`GearStore.register`, `isCustom: false`) 후 **배낭 담기 모달**이 열린다.
 - 모달 옵션: `새 배낭`(오늘 날짜로 생성 후 담기) / 기존 배낭 목록(이미 담긴 배낭은 중복 체크로 구분).
 - 체크 배지 클릭: `모든 배낭에서 장비가 제거됩니다` 경고 확인 후 창고에서 제거(`GearStore.remove`).
 - 추가/제거 시 `gear-rank` count 증감([DataModel.md](DataModel.md) DM-6) 후 현재 검색을 재실행해 배지를 갱신한다.
@@ -153,50 +153,6 @@
 - **상단 여백 정리**: ×가 쓰던 헤더 행(minHeight 44)을 제거하고 그래버 아래 바로 검색창이
   온다. 그래버–검색창 사이는 검색창 컨테이너의 상단 패딩만 남긴다(별도 빈 행 금지).
 
-### SR-11 배낭 담기 시트의 열림 상태는 부모가 소유한다 `[제안]`
-
-배낭 담기 시트(SR-3)의 열림 상태는 **부모 화면 한 곳이 소유**하고, 자식 시트는 닫을 때
-**항상 `onClose()`만** 부른다. 자식이 자기 상태를 스스로 내리지 않는다.
-
-**(a) 현재 무엇이 어떻게 죽는가** (2026-08-17 클릭 전수 점검)
-
-- `components/search/SearchGearAddToBagModalView.tsx`의 `handleNewBagPress`(`새 배낭에 추가`)가
-  부모의 `onClose()` 대신 자기 내부 `setShowModal(false)`만 부른다. 부모의 `visible`은 **true로 남는다.**
-- 자식은 `visible`을 파생 상태(`showModal`)로 복제하고 `useEffect(..., [visible])`로만 되살린다.
-  부모가 나중에 다시 `visible = true`로 만들어도 **값이 바뀌지 않아 effect가 돌지 않는다** →
-  `showModal`은 false에 머물러 **시트가 두 번째부터 열리지 않는다.**
-- 재현: 검색 결과에서 `+` 담기 → `새 배낭에 추가` → 배낭으로 이동 → 돌아와 같은 장비를 창고에서 빼고
-  다시 담기 → `창고에 추가됐습니다. 배낭에도 추가할까요?` 시트가 **안 뜬다**.
-- 영향 부모 3곳: `components/feed/FeedGridCellView.tsx`, `components/search/SearchGearView.tsx`,
-  `components/warehouse-detail/WarehouseDetailView.tsx`. 앞 둘은 로컬 `useState`가 true로 고착되고,
-  마지막은 모델 플래그(`WarehouseDetail.showAddToBagModal`)가 true로 고착된다 —
-  **화면을 벗어나 다시 들어오지 않으면 복구되지 않는다.**
-- `handleBagPress`(기존 배낭 선택)는 `onClose()`를 부르므로 정상이다. 즉 **같은 시트 안에서 두 버튼의
-  규약이 다르다.**
-
-**(b) 기대 동작**
-
-- 열림 상태의 **단일 소스는 부모**다. 자식은 `visible` prop을 읽기만 하고, 닫아야 할 때는 이유와 무관하게
-  (닫기 버튼·오버레이 탭·담기 완료·새 배낭 생성 후 이동) **`onClose()` 하나만** 부른다.
-- 자식이 표시 타이밍을 한 프레임 늦추는 파생 상태를 갖는 것은 허용한다(다른 모달이 닫히기를 기다리는 등).
-  단 **자식이 그 값을 스스로 false로 만들지 않으며**, 부모의 `visible`이 false → true로 바뀌는 모든 경우에
-  반드시 다시 열려야 한다.
-- 시트를 닫고 다른 화면으로 이동할 때는 `onClose()` 후 **다음 프레임에** 이동한다 — RN `Modal`이 닫히기 전에
-  라우팅하면 다음 시트가 열리지 않는다(배낭 상세 `⋯` 메뉴가 쓰는 것과 같은 패턴, [BagDetail.md](BagDetail.md) BD-1).
-
-**(c) 수용 기준**
-
-- [ ] `handleNewBagPress`가 `onClose()`를 부른다(`handleBagPress`와 동일). 자식 코드에
-      자기 열림 상태를 false로 만드는 곳이 없다.
-- [ ] 새 배낭 생성 후 `onClose()` → 다음 프레임에 `/bag/{newBagId}`로 이동한다.
-- [ ] 부모 3곳(`FeedGridCellView`·`SearchGearView`·`WarehouseDetailView`)의 `onClose`가 각자의
-      열림 상태를 false로 되돌린다 — 로컬 `useState`든 모델 플래그(`closeAddToBagModal()`)든 동일.
-- [ ] 위 재현 경로를 두 번 반복해도 매번 시트가 뜬다: 담기 → `새 배낭에 추가` → 배낭 이동 →
-      돌아와 창고에서 빼기 → 다시 담기 → **시트가 뜬다**. 검색·피드·장비 상세 세 진입점 모두.
-- [ ] `닫기` 버튼·오버레이 탭으로 닫은 뒤에도 같은 장비를 다시 담으면 시트가 다시 뜬다.
-- [ ] 장비 상세에서 담기 시트를 새 배낭으로 닫은 뒤 그 화면으로 돌아오면
-      `WarehouseDetail.showAddToBagModal`이 false다(시트가 저절로 다시 뜨지 않는다).
-
 ## 4. 데이터
 
 - Algolia 계약·hit 필드: [DataModel.md](DataModel.md) DM-10. 순위: DM-6. 브랜드 집계: DM-14.
@@ -231,11 +187,9 @@
 - [x] 비로그인 목록 `+` → 로그인 모달 (Android 확인)
 - [ ] `[제안]` 장비 추가 검색 시트(`/search`): 검색창이 연회색 채움 알약(Plain)이고 유리 면이 아니다 (SR-10)
 - [ ] `[제안]` 장비 추가 검색 시트: 우상단 ×가 없고 그래버 드래그로 닫힌다. 그래버와 검색창 사이에 빈 헤더 행이 없다 (SR-10)
-- [ ] `[제안]` 담기 시트를 `새 배낭에 추가`로 닫은 뒤 같은 장비를 다시 담으면 시트가 **다시 뜬다**(검색·피드·장비 상세 세 진입점) — SR-11
 - [ ] `[제안]` 수동 폼(`/custom`)의 핸들바 + × 헤더는 그대로다 — 하단 확인 버튼이 있는 시트라 ×가 필요 (SR-10/GE-8)
 
 ## 8. 미해결 질문
 
 - `getTopSearches()`(인기 검색어)의 실제 노출 위치가 불분명 — 인기 "장비" 순위(SR-4)와 별개 기능인지 정리 필요.
-- 2026-08-17 클릭 전수 점검의 나머지 항목(터치 타깃 44pt 미달·무피드백·누수·웹 전용) 중 이 도메인 몫은 이번 범위 밖이다 — 추적은 [AppLifecycle.md](AppLifecycle.md) §8.
 - 검색 hit를 `Gear`로 변환할 때 `createDate: Date.now()`를 로컬 시각으로 채움 — 정렬(최근 추가순)에 영향 가능성.

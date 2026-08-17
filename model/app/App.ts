@@ -61,8 +61,8 @@ class App {
     this.setBagStore(new BagStore(this.firebase));
     this.bagTemplateStore = new BagTemplateStore(this.firebase, this.gearStore);
     this.searchStore = new SearchStore(this.firebase);
+    this.alertManager = AlertManager.new();
     this.toastManager = ToastManager.new();
-    this.alertManager = AlertManager.new(this.toastManager);
     this.logInAlertManager = LogInAlertManager.new(this.firebase);
     this.replyStore = new ReplyStore(this.firebase);
     this.campSpotStore = new CampSpotStore(this.firebase);

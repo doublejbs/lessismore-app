@@ -1,7 +1,6 @@
 import { FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { NaverMapMarkerOverlay } from '@mj-studio/react-native-naver-map';
-import { CAMP_SITE_MY_LOCATION_Z_INDEX } from './CampSiteMapOverlayZIndex';
 
 interface Props {
   latitude: number;
@@ -22,8 +21,8 @@ const CampSiteMyLocationMarkerView: FC<Props> = ({ latitude, longitude }) => {
       anchor={{ x: 0.5, y: 0.5 }}
       width={26}
       height={26}
-      // 마커는 네이티브에서 탭을 소비하므로, 박지 마커 아래에 두어 탭을 통과시킨다.
-      zIndex={CAMP_SITE_MY_LOCATION_Z_INDEX}
+      // 박지 마커·캡션보다 항상 위에 그려 내 위치가 가려지지 않게 한다.
+      zIndex={1000}
     >
       {/* 커스텀 View 마커는 최상위 자식에 collapsable=false로 렌더를 보장한다(라이브러리 요구). */}
       <View key='my-location' collapsable={false} style={styles.hitArea}>

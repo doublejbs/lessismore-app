@@ -37,6 +37,8 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import ToastView from '../toast/ToastView';
+import AlertView from '@/components/alert/AlertView';
 import app from '@/model/app/App';
 import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
 import { setBagShareContext } from '@/model/bag-detail/BagShareHandoff';
@@ -81,27 +83,19 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
 
   // 장비 헤더(총 N개 + 필터)의 콘텐츠 내 y 위치. onLayout으로 측정한다.
   const [gearHeaderY, setGearHeaderY] = useState<number | null>(null);
-  // 필터가 헤더 아래에 고정 표시돼야 하는지(스크롤 위치 기반). 양 플랫폼 공용이다.
+  // iOS 전용: 필터가 헤더 아래에 고정 표시돼야 하는지(스크롤 위치 기반).
   const [isFilterPinned, setIsFilterPinned] = useState(false);
-  // Android 커스텀 헤더 높이 — 오버레이를 헤더 바로 아래에 놓기 위한 측정값(iOS는 0).
-  const [androidHeaderHeight, setAndroidHeaderHeight] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
 
-  // 필터 고정을 **오버레이로** 처리한다(BD-2). RN `stickyHeaderIndices`를 쓰지 않는 이유:
-  // iOS는 sticky가 인셋을 몰라 투명 헤더 뒤에 붙어 가려지고, Android는 sticky 뷰를 형제
-  // 순서대로 그려 뒤에 오는 장비 목록이 위에 얹혀 **리스트가 비치고 터치까지 가로챈다**
-  // (2026-08-17 실기기 확인 — 불투명 배경·zIndex로도 터치가 살아나지 않았다).
-  // 오버레이는 ScrollView **뒤에 오는 형제**라 두 문제가 구조적으로 사라진다.
   const handleScroll = (event: any) => {
     bagDetail.handleScroll(event);
 
-    if (gearHeaderY !== null) {
+    // iOS: RN sticky는 인셋을 몰라 화면 최상단(투명 헤더 뒤)에 붙어 가려진다.
+    // sticky 대신 스크롤 위치로 '헤더 아래 오버레이' 표시를 판정한다(핀 라인 = headerBottom).
+    if (IS_IOS && gearHeaderY !== null) {
       const offsetY = event.nativeEvent.contentOffset.y;
-      // iOS는 콘텐츠가 투명 헤더 뒤로 흐르므로 핀 라인이 헤더 하단이다. Android는
-      // 스크롤 프레임이 헤더 아래에서 시작하므로 0이다.
-      const pinLine = IS_IOS ? headerBottom : 0;
 
-      setIsFilterPinned(offsetY + pinLine >= gearHeaderY);
+      setIsFilterPinned(offsetY + headerBottom >= gearHeaderY);
     }
   };
 
@@ -175,7 +169,6 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     app.getAlertManager()?.show({
       message: `${bagDetail.getName()} 배낭을 삭제할까요?`,
       confirmText: '삭제',
-      failureMessage: '삭제하지 못했어요. 다시 시도해주세요.',
       onConfirm: async () => {
         await app.getBagStore()!.delete(bagDetail.getId());
         router.back();
@@ -232,12 +225,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
         <SafeAreaView style={styles.container} edges={SAFE_AREA_EDGES}>
           <View style={styles.container}>
             {!IS_IOS && (
-              <View
-                style={styles.header}
-                onLayout={e =>
-                  setAndroidHeaderHeight(e.nativeEvent.layout.height)
-                }
-              >
+              <View style={styles.header}>
                 <View style={styles.headerContent}>
                   <TouchableOpacity
                     onPress={handlePressBack}
@@ -261,7 +249,8 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               contentContainerStyle={styles.scrollContent}
               // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
               contentInsetAdjustmentBehavior='automatic'
-              // sticky를 쓰지 않는다 — 고정 표시는 아래 오버레이가 맡는다(BD-2, handleScroll 주석 참고).
+              // iOS는 sticky가 투명 헤더 뒤(화면 최상단)에 붙어 가려지므로 오버레이로 대체한다.
+              stickyHeaderIndices={IS_IOS ? undefined : [4]}
               onScroll={handleScroll}
               scrollEventThrottle={16}
               showsVerticalScrollIndicator={false}
@@ -325,19 +314,12 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                 </View>
               </View>
             </ScrollView>
-            {/* sticky 대체 오버레이 — 필터를 헤더 '아래'에 고정 표시한다(양 플랫폼 공용).
-                iOS: SafeAreaView가 top 인셋을 소비하지 않는 구조라 화면 최상단(top: 0)부터
-                흰 배경을 깔고 paddingTop으로 헤더 높이만큼 내려 그린다.
-                Android: 헤더가 일반 형제라 스크롤 프레임이 그 아래에서 시작하므로,
-                측정한 헤더 높이만큼 top을 내린다(paddingTop은 필요 없다). */}
-            {isFilterPinned && (
+            {/* iOS: sticky 대체 오버레이 — 필터를 투명 헤더 '아래'에 고정 표시한다.
+                SafeAreaView가 top 인셋을 소비하지 않는 iOS 구조라 화면 최상단(top: 0)부터
+                흰 배경을 깔고 paddingTop으로 헤더 높이만큼 내려 그린다. */}
+            {IS_IOS && isFilterPinned && (
               <View
-                style={[
-                  styles.pinnedGearHeader,
-                  IS_IOS
-                    ? { paddingTop: headerBottom }
-                    : { top: androidHeaderHeight },
-                ]}
+                style={[styles.pinnedGearHeader, { paddingTop: headerBottom }]}
               >
                 <View style={styles.gearHeaderContent}>
                   <AcgSectionHeaderView title={`장비 ${gears.length}개`} />
@@ -373,6 +355,11 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               },
             ]}
           />
+          <ToastView toastManager={app.getToastManager()!} bottom={100} />
+          {/* 이 화면은 `Layout`을 쓰지 않아 알럿을 그리는 뷰가 없다 — 직접 얹는다.
+              없으면 확인 알럿을 띄우는 동작(장비 빼기)이 조용히 아무 일도 하지 않는다
+              (2026-08-05 시뮬레이터 확인). 패킹 모드도 같은 이유로 직접 얹는다. */}
+          <AlertView alertManager={app.getAlertManager()!} />
         </SafeAreaView>
       </GestureHandlerRootView>
     );
@@ -451,8 +438,6 @@ const styles = StyleSheet.create({
     width: '100%',
     minHeight: 10,
   },
-  // 콘텐츠 안의 장비 헤더 — 스크롤과 함께 흐른다(고정 표시는 pinnedGearHeader 오버레이가 맡는다).
-  // 지면이 순백이라 채움이 필요 없다.
   gearHeader: {
     backgroundColor: 'transparent',
   },
