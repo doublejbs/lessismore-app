@@ -1,6 +1,5 @@
 import FeedContentType from './FeedContentType';
 import { CampSpot } from '../camp-site/CampSpotTypes';
-import Gear from '../gear/Gear';
 
 export interface FeedContentData {
   type: FeedContentType;
@@ -15,9 +14,4 @@ export interface FeedContentData {
 export interface RecommendedSpot {
   content: FeedContentData;
   spot: CampSpot;
-}
-
-export interface RecommendedGear {
-  content: FeedContentData;
-  gear: Gear;
 }

@@ -17,7 +17,6 @@ import HomeWarehousePreviewView from '@/components/home/HomeWarehousePreviewView
 import HomeSkeletonView from '@/components/home/HomeSkeletonView';
 import HomeHeroBackgroundView from '@/components/home/HomeHeroBackgroundView';
 import HomeRecommendedSpotsView from '@/components/home/HomeRecommendedSpotsView';
-import HomeRecommendedGearsView from '@/components/home/HomeRecommendedGearsView';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import Home from '@/model/home/Home';
 import app from '@/model/app/App';
@@ -48,16 +47,7 @@ const HomeView: FC<Props> = ({ home }) => {
 
   const renderRecommendations = () => {
     return (
-      <>
-        <HomeRecommendedSpotsView
-          recommendations={home.getRecommendedSpots()}
-        />
-        <HomeRecommendedGearsView
-          recommendations={home.getRecommendedGears()}
-          actions={home.getGearActions()}
-          bag={home.getBag()}
-        />
-      </>
+      <HomeRecommendedSpotsView recommendations={home.getRecommendedSpots()} />
     );
   };
 
