@@ -1,7 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 import Firebase from '../firebase/Firebase';
 import { Alert } from 'react-native';
-import LogInResult from './LogInResult';
 
 class LogInAlertManager {
   public static new(firebase: Firebase) {
@@ -33,33 +32,20 @@ class LogInAlertManager {
   }
 
   public async confirm() {
-    try {
-      this.setLoading(true);
-      const result = await this.firebase.logInWithGoogle();
-
-      if (result === LogInResult.Success) {
-        this.hide();
-      }
-    } catch (error) {
-      console.error('Google 로그인 오류:', error);
-      Alert.alert('알림', 'Google 로그인에 실패했습니다.');
-    } finally {
-      this.setLoading(false);
-    }
+    this.setLoading(true);
+    await this.firebase.logInWithGoogle();
+    this.setLoading(false);
+    this.hide();
   }
 
   public async loginWithEmail(email: string, password: string) {
     try {
       this.setLoading(true);
-      const result = await this.firebase.login(email, password);
-
-      if (result === LogInResult.Success) {
-        this.hide();
-      }
+      await this.firebase.login(email, password);
+      this.setLoading(false);
+      this.hide();
     } catch (error) {
-      console.error('이메일 로그인 오류:', error);
       Alert.alert('알림', '이메일 또는 비밀번호가 올바르지 않습니다.');
-    } finally {
       this.setLoading(false);
     }
   }
@@ -67,15 +53,11 @@ class LogInAlertManager {
   public async loginWithApple() {
     try {
       this.setLoading(true);
-      const result = await this.firebase.logInWithApple();
-
-      if (result === LogInResult.Success) {
-        this.hide();
-      }
+      await this.firebase.logInWithApple();
+      this.setLoading(false);
+      this.hide();
     } catch (error) {
-      console.error('Apple 로그인 오류:', error);
       Alert.alert('알림', 'Apple 로그인에 실패했습니다.');
-    } finally {
       this.setLoading(false);
     }
   }

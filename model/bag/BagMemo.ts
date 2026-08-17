@@ -68,7 +68,6 @@ class BagMemo {
     this.alertManager.show({
       message: '메모를 삭제하시겠습니까?',
       confirmText: '삭제',
-      failureMessage: '삭제하지 못했어요. 다시 시도해주세요.',
       onConfirm: async () => {
         try {
           const userId = this.firebase.getUserId();
@@ -83,8 +82,10 @@ class BagMemo {
           this.toastManager.show({ message: '메모가 삭제되었습니다.' });
         } catch (error) {
           console.error('메모 삭제 실패:', error);
-          this.toastManager.show({
-            message: '삭제하지 못했어요. 다시 시도해주세요.',
+          this.alertManager.show({
+            message: '메모 삭제에 실패했습니다.',
+            confirmText: '확인',
+            onConfirm: async () => {},
           });
         }
       },

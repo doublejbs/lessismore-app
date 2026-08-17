@@ -77,8 +77,6 @@
 
 - 헤더 휴지통 → 확인 다이얼로그 → 삭제. 삭제 부수효과는 [Warehouse.md](Warehouse.md) WH-5와 동일 (`GearStore.remove` 공유).
 - 완료 후 토스트 `삭제 되었습니다` 표시, `/(tabs)`(창고)로 `replace` 이동.
-- **삭제 실패 시 알럿이 닫히고 실패를 알린다** `[제안]` — 규약은 [AppLifecycle.md](AppLifecycle.md) **APP-9**가 정본이다(호출측 try/catch 없이 안전해야 한다).
-- **삭제 후 스택에 남은 장비 상세로 되돌아갈 수 있다** `[제안]` — `replace('/warehouse')`는 이 화면만 대체하므로 사용자는 뒤로가기로 삭제된 장비의 상세에 도달한다. 그 화면의 기대 동작은 [GearDetail.md](GearDetail.md) **GD-14**(부재 화면 + 나가는 길)다.
 
 ### GE-6 취소
 

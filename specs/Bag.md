@@ -120,7 +120,6 @@ app/(tabs)/bag.tsx → BagView
 - **메뉴 항목의 후속 액션(알럿·시트·라우팅)은 시트 닫힘 애니메이션이 완료된 뒤 실행한다** — 닫히는 모달 위에 다른 모달을 띄우면 iOS가 표시를 조용히 무시한다(2026-08-16 확인: 배낭 목록 삭제 확인 알럿 미노출 — [AppLifecycle.md](AppLifecycle.md) APP-8 스프링 전환 이후 회귀). 이 규칙은 공용 `BottomMenuModalView`를 쓰는 모든 메뉴에 적용된다(배낭 상세 [BagDetail.md](BagDetail.md) BD-1 포함).
 - 파괴적 액션의 시각 구분은 **확인 다이얼로그**가 맡는다. 공용 `BottomMenuModalView`는 항목별 색을 받지 않고, 이 시트만을 위해 red 항목 변형을 추가하지 않는다 — 목록에서 오탭해도 다이얼로그가 한 번 더 막고, 앱의 다른 삭제 메뉴(리뷰·후기)도 같은 문법이다.
 - 확인 시 배치로: 담긴 모든 장비의 `bags`/`used`/`useless` 배열에서 해당 배낭 ID 제거 → `bag/{id}` 삭제 → `users/{uid}.bags`에서 제거 ([DataModel.md](DataModel.md) DM-11).
-- **삭제가 실패하면 알럿이 닫히고 실패를 알린다** `[제안]` — 지금은 확인 콜백이 reject하면 알럿이 화면에 박히고 안내도 없다. 규약은 [AppLifecycle.md](AppLifecycle.md) **APP-9**가 정본이며, 이 화면은 호출측에 try/catch를 두지 않아도 안전해야 한다.
 
 ### BAG-4 배낭 복사
 

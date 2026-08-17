@@ -13,6 +13,7 @@ const BagActivityScreen = () => {
   return (
     <Layout
       paddingHorizontal={0}
+      toastBottom={120}
       edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
     >
       <BagActivityWrapper bagId={id} />
