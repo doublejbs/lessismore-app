@@ -75,7 +75,7 @@
 | `gear-comments/{gearId}/comments/{commentId}` | 최상위 댓글 | `ReplyStore` |
 | `gear-comments/{gearId}/comments/{parentId}/comments/{replyId}` | 답글 (중첩 서브컬렉션) | `ReplyStore` |
 | `comment-likes/{userId}_{commentId}` | 댓글 좋아요 (복합 키 문서) | `ReplyStore` |
-| `feed-content/{contentId}` | 운영자 작성 콘텐츠 — 홈 추천 큐레이션 (DM-27) `[기획]` | 홈 추천 박지·추천 장비 ([Home.md](Home.md) HM-11·HM-12) |
+| `feed-content/{contentId}` | 운영자 작성 콘텐츠 — 홈 추천 큐레이션 (DM-27) `[기획]` | 홈 `useless가 고른 박지` ([Home.md](Home.md) HM-11) |
 | `config/app` | 앱 원격 설정 (강제 업데이트 최소 버전) | 강제 업데이트 게이트 (AppLifecycle APP-7) |
 | `config/announcement` | 인앱 텍스트 공지 (원격 배너) | 공지 시트 (Announcement AN) |
 | `config/featurePopup` | 신기능 안내 팝업 (원격 온보딩) | 신기능 팝업 (FeaturePopup FP) |
@@ -494,20 +494,28 @@
 
 ### DM-27 운영자 콘텐츠 (`feed-content/{contentId}`) `[기획]`
 
-**홈 추천 큐레이션**([Home.md](Home.md) HM-11 추천 박지 · HM-12 추천 장비)의 운영자 작성 콘텐츠 — 운영자가 매번 선정해 발행하는 박지 소개(`spot_intro`)·장비 소개(`gear_intro`)로, 홈 추천 2섹션의 유일한 소스다(2026-08-15 확정 — 카탈로그 최신순 자동 노출은 폐기). **요약 카드가 전부다**(A안 확정 2026-08-15) — 글 전문(`body`)·인앱 뷰어가 없고, 카드 탭은 관련 박지·장비 상세로 직행한다. 목록 정렬 기준은 **`publishedAt` 내림차순**이다. 앱은 읽기 전용이며, 작성·발행 도구는 **별도 레포(lessismore 웹)의 AdminView를 CMS로 확장**해 만든다 — 운영 도구는 웹 레포 몫이고, 이 레포는 스키마 계약과 읽기 경로만 다룬다.
+**홈 추천 큐레이션**([Home.md](Home.md) HM-11 `useless가 고른 박지`)의 운영자 작성 콘텐츠 — 운영자가 매번 선정해 발행하는 박지 소개(`spot_intro`)로, 홈 추천 섹션의 유일한 소스다(2026-08-15 확정 — 카탈로그 최신순 자동 노출은 폐기). **요약 카드가 전부다**(A안 확정 2026-08-15) — 글 전문(`body`)·인앱 뷰어가 없고, 카드 탭은 관련 박지 상세로 직행한다. 목록 정렬 기준은 **`publishedAt` 내림차순**이다. 앱은 읽기 전용이며, 작성·발행 도구는 **별도 레포(lessismore 웹)의 AdminView를 CMS로 확장**해 만든다 — 운영 도구는 웹 레포 몫이고, 이 레포는 스키마 계약과 읽기 경로만 다룬다.
+
+**2026-08-17 — 유효한 유형은 `spot_intro` 하나다.** 홈 추천 장비 섹션(HM-12)이 폐기되면서 `gear_intro`의 소비처가 사라졌다(§ 아래 `[폐기]` 항목).
 
 | 필드 | 타입 | 비고 |
 | --- | --- | --- |
-| `type` | string | `spot_intro`(박지 소개 → HM-11 추천 박지) / `gear_intro`(장비 소개 → HM-12 추천 장비) — string enum `FeedContentType`. `article`(독립 글)은 이번 범위 제외(HM-13 `[폐기]` 이력 — 전문 뷰어가 필요해 도입 시 후속 기획) |
+| `type` | string | `spot_intro`(박지 소개 → HM-11 `useless가 고른 박지`) — string enum `FeedContentType`. **`gear_intro`는 `[폐기]`**(2026-08-17, 아래 참고). `article`(독립 글)은 이번 범위 제외(HM-13 `[폐기]` 이력 — 전문 뷰어가 필요해 도입 시 후속 기획) |
 | `title` | string | 제목 |
-| `summary` | string | 운영자 요약 (홈 카드에 표시 — 콘텐츠의 전부. 추천 박지 카드는 본문으로, 추천 장비 카드는 하단 캡션 옵션으로) |
+| `summary` | string | 운영자 요약 (홈 카드 본문 — 콘텐츠의 전부. 카드에서 2줄로 클램프한다, HM-11) |
 | `relatedSpotId` | string? | `type == 'spot_intro'`면 **필수** — `camp-spot/{spotId}`(DM-17) 참조. 카드 탭의 도착지(지도 탭 박지 상세) |
-| `relatedGearId` | string? | `type == 'gear_intro'`면 **필수** — `gear/{gearId}`(DM-3) 참조. 카드 탭의 도착지(장비 상세) |
+| `relatedGearId` | string? | **`[폐기]`** — `gear_intro` 전용 필드였다(`gear/{gearId}`, DM-3 참조). 앱은 더 이상 읽지 않는다 |
 | `publishedAt` | string | ISO 8601 — 발행 시각. 목록 정렬 기준(내림차순) |
 | `published` | boolean | 발행 여부. **클라이언트는 `true`만 조회**한다 — `false`는 CMS의 초안 |
 
-- 앱 조회는 `orderBy('publishedAt', 'desc')` + `limit(50)`으로 콘텐츠를 받아 클라이언트에서 `published === true`만 남긴 뒤 `type`별로 분리하고 `spot_intro` 3개·`gear_intro` 10개로 제한한다([Home.md](Home.md) HM-14). 초안(`published === false`)이 최신 30건을 잠식할 수 있어 limit을 50으로 넉넉히 잡는다. `published` equality 필터와 `publishedAt` 정렬을 함께 사용한 기존 쿼리는 2026-08-17 실측에서 failed-precondition(`The query requires an index`)으로 실패했으므로, 필터를 클라이언트로 옮긴 현재 쿼리는 자동 단일 필드 색인만으로 복합 색인이 필요 없다.
-- `relatedSpotId`/`relatedGearId`는 유형별로 하나만 존재한다(`spot_intro`는 `relatedSpotId`, `gear_intro`는 `relatedGearId` — 각자 자기 유형에서 **필수**, 다른 유형에는 없음). **참조만 저장**한다(이름 스냅샷 없음) — 카드의 대상 정보(박지 이름·유형·지역, 장비 셀)는 앱이 참조를 따라가 조회하고, 발행 시 유효 참조 보장은 CMS(웹 몫) 책임이며, 대상 부재(hidden·삭제) 처리는 각 진입 경로의 기존 규칙을 따른다(HM-11·HM-12).
+**`gear_intro` `[폐기]` (2026-08-17)** — 홈 추천 장비 섹션(HM-12) 폐기로 이 유형을 읽는 화면이 없어졌다.
+
+- **새로 발행하지 않는다.** 웹 CMS의 유형 선택지에서 `gear_intro`를 걷는다 — **후속 작업이며 별도 레포(lessismore 웹) 몫**이다.
+- **기존 발행 6건은 미발행(`published: false`) 처리 대상**이다 — **후속 작업이며 별도 스크립트 몫**이다. 앱이 유형으로 걸러 읽으므로 남아 있어도 화면에 나타나지는 않지만(무해), CMS 목록에 "발행 중"으로 남아 운영자를 혼동시킨다.
+- 문서·필드(`relatedGearId`)는 **스키마에서 지우지 않고 폐기 표기로 남긴다** — 기존 문서가 그 필드를 갖고 있고, 되살릴 일이 생기면 계약이 필요하다.
+
+- 앱 조회는 `orderBy('publishedAt', 'desc')` + `limit(50)`으로 콘텐츠를 받아 클라이언트에서 `published === true`인 **`spot_intro`** 만 남기고 5개로 제한한다([Home.md](Home.md) HM-11·HM-14). 초안(`published === false`)이 최신 구간을 잠식할 수 있어 limit을 50으로 넉넉히 잡는다. `published` equality 필터와 `publishedAt` 정렬을 함께 사용한 기존 쿼리는 2026-08-17 실측에서 failed-precondition(`The query requires an index`)으로 실패했으므로, 필터를 클라이언트로 옮긴 현재 쿼리는 자동 단일 필드 색인만으로 복합 색인이 필요 없다.
+- `relatedSpotId`는 `spot_intro`에서 **필수**다. **참조만 저장**한다(이름 스냅샷 없음) — 카드의 대상 정보(박지 이름·유형·지역)는 앱이 참조를 따라가 조회하고, 발행 시 유효 참조 보장은 CMS(웹 몫) 책임이며, 대상 부재(hidden·삭제) 처리는 진입 경로의 기존 규칙을 따른다(HM-11).
 - **보안 규칙(콘솔 관리)**: **읽기 공개 확정**(2026-08-15 사용자 확정 — 비로그인 홈 노출의 전제, HM-14) + **쓰기는 admin(운영자) 전용**. 규칙 파일이 이 레포에 없어 실제 규칙 배포·구성 확인은 미해결이고, 클라이언트 SDK에는 admin 개념이 없어(웹 CMS의 쓰기 인증 방식 포함) **구현 전에 확인해야 한다** — §8 미해결 질문.
 
 ## 4. Storage 경로 (DM-9)
