@@ -32,7 +32,7 @@ Firebase Auth 기반 인증(Google/Apple/Email), 약관 동의 강제, 정보 �
 
 - 로그인 모달: 기본 모드(Google/Apple 버튼 + 이메일 로그인 링크) ↔ 이메일 모드(이메일/비밀번호 입력). 오버레이 탭으로 닫으면 입력 상태 초기화.
 - 이메일 로그인 실패: `이메일 또는 비밀번호가 올바르지 않습니다.`
-- 로그인 취소(팝업/시트 닫기)는 조용히 무시한다(에러 UI 없음).
+- 로그인 취소(팝업/시트 닫기)는 조용히 무시한다(에러 UI 없음). **취소·실패의 판정과 처리 규약은 AU-9가 정본이다** — 현재 Google 분기는 이 규칙을 지키지 못하고 시트가 무한 스피너로 잠긴다.
 - Auth persistence: 네이티브는 `getReactNativePersistence(AsyncStorage)`, 웹은 `getAuth` 기본값.
 
 ### AU-2 신규 사용자 문서 생성
@@ -116,7 +116,7 @@ Firebase Auth 기반 인증(Google/Apple/Email), 약관 동의 강제, 정보 �
 
 - `/info/delete`에서 삭제 데이터 안내(배낭/장비/개인 설정, 복구 불가) 후 확인 → 시스템 알럿 재확인.
 - 본인 확인을 위해 **제공자별 재인증**을 수행한다: Google/Apple은 재로그인.
-- ⚠ **Email 사용자는 현재 탈퇴 불가**: 탈퇴 화면은 모든 제공자에 `deleteUserAccount()`만 호출하는데 email 제공자는 여기서 예외가 발생한다. 비밀번호 재입력 UI가 없고 `deleteUserAccountWithEmail()`은 호출처 없는 데드 코드다(미해결 질문 참조).
+- ⚠ **Email 사용자는 현재 탈퇴 불가**: 탈퇴 화면은 모든 제공자에 `deleteUserAccount()`만 호출하는데 email 제공자는 여기서 예외가 발생한다. 비밀번호 재입력 UI가 없고 `deleteUserAccountWithEmail()`은 호출처 없는 데드 코드다. **기대 동작은 AU-10**(비밀번호 재입력 단계 추가)이다.
 - 재인증 성공 시: Firestore 사용자 데이터 삭제(AU-8 참조) → `deleteUser`(Auth 계정 삭제) → 로컬 상태 초기화 → (네이티브) `GoogleSignin.signOut()` 시도(실패 무시).
 - 재인증 취소(`auth/popup-closed-by-user`, code `12501`): `재인증이 취소되었습니다. …` 알럿, 탈퇴 중단.
 - 기타 실패: `회원 탈퇴 중 오류가 발생했습니다. 다시 시도해주세요.`
@@ -148,6 +148,107 @@ Firebase Auth 기반 인증(Google/Apple/Email), 약관 동의 강제, 정보 �
 - 작성한 댓글(`gear-comments`)은 삭제하지 않는다 — 탈퇴 후에도 닉네임 명의로 남는다 (컬렉션 그룹 인덱스 부재로 클라이언트에서 일괄 조회 불가, 미해결 질문 참조).
 - 좋아요 문서 삭제 시 해당 댓글의 `likeCount`는 보정하지 않는다(비정규화 카운트 드리프트 허용, 미해결 질문 참조).
 
+### AU-9 로그인 취소와 실패의 구분 `[제안]`
+
+로그인이 성공하지 않은 경우는 **취소**와 **실패** 둘이다. 취소는 조용히 원래 상태로 돌아가고,
+실패는 사용자에게 알린다. 제공자 3곳(Google/Apple/Email)의 처리와 피드백이 **같은 문법**이어야 한다.
+
+**(a) 현재 무엇이 어떻게 죽는가** (2026-08-17 클릭 전수 점검)
+
+- `model/login/LogInAlertManager.ts`의 `confirm()`(Google)에만 try/catch가 없다(Email·Apple 분기는 있다).
+  `setLoading(true)` 뒤에 `logInWithGoogle()`이 throw하면 `setLoading(false)`도 `hide()`도 실행되지 않아
+  **로그인 시트가 `LoadingView` 상태로 고정된다.** 딤 영역을 탭해야만 복구되고, 그 사실은 화면에 드러나지 않는다.
+  `components/login/LogInView.tsx`도 `confirm()`을 await·catch 없이 부르므로 unhandled rejection이 난다.
+- 그리고 이 경로는 **사용자가 그냥 취소했을 때도** throw한다:
+  `@react-native-google-signin/google-signin` **v15**는 취소를 예외가 아니라 `{ type: 'cancelled', data: null }`
+  **반환값**으로 알린다. `model/firebase/Firebase.ts`는 `response.data?.idToken`만 보므로 취소가 곧
+  `Google 로그인 실패: idToken을 받을 수 없습니다. …`라는 개발자용 예외가 되고, 그 예외가 위 잠금을 만든다.
+  **즉 가장 흔한 경로(구글 시트를 열고 마음을 바꿔 닫기)가 시트를 잠근다.**
+- 피드백도 갈려 있다 — Apple·Email만 `Alert.alert`로 실패를 알리고 Google은 아무 안내가 없다.
+
+**(b) 기대 동작**
+
+- **취소 판정은 `Firebase.ts`(제공자 어댑터)에서 한다.** 매니저는 제공자별 SDK 관례를 몰라야 한다 —
+  google-signin v15의 `{ type: 'cancelled' }` 반환, iOS Apple의 `ERR_REQUEST_CANCELED`,
+  웹 팝업의 `auth/popup-closed-by-user`가 모두 **한 자리에서** 같은 값으로 변환된다.
+- 로그인 메서드는 결과를 **string enum으로 반환**한다: `enum LogInResult { Success = 'Success', Cancelled = 'Cancelled' }`
+  (별도 파일 `model/login/LogInResult.ts`). 진짜 실패만 throw한다.
+- 매니저는 세 제공자에서 **같은 형태**를 쓴다:
+  `setLoading(true)` → `try` → `Cancelled`면 시트를 **원래 상태 그대로 두고 로딩만 해제**(문구 없음),
+  `Success`면 `hide()` → `catch`면 실패 안내 → `finally`에서 `setLoading(false)`.
+- 실패 안내는 **OS 알럿(`Alert.alert('알림', …)`)** 으로 통일한다. 로그인 시트가 RN `Modal`이라
+  같은 계층의 커스텀 알럿(`AlertView`)을 그 위에 겹치지 않는다. 실패해도 **시트는 닫지 않는다** —
+  다른 제공자로 바로 다시 시도할 수 있어야 한다.
+- 시트가 잠기지 않는다는 것은 규약이다: **`confirm()`·`loginWithApple()`·`loginWithEmail()`은 어떤 경우에도
+  reject하지 않고**, 어떤 경로로 끝나도 `loading`이 `false`로 남는다. 호출측(`LogInView`)이
+  await·catch 없이 불러도 안전하다.
+
+**(c) 수용 기준**
+
+- [ ] Google 로그인 시트를 열고 **취소**하면 로그인 시트가 원래 모습(제공자 버튼)으로 돌아온다 —
+      스피너가 남지 않고 에러 문구도 뜨지 않는다. iOS·Android·웹(팝업 닫기) 모두 동일.
+- [ ] Apple(iOS)·이메일에서 취소해도 같다 — 스피너 해제, 문구 없음, 시트 유지.
+- [ ] 진짜 실패(네트워크 차단·잘못된 설정)면 OS 알럿이 뜬다. 문구는 제공자별 한 줄:
+      Google `Google 로그인에 실패했습니다.` / Apple `Apple 로그인에 실패했습니다.` /
+      이메일 `이메일 또는 비밀번호가 올바르지 않습니다.`(AU-1 기존 문구 유지 — 자격 증명 문제를 가리키므로 그대로 둔다).
+- [ ] 실패 후에도 시트가 열려 있고 다른 제공자 버튼을 바로 누를 수 있다.
+- [ ] `logInWithGoogle()`은 취소를 예외로 만들지 않는다 — google-signin v15의 `{ type: 'cancelled' }`를
+      `LogInResult.Cancelled`로 변환한다. `idToken`이 없는 그 밖의 경우만 실패다.
+- [ ] `Google 로그인 실패: idToken을 받을 수 없습니다. Google 설정을 확인해주세요.` 같은 **개발자용 문구가
+      사용자에게 노출되지 않는다**(로그로만 남는다).
+- [ ] 세 제공자 중 어느 경로로도 `isLoading()`이 `true`로 남지 않는다.
+- [ ] `LogInView`가 `confirm()`을 await·catch 없이 불러도 unhandled rejection이 발생하지 않는다.
+
+### AU-10 이메일 사용자 탈퇴 (비밀번호 재인증) `[제안]`
+
+이메일로 로그인한 사용자도 탈퇴할 수 있다. **비밀번호 재입력 단계**를 추가해
+`deleteUserAccountWithEmail()`을 실제 흐름에 연결한다.
+
+**(a) 현재 무엇이 어떻게 죽는가**
+
+- `model/firebase/Firebase.ts`의 `deleteUserAccount()`는 `loginProvider === 'email'`이면
+  `이메일로 로그인한 경우, 비밀번호를 다시 입력해야 합니다. deleteUserAccountWithEmail 메서드를 사용하세요.`
+  라는 **개발자용 예외**를 던진다. `app/info/delete/index.tsx`는 이 예외를 잡아
+  `회원 탈퇴 중 오류가 발생했습니다. 다시 시도해주세요.`만 띄우므로 **사용자는 원인을 모른 채 영구히 실패한다.**
+- `deleteUserAccountWithEmail(password)`는 구현돼 있으나 **앱 전체에 호출처가 0건**이고 비밀번호 재입력 UI도 없다.
+- 이메일 로그인은 `components/login/LogInView.tsx`로 실제 제공되는 경로이므로 도달 가능한 사용자층이 있다.
+  (제공자 판정은 세션 복원 시 `user.providerData`에서 다시 감지하므로 앱 재실행 뒤에도 `email`로 남는다.)
+
+**(b) 기대 동작**
+
+- 재인증은 Firebase 요구사항이므로 **우회하지 않는다** — Google/Apple이 재로그인으로 재인증하는 것과 같은 자리에
+  이메일은 **비밀번호 재입력**을 놓는다. AU-5의 "제공자별 재인증"에 이메일 갈래를 채우는 것이다.
+- 화면 흐름은 Google/Apple과 **같은 문법**이다: `/info/delete`의 안내 → `탈퇴하기` → 시스템 알럿 재확인 →
+  **재인증** → 데이터 삭제(AU-8) → 계정 삭제 → 완료 알럿 → `/`. 이메일만 재인증 단계가 앱 화면이다
+  (Google/Apple은 OS 시트라 앱 화면이 없다).
+- 재인증 UI는 **네이티브 formSheet 라우트**(`/info/delete-password`)로 띄운다 — 배낭 생성·템플릿 저장 등
+  앱의 다른 입력 시트와 같은 패턴이다(그래버·드래그 닫기는 OS 처리, [Search.md](Search.md) SR-10 이탈 경로 기준).
+
+**(c) 수용 기준**
+
+- [ ] 탈퇴 시작 시 `getLoginProvider()`로 분기한다: `google`·`apple`은 기존 경로(AU-5),
+      `email`은 비밀번호 입력 시트를 연다.
+- [ ] 시트 내용: 타이틀 `비밀번호 확인`, 안내 한 줄(`탈퇴를 위해 비밀번호를 다시 입력해주세요.`),
+      **로그인 중인 이메일을 읽기 전용으로 표시**(어느 계정을 지우는지 드러나야 한다),
+      비밀번호 입력(`secureTextEntry`, 자동 포커스, `textContentType='password'`),
+      하단 주 액션 `탈퇴하기`.
+- [ ] 입력 검증: 값이 비어 있으면(공백만이어도) `탈퇴하기`가 비활성이다. 그 밖의 형식 검증은 하지 않는다 —
+      맞는지는 서버 재인증이 판정한다.
+- [ ] 확정 시 `deleteUserAccountWithEmail(password)`를 호출한다. 성공 흐름은 AU-5·AU-8과 동일하다
+      (Firestore 데이터 삭제 → `deleteUser` → 로컬 상태 초기화 → `회원 탈퇴 완료` 알럿 → `/`).
+- [ ] 진행 중에는 버튼을 비활성화하고 인디케이터를 보인다. 연타로 두 번 실행되지 않는다.
+- [ ] 비밀번호 불일치 → 시트를 유지하고 `비밀번호가 올바르지 않습니다.`를 알린다. 입력값은 지우지 않는다(고칠 수 있어야 한다).
+      시도 제한(`auth/too-many-requests`)에 걸리면 `시도가 너무 많습니다. 잠시 후 다시 시도해주세요.`
+- [ ] **취소 경로**: 시트를 그래버로 내려 닫거나 닫기를 누르면 **탈퇴가 중단되고 계정·데이터는 그대로다.**
+      사용자가 스스로 닫은 것이므로 `재인증이 취소되었습니다.` 알럿을 따로 띄우지 않는다
+      (AU-1의 "취소는 조용히 무시" 원칙과 같다 — Google/Apple의 OS 시트 취소는 예외를 통해 오므로
+      기존 문구를 유지한다, AU-5).
+- [ ] **개발자용 문구가 사용자에게 노출되지 않는다** — `deleteUserAccount()`가 email 분기에서 던지던
+      `… deleteUserAccountWithEmail 메서드를 사용하세요.`는 사용자 문구로 대체한다.
+      제공자를 알 수 없는 경우(`getLoginProvider()`가 `null`)에는
+      `로그인 정보를 확인할 수 없습니다. 다시 로그인한 뒤 시도해주세요.`를 띄운다.
+- [ ] 이메일 계정으로 실제 탈퇴가 완료된다 — 재로그인하면 신규 사용자로 문서가 새로 생성된다(AU-2).
+
 ## 4. 데이터
 
 - [DataModel.md](DataModel.md) DM-2 (`users/{uid}`).
@@ -172,10 +273,17 @@ AU-1 표 참조. 추가로: 토큰 갱신은 네이티브 `GoogleSignin.getToken
 - [ ] 탈퇴(Google/Apple) → 재인증 취소 시 계정 유지, 완료 시 배낭·장비·좋아요 문서가 모두 삭제되고 재로그인하면 신규 사용자로 생성
 - [ ] `[기획]` 정보 탭 `데이터 출처` 행이 정책 행 뒤·`로그아웃` 앞에 있고, 탭하면 `/info/data-sources`가 열린다
 - [ ] `[기획]` 데이터 출처 화면에 한국관광공사 TourAPI(KorService2)·고캠핑·국립공원공단 항목과 **공공누리 유형** 표기·원문 링크가 있다([CampSite.md](CampSite.md) CS-10)
+- [ ] `[제안]` Google 로그인 시트를 열고 취소 → 로그인 시트가 제공자 버튼 상태로 복귀(무한 스피너 없음), 에러 문구 없음 — AU-9
+- [ ] `[제안]` Apple(iOS)·이메일 취소도 동일하게 스피너만 해제되고 시트가 유지된다 — AU-9
+- [ ] `[제안]` 비행기 모드로 각 제공자 로그인 시도 → 제공자별 실패 알럿 1개, 시트는 열린 채 다른 제공자로 재시도 가능 — AU-9
+- [ ] `[제안]` 이메일 계정으로 탈퇴 → 비밀번호 확인 시트 → 틀린 비밀번호 안내 → 맞는 비밀번호로 탈퇴 완료, 재로그인 시 신규 사용자 — AU-10
+- [ ] `[제안]` 비밀번호 확인 시트를 닫으면 탈퇴가 중단되고 계정·데이터가 그대로다(취소 알럿 없음) — AU-10
+- [ ] `[제안]` 어떤 탈퇴 실패 경로에서도 `deleteUserAccountWithEmail` 같은 개발자용 문구가 화면에 노출되지 않는다 — AU-10
 - [ ] `[제안]` 정보 탭 푸터 일러스트 — 화면 하단 고정 배경(홈 지형 문법과 동일)으로 첫 화면부터 화면 폭 전체·원본 비율(크롭·왜곡 없음)로 표시, 스크롤 끝의 마지막 콘텐츠와 겹치지 않음, VoiceOver에서 읽히지 않음
 
 ## 8. 미해결 질문
 
 - 탈퇴 시 **댓글 잔존 + likeCount 드리프트**(AU-8) — 완전 삭제가 필요하면 Cloud Function 또는 `comments` 컬렉션 그룹 인덱스 도입 검토.
-- **Email 사용자 탈퇴 불가**(AU-5) — 비밀번호 재인증 UI 추가 필요.
+- ~~**Email 사용자 탈퇴 불가**(AU-5)~~ — **AU-10으로 기대 동작 확정(2026-08-17)**. 구현 후 이 줄을 지운다.
+- 2026-08-17 클릭 전수 점검의 나머지 항목 중 이 도메인 몫: **정보 탭 로그아웃 알럿의 실패 처리**는 공용 규약([AppLifecycle.md](AppLifecycle.md) APP-9)으로 해소되고, 그 밖의 무피드백·터치 타깃 항목은 이번 범위 밖이다(APP-9 §8 추적 줄 참조).
 - 이메일 **가입** 플로우 미구현 확정: `createUserWithEmailAndPassword` 래퍼는 호출처가 없다. 기존 이메일 계정만 로그인 가능 — 가입 경로 정책 필요.

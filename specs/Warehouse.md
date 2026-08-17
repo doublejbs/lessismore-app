@@ -143,6 +143,21 @@ app/warehouse-unused/index.tsx?category= → WarehouseUnusedWrapper → Warehous
 - 선택 시 즉시 목록을 다시 읽고, `LocalStorageManager`에 `selectedOrderType_{key}`로 저장되어 재실행 후에도 유지된다.
 - 정렬 선택 UI는 **공용 네이티브 formSheet 라우트 `/sort-sheet`**로 표시한다(타이틀 `정렬` + 옵션 행, 선택 옵션은 체크·볼드; 그래버·드래그 닫기·높이는 OS 처리, `fitToContents`). 옵션 탭 시 즉시 적용 후 닫힘. 피드·탐색과 같은 라우트를 공유한다. (구 앵커드 드롭다운·커스텀 Animated 바텀시트는 폐기.)
 - 정렬 기준 `name`은 캐논컬 값이다(표시 이름과 다를 수 있음) — [DataModel.md](DataModel.md) DM-3.
+- **장비를 창고에 담으면 저장된 정렬이 `최근 추가순`으로 바뀐다 — 의도된 동작이다** (2026-08-17 사용자 확인).
+  - **동작**: 장비 등록·추가 경로(검색 결과 `+`, 인기 순위, 장비 상세 담기, 직접 입력 저장 —
+    `model/search/SearchWarehouse.ts`·`model/search/SearchRank.ts`·`model/warehouse-detail/WarehouseDetail.ts`·`model/gear/custom/CustomGear.ts`)가
+    `Order.saveLastOrderOption()`을 부른다. 이 메서드는 **사용자가 고른 정렬이 아니라 정렬 옵션 배열의
+    마지막 값**(`model/order/GearOrderOptions.ts`의 `최근 추가순`)을 `selectedOrderType_{key}`에 저장한다.
+    창고와 배낭 편집 두 정렬(WH-3, [BagDetail.md](BagDetail.md) BD-4)에 함께 적용되므로,
+    다음 초기화에서 두 목록이 `최근 추가순`으로 열린다 — 즉 **방금 담은 장비가 맨 위에 온다.**
+  - **근거**: 담기 직후 사용자가 확인하려는 것은 "내가 방금 넣은 그 장비"다. 사용자가 고른 정렬
+    (예 `이름순`)을 유지하면 새 장비가 목록 중간에 섞여 들어가 찾아야 하고, 창고가 클수록 스크롤 밖에 있다.
+    담기 후 한 번 `최근 추가순`으로 맞춰 주는 편이 낫다는 판단이다.
+  - **리뷰·감사 주의**: 메서드 이름(`saveLastOrderOption`)이 "마지막으로 고른 정렬을 저장"으로 읽히고
+    구현은 "옵션 배열의 마지막 원소를 저장"이라, 코드만 보면 `getSelectedOrderType()`을 저장해야 할 자리에
+    실수로 다른 값을 넣은 것처럼 보인다. **결함으로 올리지 말 것** — 위 근거로 확정된 동작이다.
+    이름을 고칠 때도 동작은 그대로 두고 의도가 드러나는 이름(예 `saveCreatedDescOrder`)으로만 바꾼다.
+  - 사용자가 이후 정렬을 직접 고르면 그 선택이 저장되어(`setOrderOption`) 다음 담기까지 유지된다.
 
 ### WH-4 장비 상세/수정 진입
 
@@ -159,6 +174,7 @@ app/warehouse-unused/index.tsx?category= → WarehouseUnusedWrapper → Warehous
 - `삭제` 탭 → 확인 다이얼로그(`{이름}을 삭제하시겠습니까?`, 확인 버튼 `삭제하기`, 이름은 `getDisplayName()`)를 거친다. 취소하거나 스와이프를 닫으면 아무 일도 일어나지 않는다.
 - 확인 시 장비 문서 삭제와 함께: 장비가 담긴 모든 배낭의 `gears`에서 제거 + 배낭 `weight` 차감 + 카탈로그 장비면 `gear-rank` count 감소([DataModel.md](DataModel.md) DM-6, DM-11).
 - 완료 후 토스트 `삭제 되었습니다.`를 표시하고 목록을 갱신한다.
+- **삭제가 실패하면 알럿이 닫히고 실패를 알린다** `[제안]` — 지금은 확인 콜백이 reject하면 알럿이 화면에 박히고(딤 탭으로 닫히지 않는다) 안내도 없다. 창고 목록 스와이프 삭제·검색 화면의 창고 삭제·장비 편집 삭제가 모두 같다. 규약은 [AppLifecycle.md](AppLifecycle.md) **APP-9**가 정본이다.
 - 행의 기존 `⋮` 더보기 메뉴(수정/삭제 모달)는 제거한다 — 삭제는 스와이프로, 수정은 상세 화면(WH-4)으로 대체. `[제안]`
 
 ### WH-6 빈 상태
@@ -222,8 +238,12 @@ app/warehouse-unused/index.tsx?category= → WarehouseUnusedWrapper → Warehous
 - [ ] 한글 이름(`nameKorean`) 장비와 영문만 있는 장비가 모두 올바르게 표시된다
 - [ ] 사진 올린 장비 → 행 좌측 썸네일 표시 / 안 올린 장비 → 빈 썸네일 칸 없이 기존 텍스트 행. 두 행이 섞여도 우측 무게 컬럼의 세로 정렬이 유지된다
 - [ ] 카탈로그에 크롤 이미지가 있는 장비라도 내가 사진을 안 올렸으면 썸네일이 안 나온다(폴백 없음)
+- [ ] 장비를 창고에 담고 창고를 다시 열면 정렬이 `최근 추가순`이고 방금 담은 장비가 맨 위에 있다 (WH-3 — **의도된 동작**, 결함 아님)
+- [ ] `[제안]` 네트워크를 끊고 창고 스와이프 삭제를 확정 → 알럿이 닫히고 실패 토스트가 뜬다 (WH-5 · [AppLifecycle.md](AppLifecycle.md) APP-9)
 
 ## 8. 미해결 질문
 
 - 삭제 확인 다이얼로그가 `getName()`을 사용한다(`components/warehouse/WarehouseGearView.tsx`). 표시 규칙(WH-1, CLAUDE.md)은 `getDisplayName()`이므로 카탈로그 장비(name=영문/빈 값)에서 빈 이름이나 영문이 노출될 수 있다.
 - 전체 일괄 로드 구조라 장비 수가 많을 때 성능 검토 필요 (페이지네이션 미구현).
+- `Order.saveLastOrderOption()`의 **이름과 구현이 어긋난다**(WH-3) — 동작은 의도된 것으로 확정됐고, 이름만 의도가 드러나게 고칠지 결정하면 된다.
+- 2026-08-17 클릭 전수 점검의 나머지 항목(터치 타깃 44pt 미달·무피드백·누수·웹 전용) 중 이 도메인 몫은 이번 범위 밖이다 — 추적은 [AppLifecycle.md](AppLifecycle.md) §8.
