@@ -21,6 +21,7 @@ import {
 } from '@/constants/DesignTokens';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
+import { GeocodeResult } from '@/model/bag-destination/GeocodeResult';
 import {
   getCampSiteTypeColor,
   getCampSiteTypeLabel,
@@ -32,6 +33,7 @@ interface Props {
   campSiteMap: CampSiteMap;
   // 검색 결과 탭 — 카메라 이동은 mapRef를 가진 부모(CampSiteMapView)가 수행한다.
   onSelectResult: (spot: CampSpot) => void;
+  onSelectPlace: (place: GeocodeResult) => void;
 }
 
 // 검색 필드 높이·아이콘 — 탐색 탭 필드와 같은 값.
@@ -42,11 +44,15 @@ const SEARCH_ICON_SIZE = 20;
 // 지도 상단 오버레이(CS-2/CS-6): 검색 인풋/드롭다운 + 유형 필터 칩 + 로드 실패 배너 + 로딩.
 // 지도 화면에서 분리된 observer라 검색 타이핑·필터 선택이 마커 레이어를 리렌더하지 않는다.
 const CampSiteMapTopOverlayView: FC<Props> = observer(
-  ({ campSiteMap, onSelectResult }) => {
+  ({ campSiteMap, onSelectResult, onSelectPlace }) => {
     const query = campSiteMap.getQuery();
     const searchResults = campSiteMap.getSearchResults();
+    const placeSearchResults = campSiteMap.getPlaceSearchResults();
+    const searchingPlaces = campSiteMap.isSearchingPlaces();
     const showSearchResults =
-      query.trim().length > 0 && campSiteMap.isSearchFocused();
+      query.trim().length >= 2 && campSiteMap.isSearchFocused();
+    const hasSearchResults =
+      searchResults.length > 0 || placeSearchResults.length > 0;
 
     // 검색 시작 시 요약 카드를 닫아 드롭다운과 카드가 동시에 뜨지 않게 한다.
     const handleSearchFocus = () => {
@@ -69,7 +75,7 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
               <Ionicons name='search' size={SEARCH_ICON_SIZE} color={Acg.ink} />
               <TextInput
                 style={styles.searchInput}
-                placeholder='박지 검색'
+                placeholder='박지·지명 검색'
                 placeholderTextColor={Acg.textMuted}
                 value={query}
                 onChangeText={value => campSiteMap.setQuery(value)}
@@ -101,50 +107,101 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
                   keyboardShouldPersistTaps='handled'
                   showsVerticalScrollIndicator={false}
                 >
-                  {searchResults.length === 0 ? (
+                  {searchResults.length > 0 && (
+                    <>
+                      <PretendardText
+                        style={styles.searchSectionHeader}
+                        weight='semibold'
+                        accessibilityRole='header'
+                      >
+                        박지
+                      </PretendardText>
+                      {searchResults.map(spot => (
+                        <TouchableOpacity
+                          key={spot.id}
+                          style={styles.resultRow}
+                          onPress={() => onSelectResult(spot)}
+                          activeOpacity={0.7}
+                          accessibilityRole='button'
+                          accessibilityLabel={`${spot.name} 지도에서 보기`}
+                        >
+                          {/* 지도 마커와 같은 원형 도트 — 목록에서 고른 것이 지도에서
+                              어떤 마커인지 색으로 이어진다. 색만으로는 못 읽으므로 유형
+                              이름은 아래 줄에 글자로도 둔다. */}
+                          <View
+                            style={[
+                              styles.resultTypeMark,
+                              {
+                                backgroundColor: getCampSiteTypeColor(spot.type),
+                              },
+                            ]}
+                          />
+                          <View style={styles.resultTexts}>
+                            <PretendardText
+                              style={styles.resultName}
+                              weight='semibold'
+                              numberOfLines={1}
+                            >
+                              {spot.name}
+                            </PretendardText>
+                            <PretendardText
+                              style={styles.resultMeta}
+                              numberOfLines={1}
+                            >
+                              {`${getCampSiteTypeLabel(spot.type)} · ${getCampSpotRegionLabel(spot)}`}
+                            </PretendardText>
+                          </View>
+                        </TouchableOpacity>
+                      ))}
+                    </>
+                  )}
+
+                  {placeSearchResults.length > 0 && (
+                    <>
+                      <PretendardText
+                        style={styles.searchSectionHeader}
+                        weight='semibold'
+                        accessibilityRole='header'
+                      >
+                        지명
+                      </PretendardText>
+                      {placeSearchResults.map((place, index) => (
+                        <TouchableOpacity
+                          key={`${place.latitude},${place.longitude},${index}`}
+                          style={styles.resultRow}
+                          onPress={() => onSelectPlace(place)}
+                          activeOpacity={0.7}
+                          accessibilityRole='button'
+                          accessibilityLabel={`${place.name}${place.subtitle ? `, ${place.subtitle}` : ''}`}
+                        >
+                          <View style={styles.resultTexts}>
+                            <PretendardText
+                              style={styles.resultName}
+                              weight='semibold'
+                              numberOfLines={1}
+                            >
+                              {place.name}
+                            </PretendardText>
+                            {place.subtitle && (
+                              <PretendardText
+                                style={styles.resultMeta}
+                                numberOfLines={1}
+                              >
+                                {place.subtitle}
+                              </PretendardText>
+                            )}
+                          </View>
+                        </TouchableOpacity>
+                      ))}
+                    </>
+                  )}
+
+                  {!searchingPlaces && !hasSearchResults && (
                     <View style={styles.dropdownEmpty}>
                       <PretendardText style={styles.dropdownEmptyText}>
                         검색 결과가 없어요
                       </PretendardText>
                     </View>
-                  ) : (
-                    searchResults.map(spot => (
-                      <TouchableOpacity
-                        key={spot.id}
-                        style={styles.resultRow}
-                        onPress={() => onSelectResult(spot)}
-                        activeOpacity={0.7}
-                        accessibilityRole='button'
-                        accessibilityLabel={`${spot.name} 지도에서 보기`}
-                      >
-                        {/* 지도 마커와 같은 원형 도트 — 목록에서 고른 것이 지도에서
-                            어떤 마커인지 색으로 이어진다. 색만으로는 못 읽으므로 유형
-                            이름은 아래 줄에 글자로도 둔다. */}
-                        <View
-                          style={[
-                            styles.resultTypeMark,
-                            {
-                              backgroundColor: getCampSiteTypeColor(spot.type),
-                            },
-                          ]}
-                        />
-                        <View style={styles.resultTexts}>
-                          <PretendardText
-                            style={styles.resultName}
-                            weight='semibold'
-                            numberOfLines={1}
-                          >
-                            {spot.name}
-                          </PretendardText>
-                          <PretendardText
-                            style={styles.resultMeta}
-                            numberOfLines={1}
-                          >
-                            {`${getCampSiteTypeLabel(spot.type)} · ${getCampSpotRegionLabel(spot)}`}
-                          </PretendardText>
-                        </View>
-                      </TouchableOpacity>
-                    ))
                   )}
                 </ScrollView>
               </View>
@@ -250,6 +307,13 @@ const styles = StyleSheet.create({
   dropdownEmptyText: {
     ...AcgType.rowSubtitle,
     color: Acg.textMuted,
+  },
+  // CS-6 구간 헤더 — 결과 행보다 가벼운 메타 단(13/18).
+  searchSectionHeader: {
+    ...AcgType.meta,
+    color: Acg.textMuted,
+    paddingTop: 12,
+    paddingBottom: 4,
   },
   // 이름 + 메타 두 줄이라 축이 왼쪽 하나다. 예전에는 이름·유형 배지·지역이 한 줄에
   // 나란히 놓여 이름이 밀리고 지역은 오른쪽 끝에 떨어져 한 항목으로 안 읽혔다.

@@ -9,6 +9,10 @@ const KAKAO_COORD2REGION_URL =
   'https://dapi.kakao.com/v2/local/geo/coord2regioncode.json';
 const KAKAO_REST_KEY = process.env.EXPO_PUBLIC_KAKAO_REST_KEY;
 
+// 카카오 장소 검색을 사용하는 화면이 공유하는 호출 규칙(DST-4, CS-6).
+export const GEOCODE_MIN_QUERY_LENGTH = 2;
+export const GEOCODE_DEBOUNCE_MS = 400;
+
 // 주소를 찾지 못한 좌표(바다·산악 등)도 여행지로 확정할 수 있게 하는 폴백 이름(DST-3).
 export const FALLBACK_LOCATION_NAME = '선택한 위치';
 

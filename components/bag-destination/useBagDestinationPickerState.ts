@@ -9,6 +9,8 @@ import * as Location from 'expo-location';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import { GeocodeResult } from '@/model/bag-destination/GeocodeResult';
 import geocodeService, {
+  GEOCODE_DEBOUNCE_MS,
+  GEOCODE_MIN_QUERY_LENGTH,
   FALLBACK_LOCATION_NAME,
 } from '@/model/bag-destination/GeocodeService';
 import {
@@ -46,8 +48,6 @@ const CAMERA_SETTLE_MS = 300;
 // 다루던 것이 애초에 이 버그의 씨앗이었다(DST-3).
 const LOCATION_WATCH_DISTANCE_INTERVAL_METERS = 10;
 
-const MIN_QUERY_LENGTH = 2;
-const PLACE_SEARCH_DEBOUNCE_MS = 400;
 const REVERSE_GEOCODE_DEBOUNCE_MS = 500;
 const MAP_READY_FALLBACK_MAX_FRAMES = 3;
 
@@ -656,7 +656,7 @@ const useBagDestinationPickerState = ({
   useEffect(() => {
     const trimmed = query.trim();
 
-    if (trimmed.length < MIN_QUERY_LENGTH) {
+    if (trimmed.length < GEOCODE_MIN_QUERY_LENGTH) {
       setPlaceResults([]);
       setSearchingPlaces(false);
 
@@ -686,7 +686,7 @@ const useBagDestinationPickerState = ({
           setSearchingPlaces(false);
         }
       }
-    }, PLACE_SEARCH_DEBOUNCE_MS);
+    }, GEOCODE_DEBOUNCE_MS);
 
     return () => {
       cancelled = true;
@@ -695,7 +695,7 @@ const useBagDestinationPickerState = ({
   }, [query]);
 
   const trimmedQuery = query.trim();
-  const hasQuery = trimmedQuery.length >= MIN_QUERY_LENGTH;
+  const hasQuery = trimmedQuery.length >= GEOCODE_MIN_QUERY_LENGTH;
   // 렌더 중에 읽어 박지 로드 완료 시에도 결과가 갱신되게 한다(observer가 추적).
   // 박지 데이터 로드가 실패하면 빈 배열이 되고 장소 검색·자유 핀은 그대로 쓸 수 있다(DST-4).
   const spotResults = hasQuery ? campSiteMap.searchSpotsBy(trimmedQuery) : [];
@@ -866,7 +866,7 @@ const useBagDestinationPickerState = ({
 
     setQuery(value);
     setPlaceResults([]);
-    setSearchingPlaces(value.trim().length >= MIN_QUERY_LENGTH);
+    setSearchingPlaces(value.trim().length >= GEOCODE_MIN_QUERY_LENGTH);
     setResultsDismissed(false);
   }, []);
 
