@@ -303,7 +303,7 @@ HomeView
 
 **[기획] 홈 추천 섹션(HM-11~12)의 데이터** — 위 "네트워크 호출 없음"은 기존 두 섹션의 성질이고, 추천 섹션은 다음 읽기를 더한다:
 
-- 추천 박지·추천 장비 — `feed-content`에서 `published == true` + `publishedAt` desc + limit 30으로 전체 발행 콘텐츠를 받아 클라이언트에서 `type`별로 분리하고, 각각 `spot_intro` 3개·`gear_intro` 10개로 제한한다(DM-27). 각 항목의 `relatedSpotId`·`relatedGearId`로 `camp-spot/{spotId}`·`gear/{gearId}` 문서를 조회하며, 복합 색인을 요구하지 않는다.
+- 추천 박지·추천 장비 — `feed-content`에서 `publishedAt` desc + limit 50으로 콘텐츠를 받아 클라이언트에서 `published === true`만 남긴 뒤 `type`별로 분리하고, 각각 `spot_intro` 3개·`gear_intro` 10개로 제한한다(DM-27). 초안(`published === false`)이 최신 30건을 잠식할 수 있어 limit을 50으로 넉넉히 잡는다. `published` equality 필터와 `publishedAt` 정렬을 함께 사용한 기존 쿼리는 2026-08-17 실측에서 failed-precondition(`The query requires an index`)으로 실패했으므로, 현재 쿼리는 자동 단일 필드 색인만으로 복합 색인이 필요 없다. 각 항목의 `relatedSpotId`·`relatedGearId`로 `camp-spot/{spotId}`·`gear/{gearId}` 문서를 조회한다.
 - `feed-content` 읽기는 **공개 확정**(2026-08-15 — 규칙 배포 확인은 DM-27 미해결 유지)이고, `camp-spot`·`gear` 문서 읽기도 공개라 별도 인증 의존이 없다 — 비로그인 홈에도 노출 가능(HM-14).
 
 ### 시각 문법 (HM-8)

@@ -4,7 +4,6 @@ import {
   limit,
   orderBy,
   query,
-  where,
 } from 'firebase/firestore';
 import Firebase from '../firebase/Firebase';
 import CampSpotStore from './CampSpotStore';
@@ -18,7 +17,8 @@ import {
 
 // 홈 운영자 추천 조회·참조 조인 (Home HM-11·HM-12, DataModel DM-27).
 class FeedContentStore {
-  private static readonly PUBLISHED_CONTENT_LIMIT = 30;
+  // 큐레이션은 소량이며, 초안이 최신 30건을 잠식할 수 있어 50건을 넉넉히 읽고 발행 여부를 거른다.
+  private static readonly PUBLISHED_CONTENT_LIMIT = 50;
   public static readonly SPOT_LIMIT = 3;
   public static readonly GEAR_LIMIT = 10;
 
@@ -85,13 +85,14 @@ class FeedContentStore {
       const snapshot = await getDocs(
         query(
           collection(this.firebase.getStore(), 'feed-content'),
-          where('published', '==', true),
           orderBy('publishedAt', 'desc'),
           limit(FeedContentStore.PUBLISHED_CONTENT_LIMIT)
         )
       );
 
-      return snapshot.docs.map(document => document.data() as FeedContentData);
+      return snapshot.docs
+        .map(document => document.data() as FeedContentData)
+        .filter(content => content.published === true);
     } catch (error) {
       console.error('홈 추천 콘텐츠 조회 실패:', error);
 
