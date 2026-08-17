@@ -19,16 +19,20 @@ const AlertView: FC<Props> = ({ alertManager }) => {
   const isVisible = alertManager.isVisible();
   const message = alertManager.getMessage();
   const confirmText = alertManager.getConfirmText();
+  const cancelable = alertManager.isCancelable();
+  const confirming = alertManager.isConfirming();
 
-  const handleClickCancel = (e: GestureResponderEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    alertManager.hide();
+  const handleClickCancel = (e?: GestureResponderEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    if (!confirming) {
+      alertManager.hide();
+    }
   };
 
-  const handleClickConfirm = (e: GestureResponderEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleClickConfirm = (e?: GestureResponderEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     alertManager.confirm();
   };
 
@@ -41,25 +45,37 @@ const AlertView: FC<Props> = ({ alertManager }) => {
       visible={isVisible}
       transparent={true}
       animationType='fade'
-      onRequestClose={handleClickCancel}
+      onRequestClose={handleClickConfirm}
     >
       <View style={styles.overlay}>
         <View style={styles.alertContainer}>
           <PretendardText weight='bold' style={styles.messageText}>
             {message}
           </PretendardText>
-          <View style={styles.buttonContainer}>
+          <View
+            style={[
+              styles.buttonContainer,
+              !cancelable && styles.singleButtonContainer,
+            ]}
+          >
+            {cancelable && (
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleClickCancel}
+                disabled={confirming}
+              >
+                <PretendardText weight='medium' style={styles.cancelButtonText}>
+                  취소하기
+                </PretendardText>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={handleClickCancel}
-            >
-              <PretendardText weight='medium' style={styles.cancelButtonText}>
-                취소하기
-              </PretendardText>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.confirmButton}
+              style={[
+                styles.confirmButton,
+                !cancelable && styles.singleConfirmButton,
+              ]}
               onPress={handleClickConfirm}
+              disabled={confirming}
             >
               <PretendardText weight='medium' style={styles.confirmButtonText}>
                 {confirmText}
@@ -96,10 +112,13 @@ const styles = StyleSheet.create({
     gap: 12,
     minHeight: 51,
   },
+  singleButtonContainer: {
+    flexDirection: 'column',
+  },
   cancelButton: {
     flex: 1,
     backgroundColor: Color.surfaceMuted,
-    borderRadius: 26,
+    borderRadius: Radius.pill,
     paddingVertical: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -111,14 +130,17 @@ const styles = StyleSheet.create({
   confirmButton: {
     flex: 1,
     backgroundColor: Color.textPrimary,
-    borderRadius: 26,
+    borderRadius: Radius.pill,
     paddingVertical: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  singleConfirmButton: {
+    width: '100%',
+  },
   confirmButtonText: {
     ...AcgType.control,
-    color: '#FFFFFF',
+    color: Color.background,
   },
 });
 

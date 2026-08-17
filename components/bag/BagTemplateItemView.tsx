@@ -43,6 +43,7 @@ const BagTemplateItemView: FC<Props> = ({
     app.getAlertManager()?.show({
       message: `${template.getName()} 템플릿을 삭제할까요?`,
       confirmText: '삭제',
+      failureMessage: '삭제하지 못했어요. 다시 시도해주세요.',
       onConfirm: async () => onDelete(template),
     });
   };

@@ -18,9 +18,6 @@ import {
  */
 const NO_EDGES = [] as const;
 
-// 하단에 떠 있는 CTA·칩 묶음(약 190pt) 위로 토스트를 올려 컨트롤을 가리지 않게 한다.
-const TOAST_BOTTOM = 200;
-
 const BagFilmCardWrapper: FC = () => {
   const router = useRouter();
   // 핸드오프는 화면이 살아있는 동안 고정이어야 하므로 첫 렌더에 1회만 읽어 도메인 객체를 만든다.
@@ -48,7 +45,7 @@ const BagFilmCardWrapper: FC = () => {
   }
 
   return (
-    <Layout paddingHorizontal={0} edges={NO_EDGES} toastBottom={TOAST_BOTTOM}>
+    <Layout paddingHorizontal={0} edges={NO_EDGES}>
       <BagFilmCardView filmCard={filmCard} />
     </Layout>
   );

@@ -22,8 +22,6 @@ import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import CustomGearWeightView from '@/components/gear/custom/CustomGearWeightView';
 import CustomGearColorView from '@/components/gear/custom/CustomGearColorView';
 import CategoryChipView from '@/components/browse/CategoryChipView';
-import AlertView from '@/components/alert/AlertView';
-import app from '@/model/app/App';
 
 interface Props {
   customGear: CustomGear;
@@ -300,7 +298,6 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
-      <AlertView alertManager={app.getAlertManager()!} />
     </>
   );
 };

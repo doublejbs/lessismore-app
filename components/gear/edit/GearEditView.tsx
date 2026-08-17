@@ -19,10 +19,8 @@ import GearEditConfirmView from '@/components/gear/edit/GearEditConfirmView';
 import GearEditColorView from '@/components/gear/edit/GearEditColorView';
 import LoadingIconView from '@/components/ui/LoadingIconView';
 import PretendardText from '@/components/PretendardText';
-import AlertView from '@/components/alert/AlertView';
 import CategoryChipView from '@/components/browse/CategoryChipView';
 import useKeyboard from '@/hooks/useKeyboard';
-import app from '@/model/app/App';
 import { Acg, AcgType, Color, Radius } from '@/constants/DesignTokens';
 
 interface Props {
@@ -322,7 +320,6 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
-      <AlertView alertManager={app.getAlertManager()!} />
     </>
   );
 };
