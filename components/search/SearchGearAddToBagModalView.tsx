@@ -37,7 +37,6 @@ const SearchGearAddToBagModalView: FC<Props> = ({
 }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(visible);
   const { isReduceMotionEnabled } = useSheetTransition();
 
   useEffect(() => {
@@ -45,16 +44,6 @@ const SearchGearAddToBagModalView: FC<Props> = ({
       bag.getList();
     }
   }, [bag, visible]);
-
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setShowModal(visible);
-    }, 0);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [visible]);
 
   const handleNewBagPress = async (e: GestureResponderEvent) => {
     e.preventDefault();
@@ -67,8 +56,10 @@ const SearchGearAddToBagModalView: FC<Props> = ({
       if (newBagId) {
         await bag.addGearToBag(newBagId, gear);
         app.getAnalyticsManager()?.logClick('search_add', { target: 'bag' });
-        setShowModal(false);
-        router.push(`/bag/${newBagId}`);
+        onClose();
+        setTimeout(() => {
+          router.push(`/bag/${newBagId}`);
+        }, 0);
       }
     } catch (error) {
       console.error('새 배낭 생성 및 장비 추가 중 오류:', error);
@@ -100,7 +91,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
 
   return (
     <Modal
-      visible={showModal}
+      visible={visible}
       onRequestClose={onClose}
       animationType={isReduceMotionEnabled ? 'fade' : 'slide'}
       presentationStyle='pageSheet'

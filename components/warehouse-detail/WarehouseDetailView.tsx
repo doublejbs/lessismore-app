@@ -26,7 +26,13 @@ import WarehouseDetailReviewSectionView from './WarehouseDetailReviewSectionView
 import WarehouseDetailExternalReviewView from './WarehouseDetailExternalReviewView';
 import LoadingView from '@/components/ui/LoadingView';
 import PretendardText from '../PretendardText';
-import { Acg, AcgLayout, AcgType, Spacing } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgLayout,
+  AcgRadius,
+  AcgType,
+  Spacing,
+} from '@/constants/DesignTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SearchGearAddToBagModalView from '../search/SearchGearAddToBagModalView';
 import Bag from '@/model/bag/Bag';
@@ -59,6 +65,11 @@ const CTA_PILL_HEIGHT = 52;
 const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
   const gear = warehouseDetail.getGear();
   const showAddToBagModal = warehouseDetail.shouldShowAddToBagModal();
+  const isAdded = gear?.isAdded() ?? false;
+  const isBagContext = warehouseDetail.isBagContext();
+  const showAddButton =
+    Boolean(gear) &&
+    (isBagContext ? !warehouseDetail.isInBagContextBag() : !isAdded);
   const [bag] = useState(() => Bag.new());
   const [loading, setLoading] = useState(false);
   const [showHeaderTitle, setShowHeaderTitle] = useState(false);
@@ -122,16 +133,13 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
     warehouseDetail.closeAddToBagModal();
   };
 
-  if (gear) {
-    const isAdded = gear.isAdded();
-    // GE-8: 배낭 컨텍스트면 '이 배낭에 담기'(이미 그 배낭에 담김이면 버튼 숨김), 아니면 창고 미보유 시 '내 창고에 추가'.
-    const isBagContext = warehouseDetail.isBagContext();
-    const showAddButton = isBagContext
-      ? !warehouseDetail.isInBagContextBag()
-      : !isAdded;
+  // 헤더 우측 액션(공유·수정) — iOS 네이티브 headerRight와 Android/Web 커스텀 헤더가 공유한다.
+  const renderHeaderActions = () => {
+    if (!gear) {
+      return null;
+    }
 
-    // 헤더 우측 액션(공유·수정) — iOS 네이티브 headerRight와 Android/Web 커스텀 헤더가 공유한다.
-    const renderHeaderActions = () => (
+    return (
       <>
         {/* 공유(GD-7) — 카탈로그 장비만(커스텀은 웹 랜딩 대상이 아님) */}
         {!gear.getIsCustom() && (
@@ -158,8 +166,9 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
         )}
       </>
     );
+  };
 
-    return (
+  return (
       <>
         {/* LG-1: iOS만 네이티브 투명 헤더 — 글래스 back(원형 chevron)·scroll edge effect는
             시스템에 위임한다(headerBlurEffect·headerStyle.backgroundColor 지정 금지).
@@ -168,13 +177,17 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
           options={{
             headerShown: IS_IOS,
             headerTransparent: true,
-            headerTitle: gear.getDisplayName(),
+            headerTitle: gear?.getDisplayName() ?? '장비',
             headerBackButtonDisplayMode: 'minimal',
-            headerRight: () => (
-              <View style={styles.nativeHeaderRight}>
-                {renderHeaderActions()}
-              </View>
-            ),
+            ...(gear
+              ? {
+                  headerRight: () => (
+                    <View style={styles.nativeHeaderRight}>
+                      {renderHeaderActions()}
+                    </View>
+                  ),
+                }
+              : {}),
           }}
         />
         <View style={styles.container}>
@@ -184,19 +197,19 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
               <TouchableOpacity
                 onPress={handlePressClose}
                 style={styles.backButton}
-                accessibilityLabel='뒤로 가기'
+                accessibilityLabel='뒤로가기'
                 accessibilityRole='button'
               >
                 <Ionicons name='chevron-back' size={24} color={Acg.ink} />
               </TouchableOpacity>
-              {showHeaderTitle && (
+              {(showHeaderTitle || !gear) && (
                 <View style={styles.headerTitleContainer} pointerEvents='none'>
                   <PretendardText
                     weight='semibold'
                     numberOfLines={1}
                     style={styles.headerTitle}
                   >
-                    {gear.getDisplayName()}
+                    {gear?.getDisplayName() ?? '장비'}
                   </PretendardText>
                 </View>
               )}
@@ -218,11 +231,13 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
             onScroll={IS_IOS ? undefined : handleScroll}
             scrollEventThrottle={16}
           >
-            {/* 기본 정보 섹션(GD-1). 보유 장비는 사진 유무로 레이아웃이 갈리므로(2열/1열)
+            {gear ? (
+              <>
+                {/* 기본 정보 섹션(GD-1). 보유 장비는 사진 유무로 레이아웃이 갈리므로(2열/1열)
                 업로드 상태를 가진 BasicInfoView가 조립까지 맡고, 카탈로그 장비는 저장할 문서가
                 없어 업로드 UI 없이 정보 뷰만 그린다(GD-13).
                 헤더 타이틀 노출 임계는 이 영역까지 포함해 측정해야 어긋나지 않는다. */}
-            <View onLayout={handleInfoLayout}>
+                <View onLayout={handleInfoLayout}>
               {/* key로 장비가 바뀌면 GearImageUpload를 확실히 재생성한다 — 모델이 진입 시점
                   URL로 한 번만 씨를 받으므로(useState 초기화) 같은 자리에 다른 장비가 들어오면
                   이전 장비의 사진이 그대로 남는다. */}
@@ -231,10 +246,10 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
               ) : (
                 <WarehouseDetailInformationView gear={gear} />
               )}
-            </View>
+                </View>
             {/* 카테고리별 스펙 표(GD-8) — 기본 정보 아래, 배낭 기록/최저가 위 */}
-            <WarehouseDetailSpecsView gear={gear} />
-            {isAdded && (
+                <WarehouseDetailSpecsView gear={gear} />
+                {isAdded && (
               // 보유(관리) 모드: 사용 인사이트(GD-9~12) → 배낭 기록을 최저가 링크보다 위로 (GD-5)
               <>
                 {/* 사용 지표 히어로(GD-9) */}
@@ -255,11 +270,11 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
                   warehouseDetail={warehouseDetail}
                 />
               </>
-            )}
-            <WarehouseDetailPurchaseView warehouseDetail={warehouseDetail} />
+                )}
+                <WarehouseDetailPurchaseView warehouseDetail={warehouseDetail} />
             {/* 외부 후기(GD-6)는 보유 여부로 배치 분기 — 미보유(쇼핑 맥락)는
                 구매 판단에 유용한 외부 후기를 리뷰(댓글)보다 위로 올린다. */}
-            {isAdded ? (
+                {isAdded ? (
               <>
                 <WarehouseDetailReviewSectionView
                   warehouseDetail={warehouseDetail}
@@ -267,18 +282,43 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
                 <WarehouseDetailExternalReviewView
                   warehouseDetail={warehouseDetail}
                 />
+              </>
+                ) : (
+              <>
+                <WarehouseDetailExternalReviewView
+                  warehouseDetail={warehouseDetail}
+                />
+                <WarehouseDetailReviewSectionView
+                  warehouseDetail={warehouseDetail}
+                />
+              </>
+                )}
+                <View style={styles.bottomSpacing} />
               </>
             ) : (
-              <>
-                <WarehouseDetailExternalReviewView
-                  warehouseDetail={warehouseDetail}
-                />
-                <WarehouseDetailReviewSectionView
-                  warehouseDetail={warehouseDetail}
-                />
-              </>
+              <View style={styles.missingContent}>
+                <View style={styles.missingPanel}>
+                  <PretendardText weight='semibold' style={styles.missingTitle}>
+                    삭제되었거나 찾을 수 없는 장비예요.
+                  </PretendardText>
+                  <TouchableOpacity
+                    style={styles.missingButton}
+                    onPress={handlePressClose}
+                    accessibilityRole='button'
+                    accessibilityLabel={
+                      warehouseDetail.canGoBack() ? '돌아가기' : '홈으로'
+                    }
+                  >
+                    <PretendardText
+                      weight='semibold'
+                      style={styles.missingButtonText}
+                    >
+                      {warehouseDetail.canGoBack() ? '돌아가기' : '홈으로'}
+                    </PretendardText>
+                  </TouchableOpacity>
+                </View>
+              </View>
             )}
-            <View style={styles.bottomSpacing} />
           </ScrollView>
 
           {showAddButton && (
@@ -304,17 +344,16 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
             </View>
           )}
         </View>
-        <SearchGearAddToBagModalView
-          visible={showAddToBagModal}
-          onClose={handleCloseModal}
-          gear={gear}
-          bag={bag}
-        />
+        {gear && (
+          <SearchGearAddToBagModalView
+            visible={showAddToBagModal}
+            onClose={handleCloseModal}
+            gear={gear}
+            bag={bag}
+          />
+        )}
       </>
     );
-  } else {
-    return null;
-  }
 };
 
 const styles = StyleSheet.create({
@@ -395,6 +434,34 @@ const styles = StyleSheet.create({
   },
   content: {
     flexDirection: 'column',
+  },
+  missingContent: {
+    flexGrow: 1,
+    minHeight: 420,
+    justifyContent: 'center',
+    paddingHorizontal: AcgLayout.screenH,
+  },
+  missingPanel: {
+    backgroundColor: Acg.controlFill,
+    borderRadius: AcgRadius.thumb,
+    padding: Spacing.section,
+  },
+  missingTitle: {
+    ...AcgType.sectionSubtitle,
+    color: Acg.ink,
+    textAlign: 'center',
+  },
+  missingButton: {
+    minHeight: CTA_PILL_HEIGHT,
+    marginTop: Spacing.item,
+    borderRadius: CTA_PILL_HEIGHT / 2,
+    backgroundColor: Acg.ink,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  missingButtonText: {
+    ...AcgType.control,
+    color: Acg.paper,
   },
   bottomSpacing: {
     height: 100,

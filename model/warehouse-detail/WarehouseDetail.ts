@@ -139,7 +139,9 @@ class WarehouseDetail {
       await this.getGearData();
       this.setInitialized(true);
     } catch (e) {
-      window.alert(`잘못된 접근입니다. ${id} ${e}`);
+      console.error('장비 상세 조회 실패:', e);
+      this.setGear(null);
+      this.setInitialized(true);
     }
   }
 
@@ -684,6 +686,10 @@ class WarehouseDetail {
     } else {
       this.router.replace('/');
     }
+  }
+
+  public canGoBack() {
+    return this.router.canGoBack();
   }
 
   private setId(id: string) {

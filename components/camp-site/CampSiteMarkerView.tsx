@@ -5,6 +5,10 @@ import { Acg } from '@/constants/DesignTokens';
 import SpotPinView from '@/components/camp-site/SpotPinView';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import { getCampSiteTypeColor } from '@/model/camp-site/CampSiteLabels';
+import {
+  CAMP_SITE_MARKER_Z_INDEX,
+  CAMP_SITE_SELECTED_MARKER_Z_INDEX,
+} from './CampSiteMapOverlayZIndex';
 
 interface Props {
   spot: CampSpot;
@@ -33,7 +37,11 @@ const CampSiteMarkerView = memo<Props>(({ spot, selected, onTapSpot }) => {
       height={selected ? PIN_HEIGHT : HIT_AREA}
       onTap={() => onTapSpot(spot)}
       // 선택 마커는 다른 마커 캡션 위로 그려지도록 zIndex를 올린다 — 겹침에서 선택 캡션이 이긴다.
-      zIndex={selected ? 1 : 0}
+      zIndex={
+        selected
+          ? CAMP_SITE_SELECTED_MARKER_Z_INDEX
+          : CAMP_SITE_MARKER_Z_INDEX
+      }
       // 박지 이름 캡션(CS-2) — 마커 위쪽 표시, 흰 halo로 지도 위 가독성 확보.
       // 44pt 히트 영역(원은 중앙 20pt) 밖에 붙으므로 음수 offset으로 원에 가깝게 당긴다.
       caption={{
