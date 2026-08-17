@@ -50,6 +50,14 @@ interface CameraTarget {
   duration: number;
 }
 
+interface CameraRegionTarget {
+  latitude: number;
+  longitude: number;
+  latitudeDelta: number;
+  longitudeDelta: number;
+  duration: number;
+}
+
 // 남한 전역이 보이는 폴백 카메라(위치 권한 거부/미결정 시).
 // 중심=남한 중앙, 줌=기존 latitudeDelta 4.8 등가(iPhone 세로 ~850dp 기준 zoom ≈ 8).
 const KOREA_CAMERA: Camera = {
@@ -57,6 +65,8 @@ const KOREA_CAMERA: Camera = {
   longitude: 127.9,
   zoom: deltaToZoom(4.8),
 };
+
+const KOREA_LATITUDE_DELTA = 4.8;
 
 // 최초 진입 1회 규제 고지(CS-4) 표시 여부 저장 키.
 const NOTICE_STORAGE_KEY = 'campSiteNoticeShown';
@@ -100,6 +110,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   // 지도 초기화 완료 여부 — 대기 중이던 카메라 이동을 초기화 후에만 flush한다.
   const mapReadyRef = useRef(false);
   const pendingCameraTargetRef = useRef<CameraTarget | null>(null);
+  const pendingCameraRegionRef = useRef<CameraRegionTarget | null>(null);
   const pendingCameraFrameRef = useRef<number | null>(null);
   // 현재 줌(마커 탭 시 줌은 유지한 채 그 박지를 중앙으로 이징하기 위함).
   const zoomRef = useRef<number>(deltaToZoom(0.2));
@@ -191,7 +202,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   const flushPendingCamera = useCallback(() => {
     if (
       pendingCameraFrameRef.current !== null ||
-      !pendingCameraTargetRef.current
+      (!pendingCameraTargetRef.current && !pendingCameraRegionRef.current)
     ) {
       return;
     }
@@ -204,13 +215,20 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       }
 
       const target = pendingCameraTargetRef.current;
+      const region = pendingCameraRegionRef.current;
 
-      if (!target) {
+      if (!target && !region) {
         return;
       }
 
       pendingCameraTargetRef.current = null;
-      mapRef.current.animateCameraTo(target);
+      pendingCameraRegionRef.current = null;
+
+      if (target) {
+        mapRef.current.animateCameraTo(target);
+      } else if (region) {
+        mapRef.current.animateRegionTo(region);
+      }
     });
   }, []);
 
@@ -226,6 +244,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         pendingCameraFrameRef.current !== null
       ) {
         pendingCameraTargetRef.current = target;
+        pendingCameraRegionRef.current = null;
 
         if (mapReadyRef.current) {
           flushPendingCamera();
@@ -235,7 +254,36 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       }
 
       pendingCameraTargetRef.current = null;
+      pendingCameraRegionRef.current = null;
       mapRef.current.animateCameraTo(target);
+    },
+    [flushPendingCamera]
+  );
+
+  const moveCameraToRegion = useCallback(
+    (region: CameraRegionTarget) => {
+      if (!mountedRef.current) {
+        return;
+      }
+
+      if (
+        !mapReadyRef.current ||
+        !mapRef.current ||
+        pendingCameraFrameRef.current !== null
+      ) {
+        pendingCameraTargetRef.current = null;
+        pendingCameraRegionRef.current = region;
+
+        if (mapReadyRef.current) {
+          flushPendingCamera();
+        }
+
+        return;
+      }
+
+      pendingCameraTargetRef.current = null;
+      pendingCameraRegionRef.current = null;
+      mapRef.current.animateRegionTo(region);
     },
     [flushPendingCamera]
   );
@@ -247,6 +295,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       mountedRef.current = false;
       mapReadyRef.current = false;
       pendingCameraTargetRef.current = null;
+      pendingCameraRegionRef.current = null;
 
       if (pendingCameraFrameRef.current !== null) {
         cancelAnimationFrame(pendingCameraFrameRef.current);
@@ -590,6 +639,81 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     [campSiteMap, moveCamera]
   );
 
+  // 검색 제출(CS-6): 확정된 이름 필터의 결과를 한 번만 카메라에 맞춘다.
+  // 유형·태그·즐겨찾기와 AND 적용된 getVisibleSpots를 그대로 사용한다.
+  const handleSubmitSearch = useCallback(() => {
+    Keyboard.dismiss();
+    campSiteMap.setSearchFocused(false);
+    campSiteMap.submitSearchQuery();
+
+    const submittedQuery = campSiteMap.getSubmittedSearchQuery();
+
+    if (submittedQuery.length === 0) {
+      return;
+    }
+
+    const spots = campSiteMap.getVisibleSpots();
+
+    if (spots.length === 0) {
+      return;
+    }
+
+    if (spots.length === 1) {
+      moveCamera({
+        latitude: spots[0].location.latitude,
+        longitude: spots[0].location.longitude,
+        zoom: deltaToZoom(0.05),
+        duration: 500,
+      });
+
+      return;
+    }
+
+    const latitudes = spots.map(spot => spot.location.latitude);
+    const longitudes = spots.map(spot => spot.location.longitude);
+    const { width, height } = Dimensions.get('window');
+    const paddingRatio = 1.25;
+    let latitudeDelta = Math.max(
+      (Math.max(...latitudes) - Math.min(...latitudes)) * paddingRatio,
+      0.01
+    );
+    let longitudeDelta = Math.max(
+      (Math.max(...longitudes) - Math.min(...longitudes)) * paddingRatio,
+      0.01
+    );
+
+    // Region의 가로·세로 비율을 화면 비율에 맞춰 두 축의 마커가 모두 들어오게 한다.
+    latitudeDelta = Math.max(latitudeDelta, longitudeDelta * (height / width));
+    longitudeDelta = Math.max(longitudeDelta, latitudeDelta * (width / height));
+
+    // bounds가 남한 전역보다 넓으면 CS-1 폴백 카메라에서 더 축소하지 않는다.
+    if (
+      latitudeDelta > KOREA_LATITUDE_DELTA ||
+      longitudeDelta > KOREA_LATITUDE_DELTA * (width / height)
+    ) {
+      moveCamera({
+        latitude: KOREA_CAMERA.latitude,
+        longitude: KOREA_CAMERA.longitude,
+        zoom: KOREA_CAMERA.zoom ?? 0,
+        duration: 700,
+      });
+
+      return;
+    }
+
+    const centerLatitude = (Math.max(...latitudes) + Math.min(...latitudes)) / 2;
+    const centerLongitude =
+      (Math.max(...longitudes) + Math.min(...longitudes)) / 2;
+
+    moveCameraToRegion({
+      latitude: centerLatitude - latitudeDelta / 2,
+      longitude: centerLongitude - longitudeDelta / 2,
+      latitudeDelta,
+      longitudeDelta,
+      duration: 700,
+    });
+  }, [campSiteMap, moveCamera, moveCameraToRegion]);
+
   // 마커 탭 콜백 — memo된 마커(CampSiteMarkerView)가 리렌더를 건너뛸 수 있게 참조를 고정한다.
   const handleMarkerTap = useCallback(
     (spot: CampSpot) => {
@@ -602,26 +726,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         duration: 400,
       });
     },
-    [campSiteMap, moveCamera, openDetail]
-  );
-
-  // 즐겨찾기 리스트 항목 본체 탭(CS-9) — 시트를 유지한 채 그 박지로 카메라만 이동한다.
-  // 즐겨찾기는 화면 밖 멀리일 수 있어 현재 줌을 유지하지 않고, 검색 결과 선택과 같은
-  // 근접 줌(deltaToZoom 0.05)으로 맞춰 그 박지가 잘 보이게 한다.
-  const handleSelectFavorite = useCallback(
-    (spot: CampSpot) => {
-      // 고른 박지가 유형·태그 필터에 걸려 마커까지 사라지면 카메라만 옮겨간 빈 지도가 남는다
-      // (검색 결과 선택과 같은 처리, 2026-08-04 사용자 지적).
-      campSiteMap.resetFilters();
-
-      moveCamera({
-        latitude: spot.location.latitude,
-        longitude: spot.location.longitude,
-        zoom: deltaToZoom(0.05),
-        duration: 500,
-      });
-    },
-    [campSiteMap, moveCamera]
+    [moveCamera, openDetail]
   );
 
   /**
@@ -668,7 +773,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     });
 
     router.push('/camp-site-favorites');
-  }, [campSiteMap, handleSelectFavorite, handleOpenFavoriteDetail, router]);
+  }, [campSiteMap, handleOpenFavoriteDetail, router]);
 
   // 지도 빈 곳 터치 → 마커 선택 해제 + 키보드 dismiss(드롭다운 blur로 닫힘, CS-6).
   // 네이버는 마커 onTap과 지도 onTapMap이 분리돼 있어 별도 경합 방어가 필요 없다.
@@ -825,6 +930,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         campSiteMap={campSiteMap}
         onSelectResult={handleSelectResult}
         onSelectPlace={handleSelectPlace}
+        onSubmitSearch={handleSubmitSearch}
       />
 
       <CampSiteMapBottomOverlayView

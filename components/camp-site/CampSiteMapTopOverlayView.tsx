@@ -34,6 +34,7 @@ interface Props {
   // 검색 결과 탭 — 카메라 이동은 mapRef를 가진 부모(CampSiteMapView)가 수행한다.
   onSelectResult: (spot: CampSpot) => void;
   onSelectPlace: (place: GeocodeResult) => void;
+  onSubmitSearch: () => void;
 }
 
 // 검색 필드 높이·아이콘 — 탐색 탭 필드와 같은 값.
@@ -44,8 +45,9 @@ const SEARCH_ICON_SIZE = 20;
 // 지도 상단 오버레이(CS-2/CS-6): 검색 인풋/드롭다운 + 유형 필터 칩 + 로드 실패 배너 + 로딩.
 // 지도 화면에서 분리된 observer라 검색 타이핑·필터 선택이 마커 레이어를 리렌더하지 않는다.
 const CampSiteMapTopOverlayView: FC<Props> = observer(
-  ({ campSiteMap, onSelectResult, onSelectPlace }) => {
+  ({ campSiteMap, onSelectResult, onSelectPlace, onSubmitSearch }) => {
     const query = campSiteMap.getQuery();
+    const submittedSearchQuery = campSiteMap.getSubmittedSearchQuery();
     const searchResults = campSiteMap.getSearchResults();
     const placeSearchResults = campSiteMap.getPlaceSearchResults();
     const searchingPlaces = campSiteMap.isSearchingPlaces();
@@ -53,6 +55,17 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
       query.trim().length >= 2 && campSiteMap.isSearchFocused();
     const hasSearchResults =
       searchResults.length > 0 || placeSearchResults.length > 0;
+    const searchFilterIsCurrent =
+      submittedSearchQuery.length > 0 &&
+      query.trim() === submittedSearchQuery;
+    const visibleSpotCount = campSiteMap.getVisibleSpots().length;
+    const showSearchCount = searchFilterIsCurrent;
+    const showNoSearchResults =
+      !campSiteMap.hasLoadError() &&
+      !campSiteMap.isLoading() &&
+      !showSearchResults &&
+      searchFilterIsCurrent &&
+      visibleSpotCount === 0;
 
     // 검색 시작 시 요약 카드를 닫아 드롭다운과 카드가 동시에 뜨지 않게 한다.
     const handleSearchFocus = () => {
@@ -81,9 +94,18 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
                 onChangeText={value => campSiteMap.setQuery(value)}
                 onFocus={handleSearchFocus}
                 onBlur={() => campSiteMap.setSearchFocused(false)}
+                onSubmitEditing={onSubmitSearch}
                 autoCorrect={false}
                 returnKeyType='search'
               />
+              {showSearchCount && (
+                <PretendardText
+                  style={styles.searchCount}
+                  accessibilityLabel={`검색 결과 ${visibleSpotCount}곳`}
+                >
+                  {`${visibleSpotCount}곳`}
+                </PretendardText>
+              )}
               {query.length > 0 && (
                 <TouchableOpacity
                   onPress={() => campSiteMap.clearQuery()}
@@ -229,6 +251,32 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
             </View>
           )}
 
+          {showNoSearchResults && (
+            <View style={styles.errorBanner}>
+              <PretendardText
+                style={styles.errorText}
+                weight='medium'
+                numberOfLines={1}
+              >
+                {`'${submittedSearchQuery}' 검색 결과가 없어요`}
+              </PretendardText>
+              <TouchableOpacity
+                style={styles.retryButton}
+                onPress={() => {
+                  campSiteMap.clearQuery();
+                  campSiteMap.resetFilters();
+                }}
+                activeOpacity={0.8}
+                accessibilityRole='button'
+                accessibilityLabel='전체 보기'
+              >
+                <PretendardText style={styles.retryText} weight='semibold'>
+                  전체 보기
+                </PretendardText>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {/* 검색 결과가 열려 있는 동안 필터 칩은 숨긴다 — 검색은 필터와 독립이라 무의미하고,
               드롭다운에 밀려 지도 한가운데 떠 보이는 문제(디자인 리뷰)를 막는다. */}
           {/* 유형·태그 필터 칩(CS-2). ★ 즐겨찾기는 하단 오버레이 플로팅 버튼으로 옮겨
@@ -286,6 +334,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Regular',
     color: Acg.ink,
     padding: 0,
+  },
+  searchCount: {
+    ...AcgType.meta,
+    color: Acg.textMuted,
+    flexShrink: 0,
   },
   // 결과는 검색 필드 바로 아래 흰 면으로 이어 붙인다 — 같은 모서리·좌우 패딩이라 한 덩어리다.
   dropdown: {
