@@ -68,8 +68,7 @@ class App {
     this.campSpotStore = new CampSpotStore(this.firebase);
     this.feedContentStore = new FeedContentStore(
       this.firebase,
-      this.campSpotStore,
-      this.gearStore
+      this.campSpotStore
     );
     this.campReviewStore = new CampReviewStore(this.firebase);
     this.campFavoriteStore = new CampFavoriteStore(this.firebase);

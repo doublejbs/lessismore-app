@@ -7,25 +7,18 @@ import {
 } from 'firebase/firestore';
 import Firebase from '../firebase/Firebase';
 import CampSpotStore from './CampSpotStore';
-import GearStore from './GearStore';
 import FeedContentType from '../feed/FeedContentType';
-import {
-  FeedContentData,
-  RecommendedGear,
-  RecommendedSpot,
-} from '../feed/FeedContentTypes';
+import { FeedContentData, RecommendedSpot } from '../feed/FeedContentTypes';
 
-// 홈 운영자 추천 조회·참조 조인 (Home HM-11·HM-12, DataModel DM-27).
+// 홈 운영자 추천 박지 조회·참조 조인 (Home HM-11, DataModel DM-27).
 class FeedContentStore {
   // 큐레이션은 소량이며, 초안이 최신 30건을 잠식할 수 있어 50건을 넉넉히 읽고 발행 여부를 거른다.
   private static readonly PUBLISHED_CONTENT_LIMIT = 50;
-  public static readonly SPOT_LIMIT = 3;
-  public static readonly GEAR_LIMIT = 10;
+  public static readonly SPOT_LIMIT = 5;
 
   public constructor(
     private readonly firebase: Firebase,
-    private readonly campSpotStore: CampSpotStore,
-    private readonly gearStore: GearStore
+    private readonly campSpotStore: CampSpotStore
   ) {}
 
   public async getRecommendedSpots(): Promise<RecommendedSpot[]> {
@@ -51,32 +44,6 @@ class FeedContentStore {
 
     return joined.filter(
       (item): item is RecommendedSpot => item !== null
-    );
-  }
-
-  public async getRecommendedGears(): Promise<RecommendedGear[]> {
-    const contents = (await this.getPublishedContents())
-      .filter(content => content.type === FeedContentType.GearIntro)
-      .slice(0, FeedContentStore.GEAR_LIMIT);
-
-    const joined = await Promise.all(
-      contents.map(async content => {
-        if (!content.relatedGearId) {
-          return null;
-        }
-
-        const gear = await this.gearStore.getCatalogGear(content.relatedGearId);
-
-        if (!gear) {
-          return null;
-        }
-
-        return { content, gear };
-      })
-    );
-
-    return joined.filter(
-      (item): item is RecommendedGear => item !== null
     );
   }
 
