@@ -6,6 +6,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import PretendardText from '@/components/PretendardText';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
@@ -29,12 +30,17 @@ interface Props {
 
 const CARD_GAP = 10;
 const CARD_PEEK = 28;
+const PHOTO_BAND_HEIGHT = 110;
+const CARD_PADDING = 16;
 
 // HM-11: 운영자 추천 박지 캐러셀. 지도 탭 상세 진입은 지도 마커 탭의 기존 경로를 재사용한다.
 const HomeRecommendedSpotsView: FC<Props> = ({ recommendations }) => {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const [activePage, setActivePage] = useState(0);
+  const [failedImageKeys, setFailedImageKeys] = useState<Set<string>>(
+    () => new Set()
+  );
 
   if (recommendations.length === 0) {
     return null;
@@ -45,6 +51,16 @@ const HomeRecommendedSpotsView: FC<Props> = ({ recommendations }) => {
     router.push('/map');
   };
 
+  const handleImageError = (imageKey: string) => {
+    setFailedImageKeys(previous => {
+      if (previous.has(imageKey)) {
+        return previous;
+      }
+
+      return new Set(previous).add(imageKey);
+    });
+  };
+
   const cardWidth =
     recommendations.length > 1
       ? width - AcgLayout.screenPadding * 2 - CARD_PEEK
@@ -53,6 +69,11 @@ const HomeRecommendedSpotsView: FC<Props> = ({ recommendations }) => {
   const renderCard = ({ content, spot }: RecommendedSpot) => {
     const typeLabel = getCampSiteTypeLabel(spot.type);
     const regionLabel = getCampSpotRegionLabel(spot);
+    const imageKey = content.imageUrl
+      ? `${spot.id}:${content.imageUrl}`
+      : null;
+    const showImageBand =
+      imageKey !== null && !failedImageKeys.has(imageKey);
 
     return (
       <TouchableOpacity
@@ -63,32 +84,52 @@ const HomeRecommendedSpotsView: FC<Props> = ({ recommendations }) => {
         accessibilityRole='button'
         accessibilityLabel={`${spot.name}, ${typeLabel}, ${regionLabel}, 지도에서 보기`}
       >
-        <PretendardText
-          weight='medium'
-          style={styles.title}
-          numberOfLines={2}
-        >
-          {spot.name}
-        </PretendardText>
-        <View style={styles.metaRow}>
-          <View
-            style={[
-              styles.typeDot,
-              { backgroundColor: getCampSiteTypeColor(spot.type) },
-            ]}
+        {showImageBand ? (
+          <Image
+            source={{ uri: content.imageUrl! }}
+            style={styles.photoBand}
+            contentFit='cover'
+            cachePolicy='memory-disk'
+            onError={() => handleImageError(imageKey!)}
+            accessible={false}
           />
-          <PretendardText style={styles.meta} numberOfLines={1}>
-            {`${typeLabel} · ${regionLabel}`}
-          </PretendardText>
-        </View>
-        {content.summary ? (
-          <PretendardText style={styles.summary} numberOfLines={2}>
-            {content.summary}
-          </PretendardText>
         ) : null}
+        <View
+          style={[styles.body, !showImageBand && styles.bodyWithoutImage]}
+        >
+          <PretendardText
+            weight='medium'
+            style={styles.title}
+            numberOfLines={2}
+          >
+            {spot.name}
+          </PretendardText>
+          <View style={styles.metaRow}>
+            <View
+              style={[
+                styles.typeDot,
+                { backgroundColor: getCampSiteTypeColor(spot.type) },
+              ]}
+            />
+            <PretendardText style={styles.meta} numberOfLines={1}>
+              {`${typeLabel} · ${regionLabel}`}
+            </PretendardText>
+          </View>
+          {content.summary ? (
+            <PretendardText style={styles.summary} numberOfLines={2}>
+              {content.summary}
+            </PretendardText>
+          ) : null}
+        </View>
       </TouchableOpacity>
     );
   };
+
+  const visibleImage = recommendations.find(
+    ({ content, spot }) =>
+      Boolean(content.imageUrl) &&
+      !failedImageKeys.has(`${spot.id}:${content.imageUrl}`)
+  );
 
   return (
     <View style={styles.section}>
@@ -131,6 +172,11 @@ const HomeRecommendedSpotsView: FC<Props> = ({ recommendations }) => {
           </View>
         </>
       )}
+      {visibleImage?.content.imageAttribution ? (
+        <PretendardText style={styles.credit}>
+          {visibleImage.content.imageAttribution}
+        </PretendardText>
+      ) : null}
     </View>
   );
 };
@@ -148,11 +194,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: AcgLayout.screenPadding,
   },
   card: {
-    minHeight: 108,
-    gap: 6,
-    padding: 16,
     backgroundColor: Acg.controlFill,
     borderRadius: AcgRadius.thumb,
+    overflow: 'hidden',
+  },
+  photoBand: {
+    width: '100%',
+    height: PHOTO_BAND_HEIGHT,
+  },
+  body: {
+    gap: 6,
+    padding: CARD_PADDING,
+  },
+  bodyWithoutImage: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   title: {
     ...AcgType.rowTitle,
@@ -190,6 +246,12 @@ const styles = StyleSheet.create({
   },
   pageDotActive: {
     backgroundColor: Acg.ink,
+  },
+  credit: {
+    ...AcgType.meta,
+    color: Acg.textMuted,
+    marginTop: 10,
+    textAlign: 'left',
   },
 });
 
