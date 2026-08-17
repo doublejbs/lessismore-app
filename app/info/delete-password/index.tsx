@@ -6,6 +6,26 @@ import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius, Spacing } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
+// 자격 증명 문제와 그 밖의 실패를 가른다(AU-5·AU-10). 재인증을 통과한 뒤의 실패
+// (데이터·계정 삭제)까지 비밀번호 문구로 안내하면 맞는 비밀번호를 틀렸다고 말하게 된다.
+const CREDENTIAL_ERROR_CODES = new Set([
+  'auth/wrong-password',
+  'auth/invalid-credential',
+  'auth/invalid-login-credentials',
+]);
+
+const getDeleteFailureMessage = (code?: string) => {
+  if (code === 'auth/too-many-requests') {
+    return '시도가 너무 많습니다. 잠시 후 다시 시도해주세요.';
+  }
+
+  if (code && CREDENTIAL_ERROR_CODES.has(code)) {
+    return '비밀번호가 올바르지 않습니다.';
+  }
+
+  return '회원 탈퇴 중 오류가 발생했습니다. 다시 시도해주세요.';
+};
+
 const DeletePasswordView = () => {
   const router = useRouter();
   const [password, setPassword] = useState('');
@@ -32,10 +52,9 @@ const DeletePasswordView = () => {
       ]);
     } catch (error: any) {
       console.error('이메일 회원 탈퇴 실패:', error);
-      const message =
-        error?.code === 'auth/too-many-requests'
-          ? '시도가 너무 많습니다. 잠시 후 다시 시도해주세요.'
-          : '비밀번호가 올바르지 않습니다.';
+      // 자격 증명 문제만 비밀번호 문구를 쓴다(AU-5·AU-10). 재인증을 통과한 뒤의 실패
+      // (데이터·계정 삭제)까지 "비밀번호가 틀렸다"고 하면 맞는 비밀번호를 틀렸다고 안내하게 된다.
+      const message = getDeleteFailureMessage(error?.code);
       Alert.alert('회원 탈퇴 실패', message);
       setIsDeleting(false);
     }

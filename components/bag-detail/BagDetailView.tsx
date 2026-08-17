@@ -81,19 +81,27 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
 
   // 장비 헤더(총 N개 + 필터)의 콘텐츠 내 y 위치. onLayout으로 측정한다.
   const [gearHeaderY, setGearHeaderY] = useState<number | null>(null);
-  // iOS 전용: 필터가 헤더 아래에 고정 표시돼야 하는지(스크롤 위치 기반).
+  // 필터가 헤더 아래에 고정 표시돼야 하는지(스크롤 위치 기반). 양 플랫폼 공용이다.
   const [isFilterPinned, setIsFilterPinned] = useState(false);
+  // Android 커스텀 헤더 높이 — 오버레이를 헤더 바로 아래에 놓기 위한 측정값(iOS는 0).
+  const [androidHeaderHeight, setAndroidHeaderHeight] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
 
+  // 필터 고정을 **오버레이로** 처리한다(BD-2). RN `stickyHeaderIndices`를 쓰지 않는 이유:
+  // iOS는 sticky가 인셋을 몰라 투명 헤더 뒤에 붙어 가려지고, Android는 sticky 뷰를 형제
+  // 순서대로 그려 뒤에 오는 장비 목록이 위에 얹혀 **리스트가 비치고 터치까지 가로챈다**
+  // (2026-08-17 실기기 확인 — 불투명 배경·zIndex로도 터치가 살아나지 않았다).
+  // 오버레이는 ScrollView **뒤에 오는 형제**라 두 문제가 구조적으로 사라진다.
   const handleScroll = (event: any) => {
     bagDetail.handleScroll(event);
 
-    // iOS: RN sticky는 인셋을 몰라 화면 최상단(투명 헤더 뒤)에 붙어 가려진다.
-    // sticky 대신 스크롤 위치로 '헤더 아래 오버레이' 표시를 판정한다(핀 라인 = headerBottom).
-    if (IS_IOS && gearHeaderY !== null) {
+    if (gearHeaderY !== null) {
       const offsetY = event.nativeEvent.contentOffset.y;
+      // iOS는 콘텐츠가 투명 헤더 뒤로 흐르므로 핀 라인이 헤더 하단이다. Android는
+      // 스크롤 프레임이 헤더 아래에서 시작하므로 0이다.
+      const pinLine = IS_IOS ? headerBottom : 0;
 
-      setIsFilterPinned(offsetY + headerBottom >= gearHeaderY);
+      setIsFilterPinned(offsetY + pinLine >= gearHeaderY);
     }
   };
 
@@ -224,7 +232,12 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
         <SafeAreaView style={styles.container} edges={SAFE_AREA_EDGES}>
           <View style={styles.container}>
             {!IS_IOS && (
-              <View style={styles.header}>
+              <View
+                style={styles.header}
+                onLayout={e =>
+                  setAndroidHeaderHeight(e.nativeEvent.layout.height)
+                }
+              >
                 <View style={styles.headerContent}>
                   <TouchableOpacity
                     onPress={handlePressBack}
@@ -248,8 +261,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               contentContainerStyle={styles.scrollContent}
               // iOS: 콘텐츠가 투명 헤더 뒤로 흐르되(edge-to-edge) 첫 콘텐츠는 시스템이 자동 인셋.
               contentInsetAdjustmentBehavior='automatic'
-              // iOS는 sticky가 투명 헤더 뒤(화면 최상단)에 붙어 가려지므로 오버레이로 대체한다.
-              stickyHeaderIndices={IS_IOS ? undefined : [4]}
+              // sticky를 쓰지 않는다 — 고정 표시는 아래 오버레이가 맡는다(BD-2, handleScroll 주석 참고).
               onScroll={handleScroll}
               scrollEventThrottle={16}
               showsVerticalScrollIndicator={false}
@@ -313,12 +325,19 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                 </View>
               </View>
             </ScrollView>
-            {/* iOS: sticky 대체 오버레이 — 필터를 투명 헤더 '아래'에 고정 표시한다.
-                SafeAreaView가 top 인셋을 소비하지 않는 iOS 구조라 화면 최상단(top: 0)부터
-                흰 배경을 깔고 paddingTop으로 헤더 높이만큼 내려 그린다. */}
-            {IS_IOS && isFilterPinned && (
+            {/* sticky 대체 오버레이 — 필터를 헤더 '아래'에 고정 표시한다(양 플랫폼 공용).
+                iOS: SafeAreaView가 top 인셋을 소비하지 않는 구조라 화면 최상단(top: 0)부터
+                흰 배경을 깔고 paddingTop으로 헤더 높이만큼 내려 그린다.
+                Android: 헤더가 일반 형제라 스크롤 프레임이 그 아래에서 시작하므로,
+                측정한 헤더 높이만큼 top을 내린다(paddingTop은 필요 없다). */}
+            {isFilterPinned && (
               <View
-                style={[styles.pinnedGearHeader, { paddingTop: headerBottom }]}
+                style={[
+                  styles.pinnedGearHeader,
+                  IS_IOS
+                    ? { paddingTop: headerBottom }
+                    : { top: androidHeaderHeight },
+                ]}
               >
                 <View style={styles.gearHeaderContent}>
                   <AcgSectionHeaderView title={`장비 ${gears.length}개`} />
@@ -432,14 +451,10 @@ const styles = StyleSheet.create({
     width: '100%',
     minHeight: 10,
   },
-  // Android sticky 헤더(BD-2). **투명일 수 없다** — Android는 sticky 뷰를 형제 순서대로 그려서
-  // 뒤에 오는 장비 목록이 이 위에 얹히고, 리스트가 비쳐 보이는 데다 터치까지 목록이 가져간다
-  // (2026-08-17 사용자 지적. 박지 상세 탭 바 CS-3와 같은 원인).
-  // zIndex로 형제보다 위로 올린다 — RN은 zIndex로 그리기 순서와 터치 대상 순서를 함께 바꾼다.
-  // elevation은 쓰지 않는다: Android에서 그림자를 만들어 "면에 그림자 없음"(HM-8)과 충돌한다.
+  // 콘텐츠 안의 장비 헤더 — 스크롤과 함께 흐른다(고정 표시는 pinnedGearHeader 오버레이가 맡는다).
+  // 지면이 순백이라 채움이 필요 없다.
   gearHeader: {
-    backgroundColor: Acg.paper,
-    zIndex: 1,
+    backgroundColor: 'transparent',
   },
   // iOS sticky 대체 오버레이 — 화면 상단 고정, 헤더 높이만큼 paddingTop을 준다(렌더에서 주입).
   // 스크롤 위에 떠서 목록을 가려야 하므로 여기만은 불투명하다. 지면과 같은 색이라

@@ -36,6 +36,19 @@ const AlertView: FC<Props> = ({ alertManager }) => {
     alertManager.confirm();
   };
 
+  // Android 하드웨어 뒤로가기(APP-9). 2버튼 알럿에서는 **취소**여야 한다 — 확인으로 두면
+  // 뒤로가기 한 번에 삭제·로그아웃 같은 파괴적 콜백이 확인 없이 실행된다.
+  // 단일 버튼 알림(`notify`, cancelable=false)은 확인 콜백이 닫기뿐이라 둘이 등가다.
+  const handleRequestClose = () => {
+    if (cancelable) {
+      handleClickCancel();
+
+      return;
+    }
+
+    handleClickConfirm();
+  };
+
   if (!isVisible) {
     return null;
   }
@@ -45,7 +58,7 @@ const AlertView: FC<Props> = ({ alertManager }) => {
       visible={isVisible}
       transparent={true}
       animationType='fade'
-      onRequestClose={handleClickConfirm}
+      onRequestClose={handleRequestClose}
     >
       <View style={styles.overlay}>
         <View style={styles.alertContainer}>
