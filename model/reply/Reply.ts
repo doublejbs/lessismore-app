@@ -146,17 +146,8 @@ class Reply {
     app.getAlertManager()?.show({
       message: '정말 삭제하시겠습니까?',
       confirmText: '삭제',
-      onConfirm: async () => {
-        try {
-          await this.deleteComment(commentId);
-        } catch (error) {
-          app.getAlertManager()?.show({
-            message: '댓글 삭제에 실패했습니다.',
-            confirmText: '확인',
-            onConfirm: async () => {},
-          });
-        }
-      },
+      failureMessage: '삭제하지 못했어요. 다시 시도해주세요.',
+      onConfirm: async () => this.deleteComment(commentId),
     });
   }
 

@@ -19,7 +19,6 @@ import BagPacking from '@/model/bag-packing/BagPacking';
 import BagPackingHeaderView from './BagPackingHeaderView';
 import BagPackingCategorySectionView from './BagPackingCategorySectionView';
 import BagPackingCompleteView from './BagPackingCompleteView';
-import AlertView from '@/components/alert/AlertView';
 import { Acg, AcgLayout, AcgType, Spacing } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
@@ -152,7 +151,6 @@ const BagPackingView: FC<Props> = ({ bagPacking }) => {
 
         {showCompleteCard && <BagPackingCompleteView bagPacking={bagPacking} />}
       </View>
-      <AlertView alertManager={app.getAlertManager()!} />
     </SafeAreaView>
   );
 };

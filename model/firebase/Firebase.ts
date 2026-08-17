@@ -39,6 +39,7 @@ import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import app from '@/model/app/App';
+import LogInResult from '@/model/login/LogInResult';
 
 class Firebase {
   private static readonly config = {
@@ -243,11 +244,12 @@ class Firebase {
     await createUserWithEmailAndPassword(this.auth, email, password);
   }
 
-  public async login(email: string, password: string) {
+  public async login(email: string, password: string): Promise<LogInResult> {
     const result = await signInWithEmailAndPassword(this.auth, email, password);
 
     if (result.user) {
       this.setLoginProvider('email');
+      return LogInResult.Success;
     } else {
       throw new Error('이메일 또는 비밀번호가 올바르지 않습니다.');
     }
@@ -270,11 +272,15 @@ class Firebase {
     return this.loggedIn;
   }
 
-  public async logInWithGoogle() {
+  public async logInWithGoogle(): Promise<LogInResult> {
     try {
       if (Platform.OS === 'ios' || Platform.OS === 'android') {
         // 네이티브 앱에서는 GoogleSignin 라이브러리 사용
         const response = await GoogleSignin.signIn();
+
+        if (response.type === 'cancelled') {
+          return LogInResult.Cancelled;
+        }
 
         if (response.data?.idToken) {
           const googleCredential = GoogleAuthProvider.credential(
@@ -283,6 +289,7 @@ class Firebase {
           );
           await signInWithCredential(this.auth, googleCredential);
           this.setLoginProvider('google');
+          return LogInResult.Success;
         } else {
           throw new Error(
             'Google 로그인 실패: idToken을 받을 수 없습니다. Google 설정을 확인해주세요.'
@@ -295,14 +302,19 @@ class Firebase {
         const provider = new GoogleAuthProvider();
         await signInWithPopup(this.auth, provider);
         this.setLoginProvider('google');
+        return LogInResult.Success;
       }
     } catch (error) {
+      if ((error as { code?: string }).code === 'auth/popup-closed-by-user') {
+        return LogInResult.Cancelled;
+      }
+
       console.error('Google 로그인 오류:', error);
       throw error;
     }
   }
 
-  public async logInWithApple() {
+  public async logInWithApple(): Promise<LogInResult> {
     try {
       if (Platform.OS === 'ios') {
         // iOS에서는 expo-apple-authentication 사용
@@ -322,6 +334,7 @@ class Firebase {
           });
           await signInWithCredential(this.auth, authCredential);
           this.setLoginProvider('apple');
+          return LogInResult.Success;
         } else {
           throw new Error(
             'Apple 로그인 실패: identityToken을 받을 수 없습니다.'
@@ -336,14 +349,18 @@ class Firebase {
         provider.addScope('name');
         await signInWithPopup(this.auth, provider);
         this.setLoginProvider('apple');
+        return LogInResult.Success;
       } else {
         throw new Error('Apple 로그인은 iOS와 웹에서만 지원됩니다.');
       }
     } catch (error: any) {
-      if (error.code === 'ERR_REQUEST_CANCELED') {
+      if (
+        error.code === 'ERR_REQUEST_CANCELED' ||
+        error.code === 'auth/popup-closed-by-user'
+      ) {
         // 사용자가 로그인을 취소한 경우
         console.log('Apple 로그인이 취소되었습니다.');
-        return;
+        return LogInResult.Cancelled;
       }
       console.error('Apple 로그인 오류:', error);
       throw error;
@@ -454,6 +471,10 @@ class Firebase {
     return this.loginProvider;
   }
 
+  public getCurrentUserEmail() {
+    return this.auth.currentUser?.email ?? '';
+  }
+
   public async createNickname() {
     if (!!this.getNickname()) {
       return;
@@ -494,9 +515,7 @@ class Firebase {
       } else if (this.loginProvider === 'apple') {
         await this.reauthenticateWithApple(user);
       } else if (this.loginProvider === 'email') {
-        throw new Error(
-          '이메일로 로그인한 경우, 비밀번호를 다시 입력해야 합니다. deleteUserAccountWithEmail 메서드를 사용하세요.'
-        );
+        throw new Error('이메일 사용자는 비밀번호 재입력이 필요합니다.');
       } else {
         throw new Error('로그인 방식을 알 수 없습니다.');
       }
@@ -520,7 +539,7 @@ class Firebase {
     if (Platform.OS === 'ios' || Platform.OS === 'android') {
       try {
         await GoogleSignin.signOut();
-      } catch (error) {
+      } catch {
         // Google 로그인이 아닌 경우 에러 무시
       }
     }
@@ -547,7 +566,7 @@ class Firebase {
       await reauthenticateWithCredential(user, credential);
     } catch (error: any) {
       console.error('재인증 실패:', error);
-      throw new Error('비밀번호가 올바르지 않습니다.');
+      throw error;
     }
 
     // Firestore 데이터 삭제

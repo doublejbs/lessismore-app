@@ -74,9 +74,7 @@ const CampSiteDetailWrapper: FC = () => {
   if (initialized) {
     return (
       <View style={styles.sheet}>
-        {/* 토스트를 하단 '배낭 여행지로 설정' CTA 위에 띄운다(버튼과 좌우 끝선·폭이
-            동일해 검정끼리도 어긋나 보이지 않는다). 버튼 높이(약 84) + 여유만큼 올린다(CS-5). */}
-        <Layout paddingHorizontal={0} toastBottom={96} edges={SHEET_EDGES}>
+        <Layout paddingHorizontal={0} edges={SHEET_EDGES}>
           <CampSiteDetailView
             campSiteDetail={campSiteDetail}
             onMoveToSpot={sheetParams ? handleMoveToSpot : undefined}

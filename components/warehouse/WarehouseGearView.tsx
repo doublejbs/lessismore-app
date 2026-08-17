@@ -71,6 +71,7 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse, divided = false }) => {
     alertManager?.show({
       message: `${gear.getDisplayName()}을 삭제하시겠습니까?`,
       confirmText: '삭제하기',
+      failureMessage: '삭제하지 못했어요. 다시 시도해주세요.',
       onConfirm: async () => {
         await warehouse.remove(gear);
         app

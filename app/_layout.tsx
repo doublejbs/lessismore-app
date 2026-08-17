@@ -9,7 +9,7 @@ import { Stack, useRouter, usePathname, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import app from '@/model/app/App';
 import { useEffect } from 'react';
@@ -19,6 +19,9 @@ import { observer } from 'mobx-react-lite';
 import ForceUpdateGateView from '@/components/app-update/ForceUpdateGateView';
 import AnnouncementSheetView from '@/components/announcement/AnnouncementSheetView';
 import FeaturePopupSheetView from '@/components/feature-popup/FeaturePopupSheetView';
+import LogInView from '@/components/login/LogInView';
+import AlertView from '@/components/alert/AlertView';
+import ToastView from '@/components/toast/ToastView';
 import { Acg } from '@/constants/DesignTokens';
 
 // 네이티브 스플래시를 폰트 로드 후 직접 내려, 초기화(Firebase) 동안 React 스플래시
@@ -365,6 +368,18 @@ const RootLayout = () => {
               contentStyle: { backgroundColor: '#FFFFFF' },
             }}
           />
+          <Stack.Screen
+            name='info/delete-password'
+            options={{
+              headerShown: false,
+              presentation: 'formSheet',
+              sheetAllowedDetents:
+                Platform.OS === 'android' ? [0.7] : 'fitToContents',
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 20,
+              contentStyle: { backgroundColor: Acg.paper },
+            }}
+          />
           {/* 공유 배낭 뷰어(CS-8). **일반 push로 두면 안 된다** — 박지 상세가 `formSheet`라
               그 위에서 push하면 시트 안에서 부모 스크린 컨트롤러를 못 찾아
               (`Failed to find parent screen controller`) 화면이 마운트되고 데이터도 다
@@ -381,6 +396,7 @@ const RootLayout = () => {
           <Stack.Screen name='+not-found' />
         </Stack>
         <StatusBar style='auto' />
+        <RootOverlayViews />
         {/* 인앱 공지 바텀 시트(AN-2) — 모달이라 모든 탭·화면 위에 뜬다. isInitialized 이후 렌더 지점.
             게이트보다 먼저 두지만, 시트는 needsUpdate면 스스로 뜨지 않아 게이트가 최상위를 유지한다. */}
         <AnnouncementSheetView />
@@ -393,6 +409,21 @@ const RootLayout = () => {
         <ForceUpdateGateView />
       </ThemeProvider>
     </SafeAreaProvider>
+  );
+};
+
+const RootOverlayViews = () => {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <>
+      <LogInView logInAlertManager={app.getLogInAlertManager()!} />
+      <AlertView alertManager={app.getAlertManager()!} />
+      <ToastView
+        toastManager={app.getToastManager()!}
+        bottom={100 + insets.bottom}
+      />
+    </>
   );
 };
 
