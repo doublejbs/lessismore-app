@@ -1,5 +1,6 @@
-import { FC } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { FC, useEffect, useState } from 'react';
+import * as Haptics from 'expo-haptics';
+import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import {
@@ -15,6 +16,10 @@ import {
   formatWorkoutStartedAt,
   getWorkoutTypeLabel,
 } from '@/model/health/HealthFormat';
+import useReduceMotion from '@/hooks/useReduceMotion';
+
+const CHECK_SPRING_DAMPING = 22;
+const UNSELECT_DURATION = 140;
 
 interface Props {
   workout: HealthWorkout;
@@ -30,8 +35,52 @@ const BagActivityWorkoutItemView: FC<Props> = ({
   first,
   onToggle,
 }) => {
+  const [selectionProgress] = useState(
+    () => new Animated.Value(selected ? 1 : 0)
+  );
+  const isReduceMotionEnabled = useReduceMotion();
+
+  useEffect(() => {
+    if (isReduceMotionEnabled === null) {
+      return;
+    }
+
+    const targetValue = selected ? 1 : 0;
+
+    selectionProgress.stopAnimation();
+
+    if (isReduceMotionEnabled) {
+      selectionProgress.setValue(targetValue);
+
+      return;
+    }
+
+    if (selected) {
+      // 탭 선택은 제스처가 아니므로 damping 22로 살짝만 튀게 해 과한 바운스를 피한다.
+      Animated.spring(selectionProgress, {
+        toValue: targetValue,
+        stiffness: 300,
+        damping: CHECK_SPRING_DAMPING,
+        mass: 1,
+        useNativeDriver: true,
+      }).start();
+
+      return;
+    }
+
+    Animated.timing(selectionProgress, {
+      toValue: targetValue,
+      duration: UNSELECT_DURATION,
+      useNativeDriver: true,
+    }).start();
+  }, [isReduceMotionEnabled, selected, selectionProgress]);
+
   const handlePress = () => {
     onToggle(workout.id);
+
+    if (!selected) {
+      void Haptics.selectionAsync().catch(() => undefined);
+    }
   };
 
   // 실내 운동 등 거리가 없는 기록도 후보로 나올 수 있어 있을 때만 표기한다.
@@ -61,11 +110,39 @@ const BagActivityWorkoutItemView: FC<Props> = ({
           {formatWorkoutStartedAt(workout.startDate)} · {metrics}
         </PretendardText>
       </View>
-      <Ionicons
-        name={selected ? 'checkmark-circle' : 'ellipse-outline'}
-        size={24}
-        color={selected ? Acg.ink : Acg.hairline}
-      />
+      <View style={styles.iconContainer} pointerEvents='none'>
+        <Animated.View
+          style={[
+            styles.iconLayer,
+            {
+              opacity: selectionProgress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [1, 0],
+              }),
+            },
+          ]}
+        >
+          <Ionicons name='ellipse-outline' size={24} color={Acg.hairline} />
+        </Animated.View>
+        <Animated.View
+          style={[
+            styles.iconLayer,
+            {
+              opacity: selectionProgress,
+              transform: [
+                {
+                  scale: selectionProgress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.8, 1],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <Ionicons name='checkmark-circle' size={24} color={Acg.ink} />
+        </Animated.View>
+      </View>
     </TouchableOpacity>
   );
 };
@@ -86,6 +163,17 @@ const styles = StyleSheet.create({
   main: {
     flex: 1,
     gap: 4,
+  },
+  iconContainer: {
+    width: 24,
+    height: 24,
+  },
+  iconLayer: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
   },
   title: {
     ...AcgType.rowTitle,

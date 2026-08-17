@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { AccessibilityInfo, Animated } from 'react-native';
+import { useEffect } from 'react';
+import { Animated } from 'react-native';
+import useReduceMotion from './useReduceMotion';
 
 const SHEET_FADE_DURATION = 220;
 const REDUCE_MOTION_FADE_DURATION = 200;
@@ -28,31 +29,7 @@ const useSheetTransition = ({
   slideOffset,
   onCloseComplete,
 }: Options = {}): Result => {
-  const [isReduceMotionEnabled, setIsReduceMotionEnabled] = useState<boolean | null>(
-    null
-  );
-
-  useEffect(() => {
-    let isMounted = true;
-
-    void AccessibilityInfo.isReduceMotionEnabled()
-      .then(enabled => {
-        if (isMounted) {
-          setIsReduceMotionEnabled(enabled);
-        }
-      })
-      .catch(() => undefined);
-
-    const subscription = AccessibilityInfo.addEventListener(
-      'reduceMotionChanged',
-      setIsReduceMotionEnabled
-    );
-
-    return () => {
-      isMounted = false;
-      subscription.remove();
-    };
-  }, []);
+  const isReduceMotionEnabled = useReduceMotion();
 
   useEffect(() => {
     if (
