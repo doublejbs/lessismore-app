@@ -197,10 +197,22 @@ class GearImageUpload {
   }
 
   private async requestPermission(source: GearImageSource) {
-    const response =
-      source === GearImageSource.Camera
-        ? await ImagePicker.requestCameraPermissionsAsync()
-        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (source === GearImageSource.Camera) {
+      const response = await ImagePicker.requestCameraPermissionsAsync();
+
+      return response.granted;
+    }
+
+    // Android는 사진 라이브러리 권한을 요청하지 않는다 — 시스템 **사진 선택 도구**(Photo Picker)가
+    // 사용자가 고른 항목만 넘겨주므로 권한이 필요 없다. 게다가 Google Play 사진·동영상 권한 정책상
+    // READ_MEDIA_IMAGES/VIDEO는 "지속적 접근이 핵심 목적"인 앱만 쓸 수 있어 선언 자체를 걷었다
+    // (2026-08-18 정책 지적). 권한을 선언하지 않은 상태에서 요청하면 즉시 거부로 떨어져
+    // 사진 고르기가 막히므로, 요청을 건너뛰고 바로 피커를 연다.
+    if (Platform.OS === 'android') {
+      return true;
+    }
+
+    const response = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     return response.granted;
   }

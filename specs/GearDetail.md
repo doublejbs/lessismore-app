@@ -288,6 +288,25 @@ GD-2의 배낭별 행을 **여행 카드**로 강화한다. 배낭 문서에 이
   - **카메라를 쓰므로 `app.json`의 `expo-image-picker` 플러그인에 `cameraPermission` 한국어 문구가 있어야 한다.** 2026-07-28 제거 때 빠져 있었고, 없으면 iOS `NSCameraUsageDescription`에 영문 기본값이 박혀 심사 리젝 사유가 된다. `photosPermission`도 장비 사진 맥락을 포함하도록 갱신한다.
   - **권한 문구는 네이티브 Info.plist 값이라 OTA로 나가지 않는다 — 이 기능은 새 EAS 빌드가 필요하다.**
 - **권한 거부** 시 알럿으로 안내하고 설정 이동 경로를 제시한다. 권한 거부는 실패로 처리하되 에러 문구를 띄우지 않는다(사용자의 선택).
+- **Android는 사진 라이브러리 권한을 요청하지 않는다 — 시스템 사진 선택 도구(Photo Picker)를 쓴다** (2026-08-18 Google Play 정책 지적).
+  - **무엇이 문제였나**: `app.json`의 `expo-media-library` 플러그인이 `granularPermissions` 기본값(photo·video·audio)으로
+    **`READ_MEDIA_IMAGES`·`READ_MEDIA_VIDEO`·`READ_MEDIA_AUDIO`를 매니페스트에 선언**하고 있었다. Google Play
+    "사진 및 동영상 권한 정책"은 이 권한을 **공유 저장소에 지속적으로 접근하는 것이 핵심 목적인 앱**에만 허용한다.
+    이 앱은 사진을 **일회성으로 고를 뿐**이라 정책 위반이고, 실제로 2.0.0 업데이트 심사에서 지적받았다.
+  - **선언을 걷어도 기능이 유지되는 근거**: `expo-image-picker`는 Android에서 AndroidX
+    `ActivityResultContracts.PickVisualMedia`(시스템 사진 선택 도구)를 쓴다 — 사용자가 고른 항목만 앱에 넘어오므로
+    **권한이 필요 없다.** 따라서 Android에서는 `requestMediaLibraryPermissionsAsync()`를 **호출하지 않고** 바로 피커를 연다
+    (권한을 선언하지 않은 상태로 요청하면 즉시 거부로 떨어져 사진 고르기가 막힌다). iOS는 기존대로 권한을 요청한다.
+  - **필름 카드 저장은 영향받지 않는다**([BagShare.md](BagShare.md)) — `requestPermissionsAsync(true)`(writeOnly)는
+    `expo-media-library` 구현상 granular 권한을 제외하고, Android 13+에서는 요청 목록이 비어 바로 통과한다.
+  - **`RECORD_AUDIO`도 걷는다** — `expo-image-picker`가 동영상 촬영용으로 기본 추가하는데 이 앱의 피커는
+    `mediaTypes: ['images']`로 사진 전용이다. 쓰지 않는 마이크 권한은 그 자체로 정책 리스크다
+    (`microphonePermission: false`).
+  - 남는 미디어 관련 권한은 `READ_MEDIA_VISUAL_USER_SELECTED`(사진 선택 도구의 부분 접근 — 정책이 허용)와
+    `maxSdkVersion="32"`가 붙은 레거시 저장소 권한뿐이다.
+  - [ ] Android 실기기에서 `사진 추가` → 앨범 → 시스템 사진 선택 도구가 뜨고, 권한 팝업 없이 사진이 올라간다.
+  - [ ] Android에서 필름 카드 저장이 그대로 동작한다.
+  - [ ] 빌드한 aab 매니페스트에 `READ_MEDIA_IMAGES`·`READ_MEDIA_VIDEO`·`READ_MEDIA_AUDIO`·`RECORD_AUDIO`가 없다.
 - 업로드 흐름: 선택 → **업로드 중 표시**(진행 인디케이터, 화면 이탈 금지 아님) → Storage `/{userId}/{fileName}` 업로드(DM-9) → 다운로드 URL을 `users/{uid}/gears/{id}.imageUrl`에 저장 → 화면 즉시 반영.
 - **교체·삭제 시 이전 Storage 파일을 함께 지운다**(DM-9). 삭제는 확인 다이얼로그를 거치고, 확정 시 `imageUrl`을 제거한다.
 - **업로드 실패**(네트워크·용량)는 토스트로 알리고 기존 상태를 유지한다. 부분 실패로 `imageUrl`이 깨진 URL을 가리키지 않게, **Storage 업로드 성공 후에만** 문서를 갱신한다.

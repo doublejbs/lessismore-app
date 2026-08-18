@@ -381,16 +381,21 @@ class BagFilmCard {
     this.setPicking(true);
 
     try {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      // Android는 사진 라이브러리 권한을 요청하지 않는다 — 시스템 **사진 선택 도구**(Photo Picker)가
+      // 고른 항목만 넘겨주므로 권한이 필요 없다. Google Play 사진·동영상 권한 정책상
+      // READ_MEDIA_IMAGES/VIDEO 선언을 걷었기 때문에(2026-08-18) 요청하면 즉시 거부로 떨어진다.
+      if (Platform.OS !== 'android') {
+        const { status } =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-      if (status !== GRANTED) {
-        this.toastManager.show({
-          message:
-            '사진 접근 권한이 필요해요. 사진 없이도 카드를 만들 수 있어요',
-        });
+        if (status !== GRANTED) {
+          this.toastManager.show({
+            message:
+              '사진 접근 권한이 필요해요. 사진 없이도 카드를 만들 수 있어요',
+          });
 
-        return;
+          return;
+        }
       }
 
       /**
