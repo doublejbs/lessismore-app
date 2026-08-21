@@ -99,6 +99,25 @@ const res = await fetch('https://androidpublisher.googleapis.com/androidpublishe
   있다. 이 앱은 시스템 사진 선택 도구를 쓰므로 선언하지 않는다 —
   `expo-media-library` 플러그인의 `granularPermissions: []`, `expo-image-picker`의
   `microphonePermission: false`. 근거와 회귀 방지 기준은 [GearDetail.md](../../../specs/GearDetail.md) GD-13.
+- ★ **권한 위반은 "모든 버전 코드"가 대상이다 — 프로덕션만 고치면 해소되지 않는다.**
+  2026-08-21 실제로 겪었다: 프로덕션을 권한 제거 빌드(47)로 올렸는데 위반이 유지됐다.
+  방치된 테스트 트랙 5개(beta 22 / alpha 2 / internal 18 / test 8 / 테스트 8)가 옛 권한을 들고 있었다.
+  **정책 관련 릴리스에서는 트랙을 전수 조회하고 전부 같은 버전으로 맞춘다.**
+
+```bash
+# 트랙별 활성 버전 조회 (읽기 전용 — edit 생성 후 즉시 폐기). 레포 안에서 실행할 것.
+# GET {base}/edits/{editId}/tracks → tracks[].releases[].versionCodes
+```
+
+  옛 버전을 걷는 방법은 둘이다: **① 새 버전을 각 트랙에 승격**(권장 — 정석이고 트랙이 최신이 된다),
+  ② 트랙 릴리스를 비우기. 승격은 `PUT {base}/edits/{editId}/tracks/{track}`에
+  `{ track, releases: [{ versionCodes: ['<코드>'], status: 'completed' }] }`를 넣는다.
+  트랙 이름에 한글이 있으면 URL 인코딩한다.
+
+- **API 커밋은 자동 심사 제출을 못 한다.** `:commit`을 그냥 부르면 400
+  `Changes cannot be sent for review automatically`가 난다. `?changesNotSentForReview=true`로
+  커밋해야 하고, 그러면 **심사 제출은 사용자가 Play Console → 게시 개요에서** 해야 한다.
+  (`eas submit`은 자체 경로로 심사까지 보내므로 이 제약을 받지 않는다 — 트랙 조작만 이 제약이 있다.)
 
 ## 참고
 
