@@ -21,6 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import InfoFooterView from '@/components/info/InfoFooterView';
 import InfoFooterBackgroundView from '@/components/info/InfoFooterBackgroundView';
 import PretendardText from '@/components/PretendardText';
+import AppLanguage from '@/model/l10n/AppLanguage';
 import {
   Acg,
   AcgLayout,
@@ -41,6 +42,7 @@ const InfoView: FC = () => {
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [editedNickname, setEditedNickname] = useState('');
   const firebase = app.getFirebase();
+  const l10n = app.getL10n();
   const isLoggedIn = firebase.isLoggedIn();
   const nickname = firebase.getNickname();
   const logInAlertManager = app.getLogInAlertManager();
@@ -74,6 +76,19 @@ const InfoView: FC = () => {
   const handleOpenNotificationSettings = () => {
     router.push('/info/notification');
   };
+
+  const handleOpenLanguageSettings = () => {
+    router.push('/info/language' as never);
+  };
+
+  const languageOverride = l10n.getLanguageOverride();
+  const languageLabel = languageOverride === null
+    ? l10n.t('info.language.system')
+    : languageOverride === AppLanguage.Korean
+      ? '한국어'
+      : languageOverride === AppLanguage.English
+        ? 'English'
+        : '日本語';
 
   const handleOpenPrivacyPolicy = () => {
     router.push('/info/policy?tab=privacy');
@@ -205,6 +220,26 @@ const InfoView: FC = () => {
             알림 설정
           </PretendardText>
           <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleOpenLanguageSettings}
+          activeOpacity={0.7}
+          accessibilityRole='button'
+        >
+          <PretendardText weight='semibold' style={styles.buttonText}>
+            {l10n.t('info.language.rowLabel')}
+          </PretendardText>
+          <View style={styles.rowAccessory}>
+            <PretendardText
+              style={styles.rowSubtitle}
+              numberOfLines={1}
+            >
+              {languageLabel}
+            </PretendardText>
+            <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -430,6 +465,17 @@ const styles = StyleSheet.create({
   buttonText: {
     ...AcgType.rowTitle,
     color: Acg.ink,
+  },
+  rowAccessory: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 1,
+  },
+  rowSubtitle: {
+    ...AcgType.rowSubtitle,
+    color: Acg.textSecondary,
+    flexShrink: 1,
   },
   // 로그아웃(AU-4). 행 구조는 일반 메뉴와 같게 두고 **글자색만** 낮춰 성격 차이를 낸다.
   logoutText: {

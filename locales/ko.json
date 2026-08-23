@@ -1,0 +1,19 @@
+{
+  "common": {
+    "confirm": "확인",
+    "cancel": "취소",
+    "save": "저장",
+    "delete": "삭제",
+    "close": "닫기",
+    "continue": "계속",
+    "ok": "알겠어요",
+    "done": "완료"
+  },
+  "info": {
+    "language": {
+      "title": "언어",
+      "rowLabel": "언어",
+      "system": "시스템 설정 따르기"
+    }
+  }
+}
