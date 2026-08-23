@@ -12,6 +12,7 @@ import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 import { getDisplayHost } from '../../model/gear/GearBrandLink';
+import app from '@/model/app/App';
 
 /** 이미지 밴드 높이. 상품 사진이 대부분 정사각이라 밴드가 너무 납작하면 크게 letterbox 된다. */
 const IMAGE_HEIGHT = 180;
@@ -140,7 +141,7 @@ const WarehouseDetailBrandPreviewView: FC<Props> = ({
       onPress={() => warehouseDetail.openProductUrl()}
       activeOpacity={0.7}
       accessibilityRole='link'
-      accessibilityLabel={`${label}, 상품 페이지 열기`}
+            accessibilityLabel={app.getL10n().t('gearDetail.openProduct', { label })}
     >
       {showBand ? (
         <>

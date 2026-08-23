@@ -5,6 +5,7 @@ import CustomGear from '@/model/gear/custom/CustomGear';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   customGear: CustomGear;
@@ -34,7 +35,7 @@ const CustomGearWeightView = forwardRef<TextInput, Props>(
     return (
       <View style={styles.container}>
         <PretendardText weight='medium' style={styles.label}>
-          무게(g)
+          {app.getL10n().t('gearEdit.weight')}
         </PretendardText>
         <View style={styles.inputContainer}>
           <TextInput
@@ -42,7 +43,7 @@ const CustomGearWeightView = forwardRef<TextInput, Props>(
             style={styles.input}
             onChangeText={handleChangeWeight}
             value={weight}
-            placeholder={'무게를 입력해주세요'}
+            placeholder={app.getL10n().t('gearEdit.weightPlaceholder')}
             keyboardType='numeric'
             onFocus={onFocus}
           />
@@ -51,7 +52,7 @@ const CustomGearWeightView = forwardRef<TextInput, Props>(
               onPress={() => customGear.setWeight('')}
               style={styles.clearButton}
               accessibilityRole='button'
-              accessibilityLabel='입력 지우기'
+              accessibilityLabel={app.getL10n().t('gearEdit.clearInput')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Ionicons name='close-circle' size={20} color={Color.iconMuted} />
@@ -62,6 +63,8 @@ const CustomGearWeightView = forwardRef<TextInput, Props>(
     );
   }
 );
+
+CustomGearWeightView.displayName = 'CustomGearWeightView';
 
 const styles = StyleSheet.create({
   container: {

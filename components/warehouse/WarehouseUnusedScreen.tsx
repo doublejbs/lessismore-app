@@ -18,12 +18,13 @@ import Warehouse from '@/model/warehouse/Warehouse';
 import WarehouseCategoryChipsView from '@/components/warehouse/WarehouseCategoryChipsView';
 import WarehouseGearView from '@/components/warehouse/WarehouseGearView';
 import WarehouseSkeletonView from '@/components/warehouse/WarehouseSkeletonView';
+import app from '@/model/app/App';
 
 interface Props {
   warehouse: Warehouse;
 }
 
-const SCREEN_TITLE = '안 쓴 장비';
+const SCREEN_TITLE = 'warehouse.unusedGear';
 
 // LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 커스텀 JS 헤더를 유지한다.
 const IS_IOS = Platform.OS === 'ios';
@@ -74,7 +75,7 @@ const WarehouseUnusedScreen: FC<Props> = ({ warehouse }) => {
       return (
         <View style={styles.emptyContainer}>
           <PretendardText style={styles.emptyText}>
-            안 쓴 장비가 없어요
+            {app.getL10n().t('warehouse.noUnusedGear')}
           </PretendardText>
         </View>
       );
@@ -110,7 +111,7 @@ const WarehouseUnusedScreen: FC<Props> = ({ warehouse }) => {
           options={{
             headerShown: IS_IOS,
             headerTransparent: true,
-            headerTitle: SCREEN_TITLE,
+            headerTitle: app.getL10n().t(SCREEN_TITLE),
             headerBackButtonDisplayMode: 'minimal',
           }}
         />
@@ -131,12 +132,12 @@ const WarehouseUnusedScreen: FC<Props> = ({ warehouse }) => {
                 style={styles.backButton}
                 hitSlop={8}
                 accessibilityRole='button'
-                accessibilityLabel='뒤로 가기'
+            accessibilityLabel={app.getL10n().t('warehouse.back')}
               >
                 <Ionicons name='chevron-back' size={24} color={Acg.ink} />
               </TouchableOpacity>
               <PretendardText weight='bold' style={styles.titleText}>
-                {SCREEN_TITLE}
+                {app.getL10n().t(SCREEN_TITLE)}
               </PretendardText>
             </View>
           )}

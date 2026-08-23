@@ -139,7 +139,7 @@ class WarehouseDetail {
       await this.getGearData();
       this.setInitialized(true);
     } catch (e) {
-      window.alert(`잘못된 접근입니다. ${id} ${e}`);
+      window.alert(app.getL10n().t('gearDetail.invalidAccess', { id, error: e }));
     }
   }
 
@@ -164,7 +164,7 @@ class WarehouseDetail {
       await this.getGearData();
     } catch (e) {
       // 조용히 실패한다 — 이미 그려진 값이 있으므로 화면을 비우는 것보다 낫다.
-      console.error('장비 상세 갱신 실패:', e);
+      console.error('장비 상세 갱신 실패:', e); // l10n-ignore
     }
   }
 
@@ -207,7 +207,7 @@ class WarehouseDetail {
     try {
       const gearId = gear.getId();
       const cached = await this.gearStore.getReviewCache(gearId).catch(e => {
-        console.error('장비 후기 캐시 조회 실패:', e);
+        console.error('장비 후기 캐시 조회 실패:', e); // l10n-ignore
 
         return null;
       });
@@ -243,7 +243,7 @@ class WarehouseDetail {
       // 블로그 검색어: "{제조사 표시명} {장비명} 후기" — 제조사가 없으면 생략.
       // 블로그는 이 검색어로도 제품명 일치율이 높아 현행을 유지한다(실측 93.3%, GD-6).
       // 빈 조각을 걸러 이어 붙인다 — 템플릿 문자열로 만들면 이름이 빈 장비에서 공백이 겹친다.
-      const blogQuery = [displayCompany, searchName, '후기']
+      const blogQuery = [displayCompany, searchName, '후기'] // l10n-ignore
         .filter(part => Boolean(part))
         .join(' ');
 
@@ -296,11 +296,11 @@ class WarehouseDetail {
             queryVersion: REVIEW_QUERY_VERSION,
           })
           .catch(e => {
-            console.error('장비 후기 캐시 저장 실패:', e);
+            console.error('장비 후기 캐시 저장 실패:', e); // l10n-ignore
           });
       }
     } catch (e) {
-      console.error('장비 후기 조회 실패:', e);
+      console.error('장비 후기 조회 실패:', e); // l10n-ignore
     }
   }
 
@@ -489,8 +489,8 @@ class WarehouseDetail {
 
   public async delete(gear: Gear) {
     this.alertManager.show({
-      message: `${gear.getName()}을 삭제하시겠습니까?`,
-      confirmText: '삭제하기',
+      message: app.getL10n().t('gearEdit.deleteConfirm', { name: gear.getName() }),
+      confirmText: app.getL10n().t('gearEdit.deleteAction'),
       onConfirm: async () => {
         await this.deleteGear(gear);
       },
@@ -499,7 +499,7 @@ class WarehouseDetail {
 
   private async deleteGear(gear: Gear) {
     await this.dispatcher.remove(gear);
-    this.toastManager.show({ message: '삭제 되었습니다.' });
+    this.toastManager.show({ message: app.getL10n().t('gearEdit.deleted') });
     this.close();
   }
 
@@ -774,7 +774,7 @@ class WarehouseDetail {
     await this.searchDispatcher.register([gear]);
     await this.warehouseOrder.saveLastOrderOption();
     await this.bagDetailOrder.saveLastOrderOption();
-    this.toastManager.show({ message: '장비가 추가되었습니다.' });
+    this.toastManager.show({ message: app.getL10n().t('gearDetail.added') });
     this.setShowAddToBagModal(true);
 
     await this.initialize(this.getId());
@@ -818,14 +818,14 @@ class WarehouseDetail {
     }
 
     if (gear.getBags().includes(bagId)) {
-      this.toastManager.show({ message: '이미 이 배낭에 담겨 있어요.' });
+      this.toastManager.show({ message: app.getL10n().t('gearDetail.alreadyInBag') });
       this.router.back();
 
       return true;
     }
 
     await this.bagStore.addGear(bagId, gear);
-    this.toastManager.show({ message: '배낭에 담았어요.' });
+    this.toastManager.show({ message: app.getL10n().t('gearDetail.addedToBag') });
     this.router.back();
 
     return true;

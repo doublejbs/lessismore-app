@@ -7,6 +7,7 @@ import LoadingIconView from '../ui/LoadingIconView';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   warehouse: Warehouse;
@@ -29,7 +30,7 @@ const WarehouseEmptyView: FC<Props> = ({ warehouse }) => {
       ) : (
         <View style={styles.messageContainer}>
           <PretendardText weight='bold' style={styles.message}>
-            장비를 추가해 주세요
+            {app.getL10n().t('warehouse.noGear')}
           </PretendardText>
         </View>
       )}

@@ -6,6 +6,7 @@ import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
 import { Acg, AcgType } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import app from '@/model/app/App';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -40,10 +41,10 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
   );
 
   return (
-    <WarehouseDetailSectionView title='사용 기록'>
+    <WarehouseDetailSectionView title={app.getL10n().t('gearDetail.usageRecord')}>
       {bagCount === 0 ? (
         <PretendardText style={styles.emptyText}>
-          아직 배낭에 담은 적이 없어요
+          {app.getL10n().t('gearDetail.noBagUsage')}
         </PretendardText>
       ) : (
         <>
@@ -51,8 +52,8 @@ const WarehouseDetailUsageHeroView: FC<Props> = ({ warehouseDetail }) => {
                 담김 수는 아래 `함께한 여행 N회` 헤더가 이미 같은 값을 말하고,
                 미기록은 타임라인의 `미기록` 태그로 행마다 드러난다. */}
           <View style={styles.statsRow}>
-            {renderStat('사용', usedCount, usedCount === 0)}
-            {renderStat('사용 안함', uselessCount, uselessCount === 0, true)}
+            {renderStat(app.getL10n().t('gearDetail.used'), usedCount, usedCount === 0)}
+            {renderStat(app.getL10n().t('gearDetail.unused'), uselessCount, uselessCount === 0, true)}
           </View>
         </>
       )}

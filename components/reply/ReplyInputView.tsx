@@ -1,4 +1,5 @@
 import Reply from '@/model/reply/Reply';
+import { observer } from 'mobx-react-lite';
 import { FC, useState } from 'react';
 import {
   View,
@@ -61,11 +62,11 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
       app.getAnalyticsManager()?.logClick('reply_submit', { depth: 'comment' });
     } catch (error) {
       Alert.alert(
-        '리뷰 작성 실패',
+        app.getL10n().t('reply.reviewCreateFailed'),
         error instanceof Error
           ? error.message
-          : '리뷰 작성 중 오류가 발생했습니다.',
-        [{ text: '확인' }]
+          : app.getL10n().t('reply.reviewCreateError'),
+        [{ text: app.getL10n().t('reply.confirm') }]
       );
     } finally {
       setIsLoading(false);
@@ -78,23 +79,23 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
   const bodyContent = (
     <>
       <PretendardText weight='semibold' style={styles.title}>
-        리뷰 쓰기
+        {app.getL10n().t('reply.writeReview')}
       </PretendardText>
 
       <View style={styles.section}>
         <PretendardText weight='semibold' style={styles.label}>
-          별점
+          {app.getL10n().t('reply.rating')}
         </PretendardText>
         <StarRatingView editable rating={rating} onChange={setRating} />
       </View>
 
       <View style={styles.section}>
         <PretendardText weight='semibold' style={styles.label}>
-          리뷰 글
+          {app.getL10n().t('reply.reviewText')}
         </PretendardText>
         <TextInput
           style={styles.contentInput}
-          placeholder='장비가 어땠나요? (선택)'
+          placeholder={app.getL10n().t('reply.optionalPlaceholder')}
           placeholderTextColor={Acg.textMuted}
           value={content}
           onChangeText={setContent}
@@ -149,7 +150,7 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
           disabled={isLoading}
         >
           <PretendardText weight='semibold' style={styles.cancelButtonText}>
-            취소
+            {app.getL10n().t('common.cancel')}
           </PretendardText>
         </TouchableOpacity>
         <TouchableOpacity
@@ -171,7 +172,7 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
                 confirmDisabled && styles.confirmButtonTextDisabled,
               ]}
             >
-              등록
+              {app.getL10n().t('reply.register')}
             </PretendardText>
           )}
         </TouchableOpacity>
@@ -184,11 +185,11 @@ const ReplyInputView: FC<Props> = ({ reply }) => {
             <TouchableOpacity
               onPress={() => Keyboard.dismiss()}
               accessibilityRole='button'
-              accessibilityLabel='키보드 닫기'
+              accessibilityLabel={app.getL10n().t('reply.keyboardClose')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <PretendardText weight='semibold' style={styles.accessoryDone}>
-                완료
+                {app.getL10n().t('reply.complete')}
               </PretendardText>
             </TouchableOpacity>
           </View>
@@ -307,4 +308,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ReplyInputView;
+export default observer(ReplyInputView);

@@ -113,8 +113,10 @@ class GearEdit extends AbstractGearEdit {
     if (!this.gear) return;
 
     this.alertManager.show({
-      message: `${this.gear.getName()}을 삭제하시겠습니까?`,
-      confirmText: '삭제하기',
+      message: app.getL10n().t('gearEdit.deleteConfirm', {
+        name: this.gear.getName(),
+      }),
+      confirmText: app.getL10n().t('gearEdit.deleteAction'),
       onConfirm: async () => {
         await this.deleteGear();
       },
@@ -126,7 +128,7 @@ class GearEdit extends AbstractGearEdit {
 
     await this.dispatcher.remove(this.gear);
     app.getAnalyticsManager()?.logClick('gear_delete', { from: 'edit' });
-    this.toastManager.show({ message: '삭제 되었습니다.' });
+    this.toastManager.show({ message: app.getL10n().t('gearEdit.deleted') });
     // 삭제한 장비의 상세로 돌아갈 수는 없으니 목록으로 보낸다. 창고는 탭이 아니라
     // 푸시 라우트가 됐다(HM-0) — 경로만 바뀌고 도착지는 그대로다.
     this.navigate.replace('/warehouse');

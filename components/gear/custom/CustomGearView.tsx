@@ -160,13 +160,13 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
         <SheetGrabberView />
         <View style={styles.header}>
           <PretendardText weight='bold' style={styles.headerTitle}>
-            장비 추가
+            {app.getL10n().t('warehouse.addGear')}
           </PretendardText>
           <TouchableOpacity
             onPress={handleClickHide}
             style={styles.closeButton}
             accessibilityRole='button'
-            accessibilityLabel='닫기'
+            accessibilityLabel={app.getL10n().t('common.close')}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Ionicons name='close' size={24} color={Color.textPrimary} />
@@ -200,7 +200,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
           >
             <View style={styles.inputSection}>
               <PretendardText weight='medium' style={styles.label}>
-                제품명
+                {app.getL10n().t('gearEdit.productName')}
                 <PretendardText weight='medium' style={styles.requiredMark}>
                   {' '}
                   *
@@ -210,7 +210,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
                 <TextInput
                   ref={nameInputRef}
                   style={styles.input}
-                  placeholder='제품명을 입력해주세요'
+                  placeholder={app.getL10n().t('gearEdit.productNamePlaceholder')}
                   value={name}
                   onChangeText={handleChangeName}
                   onFocus={() => setFocusedInput('name')}
@@ -220,7 +220,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
                     onPress={() => customGear.setName('')}
                     style={styles.clearButton}
                     accessibilityRole='button'
-                    accessibilityLabel='입력 지우기'
+                    accessibilityLabel={app.getL10n().t('gearEdit.clearInput')}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
                     <Ionicons
@@ -234,12 +234,12 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
             </View>
             <View style={styles.inputSection}>
               <PretendardText weight='medium' style={styles.label}>
-                브랜드
+                {app.getL10n().t('gearEdit.brand')}
               </PretendardText>
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
-                  placeholder='브랜드를 입력해주세요'
+                  placeholder={app.getL10n().t('gearEdit.brandPlaceholder')}
                   value={company}
                   onChangeText={handleChangeCompany}
                   onFocus={() => setFocusedInput('company')}
@@ -250,7 +250,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
                     onPress={() => customGear.setCompany('')}
                     style={styles.clearButton}
                     accessibilityRole='button'
-                    accessibilityLabel='입력 지우기'
+                    accessibilityLabel={app.getL10n().t('gearEdit.clearInput')}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
                     <Ionicons
@@ -265,7 +265,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
             <CustomGearColorView customGear={customGear} />
             <View style={styles.inputSection}>
               <PretendardText weight='medium' style={styles.label}>
-                카테고리
+                {app.getL10n().t('gearEdit.category')}
               </PretendardText>
               <View style={styles.filterContainer}>
                 {customGear.mapFilters(filter => (

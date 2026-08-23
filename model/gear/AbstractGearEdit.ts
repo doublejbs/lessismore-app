@@ -3,6 +3,7 @@ import CustomGearCategory from './custom/CustomGearCategory';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import GearFilter from '@/model/gear/GearFilter';
 import Gear from '@/model/gear/Gear';
+import app from '@/model/app/App';
 
 // 이미지 필드는 두지 않는다 — 장비 이미지 미제공 원칙(DataModel §1, GE-1).
 abstract class AbstractGearEdit {
@@ -78,7 +79,7 @@ abstract class AbstractGearEdit {
       await this._register();
       this.setLoading(false);
       this.hide();
-    } catch (e) {
+    } catch {
       this.setLoading(false);
     }
   }
@@ -86,7 +87,7 @@ abstract class AbstractGearEdit {
   protected validate() {
     switch (true) {
       case !this.name: {
-        this.setErrorMessage('이름을 입력해주세요');
+        this.setErrorMessage(app.getL10n().t('gearEdit.nameRequired'));
         throw Error('Invalid name');
       }
       default: {

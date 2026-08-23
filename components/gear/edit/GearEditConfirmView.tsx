@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import GearEdit from '@/model/gear/edit/GearEdit';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   gearEdit: GearEdit;
@@ -61,7 +62,7 @@ const GearEditConfirmView: FC<Props> = ({ gearEdit }) => {
             ...AcgType.rowSubtitle,
           }}
         >
-          확인
+          {app.getL10n().t('common.confirm')}
         </PretendardText>
       </TouchableOpacity>
     </View>

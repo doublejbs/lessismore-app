@@ -23,7 +23,7 @@ import WarehouseGearView from '@/components/warehouse/WarehouseGearView';
 import useGearAddAction from '@/components/warehouse/useGearAddAction';
 import WarehouseSkeletonView from '@/components/warehouse/WarehouseSkeletonView';
 import WarehouseUnusedButtonView from '@/components/warehouse/WarehouseUnusedButtonView';
-import { josa } from 'josa';
+import app from '@/model/app/App';
 
 interface Props {
   warehouse: Warehouse;
@@ -75,7 +75,7 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
       return (
         <View style={styles.emptyContainer}>
           <PretendardText style={styles.emptyText}>
-            장비를 추가해 주세요
+            {app.getL10n().t('warehouse.noGear')}
           </PretendardText>
         </View>
       );
@@ -88,8 +88,10 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
             {/* 필터가 걸려 0건인 경우를 구분한다 — 전체가 빈 것(위 분기)과 원인이 다르다.
                 `안 쓴 장비` 0건은 이 화면의 경우가 아니다 — 전용 화면(WH-2-1)이 낸다. */}
             {warehouse.getQuery().trim()
-              ? '검색 결과가 없어요'
-              : `${josa(`${selectedFilter.getName()}#{가}`)} 없어요`}
+              ? app.getL10n().t('warehouse.noSearchResults')
+              : app.getL10n().t('warehouse.noCategoryResults', {
+                  category: selectedFilter.getName(),
+                })}
           </PretendardText>
         </View>
       );
@@ -144,7 +146,7 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
             // 네이티브 헤더로 바꾸면서 깨졌다). `창고` 타이틀도 검색 모드에선 군더더기다.
             headerShown: IS_IOS,
             headerTransparent: true,
-            headerTitle: '창고',
+            headerTitle: app.getL10n().t('warehouse.title'),
             headerBackButtonDisplayMode: 'minimal',
             // 주 액션인 `장비 추가`를 바 버튼으로 올린다(2026-07-31). 검색은 하단 우측
             // 플로팅으로 내렸다 — 창고에서 자주 하는 일은 담기지 찾기가 아니다.
@@ -153,7 +155,7 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                 onPress={handleAddGear}
                 hitSlop={8}
                 accessibilityRole='button'
-                accessibilityLabel='장비 추가'
+                accessibilityLabel={app.getL10n().t('warehouse.addGear')}
               >
                 <Ionicons name='add' size={26} color={Acg.ink} />
               </TouchableOpacity>
@@ -178,7 +180,7 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                     // 정하는데, 감추는 쪽으로 판단되면 좌측 뒤로가기가 잠깐 가려졌다 사라진다.
                     // 뒤로가기는 검색 중에도 살아 있어야 하므로 명시적으로 끈다.
                     hideNavigationBar: false,
-                    placeholder: '장비 검색',
+                    placeholder: app.getL10n().t('warehouse.searchGear'),
                     // `cancelButtonText`는 iOS 26부터 무시된다 — 취소 버튼이 글자 없는
                     // X 아이콘으로 바뀌었다(react-native-screens에서도 deprecated).
                     // 그래서 지우기(⊗, 필드 안)와 검색 닫기(X, 필드 밖)가 나란히 보이는데,
@@ -209,7 +211,7 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                 <Ionicons name='search' size={18} color={Acg.textMuted} />
                 <TextInput
                   style={styles.searchInput}
-                  placeholder='장비 검색'
+                  placeholder={app.getL10n().t('warehouse.searchGear')}
                   placeholderTextColor={Acg.textMuted}
                   value={warehouse.getQuery()}
                   onChangeText={value => warehouse.setQuery(value)}
@@ -222,7 +224,7 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                     onPress={() => warehouse.setQuery('')}
                     hitSlop={8}
                     accessibilityRole='button'
-                    accessibilityLabel='검색어 지우기'
+                    accessibilityLabel={app.getL10n().t('warehouse.clearSearch')}
                   >
                     <Ionicons
                       name='close-circle'
@@ -240,9 +242,11 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                 style={styles.cancelButton}
                 hitSlop={8}
                 accessibilityRole='button'
-                accessibilityLabel='검색 닫기'
+                accessibilityLabel={app.getL10n().t('warehouse.closeSearch')}
               >
-                <PretendardText style={styles.cancelText}>취소</PretendardText>
+                <PretendardText style={styles.cancelText}>
+                  {app.getL10n().t('common.cancel')}
+                </PretendardText>
               </TouchableOpacity>
             </View>
           ) : (
@@ -254,12 +258,12 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                   style={styles.backButton}
                   hitSlop={8}
                   accessibilityRole='button'
-                  accessibilityLabel='뒤로 가기'
+                  accessibilityLabel={app.getL10n().t('warehouse.back')}
                 >
                   <Ionicons name='chevron-back' size={24} color={Acg.ink} />
                 </TouchableOpacity>
                 <PretendardText weight='bold' style={styles.titleText}>
-                  창고
+                  {app.getL10n().t('warehouse.title')}
                 </PretendardText>
                 {/* iOS는 네이티브 바가 [검색][+]를 그린다 — 여기서도 같은 순서·같은 자리에
                       둬서 플랫폼 간 배치가 어긋나지 않게 한다. */}
@@ -269,7 +273,7 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                     style={styles.circleSearchButton}
                     hitSlop={8}
                     accessibilityRole='button'
-                    accessibilityLabel='장비 검색'
+                    accessibilityLabel={app.getL10n().t('warehouse.searchGear')}
                   >
                     <Ionicons name='search' size={20} color={Acg.ink} />
                   </TouchableOpacity>
@@ -279,7 +283,7 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
                   style={styles.circleSearchButton}
                   hitSlop={8}
                   accessibilityRole='button'
-                  accessibilityLabel='장비 추가'
+                  accessibilityLabel={app.getL10n().t('warehouse.addGear')}
                 >
                   <Ionicons name='add' size={24} color={Acg.ink} />
                 </TouchableOpacity>

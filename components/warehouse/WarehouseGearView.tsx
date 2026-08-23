@@ -1,4 +1,5 @@
 import { FC, useRef } from 'react';
+import { observer } from 'mobx-react-lite';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import ReanimatedSwipeable, {
   SwipeableMethods,
@@ -47,7 +48,7 @@ const RightActions: FC<RightActionsProps> = ({ drag, label, onDelete }) => {
       >
         <IconSymbol name='trash.fill' size={20} color={Acg.paper} />
         <PretendardText style={styles.actionLabel} weight='medium'>
-          삭제
+          {app.getL10n().t('common.delete')}
         </PretendardText>
       </TouchableOpacity>
     </Reanimated.View>
@@ -69,8 +70,10 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse, divided = false }) => {
   const handlePressDelete = () => {
     swipeableRef.current?.close();
     alertManager?.show({
-      message: `${gear.getDisplayName()}을 삭제하시겠습니까?`,
-      confirmText: '삭제하기',
+      message: app.getL10n().t('warehouse.deleteConfirm', {
+        name: gear.getDisplayName(),
+      }),
+      confirmText: app.getL10n().t('warehouse.deleteAction'),
       onConfirm: async () => {
         await warehouse.remove(gear);
         app
@@ -91,7 +94,9 @@ const WarehouseGearView: FC<Props> = ({ gear, warehouse, divided = false }) => {
   ) => (
     <RightActions
       drag={drag}
-      label={`${gear.getDisplayName()} 삭제`}
+      label={app.getL10n().t('warehouse.deleteAccessibility', {
+        name: gear.getDisplayName(),
+      })}
       onDelete={handlePressDelete}
     />
   );
@@ -139,4 +144,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default WarehouseGearView;
+export default observer(WarehouseGearView);

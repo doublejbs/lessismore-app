@@ -52,12 +52,12 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
   const menuItems = [
     {
       icon: 'pencil' as const,
-      text: '수정하기',
+      text: app.getL10n().t('reply.edit'),
       onPress: handlePressEdit,
     },
     {
       icon: 'trash-outline' as const,
-      text: '삭제하기',
+      text: app.getL10n().t('reply.deleteAction'),
       onPress: handlePressDelete,
     },
   ];
@@ -74,7 +74,7 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
               {/* RP-7: 내 리뷰는 메타 줄의 조각으로 밝힌다(라임 글자를 쓰지 않는다). */}
               <PretendardText style={styles.date}>
                 {dayjs(comment.createdAt).format('YYYY. M. D')}
-                {isMyComment ? ' · 내 리뷰' : ''}
+                {isMyComment ? ` · ${app.getL10n().t('reply.myReview')}` : ''}
               </PretendardText>
             </View>
             {isMyComment && (
@@ -82,7 +82,7 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
                 onPress={handlePressMore}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 accessibilityRole='button'
-                accessibilityLabel='리뷰 관리'
+                accessibilityLabel={app.getL10n().t('reply.reviewManage')}
               >
                 <Ionicons
                   name='ellipsis-horizontal'
@@ -102,7 +102,7 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
               activeOpacity={0.7}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               accessibilityRole='button'
-              accessibilityLabel={isLiked ? '좋아요 취소' : '좋아요'}
+              accessibilityLabel={app.getL10n().t(isLiked ? 'reply.unlike' : 'reply.like')}
               accessibilityState={{ selected: isLiked }}
             >
               <Ionicons
@@ -119,7 +119,7 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
             <View
               style={styles.iconWithText}
               accessible
-              accessibilityLabel={`답글 ${comment.replyCount}개`}
+              accessibilityLabel={app.getL10n().t('reply.replyCount', { count: comment.replyCount })}
             >
               <Ionicons
                 name='chatbubble-outline'

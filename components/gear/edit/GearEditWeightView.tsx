@@ -4,6 +4,7 @@ import GearEdit from '@/model/gear/edit/GearEdit';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   gearEdit: GearEdit;
@@ -43,7 +44,7 @@ const GearEditWeightView = forwardRef<TextInput, Props>(
             ...AcgType.rowSubtitle,
           }}
         >
-          무게(g)
+          {app.getL10n().t('gearEdit.weight')}
         </PretendardText>
         <TextInput
           ref={ref}
@@ -58,7 +59,7 @@ const GearEditWeightView = forwardRef<TextInput, Props>(
           }}
           onChangeText={handleChangeWeight}
           value={String(weight)}
-          placeholder='무게를 입력해주세요'
+          placeholder={app.getL10n().t('gearEdit.weightPlaceholder')}
           keyboardType='numeric'
           placeholderTextColor={Color.textSecondary}
           onFocus={onFocus}
@@ -67,5 +68,7 @@ const GearEditWeightView = forwardRef<TextInput, Props>(
     );
   }
 );
+
+GearEditWeightView.displayName = 'GearEditWeightView';
 
 export default observer(GearEditWeightView);

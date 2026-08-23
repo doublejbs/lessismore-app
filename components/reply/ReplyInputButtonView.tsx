@@ -1,9 +1,11 @@
 import { FC } from 'react';
+import { observer } from 'mobx-react-lite';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import Reply from '@/model/reply/Reply';
+import app from '@/model/app/App';
 
 interface Props {
   reply: Reply;
@@ -23,11 +25,11 @@ const ReplyInputButtonView: FC<Props> = ({ reply }) => {
         style={styles.inputContainer}
         onPress={handlePress}
         accessibilityRole='button'
-        accessibilityLabel='리뷰 쓰기'
+        accessibilityLabel={app.getL10n().t('reply.writeReview')}
       >
         <View style={styles.inputWrapper}>
           <PretendardText style={styles.placeholder}>
-            리뷰를 남겨보세요
+            {app.getL10n().t('reply.reviewPlaceholder')}
           </PretendardText>
         </View>
       </TouchableOpacity>
@@ -69,4 +71,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ReplyInputButtonView;
+export default observer(ReplyInputButtonView);

@@ -15,6 +15,7 @@ import ReplyDetailInputView from './ReplyDetailInputView';
 import { useRef } from 'react';
 import { Acg, AcgLayout, Spacing } from '@/constants/DesignTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import app from '@/model/app/App';
 
 interface Props {
   replyDetail: ReplyDetail;
@@ -48,7 +49,7 @@ const ReplyDetailView = ({ replyDetail, originalComment }: Props) => {
         options={{
           headerShown: IS_IOS,
           headerTransparent: true,
-          headerTitle: '댓글',
+          headerTitle: app.getL10n().t('reply.detailTitle'),
           headerBackButtonDisplayMode: 'minimal',
         }}
       />
@@ -58,7 +59,7 @@ const ReplyDetailView = ({ replyDetail, originalComment }: Props) => {
             onPress={handlePressBack}
             activeOpacity={0.7}
             style={styles.backButton}
-            accessibilityLabel='뒤로'
+            accessibilityLabel={app.getL10n().t('reply.back')}
             accessibilityRole='button'
           >
             <Ionicons name='chevron-back-outline' size={24} color={Acg.ink} />

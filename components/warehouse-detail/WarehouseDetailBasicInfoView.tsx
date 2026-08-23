@@ -9,6 +9,7 @@ import BottomMenuModalView from '../ui/BottomMenuModalView';
 import WarehouseDetailImageAddView from './WarehouseDetailImageAddView';
 import WarehouseDetailImagePreviewView from './WarehouseDetailImagePreviewView';
 import WarehouseDetailInformationView from './WarehouseDetailInformationView';
+import app from '@/model/app/App';
 
 interface Props {
   gear: Gear;
@@ -70,24 +71,24 @@ const WarehouseDetailBasicInfoView: FC<Props> = ({ gear }) => {
     ? [
         {
           icon: 'images-outline' as const,
-          text: '앨범에서 선택',
+          text: app.getL10n().t('gearDetail.chooseFromAlbum'),
           onPress: handlePressLibrary,
         },
         {
           icon: 'camera-outline' as const,
-          text: '사진 촬영',
+          text: app.getL10n().t('gearDetail.takePhoto'),
           onPress: handlePressCamera,
         },
       ]
     : [
         {
           icon: 'sync-outline' as const,
-          text: '사진 교체하기',
+          text: app.getL10n().t('gearDetail.replacePhoto'),
           onPress: handlePressReplace,
         },
         {
           icon: 'trash-outline' as const,
-          text: '사진 삭제하기',
+          text: app.getL10n().t('gearDetail.deletePhoto'),
           onPress: handlePressDelete,
         },
       ];

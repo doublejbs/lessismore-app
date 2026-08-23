@@ -1,8 +1,10 @@
 import { FC } from 'react';
+import { observer } from 'mobx-react-lite';
 import { View, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FloatingPillButton from '@/components/FloatingPillButton';
 import useGearAddAction from '@/components/warehouse/useGearAddAction';
+import app from '@/model/app/App';
 
 const AddButtonView: FC = () => {
   const insets = useSafeAreaInsets();
@@ -19,7 +21,7 @@ const AddButtonView: FC = () => {
   return (
     <View>
       <FloatingPillButton
-        label='장비 추가'
+        label={app.getL10n().t('warehouse.addGear')}
         onPress={handleClick}
         variant='primary'
         style={[styles.addButton, { bottom }]}
@@ -35,4 +37,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddButtonView;
+export default observer(AddButtonView);

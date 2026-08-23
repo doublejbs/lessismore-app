@@ -10,162 +10,162 @@ export interface SpecFieldDef {
 }
 
 const SLEEPING_BAG: Record<string, SpecFieldDef> = {
-  shape: { label: '형태', type: 'string' },
+  shape: { label: 'shape', type: 'string' },
   fillMaterial: {
-    label: '충전재',
+    label: 'fillMaterial',
     type: 'enum',
-    enumLabels: { down: '덕다운', synthetic: '합성' },
+    enumLabels: { down: 'down', synthetic: 'synthetic' },
   },
-  fillWeight: { label: '충전량', unit: 'g', type: 'number' },
-  fillPower: { label: '필파워', unit: 'FP', type: 'number' },
-  comfortTemp: { label: '편안 온도', unit: '°C', type: 'number' },
-  limitTemp: { label: '한계 온도', unit: '°C', type: 'number' },
+  fillWeight: { label: 'fillWeight', unit: 'g', type: 'number' },
+  fillPower: { label: 'fillPower', unit: 'FP', type: 'number' },
+  comfortTemp: { label: 'comfortTemp', unit: '°C', type: 'number' },
+  limitTemp: { label: 'limitTemp', unit: '°C', type: 'number' },
   zipperSide: {
-    label: '지퍼 방향',
+    label: 'zipperSide',
     type: 'enum',
-    enumLabels: { left: '왼쪽', right: '오른쪽', center: '중앙' },
+    enumLabels: { left: 'left', right: 'right', center: 'center' },
   },
 };
 
 const TENT_LIKE: Record<string, SpecFieldDef> = {
-  capacity: { label: '수용 인원', unit: '인', type: 'number' },
-  wallStructure: { label: '월 구조', type: 'string' },
-  shape: { label: '형태', type: 'string' },
-  innerMaterial: { label: '이너 소재', type: 'string' },
-  flyMaterial: { label: '플라이 소재', type: 'string' },
-  poleMaterial: { label: '폴 소재', type: 'string' },
-  waterproofRating: { label: '내수압', unit: 'mm', type: 'number' },
-  pitchType: { label: '설치 유형', type: 'string' },
-  vestibuleArea: { label: '전실 면적', unit: 'm²', type: 'number' },
+  capacity: { label: 'capacity', unit: 'person', type: 'number' },
+  wallStructure: { label: 'wallStructure', type: 'string' },
+  shape: { label: 'shape', type: 'string' },
+  innerMaterial: { label: 'innerMaterial', type: 'string' },
+  flyMaterial: { label: 'flyMaterial', type: 'string' },
+  poleMaterial: { label: 'poleMaterial', type: 'string' },
+  waterproofRating: { label: 'waterproofRating', unit: 'mm', type: 'number' },
+  pitchType: { label: 'pitchType', type: 'string' },
+  vestibuleArea: { label: 'vestibuleArea', unit: 'm²', type: 'number' },
 };
 
 const MAT: Record<string, SpecFieldDef> = {
-  type: { label: '타입', type: 'string' },
-  shape: { label: '형태', type: 'string' },
-  material: { label: '소재', type: 'string' },
-  rValue: { label: 'R값', type: 'number' },
-  thickness: { label: '두께', unit: 'mm', type: 'number' },
-  openSize: { label: '펼쳤을때 크기', type: 'string' },
+  type: { label: 'type', type: 'string' },
+  shape: { label: 'shape', type: 'string' },
+  material: { label: 'material', type: 'string' },
+  rValue: { label: 'rValue', type: 'number' },
+  thickness: { label: 'thickness', unit: 'mm', type: 'number' },
+  openSize: { label: 'openSize', type: 'string' },
 };
 
 const BACKPACK_LIKE: Record<string, SpecFieldDef> = {
-  volume: { label: '용량', unit: 'L', type: 'number' },
-  material: { label: '소재', type: 'string' },
-  frameType: { label: '프레임 타입', type: 'string' },
-  backSystem: { label: '등판 시스템', type: 'string' },
-  hasHipBelt: { label: '허리벨트', type: 'boolean' },
-  hasShoulderBottlePocket: { label: '숄더 물통 주머니', type: 'boolean' },
-  hasRainCover: { label: '레인커버', type: 'boolean' },
+  volume: { label: 'volume', unit: 'L', type: 'number' },
+  material: { label: 'material', type: 'string' },
+  frameType: { label: 'frameType', type: 'string' },
+  backSystem: { label: 'backSystem', type: 'string' },
+  hasHipBelt: { label: 'hasHipBelt', type: 'boolean' },
+  hasShoulderBottlePocket: { label: 'hasShoulderBottlePocket', type: 'boolean' },
+  hasRainCover: { label: 'hasRainCover', type: 'boolean' },
   gender: {
-    label: '성별',
+    label: 'gender',
     type: 'enum',
-    enumLabels: { male: '남성', female: '여성', unisex: '공용' },
+    enumLabels: { male: 'male', female: 'female', unisex: 'unisex' },
   },
 };
 
 const STOVE_LIKE: Record<string, SpecFieldDef> = {
-  material: { label: '소재', type: 'string' },
+  material: { label: 'material', type: 'string' },
   fuelType: {
-    label: '연료',
+    label: 'fuelType',
     type: 'enum',
     enumLabels: {
-      gas: '가스',
-      alcohol: '알코올',
-      wood: '우드',
-      liquid: '액체',
-      multi: '멀티',
+      gas: 'gas',
+      alcohol: 'alcohol',
+      wood: 'wood',
+      liquid: 'liquid',
+      multi: 'multi',
     },
   },
-  output: { label: '화력', unit: 'W', type: 'number' },
-  ignition: { label: '점화 방식', type: 'string' },
-  hasWindscreen: { label: '윈드스크린 내장', type: 'boolean' },
+  output: { label: 'output', unit: 'W', type: 'number' },
+  ignition: { label: 'ignition', type: 'string' },
+  hasWindscreen: { label: 'hasWindscreen', type: 'boolean' },
 };
 
 const CUPWARE: Record<string, SpecFieldDef> = {
-  material: { label: '소재', type: 'string' },
-  capacity: { label: '용량', unit: 'ml', type: 'number' },
-  isSet: { label: '세트 구성', type: 'boolean' },
+  material: { label: 'material', type: 'string' },
+  capacity: { label: 'volume', unit: 'ml', type: 'number' },
+  isSet: { label: 'isSet', type: 'boolean' },
 };
 
 const CUTLERY: Record<string, SpecFieldDef> = {
-  material: { label: '소재', type: 'string' },
-  isSet: { label: '세트 구성', type: 'boolean' },
+  material: { label: 'material', type: 'string' },
+  isSet: { label: 'isSet', type: 'boolean' },
 };
 
 const BOTTLE: Record<string, SpecFieldDef> = {
-  material: { label: '소재', type: 'string' },
-  capacity: { label: '용량', unit: 'ml', type: 'number' },
-  isInsulated: { label: '보온보냉', type: 'boolean' },
-  mouthType: { label: '입구 타입', type: 'string' },
+  material: { label: 'material', type: 'string' },
+  capacity: { label: 'volume', unit: 'ml', type: 'number' },
+  isInsulated: { label: 'isInsulated', type: 'boolean' },
+  mouthType: { label: 'mouthType', type: 'string' },
 };
 
 const CLOTHING: Record<string, SpecFieldDef> = {
-  type: { label: '종류', type: 'string' },
-  material: { label: '소재', type: 'string' },
-  isWaterproof: { label: '방수', type: 'boolean' },
-  fillMaterial: { label: '충전재(다운류)', type: 'string' },
-  hasHood: { label: '후드', type: 'boolean' },
+  type: { label: 'type', type: 'string' },
+  material: { label: 'material', type: 'string' },
+  isWaterproof: { label: 'isWaterproof', type: 'boolean' },
+  fillMaterial: { label: 'fillMaterialClothing', type: 'string' },
+  hasHood: { label: 'hasHood', type: 'boolean' },
 };
 
 const SUNGLASSES: Record<string, SpecFieldDef> = {
-  lensMaterial: { label: '렌즈 소재', type: 'string' },
-  uvProtection: { label: 'UV 차단 등급', type: 'string' },
-  isPolarized: { label: '편광', type: 'boolean' },
+  lensMaterial: { label: 'lensMaterial', type: 'string' },
+  uvProtection: { label: 'uvProtection', type: 'string' },
+  isPolarized: { label: 'isPolarized', type: 'boolean' },
 };
 
 const GLOVES: Record<string, SpecFieldDef> = {
-  type: { label: '타입', type: 'string' },
-  material: { label: '소재', type: 'string' },
-  isWaterproof: { label: '방수', type: 'boolean' },
+  type: { label: 'type', type: 'string' },
+  material: { label: 'material', type: 'string' },
+  isWaterproof: { label: 'isWaterproof', type: 'boolean' },
 };
 
 const GAITER: Record<string, SpecFieldDef> = {
-  height: { label: '높이', unit: 'cm', type: 'number' },
-  material: { label: '소재', type: 'string' },
-  isWaterproof: { label: '방수', type: 'boolean' },
+  height: { label: 'height', unit: 'cm', type: 'number' },
+  material: { label: 'material', type: 'string' },
+  isWaterproof: { label: 'isWaterproof', type: 'boolean' },
 };
 
 const CHAIR: Record<string, SpecFieldDef> = {
-  material: { label: '소재', type: 'string' },
-  frameMaterial: { label: '프레임 소재', type: 'string' },
-  maxLoad: { label: '최대 하중', unit: 'kg', type: 'number' },
-  packedSize: { label: '팩 사이즈', type: 'string' },
+  material: { label: 'material', type: 'string' },
+  frameMaterial: { label: 'frameMaterial', type: 'string' },
+  maxLoad: { label: 'maxLoad', unit: 'kg', type: 'number' },
+  packedSize: { label: 'packedSize', type: 'string' },
 };
 
 const TABLE: Record<string, SpecFieldDef> = {
-  topMaterial: { label: '상판 소재', type: 'string' },
-  frameMaterial: { label: '프레임 소재', type: 'string' },
-  maxLoad: { label: '최대 하중', unit: 'kg', type: 'number' },
-  packedSize: { label: '팩 사이즈', type: 'string' },
-  isHeightAdjustable: { label: '높이 조절', type: 'boolean' },
+  topMaterial: { label: 'topMaterial', type: 'string' },
+  frameMaterial: { label: 'frameMaterial', type: 'string' },
+  maxLoad: { label: 'maxLoad', unit: 'kg', type: 'number' },
+  packedSize: { label: 'packedSize', type: 'string' },
+  isHeightAdjustable: { label: 'isHeightAdjustable', type: 'boolean' },
 };
 
 const LIGHTING: Record<string, SpecFieldDef> = {
-  type: { label: '타입', type: 'string' },
-  maxBrightness: { label: '최대 밝기', unit: 'lm', type: 'number' },
-  batteryType: { label: '배터리 타입', type: 'string' },
-  waterproofRating: { label: '방수 등급', type: 'string' },
-  maxRuntime: { label: '최대 사용시간', unit: 'hr', type: 'number' },
-  hasRedMode: { label: '적색광 모드', type: 'boolean' },
+  type: { label: 'type', type: 'string' },
+  maxBrightness: { label: 'maxBrightness', unit: 'lm', type: 'number' },
+  batteryType: { label: 'batteryType', type: 'string' },
+  waterproofRating: { label: 'waterproofRating', type: 'string' },
+  maxRuntime: { label: 'maxRuntime', unit: 'hr', type: 'number' },
+  hasRedMode: { label: 'hasRedMode', type: 'boolean' },
 };
 
 const TREKKING_POLE: Record<string, SpecFieldDef> = {
-  material: { label: '소재', type: 'string' },
-  foldType: { label: '접이 방식', type: 'string' },
-  lockType: { label: '잠금 방식', type: 'string' },
-  minLength: { label: '최소 길이', unit: 'cm', type: 'number' },
-  maxLength: { label: '최대 길이', unit: 'cm', type: 'number' },
+  material: { label: 'material', type: 'string' },
+  foldType: { label: 'foldType', type: 'string' },
+  lockType: { label: 'lockType', type: 'string' },
+  minLength: { label: 'minLength', unit: 'cm', type: 'number' },
+  maxLength: { label: 'maxLength', unit: 'cm', type: 'number' },
 };
 
 const POUCH_LIKE: Record<string, SpecFieldDef> = {
-  material: { label: '소재', type: 'string' },
-  isWaterproof: { label: '방수', type: 'boolean' },
-  capacity: { label: '용량', unit: 'L', type: 'number' },
+  material: { label: 'material', type: 'string' },
+  isWaterproof: { label: 'isWaterproof', type: 'boolean' },
+  capacity: { label: 'volume', unit: 'L', type: 'number' },
 };
 
 const GENERIC: Record<string, SpecFieldDef> = {
-  material: { label: '소재', type: 'string' },
-  size: { label: '사이즈', type: 'string' },
+  material: { label: 'material', type: 'string' },
+  size: { label: 'size', type: 'string' },
 };
 
 export const SPECS_SCHEMA: Record<string, Record<string, SpecFieldDef>> = {
@@ -247,7 +247,7 @@ export const formatSpecValue = (
   }
 
   if (def.type === 'boolean') {
-    return value ? '예' : '아니오';
+    return value ? 'specBooleanTrue' : 'specBooleanFalse';
   }
 
   if (def.unit) {

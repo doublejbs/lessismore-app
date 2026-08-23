@@ -8,6 +8,8 @@
  */
 
 /** 비교용 정규화 — 대소문자·하이픈·점을 지운다. `black-diamond` → `blackdiamond`. */
+import app from '@/model/app/App';
+
 const normalize = (value: string | undefined): string =>
   (value ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -69,10 +71,14 @@ export const getBrandLinkLabel = (
   companyName: string | undefined
 ): string => {
   if (isBrandOfficialUrl(url, companySlug)) {
-    return companyName ? `${companyName} 공식몰에서 보기` : '공식몰에서 보기';
+    return companyName
+      ? app.getL10n().t('gearDetail.brandOfficial', { company: companyName })
+      : app.getL10n().t('gearDetail.officialStore');
   }
 
   const host = getDisplayHost(url);
 
-  return host ? `${host}에서 보기` : '상품 페이지 보기';
+  return host
+    ? app.getL10n().t('gearDetail.hostLink', { host })
+    : app.getL10n().t('gearDetail.productPage');
 };

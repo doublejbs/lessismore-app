@@ -1,4 +1,5 @@
 import { FC, useState } from 'react';
+import { observer } from 'mobx-react-lite';
 import {
   View,
   TextInput,
@@ -95,8 +96,8 @@ const ReplyEditView: FC<Props> = ({
         message:
           error instanceof Error
             ? error.message
-            : '댓글 수정 중 오류가 발생했습니다.',
-        confirmText: '확인',
+            : app.getL10n().t('reply.replyEditError'),
+        confirmText: app.getL10n().t('reply.confirm'),
         onConfirm: async () => {},
       });
     } finally {
@@ -110,7 +111,7 @@ const ReplyEditView: FC<Props> = ({
       onPress={handlePressComplete}
       disabled={!canSubmit}
       style={styles.headerCompleteButton}
-      accessibilityLabel='완료'
+      accessibilityLabel={app.getL10n().t('reply.complete')}
       accessibilityRole='button'
     >
       {isLoading ? (
@@ -123,7 +124,7 @@ const ReplyEditView: FC<Props> = ({
             !canSubmit && styles.headerCompleteTextDisabled,
           ]}
         >
-          완료
+          {app.getL10n().t('reply.complete')}
         </PretendardText>
       )}
     </TouchableOpacity>
@@ -161,7 +162,7 @@ const ReplyEditView: FC<Props> = ({
               onPress={handlePressBack}
               activeOpacity={0.7}
               style={styles.backButton}
-              accessibilityLabel='뒤로'
+              accessibilityLabel={app.getL10n().t('reply.back')}
               accessibilityRole='button'
             >
               <Ionicons name='chevron-back' size={24} color={Acg.ink} />
@@ -172,19 +173,19 @@ const ReplyEditView: FC<Props> = ({
       <View style={styles.content}>
         {/* RP-7: 이전에는 제목이 없어 무엇을 고치는 화면인지 단서가 없었다. */}
         <PretendardText weight='semibold' style={styles.title}>
-          {isTopLevel ? '리뷰 수정' : '답글 수정'}
+          {app.getL10n().t(isTopLevel ? 'reply.editReview' : 'reply.editReply')}
         </PretendardText>
         {isTopLevel && (
           <View style={styles.ratingSection}>
             <PretendardText weight='semibold' style={styles.ratingLabel}>
-              별점
+              {app.getL10n().t('reply.rating')}
             </PretendardText>
             <StarRatingView editable rating={rating} onChange={setRating} />
           </View>
         )}
         <TextInput
           style={styles.textInput}
-          placeholder='장비가 어땠나요?'
+          placeholder={app.getL10n().t('reply.placeholder')}
           placeholderTextColor={Acg.textMuted}
           multiline
           textAlignVertical='top'
@@ -226,7 +227,7 @@ const ReplyEditView: FC<Props> = ({
                     : styles.completeButtonTextDisabled,
                 ]}
               >
-                완료
+                {app.getL10n().t('reply.complete')}
               </PretendardText>
             )}
           </TouchableOpacity>
@@ -334,4 +335,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ReplyEditView;
+export default observer(ReplyEditView);

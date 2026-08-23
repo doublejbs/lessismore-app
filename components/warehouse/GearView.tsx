@@ -1,4 +1,5 @@
 import { FC, ReactNode } from 'react';
+import { observer } from 'mobx-react-lite';
 import {
   View,
   TouchableOpacity,
@@ -12,6 +13,7 @@ import GearThumbnailView, {
 import Gear from '@/model/gear/Gear';
 import { Acg, AcgRow, AcgType } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import app from '@/model/app/App';
 
 interface Props {
   gear: Gear;
@@ -42,7 +44,9 @@ const GearView: FC<Props> = ({
   const meta = [
     gear.getDisplayCompany(),
     gear.getDisplayColor(),
-    gear.hasUsedRate() ? `사용률 ${gear.getUsedRate()}%` : '',
+    gear.hasUsedRate()
+      ? app.getL10n().t('warehouse.usedRate', { rate: gear.getUsedRate() })
+      : '',
   ].filter(Boolean);
 
   const content = (
@@ -138,4 +142,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GearView;
+export default observer(GearView);

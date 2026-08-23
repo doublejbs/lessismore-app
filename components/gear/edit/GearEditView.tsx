@@ -116,13 +116,13 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
         options={{
           headerShown: IS_IOS,
           headerTransparent: true,
-          headerTitle: '수정하기',
+          headerTitle: app.getL10n().t('gearEdit.title'),
           headerBackButtonDisplayMode: 'minimal',
           headerRight: () => (
             <TouchableOpacity
               onPress={handlePressDelete}
               style={styles.nativeHeaderButton}
-              accessibilityLabel='삭제'
+              accessibilityLabel={app.getL10n().t('gearEdit.delete')}
               accessibilityRole='button'
             >
               <Ionicons
@@ -148,7 +148,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
               <TouchableOpacity
                 onPress={handlePressBack}
                 style={styles.headerButton}
-                accessibilityLabel='뒤로 가기'
+                accessibilityLabel={app.getL10n().t('gearEdit.back')}
                 accessibilityRole='button'
               >
                 <Ionicons
@@ -158,12 +158,12 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                 />
               </TouchableOpacity>
               <PretendardText weight='semibold' style={styles.headerTitle}>
-                수정하기
+                {app.getL10n().t('gearEdit.title')}
               </PretendardText>
               <TouchableOpacity
                 onPress={handlePressDelete}
                 style={styles.headerButton}
-                accessibilityLabel='삭제'
+                accessibilityLabel={app.getL10n().t('gearEdit.delete')}
                 accessibilityRole='button'
               >
                 <Ionicons
@@ -220,7 +220,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                     ...AcgType.rowSubtitle,
                   }}
                 >
-                  제품명
+                  {app.getL10n().t('gearEdit.productName')}
                 </PretendardText>
                 <TextInput
                   ref={nameInputRef}
@@ -233,7 +233,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                     fontSize: AcgType.control.fontSize,
                     letterSpacing: AcgType.control.letterSpacing,
                   }}
-                  placeholder='제품명을 입력해주세요'
+                  placeholder={app.getL10n().t('gearEdit.productNamePlaceholder')}
                   onChangeText={handleChangeName}
                   value={name}
                   placeholderTextColor={Color.textSecondary}
@@ -252,7 +252,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                     ...AcgType.rowSubtitle,
                   }}
                 >
-                  브랜드
+                  {app.getL10n().t('gearEdit.brand')}
                 </PretendardText>
                 <TextInput
                   ref={companyInputRef}
@@ -265,7 +265,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                     fontSize: AcgType.control.fontSize,
                     letterSpacing: AcgType.control.letterSpacing,
                   }}
-                  placeholder='브랜드를 입력해주세요'
+                  placeholder={app.getL10n().t('gearEdit.brandPlaceholder')}
                   onChangeText={handleChangeCompany}
                   value={company}
                   placeholderTextColor={Color.textSecondary}
@@ -285,7 +285,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                     ...AcgType.rowSubtitle,
                   }}
                 >
-                  카테고리
+                  {app.getL10n().t('gearEdit.category')}
                 </PretendardText>
                 <View
                   style={{

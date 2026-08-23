@@ -82,7 +82,7 @@ const ReplyDetailInputView: FC<Props> = observer(
         Keyboard.dismiss();
         scrollViewRef.current?.scrollToEnd({ animated: true });
       } catch (error) {
-        console.error('답글 저장 실패:', error);
+        console.error('답글 저장 실패:', error); // l10n-ignore
       } finally {
         setIsSaving(false);
       }
@@ -116,10 +116,10 @@ const ReplyDetailInputView: FC<Props> = observer(
                 style={styles.inputButton}
                 onPress={handlePressInput}
                 accessibilityRole='button'
-                accessibilityLabel='답글 쓰기'
+                accessibilityLabel={app.getL10n().t('reply.writeReply')}
               >
                 <PretendardText weight='medium' style={styles.placeholder}>
-                  답글을 남겨보세요
+                  {app.getL10n().t('reply.replyPlaceholder')}
                 </PretendardText>
               </TouchableOpacity>
             ) : (
@@ -127,7 +127,7 @@ const ReplyDetailInputView: FC<Props> = observer(
                 <TextInput
                   ref={inputRef}
                   style={styles.textInput}
-                  placeholder='답글을 남겨보세요'
+                  placeholder={app.getL10n().t('reply.replyPlaceholder')}
                   placeholderTextColor={Acg.textMuted}
                   value={text}
                   onChangeText={setText}
@@ -143,7 +143,7 @@ const ReplyDetailInputView: FC<Props> = observer(
                   onPress={handleSave}
                   disabled={!text.trim() || isSaving}
                   accessibilityRole='button'
-                  accessibilityLabel='답글 저장'
+                accessibilityLabel={app.getL10n().t('reply.saveReply')}
                 >
                   {isSaving ? (
                     // 라임 면 위라 인디케이터도 잉크다.
@@ -157,7 +157,7 @@ const ReplyDetailInputView: FC<Props> = observer(
                           styles.saveButtonTextDisabled,
                       ]}
                     >
-                      저장
+                      {app.getL10n().t('reply.saveReply')}
                     </PretendardText>
                   )}
                 </TouchableOpacity>

@@ -7,6 +7,7 @@ import PretendardText from '../PretendardText';
 import WarehouseDetailBrandPreviewView from './WarehouseDetailBrandPreviewView';
 import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import { getBrandLinkLabel } from '../../model/gear/GearBrandLink';
+import app from '@/model/app/App';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -46,7 +47,7 @@ const WarehouseDetailPurchaseView: FC<Props> = ({ warehouseDetail }) => {
       onPress={onPress}
       activeOpacity={0.6}
       accessibilityRole='link'
-      accessibilityLabel={`${label}, 외부 브라우저로 이동`}
+      accessibilityLabel={app.getL10n().t('gearDetail.externalBrowser', { label })}
     >
       <PretendardText style={styles.linkText} weight='medium'>
         {label}
@@ -58,7 +59,7 @@ const WarehouseDetailPurchaseView: FC<Props> = ({ warehouseDetail }) => {
   return (
     <View style={styles.container}>
       <PretendardText weight='semibold' style={styles.title}>
-        공식 링크
+        {app.getL10n().t('gearDetail.officialLinks')}
       </PretendardText>
 
       {/* 브랜드 행은 링크 미리보기 카드로 낸다(GD-5a). */}
@@ -76,12 +77,11 @@ const WarehouseDetailPurchaseView: FC<Props> = ({ warehouseDetail }) => {
           고지가 그 아래로 내려가면 사실과 다르다. */}
       {coupangUrl ? (
         <View style={styles.coupangGroup}>
-          {renderLink('쿠팡에서 최저가 보기', () =>
+          {renderLink(app.getL10n().t('gearDetail.lowestPrice'), () =>
             warehouseDetail.openCoupangUrl()
           )}
           <PretendardText style={styles.disclaimerText}>
-            쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를
-            제공받습니다.
+            {app.getL10n().t('gearDetail.coupangDisclaimer')}
           </PretendardText>
         </View>
       ) : null}

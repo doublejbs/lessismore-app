@@ -5,6 +5,7 @@ import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
 import { Acg, AcgType } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -17,14 +18,14 @@ const formatDuration = (durationSec: number): string => {
   const minutes = totalMinutes % 60;
 
   if (hours === 0) {
-    return `${minutes}분`;
+    return app.getL10n().t('gearDetail.minutes', { count: minutes });
   }
 
   if (minutes === 0) {
-    return `${hours}시간`;
+    return app.getL10n().t('gearDetail.hours', { count: hours });
   }
 
-  return `${hours}시간 ${minutes}분`;
+  return app.getL10n().t('gearDetail.hoursMinutes', { hours, minutes });
 };
 
 // 함께한 활동 누적(GD-11) — 사용(used)한 여행의 운동 기록(DM-22)을 합산해 보여준다.
@@ -38,27 +39,27 @@ const WarehouseDetailActivityTotalsView: FC<Props> = ({ warehouseDetail }) => {
 
   const distanceKm = (totals.distanceM / 1000).toFixed(1);
   const rows: { label: string; value: string }[] = [
-    { label: '누적 시간', value: formatDuration(totals.durationSec) },
+    { label: app.getL10n().t('gearDetail.totalDuration'), value: formatDuration(totals.durationSec) },
   ];
 
   if (totals.elevationGainM !== null) {
     rows.push({
-      label: '누적 상승고도',
-      value: `${Math.round(totals.elevationGainM).toLocaleString()}m`,
+      label: app.getL10n().t('gearDetail.totalElevation'),
+      value: `${Math.round(totals.elevationGainM).toLocaleString(app.getL10n().language)}m`,
     });
   }
 
   if (totals.activeEnergyKcal !== null) {
     rows.push({
-      label: '누적 칼로리',
-      value: `${Math.round(totals.activeEnergyKcal).toLocaleString()}kcal`,
+      label: app.getL10n().t('gearDetail.totalCalories'),
+      value: `${Math.round(totals.activeEnergyKcal).toLocaleString(app.getL10n().language)}kcal`,
     });
   }
 
   return (
-    <WarehouseDetailSectionView title='함께한 활동'>
+    <WarehouseDetailSectionView title={app.getL10n().t('gearDetail.activity')}>
       <PretendardText weight='semibold' style={styles.headlineText}>
-        이 장비와 {distanceKm}km를 걸었어요
+        {app.getL10n().t('gearDetail.walkedWith', { distance: distanceKm })}
       </PretendardText>
       <View style={styles.rowsContainer}>
         {rows.map((row, index) => (

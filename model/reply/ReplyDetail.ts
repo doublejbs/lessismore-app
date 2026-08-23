@@ -201,21 +201,21 @@ class ReplyDetail {
           : r
       );
       this.setReplies(rolledBackReplies);
-      console.error('좋아요 토글 실패:', error);
+      console.error('좋아요 토글 실패:', error); // l10n-ignore
     }
   }
 
   public showDeleteConfirm(commentId: string) {
     app.getAlertManager()?.show({
-      message: '정말 삭제하시겠습니까?',
-      confirmText: '삭제',
+      message: app.getL10n().t('reply.deleteConfirm'),
+      confirmText: app.getL10n().t('reply.delete'),
       onConfirm: async () => {
         try {
           await this.deleteComment(commentId);
-        } catch (error) {
+        } catch {
           app.getAlertManager()?.show({
-            message: '댓글 삭제에 실패했습니다.',
-            confirmText: '확인',
+            message: app.getL10n().t('reply.deleteFailed'),
+            confirmText: app.getL10n().t('reply.confirm'),
             onConfirm: async () => {},
           });
         }
