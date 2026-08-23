@@ -1,6 +1,7 @@
 import dayjs, { Dayjs } from 'dayjs';
 import BagItem from '@/model/bag/BagItem';
 import HomeTripStage from '@/model/home/HomeTripStage';
+import app from '@/model/app/App';
 
 /**
  * HM-1 다가오는 일정의 계산부. **전부 순수 함수다** — `today`를 인자로 받아
@@ -85,11 +86,11 @@ export const getDDayLabel = (
   }
 
   if (stage === HomeTripStage.Ongoing) {
-    return '여행 중';
+    return app.getL10n().t('bagDetail.ongoing');
   }
 
   if (stage === HomeTripStage.JustFinished) {
-    return '여행 완료';
+    return app.getL10n().t('bagDetail.pastTrip');
   }
 
   const startValue = bag.getStartDateValue();
@@ -102,7 +103,9 @@ export const getDDayLabel = (
     .startOf('day')
     .diff(today.startOf('day'), 'day');
 
-  return daysUntilStart === 0 ? '오늘 출발' : `D-${daysUntilStart}`;
+  return daysUntilStart === 0
+    ? app.getL10n().t('bagDetail.todayDeparture')
+    : app.getL10n().t('bagDetail.dDay', { count: daysUntilStart });
 };
 
 /**

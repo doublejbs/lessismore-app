@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { observer } from 'mobx-react-lite';
 import { StyleSheet, View } from 'react-native';
 import {
   NaverMapMarkerOverlay,
@@ -6,6 +7,7 @@ import {
   NaverMapView,
 } from '@mj-studio/react-native-naver-map';
 import { Color, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 import {
   HealthRoutePoint,
   HealthWorkoutRoute,
@@ -95,7 +97,9 @@ const BagActivityRouteMapView: FC<Props> = ({ routes }) => {
     <View
       style={styles.container}
       accessible
-      accessibilityLabel={`이동 경로 지도, 경로 ${drawable.length}개`}
+      accessibilityLabel={app.getL10n().t('health.routeMapAccessibility', {
+        count: drawable.length,
+      })}
     >
       <NaverMapView
         style={StyleSheet.absoluteFill}
@@ -177,4 +181,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagActivityRouteMapView;
+export default observer(BagActivityRouteMapView);

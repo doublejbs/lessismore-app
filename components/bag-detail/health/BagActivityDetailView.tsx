@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
+import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Spacing } from '@/constants/DesignTokens';
 import BagActivity from '@/model/bag/BagActivity';
@@ -55,18 +56,17 @@ const BagActivityDetailView: FC<Props> = ({ bagActivity }) => {
       return (
         <View style={styles.detailPlaceholder}>
           <PretendardText style={styles.noticeText}>
-            이 기기에서 상세를 불러오지 못했어요. 건강 앱 접근이 꺼져 있거나
-            다른 기기에서 연결한 기록일 수 있어요.
+            {app.getL10n().t('health.detailUnavailable')}
           </PretendardText>
           <TouchableOpacity
             style={styles.textButton}
             onPress={handleRetry}
             activeOpacity={0.7}
             accessibilityRole='button'
-            accessibilityLabel='상세 다시 불러오기'
+            accessibilityLabel={app.getL10n().t('health.detailRetry')}
           >
             <PretendardText style={styles.textButtonLabel} weight='semibold'>
-              다시 시도
+              {app.getL10n().t('common.retry')}
             </PretendardText>
           </TouchableOpacity>
         </View>
@@ -112,10 +112,10 @@ const BagActivityDetailView: FC<Props> = ({ bagActivity }) => {
         activeOpacity={0.7}
         accessibilityRole='button'
         accessibilityState={{ disabled: saving }}
-        accessibilityLabel='운동 기록 연결 해제'
+        accessibilityLabel={app.getL10n().t('health.unlinkAction')}
       >
         <PretendardText style={styles.unlinkLabel} weight='semibold'>
-          연결 해제
+          {app.getL10n().t('health.unlink')}
         </PretendardText>
       </TouchableOpacity>
     </ScrollView>

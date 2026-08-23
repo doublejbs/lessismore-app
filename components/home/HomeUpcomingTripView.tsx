@@ -123,7 +123,9 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
           onPress={() => handleOpenBag(bag)}
           activeOpacity={0.7}
           accessibilityRole='button'
-          accessibilityLabel={`${bag.getName()} 배낭 상세`}
+          accessibilityLabel={app.getL10n().t('home.bagDetail', {
+            name: bag.getName(),
+          })}
         >
           <View style={styles.headText}>
             <PretendardText
@@ -164,14 +166,18 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
             끼워 넣으면 칸의 뜻이 배낭마다 달라진다. */}
         <View style={styles.stats}>
           <View style={styles.stat}>
-            <PretendardText style={styles.statKey}>총 무게</PretendardText>
+            <PretendardText style={styles.statKey}>
+              {app.getL10n().t('home.totalWeight')}
+            </PretendardText>
             <AcgDisplayText style={styles.statValue}>
               {`${bag.getWeight()}kg`}
             </AcgDisplayText>
           </View>
           {weatherSummary ? (
             <View style={[styles.stat, styles.statDivided]}>
-              <PretendardText style={styles.statKey}>예보</PretendardText>
+              <PretendardText style={styles.statKey}>
+                {app.getL10n().t('home.forecast')}
+              </PretendardText>
               {/* 날씨는 `흐림` 같은 한글이 섞여 콘덴스드를 못 쓴다(한글 글리프 없음). */}
               <PretendardText
                 weight='semibold'
@@ -189,7 +195,9 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
             <View style={styles.progressTop}>
               {/* 배낭 상세 하단 바가 쓰는 `패킹 {n}/{m}`(PK-2)과 같은 말이다 —
                   같은 값을 두 화면이 다르게 부르면 같은 것인지 알아보기 어렵다. */}
-              <PretendardText style={styles.statKey}>패킹</PretendardText>
+              <PretendardText style={styles.statKey}>
+                {app.getL10n().t('home.packing')}
+              </PretendardText>
               <AcgDisplayText style={styles.progressValue}>
                 {`${bag.getPackedGearCount()}/${bag.getGearCount()}`}
               </AcgDisplayText>
@@ -213,10 +221,12 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
           onPress={() => handleOpenBag(bag)}
           activeOpacity={0.8}
           accessibilityRole='button'
-          accessibilityLabel={`${bag.getName()} 배낭 보기`}
+          accessibilityLabel={app.getL10n().t('home.viewBagAccessibility', {
+            name: bag.getName(),
+          })}
         >
           <PretendardText weight='semibold' style={styles.ctaText}>
-            배낭 보기
+            {app.getL10n().t('home.viewBag')}
           </PretendardText>
         </TouchableOpacity>
       </BlurView>
@@ -226,25 +236,25 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
   if (trips.length === 0) {
     return (
       <View style={styles.section}>
-        <AcgSectionHeaderView title='다가오는 일정' />
+        <AcgSectionHeaderView title={app.getL10n().t('home.upcomingTrips')} />
 
         {/* 빈 상태는 사실 + 다음 걸음 두 줄, 그리고 그 걸음을 떼는 버튼 하나. */}
         <BlurView intensity={24} tint='light' style={styles.tile}>
           <PretendardText weight='semibold' style={styles.emptyTitle}>
-            아직 계획한 여행이 없어요
+            {app.getL10n().t('home.emptyTripTitle')}
           </PretendardText>
           <PretendardText style={styles.emptySubtitle}>
-            이번 주말 1박으로 하나 만들어 둘까요?
+            {app.getL10n().t('home.emptyTripSubtitle')}
           </PretendardText>
           <TouchableOpacity
             style={styles.cta}
             onPress={handleCreate}
             activeOpacity={0.8}
             accessibilityRole='button'
-            accessibilityLabel='새 배낭 만들기'
+            accessibilityLabel={app.getL10n().t('home.createBag')}
           >
             <PretendardText weight='semibold' style={styles.ctaText}>
-              새 배낭 만들기
+              {app.getL10n().t('home.createBag')}
             </PretendardText>
           </TouchableOpacity>
         </BlurView>
@@ -255,9 +265,11 @@ const HomeUpcomingTripView: FC<Props> = ({ plan }) => {
   return (
     <View style={styles.section}>
       <AcgSectionHeaderView
-        title='다가오는 일정'
+        title={app.getL10n().t('home.upcomingTrips')}
         // 부제는 목록의 기준만 밝힌다 — 개수를 넣으면 셀 수 있는 것을 글로 또 세는 셈이다.
-        subtitle={trips.length > 1 ? '가까운 일정 순' : undefined}
+        subtitle={
+          trips.length > 1 ? app.getL10n().t('home.nearbyTrips') : undefined
+        }
       />
 
       {trips.length === 1 ? (

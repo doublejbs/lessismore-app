@@ -272,7 +272,7 @@ class BagActivity {
       this.setDetails(details);
       this.setDetailStatus(BagActivityDetailStatus.Ready);
     } catch (error) {
-      console.error('운동 기록 상세 조회 실패:', error);
+      console.error('운동 기록 상세 조회 실패:', error); // l10n-ignore
       this.setDetails([]);
       this.setDetailStatus(BagActivityDetailStatus.Unavailable);
     }
@@ -328,7 +328,7 @@ class BagActivity {
       this.setLinked(next);
     } catch (error) {
       // 저장에 실패해도 이번 화면은 재매칭 결과로 보여준다 — 다음 진입에서 다시 시도한다.
-      console.error('운동 기록 재매칭 저장 실패:', error);
+      console.error('운동 기록 재매칭 저장 실패:', error); // l10n-ignore
     }
   }
 
@@ -408,7 +408,7 @@ class BagActivity {
 
       this.setPhase(BagActivityPhase.Ready);
     } catch (error) {
-      console.error('운동 기록 조회 실패:', error);
+      console.error('운동 기록 조회 실패:', error); // l10n-ignore
       this.setPhase(BagActivityPhase.Error);
     }
   }
@@ -532,15 +532,15 @@ class BagActivity {
       });
 
       this.setLinked(activity);
-      this.toastManager.show({ message: '운동 기록을 연결했습니다.' });
+      this.toastManager.show({ message: app.getL10n().t('health.linked') });
 
       // 화면을 닫지 않고 그 자리에서 상세로 넘어간다 — 방금 연결한 기록을 바로 보는
       // 것이 자연스럽고, 배낭 상세로 돌아갔다가 다시 들어오게 만들 이유가 없다.
       this.setPhase(BagActivityPhase.Detail);
       await this.loadDetail();
     } catch (error) {
-      console.error('운동 기록 연결 실패:', error);
-      this.toastManager.show({ message: '연결에 실패했습니다.' });
+      console.error('운동 기록 연결 실패:', error); // l10n-ignore
+      this.toastManager.show({ message: app.getL10n().t('health.linkFailed') });
     } finally {
       this.setSaving(false);
     }
@@ -562,10 +562,10 @@ class BagActivity {
       this.setLinked(null);
       this.setSelectedIds([]);
       router.back();
-      this.toastManager.show({ message: '운동 기록 연결을 해제했습니다.' });
+      this.toastManager.show({ message: app.getL10n().t('health.unlinked') });
     } catch (error) {
-      console.error('운동 기록 연결 해제 실패:', error);
-      this.toastManager.show({ message: '연결 해제에 실패했습니다.' });
+      console.error('운동 기록 연결 해제 실패:', error); // l10n-ignore
+      this.toastManager.show({ message: app.getL10n().t('health.unlinkFailed') });
     } finally {
       this.setSaving(false);
     }

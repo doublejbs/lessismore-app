@@ -49,7 +49,7 @@ const MAX_RECORD_PAGES = 50;
 // 실패가 전부 빈 값으로 떨어진다. 흔적까지 지우면 필드에서 원인을 좁힐 수 없어
 // 삼키되 로그는 남긴다.
 const logHealthError = (scope: string, error: unknown): void => {
-  console.error(`[HealthConnect] ${scope} 실패:`, error);
+  console.error(`[HealthConnect] ${scope} 실패:`, error); // l10n-ignore
 };
 
 /**
@@ -148,8 +148,8 @@ const readAllRecords = async <T extends RecordType>(
 
   if (pageToken) {
     logHealthError(
-      `${scope} 페이지 상한(${MAX_RECORD_PAGES}) 도달 — 뒷부분이 잘렸다`,
-      new Error(`${collected.length}건까지만 읽음`)
+      `${scope} 페이지 상한(${MAX_RECORD_PAGES}) 도달 — 뒷부분이 잘렸다`, // l10n-ignore
+      new Error(`${collected.length}건까지만 읽음`) // l10n-ignore
     );
   }
 
@@ -208,7 +208,7 @@ class HealthConnectService implements HealthService {
       // 거부를 확정할 수 있는 건 requestPermission() 결과뿐이므로 여기서는 미결정으로 둔다.
       return HealthPermissionStatus.NotDetermined;
     } catch (error) {
-      logHealthError('권한 상태 조회', error);
+      logHealthError('권한 상태 조회', error); // l10n-ignore
 
       return HealthPermissionStatus.NotDetermined;
     }
@@ -230,7 +230,7 @@ class HealthConnectService implements HealthService {
 
       return HealthPermissionStatus.Denied;
     } catch (error) {
-      logHealthError('권한 요청', error);
+      logHealthError('권한 요청', error); // l10n-ignore
 
       return HealthPermissionStatus.Denied;
     }
@@ -248,7 +248,7 @@ class HealthConnectService implements HealthService {
       const records = await readAllRecords(
         'ExerciseSession',
         createBetweenFilter(from, to),
-        '운동 세션 조회'
+        '운동 세션 조회' // l10n-ignore
       );
       // 세션마다 aggregate가 여러 번 나가므로 순차로 돌리면 건수에 비례해 느려진다.
       const workouts = await Promise.all(
@@ -262,7 +262,7 @@ class HealthConnectService implements HealthService {
           (left, right) => right.startDate.getTime() - left.startDate.getTime()
         );
     } catch (error) {
-      logHealthError('운동 목록 조회', error);
+      logHealthError('운동 목록 조회', error); // l10n-ignore
 
       return [];
     }
@@ -333,7 +333,7 @@ class HealthConnectService implements HealthService {
       // readRoute()가 조회 실패를 이미 null로 흡수하므로 여기 도달하는 건 위 매핑
       // (좌표 변환·정렬)의 JS 버그뿐이다. 그대로 두면 "경로 없음"으로 위장되므로
       // 값은 삼키되 로그로 구분한다.
-      logHealthError('경로 매핑', error);
+      logHealthError('경로 매핑', error); // l10n-ignore
 
       return null;
     }
@@ -354,7 +354,7 @@ class HealthConnectService implements HealthService {
     try {
       session = await readRecord('ExerciseSession', workoutId);
     } catch (error) {
-      logHealthError('심박용 세션 조회', error);
+      logHealthError('심박용 세션 조회', error); // l10n-ignore
 
       return [];
     }
@@ -367,7 +367,7 @@ class HealthConnectService implements HealthService {
           new Date(session.startTime),
           new Date(session.endTime)
         ),
-        '심박 조회'
+        '심박 조회' // l10n-ignore
       );
       // HeartRateRecord 하나가 여러 샘플을 묶고 있어 평탄화해야 시계열이 된다.
       const points = records.flatMap(record =>
@@ -383,7 +383,7 @@ class HealthConnectService implements HealthService {
 
       return points;
     } catch (error) {
-      logHealthError('심박 시계열 조회', error);
+      logHealthError('심박 시계열 조회', error); // l10n-ignore
 
       return [];
     }
@@ -407,8 +407,8 @@ class HealthConnectService implements HealthService {
         // 예외가 아니라 정상 반환이지만 로그는 남긴다 — 이 분기가 UI에서는 "기록 없음"과
         // 똑같이 보여, 제공자 미설치·업데이트 필요를 구분할 단서가 로그밖에 없다.
         logHealthError(
-          'SDK 사용 불가',
-          new Error(`getSdkStatus=${status} (SDK_AVAILABLE 아님)`)
+          'SDK 사용 불가', // l10n-ignore
+          new Error(`getSdkStatus=${status} (SDK_AVAILABLE 아님)`) // l10n-ignore
         );
 
         return false;
@@ -426,7 +426,7 @@ class HealthConnectService implements HealthService {
 
       return initialized;
     } catch (error) {
-      logHealthError('SDK 초기화', error);
+      logHealthError('SDK 초기화', error); // l10n-ignore
       this.initialization = null;
 
       return false;
@@ -476,7 +476,7 @@ class HealthConnectService implements HealthService {
 
       return null;
     } catch (error) {
-      logHealthError('경로 조회', error);
+      logHealthError('경로 조회', error); // l10n-ignore
 
       return null;
     }
@@ -565,7 +565,7 @@ class HealthConnectService implements HealthService {
       // 세션당 4회 × N세션이라 계약이 어긋나면 여기서 수백 건이 쏟아진다.
       return await aggregateRecord({ recordType, timeRangeFilter });
     } catch (error) {
-      logHealthError(`지표 집계(${recordType})`, error);
+      logHealthError(`지표 집계(${recordType})`, error); // l10n-ignore
 
       return undefined;
     }

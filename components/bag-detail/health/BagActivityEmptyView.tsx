@@ -1,8 +1,10 @@
 import { FC } from 'react';
 import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Spacing } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   isWorkoutReadConfirmed: boolean;
@@ -23,10 +25,10 @@ const BagActivityEmptyView: FC<Props> = ({ isWorkoutReadConfirmed }) => {
       <View style={styles.container}>
         <Ionicons name='footsteps-outline' size={40} color={Color.iconMuted} />
         <PretendardText style={styles.title} weight='semibold'>
-          최근 기록된 운동이 없어요
+          {app.getL10n().t('health.emptyTitleConfirmed')}
         </PretendardText>
         <PretendardText style={styles.description}>
-          최근 1년 안에 기록된 운동이 건강 앱에 있는지 확인해 주세요.
+          {app.getL10n().t('health.emptyDescriptionConfirmed')}
         </PretendardText>
       </View>
     );
@@ -36,21 +38,20 @@ const BagActivityEmptyView: FC<Props> = ({ isWorkoutReadConfirmed }) => {
     <View style={styles.container}>
       <Ionicons name='footsteps-outline' size={40} color={Color.iconMuted} />
       <PretendardText style={styles.title} weight='semibold'>
-        기록이 없거나 접근이 허용되지 않았어요
+        {app.getL10n().t('health.emptyTitleUnknown')}
       </PretendardText>
       <PretendardText style={styles.description}>
-        최근 기록된 운동이 없거나, 건강 앱 접근이 꺼져 있을 수 있어요. 설정에서
-        접근 권한을 확인해 주세요.
+        {app.getL10n().t('health.emptyDescriptionUnknown')}
       </PretendardText>
       <TouchableOpacity
         style={styles.settingsButton}
         onPress={handleOpenSettings}
         activeOpacity={0.7}
         accessibilityRole='button'
-        accessibilityLabel='설정 열기'
+        accessibilityLabel={app.getL10n().t('health.openSettings')}
       >
         <PretendardText style={styles.settingsButtonText} weight='semibold'>
-          설정 열기
+          {app.getL10n().t('health.openSettings')}
         </PretendardText>
       </TouchableOpacity>
     </View>
@@ -87,4 +88,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagActivityEmptyView;
+export default observer(BagActivityEmptyView);

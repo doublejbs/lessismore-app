@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import HealthWorkoutType from './HealthWorkoutType';
+import app from '@/model/app/App';
 
 // 운동 기록(HA)의 표시 문자열 변환. 도메인 값은 전 구간 SI(m/초)로 다루고
 // 사람이 읽는 단위 변환은 여기 한 곳에서만 한다 — 타일 부제(HA-1)와
@@ -10,16 +11,16 @@ const GRAMS_PER_KILOGRAM = 1000;
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 3600;
 
-const WORKOUT_TYPE_LABELS: Record<HealthWorkoutType, string> = {
-  [HealthWorkoutType.Hiking]: '하이킹',
-  [HealthWorkoutType.Walking]: '걷기',
-  [HealthWorkoutType.Running]: '달리기',
-  [HealthWorkoutType.Cycling]: '자전거',
-  [HealthWorkoutType.Other]: '운동',
+const WORKOUT_TYPE_LABEL_KEYS: Record<HealthWorkoutType, string> = {
+  [HealthWorkoutType.Hiking]: 'health.workoutType.hiking',
+  [HealthWorkoutType.Walking]: 'health.workoutType.walking',
+  [HealthWorkoutType.Running]: 'health.workoutType.running',
+  [HealthWorkoutType.Cycling]: 'health.workoutType.cycling',
+  [HealthWorkoutType.Other]: 'health.workoutType.other',
 };
 
 export const getWorkoutTypeLabel = (type: HealthWorkoutType): string => {
-  return WORKOUT_TYPE_LABELS[type];
+  return app.getL10n().t(WORKOUT_TYPE_LABEL_KEYS[type]);
 };
 
 /** 거리(m) → `12.4km`. */
@@ -38,14 +39,16 @@ export const formatDuration = (seconds: number): string => {
   const minutes = Math.floor((seconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
 
   if (hours > 0) {
-    return minutes > 0 ? `${hours}시간 ${minutes}분` : `${hours}시간`;
+    return minutes > 0
+      ? app.getL10n().t('health.format.durationHourMinute', { hours, minutes })
+      : app.getL10n().t('health.format.durationHour', { hours });
   }
 
   if (minutes > 0) {
-    return `${minutes}분`;
+    return app.getL10n().t('health.format.durationMinute', { minutes });
   }
 
-  return '1분 미만';
+  return app.getL10n().t('health.format.durationLessThanMinute');
 };
 
 /** 활동 에너지(kcal) → `420kcal`. */
@@ -84,5 +87,7 @@ export const formatClockTime = (date: Date): string => {
 // dayjs 한국어 로케일을 등록하지 않은 저장소라 요일 토큰(ddd)은 영문으로 나온다.
 // 후보 구분에는 날짜·시각이면 충분하므로 요일을 쓰지 않는다.
 export const formatWorkoutStartedAt = (startDate: Date): string => {
-  return dayjs(startDate).format('M월 D일 HH:mm');
+  return dayjs(startDate).format(
+    app.getL10n().t('health.format.workoutStartedAt')
+  );
 };

@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { observer } from 'mobx-react-lite';
 import { StyleSheet, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgType, Spacing } from '@/constants/DesignTokens';
@@ -14,6 +15,7 @@ import {
   getWorkoutTypeLabel,
 } from '@/model/health/HealthFormat';
 import BagActivityChartView from './BagActivityChartView';
+import app from '@/model/app/App';
 
 interface Props {
   /** 단건이면 운동 종류·시작 시각이 요약 헤드라인 아래에 이미 표시된다. */
@@ -60,14 +62,14 @@ const BagActivityWorkoutDetailView: FC<Props> = ({ detail, isOnly }) => {
       )}
       {/* 데이터가 없는 항목은 그래프를 통째로 생략한다(HA-4). */}
       <BagActivityChartView
-        title='심박수'
+        title={app.getL10n().t('health.heartRate')}
         points={heartRateSeries}
         color={HEART_RATE_COLOR}
         formatValue={formatHeartRate}
       />
       <BagActivityChartView
-        title='페이스'
-        hint='값이 작을수록 빠름'
+        title={app.getL10n().t('health.pace')}
+        hint={app.getL10n().t('health.paceHint')}
         points={paceSeries}
         color={PACE_COLOR}
         formatValue={formatPace}
@@ -93,4 +95,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagActivityWorkoutDetailView;
+export default observer(BagActivityWorkoutDetailView);
