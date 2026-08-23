@@ -16,6 +16,7 @@ import ko from '@/locales/ko.json';
 import en from '@/locales/en.json';
 import ja from '@/locales/ja.json';
 import AppLanguage from './AppLanguage';
+import { registerL10n } from './L10nRegistry';
 import LocalStorageManager from '@/model/storage/LocalStorageManager';
 
 const APP_LANGUAGE_STORAGE_KEY = 'appLanguage';
@@ -81,6 +82,7 @@ class L10n {
   private initialized = false;
 
   public constructor() {
+    registerL10n(this);
     makeAutoObservable(this);
   }
 

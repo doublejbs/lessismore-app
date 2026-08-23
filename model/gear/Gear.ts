@@ -1,4 +1,6 @@
 import GearFilter from './GearFilter';
+import AppLanguage from '../l10n/AppLanguage';
+import { getAppLanguage } from '../l10n/L10nRegistry';
 import {
   getFineCategoryLabel,
   getGroupForCategory,
@@ -122,6 +124,12 @@ class Gear {
   }
 
   public getDisplayName() {
+    // en/ja에서는 영문 캐논컬을 우선한다(L10N-13 — 카탈로그 실측 name 영문 95%).
+    // 캐논컬 용도(편집 프리필·중복 키·정렬)는 getName()으로 불변이다(DM-3).
+    if (getAppLanguage() !== AppLanguage.Korean) {
+      return this.name || this.nameKorean;
+    }
+
     return this.nameKorean || this.name;
   }
 
@@ -134,6 +142,11 @@ class Gear {
   }
 
   public getDisplayCompany() {
+    // 브랜드도 같은 규칙(L10N-13) — 카탈로그 실측 company 영문 100%.
+    if (getAppLanguage() !== AppLanguage.Korean) {
+      return this.company || this.companyKorean;
+    }
+
     return this.companyKorean || this.company;
   }
 
