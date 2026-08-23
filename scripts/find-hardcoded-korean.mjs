@@ -5,6 +5,10 @@ const KOREAN_PATTERN = /[가-힣]/;
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx']);
 const IGNORED_DIRECTORIES = new Set([
   '.git',
+  // 예전 워크트리 사본·에이전트 산출물 — 앱 코드가 아니다.
+  '.claude',
+  '.design-review',
+  'reports',
   'node_modules',
   'dist',
   'build',
@@ -132,6 +136,19 @@ const findKoreanLiterals = source => {
       stringStartLine = line;
     } else if (character === '\n') {
       line += 1;
+    } else if (KOREAN_PATTERN.test(character)) {
+      // 따옴표 밖(code 상태)의 한글은 JSX 텍스트 노드다 — <Text>실제로 사용했던…</Text> 처럼
+      // 리터럴 없이 노출되는 문구가 여기로만 잡힌다(2026-08-24 실측: 문자열만 보던 구멍).
+      const sourceLine = sourceLines[line - 1] ?? '';
+
+      if (
+        !sourceLine.trim().startsWith('//') &&
+        !sourceLine.trim().startsWith('*') &&
+        !sourceLine.includes('// l10n-ignore') &&
+        !sourceLine.includes('{/*')
+      ) {
+        findings.push(line);
+      }
     }
   }
 
