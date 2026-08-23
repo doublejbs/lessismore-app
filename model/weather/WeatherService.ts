@@ -34,11 +34,11 @@ interface DailyRaw {
 const fetchJson = async (url: string): Promise<any> => {
   const res = await fetch(url);
   if (!res.ok) {
-    throw new Error(`Open-Meteo 요청 실패: ${res.status}`);
+    throw new Error(`Open-Meteo 요청 실패: ${res.status}`); // l10n-ignore
   }
   const json = await res.json();
   if (json?.error) {
-    throw new Error(json.reason ?? 'Open-Meteo 오류');
+    throw new Error(json.reason ?? 'Open-Meteo 오류'); // l10n-ignore
   }
   return json;
 };
@@ -235,7 +235,7 @@ const getWeather = async (
     .sort((a, b) => a.date.localeCompare(b.date));
 
   if (daily.length === 0) {
-    throw new Error('날씨 데이터를 가져오지 못했습니다.');
+    throw new Error('날씨 데이터를 가져오지 못했습니다.'); // l10n-ignore
   }
 
   const kind: WeatherKind = kinds.size === 1 ? [...kinds][0] : 'mixed';

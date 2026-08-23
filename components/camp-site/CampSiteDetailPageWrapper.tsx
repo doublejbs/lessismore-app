@@ -16,6 +16,7 @@ import CampSiteDetailDispatcher from '@/model/camp-site/CampSiteDetailDispatcher
 import CampSiteDetailPresentation from '@/model/camp-site/CampSiteDetailPresentation';
 import CampSiteDetailView from './CampSiteDetailView';
 import Layout from '../Layout';
+import app from '@/model/app/App';
 
 // LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 커스텀 back 행을 그린다.
 const IS_IOS = Platform.OS === 'ios';
@@ -37,6 +38,7 @@ const CampSiteDetailPageWrapper: FC = () => {
   );
   const { id = '' } = useLocalSearchParams<{ id: string }>();
   const initialized = campSiteDetail.isInitialized();
+  const l10n = app.getL10n();
 
   useEffect(() => {
     void campSiteDetail.initialize(id);
@@ -65,7 +67,7 @@ const CampSiteDetailPageWrapper: FC = () => {
             style={styles.headerButton}
             onPress={handlePressBack}
             accessibilityRole='button'
-            accessibilityLabel='뒤로가기'
+            accessibilityLabel={l10n.t('common.back')}
           >
             <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
           </TouchableOpacity>

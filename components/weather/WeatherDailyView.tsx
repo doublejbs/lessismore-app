@@ -2,43 +2,47 @@ import { FC } from 'react';
 import { View, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
 import { Ionicons } from '@expo/vector-icons';
+import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color } from '@/constants/DesignTokens';
 import { getWeatherCodeInfo } from '@/model/weather/WeatherCode';
 import { WeatherDaily } from '@/model/weather/WeatherTypes';
+import app from '@/model/app/App';
 
 interface Props {
   daily: WeatherDaily[];
 }
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
-
 const WeatherDailyRow: FC<{ item: WeatherDaily; isLast: boolean }> = ({
   item,
   isLast,
 }) => {
+  const l10n = app.getL10n();
   const info = getWeatherCodeInfo(item.code);
   const d = dayjs(item.date);
-  const weekday = WEEKDAYS[d.day()];
+  const weekdays = l10n.t('weather.weekdays', {
+    returnObjects: true,
+  }) as unknown as string[];
+  const weekday = weekdays[d.day()];
   const precipText =
     item.precipProb != null
       ? `${item.precipProb}%`
       : item.precipSum != null
         ? `${item.precipSum}mm`
         : '-';
-  const windText =
-    item.windSpeedMax != null
-      ? `바람 ${Math.round(item.windSpeedMax)}m/s` +
-        (item.windGustMax != null
-          ? ` · 돌풍 ${Math.round(item.windGustMax)}m/s`
-          : '')
-      : null;
+  const windText = item.windSpeedMax != null
+    ? `${l10n.t('weather.wind', { speed: Math.round(item.windSpeedMax) })}${
+        item.windGustMax != null
+          ? ` · ${l10n.t('weather.gust', { speed: Math.round(item.windGustMax) })}`
+          : ''
+      }`
+    : null;
 
   return (
     <View style={[styles.row, isLast && styles.rowLast]}>
       <View style={styles.dateCol}>
         <PretendardText style={styles.dateText} weight='semibold'>
-          {d.format('M.D')}
+          {d.format(l10n.t('weather.dayFormat'))}
         </PretendardText>
         <PretendardText style={styles.weekdayText}>{weekday}</PretendardText>
       </View>
@@ -46,7 +50,7 @@ const WeatherDailyRow: FC<{ item: WeatherDaily; isLast: boolean }> = ({
       <Ionicons name={info.icon} size={22} color={Color.textPrimary} />
 
       <View style={styles.descCol}>
-        <PretendardText style={styles.descText}>{info.ko}</PretendardText>
+        <PretendardText style={styles.descText}>{info.label}</PretendardText>
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
             <Ionicons
@@ -162,4 +166,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default WeatherDailyView;
+export default observer(WeatherDailyView);

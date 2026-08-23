@@ -24,6 +24,7 @@ import {
   getCampSiteTypeLabel,
   getCampSpotRegionLabel,
 } from '@/model/camp-site/CampSiteLabels';
+import app from '@/model/app/App';
 
 interface Props {
   campSiteDetail: CampSiteDetail;
@@ -60,6 +61,7 @@ const CampSiteDetailView: FC<Props> = ({
   showSetBag = true,
   presentation = CampSiteDetailPresentation.Sheet,
 }) => {
+  const l10n = app.getL10n();
   const spot = campSiteDetail.getSpot();
   // 페이지 진입(DST-8)은 닫기(X)를 그리지 않는다 — 내비 back이 그 역할을 한다.
   const isPage = presentation === CampSiteDetailPresentation.Page;
@@ -202,7 +204,7 @@ const CampSiteDetailView: FC<Props> = ({
               onPress={handlePressSetBag}
               disabled={settingBag}
               activeOpacity={0.7}
-              accessibilityLabel='배낭 여행지로 설정'
+              accessibilityLabel={l10n.t('campSite.detail.setDestination')}
               accessibilityRole='button'
               accessibilityState={{ disabled: settingBag, busy: settingBag }}
             >
@@ -213,7 +215,7 @@ const CampSiteDetailView: FC<Props> = ({
                   style={styles.setBagButtonText}
                   weight='semibold'
                 >
-                  배낭 여행지로 설정
+                  {l10n.t('campSite.detail.setDestination')}
                 </PretendardText>
               )}
             </TouchableOpacity>

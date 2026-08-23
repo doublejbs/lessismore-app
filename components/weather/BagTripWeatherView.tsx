@@ -11,6 +11,7 @@ import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 import BagWeather from '@/model/bag/BagWeather';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
 import WeatherDailyView from './WeatherDailyView';
+import app from '@/model/app/App';
 
 interface Props {
   bagWeather: BagWeather;
@@ -19,6 +20,7 @@ interface Props {
 // 여행 기간 날씨 섹션(WT-4). 요약 + 일별 목록 + 로딩/실패(재시도) 처리는 기존 규칙을 그대로 유지한다.
 // 여행지 허브(DST-8)의 하단 블록으로, 여행지 정보·길찾기와 독립적으로 동작한다.
 const BagTripWeatherView: FC<Props> = ({ bagWeather }) => {
+  const l10n = app.getL10n();
   const weather = bagWeather.getWeather();
   const loading = bagWeather.isLoading();
   const error = bagWeather.hasError();
@@ -42,16 +44,16 @@ const BagTripWeatherView: FC<Props> = ({ bagWeather }) => {
     return (
       <View style={styles.centerState}>
         <PretendardText style={styles.emptyText}>
-          날씨를 불러오지 못했어요
+          {l10n.t('weather.loadFailed')}
         </PretendardText>
         <TouchableOpacity
           style={styles.retryButton}
           onPress={() => bagWeather.ensureFresh()}
           accessibilityRole='button'
-          accessibilityLabel='날씨 다시 시도'
+          accessibilityLabel={l10n.t('weather.retryAccessibility')}
         >
           <PretendardText style={styles.retryText} weight='medium'>
-            다시 시도
+            {l10n.t('weather.retry')}
           </PretendardText>
         </TouchableOpacity>
       </View>
@@ -67,7 +69,7 @@ const BagTripWeatherView: FC<Props> = ({ bagWeather }) => {
       <View style={styles.sectionHeader}>
         <View style={styles.sectionTitleRow}>
           <PretendardText style={styles.sectionTitle} weight='bold'>
-            여행 기간 날씨
+            {l10n.t('weather.sectionTitle')}
           </PretendardText>
           {loading && (
             <ActivityIndicator size='small' color={Color.textSecondary} />
@@ -75,18 +77,21 @@ const BagTripWeatherView: FC<Props> = ({ bagWeather }) => {
         </View>
         {summary && (
           <PretendardText style={styles.summaryText} weight='medium'>
-            {/* 최저 → 최고 — 일간 행·홈 카드와 같은 순서(최고가 항상 오른쪽, 2026-08-13). */}
-            {summary.cond} · ↓{summary.low}° ↑{summary.high}°
-            {summary.maxGust != null &&
-              summary.maxGust >= 10 &&
-              ` · 돌풍 ${summary.maxGust}m/s`}
+            {l10n.t('weather.summary', {
+              condition: summary.cond,
+              low: summary.low,
+              high: summary.high,
+              gust:
+                summary.maxGust != null && summary.maxGust >= 10
+                  ? l10n.t('weather.gustSuffix', { speed: summary.maxGust })
+                  : '',
+            })}
           </PretendardText>
         )}
       </View>
       <WeatherDailyView daily={tripDaily} />
       <PretendardText style={styles.disclaimer}>
-        예보는 향후 16일까지 제공되며, 그 이후는 과거 평년값을 참고로
-        표시합니다.
+        {l10n.t('weather.disclaimer')}
       </PretendardText>
     </View>
   );

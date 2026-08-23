@@ -10,6 +10,7 @@ import PretendardText from '@/components/PretendardText';
 import { AcgType, Color } from '@/constants/DesignTokens';
 import WeatherDailyView from '@/components/weather/WeatherDailyView';
 import CampSiteWeather from '@/model/camp-site/CampSiteWeather';
+import app from '@/model/app/App';
 
 interface Props {
   campSiteWeather: CampSiteWeather;
@@ -19,6 +20,7 @@ interface Props {
 // 박지명 헤더는 상단 블록(CampSiteDetailView)이 이미 갖고 있어 두지 않는다.
 // 바깥 스크롤이 스크롤을 담당하므로 자체 ScrollView를 두지 않고 플레인 View로 인라인 렌더한다.
 const CampSiteWeatherTabView: FC<Props> = ({ campSiteWeather }) => {
+  const l10n = app.getL10n();
   const initialized = campSiteWeather.isInitialized();
   const loading = campSiteWeather.isLoading();
   const weather = campSiteWeather.getWeather();
@@ -40,17 +42,17 @@ const CampSiteWeatherTabView: FC<Props> = ({ campSiteWeather }) => {
     return (
       <View style={styles.centerBox}>
         <PretendardText style={styles.errorText}>
-          날씨를 불러오지 못했어요
+          {l10n.t('weather.loadFailed')}
         </PretendardText>
         <TouchableOpacity
           style={styles.retryButton}
           onPress={handlePressRetry}
           activeOpacity={0.7}
-          accessibilityLabel='다시 시도'
+          accessibilityLabel={l10n.t('weather.retryAccessibility')}
           accessibilityRole='button'
         >
           <PretendardText style={styles.retryText} weight='semibold'>
-            다시 시도
+            {l10n.t('weather.retry')}
           </PretendardText>
         </TouchableOpacity>
       </View>

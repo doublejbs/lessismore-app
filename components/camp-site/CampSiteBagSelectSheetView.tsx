@@ -9,12 +9,14 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import SheetGrabberView from '@/components/ui/SheetGrabberView';
 import { AcgType, Color } from '@/constants/DesignTokens';
 import BagItem from '@/model/bag/BagItem';
 import useSheetTransition from '@/hooks/useSheetTransition';
+import app from '@/model/app/App';
 
 interface Props {
   visible: boolean;
@@ -41,6 +43,7 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
   hideCreateNew = false,
   subtitleOverride,
 }) => {
+  const l10n = app.getL10n();
   const insets = useSafeAreaInsets();
   const isAndroid = Platform.OS === 'android';
   const { isReduceMotionEnabled } = useSheetTransition();
@@ -62,16 +65,16 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
       <View style={styles.header}>
         <View style={styles.headerText}>
           <PretendardText style={styles.title} weight='bold'>
-            배낭 선택
+            {l10n.t('campSite.bagSelect.title')}
           </PretendardText>
           <PretendardText style={styles.subtitle} numberOfLines={1}>
-            {subtitleOverride ?? `${spotName}을 여행지로 설정해요`}
+            {subtitleOverride ?? l10n.t('campSite.bagSelect.subtitle', { name: spotName })}
           </PretendardText>
         </View>
         <TouchableOpacity
           onPress={onClose}
           style={styles.closeButton}
-          accessibilityLabel='닫기'
+          accessibilityLabel={l10n.t('campSite.bagSelect.close')}
           accessibilityRole='button'
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
@@ -94,26 +97,26 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
             onPress={onCreateNew}
             activeOpacity={0.7}
             accessibilityRole='button'
-            accessibilityLabel='새 배낭 만들기'
+            accessibilityLabel={l10n.t('campSite.bagSelect.create')}
           >
             <View style={styles.createIcon}>
               <Ionicons name='add' size={22} color={Color.background} />
             </View>
             <PretendardText style={styles.createText} weight='semibold'>
-              새 배낭 만들기
+              {l10n.t('campSite.bagSelect.create')}
             </PretendardText>
           </TouchableOpacity>
         )}
 
         {bags.length === 0 ? (
           <PretendardText style={styles.emptyText}>
-            아직 배낭이 없어요. 새 배낭을 만들어 여행지를 설정하세요.
+            {l10n.t('campSite.bagSelect.empty')}
           </PretendardText>
         ) : (
           <>
             {/* 만들기 액션과 선택 목록을 구분하는 소제목(디자인 리뷰). */}
             <PretendardText style={styles.sectionLabel} weight='semibold'>
-              내 배낭
+              {l10n.t('campSite.bagSelect.myBags')}
             </PretendardText>
 
             {sortedBags.map(bag => {
@@ -333,4 +336,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CampSiteBagSelectSheetView;
+export default observer(CampSiteBagSelectSheetView);

@@ -7,6 +7,10 @@
     "save": "저장",
     "delete": "삭제",
     "close": "닫기",
+    "retry": "다시 시도",
+    "all": "전체",
+    "viewAll": "전체 보기",
+    "edit": "수정하기",
     "continue": "계속",
     "ok": "알겠어요",
     "done": "완료",
@@ -496,6 +500,136 @@
     "addToWarehouseAccessibility": "{{name}} 창고에 담기",
     "brandCount_other": "제품 {{count}}개",
     "newest": "신제품"
+  },
+  "campSite": {
+    "bagSelect": {
+      "title": "배낭 선택",
+      "subtitle": "{{name}}을(를) 여행지로 설정해요",
+      "create": "새 배낭 만들기",
+      "empty": "아직 배낭이 없어요. 새 배낭을 만들어 여행지를 설정하세요.",
+      "myBags": "내 배낭",
+      "close": "닫기",
+      "changeConfirm": "{{from}}에서 {{to}}으로(으로) 변경할까요?",
+      "changed": "여행지로 설정했어요.",
+      "weatherFailed": "여행지는 설정했지만 날씨를 불러오지 못했어요.",
+      "move": "이동",
+      "weatherRetry": "다시 시도"
+    },
+    "detail": {
+      "close": "닫기",
+      "favorite": "즐겨찾기",
+      "favorited": "즐겨찾기됨",
+      "share": "공유",
+      "naverMap": "네이버 지도",
+      "moveToSpot": "위치로 이동",
+      "setDestination": "배낭 여행지로 설정",
+      "loadFailedTitle": "알림",
+      "loadFailedMessage": "박지 정보를 불러오지 못했어요.",
+      "favoriteFailed": "잠시 후 다시 시도해주세요",
+      "saveFailedTitle": "오류",
+      "saveFailedMessage": "여행지를 저장하지 못했어요. 다시 시도해주세요.",
+      "source": "출처",
+      "facilities": "시설",
+      "accessInfo": "접근 정보",
+      "notice": "노지 야영은 지역에 따라 금지될 수 있어요. 이용 전 현지 규정을 확인하세요."
+    },
+    "tabs": {
+      "overview": "개요",
+      "weather": "날씨",
+      "review": "후기"
+    },
+    "types": {
+      "campground": "캠핑장",
+      "shelter": "대피소",
+      "wild": "백패킹"
+    },
+    "tags": {
+      "mountain": "산",
+      "beach": "해변",
+      "valley": "계곡",
+      "island": "섬",
+      "lake": "호수",
+      "plain": "초원",
+      "forest": "숲"
+    },
+    "sources": {
+      "gocamping": "한국관광공사 고캠핑",
+      "knps": "국립공원공단",
+      "curated": "자체 큐레이션"
+    },
+    "map": {
+      "searchPlaceholder": "박지·지명 검색",
+      "searchCount_one": "{{count}}곳",
+      "searchCount_other": "{{count}}곳",
+      "searchCountAccessibility_one": "검색 결과 {{count}}곳",
+      "searchCountAccessibility_other": "검색 결과 {{count}}곳",
+      "clearSearch": "검색어 지우기",
+      "spotSection": "박지",
+      "placeSection": "지명",
+      "resultAccessibility": "{{name}} 지도에서 보기",
+      "noResults": "검색 결과가 없어요",
+      "loadError": "박지 정보를 불러오지 못했어요",
+      "showAll": "전체 보기",
+      "noSubmittedResults": "'{{query}}' 검색 결과가 없어요",
+      "favoriteList": "즐겨찾기 목록",
+      "currentLocation": "현재 위치로 이동"
+    },
+    "favorites": {
+      "title": "즐겨찾기",
+      "detail": "{{name}} 상세 보기",
+      "empty": "아직 즐겨찾기한 박지가 없어요",
+      "close": "닫기"
+    },
+    "overview": {
+      "facilityToilet": "화장실",
+      "facilityWater": "식수",
+      "facilityDeck": "데크",
+      "facilityStore": "매점"
+    },
+    "review": {
+      "external": "블로그·영상",
+      "user": "이용자 후기",
+      "count_one": "후기 {{count}}개",
+      "count_other": "후기 {{count}}개",
+      "first": "첫 후기를 남겨보세요",
+      "write": "후기 쓰기",
+      "writeAccessibility": "후기 쓰기",
+      "deleteTitle": "후기 삭제",
+      "deleteMessage": "내 후기를 삭제할까요?",
+      "edit": "수정하기",
+      "delete": "삭제하기",
+      "more": "내 후기 더보기",
+      "bagOpen": "배낭 {{name}} 열기",
+      "bag": "배낭",
+      "mine": "내 후기"
+    },
+    "rating": {
+      "value": "별점 {{rating}}점",
+      "valueAccessibility": "{{rating}}점"
+    }
+  },
+  "weather": {
+    "code": {
+      "0": "맑음", "1": "대체로 맑음", "2": "구름 조금", "3": "흐림", "45": "안개", "48": "서리 안개",
+      "51": "약한 이슬비", "53": "이슬비", "55": "강한 이슬비", "56": "어는 이슬비", "57": "강한 어는 이슬비",
+      "61": "약한 비", "63": "비", "65": "강한 비", "66": "어는 비", "67": "강한 어는 비",
+      "71": "약한 눈", "73": "눈", "75": "강한 눈", "77": "싸락눈", "80": "약한 소나기", "81": "소나기", "82": "강한 소나기",
+      "85": "약한 소낙눈", "86": "강한 소낙눈", "95": "뇌우", "96": "우박 동반 뇌우", "99": "강한 우박 뇌우", "unknown": "정보 없음"
+    },
+    "conditionSunny": "맑음",
+    "conditionRain": "비",
+    "conditionSnow": "눈",
+    "weekdays": ["일", "월", "화", "수", "목", "금", "토"],
+    "dayFormat": "M.D",
+    "wind": "바람 {{speed}}m/s",
+    "gust": "돌풍 {{speed}}m/s",
+    "summary": "{{condition}} · ↓{{low}}° ↑{{high}}°{{gust}}",
+    "gustSuffix": " · 돌풍 {{speed}}m/s",
+    "loadFailed": "날씨를 불러오지 못했어요",
+    "retry": "다시 시도",
+    "retryAccessibility": "날씨 다시 시도",
+    "sectionTitle": "여행 기간 날씨",
+    "disclaimer": "예보는 향후 16일까지 제공되며, 그 이후는 과거 평년값을 참고로 표시합니다."
   },
   "reply": {
     "edit": "수정하기",

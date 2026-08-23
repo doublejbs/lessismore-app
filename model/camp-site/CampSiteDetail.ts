@@ -79,9 +79,10 @@ class CampSiteDetail {
       void this.loadReviewContent(spot);
       void this.loadUserReviews(spot.id);
     } catch (e) {
-      console.error('박지 상세 로드 실패:', e);
-      Alert.alert('알림', '박지 정보를 불러오지 못했어요.', [
-        { text: '확인', onPress: () => this.close() },
+      console.error('박지 상세 로드 실패:', e); // l10n-ignore
+      const l10n = app.getL10n();
+      Alert.alert(l10n.t('campSite.detail.loadFailedTitle'), l10n.t('campSite.detail.loadFailedMessage'), [
+        { text: l10n.t('common.confirm'), onPress: () => this.close() },
       ]);
     }
   }
@@ -100,7 +101,7 @@ class CampSiteDetail {
   private async loadReviewContent(spot: CampSpot) {
     try {
       const cached = await this.dispatcher.getReviewCache(spot.id).catch(e => {
-        console.error('박지 후기 캐시 조회 실패:', e);
+        console.error('박지 후기 캐시 조회 실패:', e); // l10n-ignore
 
         return null;
       });
@@ -142,11 +143,11 @@ class CampSiteDetail {
             queryVersion: REVIEW_QUERY_VERSION,
           })
           .catch(e => {
-            console.error('박지 후기 캐시 저장 실패:', e);
+            console.error('박지 후기 캐시 저장 실패:', e); // l10n-ignore
           });
       }
     } catch (e) {
-      console.error('박지 후기 조회 실패:', e);
+      console.error('박지 후기 조회 실패:', e); // l10n-ignore
     }
   }
 
@@ -184,7 +185,7 @@ class CampSiteDetail {
       this.setUserReviews(reviews);
       this.setMyReview(myReview);
     } catch (e) {
-      console.error('박지 유저 후기 조회 실패:', e);
+      console.error('박지 유저 후기 조회 실패:', e); // l10n-ignore
     }
   }
 
@@ -345,8 +346,10 @@ class CampSiteDetail {
     try {
       await this.favoriteStore.toggle({ id: spot.id, name: spot.name });
     } catch (e) {
-      console.error('박지 즐겨찾기 토글 실패:', e);
-      this.toastManager.show({ message: '잠시 후 다시 시도해주세요' });
+      console.error('박지 즐겨찾기 토글 실패:', e); // l10n-ignore
+      this.toastManager.show({
+        message: app.getL10n().t('campSite.detail.favoriteFailed'),
+      });
     }
   }
 
@@ -473,8 +476,11 @@ class CampSiteDetail {
 
     if (existingLocation) {
       this.alertManager.show({
-        message: `${existingLocation.name}에서 ${spot.name}(으)로 변경할까요?`,
-        confirmText: '변경',
+        message: app.getL10n().t('campSite.bagSelect.changeConfirm', {
+          from: existingLocation.name,
+          to: spot.name,
+        }),
+        confirmText: app.getL10n().t('bagDestination.changeShort'),
         onConfirm: async () => {
           await this.saveBagDestination(bag, spot);
         },
@@ -500,8 +506,12 @@ class CampSiteDetail {
 
       this.completeBagSelection(bag, weatherFailed);
     } catch (e) {
-      console.error('배낭 여행지 저장 실패:', e);
-      Alert.alert('오류', '여행지를 저장하지 못했어요. 다시 시도해주세요.');
+      console.error('배낭 여행지 저장 실패:', e); // l10n-ignore
+      const l10n = app.getL10n();
+      Alert.alert(
+        l10n.t('campSite.detail.saveFailedTitle'),
+        l10n.t('campSite.detail.saveFailedMessage')
+      );
     }
   }
 
@@ -510,9 +520,11 @@ class CampSiteDetail {
   private completeBagSelection(bag: BagItem, weatherFailed: boolean) {
     this.toastManager.show({
       message: weatherFailed
-        ? '여행지는 설정했지만 날씨를 불러오지 못했어요.'
-        : '여행지로 설정했어요.',
-      buttonText: weatherFailed ? '다시 시도' : '이동',
+        ? app.getL10n().t('campSite.bagSelect.weatherFailed')
+        : app.getL10n().t('campSite.bagSelect.changed'),
+      buttonText: weatherFailed
+        ? app.getL10n().t('campSite.bagSelect.weatherRetry')
+        : app.getL10n().t('campSite.bagSelect.move'),
       onButtonPress: () => {
         this.router.push(
           weatherFailed ? `/bag/${bag.getID()}/weather` : `/bag/${bag.getID()}`

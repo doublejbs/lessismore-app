@@ -1,7 +1,9 @@
 import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { observer } from 'mobx-react-lite';
 import { Color } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 // 별점 시맨틱색 — 토큰이 아닌 별점 전용 색이라 하드코딩 허용(CLAUDE.md 예외 규정).
 const STAR_FILLED_COLOR = '#FFB300';
@@ -21,6 +23,7 @@ const StarRatingView: FC<Props> = ({
   onChange,
   size,
 }) => {
+  const l10n = app.getL10n();
   const starSize = size ?? (editable ? 24 : 16);
   // 채움 개수 — 반올림해 정수 별 개수로 표현한다.
   const filledCount = Math.round(rating);
@@ -40,7 +43,9 @@ const StarRatingView: FC<Props> = ({
         ? {}
         : {
             accessibilityRole: 'text' as const,
-            accessibilityLabel: `별점 ${rating.toFixed(1)}점`,
+            accessibilityLabel: l10n.t('campSite.rating.value', {
+              rating: rating.toFixed(1),
+            }),
           })}
     >
       {[0, 1, 2, 3, 4].map(index => {
@@ -66,7 +71,9 @@ const StarRatingView: FC<Props> = ({
             onPress={() => handlePress(index + 1)}
             activeOpacity={0.7}
             accessibilityRole='button'
-            accessibilityLabel={`${index + 1}점`}
+            accessibilityLabel={l10n.t('campSite.rating.valueAccessibility', {
+              rating: index + 1,
+            })}
           >
             <Ionicons name={iconName} size={starSize} color={iconColor} />
           </TouchableOpacity>
@@ -90,4 +97,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default StarRatingView;
+export default observer(StarRatingView);

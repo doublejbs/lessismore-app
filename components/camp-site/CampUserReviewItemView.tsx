@@ -2,11 +2,13 @@ import { FC, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
+import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 import StarRatingView from './StarRatingView';
 import { CampReview } from '@/model/camp-review/CampReviewTypes';
+import app from '@/model/app/App';
 
 interface Props {
   review: CampReview;
@@ -34,6 +36,7 @@ const CampUserReviewItemView: FC<Props> = ({
   onEdit,
   onDelete,
 }) => {
+  const l10n = app.getL10n();
   const [showMenu, setShowMenu] = useState(false);
   const dateLabel = dayjs(review.updatedAt).format('YYYY.MM.DD');
   const hasMenu = isMine && Boolean(onEdit || onDelete);
@@ -64,9 +67,9 @@ const CampUserReviewItemView: FC<Props> = ({
 
   const handlePressDelete = () => {
     setShowMenu(false);
-    Alert.alert('후기 삭제', '내 후기를 삭제할까요?', [
-      { text: '취소', style: 'cancel' },
-      { text: '삭제', style: 'destructive', onPress: onDelete },
+    Alert.alert(l10n.t('campSite.review.deleteTitle'), l10n.t('campSite.review.deleteMessage'), [
+      { text: l10n.t('common.cancel'), style: 'cancel' },
+      { text: l10n.t('common.delete'), style: 'destructive', onPress: onDelete },
     ]);
   };
 
@@ -75,7 +78,7 @@ const CampUserReviewItemView: FC<Props> = ({
       ? [
           {
             icon: 'pencil' as const,
-            text: '수정하기',
+            text: l10n.t('campSite.review.edit'),
             onPress: handlePressEdit,
           },
         ]
@@ -84,7 +87,7 @@ const CampUserReviewItemView: FC<Props> = ({
       ? [
           {
             icon: 'trash-outline' as const,
-            text: '삭제하기',
+            text: l10n.t('campSite.review.delete'),
             onPress: handlePressDelete,
           },
         ]
@@ -102,7 +105,7 @@ const CampUserReviewItemView: FC<Props> = ({
             {isMine ? (
               <View style={styles.mineBadge}>
                 <PretendardText style={styles.mineBadgeText} weight='medium'>
-                  내 후기
+                  {l10n.t('campSite.review.mine')}
                 </PretendardText>
               </View>
             ) : null}
@@ -115,7 +118,7 @@ const CampUserReviewItemView: FC<Props> = ({
                 onPress={() => setShowMenu(true)}
                 activeOpacity={0.7}
                 accessibilityRole='button'
-                accessibilityLabel='내 후기 더보기'
+                accessibilityLabel={l10n.t('campSite.review.more')}
               >
                 <Ionicons
                   name='ellipsis-horizontal'
@@ -141,7 +144,9 @@ const CampUserReviewItemView: FC<Props> = ({
             onPress={handlePressBag}
             activeOpacity={0.7}
             accessibilityRole='button'
-            accessibilityLabel={`배낭 ${review.bagName ?? ''} 열기`}
+            accessibilityLabel={l10n.t('campSite.review.bagOpen', {
+              name: review.bagName ?? '',
+            })}
             // 시각 높이는 낮추고 터치 타깃 44pt는 hitSlop으로 확보한다(정보 탭 AU-4와 같은 방식).
             hitSlop={{ top: 8, bottom: 8, left: 0, right: 0 }}
           >
@@ -150,7 +155,7 @@ const CampUserReviewItemView: FC<Props> = ({
               weight='medium'
               numberOfLines={1}
             >
-              {review.bagName ?? '배낭'}
+              {review.bagName ?? l10n.t('campSite.review.bag')}
             </PretendardText>
             {bagMeta ? (
               <PretendardText style={styles.bagMeta} numberOfLines={1}>
@@ -260,4 +265,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CampUserReviewItemView;
+export default observer(CampUserReviewItemView);

@@ -1,5 +1,6 @@
 import { FC } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgType, Spacing } from '@/constants/DesignTokens';
 import CampSiteDetailTab from '@/model/camp-site/CampSiteDetailTab';
@@ -94,4 +95,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CampSiteDetailTabBarView;
+export default observer(CampSiteDetailTabBarView);

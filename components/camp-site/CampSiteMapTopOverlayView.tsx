@@ -28,6 +28,7 @@ import {
   getCampSpotRegionLabel,
 } from '@/model/camp-site/CampSiteLabels';
 import CampSiteFilterChipsView from './CampSiteFilterChipsView';
+import app from '@/model/app/App';
 
 interface Props {
   campSiteMap: CampSiteMap;
@@ -46,6 +47,7 @@ const SEARCH_ICON_SIZE = 20;
 // 지도 화면에서 분리된 observer라 검색 타이핑·필터 선택이 마커 레이어를 리렌더하지 않는다.
 const CampSiteMapTopOverlayView: FC<Props> = observer(
   ({ campSiteMap, onSelectResult, onSelectPlace, onSubmitSearch }) => {
+    const l10n = app.getL10n();
     const query = campSiteMap.getQuery();
     const submittedSearchQuery = campSiteMap.getSubmittedSearchQuery();
     const searchResults = campSiteMap.getSearchResults();
@@ -88,7 +90,7 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
               <Ionicons name='search' size={SEARCH_ICON_SIZE} color={Acg.ink} />
               <TextInput
                 style={styles.searchInput}
-                placeholder='박지·지명 검색'
+                placeholder={l10n.t('campSite.map.searchPlaceholder')}
                 placeholderTextColor={Acg.textMuted}
                 value={query}
                 onChangeText={value => campSiteMap.setQuery(value)}
@@ -101,9 +103,12 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
               {showSearchCount && (
                 <PretendardText
                   style={styles.searchCount}
-                  accessibilityLabel={`검색 결과 ${visibleSpotCount}곳`}
+                  accessibilityLabel={l10n.t(
+                    'campSite.map.searchCountAccessibility',
+                    { count: visibleSpotCount }
+                  )}
                 >
-                  {`${visibleSpotCount}곳`}
+                  {l10n.t('campSite.map.searchCount', { count: visibleSpotCount })}
                 </PretendardText>
               )}
               {query.length > 0 && (
@@ -111,7 +116,7 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
                   onPress={() => campSiteMap.clearQuery()}
                   hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
                   accessibilityRole='button'
-                  accessibilityLabel='검색어 지우기'
+                  accessibilityLabel={l10n.t('campSite.map.clearSearch')}
                 >
                   <Ionicons
                     name='close-circle'
@@ -136,7 +141,7 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
                         weight='semibold'
                         accessibilityRole='header'
                       >
-                        박지
+                        {l10n.t('campSite.map.spotSection')}
                       </PretendardText>
                       {searchResults.map(spot => (
                         <TouchableOpacity
@@ -145,7 +150,10 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
                           onPress={() => onSelectResult(spot)}
                           activeOpacity={0.7}
                           accessibilityRole='button'
-                          accessibilityLabel={`${spot.name} 지도에서 보기`}
+                          accessibilityLabel={l10n.t(
+                            'campSite.map.resultAccessibility',
+                            { name: spot.name }
+                          )}
                         >
                           {/* 지도 마커와 같은 원형 도트 — 목록에서 고른 것이 지도에서
                               어떤 마커인지 색으로 이어진다. 색만으로는 못 읽으므로 유형
@@ -185,7 +193,7 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
                         weight='semibold'
                         accessibilityRole='header'
                       >
-                        지명
+                        {l10n.t('campSite.map.placeSection')}
                       </PretendardText>
                       {placeSearchResults.map((place, index) => (
                         <TouchableOpacity
@@ -221,7 +229,7 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
                   {!searchingPlaces && !hasSearchResults && (
                     <View style={styles.dropdownEmpty}>
                       <PretendardText style={styles.dropdownEmptyText}>
-                        검색 결과가 없어요
+                        {l10n.t('campSite.map.noResults')}
                       </PretendardText>
                     </View>
                   )}
@@ -237,7 +245,7 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
                 weight='medium'
                 numberOfLines={1}
               >
-                박지 정보를 불러오지 못했어요
+                {l10n.t('campSite.map.loadError')}
               </PretendardText>
               <TouchableOpacity
                 style={styles.retryButton}
@@ -245,7 +253,7 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
                 activeOpacity={0.8}
               >
                 <PretendardText style={styles.retryText} weight='semibold'>
-                  재시도
+                  {l10n.t('common.retry')}
                 </PretendardText>
               </TouchableOpacity>
             </View>
@@ -258,7 +266,9 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
                 weight='medium'
                 numberOfLines={1}
               >
-                {`'${submittedSearchQuery}' 검색 결과가 없어요`}
+                {l10n.t('campSite.map.noSubmittedResults', {
+                  query: submittedSearchQuery,
+                })}
               </PretendardText>
               <TouchableOpacity
                 style={styles.retryButton}
@@ -268,10 +278,10 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
                 }}
                 activeOpacity={0.8}
                 accessibilityRole='button'
-                accessibilityLabel='전체 보기'
+                accessibilityLabel={l10n.t('common.viewAll')}
               >
                 <PretendardText style={styles.retryText} weight='semibold'>
-                  전체 보기
+                  {l10n.t('common.viewAll')}
                 </PretendardText>
               </TouchableOpacity>
             </View>

@@ -15,21 +15,21 @@ const MIN_TOKEN_LENGTH = 2;
 const SIZE_AND_GENDER_TOKENS = new Set([
   'mens',
   'womens',
-  '남',
-  '여',
-  '공용',
+  '남', // l10n-ignore
+  '여', // l10n-ignore
+  '공용', // l10n-ignore
   's',
   'm',
   'l',
   'xl',
-  '스몰',
-  '미디움',
-  '미디엄',
-  '라지',
-  '엑스라지',
-  '투엑스라지',
-  '단품',
-  '세트',
+  '스몰', // l10n-ignore
+  '미디움', // l10n-ignore
+  '미디엄', // l10n-ignore
+  '라지', // l10n-ignore
+  '엑스라지', // l10n-ignore
+  '투엑스라지', // l10n-ignore
+  '단품', // l10n-ignore
+  '세트', // l10n-ignore
 ]);
 
 // 카테고리·품목 명사. **필수 토큰 판정에서만 추가로 제외하고 검색어에는 그대로 남긴다** —
@@ -39,40 +39,40 @@ const SIZE_AND_GENDER_TOKENS = new Set([
 // `엑스패드 딥슬립 필로우`·`랩 스트라토스피어 필로우`(타사)가 통과했다).
 // 모델명이 함께 있는 장비(`스텔라릿지 텐트`)는 모델명 토큰이 판정을 계속 담당한다(GD-6).
 const CATEGORY_TOKENS = new Set([
-  '필로우',
+  '필로우', // l10n-ignore
   'pillow',
-  '텐트',
+  '텐트', // l10n-ignore
   'tent',
-  '배낭',
-  '백팩',
+  '배낭', // l10n-ignore
+  '백팩', // l10n-ignore
   'backpack',
-  '침낭',
-  '매트',
+  '침낭', // l10n-ignore
+  '매트', // l10n-ignore
   'mat',
   'pad',
-  '파우치',
+  '파우치', // l10n-ignore
   'pouch',
-  '체어',
+  '체어', // l10n-ignore
   'chair',
-  '스토브',
+  '스토브', // l10n-ignore
   'stove',
-  '재킷',
-  '자켓',
+  '재킷', // l10n-ignore
+  '자켓', // l10n-ignore
   'jacket',
-  '팬츠',
+  '팬츠', // l10n-ignore
   'pants',
-  '후디',
+  '후디', // l10n-ignore
   'hoody',
-  '셔츠',
+  '셔츠', // l10n-ignore
   'shirt',
-  '티셔츠',
-  '베스트',
+  '티셔츠', // l10n-ignore
+  '베스트', // l10n-ignore
   'vest',
-  '슈즈',
+  '슈즈', // l10n-ignore
   'shoes',
-  '파카',
+  '파카', // l10n-ignore
   'parka',
-  '장갑',
+  '장갑', // l10n-ignore
   'gloves',
 ]);
 

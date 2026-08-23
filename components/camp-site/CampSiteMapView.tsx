@@ -38,6 +38,7 @@ import {
   clearPendingCampSite,
   getPendingCampSite,
 } from '@/model/camp-site/CampSiteMapHandoff';
+import { getCampSiteWildNotice } from '@/model/camp-site/CampSiteLabels';
 
 interface Props {
   campSiteMap: CampSiteMap;
@@ -189,7 +190,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         locationWatchRef.current = subscription;
       } catch (error) {
         // 구독을 못 열어도(위치 서비스 꺼짐 등) 버튼은 캐시·새 fix로 폴백하므로 화면은 살아 있다.
-        console.error('현재 위치 구독 실패:', error);
+        console.error('현재 위치 구독 실패:', error); // l10n-ignore
 
         if (locationWatchTokenRef.current === watchToken) {
           locationWatchTokenRef.current = null;
@@ -371,7 +372,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
 
         applyInitialCamera(position.coords);
       } catch (error) {
-        console.error('위치 권한 요청 실패:', error);
+       console.error('위치 권한 요청 실패:', error); // l10n-ignore
       }
     };
 
@@ -417,7 +418,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
 
       app.getToastManager()?.show({
         message:
-          '노지 야영은 지역에 따라 금지될 수 있어요. 이용 전 현지 규정을 확인하세요.',
+          getCampSiteWildNotice(),
       });
 
       await LocalStorageManager.set(NOTICE_STORAGE_KEY, true);
@@ -497,7 +498,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       });
       moveToLocation(position.coords.latitude, position.coords.longitude);
     } catch (error) {
-      console.error('현재 위치 이동 실패:', error);
+      console.error('현재 위치 이동 실패:', error); // l10n-ignore
       app.getToastManager()?.show({ message: CURRENT_LOCATION_FAILED_MESSAGE });
     }
   }, [moveCamera, updateCurrentLocation]);
