@@ -7,6 +7,10 @@
     "save": "保存",
     "delete": "削除",
     "close": "閉じる",
+    "retry": "再試行",
+    "all": "すべて",
+    "viewAll": "すべて表示",
+    "edit": "編集",
     "continue": "続行",
     "ok": "わかりました",
     "done": "完了",
@@ -229,6 +233,23 @@
     "addToWarehouseAccessibility": "{{name}}を倉庫に追加",
     "brandCount_other": "製品{{count}}件",
     "newest": "新着ギア"
+  },
+  "campSite": {
+    "bagSelect": { "title": "バックパックを選択", "subtitle": "{{name}}を目的地に設定", "create": "新しいバックパックを作成", "empty": "まだバックパックがありません。作成して目的地を設定してください。", "myBags": "マイバックパック", "close": "閉じる", "changeConfirm": "目的地を{{from}}から{{to}}に変更しますか？", "changed": "目的地を設定しました。", "weatherFailed": "目的地を設定しましたが、天気を読み込めませんでした。", "move": "移動", "weatherRetry": "再試行" },
+    "detail": { "close": "閉じる", "favorite": "お気に入り", "favorited": "お気に入り登録済み", "share": "共有", "naverMap": "Naverマップ", "moveToSpot": "場所に移動", "setDestination": "バックパックの目的地に設定", "loadFailedTitle": "お知らせ", "loadFailedMessage": "キャンプ場の情報を読み込めませんでした。", "favoriteFailed": "しばらくしてからもう一度お試しください", "saveFailedTitle": "エラー", "saveFailedMessage": "目的地を保存できませんでした。もう一度お試しください。", "source": "出典", "facilities": "設備", "accessInfo": "アクセス情報", "notice": "野営は地域によって禁止される場合があります。利用前に現地の規則を確認してください。" },
+    "tabs": { "overview": "概要", "weather": "天気", "review": "レビュー" },
+    "types": { "campground": "キャンプ場", "shelter": "避難所", "wild": "バックパッキング" },
+    "tags": { "mountain": "山", "beach": "ビーチ", "valley": "渓谷", "island": "島", "lake": "湖", "plain": "草原", "forest": "森" },
+    "sources": { "gocamping": "韓国観光公社 Go Camping", "knps": "国立公園公団", "curated": "独自キュレーション" },
+    "map": { "searchPlaceholder": "キャンプ場や場所を検索", "searchCount_other": "{{count}}か所", "searchCountAccessibility_other": "検索結果 {{count}}か所", "clearSearch": "検索語を消去", "spotSection": "キャンプ場", "placeSection": "場所", "resultAccessibility": "{{name}}を地図で見る", "noResults": "検索結果がありません", "loadError": "キャンプ場の情報を読み込めませんでした", "showAll": "すべて表示", "noSubmittedResults": "「{{query}}」の検索結果がありません", "favoriteList": "お気に入り一覧", "currentLocation": "現在地に移動" },
+    "favorites": { "title": "お気に入り", "detail": "{{name}}の詳細を見る", "empty": "お気に入りのキャンプ場はまだありません", "close": "閉じる" },
+    "overview": { "facilityToilet": "トイレ", "facilityWater": "飲料水", "facilityDeck": "デッキ", "facilityStore": "売店" },
+    "review": { "external": "ブログ・動画", "user": "ユーザーレビュー", "count_other": "レビュー{{count}}件", "first": "最初のレビューを書いてください", "write": "レビューを書く", "writeAccessibility": "レビューを書く", "deleteTitle": "レビューを削除", "deleteMessage": "自分のレビューを削除しますか？", "edit": "編集", "delete": "削除", "more": "自分のレビューのその他の操作", "bagOpen": "バックパック{{name}}を開く", "bag": "バックパック", "mine": "自分のレビュー" },
+    "rating": { "value": "評価{{rating}}点", "valueAccessibility": "{{rating}}点" }
+  },
+  "weather": {
+    "code": { "0": "晴れ", "1": "おおむね晴れ", "2": "薄曇り", "3": "曇り", "45": "霧", "48": "霧氷", "51": "弱い霧雨", "53": "霧雨", "55": "強い霧雨", "56": "凍る霧雨", "57": "強い凍る霧雨", "61": "弱い雨", "63": "雨", "65": "強い雨", "66": "みぞれ", "67": "強いみぞれ", "71": "弱い雪", "73": "雪", "75": "大雪", "77": "細雪", "80": "弱いにわか雨", "81": "にわか雨", "82": "強いにわか雨", "85": "弱いにわか雪", "86": "強いにわか雪", "95": "雷雨", "96": "ひょうを伴う雷雨", "99": "強いひょうを伴う雷雨", "unknown": "情報なし" },
+    "conditionSunny": "晴れ", "conditionRain": "雨", "conditionSnow": "雪", "weekdays": ["日", "月", "火", "水", "木", "金", "土"], "dayFormat": "M月D日", "wind": "風速 {{speed}}m/s", "gust": "最大瞬間風速 {{speed}}m/s", "summary": "{{condition}} · ↓{{low}}° ↑{{high}}°{{gust}}", "gustSuffix": " · 最大瞬間風速 {{speed}}m/s", "loadFailed": "天気を読み込めませんでした", "retry": "再試行", "retryAccessibility": "天気を再試行", "sectionTitle": "旅行期間の天気", "disclaimer": "天気予報は今後16日間提供され、それ以降は過去の平年値を参考に表示します。"
   },
   "reply": { "edit": "編集", "deleteAction": "削除", "myReply": "自分の返信", "myReview": "自分のレビュー", "replyManage": "返信を管理", "reviewManage": "レビューを管理", "like": "いいね", "unlike": "いいねを取り消す", "reply": "返信する", "writeReview": "レビューを書く", "writeReply": "返信を書く", "saveReply": "返信を保存", "keyboardClose": "キーボードを閉じる", "placeholder": "ギアはいかがでしたか？", "optionalPlaceholder": "ギアはいかがでしたか？（任意）", "detailTitle": "コメント", "back": "戻る", "complete": "完了", "editReview": "レビューを編集", "editReply": "返信を編集", "deleteConfirm": "このコメントを削除しますか？", "delete": "削除", "deleteFailed": "コメントを削除できませんでした。", "confirm": "確認", "loginRequired": "ログインが必要です。", "nicknameRequired": "ニックネームが必要です。", "reviewCreateFailed": "レビューを作成できませんでした", "reviewCreateError": "レビューを作成できませんでした。", "replyEditError": "コメントを編集できませんでした。", "replyCount_other": "返信{{count}}件", "rating": "評価", "reviewText": "レビュー", "register": "投稿", "reviewPlaceholder": "レビューを書いてください", "replyPlaceholder": "返信を書いてください", "noReviews": "まだレビューがありません", "firstReviewPrompt": "最初のレビューを書いてください" }
 }

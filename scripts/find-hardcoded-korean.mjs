@@ -51,7 +51,11 @@ const findKoreanLiterals = source => {
           const findingLine = stringStartLine + index;
           const sourceLine = sourceLines[findingLine - 1] ?? '';
 
-          if (!sourceLine.includes('// l10n-ignore')) {
+          if (
+            !sourceLine.trim().startsWith('//') &&
+            !sourceLine.trim().startsWith('*') &&
+            !sourceLine.includes('// l10n-ignore')
+          ) {
             findings.push(findingLine);
           }
         }

@@ -3,14 +3,16 @@ import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import { observer } from 'mobx-react-lite';
 import CampSiteType from '@/model/camp-site/CampSiteType';
 import CampSiteFacility from '@/model/camp-site/CampSiteFacility';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import {
-  WILD_NOTICE,
+  getCampSiteWildNotice,
   getCampSiteSourceLabel,
   getCampSiteTagLabel,
 } from '@/model/camp-site/CampSiteLabels';
+import app from '@/model/app/App';
 
 // 주의·규제 경고(CS-4)용 시맨틱 색(주황 계열) — 디자인 토큰에 없는 경고 전용 리터럴.
 const WARNING_BG_COLOR = '#FFF4E5';
@@ -25,12 +27,12 @@ type IoniconName = keyof typeof Ionicons.glyphMap;
 // 시설 코드 → 아이콘·라벨(있는 것만 표시).
 const FACILITY_META: Record<
   CampSiteFacility,
-  { icon: IoniconName; label: string }
+  { icon: IoniconName; labelKey: string }
 > = {
-  [CampSiteFacility.Toilet]: { icon: 'male-female-outline', label: '화장실' },
-  [CampSiteFacility.Water]: { icon: 'water-outline', label: '식수' },
-  [CampSiteFacility.Deck]: { icon: 'grid-outline', label: '데크' },
-  [CampSiteFacility.Store]: { icon: 'storefront-outline', label: '매점' },
+  [CampSiteFacility.Toilet]: { icon: 'male-female-outline', labelKey: 'campSite.overview.facilityToilet' },
+  [CampSiteFacility.Water]: { icon: 'water-outline', labelKey: 'campSite.overview.facilityWater' },
+  [CampSiteFacility.Deck]: { icon: 'grid-outline', labelKey: 'campSite.overview.facilityDeck' },
+  [CampSiteFacility.Store]: { icon: 'storefront-outline', labelKey: 'campSite.overview.facilityStore' },
 };
 
 const FACILITY_ORDER: CampSiteFacility[] = [
@@ -44,6 +46,7 @@ const FACILITY_ORDER: CampSiteFacility[] = [
 // 설명·대표 사진은 상단 블록(CampSiteDetailHeaderView)으로 올라가 여기서 제외한다.
 // 바깥 스크롤(CampSiteDetailView)이 스크롤을 담당하므로 자체 ScrollView를 두지 않는다.
 const CampSiteOverviewTabView: FC<Props> = ({ spot }) => {
+  const l10n = app.getL10n();
   const facilities = FACILITY_ORDER.filter(facility =>
     spot.facilities.includes(facility)
   );
@@ -88,7 +91,7 @@ const CampSiteOverviewTabView: FC<Props> = ({ spot }) => {
             style={styles.wildNoticeIcon}
           />
           <PretendardText style={styles.wildNoticeText}>
-            {WILD_NOTICE}
+            {getCampSiteWildNotice()}
           </PretendardText>
         </View>
       ) : null}
@@ -96,7 +99,7 @@ const CampSiteOverviewTabView: FC<Props> = ({ spot }) => {
       {facilities.length > 0 ? (
         <View style={styles.section}>
           <PretendardText style={styles.sectionTitle} weight='semibold'>
-            시설
+            {l10n.t('campSite.detail.facilities')}
           </PretendardText>
           <View style={styles.facilityRow}>
             {facilities.map(facility => {
@@ -110,7 +113,7 @@ const CampSiteOverviewTabView: FC<Props> = ({ spot }) => {
                     color={Color.textSecondary}
                   />
                   <PretendardText style={styles.facilityLabel}>
-                    {meta.label}
+                    {l10n.t(meta.labelKey)}
                   </PretendardText>
                 </View>
               );
@@ -122,7 +125,7 @@ const CampSiteOverviewTabView: FC<Props> = ({ spot }) => {
       {spot.accessInfo ? (
         <View style={styles.section}>
           <PretendardText style={styles.sectionTitle} weight='semibold'>
-            접근 정보
+            {l10n.t('campSite.detail.accessInfo')}
           </PretendardText>
           <PretendardText style={styles.accessInfo}>
             {spot.accessInfo}
@@ -131,7 +134,7 @@ const CampSiteOverviewTabView: FC<Props> = ({ spot }) => {
       ) : null}
 
       <PretendardText style={styles.source}>
-        출처 · {getCampSiteSourceLabel(spot.source)}
+        {l10n.t('campSite.detail.source')} · {getCampSiteSourceLabel(spot.source)}
       </PretendardText>
     </View>
   );
@@ -220,4 +223,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CampSiteOverviewTabView;
+export default observer(CampSiteOverviewTabView);

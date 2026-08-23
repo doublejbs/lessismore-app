@@ -2,8 +2,10 @@ import { FC } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
@@ -75,6 +77,8 @@ const CampSiteDetailHeaderView: FC<Props> = ({
   onPressNaverMap,
   onPressClose,
 }) => {
+  const l10n = app.getL10n();
+
   return (
     <View style={styles.header}>
       {/* 상세가 지도 위 바텀 시트(CS-2)일 때는 뒤로 가기가 아니라 우상단 닫기(X)만 둔다.
@@ -94,7 +98,7 @@ const CampSiteDetailHeaderView: FC<Props> = ({
           <TouchableOpacity
             onPress={onPressClose}
             style={styles.closeButton}
-            accessibilityLabel='닫기'
+            accessibilityLabel={l10n.t('campSite.detail.close')}
             accessibilityRole='button'
           >
             <Ionicons name='close' size={24} color={Acg.ink} />
@@ -127,24 +131,26 @@ const CampSiteDetailHeaderView: FC<Props> = ({
         <FeatureButton
           icon={isFavorite ? 'star' : 'star-outline'}
           iconColor={isFavorite ? FAVORITE_STAR_COLOR : undefined}
-          label={isFavorite ? '즐겨찾기됨' : '즐겨찾기'}
+          label={l10n.t(
+            isFavorite ? 'campSite.detail.favorited' : 'campSite.detail.favorite'
+          )}
           onPress={onPressFavorite}
         />
         <FeatureButton
           icon='share-outline'
-          label='공유'
+          label={l10n.t('campSite.detail.share')}
           onPress={onPressShare}
         />
         {/* 외부 길찾기 성격이라 조준 아이콘(위치로 이동)과 구분되는 방향 화살표를 쓴다(CS-3). */}
         <FeatureButton
           icon='navigate-outline'
-          label='네이버 지도'
+          label={l10n.t('campSite.detail.naverMap')}
           onPress={onPressNaverMap}
         />
         {onPressMoveToSpot ? (
           <FeatureButton
             icon='locate'
-            label='위치로 이동'
+            label={l10n.t('campSite.detail.moveToSpot')}
             onPress={onPressMoveToSpot}
           />
         ) : null}
@@ -245,4 +251,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CampSiteDetailHeaderView;
+export default observer(CampSiteDetailHeaderView);

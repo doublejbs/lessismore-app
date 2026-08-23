@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgRow, AcgType } from '@/constants/DesignTokens';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
@@ -8,6 +9,7 @@ import {
   getCampSiteTypeLabel,
   getCampSpotRegionLabel,
 } from '@/model/camp-site/CampSiteLabels';
+import app from '@/model/app/App';
 
 interface Props {
   // 즐겨찾기한 박지 목록(campSiteMap.getFavoriteSpots()). 로드된 활성 박지와 즐겨찾기 id 조인 결과.
@@ -27,6 +29,7 @@ const CampSiteFavoritesListView: FC<Props> = ({
   onOpenDetail,
   onClose,
 }) => {
+  const l10n = app.getL10n();
   const renderItem = ({ item, index }: { item: CampSpot; index: number }) => {
     /**
      * 행 전체가 상세를 연다. 예전에는 행 본체(카메라 이동)와 우측 셰브론(상세)이 다른 일을
@@ -46,7 +49,7 @@ const CampSiteFavoritesListView: FC<Props> = ({
         onPress={handlePress}
         activeOpacity={0.7}
         accessibilityRole='button'
-        accessibilityLabel={`${item.name} 상세 보기`}
+        accessibilityLabel={l10n.t('campSite.favorites.detail', { name: item.name })}
       >
         {/* 목록 행 문법(HM-8): 이름 + 메타 한 줄. 유형·지역을 `·`로 이어 붙여 배지를 없앤다. */}
         <View style={styles.rowMain}>
@@ -79,14 +82,14 @@ const CampSiteFavoritesListView: FC<Props> = ({
   const header = (
     <View style={styles.header}>
       <PretendardText style={styles.headerTitle} weight='bold'>
-        즐겨찾기
+        {l10n.t('campSite.favorites.title')}
       </PretendardText>
       {onClose ? (
         <TouchableOpacity
           style={styles.closeButton}
           onPress={onClose}
           accessibilityRole='button'
-          accessibilityLabel='닫기'
+          accessibilityLabel={l10n.t('campSite.favorites.close')}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Ionicons name='close' size={24} color={Acg.ink} />
@@ -103,7 +106,7 @@ const CampSiteFavoritesListView: FC<Props> = ({
           {header}
           <View style={styles.emptyWrap}>
             <PretendardText style={styles.emptyText}>
-              아직 즐겨찾기한 박지가 없어요
+              {l10n.t('campSite.favorites.empty')}
             </PretendardText>
           </View>
         </View>
@@ -214,4 +217,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CampSiteFavoritesListView;
+export default observer(CampSiteFavoritesListView);

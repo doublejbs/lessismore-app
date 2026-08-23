@@ -43,7 +43,11 @@ class CampSiteDetailDispatcher {
   private buildReviewQuery(spot: CampSpot): string {
     const area = (spot.city || spot.region || '').trim();
 
-    return [area, spot.name, '백패킹'].filter(part => Boolean(part)).join(' ');
+    const reviewType = '백패킹'; // l10n-ignore
+
+    return [area, spot.name, reviewType]
+      .filter(part => Boolean(part))
+      .join(' ');
   }
 
   // 박지 후기(CS-3): 네이버 블로그 후보 중 관련성 필터를 통과한 상위 5건. 실패·키 미설정이면 null.

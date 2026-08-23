@@ -1,7 +1,9 @@
 import { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { observer } from 'mobx-react-lite';
 import { Acg, AcgShadow } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 // 즐겨찾기 상징 노랑 — 마커 캠핑장색과 동일한 시맨틱 리터럴(CS-9).
 const FAVORITE_COLOR = '#FFD700';
@@ -23,6 +25,8 @@ const CampSiteMapBottomOverlayView: FC<Props> = ({
   onMoveToCurrentLocation,
   onOpenFavorites,
 }) => {
+  const l10n = app.getL10n();
+
   return (
     <View
       // 탭바 여유에서 8 안쪽까지 내린다 — +24는 스택이 지도 가운데쯤까지 올라와 떠 보였고,
@@ -37,7 +41,7 @@ const CampSiteMapBottomOverlayView: FC<Props> = ({
         onPress={onOpenFavorites}
         activeOpacity={0.8}
         accessibilityRole='button'
-        accessibilityLabel='즐겨찾기 목록'
+        accessibilityLabel={l10n.t('campSite.map.favoriteList')}
       >
         <Ionicons name='star' size={22} color={FAVORITE_COLOR} />
       </TouchableOpacity>
@@ -49,7 +53,7 @@ const CampSiteMapBottomOverlayView: FC<Props> = ({
           onPress={onMoveToCurrentLocation}
           activeOpacity={0.8}
           accessibilityRole='button'
-          accessibilityLabel='현재 위치로 이동'
+          accessibilityLabel={l10n.t('campSite.map.currentLocation')}
         >
           <Ionicons name='locate' size={22} color={Acg.ink} />
         </TouchableOpacity>
@@ -85,4 +89,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CampSiteMapBottomOverlayView;
+export default observer(CampSiteMapBottomOverlayView);

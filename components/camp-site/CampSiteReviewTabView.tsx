@@ -7,6 +7,7 @@ import CampUserReviewSectionView from './CampUserReviewSectionView';
 import ReviewSectionView from '@/components/review/ReviewSectionView';
 import CampSiteDetail from '@/model/camp-site/CampSiteDetail';
 import { BlogReview, VideoReview } from '@/model/review/ReviewTypes';
+import app from '@/model/app/App';
 
 interface Props {
   campSiteDetail: CampSiteDetail;
@@ -16,6 +17,7 @@ interface Props {
 // 바깥 스크롤이 스크롤을 담당하므로 자체 ScrollView 없이 플레인 View로 인라인 렌더한다
 // (내부 블로그·영상 카드의 가로 스크롤은 세로 바깥 스크롤과 축이 달라 문제없다).
 const CampSiteReviewTabView: FC<Props> = ({ campSiteDetail }) => {
+  const l10n = app.getL10n();
   const reviews = campSiteDetail.getReviews();
   const videos = campSiteDetail.getVideos();
 
@@ -36,7 +38,7 @@ const CampSiteReviewTabView: FC<Props> = ({ campSiteDetail }) => {
       {reviews.length > 0 || videos.length > 0 ? (
         <View style={styles.section}>
           <PretendardText style={styles.sectionTitle} weight='semibold'>
-            블로그·영상
+            {l10n.t('campSite.review.external')}
           </PretendardText>
           <ReviewSectionView
             reviews={reviews}

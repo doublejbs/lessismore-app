@@ -51,7 +51,7 @@ class CampSiteWeather {
         this.setWeather(daily);
       }
     } catch (e) {
-      console.error('박지 날씨 조회 실패:', e);
+      console.error('박지 날씨 조회 실패:', e); // l10n-ignore
       this.setWeather(null);
       this.setError(true);
     } finally {

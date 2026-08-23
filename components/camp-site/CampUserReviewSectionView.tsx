@@ -7,6 +7,7 @@ import StarRatingView from './StarRatingView';
 import CampUserReviewItemView from './CampUserReviewItemView';
 import CampSiteDetail from '@/model/camp-site/CampSiteDetail';
 import { CampReview } from '@/model/camp-review/CampReviewTypes';
+import app from '@/model/app/App';
 
 interface Props {
   campSiteDetail: CampSiteDetail;
@@ -15,6 +16,7 @@ interface Props {
 // 유저 후기 섹션(CS-8) — 별점 요약 + 후기 리스트 + 작성 액션.
 // 내 후기는 최상단에 고정하고, 나머지는 최신 수정순으로 렌더한다.
 const CampUserReviewSectionView: FC<Props> = ({ campSiteDetail }) => {
+  const l10n = app.getL10n();
   const summary = campSiteDetail.getReviewSummary();
   const reviews = campSiteDetail.getUserReviews();
   const myReview = campSiteDetail.getMyReview();
@@ -48,7 +50,7 @@ const CampUserReviewSectionView: FC<Props> = ({ campSiteDetail }) => {
       {/* 아래 `블로그·영상`과 나란한 제목을 둔다(2026-08-03 리뷰) — 한쪽에만 제목이 있으면
           위 섹션이 제목 없는 덩어리로 뜬다. 탭 이름(`후기`)과 겹치지 않게 `이용자 후기`로 쓴다. */}
       <PretendardText style={styles.sectionTitle} weight='semibold'>
-        이용자 후기
+        {l10n.t('campSite.review.user')}
       </PretendardText>
 
       {summary ? (
@@ -58,7 +60,7 @@ const CampUserReviewSectionView: FC<Props> = ({ campSiteDetail }) => {
             {summary.ratingAvg.toFixed(1)}
           </PretendardText>
           <PretendardText style={styles.summaryCount}>
-            후기 {summary.reviewCount}개
+            {l10n.t('campSite.review.count', { count: summary.reviewCount })}
           </PretendardText>
         </View>
       ) : null}
@@ -66,7 +68,7 @@ const CampUserReviewSectionView: FC<Props> = ({ campSiteDetail }) => {
       {/* 안내 → 액션 순서라 빈 상태 문구를 작성 버튼보다 위에 둔다(CS-8). */}
       {isEmpty ? (
         <PretendardText style={styles.emptyText}>
-          첫 후기를 남겨보세요
+          {l10n.t('campSite.review.first')}
         </PretendardText>
       ) : null}
 
@@ -77,10 +79,10 @@ const CampUserReviewSectionView: FC<Props> = ({ campSiteDetail }) => {
           onPress={handlePressWrite}
           activeOpacity={0.7}
           accessibilityRole='button'
-          accessibilityLabel='후기 쓰기'
+          accessibilityLabel={l10n.t('campSite.review.writeAccessibility')}
         >
           <PretendardText style={styles.writeButtonText} weight='medium'>
-            후기 쓰기
+            {l10n.t('campSite.review.write')}
           </PretendardText>
         </TouchableOpacity>
       ) : null}

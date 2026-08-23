@@ -3,34 +3,35 @@ import CampSiteTag from './CampSiteTag';
 import CampSiteDetailTab from './CampSiteDetailTab';
 import { CampSpotData } from './CampSpotTypes';
 import { AcgSemantic } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 // 박지 상세(CampSite CS-3/CS-4)에서 쓰는 표시 라벨·문구 매핑.
 
 // wild(노지) 유형에 warnings 유무와 무관하게 항상 노출하는 고정 규제 고지(CS-4).
-export const WILD_NOTICE =
-  '노지 야영은 지역에 따라 금지될 수 있습니다. 이용 전 반드시 현지 규정을 확인하세요.';
+export const getCampSiteWildNotice = (): string =>
+  app.getL10n().t('campSite.detail.notice');
 
 // 표시 라벨(CS-2). 데이터 값(CampSiteType enum: campground/shelter/wild)은 그대로 두고 표시만 바꾼다.
-const TYPE_LABEL: Record<CampSiteType, string> = {
-  [CampSiteType.Campground]: '캠핑장',
-  [CampSiteType.Shelter]: '대피소',
-  [CampSiteType.Wild]: '백패킹',
+const TYPE_LABEL_KEY: Record<CampSiteType, string> = {
+  [CampSiteType.Campground]: 'campSite.types.campground',
+  [CampSiteType.Shelter]: 'campSite.types.shelter',
+  [CampSiteType.Wild]: 'campSite.types.wild',
 };
 
-const SOURCE_LABEL: Record<string, string> = {
-  gocamping: '한국관광공사 고캠핑',
-  knps: '국립공원공단',
-  curated: '자체 큐레이션',
+const SOURCE_LABEL_KEY: Record<string, string> = {
+  gocamping: 'campSite.sources.gocamping',
+  knps: 'campSite.sources.knps',
+  curated: 'campSite.sources.curated',
 };
 
-const TAG_LABEL: Record<CampSiteTag, string> = {
-  [CampSiteTag.Mountain]: '산',
-  [CampSiteTag.Beach]: '해변',
-  [CampSiteTag.Valley]: '계곡',
-  [CampSiteTag.Island]: '섬',
-  [CampSiteTag.Lake]: '호수',
-  [CampSiteTag.Plain]: '초원',
-  [CampSiteTag.Forest]: '숲',
+const TAG_LABEL_KEY: Record<CampSiteTag, string> = {
+  [CampSiteTag.Mountain]: 'campSite.tags.mountain',
+  [CampSiteTag.Beach]: 'campSite.tags.beach',
+  [CampSiteTag.Valley]: 'campSite.tags.valley',
+  [CampSiteTag.Island]: 'campSite.tags.island',
+  [CampSiteTag.Lake]: 'campSite.tags.lake',
+  [CampSiteTag.Plain]: 'campSite.tags.plain',
+  [CampSiteTag.Forest]: 'campSite.tags.forest',
 };
 
 /**
@@ -47,18 +48,22 @@ const TYPE_COLOR: Record<CampSiteType, string> = {
 };
 
 // 상세 시트 탭 바의 표시 라벨(CS-3).
-const DETAIL_TAB_LABEL: Record<CampSiteDetailTab, string> = {
-  [CampSiteDetailTab.Overview]: '개요',
-  [CampSiteDetailTab.Weather]: '날씨',
-  [CampSiteDetailTab.Review]: '후기',
+const DETAIL_TAB_LABEL_KEY: Record<CampSiteDetailTab, string> = {
+  [CampSiteDetailTab.Overview]: 'campSite.tabs.overview',
+  [CampSiteDetailTab.Weather]: 'campSite.tabs.weather',
+  [CampSiteDetailTab.Review]: 'campSite.tabs.review',
 };
 
 export const getCampSiteDetailTabLabel = (tab: CampSiteDetailTab): string => {
-  return DETAIL_TAB_LABEL[tab] ?? '';
+  const key = DETAIL_TAB_LABEL_KEY[tab];
+
+  return key ? app.getL10n().t(key) : '';
 };
 
 export const getCampSiteTypeLabel = (type: CampSiteType): string => {
-  return TYPE_LABEL[type] ?? '';
+  const key = TYPE_LABEL_KEY[type];
+
+  return key ? app.getL10n().t(key) : '';
 };
 
 export const getCampSiteTypeColor = (type: CampSiteType): string => {
@@ -66,11 +71,15 @@ export const getCampSiteTypeColor = (type: CampSiteType): string => {
 };
 
 export const getCampSiteTagLabel = (tag: CampSiteTag): string => {
-  return TAG_LABEL[tag] ?? '';
+  const key = TAG_LABEL_KEY[tag];
+
+  return key ? app.getL10n().t(key) : '';
 };
 
 export const getCampSiteSourceLabel = (source: string): string => {
-  return SOURCE_LABEL[source] ?? source;
+  const key = SOURCE_LABEL_KEY[source];
+
+  return key ? app.getL10n().t(key) : source;
 };
 
 // 지역 표시 라벨(DM-17) — `강원 평창군`처럼 시/도 + 시/군/구를 합쳐 낸다.

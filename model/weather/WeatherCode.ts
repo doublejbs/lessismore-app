@@ -1,50 +1,54 @@
 import { Ionicons } from '@expo/vector-icons';
 import { WeatherDaily } from './WeatherTypes';
+import app from '@/model/app/App';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
 export interface WeatherCodeInfo {
-  ko: string;
+  label: string;
   icon: IoniconName;
 }
 
 // WMO weather interpretation codes → 한글 설명 + Ionicons 아이콘.
 // https://open-meteo.com/en/docs (weather_code)
 const TABLE: Record<number, WeatherCodeInfo> = {
-  0: { ko: '맑음', icon: 'sunny-outline' },
-  1: { ko: '대체로 맑음', icon: 'partly-sunny-outline' },
-  2: { ko: '구름 조금', icon: 'partly-sunny-outline' },
-  3: { ko: '흐림', icon: 'cloudy-outline' },
-  45: { ko: '안개', icon: 'cloudy-outline' },
-  48: { ko: '서리 안개', icon: 'cloudy-outline' },
-  51: { ko: '약한 이슬비', icon: 'rainy-outline' },
-  53: { ko: '이슬비', icon: 'rainy-outline' },
-  55: { ko: '강한 이슬비', icon: 'rainy-outline' },
-  56: { ko: '어는 이슬비', icon: 'rainy-outline' },
-  57: { ko: '강한 어는 이슬비', icon: 'rainy-outline' },
-  61: { ko: '약한 비', icon: 'rainy-outline' },
-  63: { ko: '비', icon: 'rainy-outline' },
-  65: { ko: '강한 비', icon: 'rainy-outline' },
-  66: { ko: '어는 비', icon: 'rainy-outline' },
-  67: { ko: '강한 어는 비', icon: 'rainy-outline' },
-  71: { ko: '약한 눈', icon: 'snow-outline' },
-  73: { ko: '눈', icon: 'snow-outline' },
-  75: { ko: '강한 눈', icon: 'snow-outline' },
-  77: { ko: '싸락눈', icon: 'snow-outline' },
-  80: { ko: '약한 소나기', icon: 'rainy-outline' },
-  81: { ko: '소나기', icon: 'rainy-outline' },
-  82: { ko: '강한 소나기', icon: 'rainy-outline' },
-  85: { ko: '약한 소낙눈', icon: 'snow-outline' },
-  86: { ko: '강한 소낙눈', icon: 'snow-outline' },
-  95: { ko: '뇌우', icon: 'thunderstorm-outline' },
-  96: { ko: '우박 동반 뇌우', icon: 'thunderstorm-outline' },
-  99: { ko: '강한 우박 뇌우', icon: 'thunderstorm-outline' },
+  0: { label: 'weather.code.0', icon: 'sunny-outline' },
+  1: { label: 'weather.code.1', icon: 'partly-sunny-outline' },
+  2: { label: 'weather.code.2', icon: 'partly-sunny-outline' },
+  3: { label: 'weather.code.3', icon: 'cloudy-outline' },
+  45: { label: 'weather.code.45', icon: 'cloudy-outline' },
+  48: { label: 'weather.code.48', icon: 'cloudy-outline' },
+  51: { label: 'weather.code.51', icon: 'rainy-outline' },
+  53: { label: 'weather.code.53', icon: 'rainy-outline' },
+  55: { label: 'weather.code.55', icon: 'rainy-outline' },
+  56: { label: 'weather.code.56', icon: 'rainy-outline' },
+  57: { label: 'weather.code.57', icon: 'rainy-outline' },
+  61: { label: 'weather.code.61', icon: 'rainy-outline' },
+  63: { label: 'weather.code.63', icon: 'rainy-outline' },
+  65: { label: 'weather.code.65', icon: 'rainy-outline' },
+  66: { label: 'weather.code.66', icon: 'rainy-outline' },
+  67: { label: 'weather.code.67', icon: 'rainy-outline' },
+  71: { label: 'weather.code.71', icon: 'snow-outline' },
+  73: { label: 'weather.code.73', icon: 'snow-outline' },
+  75: { label: 'weather.code.75', icon: 'snow-outline' },
+  77: { label: 'weather.code.77', icon: 'snow-outline' },
+  80: { label: 'weather.code.80', icon: 'rainy-outline' },
+  81: { label: 'weather.code.81', icon: 'rainy-outline' },
+  82: { label: 'weather.code.82', icon: 'rainy-outline' },
+  85: { label: 'weather.code.85', icon: 'snow-outline' },
+  86: { label: 'weather.code.86', icon: 'snow-outline' },
+  95: { label: 'weather.code.95', icon: 'thunderstorm-outline' },
+  96: { label: 'weather.code.96', icon: 'thunderstorm-outline' },
+  99: { label: 'weather.code.99', icon: 'thunderstorm-outline' },
 };
 
-const FALLBACK: WeatherCodeInfo = { ko: '정보 없음', icon: 'help-outline' };
+const FALLBACK: WeatherCodeInfo = { label: 'weather.code.unknown', icon: 'help-outline' };
 
-export const getWeatherCodeInfo = (code: number): WeatherCodeInfo =>
-  TABLE[code] ?? FALLBACK;
+export const getWeatherCodeInfo = (code: number): WeatherCodeInfo => {
+  const info = TABLE[code] ?? FALLBACK;
+
+  return { ...info, label: app.getL10n().t(info.label) };
+};
 
 // 비/눈 판정용 WMO 코드.
 const RAIN_CODES = new Set([
@@ -77,7 +81,11 @@ export const summarizeWeatherPeriod = (
   const hasRain = daily.some(
     d => RAIN_CODES.has(d.code) || (d.precipProb ?? 0) >= 60
   );
-  const cond = hasSnow ? '눈' : hasRain ? '비' : '맑음';
+  const cond = hasSnow
+    ? app.getL10n().t('weather.conditionSnow')
+    : hasRain
+      ? app.getL10n().t('weather.conditionRain')
+      : app.getL10n().t('weather.conditionSunny');
   const icon: IoniconName = hasSnow
     ? 'snow-outline'
     : hasRain
