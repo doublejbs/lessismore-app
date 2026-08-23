@@ -1,15 +1,12 @@
 import { FC } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-} from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgType } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
+import { observer } from 'mobx-react-lite';
 
 // 한 줄 푸터 링크의 44pt 터치 타깃 확보용 여유.
 const LINK_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
@@ -21,6 +18,7 @@ interface Props {
 const InfoFooterView: FC<Props> = ({ isLoggedIn }) => {
   const router = useRouter();
   const appVersion = Constants.expoConfig?.version || '1.0.0';
+  const l10n = app.getL10n();
 
   const handleOpenBusinessInfo = () => {
     router.push('/info/business');
@@ -34,7 +32,7 @@ const InfoFooterView: FC<Props> = ({ isLoggedIn }) => {
           activeOpacity={0.7}
         >
           <PretendardText style={styles.deleteAccountText}>
-            탈퇴하기
+            {l10n.t('info.footer.deleteAccount')}
           </PretendardText>
         </TouchableOpacity>
       )}
@@ -43,10 +41,10 @@ const InfoFooterView: FC<Props> = ({ isLoggedIn }) => {
       <View style={styles.metaRow}>
         <View style={styles.metaLeft}>
           <PretendardText style={styles.versionText}>
-            버전 {appVersion}
+            {l10n.t('info.footer.version', { version: appVersion })}
           </PretendardText>
           <PretendardText style={styles.versionText}>
-            © 2026 useless
+            {l10n.t('info.footer.copyright')}
           </PretendardText>
         </View>
         <TouchableOpacity
@@ -54,11 +52,11 @@ const InfoFooterView: FC<Props> = ({ isLoggedIn }) => {
           onPress={handleOpenBusinessInfo}
           activeOpacity={0.7}
           accessibilityRole='button'
-          accessibilityLabel='사업자 정보'
+          accessibilityLabel={l10n.t('info.business.title')}
           hitSlop={LINK_HIT_SLOP}
         >
           <PretendardText style={styles.versionText}>
-            사업자 정보
+            {l10n.t('info.business.title')}
           </PretendardText>
           <Ionicons name='chevron-forward' size={12} color={Acg.textMuted} />
         </TouchableOpacity>
@@ -141,4 +139,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default InfoFooterView;
+export default observer(InfoFooterView);

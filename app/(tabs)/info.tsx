@@ -55,8 +55,8 @@ const InfoView: FC = () => {
   // 로그아웃은 되돌리려면 다시 로그인해야 하는 액션이라 확인 알럿을 거친다(AU-4, 2026-08-13).
   const handleLogout = () => {
     app.getAlertManager()?.show({
-      message: '로그아웃할까요?',
-      confirmText: '로그아웃',
+      message: l10n.t('info.account.logoutConfirmMessage'),
+      confirmText: l10n.t('info.account.logout'),
       onConfirm: async () => {
         app.getAnalyticsManager()?.logClick('logout');
         await firebase.logout();
@@ -85,7 +85,7 @@ const InfoView: FC = () => {
   // 두지 않는다(2026-08-23 사용자 결정) — 저장값이 없어도 시스템에서 유도한 언어를 보여준다.
   const languageLabel =
     l10n.language === AppLanguage.Korean
-      ? '한국어'
+      ? '한국어' // l10n-ignore 언어 이름 자기 표기
       : l10n.language === AppLanguage.English
         ? 'English'
         : '日本語';
@@ -134,174 +134,191 @@ const InfoView: FC = () => {
       background={<InfoFooterBackgroundView />}
     >
       <View style={styles.contentLayer}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: scrollBottomPadding },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.header}>
-          {/* AU-4: 화면 타이틀은 로그인 여부와 무관하게 고정한다. 닉네임은 아래 프로필 행이 맡는다 —
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: scrollBottomPadding },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            {/* AU-4: 화면 타이틀은 로그인 여부와 무관하게 고정한다. 닉네임은 아래 프로필 행이 맡는다 —
               닉네임은 `내 정보`의 값이지 화면 이름이 아니다. */}
-          {/* 화면 제목 44px(ACG). 형광펜 띠 없음 — 한글이라 콘덴스드도 쓰지 않는다. */}
-          <PretendardText weight='bold' style={styles.headerText}>
-            내 정보
-          </PretendardText>
-        </View>
+            {/* 화면 제목 44px(ACG). 형광펜 띠 없음 — 한글이라 콘덴스드도 쓰지 않는다. */}
+            <PretendardText weight='bold' style={styles.headerText}>
+              {l10n.t('info.account.title')}
+            </PretendardText>
+          </View>
 
-        {isLoggedIn ? (
-          <View style={styles.profileRow}>
-            {nickname ? (
-              <>
-                <PretendardText
-                  weight='semibold'
-                  style={styles.profileNickname}
-                  numberOfLines={1}
-                >
-                  {nickname}
-                </PretendardText>
+          {isLoggedIn ? (
+            <View style={styles.profileRow}>
+              {nickname ? (
+                <>
+                  <PretendardText
+                    weight='semibold'
+                    style={styles.profileNickname}
+                    numberOfLines={1}
+                  >
+                    {nickname}
+                  </PretendardText>
+                  <TouchableOpacity
+                    style={styles.editIconButton}
+                    onPress={handleEditNickname}
+                    activeOpacity={0.7}
+                    accessibilityRole='button'
+                    accessibilityLabel={l10n.t('info.account.editNickname')}
+                    hitSlop={EDIT_ICON_HIT_SLOP}
+                  >
+                    <Ionicons
+                      name='create-outline'
+                      size={20}
+                      color={Color.textSecondary}
+                    />
+                  </TouchableOpacity>
+                </>
+              ) : (
                 <TouchableOpacity
-                  style={styles.editIconButton}
                   onPress={handleEditNickname}
                   activeOpacity={0.7}
                   accessibilityRole='button'
-                  accessibilityLabel='닉네임 수정'
-                  hitSlop={EDIT_ICON_HIT_SLOP}
+                  style={styles.setNicknameButton}
                 >
-                  <Ionicons
-                    name='create-outline'
-                    size={20}
-                    color={Color.textSecondary}
-                  />
+                  <PretendardText
+                    weight='bold'
+                    style={styles.setNicknameButtonText}
+                  >
+                    {l10n.t('info.account.setNickname')}
+                  </PretendardText>
                 </TouchableOpacity>
-              </>
-            ) : (
-              <TouchableOpacity
-                onPress={handleEditNickname}
-                activeOpacity={0.7}
-                accessibilityRole='button'
-                style={styles.setNicknameButton}
-              >
-                <PretendardText
-                  weight='bold'
-                  style={styles.setNicknameButtonText}
-                >
-                  닉네임 설정하기
-                </PretendardText>
-              </TouchableOpacity>
-            )}
-          </View>
-        ) : null}
+              )}
+            </View>
+          ) : null}
 
-        {/* 미로그인 상태의 `로그인`은 이 화면의 주 액션이라 맨 위에 둔다.
+          {/* 미로그인 상태의 `로그인`은 이 화면의 주 액션이라 맨 위에 둔다.
             반대로 `로그아웃`은 목록 맨 아래로 내린다(AU-4). */}
-        {!isLoggedIn ? (
+          {!isLoggedIn ? (
+            <TouchableOpacity
+              style={[styles.button, styles.buttonFirst]}
+              onPress={handleLogin}
+              activeOpacity={0.7}
+              accessibilityRole='button'
+            >
+              <PretendardText weight='semibold' style={styles.buttonText}>
+                {l10n.t('info.account.login')}
+              </PretendardText>
+            </TouchableOpacity>
+          ) : null}
+
           <TouchableOpacity
-            style={[styles.button, styles.buttonFirst]}
-            onPress={handleLogin}
+            style={[styles.button, isLoggedIn && styles.buttonFirst]}
+            onPress={handleOpenNotificationSettings}
             activeOpacity={0.7}
             accessibilityRole='button'
           >
             <PretendardText weight='semibold' style={styles.buttonText}>
-              로그인
+            {l10n.t('notification.title')}
             </PretendardText>
+            <Ionicons
+              name='chevron-forward'
+              size={18}
+              color={Color.iconMuted}
+            />
           </TouchableOpacity>
-        ) : null}
 
-        <TouchableOpacity
-          style={[styles.button, isLoggedIn && styles.buttonFirst]}
-          onPress={handleOpenNotificationSettings}
-          activeOpacity={0.7}
-          accessibilityRole='button'
-        >
-          <PretendardText weight='semibold' style={styles.buttonText}>
-            알림 설정
-          </PretendardText>
-          <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleOpenLanguageSettings}
-          activeOpacity={0.7}
-          accessibilityRole='button'
-        >
-          <PretendardText weight='semibold' style={styles.buttonText}>
-            {l10n.t('info.language.rowLabel')}
-          </PretendardText>
-          <View style={styles.rowAccessory}>
-            <PretendardText
-              style={styles.rowSubtitle}
-              numberOfLines={1}
-            >
-              {languageLabel}
-            </PretendardText>
-            <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleOpenKakao}
-          activeOpacity={0.7}
-          accessibilityRole='button'
-        >
-          <PretendardText weight='semibold' style={styles.buttonText}>
-            서비스 문의
-          </PretendardText>
-          <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />
-        </TouchableOpacity>
-
-        {/* 전문은 별도 화면이 맡는다(AU-4) — 인라인 아코디언은 스크롤이 수천 pt로 늘어났다. */}
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleOpenPrivacyPolicy}
-          activeOpacity={0.7}
-          accessibilityRole='button'
-        >
-          <PretendardText weight='semibold' style={styles.buttonText}>
-            개인정보 처리방침
-          </PretendardText>
-          <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />
-        </TouchableOpacity>
-
-        {/* 가입 시 동의를 받으면서(AU-3) 나중에 볼 경로가 없었다. */}
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleOpenTerms}
-          activeOpacity={0.7}
-          accessibilityRole='button'
-        >
-          <PretendardText weight='semibold' style={styles.buttonText}>
-            이용약관
-          </PretendardText>
-          <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />
-        </TouchableOpacity>
-
-        {/* 목록의 **마지막 정식 행**이다(AU-4). 예전에 첫 항목이었던 것도, 구분선 없이
-            가운데에 띄웠던 것도 모두 좋지 않았다 — 띄우면 목록에도 푸터에도 속하지 않은 채
-            붕 뜬다. 행 구조는 유지하고 화살표를 빼고 글자색만 낮춰 성격 차이를 낸다. */}
-        {isLoggedIn ? (
           <TouchableOpacity
             style={styles.button}
-            onPress={handleLogout}
+            onPress={handleOpenLanguageSettings}
             activeOpacity={0.7}
             accessibilityRole='button'
           >
-            <PretendardText weight='semibold' style={styles.logoutText}>
-              로그아웃
+            <PretendardText weight='semibold' style={styles.buttonText}>
+              {l10n.t('info.language.rowLabel')}
             </PretendardText>
+            <View style={styles.rowAccessory}>
+              <PretendardText style={styles.rowSubtitle} numberOfLines={1}>
+                {languageLabel}
+              </PretendardText>
+              <Ionicons
+                name='chevron-forward'
+                size={18}
+                color={Color.iconMuted}
+              />
+            </View>
           </TouchableOpacity>
-        ) : null}
 
-        {/* 버전·사업자 정보 푸터는 스크롤 콘텐츠 끝에 둔다. forest 일러스트는
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleOpenKakao}
+            activeOpacity={0.7}
+            accessibilityRole='button'
+          >
+            <PretendardText weight='semibold' style={styles.buttonText}>
+              {l10n.t('info.account.serviceContact')}
+            </PretendardText>
+            <Ionicons
+              name='chevron-forward'
+              size={18}
+              color={Color.iconMuted}
+            />
+          </TouchableOpacity>
+
+          {/* 전문은 별도 화면이 맡는다(AU-4) — 인라인 아코디언은 스크롤이 수천 pt로 늘어났다. */}
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleOpenPrivacyPolicy}
+            activeOpacity={0.7}
+            accessibilityRole='button'
+          >
+            <PretendardText weight='semibold' style={styles.buttonText}>
+            {l10n.t('info.policy.privacy')}
+            </PretendardText>
+            <Ionicons
+              name='chevron-forward'
+              size={18}
+              color={Color.iconMuted}
+            />
+          </TouchableOpacity>
+
+          {/* 가입 시 동의를 받으면서(AU-3) 나중에 볼 경로가 없었다. */}
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleOpenTerms}
+            activeOpacity={0.7}
+            accessibilityRole='button'
+          >
+            <PretendardText weight='semibold' style={styles.buttonText}>
+            {l10n.t('info.policy.terms')}
+            </PretendardText>
+            <Ionicons
+              name='chevron-forward'
+              size={18}
+              color={Color.iconMuted}
+            />
+          </TouchableOpacity>
+
+          {/* 목록의 **마지막 정식 행**이다(AU-4). 예전에 첫 항목이었던 것도, 구분선 없이
+            가운데에 띄웠던 것도 모두 좋지 않았다 — 띄우면 목록에도 푸터에도 속하지 않은 채
+            붕 뜬다. 행 구조는 유지하고 화살표를 빼고 글자색만 낮춰 성격 차이를 낸다. */}
+          {isLoggedIn ? (
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleLogout}
+              activeOpacity={0.7}
+              accessibilityRole='button'
+            >
+              <PretendardText weight='semibold' style={styles.logoutText}>
+                {l10n.t('info.account.logout')}
+              </PretendardText>
+            </TouchableOpacity>
+          ) : null}
+
+          {/* 버전·사업자 정보 푸터는 스크롤 콘텐츠 끝에 둔다. forest 일러스트는
             Layout의 하단 고정 background 레이어가 맡는다(AU-4). */}
-        <View style={styles.footerSlot}>
-          <InfoFooterView isLoggedIn={isLoggedIn} />
-        </View>
-      </ScrollView>
+          <View style={styles.footerSlot}>
+            <InfoFooterView isLoggedIn={isLoggedIn} />
+          </View>
+        </ScrollView>
       </View>
 
       <Modal
@@ -330,18 +347,22 @@ const InfoView: FC = () => {
                 bounces={false}
               >
                 <PretendardText weight='bold' style={styles.modalTitle}>
-                  {nickname ? '닉네임 수정' : '닉네임 설정'}
+                  {l10n.t(
+                    nickname
+                      ? 'info.account.editNicknameTitle'
+                      : 'info.account.setNicknameTitle'
+                  )}
                 </PretendardText>
                 <PretendardText style={styles.modalDescription}>
                   {nickname
-                    ? '새로운 닉네임을 입력해주세요'
-                    : '사용하실 닉네임을 입력해주세요'}
+                    ? l10n.t('info.account.editNicknameDescription')
+                    : l10n.t('info.account.setNicknameDescription')}
                 </PretendardText>
 
                 <TextInput
                   value={editedNickname}
                   onChangeText={setEditedNickname}
-                  placeholder='닉네임을 입력하세요'
+                  placeholder={l10n.t('info.account.nicknamePlaceholder')}
                   style={styles.textInput}
                   autoFocus
                   onSubmitEditing={handleSaveNickname}
@@ -358,7 +379,7 @@ const InfoView: FC = () => {
                     weight='medium'
                     style={styles.modalCancelButtonText}
                   >
-                    취소
+                    {l10n.t('common.cancel')}
                   </PretendardText>
                 </TouchableOpacity>
 
@@ -380,7 +401,7 @@ const InfoView: FC = () => {
                     weight='semibold'
                     style={styles.modalSaveButtonText}
                   >
-                    저장
+                    {l10n.t('common.save')}
                   </PretendardText>
                 </TouchableOpacity>
               </View>

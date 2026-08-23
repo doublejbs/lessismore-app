@@ -5,10 +5,12 @@ import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
+import { observer } from 'mobx-react-lite';
 
 const DeleteInfoView = () => {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
+  const l10n = app.getL10n();
 
   const handleCancel = () => {
     router.back();
@@ -18,15 +20,15 @@ const DeleteInfoView = () => {
     if (isDeleting) return;
 
     Alert.alert(
-      '회원 탈퇴',
-      '정말로 탈퇴하시겠습니까? 모든 데이터가 삭제되며 복구할 수 없습니다.\n\n본인 확인을 위해 재로그인 후 탈퇴합니다.',
+      l10n.t('info.deleteAccount.title'),
+      l10n.t('info.deleteAccount.confirmMessage'),
       [
         {
-          text: '취소',
+          text: l10n.t('common.cancel'),
           style: 'cancel',
         },
         {
-          text: '확인',
+          text: l10n.t('common.confirm'),
           style: 'destructive',
           onPress: async () => {
             app.getAnalyticsManager()?.logClick('withdraw');
@@ -34,28 +36,35 @@ const DeleteInfoView = () => {
 
             try {
               await app.getFirebase().deleteUserAccount();
-              Alert.alert('회원 탈퇴 완료', '회원 탈퇴가 완료되었습니다.', [
-                {
-                  text: '확인',
-                  onPress: () => {
-                    router.replace('/');
+              Alert.alert(
+                l10n.t('info.deleteAccount.completedTitle'),
+                l10n.t('info.deleteAccount.completedMessage'),
+                [
+                  {
+                    text: l10n.t('common.confirm'),
+                    onPress: () => {
+                      router.replace('/');
+                    },
                   },
-                },
-              ]);
+                ]
+              );
             } catch (error: any) {
-              console.error('회원 탈퇴 실패:', error);
-              let errorMessage =
-                '회원 탈퇴 중 오류가 발생했습니다. 다시 시도해주세요.';
+              console.error('회원 탈퇴 실패:', error); // l10n-ignore console 개발자 로그
+              let errorMessage = l10n.t('info.deleteAccount.failedMessage');
 
               if (
                 error?.code === 'auth/popup-closed-by-user' ||
                 error?.code === '12501'
               ) {
-                errorMessage =
-                  '재인증이 취소되었습니다. 회원 탈퇴를 진행하려면 재인증이 필요합니다.';
+                errorMessage = l10n.t(
+                  'info.deleteAccount.reauthCancelledMessage'
+                );
               }
 
-              Alert.alert('회원 탈퇴 실패', errorMessage);
+              Alert.alert(
+                l10n.t('info.deleteAccount.failedTitle'),
+                errorMessage
+              );
               setIsDeleting(false);
             }
           },
@@ -72,29 +81,29 @@ const DeleteInfoView = () => {
       >
         <View style={styles.titleContainer}>
           <PretendardText weight='bold' style={styles.title}>
-            회원 탈퇴
+            {l10n.t('info.deleteAccount.title')}
           </PretendardText>
         </View>
 
         <View style={styles.warningContainer}>
           <View style={styles.warningContent}>
             <PretendardText weight='bold' style={styles.warningTitle}>
-              ⚠️ 주의사항
+              {l10n.t('info.deleteAccount.warningTitle')}
             </PretendardText>
             <PretendardText style={styles.warningMainText}>
-              회원 탈퇴 시 모든 데이터가 삭제됩니다.
+              {l10n.t('info.deleteAccount.warningMain')}
             </PretendardText>
             <PretendardText style={styles.warningBullet}>
-              • 저장된 모든 배낭 정보
+              • {l10n.t('info.deleteAccount.bags')}
             </PretendardText>
             <PretendardText style={styles.warningBullet}>
-              • 저장된 모든 장비 정보
+              • {l10n.t('info.deleteAccount.gears')}
             </PretendardText>
             <PretendardText style={styles.warningBullet}>
-              • 개인 설정 및 기록
+              • {l10n.t('info.deleteAccount.settings')}
             </PretendardText>
             <PretendardText style={styles.warningFooter}>
-              삭제된 데이터는 복구할 수 없습니다.
+              {l10n.t('info.deleteAccount.warningFooter')}
             </PretendardText>
           </View>
         </View>
@@ -110,7 +119,7 @@ const DeleteInfoView = () => {
           ]}
         >
           <PretendardText weight='bold' style={styles.cancelButtonText}>
-            취소
+            {l10n.t('common.cancel')}
           </PretendardText>
         </Pressable>
         <Pressable
@@ -124,7 +133,9 @@ const DeleteInfoView = () => {
           ]}
         >
           <PretendardText weight='bold' style={styles.confirmButtonText}>
-            {isDeleting ? '처리중...' : '확인'}
+            {isDeleting
+              ? l10n.t('common.processing')
+              : l10n.t('common.confirm')}
           </PretendardText>
         </Pressable>
       </View>
@@ -225,4 +236,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DeleteInfoView;
+export default observer(DeleteInfoView);

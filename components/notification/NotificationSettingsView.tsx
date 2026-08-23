@@ -13,18 +13,19 @@ import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgType, Color } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
+import { observer } from 'mobx-react-lite';
 
 type ToggleKey = 'packing' | 'useless' | 'notice';
 
 type ToggleRow = {
   key: ToggleKey;
-  label: string;
+  labelKey: string;
 };
 
 const TOGGLE_ROWS: ToggleRow[] = [
-  { key: 'packing', label: '여행 패킹 알림' },
-  { key: 'useless', label: '사용 여부 기록 알림' },
-  { key: 'notice', label: '공지 알림' },
+  { key: 'packing', labelKey: 'notification.packing' },
+  { key: 'useless', labelKey: 'notification.useless' },
+  { key: 'notice', labelKey: 'notification.notice' },
 ];
 
 // LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
@@ -38,6 +39,7 @@ const NotificationSettingsView: FC = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const notificationManager = app.getNotificationManager();
+  const l10n = app.getL10n();
   const [settings, setSettings] = useState(
     () =>
       notificationManager?.getSettings() ?? {
@@ -76,7 +78,7 @@ const NotificationSettingsView: FC = () => {
         options={{
           headerShown: IS_IOS,
           headerTransparent: true,
-          headerTitle: '알림 설정',
+          headerTitle: l10n.t('notification.title'),
           headerBackButtonDisplayMode: 'minimal',
         }}
       />
@@ -97,7 +99,7 @@ const NotificationSettingsView: FC = () => {
 
           <View style={styles.titleContainer}>
             <PretendardText weight='bold' style={styles.title}>
-              알림 설정
+              {l10n.t('notification.title')}
             </PretendardText>
           </View>
         </>
@@ -123,7 +125,7 @@ const NotificationSettingsView: FC = () => {
             ]}
           >
             <PretendardText weight='medium' style={styles.rowLabel}>
-              {row.label}
+              {l10n.t(row.labelKey)}
             </PretendardText>
             <Switch
               value={settings[row.key]}
@@ -180,4 +182,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default NotificationSettingsView;
+export default observer(NotificationSettingsView);

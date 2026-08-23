@@ -199,7 +199,9 @@ app/(tabs)/info.tsx (정보 탭)
 
 | 키 | 근거 |
 | --- | --- |
-| (예시) `auth.continueWithApple` | Apple 심사 가이드라인 — Sign in with Apple 버튼 문구 규정. 이관 시 실제 키로 갱신 |
+| `auth.googleLogin` | Google 로그인 제공자 식별이 명확한 버튼 문구를 사용한다. en/ja도 `Sign in with Google`/`Googleでログイン`으로 유지한다. |
+| `auth.appleLogin` | Apple 로그인 제공자 식별이 명확한 버튼 문구를 사용한다. 허용을 유도하는 표현 없이 `Sign in with Apple`/`Appleでログイン`으로 유지한다. |
+| `auth.terms.submit` | 동의 완료 후 다음 단계로 이동하는 중립적 문구를 사용한다. en/ja도 `Agree and continue`/`同意して続行`으로 유지한다. |
 
 ## 5. 플랫폼 분기
 

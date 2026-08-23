@@ -4,6 +4,8 @@ import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
+import { observer } from 'mobx-react-lite';
 
 // LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 커스텀 JS 헤더를 유지한다.
 export const IS_IOS = Platform.OS === 'ios';
@@ -25,6 +27,7 @@ interface Props {
  */
 const InfoSubScreenHeaderView: FC<Props> = ({ title }) => {
   const router = useRouter();
+  const l10n = app.getL10n();
 
   const handleBack = () => {
     router.back();
@@ -46,7 +49,7 @@ const InfoSubScreenHeaderView: FC<Props> = ({ title }) => {
             onPress={handleBack}
             style={styles.backButton}
             accessibilityRole='button'
-            accessibilityLabel='뒤로 가기'
+            accessibilityLabel={l10n.t('common.back')}
           >
             <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
           </TouchableOpacity>
@@ -79,4 +82,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default InfoSubScreenHeaderView;
+export default observer(InfoSubScreenHeaderView);

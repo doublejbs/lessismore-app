@@ -1,6 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 import Firebase from '../firebase/Firebase';
 import { Alert } from 'react-native';
+import app from '@/model/app/App';
 
 class LogInAlertManager {
   public static new(firebase: Firebase) {
@@ -45,7 +46,10 @@ class LogInAlertManager {
       this.setLoading(false);
       this.hide();
     } catch (error) {
-      Alert.alert('알림', '이메일 또는 비밀번호가 올바르지 않습니다.');
+      Alert.alert(
+        app.getL10n().t('common.alert'),
+        app.getL10n().t('auth.errors.invalidCredentials')
+      );
       this.setLoading(false);
     }
   }
@@ -57,7 +61,10 @@ class LogInAlertManager {
       this.setLoading(false);
       this.hide();
     } catch (error) {
-      Alert.alert('알림', 'Apple 로그인에 실패했습니다.');
+      Alert.alert(
+        app.getL10n().t('common.alert'),
+        app.getL10n().t('auth.appleLoginFailed')
+      );
       this.setLoading(false);
     }
   }

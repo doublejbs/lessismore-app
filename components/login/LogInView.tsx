@@ -36,6 +36,7 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const insets = useSafeAreaInsets();
+  const l10n = app.getL10n();
 
   /**
    * 닫히는 애니메이션이 끝난 뒤에 언마운트하기 위한 로컬 상태.
@@ -98,7 +99,7 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
 
   const handleClickLogin = async () => {
     if (!email || !password) {
-      Alert.alert('알림', '이메일과 비밀번호를 입력해주세요.');
+      Alert.alert(l10n.t('common.alert'), l10n.t('auth.emailRequired'));
       return;
     }
 
@@ -163,7 +164,7 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
               <>
                 <TextInput
                   style={styles.input}
-                  placeholder='이메일'
+                  placeholder={l10n.t('auth.email')}
                   value={email}
                   onChangeText={setEmail}
                   keyboardType='email-address'
@@ -172,7 +173,7 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
                 />
                 <TextInput
                   style={styles.input}
-                  placeholder='비밀번호'
+                  placeholder={l10n.t('auth.password')}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
@@ -183,13 +184,13 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
                   onPress={handleClickLogin}
                 >
                   <PretendardText weight='bold' style={styles.loginButtonText}>
-                    확인
+                    {l10n.t('common.confirm')}
                   </PretendardText>
                 </TouchableOpacity>
                 <View style={styles.linkContainer}>
                   <TouchableOpacity onPress={handleClickBack}>
                     <PretendardText weight='medium' style={styles.linkText}>
-                      뒤로가기
+                      {l10n.t('common.back')}
                     </PretendardText>
                   </TouchableOpacity>
                 </View>
@@ -224,7 +225,7 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
                     />
                   </Svg>
                   <PretendardText weight='bold' style={styles.loginButtonText}>
-                    Google로 로그인
+                    {l10n.t('auth.googleLogin')}
                   </PretendardText>
                 </TouchableOpacity>
 
@@ -248,7 +249,7 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
                       weight='bold'
                       style={styles.loginButtonText}
                     >
-                      Apple로 로그인
+                      {l10n.t('auth.appleLogin')}
                     </PretendardText>
                   </TouchableOpacity>
                 )}
@@ -261,7 +262,7 @@ const LogInView: FC<Props> = ({ logInAlertManager }) => {
                     weight='medium'
                     style={styles.emailLoginButtonText}
                   >
-                    이메일로 로그인
+                    {l10n.t('auth.emailLogin')}
                   </PretendardText>
                 </TouchableOpacity>
               </>
