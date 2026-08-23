@@ -11,6 +11,7 @@ import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
 import { Acg, AcgRadius, AcgRow, AcgType } from '@/constants/DesignTokens';
 import { summarizeWeatherPeriod } from '@/model/weather/WeatherCode';
+import app from '@/model/app/App';
 
 interface Props {
   gear: Gear;
@@ -32,7 +33,7 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
       return (
         <View style={[styles.statusTag, styles.uselessTag]}>
           <PretendardText style={[styles.statusTagText, styles.uselessTagText]}>
-            사용 안함
+            {app.getL10n().t('gearDetail.unused')}
           </PretendardText>
         </View>
       );
@@ -40,7 +41,7 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
       return (
         <View style={[styles.statusTag, styles.usedTag]}>
           <PretendardText style={[styles.statusTagText, styles.usedTagText]}>
-            사용
+            {app.getL10n().t('gearDetail.used')}
           </PretendardText>
         </View>
       );
@@ -53,7 +54,7 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
           <PretendardText
             style={[styles.statusTagText, styles.unrecordedTagText]}
           >
-            미기록
+            {app.getL10n().t('gearDetail.unrecorded')}
           </PretendardText>
         </View>
       );
@@ -90,7 +91,7 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
         // 문장이 하던 안내를 시각 대신 접근성 레이어가 맡는다.
         accessibilityHint={
           status === GearUsageStatus.Unrecorded
-            ? '사용 여부를 입력할 수 있어요'
+            ? app.getL10n().t('gearDetail.usageInputHint')
             : undefined
         }
       >
@@ -135,7 +136,7 @@ const WarehouseDetailBagRecordView: FC<Props> = ({ gear, warehouseDetail }) => {
 
   return (
     <WarehouseDetailSectionView
-      title={`함께한 여행 ${bagCount}회`}
+      title={app.getL10n().t('gearDetail.tripRecord', { count: bagCount })}
       variant='list'
     >
       {warehouseDetail.getTripRecords().map(renderTripCard)}

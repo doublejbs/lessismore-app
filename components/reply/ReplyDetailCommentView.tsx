@@ -57,12 +57,12 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
   const menuItems = [
     {
       icon: 'pencil' as const,
-      text: '수정하기',
+      text: app.getL10n().t('reply.edit'),
       onPress: handlePressEdit,
     },
     {
       icon: 'trash-outline' as const,
-      text: '삭제하기',
+      text: app.getL10n().t('reply.deleteAction'),
       onPress: handlePressDelete,
     },
   ];
@@ -79,7 +79,7 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
               {/* RP-7: 내 답글은 메타 줄의 조각으로 밝힌다(라임 글자를 쓰지 않는다). */}
               <PretendardText style={styles.date}>
                 {dayjs(comment.createdAt).format('YYYY. M. D')}
-                {isMyComment ? ' · 내 답글' : ''}
+                {isMyComment ? ` · ${app.getL10n().t('reply.myReply')}` : ''}
               </PretendardText>
             </View>
             {isMyComment && (
@@ -87,7 +87,7 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
                 onPress={handlePressMore}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 accessibilityRole='button'
-                accessibilityLabel='답글 관리'
+                accessibilityLabel={app.getL10n().t('reply.replyManage')}
               >
                 <Ionicons
                   name='ellipsis-horizontal'
@@ -112,7 +112,7 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
               activeOpacity={0.7}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               accessibilityRole='button'
-              accessibilityLabel={isLiked ? '좋아요 취소' : '좋아요'}
+              accessibilityLabel={app.getL10n().t(isLiked ? 'reply.unlike' : 'reply.like')}
               accessibilityState={{ selected: isLiked }}
             >
               <Ionicons
@@ -133,7 +133,7 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
               accessibilityRole='button'
             >
               <PretendardText style={styles.replyButton}>
-                답글달기
+                {app.getL10n().t('reply.reply')}
               </PretendardText>
             </TouchableOpacity>
           </View>

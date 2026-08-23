@@ -1,8 +1,10 @@
 import { FC } from 'react';
+import { observer } from 'mobx-react-lite';
 import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '../PretendardText';
 import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   busy: boolean;
@@ -19,7 +21,7 @@ const WarehouseDetailImageAddView: FC<Props> = ({ busy, onPress }) => {
       onPress={onPress}
       disabled={busy}
       accessibilityRole='button'
-      accessibilityLabel='사진 추가'
+      accessibilityLabel={app.getL10n().t('gearDetail.photoAdd')}
       accessibilityState={{ disabled: busy }}
     >
       {busy ? (
@@ -28,7 +30,9 @@ const WarehouseDetailImageAddView: FC<Props> = ({ busy, onPress }) => {
         <Ionicons name='camera-outline' size={20} color={Acg.textMuted} />
       )}
       <PretendardText style={styles.text}>
-        {busy ? '사진 올리는 중' : '사진 추가'}
+        {busy
+          ? app.getL10n().t('gearDetail.photoUploading')
+          : app.getL10n().t('gearDetail.photoAdd')}
       </PretendardText>
     </TouchableOpacity>
   );
@@ -54,4 +58,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default WarehouseDetailImageAddView;
+export default observer(WarehouseDetailImageAddView);

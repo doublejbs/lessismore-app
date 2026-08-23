@@ -6,7 +6,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { observer } from 'mobx-react-lite';
 import { Color, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 // GD-1 1층(사진 줄) 크기. 가운데 단독 줄이라 좌우 컬럼 폭을 나눠 쓸 필요가 없어,
 // "내 물건이 맞나"를 한눈에 알아볼 수 있는 140pt 정사각으로 둔다.
@@ -34,8 +36,8 @@ const WarehouseDetailImagePreviewView: FC<Props> = ({
       disabled={busy}
       activeOpacity={0.8}
       accessibilityRole='button'
-      accessibilityLabel='장비 사진'
-      accessibilityHint='사진을 교체하거나 삭제할 수 있어요'
+      accessibilityLabel={app.getL10n().t('gearDetail.photo')}
+      accessibilityHint={app.getL10n().t('gearDetail.photoHint')}
       accessibilityState={{ disabled: busy }}
     >
       <Image
@@ -80,4 +82,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default WarehouseDetailImagePreviewView;
+export default observer(WarehouseDetailImagePreviewView);

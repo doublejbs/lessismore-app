@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import CustomGear from '@/model/gear/custom/CustomGear';
 import PretendardText from '@/components/PretendardText';
 import { Color } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 const ERROR_RED = '#FF3B30';
 
@@ -37,7 +38,7 @@ const CustomGearConfirmView: FC<Props> = ({ customGear }) => {
         accessibilityState={{ disabled: isDisabled }}
       >
         <PretendardText weight='semibold' style={styles.confirmButtonText}>
-          확인
+          {app.getL10n().t('common.confirm')}
         </PretendardText>
       </TouchableOpacity>
     </View>

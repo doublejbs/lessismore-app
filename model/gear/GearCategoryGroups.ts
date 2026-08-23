@@ -64,45 +64,45 @@ export const getGroupForCategory = (category: string): GearFilter => {
 // 세분 카테고리 한글 라벨 — 웹 CATEGORY_LABELS와 동일하게 유지한다(DM-4).
 // 레거시 그룹 키(electronic) 라벨도 포함.
 export const FINE_CATEGORY_LABELS: Record<string, string> = {
-  backpack: '배낭',
-  vest_pack: '베스트 배낭',
-  backpack_cover: '배낭 커버',
-  tent: '텐트',
-  tarp: '타프',
-  shelter: '쉘터',
-  tent_acc: '텐트ACC',
-  sleeping_bag: '침낭',
-  mat: '매트',
-  pillow: '필로우',
-  cup: '컵',
-  bowl: '그릇',
-  cutlery: '수저',
-  stove: '버너',
-  torch: '토치',
-  bottle: '물통',
-  cookware: '코펠·쿡웨어',
-  cookware_etc: '식기류 기타',
-  chair: '체어',
-  table: '테이블',
-  furniture_etc: '그 외 기타',
-  clothing: '일반',
-  sunglasses: '선글라스',
-  gaiter: '스패츠',
-  gloves: '장갑',
-  lighting: '조명',
-  headlamp: '헤드랜턴',
-  food: '식품',
-  towel: '수건',
-  pouch: '파우치/수납가방',
-  hand_warmer: '핫팩',
-  shovel: '삽',
-  hammer: '망치',
-  microspikes: '아이젠',
-  trekking_pole: '트레킹폴',
-  etc: '그 외 기타',
+  backpack: '배낭', // l10n-ignore
+  vest_pack: '베스트 배낭', // l10n-ignore
+  backpack_cover: '배낭 커버', // l10n-ignore
+  tent: '텐트', // l10n-ignore
+  tarp: '타프', // l10n-ignore
+  shelter: '쉘터', // l10n-ignore
+  tent_acc: '텐트ACC', // l10n-ignore
+  sleeping_bag: '침낭', // l10n-ignore
+  mat: '매트', // l10n-ignore
+  pillow: '필로우', // l10n-ignore
+  cup: '컵', // l10n-ignore
+  bowl: '그릇', // l10n-ignore
+  cutlery: '수저', // l10n-ignore
+  stove: '버너', // l10n-ignore
+  torch: '토치', // l10n-ignore
+  bottle: '물통', // l10n-ignore
+  cookware: '코펠·쿡웨어', // l10n-ignore
+  cookware_etc: '식기류 기타', // l10n-ignore
+  chair: '체어', // l10n-ignore
+  table: '테이블', // l10n-ignore
+  furniture_etc: '그 외 기타', // l10n-ignore
+  clothing: '일반', // l10n-ignore
+  sunglasses: '선글라스', // l10n-ignore
+  gaiter: '스패츠', // l10n-ignore
+  gloves: '장갑', // l10n-ignore
+  lighting: '조명', // l10n-ignore
+  headlamp: '헤드랜턴', // l10n-ignore
+  food: '식품', // l10n-ignore
+  towel: '수건', // l10n-ignore
+  pouch: '파우치/수납가방', // l10n-ignore
+  hand_warmer: '핫팩', // l10n-ignore
+  shovel: '삽', // l10n-ignore
+  hammer: '망치', // l10n-ignore
+  microspikes: '아이젠', // l10n-ignore
+  trekking_pole: '트레킹폴', // l10n-ignore
+  etc: '그 외 기타', // l10n-ignore
   // 레거시 그룹 키 라벨 — 'lantern'·'furniture'·'cooking'은 세분 카테고리에서 제외했다(DM-4).
   // 라벨이 없으면 화면이 그룹 라벨로 폴백하므로 표시는 그대로다.
-  electronic: '전자기기',
+  electronic: '전자기기', // l10n-ignore
 };
 
 // 세분 카테고리 한글 라벨 조회. 매핑에 없으면 빈 문자열.

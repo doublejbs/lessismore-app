@@ -5,6 +5,7 @@ import CustomGear from '@/model/gear/custom/CustomGear';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   customGear: CustomGear;
@@ -20,12 +21,12 @@ const CustomGearColorView: FC<Props> = ({ customGear }) => {
   return (
     <View style={styles.container}>
       <PretendardText weight='medium' style={styles.label}>
-        색상
+        {app.getL10n().t('gearEdit.color')}
       </PretendardText>
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
-          placeholder={'색상을 입력해주세요'}
+          placeholder={app.getL10n().t('gearEdit.colorPlaceholder')}
           onChangeText={handleChangeColor}
           value={color}
         />
@@ -34,7 +35,7 @@ const CustomGearColorView: FC<Props> = ({ customGear }) => {
             onPress={() => customGear.setColor('')}
             style={styles.clearButton}
             accessibilityRole='button'
-            accessibilityLabel='입력 지우기'
+            accessibilityLabel={app.getL10n().t('gearEdit.clearInput')}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Ionicons name='close-circle' size={20} color={Color.iconMuted} />

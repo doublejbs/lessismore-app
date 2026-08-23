@@ -9,6 +9,7 @@ import {
   formatSpecValue,
   getSpecsSchemaFor,
 } from '@/model/gear/GearSpecsSchema';
+import app from '@/model/app/App';
 
 interface Props {
   gear: Gear;
@@ -25,13 +26,43 @@ const WarehouseDetailSpecsView: FC<Props> = ({ gear }) => {
   const specs = gear.getSpecs();
   const schema = getSpecsSchemaFor(gear.getCategory());
 
+  const getLabel = (key: string) =>
+    schema[key]
+      ? app.getL10n().t(`gearDetail.specLabels.${schema[key].label}`)
+      : key;
+
+  const getValue = (key: string) => {
+    const value = specs[key];
+    const def = schema[key];
+
+    if (def?.type === 'boolean') {
+      return app
+        .getL10n()
+        .t(value ? 'gearDetail.specBooleanTrue' : 'gearDetail.specBooleanFalse');
+    }
+
+    if (def?.unit === 'person') {
+      return `${value}${app.getL10n().t('gearDetail.personUnit')}`;
+    }
+
+    if (def?.type === 'enum') {
+      return app
+        .getL10n()
+        .t(`gearDetail.specEnums.${String(value)}`, {
+          defaultValue: formatSpecValue(key, value, schema),
+        });
+    }
+
+    return formatSpecValue(key, value, schema);
+  };
+
   // 스키마 정의 순서대로 먼저, 그 뒤 스키마에 없는 미지 키(라벨=키명, 값=문자열화).
   const schemaRows: SpecRow[] = Object.keys(schema)
     .filter(key => key in specs)
     .map(key => ({
       key,
-      label: schema[key].label,
-      value: formatSpecValue(key, specs[key], schema),
+      label: getLabel(key),
+      value: getValue(key),
     }))
     .filter(row => row.value !== '');
 
@@ -52,7 +83,7 @@ const WarehouseDetailSpecsView: FC<Props> = ({ gear }) => {
   }
 
   return (
-    <WarehouseDetailSectionView title='스펙'>
+    <WarehouseDetailSectionView title={app.getL10n().t('gearDetail.specs')}>
       <View style={styles.table}>
         {rows.map((row, index) => (
           <View

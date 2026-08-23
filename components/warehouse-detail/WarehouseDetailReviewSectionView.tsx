@@ -7,6 +7,7 @@ import PretendardText from '../PretendardText';
 import WarehouseDetailSectionView from './WarehouseDetailSectionView';
 import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import StarRatingView from '../camp-site/StarRatingView';
+import app from '@/model/app/App';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -30,14 +31,14 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
           {ratingAvg.toFixed(1)}
         </PretendardText>
         <PretendardText style={styles.ratingCountText}>
-          (리뷰 {ratingCount})
+          {app.getL10n().t('gearDetail.reviewCount', { count: ratingCount })}
         </PretendardText>
       </View>
     ) : null;
 
   return (
     <WarehouseDetailSectionView
-      title='리뷰'
+      title={app.getL10n().t('gearDetail.reviews')}
       accessory={ratingSummary}
       variant='list'
     >
@@ -65,7 +66,7 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
               style={styles.moreReviewButton}
             >
               <PretendardText style={styles.moreReviewButtonText}>
-                더 많은 의견 보기
+                {app.getL10n().t('gearDetail.moreReviews')}
               </PretendardText>
               <Ionicons
                 name='chevron-forward'
@@ -80,7 +81,7 @@ const WarehouseDetailReviewSectionView: FC<Props> = ({ warehouseDetail }) => {
             onPress={handleAddReviewPress}
           >
             <PretendardText style={styles.addReviewButtonText}>
-              첫번째 리뷰 남기기
+              {app.getL10n().t('gearDetail.firstReview')}
             </PretendardText>
             <Ionicons name='chevron-forward' size={14} color={Acg.ink} />
           </TouchableOpacity>

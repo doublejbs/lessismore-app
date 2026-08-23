@@ -50,7 +50,7 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
           contentContainerStyle={styles.fineScrollContent}
         >
           <CategoryChipView
-            label='전체'
+            label={app.getL10n().t('warehouse.all')}
             variant='secondary'
             selected={fineCategory === null}
             onPress={() => handleClickFineCategory(null)}
@@ -71,7 +71,7 @@ const WarehouseFiltersView: FC<Props> = ({ warehouse }) => {
           (`WarehouseUnusedButtonView`)으로 나가 전용 화면을 연다(2026-08-13). */}
       <View style={styles.orderContainer}>
         <PretendardText weight='semibold' style={styles.titleText}>
-          총 {totalCount}개
+          {app.getL10n().t('warehouse.totalCount', { count: totalCount })}
         </PretendardText>
         <OrderButtonView order={order} onSelectOption={handleSelectOrder} />
       </View>

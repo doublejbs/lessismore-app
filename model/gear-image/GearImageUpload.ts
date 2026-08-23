@@ -172,8 +172,8 @@ class GearImageUpload {
 
       await this.uploadImage(asset.uri, source);
     } catch (error) {
-      console.error('장비 사진 선택 실패:', error);
-      this.toastManager.show({ message: '사진을 불러오지 못했어요' });
+      console.error('장비 사진 선택 실패:', error); // l10n-ignore
+      this.toastManager.show({ message: app.getL10n().t('gearDetail.photoLoadFailed') });
     } finally {
       this.setPicking(false);
     }
@@ -188,8 +188,8 @@ class GearImageUpload {
     }
 
     this.alertManager.show({
-      message: '사진을 삭제할까요?',
-      confirmText: '삭제하기',
+        message: app.getL10n().t('gearDetail.deletePhotoConfirm'),
+        confirmText: app.getL10n().t('gearEdit.deleteAction'),
       onConfirm: async () => {
         await this.deleteImage();
       },
@@ -218,11 +218,16 @@ class GearImageUpload {
   }
 
   private showPermissionAlert(source: GearImageSource) {
-    const target = source === GearImageSource.Camera ? '카메라' : '사진 접근';
+    const target =
+      source === GearImageSource.Camera
+        ? app.getL10n().t('gearDetail.cameraPermission')
+        : app.getL10n().t('gearDetail.photoPermission');
 
     this.alertManager.show({
-      message: `${target} 권한이 필요해요. 설정에서 권한을 허용해 주세요.`,
-      confirmText: CAN_OPEN_SETTINGS ? '설정 열기' : '확인',
+        message: app.getL10n().t('gearDetail.permission', { target }),
+        confirmText: CAN_OPEN_SETTINGS
+          ? app.getL10n().t('gearDetail.openSettings')
+          : app.getL10n().t('common.confirm'),
       onConfirm: async () => {
         if (!CAN_OPEN_SETTINGS) {
           return;
@@ -231,7 +236,7 @@ class GearImageUpload {
         try {
           await Linking.openSettings();
         } catch (error) {
-          console.error('설정 열기 실패:', error);
+          console.error('설정 열기 실패:', error); // l10n-ignore
         }
       },
     });
@@ -277,8 +282,8 @@ class GearImageUpload {
         await this.deleteStorageFile(previousUrl);
       }
     } catch (error) {
-      console.error('장비 사진 업로드 실패:', error);
-      this.toastManager.show({ message: '사진을 올리지 못했어요' });
+      console.error('장비 사진 업로드 실패:', error); // l10n-ignore
+      this.toastManager.show({ message: app.getL10n().t('gearDetail.photoUploadFailed') });
     } finally {
       this.setBusy(false);
     }
@@ -309,8 +314,8 @@ class GearImageUpload {
       this.setLoadFailed(false);
       await this.deleteStorageFile(targetUrl);
     } catch (error) {
-      console.error('장비 사진 삭제 실패:', error);
-      this.toastManager.show({ message: '사진을 지우지 못했어요' });
+      console.error('장비 사진 삭제 실패:', error); // l10n-ignore
+      this.toastManager.show({ message: app.getL10n().t('gearDetail.photoDeleteFailed') });
     } finally {
       this.setBusy(false);
     }
@@ -321,7 +326,7 @@ class GearImageUpload {
     try {
       await this.gearImageStorage.deleteImage(url);
     } catch (error) {
-      console.error('장비 사진 파일 삭제 실패:', error);
+      console.error('장비 사진 파일 삭제 실패:', error); // l10n-ignore
     }
   }
 

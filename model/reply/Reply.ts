@@ -53,12 +53,12 @@ class Reply {
     try {
       const userId = this.firebase.getUserId();
       if (!userId) {
-        throw new Error('로그인이 필요합니다.');
+        throw new Error(app.getL10n().t('reply.loginRequired'));
       }
 
       const nickname = this.getNickname();
       if (!nickname) {
-        throw new Error('닉네임이 필요합니다.');
+        throw new Error(app.getL10n().t('reply.nicknameRequired'));
       }
 
       // 별점은 유효할 때만 request에 포함(Firestore는 undefined 거부).
@@ -76,7 +76,7 @@ class Reply {
 
       router.back();
     } catch (error) {
-      console.error('댓글 작성 실패:', error);
+      console.error('댓글 작성 실패:', error); // l10n-ignore
       throw error;
     }
   }
@@ -138,21 +138,21 @@ class Reply {
           : c
       );
       this.setComments(rolledBackComments);
-      console.error('좋아요 토글 실패:', error);
+      console.error('좋아요 토글 실패:', error); // l10n-ignore
     }
   }
 
   public showDeleteConfirm(commentId: string) {
     app.getAlertManager()?.show({
-      message: '정말 삭제하시겠습니까?',
-      confirmText: '삭제',
+      message: app.getL10n().t('reply.deleteConfirm'),
+      confirmText: app.getL10n().t('reply.delete'),
       onConfirm: async () => {
         try {
           await this.deleteComment(commentId);
-        } catch (error) {
+        } catch {
           app.getAlertManager()?.show({
-            message: '댓글 삭제에 실패했습니다.',
-            confirmText: '확인',
+            message: app.getL10n().t('reply.deleteFailed'),
+            confirmText: app.getL10n().t('reply.confirm'),
             onConfirm: async () => {},
           });
         }

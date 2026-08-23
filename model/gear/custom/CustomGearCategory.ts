@@ -9,47 +9,47 @@ class CustomGearCategory {
   private readonly filters: WarehouseFilter[] = [
     {
       filter: GearFilter.Tent,
-      name: '텐트',
+      name: '텐트', // l10n-ignore
     },
     {
       filter: GearFilter.SleepingBag,
-      name: '침낭',
+      name: '침낭', // l10n-ignore
     },
     {
       filter: GearFilter.Backpack,
-      name: '배낭',
+      name: '배낭', // l10n-ignore
     },
     {
       filter: GearFilter.Clothing,
-      name: '의류',
+      name: '의류', // l10n-ignore
     },
     {
       filter: GearFilter.Mat,
-      name: '매트',
+      name: '매트', // l10n-ignore
     },
     {
       filter: GearFilter.Furniture,
-      name: '가구',
+      name: '가구', // l10n-ignore
     },
     {
       filter: GearFilter.Lantern,
-      name: '랜턴',
+      name: '랜턴', // l10n-ignore
     },
     {
       filter: GearFilter.Cooking,
-      name: '조리',
+      name: '조리', // l10n-ignore
     },
     {
       filter: GearFilter.Electronic,
-      name: '전자기기',
+      name: '전자기기', // l10n-ignore
     },
     {
       filter: GearFilter.Food,
-      name: '음식',
+      name: '음식', // l10n-ignore
     },
     {
       filter: GearFilter.Etc,
-      name: '기타',
+      name: '기타', // l10n-ignore
     },
   ].map(({ filter, name }) => WarehouseFilter.from(filter, name));
 

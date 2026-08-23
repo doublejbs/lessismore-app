@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { observer } from 'mobx-react-lite';
 import { StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import FloatingPillButton from '@/components/FloatingPillButton';
@@ -50,7 +51,11 @@ const WarehouseUnusedButtonView: FC<Props> = ({ count, category }) => {
 
   return (
     <FloatingPillButton
-      label={count > 0 ? `안 쓴 장비 ${count}` : '안 쓴 장비'}
+      label={
+        count > 0
+          ? app.getL10n().t('warehouse.unusedGearCount', { count })
+          : app.getL10n().t('warehouse.unusedGear')
+      }
       onPress={handlePress}
       style={styles.position}
     />
@@ -65,4 +70,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default WarehouseUnusedButtonView;
+export default observer(WarehouseUnusedButtonView);

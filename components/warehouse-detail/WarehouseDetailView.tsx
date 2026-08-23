@@ -138,7 +138,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
           <TouchableOpacity
             onPress={handlePressShare}
             style={styles.headerIconButton}
-            accessibilityLabel='공유'
+            accessibilityLabel={app.getL10n().t('gearDetail.share')}
             accessibilityRole='button'
           >
             <Ionicons name='share-outline' size={22} color={Acg.ink} />
@@ -148,11 +148,11 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
           <TouchableOpacity
             onPress={handlePressEdit}
             style={styles.editButton}
-            accessibilityLabel='수정하기'
+            accessibilityLabel={app.getL10n().t('gearDetail.edit')}
             accessibilityRole='button'
           >
             <PretendardText style={styles.editButtonText}>
-              수정하기
+              {app.getL10n().t('gearDetail.edit')}
             </PretendardText>
           </TouchableOpacity>
         )}
@@ -184,7 +184,7 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
               <TouchableOpacity
                 onPress={handlePressClose}
                 style={styles.backButton}
-                accessibilityLabel='뒤로 가기'
+                accessibilityLabel={app.getL10n().t('gearDetail.back')}
                 accessibilityRole='button'
               >
                 <Ionicons name='chevron-back' size={24} color={Acg.ink} />
@@ -296,7 +296,11 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
                       weight='semibold'
                       style={styles.addButtonText}
                     >
-                      {isBagContext ? '이 배낭에 담기' : '내 창고에 추가하기'}
+                      {app.getL10n().t(
+                        isBagContext
+                          ? 'gearDetail.addToBag'
+                          : 'gearDetail.addToWarehouse'
+                      )}
                     </PretendardText>
                   </View>
                 )}

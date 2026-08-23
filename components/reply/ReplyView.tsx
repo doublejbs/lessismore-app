@@ -14,6 +14,7 @@ import PretendardText from '../PretendardText';
 import ReplyInputButtonView from './ReplyInputButtonView';
 import { observer } from 'mobx-react-lite';
 import ReplyItemView from './ReplyItemView';
+import app from '@/model/app/App';
 
 // LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
 const IS_IOS = Platform.OS === 'ios';
@@ -58,7 +59,7 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
               onPress={handlePressBack}
               activeOpacity={0.7}
               style={styles.backButton}
-              accessibilityLabel='뒤로'
+              accessibilityLabel={app.getL10n().t('reply.back')}
               accessibilityRole='button'
             >
               <Ionicons name='chevron-back' size={24} color={Acg.ink} />
@@ -82,7 +83,7 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
           {/* 형광펜 띠를 걷었다(2026-08-11) — 라임은 화면당 하나이고, 그 하나는 눌러야 하는
               면의 몫이다. RP-7: 이 화면의 제목이므로 섹션 단(18)이 아니라 화면 제목 단(22)이다. */}
           <PretendardText weight='semibold' style={styles.replyHeaderText}>
-            리뷰
+            {app.getL10n().t('gearDetail.reviews')}
           </PretendardText>
         </View>
         {!hasComments ? (
@@ -90,10 +91,10 @@ const ReplyView = ({ reply }: { reply: Reply }) => {
           <View style={styles.emptyState}>
             <Ionicons name='star-outline' size={40} color={Acg.hairline} />
             <PretendardText weight='semibold' style={styles.emptyTitle}>
-              아직 등록된 리뷰가 없어요
+              {app.getL10n().t('reply.noReviews')}
             </PretendardText>
             <PretendardText style={styles.emptyDesc}>
-              첫 리뷰를 남겨보세요
+              {app.getL10n().t('reply.firstReviewPrompt')}
             </PretendardText>
           </View>
         ) : (

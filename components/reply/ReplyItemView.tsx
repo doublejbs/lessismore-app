@@ -60,12 +60,12 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
   const menuItems = [
     {
       icon: 'pencil' as const,
-      text: '수정하기',
+      text: app.getL10n().t('reply.edit'),
       onPress: handlePressEdit,
     },
     {
       icon: 'trash-outline' as const,
-      text: '삭제하기',
+      text: app.getL10n().t('reply.deleteAction'),
       onPress: handlePressDelete,
     },
   ];
@@ -86,7 +86,7 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
                 라임은 화면당 하나(주 액션 면)이고, 배지는 행 안에 두지 않는다. */}
             <PretendardText style={styles.date}>
               {dayjs(comment.createdAt).format('YYYY.MM.DD')}
-              {isMyComment ? ' · 내 리뷰' : ''}
+              {isMyComment ? ` · ${app.getL10n().t('reply.myReview')}` : ''}
             </PretendardText>
           </View>
           {isMyComment && (
@@ -94,7 +94,7 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
               onPress={handlePressMore}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               accessibilityRole='button'
-              accessibilityLabel='리뷰 관리'
+              accessibilityLabel={app.getL10n().t('reply.reviewManage')}
             >
               <Ionicons
                 name='ellipsis-horizontal'
@@ -118,7 +118,7 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
               activeOpacity={0.7}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               accessibilityRole='button'
-              accessibilityLabel={isLiked ? '좋아요 취소' : '좋아요'}
+              accessibilityLabel={app.getL10n().t(isLiked ? 'reply.unlike' : 'reply.like')}
               accessibilityState={{ selected: isLiked }}
             >
               <Ionicons
@@ -135,7 +135,7 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
             <View
               style={styles.iconWithText}
               accessible
-              accessibilityLabel={`답글 ${comment.replyCount}개`}
+              accessibilityLabel={app.getL10n().t('reply.replyCount', { count: comment.replyCount })}
             >
               <Ionicons
                 name='chatbubble-outline'

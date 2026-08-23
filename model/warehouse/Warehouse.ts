@@ -3,6 +3,7 @@ import Firebase from '../firebase/Firebase';
 import Gear from '../gear/Gear';
 import GearFilter from '../gear/GearFilter';
 import { getSelectableFineCategories } from '../gear/GearCategoryGroups';
+import app from '@/model/app/App';
 import Order from '../order/Order';
 import OrderType from '../order/OrderType';
 import ToastManager from '../toast/ToastManager';
@@ -140,7 +141,7 @@ class Warehouse {
   public async remove(value: Gear) {
     await this.dispatcher.remove(value);
     await this.getList();
-    this.toastManager.show({ message: '삭제 되었습니다.' });
+    this.toastManager.show({ message: app.getL10n().t('gearEdit.deleted') });
   }
 
   private setGears(value: Gear[]) {

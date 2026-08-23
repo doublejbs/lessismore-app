@@ -5,10 +5,10 @@ import OrderType from './OrderType';
 export const createBagOrderOptions = (): OrderOption[] => [
   // 기본 정렬이다(BAG-6) — 방금 만든 배낭이 맨 위에 온다.
   // 여행 날짜와 만든 순서는 다르다: 다음 달 여행을 오늘 만들 수 있다.
-  OrderOption.from('최근 추가순', OrderType.CreatedDesc),
-  OrderOption.from('최근 여행순', OrderType.StartDateDesc),
-  OrderOption.from('오래된 여행순', OrderType.StartDateAsc),
-  OrderOption.from('무거운순', OrderType.WeightDesc),
-  OrderOption.from('가벼운순', OrderType.WeightAsc),
-  OrderOption.from('이름순', OrderType.NameAsc),
+  OrderOption.fromKey('common.order.createdDesc', OrderType.CreatedDesc),
+  OrderOption.fromKey('common.order.startDateDesc', OrderType.StartDateDesc),
+  OrderOption.fromKey('common.order.startDateAsc', OrderType.StartDateAsc),
+  OrderOption.fromKey('common.order.weightDesc', OrderType.WeightDesc),
+  OrderOption.fromKey('common.order.weightAsc', OrderType.WeightAsc),
+  OrderOption.fromKey('common.order.nameAsc', OrderType.NameAsc),
 ];

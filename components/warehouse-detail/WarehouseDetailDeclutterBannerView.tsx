@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -21,8 +22,10 @@ const WarehouseDetailDeclutterBannerView: FC<Props> = ({ warehouseDetail }) => {
 
   const message =
     signal.weightG !== null
-      ? `최근 3번의 여행에서 쓰지 않았어요 — 배낭에서 빼면 −${signal.weightG.toLocaleString()}g`
-      : '최근 3번의 여행에서 쓰지 않았어요';
+      ? app.getL10n().t('gearDetail.declutterWithWeight', {
+          weight: signal.weightG.toLocaleString(app.getL10n().language),
+        })
+      : app.getL10n().t('gearDetail.declutterWithoutWeight');
 
   return (
     <View style={styles.container}>

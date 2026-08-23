@@ -4,6 +4,7 @@ import GearEdit from '@/model/gear/edit/GearEdit';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface GearEditColorViewProps {
   gearEdit: GearEdit;
@@ -29,7 +30,7 @@ const GearEditColorView: FC<GearEditColorViewProps> = ({ gearEdit }) => {
           ...AcgType.rowSubtitle,
         }}
       >
-        색상
+        {app.getL10n().t('gearEdit.color')}
       </PretendardText>
       <TextInput
         style={{
@@ -41,7 +42,7 @@ const GearEditColorView: FC<GearEditColorViewProps> = ({ gearEdit }) => {
           fontSize: AcgType.control.fontSize,
           letterSpacing: AcgType.control.letterSpacing,
         }}
-        placeholder='색상을 입력해주세요'
+        placeholder={app.getL10n().t('gearEdit.colorPlaceholder')}
         onChangeText={handleChangeColor}
         value={color}
         placeholderTextColor={Color.textSecondary}
