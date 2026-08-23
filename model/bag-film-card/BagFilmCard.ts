@@ -26,7 +26,7 @@ const GRANTED = 'granted';
 
 // 브랜드에 한글 음절이 섞였는지 판정한다(BS-8). 패킹리스트 템플릿은 라틴·한글을 함께 담은
 // D2Coding 하나만 쓰므로 뷰가 이 값을 보지 않는다(`PackingListItem` 주석 참고).
-const KOREAN_PATTERN = /[가-힣]/;
+const KOREAN_PATTERN = /[가-힣]/; // l10n-ignore: 데이터 라벨의 한글 브랜드 판정 정규식
 
 // 켜지지 않은 요소의 활성화 번호(BS-7). 0은 "꺼짐"을 뜻하며 정렬에 쓰이지 않는다.
 const ELEMENT_OFF = 0;

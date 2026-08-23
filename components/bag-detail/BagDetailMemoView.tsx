@@ -46,10 +46,10 @@ const BagDetailMemoView: FC<Props> = ({ bagDetail }) => {
       ) : (
         <View style={styles.textWrap}>
           <PretendardText style={styles.title} weight='medium'>
-            메모
+            {app.getL10n().t('bag.memo.title')}
           </PretendardText>
           <PretendardText style={styles.subtitle} numberOfLines={1}>
-            작성하기
+            {app.getL10n().t('bag.memo.write')}
           </PretendardText>
         </View>
       )}

@@ -1,10 +1,12 @@
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 import { createQuickBag } from '@/model/bag/QuickBagDefaults';
 
 // BAG-2: 배낭 추가 진입 시트 — iOS/Android 네이티브 formSheet(react-native-screens)로 표시.
@@ -41,7 +43,7 @@ const BagAddOptionsScreen = () => {
     >
       <View style={styles.header}>
         <PretendardText style={styles.title} weight='bold'>
-          배낭 추가
+          {app.getL10n().t('bag.add')}
         </PretendardText>
       </View>
 
@@ -55,10 +57,10 @@ const BagAddOptionsScreen = () => {
         </View>
         <View style={styles.rowTextWrap}>
           <PretendardText style={styles.rowTitle} weight='semibold'>
-            새로 만들기
+            {app.getL10n().t('app.bagAddOptions.create')}
           </PretendardText>
           <PretendardText style={styles.rowSubtitle}>
-            빈 배낭으로 시작해요
+            {app.getL10n().t('app.bagAddOptions.createSubtitle')}
           </PretendardText>
         </View>
         <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />
@@ -76,10 +78,10 @@ const BagAddOptionsScreen = () => {
         </View>
         <View style={styles.rowTextWrap}>
           <PretendardText style={styles.rowTitle} weight='semibold'>
-            기존 배낭 복사하기
+            {app.getL10n().t('app.bagAddOptions.copy')}
           </PretendardText>
           <PretendardText style={styles.rowSubtitle}>
-            이전 배낭을 그대로 가져와요
+            {app.getL10n().t('app.bagAddOptions.copySubtitle')}
           </PretendardText>
         </View>
         <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />
@@ -97,10 +99,10 @@ const BagAddOptionsScreen = () => {
         </View>
         <View style={styles.rowTextWrap}>
           <PretendardText style={styles.rowTitle} weight='semibold'>
-            템플릿으로 만들기
+            {app.getL10n().t('app.bagAddOptions.template')}
           </PretendardText>
           <PretendardText style={styles.rowSubtitle}>
-            저장한 구성으로 시작해요
+            {app.getL10n().t('app.bagAddOptions.templateSubtitle')}
           </PretendardText>
         </View>
         <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />
@@ -154,4 +156,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagAddOptionsScreen;
+export default observer(BagAddOptionsScreen);

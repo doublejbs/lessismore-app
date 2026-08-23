@@ -5,6 +5,7 @@ import BagEdit from '../../model/bag-edit/BagEdit';
 import BagEditWarehouseGearView from './BagEditWarehouseGearView';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgType } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   bagEdit: BagEdit;
@@ -29,7 +30,7 @@ const BagEditWarehouseView: FC<Props> = ({ bagEdit }) => {
         bagEdit.getQuery().trim() ? (
           <View style={styles.empty}>
             <PretendardText style={styles.emptyText}>
-              검색 결과가 없어요
+              {app.getL10n().t('warehouse.noSearchResults')}
             </PretendardText>
           </View>
         ) : null

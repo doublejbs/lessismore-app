@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import SortOptionRow from '@/components/sort/SortOptionRow';
 import { AcgType, Color } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 import {
   getSortSheetContext,
   clearSortSheetContext,
@@ -47,7 +49,7 @@ const SortSheetScreen = () => {
     >
       <View style={styles.header}>
         <PretendardText style={styles.title} weight='bold'>
-          정렬
+          {app.getL10n().t('common.sort')}
         </PretendardText>
       </View>
 
@@ -78,4 +80,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SortSheetScreen;
+export default observer(SortSheetScreen);
