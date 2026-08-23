@@ -127,7 +127,7 @@ const BagPackingView: FC<Props> = ({ bagPacking }) => {
         {isEmpty ? (
           <View style={styles.emptyContainer}>
             <PretendardText style={styles.emptyText} weight='medium'>
-              담긴 장비가 없어요
+              {app.getL10n().t('packing.empty')}
             </PretendardText>
           </View>
         ) : (

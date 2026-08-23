@@ -56,7 +56,7 @@ const RightActions: FC<RightActionsProps> = ({
       >
         <Ionicons name='trash' size={20} color={Acg.paper} />
         <PretendardText style={styles.actionLabel} weight='medium'>
-          삭제
+          {app.getL10n().t('bagDetail.delete')}
         </PretendardText>
       </TouchableOpacity>
     </Reanimated.View>

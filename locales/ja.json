@@ -7,6 +7,7 @@
     "save": "保存",
     "delete": "削除",
     "close": "閉じる",
+    "sort": "並べ替え",
     "retry": "再試行",
     "all": "すべて",
     "viewAll": "すべて表示",
@@ -198,6 +199,7 @@
       "delete": "メモを削除",
       "save": "メモを保存",
       "placeholder": "メモを入力してください",
+      "write": "メモを書く",
       "loginRequired": "ログインが必要です。",
       "saved": "メモを保存しました。",
       "deleteConfirm": "メモを削除しますか？",
@@ -303,6 +305,7 @@
     "restart": "最初からやり直す",
     "close": "閉じる",
     "complete": "パッキング完了",
+    "empty": "入っているギアがありません",
     "daysRemaining": "出発まであと{{count}}日"
   },
   "bagShare": {
@@ -356,6 +359,7 @@
     "favorites": "お気に入り一覧",
     "currentLocation": "現在地に移動",
     "locating": "位置情報を確認中…",
+    "searching": "場所を検索中…",
     "addressNotFound": "住所が見つかりません",
     "setLocation": "この場所を目的地に設定",
     "setLocationShort": "ここに設定",
@@ -388,6 +392,7 @@
   },
   "bagUseless": {
     "back": "戻る",
+    "title": "実際に使ったギアだけ\n選択してください",
     "usage": "/ {{count}} 使用",
     "clearAll": "すべて解除",
     "selectAll": "すべて選択"
@@ -829,7 +834,8 @@
   "app": {
     "tabs": { "home": "ホーム", "browse": "探す", "map": "地図", "bag": "バックパック", "info": "情報" },
     "bagForm": { "dateRequired": "日付を選択してください", "nameRequired": "バックパック名を入力してください" },
-    "bagCopy": { "title": "バックパックをコピー", "confirm": "コピー", "completed": "コピーしました", "failed": "バックパックをコピーできませんでした。もう一度お試しください。", "suffix": "コピー" },
+    "bagAddOptions": { "create": "新しく作成", "createSubtitle": "空のバックパックから始める", "copy": "既存のバックパックをコピー", "copySubtitle": "以前のバックパックをそのまま使う", "template": "テンプレートから作成", "templateSubtitle": "保存した構成から始める" },
+    "bagCopy": { "title": "バックパックをコピー", "sourceTitle": "コピーするバックパックを選択", "sourceEmpty": "コピーできるバックパックがありません", "confirm": "コピー", "completed": "コピーしました", "failed": "バックパックをコピーできませんでした。もう一度お試しください。", "suffix": "コピー" },
     "bagInfoEdit": { "title": "バックパック情報を編集", "failed": "変更を保存できませんでした。もう一度お試しください。" },
     "bagNew": { "title": "新しいバックパック", "failed": "バックパックを追加できませんでした。もう一度お試しください。", "locationSaveFailedTitle": "目的地を保存できませんでした", "locationSaveFailed": "バックパックは作成しましたが、目的地を保存できませんでした。", "weatherFailedTitle": "天気を読み込めませんでした", "weatherFailed": "目的地は保存しました。目的地画面からもう一度お試しください。" },
     "templateCreate": { "title": "バックパックを作成", "confirm": "作成", "notFound": "テンプレートが見つかりません。", "loadFailed": "テンプレートを読み込めませんでした。", "completed": "バックパックを作成しました。", "failed": "バックパックを作成できませんでした。もう一度お試しください。" },

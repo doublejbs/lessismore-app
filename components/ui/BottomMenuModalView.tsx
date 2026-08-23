@@ -7,10 +7,12 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 import useSheetTransition from '@/hooks/useSheetTransition';
+import app from '@/model/app/App';
 
 interface MenuItem {
   readonly icon: keyof typeof Ionicons.glyphMap;
@@ -123,7 +125,7 @@ const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
           >
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <PretendardText weight='bold' style={styles.closeButtonText}>
-                닫기
+                {app.getL10n().t('common.close')}
               </PretendardText>
             </TouchableOpacity>
           </View>
@@ -181,4 +183,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BottomMenuModalView;
+export default observer(BottomMenuModalView);

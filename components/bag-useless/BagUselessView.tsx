@@ -141,10 +141,7 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
 
       <View style={styles.titleColumn}>
         <PretendardText weight='bold' style={styles.title}>
-          실제로 사용했던 장비만
-        </PretendardText>
-        <PretendardText weight='bold' style={styles.title}>
-          선택해주세요
+          {app.getL10n().t('bagUseless.title')}
         </PretendardText>
       </View>
 
@@ -189,7 +186,7 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
           activeOpacity={0.8}
         >
           <PretendardText weight='semibold' style={styles.confirmLabel}>
-            완료
+            {app.getL10n().t('common.done')}
           </PretendardText>
         </TouchableOpacity>
       </View>

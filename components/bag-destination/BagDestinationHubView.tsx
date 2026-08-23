@@ -89,7 +89,7 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
         <View style={styles.emptyState}>
           <Ionicons name='map-outline' size={40} color={Color.iconMuted} />
           <PretendardText style={styles.emptyText}>
-            여행지를 설정하면{'\n'}그때의 날씨까지 볼 수 있어요
+            {app.getL10n().t('bagDestination.emptyMessage')}
           </PretendardText>
           <TouchableOpacity
             style={styles.selectButton}

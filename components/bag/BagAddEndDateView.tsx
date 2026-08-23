@@ -1,8 +1,10 @@
 import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
+import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   endDate: dayjs.Dayjs;
@@ -20,7 +22,7 @@ const BagAddEndDateView: FC<Props> = ({ endDate, handleEndDateChange }) => {
   return (
     <View style={styles.container}>
       <PretendardText weight='bold' style={styles.label}>
-        기간
+        {app.getL10n().t('bag.calendar.dateLabel')}
       </PretendardText>
       <TouchableOpacity
         style={styles.dateInput}
@@ -59,4 +61,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagAddEndDateView;
+export default observer(BagAddEndDateView);

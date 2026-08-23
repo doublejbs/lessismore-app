@@ -145,7 +145,7 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
               <Ionicons name='chevron-back' size={24} color={Acg.ink} />
             </TouchableOpacity>
             <PretendardText style={styles.headerTitle} weight='semibold'>
-              메모
+              {app.getL10n().t('bag.memo.title')}
             </PretendardText>
             {bagMemo.getMemo() && (
               <TouchableOpacity
@@ -200,7 +200,7 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
                   : styles.completeButtonTextDisabled,
               ]}
             >
-              완료
+              {app.getL10n().t('common.done')}
             </PretendardText>
           )}
         </TouchableOpacity>

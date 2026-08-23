@@ -126,14 +126,14 @@ const BagDestinationSearchResultsView: FC<Props> = ({
           <View style={styles.searchingRow}>
             <ActivityIndicator size='small' color={Color.textSecondary} />
             <PretendardText style={styles.searchingText}>
-              장소를 찾는 중이에요
+              {app.getL10n().t('bagDestination.searching')}
             </PretendardText>
           </View>
         )}
 
         {!searchingPlaces && hasNoResult && (
           <PretendardText style={styles.emptyText}>
-            검색 결과가 없어요
+            {app.getL10n().t('search.resultEmpty')}
           </PretendardText>
         )}
       </ScrollView>

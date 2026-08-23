@@ -7,6 +7,7 @@
     "save": "Save",
     "delete": "Delete",
     "close": "Close",
+    "sort": "Sort",
     "retry": "Try again",
     "all": "All",
     "viewAll": "Show all",
@@ -199,6 +200,7 @@
       "delete": "Delete memo",
       "save": "Save memo",
       "placeholder": "Write a memo",
+      "write": "Write memo",
       "loginRequired": "Sign in is required.",
       "saved": "Memo saved.",
       "deleteConfirm": "Delete this memo?",
@@ -307,6 +309,7 @@
     "restart": "Start over",
     "close": "Close",
     "complete": "Packing complete",
+    "empty": "No gear packed",
     "daysRemaining": "{{count}} days until departure"
   },
   "bagShare": {
@@ -360,6 +363,7 @@
     "favorites": "Favorites",
     "currentLocation": "Go to current location",
     "locating": "Checking location…",
+    "searching": "Looking for places…",
     "addressNotFound": "Couldn't find an address",
     "setLocation": "Set this location as destination",
     "setLocationShort": "Set here",
@@ -392,6 +396,7 @@
   },
   "bagUseless": {
     "back": "Go back",
+    "title": "Select only gear you actually used",
     "usage": "/ {{count}} used",
     "clearAll": "Clear all",
     "selectAll": "Select all"
@@ -845,7 +850,8 @@
   "app": {
     "tabs": { "home": "Home", "browse": "Browse", "map": "Map", "bag": "Bag", "info": "Info" },
     "bagForm": { "dateRequired": "Please choose the dates.", "nameRequired": "Please enter a bag name." },
-    "bagCopy": { "title": "Copy bag", "confirm": "Copy", "completed": "Copied.", "failed": "Couldn't copy the bag. Please try again.", "suffix": "copy" },
+    "bagAddOptions": { "create": "Create a new bag", "createSubtitle": "Start with an empty bag", "copy": "Copy an existing bag", "copySubtitle": "Bring over a previous bag", "template": "Create from a template", "templateSubtitle": "Start with a saved setup" },
+    "bagCopy": { "title": "Copy bag", "sourceTitle": "Choose a bag to copy", "sourceEmpty": "No bags to copy", "confirm": "Copy", "completed": "Copied.", "failed": "Couldn't copy the bag. Please try again.", "suffix": "copy" },
     "bagInfoEdit": { "title": "Edit bag information", "failed": "Couldn't save the changes. Please try again." },
     "bagNew": { "title": "New bag", "failed": "Couldn't add the bag. Please try again.", "locationSaveFailedTitle": "Couldn't save destination", "locationSaveFailed": "The bag was created, but its destination couldn't be saved.", "weatherFailedTitle": "Couldn't load weather", "weatherFailed": "The destination was saved. You can try again from the destination screen." },
     "templateCreate": { "title": "Create bag", "confirm": "Create", "notFound": "Couldn't find the template.", "loadFailed": "Couldn't load the template.", "completed": "Bag created.", "failed": "Couldn't create the bag. Please try again." },

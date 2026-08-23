@@ -10,6 +10,7 @@ import {
 import AlertManager from '@/model/alert/AlertManager';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   alertManager: AlertManager;
@@ -54,7 +55,7 @@ const AlertView: FC<Props> = ({ alertManager }) => {
               onPress={handleClickCancel}
             >
               <PretendardText weight='medium' style={styles.cancelButtonText}>
-                취소하기
+                {app.getL10n().t('common.cancel')}
               </PretendardText>
             </TouchableOpacity>
             <TouchableOpacity

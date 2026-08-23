@@ -1,11 +1,13 @@
 import { FC } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import LoadingView from '@/components/ui/LoadingView';
 import { AcgType, Color, Spacing } from '@/constants/DesignTokens';
 import BagItem from '@/model/bag/BagItem';
+import app from '@/model/app/App';
 
 // 하단 여백은 마지막 행의 세로 패딩과 합쳐져 실효 여백이 insets.bottom이 되도록 그만큼 빼서 준다.
 const ROW_VERTICAL_PADDING = 16;
@@ -44,7 +46,7 @@ const BagCopySourceListView: FC<Props> = ({ bags, isLoading, onSelect }) => {
       return (
         <View style={styles.stateWrap}>
           <PretendardText style={styles.emptyText}>
-            복사할 배낭이 없어요
+            {app.getL10n().t('app.bagCopy.sourceEmpty')}
           </PretendardText>
         </View>
       );
@@ -92,7 +94,7 @@ const BagCopySourceListView: FC<Props> = ({ bags, isLoading, onSelect }) => {
     >
       <View style={styles.header}>
         <PretendardText style={styles.title} weight='bold'>
-          복사할 배낭 선택
+          {app.getL10n().t('app.bagCopy.sourceTitle')}
         </PretendardText>
       </View>
 
@@ -158,4 +160,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagCopySourceListView;
+export default observer(BagCopySourceListView);

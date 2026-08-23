@@ -18,6 +18,7 @@ import FilmCardElement from '@/model/bag-film-card/FilmCardElement';
 import BagFilmCardPolaroidView from '@/components/bag-film-card/BagFilmCardPolaroidView';
 import BagFilmCardPackingListView from '@/components/bag-film-card/BagFilmCardPackingListView';
 import PretendardText from '@/components/PretendardText';
+import app from '@/model/app/App';
 
 /**
  * 캔버스에 얹을 요소 하나(BS-7·BS-9).
@@ -239,7 +240,7 @@ const BagFilmCardCanvasView: FC<Props> = ({
               color={PLACEHOLDER_COLOR}
             />
             <PretendardText style={styles.placeholderText} weight='medium'>
-              사진 고르기
+              {app.getL10n().t('bagFilmCard.choosePhoto')}
             </PretendardText>
           </View>
         ) : null}

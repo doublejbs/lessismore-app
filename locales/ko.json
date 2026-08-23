@@ -7,6 +7,7 @@
     "save": "저장",
     "delete": "삭제",
     "close": "닫기",
+    "sort": "정렬",
     "retry": "다시 시도",
     "all": "전체",
     "viewAll": "전체 보기",
@@ -198,6 +199,7 @@
       "delete": "메모 삭제",
       "save": "메모 저장",
       "placeholder": "메모를 작성하세요",
+      "write": "작성하기",
       "loginRequired": "로그인이 필요합니다.",
       "saved": "메모가 저장되었습니다.",
       "deleteConfirm": "메모를 삭제하시겠습니까?",
@@ -311,6 +313,7 @@
     "restart": "처음부터 다시",
     "close": "닫기",
     "complete": "패킹 완료",
+    "empty": "담긴 장비가 없어요",
     "daysRemaining": "출발까지 {{count}}일 남았어요"
   },
   "bagShare": {
@@ -372,6 +375,7 @@
     "favorites": "즐겨찾기 목록",
     "currentLocation": "현재 위치로 이동",
     "locating": "위치 확인 중…",
+    "searching": "장소를 찾는 중이에요",
     "addressNotFound": "주소를 찾을 수 없어요",
     "setLocation": "이 위치로 여행지 설정",
     "setLocationShort": "이 위치로 설정",
@@ -404,6 +408,7 @@
   },
   "bagUseless": {
     "back": "뒤로가기",
+    "title": "실제로 사용했던 장비만\n선택해주세요",
     "usage": "/ {{count}} 사용",
     "clearAll": "전체 해제",
     "selectAll": "전체 선택"
@@ -874,8 +879,18 @@
       "dateRequired": "날짜를 선택해주세요",
       "nameRequired": "배낭 이름을 입력해주세요"
     },
+    "bagAddOptions": {
+      "create": "새로 만들기",
+      "createSubtitle": "빈 배낭으로 시작해요",
+      "copy": "기존 배낭 복사하기",
+      "copySubtitle": "이전 배낭을 그대로 가져와요",
+      "template": "템플릿으로 만들기",
+      "templateSubtitle": "저장한 구성으로 시작해요"
+    },
     "bagCopy": {
       "title": "배낭 복사",
+      "sourceTitle": "복사할 배낭 선택",
+      "sourceEmpty": "복사할 배낭이 없어요",
       "confirm": "복사",
       "completed": "복사됐습니다",
       "failed": "배낭 복사 중 문제가 발생했습니다. 다시 시도해주세요.",
