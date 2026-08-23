@@ -70,6 +70,7 @@ app/(tabs)/_layout.tsx → 탭 4개: 창고(index) · 탐색(search) · 배낭(b
 - 모든 텍스트는 `PretendardText` 사용(weight: regular/medium/semibold/bold/extraBold, 기본색 #000000).
 - 전역 오버레이(로그인 모달, Alert, Toast)는 `Layout.tsx`가 모든 화면에 깔아준다.
 - 로컬 저장(`LocalStorageManager`, AsyncStorage 기반)은 JSON 직렬화 래퍼이며 현재 키는 `selectedOrderType_{key}`(정렬 선택)뿐이다.
+  - `[제안]` `appLanguage` — 인앱 언어 오버라이드(`'ko' | 'en' | 'ja'`, 없으면 시스템 따르기). [Localization.md](Localization.md) L10N-1.
 
 ### APP-7 스토어 강제 업데이트 게이트 `[제안]`
 
