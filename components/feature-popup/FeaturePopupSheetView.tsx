@@ -27,6 +27,7 @@ const SHEET_OFFSET = 300;
 // AnnouncementSheetView 패턴(RN Modal transparent + Animated fade + useSafeAreaInsets + observer)을 따른다.
 // 전역 1곳(app/_layout.tsx 최상위)에서 렌더한다.
 const FeaturePopupSheetView = () => {
+  const l10n = app.getL10n();
   // 훅은 모두 컴포넌트 최상단에서 무조건 같은 순서로 호출한다(조건부 훅 금지).
   // 매니저 접근·표시 판정 같은 분기는 훅을 전부 부른 뒤로 미룬다.
   const router = useRouter();
@@ -49,7 +50,7 @@ const FeaturePopupSheetView = () => {
   const title = manager?.getTitle() ?? '';
   const subtitle = manager?.getSubtitle() ?? null;
   const items = manager?.getItems() ?? [];
-  const buttonLabel = manager?.getButtonLabel() ?? '확인';
+  const buttonLabel = manager?.getButtonLabel() || l10n.t('common.confirm');
   const buttonLink = manager?.getButtonLink() ?? null;
   const skippable = manager?.isSkippable() ?? true;
   // 강제(차단) 모드(FP-7) — 닫기 경로 전부 차단, 아이템 탭 비활성, 버튼은 이동만.
@@ -157,7 +158,7 @@ const FeaturePopupSheetView = () => {
             activeOpacity={1}
             onPress={handleDismiss}
             accessibilityRole='button'
-            accessibilityLabel='신기능 안내 닫기'
+            accessibilityLabel={l10n.t('app.featurePopup.close')}
           />
         )}
 
@@ -232,10 +233,10 @@ const FeaturePopupSheetView = () => {
                   style={styles.skipButton}
                   onPress={handleSkip}
                   accessibilityRole='button'
-                  accessibilityLabel='건너뛰기'
+                  accessibilityLabel={l10n.t('app.featurePopup.skip')}
                 >
                   <PretendardText weight='medium' style={styles.skipText}>
-                    건너뛰기
+                    {l10n.t('app.featurePopup.skip')}
                   </PretendardText>
                 </TouchableOpacity>
               ) : null}

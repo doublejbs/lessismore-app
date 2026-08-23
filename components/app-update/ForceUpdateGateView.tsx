@@ -21,6 +21,7 @@ const ANDROID_STORE_FALLBACK_URL =
   'https://play.google.com/store/apps/details?id=com.doublejbs.useless';
 
 const ForceUpdateGateView = () => {
+  const l10n = app.getL10n();
   const insets = useSafeAreaInsets();
   const manager = app.getForceUpdateManager();
   const needsUpdate = manager?.getNeedsUpdate() ?? false;
@@ -72,19 +73,19 @@ const ForceUpdateGateView = () => {
     >
       <View style={styles.content}>
         <PretendardText weight='bold' style={styles.title}>
-          업데이트가 필요해요
+          {l10n.t('app.update.title')}
         </PretendardText>
         <PretendardText weight='regular' style={styles.description}>
-          최신 버전에서 새 기능을 사용할 수 있어요.
+          {l10n.t('app.update.description')}
         </PretendardText>
         <TouchableOpacity
           style={styles.button}
           onPress={handlePressUpdate}
           accessibilityRole='button'
-          accessibilityLabel='스토어에서 업데이트'
+          accessibilityLabel={l10n.t('app.update.action')}
         >
           <PretendardText weight='semibold' style={styles.buttonText}>
-            스토어에서 업데이트
+            {l10n.t('app.update.action')}
           </PretendardText>
         </TouchableOpacity>
       </View>

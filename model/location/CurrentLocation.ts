@@ -32,9 +32,6 @@ const CURRENT_POSITION_TIMEOUT_MS = 5000;
 // 조용히 끝내면 사용자는 버튼이 죽은 것으로 인식하므로 반드시 노출한다.
 // 노출 수단은 화면마다 다르다 — 지도 탭은 토스트, 풀스크린 모달인 여행지 선택기는
 // 전역 토스트가 모달 뒤에 가려져 Alert를 쓴다(DST-3).
-export const CURRENT_LOCATION_FAILED_MESSAGE =
-  '현재 위치를 확인할 수 없어요. 잠시 후 다시 시도해 주세요.';
-
 // expo-location의 LocationOptions에는 timeout이 없어 Promise.race로 상한을 건다.
 // 상한을 넘기면 null을 돌려 호출부가 다음 수단(폴백 좌표·실패 안내)으로 넘어가게 한다.
 const raceWithTimeout = async <T>(

@@ -426,7 +426,7 @@ class GearStore {
     const userId = this.getUserId();
 
     if (!userId) {
-      throw new Error('로그인해야 장비 사진을 저장할 수 있습니다.');
+      throw new Error('로그인해야 장비 사진을 저장할 수 있습니다.'); // l10n-ignore: 호출부가 공통 번역 토스트로 치환
     }
 
     return doc(this.getStore(), 'users', userId, 'gears', gearId);

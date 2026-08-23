@@ -29,7 +29,7 @@ const BagTemplateSaveScreen = () => {
     const name = inputValue.trim();
 
     if (!name.length) {
-      Alert.alert('템플릿 이름을 입력해주세요');
+      Alert.alert(app.getL10n().t('app.templateSave.nameRequired'));
 
       return;
     }
@@ -39,10 +39,10 @@ const BagTemplateSaveScreen = () => {
     try {
       if (editContext) {
         await editContext.onSave(name);
-        app.getToastManager()?.show({ message: '템플릿 이름이 수정됐습니다' });
+        app.getToastManager()?.show({ message: app.getL10n().t('app.templateSave.renamed') });
       } else {
         await app.getBagTemplateStore()!.saveFromBag(sourceId, name);
-        app.getToastManager()?.show({ message: '템플릿으로 저장됐습니다' });
+        app.getToastManager()?.show({ message: app.getL10n().t('app.templateSave.completed') });
       }
 
       if (editContext) {
@@ -50,10 +50,10 @@ const BagTemplateSaveScreen = () => {
       }
       router.back();
     } catch (error) {
-      console.error('템플릿 저장 중 오류 발생:', error);
+      console.error('템플릿 저장 중 오류 발생:', error); // l10n-ignore: 개발자 로그
       Alert.alert(
-        '오류',
-        '템플릿 저장 중 문제가 발생했습니다. 다시 시도해주세요.'
+        app.getL10n().t('common.error'),
+        app.getL10n().t('app.templateSave.failed')
       );
     } finally {
       setSaving(false);
@@ -62,7 +62,7 @@ const BagTemplateSaveScreen = () => {
 
   return (
     <BagTemplateSaveContent
-      title={editContext ? '템플릿 이름 수정' : '템플릿으로 저장'}
+      title={app.getL10n().t(editContext ? 'app.templateSave.editTitle' : 'app.templateSave.title')}
       inputValue={inputValue}
       disabled={saving}
       onChangeName={setInputValue}

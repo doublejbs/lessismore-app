@@ -751,7 +751,35 @@
     "reviewPlaceholder": "レビューを書いてください",
     "replyPlaceholder": "返信を書いてください",
     "noReviews": "まだレビューがありません",
-    "firstReviewPrompt": "最初のレビューを書いてください"
+    "firstReviewPrompt": "最初のレビューを書いてください",
+    "errors": {
+      "notFound": "コメントが見つかりません。",
+      "parentNotFound": "親コメントが見つかりません。",
+      "maxDepth": "返信は2階層までです。",
+      "notOwnEdit": "自分のコメントのみ編集できます。",
+      "deletedEdit": "削除されたコメントは編集できません。",
+      "notOwnDelete": "自分のコメントのみ削除できます。",
+      "alreadyDeleted": "コメントはすでに削除されています。"
+    }
+  },
+  "app": {
+    "tabs": { "home": "ホーム", "browse": "探す", "map": "地図", "bag": "バックパック", "info": "情報" },
+    "bagForm": { "dateRequired": "日付を選択してください", "nameRequired": "バックパック名を入力してください" },
+    "bagCopy": { "title": "バックパックをコピー", "confirm": "コピー", "completed": "コピーしました", "failed": "バックパックをコピーできませんでした。もう一度お試しください。", "suffix": "コピー" },
+    "bagInfoEdit": { "title": "バックパック情報を編集", "failed": "変更を保存できませんでした。もう一度お試しください。" },
+    "bagNew": { "title": "新しいバックパック", "failed": "バックパックを追加できませんでした。もう一度お試しください。", "locationSaveFailedTitle": "目的地を保存できませんでした", "locationSaveFailed": "バックパックは作成しましたが、目的地を保存できませんでした。", "weatherFailedTitle": "天気を読み込めませんでした", "weatherFailed": "目的地は保存しました。目的地画面からもう一度お試しください。" },
+    "templateCreate": { "title": "バックパックを作成", "confirm": "作成", "notFound": "テンプレートが見つかりません。", "loadFailed": "テンプレートを読み込めませんでした。", "completed": "バックパックを作成しました。", "failed": "バックパックを作成できませんでした。もう一度お試しください。" },
+    "templateSave": { "title": "テンプレートとして保存", "editTitle": "テンプレート名を編集", "nameRequired": "テンプレート名を入力してください", "renamed": "テンプレート名を変更しました", "completed": "テンプレートとして保存しました", "failed": "テンプレートを保存できませんでした。もう一度お試しください。" },
+    "templateSource": { "title": "テンプレートを選択", "empty": "保存したテンプレートはありません" },
+    "reviewWrite": { "title": "レビューを書く", "editTitle": "自分のレビューを編集", "rating": "評価", "content": "レビュー本文", "contentPlaceholder": "このキャンプ場はいかがでしたか？（任意）", "bag": "使用したバックパック", "removeBag": "添付したバックパックを外す", "selectBag": "バックパックを選択", "selectBagSubtitle": "使用したバックパックを選択", "saveFailed": "レビューを保存できませんでした。もう一度お試しください。", "keyboardClose": "キーボードを閉じる" },
+    "gearAdd": { "title": "ギアを追加", "search": "検索から追加", "searchSubtitle": "カタログから探して追加", "custom": "手動で入力", "customSubtitle": "製品情報を入力" },
+    "announcement": { "close": "お知らせを閉じる", "details": "詳細を見る", "hideForDay": "1日表示しない" },
+    "update": { "title": "アップデートが必要です", "description": "最新バージョンで新機能を利用できます。", "action": "ストアでアップデート" },
+    "featurePopup": { "close": "新機能のお知らせを閉じる", "skip": "スキップ" },
+    "order": { "accessibility": "並べ替え: {{name}}" },
+    "review": { "videoAccessibility": "レビュー動画: {{title}}", "accessibility": "レビュー: {{title}}" },
+    "sharedBag": { "notShared": "このバックパックは共有されていません。" },
+    "location": { "failed": "現在地を確認できませんでした。しばらくしてからもう一度お試しください。" }
   },
   "home": {
     "title": "ホーム",

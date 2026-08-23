@@ -295,7 +295,7 @@ class BagPacking {
       }
     } catch (e) {
       // 저장 실패는 앱 동작을 막지 않는다(오프라인 persistence로 재접속 시 동기화).
-      console.warn('패킹 상태 저장 실패', e);
+      console.warn('패킹 상태 저장 실패', e); // l10n-ignore: 개발자 로그
     }
   }
 
@@ -316,7 +316,7 @@ class BagPacking {
         removePackingCompletedAt: true,
       });
     } catch (e) {
-      console.warn('패킹 초기화 저장 실패', e);
+      console.warn('패킹 초기화 저장 실패', e); // l10n-ignore: 개발자 로그
     }
   }
 

@@ -66,7 +66,7 @@ class FeedContentStore {
         )
         .filter(content => content.published === true);
     } catch (error) {
-      console.error('홈 추천 콘텐츠 조회 실패:', error);
+      console.error('홈 추천 콘텐츠 조회 실패:', error); // l10n-ignore: 개발자 로그
 
       return [];
     }
@@ -127,7 +127,7 @@ class FeedContentStore {
     const imageAttribution =
       storedAttribution ??
       (imageSource
-        ? `사진: ${imageSource} (공공누리 제1유형)`
+        ? `사진: ${imageSource} (공공누리 제1유형)` // l10n-ignore: Firestore 콘텐츠 출처 표기
         : null);
 
     if (!imageAttribution) {

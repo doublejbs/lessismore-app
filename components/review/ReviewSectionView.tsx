@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 import { BlogReview, VideoReview } from '@/model/review/ReviewTypes';
+import app from '@/model/app/App';
 
 interface Props {
   reviews: BlogReview[];
@@ -44,7 +45,7 @@ const ReviewSectionView: FC<Props> = ({
               onPress={() => onPressVideo(video)}
               activeOpacity={0.7}
               accessibilityRole='link'
-              accessibilityLabel={`후기 영상: ${video.title}`}
+              accessibilityLabel={app.getL10n().t('app.review.videoAccessibility', { title: video.title })}
             >
               <Image
                 source={{ uri: video.thumbnailUrl }}
@@ -75,7 +76,7 @@ const ReviewSectionView: FC<Props> = ({
               onPress={() => onPressReview(review)}
               activeOpacity={0.7}
               accessibilityRole='link'
-              accessibilityLabel={`후기: ${review.title}`}
+              accessibilityLabel={app.getL10n().t('app.review.accessibility', { title: review.title })}
             >
               <View style={styles.reviewTextColumn}>
                 <PretendardText

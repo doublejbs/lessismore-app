@@ -79,14 +79,14 @@ class FeaturePopupManager {
         },
         // 구독 실패(권한/네트워크)는 fail-open으로 통과한다 — 팝업 없이 앱은 정상 동작한다(FP-2, §5).
         error => {
-          console.warn('신기능 팝업 구독 실패', error);
+          console.warn('신기능 팝업 구독 실패', error); // l10n-ignore: 개발자 로그
 
           this.setPopup(null);
         }
       );
     } catch (error) {
       // getStore 미초기화 등 예외도 fail-open으로 통과한다.
-      console.warn('신기능 팝업 구독 시작 실패', error);
+      console.warn('신기능 팝업 구독 시작 실패', error); // l10n-ignore: 개발자 로그
 
       this.setPopup(null);
     }
@@ -296,7 +296,7 @@ class FeaturePopupManager {
   public getButtonLabel(): string {
     const label = this.popup?.buttonLabel ?? '';
 
-    return label || '확인';
+    return label || '';
   }
 
   public getButtonLink(): string | null {

@@ -19,7 +19,6 @@ import { GeocodeResult } from '@/model/bag-destination/GeocodeResult';
 import LocalStorageManager from '@/model/storage/LocalStorageManager';
 import { deltaToZoom } from '@/model/map/MapZoom';
 import {
-  CURRENT_LOCATION_FAILED_MESSAGE,
   getCurrentPositionWithinTimeout,
 } from '@/model/location/CurrentLocation';
 import {
@@ -487,7 +486,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       if (!position) {
         app
           .getToastManager()
-          ?.show({ message: CURRENT_LOCATION_FAILED_MESSAGE });
+          ?.show({ message: app.getL10n().t('app.location.failed') });
 
         return;
       }
@@ -499,7 +498,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       moveToLocation(position.coords.latitude, position.coords.longitude);
     } catch (error) {
       console.error('현재 위치 이동 실패:', error); // l10n-ignore
-      app.getToastManager()?.show({ message: CURRENT_LOCATION_FAILED_MESSAGE });
+      app.getToastManager()?.show({ message: app.getL10n().t('app.location.failed') });
     }
   }, [moveCamera, updateCurrentLocation]);
 

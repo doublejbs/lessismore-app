@@ -20,6 +20,7 @@ import Comment, {
   CommentCreateRequest,
   CommentUpdateRequest,
 } from '../reply/Comment';
+import app from '../app/App';
 
 // 미리보기용 최신 댓글을 고를 때 훑는 건수. 삭제된 댓글이 연달아 있을 수 있어 1건만
 // 받으면 빈 미리보기가 된다. 5건이면 실사용에서 충분하고 읽기 비용도 무시할 만하다.
@@ -69,7 +70,7 @@ class ReplyStore {
       }
     }
 
-    throw new Error('댓글을 찾을 수 없습니다.');
+    throw new Error(app.getL10n().t('reply.errors.notFound'));
   }
 
   // 장비 댓글 요약 정보 조회
@@ -239,7 +240,7 @@ class ReplyStore {
         const parentSnap = await transaction.get(parentRef);
 
         if (!parentSnap.exists()) {
-          throw new Error('부모 댓글을 찾을 수 없습니다.');
+          throw new Error(app.getL10n().t('reply.errors.parentNotFound'));
         }
 
         const parentData = parentSnap.data();
@@ -263,7 +264,7 @@ class ReplyStore {
 
         // 최대 깊이 제한 (예: 2단계까지만)
         if (depth > 2) {
-          throw new Error('답글은 2단계까지만 가능합니다.');
+          throw new Error(app.getL10n().t('reply.errors.maxDepth'));
         }
       }
 
@@ -401,16 +402,16 @@ class ReplyStore {
       const gearCommentSnap = await transaction.get(gearCommentRef);
 
       if (!commentSnap.exists()) {
-        throw new Error('댓글을 찾을 수 없습니다.');
+        throw new Error(app.getL10n().t('reply.errors.notFound'));
       }
 
       const commentData = commentSnap.data() as any;
       if (commentData.authorId !== authorId) {
-        throw new Error('본인의 댓글만 수정할 수 있습니다.');
+        throw new Error(app.getL10n().t('reply.errors.notOwnEdit'));
       }
 
       if (commentData.isDeleted) {
-        throw new Error('삭제된 댓글은 수정할 수 없습니다.');
+        throw new Error(app.getL10n().t('reply.errors.deletedEdit'));
       }
 
       const now = serverTimestamp();
@@ -490,16 +491,16 @@ class ReplyStore {
       const gearCommentSnap = await transaction.get(gearCommentRef);
 
       if (!commentSnap.exists()) {
-        throw new Error('댓글을 찾을 수 없습니다.');
+        throw new Error(app.getL10n().t('reply.errors.notFound'));
       }
 
       const commentData = commentSnap.data() as any;
       if (commentData.authorId !== authorId) {
-        throw new Error('본인의 댓글만 삭제할 수 있습니다.');
+        throw new Error(app.getL10n().t('reply.errors.notOwnDelete'));
       }
 
       if (commentData.isDeleted) {
-        throw new Error('이미 삭제된 댓글입니다.');
+        throw new Error(app.getL10n().t('reply.errors.alreadyDeleted'));
       }
 
       const now = serverTimestamp();
@@ -508,7 +509,7 @@ class ReplyStore {
       if (hasReplies) {
         // 답글이 있으면 논리적 삭제
         transaction.update(commentRef, {
-          content: '[삭제된 댓글입니다]',
+          content: '[삭제된 댓글입니다]', // l10n-ignore: Firestore 삭제 마커 캐노니컬 값
           isDeleted: true,
           deletedAt: now,
           updatedAt: now,
@@ -587,7 +588,7 @@ class ReplyStore {
       ]);
 
       if (!commentSnap.exists()) {
-        throw new Error('댓글을 찾을 수 없습니다.');
+        throw new Error(app.getL10n().t('reply.errors.notFound'));
       }
 
       const now = serverTimestamp();
@@ -740,7 +741,7 @@ class ReplyStore {
         ...(data.rating !== undefined ? { rating: data.rating } : {}),
       };
     } catch (error) {
-      console.error('댓글 조회 실패:', error);
+      console.error('댓글 조회 실패:', error); // l10n-ignore: 개발자 로그
       return null;
     }
   }

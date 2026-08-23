@@ -760,7 +760,35 @@
     "reviewPlaceholder": "리뷰를 남겨보세요",
     "replyPlaceholder": "답글을 남겨보세요",
     "noReviews": "아직 등록된 리뷰가 없어요",
-    "firstReviewPrompt": "첫 리뷰를 남겨보세요"
+    "firstReviewPrompt": "첫 리뷰를 남겨보세요",
+    "errors": {
+      "notFound": "댓글을 찾을 수 없습니다.",
+      "parentNotFound": "부모 댓글을 찾을 수 없습니다.",
+      "maxDepth": "답글은 2단계까지만 가능합니다.",
+      "notOwnEdit": "본인의 댓글만 수정할 수 있습니다.",
+      "deletedEdit": "삭제된 댓글은 수정할 수 없습니다.",
+      "notOwnDelete": "본인의 댓글만 삭제할 수 있습니다.",
+      "alreadyDeleted": "이미 삭제된 댓글입니다."
+    }
+  },
+  "app": {
+    "tabs": { "home": "홈", "browse": "탐색", "map": "지도", "bag": "배낭", "info": "정보" },
+    "bagForm": { "dateRequired": "날짜를 선택해주세요", "nameRequired": "배낭 이름을 입력해주세요" },
+    "bagCopy": { "title": "배낭 복사", "confirm": "복사", "completed": "복사됐습니다", "failed": "배낭 복사 중 문제가 발생했습니다. 다시 시도해주세요.", "suffix": "복사본" },
+    "bagInfoEdit": { "title": "배낭 정보 수정", "failed": "수정에 실패했습니다. 다시 시도해주세요." },
+    "bagNew": { "title": "새 배낭", "failed": "배낭 추가 중 문제가 발생했습니다. 다시 시도해주세요.", "locationSaveFailedTitle": "여행지 저장 실패", "locationSaveFailed": "배낭은 만들었지만 여행지를 저장하지 못했어요.", "weatherFailedTitle": "날씨를 불러오지 못했어요", "weatherFailed": "여행지는 저장했어요. 여행지 화면에서 다시 시도할 수 있어요." },
+    "templateCreate": { "title": "배낭 만들기", "confirm": "만들기", "notFound": "템플릿을 찾을 수 없습니다.", "loadFailed": "템플릿을 불러오지 못했습니다.", "completed": "배낭이 만들어졌습니다", "failed": "배낭 생성 중 문제가 발생했습니다. 다시 시도해주세요." },
+    "templateSave": { "title": "템플릿으로 저장", "editTitle": "템플릿 이름 수정", "nameRequired": "템플릿 이름을 입력해주세요", "renamed": "템플릿 이름이 수정됐습니다", "completed": "템플릿으로 저장됐습니다", "failed": "템플릿 저장 중 문제가 발생했습니다. 다시 시도해주세요." },
+    "templateSource": { "title": "만들 템플릿 선택", "empty": "저장한 템플릿이 없어요" },
+    "reviewWrite": { "title": "후기 쓰기", "editTitle": "내 후기 수정", "rating": "별점", "content": "후기 글", "contentPlaceholder": "이 박지는 어땠나요? (선택)", "bag": "다녀온 배낭", "removeBag": "배낭 첨부 해제", "selectBag": "배낭 선택", "selectBagSubtitle": "다녀온 배낭을 선택해요", "saveFailed": "후기 저장에 실패했어요. 다시 시도해주세요.", "keyboardClose": "키보드 닫기" },
+    "gearAdd": { "title": "장비 추가", "search": "검색으로 추가", "searchSubtitle": "카탈로그에서 찾아 담아요", "custom": "직접 입력", "customSubtitle": "제품 정보를 직접 입력해요" },
+    "announcement": { "close": "공지 닫기", "details": "자세히 보기", "hideForDay": "하루동안 보지않기" },
+    "update": { "title": "업데이트가 필요해요", "description": "최신 버전에서 새 기능을 사용할 수 있어요.", "action": "스토어에서 업데이트" },
+    "featurePopup": { "close": "신기능 안내 닫기", "skip": "건너뛰기" },
+    "order": { "accessibility": "정렬: {{name}}" },
+    "review": { "videoAccessibility": "후기 영상: {{title}}", "accessibility": "후기: {{title}}" },
+    "sharedBag": { "notShared": "공유가 해제된 배낭이에요" },
+    "location": { "failed": "현재 위치를 확인할 수 없어요. 잠시 후 다시 시도해 주세요." }
   },
   "home": {
     "title": "홈",

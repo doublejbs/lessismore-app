@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs -- 후기 작성 핸드오프는 마운트 시 스냅샷으로 고정한다. */
 import { useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -22,6 +23,7 @@ import { takeCampReviewWrite } from '@/model/camp-review/CampReviewWriteHandoff'
 import BagItem from '@/model/bag/BagItem';
 import { CampReviewInput } from '@/model/camp-review/CampReviewTypes';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import { observer } from 'mobx-react-lite';
 
 const MAX_CONTENT_LENGTH = 1000;
 // iOS 멀티라인 입력은 리턴키로 키보드를 못 닫으므로 키보드 위 '완료' 액세서리를 붙인다.
@@ -99,7 +101,7 @@ const CampReviewWriteScreen = () => {
           }
         }
       } catch (error) {
-        console.error('배낭 목록 로드 중 오류 발생:', error);
+        console.error('배낭 목록 로드 중 오류 발생:', error); // l10n-ignore: 개발자 로그
       }
     };
 
@@ -176,14 +178,15 @@ const CampReviewWriteScreen = () => {
       params.onComplete();
       router.back();
     } catch (error) {
-      console.error('후기 저장 중 오류 발생:', error);
-      Alert.alert('오류', '후기 저장에 실패했어요. 다시 시도해주세요.');
+      console.error('후기 저장 중 오류 발생:', error); // l10n-ignore: 개발자 로그
+      Alert.alert(app.getL10n().t('common.error'), app.getL10n().t('app.reviewWrite.saveFailed'));
     } finally {
       setSubmitting(false);
     }
   };
 
-  const title = existing ? '내 후기 수정' : '후기 쓰기';
+  const l10n = app.getL10n();
+  const title = l10n.t(existing ? 'app.reviewWrite.editTitle' : 'app.reviewWrite.title');
   const confirmDisabled = rating === 0 || submitting;
 
   // 본문(별점 + 후기 글 + 다녀온 배낭) — Android는 스크롤 컨테이너로 감싼다.
@@ -195,18 +198,18 @@ const CampReviewWriteScreen = () => {
 
       <View style={styles.section}>
         <PretendardText weight='semibold' style={styles.label}>
-          별점
+          {l10n.t('app.reviewWrite.rating')}
         </PretendardText>
         <StarRatingView editable rating={rating} onChange={setRating} />
       </View>
 
       <View style={styles.section}>
         <PretendardText weight='semibold' style={styles.label}>
-          후기 글
+          {l10n.t('app.reviewWrite.content')}
         </PretendardText>
         <TextInput
           style={styles.contentInput}
-          placeholder='이 박지는 어땠나요? (선택)'
+          placeholder={l10n.t('app.reviewWrite.contentPlaceholder')}
           placeholderTextColor={Color.textSecondary}
           value={content}
           onChangeText={setContent}
@@ -222,7 +225,7 @@ const CampReviewWriteScreen = () => {
 
       <View style={styles.section}>
         <PretendardText weight='semibold' style={styles.label}>
-          다녀온 배낭
+          {l10n.t('app.reviewWrite.bag')}
         </PretendardText>
         {attachedBag ? (
           <View style={styles.bagChip}>
@@ -244,7 +247,7 @@ const CampReviewWriteScreen = () => {
               onPress={handleRemoveBag}
               style={styles.bagChipRemove}
               accessibilityRole='button'
-              accessibilityLabel='배낭 첨부 해제'
+              accessibilityLabel={l10n.t('app.reviewWrite.removeBag')}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
               <Ionicons name='close' size={20} color={Color.textSecondary} />
@@ -256,7 +259,7 @@ const CampReviewWriteScreen = () => {
             onPress={() => setSheetVisible(true)}
             activeOpacity={0.7}
             accessibilityRole='button'
-            accessibilityLabel='배낭 선택'
+            accessibilityLabel={l10n.t('app.reviewWrite.selectBag')}
           >
             <Ionicons
               name='briefcase-outline'
@@ -264,7 +267,7 @@ const CampReviewWriteScreen = () => {
               color={Color.textSecondary}
             />
             <PretendardText style={styles.bagSelectText}>
-              배낭 선택
+              {l10n.t('app.reviewWrite.selectBag')}
             </PretendardText>
           </TouchableOpacity>
         )}
@@ -309,7 +312,7 @@ const CampReviewWriteScreen = () => {
           activeOpacity={0.7}
         >
           <PretendardText weight='semibold' style={styles.cancelButtonText}>
-            취소
+            {l10n.t('common.cancel')}
           </PretendardText>
         </TouchableOpacity>
         <TouchableOpacity
@@ -322,7 +325,7 @@ const CampReviewWriteScreen = () => {
           disabled={confirmDisabled}
         >
           <PretendardText weight='semibold' style={styles.confirmButtonText}>
-            확인
+            {l10n.t('common.confirm')}
           </PretendardText>
         </TouchableOpacity>
       </View>
@@ -335,7 +338,7 @@ const CampReviewWriteScreen = () => {
         onSelect={handleSelectBag}
         onCreateNew={() => setSheetVisible(false)}
         hideCreateNew
-        subtitleOverride='다녀온 배낭을 선택해요'
+        subtitleOverride={l10n.t('app.reviewWrite.selectBagSubtitle')}
       />
 
       {/* iOS 키보드 위 '완료' 바 — 멀티라인 입력에서 키보드를 내린다. */}
@@ -345,11 +348,11 @@ const CampReviewWriteScreen = () => {
             <TouchableOpacity
               onPress={() => Keyboard.dismiss()}
               accessibilityRole='button'
-              accessibilityLabel='키보드 닫기'
+              accessibilityLabel={l10n.t('app.reviewWrite.keyboardClose')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <PretendardText weight='semibold' style={styles.accessoryDone}>
-                완료
+                {l10n.t('common.done')}
               </PretendardText>
             </TouchableOpacity>
           </View>
@@ -496,4 +499,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CampReviewWriteScreen;
+export default observer(CampReviewWriteScreen);

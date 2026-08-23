@@ -1,8 +1,10 @@
+/* eslint-disable react-hooks/refs -- 핸드오프 컨텍스트는 마운트 시 스냅샷으로 고정한다. */
 import { useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import BagFormContent from '@/components/bag/BagFormContent';
+import app from '@/model/app/App';
 import {
   clearBagInfoEditContext,
   getBagInfoEditContext,
@@ -46,7 +48,7 @@ const BagInfoEditScreen = () => {
     }
 
     if (!startDate || !endDate) {
-      Alert.alert('오류', '날짜를 선택해주세요');
+      Alert.alert(app.getL10n().t('common.error'), app.getL10n().t('app.bagForm.dateRequired'));
 
       return;
     }
@@ -54,7 +56,7 @@ const BagInfoEditScreen = () => {
     const name = inputValue.trim();
 
     if (!name.length) {
-      Alert.alert('배낭 이름을 입력해주세요');
+      Alert.alert(app.getL10n().t('app.bagForm.nameRequired'));
 
       return;
     }
@@ -65,8 +67,8 @@ const BagInfoEditScreen = () => {
       await context.onSave(name, startDate, endDate);
       router.back();
     } catch (error) {
-      console.error('배낭 정보 수정 중 오류 발생:', error);
-      Alert.alert('오류', '수정에 실패했습니다. 다시 시도해주세요.');
+      console.error('배낭 정보 수정 중 오류 발생:', error); // l10n-ignore: 개발자 로그
+      Alert.alert(app.getL10n().t('common.error'), app.getL10n().t('app.bagInfoEdit.failed'));
     } finally {
       setSubmitting(false);
     }
@@ -74,11 +76,11 @@ const BagInfoEditScreen = () => {
 
   return (
     <BagFormContent
-      title='배낭 정보 수정'
+      title={app.getL10n().t('app.bagInfoEdit.title')}
       inputValue={inputValue}
       startDate={startDate}
       endDate={endDate}
-      confirmText='저장'
+      confirmText={app.getL10n().t('common.save')}
       disabled={submitting}
       onChangeName={setInputValue}
       onStartDateChange={setStartDate}

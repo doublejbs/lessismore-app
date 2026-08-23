@@ -16,7 +16,9 @@ const BagCopyScreen = () => {
   }>();
   const source = entrySource ?? 'list';
 
-  const [inputValue, setInputValue] = useState(`${sourceName ?? ''} 복사본`);
+  const [inputValue, setInputValue] = useState(
+    `${sourceName ?? ''} ${app.getL10n().t('app.bagCopy.suffix')}`
+  );
   const [startDate, setStartDate] = useState<dayjs.Dayjs | null>(dayjs());
   const [endDate, setEndDate] = useState<dayjs.Dayjs | null>(
     dayjs().add(1, 'day')
@@ -33,7 +35,7 @@ const BagCopyScreen = () => {
     }
 
     if (!startDate || !endDate) {
-      Alert.alert('오류', '날짜를 선택해주세요');
+      Alert.alert(app.getL10n().t('common.error'), app.getL10n().t('app.bagForm.dateRequired'));
 
       return;
     }
@@ -41,7 +43,7 @@ const BagCopyScreen = () => {
     const name = inputValue.trim();
 
     if (!name.length) {
-      Alert.alert('배낭 이름을 입력해주세요');
+      Alert.alert(app.getL10n().t('app.bagForm.nameRequired'));
 
       return;
     }
@@ -55,16 +57,13 @@ const BagCopyScreen = () => {
 
       if (bagID) {
         app.getAnalyticsManager()?.logClick('bag_copy_confirm', { source });
-        app.getToastManager()?.show({ message: '복사됐습니다' });
+        app.getToastManager()?.show({ message: app.getL10n().t('app.bagCopy.completed') });
         // 만든 뒤 상세로만 보낸다(BAG-2) — 장비 편집 화면을 겹쳐 열지 않는다.
         router.replace(`/bag/${bagID}`);
       }
     } catch (error) {
-      console.error('배낭 복사 중 오류 발생:', error);
-      Alert.alert(
-        '오류',
-        '배낭 복사 중 문제가 발생했습니다. 다시 시도해주세요.'
-      );
+      console.error('배낭 복사 중 오류 발생:', error); // l10n-ignore: 개발자 로그
+      Alert.alert(app.getL10n().t('common.error'), app.getL10n().t('app.bagCopy.failed'));
     } finally {
       setIsCopying(false);
     }
@@ -72,11 +71,11 @@ const BagCopyScreen = () => {
 
   return (
     <BagFormContent
-      title='배낭 복사'
+      title={app.getL10n().t('app.bagCopy.title')}
       inputValue={inputValue}
       startDate={startDate}
       endDate={endDate}
-      confirmText='복사'
+      confirmText={app.getL10n().t('app.bagCopy.confirm')}
       disabled={isCopying}
       onChangeName={setInputValue}
       onStartDateChange={setStartDate}
