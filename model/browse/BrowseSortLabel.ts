@@ -6,10 +6,10 @@ export interface BrowseSortItem {
 }
 
 const BROWSE_SORT_OPTIONS: BrowseSortItem[] = [
-  { sort: BrowseSort.Popular, name: '인기순' },
-  { sort: BrowseSort.Latest, name: '최신순' },
-  { sort: BrowseSort.WeightAsc, name: '가벼운순' },
-  { sort: BrowseSort.WeightDesc, name: '무거운순' },
+  { sort: BrowseSort.Popular, name: '인기순' }, // l10n-ignore: 사용하지 않는 레거시 정렬 라벨
+  { sort: BrowseSort.Latest, name: '최신순' }, // l10n-ignore: 사용하지 않는 레거시 정렬 라벨
+  { sort: BrowseSort.WeightAsc, name: '가벼운순' }, // l10n-ignore: 사용하지 않는 레거시 정렬 라벨
+  { sort: BrowseSort.WeightDesc, name: '무거운순' }, // l10n-ignore: 사용하지 않는 레거시 정렬 라벨
 ];
 
 const getBrowseSortName = (sort: BrowseSort): string => {
@@ -17,7 +17,7 @@ const getBrowseSortName = (sort: BrowseSort): string => {
     return option.sort === sort;
   });
 
-  return found ? found.name : '인기순';
+  return found ? found.name : '인기순'; // l10n-ignore: 사용하지 않는 레거시 정렬 라벨
 };
 
 export { BROWSE_SORT_OPTIONS, getBrowseSortName };

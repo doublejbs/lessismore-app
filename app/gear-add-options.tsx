@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 // GE-8: 장비 추가 진입 시트 — 배낭 추가 시트(BAG-2, bag-add-options)와 동일한 네이티브 formSheet.
 // 검색으로 추가 / 직접 입력 두 갈래. 배낭 편집에서 진입하면 bagId를 넘겨 해당 배낭 컨텍스트로 이어간다.
@@ -31,7 +32,7 @@ const GearAddOptionsScreen = () => {
     >
       <View style={styles.header}>
         <PretendardText style={styles.title} weight='bold'>
-          장비 추가
+          {app.getL10n().t('app.gearAdd.title')}
         </PretendardText>
       </View>
 
@@ -40,17 +41,17 @@ const GearAddOptionsScreen = () => {
         onPress={() => select('search')}
         activeOpacity={0.7}
         accessibilityRole='button'
-        accessibilityLabel='검색으로 추가'
+        accessibilityLabel={app.getL10n().t('app.gearAdd.search')}
       >
         <View style={styles.iconTile}>
           <Ionicons name='search' size={20} color={Color.textPrimary} />
         </View>
         <View style={styles.rowTextWrap}>
           <PretendardText style={styles.rowTitle} weight='semibold'>
-            검색으로 추가
+            {app.getL10n().t('app.gearAdd.search')}
           </PretendardText>
           <PretendardText style={styles.rowSubtitle}>
-            카탈로그에서 찾아 담아요
+            {app.getL10n().t('app.gearAdd.searchSubtitle')}
           </PretendardText>
         </View>
         <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />
@@ -63,17 +64,17 @@ const GearAddOptionsScreen = () => {
         onPress={() => select('custom')}
         activeOpacity={0.7}
         accessibilityRole='button'
-        accessibilityLabel='직접 입력'
+        accessibilityLabel={app.getL10n().t('app.gearAdd.custom')}
       >
         <View style={styles.iconTile}>
           <Ionicons name='create-outline' size={20} color={Color.textPrimary} />
         </View>
         <View style={styles.rowTextWrap}>
           <PretendardText style={styles.rowTitle} weight='semibold'>
-            직접 입력
+            {app.getL10n().t('app.gearAdd.custom')}
           </PretendardText>
           <PretendardText style={styles.rowSubtitle}>
-            제품 정보를 직접 입력해요
+            {app.getL10n().t('app.gearAdd.customSubtitle')}
           </PretendardText>
         </View>
         <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />

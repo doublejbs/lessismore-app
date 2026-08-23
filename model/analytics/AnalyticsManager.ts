@@ -60,7 +60,7 @@ class AnalyticsManager {
     const safeName = name.slice(0, 40);
 
     if (safeName !== name) {
-      console.warn(`AnalyticsManager 이벤트 이름 40자 초과: ${name}`);
+      console.warn(`AnalyticsManager 이벤트 이름 40자 초과: ${name}`); // l10n-ignore: 개발자 로그
     }
 
     void this.send(analytics => analytics.logEvent(safeName, params));
@@ -96,7 +96,7 @@ class AnalyticsManager {
 
       await action(analytics);
     } catch (error) {
-      console.warn('AnalyticsManager 전송 실패', error);
+      console.warn('AnalyticsManager 전송 실패', error); // l10n-ignore: 개발자 로그
     }
   }
 

@@ -767,7 +767,35 @@
     "reviewPlaceholder": "Write a review",
     "replyPlaceholder": "Write a reply",
     "noReviews": "No reviews yet",
-    "firstReviewPrompt": "Write the first review"
+    "firstReviewPrompt": "Write the first review",
+    "errors": {
+      "notFound": "Couldn't find the comment.",
+      "parentNotFound": "Couldn't find the parent comment.",
+      "maxDepth": "Replies can only be nested two levels deep.",
+      "notOwnEdit": "You can only edit your own comments.",
+      "deletedEdit": "Deleted comments can't be edited.",
+      "notOwnDelete": "You can only delete your own comments.",
+      "alreadyDeleted": "This comment has already been deleted."
+    }
+  },
+  "app": {
+    "tabs": { "home": "Home", "browse": "Browse", "map": "Map", "bag": "Bag", "info": "Info" },
+    "bagForm": { "dateRequired": "Please choose the dates.", "nameRequired": "Please enter a bag name." },
+    "bagCopy": { "title": "Copy bag", "confirm": "Copy", "completed": "Copied.", "failed": "Couldn't copy the bag. Please try again.", "suffix": "copy" },
+    "bagInfoEdit": { "title": "Edit bag information", "failed": "Couldn't save the changes. Please try again." },
+    "bagNew": { "title": "New bag", "failed": "Couldn't add the bag. Please try again.", "locationSaveFailedTitle": "Couldn't save destination", "locationSaveFailed": "The bag was created, but its destination couldn't be saved.", "weatherFailedTitle": "Couldn't load weather", "weatherFailed": "The destination was saved. You can try again from the destination screen." },
+    "templateCreate": { "title": "Create bag", "confirm": "Create", "notFound": "Couldn't find the template.", "loadFailed": "Couldn't load the template.", "completed": "Bag created.", "failed": "Couldn't create the bag. Please try again." },
+    "templateSave": { "title": "Save as template", "editTitle": "Edit template name", "nameRequired": "Please enter a template name.", "renamed": "Template name updated.", "completed": "Saved as a template.", "failed": "Couldn't save the template. Please try again." },
+    "templateSource": { "title": "Choose a template", "empty": "You don't have any saved templates." },
+    "reviewWrite": { "title": "Write a review", "editTitle": "Edit my review", "rating": "Rating", "content": "Review", "contentPlaceholder": "How was this campsite? (optional)", "bag": "Bag used", "removeBag": "Remove attached bag", "selectBag": "Choose a bag", "selectBagSubtitle": "Choose the bag you used", "saveFailed": "Couldn't save the review. Please try again.", "keyboardClose": "Close keyboard" },
+    "gearAdd": { "title": "Add gear", "search": "Add from search", "searchSubtitle": "Find it in the catalog", "custom": "Enter manually", "customSubtitle": "Enter product details yourself" },
+    "announcement": { "close": "Close announcement", "details": "See details", "hideForDay": "Don't show for a day" },
+    "update": { "title": "Update required", "description": "Get the latest version to use new features.", "action": "Update from the store" },
+    "featurePopup": { "close": "Close feature announcement", "skip": "Skip" },
+    "order": { "accessibility": "Sort: {{name}}" },
+    "review": { "videoAccessibility": "Review video: {{title}}", "accessibility": "Review: {{title}}" },
+    "sharedBag": { "notShared": "This bag is no longer shared." },
+    "location": { "failed": "We couldn't find your location. Please try again later." }
   },
   "home": {
     "title": "Home",

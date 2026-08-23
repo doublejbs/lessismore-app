@@ -7,6 +7,7 @@ import { AcgType, Color } from '@/constants/DesignTokens';
 import Order from '@/model/order/Order';
 import OrderOption from '@/model/order/OrderOption';
 import { setSortSheetContext } from '@/model/sort/SortSheetHandoff';
+import app from '@/model/app/App';
 
 interface Props {
   order: Order;
@@ -58,7 +59,7 @@ const OrderButtonView = ({ order, onSelectOption }: Props) => {
         onPress={handleSortClick}
         hitSlop={8}
         accessibilityRole='button'
-        accessibilityLabel={`정렬: ${selectedOrderName}`}
+        accessibilityLabel={app.getL10n().t('app.order.accessibility', { name: selectedOrderName })}
       >
         <PretendardText weight='semibold' style={styles.buttonText}>
           {selectedOrderName}

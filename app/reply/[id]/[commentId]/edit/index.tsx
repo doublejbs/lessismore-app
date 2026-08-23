@@ -29,7 +29,7 @@ const ReplyEdit = () => {
           setComment(loaded);
         }
       } catch (error) {
-        console.error('댓글 로드 실패:', error);
+        console.error('댓글 로드 실패:', error); // l10n-ignore: 개발자 로그
       } finally {
         setIsLoading(false);
       }

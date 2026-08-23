@@ -38,7 +38,7 @@ class GearImageStorage {
     const userId = this.firebase.getUserId();
 
     if (!userId) {
-      throw new Error('로그인해야 장비 사진을 올릴 수 있습니다.');
+      throw new Error('로그인해야 장비 사진을 올릴 수 있습니다.'); // l10n-ignore: 호출부가 공통 번역 토스트로 치환
     }
 
     const storageRef = ref(
@@ -101,14 +101,14 @@ class GearImageStorage {
     // 아니라 네이티브 URI 핸들러가 처리해 상태 코드를 주지 않는데, 그게 곧 정상 경로다.
     if (!response.ok && response.status !== 0) {
       throw new Error(
-        `사진 파일을 읽지 못했습니다 (status ${response.status})`
+        `사진 파일을 읽지 못했습니다 (status ${response.status})` // l10n-ignore: 호출부가 공통 번역 토스트로 치환
       );
     }
 
     const blob = await response.blob();
 
     if (blob.size === 0) {
-      throw new Error('사진 파일이 비어 있습니다.');
+      throw new Error('사진 파일이 비어 있습니다.'); // l10n-ignore: 호출부가 공통 번역 토스트로 치환
     }
 
     return blob;

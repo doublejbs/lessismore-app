@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs -- 대기 중인 여행지 핸드오프는 마운트 시 스냅샷으로 고정한다. */
 import { useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -30,7 +31,7 @@ const BagNewScreen = () => {
     }
 
     if (!startDate || !endDate) {
-      Alert.alert('오류', '날짜를 선택해주세요');
+      Alert.alert(app.getL10n().t('common.error'), app.getL10n().t('app.bagForm.dateRequired'));
 
       return;
     }
@@ -38,7 +39,7 @@ const BagNewScreen = () => {
     const name = inputValue.trim();
 
     if (!name.length) {
-      Alert.alert('배낭 이름을 입력해주세요');
+      Alert.alert(app.getL10n().t('app.bagForm.nameRequired'));
 
       return;
     }
@@ -66,10 +67,10 @@ const BagNewScreen = () => {
           } catch (error) {
             // 배낭 생성은 이미 완료됐으므로 생성 폼에 머물러 중복 생성되지 않게 하고,
             // 여행지만 나중에 다시 설정할 수 있도록 생성된 배낭으로 계속 이동한다.
-            console.error('새 배낭 여행지 저장 실패:', error);
+            console.error('새 배낭 여행지 저장 실패:', error); // l10n-ignore: 개발자 로그
             Alert.alert(
-              '여행지 저장 실패',
-              '배낭은 만들었지만 여행지를 저장하지 못했어요.'
+              app.getL10n().t('app.bagNew.locationSaveFailedTitle'),
+              app.getL10n().t('app.bagNew.locationSaveFailed')
             );
           }
         }
@@ -79,12 +80,12 @@ const BagNewScreen = () => {
 
         if (weatherFailed) {
           Alert.alert(
-            '날씨를 불러오지 못했어요',
-            '여행지는 저장했어요. 여행지 화면에서 다시 시도할 수 있어요.',
+            app.getL10n().t('app.bagNew.weatherFailedTitle'),
+            app.getL10n().t('app.bagNew.weatherFailed'),
             [
-              { text: '확인', style: 'cancel' },
+              { text: app.getL10n().t('common.confirm'), style: 'cancel' },
               {
-                text: '다시 시도',
+                text: app.getL10n().t('common.retry'),
                 onPress: () => router.push(`/bag/${bagID}/weather`),
               },
             ]
@@ -92,10 +93,10 @@ const BagNewScreen = () => {
         }
       }
     } catch (error) {
-      console.error('배낭 추가 중 오류 발생:', error);
+      console.error('배낭 추가 중 오류 발생:', error); // l10n-ignore: 개발자 로그
       Alert.alert(
-        '오류',
-        '배낭 추가 중 문제가 발생했습니다. 다시 시도해주세요.'
+        app.getL10n().t('common.error'),
+        app.getL10n().t('app.bagNew.failed')
       );
     } finally {
       setSubmitting(false);
@@ -104,11 +105,11 @@ const BagNewScreen = () => {
 
   return (
     <BagFormContent
-      title='새 배낭'
+      title={app.getL10n().t('app.bagNew.title')}
       inputValue={inputValue}
       startDate={startDate}
       endDate={endDate}
-      confirmText='확인'
+      confirmText={app.getL10n().t('common.confirm')}
       disabled={submitting}
       onChangeName={setInputValue}
       onStartDateChange={setStartDate}

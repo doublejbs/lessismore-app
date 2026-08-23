@@ -158,7 +158,7 @@ class BagStore {
     ).data()?.['bags'];
 
     if (!bagIDs.includes(id)) {
-      window.alert('잘못된 접근입니다.');
+      window.alert('잘못된 접근입니다.'); // l10n-ignore: 웹 내부 잘못된 접근 방어 메시지
       throw new Error('Bag not found');
     }
 
@@ -619,7 +619,7 @@ class BagStore {
 
       void app.getNotificationManager()?.cancelBagReminders(id);
     } catch (e) {
-      console.error('배낭 삭제 중 오류 발생:', e);
+      console.error('배낭 삭제 중 오류 발생:', e); // l10n-ignore: 개발자 로그
       throw e;
     }
   }
@@ -660,7 +660,7 @@ class BagStore {
         });
       });
     } catch (e) {
-      console.error('배낭에 장비 추가 실패:', e);
+      console.error('배낭에 장비 추가 실패:', e); // l10n-ignore: 개발자 로그
       throw e;
     }
   }

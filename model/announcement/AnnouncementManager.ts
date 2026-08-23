@@ -69,14 +69,14 @@ class AnnouncementManager {
         },
         // 구독 실패(권한/네트워크)는 fail-open으로 통과한다 — 배너 없이 앱은 정상 동작한다(AN-2, §5).
         error => {
-          console.warn('공지 배너 구독 실패', error);
+          console.warn('공지 배너 구독 실패', error); // l10n-ignore: 개발자 로그
 
           this.setAnnouncement(null);
         }
       );
     } catch (error) {
       // getStore 미초기화 등 예외도 fail-open으로 통과한다.
-      console.warn('공지 배너 구독 시작 실패', error);
+      console.warn('공지 배너 구독 시작 실패', error); // l10n-ignore: 개발자 로그
 
       this.setAnnouncement(null);
     }

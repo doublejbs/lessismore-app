@@ -32,6 +32,7 @@ const SWIPE_CLOSE_VELOCITY = 0.5;
 // BottomMenuModalView 패턴(RN Modal transparent + Animated fade/slide-up + useSafeAreaInsets)을 따른다.
 // 전역 1곳(app/_layout.tsx 최상위)에서 렌더한다.
 const AnnouncementSheetView = () => {
+  const l10n = app.getL10n();
   // 훅은 모두 컴포넌트 최상단에서 무조건 같은 순서로 호출한다(조건부 훅 금지).
   // 매니저 접근·표시 판정 같은 분기는 훅을 전부 부른 뒤로 미룬다.
   const router = useRouter();
@@ -158,7 +159,7 @@ const AnnouncementSheetView = () => {
           activeOpacity={1}
           onPress={handleDismissForSession}
           accessibilityRole='button'
-          accessibilityLabel='공지 닫기'
+          accessibilityLabel={l10n.t('app.announcement.close')}
         />
 
         <Animated.View
@@ -190,10 +191,10 @@ const AnnouncementSheetView = () => {
                 style={styles.detailLink}
                 onPress={handlePressCta}
                 accessibilityRole='button'
-                accessibilityLabel='자세히 보기'
+                accessibilityLabel={l10n.t('app.announcement.details')}
               >
                 <PretendardText weight='semibold' style={styles.detailLinkText}>
-                  자세히 보기
+                  {l10n.t('app.announcement.details')}
                 </PretendardText>
               </TouchableOpacity>
             ) : null}
@@ -205,10 +206,10 @@ const AnnouncementSheetView = () => {
               style={styles.closeButton}
               onPress={handleDismissForSession}
               accessibilityRole='button'
-              accessibilityLabel='닫기'
+              accessibilityLabel={l10n.t('common.close')}
             >
               <PretendardText weight='medium' style={styles.buttonText}>
-                닫기
+                {l10n.t('common.close')}
               </PretendardText>
             </TouchableOpacity>
 
@@ -216,10 +217,10 @@ const AnnouncementSheetView = () => {
               style={styles.closeButton}
               onPress={handleDismissForDay}
               accessibilityRole='button'
-              accessibilityLabel='하루동안 보지않기'
+              accessibilityLabel={l10n.t('app.announcement.hideForDay')}
             >
               <PretendardText weight='medium' style={styles.buttonText}>
-                하루동안 보지않기
+                {l10n.t('app.announcement.hideForDay')}
               </PretendardText>
             </TouchableOpacity>
           </View>

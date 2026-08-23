@@ -432,7 +432,10 @@ const createAppComponent = () => {
             resizeMode='contain'
           />
           <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
-            {status === 'UPDATING' ? '업데이트 중...' : '업데이트 확인 중...'}
+            {status === 'UPDATING'
+              ? '업데이트 중...' // l10n-ignore: L10n 초기화 전 HotUpdater 폴백 화면
+              : '업데이트 확인 중...' // l10n-ignore: L10n 초기화 전 HotUpdater 폴백 화면
+            }
           </Text>
           {progress > 0 ? (
             <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>

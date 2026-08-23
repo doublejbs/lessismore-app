@@ -23,7 +23,6 @@ import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import { CampSiteMapViewport } from '@/components/camp-site/CampSiteMapMarkersView';
 import { deltaToZoom } from '@/model/map/MapZoom';
 import {
-  CURRENT_LOCATION_FAILED_MESSAGE,
   getCurrentPositionWithinTimeout,
 } from '@/model/location/CurrentLocation';
 import app from '@/model/app/App';
@@ -976,7 +975,7 @@ const useBagDestinationPickerState = ({
       // 세 수단이 모두 좌표를 주지 못하면 반드시 알린다 — 조용히 끝내면 버튼이 죽은 것으로 보인다(DST-3).
       // 이 화면은 풀스크린 모달이라 전역 토스트가 모달 뒤에 가려지므로 Alert를 쓴다.
       if (!target) {
-        Alert.alert(app.getL10n().t('bagDestination.locationFailedTitle'), CURRENT_LOCATION_FAILED_MESSAGE);
+        Alert.alert(app.getL10n().t('bagDestination.locationFailedTitle'), app.getL10n().t('app.location.failed'));
 
         return;
       }
@@ -1005,7 +1004,7 @@ const useBagDestinationPickerState = ({
 
       console.error('현재 위치 이동 실패:', error); // l10n-ignore
       // 수단이 모두 실패한 경우(위 분기)와 예외는 사용자에게 같은 상황이라 문구를 통일한다(DST-3).
-      Alert.alert(app.getL10n().t('bagDestination.locationFailedTitle'), CURRENT_LOCATION_FAILED_MESSAGE);
+      Alert.alert(app.getL10n().t('bagDestination.locationFailedTitle'), app.getL10n().t('app.location.failed'));
     } finally {
       if (
         mountedRef.current &&

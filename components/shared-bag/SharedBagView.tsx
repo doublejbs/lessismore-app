@@ -14,6 +14,7 @@ import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { Acg, AcgType, Color } from '@/constants/DesignTokens';
 import SharedBag from '@/model/shared-bag/SharedBag';
 import Gear from '@/model/gear/Gear';
+import app from '@/model/app/App';
 
 interface Props {
   sharedBag: SharedBag;
@@ -54,7 +55,7 @@ const SharedBagView: FC<Props> = ({ sharedBag }) => {
               <TouchableOpacity
                 onPress={handlePressBack}
                 style={styles.nativeBackButton}
-                accessibilityLabel='뒤로 가기'
+                accessibilityLabel={app.getL10n().t('common.back')}
                 accessibilityRole='button'
               >
                 <Ionicons
@@ -72,7 +73,7 @@ const SharedBagView: FC<Props> = ({ sharedBag }) => {
           <TouchableOpacity
             onPress={handlePressBack}
             style={styles.backButton}
-            accessibilityLabel='뒤로 가기'
+            accessibilityLabel={app.getL10n().t('common.back')}
             accessibilityRole='button'
           >
             <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
@@ -91,7 +92,7 @@ const SharedBagView: FC<Props> = ({ sharedBag }) => {
       {notShared ? (
         <View style={styles.emptyWrap}>
           <PretendardText style={styles.emptyText}>
-            공유가 해제된 배낭이에요
+            {app.getL10n().t('app.sharedBag.notShared')}
           </PretendardText>
         </View>
       ) : (

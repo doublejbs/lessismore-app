@@ -33,8 +33,8 @@ const BagTemplateCreateScreen = () => {
 
         if (!value) {
           if (mounted) {
-            Alert.alert('오류', '템플릿을 찾을 수 없습니다.', [
-              { text: '확인', onPress: () => router.back() },
+            Alert.alert(app.getL10n().t('common.error'), app.getL10n().t('app.templateCreate.notFound'), [
+              { text: app.getL10n().t('common.confirm'), onPress: () => router.back() },
             ]);
           }
 
@@ -46,10 +46,10 @@ const BagTemplateCreateScreen = () => {
           setInputValue(value.getName());
         }
       } catch (error) {
-        console.error('템플릿 조회 중 오류 발생:', error);
+        console.error('템플릿 조회 중 오류 발생:', error); // l10n-ignore: 개발자 로그
         if (mounted) {
-          Alert.alert('오류', '템플릿을 불러오지 못했습니다.', [
-            { text: '확인', onPress: () => router.back() },
+          Alert.alert(app.getL10n().t('common.error'), app.getL10n().t('app.templateCreate.loadFailed'), [
+            { text: app.getL10n().t('common.confirm'), onPress: () => router.back() },
           ]);
         }
       }
@@ -68,7 +68,7 @@ const BagTemplateCreateScreen = () => {
     }
 
     if (!startDate || !endDate) {
-      Alert.alert('오류', '날짜를 선택해주세요');
+      Alert.alert(app.getL10n().t('common.error'), app.getL10n().t('app.bagForm.dateRequired'));
 
       return;
     }
@@ -76,7 +76,7 @@ const BagTemplateCreateScreen = () => {
     const name = inputValue.trim();
 
     if (!name.length) {
-      Alert.alert('배낭 이름을 입력해주세요');
+      Alert.alert(app.getL10n().t('app.bagForm.nameRequired'));
 
       return;
     }
@@ -88,13 +88,13 @@ const BagTemplateCreateScreen = () => {
         .getBagTemplateStore()!
         .createBag(template, name, startDate, endDate);
 
-      app.getToastManager()?.show({ message: '배낭이 만들어졌습니다' });
+      app.getToastManager()?.show({ message: app.getL10n().t('app.templateCreate.completed') });
       router.replace(`/bag/${bagID}`);
     } catch (error) {
-      console.error('템플릿에서 배낭 생성 중 오류 발생:', error);
+      console.error('템플릿에서 배낭 생성 중 오류 발생:', error); // l10n-ignore: 개발자 로그
       Alert.alert(
-        '오류',
-        '배낭 생성 중 문제가 발생했습니다. 다시 시도해주세요.'
+        app.getL10n().t('common.error'),
+        app.getL10n().t('app.templateCreate.failed')
       );
     } finally {
       setCreating(false);
@@ -118,11 +118,11 @@ const BagTemplateCreateScreen = () => {
 
   return (
     <BagFormContent
-      title='배낭 만들기'
+      title={app.getL10n().t('app.templateCreate.title')}
       inputValue={inputValue}
       startDate={startDate}
       endDate={endDate}
-      confirmText='만들기'
+      confirmText={app.getL10n().t('app.templateCreate.confirm')}
       disabled={creating}
       onChangeName={setInputValue}
       onStartDateChange={setStartDate}

@@ -3,6 +3,8 @@ import { Tabs } from 'expo-router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { NoAnimationTab } from '@/components/NoAnimationTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { observer } from 'mobx-react-lite';
+import app from '@/model/app/App';
 
 // iOS는 네이티브 UITabBar(NativeTabs)로 iOS 26 리퀴드 글래스를 받고,
 // Android/Web은 기존 커스텀 JS 탭바(react-navigation)를 그대로 쓴다.
@@ -24,29 +26,29 @@ const NativeTabLayout = () => {
     >
       <NativeTabs.Trigger name='index'>
         <NativeTabs.Trigger.Icon sf='house.fill' drawable='ic_menu_home' />
-        <NativeTabs.Trigger.Label>홈</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{app.getL10n().t('app.tabs.home')}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='search'>
         <NativeTabs.Trigger.Icon
           sf='magnifyingglass'
           drawable='ic_menu_search'
         />
-        <NativeTabs.Trigger.Label>탐색</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{app.getL10n().t('app.tabs.browse')}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='map'>
         <NativeTabs.Trigger.Icon sf='map.fill' drawable='ic_menu_mapmode' />
-        <NativeTabs.Trigger.Label>지도</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{app.getL10n().t('app.tabs.map')}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='bag'>
         <NativeTabs.Trigger.Icon
           sf='figure.hiking'
           drawable='ic_menu_compass'
         />
-        <NativeTabs.Trigger.Label>배낭</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{app.getL10n().t('app.tabs.bag')}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='info'>
         <NativeTabs.Trigger.Icon sf='person.fill' drawable='ic_menu_myplaces' />
-        <NativeTabs.Trigger.Label>정보</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{app.getL10n().t('app.tabs.info')}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
@@ -71,7 +73,7 @@ const JsTabLayout = () => {
       <Tabs.Screen
         name='index'
         options={{
-          title: '홈',
+          title: app.getL10n().t('app.tabs.home'),
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name='house.fill' color={color} />
           ),
@@ -80,7 +82,7 @@ const JsTabLayout = () => {
       <Tabs.Screen
         name='search'
         options={{
-          title: '탐색',
+          title: app.getL10n().t('app.tabs.browse'),
           tabBarIcon: ({ color }) => (
             <IconSymbol size={24} name='magnifyingglass' color={color} />
           ),
@@ -89,7 +91,7 @@ const JsTabLayout = () => {
       <Tabs.Screen
         name='map'
         options={{
-          title: '지도',
+          title: app.getL10n().t('app.tabs.map'),
           tabBarIcon: ({ color }) => (
             <IconSymbol size={26} name='map.fill' color={color} />
           ),
@@ -100,7 +102,7 @@ const JsTabLayout = () => {
       <Tabs.Screen
         name='bag'
         options={{
-          title: '배낭',
+          title: app.getL10n().t('app.tabs.bag'),
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name='figure.hiking' color={color} />
           ),
@@ -109,7 +111,7 @@ const JsTabLayout = () => {
       <Tabs.Screen
         name='info'
         options={{
-          title: '정보',
+          title: app.getL10n().t('app.tabs.info'),
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name='person.fill' color={color} />
           ),
@@ -119,10 +121,12 @@ const JsTabLayout = () => {
   );
 };
 
-export default function TabLayout() {
+const TabLayout = observer(() => {
   if (Platform.OS === 'ios') {
     return <NativeTabLayout />;
   }
 
   return <JsTabLayout />;
-}
+});
+
+export default TabLayout;

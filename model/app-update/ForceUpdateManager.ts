@@ -63,7 +63,7 @@ class ForceUpdateManager {
       }
     } catch (error) {
       // 조회 실패·파싱 불가 등은 통과한다 — 정상 유저를 절대 막지 않는다(APP-7 fail-open).
-      console.warn('강제 업데이트 버전 확인 실패', error);
+      console.warn('강제 업데이트 버전 확인 실패', error); // l10n-ignore: 개발자 로그
     }
   }
 

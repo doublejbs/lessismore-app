@@ -22,7 +22,7 @@ const BagTemplateSourceScreen = () => {
     try {
       setTemplates(await app.getBagTemplateStore()!.getList());
     } catch (error) {
-      console.error('템플릿 선택 목록 조회 중 오류 발생:', error);
+      console.error('템플릿 선택 목록 조회 중 오류 발생:', error); // l10n-ignore: 개발자 로그
       setTemplates([]);
     } finally {
       setLoading(false);
@@ -43,14 +43,14 @@ const BagTemplateSourceScreen = () => {
       showsVerticalScrollIndicator={false}
     >
       <PretendardText style={styles.title} weight='bold'>
-        만들 템플릿 선택
+        {app.getL10n().t('app.templateSource.title')}
       </PretendardText>
       {loading ? (
         <ActivityIndicator color={Acg.ink} style={styles.loading} />
       ) : templates.length === 0 ? (
         <View style={styles.empty}>
           <PretendardText style={styles.emptyText}>
-            저장한 템플릿이 없어요
+            {app.getL10n().t('app.templateSource.empty')}
           </PretendardText>
         </View>
       ) : (

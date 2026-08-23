@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | proposed `[기획]` (2026-08-23) |
+| 상태 | implemented `[구현 완료]` (2026-08-23) |
 | ID 프리픽스 | `L10N` |
 | 주요 코드 | `locales/` (신규), `model/l10n/` (신규), `app/info/language.tsx` (신규), `components/PretendardText.tsx`, `app.json` |
 | 관련 스펙 | [AppLifecycle.md](AppLifecycle.md) APP-6, [Auth.md](Auth.md) AU-4, [DataModel.md](DataModel.md), [BagShare.md](BagShare.md) |
@@ -158,14 +158,14 @@ app/(tabs)/info.tsx (정보 탭)
 
 | 단계 | 범위 (스펙 도메인) | 주요 디렉토리 | 완료 기준 |
 | --- | --- | --- | --- |
-| 0. 인프라 | L10N-1~8 구축, `common.*` 키, 정보 탭 언어 설정 | `model/l10n/`, `locales/`, `app/info/language.tsx` | 언어 전환 동작 + 수용 기준 L10N-1/2/4/5 통과 |
-| 1. 정보/설정 | Auth(정보 탭·로그인·탈퇴), Notification 설정 | `app/info/`, `app/(tabs)/info.tsx`, `components/info/`, `components/login/`, `components/notification/` | 도메인 grep 0건 + ko/en/ja 스크린샷 |
-| 2. 배낭 | Bag, BagDetail, BagTemplate, Packing, BagDestination, BagShare(주변 UI) | `components/bag*`, `model/bag*` | 〃 |
-| 3. 창고/장비 | Warehouse, GearEdit, GearDetail, Reply | `components/warehouse*`, `components/gear*`, `model/gear*`, `model/warehouse*`, `model/reply/` | 〃 |
-| 4. 검색/탐색 | Search, Feed | `components/search/`, `components/feed/`, `model/search/`, `model/feed/` | 〃 |
-| 5. 지도/박지 | CampSite, Weather | `components/camp-site/`, `model/camp-site/`, `model/weather/` | 〃 |
-| 6. 홈 | Home, HealthActivity | `components/home/`, `model/home/`, `model/health/` | 〃 |
-| 7. 공유·기타 | 전역 알럿·토스트 공통 문구, 탭 라벨, OTA·초기화 문구, 잔여 정리 | `model/alert/`, `model/toast/`, `app/_layout.tsx`, `app/(tabs)/_layout.tsx` 외 잔여 | 전 디렉토리 grep 0건(예외 목록 제외) |
+| 0. 인프라 | L10N-1~8 구축, `common.*` 키, 정보 탭 언어 설정 | `model/l10n/`, `locales/`, `app/info/language.tsx` | ✅ 완료 — 언어 전환 동작 + 수용 기준 L10N-1/2/4/5 통과 |
+| 1. 정보/설정 | Auth(정보 탭·로그인·탈퇴), Notification 설정 | `app/info/`, `app/(tabs)/info.tsx`, `components/info/`, `components/login/`, `components/notification/` | ✅ 완료 — 도메인 grep 0건 |
+| 2. 배낭 | Bag, BagDetail, BagTemplate, Packing, BagDestination, BagShare(주변 UI) | `components/bag*`, `model/bag*` | ✅ 완료 — 도메인 grep 0건 |
+| 3. 창고/장비 | Warehouse, GearEdit, GearDetail, Reply | `components/warehouse*`, `components/gear*`, `model/gear*`, `model/warehouse*`, `model/reply/` | ✅ 완료 — 도메인 grep 0건 |
+| 4. 검색/탐색 | Search, Feed | `components/search/`, `components/feed/`, `model/search/`, `model/feed/` | ✅ 완료 — 도메인 grep 0건 |
+| 5. 지도/박지 | CampSite, Weather | `components/camp-site/`, `model/camp-site/`, `model/weather/` | ✅ 완료 — 도메인 grep 0건 |
+| 6. 홈 | Home, HealthActivity | `components/home/`, `model/home/`, `model/health/` | ✅ 완료 — 도메인 grep 0건 |
+| 7. 공유·기타 | 전역 알럿·토스트 공통 문구, 탭 라벨, OTA·초기화 문구, 잔여 정리 | `model/alert/`, `model/toast/`, `app/_layout.tsx`, `app/(tabs)/_layout.tsx` 외 잔여 | ✅ 완료 — 인자 없는 전 저장소 스캔 0건(예외 목록 제외) |
 
 - 각 단계의 검증: ① 해당 디렉토리 L10N-11 grep 0건 ② ko/en/ja 3개 언어로 해당 도메인 주요 화면 스크린샷 확인 ③ `npm run lint` + `npx tsc --noEmit` 통과.
 - 단계 순서 근거: 인프라 다음에 **문구가 적고 언어 설정 자체가 사는 정보 탭**으로 패턴을 확립하고, 사용 빈도가 높은 배낭→창고→검색 순으로 넓힌다.
@@ -203,6 +203,12 @@ app/(tabs)/info.tsx (정보 탭)
 | `auth.appleLogin` | Apple 로그인 제공자 식별이 명확한 버튼 문구를 사용한다. 허용을 유도하는 표현 없이 `Sign in with Apple`/`Appleでログイン`으로 유지한다. |
 | `auth.terms.submit` | 동의 완료 후 다음 단계로 이동하는 중립적 문구를 사용한다. en/ja도 `Agree and continue`/`同意して続行`으로 유지한다. |
 | `common.continue` | 건강 권한 인트로(HA-2) 주 액션은 App Store 심사 5.1.1(iv) 지적에 따라 권한 허용을 유도하지 않는 중립어 `계속`을 사용한다. en/ja도 `Continue`/`続行`으로 유지하며, `accessibilityLabel`에도 동일 키를 쓴다. |
+| `app.tabs.*` | 탭은 화면의 목적을 짧게 식별하는 명사형 라벨을 사용한다. iOS NativeTabs와 Android/Web Tabs 모두 같은 키를 읽고 observer로 감싸 언어 전환 즉시 갱신한다. |
+| `app.update.*` | 강제 업데이트는 차단 상태와 사용자가 해야 할 주의를 짧고 명확하게 전달한다. OTA fallback은 L10n 초기화 전에도 표시될 수 있어 ko 리터럴을 안전 폴백으로 유지한다. |
+| `app.announcement.*`·`app.featurePopup.*` | 전역 오버레이의 닫기·상세·보류 액션은 화면의 동작을 그대로 설명하는 접근성 라벨과 버튼 문구를 공유한다. |
+| `app.bag*`·`app.template*` | 배낭·템플릿 폼의 검증, 성공·실패 피드백은 사용자가 다음 행동을 알 수 있도록 기존 공통 오류·확인 어휘와 결합한다. |
+| `app.reviewWrite.*`·`app.gearAdd.*` | 후기 작성과 장비 추가는 입력 영역의 목적과 선택적 입력 여부를 명시해 언어별 어순을 번역 문장 단위로 보장한다. |
+| `reply.errors.*` | 댓글 저장 계층에서 사용자에게 전달되는 검증 오류도 Alert에 원문으로 노출되지 않도록 번역 키를 사용한다. |
 
 ## 5. 플랫폼 분기
 
@@ -226,6 +232,7 @@ app/(tabs)/info.tsx (정보 탭)
 - **저장 값이 미지원 코드**(예: 과거 버전이 남긴 값): 무시하고 시스템 따르기로 폴백, 키 삭제.
 - **미이관 화면**(L10N-10 진행 중): en/ja 사용자에게 한국어로 보인다 — 허용. 단 한 화면 안에서 이관·미이관 문구가 섞이지 않도록 이관은 화면(도메인) 단위로 완결한다.
 - **긴 영어 문구 레이아웃**: ko 기준으로 잡힌 고정폭 버튼·행에서 en 문구가 넘칠 수 있다 — 말줄임 대신 줄바꿈·`minHeight` 원칙(Dynamic Type 규칙과 동일)을 따르고, 단계 검증 스크린샷에서 확인한다.
+- **OTA fallback**: HotUpdater fallback은 `app.initialize()`와 i18next 초기화보다 먼저 렌더될 수 있다. 따라서 해당 두 상태 문구는 초기화 전에도 크래시 없이 표시되는 ko 리터럴로 유지하고, 각 리터럴에 `l10n-ignore` 근거를 남긴다. 초기화 완료 후 일반 앱 화면은 번역 키를 사용한다.
 
 ## 7. 수동 검증 체크리스트
 

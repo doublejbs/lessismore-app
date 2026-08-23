@@ -3,6 +3,13 @@ import path from 'node:path';
 
 const KOREAN_PATTERN = /[가-힣]/;
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx']);
+const IGNORED_DIRECTORIES = new Set([
+  '.git',
+  'node_modules',
+  'dist',
+  'build',
+  'coverage',
+]);
 
 const collectSourceFiles = targetPath => {
   const stats = fs.statSync(targetPath);
@@ -12,6 +19,10 @@ const collectSourceFiles = targetPath => {
   }
 
   return fs.readdirSync(targetPath, { withFileTypes: true }).flatMap(entry => {
+    if (entry.isDirectory() && IGNORED_DIRECTORIES.has(entry.name)) {
+      return [];
+    }
+
     const entryPath = path.join(targetPath, entry.name);
 
     if (entry.isDirectory()) {
@@ -29,6 +40,7 @@ const isIgnoredFile = filePath => {
     normalizedPath === 'locales' ||
     normalizedPath.startsWith('locales/') ||
     normalizedPath.includes('/locales/') ||
+    normalizedPath === 'constants/LegalTexts.ts' ||
     normalizedPath.endsWith('/constants/LegalTexts.ts')
   );
 };
@@ -130,16 +142,14 @@ const findKoreanLiterals = source => {
   return [...new Set(findings)].sort((a, b) => a - b);
 };
 
+// L10N-10 7단계 완료: 인자가 없으면 저장소 전체를 검사한다.
+// 단계별 확인이 필요하면 완료 도메인 디렉터리를 인자로 넘길 수 있다.
 const targets = process.argv.slice(2);
-
-if (targets.length === 0) {
-  console.error('사용법: node scripts/find-hardcoded-korean.mjs <디렉토리> ...');
-  process.exit(2);
-}
+const scanTargets = targets.length > 0 ? targets : ['.'];
 
 const findings = [];
 
-targets.flatMap(collectSourceFiles).forEach(filePath => {
+scanTargets.flatMap(collectSourceFiles).forEach(filePath => {
   if (isIgnoredFile(filePath)) {
     return;
   }
