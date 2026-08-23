@@ -78,7 +78,6 @@ const ensurePluralRules = () => {
 class L10n {
   public language: AppLanguage = AppLanguage.Korean;
 
-  private languageOverride: AppLanguage | null = null;
   private initialized = false;
 
   public constructor() {
@@ -130,24 +129,18 @@ class L10n {
       await LocalStorageManager.remove(APP_LANGUAGE_STORAGE_KEY);
     }
 
-    this.languageOverride = languageOverride;
     await this.applyLanguage(languageOverride ?? getSystemLanguage());
     this.initialized = true;
   }
 
-  public async setLanguage(language: AppLanguage | null) {
-    const nextLanguage = language ?? getSystemLanguage();
+  // 언어 설정 UI에는 `시스템 설정 따르기` 항목이 없다(2026-08-23 사용자 결정) —
+  // 저장값이 없는 동안만 시스템 로캘을 따르고, 한 번 고르면 그 선택이 저장된다.
+  public async setLanguage(language: AppLanguage) {
+    await changeLanguage(language);
+    this.language = language;
+    dayjs.locale(language);
 
-    await changeLanguage(nextLanguage);
-    this.language = nextLanguage;
-    this.languageOverride = language;
-    dayjs.locale(nextLanguage);
-
-    if (language === null) {
-      await LocalStorageManager.remove(APP_LANGUAGE_STORAGE_KEY);
-    } else {
-      await LocalStorageManager.set(APP_LANGUAGE_STORAGE_KEY, language);
-    }
+    await LocalStorageManager.set(APP_LANGUAGE_STORAGE_KEY, language);
   }
 
   public t(key: string, params?: TOptions) {
@@ -160,10 +153,6 @@ class L10n {
     }
 
     return t(key, options);
-  }
-
-  public getLanguageOverride() {
-    return this.languageOverride;
   }
 
   private async applyLanguage(language: AppLanguage) {

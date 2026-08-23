@@ -12,8 +12,7 @@
   "info": {
     "language": {
       "title": "Language",
-      "rowLabel": "Language",
-      "system": "Use system settings"
+      "rowLabel": "Language"
     }
   }
 }

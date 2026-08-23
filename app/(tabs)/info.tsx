@@ -81,12 +81,12 @@ const InfoView: FC = () => {
     router.push('/info/language' as never);
   };
 
-  const languageOverride = l10n.getLanguageOverride();
-  const languageLabel = languageOverride === null
-    ? l10n.t('info.language.system')
-    : languageOverride === AppLanguage.Korean
+  // 행 우측 값은 현재 적용 언어의 자기 표기다(L10N-5). `시스템 설정 따르기` 표기는
+  // 두지 않는다(2026-08-23 사용자 결정) — 저장값이 없어도 시스템에서 유도한 언어를 보여준다.
+  const languageLabel =
+    l10n.language === AppLanguage.Korean
       ? '한국어'
-      : languageOverride === AppLanguage.English
+      : l10n.language === AppLanguage.English
         ? 'English'
         : '日本語';
 

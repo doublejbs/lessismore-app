@@ -14,16 +14,10 @@ import app from '@/model/app/App';
 import AppLanguage from '@/model/l10n/AppLanguage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const LANGUAGE_OPTIONS: readonly {
-  language: AppLanguage | null;
-  label: string;
-  labelKey?: string;
-}[] = [
-  {
-    language: null,
-    label: '',
-    labelKey: 'info.language.system',
-  },
+// 언어 이름은 번역하지 않는 자기 표기 고정(L10N-5).
+// `시스템 설정 따르기` 행은 두지 않는다(2026-08-23 사용자 결정) — 저장값이 없으면
+// 시스템 로캘에서 유도한 언어에 체크가 가고, 사용자가 고르는 순간부터 그 선택이 저장된다.
+const LANGUAGE_OPTIONS: readonly { language: AppLanguage; label: string }[] = [
   { language: AppLanguage.Korean, label: '한국어' },
   { language: AppLanguage.English, label: 'English' },
   { language: AppLanguage.Japanese, label: '日本語' },
@@ -32,9 +26,10 @@ const LANGUAGE_OPTIONS: readonly {
 const LanguageSettingsView: FC = observer(() => {
   const insets = useSafeAreaInsets();
   const l10n = app.getL10n();
-  const languageOverride = l10n.getLanguageOverride();
+  // 저장값이 없어도 현재 적용 언어(시스템 유도)에 체크가 간다.
+  const currentLanguage = l10n.language;
 
-  const handleLanguageSelect = (language: AppLanguage | null) => {
+  const handleLanguageSelect = (language: AppLanguage) => {
     void l10n.setLanguage(language);
   };
 
@@ -53,14 +48,12 @@ const LanguageSettingsView: FC = observer(() => {
       >
         <View style={styles.list}>
           {LANGUAGE_OPTIONS.map(option => {
-            const selected = option.language === languageOverride;
-            const label = option.labelKey
-              ? l10n.t(option.labelKey)
-              : option.label;
+            const selected = option.language === currentLanguage;
+            const label = option.label;
 
             return (
               <Pressable
-                key={option.language ?? 'system'}
+                key={option.language}
                 onPress={() => handleLanguageSelect(option.language)}
                 accessibilityRole='radio'
                 accessibilityState={{ selected }}
