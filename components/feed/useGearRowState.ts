@@ -75,7 +75,9 @@ const useGearRowState = ({ gear, actions, bag, gearAddContext }: Params) => {
         const added = await bag.addGearToBag(bagCtxId, gear);
 
         if (added) {
-          app.getToastManager()?.show({ message: '배낭에 담았어요.' });
+          app
+            .getToastManager()
+            ?.show({ message: app.getL10n().t('feed.addedToBag') });
         }
 
         return;
@@ -92,7 +94,9 @@ const useGearRowState = ({ gear, actions, bag, gearAddContext }: Params) => {
 
       if (gearAddContext) {
         // 창고 장비 추가: 창고 등록만(배낭 담기 모달 생략).
-        app.getToastManager()?.show({ message: '창고에 담았어요.' });
+        app
+          .getToastManager()
+          ?.show({ message: app.getL10n().t('feed.addedToWarehouse') });
       } else {
         // 탐색 기본: 창고 등록 후 배낭 담기 모달(SR-3).
         setShowModal(true);

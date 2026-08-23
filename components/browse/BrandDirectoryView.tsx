@@ -42,6 +42,7 @@ const BrandDirectoryView: FC<Props> = ({ brandDirectory }) => {
   const isLoading = brandDirectory.isLoading();
   const isEmpty = brandDirectory.isEmpty();
   const keyword = brandDirectory.getKeyword();
+  const l10n = app.getL10n();
 
   const handleBack = () => {
     router.back();
@@ -77,7 +78,7 @@ const BrandDirectoryView: FC<Props> = ({ brandDirectory }) => {
       return (
         <View style={styles.emptyContainer}>
           <PretendardText style={styles.emptyText}>
-            브랜드가 없어요
+            {l10n.t('feed.brandFilter.empty')}
           </PretendardText>
         </View>
       );
@@ -111,7 +112,7 @@ const BrandDirectoryView: FC<Props> = ({ brandDirectory }) => {
         options={{
           headerShown: IS_IOS,
           headerTransparent: true,
-          headerTitle: '브랜드별 탐색',
+          headerTitle: l10n.t('feed.brandDirectory.title'),
           headerBackButtonDisplayMode: 'minimal',
         }}
       />
@@ -121,7 +122,7 @@ const BrandDirectoryView: FC<Props> = ({ brandDirectory }) => {
             <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
           </TouchableOpacity>
           <PretendardText style={styles.headerTitle} weight='bold'>
-            브랜드별 탐색
+            {l10n.t('feed.brandDirectory.title')}
           </PretendardText>
         </View>
       )}
@@ -131,7 +132,7 @@ const BrandDirectoryView: FC<Props> = ({ brandDirectory }) => {
             style={styles.searchInput}
             value={keyword}
             onChangeText={handleChangeKeyword}
-            placeholder='브랜드명을 검색해보세요'
+            placeholder={l10n.t('feed.brandFilter.searchPlaceholder')}
             placeholderTextColor={Color.textSecondary}
             autoCapitalize='none'
             autoCorrect={false}

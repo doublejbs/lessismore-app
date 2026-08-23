@@ -13,8 +13,6 @@ interface Props {
   feed: Feed;
 }
 
-const RANKING_LABEL = '인기 순위';
-
 // FD-3: 피드 하단 플로팅 `인기 순위` 진입 버튼.
 // 컨테이너는 pointerEvents='box-none'으로 버튼 외 영역의 피드 스크롤을 방해하지 않는다.
 //
@@ -32,6 +30,7 @@ const ICON_SIZE = 20;
 const FeedRankingButtonView: FC<Props> = ({ feed }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const rankingLabel = app.getL10n().t('feed.ranking');
 
   // iOS는 피드가 탭바 뒤로 흐르는(edge-to-edge) 화면이라 홈 인디케이터만큼 더 띄운다.
   const bottom = Platform.select({
@@ -56,7 +55,7 @@ const FeedRankingButtonView: FC<Props> = ({ feed }) => {
   return (
     <View style={[styles.container, { bottom }]} pointerEvents='box-none'>
       <FloatingPillButton
-        label={RANKING_LABEL}
+        label={rankingLabel}
         onPress={handleGoToRanking}
         leadingIcon={
           <Ionicons name='trending-up' size={ICON_SIZE} color={Acg.ink} />

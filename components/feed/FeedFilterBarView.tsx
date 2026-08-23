@@ -26,10 +26,6 @@ interface Props {
   showSort?: boolean;
 }
 
-const ALL_LABEL = '전체';
-
-const BRAND_LABEL = '브랜드';
-
 // 필터 칩의 좌측 아이콘(가로선 3줄 + 점) · 정렬 셰브론.
 const FILTER_ICON_SIZE = 18;
 
@@ -47,6 +43,9 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
   const brandCount = feed.getFilterBrands().length;
   const fineOptions = feed.getFineCategoryOptions();
   const fineCategory = feed.getFilterFineCategory();
+  const l10n = app.getL10n();
+  const allLabel = l10n.t('feed.all');
+  const brandLabelText = l10n.t('feed.brand');
 
   // FD-5: 카테고리 즉시 적용도 공통 `click_feed_filter_apply`로 관찰한다.
   const logApply = (category: string | null) => {
@@ -97,7 +96,7 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
     setSortSheetContext({
       options: FEED_SORT_OPTIONS.map(option => ({
         key: option.value,
-        label: option.label,
+        label: l10n.t(option.labelKey),
       })),
       selectedKey: currentSort,
       onSelect: key => {
@@ -115,7 +114,9 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
   };
 
   const brandActive = brandCount > 0;
-  const brandLabel = brandActive ? `${BRAND_LABEL} ${brandCount}` : BRAND_LABEL;
+  const brandLabel = brandActive
+    ? `${brandLabelText} ${brandCount}`
+    : brandLabelText;
   const sortLabel = getFeedSortLabel(currentSort);
 
   return (
@@ -136,10 +137,12 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
               color={brandActive ? Acg.paper : Acg.ink}
             />
           }
-          accessibilityLabel={`${brandLabel} 필터`}
+          accessibilityLabel={l10n.t('feed.brandFilterAccessibility', {
+            label: brandLabel,
+          })}
         />
         <FeedChipView
-          label={ALL_LABEL}
+          label={allLabel}
           selected={currentCategory === null}
           onPress={handleSelectAllCategory}
         />
@@ -160,7 +163,7 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
           contentContainerStyle={styles.chipRowContent}
         >
           <FeedChipView
-            label={ALL_LABEL}
+            label={allLabel}
             compact={true}
             selected={fineCategory === null}
             onPress={handleSelectAllFine}
@@ -186,7 +189,9 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
             onPress={handleOpenSort}
             activeOpacity={0.7}
             accessibilityRole='button'
-            accessibilityLabel={`정렬 ${sortLabel}`}
+            accessibilityLabel={l10n.t('feed.sortAccessibility', {
+              label: sortLabel,
+            })}
           >
             <PretendardText style={styles.sortLabel}>
               {sortLabel}

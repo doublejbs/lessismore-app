@@ -1,4 +1,5 @@
 import BrowseSort from '@/model/search/BrowseSort';
+import app from '@/model/app/App';
 
 // FD-3 정렬: `추천`(개인화 믹스, 기본)은 BrowseSort에 없는 개념이므로 별도 값으로 둔다.
 // 나머지 4종은 BrowseSort replica 단일 정렬 목록에 매핑된다.
@@ -15,16 +16,16 @@ export const FEED_SORT_RECOMMENDED = FeedSortRecommended.Recommended;
 
 export interface FeedSortOption {
   value: FeedSort;
-  label: string;
+  labelKey: string;
 }
 
 // 시트 정렬 섹션 칩 순서·라벨(FD-3). `추천`이 기본(최상단).
 export const FEED_SORT_OPTIONS: FeedSortOption[] = [
-  { value: FeedSortRecommended.Recommended, label: '추천' },
-  { value: BrowseSort.Popular, label: '인기순' },
-  { value: BrowseSort.Latest, label: '최신순' },
-  { value: BrowseSort.WeightAsc, label: '가벼운순' },
-  { value: BrowseSort.WeightDesc, label: '무거운순' },
+  { value: FeedSortRecommended.Recommended, labelKey: 'feed.sort.recommended' },
+  { value: BrowseSort.Popular, labelKey: 'feed.sort.popular' },
+  { value: BrowseSort.Latest, labelKey: 'feed.sort.latest' },
+  { value: BrowseSort.WeightAsc, labelKey: 'feed.sort.weightAsc' },
+  { value: BrowseSort.WeightDesc, labelKey: 'feed.sort.weightDesc' },
 ];
 
 // Feed의 sort 상태(BrowseSort | null)를 FeedSort 값으로 변환한다(null=추천).
@@ -45,5 +46,7 @@ export const fromFeedSort = (feedSort: FeedSort): BrowseSort | null => {
 export const getFeedSortLabel = (feedSort: FeedSort): string => {
   const found = FEED_SORT_OPTIONS.find(option => option.value === feedSort);
 
-  return found ? found.label : '추천';
+  return app
+    .getL10n()
+    .t(found?.labelKey ?? 'feed.sort.recommended');
 };

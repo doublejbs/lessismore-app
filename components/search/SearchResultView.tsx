@@ -11,6 +11,7 @@ import Feed from '@/model/feed/Feed';
 import FeedView from '../feed/FeedView';
 import FeedFilterBarView from '../feed/FeedFilterBarView';
 import SearchResultContentView from './SearchResultContentView';
+import app from '@/model/app/App';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
@@ -31,6 +32,7 @@ const SearchResultView: FC<Props> = ({
   const isEmpty = searchWarehouse.isEmpty();
   const canLoadMore = searchWarehouse.canLoadMore();
   const result = searchWarehouse.getResult();
+  const l10n = app.getL10n();
 
   /**
    * SR-1: 화면 포커스 복귀 시 현재 키워드로 재검색해 보유 배지를 맞춘다.
@@ -72,7 +74,7 @@ const SearchResultView: FC<Props> = ({
         return (
           <View style={styles.emptyContainer}>
             <PretendardText style={styles.emptyText}>
-              검색 결과가 없어요
+              {l10n.t('search.resultEmpty')}
             </PretendardText>
           </View>
         );

@@ -443,6 +443,60 @@
     },
     "specEnums": { "down": "덕다운", "synthetic": "합성", "left": "왼쪽", "right": "오른쪽", "center": "중앙", "male": "남성", "female": "여성", "unisex": "공용", "gas": "가스", "alcohol": "알코올", "wood": "우드", "liquid": "액체", "multi": "멀티" }
   },
+  "search": {
+    "input": {
+      "placeholder": "{{keyword}}을(를) 검색해보세요"
+    },
+    "addToBag": {
+      "newBagName": "새 배낭",
+      "titleAdded": "창고에 추가됐습니다.",
+      "titleQuestion": "배낭에도 추가할까요?",
+      "newBag": "새 배낭에 추가",
+      "alreadyInBag": "이미 이 배낭에 있는 제품",
+      "close": "닫기"
+    },
+    "resultEmpty": "검색 결과가 없어요",
+    "rank": {
+      "title": "인기 장비 순위",
+      "empty": "아직 등록된 장비가 없어요",
+      "removeAccessibility": "{{name}} 창고에서 제거",
+      "addAccessibility": "{{name}} 창고에 추가"
+    },
+    "removeConfirm": "모든 배낭에서 장비가 제거됩니다.\n정말 제거하시겠습니까?",
+    "removed": "장비가 제거되었습니다."
+  },
+  "feed": {
+    "empty": "장비가 없어요",
+    "all": "전체",
+    "brand": "브랜드",
+    "brandFilter": {
+      "title": "브랜드",
+      "reset": "초기화",
+      "close": "닫기",
+      "searchPlaceholder": "브랜드명을 검색해보세요",
+      "empty": "브랜드가 없어요",
+      "confirm": "확인",
+      "confirmCount": "확인 ({{count}})"
+    },
+    "sort": {
+      "recommended": "추천",
+      "popular": "인기순",
+      "latest": "최신순",
+      "weightAsc": "가벼운순",
+      "weightDesc": "무거운순"
+    },
+    "sortAccessibility": "정렬 {{label}}",
+    "brandFilterAccessibility": "{{label}} 필터",
+    "brandDirectory": { "title": "브랜드별 탐색" },
+    "ranking": "인기 순위",
+    "addedToBag": "배낭에 담았어요.",
+    "addedToWarehouse": "창고에 담았어요.",
+    "removeFromWarehouseAccessibility": "{{name}} 창고에서 빼기",
+    "addToBagAccessibility": "{{name}} 배낭에 담기",
+    "addToWarehouseAccessibility": "{{name}} 창고에 담기",
+    "brandCount_other": "제품 {{count}}개",
+    "newest": "신제품"
+  },
   "reply": {
     "edit": "수정하기",
     "deleteAction": "삭제하기",
