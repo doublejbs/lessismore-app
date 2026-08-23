@@ -1,5 +1,7 @@
 {
   "common": {
+    "alert": "Alert",
+    "error": "Error",
     "confirm": "Confirm",
     "cancel": "Cancel",
     "save": "Save",
@@ -7,12 +9,109 @@
     "close": "Close",
     "continue": "Continue",
     "ok": "Got it",
-    "done": "Done"
+    "done": "Done",
+    "selected": "Selected",
+    "back": "Go back",
+    "processing": "Processing...",
+    "requiredAgreement": "Agreement required"
   },
   "info": {
+    "account": {
+      "title": "My account",
+      "login": "Sign in",
+      "logout": "Sign out",
+      "logoutConfirmMessage": "Sign out?",
+      "serviceContact": "Contact us",
+      "editNickname": "Edit nickname",
+      "setNickname": "Set a nickname",
+      "editNicknameTitle": "Edit nickname",
+      "setNicknameTitle": "Set a nickname",
+      "editNicknameDescription": "Enter a new nickname",
+      "setNicknameDescription": "Enter a nickname to use",
+      "nicknamePlaceholder": "Enter a nickname"
+    },
     "language": {
       "title": "Language",
       "rowLabel": "Language"
+    },
+    "business": {
+      "title": "Business information",
+      "name": "Business name",
+      "representative": "Representative",
+      "registrationNumber": "Business registration number",
+      "email": "Email"
+    },
+    "policy": {
+      "title": "Terms and policies",
+      "privacy": "Privacy policy",
+      "terms": "Terms of service"
+    },
+    "footer": {
+      "deleteAccount": "Delete account",
+      "version": "Version {{version}}",
+      "copyright": "© 2026 useless"
+    },
+    "deleteAccount": {
+      "title": "Delete account",
+      "confirmMessage": "Are you sure you want to delete your account? All data will be deleted and cannot be recovered.\n\nYou will sign in again to verify your identity before deletion.",
+      "completedTitle": "Account deleted",
+      "completedMessage": "Your account has been deleted.",
+      "failedTitle": "Account deletion failed",
+      "failedMessage": "Something went wrong while deleting your account. Please try again.",
+      "reauthCancelledMessage": "Reauthentication was canceled. Reauthentication is required to delete your account.",
+      "warningTitle": "⚠️ Important",
+      "warningMain": "Deleting your account will remove all data.",
+      "bags": "All saved bag information",
+      "gears": "All saved gear information",
+      "settings": "Personal settings and records",
+      "warningFooter": "Deleted data cannot be recovered."
+    }
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "googleLogin": "Sign in with Google",
+    "appleLogin": "Sign in with Apple",
+    "emailLogin": "Sign in with email",
+    "emailRequired": "Enter your email and password.",
+    "appleLoginFailed": "Apple sign-in failed.",
+    "terms": {
+      "title": "Agreements",
+      "termsRequired": "Agree to the terms of service (required)",
+      "privacyRequired": "Agree to the privacy policy (required)",
+      "personalInfoRequired": "Agree to personal information collection and use (required)",
+      "ageRequired": "I am 14 or older (required)",
+      "sms": "Agree to receive SMS messages",
+      "marketing": "Agree to marketing communications and advertising",
+      "requiredAll": "Agree to all required items (required)",
+      "all": "Agree to all (required and optional)",
+      "submit": "Agree and continue",
+      "requiredMessage": "You must agree to all required items to use the service.",
+      "saveErrorMessage": "Something went wrong while saving your agreements. Please try again.",
+      "marketingDescription": "Get news about new products, events, and customer benefits related to the service."
+    },
+    "errors": {
+      "invalidCredentials": "The email or password is incorrect.",
+      "googleTokenMissing": "Google sign-in failed. Please check your Google settings.",
+      "appleTokenMissing": "Apple sign-in failed.",
+      "notSupported": "Apple sign-in is supported only on iOS and the web.",
+      "notLoggedIn": "No user is signed in.",
+      "emailReauthenticationRequired": "If you signed in with email, enter your password again.",
+      "unknownProvider": "The sign-in method could not be determined.",
+      "reauthenticationFailed": "Reauthentication failed.",
+      "wrongPassword": "The password is incorrect."
+    }
+  },
+  "notification": {
+    "title": "Notification settings",
+    "packing": "Trip packing reminders",
+    "useless": "Gear-use reminders",
+    "notice": "Announcements",
+    "reminder": {
+      "packingTitle": "Your trip to {{name}} is tomorrow!",
+      "packingBody": "Check your packing list",
+      "uselessTitle": "How was your trip to {{name}}?",
+      "uselessBody": "Review the gear you used."
     }
   }
 }

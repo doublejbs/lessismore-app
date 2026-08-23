@@ -21,16 +21,13 @@ import {
   TERMS_OF_SERVICE_TEXT,
 } from '@/constants/LegalTexts';
 import PolicyTab from '@/components/info/PolicyTab';
+import app from '@/model/app/App';
+import { observer } from 'mobx-react-lite';
 
 interface Props {
   // 진입 시 펼쳐 둘 문서(AU-4). 정보 탭의 어느 행을 눌렀는지에 따라 갈린다.
   initialTab: PolicyTab;
 }
-
-const TAB_LABELS: Record<PolicyTab, string> = {
-  [PolicyTab.Privacy]: '개인정보 처리방침',
-  [PolicyTab.Terms]: '이용약관',
-};
 
 const TAB_ORDER: readonly PolicyTab[] = [PolicyTab.Privacy, PolicyTab.Terms];
 
@@ -52,18 +49,18 @@ const TAB_TEXTS: Record<PolicyTab, string> = {
 const InfoPolicyView: FC<Props> = ({ initialTab }) => {
   const [selectedTab, setSelectedTab] = useState<PolicyTab>(initialTab);
   const insets = useSafeAreaInsets();
+  const l10n = app.getL10n();
 
   return (
     <Layout edges={IS_IOS ? IOS_EDGES : undefined}>
-      <InfoSubScreenHeaderView title='약관 및 정책' />
+      <InfoSubScreenHeaderView title={l10n.t('info.policy.title')} />
 
       <View
         style={[
           styles.tabRow,
           // iOS는 투명 네이티브 헤더가 상단을 덮으므로 그만큼 내려서 시작한다(LG-1).
           IS_IOS && {
-            marginTop:
-              insets.top + NATIVE_HEADER_HEIGHT + Spacing.item,
+            marginTop: insets.top + NATIVE_HEADER_HEIGHT + Spacing.item,
           },
         ]}
       >
@@ -83,7 +80,11 @@ const InfoPolicyView: FC<Props> = ({ initialTab }) => {
                 style={[styles.tabText, selected && styles.tabTextSelected]}
                 weight={selected ? 'bold' : 'medium'}
               >
-                {TAB_LABELS[tab]}
+                {l10n.t(
+                  tab === PolicyTab.Privacy
+                    ? 'info.policy.privacy'
+                    : 'info.policy.terms'
+                )}
               </PretendardText>
             </TouchableOpacity>
           );
@@ -153,4 +154,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default InfoPolicyView;
+export default observer(InfoPolicyView);

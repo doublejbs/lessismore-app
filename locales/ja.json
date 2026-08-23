@@ -1,18 +1,117 @@
 {
   "common": {
+    "alert": "通知",
+    "error": "エラー",
     "confirm": "確認",
     "cancel": "キャンセル",
     "save": "保存",
     "delete": "削除",
     "close": "閉じる",
-    "continue": "続ける",
+    "continue": "続行",
     "ok": "わかりました",
-    "done": "完了"
+    "done": "完了",
+    "selected": "選択済み",
+    "back": "戻る",
+    "processing": "処理中…",
+    "requiredAgreement": "同意が必要です"
   },
   "info": {
+    "account": {
+      "title": "マイページ",
+      "login": "ログイン",
+      "logout": "ログアウト",
+      "logoutConfirmMessage": "ログアウトしますか？",
+      "serviceContact": "お問い合わせ",
+      "editNickname": "ニックネームを編集",
+      "setNickname": "ニックネームを設定",
+      "editNicknameTitle": "ニックネームを編集",
+      "setNicknameTitle": "ニックネームを設定",
+      "editNicknameDescription": "新しいニックネームを入力してください",
+      "setNicknameDescription": "使用するニックネームを入力してください",
+      "nicknamePlaceholder": "ニックネームを入力してください"
+    },
     "language": {
       "title": "言語",
       "rowLabel": "言語"
+    },
+    "business": {
+      "title": "事業者情報",
+      "name": "商号",
+      "representative": "代表者",
+      "registrationNumber": "事業者登録番号",
+      "email": "メールアドレス"
+    },
+    "policy": {
+      "title": "規約とポリシー",
+      "privacy": "プライバシーポリシー",
+      "terms": "利用規約"
+    },
+    "footer": {
+      "deleteAccount": "退会する",
+      "version": "バージョン {{version}}",
+      "copyright": "© 2026 useless"
+    },
+    "deleteAccount": {
+      "title": "退会",
+      "confirmMessage": "退会しますか？すべてのデータが削除され、復元できません。\n\n本人確認のため、再ログイン後に退会手続きを行います。",
+      "completedTitle": "退会完了",
+      "completedMessage": "退会手続きが完了しました。",
+      "failedTitle": "退会に失敗しました",
+      "failedMessage": "退会処理中にエラーが発生しました。もう一度お試しください。",
+      "reauthCancelledMessage": "再認証がキャンセルされました。退会するには再認証が必要です。",
+      "warningTitle": "⚠️ 注意事項",
+      "warningMain": "退会するとすべてのデータが削除されます。",
+      "bags": "保存したすべてのバックパック情報",
+      "gears": "保存したすべてのギア情報",
+      "settings": "個人設定と記録",
+      "warningFooter": "削除したデータは復元できません。"
+    }
+  },
+  "auth": {
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "googleLogin": "Googleでログイン",
+    "appleLogin": "Appleでログイン",
+    "emailLogin": "メールアドレスでログイン",
+    "emailRequired": "メールアドレスとパスワードを入力してください。",
+    "appleLoginFailed": "Appleでのログインに失敗しました。",
+    "terms": {
+      "title": "規約への同意",
+      "termsRequired": "利用規約に同意する（必須）",
+      "privacyRequired": "プライバシーポリシーに同意する（必須）",
+      "personalInfoRequired": "個人情報の収集と利用に同意する（必須）",
+      "ageRequired": "14歳以上です（必須）",
+      "sms": "SMSの受信に同意する",
+      "marketing": "マーケティング情報と広告の受信に同意する",
+      "requiredAll": "必須項目すべてに同意する（必須）",
+      "all": "すべてに同意する（必須・任意）",
+      "submit": "同意して続行",
+      "requiredMessage": "サービスを利用するには、必須項目すべてへの同意が必要です。",
+      "saveErrorMessage": "同意情報の保存中にエラーが発生しました。もう一度お試しください。",
+      "marketingDescription": "サービスに関する新商品のお知らせ、イベント案内、お客様向け特典などの情報を提供します。"
+    },
+    "errors": {
+      "invalidCredentials": "メールアドレスまたはパスワードが正しくありません。",
+      "googleTokenMissing": "Googleでのログインに失敗しました。Googleの設定を確認してください。",
+      "appleTokenMissing": "Appleでのログインに失敗しました。",
+      "notSupported": "AppleでのログインはiOSとウェブでのみ利用できます。",
+      "notLoggedIn": "ログイン中のユーザーがいません。",
+      "emailReauthenticationRequired": "メールアドレスでログインした場合は、パスワードをもう一度入力してください。",
+      "unknownProvider": "ログイン方法を確認できませんでした。",
+      "reauthenticationFailed": "再認証に失敗しました。",
+      "wrongPassword": "パスワードが正しくありません。"
+    }
+  },
+  "notification": {
+    "title": "通知設定",
+    "packing": "旅行のパッキング通知",
+    "useless": "ギアの使用記録通知",
+    "notice": "お知らせ通知",
+    "reminder": {
+      "packingTitle": "{{name}}への旅行は明日です！",
+      "packingBody": "パッキングを確認しましょう",
+      "uselessTitle": "{{name}}への旅行はいかがでしたか？",
+      "uselessBody": "使用したギアを確認しましょう。"
     }
   }
 }

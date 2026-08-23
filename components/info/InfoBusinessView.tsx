@@ -9,6 +9,8 @@ import InfoSubScreenHeaderView, {
   IS_IOS,
   NATIVE_HEADER_HEIGHT,
 } from '@/components/info/InfoSubScreenHeaderView';
+import app from '@/model/app/App';
+import { observer } from 'mobx-react-lite';
 
 /**
  * 사업자 정보 표시 항목(AU-4). 전자상거래법 제10조 사업자 신원 정보.
@@ -17,26 +19,26 @@ import InfoSubScreenHeaderView, {
  * 통신판매업 신고를 하면 영업소 소재지가 표시 의무가 되므로 그때 주소 항목을 추가한다.
  */
 const BUSINESS_INFO: { label: string; value: string }[] = [
-  { label: '상호', value: '마그마' },
-  { label: '대표자', value: '장하림' },
-  { label: '사업자등록번호', value: '167-58-00828' },
-  { label: '이메일', value: 'doublejbs@naver.com' },
+  { label: 'info.business.name', value: '마그마' }, // l10n-ignore 사업자 상호 고유명
+  { label: 'info.business.representative', value: '장하림' }, // l10n-ignore 사업자 대표자 고유명
+  { label: 'info.business.registrationNumber', value: '167-58-00828' },
+  { label: 'info.business.email', value: 'doublejbs@naver.com' },
 ];
 
 const InfoBusinessView: FC = () => {
   const insets = useSafeAreaInsets();
+  const l10n = app.getL10n();
 
   return (
     <Layout edges={IS_IOS ? IOS_EDGES : undefined}>
-      <InfoSubScreenHeaderView title='사업자 정보' />
+      <InfoSubScreenHeaderView title={l10n.t('info.business.title')} />
 
       <ScrollView
         contentContainerStyle={[
           styles.content,
           // iOS는 투명 네이티브 헤더가 상단을 덮으므로 그만큼 내려서 시작한다(LG-1).
           IS_IOS && {
-            paddingTop:
-              insets.top + NATIVE_HEADER_HEIGHT + Spacing.item,
+            paddingTop: insets.top + NATIVE_HEADER_HEIGHT + Spacing.item,
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -49,7 +51,9 @@ const InfoBusinessView: FC = () => {
               key={label}
               style={[styles.row, index > 0 && styles.rowDivider]}
             >
-              <PretendardText style={styles.label}>{label}</PretendardText>
+              <PretendardText style={styles.label}>
+                {l10n.t(label)}
+              </PretendardText>
               <PretendardText style={styles.value} selectable>
                 {value}
               </PretendardText>
@@ -95,4 +99,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default InfoBusinessView;
+export default observer(InfoBusinessView);

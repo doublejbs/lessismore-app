@@ -37,7 +37,10 @@ type ExpoNotifications = {
       shouldSetBadge: boolean;
     }>;
   }) => void;
-  getPermissionsAsync: () => Promise<{ granted: boolean; canAskAgain: boolean }>;
+  getPermissionsAsync: () => Promise<{
+    granted: boolean;
+    canAskAgain: boolean;
+  }>;
   requestPermissionsAsync: () => Promise<{ granted: boolean }>;
   scheduleNotificationAsync: (input: {
     identifier?: string;
@@ -63,7 +66,9 @@ type FirebaseMessaging = {
   subscribeToTopic: (topic: string) => Promise<void>;
   unsubscribeFromTopic: (topic: string) => Promise<void>;
   onMessage: (listener: (message: RemoteMessage) => void) => Unsubscribe;
-  onNotificationOpenedApp: (listener: (message: RemoteMessage) => void) => Unsubscribe;
+  onNotificationOpenedApp: (
+    listener: (message: RemoteMessage) => void
+  ) => Unsubscribe;
   getInitialNotification: () => Promise<RemoteMessage | null>;
 };
 
@@ -128,7 +133,8 @@ class NotificationManager {
         this.handleResponse(response);
       });
 
-      const lastResponse = await notifications.getLastNotificationResponseAsync();
+      const lastResponse =
+        await notifications.getLastNotificationResponseAsync();
 
       if (lastResponse) {
         this.handleResponse(lastResponse);
@@ -142,7 +148,7 @@ class NotificationManager {
         await this.subscribeTopic(ALL_TOPIC);
       }
     } catch (error) {
-      console.warn('NotificationManager 초기화 실패', error);
+      console.warn('NotificationManager 초기화 실패', error); // l10n-ignore console 개발자 로그
     }
   }
 
@@ -195,7 +201,7 @@ class NotificationManager {
     try {
       await notifications.scheduleNotificationAsync({ content, trigger: null });
     } catch (error) {
-      console.warn('NotificationManager 포그라운드 푸시 표시 실패', error);
+      console.warn('NotificationManager 포그라운드 푸시 표시 실패', error); // l10n-ignore console 개발자 로그
     }
   }
 
@@ -235,7 +241,7 @@ class NotificationManager {
 
       return requested.granted;
     } catch (error) {
-      console.warn('NotificationManager 권한 요청 실패', error);
+      console.warn('NotificationManager 권한 요청 실패', error); // l10n-ignore console 개발자 로그
 
       return false;
     }
@@ -272,10 +278,13 @@ class NotificationManager {
       await notifications.scheduleNotificationAsync({
         identifier: id,
         content,
-        trigger: { type: notifications.SchedulableTriggerInputTypes.DATE, date },
+        trigger: {
+          type: notifications.SchedulableTriggerInputTypes.DATE,
+          date,
+        },
       });
     } catch (error) {
-      console.warn('NotificationManager 로컬 알림 예약 실패', error);
+      console.warn('NotificationManager 로컬 알림 예약 실패', error); // l10n-ignore console 개발자 로그
     }
   }
 
@@ -293,7 +302,7 @@ class NotificationManager {
 
       await notifications.cancelScheduledNotificationAsync(id);
     } catch (error) {
-      console.warn('NotificationManager 로컬 알림 취소 실패', error);
+      console.warn('NotificationManager 로컬 알림 취소 실패', error); // l10n-ignore console 개발자 로그
     }
   }
 
@@ -333,12 +342,18 @@ class NotificationManager {
       return;
     }
 
-    const date = dayjs(startDate).subtract(1, 'day').hour(19).minute(0).second(0).millisecond(0).toDate();
+    const date = dayjs(startDate)
+      .subtract(1, 'day')
+      .hour(19)
+      .minute(0)
+      .second(0)
+      .millisecond(0)
+      .toDate();
 
     await this.scheduleLocal(
       identifier,
-      `${name} 여행 하루 전!`,
-      '패킹을 확인해보세요',
+      app.getL10n().t('notification.reminder.packingTitle', { name }),
+      app.getL10n().t('notification.reminder.packingBody'),
       date,
       { route: `/bag/${id}` }
     );
@@ -357,12 +372,18 @@ class NotificationManager {
       return;
     }
 
-    const date = dayjs(endDate).add(1, 'day').hour(21).minute(0).second(0).millisecond(0).toDate();
+    const date = dayjs(endDate)
+      .add(1, 'day')
+      .hour(21)
+      .minute(0)
+      .second(0)
+      .millisecond(0)
+      .toDate();
 
     await this.scheduleLocal(
       identifier,
-      `${name} 여행 잘 다녀오셨나요?`,
-      '사용한 장비를 확인해보세요.',
+      app.getL10n().t('notification.reminder.uselessTitle', { name }),
+      app.getL10n().t('notification.reminder.uselessBody'),
       date,
       { route: `/useless/${id}` }
     );
@@ -437,7 +458,7 @@ class NotificationManager {
         );
       }
     } catch (error) {
-      console.warn('NotificationManager 리마인더 재예약 실패', error);
+      console.warn('NotificationManager 리마인더 재예약 실패', error); // l10n-ignore console 개발자 로그
     }
   }
 
@@ -457,7 +478,7 @@ class NotificationManager {
         }
       }
     } catch (error) {
-      console.warn('NotificationManager 리마인더 취소 실패', error);
+      console.warn('NotificationManager 리마인더 취소 실패', error); // l10n-ignore console 개발자 로그
     }
   }
 
@@ -477,7 +498,7 @@ class NotificationManager {
 
       this.settings = { ...DEFAULT_SETTINGS, ...parsed };
     } catch (error) {
-      console.warn('NotificationManager 설정 로드 실패', error);
+      console.warn('NotificationManager 설정 로드 실패', error); // l10n-ignore console 개발자 로그
     }
   }
 
@@ -492,7 +513,7 @@ class NotificationManager {
         JSON.stringify(this.settings)
       );
     } catch (error) {
-      console.warn('NotificationManager 설정 저장 실패', error);
+      console.warn('NotificationManager 설정 저장 실패', error); // l10n-ignore console 개발자 로그
     }
   }
 
@@ -510,7 +531,7 @@ class NotificationManager {
 
       await messaging.subscribeToTopic(topic);
     } catch (error) {
-      console.warn('NotificationManager 토픽 구독 실패', error);
+      console.warn('NotificationManager 토픽 구독 실패', error); // l10n-ignore console 개발자 로그
     }
   }
 
@@ -528,7 +549,7 @@ class NotificationManager {
 
       await messaging.unsubscribeFromTopic(topic);
     } catch (error) {
-      console.warn('NotificationManager 토픽 구독 해제 실패', error);
+      console.warn('NotificationManager 토픽 구독 해제 실패', error); // l10n-ignore console 개발자 로그
     }
   }
 

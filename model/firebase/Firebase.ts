@@ -249,7 +249,7 @@ class Firebase {
     if (result.user) {
       this.setLoginProvider('email');
     } else {
-      throw new Error('이메일 또는 비밀번호가 올바르지 않습니다.');
+      throw new Error(app.getL10n().t('auth.errors.invalidCredentials'));
     }
   }
 
@@ -284,9 +284,7 @@ class Firebase {
           await signInWithCredential(this.auth, googleCredential);
           this.setLoginProvider('google');
         } else {
-          throw new Error(
-            'Google 로그인 실패: idToken을 받을 수 없습니다. Google 설정을 확인해주세요.'
-          );
+          throw new Error(app.getL10n().t('auth.errors.googleTokenMissing'));
         }
       } else {
         // 웹에서는 signInWithPopup 사용 (동적 import)
@@ -297,7 +295,7 @@ class Firebase {
         this.setLoginProvider('google');
       }
     } catch (error) {
-      console.error('Google 로그인 오류:', error);
+      console.error('Google 로그인 오류:', error); // l10n-ignore console 개발자 로그
       throw error;
     }
   }
@@ -323,9 +321,7 @@ class Firebase {
           await signInWithCredential(this.auth, authCredential);
           this.setLoginProvider('apple');
         } else {
-          throw new Error(
-            'Apple 로그인 실패: identityToken을 받을 수 없습니다.'
-          );
+          throw new Error(app.getL10n().t('auth.errors.appleTokenMissing'));
         }
       } else if (Platform.OS === 'web') {
         // 웹에서는 signInWithPopup 사용 (동적 import)
@@ -337,15 +333,15 @@ class Firebase {
         await signInWithPopup(this.auth, provider);
         this.setLoginProvider('apple');
       } else {
-        throw new Error('Apple 로그인은 iOS와 웹에서만 지원됩니다.');
+        throw new Error(app.getL10n().t('auth.errors.notSupported'));
       }
     } catch (error: any) {
       if (error.code === 'ERR_REQUEST_CANCELED') {
         // 사용자가 로그인을 취소한 경우
-        console.log('Apple 로그인이 취소되었습니다.');
+        console.log('Apple 로그인이 취소되었습니다.'); // l10n-ignore console 개발자 로그
         return;
       }
-      console.error('Apple 로그인 오류:', error);
+      console.error('Apple 로그인 오류:', error); // l10n-ignore console 개발자 로그
       throw error;
     }
   }
@@ -402,7 +398,7 @@ class Firebase {
         this.idToken = idToken;
         return { idToken, accessToken: null };
       }
-      throw new Error('사용자가 로그인되지 않았습니다.');
+      throw new Error(app.getL10n().t('auth.errors.notLoggedIn'));
     }
   }
 
@@ -484,7 +480,7 @@ class Firebase {
     const user = this.auth.currentUser;
 
     if (!user) {
-      throw new Error('로그인된 사용자가 없습니다.');
+      throw new Error(app.getL10n().t('auth.errors.notLoggedIn'));
     }
 
     // 재인증 수행 - 로그인 방식에 따라 다르게 처리
@@ -495,13 +491,13 @@ class Firebase {
         await this.reauthenticateWithApple(user);
       } else if (this.loginProvider === 'email') {
         throw new Error(
-          '이메일로 로그인한 경우, 비밀번호를 다시 입력해야 합니다. deleteUserAccountWithEmail 메서드를 사용하세요.'
+          app.getL10n().t('auth.errors.emailReauthenticationRequired')
         );
       } else {
-        throw new Error('로그인 방식을 알 수 없습니다.');
+        throw new Error(app.getL10n().t('auth.errors.unknownProvider'));
       }
     } catch (error: any) {
-      console.error('재인증 실패:', error);
+      console.error('재인증 실패:', error); // l10n-ignore console 개발자 로그
       throw error;
     }
 
@@ -509,7 +505,7 @@ class Firebase {
     try {
       await this.deleteUserData(user.uid);
     } catch (error) {
-      console.error('사용자 데이터 삭제 실패:', error);
+      console.error('사용자 데이터 삭제 실패:', error); // l10n-ignore console 개발자 로그
       // 데이터 삭제 실패해도 계정 삭제는 진행
     }
 
@@ -536,7 +532,7 @@ class Firebase {
     const user = this.auth.currentUser;
 
     if (!user || !user.email) {
-      throw new Error('로그인된 사용자가 없습니다.');
+      throw new Error(app.getL10n().t('auth.errors.notLoggedIn'));
     }
 
     // 이메일/비밀번호로 재인증
@@ -546,15 +542,15 @@ class Firebase {
       const credential = EmailAuthProvider.credential(user.email, password);
       await reauthenticateWithCredential(user, credential);
     } catch (error: any) {
-      console.error('재인증 실패:', error);
-      throw new Error('비밀번호가 올바르지 않습니다.');
+      console.error('재인증 실패:', error); // l10n-ignore console 개발자 로그
+      throw new Error(app.getL10n().t('auth.errors.wrongPassword'));
     }
 
     // Firestore 데이터 삭제
     try {
       await this.deleteUserData(user.uid);
     } catch (error) {
-      console.error('사용자 데이터 삭제 실패:', error);
+      console.error('사용자 데이터 삭제 실패:', error); // l10n-ignore console 개발자 로그
       // 데이터 삭제 실패해도 계정 삭제는 진행
     }
 
@@ -580,7 +576,7 @@ class Firebase {
         );
         await reauthenticateWithCredential(user, googleCredential);
       } else {
-        throw new Error('재인증에 실패했습니다.');
+        throw new Error(app.getL10n().t('auth.errors.reauthenticationFailed'));
       }
     } else {
       // 웹: signInWithPopup으로 재인증 (동적 import)
@@ -592,7 +588,7 @@ class Firebase {
       if (credential) {
         await reauthenticateWithCredential(user, credential);
       } else {
-        throw new Error('재인증에 실패했습니다.');
+        throw new Error(app.getL10n().t('auth.errors.reauthenticationFailed'));
       }
     }
   }
@@ -619,7 +615,7 @@ class Firebase {
         });
         await reauthenticateWithCredential(user, authCredential);
       } else {
-        throw new Error('Apple 재인증 실패: identityToken을 받을 수 없습니다.');
+        throw new Error(app.getL10n().t('auth.errors.reauthenticationFailed'));
       }
     } else if (Platform.OS === 'web') {
       // 웹에서는 signInWithPopup 사용 (동적 import)
@@ -633,10 +629,10 @@ class Firebase {
       if (credential) {
         await reauthenticateWithCredential(user, credential);
       } else {
-        throw new Error('재인증에 실패했습니다.');
+        throw new Error(app.getL10n().t('auth.errors.reauthenticationFailed'));
       }
     } else {
-      throw new Error('Apple 재인증은 iOS와 웹에서만 지원됩니다.');
+      throw new Error(app.getL10n().t('auth.errors.notSupported'));
     }
   }
 
@@ -679,7 +675,7 @@ class Firebase {
     const userDocRef = doc(store, 'users', userId);
     const userDoc = await getDoc(userDocRef);
     const bagIds: string[] = userDoc.exists()
-      ? userDoc.data().bags ?? []
+      ? (userDoc.data().bags ?? [])
       : [];
 
     for (const bagId of bagIds) {
