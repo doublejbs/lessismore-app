@@ -10,6 +10,7 @@ import { AcgType, Color } from '@/constants/DesignTokens';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import SearchTopKeywordsView from '@/components/search/SearchTopKeywordsView';
+import app from '@/model/app/App';
 
 // LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
 const IS_IOS = Platform.OS === 'ios';
@@ -26,6 +27,7 @@ const IOS_EDGES = ['left', 'right', 'bottom'] as const;
 const PopularRankingWrapper: FC = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const l10n = app.getL10n();
   // SR-4: 피드에서 승계한 진입 카테고리(그룹 GearFilter 값). 없으면 전체로 진입.
   const { category } = useLocalSearchParams<{ category?: string }>();
   const [searchWarehouse] = useState(() => SearchWarehouse.new(router));
@@ -43,7 +45,7 @@ const PopularRankingWrapper: FC = () => {
         options={{
           headerShown: IS_IOS,
           headerTransparent: true,
-          headerTitle: '인기 장비 순위',
+          headerTitle: l10n.t('search.rank.title'),
           headerBackButtonDisplayMode: 'minimal',
         }}
       />
@@ -53,12 +55,12 @@ const PopularRankingWrapper: FC = () => {
             onPress={handleBack}
             style={styles.backButton}
             accessibilityRole='button'
-            accessibilityLabel='뒤로 가기'
+            accessibilityLabel={l10n.t('common.back')}
           >
             <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
           </TouchableOpacity>
           <PretendardText style={styles.headerTitle} weight='bold'>
-            인기 장비 순위
+            {l10n.t('search.rank.title')}
           </PretendardText>
         </View>
       )}

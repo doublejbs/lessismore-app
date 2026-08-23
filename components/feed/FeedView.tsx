@@ -127,7 +127,9 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   const renderEmpty = useCallback(() => {
     return (
       <View style={styles.emptyContainer}>
-        <PretendardText style={styles.emptyText}>장비가 없어요</PretendardText>
+        <PretendardText style={styles.emptyText}>
+          {app.getL10n().t('feed.empty')}
+        </PretendardText>
       </View>
     );
   }, []);

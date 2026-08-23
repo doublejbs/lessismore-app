@@ -39,6 +39,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(visible);
   const { isReduceMotionEnabled } = useSheetTransition();
+  const l10n = app.getL10n();
 
   useEffect(() => {
     if (visible) {
@@ -62,7 +63,11 @@ const SearchGearAddToBagModalView: FC<Props> = ({
     setLoading(true);
     try {
       const today = dayjs();
-      const newBagId = await bag.add('새 배낭', today, today);
+      const newBagId = await bag.add(
+        l10n.t('search.addToBag.newBagName'),
+        today,
+        today
+      );
 
       if (newBagId) {
         await bag.addGearToBag(newBagId, gear);
@@ -71,7 +76,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
         router.push(`/bag/${newBagId}`);
       }
     } catch (error) {
-      console.error('새 배낭 생성 및 장비 추가 중 오류:', error);
+      console.error('새 배낭 생성 및 장비 추가 중 오류:', error); // l10n-ignore
     } finally {
       setLoading(false);
     }
@@ -88,7 +93,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
         onClose();
       }
     } catch (error) {
-      console.error('배낭에 추가 중 오류:', error);
+      console.error('배낭에 추가 중 오류:', error); // l10n-ignore
     } finally {
       setLoading(false);
     }
@@ -123,10 +128,10 @@ const SearchGearAddToBagModalView: FC<Props> = ({
             <SheetGrabberView />
             <View style={styles.titleSection}>
               <PretendardText style={styles.title} weight='bold'>
-                창고에 추가됐습니다.
+                {l10n.t('search.addToBag.titleAdded')}
               </PretendardText>
               <PretendardText style={styles.title} weight='bold'>
-                배낭에도 추가할까요?
+                {l10n.t('search.addToBag.titleQuestion')}
               </PretendardText>
             </View>
             <ScrollView
@@ -146,7 +151,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
                       style={styles.bagItemTitle}
                       weight='semibold'
                     >
-                      새 배낭에 추가
+                      {l10n.t('search.addToBag.newBag')}
                     </PretendardText>
                   </View>
                   <Ionicons
@@ -189,7 +194,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
                               ]}
                             >
                               {isInBag
-                                ? '이미 이 배낭에 있는 제품'
+                                ? l10n.t('search.addToBag.alreadyInBag')
                                 : bagItem.getDate()}
                             </PretendardText>
                           </View>
@@ -206,7 +211,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
               activeOpacity={0.7}
             >
               <PretendardText style={styles.closeButtonText} weight='semibold'>
-                닫기
+                {l10n.t('search.addToBag.close')}
               </PretendardText>
             </TouchableOpacity>
           </TouchableOpacity>

@@ -356,8 +356,8 @@ class SearchWarehouse {
     }
 
     this.alertManager.show({
-      message: '모든 배낭에서 장비가 제거됩니다.\n정말 제거하시겠습니까?',
-      confirmText: '확인',
+      message: app.getL10n().t('search.removeConfirm'),
+      confirmText: app.getL10n().t('common.confirm'),
       onConfirm: async () => {
         await this.searchDispatcher.remove(gear);
         await this.warehouseOrder.saveLastOrderOption();
@@ -366,7 +366,9 @@ class SearchWarehouse {
         // 결과 목록에서 해당 gear의 isAdded 상태를 업데이트하기 위해 재검색
         await this.executeSearch();
         await onRemoved?.();
-        this.toastManager.show({ message: '장비가 제거되었습니다.' });
+        this.toastManager.show({
+          message: app.getL10n().t('search.removed'),
+        });
       },
     });
 

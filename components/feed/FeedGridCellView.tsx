@@ -11,6 +11,7 @@ import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import LoadingView from '@/components/ui/LoadingView';
 import SearchGearAddToBagModalView from '@/components/search/SearchGearAddToBagModalView';
+import app from '@/model/app/App';
 import useGearRowState from './useGearRowState';
 
 // 담기 버튼은 그 자체로 44pt 터치 타깃이다(레퍼런스처럼 썸네일 면 위 흰 원).
@@ -62,6 +63,7 @@ const FeedGridCellView: FC<Props> = ({
 }) => {
   const weight = gear.getWeight();
   const color = gear.getDisplayColor();
+  const l10n = app.getL10n();
 
   const {
     isAdded,
@@ -107,7 +109,10 @@ const FeedGridCellView: FC<Props> = ({
           hitSlop={CTA_HIT_SLOP}
           activeOpacity={0.8}
           accessibilityRole='button'
-          accessibilityLabel={`${gear.getDisplayName()} 창고에서 빼기`}
+          accessibilityLabel={l10n.t(
+            'feed.removeFromWarehouseAccessibility',
+            { name: gear.getDisplayName() }
+          )}
         >
           <Ionicons name='checkmark' size={CTA_ICON_SIZE} color={Acg.lime} />
         </TouchableOpacity>
@@ -121,11 +126,12 @@ const FeedGridCellView: FC<Props> = ({
         hitSlop={CTA_HIT_SLOP}
         activeOpacity={0.8}
         accessibilityRole='button'
-        accessibilityLabel={
+        accessibilityLabel={l10n.t(
           bagCtxId
-            ? `${gear.getDisplayName()} 배낭에 담기`
-            : `${gear.getDisplayName()} 창고에 담기`
-        }
+            ? 'feed.addToBagAccessibility'
+            : 'feed.addToWarehouseAccessibility',
+          { name: gear.getDisplayName() }
+        )}
       >
         <Ionicons name='add' size={CTA_ICON_SIZE} color={Acg.ink} />
       </TouchableOpacity>

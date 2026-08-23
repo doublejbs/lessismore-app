@@ -178,5 +178,57 @@
   "warehouse": { "title": "倉庫", "addGear": "ギアを追加", "searchGear": "ギアを検索", "clearSearch": "検索語を消去", "closeSearch": "検索を閉じる", "back": "戻る", "all": "すべて", "totalCount_other": "{{count}}個", "noGear": "ギアを追加してください", "noSearchResults": "検索結果がありません", "noCategoryResults": "{{category}}のギアがありません", "unusedGear": "未使用のギア", "unusedGearCount": "未使用のギア {{count}}個", "noUnusedGear": "未使用のギアがありません", "usedRate": "使用率 {{rate}}%", "deleteConfirm": "{{name}}を削除しますか？", "deleteAction": "削除", "deleteAccessibility": "{{name}}を削除" },
   "gearEdit": { "title": "編集", "delete": "削除", "back": "戻る", "color": "カラー", "productNamePlaceholder": "製品名を入力してください", "brandPlaceholder": "ブランドを入力してください", "colorPlaceholder": "カラーを入力してください", "weightPlaceholder": "重量を入力してください", "clearInput": "入力を消去", "deleteConfirm": "{{name}}を削除しますか？", "deleteAction": "削除", "deleted": "削除しました。", "nameRequired": "名前を入力してください", "productName": "製品名", "brand": "ブランド", "category": "カテゴリー", "weight": "重量(g)" },
   "gearDetail": { "share": "共有", "invalidAccess": "不正なアクセスです。{{id}} {{error}}", "edit": "編集", "back": "戻る", "addToBag": "このバックパックに入れる", "addToWarehouse": "マイ倉庫に追加", "activity": "一緒にしたアクティビティ", "walkedWith": "このギアと{{distance}}km歩きました", "totalDuration": "合計時間", "totalElevation": "累積標高", "totalCalories": "累積カロリー", "minutes_other": "{{count}}分", "hours_other": "{{count}}時間", "hoursMinutes": "{{hours}}時間{{minutes}}分", "tripRecord": "一緒にした旅行 {{count}}回", "usageRecord": "使用記録", "used": "使用", "unused": "未使用", "unrecorded": "未記録", "noBagUsage": "まだバックパックに入れていません", "usageInputHint": "使用したかどうかを記録できます", "declutterWithWeight": "最近3回の旅行で未使用 — バックパックから外すと−{{weight}}g", "declutterWithoutWeight": "最近3回の旅行で未使用", "blogReviews": "ブログ・YouTubeのレビュー", "officialLinks": "公式リンク", "coupangDisclaimer": "Coupangパートナーズ活動の一環として、所定の手数料を受け取ります。", "moreReviews": "もっとレビューを見る", "firstReview": "最初のレビューを書く", "reviewCount": "({{count}}件のレビュー)", "reviews": "レビュー", "specs": "スペック", "photoAdd": "写真を追加", "photoUploading": "写真をアップロード中", "photo": "ギアの写真", "photoHint": "写真を交換または削除できます", "chooseFromAlbum": "アルバムから選択", "takePhoto": "写真を撮影", "replacePhoto": "写真を交換", "deletePhoto": "写真を削除", "externalBrowser": "{{label}}、外部ブラウザで開く", "openProduct": "{{label}}、商品ページを開く", "lowestPrice": "クーパンで最安値を見る", "addPhoto": "写真を追加", "shareAccessibility": "共有", "deletePhotoConfirm": "写真を削除しますか？", "permission": "{{target}}の権限が必要です。設定で許可してください。", "openSettings": "設定を開く", "photoLoadFailed": "写真を読み込めませんでした", "photoUploadFailed": "写真をアップロードできませんでした", "photoDeleteFailed": "写真を削除できませんでした", "added": "ギアを追加しました。", "alreadyInBag": "このギアはすでにバックパックに入っています。", "addedToBag": "バックパックに入れました。", "brandOfficial": "{{company}}公式ストアを見る", "officialStore": "公式ストアを見る", "hostLink": "{{host}}で見る", "productPage": "商品ページを見る", "specBooleanTrue": "はい", "specBooleanFalse": "いいえ", "personUnit": "人", "cameraPermission": "カメラ", "photoPermission": "写真へのアクセス", "specLabels": { "shape": "形状", "fillMaterial": "中綿", "fillWeight": "充填量", "fillPower": "フィルパワー", "comfortTemp": "快適温度", "limitTemp": "限界温度", "zipperSide": "ジッパー方向", "capacity": "収容人数", "wallStructure": "ウォール構造", "innerMaterial": "インナー素材", "flyMaterial": "フライ素材", "poleMaterial": "ポール素材", "waterproofRating": "耐水圧", "pitchType": "設営タイプ", "vestibuleArea": "前室面積", "type": "タイプ", "material": "素材", "rValue": "R値", "thickness": "厚さ", "openSize": "展開サイズ", "volume": "容量", "frameType": "フレームタイプ", "backSystem": "背面システム", "hasHipBelt": "ヒップベルト", "hasShoulderBottlePocket": "ショルダーボトルポケット", "hasRainCover": "レインカバー", "gender": "性別", "fuelType": "燃料", "output": "火力", "ignition": "点火方式", "hasWindscreen": "ウインドスクリーン内蔵", "isSet": "セット構成", "isInsulated": "保温保冷", "mouthType": "口元タイプ", "isWaterproof": "防水", "fillMaterialClothing": "中綿（ダウン類）", "hasHood": "フード", "lensMaterial": "レンズ素材", "uvProtection": "UVカット等級", "isPolarized": "偏光", "height": "高さ", "frameMaterial": "フレーム素材", "maxLoad": "最大荷重", "packedSize": "収納サイズ", "topMaterial": "天板素材", "isHeightAdjustable": "高さ調節", "maxBrightness": "最大明るさ", "batteryType": "バッテリータイプ", "maxRuntime": "最大使用時間", "hasRedMode": "赤色光モード", "foldType": "折りたたみ方式", "lockType": "ロック方式", "minLength": "最小長さ", "maxLength": "最大長さ", "size": "サイズ" }, "specEnums": { "down": "ダウン", "synthetic": "化繊", "left": "左", "right": "右", "center": "中央", "male": "男性", "female": "女性", "unisex": "ユニセックス", "gas": "ガス", "alcohol": "アルコール", "wood": "薪", "liquid": "液体", "multi": "マルチ" } },
+  "search": {
+    "input": { "placeholder": "{{keyword}}を検索してみてください" },
+    "addToBag": {
+      "newBagName": "新しいバックパック",
+      "titleAdded": "倉庫に追加しました。",
+      "titleQuestion": "バックパックにも追加しますか？",
+      "newBag": "新しいバックパックに追加",
+      "alreadyInBag": "このバックパックに入っています",
+      "close": "閉じる"
+    },
+    "resultEmpty": "検索結果がありません",
+    "rank": {
+      "title": "人気ギアランキング",
+      "empty": "登録されたギアがありません",
+      "removeAccessibility": "{{name}}を倉庫から外す",
+      "addAccessibility": "{{name}}を倉庫に追加"
+    },
+    "removeConfirm": "このギアはすべてのバックパックから外れます。\n外しますか？",
+    "removed": "ギアを外しました。"
+  },
+  "feed": {
+    "empty": "ギアがありません",
+    "all": "すべて",
+    "brand": "ブランド",
+    "brandFilter": {
+      "title": "ブランド",
+      "reset": "リセット",
+      "close": "閉じる",
+      "searchPlaceholder": "ブランドを検索",
+      "empty": "ブランドがありません",
+      "confirm": "確認",
+      "confirmCount": "確認（{{count}}）"
+    },
+    "sort": {
+      "recommended": "おすすめ",
+      "popular": "人気順",
+      "latest": "新着順",
+      "weightAsc": "軽い順",
+      "weightDesc": "重い順"
+    },
+    "sortAccessibility": "{{label}}で並べ替え",
+    "brandFilterAccessibility": "{{label}}フィルター",
+    "brandDirectory": { "title": "ブランドから探す" },
+    "ranking": "人気ギアランキング",
+    "addedToBag": "バックパックに入れました。",
+    "addedToWarehouse": "倉庫に追加しました。",
+    "removeFromWarehouseAccessibility": "{{name}}を倉庫から外す",
+    "addToBagAccessibility": "{{name}}をバックパックに入れる",
+    "addToWarehouseAccessibility": "{{name}}を倉庫に追加",
+    "brandCount_other": "製品{{count}}件",
+    "newest": "新着ギア"
+  },
   "reply": { "edit": "編集", "deleteAction": "削除", "myReply": "自分の返信", "myReview": "自分のレビュー", "replyManage": "返信を管理", "reviewManage": "レビューを管理", "like": "いいね", "unlike": "いいねを取り消す", "reply": "返信する", "writeReview": "レビューを書く", "writeReply": "返信を書く", "saveReply": "返信を保存", "keyboardClose": "キーボードを閉じる", "placeholder": "ギアはいかがでしたか？", "optionalPlaceholder": "ギアはいかがでしたか？（任意）", "detailTitle": "コメント", "back": "戻る", "complete": "完了", "editReview": "レビューを編集", "editReply": "返信を編集", "deleteConfirm": "このコメントを削除しますか？", "delete": "削除", "deleteFailed": "コメントを削除できませんでした。", "confirm": "確認", "loginRequired": "ログインが必要です。", "nicknameRequired": "ニックネームが必要です。", "reviewCreateFailed": "レビューを作成できませんでした", "reviewCreateError": "レビューを作成できませんでした。", "replyEditError": "コメントを編集できませんでした。", "replyCount_other": "返信{{count}}件", "rating": "評価", "reviewText": "レビュー", "register": "投稿", "reviewPlaceholder": "レビューを書いてください", "replyPlaceholder": "返信を書いてください", "noReviews": "まだレビューがありません", "firstReviewPrompt": "最初のレビューを書いてください" }
 }

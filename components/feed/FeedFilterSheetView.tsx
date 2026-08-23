@@ -27,8 +27,6 @@ import SheetGrabberView from '@/components/ui/SheetGrabberView';
 import app from '@/model/app/App';
 import useSheetTransition from '@/hooks/useSheetTransition';
 
-const CONFIRM_LABEL = '확인';
-
 interface Props {
   feed: Feed;
   visible: boolean;
@@ -52,11 +50,14 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
   const isLoading = brandDirectory.isLoading();
   const isEmpty = brandDirectory.isEmpty();
   const keyword = brandDirectory.getKeyword();
+  const l10n = app.getL10n();
 
   const stagedCount = stagedBrands.length;
   const hasStagedFilter = stagedCount > 0;
   const confirmLabel =
-    stagedCount > 0 ? `${CONFIRM_LABEL} (${stagedCount})` : CONFIRM_LABEL;
+    stagedCount > 0
+      ? l10n.t('feed.brandFilter.confirmCount', { count: stagedCount })
+      : l10n.t('feed.brandFilter.confirm');
 
   useEffect(() => {
     if (!visible) {
@@ -158,7 +159,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
       return (
         <View style={styles.emptyContainer}>
           <PretendardText style={styles.emptyText}>
-            브랜드가 없어요
+            {l10n.t('feed.brandFilter.empty')}
           </PretendardText>
         </View>
       );
@@ -204,7 +205,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
         <SheetGrabberView />
         <View style={styles.header}>
           <PretendardText style={styles.title} weight='bold'>
-            브랜드
+            {l10n.t('feed.brandFilter.title')}
           </PretendardText>
           <View style={styles.headerActions}>
             {hasStagedFilter ? (
@@ -214,7 +215,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               >
                 <PretendardText style={styles.resetText} weight='semibold'>
-                  초기화
+                  {l10n.t('feed.brandFilter.reset')}
                 </PretendardText>
               </TouchableOpacity>
             ) : null}
@@ -223,7 +224,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
               onPress={handleCancel}
               style={styles.closeButton}
               accessibilityRole='button'
-              accessibilityLabel='닫기'
+              accessibilityLabel={l10n.t('feed.brandFilter.close')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Ionicons name='close' size={24} color={Color.textPrimary} />
@@ -237,7 +238,7 @@ const FeedFilterSheetView: FC<Props> = ({ feed, visible, onClose }) => {
               style={styles.searchInput}
               value={keyword}
               onChangeText={handleChangeKeyword}
-              placeholder='브랜드명을 검색해보세요'
+              placeholder={l10n.t('feed.brandFilter.searchPlaceholder')}
               placeholderTextColor={Color.textSecondary}
               autoCapitalize='none'
               autoCorrect={false}

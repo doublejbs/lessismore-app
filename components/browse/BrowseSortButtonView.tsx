@@ -1,14 +1,16 @@
 import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 import PretendardText from '../PretendardText';
 import { AcgType, Color } from '@/constants/DesignTokens';
 import BrowseSort from '@/model/search/BrowseSort';
 import {
-  BROWSE_SORT_OPTIONS,
-  getBrowseSortName,
-} from '@/model/browse/BrowseSortLabel';
+  FEED_SORT_OPTIONS,
+  FEED_SORT_RECOMMENDED,
+  getFeedSortLabel,
+} from '@/model/feed/FeedSort';
 import { setSortSheetContext } from '@/model/sort/SortSheetHandoff';
 
 interface Props {
@@ -34,9 +36,11 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
 
   const handleOpen = () => {
     setSortSheetContext({
-      options: BROWSE_SORT_OPTIONS.map(option => ({
-        key: option.sort,
-        label: option.name,
+      options: FEED_SORT_OPTIONS.filter(
+        option => option.value !== FEED_SORT_RECOMMENDED
+      ).map(option => ({
+        key: option.value,
+        label: getFeedSortLabel(option.value),
       })),
       selectedKey: sort,
       onSelect: key => {
@@ -50,7 +54,7 @@ const BrowseSortButtonView: FC<Props> = ({ sort, onSelect }) => {
     <View style={styles.container}>
       <TouchableOpacity style={styles.button} onPress={handleOpen}>
         <PretendardText style={styles.buttonText} weight='bold'>
-          {getBrowseSortName(sort)}
+          {getFeedSortLabel(sort)}
         </PretendardText>
         <DownArrowIcon />
       </TouchableOpacity>
@@ -78,4 +82,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BrowseSortButtonView;
+export default observer(BrowseSortButtonView);

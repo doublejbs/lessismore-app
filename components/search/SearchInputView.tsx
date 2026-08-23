@@ -10,8 +10,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Acg, AcgType, Color } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import SearchBarVariant from './SearchBarVariant';
-import { josa } from 'josa';
 import { observer } from 'mobx-react-lite';
+import app from '@/model/app/App';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
@@ -24,15 +24,15 @@ export interface SearchBarInputHandle {
 }
 
 const SuggestionKeywords = [
-  '니모',
-  '하이퍼라이트마운틴기어',
-  '야마토미치',
-  '코오롱스포츠',
-  '아크테릭스',
-  '케일',
-  '랩',
-  '꼴로르',
-  '헬리녹스',
+  '니모', // l10n-ignore
+  '하이퍼라이트마운틴기어', // l10n-ignore
+  '야마토미치', // l10n-ignore
+  '코오롱스포츠', // l10n-ignore
+  '아크테릭스', // l10n-ignore
+  '케일', // l10n-ignore
+  '랩', // l10n-ignore
+  '꼴로르', // l10n-ignore
+  '헬리녹스', // l10n-ignore
 ];
 
 // 레퍼런스: 좌측 돋보기 24pt 잉크.
@@ -43,19 +43,18 @@ const SearchBarInputView = forwardRef<SearchBarInputHandle, Props>(
     const keyword = searchWarehouse.getKeyword();
     const inputRef = useRef<TextInput>(null);
     const isPlain = variant === SearchBarVariant.Plain;
+    const l10n = app.getL10n();
 
     useImperativeHandle(ref, () => ({
       focus: () => {
         inputRef.current?.focus();
       },
     }));
-    const placeholder = `${josa(
-      `'${
-        SuggestionKeywords[
-          Math.floor(Math.random() * SuggestionKeywords.length)
-        ]
-      }'#{을}`
-    )} 검색해보세요`;
+    const suggestionKeyword =
+      SuggestionKeywords[Math.floor(Math.random() * SuggestionKeywords.length)];
+    const placeholder = l10n.t('search.input.placeholder', {
+      keyword: `'${suggestionKeyword}'`,
+    });
 
     const handleChange = (text: string) => {
       searchWarehouse.changeKeyword(text);
@@ -138,5 +137,7 @@ const styles = StyleSheet.create({
     opacity: 0,
   },
 });
+
+SearchBarInputView.displayName = 'SearchBarInputView';
 
 export default observer(SearchBarInputView);

@@ -1,9 +1,11 @@
 import { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { observer } from 'mobx-react-lite';
 import Svg, { Path } from 'react-native-svg';
 import { BrandRankData } from '@/model/search/BrandRankStore';
 import PretendardText from '../PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   brand: BrandRankData;
@@ -39,9 +41,10 @@ const BrandRowView: FC<Props> = ({
   showCount = true,
 }) => {
   const name = brand.companyKorean || brand.company;
+  const l10n = app.getL10n();
   const meta =
     showCount && typeof brand.gearCount === 'number'
-      ? `제품 ${brand.gearCount}`
+      ? l10n.t('feed.brandCount', { count: brand.gearCount })
       : '';
 
   return (
@@ -100,4 +103,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BrandRowView;
+export default observer(BrandRowView);

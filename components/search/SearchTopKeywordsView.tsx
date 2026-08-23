@@ -95,10 +95,14 @@ const SearchTopKeywordsView: FC<Props> = ({
   const [selectedGear, setSelectedGear] = useState<Gear | null>(null);
   const gears = searchRank.getGears();
   const isLoading = searchRank.isLoading();
+  const l10n = app.getL10n();
 
   useFocusEffect(
+    // MobX 모델 인스턴스는 의도적으로 mutable observable이므로 이 콜백의 수동 메모이제이션을 유지한다.
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     useCallback(() => {
       searchRank.loadRanking(selectedCategory, false);
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     }, [searchRank, selectedCategory])
   );
 
@@ -181,7 +185,7 @@ const SearchTopKeywordsView: FC<Props> = ({
     <View style={styles.container}>
       {showTitle ? (
         <PretendardText style={styles.title} weight='bold'>
-          인기 장비 순위
+          {l10n.t('search.rank.title')}
         </PretendardText>
       ) : null}
 
@@ -218,7 +222,7 @@ const SearchTopKeywordsView: FC<Props> = ({
           ) : gears.length === 0 ? (
             <View style={styles.emptyContainer}>
               <PretendardText style={styles.emptyText}>
-                아직 등록된 장비가 없어요
+                {l10n.t('search.rank.empty')}
               </PretendardText>
             </View>
           ) : (
@@ -274,7 +278,10 @@ const SearchTopKeywordsView: FC<Props> = ({
                       onPress={e => handleRemovePress(e, gear)}
                       // 체크 아이콘만으로는 "누르면 제거"가 드러나지 않는다(SR-4).
                       accessibilityRole='button'
-                      accessibilityLabel={`${gear.getDisplayName()} 창고에서 제거`}
+                      accessibilityLabel={l10n.t(
+                        'search.rank.removeAccessibility',
+                        { name: gear.getDisplayName() }
+                      )}
                       hitSlop={BUTTON_HIT_SLOP}
                     >
                       <Ionicons
@@ -288,7 +295,10 @@ const SearchTopKeywordsView: FC<Props> = ({
                       style={styles.addButton}
                       onPress={e => handleAddPress(e, gear)}
                       accessibilityRole='button'
-                      accessibilityLabel={`${gear.getDisplayName()} 창고에 추가`}
+                      accessibilityLabel={l10n.t(
+                        'search.rank.addAccessibility',
+                        { name: gear.getDisplayName() }
+                      )}
                       hitSlop={BUTTON_HIT_SLOP}
                     >
                       <Ionicons
