@@ -572,4 +572,6 @@ const styles = StyleSheet.create({
   },
 });
 
-export default observer(BagDestinationPickerView);
+// 컴포넌트 정의가 이미 observer로 감싸여 있다 — 이중 래핑은 mobx-react-lite가 모듈 평가
+// 시점에 throw해 라우트 default export가 사라진다(2026-08-23 실측: 앱 진입 에러).
+export default BagDestinationPickerView;
