@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { observer } from 'mobx-react-lite';
 import { StyleSheet, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
 import {
@@ -9,6 +10,7 @@ import {
 } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { BagActivitySummary } from '@/model/bag/BagActivitySummary';
+import app from '@/model/app/App';
 import { HealthWorkout } from '@/model/health/HealthTypes';
 import {
   formatBagWeight,
@@ -29,8 +31,6 @@ interface Props {
 }
 
 /** 소스에 값이 없는 지표. 0으로 보이면 "0m 올랐다"로 읽혀 오해를 준다. */
-const EMPTY_METRIC = '기록 없음';
-
 // 연결된 운동의 합산 요약(HA-4). 값은 Firestore에 저장된 스냅샷(DM-22)이라
 // 기기 조회가 실패해도 항상 그릴 수 있다(HA-5).
 const BagActivitySummaryView: FC<Props> = ({
@@ -39,21 +39,27 @@ const BagActivitySummaryView: FC<Props> = ({
   singleWorkout,
 }) => {
   const metrics = [
-    { label: '총 거리', value: formatDistance(summary.distance) },
-    { label: '총 시간', value: formatDuration(summary.duration) },
     {
-      label: '누적 상승',
+      label: app.getL10n().t('health.summaryDistance'),
+      value: formatDistance(summary.distance),
+    },
+    {
+      label: app.getL10n().t('health.summaryDuration'),
+      value: formatDuration(summary.duration),
+    },
+    {
+      label: app.getL10n().t('health.summaryElevation'),
       value:
         summary.elevationGain !== undefined
           ? formatElevation(summary.elevationGain)
-          : EMPTY_METRIC,
+          : app.getL10n().t('health.noRecord'),
     },
     {
-      label: '소모 칼로리',
+      label: app.getL10n().t('health.summaryEnergy'),
       value:
         summary.activeEnergy !== undefined
           ? formatEnergy(summary.activeEnergy)
-          : EMPTY_METRIC,
+          : app.getL10n().t('health.noRecord'),
     },
   ];
 
@@ -61,15 +67,11 @@ const BagActivitySummaryView: FC<Props> = ({
     <View style={styles.container}>
       {/* 이 기능의 핵심 서사 — 무게와 이동을 한 문장으로 잇는다(HA-4). */}
       {weightGrams > 0 && (
-        <PretendardText style={styles.headline} weight='bold'>
-          <PretendardText style={styles.headlineValue} weight='bold'>
-            {formatBagWeight(weightGrams)}
-          </PretendardText>
-          {' 메고\n'}
-          <PretendardText style={styles.headlineValue} weight='bold'>
-            {formatDistance(summary.distance)}
-          </PretendardText>
-          {' 걸었어요'}
+          <PretendardText style={styles.headline} weight='bold'>
+            {app.getL10n().t('health.carryingDistance', {
+              weight: formatBagWeight(weightGrams),
+              distance: formatDistance(summary.distance),
+            })}
         </PretendardText>
       )}
       {singleWorkout !== undefined && (
@@ -90,7 +92,7 @@ const BagActivitySummaryView: FC<Props> = ({
             </PretendardText>
             {/* 숫자라 콘덴스드를 쓴다 — 이 화면은 수치가 전부다(ACG). `기록 없음`은
                 한글이라 콘덴스드에 글리프가 없어 본문 서체로 떨어뜨린다. */}
-            {metric.value === EMPTY_METRIC ? (
+            {metric.value === app.getL10n().t('health.noRecord') ? (
               <PretendardText style={styles.metricEmpty}>
                 {metric.value}
               </PretendardText>
@@ -160,4 +162,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagActivitySummaryView;
+export default observer(BagActivitySummaryView);

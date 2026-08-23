@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import {
@@ -23,6 +24,7 @@ import {
 } from '@/model/camp-site/CampSiteLabels';
 import { RecommendedSpot } from '@/model/feed/FeedContentTypes';
 import { setPendingCampSite } from '@/model/camp-site/CampSiteMapHandoff';
+import app from '@/model/app/App';
 
 interface Props {
   recommendations: RecommendedSpot[];
@@ -82,7 +84,11 @@ const HomeRecommendedSpotsView: FC<Props> = ({ recommendations }) => {
         onPress={() => handlePress(spot.id)}
         activeOpacity={0.7}
         accessibilityRole='button'
-        accessibilityLabel={`${spot.name}, ${typeLabel}, ${regionLabel}, 지도에서 보기`}
+        accessibilityLabel={app.getL10n().t('home.viewOnMap', {
+          name: spot.name,
+          type: typeLabel,
+          region: regionLabel,
+        })}
       >
         {showImageBand ? (
           <Image
@@ -133,7 +139,7 @@ const HomeRecommendedSpotsView: FC<Props> = ({ recommendations }) => {
 
   return (
     <View style={styles.section}>
-      <AcgSectionHeaderView title='useless가 고른 박지' />
+      <AcgSectionHeaderView title={app.getL10n().t('home.recommendedTitle')} />
       {recommendations.length === 1 ? (
         renderCard(recommendations[0]!)
       ) : (
@@ -255,4 +261,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeRecommendedSpotsView;
+export default observer(HomeRecommendedSpotsView);

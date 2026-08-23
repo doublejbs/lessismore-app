@@ -84,10 +84,10 @@ const HomeView: FC<Props> = ({ home }) => {
               onPress={handleLogin}
               activeOpacity={0.8}
               accessibilityRole='button'
-              accessibilityLabel='로그인'
+              accessibilityLabel={app.getL10n().t('home.login')}
             >
               <PretendardText weight='semibold' style={styles.loginCtaText}>
-                로그인
+                {app.getL10n().t('home.login')}
               </PretendardText>
             </TouchableOpacity>
           </View>
@@ -128,7 +128,7 @@ const HomeView: FC<Props> = ({ home }) => {
           한글 글리프가 없어 글자가 깨진다. */}
       <View style={styles.header}>
         <PretendardText weight='semibold' style={styles.headerText}>
-          홈
+          {app.getL10n().t('home.title')}
         </PretendardText>
       </View>
       {render()}

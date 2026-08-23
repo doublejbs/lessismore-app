@@ -31,6 +31,7 @@ import BagActivityDetailView from './BagActivityDetailView';
 import BagActivityEmptyView from './BagActivityEmptyView';
 import BagActivityIntroView from './BagActivityIntroView';
 import BagActivityWorkoutItemView from './BagActivityWorkoutItemView';
+import app from '@/model/app/App';
 
 interface Props {
   bagActivity: BagActivity;
@@ -116,17 +117,17 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
       return (
         <View style={styles.centered}>
           <PretendardText style={styles.errorText}>
-            운동 기록을 불러오지 못했어요
+            {app.getL10n().t('health.loadFailed')}
           </PretendardText>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={handleRetry}
             activeOpacity={0.7}
             accessibilityRole='button'
-            accessibilityLabel='다시 시도'
+            accessibilityLabel={app.getL10n().t('common.retry')}
           >
             <PretendardText style={styles.retryButtonText} weight='semibold'>
-              다시 시도
+              {app.getL10n().t('common.retry')}
             </PretendardText>
           </TouchableOpacity>
         </View>
@@ -148,8 +149,7 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
         showsVerticalScrollIndicator={false}
       >
         <PretendardText style={styles.listGuide}>
-          최근 1년의 운동 기록이에요. 이 여행에 해당하는 것을 모두 선택해
-          주세요.
+          {app.getL10n().t('health.listGuide')}
         </PretendardText>
         {bagActivity.getCandidates().map((workout, index) => (
           <BagActivityWorkoutItemView
@@ -188,7 +188,7 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
         options={{
           headerShown: IS_IOS,
           headerTransparent: true,
-          headerTitle: '운동 기록',
+          headerTitle: app.getL10n().t('health.title'),
           headerBackButtonDisplayMode: 'minimal',
           ...(phase === BagActivityPhase.Detail
             ? {
@@ -198,13 +198,15 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
                     onPress={handleReselect}
                     activeOpacity={0.7}
                     accessibilityRole='button'
-                    accessibilityLabel='연결할 운동 다시 선택'
+                    accessibilityLabel={app
+                      .getL10n()
+                      .t('health.reselectAccessibility')}
                   >
                     <PretendardText
                       style={styles.headerActionText}
                       weight='semibold'
                     >
-                      다시 선택
+                      {app.getL10n().t('health.reselect')}
                     </PretendardText>
                   </TouchableOpacity>
                 ),
@@ -218,12 +220,12 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
             onPress={handlePressBack}
             hitSlop={12}
             accessibilityRole='button'
-            accessibilityLabel='뒤로가기'
+            accessibilityLabel={app.getL10n().t('common.back')}
           >
             <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
           </TouchableOpacity>
           <PretendardText style={styles.headerTitle} weight='bold'>
-            운동 기록
+            {app.getL10n().t('health.title')}
           </PretendardText>
           {/* 상세에서만 후보 목록으로 돌아가는 통로를 둔다 — 상세의 주 목적은 보기다. */}
           {phase === BagActivityPhase.Detail && (
@@ -232,10 +234,12 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
               onPress={handleReselect}
               activeOpacity={0.7}
               accessibilityRole='button'
-              accessibilityLabel='연결할 운동 다시 선택'
+              accessibilityLabel={app
+                .getL10n()
+                .t('health.reselectAccessibility')}
             >
               <PretendardText style={styles.headerActionText} weight='semibold'>
-                다시 선택
+                {app.getL10n().t('health.reselect')}
               </PretendardText>
             </TouchableOpacity>
           )}
@@ -247,7 +251,9 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
           {summary && (
             <View style={styles.summary}>
               <PretendardText style={styles.summaryCount} weight='semibold'>
-                {summary.count}개 선택
+                {app.getL10n().t('health.selectedCount', {
+                  count: summary.count,
+                })}
               </PretendardText>
               <PretendardText style={styles.summaryMetrics}>
                 {[
@@ -275,7 +281,9 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
             activeOpacity={0.8}
             accessibilityRole='button'
             accessibilityState={{ disabled: !primaryEnabled }}
-            accessibilityLabel={isUnlinkAction ? '연결 해제' : '운동 기록 연결'}
+            accessibilityLabel={app
+              .getL10n()
+              .t(isUnlinkAction ? 'health.unlinkAction' : 'health.connectAction')}
           >
             <PretendardText
               style={[
@@ -284,7 +292,9 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
               ]}
               weight='semibold'
             >
-              {isUnlinkAction ? '연결 해제' : '연결'}
+              {app
+                .getL10n()
+                .t(isUnlinkAction ? 'health.unlink' : 'health.connect')}
             </PretendardText>
           </TouchableOpacity>
         </View>

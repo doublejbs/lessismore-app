@@ -79,14 +79,14 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
   if (gears.length === 0) {
     return (
       <View style={styles.section}>
-        <AcgSectionHeaderView title='내 창고' />
+        <AcgSectionHeaderView title={app.getL10n().t('home.warehouse')} />
 
         <View style={styles.tile}>
           <PretendardText weight='semibold' style={styles.emptyTitle}>
-            창고가 비어 있어요
+            {app.getL10n().t('home.emptyWarehouseTitle')}
           </PretendardText>
           <PretendardText style={styles.emptySubtitle}>
-            가진 장비를 하나씩 담아보세요
+            {app.getL10n().t('home.emptyWarehouseSubtitle')}
           </PretendardText>
           {/* 홈의 라임은 일정 면의 주 액션 하나뿐이라, 이 버튼은 잉크 알약이다. */}
           <TouchableOpacity
@@ -94,10 +94,10 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
             onPress={handleAddGear}
             activeOpacity={0.8}
             accessibilityRole='button'
-            accessibilityLabel='첫 장비 담기'
+            accessibilityLabel={app.getL10n().t('home.addFirstGear')}
           >
             <PretendardText weight='semibold' style={styles.addButtonText}>
-              첫 장비 담기
+              {app.getL10n().t('home.addFirstGear')}
             </PretendardText>
           </TouchableOpacity>
         </View>
@@ -111,7 +111,10 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
           `전체 보기`는 머리 우측(칩 행 위)이다(2026-08-13 사용자 결정 — 목록 끝 행에서 이동). */}
       <View style={styles.headerRow}>
         <View style={styles.headerTitle}>
-          <AcgSectionHeaderView title='내 창고' subtitle='최근 담은 장비' />
+          <AcgSectionHeaderView
+            title={app.getL10n().t('home.warehouse')}
+            subtitle={app.getL10n().t('home.recentGear')}
+          />
         </View>
         <TouchableOpacity
           style={styles.moreLink}
@@ -119,10 +122,10 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
           activeOpacity={0.7}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityRole='button'
-          accessibilityLabel='창고 전체 보기'
+          accessibilityLabel={app.getL10n().t('home.viewAllWarehouse')}
         >
           <PretendardText weight='semibold' style={styles.moreText}>
-            전체 보기
+            {app.getL10n().t('home.viewAllWarehouse')}
           </PretendardText>
           <Ionicons name='chevron-forward' size={16} color={Acg.textMuted} />
         </TouchableOpacity>
@@ -152,7 +155,9 @@ const HomeWarehousePreviewView: FC<Props> = ({ gears }) => {
             onPress={() => handleOpenGear(gear)}
             activeOpacity={0.7}
             accessibilityRole='button'
-            accessibilityLabel={`${gear.getDisplayName()} 상세`}
+            accessibilityLabel={app.getL10n().t('home.gearDetail', {
+              name: gear.getDisplayName(),
+            })}
           >
             <View style={styles.rowText}>
               <PretendardText

@@ -2,6 +2,7 @@ import { FC, useEffect, useState } from 'react';
 import * as Haptics from 'expo-haptics';
 import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import {
   Acg,
@@ -185,4 +186,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagActivityWorkoutItemView;
+export default observer(BagActivityWorkoutItemView);

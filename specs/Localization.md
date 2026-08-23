@@ -202,6 +202,7 @@ app/(tabs)/info.tsx (정보 탭)
 | `auth.googleLogin` | Google 로그인 제공자 식별이 명확한 버튼 문구를 사용한다. en/ja도 `Sign in with Google`/`Googleでログイン`으로 유지한다. |
 | `auth.appleLogin` | Apple 로그인 제공자 식별이 명확한 버튼 문구를 사용한다. 허용을 유도하는 표현 없이 `Sign in with Apple`/`Appleでログイン`으로 유지한다. |
 | `auth.terms.submit` | 동의 완료 후 다음 단계로 이동하는 중립적 문구를 사용한다. en/ja도 `Agree and continue`/`同意して続行`으로 유지한다. |
+| `common.continue` | 건강 권한 인트로(HA-2) 주 액션은 App Store 심사 5.1.1(iv) 지적에 따라 권한 허용을 유도하지 않는 중립어 `계속`을 사용한다. en/ja도 `Continue`/`続行`으로 유지하며, `accessibilityLabel`에도 동일 키를 쓴다. |
 
 ## 5. 플랫폼 분기
 

@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import {
   Acg,
@@ -9,6 +10,7 @@ import {
   Color,
   Spacing,
 } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   onRequestPermission: () => void;
@@ -21,26 +23,23 @@ interface Props {
 // `건강 앱에서 불러오기`처럼 허용을 권유하는 낱말은 "사용자에게 권한 허용을 유도한다"로
 // 판정된다. 접근성 라벨도 같은 기준을 받는다(이전 값 `건강 앱 접근 허용하기`가 더 직접적이었다).
 // 무엇을 읽는지는 위 본문·목록이 설명하므로 버튼이 그 역할을 대신할 필요가 없다.
-const READ_ITEMS = [
-  '운동 기록(종류·시간·거리)',
-  '이동 경로와 상승고도',
-  '소모 칼로리와 심박수',
-];
-
 const BagActivityIntroView: FC<Props> = ({ onRequestPermission }) => {
+  const readItems = app.getL10n().t('health.readItems', {
+    returnObjects: true,
+  }) as unknown as string[];
+
   return (
     <View style={styles.container}>
       <View style={styles.body}>
         <Ionicons name='heart-outline' size={40} color={Color.textPrimary} />
         <PretendardText style={styles.title} weight='semibold'>
-          건강 앱의 운동 기록을 가져옵니다
+          {app.getL10n().t('health.introTitle')}
         </PretendardText>
         <PretendardText style={styles.description}>
-          최근 운동 기록을 골라 배낭에 연결합니다. 아래 항목만 읽고, 건강 앱에
-          쓰거나 서버에 저장하지 않습니다.
+          {app.getL10n().t('health.introDescription')}
         </PretendardText>
         <View style={styles.itemList}>
-          {READ_ITEMS.map(item => (
+          {readItems.map(item => (
             <View key={item} style={styles.item}>
               <Ionicons
                 name='checkmark'
@@ -57,10 +56,10 @@ const BagActivityIntroView: FC<Props> = ({ onRequestPermission }) => {
         onPress={onRequestPermission}
         activeOpacity={0.8}
         accessibilityRole='button'
-        accessibilityLabel='계속'
+        accessibilityLabel={app.getL10n().t('common.continue')}
       >
         <PretendardText style={styles.primaryButtonText} weight='semibold'>
-          계속
+          {app.getL10n().t('common.continue')}
         </PretendardText>
       </TouchableOpacity>
     </View>
@@ -113,4 +112,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagActivityIntroView;
+export default observer(BagActivityIntroView);
