@@ -271,7 +271,7 @@ const CustomGearView: FC<Props> = ({ customGear }) => {
                 {customGear.mapFilters(filter => (
                   <CategoryChipView
                     key={filter.getFilter()}
-                    label={filter.getName()}
+                    label={filter.getLabel()}
                     selected={filter.isSelected()}
                     onPress={() => handleClickSelectFilter(filter)}
                   />

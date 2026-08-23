@@ -64,7 +64,7 @@ const BagView = () => {
 
       setTemplates((await app.getBagTemplateStore()!.getList()) ?? []);
     } catch (error) {
-      console.error('템플릿 목록 조회 중 오류 발생:', error); // l10n-ignore
+      console.error('템플릿 목록 조회 중 오류 발생:', error); // l10n-ignore: 개발자 로그
       setTemplates([]);
     } finally {
       setTemplatesLoading(false);
@@ -96,7 +96,7 @@ const BagView = () => {
       await app.getBagTemplateStore()!.delete(template.getID());
       await loadTemplates();
     } catch (error) {
-      console.error('템플릿 삭제 중 오류 발생:', error); // l10n-ignore
+      console.error('템플릿 삭제 중 오류 발생:', error); // l10n-ignore: 개발자 로그
       Alert.alert(
         app.getL10n().t('common.error'),
         app.getL10n().t('bag.templateDeleteFailed')

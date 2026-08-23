@@ -272,7 +272,7 @@ class BagActivity {
       this.setDetails(details);
       this.setDetailStatus(BagActivityDetailStatus.Ready);
     } catch (error) {
-      console.error('운동 기록 상세 조회 실패:', error); // l10n-ignore
+      console.error('운동 기록 상세 조회 실패:', error); // l10n-ignore: 개발자 로그
       this.setDetails([]);
       this.setDetailStatus(BagActivityDetailStatus.Unavailable);
     }
@@ -328,7 +328,7 @@ class BagActivity {
       this.setLinked(next);
     } catch (error) {
       // 저장에 실패해도 이번 화면은 재매칭 결과로 보여준다 — 다음 진입에서 다시 시도한다.
-      console.error('운동 기록 재매칭 저장 실패:', error); // l10n-ignore
+      console.error('운동 기록 재매칭 저장 실패:', error); // l10n-ignore: 개발자 로그
     }
   }
 
@@ -408,7 +408,7 @@ class BagActivity {
 
       this.setPhase(BagActivityPhase.Ready);
     } catch (error) {
-      console.error('운동 기록 조회 실패:', error); // l10n-ignore
+      console.error('운동 기록 조회 실패:', error); // l10n-ignore: 개발자 로그
       this.setPhase(BagActivityPhase.Error);
     }
   }
@@ -539,7 +539,7 @@ class BagActivity {
       this.setPhase(BagActivityPhase.Detail);
       await this.loadDetail();
     } catch (error) {
-      console.error('운동 기록 연결 실패:', error); // l10n-ignore
+      console.error('운동 기록 연결 실패:', error); // l10n-ignore: 개발자 로그
       this.toastManager.show({ message: app.getL10n().t('health.linkFailed') });
     } finally {
       this.setSaving(false);
@@ -564,7 +564,7 @@ class BagActivity {
       router.back();
       this.toastManager.show({ message: app.getL10n().t('health.unlinked') });
     } catch (error) {
-      console.error('운동 기록 연결 해제 실패:', error); // l10n-ignore
+      console.error('운동 기록 연결 해제 실패:', error); // l10n-ignore: 개발자 로그
       this.toastManager.show({ message: app.getL10n().t('health.unlinkFailed') });
     } finally {
       this.setSaving(false);

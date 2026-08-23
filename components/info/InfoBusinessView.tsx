@@ -19,8 +19,8 @@ import { observer } from 'mobx-react-lite';
  * 통신판매업 신고를 하면 영업소 소재지가 표시 의무가 되므로 그때 주소 항목을 추가한다.
  */
 const BUSINESS_INFO: { label: string; value: string }[] = [
-  { label: 'info.business.name', value: '마그마' }, // l10n-ignore 사업자 상호 고유명
-  { label: 'info.business.representative', value: '장하림' }, // l10n-ignore 사업자 대표자 고유명
+  { label: 'info.business.name', value: '마그마' }, // l10n-ignore: 사업자 상호 고유명
+  { label: 'info.business.representative', value: '장하림' }, // l10n-ignore: 사업자 대표자 고유명
   { label: 'info.business.registrationNumber', value: '167-58-00828' },
   { label: 'info.business.email', value: 'doublejbs@naver.com' },
 ];

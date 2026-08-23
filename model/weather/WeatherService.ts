@@ -6,6 +6,7 @@ import {
   WeatherSnapshot,
   WeatherSource,
 } from './WeatherTypes';
+import { getAppTranslation } from '../l10n/L10nRegistry';
 
 // 날씨: Open-Meteo 무료 엔드포인트(키 없음).
 // 지오코딩·장소 검색은 여행지 선택 책임이라 여기 없다(WT-6, `model/bag-destination/GeocodeService`).
@@ -34,11 +35,11 @@ interface DailyRaw {
 const fetchJson = async (url: string): Promise<any> => {
   const res = await fetch(url);
   if (!res.ok) {
-    throw new Error(`Open-Meteo 요청 실패: ${res.status}`); // l10n-ignore
+    throw new Error(`Open-Meteo 요청 실패: ${res.status}`); // l10n-ignore: 개발자 API 예외 메시지
   }
   const json = await res.json();
   if (json?.error) {
-    throw new Error(json.reason ?? 'Open-Meteo 오류'); // l10n-ignore
+    throw new Error(json.reason ?? 'Open-Meteo 오류'); // l10n-ignore: 개발자 API 예외 메시지
   }
   return json;
 };
@@ -235,7 +236,7 @@ const getWeather = async (
     .sort((a, b) => a.date.localeCompare(b.date));
 
   if (daily.length === 0) {
-    throw new Error('날씨 데이터를 가져오지 못했습니다.'); // l10n-ignore
+    throw new Error(getAppTranslation('weather.loadFailed'));
   }
 
   const kind: WeatherKind = kinds.size === 1 ? [...kinds][0] : 'mixed';

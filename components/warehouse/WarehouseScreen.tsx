@@ -90,7 +90,7 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
             {warehouse.getQuery().trim()
               ? app.getL10n().t('warehouse.noSearchResults')
               : app.getL10n().t('warehouse.noCategoryResults', {
-                  category: selectedFilter.getName(),
+                  category: selectedFilter.getLabel(),
                 })}
           </PretendardText>
         </View>

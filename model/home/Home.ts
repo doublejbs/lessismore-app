@@ -96,7 +96,7 @@ class Home {
     try {
       return await this.feedContentStore.getRecommendedSpots();
     } catch (error) {
-      console.error('홈 추천 박지 조회 실패:', error); // l10n-ignore
+      console.error('홈 추천 박지 조회 실패:', error); // l10n-ignore: 개발자 로그
 
       return [];
     }
@@ -106,7 +106,7 @@ class Home {
     try {
       return await this.bagStore.getList();
     } catch (e) {
-      console.error('홈 배낭 조회 실패:', e); // l10n-ignore
+      console.error('홈 배낭 조회 실패:', e); // l10n-ignore: 개발자 로그
 
       return [];
     }
@@ -120,7 +120,7 @@ class Home {
         OrderType.CreatedDesc
       );
     } catch (e) {
-      console.error('홈 창고 조회 실패:', e); // l10n-ignore
+      console.error('홈 창고 조회 실패:', e); // l10n-ignore: 개발자 로그
 
       return [];
     }

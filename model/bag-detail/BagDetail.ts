@@ -626,7 +626,7 @@ class BagDetail {
   }
 
   public scrollToFilter(filter: WarehouseFilter) {
-    const element = this.filterButtonRefs.get(filter.getName());
+      const element = this.filterButtonRefs.get(filter.getFilter());
 
     if (element && this.filterScrollViewRef) {
       // 약간의 지연을 두고 스크롤 (레이아웃이 완료된 후)

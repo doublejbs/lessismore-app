@@ -23,16 +23,16 @@ export interface SearchBarInputHandle {
   focus: () => void;
 }
 
-const SuggestionKeywords = [
-  '니모', // l10n-ignore
-  '하이퍼라이트마운틴기어', // l10n-ignore
-  '야마토미치', // l10n-ignore
-  '코오롱스포츠', // l10n-ignore
-  '아크테릭스', // l10n-ignore
-  '케일', // l10n-ignore
-  '랩', // l10n-ignore
-  '꼴로르', // l10n-ignore
-  '헬리녹스', // l10n-ignore
+const SUGGESTION_KEYWORDS = [
+  'search.suggestions.nemo',
+  'search.suggestions.hyperliteMountainGear',
+  'search.suggestions.yamatomichi',
+  'search.suggestions.kolonSport',
+  'search.suggestions.arcteryx',
+  'search.suggestions.kailas',
+  'search.suggestions.rab',
+  'search.suggestions.color',
+  'search.suggestions.helinox',
 ];
 
 // 레퍼런스: 좌측 돋보기 24pt 잉크.
@@ -50,8 +50,11 @@ const SearchBarInputView = forwardRef<SearchBarInputHandle, Props>(
         inputRef.current?.focus();
       },
     }));
-    const suggestionKeyword =
-      SuggestionKeywords[Math.floor(Math.random() * SuggestionKeywords.length)];
+    const suggestionKeyword = l10n.t(
+      SUGGESTION_KEYWORDS[
+        Math.floor(Math.random() * SUGGESTION_KEYWORDS.length)
+      ]
+    );
     const placeholder = l10n.t('search.input.placeholder', {
       keyword: `'${suggestionKeyword}'`,
     });

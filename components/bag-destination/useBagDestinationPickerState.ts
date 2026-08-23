@@ -78,7 +78,7 @@ const getGrantedPosition = async (): Promise<Coordinate | null> => {
       longitude: lastKnown.coords.longitude,
     };
   } catch (error) {
-    console.error('현재 위치 조회 실패:', error); // l10n-ignore
+    console.error('현재 위치 조회 실패:', error); // l10n-ignore: 개발자 로그
 
     return null;
   }
@@ -343,7 +343,7 @@ const useBagDestinationPickerState = ({
         locationWatchRef.current = subscription;
       } catch (error) {
         // 구독을 못 열어도(위치 서비스 꺼짐 등) 버튼은 캐시·새 fix로 폴백하므로 화면은 살아 있다.
-        console.error('현재 위치 구독 실패:', error); // l10n-ignore
+    console.error('현재 위치 구독 실패:', error); // l10n-ignore: 개발자 로그
 
         if (locationWatchGenerationRef.current === visibleGeneration) {
           locationWatchGenerationRef.current = null;
@@ -508,7 +508,7 @@ const useBagDestinationPickerState = ({
 
         await startLocationWatch(visibleGeneration);
       } catch (error) {
-        console.error('위치 권한 확인 실패:', error); // l10n-ignore
+    console.error('위치 권한 확인 실패:', error); // l10n-ignore: 개발자 로그
       }
     };
 
@@ -634,7 +634,7 @@ const useBagDestinationPickerState = ({
           setAddressName(name);
         }
       } catch (error) {
-        console.error('역지오코딩 실패:', error); // l10n-ignore
+    console.error('역지오코딩 실패:', error); // l10n-ignore: 개발자 로그
 
         // 이름을 못 찾아도 확정은 가능하다 — 확정 시 폴백 이름으로 저장한다(DST-3).
         if (!cancelled) {
@@ -677,7 +677,7 @@ const useBagDestinationPickerState = ({
         }
       } catch (error) {
         // 장소 검색이 실패해도 박지 결과는 그대로 표시한다(DST-4).
-        console.error('장소 검색 실패:', error); // l10n-ignore
+    console.error('장소 검색 실패:', error); // l10n-ignore: 개발자 로그
 
         if (!cancelled) {
           setPlaceResults([]);
@@ -1002,7 +1002,7 @@ const useBagDestinationPickerState = ({
         return;
       }
 
-      console.error('현재 위치 이동 실패:', error); // l10n-ignore
+      console.error('현재 위치 이동 실패:', error); // l10n-ignore: 개발자 로그
       // 수단이 모두 실패한 경우(위 분기)와 예외는 사용자에게 같은 상황이라 문구를 통일한다(DST-3).
       Alert.alert(app.getL10n().t('bagDestination.locationFailedTitle'), app.getL10n().t('app.location.failed'));
     } finally {
@@ -1046,7 +1046,7 @@ const useBagDestinationPickerState = ({
 
       return { name: name || FALLBACK_LOCATION_NAME, ...center };
     } catch (error) {
-      console.error('역지오코딩 실패:', error); // l10n-ignore
+      console.error('역지오코딩 실패:', error); // l10n-ignore: 개발자 로그
 
       return { name: FALLBACK_LOCATION_NAME, ...center };
     }
@@ -1111,7 +1111,7 @@ const useBagDestinationPickerState = ({
       }
 
       // 저장 실패 시 선택기를 닫지 않고 재시도할 수 있게 한다(DST-6).
-      console.error('여행지 저장 실패:', error); // l10n-ignore
+      console.error('여행지 저장 실패:', error); // l10n-ignore: 개발자 로그
       Alert.alert(app.getL10n().t('common.error'), app.getL10n().t('bagDestination.saveFailed'));
     } finally {
       savingRef.current = false;

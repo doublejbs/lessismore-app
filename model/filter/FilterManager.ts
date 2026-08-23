@@ -2,6 +2,7 @@ import { makeAutoObservable } from 'mobx';
 import Gear from '../gear/Gear';
 import GearFilter from '../gear/GearFilter';
 import WarehouseFilter from '../warehouse/WarehouseFilter';
+import { GEAR_FILTER_NAMES } from '../gear/GearFilterName';
 
 class FilterManager {
   public static from() {
@@ -11,51 +12,51 @@ class FilterManager {
   private readonly filters: WarehouseFilter[] = [
     {
       filter: GearFilter.All,
-      name: '전체', // l10n-ignore: Firestore 카테고리 캐노니컬 값
+      name: GEAR_FILTER_NAMES[GearFilter.All],
     },
     {
       filter: GearFilter.Backpack,
-      name: '배낭', // l10n-ignore: Firestore 카테고리 캐노니컬 값
+      name: GEAR_FILTER_NAMES[GearFilter.Backpack],
     },
     {
       filter: GearFilter.Tent,
-      name: '텐트', // l10n-ignore: Firestore 카테고리 캐노니컬 값
+      name: GEAR_FILTER_NAMES[GearFilter.Tent],
     },
     {
       filter: GearFilter.SleepingBag,
-      name: '침낭', // l10n-ignore: Firestore 카테고리 캐노니컬 값
+      name: GEAR_FILTER_NAMES[GearFilter.SleepingBag],
     },
     {
       filter: GearFilter.Mat,
-      name: '매트', // l10n-ignore: Firestore 카테고리 캐노니컬 값
+      name: GEAR_FILTER_NAMES[GearFilter.Mat],
     },
     {
       filter: GearFilter.Lantern,
-      name: '랜턴', // l10n-ignore: Firestore 카테고리 캐노니컬 값
+      name: GEAR_FILTER_NAMES[GearFilter.Lantern],
     },
     {
       filter: GearFilter.Cooking,
-      name: '조리', // l10n-ignore: Firestore 카테고리 캐노니컬 값
+      name: GEAR_FILTER_NAMES[GearFilter.Cooking],
     },
     {
       filter: GearFilter.Clothing,
-      name: '의류', // l10n-ignore: Firestore 카테고리 캐노니컬 값
+      name: GEAR_FILTER_NAMES[GearFilter.Clothing],
     },
     {
       filter: GearFilter.Furniture,
-      name: '가구', // l10n-ignore: Firestore 카테고리 캐노니컬 값
+      name: GEAR_FILTER_NAMES[GearFilter.Furniture],
     },
     {
       filter: GearFilter.Electronic,
-      name: '전자기기', // l10n-ignore: Firestore 카테고리 캐노니컬 값
+      name: GEAR_FILTER_NAMES[GearFilter.Electronic],
     },
     {
       filter: GearFilter.Food,
-      name: '음식', // l10n-ignore: Firestore 카테고리 캐노니컬 값
+      name: GEAR_FILTER_NAMES[GearFilter.Food],
     },
     {
       filter: GearFilter.Etc,
-      name: '기타', // l10n-ignore: Firestore 카테고리 캐노니컬 값
+      name: GEAR_FILTER_NAMES[GearFilter.Etc],
     },
   ].map(({ filter, name }) => WarehouseFilter.from(filter, name));
 

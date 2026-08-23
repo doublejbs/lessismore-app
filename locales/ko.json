@@ -27,6 +27,59 @@
       "nameAsc": "이름순"
     }
   },
+  "category": {
+    "all": "전체",
+    "tent": "텐트",
+    "sleepingBag": "침낭",
+    "backpack": "배낭",
+    "clothing": "의류",
+    "mat": "매트",
+    "furniture": "가구",
+    "lantern": "랜턴",
+    "cooking": "조리",
+    "electronic": "전자기기",
+    "food": "음식",
+    "etc": "기타",
+    "fine": {
+      "backpack": "배낭",
+      "vest_pack": "베스트 배낭",
+      "backpack_cover": "배낭 커버",
+      "tent": "텐트",
+      "tarp": "타프",
+      "shelter": "쉘터",
+      "tent_acc": "텐트ACC",
+      "sleeping_bag": "침낭",
+      "mat": "매트",
+      "pillow": "필로우",
+      "cup": "컵",
+      "bowl": "그릇",
+      "cutlery": "수저",
+      "stove": "버너",
+      "torch": "토치",
+      "bottle": "물통",
+      "cookware": "코펠·쿡웨어",
+      "cookware_etc": "식기류 기타",
+      "chair": "체어",
+      "table": "테이블",
+      "furniture_etc": "그 외 기타",
+      "clothing": "일반",
+      "sunglasses": "선글라스",
+      "gaiter": "스패츠",
+      "gloves": "장갑",
+      "lighting": "조명",
+      "headlamp": "헤드랜턴",
+      "food": "식품",
+      "towel": "수건",
+      "pouch": "파우치/수납가방",
+      "hand_warmer": "핫팩",
+      "shovel": "삽",
+      "hammer": "망치",
+      "microspikes": "아이젠",
+      "trekking_pole": "트레킹폴",
+      "etc": "그 외 기타",
+      "electronic": "전자기기"
+    }
+  },
   "info": {
     "account": {
       "title": "내 정보",
@@ -538,6 +591,17 @@
   "search": {
     "input": {
       "placeholder": "{{keyword}}을(를) 검색해보세요"
+    },
+    "suggestions": {
+      "nemo": "니모",
+      "hyperliteMountainGear": "하이퍼라이트마운틴기어",
+      "yamatomichi": "야마토미치",
+      "kolonSport": "코오롱스포츠",
+      "arcteryx": "아크테릭스",
+      "kailas": "케일",
+      "rab": "랩",
+      "color": "꼴로르",
+      "helinox": "헬리녹스"
     },
     "addToBag": {
       "newBagName": "새 배낭",

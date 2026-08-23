@@ -426,7 +426,7 @@ class BagFilmCard {
       apply(asset.uri);
       app.getAnalyticsManager()?.logClick('film_card_photo', { target });
     } catch (error) {
-      console.error('필름 카드 사진 선택 실패:', error); // l10n-ignore
+      console.error('필름 카드 사진 선택 실패:', error); // l10n-ignore: 개발자 로그
       this.toastManager.show({ message: app.getL10n().t('bagFilmCard.photoLoadFailed') });
     } finally {
       this.setPicking(false);
@@ -469,7 +469,7 @@ class BagFilmCard {
         BagFilmCard.releaseCapturedFile(capturedUri);
       }
     } catch (error) {
-      console.error('필름 카드 공유 실패:', error); // l10n-ignore
+      console.error('필름 카드 공유 실패:', error); // l10n-ignore: 개발자 로그
       this.toastManager.show({ message: app.getL10n().t('bagFilmCard.shareFailed') });
     } finally {
       this.setSharing(false);
@@ -512,7 +512,7 @@ class BagFilmCard {
         BagFilmCard.releaseCapturedFile(capturedUri);
       }
     } catch (error) {
-      console.error('필름 카드 저장 실패:', error); // l10n-ignore
+      console.error('필름 카드 저장 실패:', error); // l10n-ignore: 개발자 로그
       this.toastManager.show({ message: app.getL10n().t('bagFilmCard.saveFailed') });
     } finally {
       this.setSaving(false);
@@ -554,7 +554,7 @@ class BagFilmCard {
     try {
       releaseCapture(uri);
     } catch (error) {
-    console.warn('필름 카드 임시 파일 해제 실패:', error); // l10n-ignore
+    console.warn('필름 카드 임시 파일 해제 실패:', error); // l10n-ignore: 개발자 로그
     }
   }
 

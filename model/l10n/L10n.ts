@@ -26,11 +26,11 @@ const KO_JOSA_POST_PROCESSOR: PostProcessorModule = {
   type: 'postProcessor',
   process: value => {
     const patterns: readonly (readonly [RegExp, string])[] = [
-      [/(^|\s)(\S+?)(?:을|를)\((?:을|를)\)/g, '을'], // l10n-ignore
-      [/(^|\s)(\S+?)(?:은|는)\((?:은|는)\)/g, '은'], // l10n-ignore
-      [/(^|\s)(\S+?)(?:이|가)\((?:이|가)\)/g, '이'], // l10n-ignore
-      [/(^|\s)(\S+?)(?:와|과)\((?:와|과)\)/g, '와'], // l10n-ignore
-      [/(^|\s)(\S+?)(?:으로|로)\((?:으로|로)\)/g, '으로'], // l10n-ignore
+      [/(^|\s)(\S+?)(?:을|를)\((?:을|를)\)/g, '을'], // l10n-ignore: 한국어 조사 후처리 정규식
+      [/(^|\s)(\S+?)(?:은|는)\((?:은|는)\)/g, '은'], // l10n-ignore: 한국어 조사 후처리 정규식
+      [/(^|\s)(\S+?)(?:이|가)\((?:이|가)\)/g, '이'], // l10n-ignore: 한국어 조사 후처리 정규식
+      [/(^|\s)(\S+?)(?:와|과)\((?:와|과)\)/g, '와'], // l10n-ignore: 한국어 조사 후처리 정규식
+      [/(^|\s)(\S+?)(?:으로|로)\((?:으로|로)\)/g, '으로'], // l10n-ignore: 한국어 조사 후처리 정규식
     ];
 
     return patterns.reduce(

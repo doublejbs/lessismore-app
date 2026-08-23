@@ -22,7 +22,7 @@ const BagPackingCategorySectionView: FC<Props> = ({
   return (
     <View style={styles.container}>
       <PretendardText style={styles.categoryTitle} weight='bold'>
-        {category.getName()}
+        {category.getLabel()}
       </PretendardText>
       <View style={styles.gearList}>
         {gears.map((gear, index) => (

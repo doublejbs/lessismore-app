@@ -85,7 +85,7 @@ const InfoView: FC = () => {
   // 두지 않는다(2026-08-23 사용자 결정) — 저장값이 없어도 시스템에서 유도한 언어를 보여준다.
   const languageLabel =
     l10n.language === AppLanguage.Korean
-      ? '한국어' // l10n-ignore 언어 이름 자기 표기
+      ? '한국어' // l10n-ignore: 언어 이름 자기 표기
       : l10n.language === AppLanguage.English
         ? 'English'
         : '日本語';

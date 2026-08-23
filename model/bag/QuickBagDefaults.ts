@@ -10,7 +10,7 @@ import app from '@/model/app/App';
  * 매번 같은 값을 입력하게 된다. 만든 뒤 배낭 상세에서 고친다.
  */
 
-export const QUICK_BAG_NAME = '이번주'; // l10n-ignore
+export const QUICK_BAG_NAME = '이번주'; // l10n-ignore: 로컬 기본 배낭 이름 캐논컬 값
 
 // dayjs의 요일 인덱스(0=일 … 6=토).
 const SATURDAY = 6;
@@ -60,7 +60,7 @@ export const createQuickBag = async (router: ImperativeRouter) => {
     app.getAnalyticsManager()?.logClick('bag_create_confirm');
     router.push(`/bag/${bagID}`);
   } catch (error) {
-  console.error('배낭 추가 중 오류 발생:', error); // l10n-ignore
+  console.error('배낭 추가 중 오류 발생:', error); // l10n-ignore: 개발자 로그
   Alert.alert(app.getL10n().t('common.error'), app.getL10n().t('bag.addFailed'));
   }
 };

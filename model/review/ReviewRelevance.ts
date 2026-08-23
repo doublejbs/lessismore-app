@@ -15,21 +15,21 @@ const MIN_TOKEN_LENGTH = 2;
 const SIZE_AND_GENDER_TOKENS = new Set([
   'mens',
   'womens',
-  '남', // l10n-ignore
-  '여', // l10n-ignore
-  '공용', // l10n-ignore
+  '남', // l10n-ignore: 후기 검색 매칭 토큰
+  '여', // l10n-ignore: 후기 검색 매칭 토큰
+  '공용', // l10n-ignore: 후기 검색 매칭 토큰
   's',
   'm',
   'l',
   'xl',
-  '스몰', // l10n-ignore
-  '미디움', // l10n-ignore
-  '미디엄', // l10n-ignore
-  '라지', // l10n-ignore
-  '엑스라지', // l10n-ignore
-  '투엑스라지', // l10n-ignore
-  '단품', // l10n-ignore
-  '세트', // l10n-ignore
+  '스몰', // l10n-ignore: 후기 검색 매칭 토큰
+  '미디움', // l10n-ignore: 후기 검색 매칭 토큰
+  '미디엄', // l10n-ignore: 후기 검색 매칭 토큰
+  '라지', // l10n-ignore: 후기 검색 매칭 토큰
+  '엑스라지', // l10n-ignore: 후기 검색 매칭 토큰
+  '투엑스라지', // l10n-ignore: 후기 검색 매칭 토큰
+  '단품', // l10n-ignore: 후기 검색 매칭 토큰
+  '세트', // l10n-ignore: 후기 검색 매칭 토큰
 ]);
 
 // 카테고리·품목 명사. **필수 토큰 판정에서만 추가로 제외하고 검색어에는 그대로 남긴다** —
@@ -39,40 +39,40 @@ const SIZE_AND_GENDER_TOKENS = new Set([
 // `엑스패드 딥슬립 필로우`·`랩 스트라토스피어 필로우`(타사)가 통과했다).
 // 모델명이 함께 있는 장비(`스텔라릿지 텐트`)는 모델명 토큰이 판정을 계속 담당한다(GD-6).
 const CATEGORY_TOKENS = new Set([
-  '필로우', // l10n-ignore
+  '필로우', // l10n-ignore: 후기 검색 매칭 토큰
   'pillow',
-  '텐트', // l10n-ignore
+  '텐트', // l10n-ignore: 후기 검색 매칭 토큰
   'tent',
-  '배낭', // l10n-ignore
-  '백팩', // l10n-ignore
+  '배낭', // l10n-ignore: 후기 검색 매칭 토큰
+  '백팩', // l10n-ignore: 후기 검색 매칭 토큰
   'backpack',
-  '침낭', // l10n-ignore
-  '매트', // l10n-ignore
+  '침낭', // l10n-ignore: 후기 검색 매칭 토큰
+  '매트', // l10n-ignore: 후기 검색 매칭 토큰
   'mat',
   'pad',
-  '파우치', // l10n-ignore
+  '파우치', // l10n-ignore: 후기 검색 매칭 토큰
   'pouch',
-  '체어', // l10n-ignore
+  '체어', // l10n-ignore: 후기 검색 매칭 토큰
   'chair',
-  '스토브', // l10n-ignore
+  '스토브', // l10n-ignore: 후기 검색 매칭 토큰
   'stove',
-  '재킷', // l10n-ignore
-  '자켓', // l10n-ignore
+  '재킷', // l10n-ignore: 후기 검색 매칭 토큰
+  '자켓', // l10n-ignore: 후기 검색 매칭 토큰
   'jacket',
-  '팬츠', // l10n-ignore
+  '팬츠', // l10n-ignore: 후기 검색 매칭 토큰
   'pants',
-  '후디', // l10n-ignore
+  '후디', // l10n-ignore: 후기 검색 매칭 토큰
   'hoody',
-  '셔츠', // l10n-ignore
+  '셔츠', // l10n-ignore: 후기 검색 매칭 토큰
   'shirt',
-  '티셔츠', // l10n-ignore
-  '베스트', // l10n-ignore
+  '티셔츠', // l10n-ignore: 후기 검색 매칭 토큰
+  '베스트', // l10n-ignore: 후기 검색 매칭 토큰
   'vest',
-  '슈즈', // l10n-ignore
+  '슈즈', // l10n-ignore: 후기 검색 매칭 토큰
   'shoes',
-  '파카', // l10n-ignore
+  '파카', // l10n-ignore: 후기 검색 매칭 토큰
   'parka',
-  '장갑', // l10n-ignore
+  '장갑', // l10n-ignore: 후기 검색 매칭 토큰
   'gloves',
 ]);
 

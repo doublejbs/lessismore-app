@@ -1,9 +1,11 @@
 import { makeAutoObservable } from 'mobx';
 import GearFilter from '../gear/GearFilter';
+import { getGearFilterName } from '../gear/GearFilterName';
+import { getAppTranslation } from '../l10n/L10nRegistry';
 
 class WarehouseFilter {
-  public static from(filter: GearFilter, name: string) {
-    return new WarehouseFilter(filter, name);
+  public static from(filter: GearFilter, name: string, labelKey?: string) {
+    return new WarehouseFilter(filter, name, labelKey);
   }
 
   private selected = false;
@@ -12,12 +14,21 @@ class WarehouseFilter {
   private constructor(
     private readonly filter: GearFilter,
     private readonly name: string,
+    private readonly labelKey?: string
   ) {
     makeAutoObservable(this);
   }
 
   public getName() {
     return this.name;
+  }
+
+  // 화면 표시 전용 라벨. getName()은 캐논컬 값 또는 요약 키로 보존해
+  // 비교·저장·참조 키에 번역 문자열이 흘러가지 않게 한다.
+  public getLabel() {
+    return this.labelKey
+      ? getAppTranslation(this.labelKey)
+      : getGearFilterName(this.filter);
   }
 
   public select() {

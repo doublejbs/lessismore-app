@@ -295,7 +295,7 @@ class Firebase {
         this.setLoginProvider('google');
       }
     } catch (error) {
-      console.error('Google 로그인 오류:', error); // l10n-ignore console 개발자 로그
+      console.error('Google 로그인 오류:', error); // l10n-ignore: console 개발자 로그
       throw error;
     }
   }
@@ -338,10 +338,10 @@ class Firebase {
     } catch (error: any) {
       if (error.code === 'ERR_REQUEST_CANCELED') {
         // 사용자가 로그인을 취소한 경우
-        console.log('Apple 로그인이 취소되었습니다.'); // l10n-ignore console 개발자 로그
+        console.log('Apple 로그인이 취소되었습니다.'); // l10n-ignore: console 개발자 로그
         return;
       }
-      console.error('Apple 로그인 오류:', error); // l10n-ignore console 개발자 로그
+      console.error('Apple 로그인 오류:', error); // l10n-ignore: console 개발자 로그
       throw error;
     }
   }
@@ -497,7 +497,7 @@ class Firebase {
         throw new Error(app.getL10n().t('auth.errors.unknownProvider'));
       }
     } catch (error: any) {
-      console.error('재인증 실패:', error); // l10n-ignore console 개발자 로그
+      console.error('재인증 실패:', error); // l10n-ignore: console 개발자 로그
       throw error;
     }
 
@@ -505,7 +505,7 @@ class Firebase {
     try {
       await this.deleteUserData(user.uid);
     } catch (error) {
-      console.error('사용자 데이터 삭제 실패:', error); // l10n-ignore console 개발자 로그
+      console.error('사용자 데이터 삭제 실패:', error); // l10n-ignore: console 개발자 로그
       // 데이터 삭제 실패해도 계정 삭제는 진행
     }
 
@@ -542,7 +542,7 @@ class Firebase {
       const credential = EmailAuthProvider.credential(user.email, password);
       await reauthenticateWithCredential(user, credential);
     } catch (error: any) {
-      console.error('재인증 실패:', error); // l10n-ignore console 개발자 로그
+      console.error('재인증 실패:', error); // l10n-ignore: console 개발자 로그
       throw new Error(app.getL10n().t('auth.errors.wrongPassword'));
     }
 
@@ -550,7 +550,7 @@ class Firebase {
     try {
       await this.deleteUserData(user.uid);
     } catch (error) {
-      console.error('사용자 데이터 삭제 실패:', error); // l10n-ignore console 개발자 로그
+      console.error('사용자 데이터 삭제 실패:', error); // l10n-ignore: console 개발자 로그
       // 데이터 삭제 실패해도 계정 삭제는 진행
     }
 

@@ -72,7 +72,7 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
     try {
       await bagMemo.confirm(content.trim());
     } catch (error) {
-      console.error('메모 저장 실패:', error); // l10n-ignore
+        console.error('메모 저장 실패:', error); // l10n-ignore: 개발자 로그
     } finally {
       setIsLoading(false);
     }

@@ -48,7 +48,7 @@ const BagShareContent: FC<Props> = ({ bagDetail }) => {
       await Clipboard.setStringAsync(url);
       Alert.alert(app.getL10n().t('bagShare.success'), app.getL10n().t('bagShare.copied'));
     } catch (error) {
-      console.error('복사 실패:', error); // l10n-ignore
+      console.error('복사 실패:', error); // l10n-ignore: 개발자 로그
       Alert.alert(app.getL10n().t('common.error'), app.getL10n().t('bagShare.copyFailedShort'));
     }
   };

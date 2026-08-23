@@ -59,7 +59,7 @@ class BagMemo {
       router.back();
       this.toastManager.show({ message: app.getL10n().t('bag.memo.saved') });
     } catch (error) {
-      console.error('메모 저장 실패:', error); // l10n-ignore
+      console.error('메모 저장 실패:', error); // l10n-ignore: 개발자 로그
       throw error;
     }
   }
@@ -81,7 +81,7 @@ class BagMemo {
           router.back();
           this.toastManager.show({ message: app.getL10n().t('bag.memo.deleted') });
         } catch (error) {
-          console.error('메모 삭제 실패:', error); // l10n-ignore
+          console.error('메모 삭제 실패:', error); // l10n-ignore: 개발자 로그
           this.alertManager.show({
             message: app.getL10n().t('bag.memo.deleteFailed'),
             confirmText: app.getL10n().t('common.ok'),

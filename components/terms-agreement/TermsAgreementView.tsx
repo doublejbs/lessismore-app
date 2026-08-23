@@ -53,7 +53,7 @@ const TermsAgreementView: FC = () => {
       // 약관 동의 후 앱 첫 화면으로 — 창고가 아니라 홈이다(HM-0).
       router.replace('/');
     } catch (error) {
-      console.error('약관 동의 저장 오류:', error); // l10n-ignore console 개발자 로그
+        console.error('약관 동의 저장 오류:', error); // l10n-ignore: console 개발자 로그
       Alert.alert(
         l10n.t('common.error'),
         l10n.t('auth.terms.saveErrorMessage')

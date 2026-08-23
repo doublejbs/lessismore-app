@@ -76,7 +76,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
         router.push(`/bag/${newBagId}`);
       }
     } catch (error) {
-      console.error('새 배낭 생성 및 장비 추가 중 오류:', error); // l10n-ignore
+      console.error('새 배낭 생성 및 장비 추가 중 오류:', error); // l10n-ignore: 개발자 로그
     } finally {
       setLoading(false);
     }
@@ -93,7 +93,7 @@ const SearchGearAddToBagModalView: FC<Props> = ({
         onClose();
       }
     } catch (error) {
-      console.error('배낭에 추가 중 오류:', error); // l10n-ignore
+      console.error('배낭에 추가 중 오류:', error); // l10n-ignore: 개발자 로그
     } finally {
       setLoading(false);
     }

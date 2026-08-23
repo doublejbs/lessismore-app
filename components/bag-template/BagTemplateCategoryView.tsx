@@ -17,7 +17,7 @@ interface Props {
 const BagTemplateCategoryView: FC<Props> = ({ category, gears, detail }) => (
   <View style={styles.container}>
     <PretendardText style={styles.category} weight='bold'>
-      {category.getName()}
+      {category.getLabel()}
     </PretendardText>
     <View>
       {gears.map((gear, index) => (

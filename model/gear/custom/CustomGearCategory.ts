@@ -1,5 +1,6 @@
 import GearFilter from '@/model/gear/GearFilter';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
+import { GEAR_FILTER_NAMES } from '@/model/gear/GearFilterName';
 
 class CustomGearCategory {
   public static new() {
@@ -9,47 +10,47 @@ class CustomGearCategory {
   private readonly filters: WarehouseFilter[] = [
     {
       filter: GearFilter.Tent,
-      name: '텐트', // l10n-ignore
+      name: GEAR_FILTER_NAMES[GearFilter.Tent],
     },
     {
       filter: GearFilter.SleepingBag,
-      name: '침낭', // l10n-ignore
+      name: GEAR_FILTER_NAMES[GearFilter.SleepingBag],
     },
     {
       filter: GearFilter.Backpack,
-      name: '배낭', // l10n-ignore
+      name: GEAR_FILTER_NAMES[GearFilter.Backpack],
     },
     {
       filter: GearFilter.Clothing,
-      name: '의류', // l10n-ignore
+      name: GEAR_FILTER_NAMES[GearFilter.Clothing],
     },
     {
       filter: GearFilter.Mat,
-      name: '매트', // l10n-ignore
+      name: GEAR_FILTER_NAMES[GearFilter.Mat],
     },
     {
       filter: GearFilter.Furniture,
-      name: '가구', // l10n-ignore
+      name: GEAR_FILTER_NAMES[GearFilter.Furniture],
     },
     {
       filter: GearFilter.Lantern,
-      name: '랜턴', // l10n-ignore
+      name: GEAR_FILTER_NAMES[GearFilter.Lantern],
     },
     {
       filter: GearFilter.Cooking,
-      name: '조리', // l10n-ignore
+      name: GEAR_FILTER_NAMES[GearFilter.Cooking],
     },
     {
       filter: GearFilter.Electronic,
-      name: '전자기기', // l10n-ignore
+      name: GEAR_FILTER_NAMES[GearFilter.Electronic],
     },
     {
       filter: GearFilter.Food,
-      name: '음식', // l10n-ignore
+      name: GEAR_FILTER_NAMES[GearFilter.Food],
     },
     {
       filter: GearFilter.Etc,
-      name: '기타', // l10n-ignore
+      name: GEAR_FILTER_NAMES[GearFilter.Etc],
     },
   ].map(({ filter, name }) => WarehouseFilter.from(filter, name));
 
