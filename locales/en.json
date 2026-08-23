@@ -1,0 +1,19 @@
+{
+  "common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "close": "Close",
+    "continue": "Continue",
+    "ok": "Got it",
+    "done": "Done"
+  },
+  "info": {
+    "language": {
+      "title": "Language",
+      "rowLabel": "Language",
+      "system": "Use system settings"
+    }
+  }
+}

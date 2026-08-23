@@ -1,0 +1,19 @@
+{
+  "common": {
+    "confirm": "確認",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "close": "閉じる",
+    "continue": "続ける",
+    "ok": "わかりました",
+    "done": "完了"
+  },
+  "info": {
+    "language": {
+      "title": "言語",
+      "rowLabel": "言語",
+      "system": "システム設定に従う"
+    }
+  }
+}

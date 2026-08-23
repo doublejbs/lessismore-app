@@ -18,9 +18,11 @@ import FeaturePopupManager from '../feature-popup/FeaturePopupManager';
 import GearPreviewStore from '../gear-preview/GearPreviewStore';
 import BagTemplateStore from '../store/BagTemplateStore';
 import FeedContentStore from '../store/FeedContentStore';
+import L10n from '../l10n/L10n';
 
 class App {
   private readonly firebase = new Firebase();
+  private readonly l10n = new L10n();
   private gearStore: GearStore | null = null;
   private bagStore: BagStore | null = null;
   private bagTemplateStore: BagTemplateStore | null = null;
@@ -56,6 +58,7 @@ class App {
 
     this.initializing = true;
 
+    await this.l10n.initialize();
     await this.firebase.initialize();
     this.gearStore = new GearStore(this.firebase);
     this.setBagStore(new BagStore(this.firebase));
@@ -91,6 +94,10 @@ class App {
 
   public getFirebase() {
     return this.firebase;
+  }
+
+  public getL10n() {
+    return this.l10n;
   }
 
   public getBagStore() {
