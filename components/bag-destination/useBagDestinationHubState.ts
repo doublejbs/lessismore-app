@@ -42,7 +42,7 @@ const useBagDestinationHubState = ({ bagWeather }: Params) => {
         // 삭제(null)·비활성(status !== active)이면 저장된 이름·좌표는 유지하되 박지로 취급하지 않는다(DST-7).
         setLinkedSpot(spot && spot.status === 'active' ? spot : null);
       } catch (e) {
-      console.error('여행지 박지 조회 실패:', e); // l10n-ignore
+      console.error('여행지 박지 조회 실패:', e); // l10n-ignore: 개발자 로그
 
         if (!cancelled) {
           setLinkedSpot(null);

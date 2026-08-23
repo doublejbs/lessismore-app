@@ -172,7 +172,7 @@ class GearImageUpload {
 
       await this.uploadImage(asset.uri, source);
     } catch (error) {
-      console.error('장비 사진 선택 실패:', error); // l10n-ignore
+      console.error('장비 사진 선택 실패:', error); // l10n-ignore: 개발자 로그
       this.toastManager.show({ message: app.getL10n().t('gearDetail.photoLoadFailed') });
     } finally {
       this.setPicking(false);
@@ -236,7 +236,7 @@ class GearImageUpload {
         try {
           await Linking.openSettings();
         } catch (error) {
-          console.error('설정 열기 실패:', error); // l10n-ignore
+      console.error('설정 열기 실패:', error); // l10n-ignore: 개발자 로그
         }
       },
     });
@@ -282,7 +282,7 @@ class GearImageUpload {
         await this.deleteStorageFile(previousUrl);
       }
     } catch (error) {
-      console.error('장비 사진 업로드 실패:', error); // l10n-ignore
+      console.error('장비 사진 업로드 실패:', error); // l10n-ignore: 개발자 로그
       this.toastManager.show({ message: app.getL10n().t('gearDetail.photoUploadFailed') });
     } finally {
       this.setBusy(false);
@@ -314,7 +314,7 @@ class GearImageUpload {
       this.setLoadFailed(false);
       await this.deleteStorageFile(targetUrl);
     } catch (error) {
-      console.error('장비 사진 삭제 실패:', error); // l10n-ignore
+      console.error('장비 사진 삭제 실패:', error); // l10n-ignore: 개발자 로그
       this.toastManager.show({ message: app.getL10n().t('gearDetail.photoDeleteFailed') });
     } finally {
       this.setBusy(false);
@@ -326,7 +326,7 @@ class GearImageUpload {
     try {
       await this.gearImageStorage.deleteImage(url);
     } catch (error) {
-      console.error('장비 사진 파일 삭제 실패:', error); // l10n-ignore
+      console.error('장비 사진 파일 삭제 실패:', error); // l10n-ignore: 개발자 로그
     }
   }
 

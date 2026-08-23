@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // `시스템 설정 따르기` 행은 두지 않는다(2026-08-23 사용자 결정) — 저장값이 없으면
 // 시스템 로캘에서 유도한 언어에 체크가 가고, 사용자가 고르는 순간부터 그 선택이 저장된다.
 const LANGUAGE_OPTIONS: readonly { language: AppLanguage; label: string }[] = [
-  { language: AppLanguage.Korean, label: '한국어' }, // l10n-ignore 언어 이름 자기 표기
+  { language: AppLanguage.Korean, label: '한국어' }, // l10n-ignore: 언어 이름 자기 표기
   { language: AppLanguage.English, label: 'English' },
   { language: AppLanguage.Japanese, label: '日本語' },
 ];

@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 import PretendardText from '../PretendardText';
 import { Acg, AcgLayout, AcgType, Spacing } from '@/constants/DesignTokens';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
-import { GEAR_FILTER_NAMES } from '@/model/gear/GearFilterName';
+import { getGearFilterName } from '@/model/gear/GearFilterName';
 
 interface Props {
   gear: Gear;
@@ -32,7 +32,7 @@ const WarehouseDetailInformationView: FC<Props> = ({ gear, photo }) => {
   const category = gear.getCategory();
   // 세분 카테고리 한글 라벨 우선, 매핑에 없으면 그룹(GearFilter) 라벨 폴백(GD-1, DM-4). 카테고리 없으면 항목 생략.
   const categoryLabel = category
-    ? gear.getFineCategoryLabel() || GEAR_FILTER_NAMES[gear.getGroupCategory()]
+    ? gear.getFineCategoryLabel() || getGearFilterName(gear.getGroupCategory())
     : '';
   // 카테고리 · 색상 · 사이즈 메타 라인 — 빈 항목 생략, 모두 없으면 라인 미노출
   const metaLine = [categoryLabel, color, size].filter(Boolean).join(' · ');

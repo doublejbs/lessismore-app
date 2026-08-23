@@ -123,7 +123,7 @@ const getBlogReviews = async ({
       .filter(review => matchesRequiredTokens(review.title, requiredTokens))
       .slice(0, BLOG_DISPLAY_COUNT);
   } catch (e) {
-    console.error('블로그 후기 조회 실패:', e); // l10n-ignore
+    console.error('블로그 후기 조회 실패:', e); // l10n-ignore: 개발자 로그
 
     return null;
   }
@@ -168,7 +168,7 @@ const getVideoReviews = async ({
       .filter(video => matchesRequiredTokens(video.title, requiredTokens))
       .slice(0, VIDEO_DISPLAY_COUNT);
   } catch (e) {
-    console.error('후기 영상 조회 실패:', e); // l10n-ignore
+    console.error('후기 영상 조회 실패:', e); // l10n-ignore: 개발자 로그
 
     return null;
   }

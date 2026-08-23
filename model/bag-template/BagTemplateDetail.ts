@@ -59,7 +59,7 @@ class BagTemplateDetail {
       this.filterManager.selectFirstFilter();
       this.initialized = true;
     } catch (error) {
-    console.error('템플릿 상세 조회 중 오류 발생:', error); // l10n-ignore
+    console.error('템플릿 상세 조회 중 오류 발생:', error); // l10n-ignore: 개발자 로그
       this.missing = true;
       this.initialized = true;
     } finally {

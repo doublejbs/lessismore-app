@@ -43,7 +43,7 @@ const WORKOUT_READ_PROBE_START_DATE = new Date(0);
 // 이 클래스의 public 메서드는 던지지 않는 계약이라 실패가 빈 값으로 떨어진다.
 // 흔적까지 지우면 필드에서 원인을 좁힐 수 없어 삼키되 로그는 남긴다.
 const logHealthError = (scope: string, error: unknown): void => {
-  console.error(`[HealthKit] ${scope} 실패:`, error); // l10n-ignore
+  console.error(`[HealthKit] ${scope} 실패:`, error); // l10n-ignore: HealthKit 개발자 로그
 };
 
 const METERS_UNIT = 'm';
@@ -244,7 +244,7 @@ class HealthKitService implements HealthService {
     } catch (error) {
       // 여기서 삼키면 화면은 "기록이 없거나 접근이 허용되지 않았어요"로 떨어진다 —
       // 판별 불가와 프로브 자체의 실패가 UI에서 똑같이 보이므로 로그로만 구분된다.
-      logHealthError('운동 읽기 확인 프로브', error); // l10n-ignore
+      logHealthError('운동 읽기 확인 프로브', error); // l10n-ignore: HealthKit 개발자 로그
 
       return false;
     }

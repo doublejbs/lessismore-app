@@ -43,7 +43,7 @@ class CampSiteDetailDispatcher {
   private buildReviewQuery(spot: CampSpot): string {
     const area = (spot.city || spot.region || '').trim();
 
-    const reviewType = '백패킹'; // l10n-ignore
+    const reviewType = '백패킹'; // l10n-ignore: 후기 검색 관련성 토큰
 
     return [area, spot.name, reviewType]
       .filter(part => Boolean(part))

@@ -2,7 +2,10 @@ import { makeAutoObservable } from 'mobx';
 import Gear from '@/model/gear/Gear';
 import GearFilter from '@/model/gear/GearFilter';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
-import app from '@/model/app/App';
+import {
+  GEAR_FILTER_NAMES,
+  getGearFilterName,
+} from '@/model/gear/GearFilterName';
 
 class BagDetailFilterManager {
   public static from() {
@@ -12,47 +15,47 @@ class BagDetailFilterManager {
   private readonly filters: WarehouseFilter[] = [
     {
       filter: GearFilter.Backpack,
-      name: 'backpack',
+      name: GEAR_FILTER_NAMES[GearFilter.Backpack],
     },
     {
       filter: GearFilter.Tent,
-      name: 'tent',
+      name: GEAR_FILTER_NAMES[GearFilter.Tent],
     },
     {
       filter: GearFilter.SleepingBag,
-      name: 'sleepingBag',
+      name: GEAR_FILTER_NAMES[GearFilter.SleepingBag],
     },
     {
       filter: GearFilter.Mat,
-      name: 'mat',
+      name: GEAR_FILTER_NAMES[GearFilter.Mat],
     },
     {
       filter: GearFilter.Lantern,
-      name: 'lantern',
+      name: GEAR_FILTER_NAMES[GearFilter.Lantern],
     },
     {
       filter: GearFilter.Cooking,
-      name: 'cooking',
+      name: GEAR_FILTER_NAMES[GearFilter.Cooking],
     },
     {
       filter: GearFilter.Clothing,
-      name: 'clothing',
+      name: GEAR_FILTER_NAMES[GearFilter.Clothing],
     },
     {
       filter: GearFilter.Furniture,
-      name: 'furniture',
+      name: GEAR_FILTER_NAMES[GearFilter.Furniture],
     },
     {
       filter: GearFilter.Electronic,
-      name: 'electronic',
+      name: GEAR_FILTER_NAMES[GearFilter.Electronic],
     },
     {
       filter: GearFilter.Food,
-      name: 'food',
+      name: GEAR_FILTER_NAMES[GearFilter.Food],
     },
     {
       filter: GearFilter.Etc,
-      name: 'etc',
+      name: GEAR_FILTER_NAMES[GearFilter.Etc],
     },
   ].map(({ filter, name }) => WarehouseFilter.from(filter, name));
 
@@ -101,9 +104,10 @@ class BagDetailFilterManager {
 
   public getCategoryName(category: GearFilter): string {
     const filter = this.filters.find(f => f.isSame(category));
-    return app.getL10n().t(
-      filter ? `bagDetail.summary.${filter.getName()}` : 'bagDetail.summary.etc'
-    );
+
+    return filter
+      ? getGearFilterName(filter.getFilter())
+      : getGearFilterName(GearFilter.Etc);
   }
 
   public getFiltersWithGears(gears: Gear[]) {

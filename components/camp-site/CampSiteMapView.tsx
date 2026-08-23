@@ -189,7 +189,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         locationWatchRef.current = subscription;
       } catch (error) {
         // 구독을 못 열어도(위치 서비스 꺼짐 등) 버튼은 캐시·새 fix로 폴백하므로 화면은 살아 있다.
-        console.error('현재 위치 구독 실패:', error); // l10n-ignore
+        console.error('현재 위치 구독 실패:', error); // l10n-ignore: 개발자 로그
 
         if (locationWatchTokenRef.current === watchToken) {
           locationWatchTokenRef.current = null;
@@ -371,7 +371,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
 
         applyInitialCamera(position.coords);
       } catch (error) {
-       console.error('위치 권한 요청 실패:', error); // l10n-ignore
+       console.error('위치 권한 요청 실패:', error); // l10n-ignore: 개발자 로그
       }
     };
 
@@ -497,7 +497,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       });
       moveToLocation(position.coords.latitude, position.coords.longitude);
     } catch (error) {
-      console.error('현재 위치 이동 실패:', error); // l10n-ignore
+      console.error('현재 위치 이동 실패:', error); // l10n-ignore: 개발자 로그
       app.getToastManager()?.show({ message: app.getL10n().t('app.location.failed') });
     }
   }, [moveCamera, updateCurrentLocation]);

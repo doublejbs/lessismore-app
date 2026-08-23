@@ -32,8 +32,8 @@ const BagEditWarehouseFiltersView: FC<Props> = ({ bagEdit }) => {
 
           return (
             <CategoryChipView
-              key={filter.getName()}
-              label={filter.getName()}
+              key={filter.getFilter()}
+              label={filter.getLabel()}
               selected={filter.isSelected()}
               onPress={() => handlePress(filter)}
               {...(isAll ? {} : { count: filter.getCount() })}

@@ -92,7 +92,7 @@ class CampSiteMap {
 
       this.setSpots(spots);
     } catch (error) {
-      console.error('박지 정보 로드 실패:', error); // l10n-ignore
+      console.error('박지 정보 로드 실패:', error); // l10n-ignore: 개발자 로그
 
       this.setLoadError(true);
     } finally {
@@ -309,7 +309,7 @@ class CampSiteMap {
       );
     } catch (error) {
       // 카카오 실패는 지명 구간만 생략하고 박지 검색은 유지한다(CS-6).
-      console.error('지명 검색 실패:', error); // l10n-ignore
+      console.error('지명 검색 실패:', error); // l10n-ignore: 개발자 로그
 
       if (
         generation === this.placeSearchGeneration &&

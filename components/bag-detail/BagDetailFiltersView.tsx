@@ -46,7 +46,7 @@ const BagDetailFiltersView: FC<Props> = ({ bagDetail }) => {
               bagDetail={bagDetail}
               onRef={(ref: any) => {
                 if (ref) {
-                  filterButtonRefs.current.set(filter.getName(), ref);
+                  filterButtonRefs.current.set(filter.getFilter(), ref);
                 }
               }}
             />

@@ -297,7 +297,7 @@ const GearEditView: FC<Props> = ({ gearEdit }) => {
                   {gearEdit.mapFilters(filter => (
                     <CategoryChipView
                       key={filter.getFilter()}
-                      label={filter.getName()}
+                      label={filter.getLabel()}
                       selected={filter.isSelected()}
                       onPress={() => handleClickSelectFilter(filter)}
                     />

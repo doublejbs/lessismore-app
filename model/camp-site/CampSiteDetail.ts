@@ -79,7 +79,7 @@ class CampSiteDetail {
       void this.loadReviewContent(spot);
       void this.loadUserReviews(spot.id);
     } catch (e) {
-      console.error('박지 상세 로드 실패:', e); // l10n-ignore
+      console.error('박지 상세 로드 실패:', e); // l10n-ignore: 개발자 로그
       const l10n = app.getL10n();
       Alert.alert(l10n.t('campSite.detail.loadFailedTitle'), l10n.t('campSite.detail.loadFailedMessage'), [
         { text: l10n.t('common.confirm'), onPress: () => this.close() },
@@ -101,7 +101,7 @@ class CampSiteDetail {
   private async loadReviewContent(spot: CampSpot) {
     try {
       const cached = await this.dispatcher.getReviewCache(spot.id).catch(e => {
-        console.error('박지 후기 캐시 조회 실패:', e); // l10n-ignore
+        console.error('박지 후기 캐시 조회 실패:', e); // l10n-ignore: 개발자 로그
 
         return null;
       });
@@ -143,11 +143,11 @@ class CampSiteDetail {
             queryVersion: REVIEW_QUERY_VERSION,
           })
           .catch(e => {
-            console.error('박지 후기 캐시 저장 실패:', e); // l10n-ignore
+          console.error('박지 후기 캐시 저장 실패:', e); // l10n-ignore: 개발자 로그
           });
       }
     } catch (e) {
-      console.error('박지 후기 조회 실패:', e); // l10n-ignore
+      console.error('박지 후기 조회 실패:', e); // l10n-ignore: 개발자 로그
     }
   }
 
@@ -185,7 +185,7 @@ class CampSiteDetail {
       this.setUserReviews(reviews);
       this.setMyReview(myReview);
     } catch (e) {
-      console.error('박지 유저 후기 조회 실패:', e); // l10n-ignore
+      console.error('박지 유저 후기 조회 실패:', e); // l10n-ignore: 개발자 로그
     }
   }
 
@@ -346,7 +346,7 @@ class CampSiteDetail {
     try {
       await this.favoriteStore.toggle({ id: spot.id, name: spot.name });
     } catch (e) {
-      console.error('박지 즐겨찾기 토글 실패:', e); // l10n-ignore
+      console.error('박지 즐겨찾기 토글 실패:', e); // l10n-ignore: 개발자 로그
       this.toastManager.show({
         message: app.getL10n().t('campSite.detail.favoriteFailed'),
       });
@@ -506,7 +506,7 @@ class CampSiteDetail {
 
       this.completeBagSelection(bag, weatherFailed);
     } catch (e) {
-      console.error('배낭 여행지 저장 실패:', e); // l10n-ignore
+      console.error('배낭 여행지 저장 실패:', e); // l10n-ignore: 개발자 로그
       const l10n = app.getL10n();
       Alert.alert(
         l10n.t('campSite.detail.saveFailedTitle'),

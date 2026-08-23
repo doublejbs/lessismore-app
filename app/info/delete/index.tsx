@@ -49,7 +49,7 @@ const DeleteInfoView = () => {
                 ]
               );
             } catch (error: any) {
-              console.error('회원 탈퇴 실패:', error); // l10n-ignore console 개발자 로그
+              console.error('회원 탈퇴 실패:', error); // l10n-ignore: console 개발자 로그
               let errorMessage = l10n.t('info.deleteAccount.failedMessage');
 
               if (

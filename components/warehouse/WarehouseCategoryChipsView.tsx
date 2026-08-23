@@ -34,7 +34,7 @@ const WarehouseCategoryChipsView: FC<Props> = ({
   warehouse,
   analyticsElement,
 }) => {
-  const selectedFilterName = warehouse.getSelectedFilter().getName();
+  const selectedFilterName = warehouse.getSelectedFilter().getLabel();
 
   /**
    * 가로 스크롤을 선택 칩에 맞춘다.
@@ -129,11 +129,11 @@ const WarehouseCategoryChipsView: FC<Props> = ({
     >
       {warehouse.mapFilters(filter => (
         <View
-          key={filter.getName()}
-          onLayout={handleChipLayout(filter.getName())}
+          key={filter.getFilter()}
+          onLayout={handleChipLayout(filter.getLabel())}
         >
           <CategoryChipView
-            label={filter.getName()}
+            label={filter.getLabel()}
             selected={filter.isSelected()}
             onPress={() => handleClick(filter)}
           />

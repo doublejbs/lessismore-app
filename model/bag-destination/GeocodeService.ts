@@ -14,12 +14,12 @@ export const GEOCODE_MIN_QUERY_LENGTH = 2;
 export const GEOCODE_DEBOUNCE_MS = 400;
 
 // 주소를 찾지 못한 좌표(바다·산악 등)도 여행지로 확정할 수 있게 하는 폴백 이름(DST-3).
-export const FALLBACK_LOCATION_NAME = '선택한 위치'; // l10n-ignore
+export const FALLBACK_LOCATION_NAME = '선택한 위치'; // l10n-ignore: 지역 라벨(좌표 역지오코딩 폴백)
 
 const getHeaders = () => {
   if (!KAKAO_REST_KEY) {
     throw new Error(
-      'Kakao REST 키가 없습니다. .env에 EXPO_PUBLIC_KAKAO_REST_KEY를 설정하세요.' // l10n-ignore
+      'Kakao REST 키가 없습니다. .env에 EXPO_PUBLIC_KAKAO_REST_KEY를 설정하세요.' // l10n-ignore: 개발자 설정 오류
     );
   }
 
@@ -42,7 +42,7 @@ const geocode = async (name: string): Promise<GeocodeResult[]> => {
   const res = await fetch(url, { headers });
 
   if (!res.ok) {
-    throw new Error(`Kakao 지오코딩 실패: ${res.status}`); // l10n-ignore
+    throw new Error(`Kakao 지오코딩 실패: ${res.status}`); // l10n-ignore: 개발자 API 예외 메시지
   }
 
   const json = await res.json();

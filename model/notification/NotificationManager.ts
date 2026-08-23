@@ -148,7 +148,7 @@ class NotificationManager {
         await this.subscribeTopic(ALL_TOPIC);
       }
     } catch (error) {
-      console.warn('NotificationManager 초기화 실패', error); // l10n-ignore console 개발자 로그
+      console.warn('NotificationManager 초기화 실패', error); // l10n-ignore: console 개발자 로그
     }
   }
 
@@ -201,7 +201,7 @@ class NotificationManager {
     try {
       await notifications.scheduleNotificationAsync({ content, trigger: null });
     } catch (error) {
-      console.warn('NotificationManager 포그라운드 푸시 표시 실패', error); // l10n-ignore console 개발자 로그
+      console.warn('NotificationManager 포그라운드 푸시 표시 실패', error); // l10n-ignore: console 개발자 로그
     }
   }
 
@@ -241,7 +241,7 @@ class NotificationManager {
 
       return requested.granted;
     } catch (error) {
-      console.warn('NotificationManager 권한 요청 실패', error); // l10n-ignore console 개발자 로그
+      console.warn('NotificationManager 권한 요청 실패', error); // l10n-ignore: console 개발자 로그
 
       return false;
     }
@@ -284,7 +284,7 @@ class NotificationManager {
         },
       });
     } catch (error) {
-      console.warn('NotificationManager 로컬 알림 예약 실패', error); // l10n-ignore console 개발자 로그
+      console.warn('NotificationManager 로컬 알림 예약 실패', error); // l10n-ignore: console 개발자 로그
     }
   }
 
@@ -302,7 +302,7 @@ class NotificationManager {
 
       await notifications.cancelScheduledNotificationAsync(id);
     } catch (error) {
-      console.warn('NotificationManager 로컬 알림 취소 실패', error); // l10n-ignore console 개발자 로그
+      console.warn('NotificationManager 로컬 알림 취소 실패', error); // l10n-ignore: console 개발자 로그
     }
   }
 
@@ -458,7 +458,7 @@ class NotificationManager {
         );
       }
     } catch (error) {
-      console.warn('NotificationManager 리마인더 재예약 실패', error); // l10n-ignore console 개발자 로그
+      console.warn('NotificationManager 리마인더 재예약 실패', error); // l10n-ignore: console 개발자 로그
     }
   }
 
@@ -478,7 +478,7 @@ class NotificationManager {
         }
       }
     } catch (error) {
-      console.warn('NotificationManager 리마인더 취소 실패', error); // l10n-ignore console 개발자 로그
+      console.warn('NotificationManager 리마인더 취소 실패', error); // l10n-ignore: console 개발자 로그
     }
   }
 
@@ -498,7 +498,7 @@ class NotificationManager {
 
       this.settings = { ...DEFAULT_SETTINGS, ...parsed };
     } catch (error) {
-      console.warn('NotificationManager 설정 로드 실패', error); // l10n-ignore console 개발자 로그
+      console.warn('NotificationManager 설정 로드 실패', error); // l10n-ignore: console 개발자 로그
     }
   }
 
@@ -513,7 +513,7 @@ class NotificationManager {
         JSON.stringify(this.settings)
       );
     } catch (error) {
-      console.warn('NotificationManager 설정 저장 실패', error); // l10n-ignore console 개발자 로그
+      console.warn('NotificationManager 설정 저장 실패', error); // l10n-ignore: console 개발자 로그
     }
   }
 
@@ -531,7 +531,7 @@ class NotificationManager {
 
       await messaging.subscribeToTopic(topic);
     } catch (error) {
-      console.warn('NotificationManager 토픽 구독 실패', error); // l10n-ignore console 개발자 로그
+      console.warn('NotificationManager 토픽 구독 실패', error); // l10n-ignore: console 개발자 로그
     }
   }
 
@@ -549,7 +549,7 @@ class NotificationManager {
 
       await messaging.unsubscribeFromTopic(topic);
     } catch (error) {
-      console.warn('NotificationManager 토픽 구독 해제 실패', error); // l10n-ignore console 개발자 로그
+      console.warn('NotificationManager 토픽 구독 해제 실패', error); // l10n-ignore: console 개발자 로그
     }
   }
 

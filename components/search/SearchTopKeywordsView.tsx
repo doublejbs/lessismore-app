@@ -56,10 +56,6 @@ const SEARCH_RANK_CATEGORY_FILTERS: GearFilter[] = [
   GearFilter.Cooking,
 ];
 
-const categories: CategoryItem[] = SEARCH_RANK_CATEGORY_FILTERS.map(filter => {
-  return { filter, name: getGearFilterName(filter) };
-});
-
 /**
  * 추가·보유 버튼의 터치 여유(SR-4).
  *
@@ -96,6 +92,11 @@ const SearchTopKeywordsView: FC<Props> = ({
   const gears = searchRank.getGears();
   const isLoading = searchRank.isLoading();
   const l10n = app.getL10n();
+  // 언어 전환 때 레지스트리 observable을 다시 읽어 라벨을 갱신한다.
+  const categories: CategoryItem[] = SEARCH_RANK_CATEGORY_FILTERS.map(filter => ({
+    filter,
+    name: getGearFilterName(filter),
+  }));
 
   useFocusEffect(
     // MobX 모델 인스턴스는 의도적으로 mutable observable이므로 이 콜백의 수동 메모이제이션을 유지한다.

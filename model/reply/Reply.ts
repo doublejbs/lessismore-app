@@ -76,7 +76,7 @@ class Reply {
 
       router.back();
     } catch (error) {
-      console.error('댓글 작성 실패:', error); // l10n-ignore
+      console.error('댓글 작성 실패:', error); // l10n-ignore: 개발자 로그
       throw error;
     }
   }
@@ -138,7 +138,7 @@ class Reply {
           : c
       );
       this.setComments(rolledBackComments);
-      console.error('좋아요 토글 실패:', error); // l10n-ignore
+      console.error('좋아요 토글 실패:', error); // l10n-ignore: 개발자 로그
     }
   }
 

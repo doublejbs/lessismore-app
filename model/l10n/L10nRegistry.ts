@@ -6,6 +6,7 @@ import AppLanguage from './AppLanguage';
 // 언어 전환에 반응한다(L10N-2).
 interface LanguageSource {
   language: AppLanguage;
+  t: (key: string) => string;
 }
 
 let source: LanguageSource | null = null;
@@ -16,4 +17,10 @@ export const registerL10n = (l10n: LanguageSource) => {
 
 export const getAppLanguage = (): AppLanguage => {
   return source?.language ?? AppLanguage.Korean;
+};
+
+// App 싱글톤을 직접 가져올 수 없는 모델 말단에서 번역을 읽는 진입점이다.
+// L10n 생성 전에는 호출되지 않지만, 안전한 폴백으로 키 대신 빈 문자열을 내지 않는다.
+export const getAppTranslation = (key: string): string => {
+  return source?.t(key) ?? key;
 };

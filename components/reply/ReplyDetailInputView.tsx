@@ -82,7 +82,7 @@ const ReplyDetailInputView: FC<Props> = observer(
         Keyboard.dismiss();
         scrollViewRef.current?.scrollToEnd({ animated: true });
       } catch (error) {
-        console.error('답글 저장 실패:', error); // l10n-ignore
+        console.error('답글 저장 실패:', error); // l10n-ignore: 개발자 로그
       } finally {
         setIsSaving(false);
       }
