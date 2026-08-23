@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { observer } from 'mobx-react-lite';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
@@ -9,6 +10,7 @@ import {
   getCampSiteTypeLabel,
   getCampSpotRegionLabel,
 } from '@/model/camp-site/CampSiteLabels';
+import app from '@/model/app/App';
 
 interface Props {
   location: BagLocation;
@@ -38,7 +40,7 @@ const BagDestinationInfoView: FC<Props> = ({
       onPress={onOpenSpotDetail}
       activeOpacity={0.7}
       accessibilityRole='button'
-      accessibilityLabel={`${location.name} 박지 상세 보기`}
+      accessibilityLabel={app.getL10n().t('bagDestination.detail', { name: location.name })}
     >
       {/* 행 문법(2026-08-13 디자인 리뷰): 이름 + 메타 한 줄(`유형 · 지역`) + 우측 셰브론.
           - 📍 이모지 제거 — 위 지도에 이미 라임 핀이 있고, 팔레트 밖 빨간 핀이 플랫폼마다
@@ -97,7 +99,7 @@ const BagDestinationInfoView: FC<Props> = ({
           onPress={onOpenPicker}
           activeOpacity={0.7}
           accessibilityRole='button'
-          accessibilityLabel='여행지 변경'
+          accessibilityLabel={app.getL10n().t('bagDestination.change')}
         >
           <Ionicons
             name='swap-horizontal'
@@ -105,7 +107,7 @@ const BagDestinationInfoView: FC<Props> = ({
             color={Color.textPrimary}
           />
           <PretendardText style={styles.actionText} weight='medium'>
-            변경
+            {app.getL10n().t('bagDestination.changeShort')}
           </PretendardText>
         </TouchableOpacity>
 
@@ -114,7 +116,7 @@ const BagDestinationInfoView: FC<Props> = ({
           onPress={onOpenDirections}
           activeOpacity={0.7}
           accessibilityRole='button'
-          accessibilityLabel='네이버 지도로 길찾기'
+          accessibilityLabel={app.getL10n().t('bagDestination.directions')}
         >
           <Ionicons
             name='navigate-outline'
@@ -122,7 +124,7 @@ const BagDestinationInfoView: FC<Props> = ({
             color={Color.textPrimary}
           />
           <PretendardText style={styles.actionText} weight='medium'>
-            길찾기
+            {app.getL10n().t('bagDestination.directionsShort')}
           </PretendardText>
         </TouchableOpacity>
       </View>
@@ -189,4 +191,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagDestinationInfoView;
+export default observer(BagDestinationInfoView);

@@ -64,7 +64,7 @@ const BagView = () => {
 
       setTemplates((await app.getBagTemplateStore()!.getList()) ?? []);
     } catch (error) {
-      console.error('템플릿 목록 조회 중 오류 발생:', error);
+      console.error('템플릿 목록 조회 중 오류 발생:', error); // l10n-ignore
       setTemplates([]);
     } finally {
       setTemplatesLoading(false);
@@ -96,10 +96,10 @@ const BagView = () => {
       await app.getBagTemplateStore()!.delete(template.getID());
       await loadTemplates();
     } catch (error) {
-      console.error('템플릿 삭제 중 오류 발생:', error);
+      console.error('템플릿 삭제 중 오류 발생:', error); // l10n-ignore
       Alert.alert(
-        '오류',
-        '템플릿 삭제 중 문제가 발생했습니다. 다시 시도해주세요.'
+        app.getL10n().t('common.error'),
+        app.getL10n().t('bag.templateDeleteFailed')
       );
     }
   };
@@ -108,12 +108,12 @@ const BagView = () => {
     <View style={styles.segmentContainer}>
       <View style={styles.segmentChips}>
         <CategoryChipView
-          label='배낭'
+          label={app.getL10n().t('bag.label')}
           selected={!isTemplateSegment}
           onPress={() => setSegment(BagViewSegment.Bags)}
         />
         <CategoryChipView
-          label='템플릿'
+          label={app.getL10n().t('bag.template.label')}
           selected={isTemplateSegment}
           onPress={() => setSegment(BagViewSegment.Templates)}
         />
@@ -139,11 +139,11 @@ const BagView = () => {
         <PretendardText weight='semibold' style={styles.headerText}>
           {isTemplateSegment
             ? templatesLoading
-              ? '템플릿'
-              : `템플릿 ${templates.length}개`
+              ? app.getL10n().t('bag.template.label')
+              : app.getL10n().t('bag.template.count', { count: templates.length })
             : isLoading
-              ? '배낭'
-              : `배낭 ${bags.length}개`}
+              ? app.getL10n().t('bag.label')
+              : app.getL10n().t('bag.count', { count: bags.length })}
         </PretendardText>
       </View>
       {renderSegment()}
@@ -159,10 +159,10 @@ const BagView = () => {
         return (
           <View style={styles.emptyContainer}>
             <PretendardText weight='semibold' style={styles.emptyTitle}>
-              아직 만든 배낭이 없어요
+              {app.getL10n().t('bag.emptyTitle')}
             </PretendardText>
             <PretendardText style={styles.emptySubtitle}>
-              첫 배낭을 만들면 여기에 쌓여요
+              {app.getL10n().t('bag.emptySubtitle')}
             </PretendardText>
           </View>
         );
@@ -210,10 +210,10 @@ const BagView = () => {
       return (
         <View style={styles.emptyContainer}>
           <PretendardText weight='semibold' style={styles.emptyTitle}>
-            저장한 템플릿이 없어요
+            {app.getL10n().t('bag.template.emptyTitle')}
           </PretendardText>
           <PretendardText style={styles.emptySubtitle}>
-            배낭 카드의 ⋯ 메뉴에서 템플릿으로 저장할 수 있어요
+            {app.getL10n().t('bag.template.emptySubtitle')}
           </PretendardText>
         </View>
       );

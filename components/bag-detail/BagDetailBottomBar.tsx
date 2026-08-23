@@ -15,11 +15,14 @@ interface Props {
 const getPackingLabel = (bagDetail: BagDetail): string => {
   switch (bagDetail.getPackingButtonState()) {
     case PackingButtonState.Completed:
-      return '패킹 완료';
+      return app.getL10n().t('bagDetail.packingComplete');
     case PackingButtonState.InProgress:
-      return `패킹 ${bagDetail.getPackedCount()}/${bagDetail.getCount()}`;
+      return app.getL10n().t('bagDetail.packingProgress', {
+        packed: bagDetail.getPackedCount(),
+        total: bagDetail.getCount(),
+      });
     default:
-      return '패킹 시작';
+      return app.getL10n().t('bagDetail.packingStart');
   }
 };
 
@@ -55,7 +58,7 @@ const BagDetailBottomBar: FC<Props> = ({ bagDetail }) => {
           accessibilityRole='button'
         >
           <PretendardText style={styles.primaryText} weight='semibold'>
-            장비 추가
+              {app.getL10n().t('bagDetail.addGear')}
           </PretendardText>
         </TouchableOpacity>
       </View>

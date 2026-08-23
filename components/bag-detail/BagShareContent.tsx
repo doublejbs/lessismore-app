@@ -7,6 +7,7 @@ import * as Clipboard from 'expo-clipboard';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   bagDetail: BagDetail;
@@ -26,15 +27,15 @@ const BagShareContent: FC<Props> = ({ bagDetail }) => {
     try {
       if (shared) {
         await bagDetail.unshare();
-        Alert.alert('알림', '공유가 취소되었습니다.');
+        Alert.alert(app.getL10n().t('common.alert'), app.getL10n().t('bagShare.cancelled'));
       } else {
         await bagDetail.share();
 
         try {
           await Clipboard.setStringAsync(url);
-          Alert.alert('성공', '공유 링크가 클립보드에 복사되었습니다.');
+          Alert.alert(app.getL10n().t('bagShare.success'), app.getL10n().t('bagShare.linkCopied'));
         } catch {
-          Alert.alert('오류', '링크 복사에 실패했습니다.');
+          Alert.alert(app.getL10n().t('common.error'), app.getL10n().t('bagShare.copyFailed'));
         }
       }
     } finally {
@@ -45,10 +46,10 @@ const BagShareContent: FC<Props> = ({ bagDetail }) => {
   const handleCopyLink = async () => {
     try {
       await Clipboard.setStringAsync(url);
-      Alert.alert('성공', '링크가 클립보드에 복사되었습니다.');
+      Alert.alert(app.getL10n().t('bagShare.success'), app.getL10n().t('bagShare.copied'));
     } catch (error) {
-      console.error('복사 실패:', error);
-      Alert.alert('오류', '복사에 실패했습니다.');
+      console.error('복사 실패:', error); // l10n-ignore
+      Alert.alert(app.getL10n().t('common.error'), app.getL10n().t('bagShare.copyFailedShort'));
     }
   };
 
@@ -61,12 +62,12 @@ const BagShareContent: FC<Props> = ({ bagDetail }) => {
     >
       <View style={styles.body}>
         <PretendardText weight='bold' style={styles.title}>
-          {shared ? '배낭 공유 중' : '배낭 공유하기'}
+          {shared ? app.getL10n().t('bagShare.sharing') : app.getL10n().t('bagShare.share')}
         </PretendardText>
         <PretendardText style={styles.description}>
           {shared
-            ? '현재 배낭이 공유되어 다른 사용자가 볼 수 있어요'
-            : '배낭을 공유하면 다른 사용자가 볼 수 있어요'}
+            ? app.getL10n().t('bagShare.sharedDescription')
+            : app.getL10n().t('bagShare.description')}
         </PretendardText>
 
         {shared && (
@@ -79,7 +80,7 @@ const BagShareContent: FC<Props> = ({ bagDetail }) => {
               onPress={handleCopyLink}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               accessibilityRole='button'
-              accessibilityLabel='링크 복사'
+              accessibilityLabel={app.getL10n().t('bagShare.copyLink')}
             >
               <Ionicons
                 name='copy-outline'
@@ -98,10 +99,10 @@ const BagShareContent: FC<Props> = ({ bagDetail }) => {
           disabled={isLoading}
           activeOpacity={0.7}
           accessibilityRole='button'
-          accessibilityLabel={shared ? '공유 취소' : '공유하기'}
+          accessibilityLabel={shared ? app.getL10n().t('bagShare.cancelShare') : app.getL10n().t('bagShare.shareAction')}
         >
           <PretendardText weight='semibold' style={styles.buttonText}>
-            {isLoading ? '처리 중...' : shared ? '공유 취소' : '공유하기'}
+            {isLoading ? app.getL10n().t('bagShare.processing') : shared ? app.getL10n().t('bagShare.cancelShare') : app.getL10n().t('bagShare.shareAction')}
           </PretendardText>
         </TouchableOpacity>
       </View>

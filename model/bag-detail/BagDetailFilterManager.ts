@@ -2,6 +2,7 @@ import { makeAutoObservable } from 'mobx';
 import Gear from '@/model/gear/Gear';
 import GearFilter from '@/model/gear/GearFilter';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
+import app from '@/model/app/App';
 
 class BagDetailFilterManager {
   public static from() {
@@ -11,47 +12,47 @@ class BagDetailFilterManager {
   private readonly filters: WarehouseFilter[] = [
     {
       filter: GearFilter.Backpack,
-      name: '배낭',
+      name: 'backpack',
     },
     {
       filter: GearFilter.Tent,
-      name: '텐트',
+      name: 'tent',
     },
     {
       filter: GearFilter.SleepingBag,
-      name: '침낭',
+      name: 'sleepingBag',
     },
     {
       filter: GearFilter.Mat,
-      name: '매트',
+      name: 'mat',
     },
     {
       filter: GearFilter.Lantern,
-      name: '랜턴',
+      name: 'lantern',
     },
     {
       filter: GearFilter.Cooking,
-      name: '조리',
+      name: 'cooking',
     },
     {
       filter: GearFilter.Clothing,
-      name: '의류',
+      name: 'clothing',
     },
     {
       filter: GearFilter.Furniture,
-      name: '가구',
+      name: 'furniture',
     },
     {
       filter: GearFilter.Electronic,
-      name: '전자기기',
+      name: 'electronic',
     },
     {
       filter: GearFilter.Food,
-      name: '음식',
+      name: 'food',
     },
     {
       filter: GearFilter.Etc,
-      name: '기타',
+      name: 'etc',
     },
   ].map(({ filter, name }) => WarehouseFilter.from(filter, name));
 
@@ -100,7 +101,9 @@ class BagDetailFilterManager {
 
   public getCategoryName(category: GearFilter): string {
     const filter = this.filters.find(f => f.isSame(category));
-    return filter?.getName() || '기타';
+    return app.getL10n().t(
+      filter ? `bagDetail.summary.${filter.getName()}` : 'bagDetail.summary.etc'
+    );
   }
 
   public getFiltersWithGears(gears: Gear[]) {

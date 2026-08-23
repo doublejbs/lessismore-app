@@ -1,4 +1,5 @@
 import { FC, useState } from 'react';
+import { observer } from 'mobx-react-lite';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -41,8 +42,8 @@ const BagTemplateItemView: FC<Props> = ({
   const handleDelete = () => {
     setMenuVisible(false);
     app.getAlertManager()?.show({
-      message: `${template.getName()} 템플릿을 삭제할까요?`,
-      confirmText: '삭제',
+      message: app.getL10n().t('bag.template.deleteConfirm', { name: template.getName() }),
+      confirmText: app.getL10n().t('common.delete'),
       onConfirm: async () => onDelete(template),
     });
   };
@@ -55,7 +56,7 @@ const BagTemplateItemView: FC<Props> = ({
           onPress={onPress ?? handlePressDetail}
           activeOpacity={0.7}
           accessibilityRole='button'
-          accessibilityLabel={`${template.getName()}, ${template.getWeight()}kg, 장비 ${template.getGearCount()}개`}
+      accessibilityLabel={`${template.getName()}, ${template.getWeight()}kg, ${app.getL10n().t('bagDetail.gearCount', { count: template.getGearCount() })}`}
         >
           <PretendardText weight='medium' style={styles.name} numberOfLines={2}>
             {template.getName()}
@@ -64,7 +65,7 @@ const BagTemplateItemView: FC<Props> = ({
             <AcgDisplayText style={styles.metaNumber}>
               {`${template.getWeight()}kg`}
             </AcgDisplayText>
-            {` · 장비 ${template.getGearCount()}개`}
+          {` · ${app.getL10n().t('bagDetail.gearCount', { count: template.getGearCount() })}`}
           </PretendardText>
         </TouchableOpacity>
         {showMenuButton && (
@@ -73,7 +74,7 @@ const BagTemplateItemView: FC<Props> = ({
             onPress={() => setMenuVisible(true)}
             activeOpacity={0.7}
             accessibilityRole='button'
-            accessibilityLabel='템플릿 메뉴'
+      accessibilityLabel={app.getL10n().t('bag.template.menu')}
           >
             <Ionicons name='ellipsis-horizontal' size={16} color={Acg.textMuted} />
           </TouchableOpacity>
@@ -86,7 +87,7 @@ const BagTemplateItemView: FC<Props> = ({
           menuItems={[
             {
               icon: 'trash-outline',
-              text: '삭제',
+        text: app.getL10n().t('common.delete'),
               onPress: handleDelete,
             },
           ]}
@@ -131,4 +132,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagTemplateItemView;
+export default observer(BagTemplateItemView);

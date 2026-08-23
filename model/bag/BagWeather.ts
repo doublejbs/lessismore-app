@@ -231,7 +231,7 @@ class BagWeather {
 
       this.setWeather(snapshot);
     } catch (error) {
-      console.error('날씨 조회 실패:', error);
+      console.error('날씨 조회 실패:', error); // l10n-ignore
 
       if (requestGeneration === this.requestGeneration && !this.weather) {
         this.setError(true);

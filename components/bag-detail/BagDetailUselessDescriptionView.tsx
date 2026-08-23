@@ -25,7 +25,9 @@ const BagDetailUselessDescriptionView: FC<Props> = ({
     bagDetail.goToUseless();
   };
 
-  const subtitle = phase === 'after' ? '줄어든 무게 확인' : '여행 후 기록';
+  const subtitle = phase === 'after'
+    ? app.getL10n().t('bagDetail.useless.afterSubtitle')
+    : app.getL10n().t('bagDetail.useless.beforeSubtitle');
 
   const fg = emphasized ? Color.background : Color.textPrimary;
   const subFg = emphasized ? EMPHASIZED_SUB : Color.textSecondary;
@@ -37,7 +39,7 @@ const BagDetailUselessDescriptionView: FC<Props> = ({
         {usedWeight}kg
       </PretendardText>
       <PretendardText style={[styles.weightSuffix, { color: subFg }]}>
-        로 줄어요
+        {app.getL10n().t('bagDetail.useless.weightSuffix')}
       </PretendardText>
     </View>
   ) : (
@@ -59,7 +61,7 @@ const BagDetailUselessDescriptionView: FC<Props> = ({
       <Ionicons name='trending-down-outline' size={22} color={fg} />
       <View style={styles.textWrap}>
         <PretendardText style={[styles.title, { color: fg }]} weight='medium'>
-          사용 기록
+          {app.getL10n().t('bagDetail.useless.title')}
         </PretendardText>
         {weightBlock}
       </View>

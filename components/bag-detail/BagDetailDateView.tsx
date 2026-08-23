@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgType } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   bagDetail: BagDetail;
@@ -21,7 +22,7 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
       style={styles.dateContainer}
       onPress={handleDatePress}
       accessibilityRole='button'
-      accessibilityLabel='여행 날짜 수정'
+      accessibilityLabel={app.getL10n().t('bagDetail.dateEdit')}
     >
       <PretendardText style={styles.dateText} numberOfLines={2}>
         {bagDetail.getDate()} · {bagDetail.getPhaseLabel()}

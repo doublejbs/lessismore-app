@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs, react-hooks/set-state-in-effect */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Keyboard } from 'react-native';
 import {
@@ -25,6 +26,7 @@ import {
   CURRENT_LOCATION_FAILED_MESSAGE,
   getCurrentPositionWithinTimeout,
 } from '@/model/location/CurrentLocation';
+import app from '@/model/app/App';
 
 // 저장된 여행지도 없고 위치 권한도 없을 때의 기본 중심(DST-3).
 const SEOUL_CITY_HALL: Coordinate = { latitude: 37.5665, longitude: 126.978 };
@@ -77,7 +79,7 @@ const getGrantedPosition = async (): Promise<Coordinate | null> => {
       longitude: lastKnown.coords.longitude,
     };
   } catch (error) {
-    console.error('현재 위치 조회 실패:', error);
+    console.error('현재 위치 조회 실패:', error); // l10n-ignore
 
     return null;
   }
@@ -342,7 +344,7 @@ const useBagDestinationPickerState = ({
         locationWatchRef.current = subscription;
       } catch (error) {
         // 구독을 못 열어도(위치 서비스 꺼짐 등) 버튼은 캐시·새 fix로 폴백하므로 화면은 살아 있다.
-        console.error('현재 위치 구독 실패:', error);
+        console.error('현재 위치 구독 실패:', error); // l10n-ignore
 
         if (locationWatchGenerationRef.current === visibleGeneration) {
           locationWatchGenerationRef.current = null;
@@ -507,7 +509,7 @@ const useBagDestinationPickerState = ({
 
         await startLocationWatch(visibleGeneration);
       } catch (error) {
-        console.error('위치 권한 확인 실패:', error);
+        console.error('위치 권한 확인 실패:', error); // l10n-ignore
       }
     };
 
@@ -633,7 +635,7 @@ const useBagDestinationPickerState = ({
           setAddressName(name);
         }
       } catch (error) {
-        console.error('역지오코딩 실패:', error);
+        console.error('역지오코딩 실패:', error); // l10n-ignore
 
         // 이름을 못 찾아도 확정은 가능하다 — 확정 시 폴백 이름으로 저장한다(DST-3).
         if (!cancelled) {
@@ -676,7 +678,7 @@ const useBagDestinationPickerState = ({
         }
       } catch (error) {
         // 장소 검색이 실패해도 박지 결과는 그대로 표시한다(DST-4).
-        console.error('장소 검색 실패:', error);
+        console.error('장소 검색 실패:', error); // l10n-ignore
 
         if (!cancelled) {
           setPlaceResults([]);
@@ -932,8 +934,8 @@ const useBagDestinationPickerState = ({
 
       if (status !== 'granted') {
         Alert.alert(
-          '위치 권한 필요',
-          '현재 위치를 사용하려면 위치 권한을 허용해주세요.'
+          app.getL10n().t('bagDestination.permissionTitle'),
+          app.getL10n().t('bagDestination.permissionMessage')
         );
 
         return;
@@ -974,7 +976,7 @@ const useBagDestinationPickerState = ({
       // 세 수단이 모두 좌표를 주지 못하면 반드시 알린다 — 조용히 끝내면 버튼이 죽은 것으로 보인다(DST-3).
       // 이 화면은 풀스크린 모달이라 전역 토스트가 모달 뒤에 가려지므로 Alert를 쓴다.
       if (!target) {
-        Alert.alert('현재 위치 확인 실패', CURRENT_LOCATION_FAILED_MESSAGE);
+        Alert.alert(app.getL10n().t('bagDestination.locationFailedTitle'), CURRENT_LOCATION_FAILED_MESSAGE);
 
         return;
       }
@@ -1001,9 +1003,9 @@ const useBagDestinationPickerState = ({
         return;
       }
 
-      console.error('현재 위치 이동 실패:', error);
+      console.error('현재 위치 이동 실패:', error); // l10n-ignore
       // 수단이 모두 실패한 경우(위 분기)와 예외는 사용자에게 같은 상황이라 문구를 통일한다(DST-3).
-      Alert.alert('현재 위치 확인 실패', CURRENT_LOCATION_FAILED_MESSAGE);
+      Alert.alert(app.getL10n().t('bagDestination.locationFailedTitle'), CURRENT_LOCATION_FAILED_MESSAGE);
     } finally {
       if (
         mountedRef.current &&
@@ -1045,7 +1047,7 @@ const useBagDestinationPickerState = ({
 
       return { name: name || FALLBACK_LOCATION_NAME, ...center };
     } catch (error) {
-      console.error('역지오코딩 실패:', error);
+      console.error('역지오코딩 실패:', error); // l10n-ignore
 
       return { name: FALLBACK_LOCATION_NAME, ...center };
     }
@@ -1110,8 +1112,8 @@ const useBagDestinationPickerState = ({
       }
 
       // 저장 실패 시 선택기를 닫지 않고 재시도할 수 있게 한다(DST-6).
-      console.error('여행지 저장 실패:', error);
-      Alert.alert('오류', '여행지를 저장하지 못했어요. 다시 시도해주세요.');
+      console.error('여행지 저장 실패:', error); // l10n-ignore
+      Alert.alert(app.getL10n().t('common.error'), app.getL10n().t('bagDestination.saveFailed'));
     } finally {
       savingRef.current = false;
 

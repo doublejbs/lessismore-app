@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { observer } from 'mobx-react-lite';
 import {
   ActivityIndicator,
   ScrollView,
@@ -14,6 +15,7 @@ import {
   getCampSiteTypeLabel,
   getCampSpotRegionLabel,
 } from '@/model/camp-site/CampSiteLabels';
+import app from '@/model/app/App';
 
 interface Props {
   spots: CampSpot[];
@@ -44,7 +46,7 @@ const BagDestinationSearchResultsView: FC<Props> = ({
         {spots.length > 0 && (
           <>
             <PretendardText style={styles.sectionLabel} weight='semibold'>
-              등록된 박지
+              {app.getL10n().t('bagDestination.registeredSpots')}
             </PretendardText>
             {spots.map(spot => (
               <TouchableOpacity
@@ -53,11 +55,11 @@ const BagDestinationSearchResultsView: FC<Props> = ({
                 onPress={() => onSelectSpot(spot)}
                 activeOpacity={0.7}
                 accessibilityRole='button'
-                accessibilityLabel={`박지 ${spot.name}, ${getCampSpotRegionLabel(spot)}`}
+                accessibilityLabel={app.getL10n().t('bagDestination.spotResultLabel', { name: spot.name, region: getCampSpotRegionLabel(spot) })}
               >
                 <View style={styles.badge}>
                   <PretendardText style={styles.badgeText} weight='semibold'>
-                    박지
+                    {app.getL10n().t('bagDestination.spot')}
                   </PretendardText>
                 </View>
                 <View style={styles.rowText}>
@@ -81,7 +83,7 @@ const BagDestinationSearchResultsView: FC<Props> = ({
         {places.length > 0 && (
           <>
             <PretendardText style={styles.sectionLabel} weight='semibold'>
-              장소
+              {app.getL10n().t('bagDestination.places')}
             </PretendardText>
             {places.map((place, index) => (
               <TouchableOpacity
@@ -90,11 +92,11 @@ const BagDestinationSearchResultsView: FC<Props> = ({
                 onPress={() => onSelectPlace(place)}
                 activeOpacity={0.7}
                 accessibilityRole='button'
-                accessibilityLabel={`장소 ${place.name}`}
+                accessibilityLabel={app.getL10n().t('bagDestination.placeLabel', { name: place.name })}
               >
                 <View style={styles.badge}>
                   <PretendardText style={styles.badgeText} weight='semibold'>
-                    장소
+                    {app.getL10n().t('bagDestination.place')}
                   </PretendardText>
                 </View>
                 <View style={styles.rowText}>
@@ -209,4 +211,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagDestinationSearchResultsView;
+export default observer(BagDestinationSearchResultsView);

@@ -5,6 +5,7 @@ import PretendardText from '@/components/PretendardText';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import BagPacking from '@/model/bag-packing/BagPacking';
 import { Acg, AcgType, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   bagPacking: BagPacking;
@@ -23,14 +24,14 @@ const BagPackingCompleteView: FC<Props> = ({ bagPacking }) => {
     <View style={styles.overlay}>
       <View style={styles.card}>
         <PretendardText style={styles.title} weight='extraBold'>
-          패킹 완료
+          {app.getL10n().t('packing.complete')}
         </PretendardText>
         <AcgDisplayText
           style={styles.weightText}
         >{`${totalWeight}kg`}</AcgDisplayText>
         {showDDay && (
           <PretendardText style={styles.dDayText} weight='medium'>
-            출발까지 {dDay}일 남았어요
+            {app.getL10n().t('packing.daysRemaining', { count: dDay })}
           </PretendardText>
         )}
         <View style={styles.actions}>
@@ -40,7 +41,7 @@ const BagPackingCompleteView: FC<Props> = ({ bagPacking }) => {
             activeOpacity={0.7}
           >
             <PretendardText style={styles.primaryButtonText} weight='bold'>
-              닫기
+              {app.getL10n().t('packing.close')}
             </PretendardText>
           </TouchableOpacity>
         </View>

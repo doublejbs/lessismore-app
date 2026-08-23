@@ -1,8 +1,10 @@
 import { FC } from 'react';
+import { observer } from 'mobx-react-lite';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import BagEditWeightTitleView from './BagEditWeightTitleView';
 import { Color } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   weight: string;
@@ -25,7 +27,7 @@ const BagEditHeaderView: FC<Props> = ({
           activeOpacity={0.7}
           hitSlop={12}
           accessibilityRole='button'
-          accessibilityLabel='뒤로가기'
+          accessibilityLabel={app.getL10n().t('bagEdit.back')}
         >
           <Svg width={24} height={24} viewBox='0 0 24 24' fill='none'>
             <Path
@@ -46,7 +48,7 @@ const BagEditHeaderView: FC<Props> = ({
           hitSlop={12}
           style={styles.addButton}
           accessibilityRole='button'
-          accessibilityLabel='장비 추가'
+          accessibilityLabel={app.getL10n().t('bagEdit.addGear')}
         >
           <Svg width={16} height={16} viewBox='0 0 14 14' fill='none'>
             <Path
@@ -82,4 +84,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagEditHeaderView;
+export default observer(BagEditHeaderView);

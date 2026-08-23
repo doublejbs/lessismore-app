@@ -50,41 +50,41 @@ class BagMemo {
     try {
       const userId = this.firebase.getUserId();
       if (!userId) {
-        throw new Error('로그인이 필요합니다.');
+        throw new Error(app.getL10n().t('bag.memo.loginRequired'));
       }
 
       await this.bagStore.updateMemo(this.bagId, content.trim());
 
       app.getAnalyticsManager()?.logClick('memo_confirm');
       router.back();
-      this.toastManager.show({ message: '메모가 저장되었습니다.' });
+      this.toastManager.show({ message: app.getL10n().t('bag.memo.saved') });
     } catch (error) {
-      console.error('메모 저장 실패:', error);
+      console.error('메모 저장 실패:', error); // l10n-ignore
       throw error;
     }
   }
 
   public delete() {
     this.alertManager.show({
-      message: '메모를 삭제하시겠습니까?',
-      confirmText: '삭제',
+      message: app.getL10n().t('bag.memo.deleteConfirm'),
+      confirmText: app.getL10n().t('common.delete'),
       onConfirm: async () => {
         try {
           const userId = this.firebase.getUserId();
           if (!userId) {
-            throw new Error('로그인이 필요합니다.');
+            throw new Error(app.getL10n().t('bag.memo.loginRequired'));
           }
 
           await this.bagStore.updateMemo(this.bagId, '');
 
           app.getAnalyticsManager()?.logClick('memo_delete');
           router.back();
-          this.toastManager.show({ message: '메모가 삭제되었습니다.' });
+          this.toastManager.show({ message: app.getL10n().t('bag.memo.deleted') });
         } catch (error) {
-          console.error('메모 삭제 실패:', error);
+          console.error('메모 삭제 실패:', error); // l10n-ignore
           this.alertManager.show({
-            message: '메모 삭제에 실패했습니다.',
-            confirmText: '확인',
+            message: app.getL10n().t('bag.memo.deleteFailed'),
+            confirmText: app.getL10n().t('common.ok'),
             onConfirm: async () => {},
           });
         }

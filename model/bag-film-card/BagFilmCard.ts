@@ -391,7 +391,7 @@ class BagFilmCard {
         if (status !== GRANTED) {
           this.toastManager.show({
             message:
-              '사진 접근 권한이 필요해요. 사진 없이도 카드를 만들 수 있어요',
+              app.getL10n().t('bagFilmCard.photoPermission'),
           });
 
           return;
@@ -426,8 +426,8 @@ class BagFilmCard {
       apply(asset.uri);
       app.getAnalyticsManager()?.logClick('film_card_photo', { target });
     } catch (error) {
-      console.error('필름 카드 사진 선택 실패:', error);
-      this.toastManager.show({ message: '사진을 불러오지 못했어요' });
+      console.error('필름 카드 사진 선택 실패:', error); // l10n-ignore
+      this.toastManager.show({ message: app.getL10n().t('bagFilmCard.photoLoadFailed') });
     } finally {
       this.setPicking(false);
     }
@@ -459,7 +459,7 @@ class BagFilmCard {
           if (sharing && (await sharing.isAvailableAsync())) {
             await sharing.shareAsync(fileUri);
           } else {
-            this.toastManager.show({ message: '공유할 수 없는 기기예요' });
+            this.toastManager.show({ message: app.getL10n().t('bagFilmCard.deviceShareUnavailable') });
           }
         } else {
           // iOS는 공유 시트가 닫힌 뒤에 resolve되므로, 이 await 이후 임시 파일을 지워도 안전하다.
@@ -469,8 +469,8 @@ class BagFilmCard {
         BagFilmCard.releaseCapturedFile(capturedUri);
       }
     } catch (error) {
-      console.error('필름 카드 공유 실패:', error);
-      this.toastManager.show({ message: '공유하지 못했어요' });
+      console.error('필름 카드 공유 실패:', error); // l10n-ignore
+      this.toastManager.show({ message: app.getL10n().t('bagFilmCard.shareFailed') });
     } finally {
       this.setSharing(false);
     }
@@ -498,7 +498,7 @@ class BagFilmCard {
       const { status } = await mediaLibrary.requestPermissionsAsync(true);
 
       if (status !== GRANTED) {
-        this.toastManager.show({ message: '사진 저장 권한이 필요해요' });
+        this.toastManager.show({ message: app.getL10n().t('bagFilmCard.savePermission') });
 
         return;
       }
@@ -507,13 +507,13 @@ class BagFilmCard {
 
       try {
         await mediaLibrary.Asset.create(BagFilmCard.toFileUri(capturedUri));
-        this.toastManager.show({ message: '저장했어요' });
+        this.toastManager.show({ message: app.getL10n().t('bagFilmCard.saved') });
       } finally {
         BagFilmCard.releaseCapturedFile(capturedUri);
       }
     } catch (error) {
-      console.error('필름 카드 저장 실패:', error);
-      this.toastManager.show({ message: '저장하지 못했어요' });
+      console.error('필름 카드 저장 실패:', error); // l10n-ignore
+      this.toastManager.show({ message: app.getL10n().t('bagFilmCard.saveFailed') });
     } finally {
       this.setSaving(false);
     }
@@ -554,7 +554,7 @@ class BagFilmCard {
     try {
       releaseCapture(uri);
     } catch (error) {
-      console.warn('필름 카드 임시 파일 해제 실패:', error);
+    console.warn('필름 카드 임시 파일 해제 실패:', error); // l10n-ignore
     }
   }
 

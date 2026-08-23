@@ -6,12 +6,13 @@ import GearFilter from '@/model/gear/GearFilter';
 import PretendardText from '@/components/PretendardText';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   bagDetail: BagDetail;
 }
 
-const BASE_KEY = '베이스(배낭, 텐트, 침낭, 매트)';
+const BASE_KEY = '__base__';
 const BASE_CATEGORIES: string[] = [
   GearFilter.Backpack,
   GearFilter.Tent,
@@ -20,17 +21,17 @@ const BASE_CATEGORIES: string[] = [
 ];
 
 const CATEGORY_LABEL: Record<string, string> = {
-  [GearFilter.Backpack]: '배낭',
-  [GearFilter.Tent]: '텐트',
-  [GearFilter.SleepingBag]: '침낭',
-  [GearFilter.Mat]: '매트',
-  [GearFilter.Lantern]: '랜턴',
-  [GearFilter.Cooking]: '조리',
-  [GearFilter.Clothing]: '의류',
-  [GearFilter.Furniture]: '가구',
-  [GearFilter.Electronic]: '전자기기',
-  [GearFilter.Food]: '음식',
-  [GearFilter.Etc]: '기타',
+  [GearFilter.Backpack]: 'bagDetail.summary.backpack',
+  [GearFilter.Tent]: 'bagDetail.summary.tent',
+  [GearFilter.SleepingBag]: 'bagDetail.summary.sleepingBag',
+  [GearFilter.Mat]: 'bagDetail.summary.mat',
+  [GearFilter.Lantern]: 'bagDetail.summary.lantern',
+  [GearFilter.Cooking]: 'bagDetail.summary.cooking',
+  [GearFilter.Clothing]: 'bagDetail.summary.clothing',
+  [GearFilter.Furniture]: 'bagDetail.summary.furniture',
+  [GearFilter.Electronic]: 'bagDetail.summary.electronic',
+  [GearFilter.Food]: 'bagDetail.summary.food',
+  [GearFilter.Etc]: 'bagDetail.summary.etc',
 };
 
 // 카테고리별 데이터 시각화 색(의미색 예외 — DesignTokens 컨벤션상 허용).
@@ -46,7 +47,7 @@ const PALETTE = [
 ];
 
 const label = (category: string) =>
-  category === BASE_KEY ? '베이스' : (CATEGORY_LABEL[category] ?? category);
+  app.getL10n().t(category === BASE_KEY ? 'bagDetail.summary.base' : (CATEGORY_LABEL[category] ?? 'bagDetail.summary.etc'));
 
 const BagDetailSummaryView: FC<Props> = ({ bagDetail }) => {
   const total = bagDetail.getWeight();
@@ -77,7 +78,7 @@ const BagDetailSummaryView: FC<Props> = ({ bagDetail }) => {
         라벨을 값 위에 두는 건 홈·레퍼런스의 지표 문법과 같다.
       */}
       <View style={styles.weightBlock}>
-        <PretendardText style={styles.label}>총 무게</PretendardText>
+        <PretendardText style={styles.label}>{app.getL10n().t('bagDetail.totalWeight')}</PretendardText>
         <AcgDisplayText style={styles.value}>{`${total}kg`}</AcgDisplayText>
       </View>
 

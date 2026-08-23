@@ -31,7 +31,7 @@ const BagDetailCategoryView: FC<Props> = ({
   return (
     <View ref={categoryRef} style={styles.container}>
       <PretendardText style={styles.categoryTitle} weight='bold'>
-        {category.getName()}
+        {bagDetail.getCategoryName(category.getFilter())}
       </PretendardText>
       <View style={styles.gearList}>
         {gears.map((gear, index) => (

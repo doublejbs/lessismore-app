@@ -1,8 +1,10 @@
 import { FC } from 'react';
+import { observer } from 'mobx-react-lite';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   title?: string;
@@ -14,7 +16,7 @@ interface Props {
 }
 
 const BagTemplateSaveContent: FC<Props> = ({
-  title = '템플릿으로 저장',
+  title = app.getL10n().t('bag.template.save'),
   inputValue,
   disabled = false,
   onChangeName,
@@ -30,11 +32,11 @@ const BagTemplateSaveContent: FC<Props> = ({
       </PretendardText>
       <View style={styles.inputSection}>
         <PretendardText weight='semibold' style={styles.inputLabel}>
-          템플릿 이름
+          {app.getL10n().t('bag.template.nameLabel')}
         </PretendardText>
         <TextInput
           style={styles.textInput}
-          placeholder='템플릿 이름을 입력해주세요'
+      placeholder={app.getL10n().t('bag.template.namePlaceholder')}
           placeholderTextColor={Color.textSecondary}
           value={inputValue}
           onChangeText={onChangeName}
@@ -44,7 +46,7 @@ const BagTemplateSaveContent: FC<Props> = ({
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
           <PretendardText weight='semibold' style={styles.cancelButtonText}>
-            취소
+            {app.getL10n().t('common.cancel')}
           </PretendardText>
         </TouchableOpacity>
         <TouchableOpacity
@@ -53,7 +55,7 @@ const BagTemplateSaveContent: FC<Props> = ({
           disabled={disabled}
         >
           <PretendardText weight='semibold' style={styles.confirmButtonText}>
-            저장
+            {app.getL10n().t('common.save')}
           </PretendardText>
         </TouchableOpacity>
       </View>
@@ -123,4 +125,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagTemplateSaveContent;
+export default observer(BagTemplateSaveContent);

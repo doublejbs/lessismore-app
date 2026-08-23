@@ -45,7 +45,7 @@ const BagDetailActivityView: FC<Props> = ({ bagDetail }) => {
       ]
         .filter(part => part !== null)
         .join(' · ')
-    : '기록 연결하기';
+    : app.getL10n().t('bagDetail.activityConnect');
 
   return (
     <TouchableOpacity
@@ -54,7 +54,9 @@ const BagDetailActivityView: FC<Props> = ({ bagDetail }) => {
       activeOpacity={0.7}
       accessibilityRole='button'
       accessibilityLabel={
-        activity ? `운동 기록 ${subtitle}` : '운동 기록 연결하기'
+        activity
+          ? app.getL10n().t('bagDetail.activityConnected', { subtitle })
+          : app.getL10n().t('bagDetail.activityConnectAction')
       }
     >
       <Ionicons name='footsteps-outline' size={24} color={Color.textPrimary} />
@@ -64,7 +66,7 @@ const BagDetailActivityView: FC<Props> = ({ bagDetail }) => {
           weight='semibold'
           numberOfLines={1}
         >
-          운동 기록
+          {app.getL10n().t('bagDetail.activityTitle')}
         </PretendardText>
         <PretendardText style={styles.subtitle} numberOfLines={1}>
           {subtitle}
