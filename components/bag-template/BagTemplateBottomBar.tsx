@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import BagTemplateDetail from '@/model/bag-template/BagTemplateDetail';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   detail: BagTemplateDetail;
@@ -19,10 +20,10 @@ const BagTemplateBottomBar: FC<Props> = ({ detail }) => (
         onPress={() => detail.goToEdit()}
         activeOpacity={0.7}
         accessibilityRole='button'
-        accessibilityLabel='장비 편집'
+        accessibilityLabel={app.getL10n().t('bagTemplate.editGear')}
       >
         <PretendardText style={styles.secondaryText} weight='semibold'>
-          장비 편집
+          {app.getL10n().t('bagTemplate.editGear')}
         </PretendardText>
       </TouchableOpacity>
       <TouchableOpacity
@@ -30,10 +31,10 @@ const BagTemplateBottomBar: FC<Props> = ({ detail }) => (
         onPress={() => detail.goToCreate()}
         activeOpacity={0.8}
         accessibilityRole='button'
-        accessibilityLabel='배낭 만들기'
+        accessibilityLabel={app.getL10n().t('bagTemplate.createBag')}
       >
         <PretendardText style={styles.primaryText} weight='semibold'>
-          배낭 만들기
+          {app.getL10n().t('bagTemplate.createBag')}
         </PretendardText>
       </TouchableOpacity>
     </View>

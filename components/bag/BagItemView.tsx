@@ -1,4 +1,5 @@
 import { FC, useMemo, useState } from 'react';
+import { observer } from 'mobx-react-lite';
 import {
   View,
   TouchableOpacity,
@@ -170,17 +171,17 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
   const menuItems = [
     {
       icon: 'copy-outline' as const,
-      text: '복사',
+      text: app.getL10n().t('bag.copy'),
       onPress: handleClickCopy,
     },
     {
       icon: 'bookmark-outline' as const,
-      text: '템플릿으로 저장',
+      text: app.getL10n().t('bag.saveTemplate'),
       onPress: handleClickSaveTemplate,
     },
     {
       icon: 'trash-outline' as const,
-      text: '삭제',
+      text: app.getL10n().t('common.delete'),
       onPress: handleClickDelete,
     },
   ];
@@ -260,8 +261,10 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
               {` · ${date}`}
               {bagItem.hasPackingRecord()
                 ? bagItem.isPackingComplete()
-                  ? ' · 패킹 완료'
-                  : ` · 패킹 ${bagItem.getPackingPercent()}%`
+      ? app.getL10n().t('bag.packingCompleteSuffix')
+      : app.getL10n().t('bag.packingProgress', {
+          percent: bagItem.getPackingPercent(),
+        })
                 : ''}
             </PretendardText>
           </TouchableOpacity>
@@ -271,7 +274,7 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
             onPress={handleClickMenu}
             activeOpacity={0.7}
             accessibilityRole='button'
-            accessibilityLabel='배낭 메뉴'
+      accessibilityLabel={app.getL10n().t('bag.menu')}
           >
             <Ionicons
               name='ellipsis-horizontal'
@@ -361,4 +364,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagItemView;
+export default observer(BagItemView);

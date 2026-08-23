@@ -100,7 +100,7 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divided = false }) => {
   ) => (
     <RightActions
       drag={drag}
-      deleteLabel={`${gear.getDisplayName()} 삭제`}
+      deleteLabel={app.getL10n().t('bagDetail.gearDelete', { name: gear.getDisplayName() })}
       onDelete={handlePressDelete}
     />
   );
@@ -122,7 +122,7 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divided = false }) => {
           accessibilityRole='button'
           accessibilityLabel={
             isUseless
-              ? `${gear.getDisplayName()}, ${gear.getWeight()}g, 사용 안 함`
+              ? `${gear.getDisplayName()}, ${gear.getWeight()}g, ${app.getL10n().t('bagDetail.gearUnused')}`
               : `${gear.getDisplayName()}, ${gear.getWeight()}g`
           }
         >
@@ -162,7 +162,9 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divided = false }) => {
               </AcgDisplayText>
               {[
                 gear.getDisplayColor(),
-                gear.hasUsedRate() ? `사용률 ${gear.getUsedRate()}%` : '',
+                gear.hasUsedRate()
+                  ? app.getL10n().t('bagDetail.usageRate', { rate: gear.getUsedRate() })
+                  : '',
               ]
                 .filter(Boolean)
                 .map(part => ` · ${part}`)

@@ -12,6 +12,7 @@ import {
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
+import app from '@/model/app/App';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import {
@@ -71,7 +72,7 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
     try {
       await bagMemo.confirm(content.trim());
     } catch (error) {
-      console.error('메모 저장 실패:', error);
+      console.error('메모 저장 실패:', error); // l10n-ignore
     } finally {
       setIsLoading(false);
     }
@@ -95,7 +96,7 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
         options={{
           headerShown: IS_IOS,
           headerTransparent: true,
-          headerTitle: '메모',
+          headerTitle: app.getL10n().t('bag.memo.title'),
           headerBackVisible: false,
           headerLeft: () => (
             <TouchableOpacity
@@ -104,7 +105,7 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
               disabled={isLoading}
               style={styles.nativeHeaderIconButton}
               accessibilityRole='button'
-              accessibilityLabel='뒤로가기'
+              accessibilityLabel={app.getL10n().t('bag.memo.back')}
             >
               <Ionicons name='chevron-back' size={24} color={Acg.ink} />
             </TouchableOpacity>
@@ -121,7 +122,7 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
                       styles.nativeHeaderRightIconButton,
                     ]}
                     accessibilityRole='button'
-                    accessibilityLabel='메모 삭제'
+                    accessibilityLabel={app.getL10n().t('bag.memo.delete')}
                   >
                     <Ionicons name='trash-outline' size={24} color='#FF3B30' />
                   </TouchableOpacity>
@@ -139,7 +140,7 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
               disabled={isLoading}
               style={styles.backButton}
               accessibilityRole='button'
-              accessibilityLabel='뒤로가기'
+              accessibilityLabel={app.getL10n().t('bag.memo.back')}
             >
               <Ionicons name='chevron-back' size={24} color={Acg.ink} />
             </TouchableOpacity>
@@ -153,7 +154,7 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
                 disabled={isLoading}
                 style={styles.deleteButton}
                 accessibilityRole='button'
-                accessibilityLabel='메모 삭제'
+              accessibilityLabel={app.getL10n().t('bag.memo.delete')}
               >
                 <Ionicons name='trash-outline' size={24} color='#FF3B30' />
               </TouchableOpacity>
@@ -164,7 +165,7 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
       <View style={styles.content}>
         <TextInput
           style={styles.textInput}
-          placeholder='메모를 작성하세요'
+          placeholder={app.getL10n().t('bag.memo.placeholder')}
           placeholderTextColor={Acg.textMuted}
           multiline
           textAlignVertical='top'
@@ -184,7 +185,7 @@ const BagMemoInputView: FC<Props> = ({ bagMemo }) => {
           onPress={handlePressComplete}
           disabled={!content.trim() || isLoading}
           accessibilityRole='button'
-          accessibilityLabel='메모 저장'
+              accessibilityLabel={app.getL10n().t('bag.memo.save')}
           accessibilityState={{ disabled: !content.trim() || isLoading }}
         >
           {isLoading ? (

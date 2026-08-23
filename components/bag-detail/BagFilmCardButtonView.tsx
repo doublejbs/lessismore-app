@@ -37,7 +37,7 @@ const BagFilmCardButtonView: FC<Props> = ({ bagDetail }) => {
       activeOpacity={0.7}
       hitSlop={{ top: 9, bottom: 9, left: 9, right: 9 }}
       accessibilityRole='button'
-      accessibilityLabel='필름 카드 만들기'
+      accessibilityLabel={app.getL10n().t('bagDetail.filmCard')}
     >
       <Ionicons name='film-outline' size={24} color={Color.textPrimary} />
     </TouchableOpacity>

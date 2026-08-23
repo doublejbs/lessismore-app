@@ -5,6 +5,7 @@ import { observer } from 'mobx-react-lite';
 import BagTemplateDetail from '@/model/bag-template/BagTemplateDetail';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgType } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   detail: BagTemplateDetail;
@@ -15,7 +16,7 @@ const BagTemplateNameView: FC<Props> = ({ detail }) => (
     style={styles.container}
     onPress={() => detail.openNameEdit()}
     accessibilityRole='button'
-    accessibilityLabel='이름 수정'
+    accessibilityLabel={app.getL10n().t('bagTemplate.nameEdit')}
   >
     <PretendardText
       style={styles.name}

@@ -73,7 +73,7 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
             activeOpacity={0.7}
             style={styles.nativeAddButton}
             accessibilityRole='button'
-            accessibilityLabel='장비 추가'
+            accessibilityLabel={app.getL10n().t('bagEdit.addGear')}
           >
             <Svg width={16} height={16} viewBox='0 0 14 14' fill='none'>
               <Path
@@ -116,8 +116,8 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
               { paddingHorizontal: Spacing.screenH },
             ]}
           >
-            <PretendardText style={styles.titleText} weight='bold'>
-              내 장비
+              <PretendardText style={styles.titleText} weight='bold'>
+              {app.getL10n().t('bagEdit.myGear')}
             </PretendardText>
           </View>
           <View style={{ paddingHorizontal: Spacing.screenH }}>
@@ -125,7 +125,7 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
               <Ionicons name='search' size={18} color={Color.textSecondary} />
               <TextInput
                 style={styles.searchInput}
-                placeholder='장비 검색'
+                placeholder={app.getL10n().t('bagEdit.searchGear')}
                 placeholderTextColor={Color.textSecondary}
                 value={bagEdit.getQuery()}
                 onChangeText={value => bagEdit.setQuery(value)}
@@ -137,7 +137,7 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
                   onPress={() => bagEdit.setQuery('')}
                   hitSlop={8}
                   accessibilityRole='button'
-                  accessibilityLabel='검색어 지우기'
+                  accessibilityLabel={app.getL10n().t('bagEdit.clearSearch')}
                 >
                   <Ionicons
                     name='close-circle'
@@ -164,7 +164,7 @@ const BagEditView: FC<Props> = ({ bagEdit }) => {
             accessibilityRole='button'
           >
             <PretendardText style={styles.confirmButtonText} weight='semibold'>
-              완료
+              {app.getL10n().t('common.done')}
             </PretendardText>
           </TouchableOpacity>
         </View>

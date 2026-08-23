@@ -176,8 +176,8 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
   const handleDelete = () => {
     setShowMenu(false);
     app.getAlertManager()?.show({
-      message: `${bagDetail.getName()} 배낭을 삭제할까요?`,
-      confirmText: '삭제',
+      message: app.getL10n().t('bagDetail.deleteConfirm', { name: bagDetail.getName() }),
+      confirmText: app.getL10n().t('common.delete'),
       onConfirm: async () => {
         await app.getBagStore()!.delete(bagDetail.getId());
         router.back();
@@ -199,7 +199,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
         onPress={() => setShowMenu(true)}
         activeOpacity={0.7}
         accessibilityRole='button'
-        accessibilityLabel='배낭 메뉴'
+        accessibilityLabel={app.getL10n().t('bagDetail.menu')}
       >
         <Ionicons name='ellipsis-horizontal' size={24} color={Color.textPrimary} />
       </TouchableOpacity>
@@ -245,7 +245,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                     onPress={handlePressBack}
                     hitSlop={12}
                     accessibilityRole='button'
-                    accessibilityLabel='뒤로가기'
+                    accessibilityLabel={app.getL10n().t('bagDetail.back')}
                   >
                     <Ionicons
                       name='chevron-back'
@@ -306,7 +306,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                 }}
               >
                 <View style={styles.gearHeaderContent}>
-                  <AcgSectionHeaderView title={`장비 ${gears.length}개`} />
+                  <AcgSectionHeaderView title={app.getL10n().t('bagDetail.gearCount', { count: gears.length })} />
                 </View>
                 <BagDetailFiltersView bagDetail={bagDetail} />
               </View>
@@ -342,7 +342,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                 ]}
               >
                 <View style={styles.gearHeaderContent}>
-                  <AcgSectionHeaderView title={`장비 ${gears.length}개`} />
+                  <AcgSectionHeaderView title={app.getL10n().t('bagDetail.gearCount', { count: gears.length })} />
                 </View>
                 <BagDetailFiltersView bagDetail={bagDetail} />
               </View>
@@ -355,22 +355,22 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
             menuItems={[
               {
                 icon: 'copy-outline',
-                text: '복사',
+                text: app.getL10n().t('bagDetail.copy'),
                 onPress: handleCopy,
               },
               {
                 icon: 'share-outline',
-                text: '공유',
+                text: app.getL10n().t('bagDetail.share'),
                 onPress: handleShare,
               },
               {
                 icon: 'bookmark-outline',
-                text: '템플릿으로 저장',
+                text: app.getL10n().t('bagDetail.shareSaveTemplate'),
                 onPress: handleSaveTemplate,
               },
               {
                 icon: 'trash-outline',
-                text: '삭제',
+                text: app.getL10n().t('common.delete'),
                 onPress: handleDelete,
               },
             ]}

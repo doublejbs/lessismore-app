@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgType } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   bagDetail: BagDetail;
@@ -21,7 +22,7 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
       style={styles.nameContainer}
       onPress={handleNamePress}
       accessibilityRole='button'
-      accessibilityLabel='배낭 정보 수정'
+      accessibilityLabel={app.getL10n().t('bagDetail.nameEdit')}
     >
       <PretendardText
         style={styles.nameText}

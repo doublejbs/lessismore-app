@@ -3,12 +3,14 @@ import { FC, useRef, useEffect } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { AcgLayout } from '@/constants/DesignTokens';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
+import GearFilter from '@/model/gear/GearFilter';
 import FilterButtonView from './FilterButtonView';
 
 interface BagWithFilters {
   toggleFilter: (filter: WarehouseFilter) => void;
   toggleFilterWithScroll: (filter: WarehouseFilter) => void;
   mapFiltersWithGears: <R>(callback: (filter: WarehouseFilter) => R) => R[];
+  getCategoryName: (category: GearFilter) => string;
   setFilterScrollViewRef: (ref: any) => void;
   setFilterButtonRefs: (refs: Map<string, any>) => void;
 }
@@ -38,8 +40,9 @@ const BagDetailFiltersView: FC<Props> = ({ bagDetail }) => {
         {bagDetail.mapFiltersWithGears(filter => {
           return (
             <FilterButtonView
-              key={filter.getName()}
-              filter={filter}
+                key={filter.getFilter()}
+                filter={filter}
+                label={bagDetail.getCategoryName(filter.getFilter())}
               bagDetail={bagDetail}
               onRef={(ref: any) => {
                 if (ref) {

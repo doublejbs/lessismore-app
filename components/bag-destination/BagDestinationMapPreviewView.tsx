@@ -1,4 +1,5 @@
 import { FC, useMemo, useState } from 'react';
+import { observer } from 'mobx-react-lite';
 import {
   Pressable,
   StyleSheet,
@@ -7,6 +8,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Color, Radius, AcgLayout } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 import SpotPinView from '@/components/camp-site/SpotPinView';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import {
@@ -102,7 +104,7 @@ const BagDestinationMapPreviewView: FC<Props> = ({ location, onPress }) => {
         style={StyleSheet.absoluteFill}
         onPress={onPress}
         accessibilityRole='button'
-        accessibilityLabel='여행지 지도, 눌러서 변경'
+        accessibilityLabel={app.getL10n().t('bagDestination.mapChange')}
       />
     </View>
   );
@@ -125,4 +127,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagDestinationMapPreviewView;
+export default observer(BagDestinationMapPreviewView);

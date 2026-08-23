@@ -47,8 +47,8 @@ const BagPackingView: FC<Props> = ({ bagPacking }) => {
 
   const handlePressReset = () => {
     app.getAlertManager()?.show({
-      message: '패킹을 처음부터 다시 시작할까요?',
-      confirmText: '처음부터 다시',
+      message: app.getL10n().t('packing.restartConfirm'),
+      confirmText: app.getL10n().t('packing.restart'),
       onConfirm: async () => {
         await bagPacking.reset();
       },
@@ -73,10 +73,10 @@ const BagPackingView: FC<Props> = ({ bagPacking }) => {
                   activeOpacity={0.7}
                   style={styles.nativeResetButton}
                   accessibilityRole='button'
-                  accessibilityLabel='처음부터 다시'
+                  accessibilityLabel={app.getL10n().t('packing.restart')}
                 >
                   <PretendardText style={styles.resetText} weight='medium'>
-                    처음부터 다시
+                    {app.getL10n().t('packing.restart')}
                   </PretendardText>
                 </TouchableOpacity>
               ),
@@ -117,7 +117,7 @@ const BagPackingView: FC<Props> = ({ bagPacking }) => {
             {!isEmpty && (
               <TouchableOpacity onPress={handlePressReset} activeOpacity={0.7}>
                 <PretendardText style={styles.resetText} weight='medium'>
-                  처음부터 다시
+                  {app.getL10n().t('packing.restart')}
                 </PretendardText>
               </TouchableOpacity>
             )}

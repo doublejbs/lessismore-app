@@ -10,11 +10,12 @@ interface BagWithFilters {
 
 interface Props {
   filter: WarehouseFilter;
+  label: string;
   bagDetail: BagWithFilters;
   onRef?: (ref: any) => void;
 }
 
-const FilterButtonView: FC<Props> = ({ filter, bagDetail, onRef }) => {
+const FilterButtonView: FC<Props> = ({ filter, bagDetail, label, onRef }) => {
   const viewRef = useRef<View>(null);
 
   useEffect(() => {
@@ -30,7 +31,7 @@ const FilterButtonView: FC<Props> = ({ filter, bagDetail, onRef }) => {
   return (
     <FeedChipView
       ref={viewRef}
-      label={filter.getName()}
+      label={label}
       selected={filter.isSelected()}
       onPress={handlePress}
     />

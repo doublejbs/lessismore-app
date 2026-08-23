@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { observer } from 'mobx-react-lite';
 import {
   View,
   TextInput,
@@ -12,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import DateRangeCalendar from './DateRangeCalendarView';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   title: string;
@@ -53,11 +55,11 @@ const BagFormContent: FC<Props> = ({
       </PretendardText>
       <View style={styles.inputSection}>
         <PretendardText weight='semibold' style={styles.inputLabel}>
-          배낭 이름
+          {app.getL10n().t('bag.nameLabel')}
         </PretendardText>
         <TextInput
           style={styles.textInput}
-          placeholder='배낭 이름을 입력해주세요'
+          placeholder={app.getL10n().t('bag.namePlaceholder')}
           value={inputValue}
           onChangeText={onChangeName}
           placeholderTextColor={Color.textSecondary}
@@ -104,7 +106,7 @@ const BagFormContent: FC<Props> = ({
           activeOpacity={0.7}
         >
           <PretendardText weight='semibold' style={styles.cancelButtonText}>
-            취소
+            {app.getL10n().t('common.cancel')}
           </PretendardText>
         </TouchableOpacity>
         <TouchableOpacity
@@ -210,4 +212,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagFormContent;
+export default observer(BagFormContent);

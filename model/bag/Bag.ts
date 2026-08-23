@@ -95,15 +95,15 @@ class Bag {
     if (trimmedValue.length) {
       return await this.bagStore.add(trimmedValue, startDate, endDate);
     } else {
-      Alert.alert('배낭 이름을 입력해주세요');
+      Alert.alert(app.getL10n().t('bag.nameRequired'));
       return '';
     }
   }
 
   public async delete(bagItem: BagItem) {
     this.alertManager.show({
-      message: `${bagItem.getName()} 배낭을 삭제할까요?`,
-      confirmText: '삭제',
+      message: app.getL10n().t('bag.deleteConfirm', { name: bagItem.getName() }),
+      confirmText: app.getL10n().t('common.delete'),
       onConfirm: async () => {
         app.getAnalyticsManager()?.logClick('bag_delete');
         await this.bagStore.delete(bagItem.getID());
@@ -122,8 +122,8 @@ class Bag {
     const bagItem = this.bags.find(bag => bag.getID() === bagItemId);
     if (bagItem) {
       this.toastManager.show({
-        message: '배낭에 추가됐습니다.',
-        buttonText: '배낭 보기',
+        message: app.getL10n().t('bag.added'),
+        buttonText: app.getL10n().t('bag.view'),
         onButtonPress: () => {
           router.push(`/bag/${bagItemId}`);
         },

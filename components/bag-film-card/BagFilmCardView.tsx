@@ -23,6 +23,7 @@ import FilmCardCorner from '@/components/bag-film-card/FilmCardCorner';
 import useElementTransform, {
   ElementTransform,
 } from '@/components/bag-film-card/useElementTransform';
+import app from '@/model/app/App';
 
 interface Props {
   filmCard: BagFilmCard;
@@ -60,12 +61,12 @@ const CANVAS_SPECS: Record<
 > = {
   [FilmCardRatio.Feed]: {
     label: '4:5',
-    accessibilityLabel: '4 대 5 비율',
+    accessibilityLabel: 'bagFilmCard.ratio45',
     aspect: 5 / 4,
   },
   [FilmCardRatio.Story]: {
     label: '9:16',
-    accessibilityLabel: '9 대 16 비율',
+    accessibilityLabel: 'bagFilmCard.ratio916',
     aspect: 16 / 9,
   },
 };
@@ -80,12 +81,12 @@ const ELEMENT_SPECS: Record<
   { label: string; accessibilityLabel: string }
 > = {
   [FilmCardElement.Polaroid]: {
-    label: '폴라로이드',
-    accessibilityLabel: '폴라로이드 요소',
+    label: 'bagFilmCard.polaroid',
+    accessibilityLabel: 'bagFilmCard.polaroidElement',
   },
   [FilmCardElement.PackingList]: {
-    label: '패킹리스트',
-    accessibilityLabel: '패킹리스트 요소',
+    label: 'bagFilmCard.packingList',
+    accessibilityLabel: 'bagFilmCard.packingListElement',
   },
 };
 
@@ -141,6 +142,7 @@ const getCaptureSize = (ratio: number) => {
 };
 
 const BagFilmCardView: FC<Props> = ({ filmCard }) => {
+  const l10n = app.getL10n();
   const router = useRouter();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const cardRef = useRef<View>(null);
@@ -253,8 +255,8 @@ const BagFilmCardView: FC<Props> = ({ filmCard }) => {
 
   const elementChips: FilmCardChipOption[] = ELEMENT_OPTIONS.map(option => ({
     key: option,
-    label: ELEMENT_SPECS[option].label,
-    accessibilityLabel: ELEMENT_SPECS[option].accessibilityLabel,
+    label: l10n.t(ELEMENT_SPECS[option].label),
+    accessibilityLabel: l10n.t(ELEMENT_SPECS[option].accessibilityLabel),
     selected: filmCard.isElementOn(option),
     onPress: () => filmCard.toggleElement(option),
   }));
@@ -262,7 +264,7 @@ const BagFilmCardView: FC<Props> = ({ filmCard }) => {
   const ratioChips: FilmCardChipOption[] = RATIO_OPTIONS.map(option => ({
     key: option,
     label: CANVAS_SPECS[option].label,
-    accessibilityLabel: CANVAS_SPECS[option].accessibilityLabel,
+    accessibilityLabel: l10n.t(CANVAS_SPECS[option].accessibilityLabel),
     selected: filmCard.isRatioSelected(option),
     onPress: () => filmCard.selectRatio(option),
   }));

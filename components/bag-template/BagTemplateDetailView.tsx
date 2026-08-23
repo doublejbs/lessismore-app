@@ -19,6 +19,7 @@ import BagTemplateNameView from './BagTemplateNameView';
 import BagTemplateCategoryView from './BagTemplateCategoryView';
 import BagTemplateBottomBar from './BagTemplateBottomBar';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
+import app from '@/model/app/App';
 
 interface Props {
   detail: BagTemplateDetail;
@@ -70,7 +71,7 @@ const BagTemplateDetailView: FC<Props> = ({ detail }) => {
               onPress={() => detail.back()}
               style={styles.backButton}
               accessibilityRole='button'
-              accessibilityLabel='뒤로가기'
+              accessibilityLabel={app.getL10n().t('bagTemplate.back')}
             >
               <Ionicons name='chevron-back' size={24} color={Acg.ink} />
             </TouchableOpacity>
@@ -87,7 +88,7 @@ const BagTemplateDetailView: FC<Props> = ({ detail }) => {
           <View style={styles.identity}>
             <BagTemplateNameView detail={detail} />
             <View style={styles.weightBlock}>
-              <PretendardText style={styles.weightLabel}>총 무게</PretendardText>
+              <PretendardText style={styles.weightLabel}>{app.getL10n().t('bagTemplate.totalWeight')}</PretendardText>
               <AcgDisplayText style={styles.weight}>
                 {`${detail.getWeight()}kg`}
               </AcgDisplayText>
@@ -95,7 +96,7 @@ const BagTemplateDetailView: FC<Props> = ({ detail }) => {
           </View>
           <View style={styles.separator} />
           <View style={styles.gearSection}>
-            <AcgSectionHeaderView title={`장비 ${detail.getCount()}개`} />
+            <AcgSectionHeaderView title={app.getL10n().t('bagTemplate.gearCount', { count: detail.getCount() })} />
             <View style={styles.gearList}>
               {categories.map(({ category, gears }) => (
                 <BagTemplateCategoryView
@@ -122,8 +123,8 @@ interface MissingProps {
 const MissingTemplateView: FC<MissingProps> = ({ detail, stackScreen }) => {
   useFocusEffect(
     useCallback(() => {
-      Alert.alert('오류', '템플릿을 찾을 수 없습니다.', [
-        { text: '확인', onPress: () => detail.back() },
+    Alert.alert(app.getL10n().t('common.error'), app.getL10n().t('bagTemplate.notFoundMessage'), [
+        { text: app.getL10n().t('common.ok'), onPress: () => detail.back() },
       ]);
     }, [detail])
   );

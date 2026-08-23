@@ -1,7 +1,6 @@
 import dayjs from 'dayjs';
 import { makeAutoObservable } from 'mobx';
 import app from '@/model/app/App';
-import { josa } from 'josa';
 import BagStore from '@/model/store/BagStore';
 import Firebase from '@/model/firebase/Firebase';
 import GearStore from '@/model/store/GearStore';
@@ -261,12 +260,14 @@ class BagDetail {
     const phase = this.getTripPhase();
     if (phase === 'before') {
       const d = this.startDate.startOf('day').diff(today, 'day');
-      return d === 0 ? '오늘 출발' : `D-${d}`;
+      return d === 0
+        ? app.getL10n().t('bagDetail.todayDeparture')
+        : app.getL10n().t('bagDetail.dDay', { count: d });
     }
     if (phase === 'ongoing') {
-      return '여행 중';
+      return app.getL10n().t('bagDetail.ongoing');
     }
-    return '지난 여행';
+    return app.getL10n().t('bagDetail.pastTrip');
   }
 
   private setGears(value: Gear[]) {
@@ -362,8 +363,8 @@ class BagDetail {
     const name = gear.getDisplayName();
 
     app.getAlertManager()?.show({
-      message: josa(`${name}#{을} 이 배낭에서 뺄까요?`),
-      confirmText: '확인',
+      message: app.getL10n().t('bagDetail.removeConfirm', { name }),
+      confirmText: app.getL10n().t('common.ok'),
       onConfirm: async () => {
         const filteredGears = this.gears.filter(g => !g.isSame(gear));
 
@@ -423,6 +424,10 @@ class BagDetail {
     return this.filterManager.getFiltersWithGears(this.gears).map(callback);
   }
 
+  public getCategoryName(category: GearFilter) {
+    return this.filterManager.getCategoryName(category);
+  }
+
   public toggleFilter(filter: WarehouseFilter) {
     if (filter.isSelected()) {
       this.deselectFilter(filter);
@@ -459,11 +464,9 @@ class BagDetail {
 
   public getDate() {
     if (this.startDate.isSame(this.endDate, 'day')) {
-      return this.startDate.format('YYYY.MM.DD');
+      return this.startDate.format(app.getL10n().t('bag.dateShortFormat'));
     } else {
-      return `${this.startDate.format('YYYY.MM.DD')} ~ ${this.endDate.format(
-        'YYYY.MM.DD'
-      )}`;
+      return `${this.startDate.format(app.getL10n().t('bag.dateShortFormat'))}${app.getL10n().t('bag.dateRangeSeparator')}${this.endDate.format(app.getL10n().t('bag.dateShortFormat'))}`;
     }
   }
 
@@ -603,7 +606,7 @@ class BagDetail {
             });
           }
         );
-      } catch (error) {
+      } catch {
         // 에러 발생시 기본 measureInWindow 사용
         const isFirstCategory = categoryFilter === GearFilter.Backpack;
         const fallbackOffset = isFirstCategory ? 250 : 230;

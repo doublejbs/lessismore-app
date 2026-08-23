@@ -87,14 +87,14 @@ const BagDetailDestinationView: FC<Props> = ({
   // 등록된 박지 연결은 색이 아니라 📍로 구분한다(DST-2).
   const title = location
     ? `${location.campSpotId ? '📍 ' : ''}${location.name}`
-    : '여행지';
+    : app.getL10n().t('bagDetail.destination');
   const subtitle = location
     ? summary
       ? `${summary.cond} · ${summary.low}~${summary.high}°`
       : bagWeather.hasError()
-        ? '날씨를 불러오지 못했어요'
+        ? app.getL10n().t('bagDetail.weatherUnavailable')
         : null
-    : '여행지 선택';
+    : app.getL10n().t('bagDetail.destinationSelect');
 
   // 강조여도 48% 그리드 세로 카드는 그대로 두고 배경/전경색만 검정으로 바꾼다.
   return (
@@ -103,7 +103,7 @@ const BagDetailDestinationView: FC<Props> = ({
       onPress={handlePress}
       activeOpacity={0.7}
       accessibilityRole='button'
-      accessibilityLabel={location ? `여행지 ${location.name}` : '여행지 선택'}
+      accessibilityLabel={location ? app.getL10n().t('bagDetail.destinationLabel', { name: location.name }) : app.getL10n().t('bagDetail.destinationSelect')}
     >
       <Ionicons name={iconName} size={24} color={fg} />
       <View style={styles.textWrap}>

@@ -132,7 +132,7 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
             onPress={handlePressBack}
             hitSlop={12}
             accessibilityRole='button'
-            accessibilityLabel='뒤로가기'
+            accessibilityLabel={app.getL10n().t('bagUseless.back')}
           >
             <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
           </TouchableOpacity>
@@ -156,12 +156,12 @@ const BagUselessView: FC<Props> = ({ bagUseless }) => {
               {String(selectedCount)}
             </AcgDisplayText>
             <PretendardText weight='medium' style={styles.countTotal}>
-              {`/ ${allCount} 사용`}
+              {app.getL10n().t('bagUseless.usage', { count: allCount })}
             </PretendardText>
           </View>
           <TouchableOpacity onPress={handlePressToggleSelectAll} hitSlop={8}>
             <PretendardText weight='medium' style={styles.selectAllText}>
-              {selectedCount ? '전체 해제' : '전체 선택'}
+              {selectedCount ? app.getL10n().t('bagUseless.clearAll') : app.getL10n().t('bagUseless.selectAll')}
             </PretendardText>
           </TouchableOpacity>
         </View>

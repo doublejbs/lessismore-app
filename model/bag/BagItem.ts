@@ -2,6 +2,7 @@ import { Dayjs } from 'dayjs';
 import { BagLocation } from '../bag-destination/BagLocation';
 import { BagActivitySummary } from './BagActivitySummary';
 import { WeatherSnapshot } from '../weather/WeatherTypes';
+import app from '@/model/app/App';
 
 class BagItem {
   public constructor(
@@ -100,11 +101,9 @@ class BagItem {
 
   public getDate() {
     if (this.startDate.isSame(this.endDate, 'day')) {
-      return this.startDate.format('YYYY.MM.DD');
+      return this.startDate.format(app.getL10n().t('bag.dateShortFormat'));
     } else {
-      return `${this.startDate.format('YYYY.MM.DD')} ~ ${this.endDate.format(
-        'YYYY.MM.DD'
-      )}`;
+      return `${this.startDate.format(app.getL10n().t('bag.dateShortFormat'))}${app.getL10n().t('bag.dateRangeSeparator')}${this.endDate.format(app.getL10n().t('bag.dateShortFormat'))}`;
     }
   }
 

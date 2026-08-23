@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import BagItem from './BagItem';
+import app from '@/model/app/App';
 
 /**
  * 배낭 목록의 구간(BAG-1). 목록은 여행마다 하나씩 쌓이는 축적형이라, 정렬 하나로는
@@ -15,9 +16,9 @@ enum BagTripSection {
 }
 
 export const BAG_TRIP_SECTION_LABEL: Record<BagTripSection, string> = {
-  [BagTripSection.Ongoing]: '여행 중',
-  [BagTripSection.Upcoming]: '예정',
-  [BagTripSection.Past]: '지난',
+  [BagTripSection.Ongoing]: 'bagTrip.ongoing',
+  [BagTripSection.Upcoming]: 'bagTrip.upcoming',
+  [BagTripSection.Past]: 'bagTrip.past',
 };
 
 // 화면에 쌓는 차례. `여행 중`이 가장 급하고 `지난`이 회고다.
@@ -92,7 +93,7 @@ export const groupBagsByTripSection = (
   return BAG_TRIP_SECTION_ORDER.filter(section => buckets.has(section)).map(
     section => ({
       section,
-      label: BAG_TRIP_SECTION_LABEL[section],
+      label: app.getL10n().t(BAG_TRIP_SECTION_LABEL[section]),
       bags: buckets.get(section) ?? [],
     })
   );

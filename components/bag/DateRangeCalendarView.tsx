@@ -1,9 +1,12 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import dayjs from 'dayjs';
 import { FC, useEffect, useState } from 'react';
+import { observer } from 'mobx-react-lite';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 interface Props {
   startDate: dayjs.Dayjs | null;
@@ -29,7 +32,7 @@ const DateRangeCalendarView: FC<Props> = ({
    * 쓰는데 캘린더가 항상 펼쳐져 있으면 정작 먼저 손대는 이름 입력이 위로 밀린다.
    */
   const [isOpen, setIsOpen] = useState(false);
-  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+  const weekdays = app.getL10n().t('bag.calendar.weekdays', { returnObjects: true }) as unknown as string[];
 
   useEffect(() => {
     const firstDayOfMonth = currentMonth.startOf('month');
@@ -131,7 +134,7 @@ const DateRangeCalendarView: FC<Props> = ({
        */}
       <View style={styles.fieldSection}>
         <PretendardText weight='semibold' style={styles.fieldLabel}>
-          여행 기간
+          {app.getL10n().t('bag.calendar.dateLabel')}
         </PretendardText>
         <TouchableOpacity
           style={styles.periodField}
@@ -139,14 +142,14 @@ const DateRangeCalendarView: FC<Props> = ({
           activeOpacity={0.7}
           accessibilityRole='button'
           accessibilityState={{ expanded: isOpen }}
-          accessibilityLabel='여행 기간 선택'
+          accessibilityLabel={app.getL10n().t('bag.calendar.dateAccessibility')}
         >
           <PretendardText
             style={[styles.periodText, !hasRange && styles.periodPlaceholder]}
           >
             {hasRange
               ? `${startDate.format('YYYY.MM.DD')} – ${endDate.format('YYYY.MM.DD')}`
-              : '기간을 선택해주세요'}
+              : app.getL10n().t('bag.calendar.datePlaceholder')}
           </PretendardText>
           <Ionicons
             name={isOpen ? 'chevron-up' : 'chevron-down'}
@@ -168,7 +171,7 @@ const DateRangeCalendarView: FC<Props> = ({
               </PretendardText>
             </TouchableOpacity>
             <PretendardText weight='bold' style={styles.monthTitle}>
-              {currentMonth.format('YYYY년 M월')}
+              {currentMonth.format(app.getL10n().t('bag.dateFormat'))}
             </PretendardText>
             <TouchableOpacity
               onPress={navigateToNextMonth}
@@ -369,4 +372,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DateRangeCalendarView;
+export default observer(DateRangeCalendarView);

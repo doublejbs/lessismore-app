@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { observer } from 'mobx-react-lite';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -11,6 +12,7 @@ import BagFilmCardDarkChipView from '@/components/bag-film-card/BagFilmCardDarkC
 import { FilmCardControlPalette } from '@/components/bag-film-card/FilmCardControlPalette';
 import PretendardText from '@/components/PretendardText';
 import { Radius, Spacing } from '@/constants/DesignTokens';
+import app from '@/model/app/App';
 
 /**
  * 오버레이가 그릴 칩 하나의 정보.
@@ -72,7 +74,9 @@ const BagFilmCardOverlayView: FC<Props> = ({
   onPressSave,
 }) => {
   const insets = useSafeAreaInsets();
-  const photoLabel = hasPhoto ? '사진 다시 고르기' : '사진 고르기';
+  const photoLabel = hasPhoto
+    ? app.getL10n().t('bagFilmCard.choosePhotoAgain')
+    : app.getL10n().t('bagFilmCard.choosePhoto');
 
   return (
     // box-none: 컨트롤이 아닌 자리의 탭은 아래 캔버스(사진 다시 고르기·패킹리스트 드래그)로
@@ -87,7 +91,7 @@ const BagFilmCardOverlayView: FC<Props> = ({
           onPress={onPressBack}
           activeOpacity={0.7}
           accessibilityRole='button'
-          accessibilityLabel='뒤로가기'
+          accessibilityLabel={app.getL10n().t('bagFilmCard.back')}
         >
           <Ionicons
             name='chevron-back'
@@ -148,7 +152,7 @@ const BagFilmCardOverlayView: FC<Props> = ({
             disabled={busy}
             activeOpacity={0.8}
             accessibilityRole='button'
-            accessibilityLabel='공유하기'
+            accessibilityLabel={app.getL10n().t('bagFilmCard.share')}
           >
             {sharing ? (
               <ActivityIndicator
@@ -157,7 +161,7 @@ const BagFilmCardOverlayView: FC<Props> = ({
               />
             ) : (
               <PretendardText style={styles.shareButtonText} weight='semibold'>
-                공유하기
+                {app.getL10n().t('bagFilmCard.share')}
               </PretendardText>
             )}
           </TouchableOpacity>
@@ -167,7 +171,7 @@ const BagFilmCardOverlayView: FC<Props> = ({
             disabled={busy}
             activeOpacity={0.7}
             accessibilityRole='button'
-            accessibilityLabel='갤러리에 저장'
+            accessibilityLabel={app.getL10n().t('bagFilmCard.saveGallery')}
           >
             {saving ? (
               <ActivityIndicator
@@ -258,4 +262,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagFilmCardOverlayView;
+export default observer(BagFilmCardOverlayView);

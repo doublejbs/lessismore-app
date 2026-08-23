@@ -53,8 +53,10 @@ const BagEditWarehouseGearView: FC<Props> = ({ gear, bagEdit }) => {
         onPress={handlePress}
         hitSlop={8}
         accessibilityRole='button'
-        accessibilityLabel={`${gear.getDisplayName()} 배낭에 ${
-          isSelected ? '빼기' : '담기'
+        accessibilityLabel={`${gear.getDisplayName()} ${
+          isSelected
+            ? app.getL10n().t('bagEdit.remove')
+            : app.getL10n().t('bagEdit.add')
         }`}
       >
         <View style={styles.hollowCircle} />

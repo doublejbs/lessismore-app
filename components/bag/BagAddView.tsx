@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { observer } from 'mobx-react-lite';
 import { StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -44,7 +45,7 @@ const BagAddView: FC<Props> = ({ bag }) => {
 
   return (
     <FloatingPillButton
-      label='배낭 추가'
+      label={app.getL10n().t('bag.add')}
       onPress={handlePressAdd}
       variant='primary'
       style={[styles.floatingButton, { bottom }]}
@@ -59,4 +60,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagAddView;
+export default observer(BagAddView);

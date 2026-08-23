@@ -278,14 +278,14 @@ const BagDestinationPickerView: FC<Props> = observer(
                 onPress={handleClose}
                 disabled={saving}
                 accessibilityRole='button'
-                accessibilityLabel='닫기'
+                accessibilityLabel={app.getL10n().t('bagDestination.close')}
                 accessibilityState={{ disabled: saving }}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               >
                 <Ionicons name='close' size={24} color={Color.textPrimary} />
               </TouchableOpacity>
               <PretendardText style={styles.headerTitle} weight='bold'>
-                여행지 선택
+                {app.getL10n().t('bagDestination.select')}
               </PretendardText>
               <View style={styles.headerButton} />
             </View>
@@ -294,7 +294,7 @@ const BagDestinationPickerView: FC<Props> = observer(
               <Ionicons name='search' size={18} color={Color.textSecondary} />
               <TextInput
                 style={styles.searchInput}
-                placeholder='박지나 장소를 검색하세요'
+                placeholder={app.getL10n().t('bagDestination.searchPlaceholder')}
                 placeholderTextColor={Color.textSecondary}
                 value={query}
                 onChangeText={handleChangeQuery}
@@ -302,7 +302,7 @@ const BagDestinationPickerView: FC<Props> = observer(
                 editable={!saving}
                 autoCorrect={false}
                 returnKeyType='search'
-                accessibilityLabel='박지와 장소 검색'
+                accessibilityLabel={app.getL10n().t('bagDestination.search')}
                 accessibilityState={{ disabled: saving }}
               />
               {query.length > 0 && (
@@ -311,7 +311,7 @@ const BagDestinationPickerView: FC<Props> = observer(
                   onPress={handleClearQuery}
                   disabled={saving}
                   accessibilityRole='button'
-                  accessibilityLabel='검색어 지우기'
+                  accessibilityLabel={app.getL10n().t('bagDestination.clearSearch')}
                   accessibilityState={{ disabled: saving }}
                 >
                   <Ionicons
@@ -359,7 +359,7 @@ const BagDestinationPickerView: FC<Props> = observer(
                     disabled={saving}
                     activeOpacity={0.8}
                     accessibilityRole='button'
-                    accessibilityLabel='즐겨찾기 목록'
+                    accessibilityLabel={app.getL10n().t('bagDestination.favorites')}
                     accessibilityState={{ disabled: saving }}
                   >
                     <Ionicons name='star' size={22} color={FAVORITE_COLOR} />
@@ -371,7 +371,7 @@ const BagDestinationPickerView: FC<Props> = observer(
                   disabled={locating || saving}
                   activeOpacity={0.8}
                   accessibilityRole='button'
-                  accessibilityLabel='현재 위치로 이동'
+                  accessibilityLabel={app.getL10n().t('bagDestination.currentLocation')}
                   accessibilityState={{ disabled: locating || saving }}
                 >
                   {locating ? (
@@ -401,8 +401,8 @@ const BagDestinationPickerView: FC<Props> = observer(
                   numberOfLines={2}
                 >
                   {resolving
-                    ? '위치 확인 중…'
-                    : addressName || '주소를 찾을 수 없어요'}
+                    ? app.getL10n().t('bagDestination.locating')
+                    : addressName || app.getL10n().t('bagDestination.addressNotFound')}
                 </PretendardText>
               </View>
 
@@ -415,14 +415,14 @@ const BagDestinationPickerView: FC<Props> = observer(
                 disabled={saving || !origin}
                 activeOpacity={0.8}
                 accessibilityRole='button'
-                accessibilityLabel='이 위치로 여행지 설정'
+                accessibilityLabel={app.getL10n().t('bagDestination.setLocation')}
                 accessibilityState={{ disabled: saving || !origin }}
               >
                 {saving ? (
                   <ActivityIndicator color={Color.background} />
                 ) : (
                   <PretendardText style={styles.confirmText} weight='semibold'>
-                    이 위치로 설정
+                    {app.getL10n().t('bagDestination.setLocationShort')}
                   </PretendardText>
                 )}
               </TouchableOpacity>
@@ -572,4 +572,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagDestinationPickerView;
+export default observer(BagDestinationPickerView);

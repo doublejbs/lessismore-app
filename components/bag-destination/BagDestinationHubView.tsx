@@ -19,14 +19,13 @@ import BagDestinationMapPreviewView from './BagDestinationMapPreviewView';
 import BagDestinationInfoView from './BagDestinationInfoView';
 import BagTripWeatherView from '@/components/weather/BagTripWeatherView';
 import useBagDestinationHubState from './useBagDestinationHubState';
+import app from '@/model/app/App';
 
 interface Props {
   bagWeather: BagWeather;
 }
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
-
-const formatDay = (d: Dayjs) => `${d.format('M.D')}(${WEEKDAYS[d.day()]})`;
+const formatDay = (d: Dayjs) => `${d.format(app.getL10n().t('bagDestination.dayFormat'))}(${(app.getL10n().t('bagDestination.weekdays', { returnObjects: true }) as unknown as string[])[d.day()]})`;
 
 // LG-1: iOS만 네이티브 스택 헤더(리퀴드 글래스)를 쓰고, Android/Web은 기존 커스텀 JS 헤더를 유지한다.
 const IS_IOS = Platform.OS === 'ios';
@@ -65,7 +64,7 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
         options={{
           headerShown: IS_IOS,
           headerTransparent: true,
-          headerTitle: '여행지',
+          headerTitle: app.getL10n().t('bagDestination.title'),
           headerBackButtonDisplayMode: 'minimal',
         }}
       />
@@ -75,12 +74,12 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
             style={styles.headerButton}
             onPress={() => router.back()}
             accessibilityRole='button'
-            accessibilityLabel='뒤로가기'
+            accessibilityLabel={app.getL10n().t('bagDestination.back')}
           >
             <Ionicons name='chevron-back' size={24} color={Color.textPrimary} />
           </TouchableOpacity>
           <PretendardText style={styles.headerTitle} weight='bold'>
-            여행지
+            {app.getL10n().t('bagDestination.title')}
           </PretendardText>
           <View style={styles.headerSpacer} />
         </View>
@@ -96,10 +95,10 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
             style={styles.selectButton}
             onPress={handleOpenPicker}
             accessibilityRole='button'
-            accessibilityLabel='여행지 선택'
+            accessibilityLabel={app.getL10n().t('bagDestination.select')}
           >
             <PretendardText style={styles.selectText} weight='semibold'>
-              여행지 선택
+              {app.getL10n().t('bagDestination.select')}
             </PretendardText>
           </TouchableOpacity>
         </View>
@@ -130,7 +129,7 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
 
           <View style={styles.periodSection}>
             <PretendardText style={styles.periodTitle} weight='bold'>
-              여행 기간
+              {app.getL10n().t('bagDestination.period')}
             </PretendardText>
             <View style={styles.periodRow}>
               <PretendardText style={styles.periodText} weight='medium'>
