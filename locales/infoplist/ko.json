@@ -1,0 +1,7 @@
+{
+  "NSPhotoLibraryUsageDescription": "이 앱은 내 장비 사진과 배낭 카드에 넣을 사진을 선택하기 위해 사진 라이브러리에 접근합니다.",
+  "NSPhotoLibraryAddUsageDescription": "이 앱은 공유 이미지를 저장하기 위해 사진 라이브러리에 접근합니다.",
+  "NSCameraUsageDescription": "이 앱은 내 장비 사진을 촬영하기 위해 카메라에 접근합니다.",
+  "NSLocationWhenInUseUsageDescription": "여행지의 현재 위치를 불러오기 위해 위치 정보를 사용합니다.",
+  "NSHealthShareUsageDescription": "배낭 여행 기간에 기록된 운동(거리·상승고도·경로)을 불러와 배낭 상세에 보여주기 위해 건강 데이터를 읽습니다. 데이터는 기기에만 남고 서버로 전송하지 않습니다."
+}

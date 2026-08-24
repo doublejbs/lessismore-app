@@ -135,6 +135,11 @@
       "eas": {
         "projectId": "24aefc8a-2fb8-40f2-9d1b-5361537863a5"
       }
+    },
+    "locales": {
+      "ko": "./locales/infoplist/ko.json",
+      "en": "./locales/infoplist/en.json",
+      "ja": "./locales/infoplist/ja.json"
     }
   }
 }

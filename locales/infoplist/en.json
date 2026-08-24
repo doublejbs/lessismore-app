@@ -1,0 +1,7 @@
+{
+  "NSPhotoLibraryUsageDescription": "This app accesses your photo library so you can pick photos for your gear and backpack cards.",
+  "NSPhotoLibraryAddUsageDescription": "This app accesses your photo library to save shared images.",
+  "NSCameraUsageDescription": "This app uses the camera to take photos of your gear.",
+  "NSLocationWhenInUseUsageDescription": "Your location is used to load the current position of your trip destination.",
+  "NSHealthShareUsageDescription": "Reads workouts recorded during your trip (distance, elevation, route) to show them in your backpack. Data stays on your device and is never sent to our servers."
+}
