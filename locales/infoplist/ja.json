@@ -1,0 +1,7 @@
+{
+  "NSPhotoLibraryUsageDescription": "ギアやバックパックカードに使う写真を選ぶため、フォトライブラリにアクセスします。",
+  "NSPhotoLibraryAddUsageDescription": "共有画像を保存するため、フォトライブラリにアクセスします。",
+  "NSCameraUsageDescription": "ギアの写真を撮影するため、カメラを使用します。",
+  "NSLocationWhenInUseUsageDescription": "旅行先の現在位置を読み込むため、位置情報を使用します。",
+  "NSHealthShareUsageDescription": "旅行期間中に記録された運動（距離・上昇高度・経路）を読み込み、バックパック詳細に表示するためヘルスデータを読み取ります。データは端末内にのみ保持され、サーバーには送信されません。"
+}
