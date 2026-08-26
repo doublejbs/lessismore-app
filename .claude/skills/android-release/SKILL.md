@@ -114,9 +114,16 @@ const res = await fetch('https://androidpublisher.googleapis.com/androidpublishe
   `{ track, releases: [{ versionCodes: ['<코드>'], status: 'completed' }] }`를 넣는다.
   트랙 이름에 한글이 있으면 URL 인코딩한다.
 
-- **API 커밋은 자동 심사 제출을 못 한다.** `:commit`을 그냥 부르면 400
-  `Changes cannot be sent for review automatically`가 난다. `?changesNotSentForReview=true`로
-  커밋해야 하고, 그러면 **심사 제출은 사용자가 Play Console → 게시 개요에서** 해야 한다.
+- ★ **`changesNotSentForReview`의 요구가 앱 상태에 따라 정반대로 바뀐다.** 둘 다 실측했다:
+  - 2026-08-21: 그냥 `:commit` → 400 `Changes cannot be sent for review automatically.
+    Please set the query parameter changesNotSentForReview to true.`
+  - 2026-08-27: `?changesNotSentForReview=true` → 400 `Changes are sent for review
+    automatically. The query parameter changesNotSentForReview must not be set.`
+
+  즉 **한쪽으로 고정하면 안 된다.** 400 메시지가 어느 쪽을 요구하는지 읽고 그대로 따르는 방식으로
+  구현한다(파라미터 없이 시도 → 위 메시지가 오면 붙여서 재시도, 또는 그 반대).
+  파라미터를 **쓰지 말라고 할 때는 커밋이 곧 심사 제출**이므로, 선언·등록정보 수정이 끝나기 전에
+  커밋하면 의도치 않게 심사에 들어간다 — 순서를 사용자에게 확인할 것.
   (`eas submit`은 자체 경로로 심사까지 보내므로 이 제약을 받지 않는다 — 트랙 조작만 이 제약이 있다.)
 
 ## 참고
