@@ -125,7 +125,8 @@
       ],
       "react-native-health-connect",
       "./plugins/WithHealthConnectPermissions.js",
-      "./plugins/WithHealthConnectMainActivity.js"
+      "./plugins/WithHealthConnectMainActivity.js",
+      "./plugins/WithLintExtraTranslationDisabled.js"
     ],
     "experiments": {
       "typedRoutes": true
