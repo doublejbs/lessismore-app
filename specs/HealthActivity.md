@@ -183,6 +183,30 @@ app/(tabs)/bag → bag/[id] (배낭 상세)
 > - `constants/DesignTokens.ts`의 `limeText`는 **토큰 목록에서 제거 대상**이다 — 사용처를 정리한 뒤 삭제한다(구현 몫).
 > - `[이력]` ACG 세대(2026-07-31~08-10)에는 무게를 라임 텍스트로 찍었다([Home.md](Home.md) HM-8 이력). 이 화면이 그 세대의 마지막 사용처였다.
 
+### HA-7 Android는 심박수를 읽지 않는다 `[제안]`
+
+**Play 헬스 커넥트 권한 정책의 '최소 범위' 심사에서 `READ_HEART_RATE`가 "선언된 기능에 필요하지 않다"고
+판정됐다** (2026-08-26, versionCode 47). 이의신청(대기 5~8일)보다 제거가 빠르고 확실해 걷는다.
+
+**수용 기준**
+
+- `plugins/WithHealthConnectPermissions.js`의 권한 목록에서 `READ_HEART_RATE`를 **제외한다.**
+  `model/health/HealthConnectService.ts`의 권한 요청 목록에서도 `HeartRate` 레코드를 뺀다.
+- `HealthConnectService.getHeartRateSeries()`는 **빈 배열을 돌려준다.** 인터페이스(`HealthService`)는
+  iOS와 공유하므로 메서드는 남긴다. 차트는 표본이 부족하면 통째로 사라지므로(HA-4) 화면이 자연히 정리된다.
+- ★ **iOS(HealthKit)는 그대로 심박수를 읽는다.** Apple 심사를 통과한 기능이고, 정책 주체가 다르다 —
+  이 요구사항은 **플랫폼별로 갈리는 지점**이며 "심박수 기능 폐기"가 아니다.
+- 권한 요청 전 설명 화면(HA-2)의 읽는 항목 목록도 **플랫폼별로 다르다** — Android는 심박수를 표시하지
+  않는다(`health.readItemsAndroid`). **읽지 않는 데이터를 읽는다고 표시하는 것 자체가 정책·신뢰 문제다.**
+- Play Console 선언에서도 심박수 체크를 해제한다. **선언만 바꾸면 안 된다** — 바이너리가 여전히 권한을
+  요청하면 같은 지적이 반복되므로 매니페스트 변경이 실린 새 빌드가 함께 나가야 한다.
+- **되살릴 조건**: 심박수가 이 앱 기능에 필수임을 Google이 인정할 근거가 생겼을 때(예: 심박 기반 기능이
+  앱의 핵심으로 승격). 그때는 최소 범위 요건을 다시 검토하고 선언·매니페스트를 함께 되살린다.
+- [ ] Android 매니페스트에 `android.permission.health.READ_HEART_RATE`가 없다(prebuild 산출물로 확인)
+- [ ] Android 운동 상세에서 심박수 차트가 보이지 않고, 나머지 지표(거리·상승고도·칼로리·페이스)는 정상이다
+- [ ] Android 권한 설명 화면의 항목 목록에 심박수가 없다
+- [ ] iOS 운동 상세에서 심박수 차트가 그대로 보인다(회귀 없음)
+
 ## 4. 데이터
 
 - 저장 경로·필드는 [DataModel.md](DataModel.md)의 **DM-22 (`bag.activity`)** 에 정의한다.

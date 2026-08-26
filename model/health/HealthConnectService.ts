@@ -71,7 +71,6 @@ const READ_PERMISSIONS: readonly Permission[] = [
   { accessType: 'read', recordType: 'Distance' },
   { accessType: 'read', recordType: 'ElevationGained' },
   { accessType: 'read', recordType: 'ActiveCaloriesBurned' },
-  { accessType: 'read', recordType: 'HeartRate' },
 ];
 
 // 운동 목록 자체를 못 읽으면 화면이 성립하지 않는다. 나머지 지표는 없으면 필드만 비면 되므로
@@ -339,54 +338,14 @@ class HealthConnectService implements HealthService {
     }
   };
 
-  public getHeartRateSeries = async (
-    workoutId: string
-  ): Promise<HealthSeriesPoint[]> => {
-    if (!(await this.prepare())) {
-      return [];
-    }
-
-    let session: ExerciseSessionResult;
-
-    // 세션 조회 실패와 심박 조회 실패는 원인이 전혀 다르다(전자는 저장된 id가 허브에서
-    // 삭제된 레코드를 가리키는 실제 시나리오 — HA-5의 재매칭 대상). 같은 catch로 묶으면
-    // 로그만 보고는 어느 쪽인지 알 수 없어 분리한다.
-    try {
-      session = await readRecord('ExerciseSession', workoutId);
-    } catch (error) {
-      logHealthError('심박용 세션 조회', error); // l10n-ignore: Health Connect 개발자 로그
-
-      return [];
-    }
-
-    try {
-      const records = await readAllRecords(
-        'HeartRate',
-        // 심박은 워크아웃에 연결되지 않고 독립 레코드로 들어오므로 시간 구간으로만 거를 수 있다.
-        createBetweenFilter(
-          new Date(session.startTime),
-          new Date(session.endTime)
-        ),
-        '심박 조회' // l10n-ignore: Health Connect 개발자 로그
-      );
-      // HeartRateRecord 하나가 여러 샘플을 묶고 있어 평탄화해야 시계열이 된다.
-      const points = records.flatMap(record =>
-        record.samples.map(sample => ({
-          timestamp: new Date(sample.time),
-          value: sample.beatsPerMinute,
-        }))
-      );
-
-      points.sort(
-        (left, right) => left.timestamp.getTime() - right.timestamp.getTime()
-      );
-
-      return points;
-    } catch (error) {
-      logHealthError('심박 시계열 조회', error); // l10n-ignore: Health Connect 개발자 로그
-
-      return [];
-    }
+  // **Android는 심박수를 읽지 않는다** (2026-08-26 Play 정책 지적 — HA-7).
+  // 헬스 커넥트 '최소 범위' 심사에서 READ_HEART_RATE가 "선언된 기능에 필요하지 않다"고
+  // 판정돼 매니페스트에서 걷었다(plugins/WithHealthConnectPermissions.js).
+  // 인터페이스(HealthService)는 iOS와 공유하므로 메서드는 남기고 빈 배열을 돌려준다 —
+  // 차트는 표본이 부족하면 통째로 사라지므로(HA-4, BagActivityChartView) 화면이 자연히 정리된다.
+  // iOS(HealthKit)는 Apple 심사를 통과했으므로 HealthKitService에서 그대로 읽는다.
+  public getHeartRateSeries = async (): Promise<HealthSeriesPoint[]> => {
+    return [];
   };
 
   /**

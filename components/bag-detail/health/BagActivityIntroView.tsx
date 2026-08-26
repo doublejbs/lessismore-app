@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
@@ -24,9 +24,13 @@ interface Props {
 // 판정된다. 접근성 라벨도 같은 기준을 받는다(이전 값 `건강 앱 접근 허용하기`가 더 직접적이었다).
 // 무엇을 읽는지는 위 본문·목록이 설명하므로 버튼이 그 역할을 대신할 필요가 없다.
 const BagActivityIntroView: FC<Props> = ({ onRequestPermission }) => {
-  const readItems = app.getL10n().t('health.readItems', {
-    returnObjects: true,
-  }) as unknown as string[];
+  // 읽는 항목은 플랫폼마다 다르다 — Android는 심박수를 읽지 않는다(HA-7, 2026-08-26 Play 지적).
+  // 읽지 않는 데이터를 읽는다고 표시하면 그 자체가 정책·신뢰 문제다.
+  const readItems = app
+    .getL10n()
+    .t(Platform.OS === 'ios' ? 'health.readItems' : 'health.readItemsAndroid', {
+      returnObjects: true,
+    }) as unknown as string[];
 
   return (
     <View style={styles.container}>
