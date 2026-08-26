@@ -226,7 +226,15 @@
     "deleteConfirm": "{{name}}のバックパックを削除しますか？",
     "templateDeleteFailed": "テンプレートの削除中に問題が発生しました。もう一度お試しください。",
     "calendar": {
-      "weekdays": ["日", "月", "火", "水", "木", "金", "土"],
+      "weekdays": [
+        "日",
+        "月",
+        "火",
+        "水",
+        "木",
+        "金",
+        "土"
+      ],
       "dateLabel": "旅行期間",
       "dateAccessibility": "旅行期間を選択",
       "datePlaceholder": "期間を選択してください"
@@ -334,7 +342,15 @@
     "add": "入れる"
   },
   "bagDestination": {
-    "weekdays": ["日", "月", "火", "水", "木", "金", "土"],
+    "weekdays": [
+      "日",
+      "月",
+      "火",
+      "水",
+      "木",
+      "金",
+      "土"
+    ],
     "title": "目的地",
     "period": "旅行期間",
     "dayFormat": "M月D日",
@@ -397,7 +413,11 @@
     "clearAll": "すべて解除",
     "selectAll": "すべて選択"
   },
-  "bagTrip": { "ongoing": "旅行中", "upcoming": "予定", "past": "過去" },
+  "bagTrip": {
+    "ongoing": "旅行中",
+    "upcoming": "予定",
+    "past": "過去"
+  },
   "warehouse": {
     "title": "倉庫",
     "addGear": "ギアを追加",
@@ -574,7 +594,9 @@
     }
   },
   "search": {
-    "input": { "placeholder": "{{keyword}}を検索してみてください" },
+    "input": {
+      "placeholder": "{{keyword}}を検索してみてください"
+    },
     "suggestions": {
       "nemo": "NEMO",
       "hyperliteMountainGear": "Hyperlite Mountain Gear",
@@ -626,7 +648,9 @@
     },
     "sortAccessibility": "{{label}}で並べ替え",
     "brandFilterAccessibility": "{{label}}フィルター",
-    "brandDirectory": { "title": "ブランドから探す" },
+    "brandDirectory": {
+      "title": "ブランドから探す"
+    },
     "ranking": "人気ギアランキング",
     "addedToBag": "バックパックに入れました。",
     "addedToWarehouse": "倉庫に追加しました。",
@@ -668,7 +692,11 @@
       "accessInfo": "アクセス情報",
       "notice": "野営は地域によって禁止される場合があります。利用前に現地の規則を確認してください。"
     },
-    "tabs": { "overview": "概要", "weather": "天気", "review": "レビュー" },
+    "tabs": {
+      "overview": "概要",
+      "weather": "天気",
+      "review": "レビュー"
+    },
     "types": {
       "campground": "キャンプ場",
       "shelter": "避難所",
@@ -771,7 +799,15 @@
     "conditionSunny": "晴れ",
     "conditionRain": "雨",
     "conditionSnow": "雪",
-    "weekdays": ["日", "月", "火", "水", "木", "金", "土"],
+    "weekdays": [
+      "日",
+      "月",
+      "火",
+      "水",
+      "木",
+      "金",
+      "土"
+    ],
     "dayFormat": "M月D日",
     "wind": "風速 {{speed}}m/s",
     "gust": "最大瞬間風速 {{speed}}m/s",
@@ -832,24 +868,113 @@
     }
   },
   "app": {
-    "tabs": { "home": "ホーム", "browse": "探す", "map": "地図", "bag": "バックパック", "info": "情報" },
-    "bagForm": { "dateRequired": "日付を選択してください", "nameRequired": "バックパック名を入力してください" },
-    "bagAddOptions": { "create": "新しく作成", "createSubtitle": "空のバックパックから始める", "copy": "既存のバックパックをコピー", "copySubtitle": "以前のバックパックをそのまま使う", "template": "テンプレートから作成", "templateSubtitle": "保存した構成から始める" },
-    "bagCopy": { "title": "バックパックをコピー", "sourceTitle": "コピーするバックパックを選択", "sourceEmpty": "コピーできるバックパックがありません", "confirm": "コピー", "completed": "コピーしました", "failed": "バックパックをコピーできませんでした。もう一度お試しください。", "suffix": "コピー" },
-    "bagInfoEdit": { "title": "バックパック情報を編集", "failed": "変更を保存できませんでした。もう一度お試しください。" },
-    "bagNew": { "title": "新しいバックパック", "failed": "バックパックを追加できませんでした。もう一度お試しください。", "locationSaveFailedTitle": "目的地を保存できませんでした", "locationSaveFailed": "バックパックは作成しましたが、目的地を保存できませんでした。", "weatherFailedTitle": "天気を読み込めませんでした", "weatherFailed": "目的地は保存しました。目的地画面からもう一度お試しください。" },
-    "templateCreate": { "title": "バックパックを作成", "confirm": "作成", "notFound": "テンプレートが見つかりません。", "loadFailed": "テンプレートを読み込めませんでした。", "completed": "バックパックを作成しました。", "failed": "バックパックを作成できませんでした。もう一度お試しください。" },
-    "templateSave": { "title": "テンプレートとして保存", "editTitle": "テンプレート名を編集", "nameRequired": "テンプレート名を入力してください", "renamed": "テンプレート名を変更しました", "completed": "テンプレートとして保存しました", "failed": "テンプレートを保存できませんでした。もう一度お試しください。" },
-    "templateSource": { "title": "テンプレートを選択", "empty": "保存したテンプレートはありません" },
-    "reviewWrite": { "title": "レビューを書く", "editTitle": "自分のレビューを編集", "rating": "評価", "content": "レビュー本文", "contentPlaceholder": "このキャンプ場はいかがでしたか？（任意）", "bag": "使用したバックパック", "removeBag": "添付したバックパックを外す", "selectBag": "バックパックを選択", "selectBagSubtitle": "使用したバックパックを選択", "saveFailed": "レビューを保存できませんでした。もう一度お試しください。", "keyboardClose": "キーボードを閉じる" },
-    "gearAdd": { "title": "ギアを追加", "search": "検索から追加", "searchSubtitle": "カタログから探して追加", "custom": "手動で入力", "customSubtitle": "製品情報を入力" },
-    "announcement": { "close": "お知らせを閉じる", "details": "詳細を見る", "hideForDay": "1日表示しない" },
-    "update": { "title": "アップデートが必要です", "description": "最新バージョンで新機能を利用できます。", "action": "ストアでアップデート" },
-    "featurePopup": { "close": "新機能のお知らせを閉じる", "skip": "スキップ" },
-    "order": { "accessibility": "並べ替え: {{name}}" },
-    "review": { "videoAccessibility": "レビュー動画: {{title}}", "accessibility": "レビュー: {{title}}" },
-    "sharedBag": { "notShared": "このバックパックは共有されていません。" },
-    "location": { "failed": "現在地を確認できませんでした。しばらくしてからもう一度お試しください。" }
+    "tabs": {
+      "home": "ホーム",
+      "browse": "探す",
+      "map": "地図",
+      "bag": "バックパック",
+      "info": "情報"
+    },
+    "bagForm": {
+      "dateRequired": "日付を選択してください",
+      "nameRequired": "バックパック名を入力してください"
+    },
+    "bagAddOptions": {
+      "create": "新しく作成",
+      "createSubtitle": "空のバックパックから始める",
+      "copy": "既存のバックパックをコピー",
+      "copySubtitle": "以前のバックパックをそのまま使う",
+      "template": "テンプレートから作成",
+      "templateSubtitle": "保存した構成から始める"
+    },
+    "bagCopy": {
+      "title": "バックパックをコピー",
+      "sourceTitle": "コピーするバックパックを選択",
+      "sourceEmpty": "コピーできるバックパックがありません",
+      "confirm": "コピー",
+      "completed": "コピーしました",
+      "failed": "バックパックをコピーできませんでした。もう一度お試しください。",
+      "suffix": "コピー"
+    },
+    "bagInfoEdit": {
+      "title": "バックパック情報を編集",
+      "failed": "変更を保存できませんでした。もう一度お試しください。"
+    },
+    "bagNew": {
+      "title": "新しいバックパック",
+      "failed": "バックパックを追加できませんでした。もう一度お試しください。",
+      "locationSaveFailedTitle": "目的地を保存できませんでした",
+      "locationSaveFailed": "バックパックは作成しましたが、目的地を保存できませんでした。",
+      "weatherFailedTitle": "天気を読み込めませんでした",
+      "weatherFailed": "目的地は保存しました。目的地画面からもう一度お試しください。"
+    },
+    "templateCreate": {
+      "title": "バックパックを作成",
+      "confirm": "作成",
+      "notFound": "テンプレートが見つかりません。",
+      "loadFailed": "テンプレートを読み込めませんでした。",
+      "completed": "バックパックを作成しました。",
+      "failed": "バックパックを作成できませんでした。もう一度お試しください。"
+    },
+    "templateSave": {
+      "title": "テンプレートとして保存",
+      "editTitle": "テンプレート名を編集",
+      "nameRequired": "テンプレート名を入力してください",
+      "renamed": "テンプレート名を変更しました",
+      "completed": "テンプレートとして保存しました",
+      "failed": "テンプレートを保存できませんでした。もう一度お試しください。"
+    },
+    "templateSource": {
+      "title": "テンプレートを選択",
+      "empty": "保存したテンプレートはありません"
+    },
+    "reviewWrite": {
+      "title": "レビューを書く",
+      "editTitle": "自分のレビューを編集",
+      "rating": "評価",
+      "content": "レビュー本文",
+      "contentPlaceholder": "このキャンプ場はいかがでしたか？（任意）",
+      "bag": "使用したバックパック",
+      "removeBag": "添付したバックパックを外す",
+      "selectBag": "バックパックを選択",
+      "selectBagSubtitle": "使用したバックパックを選択",
+      "saveFailed": "レビューを保存できませんでした。もう一度お試しください。",
+      "keyboardClose": "キーボードを閉じる"
+    },
+    "gearAdd": {
+      "title": "ギアを追加",
+      "search": "検索から追加",
+      "searchSubtitle": "カタログから探して追加",
+      "custom": "手動で入力",
+      "customSubtitle": "製品情報を入力"
+    },
+    "announcement": {
+      "close": "お知らせを閉じる",
+      "details": "詳細を見る",
+      "hideForDay": "1日表示しない"
+    },
+    "update": {
+      "title": "アップデートが必要です",
+      "description": "最新バージョンで新機能を利用できます。",
+      "action": "ストアでアップデート"
+    },
+    "featurePopup": {
+      "close": "新機能のお知らせを閉じる",
+      "skip": "スキップ"
+    },
+    "order": {
+      "accessibility": "並べ替え: {{name}}"
+    },
+    "review": {
+      "videoAccessibility": "レビュー動画: {{title}}",
+      "accessibility": "レビュー: {{title}}"
+    },
+    "sharedBag": {
+      "notShared": "このバックパックは共有されていません。"
+    },
+    "location": {
+      "failed": "現在地を確認できませんでした。しばらくしてからもう一度お試しください。"
+    }
   },
   "home": {
     "title": "ホーム",
@@ -927,6 +1052,11 @@
       "running": "ランニング",
       "cycling": "サイクリング",
       "other": "運動"
-    }
+    },
+    "readItemsAndroid": [
+      "運動の種類・時間・距離",
+      "移動ルートと上昇高度",
+      "消費カロリー"
+    ]
   }
 }

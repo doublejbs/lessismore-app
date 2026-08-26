@@ -14,12 +14,15 @@ const { withAndroidManifest } = require('expo/config-plugins');
 // **되살릴 조건**: 상세에 명시적인 `경로 불러오기` 액션을 붙여 그 뒤에서만
 // requestExerciseRoute()를 호출하게 될 때. 그때 아래 배열에 단수형을 다시 넣는다
 // (전체 경로를 일괄로 읽는 복수형 READ_EXERCISE_ROUTES는 별도 심사 대상이라 다른 결정이다).
+// **READ_HEART_RATE는 두지 않는다** (2026-08-26 Play 정책 지적 — HA-7).
+// 헬스 커넥트 권한 정책의 '최소 범위' 심사에서 "선언된 기능에 필요하지 않다"고 판정됐다.
+// 심박수는 `활력 징후`(Vital signs) 카테고리라 민감도가 한 단 높게 취급된다.
+// iOS(HealthKit)는 Apple 심사를 통과했으므로 그대로 유지한다 — 플랫폼별로 갈리는 지점이다.
 const HEALTH_PERMISSIONS = [
   'android.permission.health.READ_EXERCISE',
   'android.permission.health.READ_DISTANCE',
   'android.permission.health.READ_ELEVATION_GAINED',
   'android.permission.health.READ_ACTIVE_CALORIES_BURNED',
-  'android.permission.health.READ_HEART_RATE',
 ];
 
 // Android 14+(API 34+)는 권한 요청 Intent를 처리할 activity-alias(ViewPermissionUsageActivity)가
