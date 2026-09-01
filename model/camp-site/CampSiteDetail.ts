@@ -417,8 +417,7 @@ class CampSiteDetail {
     this.setShowBagSheet(true);
   }
 
-  // 배낭 선택 시트의 '새 배낭 만들기'(CS-5): 박지 좌표를 핸드오프로 넘기고
-  // 배낭 생성 formSheet로 이동한다. 생성 완료 후 새 배낭에 여행지가 저장된다.
+  // 박지 상세 formSheet를 생성 폼으로 교체한다. formSheet 2단으로 쌓으면 생성 확정 후 /bag/{id} 이동에서 화면이 죽는다(Bag.md BAG-5와 같은 규칙, CS-5).
   public createBagForSpot() {
     const spot = this.spot;
 
@@ -433,7 +432,7 @@ class CampSiteDetail {
       campSpotId: spot.id,
     });
     this.closeBagSheet();
-    this.router.push('/bag-new');
+    this.router.replace('/bag-new');
   }
 
   public closeBagSheet() {
