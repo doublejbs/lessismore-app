@@ -705,6 +705,7 @@
 | `body` | string | trim 후 1~1,000자 |
 | `parentId` | string? | 최상위 댓글이면 없음, 답글이면 최상위 댓글 ID |
 | `mentionedUserId` / `mentionedUserName` | string? | 답글 대상. 답글에 다시 답할 때도 `parentId`는 최상위 유지 |
+| `deletedReason` | string? | `deleted` 자리표시의 사유 — string enum `CommunityCommentDeletedReason`: `author`(작성자 삭제, 표시 `삭제된 댓글입니다`) / `withdrawal`(회원 탈퇴, 표시 `탈퇴한 사용자의 댓글입니다` — CM-12) / `operator`(운영 처리). `published`·`hidden`에는 없음 |
 | `createdAt` | timestamp | 서버 작성 시각 |
 | `updatedAt` | timestamp | 마지막 수정 시각 |
 
@@ -727,6 +728,11 @@
 - **신고**: 신고자는 생성과 자기 신고 조회만 가능하다. 전체 목록·상태 변경은 운영자만 가능하다.
 - 필요한 복합 인덱스: 게시글 `(status, createdAt desc)`, `(status, type, createdAt desc)`,
   댓글 `(status, createdAt asc)`, 신고 `(status, createdAt asc)`. 실제 콘솔 생성 링크가 나오면 배포 목록에 기록한다.
+  서버 탈퇴 정리(CM-12)를 위해 **컬렉션 그룹 `comments`의 `authorId` 인덱스**도 필요하다.
+- **서버 정리 작업의 위치(2026-09-02 사용자 결정)**: 게시글 삭제·운영 숨김 연쇄 정리, 회원 탈퇴 정리, 고아 사진 정리는
+  별도 레포 `lessismore`의 `functions/`(Firebase Cloud Functions, 프로젝트 `lessismore-7e070`, 리전 `asia-northeast3`)에 둔다 —
+  `onCommunityPostStatusChanged`(status → deleted/hidden 시 댓글·좋아요·투표·Storage 사진 정리 + 툼스톤), `onCommunityUserDeleted`(Auth 삭제 트리거),
+  `cleanupOrphanCommunityImages`(일 1회 스케줄). 클라이언트는 소프트 삭제(`status: deleted`)만 하고 물리 정리를 기다리지 않는다.
 - Storage 공개·쓰기 계약은 DM-9를 따른다. 객체 목록 조회는 허용하지 않는다.
 - 회원 탈퇴·게시글 삭제의 연쇄 정리는 [Community.md](Community.md) CM-9·CM-12를 따른다.
 
@@ -785,7 +791,7 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 | 커뮤니티 게시글 좋아요 | `runTransaction` | `community-post-likes` + 게시글 `likeCount` (DM-28) |
 | 커뮤니티 댓글 생성/삭제 | `runTransaction` | 댓글 문서 + 게시글 `commentCount` (DM-28) |
 | 커뮤니티 투표 | 신뢰 가능한 서버 트랜잭션 | `community-poll-votes` + 선택지 `voteCount` + `totalVoteCount` (DM-28) |
-| 커뮤니티 게시글 삭제·회원 탈퇴 | 재시도 가능한 서버 작업 | 게시글·댓글·좋아요·투표 + Storage 사진 + 관련 카운트 (CM-9·CM-12) |
+| 커뮤니티 게시글 삭제·회원 탈퇴 | 재시도 가능한 서버 작업 — `lessismore` 레포 Cloud Functions (DM-28 참조) | 게시글·댓글·좋아요·투표 + Storage 사진 + 관련 카운트 (CM-9·CM-12) |
 | 회원 탈퇴 `Firebase.deleteUserData` | 청크 `writeBatch` | `gear-rank` 감소 + `bag` 문서들 + `users/{uid}/gears` 전체 + `comment-likes` + `users/{uid}` 삭제 ([Auth.md](Auth.md) AU-8) |
 
 **양방향 참조 불변식**: `gear.bags[]` ↔ `bag.gears[]`는 항상 쌍으로 갱신되어야 한다. `bag.weight`는 담긴 장비 `weight` 합과 일치해야 한다.
