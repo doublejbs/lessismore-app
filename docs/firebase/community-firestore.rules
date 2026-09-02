@@ -1,0 +1,132 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function isPublishedPost(postId) {
+      return get(/databases/$(database)/documents/community-posts/$(postId)).data.status == 'published';
+    }
+
+    function samePostIdentity() {
+      return request.resource.data.authorId == resource.data.authorId
+        && request.resource.data.authorName == resource.data.authorName
+        && request.resource.data.type == resource.data.type;
+    }
+
+    function countDelta(field) {
+      return request.resource.data[field] == resource.data[field]
+        || request.resource.data[field] == resource.data[field] + 1
+        || request.resource.data[field] == resource.data[field] - 1;
+    }
+
+    function unchangedCount(field) {
+      return request.resource.data[field] == resource.data[field];
+    }
+
+    function likeCounterMatches(postId) {
+      let likePath = /databases/$(database)/documents/community-post-likes/$(request.auth.uid)_$(postId);
+      return request.resource.data.likeCount == resource.data.likeCount
+        || (request.resource.data.likeCount == resource.data.likeCount + 1
+          && existsAfter(likePath) && !exists(likePath))
+        || (request.resource.data.likeCount == resource.data.likeCount - 1
+          && !existsAfter(likePath) && exists(likePath));
+    }
+
+    function pollCounterMatches(postId) {
+      let votePath = /databases/$(database)/documents/community-poll-votes/$(postId)_$(request.auth.uid);
+      return resource.data.type != 'poll'
+        || (
+          request.resource.data.poll.totalVoteCount == resource.data.poll.totalVoteCount
+          && request.resource.data.poll.options == resource.data.poll.options
+        )
+        || (
+          request.resource.data.poll.totalVoteCount == resource.data.poll.totalVoteCount + 1
+          && existsAfter(votePath) && !exists(votePath)
+        );
+    }
+
+    match /community-posts/{postId} {
+      allow read: if resource.data.status == 'published';
+      allow create: if signedIn()
+        && request.resource.data.status == 'published'
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.authorName == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.nickname;
+      // 작성자는 내용·사진·스냅샷만 수정할 수 있다. hidden은 운영자 규칙을 별도로 둔다.
+      // 좋아요·댓글·투표 트랜잭션의 카운트는 정확히 ±1만 허용해야 한다.
+      // Firestore Rules만으로 대응 문서 쓰기와 같은 트랜잭션인지 완전히 검증할 수 없으므로,
+      // 실제 배포 전 운영자/서버 검증 방식과 함께 검토한다.
+      allow update: if signedIn() && samePostIdentity()
+        && (
+          (resource.data.authorId == request.auth.uid
+            && (
+              request.resource.data.status == resource.data.status
+              || (resource.data.status == 'published'
+                && request.resource.data.status == 'deleted')
+            )
+            && unchangedCount('likeCount')
+            && unchangedCount('commentCount'))
+          ||
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'likeCount', 'commentCount', 'poll', 'updatedAt'
+            ])
+            && likeCounterMatches(postId)
+            && countDelta('commentCount')
+            && pollCounterMatches(postId)
+        );
+      allow delete: if false;
+
+      match /comments/{commentId} {
+        allow read: if isPublishedPost(postId)
+          && (resource.data.status == 'published' || resource.data.status == 'deleted');
+        allow create: if isPublishedPost(postId)
+          && signedIn()
+          && request.resource.data.status == 'published'
+          && request.resource.data.authorId == request.auth.uid
+          && request.resource.data.authorName == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.nickname;
+        allow update: if signedIn()
+          && resource.data.authorId == request.auth.uid
+          && (
+            (request.resource.data.status == resource.data.status
+              && request.resource.data.authorId == resource.data.authorId)
+            ||
+            (request.resource.data.status == 'deleted'
+              && request.resource.data.authorId == ''
+              && request.resource.data.authorName == ''
+              && request.resource.data.body == '')
+          );
+        allow delete: if signedIn() && resource.data.authorId == request.auth.uid;
+      }
+    }
+
+    match /community-post-likes/{likeId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow delete: if signedIn() && resource.data.userId == request.auth.uid;
+      allow update: if false;
+    }
+
+    match /community-poll-votes/{voteId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && isPublishedPost(request.resource.data.postId);
+      allow update, delete: if false;
+    }
+
+    match /community-reports/{reportId} {
+      allow create: if signedIn() && request.resource.data.reporterId == request.auth.uid;
+      allow read: if signedIn() && resource.data.reporterId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // 운영자는 위 콘텐츠 규칙을 별도 관리자 UID/커스텀 클레임 규칙으로 확장한다.
+    // 일반 클라이언트가 전체 신고 목록이나 상태를 읽고 바꾸는 것은 금지한다.
+  }
+}

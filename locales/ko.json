@@ -873,7 +873,8 @@
       "browse": "탐색",
       "map": "지도",
       "bag": "배낭",
-      "info": "정보"
+      "info": "내 정보",
+      "community": "커뮤니티"
     },
     "bagForm": {
       "dateRequired": "날짜를 선택해주세요",
@@ -998,7 +999,8 @@
     "bagDetail": "{{name}} 배낭 상세",
     "recommendedTitle": "useless가 고른 박지",
     "viewOnMap": "{{name}}, {{type}}, {{region}}, 지도에서 보기",
-    "login": "로그인"
+    "login": "로그인",
+    "profileButton": "내 정보"
   },
   "health": {
     "title": "운동 기록",
@@ -1058,5 +1060,8 @@
       "이동 경로와 상승고도",
       "소모 칼로리"
     ]
+  },
+  "community": {
+    "title": "커뮤니티"
   }
 }

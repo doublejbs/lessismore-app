@@ -46,9 +46,14 @@ const NativeTabLayout = () => {
         />
         <NativeTabs.Trigger.Label>{app.getL10n().t('app.tabs.bag')}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name='info'>
-        <NativeTabs.Trigger.Icon sf='person.fill' drawable='ic_menu_myplaces' />
-        <NativeTabs.Trigger.Label>{app.getL10n().t('app.tabs.info')}</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger name='community'>
+        <NativeTabs.Trigger.Icon
+          sf='person.2.fill'
+          drawable='ic_menu_allfriends'
+        />
+        <NativeTabs.Trigger.Label>
+          {app.getL10n().t('app.tabs.community')}
+        </NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
@@ -109,11 +114,11 @@ const JsTabLayout = () => {
         }}
       />
       <Tabs.Screen
-        name='info'
+        name='community'
         options={{
-          title: app.getL10n().t('app.tabs.info'),
+          title: app.getL10n().t('app.tabs.community'),
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name='person.fill' color={color} />
+            <IconSymbol size={28} name='person.2.fill' color={color} />
           ),
         }}
       />

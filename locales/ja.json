@@ -873,7 +873,8 @@
       "browse": "探す",
       "map": "地図",
       "bag": "バックパック",
-      "info": "情報"
+      "info": "マイページ",
+      "community": "コミュニティ"
     },
     "bagForm": {
       "dateRequired": "日付を選択してください",
@@ -998,7 +999,8 @@
     "bagDetail": "{{name}}のバックパック詳細",
     "recommendedTitle": "uselessが選んだキャンプ場",
     "viewOnMap": "{{name}}、{{type}}、{{region}}、地図で見る",
-    "login": "ログイン"
+    "login": "ログイン",
+    "profileButton": "マイページ"
   },
   "health": {
     "title": "運動記録",
@@ -1058,5 +1060,8 @@
       "移動ルートと上昇高度",
       "消費カロリー"
     ]
+  },
+  "community": {
+    "title": "コミュニティ"
   }
 }

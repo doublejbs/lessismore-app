@@ -885,7 +885,8 @@
       "browse": "Browse",
       "map": "Map",
       "bag": "Bag",
-      "info": "Info"
+      "info": "My account",
+      "community": "Community"
     },
     "bagForm": {
       "dateRequired": "Please choose the dates.",
@@ -1010,7 +1011,8 @@
     "bagDetail": "{{name}} bag details",
     "recommendedTitle": "Campsites picked by useless",
     "viewOnMap": "{{name}}, {{type}}, {{region}}, view on map",
-    "login": "Sign in"
+    "login": "Sign in",
+    "profileButton": "My account"
   },
   "health": {
     "title": "Activity record",
@@ -1072,5 +1074,8 @@
       "Routes and elevation gain",
       "Active calories"
     ]
+  },
+  "community": {
+    "title": "Community"
   }
 }

@@ -18,6 +18,7 @@ import FeaturePopupManager from '../feature-popup/FeaturePopupManager';
 import GearPreviewStore from '../gear-preview/GearPreviewStore';
 import BagTemplateStore from '../store/BagTemplateStore';
 import FeedContentStore from '../store/FeedContentStore';
+import CommunityStore from '../store/CommunityStore';
 import L10n from '../l10n/L10n';
 
 class App {
@@ -40,6 +41,7 @@ class App {
   private announcementManager: AnnouncementManager | null = null;
   private forceUpdateManager: ForceUpdateManager | null = null;
   private featurePopupManager: FeaturePopupManager | null = null;
+  private communityStore: CommunityStore | null = null;
 
   private gearPreviewStore: GearPreviewStore | null = null;
   private initialized = false;
@@ -68,6 +70,7 @@ class App {
     this.toastManager = ToastManager.new();
     this.logInAlertManager = LogInAlertManager.new(this.firebase);
     this.replyStore = new ReplyStore(this.firebase);
+    this.communityStore = new CommunityStore(this.firebase);
     this.campSpotStore = new CampSpotStore(this.firebase);
     this.feedContentStore = new FeedContentStore(
       this.firebase,
@@ -122,6 +125,10 @@ class App {
 
   public getReplyStore() {
     return this.replyStore;
+  }
+
+  public getCommunityStore() {
+    return this.communityStore;
   }
 
   public getCampSpotStore() {
