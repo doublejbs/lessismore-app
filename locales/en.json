@@ -1076,6 +1076,149 @@
     ]
   },
   "community": {
-    "title": "Community"
+    "title": "Community",
+    "type": {
+      "question": "Question",
+      "bagReview": "Pack review",
+      "poll": "Poll",
+      "all": "All"
+    },
+    "write": {
+      "title": "Write post",
+      "editTitle": "Edit post",
+      "author": "Author",
+      "publish": "Post",
+      "save": "Save",
+      "typeLabel": "Post type",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Enter a title",
+      "bodyLabel": "Body",
+      "bodyPlaceholder": "Enter your content",
+      "counter": "{{count}}/{{max}}",
+      "image": {
+        "add": "+ Add photo",
+        "album": "Choose from album",
+        "camera": "Take a photo",
+        "notice": "Only upload photos you took or have the right to use",
+        "representative": "Cover",
+        "remove": "Remove photo {{count}}",
+        "retry": "Retry",
+        "moveForward": "Move forward",
+        "moveBackward": "Move backward",
+        "uploading": "Uploading",
+        "failed": "Upload failed",
+        "label": "Post photo {{count}}/{{total}}"
+      },
+      "bag": {
+        "select": "Choose a pack",
+        "placeholder": "Choose a pack",
+        "sheetSubtitle": "Choose a pack for your review",
+        "empty": "Create a pack first",
+        "createBag": "Create a pack",
+        "preview": "Snapshot preview",
+        "previewDate": "Trip dates: {{date}}",
+        "previewDestination": "Destination: {{name}}",
+        "previewWeight": "Total weight: {{weight}}kg",
+        "previewCount": "{{count}} items",
+        "previewGear": "{{company}} {{name}} · {{weight}}g"
+      },
+      "poll": {
+        "option": "Option {{count}}",
+        "addOption": "+ Add option",
+        "removeOption": "Remove option {{count}}",
+        "expires": "Closes",
+        "expiresNone": "None",
+        "expires1d": "1 day",
+        "expires3d": "3 days",
+        "expires7d": "7 days",
+        "locked": "Voting has started, so the question and options cannot be edited"
+      },
+      "discardConfirm": "Discard this draft?",
+      "discard": "Discard",
+      "keepEditing": "Keep editing",
+      "published": "Your post was published",
+      "updated": "Your post was saved",
+      "failed": "Could not save your post",
+      "loading": "Loading post",
+      "typeSheet": {
+        "title": "What would you like to share?",
+        "question": "Question",
+        "questionDesc": "Ask the community something",
+        "bagReview": "Pack review",
+        "bagReviewDesc": "Share your experience with a pack",
+        "poll": "Poll",
+        "pollDesc": "Ask others to choose"
+      }
+    },
+    "validation": {
+      "titleLength": "Title must be 2–80 characters",
+      "bodyLength": "Body must be 10–5,000 characters for questions and reviews, or up to 5,000 for polls",
+      "pollOptionCount": "Add 2–4 options",
+      "pollOptionLength": "Options must be 1–60 characters",
+      "pollOptionDuplicate": "Options must be unique",
+      "bagSnapshotRequired": "Choose a pack for your review",
+      "imageCount": "You can attach up to 4 photos",
+      "notLoggedIn": "Please log in",
+      "pollLocked": "Voting has started, so the question and options cannot be edited",
+      "postNotFound": "Post not found"
+    },
+    "feed": {
+      "empty": "No posts yet",
+      "emptyHint": "Be the first to share a story",
+      "retry": "Try again",
+      "loadFailed": "Could not load posts",
+      "pollOpen": "Open",
+      "pollClosed": "Closed",
+      "pollMeta": "{{count}} options · {{votes}} votes · {{status}}",
+      "bagMeta": "{{name}} · {{weight}}kg · {{count}} items",
+      "writeButton": "Write",
+      "justNow": "Just now",
+      "minutesAgo": "{{count}}m ago",
+      "hoursAgo": "{{count}}h ago",
+      "daysAgo": "{{count}}d ago"
+    },
+    "detail": {
+      "back": "Back",
+      "menu": "Post menu",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this post?",
+      "deleted": "Post deleted",
+      "notFound": "This post was deleted or is unavailable",
+      "photoLabel": "Post photo {{count}}/{{total}}",
+      "likeLabel": "Like, {{count}}",
+      "commentsTitle": "Comments {{count}}",
+      "failed": "Could not load or save",
+      "retry": "Try again",
+      "emptyComments": "No comments yet"
+    },
+    "comment": {
+      "placeholder": "Write a comment",
+      "replyTo": "Reply to {{name}}",
+      "replyButton": "Reply",
+      "submit": "Post comment",
+      "deleted": "Deleted comment",
+      "withdrawn": "Comment from a withdrawn user",
+      "deleteConfirm": "Delete this comment?",
+      "loadMore": "See more",
+      "cancelReply": "Cancel reply"
+    },
+    "poll": {
+      "participants": "{{count}} participated",
+      "closed": "This poll is closed",
+      "closesAt": "Until {{date}}",
+      "alreadyVoted": "You already voted"
+    },
+    "report": {
+      "title": "Choose a report reason",
+      "spam": "Spam",
+      "harassment": "Harassment",
+      "sexualViolence": "Sexual or violent content",
+      "copyright": "Copyright infringement",
+      "privacy": "Personal information",
+      "other": "Other",
+      "done": "Report submitted",
+      "failed": "Could not submit report"
+    }
   }
 }
