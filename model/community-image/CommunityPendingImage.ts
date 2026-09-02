@@ -31,30 +31,59 @@ class CommunityPendingImage {
   }
 
   public markUploading() {
-    this.state = CommunityImageUploadState.Uploading;
-    delete this.error;
+    this.setState(CommunityImageUploadState.Uploading);
+    this.clearError();
   }
 
   public markDone(uploaded: CommunityUploadedImage) {
-    this.uploaded = uploaded;
-    this.state = CommunityImageUploadState.Done;
-    delete this.error;
+    this.setUploaded(uploaded);
+    this.setState(CommunityImageUploadState.Done);
+    this.clearError();
   }
 
   public markFailed(error: CommunityImageError) {
-    this.state = CommunityImageUploadState.Failed;
-    this.error = error;
+    this.setState(CommunityImageUploadState.Failed);
+    this.setError(error);
   }
 
   public resetForRetry() {
-    this.state = CommunityImageUploadState.Pending;
-    delete this.error;
+    this.setState(CommunityImageUploadState.Pending);
+    this.clearError();
   }
 
   public clearUploaded() {
-    delete this.uploaded;
-    this.state = CommunityImageUploadState.Pending;
+    this.clearUploadedValue();
+    this.setState(CommunityImageUploadState.Pending);
+    this.clearError();
+  }
+
+  public setSourceUri(value: string) {
+    this.sourceUri = value;
+  }
+
+  public setDimensions(width: number, height: number) {
+    this.width = width;
+    this.height = height;
+  }
+
+  private setState(value: CommunityImageUploadState) {
+    this.state = value;
+  }
+
+  private setError(value: CommunityImageError) {
+    this.error = value;
+  }
+
+  private clearError() {
     delete this.error;
+  }
+
+  private setUploaded(value: CommunityUploadedImage) {
+    this.uploaded = value;
+  }
+
+  private clearUploadedValue() {
+    delete this.uploaded;
   }
 }
 

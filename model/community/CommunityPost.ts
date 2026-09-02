@@ -172,9 +172,8 @@ class CommunityPost {
       return;
     }
 
-    this.likeCount += liked ? 1 : -1;
-    this.likeCount = Math.max(0, this.likeCount);
-    this.liked = liked;
+    this.setLikeCount(Math.max(0, this.likeCount + (liked ? 1 : -1)));
+    this.setLiked(liked);
   }
 
   public applyVote(optionId: string) {
@@ -188,15 +187,39 @@ class CommunityPost {
       return;
     }
 
-    this.poll.options = this.poll.options.map(item =>
+    const options = this.poll.options.map(item =>
       item.id === optionId ? { ...item, voteCount: item.voteCount + 1 } : item
     );
-    this.poll.totalVoteCount += 1;
-    this.myVote = optionId;
+    this.setPoll({
+      ...this.poll,
+      options,
+      totalVoteCount: this.poll.totalVoteCount + 1,
+    });
+    this.setMyVote(optionId);
   }
 
   public applyCommentCountDelta(delta: number) {
-    this.commentCount = Math.max(0, this.commentCount + delta);
+    this.setCommentCount(Math.max(0, this.commentCount + delta));
+  }
+
+  private setLikeCount(value: number) {
+    this.likeCount = value;
+  }
+
+  private setLiked(value: boolean) {
+    this.liked = value;
+  }
+
+  private setPoll(value: CommunityPoll | undefined) {
+    this.poll = value;
+  }
+
+  private setMyVote(value: string | null) {
+    this.myVote = value;
+  }
+
+  private setCommentCount(value: number) {
+    this.commentCount = value;
   }
 }
 

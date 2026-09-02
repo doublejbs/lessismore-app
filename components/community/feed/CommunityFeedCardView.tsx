@@ -65,7 +65,7 @@ const CommunityFeedCardView: FC<Props> = ({ post }) => {
   const typeLabel = getTypeLabel(post.getType());
   const l10n = app.getL10n();
   const handlePress = () => {
-    app.getAnalyticsManager()?.logClick('community_post', {
+    app.getAnalyticsManager()?.logClick('click_community_post', {
       type: post.getType(),
     });
     router.push(`/community/${post.getId()}` as never);

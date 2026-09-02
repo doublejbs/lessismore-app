@@ -1108,7 +1108,9 @@
         "moveBackward": "Move backward",
         "uploading": "Uploading",
         "failed": "Upload failed",
-        "label": "Post photo {{count}}/{{total}}"
+        "label": "Post photo {{count}}/{{total}}",
+        "section": "Photos",
+        "addLabel": "Add photo"
       },
       "bag": {
         "select": "Choose a pack",

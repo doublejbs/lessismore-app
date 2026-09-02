@@ -30,15 +30,15 @@ class CommunityFeed {
       return;
     }
 
-    this.initialized = true;
-    this.isLoading = true;
+    this.setInitialized(true);
+    this.setLoading(true);
     await this.loadFirstPage();
   }
 
   public async setFilter(filter: CommunityFeedFilter) {
-    this.filter = filter;
-    app.getAnalyticsManager()?.logClick('community_filter', { type: filter });
-    this.isLoading = true;
+    this.setFilterValue(filter);
+    app.getAnalyticsManager()?.logClick('click_community_filter', { type: filter });
+    this.setLoading(true);
     await this.loadFirstPage();
   }
 
@@ -52,7 +52,7 @@ class CommunityFeed {
       return;
     }
 
-    this.isLoadingMore = true;
+    this.setLoadingMore(true);
     const requestVersion = this.requestVersion;
 
     try {
@@ -62,16 +62,18 @@ class CommunityFeed {
         return;
       }
 
-      this.posts = [...this.posts, ...page.posts];
-      this.cursor = page.cursor;
-      this.hasMore = page.hasMore;
-      this.error = null;
+      this.setPosts([...this.posts, ...page.posts]);
+      this.setCursor(page.cursor);
+      this.setHasMore(page.hasMore);
+      this.setError(null);
     } catch (error) {
       if (requestVersion === this.requestVersion) {
-        this.error = error instanceof Error ? error : new Error(String(error));
+        this.setError(
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
     } finally {
-      this.isLoadingMore = false;
+      this.setLoadingMore(false);
     }
   }
 
@@ -80,9 +82,9 @@ class CommunityFeed {
       return;
     }
 
-    this.isRefreshing = true;
+    this.setRefreshing(true);
     await this.loadFirstPage();
-    this.isRefreshing = false;
+    this.setRefreshing(false);
   }
 
   public getFilter() {
@@ -114,8 +116,9 @@ class CommunityFeed {
   }
 
   private async loadFirstPage() {
-    const requestVersion = ++this.requestVersion;
-    this.cursor = null;
+    const requestVersion = this.requestVersion + 1;
+    this.setRequestVersion(requestVersion);
+    this.setCursor(null);
 
     try {
       const page = await this.dispatcher.getPage(this.filter, null);
@@ -124,19 +127,61 @@ class CommunityFeed {
         return;
       }
 
-      this.posts = page.posts;
-      this.cursor = page.cursor;
-      this.hasMore = page.hasMore;
-      this.error = null;
+      this.setPosts(page.posts);
+      this.setCursor(page.cursor);
+      this.setHasMore(page.hasMore);
+      this.setError(null);
     } catch (error) {
       if (requestVersion === this.requestVersion) {
-        this.error = error instanceof Error ? error : new Error(String(error));
+        this.setError(
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
     } finally {
       if (requestVersion === this.requestVersion) {
-        this.isLoading = false;
+        this.setLoading(false);
       }
     }
+  }
+
+  private setFilterValue(value: CommunityFeedFilter) {
+    this.filter = value;
+  }
+
+  private setPosts(value: CommunityPost[]) {
+    this.posts = value;
+  }
+
+  private setCursor(value: QueryDocumentSnapshot<DocumentData> | null) {
+    this.cursor = value;
+  }
+
+  private setHasMore(value: boolean) {
+    this.hasMore = value;
+  }
+
+  private setLoading(value: boolean) {
+    this.isLoading = value;
+  }
+
+  private setLoadingMore(value: boolean) {
+    this.isLoadingMore = value;
+  }
+
+  private setRefreshing(value: boolean) {
+    this.isRefreshing = value;
+  }
+
+  private setError(value: Error | null) {
+    this.error = value;
+  }
+
+  private setInitialized(value: boolean) {
+    this.initialized = value;
+  }
+
+  private setRequestVersion(value: number) {
+    this.requestVersion = value;
   }
 }
 

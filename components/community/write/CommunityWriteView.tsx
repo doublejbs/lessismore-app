@@ -30,6 +30,10 @@ interface Props {
   write: CommunityWrite;
 }
 
+const SUBMIT_BUTTON_HEIGHT = 48;
+const BOTTOM_BAR_TOP_PADDING = 8;
+const CONTENT_BOTTOM_EXTRA = 24;
+
 const getTypeLabel = (type: CommunityPostType): string => {
   switch (type) {
     case CommunityPostType.Question:
@@ -63,6 +67,9 @@ const CommunityWriteView = ({ write }: Props) => {
     ? l10n.t('community.write.save')
     : l10n.t('community.write.publish');
   const canEditPollStructure = write.canEditPollStructure();
+  const bottomInset = Math.max(insets.bottom, 12);
+  const contentBottomPadding =
+    SUBMIT_BUTTON_HEIGHT + BOTTOM_BAR_TOP_PADDING + bottomInset + CONTENT_BOTTOM_EXTRA;
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (event) => {
@@ -196,7 +203,7 @@ const CommunityWriteView = ({ write }: Props) => {
       <ScrollView
         ref={scrollRef}
         style={styles.scroll}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: contentBottomPadding }]}
         keyboardShouldPersistTaps='handled'
         showsVerticalScrollIndicator={false}
       >
@@ -271,7 +278,7 @@ const CommunityWriteView = ({ write }: Props) => {
         )}
         <CommunityWriteImagesView write={write} />
       </ScrollView>
-      <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+      <View style={[styles.bottomBar, { paddingBottom: bottomInset }]}>
         <TouchableOpacity
           style={[styles.submitButton, write.isSubmitting && styles.submitDisabled]}
           onPress={() => void handleSubmit()}

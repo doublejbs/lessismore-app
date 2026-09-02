@@ -29,6 +29,10 @@ const CommunityWriteWrapper = ({ mode, type, postId }: Props) => {
   );
 
   useEffect(() => {
+    write.updateTypeIfEmpty(type);
+  }, [type, write]);
+
+  useEffect(() => {
     let active = true;
 
     const initialize = async () => {

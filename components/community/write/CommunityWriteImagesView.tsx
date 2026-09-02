@@ -94,7 +94,7 @@ const CommunityWriteImagesView = ({ write }: Props) => {
     <View style={styles.section}>
       <View style={styles.heading}>
         <PretendardText style={styles.label} weight='semibold'>
-          {l10n.t('community.write.image.add')}
+          {l10n.t('community.write.image.section')}
         </PretendardText>
         <PretendardText style={styles.counter}>
           {l10n.t('community.write.counter', { count: total, max: 4 })}
@@ -193,11 +193,11 @@ const CommunityWriteImagesView = ({ write }: Props) => {
             style={styles.addTile}
             onPress={() => setSourceMenuVisible(true)}
             accessibilityRole='button'
-            accessibilityLabel={l10n.t('community.write.image.add')}
+            accessibilityLabel={l10n.t('community.write.image.addLabel')}
           >
             <Ionicons name='add' size={28} color={Color.textPrimary} />
             <PretendardText style={styles.addText}>
-              {l10n.t('community.write.image.add')}
+              {l10n.t('community.write.image.addLabel')}
             </PretendardText>
           </TouchableOpacity>
         )}
@@ -313,14 +313,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   retryButton: {
-    minHeight: 32,
-    paddingHorizontal: 8,
+    minHeight: 44,
+    paddingHorizontal: 12,
     justifyContent: 'center',
+    borderRadius: AcgRadius.chip,
+    backgroundColor: Acg.controlFill,
   },
   retryText: {
     ...AcgType.meta,
     color: Acg.ink,
-    textDecorationLine: 'underline',
   },
   addTile: {
     width: 78,

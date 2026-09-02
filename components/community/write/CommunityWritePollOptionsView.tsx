@@ -135,9 +135,11 @@ const styles = StyleSheet.create({
     color: Acg.ink,
   },
   removeButton: {
-    minHeight: 32,
+    minHeight: 44,
     justifyContent: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 10,
+    borderRadius: AcgRadius.chip,
+    backgroundColor: Acg.controlFill,
   },
   removeText: {
     ...AcgType.meta,
@@ -163,6 +165,10 @@ const styles = StyleSheet.create({
   addOption: {
     minHeight: 44,
     justifyContent: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    borderRadius: AcgRadius.chip,
+    backgroundColor: Acg.controlFill,
   },
   addOptionText: {
     ...AcgType.control,

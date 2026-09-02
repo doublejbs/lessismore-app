@@ -17,7 +17,7 @@ import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import CategoryChipView from '@/components/browse/CategoryChipView';
 import FloatingPillButton from '@/components/FloatingPillButton';
-import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType, Radius } from '@/constants/DesignTokens';
 import CommunityFeed from '@/model/community-feed/CommunityFeed';
 import CommunityFeedFilter from '@/model/community/CommunityFeedFilter';
 import CommunityPost from '@/model/community/CommunityPost';
@@ -31,9 +31,10 @@ interface Props {
 
 const IOS_EDGES = ['top', 'left', 'right'] as const;
 const END_REACHED_THRESHOLD = 0.3;
-const LIST_BOTTOM_PADDING_IOS = 90;
-const LIST_BOTTOM_PADDING_ANDROID = 120;
-const LIST_BOTTOM_PADDING_WEB = 150;
+const TAB_BAR_HEIGHT = 49;
+const FLOATING_BUTTON_MARGIN = 20;
+const FLOATING_BUTTON_HEIGHT = 48;
+const LIST_BOTTOM_EXTRA = 12;
 
 const CommunityView: FC<Props> = ({ feed }) => {
   const router = useRouter();
@@ -44,10 +45,20 @@ const CommunityView: FC<Props> = ({ feed }) => {
   const isRefreshing = feed.getIsRefreshing();
   const isLoadingMore = feed.getIsLoadingMore();
   const error = feed.getError();
+  const writeButtonBottom = Platform.select({
+    ios: insets.bottom + TAB_BAR_HEIGHT + FLOATING_BUTTON_MARGIN,
+    android: FLOATING_BUTTON_MARGIN,
+    default: FLOATING_BUTTON_MARGIN,
+  });
   const listBottomPadding = Platform.select({
-    ios: insets.bottom + LIST_BOTTOM_PADDING_IOS,
-    android: LIST_BOTTOM_PADDING_ANDROID,
-    default: LIST_BOTTOM_PADDING_WEB,
+    ios:
+      insets.bottom +
+      TAB_BAR_HEIGHT +
+      FLOATING_BUTTON_MARGIN +
+      FLOATING_BUTTON_HEIGHT +
+      LIST_BOTTOM_EXTRA,
+    android: FLOATING_BUTTON_MARGIN + FLOATING_BUTTON_HEIGHT + LIST_BOTTOM_EXTRA,
+    default: FLOATING_BUTTON_MARGIN + FLOATING_BUTTON_HEIGHT + LIST_BOTTOM_EXTRA,
   });
 
   useEffect(() => {
@@ -73,6 +84,7 @@ const CommunityView: FC<Props> = ({ feed }) => {
       return;
     }
 
+    console.error('커뮤니티 피드 조회 실패:', error); // l10n-ignore: 개발자 로그
     app.getToastManager()?.show({
       message: app.getL10n().t('community.feed.loadFailed'),
     });
@@ -85,7 +97,7 @@ const CommunityView: FC<Props> = ({ feed }) => {
       return;
     }
 
-    app.getAnalyticsManager()?.logClick('community_write');
+    app.getAnalyticsManager()?.logClick('click_community_write');
     router.push('/community-write-options');
   };
 
@@ -144,6 +156,26 @@ const CommunityView: FC<Props> = ({ feed }) => {
   };
 
   const renderEmpty = () => {
+    if (error) {
+      return (
+        <View style={styles.errorContainer}>
+          <PretendardText style={styles.emptyTitle} weight='semibold'>
+            {app.getL10n().t('community.feed.loadFailed')}
+          </PretendardText>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={handleRefresh}
+            accessibilityRole='button'
+            accessibilityLabel={app.getL10n().t('community.feed.retry')}
+          >
+            <PretendardText style={styles.retryText} weight='semibold'>
+              {app.getL10n().t('community.feed.retry')}
+            </PretendardText>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
     return (
       <View style={styles.emptyContainer}>
         <PretendardText style={styles.emptyTitle} weight='semibold'>
@@ -157,7 +189,7 @@ const CommunityView: FC<Props> = ({ feed }) => {
   };
 
   const renderFooter = () => {
-    if (error) {
+    if (error && posts.length > 0) {
       return (
         <TouchableOpacity
           style={styles.retryButton}
@@ -240,7 +272,7 @@ const CommunityView: FC<Props> = ({ feed }) => {
         <FloatingPillButton
           label={app.getL10n().t('community.feed.writeButton')}
           onPress={handleWrite}
-          style={styles.writeButton}
+          style={[styles.writeButton, { bottom: writeButtonBottom }]}
         />
       )}
     </Layout>
@@ -290,6 +322,13 @@ const styles = StyleSheet.create({
     color: Acg.textSecondary,
     textAlign: 'center',
   },
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingVertical: 120,
+  },
   footerLoading: {
     alignItems: 'center',
     paddingVertical: 24,
@@ -303,7 +342,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
     marginVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 22,
+    borderRadius: Radius.pill,
     backgroundColor: Acg.controlFill,
   },
   retryText: {
@@ -313,7 +352,6 @@ const styles = StyleSheet.create({
   writeButton: {
     position: 'absolute',
     right: AcgLayout.screenPadding,
-    bottom: 20,
   },
 });
 

@@ -1094,7 +1094,9 @@
         "moveBackward": "後ろへ移動",
         "uploading": "アップロード中",
         "failed": "アップロード失敗",
-        "label": "投稿写真 {{count}}/{{total}}"
+        "label": "投稿写真 {{count}}/{{total}}",
+        "section": "写真",
+        "addLabel": "写真を追加"
       },
       "bag": {
         "select": "バックパックを選択",

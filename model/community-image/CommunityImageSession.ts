@@ -45,7 +45,7 @@ class CommunityImageSession {
       );
     }
 
-    this.images.push(...images);
+    this.setImages([...this.images, ...images]);
   }
 
   public remove(localId: string) {
@@ -55,10 +55,11 @@ class CommunityImageSession {
       return;
     }
 
-    const [removedImage] = this.images.splice(index, 1);
+    const removedImage = this.images[index];
+    this.setImages(this.images.filter((_, itemIndex) => itemIndex !== index));
 
     if (removedImage.uploaded) {
-      this.removedStoragePaths.add(removedImage.uploaded.storagePath);
+      this.addRemovedStoragePath(removedImage.uploaded.storagePath);
     }
   }
 
@@ -73,9 +74,11 @@ class CommunityImageSession {
       return;
     }
 
-    const [image] = this.images.splice(from, 1);
+    const nextImages = [...this.images];
+    const [image] = nextImages.splice(from, 1);
 
-    this.images.splice(to, 0, image);
+    nextImages.splice(to, 0, image);
+    this.setImages(nextImages);
   }
 
   public async uploadAll(userId: string, postId: string): Promise<void> {
@@ -91,8 +94,8 @@ class CommunityImageSession {
       throw new CommunityImagePipelineError(CommunityImageError.NotLoggedIn);
     }
 
-    this.uploadUserId = userId;
-    this.uploadPostId = postId;
+    this.setUploadUserId(userId);
+    this.setUploadPostId(postId);
 
     const failures: unknown[] = [];
 
@@ -160,7 +163,7 @@ class CommunityImageSession {
 
     for (const storagePath of storagePaths) {
       if (!failurePaths.has(storagePath)) {
-        this.removedStoragePaths.delete(storagePath);
+        this.deleteRemovedStoragePath(storagePath);
       }
     }
 
@@ -194,7 +197,7 @@ class CommunityImageSession {
       return;
     }
 
-    this.activeLocalIds.add(image.localId);
+    this.addActiveLocalId(image.localId);
     image.markUploading();
 
     try {
@@ -203,14 +206,13 @@ class CommunityImageSession {
         image.width,
         image.height
       );
-      image.sourceUri = normalized.uri;
-      image.width = normalized.width;
-      image.height = normalized.height;
+      image.setSourceUri(normalized.uri);
+      image.setDimensions(normalized.width, normalized.height);
 
       const uploaded = await this.imageUpload.upload(userId, postId, image);
 
       if (!this.images.includes(image)) {
-        this.removedStoragePaths.add(uploaded.storagePath);
+        this.addRemovedStoragePath(uploaded.storagePath);
 
         return;
       }
@@ -220,7 +222,7 @@ class CommunityImageSession {
       image.markFailed(this.toImageError(error));
       throw error;
     } finally {
-      this.activeLocalIds.delete(image.localId);
+      this.deleteActiveLocalId(image.localId);
     }
   }
 
@@ -230,6 +232,34 @@ class CommunityImageSession {
     }
 
     return CommunityImageError.UploadFailed;
+  }
+
+  private setUploadUserId(value: string) {
+    this.uploadUserId = value;
+  }
+
+  private setImages(value: CommunityPendingImage[]) {
+    this.images.splice(0, this.images.length, ...value);
+  }
+
+  private setUploadPostId(value: string) {
+    this.uploadPostId = value;
+  }
+
+  private addActiveLocalId(value: string) {
+    this.activeLocalIds.add(value);
+  }
+
+  private deleteActiveLocalId(value: string) {
+    this.activeLocalIds.delete(value);
+  }
+
+  private addRemovedStoragePath(value: string) {
+    this.removedStoragePaths.add(value);
+  }
+
+  private deleteRemovedStoragePath(value: string) {
+    this.removedStoragePaths.delete(value);
   }
 }
 

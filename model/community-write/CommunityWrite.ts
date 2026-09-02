@@ -116,13 +116,13 @@ class CommunityWrite {
     }
 
     if (this.mode === CommunityWriteMode.Create) {
-      this.initialized = true;
+      this.setInitialized(true);
 
       return true;
     }
 
     if (!this.postId) {
-      this.initialized = true;
+      this.setInitialized(true);
 
       return false;
     }
@@ -131,25 +131,27 @@ class CommunityWrite {
     const userId = app.getFirebase().getUserId();
 
     if (!post || !userId || post.getAuthorId() !== userId) {
-      this.initialized = true;
+      this.setInitialized(true);
 
       return false;
     }
 
-    this.existingPost = post;
-    this.type = post.getType();
-    this.title = post.getTitle();
-    this.body = post.getBody();
-    this.bagSnapshot = post.getBagSnapshot() ?? null;
+    this.setExistingPost(post);
+    this.setType(post.getType());
+    this.setTitleValue(post.getTitle());
+    this.setBodyValue(post.getBody());
+    this.setBagSnapshot(post.getBagSnapshot() ?? null);
 
     const poll = post.getPoll();
 
     if (poll) {
-      this.pollOptions = poll.options.map((option) => option.text);
-      this.pollExpiresAt = poll.expiresAt ?? null;
-      this.pollExpiryDays = poll.expiresAt
-        ? Math.max(0, Math.round((poll.expiresAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000)))
-        : 0;
+      this.setPollOptions(poll.options.map((option) => option.text));
+      this.setPollExpiresAtValue(poll.expiresAt ?? null);
+      this.setPollExpiryDaysValue(
+        poll.expiresAt
+          ? Math.max(0, Math.round((poll.expiresAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000)))
+          : 0
+      );
     }
 
     for (const image of post.getImages()) {
@@ -161,10 +163,10 @@ class CommunityWrite {
       );
       localImage.markDone(image);
       this.imageSession.add([localImage]);
-      this.existingStoragePaths.add(image.storagePath);
+      this.addExistingStoragePath(image.storagePath);
     }
 
-    this.initialized = true;
+    this.setInitialized(true);
 
     return true;
   }
@@ -189,29 +191,47 @@ class CommunityWrite {
     return this.mode === CommunityWriteMode.Edit;
   }
 
+  public updateTypeIfEmpty(value: CommunityPostType): boolean {
+    if (
+      this.mode === CommunityWriteMode.Edit ||
+      this.isDirty ||
+      this.title.trim() ||
+      this.body.trim() ||
+      this.selectedBag ||
+      this.bagSnapshot ||
+      this.imageSession.images.length > 0
+    ) {
+      return false;
+    }
+
+    this.setType(value);
+
+    return true;
+  }
+
   public setTitle(value: string) {
     if (!this.canEditPollStructure()) {
       return;
     }
 
-    this.title = value;
-    this.fieldErrors.delete(CommunityWriteField.Title);
+    this.setTitleValue(value);
+    this.clearFieldError(CommunityWriteField.Title);
     this.markDirty();
   }
 
   public setBody(value: string) {
-    this.body = value;
-    this.fieldErrors.delete(CommunityWriteField.Body);
+    this.setBodyValue(value);
+    this.clearFieldError(CommunityWriteField.Body);
     this.markDirty();
   }
 
   public async selectBag(bag: BagItem): Promise<void> {
     const gears = await this.dispatcher.getBagGears(bag);
 
-    this.selectedBag = bag;
-    this.bagSnapshot = CommunityBagSnapshotBuilder.build(bag, gears);
-    this.bagChanged = true;
-    this.fieldErrors.delete(CommunityWriteField.Bag);
+    this.setSelectedBag(bag);
+    this.setBagSnapshot(CommunityBagSnapshotBuilder.build(bag, gears));
+    this.setBagChanged(true);
+    this.clearFieldError(CommunityWriteField.Bag);
     this.markDirty();
   }
 
@@ -220,7 +240,7 @@ class CommunityWrite {
       return;
     }
 
-    this.pollOptions.push('');
+    this.setPollOptions([...this.pollOptions, '']);
     this.markDirty();
   }
 
@@ -234,7 +254,9 @@ class CommunityWrite {
       return;
     }
 
-    this.pollOptions.splice(index, 1);
+    this.setPollOptions(
+      this.pollOptions.filter((_, optionIndex) => optionIndex !== index)
+    );
     this.markDirty();
   }
 
@@ -247,8 +269,12 @@ class CommunityWrite {
       return;
     }
 
-    this.pollOptions[index] = value;
-    this.fieldErrors.delete(CommunityWriteField.PollOptions);
+    this.setPollOptions(
+      this.pollOptions.map((option, optionIndex) =>
+        optionIndex === index ? value : option
+      )
+    );
+    this.clearFieldError(CommunityWriteField.PollOptions);
     this.markDirty();
   }
 
@@ -257,8 +283,8 @@ class CommunityWrite {
       return;
     }
 
-    this.pollExpiresAt = value;
-    this.pollExpiryDays = 0;
+    this.setPollExpiresAtValue(value);
+    this.setPollExpiryDaysValue(0);
     this.markDirty();
   }
 
@@ -267,10 +293,10 @@ class CommunityWrite {
       return;
     }
 
-    this.pollExpiryDays = days;
-    this.pollExpiresAt = days
-      ? new Date(Date.now() + days * 24 * 60 * 60 * 1000)
-      : null;
+    this.setPollExpiryDaysValue(days);
+    this.setPollExpiresAtValue(
+      days ? new Date(Date.now() + days * 24 * 60 * 60 * 1000) : null
+    );
     this.markDirty();
   }
 
@@ -315,7 +341,7 @@ class CommunityWrite {
     }
 
     this.validate();
-    this.isSubmitting = true;
+    this.setSubmitting(true);
 
     try {
       if (this.mode === CommunityWriteMode.Create) {
@@ -325,7 +351,7 @@ class CommunityWrite {
       return await this.submitEdit(userId);
     } catch (error) {
       if (error instanceof CommunityError) {
-        this.fieldErrors.set(
+        this.setFieldError(
           this.fieldForValidation(error.code),
           error.code
         );
@@ -333,12 +359,12 @@ class CommunityWrite {
 
       throw error;
     } finally {
-      this.isSubmitting = false;
+      this.setSubmitting(false);
     }
   }
 
   private validate() {
-    this.fieldErrors.clear();
+    this.clearFieldErrors();
 
     try {
       CommunityValidator.validateTitle(this.title);
@@ -362,7 +388,7 @@ class CommunityWrite {
       );
     } catch (error) {
       if (error instanceof CommunityError) {
-        this.fieldErrors.set(
+        this.setFieldError(
           this.fieldForValidation(error.code),
           error.code
         );
@@ -374,7 +400,7 @@ class CommunityWrite {
 
   private async submitCreate(userId: string): Promise<string> {
     const postId = this.createPostId || this.dispatcher.createPostId();
-    this.createPostId = postId;
+    this.setCreatePostId(postId);
 
     await this.imageSession.uploadAll(userId, postId);
     this.ensureAllImagesUploaded();
@@ -387,11 +413,11 @@ class CommunityWrite {
       throw error;
     }
 
-    app.getAnalyticsManager()?.logClick('community_publish', {
+    app.getAnalyticsManager()?.logClick('click_community_publish', {
       type: this.type,
       image_count: this.imageSession.getUploadedInOrder().length,
     });
-    this.isDirty = false;
+    this.setDirty(false);
 
     return postId;
   }
@@ -414,7 +440,7 @@ class CommunityWrite {
       await this.imageUpload.deleteMany(removedStoragePaths, userId);
     }
 
-    this.isDirty = false;
+    this.setDirty(false);
 
     return this.postId;
   }
@@ -506,7 +532,82 @@ class CommunityWrite {
   }
 
   private markDirty() {
-    this.isDirty = true;
+    this.setDirty(true);
+  }
+
+  private setType(value: CommunityPostType) {
+    this.type = value;
+  }
+
+  private setTitleValue(value: string) {
+    this.title = value;
+  }
+
+  private setBodyValue(value: string) {
+    this.body = value;
+  }
+
+  private setSelectedBag(value: BagItem | null) {
+    this.selectedBag = value;
+  }
+
+  private setBagSnapshot(value: CommunityBagSnapshotType | null) {
+    this.bagSnapshot = value;
+  }
+
+  private setPollOptions(value: string[]) {
+    this.pollOptions = value;
+  }
+
+  private setPollExpiresAtValue(value: Date | null) {
+    this.pollExpiresAt = value;
+  }
+
+  private setPollExpiryDaysValue(value: number) {
+    this.pollExpiryDays = value;
+  }
+
+  private setSubmitting(value: boolean) {
+    this.isSubmitting = value;
+  }
+
+  private setDirty(value: boolean) {
+    this.isDirty = value;
+  }
+
+  private setExistingPost(value: CommunityPost | null) {
+    this.existingPost = value;
+  }
+
+  private setBagChanged(value: boolean) {
+    this.bagChanged = value;
+  }
+
+  private setInitialized(value: boolean) {
+    this.initialized = value;
+  }
+
+  private addExistingStoragePath(value: string) {
+    this.existingStoragePaths.add(value);
+  }
+
+  private setCreatePostId(value: string) {
+    this.createPostId = value;
+  }
+
+  private clearFieldErrors() {
+    this.fieldErrors.clear();
+  }
+
+  private setFieldError(
+    field: CommunityWriteField,
+    error: CommunityValidationError
+  ) {
+    this.fieldErrors.set(field, error);
+  }
+
+  private clearFieldError(field: CommunityWriteField) {
+    this.fieldErrors.delete(field);
   }
 }
 

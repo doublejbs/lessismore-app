@@ -1094,7 +1094,9 @@
         "moveBackward": "뒤로 이동",
         "uploading": "업로드 중",
         "failed": "업로드 실패",
-        "label": "게시글 사진 {{count}}/{{total}}"
+        "label": "게시글 사진 {{count}}/{{total}}",
+        "section": "사진",
+        "addLabel": "사진 추가"
       },
       "bag": {
         "select": "배낭 선택",

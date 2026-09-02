@@ -27,6 +27,7 @@ import {
   AcgRadius,
   AcgRow,
   AcgType,
+  Radius,
 } from '@/constants/DesignTokens';
 import CommunityComment from '@/model/community/CommunityComment';
 import CommunityCommentDeletedReason from '@/model/community/CommunityCommentDeletedReason';
@@ -46,6 +47,11 @@ interface ReportSheetTarget {
   target: CommunityReportTarget;
 }
 
+const COMMENT_COMPOSER_HEIGHT = 44;
+const COMMENT_COMPOSER_TOP_PADDING = 8;
+const COMMENT_REPLY_BANNER_HEIGHT = 40;
+const CONTENT_BOTTOM_EXTRA = 24;
+
 const CommunityDetailView: FC<Props> = ({ detail }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -54,6 +60,13 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
   const [reportTarget, setReportTarget] = useState<ReportSheetTarget | null>(
     null
   );
+  const composerBottomInset = Math.max(insets.bottom, 8);
+  const contentBottomPadding =
+    COMMENT_COMPOSER_HEIGHT +
+    COMMENT_COMPOSER_TOP_PADDING +
+    COMMENT_REPLY_BANNER_HEIGHT +
+    composerBottomInset +
+    CONTENT_BOTTOM_EXTRA;
 
   useFocusEffect(
     useCallback(() => {
@@ -123,7 +136,7 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
       }
       contentContainerStyle={[
         styles.listContent,
-        { paddingBottom: 100 + insets.bottom },
+        { paddingBottom: contentBottomPadding },
       ]}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps='handled'
@@ -155,7 +168,7 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
       </View>
       <View style={styles.content}>{content}</View>
       {post && !detail.isNotFound() && (
-        <CommentComposer detail={detail} bottomInset={insets.bottom} />
+        <CommentComposer detail={detail} bottomInset={composerBottomInset} />
       )}
       <BottomMenuModalView
         visible={showMenu}
@@ -770,7 +783,7 @@ const styles = StyleSheet.create({
   submitButton: {
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: Radius.pill,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Acg.lime,
@@ -778,10 +791,10 @@ const styles = StyleSheet.create({
   submitButtonDisabled: { opacity: 0.45 },
   replyBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 6 },
   replyBannerText: { ...AcgType.meta, color: Acg.textMuted },
-  cancelReplyButton: { width: 44, height: 36, justifyContent: 'center', alignItems: 'center' },
+  cancelReplyButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
   stateContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   stateTitle: { ...AcgType.sectionTitle, color: Acg.ink, textAlign: 'center' },
-  stateButton: { minHeight: 44, marginTop: 20, paddingHorizontal: 24, justifyContent: 'center', borderRadius: AcgRadius.chip, backgroundColor: Acg.ink },
+  stateButton: { minHeight: 44, marginTop: 20, paddingHorizontal: 24, justifyContent: 'center', borderRadius: Radius.pill, backgroundColor: Acg.ink },
   stateButtonText: { ...AcgType.control, color: Acg.paper },
   skeleton: { padding: AcgLayout.screenPadding },
   skeletonLine: { height: 16, width: '35%', backgroundColor: Acg.controlFill, borderRadius: 4 },

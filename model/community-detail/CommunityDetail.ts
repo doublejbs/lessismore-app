@@ -122,7 +122,7 @@ class CommunityDetail {
       const liked = await this.dispatcher.toggleLike(this.postId);
       this.setLiked(liked);
       this.post.applyLikeToggle(liked);
-      app.getAnalyticsManager()?.logClick('community_like', { liked });
+      app.getAnalyticsManager()?.logClick('click_community_like', { liked });
     } catch {
       this.setLiked(previous);
       this.post.applyLikeToggle(previous);
@@ -143,7 +143,7 @@ class CommunityDetail {
       await this.dispatcher.vote(this.postId, optionId);
       this.post.applyVote(optionId);
       this.setMyVoteOptionId(optionId);
-      app.getAnalyticsManager()?.logClick('community_vote');
+      app.getAnalyticsManager()?.logClick('click_community_vote');
     } catch (error) {
       if (this.isCommunityError(error, CommunityValidationError.AlreadyVoted)) {
         this.showToast('community.poll.alreadyVoted');
@@ -198,7 +198,7 @@ class CommunityDetail {
       const depth = this.replyTarget ? 1 : 0;
       this.setDraft('');
       this.setReplyTarget(null);
-      app.getAnalyticsManager()?.logClick('community_comment_submit', {
+      app.getAnalyticsManager()?.logClick('click_community_comment_submit', {
         depth: depth === 1 ? 'reply' : 'comment',
       });
     } catch {
@@ -339,7 +339,7 @@ class CommunityDetail {
       app.getToastManager()?.show({
         message: app.getL10n().t('community.report.done'),
       });
-      app.getAnalyticsManager()?.logClick('community_report', {
+      app.getAnalyticsManager()?.logClick('click_community_report', {
         target: target.targetType,
       });
     } catch {
