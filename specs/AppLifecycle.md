@@ -5,7 +5,7 @@
 | 상태 | as-built (2026-06-10 코드 기준) |
 | ID 프리픽스 | `APP` |
 | 주요 코드 | `app/_layout.tsx`, `app/(tabs)/_layout.tsx`, `model/app/App.ts`, `model/alert/`, `model/toast/`, `model/storage/LocalStorageManager.ts`, `components/Layout.tsx`, `hot-updater.config.ts` |
-| 관련 스펙 | [DataModel.md](DataModel.md), [Auth.md](Auth.md) |
+| 관련 스펙 | [DataModel.md](DataModel.md), [Auth.md](Auth.md), [Community.md](Community.md) |
 
 ## 1. 개요
 
@@ -17,7 +17,7 @@
 app/_layout.tsx (RootLayout, 네이티브는 HotUpdater.wrap)
   → 폰트 로드 + app.initialize() 완료까지 SplashLoadingView
   → Stack: (tabs) / custom / search / not-login-search(모달) / 기타 라우트
-app/(tabs)/_layout.tsx → 탭 4개: 창고(index) · 탐색(search) · 배낭(bag) · 정보(info)
+app/(tabs)/_layout.tsx → 현재 탭 5개: 홈(index) · 탐색(search) · 지도(map) · 배낭(bag) · 내 정보(info)
 ```
 
 ## 3. 요구사항
@@ -60,8 +60,10 @@ app/(tabs)/_layout.tsx → 탭 4개: 창고(index) · 탐색(search) · 배낭(b
 
 **수용 기준**
 
-- 탭 4개: `창고`(house) / `탐색`(magnifyingglass) / `배낭`(figure.hiking) / `정보`(person). 활성 색상 검정.
-- **네이티브 탭바**: `expo-router`의 `NativeTabs`(unstable-native-tabs)로 렌더 — iOS는 네이티브 `UITabBar`(iOS 26 리퀴드 글래스·`minimizeBehavior='onScrollDown'` 자동), Android는 머티리얼 네이티브 탭. tint/아이콘 색 검정, 라벨색 선택 검정/비선택 #8E8E93. 아이콘은 iOS SF Symbol(`sf`) + Android drawable. (기존 JS 탭바 HapticTab/NoAnimationTab/TabBarBackground/IconSymbol은 미사용.)
+- 현재 탭 5개: `홈`(house) / `탐색`(magnifyingglass) / `지도`(map) / `배낭`(figure.hiking) / `내 정보`(person). 활성 색상 검정.
+- iOS는 `NativeTabs`의 네이티브 `UITabBar`로 iOS 26 리퀴드 글래스와 `minimizeBehavior='onScrollDown'`을 사용한다.
+- Android/Web은 기존 JS `Tabs`를 사용한다. 웹에서는 네이티브 지도 SDK가 없어 `지도` 탭을 숨긴다.
+- 탭은 다섯 개를 실질 상한으로 본다. 새 최상위 기능을 추가할 때 여섯 번째 탭을 그대로 붙이지 않고 기존 정보 구조를 재편한다.
 
 ### APP-6 공통 UI 규칙
 
@@ -122,6 +124,20 @@ app/(tabs)/_layout.tsx → 탭 4개: 창고(index) · 탐색(search) · 배낭(b
       네이티브 세 시트는 fade로 표시된다.
 - [ ] iOS Reduce Motion을 시트 표시 중 변경 → 다음 전환부터 즉시 정책이 반영된다.
 
+### APP-9 커뮤니티 탭 재편 `[제안]`
+
+커뮤니티를 최상위 기능으로 추가하되 하단 탭은 다섯 개를 유지한다.
+
+**수용 기준**
+
+- 하단 탭 순서는 `홈 / 탐색 / 지도 / 배낭 / 커뮤니티`다.
+- 기존 `내 정보` 탭을 제거하고 같은 내용은 `/info` 푸시 화면으로 이동한다([Auth.md](Auth.md) AU-9).
+- `커뮤니티` 아이콘은 iOS `person.2.fill`, Android/Web은 같은 의미의 사용자 그룹 아이콘을 사용한다.
+- iOS는 `NativeTabs`, Android/Web은 JS `Tabs`라는 APP-5 플랫폼 분기를 유지한다.
+- 웹은 지도 탭을 숨기므로 `홈 / 탐색 / 배낭 / 커뮤니티` 네 개가 보인다.
+- 탭 전환으로 커뮤니티에 재진입하면 이전 피드 스크롤·필터를 유지한다. 탭을 다시 누르는 동작은 후속 정의 전까지 별도 새로고침으로 해석하지 않는다.
+- `/info`의 공개 URL은 유지된다. 라우트 그룹만 `(tabs)` 밖으로 이동하므로 기존 링크를 깨뜨리지 않는다.
+
 ## 4. 데이터
 
 - Firebase 초기화 구성: [DataModel.md](DataModel.md) 1장. 로컬 스토리지 키는 APP-6.
@@ -133,7 +149,7 @@ app/(tabs)/_layout.tsx → 탭 4개: 창고(index) · 탐색(search) · 배낭(b
 | HotUpdater | 적용 | 적용 | 미적용 |
 | Auth persistence | AsyncStorage | AsyncStorage | 브라우저 기본 |
 | Toast | 커스텀 | `ToastAndroid` | 커스텀 |
-| 탭바 | blur + absolute + 햅틱 | 기본 | 높이 65 |
+| 탭바 | `NativeTabs`·리퀴드 글래스 | JS Tabs | JS Tabs·높이 65, 지도 숨김 |
 
 ## 6. 엣지 케이스
 
@@ -142,11 +158,13 @@ app/(tabs)/_layout.tsx → 탭 4개: 창고(index) · 탐색(search) · 배낭(b
 
 ## 7. 수동 검증 체크리스트
 
-- [ ] 콜드 스타트: 스플래시 → 창고 탭 진입
+- [ ] 콜드 스타트: 스플래시 → 홈 탭 진입
 - [ ] OTA 배포 후 앱 재시작 → fallback UI → 새 번들 적용 (CLAUDE.md 배포 절차 준수)
 - [ ] 웹 빌드에서 OTA 코드가 동작하지 않음(에러 없음)
 - [ ] Alert 확인 버튼의 비동기 작업 완료 후 닫힘
 - [ ] Android 토스트가 네이티브 스타일로 노출
+- [ ] `[제안]` 탭이 `홈 / 탐색 / 지도 / 배낭 / 커뮤니티` 다섯 개이고 웹에서는 지도만 숨김
+- [ ] `[제안]` 커뮤니티와 다른 탭을 왕복해도 피드 스크롤·필터가 유지됨
 
 ## 8. 미해결 질문
 

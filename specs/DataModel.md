@@ -59,6 +59,19 @@
 - **범위 밖**: 여행·박지 사진([BagShare.md](BagShare.md) 필름 카드, [CampSite.md](CampSite.md) 박지 대표 사진·`camp-spot.imageUrl`)은
   장비 이미지가 아니므로 이 원칙과 무관하다.
 
+### 커뮤니티 공개 사진 정책 `[제안]` (2026-09-02)
+
+[Community.md](Community.md)의 게시글 사진은 **다른 사용자에게 공개하기 위한 UGC**다. 위 장비 이미지 정책의
+`users/{uid}/gears/{id}.imageUrl`과 목적·경로·노출 범위가 다르며, 비공개 장비 사진을 공개 사진으로 복사하거나
+자동 노출하지 않는다.
+
+- 게시자는 직접 촬영했거나 공개할 권리가 있는 사진만 올릴 수 있다.
+- 별도 사전 검수 없이 게시 즉시 공개하며, 문제가 있는 사진은 신고 경로로 접수한다(CM-10).
+- 위치 좌표를 포함한 EXIF를 제거하고, 장축 2,048px 이하 JPEG·파일당 5MB 이하로 정규화한다(CM-6).
+- 게시글 삭제·운영 삭제·회원 탈퇴 시 Storage 원본까지 정리한다. 클라이언트 중단으로 고아 파일이 남지 않도록
+  재시도 가능한 서버 정리 경로를 둔다.
+- 이 정책은 커뮤니티 게시글 사진에만 적용한다. 폐기한 장비 공유 갤러리(DM-8)를 되살리는 근거로 쓰지 않는다.
+
 ## 2. Firestore 컬렉션 맵 (DM-1)
 
 | 경로 | 내용 | 주 사용처 |
@@ -76,6 +89,11 @@
 | `gear-comments/{gearId}/comments/{parentId}/comments/{replyId}` | 답글 (중첩 서브컬렉션) | `ReplyStore` |
 | `comment-likes/{userId}_{commentId}` | 댓글 좋아요 (복합 키 문서) | `ReplyStore` |
 | `feed-content/{contentId}` | 운영자 작성 콘텐츠 — 홈 추천 큐레이션 (DM-27) `[기획]` | 홈 `useless가 고른 박지` ([Home.md](Home.md) HM-11) |
+| `community-posts/{postId}` | 커뮤니티 질문·배낭 후기·투표 (DM-28) `[제안]` | 커뮤니티 피드·상세 |
+| `community-posts/{postId}/comments/{commentId}` | 커뮤니티 댓글·한 단계 답글 (DM-28) `[제안]` | 커뮤니티 상세 |
+| `community-post-likes/{userId}_{postId}` | 커뮤니티 게시글 좋아요 (DM-28) `[제안]` | 커뮤니티 피드·상세 |
+| `community-poll-votes/{postId}_{userId}` | 커뮤니티 투표, 게시글·계정당 한 문서 (DM-28) `[제안]` | 커뮤니티 투표 |
+| `community-reports/{reportId}` | 커뮤니티 게시글·댓글 신고 (DM-28) `[제안]` | 신고·Firebase 콘솔 처리 |
 | `config/app` | 앱 원격 설정 (강제 업데이트 최소 버전) | 강제 업데이트 게이트 (AppLifecycle APP-7) |
 | `config/announcement` | 인앱 텍스트 공지 (원격 배너) | 공지 시트 (Announcement AN) |
 | `config/featurePopup` | 신기능 안내 팝업 (원격 온보딩) | 신기능 팝업 (FeaturePopup FP) |
@@ -613,6 +631,105 @@
   - **하화도는 "한 항목 안에서 이미지마다 유형이 갈린다"는 실례다**(2026-08-17 실측 정정) — 채택한 사진은 `하화도 꽃섬길`(`contentid` `2381140`)의 **`firstimage`(`3018735`)이고 이것이 `Type1`** 인데, **같은 `contentid`의 `detailImage2` 갤러리 10장은 전부 `Type3`** 다. 다른 항목에서 나온 것이 아니라 **같은 항목의 다른 이미지**다. 그래서 후보를 항목 단위로 통과·탈락시킬 수 없고, **채택하는 그 이미지의 `cpyrhtDivCd`를 그때그때 확인**해야 한다(위 ② ★).
 - **보안 규칙(콘솔 관리)**: **읽기 공개 확정**(2026-08-15 사용자 확정 — 비로그인 홈 노출의 전제, HM-14) + **쓰기는 admin(운영자) 전용**. 규칙 파일이 이 레포에 없어 실제 규칙 배포·구성 확인은 미해결이고, 클라이언트 SDK에는 admin 개념이 없어(웹 CMS의 쓰기 인증 방식 포함) **구현 전에 확인해야 한다** — §8 미해결 질문.
 
+### DM-28 커뮤니티 `[제안]`
+
+[Community.md](Community.md)의 공개 UGC 계약이다. 게시글·사진·댓글은 등록 성공 즉시 `published` 상태로
+일반 사용자에게 공개한다. 단, 답글 연결을 보존하는 삭제 댓글은 작성자·본문을 제거한 `deleted` 자리표시만
+공개할 수 있다. 작성자는 자기 콘텐츠를 만들고 수정·삭제할 수 있지만 `hidden` 상태는 운영자만 쓸 수 있다.
+
+#### `community-posts/{postId}`
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `type` | string | string enum `CommunityPostType`: `question` / `bag_review` / `poll` |
+| `status` | string | string enum `CommunityContentStatus`: `published` / `hidden` / `deleted` |
+| `authorId` | string | Firebase Auth uid. 익명 게시 없음 |
+| `authorName` | string | 작성 시점 닉네임 스냅샷 |
+| `title` | string | trim 후 2~80자 |
+| `body` | string | 질문·배낭 후기는 trim 후 10~5,000자, 투표는 빈 값 허용·최대 5,000자 |
+| `images` | array | 공개 사진 0~4장, 배열 순서가 표시 순서이며 첫 항목이 대표 사진 |
+| `images[].id` | string | 게시글 안에서 고유한 이미지 ID. Storage 파일명과 연결 |
+| `images[].url` | string | 커뮤니티 Storage 다운로드 URL. 개인 장비 `imageUrl` 사용 금지 |
+| `images[].storagePath` | string | 삭제·소유권 검증용 객체 경로 |
+| `images[].width` / `images[].height` | number | 정규화된 JPEG 픽셀 크기 |
+| `bagSnapshot` | map? | `type == 'bag_review'`일 때 필수. 아래 스키마 |
+| `poll` | map? | `type == 'poll'`일 때 필수. 아래 스키마 |
+| `likeCount` | number | 좋아요 수 비정규화 캐시, 기본 0 |
+| `commentCount` | number | 삭제 자리 제외 댓글·답글 수 비정규화 캐시, 기본 0 |
+| `createdAt` | timestamp | 서버 작성 시각, 피드 정렬 기준 |
+| `updatedAt` | timestamp | 마지막 내용 수정 시각 |
+
+**배낭 스냅샷 `bagSnapshot`**
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `name` | string | 작성 시점 배낭 이름 |
+| `startDate` / `endDate` | string? | `YYYY-MM-DD`. 날짜 없는 배낭이면 생략 |
+| `destinationName` | string? | 공개 가능한 표시 이름만. 좌표·상세 주소 없음 |
+| `totalWeight` | number | 장비 총 무게(g) |
+| `itemCount` | number | 스냅샷 장비 수 |
+| `gears` | array | 아래 공개 텍스트 장비 스냅샷. 원본 장비 ID·사진 없음 |
+| `gears[].company` | string | `companyKorean || company` 표시값 |
+| `gears[].name` | string | `nameKorean || name` 표시값 |
+| `gears[].weight` | number | g |
+| `gears[].category` | string | DM-4 카테고리 키 |
+
+- `bagSnapshot`에는 원본 `bagId`, 사용자 정의 장비 ID, 좌표, 경로, 건강 활동, 메모,
+  `users/{uid}/gears/{id}.imageUrl`을 넣지 않는다.
+- 원본 배낭과 동기화하지 않는다. 게시글 수정에서 배낭을 다시 선택했을 때만 맵 전체를 교체한다.
+
+**투표 `poll`**
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `options` | array | 2~4개, 배열 순서가 표시 순서 |
+| `options[].id` | string | 게시글 안에서 고유한 선택지 ID |
+| `options[].text` | string | trim 후 1~60자, 같은 투표 안에서 중복 금지 |
+| `options[].voteCount` | number | 선택지 득표 수 비정규화 캐시, 기본 0 |
+| `totalVoteCount` | number | 전체 참여 수 비정규화 캐시, 기본 0 |
+| `expiresAt` | timestamp? | 없으면 무기한, 있으면 이 시각 이후 투표 생성 금지 |
+
+- 첫 투표 문서가 생긴 뒤에는 `title`, `poll.options`, `poll.expiresAt`을 클라이언트가 바꿀 수 없다.
+- 비율은 저장하지 않고 `option.voteCount / totalVoteCount`로 계산한다.
+
+#### `community-posts/{postId}/comments/{commentId}`
+
+댓글과 답글을 같은 서브컬렉션에 평평하게 저장한다. `parentId`가 없으면 최상위 댓글, 있으면 답글이다.
+답글의 `parentId`는 반드시 같은 게시글의 최상위 댓글을 가리켜 깊이를 한 단계로 제한한다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `status` | string | `CommunityContentStatus`. 공개 목록은 `published`만 |
+| `authorId` | string | 작성자 uid |
+| `authorName` | string | 작성 시점 닉네임 스냅샷 |
+| `body` | string | trim 후 1~1,000자 |
+| `parentId` | string? | 최상위 댓글이면 없음, 답글이면 최상위 댓글 ID |
+| `mentionedUserId` / `mentionedUserName` | string? | 답글 대상. 답글에 다시 답할 때도 `parentId`는 최상위 유지 |
+| `createdAt` | timestamp | 서버 작성 시각 |
+| `updatedAt` | timestamp | 마지막 수정 시각 |
+
+#### 좋아요·투표·신고
+
+| 경로 | 필드 | 규칙 |
+| --- | --- | --- |
+| `community-post-likes/{userId}_{postId}` | `userId`, `postId`, `createdAt` | 문서 존재가 좋아요 상태. 생성·삭제와 게시글 `likeCount`를 원자적으로 갱신 |
+| `community-poll-votes/{postId}_{userId}` | `postId`, `userId`, `optionId`, `createdAt` | 결정적 문서 ID로 계정당 한 표. 생성과 선택지·전체 카운트를 원자적으로 갱신. 수정·삭제로 선택 변경 불가 |
+| `community-reports/{reportId}` | `reporterId`, `targetType`, `targetPostId`, `targetCommentId?`, `targetAuthorId`, `reason`, `detail?`, `status`, `createdAt`, `resolvedAt?`, `resolvedBy?` | `targetType`: `post` / `comment`; `reason`: `spam` / `harassment` / `sexual_violence` / `copyright` / `privacy` / `other`; `status`: `open` / `reviewing` / `actioned` / `dismissed`. 같은 `(reporterId, targetType, targetId)` 중복 생성 금지 |
+
+#### 조회·보안·인덱스
+
+- **게시글 읽기**: `published`는 미인증 포함 공개 읽기. `hidden`·`deleted`는 일반 목록에서 읽지 않는다.
+- **게시글 쓰기**: 인증 사용자가 자기 `authorId`·현재 닉네임으로 `published` 문서를 생성하고 본인 내용만
+  수정·삭제할 수 있다. 작성자·카운트는 임의 변경할 수 없고 `hidden` 상태 변경은 운영자만 가능하다.
+- **댓글 읽기/쓰기**: 부모 게시글이 `published`일 때 `published` 댓글과 개인정보가 제거된 `deleted`
+  자리표시를 읽는다. 인증 사용자는 본인 `authorId`·현재 닉네임으로 `published` 댓글을 생성하고 본인 내용만
+  수정·삭제할 수 있다. `hidden` 상태 변경은 운영자만 가능하다.
+- **신고**: 신고자는 생성과 자기 신고 조회만 가능하다. 전체 목록·상태 변경은 운영자만 가능하다.
+- 필요한 복합 인덱스: 게시글 `(status, createdAt desc)`, `(status, type, createdAt desc)`,
+  댓글 `(status, createdAt asc)`, 신고 `(status, createdAt asc)`. 실제 콘솔 생성 링크가 나오면 배포 목록에 기록한다.
+- Storage 공개·쓰기 계약은 DM-9를 따른다. 객체 목록 조회는 허용하지 않는다.
+- 회원 탈퇴·게시글 삭제의 연쇄 정리는 [Community.md](Community.md) CM-9·CM-12를 따른다.
+
 ## 4. Storage 경로 (DM-9)
 
 | 경로 패턴 | 용도 | 상태 |
@@ -620,11 +737,18 @@
 | `/{userId}/{fileName}` | **개인 장비 이미지** (장비 상세에서 업로드, [GearDetail.md](GearDetail.md) GD-13) | **사용** (2026-07-29 개정) |
 | `/gears/{fileName}` | 크롤 파이프라인이 적재한 카탈로그 이미지 | 보존, 앱은 읽지 않음 (§1) |
 | `/gears/{gearId}/{imageId}` | 장비 공유 이미지 갤러리 | **폐기** (DM-8, 재도입 안 함) |
+| `/community/{userId}/{postId}/{imageId}.jpg` | 공개 커뮤니티 게시글 사진 (DM-28, CM-6) | `[제안]` |
 
 - 업로드는 **본인 경로(`/{userId}/`)에만** 쓴다. 파일명은 충돌하지 않게 생성하고, 업로드 후 받은 다운로드 URL을 `users/{uid}/gears/{id}.imageUrl`에 저장한다(DM-3).
 - 이미지를 **교체·삭제할 때 이전 Storage 파일도 함께 지운다** — 참조가 끊긴 파일이 쌓이면 용량만 늘고 회수 경로가 없다(현재 819개 중 상당수가 이미 그런 상태일 수 있다).
 - **삭제는 본인 경로(`/{userId}/`)의 파일만 대상으로 한다.** 사용자 문서의 `imageUrl`이 크롤 이미지(`/gears/{fileName}`)를 가리킬 수 있으므로(§1 소유권 판별), 소유 경로가 아니면 아무것도 하지 않고 성공으로 돌아간다. 크롤 자산은 전 사용자 공용이라 오삭제 시 복구 경로가 없다.
 - 보안 규칙은 §1의 `[운영]` 항목 참고 — 본인 경로만 읽기/쓰기로 좁혀야 한다.
+- 커뮤니티 사진은 인증 사용자가 자기 `userId` 경로에만 업로드·교체·삭제 요청할 수 있다. MIME은
+  `image/jpeg`, 파일 크기는 5MB 이하만 허용하고 경로 목록 조회는 금지한다.
+- 커뮤니티 사진은 게시글 등록 성공과 함께 공개한다. 연결 게시글이 `hidden`·`deleted`가 되거나 게시글 삭제·탈퇴가
+  일어나면 서버 정리 대상이다.
+- 개인 장비 경로와 커뮤니티 경로 사이 복사·폴백은 없다. 다운로드 URL만 보고 공개 사진으로 인정하지 않고
+  `storagePath`가 해당 작성자의 `/community/{userId}/{postId}/` 아래인지 함께 검증한다.
 
 ## 5. Algolia (DM-10)
 
@@ -658,6 +782,10 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 | 장비 무게 수정 | `GearStore.update` 후 `BagStore.updateBagsWeight` 배치 | 소속 배낭들의 `weight` |
 | 댓글 생성/수정/삭제/좋아요 | `runTransaction` | 댓글 문서 + 요약 문서(카운트 + 별점 집계 `ratingSum`/`ratingCount`/`ratingAvg`) + 부모 `replyCount` / `likeCount` (별점 수정은 요약 델타 반영 위해 updateComment도 트랜잭션) |
 | 박지 유저 후기 생성/수정/삭제 | `runTransaction` | 후기 문서 + 요약 문서(`reviewCount`/`ratingSum`/`ratingAvg`) (DM-20) |
+| 커뮤니티 게시글 좋아요 | `runTransaction` | `community-post-likes` + 게시글 `likeCount` (DM-28) |
+| 커뮤니티 댓글 생성/삭제 | `runTransaction` | 댓글 문서 + 게시글 `commentCount` (DM-28) |
+| 커뮤니티 투표 | 신뢰 가능한 서버 트랜잭션 | `community-poll-votes` + 선택지 `voteCount` + `totalVoteCount` (DM-28) |
+| 커뮤니티 게시글 삭제·회원 탈퇴 | 재시도 가능한 서버 작업 | 게시글·댓글·좋아요·투표 + Storage 사진 + 관련 카운트 (CM-9·CM-12) |
 | 회원 탈퇴 `Firebase.deleteUserData` | 청크 `writeBatch` | `gear-rank` 감소 + `bag` 문서들 + `users/{uid}/gears` 전체 + `comment-likes` + `users/{uid}` 삭제 ([Auth.md](Auth.md) AU-8) |
 
 **양방향 참조 불변식**: `gear.bags[]` ↔ `bag.gears[]`는 항상 쌍으로 갱신되어야 한다. `bag.weight`는 담긴 장비 `weight` 합과 일치해야 한다.
@@ -687,5 +815,7 @@ ID 배열로 문서를 모아 읽는 경로는 모두 Firestore `in` 절의 **�
 - **`feed-content`(DM-27) 보안 규칙 배포 확인** — 읽기 공개는 **확정**(2026-08-15 사용자 확정)이나, 규칙은 콘솔 관리라 실제 배포된 규칙이 그와 일치하는지 이 레포에서 확인 불가. 쓰기 admin(운영자) 전용 구성과 웹 CMS(AdminView)가 어떤 인증으로 쓰기를 할지(admin SDK 경유 서버·특정 uid 허용 등)를 구현 전 확인 필요 — [Home.md](Home.md) HM-11·HM-12.
 - **추천 카드 사진(DM-27) 재검증 주기 미정** `[기획]` — URL 직접 참조라 원본이 사라지거나 핫링크가 막히면 밴드가 조용히 폴백된다(화면은 정상이지만 사진이 사라진다). 실패율은 Storage 사본 승격 조건(DM-17 ③, 5%)의 기준값이므로 **언제·어떻게 재검증할지**(수동 재실행 vs 주기 배치, HEAD 샘플링 범위)를 정해야 한다. 고캠핑 스냅샷 갱신 주기가 미정인 것과 같은 성격의 운영 항목이다([CampSite.md](CampSite.md) §8).
 - **레거시 `camp-spot.imageUrl`의 라이선스 유형 미확인** `[기획]` — 고캠핑 `firstImageUrl`·큐레이션 수동 입력으로 이미 들어간 값들은 **이미지 단위 `cpyrhtDivCd`를 확인한 적이 없다**(고캠핑 `basedList` 응답에는 그 필드 자체가 없다). 박지 상세가 이 값을 계속 렌더하고 있으므로 **표시 조건을 어떻게 걸지가 미해결**이다 — 유형 미확인 값을 계속 보여줄지, 확인된 것만 남길지, 전수 확인이 가능한지(건수 실측 필요). 상세는 크롭하지 않으므로 변경금지(`Type3`)여도 표시 자체는 성립할 수 있어, 카드(크롭)와 같은 기준을 그대로 적용할 필요는 없다 — 결정 전까지 **현행 표시를 유지**한다([CampSite.md](CampSite.md) CS-10).
+- **커뮤니티 신고만 제공하는 심사 위험** `[제안]` — 사용자 결정으로 자동 필터·사전 검수·사용자 차단·별도 운영 도구를 MVP에서 제외했다. 신고는 Firebase 콘솔에서 수동 처리한다. Apple App Review Guideline 1.2의 필터링·차단 요구와 차이가 있어 iOS 심사 보완 가능성이 있으며, 필요 시 [Community.md](Community.md) CM-10을 먼저 개정한다.
+- **커뮤니티 Storage 규칙 배포** `[제안]` — 이 레포에는 Storage 규칙 파일이 없고 기존 루트 규칙의 미인증 목록 허용 이력이 있다(§1). 개인 장비 경로는 소유자 전용, 커뮤니티 경로는 게시 상태 기반 공개 읽기로 분리한 실제 콘솔 규칙을 구현 전에 확인해야 한다.
 - ~~**`camp-spot`(DM-17) 등록 시각 필드 부재** — 홈 새로운 박지 섹션의 "최근 등록순"에 쓸 필드가 없다(`updatedAt`은 재시드마다 갱신). `createdAt` 추가·백필 여부 미확정.~~ — **자동 소스 폐기로 해소(2026-08-15)**: 홈 섹션이 운영자 추천(`feed-content`, [Home.md](Home.md) HM-11)으로 전환돼 정렬은 `publishedAt`이 담당한다. `camp-spot`에 등록 시각 필드를 더할 이유가 없어졌다.
 - ~~`bag` 목록 조회(`where('__name__', 'in', bagIds)`)는 Firestore `in` 절 30개 제한의 영향권~~ → DM-25로 규칙화(청크 분할). 배낭 목록은 [Bag.md](Bag.md) BAG-1, 장비 상세의 함께한 여행 타임라인은 [GearDetail.md](GearDetail.md) GD-10, 배낭 장비는 [BagDetail.md](BagDetail.md) BD-1에서 해소.

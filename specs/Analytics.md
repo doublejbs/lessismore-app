@@ -5,7 +5,7 @@
 | 상태 | as-built (2026-07-29 코드 기준 — AN-3 표를 구현과 전수 대조해 동기화) |
 | ID 프리픽스 | `AN` |
 | 주요 코드 | `model/analytics/`, `app/_layout.tsx`, 각 CTA 컴포넌트 |
-| 관련 스펙 | [AppLifecycle.md](AppLifecycle.md), [Bag.md](Bag.md), [BagDetail.md](BagDetail.md), [Warehouse.md](Warehouse.md), [Search.md](Search.md) |
+| 관련 스펙 | [AppLifecycle.md](AppLifecycle.md), [Bag.md](Bag.md), [BagDetail.md](BagDetail.md), [Warehouse.md](Warehouse.md), [Search.md](Search.md), [Community.md](Community.md) |
 
 ## 1. 개요
 
@@ -162,6 +162,21 @@
 | `click_camp_site_review_write` | 박지 유저 후기 작성 진입 (CS-8) | — |
 | `click_camp_site_review_bag` | 박지 유저 후기에 첨부된 배낭 열기 (CS-8) | — |
 
+**커뮤니티** ([Community.md](Community.md)) `[제안]`
+
+| 이벤트 | 트리거 | 파라미터 |
+| --- | --- | --- |
+| `click_community_write` | 커뮤니티 `글쓰기` → 유형 선택 | — |
+| `click_community_publish` | 게시글 등록 성공 | `type`: `question` \| `bag_review` \| `poll`, `image_count`: 0~4 |
+| `click_community_post` | 피드 카드 → 상세 진입 | `type`: 위와 동일 |
+| `click_community_filter` | 유형 필터 변경 | `type`: `all` \| 위 유형 |
+| `click_community_like` | 게시글 좋아요 토글 | `liked`: boolean |
+| `click_community_comment_submit` | 댓글·답글 등록 성공 | `depth`: `comment` \| `reply` |
+| `click_community_vote` | 투표 성공 | — |
+| `click_community_report` | 신고 등록 성공 | `target`: `post` \| `comment` |
+
+- 커뮤니티 이벤트에는 게시글 ID, 작성자 ID·닉네임, 제목·본문, 투표 문구, 신고 상세를 보내지 않는다.
+
 - 이벤트 이름은 snake_case, `click_` 접두(표준 `search` 제외), 40자 이내 (GA4 제한).
 - 파라미터 값은 식별자가 아닌 열거형 문자열/불리언만 쓴다. `search_term`은 사용자 입력이지만 검색어 자체가 지표 대상이므로 허용 (개인정보 입력란 아님).
 
@@ -190,6 +205,7 @@
 - [ ] 화면 이동 시 `screen_view`의 화면 이름이 `bag/[id]` 형태로 정규화됨
 - [ ] 웹 빌드(`npm run web:export`)가 RNFirebase 때문에 깨지지 않고, 웹 런타임에서 클릭해도 에러 없음
 - [ ] 이벤트 파라미터에 문서 ID·이메일 등 식별 정보가 없음
+- [ ] `[제안]` 커뮤니티 작성·등록·상세·필터·좋아요·댓글·투표·신고 이벤트가 표의 이름·파라미터와 일치
 
 ## 8. 미해결 질문
 
