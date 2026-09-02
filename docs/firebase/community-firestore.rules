@@ -20,12 +20,6 @@ service cloud.firestore {
         && request.resource.data.type == resource.data.type;
     }
 
-    function countDelta(field) {
-      return request.resource.data[field] == resource.data[field]
-        || request.resource.data[field] == resource.data[field] + 1
-        || request.resource.data[field] == resource.data[field] - 1;
-    }
-
     function unchangedCount(field) {
       return request.resource.data[field] == resource.data[field];
     }
@@ -39,15 +33,56 @@ service cloud.firestore {
           && !existsAfter(likePath) && exists(likePath));
     }
 
+    function commentCounterMatches() {
+      return request.resource.data.commentCount == resource.data.commentCount + 1
+        || request.resource.data.commentCount == resource.data.commentCount - 1;
+    }
+
+    function sameExpiresAt() {
+      return ('expiresAt' in resource.data.poll && 'expiresAt' in request.resource.data.poll
+        && request.resource.data.poll.expiresAt == resource.data.poll.expiresAt)
+        || (!('expiresAt' in resource.data.poll) && !('expiresAt' in request.resource.data.poll));
+    }
+
+    function samePollOption(index) {
+      return request.resource.data.poll.options[index].id == resource.data.poll.options[index].id
+        && request.resource.data.poll.options[index].text == resource.data.poll.options[index].text
+        && request.resource.data.poll.options[index].voteCount == resource.data.poll.options[index].voteCount;
+    }
+
+    function incrementedPollOption(index) {
+      return request.resource.data.poll.options[index].id == resource.data.poll.options[index].id
+        && request.resource.data.poll.options[index].text == resource.data.poll.options[index].text
+        && request.resource.data.poll.options[index].voteCount == resource.data.poll.options[index].voteCount + 1;
+    }
+
+    function pollOptionsCounterMatches() {
+      return request.resource.data.poll.options.size() == resource.data.poll.options.size()
+        && (
+          (resource.data.poll.options.size() == 2
+            && ((incrementedPollOption(0) && samePollOption(1))
+              || (samePollOption(0) && incrementedPollOption(1))))
+          || (resource.data.poll.options.size() == 3
+            && ((incrementedPollOption(0) && samePollOption(1) && samePollOption(2))
+              || (samePollOption(0) && incrementedPollOption(1) && samePollOption(2))
+              || (samePollOption(0) && samePollOption(1) && incrementedPollOption(2))))
+          || (resource.data.poll.options.size() == 4
+            && ((incrementedPollOption(0) && samePollOption(1) && samePollOption(2) && samePollOption(3))
+              || (samePollOption(0) && incrementedPollOption(1) && samePollOption(2) && samePollOption(3))
+              || (samePollOption(0) && samePollOption(1) && incrementedPollOption(2) && samePollOption(3))
+              || (samePollOption(0) && samePollOption(1) && samePollOption(2) && incrementedPollOption(3))))
+        );
+    }
+
     function pollCounterMatches(postId) {
       let votePath = /databases/$(database)/documents/community-poll-votes/$(postId)_$(request.auth.uid);
-      return resource.data.type != 'poll'
-        || (
-          request.resource.data.poll.totalVoteCount == resource.data.poll.totalVoteCount
-          && request.resource.data.poll.options == resource.data.poll.options
-        )
-        || (
+      return resource.data.type == 'poll'
+        && (
           request.resource.data.poll.totalVoteCount == resource.data.poll.totalVoteCount + 1
+          && request.resource.data.poll.keys().hasOnly(['options', 'totalVoteCount', 'expiresAt'])
+          && resource.data.poll.keys().hasOnly(['options', 'totalVoteCount', 'expiresAt'])
+          && sameExpiresAt()
+          && pollOptionsCounterMatches()
           && existsAfter(votePath) && !exists(votePath)
         );
     }
@@ -82,20 +117,40 @@ service cloud.firestore {
                 && request.resource.data.status == 'deleted')
             )
             && unchangedCount('likeCount')
-            && unchangedCount('commentCount'))
+            && unchangedCount('commentCount')
+            && !(resource.data.type != 'poll'
+              && request.resource.data.diff(resource.data).affectedKeys().hasAny(['poll']))
+            && (request.resource.data.status != 'deleted'
+              || (
+                request.resource.data.authorId == resource.data.authorId
+                && request.resource.data.authorName == resource.data.authorName
+                && request.resource.data.title == resource.data.title
+                && request.resource.data.body == resource.data.body
+                && request.resource.data.images == resource.data.images
+                && request.resource.data.bagSnapshot == resource.data.bagSnapshot
+                && request.resource.data.poll == resource.data.poll
+              )))
           ||
           (request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-              'likeCount', 'commentCount', 'poll', 'updatedAt'
+              'likeCount'
             ])
-            && likeCounterMatches(postId)
-            && countDelta('commentCount')
-            && pollCounterMatches(postId)
+            && likeCounterMatches(postId))
+          ||
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'commentCount'
+            ])
+            && commentCounterMatches())
+          ||
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'poll'
+            ])
+            && pollCounterMatches(postId))
         );
       allow delete: if false;
 
       match /comments/{commentId} {
         allow read: if isPublishedPost(postId)
-          && (resource.data.status == 'published' || resource.data.status == 'deleted');
+          && resource.data.status in ['published', 'deleted'];
         allow create: if isPublishedPost(postId)
           && signedIn()
           && request.resource.data.keys().hasOnly([
@@ -108,41 +163,46 @@ service cloud.firestore {
         allow update: if signedIn()
           && resource.data.authorId == request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'status', 'authorId', 'authorName', 'body', 'parentId',
-            'mentionedUserId', 'mentionedUserName', 'updatedAt'
+            'status', 'authorName', 'body', 'deletedReason', 'updatedAt'
           ])
           && (
             (request.resource.data.status == resource.data.status
-              && request.resource.data.authorId == resource.data.authorId)
+              && request.resource.data.authorId == resource.data.authorId
+              && request.resource.data.status == 'published')
             ||
             (request.resource.data.status == 'deleted'
-              && request.resource.data.authorId == ''
               && request.resource.data.authorName == ''
               && request.resource.data.body == ''
-              && request.resource.data.deletedReason == 'author')
+              && request.resource.data.deletedReason == 'author'
+              && request.resource.data.authorId == resource.data.authorId)
           );
-        allow delete: if signedIn() && resource.data.authorId == request.auth.uid;
+        allow delete: if false;
       }
     }
 
     match /community-post-likes/{likeId} {
-      allow read: if signedIn() && resource.data.userId == request.auth.uid;
-      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if signedIn() && likeId.matches('^' + request.auth.uid + '_.*');
+      allow create: if signedIn()
+        && likeId.matches('^' + request.auth.uid + '_.*')
+        && request.resource.data.userId == request.auth.uid;
       allow delete: if signedIn() && resource.data.userId == request.auth.uid;
       allow update: if false;
     }
 
     match /community-poll-votes/{voteId} {
-      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow read: if signedIn() && voteId.matches('^.*_' + request.auth.uid + '$');
       allow create: if signedIn()
+        && voteId.matches('^.*_' + request.auth.uid + '$')
         && request.resource.data.userId == request.auth.uid
         && isPublishedPost(request.resource.data.postId);
       allow update, delete: if false;
     }
 
     match /community-reports/{reportId} {
-      allow create: if signedIn() && request.resource.data.reporterId == request.auth.uid;
-      allow read: if signedIn() && resource.data.reporterId == request.auth.uid;
+      allow create: if signedIn()
+        && reportId.matches('^' + request.auth.uid + '_.*')
+        && request.resource.data.reporterId == request.auth.uid;
+      allow read: if signedIn() && reportId.matches('^' + request.auth.uid + '_.*');
       allow update, delete: if false;
     }
 

@@ -1076,14 +1076,12 @@
       "author": "投稿者",
       "publish": "投稿",
       "save": "保存",
-      "typeLabel": "投稿タイプ",
       "titleLabel": "タイトル",
       "titlePlaceholder": "タイトルを入力してください",
       "bodyLabel": "内容",
       "bodyPlaceholder": "内容を入力してください",
       "counter": "{{count}}/{{max}}",
       "image": {
-        "add": "+ 写真を追加",
         "album": "アルバムから選択",
         "camera": "カメラで撮影",
         "notice": "自分で撮影した写真、または使用する権利のある写真だけを投稿してください",
@@ -1121,15 +1119,14 @@
         "expires1d": "1日",
         "expires3d": "3日",
         "expires7d": "7日",
-        "locked": "投票が始まったため、質問と選択肢は編集できません"
+        "locked": "投票が始まったため、質問と選択肢は編集できません",
+        "expiresCustom": "カスタム · {{date}}"
       },
       "discardConfirm": "作成中の内容を破棄しますか？",
       "discard": "破棄",
-      "keepEditing": "編集を続ける",
       "published": "投稿しました",
       "updated": "投稿を保存しました",
       "failed": "投稿を保存できませんでした",
-      "loading": "投稿を読み込み中です",
       "typeSheet": {
         "title": "何を投稿しますか？",
         "question": "質問",

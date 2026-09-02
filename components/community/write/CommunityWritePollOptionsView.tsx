@@ -1,15 +1,17 @@
 import { observer } from 'mobx-react-lite';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgRadius, AcgType, Color } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import CommunityWrite from '@/model/community-write/CommunityWrite';
+import { formatCommunityDate } from '@/model/community/CommunityFormat';
 import app from '@/model/app/App';
+import { COMMUNITY_POLL_OPTION_MAX_LENGTH } from '@/model/community/CommunityLimits';
 
 interface Props {
   write: CommunityWrite;
 }
 
-const EXPIRY_DAYS = [0, 1, 3, 7];
+const EXPIRY_DAYS = [0, 1, 3, 7] as const;
 
 /**
  * 투표 선택지와 마감 프리셋을 입력하는 View다(CM-5, CM-9).
@@ -18,6 +20,7 @@ const EXPIRY_DAYS = [0, 1, 3, 7];
 const CommunityWritePollOptionsView = ({ write }: Props) => {
   const l10n = app.getL10n();
   const canEdit = write.canEditPollStructure();
+  const pollOptions = write.getPollOptions();
 
   const getExpiryLabel = (days: number): string => {
     if (days === 0) {
@@ -28,21 +31,24 @@ const CommunityWritePollOptionsView = ({ write }: Props) => {
   };
 
   const isSelected = (days: number): boolean => {
-    return write.pollExpiryDays === days;
+    return write.getPollExpiryDays() === days;
   };
+  const hasCustomExpiry = Boolean(write.getPollExpiresAt()) &&
+    !EXPIRY_DAYS.includes(write.getPollExpiryDays() as (typeof EXPIRY_DAYS)[number]);
 
   return (
     <View style={styles.container}>
-      {write.pollOptions.map((option, index) => (
-        <View key={index} style={styles.optionRow}>
+      {pollOptions.map((option, index) => (
+        <View key={write.getPollOptionId(index)} style={styles.optionRow}>
           <View style={styles.optionHeader}>
             <PretendardText style={styles.label} weight='semibold'>
               {l10n.t('community.write.poll.option', { count: index + 1 })}
             </PretendardText>
-            {write.pollOptions.length > 2 && canEdit && (
+            {pollOptions.length > 2 && canEdit && !write.getIsSubmitting() && (
               <TouchableOpacity
                 style={styles.removeButton}
                 onPress={() => write.removePollOption(index)}
+                disabled={write.getIsSubmitting()}
                 accessibilityRole='button'
                 accessibilityLabel={l10n.t('community.write.poll.removeOption', {
                   count: index + 1,
@@ -63,19 +69,19 @@ const CommunityWritePollOptionsView = ({ write }: Props) => {
             placeholder={l10n.t('community.write.poll.option', {
               count: index + 1,
             })}
-            placeholderTextColor={Color.textSecondary}
-            maxLength={60}
-            editable={canEdit}
+            placeholderTextColor={Acg.textMuted}
+            maxLength={COMMUNITY_POLL_OPTION_MAX_LENGTH}
+            editable={canEdit && !write.getIsSubmitting()}
           />
           <PretendardText style={styles.counter}>
             {l10n.t('community.write.counter', {
               count: option.length,
-              max: 60,
+              max: COMMUNITY_POLL_OPTION_MAX_LENGTH,
             })}
           </PretendardText>
         </View>
       ))}
-      {canEdit && write.pollOptions.length < 4 && (
+      {canEdit && pollOptions.length < 4 && !write.getIsSubmitting() && (
         <TouchableOpacity
           style={styles.addOption}
           onPress={() => write.addPollOption()}
@@ -96,7 +102,7 @@ const CommunityWritePollOptionsView = ({ write }: Props) => {
             key={days}
             style={[styles.chip, isSelected(days) && styles.chipSelected]}
             onPress={() => write.setPollExpiryDays(days)}
-            disabled={!canEdit}
+            disabled={!canEdit || write.getIsSubmitting()}
             accessibilityRole='button'
             accessibilityState={{ selected: isSelected(days), disabled: !canEdit }}
           >
@@ -107,6 +113,20 @@ const CommunityWritePollOptionsView = ({ write }: Props) => {
             </PretendardText>
           </TouchableOpacity>
         ))}
+        {hasCustomExpiry && write.getPollExpiresAt() && (
+          <TouchableOpacity
+            style={[styles.chip, styles.chipSelected]}
+            disabled
+            accessibilityRole='button'
+            accessibilityState={{ selected: true, disabled: true }}
+          >
+            <PretendardText style={[styles.chipText, styles.chipTextSelected]}>
+              {l10n.t('community.write.poll.expiresCustom', {
+                date: formatCommunityDate(write.getPollExpiresAt()!),
+              })}
+            </PretendardText>
+          </TouchableOpacity>
+        )}
       </View>
       {!canEdit && (
         <PretendardText style={styles.locked}>
@@ -143,7 +163,7 @@ const styles = StyleSheet.create({
   },
   removeText: {
     ...AcgType.meta,
-    color: Color.textSecondary,
+    color: Acg.textMuted,
   },
   input: {
     minHeight: 48,
@@ -198,11 +218,11 @@ const styles = StyleSheet.create({
     color: Acg.ink,
   },
   chipTextSelected: {
-    color: Color.background,
+    color: Acg.paper,
   },
   locked: {
     ...AcgType.meta,
-    color: Color.textSecondary,
+    color: Acg.textMuted,
   },
 });
 

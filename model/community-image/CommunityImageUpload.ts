@@ -5,12 +5,13 @@ import {
   uploadBytesResumable,
 } from 'firebase/storage';
 import type Firebase from '@/model/firebase/Firebase';
+import { createCommunityId } from '@/model/community/CommunityId';
+import { CommunityPostImage } from '@/model/community/CommunityData';
 import CommunityImageDeleteFailure from './CommunityImageDeleteFailure';
 import CommunityImageError from './CommunityImageError';
 import CommunityImageOwnership from './CommunityImageOwnership';
 import CommunityImagePipelineError from './CommunityImagePipelineError';
 import CommunityPendingImage from './CommunityPendingImage';
-import CommunityUploadedImage from './CommunityUploadedImage';
 
 const OBJECT_NOT_FOUND_CODE = 'storage/object-not-found';
 const DEFAULT_IMAGE_CONTENT_TYPE = 'image/jpeg';
@@ -35,7 +36,7 @@ class CommunityImageUpload {
     postId: string,
     image: CommunityPendingImage,
     onProgress?: (progress: number) => void
-  ): Promise<CommunityUploadedImage> {
+  ): Promise<CommunityPostImage> {
     if (!userId) {
       throw new CommunityImagePipelineError(CommunityImageError.NotLoggedIn);
     }
@@ -47,7 +48,7 @@ class CommunityImageUpload {
       );
     }
 
-    const imageId = this.createImageId();
+    const imageId = createCommunityId();
     const storagePath = `community/${userId}/${postId}/${imageId}.jpg`;
 
     try {
@@ -136,10 +137,6 @@ class CommunityImageUpload {
     }
 
     return failures;
-  }
-
-  private createImageId(): string {
-    return `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
   }
 
   private async fetchBlob(localUri: string): Promise<Blob> {

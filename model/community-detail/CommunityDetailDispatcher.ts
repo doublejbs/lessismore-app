@@ -1,10 +1,6 @@
 import { QueryDocumentSnapshot } from 'firebase/firestore';
 import CommunityComment from '@/model/community/CommunityComment';
-import CommunityFeedFilter from '@/model/community/CommunityFeedFilter';
-import {
-  CommunityPostPatch,
-  CommunityReportInput,
-} from '@/model/community/CommunityData';
+import { CommunityReportInput } from '@/model/community/CommunityData';
 import CommunityPost from '@/model/community/CommunityPost';
 import CommunityStore from '@/model/store/CommunityStore';
 
@@ -58,23 +54,16 @@ class CommunityDetailDispatcher {
     return this.store.deleteComment(postId, commentId);
   }
 
+  public updateComment(postId: string, commentId: string, body: string) {
+    return this.store.updateComment(postId, commentId, body);
+  }
+
   public deletePost(postId: string) {
     return this.store.deletePost(postId);
   }
 
-  public updatePost(postId: string, patch: CommunityPostPatch) {
-    return this.store.updatePost(postId, patch);
-  }
-
   public report(input: CommunityReportInput) {
     return this.store.report(input);
-  }
-
-  public getFeedPage(
-    filter: CommunityFeedFilter,
-    cursor: QueryDocumentSnapshot | null
-  ) {
-    return this.store.getFeedPage(filter, cursor);
   }
 }
 

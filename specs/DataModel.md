@@ -634,8 +634,8 @@
 ### DM-28 커뮤니티 `[제안]`
 
 [Community.md](Community.md)의 공개 UGC 계약이다. 게시글·사진·댓글은 등록 성공 즉시 `published` 상태로
-일반 사용자에게 공개한다. 단, 답글 연결을 보존하는 삭제 댓글은 작성자·본문을 제거한 `deleted` 자리표시만
-공개할 수 있다. 작성자는 자기 콘텐츠를 만들고 수정·삭제할 수 있지만 `hidden` 상태는 운영자만 쓸 수 있다.
+일반 사용자에게 공개한다. 단, 답글 연결을 보존하는 삭제 댓글은 `authorName`·본문을 제거한 `deleted` 자리표시만
+공개할 수 있다(`authorId`는 경로 정리·감사를 위해 유지). 작성자는 자기 콘텐츠를 만들고 수정·삭제할 수 있지만 `hidden` 상태는 운영자만 쓸 수 있다.
 
 #### `community-posts/{postId}`
 
@@ -659,7 +659,9 @@
 | `createdAt` | timestamp | 서버 작성 시각, 피드 정렬 기준 |
 | `updatedAt` | timestamp | 마지막 내용 수정 시각 |
 
-클라이언트 게시글 수정에서 `poll.expiresAt`를 `null`로 전달하면 기존 마감 필드를 삭제하고, 날짜를 전달하면 새 마감 시각으로 저장한다. 필드를 전달하지 않으면 기존 마감 시각을 유지한다.
+게시글의 `updatedAt`은 게시글 내용 수정 시각이며 댓글 생성·수정·삭제로 갱신하지 않는다. 댓글 자체의 `updatedAt`만 댓글 수정·소프트 삭제 때 갱신한다.
+
+클라이언트 게시글 수정에서 `poll.expiresAt`를 `null`로 전달하면 `poll` 맵 교체 시 해당 필드가 사라지고, 날짜를 전달하면 새 마감 시각으로 저장한다. 필드를 전달하지 않으면 기존 마감 시각을 유지한다.
 
 **배낭 스냅샷 `bagSnapshot`**
 
@@ -701,7 +703,7 @@
 
 | 필드 | 타입 | 비고 |
 | --- | --- | --- |
-| `status` | string | `CommunityContentStatus`. 공개 목록은 `published`만 |
+| `status` | string | `CommunityContentStatus`. 공개 목록은 `published`와 개인정보가 제거된 `deleted` 자리표시 |
 | `authorId` | string | 작성자 uid |
 | `authorName` | string | 작성 시점 닉네임 스냅샷 |
 | `body` | string | trim 후 1~1,000자 |
@@ -719,6 +721,8 @@
 | `community-poll-votes/{postId}_{userId}` | `postId`, `userId`, `optionId`, `createdAt` | 결정적 문서 ID로 계정당 한 표. 생성과 선택지·전체 카운트를 원자적으로 갱신. 수정·삭제로 선택 변경 불가 |
 | `community-reports/{reportId}` | `reporterId`, `targetType`, `targetPostId`, `targetCommentId?`, `targetAuthorId`, `reason`, `detail?`, `status`, `createdAt`, `resolvedAt?`, `resolvedBy?` | `targetType`: `post` / `comment`; `reason`: `spam` / `harassment` / `sexual_violence` / `copyright` / `privacy` / `other`; `status`: `open` / `reviewing` / `actioned` / `dismissed`. 같은 `(reporterId, targetType, targetId)` 중복 생성 금지 |
 
+신고 문서 ID는 결정적으로 `{reporterId}_{targetType}_{targetId}`를 사용한다.
+
 #### 조회·보안·인덱스
 
 - **게시글 읽기**: `published`는 미인증 포함 공개 읽기. `hidden`·`deleted`는 일반 목록에서 읽지 않는다.
@@ -726,16 +730,16 @@
   수정·삭제할 수 있다. 작성자·카운트는 임의 변경할 수 없고 `hidden` 상태 변경은 운영자만 가능하다.
 - **댓글 읽기/쓰기**: 부모 게시글이 `published`일 때 `published` 댓글과 개인정보가 제거된 `deleted`
   자리표시를 읽는다. 인증 사용자는 본인 `authorId`·현재 닉네임으로 `published` 댓글을 생성하고 본인 내용만
-  수정·삭제할 수 있다. `hidden` 상태 변경은 운영자만 가능하다.
+  수정(`body`·`updatedAt`)할 수 있다. 삭제는 항상 소프트 삭제(`deletedReason: author`)이며, 답글 없는 자리표시는 화면에서 숨기고 물리 제거는 서버 스케줄에 위임한다. `hidden` 상태 변경은 운영자만 가능하다.
 - **신고**: 신고자는 생성과 자기 신고 조회만 가능하다. 전체 목록·상태 변경은 운영자만 가능하다.
 - 필요한 복합 인덱스: 게시글 `(status, createdAt desc)`, `(status, type, createdAt desc)`,
   댓글 `(status, createdAt asc)`, 신고 `(status, createdAt asc)`. 실제 콘솔 생성 링크가 나오면 배포 목록에 기록한다.
   서버 탈퇴 정리(CM-12)를 위해 **컬렉션 그룹 `comments`의 `authorId` 인덱스**도 필요하다.
 - **서버 정리 작업의 위치(2026-09-02 사용자 결정)**: 게시글 삭제·운영 숨김 연쇄 정리, 회원 탈퇴 정리, 고아 사진 정리는
   별도 레포 `lessismore`의 `functions/`(Firebase Cloud Functions, 프로젝트 `lessismore-7e070`, 리전 `asia-northeast3`)에 둔다 —
-  `onCommunityPostStatusChanged`(status → deleted/hidden 시 댓글·좋아요·투표·Storage 사진 정리 + 툼스톤), `onCommunityUserDeleted`(Auth 삭제 트리거),
+  `onCommunityPostStatusChanged`(status → deleted/hidden 시 댓글·좋아요·투표·Storage 사진 정리 + 툼스톤), `onCommunityCommentHidden`(운영 숨김 댓글 카운트 보정), `onCommunityUserDeleted`(Auth 삭제 트리거),
   `cleanupOrphanCommunityImages`(일 1회 스케줄). 클라이언트는 소프트 삭제(`status: deleted`)만 하고 물리 정리를 기다리지 않는다.
-- **서버 전용 필드**(Functions만 쓰고 클라이언트는 읽기만·쓰기 금지): 게시글 `hiddenCleanedAt`(운영 숨김 사진 정리 완료)·`deletedCleanedAt`(삭제 연쇄 정리 완료 — 각각 멱등 가드; `hidden`이던 글이 `deleted`가 되면 두 번째 정리가 따로 돈다), 댓글 `hiddenCountAdjustedAt`(운영 숨김 카운트 보정 완료), 댓글 `withdrawalProcessedAt`(탈퇴 정리 완료). `deleted` 툼스톤은 `title`·`body`·`authorName`을 빈 값으로, `images`를 `[]`로, `bagSnapshot`·`poll`을 제거해 개인정보·콘텐츠를 남기지 않는다. `hidden`은 운영 검토용으로 본문을 남기되 사진 파일과 `images`만 정리한다(CM-6).
+- **서버 전용 필드**(Functions만 쓰고 클라이언트는 읽기만·쓰기 금지): 게시글 `hiddenCleanedAt`(운영 숨김 사진 정리 완료)·`deletedCleanedAt`(삭제 연쇄 정리 완료 — 각각 멱등 가드; `hidden`이던 글이 `deleted`가 되면 두 번째 정리가 따로 돈다), 댓글 `hiddenCountAdjustedAt`(운영 숨김 카운트 보정 완료), 댓글 `withdrawalProcessedAt`(탈퇴 정리 완료). `deleted` 툼스톤은 경로 정리·감사를 위해 `authorId`와 `createdAt`을 유지하고 `title`·`body`·`authorName`을 빈 값으로, `images`를 `[]`로, `bagSnapshot`·`poll`을 제거해 개인정보·콘텐츠를 남기지 않는다. 탈퇴자 멘션의 `mentionedUserName`은 서버가 빈 값으로 정리한다. `community-reports.reporterId`는 운영 기록을 위해 보존한다. `hidden` 게시글·댓글의 카운트 드리프트는 알려진 한계이며 서버 보정 작업에서 다룬다.
 - Storage 공개·쓰기 계약은 DM-9를 따른다. 객체 목록 조회는 허용하지 않는다.
 - 회원 탈퇴·게시글 삭제의 연쇄 정리는 [Community.md](Community.md) CM-9·CM-12를 따른다.
 
@@ -793,7 +797,7 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 | 박지 유저 후기 생성/수정/삭제 | `runTransaction` | 후기 문서 + 요약 문서(`reviewCount`/`ratingSum`/`ratingAvg`) (DM-20) |
 | 커뮤니티 게시글 좋아요 | `runTransaction` | `community-post-likes` + 게시글 `likeCount` (DM-28) |
 | 커뮤니티 댓글 생성/삭제 | `runTransaction` | 댓글 문서 + 게시글 `commentCount` (DM-28) |
-| 커뮤니티 투표 | 신뢰 가능한 서버 트랜잭션 | `community-poll-votes` + 선택지 `voteCount` + `totalVoteCount` (DM-28) |
+| 커뮤니티 투표 | 클라이언트 `runTransaction` + 보안 규칙 검증 | `community-poll-votes` + 선택지 `voteCount` + `totalVoteCount` (DM-28) |
 | 커뮤니티 게시글 삭제·회원 탈퇴 | 재시도 가능한 서버 작업 — `lessismore` 레포 Cloud Functions (DM-28 참조) | 게시글·댓글·좋아요·투표 + Storage 사진 + 관련 카운트 (CM-9·CM-12) |
 | 회원 탈퇴 `Firebase.deleteUserData` | 청크 `writeBatch` | `gear-rank` 감소 + `bag` 문서들 + `users/{uid}/gears` 전체 + `comment-likes` + `users/{uid}` 삭제 ([Auth.md](Auth.md) AU-8) |
 

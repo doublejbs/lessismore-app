@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import CampSiteBagSelectSheetView from '@/components/camp-site/CampSiteBagSelectSheetView';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgRadius, AcgType, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType, Radius } from '@/constants/DesignTokens';
 import type BagItem from '@/model/bag/BagItem';
 import CommunityWrite from '@/model/community-write/CommunityWrite';
 import app from '@/model/app/App';
+import { formatCommunityWeight } from '@/model/community/CommunityFormat';
 
 interface Props {
   write: CommunityWrite;
@@ -20,26 +22,16 @@ interface Props {
 const CommunityWriteBagSelectView = ({ write }: Props) => {
   const router = useRouter();
   const l10n = app.getL10n();
-  const [bags, setBags] = useState<BagItem[]>([]);
   const [sheetVisible, setSheetVisible] = useState(false);
+  const bags = write.getBags();
 
   useEffect(() => {
-    let active = true;
-
-    const loadBags = async () => {
-      const result = await app.getBagStore()?.getList();
-
-      if (active) {
-        setBags(result ?? []);
-      }
-    };
-
-    void loadBags();
-
-    return () => {
-      active = false;
-    };
-  }, []);
+    void write.loadBags().catch(() => {
+      app.getToastManager()?.show({
+        message: l10n.t('community.write.failed'),
+      });
+    });
+  }, [l10n, write]);
 
   const handleSelect = async (bag: BagItem) => {
     setSheetVisible(false);
@@ -53,8 +45,8 @@ const CommunityWriteBagSelectView = ({ write }: Props) => {
     }
   };
 
-  const snapshot = write.bagSnapshot;
-  const selectedBag = write.selectedBag;
+  const snapshot = write.getBagSnapshot();
+  const selectedBag = write.getSelectedBag();
   const previewGears = snapshot?.gears.slice(0, 3) ?? [];
   const snapshotDate = [snapshot?.startDate, snapshot?.endDate]
     .filter((date): date is string => Boolean(date))
@@ -63,13 +55,13 @@ const CommunityWriteBagSelectView = ({ write }: Props) => {
     ? l10n.t('community.write.bag.selected', {
         name: selectedBag.getName(),
         date: selectedBag.getDate(),
-        weight: selectedBag.getWeight().toFixed(1),
+        weight: formatCommunityWeight(selectedBag.getWeightGram()),
       })
     : snapshot
       ? l10n.t('community.write.bag.selected', {
           name: snapshot.name,
           date: snapshotDate,
-          weight: (snapshot.totalWeight / 1000).toFixed(1),
+          weight: formatCommunityWeight(snapshot.totalWeight),
         })
       : l10n.t('community.write.bag.placeholder');
 
@@ -78,6 +70,7 @@ const CommunityWriteBagSelectView = ({ write }: Props) => {
       <TouchableOpacity
         style={styles.selectRow}
         onPress={() => setSheetVisible(true)}
+        disabled={write.getIsSubmitting()}
         accessibilityRole='button'
         accessibilityLabel={l10n.t('community.write.bag.select')}
       >
@@ -89,9 +82,9 @@ const CommunityWriteBagSelectView = ({ write }: Props) => {
             {selectedBagLabel}
           </PretendardText>
         </View>
-        <PretendardText style={styles.chevron}>›</PretendardText>
+        <Ionicons name='chevron-forward' size={20} color={Acg.ink} />
       </TouchableOpacity>
-      {bags.length === 0 && (
+      {write.isBagsLoaded() && bags.length === 0 && (
         <View style={styles.emptyBox}>
           <PretendardText style={styles.emptyText}>
             {l10n.t('community.write.bag.empty')}
@@ -99,6 +92,7 @@ const CommunityWriteBagSelectView = ({ write }: Props) => {
           <TouchableOpacity
             style={styles.createButton}
             onPress={() => router.push('/bag')}
+            disabled={write.getIsSubmitting()}
             accessibilityRole='button'
             accessibilityLabel={l10n.t('community.write.bag.createBag')}
           >
@@ -132,7 +126,7 @@ const CommunityWriteBagSelectView = ({ write }: Props) => {
           )}
           <PretendardText style={styles.previewText}>
             {l10n.t('community.write.bag.previewWeight', {
-              weight: (snapshot.totalWeight / 1000).toFixed(1),
+              weight: formatCommunityWeight(snapshot.totalWeight),
             })}
           </PretendardText>
           <PretendardText style={styles.previewText}>
@@ -195,10 +189,6 @@ const styles = StyleSheet.create({
     ...AcgType.control,
     color: Acg.ink,
   },
-  chevron: {
-    ...AcgType.screenTitle,
-    color: Acg.ink,
-  },
   emptyBox: {
     backgroundColor: Acg.controlFill,
     borderRadius: AcgRadius.thumb,
@@ -219,7 +209,7 @@ const styles = StyleSheet.create({
   },
   createText: {
     ...AcgType.control,
-    color: Color.background,
+    color: Acg.paper,
   },
   preview: {
     backgroundColor: Acg.controlFill,

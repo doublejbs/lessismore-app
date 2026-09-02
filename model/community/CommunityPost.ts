@@ -119,16 +119,8 @@ class CommunityPost {
     return this.updatedAt;
   }
 
-  public getIsLiked() {
-    return this.liked;
-  }
-
   public isLiked() {
     return this.liked;
-  }
-
-  public getMyVote() {
-    return this.myVote;
   }
 
   public isPoll() {

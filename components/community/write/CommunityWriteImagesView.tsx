@@ -10,11 +10,11 @@ import {
 import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgRadius, AcgType, Color } from '@/constants/DesignTokens';
-import CommunityImageError from '@/model/community-image/CommunityImageError';
 import CommunityImagePicker from '@/model/community-image/CommunityImagePicker';
 import CommunityImagePipelineError from '@/model/community-image/CommunityImagePipelineError';
 import CommunityImageUploadState from '@/model/community-image/CommunityImageUploadState';
 import CommunityWrite from '@/model/community-write/CommunityWrite';
+import { COMMUNITY_IMAGE_MAX_COUNT } from '@/model/community/CommunityLimits';
 import app from '@/model/app/App';
 
 interface Props {
@@ -29,21 +29,21 @@ const CommunityWriteImagesView = ({ write }: Props) => {
   const l10n = app.getL10n();
   const [picker] = useState(() => new CommunityImagePicker());
   const [sourceMenuVisible, setSourceMenuVisible] = useState(false);
-  const total = write.imageSession.images.length;
-  const canAdd = total < 4;
+  const imageSession = write.getImageSession();
+  const total = imageSession.images.length;
+  const canAdd = total < COMMUNITY_IMAGE_MAX_COUNT;
 
   const handleAlbum = async () => {
     setSourceMenuVisible(false);
 
     try {
-      const images = await picker.pickFromAlbum(4 - total);
-      write.imageSession.add(images);
-      write.markImagesDirty();
+      const images = await picker.pickFromAlbum(COMMUNITY_IMAGE_MAX_COUNT - total);
+      if (images) {
+        imageSession.add(images);
+        write.markImagesDirty();
+      }
     } catch (error) {
-      if (
-        error instanceof CommunityImagePipelineError &&
-        error.code !== CommunityImageError.Cancelled
-      ) {
+      if (error instanceof CommunityImagePipelineError) {
         app.getToastManager()?.show({
           message: l10n.t('community.write.image.failed'),
         });
@@ -56,13 +56,12 @@ const CommunityWriteImagesView = ({ write }: Props) => {
 
     try {
       const image = await picker.captureWithCamera();
-      write.imageSession.add([image]);
-      write.markImagesDirty();
+      if (image) {
+        imageSession.add([image]);
+        write.markImagesDirty();
+      }
     } catch (error) {
-      if (
-        error instanceof CommunityImagePipelineError &&
-        error.code !== CommunityImageError.Cancelled
-      ) {
+      if (error instanceof CommunityImagePipelineError) {
         app.getToastManager()?.show({
           message: l10n.t('community.write.image.failed'),
         });
@@ -71,18 +70,26 @@ const CommunityWriteImagesView = ({ write }: Props) => {
   };
 
   const handleRemove = (localId: string) => {
-    write.imageSession.remove(localId);
+    if (write.getIsSubmitting()) {
+      return;
+    }
+
+    imageSession.remove(localId);
     write.markImagesDirty();
   };
 
   const handleMove = (from: number, to: number) => {
-    write.imageSession.move(from, to);
+    if (write.getIsSubmitting()) {
+      return;
+    }
+
+    imageSession.move(from, to);
     write.markImagesDirty();
   };
 
   const handleRetry = async (localId: string) => {
     try {
-      await write.imageSession.retry(localId);
+      await imageSession.retry(localId);
     } catch {
       app.getToastManager()?.show({
         message: l10n.t('community.write.image.failed'),
@@ -97,11 +104,11 @@ const CommunityWriteImagesView = ({ write }: Props) => {
           {l10n.t('community.write.image.section')}
         </PretendardText>
         <PretendardText style={styles.counter}>
-          {l10n.t('community.write.counter', { count: total, max: 4 })}
+          {l10n.t('community.write.counter', { count: total, max: COMMUNITY_IMAGE_MAX_COUNT })}
         </PretendardText>
       </View>
       <View style={styles.row}>
-        {write.imageSession.images.map((image, index) => (
+        {imageSession.images.map((image, index) => (
           <View key={image.localId} style={styles.thumbnailWrap}>
             <Image
               source={{ uri: image.sourceUri }}
@@ -112,6 +119,20 @@ const CommunityWriteImagesView = ({ write }: Props) => {
                 total,
               })}
               accessibilityRole='image'
+              accessibilityActions={[
+                ...(index > 0 ? [{ name: 'move-forward' }] : []),
+                ...(index < total - 1 ? [{ name: 'move-backward' }] : []),
+              ]}
+              onAccessibilityAction={(event) => {
+                if (event.nativeEvent.actionName === 'move-forward' && index > 0) {
+                  handleMove(index, index - 1);
+                } else if (
+                  event.nativeEvent.actionName === 'move-backward' &&
+                  index < total - 1
+                ) {
+                  handleMove(index, index + 1);
+                }
+              }}
             />
             {index === 0 && (
               <View style={styles.representativeBadge}>
@@ -123,8 +144,11 @@ const CommunityWriteImagesView = ({ write }: Props) => {
             {image.state === CommunityImageUploadState.Uploading && (
               <View style={styles.statusOverlay}>
                 <PretendardText style={styles.statusText}>
-                  {l10n.t('community.write.image.uploading')}
+                  {`${l10n.t('community.write.image.uploading')} ${Math.round(image.progress * 100)}%`}
                 </PretendardText>
+                <View style={styles.progressTrack}>
+                  <View style={[styles.progressBar, { width: `${image.progress * 100}%` }]} />
+                </View>
               </View>
             )}
             {image.state === CommunityImageUploadState.Failed && (
@@ -134,40 +158,44 @@ const CommunityWriteImagesView = ({ write }: Props) => {
                 </PretendardText>
               </View>
             )}
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => handleRemove(image.localId)}
+              disabled={write.getIsSubmitting()}
+              accessibilityLabel={l10n.t('community.write.image.remove', {
+                count: index + 1,
+              })}
+              accessibilityRole='button'
+              hitSlop={8}
+            >
+              <Ionicons name='close-circle' size={22} color={Acg.paper} />
+            </TouchableOpacity>
             <View style={styles.actions}>
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={() => handleRemove(image.localId)}
-                accessibilityLabel={l10n.t('community.write.image.remove', {
-                  count: index + 1,
-                })}
-                accessibilityRole='button'
-              >
-                <Ionicons name='close-circle' size={22} color={Color.textPrimary} />
-              </TouchableOpacity>
               <View style={styles.moveActions}>
                 {index > 0 && (
                   <TouchableOpacity
                     style={styles.smallButton}
                     onPress={() => handleMove(index, index - 1)}
+                    disabled={write.getIsSubmitting()}
                     accessibilityLabel={l10n.t('community.write.image.moveForward')}
                     accessibilityRole='button'
                     accessibilityActions={[{ name: 'move-forward' }]}
                     onAccessibilityAction={() => handleMove(index, index - 1)}
                   >
-                    <Ionicons name='chevron-back' size={16} color={Color.textPrimary} />
+                    <Ionicons name='chevron-back' size={16} color={Acg.ink} />
                   </TouchableOpacity>
                 )}
                 {index < total - 1 && (
                   <TouchableOpacity
                     style={styles.smallButton}
                     onPress={() => handleMove(index, index + 1)}
+                    disabled={write.getIsSubmitting()}
                     accessibilityLabel={l10n.t('community.write.image.moveBackward')}
                     accessibilityRole='button'
                     accessibilityActions={[{ name: 'move-backward' }]}
                     onAccessibilityAction={() => handleMove(index, index + 1)}
                   >
-                    <Ionicons name='chevron-forward' size={16} color={Color.textPrimary} />
+                    <Ionicons name='chevron-forward' size={16} color={Acg.ink} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -177,6 +205,7 @@ const CommunityWriteImagesView = ({ write }: Props) => {
                 <TouchableOpacity
                   style={styles.retryButton}
                   onPress={() => void handleRetry(image.localId)}
+                  disabled={write.getIsSubmitting()}
                   accessibilityRole='button'
                   accessibilityLabel={l10n.t('community.write.image.retry')}
                 >
@@ -192,10 +221,11 @@ const CommunityWriteImagesView = ({ write }: Props) => {
           <TouchableOpacity
             style={styles.addTile}
             onPress={() => setSourceMenuVisible(true)}
+            disabled={write.getIsSubmitting()}
             accessibilityRole='button'
             accessibilityLabel={l10n.t('community.write.image.addLabel')}
           >
-            <Ionicons name='add' size={28} color={Color.textPrimary} />
+            <Ionicons name='add' size={28} color={Acg.ink} />
             <PretendardText style={styles.addText}>
               {l10n.t('community.write.image.addLabel')}
             </PretendardText>
@@ -265,14 +295,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 4,
     left: 4,
-    backgroundColor: Acg.lime,
+    backgroundColor: Acg.ink,
     borderRadius: AcgRadius.chip,
     paddingHorizontal: 5,
     paddingVertical: 2,
   },
   representativeText: {
     ...AcgType.meta,
-    color: Acg.ink,
+    color: Acg.paper,
   },
   statusOverlay: {
     ...StyleSheet.absoluteFill,
@@ -285,7 +315,19 @@ const styles = StyleSheet.create({
   },
   statusText: {
     ...AcgType.meta,
-    color: Color.background,
+    color: Acg.paper,
+  },
+  progressTrack: {
+    width: 56,
+    height: 4,
+    marginTop: 4,
+    borderRadius: AcgRadius.chip,
+    backgroundColor: Acg.controlFill,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: 4,
+    backgroundColor: Acg.ink,
   },
   actions: {
     minHeight: 28,
@@ -293,10 +335,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  iconButton: {
+  deleteButton: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
     width: 44,
     height: 44,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   moveActions: {
     flexDirection: 'row',

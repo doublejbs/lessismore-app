@@ -17,7 +17,8 @@ const isOwnedPath = (storagePath: string, userId: string): boolean => {
     segments[0] === 'community' &&
     segments[1] === userId &&
     segments[2].length > 0 &&
-    segments[3].length > 0
+    segments[3].length > 4 &&
+    segments[3].endsWith('.jpg')
   );
 };
 

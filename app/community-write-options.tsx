@@ -1,10 +1,10 @@
 import { observer } from 'mobx-react-lite';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgType, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgType, Radius } from '@/constants/DesignTokens';
 import CommunityPostType from '@/model/community/CommunityPostType';
 import app from '@/model/app/App';
 
@@ -17,7 +17,7 @@ const CommunityWriteOptionsScreen = () => {
     router.replace({
       pathname: '/community/write',
       params: { type },
-    } as never);
+    } as Href);
   };
 
   const renderTypeRow = (
@@ -54,7 +54,7 @@ const CommunityWriteOptionsScreen = () => {
             {l10n.t(descriptionKey)}
           </PretendardText>
         </View>
-        <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />
+        <Ionicons name='chevron-forward' size={18} color={Acg.textMuted} />
       </TouchableOpacity>
     );
   };

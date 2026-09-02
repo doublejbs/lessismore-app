@@ -3,6 +3,7 @@ import { makeAutoObservable } from 'mobx';
 import app from '@/model/app/App';
 import CommunityFeedFilter from '@/model/community/CommunityFeedFilter';
 import CommunityPost from '@/model/community/CommunityPost';
+import { subscribeCommunityPostDeleted } from '@/model/community/CommunityFeedInvalidation';
 import CommunityFeedDispatcher from './CommunityFeedDispatcher';
 
 class CommunityFeed {
@@ -23,6 +24,9 @@ class CommunityFeed {
 
   private constructor(private readonly dispatcher: CommunityFeedDispatcher) {
     makeAutoObservable(this);
+    subscribeCommunityPostDeleted((postId) => {
+      this.removePost(postId);
+    });
   }
 
   public async initialize() {
@@ -89,6 +93,10 @@ class CommunityFeed {
 
   public getFilter() {
     return this.filter;
+  }
+
+  public getIsInitialized() {
+    return this.initialized;
   }
 
   public getPosts() {
@@ -182,6 +190,10 @@ class CommunityFeed {
 
   private setRequestVersion(value: number) {
     this.requestVersion = value;
+  }
+
+  private removePost(postId: string) {
+    this.setPosts(this.posts.filter(post => post.getId() !== postId));
   }
 }
 

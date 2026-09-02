@@ -9,15 +9,23 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Stack, useNavigation, useRouter } from 'expo-router';
+import { Href, Stack, useNavigation, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout, AcgRadius, AcgType, Color, Radius } from '@/constants/DesignTokens';
+import AlertView from '@/components/alert/AlertView';
+import LogInView from '@/components/login/LogInView';
+import ToastView from '@/components/toast/ToastView';
+import { Acg, AcgLayout, AcgRadius, AcgType, Radius } from '@/constants/DesignTokens';
 import CommunityError from '@/model/community/CommunityError';
 import CommunityImagePipelineError from '@/model/community-image/CommunityImagePipelineError';
 import CommunityPostType from '@/model/community/CommunityPostType';
 import CommunityValidationError from '@/model/community/CommunityValidationError';
+import { getCommunityTypeLabel } from '@/model/community/CommunityFormat';
+import {
+  COMMUNITY_BODY_MAX_LENGTH,
+  COMMUNITY_TITLE_MAX_LENGTH,
+} from '@/model/community/CommunityLimits';
 import CommunityWrite from '@/model/community-write/CommunityWrite';
 import CommunityWriteField from '@/model/community-write/CommunityWriteField';
 import CommunityWriteMode from '@/model/community-write/CommunityWriteMode';
@@ -33,16 +41,16 @@ interface Props {
 const SUBMIT_BUTTON_HEIGHT = 48;
 const BOTTOM_BAR_TOP_PADDING = 8;
 const CONTENT_BOTTOM_EXTRA = 24;
-
-const getTypeLabel = (type: CommunityPostType): string => {
-  switch (type) {
-    case CommunityPostType.Question:
-      return app.getL10n().t('community.type.question');
-    case CommunityPostType.BagReview:
-      return app.getL10n().t('community.type.bagReview');
-    case CommunityPostType.Poll:
-      return app.getL10n().t('community.type.poll');
-  }
+const VALIDATION_KEYS: Partial<Record<CommunityValidationError, string>> = {
+  [CommunityValidationError.TitleLength]: 'titleLength',
+  [CommunityValidationError.BodyLength]: 'bodyLength',
+  [CommunityValidationError.PollOptionCount]: 'pollOptionCount',
+  [CommunityValidationError.PollOptionLength]: 'pollOptionLength',
+  [CommunityValidationError.PollOptionDuplicate]: 'pollOptionDuplicate',
+  [CommunityValidationError.BagSnapshotRequired]: 'bagSnapshotRequired',
+  [CommunityValidationError.ImageCount]: 'imageCount',
+  [CommunityValidationError.PollLocked]: 'pollLocked',
+  [CommunityValidationError.PostNotFound]: 'postNotFound',
 };
 
 /**
@@ -73,7 +81,7 @@ const CommunityWriteView = ({ write }: Props) => {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (event) => {
-      if (!write.isDirty || write.isSubmitting) {
+      if (!write.getIsDirty() || write.getIsSubmitting()) {
         return;
       }
 
@@ -111,11 +119,20 @@ const CommunityWriteView = ({ write }: Props) => {
       if (isEdit) {
         router.back();
       } else {
-        router.replace(`/community/${postId}` as never);
+        router.replace(`/community/${postId}` as Href);
       }
     } catch (error) {
       if (error instanceof CommunityError) {
-        const field = write.fieldErrors.keys().next().value;
+        const field = write.getFieldErrors().keys().next().value;
+
+        if (error.code === CommunityValidationError.NotLoggedIn) {
+          app.getToastManager()?.show({
+            message: l10n.t('community.write.failed'),
+          });
+          app.getLogInAlertManager()?.show();
+
+          return;
+        }
 
         if (field === CommunityWriteField.Title) {
           scrollRef.current?.scrollTo({ y: titleInputY, animated: true });
@@ -145,41 +162,27 @@ const CommunityWriteView = ({ write }: Props) => {
   };
 
   const getErrorText = (field: CommunityWriteField): string | null => {
-    const error = write.fieldErrors.get(field);
+    const error = write.getFieldErrors().get(field);
 
     if (!error) {
       return null;
     }
 
-    const key =
-      error === CommunityValidationError.TitleLength
-        ? 'titleLength'
-        : error === CommunityValidationError.BodyLength
-          ? 'bodyLength'
-          : error === CommunityValidationError.PollOptionCount
-            ? 'pollOptionCount'
-            : error === CommunityValidationError.PollOptionLength
-              ? 'pollOptionLength'
-              : error === CommunityValidationError.PollOptionDuplicate
-                ? 'pollOptionDuplicate'
-                : error === CommunityValidationError.BagSnapshotRequired
-                  ? 'bagSnapshotRequired'
-                  : error === CommunityValidationError.ImageCount
-                    ? 'imageCount'
-                    : error === CommunityValidationError.PollLocked
-                      ? 'pollLocked'
-                      : error === CommunityValidationError.PostNotFound
-                        ? 'postNotFound'
-                        : 'notLoggedIn';
+    const key = VALIDATION_KEYS[error] ?? 'notLoggedIn';
 
     return l10n.t(`community.validation.${key}`);
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.screen}
-      behavior={Platform.select({ ios: 'padding', android: 'height', default: undefined })}
-    >
+    <View style={styles.root}>
+      <KeyboardAvoidingView
+        style={styles.screen}
+        behavior={Platform.select({
+          ios: 'padding',
+          android: 'height',
+          default: undefined,
+        })}
+      >
       <Stack.Screen options={{ headerShown: false }} />
       <View style={[styles.header, { paddingTop: insets.top }]}>
         <TouchableOpacity
@@ -195,7 +198,7 @@ const CommunityWriteView = ({ write }: Props) => {
             {title}
           </PretendardText>
           <PretendardText style={styles.typeLabel}>
-            {getTypeLabel(write.type)}
+            {getCommunityTypeLabel(write.getType())}
           </PretendardText>
         </View>
         <View style={styles.headerSpacer} />
@@ -216,18 +219,18 @@ const CommunityWriteView = ({ write }: Props) => {
               {l10n.t('community.write.titleLabel')}
             </PretendardText>
             <PretendardText style={styles.counter}>
-              {l10n.t('community.write.counter', { count: write.title.length, max: 80 })}
+              {l10n.t('community.write.counter', { count: write.getTitle().length, max: COMMUNITY_TITLE_MAX_LENGTH })}
             </PretendardText>
           </View>
           <TextInput
             style={[styles.input, !canEditPollStructure && styles.inputDisabled]}
-            value={write.title}
+            value={write.getTitle()}
             onChangeText={(value) => write.setTitle(value)}
             placeholder={l10n.t('community.write.titlePlaceholder')}
-            placeholderTextColor={Color.textSecondary}
-            maxLength={80}
-            editable={canEditPollStructure}
-            accessibilityState={{ disabled: !canEditPollStructure }}
+            placeholderTextColor={Acg.textMuted}
+            maxLength={COMMUNITY_TITLE_MAX_LENGTH}
+            editable={canEditPollStructure && !write.getIsSubmitting()}
+            accessibilityState={{ disabled: !canEditPollStructure || write.getIsSubmitting() }}
           />
           {getErrorText(CommunityWriteField.Title) && (
             <PretendardText style={styles.error}>
@@ -241,18 +244,20 @@ const CommunityWriteView = ({ write }: Props) => {
               {l10n.t('community.write.bodyLabel')}
             </PretendardText>
             <PretendardText style={styles.counter}>
-              {l10n.t('community.write.counter', { count: write.body.length, max: 5000 })}
+              {l10n.t('community.write.counter', { count: write.getBody().length, max: COMMUNITY_BODY_MAX_LENGTH })}
             </PretendardText>
           </View>
           <TextInput
             style={[styles.input, styles.bodyInput]}
-            value={write.body}
+            value={write.getBody()}
             onChangeText={(value) => write.setBody(value)}
             placeholder={l10n.t('community.write.bodyPlaceholder')}
-            placeholderTextColor={Color.textSecondary}
+            placeholderTextColor={Acg.textMuted}
             multiline
             textAlignVertical='top'
-            maxLength={5000}
+            maxLength={COMMUNITY_BODY_MAX_LENGTH}
+            editable={!write.getIsSubmitting()}
+            accessibilityState={{ disabled: write.getIsSubmitting() }}
           />
           {getErrorText(CommunityWriteField.Body) && (
             <PretendardText style={styles.error}>
@@ -260,7 +265,7 @@ const CommunityWriteView = ({ write }: Props) => {
             </PretendardText>
           )}
         </View>
-        {write.type === CommunityPostType.BagReview && (
+        {write.getType() === CommunityPostType.BagReview && (
           <View onLayout={(event) => setBagInputY(event.nativeEvent.layout.y)} style={styles.subsection}>
             <CommunityWriteBagSelectView write={write} />
             {getErrorText(CommunityWriteField.Bag) && (
@@ -268,7 +273,7 @@ const CommunityWriteView = ({ write }: Props) => {
             )}
           </View>
         )}
-        {write.type === CommunityPostType.Poll && (
+        {write.getType() === CommunityPostType.Poll && (
           <View onLayout={(event) => setPollInputY(event.nativeEvent.layout.y)} style={styles.subsection}>
             <CommunityWritePollOptionsView write={write} />
             {getErrorText(CommunityWriteField.PollOptions) && (
@@ -280,23 +285,31 @@ const CommunityWriteView = ({ write }: Props) => {
       </ScrollView>
       <View style={[styles.bottomBar, { paddingBottom: bottomInset }]}>
         <TouchableOpacity
-          style={[styles.submitButton, write.isSubmitting && styles.submitDisabled]}
+          style={[styles.submitButton, write.getIsSubmitting() && styles.submitDisabled]}
           onPress={() => void handleSubmit()}
-          disabled={write.isSubmitting}
+          disabled={write.getIsSubmitting()}
           accessibilityRole='button'
           accessibilityLabel={actionLabel}
-          accessibilityState={{ disabled: write.isSubmitting }}
+          accessibilityState={{ disabled: write.getIsSubmitting() }}
         >
           <PretendardText style={styles.submitText} weight='semibold'>
             {actionLabel}
           </PretendardText>
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+      <LogInView logInAlertManager={app.getLogInAlertManager()!} />
+      <AlertView alertManager={app.getAlertManager()!} />
+      <ToastView toastManager={app.getToastManager()!} bottom={100} />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: Acg.paper,
+  },
   screen: {
     flex: 1,
     backgroundColor: Acg.paper,
@@ -333,7 +346,6 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: AcgLayout.screenPadding,
-    paddingBottom: 132,
     gap: 24,
   },
   author: {

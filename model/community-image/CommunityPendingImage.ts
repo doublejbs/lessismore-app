@@ -1,7 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 import CommunityImageError from './CommunityImageError';
 import CommunityImageUploadState from './CommunityImageUploadState';
-import CommunityUploadedImage from './CommunityUploadedImage';
+import { CommunityPostImage } from '@/model/community/CommunityData';
 
 /**
  * 선택부터 업로드까지 커뮤니티 사진 한 장의 상태다(CM-6, DM-9, DM-28).
@@ -13,8 +13,9 @@ class CommunityPendingImage {
   public width: number;
   public height: number;
   public state: CommunityImageUploadState = CommunityImageUploadState.Pending;
+  public progress = 0;
   public error?: CommunityImageError;
-  public uploaded?: CommunityUploadedImage;
+  public uploaded?: CommunityPostImage;
 
   public constructor(
     localId: string,
@@ -32,12 +33,14 @@ class CommunityPendingImage {
 
   public markUploading() {
     this.setState(CommunityImageUploadState.Uploading);
+    this.setProgress(0);
     this.clearError();
   }
 
-  public markDone(uploaded: CommunityUploadedImage) {
+  public markDone(uploaded: CommunityPostImage) {
     this.setUploaded(uploaded);
     this.setState(CommunityImageUploadState.Done);
+    this.setProgress(1);
     this.clearError();
   }
 
@@ -66,6 +69,10 @@ class CommunityPendingImage {
     this.height = height;
   }
 
+  public setProgress(value: number) {
+    this.progress = Math.min(1, Math.max(0, value));
+  }
+
   private setState(value: CommunityImageUploadState) {
     this.state = value;
   }
@@ -78,7 +85,7 @@ class CommunityPendingImage {
     delete this.error;
   }
 
-  private setUploaded(value: CommunityUploadedImage) {
+  private setUploaded(value: CommunityPostImage) {
     this.uploaded = value;
   }
 

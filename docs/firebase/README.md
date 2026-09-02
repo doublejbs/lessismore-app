@@ -6,9 +6,11 @@
 
 1. 규칙의 운영자 예외와 좋아요·댓글·투표 카운트 검증 범위를 실제 운영 방식과 대조한다.
 2. `community-firestore.rules`의 내용을 Firebase 콘솔 Firestore Rules 편집기에 붙여 넣고 시뮬레이터로 비로그인 읽기, 본인 쓰기, 타인 쓰기를 확인한다.
-3. `community-storage.rules`의 내용을 Storage Rules 편집기에 붙여 넣고 공개 읽기, 본인 JPEG 업로드·삭제, 타인 경로 및 목록 조회 차단을 확인한다.
-4. CLI를 사용할 때는 프로젝트 설정 파일에서 이 규칙 파일을 명시한 뒤 `firebase deploy --only firestore:rules,storage`를 실행한다. 실행 전 프로젝트와 대상 파일을 확인한다.
-5. 인덱스 쿼리에서 Firebase가 생성한 콘솔 링크를 아래에 기록한다.
+3. Rules 시뮬레이터에서 존재하지 않는 좋아요·투표·신고 문서의 본인 ID 기반 `get`이 허용되는지, 타인 ID는 거부되는지 확인한다.
+4. Rules 시뮬레이터에서 `comments.status in ['published', 'deleted']` 쿼리와 본문 수정·작성자 soft-delete(자리표시) 경로를 각각 확인한다.
+5. `community-storage.rules`의 내용을 Storage Rules 편집기에 붙여 넣고 공개 읽기, 본인 JPEG 업로드·삭제, 타인 경로 및 목록 조회 차단을 확인한다.
+6. CLI를 사용할 때는 프로젝트 설정 파일에서 이 규칙 파일을 명시한 뒤 `firebase deploy --only firestore:rules,storage`를 실행한다. 실행 전 프로젝트와 대상 파일을 확인한다.
+7. 인덱스 쿼리에서 Firebase가 생성한 콘솔 링크를 아래에 기록한다.
 
 탈퇴·삭제 연쇄 정리 Functions는 `lessismore` 레포 `functions/`(README 참조)가 담당한다. 클라이언트는 커뮤니티 문서를 추가로 삭제하지 않는다.
 

@@ -12,7 +12,7 @@ import CommunityWriteView from './CommunityWriteView';
 
 interface Props {
   mode: CommunityWriteMode;
-  type: CommunityPostType;
+  type?: CommunityPostType;
   postId?: string;
 }
 
@@ -25,11 +25,16 @@ const CommunityWriteWrapper = ({ mode, type, postId }: Props) => {
   const [write] = useState(() =>
     mode === CommunityWriteMode.Edit && postId
       ? CommunityWrite.edit(postId, CommunityWriteDispatcher.new())
-      : CommunityWrite.create(type, CommunityWriteDispatcher.new())
+      : CommunityWrite.create(
+          type ?? CommunityPostType.Question,
+          CommunityWriteDispatcher.new()
+        )
   );
 
   useEffect(() => {
-    write.updateTypeIfEmpty(type);
+    if (type) {
+      write.updateTypeIfEmpty(type);
+    }
   }, [type, write]);
 
   useEffect(() => {

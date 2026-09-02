@@ -1,6 +1,5 @@
 import {
   collection,
-  deleteField,
   doc,
   DocumentData,
   getDoc,
@@ -38,11 +37,12 @@ import {
 import CommunityPost from '../community/CommunityPost';
 import CommunityPostType from '../community/CommunityPostType';
 import CommunityReportStatus from '../community/CommunityReportStatus';
+import CommunityReportResult from '../community/CommunityReportResult';
 import CommunityReportTargetType from '../community/CommunityReportTargetType';
 import CommunityValidator from '../community/CommunityValidator';
 import CommunityValidationError from '../community/CommunityValidationError';
-
-const PAGE_SIZE = 20;
+import { COMMUNITY_PAGE_SIZE } from '../community/CommunityLimits';
+import { createCommunityId } from '../community/CommunityId';
 
 class CommunityStore {
   public constructor(private readonly firebase: Firebase) {}
@@ -54,7 +54,7 @@ class CommunityStore {
   public async getFeedPage(
     filter: CommunityFeedFilter,
     cursor: QueryDocumentSnapshot | null,
-    pageSize: number = PAGE_SIZE
+    pageSize: number = COMMUNITY_PAGE_SIZE
   ): Promise<{
     posts: CommunityPost[];
     cursor: QueryDocumentSnapshot | null;
@@ -235,11 +235,9 @@ class CommunityStore {
           totalVoteCount: poll.totalVoteCount,
         };
 
-        if (patch.poll.expiresAt === null) {
-          nextPoll.expiresAt = deleteField();
-        } else if (patch.poll.expiresAt !== undefined) {
+        if (patch.poll.expiresAt !== null && patch.poll.expiresAt !== undefined) {
           nextPoll.expiresAt = patch.poll.expiresAt;
-        } else if (poll.expiresAt) {
+        } else if (patch.poll.expiresAt === undefined && poll.expiresAt) {
           nextPoll.expiresAt = poll.expiresAt;
         }
 
@@ -273,7 +271,7 @@ class CommunityStore {
   public async getCommentsPage(
     postId: string,
     cursor: QueryDocumentSnapshot | null,
-    pageSize: number = PAGE_SIZE
+    pageSize: number = COMMUNITY_PAGE_SIZE
   ): Promise<{
     comments: CommunityComment[];
     cursor: QueryDocumentSnapshot | null;
@@ -357,8 +355,6 @@ class CommunityStore {
         parentId = parentData.parentId || parentSnapshot.id;
       }
 
-      const parentInput = parent;
-
       const commentRef = doc(
         collection(
           this.getStore(),
@@ -376,17 +372,16 @@ class CommunityStore {
         updatedAt: serverTimestamp(),
       };
 
-      if (parentId && parentInput) {
+      if (parentId && parent) {
         commentData.parentId = parentId;
-        commentData.mentionedUserId = parentInput.mentionedUserId;
-        commentData.mentionedUserName = parentInput.mentionedUserName;
+        commentData.mentionedUserId = parent.mentionedUserId;
+        commentData.mentionedUserName = parent.mentionedUserName;
       }
 
       transaction.set(commentRef, commentData);
       const currentCount = postSnapshot.data().commentCount ?? 0;
       transaction.update(postRef, {
         commentCount: Math.max(0, currentCount) + 1,
-        updatedAt: serverTimestamp(),
       });
 
       return commentRef.id;
@@ -427,13 +422,6 @@ class CommunityStore {
       postId,
       'comments'
     );
-    const replies = await getDocs(
-      query(
-        commentsRef,
-        where('parentId', '==', commentId),
-        firestoreLimit(1)
-      )
-    );
     const commentRef = doc(commentsRef, commentId);
     const postRef = doc(this.getStore(), 'community-posts', postId);
 
@@ -458,22 +446,16 @@ class CommunityStore {
 
       const currentCount = postSnapshot.data().commentCount ?? 0;
 
-      if (replies.empty) {
-        transaction.delete(commentRef);
-      } else {
-        transaction.update(commentRef, {
-          status: CommunityContentStatus.Deleted,
-          deletedReason: CommunityCommentDeletedReason.Author,
-          body: '',
-          authorName: '',
-          authorId: '',
-          updatedAt: serverTimestamp(),
-        });
-      }
+      transaction.update(commentRef, {
+        status: CommunityContentStatus.Deleted,
+        deletedReason: CommunityCommentDeletedReason.Author,
+        body: '',
+        authorName: '',
+        updatedAt: serverTimestamp(),
+      });
 
       transaction.update(postRef, {
         commentCount: Math.max(0, currentCount - 1),
-        updatedAt: serverTimestamp(),
       });
     });
   }
@@ -542,28 +524,6 @@ class CommunityStore {
     );
 
     return snapshot.exists();
-  }
-
-  public async getLikedPostIds(postIds: string[]) {
-    const userId = this.firebase.getUserId();
-
-    if (!userId || postIds.length === 0) {
-      return [];
-    }
-
-    const snapshots = await Promise.all(
-      postIds.map(postId =>
-        getDoc(
-          doc(
-            this.getStore(),
-            'community-post-likes',
-            `${userId}_${postId}`
-          )
-        )
-      )
-    );
-
-    return postIds.filter((_, index) => snapshots[index].exists());
   }
 
   public async vote(postId: string, optionId: string) {
@@ -641,7 +601,7 @@ class CommunityStore {
     return snapshot.exists() ? (snapshot.data().optionId as string) : null;
   }
 
-  public async report(input: CommunityReportInput): Promise<'created' | 'duplicate'> {
+  public async report(input: CommunityReportInput): Promise<CommunityReportResult> {
     const reporterId = this.requireUserId();
     const targetId =
       input.targetType === CommunityReportTargetType.Comment
@@ -661,7 +621,7 @@ class CommunityStore {
       const snapshot = await transaction.get(reportRef);
 
       if (snapshot.exists()) {
-        return 'duplicate';
+        return CommunityReportResult.Duplicate;
       }
 
       const reportData: Record<string, unknown> = {
@@ -687,7 +647,7 @@ class CommunityStore {
 
       transaction.set(reportRef, reportData);
 
-      return 'created';
+      return CommunityReportResult.Created;
     });
   }
 
@@ -817,7 +777,7 @@ class CommunityStore {
 
   private toPollOptions(options: CommunityPollInputOption[]) {
     return options.map(option => ({
-      id: option.id || this.createPostId(),
+      id: option.id || createCommunityId(),
       text: option.text.trim(),
       voteCount: 0,
     }));

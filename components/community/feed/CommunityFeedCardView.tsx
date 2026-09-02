@@ -1,15 +1,19 @@
 import { FC, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import dayjs from 'dayjs';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { observer } from 'mobx-react-lite';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
-import CommunityPostType from '@/model/community/CommunityPostType';
+import {
+  formatCommunityWeight,
+  getCommunityRelativeTime,
+  getCommunityTypeLabel,
+} from '@/model/community/CommunityFormat';
 import CommunityPost from '@/model/community/CommunityPost';
+import { COMMUNITY_POST_PREVIEW_MAX_LENGTH } from '@/model/community/CommunityLimits';
 import app from '@/model/app/App';
 
 interface Props {
@@ -18,57 +22,17 @@ interface Props {
 
 const CARD_PADDING = 16;
 
-const getTypeLabel = (type: CommunityPostType) => {
-  switch (type) {
-    case CommunityPostType.Question:
-      return app.getL10n().t('community.type.question');
-    case CommunityPostType.BagReview:
-      return app.getL10n().t('community.type.bagReview');
-    case CommunityPostType.Poll:
-      return app.getL10n().t('community.type.poll');
-  }
-};
-
-const getRelativeTime = (date: Date) => {
-  const l10n = app.getL10n();
-  const seconds = Math.max(0, dayjs().diff(date, 'second'));
-
-  if (seconds < 60) {
-    return l10n.t('community.feed.justNow');
-  }
-
-  const minutes = Math.floor(seconds / 60);
-
-  if (minutes < 60) {
-    return l10n.t('community.feed.minutesAgo', { count: minutes });
-  }
-
-  const hours = Math.floor(minutes / 60);
-
-  if (hours < 24) {
-    return l10n.t('community.feed.hoursAgo', { count: hours });
-  }
-
-  const days = Math.floor(hours / 24);
-
-  if (days < 7) {
-    return l10n.t('community.feed.daysAgo', { count: days });
-  }
-
-  return dayjs(date).format('YYYY.MM.DD');
-};
-
 const CommunityFeedCardView: FC<Props> = ({ post }) => {
   const router = useRouter();
   const [imageFailed, setImageFailed] = useState(false);
   const image = post.getRepresentativeImage();
-  const typeLabel = getTypeLabel(post.getType());
+  const typeLabel = getCommunityTypeLabel(post.getType());
   const l10n = app.getL10n();
   const handlePress = () => {
     app.getAnalyticsManager()?.logClick('click_community_post', {
       type: post.getType(),
     });
-    router.push(`/community/${post.getId()}` as never);
+    router.push(`/community/${post.getId()}` as Href);
   };
   const renderExtraMeta = () => {
     if (post.isBagReview()) {
@@ -82,7 +46,7 @@ const CommunityFeedCardView: FC<Props> = ({ post }) => {
         <PretendardText style={styles.extraMeta} numberOfLines={1}>
           {l10n.t('community.feed.bagMeta', {
             name: snapshot.name,
-            weight: (snapshot.totalWeight / 1000).toFixed(1),
+            weight: formatCommunityWeight(snapshot.totalWeight),
             count: snapshot.itemCount,
           })}
         </PretendardText>
@@ -133,14 +97,14 @@ const CommunityFeedCardView: FC<Props> = ({ post }) => {
       ) : null}
       <View style={styles.content}>
         <PretendardText style={styles.meta} numberOfLines={1}>
-          {`${typeLabel} · ${post.getAuthorName()} · ${getRelativeTime(post.getCreatedAt())}`}
+          {`${typeLabel} · ${post.getAuthorName()} · ${getCommunityRelativeTime(post.getCreatedAt())}`}
         </PretendardText>
         <PretendardText style={styles.title} weight='medium' numberOfLines={2}>
           {post.getTitle()}
         </PretendardText>
-        {post.getBodyPreview(160) ? (
+        {post.getBodyPreview(COMMUNITY_POST_PREVIEW_MAX_LENGTH) ? (
           <PretendardText style={styles.body} numberOfLines={3}>
-            {post.getBodyPreview(160)}
+          {post.getBodyPreview(COMMUNITY_POST_PREVIEW_MAX_LENGTH)}
           </PretendardText>
         ) : null}
         {renderExtraMeta()}

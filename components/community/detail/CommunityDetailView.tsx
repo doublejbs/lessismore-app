@@ -21,6 +21,7 @@ import PretendardText from '@/components/PretendardText';
 import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
 import AlertView from '@/components/alert/AlertView';
 import ToastView from '@/components/toast/ToastView';
+import LogInView from '@/components/login/LogInView';
 import {
   Acg,
   AcgLayout,
@@ -32,12 +33,21 @@ import {
 import CommunityComment from '@/model/community/CommunityComment';
 import CommunityCommentDeletedReason from '@/model/community/CommunityCommentDeletedReason';
 import CommunityPost from '@/model/community/CommunityPost';
-import CommunityPostType from '@/model/community/CommunityPostType';
+import {
+  formatCommunityDate,
+  formatCommunityWeight,
+  getCommunityRelativeTime,
+  getCommunityTypeLabel,
+} from '@/model/community/CommunityFormat';
 import CommunityReportReason from '@/model/community/CommunityReportReason';
 import CommunityReportTargetType from '@/model/community/CommunityReportTargetType';
 import CommunityDetail, {
   CommunityReportTarget,
 } from '@/model/community-detail/CommunityDetail';
+import CommunityDetailEmptyView from './CommunityDetailEmptyView';
+import CommunityDetailErrorView from './CommunityDetailErrorView';
+import CommunityDetailSkeletonView from './CommunityDetailSkeletonView';
+import { COMMUNITY_COMMENT_MAX_LENGTH } from '@/model/community/CommunityLimits';
 
 interface Props {
   detail: CommunityDetail;
@@ -98,9 +108,9 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
   const content = detail.isLoading() ? (
     <CommunityDetailSkeletonView />
   ) : detail.isNotFound() ? (
-    <EmptyDetailView onBack={() => router.back()} />
+    <CommunityDetailEmptyView onBack={() => router.back()} />
   ) : detail.hasError() && !post ? (
-    <ErrorDetailView onRetry={() => detail.refresh()} />
+    <CommunityDetailErrorView onRetry={() => detail.refresh()} />
   ) : post ? (
     <FlatList
       data={detail.getComments()}
@@ -210,6 +220,7 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
       />
       <ToastView toastManager={app.getToastManager()!} bottom={100} />
       <AlertView alertManager={app.getAlertManager()!} />
+      <LogInView logInAlertManager={app.getLogInAlertManager()!} />
     </View>
   );
 };
@@ -220,6 +231,7 @@ const PostHeader: FC<{
   width: number;
 }> = ({ post, detail, width }) => {
   const [failedImages, setFailedImages] = useState<string[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = post
     .getImages()
     .filter(image => !failedImages.includes(image.id));
@@ -227,7 +239,7 @@ const PostHeader: FC<{
   return (
     <View style={styles.postHeader}>
       <PretendardText style={styles.meta}>
-        {`${getTypeLabel(post.getType())} · ${post.getAuthorName()} · ${getRelativeTime(post.getCreatedAt())}`}
+        {`${getCommunityTypeLabel(post.getType())} · ${post.getAuthorName()} · ${getCommunityRelativeTime(post.getCreatedAt())}`}
       </PretendardText>
       <PretendardText weight='semibold' style={styles.title}>
         {post.getTitle()}
@@ -247,7 +259,13 @@ const PostHeader: FC<{
               source={item.url}
               style={[
                 styles.postImage,
-                { width, height: Math.min(width * (item.height / item.width), 420) },
+                {
+                  width,
+                  height: Math.min(
+                    width * (item.height / Math.max(1, item.width)),
+                    420
+                  ),
+                },
               ]}
               contentFit='contain'
               accessibilityLabel={app.getL10n().t('community.detail.photoLabel', {
@@ -261,11 +279,18 @@ const PostHeader: FC<{
               }
             />
           )}
+          onMomentumScrollEnd={(event) => {
+            if (width > 0) {
+              setCurrentImageIndex(
+                Math.round(event.nativeEvent.contentOffset.x / width)
+              );
+            }
+          }}
         />
       )}
       {post.getImages().length > 1 && images.length > 0 && (
         <PretendardText style={styles.photoIndicator}>
-          {`${images.length}/${post.getImages().length}`}
+          {`${Math.min(currentImageIndex + 1, images.length)}/${post.getImages().length}`}
         </PretendardText>
       )}
       {post.isBagReview() && post.getBagSnapshot() && (
@@ -299,7 +324,7 @@ const BagSnapshotView: FC<{ post: CommunityPost }> = ({ post }) => {
       ) : null}
       <View style={styles.snapshotStats}>
         <AcgDisplayText style={styles.snapshotWeight}>
-          {`${Math.round((snapshot.totalWeight / 1000) * 100) / 100}kg`}
+          {`${formatCommunityWeight(snapshot.totalWeight)}kg`}
         </AcgDisplayText>
         <PretendardText style={styles.meta}>
           {` · ${app.getL10n().t('community.detail.gearCount', {
@@ -325,8 +350,8 @@ const PollView: FC<{ post: CommunityPost; detail: CommunityDetail }> = ({
 }) => {
   const poll = post.getPoll()!;
   const isOwner = post.getAuthorId() === app.getFirebase().getUserId();
-  const showResults = isOwner || detail.getMyVoteOptionId() !== null;
   const expired = post.isPollExpired();
+  const showResults = isOwner || detail.getMyVoteOptionId() !== null || expired;
 
   return (
     <View style={styles.pollCard}>
@@ -341,11 +366,11 @@ const PollView: FC<{ post: CommunityPost; detail: CommunityDetail }> = ({
             key={option.id}
             style={styles.pollRow}
             onPress={() => detail.vote(option.id)}
-            disabled={expired || showResults}
+            disabled={expired || showResults || detail.isVoteInProgress()}
             accessibilityRole='radio'
             accessibilityState={{
               selected,
-              disabled: expired || showResults,
+              disabled: expired || showResults || detail.isVoteInProgress(),
             }}
           >
             {showResults && (
@@ -369,7 +394,7 @@ const PollView: FC<{ post: CommunityPost; detail: CommunityDetail }> = ({
           ? app.getL10n().t('community.poll.closed')
           : poll.expiresAt
             ? app.getL10n().t('community.poll.closesAt', {
-                date: formatDate(poll.expiresAt),
+                date: formatCommunityDate(poll.expiresAt),
               })
             : null}
       </PretendardText>
@@ -391,6 +416,7 @@ const PostActions: FC<{ post: CommunityPost; detail: CommunityDetail }> = ({
       <TouchableOpacity
         style={styles.likeButton}
         onPress={() => detail.toggleLike()}
+        disabled={detail.isLikeInProgress()}
         accessibilityRole='button'
         accessibilityLabel={app.getL10n().t('community.detail.likeLabel', {
           count: post.getLikeCount(),
@@ -443,7 +469,7 @@ const CommentRow: FC<{
         {comment.getAuthorName()}
       </PretendardText>
       <PretendardText style={styles.commentMeta}>
-        {getRelativeTime(comment.getCreatedAt())}
+        {getCommunityRelativeTime(comment.getCreatedAt())}
       </PretendardText>
       {comment.isReply() && comment.getMentionedUserName() ? (
         <PretendardText style={styles.commentBody}>
@@ -465,6 +491,17 @@ const CommentRow: FC<{
             {app.getL10n().t('community.comment.replyButton')}
           </PretendardText>
         </TouchableOpacity>
+        {isOwn ? (
+          <TouchableOpacity
+            style={styles.commentActionButton}
+            onPress={() => detail.startEdit(comment)}
+            accessibilityRole='button'
+          >
+            <PretendardText style={styles.commentActionText}>
+              {app.getL10n().t('community.detail.edit')}
+            </PretendardText>
+          </TouchableOpacity>
+        ) : null}
         {isOwn ? (
           <TouchableOpacity
             style={styles.commentActionButton}
@@ -502,6 +539,7 @@ const CommentComposer: FC<{ detail: CommunityDetail; bottomInset: number }> = ({
   bottomInset,
 }) => {
   const target = detail.getReplyTarget();
+  const editing = detail.isEditingComment();
   const loggedIn = app.getFirebase().isLoggedIn();
 
   return (
@@ -509,7 +547,7 @@ const CommentComposer: FC<{ detail: CommunityDetail; bottomInset: number }> = ({
       style={[styles.composer, { paddingBottom: Math.max(bottomInset, 8) }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      {target && (
+      {target && !editing && (
         <View style={styles.replyBanner}>
           <PretendardText style={styles.replyBannerText}>
             {app.getL10n().t('community.comment.replyTo', {
@@ -543,7 +581,7 @@ const CommentComposer: FC<{ detail: CommunityDetail; bottomInset: number }> = ({
           editable={loggedIn && !detail.isSubmittingComment()}
           placeholder={app.getL10n().t('community.comment.placeholder')}
           placeholderTextColor={Acg.textMuted}
-          maxLength={1000}
+          maxLength={COMMUNITY_COMMENT_MAX_LENGTH}
           style={styles.composerInput}
           accessibilityLabel={app.getL10n().t('community.comment.placeholder')}
         />
@@ -556,10 +594,29 @@ const CommentComposer: FC<{ detail: CommunityDetail; bottomInset: number }> = ({
           onPress={() => detail.submitComment()}
           disabled={!detail.getDraft().trim() || detail.isSubmittingComment()}
           accessibilityRole='button'
-          accessibilityLabel={app.getL10n().t('community.comment.submit')}
+          accessibilityLabel={app.getL10n().t(
+            editing ? 'common.save' : 'community.comment.submit'
+          )}
         >
-          <Ionicons name='arrow-up' size={20} color={Acg.ink} />
+          {editing ? (
+            <PretendardText style={styles.submitLabel} weight='semibold'>
+              {app.getL10n().t('common.save')}
+            </PretendardText>
+          ) : (
+            <Ionicons name='arrow-up' size={20} color={Acg.ink} />
+          )}
         </TouchableOpacity>
+        {editing && (
+          <TouchableOpacity
+            style={styles.cancelEditButton}
+            onPress={() => detail.cancelEdit()}
+            accessibilityRole='button'
+          >
+            <PretendardText style={styles.cancelEditText}>
+              {app.getL10n().t('common.cancel')}
+            </PretendardText>
+          </TouchableOpacity>
+        )}
       </View>
     </KeyboardAvoidingView>
   );
@@ -591,88 +648,6 @@ const getReportMenuItems = (
       setTimeout(() => detail.report(target.target, reason), 0);
     },
   }));
-};
-
-const getTypeLabel = (type: CommunityPostType) => {
-  const key =
-    type === CommunityPostType.Question
-      ? 'question'
-      : type === CommunityPostType.BagReview
-        ? 'bagReview'
-        : 'poll';
-
-  return app.getL10n().t(`community.type.${key}`);
-};
-
-const getRelativeTime = (date: Date) => {
-  const elapsed = Math.max(0, Date.now() - date.getTime());
-  const minute = 60 * 1000;
-  const hour = 60 * minute;
-  const day = 24 * hour;
-
-  if (elapsed < minute) {
-    return app.getL10n().t('community.feed.justNow');
-  }
-
-  if (elapsed < hour) {
-    return app.getL10n().t('community.feed.minutesAgo', {
-      count: Math.floor(elapsed / minute),
-    });
-  }
-
-  if (elapsed < day) {
-    return app.getL10n().t('community.feed.hoursAgo', {
-      count: Math.floor(elapsed / hour),
-    });
-  }
-
-  return app.getL10n().t('community.feed.daysAgo', {
-    count: Math.floor(elapsed / day),
-  });
-};
-
-const formatDate = (date: Date) => {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-};
-
-const EmptyDetailView: FC<{ onBack: () => void }> = ({ onBack }) => {
-  return (
-    <View style={styles.stateContainer}>
-      <PretendardText weight='semibold' style={styles.stateTitle}>
-        {app.getL10n().t('community.detail.notFound')}
-      </PretendardText>
-      <TouchableOpacity style={styles.stateButton} onPress={onBack}>
-        <PretendardText weight='semibold' style={styles.stateButtonText}>
-          {app.getL10n().t('community.detail.back')}
-        </PretendardText>
-      </TouchableOpacity>
-    </View>
-  );
-};
-
-const ErrorDetailView: FC<{ onRetry: () => void }> = ({ onRetry }) => {
-  return (
-    <View style={styles.stateContainer}>
-      <PretendardText weight='semibold' style={styles.stateTitle}>
-        {app.getL10n().t('community.detail.failed')}
-      </PretendardText>
-      <TouchableOpacity style={styles.stateButton} onPress={onRetry}>
-        <PretendardText weight='semibold' style={styles.stateButtonText}>
-          {app.getL10n().t('community.detail.retry')}
-        </PretendardText>
-      </TouchableOpacity>
-    </View>
-  );
-};
-
-const CommunityDetailSkeletonView = () => {
-  return (
-    <View style={styles.skeleton}>
-      <View style={styles.skeletonLine} />
-      <View style={[styles.skeletonLine, styles.skeletonTitle]} />
-      <View style={styles.skeletonBlock} />
-    </View>
-  );
 };
 
 const styles = StyleSheet.create({
@@ -788,18 +763,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Acg.lime,
   },
+  submitLabel: { ...AcgType.meta, color: Acg.ink },
   submitButtonDisabled: { opacity: 0.45 },
   replyBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 6 },
   replyBannerText: { ...AcgType.meta, color: Acg.textMuted },
   cancelReplyButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
-  stateContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  stateTitle: { ...AcgType.sectionTitle, color: Acg.ink, textAlign: 'center' },
-  stateButton: { minHeight: 44, marginTop: 20, paddingHorizontal: 24, justifyContent: 'center', borderRadius: Radius.pill, backgroundColor: Acg.ink },
-  stateButtonText: { ...AcgType.control, color: Acg.paper },
-  skeleton: { padding: AcgLayout.screenPadding },
-  skeletonLine: { height: 16, width: '35%', backgroundColor: Acg.controlFill, borderRadius: 4 },
-  skeletonTitle: { width: '75%', height: 28, marginTop: 20 },
-  skeletonBlock: { height: 120, marginTop: 20, backgroundColor: Acg.controlFill, borderRadius: AcgRadius.thumb },
+  cancelEditButton: {
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    borderRadius: AcgRadius.chip,
+    backgroundColor: Acg.controlFill,
+  },
+  cancelEditText: { ...AcgType.meta, color: Acg.ink },
 });
 
 export default observer(CommunityDetailView);

@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import CommunityPostType from '@/model/community/CommunityPostType';
 import CommunityWriteMode from '@/model/community-write/CommunityWriteMode';
 import CommunityWriteWrapper from '@/components/community/write/CommunityWriteWrapper';
 
@@ -26,7 +25,6 @@ const CommunityEditRoute = () => {
   return (
     <CommunityWriteWrapper
       mode={CommunityWriteMode.Edit}
-      type={CommunityPostType.Question}
       postId={postId}
     />
   );

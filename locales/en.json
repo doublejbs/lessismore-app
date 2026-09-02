@@ -1090,14 +1090,12 @@
       "author": "Author",
       "publish": "Post",
       "save": "Save",
-      "typeLabel": "Post type",
       "titleLabel": "Title",
       "titlePlaceholder": "Enter a title",
       "bodyLabel": "Body",
       "bodyPlaceholder": "Enter your content",
       "counter": "{{count}}/{{max}}",
       "image": {
-        "add": "+ Add photo",
         "album": "Choose from album",
         "camera": "Take a photo",
         "notice": "Only upload photos you took or have the right to use",
@@ -1135,15 +1133,14 @@
         "expires1d": "1 day",
         "expires3d": "3 days",
         "expires7d": "7 days",
-        "locked": "Voting has started, so the question and options cannot be edited"
+        "locked": "Voting has started, so the question and options cannot be edited",
+        "expiresCustom": "Custom · {{date}}"
       },
       "discardConfirm": "Discard this draft?",
       "discard": "Discard",
-      "keepEditing": "Keep editing",
       "published": "Your post was published",
       "updated": "Your post was saved",
       "failed": "Could not save your post",
-      "loading": "Loading post",
       "typeSheet": {
         "title": "What would you like to share?",
         "question": "Question",

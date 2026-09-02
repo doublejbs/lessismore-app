@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import Layout from '@/components/Layout';
@@ -18,6 +18,7 @@ import PretendardText from '@/components/PretendardText';
 import CategoryChipView from '@/components/browse/CategoryChipView';
 import FloatingPillButton from '@/components/FloatingPillButton';
 import { Acg, AcgLayout, AcgType, Radius } from '@/constants/DesignTokens';
+import { TAB_BAR_HEIGHT } from '@/constants/TabBar';
 import CommunityFeed from '@/model/community-feed/CommunityFeed';
 import CommunityFeedFilter from '@/model/community/CommunityFeedFilter';
 import CommunityPost from '@/model/community/CommunityPost';
@@ -31,7 +32,6 @@ interface Props {
 
 const IOS_EDGES = ['top', 'left', 'right'] as const;
 const END_REACHED_THRESHOLD = 0.3;
-const TAB_BAR_HEIGHT = 49;
 const FLOATING_BUTTON_MARGIN = 20;
 const FLOATING_BUTTON_HEIGHT = 48;
 const LIST_BOTTOM_EXTRA = 12;
@@ -39,7 +39,8 @@ const LIST_BOTTOM_EXTRA = 12;
 const CommunityView: FC<Props> = ({ feed }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [isInitialLoadSettled, setIsInitialLoadSettled] = useState(false);
+  const isLoggedIn = app.getFirebase().isLoggedIn();
+  const [pendingWrite, setPendingWrite] = useState(false);
   const posts = feed.getPosts();
   const isLoading = feed.getIsLoading();
   const isRefreshing = feed.getIsRefreshing();
@@ -61,23 +62,13 @@ const CommunityView: FC<Props> = ({ feed }) => {
     default: FLOATING_BUTTON_MARGIN + FLOATING_BUTTON_HEIGHT + LIST_BOTTOM_EXTRA,
   });
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const initialize = async () => {
-      await feed.initialize();
-
-      if (isMounted) {
-        setIsInitialLoadSettled(true);
+  useFocusEffect(
+    useCallback(() => {
+      if (feed.getIsInitialized()) {
+        void feed.refresh();
       }
-    };
-
-    void initialize();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [feed]);
+    }, [feed])
+  );
 
   useEffect(() => {
     if (!error) {
@@ -85,13 +76,26 @@ const CommunityView: FC<Props> = ({ feed }) => {
     }
 
     console.error('커뮤니티 피드 조회 실패:', error); // l10n-ignore: 개발자 로그
-    app.getToastManager()?.show({
-      message: app.getL10n().t('community.feed.loadFailed'),
-    });
   }, [error]);
+
+  useEffect(() => {
+    if (!pendingWrite || !isLoggedIn) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setPendingWrite(false);
+      router.push('/community-write-options');
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [isLoggedIn, pendingWrite, router]);
 
   const handleWrite = () => {
     if (!app.getFirebase().isLoggedIn()) {
+      setPendingWrite(true);
       app.getLogInAlertManager()?.show();
 
       return;
@@ -220,7 +224,7 @@ const CommunityView: FC<Props> = ({ feed }) => {
   };
 
   const showSkeleton =
-    (!isInitialLoadSettled || isLoading) && posts.length === 0;
+    (!feed.getIsInitialized() || isLoading) && posts.length === 0;
 
   return (
     <Layout

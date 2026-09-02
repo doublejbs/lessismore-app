@@ -4,7 +4,7 @@
 | --- | --- |
 | 상태 | as-built (2026-06-10 코드 기준) |
 | ID 프리픽스 | `AU` |
-| 주요 코드 | `model/firebase/Firebase.ts`, `components/login/`, `model/login/`, `app/terms-agreement/`, `app/(tabs)/info.tsx`, `app/info/delete/` |
+| 주요 코드 | `model/firebase/Firebase.ts`, `components/login/`, `model/login/`, `app/terms-agreement/`, `app/info/index.tsx`, `app/info/delete/` |
 | 관련 스펙 | [DataModel.md](DataModel.md), [AppLifecycle.md](AppLifecycle.md), [Community.md](Community.md) |
 
 ## 1. 개요
@@ -16,7 +16,7 @@ Firebase Auth 기반 인증(Google/Apple/Email), 약관 동의 강제, 정보 �
 
 - 로그인 UI는 별도 라우트가 아니라 **전역 모달**(`LogInView`)이다 — `LogInAlertManager.show()`로 어디서든 호출.
 - `/terms-agreement` — 필수 약관 미동의 로그인 사용자가 강제 리다이렉트되는 화면.
-- 정보 탭 `app/(tabs)/info.tsx` → 탈퇴는 `/info/delete`, 정책은 `/info/policy`, 사업자 정보는 `/info/business`, **데이터 출처는 `/info/data-sources`** `[기획]`.
+- 정보 탭 `app/info/index.tsx` → 탈퇴는 `/info/delete`, 정책은 `/info/policy`, 사업자 정보는 `/info/business`, **데이터 출처는 `/info/data-sources`** `[기획]`.
 
 ## 3. 요구사항
 
@@ -154,7 +154,7 @@ Firebase Auth 기반 인증(Google/Apple/Email), 약관 동의 강제, 정보 �
 
 **수용 기준**
 
-- `app/(tabs)/info.tsx`의 화면 내용을 `app/info/index.tsx`로 이동하며 공개 경로 `/info`는 유지한다.
+- `app/info/index.tsx`의 화면 내용을 공개 경로 `/info`로 제공한다.
 - 홈 우측 상단에 프로필 아이콘 버튼을 둔다([Home.md](Home.md) HM-15). 탭하면 `/info`로 이동한다.
 - 로그인 여부와 무관하게 같은 아이콘·진입점을 사용한다. 미로그인 상태의 `/info`에는 기존처럼 로그인 주 액션을 표시한다.
 - 닉네임, 알림 설정, 언어 설정, 서비스 문의, 정책, 사업자 정보, 로그아웃·탈퇴 기능과 기존 화면 문법은 AU-4 그대로 유지한다.

@@ -1,13 +1,10 @@
 import { Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import type { ImagePickerAsset } from 'expo-image-picker';
+import { createCommunityId } from '@/model/community/CommunityId';
 import CommunityImageError from './CommunityImageError';
 import CommunityImagePipelineError from './CommunityImagePipelineError';
 import CommunityPendingImage from './CommunityPendingImage';
-
-const createLocalId = (): string => {
-  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
-};
 
 const createPickerOptions = (selectionLimit: number): ImagePicker.ImagePickerOptions => {
   return {
@@ -23,7 +20,7 @@ const createPickerOptions = (selectionLimit: number): ImagePicker.ImagePickerOpt
  * 선택 결과는 개인 장비 사진 경로와 분리된 커뮤니티 공개 UGC 파이프라인으로만 전달한다.
  */
 class CommunityImagePicker {
-  public async pickFromAlbum(maxCount: number): Promise<CommunityPendingImage[]> {
+  public async pickFromAlbum(maxCount: number): Promise<CommunityPendingImage[] | null> {
     const selectionLimit = Math.max(1, Math.floor(maxCount));
 
     if (Platform.OS !== 'web') {
@@ -59,17 +56,17 @@ class CommunityImagePicker {
     }
 
     if (result.canceled) {
-      throw new CommunityImagePipelineError(CommunityImageError.Cancelled);
+      return null;
     }
 
     if (result.assets.length === 0) {
-      throw new CommunityImagePipelineError(CommunityImageError.Cancelled);
+      return null;
     }
 
     return result.assets.map((asset) => this.createPendingImage(asset));
   }
 
-  public async captureWithCamera(): Promise<CommunityPendingImage> {
+  public async captureWithCamera(): Promise<CommunityPendingImage | null> {
     if (!this.isCameraAvailable()) {
       throw new CommunityImagePipelineError(
         CommunityImageError.UnsupportedType
@@ -109,7 +106,7 @@ class CommunityImagePicker {
     }
 
     if (result.canceled || result.assets.length === 0) {
-      throw new CommunityImagePipelineError(CommunityImageError.Cancelled);
+      return null;
     }
 
     return this.createPendingImage(result.assets[0]);
@@ -139,7 +136,7 @@ class CommunityImagePicker {
     }
 
     return new CommunityPendingImage(
-      createLocalId(),
+      createCommunityId(),
       asset.uri,
       asset.width,
       asset.height

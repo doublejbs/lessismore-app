@@ -11,6 +11,8 @@ import CommunityReportReason from '@/model/community/CommunityReportReason';
 import CommunityReportTargetType from '@/model/community/CommunityReportTargetType';
 import CommunityValidationError from '@/model/community/CommunityValidationError';
 import CommunityPost from '@/model/community/CommunityPost';
+import { notifyCommunityPostDeleted } from '@/model/community/CommunityFeedInvalidation';
+import { COMMUNITY_COMMENT_MAX_LENGTH } from '@/model/community/CommunityLimits';
 import CommunityDetailDispatcher from './CommunityDetailDispatcher';
 
 export interface CommunityReplyTarget {
@@ -39,6 +41,8 @@ class CommunityDetail {
   private notFound = false;
   private error = false;
   private liked = false;
+  private isLiking = false;
+  private isVoting = false;
   private myVoteOptionId: string | null = null;
   private comments: CommunityComment[] = [];
   private commentsCursor: QueryDocumentSnapshot | null = null;
@@ -46,6 +50,7 @@ class CommunityDetail {
   private loadingComments = false;
   private replyTarget: CommunityReplyTarget | null = null;
   private draft = '';
+  private editingCommentId: string | null = null;
   private submittingComment = false;
 
   private constructor(
@@ -56,19 +61,27 @@ class CommunityDetail {
     makeAutoObservable(this);
   }
 
-  public async initialize(postId: string = this.postId) {
-    this.setLoading(true);
+  public async initialize(quiet = false) {
+    if (!quiet) {
+      this.setLoading(true);
+    }
+
     this.setError(false);
+    this.setNotFound(false);
 
     try {
       const [postResult, likedResult, myVoteResult, commentsResult] =
         await Promise.allSettled([
-        this.dispatcher.getPost(postId),
-        this.dispatcher.isLiked(postId),
-        this.dispatcher.getMyVote(postId),
-        this.dispatcher.getCommentsPage(postId, null),
+          this.dispatcher.getPost(this.postId),
+          this.dispatcher.isLiked(this.postId),
+          this.dispatcher.getMyVote(this.postId),
+          this.dispatcher.getCommentsPage(this.postId, null),
       ]);
-      const post = postResult.status === 'fulfilled' ? postResult.value : null;
+      if (postResult.status === 'rejected') {
+        throw postResult.reason;
+      }
+
+      const post = postResult.value;
 
       if (!post) {
         this.setPost(null);
@@ -96,12 +109,14 @@ class CommunityDetail {
       this.setError(true);
       this.showToast('community.detail.failed');
     } finally {
-      this.setLoading(false);
+      if (!quiet) {
+        this.setLoading(false);
+      }
     }
   }
 
   public async refresh() {
-    await this.initialize(this.postId);
+    await this.initialize(this.post !== null);
   }
 
   public async toggleLike() {
@@ -109,10 +124,11 @@ class CommunityDetail {
       return;
     }
 
-    if (!this.post) {
+    if (!this.post || this.isLiking) {
       return;
     }
 
+    this.setIsLiking(true);
     const previous = this.liked;
     const optimistic = !previous;
     this.setLiked(optimistic);
@@ -127,6 +143,8 @@ class CommunityDetail {
       this.setLiked(previous);
       this.post.applyLikeToggle(previous);
       this.showToast('community.detail.failed');
+    } finally {
+      this.setIsLiking(false);
     }
   }
 
@@ -135,10 +153,11 @@ class CommunityDetail {
       return;
     }
 
-    if (!this.post || !this.post.isPoll()) {
+    if (!this.post || !this.post.isPoll() || this.isVoting) {
       return;
     }
 
+    this.setIsVoting(true);
     try {
       await this.dispatcher.vote(this.postId, optionId);
       this.post.applyVote(optionId);
@@ -154,6 +173,8 @@ class CommunityDetail {
       } else {
         this.showToast('community.detail.failed');
       }
+    } finally {
+      this.setIsVoting(false);
     }
   }
 
@@ -164,37 +185,94 @@ class CommunityDetail {
 
     const body = this.draft.trim();
 
-    if (!body || body.length > 1000 || this.submittingComment) {
+    if (!body || body.length > COMMUNITY_COMMENT_MAX_LENGTH || this.submittingComment) {
       return;
     }
 
     this.setSubmittingComment(true);
 
     try {
-      const commentId = await this.dispatcher.createComment(
-        this.postId,
-        body,
-        this.replyTarget ?? undefined
-      );
-      const now = new Date();
-      const commentData: CommunityCommentData = {
-        id: commentId,
-        status: CommunityContentStatus.Published,
-        authorId: app.getFirebase().getUserId(),
-        authorName: app.getFirebase().getNickname(),
-        body,
-        createdAt: now,
-        updatedAt: now,
-        ...(this.replyTarget
-          ? {
-              parentId: this.replyTarget.parentId,
-              mentionedUserId: this.replyTarget.mentionedUserId,
-              mentionedUserName: this.replyTarget.mentionedUserName,
-            }
-          : {}),
-      };
-      this.setComments(this.sortComments([...this.comments, CommunityComment.from(commentData)]));
-      this.post?.applyCommentCountDelta(1);
+      if (this.editingCommentId) {
+        const commentId = this.editingCommentId;
+        const target = this.comments.find(
+          comment => comment.getId() === commentId
+        );
+
+        if (!target) {
+          return;
+        }
+
+        await this.dispatcher.updateComment(this.postId, commentId, body);
+        const now = new Date();
+        const parentId = target.getParentId();
+        const updatedCommentData: CommunityCommentData = {
+          id: target.getId(),
+          status: CommunityContentStatus.Published,
+          authorId: target.getAuthorId(),
+          authorName: target.getAuthorName(),
+          body,
+          createdAt: target.getCreatedAt(),
+          updatedAt: now,
+        };
+
+        if (parentId) {
+          updatedCommentData.parentId = parentId;
+        }
+
+        const mentionedUserId = target.getMentionedUserId();
+
+        if (mentionedUserId) {
+          updatedCommentData.mentionedUserId = mentionedUserId;
+        }
+
+        const mentionedUserName = target.getMentionedUserName();
+
+        if (mentionedUserName) {
+          updatedCommentData.mentionedUserName = mentionedUserName;
+        }
+
+        this.setComments(
+          this.sortComments(
+            this.comments.map(comment =>
+              comment.getId() === commentId
+                ? CommunityComment.from(updatedCommentData)
+                : comment
+            )
+          )
+        );
+        this.setEditingCommentId(null);
+      } else {
+        const commentId = await this.dispatcher.createComment(
+          this.postId,
+          body,
+          this.replyTarget ?? undefined
+        );
+        const now = new Date();
+        const commentData: CommunityCommentData = {
+          id: commentId,
+          status: CommunityContentStatus.Published,
+          authorId: app.getFirebase().getUserId(),
+          authorName: app.getFirebase().getNickname(),
+          body,
+          createdAt: now,
+          updatedAt: now,
+          ...(this.replyTarget
+            ? {
+                parentId: this.replyTarget.parentId,
+                mentionedUserId: this.replyTarget.mentionedUserId,
+                mentionedUserName: this.replyTarget.mentionedUserName,
+              }
+            : {}),
+        };
+        this.setComments(
+          this.sortComments([
+            ...this.comments,
+            CommunityComment.from(commentData),
+          ])
+        );
+        this.post?.applyCommentCountDelta(1);
+      }
+
       const depth = this.replyTarget ? 1 : 0;
       this.setDraft('');
       this.setReplyTarget(null);
@@ -256,42 +334,30 @@ class CommunityDetail {
       confirmText: app.getL10n().t('common.delete'),
       onConfirm: async () => {
         try {
-          const hasReplies = this.comments.some(
-            comment => comment.getParentId() === commentId
-          );
           await this.dispatcher.deleteComment(this.postId, commentId);
+          const target = this.comments.find(comment => comment.getId() === commentId);
 
-          if (hasReplies) {
-            const target = this.comments.find(
-              comment => comment.getId() === commentId
-            );
-
-            if (target) {
-              const targetParentId = target.getParentId();
-              const placeholderData: CommunityCommentData = {
-                id: target.getId(),
-                status: CommunityContentStatus.Deleted,
-                deletedReason: CommunityCommentDeletedReason.Author,
-                authorId: '',
-                authorName: '',
-                body: '',
-                createdAt: target.getCreatedAt(),
-                updatedAt: new Date(),
-                ...(targetParentId ? { parentId: targetParentId } : {}),
-              };
-              this.setComments(
-                this.sortComments(
-                  this.comments.map(comment =>
-                    comment.getId() === commentId
-                      ? CommunityComment.from(placeholderData)
-                      : comment
-                  )
-                )
-              );
-            }
-          } else {
+          if (target) {
+            const targetParentId = target.getParentId();
+            const placeholderData: CommunityCommentData = {
+              id: target.getId(),
+              status: CommunityContentStatus.Deleted,
+              deletedReason: CommunityCommentDeletedReason.Author,
+              authorId: target.getAuthorId(),
+              authorName: '',
+              body: '',
+              createdAt: target.getCreatedAt(),
+              updatedAt: new Date(),
+              ...(targetParentId ? { parentId: targetParentId } : {}),
+            };
             this.setComments(
-              this.comments.filter(comment => comment.getId() !== commentId)
+              this.sortComments(
+                this.comments.map(comment =>
+                  comment.getId() === commentId
+                    ? CommunityComment.from(placeholderData)
+                    : comment
+                )
+              )
             );
           }
 
@@ -314,6 +380,7 @@ class CommunityDetail {
       onConfirm: async () => {
         try {
           await this.dispatcher.deletePost(this.postId);
+          notifyCommunityPostDeleted(this.postId);
           this.showToast('community.detail.deleted');
           this.router.back();
         } catch {
@@ -371,24 +438,30 @@ class CommunityDetail {
     return this.liked;
   }
 
+  public isLikeInProgress() {
+    return this.isLiking;
+  }
+
+  public isVoteInProgress() {
+    return this.isVoting;
+  }
+
   public getMyVoteOptionId() {
     return this.myVoteOptionId;
   }
 
   public getComments() {
-    return this.comments;
+    return this.comments.filter(comment => {
+      if (!comment.isDeletedPlaceholder()) {
+        return true;
+      }
+
+      return this.comments.some(reply => reply.getParentId() === comment.getId());
+    });
   }
 
   public hasMoreCommentsPage() {
     return this.moreComments;
-  }
-
-  public hasMoreComments() {
-    return this.moreComments;
-  }
-
-  public getCommentsCursor() {
-    return this.commentsCursor;
   }
 
   public isLoadingComments() {
@@ -405,6 +478,28 @@ class CommunityDetail {
 
   public isSubmittingComment() {
     return this.submittingComment;
+  }
+
+  public startEdit(comment: CommunityComment) {
+    if (
+      comment.isDeletedPlaceholder() ||
+      comment.getAuthorId() !== app.getFirebase().getUserId()
+    ) {
+      return;
+    }
+
+    this.setEditingCommentId(comment.getId());
+    this.setDraft(comment.getBody());
+    this.setReplyTarget(null);
+  }
+
+  public cancelEdit() {
+    this.setEditingCommentId(null);
+    this.setDraft('');
+  }
+
+  public isEditingComment() {
+    return this.editingCommentId !== null;
   }
 
   private requireLogin() {
@@ -467,6 +562,14 @@ class CommunityDetail {
     this.liked = value;
   }
 
+  private setIsLiking(value: boolean) {
+    this.isLiking = value;
+  }
+
+  private setIsVoting(value: boolean) {
+    this.isVoting = value;
+  }
+
   private setMyVoteOptionId(value: string | null) {
     this.myVoteOptionId = value;
   }
@@ -493,6 +596,10 @@ class CommunityDetail {
 
   private setSubmittingComment(value: boolean) {
     this.submittingComment = value;
+  }
+
+  private setEditingCommentId(value: string | null) {
+    this.editingCommentId = value;
   }
 }
 

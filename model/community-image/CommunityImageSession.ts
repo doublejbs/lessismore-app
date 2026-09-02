@@ -1,5 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 import type Firebase from '@/model/firebase/Firebase';
+import { CommunityPostImage } from '@/model/community/CommunityData';
+import { COMMUNITY_IMAGE_MAX_COUNT } from '@/model/community/CommunityLimits';
 import CommunityImageDeleteFailure from './CommunityImageDeleteFailure';
 import CommunityImageError from './CommunityImageError';
 import CommunityImageNormalizer from './CommunityImageNormalizer';
@@ -7,9 +9,6 @@ import CommunityImagePipelineError from './CommunityImagePipelineError';
 import CommunityImageUpload from './CommunityImageUpload';
 import CommunityImageUploadState from './CommunityImageUploadState';
 import CommunityPendingImage from './CommunityPendingImage';
-import CommunityUploadedImage from './CommunityUploadedImage';
-
-const MAX_IMAGE_COUNT = 4;
 
 /**
  * 커뮤니티 작성 사진의 선택·정규화·업로드 생명주기를 관리한다(CM-6, DM-9, DM-28).
@@ -39,7 +38,7 @@ class CommunityImageSession {
   }
 
   public add(images: CommunityPendingImage[]) {
-    if (this.images.length + images.length > MAX_IMAGE_COUNT) {
+    if (this.images.length + images.length > COMMUNITY_IMAGE_MAX_COUNT) {
       throw new CommunityImagePipelineError(
         CommunityImageError.LimitExceeded
       );
@@ -170,7 +169,7 @@ class CommunityImageSession {
     return failures;
   }
 
-  public getUploadedInOrder(): CommunityUploadedImage[] {
+  public getUploadedInOrder(): CommunityPostImage[] {
     return this.images.flatMap((image) =>
       image.uploaded ? [image.uploaded] : []
     );
@@ -209,7 +208,12 @@ class CommunityImageSession {
       image.setSourceUri(normalized.uri);
       image.setDimensions(normalized.width, normalized.height);
 
-      const uploaded = await this.imageUpload.upload(userId, postId, image);
+      const uploaded = await this.imageUpload.upload(
+        userId,
+        postId,
+        image,
+        (progress) => image.setProgress(progress)
+      );
 
       if (!this.images.includes(image)) {
         this.addRemovedStoragePath(uploaded.storagePath);

@@ -13,6 +13,8 @@ import CommunityPostType from '@/model/community/CommunityPostType';
 import CommunityValidator from '@/model/community/CommunityValidator';
 import CommunityValidationError from '@/model/community/CommunityValidationError';
 import CommunityBagSnapshotBuilder from '@/model/community/CommunityBagSnapshotBuilder';
+import { createCommunityId } from '@/model/community/CommunityId';
+import { COMMUNITY_DAY_IN_MILLISECONDS } from '@/model/community/CommunityLimits';
 import type BagItem from '@/model/bag/BagItem';
 import CommunityImageSession from '@/model/community-image/CommunityImageSession';
 import CommunityImageError from '@/model/community-image/CommunityImageError';
@@ -23,27 +25,24 @@ import CommunityWriteDispatcher from './CommunityWriteDispatcher';
 import CommunityWriteField from './CommunityWriteField';
 import CommunityWriteMode from './CommunityWriteMode';
 
-const createLocalId = (): string => {
-  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
-};
-
 /**
  * 커뮤니티 글쓰기·수정 도메인 모델이다(CM-2, CM-3, CM-4, CM-5, CM-6, CM-9).
  * 글의 공개 사진은 개인 장비 사진 경로와 분리된 CommunityImageSession만 사용한다.
  */
 class CommunityWrite {
-  public type: CommunityPostType;
-  public title = '';
-  public body = '';
-  public readonly imageSession: CommunityImageSession;
-  public selectedBag: BagItem | null = null;
-  public bagSnapshot: CommunityBagSnapshotType | null = null;
-  public pollOptions: string[] = ['', ''];
-  public pollExpiresAt: Date | null = null;
-  public pollExpiryDays = 0;
-  public isSubmitting = false;
-  public isDirty = false;
-  public readonly fieldErrors = new Map<
+  private type: CommunityPostType;
+  private title = '';
+  private body = '';
+  private readonly imageSession: CommunityImageSession;
+  private selectedBag: BagItem | null = null;
+  private bagSnapshot: CommunityBagSnapshotType | null = null;
+  private pollOptions: string[] = ['', ''];
+  private pollOptionIds: string[] = [createCommunityId(), createCommunityId()];
+  private pollExpiresAt: Date | null = null;
+  private pollExpiryDays = 0;
+  private isSubmitting = false;
+  private isDirty = false;
+  private readonly fieldErrors = new Map<
     CommunityWriteField,
     CommunityValidationError
   >();
@@ -54,9 +53,11 @@ class CommunityWrite {
   private readonly imageUpload: CommunityImageUpload;
   private existingPost: CommunityPost | null = null;
   private readonly existingStoragePaths = new Set<string>();
+  private bags: BagItem[] = [];
+  private bagsLoaded = false;
   private bagChanged = false;
   private initialized = false;
-  private createPostId = '';
+  private reservedPostId = '';
 
   public constructor(
     mode: CommunityWriteMode,
@@ -146,17 +147,18 @@ class CommunityWrite {
 
     if (poll) {
       this.setPollOptions(poll.options.map((option) => option.text));
+      this.setPollOptionIds(poll.options.map((option) => option.id));
       this.setPollExpiresAtValue(poll.expiresAt ?? null);
       this.setPollExpiryDaysValue(
         poll.expiresAt
-          ? Math.max(0, Math.round((poll.expiresAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000)))
+          ? Math.max(0, Math.round((poll.expiresAt.getTime() - Date.now()) / COMMUNITY_DAY_IN_MILLISECONDS))
           : 0
       );
     }
 
     for (const image of post.getImages()) {
       const localImage = new CommunityPendingImage(
-        createLocalId(),
+        createCommunityId(),
         image.url,
         image.width,
         image.height
@@ -173,6 +175,58 @@ class CommunityWrite {
 
   public getMode(): CommunityWriteMode {
     return this.mode;
+  }
+
+  public getType(): CommunityPostType {
+    return this.type;
+  }
+
+  public getTitle(): string {
+    return this.title;
+  }
+
+  public getBody(): string {
+    return this.body;
+  }
+
+  public getImageSession(): CommunityImageSession {
+    return this.imageSession;
+  }
+
+  public getSelectedBag(): BagItem | null {
+    return this.selectedBag;
+  }
+
+  public getBagSnapshot(): CommunityBagSnapshotType | null {
+    return this.bagSnapshot;
+  }
+
+  public getPollOptions(): string[] {
+    return this.pollOptions;
+  }
+
+  public getPollOptionId(index: number): string {
+    return this.pollOptionIds[index] ?? `poll-option-${index}`;
+  }
+
+  public getPollExpiresAt(): Date | null {
+    return this.pollExpiresAt;
+  }
+
+  public getPollExpiryDays(): number {
+    return this.pollExpiryDays;
+  }
+
+  public getIsSubmitting(): boolean {
+    return this.isSubmitting;
+  }
+
+  public getIsDirty(): boolean {
+    return this.isDirty;
+  }
+
+  public getFieldErrors(): Map<CommunityWriteField, CommunityValidationError> {
+    return this.fieldErrors;
   }
 
   public getPostId(): string | null {
@@ -235,12 +289,31 @@ class CommunityWrite {
     this.markDirty();
   }
 
+  public async loadBags(): Promise<void> {
+    if (this.bagsLoaded) {
+      return;
+    }
+
+    const bags = await this.dispatcher.getBags();
+    this.setBags(bags);
+    this.setBagsLoaded(true);
+  }
+
+  public getBags(): BagItem[] {
+    return this.bags;
+  }
+
+  public isBagsLoaded(): boolean {
+    return this.bagsLoaded;
+  }
+
   public addPollOption() {
     if (this.pollOptions.length >= 4 || !this.canEditPollStructure()) {
       return;
     }
 
     this.setPollOptions([...this.pollOptions, '']);
+    this.setPollOptionIds([...this.pollOptionIds, createCommunityId()]);
     this.markDirty();
   }
 
@@ -256,6 +329,9 @@ class CommunityWrite {
 
     this.setPollOptions(
       this.pollOptions.filter((_, optionIndex) => optionIndex !== index)
+    );
+    this.setPollOptionIds(
+      this.pollOptionIds.filter((_, optionIndex) => optionIndex !== index)
     );
     this.markDirty();
   }
@@ -295,7 +371,7 @@ class CommunityWrite {
 
     this.setPollExpiryDaysValue(days);
     this.setPollExpiresAtValue(
-      days ? new Date(Date.now() + days * 24 * 60 * 60 * 1000) : null
+      days ? new Date(Date.now() + days * COMMUNITY_DAY_IN_MILLISECONDS) : null
     );
     this.markDirty();
   }
@@ -306,7 +382,11 @@ class CommunityWrite {
 
   public async cleanupForDiscard(userId: string): Promise<void> {
     if (this.mode === CommunityWriteMode.Create) {
-      await this.imageSession.cleanupUploaded(userId);
+      const failures = await this.imageSession.cleanupUploaded(userId);
+
+      if (failures.length > 0) {
+        console.error('커뮤니티 사진 정리 실패:', failures); // l10n-ignore: 개발자 로그
+      }
 
       return;
     }
@@ -317,7 +397,11 @@ class CommunityWrite {
       .map((image) => image.storagePath);
 
     if (newStoragePaths.length > 0) {
-      await this.imageUpload.deleteMany(newStoragePaths, userId);
+      const failures = await this.imageUpload.deleteMany(newStoragePaths, userId);
+
+      if (failures.length > 0) {
+        console.error('커뮤니티 사진 정리 실패:', failures); // l10n-ignore: 개발자 로그
+      }
     }
   }
 
@@ -399,8 +483,8 @@ class CommunityWrite {
   }
 
   private async submitCreate(userId: string): Promise<string> {
-    const postId = this.createPostId || this.dispatcher.createPostId();
-    this.setCreatePostId(postId);
+    const postId = this.reservedPostId || this.dispatcher.createPostId();
+    this.setReservedPostId(postId);
 
     await this.imageSession.uploadAll(userId, postId);
     this.ensureAllImagesUploaded();
@@ -408,7 +492,11 @@ class CommunityWrite {
     try {
       await this.dispatcher.createPost(postId, this.buildCreateInput());
     } catch (error) {
-      await this.imageSession.cleanupUploaded(userId);
+      const failures = await this.imageSession.cleanupUploaded(userId);
+
+      if (failures.length > 0) {
+        console.error('커뮤니티 사진 정리 실패:', failures); // l10n-ignore: 개발자 로그
+      }
 
       throw error;
     }
@@ -437,7 +525,11 @@ class CommunityWrite {
     await this.dispatcher.updatePost(this.postId, this.buildPatch());
 
     if (removedStoragePaths.length > 0) {
-      await this.imageUpload.deleteMany(removedStoragePaths, userId);
+      const failures = await this.imageUpload.deleteMany(removedStoragePaths, userId);
+
+      if (failures.length > 0) {
+        console.error('커뮤니티 사진 정리 실패:', failures); // l10n-ignore: 개발자 로그
+      }
     }
 
     this.setDirty(false);
@@ -551,12 +643,24 @@ class CommunityWrite {
     this.selectedBag = value;
   }
 
+  private setBags(value: BagItem[]) {
+    this.bags = value;
+  }
+
+  private setBagsLoaded(value: boolean) {
+    this.bagsLoaded = value;
+  }
+
   private setBagSnapshot(value: CommunityBagSnapshotType | null) {
     this.bagSnapshot = value;
   }
 
   private setPollOptions(value: string[]) {
     this.pollOptions = value;
+  }
+
+  private setPollOptionIds(value: string[]) {
+    this.pollOptionIds = value;
   }
 
   private setPollExpiresAtValue(value: Date | null) {
@@ -591,8 +695,8 @@ class CommunityWrite {
     this.existingStoragePaths.add(value);
   }
 
-  private setCreatePostId(value: string) {
-    this.createPostId = value;
+  private setReservedPostId(value: string) {
+    this.reservedPostId = value;
   }
 
   private clearFieldErrors() {

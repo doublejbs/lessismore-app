@@ -1076,14 +1076,12 @@
       "author": "작성자",
       "publish": "등록",
       "save": "저장",
-      "typeLabel": "게시글 유형",
       "titleLabel": "제목",
       "titlePlaceholder": "제목을 입력해주세요",
       "bodyLabel": "내용",
       "bodyPlaceholder": "내용을 입력해주세요",
       "counter": "{{count}}/{{max}}",
       "image": {
-        "add": "+ 사진 추가",
         "album": "앨범에서 선택",
         "camera": "카메라로 촬영",
         "notice": "직접 촬영했거나 사용할 권리가 있는 사진만 올려주세요",
@@ -1121,15 +1119,14 @@
         "expires1d": "1일",
         "expires3d": "3일",
         "expires7d": "7일",
-        "locked": "투표가 시작되어 질문과 선택지는 수정할 수 없어요"
+        "locked": "투표가 시작되어 질문과 선택지는 수정할 수 없어요",
+        "expiresCustom": "사용자 지정 · {{date}}"
       },
       "discardConfirm": "작성 중인 내용을 버릴까요?",
       "discard": "버리기",
-      "keepEditing": "계속 작성",
       "published": "게시글을 등록했어요",
       "updated": "게시글을 저장했어요",
       "failed": "게시글을 저장하지 못했어요",
-      "loading": "게시글을 불러오는 중이에요",
       "typeSheet": {
         "title": "무엇을 올릴까요?",
         "question": "질문",

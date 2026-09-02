@@ -22,7 +22,7 @@
 ## 2. 화면 및 진입
 
 ```
-app/(tabs)/info.tsx (정보 탭)
+app/info/index.tsx (정보 탭)
   └─ `언어` 행 (신규) → app/info/language.tsx → components/info/LanguageSettingsView.tsx (신규)
 ```
 
@@ -159,7 +159,7 @@ app/(tabs)/info.tsx (정보 탭)
 | 단계 | 범위 (스펙 도메인) | 주요 디렉토리 | 완료 기준 |
 | --- | --- | --- | --- |
 | 0. 인프라 | L10N-1~8 구축, `common.*` 키, 정보 탭 언어 설정 | `model/l10n/`, `locales/`, `app/info/language.tsx` | ✅ 완료 — 언어 전환 동작 + 수용 기준 L10N-1/2/4/5 통과 |
-| 1. 정보/설정 | Auth(정보 탭·로그인·탈퇴), Notification 설정 | `app/info/`, `app/(tabs)/info.tsx`, `components/info/`, `components/login/`, `components/notification/` | ✅ 완료 — 도메인 grep 0건 |
+| 1. 정보/설정 | Auth(정보 탭·로그인·탈퇴), Notification 설정 | `app/info/`, `components/info/`, `components/login/`, `components/notification/` | ✅ 완료 — 도메인 grep 0건 |
 | 2. 배낭 | Bag, BagDetail, BagTemplate, Packing, BagDestination, BagShare(주변 UI) | `components/bag*`, `model/bag*` | ✅ 완료 — 도메인 grep 0건 |
 | 3. 창고/장비 | Warehouse, GearEdit, GearDetail, Reply | `components/warehouse*`, `components/gear*`, `model/gear*`, `model/warehouse*`, `model/reply/` | ✅ 완료 — 도메인 grep 0건 |
 | 4. 검색/탐색 | Search, Feed | `components/search/`, `components/feed/`, `model/search/`, `model/feed/` | ✅ 완료 — 도메인 grep 0건 |

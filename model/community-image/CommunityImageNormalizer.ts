@@ -1,11 +1,13 @@
 import { Platform } from 'react-native';
 import { File } from 'expo-file-system';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
+import {
+  COMMUNITY_IMAGE_MAX_BYTES,
+  COMMUNITY_IMAGE_MAX_DIMENSION,
+} from '@/model/community/CommunityLimits';
 import CommunityImageError from './CommunityImageError';
 import CommunityImagePipelineError from './CommunityImagePipelineError';
 
-const MAX_DIMENSION = 2048;
-const MAX_BYTE_LENGTH = 5 * 1024 * 1024;
 const COMPRESS_LEVELS = [0.9, 0.8, 0.7, 0.6, 0.5];
 
 export interface CommunityNormalizedImage {
@@ -21,18 +23,18 @@ interface ImageDimensions {
 }
 
 const getTargetDimensions = (width: number, height: number): ImageDimensions => {
-  const safeWidth = width > 0 ? width : MAX_DIMENSION;
-  const safeHeight = height > 0 ? height : MAX_DIMENSION;
+  const safeWidth = width > 0 ? width : COMMUNITY_IMAGE_MAX_DIMENSION;
+  const safeHeight = height > 0 ? height : COMMUNITY_IMAGE_MAX_DIMENSION;
   const longestSide = Math.max(safeWidth, safeHeight);
 
-  if (longestSide <= MAX_DIMENSION) {
+  if (longestSide <= COMMUNITY_IMAGE_MAX_DIMENSION) {
     return {
       width: safeWidth,
       height: safeHeight,
     };
   }
 
-  const ratio = MAX_DIMENSION / longestSide;
+  const ratio = COMMUNITY_IMAGE_MAX_DIMENSION / longestSide;
 
   return {
     width: Math.max(1, Math.round(safeWidth * ratio)),
@@ -81,11 +83,12 @@ class CommunityImageNormalizer {
     let previousUri: string | undefined;
 
     try {
+      const context = ImageManipulator.manipulate(uri);
+      const rendered = await context
+        .resize({ width: target.width, height: target.height })
+        .renderAsync();
+
       for (const compress of COMPRESS_LEVELS) {
-        const context = ImageManipulator.manipulate(uri);
-        const rendered = await context
-          .resize({ width: target.width, height: target.height })
-          .renderAsync();
         const result = await rendered.saveAsync({
           // 디코드·렌더 단계에서 EXIF 방향을 적용하고, JPEG 재인코딩은 원본 EXIF·GPS 메타데이터를 복사하지 않는다.
           format: SaveFormat.JPEG,
@@ -93,10 +96,10 @@ class CommunityImageNormalizer {
         });
         const byteLength = await this.measureByteLength(result.uri);
 
-        this.revokeWebUri(previousUri);
+        await this.removeIntermediate(previousUri);
         previousUri = result.uri;
 
-        if (byteLength <= MAX_BYTE_LENGTH) {
+        if (byteLength <= COMMUNITY_IMAGE_MAX_BYTES) {
           return {
             uri: result.uri,
             width: result.width,
@@ -106,6 +109,7 @@ class CommunityImageNormalizer {
         }
       }
 
+      await this.removeIntermediate(previousUri);
       throw new CommunityImagePipelineError(CommunityImageError.TooLarge);
     } catch (error) {
       if (error instanceof CommunityImagePipelineError) {
@@ -116,6 +120,22 @@ class CommunityImageNormalizer {
         CommunityImageError.NormalizeFailed,
         error
       );
+    }
+  }
+
+  private removeIntermediate(uri: string | undefined): void {
+    if (!uri) {
+      return;
+    }
+
+    this.revokeWebUri(uri);
+
+    if (Platform.OS !== 'web') {
+      try {
+        new File(uri).delete();
+      } catch {
+        // Temporary cache cleanup is best effort.
+      }
     }
   }
 
@@ -146,7 +166,7 @@ class CommunityImageNormalizer {
         const blob = await this.createJpegBlob(canvas, compress);
         const resultUri = URL.createObjectURL(blob);
 
-        if (blob.size <= MAX_BYTE_LENGTH) {
+        if (blob.size <= COMMUNITY_IMAGE_MAX_BYTES) {
           return {
             uri: resultUri,
             width: target.width,
