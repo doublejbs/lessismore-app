@@ -733,7 +733,7 @@
   별도 레포 `lessismore`의 `functions/`(Firebase Cloud Functions, 프로젝트 `lessismore-7e070`, 리전 `asia-northeast3`)에 둔다 —
   `onCommunityPostStatusChanged`(status → deleted/hidden 시 댓글·좋아요·투표·Storage 사진 정리 + 툼스톤), `onCommunityUserDeleted`(Auth 삭제 트리거),
   `cleanupOrphanCommunityImages`(일 1회 스케줄). 클라이언트는 소프트 삭제(`status: deleted`)만 하고 물리 정리를 기다리지 않는다.
-- **서버 전용 필드**(Functions만 쓰고 클라이언트는 읽기만·쓰기 금지): 게시글 `cleanedAt`(연쇄 정리 완료 시각, 멱등 가드), 댓글 `hiddenCountAdjustedAt`(운영 숨김 카운트 보정 완료), 댓글 `withdrawalProcessedAt`(탈퇴 정리 완료). `deleted` 툼스톤은 `title`·`body`·`authorName`을 빈 값으로, `images`를 `[]`로, `bagSnapshot`·`poll`을 제거해 개인정보·콘텐츠를 남기지 않는다. `hidden`은 운영 검토용으로 본문을 남기되 사진 파일과 `images`만 정리한다(CM-6).
+- **서버 전용 필드**(Functions만 쓰고 클라이언트는 읽기만·쓰기 금지): 게시글 `hiddenCleanedAt`(운영 숨김 사진 정리 완료)·`deletedCleanedAt`(삭제 연쇄 정리 완료 — 각각 멱등 가드; `hidden`이던 글이 `deleted`가 되면 두 번째 정리가 따로 돈다), 댓글 `hiddenCountAdjustedAt`(운영 숨김 카운트 보정 완료), 댓글 `withdrawalProcessedAt`(탈퇴 정리 완료). `deleted` 툼스톤은 `title`·`body`·`authorName`을 빈 값으로, `images`를 `[]`로, `bagSnapshot`·`poll`을 제거해 개인정보·콘텐츠를 남기지 않는다. `hidden`은 운영 검토용으로 본문을 남기되 사진 파일과 `images`만 정리한다(CM-6).
 - Storage 공개·쓰기 계약은 DM-9를 따른다. 객체 목록 조회는 허용하지 않는다.
 - 회원 탈퇴·게시글 삭제의 연쇄 정리는 [Community.md](Community.md) CM-9·CM-12를 따른다.
 
