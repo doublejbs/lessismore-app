@@ -4,10 +4,12 @@ import {
   toDate,
 } from './CommunityData';
 import CommunityContentStatus from './CommunityContentStatus';
+import CommunityCommentDeletedReason from './CommunityCommentDeletedReason';
 
 class CommunityComment {
   private readonly id: string;
   private readonly status: CommunityContentStatus;
+  private readonly deletedReason: CommunityCommentDeletedReason | undefined;
   private readonly authorId: string;
   private readonly authorName: string;
   private readonly body: string;
@@ -24,6 +26,7 @@ class CommunityComment {
   public constructor(data: CommunityCommentData) {
     this.id = data.id;
     this.status = data.status;
+    this.deletedReason = data.deletedReason;
     this.authorId = data.authorId;
     this.authorName = data.authorName;
     this.body = data.body;
@@ -42,6 +45,10 @@ class CommunityComment {
 
   public getStatus() {
     return this.status;
+  }
+
+  public getDeletedReason() {
+    return this.deletedReason;
   }
 
   public getAuthorId() {

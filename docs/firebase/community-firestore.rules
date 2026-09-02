@@ -87,11 +87,19 @@ service cloud.firestore {
           && (resource.data.status == 'published' || resource.data.status == 'deleted');
         allow create: if isPublishedPost(postId)
           && signedIn()
+          && request.resource.data.keys().hasOnly([
+            'status', 'authorId', 'authorName', 'body', 'parentId',
+            'mentionedUserId', 'mentionedUserName', 'createdAt', 'updatedAt'
+          ])
           && request.resource.data.status == 'published'
           && request.resource.data.authorId == request.auth.uid
           && request.resource.data.authorName == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.nickname;
         allow update: if signedIn()
           && resource.data.authorId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'authorId', 'authorName', 'body', 'parentId',
+            'mentionedUserId', 'mentionedUserName', 'deletedReason', 'updatedAt'
+          ])
           && (
             (request.resource.data.status == resource.data.status
               && request.resource.data.authorId == resource.data.authorId)
@@ -99,7 +107,8 @@ service cloud.firestore {
             (request.resource.data.status == 'deleted'
               && request.resource.data.authorId == ''
               && request.resource.data.authorName == ''
-              && request.resource.data.body == '')
+              && request.resource.data.body == ''
+              && request.resource.data.deletedReason == 'author')
           );
         allow delete: if signedIn() && resource.data.authorId == request.auth.uid;
       }

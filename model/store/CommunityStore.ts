@@ -16,6 +16,7 @@ import {
 } from 'firebase/firestore';
 import Firebase from '../firebase/Firebase';
 import CommunityComment from '../community/CommunityComment';
+import CommunityCommentDeletedReason from '../community/CommunityCommentDeletedReason';
 import CommunityContentStatus from '../community/CommunityContentStatus';
 import CommunityError from '../community/CommunityError';
 import CommunityFeedFilter from '../community/CommunityFeedFilter';
@@ -457,6 +458,7 @@ class CommunityStore {
       } else {
         transaction.update(commentRef, {
           status: CommunityContentStatus.Deleted,
+          deletedReason: CommunityCommentDeletedReason.Author,
           body: '',
           authorName: '',
           authorId: '',
@@ -741,6 +743,9 @@ class CommunityStore {
     return {
       id,
       status: data.status as CommunityContentStatus,
+      ...(data.deletedReason
+        ? { deletedReason: data.deletedReason as CommunityCommentDeletedReason }
+        : {}),
       authorId: data.authorId ?? '',
       authorName: data.authorName ?? '',
       body: data.body ?? '',

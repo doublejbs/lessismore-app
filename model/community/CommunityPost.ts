@@ -194,6 +194,10 @@ class CommunityPost {
     this.poll.totalVoteCount += 1;
     this.myVote = optionId;
   }
+
+  public applyCommentCountDelta(delta: number) {
+    this.commentCount = Math.max(0, this.commentCount + delta);
+  }
 }
 
 export default CommunityPost;

@@ -1190,7 +1190,8 @@
       "commentsTitle": "Comments {{count}}",
       "failed": "Could not load or save",
       "retry": "Try again",
-      "emptyComments": "No comments yet"
+      "emptyComments": "No comments yet",
+      "gearCount": "{{count}} items"
     },
     "comment": {
       "placeholder": "Write a comment",

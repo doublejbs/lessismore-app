@@ -1,4 +1,5 @@
 import CommunityContentStatus from './CommunityContentStatus';
+import CommunityCommentDeletedReason from './CommunityCommentDeletedReason';
 import CommunityPostType from './CommunityPostType';
 import CommunityReportReason from './CommunityReportReason';
 import CommunityReportStatus from './CommunityReportStatus';
@@ -61,6 +62,7 @@ export interface CommunityPostData {
 export interface CommunityCommentData {
   id: string;
   status: CommunityContentStatus;
+  deletedReason?: CommunityCommentDeletedReason;
   authorId: string;
   authorName: string;
   body: string;
