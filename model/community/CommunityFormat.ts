@@ -27,6 +27,7 @@ export const formatCommunityWeight = (grams: number): string => {
 
 export const getCommunityRelativeTime = (date: Date): string => {
   const elapsed = Math.max(0, Date.now() - date.getTime());
+
   if (elapsed < COMMUNITY_MINUTE_IN_MILLISECONDS) {
     return app.getL10n().t('community.feed.justNow');
   }

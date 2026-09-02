@@ -1,5 +1,5 @@
-import { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import CommunityComment from '@/model/community/CommunityComment';
@@ -15,7 +15,7 @@ interface Props {
   onReport: (target: CommunityReportTarget) => void;
 }
 
-const CommunityDetailCommentRowView: FC<Props> = ({ comment, detail, onReport }) => {
+const CommunityDetailCommentRowView = observer(({ comment, detail, onReport }: Props) => {
   const isOwn = comment.getAuthorId() === app.getFirebase().getUserId();
   const deleted = comment.isDeletedPlaceholder();
   const withdrawn = comment.getDeletedReason() === CommunityCommentDeletedReason.Withdrawal;
@@ -70,7 +70,7 @@ const CommunityDetailCommentRowView: FC<Props> = ({ comment, detail, onReport })
       </View>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   row: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: Acg.hairline },

@@ -31,7 +31,9 @@ const CommunityDetailPollView = observer(({ post, detail }: Props) => {
           ? Math.round((option.voteCount / poll.totalVoteCount) * 100)
           : 0;
         const selected = detail.getMyVoteOptionId() === option.id;
-        const disabled = expired || showResults || detail.isVoteInProgress();
+        const disabled = expired
+          || detail.getMyVoteOptionId() !== null
+          || detail.isVoteInProgress();
 
         return (
           <Pressable

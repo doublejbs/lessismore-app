@@ -18,6 +18,8 @@ class CommunityFeed {
   private initialized = false;
   private requestVersion = 0;
   private unsubscribeDeleted: (() => void) | null = null;
+  private subscribedDeleted = false;
+  private isQuietRefreshing = false;
 
   public static from(dispatcher: CommunityFeedDispatcher) {
     return new CommunityFeed(dispatcher);
@@ -25,14 +27,12 @@ class CommunityFeed {
 
   private constructor(private readonly dispatcher: CommunityFeedDispatcher) {
     makeAutoObservable(this);
-    this.unsubscribeDeleted = subscribeCommunityPostDeleted((postId) => {
-      this.removePost(postId);
-    });
   }
 
   public dispose() {
     this.unsubscribeDeleted?.();
     this.setUnsubscribeDeleted(null);
+    this.setSubscribedDeleted(false);
   }
 
   public async initialize() {
@@ -40,6 +40,7 @@ class CommunityFeed {
       return;
     }
 
+    this.subscribeDeleted();
     this.setInitialized(true);
     this.setLoading(true);
     await this.loadFirstPage();
@@ -57,6 +58,7 @@ class CommunityFeed {
       this.isLoading ||
       this.isLoadingMore ||
       this.isRefreshing ||
+      this.isQuietRefreshing ||
       !this.hasMore
     ) {
       return;
@@ -88,18 +90,29 @@ class CommunityFeed {
   }
 
   public async refresh(quiet = false) {
-    if (this.isLoading || this.isLoadingMore || this.isRefreshing) {
+    if (
+      this.isLoading ||
+      this.isLoadingMore ||
+      this.isRefreshing ||
+      this.isQuietRefreshing
+    ) {
       return;
     }
 
     if (!quiet) {
       this.setRefreshing(true);
+    } else {
+      this.setQuietRefreshing(true);
     }
 
-    await this.loadFirstPage(quiet);
-
-    if (!quiet) {
-      this.setRefreshing(false);
+    try {
+      await this.loadFirstPage(quiet);
+    } finally {
+      if (quiet) {
+        this.setQuietRefreshing(false);
+      } else {
+        this.setRefreshing(false);
+      }
     }
   }
 
@@ -138,7 +151,10 @@ class CommunityFeed {
   private async loadFirstPage(quiet = false) {
     const requestVersion = this.requestVersion + 1;
     this.setRequestVersion(requestVersion);
-    this.setCursor(null);
+
+    if (!quiet) {
+      this.setCursor(null);
+    }
 
     try {
       const page = await this.dispatcher.getPage(this.filter, null);
@@ -206,6 +222,25 @@ class CommunityFeed {
 
   private setUnsubscribeDeleted(value: (() => void) | null) {
     this.unsubscribeDeleted = value;
+  }
+
+  private setSubscribedDeleted(value: boolean) {
+    this.subscribedDeleted = value;
+  }
+
+  private setQuietRefreshing(value: boolean) {
+    this.isQuietRefreshing = value;
+  }
+
+  private subscribeDeleted() {
+    if (this.subscribedDeleted) {
+      return;
+    }
+
+    this.setUnsubscribeDeleted(subscribeCommunityPostDeleted((postId) => {
+      this.removePost(postId);
+    }));
+    this.setSubscribedDeleted(true);
   }
 
   private removePost(postId: string) {

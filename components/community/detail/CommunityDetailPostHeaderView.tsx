@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
+import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgType } from '@/constants/DesignTokens';
 import CommunityPost from '@/model/community/CommunityPost';
@@ -17,7 +18,7 @@ interface Props {
   width: number;
 }
 
-const CommunityDetailPostHeaderView = ({ post, detail, width }: Props) => {
+const CommunityDetailPostHeaderView = observer(({ post, detail, width }: Props) => {
   const [failedImages, setFailedImages] = useState<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = post.getImages().filter(image => !failedImages.includes(image.id));
@@ -65,7 +66,7 @@ const CommunityDetailPostHeaderView = ({ post, detail, width }: Props) => {
       </PretendardText>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   header: { paddingTop: 12, paddingBottom: 8 },

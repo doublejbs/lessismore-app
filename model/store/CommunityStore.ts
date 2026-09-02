@@ -111,11 +111,6 @@ class CommunityStore {
   public async createPost(
     postId: string,
     input: CommunityPostCreateInput
-  ): Promise<string>;
-
-  public async createPost(
-    postId: string,
-    input: CommunityPostCreateInput
   ): Promise<string> {
     const userId = this.requireUserId();
 

@@ -572,7 +572,10 @@ class CommunityWrite {
       if (this.type === CommunityPostType.Poll) {
         const poll = this.buildPollInput();
 
-        patch.poll = poll;
+        patch.poll = {
+          ...poll,
+          expiresAt: this.pollExpiresAt ?? null,
+        };
       }
     }
 

@@ -76,7 +76,8 @@ class CommunityDetail {
           this.dispatcher.isLiked(this.postId),
           this.dispatcher.getMyVote(this.postId),
           this.dispatcher.getCommentsPage(this.postId, null),
-      ]);
+        ]);
+
       if (postResult.status === 'rejected') {
         if (this.isPermissionDenied(postResult.reason)) {
           this.setPost(null);
@@ -95,6 +96,7 @@ class CommunityDetail {
         this.setPost(null);
         this.setNotFound(true);
         this.setComments([]);
+
         return;
       }
 

@@ -33,8 +33,13 @@ app/community/write.tsx → CommunityWriteWrapper → CommunityWriteView
 
 app/community/[id].tsx → CommunityDetailWrapper → CommunityDetailView
                                                    ├─ 게시글 본문·사진·배낭 스냅샷·투표
-                                                   ├─ 좋아요
-                                                   └─ 댓글·답글
+                                                   ├─ CommunityDetailPostHeaderView
+                                                   ├─ CommunityDetailBagSnapshotView
+                                                   ├─ CommunityDetailPollView
+                                                   ├─ CommunityDetailPostActionsView
+                                                   ├─ CommunityDetailCommentRowView
+                                                   ├─ CommunityDetailCommentComposerView
+                                                   └─ CommunityDetailReportMenu
 
 app/community/[id]/edit.tsx → 본인 게시글 수정
 ```
