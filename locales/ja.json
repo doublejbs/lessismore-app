@@ -130,7 +130,8 @@
       "bags": "保存したすべてのバックパック情報",
       "gears": "保存したすべてのギア情報",
       "settings": "個人設定と記録",
-      "warningFooter": "削除したデータは復元できません。"
+      "warningFooter": "削除したデータは復元できません。",
+      "community": "コミュニティの投稿・コメント・写真も削除されます"
     }
   },
   "auth": {
@@ -1106,7 +1107,8 @@
         "previewDestination": "行き先: {{name}}",
         "previewWeight": "総重量: {{weight}}kg",
         "previewCount": "{{count}}個のギア",
-        "previewGear": "{{company}} {{name}} · {{weight}}g"
+        "previewGear": "{{company}} {{name}} · {{weight}}g",
+        "selected": "{{name}} · {{date}} · {{weight}}kg"
       },
       "poll": {
         "option": "選択肢{{count}}",

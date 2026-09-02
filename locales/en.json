@@ -130,7 +130,8 @@
       "bags": "All saved bag information",
       "gears": "All saved gear information",
       "settings": "Personal settings and records",
-      "warningFooter": "Deleted data cannot be recovered."
+      "warningFooter": "Deleted data cannot be recovered.",
+      "community": "Community posts, comments, and photos will also be deleted"
     }
   },
   "auth": {
@@ -1120,7 +1121,8 @@
         "previewDestination": "Destination: {{name}}",
         "previewWeight": "Total weight: {{weight}}kg",
         "previewCount": "{{count}} items",
-        "previewGear": "{{company}} {{name}} · {{weight}}g"
+        "previewGear": "{{company}} {{name}} · {{weight}}g",
+        "selected": "{{name}} · {{date}} · {{weight}}kg"
       },
       "poll": {
         "option": "Option {{count}}",

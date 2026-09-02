@@ -130,7 +130,8 @@
       "bags": "저장된 모든 배낭 정보",
       "gears": "저장된 모든 장비 정보",
       "settings": "개인 설정 및 기록",
-      "warningFooter": "삭제된 데이터는 복구할 수 없습니다."
+      "warningFooter": "삭제된 데이터는 복구할 수 없습니다.",
+      "community": "커뮤니티 게시글·댓글·사진도 삭제됩니다"
     }
   },
   "auth": {
@@ -1106,7 +1107,8 @@
         "previewDestination": "여행지: {{name}}",
         "previewWeight": "총 무게: {{weight}}kg",
         "previewCount": "장비 {{count}}개",
-        "previewGear": "{{company}} {{name}} · {{weight}}g"
+        "previewGear": "{{company}} {{name}} · {{weight}}g",
+        "selected": "{{name}} · {{date}} · {{weight}}kg"
       },
       "poll": {
         "option": "선택지 {{count}}",

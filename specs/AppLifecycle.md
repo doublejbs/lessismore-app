@@ -17,7 +17,7 @@
 app/_layout.tsx (RootLayout, 네이티브는 HotUpdater.wrap)
   → 폰트 로드 + app.initialize() 완료까지 SplashLoadingView
   → Stack: (tabs) / custom / search / not-login-search(모달) / 기타 라우트
-app/(tabs)/_layout.tsx → 현재 탭 5개: 홈(index) · 탐색(search) · 지도(map) · 배낭(bag) · 내 정보(info)
+app/(tabs)/_layout.tsx → 현재 탭 5개: 홈(index) · 탐색(search) · 지도(map) · 배낭(bag) · 커뮤니티(community); 내 정보는 `/info` 푸시 화면
 ```
 
 ## 3. 요구사항
@@ -60,7 +60,7 @@ app/(tabs)/_layout.tsx → 현재 탭 5개: 홈(index) · 탐색(search) · 지�
 
 **수용 기준**
 
-- 현재 탭 5개: `홈`(house) / `탐색`(magnifyingglass) / `지도`(map) / `배낭`(figure.hiking) / `내 정보`(person). 활성 색상 검정.
+- 현재 탭 5개: `홈`(house) / `탐색`(magnifyingglass) / `지도`(map) / `배낭`(figure.hiking) / `커뮤니티`(person.2.fill). 활성 색상 검정; `내 정보`는 홈 프로필 버튼에서 `/info`로 연다.
 - iOS는 `NativeTabs`의 네이티브 `UITabBar`로 iOS 26 리퀴드 글래스와 `minimizeBehavior='onScrollDown'`을 사용한다.
 - Android/Web은 기존 JS `Tabs`를 사용한다. 웹에서는 네이티브 지도 SDK가 없어 `지도` 탭을 숨긴다.
 - 탭은 다섯 개를 실질 상한으로 본다. 새 최상위 기능을 추가할 때 여섯 번째 탭을 그대로 붙이지 않고 기존 정보 구조를 재편한다.

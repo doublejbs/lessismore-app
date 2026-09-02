@@ -494,7 +494,7 @@ const CommentComposer: FC<{ detail: CommunityDetail; bottomInset: number }> = ({
   return (
     <KeyboardAvoidingView
       style={[styles.composer, { paddingBottom: Math.max(bottomInset, 8) }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       {target && (
         <View style={styles.replyBanner}>

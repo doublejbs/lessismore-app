@@ -23,6 +23,8 @@ app/(tabs)/community.tsx → CommunityWrapper → CommunityView
                                               ├─ 최신순 게시글 피드
                                               └─ 작성 버튼
 
+app/community-write-options.tsx → 글쓰기 유형 선택 시트
+
 app/community/write.tsx → CommunityWriteWrapper → CommunityWriteView
                                                     ├─ 게시글 유형 선택
                                                     ├─ 질문 / 배낭 후기 / 투표 입력

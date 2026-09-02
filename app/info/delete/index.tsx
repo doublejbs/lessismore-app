@@ -102,6 +102,9 @@ const DeleteInfoView = () => {
             <PretendardText style={styles.warningBullet}>
               • {l10n.t('info.deleteAccount.settings')}
             </PretendardText>
+            <PretendardText style={styles.warningBullet}>
+              • {l10n.t('info.deleteAccount.community')}
+            </PretendardText>
             <PretendardText style={styles.warningFooter}>
               {l10n.t('info.deleteAccount.warningFooter')}
             </PretendardText>

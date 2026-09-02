@@ -10,6 +10,8 @@
 4. CLI를 사용할 때는 프로젝트 설정 파일에서 이 규칙 파일을 명시한 뒤 `firebase deploy --only firestore:rules,storage`를 실행한다. 실행 전 프로젝트와 대상 파일을 확인한다.
 5. 인덱스 쿼리에서 Firebase가 생성한 콘솔 링크를 아래에 기록한다.
 
+탈퇴·삭제 연쇄 정리 Functions는 `lessismore` 레포 `functions/`(README 참조)가 담당한다. 클라이언트는 커뮤니티 문서를 추가로 삭제하지 않는다.
+
 ## 인덱스 생성 콘솔 링크
 
 - 게시글 전체 피드: (콘솔 링크 기록)
@@ -17,4 +19,4 @@
 - 댓글 상태·생성 시각: (콘솔 링크 기록)
 - 신고 상태·생성 시각: (콘솔 링크 기록)
 
-댓글 쿼리는 `status in ['published', 'deleted']`와 `createdAt asc`를 사용하므로 `status`는 배열 포함 인덱스로 기록했다. 실제 Firebase CLI가 요구하는 형식과 프로젝트 콘솔 결과가 다르면 배포 전에 이 문서를 먼저 갱신한다.
+댓글 쿼리는 `status in ['published', 'deleted']`와 `createdAt asc`를 사용하므로 `status` 오름차순·`createdAt` 오름차순 복합 인덱스로 기록했다. 실제 Firebase CLI가 요구하는 형식과 프로젝트 콘솔 결과가 다르면 배포 전에 이 문서를 먼저 갱신한다.
