@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteField,
   doc,
   DocumentData,
   getDoc,
@@ -234,8 +235,12 @@ class CommunityStore {
           totalVoteCount: poll.totalVoteCount,
         };
 
-        if (patch.poll.expiresAt) {
+        if (patch.poll.expiresAt === null) {
+          nextPoll.expiresAt = deleteField();
+        } else if (patch.poll.expiresAt !== undefined) {
           nextPoll.expiresAt = patch.poll.expiresAt;
+        } else if (poll.expiresAt) {
+          nextPoll.expiresAt = poll.expiresAt;
         }
 
         updates.poll = nextPoll;
