@@ -4,7 +4,6 @@ import {
   CommunityBagSnapshot as CommunityBagSnapshotType,
   CommunityPollInput,
   CommunityPostCreateInput,
-  CommunityPostImage,
   CommunityPostPatch,
 } from '@/model/community/CommunityData';
 import CommunityError from '@/model/community/CommunityError';
@@ -14,7 +13,11 @@ import CommunityValidator from '@/model/community/CommunityValidator';
 import CommunityValidationError from '@/model/community/CommunityValidationError';
 import CommunityBagSnapshotBuilder from '@/model/community/CommunityBagSnapshotBuilder';
 import { createCommunityId } from '@/model/community/CommunityId';
-import { COMMUNITY_DAY_IN_MILLISECONDS } from '@/model/community/CommunityLimits';
+import {
+  COMMUNITY_DAY_IN_MILLISECONDS,
+  COMMUNITY_POLL_MAX_OPTIONS,
+  COMMUNITY_POLL_MIN_OPTIONS,
+} from '@/model/community/CommunityLimits';
 import type BagItem from '@/model/bag/BagItem';
 import CommunityImageSession from '@/model/community-image/CommunityImageSession';
 import CommunityImageError from '@/model/community-image/CommunityImageError';
@@ -150,9 +153,7 @@ class CommunityWrite {
       this.setPollOptionIds(poll.options.map((option) => option.id));
       this.setPollExpiresAtValue(poll.expiresAt ?? null);
       this.setPollExpiryDaysValue(
-        poll.expiresAt
-          ? Math.max(0, Math.round((poll.expiresAt.getTime() - Date.now()) / COMMUNITY_DAY_IN_MILLISECONDS))
-          : 0
+        poll.expiresAt ? this.getPresetExpiryDays(poll.expiresAt) : 0
       );
     }
 
@@ -308,7 +309,10 @@ class CommunityWrite {
   }
 
   public addPollOption() {
-    if (this.pollOptions.length >= 4 || !this.canEditPollStructure()) {
+    if (
+      this.pollOptions.length >= COMMUNITY_POLL_MAX_OPTIONS
+      || !this.canEditPollStructure()
+    ) {
       return;
     }
 
@@ -319,7 +323,7 @@ class CommunityWrite {
 
   public removePollOption(index: number) {
     if (
-      this.pollOptions.length <= 2 ||
+      this.pollOptions.length <= COMMUNITY_POLL_MIN_OPTIONS ||
       index < 0 ||
       index >= this.pollOptions.length ||
       !this.canEditPollStructure()
@@ -468,7 +472,7 @@ class CommunityWrite {
       }
 
       CommunityValidator.validateImages(
-        this.imageSession.getUploadedInOrder() as CommunityPostImage[]
+        this.imageSession.getUploadedInOrder()
       );
     } catch (error) {
       if (error instanceof CommunityError) {
@@ -542,7 +546,7 @@ class CommunityWrite {
       type: this.type,
       title: this.title,
       body: this.body,
-      images: this.imageSession.getUploadedInOrder() as CommunityPostImage[],
+      images: this.imageSession.getUploadedInOrder(),
     };
 
     if (this.type === CommunityPostType.BagReview && this.bagSnapshot) {
@@ -559,7 +563,7 @@ class CommunityWrite {
   private buildPatch(): CommunityPostPatch {
     const patch: CommunityPostPatch = {
       body: this.body,
-      images: this.imageSession.getUploadedInOrder() as CommunityPostImage[],
+      images: this.imageSession.getUploadedInOrder(),
     };
 
     if (this.canEditPollStructure()) {
@@ -568,9 +572,7 @@ class CommunityWrite {
       if (this.type === CommunityPostType.Poll) {
         const poll = this.buildPollInput();
 
-        patch.poll = this.pollExpiresAt
-          ? poll
-          : { ...poll, expiresAt: null };
+        patch.poll = poll;
       }
     }
 
@@ -594,6 +596,17 @@ class CommunityWrite {
     }
 
     return poll;
+  }
+
+  private getPresetExpiryDays(expiresAt: Date): number {
+    const remaining = expiresAt.getTime() - Date.now();
+    const presets = [1, 3, 7];
+    const matchingPreset = presets.find(days =>
+      Math.abs(remaining - days * COMMUNITY_DAY_IN_MILLISECONDS)
+      <= COMMUNITY_DAY_IN_MILLISECONDS / 24
+    );
+
+    return matchingPreset ?? -1;
   }
 
   private ensureAllImagesUploaded() {

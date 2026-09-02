@@ -738,7 +738,7 @@
 - **서버 정리 작업의 위치(2026-09-02 사용자 결정)**: 게시글 삭제·운영 숨김 연쇄 정리, 회원 탈퇴 정리, 고아 사진 정리는
   별도 레포 `lessismore`의 `functions/`(Firebase Cloud Functions, 프로젝트 `lessismore-7e070`, 리전 `asia-northeast3`)에 둔다 —
   `onCommunityPostStatusChanged`(status → deleted/hidden 시 댓글·좋아요·투표·Storage 사진 정리 + 툼스톤), `onCommunityCommentHidden`(운영 숨김 댓글 카운트 보정), `onCommunityUserDeleted`(Auth 삭제 트리거),
-  `cleanupOrphanCommunityImages`(일 1회 스케줄). 클라이언트는 소프트 삭제(`status: deleted`)만 하고 물리 정리를 기다리지 않는다.
+  `cleanupOrphanCommunityImages`(일 1회 스케줄), `pruneCommunityCommentPlaceholders`(일 1회 스케줄, 답글 없는 `deleted` 자리표시 물리 삭제). 클라이언트는 소프트 삭제(`status: deleted`)만 하고 물리 정리를 기다리지 않는다.
 - **서버 전용 필드**(Functions만 쓰고 클라이언트는 읽기만·쓰기 금지): 게시글 `hiddenCleanedAt`(운영 숨김 사진 정리 완료)·`deletedCleanedAt`(삭제 연쇄 정리 완료 — 각각 멱등 가드; `hidden`이던 글이 `deleted`가 되면 두 번째 정리가 따로 돈다), 댓글 `hiddenCountAdjustedAt`(운영 숨김 카운트 보정 완료), 댓글 `withdrawalProcessedAt`(탈퇴 정리 완료). `deleted` 툼스톤은 경로 정리·감사를 위해 `authorId`와 `createdAt`을 유지하고 `title`·`body`·`authorName`을 빈 값으로, `images`를 `[]`로, `bagSnapshot`·`poll`을 제거해 개인정보·콘텐츠를 남기지 않는다. 탈퇴자 멘션의 `mentionedUserName`은 서버가 빈 값으로 정리한다. `community-reports.reporterId`는 운영 기록을 위해 보존한다. `hidden` 게시글·댓글의 카운트 드리프트는 알려진 한계이며 서버 보정 작업에서 다룬다.
 - Storage 공개·쓰기 계약은 DM-9를 따른다. 객체 목록 조회는 허용하지 않는다.
 - 회원 탈퇴·게시글 삭제의 연쇄 정리는 [Community.md](Community.md) CM-9·CM-12를 따른다.

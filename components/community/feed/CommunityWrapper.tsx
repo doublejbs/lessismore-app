@@ -11,6 +11,10 @@ const CommunityWrapper: FC = () => {
 
   useEffect(() => {
     void feed.initialize();
+
+    return () => {
+      feed.dispose();
+    };
   }, [feed]);
 
   return <CommunityView feed={feed} />;

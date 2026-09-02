@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgRadius, AcgType, Color } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import CommunityImagePicker from '@/model/community-image/CommunityImagePicker';
 import CommunityImagePipelineError from '@/model/community-image/CommunityImagePipelineError';
 import CommunityImageUploadState from '@/model/community-image/CommunityImageUploadState';
@@ -171,34 +171,27 @@ const CommunityWriteImagesView = ({ write }: Props) => {
               <Ionicons name='close-circle' size={22} color={Acg.paper} />
             </TouchableOpacity>
             <View style={styles.actions}>
-              <View style={styles.moveActions}>
-                {index > 0 && (
-                  <TouchableOpacity
-                    style={styles.smallButton}
-                    onPress={() => handleMove(index, index - 1)}
-                    disabled={write.getIsSubmitting()}
-                    accessibilityLabel={l10n.t('community.write.image.moveForward')}
-                    accessibilityRole='button'
-                    accessibilityActions={[{ name: 'move-forward' }]}
-                    onAccessibilityAction={() => handleMove(index, index - 1)}
-                  >
-                    <Ionicons name='chevron-back' size={16} color={Acg.ink} />
-                  </TouchableOpacity>
-                )}
-                {index < total - 1 && (
-                  <TouchableOpacity
-                    style={styles.smallButton}
-                    onPress={() => handleMove(index, index + 1)}
-                    disabled={write.getIsSubmitting()}
-                    accessibilityLabel={l10n.t('community.write.image.moveBackward')}
-                    accessibilityRole='button'
-                    accessibilityActions={[{ name: 'move-backward' }]}
-                    onAccessibilityAction={() => handleMove(index, index + 1)}
-                  >
-                    <Ionicons name='chevron-forward' size={16} color={Acg.ink} />
-                  </TouchableOpacity>
-                )}
-              </View>
+              {index > 0 ? (
+                <TouchableOpacity
+                  style={styles.smallButton}
+                  onPress={() => handleMove(index, index - 1)}
+                  disabled={write.getIsSubmitting()}
+                  accessibilityLabel={l10n.t('community.write.image.moveForward')}
+                  accessibilityRole='button'
+                >
+                  <Ionicons name='chevron-back' size={16} color={Acg.ink} />
+                </TouchableOpacity>
+              ) : index < total - 1 ? (
+                <TouchableOpacity
+                  style={styles.smallButton}
+                  onPress={() => handleMove(index, index + 1)}
+                  disabled={write.getIsSubmitting()}
+                  accessibilityLabel={l10n.t('community.write.image.moveBackward')}
+                  accessibilityRole='button'
+                >
+                  <Ionicons name='chevron-forward' size={16} color={Acg.ink} />
+                </TouchableOpacity>
+              ) : null}
             </View>
             {image.state === CommunityImageUploadState.Failed && (
               <View style={styles.failedActions}>
@@ -308,7 +301,8 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
     top: 0,
     bottom: 28,
-    backgroundColor: Color.overlay,
+    backgroundColor: Acg.ink,
+    opacity: 0.72,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: AcgRadius.thumb,
@@ -343,9 +337,6 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  moveActions: {
-    flexDirection: 'row',
   },
   smallButton: {
     width: 44,

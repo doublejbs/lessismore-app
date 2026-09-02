@@ -78,6 +78,14 @@ class CommunityDetail {
           this.dispatcher.getCommentsPage(this.postId, null),
       ]);
       if (postResult.status === 'rejected') {
+        if (this.isPermissionDenied(postResult.reason)) {
+          this.setPost(null);
+          this.setNotFound(true);
+          this.setComments([]);
+
+          return;
+        }
+
         throw postResult.reason;
       }
 
@@ -132,16 +140,19 @@ class CommunityDetail {
     const previous = this.liked;
     const optimistic = !previous;
     this.setLiked(optimistic);
-    this.post.applyLikeToggle(optimistic);
+    this.post.applyLikeCountDelta(optimistic ? 1 : -1);
 
     try {
       const liked = await this.dispatcher.toggleLike(this.postId);
       this.setLiked(liked);
-      this.post.applyLikeToggle(liked);
+      if (liked !== optimistic) {
+        this.post.applyLikeCountDelta(liked ? 1 : -1);
+        this.post.applyLikeCountDelta(optimistic ? -1 : 1);
+      }
       app.getAnalyticsManager()?.logClick('click_community_like', { liked });
     } catch {
       this.setLiked(previous);
-      this.post.applyLikeToggle(previous);
+      this.post.applyLikeCountDelta(optimistic ? -1 : 1);
       this.showToast('community.detail.failed');
     } finally {
       this.setIsLiking(false);
@@ -199,6 +210,9 @@ class CommunityDetail {
         );
 
         if (!target) {
+          this.setEditingCommentId(null);
+          this.setDraft('');
+
           return;
         }
 
@@ -451,12 +465,18 @@ class CommunityDetail {
   }
 
   public getComments() {
+    const replyParentIds = new Set(
+      this.comments
+        .filter(comment => comment.isReply())
+        .map(comment => comment.getParentId())
+    );
+
     return this.comments.filter(comment => {
       if (!comment.isDeletedPlaceholder()) {
         return true;
       }
 
-      return this.comments.some(reply => reply.getParentId() === comment.getId());
+      return replyParentIds.has(comment.getId());
     });
   }
 
@@ -518,6 +538,15 @@ class CommunityDetail {
 
   private isCommunityError(error: unknown, code: CommunityValidationError) {
     return error instanceof CommunityError && error.code === code;
+  }
+
+  private isPermissionDenied(error: unknown) {
+    return (
+      typeof error === 'object'
+      && error !== null
+      && 'code' in error
+      && (error as { code?: unknown }).code === 'permission-denied'
+    );
   }
 
   private sortComments(comments: CommunityComment[]) {

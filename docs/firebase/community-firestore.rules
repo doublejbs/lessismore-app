@@ -25,7 +25,7 @@ service cloud.firestore {
     }
 
     function likeCounterMatches(postId) {
-      let likePath = /databases/$(database)/documents/community-post-likes/$(request.auth.uid)_$(postId);
+      let likePath = /databases/$(database)/documents/community-post-likes/$(request.auth.uid + '_' + postId);
       return request.resource.data.likeCount == resource.data.likeCount
         || (request.resource.data.likeCount == resource.data.likeCount + 1
           && existsAfter(likePath) && !exists(likePath))
@@ -74,8 +74,32 @@ service cloud.firestore {
         );
     }
 
+    function pollOptionVotesAreZero(poll) {
+      return (poll.options.size() == 2
+        && poll.options[0].voteCount == 0
+        && poll.options[1].voteCount == 0)
+        || (poll.options.size() == 3
+          && poll.options[0].voteCount == 0
+          && poll.options[1].voteCount == 0
+          && poll.options[2].voteCount == 0)
+        || (poll.options.size() == 4
+          && poll.options[0].voteCount == 0
+          && poll.options[1].voteCount == 0
+          && poll.options[2].voteCount == 0
+          && poll.options[3].voteCount == 0);
+    }
+
+    function authorPollIsUnvoted() {
+      return resource.data.type == 'poll'
+        && request.resource.data.type == 'poll'
+        && resource.data.poll.totalVoteCount == 0
+        && request.resource.data.poll.totalVoteCount == 0
+        && pollOptionVotesAreZero(resource.data.poll)
+        && pollOptionVotesAreZero(request.resource.data.poll);
+    }
+
     function pollCounterMatches(postId) {
-      let votePath = /databases/$(database)/documents/community-poll-votes/$(postId)_$(request.auth.uid);
+      let votePath = /databases/$(database)/documents/community-poll-votes/$(postId + '_' + request.auth.uid);
       return resource.data.type == 'poll'
         && (
           request.resource.data.poll.totalVoteCount == resource.data.poll.totalVoteCount + 1
@@ -120,16 +144,13 @@ service cloud.firestore {
             && unchangedCount('commentCount')
             && !(resource.data.type != 'poll'
               && request.resource.data.diff(resource.data).affectedKeys().hasAny(['poll']))
+            && (request.resource.data.diff(resource.data).affectedKeys().hasAny(['poll'])
+              ? authorPollIsUnvoted()
+              : true)
             && (request.resource.data.status != 'deleted'
-              || (
-                request.resource.data.authorId == resource.data.authorId
-                && request.resource.data.authorName == resource.data.authorName
-                && request.resource.data.title == resource.data.title
-                && request.resource.data.body == resource.data.body
-                && request.resource.data.images == resource.data.images
-                && request.resource.data.bagSnapshot == resource.data.bagSnapshot
-                && request.resource.data.poll == resource.data.poll
-              )))
+              || !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+                'authorName', 'title', 'body', 'images', 'bagSnapshot', 'poll'
+              ])))
           ||
           (request.resource.data.diff(resource.data).affectedKeys().hasOnly([
               'likeCount'

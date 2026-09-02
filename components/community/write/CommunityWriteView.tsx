@@ -81,7 +81,13 @@ const CommunityWriteView = ({ write }: Props) => {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (event) => {
-      if (!write.getIsDirty() || write.getIsSubmitting()) {
+      if (write.getIsSubmitting()) {
+        event.preventDefault();
+
+        return;
+      }
+
+      if (!write.getIsDirty()) {
         return;
       }
 
@@ -168,7 +174,7 @@ const CommunityWriteView = ({ write }: Props) => {
       return null;
     }
 
-    const key = VALIDATION_KEYS[error] ?? 'notLoggedIn';
+    const key = VALIDATION_KEYS[error] ?? 'failed';
 
     return l10n.t(`community.validation.${key}`);
   };
@@ -388,7 +394,7 @@ const styles = StyleSheet.create({
   },
   error: {
     ...AcgType.meta,
-    color: '#B3261E',
+    color: Acg.error,
   },
   bottomBar: {
     paddingHorizontal: AcgLayout.screenPadding,

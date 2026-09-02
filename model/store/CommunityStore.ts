@@ -108,27 +108,18 @@ class CommunityStore {
     return CommunityPost.from(this.toPostData(snapshot.id, data));
   }
 
-  public async createPost(input: CommunityPostCreateInput): Promise<string>;
-
   public async createPost(
     postId: string,
     input: CommunityPostCreateInput
   ): Promise<string>;
 
   public async createPost(
-    first: string | CommunityPostCreateInput,
-    second?: CommunityPostCreateInput
+    postId: string,
+    input: CommunityPostCreateInput
   ): Promise<string> {
     const userId = this.requireUserId();
-    const input = typeof first === 'string' ? second : first;
-
-    if (!input) {
-      throw new CommunityError(CommunityValidationError.PostNotFound);
-    }
 
     CommunityValidator.validatePost(input);
-    const postId =
-      typeof first === 'string' ? first : first.postId ?? this.createPostId();
 
     const postData: Record<string, unknown> = {
       type: input.type,

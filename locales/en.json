@@ -1161,7 +1161,8 @@
       "imageCount": "You can attach up to 4 photos",
       "notLoggedIn": "Please log in",
       "pollLocked": "Voting has started, so the question and options cannot be edited",
-      "postNotFound": "Post not found"
+      "postNotFound": "Post not found",
+      "failed": "Please check your input."
     },
     "feed": {
       "empty": "No posts yet",

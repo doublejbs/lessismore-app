@@ -5,7 +5,11 @@ import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import CommunityWrite from '@/model/community-write/CommunityWrite';
 import { formatCommunityDate } from '@/model/community/CommunityFormat';
 import app from '@/model/app/App';
-import { COMMUNITY_POLL_OPTION_MAX_LENGTH } from '@/model/community/CommunityLimits';
+import {
+  COMMUNITY_POLL_MAX_OPTIONS,
+  COMMUNITY_POLL_MIN_OPTIONS,
+  COMMUNITY_POLL_OPTION_MAX_LENGTH,
+} from '@/model/community/CommunityLimits';
 
 interface Props {
   write: CommunityWrite;
@@ -44,7 +48,7 @@ const CommunityWritePollOptionsView = ({ write }: Props) => {
             <PretendardText style={styles.label} weight='semibold'>
               {l10n.t('community.write.poll.option', { count: index + 1 })}
             </PretendardText>
-            {pollOptions.length > 2 && canEdit && !write.getIsSubmitting() && (
+            {pollOptions.length > COMMUNITY_POLL_MIN_OPTIONS && canEdit && !write.getIsSubmitting() && (
               <TouchableOpacity
                 style={styles.removeButton}
                 onPress={() => write.removePollOption(index)}
@@ -81,7 +85,7 @@ const CommunityWritePollOptionsView = ({ write }: Props) => {
           </PretendardText>
         </View>
       ))}
-      {canEdit && pollOptions.length < 4 && !write.getIsSubmitting() && (
+      {canEdit && pollOptions.length < COMMUNITY_POLL_MAX_OPTIONS && !write.getIsSubmitting() && (
         <TouchableOpacity
           style={styles.addOption}
           onPress={() => write.addPollOption()}

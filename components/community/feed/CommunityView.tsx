@@ -65,7 +65,7 @@ const CommunityView: FC<Props> = ({ feed }) => {
   useFocusEffect(
     useCallback(() => {
       if (feed.getIsInitialized()) {
-        void feed.refresh();
+        void feed.refresh(true);
       }
     }, [feed])
   );

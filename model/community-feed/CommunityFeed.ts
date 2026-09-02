@@ -17,6 +17,7 @@ class CommunityFeed {
   private error: Error | null = null;
   private initialized = false;
   private requestVersion = 0;
+  private unsubscribeDeleted: (() => void) | null = null;
 
   public static from(dispatcher: CommunityFeedDispatcher) {
     return new CommunityFeed(dispatcher);
@@ -24,9 +25,14 @@ class CommunityFeed {
 
   private constructor(private readonly dispatcher: CommunityFeedDispatcher) {
     makeAutoObservable(this);
-    subscribeCommunityPostDeleted((postId) => {
+    this.unsubscribeDeleted = subscribeCommunityPostDeleted((postId) => {
       this.removePost(postId);
     });
+  }
+
+  public dispose() {
+    this.unsubscribeDeleted?.();
+    this.setUnsubscribeDeleted(null);
   }
 
   public async initialize() {
@@ -81,14 +87,20 @@ class CommunityFeed {
     }
   }
 
-  public async refresh() {
+  public async refresh(quiet = false) {
     if (this.isLoading || this.isLoadingMore || this.isRefreshing) {
       return;
     }
 
-    this.setRefreshing(true);
-    await this.loadFirstPage();
-    this.setRefreshing(false);
+    if (!quiet) {
+      this.setRefreshing(true);
+    }
+
+    await this.loadFirstPage(quiet);
+
+    if (!quiet) {
+      this.setRefreshing(false);
+    }
   }
 
   public getFilter() {
@@ -123,7 +135,7 @@ class CommunityFeed {
     return this.error;
   }
 
-  private async loadFirstPage() {
+  private async loadFirstPage(quiet = false) {
     const requestVersion = this.requestVersion + 1;
     this.setRequestVersion(requestVersion);
     this.setCursor(null);
@@ -146,7 +158,7 @@ class CommunityFeed {
         );
       }
     } finally {
-      if (requestVersion === this.requestVersion) {
+      if (requestVersion === this.requestVersion && !quiet) {
         this.setLoading(false);
       }
     }
@@ -190,6 +202,10 @@ class CommunityFeed {
 
   private setRequestVersion(value: number) {
     this.requestVersion = value;
+  }
+
+  private setUnsubscribeDeleted(value: (() => void) | null) {
+    this.unsubscribeDeleted = value;
   }
 
   private removePost(postId: string) {

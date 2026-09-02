@@ -109,6 +109,7 @@ export const Acg = {
   lime: '#C8F244',
   warnBg: '#FFF4E5',
   warnText: '#9A4B00',
+  error: '#FF3B30',
 
   // ── 레퍼런스 탐색 화면(2026-08-11 이식) ──
   // 순백 지면(`paper`) 위에 놓이는 컨트롤 면과 그 위 보조 텍스트다. 위 `bg`·`line2` 계열은
