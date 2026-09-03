@@ -1183,7 +1183,10 @@
       "failed": "불러오거나 저장하지 못했어요",
       "retry": "다시 시도",
       "emptyComments": "아직 댓글이 없어요",
-      "gearCount": "장비 {{count}}개"
+      "gearCount": "장비 {{count}}개",
+      "snapshotSectionGearUnit": "개",
+      "snapshotSectionSeparator": " · ",
+      "snapshotSectionWeightUnit": "g"
     },
     "comment": {
       "placeholder": "댓글을 입력해주세요",

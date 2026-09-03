@@ -1,10 +1,68 @@
 import app from '@/model/app/App';
+import { getGroupForCategory } from '@/model/gear/GearCategoryGroups';
+import GearFilter from '@/model/gear/GearFilter';
 import CommunityPostType from './CommunityPostType';
+import { CommunityBagSnapshotGear } from './CommunityData';
 import {
   COMMUNITY_DAY_IN_MILLISECONDS,
   COMMUNITY_HOUR_IN_MILLISECONDS,
   COMMUNITY_MINUTE_IN_MILLISECONDS,
 } from './CommunityLimits';
+
+export interface CommunityBagSnapshotGroup {
+  filter: GearFilter;
+  gears: CommunityBagSnapshotGear[];
+  totalWeight: number;
+}
+
+const COMMUNITY_BAG_SNAPSHOT_FILTER_ORDER: GearFilter[] = [
+  GearFilter.Backpack,
+  GearFilter.Tent,
+  GearFilter.SleepingBag,
+  GearFilter.Mat,
+  GearFilter.Lantern,
+  GearFilter.Cooking,
+  GearFilter.Clothing,
+  GearFilter.Furniture,
+  GearFilter.Electronic,
+  GearFilter.Food,
+  GearFilter.Etc,
+];
+
+/**
+ * 스냅샷 장비를 앱의 1차 필터 순서에 맞춰 묶는다(CM-4, CM-7).
+ *
+ * 스냅샷에는 세분 카테고리 키가 저장되므로 `GearCategoryGroups`의 공통 매핑을
+ * 사용한다. 매핑에 없는 키는 `getGroupForCategory`가 기타로 귀속한다.
+ */
+export const getCommunityBagSnapshotGroups = (
+  gears: CommunityBagSnapshotGear[]
+): CommunityBagSnapshotGroup[] => {
+  const groups = new Map<GearFilter, CommunityBagSnapshotGear[]>();
+
+  gears.forEach(gear => {
+    const filter = getGroupForCategory(gear.category);
+    const group = groups.get(filter) ?? [];
+    group.push(gear);
+    groups.set(filter, group);
+  });
+
+  return COMMUNITY_BAG_SNAPSHOT_FILTER_ORDER.flatMap(filter => {
+    const group = groups.get(filter);
+
+    if (!group) {
+      return [];
+    }
+
+    return [
+      {
+        filter,
+        gears: group,
+        totalWeight: group.reduce((total, gear) => total + gear.weight, 0),
+      },
+    ];
+  });
+};
 
 export const getCommunityTypeLabel = (type: CommunityPostType): string => {
   const key =

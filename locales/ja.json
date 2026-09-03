@@ -1183,7 +1183,10 @@
       "failed": "読み込みまたは保存に失敗しました",
       "retry": "再試行",
       "emptyComments": "コメントはまだありません",
-      "gearCount": "{{count}}個のギア"
+      "gearCount": "{{count}}個のギア",
+      "snapshotSectionGearUnit": "個",
+      "snapshotSectionSeparator": " · ",
+      "snapshotSectionWeightUnit": "g"
     },
     "comment": {
       "placeholder": "コメントを入力してください",
