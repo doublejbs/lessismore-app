@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { Href, Stack, useNavigation, useRouter } from 'expo-router';
+import { usePreventRemove } from 'expo-router/build/react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
@@ -80,35 +81,36 @@ const CommunityWriteView = ({ write }: Props) => {
   const bottomInset = Math.max(insets.bottom, 12);
   const contentBottomPadding =
     SUBMIT_BUTTON_HEIGHT + BOTTOM_BAR_TOP_PADDING + bottomInset + CONTENT_BOTTOM_EXTRA;
+  const shouldPreventDiscard = write.getIsDirty() && !write.getIsSubmitting();
+  const shouldPreventRemove = shouldPreventDiscard || write.getIsSubmitting();
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', (event) => {
-      if (write.getIsSubmitting()) {
-        event.preventDefault();
-
-        return;
-      }
-
-      if (!write.getIsDirty()) {
-        return;
-      }
-
-      event.preventDefault();
-      app.getAlertManager()?.show({
-        message: l10n.t('community.write.discardConfirm'),
-        confirmText: l10n.t('community.write.discard'),
-        onConfirm: async () => {
-          try {
-            await write.cleanupForDiscard(app.getFirebase().getUserId());
-          } finally {
-            navigation.dispatch(event.data.action);
-          }
-        },
+  usePreventRemove(shouldPreventRemove, ({ data }) => {
+    if (write.getIsSubmitting()) {
+      app.getToastManager()?.show({
+        message: l10n.t('common.processing'),
       });
-    });
 
-    return unsubscribe;
-  }, [l10n, navigation, write]);
+      return;
+    }
+
+    if (!write.getIsDirty()) {
+      navigation.dispatch(data.action);
+
+      return;
+    }
+
+    app.getAlertManager()?.show({
+      message: l10n.t('community.write.discardConfirm'),
+      confirmText: l10n.t('community.write.discard'),
+      onConfirm: async () => {
+        try {
+          await write.cleanupForDiscard(app.getFirebase().getUserId());
+        } finally {
+          navigation.dispatch(data.action);
+        }
+      },
+    });
+  });
 
   const handleSubmit = async () => {
     try {
