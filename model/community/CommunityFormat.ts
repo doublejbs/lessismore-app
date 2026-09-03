@@ -1,6 +1,7 @@
 import app from '@/model/app/App';
 import { getGroupForCategory } from '@/model/gear/GearCategoryGroups';
 import GearFilter from '@/model/gear/GearFilter';
+import { GEAR_FILTER_NAMES } from '@/model/gear/GearFilterName';
 import CommunityPostType from './CommunityPostType';
 import { CommunityBagSnapshotGear } from './CommunityData';
 import {
@@ -15,19 +16,9 @@ export interface CommunityBagSnapshotGroup {
   totalWeight: number;
 }
 
-const COMMUNITY_BAG_SNAPSHOT_FILTER_ORDER: GearFilter[] = [
-  GearFilter.Backpack,
-  GearFilter.Tent,
-  GearFilter.SleepingBag,
-  GearFilter.Mat,
-  GearFilter.Lantern,
-  GearFilter.Cooking,
-  GearFilter.Clothing,
-  GearFilter.Furniture,
-  GearFilter.Electronic,
-  GearFilter.Food,
-  GearFilter.Etc,
-];
+const COMMUNITY_BAG_SNAPSHOT_FILTER_ORDER = (
+  Object.keys(GEAR_FILTER_NAMES) as GearFilter[]
+).filter(filter => filter !== GearFilter.All);
 
 /**
  * 스냅샷 장비를 앱의 1차 필터 순서에 맞춰 묶는다(CM-4, CM-7).
