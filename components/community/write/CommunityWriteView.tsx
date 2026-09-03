@@ -22,7 +22,6 @@ import CommunityError from '@/model/community/CommunityError';
 import CommunityImagePipelineError from '@/model/community-image/CommunityImagePipelineError';
 import CommunityPostType from '@/model/community/CommunityPostType';
 import CommunityValidationError from '@/model/community/CommunityValidationError';
-import { getCommunityTypeLabel } from '@/model/community/CommunityFormat';
 import {
   COMMUNITY_BODY_MAX_LENGTH,
   COMMUNITY_TITLE_MAX_LENGTH,
@@ -215,9 +214,6 @@ const CommunityWriteView = ({ write }: Props) => {
             <PretendardText style={styles.title} weight='semibold'>
               {title}
             </PretendardText>
-            <PretendardText style={styles.typeLabel}>
-              {getCommunityTypeLabel(write.getType())}
-            </PretendardText>
           </View>
           <View style={styles.headerSpacer} />
         </View>
@@ -236,11 +232,6 @@ const CommunityWriteView = ({ write }: Props) => {
         keyboardShouldPersistTaps='handled'
         showsVerticalScrollIndicator={false}
       >
-        {IS_IOS && (
-          <PretendardText style={styles.typeLabel}>
-            {getCommunityTypeLabel(write.getType())}
-          </PretendardText>
-        )}
         <PretendardText style={styles.author}>
           {`${l10n.t('community.write.author')}: ${write.getAuthorName()}`}
         </PretendardText>
@@ -359,7 +350,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     alignItems: 'center',
-    gap: 2,
   },
   headerSpacer: {
     width: 44,
@@ -367,10 +357,6 @@ const styles = StyleSheet.create({
   title: {
     ...AcgType.screenTitle,
     color: Acg.ink,
-  },
-  typeLabel: {
-    ...AcgType.meta,
-    color: Acg.textMuted,
   },
   scroll: {
     flex: 1,
