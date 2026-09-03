@@ -6,7 +6,7 @@ import PretendardText from '@/components/PretendardText';
 import { Acg, AcgType } from '@/constants/DesignTokens';
 import CommunityPost from '@/model/community/CommunityPost';
 import CommunityDetail from '@/model/community-detail/CommunityDetail';
-import { getCommunityRelativeTime, getCommunityTypeLabel } from '@/model/community/CommunityFormat';
+import { getCommunityRelativeTime } from '@/model/community/CommunityFormat';
 import app from '@/model/app/App';
 import CommunityDetailBagSnapshotView from './CommunityDetailBagSnapshotView';
 import CommunityDetailPollView from './CommunityDetailPollView';
@@ -22,12 +22,18 @@ const CommunityDetailPostHeaderView = observer(({ post, detail, width }: Props) 
   const [failedImages, setFailedImages] = useState<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = post.getImages().filter(image => !failedImages.includes(image.id));
+  const relativeTime = getCommunityRelativeTime(post.getCreatedAt());
 
   return (
     <View style={styles.header}>
-      <PretendardText style={styles.meta}>
-        {`${getCommunityTypeLabel(post.getType())} · ${post.getAuthorName()} · ${getCommunityRelativeTime(post.getCreatedAt())}`}
-      </PretendardText>
+      <View style={styles.meta}>
+        <PretendardText weight='semibold' style={styles.author}>
+          {post.getAuthorName()}
+        </PretendardText>
+        <PretendardText style={styles.time}>
+          {relativeTime}
+        </PretendardText>
+      </View>
       <PretendardText weight='semibold' style={styles.title}>{post.getTitle()}</PretendardText>
       <PretendardText selectable style={styles.body}>{post.getBody()}</PretendardText>
       {images.length > 0 && (
@@ -70,7 +76,9 @@ const CommunityDetailPostHeaderView = observer(({ post, detail, width }: Props) 
 
 const styles = StyleSheet.create({
   header: { paddingTop: 12, paddingBottom: 8 },
-  meta: { ...AcgType.meta, color: Acg.textMuted },
+  meta: { gap: 2 },
+  author: { ...AcgType.rowSubtitle, color: Acg.ink },
+  time: { ...AcgType.meta, color: Acg.textMuted },
   title: { ...AcgType.sectionTitle, color: Acg.ink, marginTop: 12 },
   body: { ...AcgType.body, color: Acg.ink, marginTop: 16 },
   image: { marginTop: 20, backgroundColor: Acg.controlFill },

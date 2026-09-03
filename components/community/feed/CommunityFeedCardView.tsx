@@ -10,7 +10,6 @@ import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import {
   formatCommunityWeight,
   getCommunityRelativeTime,
-  getCommunityTypeLabel,
 } from '@/model/community/CommunityFormat';
 import CommunityPost from '@/model/community/CommunityPost';
 import { COMMUNITY_POST_PREVIEW_MAX_LENGTH } from '@/model/community/CommunityLimits';
@@ -26,7 +25,7 @@ const CommunityFeedCardView: FC<Props> = ({ post }) => {
   const router = useRouter();
   const [imageFailed, setImageFailed] = useState(false);
   const image = post.getRepresentativeImage();
-  const typeLabel = getCommunityTypeLabel(post.getType());
+  const relativeTime = getCommunityRelativeTime(post.getCreatedAt());
   const l10n = app.getL10n();
   const handlePress = () => {
     app.getAnalyticsManager()?.logClick('click_community_post', {
@@ -84,7 +83,7 @@ const CommunityFeedCardView: FC<Props> = ({ post }) => {
       onPress={handlePress}
       activeOpacity={0.85}
       accessibilityRole='button'
-      accessibilityLabel={`${typeLabel}, ${post.getTitle()}, ${post.getAuthorName()}`}
+      accessibilityLabel={`${post.getTitle()}, ${post.getAuthorName()}, ${relativeTime}`}
     >
       {image && !imageFailed ? (
         <Image
@@ -96,9 +95,14 @@ const CommunityFeedCardView: FC<Props> = ({ post }) => {
         />
       ) : null}
       <View style={styles.content}>
-        <PretendardText style={styles.meta} numberOfLines={1}>
-          {`${typeLabel} · ${post.getAuthorName()} · ${getCommunityRelativeTime(post.getCreatedAt())}`}
-        </PretendardText>
+        <View style={styles.meta}>
+          <PretendardText weight='semibold' style={styles.author} numberOfLines={1}>
+            {post.getAuthorName()}
+          </PretendardText>
+          <PretendardText style={styles.time} numberOfLines={1}>
+            {relativeTime}
+          </PretendardText>
+        </View>
         <PretendardText style={styles.title} weight='medium' numberOfLines={2}>
           {post.getTitle()}
         </PretendardText>
@@ -146,8 +150,15 @@ const styles = StyleSheet.create({
     padding: CARD_PADDING,
   },
   meta: {
+    gap: 2,
+  },
+  author: {
+    ...AcgType.rowSubtitle,
+    color: Acg.ink,
+  },
+  time: {
     ...AcgType.meta,
-    color: Acg.textSecondary,
+    color: Acg.textMuted,
   },
   title: {
     ...AcgType.rowTitle,
