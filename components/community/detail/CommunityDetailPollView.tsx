@@ -43,16 +43,14 @@ const CommunityDetailPollView = observer(({ post, detail }: Props) => {
             accessibilityRole='radio'
             accessibilityState={{ selected, disabled }}
           >
-            {showResults && (
-              <View style={[styles.track, selected && styles.selectedTrack]}>
-                <View
-                  style={[
-                    styles.progress,
-                    selected ? styles.selectedProgress : styles.otherProgress,
-                    { width: `${ratio}%` },
-                  ]}
-                />
-              </View>
+            {showResults && ratio > 0 && (
+              <View
+                style={[
+                  styles.progress,
+                  selected ? styles.selectedProgress : styles.otherProgress,
+                  { width: `${ratio}%` },
+                ]}
+              />
             )}
             <PretendardText style={[styles.text, selected && styles.selectedText]}>
               {option.text}
@@ -95,15 +93,14 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.controlFill,
   },
   selectedRow: { backgroundColor: Acg.ink },
-  track: {
-    ...StyleSheet.absoluteFill,
-    borderRadius: AcgRadius.thumb,
-    backgroundColor: Acg.controlFill,
+  progress: {
+    position: 'absolute',
+    left: 0,
+    bottom: 0,
+    height: 4,
   },
-  selectedTrack: { backgroundColor: Acg.ink },
-  progress: { height: '100%', borderRadius: AcgRadius.thumb },
-  selectedProgress: { backgroundColor: Acg.paper, opacity: 0.4 },
-  otherProgress: { backgroundColor: Acg.inkSoft },
+  selectedProgress: { backgroundColor: Acg.paper },
+  otherProgress: { backgroundColor: Acg.ink },
   text: { ...AcgType.control, color: Acg.ink },
   count: { ...AcgType.meta, color: Acg.ink, position: 'absolute', right: 12 },
   selectedText: { color: Acg.paper },
