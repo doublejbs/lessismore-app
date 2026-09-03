@@ -1,11 +1,11 @@
 import { Pressable, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import CommunityPost from '@/model/community/CommunityPost';
 import CommunityDetail from '@/model/community-detail/CommunityDetail';
 import app from '@/model/app/App';
-import { formatCommunityDate } from '@/model/community/CommunityFormat';
 
 interface Props {
   post: CommunityPost;
@@ -28,7 +28,7 @@ const CommunityDetailPollView = observer(({ post, detail }: Props) => {
     <View style={styles.card}>
       {poll.options.map(option => {
         const ratio = poll.totalVoteCount
-          ? Math.round((option.voteCount / poll.totalVoteCount) * 100)
+          ? (option.voteCount / poll.totalVoteCount) * 100
           : 0;
         const selected = detail.getMyVoteOptionId() === option.id;
         const disabled = expired
@@ -37,7 +37,7 @@ const CommunityDetailPollView = observer(({ post, detail }: Props) => {
         return (
           <Pressable
             key={option.id}
-            style={[styles.row, selected && styles.selectedRow]}
+            style={[styles.row, disabled && styles.disabledRow, selected && styles.selectedRow]}
             onPress={() => void detail.vote(option.id)}
             disabled={disabled}
             accessibilityRole='radio'
@@ -45,37 +45,39 @@ const CommunityDetailPollView = observer(({ post, detail }: Props) => {
           >
             {showResults && ratio > 0 && (
               <View
-                style={styles.progressContainer}
-              >
-                <View
-                  style={[
-                    styles.progress,
-                    selected ? styles.selectedProgress : styles.otherProgress,
-                    { width: `${ratio}%` },
-                  ]}
-                />
-              </View>
+                style={[
+                  styles.fill,
+                  selected ? styles.selectedFill : styles.otherFill,
+                  { width: `${ratio}%` },
+                ]}
+              />
             )}
-            <PretendardText style={[styles.text, selected && styles.selectedText]}>
+            <PretendardText
+              style={[
+                styles.text,
+                showResults && (selected ? styles.selectedText : styles.otherText),
+              ]}
+              weight={showResults && selected ? 'semibold' : 'regular'}
+              numberOfLines={2}
+            >
               {option.text}
             </PretendardText>
             {showResults && (
-              <PretendardText style={[styles.count, selected && styles.selectedText]}>
-                {`${option.voteCount} · ${ratio}%${selected ? ' ✓' : ''}`}
-              </PretendardText>
+              <View style={styles.percentContainer}>
+                {selected && (
+                  <Ionicons name='checkmark' size={16} color={Acg.ink} />
+                )}
+                <PretendardText
+                  style={[styles.percent, selected ? styles.selectedText : styles.otherText]}
+                  weight={selected ? 'semibold' : 'regular'}
+                >
+                  {`${ratio.toFixed(1)}%`}
+                </PretendardText>
+              </View>
             )}
           </Pressable>
         );
       })}
-      <PretendardText style={styles.meta}>
-        {expired
-          ? app.getL10n().t('community.poll.closed')
-          : poll.expiresAt
-            ? app.getL10n().t('community.poll.closesAt', {
-                date: formatCommunityDate(poll.expiresAt),
-              })
-            : null}
-      </PretendardText>
       <PretendardText style={styles.meta}>
         {app.getL10n().t('community.poll.participants', {
           count: poll.totalVoteCount,
@@ -88,31 +90,32 @@ const CommunityDetailPollView = observer(({ post, detail }: Props) => {
 const styles = StyleSheet.create({
   card: { marginTop: 24 },
   row: {
-    minHeight: 44,
+    minHeight: 56,
     paddingHorizontal: 12,
     marginBottom: 8,
-    justifyContent: 'center',
     borderRadius: AcgRadius.thumb,
+    borderWidth: 1,
+    borderColor: Acg.hairline,
     overflow: 'hidden',
-    backgroundColor: Acg.controlFill,
+    backgroundColor: Acg.paper,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  selectedRow: { backgroundColor: Acg.ink },
-  progressContainer: {
+  selectedRow: { borderColor: Acg.ink },
+  disabledRow: { opacity: 0.6 },
+  fill: {
     position: 'absolute',
-    left: 12,
-    right: 12,
-    bottom: 6,
-    height: 3,
+    left: 0,
+    top: 0,
+    bottom: 0,
   },
-  progress: {
-    height: 3,
-    borderRadius: 2,
-  },
-  selectedProgress: { backgroundColor: Acg.paper },
-  otherProgress: { backgroundColor: Acg.ink },
-  text: { ...AcgType.control, color: Acg.ink },
-  count: { ...AcgType.meta, color: Acg.ink, position: 'absolute', right: 12 },
-  selectedText: { color: Acg.paper },
+  selectedFill: { backgroundColor: Acg.inkTint },
+  otherFill: { backgroundColor: Acg.controlFill },
+  text: { ...AcgType.control, flex: 1, marginRight: 12 },
+  selectedText: { color: Acg.ink },
+  otherText: { color: Acg.textMuted },
+  percentContainer: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  percent: { ...AcgType.control },
   meta: { ...AcgType.meta, color: Acg.textMuted, marginTop: 4 },
 });
 

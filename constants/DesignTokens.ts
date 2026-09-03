@@ -91,6 +91,7 @@ export const Acg = {
   bg: '#FFFFFF',
   // 기본 텍스트이자 주 액션 면·활성 칩 면.
   ink: '#1A1A1A',
+  inkTint: 'rgba(26,26,26,0.14)',
   textSecondary: '#5F5D57', // AA 5.4
   textTertiary: '#4A4A45', // AA 7.4
   paper: '#FFFFFF',
