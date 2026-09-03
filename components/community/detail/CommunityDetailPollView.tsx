@@ -37,20 +37,28 @@ const CommunityDetailPollView = observer(({ post, detail }: Props) => {
         return (
           <Pressable
             key={option.id}
-            style={styles.row}
+            style={[styles.row, selected && styles.selectedRow]}
             onPress={() => void detail.vote(option.id)}
             disabled={disabled}
             accessibilityRole='radio'
             accessibilityState={{ selected, disabled }}
           >
             {showResults && (
-              <View style={styles.track}>
-                <View style={[styles.progress, { width: `${ratio}%` }]} />
+              <View style={[styles.track, selected && styles.selectedTrack]}>
+                <View
+                  style={[
+                    styles.progress,
+                    selected ? styles.selectedProgress : styles.otherProgress,
+                    { width: `${ratio}%` },
+                  ]}
+                />
               </View>
             )}
-            <PretendardText style={styles.text}>{option.text}</PretendardText>
+            <PretendardText style={[styles.text, selected && styles.selectedText]}>
+              {option.text}
+            </PretendardText>
             {showResults && (
-              <PretendardText style={styles.count}>
+              <PretendardText style={[styles.count, selected && styles.selectedText]}>
                 {`${option.voteCount} · ${ratio}%${selected ? ' ✓' : ''}`}
               </PretendardText>
             )}
@@ -82,14 +90,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 8,
     justifyContent: 'center',
-    borderRadius: AcgRadius.chip,
+    borderRadius: AcgRadius.thumb,
     overflow: 'hidden',
     backgroundColor: Acg.controlFill,
   },
-  track: { ...StyleSheet.absoluteFill, backgroundColor: Acg.controlFill },
-  progress: { height: '100%', backgroundColor: Acg.ink, opacity: 0.12 },
+  selectedRow: { backgroundColor: Acg.ink },
+  track: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: AcgRadius.thumb,
+    backgroundColor: Acg.controlFill,
+  },
+  selectedTrack: { backgroundColor: Acg.ink },
+  progress: { height: '100%', borderRadius: AcgRadius.thumb },
+  selectedProgress: { backgroundColor: Acg.paper, opacity: 0.4 },
+  otherProgress: { backgroundColor: Acg.inkSoft },
   text: { ...AcgType.control, color: Acg.ink },
   count: { ...AcgType.meta, color: Acg.ink, position: 'absolute', right: 12 },
+  selectedText: { color: Acg.paper },
   meta: { ...AcgType.meta, color: Acg.textMuted, marginTop: 4 },
 });
 
