@@ -41,6 +41,8 @@ interface Props {
 const SUBMIT_BUTTON_HEIGHT = 48;
 const BOTTOM_BAR_TOP_PADDING = 8;
 const CONTENT_BOTTOM_EXTRA = 24;
+const NATIVE_HEADER_HEIGHT = 44;
+const IS_IOS = Platform.OS === 'ios';
 const VALIDATION_KEYS: Partial<Record<CommunityValidationError, string>> = {
   [CommunityValidationError.TitleLength]: 'titleLength',
   [CommunityValidationError.BodyLength]: 'bodyLength',
@@ -189,33 +191,54 @@ const CommunityWriteView = ({ write }: Props) => {
           default: undefined,
         })}
       >
-      <Stack.Screen options={{ headerShown: false }} />
-      <View style={[styles.header, { paddingTop: insets.top }]}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-          accessibilityRole='button'
-          accessibilityLabel={l10n.t('common.back')}
-        >
-          <Ionicons name='chevron-back' size={24} color={Acg.ink} />
-        </TouchableOpacity>
-        <View style={styles.headerTitle}>
-          <PretendardText style={styles.title} weight='semibold'>
-            {title}
-          </PretendardText>
-          <PretendardText style={styles.typeLabel}>
-            {getCommunityTypeLabel(write.getType())}
-          </PretendardText>
+      <Stack.Screen
+        options={{
+          headerShown: IS_IOS,
+          headerTransparent: true,
+          headerTitle: title,
+          headerBackButtonDisplayMode: 'minimal',
+        }}
+      />
+      {!IS_IOS && (
+        <View style={[styles.header, { paddingTop: insets.top }]}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            accessibilityRole='button'
+            accessibilityLabel={l10n.t('common.back')}
+          >
+            <Ionicons name='chevron-back' size={24} color={Acg.ink} />
+          </TouchableOpacity>
+          <View style={styles.headerTitle}>
+            <PretendardText style={styles.title} weight='semibold'>
+              {title}
+            </PretendardText>
+            <PretendardText style={styles.typeLabel}>
+              {getCommunityTypeLabel(write.getType())}
+            </PretendardText>
+          </View>
+          <View style={styles.headerSpacer} />
         </View>
-        <View style={styles.headerSpacer} />
-      </View>
+      )}
       <ScrollView
         ref={scrollRef}
         style={styles.scroll}
-        contentContainerStyle={[styles.content, { paddingBottom: contentBottomPadding }]}
+        contentContainerStyle={[
+          styles.content,
+          IS_IOS && {
+            paddingTop: insets.top + NATIVE_HEADER_HEIGHT,
+          },
+          { paddingBottom: contentBottomPadding },
+        ]}
+        contentInsetAdjustmentBehavior='never'
         keyboardShouldPersistTaps='handled'
         showsVerticalScrollIndicator={false}
       >
+        {IS_IOS && (
+          <PretendardText style={styles.typeLabel}>
+            {getCommunityTypeLabel(write.getType())}
+          </PretendardText>
+        )}
         <PretendardText style={styles.author}>
           {`${l10n.t('community.write.author')}: ${write.getAuthorName()}`}
         </PretendardText>

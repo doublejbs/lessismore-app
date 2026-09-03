@@ -12,13 +12,26 @@ interface Props {
   bottomInset: number;
 }
 
+const COMPOSER_TOP_PADDING = 8;
+const COMPOSER_BOTTOM_GAP = 8;
+
 const CommunityDetailCommentComposerView = observer(({ detail, bottomInset }: Props) => {
   const target = detail.getReplyTarget();
   const editing = detail.isEditingComment();
   const loggedIn = app.getFirebase().isLoggedIn();
 
+  const hasDraft = Boolean(detail.getDraft().trim());
+  const isSubmitting = detail.isSubmittingComment();
+
   return (
-    <KeyboardAvoidingView style={[styles.composer, { paddingBottom: Math.max(bottomInset, 8) }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView
+      style={[
+        styles.composer,
+        { paddingBottom: Math.max(bottomInset, COMPOSER_BOTTOM_GAP) + COMPOSER_BOTTOM_GAP },
+      ]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? -bottomInset : 0}
+    >
       {target && !editing && (
         <View style={styles.replyBanner}>
           <PretendardText style={styles.replyText}>{app.getL10n().t('community.comment.replyTo', { name: target.mentionedUserName })}</PretendardText>
@@ -33,7 +46,7 @@ const CommunityDetailCommentComposerView = observer(({ detail, bottomInset }: Pr
           onChangeText={value => detail.setDraft(value)}
           onFocus={() => { if (!loggedIn) { app.getLogInAlertManager()?.show(); } }}
           onPressIn={() => { if (!loggedIn) { app.getLogInAlertManager()?.show(); } }}
-          editable={loggedIn && !detail.isSubmittingComment()}
+          editable={loggedIn && !isSubmitting}
           placeholder={app.getL10n().t('community.comment.placeholder')}
           placeholderTextColor={Acg.textMuted}
           maxLength={COMMUNITY_COMMENT_MAX_LENGTH}
@@ -41,13 +54,27 @@ const CommunityDetailCommentComposerView = observer(({ detail, bottomInset }: Pr
           accessibilityLabel={app.getL10n().t('community.comment.placeholder')}
         />
         <TouchableOpacity
-          style={[styles.submit, (!detail.getDraft().trim() || detail.isSubmittingComment()) && styles.disabled]}
+          style={[styles.submit, (!hasDraft || isSubmitting) && styles.submitDisabled]}
           onPress={() => void detail.submitComment()}
-          disabled={!detail.getDraft().trim() || detail.isSubmittingComment()}
+          disabled={!hasDraft || isSubmitting}
           accessibilityRole='button'
           accessibilityLabel={app.getL10n().t(editing ? 'common.save' : 'community.comment.submit')}
+          accessibilityState={{ disabled: !hasDraft || isSubmitting }}
         >
-          {editing ? <PretendardText style={styles.submitText} weight='semibold'>{app.getL10n().t('common.save')}</PretendardText> : <Ionicons name='arrow-up' size={20} color={Acg.ink} />}
+          {editing ? (
+            <PretendardText
+              style={[styles.submitText, (!hasDraft || isSubmitting) && styles.submitTextDisabled]}
+              weight='semibold'
+            >
+              {app.getL10n().t('common.save')}
+            </PretendardText>
+          ) : (
+            <Ionicons
+              name='arrow-up'
+              size={20}
+              color={hasDraft && !isSubmitting ? Acg.paper : Acg.textMuted}
+            />
+          )}
         </TouchableOpacity>
         {editing && (
           <TouchableOpacity style={styles.cancelEdit} onPress={() => detail.cancelEdit()} accessibilityRole='button'>
@@ -60,7 +87,7 @@ const CommunityDetailCommentComposerView = observer(({ detail, bottomInset }: Pr
 });
 
 const styles = StyleSheet.create({
-  composer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: AcgLayout.screenPadding, paddingTop: 8, backgroundColor: Acg.paper, borderTopWidth: 1, borderTopColor: Acg.hairline },
+  composer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: AcgLayout.screenPadding, paddingTop: COMPOSER_TOP_PADDING, backgroundColor: Acg.paper, borderTopWidth: 1, borderTopColor: Acg.hairline },
   replyBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 6 },
   replyText: { ...AcgType.meta, color: Acg.textMuted },
   cancelReply: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
@@ -68,7 +95,8 @@ const styles = StyleSheet.create({
   input: { flex: 1, minHeight: 44, paddingHorizontal: 14, paddingVertical: 10, borderRadius: AcgRadius.chip, backgroundColor: Acg.controlFill, ...AcgType.control, color: Acg.ink },
   submit: { width: 44, height: 44, borderRadius: Radius.pill, justifyContent: 'center', alignItems: 'center', backgroundColor: Acg.ink },
   submitText: { ...AcgType.meta, color: Acg.paper },
-  disabled: { opacity: 0.45 },
+  submitDisabled: { backgroundColor: Acg.controlFill },
+  submitTextDisabled: { color: Acg.textMuted },
   cancelEdit: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12, borderRadius: AcgRadius.chip, backgroundColor: Acg.controlFill },
   cancelEditText: { ...AcgType.meta, color: Acg.ink },
 });

@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { FC, useCallback, useState } from 'react';
 import {
   FlatList,
+  Platform,
   StyleSheet,
   TouchableOpacity,
   useWindowDimensions,
@@ -39,8 +40,11 @@ interface Props {
 
 const COMMENT_COMPOSER_HEIGHT = 44;
 const COMMENT_COMPOSER_TOP_PADDING = 8;
-const COMMENT_REPLY_BANNER_HEIGHT = 40;
+const COMMENT_REPLY_BANNER_HEIGHT = 50;
 const CONTENT_BOTTOM_EXTRA = 24;
+const NATIVE_HEADER_HEIGHT = 44;
+const COMMENT_COMPOSER_BOTTOM_GAP = 8;
+const IS_IOS = Platform.OS === 'ios';
 
 const CommunityDetailView: FC<Props> = ({ detail }) => {
   const router = useRouter();
@@ -56,6 +60,7 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
     COMMENT_COMPOSER_TOP_PADDING +
     COMMENT_REPLY_BANNER_HEIGHT +
     composerBottomInset +
+    COMMENT_COMPOSER_BOTTOM_GAP +
     CONTENT_BOTTOM_EXTRA;
 
   useFocusEffect(
@@ -83,6 +88,23 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
 
   const closeReport = () => {
     setReportTarget(null);
+  };
+
+  const renderHeaderActions = () => {
+    if (!post) {
+      return null;
+    }
+
+    return (
+      <TouchableOpacity
+        style={styles.headerButton}
+        onPress={() => setShowMenu(true)}
+        accessibilityRole='button'
+        accessibilityLabel={app.getL10n().t('community.detail.menu')}
+      >
+        <Ionicons name='ellipsis-horizontal' size={24} color={Acg.ink} />
+      </TouchableOpacity>
+    );
   };
 
   const content = detail.isLoading() ? (
@@ -126,8 +148,12 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
       }
       contentContainerStyle={[
         styles.listContent,
+        IS_IOS && {
+          paddingTop: insets.top + NATIVE_HEADER_HEIGHT,
+        },
         { paddingBottom: contentBottomPadding },
       ]}
+      contentInsetAdjustmentBehavior='never'
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps='handled'
     />
@@ -135,27 +161,28 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
 
   return (
     <View style={styles.root}>
-      <Stack.Screen options={{ headerShown: false }} />
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => router.back()}
-          accessibilityRole='button'
-          accessibilityLabel={app.getL10n().t('community.detail.back')}
-        >
-          <Ionicons name='chevron-back' size={24} color={Acg.ink} />
-        </TouchableOpacity>
-        {post && (
+      <Stack.Screen
+        options={{
+          headerShown: IS_IOS,
+          headerTransparent: true,
+          headerTitle: '',
+          headerBackButtonDisplayMode: 'minimal',
+          ...(post ? { headerRight: renderHeaderActions } : {}),
+        }}
+      />
+      {!IS_IOS && (
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity
             style={styles.headerButton}
-            onPress={() => setShowMenu(true)}
+            onPress={() => router.back()}
             accessibilityRole='button'
-            accessibilityLabel={app.getL10n().t('community.detail.menu')}
+            accessibilityLabel={app.getL10n().t('community.detail.back')}
           >
-            <Ionicons name='ellipsis-horizontal' size={24} color={Acg.ink} />
+            <Ionicons name='chevron-back' size={24} color={Acg.ink} />
           </TouchableOpacity>
-        )}
-      </View>
+          {renderHeaderActions()}
+        </View>
+      )}
       <View style={styles.content}>{content}</View>
       {post && !detail.isNotFound() && (
         <CommunityDetailCommentComposerView detail={detail} bottomInset={composerBottomInset} />
