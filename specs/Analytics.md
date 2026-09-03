@@ -170,6 +170,7 @@
 | `click_community_publish` | 게시글 등록 성공 | `type`: `post` \| `bag_review` \| `poll`, `image_count`: 0~4 |
 | `click_community_post` | 피드 카드 → 상세 진입 | `type`: 위와 동일 |
 | `click_community_filter` | 유형 필터 변경 | `type`: `all` \| 위 유형 |
+| `click_community_sort` | 정렬 변경 | `sort`: `latest` \| `popular` |
 | `click_community_like` | 게시글 좋아요 토글 | `liked`: boolean |
 | `click_community_comment_submit` | 댓글·답글 등록 성공 | `depth`: `comment` \| `reply` |
 | `click_community_vote` | 투표 성공 | — |

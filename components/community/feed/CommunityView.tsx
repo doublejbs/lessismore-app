@@ -16,6 +16,7 @@ import { observer } from 'mobx-react-lite';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import CategoryChipView from '@/components/browse/CategoryChipView';
+import OrderButtonView from '@/components/order/OrderButtonView';
 import FloatingPillButton from '@/components/FloatingPillButton';
 import { Acg, AcgLayout, AcgType, Radius } from '@/constants/DesignTokens';
 import {
@@ -25,7 +26,10 @@ import {
 } from '@/constants/FloatingAction';
 import CommunityFeed from '@/model/community-feed/CommunityFeed';
 import CommunityFeedFilter from '@/model/community/CommunityFeedFilter';
+import CommunityFeedSort from '@/model/community/CommunityFeedSort';
 import CommunityPost from '@/model/community/CommunityPost';
+import OrderOption from '@/model/order/OrderOption';
+import OrderType from '@/model/order/OrderType';
 import CommunityFeedCardView from './CommunityFeedCardView';
 import CommunityFeedSkeletonView from './CommunityFeedSkeletonView';
 import app from '@/model/app/App';
@@ -99,6 +103,18 @@ const CommunityView: FC<Props> = ({ feed }) => {
     [feed]
   );
 
+  const handleSort = useCallback(
+    (option: OrderOption) => {
+      const sort =
+        option.getOrder() === OrderType.Popular
+          ? CommunityFeedSort.Popular
+          : CommunityFeedSort.Latest;
+
+      void feed.setSort(sort);
+    },
+    [feed]
+  );
+
   const handleRefresh = useCallback(() => {
     void feed.refresh();
   }, [feed]);
@@ -129,20 +145,27 @@ const CommunityView: FC<Props> = ({ feed }) => {
     ];
 
     return (
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterContent}
-      >
-        {filters.map(item => (
-          <CategoryChipView
-            key={item.filter}
-            label={app.getL10n().t(item.labelKey)}
-            selected={feed.getFilter() === item.filter}
-            onPress={() => handleFilter(item.filter)}
-          />
-        ))}
-      </ScrollView>
+      <View style={styles.filterRow}>
+        <ScrollView
+          style={styles.filterScroll}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterContent}
+        >
+          {filters.map(item => (
+            <CategoryChipView
+              key={item.filter}
+              label={app.getL10n().t(item.labelKey)}
+              selected={feed.getFilter() === item.filter}
+              onPress={() => handleFilter(item.filter)}
+            />
+          ))}
+        </ScrollView>
+        <OrderButtonView
+          order={feed.getOrder()}
+          onSelectOption={handleSort}
+        />
+      </View>
     );
   };
 
@@ -277,6 +300,15 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     gap: 12,
   },
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: AcgLayout.screenPadding,
+    paddingRight: 12,
+  },
+  filterScroll: {
+    flex: 1,
+  },
   title: {
     paddingHorizontal: AcgLayout.screenPadding,
     ...AcgType.screenTitle,
@@ -284,7 +316,7 @@ const styles = StyleSheet.create({
   },
   filterContent: {
     gap: AcgLayout.chipGap,
-    paddingHorizontal: AcgLayout.screenPadding,
+    paddingRight: AcgLayout.chipGap,
   },
   listContent: {
     flexGrow: 1,

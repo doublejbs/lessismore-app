@@ -7,7 +7,7 @@ const enum OrderType {
     CreatedDesc = 'createdDesc',
     StartDateAsc = 'startDateAsc',
     StartDateDesc = 'startDateDesc',
+    Latest = 'latest',
+    Popular = 'popular',
   }
-  
 export default OrderType;
-  

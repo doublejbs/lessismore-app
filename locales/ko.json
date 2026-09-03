@@ -1163,7 +1163,11 @@
       "justNow": "방금 전",
       "minutesAgo": "{{count}}분 전",
       "hoursAgo": "{{count}}시간 전",
-      "daysAgo": "{{count}}일 전"
+      "daysAgo": "{{count}}일 전",
+      "sort": {
+        "latest": "최신순",
+        "popular": "인기순"
+      }
     },
     "detail": {
       "back": "뒤로",

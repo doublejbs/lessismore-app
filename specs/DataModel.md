@@ -659,6 +659,11 @@
 | `createdAt` | timestamp | 서버 작성 시각, 피드 정렬 기준 |
 | `updatedAt` | timestamp | 마지막 내용 수정 시각 |
 
+커뮤니티 피드 복합 인덱스는 아래 쿼리를 지원한다.
+
+- `community-posts (status asc, likeCount desc, createdAt desc)`
+- `community-posts (status asc, type asc, likeCount desc, createdAt desc)`
+
 게시글의 `updatedAt`은 게시글 내용 수정 시각이며 댓글 생성·수정·삭제로 갱신하지 않는다. 댓글 자체의 `updatedAt`만 댓글 수정·소프트 삭제 때 갱신한다.
 
 클라이언트 게시글 수정에서 `poll.expiresAt`를 `null`로 전달하면 `poll` 맵 교체 시 해당 필드가 사라지고, 날짜를 전달하면 새 마감 시각으로 저장한다. 필드를 전달하지 않으면 기존 마감 시각을 유지한다.

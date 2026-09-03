@@ -1177,7 +1177,11 @@
       "justNow": "Just now",
       "minutesAgo": "{{count}}m ago",
       "hoursAgo": "{{count}}h ago",
-      "daysAgo": "{{count}}d ago"
+      "daysAgo": "{{count}}d ago",
+      "sort": {
+        "latest": "Newest",
+        "popular": "Most popular"
+      }
     },
     "detail": {
       "back": "Back",

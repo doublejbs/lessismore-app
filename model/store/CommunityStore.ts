@@ -20,6 +20,7 @@ import CommunityCommentDeletedReason from '../community/CommunityCommentDeletedR
 import CommunityContentStatus from '../community/CommunityContentStatus';
 import CommunityError from '../community/CommunityError';
 import CommunityFeedFilter from '../community/CommunityFeedFilter';
+import CommunityFeedSort from '../community/CommunityFeedSort';
 import {
   CommunityCommentData,
   CommunityLikeData,
@@ -53,8 +54,9 @@ class CommunityStore {
 
   public async getFeedPage(
     filter: CommunityFeedFilter,
+    sort: CommunityFeedSort,
     cursor: QueryDocumentSnapshot | null,
-    pageSize: number = COMMUNITY_PAGE_SIZE
+    limit: number = COMMUNITY_PAGE_SIZE
   ): Promise<{
     posts: CommunityPost[];
     cursor: QueryDocumentSnapshot | null;
@@ -66,8 +68,10 @@ class CommunityStore {
       ...(filter === CommunityFeedFilter.All
         ? []
         : [where('type', '==', filter)]),
-      orderBy('createdAt', 'desc'),
-      firestoreLimit(pageSize + 1),
+      ...(sort === CommunityFeedSort.Popular
+        ? [orderBy('likeCount', 'desc'), orderBy('createdAt', 'desc')]
+        : [orderBy('createdAt', 'desc')]),
+      firestoreLimit(limit + 1),
     ];
     let feedQuery = query(postsRef, ...constraints);
 
@@ -76,9 +80,9 @@ class CommunityStore {
     }
 
     const snapshot = await getDocs(feedQuery);
-    const hasMore = snapshot.docs.length > pageSize;
+    const hasMore = snapshot.docs.length > limit;
     const visibleDocs = hasMore
-      ? snapshot.docs.slice(0, pageSize)
+      ? snapshot.docs.slice(0, limit)
       : snapshot.docs;
 
     return {

@@ -18,12 +18,14 @@
 
 ## 인덱스 생성 콘솔 링크
 
-- 게시글 전체 피드: (콘솔 링크 기록)
-- 게시글 유형 필터: (콘솔 링크 기록)
+- 게시글 전체 피드(최신순): (콘솔 링크 기록)
+- 게시글 유형 필터(최신순): (콘솔 링크 기록)
+- 게시글 전체 피드(인기순): (콘솔 링크 기록)
+- 게시글 유형 필터(인기순): (콘솔 링크 기록)
 - 댓글 상태·생성 시각: (콘솔 링크 기록)
 - 신고 상태·생성 시각: (콘솔 링크 기록)
 
-댓글 쿼리는 `status in ['published', 'deleted']`와 `createdAt asc`를 사용하므로 `status` 오름차순·`createdAt` 오름차순 복합 인덱스로 기록했다. 컬렉션 그룹 단일 필드(`authorId`, `status`, `mentionedUserId`)는 `community-firestore.indexes.json`의 `fieldOverrides`로 배포 범위를 활성화하며, 앱 쿼리에 사용하는 복합 인덱스 4개와 함께 이 파일만 배포 기준으로 삼는다. 실제 Firebase CLI가 요구하는 형식과 프로젝트 콘솔 결과가 다르면 배포 전에 이 문서를 먼저 갱신한다.
+댓글 쿼리는 `status in ['published', 'deleted']`와 `createdAt asc`를 사용하므로 `status` 오름차순·`createdAt` 오름차순 복합 인덱스로 기록했다. 커뮤니티 피드는 최신순·인기순 및 유형 필터 조합에 따라 `community-posts` 복합 인덱스 4개를 사용한다. 컬렉션 그룹 단일 필드(`authorId`, `status`, `mentionedUserId`)는 `community-firestore.indexes.json`의 `fieldOverrides`로 배포 범위를 활성화하며, 앱 쿼리에 사용하는 복합 인덱스 6개와 함께 이 파일만 배포 기준으로 삼는다. 실제 Firebase CLI가 요구하는 형식과 프로젝트 콘솔 결과가 다르면 배포 전에 이 문서를 먼저 갱신한다.
 
 각 컬렉션 그룹 `fieldOverrides`에는 기본 컬렉션 단일 필드 인덱스(오름차순·내림차순·array-contains)를 유지하면서 컬렉션 그룹 오름차순 범위를 추가했다. 신고 `(status, createdAt)` 복합 인덱스는 앱·서버 쿼리가 아닌 Firebase 콘솔에서 신고를 상태·시각순으로 훑기 위한 운영용 인덱스로 유지한다.
 

@@ -1163,7 +1163,11 @@
       "justNow": "たった今",
       "minutesAgo": "{{count}}分前",
       "hoursAgo": "{{count}}時間前",
-      "daysAgo": "{{count}}日前"
+      "daysAgo": "{{count}}日前",
+      "sort": {
+        "latest": "新着順",
+        "popular": "人気順"
+      }
     },
     "detail": {
       "back": "戻る",

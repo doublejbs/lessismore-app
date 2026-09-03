@@ -1,6 +1,7 @@
 import type { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import app from '@/model/app/App';
 import CommunityFeedFilter from '@/model/community/CommunityFeedFilter';
+import CommunityFeedSort from '@/model/community/CommunityFeedSort';
 import CommunityPost from '@/model/community/CommunityPost';
 import CommunityStore from '@/model/store/CommunityStore';
 
@@ -19,9 +20,10 @@ class CommunityFeedDispatcher {
 
   public async getPage(
     filter: CommunityFeedFilter,
+    sort: CommunityFeedSort,
     cursor: QueryDocumentSnapshot<DocumentData> | null
   ): Promise<CommunityFeedPage> {
-    return await this.store.getFeedPage(filter, cursor);
+    return await this.store.getFeedPage(filter, sort, cursor);
   }
 }
 

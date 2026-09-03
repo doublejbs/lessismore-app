@@ -2,12 +2,17 @@ import type { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { makeAutoObservable } from 'mobx';
 import app from '@/model/app/App';
 import CommunityFeedFilter from '@/model/community/CommunityFeedFilter';
+import CommunityFeedSort from '@/model/community/CommunityFeedSort';
 import CommunityPost from '@/model/community/CommunityPost';
 import { subscribeCommunityPostDeleted } from '@/model/community/CommunityFeedInvalidation';
+import Order from '@/model/order/Order';
+import OrderType from '@/model/order/OrderType';
+import { createCommunityFeedOrderOptions } from '@/model/order/CommunityFeedOrderOptions';
 import CommunityFeedDispatcher from './CommunityFeedDispatcher';
 
 class CommunityFeed {
   private filter = CommunityFeedFilter.All;
+  private sort = CommunityFeedSort.Latest;
   private posts: CommunityPost[] = [];
   private cursor: QueryDocumentSnapshot<DocumentData> | null = null;
   private hasMore = false;
@@ -22,10 +27,16 @@ class CommunityFeed {
   private isQuietRefreshing = false;
 
   public static from(dispatcher: CommunityFeedDispatcher) {
-    return new CommunityFeed(dispatcher);
+    return new CommunityFeed(
+      dispatcher,
+      Order.new('communityFeed', createCommunityFeedOrderOptions())
+    );
   }
 
-  private constructor(private readonly dispatcher: CommunityFeedDispatcher) {
+  private constructor(
+    private readonly dispatcher: CommunityFeedDispatcher,
+    private readonly order: Order
+  ) {
     makeAutoObservable(this);
   }
 
@@ -41,6 +52,8 @@ class CommunityFeed {
     }
 
     this.subscribeDeleted();
+    await this.order.initialize();
+    this.setSortValue(this.getSortFromOrder());
     this.setInitialized(true);
     this.setLoading(true);
     await this.loadFirstPage();
@@ -49,6 +62,26 @@ class CommunityFeed {
   public async setFilter(filter: CommunityFeedFilter) {
     this.setFilterValue(filter);
     app.getAnalyticsManager()?.logClick('click_community_filter', { type: filter });
+    this.setLoading(true);
+    await this.loadFirstPage();
+  }
+
+  public async setSort(sort: CommunityFeedSort) {
+    if (this.sort === sort) {
+      return;
+    }
+
+    const option = this.order
+      .mapOrderOptions(item => item)
+      .find(item => this.getSortFromOrderType(item.getOrder()) === sort);
+
+    if (!option) {
+      return;
+    }
+
+    this.order.setOrderOption(option);
+    this.setSortValue(sort);
+    app.getAnalyticsManager()?.logClick('click_community_sort', { sort });
     this.setLoading(true);
     await this.loadFirstPage();
   }
@@ -68,7 +101,11 @@ class CommunityFeed {
     const requestVersion = this.requestVersion;
 
     try {
-      const page = await this.dispatcher.getPage(this.filter, this.cursor);
+      const page = await this.dispatcher.getPage(
+        this.filter,
+        this.sort,
+        this.cursor
+      );
 
       if (requestVersion !== this.requestVersion) {
         return;
@@ -120,6 +157,14 @@ class CommunityFeed {
     return this.filter;
   }
 
+  public getSort() {
+    return this.sort;
+  }
+
+  public getOrder() {
+    return this.order;
+  }
+
   public getIsInitialized() {
     return this.initialized;
   }
@@ -157,7 +202,7 @@ class CommunityFeed {
     }
 
     try {
-      const page = await this.dispatcher.getPage(this.filter, null);
+      const page = await this.dispatcher.getPage(this.filter, this.sort, null);
 
       if (requestVersion !== this.requestVersion) {
         return;
@@ -182,6 +227,10 @@ class CommunityFeed {
 
   private setFilterValue(value: CommunityFeedFilter) {
     this.filter = value;
+  }
+
+  private setSortValue(value: CommunityFeedSort) {
+    this.sort = value;
   }
 
   private setPosts(value: CommunityPost[]) {
@@ -245,6 +294,18 @@ class CommunityFeed {
 
   private removePost(postId: string) {
     this.setPosts(this.posts.filter(post => post.getId() !== postId));
+  }
+
+  private getSortFromOrder() {
+    const orderType = this.order.getSelectedOrderType();
+
+    return this.getSortFromOrderType(orderType);
+  }
+
+  private getSortFromOrderType(orderType: OrderType | undefined) {
+    return orderType === OrderType.Popular
+      ? CommunityFeedSort.Popular
+      : CommunityFeedSort.Latest;
   }
 }
 
