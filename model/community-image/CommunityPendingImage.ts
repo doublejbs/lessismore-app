@@ -14,8 +14,8 @@ class CommunityPendingImage {
   public height: number;
   public state: CommunityImageUploadState = CommunityImageUploadState.Pending;
   public progress = 0;
-  public error?: CommunityImageError;
-  public uploaded?: CommunityPostImage;
+  public error: CommunityImageError | undefined = undefined;
+  public uploaded: CommunityPostImage | undefined = undefined;
 
   public constructor(
     localId: string,
@@ -82,7 +82,7 @@ class CommunityPendingImage {
   }
 
   private clearError() {
-    delete this.error;
+    this.error = undefined;
   }
 
   private setUploaded(value: CommunityPostImage) {
@@ -90,7 +90,7 @@ class CommunityPendingImage {
   }
 
   private clearUploadedValue() {
-    delete this.uploaded;
+    this.uploaded = undefined;
   }
 }
 

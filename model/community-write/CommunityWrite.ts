@@ -617,6 +617,15 @@ class CommunityWrite {
       return;
     }
 
+    const imageStates = this.imageSession.images.map((image) => ({
+      localId: image.localId,
+      state: image.state,
+      error: image.error,
+      sourceUri: image.sourceUri,
+    }));
+
+    console.error('커뮤니티 사진 미완료 상태:', imageStates); // l10n-ignore: 개발자 로그
+
     throw new CommunityImagePipelineError(CommunityImageError.UploadFailed);
   }
 
