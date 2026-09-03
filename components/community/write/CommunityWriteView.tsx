@@ -224,7 +224,7 @@ const CommunityWriteView = ({ write }: Props) => {
         contentContainerStyle={[
           styles.content,
           IS_IOS && {
-            paddingTop: insets.top + NATIVE_HEADER_HEIGHT,
+            paddingTop: insets.top + NATIVE_HEADER_HEIGHT + AcgLayout.screenPadding,
           },
           { paddingBottom: contentBottomPadding },
         ]}
@@ -363,6 +363,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: AcgLayout.screenPadding,
+    paddingTop: AcgLayout.screenPadding,
     gap: 24,
   },
   author: {
