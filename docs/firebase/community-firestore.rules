@@ -44,6 +44,11 @@ service cloud.firestore {
         || (!('expiresAt' in resource.data.poll) && !('expiresAt' in request.resource.data.poll));
     }
 
+    function pollIsOpen() {
+      return !('expiresAt' in resource.data.poll)
+        || resource.data.poll.expiresAt > request.time;
+    }
+
     function samePollOption(index) {
       return request.resource.data.poll.options[index].id == resource.data.poll.options[index].id
         && request.resource.data.poll.options[index].text == resource.data.poll.options[index].text
@@ -54,6 +59,12 @@ service cloud.firestore {
       return request.resource.data.poll.options[index].id == resource.data.poll.options[index].id
         && request.resource.data.poll.options[index].text == resource.data.poll.options[index].text
         && request.resource.data.poll.options[index].voteCount == resource.data.poll.options[index].voteCount + 1;
+    }
+
+    function decrementedPollOption(index) {
+      return request.resource.data.poll.options[index].id == resource.data.poll.options[index].id
+        && request.resource.data.poll.options[index].text == resource.data.poll.options[index].text
+        && request.resource.data.poll.options[index].voteCount == resource.data.poll.options[index].voteCount - 1;
     }
 
     function pollOptionsCounterMatches() {
@@ -71,6 +82,63 @@ service cloud.firestore {
               || (samePollOption(0) && incrementedPollOption(1) && samePollOption(2) && samePollOption(3))
               || (samePollOption(0) && samePollOption(1) && incrementedPollOption(2) && samePollOption(3))
               || (samePollOption(0) && samePollOption(1) && samePollOption(2) && incrementedPollOption(3))))
+        );
+    }
+
+    function voteMoved(postId, previousOptionId, nextOptionId) {
+      let votePath = /databases/$(database)/documents/community-poll-votes/$(postId + '_' + request.auth.uid);
+      return exists(votePath)
+        && existsAfter(votePath)
+        && get(votePath).data.optionId == previousOptionId
+        && getAfter(votePath).data.optionId == nextOptionId;
+    }
+
+    function pollOptionsChangedCounterMatches(postId) {
+      return request.resource.data.poll.options.size() == resource.data.poll.options.size()
+        && (
+          (resource.data.poll.options.size() == 2
+            && ((decrementedPollOption(0) && incrementedPollOption(1)
+                && voteMoved(postId, resource.data.poll.options[0].id, resource.data.poll.options[1].id))
+              || (incrementedPollOption(0) && decrementedPollOption(1)
+                && voteMoved(postId, resource.data.poll.options[1].id, resource.data.poll.options[0].id))))
+          || (resource.data.poll.options.size() == 3
+            && ((decrementedPollOption(0) && incrementedPollOption(1) && samePollOption(2)
+                && voteMoved(postId, resource.data.poll.options[0].id, resource.data.poll.options[1].id))
+              || (decrementedPollOption(0) && samePollOption(1) && incrementedPollOption(2)
+                && voteMoved(postId, resource.data.poll.options[0].id, resource.data.poll.options[2].id))
+              || (incrementedPollOption(0) && decrementedPollOption(1) && samePollOption(2)
+                && voteMoved(postId, resource.data.poll.options[1].id, resource.data.poll.options[0].id))
+              || (samePollOption(0) && decrementedPollOption(1) && incrementedPollOption(2)
+                && voteMoved(postId, resource.data.poll.options[1].id, resource.data.poll.options[2].id))
+              || (incrementedPollOption(0) && samePollOption(1) && decrementedPollOption(2)
+                && voteMoved(postId, resource.data.poll.options[2].id, resource.data.poll.options[0].id))
+              || (samePollOption(0) && incrementedPollOption(1) && decrementedPollOption(2)
+                && voteMoved(postId, resource.data.poll.options[2].id, resource.data.poll.options[1].id))))
+          || (resource.data.poll.options.size() == 4
+            && ((decrementedPollOption(0) && incrementedPollOption(1) && samePollOption(2) && samePollOption(3)
+                && voteMoved(postId, resource.data.poll.options[0].id, resource.data.poll.options[1].id))
+              || (decrementedPollOption(0) && samePollOption(1) && incrementedPollOption(2) && samePollOption(3)
+                && voteMoved(postId, resource.data.poll.options[0].id, resource.data.poll.options[2].id))
+              || (decrementedPollOption(0) && samePollOption(1) && samePollOption(2) && incrementedPollOption(3)
+                && voteMoved(postId, resource.data.poll.options[0].id, resource.data.poll.options[3].id))
+              || (incrementedPollOption(0) && decrementedPollOption(1) && samePollOption(2) && samePollOption(3)
+                && voteMoved(postId, resource.data.poll.options[1].id, resource.data.poll.options[0].id))
+              || (samePollOption(0) && decrementedPollOption(1) && incrementedPollOption(2) && samePollOption(3)
+                && voteMoved(postId, resource.data.poll.options[1].id, resource.data.poll.options[2].id))
+              || (samePollOption(0) && decrementedPollOption(1) && samePollOption(2) && incrementedPollOption(3)
+                && voteMoved(postId, resource.data.poll.options[1].id, resource.data.poll.options[3].id))
+              || (incrementedPollOption(0) && samePollOption(1) && decrementedPollOption(2) && samePollOption(3)
+                && voteMoved(postId, resource.data.poll.options[2].id, resource.data.poll.options[0].id))
+              || (samePollOption(0) && incrementedPollOption(1) && decrementedPollOption(2) && samePollOption(3)
+                && voteMoved(postId, resource.data.poll.options[2].id, resource.data.poll.options[1].id))
+              || (samePollOption(0) && samePollOption(1) && decrementedPollOption(2) && incrementedPollOption(3)
+                && voteMoved(postId, resource.data.poll.options[2].id, resource.data.poll.options[3].id))
+              || (incrementedPollOption(0) && samePollOption(1) && samePollOption(2) && decrementedPollOption(3)
+                && voteMoved(postId, resource.data.poll.options[3].id, resource.data.poll.options[0].id))
+              || (samePollOption(0) && incrementedPollOption(1) && samePollOption(2) && decrementedPollOption(3)
+                && voteMoved(postId, resource.data.poll.options[3].id, resource.data.poll.options[1].id))
+              || (samePollOption(0) && samePollOption(1) && incrementedPollOption(2) && decrementedPollOption(3)
+                && voteMoved(postId, resource.data.poll.options[3].id, resource.data.poll.options[2].id))))
         );
     }
 
@@ -102,12 +170,20 @@ service cloud.firestore {
       let votePath = /databases/$(database)/documents/community-poll-votes/$(postId + '_' + request.auth.uid);
       return resource.data.type == 'poll'
         && (
-          request.resource.data.poll.totalVoteCount == resource.data.poll.totalVoteCount + 1
-          && request.resource.data.poll.keys().hasOnly(['options', 'totalVoteCount', 'expiresAt'])
-          && resource.data.poll.keys().hasOnly(['options', 'totalVoteCount', 'expiresAt'])
-          && sameExpiresAt()
-          && pollOptionsCounterMatches()
-          && existsAfter(votePath) && !exists(votePath)
+          (request.resource.data.poll.totalVoteCount == resource.data.poll.totalVoteCount + 1
+            && request.resource.data.poll.keys().hasOnly(['options', 'totalVoteCount', 'expiresAt'])
+            && resource.data.poll.keys().hasOnly(['options', 'totalVoteCount', 'expiresAt'])
+            && sameExpiresAt()
+            && pollIsOpen()
+            && pollOptionsCounterMatches()
+            && existsAfter(votePath) && !exists(votePath))
+          || (request.resource.data.poll.totalVoteCount == resource.data.poll.totalVoteCount
+            && request.resource.data.poll.keys().hasOnly(['options', 'totalVoteCount', 'expiresAt'])
+            && resource.data.poll.keys().hasOnly(['options', 'totalVoteCount', 'expiresAt'])
+            && sameExpiresAt()
+            && pollIsOpen()
+            && exists(votePath)
+            && pollOptionsChangedCounterMatches(postId))
         );
     }
 
@@ -216,7 +292,14 @@ service cloud.firestore {
         && voteId.matches('^.*_' + request.auth.uid + '$')
         && request.resource.data.userId == request.auth.uid
         && isPublishedPost(request.resource.data.postId);
-      allow update, delete: if false;
+      allow update: if signedIn()
+        && voteId.matches('^.*_' + request.auth.uid + '$')
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.postId == resource.data.postId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['optionId', 'updatedAt'])
+        && isPublishedPost(request.resource.data.postId);
+      allow delete: if false;
     }
 
     match /community-reports/{reportId} {

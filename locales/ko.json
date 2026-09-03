@@ -1196,7 +1196,7 @@
       "participants": "{{count}}명 참여",
       "closed": "마감된 투표예요",
       "closesAt": "{{date}}까지",
-      "alreadyVoted": "이미 투표했어요"
+      "changed": "투표를 변경했어요"
     },
     "report": {
       "title": "신고 사유를 선택해주세요",

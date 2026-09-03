@@ -32,7 +32,6 @@ const CommunityDetailPollView = observer(({ post, detail }: Props) => {
           : 0;
         const selected = detail.getMyVoteOptionId() === option.id;
         const disabled = expired
-          || detail.getMyVoteOptionId() !== null
           || detail.isVoteInProgress();
 
         return (

@@ -170,16 +170,27 @@ class CommunityDetail {
       return;
     }
 
+    const previousOptionId = this.myVoteOptionId;
+
+    if (previousOptionId === optionId) {
+      return;
+    }
+
     this.setIsVoting(true);
+    this.post.applyVote(optionId, previousOptionId);
+    this.setMyVoteOptionId(optionId);
     try {
       await this.dispatcher.vote(this.postId, optionId);
-      this.post.applyVote(optionId);
-      this.setMyVoteOptionId(optionId);
       app.getAnalyticsManager()?.logClick('click_community_vote');
+
+      if (previousOptionId !== null) {
+        this.showToast('community.poll.changed');
+      }
     } catch (error) {
-      if (this.isCommunityError(error, CommunityValidationError.AlreadyVoted)) {
-        this.showToast('community.poll.alreadyVoted');
-      } else if (
+      this.post.rollbackVote(optionId, previousOptionId);
+      this.setMyVoteOptionId(previousOptionId);
+
+      if (
         this.isCommunityError(error, CommunityValidationError.PollExpired)
       ) {
         this.showToast('community.poll.closed');

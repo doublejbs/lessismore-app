@@ -10,7 +10,6 @@ enum CommunityValidationError {
   ImageCount = 'image_count',
   CommentLength = 'comment_length',
   NotLoggedIn = 'not_logged_in',
-  AlreadyVoted = 'already_voted',
   PollExpired = 'poll_expired',
   PollLocked = 'poll_locked',
   PostNotFound = 'post_not_found',

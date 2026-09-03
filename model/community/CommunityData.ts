@@ -118,6 +118,7 @@ export interface CommunityPollVoteData {
   userId: string;
   optionId: string;
   createdAt: Date;
+  updatedAt?: Date;
 }
 
 export interface CommunityReportInput {

@@ -157,7 +157,7 @@ class CommunityPost {
     this.setLikeCount(Math.max(0, this.likeCount + delta));
   }
 
-  public applyVote(optionId: string) {
+  public applyVote(optionId: string, previousOptionId: string | null = null) {
     if (!this.poll) {
       return;
     }
@@ -168,13 +168,62 @@ class CommunityPost {
       return;
     }
 
-    const options = this.poll.options.map(item =>
-      item.id === optionId ? { ...item, voteCount: item.voteCount + 1 } : item
-    );
+    if (previousOptionId === optionId) {
+      return;
+    }
+
+    const previousOption = previousOptionId
+      ? this.poll.options.find(item => item.id === previousOptionId)
+      : null;
+    const options = this.poll.options.map(item => {
+      if (item.id === previousOptionId && previousOption) {
+        return { ...item, voteCount: Math.max(0, item.voteCount - 1) };
+      }
+
+      if (item.id === optionId) {
+        return { ...item, voteCount: item.voteCount + 1 };
+      }
+
+      return item;
+    });
     this.setPoll({
       ...this.poll,
       options,
-      totalVoteCount: this.poll.totalVoteCount + 1,
+      totalVoteCount: previousOption ? this.poll.totalVoteCount : this.poll.totalVoteCount + 1,
+    });
+  }
+
+  public rollbackVote(optionId: string, previousOptionId: string | null = null) {
+    if (!this.poll || previousOptionId === optionId) {
+      return;
+    }
+
+    const option = this.poll.options.find(item => item.id === optionId);
+
+    if (!option) {
+      return;
+    }
+
+    const previousOption = previousOptionId
+      ? this.poll.options.find(item => item.id === previousOptionId)
+      : null;
+    const options = this.poll.options.map(item => {
+      if (item.id === optionId) {
+        return { ...item, voteCount: Math.max(0, item.voteCount - 1) };
+      }
+
+      if (item.id === previousOptionId && previousOption) {
+        return { ...item, voteCount: item.voteCount + 1 };
+      }
+
+      return item;
+    });
+    this.setPoll({
+      ...this.poll,
+      options,
+      totalVoteCount: previousOption
+        ? this.poll.totalVoteCount
+        : Math.max(0, this.poll.totalVoteCount - 1),
     });
   }
 

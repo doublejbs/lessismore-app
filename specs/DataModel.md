@@ -718,7 +718,7 @@
 | 경로 | 필드 | 규칙 |
 | --- | --- | --- |
 | `community-post-likes/{userId}_{postId}` | `userId`, `postId`, `createdAt` | 문서 존재가 좋아요 상태. 생성·삭제와 게시글 `likeCount`를 원자적으로 갱신 |
-| `community-poll-votes/{postId}_{userId}` | `postId`, `userId`, `optionId`, `createdAt` | 결정적 문서 ID로 계정당 한 표. 생성과 선택지·전체 카운트를 원자적으로 갱신. 수정·삭제로 선택 변경 불가 |
+| `community-poll-votes/{postId}_{userId}` | `postId`, `userId`, `optionId`, `createdAt`, `updatedAt?` | 결정적 문서 ID로 계정당 한 표. 생성 또는 `optionId` 변경(update)과 선택지 카운트를 같은 트랜잭션에서 원자적으로 갱신하고, 삭제는 금지한다. 변경 시 이전 선택지 `voteCount -1`·새 선택지 `+1`, `totalVoteCount`는 불변이다. `updatedAt`은 변경 시각(선택)이다. |
 | `community-reports/{reportId}` | `reporterId`, `targetType`, `targetPostId`, `targetCommentId?`, `targetAuthorId`, `reason`, `detail?`, `status`, `createdAt`, `resolvedAt?`, `resolvedBy?` | `targetType`: `post` / `comment`; `reason`: `spam` / `harassment` / `sexual_violence` / `copyright` / `privacy` / `other`; `status`: `open` / `reviewing` / `actioned` / `dismissed`. 같은 `(reporterId, targetType, targetId)` 중복 생성 금지 |
 
 신고 문서 ID는 결정적으로 `{reporterId}_{targetType}_{targetId}`를 사용한다.
@@ -797,7 +797,7 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 | 박지 유저 후기 생성/수정/삭제 | `runTransaction` | 후기 문서 + 요약 문서(`reviewCount`/`ratingSum`/`ratingAvg`) (DM-20) |
 | 커뮤니티 게시글 좋아요 | `runTransaction` | `community-post-likes` + 게시글 `likeCount` (DM-28) |
 | 커뮤니티 댓글 생성/삭제 | `runTransaction` | 댓글 문서 + 게시글 `commentCount` (DM-28) |
-| 커뮤니티 투표 | 클라이언트 `runTransaction` + 보안 규칙 검증 | `community-poll-votes` + 선택지 `voteCount` + `totalVoteCount` (DM-28) |
+| 커뮤니티 투표 | 클라이언트 `runTransaction` + 보안 규칙 검증 | 신규: `community-poll-votes` 생성 + 선택지 `voteCount +1` + `totalVoteCount +1`; 변경: 투표 문서 `optionId`·`updatedAt` 갱신 + 이전 선택지 `voteCount -1`·새 선택지 `+1`(`totalVoteCount` 불변) (DM-28) |
 | 커뮤니티 게시글 삭제·회원 탈퇴 | 재시도 가능한 서버 작업 — `lessismore` 레포 Cloud Functions (DM-28 참조) | 게시글·댓글·좋아요·투표 + Storage 사진 + 관련 카운트 (CM-9·CM-12) |
 | 회원 탈퇴 `Firebase.deleteUserData` | 청크 `writeBatch` | `gear-rank` 감소 + `bag` 문서들 + `users/{uid}/gears` 전체 + `comment-likes` + `users/{uid}` 삭제 ([Auth.md](Auth.md) AU-8) |
 

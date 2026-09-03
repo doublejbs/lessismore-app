@@ -532,10 +532,6 @@ class CommunityStore {
         throw new CommunityError(CommunityValidationError.PostNotFound);
       }
 
-      if (voteSnapshot.exists()) {
-        throw new CommunityError(CommunityValidationError.AlreadyVoted);
-      }
-
       const poll = this.toPoll(postSnapshot.data().poll);
 
       if (!poll) {
@@ -548,6 +544,41 @@ class CommunityStore {
 
       if (!poll.options.some(option => option.id === optionId)) {
         throw new CommunityError(CommunityValidationError.PollOptionInvalid);
+      }
+
+      if (voteSnapshot.exists()) {
+        const previousOptionId = voteSnapshot.data().optionId as string;
+
+        if (previousOptionId === optionId) {
+          return;
+        }
+
+        if (!poll.options.some(option => option.id === previousOptionId)) {
+          throw new CommunityError(CommunityValidationError.PollOptionInvalid);
+        }
+
+        const options = poll.options.map(option => {
+          if (option.id === previousOptionId) {
+            return { ...option, voteCount: Math.max(0, option.voteCount - 1) };
+          }
+
+          if (option.id === optionId) {
+            return { ...option, voteCount: option.voteCount + 1 };
+          }
+
+          return option;
+        });
+
+        transaction.update(voteRef, {
+          optionId,
+          updatedAt: serverTimestamp(),
+        });
+        transaction.update(postRef, {
+          'poll.options': options,
+          'poll.totalVoteCount': poll.totalVoteCount,
+        });
+
+        return;
       }
 
       const options = poll.options.map(option =>

@@ -1210,7 +1210,7 @@
       "participants": "{{count}} participated",
       "closed": "This poll is closed",
       "closesAt": "Until {{date}}",
-      "alreadyVoted": "You already voted"
+      "changed": "Vote changed"
     },
     "report": {
       "title": "Choose a report reason",

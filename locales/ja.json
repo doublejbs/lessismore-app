@@ -1196,7 +1196,7 @@
       "participants": "{{count}}人が参加",
       "closed": "終了した投票です",
       "closesAt": "{{date}}まで",
-      "alreadyVoted": "投票済みです"
+      "changed": "投票を変更しました"
     },
     "report": {
       "title": "報告理由を選択してください",
