@@ -1126,8 +1126,8 @@
         "locked": "投票が始まったため、タイトルと選択肢は編集できません",
         "expiresCustom": "カスタム · {{date}}"
       },
-      "discardConfirm": "作成中の内容を破棄しますか？",
-      "discard": "破棄",
+      "discardConfirm": "作成をキャンセルしますか？",
+      "discard": "作成をキャンセル",
       "published": "投稿しました",
       "updated": "投稿を保存しました",
       "failed": "投稿を保存できませんでした",
@@ -1145,7 +1145,8 @@
         "bag_review": "バックパックレビューを書く",
         "poll": "投票を作成"
       },
-      "bodyLabelOptional": "本文（任意）"
+      "bodyLabelOptional": "本文（任意）",
+      "keepWriting": "続けて作成"
     },
     "validation": {
       "titleLength": "タイトルは2～80文字で入力してください",

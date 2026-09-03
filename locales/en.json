@@ -1140,8 +1140,8 @@
         "locked": "Voting has started, so the title and options cannot be edited",
         "expiresCustom": "Custom · {{date}}"
       },
-      "discardConfirm": "Discard this draft?",
-      "discard": "Discard",
+      "discardConfirm": "Cancel writing this post?",
+      "discard": "Cancel writing",
       "published": "Your post was published",
       "updated": "Your post was saved",
       "failed": "Could not save your post",
@@ -1159,7 +1159,8 @@
         "bag_review": "New bag review",
         "poll": "New poll"
       },
-      "bodyLabelOptional": "Body (optional)"
+      "bodyLabelOptional": "Body (optional)",
+      "keepWriting": "Keep writing"
     },
     "validation": {
       "titleLength": "Title must be 2–80 characters",

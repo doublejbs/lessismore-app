@@ -1126,8 +1126,8 @@
         "locked": "투표가 시작되어 제목과 선택지는 수정할 수 없어요",
         "expiresCustom": "사용자 지정 · {{date}}"
       },
-      "discardConfirm": "작성 중인 내용을 버릴까요?",
-      "discard": "버리기",
+      "discardConfirm": "작성을 취소하시겠어요?",
+      "discard": "작성 취소",
       "published": "게시글을 등록했어요",
       "updated": "게시글을 저장했어요",
       "failed": "게시글을 저장하지 못했어요",
@@ -1145,7 +1145,8 @@
         "bag_review": "배낭 후기 쓰기",
         "poll": "투표 만들기"
       },
-      "bodyLabelOptional": "내용 (선택)"
+      "bodyLabelOptional": "내용 (선택)",
+      "keepWriting": "계속 작성"
     },
     "validation": {
       "titleLength": "제목은 2~80자로 입력해주세요",

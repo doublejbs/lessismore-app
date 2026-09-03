@@ -101,6 +101,7 @@ const CommunityWriteView = ({ write }: Props) => {
     app.getAlertManager()?.show({
       message: l10n.t('community.write.discardConfirm'),
       confirmText: l10n.t('community.write.discard'),
+      cancelText: l10n.t('community.write.keepWriting'),
       onConfirm: async () => {
         try {
           await write.cleanupForDiscard(app.getFirebase().getUserId());
