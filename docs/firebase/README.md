@@ -39,3 +39,4 @@
 - 배포 전 검증: Firestore·Storage 에뮬레이터에서 기존 경로 비로그인 읽기/쓰기 허용 유지, 커뮤니티 컬렉션·경로 비로그인 거부, png 거부 확인.
 - Cloud Functions 5개는 `lessismore` 레포 `functions/`에서 `--only functions:<이름>` 지정 배포(`--force`는 retry 정책 확인용).
 - 2026-09-03 2차: 투표 변경 허용(CM-5 개정) 규칙을 같은 병합 방식으로 재배포(`deployed/firestore.rules` 갱신). Storage 규칙·인덱스는 변경 없음.
+- 2026-09-03 3차: 피드 정렬 인기순용 인덱스 2개(likeCount desc) 추가 배포(`deployed/firestore.indexes.json` 갱신, 총 16개 + overrides 3).
