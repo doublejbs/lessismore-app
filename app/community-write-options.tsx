@@ -24,11 +24,11 @@ const CommunityWriteOptionsScreen = () => {
     type: CommunityPostType,
     icon: keyof typeof Ionicons.glyphMap,
     titleKey:
-      | 'community.write.typeSheet.question'
+      | 'community.write.typeSheet.post'
       | 'community.write.typeSheet.bagReview'
       | 'community.write.typeSheet.poll',
     descriptionKey:
-      | 'community.write.typeSheet.questionDesc'
+      | 'community.write.typeSheet.postDesc'
       | 'community.write.typeSheet.bagReviewDesc'
       | 'community.write.typeSheet.pollDesc'
   ) => {
@@ -72,10 +72,10 @@ const CommunityWriteOptionsScreen = () => {
         </PretendardText>
       </View>
       {renderTypeRow(
-        CommunityPostType.Question,
-        'help-circle-outline',
-        'community.write.typeSheet.question',
-        'community.write.typeSheet.questionDesc'
+        CommunityPostType.Post,
+        'create-outline',
+        'community.write.typeSheet.post',
+        'community.write.typeSheet.postDesc'
       )}
       <View style={styles.divider} />
       {renderTypeRow(

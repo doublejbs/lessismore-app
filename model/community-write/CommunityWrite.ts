@@ -106,7 +106,7 @@ class CommunityWrite {
   ): CommunityWrite {
     return new CommunityWrite(
       CommunityWriteMode.Edit,
-      CommunityPostType.Question,
+      CommunityPostType.Post,
       postId,
       dispatcher,
       imageSession,

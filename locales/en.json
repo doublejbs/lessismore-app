@@ -1079,10 +1079,10 @@
   "community": {
     "title": "Community",
     "type": {
-      "question": "Question",
       "bagReview": "Pack review",
       "poll": "Poll",
-      "all": "All"
+      "all": "All",
+      "post": "Post"
     },
     "write": {
       "title": "Write post",
@@ -1133,7 +1133,7 @@
         "expires1d": "1 day",
         "expires3d": "3 days",
         "expires7d": "7 days",
-        "locked": "Voting has started, so the question and options cannot be edited",
+        "locked": "Voting has started, so the title and options cannot be edited",
         "expiresCustom": "Custom · {{date}}"
       },
       "discardConfirm": "Discard this draft?",
@@ -1143,30 +1143,30 @@
       "failed": "Could not save your post",
       "typeSheet": {
         "title": "What would you like to share?",
-        "question": "Question",
-        "questionDesc": "Ask the community something",
         "bagReview": "Pack review",
         "bagReviewDesc": "Share your experience with a pack",
         "poll": "Poll",
-        "pollDesc": "Ask others to choose"
+        "pollDesc": "Ask others to choose",
+        "post": "Post",
+        "postDesc": "Share anything freely"
       }
     },
     "validation": {
       "titleLength": "Title must be 2–80 characters",
-      "bodyLength": "Body must be 10–5,000 characters for questions and reviews, or up to 5,000 for polls",
+      "bodyLength": "Body must be 10–5,000 characters for posts and reviews, or up to 5,000 for polls",
       "pollOptionCount": "Add 2–4 options",
       "pollOptionLength": "Options must be 1–60 characters",
       "pollOptionDuplicate": "Options must be unique",
       "bagSnapshotRequired": "Choose a pack for your review",
       "imageCount": "You can attach up to 4 photos",
       "notLoggedIn": "Please log in",
-      "pollLocked": "Voting has started, so the question and options cannot be edited",
+      "pollLocked": "Voting has started, so the title and options cannot be edited",
       "postNotFound": "Post not found",
       "failed": "Please check your input"
     },
     "feed": {
       "empty": "No posts yet",
-      "emptyHint": "Be the first to share a story",
+      "emptyHint": "Be the first to post",
       "retry": "Try again",
       "loadFailed": "Could not load posts",
       "pollOpen": "Open",

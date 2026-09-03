@@ -8,8 +8,8 @@ import {
 
 export const getCommunityTypeLabel = (type: CommunityPostType): string => {
   const key =
-    type === CommunityPostType.Question
-      ? 'question'
+    type === CommunityPostType.Post
+      ? 'post'
       : type === CommunityPostType.BagReview
         ? 'bagReview'
         : 'poll';

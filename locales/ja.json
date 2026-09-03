@@ -1065,10 +1065,10 @@
   "community": {
     "title": "コミュニティ",
     "type": {
-      "question": "質問",
       "bagReview": "バックパックレビュー",
       "poll": "投票",
-      "all": "すべて"
+      "all": "すべて",
+      "post": "投稿"
     },
     "write": {
       "title": "投稿する",
@@ -1119,7 +1119,7 @@
         "expires1d": "1日",
         "expires3d": "3日",
         "expires7d": "7日",
-        "locked": "投票が始まったため、質問と選択肢は編集できません",
+        "locked": "投票が始まったため、タイトルと選択肢は編集できません",
         "expiresCustom": "カスタム · {{date}}"
       },
       "discardConfirm": "作成中の内容を破棄しますか？",
@@ -1129,30 +1129,30 @@
       "failed": "投稿を保存できませんでした",
       "typeSheet": {
         "title": "何を投稿しますか？",
-        "question": "質問",
-        "questionDesc": "コミュニティに質問する",
         "bagReview": "バックパックレビュー",
         "bagReviewDesc": "使ったバックパックの体験を共有する",
         "poll": "投票",
-        "pollDesc": "みんなに選んでもらう"
+        "pollDesc": "みんなに選んでもらう",
+        "post": "投稿",
+        "postDesc": "自由に投稿してみましょう"
       }
     },
     "validation": {
       "titleLength": "タイトルは2～80文字で入力してください",
-      "bodyLength": "内容は質問・レビューは10～5,000文字、投票は5,000文字以内で入力してください",
+      "bodyLength": "内容は投稿・レビューは10～5,000文字、投票は5,000文字以内で入力してください",
       "pollOptionCount": "選択肢は2～4個必要です",
       "pollOptionLength": "選択肢は1～60文字で入力してください",
       "pollOptionDuplicate": "重複しない選択肢を入力してください",
       "bagSnapshotRequired": "レビューするバックパックを選択してください",
       "imageCount": "写真は最大4枚まで添付できます",
       "notLoggedIn": "ログインしてください",
-      "pollLocked": "投票が始まったため、質問と選択肢は編集できません",
+      "pollLocked": "投票が始まったため、タイトルと選択肢は編集できません",
       "postNotFound": "投稿が見つかりません",
       "failed": "入力内容を確認してください"
     },
     "feed": {
       "empty": "まだ投稿がありません",
-      "emptyHint": "最初の体験を共有しましょう",
+      "emptyHint": "最初の投稿を残してみましょう",
       "retry": "再試行",
       "loadFailed": "投稿を読み込めませんでした",
       "pollOpen": "進行中",

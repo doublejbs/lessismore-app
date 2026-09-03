@@ -7,8 +7,8 @@ import CommunityWriteWrapper from '@/components/community/write/CommunityWriteWr
 const parseType = (value: string | string[] | undefined): CommunityPostType | null => {
   const candidate = Array.isArray(value) ? value[0] : value;
 
-  if (candidate === CommunityPostType.Question) {
-    return CommunityPostType.Question;
+  if (candidate === CommunityPostType.Post) {
+    return CommunityPostType.Post;
   }
 
   if (candidate === CommunityPostType.BagReview) {

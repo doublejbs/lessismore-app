@@ -89,7 +89,7 @@
 | `gear-comments/{gearId}/comments/{parentId}/comments/{replyId}` | 답글 (중첩 서브컬렉션) | `ReplyStore` |
 | `comment-likes/{userId}_{commentId}` | 댓글 좋아요 (복합 키 문서) | `ReplyStore` |
 | `feed-content/{contentId}` | 운영자 작성 콘텐츠 — 홈 추천 큐레이션 (DM-27) `[기획]` | 홈 `useless가 고른 박지` ([Home.md](Home.md) HM-11) |
-| `community-posts/{postId}` | 커뮤니티 질문·배낭 후기·투표 (DM-28) `[제안]` | 커뮤니티 피드·상세 |
+| `community-posts/{postId}` | 커뮤니티 게시글·배낭 후기·투표 (DM-28) `[제안]` | 커뮤니티 피드·상세 |
 | `community-posts/{postId}/comments/{commentId}` | 커뮤니티 댓글·한 단계 답글 (DM-28) `[제안]` | 커뮤니티 상세 |
 | `community-post-likes/{userId}_{postId}` | 커뮤니티 게시글 좋아요 (DM-28) `[제안]` | 커뮤니티 피드·상세 |
 | `community-poll-votes/{postId}_{userId}` | 커뮤니티 투표, 게시글·계정당 한 문서 (DM-28) `[제안]` | 커뮤니티 투표 |
@@ -641,12 +641,12 @@
 
 | 필드 | 타입 | 비고 |
 | --- | --- | --- |
-| `type` | string | string enum `CommunityPostType`: `question` / `bag_review` / `poll` |
+| `type` | string | string enum `CommunityPostType`: `post` / `bag_review` / `poll` (`post`는 일반 게시글) |
 | `status` | string | string enum `CommunityContentStatus`: `published` / `hidden` / `deleted` |
 | `authorId` | string | Firebase Auth uid. 익명 게시 없음 |
 | `authorName` | string | 작성 시점 닉네임 스냅샷 |
 | `title` | string | trim 후 2~80자 |
-| `body` | string | 질문·배낭 후기는 trim 후 10~5,000자, 투표는 빈 값 허용·최대 5,000자 |
+| `body` | string | 일반 게시글·배낭 후기는 trim 후 10~5,000자, 투표는 빈 값 허용·최대 5,000자 |
 | `images` | array | 공개 사진 0~4장, 배열 순서가 표시 순서이며 첫 항목이 대표 사진 |
 | `images[].id` | string | 게시글 안에서 고유한 이미지 ID. Storage 파일명과 연결 |
 | `images[].url` | string | 커뮤니티 Storage 다운로드 URL. 개인 장비 `imageUrl` 사용 금지 |

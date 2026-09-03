@@ -26,7 +26,7 @@ const CommunityWriteWrapper = ({ mode, type, postId }: Props) => {
     mode === CommunityWriteMode.Edit && postId
       ? CommunityWrite.edit(postId, CommunityWriteDispatcher.new())
       : CommunityWrite.create(
-          type ?? CommunityPostType.Question,
+          type ?? CommunityPostType.Post,
           CommunityWriteDispatcher.new()
         )
   );

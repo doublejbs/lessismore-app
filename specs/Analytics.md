@@ -167,7 +167,7 @@
 | 이벤트 | 트리거 | 파라미터 |
 | --- | --- | --- |
 | `click_community_write` | 커뮤니티 `글쓰기` → 유형 선택 | — |
-| `click_community_publish` | 게시글 등록 성공 | `type`: `question` \| `bag_review` \| `poll`, `image_count`: 0~4 |
+| `click_community_publish` | 게시글 등록 성공 | `type`: `post` \| `bag_review` \| `poll`, `image_count`: 0~4 |
 | `click_community_post` | 피드 카드 → 상세 진입 | `type`: 위와 동일 |
 | `click_community_filter` | 유형 필터 변경 | `type`: `all` \| 위 유형 |
 | `click_community_like` | 게시글 좋아요 토글 | `liked`: boolean |

@@ -18,7 +18,11 @@ import PretendardText from '@/components/PretendardText';
 import CategoryChipView from '@/components/browse/CategoryChipView';
 import FloatingPillButton from '@/components/FloatingPillButton';
 import { Acg, AcgLayout, AcgType, Radius } from '@/constants/DesignTokens';
-import { TAB_BAR_HEIGHT } from '@/constants/TabBar';
+import {
+  FLOATING_ACTION_RIGHT,
+  getFloatingActionBottom,
+  getFloatingActionListBottomPadding,
+} from '@/constants/FloatingAction';
 import CommunityFeed from '@/model/community-feed/CommunityFeed';
 import CommunityFeedFilter from '@/model/community/CommunityFeedFilter';
 import CommunityPost from '@/model/community/CommunityPost';
@@ -32,10 +36,6 @@ interface Props {
 
 const IOS_EDGES = ['top', 'left', 'right'] as const;
 const END_REACHED_THRESHOLD = 0.3;
-const FLOATING_BUTTON_MARGIN = 20;
-const FLOATING_BUTTON_HEIGHT = 48;
-const LIST_BOTTOM_EXTRA = 12;
-
 const CommunityView: FC<Props> = ({ feed }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -46,21 +46,8 @@ const CommunityView: FC<Props> = ({ feed }) => {
   const isRefreshing = feed.getIsRefreshing();
   const isLoadingMore = feed.getIsLoadingMore();
   const error = feed.getError();
-  const writeButtonBottom = Platform.select({
-    ios: insets.bottom + TAB_BAR_HEIGHT + FLOATING_BUTTON_MARGIN,
-    android: FLOATING_BUTTON_MARGIN,
-    default: FLOATING_BUTTON_MARGIN,
-  });
-  const listBottomPadding = Platform.select({
-    ios:
-      insets.bottom +
-      TAB_BAR_HEIGHT +
-      FLOATING_BUTTON_MARGIN +
-      FLOATING_BUTTON_HEIGHT +
-      LIST_BOTTOM_EXTRA,
-    android: FLOATING_BUTTON_MARGIN + FLOATING_BUTTON_HEIGHT + LIST_BOTTOM_EXTRA,
-    default: FLOATING_BUTTON_MARGIN + FLOATING_BUTTON_HEIGHT + LIST_BOTTOM_EXTRA,
-  });
+  const writeButtonBottom = getFloatingActionBottom(insets.bottom);
+  const listBottomPadding = getFloatingActionListBottomPadding(insets.bottom);
 
   useFocusEffect(
     useCallback(() => {
@@ -125,14 +112,14 @@ const CommunityView: FC<Props> = ({ feed }) => {
       filter: CommunityFeedFilter;
       labelKey:
         | 'community.type.all'
-        | 'community.type.question'
+        | 'community.type.post'
         | 'community.type.bagReview'
         | 'community.type.poll';
     }[] = [
       { filter: CommunityFeedFilter.All, labelKey: 'community.type.all' },
       {
-        filter: CommunityFeedFilter.Question,
-        labelKey: 'community.type.question',
+        filter: CommunityFeedFilter.Post,
+        labelKey: 'community.type.post',
       },
       {
         filter: CommunityFeedFilter.BagReview,
@@ -276,6 +263,7 @@ const CommunityView: FC<Props> = ({ feed }) => {
         <FloatingPillButton
           label={app.getL10n().t('community.feed.writeButton')}
           onPress={handleWrite}
+          variant='primary'
           style={[styles.writeButton, { bottom: writeButtonBottom }]}
         />
       )}
@@ -355,7 +343,7 @@ const styles = StyleSheet.create({
   },
   writeButton: {
     position: 'absolute',
-    right: AcgLayout.screenPadding,
+    right: FLOATING_ACTION_RIGHT,
   },
 });
 
