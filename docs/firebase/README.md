@@ -36,3 +36,4 @@
 - `deployed/firestore.indexes.json` = 기존 인덱스 11개(gear·gears·gear-rank·comments(parentId)·community-posts) + 커뮤니티 신규 3 + fieldOverrides 3. 인덱스 배포는 파일에 없는 인덱스를 삭제하려 하므로 **항상 이 병합본 기준으로 배포**한다.
 - 배포 전 검증: Firestore·Storage 에뮬레이터에서 기존 경로 비로그인 읽기/쓰기 허용 유지, 커뮤니티 컬렉션·경로 비로그인 거부, png 거부 확인.
 - Cloud Functions 5개는 `lessismore` 레포 `functions/`에서 `--only functions:<이름>` 지정 배포(`--force`는 retry 정책 확인용).
+- 2026-09-03 2차: 투표 변경 허용(CM-5 개정) 규칙을 같은 병합 방식으로 재배포(`deployed/firestore.rules` 갱신). Storage 규칙·인덱스는 변경 없음.
