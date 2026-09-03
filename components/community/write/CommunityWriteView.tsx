@@ -72,7 +72,7 @@ const CommunityWriteView = ({ write }: Props) => {
   const isEdit = write.getMode() === CommunityWriteMode.Edit;
   const title = isEdit
     ? l10n.t('community.write.editTitle')
-    : l10n.t('community.write.title');
+    : l10n.t(`community.write.titleByType.${write.getType()}`);
   const actionLabel = isEdit
     ? l10n.t('community.write.save')
     : l10n.t('community.write.publish');
@@ -235,6 +235,14 @@ const CommunityWriteView = ({ write }: Props) => {
         <PretendardText style={styles.author}>
           {`${l10n.t('community.write.author')}: ${write.getAuthorName()}`}
         </PretendardText>
+        {write.getType() === CommunityPostType.BagReview && (
+          <View onLayout={(event) => setBagInputY(event.nativeEvent.layout.y)} style={styles.subsection}>
+            <CommunityWriteBagSelectView write={write} />
+            {getErrorText(CommunityWriteField.Bag) && (
+              <PretendardText style={styles.error}>{getErrorText(CommunityWriteField.Bag)}</PretendardText>
+            )}
+          </View>
+        )}
         <View onLayout={(event) => setTitleInputY(event.nativeEvent.layout.y)} style={styles.field}>
           <View style={styles.fieldHeader}>
             <PretendardText style={styles.label} weight='semibold'>
@@ -260,17 +268,33 @@ const CommunityWriteView = ({ write }: Props) => {
             </PretendardText>
           )}
         </View>
+        {write.getType() === CommunityPostType.Poll && (
+          <View onLayout={(event) => setPollInputY(event.nativeEvent.layout.y)} style={styles.subsection}>
+            <CommunityWritePollOptionsView write={write} />
+            {getErrorText(CommunityWriteField.PollOptions) && (
+              <PretendardText style={styles.error}>{getErrorText(CommunityWriteField.PollOptions)}</PretendardText>
+            )}
+          </View>
+        )}
         <View onLayout={(event) => setBodyInputY(event.nativeEvent.layout.y)} style={styles.field}>
           <View style={styles.fieldHeader}>
             <PretendardText style={styles.label} weight='semibold'>
-              {l10n.t('community.write.bodyLabel')}
+              {l10n.t(
+                write.getType() === CommunityPostType.Poll
+                  ? 'community.write.bodyLabelOptional'
+                  : 'community.write.bodyLabel'
+              )}
             </PretendardText>
             <PretendardText style={styles.counter}>
               {l10n.t('community.write.counter', { count: write.getBody().length, max: COMMUNITY_BODY_MAX_LENGTH })}
             </PretendardText>
           </View>
           <TextInput
-            style={[styles.input, styles.bodyInput]}
+            style={[
+              styles.input,
+              styles.bodyInput,
+              write.getType() === CommunityPostType.Poll && styles.pollBodyInput,
+            ]}
             value={write.getBody()}
             onChangeText={(value) => write.setBody(value)}
             placeholder={l10n.t('community.write.bodyPlaceholder')}
@@ -287,22 +311,6 @@ const CommunityWriteView = ({ write }: Props) => {
             </PretendardText>
           )}
         </View>
-        {write.getType() === CommunityPostType.BagReview && (
-          <View onLayout={(event) => setBagInputY(event.nativeEvent.layout.y)} style={styles.subsection}>
-            <CommunityWriteBagSelectView write={write} />
-            {getErrorText(CommunityWriteField.Bag) && (
-              <PretendardText style={styles.error}>{getErrorText(CommunityWriteField.Bag)}</PretendardText>
-            )}
-          </View>
-        )}
-        {write.getType() === CommunityPostType.Poll && (
-          <View onLayout={(event) => setPollInputY(event.nativeEvent.layout.y)} style={styles.subsection}>
-            <CommunityWritePollOptionsView write={write} />
-            {getErrorText(CommunityWriteField.PollOptions) && (
-              <PretendardText style={styles.error}>{getErrorText(CommunityWriteField.PollOptions)}</PretendardText>
-            )}
-          </View>
-        )}
         <CommunityWriteImagesView write={write} />
       </ScrollView>
       <View style={[styles.bottomBar, { paddingBottom: bottomInset }]}>
@@ -399,7 +407,10 @@ const styles = StyleSheet.create({
     color: Acg.ink,
   },
   bodyInput: {
-    minHeight: 180,
+    minHeight: 200,
+  },
+  pollBodyInput: {
+    minHeight: 120,
   },
   inputDisabled: {
     opacity: 0.55,

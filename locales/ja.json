@@ -1071,7 +1071,6 @@
       "post": "投稿"
     },
     "write": {
-      "title": "投稿する",
       "editTitle": "投稿を編集",
       "author": "投稿者",
       "publish": "投稿",
@@ -1117,7 +1116,7 @@
       },
       "poll": {
         "option": "選択肢{{count}}",
-        "addOption": "+ 選択肢を追加",
+        "addOption": "選択肢を追加",
         "removeOption": "選択肢{{count}}を削除",
         "expires": "締切",
         "expiresNone": "なし",
@@ -1140,7 +1139,13 @@
         "pollDesc": "みんなに選んでもらう",
         "post": "投稿",
         "postDesc": "自由に投稿してみましょう"
-      }
+      },
+      "titleByType": {
+        "post": "投稿を書く",
+        "bag_review": "バックパックレビューを書く",
+        "poll": "投票を作成"
+      },
+      "bodyLabelOptional": "本文（任意）"
     },
     "validation": {
       "titleLength": "タイトルは2～80文字で入力してください",

@@ -1071,7 +1071,6 @@
       "post": "게시글"
     },
     "write": {
-      "title": "글쓰기",
       "editTitle": "게시글 수정",
       "author": "작성자",
       "publish": "등록",
@@ -1117,7 +1116,7 @@
       },
       "poll": {
         "option": "선택지 {{count}}",
-        "addOption": "+ 선택지 추가",
+        "addOption": "선택지 추가",
         "removeOption": "선택지 {{count}} 삭제",
         "expires": "마감",
         "expiresNone": "없음",
@@ -1140,7 +1139,13 @@
         "pollDesc": "다른 사람의 선택을 물어보세요",
         "post": "게시글",
         "postDesc": "자유롭게 이야기를 남겨보세요"
-      }
+      },
+      "titleByType": {
+        "post": "게시글 쓰기",
+        "bag_review": "배낭 후기 쓰기",
+        "poll": "투표 만들기"
+      },
+      "bodyLabelOptional": "내용 (선택)"
     },
     "validation": {
       "titleLength": "제목은 2~80자로 입력해주세요",

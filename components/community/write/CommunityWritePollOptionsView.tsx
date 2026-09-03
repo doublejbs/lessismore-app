@@ -1,7 +1,8 @@
 import { observer } from 'mobx-react-lite';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType, Radius } from '@/constants/DesignTokens';
 import CommunityWrite from '@/model/community-write/CommunityWrite';
 import { formatCommunityDate } from '@/model/community/CommunityFormat';
 import app from '@/model/app/App';
@@ -48,6 +49,12 @@ const CommunityWritePollOptionsView = ({ write }: Props) => {
             <PretendardText style={styles.label} weight='semibold'>
               {l10n.t('community.write.poll.option', { count: index + 1 })}
             </PretendardText>
+            <PretendardText style={styles.counter}>
+              {l10n.t('community.write.counter', {
+                count: option.length,
+                max: COMMUNITY_POLL_OPTION_MAX_LENGTH,
+              })}
+            </PretendardText>
             {pollOptions.length > COMMUNITY_POLL_MIN_OPTIONS && canEdit && !write.getIsSubmitting() && (
               <TouchableOpacity
                 style={styles.removeButton}
@@ -77,12 +84,6 @@ const CommunityWritePollOptionsView = ({ write }: Props) => {
             maxLength={COMMUNITY_POLL_OPTION_MAX_LENGTH}
             editable={canEdit && !write.getIsSubmitting()}
           />
-          <PretendardText style={styles.counter}>
-            {l10n.t('community.write.counter', {
-              count: option.length,
-              max: COMMUNITY_POLL_OPTION_MAX_LENGTH,
-            })}
-          </PretendardText>
         </View>
       ))}
       {canEdit && pollOptions.length < COMMUNITY_POLL_MAX_OPTIONS && !write.getIsSubmitting() && (
@@ -92,6 +93,7 @@ const CommunityWritePollOptionsView = ({ write }: Props) => {
           accessibilityRole='button'
           accessibilityLabel={l10n.t('community.write.poll.addOption')}
         >
+          <Ionicons name='add' size={18} color={Acg.ink} />
           <PretendardText style={styles.addOptionText} weight='semibold'>
             {l10n.t('community.write.poll.addOption')}
           </PretendardText>
@@ -151,12 +153,13 @@ const styles = StyleSheet.create({
   optionHeader: {
     minHeight: 32,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 8,
   },
   label: {
     ...AcgType.meta,
     color: Acg.ink,
+    flex: 1,
   },
   removeButton: {
     minHeight: 44,
@@ -184,15 +187,18 @@ const styles = StyleSheet.create({
   counter: {
     ...AcgType.meta,
     color: Acg.textMuted,
-    alignSelf: 'flex-end',
   },
   addOption: {
     minHeight: 44,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    borderRadius: AcgRadius.chip,
-    backgroundColor: Acg.controlFill,
+    paddingHorizontal: 16,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: Acg.hairline,
+    borderRadius: Radius.pill,
+    backgroundColor: Acg.paper,
   },
   addOptionText: {
     ...AcgType.control,

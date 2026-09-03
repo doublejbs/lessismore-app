@@ -1085,7 +1085,6 @@
       "post": "Post"
     },
     "write": {
-      "title": "Write post",
       "editTitle": "Edit post",
       "author": "Author",
       "publish": "Post",
@@ -1131,7 +1130,7 @@
       },
       "poll": {
         "option": "Option {{count}}",
-        "addOption": "+ Add option",
+        "addOption": "Add option",
         "removeOption": "Remove option {{count}}",
         "expires": "Closes",
         "expiresNone": "None",
@@ -1154,7 +1153,13 @@
         "pollDesc": "Ask others to choose",
         "post": "Post",
         "postDesc": "Share anything freely"
-      }
+      },
+      "titleByType": {
+        "post": "New post",
+        "bag_review": "New bag review",
+        "poll": "New poll"
+      },
+      "bodyLabelOptional": "Body (optional)"
     },
     "validation": {
       "titleLength": "Title must be 2–80 characters",
