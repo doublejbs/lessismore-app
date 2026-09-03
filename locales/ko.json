@@ -1108,7 +1108,12 @@
         "previewWeight": "총 무게: {{weight}}kg",
         "previewCount": "장비 {{count}}개",
         "previewGear": "{{company}} {{name}} · {{weight}}g",
-        "selected": "{{name}} · {{date}} · {{weight}}kg"
+        "selected": "{{name}} · {{date}} · {{weight}}kg",
+        "previewVisibility": "공개 정보: {{destination}} · {{weather}}",
+        "previewDestinationIncluded": "여행지 포함",
+        "previewDestinationOmitted": "여행지 없음",
+        "previewWeatherIncluded": "날씨 {{count}}일 포함",
+        "previewWeatherOmitted": "날씨 없음"
       },
       "poll": {
         "option": "선택지 {{count}}",
@@ -1189,7 +1194,12 @@
       "snapshotSectionWeightUnit": "g",
       "bagSnapshot": {
         "label": "다녀온 배낭",
-        "totalWeight": "총 무게"
+        "totalWeight": "총 무게",
+        "cardLabel": "{{name}} · {{location}}",
+        "location": "여행지 {{name}}",
+        "weatherLabel": "날씨",
+        "weatherSeparator": " · ",
+        "locationNone": "여행지 없음"
       }
     },
     "comment": {

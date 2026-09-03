@@ -3,12 +3,21 @@ import CommunityComment from '@/model/community/CommunityComment';
 import { CommunityReportInput } from '@/model/community/CommunityData';
 import CommunityPost from '@/model/community/CommunityPost';
 import CommunityStore from '@/model/store/CommunityStore';
+import CampSpotStore from '@/model/store/CampSpotStore';
+import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 
 class CommunityDetailDispatcher {
-  public constructor(private readonly store: CommunityStore) {}
+  public constructor(
+    private readonly store: CommunityStore,
+    private readonly campSpotStore: CampSpotStore
+  ) {}
 
   public getPost(postId: string): Promise<CommunityPost | null> {
     return this.store.getPost(postId);
+  }
+
+  public getCampSpot(id: string): Promise<CampSpot | null> {
+    return this.campSpotStore.getSpot(id);
   }
 
   public isLiked(postId: string): Promise<boolean> {

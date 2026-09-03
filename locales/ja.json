@@ -1108,7 +1108,12 @@
         "previewWeight": "総重量: {{weight}}kg",
         "previewCount": "{{count}}個のギア",
         "previewGear": "{{company}} {{name}} · {{weight}}g",
-        "selected": "{{name}} · {{date}} · {{weight}}kg"
+        "selected": "{{name}} · {{date}} · {{weight}}kg",
+        "previewVisibility": "公開情報: {{destination}} · {{weather}}",
+        "previewDestinationIncluded": "行き先あり",
+        "previewDestinationOmitted": "行き先なし",
+        "previewWeatherIncluded": "天気{{count}}日分あり",
+        "previewWeatherOmitted": "天気なし"
       },
       "poll": {
         "option": "選択肢{{count}}",
@@ -1189,7 +1194,12 @@
       "snapshotSectionWeightUnit": "g",
       "bagSnapshot": {
         "label": "使ったバックパック",
-        "totalWeight": "総重量"
+        "totalWeight": "総重量",
+        "cardLabel": "{{name}} · {{location}}",
+        "location": "行き先 {{name}}",
+        "weatherLabel": "天気",
+        "weatherSeparator": " · ",
+        "locationNone": "行き先なし"
       }
     },
     "comment": {

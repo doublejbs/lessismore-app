@@ -675,6 +675,13 @@
 | `name` | string | 작성 시점 배낭 이름 |
 | `startDate` / `endDate` | string? | `YYYY-MM-DD`. 날짜 없는 배낭이면 생략 |
 | `destinationName` | string? | 공개 가능한 표시 이름만. 좌표·상세 주소 없음 |
+| `campSpotId` | string? | 여행지가 등록 박지일 때만 저장하는 공개 카탈로그(`/camp-spot/{id}`) 참조. 자유 위치에는 저장하지 않음 |
+| `weather` | map? | 날씨 캐시가 있을 때 여행 기간 내 일자만 복사한 텍스트 스냅샷. 좌표·`fetchedAt`·`source`·강수·풍속은 포함하지 않음 |
+| `weather.locationName` | string? | 날씨 조회 당시 공개 가능한 표시 이름 |
+| `weather.days` | array | 여행 기간 내 일별 날씨 스냅샷 |
+| `weather.days[].date` | string | `YYYY-MM-DD` |
+| `weather.days[].code` | number | WMO weather code |
+| `weather.days[].tempMax` / `weather.days[].tempMin` | number | 최고/최저기온(℃) |
 | `totalWeight` | number | 장비 총 무게(g) |
 | `itemCount` | number | 스냅샷 장비 수 |
 | `gears` | array | 아래 공개 텍스트 장비 스냅샷. 원본 장비 ID·사진 없음 |
@@ -686,6 +693,7 @@
 - `bagSnapshot`에는 원본 `bagId`, 사용자 정의 장비 ID, 좌표, 경로, 건강 활동, 메모,
   `users/{uid}/gears/{id}.imageUrl`을 넣지 않는다.
 - 원본 배낭과 동기화하지 않는다. 게시글 수정에서 배낭을 다시 선택했을 때만 맵 전체를 교체한다.
+- `weather.days`는 등록 시점 `bag.weather.daily`에서 `startDate`~`endDate` 범위로 필터한 값만 복사한다. `bag.weather`가 없거나 기간 내 일자가 없으면 `weather` 필드를 생략한다.
 
 **투표 `poll`**
 

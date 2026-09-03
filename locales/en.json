@@ -1122,7 +1122,12 @@
         "previewWeight": "Total weight: {{weight}}kg",
         "previewCount": "{{count}} items",
         "previewGear": "{{company}} {{name}} · {{weight}}g",
-        "selected": "{{name}} · {{date}} · {{weight}}kg"
+        "selected": "{{name}} · {{date}} · {{weight}}kg",
+        "previewVisibility": "Public: {{destination}} · {{weather}}",
+        "previewDestinationIncluded": "Destination included",
+        "previewDestinationOmitted": "No destination",
+        "previewWeatherIncluded": "{{count}} days of weather",
+        "previewWeatherOmitted": "No weather"
       },
       "poll": {
         "option": "Option {{count}}",
@@ -1203,7 +1208,12 @@
       "snapshotSectionWeightUnit": "g",
       "bagSnapshot": {
         "label": "Pack used",
-        "totalWeight": "Total weight"
+        "totalWeight": "Total weight",
+        "cardLabel": "{{name}} · {{location}}",
+        "location": "Destination {{name}}",
+        "weatherLabel": "Weather",
+        "weatherSeparator": " · ",
+        "locationNone": "No destination"
       }
     },
     "comment": {

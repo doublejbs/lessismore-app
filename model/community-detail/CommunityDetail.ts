@@ -13,6 +13,7 @@ import CommunityValidationError from '@/model/community/CommunityValidationError
 import CommunityPost from '@/model/community/CommunityPost';
 import { notifyCommunityPostDeleted } from '@/model/community/CommunityFeedInvalidation';
 import { COMMUNITY_COMMENT_MAX_LENGTH } from '@/model/community/CommunityLimits';
+import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import CommunityDetailDispatcher from './CommunityDetailDispatcher';
 
 export interface CommunityReplyTarget {
@@ -32,11 +33,15 @@ class CommunityDetail {
     return new CommunityDetail(
       router,
       postId,
-      new CommunityDetailDispatcher(app.getCommunityStore()!)
+      new CommunityDetailDispatcher(
+        app.getCommunityStore()!,
+        app.getCampSpotStore()!
+      )
     );
   }
 
   private post: CommunityPost | null = null;
+  private campSpot: CampSpot | null = null;
   private loading = true;
   private notFound = false;
   private error = false;
@@ -68,6 +73,7 @@ class CommunityDetail {
 
     this.setError(false);
     this.setNotFound(false);
+    this.setCampSpot(null);
 
     try {
       const [postResult, likedResult, myVoteResult, commentsResult] =
@@ -106,6 +112,16 @@ class CommunityDetail {
         commentsResult.status === 'rejected'
       ) {
         throw new Error('Community detail load failed');
+      }
+
+      const campSpotId = post.getBagSnapshot()?.campSpotId;
+
+      if (campSpotId) {
+        try {
+          this.setCampSpot(await this.dispatcher.getCampSpot(campSpotId));
+        } catch {
+          this.setCampSpot(null);
+        }
       }
 
       this.setPost(post);
@@ -449,6 +465,10 @@ class CommunityDetail {
     return this.post;
   }
 
+  public getCampSpot() {
+    return this.campSpot;
+  }
+
   public isLoading() {
     return this.loading;
   }
@@ -586,6 +606,10 @@ class CommunityDetail {
 
   private setPost(value: CommunityPost | null) {
     this.post = value;
+  }
+
+  private setCampSpot(value: CampSpot | null) {
+    this.campSpot = value;
   }
 
   private setLoading(value: boolean) {

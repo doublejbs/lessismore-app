@@ -20,11 +20,25 @@ export interface CommunityBagSnapshotGear {
   category: string;
 }
 
+export interface CommunityBagSnapshotWeatherDay {
+  date: string;
+  code: number;
+  tempMax: number;
+  tempMin: number;
+}
+
+export interface CommunityBagSnapshotWeather {
+  locationName?: string;
+  days: CommunityBagSnapshotWeatherDay[];
+}
+
 export interface CommunityBagSnapshot {
   name: string;
   startDate?: string;
   endDate?: string;
   destinationName?: string;
+  campSpotId?: string;
+  weather?: CommunityBagSnapshotWeather;
   totalWeight: number;
   itemCount: number;
   gears: CommunityBagSnapshotGear[];

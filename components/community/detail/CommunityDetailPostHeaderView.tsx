@@ -68,7 +68,7 @@ const CommunityDetailPostHeaderView = observer(({ post, detail, width }: Props) 
       )}
       {post.isBagReview() && bagSnapshot ? (
         <>
-          <CommunityDetailBagSnapshotView snapshot={bagSnapshot} />
+          <CommunityDetailBagSnapshotView snapshot={bagSnapshot} detail={detail} />
           <CommunityDetailBagGearListView snapshot={bagSnapshot} />
         </>
       ) : null}

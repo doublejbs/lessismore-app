@@ -107,6 +107,18 @@ const CommunityWriteBagSelectView = ({ write }: Props) => {
           <PretendardText style={styles.previewTitle} weight='semibold'>
             {l10n.t('community.write.bag.preview')}
           </PretendardText>
+          <PretendardText style={styles.previewVisibility}>
+            {l10n.t('community.write.bag.previewVisibility', {
+              destination: snapshot.destinationName
+                ? l10n.t('community.write.bag.previewDestinationIncluded')
+                : l10n.t('community.write.bag.previewDestinationOmitted'),
+              weather: snapshot.weather
+                ? l10n.t('community.write.bag.previewWeatherIncluded', {
+                    count: snapshot.weather.days.length,
+                  })
+                : l10n.t('community.write.bag.previewWeatherOmitted'),
+            })}
+          </PretendardText>
           <PretendardText style={styles.previewText}>
             {snapshot.name}
           </PretendardText>
@@ -221,6 +233,10 @@ const styles = StyleSheet.create({
     ...AcgType.control,
     color: Acg.ink,
     marginBottom: 4,
+  },
+  previewVisibility: {
+    ...AcgType.meta,
+    color: Acg.ink,
   },
   previewText: {
     ...AcgType.meta,
