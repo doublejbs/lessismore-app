@@ -2,7 +2,7 @@ import {
   deleteObject,
   getDownloadURL,
   ref,
-  uploadBytesResumable,
+  uploadBytes,
 } from 'firebase/storage';
 import type Firebase from '@/model/firebase/Firebase';
 import { createCommunityId } from '@/model/community/CommunityId';
@@ -51,50 +51,26 @@ class CommunityImageUpload {
     const imageId = createCommunityId();
     const storagePath = `community/${userId}/${postId}/${imageId}.jpg`;
 
+    const storageRef = ref(this.firebase.getStorage(), storagePath);
+
     try {
-      const storageRef = ref(this.firebase.getStorage(), storagePath);
+      if (onProgress) {
+        onProgress(0);
+      }
+
       const blob = await this.fetchBlob(image.sourceUri);
       const metadata = {
         contentType: DEFAULT_IMAGE_CONTENT_TYPE,
       };
-      const task = uploadBytesResumable(storageRef, blob, metadata);
 
-      await new Promise<void>((resolve, reject) => {
-        let unsubscribe: (() => void) | undefined;
+      await uploadBytes(storageRef, blob, metadata);
 
-        unsubscribe = task.on(
-          'state_changed',
-          (snapshot) => {
-            const progress =
-              snapshot.totalBytes > 0
-                ? snapshot.bytesTransferred / snapshot.totalBytes
-                : 0;
-
-            if (onProgress) {
-              onProgress(progress);
-            }
-          },
-          (error) => {
-            unsubscribe?.();
-            reject(error);
-          },
-          () => {
-            unsubscribe?.();
-            resolve();
-          }
-        );
-      });
-
-      const url = await getDownloadURL(storageRef);
-
-      return {
-        id: imageId,
-        url,
-        storagePath,
-        width: image.width,
-        height: image.height,
-      };
+      if (onProgress) {
+        onProgress(1);
+      }
     } catch (error) {
+      console.error('커뮤니티 사진 업로드 실패:', error); // l10n-ignore: 개발자 로그
+
       if (error instanceof CommunityImagePipelineError) {
         throw error;
       }
@@ -104,6 +80,27 @@ class CommunityImageUpload {
         error
       );
     }
+
+    let url: string;
+
+    try {
+      url = await getDownloadURL(storageRef);
+    } catch (error) {
+      console.error('커뮤니티 사진 URL 조회 실패:', error); // l10n-ignore: 개발자 로그
+
+      throw new CommunityImagePipelineError(
+        CommunityImageError.UploadFailed,
+        error
+      );
+    }
+
+    return {
+      id: imageId,
+      url,
+      storagePath,
+      width: image.width,
+      height: image.height,
+    };
   }
 
   public async delete(storagePath: string, userId: string): Promise<void> {

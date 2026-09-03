@@ -112,6 +112,8 @@ class CommunityImageNormalizer {
       await this.removeIntermediate(previousUri);
       throw new CommunityImagePipelineError(CommunityImageError.TooLarge);
     } catch (error) {
+      console.error('커뮤니티 사진 정규화 실패:', error); // l10n-ignore: 개발자 로그
+
       if (error instanceof CommunityImagePipelineError) {
         throw error;
       }
@@ -180,6 +182,8 @@ class CommunityImageNormalizer {
 
       throw new CommunityImagePipelineError(CommunityImageError.TooLarge);
     } catch (error) {
+      console.error('커뮤니티 사진 정규화 실패:', error); // l10n-ignore: 개발자 로그
+
       if (error instanceof CommunityImagePipelineError) {
         throw error;
       }
@@ -198,10 +202,14 @@ class CommunityImageNormalizer {
       return (await response.blob()).size;
     }
 
-    const file = new File(uri);
+    try {
+      const file = new File(uri);
 
-    if (file.size > 0) {
-      return file.size;
+      if (file.size > 0) {
+        return file.size;
+      }
+    } catch {
+      // 일부 ph://·content:// URI는 expo-file-system File로 열 수 없어 fetch로 폴백한다.
     }
 
     const response = await fetch(uri);

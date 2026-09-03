@@ -223,6 +223,8 @@ class CommunityImageSession {
 
       image.markDone(uploaded);
     } catch (error) {
+      console.error('커뮤니티 사진 세션 업로드 실패:', error); // l10n-ignore: 개발자 로그
+
       image.markFailed(this.toImageError(error));
       throw error;
     } finally {
