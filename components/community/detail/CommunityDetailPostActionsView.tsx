@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import CommunityPost from '@/model/community/CommunityPost';
 import CommunityDetail from '@/model/community-detail/CommunityDetail';
 import app from '@/model/app/App';
@@ -44,8 +44,8 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
-    paddingBottom: 20,
+    marginTop: AcgLayout.communityActionGap,
+    paddingBottom: AcgLayout.communityActionGap,
     borderBottomWidth: 1,
     borderBottomColor: Acg.hairline,
   },

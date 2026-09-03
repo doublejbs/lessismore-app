@@ -9,6 +9,7 @@ import CommunityDetail from '@/model/community-detail/CommunityDetail';
 import { getCommunityRelativeTime } from '@/model/community/CommunityFormat';
 import app from '@/model/app/App';
 import CommunityDetailBagSnapshotView from './CommunityDetailBagSnapshotView';
+import CommunityDetailBagGearListView from './CommunityDetailBagGearListView';
 import CommunityDetailPollView from './CommunityDetailPollView';
 import CommunityDetailPostActionsView from './CommunityDetailPostActionsView';
 
@@ -23,6 +24,7 @@ const CommunityDetailPostHeaderView = observer(({ post, detail, width }: Props) 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = post.getImages().filter(image => !failedImages.includes(image.id));
   const relativeTime = getCommunityRelativeTime(post.getCreatedAt());
+  const bagSnapshot = post.getBagSnapshot();
 
   return (
     <View style={styles.header}>
@@ -64,7 +66,12 @@ const CommunityDetailPostHeaderView = observer(({ post, detail, width }: Props) 
           {`${Math.min(currentImageIndex + 1, images.length)}/${post.getImages().length}`}
         </PretendardText>
       )}
-      {post.isBagReview() && <CommunityDetailBagSnapshotView post={post} />}
+      {post.isBagReview() && bagSnapshot ? (
+        <>
+          <CommunityDetailBagSnapshotView snapshot={bagSnapshot} />
+          <CommunityDetailBagGearListView snapshot={bagSnapshot} />
+        </>
+      ) : null}
       {post.isPoll() && <CommunityDetailPollView post={post} detail={detail} />}
       <CommunityDetailPostActionsView post={post} detail={detail} />
       <PretendardText weight='semibold' style={styles.commentsTitle}>

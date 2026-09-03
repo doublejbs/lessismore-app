@@ -233,6 +233,8 @@ export const AcgShadow = {
 export const AcgRow = {
   minHeight: 72,
   paddingVertical: 14,
+  communityMinHeight: 56,
+  communityPaddingVertical: 10,
 } as const;
 
 export const AcgLayout = {
@@ -254,6 +256,12 @@ export const AcgLayout = {
    * **모든 칩 행이 이 값을 참조한다** — 화면마다 4·6·8·10·12로 갈려 있던 것을 모았다.
    */
   chipGap: 6,
+  communityCardGap: 16,
+  communityCardPadding: 16,
+  communitySectionGap: 20,
+  communitySectionFirstGap: 12,
+  communitySectionHeaderGap: 8,
+  communityActionGap: 20,
   section: 22,
   // 홈 상단 히어로 그래픽이 상태바 아래에서 일정 카드 위까지 이어지는 높이.
   homeHeroHeight: 292,

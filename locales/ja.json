@@ -1186,7 +1186,11 @@
       "gearCount": "{{count}}個のギア",
       "snapshotSectionGearUnit": "個",
       "snapshotSectionSeparator": " · ",
-      "snapshotSectionWeightUnit": "g"
+      "snapshotSectionWeightUnit": "g",
+      "bagSnapshot": {
+        "label": "使ったバックパック",
+        "totalWeight": "総重量"
+      }
     },
     "comment": {
       "placeholder": "コメントを入力してください",

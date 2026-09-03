@@ -1200,7 +1200,11 @@
       "gearCount": "{{count}} items",
       "snapshotSectionGearUnit": " items",
       "snapshotSectionSeparator": " · ",
-      "snapshotSectionWeightUnit": "g"
+      "snapshotSectionWeightUnit": "g",
+      "bagSnapshot": {
+        "label": "Pack used",
+        "totalWeight": "Total weight"
+      }
     },
     "comment": {
       "placeholder": "Write a comment",

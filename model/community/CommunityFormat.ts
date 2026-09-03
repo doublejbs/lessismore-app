@@ -74,6 +74,24 @@ export const formatCommunityWeight = (grams: number): string => {
   return (grams / 1000).toFixed(1);
 };
 
+export const formatCommunityWeightInGrams = (grams: number): string => {
+  return Math.round(grams).toLocaleString('en-US');
+};
+
+export const formatCommunitySnapshotDateRange = (
+  startDate?: string,
+  endDate?: string
+): string => {
+  const formattedStartDate = startDate?.replaceAll('-', '.');
+  const formattedEndDate = endDate?.replaceAll('-', '.');
+
+  if (formattedStartDate && formattedStartDate === formattedEndDate) {
+    return formattedStartDate;
+  }
+
+  return [formattedStartDate, formattedEndDate].filter(Boolean).join(' ~ ');
+};
+
 export const getCommunityRelativeTime = (date: Date): string => {
   const elapsed = Math.max(0, Date.now() - date.getTime());
 

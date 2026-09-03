@@ -1186,7 +1186,11 @@
       "gearCount": "장비 {{count}}개",
       "snapshotSectionGearUnit": "개",
       "snapshotSectionSeparator": " · ",
-      "snapshotSectionWeightUnit": "g"
+      "snapshotSectionWeightUnit": "g",
+      "bagSnapshot": {
+        "label": "다녀온 배낭",
+        "totalWeight": "총 무게"
+      }
     },
     "comment": {
       "placeholder": "댓글을 입력해주세요",
