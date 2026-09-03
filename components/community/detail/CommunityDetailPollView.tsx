@@ -45,12 +45,16 @@ const CommunityDetailPollView = observer(({ post, detail }: Props) => {
           >
             {showResults && ratio > 0 && (
               <View
-                style={[
-                  styles.progress,
-                  selected ? styles.selectedProgress : styles.otherProgress,
-                  { width: `${ratio}%` },
-                ]}
-              />
+                style={styles.progressContainer}
+              >
+                <View
+                  style={[
+                    styles.progress,
+                    selected ? styles.selectedProgress : styles.otherProgress,
+                    { width: `${ratio}%` },
+                  ]}
+                />
+              </View>
             )}
             <PretendardText style={[styles.text, selected && styles.selectedText]}>
               {option.text}
@@ -93,11 +97,16 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.controlFill,
   },
   selectedRow: { backgroundColor: Acg.ink },
-  progress: {
+  progressContainer: {
     position: 'absolute',
-    left: 0,
-    bottom: 0,
-    height: 4,
+    left: 12,
+    right: 12,
+    bottom: 6,
+    height: 3,
+  },
+  progress: {
+    height: 3,
+    borderRadius: 2,
   },
   selectedProgress: { backgroundColor: Acg.paper },
   otherProgress: { backgroundColor: Acg.ink },
