@@ -55,12 +55,12 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
     null
   );
   const composerBottomInset = Math.max(insets.bottom, 8);
+  const composerBottomPadding = composerBottomInset + COMMENT_COMPOSER_BOTTOM_GAP;
   const contentBottomPadding =
-    COMMENT_COMPOSER_HEIGHT +
     COMMENT_COMPOSER_TOP_PADDING +
     COMMENT_REPLY_BANNER_HEIGHT +
-    composerBottomInset +
-    COMMENT_COMPOSER_BOTTOM_GAP +
+    COMMENT_COMPOSER_HEIGHT +
+    composerBottomPadding +
     CONTENT_BOTTOM_EXTRA;
 
   useFocusEffect(
