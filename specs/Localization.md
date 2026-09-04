@@ -40,7 +40,7 @@ app/info/index.tsx (정보 탭)
 - 지원 언어는 `ko` · `en` · `ja` 셋이다. 언어 코드는 string enum(`AppLanguage`, 별도 파일 `model/l10n/AppLanguage.ts`)으로 선언한다.
 - 결정 우선순위: **① 인앱 설정(저장돼 있으면) > ② 시스템 로캘**.
 - 시스템 로캘 → 앱 언어 매핑(폴백 체인): `ko*` → ko, `ja*` → ja, `en*` → en, **그 외 전부 → en**. 즉 한국어 기기만 ko이고, 지원 밖 로캘은 영어로 폴백한다.
-- 시스템 로캘은 `expo-localization`의 `getLocales()` 첫 항목의 `languageCode`로 읽는다(신규 의존성 — 현재 미설치).
+- 시스템 로캘은 **React Native 코어 API**로 읽는다(추가 네이티브 의존성 없음, 2026-09-04): iOS `Settings.get('AppleLanguages')[0]`(앱별 언어 반영), Android `I18nManager.getConstants().localeIdentifier`, 웹 `navigator.language`, 폴백 `Intl.DateTimeFormat().resolvedOptions().locale`. 앞 두 글자로 `ko`/`ja`/`en`을 판별한다. `expo-localization`은 2026-09-04에 제거했다 — 라이브 iOS 2.0.0(빌드 100) 바이너리에 그 네이티브 모듈이 없어 OTA가 막혔기 때문이다.
 - 인앱 설정 값은 AsyncStorage 키 **`appLanguage`** 에 저장한다(`LocalStorageManager` 경유, 값은 `'ko' | 'en' | 'ja'`). "시스템 따르기"는 **키 없음**으로 표현한다 — 별도 sentinel 값을 저장하지 않으며, 키가 없는 것은 아직 언어를 고른 적이 없는 기본 상태다(L10N-5 — 시스템 따르기로 되돌리는 UI는 없다). 키는 [AppLifecycle.md](AppLifecycle.md) APP-6 로컬 스토리지 키 목록에 등록한다.
 - 앱 시작 시(App.initialize 시퀀스) 저장 값을 1회 읽어 언어를 확정한 뒤 첫 렌더에 반영한다 — 첫 화면이 한국어로 그려졌다가 바뀌는 깜빡임이 없어야 한다.
 - **번역 키 폴백은 언어 폴백과 별개다**: en/ja 리소스에 키가 없으면 **ko 값**을 보여준다(ko.json이 단일 소스라 모든 키가 존재). 키 자체가 없으면 키 문자열을 노출하지 말고 ko 폴백 실패 시 빈 문자열 대신 키명을 dev 빌드에서만 경고 로그로 남긴다.
@@ -49,7 +49,7 @@ app/info/index.tsx (정보 탭)
 
 **수용 기준**
 
-- 라이브러리는 **`i18next`(코어) + `expo-localization`** 을 도입한다. **`react-i18next`는 도입하지 않는다**(아래 근거).
+- 라이브러리는 **`i18next`(코어)** 만 도입한다(시스템 로캘은 RN 코어로 읽음, 위 참고). **`react-i18next`는 도입하지 않는다**(아래 근거).
 - `model/l10n/L10n.ts`(신규, MobX 스토어)가 단일 진입점이다:
   - `language`를 **MobX observable**로 갖는다. `app` 싱글톤에서 `app.getL10n()`으로 접근.
   - 번역 함수 `t(key, params?)`는 **내부에서 먼저 `this.language`(observable)를 읽은 뒤** `i18next.t()`를 호출한다. 이로써 observer 컴포넌트가 — 직접 호출이든 모델 getter를 거치든 — 언어에 대한 MobX 의존성을 자동으로 갖는다.
@@ -185,7 +185,7 @@ app/info/index.tsx (정보 탭)
 
 - **iOS 권한 문구**: 현재 `app.json` plugins에 한국어 하드코딩(expo-image-picker `photosPermission`·`cameraPermission`, expo-media-library, expo-location, healthkit `NSHealthShareUsageDescription`). expo의 `locales` 설정(`app.json` `"locales": { "ko": ..., "en": ..., "ja": ... }` → `InfoPlist.strings` 생성)으로 3개 언어를 제공한다. plugins의 문구는 기본값(개발 리전) 역할로 남는다.
   - **권한 시트는 OS 표면이라 기기 로캘을 따른다** — 인앱 언어 오버라이드와 무관하다. 이는 수용한다(권한 문구만 기기 언어로 나와도 심사·사용성 문제 없음).
-  - `CFBundleLocalizations`에 3개 언어가 선언되면 iOS 설정 앱에 **앱별 언어** 항목이 생긴다 — 이 값은 시스템 로캘 입력의 하나로만 취급한다(인앱 설정이 항상 우선, L10N-1). expo-localization `getLocales()`가 앱별 언어를 반영하므로 추가 구현 불요.
+  - `CFBundleLocalizations`에 3개 언어가 선언되면 iOS 설정 앱에 **앱별 언어** 항목이 생긴다 — 이 값은 시스템 로캘 입력의 하나로만 취급한다(인앱 설정이 항상 우선, L10N-1). `Settings.get('AppleLanguages')`(NSUserDefaults)가 앱별 언어를 반영하므로 추가 구현 불요.
 - **`locales` 설정·InfoPlist.strings는 네이티브 빌드가 필요하다** — OTA로 배포할 수 없고, 폰트 교체(L10N-6)와 묶어 스토어 릴리스 빌드로 나간다.
 - **Android**: 런타임 권한 다이얼로그는 OS 문구라 로컬라이즈 대상이 없다. 앱명 `useless`는 라틴 워드마크로 전 언어 동일 — `strings.xml` 로컬라이즈를 하지 않는다. Health Connect 권한 사유 문구 등 config plugin이 심는 문자열이 있는지 구현 시 `npx expo prebuild -p android --no-install` 산출물로 확인한다.
 - **스토어 메타데이터**(App Store·Play 등록정보의 설명·스크린샷)는 앱 코드 밖 — 별도 트랙(§8).
@@ -260,7 +260,7 @@ app/info/index.tsx (정보 탭)
 
 | 지점 | iOS | Android | Web |
 | --- | --- | --- | --- |
-| 시스템 로캘 소스 | expo-localization(앱별 언어 설정 반영) | expo-localization | `navigator.language` (expo-localization 웹 지원) |
+| 시스템 로캘 소스 | RN `Settings.get('AppleLanguages')`(앱별 언어 설정 반영) | RN `I18nManager.getConstants().localeIdentifier` | `navigator.language` |
 | 권한 문구 | InfoPlist.strings(기기 로캘, L10N-12) | OS 제공 다이얼로그(대상 없음) | 해당 없음 |
 | 폰트 | Pretendard JP 번들 교체(L10N-6) | 동일 | 동일(웹 폰트 로드 용량 영향 — 구현 시 확인) |
 | 기기 언어 라이브 변경 | 앱 종료 후 재실행이라 자연 반영 | 다음 실행 시 반영이면 충분(L10N-4) | 새로고침 시 반영 |
