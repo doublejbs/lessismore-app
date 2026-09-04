@@ -15,7 +15,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import FloatingPillButton from '@/components/FloatingPillButton';
 import AlertView from '@/components/alert/AlertView';
 import LogInView from '@/components/login/LogInView';
 import ToastView from '@/components/toast/ToastView';
@@ -28,8 +27,6 @@ import {
   Radius,
 } from '@/constants/DesignTokens';
 import {
-  FLOATING_ACTION_RIGHT,
-  getFloatingActionBottom,
   getFloatingActionListBottomPadding,
 } from '@/constants/FloatingAction';
 import CommunityMyPosts from '@/model/community-my-posts/CommunityMyPosts';
@@ -54,7 +51,6 @@ const CommunityMyPostsView: FC<Props> = ({ myPosts }) => {
   const isLoadingMore = myPosts.getIsLoadingMore();
   const error = myPosts.getError();
   const listBottomPadding = getFloatingActionListBottomPadding(insets.bottom);
-  const writeButtonBottom = getFloatingActionBottom(insets.bottom);
   const title = l10n.t('community.myPosts.title');
 
   useFocusEffect(
@@ -112,6 +108,16 @@ const CommunityMyPostsView: FC<Props> = ({ myPosts }) => {
         <PretendardText style={styles.emptyTitle} weight='semibold'>
           {l10n.t('community.myPosts.empty')}
         </PretendardText>
+        <TouchableOpacity
+          style={styles.writeButton}
+          onPress={handleWrite}
+          accessibilityRole='button'
+          accessibilityLabel={l10n.t('community.feed.writeButton')}
+        >
+          <PretendardText style={styles.writeButtonText} weight='semibold'>
+            {l10n.t('community.feed.writeButton')}
+          </PretendardText>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -214,14 +220,6 @@ const CommunityMyPostsView: FC<Props> = ({ myPosts }) => {
           }
         />
       )}
-      {!showSkeleton ? (
-        <FloatingPillButton
-          label={l10n.t('community.feed.writeButton')}
-          onPress={handleWrite}
-          variant='primary'
-          style={[styles.writeButton, { bottom: writeButtonBottom }]}
-        />
-      ) : null}
       <ToastView toastManager={app.getToastManager()!} bottom={100} />
       <AlertView alertManager={app.getAlertManager()!} />
       <LogInView logInAlertManager={app.getLogInAlertManager()!} />
@@ -264,7 +262,21 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 16,
     paddingVertical: 120,
+  },
+  writeButton: {
+    minHeight: 48,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: Radius.pill,
+    backgroundColor: Acg.lime,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  writeButtonText: {
+    ...AcgType.control,
+    color: Acg.ink,
   },
   emptyTitle: {
     ...AcgType.sectionTitle,
@@ -297,10 +309,6 @@ const styles = StyleSheet.create({
   },
   footerSpace: {
     height: 8,
-  },
-  writeButton: {
-    position: 'absolute',
-    right: FLOATING_ACTION_RIGHT,
   },
 });
 
