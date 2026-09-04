@@ -43,6 +43,10 @@ app/community/[id].tsx → CommunityDetailWrapper → CommunityDetailView
                                                    └─ CommunityDetailReportMenu
 
 app/community/[id]/edit.tsx → 본인 게시글 수정
+
+app/community/mine.tsx → CommunityMyPostsWrapper → CommunityMyPostsView   (내 정보 `내가 쓴 글` 행에서 진입, CM-13)
+                                                     ├─ 내 게시글 최신순 목록(CommunityFeedCardView 재사용)
+                                                     └─ 빈 상태 · 로딩 · 더 보기
 ```
 
 Expo Router는 정적 세그먼트 `community/write`를 동적 세그먼트 `[id]`보다 우선 매칭하므로 `/community/write`와 `/community/{id}`가 공존해도 작성 라우트가 상세 라우트에 흡수되지 않는다. 루트 `app/_layout.tsx`의 등록 이름은 실제 파일 경로인 `community/write`, `community/[id]`, `community/[id]/edit`와 일치한다.
@@ -216,6 +220,20 @@ Expo Router는 정적 세그먼트 `community/write`를 동적 세그먼트 `[id
 - 화면마다 주 액션은 하나다. 피드에서는 `글쓰기`, 작성 화면에서는 `등록`, 상세에서는 댓글 입력이다.
 - iOS 헤더는 LG-1(네이티브 투명 헤더·글래스 back·`headerRight` 액션)을 사용하고, Android/Web은 커스텀 헤더를 유지한다.
 
+### CM-13 내가 쓴 글 `[제안]`
+
+로그인 사용자는 자신이 작성한 게시글을 한 곳에서 모아 보고 상세로 이동할 수 있다(2026-09-04 사용자 요청).
+
+**수용 기준**
+
+- 진입점은 `/info`(내 정보) 계정 영역의 `내가 쓴 글` 행 하나다([Auth.md](Auth.md) AU-9). 로그인 상태에서만 행을 표시하고, 탭하면 `/community/mine`으로 푸시한다. 커뮤니티 탭에는 별도 진입점을 두지 않는다.
+- 화면 제목은 `내가 쓴 글`이며 iOS는 다른 커뮤니티 화면과 같은 네이티브 투명 헤더(뒤로 버튼)를 쓴다([Home.md](Home.md) LG-1 문법, CM-11).
+- 목록은 `authorId == 내 uid` · `status == published`인 게시글을 `createdAt` 내림차순으로 20개 단위 페이지네이션한다([DataModel.md](DataModel.md) DM-28 인덱스). 삭제한 글(툼스톤)과 운영 숨김 글은 보이지 않는다 — 보안 규칙이 `published`만 읽게 허용하므로 MVP에서는 이를 수용한다.
+- 카드는 피드와 같은 `CommunityFeedCardView`를 재사용한다(작성자·시각 두 줄, 제목·본문 미리보기, 유형별 메타, 좋아요·댓글 수). 탭하면 상세(`/community/{id}`)로 이동한다.
+- 빈 상태는 `아직 쓴 글이 없어요` 한 줄과 `글쓰기` 알약 버튼(→ 글쓰기 유형 선택 시트)을 표시한다. 로딩은 피드 스켈레톤을 재사용하고, 실패 시 `다시 시도`를 제공한다.
+- 내 글을 수정·삭제하고 돌아오면 목록이 최신 상태를 반영한다(포커스 시 조용한 새로고침).
+- 비로그인 상태로 `/community/mine`에 직접 진입하면 전역 로그인 모달을 열고, 취소하면 이전 화면으로 돌아간다.
+
 ### CM-12 계정 탈퇴와 커뮤니티 데이터 `[제안]`
 
 회원 탈퇴 시 공개 사진과 작성자 식별 정보가 남지 않도록 커뮤니티 데이터를 함께 정리한다.
@@ -263,6 +281,7 @@ Expo Router는 정적 세그먼트 `community/write`를 동적 세그먼트 `[id
 - [ ] 전체·게시글·배낭 후기·투표 필터 및 20개 단위 페이지네이션
 - [ ] 최신순(기본)·인기순 정렬, 정렬 선택 저장, 정렬 변경 시 첫 페이지 재조회
 - [ ] 게시글 작성·수정·삭제와 작성 중 이탈 확인
+- [ ] 내 정보 `내가 쓴 글` → 내 게시글만 최신순, 빈 상태·페이지네이션·상세 이동, 삭제 후 돌아오면 목록에서 사라짐 (CM-13)
 - [ ] 배낭 후기 등록 후 원본 배낭을 수정·삭제해도 스냅샷이 변하지 않음
 - [ ] 배낭 스냅샷에 좌표·경로·건강 활동·메모·개인 장비 사진·사용자 정의 장비 ID가 없음
 - [ ] 사진 0~4장 선택, 카메라·앨범, 순서 변경, 대표 사진, 삭제, 실패 재시도

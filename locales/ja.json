@@ -94,7 +94,8 @@
       "setNicknameTitle": "ニックネームを設定",
       "editNicknameDescription": "新しいニックネームを入力してください",
       "setNicknameDescription": "使用するニックネームを入力してください",
-      "nicknamePlaceholder": "ニックネームを入力してください"
+      "nicknamePlaceholder": "ニックネームを入力してください",
+      "myPosts": "自分の投稿"
     },
     "language": {
       "title": "言語",
@@ -1235,6 +1236,10 @@
       "other": "その他",
       "done": "報告を受け付けました",
       "failed": "報告に失敗しました"
+    },
+    "myPosts": {
+      "title": "自分の投稿",
+      "empty": "まだ投稿がありません"
     }
   }
 }

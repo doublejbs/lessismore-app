@@ -663,6 +663,7 @@
 
 - `community-posts (status asc, likeCount desc, createdAt desc)`
 - `community-posts (status asc, type asc, likeCount desc, createdAt desc)`
+- `community-posts (authorId asc, status asc, createdAt desc)` — 내가 쓴 글 목록([Community.md](Community.md) CM-13, 2026-09-04)
 
 게시글의 `updatedAt`은 게시글 내용 수정 시각이며 댓글 생성·수정·삭제로 갱신하지 않는다. 댓글 자체의 `updatedAt`만 댓글 수정·소프트 삭제 때 갱신한다.
 

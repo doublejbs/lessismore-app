@@ -94,7 +94,8 @@
       "setNicknameTitle": "Set a nickname",
       "editNicknameDescription": "Enter a new nickname",
       "setNicknameDescription": "Enter a nickname to use",
-      "nicknamePlaceholder": "Enter a nickname"
+      "nicknamePlaceholder": "Enter a nickname",
+      "myPosts": "My posts"
     },
     "language": {
       "title": "Language",
@@ -1249,6 +1250,10 @@
       "other": "Other",
       "done": "Report submitted",
       "failed": "Could not submit report"
+    },
+    "myPosts": {
+      "title": "My posts",
+      "empty": "You haven't written any posts yet"
     }
   }
 }

@@ -155,6 +155,7 @@ const RootLayout = () => {
           <Stack.Screen name='community/write' />
           <Stack.Screen name='community/[id]' />
           <Stack.Screen name='community/[id]/edit' />
+          <Stack.Screen name='community/mine' />
           <Stack.Screen
             name='custom'
             options={{

@@ -82,6 +82,11 @@ const InfoView: FC = () => {
     router.push('/info/notification');
   };
 
+  const handleOpenMyPosts = () => {
+    app.getAnalyticsManager()?.logClick('click_info_my_posts');
+    router.push('/community/mine');
+  };
+
   const handleOpenLanguageSettings = () => {
     router.push('/info/language' as never);
   };
@@ -246,14 +251,32 @@ const InfoView: FC = () => {
             </TouchableOpacity>
           ) : null}
 
+          {isLoggedIn ? (
+            <TouchableOpacity
+              style={[styles.button, styles.buttonFirst]}
+              onPress={handleOpenMyPosts}
+              activeOpacity={0.7}
+              accessibilityRole='button'
+            >
+              <PretendardText weight='semibold' style={styles.buttonText}>
+                {l10n.t('info.account.myPosts')}
+              </PretendardText>
+              <Ionicons
+                name='chevron-forward'
+                size={18}
+                color={Color.iconMuted}
+              />
+            </TouchableOpacity>
+          ) : null}
+
           <TouchableOpacity
-            style={[styles.button, isLoggedIn && styles.buttonFirst]}
+            style={[styles.button, !isLoggedIn && styles.buttonFirst]}
             onPress={handleOpenNotificationSettings}
             activeOpacity={0.7}
             accessibilityRole='button'
           >
             <PretendardText weight='semibold' style={styles.buttonText}>
-            {l10n.t('notification.title')}
+              {l10n.t('notification.title')}
             </PretendardText>
             <Ionicons
               name='chevron-forward'

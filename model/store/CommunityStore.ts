@@ -85,13 +85,38 @@ class CommunityStore {
       ? snapshot.docs.slice(0, limit)
       : snapshot.docs;
 
-    return {
-      posts: visibleDocs.map(item =>
-        CommunityPost.from(this.toPostData(item.id, item.data()))
-      ),
-      cursor: hasMore ? visibleDocs[visibleDocs.length - 1] : null,
-      hasMore,
-    };
+    return this.toPostPage(visibleDocs, hasMore);
+  }
+
+  public async getMyPostsPage(
+    userId: string,
+    cursor: QueryDocumentSnapshot | null,
+    limit: number = COMMUNITY_PAGE_SIZE
+  ): Promise<{
+    posts: CommunityPost[];
+    cursor: QueryDocumentSnapshot | null;
+    hasMore: boolean;
+  }> {
+    const postsRef = collection(this.getStore(), 'community-posts');
+    let postsQuery = query(
+      postsRef,
+      where('authorId', '==', userId),
+      where('status', '==', CommunityContentStatus.Published),
+      orderBy('createdAt', 'desc'),
+      firestoreLimit(limit + 1)
+    );
+
+    if (cursor) {
+      postsQuery = query(postsQuery, startAfter(cursor));
+    }
+
+    const snapshot = await getDocs(postsQuery);
+    const hasMore = snapshot.docs.length > limit;
+    const visibleDocs = hasMore
+      ? snapshot.docs.slice(0, limit)
+      : snapshot.docs;
+
+    return this.toPostPage(visibleDocs, hasMore);
   }
 
   public async getPost(postId: string): Promise<CommunityPost | null> {
@@ -722,6 +747,19 @@ class CommunityStore {
       commentCount: data.commentCount ?? 0,
       createdAt: toDate(data.createdAt),
       updatedAt: toDate(data.updatedAt),
+    };
+  }
+
+  private toPostPage(
+    visibleDocs: QueryDocumentSnapshot<DocumentData>[],
+    hasMore: boolean
+  ) {
+    return {
+      posts: visibleDocs.map(item =>
+        CommunityPost.from(this.toPostData(item.id, item.data()))
+      ),
+      cursor: hasMore ? visibleDocs[visibleDocs.length - 1] : null,
+      hasMore,
     };
   }
 

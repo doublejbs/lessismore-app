@@ -94,7 +94,8 @@
       "setNicknameTitle": "닉네임 설정",
       "editNicknameDescription": "새로운 닉네임을 입력해 주세요",
       "setNicknameDescription": "사용하실 닉네임을 입력해 주세요",
-      "nicknamePlaceholder": "닉네임을 입력해 주세요"
+      "nicknamePlaceholder": "닉네임을 입력해 주세요",
+      "myPosts": "내가 쓴 글"
     },
     "language": {
       "title": "언어",
@@ -1235,6 +1236,10 @@
       "other": "기타",
       "done": "신고가 접수되었어요",
       "failed": "신고하지 못했어요"
+    },
+    "myPosts": {
+      "title": "내가 쓴 글",
+      "empty": "아직 쓴 글이 없어요"
     }
   }
 }
