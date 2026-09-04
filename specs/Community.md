@@ -19,7 +19,7 @@ MVP의 게시글 유형은 `게시글` · `배낭 후기` · `투표` 세 가지
 
 ```text
 app/(tabs)/community.tsx → CommunityWrapper → CommunityView
-                                              ├─ 유형 필터: 전체 / 게시글 / 배낭 후기 / 투표
+                                              ├─ 유형 필터: 전체 / 게시글 / 배낭 후기 / 투표 (+ 로그인 시 `내가 쓴 글` 이동 칩, CM-13)
                                               ├─ 최신순 게시글 피드
                                               └─ 작성 버튼
 
@@ -63,7 +63,7 @@ Expo Router는 정적 세그먼트 `community/write`를 동적 세그먼트 `[id
 
 **수용 기준**
 
-- 상단 제목은 `커뮤니티`이고, 아래에 `전체 / 게시글 / 배낭 후기 / 투표` 필터를 둔다. 필터는 공용 `CategoryChipView` 문법을 따른다.
+- 상단 제목은 `커뮤니티`이고, 아래에 `전체 / 게시글 / 배낭 후기 / 투표` 필터를 둔다. 필터는 공용 `CategoryChipView` 문법을 따른다. 로그인 상태에서는 `투표` 다음에 `내가 쓴 글` 칩을 하나 더 두는데, 이 칩은 필터가 아니라 **`/community/mine`으로 이동하는 진입점**이다(선택 상태를 갖지 않고, 라벨 오른쪽에 셰브론 `chevron-forward` 14pt를 붙여 이동 칩임을 드러낸다. CM-13, 2026-09-04).
 - 기본은 `전체`, 정렬은 `최신순`(`createdAt desc`)이다. `인기순`(`likeCount desc`, 동률은 `createdAt desc`)도 선택할 수 있다.
 - 정렬 UI는 배낭 탭(BAG-6)과 같은 필터 칩 행 우측 정렬 드롭다운과 공용 `/sort-sheet`를 사용한다. 선택은 `LocalStorageManager`의 `selectedOrderType_communityFeed`에 저장하며 창고·배낭과 공유하지 않는다. 정렬 변경 시 첫 페이지부터 재조회한다.
 - 최초 20개를 읽고 목록 끝에서 다음 20개를 불러온다. 당겨서 새로고침하면 첫 페이지부터 다시 읽는다.
@@ -226,7 +226,7 @@ Expo Router는 정적 세그먼트 `community/write`를 동적 세그먼트 `[id
 
 **수용 기준**
 
-- 진입점은 `/info`(내 정보) 계정 영역의 `내가 쓴 글` 행 하나다([Auth.md](Auth.md) AU-9). 로그인 상태에서만 행을 표시하고, 탭하면 `/community/mine`으로 푸시한다. 커뮤니티 탭에는 별도 진입점을 두지 않는다.
+- 진입점은 두 곳이다(2026-09-04): ① `/info`(내 정보) 계정 영역의 `내가 쓴 글` 행([Auth.md](Auth.md) AU-9), ② 커뮤니티 피드 필터 칩 행의 `투표` 다음 `내가 쓴 글` 이동 칩(CM-1). 둘 다 로그인 상태에서만 표시하고 탭하면 `/community/mine`으로 푸시한다.
 - 화면 제목은 `내가 쓴 글`이며 iOS는 다른 커뮤니티 화면과 같은 네이티브 투명 헤더(뒤로 버튼)를 쓴다([Home.md](Home.md) LG-1 문법, CM-11).
 - 목록은 `authorId == 내 uid` · `status == published`인 게시글을 `createdAt` 내림차순으로 20개 단위 페이지네이션한다([DataModel.md](DataModel.md) DM-28 인덱스). 삭제한 글(툼스톤)과 운영 숨김 글은 보이지 않는다 — 보안 규칙이 `published`만 읽게 허용하므로 MVP에서는 이를 수용한다.
 - 카드는 피드와 같은 `CommunityFeedCardView`를 재사용한다(작성자·시각 두 줄, 제목·본문 미리보기, 유형별 메타, 좋아요·댓글 수). 탭하면 상세(`/community/{id}`)로 이동한다.

@@ -13,6 +13,7 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
+import { Ionicons } from '@expo/vector-icons';
 import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import CategoryChipView from '@/components/browse/CategoryChipView';
@@ -43,7 +44,8 @@ const END_REACHED_THRESHOLD = 0.3;
 const CommunityView: FC<Props> = ({ feed }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const isLoggedIn = app.getFirebase().isLoggedIn();
+  const userId = app.getFirebase().getUserId();
+  const isLoggedIn = Boolean(userId);
   const [pendingWrite, setPendingWrite] = useState(false);
   const posts = feed.getPosts();
   const isLoading = feed.getIsLoading();
@@ -115,6 +117,11 @@ const CommunityView: FC<Props> = ({ feed }) => {
     [feed]
   );
 
+  const handleMyPosts = useCallback(() => {
+    app.getAnalyticsManager()?.logClick('click_community_my_posts');
+    router.push('/community/mine');
+  }, [router]);
+
   const handleRefresh = useCallback(() => {
     void feed.refresh();
   }, [feed]);
@@ -160,6 +167,21 @@ const CommunityView: FC<Props> = ({ feed }) => {
               onPress={() => handleFilter(item.filter)}
             />
           ))}
+          {isLoggedIn && (
+            <CategoryChipView
+              label={app.getL10n().t('community.myPosts.title')}
+              selected={false}
+              onPress={handleMyPosts}
+              accessibilityLabel={app.getL10n().t('community.myPosts.title')}
+              trailingIcon={
+                <Ionicons
+                  name='chevron-forward'
+                  size={14}
+                  color={Acg.textSecondary}
+                />
+              }
+            />
+          )}
         </ScrollView>
         <OrderButtonView
           order={feed.getOrder()}
