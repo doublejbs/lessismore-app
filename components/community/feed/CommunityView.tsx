@@ -183,10 +183,12 @@ const CommunityView: FC<Props> = ({ feed }) => {
             />
           )}
         </ScrollView>
-        <OrderButtonView
-          order={feed.getOrder()}
-          onSelectOption={handleSort}
-        />
+        <View style={styles.sortWrap}>
+          <OrderButtonView
+            order={feed.getOrder()}
+            onSelectOption={handleSort}
+          />
+        </View>
       </View>
     );
   };
@@ -330,6 +332,11 @@ const styles = StyleSheet.create({
   },
   filterScroll: {
     flex: 1,
+  },
+  // 칩 스크롤 영역과 정렬 버튼 사이 간격 — 스크롤로 잘린 칩 글자가 정렬 라벨과 붙어 읽히지 않게 한다.
+  sortWrap: {
+    paddingLeft: 12,
+    backgroundColor: Acg.paper,
   },
   title: {
     paddingHorizontal: AcgLayout.screenPadding,
