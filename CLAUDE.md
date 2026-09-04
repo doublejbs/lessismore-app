@@ -248,7 +248,7 @@ const MyComponent = observer(() => {
 
 **배포 시 규칙:**
 
-- 반드시 **저장소 루트(메인 워크스페이스)** 에서 실행 — `.env.hotupdater`와 admin 자격증명이 gitignore라 워크트리엔 없다.
+- 반드시 **저장소 루트(메인 워크스페이스)** 에서 실행 — `.env.hotupdater`와 admin 키 JSON(`*-firebase-adminsdk-*.json`)은 gitignore라 워크트리엔 없다(워크트리에서 실행해야 하면 두 파일을 심링크로 연결). **admin 키 JSON은 절대 커밋하지 않는다** — 2025-09-21 커밋에 들어가 공개 레포에 노출됐고 Google이 키를 비활성화한 사고가 있었다(2026-09-04 히스토리에서 제거·키 재발급). 키 파일명 패턴은 2026-09-04부터 gitignore에 있다.
 - `-t`를 **명시**한다. `-i` 인터랙티브 자동감지는 로컬 네이티브(`ios/` `MARKETING_VERSION`/Info.plist, `android/app/build.gradle`)를 읽는데 이 값들이 stale이라 **틀린 타깃**을 잡는다.
 - OTA 전 라이브 빌드의 커밋 시점 → HEAD 사이에 네이티브/의존성 변경(`git log <base>..HEAD -- package.json ios android`)이 없는지 확인한다. appVersion 전략은 네이티브 호환을 검증하지 않으므로 변경이 있으면 크래시 위험.
 - 배포 명령 예 (1.1.5 이후 통일 체계): `npx hot-updater deploy -p ios -t 1.1.5 -c production` / `-p android -t 1.1.5 -c production`. 레거시 바이너리 대상이면 `-t 1.0.6`(iOS) / `-t 1.0.5`(Android).
