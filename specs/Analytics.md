@@ -176,6 +176,8 @@
 | `click_community_vote` | 투표 성공 | — |
 | `click_info_my_posts` | 내 정보 `내가 쓴 글` 행 탭 | — |
 | `click_community_my_posts` | 커뮤니티 필터 행 `내가 쓴 글` 칩 탭 | — |
+| `click_community_search` | 커뮤니티 제목 행 검색 아이콘 탭 | — |
+| `click_community_search_result` | 검색 결과 카드 → 상세 진입 | `type`: 게시글 유형, `query_length`: 질의 길이 |
 | `click_community_report` | 신고 등록 성공 | `target`: `post` \| `comment` |
 
 - 커뮤니티 이벤트에는 게시글 ID, 작성자 ID·닉네임, 제목·본문, 투표 문구, 신고 상세를 보내지 않는다.

@@ -794,6 +794,19 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 
 인기 검색어: Algolia Analytics API (`/2/searches?index=useless-gear-search&limit=10&orderBy=searchCount&direction=desc`).
 
+### 커뮤니티 게시글 인덱스 `useless-community-posts` (2026-09-04, [Community.md](Community.md) CM-14)
+
+| 항목 | 값 |
+| --- | --- |
+| 인덱스 | `useless-community-posts` |
+| 동기화 | Firestore `community-posts` → `firestore-algolia-search` 익스텐션 두 번째 인스턴스(`firestore-algolia-search-community`, asia-northeast3, 기존 문서 백필 포함) |
+| 인덱스 필드 | `title`, `body`, `authorName`, `authorId`, `type`, `status`, `createdAt` — 카드 렌더용 무거운 필드(`images`, `bagSnapshot`, `poll`)는 넣지 않는다 |
+| 검색 속성 | `searchableAttributes`: `title`, `body`, `authorName` (순서 = 가중치) |
+| 필터 속성 | `attributesForFaceting`: `filterOnly(status)`, `filterOnly(type)`. 클라이언트는 항상 `status:published`를 붙인다 |
+| 히트 사용 | `objectID`(= 게시글 문서 ID)만 쓴다. 카드 렌더는 `objectID` 목록을 Firestore `community-posts`에서 `documentId() in` 10개 단위로 다시 읽어 `CommunityPost`로 만들고 히트 순서를 유지한다(삭제·숨김으로 못 읽은 ID는 건너뜀) |
+| 페이지 | `hitsPerPage: 20`, `page` 증가로 더 보기 |
+| 제한 | 본문 5,000자(한글 ≈ 15KB)는 Algolia 레코드 크기 제한(플랜별 10KB~100KB)에 걸릴 수 있다 — 동기화 실패가 보이면 변환 함수로 `body`를 잘라 넣는다(미해결) |
+
 ## 6. 일관성 규칙 (DM-11)
 
 여러 문서를 함께 바꾸는 연산은 반드시 트랜잭션/배치를 쓴다. 현재 사용처:

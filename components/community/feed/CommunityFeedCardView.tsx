@@ -17,17 +17,24 @@ import app from '@/model/app/App';
 
 interface Props {
   post: CommunityPost;
+  onPress?: () => void;
 }
 
 const CARD_PADDING = 16;
 
-const CommunityFeedCardView: FC<Props> = ({ post }) => {
+const CommunityFeedCardView: FC<Props> = ({ post, onPress }) => {
   const router = useRouter();
   const [imageFailed, setImageFailed] = useState(false);
   const image = post.getRepresentativeImage();
   const relativeTime = getCommunityRelativeTime(post.getCreatedAt());
   const l10n = app.getL10n();
   const handlePress = () => {
+    if (onPress) {
+      onPress();
+
+      return;
+    }
+
     app.getAnalyticsManager()?.logClick('click_community_post', {
       type: post.getType(),
     });

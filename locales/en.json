@@ -1254,6 +1254,14 @@
     "myPosts": {
       "title": "My posts",
       "empty": "You haven't written any posts yet"
+    },
+    "search": {
+      "title": "Search posts",
+      "placeholder": "Search title, body, author",
+      "hint": "Search by title, body, or author",
+      "empty": "No results for '{{query}}'",
+      "clear": "Clear",
+      "button": "Search posts"
     }
   }
 }

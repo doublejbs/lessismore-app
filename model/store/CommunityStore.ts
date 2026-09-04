@@ -1,6 +1,7 @@
 import {
   collection,
   doc,
+  documentId,
   DocumentData,
   getDoc,
   getDocs,
@@ -135,6 +136,43 @@ class CommunityStore {
     }
 
     return CommunityPost.from(this.toPostData(snapshot.id, data));
+  }
+
+  public async getPostsByIds(postIds: string[]): Promise<CommunityPost[]> {
+    const postsRef = collection(this.getStore(), 'community-posts');
+    const chunks: string[][] = [];
+
+    for (let index = 0; index < postIds.length; index += 10) {
+      chunks.push(postIds.slice(index, index + 10));
+    }
+
+    const snapshots = await Promise.all(
+      chunks.map(chunk =>
+        getDocs(query(postsRef, where(documentId(), 'in', chunk)))
+      )
+    );
+    const postsById = new Map<string, CommunityPost>();
+
+    snapshots.forEach(snapshot => {
+      snapshot.docs.forEach(item => {
+        const data = item.data();
+
+        if (data.status !== CommunityContentStatus.Published) {
+          return;
+        }
+
+        postsById.set(
+          item.id,
+          CommunityPost.from(this.toPostData(item.id, data))
+        );
+      });
+    });
+
+    return postIds.flatMap(postId => {
+      const post = postsById.get(postId);
+
+      return post ? [post] : [];
+    });
   }
 
   public async createPost(

@@ -20,6 +20,7 @@ import BagTemplateStore from '../store/BagTemplateStore';
 import FeedContentStore from '../store/FeedContentStore';
 import CommunityStore from '../store/CommunityStore';
 import L10n from '../l10n/L10n';
+import CommunitySearchStore from '../search/CommunitySearchStore';
 
 class App {
   private readonly firebase = new Firebase();
@@ -42,6 +43,7 @@ class App {
   private forceUpdateManager: ForceUpdateManager | null = null;
   private featurePopupManager: FeaturePopupManager | null = null;
   private communityStore: CommunityStore | null = null;
+  private communitySearchStore: CommunitySearchStore | null = null;
 
   private gearPreviewStore: GearPreviewStore | null = null;
   private initialized = false;
@@ -66,6 +68,7 @@ class App {
     this.setBagStore(new BagStore(this.firebase));
     this.bagTemplateStore = new BagTemplateStore(this.firebase, this.gearStore);
     this.searchStore = new SearchStore(this.firebase);
+    this.communitySearchStore = new CommunitySearchStore();
     this.alertManager = AlertManager.new();
     this.toastManager = ToastManager.new();
     this.logInAlertManager = LogInAlertManager.new(this.firebase);
@@ -129,6 +132,10 @@ class App {
 
   public getCommunityStore() {
     return this.communityStore;
+  }
+
+  public getCommunitySearchStore() {
+    return this.communitySearchStore;
   }
 
   public getCampSpotStore() {

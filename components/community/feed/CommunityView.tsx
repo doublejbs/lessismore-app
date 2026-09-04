@@ -266,9 +266,22 @@ const CommunityView: FC<Props> = ({ feed }) => {
       paddingHorizontal={0}
     >
       <View style={styles.header}>
-        <PretendardText weight='semibold' style={styles.title}>
-          {app.getL10n().t('community.title')}
-        </PretendardText>
+        <View style={styles.titleRow}>
+          <PretendardText weight='semibold' style={styles.title}>
+            {app.getL10n().t('community.title')}
+          </PretendardText>
+          <TouchableOpacity
+            style={styles.searchButton}
+            onPress={() => {
+              app.getAnalyticsManager()?.logClick('community_search');
+              router.push('/community/search');
+            }}
+            accessibilityRole='button'
+            accessibilityLabel={app.getL10n().t('community.search.button')}
+          >
+            <Ionicons name='search-outline' size={24} color={Acg.ink} />
+          </TouchableOpacity>
+        </View>
         {renderFilterBar()}
       </View>
       {showSkeleton ? (
@@ -339,9 +352,21 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.paper,
   },
   title: {
-    paddingHorizontal: AcgLayout.screenPadding,
+    flex: 1,
     ...AcgType.screenTitle,
     color: Acg.ink,
+  },
+  titleRow: {
+    minHeight: 44,
+    paddingHorizontal: AcgLayout.screenPadding,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  searchButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   filterContent: {
     gap: AcgLayout.chipGap,

@@ -47,6 +47,11 @@ app/community/[id]/edit.tsx → 본인 게시글 수정
 app/community/mine.tsx → CommunityMyPostsWrapper → CommunityMyPostsView   (내 정보 `내가 쓴 글` 행에서 진입, CM-13)
                                                      ├─ 내 게시글 최신순 목록(CommunityFeedCardView 재사용)
                                                      └─ 빈 상태 · 로딩 · 더 보기
+
+app/community/search.tsx → CommunitySearchWrapper → CommunitySearchView   (커뮤니티 제목 우측 검색 아이콘에서 진입, CM-14)
+                                                       ├─ 검색 입력(자동 포커스) · 지우기
+                                                       ├─ Algolia 결과 목록(CommunityFeedCardView 재사용) · 더 보기
+                                                       └─ 시작 안내 · 결과 없음 · 로딩 · 에러
 ```
 
 Expo Router는 정적 세그먼트 `community/write`를 동적 세그먼트 `[id]`보다 우선 매칭하므로 `/community/write`와 `/community/{id}`가 공존해도 작성 라우트가 상세 라우트에 흡수되지 않는다. 루트 `app/_layout.tsx`의 등록 이름은 실제 파일 경로인 `community/write`, `community/[id]`, `community/[id]/edit`와 일치한다.
@@ -63,7 +68,7 @@ Expo Router는 정적 세그먼트 `community/write`를 동적 세그먼트 `[id
 
 **수용 기준**
 
-- 상단 제목은 `커뮤니티`이고, 아래에 `전체 / 게시글 / 배낭 후기 / 투표` 필터를 둔다. 필터는 공용 `CategoryChipView` 문법을 따른다. 로그인 상태에서는 `투표` 다음에 `내가 쓴 글` 칩을 하나 더 두는데, 이 칩은 필터가 아니라 **`/community/mine`으로 이동하는 진입점**이다(선택 상태를 갖지 않고, 라벨 오른쪽에 셰브론 `chevron-forward` 14pt를 붙여 이동 칩임을 드러낸다. CM-13, 2026-09-04).
+- 상단 제목은 `커뮤니티`이고 제목 행 우측에 검색 아이콘 버튼(`search-outline`, 44pt, `accessibilityLabel` `게시글 검색`)을 둔다 — 탭하면 `/community/search`(CM-14, 2026-09-04). 아래에 `전체 / 게시글 / 배낭 후기 / 투표` 필터를 둔다. 필터는 공용 `CategoryChipView` 문법을 따른다. 로그인 상태에서는 `투표` 다음에 `내가 쓴 글` 칩을 하나 더 두는데, 이 칩은 필터가 아니라 **`/community/mine`으로 이동하는 진입점**이다(선택 상태를 갖지 않고, 라벨 오른쪽에 셰브론 `chevron-forward` 14pt를 붙여 이동 칩임을 드러낸다. CM-13, 2026-09-04).
 - 기본은 `전체`, 정렬은 `최신순`(`createdAt desc`)이다. `인기순`(`likeCount desc`, 동률은 `createdAt desc`)도 선택할 수 있다.
 - 정렬 UI는 배낭 탭(BAG-6)과 같은 필터 칩 행 우측 정렬 드롭다운과 공용 `/sort-sheet`를 사용한다. 선택은 `LocalStorageManager`의 `selectedOrderType_communityFeed`에 저장하며 창고·배낭과 공유하지 않는다. 정렬 변경 시 첫 페이지부터 재조회한다.
 - 최초 20개를 읽고 목록 끝에서 다음 20개를 불러온다. 당겨서 새로고침하면 첫 페이지부터 다시 읽는다.
@@ -234,6 +239,20 @@ Expo Router는 정적 세그먼트 `community/write`를 동적 세그먼트 `[id
 - 내 글을 수정·삭제하고 돌아오면 목록이 최신 상태를 반영한다(포커스 시 조용한 새로고침).
 - 비로그인 상태로 `/community/mine`에 직접 진입하면 전역 로그인 모달을 열고, 취소하면 이전 화면으로 돌아간다.
 
+### CM-14 게시글 검색 `[제안]`
+
+사용자는 제목·본문·작성자 닉네임으로 커뮤니티 게시글을 검색할 수 있다(2026-09-04 사용자 요청. 로그인 불필요).
+
+**수용 기준**
+
+- 진입점은 커뮤니티 제목 행 우측 검색 아이콘 하나다(CM-1). 탭하면 `/community/search`로 푸시하고 입력창에 자동 포커스한다.
+- 검색은 **Algolia 인덱스 `useless-community-posts`**([DataModel.md](DataModel.md) DM-10)를 쓴다. Firestore `community-posts`는 기존 장비 검색과 같은 `firestore-algolia-search` 익스텐션(별도 인스턴스)으로 동기화되며, 클라이언트는 장비 검색과 같은 검색 전용 키의 `liteClient`로 조회한다.
+- 질의는 입력 후 300ms 디바운스, 앞뒤 공백 제거 후 1자 이상일 때만 보낸다. `filters: status:published`를 항상 붙여 삭제·숨김 글은 결과에 나오지 않는다. 20개 단위 페이지(Algolia `page`)로 더 보기.
+- 결과 카드는 피드와 같은 `CommunityFeedCardView`를 재사용한다. Algolia 히트에서는 `objectID`만 쓰고, 그 ID들을 Firestore에서 다시 읽어(`documentId() in`, 10개 단위) 완전한 `CommunityPost`로 그린다 — 인덱스에는 검색·필터 필드만 두어 레코드를 가볍게 유지한다([DataModel.md](DataModel.md) DM-10). 히트 순서를 유지하고 읽지 못한 ID는 건너뛴다. 탭하면 상세로 이동한다.
+- 상태: 입력 전 `제목, 내용, 작성자로 검색해보세요` 안내, 결과 없음 `'{{query}}' 검색 결과가 없어요`, 로딩은 피드 스켈레톤, 실패는 `다시 시도`. 입력창 우측 지우기(×) 버튼은 44pt.
+- 최근 검색어·자동완성·하이라이트는 MVP에서 제외한다.
+- 화면 헤더는 다른 커뮤니티 화면과 같은 iOS 네이티브 투명 헤더(제목 `게시글 검색`)를 쓰고, 키보드는 목록 스크롤 시 내려간다.
+
 ### CM-12 계정 탈퇴와 커뮤니티 데이터 `[제안]`
 
 회원 탈퇴 시 공개 사진과 작성자 식별 정보가 남지 않도록 커뮤니티 데이터를 함께 정리한다.
@@ -282,6 +301,7 @@ Expo Router는 정적 세그먼트 `community/write`를 동적 세그먼트 `[id
 - [ ] 최신순(기본)·인기순 정렬, 정렬 선택 저장, 정렬 변경 시 첫 페이지 재조회
 - [ ] 게시글 작성·수정·삭제와 작성 중 이탈 확인
 - [ ] 내 정보 `내가 쓴 글` → 내 게시글만 최신순, 빈 상태·페이지네이션·상세 이동, 삭제 후 돌아오면 목록에서 사라짐 (CM-13)
+- [ ] 검색 아이콘 → 제목/본문/작성자 검색, 오타·부분 일치, 삭제 글 미노출, 결과 없음·더 보기·상세 이동 (CM-14)
 - [ ] 배낭 후기 등록 후 원본 배낭을 수정·삭제해도 스냅샷이 변하지 않음
 - [ ] 배낭 스냅샷에 좌표·경로·건강 활동·메모·개인 장비 사진·사용자 정의 장비 ID가 없음
 - [ ] 사진 0~4장 선택, 카메라·앨범, 순서 변경, 대표 사진, 삭제, 실패 재시도
