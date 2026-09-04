@@ -230,6 +230,7 @@ app/info/index.tsx (정보 탭)
 - `FilterManager`·`CustomGearCategory` 등 인스턴스 정의에서 `name`이 표시와 값 매칭을 겸하면
   **라벨/값을 분리**한다(값은 캐논컬 유지, 라벨은 키).
 - 무게 분해의 `베이스` 묶음 라벨(BD-3)도 표시명이다 — 번역한다.
+- **표시명은 렌더(호출) 시점에 읽는다.** `getGearFilterName`·`t()` 결과를 모듈 스코프 상수로 굽지 않는다 — 모듈 평가 시점에는 L10n 등록·i18next 초기화가 끝나지 않아 키가 그대로 남고, 상수라 언어 전환에도 갱신되지 않는다(2026-09-04 탐색 탭 칩에 `category.tent`가 노출된 원인, `BrowseCategory.BROWSE_CATEGORIES`). 목록 상수는 필터 값만 담고 라벨은 소비자가 호출 시점에 만든다.
 - en 표시명 예: 전체 All / 텐트 Tent / 침낭 Sleeping bag / 배낭 Backpack / 의류 Clothing / 매트 Sleeping pad /
   가구 Furniture / 랜턴 Lantern / 조리 Cookware / 전자기기 Electronics / 음식 Food / 기타 Etc.
   ja는 상용 표기(テント·寝袋·バックパック·ウェア·マット·ファニチャー·ランタン·調理·電子機器·食料·その他).

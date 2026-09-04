@@ -11,7 +11,7 @@ import {
   fromFeedSort,
   getFeedSortLabel,
 } from '@/model/feed/FeedSort';
-import { BROWSE_CATEGORIES } from '@/model/browse/BrowseCategory';
+import { getBrowseCategories } from '@/model/browse/BrowseCategory';
 import { getFineCategoryLabel } from '@/model/gear/GearCategoryGroups';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import PretendardText from '@/components/PretendardText';
@@ -46,6 +46,7 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
   const l10n = app.getL10n();
   const allLabel = l10n.t('feed.all');
   const brandLabelText = l10n.t('feed.brand');
+  const categories = getBrowseCategories();
 
   // FD-5: 카테고리 즉시 적용도 공통 `click_feed_filter_apply`로 관찰한다.
   const logApply = (category: string | null) => {
@@ -146,7 +147,7 @@ const FeedFilterBarView: FC<Props> = ({ feed, showSort = true }) => {
           selected={currentCategory === null}
           onPress={handleSelectAllCategory}
         />
-        {BROWSE_CATEGORIES.map(item => (
+        {categories.map(item => (
           <FeedChipView
             key={item.filter}
             label={item.name}
