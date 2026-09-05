@@ -648,7 +648,7 @@
 | `authorId` | string | Firebase Auth uid. 익명 게시 없음 |
 | `authorName` | string | 작성 시점 닉네임 스냅샷 |
 | `title` | string | trim 후 2~80자 |
-| `body` | string | 첨부가 없으면 trim 후 10~5,000자, 패킹 또는 투표가 첨부되면 빈 값 허용·최대 5,000자 |
+| `body` | string | 첨부가 없으면 trim 후 5~5,000자(2026-09-05), 패킹 또는 투표가 첨부되면 빈 값 허용·최대 5,000자 |
 | `images` | array | 공개 사진 0~4장, 배열 순서가 표시 순서이며 첫 항목이 대표 사진 |
 | `images[].id` | string | 게시글 안에서 고유한 이미지 ID. Storage 파일명과 연결 |
 | `images[].url` | string | 커뮤니티 Storage 다운로드 URL. 개인 장비 `imageUrl` 사용 금지 |

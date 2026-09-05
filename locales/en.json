@@ -1156,7 +1156,7 @@
     },
     "validation": {
       "titleLength": "Title must be 2–80 characters",
-      "bodyLength": "Body must be 10–5,000 characters for posts and reviews, or up to 5,000 for polls",
+      "bodyLength": "Body must be 5–5,000 characters (optional when packing or a poll is attached)",
       "pollOptionCount": "Add 2–4 options",
       "pollOptionLength": "Options must be 1–60 characters",
       "pollOptionDuplicate": "Options must be unique",
