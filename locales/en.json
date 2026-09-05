@@ -116,7 +116,9 @@
     "footer": {
       "deleteAccount": "Delete account",
       "version": "Version {{version}}",
-      "copyright": "© 2026 useless"
+      "copyright": "© 2026 useless",
+      "versionDetail": "Version {{version}} ({{build}}) · {{channel}}",
+      "otaBundle": "Update {{bundleId}}"
     },
     "deleteAccount": {
       "title": "Delete account",

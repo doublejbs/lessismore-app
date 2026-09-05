@@ -116,7 +116,9 @@
     "footer": {
       "deleteAccount": "탈퇴하기",
       "version": "버전 {{version}}",
-      "copyright": "© 2026 useless"
+      "copyright": "© 2026 useless",
+      "versionDetail": "버전 {{version}} ({{build}}) · {{channel}}",
+      "otaBundle": "업데이트 {{bundleId}}"
     },
     "deleteAccount": {
       "title": "회원 탈퇴",

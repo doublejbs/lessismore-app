@@ -116,7 +116,9 @@
     "footer": {
       "deleteAccount": "退会する",
       "version": "バージョン {{version}}",
-      "copyright": "© 2026 useless"
+      "copyright": "© 2026 useless",
+      "versionDetail": "バージョン {{version}} ({{build}}) · {{channel}}",
+      "otaBundle": "アップデート {{bundleId}}"
     },
     "deleteAccount": {
       "title": "退会",
