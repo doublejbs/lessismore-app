@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { useRouter } from 'expo-router';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import CampSiteBagSelectSheetView from '@/components/camp-site/CampSiteBagSelectSheetView';
 import PretendardText from '@/components/PretendardText';
@@ -27,7 +26,6 @@ const CommunityWriteBagSelectView = ({
   onSheetVisibleChange,
   onRemove,
 }: Props) => {
-  const router = useRouter();
   const l10n = app.getL10n();
   const [internalSheetVisible, setInternalSheetVisible] = useState(false);
   const isControlled = controlledSheetVisible !== undefined;
@@ -190,9 +188,10 @@ const CommunityWriteBagSelectView = ({
       spotName=''
       subtitleOverride={l10n.t('community.write.bag.sheetSubtitle')}
       emptyText={l10n.t('community.write.bag.empty')}
+      hideCreateNew
       onClose={() => setSheetVisible(false)}
       onSelect={(bag) => void handleSelect(bag)}
-      onCreateNew={() => router.push('/bag')}
+      onCreateNew={() => setSheetVisible(false)}
     />
   );
 
