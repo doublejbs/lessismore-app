@@ -20,7 +20,6 @@ import ToastView from '@/components/toast/ToastView';
 import { Acg, AcgLayout, AcgRadius, AcgType, Radius } from '@/constants/DesignTokens';
 import CommunityError from '@/model/community/CommunityError';
 import CommunityImagePipelineError from '@/model/community-image/CommunityImagePipelineError';
-import CommunityPostType from '@/model/community/CommunityPostType';
 import CommunityValidationError from '@/model/community/CommunityValidationError';
 import {
   COMMUNITY_BODY_MAX_LENGTH,
@@ -29,9 +28,8 @@ import {
 import CommunityWrite from '@/model/community-write/CommunityWrite';
 import CommunityWriteField from '@/model/community-write/CommunityWriteField';
 import CommunityWriteMode from '@/model/community-write/CommunityWriteMode';
-import CommunityWriteBagSelectView from './CommunityWriteBagSelectView';
+import CommunityWriteAttachmentsView from './CommunityWriteAttachmentsView';
 import CommunityWriteImagesView from './CommunityWriteImagesView';
-import CommunityWritePollOptionsView from './CommunityWritePollOptionsView';
 import app from '@/model/app/App';
 
 interface Props {
@@ -72,7 +70,7 @@ const CommunityWriteView = ({ write }: Props) => {
   const isEdit = write.getMode() === CommunityWriteMode.Edit;
   const title = isEdit
     ? l10n.t('community.write.editTitle')
-    : l10n.t(`community.write.titleByType.${write.getType()}`);
+    : l10n.t('community.write.title');
   const actionLabel = isEdit
     ? l10n.t('community.write.save')
     : l10n.t('community.write.publish');
@@ -245,14 +243,6 @@ const CommunityWriteView = ({ write }: Props) => {
             {write.getAuthorName()}
           </PretendardText>
         </View>
-        {write.getType() === CommunityPostType.BagReview && (
-          <View onLayout={(event) => setBagInputY(event.nativeEvent.layout.y)} style={styles.subsection}>
-            <CommunityWriteBagSelectView write={write} />
-            {getErrorText(CommunityWriteField.Bag) && (
-              <PretendardText style={styles.error}>{getErrorText(CommunityWriteField.Bag)}</PretendardText>
-            )}
-          </View>
-        )}
         <View onLayout={(event) => setTitleInputY(event.nativeEvent.layout.y)} style={styles.field}>
           <View style={styles.fieldHeader}>
             <PretendardText style={styles.label} weight='semibold'>
@@ -278,19 +268,11 @@ const CommunityWriteView = ({ write }: Props) => {
             </PretendardText>
           )}
         </View>
-        {write.getType() === CommunityPostType.Poll && (
-          <View onLayout={(event) => setPollInputY(event.nativeEvent.layout.y)} style={styles.subsection}>
-            <CommunityWritePollOptionsView write={write} />
-            {getErrorText(CommunityWriteField.PollOptions) && (
-              <PretendardText style={styles.error}>{getErrorText(CommunityWriteField.PollOptions)}</PretendardText>
-            )}
-          </View>
-        )}
         <View onLayout={(event) => setBodyInputY(event.nativeEvent.layout.y)} style={styles.field}>
           <View style={styles.fieldHeader}>
             <PretendardText style={styles.label} weight='semibold'>
               {l10n.t(
-                write.getType() === CommunityPostType.Poll
+                write.hasBagSnapshot() || write.getHasPoll()
                   ? 'community.write.bodyLabelOptional'
                   : 'community.write.bodyLabel'
               )}
@@ -303,7 +285,6 @@ const CommunityWriteView = ({ write }: Props) => {
             style={[
               styles.input,
               styles.bodyInput,
-              write.getType() === CommunityPostType.Poll && styles.pollBodyInput,
             ]}
             value={write.getBody()}
             onChangeText={(value) => write.setBody(value)}
@@ -322,6 +303,25 @@ const CommunityWriteView = ({ write }: Props) => {
           )}
         </View>
         <CommunityWriteImagesView write={write} />
+        <View
+          onLayout={(event) => {
+            const { y } = event.nativeEvent.layout;
+            setBagInputY(y);
+            setPollInputY(y);
+          }}
+        >
+          <CommunityWriteAttachmentsView write={write} />
+          {getErrorText(CommunityWriteField.Bag) && (
+            <PretendardText style={styles.error}>
+              {getErrorText(CommunityWriteField.Bag)}
+            </PretendardText>
+          )}
+          {getErrorText(CommunityWriteField.PollOptions) && (
+            <PretendardText style={styles.error}>
+              {getErrorText(CommunityWriteField.PollOptions)}
+            </PretendardText>
+          )}
+        </View>
       </ScrollView>
       <View style={[styles.bottomBar, { paddingBottom: bottomInset }]}>
         <TouchableOpacity
@@ -398,9 +398,6 @@ const styles = StyleSheet.create({
   field: {
     gap: 8,
   },
-  subsection: {
-    gap: 8,
-  },
   fieldHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -425,9 +422,6 @@ const styles = StyleSheet.create({
   },
   bodyInput: {
     minHeight: 200,
-  },
-  pollBodyInput: {
-    minHeight: 120,
   },
   inputDisabled: {
     opacity: 0.55,

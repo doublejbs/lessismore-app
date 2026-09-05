@@ -1098,7 +1098,7 @@
       "bag": {
         "select": "배낭 선택",
         "placeholder": "배낭을 선택해주세요",
-        "sheetSubtitle": "후기를 남길 배낭을 골라주세요",
+        "sheetSubtitle": "첨부할 배낭을 선택해주세요",
         "empty": "먼저 배낭을 만들어주세요",
         "createBag": "배낭 만들기",
         "preview": "스냅샷 미리보기",
@@ -1131,23 +1131,18 @@
       "published": "게시글을 등록했어요",
       "updated": "게시글을 저장했어요",
       "failed": "게시글을 저장하지 못했어요",
-      "typeSheet": {
-        "title": "무엇을 올릴까요?",
-        "bagReview": "패킹 후기",
-        "bagReviewDesc": "다녀온 여행의 패킹 구성과 후기를 공유해보세요",
-        "poll": "투표",
-        "pollDesc": "다른 사람의 선택을 물어보세요",
-        "post": "게시글",
-        "postDesc": "자유롭게 이야기를 남겨보세요"
-      },
-      "titleByType": {
-        "post": "게시글 쓰기",
-        "bag_review": "패킹 후기 쓰기",
-        "poll": "투표 만들기"
-      },
       "bodyLabelOptional": "내용 (선택)",
       "keepWriting": "계속 작성",
-      "authorAccessibility": "작성자 {{name}}"
+      "authorAccessibility": "작성자 {{name}}",
+      "title": "글쓰기",
+      "attachments": {
+        "label": "첨부",
+        "packing": "패킹 첨부",
+        "poll": "투표 첨부",
+        "change": "변경",
+        "remove": "제거",
+        "removePoll": "투표 제거"
+      }
     },
     "validation": {
       "titleLength": "제목은 2~80자로 입력해주세요",

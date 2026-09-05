@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import LoadingView from '@/components/ui/LoadingView';
 import app from '@/model/app/App';
-import CommunityPostType from '@/model/community/CommunityPostType';
 import CommunityWrite from '@/model/community-write/CommunityWrite';
 import CommunityWriteDispatcher from '@/model/community-write/CommunityWriteDispatcher';
 import CommunityWriteMode from '@/model/community-write/CommunityWriteMode';
@@ -12,7 +11,6 @@ import CommunityWriteView from './CommunityWriteView';
 
 interface Props {
   mode: CommunityWriteMode;
-  type?: CommunityPostType;
   postId?: string;
 }
 
@@ -20,22 +18,13 @@ interface Props {
  * 커뮤니티 글쓰기 화면의 상태 수명과 초기 로드를 담당한다(CM-2, CM-3, CM-4, CM-5, CM-6, CM-9).
  * 이미지 세션은 공개 커뮤니티 경로를 사용하며 개인 장비 사진 상태와 분리된다.
  */
-const CommunityWriteWrapper = ({ mode, type, postId }: Props) => {
+const CommunityWriteWrapper = ({ mode, postId }: Props) => {
   const router = useRouter();
   const [write] = useState(() =>
     mode === CommunityWriteMode.Edit && postId
       ? CommunityWrite.edit(postId, CommunityWriteDispatcher.new())
-      : CommunityWrite.create(
-          type ?? CommunityPostType.Post,
-          CommunityWriteDispatcher.new()
-        )
+      : CommunityWrite.create(CommunityWriteDispatcher.new())
   );
-
-  useEffect(() => {
-    if (type) {
-      write.updateTypeIfEmpty(type);
-    }
-  }, [type, write]);
 
   useEffect(() => {
     let active = true;

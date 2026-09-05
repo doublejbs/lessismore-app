@@ -158,17 +158,17 @@ service cloud.firestore {
     }
 
     function authorPollIsUnvoted() {
-      return resource.data.type == 'poll'
-        && request.resource.data.type == 'poll'
-        && resource.data.poll.totalVoteCount == 0
-        && request.resource.data.poll.totalVoteCount == 0
-        && pollOptionVotesAreZero(resource.data.poll)
-        && pollOptionVotesAreZero(request.resource.data.poll);
+      return (!('poll' in resource.data)
+          || (resource.data.poll.totalVoteCount == 0
+            && pollOptionVotesAreZero(resource.data.poll)))
+        && (!('poll' in request.resource.data)
+          || (request.resource.data.poll.totalVoteCount == 0
+            && pollOptionVotesAreZero(request.resource.data.poll)));
     }
 
     function pollCounterMatches(postId) {
       let votePath = /databases/$(database)/documents/community-poll-votes/$(postId + '_' + request.auth.uid);
-      return resource.data.type == 'poll'
+      return resource.data.hasPoll == true
         && (
           (request.resource.data.poll.totalVoteCount == resource.data.poll.totalVoteCount + 1
             && request.resource.data.poll.keys().hasOnly(['options', 'totalVoteCount', 'expiresAt'])
@@ -192,12 +192,19 @@ service cloud.firestore {
       allow create: if signedIn()
         && request.resource.data.keys().hasOnly([
           'type', 'status', 'authorId', 'authorName', 'title', 'body',
-          'images', 'bagSnapshot', 'poll', 'likeCount', 'commentCount',
+          'images', 'bagSnapshot', 'poll', 'hasBagSnapshot', 'hasPoll',
+          'likeCount', 'commentCount',
           'createdAt', 'updatedAt'
         ])
         && request.resource.data.status == 'published'
+        && request.resource.data.type == 'post'
         && request.resource.data.authorId == request.auth.uid
-        && request.resource.data.authorName == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.nickname;
+        && request.resource.data.authorName == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.nickname
+        && request.resource.data.hasBagSnapshot == ('bagSnapshot' in request.resource.data)
+        && request.resource.data.hasPoll == ('poll' in request.resource.data)
+        && (!request.resource.data.hasPoll
+          || (request.resource.data.poll.totalVoteCount == 0
+            && pollOptionVotesAreZero(request.resource.data.poll)));
       // 작성자는 내용·사진·스냅샷만 수정할 수 있다. hidden은 운영자 규칙을 별도로 둔다.
       // 좋아요·댓글·투표 트랜잭션의 카운트는 정확히 ±1만 허용해야 한다.
       // Firestore Rules만으로 대응 문서 쓰기와 같은 트랜잭션인지 완전히 검증할 수 없으므로,
@@ -209,6 +216,7 @@ service cloud.firestore {
           (resource.data.authorId == request.auth.uid
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
               'status', 'title', 'body', 'images', 'bagSnapshot', 'poll',
+              'hasBagSnapshot', 'hasPoll',
               'updatedAt'
             ])
             && (
@@ -218,9 +226,9 @@ service cloud.firestore {
             )
             && unchangedCount('likeCount')
             && unchangedCount('commentCount')
-            && !(resource.data.type != 'poll'
-              && request.resource.data.diff(resource.data).affectedKeys().hasAny(['poll']))
-            && (request.resource.data.diff(resource.data).affectedKeys().hasAny(['poll'])
+            && request.resource.data.hasBagSnapshot == ('bagSnapshot' in request.resource.data)
+            && request.resource.data.hasPoll == ('poll' in request.resource.data)
+            && (request.resource.data.diff(resource.data).affectedKeys().hasAny(['poll', 'hasPoll'])
               ? authorPollIsUnvoted()
               : true)
             && (request.resource.data.status != 'deleted'
@@ -312,7 +320,7 @@ service cloud.firestore {
 
     // 운영자는 위 콘텐츠 규칙을 별도 관리자 UID/커스텀 클레임 규칙으로 확장한다.
     // 일반 클라이언트가 전체 신고 목록이나 상태를 읽고 바꾸는 것은 금지한다.
-  
+
     // === 기존 규칙 유지(2026-09-03 병합) ===
     // 프로덕션에 있던 전면 개방 규칙을 그대로 두되, 커뮤니티 컬렉션은 위 전용 규칙만 적용되도록 제외한다.
     // TODO(보안): 나머지 컬렉션도 별도 작업으로 좁혀야 한다.

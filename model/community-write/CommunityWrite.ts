@@ -65,7 +65,6 @@ class CommunityWrite {
 
   public constructor(
     mode: CommunityWriteMode,
-    _type: CommunityPostType,
     postId: string | null,
     dispatcher: CommunityWriteDispatcher,
     imageSession: CommunityImageSession,
@@ -81,7 +80,6 @@ class CommunityWrite {
   }
 
   public static create(
-    _type: CommunityPostType = CommunityPostType.Post,
     dispatcher: CommunityWriteDispatcher = CommunityWriteDispatcher.new(),
     imageSession: CommunityImageSession = CommunityImageSession.from(
       app.getFirebase()
@@ -89,7 +87,6 @@ class CommunityWrite {
   ): CommunityWrite {
     return new CommunityWrite(
       CommunityWriteMode.Create,
-      CommunityPostType.Post,
       null,
       dispatcher,
       imageSession,
@@ -106,7 +103,6 @@ class CommunityWrite {
   ): CommunityWrite {
     return new CommunityWrite(
       CommunityWriteMode.Edit,
-      CommunityPostType.Post,
       postId,
       dispatcher,
       imageSession,
@@ -178,16 +174,16 @@ class CommunityWrite {
     return this.mode;
   }
 
-  public getType(): CommunityPostType {
-    return CommunityPostType.Post;
-  }
-
   public hasBagSnapshot(): boolean {
     return this.bagSnapshot !== null;
   }
 
   public hasPoll(): boolean {
     return this.pollAttached;
+  }
+
+  public getHasPoll(): boolean {
+    return this.hasPoll();
   }
 
   public getTitle(): string {
@@ -254,23 +250,6 @@ class CommunityWrite {
     return this.mode === CommunityWriteMode.Edit;
   }
 
-  public updateTypeIfEmpty(_value: CommunityPostType): boolean {
-    if (
-      this.mode === CommunityWriteMode.Edit ||
-      this.isDirty ||
-      this.title.trim() ||
-      this.body.trim() ||
-      this.selectedBag ||
-      this.bagSnapshot ||
-      this.imageSession.images.length > 0
-    ) {
-      return false;
-    }
-
-
-    return true;
-  }
-
   public setTitle(value: string) {
     this.setTitleValue(value);
     this.clearFieldError(CommunityWriteField.Title);
@@ -293,16 +272,27 @@ class CommunityWrite {
     this.markDirty();
   }
 
-  public removeBagSnapshot() {
+  public clearBagSnapshot() {
     this.setSelectedBag(null);
     this.setBagSnapshot(null);
     this.setBagChanged(true);
     this.markDirty();
   }
 
+  public removeBagSnapshot() {
+    this.clearBagSnapshot();
+  }
+
   public attachPoll() {
     if (!this.canEditPollStructure()) {
       return;
+    }
+
+    if (!this.pollAttached) {
+      this.setPollOptions(['', '']);
+      this.setPollOptionIds([createCommunityId(), createCommunityId()]);
+      this.setPollExpiresAtValue(null);
+      this.setPollExpiryDaysValue(0);
     }
 
     this.setPollAttached(true);
@@ -318,6 +308,10 @@ class CommunityWrite {
     this.setPollAttached(false);
     this.setPollChanged(true);
     this.markDirty();
+  }
+
+  public detachPoll() {
+    this.removePoll();
   }
 
   public async loadBags(): Promise<void> {
@@ -708,7 +702,7 @@ class CommunityWrite {
     this.bagsLoaded = value;
   }
 
-  private setBagSnapshot(value: CommunityBagSnapshotType | null) {
+  public setBagSnapshot(value: CommunityBagSnapshotType | null) {
     this.bagSnapshot = value;
   }
 

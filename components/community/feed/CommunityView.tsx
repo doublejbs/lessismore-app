@@ -78,7 +78,7 @@ const CommunityView: FC<Props> = ({ feed }) => {
 
     const timer = setTimeout(() => {
       setPendingWrite(false);
-      router.push('/community-write-options');
+      router.push('/community/write');
     }, 0);
 
     return () => {
@@ -95,7 +95,7 @@ const CommunityView: FC<Props> = ({ feed }) => {
     }
 
     app.getAnalyticsManager()?.logClick('click_community_write');
-    router.push('/community-write-options');
+    router.push('/community/write');
   };
 
   const handleFilter = useCallback(

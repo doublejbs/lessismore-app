@@ -1098,7 +1098,7 @@
       "bag": {
         "select": "バックパックを選択",
         "placeholder": "バックパックを選択してください",
-        "sheetSubtitle": "レビューするバックパックを選択してください",
+        "sheetSubtitle": "添付するバックパックを選択してください",
         "empty": "先にバックパックを作成してください",
         "createBag": "バックパックを作成",
         "preview": "スナップショットプレビュー",
@@ -1131,23 +1131,18 @@
       "published": "投稿しました",
       "updated": "投稿を保存しました",
       "failed": "投稿を保存できませんでした",
-      "typeSheet": {
-        "title": "何を投稿しますか？",
-        "bagReview": "パッキングレビュー",
-        "bagReviewDesc": "旅で持って行ったパッキング構成と感想を共有しよう",
-        "poll": "投票",
-        "pollDesc": "みんなに選んでもらう",
-        "post": "投稿",
-        "postDesc": "自由に投稿してみましょう"
-      },
-      "titleByType": {
-        "post": "投稿を書く",
-        "bag_review": "パッキングレビューを書く",
-        "poll": "投票を作成"
-      },
       "bodyLabelOptional": "本文（任意）",
       "keepWriting": "続けて作成",
-      "authorAccessibility": "作成者 {{name}}"
+      "authorAccessibility": "作成者 {{name}}",
+      "title": "投稿を書く",
+      "attachments": {
+        "label": "添付",
+        "packing": "パッキングを添付",
+        "poll": "投票を添付",
+        "change": "変更",
+        "remove": "削除",
+        "removePoll": "投票を削除"
+      }
     },
     "validation": {
       "titleLength": "タイトルは2～80文字で入力してください",

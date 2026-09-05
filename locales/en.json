@@ -1112,7 +1112,7 @@
       "bag": {
         "select": "Choose a pack",
         "placeholder": "Choose a pack",
-        "sheetSubtitle": "Choose a pack for your review",
+        "sheetSubtitle": "Choose a pack to attach",
         "empty": "Create a pack first",
         "createBag": "Create a pack",
         "preview": "Snapshot preview",
@@ -1145,23 +1145,18 @@
       "published": "Your post was published",
       "updated": "Your post was saved",
       "failed": "Could not save your post",
-      "typeSheet": {
-        "title": "What would you like to share?",
-        "bagReview": "Packing review",
-        "bagReviewDesc": "Share what you packed for a trip and how it went",
-        "poll": "Poll",
-        "pollDesc": "Ask others to choose",
-        "post": "Post",
-        "postDesc": "Share anything freely"
-      },
-      "titleByType": {
-        "post": "New post",
-        "bag_review": "New packing review",
-        "poll": "New poll"
-      },
       "bodyLabelOptional": "Body (optional)",
       "keepWriting": "Keep writing",
-      "authorAccessibility": "Author {{name}}"
+      "authorAccessibility": "Author {{name}}",
+      "title": "Write",
+      "attachments": {
+        "label": "Attachments",
+        "packing": "Attach packing",
+        "poll": "Attach poll",
+        "change": "Change",
+        "remove": "Remove",
+        "removePoll": "Remove poll"
+      }
     },
     "validation": {
       "titleLength": "Title must be 2–80 characters",

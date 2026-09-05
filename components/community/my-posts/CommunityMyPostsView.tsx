@@ -71,7 +71,7 @@ const CommunityMyPostsView: FC<Props> = ({ myPosts }) => {
 
   const handleWrite = () => {
     app.getAnalyticsManager()?.logClick('click_community_write');
-    router.push('/community-write-options');
+    router.push('/community/write');
   };
 
   const handleRefresh = useCallback(() => {
