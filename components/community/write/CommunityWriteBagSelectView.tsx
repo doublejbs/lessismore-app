@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import CampSiteBagSelectSheetView from '@/components/camp-site/CampSiteBagSelectSheetView';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgRadius, AcgType, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import type BagItem from '@/model/bag/BagItem';
 import CommunityWrite from '@/model/community-write/CommunityWrite';
 import app from '@/model/app/App';
@@ -13,19 +12,17 @@ import { formatCommunityWeight } from '@/model/community/CommunityFormat';
 
 interface Props {
   write: CommunityWrite;
-  summaryOnly?: boolean;
   sheetVisible?: boolean;
   onSheetVisibleChange?: (visible: boolean) => void;
   onRemove?: () => void;
 }
 
 /**
- * 패킹 후기의 공개 스냅샷을 선택하는 View다(CM-4, CM-9, DM-28).
+ * 패킹 첨부의 공개 스냅샷을 선택하는 View다(CM-4, CM-9, DM-28).
  * 스냅샷만 작성 모델에 저장하고 개인 장비 사진은 커뮤니티 이미지 경로와 분리한다.
  */
 const CommunityWriteBagSelectView = ({
   write,
-  summaryOnly = false,
   sheetVisible: controlledSheetVisible,
   onSheetVisibleChange,
   onRemove,
@@ -48,12 +45,16 @@ const CommunityWriteBagSelectView = ({
   };
 
   useEffect(() => {
+    if (!sheetVisible) {
+      return;
+    }
+
     void write.loadBags().catch(() => {
       app.getToastManager()?.show({
         message: l10n.t('community.write.failed'),
       });
     });
-  }, [l10n, write]);
+  }, [l10n, sheetVisible, write]);
 
   const handleSelect = async (bag: BagItem) => {
     setSheetVisible(false);
@@ -85,7 +86,7 @@ const CommunityWriteBagSelectView = ({
           date: snapshotDate,
           weight: formatCommunityWeight(snapshot.totalWeight),
         })
-      : l10n.t('community.write.bag.placeholder');
+      : '';
 
   const summary = (
     <>
@@ -100,32 +101,30 @@ const CommunityWriteBagSelectView = ({
                 {selectedBagLabel}
               </PretendardText>
             </View>
-            {summaryOnly && (
-              <View style={styles.previewActions}>
-                <TouchableOpacity
-                  style={styles.textAction}
-                  onPress={() => setSheetVisible(true)}
-                  disabled={write.getIsSubmitting()}
-                  accessibilityRole='button'
-                  accessibilityLabel={l10n.t('community.write.attachments.change')}
-                >
-                  <PretendardText style={styles.textActionLabel}>
-                    {l10n.t('community.write.attachments.change')}
-                  </PretendardText>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.textAction}
-                  onPress={onRemove}
-                  disabled={write.getIsSubmitting()}
-                  accessibilityRole='button'
-                  accessibilityLabel={l10n.t('community.write.attachments.remove')}
-                >
-                  <PretendardText style={styles.textActionLabel}>
-                    {l10n.t('community.write.attachments.remove')}
-                  </PretendardText>
-                </TouchableOpacity>
-              </View>
-            )}
+            <View style={styles.previewActions}>
+              <TouchableOpacity
+                style={styles.textAction}
+                onPress={() => setSheetVisible(true)}
+                disabled={write.getIsSubmitting()}
+                accessibilityRole='button'
+                accessibilityLabel={l10n.t('community.write.attachments.change')}
+              >
+                <PretendardText style={styles.textActionLabel}>
+                  {l10n.t('community.write.attachments.change')}
+                </PretendardText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.textAction}
+                onPress={onRemove}
+                disabled={write.getIsSubmitting()}
+                accessibilityRole='button'
+                accessibilityLabel={l10n.t('community.write.attachments.remove')}
+              >
+                <PretendardText style={styles.textActionLabel}>
+                  {l10n.t('community.write.attachments.remove')}
+                </PretendardText>
+              </TouchableOpacity>
+            </View>
           </View>
           <PretendardText style={styles.previewVisibility}>
             {l10n.t('community.write.bag.previewVisibility', {
@@ -184,72 +183,27 @@ const CommunityWriteBagSelectView = ({
     </>
   );
 
-  if (summaryOnly) {
-    return (
-      <View style={styles.container}>
-        {summary}
-        <CampSiteBagSelectSheetView
-          visible={sheetVisible}
-          bags={bags}
-          spotName=''
-          subtitleOverride={l10n.t('community.write.bag.sheetSubtitle')}
-          onClose={() => setSheetVisible(false)}
-          onSelect={(bag) => void handleSelect(bag)}
-          onCreateNew={() => router.push('/bag')}
-        />
-      </View>
-    );
+  const sheet = (
+    <CampSiteBagSelectSheetView
+      visible={sheetVisible}
+      bags={bags}
+      spotName=''
+      subtitleOverride={l10n.t('community.write.bag.sheetSubtitle')}
+      emptyText={l10n.t('community.write.bag.empty')}
+      onClose={() => setSheetVisible(false)}
+      onSelect={(bag) => void handleSelect(bag)}
+      onCreateNew={() => router.push('/bag')}
+    />
+  );
+
+  if (!snapshot) {
+    return sheet;
   }
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.selectRow}
-        onPress={() => setSheetVisible(true)}
-        disabled={write.getIsSubmitting()}
-        accessibilityRole='button'
-        accessibilityLabel={l10n.t('community.write.bag.select')}
-      >
-        <View style={styles.rowText}>
-          <PretendardText style={styles.label} weight='semibold'>
-            {l10n.t('community.write.bag.select')}
-          </PretendardText>
-          <PretendardText style={styles.value} numberOfLines={2}>
-            {selectedBagLabel}
-          </PretendardText>
-        </View>
-        <Ionicons name='chevron-forward' size={20} color={Acg.ink} />
-      </TouchableOpacity>
-      {write.isBagsLoaded() && bags.length === 0 && (
-        <View style={styles.emptyBox}>
-          <PretendardText style={styles.emptyText}>
-            {l10n.t('community.write.bag.empty')}
-          </PretendardText>
-          <TouchableOpacity
-            style={styles.createButton}
-            onPress={() => router.push('/bag')}
-            disabled={write.getIsSubmitting()}
-            accessibilityRole='button'
-            accessibilityLabel={l10n.t('community.write.bag.createBag')}
-          >
-            <PretendardText style={styles.createText} weight='semibold'>
-              {l10n.t('community.write.bag.createBag')}
-            </PretendardText>
-          </TouchableOpacity>
-        </View>
-      )}
-      {snapshot && (
-        summary
-      )}
-      <CampSiteBagSelectSheetView
-        visible={sheetVisible}
-        bags={bags}
-        spotName=''
-        subtitleOverride={l10n.t('community.write.bag.sheetSubtitle')}
-        onClose={() => setSheetVisible(false)}
-        onSelect={(bag) => void handleSelect(bag)}
-        onCreateNew={() => router.push('/bag')}
-      />
+      {summary}
+      {sheet}
     </View>
   );
 };
@@ -257,50 +211,6 @@ const CommunityWriteBagSelectView = ({
 const styles = StyleSheet.create({
   container: {
     gap: 10,
-  },
-  selectRow: {
-    minHeight: 64,
-    borderRadius: AcgRadius.thumb,
-    backgroundColor: Acg.controlFill,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  rowText: {
-    flex: 1,
-    gap: 3,
-  },
-  label: {
-    ...AcgType.meta,
-    color: Acg.textMuted,
-  },
-  value: {
-    ...AcgType.control,
-    color: Acg.ink,
-  },
-  emptyBox: {
-    backgroundColor: Acg.controlFill,
-    borderRadius: AcgRadius.thumb,
-    padding: 16,
-    gap: 8,
-  },
-  emptyText: {
-    ...AcgType.body,
-    color: Acg.ink,
-  },
-  createButton: {
-    alignSelf: 'flex-start',
-    minHeight: 44,
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-    borderRadius: Radius.pill,
-    backgroundColor: Acg.ink,
-  },
-  createText: {
-    ...AcgType.control,
-    color: Acg.paper,
   },
   preview: {
     backgroundColor: Acg.controlFill,
@@ -333,6 +243,7 @@ const styles = StyleSheet.create({
   },
   textAction: {
     minHeight: 44,
+    minWidth: 44,
     justifyContent: 'center',
     paddingHorizontal: 6,
   },

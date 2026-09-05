@@ -182,10 +182,6 @@ class CommunityWrite {
     return this.pollAttached;
   }
 
-  public getHasPoll(): boolean {
-    return this.hasPoll();
-  }
-
   public getTitle(): string {
     return this.title;
   }
@@ -272,15 +268,11 @@ class CommunityWrite {
     this.markDirty();
   }
 
-  public clearBagSnapshot() {
+  public removeBagSnapshot() {
     this.setSelectedBag(null);
     this.setBagSnapshot(null);
     this.setBagChanged(true);
     this.markDirty();
-  }
-
-  public removeBagSnapshot() {
-    this.clearBagSnapshot();
   }
 
   public attachPoll() {
@@ -310,10 +302,6 @@ class CommunityWrite {
     this.markDirty();
   }
 
-  public detachPoll() {
-    this.removePoll();
-  }
-
   public async loadBags(): Promise<void> {
     if (this.bagsLoaded) {
       return;
@@ -326,10 +314,6 @@ class CommunityWrite {
 
   public getBags(): BagItem[] {
     return this.bags;
-  }
-
-  public isBagsLoaded(): boolean {
-    return this.bagsLoaded;
   }
 
   public addPollOption() {
@@ -619,7 +603,7 @@ class CommunityWrite {
   private buildPollInput(): CommunityPollInput {
     const poll: CommunityPollInput = {
       options: this.pollOptions.map((text, index) => ({
-        id: `option-${index}`,
+        id: this.getPollOptionId(index),
         text: text.trim(),
       })),
     };
@@ -665,8 +649,6 @@ class CommunityWrite {
     switch (error) {
       case CommunityValidationError.TitleLength:
         return CommunityWriteField.Title;
-      case CommunityValidationError.BagSnapshotRequired:
-        return CommunityWriteField.Bag;
       case CommunityValidationError.PollOptionCount:
       case CommunityValidationError.PollOptionLength:
       case CommunityValidationError.PollOptionDuplicate:
@@ -702,7 +684,7 @@ class CommunityWrite {
     this.bagsLoaded = value;
   }
 
-  public setBagSnapshot(value: CommunityBagSnapshotType | null) {
+  private setBagSnapshot(value: CommunityBagSnapshotType | null) {
     this.bagSnapshot = value;
   }
 

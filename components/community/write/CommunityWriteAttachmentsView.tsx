@@ -21,7 +21,7 @@ const CommunityWriteAttachmentsView = ({ write }: Props) => {
   const l10n = app.getL10n();
   const [bagSheetVisible, setBagSheetVisible] = useState(false);
   const hasBagSnapshot = write.hasBagSnapshot();
-  const hasPoll = write.getHasPoll();
+  const hasPoll = write.hasPoll();
   const canEditPollStructure = write.canEditPollStructure();
   const isSubmitting = write.getIsSubmitting();
 
@@ -67,10 +67,9 @@ const CommunityWriteAttachmentsView = ({ write }: Props) => {
       </View>
       <CommunityWriteBagSelectView
         write={write}
-        summaryOnly
         sheetVisible={bagSheetVisible}
         onSheetVisibleChange={setBagSheetVisible}
-        onRemove={() => write.clearBagSnapshot()}
+        onRemove={() => write.removeBagSnapshot()}
       />
       {hasPoll && (
         <View style={styles.pollBlock}>
@@ -81,7 +80,7 @@ const CommunityWriteAttachmentsView = ({ write }: Props) => {
             {canEditPollStructure && (
               <TouchableOpacity
                 style={styles.textAction}
-                onPress={() => write.detachPoll()}
+                onPress={() => write.removePoll()}
                 disabled={isSubmitting}
                 accessibilityRole='button'
                 accessibilityLabel={l10n.t('community.write.attachments.removePoll')}
@@ -148,6 +147,7 @@ const styles = StyleSheet.create({
   },
   textAction: {
     minHeight: 44,
+    minWidth: 44,
     justifyContent: 'center',
     paddingHorizontal: 6,
   },

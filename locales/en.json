@@ -1109,12 +1109,8 @@
         "addLabel": "Add photo"
       },
       "bag": {
-        "select": "Choose a pack",
-        "placeholder": "Choose a pack",
         "sheetSubtitle": "Choose a pack to attach",
         "empty": "Create a pack first",
-        "createBag": "Create a pack",
-        "preview": "Snapshot preview",
         "previewDate": "Trip dates: {{date}}",
         "previewDestination": "Destination: {{name}}",
         "previewWeight": "Total weight: {{weight}}kg",
@@ -1136,7 +1132,7 @@
         "expires1d": "1 day",
         "expires3d": "3 days",
         "expires7d": "7 days",
-        "locked": "Voting has started, so the title and options cannot be edited",
+        "locked": "Voting has started, so the options and closing date cannot be edited",
         "expiresCustom": "Custom · {{date}}"
       },
       "discardConfirm": "Cancel writing this post?",
@@ -1163,10 +1159,9 @@
       "pollOptionCount": "Add 2–4 options",
       "pollOptionLength": "Options must be 1–60 characters",
       "pollOptionDuplicate": "Options must be unique",
-      "bagSnapshotRequired": "Choose a pack for your review",
       "imageCount": "You can attach up to 4 photos",
       "notLoggedIn": "Please log in",
-      "pollLocked": "Voting has started, so the title and options cannot be edited",
+      "pollLocked": "Voting has started, so the options and closing date cannot be edited",
       "postNotFound": "Post not found",
       "failed": "Please check your input"
     },
@@ -1231,7 +1226,6 @@
     "poll": {
       "participants": "{{count}} participated",
       "closed": "This poll is closed",
-      "closesAt": "Until {{date}}",
       "changed": "Vote changed"
     },
     "report": {

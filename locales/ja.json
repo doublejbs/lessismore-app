@@ -1095,12 +1095,8 @@
         "addLabel": "写真を追加"
       },
       "bag": {
-        "select": "バックパックを選択",
-        "placeholder": "バックパックを選択してください",
         "sheetSubtitle": "添付するバックパックを選択してください",
         "empty": "先にバックパックを作成してください",
-        "createBag": "バックパックを作成",
-        "preview": "スナップショットプレビュー",
         "previewDate": "旅行日程: {{date}}",
         "previewDestination": "行き先: {{name}}",
         "previewWeight": "総重量: {{weight}}kg",
@@ -1122,7 +1118,7 @@
         "expires1d": "1日",
         "expires3d": "3日",
         "expires7d": "7日",
-        "locked": "投票が始まったため、タイトルと選択肢は編集できません",
+        "locked": "投票が始まったため、選択肢と締切は編集できません",
         "expiresCustom": "カスタム · {{date}}"
       },
       "discardConfirm": "作成をキャンセルしますか？",
@@ -1149,10 +1145,9 @@
       "pollOptionCount": "選択肢は2～4個必要です",
       "pollOptionLength": "選択肢は1～60文字で入力してください",
       "pollOptionDuplicate": "重複しない選択肢を入力してください",
-      "bagSnapshotRequired": "レビューするバックパックを選択してください",
       "imageCount": "写真は最大4枚まで添付できます",
       "notLoggedIn": "ログインしてください",
-      "pollLocked": "投票が始まったため、タイトルと選択肢は編集できません",
+      "pollLocked": "投票が始まったため、選択肢と締切は編集できません",
       "postNotFound": "投稿が見つかりません",
       "failed": "入力内容を確認してください"
     },
@@ -1217,7 +1212,6 @@
     "poll": {
       "participants": "{{count}}人が参加",
       "closed": "終了した投票です",
-      "closesAt": "{{date}}まで",
       "changed": "投票を変更しました"
     },
     "report": {

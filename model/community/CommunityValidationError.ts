@@ -5,7 +5,6 @@ enum CommunityValidationError {
   PollOptionLength = 'poll_option_length',
   PollOptionDuplicate = 'poll_option_duplicate',
   PollOptionInvalid = 'poll_option_invalid',
-  BagSnapshotRequired = 'bag_snapshot_required',
   PollRequired = 'poll_required',
   ImageCount = 'image_count',
   CommentLength = 'comment_length',

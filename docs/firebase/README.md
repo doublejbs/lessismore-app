@@ -11,6 +11,7 @@
 5. `community-storage.rules`의 내용을 Storage Rules 편집기에 붙여 넣고 공개 읽기, 본인 JPEG 업로드·삭제, 타인 경로 및 목록 조회 차단을 확인한다.
 6. CLI를 사용할 때는 프로젝트 설정 파일에서 이 규칙 파일을 명시한 뒤 `firebase deploy --only firestore:rules,storage`를 실행한다. 실행 전 프로젝트와 대상 파일을 확인한다.
 7. 인덱스 쿼리에서 Firebase가 생성한 콘솔 링크를 아래에 기록한다.
+8. 규칙이 새 필드를 요구하는 경우에는 반드시 **마이그레이션 실행 → 대상 0건 확인 → 규칙 배포** 순서를 지킨다. 규칙을 먼저 배포하면 기존 문서의 필드 결손으로 작성자 수정·투표가 거부될 수 있다.
 
 투표 규칙 에뮬레이터 확인 시 첫 투표와 같은 선택지 재투표(변경 없음), 다른 선택지 변경(카운터 이동), `totalVoteCount` 변조, 타인 문서 변경, 삭제, 마감 후 변경을 각각 확인한다. 결과는 배포 전 검토 보고서에 남기며 규칙은 이 저장소에서 자동 배포하지 않는다.
 
@@ -19,13 +20,16 @@
 ## 인덱스 생성 콘솔 링크
 
 - 게시글 전체 피드(최신순): (콘솔 링크 기록)
-- 게시글 유형 필터(최신순): (콘솔 링크 기록)
-- 게시글 전체 피드(인기순): (콘솔 링크 기록)
-- 게시글 유형 필터(인기순): (콘솔 링크 기록)
+- 게시글 패킹 필터(최신순, `status` + `hasBagSnapshot` + `createdAt`): (콘솔 링크 기록)
+- 게시글 투표 필터(최신순, `status` + `hasPoll` + `createdAt`): (콘솔 링크 기록)
+- 게시글 전체 피드(인기순, `status` + `likeCount` + `createdAt`): (콘솔 링크 기록)
+- 게시글 패킹 필터(인기순, `status` + `hasBagSnapshot` + `likeCount` + `createdAt`): (콘솔 링크 기록)
+- 게시글 투표 필터(인기순, `status` + `hasPoll` + `likeCount` + `createdAt`): (콘솔 링크 기록)
+- 내가 쓴 글(`authorId` + `status` + `createdAt`): (콘솔 링크 기록)
 - 댓글 상태·생성 시각: (콘솔 링크 기록)
 - 신고 상태·생성 시각: (콘솔 링크 기록)
 
-댓글 쿼리는 `status in ['published', 'deleted']`와 `createdAt asc`를 사용하므로 `status` 오름차순·`createdAt` 오름차순 복합 인덱스로 기록했다. 커뮤니티 피드는 최신순·인기순 및 유형 필터 조합에 따라 `community-posts` 복합 인덱스 4개를 사용한다. 컬렉션 그룹 단일 필드(`authorId`, `status`, `mentionedUserId`)는 `community-firestore.indexes.json`의 `fieldOverrides`로 배포 범위를 활성화하며, 앱 쿼리에 사용하는 복합 인덱스 6개와 함께 이 파일만 배포 기준으로 삼는다. 실제 Firebase CLI가 요구하는 형식과 프로젝트 콘솔 결과가 다르면 배포 전에 이 문서를 먼저 갱신한다.
+댓글 쿼리는 `status in ['published', 'deleted']`와 `createdAt asc`를 사용하므로 `status` 오름차순·`createdAt` 오름차순 복합 인덱스로 기록했다. 커뮤니티 피드는 전체 최신순 1개, 전체 인기순 1개, `hasBagSnapshot`·`hasPoll` 불리언 유형 필터별 최신순·인기순 4개, 내가 쓴 글 1개로 `community-posts` 복합 인덱스 7개를 사용한다. 컬렉션 그룹 단일 필드(`authorId`, `status`, `mentionedUserId`)는 `community-firestore.indexes.json`의 `fieldOverrides`로 배포 범위를 활성화하며, 앱 쿼리에 사용하는 복합 인덱스 7개와 함께 이 파일만 배포 기준으로 삼는다. 실제 Firebase CLI가 요구하는 형식과 프로젝트 콘솔 결과가 다르면 배포 전에 이 문서를 먼저 갱신한다.
 
 각 컬렉션 그룹 `fieldOverrides`에는 기본 컬렉션 단일 필드 인덱스(오름차순·내림차순·array-contains)를 유지하면서 컬렉션 그룹 오름차순 범위를 추가했다. 신고 `(status, createdAt)` 복합 인덱스는 앱·서버 쿼리가 아닌 Firebase 콘솔에서 신고를 상태·시각순으로 훑기 위한 운영용 인덱스로 유지한다.
 
@@ -40,3 +44,4 @@
 - Cloud Functions 5개는 `lessismore` 레포 `functions/`에서 `--only functions:<이름>` 지정 배포(`--force`는 retry 정책 확인용).
 - 2026-09-03 2차: 투표 변경 허용(CM-5 개정) 규칙을 같은 병합 방식으로 재배포(`deployed/firestore.rules` 갱신). Storage 규칙·인덱스는 변경 없음.
 - 2026-09-03 3차: 피드 정렬 인기순용 인덱스 2개(likeCount desc) 추가 배포(`deployed/firestore.indexes.json` 갱신, 총 16개 + overrides 3).
+- 2026-09-05 4차: 첨부 모델 규칙과 `community-posts` 인덱스 4개(`hasBagSnapshot`·`hasPoll`의 최신순·인기순)를 교체 배포했다. 규칙 배포 **전에** `scripts/migrate-community-attachments.mjs --apply`로 7개 문서를 백필하고 대상 0건을 확인했으며, 쓰기 전 백업은 `scripts/backup-community-posts-2026-09-05T00-53-28-310Z.json`이다. 이후 `deployed/firestore.rules`·`deployed/firestore.indexes.json`을 갱신했다.

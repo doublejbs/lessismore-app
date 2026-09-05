@@ -47,7 +47,6 @@ const VALIDATION_KEYS: Partial<Record<CommunityValidationError, string>> = {
   [CommunityValidationError.PollOptionCount]: 'pollOptionCount',
   [CommunityValidationError.PollOptionLength]: 'pollOptionLength',
   [CommunityValidationError.PollOptionDuplicate]: 'pollOptionDuplicate',
-  [CommunityValidationError.BagSnapshotRequired]: 'bagSnapshotRequired',
   [CommunityValidationError.ImageCount]: 'imageCount',
   [CommunityValidationError.PollLocked]: 'pollLocked',
   [CommunityValidationError.PostNotFound]: 'postNotFound',
@@ -74,7 +73,6 @@ const CommunityWriteView = ({ write }: Props) => {
   const actionLabel = isEdit
     ? l10n.t('community.write.save')
     : l10n.t('community.write.publish');
-  const canEditPollStructure = write.canEditPollStructure();
   const bottomInset = Math.max(insets.bottom, 12);
   const contentBottomPadding =
     SUBMIT_BUTTON_HEIGHT + BOTTOM_BAR_TOP_PADDING + bottomInset + CONTENT_BOTTOM_EXTRA;
@@ -253,14 +251,14 @@ const CommunityWriteView = ({ write }: Props) => {
             </PretendardText>
           </View>
           <TextInput
-            style={[styles.input, !canEditPollStructure && styles.inputDisabled]}
+            style={styles.input}
             value={write.getTitle()}
             onChangeText={(value) => write.setTitle(value)}
             placeholder={l10n.t('community.write.titlePlaceholder')}
             placeholderTextColor={Acg.textMuted}
             maxLength={COMMUNITY_TITLE_MAX_LENGTH}
-            editable={canEditPollStructure && !write.getIsSubmitting()}
-            accessibilityState={{ disabled: !canEditPollStructure || write.getIsSubmitting() }}
+            editable={!write.getIsSubmitting()}
+            accessibilityState={{ disabled: write.getIsSubmitting() }}
           />
           {getErrorText(CommunityWriteField.Title) && (
             <PretendardText style={styles.error}>
@@ -272,7 +270,7 @@ const CommunityWriteView = ({ write }: Props) => {
           <View style={styles.fieldHeader}>
             <PretendardText style={styles.label} weight='semibold'>
               {l10n.t(
-                write.hasBagSnapshot() || write.getHasPoll()
+                write.hasBagSnapshot() || write.hasPoll()
                   ? 'community.write.bodyLabelOptional'
                   : 'community.write.bodyLabel'
               )}
@@ -422,9 +420,6 @@ const styles = StyleSheet.create({
   },
   bodyInput: {
     minHeight: 200,
-  },
-  inputDisabled: {
-    opacity: 0.55,
   },
   error: {
     ...AcgType.meta,

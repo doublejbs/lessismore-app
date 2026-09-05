@@ -65,8 +65,6 @@ export interface CommunityPostData {
   title: string;
   body: string;
   images: CommunityPostImage[];
-  hasBagSnapshot: boolean;
-  hasPoll: boolean;
   bagSnapshot?: CommunityBagSnapshot;
   poll?: CommunityPoll;
   likeCount: number;

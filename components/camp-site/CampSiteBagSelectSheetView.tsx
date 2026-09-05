@@ -30,6 +30,8 @@ interface Props {
   hideCreateNew?: boolean;
   // 있으면 헤더 서브텍스트를 이 값으로 대체한다(기본은 spotName 기반 문구).
   subtitleOverride?: string;
+  // 있으면 배낭이 없을 때 표시할 문구를 이 값으로 대체한다.
+  emptyText?: string;
 }
 
 // CS-5: 박지를 여행지로 설정할 배낭을 고르는 시트. iOS 네이티브 pageSheet 프레젠테이션.
@@ -42,6 +44,7 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
   onCreateNew,
   hideCreateNew = false,
   subtitleOverride,
+  emptyText,
 }) => {
   const l10n = app.getL10n();
   const insets = useSafeAreaInsets();
@@ -110,7 +113,7 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
 
         {bags.length === 0 ? (
           <PretendardText style={styles.emptyText}>
-            {l10n.t('campSite.bagSelect.empty')}
+            {emptyText ?? l10n.t('campSite.bagSelect.empty')}
           </PretendardText>
         ) : (
           <>

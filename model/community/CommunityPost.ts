@@ -117,14 +117,6 @@ class CommunityPost {
     return this.updatedAt;
   }
 
-  public isPoll() {
-    return this.hasPoll();
-  }
-
-  public isBagReview() {
-    return this.hasBagSnapshot();
-  }
-
   public hasBagSnapshot() {
     return !!this.bagSnapshot;
   }

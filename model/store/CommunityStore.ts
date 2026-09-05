@@ -234,10 +234,10 @@ class CommunityStore {
       const hasVote = (poll?.totalVoteCount ?? 0) > 0;
       const nextHasBagSnapshot = patch.bagSnapshot !== undefined
         ? patch.bagSnapshot !== null
-        : patch.hasBagSnapshot ?? Boolean(data.bagSnapshot);
+        : Boolean(data.bagSnapshot);
       const nextHasPoll = patch.poll !== undefined
         ? patch.poll !== null
-        : patch.hasPoll ?? Boolean(data.poll);
+        : Boolean(data.poll);
       const expiresAtChanged =
         patch.poll !== undefined &&
         patch.poll !== null &&
@@ -270,6 +270,8 @@ class CommunityStore {
 
       const updates: Record<string, unknown> = {
         updatedAt: serverTimestamp(),
+        hasBagSnapshot: nextHasBagSnapshot,
+        hasPoll: nextHasPoll,
       };
 
       if (patch.hasBagSnapshot !== undefined) {
@@ -277,7 +279,6 @@ class CommunityStore {
           throw new CommunityError(CommunityValidationError.AttachmentMismatch);
         }
 
-        updates.hasBagSnapshot = patch.hasBagSnapshot;
       }
 
       if (patch.hasPoll !== undefined) {
@@ -285,7 +286,6 @@ class CommunityStore {
           throw new CommunityError(CommunityValidationError.AttachmentMismatch);
         }
 
-        updates.hasPoll = patch.hasPoll;
       }
 
       if (patch.title !== undefined) {
@@ -821,8 +821,6 @@ class CommunityStore {
       title: data.title,
       body: data.body,
       images: (data.images ?? []) as CommunityPostImage[],
-      hasBagSnapshot: data.hasBagSnapshot ?? !!bagSnapshot,
-      hasPoll: data.hasPoll ?? !!poll,
       ...(bagSnapshot
         ? { bagSnapshot }
         : {}),
