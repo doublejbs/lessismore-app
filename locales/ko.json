@@ -1073,7 +1073,6 @@
     },
     "write": {
       "editTitle": "게시글 수정",
-      "author": "작성자",
       "publish": "등록",
       "save": "저장",
       "titleLabel": "제목",

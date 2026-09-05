@@ -1087,7 +1087,6 @@
     },
     "write": {
       "editTitle": "Edit post",
-      "author": "Author",
       "publish": "Post",
       "save": "Save",
       "titleLabel": "Title",

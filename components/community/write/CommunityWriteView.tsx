@@ -233,8 +233,8 @@ const CommunityWriteView = ({ write }: Props) => {
         keyboardShouldPersistTaps='handled'
         showsVerticalScrollIndicator={false}
       >
-        <PretendardText style={styles.author}>
-          {`${l10n.t('community.write.author')}: ${write.getAuthorName()}`}
+        <PretendardText style={styles.author} weight='semibold'>
+          {write.getAuthorName()}
         </PretendardText>
         {write.getType() === CommunityPostType.BagReview && (
           <View onLayout={(event) => setBagInputY(event.nativeEvent.layout.y)} style={styles.subsection}>
@@ -375,9 +375,10 @@ const styles = StyleSheet.create({
     paddingTop: AcgLayout.screenPadding,
     gap: 24,
   },
+  // 상세 헤더의 작성자 줄과 같은 문법(14 잉크 semibold) — 회색 메타는 흰 지면에서 잘 안 보였다.
   author: {
-    ...AcgType.meta,
-    color: Acg.textMuted,
+    ...AcgType.rowSubtitle,
+    color: Acg.ink,
   },
   field: {
     gap: 8,

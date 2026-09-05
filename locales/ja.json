@@ -1073,7 +1073,6 @@
     },
     "write": {
       "editTitle": "投稿を編集",
-      "author": "投稿者",
       "publish": "投稿",
       "save": "保存",
       "titleLabel": "タイトル",
