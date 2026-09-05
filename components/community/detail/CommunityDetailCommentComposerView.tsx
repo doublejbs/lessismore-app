@@ -29,7 +29,13 @@ const CommunityDetailCommentComposerView = observer(({ detail, bottomInset }: Pr
     : Math.max(bottomInset, COMPOSER_BOTTOM_GAP) + COMPOSER_BOTTOM_GAP;
 
   return (
-    <View style={styles.composer}>
+    <KeyboardAvoidingView
+      style={styles.composer}
+      // iOS는 컴포저 단위 padding 회피가 검증된 방식이다(상세의 화면 단위 KAV는 Android 전용).
+      behavior='padding'
+      enabled={Platform.OS === 'ios'}
+      keyboardVerticalOffset={0}
+    >
       <View style={[styles.inner, { paddingBottom: innerBottomPadding }]}>
         {target && !editing && (
           <View style={styles.replyBanner}>
@@ -82,7 +88,7 @@ const CommunityDetailCommentComposerView = observer(({ detail, bottomInset }: Pr
           )}
         </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 });
 

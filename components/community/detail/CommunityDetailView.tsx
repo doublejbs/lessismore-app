@@ -188,7 +188,9 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
           컨테이너를 줄일 대상이 없어 입력란이 키보드 뒤에 남았다(2026-09-05). */}
       <KeyboardAvoidingView
         style={styles.content}
-        behavior={Platform.select({ ios: 'padding', android: 'height', default: undefined })}
+        behavior='height'
+        // iOS는 컴포저 자체의 padding 회피를 쓴다 — 화면 단위 padding은 iOS에서 입력란이 키보드 뒤로 밀렸다(2026-09-05).
+        enabled={!IS_IOS}
         keyboardVerticalOffset={0}
       >
         <View style={styles.content}>{content}</View>
