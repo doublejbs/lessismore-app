@@ -3,11 +3,12 @@ import { observer } from 'mobx-react-lite';
 import { FC, useCallback, useState } from 'react';
 import {
   FlatList,
+  KeyboardAvoidingView,
   Platform,
   StyleSheet,
   TouchableOpacity,
-  useWindowDimensions,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -183,10 +184,18 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
           {renderHeaderActions()}
         </View>
       )}
-      <View style={styles.content}>{content}</View>
-      {post && !detail.isNotFound() && (
-        <CommunityDetailCommentComposerView detail={detail} bottomInset={composerBottomInset} />
-      )}
+      {/* 키보드 회피는 화면 단위로 한다 — 컴포저만 감싼 KeyboardAvoidingView는 Android(edge-to-edge)에서
+          컨테이너를 줄일 대상이 없어 입력란이 키보드 뒤에 남았다(2026-09-05). */}
+      <KeyboardAvoidingView
+        style={styles.content}
+        behavior={Platform.select({ ios: 'padding', android: 'height', default: undefined })}
+        keyboardVerticalOffset={0}
+      >
+        <View style={styles.content}>{content}</View>
+        {post && !detail.isNotFound() && (
+          <CommunityDetailCommentComposerView detail={detail} bottomInset={composerBottomInset} />
+        )}
+      </KeyboardAvoidingView>
       <BottomMenuModalView
         visible={showMenu}
         onClose={() => setShowMenu(false)}

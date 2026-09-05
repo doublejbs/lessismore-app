@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import { KeyboardAvoidingView, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgRadius, AcgType, Radius } from '@/constants/DesignTokens';
@@ -29,11 +29,7 @@ const CommunityDetailCommentComposerView = observer(({ detail, bottomInset }: Pr
     : Math.max(bottomInset, COMPOSER_BOTTOM_GAP) + COMPOSER_BOTTOM_GAP;
 
   return (
-    <KeyboardAvoidingView
-      style={styles.composer}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={0}
-    >
+    <View style={styles.composer}>
       <View style={[styles.inner, { paddingBottom: innerBottomPadding }]}>
         {target && !editing && (
           <View style={styles.replyBanner}>
@@ -86,7 +82,7 @@ const CommunityDetailCommentComposerView = observer(({ detail, bottomInset }: Pr
           )}
         </View>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 });
 
