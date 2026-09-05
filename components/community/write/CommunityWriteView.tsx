@@ -233,9 +233,18 @@ const CommunityWriteView = ({ write }: Props) => {
         keyboardShouldPersistTaps='handled'
         showsVerticalScrollIndicator={false}
       >
-        <PretendardText style={styles.author} weight='semibold'>
-          {write.getAuthorName()}
-        </PretendardText>
+        <View
+          style={styles.authorRow}
+          accessible
+          accessibilityLabel={l10n.t('community.write.authorAccessibility', {
+            name: write.getAuthorName(),
+          })}
+        >
+          <Ionicons name='person-circle-outline' size={20} color={Acg.ink} />
+          <PretendardText style={styles.author} weight='semibold'>
+            {write.getAuthorName()}
+          </PretendardText>
+        </View>
         {write.getType() === CommunityPostType.BagReview && (
           <View onLayout={(event) => setBagInputY(event.nativeEvent.layout.y)} style={styles.subsection}>
             <CommunityWriteBagSelectView write={write} />
@@ -374,6 +383,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: AcgLayout.screenPadding,
     paddingTop: AcgLayout.screenPadding,
     gap: 24,
+  },
+  // 홈 프로필 버튼과 같은 사람 아이콘을 앞에 두어 '작성자(내 계정)' 줄임을 알린다 — 라벨 접두 없이.
+  authorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   // 상세 헤더의 작성자 줄과 같은 문법(14 잉크 semibold) — 회색 메타는 흰 지면에서 잘 안 보였다.
   author: {

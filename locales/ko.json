@@ -1146,7 +1146,8 @@
         "poll": "투표 만들기"
       },
       "bodyLabelOptional": "내용 (선택)",
-      "keepWriting": "계속 작성"
+      "keepWriting": "계속 작성",
+      "authorAccessibility": "작성자 {{name}}"
     },
     "validation": {
       "titleLength": "제목은 2~80자로 입력해주세요",

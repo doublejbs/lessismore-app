@@ -1160,7 +1160,8 @@
         "poll": "New poll"
       },
       "bodyLabelOptional": "Body (optional)",
-      "keepWriting": "Keep writing"
+      "keepWriting": "Keep writing",
+      "authorAccessibility": "Author {{name}}"
     },
     "validation": {
       "titleLength": "Title must be 2–80 characters",

@@ -1146,7 +1146,8 @@
         "poll": "投票を作成"
       },
       "bodyLabelOptional": "本文（任意）",
-      "keepWriting": "続けて作成"
+      "keepWriting": "続けて作成",
+      "authorAccessibility": "作成者 {{name}}"
     },
     "validation": {
       "titleLength": "タイトルは2～80文字で入力してください",
