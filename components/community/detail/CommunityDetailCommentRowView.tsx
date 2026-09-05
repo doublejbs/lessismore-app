@@ -41,9 +41,17 @@ const CommunityDetailCommentRowView = observer(({ comment, detail, onReport }: P
         {getCommunityRelativeTime(comment.getCreatedAt())}
       </PretendardText>
       <PretendardText style={styles.body}>
-        {comment.isReply() && comment.getMentionedUserName()
-          ? `@${comment.getMentionedUserName()} ${comment.getBody()}`
-          : comment.getBody()}
+        {comment.isReply() && comment.getMentionedUserName() ? (
+          <>
+            {/* 답글 대상 멘션은 본문과 다른 의미색(`mention`)·semibold로 구분한다(CM-7). */}
+            <PretendardText style={styles.mention} weight='semibold'>
+              {`@${comment.getMentionedUserName()}`}
+            </PretendardText>
+            {` ${comment.getBody()}`}
+          </>
+        ) : (
+          comment.getBody()
+        )}
       </PretendardText>
       <View style={styles.actions}>
         <TouchableOpacity style={styles.action} onPress={() => detail.startReply(comment)} accessibilityRole='button'>
@@ -78,6 +86,7 @@ const styles = StyleSheet.create({
   author: { ...AcgType.rowSubtitle, color: Acg.ink },
   meta: { ...AcgType.meta, color: Acg.textMuted, marginTop: 2 },
   body: { ...AcgType.body, color: Acg.ink, marginTop: 8 },
+  mention: { ...AcgType.body, color: Acg.mention },
   actions: { flexDirection: 'row', marginTop: 6 },
   action: { minHeight: 44, justifyContent: 'center', paddingRight: 20, borderRadius: AcgRadius.chip },
   actionText: { ...AcgType.meta, color: Acg.textMuted },
