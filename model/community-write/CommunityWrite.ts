@@ -33,7 +33,6 @@ import CommunityWriteMode from './CommunityWriteMode';
  * 글의 공개 사진은 개인 장비 사진 경로와 분리된 CommunityImageSession만 사용한다.
  */
 class CommunityWrite {
-  private type: CommunityPostType;
   private title = '';
   private body = '';
   private readonly imageSession: CommunityImageSession;
@@ -41,6 +40,7 @@ class CommunityWrite {
   private bagSnapshot: CommunityBagSnapshotType | null = null;
   private pollOptions: string[] = ['', ''];
   private pollOptionIds: string[] = [createCommunityId(), createCommunityId()];
+  private pollAttached = false;
   private pollExpiresAt: Date | null = null;
   private pollExpiryDays = 0;
   private isSubmitting = false;
@@ -59,19 +59,19 @@ class CommunityWrite {
   private bags: BagItem[] = [];
   private bagsLoaded = false;
   private bagChanged = false;
+  private pollChanged = false;
   private initialized = false;
   private reservedPostId = '';
 
   public constructor(
     mode: CommunityWriteMode,
-    type: CommunityPostType,
+    _type: CommunityPostType,
     postId: string | null,
     dispatcher: CommunityWriteDispatcher,
     imageSession: CommunityImageSession,
     imageUpload: CommunityImageUpload
   ) {
     this.mode = mode;
-    this.type = type;
     this.postId = postId;
     this.dispatcher = dispatcher;
     this.imageSession = imageSession;
@@ -81,7 +81,7 @@ class CommunityWrite {
   }
 
   public static create(
-    type: CommunityPostType,
+    _type: CommunityPostType = CommunityPostType.Post,
     dispatcher: CommunityWriteDispatcher = CommunityWriteDispatcher.new(),
     imageSession: CommunityImageSession = CommunityImageSession.from(
       app.getFirebase()
@@ -89,7 +89,7 @@ class CommunityWrite {
   ): CommunityWrite {
     return new CommunityWrite(
       CommunityWriteMode.Create,
-      type,
+      CommunityPostType.Post,
       null,
       dispatcher,
       imageSession,
@@ -141,7 +141,6 @@ class CommunityWrite {
     }
 
     this.setExistingPost(post);
-    this.setType(post.getType());
     this.setTitleValue(post.getTitle());
     this.setBodyValue(post.getBody());
     this.setBagSnapshot(post.getBagSnapshot() ?? null);
@@ -149,6 +148,7 @@ class CommunityWrite {
     const poll = post.getPoll();
 
     if (poll) {
+      this.setPollAttached(true);
       this.setPollOptions(poll.options.map((option) => option.text));
       this.setPollOptionIds(poll.options.map((option) => option.id));
       this.setPollExpiresAtValue(poll.expiresAt ?? null);
@@ -179,7 +179,15 @@ class CommunityWrite {
   }
 
   public getType(): CommunityPostType {
-    return this.type;
+    return CommunityPostType.Post;
+  }
+
+  public hasBagSnapshot(): boolean {
+    return this.bagSnapshot !== null;
+  }
+
+  public hasPoll(): boolean {
+    return this.pollAttached;
   }
 
   public getTitle(): string {
@@ -246,7 +254,7 @@ class CommunityWrite {
     return this.mode === CommunityWriteMode.Edit;
   }
 
-  public updateTypeIfEmpty(value: CommunityPostType): boolean {
+  public updateTypeIfEmpty(_value: CommunityPostType): boolean {
     if (
       this.mode === CommunityWriteMode.Edit ||
       this.isDirty ||
@@ -259,16 +267,11 @@ class CommunityWrite {
       return false;
     }
 
-    this.setType(value);
 
     return true;
   }
 
   public setTitle(value: string) {
-    if (!this.canEditPollStructure()) {
-      return;
-    }
-
     this.setTitleValue(value);
     this.clearFieldError(CommunityWriteField.Title);
     this.markDirty();
@@ -287,6 +290,33 @@ class CommunityWrite {
     this.setBagSnapshot(CommunityBagSnapshotBuilder.build(bag, gears));
     this.setBagChanged(true);
     this.clearFieldError(CommunityWriteField.Bag);
+    this.markDirty();
+  }
+
+  public removeBagSnapshot() {
+    this.setSelectedBag(null);
+    this.setBagSnapshot(null);
+    this.setBagChanged(true);
+    this.markDirty();
+  }
+
+  public attachPoll() {
+    if (!this.canEditPollStructure()) {
+      return;
+    }
+
+    this.setPollAttached(true);
+    this.setPollChanged(true);
+    this.markDirty();
+  }
+
+  public removePoll() {
+    if (!this.canEditPollStructure()) {
+      return;
+    }
+
+    this.setPollAttached(false);
+    this.setPollChanged(true);
     this.markDirty();
   }
 
@@ -318,6 +348,7 @@ class CommunityWrite {
 
     this.setPollOptions([...this.pollOptions, '']);
     this.setPollOptionIds([...this.pollOptionIds, createCommunityId()]);
+    this.setPollChanged(true);
     this.markDirty();
   }
 
@@ -337,6 +368,7 @@ class CommunityWrite {
     this.setPollOptionIds(
       this.pollOptionIds.filter((_, optionIndex) => optionIndex !== index)
     );
+    this.setPollChanged(true);
     this.markDirty();
   }
 
@@ -355,6 +387,7 @@ class CommunityWrite {
       )
     );
     this.clearFieldError(CommunityWriteField.PollOptions);
+    this.setPollChanged(true);
     this.markDirty();
   }
 
@@ -365,6 +398,7 @@ class CommunityWrite {
 
     this.setPollExpiresAtValue(value);
     this.setPollExpiryDaysValue(0);
+    this.setPollChanged(true);
     this.markDirty();
   }
 
@@ -377,6 +411,7 @@ class CommunityWrite {
     this.setPollExpiresAtValue(
       days ? new Date(Date.now() + days * COMMUNITY_DAY_IN_MILLISECONDS) : null
     );
+    this.setPollChanged(true);
     this.markDirty();
   }
 
@@ -410,11 +445,9 @@ class CommunityWrite {
   }
 
   public canEditPollStructure(): boolean {
-    if (this.type !== CommunityPostType.Poll) {
-      return true;
-    }
-
-    return this.existingPost?.canEditPollStructure() ?? true;
+    return this.existingPost?.hasPoll()
+      ? this.existingPost.canEditPollStructure()
+      : true;
   }
 
   public async submit(): Promise<string | null> {
@@ -456,13 +489,9 @@ class CommunityWrite {
 
     try {
       CommunityValidator.validateTitle(this.title);
-      CommunityValidator.validateBody(this.type, this.body);
+      CommunityValidator.validateBody(this.hasBagSnapshot() || this.hasPoll(), this.body);
 
-      if (this.type === CommunityPostType.BagReview && !this.bagSnapshot) {
-        throw new CommunityError(CommunityValidationError.BagSnapshotRequired);
-      }
-
-      if (this.type === CommunityPostType.Poll && this.canEditPollStructure()) {
+      if (this.hasPoll() && this.canEditPollStructure()) {
         CommunityValidator.validatePollOptions(
           this.pollOptions.map((text, index) => ({
             id: `option-${index}`,
@@ -506,7 +535,8 @@ class CommunityWrite {
     }
 
     app.getAnalyticsManager()?.logClick('click_community_publish', {
-      type: this.type,
+      has_packing: this.hasBagSnapshot(),
+      has_poll: this.hasPoll(),
       image_count: this.imageSession.getUploadedInOrder().length,
     });
     this.setDirty(false);
@@ -543,17 +573,19 @@ class CommunityWrite {
 
   private buildCreateInput(): CommunityPostCreateInput {
     const input: CommunityPostCreateInput = {
-      type: this.type,
+      type: CommunityPostType.Post,
+      hasBagSnapshot: this.hasBagSnapshot(),
+      hasPoll: this.hasPoll(),
       title: this.title,
       body: this.body,
       images: this.imageSession.getUploadedInOrder(),
     };
 
-    if (this.type === CommunityPostType.BagReview && this.bagSnapshot) {
+    if (this.bagSnapshot) {
       input.bagSnapshot = this.bagSnapshot;
     }
 
-    if (this.type === CommunityPostType.Poll) {
+    if (this.hasPoll()) {
       input.poll = this.buildPollInput();
     }
 
@@ -564,23 +596,27 @@ class CommunityWrite {
     const patch: CommunityPostPatch = {
       body: this.body,
       images: this.imageSession.getUploadedInOrder(),
+      title: this.title,
     };
 
-    if (this.canEditPollStructure()) {
-      patch.title = this.title;
+    if (this.bagChanged) {
+      patch.hasBagSnapshot = this.hasBagSnapshot();
+      patch.bagSnapshot = this.bagSnapshot;
+    }
 
-      if (this.type === CommunityPostType.Poll) {
+    if (this.pollChanged && this.canEditPollStructure()) {
+      patch.hasPoll = this.hasPoll();
+
+      if (this.hasPoll()) {
         const poll = this.buildPollInput();
 
         patch.poll = {
           ...poll,
           expiresAt: this.pollExpiresAt ?? null,
         };
+      } else {
+        patch.poll = null;
       }
-    }
-
-    if (this.type === CommunityPostType.BagReview && this.bagChanged && this.bagSnapshot) {
-      patch.bagSnapshot = this.bagSnapshot;
     }
 
     return patch;
@@ -652,10 +688,6 @@ class CommunityWrite {
     this.setDirty(true);
   }
 
-  private setType(value: CommunityPostType) {
-    this.type = value;
-  }
-
   private setTitleValue(value: string) {
     this.title = value;
   }
@@ -710,6 +742,14 @@ class CommunityWrite {
 
   private setBagChanged(value: boolean) {
     this.bagChanged = value;
+  }
+
+  private setPollAttached(value: boolean) {
+    this.pollAttached = value;
+  }
+
+  private setPollChanged(value: boolean) {
+    this.pollChanged = value;
   }
 
   private setInitialized(value: boolean) {

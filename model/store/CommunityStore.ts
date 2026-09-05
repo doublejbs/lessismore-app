@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteField,
   doc,
   documentId,
   DocumentData,
@@ -68,7 +69,7 @@ class CommunityStore {
       where('status', '==', CommunityContentStatus.Published),
       ...(filter === CommunityFeedFilter.All
         ? []
-        : [where('type', '==', filter)]),
+        : [where(filter === CommunityFeedFilter.Packing ? 'hasBagSnapshot' : 'hasPoll', '==', true)]),
       ...(sort === CommunityFeedSort.Popular
         ? [orderBy('likeCount', 'desc'), orderBy('createdAt', 'desc')]
         : [orderBy('createdAt', 'desc')]),
@@ -184,7 +185,9 @@ class CommunityStore {
     CommunityValidator.validatePost(input);
 
     const postData: Record<string, unknown> = {
-      type: input.type,
+      type: CommunityPostType.Post,
+      hasBagSnapshot: input.hasBagSnapshot,
+      hasPoll: input.hasPoll,
       status: CommunityContentStatus.Published,
       authorId: userId,
       authorName: this.firebase.getNickname(),
@@ -197,11 +200,11 @@ class CommunityStore {
       updatedAt: serverTimestamp(),
     };
 
-    if (input.type === CommunityPostType.BagReview && input.bagSnapshot) {
+    if (input.bagSnapshot) {
       postData.bagSnapshot = this.copyBagSnapshot(input.bagSnapshot);
     }
 
-    if (input.type === CommunityPostType.Poll && input.poll) {
+    if (input.poll) {
       postData.poll = this.toPollData(input.poll);
     }
 
@@ -227,17 +230,24 @@ class CommunityStore {
       const data = snapshot.data();
       this.assertAuthor(data.authorId, userId);
 
-      const type = data.type as CommunityPostType;
       const poll = this.toPoll(data.poll);
       const hasVote = (poll?.totalVoteCount ?? 0) > 0;
+      const nextHasBagSnapshot = patch.bagSnapshot !== undefined
+        ? patch.bagSnapshot !== null
+        : patch.hasBagSnapshot ?? Boolean(data.bagSnapshot);
+      const nextHasPoll = patch.poll !== undefined
+        ? patch.poll !== null
+        : patch.hasPoll ?? Boolean(data.poll);
       const expiresAtChanged =
-        patch.poll !== undefined && 'expiresAt' in patch.poll;
+        patch.poll !== undefined &&
+        patch.poll !== null &&
+        'expiresAt' in patch.poll;
 
       if (
-        type === CommunityPostType.Poll &&
         hasVote &&
-        (patch.title !== undefined ||
-          patch.poll?.options !== undefined ||
+        patch.poll !== undefined &&
+        (patch.poll === null ||
+          patch.poll.options !== undefined ||
           expiresAtChanged)
       ) {
         throw new CommunityError(CommunityValidationError.PollLocked);
@@ -248,7 +258,10 @@ class CommunityStore {
       }
 
       if (patch.body !== undefined) {
-        CommunityValidator.validateBody(type, patch.body);
+        CommunityValidator.validateBody(
+          nextHasBagSnapshot || nextHasPoll,
+          patch.body
+        );
       }
 
       if (patch.images !== undefined) {
@@ -258,6 +271,22 @@ class CommunityStore {
       const updates: Record<string, unknown> = {
         updatedAt: serverTimestamp(),
       };
+
+      if (patch.hasBagSnapshot !== undefined) {
+        if (patch.hasBagSnapshot !== nextHasBagSnapshot) {
+          throw new CommunityError(CommunityValidationError.AttachmentMismatch);
+        }
+
+        updates.hasBagSnapshot = patch.hasBagSnapshot;
+      }
+
+      if (patch.hasPoll !== undefined) {
+        if (patch.hasPoll !== nextHasPoll) {
+          throw new CommunityError(CommunityValidationError.AttachmentMismatch);
+        }
+
+        updates.hasPoll = patch.hasPoll;
+      }
 
       if (patch.title !== undefined) {
         updates.title = patch.title.trim();
@@ -272,29 +301,43 @@ class CommunityStore {
       }
 
       if (patch.bagSnapshot !== undefined) {
-        updates.bagSnapshot = this.copyBagSnapshot(patch.bagSnapshot);
+        if (patch.bagSnapshot === null) {
+          updates.bagSnapshot = deleteField();
+          updates.hasBagSnapshot = false;
+        } else {
+          updates.bagSnapshot = this.copyBagSnapshot(patch.bagSnapshot);
+          updates.hasBagSnapshot = true;
+        }
       }
 
-      if (patch.poll !== undefined && poll) {
-        if (patch.poll.options !== undefined) {
-          CommunityValidator.validatePollOptions(patch.poll.options);
+      if (patch.poll !== undefined) {
+        if (patch.poll === null) {
+          updates.poll = deleteField();
+          updates.hasPoll = false;
+        } else {
+          const pollOptions = patch.poll.options ?? poll?.options;
+
+          if (!pollOptions) {
+            throw new CommunityError(CommunityValidationError.PollRequired);
+          }
+
+          CommunityValidator.validatePollOptions(pollOptions);
+
+          const options = this.toPollOptions(pollOptions);
+          const nextPoll: Record<string, unknown> = {
+            options,
+            totalVoteCount: poll?.totalVoteCount ?? 0,
+          };
+
+          if (patch.poll.expiresAt !== null && patch.poll.expiresAt !== undefined) {
+            nextPoll.expiresAt = patch.poll.expiresAt;
+          } else if (patch.poll.expiresAt === undefined && poll?.expiresAt) {
+            nextPoll.expiresAt = poll.expiresAt;
+          }
+
+          updates.poll = nextPoll;
+          updates.hasPoll = true;
         }
-
-        const options = patch.poll.options
-          ? this.toPollOptions(patch.poll.options)
-          : poll.options;
-        const nextPoll: Record<string, unknown> = {
-          options,
-          totalVoteCount: poll.totalVoteCount,
-        };
-
-        if (patch.poll.expiresAt !== null && patch.poll.expiresAt !== undefined) {
-          nextPoll.expiresAt = patch.poll.expiresAt;
-        } else if (patch.poll.expiresAt === undefined && poll.expiresAt) {
-          nextPoll.expiresAt = poll.expiresAt;
-        }
-
-        updates.poll = nextPoll;
       }
 
       transaction.update(postRef, updates);
@@ -767,6 +810,7 @@ class CommunityStore {
 
   private toPostData(id: string, data: DocumentData): CommunityPostData {
     const poll = this.toPoll(data.poll);
+    const bagSnapshot = data.bagSnapshot as CommunityPostData['bagSnapshot'];
 
     return {
       id,
@@ -777,8 +821,10 @@ class CommunityStore {
       title: data.title,
       body: data.body,
       images: (data.images ?? []) as CommunityPostImage[],
-      ...(data.bagSnapshot
-        ? { bagSnapshot: data.bagSnapshot }
+      hasBagSnapshot: data.hasBagSnapshot ?? !!bagSnapshot,
+      hasPoll: data.hasPoll ?? !!poll,
+      ...(bagSnapshot
+        ? { bagSnapshot }
         : {}),
       ...(poll ? { poll } : {}),
       likeCount: data.likeCount ?? 0,

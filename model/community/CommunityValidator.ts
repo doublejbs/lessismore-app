@@ -4,7 +4,6 @@ import {
   CommunityPollInputOption,
   CommunityPostImage,
 } from './CommunityData';
-import CommunityPostType from './CommunityPostType';
 import CommunityValidationError from './CommunityValidationError';
 import {
   COMMUNITY_BODY_MAX_LENGTH,
@@ -29,9 +28,9 @@ class CommunityValidator {
     }
   }
 
-  public static validateBody(type: CommunityPostType, body: string) {
+  public static validateBody(hasAttachment: boolean, body: string) {
     const length = body.trim().length;
-    const minimum = type === CommunityPostType.Poll ? 0 : COMMUNITY_BODY_MIN_LENGTH;
+    const minimum = hasAttachment ? 0 : COMMUNITY_BODY_MIN_LENGTH;
 
     if (length < minimum || length > COMMUNITY_BODY_MAX_LENGTH) {
       throw new CommunityError(CommunityValidationError.BodyLength);
@@ -69,19 +68,18 @@ class CommunityValidator {
   }
 
   public static validatePost(input: CommunityPostCreateInput) {
+    if (
+      input.hasBagSnapshot !== !!input.bagSnapshot ||
+      input.hasPoll !== !!input.poll
+    ) {
+      throw new CommunityError(CommunityValidationError.AttachmentMismatch);
+    }
+
     this.validateTitle(input.title);
-    this.validateBody(input.type, input.body);
+    this.validateBody(input.hasBagSnapshot || input.hasPoll, input.body);
     this.validateImages(input.images);
 
-    if (input.type === CommunityPostType.BagReview && !input.bagSnapshot) {
-      throw new CommunityError(CommunityValidationError.BagSnapshotRequired);
-    }
-
-    if (input.type === CommunityPostType.Poll && !input.poll) {
-      throw new CommunityError(CommunityValidationError.PollRequired);
-    }
-
-    if (input.type === CommunityPostType.Poll && input.poll) {
+    if (input.poll) {
       this.validatePollOptions(input.poll.options);
     }
   }

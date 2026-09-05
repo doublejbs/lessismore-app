@@ -61,7 +61,7 @@ class CommunityFeed {
 
   public async setFilter(filter: CommunityFeedFilter) {
     this.setFilterValue(filter);
-    app.getAnalyticsManager()?.logClick('click_community_filter', { type: filter });
+    app.getAnalyticsManager()?.logClick('click_community_filter', { filter });
     this.setLoading(true);
     await this.loadFirstPage();
   }

@@ -65,6 +65,8 @@ export interface CommunityPostData {
   title: string;
   body: string;
   images: CommunityPostImage[];
+  hasBagSnapshot: boolean;
+  hasPoll: boolean;
   bagSnapshot?: CommunityBagSnapshot;
   poll?: CommunityPoll;
   likeCount: number;
@@ -89,6 +91,8 @@ export interface CommunityCommentData {
 
 export interface CommunityPostCreateInput {
   type: CommunityPostType;
+  hasBagSnapshot: boolean;
+  hasPoll: boolean;
   title: string;
   body: string;
   images: CommunityPostImage[];
@@ -109,11 +113,13 @@ export interface CommunityPollInput {
 }
 
 export interface CommunityPostPatch {
+  hasBagSnapshot?: boolean;
+  hasPoll?: boolean;
   title?: string;
   body?: string;
   images?: CommunityPostImage[];
-  bagSnapshot?: CommunityBagSnapshot;
-  poll?: CommunityPollPatch;
+  bagSnapshot?: CommunityBagSnapshot | null;
+  poll?: CommunityPollPatch | null;
 }
 
 export interface CommunityPollPatch {

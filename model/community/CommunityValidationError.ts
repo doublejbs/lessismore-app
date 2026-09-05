@@ -16,6 +16,7 @@ enum CommunityValidationError {
   CommentNotFound = 'comment_not_found',
   Forbidden = 'forbidden',
   ReportTargetInvalid = 'report_target_invalid',
+  AttachmentMismatch = 'attachment_mismatch',
 }
 
 export default CommunityValidationError;

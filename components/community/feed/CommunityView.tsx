@@ -135,17 +135,12 @@ const CommunityView: FC<Props> = ({ feed }) => {
       filter: CommunityFeedFilter;
       labelKey:
         | 'community.type.all'
-        | 'community.type.post'
         | 'community.type.bagReview'
         | 'community.type.poll';
     }[] = [
       { filter: CommunityFeedFilter.All, labelKey: 'community.type.all' },
       {
-        filter: CommunityFeedFilter.Post,
-        labelKey: 'community.type.post',
-      },
-      {
-        filter: CommunityFeedFilter.BagReview,
+        filter: CommunityFeedFilter.Packing,
         labelKey: 'community.type.bagReview',
       },
       { filter: CommunityFeedFilter.Poll, labelKey: 'community.type.poll' },

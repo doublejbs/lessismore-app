@@ -118,11 +118,19 @@ class CommunityPost {
   }
 
   public isPoll() {
-    return this.type === CommunityPostType.Poll;
+    return this.hasPoll();
   }
 
   public isBagReview() {
-    return this.type === CommunityPostType.BagReview;
+    return this.hasBagSnapshot();
+  }
+
+  public hasBagSnapshot() {
+    return !!this.bagSnapshot;
+  }
+
+  public hasPoll() {
+    return !!this.poll;
   }
 
   public isPollExpired(now: Date = new Date()) {
@@ -130,7 +138,7 @@ class CommunityPost {
   }
 
   public canEditPollStructure() {
-    return this.isPoll() && (this.poll?.totalVoteCount ?? 0) === 0;
+    return this.hasPoll() && (this.poll?.totalVoteCount ?? 0) === 0;
   }
 
   public getRepresentativeImage() {

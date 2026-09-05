@@ -1,7 +1,6 @@
 enum CommunityFeedFilter {
   All = 'all',
-  Post = 'post',
-  BagReview = 'bag_review',
+  Packing = 'packing',
   Poll = 'poll',
 }
 
