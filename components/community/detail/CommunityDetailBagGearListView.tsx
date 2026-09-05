@@ -1,5 +1,7 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { observer } from 'mobx-react-lite';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgRow, AcgType } from '@/constants/DesignTokens';
@@ -13,6 +15,7 @@ import app from '@/model/app/App';
 
 const CommunityDetailBagGearListView = observer(
   ({ snapshot }: { snapshot: CommunityBagSnapshot }) => {
+    const router = useRouter();
     const groups = getCommunityBagSnapshotGroups(snapshot.gears);
     const l10n = app.getL10n();
 
@@ -43,11 +46,13 @@ const CommunityDetailBagGearListView = observer(
                 {l10n.t('community.detail.snapshotSectionWeightUnit')}
               </PretendardText>
             </View>
-            {group.gears.map((gear, gearIndex) => (
-              <View
-                key={`${gear.name}-${gearIndex}`}
-                style={[styles.gearRow, gearIndex > 0 && styles.gearRowDivided]}
-              >
+            {group.gears.map((gear, gearIndex) => {
+              const gearId = gear.gearId;
+              const rowStyle = [
+                styles.gearRow,
+                gearIndex > 0 && styles.gearRowDivided,
+              ];
+              const content = (
                 <View style={styles.gearContent}>
                   <PretendardText
                     weight='medium'
@@ -65,8 +70,43 @@ const CommunityDetailBagGearListView = observer(
                       : ''}
                   </PretendardText>
                 </View>
-              </View>
-            ))}
+              );
+
+              if (!gearId) {
+                return (
+                  <View
+                    key={`${gear.name}-${gearIndex}`}
+                    style={rowStyle}
+                  >
+                    {content}
+                  </View>
+                );
+              }
+
+              return (
+                <TouchableOpacity
+                  key={`${gear.name}-${gearIndex}`}
+                  style={rowStyle}
+                  onPress={() => {
+                    app.getAnalyticsManager()?.logClick(
+                      'click_community_snapshot_gear',
+                      { gear_id: gearId }
+                    );
+                    router.push(`/gear-detail/${gearId}`);
+                  }}
+                  activeOpacity={0.7}
+                  accessibilityRole='button'
+                  accessibilityLabel={gear.name}
+                >
+                  {content}
+                  <Ionicons
+                    name='chevron-forward'
+                    size={16}
+                    color={Acg.textSecondary}
+                  />
+                </TouchableOpacity>
+              );
+            })}
           </View>
         ))}
       </View>
@@ -91,6 +131,8 @@ const styles = StyleSheet.create({
   gearRow: {
     minHeight: AcgRow.communityMinHeight,
     paddingVertical: AcgRow.communityPaddingVertical,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   gearRowDivided: { borderTopWidth: 1, borderTopColor: Acg.hairline },
   gearContent: { flex: 1, justifyContent: 'center' },

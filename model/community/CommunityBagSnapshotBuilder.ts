@@ -1,10 +1,17 @@
 import BagItem from '@/model/bag/BagItem';
 import Gear from '@/model/gear/Gear';
-import { CommunityBagSnapshot } from './CommunityData';
+import {
+  CommunityBagSnapshot,
+  CommunityBagSnapshotGear,
+} from './CommunityData';
 
 class CommunityBagSnapshotBuilder {
   public static build(bag: BagItem, gears: Gear[]): CommunityBagSnapshot {
     return new CommunityBagSnapshotBuilder().build(bag, gears);
+  }
+
+  public static fromFirestore(value: unknown): CommunityBagSnapshot | null {
+    return new CommunityBagSnapshotBuilder().fromFirestore(value);
   }
 
   public build(bag: BagItem, gears: Gear[]): CommunityBagSnapshot {
@@ -13,6 +20,7 @@ class CommunityBagSnapshotBuilder {
       totalWeight: bag.getWeightGram(),
       itemCount: bag.getGearCount(),
       gears: gears.map(gear => ({
+        ...(!gear.getIsCustom() ? { gearId: gear.getId() } : {}),
         company: gear.getCompanyKorean() || gear.getCompany(),
         name: gear.getDisplayName(),
         weight: Number(gear.getWeight()) || 0,
@@ -62,6 +70,37 @@ class CommunityBagSnapshotBuilder {
     }
 
     return snapshot;
+  }
+
+  public fromFirestore(value: unknown): CommunityBagSnapshot | null {
+    if (!value || typeof value !== 'object') {
+      return null;
+    }
+
+    const data = value as { gears?: unknown } & Omit<CommunityBagSnapshot, 'gears'>;
+
+    if (!Array.isArray(data.gears)) {
+      return null;
+    }
+
+    return {
+      ...data,
+      gears: data.gears.flatMap(item => {
+        if (!item || typeof item !== 'object') {
+          return [];
+        }
+
+        const gear = item as CommunityBagSnapshotGear;
+        const { gearId, ...gearData } = gear;
+
+        return [
+          {
+            ...gearData,
+            ...(typeof gearId === 'string' ? { gearId } : {}),
+          },
+        ];
+      }),
+    };
   }
 
   private getDate(value: number | null, formattedValue: string) {

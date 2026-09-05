@@ -45,6 +45,7 @@ import CommunityReportTargetType from '../community/CommunityReportTargetType';
 import CommunityValidator from '../community/CommunityValidator';
 import CommunityValidationError from '../community/CommunityValidationError';
 import { COMMUNITY_PAGE_SIZE } from '../community/CommunityLimits';
+import CommunityBagSnapshotBuilder from '../community/CommunityBagSnapshotBuilder';
 import { createCommunityId } from '../community/CommunityId';
 
 class CommunityStore {
@@ -846,7 +847,7 @@ class CommunityStore {
 
   private toPostData(id: string, data: DocumentData): CommunityPostData {
     const poll = this.toPoll(data.poll);
-    const bagSnapshot = data.bagSnapshot as CommunityPostData['bagSnapshot'];
+    const bagSnapshot = CommunityBagSnapshotBuilder.fromFirestore(data.bagSnapshot);
 
     return {
       id,

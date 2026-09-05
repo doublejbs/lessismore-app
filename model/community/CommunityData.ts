@@ -14,6 +14,7 @@ export interface CommunityPostImage {
 }
 
 export interface CommunityBagSnapshotGear {
+  gearId?: string;
   company: string;
   name: string;
   weight: number;
