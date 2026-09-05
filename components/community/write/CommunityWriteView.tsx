@@ -415,11 +415,15 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.controlFill,
     paddingHorizontal: 14,
     paddingVertical: 14,
-    ...AcgType.control,
+    // 단일행 TextInput에 lineHeight를 얹으면 iOS에서 글자가 아래로 치우쳐 상하 패딩이 어긋난다
+    // (BagFormContent와 같은 처리). 줄간은 여러 줄 본문에서만 준다.
+    fontSize: AcgType.control.fontSize,
+    letterSpacing: AcgType.control.letterSpacing,
     color: Acg.ink,
   },
   bodyInput: {
     minHeight: 200,
+    lineHeight: AcgType.control.lineHeight,
   },
   error: {
     ...AcgType.meta,

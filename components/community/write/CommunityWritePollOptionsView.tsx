@@ -178,7 +178,9 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.controlFill,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    ...AcgType.control,
+    // 단일행 입력 — lineHeight 제외(iOS 상하 치우침 방지)
+    fontSize: AcgType.control.fontSize,
+    letterSpacing: AcgType.control.letterSpacing,
     color: Acg.ink,
   },
   disabled: {
