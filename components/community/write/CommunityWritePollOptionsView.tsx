@@ -1,8 +1,13 @@
 import { observer } from 'mobx-react-lite';
-import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  StyleSheet,
+  Switch,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import CategoryChipView from '@/components/browse/CategoryChipView';
 import { Acg, AcgRadius, AcgType, Radius } from '@/constants/DesignTokens';
 import CommunityWrite from '@/model/community-write/CommunityWrite';
 import { formatCommunityDate } from '@/model/community/CommunityFormat';
@@ -100,20 +105,23 @@ const CommunityWritePollOptionsView = ({ write }: Props) => {
           </PretendardText>
         </TouchableOpacity>
       )}
+      <View style={styles.switchRow}>
+        <PretendardText style={styles.switchLabel} weight='medium'>
+          {l10n.t('community.write.poll.allowMultiple')}
+        </PretendardText>
+        <Switch
+          value={write.getPollAllowMultiple()}
+          onValueChange={(value) => write.setPollAllowMultiple(value)}
+          disabled={!canEdit || write.getIsSubmitting()}
+          trackColor={{ false: Acg.hairline, true: Acg.ink }}
+          thumbColor={Acg.paper}
+          ios_backgroundColor={Acg.hairline}
+          accessibilityLabel={l10n.t('community.write.poll.allowMultiple')}
+        />
+      </View>
       <PretendardText style={styles.expiresLabel} weight='semibold'>
         {l10n.t('community.write.poll.expires')}
       </PretendardText>
-      <CategoryChipView
-        label={l10n.t('community.write.poll.allowMultiple')}
-        selected={write.getPollAllowMultiple()}
-        onPress={() => write.setPollAllowMultiple(!write.getPollAllowMultiple())}
-        disabled={!canEdit || write.getIsSubmitting()}
-        accessibilityRole='switch'
-        accessibilityState={{
-          checked: write.getPollAllowMultiple(),
-          disabled: !canEdit || write.getIsSubmitting(),
-        }}
-      />
       <View style={styles.chips}>
         {EXPIRY_DAYS.map((days) => (
           <TouchableOpacity
@@ -216,6 +224,17 @@ const styles = StyleSheet.create({
     backgroundColor: Acg.paper,
   },
   addOptionText: {
+    ...AcgType.control,
+    color: Acg.ink,
+  },
+  // 복수 선택 허용은 켬/끔 설정이라 칩(선택지)이 아닌 스위치로 둔다(알림 설정 행과 같은 문법).
+  switchRow: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  switchLabel: {
     ...AcgType.control,
     color: Acg.ink,
   },
