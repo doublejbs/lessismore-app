@@ -708,11 +708,12 @@
 | `options[].id` | string | 게시글 안에서 고유한 선택지 ID |
 | `options[].text` | string | trim 후 1~60자, 같은 투표 안에서 중복 금지 |
 | `options[].voteCount` | number | 선택지 득표 수 비정규화 캐시, 기본 0 |
-| `totalVoteCount` | number | 전체 참여 수 비정규화 캐시, 기본 0 |
+| `totalVoteCount` | number | 전체 **참여자 수**(투표 문서 수) 비정규화 캐시, 기본 0. 복수 선택 투표에서는 선택지 `voteCount` 합보다 작을 수 있다 |
+| `allowMultiple` | boolean | 복수 선택 허용(2026-09-05, CM-5). 기본 `false`. 첫 표 이후 잠금. 레거시 문서에 없으면 `false`로 읽는다 |
 | `expiresAt` | timestamp? | 없으면 무기한, 있으면 이 시각 이후 투표 생성 금지 |
 
 - 첫 투표 문서가 생긴 뒤에는 `poll.options`, `poll.expiresAt`과 투표 첨부 제거(`hasPoll`)를 클라이언트가 바꿀 수 없다. 제목·본문·사진·패킹 첨부는 계속 수정할 수 있다(2026-09-05, CM-5).
-- 비율은 저장하지 않고 `option.voteCount / totalVoteCount`로 계산한다.
+- 비율은 저장하지 않고 `option.voteCount / totalVoteCount`로 계산한다(복수 선택은 합이 100%를 넘을 수 있다).
 
 #### `community-posts/{postId}/comments/{commentId}`
 
@@ -736,7 +737,7 @@
 | 경로 | 필드 | 규칙 |
 | --- | --- | --- |
 | `community-post-likes/{userId}_{postId}` | `userId`, `postId`, `createdAt` | 문서 존재가 좋아요 상태. 생성·삭제와 게시글 `likeCount`를 원자적으로 갱신 |
-| `community-poll-votes/{postId}_{userId}` | `postId`, `userId`, `optionId`, `createdAt`, `updatedAt?` | 결정적 문서 ID로 계정당 한 표. 생성 또는 `optionId` 변경(update)과 선택지 카운트를 같은 트랜잭션에서 원자적으로 갱신하고, 삭제는 금지한다. 변경 시 이전 선택지 `voteCount -1`·새 선택지 `+1`, `totalVoteCount`는 불변이다. `updatedAt`은 변경 시각(선택)이다. |
+| `community-poll-votes/{postId}_{userId}` | `postId`, `userId`, `optionIds` (string[], 1개 이상; 단일 선택 투표는 항상 1개), `createdAt`, `updatedAt?` | 결정적 문서 ID로 계정당 한 문서. 생성 또는 `optionIds` 변경(update)과 선택지 카운트를 같은 트랜잭션에서 원자적으로 갱신하고, 삭제는 금지한다. **2026-09-05 `optionId`(string) → `optionIds`(배열)로 교체** — 기존 문서는 마이그레이션(`scripts/migrate-community-poll-votes.mjs`)으로 배열화한다. 변경 시 이전 선택지 `voteCount -1`·새 선택지 `+1`, `totalVoteCount`는 불변이다. `updatedAt`은 변경 시각(선택)이다. |
 | `community-reports/{reportId}` | `reporterId`, `targetType`, `targetPostId`, `targetCommentId?`, `targetAuthorId`, `reason`, `detail?`, `status`, `createdAt`, `resolvedAt?`, `resolvedBy?` | `targetType`: `post` / `comment`; `reason`: `spam` / `harassment` / `sexual_violence` / `copyright` / `privacy` / `other`; `status`: `open` / `reviewing` / `actioned` / `dismissed`. 같은 `(reporterId, targetType, targetId)` 중복 생성 금지 |
 
 신고 문서 ID는 결정적으로 `{reporterId}_{targetType}_{targetId}`를 사용한다.
@@ -828,7 +829,7 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 | 박지 유저 후기 생성/수정/삭제 | `runTransaction` | 후기 문서 + 요약 문서(`reviewCount`/`ratingSum`/`ratingAvg`) (DM-20) |
 | 커뮤니티 게시글 좋아요 | `runTransaction` | `community-post-likes` + 게시글 `likeCount` (DM-28) |
 | 커뮤니티 댓글 생성/삭제 | `runTransaction` | 댓글 문서 + 게시글 `commentCount` (DM-28) |
-| 커뮤니티 투표 | 클라이언트 `runTransaction` + 보안 규칙 검증 | 신규: `community-poll-votes` 생성 + 선택지 `voteCount +1` + `totalVoteCount +1`; 변경: 투표 문서 `optionId`·`updatedAt` 갱신 + 이전 선택지 `voteCount -1`·새 선택지 `+1`(`totalVoteCount` 불변) (DM-28) |
+| 커뮤니티 투표 | 클라이언트 `runTransaction` + 보안 규칙 검증 | 신규: `community-poll-votes` 생성(`optionIds:[id]`) + 선택지 `voteCount +1` + `totalVoteCount +1`; 단일 선택 전환: 투표 문서 `optionIds:[a]→[b]`·`updatedAt` 갱신 + a `-1`·b `+1`(`totalVoteCount` 불변); 복수 선택 토글(`allowMultiple`): 문서 `optionIds`에 원소 하나 추가/제거 + 그 선택지 `±1`(`totalVoteCount` 불변, 결과 배열 길이 ≥1). 규칙이 카운터 ±1과 배열 diff의 일치를 검증한다 (2026-09-05) |
 | 커뮤니티 게시글 삭제·회원 탈퇴 | 재시도 가능한 서버 작업 — `lessismore` 레포 Cloud Functions (DM-28 참조) | 게시글·댓글·좋아요·투표 + Storage 사진 + 관련 카운트 (CM-9·CM-12) |
 | 회원 탈퇴 `Firebase.deleteUserData` | 청크 `writeBatch` | `gear-rank` 감소 + `bag` 문서들 + `users/{uid}/gears` 전체 + `comment-likes` + `users/{uid}` 삭제 ([Auth.md](Auth.md) AU-8) |
 

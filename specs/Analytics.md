@@ -173,7 +173,7 @@
 | `click_community_sort` | 정렬 변경 | `sort`: `latest` \| `popular` |
 | `click_community_like` | 게시글 좋아요 토글 | `liked`: boolean |
 | `click_community_comment_submit` | 댓글·답글 등록 성공 | `depth`: `comment` \| `reply` |
-| `click_community_vote` | 투표 성공 | — |
+| `click_community_vote` | 투표 성공 | `multiple`: boolean, `action`: `create` \| `switch` \| `add` \| `remove` (2026-09-05) |
 | `click_info_my_posts` | 내 정보 `내가 쓴 글` 행 탭 | — |
 | `click_community_my_posts` | 커뮤니티 필터 행 `내가 쓴 글` 칩 탭 | — |
 | `click_community_search` | 커뮤니티 제목 행 검색 아이콘 탭 | — |
