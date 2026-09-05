@@ -689,7 +689,8 @@
 | `weather.days[].tempMax` / `weather.days[].tempMin` | number | 최고/최저기온(℃) |
 | `totalWeight` | number | 장비 총 무게(g) |
 | `itemCount` | number | 스냅샷 장비 수 |
-| `gears` | array | 아래 공개 텍스트 장비 스냅샷. 원본 장비 ID·사진 없음 |
+| `gears` | array | 아래 공개 텍스트 장비 스냅샷. 사용자 장비 문서 ID·사진 없음 |
+| `gears[].gearId` | string? | **카탈로그 장비(`/gear/{gearId}`)일 때만** 그 공개 카탈로그 ID(2026-09-05, CM-4 장비 상세 이동용). 사용자 정의 장비(`isCustom`)는 키를 넣지 않는다 — `users/{uid}/gears` 문서 ID는 절대 저장하지 않는다 |
 | `gears[].company` | string | `companyKorean || company` 표시값 |
 | `gears[].name` | string | `nameKorean || name` 표시값 |
 | `gears[].weight` | number | g |
