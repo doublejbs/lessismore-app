@@ -2,6 +2,8 @@ import { Platform } from 'react-native';
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
 
+const EMBEDDED_BUNDLE_ID = '00000000-0000-0000-0000-000000000000';
+
 export interface AppVersionInfo {
   version: string;
   build: string | null;
@@ -24,7 +26,10 @@ export const getAppVersionInfo = (): AppVersionInfo => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { HotUpdater } = require('@hot-updater/react-native');
     const channel: string | null = HotUpdater.getChannel?.() ?? null;
-    const bundleId: string | null = HotUpdater.getBundleId?.() ?? null;
+    const rawBundleId: string | null = HotUpdater.getBundleId?.() ?? null;
+    // OTA 미적용(내장 번들) 상태는 0으로 채운 UUID를 돌려준다 — 표시하지 않는다.
+    const bundleId =
+      rawBundleId && rawBundleId !== EMBEDDED_BUNDLE_ID ? rawBundleId : null;
 
     return { version, build, channel, bundleId };
   } catch {
