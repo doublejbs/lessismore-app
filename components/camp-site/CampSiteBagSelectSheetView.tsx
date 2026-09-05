@@ -239,8 +239,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   // Android는 내용 높이에 맞춰 시트가 줄어들도록 flex를 강제하지 않는다.
+  // `flex: 1`(flexBasis 0)을 flexGrow 0으로만 덮으면 basis가 0으로 남아 목록 높이가 0이 된다(2026-09-05) —
+  // `flex: 0`으로 basis를 auto로 되돌리고 maxHeight 안에서만 줄어들게 한다.
   listAndroid: {
-    flexGrow: 0,
+    flex: 0,
     flexShrink: 1,
   },
   header: {
