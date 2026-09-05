@@ -166,7 +166,7 @@
 
 | 이벤트 | 트리거 | 파라미터 |
 | --- | --- | --- |
-| `click_community_write` | 커뮤니티 `글쓰기` → 유형 선택 | — |
+| `click_community_write` | 커뮤니티 `글쓰기` 탭(작성 화면 진입) | — |
 | `click_community_publish` | 게시글 등록 성공 | `has_packing`: boolean, `has_poll`: boolean, `image_count`: 0~4 (2026-09-05 첨부 모델 — `type` 파라미터 폐기) |
 | `click_community_post` | 피드 카드 → 상세 진입 | `has_packing`, `has_poll`: boolean |
 | `click_community_filter` | 첨부 필터 변경 | `filter`: `all` \| `packing` \| `poll` |

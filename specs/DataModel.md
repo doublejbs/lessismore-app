@@ -89,7 +89,7 @@
 | `gear-comments/{gearId}/comments/{parentId}/comments/{replyId}` | 답글 (중첩 서브컬렉션) | `ReplyStore` |
 | `comment-likes/{userId}_{commentId}` | 댓글 좋아요 (복합 키 문서) | `ReplyStore` |
 | `feed-content/{contentId}` | 운영자 작성 콘텐츠 — 홈 추천 큐레이션 (DM-27) `[기획]` | 홈 `useless가 고른 박지` ([Home.md](Home.md) HM-11) |
-| `community-posts/{postId}` | 커뮤니티 게시글·패킹 후기·투표 (DM-28) `[제안]` | 커뮤니티 피드·상세 |
+| `community-posts/{postId}` | 커뮤니티 게시글(패킹·투표 선택 첨부) (DM-28) `[제안]` | 커뮤니티 피드·상세 |
 | `community-posts/{postId}/comments/{commentId}` | 커뮤니티 댓글·한 단계 답글 (DM-28) `[제안]` | 커뮤니티 상세 |
 | `community-post-likes/{userId}_{postId}` | 커뮤니티 게시글 좋아요 (DM-28) `[제안]` | 커뮤니티 피드·상세 |
 | `community-poll-votes/{postId}_{userId}` | 커뮤니티 투표, 게시글·계정당 한 문서 (DM-28) `[제안]` | 커뮤니티 투표 |
@@ -711,7 +711,7 @@
 | `totalVoteCount` | number | 전체 참여 수 비정규화 캐시, 기본 0 |
 | `expiresAt` | timestamp? | 없으면 무기한, 있으면 이 시각 이후 투표 생성 금지 |
 
-- 첫 투표 문서가 생긴 뒤에는 `title`, `poll.options`, `poll.expiresAt`을 클라이언트가 바꿀 수 없다.
+- 첫 투표 문서가 생긴 뒤에는 `poll.options`, `poll.expiresAt`과 투표 첨부 제거(`hasPoll`)를 클라이언트가 바꿀 수 없다. 제목·본문·사진·패킹 첨부는 계속 수정할 수 있다(2026-09-05, CM-5).
 - 비율은 저장하지 않고 `option.voteCount / totalVoteCount`로 계산한다.
 
 #### `community-posts/{postId}/comments/{commentId}`
@@ -750,7 +750,7 @@
   자리표시를 읽는다. 인증 사용자는 본인 `authorId`·현재 닉네임으로 `published` 댓글을 생성하고 본인 내용만
   수정(`body`·`updatedAt`)할 수 있다. 삭제는 항상 소프트 삭제(`deletedReason: author`)이며, 답글 없는 자리표시는 화면에서 숨기고 물리 제거는 서버 스케줄에 위임한다. `hidden` 상태 변경은 운영자만 가능하다.
 - **신고**: 신고자는 생성과 자기 신고 조회만 가능하다. 전체 목록·상태 변경은 운영자만 가능하다.
-- 필요한 복합 인덱스: 게시글 `(status, createdAt desc)`, `(status, type, createdAt desc)`,
+- 필요한 복합 인덱스: 게시글 `(status, createdAt desc)`, `(status, likeCount desc, createdAt desc)`, `(status, hasBagSnapshot, createdAt desc)`, `(status, hasBagSnapshot, likeCount desc, createdAt desc)`, `(status, hasPoll, createdAt desc)`, `(status, hasPoll, likeCount desc, createdAt desc)`, `(authorId, status, createdAt desc)` (2026-09-05 첨부 모델 기준)
   댓글 `(status, createdAt asc)`, 신고 `(status, createdAt asc)`. 실제 콘솔 생성 링크가 나오면 배포 목록에 기록한다.
   서버 탈퇴 정리(CM-12)를 위해 **컬렉션 그룹 `comments`의 `authorId` 인덱스**도 필요하다.
 - **서버 정리 작업의 위치(2026-09-02 사용자 결정)**: 게시글 삭제·운영 숨김 연쇄 정리, 회원 탈퇴 정리, 고아 사진 정리는
