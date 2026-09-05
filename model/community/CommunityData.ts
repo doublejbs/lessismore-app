@@ -53,6 +53,7 @@ export interface CommunityPollOption {
 export interface CommunityPoll {
   options: CommunityPollOption[];
   totalVoteCount: number;
+  allowMultiple: boolean;
   expiresAt?: Date;
 }
 
@@ -107,6 +108,7 @@ export interface CommunityPollInputOption {
 
 export interface CommunityPollInput {
   options: CommunityPollInputOption[];
+  allowMultiple: boolean;
   expiresAt?: Date;
 }
 
@@ -122,6 +124,7 @@ export interface CommunityPostPatch {
 
 export interface CommunityPollPatch {
   options?: CommunityPollInputOption[];
+  allowMultiple?: boolean;
   expiresAt?: Date | null;
 }
 
@@ -134,7 +137,7 @@ export interface CommunityLikeData {
 export interface CommunityPollVoteData {
   postId: string;
   userId: string;
-  optionId: string;
+  optionIds: string[];
   createdAt: Date;
   updatedAt?: Date;
 }

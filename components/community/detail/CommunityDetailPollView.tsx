@@ -20,17 +20,23 @@ const CommunityDetailPollView = observer(({ post, detail }: Props) => {
   }
 
   const expired = post.isPollExpired();
+  const myOptionIds = detail.getMyVoteOptionIds();
   const showResults = post.getAuthorId() === app.getFirebase().getUserId()
-    || detail.getMyVoteOptionId() !== null
+    || myOptionIds.length > 0
     || expired;
 
   return (
     <View style={styles.card}>
+      {poll.allowMultiple && (
+        <PretendardText style={styles.multipleMeta}>
+          {app.getL10n().t('community.poll.multiple')}
+        </PretendardText>
+      )}
       {poll.options.map(option => {
         const ratio = poll.totalVoteCount
           ? (option.voteCount / poll.totalVoteCount) * 100
           : 0;
-        const selected = detail.getMyVoteOptionId() === option.id;
+        const selected = myOptionIds.includes(option.id);
         const disabled = expired
           || detail.isVoteInProgress();
 
@@ -126,6 +132,7 @@ const styles = StyleSheet.create({
   percentContainer: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   percent: { ...AcgType.control },
   meta: { ...AcgType.meta, color: Acg.textMuted, marginTop: 4 },
+  multipleMeta: { ...AcgType.meta, color: Acg.textMuted, marginBottom: 8 },
 });
 
 export default CommunityDetailPollView;

@@ -14,6 +14,11 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/community-posts/$(postId)).data.status == 'published';
     }
 
+    function isOpenPoll(postId) {
+      let post = get(/databases/$(database)/documents/community-posts/$(postId)).data;
+      return !('expiresAt' in post.poll) || post.poll.expiresAt > request.time;
+    }
+
     function samePostIdentity() {
       return request.resource.data.authorId == resource.data.authorId
         && request.resource.data.authorName == resource.data.authorName
@@ -47,6 +52,14 @@ service cloud.firestore {
     function pollIsOpen() {
       return !('expiresAt' in resource.data.poll)
         || resource.data.poll.expiresAt > request.time;
+    }
+
+    function sameAllowMultiple() {
+      return (!('allowMultiple' in resource.data.poll)
+          && !('allowMultiple' in request.resource.data.poll))
+        || (('allowMultiple' in resource.data.poll)
+          && ('allowMultiple' in request.resource.data.poll)
+          && request.resource.data.poll.allowMultiple == resource.data.poll.allowMultiple);
     }
 
     function samePollOption(index) {
@@ -85,12 +98,40 @@ service cloud.firestore {
         );
     }
 
+    function pollOptionExists(poll, optionId) {
+      return (poll.options.size() == 2
+        && (poll.options[0].id == optionId || poll.options[1].id == optionId))
+        || (poll.options.size() == 3
+          && (poll.options[0].id == optionId || poll.options[1].id == optionId
+            || poll.options[2].id == optionId))
+        || (poll.options.size() == 4
+          && (poll.options[0].id == optionId || poll.options[1].id == optionId
+            || poll.options[2].id == optionId || poll.options[3].id == optionId));
+    }
+
+    function voteOptionIdsValid(postId) {
+      let ids = request.resource.data.optionIds;
+      let poll = get(/databases/$(database)/documents/community-posts/$(postId)).data.poll;
+      return ids.size() >= 1
+        && ids.size() <= poll.options.size()
+        && pollOptionExists(poll, ids[0])
+        && (ids.size() == 1
+          || (pollOptionExists(poll, ids[1]) && ids[1] != ids[0]))
+        && (ids.size() <= 2
+          || (pollOptionExists(poll, ids[2]) && ids[2] != ids[0] && ids[2] != ids[1]))
+        && (ids.size() <= 3
+          || (pollOptionExists(poll, ids[3]) && ids[3] != ids[0]
+            && ids[3] != ids[1] && ids[3] != ids[2]));
+    }
+
     function voteMoved(postId, previousOptionId, nextOptionId) {
       let votePath = /databases/$(database)/documents/community-poll-votes/$(postId + '_' + request.auth.uid);
       return exists(votePath)
         && existsAfter(votePath)
-        && get(votePath).data.optionId == previousOptionId
-        && getAfter(votePath).data.optionId == nextOptionId;
+        && get(votePath).data.optionIds.size() == 1
+        && getAfter(votePath).data.optionIds.size() == 1
+        && get(votePath).data.optionIds[0] == previousOptionId
+        && getAfter(votePath).data.optionIds[0] == nextOptionId;
     }
 
     function pollOptionsChangedCounterMatches(postId) {
@@ -157,6 +198,82 @@ service cloud.firestore {
           && poll.options[3].voteCount == 0);
     }
 
+    function voteCreatedOptionMatches(postId) {
+      let votePath = /databases/$(database)/documents/community-poll-votes/$(postId + '_' + request.auth.uid);
+      let vote = getAfter(votePath).data;
+      return vote.optionIds.size() == 1
+        && ((request.resource.data.poll.options.size() == 2
+          && ((incrementedPollOption(0) && vote.optionIds[0] == request.resource.data.poll.options[0].id)
+            || (incrementedPollOption(1) && vote.optionIds[0] == request.resource.data.poll.options[1].id)))
+          || (request.resource.data.poll.options.size() == 3
+            && ((incrementedPollOption(0) && vote.optionIds[0] == request.resource.data.poll.options[0].id)
+              || (incrementedPollOption(1) && vote.optionIds[0] == request.resource.data.poll.options[1].id)
+              || (incrementedPollOption(2) && vote.optionIds[0] == request.resource.data.poll.options[2].id)))
+          || (request.resource.data.poll.options.size() == 4
+            && ((incrementedPollOption(0) && vote.optionIds[0] == request.resource.data.poll.options[0].id)
+              || (incrementedPollOption(1) && vote.optionIds[0] == request.resource.data.poll.options[1].id)
+              || (incrementedPollOption(2) && vote.optionIds[0] == request.resource.data.poll.options[2].id)
+              || (incrementedPollOption(3) && vote.optionIds[0] == request.resource.data.poll.options[3].id))));
+    }
+
+    function multiVoteChanged(postId, optionId) {
+      let votePath = /databases/$(database)/documents/community-poll-votes/$(postId + '_' + request.auth.uid);
+      let before = get(votePath).data.optionIds;
+      let after = getAfter(votePath).data.optionIds;
+      return after.size() >= 1
+        && ((after.size() == before.size() + 1
+          && after.hasAll(before)
+          && after.hasAny([optionId])
+          && !before.hasAny([optionId]))
+        || (before.size() == after.size() + 1
+          && before.hasAll(after)
+          && before.hasAny([optionId])
+          && !after.hasAny([optionId])));
+    }
+
+    function multiPollOptionsChangedCounterMatches(postId) {
+      return request.resource.data.poll.options.size() == resource.data.poll.options.size()
+        && (resource.data.poll.options.size() == 2
+          && ((decrementedPollOption(0) && samePollOption(1)
+                && multiVoteChanged(postId, resource.data.poll.options[0].id))
+              || (samePollOption(0) && decrementedPollOption(1)
+                && multiVoteChanged(postId, resource.data.poll.options[1].id))
+              || (incrementedPollOption(0) && samePollOption(1)
+                && multiVoteChanged(postId, resource.data.poll.options[0].id))
+              || (samePollOption(0) && incrementedPollOption(1)
+                && multiVoteChanged(postId, resource.data.poll.options[1].id)))
+          || (resource.data.poll.options.size() == 3
+            && ((decrementedPollOption(0) && samePollOption(1) && samePollOption(2)
+                  && multiVoteChanged(postId, resource.data.poll.options[0].id))
+              || (samePollOption(0) && decrementedPollOption(1) && samePollOption(2)
+                  && multiVoteChanged(postId, resource.data.poll.options[1].id))
+              || (samePollOption(0) && samePollOption(1) && decrementedPollOption(2)
+                  && multiVoteChanged(postId, resource.data.poll.options[2].id))
+              || (incrementedPollOption(0) && samePollOption(1) && samePollOption(2)
+                  && multiVoteChanged(postId, resource.data.poll.options[0].id))
+              || (samePollOption(0) && incrementedPollOption(1) && samePollOption(2)
+                  && multiVoteChanged(postId, resource.data.poll.options[1].id))
+              || (samePollOption(0) && samePollOption(1) && incrementedPollOption(2)
+                  && multiVoteChanged(postId, resource.data.poll.options[2].id))))
+          || (resource.data.poll.options.size() == 4
+            && ((decrementedPollOption(0) && samePollOption(1) && samePollOption(2) && samePollOption(3)
+                  && multiVoteChanged(postId, resource.data.poll.options[0].id))
+              || (samePollOption(0) && decrementedPollOption(1) && samePollOption(2) && samePollOption(3)
+                  && multiVoteChanged(postId, resource.data.poll.options[1].id))
+              || (samePollOption(0) && samePollOption(1) && decrementedPollOption(2) && samePollOption(3)
+                  && multiVoteChanged(postId, resource.data.poll.options[2].id))
+              || (samePollOption(0) && samePollOption(1) && samePollOption(2) && decrementedPollOption(3)
+                  && multiVoteChanged(postId, resource.data.poll.options[3].id))
+              || (incrementedPollOption(0) && samePollOption(1) && samePollOption(2) && samePollOption(3)
+                  && multiVoteChanged(postId, resource.data.poll.options[0].id))
+              || (samePollOption(0) && incrementedPollOption(1) && samePollOption(2) && samePollOption(3)
+                  && multiVoteChanged(postId, resource.data.poll.options[1].id))
+              || (samePollOption(0) && samePollOption(1) && incrementedPollOption(2) && samePollOption(3)
+                  && multiVoteChanged(postId, resource.data.poll.options[2].id))
+              || (samePollOption(0) && samePollOption(1) && samePollOption(2) && incrementedPollOption(3)
+                  && multiVoteChanged(postId, resource.data.poll.options[3].id)))));
+    }
+
     function authorPollIsUnvoted() {
       return (!('poll' in resource.data)
           || (resource.data.poll.totalVoteCount == 0
@@ -171,19 +288,24 @@ service cloud.firestore {
       return resource.data.hasPoll == true
         && (
           (request.resource.data.poll.totalVoteCount == resource.data.poll.totalVoteCount + 1
-            && request.resource.data.poll.keys().hasOnly(['options', 'totalVoteCount', 'expiresAt'])
-            && resource.data.poll.keys().hasOnly(['options', 'totalVoteCount', 'expiresAt'])
+            && request.resource.data.poll.keys().hasOnly(['options', 'totalVoteCount', 'allowMultiple', 'expiresAt'])
+            && resource.data.poll.keys().hasOnly(['options', 'totalVoteCount', 'allowMultiple', 'expiresAt'])
+            && sameAllowMultiple()
             && sameExpiresAt()
             && pollIsOpen()
             && pollOptionsCounterMatches()
+            && voteCreatedOptionMatches(postId)
             && existsAfter(votePath) && !exists(votePath))
           || (request.resource.data.poll.totalVoteCount == resource.data.poll.totalVoteCount
-            && request.resource.data.poll.keys().hasOnly(['options', 'totalVoteCount', 'expiresAt'])
-            && resource.data.poll.keys().hasOnly(['options', 'totalVoteCount', 'expiresAt'])
+            && request.resource.data.poll.keys().hasOnly(['options', 'totalVoteCount', 'allowMultiple', 'expiresAt'])
+            && resource.data.poll.keys().hasOnly(['options', 'totalVoteCount', 'allowMultiple', 'expiresAt'])
+            && sameAllowMultiple()
             && sameExpiresAt()
             && pollIsOpen()
             && exists(votePath)
-            && pollOptionsChangedCounterMatches(postId))
+            && (pollOptionsChangedCounterMatches(postId)
+              || (request.resource.data.poll.allowMultiple == true
+                && multiPollOptionsChangedCounterMatches(postId))))
         );
     }
 
@@ -204,6 +326,10 @@ service cloud.firestore {
         && request.resource.data.hasPoll == ('poll' in request.resource.data)
         && (!request.resource.data.hasPoll
           || (request.resource.data.poll.totalVoteCount == 0
+            && request.resource.data.poll.keys().hasOnly([
+              'options', 'totalVoteCount', 'allowMultiple', 'expiresAt'
+            ])
+            && request.resource.data.poll.allowMultiple is bool
             && pollOptionVotesAreZero(request.resource.data.poll)));
       // 작성자는 내용·사진·스냅샷만 수정할 수 있다. hidden은 운영자 규칙을 별도로 둔다.
       // 좋아요·댓글·투표 트랜잭션의 카운트는 정확히 ±1만 허용해야 한다.
@@ -228,6 +354,12 @@ service cloud.firestore {
             && unchangedCount('commentCount')
             && request.resource.data.hasBagSnapshot == ('bagSnapshot' in request.resource.data)
             && request.resource.data.hasPoll == ('poll' in request.resource.data)
+            && (!request.resource.data.hasPoll
+              || request.resource.data.poll.allowMultiple is bool)
+            && (!request.resource.data.hasPoll
+              || request.resource.data.poll.keys().hasOnly([
+                'options', 'totalVoteCount', 'allowMultiple', 'expiresAt'
+              ]))
             && (request.resource.data.diff(resource.data).affectedKeys().hasAny(['poll', 'hasPoll'])
               ? authorPollIsUnvoted()
               : true)
@@ -298,14 +430,27 @@ service cloud.firestore {
       allow read: if signedIn() && voteId.matches('^.*_' + request.auth.uid + '$');
       allow create: if signedIn()
         && voteId.matches('^.*_' + request.auth.uid + '$')
+        && request.resource.data.keys().hasOnly([
+          'postId', 'userId', 'optionIds', 'createdAt'
+        ])
         && request.resource.data.userId == request.auth.uid
+        && request.resource.data.optionIds.size() == 1
+        && voteOptionIdsValid(request.resource.data.postId)
+        && isOpenPoll(request.resource.data.postId)
         && isPublishedPost(request.resource.data.postId);
       allow update: if signedIn()
         && voteId.matches('^.*_' + request.auth.uid + '$')
         && resource.data.userId == request.auth.uid
         && request.resource.data.userId == resource.data.userId
         && request.resource.data.postId == resource.data.postId
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['optionId', 'updatedAt'])
+        && request.resource.data.keys().hasOnly([
+          'postId', 'userId', 'optionIds', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['optionIds', 'updatedAt'])
+        && voteOptionIdsValid(request.resource.data.postId)
+        && (get(/databases/$(database)/documents/community-posts/$(request.resource.data.postId)).data.poll.allowMultiple == true
+          || request.resource.data.optionIds.size() == 1)
+        && isOpenPoll(request.resource.data.postId)
         && isPublishedPost(request.resource.data.postId);
       allow delete: if false;
     }

@@ -48,6 +48,7 @@ class CommunityPost {
       ? {
           options: data.poll.options.map(option => ({ ...option })),
           totalVoteCount: data.poll.totalVoteCount,
+          allowMultiple: data.poll.allowMultiple,
           ...(data.poll.expiresAt
             ? { expiresAt: toDate(data.poll.expiresAt) }
             : {}),
@@ -157,7 +158,7 @@ class CommunityPost {
     this.setLikeCount(Math.max(0, this.likeCount + delta));
   }
 
-  public applyVote(optionId: string, previousOptionId: string | null = null) {
+  public applyVote(optionId: string, previousOptionIds: string[] = []) {
     if (!this.poll) {
       return;
     }
@@ -168,19 +169,20 @@ class CommunityPost {
       return;
     }
 
-    if (previousOptionId === optionId) {
-      return;
-    }
-
-    const previousOption = previousOptionId
-      ? this.poll.options.find(item => item.id === previousOptionId)
-      : null;
+    const isSelected = previousOptionIds.includes(optionId);
+    const nextOptionIds = this.poll.allowMultiple
+      ? (isSelected
+        ? previousOptionIds.filter(id => id !== optionId)
+        : [...previousOptionIds, optionId])
+      : [optionId];
+    const removedOptionIds = previousOptionIds.filter(id => !nextOptionIds.includes(id));
+    const addedOptionIds = nextOptionIds.filter(id => !previousOptionIds.includes(id));
     const options = this.poll.options.map(item => {
-      if (item.id === previousOptionId && previousOption) {
+      if (removedOptionIds.includes(item.id)) {
         return { ...item, voteCount: Math.max(0, item.voteCount - 1) };
       }
 
-      if (item.id === optionId) {
+      if (addedOptionIds.includes(item.id)) {
         return { ...item, voteCount: item.voteCount + 1 };
       }
 
@@ -189,30 +191,31 @@ class CommunityPost {
     this.setPoll({
       ...this.poll,
       options,
-      totalVoteCount: previousOption ? this.poll.totalVoteCount : this.poll.totalVoteCount + 1,
+      totalVoteCount: previousOptionIds.length > 0
+        ? this.poll.totalVoteCount
+        : this.poll.totalVoteCount + 1,
     });
   }
 
-  public rollbackVote(optionId: string, previousOptionId: string | null = null) {
-    if (!this.poll || previousOptionId === optionId) {
+  public rollbackVote(optionId: string, previousOptionIds: string[] = []) {
+    if (!this.poll) {
       return;
     }
 
-    const option = this.poll.options.find(item => item.id === optionId);
-
-    if (!option) {
-      return;
-    }
-
-    const previousOption = previousOptionId
-      ? this.poll.options.find(item => item.id === previousOptionId)
-      : null;
+    const isSelected = previousOptionIds.includes(optionId);
+    const nextOptionIds = this.poll.allowMultiple
+      ? (isSelected
+        ? previousOptionIds.filter(id => id !== optionId)
+        : [...previousOptionIds, optionId])
+      : [optionId];
+    const removedOptionIds = previousOptionIds.filter(id => !nextOptionIds.includes(id));
+    const addedOptionIds = nextOptionIds.filter(id => !previousOptionIds.includes(id));
     const options = this.poll.options.map(item => {
-      if (item.id === optionId) {
+      if (addedOptionIds.includes(item.id)) {
         return { ...item, voteCount: Math.max(0, item.voteCount - 1) };
       }
 
-      if (item.id === previousOptionId && previousOption) {
+      if (removedOptionIds.includes(item.id)) {
         return { ...item, voteCount: item.voteCount + 1 };
       }
 
@@ -221,7 +224,7 @@ class CommunityPost {
     this.setPoll({
       ...this.poll,
       options,
-      totalVoteCount: previousOption
+      totalVoteCount: previousOptionIds.length > 0
         ? this.poll.totalVoteCount
         : Math.max(0, this.poll.totalVoteCount - 1),
     });

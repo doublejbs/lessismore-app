@@ -57,6 +57,7 @@ coverage/
 # Data migration backups
 scripts/backup-camp-spot-*.json
 scripts/backup-community-posts-*.json
+scripts/backup-community-poll-votes-*.json
 # hot-updater
 .hot-updater/output
 .hot-updater/log

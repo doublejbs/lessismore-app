@@ -1119,7 +1119,8 @@
         "expires3d": "3일",
         "expires7d": "7일",
         "locked": "투표가 시작되어 선택지와 마감은 수정할 수 없어요",
-        "expiresCustom": "사용자 지정 · {{date}}"
+        "expiresCustom": "사용자 지정 · {{date}}",
+        "allowMultiple": "복수 선택 허용"
       },
       "discardConfirm": "작성을 취소하시겠어요?",
       "discard": "작성 취소",
@@ -1212,7 +1213,8 @@
     "poll": {
       "participants": "{{count}}명 참여",
       "closed": "마감된 투표예요",
-      "changed": "투표를 변경했어요"
+      "changed": "투표를 변경했어요",
+      "multiple": "복수 선택 가능"
     },
     "report": {
       "title": "신고 사유를 선택해주세요",

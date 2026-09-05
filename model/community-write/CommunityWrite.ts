@@ -41,6 +41,7 @@ class CommunityWrite {
   private pollOptions: string[] = ['', ''];
   private pollOptionIds: string[] = [createCommunityId(), createCommunityId()];
   private pollAttached = false;
+  private pollAllowMultiple = false;
   private pollExpiresAt: Date | null = null;
   private pollExpiryDays = 0;
   private isSubmitting = false;
@@ -147,6 +148,7 @@ class CommunityWrite {
       this.setPollAttached(true);
       this.setPollOptions(poll.options.map((option) => option.text));
       this.setPollOptionIds(poll.options.map((option) => option.id));
+      this.setPollAllowMultiple(poll.allowMultiple);
       this.setPollExpiresAtValue(poll.expiresAt ?? null);
       this.setPollExpiryDaysValue(
         poll.expiresAt ? this.getPresetExpiryDays(poll.expiresAt) : 0
@@ -212,6 +214,10 @@ class CommunityWrite {
 
   public getPollExpiresAt(): Date | null {
     return this.pollExpiresAt;
+  }
+
+  public getPollAllowMultiple(): boolean {
+    return this.pollAllowMultiple;
   }
 
   public getPollExpiryDays(): number {
@@ -283,6 +289,7 @@ class CommunityWrite {
     if (!this.pollAttached) {
       this.setPollOptions(['', '']);
       this.setPollOptionIds([createCommunityId(), createCommunityId()]);
+      this.setPollAllowMultiple(false);
       this.setPollExpiresAtValue(null);
       this.setPollExpiryDaysValue(0);
     }
@@ -376,6 +383,16 @@ class CommunityWrite {
 
     this.setPollExpiresAtValue(value);
     this.setPollExpiryDaysValue(0);
+    this.setPollChanged(true);
+    this.markDirty();
+  }
+
+  public setPollAllowMultiple(value: boolean) {
+    if (!this.canEditPollStructure()) {
+      return;
+    }
+
+    this.setPollAllowMultipleValue(value);
     this.setPollChanged(true);
     this.markDirty();
   }
@@ -591,6 +608,7 @@ class CommunityWrite {
         patch.poll = {
           ...poll,
           expiresAt: this.pollExpiresAt ?? null,
+          allowMultiple: this.pollAllowMultiple,
         };
       } else {
         patch.poll = null;
@@ -606,6 +624,7 @@ class CommunityWrite {
         id: this.getPollOptionId(index),
         text: text.trim(),
       })),
+      allowMultiple: this.pollAllowMultiple,
     };
 
     if (this.pollExpiresAt) {
@@ -698,6 +717,10 @@ class CommunityWrite {
 
   private setPollExpiresAtValue(value: Date | null) {
     this.pollExpiresAt = value;
+  }
+
+  private setPollAllowMultipleValue(value: boolean) {
+    this.pollAllowMultiple = value;
   }
 
   private setPollExpiryDaysValue(value: number) {

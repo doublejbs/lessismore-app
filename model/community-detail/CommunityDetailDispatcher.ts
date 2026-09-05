@@ -24,7 +24,7 @@ class CommunityDetailDispatcher {
     return this.store.isLiked(postId);
   }
 
-  public getMyVote(postId: string): Promise<string | null> {
+  public getMyVote(postId: string): Promise<string[]> {
     return this.store.getMyVote(postId);
   }
 

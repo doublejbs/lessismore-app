@@ -2,6 +2,7 @@ import { observer } from 'mobx-react-lite';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
+import CategoryChipView from '@/components/browse/CategoryChipView';
 import { Acg, AcgRadius, AcgType, Radius } from '@/constants/DesignTokens';
 import CommunityWrite from '@/model/community-write/CommunityWrite';
 import { formatCommunityDate } from '@/model/community/CommunityFormat';
@@ -102,6 +103,17 @@ const CommunityWritePollOptionsView = ({ write }: Props) => {
       <PretendardText style={styles.expiresLabel} weight='semibold'>
         {l10n.t('community.write.poll.expires')}
       </PretendardText>
+      <CategoryChipView
+        label={l10n.t('community.write.poll.allowMultiple')}
+        selected={write.getPollAllowMultiple()}
+        onPress={() => write.setPollAllowMultiple(!write.getPollAllowMultiple())}
+        disabled={!canEdit || write.getIsSubmitting()}
+        accessibilityRole='switch'
+        accessibilityState={{
+          checked: write.getPollAllowMultiple(),
+          disabled: !canEdit || write.getIsSubmitting(),
+        }}
+      />
       <View style={styles.chips}>
         {EXPIRY_DAYS.map((days) => (
           <TouchableOpacity

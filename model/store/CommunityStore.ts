@@ -327,6 +327,9 @@ class CommunityStore {
           const nextPoll: Record<string, unknown> = {
             options,
             totalVoteCount: poll?.totalVoteCount ?? 0,
+            allowMultiple: patch.poll.allowMultiple
+              ?? poll?.allowMultiple
+              ?? false,
           };
 
           if (patch.poll.expiresAt !== null && patch.poll.expiresAt !== undefined) {
@@ -657,22 +660,45 @@ class CommunityStore {
       }
 
       if (voteSnapshot.exists()) {
-        const previousOptionId = voteSnapshot.data().optionId as string;
+        const voteData = voteSnapshot.data();
+        const previousOptionIds = Array.isArray(voteData.optionIds)
+          ? voteData.optionIds as string[]
+          : voteData.optionId
+            ? [voteData.optionId as string]
+            : [];
 
-        if (previousOptionId === optionId) {
-          return;
-        }
-
-        if (!poll.options.some(option => option.id === previousOptionId)) {
+        if (previousOptionIds.length === 0) {
           throw new CommunityError(CommunityValidationError.PollOptionInvalid);
         }
 
+        if (!previousOptionIds.every(previousOption =>
+          poll.options.some(option => option.id === previousOption))) {
+          throw new CommunityError(CommunityValidationError.PollOptionInvalid);
+        }
+
+        const selected = previousOptionIds.includes(optionId);
+
+        if (!poll.allowMultiple && selected) {
+          return;
+        }
+
+        if (poll.allowMultiple && selected && previousOptionIds.length === 1) {
+          return;
+        }
+
+        const nextOptionIds = poll.allowMultiple
+          ? (selected
+            ? previousOptionIds.filter(id => id !== optionId)
+            : [...previousOptionIds, optionId])
+          : [optionId];
+        const removedOptionIds = previousOptionIds.filter(id => !nextOptionIds.includes(id));
+        const addedOptionIds = nextOptionIds.filter(id => !previousOptionIds.includes(id));
         const options = poll.options.map(option => {
-          if (option.id === previousOptionId) {
+          if (removedOptionIds.includes(option.id)) {
             return { ...option, voteCount: Math.max(0, option.voteCount - 1) };
           }
 
-          if (option.id === optionId) {
+          if (addedOptionIds.includes(option.id)) {
             return { ...option, voteCount: option.voteCount + 1 };
           }
 
@@ -680,7 +706,7 @@ class CommunityStore {
         });
 
         transaction.update(voteRef, {
-          optionId,
+          optionIds: nextOptionIds,
           updatedAt: serverTimestamp(),
         });
         transaction.update(postRef, {
@@ -699,7 +725,7 @@ class CommunityStore {
       const voteData: CommunityPollVoteData = {
         postId,
         userId,
-        optionId,
+        optionIds: [optionId],
         createdAt: new Date(),
       };
 
@@ -714,18 +740,28 @@ class CommunityStore {
     });
   }
 
-  public async getMyVote(postId: string): Promise<string | null> {
+  public async getMyVote(postId: string): Promise<string[]> {
     const userId = this.firebase.getUserId();
 
     if (!userId) {
-      return null;
+      return [];
     }
 
     const snapshot = await getDoc(
       doc(this.getStore(), 'community-poll-votes', `${postId}_${userId}`)
     );
 
-    return snapshot.exists() ? (snapshot.data().optionId as string) : null;
+    if (!snapshot.exists()) {
+      return [];
+    }
+
+    const data = snapshot.data();
+
+    if (Array.isArray(data.optionIds)) {
+      return data.optionIds as string[];
+    }
+
+    return data.optionId ? [data.optionId as string] : [];
   }
 
   public async report(input: CommunityReportInput): Promise<CommunityReportResult> {
@@ -876,6 +912,7 @@ class CommunityStore {
       options?: unknown;
       totalVoteCount?: unknown;
       expiresAt?: unknown;
+      allowMultiple?: unknown;
     };
 
     if (!Array.isArray(data.options)) {
@@ -894,6 +931,7 @@ class CommunityStore {
         voteCount: option.voteCount ?? 0,
       })),
       totalVoteCount: Number(data.totalVoteCount) || 0,
+      allowMultiple: data.allowMultiple === true,
     };
 
     if (data.expiresAt) {
@@ -907,6 +945,7 @@ class CommunityStore {
     const result: Record<string, unknown> = {
       options: this.toPollOptions(input.options),
       totalVoteCount: 0,
+      allowMultiple: input.allowMultiple,
     };
 
     if (input.expiresAt) {

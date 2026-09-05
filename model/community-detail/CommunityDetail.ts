@@ -48,7 +48,7 @@ class CommunityDetail {
   private liked = false;
   private isLiking = false;
   private isVoting = false;
-  private myVoteOptionId: string | null = null;
+  private myVoteOptionIds: string[] = [];
   private comments: CommunityComment[] = [];
   private commentsCursor: QueryDocumentSnapshot | null = null;
   private moreComments = false;
@@ -126,7 +126,7 @@ class CommunityDetail {
 
       this.setPost(post);
       this.setLiked(likedResult.value);
-      this.setMyVoteOptionId(myVoteResult.value);
+      this.setMyVoteOptionIds(myVoteResult.value);
       this.setComments(commentsResult.value.comments);
       this.setCommentsCursor(commentsResult.value.cursor);
       this.setHasMoreComments(commentsResult.value.hasMore);
@@ -186,25 +186,46 @@ class CommunityDetail {
       return;
     }
 
-    const previousOptionId = this.myVoteOptionId;
+    const previousOptionIds = this.myVoteOptionIds;
+    const poll = this.post.getPoll();
 
-    if (previousOptionId === optionId) {
+    if (!poll) {
+      return;
+    }
+
+    const selected = previousOptionIds.includes(optionId);
+
+    if ((!poll.allowMultiple && selected)
+      || (poll.allowMultiple && selected && previousOptionIds.length === 1)) {
       return;
     }
 
     this.setIsVoting(true);
-    this.post.applyVote(optionId, previousOptionId);
-    this.setMyVoteOptionId(optionId);
+    this.post.applyVote(optionId, previousOptionIds);
+    const nextOptionIds = poll.allowMultiple
+      ? (selected
+        ? previousOptionIds.filter(id => id !== optionId)
+        : [...previousOptionIds, optionId])
+      : [optionId];
+    this.setMyVoteOptionIds(nextOptionIds);
     try {
       await this.dispatcher.vote(this.postId, optionId);
-      app.getAnalyticsManager()?.logClick('click_community_vote');
+      const action = previousOptionIds.length === 0
+        ? 'create'
+        : poll.allowMultiple
+          ? selected ? 'remove' : 'add'
+          : 'switch';
+      app.getAnalyticsManager()?.logClick('click_community_vote', {
+        multiple: poll.allowMultiple,
+        action,
+      });
 
-      if (previousOptionId !== null) {
+      if (!poll.allowMultiple && previousOptionIds.length > 0) {
         this.showToast('community.poll.changed');
       }
     } catch (error) {
-      this.post.rollbackVote(optionId, previousOptionId);
-      this.setMyVoteOptionId(previousOptionId);
+      this.post.rollbackVote(optionId, previousOptionIds);
+      this.setMyVoteOptionIds(previousOptionIds);
 
       if (
         this.isCommunityError(error, CommunityValidationError.PollExpired)
@@ -493,8 +514,8 @@ class CommunityDetail {
     return this.isVoting;
   }
 
-  public getMyVoteOptionId() {
-    return this.myVoteOptionId;
+  public getMyVoteOptionIds() {
+    return this.myVoteOptionIds;
   }
 
   public getComments() {
@@ -608,6 +629,10 @@ class CommunityDetail {
     this.post = value;
   }
 
+  private setMyVoteOptionIds(value: string[]) {
+    this.myVoteOptionIds = value;
+  }
+
   private setCampSpot(value: CampSpot | null) {
     this.campSpot = value;
   }
@@ -634,10 +659,6 @@ class CommunityDetail {
 
   private setIsVoting(value: boolean) {
     this.isVoting = value;
-  }
-
-  private setMyVoteOptionId(value: string | null) {
-    this.myVoteOptionId = value;
   }
 
   private setComments(value: CommunityComment[]) {

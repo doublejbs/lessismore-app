@@ -1119,7 +1119,8 @@
         "expires3d": "3日",
         "expires7d": "7日",
         "locked": "投票が始まったため、選択肢と締切は編集できません",
-        "expiresCustom": "カスタム · {{date}}"
+        "expiresCustom": "カスタム · {{date}}",
+        "allowMultiple": "複数選択を許可"
       },
       "discardConfirm": "作成をキャンセルしますか？",
       "discard": "作成をキャンセル",
@@ -1212,7 +1213,8 @@
     "poll": {
       "participants": "{{count}}人が参加",
       "closed": "終了した投票です",
-      "changed": "投票を変更しました"
+      "changed": "投票を変更しました",
+      "multiple": "複数選択可"
     },
     "report": {
       "title": "報告理由を選択してください",

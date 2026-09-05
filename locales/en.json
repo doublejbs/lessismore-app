@@ -1133,7 +1133,8 @@
         "expires3d": "3 days",
         "expires7d": "7 days",
         "locked": "Voting has started, so the options and closing date cannot be edited",
-        "expiresCustom": "Custom · {{date}}"
+        "expiresCustom": "Custom · {{date}}",
+        "allowMultiple": "Allow multiple choices"
       },
       "discardConfirm": "Cancel writing this post?",
       "discard": "Cancel writing",
@@ -1226,7 +1227,8 @@
     "poll": {
       "participants": "{{count}} participated",
       "closed": "This poll is closed",
-      "changed": "Vote changed"
+      "changed": "Vote changed",
+      "multiple": "Multiple choices allowed"
     },
     "report": {
       "title": "Choose a report reason",
