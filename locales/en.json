@@ -1080,7 +1080,7 @@
   "community": {
     "title": "Community",
     "type": {
-      "bagReview": "Pack review",
+      "bagReview": "Packing review",
       "poll": "Poll",
       "all": "All",
       "post": "Post"
@@ -1148,8 +1148,8 @@
       "failed": "Could not save your post",
       "typeSheet": {
         "title": "What would you like to share?",
-        "bagReview": "Pack review",
-        "bagReviewDesc": "Share your experience with a pack",
+        "bagReview": "Packing review",
+        "bagReviewDesc": "Share what you packed for a trip and how it went",
         "poll": "Poll",
         "pollDesc": "Ask others to choose",
         "post": "Post",
@@ -1157,7 +1157,7 @@
       },
       "titleByType": {
         "post": "New post",
-        "bag_review": "New bag review",
+        "bag_review": "New packing review",
         "poll": "New poll"
       },
       "bodyLabelOptional": "Body (optional)",

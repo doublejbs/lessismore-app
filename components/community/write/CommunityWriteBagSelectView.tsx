@@ -16,7 +16,7 @@ interface Props {
 }
 
 /**
- * 배낭 후기의 공개 스냅샷을 선택하는 View다(CM-4, CM-9, DM-28).
+ * 패킹 후기의 공개 스냅샷을 선택하는 View다(CM-4, CM-9, DM-28).
  * 스냅샷만 작성 모델에 저장하고 개인 장비 사진은 커뮤니티 이미지 경로와 분리한다.
  */
 const CommunityWriteBagSelectView = ({ write }: Props) => {

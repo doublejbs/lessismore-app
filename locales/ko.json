@@ -1066,7 +1066,7 @@
   "community": {
     "title": "커뮤니티",
     "type": {
-      "bagReview": "배낭 후기",
+      "bagReview": "패킹 후기",
       "poll": "투표",
       "all": "전체",
       "post": "게시글"
@@ -1134,8 +1134,8 @@
       "failed": "게시글을 저장하지 못했어요",
       "typeSheet": {
         "title": "무엇을 올릴까요?",
-        "bagReview": "배낭 후기",
-        "bagReviewDesc": "사용한 배낭 경험을 공유해보세요",
+        "bagReview": "패킹 후기",
+        "bagReviewDesc": "다녀온 여행의 패킹 구성과 후기를 공유해보세요",
         "poll": "투표",
         "pollDesc": "다른 사람의 선택을 물어보세요",
         "post": "게시글",
@@ -1143,7 +1143,7 @@
       },
       "titleByType": {
         "post": "게시글 쓰기",
-        "bag_review": "배낭 후기 쓰기",
+        "bag_review": "패킹 후기 쓰기",
         "poll": "투표 만들기"
       },
       "bodyLabelOptional": "내용 (선택)",

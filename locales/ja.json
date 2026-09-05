@@ -1066,7 +1066,7 @@
   "community": {
     "title": "コミュニティ",
     "type": {
-      "bagReview": "バックパックレビュー",
+      "bagReview": "パッキングレビュー",
       "poll": "投票",
       "all": "すべて",
       "post": "投稿"
@@ -1134,8 +1134,8 @@
       "failed": "投稿を保存できませんでした",
       "typeSheet": {
         "title": "何を投稿しますか？",
-        "bagReview": "バックパックレビュー",
-        "bagReviewDesc": "使ったバックパックの体験を共有する",
+        "bagReview": "パッキングレビュー",
+        "bagReviewDesc": "旅で持って行ったパッキング構成と感想を共有しよう",
         "poll": "投票",
         "pollDesc": "みんなに選んでもらう",
         "post": "投稿",
@@ -1143,7 +1143,7 @@
       },
       "titleByType": {
         "post": "投稿を書く",
-        "bag_review": "バックパックレビューを書く",
+        "bag_review": "パッキングレビューを書く",
         "poll": "投票を作成"
       },
       "bodyLabelOptional": "本文（任意）",
