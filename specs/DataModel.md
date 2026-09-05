@@ -641,19 +641,21 @@
 
 | 필드 | 타입 | 비고 |
 | --- | --- | --- |
-| `type` | string | string enum `CommunityPostType`: `post` / `bag_review` / `poll` (`post`는 일반 게시글) |
+| `type` | string | string enum `CommunityPostType`. **새 글은 항상 `post`**(2026-09-05 첨부 모델). 레거시 값 `bag_review`/`poll`은 읽기 호환만 하며 필터·표시에 쓰지 않는다 |
+| `hasBagSnapshot` | boolean | 패킹 첨부 여부. `bagSnapshot` 존재와 항상 일치(규칙 검증). 필터 인덱스용 |
+| `hasPoll` | boolean | 투표 첨부 여부. `poll` 존재와 항상 일치(규칙 검증). 필터 인덱스용 |
 | `status` | string | string enum `CommunityContentStatus`: `published` / `hidden` / `deleted` |
 | `authorId` | string | Firebase Auth uid. 익명 게시 없음 |
 | `authorName` | string | 작성 시점 닉네임 스냅샷 |
 | `title` | string | trim 후 2~80자 |
-| `body` | string | 일반 게시글·패킹 후기는 trim 후 10~5,000자, 투표는 빈 값 허용·최대 5,000자 |
+| `body` | string | 첨부가 없으면 trim 후 10~5,000자, 패킹 또는 투표가 첨부되면 빈 값 허용·최대 5,000자 |
 | `images` | array | 공개 사진 0~4장, 배열 순서가 표시 순서이며 첫 항목이 대표 사진 |
 | `images[].id` | string | 게시글 안에서 고유한 이미지 ID. Storage 파일명과 연결 |
 | `images[].url` | string | 커뮤니티 Storage 다운로드 URL. 개인 장비 `imageUrl` 사용 금지 |
 | `images[].storagePath` | string | 삭제·소유권 검증용 객체 경로 |
 | `images[].width` / `images[].height` | number | 정규화된 JPEG 픽셀 크기 |
-| `bagSnapshot` | map? | `type == 'bag_review'`일 때 필수. 아래 스키마 |
-| `poll` | map? | `type == 'poll'`일 때 필수. 아래 스키마 |
+| `bagSnapshot` | map? | `hasBagSnapshot == true`일 때 필수, false면 없음. 아래 스키마 |
+| `poll` | map? | `hasPoll == true`일 때 필수, false면 없음. 아래 스키마 |
 | `likeCount` | number | 좋아요 수 비정규화 캐시, 기본 0 |
 | `commentCount` | number | 삭제 자리 제외 댓글·답글 수 비정규화 캐시, 기본 0 |
 | `createdAt` | timestamp | 서버 작성 시각, 피드 정렬 기준 |
@@ -662,7 +664,9 @@
 커뮤니티 피드 복합 인덱스는 아래 쿼리를 지원한다.
 
 - `community-posts (status asc, likeCount desc, createdAt desc)`
-- `community-posts (status asc, type asc, likeCount desc, createdAt desc)`
+- `community-posts (status asc, hasBagSnapshot asc, createdAt desc)` / `(status asc, hasBagSnapshot asc, likeCount desc, createdAt desc)` — 패킹 필터(2026-09-05)
+- `community-posts (status asc, hasPoll asc, createdAt desc)` / `(status asc, hasPoll asc, likeCount desc, createdAt desc)` — 투표 필터(2026-09-05)
+- ~~`(status, type, …)`~~ 유형 인덱스 2개는 첨부 모델 전환으로 폐기(레거시 데이터 마이그레이션 후 삭제)
 - `community-posts (authorId asc, status asc, createdAt desc)` — 내가 쓴 글 목록([Community.md](Community.md) CM-13, 2026-09-04)
 
 게시글의 `updatedAt`은 게시글 내용 수정 시각이며 댓글 생성·수정·삭제로 갱신하지 않는다. 댓글 자체의 `updatedAt`만 댓글 수정·소프트 삭제 때 갱신한다.
@@ -800,9 +804,9 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 | --- | --- |
 | 인덱스 | `useless-community-posts` |
 | 동기화 | Firestore `community-posts` → `firestore-algolia-search` 익스텐션 두 번째 인스턴스(`firestore-algolia-search-community`, asia-northeast3, 기존 문서 백필 포함) |
-| 인덱스 필드 | `title`, `body`, `authorName`, `authorId`, `type`, `status`, `createdAt` — 카드 렌더용 무거운 필드(`images`, `bagSnapshot`, `poll`)는 넣지 않는다 |
+| 인덱스 필드 | `title`, `body`, `authorName`, `authorId`, `type`, `status`, `hasBagSnapshot`, `hasPoll`, `createdAt` — 카드 렌더용 무거운 필드(`images`, `bagSnapshot`, `poll`)는 넣지 않는다 |
 | 검색 속성 | `searchableAttributes`: `title`, `body`, `authorName` (순서 = 가중치) |
-| 필터 속성 | `attributesForFaceting`: `filterOnly(status)`, `filterOnly(type)`. 클라이언트는 항상 `status:published`를 붙인다 |
+| 필터 속성 | `attributesForFaceting`: `filterOnly(status)`, `filterOnly(hasBagSnapshot)`, `filterOnly(hasPoll)`, `filterOnly(authorId)`. 클라이언트는 항상 `status:published`를 붙인다 |
 | 히트 사용 | `objectID`(= 게시글 문서 ID)만 쓴다. 카드 렌더는 `objectID` 목록을 Firestore `community-posts`에서 `documentId() in` 10개 단위로 다시 읽어 `CommunityPost`로 만들고 히트 순서를 유지한다(삭제·숨김으로 못 읽은 ID는 건너뜀) |
 | 페이지 | `hitsPerPage: 20`, `page` 증가로 더 보기 |
 | 제한 | 본문 5,000자(한글 ≈ 15KB)는 Algolia 레코드 크기 제한(플랜별 10KB~100KB)에 걸릴 수 있다 — 동기화 실패가 보이면 변환 함수로 `body`를 잘라 넣는다(미해결) |

@@ -167,9 +167,9 @@
 | 이벤트 | 트리거 | 파라미터 |
 | --- | --- | --- |
 | `click_community_write` | 커뮤니티 `글쓰기` → 유형 선택 | — |
-| `click_community_publish` | 게시글 등록 성공 | `type`: `post` \| `bag_review` \| `poll`, `image_count`: 0~4 |
-| `click_community_post` | 피드 카드 → 상세 진입 | `type`: 위와 동일 |
-| `click_community_filter` | 유형 필터 변경 | `type`: `all` \| 위 유형 |
+| `click_community_publish` | 게시글 등록 성공 | `has_packing`: boolean, `has_poll`: boolean, `image_count`: 0~4 (2026-09-05 첨부 모델 — `type` 파라미터 폐기) |
+| `click_community_post` | 피드 카드 → 상세 진입 | `has_packing`, `has_poll`: boolean |
+| `click_community_filter` | 첨부 필터 변경 | `filter`: `all` \| `packing` \| `poll` |
 | `click_community_sort` | 정렬 변경 | `sort`: `latest` \| `popular` |
 | `click_community_like` | 게시글 좋아요 토글 | `liked`: boolean |
 | `click_community_comment_submit` | 댓글·답글 등록 성공 | `depth`: `comment` \| `reply` |
@@ -177,7 +177,7 @@
 | `click_info_my_posts` | 내 정보 `내가 쓴 글` 행 탭 | — |
 | `click_community_my_posts` | 커뮤니티 필터 행 `내가 쓴 글` 칩 탭 | — |
 | `click_community_search` | 커뮤니티 제목 행 검색 아이콘 탭 | — |
-| `click_community_search_result` | 검색 결과 카드 → 상세 진입 | `type`: 게시글 유형, `query_length`: 질의 길이 |
+| `click_community_search_result` | 검색 결과 카드 → 상세 진입 | `has_packing`, `has_poll`: boolean, `query_length`: 질의 길이 |
 | `click_community_report` | 신고 등록 성공 | `target`: `post` \| `comment` |
 
 - 커뮤니티 이벤트에는 게시글 ID, 작성자 ID·닉네임, 제목·본문, 투표 문구, 신고 상세를 보내지 않는다.
