@@ -75,7 +75,7 @@ const CommunityWriteAttachmentsView = ({ write }: Props) => {
         <View style={styles.pollBlock}>
           <View style={styles.pollHeader}>
             <PretendardText style={styles.pollTitle} weight='semibold'>
-              {l10n.t('community.write.attachments.poll')}
+              {l10n.t('community.write.attachments.pollTitle')}
             </PretendardText>
             {canEditPollStructure && (
               <TouchableOpacity
@@ -128,14 +128,17 @@ const styles = StyleSheet.create({
     ...AcgType.control,
     color: Acg.ink,
   },
+  // 첨부 블록은 순백 + 헤어라인 테두리다 — 연회색 패널 위에 연회색 입력란·칩을 두면 면이 사라진다(HM-8).
   pollBlock: {
     gap: 12,
     padding: 16,
     borderRadius: AcgRadius.thumb,
-    backgroundColor: Acg.controlFill,
+    borderWidth: 1,
+    borderColor: Acg.hairline,
+    backgroundColor: Acg.paper,
   },
   pollHeader: {
-    minHeight: 44,
+    minHeight: 32,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -145,6 +148,7 @@ const styles = StyleSheet.create({
     ...AcgType.control,
     color: Acg.ink,
   },
+  // 블록 제목은 항목 이름 굵기(semibold)로 첨부 버튼 라벨과 구분한다.
   textAction: {
     minHeight: 44,
     minWidth: 44,

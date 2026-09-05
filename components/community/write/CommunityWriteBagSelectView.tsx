@@ -213,7 +213,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   preview: {
-    backgroundColor: Acg.controlFill,
+    backgroundColor: Acg.paper,
+    borderWidth: 1,
+    borderColor: Acg.hairline,
     borderRadius: AcgRadius.thumb,
     padding: 16,
     gap: 4,

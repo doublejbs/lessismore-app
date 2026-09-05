@@ -83,9 +83,7 @@ const CommunityWritePollOptionsView = ({ write }: Props) => {
             style={[styles.input, !canEdit && styles.disabled]}
             value={option}
             onChangeText={(value) => write.setPollOption(index, value)}
-            placeholder={l10n.t('community.write.poll.option', {
-              count: index + 1,
-            })}
+            placeholder={l10n.t('community.write.poll.optionPlaceholder')}
             placeholderTextColor={Acg.textMuted}
             maxLength={COMMUNITY_POLL_OPTION_MAX_LENGTH}
             editable={canEdit && !write.getIsSubmitting()}

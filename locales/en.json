@@ -1134,7 +1134,8 @@
         "expires7d": "7 days",
         "locked": "Voting has started, so the options and closing date cannot be edited",
         "expiresCustom": "Custom · {{date}}",
-        "allowMultiple": "Allow multiple choices"
+        "allowMultiple": "Allow multiple choices",
+        "optionPlaceholder": "Option text"
       },
       "discardConfirm": "Cancel writing this post?",
       "discard": "Cancel writing",
@@ -1151,7 +1152,9 @@
         "poll": "Attach poll",
         "change": "Change",
         "remove": "Remove",
-        "removePoll": "Remove poll"
+        "removePoll": "Remove poll",
+        "pollTitle": "Poll",
+        "packingTitle": "Packing"
       }
     },
     "validation": {
