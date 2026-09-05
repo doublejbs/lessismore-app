@@ -1066,10 +1066,9 @@
   "community": {
     "title": "커뮤니티",
     "type": {
-      "bagReview": "패킹 후기",
       "poll": "투표",
       "all": "전체",
-      "post": "게시글"
+      "packing": "패킹"
     },
     "write": {
       "editTitle": "게시글 수정",

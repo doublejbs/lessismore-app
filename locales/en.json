@@ -1080,10 +1080,9 @@
   "community": {
     "title": "Community",
     "type": {
-      "bagReview": "Packing review",
       "poll": "Poll",
       "all": "All",
-      "post": "Post"
+      "packing": "Packing"
     },
     "write": {
       "editTitle": "Edit post",

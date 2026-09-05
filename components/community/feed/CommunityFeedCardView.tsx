@@ -36,52 +36,47 @@ const CommunityFeedCardView: FC<Props> = ({ post, onPress }) => {
     }
 
     app.getAnalyticsManager()?.logClick('click_community_post', {
-      type: post.getType(),
+      has_packing: post.hasBagSnapshot(),
+      has_poll: post.hasPoll(),
     });
     router.push(`/community/${post.getId()}` as Href);
   };
   const renderExtraMeta = () => {
-    if (post.isBagReview()) {
-      const snapshot = post.getBagSnapshot();
+    const snapshot = post.hasBagSnapshot() ? post.getBagSnapshot() : null;
+    const poll = post.hasPoll() ? post.getPoll() : null;
 
-      if (!snapshot) {
-        return null;
-      }
-
-      return (
-        <PretendardText style={styles.extraMeta} numberOfLines={1}>
-          {l10n.t('community.feed.bagMeta', {
-            name: snapshot.name,
-            weight: formatCommunityWeight(snapshot.totalWeight),
-            count: snapshot.itemCount,
-          })}
-        </PretendardText>
-      );
+    if (!snapshot && !poll) {
+      return null;
     }
 
-    if (post.isPoll()) {
-      const poll = post.getPoll();
-
-      if (!poll) {
-        return null;
-      }
-
-      const status = post.isPollExpired()
+    const status = poll
+      ? post.isPollExpired()
         ? l10n.t('community.feed.pollClosed')
-        : l10n.t('community.feed.pollOpen');
+        : l10n.t('community.feed.pollOpen')
+      : null;
 
-      return (
-        <PretendardText style={styles.extraMeta} numberOfLines={1}>
-          {l10n.t('community.feed.pollMeta', {
-            count: poll.options.length,
-            votes: poll.totalVoteCount,
-            status,
-          })}
-        </PretendardText>
-      );
-    }
-
-    return null;
+    return (
+      <View style={styles.extraMetaContainer}>
+        {snapshot ? (
+          <PretendardText style={styles.extraMeta} numberOfLines={1}>
+            {l10n.t('community.feed.bagMeta', {
+              name: snapshot.name,
+              weight: formatCommunityWeight(snapshot.totalWeight),
+              count: snapshot.itemCount,
+            })}
+          </PretendardText>
+        ) : null}
+        {poll && status ? (
+          <PretendardText style={styles.extraMeta} numberOfLines={1}>
+            {l10n.t('community.feed.pollMeta', {
+              count: poll.options.length,
+              votes: poll.totalVoteCount,
+              status,
+            })}
+          </PretendardText>
+        ) : null}
+      </View>
+    );
   };
 
   return (
@@ -178,6 +173,9 @@ const styles = StyleSheet.create({
   extraMeta: {
     ...AcgType.meta,
     color: Acg.ink,
+  },
+  extraMetaContainer: {
+    gap: 2,
   },
   counts: {
     flexDirection: 'row',

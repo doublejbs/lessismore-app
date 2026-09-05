@@ -1066,10 +1066,9 @@
   "community": {
     "title": "コミュニティ",
     "type": {
-      "bagReview": "パッキングレビュー",
       "poll": "投票",
       "all": "すべて",
-      "post": "投稿"
+      "packing": "パッキング"
     },
     "write": {
       "editTitle": "投稿を編集",

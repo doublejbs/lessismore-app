@@ -182,7 +182,7 @@ class CommunityDetail {
       return;
     }
 
-    if (!this.post || !this.post.isPoll() || this.isVoting) {
+    if (!this.post || !this.post.hasPoll() || this.isVoting) {
       return;
     }
 

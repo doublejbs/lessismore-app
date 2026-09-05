@@ -2,7 +2,6 @@ import app from '@/model/app/App';
 import { getGroupForCategory } from '@/model/gear/GearCategoryGroups';
 import GearFilter from '@/model/gear/GearFilter';
 import { GEAR_FILTER_NAMES } from '@/model/gear/GearFilterName';
-import CommunityPostType from './CommunityPostType';
 import { CommunityBagSnapshotGear } from './CommunityData';
 import {
   COMMUNITY_DAY_IN_MILLISECONDS,
@@ -53,17 +52,6 @@ export const getCommunityBagSnapshotGroups = (
       },
     ];
   });
-};
-
-export const getCommunityTypeLabel = (type: CommunityPostType): string => {
-  const key =
-    type === CommunityPostType.Post
-      ? 'post'
-      : type === CommunityPostType.BagReview
-        ? 'bagReview'
-        : 'poll';
-
-  return app.getL10n().t(`community.type.${key}`);
 };
 
 export const formatCommunityDate = (date: Date): string => {

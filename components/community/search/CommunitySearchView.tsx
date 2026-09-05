@@ -66,7 +66,8 @@ const CommunitySearchView: FC<Props> = ({ search }) => {
   const handlePostPress = useCallback(
     (post: CommunityPost) => {
       app.getAnalyticsManager()?.logClick('community_search_result', {
-        type: post.getType(),
+        has_packing: post.hasBagSnapshot(),
+        has_poll: post.hasPoll(),
         query_length: trimmedQuery.length,
       });
       router.push(`/community/${post.getId()}`);

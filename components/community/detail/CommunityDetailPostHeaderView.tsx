@@ -66,13 +66,13 @@ const CommunityDetailPostHeaderView = observer(({ post, detail, width }: Props) 
           {`${Math.min(currentImageIndex + 1, images.length)}/${post.getImages().length}`}
         </PretendardText>
       )}
-      {post.isBagReview() && bagSnapshot ? (
+      {post.hasBagSnapshot() && bagSnapshot ? (
         <>
           <CommunityDetailBagSnapshotView snapshot={bagSnapshot} detail={detail} />
           <CommunityDetailBagGearListView snapshot={bagSnapshot} />
         </>
       ) : null}
-      {post.isPoll() && <CommunityDetailPollView post={post} detail={detail} />}
+      {post.hasPoll() && <CommunityDetailPollView post={post} detail={detail} />}
       <CommunityDetailPostActionsView post={post} detail={detail} />
       <PretendardText weight='semibold' style={styles.commentsTitle}>
         {app.getL10n().t('community.detail.commentsTitle', { count: post.getCommentCount() })}
