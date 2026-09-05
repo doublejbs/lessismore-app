@@ -1,5 +1,12 @@
 import { observer } from 'mobx-react-lite';
-import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgRadius, AcgType, Radius } from '@/constants/DesignTokens';
