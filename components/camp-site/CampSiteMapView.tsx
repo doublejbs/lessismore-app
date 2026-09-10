@@ -12,6 +12,7 @@ import { useFocusEffect } from 'expo-router/react-navigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
 import { Acg } from '@/constants/DesignTokens';
+import { TAB_BAR_HEIGHT } from '@/constants/TabBar';
 import app from '@/model/app/App';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
@@ -73,7 +74,6 @@ const NOTICE_STORAGE_KEY = 'campSiteNoticeShown';
 
 // iOS 네이티브 탭바(리퀴드 글래스)는 풀블리드 지도 위에 떠 있으므로
 // 하단 플로팅 요소는 탭바 높이만큼 띄운다. Android JS 탭바는 레이아웃 공간을 차지해 불필요.
-const TAB_BAR_HEIGHT = 49;
 
 // 박지 지도 화면(CS-1/CS-2/CS-6)의 조립 컴포넌트. 지도(카메라·권한)만 직접 다루고,
 // MobX 상태를 읽는 UI는 마커 레이어·상단(검색/칩) observer로 분리했다 —

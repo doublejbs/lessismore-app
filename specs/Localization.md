@@ -22,7 +22,7 @@
 ## 2. 화면 및 진입
 
 ```
-app/(tabs)/info.tsx (정보 탭)
+app/info/index.tsx (정보 탭)
   └─ `언어` 행 (신규) → app/info/language.tsx → components/info/LanguageSettingsView.tsx (신규)
 ```
 
@@ -40,7 +40,7 @@ app/(tabs)/info.tsx (정보 탭)
 - 지원 언어는 `ko` · `en` · `ja` 셋이다. 언어 코드는 string enum(`AppLanguage`, 별도 파일 `model/l10n/AppLanguage.ts`)으로 선언한다.
 - 결정 우선순위: **① 인앱 설정(저장돼 있으면) > ② 시스템 로캘**.
 - 시스템 로캘 → 앱 언어 매핑(폴백 체인): `ko*` → ko, `ja*` → ja, `en*` → en, **그 외 전부 → en**. 즉 한국어 기기만 ko이고, 지원 밖 로캘은 영어로 폴백한다.
-- 시스템 로캘은 `expo-localization`의 `getLocales()` 첫 항목의 `languageCode`로 읽는다(신규 의존성 — 현재 미설치).
+- 시스템 로캘은 **React Native 코어 API**로 읽는다(추가 네이티브 의존성 없음, 2026-09-04): iOS `Settings.get('AppleLanguages')[0]`(앱별 언어 반영), Android `I18nManager.getConstants().localeIdentifier`, 웹 `navigator.language`, 폴백 `Intl.DateTimeFormat().resolvedOptions().locale`. 앞 두 글자로 `ko`/`ja`/`en`을 판별한다. `expo-localization`은 2026-09-04에 제거했다 — 라이브 iOS 2.0.0(빌드 100) 바이너리에 그 네이티브 모듈이 없어 OTA가 막혔기 때문이다.
 - 인앱 설정 값은 AsyncStorage 키 **`appLanguage`** 에 저장한다(`LocalStorageManager` 경유, 값은 `'ko' | 'en' | 'ja'`). "시스템 따르기"는 **키 없음**으로 표현한다 — 별도 sentinel 값을 저장하지 않으며, 키가 없는 것은 아직 언어를 고른 적이 없는 기본 상태다(L10N-5 — 시스템 따르기로 되돌리는 UI는 없다). 키는 [AppLifecycle.md](AppLifecycle.md) APP-6 로컬 스토리지 키 목록에 등록한다.
 - 앱 시작 시(App.initialize 시퀀스) 저장 값을 1회 읽어 언어를 확정한 뒤 첫 렌더에 반영한다 — 첫 화면이 한국어로 그려졌다가 바뀌는 깜빡임이 없어야 한다.
 - **번역 키 폴백은 언어 폴백과 별개다**: en/ja 리소스에 키가 없으면 **ko 값**을 보여준다(ko.json이 단일 소스라 모든 키가 존재). 키 자체가 없으면 키 문자열을 노출하지 말고 ko 폴백 실패 시 빈 문자열 대신 키명을 dev 빌드에서만 경고 로그로 남긴다.
@@ -49,7 +49,7 @@ app/(tabs)/info.tsx (정보 탭)
 
 **수용 기준**
 
-- 라이브러리는 **`i18next`(코어) + `expo-localization`** 을 도입한다. **`react-i18next`는 도입하지 않는다**(아래 근거).
+- 라이브러리는 **`i18next`(코어)** 만 도입한다(시스템 로캘은 RN 코어로 읽음, 위 참고). **`react-i18next`는 도입하지 않는다**(아래 근거).
 - `model/l10n/L10n.ts`(신규, MobX 스토어)가 단일 진입점이다:
   - `language`를 **MobX observable**로 갖는다. `app` 싱글톤에서 `app.getL10n()`으로 접근.
   - 번역 함수 `t(key, params?)`는 **내부에서 먼저 `this.language`(observable)를 읽은 뒤** `i18next.t()`를 호출한다. 이로써 observer 컴포넌트가 — 직접 호출이든 모델 getter를 거치든 — 언어에 대한 MobX 의존성을 자동으로 갖는다.
@@ -68,7 +68,7 @@ app/(tabs)/info.tsx (정보 탭)
 
 - 리소스는 `locales/ko.json` · `locales/en.json` · `locales/ja.json` 3개 파일. **ko.json이 단일 소스**다 — 키 추가·삭제·의미 변경은 ko.json에서 시작하고 en/ja가 따라간다.
 - **네임스페이스는 분할하지 않는다**(언어당 1파일, i18next 기본 네임스페이스 하나). 전체 키가 수천 개 규모이고 어차피 전부 번들에 실리므로 lazy load 이득이 없다. 파일이 커져 관리가 힘들어지면 그때 도메인별 파일 분할 + 빌드 시 병합을 검토한다(분할해도 런타임 네임스페이스는 하나로 유지).
-- 키 네이밍: **`<도메인>.<화면·기능>.<의미>`** 소문자 camelCase, 도메인 접두는 스펙 도메인과 정합시킨다 — `common.`(확인/취소/저장 등 공용), `warehouse.` `gearEdit.` `gearDetail.` `reply.` `bag.` `bagDetail.` `bagTemplate.` `packing.` `bagShare.` `bagDestination.` `search.` `feed.` `auth.` `info.` `campSite.` `weather.` `home.` `health.` `notification.` `app.`(초기화·OTA·탭). 예: `bag.delete.confirm`, `common.cancel`.
+- 키 네이밍: **`<도메인>.<화면·기능>.<의미>`** 소문자 camelCase, 도메인 접두는 스펙 도메인과 정합시킨다 — `common.`(확인/취소/저장 등 공용), `warehouse.` `gearEdit.` `gearDetail.` `reply.` `bag.` `bagDetail.` `bagTemplate.` `packing.` `bagShare.` `bagDestination.` `search.` `feed.` `auth.` `info.` `campSite.` `weather.` `home.` `community.` `health.` `notification.` `app.`(초기화·OTA·탭). 예: `bag.delete.confirm`, `common.cancel`.
 - 값의 의미가 "무엇"인지 키가 말하게 한다 — `bag.delete.confirm`(O), `bag.text1`(X). 같은 문구라도 맥락이 다르면 키를 분리한다(나중에 한쪽만 바뀔 수 있다).
 - **번역 프로세스**: en/ja 초벌은 코디네이터(LLM)가 작성하고 **사용자가 검수 후 확정**한다. 미검수 상태로 릴리스하지 않는다.
 - JSON에는 주석을 둘 수 없으므로, **문구에 근거가 있는 키**(예: 스토어 심사 지적으로 확정된 `계속` 류 문구, 법적 고지 문구)는 이 문서 §4의 "문구 근거 표"에 키↔근거로 기록하고 커밋 메시지에 연결한다.
@@ -159,7 +159,7 @@ app/(tabs)/info.tsx (정보 탭)
 | 단계 | 범위 (스펙 도메인) | 주요 디렉토리 | 완료 기준 |
 | --- | --- | --- | --- |
 | 0. 인프라 | L10N-1~8 구축, `common.*` 키, 정보 탭 언어 설정 | `model/l10n/`, `locales/`, `app/info/language.tsx` | ✅ 완료 — 언어 전환 동작 + 수용 기준 L10N-1/2/4/5 통과 |
-| 1. 정보/설정 | Auth(정보 탭·로그인·탈퇴), Notification 설정 | `app/info/`, `app/(tabs)/info.tsx`, `components/info/`, `components/login/`, `components/notification/` | ✅ 완료 — 도메인 grep 0건 |
+| 1. 정보/설정 | Auth(정보 탭·로그인·탈퇴), Notification 설정 | `app/info/`, `components/info/`, `components/login/`, `components/notification/` | ✅ 완료 — 도메인 grep 0건 |
 | 2. 배낭 | Bag, BagDetail, BagTemplate, Packing, BagDestination, BagShare(주변 UI) | `components/bag*`, `model/bag*` | ✅ 완료 — 도메인 grep 0건 |
 | 3. 창고/장비 | Warehouse, GearEdit, GearDetail, Reply | `components/warehouse*`, `components/gear*`, `model/gear*`, `model/warehouse*`, `model/reply/` | ✅ 완료 — 도메인 grep 0건 |
 | 4. 검색/탐색 | Search, Feed | `components/search/`, `components/feed/`, `model/search/`, `model/feed/` | ✅ 완료 — 도메인 grep 0건 |
@@ -185,7 +185,7 @@ app/(tabs)/info.tsx (정보 탭)
 
 - **iOS 권한 문구**: 현재 `app.json` plugins에 한국어 하드코딩(expo-image-picker `photosPermission`·`cameraPermission`, expo-media-library, expo-location, healthkit `NSHealthShareUsageDescription`). expo의 `locales` 설정(`app.json` `"locales": { "ko": ..., "en": ..., "ja": ... }` → `InfoPlist.strings` 생성)으로 3개 언어를 제공한다. plugins의 문구는 기본값(개발 리전) 역할로 남는다.
   - **권한 시트는 OS 표면이라 기기 로캘을 따른다** — 인앱 언어 오버라이드와 무관하다. 이는 수용한다(권한 문구만 기기 언어로 나와도 심사·사용성 문제 없음).
-  - `CFBundleLocalizations`에 3개 언어가 선언되면 iOS 설정 앱에 **앱별 언어** 항목이 생긴다 — 이 값은 시스템 로캘 입력의 하나로만 취급한다(인앱 설정이 항상 우선, L10N-1). expo-localization `getLocales()`가 앱별 언어를 반영하므로 추가 구현 불요.
+  - `CFBundleLocalizations`에 3개 언어가 선언되면 iOS 설정 앱에 **앱별 언어** 항목이 생긴다 — 이 값은 시스템 로캘 입력의 하나로만 취급한다(인앱 설정이 항상 우선, L10N-1). `Settings.get('AppleLanguages')`(NSUserDefaults)가 앱별 언어를 반영하므로 추가 구현 불요.
 - **`locales` 설정·InfoPlist.strings는 네이티브 빌드가 필요하다** — OTA로 배포할 수 없고, 폰트 교체(L10N-6)와 묶어 스토어 릴리스 빌드로 나간다.
 - **Android**: 런타임 권한 다이얼로그는 OS 문구라 로컬라이즈 대상이 없다. 앱명 `useless`는 라틴 워드마크로 전 언어 동일 — `strings.xml` 로컬라이즈를 하지 않는다. Health Connect 권한 사유 문구 등 config plugin이 심는 문자열이 있는지 구현 시 `npx expo prebuild -p android --no-install` 산출물로 확인한다.
 - **스토어 메타데이터**(App Store·Play 등록정보의 설명·스크린샷)는 앱 코드 밖 — 별도 트랙(§8).
@@ -230,6 +230,7 @@ app/(tabs)/info.tsx (정보 탭)
 - `FilterManager`·`CustomGearCategory` 등 인스턴스 정의에서 `name`이 표시와 값 매칭을 겸하면
   **라벨/값을 분리**한다(값은 캐논컬 유지, 라벨은 키).
 - 무게 분해의 `베이스` 묶음 라벨(BD-3)도 표시명이다 — 번역한다.
+- **표시명은 렌더(호출) 시점에 읽는다.** `getGearFilterName`·`t()` 결과를 모듈 스코프 상수로 굽지 않는다 — 모듈 평가 시점에는 L10n 등록·i18next 초기화가 끝나지 않아 키가 그대로 남고, 상수라 언어 전환에도 갱신되지 않는다(2026-09-04 탐색 탭 칩에 `category.tent`가 노출된 원인, `BrowseCategory.BROWSE_CATEGORIES`). 목록 상수는 필터 값만 담고 라벨은 소비자가 호출 시점에 만든다.
 - en 표시명 예: 전체 All / 텐트 Tent / 침낭 Sleeping bag / 배낭 Backpack / 의류 Clothing / 매트 Sleeping pad /
   가구 Furniture / 랜턴 Lantern / 조리 Cookware / 전자기기 Electronics / 음식 Food / 기타 Etc.
   ja는 상용 표기(テント·寝袋·バックパック·ウェア·マット·ファニチャー·ランタン·調理·電子機器·食料·その他).
@@ -260,7 +261,7 @@ app/(tabs)/info.tsx (정보 탭)
 
 | 지점 | iOS | Android | Web |
 | --- | --- | --- | --- |
-| 시스템 로캘 소스 | expo-localization(앱별 언어 설정 반영) | expo-localization | `navigator.language` (expo-localization 웹 지원) |
+| 시스템 로캘 소스 | RN `Settings.get('AppleLanguages')`(앱별 언어 설정 반영) | RN `I18nManager.getConstants().localeIdentifier` | `navigator.language` |
 | 권한 문구 | InfoPlist.strings(기기 로캘, L10N-12) | OS 제공 다이얼로그(대상 없음) | 해당 없음 |
 | 폰트 | Pretendard JP 번들 교체(L10N-6) | 동일 | 동일(웹 폰트 로드 용량 영향 — 구현 시 확인) |
 | 기기 언어 라이브 변경 | 앱 종료 후 재실행이라 자연 반영 | 다음 실행 시 반영이면 충분(L10N-4) | 새로고침 시 반영 |

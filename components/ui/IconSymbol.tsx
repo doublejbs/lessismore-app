@@ -20,6 +20,7 @@ const MAPPING = {
   magnifyingglass: 'search',
   'figure.hiking': 'hiking',
   'map.fill': 'map',
+  'person.2.fill': 'group',
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',

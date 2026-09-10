@@ -8,6 +8,7 @@ class AlertManager {
   private visible = false;
   private message = '';
   private confirmText = '';
+  private cancelText = '';
   private onConfirm: () => Promise<void> = async () => {};
 
   private constructor() {
@@ -18,13 +19,16 @@ class AlertManager {
     message,
     confirmText,
     onConfirm,
+    cancelText,
   }: {
     message: string;
     confirmText: string;
     onConfirm: () => Promise<void>;
+    cancelText?: string;
   }) {
     this.setMessage(message);
     this.setConfirmText(confirmText);
+    this.setCancelText(cancelText ?? '');
     this.setOnConfirm(onConfirm);
     this.setVisible(true);
   }
@@ -60,6 +64,14 @@ class AlertManager {
 
   public getConfirmText() {
     return this.confirmText;
+  }
+
+  private setCancelText(text: string) {
+    this.cancelText = text;
+  }
+
+  public getCancelText() {
+    return this.cancelText;
   }
 
   private setOnConfirm(onConfirm: () => Promise<void>) {

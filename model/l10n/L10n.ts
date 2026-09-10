@@ -2,7 +2,6 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/en';
 import 'dayjs/locale/ja';
 import 'dayjs/locale/ko';
-import { getLocales } from 'expo-localization';
 import i18next, {
   changeLanguage,
   init,
@@ -17,6 +16,7 @@ import en from '@/locales/en.json';
 import ja from '@/locales/ja.json';
 import AppLanguage from './AppLanguage';
 import { registerL10n } from './L10nRegistry';
+import { getSystemLanguageCode } from './SystemLocale';
 import LocalStorageManager from '@/model/storage/LocalStorageManager';
 
 const APP_LANGUAGE_STORAGE_KEY = 'appLanguage';
@@ -48,7 +48,7 @@ const isAppLanguage = (value: unknown): value is AppLanguage => {
 };
 
 const getSystemLanguage = (): AppLanguage => {
-  const languageCode = getLocales()[0]?.languageCode?.toLowerCase() ?? '';
+  const languageCode = getSystemLanguageCode();
 
   if (languageCode.startsWith('ko')) {
     return AppLanguage.Korean;

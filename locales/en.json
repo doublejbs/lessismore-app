@@ -15,6 +15,7 @@
     "continue": "Continue",
     "ok": "Got it",
     "done": "Done",
+    "keyboardClose": "Close keyboard",
     "selected": "Selected",
     "back": "Go back",
     "processing": "Processing...",
@@ -94,7 +95,8 @@
       "setNicknameTitle": "Set a nickname",
       "editNicknameDescription": "Enter a new nickname",
       "setNicknameDescription": "Enter a nickname to use",
-      "nicknamePlaceholder": "Enter a nickname"
+      "nicknamePlaceholder": "Enter a nickname",
+      "myPosts": "My posts"
     },
     "language": {
       "title": "Language",
@@ -115,7 +117,9 @@
     "footer": {
       "deleteAccount": "Delete account",
       "version": "Version {{version}}",
-      "copyright": "© 2026 useless"
+      "copyright": "© 2026 useless",
+      "versionDetail": "Version {{version}} ({{build}}) · {{channel}}",
+      "otaBundle": "Update {{bundleId}}"
     },
     "deleteAccount": {
       "title": "Delete account",
@@ -130,7 +134,8 @@
       "bags": "All saved bag information",
       "gears": "All saved gear information",
       "settings": "Personal settings and records",
-      "warningFooter": "Deleted data cannot be recovered."
+      "warningFooter": "Deleted data cannot be recovered.",
+      "community": "Community posts, comments, and photos will also be deleted"
     }
   },
   "auth": {
@@ -885,7 +890,8 @@
       "browse": "Browse",
       "map": "Map",
       "bag": "Bag",
-      "info": "Info"
+      "info": "My account",
+      "community": "Community"
     },
     "bagForm": {
       "dateRequired": "Please choose the dates.",
@@ -1010,7 +1016,8 @@
     "bagDetail": "{{name}} bag details",
     "recommendedTitle": "Campsites picked by useless",
     "viewOnMap": "{{name}}, {{type}}, {{region}}, view on map",
-    "login": "Sign in"
+    "login": "Sign in",
+    "profileButton": "My account"
   },
   "health": {
     "title": "Activity record",
@@ -1072,5 +1079,185 @@
       "Routes and elevation gain",
       "Active calories"
     ]
+  },
+  "community": {
+    "title": "Community",
+    "type": {
+      "poll": "Poll",
+      "all": "All",
+      "packing": "Packing"
+    },
+    "write": {
+      "editTitle": "Edit post",
+      "publish": "Post",
+      "save": "Save",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Enter a title",
+      "bodyLabel": "Body",
+      "bodyPlaceholder": "Enter your content",
+      "counter": "{{count}}/{{max}}",
+      "image": {
+        "album": "Choose from album",
+        "camera": "Take a photo",
+        "notice": "Only upload photos you took or have the right to use",
+        "representative": "Cover",
+        "remove": "Remove photo {{count}}",
+        "retry": "Retry",
+        "moveForward": "Move forward",
+        "moveBackward": "Move backward",
+        "uploading": "Uploading",
+        "failed": "Upload failed",
+        "label": "Post photo {{count}}/{{total}}",
+        "section": "Photos",
+        "addLabel": "Add photo"
+      },
+      "bag": {
+        "sheetSubtitle": "Choose a pack to attach",
+        "empty": "Create a pack first",
+        "previewDate": "Trip dates: {{date}}",
+        "previewDestination": "Destination: {{name}}",
+        "previewWeight": "Total weight: {{weight}}kg",
+        "previewCount": "{{count}} items",
+        "previewGear": "{{company}} {{name}} · {{weight}}g",
+        "selected": "{{name}} · {{date}} · {{weight}}kg",
+        "previewVisibility": "Public: {{destination}} · {{weather}}",
+        "previewDestinationIncluded": "Destination included",
+        "previewDestinationOmitted": "No destination",
+        "previewWeatherIncluded": "{{count}} days of weather",
+        "previewWeatherOmitted": "No weather"
+      },
+      "poll": {
+        "option": "Option {{count}}",
+        "addOption": "Add option",
+        "removeOption": "Remove option {{count}}",
+        "expires": "Closes",
+        "expiresNone": "None",
+        "expires1d": "1 day",
+        "expires3d": "3 days",
+        "expires7d": "7 days",
+        "locked": "Voting has started, so the options and closing date cannot be edited",
+        "expiresCustom": "Custom · {{date}}",
+        "allowMultiple": "Allow multiple choices",
+        "optionPlaceholder": "Option text"
+      },
+      "discardConfirm": "Cancel writing this post?",
+      "discard": "Cancel writing",
+      "published": "Your post was published",
+      "updated": "Your post was saved",
+      "failed": "Could not save your post",
+      "bodyLabelOptional": "Body (optional)",
+      "keepWriting": "Keep writing",
+      "authorAccessibility": "Author {{name}}",
+      "title": "Write",
+      "attachments": {
+        "label": "Attachments",
+        "packing": "Attach packing",
+        "poll": "Attach poll",
+        "change": "Change",
+        "remove": "Remove",
+        "removePoll": "Remove poll",
+        "pollTitle": "Poll",
+        "packingTitle": "Packing"
+      }
+    },
+    "validation": {
+      "titleLength": "Title must be 2–80 characters",
+      "bodyLength": "Body must be 5–5,000 characters (optional when packing or a poll is attached)",
+      "pollOptionCount": "Add 2–4 options",
+      "pollOptionLength": "Options must be 1–60 characters",
+      "pollOptionDuplicate": "Options must be unique",
+      "imageCount": "You can attach up to 4 photos",
+      "notLoggedIn": "Please log in",
+      "pollLocked": "Voting has started, so the options and closing date cannot be edited",
+      "postNotFound": "Post not found",
+      "failed": "Please check your input"
+    },
+    "feed": {
+      "empty": "No posts yet",
+      "emptyHint": "Be the first to post",
+      "retry": "Try again",
+      "loadFailed": "Could not load posts",
+      "pollOpen": "Open",
+      "pollClosed": "Closed",
+      "pollMeta": "{{count}} options · {{votes}} votes · {{status}}",
+      "bagMeta": "{{name}} · {{weight}}kg · {{count}} items",
+      "writeButton": "Write",
+      "justNow": "Just now",
+      "minutesAgo": "{{count}}m ago",
+      "hoursAgo": "{{count}}h ago",
+      "daysAgo": "{{count}}d ago",
+      "sort": {
+        "latest": "Newest",
+        "popular": "Most popular"
+      }
+    },
+    "detail": {
+      "back": "Back",
+      "menu": "Post menu",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this post?",
+      "deleted": "Post deleted",
+      "notFound": "This post was deleted or is unavailable",
+      "photoLabel": "Post photo {{count}}/{{total}}",
+      "likeLabel": "Like, {{count}}",
+      "commentsTitle": "Comments {{count}}",
+      "failed": "Could not load or save",
+      "retry": "Try again",
+      "emptyComments": "No comments yet",
+      "gearCount": "{{count}} items",
+      "snapshotSectionGearUnit": " items",
+      "snapshotSectionSeparator": " · ",
+      "snapshotSectionWeightUnit": "g",
+      "bagSnapshot": {
+        "label": "Pack used",
+        "totalWeight": "Total weight",
+        "cardLabel": "{{name}} · {{location}}",
+        "location": "Destination {{name}}",
+        "weatherLabel": "Weather",
+        "weatherSeparator": " · ",
+        "locationNone": "No destination"
+      }
+    },
+    "comment": {
+      "placeholder": "Write a comment",
+      "replyTo": "Reply to {{name}}",
+      "replyButton": "Reply",
+      "submit": "Post comment",
+      "deleted": "Deleted comment",
+      "withdrawn": "Comment from a withdrawn user",
+      "deleteConfirm": "Delete this comment?",
+      "loadMore": "See more",
+      "cancelReply": "Cancel reply"
+    },
+    "poll": {
+      "participants": "{{count}} participated",
+      "closed": "This poll is closed",
+      "changed": "Vote changed",
+      "multiple": "Multiple choices allowed"
+    },
+    "report": {
+      "title": "Choose a report reason",
+      "spam": "Spam",
+      "harassment": "Harassment",
+      "sexualViolence": "Sexual or violent content",
+      "copyright": "Copyright infringement",
+      "privacy": "Personal information",
+      "other": "Other",
+      "done": "Report submitted",
+      "failed": "Could not submit report"
+    },
+    "myPosts": {
+      "title": "My posts",
+      "empty": "You haven't written any posts yet"
+    },
+    "search": {
+      "title": "Search posts",
+      "placeholder": "Search title, body, author",
+      "hint": "Search by title, body, or author",
+      "empty": "No results for '{{query}}'",
+      "clear": "Clear",
+      "button": "Search posts"
+    }
   }
 }

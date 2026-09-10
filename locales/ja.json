@@ -15,6 +15,7 @@
     "continue": "続行",
     "ok": "わかりました",
     "done": "完了",
+    "keyboardClose": "キーボードを閉じる",
     "selected": "選択済み",
     "back": "戻る",
     "processing": "処理中…",
@@ -94,7 +95,8 @@
       "setNicknameTitle": "ニックネームを設定",
       "editNicknameDescription": "新しいニックネームを入力してください",
       "setNicknameDescription": "使用するニックネームを入力してください",
-      "nicknamePlaceholder": "ニックネームを入力してください"
+      "nicknamePlaceholder": "ニックネームを入力してください",
+      "myPosts": "自分の投稿"
     },
     "language": {
       "title": "言語",
@@ -115,7 +117,9 @@
     "footer": {
       "deleteAccount": "退会する",
       "version": "バージョン {{version}}",
-      "copyright": "© 2026 useless"
+      "copyright": "© 2026 useless",
+      "versionDetail": "バージョン {{version}} ({{build}}) · {{channel}}",
+      "otaBundle": "アップデート {{bundleId}}"
     },
     "deleteAccount": {
       "title": "退会",
@@ -130,7 +134,8 @@
       "bags": "保存したすべてのバックパック情報",
       "gears": "保存したすべてのギア情報",
       "settings": "個人設定と記録",
-      "warningFooter": "削除したデータは復元できません。"
+      "warningFooter": "削除したデータは復元できません。",
+      "community": "コミュニティの投稿・コメント・写真も削除されます"
     }
   },
   "auth": {
@@ -873,7 +878,8 @@
       "browse": "探す",
       "map": "地図",
       "bag": "バックパック",
-      "info": "情報"
+      "info": "マイページ",
+      "community": "コミュニティ"
     },
     "bagForm": {
       "dateRequired": "日付を選択してください",
@@ -998,7 +1004,8 @@
     "bagDetail": "{{name}}のバックパック詳細",
     "recommendedTitle": "uselessが選んだキャンプ場",
     "viewOnMap": "{{name}}、{{type}}、{{region}}、地図で見る",
-    "login": "ログイン"
+    "login": "ログイン",
+    "profileButton": "マイページ"
   },
   "health": {
     "title": "運動記録",
@@ -1058,5 +1065,185 @@
       "移動ルートと上昇高度",
       "消費カロリー"
     ]
+  },
+  "community": {
+    "title": "コミュニティ",
+    "type": {
+      "poll": "投票",
+      "all": "すべて",
+      "packing": "パッキング"
+    },
+    "write": {
+      "editTitle": "投稿を編集",
+      "publish": "投稿",
+      "save": "保存",
+      "titleLabel": "タイトル",
+      "titlePlaceholder": "タイトルを入力してください",
+      "bodyLabel": "内容",
+      "bodyPlaceholder": "内容を入力してください",
+      "counter": "{{count}}/{{max}}",
+      "image": {
+        "album": "アルバムから選択",
+        "camera": "カメラで撮影",
+        "notice": "自分で撮影した写真、または使用する権利のある写真だけを投稿してください",
+        "representative": "代表",
+        "remove": "写真{{count}}を削除",
+        "retry": "再試行",
+        "moveForward": "前へ移動",
+        "moveBackward": "後ろへ移動",
+        "uploading": "アップロード中",
+        "failed": "アップロード失敗",
+        "label": "投稿写真 {{count}}/{{total}}",
+        "section": "写真",
+        "addLabel": "写真を追加"
+      },
+      "bag": {
+        "sheetSubtitle": "添付するバックパックを選択してください",
+        "empty": "先にバックパックを作成してください",
+        "previewDate": "旅行日程: {{date}}",
+        "previewDestination": "行き先: {{name}}",
+        "previewWeight": "総重量: {{weight}}kg",
+        "previewCount": "{{count}}個のギア",
+        "previewGear": "{{company}} {{name}} · {{weight}}g",
+        "selected": "{{name}} · {{date}} · {{weight}}kg",
+        "previewVisibility": "公開情報: {{destination}} · {{weather}}",
+        "previewDestinationIncluded": "行き先あり",
+        "previewDestinationOmitted": "行き先なし",
+        "previewWeatherIncluded": "天気{{count}}日分あり",
+        "previewWeatherOmitted": "天気なし"
+      },
+      "poll": {
+        "option": "選択肢{{count}}",
+        "addOption": "選択肢を追加",
+        "removeOption": "選択肢{{count}}を削除",
+        "expires": "締切",
+        "expiresNone": "なし",
+        "expires1d": "1日",
+        "expires3d": "3日",
+        "expires7d": "7日",
+        "locked": "投票が始まったため、選択肢と締切は編集できません",
+        "expiresCustom": "カスタム · {{date}}",
+        "allowMultiple": "複数選択を許可",
+        "optionPlaceholder": "選択肢の内容"
+      },
+      "discardConfirm": "作成をキャンセルしますか？",
+      "discard": "作成をキャンセル",
+      "published": "投稿しました",
+      "updated": "投稿を保存しました",
+      "failed": "投稿を保存できませんでした",
+      "bodyLabelOptional": "本文（任意）",
+      "keepWriting": "続けて作成",
+      "authorAccessibility": "作成者 {{name}}",
+      "title": "投稿を書く",
+      "attachments": {
+        "label": "添付",
+        "packing": "パッキングを添付",
+        "poll": "投票を添付",
+        "change": "変更",
+        "remove": "削除",
+        "removePoll": "投票を削除",
+        "pollTitle": "投票",
+        "packingTitle": "パッキング"
+      }
+    },
+    "validation": {
+      "titleLength": "タイトルは2～80文字で入力してください",
+      "bodyLength": "本文は5〜5,000文字で入力してください（パッキングや投票を添付した場合は省略できます）",
+      "pollOptionCount": "選択肢は2～4個必要です",
+      "pollOptionLength": "選択肢は1～60文字で入力してください",
+      "pollOptionDuplicate": "重複しない選択肢を入力してください",
+      "imageCount": "写真は最大4枚まで添付できます",
+      "notLoggedIn": "ログインしてください",
+      "pollLocked": "投票が始まったため、選択肢と締切は編集できません",
+      "postNotFound": "投稿が見つかりません",
+      "failed": "入力内容を確認してください"
+    },
+    "feed": {
+      "empty": "まだ投稿がありません",
+      "emptyHint": "最初の投稿を残してみましょう",
+      "retry": "再試行",
+      "loadFailed": "投稿を読み込めませんでした",
+      "pollOpen": "進行中",
+      "pollClosed": "終了",
+      "pollMeta": "選択肢{{count}}個 · {{votes}}人参加 · {{status}}",
+      "bagMeta": "{{name}} · {{weight}}kg · ギア{{count}}個",
+      "writeButton": "投稿する",
+      "justNow": "たった今",
+      "minutesAgo": "{{count}}分前",
+      "hoursAgo": "{{count}}時間前",
+      "daysAgo": "{{count}}日前",
+      "sort": {
+        "latest": "新着順",
+        "popular": "人気順"
+      }
+    },
+    "detail": {
+      "back": "戻る",
+      "menu": "投稿メニュー",
+      "edit": "編集",
+      "delete": "削除",
+      "deleteConfirm": "この投稿を削除しますか？",
+      "deleted": "投稿を削除しました",
+      "notFound": "削除されたか、閲覧できない投稿です",
+      "photoLabel": "投稿写真 {{count}}/{{total}}",
+      "likeLabel": "いいね、{{count}}",
+      "commentsTitle": "コメント {{count}}",
+      "failed": "読み込みまたは保存に失敗しました",
+      "retry": "再試行",
+      "emptyComments": "コメントはまだありません",
+      "gearCount": "{{count}}個のギア",
+      "snapshotSectionGearUnit": "個",
+      "snapshotSectionSeparator": " · ",
+      "snapshotSectionWeightUnit": "g",
+      "bagSnapshot": {
+        "label": "使ったバックパック",
+        "totalWeight": "総重量",
+        "cardLabel": "{{name}} · {{location}}",
+        "location": "行き先 {{name}}",
+        "weatherLabel": "天気",
+        "weatherSeparator": " · ",
+        "locationNone": "行き先なし"
+      }
+    },
+    "comment": {
+      "placeholder": "コメントを入力してください",
+      "replyTo": "{{name}}への返信",
+      "replyButton": "返信",
+      "submit": "コメントを投稿",
+      "deleted": "削除されたコメントです",
+      "withdrawn": "退会したユーザーのコメントです",
+      "deleteConfirm": "このコメントを削除しますか？",
+      "loadMore": "もっと見る",
+      "cancelReply": "返信をキャンセル"
+    },
+    "poll": {
+      "participants": "{{count}}人が参加",
+      "closed": "終了した投票です",
+      "changed": "投票を変更しました",
+      "multiple": "複数選択可"
+    },
+    "report": {
+      "title": "報告理由を選択してください",
+      "spam": "スパム",
+      "harassment": "嫌がらせ・暴言",
+      "sexualViolence": "性的・暴力的な内容",
+      "copyright": "著作権侵害",
+      "privacy": "個人情報",
+      "other": "その他",
+      "done": "報告を受け付けました",
+      "failed": "報告に失敗しました"
+    },
+    "myPosts": {
+      "title": "自分の投稿",
+      "empty": "まだ投稿がありません"
+    },
+    "search": {
+      "title": "投稿を検索",
+      "placeholder": "タイトル・本文・作成者で検索",
+      "hint": "タイトル・本文・作成者で検索できます",
+      "empty": "「{{query}}」の検索結果はありません",
+      "clear": "クリア",
+      "button": "投稿を検索"
+    }
   }
 }

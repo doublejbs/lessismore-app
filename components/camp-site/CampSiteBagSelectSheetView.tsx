@@ -30,6 +30,8 @@ interface Props {
   hideCreateNew?: boolean;
   // 있으면 헤더 서브텍스트를 이 값으로 대체한다(기본은 spotName 기반 문구).
   subtitleOverride?: string;
+  // 있으면 배낭이 없을 때 표시할 문구를 이 값으로 대체한다.
+  emptyText?: string;
 }
 
 // CS-5: 박지를 여행지로 설정할 배낭을 고르는 시트. iOS 네이티브 pageSheet 프레젠테이션.
@@ -42,6 +44,7 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
   onCreateNew,
   hideCreateNew = false,
   subtitleOverride,
+  emptyText,
 }) => {
   const l10n = app.getL10n();
   const insets = useSafeAreaInsets();
@@ -110,7 +113,7 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
 
         {bags.length === 0 ? (
           <PretendardText style={styles.emptyText}>
-            {l10n.t('campSite.bagSelect.empty')}
+            {emptyText ?? l10n.t('campSite.bagSelect.empty')}
           </PretendardText>
         ) : (
           <>
@@ -236,8 +239,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   // Android는 내용 높이에 맞춰 시트가 줄어들도록 flex를 강제하지 않는다.
+  // `flex: 1`(flexBasis 0)을 flexGrow 0으로만 덮으면 basis가 0으로 남아 목록 높이가 0이 된다(2026-09-05) —
+  // `flex: 0`으로 basis를 auto로 되돌리고 maxHeight 안에서만 줄어들게 한다.
   listAndroid: {
-    flexGrow: 0,
+    flex: 0,
     flexShrink: 1,
   },
   header: {

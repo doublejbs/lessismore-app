@@ -15,6 +15,7 @@
     "continue": "계속",
     "ok": "알겠어요",
     "done": "완료",
+    "keyboardClose": "키보드 닫기",
     "selected": "선택됨",
     "back": "뒤로 가기",
     "processing": "처리 중...",
@@ -94,7 +95,8 @@
       "setNicknameTitle": "닉네임 설정",
       "editNicknameDescription": "새로운 닉네임을 입력해 주세요",
       "setNicknameDescription": "사용하실 닉네임을 입력해 주세요",
-      "nicknamePlaceholder": "닉네임을 입력해 주세요"
+      "nicknamePlaceholder": "닉네임을 입력해 주세요",
+      "myPosts": "내가 쓴 글"
     },
     "language": {
       "title": "언어",
@@ -115,7 +117,9 @@
     "footer": {
       "deleteAccount": "탈퇴하기",
       "version": "버전 {{version}}",
-      "copyright": "© 2026 useless"
+      "copyright": "© 2026 useless",
+      "versionDetail": "버전 {{version}} ({{build}}) · {{channel}}",
+      "otaBundle": "업데이트 {{bundleId}}"
     },
     "deleteAccount": {
       "title": "회원 탈퇴",
@@ -130,7 +134,8 @@
       "bags": "저장된 모든 배낭 정보",
       "gears": "저장된 모든 장비 정보",
       "settings": "개인 설정 및 기록",
-      "warningFooter": "삭제된 데이터는 복구할 수 없습니다."
+      "warningFooter": "삭제된 데이터는 복구할 수 없습니다.",
+      "community": "커뮤니티 게시글·댓글·사진도 삭제됩니다"
     }
   },
   "auth": {
@@ -873,7 +878,8 @@
       "browse": "탐색",
       "map": "지도",
       "bag": "배낭",
-      "info": "정보"
+      "info": "내 정보",
+      "community": "커뮤니티"
     },
     "bagForm": {
       "dateRequired": "날짜를 선택해주세요",
@@ -998,7 +1004,8 @@
     "bagDetail": "{{name}} 배낭 상세",
     "recommendedTitle": "useless가 고른 박지",
     "viewOnMap": "{{name}}, {{type}}, {{region}}, 지도에서 보기",
-    "login": "로그인"
+    "login": "로그인",
+    "profileButton": "내 정보"
   },
   "health": {
     "title": "운동 기록",
@@ -1058,5 +1065,185 @@
       "이동 경로와 상승고도",
       "소모 칼로리"
     ]
+  },
+  "community": {
+    "title": "커뮤니티",
+    "type": {
+      "poll": "투표",
+      "all": "전체",
+      "packing": "패킹"
+    },
+    "write": {
+      "editTitle": "게시글 수정",
+      "publish": "등록",
+      "save": "저장",
+      "titleLabel": "제목",
+      "titlePlaceholder": "제목을 입력해주세요",
+      "bodyLabel": "내용",
+      "bodyPlaceholder": "내용을 입력해주세요",
+      "counter": "{{count}}/{{max}}",
+      "image": {
+        "album": "앨범에서 선택",
+        "camera": "카메라로 촬영",
+        "notice": "직접 촬영했거나 사용할 권리가 있는 사진만 올려주세요",
+        "representative": "대표",
+        "remove": "사진 {{count}} 삭제",
+        "retry": "재시도",
+        "moveForward": "앞으로 이동",
+        "moveBackward": "뒤로 이동",
+        "uploading": "업로드 중",
+        "failed": "업로드 실패",
+        "label": "게시글 사진 {{count}}/{{total}}",
+        "section": "사진",
+        "addLabel": "사진 추가"
+      },
+      "bag": {
+        "sheetSubtitle": "첨부할 배낭을 선택해주세요",
+        "empty": "먼저 배낭을 만들어주세요",
+        "previewDate": "여행 날짜: {{date}}",
+        "previewDestination": "여행지: {{name}}",
+        "previewWeight": "총 무게: {{weight}}kg",
+        "previewCount": "장비 {{count}}개",
+        "previewGear": "{{company}} {{name}} · {{weight}}g",
+        "selected": "{{name}} · {{date}} · {{weight}}kg",
+        "previewVisibility": "공개 정보: {{destination}} · {{weather}}",
+        "previewDestinationIncluded": "여행지 포함",
+        "previewDestinationOmitted": "여행지 없음",
+        "previewWeatherIncluded": "날씨 {{count}}일 포함",
+        "previewWeatherOmitted": "날씨 없음"
+      },
+      "poll": {
+        "option": "선택지 {{count}}",
+        "addOption": "선택지 추가",
+        "removeOption": "선택지 {{count}} 삭제",
+        "expires": "마감",
+        "expiresNone": "없음",
+        "expires1d": "1일",
+        "expires3d": "3일",
+        "expires7d": "7일",
+        "locked": "투표가 시작되어 선택지와 마감은 수정할 수 없어요",
+        "expiresCustom": "사용자 지정 · {{date}}",
+        "allowMultiple": "복수 선택 허용",
+        "optionPlaceholder": "선택지 내용"
+      },
+      "discardConfirm": "작성을 취소하시겠어요?",
+      "discard": "작성 취소",
+      "published": "게시글을 등록했어요",
+      "updated": "게시글을 저장했어요",
+      "failed": "게시글을 저장하지 못했어요",
+      "bodyLabelOptional": "내용 (선택)",
+      "keepWriting": "계속 작성",
+      "authorAccessibility": "작성자 {{name}}",
+      "title": "글쓰기",
+      "attachments": {
+        "label": "첨부",
+        "packing": "패킹 첨부",
+        "poll": "투표 첨부",
+        "change": "변경",
+        "remove": "제거",
+        "removePoll": "투표 제거",
+        "pollTitle": "투표",
+        "packingTitle": "패킹"
+      }
+    },
+    "validation": {
+      "titleLength": "제목은 2~80자로 입력해주세요",
+      "bodyLength": "내용은 5~5,000자로 입력해주세요 (패킹·투표를 첨부하면 비워둘 수 있어요)",
+      "pollOptionCount": "선택지는 2~4개가 필요해요",
+      "pollOptionLength": "선택지는 1~60자로 입력해주세요",
+      "pollOptionDuplicate": "중복되지 않는 선택지를 입력해주세요",
+      "imageCount": "사진은 최대 4장까지 첨부할 수 있어요",
+      "notLoggedIn": "로그인이 필요해요",
+      "pollLocked": "투표가 시작되어 선택지와 마감은 수정할 수 없어요",
+      "postNotFound": "게시글을 찾을 수 없어요",
+      "failed": "입력 내용을 확인해주세요"
+    },
+    "feed": {
+      "empty": "아직 게시글이 없어요",
+      "emptyHint": "첫 번째 게시글을 남겨보세요",
+      "retry": "다시 시도",
+      "loadFailed": "게시글을 불러오지 못했어요",
+      "pollOpen": "진행 중",
+      "pollClosed": "마감",
+      "pollMeta": "선택지 {{count}}개 · {{votes}}명 참여 · {{status}}",
+      "bagMeta": "{{name}} · {{weight}}kg · 장비 {{count}}개",
+      "writeButton": "글쓰기",
+      "justNow": "방금 전",
+      "minutesAgo": "{{count}}분 전",
+      "hoursAgo": "{{count}}시간 전",
+      "daysAgo": "{{count}}일 전",
+      "sort": {
+        "latest": "최신순",
+        "popular": "인기순"
+      }
+    },
+    "detail": {
+      "back": "뒤로",
+      "menu": "게시글 메뉴",
+      "edit": "수정",
+      "delete": "삭제",
+      "deleteConfirm": "게시글을 삭제할까요?",
+      "deleted": "게시글을 삭제했어요",
+      "notFound": "삭제되었거나 볼 수 없는 게시글이에요",
+      "photoLabel": "게시글 사진 {{count}}/{{total}}",
+      "likeLabel": "좋아요, {{count}}",
+      "commentsTitle": "댓글 {{count}}",
+      "failed": "불러오거나 저장하지 못했어요",
+      "retry": "다시 시도",
+      "emptyComments": "아직 댓글이 없어요",
+      "gearCount": "장비 {{count}}개",
+      "snapshotSectionGearUnit": "개",
+      "snapshotSectionSeparator": " · ",
+      "snapshotSectionWeightUnit": "g",
+      "bagSnapshot": {
+        "label": "다녀온 배낭",
+        "totalWeight": "총 무게",
+        "cardLabel": "{{name}} · {{location}}",
+        "location": "여행지 {{name}}",
+        "weatherLabel": "날씨",
+        "weatherSeparator": " · ",
+        "locationNone": "여행지 없음"
+      }
+    },
+    "comment": {
+      "placeholder": "댓글을 입력해주세요",
+      "replyTo": "{{name}}에게 답글",
+      "replyButton": "답글 달기",
+      "submit": "댓글 등록",
+      "deleted": "삭제된 댓글입니다",
+      "withdrawn": "탈퇴한 사용자의 댓글입니다",
+      "deleteConfirm": "댓글을 삭제할까요?",
+      "loadMore": "더 보기",
+      "cancelReply": "답글 취소"
+    },
+    "poll": {
+      "participants": "{{count}}명 참여",
+      "closed": "마감된 투표예요",
+      "changed": "투표를 변경했어요",
+      "multiple": "복수 선택 가능"
+    },
+    "report": {
+      "title": "신고 사유를 선택해주세요",
+      "spam": "스팸",
+      "harassment": "욕설·괴롭힘",
+      "sexualViolence": "음란·폭력",
+      "copyright": "저작권 침해",
+      "privacy": "개인정보 노출",
+      "other": "기타",
+      "done": "신고가 접수되었어요",
+      "failed": "신고하지 못했어요"
+    },
+    "myPosts": {
+      "title": "내가 쓴 글",
+      "empty": "아직 쓴 글이 없어요"
+    },
+    "search": {
+      "title": "게시글 검색",
+      "placeholder": "제목, 내용, 작성자로 검색",
+      "hint": "제목, 내용, 작성자로 검색해보세요",
+      "empty": "'{{query}}' 검색 결과가 없어요",
+      "clear": "지우기",
+      "button": "게시글 검색"
+    }
   }
 }

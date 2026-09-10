@@ -91,6 +91,7 @@ export const Acg = {
   bg: '#FFFFFF',
   // 기본 텍스트이자 주 액션 면·활성 칩 면.
   ink: '#1A1A1A',
+  inkTint: 'rgba(26,26,26,0.14)',
   textSecondary: '#5F5D57', // AA 5.4
   textTertiary: '#4A4A45', // AA 7.4
   paper: '#FFFFFF',
@@ -109,6 +110,10 @@ export const Acg = {
   lime: '#C8F244',
   warnBg: '#FFF4E5',
   warnText: '#9A4B00',
+  error: '#FF3B30',
+  // 의미색: 멘션·링크(누르면 대상이 있는 텍스트). 흰 지면 대비 4.6:1(AA). 라임은 글자색으로 쓰지 않는다(HM-8).
+  mention: '#2F6FED',
+  scrim: 'rgba(26,26,26,0.72)',
 
   // ── 레퍼런스 탐색 화면(2026-08-11 이식) ──
   // 순백 지면(`paper`) 위에 놓이는 컨트롤 면과 그 위 보조 텍스트다. 위 `bg`·`line2` 계열은
@@ -230,6 +235,8 @@ export const AcgShadow = {
 export const AcgRow = {
   minHeight: 72,
   paddingVertical: 14,
+  communityMinHeight: 56,
+  communityPaddingVertical: 10,
 } as const;
 
 export const AcgLayout = {
@@ -251,6 +258,12 @@ export const AcgLayout = {
    * **모든 칩 행이 이 값을 참조한다** — 화면마다 4·6·8·10·12로 갈려 있던 것을 모았다.
    */
   chipGap: 6,
+  communityCardGap: 16,
+  communityCardPadding: 16,
+  communitySectionGap: 20,
+  communitySectionFirstGap: 12,
+  communitySectionHeaderGap: 8,
+  communityActionGap: 20,
   section: 22,
   // 홈 상단 히어로 그래픽이 상태바 아래에서 일정 카드 위까지 이어지는 높이.
   homeHeroHeight: 292,

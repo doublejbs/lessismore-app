@@ -22,14 +22,14 @@ const BROWSE_CATEGORY_FILTERS: GearFilter[] = [
   GearFilter.Etc,
 ];
 
-const BROWSE_CATEGORIES: BrowseCategoryItem[] = BROWSE_CATEGORY_FILTERS.map(
-  filter => {
+const getBrowseCategories = (): BrowseCategoryItem[] => {
+  return BROWSE_CATEGORY_FILTERS.map(filter => {
     return { filter, name: getGearFilterName(filter) };
-  }
-);
+  });
+};
 
 const getBrowseCategoryName = (filter: string): string => {
   return getGearFilterName(filter as GearFilter);
 };
 
-export { BROWSE_CATEGORIES, getBrowseCategoryName };
+export { getBrowseCategories, getBrowseCategoryName };

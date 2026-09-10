@@ -1,12 +1,16 @@
 import { FC } from 'react';
 import { observer } from 'mobx-react-lite';
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Bag from '@/model/bag/Bag';
 import app from '@/model/app/App';
 import { createQuickBag } from '@/model/bag/QuickBagDefaults';
 import FloatingPillButton from '@/components/FloatingPillButton';
+import {
+  FLOATING_ACTION_RIGHT,
+  getFloatingActionBottom,
+} from '@/constants/FloatingAction';
 
 interface Props {
   bag: Bag;
@@ -21,11 +25,7 @@ const BagAddView: FC<Props> = ({ bag }) => {
   // 화면 하단 기준이 된다 → 버튼을 탭바(=insets.bottom) 위 20pt에 띄운다.
   // **로딩 중에는 이 버튼을 렌더하지 않는다**(호출부 참고) — 첫 프레임 인셋이 정착하기 전이라
   // 여기서 계산한 위치가 탭바 뒤로 들어간다.
-  const bottom = Platform.select({
-    ios: insets.bottom + 20,
-    android: 0,
-    default: 80,
-  });
+  const bottom = getFloatingActionBottom(insets.bottom);
 
   const handlePressAdd = async () => {
     app.getAnalyticsManager()?.logClick('bag_add');
@@ -56,7 +56,7 @@ const BagAddView: FC<Props> = ({ bag }) => {
 const styles = StyleSheet.create({
   floatingButton: {
     position: 'absolute',
-    right: 20,
+    right: FLOATING_ACTION_RIGHT,
   },
 });
 

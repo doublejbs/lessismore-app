@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import dayjs from 'dayjs';
 import Layout from '@/components/Layout';
@@ -32,6 +33,7 @@ const IOS_EDGES = ['top', 'left', 'right'] as const;
 const LOGIN_CTA_HEIGHT = 48;
 
 const HomeView: FC<Props> = ({ home }) => {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const isLoading = home.isLoading();
   const isLoggedIn = home.isLoggedIn();
@@ -43,6 +45,10 @@ const HomeView: FC<Props> = ({ home }) => {
 
   const handleLogin = () => {
     app.getLogInAlertManager()?.show();
+  };
+
+  const handleOpenProfile = () => {
+    router.push('/info');
   };
 
   const renderRecommendations = () => {
@@ -130,6 +136,19 @@ const HomeView: FC<Props> = ({ home }) => {
         <PretendardText weight='semibold' style={styles.headerText}>
           {app.getL10n().t('home.title')}
         </PretendardText>
+        <TouchableOpacity
+          style={styles.profileButton}
+          onPress={handleOpenProfile}
+          activeOpacity={0.7}
+          accessibilityRole='button'
+          accessibilityLabel={app.getL10n().t('home.profileButton')}
+        >
+          <Ionicons
+            name='person-circle-outline'
+            size={28}
+            color={Acg.ink}
+          />
+        </TouchableOpacity>
       </View>
       {render()}
     </Layout>
@@ -138,6 +157,9 @@ const HomeView: FC<Props> = ({ home }) => {
 
 const styles = StyleSheet.create({
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingTop: 12,
     paddingBottom: 16,
   },
@@ -149,8 +171,15 @@ const styles = StyleSheet.create({
    * 크기·줄간·자간은 전부 `AcgType.screenTitle`이 정한다(화면에서 다시 정하지 않는다).
    */
   headerText: {
+    flex: 1,
     ...AcgType.screenTitle,
     color: Acg.ink,
+  },
+  profileButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollView: {
     flex: 1,

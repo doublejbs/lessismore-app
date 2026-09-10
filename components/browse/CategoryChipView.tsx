@@ -1,5 +1,5 @@
-import { forwardRef } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { forwardRef, type ReactNode } from 'react';
+import { StyleSheet, TouchableOpacity, View, type AccessibilityRole, type AccessibilityState } from 'react-native';
 import PretendardText from '../PretendardText';
 import {
   Acg,
@@ -16,7 +16,11 @@ interface Props {
   count?: number;
   // 라벨 앞 색 도트 — 칩이 색 범례를 겸할 때 사용(예: 지도 유형 필터의 마커 색).
   dotColor?: string;
+  trailingIcon?: ReactNode;
   accessibilityLabel?: string;
+  accessibilityRole?: AccessibilityRole;
+  accessibilityState?: AccessibilityState;
+  disabled?: boolean;
   // 'primary'(기본): 큰 아웃라인 칩, 선택 시 검정 채움.
   // 'secondary': 2차(세분) 필터용 — 한 단계 작고 연한 톤(선택 시 연회색 채움)으로 1차와 위계 구분.
   variant?: 'primary' | 'secondary';
@@ -43,7 +47,11 @@ const CategoryChipView = forwardRef<View, Props>(
       onPress,
       count,
       dotColor,
+      trailingIcon,
       accessibilityLabel,
+      accessibilityRole = 'button',
+      accessibilityState,
+      disabled = false,
       variant = 'primary',
       tone = 'default',
     },
@@ -75,11 +83,12 @@ const CategoryChipView = forwardRef<View, Props>(
                   : styles.chipAcgSolidUnselected),
           ]}
           onPress={onPress}
+          disabled={disabled}
           activeOpacity={0.7}
           hitSlop={{ top: 6, bottom: 6, left: 0, right: 0 }}
-          accessibilityRole='button'
+          accessibilityRole={accessibilityRole}
           accessibilityLabel={accessibilityLabel ?? label}
-          accessibilityState={{ selected }}
+          accessibilityState={{ selected, ...accessibilityState }}
         >
           {dotColor !== undefined && (
             <View
@@ -126,6 +135,7 @@ const CategoryChipView = forwardRef<View, Props>(
               </PretendardText>
             </View>
           )}
+          {trailingIcon}
         </TouchableOpacity>
       </View>
     );

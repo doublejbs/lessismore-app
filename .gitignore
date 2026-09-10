@@ -56,6 +56,8 @@ coverage/
 
 # Data migration backups
 scripts/backup-camp-spot-*.json
+scripts/backup-community-posts-*.json
+scripts/backup-community-poll-votes-*.json
 # hot-updater
 .hot-updater/output
 .hot-updater/log
@@ -65,3 +67,6 @@ scripts/backup-camp-spot-*.json
 
 # EAS 제출용 App Store Connect API 키 정보(로컬 전용)
 .env.submit
+
+# Firebase 서비스 계정 키(OTA admin 등) — 절대 커밋 금지 (2026-09-04 노출 사고 후 추가)
+*-firebase-adminsdk-*.json

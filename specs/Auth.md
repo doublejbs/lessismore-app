@@ -4,8 +4,8 @@
 | --- | --- |
 | 상태 | as-built (2026-06-10 코드 기준) |
 | ID 프리픽스 | `AU` |
-| 주요 코드 | `model/firebase/Firebase.ts`, `components/login/`, `model/login/`, `app/terms-agreement/`, `app/(tabs)/info.tsx`, `app/info/delete/` |
-| 관련 스펙 | [DataModel.md](DataModel.md), [AppLifecycle.md](AppLifecycle.md) |
+| 주요 코드 | `model/firebase/Firebase.ts`, `components/login/`, `model/login/`, `app/terms-agreement/`, `app/info/index.tsx`, `app/info/delete/` |
+| 관련 스펙 | [DataModel.md](DataModel.md), [AppLifecycle.md](AppLifecycle.md), [Community.md](Community.md) |
 
 ## 1. 개요
 
@@ -16,7 +16,7 @@ Firebase Auth 기반 인증(Google/Apple/Email), 약관 동의 강제, 정보 �
 
 - 로그인 UI는 별도 라우트가 아니라 **전역 모달**(`LogInView`)이다 — `LogInAlertManager.show()`로 어디서든 호출.
 - `/terms-agreement` — 필수 약관 미동의 로그인 사용자가 강제 리다이렉트되는 화면.
-- 정보 탭 `app/(tabs)/info.tsx` → 탈퇴는 `/info/delete`, 정책은 `/info/policy`, 사업자 정보는 `/info/business`, **데이터 출처는 `/info/data-sources`** `[기획]`.
+- 정보 탭 `app/info/index.tsx` → 탈퇴는 `/info/delete`, 정책은 `/info/policy`, 사업자 정보는 `/info/business`, **데이터 출처는 `/info/data-sources`** `[기획]`.
 
 ## 3. 요구사항
 
@@ -76,7 +76,7 @@ Firebase Auth 기반 인증(Google/Apple/Email), 약관 동의 강제, 정보 �
 - **`로그아웃`은 일반 메뉴와 시각적으로 구분하고 목록 맨 아래에 둔다.**
   - 예전에는 목록 **첫 항목**이었고 `알림 설정`·`서비스 문의`와 같은 스타일이었다. 사용 빈도가 가장 낮고 되돌리려면 다시 로그인해야 하는 액션이 시선이 가장 먼저 닿는 자리를 차지했다.
   - 미로그인 상태의 `로그인`은 반대로 **주 액션**이므로 이 규칙을 적용하지 않는다.
-- 푸터: `탈퇴하기`(로그인 시에만), 앱 버전(`Constants.expoConfig.version` — **cosmetic 값**, [AppLifecycle.md](AppLifecycle.md) 참고), **버전·사업자 정보 한 줄**(아래), 카피라이트.
+- 푸터: `탈퇴하기`(로그인 시에만), 앱 버전 상세 `버전 {네이티브 버전} ({빌드 번호}) · {OTA 채널}`(예 `버전 2.0.0 (100) · production`; `expo-application`의 `nativeApplicationVersion`/`nativeBuildVersion` + Hot Updater `getChannel()`. OTA 번들이 적용된 상태면 아래 줄에 `업데이트 {번들 ID 앞 8자}`를 추가 — 2026-09-05, 실기기 문의 때 바이너리·채널·번들을 바로 식별하기 위함. 웹은 채널·번들 없이 `버전 x.y.z`), **버전·사업자 정보 한 줄**(아래), 카피라이트.
 
 - **푸터 한 줄에 좌 `버전`, 우 `사업자 정보 ›`를 둔다.** 사업자 정보 전문은 **별도 화면**(`/info/business`)이 맡는다.
   - 예전에는 푸터에서 접었다 펴는 방식이었다. 펼치면 **가운데 정렬된 푸터 안에 좌측 정렬 2열 블록이 끼어 축이 어긋났다.**
@@ -148,6 +148,20 @@ Firebase Auth 기반 인증(Google/Apple/Email), 약관 동의 강제, 정보 �
 - 작성한 댓글(`gear-comments`)은 삭제하지 않는다 — 탈퇴 후에도 닉네임 명의로 남는다 (컬렉션 그룹 인덱스 부재로 클라이언트에서 일괄 조회 불가, 미해결 질문 참조).
 - 좋아요 문서 삭제 시 해당 댓글의 `likeCount`는 보정하지 않는다(비정규화 카운트 드리프트 허용, 미해결 질문 참조).
 
+### AU-9 내 정보 진입점 이동 `[제안]`
+
+커뮤니티가 다섯 번째 하단 탭을 사용하므로 기존 `내 정보`는 기능을 유지한 채 홈에서 여는 푸시 화면으로 이동한다([AppLifecycle.md](AppLifecycle.md) APP-9).
+
+**수용 기준**
+
+- `app/info/index.tsx`의 화면 내용을 공개 경로 `/info`로 제공한다.
+- 홈 우측 상단에 프로필 아이콘 버튼을 둔다([Home.md](Home.md) HM-15). 탭하면 `/info`로 이동한다.
+- 로그인 여부와 무관하게 같은 아이콘·진입점을 사용한다. 미로그인 상태의 `/info`에는 기존처럼 로그인 주 액션을 표시한다.
+- 닉네임, 알림 설정, 언어 설정, 서비스 문의, 정책, 사업자 정보, 로그아웃·탈퇴 기능과 기존 화면 문법은 AU-4 그대로 유지한다.
+- 로그인 상태에서는 계정 영역에 `내가 쓴 글` 행을 추가로 표시한다(알림 설정 행 위, 셰브론 행 문법). 탭하면 `/community/mine`으로 이동한다([Community.md](Community.md) CM-13, 2026-09-04). 비로그인 상태에서는 행을 숨긴다.
+- `/info`에서 뒤로가면 진입한 홈의 스크롤 위치를 유지한다.
+- 회원 탈퇴 데이터 범위에 커뮤니티 게시글·사진·댓글·좋아요·투표를 추가한다(CM-12, DM-28). 공개 사진 정리는 재시도 가능한 서버 작업을 사용한다.
+
 ## 4. 데이터
 
 - [DataModel.md](DataModel.md) DM-2 (`users/{uid}`).
@@ -173,9 +187,12 @@ AU-1 표 참조. 추가로: 토큰 갱신은 네이티브 `GoogleSignin.getToken
 - [ ] `[기획]` 정보 탭 `데이터 출처` 행이 정책 행 뒤·`로그아웃` 앞에 있고, 탭하면 `/info/data-sources`가 열린다
 - [ ] `[기획]` 데이터 출처 화면에 한국관광공사 TourAPI(KorService2)·고캠핑·국립공원공단 항목과 **공공누리 유형** 표기·원문 링크가 있다([CampSite.md](CampSite.md) CS-10)
 - [ ] `[제안]` 정보 탭 푸터 일러스트 — 화면 하단 고정 배경(홈 지형 문법과 동일)으로 첫 화면부터 화면 폭 전체·원본 비율(크롭·왜곡 없음)로 표시, 스크롤 끝의 마지막 콘텐츠와 겹치지 않음, VoiceOver에서 읽히지 않음
+- [ ] `[제안]` 홈 프로필 아이콘 → `/info`, 기존 계정·설정·정책 기능 유지, 뒤로가기 시 홈 상태 유지
+- [ ] `[제안]` 탈퇴 후 커뮤니티 공개 글·사진·댓글·반응이 정리되고 다른 사용자의 카운트가 보정됨
 
 ## 8. 미해결 질문
 
 - 탈퇴 시 **댓글 잔존 + likeCount 드리프트**(AU-8) — 완전 삭제가 필요하면 Cloud Function 또는 `comments` 컬렉션 그룹 인덱스 도입 검토.
 - **Email 사용자 탈퇴 불가**(AU-5) — 비밀번호 재인증 UI 추가 필요.
 - 이메일 **가입** 플로우 미구현 확정: `createUserWithEmailAndPassword` 래퍼는 호출처가 없다. 기존 이메일 계정만 로그인 가능 — 가입 경로 정책 필요.
+- **커뮤니티 탈퇴 정리 서버 작업** `[제안]` — 현재 AU-8은 클라이언트 배치 중심이고 커뮤니티의 공개 사진·교차 게시글 댓글을 완전 정리할 서버 경로가 없다. DM-28 구현 방식과 함께 결정해야 한다.

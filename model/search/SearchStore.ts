@@ -13,6 +13,7 @@ import { GROUP_MEMBERS, getGroupMembers } from '../gear/GearCategoryGroups';
 import Firebase from '../firebase/Firebase';
 import GearType from '../gear/GearType';
 import BrowseSort from './BrowseSort';
+import { ALGOLIA_APP_ID, ALGOLIA_SEARCH_API_KEY } from './AlgoliaConfig';
 
 const BROWSE_INDEX_NAME = 'useless-gear-search';
 
@@ -46,8 +47,8 @@ const WEIGHT_ASC_UNMEASURED_FILTER = 'weight=0';
 
 class SearchStore {
   private readonly searchClient = liteClient(
-    'BWS6CWRXRM',
-    'dafcc0c015856d4ca5fb6d0626cf8f9f'
+    ALGOLIA_APP_ID,
+    ALGOLIA_SEARCH_API_KEY
   );
 
   // FD-3 `가벼운순` 1단(실제 무게)의 페이지 수 = 2단(0g)이 시작되는 경계.
@@ -65,8 +66,8 @@ class SearchStore {
         'https://analytics.algolia.com/2/searches?index=useless-gear-search&limit=10&orderBy=searchCount&direction=desc',
         {
           headers: {
-            'X-Algolia-Application-Id': 'BWS6CWRXRM',
-            'X-Algolia-API-Key': 'dafcc0c015856d4ca5fb6d0626cf8f9f',
+            'X-Algolia-Application-Id': ALGOLIA_APP_ID,
+            'X-Algolia-API-Key': ALGOLIA_SEARCH_API_KEY,
           },
         }
       );

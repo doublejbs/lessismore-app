@@ -637,7 +637,10 @@ class Firebase {
   }
 
   /**
-   * Firestore에서 사용자 관련 데이터 삭제
+   * 클라이언트 소유 사용자 데이터 삭제.
+   * 커뮤니티 게시글·댓글·좋아요·투표·사진의 탈퇴 연쇄 정리는 서버 트리거가 담당한다
+   * (DM-28, CM-12; lessismore 레포 functions/). 이 함수에서 커뮤니티 문서를 건드리면
+   * 서버 작업과 이중 처리되므로 추가 배치를 만들지 않는다.
    */
   private async deleteUserData(userId: string) {
     const store = this.store;

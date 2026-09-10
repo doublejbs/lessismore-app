@@ -1,11 +1,11 @@
 import { FC } from 'react';
 import { View, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
-import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
+import { getAppVersionInfo } from '@/model/app/AppVersionInfo';
 import { observer } from 'mobx-react-lite';
 
 // 한 줄 푸터 링크의 44pt 터치 타깃 확보용 여유.
@@ -17,8 +17,19 @@ interface Props {
 
 const InfoFooterView: FC<Props> = ({ isLoggedIn }) => {
   const router = useRouter();
-  const appVersion = Constants.expoConfig?.version || '1.0.0';
   const l10n = app.getL10n();
+  const versionInfo = getAppVersionInfo();
+  // `버전 2.0.0 (100) · preview` — 빌드 번호·OTA 채널까지 보여 실기기 문의 때 어떤 바이너리·채널인지 바로 알 수 있게 한다(AU-4).
+  const versionLabel = versionInfo.channel
+    ? l10n.t('info.footer.versionDetail', {
+        version: versionInfo.version,
+        build: versionInfo.build ?? '-',
+        channel: versionInfo.channel,
+      })
+    : l10n.t('info.footer.version', { version: versionInfo.version });
+  const otaLabel = versionInfo.bundleId
+    ? l10n.t('info.footer.otaBundle', { bundleId: versionInfo.bundleId.slice(0, 8) })
+    : null;
 
   const handleOpenBusinessInfo = () => {
     router.push('/info/business');
@@ -40,9 +51,10 @@ const InfoFooterView: FC<Props> = ({ isLoggedIn }) => {
           펼치면 가운데 정렬 푸터 안에 좌측 정렬 2열 블록이 끼어 축이 어긋났다. 전문은 별도 화면이 맡는다. */}
       <View style={styles.metaRow}>
         <View style={styles.metaLeft}>
-          <PretendardText style={styles.versionText}>
-            {l10n.t('info.footer.version', { version: appVersion })}
-          </PretendardText>
+          <PretendardText style={styles.versionText}>{versionLabel}</PretendardText>
+          {otaLabel ? (
+            <PretendardText style={styles.versionText}>{otaLabel}</PretendardText>
+          ) : null}
           <PretendardText style={styles.versionText}>
             {l10n.t('info.footer.copyright')}
           </PretendardText>

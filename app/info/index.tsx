@@ -12,7 +12,7 @@ import {
   Dimensions,
   useWindowDimensions,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Layout from '@/components/Layout';
 import app from '@/model/app/App';
@@ -33,7 +33,11 @@ import {
 // 편집 아이콘(20pt)에 44pt 터치 타깃을 만들기 위한 여유(AU-4). (44 − 20) / 2 = 12.
 const EDIT_ICON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
 const FOREST_ASPECT_RATIO = 1804 / 872;
-const IOS_EDGES = ['top', 'left', 'right'] as const;
+// iOS는 투명 네이티브 헤더 아래로 콘텐츠가 이어지도록 top edge를 제외한다(LG-1).
+const IS_IOS = Platform.OS === 'ios';
+const NATIVE_HEADER_HEIGHT = 44;
+const HEADER_CONTENT_GAP = 12;
+const IOS_EDGES = ['left', 'right', 'bottom'] as const;
 
 const InfoView: FC = () => {
   const router = useRouter();
@@ -43,6 +47,7 @@ const InfoView: FC = () => {
   const [editedNickname, setEditedNickname] = useState('');
   const firebase = app.getFirebase();
   const l10n = app.getL10n();
+  const screenTitle = l10n.t('app.tabs.info');
   const isLoggedIn = firebase.isLoggedIn();
   const nickname = firebase.getNickname();
   const logInAlertManager = app.getLogInAlertManager();
@@ -75,6 +80,11 @@ const InfoView: FC = () => {
 
   const handleOpenNotificationSettings = () => {
     router.push('/info/notification');
+  };
+
+  const handleOpenMyPosts = () => {
+    app.getAnalyticsManager()?.logClick('click_info_my_posts');
+    router.push('/community/mine');
   };
 
   const handleOpenLanguageSettings = () => {
@@ -127,6 +137,10 @@ const InfoView: FC = () => {
     setEditedNickname('');
   };
 
+  const handleBack = () => {
+    router.back();
+  };
+
   return (
     <Layout
       edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
@@ -134,6 +148,42 @@ const InfoView: FC = () => {
       background={<InfoFooterBackgroundView />}
     >
       <View style={styles.contentLayer}>
+        <Stack.Screen
+          options={{
+            // iOS는 글래스 back과 투명 헤더를 시스템에 위임한다(LG-1).
+            headerShown: IS_IOS,
+            headerTransparent: true,
+            headerTitle: screenTitle,
+            headerBackButtonDisplayMode: 'minimal',
+          }}
+        />
+        <View
+          style={[
+            styles.headerContainer,
+            IS_IOS && {
+              // 투명 헤더(상태바 + 44pt) 아래에서 콘텐츠가 시작하게 한다.
+              paddingTop:
+                insets.top + NATIVE_HEADER_HEIGHT + HEADER_CONTENT_GAP,
+            },
+          ]}
+        >
+          {!IS_IOS && (
+            <View style={styles.titleRow}>
+              <TouchableOpacity
+                onPress={handleBack}
+                style={styles.backButton}
+                hitSlop={8}
+                accessibilityRole='button'
+                accessibilityLabel={l10n.t('common.back')}
+              >
+                <Ionicons name='chevron-back' size={24} color={Acg.ink} />
+              </TouchableOpacity>
+              <PretendardText weight='bold' style={styles.titleText}>
+                {screenTitle}
+              </PretendardText>
+            </View>
+          )}
+        </View>
         <ScrollView
           style={styles.container}
           contentContainerStyle={[
@@ -142,15 +192,6 @@ const InfoView: FC = () => {
           ]}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.header}>
-            {/* AU-4: 화면 타이틀은 로그인 여부와 무관하게 고정한다. 닉네임은 아래 프로필 행이 맡는다 —
-              닉네임은 `내 정보`의 값이지 화면 이름이 아니다. */}
-            {/* 화면 제목 44px(ACG). 형광펜 띠 없음 — 한글이라 콘덴스드도 쓰지 않는다. */}
-            <PretendardText weight='bold' style={styles.headerText}>
-              {l10n.t('info.account.title')}
-            </PretendardText>
-          </View>
-
           {isLoggedIn ? (
             <View style={styles.profileRow}>
               {nickname ? (
@@ -210,14 +251,32 @@ const InfoView: FC = () => {
             </TouchableOpacity>
           ) : null}
 
+          {isLoggedIn ? (
+            <TouchableOpacity
+              style={[styles.button, styles.buttonFirst]}
+              onPress={handleOpenMyPosts}
+              activeOpacity={0.7}
+              accessibilityRole='button'
+            >
+              <PretendardText weight='semibold' style={styles.buttonText}>
+                {l10n.t('info.account.myPosts')}
+              </PretendardText>
+              <Ionicons
+                name='chevron-forward'
+                size={18}
+                color={Color.iconMuted}
+              />
+            </TouchableOpacity>
+          ) : null}
+
           <TouchableOpacity
-            style={[styles.button, isLoggedIn && styles.buttonFirst]}
+            style={[styles.button, !isLoggedIn && styles.buttonFirst]}
             onPress={handleOpenNotificationSettings}
             activeOpacity={0.7}
             accessibilityRole='button'
           >
             <PretendardText weight='semibold' style={styles.buttonText}>
-            {l10n.t('notification.title')}
+              {l10n.t('notification.title')}
             </PretendardText>
             <Ionicons
               name='chevron-forward'
@@ -427,13 +486,26 @@ const styles = StyleSheet.create({
     position: 'relative',
     zIndex: 1,
   },
-  header: {
-    paddingTop: 20,
-    paddingBottom: 14,
+  headerContainer: {
+    marginTop: 8,
   },
-  headerText: {
+  titleRow: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    marginLeft: -10,
+  },
+  titleText: {
+    flex: 1,
     ...AcgType.screenTitle,
     color: Acg.ink,
+    marginLeft: 4,
   },
   scrollContent: {
     flexGrow: 1,

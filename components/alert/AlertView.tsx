@@ -55,7 +55,7 @@ const AlertView: FC<Props> = ({ alertManager }) => {
               onPress={handleClickCancel}
             >
               <PretendardText weight='medium' style={styles.cancelButtonText}>
-                {app.getL10n().t('common.cancel')}
+                {alertManager.getCancelText() || app.getL10n().t('common.cancel')}
               </PretendardText>
             </TouchableOpacity>
             <TouchableOpacity
