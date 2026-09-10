@@ -95,6 +95,8 @@ app/(tabs)/_layout.tsx → 현재 탭 5개: 홈(index) · 탐색(search) · 지�
 >
 > **운영 타이밍**: 최소 버전은 스토어에 실제 공개된 버전 이하로만 올린다. 예) iOS 스토어에 1.1.6이 이미 공개돼 있으므로 `iosMinVersion`을 1.1.6으로 두면 1.0.6 유저를 지금 바로 1.1.6으로 밀어올릴 수 있다(1.1.7 스토어 공개를 기다릴 필요 없음).
 
+> **운영 기록(2026-09-10, 커뮤니티 2.0.0 OTA 출시에 맞춰 2.0.0 미만 전면 차단)**: `config/app`에 `iosMinVersion: "2.0.0"`, `androidMinVersion: "2.0.0"`을 기록했다(스토어 공개 버전 iOS 2.0.0 2026-08-24, Android 2.0.0). 게이트 코드는 2026-07-22 커밋부터 들어가 **2.0.0 바이너리와 7/23 이후 1.1.9 빌드(85~96)** 에만 있고, 스토어에 나간 2.0.0 미만 EAS 빌드(iOS 1.0.4~1.0.7·1.1.5~1.1.9(빌드 79), Android 1.0.2~1.0.7·1.1.5~1.1.9)에는 없다. 이 바이너리들에는 **레거시 전달 경로**로 무조건 표시 알럿 번들을 OTA로 심는다: `scripts/legacy-force-update/LegacyForceUpdateAlert.ts`(RN 코어 `Alert` — `확인` 버튼 하나, `cancelable: false`, 누르면 `https://lessismore-7e070.web.app/app-install`을 열고 앱으로 돌아오면 다시 표시)를 **그 바이너리를 만든 커밋 위에** 복사해 `app/_layout.tsx` 첫 줄에서 import 하고 `-t <그 appVersion> -c production -f`로 배포한다(`scripts/legacy-force-update/deploy-legacy-gate.sh`; 커밋별 빌드로 네이티브 호환을 보장, Expo 53 커밋은 CLI만 0.32로 덧입혀 번들 문서를 현 스키마로 기록). 사용자 결정으로 실기기 사전 검증은 생략했다. 이 번들은 버전 판정 없이 항상 알럿을 띄우므로 **해당 appVersion 타깃 외에는 절대 배포하지 않는다.**
+
 ### APP-8 커스텀 시트 전환과 Reduce Motion `[제안]`
 
 앱의 커스텀 시트 열림·닫힘은 공용 `hooks/useSheetTransition.ts`를 사용해
