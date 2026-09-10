@@ -7,8 +7,8 @@
 # node_modules 를 공유한다(워크트리 하나에서 checkout 만 바꿈). 디스크를 아끼기 위해 그룹이 끝나면 node_modules 와
 # 워크트리를 지운다.
 #
-# Expo 53 커밋(hot-updater 0.20)은 CLI 만 0.32 로 덧입혀(--no-save) 번들 문서를 현 서버 스키마로 기록한다.
-# 번들 안의 @hot-updater/react-native JS 는 그 커밋의 0.20 그대로라 바이너리의 네이티브와 짝이 맞는다.
+# Expo 53 커밋(hot-updater 0.20)은 그 커밋의 0.20 CLI 를 그대로 쓴다(0.32 를 덧입히면 babel-plugin 경로가 깨진다).
+# 번들 안의 @hot-updater/react-native JS 도 0.20 그대로라 바이너리의 네이티브와 짝이 맞는다.
 #
 # 사용: bash scripts/legacy-force-update/deploy-legacy-gate.sh <작업 디렉터리> [그룹 이름...]
 #   그룹을 생략하면 전부 실행한다. 결과는 <작업 디렉터리>/summary.txt, 로그는 <작업 디렉터리>/log/*.log.
@@ -161,12 +161,10 @@ run_group() {
   fi
 
   if [ "$legacy_cli" = "1" ]; then
-    log "hot-updater CLI 0.32 덧입히기 ($name)"
-    if ! (cd "$wt" && npm install --no-save --no-audit --no-fund --loglevel=error hot-updater@0.32.0 @hot-updater/expo@0.32.0 @hot-updater/firebase@0.32.0 < /dev/null) >> "$install_log" 2>&1; then
-      record "FAIL	group	$name	$first_commit	0.32 CLI 설치 실패 (see $install_log)"
-      cleanup_group "$wt"
-      return
-    fi
+    # Expo 53 커밋은 그 커밋의 hot-updater 0.20 CLI 를 그대로 쓴다(-p/-t/-c/-f/-m 모두 지원).
+    # 0.32 CLI 를 덧입히면 babel.config.js 의 'hot-updater/babel-plugin' 이 0.32 패키지에 없어 번들링이 깨진다(2026-09-10 실패 로그).
+    # 0.20 CLI 가 쓰는 번들 문서 스키마는 옛 필드만 갖지만, 2025년 0.20 배포본이 지금도 서빙되므로 서버가 허용한다.
+    log "0.20 CLI 그대로 사용 ($name)"
   fi
 
   local entry commit pairs pair platform version
@@ -177,8 +175,9 @@ run_group() {
     pairs="${entry#* }"
 
     if [ "$(git -C "$wt" rev-parse --short HEAD)" != "$(git -C "$REPO" rev-parse --short "$commit")" ]; then
-      if ! git -C "$wt" checkout --detach "$commit" > /dev/null 2>&1; then
-        record "FAIL	group	$name	$commit	checkout 실패"
+      git -C "$wt" checkout -- . > /dev/null 2>&1
+      if ! git -C "$wt" checkout --detach "$commit" < /dev/null > /dev/null 2>&1; then
+        record "FAIL	group	$name	$commit	checkout 실패: $(git -C "$wt" status --short | head -3 | tr '\n' ' ')"
         continue
       fi
     fi
