@@ -9,8 +9,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { COMMUNITY_COMMENT_COMPOSER_ACCESSORY_ID } from '@/components/community/CommunityKeyboardAccessoryId';
-import KeyboardDoneAccessoryView from '@/components/ui/KeyboardDoneAccessoryView';
 import { Acg, AcgLayout, AcgRadius, AcgType, Radius } from '@/constants/DesignTokens';
 import CommunityDetail from '@/model/community-detail/CommunityDetail';
 import { COMMUNITY_COMMENT_MAX_LENGTH } from '@/model/community/CommunityLimits';
@@ -39,75 +37,68 @@ const CommunityDetailCommentComposerView = observer(({ detail, bottomInset }: Pr
     : Math.max(bottomInset, COMPOSER_BOTTOM_GAP) + COMPOSER_BOTTOM_GAP;
 
   return (
-    <>
-      <KeyboardAvoidingView
-        style={styles.composer}
-        // iOS는 컴포저 단위 padding 회피가 검증된 방식이다(상세의 화면 단위 KAV는 Android 전용).
-        behavior='padding'
-        enabled={IS_IOS}
-        keyboardVerticalOffset={0}
-      >
-        <View style={[styles.inner, { paddingBottom: innerBottomPadding }]}>
-          {target && !editing && (
-            <View style={styles.replyBanner}>
-              <PretendardText style={styles.replyText}>{app.getL10n().t('community.comment.replyTo', { name: target.mentionedUserName })}</PretendardText>
-              <TouchableOpacity style={styles.cancelReply} onPress={() => detail.cancelReply()} accessibilityRole='button' accessibilityLabel={app.getL10n().t('community.comment.cancelReply')}>
-                <Ionicons name='close' size={20} color={Acg.ink} />
-              </TouchableOpacity>
-            </View>
-          )}
-          <View style={styles.row}>
-            <TextInput
-              value={detail.getDraft()}
-              onChangeText={value => detail.setDraft(value)}
-              onFocus={() => { if (!loggedIn) { app.getLogInAlertManager()?.show(); } }}
-              onPressIn={() => { if (!loggedIn) { app.getLogInAlertManager()?.show(); } }}
-              editable={loggedIn && !isSubmitting}
-              placeholder={app.getL10n().t('community.comment.placeholder')}
-              placeholderTextColor={Acg.textMuted}
-              maxLength={COMMUNITY_COMMENT_MAX_LENGTH}
-              style={styles.input}
-              // 리턴키는 키보드만 닫는다 — 전송은 전송 버튼으로만 한다(onSubmitEditing을 붙이지 않는다).
-              returnKeyType='done'
-              {...(IS_IOS
-                ? { inputAccessoryViewID: COMMUNITY_COMMENT_COMPOSER_ACCESSORY_ID }
-                : {})}
-              accessibilityLabel={app.getL10n().t('community.comment.placeholder')}
-            />
-            <TouchableOpacity
-              style={[styles.submit, (!hasDraft || isSubmitting) && styles.submitDisabled]}
-              onPress={() => void detail.submitComment()}
-              disabled={!hasDraft || isSubmitting}
-              accessibilityRole='button'
-              accessibilityLabel={app.getL10n().t(editing ? 'common.save' : 'community.comment.submit')}
-              accessibilityState={{ disabled: !hasDraft || isSubmitting }}
-            >
-              {editing ? (
-                <PretendardText
-                  style={[styles.submitText, (!hasDraft || isSubmitting) && styles.submitTextDisabled]}
-                  weight='semibold'
-                >
-                  {app.getL10n().t('common.save')}
-                </PretendardText>
-              ) : (
-                <Ionicons
-                  name='arrow-up'
-                  size={20}
-                  color={hasDraft && !isSubmitting ? Acg.paper : Acg.textMuted}
-                />
-              )}
+    <KeyboardAvoidingView
+      style={styles.composer}
+      // iOS는 컴포저 단위 padding 회피가 검증된 방식이다(상세의 화면 단위 KAV는 Android 전용).
+      behavior='padding'
+      enabled={IS_IOS}
+      keyboardVerticalOffset={0}
+    >
+      <View style={[styles.inner, { paddingBottom: innerBottomPadding }]}>
+        {target && !editing && (
+          <View style={styles.replyBanner}>
+            <PretendardText style={styles.replyText}>{app.getL10n().t('community.comment.replyTo', { name: target.mentionedUserName })}</PretendardText>
+            <TouchableOpacity style={styles.cancelReply} onPress={() => detail.cancelReply()} accessibilityRole='button' accessibilityLabel={app.getL10n().t('community.comment.cancelReply')}>
+              <Ionicons name='close' size={20} color={Acg.ink} />
             </TouchableOpacity>
-            {editing && (
-              <TouchableOpacity style={styles.cancelEdit} onPress={() => detail.cancelEdit()} accessibilityRole='button'>
-                <PretendardText style={styles.cancelEditText}>{app.getL10n().t('common.cancel')}</PretendardText>
-              </TouchableOpacity>
-            )}
           </View>
+        )}
+        <View style={styles.row}>
+          <TextInput
+            value={detail.getDraft()}
+            onChangeText={value => detail.setDraft(value)}
+            onFocus={() => { if (!loggedIn) { app.getLogInAlertManager()?.show(); } }}
+            onPressIn={() => { if (!loggedIn) { app.getLogInAlertManager()?.show(); } }}
+            editable={loggedIn && !isSubmitting}
+            placeholder={app.getL10n().t('community.comment.placeholder')}
+            placeholderTextColor={Acg.textMuted}
+            maxLength={COMMUNITY_COMMENT_MAX_LENGTH}
+            style={styles.input}
+            // 리턴키는 키보드만 닫는다 — 전송은 전송 버튼으로만 한다(onSubmitEditing을 붙이지 않는다).
+            returnKeyType='done'
+            accessibilityLabel={app.getL10n().t('community.comment.placeholder')}
+          />
+          <TouchableOpacity
+            style={[styles.submit, (!hasDraft || isSubmitting) && styles.submitDisabled]}
+            onPress={() => void detail.submitComment()}
+            disabled={!hasDraft || isSubmitting}
+            accessibilityRole='button'
+            accessibilityLabel={app.getL10n().t(editing ? 'common.save' : 'community.comment.submit')}
+            accessibilityState={{ disabled: !hasDraft || isSubmitting }}
+          >
+            {editing ? (
+              <PretendardText
+                style={[styles.submitText, (!hasDraft || isSubmitting) && styles.submitTextDisabled]}
+                weight='semibold'
+              >
+                {app.getL10n().t('common.save')}
+              </PretendardText>
+            ) : (
+              <Ionicons
+                name='arrow-up'
+                size={20}
+                color={hasDraft && !isSubmitting ? Acg.paper : Acg.textMuted}
+              />
+            )}
+          </TouchableOpacity>
+          {editing && (
+            <TouchableOpacity style={styles.cancelEdit} onPress={() => detail.cancelEdit()} accessibilityRole='button'>
+              <PretendardText style={styles.cancelEditText}>{app.getL10n().t('common.cancel')}</PretendardText>
+            </TouchableOpacity>
+          )}
         </View>
-      </KeyboardAvoidingView>
-      {/* iOS 키보드 위 '완료' 바 — KAV 밖에 두어 컴포저 레이아웃·키보드 회피 동작을 건드리지 않는다. */}
-      <KeyboardDoneAccessoryView nativeID={COMMUNITY_COMMENT_COMPOSER_ACCESSORY_ID} />
-    </>
+      </View>
+    </KeyboardAvoidingView>
   );
 });
 

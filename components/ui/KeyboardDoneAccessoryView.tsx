@@ -17,8 +17,9 @@ interface Props {
 }
 
 /**
- * iOS 키보드 위에 붙는 공용 '완료' 액세서리 바다(CM-2, CM-7, CM-11).
- * 리턴키로 키보드를 닫을 수 없는 입력(멀티라인)과 단일행 입력에서 함께 쓰며, iOS 외 플랫폼에서는 렌더하지 않는다.
+ * iOS 키보드 위에 붙는 공용 '완료' 액세서리 바다(CM-2, CM-11).
+ * 리턴키로 키보드를 닫을 수 없는 여러 줄 입력에 쓴다(단일 행은 returnKeyType='done'으로 닫는다). iOS 외 플랫폼에서는 렌더하지 않는다.
+ * Fabric에서는 창에 붙는 순간 같은 nativeID의 첫 TextInput 하나에만 바인딩되므로 입력 하나에 바 하나씩, 그 입력보다 트리에서 뒤에 렌더한다.
  */
 const KeyboardDoneAccessoryView: FC<Props> = ({ nativeID }) => {
   const l10n = app.getL10n();

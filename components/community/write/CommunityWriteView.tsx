@@ -29,7 +29,6 @@ import {
 import CommunityWrite from '@/model/community-write/CommunityWrite';
 import CommunityWriteField from '@/model/community-write/CommunityWriteField';
 import CommunityWriteMode from '@/model/community-write/CommunityWriteMode';
-import { COMMUNITY_WRITE_ACCESSORY_ID } from '@/components/community/CommunityKeyboardAccessoryId';
 import CommunityWriteAttachmentsView from './CommunityWriteAttachmentsView';
 import CommunityWriteImagesView from './CommunityWriteImagesView';
 import app from '@/model/app/App';
@@ -43,6 +42,8 @@ const BOTTOM_BAR_TOP_PADDING = 8;
 const CONTENT_BOTTOM_EXTRA = 24;
 const NATIVE_HEADER_HEIGHT = 44;
 const IS_IOS = Platform.OS === 'ios';
+// iOS 본문 입력 전용 키보드 위 '완료' 바 — Fabric InputAccessoryView는 첫 TextInput 하나에만 붙으므로 입력 하나에 바 하나(CM-2)
+const BODY_ACCESSORY_ID = 'communityWriteBodyAccessory';
 const VALIDATION_KEYS: Partial<Record<CommunityValidationError, string>> = {
   [CommunityValidationError.TitleLength]: 'titleLength',
   [CommunityValidationError.BodyLength]: 'bodyLength',
@@ -261,7 +262,6 @@ const CommunityWriteView = ({ write }: Props) => {
             maxLength={COMMUNITY_TITLE_MAX_LENGTH}
             editable={!write.getIsSubmitting()}
             returnKeyType='done'
-            {...(IS_IOS ? { inputAccessoryViewID: COMMUNITY_WRITE_ACCESSORY_ID } : {})}
             accessibilityState={{ disabled: write.getIsSubmitting() }}
           />
           {getErrorText(CommunityWriteField.Title) && (
@@ -296,7 +296,7 @@ const CommunityWriteView = ({ write }: Props) => {
             textAlignVertical='top'
             maxLength={COMMUNITY_BODY_MAX_LENGTH}
             editable={!write.getIsSubmitting()}
-            {...(IS_IOS ? { inputAccessoryViewID: COMMUNITY_WRITE_ACCESSORY_ID } : {})}
+            {...(IS_IOS ? { inputAccessoryViewID: BODY_ACCESSORY_ID } : {})}
             accessibilityState={{ disabled: write.getIsSubmitting() }}
           />
           {getErrorText(CommunityWriteField.Body) && (
@@ -344,8 +344,8 @@ const CommunityWriteView = ({ write }: Props) => {
       <LogInView logInAlertManager={app.getLogInAlertManager()!} />
       <AlertView alertManager={app.getAlertManager()!} />
       <ToastView toastManager={app.getToastManager()!} bottom={100} />
-      {/* 제목·본문·투표 선택지가 공유하는 iOS 키보드 '완료' 바 — 화면에 하나만 둔다. */}
-      <KeyboardDoneAccessoryView nativeID={COMMUNITY_WRITE_ACCESSORY_ID} />
+      {/* 여러 줄 본문 입력 전용 iOS 키보드 '완료' 바 — 본문 TextInput보다 트리에서 뒤에 둔다. */}
+      <KeyboardDoneAccessoryView nativeID={BODY_ACCESSORY_ID} />
     </View>
   );
 };
