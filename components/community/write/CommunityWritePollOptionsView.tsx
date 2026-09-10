@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import {
+  Platform,
   StyleSheet,
   Switch,
   TextInput,
@@ -10,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgRadius, AcgType, Radius } from '@/constants/DesignTokens';
 import CommunityWrite from '@/model/community-write/CommunityWrite';
+import { COMMUNITY_WRITE_ACCESSORY_ID } from '@/components/community/CommunityKeyboardAccessoryId';
 import { formatCommunityDate } from '@/model/community/CommunityFormat';
 import app from '@/model/app/App';
 import {
@@ -23,6 +25,7 @@ interface Props {
 }
 
 const EXPIRY_DAYS = [0, 1, 3, 7] as const;
+const IS_IOS = Platform.OS === 'ios';
 
 /**
  * 투표 선택지와 마감 프리셋을 입력하는 View다(CM-5, CM-9).
@@ -87,6 +90,8 @@ const CommunityWritePollOptionsView = ({ write }: Props) => {
             placeholderTextColor={Acg.textMuted}
             maxLength={COMMUNITY_POLL_OPTION_MAX_LENGTH}
             editable={canEdit && !write.getIsSubmitting()}
+            returnKeyType='done'
+            {...(IS_IOS ? { inputAccessoryViewID: COMMUNITY_WRITE_ACCESSORY_ID } : {})}
           />
         </View>
       ))}

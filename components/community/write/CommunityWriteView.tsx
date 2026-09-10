@@ -17,6 +17,7 @@ import PretendardText from '@/components/PretendardText';
 import AlertView from '@/components/alert/AlertView';
 import LogInView from '@/components/login/LogInView';
 import ToastView from '@/components/toast/ToastView';
+import KeyboardDoneAccessoryView from '@/components/ui/KeyboardDoneAccessoryView';
 import { Acg, AcgLayout, AcgRadius, AcgType, Radius } from '@/constants/DesignTokens';
 import CommunityError from '@/model/community/CommunityError';
 import CommunityImagePipelineError from '@/model/community-image/CommunityImagePipelineError';
@@ -28,6 +29,7 @@ import {
 import CommunityWrite from '@/model/community-write/CommunityWrite';
 import CommunityWriteField from '@/model/community-write/CommunityWriteField';
 import CommunityWriteMode from '@/model/community-write/CommunityWriteMode';
+import { COMMUNITY_WRITE_ACCESSORY_ID } from '@/components/community/CommunityKeyboardAccessoryId';
 import CommunityWriteAttachmentsView from './CommunityWriteAttachmentsView';
 import CommunityWriteImagesView from './CommunityWriteImagesView';
 import app from '@/model/app/App';
@@ -258,6 +260,8 @@ const CommunityWriteView = ({ write }: Props) => {
             placeholderTextColor={Acg.textMuted}
             maxLength={COMMUNITY_TITLE_MAX_LENGTH}
             editable={!write.getIsSubmitting()}
+            returnKeyType='done'
+            {...(IS_IOS ? { inputAccessoryViewID: COMMUNITY_WRITE_ACCESSORY_ID } : {})}
             accessibilityState={{ disabled: write.getIsSubmitting() }}
           />
           {getErrorText(CommunityWriteField.Title) && (
@@ -292,6 +296,7 @@ const CommunityWriteView = ({ write }: Props) => {
             textAlignVertical='top'
             maxLength={COMMUNITY_BODY_MAX_LENGTH}
             editable={!write.getIsSubmitting()}
+            {...(IS_IOS ? { inputAccessoryViewID: COMMUNITY_WRITE_ACCESSORY_ID } : {})}
             accessibilityState={{ disabled: write.getIsSubmitting() }}
           />
           {getErrorText(CommunityWriteField.Body) && (
@@ -339,6 +344,8 @@ const CommunityWriteView = ({ write }: Props) => {
       <LogInView logInAlertManager={app.getLogInAlertManager()!} />
       <AlertView alertManager={app.getAlertManager()!} />
       <ToastView toastManager={app.getToastManager()!} bottom={100} />
+      {/* 제목·본문·투표 선택지가 공유하는 iOS 키보드 '완료' 바 — 화면에 하나만 둔다. */}
+      <KeyboardDoneAccessoryView nativeID={COMMUNITY_WRITE_ACCESSORY_ID} />
     </View>
   );
 };
