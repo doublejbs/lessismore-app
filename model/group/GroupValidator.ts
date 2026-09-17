@@ -16,7 +16,6 @@ import {
   GROUP_ROUTE_MAX_BYTES,
   GROUP_ROUTE_MIN_SIMPLIFIED_POINTS,
   GROUP_ROUTE_NAME_MAX_LENGTH,
-  GROUP_ROUTE_NAME_MIN_LENGTH,
 } from './GroupLimits';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -74,12 +73,28 @@ class GroupValidator {
     }
   }
 
+  /**
+   * 크기를 잰 값인지 — 0·음수·비유한값은 **크기 미상**이지 "너무 큰" 것이 아니다.
+   * 선택기가 크기를 주지 않고 `expo-file-system`으로도 못 재는 `content://` 파일이 여기로 온다.
+   */
+  public static isKnownRouteFileSize(fileSize: number) {
+    return Number.isFinite(fileSize) && fileSize > 0;
+  }
+
+  // 5MB 상한 판정. 파싱 단계(GpxParser)와 조건·상수를 공유하고 에러는 각자 자기 것을 던진다(GRP-8).
+  public static isValidRouteFileSize(fileSize: number) {
+    return (
+      GroupValidator.isKnownRouteFileSize(fileSize) &&
+      fileSize <= GROUP_ROUTE_MAX_BYTES
+    );
+  }
+
   public static validateRouteFileSize(fileSize: number) {
-    if (
-      !Number.isFinite(fileSize) ||
-      fileSize <= 0 ||
-      fileSize > GROUP_ROUTE_MAX_BYTES
-    ) {
+    if (!GroupValidator.isKnownRouteFileSize(fileSize)) {
+      throw new GroupError(GroupValidationError.RouteParseFailed);
+    }
+
+    if (!GroupValidator.isValidRouteFileSize(fileSize)) {
       throw new GroupError(GroupValidationError.RouteFileTooLarge);
     }
   }
@@ -103,15 +118,7 @@ class GroupValidator {
   public static validateRoute(draft: GroupRouteDraft) {
     GroupValidator.validateRouteFileSize(draft.fileSize);
 
-    const name = GroupValidator.toRouteName(draft.name);
-
-    if (
-      name.length < GROUP_ROUTE_NAME_MIN_LENGTH ||
-      name.length > GROUP_ROUTE_NAME_MAX_LENGTH
-    ) {
-      throw new GroupError(GroupValidationError.RouteParseFailed);
-    }
-
+    // 저장 이름은 `toRouteName`이 1~40자로 만들어 내므로(자르고, 비면 폴백) 길이를 다시 보지 않는다.
     if (draft.simplified.length < GROUP_ROUTE_MIN_SIMPLIFIED_POINTS) {
       throw new GroupError(GroupValidationError.RouteParseFailed);
     }

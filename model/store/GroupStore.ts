@@ -23,6 +23,7 @@ import Group from '../group/Group';
 import GroupBagSnapshotBuilder from '../group/GroupBagSnapshotBuilder';
 import {
   GroupBagSnapshot,
+  GroupBagSnapshotContent,
   GroupCreateInput,
   GroupData,
   GroupIndexData,
@@ -31,6 +32,7 @@ import {
   GroupPointData,
   GroupPointInput,
   GroupPointPatch,
+  GroupRouteCoordinate,
   GroupRouteData,
   GroupRouteInput,
   toGroupDate,
@@ -72,11 +74,11 @@ class GroupStore {
     private readonly bagStore: BagStore
   ) {}
 
-  public createGroupId() {
+  private createGroupId() {
     return doc(collection(this.getStore(), 'groups')).id;
   }
 
-  public createPointId(groupId: string) {
+  private createPointId(groupId: string) {
     return doc(collection(this.getStore(), 'groups', groupId, 'points')).id;
   }
 
@@ -233,8 +235,11 @@ class GroupStore {
     }
 
     if (patch.campSpotId !== undefined) {
-      updates.campSpotId = patch.campSpotId ?? deleteField();
-      indexUpdates.campSpotId = patch.campSpotId ?? deleteField();
+      // 빈 문자열도 연결 해제로 본다 — destinationName 과 같은 규칙이다.
+      const campSpotId = patch.campSpotId?.trim();
+
+      updates.campSpotId = campSpotId || deleteField();
+      indexUpdates.campSpotId = campSpotId || deleteField();
     }
 
     if (patch.destinationName !== undefined) {
@@ -337,37 +342,41 @@ class GroupStore {
   /**
    * 그룹 나가기 (GRP-4). 방장은 해산을 거쳐야 하므로 거절한다.
    * 나가는 사람의 배낭 스냅샷을 함께 지우고, 그가 올린 포인트·코스는 남긴다.
+   *
+   * `joinGroup`과 같이 **트랜잭션 안에서 `memberIds`를 다시 본다** — `arrayRemove`는 멱등인데
+   * `memberCount: increment(-1)`은 아니라, 더블탭·재시도나 "방장 내보내기 + 본인 나가기"가 겹치면
+   * 배열은 한 번만 줄고 카운트는 두 번 줄어 실제보다 작아진다.
+   * 이미 빠져 있으면 **조용히 성공**시키고 내 하위 문서·역인덱스만 치운다 — 방장이 먼저 내보낸 뒤
+   * 남아 있는 내 역인덱스를 지울 유일한 경로이고, 결과(내가 그룹에 없음)도 요청과 같다.
    */
   public async leaveGroup(groupId: string): Promise<void> {
     const userId = this.requireUserId();
-    const snapshot = await getDoc(this.groupRef(groupId));
 
-    if (!snapshot.exists()) {
-      throw new GroupError(GroupValidationError.GroupNotFound);
-    }
+    await runTransaction(this.getStore(), async transaction => {
+      const snapshot = await transaction.get(this.groupRef(groupId));
 
-    const group = this.toGroupData(snapshot.id, snapshot.data());
+      if (!snapshot.exists()) {
+        throw new GroupError(GroupValidationError.GroupNotFound);
+      }
 
-    if (group.ownerId === userId) {
-      throw new GroupError(GroupValidationError.OwnerCannotLeave);
-    }
+      const group = this.toGroupData(snapshot.id, snapshot.data());
 
-    if (!group.memberIds.includes(userId)) {
-      throw new GroupError(GroupValidationError.NotMember);
-    }
+      if (group.ownerId === userId) {
+        throw new GroupError(GroupValidationError.OwnerCannotLeave);
+      }
 
-    const batch = writeBatch(this.getStore());
+      if (group.memberIds.includes(userId)) {
+        transaction.update(this.groupRef(groupId), {
+          memberIds: arrayRemove(userId),
+          memberCount: increment(-1),
+          updatedAt: serverTimestamp(),
+        });
+      }
 
-    batch.update(this.groupRef(groupId), {
-      memberIds: arrayRemove(userId),
-      memberCount: increment(-1),
-      updatedAt: serverTimestamp(),
+      transaction.delete(this.memberRef(groupId, userId));
+      transaction.delete(this.bagRef(groupId, userId));
+      transaction.delete(this.indexRef(userId, groupId));
     });
-    batch.delete(this.memberRef(groupId, userId));
-    batch.delete(this.bagRef(groupId, userId));
-    batch.delete(this.indexRef(userId, groupId));
-
-    await batch.commit();
   }
 
   /**
@@ -377,37 +386,37 @@ class GroupStore {
    */
   public async removeMember(groupId: string, uid: string): Promise<void> {
     const userId = this.requireUserId();
-    const snapshot = await getDoc(this.groupRef(groupId));
 
-    if (!snapshot.exists()) {
-      throw new GroupError(GroupValidationError.GroupNotFound);
-    }
+    await runTransaction(this.getStore(), async transaction => {
+      const snapshot = await transaction.get(this.groupRef(groupId));
 
-    const group = this.toGroupData(snapshot.id, snapshot.data());
+      if (!snapshot.exists()) {
+        throw new GroupError(GroupValidationError.GroupNotFound);
+      }
 
-    if (group.ownerId !== userId) {
-      throw new GroupError(GroupValidationError.NotOwner);
-    }
+      const group = this.toGroupData(snapshot.id, snapshot.data());
 
-    if (uid === group.ownerId) {
-      throw new GroupError(GroupValidationError.OwnerCannotBeRemoved);
-    }
+      if (group.ownerId !== userId) {
+        throw new GroupError(GroupValidationError.NotOwner);
+      }
 
-    if (!group.memberIds.includes(uid)) {
-      throw new GroupError(GroupValidationError.NotMember);
-    }
+      if (uid === group.ownerId) {
+        throw new GroupError(GroupValidationError.OwnerCannotBeRemoved);
+      }
 
-    const batch = writeBatch(this.getStore());
+      // 나가기와 같은 이유로 트랜잭션 안에서 다시 본다(카운트는 멱등하지 않다).
+      // 이미 빠진 멤버면 카운트를 건드리지 않고 남은 하위 문서만 치운다.
+      if (group.memberIds.includes(uid)) {
+        transaction.update(this.groupRef(groupId), {
+          memberIds: arrayRemove(uid),
+          memberCount: increment(-1),
+          updatedAt: serverTimestamp(),
+        });
+      }
 
-    batch.update(this.groupRef(groupId), {
-      memberIds: arrayRemove(uid),
-      memberCount: increment(-1),
-      updatedAt: serverTimestamp(),
+      transaction.delete(this.memberRef(groupId, uid));
+      transaction.delete(this.bagRef(groupId, uid));
     });
-    batch.delete(this.memberRef(groupId, uid));
-    batch.delete(this.bagRef(groupId, uid));
-
-    await batch.commit();
   }
 
   /**
@@ -467,23 +476,8 @@ class GroupStore {
     await this.assertMembership(groupId, userId);
 
     const content = await this.buildSnapshotContent(bagId);
-    const batch = writeBatch(this.getStore());
 
-    batch.set(this.bagRef(groupId, userId), {
-      ...content,
-      gears: content.gears.map(gear => ({ ...gear })),
-      syncedAt: serverTimestamp(),
-    });
-    batch.update(this.memberRef(groupId, userId), { bagId });
-    // 역인덱스에 bagId를 함께 둔다 — 배낭이 바뀌었을 때 그룹 문서를 N번 읽지 않고
-    // 다시 쓸 그룹을 찾기 위해서다(GRP-5 갱신 시점 ①②, DM-29 역인덱스 표).
-    batch.set(
-      this.indexRef(userId, groupId),
-      { hasBag: true, bagId },
-      { merge: true }
-    );
-
-    await batch.commit();
+    await this.writeSnapshot(groupId, userId, content);
   }
 
   public async unlinkBag(groupId: string): Promise<void> {
@@ -507,7 +501,9 @@ class GroupStore {
   /**
    * 이 배낭을 연결한 **모든 그룹**의 스냅샷을 다시 쓴다 (GRP-5 갱신 시점 ① 배낭 편집 확인 ② 배낭 정보 수정).
    * 대상 그룹은 역인덱스의 `bagId`로 찾는다 — 그룹마다 `members/{uid}`를 읽지 않는다.
-   * 사용자 조작 뒤에 따라붙는 배경 동기화라 한 그룹이 실패해도 나머지를 계속 쓰고 편집 흐름을 깨지 않는다.
+   * 한 그룹이 실패해도(내보내진 그룹의 역인덱스가 남은 경우 등) 나머지를 계속 쓴다.
+   * 다만 **스냅샷 내용을 못 만들면**(배낭이 사라진 경우 등) 쓸 것이 없으므로 그대로 올린다 —
+   * 배경 호출은 `syncBagSnapshotsInBackground`를 쓰고 거기서 받는다.
    */
   public async syncBagSnapshots(bagId: string): Promise<void> {
     if (!bagId) {
@@ -522,16 +518,35 @@ class GroupStore {
       )
     );
 
+    if (snapshot.empty) {
+      return;
+    }
+
+    // 스냅샷 내용은 그룹과 무관하다 — **한 번만** 만들어 그룹 수만큼 쓰기만 한다.
+    // 그룹마다 다시 만들면 배낭 하나를 고칠 때 사용자 문서·배낭 문서·장비 쿼리가 그룹 수만큼 반복된다.
+    const content = await this.buildSnapshotContent(bagId);
+
     await Promise.all(
       snapshot.docs.map(async item => {
         try {
-          await this.linkBag(item.id, bagId);
+          await this.writeSnapshot(item.id, userId, content);
         } catch (error) {
           // 내보내진 그룹의 역인덱스가 아직 남아 있는 경우 등. 나머지 그룹 갱신을 막지 않는다.
           console.warn('[GroupStore] bag snapshot sync failed', item.id, error);
         }
       })
     );
+  }
+
+  /**
+   * 배낭 편집·정보 수정 뒤에 따라붙는 **배경** 동기화 (GRP-5 갱신 시점 ①②).
+   * 사용자 조작을 막지 않도록 기다리지 않고, 실패해도 그 조작의 결과를 되돌리지 않는다 —
+   * 배낭 화면들이 같은 모양을 각자 적어 두지 않게 여기에 둔다.
+   */
+  public syncBagSnapshotsInBackground(bagId: string): void {
+    void this.syncBagSnapshots(bagId).catch(error => {
+      console.warn('[GroupStore] background bag snapshot sync failed', error);
+    });
   }
 
   /**
@@ -670,12 +685,12 @@ class GroupStore {
       GroupValidator.validatePointDescription(patch.description);
     }
 
-    const [group, snapshot] = await Promise.all([
-      this.getGroup(groupId),
+    const [groupSnapshot, snapshot] = await Promise.all([
+      getDoc(this.groupRef(groupId)),
       getDoc(this.pointRef(groupId, pointId)),
     ]);
 
-    if (!group) {
+    if (!groupSnapshot.exists()) {
       throw new GroupError(GroupValidationError.GroupNotFound);
     }
 
@@ -683,12 +698,17 @@ class GroupStore {
       throw new GroupError(GroupValidationError.PointNotFound);
     }
 
+    const groupData = this.toGroupData(groupSnapshot.id, groupSnapshot.data());
     const point = GroupPoint.from(
       this.toPointData(snapshot.id, snapshot.data())
     );
 
+    // 내보내진 멤버가 자기가 올린 포인트를 고치는 경우다 — 먼저 보지 않으면 규칙이 거부한
+    // 원시 Firestore 권한 오류가 화면까지 올라간다(createPoint·linkBag과 같은 이유).
+    this.assertMember(groupData, userId);
+
     // 작성자도 방장도 아닐 때다 — 방장 전용 액션의 NotOwner와 구분한다(GRP-4).
-    if (!point.canEdit(userId, group)) {
+    if (!point.canEdit(userId, Group.from(groupData))) {
       throw new GroupError(GroupValidationError.NotAuthor);
     }
 
@@ -729,14 +749,17 @@ class GroupStore {
         throw new GroupError(GroupValidationError.PointNotFound);
       }
 
-      const group = Group.from(
-        this.toGroupData(groupSnapshot.id, groupSnapshot.data())
+      const groupData = this.toGroupData(
+        groupSnapshot.id,
+        groupSnapshot.data()
       );
       const point = GroupPoint.from(
         this.toPointData(pointSnapshot.id, pointSnapshot.data())
       );
 
-      if (!point.canEdit(userId, group)) {
+      this.assertMember(groupData, userId);
+
+      if (!point.canEdit(userId, Group.from(groupData))) {
         throw new GroupError(GroupValidationError.NotAuthor);
       }
 
@@ -846,14 +869,17 @@ class GroupStore {
         throw new GroupError(GroupValidationError.RouteNotFound);
       }
 
-      const group = Group.from(
-        this.toGroupData(groupSnapshot.id, groupSnapshot.data())
+      const groupData = this.toGroupData(
+        groupSnapshot.id,
+        groupSnapshot.data()
       );
       const route = GroupRoute.from(
         this.toRouteData(routeSnapshot.id, routeSnapshot.data())
       );
 
-      if (!route.canEdit(userId, group)) {
+      this.assertMember(groupData, userId);
+
+      if (!route.canEdit(userId, Group.from(groupData))) {
         throw new GroupError(GroupValidationError.NotAuthor);
       }
 
@@ -863,6 +889,33 @@ class GroupStore {
         updatedAt: serverTimestamp(),
       });
     });
+  }
+
+  /**
+   * 만들어 둔 스냅샷 내용을 한 그룹에 쓴다(배낭 문서·역인덱스와 한 배치로).
+   * 내용 생성과 분리해 둔 덕분에 여러 그룹에 같은 내용을 쓸 때 만들기를 한 번만 한다.
+   */
+  private async writeSnapshot(
+    groupId: string,
+    userId: string,
+    content: GroupBagSnapshotContent
+  ): Promise<void> {
+    const batch = writeBatch(this.getStore());
+
+    batch.set(this.bagRef(groupId, userId), {
+      ...content,
+      syncedAt: serverTimestamp(),
+    });
+    batch.update(this.memberRef(groupId, userId), { bagId: content.bagId });
+    // 역인덱스에 bagId를 함께 둔다 — 배낭이 바뀌었을 때 그룹 문서를 N번 읽지 않고
+    // 다시 쓸 그룹을 찾기 위해서다(GRP-5 갱신 시점 ①②, DM-29 역인덱스 표).
+    batch.set(
+      this.indexRef(userId, groupId),
+      { hasBag: true, bagId: content.bagId },
+      { merge: true }
+    );
+
+    await batch.commit();
   }
 
   /**
@@ -1029,6 +1082,20 @@ class GroupStore {
     };
   }
 
+  // Firestore 문서의 좌표 한 점. 배열 원소는 어떤 모양으로도 올 수 있으므로 값마다 다시 본다.
+  private toCoordinate(value: unknown): GroupRouteCoordinate {
+    const coordinate = this.isRecord(value) ? value : {};
+
+    return {
+      lat: Number(coordinate.lat) || 0,
+      lng: Number(coordinate.lng) || 0,
+    };
+  }
+
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
+  }
+
   private toPointData(id: string, data: DocumentData): GroupPointData {
     return {
       id,
@@ -1047,16 +1114,18 @@ class GroupStore {
   }
 
   private toPointType(value: unknown): GroupPointType {
-    const types = Object.values(GroupPointType);
+    return this.isPointType(value) ? value : GroupPointType.Note;
+  }
 
-    return types.includes(value as GroupPointType)
-      ? (value as GroupPointType)
-      : GroupPointType.Note;
+  private isPointType(value: unknown): value is GroupPointType {
+    return Object.values(GroupPointType).some(type => type === value);
   }
 
   private toRouteData(id: string, data: DocumentData): GroupRouteData {
-    const bounds = (data.bounds ?? {}) as Record<string, unknown>;
-    const simplified = Array.isArray(data.simplified) ? data.simplified : [];
+    const bounds = this.isRecord(data.bounds) ? data.bounds : {};
+    const simplified: unknown[] = Array.isArray(data.simplified)
+      ? data.simplified
+      : [];
 
     return {
       id,
@@ -1074,10 +1143,7 @@ class GroupStore {
         minLng: Number(bounds.minLng) || 0,
         maxLng: Number(bounds.maxLng) || 0,
       },
-      simplified: simplified.map((coordinate: Record<string, unknown>) => ({
-        lat: Number(coordinate?.lat) || 0,
-        lng: Number(coordinate?.lng) || 0,
-      })),
+      simplified: simplified.map(coordinate => this.toCoordinate(coordinate)),
       authorId: data.authorId ?? '',
       authorName: data.authorName ?? '',
       createdAt: toGroupDate(data.createdAt),

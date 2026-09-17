@@ -1,34 +1,10 @@
-import { FC, useEffect, useState } from 'react';
+import { FC } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { Acg, AcgLayout, AcgRow, AcgType } from '@/constants/DesignTokens';
+import useBreathingOpacity from '@/hooks/useBreathingOpacity';
 
 const SKELETON_ROWS = [0, 1, 2];
-const SKELETON_SHADE = '#E3E3E3';
-
-const useBreathingOpacity = () => {
-  const [opacity] = useState(() => new Animated.Value(0.3));
-
-  useEffect(() => {
-    const animate = () => {
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 0.7,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 0.3,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ]).start(() => animate());
-    };
-
-    animate();
-  }, [opacity]);
-
-  return opacity;
-};
+const SKELETON_SHADE = '#E8E8E8';
 
 // 그룹 상세 로딩 골격 (GRP-4). 헤더 한 덩이 + 멤버 행 세 줄만 그린다.
 const GroupDetailSkeletonView: FC = () => {

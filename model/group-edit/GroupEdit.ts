@@ -4,11 +4,10 @@ import { BagLocation } from '@/model/bag-destination/BagLocation';
 import { GroupPatch } from '@/model/group/GroupData';
 import GroupError from '@/model/group/GroupError';
 import GroupValidationError from '@/model/group/GroupValidationError';
+import GroupFieldErrors from '@/model/group-form/GroupFieldErrors';
+import { GROUP_STORAGE_DATE_FORMAT } from '@/model/group-form/GroupStorageDate';
 import GroupEditDispatcher from './GroupEditDispatcher';
 import GroupEditField from './GroupEditField';
-
-// Firestore가 보관하는 기간 형식(DM-29). 만들기 화면과 같은 캐논컬 값이다.
-const STORAGE_DATE_FORMAT = 'YYYY-MM-DD';
 
 const FIELD_BY_CODE: Partial<Record<GroupValidationError, GroupEditField>> = {
   [GroupValidationError.NameLength]: GroupEditField.Name,
@@ -44,7 +43,9 @@ class GroupEdit {
   private error: Error | null = null;
   private notFound = false;
   private notOwner = false;
-  private readonly fieldErrors = new Map<GroupEditField, GroupValidationError>();
+  // 필드 오류 배선은 만들기 화면과 같은 공용 모델을 쓴다.
+  private readonly fieldErrors =
+    GroupFieldErrors.from<GroupEditField>(FIELD_BY_CODE);
 
   private constructor(
     private readonly dispatcher: GroupEditDispatcher,
@@ -109,7 +110,7 @@ class GroupEdit {
   public setName(name: string) {
     this.name = name;
     this.dirty = true;
-    this.fieldErrors.delete(GroupEditField.Name);
+    this.fieldErrors.clearField(GroupEditField.Name);
   }
 
   public getStartDate() {
@@ -119,7 +120,7 @@ class GroupEdit {
   public setStartDate(date: dayjs.Dayjs) {
     this.startDate = date;
     this.dirty = true;
-    this.fieldErrors.delete(GroupEditField.Date);
+    this.fieldErrors.clearField(GroupEditField.Date);
   }
 
   public getEndDate() {
@@ -129,7 +130,7 @@ class GroupEdit {
   public setEndDate(date: dayjs.Dayjs | null) {
     this.endDate = date;
     this.dirty = true;
-    this.fieldErrors.delete(GroupEditField.Date);
+    this.fieldErrors.clearField(GroupEditField.Date);
   }
 
   public getMeetingNote() {
@@ -139,7 +140,7 @@ class GroupEdit {
   public setMeetingNote(value: string) {
     this.meetingNote = value;
     this.dirty = true;
-    this.fieldErrors.delete(GroupEditField.MeetingNote);
+    this.fieldErrors.clearField(GroupEditField.MeetingNote);
   }
 
   // 선택기를 다시 열 때 넘길 현재 여행지. 좌표를 모르는 자유 위치는 null이다.
@@ -196,11 +197,11 @@ class GroupEdit {
   }
 
   public getFieldError(field: GroupEditField): GroupValidationError | null {
-    return this.fieldErrors.get(field) ?? null;
+    return this.fieldErrors.get(field);
   }
 
   public getFirstErrorField(): GroupEditField | null {
-    return this.fieldErrors.keys().next().value ?? null;
+    return this.fieldErrors.getFirstField();
   }
 
   /**
@@ -219,13 +220,7 @@ class GroupEdit {
         this.destinationDirty = false;
       });
     } catch (error) {
-      if (error instanceof GroupError) {
-        const field = FIELD_BY_CODE[error.code];
-
-        if (field) {
-          this.fieldErrors.set(field, error.code);
-        }
-      }
+      this.fieldErrors.capture(error);
 
       throw error;
     } finally {
@@ -241,8 +236,8 @@ class GroupEdit {
 
     const patch: GroupPatch = {
       name: this.name.trim(),
-      startDate: this.startDate.format(STORAGE_DATE_FORMAT),
-      endDate: this.endDate.format(STORAGE_DATE_FORMAT),
+      startDate: this.startDate.format(GROUP_STORAGE_DATE_FORMAT),
+      endDate: this.endDate.format(GROUP_STORAGE_DATE_FORMAT),
       meetingNote: this.meetingNote.trim() || null,
     };
 
@@ -280,7 +275,7 @@ class GroupEdit {
       });
     } catch (error) {
       // 좌표를 못 읽어도 이름은 그대로 보인다 — 선택기가 미설정으로 열릴 뿐이다.
-      console.warn('[GroupEdit] camp spot load failed', error);
+      console.warn('그룹 여행지 박지 조회 실패:', error); // l10n-ignore: 개발자 로그
     }
   }
 

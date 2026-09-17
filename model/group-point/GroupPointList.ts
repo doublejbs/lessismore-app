@@ -84,10 +84,6 @@ class GroupPointList {
     return this.points.length >= GROUP_MAX_POINT_COUNT;
   }
 
-  public isEmpty(): boolean {
-    return this.initialized && this.points.length === 0;
-  }
-
   public isLoading(): boolean {
     return this.loading;
   }

@@ -137,24 +137,12 @@ class BagEdit {
       await this.templateStore.updateGears(this.id, this.selectedGears);
     } else {
       await this.bagStore.save(this.id, [], [], this.selectedGears);
-      this.syncGroupBagSnapshots();
+      // 이 배낭을 연결한 그룹의 공개 스냅샷을 다시 쓴다 (GRP-5 갱신 시점 ① 배낭 편집 확인).
+      // 개별 담기/빼기가 아니라 확인 시점에만 부른다 — 토글마다 부르면 그룹 수만큼 쓰기가 반복된다.
+      app.getGroupStore()?.syncBagSnapshotsInBackground(this.id);
     }
 
     this.back();
-  }
-
-  /**
-   * 이 배낭을 연결한 그룹의 공개 스냅샷을 다시 쓴다 (GRP-5 갱신 시점 ① 배낭 편집 확인).
-   * 편집 흐름을 막지 않는 배경 작업이라 기다리지 않고, 실패해도 화면을 되돌리지 않는다.
-   * (개별 담기/빼기가 아니라 확인 시점에만 부른다 — 토글마다 부르면 그룹 수만큼 쓰기가 반복된다.)
-   */
-  private syncGroupBagSnapshots() {
-    void app
-      .getGroupStore()
-      ?.syncBagSnapshots(this.id)
-      .catch(error => {
-        console.warn('[BagEdit] group bag snapshot sync failed', error);
-      });
   }
 
   public back() {

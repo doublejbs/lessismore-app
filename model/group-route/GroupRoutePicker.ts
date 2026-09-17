@@ -77,10 +77,16 @@ class GroupRoutePicker {
     }
   }
 
-  // 선택기가 크기를 안 줄 때가 있다. 0을 그대로 넘기면 용량 검사가 헛돌므로 파일에서 잰다.
+  /**
+   * 선택기가 크기를 안 줄 때가 있다. 파일에서 직접 잰다.
+   * 그래도 못 재면 **0 = 크기 미상**이다(`content://` 등). 검증 단계가 이 0을 "너무 크다"가 아니라
+   * "읽지 못했다"로 본다 — `GpxParser.validateFileSize` 참고.
+   */
   private static measureSize(uri: string): number {
     try {
-      return new File(uri).size;
+      const size = new File(uri).size;
+
+      return Number.isFinite(size) && size > 0 ? size : 0;
     } catch {
       return 0;
     }

@@ -1,7 +1,5 @@
-import { makeAutoObservable } from 'mobx';
 import Group from './Group';
 import {
-  GroupRouteBounds,
   GroupRouteCoordinate,
   GroupRouteData,
   toGroupDate,
@@ -14,11 +12,8 @@ class GroupRoute {
   private readonly id: string;
   private readonly name: string;
   private readonly storagePath: string;
-  private readonly fileSize: number;
   private readonly distance: number;
   private readonly elevationGain: number | undefined;
-  private readonly pointCount: number;
-  private readonly bounds: GroupRouteBounds;
   private readonly simplified: GroupRouteCoordinate[];
   private readonly authorId: string;
   private readonly authorName: string;
@@ -32,17 +27,14 @@ class GroupRoute {
     this.id = data.id;
     this.name = data.name;
     this.storagePath = data.storagePath;
-    this.fileSize = data.fileSize;
     this.distance = data.distance;
     this.elevationGain = data.elevationGain;
-    this.pointCount = data.pointCount;
-    this.bounds = { ...data.bounds };
-    this.simplified = data.simplified.map(coordinate => ({ ...coordinate }));
+    // 축약 좌표는 코스마다 500점까지 온다. 불변 값이라 복사하지 않고 그대로 들고 있는다 —
+    // 지도가 카메라를 움직일 때마다 이 배열을 읽으므로 복사·관찰 비용이 그대로 프레임에 실린다(GRP-8).
+    this.simplified = data.simplified;
     this.authorId = data.authorId;
     this.authorName = data.authorName;
     this.createdAt = toGroupDate(data.createdAt);
-
-    makeAutoObservable(this);
   }
 
   public getId() {
@@ -57,29 +49,13 @@ class GroupRoute {
     return this.storagePath;
   }
 
-  public getFileSize() {
-    return this.fileSize;
-  }
-
-  public getDistance() {
-    return this.distance;
-  }
-
   public getElevationGain() {
     return this.elevationGain;
   }
 
-  public getPointCount() {
-    return this.pointCount;
-  }
-
-  // 생성자가 방어 복사한 값을 원본째 내주지 않는다 — 사본을 돌려준다.
-  public getBounds() {
-    return { ...this.bounds };
-  }
-
+  // 지도가 렌더마다 부른다 — 사본을 만들지 않는다. 좌표는 읽기 전용으로만 쓴다(GRP-8, GRP-10).
   public getSimplified() {
-    return this.simplified.map(coordinate => ({ ...coordinate }));
+    return this.simplified;
   }
 
   public getAuthorId() {

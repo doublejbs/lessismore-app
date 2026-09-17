@@ -1,21 +1,21 @@
 import { FC, useCallback, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router/react-navigation';
 import { useRouter } from 'expo-router';
 import app from '@/model/app/App';
 import Group from '@/model/group/Group';
 import GroupList from '@/model/group-list/GroupList';
-import PretendardText from '@/components/PretendardText';
 import FloatingPillButton from '@/components/FloatingPillButton';
+import GroupStateActionVariant from '@/components/group/GroupStateActionVariant';
+import GroupStateView from '@/components/group/GroupStateView';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import {
   FLOATING_ACTION_RIGHT,
   getFloatingActionBottom,
   getFloatingActionListBottomPadding,
 } from '@/constants/FloatingAction';
-import { Acg, AcgType, Radius } from '@/constants/DesignTokens';
 import GroupListRowView from './GroupListRowView';
 import GroupListSkeletonView from './GroupListSkeletonView';
 
@@ -80,48 +80,32 @@ const GroupListView: FC<Props> = ({ groupList }) => {
   };
 
   const renderLogInPrompt = () => (
-    <View style={styles.stateContainer}>
-      <PretendardText weight='semibold' style={styles.stateTitle}>
-        {l10n.t('group.list.loginTitle')}
-      </PretendardText>
-      <FloatingPillButton
-        label={l10n.t('group.list.login')}
-        onPress={handleLogIn}
-        variant='primary'
-      />
-    </View>
+    <GroupStateView
+      title={l10n.t('group.list.loginTitle')}
+      actionLabel={l10n.t('group.list.login')}
+      onPress={handleLogIn}
+      variant={GroupStateActionVariant.Primary}
+      raised
+    />
   );
 
   const renderError = () => (
-    <View style={styles.stateContainer}>
-      <PretendardText weight='semibold' style={styles.stateTitle}>
-        {l10n.t('group.list.loadFailed')}
-      </PretendardText>
-      <TouchableOpacity
-        style={styles.retryButton}
-        onPress={handleRetry}
-        activeOpacity={0.7}
-        accessibilityRole='button'
-        accessibilityLabel={l10n.t('common.retry')}
-      >
-        <PretendardText weight='semibold' style={styles.retryText}>
-          {l10n.t('common.retry')}
-        </PretendardText>
-      </TouchableOpacity>
-    </View>
+    <GroupStateView
+      title={l10n.t('group.list.loadFailed')}
+      actionLabel={l10n.t('common.retry')}
+      onPress={handleRetry}
+      raised
+    />
   );
 
   const renderEmpty = () => (
-    <View style={styles.stateContainer}>
-      <PretendardText weight='semibold' style={styles.stateTitle}>
-        {l10n.t('group.list.emptyTitle')}
-      </PretendardText>
-      <FloatingPillButton
-        label={l10n.t('group.list.create')}
-        onPress={handleCreate}
-        variant='primary'
-      />
-    </View>
+    <GroupStateView
+      title={l10n.t('group.list.emptyTitle')}
+      actionLabel={l10n.t('group.list.create')}
+      onPress={handleCreate}
+      variant={GroupStateActionVariant.Primary}
+      raised
+    />
   );
 
   const renderSection = (title: string | null, groups: Group[]) => {
@@ -205,32 +189,6 @@ const styles = StyleSheet.create({
   // 첫 구간은 머리가 없으므로 아래 구간만 벌린다 — 배낭 목록 구간 리듬과 같다.
   section: {
     marginBottom: 26,
-  },
-  stateContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-    // 플로팅 알약 자리만큼 살짝 위로 올려 화면 가운데로 읽히게 한다.
-    paddingBottom: 80,
-  },
-  stateTitle: {
-    ...AcgType.sectionTitle,
-    color: Acg.ink,
-    textAlign: 'center',
-  },
-  retryButton: {
-    minHeight: 44,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: Radius.pill,
-    backgroundColor: Acg.controlFill,
-  },
-  retryText: {
-    ...AcgType.control,
-    color: Acg.ink,
   },
   floatingButton: {
     position: 'absolute',

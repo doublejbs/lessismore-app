@@ -4,11 +4,10 @@ import { BagLocation } from '@/model/bag-destination/BagLocation';
 import { GroupCreateInput } from '@/model/group/GroupData';
 import GroupError from '@/model/group/GroupError';
 import GroupValidationError from '@/model/group/GroupValidationError';
+import GroupFieldErrors from '@/model/group-form/GroupFieldErrors';
+import { GROUP_STORAGE_DATE_FORMAT } from '@/model/group-form/GroupStorageDate';
 import GroupCreateDispatcher from './GroupCreateDispatcher';
 import GroupCreateField from './GroupCreateField';
-
-// Firestore가 보관하는 기간 형식(DM-29). 사용자에게 보이는 표기와 다른 캐논컬 값이다.
-const STORAGE_DATE_FORMAT = 'YYYY-MM-DD';
 
 // 실패 코드가 가리키는 폼 필드. 여기 없는 코드는 필드가 아니라 화면 전체의 실패다.
 const FIELD_BY_CODE: Partial<Record<GroupValidationError, GroupCreateField>> = {
@@ -35,10 +34,9 @@ class GroupCreate {
   private destination: BagLocation | null = null;
   private submitting = false;
   private dirty = false;
-  private readonly fieldErrors = new Map<
-    GroupCreateField,
-    GroupValidationError
-  >();
+  // 필드 오류 배선은 수정 화면과 같은 공용 모델을 쓴다.
+  private readonly fieldErrors =
+    GroupFieldErrors.from<GroupCreateField>(FIELD_BY_CODE);
 
   private constructor(private readonly dispatcher: GroupCreateDispatcher) {
     makeAutoObservable(this);
@@ -51,7 +49,7 @@ class GroupCreate {
   public setName(name: string) {
     this.name = name;
     this.dirty = true;
-    this.fieldErrors.delete(GroupCreateField.Name);
+    this.fieldErrors.clearField(GroupCreateField.Name);
   }
 
   public getStartDate() {
@@ -61,7 +59,7 @@ class GroupCreate {
   public setStartDate(date: dayjs.Dayjs) {
     this.startDate = date;
     this.dirty = true;
-    this.fieldErrors.delete(GroupCreateField.Date);
+    this.fieldErrors.clearField(GroupCreateField.Date);
   }
 
   public getEndDate() {
@@ -71,7 +69,7 @@ class GroupCreate {
   public setEndDate(date: dayjs.Dayjs | null) {
     this.endDate = date;
     this.dirty = true;
-    this.fieldErrors.delete(GroupCreateField.Date);
+    this.fieldErrors.clearField(GroupCreateField.Date);
   }
 
   // 선택기를 다시 열 때 넘길 현재 여행지. 저장 대상이 아니라 화면 상태다.
@@ -106,11 +104,11 @@ class GroupCreate {
   }
 
   public getFieldError(field: GroupCreateField): GroupValidationError | null {
-    return this.fieldErrors.get(field) ?? null;
+    return this.fieldErrors.get(field);
   }
 
   public getFirstErrorField(): GroupCreateField | null {
-    return this.fieldErrors.keys().next().value ?? null;
+    return this.fieldErrors.getFirstField();
   }
 
   /**
@@ -130,13 +128,7 @@ class GroupCreate {
 
       return groupId;
     } catch (error) {
-      if (error instanceof GroupError) {
-        const field = FIELD_BY_CODE[error.code];
-
-        if (field) {
-          this.fieldErrors.set(field, error.code);
-        }
-      }
+      this.fieldErrors.capture(error);
 
       throw error;
     } finally {
@@ -152,8 +144,8 @@ class GroupCreate {
 
     const input: GroupCreateInput = {
       name: this.name.trim(),
-      startDate: this.startDate.format(STORAGE_DATE_FORMAT),
-      endDate: this.endDate.format(STORAGE_DATE_FORMAT),
+      startDate: this.startDate.format(GROUP_STORAGE_DATE_FORMAT),
+      endDate: this.endDate.format(GROUP_STORAGE_DATE_FORMAT),
     };
     const campSpotId = this.destination?.campSpotId;
     const destinationName = this.destination?.name.trim();

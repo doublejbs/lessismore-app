@@ -4,10 +4,12 @@ import {
   GroupRouteCoordinate,
 } from '@/model/group/GroupData';
 import {
-  GROUP_ROUTE_MAX_BYTES,
+  GROUP_MAX_LATITUDE,
+  GROUP_MAX_LONGITUDE,
   GROUP_ROUTE_MAX_SIMPLIFIED_POINTS,
   GROUP_ROUTE_MIN_SIMPLIFIED_POINTS,
 } from '@/model/group/GroupLimits';
+import GroupValidator from '@/model/group/GroupValidator';
 import GpxParseError from './GpxParseError';
 import GpxParseErrorType from './GpxParseErrorType';
 
@@ -56,9 +58,6 @@ const NAMED_ENTITIES: Record<string, string> = {
   quot: '"',
   apos: "'",
 };
-
-const MAX_LATITUDE = 90;
-const MAX_LONGITUDE = 180;
 
 /**
  * 고도 상승 히스테리시스(m). GPS 고도는 제자리에서도 ±1~2m 흔들려, 차이를 그대로 더하면
@@ -125,13 +124,19 @@ const toCoordinate = (value: string | undefined): number | null => {
  * 치르지 않는다.
  */
 class GpxParser {
-  // 파싱 전에 거른다 — 5MB를 읽어 들이고 나서 거절하면 그만큼이 헛일이다.
+  /**
+   * 파싱 전에 거른다 — 5MB를 읽어 들이고 나서 거절하면 그만큼이 헛일이다.
+   *
+   * 판정은 `GroupValidator`와 공유하고(같은 상한을 두 곳에 두지 않는다) 에러만 이 단계의 것을 던진다.
+   * 크기를 재지 못한 파일(선택기가 크기를 주지 않는 `content://` 등)은 **크기 미상**이라
+   * `Invalid`로 보낸다 — 작은 파일에 "5MB까지 올릴 수 있어요"라고 하면 사용자가 할 수 있는 일이 없다.
+   */
   public static validateFileSize(fileSize: number) {
-    if (
-      !Number.isFinite(fileSize) ||
-      fileSize <= 0 ||
-      fileSize > GROUP_ROUTE_MAX_BYTES
-    ) {
+    if (!GroupValidator.isKnownRouteFileSize(fileSize)) {
+      throw new GpxParseError(GpxParseErrorType.Invalid);
+    }
+
+    if (!GroupValidator.isValidRouteFileSize(fileSize)) {
       throw new GpxParseError(GpxParseErrorType.TooLarge);
     }
   }
@@ -202,8 +207,8 @@ class GpxParser {
       if (
         latitude !== null &&
         longitude !== null &&
-        Math.abs(latitude) <= MAX_LATITUDE &&
-        Math.abs(longitude) <= MAX_LONGITUDE
+        Math.abs(latitude) <= GROUP_MAX_LATITUDE &&
+        Math.abs(longitude) <= GROUP_MAX_LONGITUDE
       ) {
         points.push({
           latitude,

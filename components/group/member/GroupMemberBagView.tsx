@@ -10,12 +10,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import BagSnapshotGearListView from '@/components/bag-snapshot/BagSnapshotGearListView';
 import PretendardText from '@/components/PretendardText';
 import GroupStateView from '@/components/group/GroupStateView';
+import LoadingView from '@/components/ui/LoadingView';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import GroupMemberBag from '@/model/group-member-bag/GroupMemberBag';
-import GroupMemberBagGearListView from './GroupMemberBagGearListView';
 import GroupMemberBagSummaryView from './GroupMemberBagSummaryView';
 
 interface Props {
@@ -52,7 +53,8 @@ const GroupMemberBagView: FC<Props> = ({ bag }) => {
   const renderContent = () => {
     switch (true) {
       case (!bag.isInitialized() || bag.isLoading()) && !snapshot: {
-        return null;
+        // 조회 중에는 흰 화면을 두지 않는다 — 참여 화면과 같은 로딩 표시를 쓴다.
+        return <LoadingView />;
       }
       case bag.isNotMember(): {
         return (
@@ -98,7 +100,15 @@ const GroupMemberBagView: FC<Props> = ({ bag }) => {
                   nickname={bag.getNickname()}
                   isMine={bag.isMine()}
                 />
-                <GroupMemberBagGearListView snapshot={snapshot} />
+                {/* 장비 목록은 커뮤니티 스냅샷과 같은 공용 뷰다 — 문구만 그룹 것을 쓴다. */}
+                <BagSnapshotGearListView
+                  gears={snapshot.gears}
+                  gearUnitText={l10n.t('group.member.sectionGearUnit')}
+                  weightUnitText={l10n.t('group.member.sectionWeightUnit')}
+                  separatorText={l10n.t('group.member.sectionSeparator')}
+                  emptyText={l10n.t('group.member.emptyGears')}
+                  onSelectGear={gearId => router.push(`/gear-detail/${gearId}`)}
+                />
               </>
             ) : null}
           </ScrollView>

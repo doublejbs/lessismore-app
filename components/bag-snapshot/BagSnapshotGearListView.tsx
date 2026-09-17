@@ -2,38 +2,50 @@ import { FC } from 'react';
 import { observer } from 'mobx-react-lite';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgRow, AcgType } from '@/constants/DesignTokens';
-import app from '@/model/app/App';
-import { GroupBagSnapshot } from '@/model/group/GroupData';
+import { formatBagSnapshotWeightInGrams } from '@/model/bag-snapshot/BagSnapshotFormat';
+import { CommunityBagSnapshotGear } from '@/model/community/CommunityData';
 import { getCommunityBagSnapshotGroups } from '@/model/community/CommunityFormat';
-import { formatGroupWeightInGrams } from '@/model/group-format/GroupFormat';
 import { getGearFilterName } from '@/model/gear/GearFilterName';
 
 interface Props {
-  snapshot: GroupBagSnapshot;
+  gears: CommunityBagSnapshotGear[];
+  // 구간 머리의 단위·구분 문구. 화면마다 네임스페이스가 달라 키가 아니라 완성된 문구로 받는다.
+  gearUnitText: string;
+  weightUnitText: string;
+  separatorText: string;
+  // 담긴 장비가 없을 때 적을 문구. 넘기지 않으면 아무것도 그리지 않는다.
+  emptyText?: string | undefined;
+  // 카탈로그 장비 행을 눌렀을 때. 분석 이벤트는 화면마다 달라 호출부가 쏜다.
+  onSelectGear: (gearId: string) => void;
 }
 
 /**
- * 멤버 배낭 장비 목록 (GRP-5). **읽기 전용**이다.
+ * 배낭 스냅샷 장비 목록 (CM-4 · GRP-5). **읽기 전용**이다.
  *
- * 순백 지면 위 카테고리별 섹션 + 헤어라인 행으로, 커뮤니티 패킹 스냅샷 목록과 같은 문법이다.
- * 카테고리 묶기는 커뮤니티와 같은 단일 소스를 쓴다 — 두 화면이 각자 묶으면 분류가 갈라진다.
+ * 순백 지면 위 카테고리별 구간 + 헤어라인 행. 커뮤니티 패킹 스냅샷과 그룹 일행 배낭이 같은
+ * 목록을 그리므로 마크업·치수를 한 곳에 둔다 — 갈라지면 같은 배낭이 화면마다 다르게 읽힌다.
+ * 카테고리 묶기도 같은 단일 소스(`getCommunityBagSnapshotGroups`)를 쓴다.
  * 카탈로그 장비(`gearId` 있음)만 장비 상세로 갈 수 있고, 사용자 정의 장비는 정적 행이다.
  */
-const GroupMemberBagGearListView: FC<Props> = ({ snapshot }) => {
-  const router = useRouter();
-  const l10n = app.getL10n();
-  const groups = getCommunityBagSnapshotGroups(snapshot.gears);
+const BagSnapshotGearListView: FC<Props> = ({
+  gears,
+  gearUnitText,
+  weightUnitText,
+  separatorText,
+  emptyText,
+  onSelectGear,
+}) => {
+  const groups = getCommunityBagSnapshotGroups(gears);
 
   if (groups.length === 0) {
-    return (
-      <PretendardText style={styles.empty}>
-        {l10n.t('group.member.emptyGears')}
-      </PretendardText>
-    );
+    if (!emptyText) {
+      return null;
+    }
+
+    return <PretendardText style={styles.empty}>{emptyText}</PretendardText>;
   }
 
   return (
@@ -51,17 +63,20 @@ const GroupMemberBagGearListView: FC<Props> = ({ snapshot }) => {
               <AcgDisplayText style={styles.sectionMetaNumber}>
                 {`${group.gears.length}`}
               </AcgDisplayText>
-              {l10n.t('group.member.sectionGearUnit')}
-              {l10n.t('group.member.sectionSeparator')}
+              {gearUnitText}
+              {separatorText}
               <AcgDisplayText style={styles.sectionMetaNumber}>
-                {formatGroupWeightInGrams(group.totalWeight)}
+                {formatBagSnapshotWeightInGrams(group.totalWeight)}
               </AcgDisplayText>
-              {l10n.t('group.member.sectionWeightUnit')}
+              {weightUnitText}
             </PretendardText>
           </View>
           {group.gears.map((gear, gearIndex) => {
             const gearId = gear.gearId;
-            const rowStyle = [styles.gearRow, gearIndex > 0 && styles.gearRowDivided];
+            const rowStyle = [
+              styles.gearRow,
+              gearIndex > 0 && styles.gearRowDivided,
+            ];
             const content = (
               <View style={styles.gearContent}>
                 <PretendardText
@@ -73,11 +88,9 @@ const GroupMemberBagGearListView: FC<Props> = ({ snapshot }) => {
                 </PretendardText>
                 <PretendardText style={styles.gearMeta} numberOfLines={1}>
                   <AcgDisplayText style={styles.gearMetaNumber}>
-                    {`${formatGroupWeightInGrams(gear.weight)}g`}
+                    {`${formatBagSnapshotWeightInGrams(gear.weight)}g`}
                   </AcgDisplayText>
-                  {gear.company
-                    ? `${l10n.t('group.member.sectionSeparator')}${gear.company}`
-                    : ''}
+                  {gear.company ? `${separatorText}${gear.company}` : ''}
                 </PretendardText>
               </View>
             );
@@ -94,7 +107,7 @@ const GroupMemberBagGearListView: FC<Props> = ({ snapshot }) => {
               <TouchableOpacity
                 key={`${gear.name}-${gearIndex}`}
                 style={rowStyle}
-                onPress={() => router.push(`/gear-detail/${gearId}`)}
+                onPress={() => onSelectGear(gearId)}
                 activeOpacity={0.7}
                 accessibilityRole='button'
                 accessibilityLabel={gear.name}
@@ -146,4 +159,4 @@ const styles = StyleSheet.create({
   gearMetaNumber: { ...AcgType.rowSubtitle, color: Acg.ink },
 });
 
-export default observer(GroupMemberBagGearListView);
+export default observer(BagSnapshotGearListView);

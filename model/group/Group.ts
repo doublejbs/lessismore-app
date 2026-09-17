@@ -1,7 +1,5 @@
-import { makeAutoObservable } from 'mobx';
 import { getGroupInviteUrl } from '@/constants/WebLinks';
 import { GroupData, GroupIndexData, toGroupDate } from './GroupData';
-import GroupMemberRole from './GroupMemberRole';
 import { GROUP_MAX_MEMBER_COUNT } from './GroupLimits';
 
 // 그룹 = 여행 1건 (GRP-2, DM-29 `groups/{groupId}`).
@@ -17,10 +15,7 @@ class Group {
   private readonly destinationName: string | undefined;
   private readonly meetingNote: string | undefined;
   private readonly inviteEnabled: boolean;
-  private readonly pointCount: number;
-  private readonly routeCount: number;
   private readonly createdAt: Date;
-  private readonly updatedAt: Date;
   private readonly summary: boolean;
   private readonly myBagLinked: boolean;
 
@@ -65,14 +60,9 @@ class Group {
     this.destinationName = data.destinationName;
     this.meetingNote = data.meetingNote;
     this.inviteEnabled = data.inviteEnabled;
-    this.pointCount = data.pointCount;
-    this.routeCount = data.routeCount;
     this.createdAt = toGroupDate(data.createdAt);
-    this.updatedAt = toGroupDate(data.updatedAt);
     this.summary = data.summary === true;
     this.myBagLinked = data.hasMyBag === true;
-
-    makeAutoObservable(this);
   }
 
   public getId() {
@@ -89,10 +79,6 @@ class Group {
 
   public getEndDate() {
     return this.endDate;
-  }
-
-  public getOwnerId() {
-    return this.ownerId;
   }
 
   // 내부 배열을 그대로 내주면 생성자의 방어 복사가 무의미해진다 — 사본을 돌려준다.
@@ -120,24 +106,8 @@ class Group {
     return this.inviteEnabled;
   }
 
-  public getPointCount() {
-    return this.pointCount;
-  }
-
-  public getRouteCount() {
-    return this.routeCount;
-  }
-
   public getCreatedAt() {
     return this.createdAt;
-  }
-
-  public getUpdatedAt() {
-    return this.updatedAt;
-  }
-
-  public getRole(uid: string) {
-    return this.isOwner(uid) ? GroupMemberRole.Owner : GroupMemberRole.Member;
   }
 
   public isOwner(uid: string) {

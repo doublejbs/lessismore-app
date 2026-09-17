@@ -88,10 +88,11 @@ const useGroupDetailState = (detail: GroupDetail) => {
     void detail.setInviteEnabled(!group.getInviteEnabled());
   };
 
+  // 확인 버튼에 결과를 적는다 — `확인`만 적힌 버튼은 무엇이 일어나는지 말하지 않는다(HIG).
   const handleLeave = () => {
     app.getAlertManager()?.show({
       message: l10n.t('group.detail.leaveConfirm'),
-      confirmText: l10n.t('common.confirm'),
+      confirmText: l10n.t('group.detail.leaveGroup'),
       cancelText: l10n.t('common.cancel'),
       onConfirm: async () => {
         if (await detail.leaveGroup()) {
@@ -101,11 +102,16 @@ const useGroupDetailState = (detail: GroupDetail) => {
     });
   };
 
+  /**
+   * 그룹 해산 (GRP-7). 그룹·멤버·배낭 스냅샷·포인트·코스·Storage GPX가 **전원분** 사라지는
+   * 되돌릴 수 없는 액션이라, 포인트 하나 지우기·멤버 내보내기와 같은 파괴적 표시를 준다.
+   */
   const handleDelete = () => {
     app.getAlertManager()?.show({
       message: l10n.t('group.detail.deleteConfirm'),
-      confirmText: l10n.t('common.confirm'),
+      confirmText: l10n.t('group.detail.deleteGroup'),
       cancelText: l10n.t('common.cancel'),
+      destructive: true,
       onConfirm: async () => {
         if (await detail.deleteGroup()) {
           router.back();

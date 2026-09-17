@@ -1,10 +1,10 @@
 import { FC } from 'react';
 import { observer } from 'mobx-react-lite';
 import { StyleSheet, TouchableOpacity } from 'react-native';
-import dayjs from 'dayjs';
 import { useRouter } from 'expo-router';
 import app from '@/model/app/App';
 import Group from '@/model/group/Group';
+import { formatGroupDateRange } from '@/model/group-format/GroupFormat';
 import PretendardText from '@/components/PretendardText';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import { Acg, AcgRow, AcgType } from '@/constants/DesignTokens';
@@ -21,9 +21,11 @@ interface Props {
 const GroupListRowView: FC<Props> = ({ group, divided = false }) => {
   const router = useRouter();
   const l10n = app.getL10n();
-  // 날짜 표기는 배낭 목록과 같은 단일 소스를 쓴다 — 로케일마다 형식이 다르다.
-  const dateFormat = l10n.t('bag.dateShortFormat');
-  const dateText = `${dayjs(group.getStartDate()).format(dateFormat)}${l10n.t('bag.dateRangeSeparator')}${dayjs(group.getEndDate()).format(dateFormat)}`;
+  // 기간 표기는 상세·멤버 배낭 카드와 같은 단일 소스를 쓴다(로케일마다 형식이 다르다).
+  const dateText = formatGroupDateRange(
+    group.getStartDate(),
+    group.getEndDate()
+  );
   const destinationName = group.getDestinationName();
   const metaParts = [
     ...(destinationName ? [destinationName] : []),

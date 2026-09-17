@@ -97,9 +97,9 @@ class GroupBagSnapshotBuilder {
     const snapshot: GroupBagSnapshot = {
       uid,
       bagId: data.bagId,
-      name: base.name ?? '',
-      totalWeight: Number(base.totalWeight) || 0,
-      itemCount: Number(base.itemCount) || 0,
+      name: base.name,
+      totalWeight: base.totalWeight,
+      itemCount: base.itemCount,
       gears: base.gears.map(gear => this.toSnapshotGear(gear)),
       syncedAt: toGroupDate(data.syncedAt),
     };
@@ -124,13 +124,15 @@ class GroupBagSnapshotBuilder {
   }
 
   // 커스텀 장비는 문서 ID를 싣지 않으므로(DM-28·DM-29 제외 목록) gearId만 조건부로 넣는다.
+  // 값은 커뮤니티 스냅샷이 확정한 타입 그대로 옮긴다 — 여기서 다시 보정하면
+  // "커뮤니티 결과에서 파생한다"는 계약이 흐려지고, 실제 방어는 보안 규칙(isValidBagSnapshot)이 한다.
   private toSnapshotGear(gear: CommunityBagSnapshotGear): GroupBagSnapshotGear {
     return {
       ...(gear.gearId ? { gearId: gear.gearId } : {}),
-      company: gear.company ?? '',
-      name: gear.name ?? '',
-      weight: Number(gear.weight) || 0,
-      category: gear.category ?? '',
+      company: gear.company,
+      name: gear.name,
+      weight: gear.weight,
+      category: gear.category,
     };
   }
 }

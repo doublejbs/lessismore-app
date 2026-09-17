@@ -1247,9 +1247,6 @@
     }
   },
   "group": {
-    "common": {
-      "preparing": "準備中です"
-    },
     "segment": {
       "label": "グループ"
     },
@@ -1327,7 +1324,6 @@
     },
     "detail": {
       "metaSeparator": " · ",
-      "dateRangeSeparator": " ~ ",
       "summaryMembers_other": "メンバー{{count}}人",
       "summaryBags_other": "バックパック{{count}}個",
       "summaryWeight": "合計{{weight}}kg",
@@ -1343,8 +1339,10 @@
       "bagSheetEmpty": "先にバックパックを作成してください",
       "routesTitle": "コース",
       "routesEmpty": "まだコースがありません",
+      "routesLoadFailed": "コースを読み込めませんでした",
       "pointsTitle": "地図ポイント",
       "pointsEmpty": "まだポイントがありません",
+      "pointsLoadFailed": "ポイントを読み込めませんでした",
       "inviteTitle": "招待",
       "inviteDescription": "リンクを受け取った人だけが参加できます",
       "menu": "その他",

@@ -1,6 +1,7 @@
-import { FC, useEffect, useState } from 'react';
+import { FC } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import { Acg, AcgRadius, AcgRow, AcgType } from '@/constants/DesignTokens';
+import useBreathingOpacity from '@/hooks/useBreathingOpacity';
 
 /**
  * 배낭 목록 로딩 스켈레톤(BAG-1).
@@ -34,32 +35,6 @@ const SKELETON_BAR = '#E3E3E3';
  * 보이지 않는다 — 막대보다 한 단 더 진하게 두어 "여기에 이미지가 들어온다"를 알린다.
  */
 const SKELETON_BAND = '#DCDCDC';
-
-const useBreathingOpacity = () => {
-  // `useRef(...).current`를 렌더 중 읽으면 react-hooks 규칙에 걸린다 — 초기화 함수로 1회만 만든다.
-  const [opacity] = useState(() => new Animated.Value(0.3));
-
-  useEffect(() => {
-    const animate = () => {
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 0.7,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 0.3,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ]).start(() => animate());
-    };
-
-    animate();
-  }, [opacity]);
-
-  return opacity;
-};
 
 // 배낭 카드: 지도 밴드 자리 + 이름 + 메타 한 줄. 실제 카드(BagItemView)와 같은 배치다.
 const SkeletonCard: FC = () => {

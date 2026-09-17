@@ -19,6 +19,7 @@ import { getGroupValidationMessage } from '@/model/group-error/GroupErrorMessage
 import { setPendingGroupRoute } from '@/model/group-map/GroupMapHandoff';
 import GroupRouteDispatcher from '@/model/group-route/GroupRouteDispatcher';
 import GroupRouteList from '@/model/group-route/GroupRouteList';
+import GroupSectionErrorView from './GroupSectionErrorView';
 
 interface Props {
   detail: GroupDetail;
@@ -86,6 +87,37 @@ const GroupDetailRouteSectionView: FC<Props> = ({ detail }) => {
   const isSubmitting = routeList.isSubmitting();
   const canAdd = routeList.canAdd();
 
+  const renderBody = () => {
+    // 못 읽은 것과 없는 것을 구분한다 — 실패에 빈 상태를 보이면 재시도할 길이 사라진다.
+    if (routeList.getError() && routeList.getCount() === 0) {
+      return (
+        <GroupSectionErrorView
+          message={l10n.t('group.detail.routesLoadFailed')}
+          onRetry={() => void routeList.refresh()}
+        />
+      );
+    }
+
+    if (routeList.getCount() === 0) {
+      return (
+        <PretendardText style={styles.empty}>
+          {l10n.t('group.detail.routesEmpty')}
+        </PretendardText>
+      );
+    }
+
+    return (
+      <GroupRouteListView
+        routes={routeList.getRoutes()}
+        memberIds={group.getMemberIds()}
+        onSelect={handleSelect}
+        onDelete={handleDelete}
+        canDelete={route => routeList.canDelete(route, group)}
+        disabled={isSubmitting}
+      />
+    );
+  };
+
   return (
     <View style={styles.section}>
       <View style={styles.header}>
@@ -122,20 +154,7 @@ const GroupDetailRouteSectionView: FC<Props> = ({ detail }) => {
           {getGroupValidationMessage(GroupValidationError.RouteLimitExceeded)}
         </PretendardText>
       ) : null}
-      {routeList.getCount() === 0 ? (
-        <PretendardText style={styles.empty}>
-          {l10n.t('group.detail.routesEmpty')}
-        </PretendardText>
-      ) : (
-        <GroupRouteListView
-          routes={routeList.getRoutes()}
-          memberIds={group.getMemberIds()}
-          onSelect={handleSelect}
-          onDelete={handleDelete}
-          canDelete={route => routeList.canDelete(route, group)}
-          disabled={isSubmitting}
-        />
-      )}
+      {renderBody()}
     </View>
   );
 };

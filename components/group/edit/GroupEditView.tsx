@@ -20,6 +20,7 @@ import GroupStateView from '@/components/group/GroupStateView';
 import GroupDestinationFieldView from '@/components/group/form/GroupDestinationFieldView';
 import GroupFormFieldView from '@/components/group/form/GroupFormFieldView';
 import GroupTextFieldView from '@/components/group/form/GroupTextFieldView';
+import LoadingView from '@/components/ui/LoadingView';
 import { Acg, AcgLayout, AcgType, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import { setBagDestinationPicker } from '@/model/bag-destination/BagDestinationPickerHandoff';
@@ -243,7 +244,8 @@ const GroupEditView: FC<Props> = ({ groupEdit }) => {
   const renderContent = () => {
     switch (true) {
       case !groupEdit.getIsInitialized() || groupEdit.getIsLoading(): {
-        return null;
+        // 조회 중에는 흰 화면을 두지 않는다 — 참여 화면과 같은 로딩 표시를 쓴다.
+        return <LoadingView />;
       }
       case groupEdit.isNotFound(): {
         return (

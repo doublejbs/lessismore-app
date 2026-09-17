@@ -13,6 +13,7 @@ import GroupDetail from '@/model/group-detail/GroupDetail';
 import { setPendingGroupPoint } from '@/model/group-map/GroupMapHandoff';
 import GroupPointDispatcher from '@/model/group-point/GroupPointDispatcher';
 import GroupPointList from '@/model/group-point/GroupPointList';
+import GroupSectionErrorView from './GroupSectionErrorView';
 
 interface Props {
   detail: GroupDetail;
@@ -65,6 +66,35 @@ const GroupDetailPointSectionView: FC<Props> = ({ detail }) => {
     return null;
   }
 
+  const renderBody = () => {
+    // 못 읽은 것과 없는 것을 구분한다 — 실패에 빈 상태를 보이면 재시도할 길이 사라진다.
+    if (pointList.getError() && pointList.getCount() === 0) {
+      return (
+        <GroupSectionErrorView
+          message={l10n.t('group.detail.pointsLoadFailed')}
+          onRetry={() => void pointList.refresh()}
+        />
+      );
+    }
+
+    if (pointList.getCount() === 0) {
+      return (
+        <PretendardText style={styles.empty}>
+          {l10n.t('group.detail.pointsEmpty')}
+        </PretendardText>
+      );
+    }
+
+    return (
+      <GroupPointListView
+        pointList={pointList}
+        group={group}
+        userId={detail.getUserId()}
+        onSelect={handleSelectPoint}
+      />
+    );
+  };
+
   return (
     <View style={styles.section}>
       <View style={styles.header}>
@@ -83,18 +113,7 @@ const GroupDetailPointSectionView: FC<Props> = ({ detail }) => {
           <Ionicons name='chevron-forward' size={14} color={Acg.ink} />
         </TouchableOpacity>
       </View>
-      {pointList.getCount() === 0 ? (
-        <PretendardText style={styles.empty}>
-          {l10n.t('group.detail.pointsEmpty')}
-        </PretendardText>
-      ) : (
-        <GroupPointListView
-          pointList={pointList}
-          group={group}
-          userId={detail.getUserId()}
-          onSelect={handleSelectPoint}
-        />
-      )}
+      {renderBody()}
     </View>
   );
 };

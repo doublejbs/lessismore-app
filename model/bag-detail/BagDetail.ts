@@ -695,24 +695,12 @@ class BagDetail {
           );
         }
 
-        this.syncGroupBagSnapshots();
+        // 이 배낭을 연결한 그룹의 공개 스냅샷을 다시 쓴다 (GRP-5 갱신 시점 ② 배낭 정보 수정).
+        app.getGroupStore()?.syncBagSnapshotsInBackground(this.id);
       },
     });
 
     this.router.push('/bag-info-edit');
-  }
-
-  /**
-   * 이 배낭을 연결한 그룹의 공개 스냅샷을 다시 쓴다 (GRP-5 갱신 시점 ② 배낭 정보 수정).
-   * 사용자 조작 뒤에 따라붙는 배경 작업이라 기다리지 않고, 실패해도 저장 결과를 되돌리지 않는다.
-   */
-  private syncGroupBagSnapshots() {
-    void app
-      .getGroupStore()
-      ?.syncBagSnapshots(this.id)
-      .catch(error => {
-        console.warn('[BagDetail] group bag snapshot sync failed', error);
-      });
   }
 
   public async updateName(name: string) {

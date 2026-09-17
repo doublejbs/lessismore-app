@@ -10,7 +10,7 @@ import { Acg, AcgLayout, AcgRow, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import GroupDetail from '@/model/group-detail/GroupDetail';
 import GroupMember from '@/model/group/GroupMember';
-import { formatGroupWeight } from '@/model/group-format/GroupFormat';
+import { formatBagSnapshotWeightInKilograms } from '@/model/bag-snapshot/BagSnapshotFormat';
 
 interface Props {
   detail: GroupDetail;
@@ -70,7 +70,7 @@ const GroupMemberBagListView: FC<Props> = ({
         <PretendardText style={styles.meta} numberOfLines={1}>
           {snapshot ? (
             <AcgDisplayText style={styles.metaNumber}>
-              {`${formatGroupWeight(snapshot.totalWeight)}kg`}
+              {`${formatBagSnapshotWeightInKilograms(snapshot.totalWeight)}kg`}
             </AcgDisplayText>
           ) : null}
           {meta}

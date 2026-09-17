@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { Ionicons } from '@expo/vector-icons';
 import app from '@/model/app/App';
 import GroupPointType from '@/model/group/GroupPointType';
@@ -86,11 +87,11 @@ export const getGroupPointAuthorLabel = (
   return authorName;
 };
 
-// 등록 시각 표기 (GRP-9). 숫자·구분점뿐이라 언어별로 갈리지 않는다.
+/**
+ * 등록 시각 표기 (GRP-9). 날짜 형식은 배낭·그룹 기간과 같은 단일 소스
+ * (`bag.dateShortFormat`)를 쓴다 — 영어는 `Mar 3, 2026`, 일본어는 `2026/03/03`이라
+ * 여기서만 점 구분 표기를 쓰면 같은 화면 안에서 날짜 문법이 갈린다.
+ */
 export const getGroupPointDateText = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, '0');
-  const day = `${date.getDate()}`.padStart(2, '0');
-
-  return `${year}.${month}.${day}`;
+  return dayjs(date).format(app.getL10n().t('bag.dateShortFormat'));
 };

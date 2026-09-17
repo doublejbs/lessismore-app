@@ -1,7 +1,6 @@
 import { FC } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
-import dayjs from 'dayjs';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +15,7 @@ import { Acg, AcgLayout, AcgType, Radius } from '@/constants/DesignTokens';
 import GroupError from '@/model/group/GroupError';
 import GroupValidationError from '@/model/group/GroupValidationError';
 import { getGroupErrorMessage } from '@/model/group-error/GroupErrorMessage';
+import { formatGroupDateRange } from '@/model/group-format/GroupFormat';
 import GroupJoin from '@/model/group-join/GroupJoin';
 import GroupJoinStatus from '@/model/group-join/GroupJoinStatus';
 
@@ -47,10 +47,9 @@ const GroupJoinView: FC<Props> = ({ groupJoin, groupId }) => {
   const group = groupJoin.getGroup();
   const isJoining = groupJoin.getIsJoining();
   const messageKey = MESSAGE_KEY_BY_STATUS[status];
-  // 기간 표기는 배낭·그룹 목록과 같은 단일 소스를 쓴다 — 로케일마다 형식이 다르다.
-  const dateFormat = l10n.t('bag.dateShortFormat');
+  // 기간 표기는 목록·상세와 같은 단일 소스를 쓴다(로케일마다 형식이 다르다).
   const dateText = group
-    ? `${dayjs(group.getStartDate()).format(dateFormat)}${l10n.t('bag.dateRangeSeparator')}${dayjs(group.getEndDate()).format(dateFormat)}`
+    ? formatGroupDateRange(group.getStartDate(), group.getEndDate())
     : '';
   const destinationName = group?.getDestinationName();
   const metaParts = group

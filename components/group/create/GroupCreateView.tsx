@@ -5,7 +5,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -19,7 +18,10 @@ import AlertView from '@/components/alert/AlertView';
 import LogInView from '@/components/login/LogInView';
 import ToastView from '@/components/toast/ToastView';
 import DateRangeCalendarView from '@/components/bag/DateRangeCalendarView';
-import { Acg, AcgLayout, AcgRadius, AcgType, Radius } from '@/constants/DesignTokens';
+import GroupDestinationFieldView from '@/components/group/form/GroupDestinationFieldView';
+import GroupFormFieldView from '@/components/group/form/GroupFormFieldView';
+import GroupTextFieldView from '@/components/group/form/GroupTextFieldView';
+import { Acg, AcgLayout, AcgType, Radius } from '@/constants/DesignTokens';
 import { setBagDestinationPicker } from '@/model/bag-destination/BagDestinationPickerHandoff';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import GroupCreate from '@/model/group-create/GroupCreate';
@@ -41,7 +43,8 @@ const NATIVE_HEADER_HEIGHT = 44;
 const IS_IOS = Platform.OS === 'ios';
 
 /**
- * 그룹 만들기 화면 (GRP-2). 폼 문법은 커뮤니티 작성 화면을 따른다 —
+ * 그룹 만들기 화면 (GRP-2). 폼 칸은 수정 화면과 같은 공용 컴포넌트
+ * (`components/group/form/`)를 쓴다 — 같은 폼이 두 화면에서 갈리면 한쪽만 고쳐진다.
  * 라벨 행 우측 글자수 카운터, 단일행 입력에 lineHeight 없음, 하단 고정 라임 알약 하나.
  */
 const GroupCreateView: FC<Props> = ({ groupCreate }) => {
@@ -194,42 +197,26 @@ const GroupCreateView: FC<Props> = ({ groupCreate }) => {
           keyboardShouldPersistTaps='handled'
           showsVerticalScrollIndicator={false}
         >
-          <View
-            style={styles.field}
-            onLayout={event => setNameFieldY(event.nativeEvent.layout.y)}
-          >
-            <View style={styles.fieldHeader}>
-              <PretendardText style={styles.label} weight='semibold'>
-                {l10n.t('group.create.nameLabel')}
-              </PretendardText>
-              <PretendardText style={styles.counter}>
-                {l10n.t('group.create.counter', {
-                  count: groupCreate.getName().length,
-                  max: GROUP_NAME_MAX_LENGTH,
-                })}
-              </PretendardText>
-            </View>
-            <TextInput
-              style={styles.input}
-              value={groupCreate.getName()}
-              onChangeText={value => groupCreate.setName(value)}
-              placeholder={l10n.t('group.create.namePlaceholder')}
-              placeholderTextColor={Acg.textMuted}
-              maxLength={GROUP_NAME_MAX_LENGTH}
-              editable={!isSubmitting}
-              returnKeyType='done'
-              accessibilityState={{ disabled: isSubmitting }}
-            />
-            {getErrorText(GroupCreateField.Name) && (
-              <PretendardText style={styles.error}>
-                {getErrorText(GroupCreateField.Name)}
-              </PretendardText>
-            )}
+          <View onLayout={event => setNameFieldY(event.nativeEvent.layout.y)}>
+            <GroupFormFieldView
+              label={l10n.t('group.create.nameLabel')}
+              counterText={l10n.t('group.create.counter', {
+                count: groupCreate.getName().length,
+                max: GROUP_NAME_MAX_LENGTH,
+              })}
+              errorText={getErrorText(GroupCreateField.Name)}
+            >
+              <GroupTextFieldView
+                value={groupCreate.getName()}
+                onChangeText={value => groupCreate.setName(value)}
+                placeholder={l10n.t('group.create.namePlaceholder')}
+                maxLength={GROUP_NAME_MAX_LENGTH}
+                editable={!isSubmitting}
+                accessibilityLabel={l10n.t('group.create.nameLabel')}
+              />
+            </GroupFormFieldView>
           </View>
-          <View
-            style={styles.field}
-            onLayout={event => setDateFieldY(event.nativeEvent.layout.y)}
-          >
+          <View onLayout={event => setDateFieldY(event.nativeEvent.layout.y)}>
             {/* 날짜 UI는 배낭 생성·편집과 같은 범위 선택기를 그대로 쓴다(새 달력을 만들지 않는다). */}
             <DateRangeCalendarView
               startDate={groupCreate.getStartDate()}
@@ -237,62 +224,23 @@ const GroupCreateView: FC<Props> = ({ groupCreate }) => {
               onStartDateChange={date => groupCreate.setStartDate(date)}
               onEndDateChange={date => groupCreate.setEndDate(date)}
             />
-            {getErrorText(GroupCreateField.Date) && (
+            {getErrorText(GroupCreateField.Date) ? (
               <PretendardText style={styles.error}>
                 {getErrorText(GroupCreateField.Date)}
               </PretendardText>
-            )}
+            ) : null}
           </View>
-          <View style={styles.field}>
-            <View style={styles.fieldHeader}>
-              <PretendardText style={styles.label} weight='semibold'>
-                {l10n.t('group.create.destinationLabel')}
-              </PretendardText>
-            </View>
-            <View style={styles.destinationRow}>
-              <TouchableOpacity
-                style={styles.destinationField}
-                onPress={handleOpenDestination}
-                activeOpacity={0.7}
-                disabled={isSubmitting}
-                accessibilityRole='button'
-                accessibilityLabel={l10n.t('group.create.destinationSelect')}
-                accessibilityState={{ disabled: isSubmitting }}
-              >
-                <PretendardText
-                  style={[
-                    styles.destinationText,
-                    !destinationName && styles.destinationPlaceholder,
-                  ]}
-                  numberOfLines={1}
-                >
-                  {destinationName || l10n.t('group.create.destinationPlaceholder')}
-                </PretendardText>
-                {/* 누를 수 있음은 색이 아니라 셰브론으로 알린다(HM-8). */}
-                <Ionicons
-                  name='chevron-forward'
-                  size={18}
-                  color={Acg.textMuted}
-                />
-              </TouchableOpacity>
-              {groupCreate.hasDestination() && (
-                <TouchableOpacity
-                  style={styles.destinationClear}
-                  onPress={() => groupCreate.clearDestination()}
-                  disabled={isSubmitting}
-                  accessibilityRole='button'
-                  accessibilityLabel={l10n.t('group.create.destinationClear')}
-                  accessibilityState={{ disabled: isSubmitting }}
-                >
-                  <Ionicons
-                    name='close-circle'
-                    size={20}
-                    color={Acg.textMuted}
-                  />
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
+          <GroupFormFieldView label={l10n.t('group.create.destinationLabel')}>
+            <GroupDestinationFieldView
+              destinationName={destinationName}
+              placeholder={l10n.t('group.create.destinationPlaceholder')}
+              selectLabel={l10n.t('group.create.destinationSelect')}
+              clearLabel={l10n.t('group.create.destinationClear')}
+              disabled={isSubmitting}
+              onPress={handleOpenDestination}
+              onClear={() => groupCreate.clearDestination()}
+            />
+          </GroupFormFieldView>
         </ScrollView>
         <View style={[styles.bottomBar, { paddingBottom: bottomInset }]}>
           <TouchableOpacity
@@ -355,67 +303,10 @@ const styles = StyleSheet.create({
     paddingTop: AcgLayout.screenPadding,
     gap: 24,
   },
-  field: {
-    gap: 8,
-  },
-  fieldHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  label: {
-    ...AcgType.meta,
-    color: Acg.ink,
-  },
-  counter: {
-    ...AcgType.meta,
-    color: Acg.textMuted,
-  },
-  input: {
-    minHeight: 52,
-    borderRadius: AcgRadius.thumb,
-    backgroundColor: Acg.controlFill,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    // 단일행 TextInput에 lineHeight를 얹으면 iOS에서 글자가 아래로 치우쳐 상하 패딩이 어긋난다.
-    fontSize: AcgType.control.fontSize,
-    letterSpacing: AcgType.control.letterSpacing,
-    color: Acg.ink,
-  },
-  destinationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  destinationField: {
-    flex: 1,
-    minHeight: 52,
-    borderRadius: AcgRadius.thumb,
-    backgroundColor: Acg.controlFill,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  destinationText: {
-    ...AcgType.control,
-    color: Acg.ink,
-    flex: 1,
-  },
-  destinationPlaceholder: {
-    color: Acg.textMuted,
-  },
-  destinationClear: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   error: {
     ...AcgType.meta,
     color: Acg.error,
+    marginTop: 8,
   },
   bottomBar: {
     paddingHorizontal: AcgLayout.screenPadding,

@@ -8,6 +8,7 @@ import AlertView from '@/components/alert/AlertView';
 import GroupStateView from '@/components/group/GroupStateView';
 import PretendardText from '@/components/PretendardText';
 import ToastView from '@/components/toast/ToastView';
+import LoadingView from '@/components/ui/LoadingView';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import GroupPoint from '@/model/group/GroupPoint';
@@ -169,7 +170,8 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
   const renderContent = () => {
     switch (true) {
       case (!groupMap.isInitialized() || groupMap.isLoading()) && !group: {
-        return null;
+        // 조회 중에는 흰 화면을 두지 않는다 — 참여 화면과 같은 로딩 표시를 쓴다.
+        return <LoadingView />;
       }
       case groupMap.isNotFound(): {
         return (

@@ -67,10 +67,6 @@ class GroupRouteList {
     return this.routes.length >= GROUP_MAX_ROUTE_COUNT;
   }
 
-  public isEmpty(): boolean {
-    return this.initialized && this.routes.length === 0;
-  }
-
   public isLoading(): boolean {
     return this.loading;
   }

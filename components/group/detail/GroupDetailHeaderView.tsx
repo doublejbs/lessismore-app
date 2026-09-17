@@ -1,26 +1,18 @@
-import { FC, useMemo, useState } from 'react';
+import { FC } from 'react';
 import { observer } from 'mobx-react-lite';
-import { StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
-import { Image } from 'expo-image';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import SnapshotMapBandVariant from '@/components/bag-snapshot/SnapshotMapBandVariant';
+import SnapshotMapBandView from '@/components/bag-snapshot/SnapshotMapBandView';
 import PretendardText from '@/components/PretendardText';
-import SpotPinView from '@/components/camp-site/SpotPinView';
-import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
+import { formatBagSnapshotWeightInKilograms } from '@/model/bag-snapshot/BagSnapshotFormat';
 import GroupDetail from '@/model/group-detail/GroupDetail';
-import {
-  formatGroupDateRange,
-  formatGroupWeight,
-} from '@/model/group-format/GroupFormat';
-import {
-  BAG_CARD_MAP_LEVEL,
-  buildStaticMapUrl,
-  STATIC_MAP_REFERER,
-} from '@/model/map/StaticMapUrl';
+import { formatGroupDateRange } from '@/model/group-format/GroupFormat';
 
-const MAP_BAND_HEIGHT = 110;
 const ACTIVE_SPOT_STATUS = 'active';
 
 interface Props {
@@ -35,32 +27,14 @@ interface Props {
  */
 const GroupDetailHeaderView: FC<Props> = ({ detail }) => {
   const router = useRouter();
-  const { width: windowWidth } = useWindowDimensions();
-  const [failedMapUrl, setFailedMapUrl] = useState<string | null>(null);
   const l10n = app.getL10n();
   const group = detail.getGroup();
   const campSpot = detail.getCampSpot();
-  const mapWidth = windowWidth - AcgLayout.screenPadding * 2;
-  const mapUrl = useMemo(() => {
-    if (!campSpot || campSpot.status !== ACTIVE_SPOT_STATUS) {
-      return null;
-    }
-
-    return buildStaticMapUrl({
-      latitude: campSpot.location.latitude,
-      longitude: campSpot.location.longitude,
-      widthPx: mapWidth,
-      heightPx: MAP_BAND_HEIGHT,
-      level: BAG_CARD_MAP_LEVEL,
-      withMarker: false,
-    });
-  }, [campSpot, mapWidth]);
 
   if (!group) {
     return null;
   }
 
-  const showMapBand = mapUrl !== null && mapUrl !== failedMapUrl;
   const dateText = formatGroupDateRange(
     group.getStartDate(),
     group.getEndDate()
@@ -72,7 +46,7 @@ const GroupDetailHeaderView: FC<Props> = ({ detail }) => {
     l10n.t('group.detail.summaryMembers', { count: detail.getMemberCount() }),
     l10n.t('group.detail.summaryBags', { count: detail.getLinkedBagCount() }),
     l10n.t('group.detail.summaryWeight', {
-      weight: formatGroupWeight(detail.getTotalWeight()),
+      weight: formatBagSnapshotWeightInKilograms(detail.getTotalWeight()),
     }),
   ].join(separator);
 
@@ -111,20 +85,12 @@ const GroupDetailHeaderView: FC<Props> = ({ detail }) => {
 
   return (
     <View style={styles.container}>
-      {showMapBand ? (
-        <View style={styles.mapBand} accessible={false}>
-          <Image
-            source={{ uri: mapUrl, headers: { Referer: STATIC_MAP_REFERER } }}
-            style={StyleSheet.absoluteFill}
-            contentFit='cover'
-            cachePolicy='memory-disk'
-            onError={() => setFailedMapUrl(mapUrl)}
-            accessible={false}
-          />
-          <View style={styles.pinOverlay} pointerEvents='none'>
-            <SpotPinView />
-          </View>
-        </View>
+      {campSpot?.status === ACTIVE_SPOT_STATUS ? (
+        <SnapshotMapBandView
+          latitude={campSpot.location.latitude}
+          longitude={campSpot.location.longitude}
+          variant={SnapshotMapBandVariant.Standalone}
+        />
       ) : null}
       <PretendardText weight='semibold' style={styles.name}>
         {group.getName()}
@@ -151,19 +117,6 @@ const GroupDetailHeaderView: FC<Props> = ({ detail }) => {
 const styles = StyleSheet.create({
   container: {
     gap: 4,
-  },
-  mapBand: {
-    height: MAP_BAND_HEIGHT,
-    marginBottom: 12,
-    overflow: 'hidden',
-    borderRadius: AcgRadius.thumb,
-  },
-  pinOverlay: {
-    position: 'absolute',
-    left: '50%',
-    top: '50%',
-    marginLeft: -15,
-    marginTop: -40,
   },
   name: {
     ...AcgType.screenTitle,

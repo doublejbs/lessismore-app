@@ -1247,9 +1247,6 @@
     }
   },
   "group": {
-    "common": {
-      "preparing": "준비 중이에요"
-    },
     "segment": {
       "label": "그룹"
     },
@@ -1327,7 +1324,6 @@
     },
     "detail": {
       "metaSeparator": " · ",
-      "dateRangeSeparator": " ~ ",
       "summaryMembers_other": "멤버 {{count}}명",
       "summaryBags_other": "배낭 {{count}}개",
       "summaryWeight": "합계 {{weight}}kg",
@@ -1343,8 +1339,10 @@
       "bagSheetEmpty": "먼저 배낭을 만들어주세요",
       "routesTitle": "코스",
       "routesEmpty": "아직 올라온 코스가 없어요",
+      "routesLoadFailed": "코스를 불러오지 못했어요",
       "pointsTitle": "지도 포인트",
       "pointsEmpty": "아직 등록된 포인트가 없어요",
+      "pointsLoadFailed": "포인트를 불러오지 못했어요",
       "inviteTitle": "초대",
       "inviteDescription": "링크를 받은 사람만 참여할 수 있어요",
       "menu": "더 보기",

@@ -1,4 +1,3 @@
-import { makeAutoObservable } from 'mobx';
 import Group from './Group';
 import { GroupPointData, toGroupDate } from './GroupData';
 import GroupPointType from './GroupPointType';
@@ -14,7 +13,6 @@ class GroupPoint {
   private readonly authorId: string;
   private readonly authorName: string;
   private readonly createdAt: Date;
-  private readonly updatedAt: Date;
 
   public static from(data: GroupPointData) {
     return new GroupPoint(data);
@@ -30,9 +28,6 @@ class GroupPoint {
     this.authorId = data.authorId;
     this.authorName = data.authorName;
     this.createdAt = toGroupDate(data.createdAt);
-    this.updatedAt = toGroupDate(data.updatedAt);
-
-    makeAutoObservable(this);
   }
 
   public getId() {
@@ -69,10 +64,6 @@ class GroupPoint {
 
   public getCreatedAt() {
     return this.createdAt;
-  }
-
-  public getUpdatedAt() {
-    return this.updatedAt;
   }
 
   // 올린 사람과 방장만 수정·삭제할 수 있다(GRP-4, GRP-9).

@@ -24,7 +24,6 @@ class GroupDetail {
   private myBags: BagItem[] = [];
   private loading = false;
   private initialized = false;
-  private bagsLoading = false;
   private submitting = false;
   private error: Error | null = null;
   private notFound = false;
@@ -88,12 +87,6 @@ class GroupDetail {
     return this.memberBags.find(snapshot => snapshot.uid === uid) ?? null;
   }
 
-  public getMyMember(): GroupMember | null {
-    const userId = this.getUserId();
-
-    return this.members.find(member => member.getUid() === userId) ?? null;
-  }
-
   public isOwner(): boolean {
     return this.group?.isOwner(this.getUserId()) === true;
   }
@@ -126,10 +119,6 @@ class GroupDetail {
     return this.initialized;
   }
 
-  public isBagsLoading(): boolean {
-    return this.bagsLoading;
-  }
-
   public isSubmitting(): boolean {
     return this.submitting;
   }
@@ -146,18 +135,20 @@ class GroupDetail {
     return this.notMember;
   }
 
-  // 배낭 선택 시트용 목록. 시트를 열 때마다 다시 읽어 방금 만든 배낭도 보이게 한다.
+  /**
+   * 배낭 선택 시트용 목록. 시트를 열 때마다 다시 읽어 방금 만든 배낭도 보이게 한다.
+   * 화면이 `void`로 부르므로 실패를 여기서 잡는다 — 놓치면 unhandled rejection이 나고
+   * 시트는 조회 실패인데도 "배낭이 없어요"로 열린다.
+   */
   public async loadMyBags(): Promise<void> {
-    this.setBagsLoading(true);
-
     try {
       const bags = await this.dispatcher.getMyBags();
 
       runInAction(() => {
         this.myBags = bags;
       });
-    } finally {
-      this.setBagsLoading(false);
+    } catch (error) {
+      this.showError(error);
     }
   }
 
@@ -359,7 +350,7 @@ class GroupDetail {
       await this.load(true);
     } catch (error) {
       // 배경 동기화다 — 실패해도 화면을 막지 않는다(GRP-5).
-      console.warn('[GroupDetail] bag snapshot sync failed', error);
+      console.warn('그룹 배낭 스냅샷 동기화 실패:', error); // l10n-ignore: 개발자 로그
     }
   }
 
@@ -369,10 +360,6 @@ class GroupDetail {
 
   private setLoading(value: boolean) {
     this.loading = value;
-  }
-
-  private setBagsLoading(value: boolean) {
-    this.bagsLoading = value;
   }
 
   private setSubmitting(value: boolean) {

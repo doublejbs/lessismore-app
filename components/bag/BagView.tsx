@@ -85,8 +85,13 @@ const BagView = () => {
     useCallback(() => {
       void bag.getList();
       void loadTemplates();
-      void groupList.initialize();
-    }, [bag, groupList, loadTemplates])
+
+      // 그룹 목록은 세그먼트를 열었을 때만 읽는다 — 첫 조회·포커스 갱신은
+      // `GroupListView`가 맡으므로, 그룹을 보지 않는 사용자에게 역인덱스 쿼리를 보내지 않는다.
+      if (isGroupSegment) {
+        void groupList.initialize();
+      }
+    }, [bag, groupList, isGroupSegment, loadTemplates])
   );
 
   // Bag이 로그인 상태 reaction을 들고 있으므로 언마운트 시 정리한다.

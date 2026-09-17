@@ -1,13 +1,21 @@
-import app from '@/model/app/App';
+import {
+  formatBagSnapshotDateRange,
+  formatBagSnapshotRelativeTime,
+} from '@/model/bag-snapshot/BagSnapshotFormat';
 import { getGroupForCategory } from '@/model/gear/GearCategoryGroups';
 import GearFilter from '@/model/gear/GearFilter';
 import { GEAR_FILTER_NAMES } from '@/model/gear/GearFilterName';
 import { CommunityBagSnapshotGear } from './CommunityData';
-import {
-  COMMUNITY_DAY_IN_MILLISECONDS,
-  COMMUNITY_HOUR_IN_MILLISECONDS,
-  COMMUNITY_MINUTE_IN_MILLISECONDS,
-} from './CommunityLimits';
+
+/**
+ * 커뮤니티 스냅샷 기간 표기는 게시글이 남는 형식이라 **로케일과 무관한 점 구분 표기**를
+ * 유지한다(피드·상세가 같은 값을 보여야 한다).
+ */
+const SNAPSHOT_DATE_FORMAT = 'YYYY.MM.DD';
+const SNAPSHOT_DATE_RANGE_SEPARATOR = ' ~ ';
+
+// 일주일까지만 상대 시각으로 적고 그 뒤는 절대 날짜다(게시 시각은 오래될수록 날짜가 낫다).
+const COMMUNITY_MAX_RELATIVE_DAYS = 7;
 
 export interface CommunityBagSnapshotGroup {
   filter: GearFilter;
@@ -58,52 +66,25 @@ export const formatCommunityDate = (date: Date): string => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 };
 
-export const formatCommunityWeight = (grams: number): string => {
-  return (grams / 1000).toFixed(1);
-};
-
-export const formatCommunityWeightInGrams = (grams: number): string => {
-  return Math.round(grams).toLocaleString('en-US');
-};
-
 export const formatCommunitySnapshotDateRange = (
   startDate?: string,
   endDate?: string
 ): string => {
-  const formattedStartDate = startDate?.replaceAll('-', '.');
-  const formattedEndDate = endDate?.replaceAll('-', '.');
-
-  if (formattedStartDate && formattedStartDate === formattedEndDate) {
-    return formattedStartDate;
-  }
-
-  return [formattedStartDate, formattedEndDate].filter(Boolean).join(' ~ ');
+  return formatBagSnapshotDateRange(startDate, endDate, {
+    dateFormat: SNAPSHOT_DATE_FORMAT,
+    separator: SNAPSHOT_DATE_RANGE_SEPARATOR,
+  });
 };
 
 export const getCommunityRelativeTime = (date: Date): string => {
-  const elapsed = Math.max(0, Date.now() - date.getTime());
-
-  if (elapsed < COMMUNITY_MINUTE_IN_MILLISECONDS) {
-    return app.getL10n().t('community.feed.justNow');
-  }
-
-  if (elapsed < COMMUNITY_HOUR_IN_MILLISECONDS) {
-    return app.getL10n().t('community.feed.minutesAgo', {
-      count: Math.floor(elapsed / COMMUNITY_MINUTE_IN_MILLISECONDS),
-    });
-  }
-
-  if (elapsed < COMMUNITY_DAY_IN_MILLISECONDS) {
-    return app.getL10n().t('community.feed.hoursAgo', {
-      count: Math.floor(elapsed / COMMUNITY_HOUR_IN_MILLISECONDS),
-    });
-  }
-
-  if (elapsed < 7 * COMMUNITY_DAY_IN_MILLISECONDS) {
-    return app.getL10n().t('community.feed.daysAgo', {
-      count: Math.floor(elapsed / COMMUNITY_DAY_IN_MILLISECONDS),
-    });
-  }
-
-  return formatCommunityDate(date).replace(/-/g, '.');
+  return formatBagSnapshotRelativeTime(
+    date,
+    {
+      justNow: 'community.feed.justNow',
+      minutesAgo: 'community.feed.minutesAgo',
+      hoursAgo: 'community.feed.hoursAgo',
+      daysAgo: 'community.feed.daysAgo',
+    },
+    COMMUNITY_MAX_RELATIVE_DAYS
+  );
 };
