@@ -1,8 +1,8 @@
-import GroupPlaceholderView from '@/components/group/GroupPlaceholderView';
+import GroupMemberBagWrapper from '@/components/group/member/GroupMemberBagWrapper';
 
-// 멤버 배낭 상세 (GRP-5) — 자리표시. 본문은 후속 작업이 교체한다.
+// 멤버 배낭 상세 (GRP-5) — 읽기 전용.
 const GroupMemberBagRoute = () => {
-  return <GroupPlaceholderView />;
+  return <GroupMemberBagWrapper />;
 };
 
 export default GroupMemberBagRoute;

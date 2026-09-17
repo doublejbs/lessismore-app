@@ -1,8 +1,8 @@
-import GroupPlaceholderView from '@/components/group/GroupPlaceholderView';
+import GroupCreateWrapper from '@/components/group/create/GroupCreateWrapper';
 
-// 그룹 만들기 (GRP-2) — 자리표시. 본문은 후속 작업이 교체한다.
+// 그룹 만들기 (GRP-2)
 const GroupCreateRoute = () => {
-  return <GroupPlaceholderView />;
+  return <GroupCreateWrapper />;
 };
 
 export default GroupCreateRoute;

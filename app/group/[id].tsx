@@ -1,8 +1,8 @@
-import GroupPlaceholderView from '@/components/group/GroupPlaceholderView';
+import GroupDetailWrapper from '@/components/group/detail/GroupDetailWrapper';
 
-// 그룹 상세 (GRP-4·GRP-5·GRP-7) — 자리표시. 본문은 후속 작업이 교체한다.
+// 그룹 상세 (GRP-4·GRP-5·GRP-7).
 const GroupDetailRoute = () => {
-  return <GroupPlaceholderView />;
+  return <GroupDetailWrapper />;
 };
 
 export default GroupDetailRoute;

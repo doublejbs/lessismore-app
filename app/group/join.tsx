@@ -1,8 +1,8 @@
-import GroupPlaceholderView from '@/components/group/GroupPlaceholderView';
+import GroupJoinWrapper from '@/components/group/join/GroupJoinWrapper';
 
-// 초대 수락 (GRP-3) — 자리표시. 본문은 후속 작업이 교체한다.
+// 초대 수락 (GRP-3)
 const GroupJoinRoute = () => {
-  return <GroupPlaceholderView />;
+  return <GroupJoinWrapper />;
 };
 
 export default GroupJoinRoute;

@@ -90,7 +90,10 @@ app/group/join.tsx → 초대 수락(그룹 이름·기간·멤버 수 확인 �
 - 링크에는 별도 토큰을 두지 않고 **`groupId` 자체를 비밀로 취급**한다. 문서 ID는 Firestore 자동 생성 20자라 추측이 불가능하고, 배낭 링크 공유와 같은 보안 수준이다. 토큰·만료·재발급은 후속 범위로 둔다.
 - 멤버 상한은 20명이다. 가득 찬 그룹의 링크를 열면 `정원이 찼어요` 안내만 표시하고 참여 버튼을 비활성화한다.
 - 방장은 초대 링크를 잠글 수 있다(`inviteEnabled = false`). 잠긴 링크로 들어오면 `초대가 마감됐어요`를 표시한다.
-- 웹에서 링크를 열었을 때의 랜딩 페이지는 **별도 레포(`lessismore`)의 후속 작업**이다. MVP는 앱 딥링크만 보장한다.
+- 앱은 Universal Links / App Links를 쓰지 않는다(`app.json`에 `associatedDomains`·`intentFilters`가 없다). 따라서 `{WEB_BASE_URL}/group/{groupId}`는 브라우저로 열리고, **웹 랜딩이 앱 스킴 `lessismoreapp://group/join?groupId={groupId}`로 넘겨준다.** 이미 장비·박지 공유가 같은 방식이다(`gear-share`·`camp-share` 랜딩이 각각 `lessismoreapp://gear-detail/{id}`·`lessismoreapp://camp-site/{id}`를 연다).
+  - 네이티브 링킹 설정으로 가면 링크가 앱을 바로 열지만 **OTA로 못 나가고 새 빌드가 필요하다.** 초대 한 줄을 위해 릴리스를 묶지 않는다.
+- 웹 랜딩(별도 레포 `lessismore`, 경로 `/group/:id`)은 그룹 이름·기간·여행지·멤버 수를 먼저 보여주고 `앱에서 열기`로 위 스킴을 연다. 앱이 없으면 기존 `app-install` 안내로 떨어진다 — 장비·박지 공유 랜딩과 같은 구조다.
+- 참여 화면 라우트(`app/group/join.tsx`)는 동적 세그먼트가 없으므로 **쿼리 `groupId`** 로 받는다.
 
 ### GRP-4 멤버와 역할 `[제안]`
 
