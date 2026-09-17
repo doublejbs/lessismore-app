@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import AlertManager from '@/model/alert/AlertManager';
 import PretendardText from '@/components/PretendardText';
-import { AcgType, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgType, Color, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 interface Props {
@@ -59,7 +59,10 @@ const AlertView: FC<Props> = ({ alertManager }) => {
               </PretendardText>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.confirmButton}
+              style={[
+                styles.confirmButton,
+                alertManager.isDestructive() && styles.destructiveButton,
+              ]}
               onPress={handleClickConfirm}
             >
               <PretendardText weight='medium' style={styles.confirmButtonText}>
@@ -116,6 +119,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  // 되돌릴 수 없는 액션의 확인 면. 삭제·경고 red는 의미색이라 토큰 예외다(HM-8).
+  destructiveButton: {
+    backgroundColor: Acg.error,
   },
   confirmButtonText: {
     ...AcgType.control,

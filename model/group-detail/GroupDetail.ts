@@ -225,6 +225,35 @@ class GroupDetail {
   }
 
   /**
+   * 멤버 내보내기 (GRP-4). 방장만 할 수 있고, 성공 여부를 돌려준다 —
+   * 나가기·해산과 달리 화면을 떠나지 않으므로 성공하면 목록을 조용히 다시 읽는다.
+   *
+   * 대상의 역인덱스(`users/{uid}/groups/{groupId}`)는 클라이언트가 지울 수 없어
+   * 서버 트리거 몫이다(DM-29) — 여기서 보정하지 않는다.
+   */
+  public async removeMember(uid: string): Promise<boolean> {
+    if (this.submitting) {
+      return false;
+    }
+
+    this.setSubmitting(true);
+
+    try {
+      await this.dispatcher.removeMember(this.groupId, uid);
+      app.getAnalyticsManager()?.logClick('group_member_remove');
+      await this.load(true);
+
+      return true;
+    } catch (error) {
+      this.showError(error);
+
+      return false;
+    } finally {
+      this.setSubmitting(false);
+    }
+  }
+
+  /**
    * 나가기·해산 (GRP-12). 성공 여부를 돌려주고 화면 이동은 View가 한다 —
    * 실패하면 화면 상태를 그대로 두고 토스트로만 알린다.
    */

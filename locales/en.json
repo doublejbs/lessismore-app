@@ -1381,7 +1381,8 @@
       "loadFailed": "Couldn't load this group",
       "goBack": "Go back",
       "leftMember": "(Left the group)",
-      "withdrawnUser": "(Deleted account)"
+      "withdrawnUser": "(Deleted account)",
+      "openMap": "Map"
     },
     "member": {
       "mine": "My bag",
@@ -1404,7 +1405,10 @@
       "notFound": "No bag is linked",
       "notMember": "You haven't joined this group",
       "loadFailed": "Couldn't load this bag",
-      "goBack": "Go back"
+      "goBack": "Go back",
+      "menu": "Manage {{nickname}}",
+      "remove": "Remove",
+      "removeConfirm": "Remove {{nickname}} from this group?\nTheir linked pack will be removed too."
     },
     "edit": {
       "title": "Edit group info",
@@ -1426,6 +1430,34 @@
       "discardConfirm": "Leave without saving your changes?",
       "discard": "Leave",
       "keepEditing": "Keep editing"
+    },
+    "map": {
+      "title": "Group map",
+      "loadFailed": "Couldn't load the map",
+      "addPoint": "Add point here",
+      "addPointHint": "Adds a point at the center of the map. You can also long-press the map.",
+      "pointFull": "Point limit reached",
+      "currentLocation": "Current location",
+      "webNotice": "Maps are not available on the web, so courses and points are shown as a list."
+    },
+    "point": {
+      "title": "Add point",
+      "editTitle": "Edit point",
+      "close": "Close",
+      "typeLabel": "Type",
+      "titleLabel": "Title",
+      "titlePlaceholder": "What do you want to share?",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "Add details for your group",
+      "counter": "{{count}}/{{max}}",
+      "save": "Save",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this point?",
+      "typeWater": "Water",
+      "typeShelter": "Shelter",
+      "typeCaution": "Caution",
+      "typeNote": "Note"
     }
   }
 }

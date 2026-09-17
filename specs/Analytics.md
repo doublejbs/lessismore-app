@@ -188,6 +188,7 @@
 | `click_group_route_upload` | 코스(GPX) 업로드 성공 | `distance`: m, `point_count` |
 | `click_group_point_create` | 지도 포인트 등록 | `type`: `water` \| `shelter` \| `caution` \| `note` |
 | `click_group_map_open` | 그룹 지도 열기 | — |
+| `click_group_member_remove` | 방장이 멤버 내보내기 | — |
 | `click_group_leave` | 그룹 나가기 / 해산 | `role`: `owner` \| `member` |
 | `click_community_report` | 신고 등록 성공 | `target`: `post` \| `comment` |
 

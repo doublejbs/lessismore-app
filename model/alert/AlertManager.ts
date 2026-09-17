@@ -9,6 +9,8 @@ class AlertManager {
   private message = '';
   private confirmText = '';
   private cancelText = '';
+  // 되돌릴 수 없는 액션(내보내기·삭제)일 때 확인 버튼을 경고색으로 그린다.
+  private destructive = false;
   private onConfirm: () => Promise<void> = async () => {};
 
   private constructor() {
@@ -20,15 +22,18 @@ class AlertManager {
     confirmText,
     onConfirm,
     cancelText,
+    destructive,
   }: {
     message: string;
     confirmText: string;
     onConfirm: () => Promise<void>;
     cancelText?: string;
+    destructive?: boolean;
   }) {
     this.setMessage(message);
     this.setConfirmText(confirmText);
     this.setCancelText(cancelText ?? '');
+    this.setDestructive(destructive === true);
     this.setOnConfirm(onConfirm);
     this.setVisible(true);
   }
@@ -72,6 +77,14 @@ class AlertManager {
 
   public getCancelText() {
     return this.cancelText;
+  }
+
+  private setDestructive(value: boolean) {
+    this.destructive = value;
+  }
+
+  public isDestructive() {
+    return this.destructive;
   }
 
   private setOnConfirm(onConfirm: () => Promise<void>) {

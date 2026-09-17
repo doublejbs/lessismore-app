@@ -45,8 +45,12 @@ const GroupDetailView: FC<Props> = ({ detail }) => {
   const {
     isMenuVisible,
     isBagSheetVisible,
+    isMemberMenuVisible,
     openMenu,
     closeMenu,
+    openMemberMenu,
+    closeMemberMenu,
+    getMemberMenuItems,
     getMenuItems,
     handleBack,
     handleOpenBagSheet,
@@ -120,6 +124,7 @@ const GroupDetailView: FC<Props> = ({ detail }) => {
               detail={detail}
               onSelectBag={handleOpenBagSheet}
               onUnlinkBag={handleUnlinkBag}
+              onOpenMemberMenu={openMemberMenu}
             />
             <GroupDetailRouteSectionView detail={detail} />
             <GroupDetailPointSectionView detail={detail} />
@@ -162,6 +167,12 @@ const GroupDetailView: FC<Props> = ({ detail }) => {
         visible={isMenuVisible}
         onClose={closeMenu}
         menuItems={getMenuItems()}
+      />
+      {/* 멤버 행 ⋯ — 방장이 내보낼 멤버를 고른 뒤 뜨는 메뉴다(GRP-4). */}
+      <BottomMenuModalView
+        visible={isMemberMenuVisible}
+        onClose={closeMemberMenu}
+        menuItems={getMemberMenuItems()}
       />
       {/* 배낭 선택 시트는 커뮤니티 패킹 첨부가 쓰는 것과 같은 것을 재사용한다(CM-4, GRP-5). */}
       <CampSiteBagSelectSheetView

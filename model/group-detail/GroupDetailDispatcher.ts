@@ -60,6 +60,10 @@ class GroupDetailDispatcher {
     return this.groupStore.setInviteEnabled(groupId, enabled);
   }
 
+  public removeMember(groupId: string, uid: string): Promise<void> {
+    return this.groupStore.removeMember(groupId, uid);
+  }
+
   public leaveGroup(groupId: string): Promise<void> {
     return this.groupStore.leaveGroup(groupId);
   }

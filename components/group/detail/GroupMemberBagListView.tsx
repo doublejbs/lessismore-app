@@ -16,6 +16,7 @@ interface Props {
   detail: GroupDetail;
   onSelectBag: () => void;
   onUnlinkBag: () => void;
+  onOpenMemberMenu: (member: GroupMember) => void;
 }
 
 /**
@@ -23,11 +24,14 @@ interface Props {
  *
  * 방장을 맨 위에 두고 그다음은 참여 순서다(정렬은 `GroupStore.getMembers`가 보장한다).
  * 행 문법은 HM-8 — 이름 16 medium + 메타 14 잉크 한 줄이고 배지·칩을 행 안에 두지 않는다.
+ *
+ * 행 오른쪽 `⋯`는 **방장이 볼 때, 자기 자신이 아닌 행에만** 나온다(GRP-4 내보내기).
  */
 const GroupMemberBagListView: FC<Props> = ({
   detail,
   onSelectBag,
   onUnlinkBag,
+  onOpenMemberMenu,
 }) => {
   const router = useRouter();
   const l10n = app.getL10n();
@@ -74,29 +78,51 @@ const GroupMemberBagListView: FC<Props> = ({
       </View>
     );
 
+    // 방장만, 자기 자신이 아닌 행에만 ⋯를 둔다(GRP-4). 멤버에게는 아예 그리지 않는다.
+    const canRemove = detail.isOwner() && !isMine && !member.isOwner();
+
     return (
       <View
         key={member.getUid()}
         style={[styles.row, index > 0 && styles.rowDivided]}
       >
-        {snapshot ? (
-          <TouchableOpacity
-            style={styles.rowTouchable}
-            onPress={() => handleOpenMemberBag(member)}
-            activeOpacity={0.7}
-            accessibilityRole='button'
-            accessibilityLabel={`${member.getNickname()}${separator}${snapshot.name}`}
-          >
-            {body}
-            <Ionicons
-              name='chevron-forward'
-              size={16}
-              color={Acg.textSecondary}
-            />
-          </TouchableOpacity>
-        ) : (
-          body
-        )}
+        <View style={styles.rowMain}>
+          {snapshot ? (
+            <TouchableOpacity
+              style={styles.rowTouchable}
+              onPress={() => handleOpenMemberBag(member)}
+              activeOpacity={0.7}
+              accessibilityRole='button'
+              accessibilityLabel={`${member.getNickname()}${separator}${snapshot.name}`}
+            >
+              {body}
+              <Ionicons
+                name='chevron-forward'
+                size={16}
+                color={Acg.textSecondary}
+              />
+            </TouchableOpacity>
+          ) : (
+            body
+          )}
+          {canRemove ? (
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => onOpenMemberMenu(member)}
+              disabled={detail.isSubmitting()}
+              accessibilityRole='button'
+              accessibilityLabel={l10n.t('group.member.menu', {
+                nickname: member.getNickname(),
+              })}
+            >
+              <Ionicons
+                name='ellipsis-horizontal'
+                size={20}
+                color={Acg.textSecondary}
+              />
+            </TouchableOpacity>
+          ) : null}
+        </View>
         {isMine ? (
           <View style={styles.actions}>
             <TouchableOpacity
@@ -155,10 +181,21 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Acg.hairline,
   },
+  rowMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   rowTouchable: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: AcgLayout.chipGap,
+  },
+  menuButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
   },
   rowBody: {
     flex: 1,

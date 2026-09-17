@@ -1,8 +1,8 @@
-import GroupPlaceholderView from '@/components/group/GroupPlaceholderView';
+import GroupMapWrapper from '@/components/group/map/GroupMapWrapper';
 
-// 그룹 지도 (GRP-9·GRP-10) — 자리표시. 본문은 후속 작업이 교체한다.
+// 그룹 지도 (GRP-9·GRP-10).
 const GroupMapRoute = () => {
-  return <GroupPlaceholderView />;
+  return <GroupMapWrapper />;
 };
 
 export default GroupMapRoute;

@@ -1362,7 +1362,8 @@
       "loadFailed": "グループを読み込めませんでした",
       "goBack": "戻る",
       "leftMember": "（退出したメンバー）",
-      "withdrawnUser": "（退会したユーザー）"
+      "withdrawnUser": "（退会したユーザー）",
+      "openMap": "地図"
     },
     "member": {
       "mine": "自分のバックパック",
@@ -1381,7 +1382,10 @@
       "notFound": "連携されたバックパックがありません",
       "notMember": "参加していないグループです",
       "loadFailed": "バックパックを読み込めませんでした",
-      "goBack": "戻る"
+      "goBack": "戻る",
+      "menu": "{{nickname}}さんの管理",
+      "remove": "退出させる",
+      "removeConfirm": "{{nickname}}さんを退出させますか？\nリンクしたバックパックも一緒に消えます"
     },
     "edit": {
       "title": "グループ情報を編集",
@@ -1403,6 +1407,34 @@
       "discardConfirm": "編集内容を保存せずに戻りますか？",
       "discard": "戻る",
       "keepEditing": "編集を続ける"
+    },
+    "map": {
+      "title": "グループ地図",
+      "loadFailed": "地図を読み込めませんでした",
+      "addPoint": "ここにポイントを追加",
+      "addPointHint": "地図の中心にポイントを登録します。地図を長押ししても追加できます",
+      "pointFull": "ポイントがいっぱいです",
+      "currentLocation": "現在地",
+      "webNotice": "ウェブでは地図を表示できないため、コースとポイントを一覧で表示します"
+    },
+    "point": {
+      "title": "ポイント登録",
+      "editTitle": "ポイント編集",
+      "close": "閉じる",
+      "typeLabel": "種類",
+      "titleLabel": "タイトル",
+      "titlePlaceholder": "何を知らせますか？",
+      "descriptionLabel": "説明（任意）",
+      "descriptionPlaceholder": "仲間に伝える説明を入力してください",
+      "counter": "{{count}}/{{max}}",
+      "save": "保存",
+      "edit": "編集",
+      "delete": "削除",
+      "deleteConfirm": "このポイントを削除しますか？",
+      "typeWater": "給水",
+      "typeShelter": "休憩所",
+      "typeCaution": "注意",
+      "typeNote": "メモ"
     }
   }
 }
