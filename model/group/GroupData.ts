@@ -84,6 +84,9 @@ export interface GroupRouteBounds {
 export interface GroupRouteCoordinate {
   lat: number;
   lng: number;
+  // 고도(m). 고도 그래프가 이 값을 그대로 쓴다(GRP-8, DM-29 `simplified`).
+  // GPX에 고도가 없거나 이 기능 이전에 올라간 코스에는 키 자체가 없다.
+  ele?: number;
 }
 
 export interface GroupRouteData {

@@ -1410,10 +1410,12 @@
       "title": "グループ地図",
       "loadFailed": "地図を読み込めませんでした",
       "addPoint": "ここにポイントを追加",
-      "addPointHint": "地図の中心にポイントを登録します。地図を長押ししても追加できます",
+      "addPointHint": "地図の中心に照準マーカーを表示して位置を合わせます。地図を長押ししても追加できます",
       "pointFull": "ポイントがいっぱいです",
       "currentLocation": "現在地",
-      "webNotice": "ウェブでは地図を表示できないため、コースとポイントを一覧で表示します"
+      "webNotice": "ウェブでは地図を表示できないため、コースとポイントを一覧で表示します",
+      "aimHint": "地図を動かして追加する位置を合わせます",
+      "aimConfirm": "この位置に追加"
     },
     "point": {
       "title": "ポイント登録",
@@ -1439,7 +1441,10 @@
       "uploading": "アップロード中",
       "delete": "削除",
       "deleteConfirm": "このコースを削除しますか？",
-      "elevation": "獲得標高{{value}}m"
+      "elevation": "獲得標高{{value}}m",
+      "profileTitle": "標高グラフ",
+      "profilePeak": "最高{{value}}m",
+      "profileHint": "グラフをなぞるとその地点が地図に表示されます"
     }
   }
 }

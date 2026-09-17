@@ -1,11 +1,10 @@
-import Group from './Group';
 import {
-  GroupRouteCoordinate,
-  GroupRouteData,
-  toGroupDate,
-} from './GroupData';
-
-const METERS_IN_KILOMETER = 1000;
+  buildGroupRouteElevationProfile,
+  GroupRouteElevationProfile,
+} from '@/model/group-route/GroupRouteElevation';
+import { formatGroupRouteDistance } from '@/model/group-route/GroupRouteFormat';
+import Group from './Group';
+import { GroupRouteCoordinate, GroupRouteData, toGroupDate } from './GroupData';
 
 // 그룹 코스(GPX) 요약 (GRP-8, DM-29 `groups/{groupId}/routes/{routeId}`).
 class GroupRoute {
@@ -18,6 +17,10 @@ class GroupRoute {
   private readonly authorId: string;
   private readonly authorName: string;
   private readonly createdAt: Date;
+  // 고도 단면은 좌표 500점을 훑어 만든다 — 그래프를 훑는 동안 매 프레임 다시 만들지 않도록
+  // 처음 물었을 때 한 번 만들어 들고 있는다(GRP-8). 좌표가 불변이라 값도 불변이다.
+  private elevationProfile: GroupRouteElevationProfile | null = null;
+  private elevationProfileBuilt = false;
 
   public static from(data: GroupRouteData) {
     return new GroupRoute(data);
@@ -70,13 +73,21 @@ class GroupRoute {
     return this.createdAt;
   }
 
-  // 거리 표기: 1km 이상은 km 소수 첫째 자리, 미만은 m 정수. 단위는 숫자와 붙는 라틴 기호라 그대로 둔다.
   public getDistanceText() {
-    if (this.distance >= METERS_IN_KILOMETER) {
-      return `${(this.distance / METERS_IN_KILOMETER).toFixed(1)}km`;
+    return formatGroupRouteDistance(this.distance);
+  }
+
+  /**
+   * 고도 단면 (GRP-8). 고도가 없는 코스(이 기능 이전에 올라간 것 포함)는 `null`이고,
+   * 그때 화면은 그래프를 그리지 않고 자리도 비운다.
+   */
+  public getElevationProfile(): GroupRouteElevationProfile | null {
+    if (!this.elevationProfileBuilt) {
+      this.elevationProfileBuilt = true;
+      this.elevationProfile = buildGroupRouteElevationProfile(this.simplified);
     }
 
-    return `${Math.round(this.distance)}m`;
+    return this.elevationProfile;
   }
 
   // 올린 사람과 방장만 지울 수 있다(GRP-4, GRP-8).

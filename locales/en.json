@@ -1433,10 +1433,12 @@
       "title": "Group map",
       "loadFailed": "Couldn't load the map",
       "addPoint": "Add point here",
-      "addPointHint": "Adds a point at the center of the map. You can also long-press the map.",
+      "addPointHint": "Shows a crosshair at the center of the map so you can aim. You can also long-press the map.",
       "pointFull": "Point limit reached",
       "currentLocation": "Current location",
-      "webNotice": "Maps are not available on the web, so courses and points are shown as a list."
+      "webNotice": "Maps are not available on the web, so courses and points are shown as a list.",
+      "aimHint": "Move the map to aim at the spot you want",
+      "aimConfirm": "Add here"
     },
     "point": {
       "title": "Add point",
@@ -1462,7 +1464,10 @@
       "uploading": "Uploading",
       "delete": "Delete",
       "deleteConfirm": "Delete this route?",
-      "elevation": "Ascent {{value}}m"
+      "elevation": "Ascent {{value}}m",
+      "profileTitle": "Elevation profile",
+      "profilePeak": "Peak {{value}}m",
+      "profileHint": "Drag along the graph to see that spot on the map"
     }
   }
 }

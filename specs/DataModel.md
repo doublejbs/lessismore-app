@@ -846,13 +846,47 @@
 | `elevationGain` | number? | m |
 | `pointCount` | number | 원본 트랙포인트 수 |
 | `bounds` | map | `{ minLat, maxLat, minLng, maxLng }` |
-| `simplified` | array | 지도 렌더용 축약 좌표 `{ lat, lng }`, **최대 500점** |
+| `simplified` | array | 지도 렌더용 축약 좌표 `{ lat, lng, ele? }`, **2~500점**. 최소 2점은 규칙과 클라이언트 검증이 함께 강제한다 — 점이 하나뿐인 GPX는 선이 되지 않아 `코스를 읽지 못했어요`로 거절한다. `ele`(m)는 고도 그래프가 쓰며 GPX에 고도가 없으면 키를 생략한다. 규칙은 리스트 길이만 보므로 원소 키가 늘어도 계약이 깨지지 않는다 |
 | `authorId` / `authorName` | string | 올린 사람 |
 | `createdAt` | timestamp | 서버 시각 |
 
 - **원본 트랙포인트 전체를 Firestore에 넣지 않는다.** 1MB 문서 한도와 렌더 성능 때문이며, 원본은 Storage 파일로만 보관한다.
 - 그룹당 5개 상한.
 - [HealthActivity.md](HealthActivity.md) HA-5가 금지하는 것은 **기기 건강 허브에서 읽은 개인 이동 기록**의 서버 저장이다. 그룹 코스는 사용자가 일행에게 보여주려고 올리는 계획 경로이므로 별개다. 건강 기록 경로를 그룹 코스로 옮기는 경로는 두지 않는다.
+
+### DM-30 배낭 코스 `bag/{bagId}/routes/{routeId}` `[제안]`
+
+배낭에 붙이는 계획 경로(GPX). 그룹 코스(DM-29 `groups/{groupId}/routes`)와 **필드 구조가 같고 사는 곳만 다르다** — 같은 파서·같은 그래프·같은 목록 행을 쓴다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `name` | string | 1~40자. 파일명 또는 `<trk><name>`에서 오며 초과분은 자른다 |
+| `storagePath` | string | `bags/{bagId}/routes/{routeId}.gpx` |
+| `fileSize` | number | 바이트, 5MB 이하 |
+| `distance` | number | m |
+| `elevationGain` | number? | m. GPX에 고도가 없으면 키 생략 |
+| `pointCount` | number | 원본 트랙포인트 수 |
+| `bounds` | object | `{ minLat, maxLat, minLng, maxLng }` |
+| `simplified` | array | `{ lat, lng, ele? }`, 2~500점 |
+| `createdAt` | timestamp | |
+
+- 배낭당 **5개**, 파일 **5MB** — 그룹과 같은 상한이다. 수치를 갈라 두면 사용자가 둘을 다르게 기억해야 한다.
+- `authorId`·`authorName`은 **두지 않는다.** 배낭 코스는 소유자 한 사람의 것이라 작성자를 적을 이유가 없다(그룹 코스는 여럿이 올리므로 필요하다).
+
+#### 접근 범위 — 이 컬렉션의 가장 중요한 계약
+
+**`bag/{bagId}` 문서는 `shared == true`면 비로그인 공개 문서다**([BagDetail.md](BagDetail.md) BD-7). 그런데 GPX는 그 사람이 언제 어디를 지날지를 미터 단위로 담는다.
+
+- `bag/{bagId}/routes`는 **소유자(`bag.userId`)만 읽고 쓴다.** 배낭 공유·박지 후기 첨부·커뮤니티 패킹 스냅샷 어디로도 따라가지 않는다.
+- 현재 배포 규칙은 `bag`이 전면 개방 절에 걸려 있다. `users`와 같은 방식으로 **`bag`을 개방에서 뺀 뒤 문서 자체는 다시 열고 하위 `routes`만 닫는다**(병합 방법은 `docs/firebase/README.md`).
+- Storage `bags/{bagId}/routes/`도 같다. 소유자 판정은 `firestore.get(/databases/(default)/documents/bag/$(bagId)).data.userId`로 한다.
+- 배낭 스냅샷(DM-28·DM-29)의 제외 목록에 **코스를 명시적으로 더한다.** 스냅샷 빌더가 `bag` 문서만 읽고 하위 컬렉션을 읽지 않으므로 구조적으로도 새지 않지만, 계약은 적어 둔다.
+
+#### 생명주기
+
+- **배낭 복사(BAG-4·BD-8) 시 코스를 복사하지 않는다.** 패킹 기록을 복사하지 않는 것과 같은 이유이고, Storage 파일까지 복제하면 사용자가 인지하지 못한 채 용량이 는다.
+- **배낭 삭제 시** 하위 `routes` 문서와 Storage 파일을 서버가 정리한다(`onBagDeleted` 트리거). 클라이언트는 배낭 문서만 지운다.
+- 코스를 그룹에 올리면 `groups/{gid}/routes`로 **복사된다**(GRP-8). 원본을 지워도 그룹 코스는 남는다.
 
 #### `groupInvites/{groupId}` — 초대 공개 요약 (서버가 유지한다)
 
@@ -892,7 +926,7 @@
 
 #### 인덱스
 
-- `users/{uid}/groups` 는 `startDate` 정렬만 쓰므로 단일 필드 인덱스로 충분하다.
+- `users/{uid}/groups` 는 `startDate` 정렬과 `bagId` 동등 조회(배낭이 바뀌었을 때 갱신할 그룹을 고른다)를 쓴다. 둘 다 단일 필드라 자동 인덱스로 충분하다.
 - `groups/{groupId}/points` 는 `createdAt` 정렬, `routes` 도 `createdAt` 정렬. 복합 인덱스는 필요 없다.
 
 #### 서버 작업

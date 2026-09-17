@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import GroupPointListView from '@/components/group/point/GroupPointListView';
+import GroupRouteElevationChartView from '@/components/group/route/GroupRouteElevationChartView';
 import GroupRouteListView from '@/components/group/route/GroupRouteListView';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
@@ -25,6 +26,9 @@ const CONTENT_BOTTOM_PADDING = 40;
  * 웹은 네이티브 지도 SDK가 없어 지도를 제공하지 않는다 — 대신 코스와 포인트를 목록으로
  * 보여주고, 포인트 수정·삭제는 지도 없이도 되는 일이라 여기서 그대로 할 수 있게 둔다.
  * 등록은 좌표를 찍을 지도가 없으므로 제공하지 않는다.
+ *
+ * **고도 그래프는 웹에도 둔다** — 오르내림은 지도 없이도 읽히는 정보다(GRP-8).
+ * 다만 훑기는 달지 않는다: 따라 움직일 지도가 없으면 훑어도 가리킬 곳이 없다.
  */
 const GroupMapListView: FC<Props> = ({
   groupMap,
@@ -35,6 +39,13 @@ const GroupMapListView: FC<Props> = ({
   const pointList = groupMap.getPointList();
   const routes = groupMap.getRoutes();
   const memberIds = groupMap.getMemberIds();
+  const selectedRouteId = groupMap.getSelectedRouteId();
+  // 코스가 하나뿐이면 선택 없이도 그 코스가 주인공이다(지도 화면과 같은 판정, GRP-10).
+  const selectedRoute =
+    routes.length === 1
+      ? routes[0]
+      : (routes.find(route => route.getId() === selectedRouteId) ?? null);
+  const selectedProfile = selectedRoute?.getElevationProfile() ?? null;
 
   return (
     <ScrollView
@@ -52,7 +63,22 @@ const GroupMapListView: FC<Props> = ({
             {l10n.t('group.detail.routesEmpty')}
           </PretendardText>
         ) : (
-          <GroupRouteListView routes={routes} memberIds={memberIds} />
+          <>
+            <GroupRouteListView
+              routes={routes}
+              memberIds={memberIds}
+              onSelect={route => groupMap.selectRoute(route.getId())}
+            />
+            {/* 고도가 없는 코스는 그래프 자리를 아예 비운다(GRP-8). */}
+            {selectedProfile ? (
+              <View style={styles.chart}>
+                <GroupRouteElevationChartView
+                  key={selectedRoute?.getId()}
+                  profile={selectedProfile}
+                />
+              </View>
+            ) : null}
+          </>
         )}
       </View>
 
@@ -96,6 +122,11 @@ const styles = StyleSheet.create({
   },
   chips: {
     paddingBottom: 12,
+  },
+  // 그래프는 화면 좌우 패딩을 스스로 넣으므로, 이미 패딩 안에 있는 이 목록에서는 되돌린다.
+  chart: {
+    marginTop: 4,
+    marginHorizontal: -AcgLayout.screenPadding,
   },
   empty: {
     ...AcgType.body,

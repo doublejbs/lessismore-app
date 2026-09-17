@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CategoryChipView from '@/components/browse/CategoryChipView';
+import GroupRouteElevationChartView from '@/components/group/route/GroupRouteElevationChartView';
 import PretendardText from '@/components/PretendardText';
 import SpotPinView from '@/components/camp-site/SpotPinView';
 import {
@@ -29,12 +30,13 @@ import {
 import app from '@/model/app/App';
 import GroupPoint from '@/model/group/GroupPoint';
 import GroupMap from '@/model/group-map/GroupMap';
+import { GroupRouteElevationSample } from '@/model/group-route/GroupRouteElevation';
 import { deltaToZoom } from '@/model/map/MapZoom';
-import GroupMapMarkersView, {
-  GroupMapViewport,
-} from './GroupMapMarkersView';
+import GroupMapAimMarkerView from './GroupMapAimMarkerView';
+import GroupMapMarkersView, { GroupMapViewport } from './GroupMapMarkersView';
 import GroupPointCalloutView from './GroupPointCalloutView';
 import GroupPointFilterChipsView from './GroupPointFilterChipsView';
+import GroupRouteScrubMarkerView from './GroupRouteScrubMarkerView';
 
 interface Props {
   groupMap: GroupMap;
@@ -88,8 +90,12 @@ const SPOT_PIN_HEIGHT = 40;
  * (`onTapMap`뿐이다 — `lib/typescript/module/src/component/NaverMapView.d.ts`). 그래서 지도를
  * `GestureDetector`로 감싸 `Gesture.LongPress()`로 화면 좌표를 받고, 지도 ref의 공식 API
  * `screenToCoordinate({ screenX, screenY })`로 위경도를 얻는다. 롱프레스는 발견하기 어렵고
- * 접근성 보조기술로 쓰기 어려워, 같은 일을 하는 **`여기에 포인트 추가` 알약**(카메라 중심
- * 좌표)을 함께 둔다.
+ * 접근성 보조기술로 쓰기 어려워, 같은 일을 하는 **`여기에 포인트 추가` 알약**을 함께 둔다.
+ * 알약은 바로 시트를 열지 않고 **조준 모드**로 들어간다 — 화면 정중앙에 조준 마커를 띄워
+ * 어디에 찍히는지 눈으로 확인시킨 뒤 확정을 받는다(GRP-9).
+ *
+ * **고도 그래프**는 지도 아래에 둔다(GRP-8). 지도 위에 얹으면 훑는 동안 손가락과 그래프가
+ * 지도를 가려 "이 오르막이 어디인가"를 볼 수 없다 — 이 기능이 존재하는 이유가 사라진다.
  */
 const GroupMapCanvasView: FC<Props> = ({
   groupMap,
@@ -116,12 +122,28 @@ const GroupMapCanvasView: FC<Props> = ({
     y: number;
     seq: number;
   } | null>(null);
+  // 포인트 추가 조준 모드 (GRP-9). 이 동안에는 필터 칩·정보 카드·코스 칩을 걷어 조준을 가리지 않는다.
+  const [isAiming, setIsAiming] = useState(false);
+  /**
+   * 고도 그래프에서 훑고 있는 지점 (GRP-8). 손을 떼면 `null`이 되어 마커가 사라진다.
+   * **어느 코스의 지점인지 함께 들고 있는다** — 코스를 바꾸면 그래프는 새로 마운트되지만
+   * 손을 뗐다고 알려 줄 길이 없어, 태그가 없으면 지난 코스의 마커가 지도에 남는다.
+   */
+  const [scrub, setScrub] = useState<{
+    routeId: string;
+    sample: GroupRouteElevationSample;
+  } | null>(null);
   const handledLongPressRef = useRef(0);
   const pointList = groupMap.getPointList();
   const routes = groupMap.getRoutes();
   const campSpot = groupMap.getCampSpot();
   const selectedRouteId = groupMap.getSelectedRouteId();
   const selectedPoint = groupMap.getFocusedPoint();
+  // 코스가 하나뿐이면 선택 없이도 그 코스가 주인공이다(GRP-10 강조 규칙과 같은 판정).
+  const selectedRoute =
+    routes.length === 1
+      ? routes[0]
+      : (routes.find(route => route.getId() === selectedRouteId) ?? null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -138,7 +160,12 @@ const GroupMapCanvasView: FC<Props> = ({
         return;
       }
 
-      mapRef.current.animateCameraTo({ latitude, longitude, zoom, duration: 500 });
+      mapRef.current.animateCameraTo({
+        latitude,
+        longitude,
+        zoom,
+        duration: 500,
+      });
     },
     []
   );
@@ -148,7 +175,11 @@ const GroupMapCanvasView: FC<Props> = ({
    * 박지도 없으면 현재 위치 순으로 간다. 셋 다 없으면 남한 전역에 머문다.
    */
   const fitInitialCamera = useCallback(async () => {
-    if (didFitRef.current || !mapReadyRef.current || !groupMap.isInitialized()) {
+    if (
+      didFitRef.current ||
+      !mapReadyRef.current ||
+      !groupMap.isInitialized()
+    ) {
       return;
     }
 
@@ -341,6 +372,8 @@ const GroupMapCanvasView: FC<Props> = ({
   const longPressGesture = useMemo(
     () =>
       Gesture.LongPress()
+        // 조준 모드에서는 끈다 — 확정을 기다리는 중에 다른 좌표로 시트가 열리면 모드가 꼬인다.
+        .enabled(!isAiming)
         .minDuration(450)
         .maxDistance(24)
         .runOnJS(true)
@@ -351,7 +384,7 @@ const GroupMapCanvasView: FC<Props> = ({
             seq: (previous?.seq ?? 0) + 1,
           }));
         }),
-    []
+    [isAiming]
   );
 
   useEffect(() => {
@@ -363,10 +396,49 @@ const GroupMapCanvasView: FC<Props> = ({
     void handleLongPress(longPressAt.x, longPressAt.y);
   }, [handleLongPress, longPressAt]);
 
-  // 롱프레스의 접근 가능한 대안 — 화면(카메라) 중심 좌표로 등록 시트를 연다.
-  const handleAddAtCenter = useCallback(() => {
+  /**
+   * 롱프레스의 접근 가능한 대안 (GRP-9). 바로 시트를 열지 않고 **조준 모드**에 들어간다 —
+   * 시트가 먼저 뜨면 어느 지점이 잡혔는지 확인할 방법이 없다.
+   */
+  const handleStartAiming = useCallback(() => {
+    groupMap.focusPoint(null);
+    setIsAiming(true);
+  }, [groupMap]);
+
+  const handleCancelAiming = useCallback(() => {
+    setIsAiming(false);
+  }, []);
+
+  // 조준 마커는 화면 정중앙에 고정돼 있고, 그 자리가 곧 카메라 중심이다.
+  const handleConfirmAiming = useCallback(() => {
+    setIsAiming(false);
     onRequestCreate({ ...cameraRef.current });
   }, [onRequestCreate]);
+
+  /**
+   * 그래프 훑기 (GRP-8). **카메라는 건드리지 않는다** — 손가락 아래에서 지도가 움직이면
+   * 그래프의 x와 지도 위 지점이 매 프레임 어긋나 위치를 읽을 수 없다. 마커만 옮긴다.
+   */
+  const handleScrub = useCallback(
+    (sample: GroupRouteElevationSample | null) => {
+      const routeId = groupMap.getSelectedRouteId() ?? '';
+
+      // 같은 표본이면 이전 객체를 그대로 돌려준다 — 한 번 훑는 동안 들어오는 수십 번의
+      // 이벤트가 그대로 렌더가 되면 지도 마커가 프레임마다 네이티브로 다시 동기화된다.
+      setScrub(previous => {
+        if (!sample) {
+          return null;
+        }
+
+        if (previous?.sample === sample && previous.routeId === routeId) {
+          return previous;
+        }
+
+        return { routeId, sample };
+      });
+    },
+    [groupMap]
+  );
 
   const handleMoveToCurrentLocation = useCallback(async () => {
     try {
@@ -399,156 +471,246 @@ const GroupMapCanvasView: FC<Props> = ({
   }, [groupMap]);
 
   const isFull = pointList.isFull();
+  const elevationProfile = selectedRoute?.getElevationProfile() ?? null;
+  /**
+   * 고도가 없는 코스는 그래프 자리를 아예 비운다 — 빈 틀은 "데이터를 못 불러왔다"로 읽힌다(GRP-8).
+   * 조준 모드에서도 접는다: 지도를 넓히고, 확정 버튼 말고 누를 것을 두지 않는다(GRP-9).
+   */
+  const showProfile = !!elevationProfile && !isAiming;
+  // 그래프가 화면 아래를 차지하면 세이프에어리어는 그래프가 비운다 — 오버레이는 지도 안에 남는다.
+  const overlayBottomInset = showProfile ? 0 : insets.bottom;
+  // 그래프가 걷힌 뒤(조준 모드·코스 교체)에는 남은 표본을 그리지 않는다.
+  const scrubSample =
+    showProfile && scrub?.routeId === (selectedRouteId ?? '')
+      ? scrub.sample
+      : null;
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <GestureDetector gesture={longPressGesture}>
-        <View style={styles.mapArea}>
-          <NaverMapView
-            ref={mapRef}
-            style={StyleSheet.absoluteFill}
-            initialCamera={KOREA_CAMERA}
-            isShowLocationButton={false}
-            isShowZoomControls={false}
-            isShowScaleBar={false}
-            onInitialized={handleMapInitialized}
-            onTapMap={handleTapMap}
-            onCameraChanged={handleCameraChanged}
-          >
-            {/* 코스 폴리라인 — 선택한 코스를 굵게, 나머지를 옅게(GRP-10). */}
-            {routes.map(route => {
-              const coords = route
-                .getSimplified()
-                .map(coordinate => ({
+      <View style={styles.mapSection}>
+        <GestureDetector gesture={longPressGesture}>
+          <View style={styles.mapArea}>
+            <NaverMapView
+              ref={mapRef}
+              style={StyleSheet.absoluteFill}
+              initialCamera={KOREA_CAMERA}
+              isShowLocationButton={false}
+              isShowZoomControls={false}
+              isShowScaleBar={false}
+              onInitialized={handleMapInitialized}
+              onTapMap={handleTapMap}
+              onCameraChanged={handleCameraChanged}
+            >
+              {/* 코스 폴리라인 — 선택한 코스를 굵게, 나머지를 옅게(GRP-10). */}
+              {routes.map(route => {
+                const coords = route.getSimplified().map(coordinate => ({
                   latitude: coordinate.lat,
                   longitude: coordinate.lng,
                 }));
 
-              if (coords.length < MIN_PATH_COORDS) {
-                return null;
-              }
+                if (coords.length < MIN_PATH_COORDS) {
+                  return null;
+                }
 
-              const isSelected =
-                routes.length === 1 || route.getId() === selectedRouteId;
+                const isSelected =
+                  routes.length === 1 || route.getId() === selectedRouteId;
 
-              return (
-                <NaverMapPathOverlay
-                  key={route.getId()}
-                  coords={coords}
-                  width={isSelected ? ROUTE_WIDTH : ROUTE_DIM_WIDTH}
-                  color={isSelected ? ROUTE_COLOR : ROUTE_DIM_COLOR}
-                  outlineWidth={isSelected ? ROUTE_OUTLINE_WIDTH : 0}
-                  outlineColor={ROUTE_OUTLINE_COLOR}
-                />
-              );
-            })}
+                return (
+                  <NaverMapPathOverlay
+                    key={route.getId()}
+                    coords={coords}
+                    width={isSelected ? ROUTE_WIDTH : ROUTE_DIM_WIDTH}
+                    color={isSelected ? ROUTE_COLOR : ROUTE_DIM_COLOR}
+                    outlineWidth={isSelected ? ROUTE_OUTLINE_WIDTH : 0}
+                    outlineColor={ROUTE_OUTLINE_COLOR}
+                  />
+                );
+              })}
 
-            {/* 연결된 박지 마커 — 앱 공통 핀(끝점이 좌표에 닿는다). */}
-            {campSpot ? (
-              <NaverMapMarkerOverlay
-                latitude={campSpot.location.latitude}
-                longitude={campSpot.location.longitude}
-                anchor={{ x: 0.5, y: 1 }}
-                width={SPOT_PIN_WIDTH}
-                height={SPOT_PIN_HEIGHT}
-                caption={{
-                  text: campSpot.name,
-                  align: 'Top',
-                  textSize: 12,
-                  color: Acg.ink,
-                  haloColor: Acg.paper,
-                  offset: 4,
-                }}
-                isHideCollidedSymbols
-              >
-                <View key={campSpot.id} collapsable={false} style={styles.spotPin}>
-                  <SpotPinView width={SPOT_PIN_WIDTH} />
-                </View>
-              </NaverMapMarkerOverlay>
-            ) : null}
+              {/* 연결된 박지 마커 — 앱 공통 핀(끝점이 좌표에 닿는다). */}
+              {campSpot ? (
+                <NaverMapMarkerOverlay
+                  latitude={campSpot.location.latitude}
+                  longitude={campSpot.location.longitude}
+                  anchor={{ x: 0.5, y: 1 }}
+                  width={SPOT_PIN_WIDTH}
+                  height={SPOT_PIN_HEIGHT}
+                  caption={{
+                    text: campSpot.name,
+                    align: 'Top',
+                    textSize: 12,
+                    color: Acg.ink,
+                    haloColor: Acg.paper,
+                    offset: 4,
+                  }}
+                  isHideCollidedSymbols
+                >
+                  <View
+                    key={campSpot.id}
+                    collapsable={false}
+                    style={styles.spotPin}
+                  >
+                    <SpotPinView width={SPOT_PIN_WIDTH} />
+                  </View>
+                </NaverMapMarkerOverlay>
+              ) : null}
 
-            <GroupMapMarkersView
-              pointList={pointList}
-              viewport={viewport}
-              selectedPointId={groupMap.getFocusedPointId()}
-              onTapPoint={handleTapPoint}
-            />
-          </NaverMapView>
-        </View>
-      </GestureDetector>
-
-      {/* 상단 오버레이 — 유형 필터 칩(GRP-10). */}
-      <View style={[styles.topOverlay, { top: topInset }]} pointerEvents='box-none'>
-        <GroupPointFilterChipsView pointList={pointList} onMap />
-      </View>
-
-      {/* 현재 위치 버튼 — 권한이 있을 때만 노출한다(GRP-9 엣지 케이스). */}
-      {locationGranted ? (
-        <View
-          style={[styles.locateWrapper, { bottom: insets.bottom + 120 }]}
-          pointerEvents='box-none'
-        >
-          <TouchableOpacity
-            style={styles.locateButton}
-            onPress={() => void handleMoveToCurrentLocation()}
-            activeOpacity={0.8}
-            accessibilityRole='button'
-            accessibilityLabel={l10n.t('group.map.currentLocation')}
-          >
-            <Ionicons name='locate' size={22} color={Acg.ink} />
-          </TouchableOpacity>
-        </View>
-      ) : null}
-
-      <View
-        style={[styles.bottomOverlay, { paddingBottom: insets.bottom + 16 }]}
-        pointerEvents='box-none'
-      >
-        {selectedPoint ? (
-          <GroupPointCalloutView
-            point={selectedPoint}
-            memberIds={groupMap.getMemberIds()}
-            canEdit={groupMap.canEditPoint(selectedPoint)}
-            disabled={pointList.isSubmitting()}
-            onEdit={() => onRequestEdit(selectedPoint)}
-            onDelete={() => onRequestDelete(selectedPoint)}
-            onClose={handleTapMap}
-          />
-        ) : null}
-
-        {/* 코스가 여럿일 때만 선택 칩을 둔다 — 하나뿐이면 고를 것이 없다(GRP-10). */}
-        {routes.length > 1 ? (
-          <View style={styles.routeRow}>
-            {routes.map(route => (
-              <CategoryChipView
-                key={route.getId()}
-                label={route.getName()}
-                tone='acgSolid'
-                variant='secondary'
-                selected={route.getId() === selectedRouteId}
-                onPress={() => groupMap.selectRoute(route.getId())}
+              <GroupMapMarkersView
+                pointList={pointList}
+                viewport={viewport}
+                selectedPointId={groupMap.getFocusedPointId()}
+                onTapPoint={handleTapPoint}
               />
-            ))}
+
+              {/* 고도 그래프를 훑는 동안만 뜨는 위치 마커(GRP-8). */}
+              {scrubSample ? (
+                <GroupRouteScrubMarkerView
+                  latitude={scrubSample.latitude}
+                  longitude={scrubSample.longitude}
+                />
+              ) : null}
+            </NaverMapView>
+          </View>
+        </GestureDetector>
+
+        {/* 조준 마커는 지도 좌표가 아니라 화면에 고정된다(GRP-9). */}
+        {isAiming ? <GroupMapAimMarkerView /> : null}
+
+        {/* 상단 오버레이 — 유형 필터 칩(GRP-10). 조준 모드에서는 걷는다. */}
+        {isAiming ? null : (
+          <View
+            style={[styles.topOverlay, { top: topInset }]}
+            pointerEvents='box-none'
+          >
+            <GroupPointFilterChipsView pointList={pointList} onMap />
+          </View>
+        )}
+
+        {/* 현재 위치 버튼 — 권한이 있을 때만 노출한다(GRP-9 엣지 케이스).
+          조준 모드에서도 남긴다: 내 자리로 지도를 옮겨 그 부근을 겨누는 것이 흔한 경로다. */}
+        {locationGranted ? (
+          <View
+            style={[styles.locateWrapper, { bottom: overlayBottomInset + 120 }]}
+            pointerEvents='box-none'
+          >
+            <TouchableOpacity
+              style={styles.locateButton}
+              onPress={() => void handleMoveToCurrentLocation()}
+              activeOpacity={0.8}
+              accessibilityRole='button'
+              accessibilityLabel={l10n.t('group.map.currentLocation')}
+            >
+              <Ionicons name='locate' size={22} color={Acg.ink} />
+            </TouchableOpacity>
           </View>
         ) : null}
 
-        {/* 화면의 주 액션 하나 — 라임은 여기에만 쓴다(HM-8). */}
-        <TouchableOpacity
-          style={[styles.addButton, isFull && styles.addButtonDisabled]}
-          onPress={handleAddAtCenter}
-          disabled={isFull || pointList.isSubmitting()}
-          activeOpacity={0.8}
-          accessibilityRole='button'
-          accessibilityLabel={l10n.t('group.map.addPoint')}
-          accessibilityHint={l10n.t('group.map.addPointHint')}
-          accessibilityState={{ disabled: isFull }}
+        <View
+          style={[
+            styles.bottomOverlay,
+            { paddingBottom: overlayBottomInset + 16 },
+          ]}
+          pointerEvents='box-none'
         >
-          <Ionicons name='add' size={20} color={Acg.ink} />
-          <PretendardText weight='semibold' style={styles.addLabel}>
-            {l10n.t(isFull ? 'group.map.pointFull' : 'group.map.addPoint')}
-          </PretendardText>
-        </TouchableOpacity>
+          {/* 조준 모드에서는 정보 카드·코스 칩을 걷어 조준을 가리지 않는다(GRP-9). */}
+          {isAiming ? (
+            <>
+              <View style={styles.aimHint}>
+                <PretendardText style={styles.aimHintLabel} numberOfLines={2}>
+                  {l10n.t('group.map.aimHint')}
+                </PretendardText>
+              </View>
+              <View style={styles.aimActions}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={handleCancelAiming}
+                  activeOpacity={0.8}
+                  accessibilityRole='button'
+                  accessibilityLabel={l10n.t('common.cancel')}
+                >
+                  <PretendardText style={styles.cancelLabel}>
+                    {l10n.t('common.cancel')}
+                  </PretendardText>
+                </TouchableOpacity>
+                {/* 조준 모드의 주 액션 하나 — 라임은 여기에만 쓴다(HM-8). */}
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={handleConfirmAiming}
+                  disabled={pointList.isSubmitting()}
+                  activeOpacity={0.8}
+                  accessibilityRole='button'
+                  accessibilityLabel={l10n.t('group.map.aimConfirm')}
+                >
+                  <Ionicons name='checkmark' size={20} color={Acg.ink} />
+                  <PretendardText weight='semibold' style={styles.addLabel}>
+                    {l10n.t('group.map.aimConfirm')}
+                  </PretendardText>
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <>
+              {selectedPoint ? (
+                <GroupPointCalloutView
+                  point={selectedPoint}
+                  memberIds={groupMap.getMemberIds()}
+                  canEdit={groupMap.canEditPoint(selectedPoint)}
+                  disabled={pointList.isSubmitting()}
+                  onEdit={() => onRequestEdit(selectedPoint)}
+                  onDelete={() => onRequestDelete(selectedPoint)}
+                  onClose={handleTapMap}
+                />
+              ) : null}
+
+              {/* 코스가 여럿일 때만 선택 칩을 둔다 — 하나뿐이면 고를 것이 없다(GRP-10). */}
+              {routes.length > 1 ? (
+                <View style={styles.routeRow}>
+                  {routes.map(route => (
+                    <CategoryChipView
+                      key={route.getId()}
+                      label={route.getName()}
+                      tone='acgSolid'
+                      variant='secondary'
+                      selected={route.getId() === selectedRouteId}
+                      onPress={() => groupMap.selectRoute(route.getId())}
+                    />
+                  ))}
+                </View>
+              ) : null}
+
+              {/* 화면의 주 액션 하나 — 라임은 여기에만 쓴다(HM-8). */}
+              <TouchableOpacity
+                style={[styles.addButton, isFull && styles.addButtonDisabled]}
+                onPress={handleStartAiming}
+                disabled={isFull || pointList.isSubmitting()}
+                activeOpacity={0.8}
+                accessibilityRole='button'
+                accessibilityLabel={l10n.t('group.map.addPoint')}
+                accessibilityHint={l10n.t('group.map.addPointHint')}
+                accessibilityState={{ disabled: isFull }}
+              >
+                <Ionicons name='add' size={20} color={Acg.ink} />
+                <PretendardText weight='semibold' style={styles.addLabel}>
+                  {l10n.t(
+                    isFull ? 'group.map.pointFull' : 'group.map.addPoint'
+                  )}
+                </PretendardText>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
       </View>
+
+      {/* 고도 그래프는 지도 **아래**다 — 지도를 가리면 훑는 동안 위치를 못 본다(GRP-8). */}
+      {showProfile && elevationProfile ? (
+        <GroupRouteElevationChartView
+          // 코스를 바꾸면 그래프를 새로 마운트해 이전 코스의 커서가 남지 않게 한다.
+          key={selectedRoute?.getId()}
+          profile={elevationProfile}
+          onScrub={handleScrub}
+          bottomInset={insets.bottom + 12}
+        />
+      ) : null}
     </GestureHandlerRootView>
   );
 };
@@ -557,6 +719,10 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Acg.bg,
+  },
+  // 지도와 그 위 오버레이가 사는 칸. 고도 그래프는 이 칸 **밖**(아래)에 붙는다(GRP-8).
+  mapSection: {
+    flex: 1,
   },
   mapArea: {
     flex: 1,
@@ -619,6 +785,45 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   addLabel: {
+    ...AcgType.control,
+    color: Acg.ink,
+  },
+  aimActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  // 안내는 지도 위에 뜨므로 불투명 알약에 담는다 — 지형 위 맨 글자는 읽히지 않는다.
+  aimHint: {
+    alignSelf: 'center',
+    maxWidth: '100%',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: Radius.pill,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.chip,
+  },
+  aimHintLabel: {
+    ...AcgType.meta,
+    color: Acg.textSecondary,
+    textAlign: 'center',
+  },
+  // 취소는 액션이 아니라 되돌리기다 — 면을 채우지 않고 주 액션과 무게를 갈라 둔다.
+  cancelButton: {
+    minHeight: 48,
+    minWidth: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: Radius.pill,
+    backgroundColor: Acg.paper,
+    borderWidth: 1,
+    borderColor: Acg.hairline,
+    boxShadow: AcgShadow.card,
+  },
+  cancelLabel: {
     ...AcgType.control,
     color: Acg.ink,
   },

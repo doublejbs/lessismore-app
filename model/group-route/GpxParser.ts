@@ -297,11 +297,19 @@ class GpxParser {
    * 몇백 배 다르기 때문이다.
    */
   private static simplify(points: GpxTrackPoint[]): GroupRouteCoordinate[] {
+    return GpxParser.keepIndices(points).map(index =>
+      GpxParser.toSimplifiedCoordinate(points[index])
+    );
+  }
+
+  /**
+   * 축약이 남긴 **원본 인덱스**를 돌려준다. 좌표로 바로 바꾸지 않는 이유는 고도 때문이다 —
+   * 살아남은 점이 원본의 몇 번째였는지를 알아야 그 점의 `<ele>`를 그대로 실을 수 있고(GRP-8),
+   * 좌표만 들고 다니면 축약 뒤에 고도를 되찾을 방법이 없다.
+   */
+  private static keepIndices(points: GpxTrackPoint[]): number[] {
     if (points.length <= GROUP_ROUTE_MAX_SIMPLIFIED_POINTS) {
-      return points.map(point => ({
-        lat: point.latitude,
-        lng: point.longitude,
-      }));
+      return points.map((_point, index) => index);
     }
 
     const projected = GpxParser.project(points);
@@ -311,9 +319,7 @@ class GpxParser {
 
     while (kept.length > GROUP_ROUTE_MAX_SIMPLIFIED_POINTS) {
       if (step >= MAX_TOLERANCE_STEPS) {
-        kept = GpxParser.sampleEvenly(kept);
-
-        break;
+        return GpxParser.sampleEvenly(kept);
       }
 
       tolerance *= 2;
@@ -321,10 +327,21 @@ class GpxParser {
       step += 1;
     }
 
-    return kept.map(index => ({
-      lat: points[index].latitude,
-      lng: points[index].longitude,
-    }));
+    return kept;
+  }
+
+  /**
+   * 축약 좌표 한 점. 고도가 기록되지 않은 점은 **키 자체를 생략한다** —
+   * `exactOptionalPropertyTypes`가 켜져 있고, 그래프도 키의 유무로 "고도 없음"을 읽는다.
+   */
+  private static toSimplifiedCoordinate(
+    point: GpxTrackPoint
+  ): GroupRouteCoordinate {
+    return {
+      lat: point.latitude,
+      lng: point.longitude,
+      ...(point.elevation === null ? {} : { ele: point.elevation }),
+    };
   }
 
   /**

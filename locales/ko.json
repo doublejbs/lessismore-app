@@ -1410,10 +1410,12 @@
       "title": "그룹 지도",
       "loadFailed": "지도를 불러오지 못했어요",
       "addPoint": "여기에 포인트 추가",
-      "addPointHint": "지도 가운데 위치에 포인트를 등록해요. 지도를 길게 눌러도 돼요",
+      "addPointHint": "지도 가운데에 조준 마커를 띄워 위치를 고르게 해요. 지도를 길게 눌러도 돼요",
       "pointFull": "포인트가 가득 찼어요",
       "currentLocation": "현재 위치",
-      "webNotice": "웹에서는 지도를 볼 수 없어요. 코스와 포인트를 목록으로 보여드려요"
+      "webNotice": "웹에서는 지도를 볼 수 없어요. 코스와 포인트를 목록으로 보여드려요",
+      "aimHint": "지도를 움직여 추가할 위치를 맞춰요",
+      "aimConfirm": "이 위치에 추가"
     },
     "point": {
       "title": "포인트 등록",
@@ -1439,7 +1441,10 @@
       "uploading": "올리는 중",
       "delete": "삭제",
       "deleteConfirm": "이 코스를 지울까요?",
-      "elevation": "상승 {{value}}m"
+      "elevation": "상승 {{value}}m",
+      "profileTitle": "고도 단면",
+      "profilePeak": "최고 {{value}}m",
+      "profileHint": "그래프를 손가락으로 훑으면 지도에 그 지점이 표시돼요"
     }
   }
 }

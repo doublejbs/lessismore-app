@@ -803,7 +803,15 @@ class GroupStore {
     // 축약 좌표는 파서가 500점 이하로 줄여 넘기지만, 1MB 문서 한도를 지키는 마지막 방어선을 둔다.
     const simplified = input.simplified
       .slice(0, GROUP_ROUTE_MAX_SIMPLIFIED_POINTS)
-      .map(coordinate => ({ lat: coordinate.lat, lng: coordinate.lng }));
+      .map(coordinate => ({
+        lat: coordinate.lat,
+        lng: coordinate.lng,
+        // 고도는 있을 때만 싣는다 — Firestore에 `undefined`를 쓸 수 없고,
+        // 고도 그래프는 키의 유무로 "고도 없음"을 읽는다(GRP-8, DM-29 `simplified`).
+        ...(coordinate.ele !== undefined && Number.isFinite(coordinate.ele)
+          ? { ele: coordinate.ele }
+          : {}),
+      }));
 
     await runTransaction(this.getStore(), async transaction => {
       const snapshot = await transaction.get(this.groupRef(groupId));
@@ -1085,10 +1093,18 @@ class GroupStore {
   // Firestore 문서의 좌표 한 점. 배열 원소는 어떤 모양으로도 올 수 있으므로 값마다 다시 본다.
   private toCoordinate(value: unknown): GroupRouteCoordinate {
     const coordinate = this.isRecord(value) ? value : {};
+    const elevation = Number(coordinate.ele);
 
     return {
       lat: Number(coordinate.lat) || 0,
       lng: Number(coordinate.lng) || 0,
+      // 이 기능 이전에 올라간 코스에는 고도가 없다 — 그때는 키를 그대로 비워 둬야
+      // 그래프가 "고도 없음"으로 읽고 자리를 비운다(GRP-8). 0으로 채우면 평지로 그려진다.
+      ...(coordinate.ele === null ||
+      coordinate.ele === undefined ||
+      !Number.isFinite(elevation)
+        ? {}
+        : { ele: elevation }),
     };
   }
 
