@@ -19,6 +19,7 @@ import GearPreviewStore from '../gear-preview/GearPreviewStore';
 import BagTemplateStore from '../store/BagTemplateStore';
 import FeedContentStore from '../store/FeedContentStore';
 import CommunityStore from '../store/CommunityStore';
+import GroupStore from '../store/GroupStore';
 import L10n from '../l10n/L10n';
 import CommunitySearchStore from '../search/CommunitySearchStore';
 
@@ -43,6 +44,7 @@ class App {
   private forceUpdateManager: ForceUpdateManager | null = null;
   private featurePopupManager: FeaturePopupManager | null = null;
   private communityStore: CommunityStore | null = null;
+  private groupStore: GroupStore | null = null;
   private communitySearchStore: CommunitySearchStore | null = null;
 
   private gearPreviewStore: GearPreviewStore | null = null;
@@ -74,6 +76,7 @@ class App {
     this.logInAlertManager = LogInAlertManager.new(this.firebase);
     this.replyStore = new ReplyStore(this.firebase);
     this.communityStore = new CommunityStore(this.firebase);
+    this.groupStore = new GroupStore(this.firebase, this.bagStore!);
     this.campSpotStore = new CampSpotStore(this.firebase);
     this.feedContentStore = new FeedContentStore(
       this.firebase,
@@ -132,6 +135,10 @@ class App {
 
   public getCommunityStore() {
     return this.communityStore;
+  }
+
+  public getGroupStore() {
+    return this.groupStore;
   }
 
   public getCommunitySearchStore() {

@@ -1,0 +1,15 @@
+// 그룹 상한값 단일 소스 (DM-29 · GRP-2/3/4/8/9 수용 기준).
+export const GROUP_NAME_MIN_LENGTH = 2;
+export const GROUP_NAME_MAX_LENGTH = 40;
+export const GROUP_MAX_DURATION_DAYS = 30;
+export const GROUP_MAX_MEMBER_COUNT = 20;
+export const GROUP_MAX_PER_USER = 20;
+export const GROUP_MAX_POINT_COUNT = 50;
+export const GROUP_POINT_TITLE_MIN_LENGTH = 1;
+export const GROUP_POINT_TITLE_MAX_LENGTH = 40;
+export const GROUP_POINT_DESCRIPTION_MAX_LENGTH = 200;
+export const GROUP_MAX_ROUTE_COUNT = 5;
+export const GROUP_ROUTE_MAX_BYTES = 5 * 1024 * 1024;
+export const GROUP_ROUTE_MAX_SIMPLIFIED_POINTS = 500;
+export const GROUP_MEETING_NOTE_MAX_LENGTH = 200;
+export const GROUP_DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;

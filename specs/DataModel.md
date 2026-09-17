@@ -861,8 +861,15 @@
 | `name` / `startDate` / `endDate` | string | 목록 표시용 스냅샷 |
 | `role` | string | `owner` / `member` |
 | `joinedAt` | timestamp | 참여 시각 |
+| `ownerId` | string | 방장 표시·권한 판정 |
+| `memberCount` | number | 목록 행의 `멤버 N명` |
+| `campSpotId` | string? | 박지 연결 여부 |
+| `destinationName` | string? | 목록 행의 여행지 |
+| `hasBag` | boolean | 내 배낭 연결 여부 |
 
 - `groups`를 `array-contains memberIds` 로 직접 쿼리할 수도 있지만, 본인 문서 하위를 읽는 편이 규칙이 단순하고 목록 조회에 그룹 문서 읽기가 필요 없다. 그룹 이름·기간이 바뀌면 방장 쓰기 시점에 멤버 전원의 역인덱스를 갱신해야 하므로 **서버 작업으로 처리한다**.
+- 역인덱스는 GRP-1 목록 행이 요구하는 값(여행지·멤버 수·배낭 연결 여부)을 전부 담는다 — 목록을 그리려고 그룹 문서를 N번 읽지 않는다는 것이 이 컬렉션의 존재 이유다. `hasBag`은 본인만 쓰는 값이라 클라이언트가 배낭 연결·해제 시 함께 갱신한다.
+- 역인덱스로 만든 `Group`은 **요약본**이다: `memberIds`에는 조회자 본인만 들어가고 `pointCount`/`routeCount`는 0, `inviteEnabled`는 true다. 화면은 요약본과 상세를 구분해 다뤄야 하며, 멤버 목록·포인트·코스가 필요하면 그룹 문서를 다시 읽는다.
 
 #### 인덱스
 
