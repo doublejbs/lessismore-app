@@ -94,6 +94,12 @@
 | `community-post-likes/{userId}_{postId}` | 커뮤니티 게시글 좋아요 (DM-28) `[제안]` | 커뮤니티 피드·상세 |
 | `community-poll-votes/{postId}_{userId}` | 커뮤니티 투표, 게시글·계정당 한 문서 (DM-28) `[제안]` | 커뮤니티 투표 |
 | `community-reports/{reportId}` | 커뮤니티 게시글·댓글 신고 (DM-28) `[제안]` | 신고·Firebase 콘솔 처리 |
+| `groups/{groupId}` | 그룹 = 여행 1건 (DM-29) `[제안]` | 그룹 목록·상세 |
+| `groups/{groupId}/members/{uid}` | 그룹 멤버, 계정당 한 문서 (DM-29) `[제안]` | 멤버 목록 |
+| `groups/{groupId}/bags/{uid}` | 멤버 배낭 공개 스냅샷 (DM-29) `[제안]` | 멤버 배낭 열람 |
+| `groups/{groupId}/points/{pointId}` | 그룹 지도 포인트 (DM-29) `[제안]` | 그룹 지도 |
+| `groups/{groupId}/routes/{routeId}` | 그룹 코스(GPX) 요약 (DM-29) `[제안]` | 그룹 지도·코스 목록 |
+| `users/{uid}/groups/{groupId}` | 내가 속한 그룹 역인덱스 (DM-29) `[제안]` | 그룹 목록 조회 |
 | `config/app` | 앱 원격 설정 (강제 업데이트 최소 버전) | 강제 업데이트 게이트 (AppLifecycle APP-7) |
 | `config/announcement` | 인앱 텍스트 공지 (원격 배너) | 공지 시트 (Announcement AN) |
 | `config/featurePopup` | 신기능 안내 팝업 (원격 온보딩) | 신기능 팝업 (FeaturePopup FP) |
@@ -763,6 +769,117 @@
 - Storage 공개·쓰기 계약은 DM-9를 따른다. 객체 목록 조회는 허용하지 않는다.
 - 회원 탈퇴·게시글 삭제의 연쇄 정리는 [Community.md](Community.md) CM-9·CM-12를 따른다. 탈퇴자 투표 정리(`onCommunityUserDeleted`)는 투표 문서 `optionIds` 배열의 각 선택지 `voteCount -1`, `totalVoteCount -1`(참여자 1명분)로 보정하며 레거시 `optionId` 문자열도 원소 하나로 읽는다(2026-09-10 — 서버가 `optionId`만 읽어 배열 문서의 카운터가 빠지지 않던 불일치 수정).
 
+### DM-29 그룹 `[제안]`
+
+그룹은 **여행 1건**이며([Group.md](Group.md) GRP-2), 앱에서 처음으로 **특정 사용자 집합에게만 보이는 데이터**를 도입한다. 기존 가시성은 `공개`(커뮤니티·박지 카탈로그), `본인만`(`users/*`), `링크를 아는 사람 전부`(`bag.shared`) 세 가지뿐이었다.
+
+#### `groups/{groupId}`
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `name` | string | trim 후 2~40자 |
+| `startDate` / `endDate` | string | `YYYY-MM-DD`. 시작 ≤ 종료, 최대 30일 |
+| `ownerId` | string | 방장 uid. 변경 불가(위임 없음) |
+| `memberIds` | string[] | **보안 규칙의 멤버십 판정 소스**. 최대 20. `members` 하위 문서와 항상 일치 |
+| `memberCount` | number | `memberIds.size()`와 일치하는 캐시 |
+| `campSpotId` | string? | 등록 박지(DM-17) 참조. 자유 위치는 키 없음 |
+| `destinationName` | string? | 여행지 표시 이름. **자유 위치의 좌표는 저장하지 않는다** |
+| `meetingNote` | string? | 집합 안내 한 줄, 최대 200자. 좌표를 갖지 않는다 |
+| `inviteEnabled` | boolean | 초대 링크 잠금. 기본 `true` |
+| `pointCount` / `routeCount` | number | 하위 문서 수 캐시, 기본 0 |
+| `createdAt` / `updatedAt` | timestamp | 서버 시각 |
+
+- **`groupId` 자체가 초대 비밀이다.** Firestore 자동 생성 20자 ID를 쓰고 별도 토큰을 두지 않는다(GRP-3). 문서 읽기는 인증 사용자면 허용하되, 하위 컬렉션은 멤버만 읽는다 — 초대 화면에서 이름·기간·멤버 수를 보여주려면 비멤버도 그룹 문서를 읽어야 한다.
+- 참여는 `memberIds`에 **자기 uid 하나만** 추가하는 update로 처리한다. 규칙이 `affectedKeys`를 `memberIds`·`memberCount`·`updatedAt`으로 제한하고, 추가 원소가 `request.auth.uid`인지, 크기가 정확히 1 늘었는지, 상한 20을 넘지 않는지 검증한다. Cloud Function 없이 규칙만으로 성립한다.
+
+#### `groups/{groupId}/members/{uid}`
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `uid` | string | 문서 ID와 동일. 계정당 한 문서가 구조적으로 보장된다 |
+| `nickname` | string | 참여 시점 닉네임 스냅샷. 닉네임은 유니크하지 않다(DM-2) |
+| `role` | string | string enum `GroupMemberRole`: `owner` / `member` |
+| `bagId` | string? | 연결한 배낭. 해제하면 키 제거 |
+| `joinedAt` | timestamp | 참여 시각 |
+
+#### `groups/{groupId}/bags/{uid}` — 멤버 배낭 공개 스냅샷
+
+문서 ID가 uid라 멤버당 하나로 고정된다. 스키마는 **DM-28 `bagSnapshot`과 같은 계약**을 쓴다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `bagId` | string | 원본 배낭 ID. 그룹원은 이 ID로 `bag/{bagId}`를 읽지 않는다 |
+| `name` | string | 배낭 이름 |
+| `startDate` / `endDate` | string? | `YYYY-MM-DD` |
+| `destinationName` | string? | 여행지 표시 이름 |
+| `totalWeight` | number | g |
+| `itemCount` | number | 장비 수 |
+| `gears` | array | `{ gearId?, company, name, weight, category }` — DM-28과 동일 |
+| `syncedAt` | timestamp | 마지막 동기화 시각. 화면에 노출해 신선도를 알린다 |
+
+- **담지 않는 것: 메모, 정확한 좌표, 이동 경로, 건강·활동 기록(DM-22), 개인 장비 `imageUrl`, 사용자 정의 장비 문서 ID.** DM-28의 제외 목록과 같다.
+- **원본을 따라간다.** 커뮤니티 스냅샷은 불변 복사본이지만 그룹 스냅샷은 배낭이 바뀌면 다시 쓴다(GRP-5). 갱신은 클라이언트가 쓰기 시점에 수행하며 실시간 구독이 아니다.
+- `bag` 문서에 그룹원 읽기 권한을 주지 않는 이유는 배낭이 메모·좌표·건강 기록을 함께 담기 때문이다. 공개 범위를 **데이터 모양으로 고정**해 규칙을 그룹 컬렉션 안에서 닫는다.
+- 빌더는 `CommunityBagSnapshotBuilder`를 재사용하거나 같은 계약의 그룹 전용 빌더를 둔다. 제외 목록이 두 곳으로 갈라지지 않게 한 곳에서 파생한다.
+
+#### `groups/{groupId}/points/{pointId}` — 지도 포인트
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `type` | string | string enum `GroupPointType`: `water` / `shelter` / `caution` / `note` |
+| `latitude` / `longitude` | number | WGS84 |
+| `title` | string | 1~40자 |
+| `description` | string? | 최대 200자 |
+| `authorId` / `authorName` | string | 작성자 uid와 닉네임 스냅샷 |
+| `createdAt` / `updatedAt` | timestamp | 서버 시각 |
+
+- 그룹당 50개 상한. 좌표는 **그룹 안에서만** 보이며 공개 박지 카탈로그(`camp-spot`)에 기여하지 않는다(DM-17은 운영자 큐레이션 전용).
+
+#### `groups/{groupId}/routes/{routeId}` — 코스(GPX)
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `name` | string | 파일명 또는 `<trk><name>`, 최대 40자 |
+| `storagePath` | string | `groups/{groupId}/routes/{routeId}.gpx` |
+| `fileSize` | number | 바이트, 5MB 이하 |
+| `distance` | number | m |
+| `elevationGain` | number? | m |
+| `pointCount` | number | 원본 트랙포인트 수 |
+| `bounds` | map | `{ minLat, maxLat, minLng, maxLng }` |
+| `simplified` | array | 지도 렌더용 축약 좌표 `{ lat, lng }`, **최대 500점** |
+| `authorId` / `authorName` | string | 올린 사람 |
+| `createdAt` | timestamp | 서버 시각 |
+
+- **원본 트랙포인트 전체를 Firestore에 넣지 않는다.** 1MB 문서 한도와 렌더 성능 때문이며, 원본은 Storage 파일로만 보관한다.
+- 그룹당 5개 상한.
+- [HealthActivity.md](HealthActivity.md) HA-5가 금지하는 것은 **기기 건강 허브에서 읽은 개인 이동 기록**의 서버 저장이다. 그룹 코스는 사용자가 일행에게 보여주려고 올리는 계획 경로이므로 별개다. 건강 기록 경로를 그룹 코스로 옮기는 경로는 두지 않는다.
+
+#### `users/{uid}/groups/{groupId}` — 역인덱스
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `name` / `startDate` / `endDate` | string | 목록 표시용 스냅샷 |
+| `role` | string | `owner` / `member` |
+| `joinedAt` | timestamp | 참여 시각 |
+
+- `groups`를 `array-contains memberIds` 로 직접 쿼리할 수도 있지만, 본인 문서 하위를 읽는 편이 규칙이 단순하고 목록 조회에 그룹 문서 읽기가 필요 없다. 그룹 이름·기간이 바뀌면 방장 쓰기 시점에 멤버 전원의 역인덱스를 갱신해야 하므로 **서버 작업으로 처리한다**.
+
+#### 인덱스
+
+- `users/{uid}/groups` 는 `startDate` 정렬만 쓰므로 단일 필드 인덱스로 충분하다.
+- `groups/{groupId}/points` 는 `createdAt` 정렬, `routes` 도 `createdAt` 정렬. 복합 인덱스는 필요 없다.
+
+#### 서버 작업
+
+- 그룹 해산·멤버 탈퇴·회원 탈퇴의 연쇄 정리와 역인덱스 갱신은 커뮤니티와 같은 위치(별도 레포 `lessismore`의 `functions/`, 리전 `asia-northeast3`)에 둔다.
+- 필요한 트리거: 그룹 문서 삭제 시 하위 컬렉션과 Storage GPX 정리, 그룹 정보 수정 시 멤버 역인덱스 갱신, `memberIds` 변경 시 역인덱스 생성·삭제, Auth 삭제 시 소속 그룹 정리(방장이면 해산).
+- 서버 전용 필드: `deletedCleanedAt`(해산 연쇄 정리 완료 멱등 가드).
+
+#### 선행 보안 작업
+
+현재 배포된 규칙은 커뮤니티 4개 컬렉션을 제외한 나머지가 전면 개방(`allow read, write: if !isCommunityCollection()`)이다. `groups/*`는 신규라 처음부터 멤버십 기반으로 잠글 수 있지만, `bag`·`users`가 열려 있는 한 "그룹원만 본다"는 약속은 앱 화면 안에서만 성립한다. 그룹 출시와 별개로 기존 컬렉션을 좁히는 작업이 필요하다.
+
+
 ## 4. Storage 경로 (DM-9)
 
 | 경로 패턴 | 용도 | 상태 |
@@ -771,6 +888,7 @@
 | `/gears/{fileName}` | 크롤 파이프라인이 적재한 카탈로그 이미지 | 보존, 앱은 읽지 않음 (§1) |
 | `/gears/{gearId}/{imageId}` | 장비 공유 이미지 갤러리 | **폐기** (DM-8, 재도입 안 함) |
 | `/community/{userId}/{postId}/{imageId}.jpg` | 공개 커뮤니티 게시글 사진 (DM-28, CM-6) | `[제안]` |
+| `/groups/{groupId}/routes/{routeId}.gpx` | 그룹 코스 GPX 원본 (DM-29, GRP-8) | `[제안]` |
 
 - 업로드는 **본인 경로(`/{userId}/`)에만** 쓴다. 파일명은 충돌하지 않게 생성하고, 업로드 후 받은 다운로드 URL을 `users/{uid}/gears/{id}.imageUrl`에 저장한다(DM-3).
 - 이미지를 **교체·삭제할 때 이전 Storage 파일도 함께 지운다** — 참조가 끊긴 파일이 쌓이면 용량만 늘고 회수 경로가 없다(현재 819개 중 상당수가 이미 그런 상태일 수 있다).

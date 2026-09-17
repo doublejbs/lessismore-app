@@ -179,6 +179,16 @@
 | `click_community_search` | 커뮤니티 제목 행 검색 아이콘 탭 | — |
 | `click_community_search_result` | 검색 결과 카드 → 상세 진입 | `has_packing`, `has_poll`: boolean, `query_length`: 질의 길이 |
 | `click_community_snapshot_gear` | 패킹 스냅샷 장비 행 → 장비 상세 이동(카탈로그 장비만) | `gear_id` (2026-09-05) |
+| `click_group_create` | 그룹 만들기 완료 | `has_destination`: boolean |
+| `click_group_invite_copy` | 초대 링크 복사 | — |
+| `click_group_join` | 초대 수락(참여 완료) | `member_count`: 참여 후 인원 |
+| `click_group_open` | 그룹 목록 → 상세 진입 | — |
+| `click_group_bag_link` | 그룹에 내 배낭 연결 | `item_count`: 장비 수 |
+| `click_group_member_bag` | 멤버 배낭 상세 진입 | — |
+| `click_group_route_upload` | 코스(GPX) 업로드 성공 | `distance`: m, `point_count` |
+| `click_group_point_create` | 지도 포인트 등록 | `type`: `water` \| `shelter` \| `caution` \| `note` |
+| `click_group_map_open` | 그룹 지도 열기 | — |
+| `click_group_leave` | 그룹 나가기 / 해산 | `role`: `owner` \| `member` |
 | `click_community_report` | 신고 등록 성공 | `target`: `post` \| `comment` |
 
 - 커뮤니티 이벤트에는 게시글 ID, 작성자 ID·닉네임, 제목·본문, 투표 문구, 신고 상세를 보내지 않는다.
