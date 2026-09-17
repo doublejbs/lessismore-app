@@ -93,6 +93,8 @@ app/group/join.tsx → 초대 수락(그룹 이름·기간·멤버 수 확인 �
 - 앱은 Universal Links / App Links를 쓰지 않는다(`app.json`에 `associatedDomains`·`intentFilters`가 없다). 따라서 `{WEB_BASE_URL}/group/{groupId}`는 브라우저로 열리고, **웹 랜딩이 앱 스킴 `lessismoreapp://group/join?groupId={groupId}`로 넘겨준다.** 이미 장비·박지 공유가 같은 방식이다(`gear-share`·`camp-share` 랜딩이 각각 `lessismoreapp://gear-detail/{id}`·`lessismoreapp://camp-site/{id}`를 연다).
   - 네이티브 링킹 설정으로 가면 링크가 앱을 바로 열지만 **OTA로 못 나가고 새 빌드가 필요하다.** 초대 한 줄을 위해 릴리스를 묶지 않는다.
 - 웹 랜딩(별도 레포 `lessismore`, 경로 `/group/:id`)은 그룹 이름·기간·여행지·멤버 수를 먼저 보여주고 `앱에서 열기`로 위 스킴을 연다. 앱이 없으면 기존 `app-install` 안내로 떨어진다 — 장비·박지 공유 랜딩과 같은 구조다.
+- 랜딩이 읽는 것은 그룹 문서가 아니라 **초대 공개 요약 `groupInvites/{groupId}`** 다([DataModel.md](DataModel.md) DM-29). 그룹 문서는 로그인한 사용자만 읽을 수 있고 랜딩은 비인증이라, 초대 화면에 필요한 값(이름·기간·여행지·멤버 수·잠금 여부)만 서버가 복제해 둔다. **집합 메모와 멤버 uid는 복제하지 않는다** — 링크는 전달될 수 있고, 집합 메모는 일행이 실제로 언제 어디서 모이는지를 담는다.
+- 미러가 아직 없거나 읽기가 실패하면 그룹 정보 없이 `앱에서 열기`와 설치 안내만 남는 축소 형태로 떨어진다. 초대 링크가 통째로 죽는 것보다 낫다.
 - 참여 화면 라우트(`app/group/join.tsx`)는 동적 세그먼트가 없으므로 **쿼리 `groupId`** 로 받는다.
 
 ### GRP-4 멤버와 역할 `[제안]`

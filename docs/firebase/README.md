@@ -137,7 +137,7 @@ Firestore 규칙은 여러 `match`가 **OR**로 합쳐진다. 이 개방 절이 
 function isLockedCollection() {
   return request.path[3] in [
     'community-posts', 'community-post-likes', 'community-poll-votes',
-    'community-reports', 'groups', 'users'
+    'community-reports', 'groups', 'groupInvites', 'users'
   ];
 }
 

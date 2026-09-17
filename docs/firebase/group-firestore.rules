@@ -510,5 +510,27 @@ service cloud.firestore {
 
       allow delete: if isOwner(userId);
     }
+
+    // ------------------------------------------------------------------
+    // groupInvites/{groupId} — 초대 공개 요약 (DM-29)
+    //
+    // 초대 링크를 연 웹 랜딩이 읽는 유일한 공개 문서다. 그룹 문서는 signedIn()을
+    // 요구하는데 웹 랜딩은 비인증이라, 초대 화면에 필요한 값만 서버가 복제해 둔다.
+    // 담기는 것: name / startDate / endDate / destinationName? / memberCount /
+    // inviteEnabled / updatedAt. 집합 메모와 멤버 uid는 복제하지 않는다 —
+    // 링크는 전달될 수 있고 집합 메모는 일행의 실제 집합 시각·장소다.
+    //
+    // 쓰기는 전면 금지다. groups/{groupId} 쓰기 트리거(admin SDK)만 이 문서를
+    // 만들고 갱신하고 지운다. 클라이언트 쓰기를 열면 잠금·정원 표시를 위조할 수
+    // 있고, 무엇보다 미러가 원본과 갈라진다.
+    // ------------------------------------------------------------------
+
+    match /groupInvites/{groupId} {
+      // groupId 자체가 초대 비밀이라는 전제는 그룹 문서와 같다.
+      // list는 막는다 — 전체 열거를 허용하면 초대 비밀 전제가 무너진다.
+      allow get: if true;
+      allow list: if false;
+      allow write: if false;
+    }
   }
 }
