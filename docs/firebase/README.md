@@ -15,6 +15,8 @@
 
 **어떤 파일도 단독으로 배포하지 않는다.** 실제 배포는 `deployed/` 병합본 기준이며, 인덱스 배포는 파일에 없는 인덱스를 **삭제**하려 하므로 특히 병합본만 쓴다.
 
+2026-09-17 기준 `deployed/firestore.rules`·`deployed/storage.rules`에 **그룹 병합이 끝나 있다**(아래 "그룹 규칙 병합 시 주의"·"병합 기록" 참고). 원본 3종은 계약의 정본이고 병합본은 그 사본이다 — **한쪽만 고치지 않는다.**
+
 ## 커뮤니티
 
 ## 배포 전 확인
@@ -80,7 +82,7 @@
 | `isValidBagSnapshot()` | 배낭 스냅샷 허용 키 못박기 — **개인정보 계약의 마지막 방어선** |
 | `isValidPointPayload()` / `isValidRoutePayload()` | 포인트 유형 enum 4종·제목 40자·설명 200자 / 코스 이름 40자·`storagePath` 고정·5MB·`simplified` 500점 |
 
-역인덱스 `users/{uid}/groups/{groupId}`는 **본인만 읽기·쓰기**이며 허용 키는 DM-29 표 그대로 `name`·`startDate`·`endDate`·`role`·`joinedAt`·`ownerId`·`memberCount`·`hasBag`(필수)과 `campSpotId`·`destinationName`(선택)이다. `hasBag`은 본인이 배낭을 연결·해제할 때 갱신하므로 단독 부분 갱신이 허용된다. 이름·기간 등 그룹 정보가 바뀔 때 멤버 전원의 역인덱스를 갱신하는 것은 남의 문서 쓰기라 규칙이 막는다 — 서버 작업이 맡는다(DM-29).
+역인덱스 `users/{uid}/groups/{groupId}`는 **본인만 읽기·쓰기**이며 허용 키는 DM-29 표 그대로 `name`·`startDate`·`endDate`·`role`·`joinedAt`·`ownerId`·`memberCount`·`hasBag`(필수)과 `campSpotId`·`destinationName`(선택)이다. `hasBag`은 본인이 배낭을 연결·해제할 때 갱신하므로 부분 갱신(`updateDoc`)이 허용된다. 다만 규칙이 `hasBag == ('bagId' in data)` 를 강제하므로 **`hasBag`과 `bagId`는 반드시 함께 움직인다** — `bagId` 없이 `hasBag: true` 만 쓰면 거부된다(2026-09-17 에뮬레이터 확인). 이름·기간 등 그룹 정보가 바뀔 때 멤버 전원의 역인덱스를 갱신하는 것은 남의 문서 쓰기라 규칙이 막는다 — 서버 작업이 맡는다(DM-29).
 
 **참여·탈퇴는 배열 diff 없이 표현한다.** 규칙 언어에 배열 diff 연산이 없어 `size()` 비교 + `hasAll` + `in` 조합으로 좁혔다. 참여는 `after.size() == before.size() + 1 && after.hasAll(before) && uid in after && !(uid in before)`, 탈퇴/내보내기는 `after.size() == before.size() - 1 && before.hasAll(after) && ownerId in after`다. 이 조합은 `memberIds`에 중복 원소가 없다는 전제에서 완전하고, 중복은 생성 규칙(`memberIds == [uid]`)과 위 두 경로가 귀납적으로 막는다.
 
@@ -117,7 +119,9 @@ DM-29 인덱스 절 그대로, 그룹은 **복합 인덱스가 필요 없다**.
 
 ### 그룹 규칙 병합 시 주의 (필수)
 
-현재 프로덕션 `deployed/firestore.rules` 맨 끝은 전면 개방 절이다.
+**이 절의 병합은 2026-09-17에 적용을 마쳤다**(`deployed/firestore.rules`·`deployed/storage.rules`). 아래는 적용된 패턴과 그 근거이며, 병합본을 다시 손댈 때 지켜야 할 계약이다.
+
+병합 전 프로덕션 `deployed/firestore.rules` 맨 끝은 전면 개방 절이었다.
 
 ```
 function isCommunityCollection() {
@@ -166,6 +170,8 @@ match /{allPaths=**} {
 
 병합 후에는 아래 회귀 시나리오를 반드시 다시 돌린다 — `users/{uid}`·`users/{uid}/gears`·`bag`·`gears/`·`/community/**`가 **기존과 똑같이 열려 있어야** 한다. 개방 범위를 실수로 좁히면 앱 전체가 죽는다. (기존 컬렉션을 의도적으로 좁히는 것은 별도 보안 작업이다 — DM-29 선행 보안 작업, DataModel §1 `[운영]`.)
 
+헬퍼 이름 충돌: 그룹 원본과 커뮤니티 병합본에 `signedIn()`·`isOwner(userId)`가 양쪽에 있고 **정의가 글자까지 같다**. 병합본은 커뮤니티 절의 것 하나만 두고 그룹 절이 그대로 재사용한다(중복 정의는 컴파일 에러). 나머지 그룹 헬퍼 이름은 커뮤니티와 겹치지 않는다 — 비슷해 보이는 `unchangedCount(field)`(커뮤니티)와 `unchangedField(field)`(그룹)는 이름이 다르므로 그대로 둔다.
+
 ### 에뮬레이터 검증 절차
 
 저장소에는 하네스를 넣지 않는다. 스크래치패드에서 다음과 같이 돌린다(Java 17 필요, 포트는 다른 작업과 겹치지 않게 8095 이상을 쓴다).
@@ -177,11 +183,39 @@ npm init -y && npm i @firebase/rules-unit-testing firebase
 firebase emulators:exec --only firestore,storage --project demo-group-rules "node GroupRulesTest.mjs"
 ```
 
-2026-09-17 검증 결과: Firestore 73건 / Storage 10건 / 병합본 회귀 16건(Firestore 9 + Storage 7), 총 99건 전부 통과(실패 0). 규칙 파일 3종은 에뮬레이터 로드로 컴파일을 확인했으며 **배포하지 않았다**.
+2026-09-17 1차(원본 3종 단독) 검증: Firestore 73건 / Storage 10건.
+
+2026-09-17 2차(**병합본** `deployed/firestore.rules`·`deployed/storage.rules`) 검증: 총 **126건 전부 통과(실패 0)**.
+
+| 묶음 | 대상 | 건수 | 결과 |
+| --- | --- | --- | --- |
+| (a) 그룹 규칙 | 병합본 Firestore — 그룹 전 시나리오 | 74 | 통과 |
+| (a) 그룹 규칙 | 병합본 Storage — GPX | 10 | 통과 |
+| (a) 그룹 규칙 | 병합본 개방 절 누수(그룹·역인덱스) | 9 | 통과 |
+| (b) 회귀 | 병합본 Firestore — 기존 개방 14 + 커뮤니티 12 | 26 | 통과 |
+| (b) 회귀 | 병합본 Storage — 개인 사진·커뮤니티·크롤 | 7 | 통과 |
+
+회귀 26건은 **병합 전 파일(`git show HEAD:...`)과 병합본을 같은 하네스로 돌려 결과 문자열이 글자까지 같음**을 대조해 확인했다(Storage 목록 조회 5건도 동일 방식으로 대조). 즉 기존 컬렉션의 허용·거부가 한 건도 달라지지 않았다.
+
+Storage 에뮬레이터 로그에 뜨는 `storage.rules line [65] ... Variable  is not bound in path template`는 목록(list) 요청이 `match /{allPaths=**}`의 `allPaths[0]`을 평가할 때 나는 경고로, **병합 전 파일에서도 같은 위치의 같은 식에서 동일하게 발생**한다(대조 확인). 병합이 만든 문제가 아니다.
+
+규칙 파일은 에뮬레이터 로드로 컴파일을 확인했으며 **배포하지 않았다**. 하네스는 스크래치패드에만 두고 저장소에 넣지 않는다.
+
+### 그룹 병합 기록 (2026-09-17)
+
+- `deployed/firestore.rules` = 기존 병합본 + `group-firestore.rules` 본문(그룹 헬퍼 · `groups/{groupId}` 및 하위 `members`·`bags`·`points`·`routes` · `users/{uid}/groups/{groupId}` 역인덱스 · `groupInvites/{groupId}`). 맨 끝 개방 절의 `isCommunityCollection()`을 `isLockedCollection()`으로 바꾸고 `groups`·`groupInvites`·`users`를 추가했으며, `users`는 `match /users/{userId}`(개방 유지) + `match /users/{userId}/{subCollection}/{restOfPath=**}`(`groups`만 제외)로 갈라 열었다. 커뮤니티·기타 컬렉션의 허용 범위는 **한 글자도 좁히지 않았다**.
+- `deployed/storage.rules` = 기존 병합본 + `group-storage.rules` 본문. 개방 절을 `allPaths[0] != 'community' && allPaths[0] != 'groups'`로 바꿨다.
+- `deployed/firestore.indexes.json` = **변경 없음**. 그룹 쿼리는 전부 단일 필드다 — `users/{uid}/groups`의 `orderBy('startDate')`와 `where('bagId','==',…)`(`syncBagSnapshots`, 다른 필터·정렬 없음), `groups/{id}/members`의 `orderBy('joinedAt')`, `points`·`routes`의 `orderBy('createdAt')`. 단일 필드는 Firestore 자동 인덱스로 충분하고, 이 파일의 `fieldOverrides` 3건은 전부 `comments` 대상이라 `groups`의 자동 인덱싱을 끄지 않는다. 그룹에 **복합 인덱스를 추가할 항목이 없다**.
 
 ### 그룹 배포 전 확인
 
-1. 위 "그룹 규칙 병합 시 주의"대로 `deployed/firestore.rules`·`deployed/storage.rules`를 갱신하고, 병합본으로 에뮬레이터 회귀를 다시 돌린다.
-2. 인덱스는 추가할 항목이 없으므로 `deployed/firestore.indexes.json`을 건드리지 않는다.
-3. 그룹 규칙은 기존 문서가 없는 **신규 컬렉션**이라 마이그레이션 선행이 필요 없다(§8의 "마이그레이션 → 대상 0건 → 규칙 배포" 순서는 그룹에 해당하지 않는다).
-4. 서버 전용 필드 `deletedCleanedAt`과 해산·탈퇴·회원 탈퇴 연쇄 정리, 역인덱스 갱신 Functions 는 별도 레포 `lessismore`의 `functions/`(리전 `asia-northeast3`)가 맡는다. 규칙 배포와 Functions 배포 순서를 함께 계획한다.
+**순서를 지킨다: ① Functions → ② 규칙 → ③ 앱.** 초대 미러 트리거(`groups/{groupId}` 쓰기 → `groupInvites/{groupId}`)가 먼저 떠 있어야 미러 문서가 생긴다. 규칙을 먼저 배포하면 `groupInvites` 쓰기가 클라이언트에 전면 금지인 상태에서 미러가 없어, 초대 링크를 연 **비인증 웹 랜딩이 그룹 이름·기간·정원을 못 읽고 축소 형태로 떨어진다**.
+
+1. [ ] **Functions 먼저** — 별도 레포 `lessismore`의 `functions/`(리전 `asia-northeast3`)에서 초대 미러 트리거를 `--only functions:<이름>`으로 배포하고, 테스트 그룹 하나를 만들어 `groupInvites/{groupId}` 미러가 생기는지 콘솔에서 확인한다. 서버 전용 필드 `deletedCleanedAt`과 해산·탈퇴·회원 탈퇴 연쇄 정리, 역인덱스 갱신도 같은 레포가 맡는다.
+2. [ ] **기존 그룹 문서 백필** — Functions 배포 전에 만들어진 그룹이 있으면 미러가 없다. 트리거를 배포한 뒤 해당 그룹들을 한 번씩 touch(`updatedAt` 갱신)해 미러를 채우고 대상 0건을 확인한다. (신규 출시라면 해당 없음.)
+3. [ ] **규칙은 `deployed/` 병합본으로만** — `firebase deploy --only firestore:rules,storage`. 원본 `group-firestore.rules`·`group-storage.rules`를 단독 배포하면 기존 컬렉션 규칙이 통째로 날아간다.
+4. [ ] **인덱스는 건드리지 않는다** — 그룹은 추가 항목이 없다. 인덱스를 배포해야 할 다른 이유가 생기면 `deployed/firestore.indexes.json` 병합본으로만 한다(파일에 없는 인덱스를 **삭제**하려 하기 때문).
+5. [ ] **배포 직전 에뮬레이터 회귀 재실행** — 위 "에뮬레이터 검증 절차"의 두 묶음(그룹 74+10+9 / 회귀 26+7)을 병합본으로 돌려 실패 0을 확인한다. 개방 범위를 실수로 좁히면 앱 전체가 죽는다.
+6. [ ] **마이그레이션 선행 불필요** — 그룹은 기존 문서가 없는 신규 컬렉션이라 §8의 "마이그레이션 → 대상 0건 → 규칙 배포" 순서가 해당하지 않는다.
+7. [ ] **배포 후 확인** — 비인증으로 `groups/{id}` 읽기 거부, 인증 비멤버 `get` 허용·하위 컬렉션 거부, 비인증 `groupInvites/{id}` 읽기 허용을 콘솔 Rules 시뮬레이터로 한 번 더 본다.
+8. [ ] **롤백 경로** — 문제가 나면 `deployed/backup-2026-09-03-*.rules`가 아니라 **직전 병합본**(이 커밋 이전 `deployed/*.rules`)으로 되돌린다. 백업 파일은 커뮤니티 이전의 전면 개방본이라 되돌리면 커뮤니티 규칙까지 사라진다.

@@ -18,10 +18,51 @@ service firebase.storage {
     match /community/{allPaths=**} {
       allow list: if false;
     }
-  
-    // === 기존 규칙 유지(2026-09-03 병합) === community/ 경로는 위 전용 규칙만 적용된다.
+
+    // ====================================================================
+    // 그룹 코스(GPX) — docs/firebase/group-storage.rules 병합 (DM-9, DM-29, GRP-8).
+    // 원본 파일이 계약의 정본이고 이 절은 그 사본이다. 한쪽만 고치지 않는다.
+    //
+    // 커뮤니티 사진(/community/**)은 읽기가 공개지만 그룹 코스는 **그룹원만** 읽는다.
+    // 멤버십 판정 소스를 Firestore 와 똑같이 `groups/{groupId}.memberIds` 하나로 유지한다.
+    // ====================================================================
+
+    match /groups/{groupId}/routes/{fileName} {
+      function isGroupMember() {
+        return request.auth != null
+          && request.auth.uid in
+            firestore.get(/databases/(default)/documents/groups/$(groupId)).data.memberIds;
+      }
+
+      function isGpxFile() {
+        return fileName.matches('^[A-Za-z0-9_-]+\\.gpx$');
+      }
+
+      // `read` 는 get 과 list 를 함께 여는 이름이므로 쓰지 않는다. 단건 다운로드만 연다.
+      allow get: if isGroupMember() && isGpxFile();
+
+      // 5MB 상한(GRP-8). 삭제 요청에는 request.resource 가 없으므로 별도 규칙으로 나눈다.
+      allow create, update: if isGroupMember()
+        && isGpxFile()
+        && request.resource.size > 0
+        && request.resource.size <= 5 * 1024 * 1024;
+
+      // 코스를 지우면 Firestore 문서와 Storage 파일을 함께 지운다(GRP-8).
+      // 올린 사람인지 방장인지는 Firestore 규칙이 판정하고, 여기서는 그룹원인지만 본다.
+      allow delete: if isGroupMember() && isGpxFile();
+    }
+
+    // 경로 목록 조회는 어떤 경우에도 허용하지 않는다 — 그룹의 코스 목록은
+    // Firestore `groups/{groupId}/routes` 로만 읽는다.
+    match /groups/{allPaths=**} {
+      allow list: if false;
+    }
+
+    // === 기존 규칙 유지(2026-09-03 병합, 2026-09-17 그룹 추가) ===
+    // community/ 와 groups/ 접두는 위 전용 규칙만 적용된다. Storage 규칙도 여러 match 가
+    // OR 로 합쳐지므로 개방 절에 남아 있으면 전용 규칙이 아무 효력이 없다.
     match /{allPaths=**} {
-      allow read, write: if allPaths[0] != 'community';
+      allow read, write: if allPaths[0] != 'community' && allPaths[0] != 'groups';
     }
     match /{uid}/{allPaths=**} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
