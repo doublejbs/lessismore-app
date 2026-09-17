@@ -146,6 +146,14 @@ const RootLayout = () => {
           <Stack.Screen name='community/[id]/edit' />
           <Stack.Screen name='community/mine' />
           <Stack.Screen name='community/search' />
+          {/* 그룹(GRP-1~GRP-10) — 전부 기본 푸시다. 시트로 띄우는 화면은 없고,
+              iOS 투명 헤더는 각 화면이 Stack.Screen으로 지정한다(커뮤니티와 같은 관례). */}
+          <Stack.Screen name='group/new' />
+          <Stack.Screen name='group/join' />
+          <Stack.Screen name='group/[id]' />
+          <Stack.Screen name='group/[id]/edit' />
+          <Stack.Screen name='group/[id]/member/[uid]' />
+          <Stack.Screen name='group/[id]/map' />
           <Stack.Screen
             name='custom'
             options={{

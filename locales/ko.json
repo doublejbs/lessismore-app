@@ -1245,5 +1245,25 @@
       "clear": "지우기",
       "button": "게시글 검색"
     }
+  },
+  "group": {
+    "common": {
+      "preparing": "준비 중이에요"
+    },
+    "segment": {
+      "label": "그룹"
+    },
+    "list": {
+      "count_other": "그룹 {{count}}개",
+      "emptyTitle": "아직 참여한 그룹이 없어요",
+      "create": "그룹 만들기",
+      "loadFailed": "그룹을 불러오지 못했어요",
+      "pastSection": "지난 그룹",
+      "memberCount_other": "멤버 {{count}}명",
+      "bagLinked": "배낭 연결됨",
+      "bagNotLinked": "배낭 미연결",
+      "loginTitle": "로그인하고 일행과 함께 준비해요",
+      "login": "로그인"
+    }
   }
 }

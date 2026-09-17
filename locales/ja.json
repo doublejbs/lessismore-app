@@ -1245,5 +1245,25 @@
       "clear": "クリア",
       "button": "投稿を検索"
     }
+  },
+  "group": {
+    "common": {
+      "preparing": "準備中です"
+    },
+    "segment": {
+      "label": "グループ"
+    },
+    "list": {
+      "count_other": "{{count}}個のグループ",
+      "emptyTitle": "まだ参加しているグループがありません",
+      "create": "グループを作成",
+      "loadFailed": "グループを読み込めませんでした",
+      "pastSection": "過去のグループ",
+      "memberCount_other": "メンバー{{count}}人",
+      "bagLinked": "バックパック連携済み",
+      "bagNotLinked": "バックパック未連携",
+      "loginTitle": "ログインして仲間と一緒に準備しましょう",
+      "login": "ログイン"
+    }
   }
 }

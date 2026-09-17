@@ -25,6 +25,9 @@ import CategoryChipView from '@/components/browse/CategoryChipView';
 import Order from '@/model/order/Order';
 import { createBagTemplateOrderOptions } from '@/model/order/BagTemplateOrderOptions';
 import { getBagTemplateComparator } from '@/model/order/BagTemplateComparators';
+import GroupList from '@/model/group-list/GroupList';
+import GroupListDispatcher from '@/model/group-list/GroupListDispatcher';
+import GroupListView from '@/components/group/list/GroupListView';
 
 // iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
 const IOS_EDGES = ['top', 'left', 'right'] as const;
@@ -39,12 +42,19 @@ const BagView = () => {
   );
   const [templateOrderInitialized, setTemplateOrderInitialized] =
     useState(false);
+  // 그룹 목록(GRP-1)은 이 화면의 세 번째 세그먼트다 — 별도 라우트가 아니라서
+  // 도메인 객체를 여기서 1회 만들고 제목·본문이 같은 인스턴스를 본다.
+  const [groupList] = useState(() =>
+    GroupList.from(GroupListDispatcher.new())
+  );
   const insets = useSafeAreaInsets();
   const isLoggedIn = app.getFirebase().isLoggedIn();
   const isLoading = bag.isLoading();
   const bags = bag.getBags();
   const isEmpty = bag.isEmpty();
+  const isBagSegment = segment === BagViewSegment.Bags;
   const isTemplateSegment = segment === BagViewSegment.Templates;
+  const isGroupSegment = segment === BagViewSegment.Groups;
 
   const loadTemplates = useCallback(async () => {
     if (!isLoggedIn) {
@@ -75,7 +85,8 @@ const BagView = () => {
     useCallback(() => {
       void bag.getList();
       void loadTemplates();
-    }, [bag, loadTemplates])
+      void groupList.initialize();
+    }, [bag, groupList, loadTemplates])
   );
 
   // Bag이 로그인 상태 reaction을 들고 있으므로 언마운트 시 정리한다.
@@ -109,7 +120,7 @@ const BagView = () => {
       <View style={styles.segmentChips}>
         <CategoryChipView
           label={app.getL10n().t('bag.label')}
-          selected={!isTemplateSegment}
+          selected={isBagSegment}
           onPress={() => setSegment(BagViewSegment.Bags)}
         />
         <CategoryChipView
@@ -117,8 +128,13 @@ const BagView = () => {
           selected={isTemplateSegment}
           onPress={() => setSegment(BagViewSegment.Templates)}
         />
+        <CategoryChipView
+          label={app.getL10n().t('group.segment.label')}
+          selected={isGroupSegment}
+          onPress={() => setSegment(BagViewSegment.Groups)}
+        />
       </View>
-      {!isTemplateSegment && !isLoading && !isEmpty && (
+      {isBagSegment && !isLoading && !isEmpty && (
         <OrderButtonView
           order={bag.getOrder()}
           onSelectOption={handleSelectOrder}
@@ -130,20 +146,46 @@ const BagView = () => {
           onSelectOption={handleSelectOrder}
         />
       )}
+      {/* `그룹` 세그먼트는 정렬이 출발일 고정이라 드롭다운을 렌더하지 않는다(GRP-1).
+          칩(minHeight 36)이 행 높이를 잡으므로 드롭다운(minHeight 32) 유무로
+          제목·칩 행이 움직이지 않는다(BT-2). */}
     </View>
   );
+
+  // 제목은 빈 목록·로딩에서도 렌더한다 — 지금 어느 세그먼트인지 알리는 역할을 겸한다(BT-2).
+  const renderHeaderTitle = () => {
+    if (isGroupSegment) {
+      if (!groupList.getIsInitialized() || groupList.getIsLoading()) {
+        return app.getL10n().t('group.segment.label');
+      }
+
+      return app.getL10n().t('group.list.count', {
+        count: groupList.getGroups().length,
+      });
+    }
+
+    if (isTemplateSegment) {
+      if (templatesLoading) {
+        return app.getL10n().t('bag.template.label');
+      }
+
+      return app.getL10n().t('bag.template.count', {
+        count: templates.length,
+      });
+    }
+
+    if (isLoading) {
+      return app.getL10n().t('bag.label');
+    }
+
+    return app.getL10n().t('bag.count', { count: bags.length });
+  };
 
   const renderHeader = () => (
     <>
       <View style={styles.headerContainer}>
         <PretendardText weight='semibold' style={styles.headerText}>
-          {isTemplateSegment
-            ? templatesLoading
-              ? app.getL10n().t('bag.template.label')
-              : app.getL10n().t('bag.template.count', { count: templates.length })
-            : isLoading
-              ? app.getL10n().t('bag.label')
-              : app.getL10n().t('bag.count', { count: bags.length })}
+          {renderHeaderTitle()}
         </PretendardText>
       </View>
       {renderSegment()}
@@ -199,6 +241,18 @@ const BagView = () => {
         );
       }
     }
+  };
+
+  const renderContent = () => {
+    if (isGroupSegment) {
+      return <GroupListView groupList={groupList} />;
+    }
+
+    if (isTemplateSegment) {
+      return renderTemplateContent();
+    }
+
+    return renderBagContent();
   };
 
   const renderTemplateContent = () => {
@@ -260,12 +314,12 @@ const BagView = () => {
         background={<View style={styles.ground} />}
       >
         {renderHeader()}
-        {isTemplateSegment ? renderTemplateContent() : renderBagContent()}
+        {renderContent()}
         {/* 로딩 중에는 띄우지 않는다(BAG-1). 탭이 막 마운트된 첫 프레임에는 네이티브 탭바 몫이
             반영되기 전이라 `insets.bottom`이 작게 잡혀 버튼이 **탭바 뒤로 내려간다.**
             목록이 온 뒤(= inset 정착 후)에 노출하면 위치가 정확하고, 로딩 위에 CTA가 겹치지도
             않는다 — 피드(FD-2)가 같은 이유로 같은 처리를 한다. */}
-        {!isLoading && !isTemplateSegment && <BagAddView bag={bag} />}
+        {!isLoading && isBagSegment && <BagAddView bag={bag} />}
       </Layout>
     </GestureHandlerRootView>
   );

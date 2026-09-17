@@ -1259,5 +1259,27 @@
       "clear": "Clear",
       "button": "Search posts"
     }
+  },
+  "group": {
+    "common": {
+      "preparing": "Coming soon"
+    },
+    "segment": {
+      "label": "Groups"
+    },
+    "list": {
+      "count_one": "{{count}} group",
+      "count_other": "{{count}} groups",
+      "emptyTitle": "You haven't joined any groups yet",
+      "create": "Create a group",
+      "loadFailed": "Couldn't load your groups",
+      "pastSection": "Past groups",
+      "memberCount_one": "{{count}} member",
+      "memberCount_other": "{{count}} members",
+      "bagLinked": "Bag linked",
+      "bagNotLinked": "No bag linked",
+      "loginTitle": "Sign in to plan trips with your crew",
+      "login": "Sign in"
+    }
   }
 }
