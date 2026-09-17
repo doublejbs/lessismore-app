@@ -220,47 +220,83 @@ class BagStore {
         location: location ?? null,
         weather: weather ?? null,
         activity: activity ?? null,
-        gears: warehouseGears.length
-          ? warehouseGears.map(gearData => {
-              const {
-                id,
-                name,
-                company,
-                weight,
-                category = '',
-                useless,
-                used,
-                bags,
-                isCustom,
-                createDate,
-                color,
-                companyKorean,
-                nameKorean,
-              } = gearData;
-
-              return new Gear(
-                id,
-                name,
-                company,
-                weight,
-                true,
-                isCustom,
-                category,
-                useless,
-                used,
-                bags,
-                createDate,
-                color,
-                companyKorean,
-                nameKorean,
-                // 본인이 보는 본인 배낭 상세라 본인이 올린 장비 사진을 읽는다(BD-1, GD-13).
-                // 복사돼 남은 카탈로그 크롤 URL은 Storage 경로 판별에서 걸러진다(§1).
-                toOwnerGearExtra(gearData, this.getUserID())
-              );
-            })
-          : [],
+        gears: this.toOwnedGears(warehouseGears),
       };
     }
+  }
+
+  /**
+   * 배낭 1건과 담긴 장비를 함께 읽는다 (그룹 배낭 스냅샷 빌드용, GRP-5).
+   *
+   * `getBag`과 두 가지가 다르다.
+   * - 접근 거부를 알럿으로 알리지 않고 `null`을 돌려준다. 그룹 스냅샷 동기화는 사용자가
+   *   아무것도 누르지 않은 배경 작업이라 모달이 뜨면 안 된다(GRP-5 "조용히 연결 해제").
+   * - `bag/{bagId}` 문서를 한 번만 읽는다(사용자 문서 읽기와 병렬).
+   */
+  public async getOwnedBagWithGears(
+    id: string
+  ): Promise<{ bag: BagItem; gears: Gear[] } | null> {
+    const [userSnapshot, bagSnapshot] = await Promise.all([
+      getDoc(doc(this.getStore(), 'users', this.getUserID())),
+      getDoc(doc(this.getStore(), 'bag', id)),
+    ]);
+    const bagIDs = userSnapshot.data()?.['bags'];
+    const bagData = bagSnapshot.data();
+
+    if (!Array.isArray(bagIDs) || !bagIDs.includes(id) || !bagData) {
+      return null;
+    }
+
+    const gearIDs: string[] = Array.isArray(bagData.gears) ? bagData.gears : [];
+    const gearDataList = await this.getBagGears(this.getUserID(), gearIDs, [
+      GearFilter.All,
+    ]);
+
+    return {
+      bag: this.toBagItem(id, bagData),
+      gears: this.toOwnedGears(gearDataList),
+    };
+  }
+
+  // 본인 배낭의 장비 문서를 Gear로 바꾼다.
+  // 본인이 보는 본인 배낭이라 본인이 올린 장비 사진을 읽는다(BD-1, GD-13).
+  // 복사돼 남은 카탈로그 크롤 URL은 Storage 경로 판별에서 걸러진다(§1).
+  private toOwnedGears(gearDataList: GearData[]): Gear[] {
+    return gearDataList.map(gearData => {
+      const {
+        id,
+        name,
+        company,
+        weight,
+        category = '',
+        useless,
+        used,
+        bags,
+        isCustom,
+        createDate,
+        color,
+        companyKorean,
+        nameKorean,
+      } = gearData;
+
+      return new Gear(
+        id,
+        name,
+        company,
+        weight,
+        true,
+        isCustom,
+        category,
+        useless,
+        used,
+        bags,
+        createDate,
+        color,
+        companyKorean,
+        nameKorean,
+        toOwnerGearExtra(gearData, this.getUserID())
+      );
+    });
   }
 
   /**
@@ -364,39 +400,41 @@ class BagStore {
   private convertToArray(data: QuerySnapshot<DocumentData, DocumentData>) {
     const result: BagItem[] = [];
     data.forEach(doc => {
-      const {
-        name,
-        weight,
-        editDate,
-        startDate,
-        endDate,
-        gears,
-        packedGears,
-        location,
-        weather,
-        activity,
-        createdAt,
-      } = doc.data();
-
-      result.push(
-        new BagItem(
-          doc.id,
-          name,
-          weight,
-          dayjs(editDate),
-          // 날짜 필드가 없으면 invalid Dayjs로 만들어 "날짜 없음"을 구분한다(GD-10 정렬·표시).
-          startDate ? dayjs(startDate) : dayjs(''),
-          endDate ? dayjs(endDate) : dayjs(''),
-          gears ?? [],
-          packedGears ?? [],
-          location ?? null,
-          weather ?? null,
-          activity ?? null,
-          createdAt ? dayjs(createdAt) : null
-        )
-      );
+      result.push(this.toBagItem(doc.id, doc.data()));
     });
     return result;
+  }
+
+  private toBagItem(id: string, data: DocumentData): BagItem {
+    const {
+      name,
+      weight,
+      editDate,
+      startDate,
+      endDate,
+      gears,
+      packedGears,
+      location,
+      weather,
+      activity,
+      createdAt,
+    } = data;
+
+    return new BagItem(
+      id,
+      name,
+      weight,
+      dayjs(editDate),
+      // 날짜 필드가 없으면 invalid Dayjs로 만들어 "날짜 없음"을 구분한다(GD-10 정렬·표시).
+      startDate ? dayjs(startDate) : dayjs(''),
+      endDate ? dayjs(endDate) : dayjs(''),
+      gears ?? [],
+      packedGears ?? [],
+      location ?? null,
+      weather ?? null,
+      activity ?? null,
+      createdAt ? dayjs(createdAt) : null
+    );
   }
 
   public async add(name: string, startDate: Dayjs, endDate: Dayjs) {

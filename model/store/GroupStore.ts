@@ -5,6 +5,7 @@ import {
   deleteField,
   doc,
   DocumentData,
+  getCountFromServer,
   getDoc,
   getDocs,
   increment,
@@ -12,8 +13,8 @@ import {
   query,
   runTransaction,
   serverTimestamp,
-  setDoc,
   updateDoc,
+  where,
   writeBatch,
 } from 'firebase/firestore';
 import Firebase from '../firebase/Firebase';
@@ -253,13 +254,17 @@ class GroupStore {
       updates.inviteEnabled = patch.inviteEnabled;
     }
 
-    await updateDoc(this.groupRef(groupId), updates);
+    // 그룹 문서와 내 역인덱스를 한 배치로 커밋한다 — 따로 쓰면 뒤가 실패했을 때
+    // 그룹만 바뀌고 목록 행은 낡은 값으로 남는다.
+    const batch = writeBatch(this.getStore());
+
+    batch.update(this.groupRef(groupId), updates);
 
     if (Object.keys(indexUpdates).length > 0) {
-      await setDoc(this.indexRef(userId, groupId), indexUpdates, {
-        merge: true,
-      });
+      batch.set(this.indexRef(userId, groupId), indexUpdates, { merge: true });
     }
+
+    await batch.commit();
   }
 
   public async setInviteEnabled(groupId: string, enabled: boolean) {
@@ -317,7 +322,8 @@ class GroupStore {
           endDate: group.endDate,
           role: GroupMemberRole.Member,
           ownerId: group.ownerId,
-          memberCount: group.memberCount + 1,
+          // 캐시 필드(memberCount)가 아니라 멤버 배열 길이로 센다 — 드리프트에 강하다.
+          memberCount: group.memberIds.length + 1,
           hasBag: false,
           ...(group.campSpotId ? { campSpotId: group.campSpotId } : {}),
           ...(group.destinationName
@@ -384,7 +390,7 @@ class GroupStore {
     }
 
     if (uid === group.ownerId) {
-      throw new GroupError(GroupValidationError.OwnerCannotLeave);
+      throw new GroupError(GroupValidationError.OwnerCannotBeRemoved);
     }
 
     if (!group.memberIds.includes(uid)) {
@@ -457,6 +463,9 @@ class GroupStore {
    */
   public async linkBag(groupId: string, bagId: string): Promise<void> {
     const userId = this.requireUserId();
+
+    await this.assertMembership(groupId, userId);
+
     const content = await this.buildSnapshotContent(bagId);
     const batch = writeBatch(this.getStore());
 
@@ -466,9 +475,11 @@ class GroupStore {
       syncedAt: serverTimestamp(),
     });
     batch.update(this.memberRef(groupId, userId), { bagId });
+    // 역인덱스에 bagId를 함께 둔다 — 배낭이 바뀌었을 때 그룹 문서를 N번 읽지 않고
+    // 다시 쓸 그룹을 찾기 위해서다(GRP-5 갱신 시점 ①②, DM-29 역인덱스 표).
     batch.set(
       this.indexRef(userId, groupId),
-      { hasBag: true },
+      { hasBag: true, bagId },
       { merge: true }
     );
 
@@ -477,13 +488,16 @@ class GroupStore {
 
   public async unlinkBag(groupId: string): Promise<void> {
     const userId = this.requireUserId();
+
+    await this.assertMembership(groupId, userId);
+
     const batch = writeBatch(this.getStore());
 
     batch.delete(this.bagRef(groupId, userId));
     batch.update(this.memberRef(groupId, userId), { bagId: deleteField() });
     batch.set(
       this.indexRef(userId, groupId),
-      { hasBag: false },
+      { hasBag: false, bagId: deleteField() },
       { merge: true }
     );
 
@@ -491,8 +505,40 @@ class GroupStore {
   }
 
   /**
-   * 내 스냅샷 재동기화 (GRP-5). 그룹 상세 진입·배낭 편집 확인 시 호출한다.
-   * 연결한 배낭이 사라졌으면 연결을 해제한다(GRP 엣지 케이스).
+   * 이 배낭을 연결한 **모든 그룹**의 스냅샷을 다시 쓴다 (GRP-5 갱신 시점 ① 배낭 편집 확인 ② 배낭 정보 수정).
+   * 대상 그룹은 역인덱스의 `bagId`로 찾는다 — 그룹마다 `members/{uid}`를 읽지 않는다.
+   * 사용자 조작 뒤에 따라붙는 배경 동기화라 한 그룹이 실패해도 나머지를 계속 쓰고 편집 흐름을 깨지 않는다.
+   */
+  public async syncBagSnapshots(bagId: string): Promise<void> {
+    if (!bagId) {
+      return;
+    }
+
+    const userId = this.requireUserId();
+    const snapshot = await getDocs(
+      query(
+        collection(this.getStore(), 'users', userId, 'groups'),
+        where('bagId', '==', bagId)
+      )
+    );
+
+    await Promise.all(
+      snapshot.docs.map(async item => {
+        try {
+          await this.linkBag(item.id, bagId);
+        } catch (error) {
+          // 내보내진 그룹의 역인덱스가 아직 남아 있는 경우 등. 나머지 그룹 갱신을 막지 않는다.
+          console.warn('[GroupStore] bag snapshot sync failed', item.id, error);
+        }
+      })
+    );
+  }
+
+  /**
+   * 내 스냅샷 재동기화 (GRP-5 갱신 시점 ③ 그룹 상세 진입).
+   * 배낭이 사라졌거나 내 것이 아니게 됐으면 **조용히** 연결을 해제한다 — 통신 실패·권한 거부는
+   * 그대로 올려 연결을 지킨다(GRP-5 엣지 케이스).
+   * 배낭 쪽에서 시작하는 갱신(시점 ①②)은 `syncBagSnapshots(bagId)`를 쓴다.
    */
   public async syncMyBagSnapshot(groupId: string): Promise<void> {
     const userId = this.requireUserId();
@@ -624,13 +670,14 @@ class GroupStore {
       GroupValidator.validatePointDescription(patch.description);
     }
 
-    const group = await this.getGroup(groupId);
+    const [group, snapshot] = await Promise.all([
+      this.getGroup(groupId),
+      getDoc(this.pointRef(groupId, pointId)),
+    ]);
 
     if (!group) {
       throw new GroupError(GroupValidationError.GroupNotFound);
     }
-
-    const snapshot = await getDoc(this.pointRef(groupId, pointId));
 
     if (!snapshot.exists()) {
       throw new GroupError(GroupValidationError.PointNotFound);
@@ -640,8 +687,9 @@ class GroupStore {
       this.toPointData(snapshot.id, snapshot.data())
     );
 
+    // 작성자도 방장도 아닐 때다 — 방장 전용 액션의 NotOwner와 구분한다(GRP-4).
     if (!point.canEdit(userId, group)) {
-      throw new GroupError(GroupValidationError.NotOwner);
+      throw new GroupError(GroupValidationError.NotAuthor);
     }
 
     const updates: Record<string, unknown> = { updatedAt: serverTimestamp() };
@@ -667,15 +715,15 @@ class GroupStore {
     const userId = this.requireUserId();
 
     await runTransaction(this.getStore(), async transaction => {
-      const groupSnapshot = await transaction.get(this.groupRef(groupId));
+      // 트랜잭션 안에서도 "읽기 먼저, 쓰기 나중" 계약은 지켜지므로 두 읽기를 병렬로 돌린다.
+      const [groupSnapshot, pointSnapshot] = await Promise.all([
+        transaction.get(this.groupRef(groupId)),
+        transaction.get(this.pointRef(groupId, pointId)),
+      ]);
 
       if (!groupSnapshot.exists()) {
         throw new GroupError(GroupValidationError.GroupNotFound);
       }
-
-      const pointSnapshot = await transaction.get(
-        this.pointRef(groupId, pointId)
-      );
 
       if (!pointSnapshot.exists()) {
         throw new GroupError(GroupValidationError.PointNotFound);
@@ -689,7 +737,7 @@ class GroupStore {
       );
 
       if (!point.canEdit(userId, group)) {
-        throw new GroupError(GroupValidationError.NotOwner);
+        throw new GroupError(GroupValidationError.NotAuthor);
       }
 
       transaction.delete(this.pointRef(groupId, pointId));
@@ -723,9 +771,12 @@ class GroupStore {
   ): Promise<string> {
     const userId = this.requireUserId();
 
-    GroupValidator.validateRouteFileSize(input.fileSize);
+    // 보안 규칙 isValidRoutePayload 와 같은 조건으로 미리 거른다 — 업로드는 이미 끝난 뒤라
+    // 여기서 거부되면 회수 경로 없는 고아 GPX가 남는다(GRP-8). 업로더도 업로드 전에 같은 것을 부른다.
+    GroupValidator.validateRoute(input);
 
     const authorName = this.firebase.getNickname();
+    const name = GroupValidator.toRouteName(input.name);
     // 축약 좌표는 파서가 500점 이하로 줄여 넘기지만, 1MB 문서 한도를 지키는 마지막 방어선을 둔다.
     const simplified = input.simplified
       .slice(0, GROUP_ROUTE_MAX_SIMPLIFIED_POINTS)
@@ -747,11 +798,12 @@ class GroupStore {
       }
 
       const routeData: Record<string, unknown> = {
-        name: input.name,
+        name,
         storagePath: input.storagePath,
-        fileSize: input.fileSize,
+        // 규칙이 정수를 요구한다(`fileSize is int` · `pointCount is int`).
+        fileSize: Math.round(input.fileSize),
         distance: input.distance,
-        pointCount: input.pointCount,
+        pointCount: Math.round(input.pointCount),
         bounds: { ...input.bounds },
         simplified,
         authorId: userId,
@@ -781,15 +833,14 @@ class GroupStore {
     const userId = this.requireUserId();
 
     await runTransaction(this.getStore(), async transaction => {
-      const groupSnapshot = await transaction.get(this.groupRef(groupId));
+      const [groupSnapshot, routeSnapshot] = await Promise.all([
+        transaction.get(this.groupRef(groupId)),
+        transaction.get(this.routeRef(groupId, routeId)),
+      ]);
 
       if (!groupSnapshot.exists()) {
         throw new GroupError(GroupValidationError.GroupNotFound);
       }
-
-      const routeSnapshot = await transaction.get(
-        this.routeRef(groupId, routeId)
-      );
 
       if (!routeSnapshot.exists()) {
         throw new GroupError(GroupValidationError.RouteNotFound);
@@ -803,7 +854,7 @@ class GroupStore {
       );
 
       if (!route.canEdit(userId, group)) {
-        throw new GroupError(GroupValidationError.NotOwner);
+        throw new GroupError(GroupValidationError.NotAuthor);
       }
 
       transaction.delete(this.routeRef(groupId, routeId));
@@ -814,34 +865,45 @@ class GroupStore {
     });
   }
 
+  /**
+   * 그룹에 쓸 공개 스냅샷 내용을 만든다.
+   *
+   * 배낭이 사라졌거나 내 배낭 목록에서 빠진 경우에만 `BagNotFound`다 — 통신 실패·권한 거부·내부 오류는
+   * 그대로 올린다. 이 코드를 보고 `syncMyBagSnapshot`이 연결을 해제하므로, 넓게 잡으면 일시적인
+   * 통신 실패 한 번에 사용자의 배낭 연결이 풀린다(GRP-5).
+   * 알럿을 띄우지 않는 조회 경로를 쓰는 이유도 같다 — 조용한 배경 동기화에 모달이 뜨면 안 된다.
+   */
   private async buildSnapshotContent(bagId: string) {
-    const bags = await this.bagStore.getBags([bagId]);
-    const bag = bags.find(item => item.getID() === bagId);
+    const owned = await this.bagStore.getOwnedBagWithGears(bagId);
 
-    if (!bag) {
+    if (!owned) {
       throw new GroupError(GroupValidationError.BagNotFound);
     }
 
-    // 배낭 문서는 남아 있는데 내 배낭 목록에서 빠진 경우 getBagWithAllFilter가 접근 거부로 던진다.
-    // 화면에는 "연결된 배낭이 없어요"로 되돌리는 편이 맞으므로 BagNotFound로 바꿔 올린다(GRP-5 엣지 케이스).
-    try {
-      const result = await this.bagStore.getBagWithAllFilter(bagId);
-
-      return GroupBagSnapshotBuilder.build(bagId, bag, result?.gears ?? []);
-    } catch {
-      throw new GroupError(GroupValidationError.BagNotFound);
-    }
+    return GroupBagSnapshotBuilder.build(bagId, owned.bag, owned.gears);
   }
 
   // 한 사용자가 동시에 속할 수 있는 그룹은 20개까지다(GRP-2).
+  // 상한을 세려고 역인덱스 20문서를 전부 읽지 않는다 — 집계 쿼리 1회로 끝낸다.
   private async assertGroupQuota(userId: string) {
-    const snapshot = await getDocs(
+    const snapshot = await getCountFromServer(
       collection(this.getStore(), 'users', userId, 'groups')
     );
 
-    if (snapshot.size >= GROUP_MAX_PER_USER) {
+    if (snapshot.data().count >= GROUP_MAX_PER_USER) {
       throw new GroupError(GroupValidationError.GroupLimitExceeded);
     }
+  }
+
+  // linkBag·unlinkBag은 그룹 문서를 보지 않으면 비멤버 호출이 원시 Firestore 권한 오류로 새어 나간다.
+  private async assertMembership(groupId: string, userId: string) {
+    const snapshot = await getDoc(this.groupRef(groupId));
+
+    if (!snapshot.exists()) {
+      throw new GroupError(GroupValidationError.GroupNotFound);
+    }
+
+    this.assertMember(this.toGroupData(snapshot.id, snapshot.data()), userId);
   }
 
   private assertMember(group: GroupData, userId: string) {
@@ -900,6 +962,7 @@ class GroupStore {
       memberCount: value.memberCount,
       hasBag: value.hasBag,
       joinedAt: serverTimestamp(),
+      ...(value.bagId ? { bagId: value.bagId } : {}),
       ...(value.campSpotId ? { campSpotId: value.campSpotId } : {}),
       ...(value.destinationName
         ? { destinationName: value.destinationName }
@@ -948,6 +1011,7 @@ class GroupStore {
         ? { destinationName: data.destinationName as string }
         : {}),
       hasBag: data.hasBag === true,
+      ...(data.bagId ? { bagId: data.bagId as string } : {}),
       joinedAt: toGroupDate(data.joinedAt),
     };
   }

@@ -95,8 +95,9 @@ class Group {
     return this.ownerId;
   }
 
+  // 내부 배열을 그대로 내주면 생성자의 방어 복사가 무의미해진다 — 사본을 돌려준다.
   public getMemberIds() {
-    return this.memberIds;
+    return [...this.memberIds];
   }
 
   public getMemberCount() {
@@ -152,7 +153,13 @@ class Group {
   }
 
   // 종료일이 지난 그룹(GRP-1 `지난 그룹`). 종료일 당일은 지나지 않은 것으로 본다.
+  // 종료일이 비면(필드 누락) 지난 그룹으로 보지 않는다 — 빈 문자열은 어떤 날짜보다 작아
+  // 그대로 비교하면 기간 없는 그룹이 전부 `지난 그룹`으로 떨어진다.
   public isPast(now: Date = new Date()) {
+    if (!this.endDate) {
+      return false;
+    }
+
     return this.toDateKey(now) > this.endDate;
   }
 

@@ -66,8 +66,10 @@ class App {
 
     await this.l10n.initialize();
     await this.firebase.initialize();
+    const bagStore = new BagStore(this.firebase);
+
     this.gearStore = new GearStore(this.firebase);
-    this.setBagStore(new BagStore(this.firebase));
+    this.setBagStore(bagStore);
     this.bagTemplateStore = new BagTemplateStore(this.firebase, this.gearStore);
     this.searchStore = new SearchStore(this.firebase);
     this.communitySearchStore = new CommunitySearchStore();
@@ -76,7 +78,7 @@ class App {
     this.logInAlertManager = LogInAlertManager.new(this.firebase);
     this.replyStore = new ReplyStore(this.firebase);
     this.communityStore = new CommunityStore(this.firebase);
-    this.groupStore = new GroupStore(this.firebase, this.bagStore!);
+    this.groupStore = new GroupStore(this.firebase, bagStore);
     this.campSpotStore = new CampSpotStore(this.firebase);
     this.feedContentStore = new FeedContentStore(
       this.firebase,

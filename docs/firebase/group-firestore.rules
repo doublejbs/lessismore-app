@@ -476,11 +476,13 @@ service cloud.firestore {
 
       // 역인덱스는 GRP-1 목록 행이 요구하는 값(여행지·멤버 수·배낭 연결 여부)을 전부 담는다 —
       // 목록을 그리려고 그룹 문서를 N번 읽지 않는 것이 이 컬렉션의 존재 이유다(DM-29).
-      // `hasBag` 은 본인만 쓰는 값이라 클라이언트가 배낭 연결·해제 시 함께 갱신한다.
+      // `hasBag`·`bagId` 는 본인만 쓰는 값이라 클라이언트가 배낭 연결·해제 시 함께 갱신한다.
+      // `bagId` 를 여기 두는 이유: 배낭이 바뀌었을 때 어느 그룹 스냅샷을 다시 써야 하는지를
+      // 그룹마다 members/{uid} 를 읽지 않고 알기 위해서다(GRP-5 갱신 시점 ①②).
       allow create, update: if isOwner(userId)
         && request.resource.data.keys().hasOnly([
           'name', 'startDate', 'endDate', 'role', 'joinedAt',
-          'ownerId', 'memberCount', 'campSpotId', 'destinationName', 'hasBag'
+          'ownerId', 'memberCount', 'campSpotId', 'destinationName', 'hasBag', 'bagId'
         ])
         && request.resource.data.keys().hasAll([
           'name', 'startDate', 'endDate', 'role', 'joinedAt',
@@ -500,7 +502,11 @@ service cloud.firestore {
             && request.resource.data.campSpotId.size() > 0))
         && (!('destinationName' in request.resource.data)
           || (request.resource.data.destinationName is string
-            && request.resource.data.destinationName.size() <= 100));
+            && request.resource.data.destinationName.size() <= 100))
+        && (!('bagId' in request.resource.data)
+          || (request.resource.data.bagId is string
+            && request.resource.data.bagId.size() > 0))
+        && (request.resource.data.hasBag == ('bagId' in request.resource.data));
 
       allow delete: if isOwner(userId);
     }

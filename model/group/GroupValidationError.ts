@@ -10,7 +10,11 @@ enum GroupValidationError {
   InviteDisabled = 'invite_disabled',
   NotMember = 'not_member',
   NotOwner = 'not_owner',
+  // 작성자도 방장도 아니라 포인트·코스를 수정·삭제할 수 없다(GRP-4). NotOwner(방장 아님)와 다르다.
+  NotAuthor = 'not_author',
   OwnerCannotLeave = 'owner_cannot_leave',
+  // 방장은 내보내기 대상이 될 수 없다. "나갈 수 없다"(OwnerCannotLeave)와 상황이 다르다.
+  OwnerCannotBeRemoved = 'owner_cannot_be_removed',
   AlreadyMember = 'already_member',
   GroupNotFound = 'group_not_found',
   MemberNotFound = 'member_not_found',

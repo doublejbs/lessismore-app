@@ -73,12 +73,13 @@ class GroupRoute {
     return this.pointCount;
   }
 
+  // 생성자가 방어 복사한 값을 원본째 내주지 않는다 — 사본을 돌려준다.
   public getBounds() {
-    return this.bounds;
+    return { ...this.bounds };
   }
 
   public getSimplified() {
-    return this.simplified;
+    return this.simplified.map(coordinate => ({ ...coordinate }));
   }
 
   public getAuthorId() {

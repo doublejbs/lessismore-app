@@ -116,6 +116,9 @@ export interface GroupIndexData {
   campSpotId?: string;
   destinationName?: string;
   hasBag: boolean;
+  // 연결한 배낭 ID(DM-29 역인덱스). 배낭이 바뀌었을 때 어느 그룹 스냅샷을 다시 써야 하는지를
+  // 그룹 문서를 읽지 않고 알기 위한 값이다(GRP-5 갱신 시점 ①②).
+  bagId?: string;
 }
 
 export interface GroupCreateInput {
@@ -151,17 +154,22 @@ export interface GroupPointPatch {
   description?: string | null;
 }
 
-// GPX 파싱·Storage 업로드는 T7(GroupRouteUploader)이 맡고, 스토어는 그 결과만 Firestore에 쓴다.
-export interface GroupRouteInput {
-  routeId: string;
+// GPX 파싱 결과. Storage 업로드 **전에** `GroupValidator.validateRoute`로 검증할 수 있게
+// 업로드가 결정하는 값(routeId·storagePath)을 뺀 모양을 따로 둔다(GRP-8).
+export interface GroupRouteDraft {
   name: string;
-  storagePath: string;
   fileSize: number;
   distance: number;
   elevationGain?: number;
   pointCount: number;
   bounds: GroupRouteBounds;
   simplified: GroupRouteCoordinate[];
+}
+
+// GPX 파싱·Storage 업로드는 T7(GroupRouteUploader)이 맡고, 스토어는 그 결과만 Firestore에 쓴다.
+export interface GroupRouteInput extends GroupRouteDraft {
+  routeId: string;
+  storagePath: string;
 }
 
 // Firestore Timestamp · Date · 숫자 어느 모양으로 와도 Date로 정규화한다.
