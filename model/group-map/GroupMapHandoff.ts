@@ -14,3 +14,18 @@ export const getPendingGroupPoint = (): string | null => {
 export const clearPendingGroupPoint = (): void => {
   pendingPointId = null;
 };
+
+// 상세의 코스 목록에서 지도로 넘기는 일회성 강조 대상(GRP-8). 포인트와 같은 이유로 핸드오프다.
+let pendingRouteId: string | null = null;
+
+export const setPendingGroupRoute = (routeId: string): void => {
+  pendingRouteId = routeId;
+};
+
+export const getPendingGroupRoute = (): string | null => {
+  return pendingRouteId;
+};
+
+export const clearPendingGroupRoute = (): void => {
+  pendingRouteId = null;
+};

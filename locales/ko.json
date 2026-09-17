@@ -1435,6 +1435,13 @@
       "typeShelter": "쉼터",
       "typeCaution": "주의",
       "typeNote": "메모"
+    },
+    "route": {
+      "add": "코스 추가",
+      "uploading": "올리는 중",
+      "delete": "삭제",
+      "deleteConfirm": "이 코스를 지울까요?",
+      "elevation": "상승 {{value}}m"
     }
   }
 }

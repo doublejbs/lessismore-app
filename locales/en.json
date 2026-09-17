@@ -1458,6 +1458,13 @@
       "typeShelter": "Shelter",
       "typeCaution": "Caution",
       "typeNote": "Note"
+    },
+    "route": {
+      "add": "Add route",
+      "uploading": "Uploading",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this route?",
+      "elevation": "Ascent {{value}}m"
     }
   }
 }

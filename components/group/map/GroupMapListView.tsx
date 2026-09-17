@@ -3,13 +3,12 @@ import { observer } from 'mobx-react-lite';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import GroupPointListView from '@/components/group/point/GroupPointListView';
+import GroupRouteListView from '@/components/group/route/GroupRouteListView';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout, AcgRow, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import GroupPoint from '@/model/group/GroupPoint';
-import GroupRoute from '@/model/group/GroupRoute';
 import GroupMap from '@/model/group-map/GroupMap';
-import { getGroupPointAuthorLabel } from '@/model/group-point/GroupPointLabels';
 import GroupPointFilterChipsView from './GroupPointFilterChipsView';
 
 interface Props {
@@ -33,35 +32,9 @@ const GroupMapListView: FC<Props> = ({
   onRequestDelete,
 }) => {
   const l10n = app.getL10n();
-  const separator = l10n.t('group.detail.metaSeparator');
   const pointList = groupMap.getPointList();
   const routes = groupMap.getRoutes();
   const memberIds = groupMap.getMemberIds();
-
-  const renderRouteRow = (route: GroupRoute, index: number) => {
-    const meta = [
-      route.getDistanceText(),
-      getGroupPointAuthorLabel(
-        route.getAuthorId(),
-        route.getAuthorName(),
-        memberIds
-      ),
-    ].join(separator);
-
-    return (
-      <View
-        key={route.getId()}
-        style={[styles.routeRow, index > 0 && styles.rowDivided]}
-      >
-        <PretendardText weight='medium' style={styles.routeName} numberOfLines={2}>
-          {route.getName()}
-        </PretendardText>
-        <PretendardText style={styles.routeMeta} numberOfLines={1}>
-          {meta}
-        </PretendardText>
-      </View>
-    );
-  };
 
   return (
     <ScrollView
@@ -79,7 +52,7 @@ const GroupMapListView: FC<Props> = ({
             {l10n.t('group.detail.routesEmpty')}
           </PretendardText>
         ) : (
-          routes.map(renderRouteRow)
+          <GroupRouteListView routes={routes} memberIds={memberIds} />
         )}
       </View>
 
@@ -123,24 +96,6 @@ const styles = StyleSheet.create({
   },
   chips: {
     paddingBottom: 12,
-  },
-  routeRow: {
-    minHeight: AcgRow.minHeight,
-    paddingVertical: AcgRow.paddingVertical,
-    justifyContent: 'center',
-    gap: 2,
-  },
-  rowDivided: {
-    borderTopWidth: 1,
-    borderTopColor: Acg.hairline,
-  },
-  routeName: {
-    ...AcgType.rowTitle,
-    color: Acg.ink,
-  },
-  routeMeta: {
-    ...AcgType.rowSubtitle,
-    color: Acg.ink,
   },
   empty: {
     ...AcgType.body,

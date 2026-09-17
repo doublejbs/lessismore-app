@@ -5,7 +5,9 @@ import GroupMap from '@/model/group-map/GroupMap';
 import GroupMapDispatcher from '@/model/group-map/GroupMapDispatcher';
 import {
   clearPendingGroupPoint,
+  clearPendingGroupRoute,
   getPendingGroupPoint,
+  getPendingGroupRoute,
 } from '@/model/group-map/GroupMapHandoff';
 import GroupPointDispatcher from '@/model/group-point/GroupPointDispatcher';
 import GroupPointList from '@/model/group-point/GroupPointList';
@@ -32,6 +34,19 @@ const GroupMapWrapper: FC = () => {
 
     clearPendingGroupPoint();
     groupMap.focusPoint(pointId);
+  }, [groupMap]);
+
+  // 코스 목록에서 찍고 들어온 코스를 한 번만 소비한다(GRP-8). 조회가 끝난 뒤 목록에 그 코스가
+  // 있으면 선택이 유지되고, 사라진 코스면 `GroupMap`이 첫 코스로 되돌린다.
+  useEffect(() => {
+    const routeId = getPendingGroupRoute();
+
+    if (!routeId) {
+      return;
+    }
+
+    clearPendingGroupRoute();
+    groupMap.selectRoute(routeId);
   }, [groupMap]);
 
   return <GroupMapView groupMap={groupMap} />;

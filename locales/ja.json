@@ -1435,6 +1435,13 @@
       "typeShelter": "休憩所",
       "typeCaution": "注意",
       "typeNote": "メモ"
+    },
+    "route": {
+      "add": "コースを追加",
+      "uploading": "アップロード中",
+      "delete": "削除",
+      "deleteConfirm": "このコースを削除しますか？",
+      "elevation": "獲得標高{{value}}m"
     }
   }
 }
