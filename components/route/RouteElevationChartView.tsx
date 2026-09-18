@@ -6,22 +6,22 @@ import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import {
-  findGroupRouteElevationSample,
-  GroupRouteElevationProfile,
-  GroupRouteElevationSample,
-} from '@/model/group-route/GroupRouteElevation';
+  findRouteElevationSample,
+  RouteElevationProfile,
+  RouteElevationSample,
+} from '@/model/route/RouteElevation';
 import {
-  formatGroupRouteAltitude,
-  formatGroupRouteDistance,
-} from '@/model/group-route/GroupRouteFormat';
+  formatRouteAltitude,
+  formatRouteDistance,
+} from '@/model/route/RouteFormat';
 
 interface Props {
-  profile: GroupRouteElevationProfile;
+  profile: RouteElevationProfile;
   /**
    * 훑은 지점을 알린다. 넘기지 않으면 제스처 자체를 달지 않는다 —
    * 웹은 지도가 목록으로 대체되어 따라 움직일 마커가 없다(GRP-8 · APP-5).
    */
-  onScrub?: ((sample: GroupRouteElevationSample | null) => void) | undefined;
+  onScrub?: ((sample: RouteElevationSample | null) => void) | undefined;
   // 지도 화면처럼 그래프가 화면 맨 아래에 놓일 때 세이프에어리어를 여기서 비운다.
   bottomInset?: number | undefined;
 }
@@ -43,7 +43,7 @@ const PROFILE_COLOR = '#2F6BFF';
 const PROFILE_FILL = 'rgba(47, 107, 255, 0.14)';
 
 /**
- * 고도 단면 그래프 (GRP-8).
+ * 고도 단면 그래프 (GRP-8, BD-11). 그룹 지도와 배낭 코스 화면이 같은 그래프를 쓴다.
  *
  * 차트 라이브러리를 들이지 않고 `react-native-svg`로 직접 그린다 — 이 저장소의 선례
  * (`components/bag-detail/health/BagActivityChartView.tsx`)와 같은 판단이고, 축·격자 없는
@@ -55,14 +55,14 @@ const PROFILE_FILL = 'rgba(47, 107, 255, 0.14)';
  * 훑기는 표본 객체의 **참조가 바뀔 때만** 상태를 올린다 — 손가락 한 번에 수십 번 들어오는
  * 이벤트를 그대로 렌더로 흘리면 지도 마커가 프레임마다 다시 동기화된다.
  */
-const GroupRouteElevationChartView: FC<Props> = ({
+const RouteElevationChartView: FC<Props> = ({
   profile,
   onScrub,
   bottomInset,
 }) => {
   const l10n = app.getL10n();
   const [width, setWidth] = useState(0);
-  const [cursor, setCursor] = useState<GroupRouteElevationSample | null>(null);
+  const [cursor, setCursor] = useState<RouteElevationSample | null>(null);
   const interactive = !!onScrub;
 
   const handleLayout = useCallback((event: LayoutChangeEvent) => {
@@ -79,7 +79,7 @@ const GroupRouteElevationChartView: FC<Props> = ({
         return;
       }
 
-      const sample = findGroupRouteElevationSample(profile, x / width);
+      const sample = findRouteElevationSample(profile, x / width);
 
       setCursor(sample);
       onScrub?.(sample);
@@ -151,10 +151,10 @@ const GroupRouteElevationChartView: FC<Props> = ({
   const peak = profile.samples[profile.peakIndex];
   const readout = cursor
     ? [
-        formatGroupRouteDistance(cursor.distance, profile.totalDistance),
-        formatGroupRouteAltitude(cursor.elevation),
-      ].join(l10n.t('group.detail.metaSeparator'))
-    : l10n.t('group.route.profilePeak', {
+        formatRouteDistance(cursor.distance, profile.totalDistance),
+        formatRouteAltitude(cursor.elevation),
+      ].join(l10n.t('common.metaSeparator'))
+    : l10n.t('common.route.profilePeak', {
         value: Math.round(profile.maxElevation),
       });
 
@@ -164,9 +164,9 @@ const GroupRouteElevationChartView: FC<Props> = ({
       onLayout={handleLayout}
       accessible
       accessibilityRole='image'
-      accessibilityLabel={l10n.t('group.route.profileTitle')}
+      accessibilityLabel={l10n.t('common.route.profileTitle')}
       {...(interactive
-        ? { accessibilityHint: l10n.t('group.route.profileHint') }
+        ? { accessibilityHint: l10n.t('common.route.profileHint') }
         : {})}
     >
       {geometry ? (
@@ -215,7 +215,7 @@ const GroupRouteElevationChartView: FC<Props> = ({
     <View style={[styles.container, { paddingBottom: bottomInset ?? 12 }]}>
       <View style={styles.header}>
         <PretendardText weight='semibold' style={styles.title}>
-          {l10n.t('group.route.profileTitle')}
+          {l10n.t('common.route.profileTitle')}
         </PretendardText>
         <PretendardText style={styles.readout} numberOfLines={1}>
           {readout}
@@ -228,10 +228,10 @@ const GroupRouteElevationChartView: FC<Props> = ({
       )}
       <View style={styles.axis}>
         <PretendardText style={styles.axisText}>
-          {formatGroupRouteDistance(0, profile.totalDistance)}
+          {formatRouteDistance(0, profile.totalDistance)}
         </PretendardText>
         <PretendardText style={styles.axisText}>
-          {formatGroupRouteDistance(profile.totalDistance)}
+          {formatRouteDistance(profile.totalDistance)}
         </PretendardText>
       </View>
     </View>
@@ -275,4 +275,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GroupRouteElevationChartView;
+export default RouteElevationChartView;

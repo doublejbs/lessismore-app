@@ -3,7 +3,6 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import {
   Camera,
   NaverMapMarkerOverlay,
-  NaverMapPathOverlay,
   NaverMapView,
   NaverMapViewRef,
 } from '@mj-studio/react-native-naver-map';
@@ -17,7 +16,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CategoryChipView from '@/components/browse/CategoryChipView';
-import GroupRouteElevationChartView from '@/components/group/route/GroupRouteElevationChartView';
+import RouteElevationChartView from '@/components/route/RouteElevationChartView';
+import RoutePathOverlayView from '@/components/route/RoutePathOverlayView';
 import PretendardText from '@/components/PretendardText';
 import SpotPinView from '@/components/camp-site/SpotPinView';
 import {
@@ -30,13 +30,13 @@ import {
 import app from '@/model/app/App';
 import GroupPoint from '@/model/group/GroupPoint';
 import GroupMap from '@/model/group-map/GroupMap';
-import { GroupRouteElevationSample } from '@/model/group-route/GroupRouteElevation';
+import { RouteElevationSample } from '@/model/route/RouteElevation';
 import { deltaToZoom } from '@/model/map/MapZoom';
 import GroupMapAimMarkerView from './GroupMapAimMarkerView';
 import GroupMapMarkersView, { GroupMapViewport } from './GroupMapMarkersView';
 import GroupPointCalloutView from './GroupPointCalloutView';
 import GroupPointFilterChipsView from './GroupPointFilterChipsView';
-import GroupRouteScrubMarkerView from './GroupRouteScrubMarkerView';
+import RouteScrubMarkerView from '@/components/route/RouteScrubMarkerView';
 
 interface Props {
   groupMap: GroupMap;
@@ -49,20 +49,6 @@ interface Props {
   // Android 커스텀 헤더 높이만큼 상단 오버레이를 내린다(iOS는 투명 헤더라 세이프에어리어로 충분).
   topInset: number;
 }
-
-/**
- * 코스 폴리라인 색. 데이터 시각화 색이라 토큰 예외로 하드코딩한다(CLAUDE.md).
- * 선택한 코스는 굵고 진하게, 나머지는 옅게 그린다(GRP-10).
- */
-const ROUTE_COLOR = '#2F6BFF';
-const ROUTE_DIM_COLOR = 'rgba(47, 107, 255, 0.3)';
-const ROUTE_OUTLINE_COLOR = '#FFFFFF';
-const ROUTE_WIDTH = 6;
-const ROUTE_DIM_WIDTH = 4;
-const ROUTE_OUTLINE_WIDTH = 2;
-
-/** 경로선은 좌표가 2개 미만이면 지도에 추가되지 않는다(라이브러리 제약). */
-const MIN_PATH_COORDS = 2;
 
 /** 남한 전역이 보이는 폴백 카메라(코스·포인트·박지·현재 위치가 모두 없을 때). */
 const KOREA_CAMERA: Camera = {
@@ -131,7 +117,7 @@ const GroupMapCanvasView: FC<Props> = ({
    */
   const [scrub, setScrub] = useState<{
     routeId: string;
-    sample: GroupRouteElevationSample;
+    sample: RouteElevationSample;
   } | null>(null);
   const handledLongPressRef = useRef(0);
   const pointList = groupMap.getPointList();
@@ -420,7 +406,7 @@ const GroupMapCanvasView: FC<Props> = ({
    * 그래프의 x와 지도 위 지점이 매 프레임 어긋나 위치를 읽을 수 없다. 마커만 옮긴다.
    */
   const handleScrub = useCallback(
-    (sample: GroupRouteElevationSample | null) => {
+    (sample: RouteElevationSample | null) => {
       const routeId = groupMap.getSelectedRouteId() ?? '';
 
       // 같은 표본이면 이전 객체를 그대로 돌려준다 — 한 번 훑는 동안 들어오는 수십 번의
@@ -501,31 +487,12 @@ const GroupMapCanvasView: FC<Props> = ({
               onTapMap={handleTapMap}
               onCameraChanged={handleCameraChanged}
             >
-              {/* 코스 폴리라인 — 선택한 코스를 굵게, 나머지를 옅게(GRP-10). */}
-              {routes.map(route => {
-                const coords = route.getSimplified().map(coordinate => ({
-                  latitude: coordinate.lat,
-                  longitude: coordinate.lng,
-                }));
-
-                if (coords.length < MIN_PATH_COORDS) {
-                  return null;
-                }
-
-                const isSelected =
-                  routes.length === 1 || route.getId() === selectedRouteId;
-
-                return (
-                  <NaverMapPathOverlay
-                    key={route.getId()}
-                    coords={coords}
-                    width={isSelected ? ROUTE_WIDTH : ROUTE_DIM_WIDTH}
-                    color={isSelected ? ROUTE_COLOR : ROUTE_DIM_COLOR}
-                    outlineWidth={isSelected ? ROUTE_OUTLINE_WIDTH : 0}
-                    outlineColor={ROUTE_OUTLINE_COLOR}
-                  />
-                );
-              })}
+              {/* 코스 폴리라인 — 선택한 코스를 굵게, 나머지를 옅게(GRP-10).
+                배낭 코스 화면(BD-11)과 같은 선을 쓴다. */}
+              <RoutePathOverlayView
+                routes={routes}
+                selectedRouteId={selectedRouteId}
+              />
 
               {/* 연결된 박지 마커 — 앱 공통 핀(끝점이 좌표에 닿는다). */}
               {campSpot ? (
@@ -564,7 +531,7 @@ const GroupMapCanvasView: FC<Props> = ({
 
               {/* 고도 그래프를 훑는 동안만 뜨는 위치 마커(GRP-8). */}
               {scrubSample ? (
-                <GroupRouteScrubMarkerView
+                <RouteScrubMarkerView
                   latitude={scrubSample.latitude}
                   longitude={scrubSample.longitude}
                 />
@@ -703,7 +670,7 @@ const GroupMapCanvasView: FC<Props> = ({
 
       {/* 고도 그래프는 지도 **아래**다 — 지도를 가리면 훑는 동안 위치를 못 본다(GRP-8). */}
       {showProfile && elevationProfile ? (
-        <GroupRouteElevationChartView
+        <RouteElevationChartView
           // 코스를 바꾸면 그래프를 새로 마운트해 이전 코스의 커서가 남지 않게 한다.
           key={selectedRoute?.getId()}
           profile={elevationProfile}

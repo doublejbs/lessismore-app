@@ -4,13 +4,13 @@ import Group from '@/model/group/Group';
 import GroupError from '@/model/group/GroupError';
 import GroupRoute from '@/model/group/GroupRoute';
 import GroupValidationError from '@/model/group/GroupValidationError';
-import GroupValidator from '@/model/group/GroupValidator';
-import { GroupRouteDraft } from '@/model/group/GroupData';
+import RouteValidator from '@/model/route/RouteValidator';
+import { RouteDraft } from '@/model/route/RouteData';
 import { GROUP_MAX_ROUTE_COUNT } from '@/model/group/GroupLimits';
-import GpxParser from './GpxParser';
+import GpxParser from '@/model/route/GpxParser';
 import GroupRouteDispatcher from './GroupRouteDispatcher';
-import { getGroupRouteErrorMessage } from './GroupRouteErrorMessage';
-import GroupRoutePicker from './GroupRoutePicker';
+import { getRouteErrorMessage } from '@/model/route/RouteErrorMessage';
+import RoutePicker from '@/model/route/RoutePicker';
 
 const GPX_EXTENSION_PATTERN = /\.gpx$/i;
 
@@ -89,7 +89,7 @@ class GroupRouteList {
 
   // 파일 선택기가 없는 환경(웹)에서는 추가 액션 자체를 그리지 않는다(APP-5).
   public canAdd(): boolean {
-    return GroupRoutePicker.isSupported();
+    return RoutePicker.isSupported();
   }
 
   // 올린 사람과 방장만 지운다 (GRP-4 · GRP-8).
@@ -108,7 +108,7 @@ class GroupRouteList {
 
     if (this.isFull()) {
       this.showMessage(
-        getGroupRouteErrorMessage(
+        getRouteErrorMessage(
           new GroupError(GroupValidationError.RouteLimitExceeded)
         )
       );
@@ -117,7 +117,7 @@ class GroupRouteList {
     }
 
     try {
-      const picked = await GroupRoutePicker.pick();
+      const picked = await RoutePicker.pick();
 
       if (!picked) {
         return false;
@@ -128,12 +128,10 @@ class GroupRouteList {
       // 용량은 파일을 읽기 전에 본다 — 5MB를 다 읽고 거절하면 그만큼이 헛일이다.
       GpxParser.validateFileSize(picked.size);
 
-      const parsed = GpxParser.parse(
-        await GroupRoutePicker.readText(picked.uri)
-      );
-      const draft: GroupRouteDraft = {
+      const parsed = GpxParser.parse(await RoutePicker.readText(picked.uri));
+      const draft: RouteDraft = {
         // 트랙 이름이 있으면 그것을, 없으면 파일명을 쓴다(GRP-8). 40자 절단은 검증기가 한다.
-        name: GroupValidator.toRouteName(
+        name: RouteValidator.toRouteName(
           parsed.name || picked.name.replace(GPX_EXTENSION_PATTERN, '')
         ),
         fileSize: picked.size,
@@ -156,7 +154,7 @@ class GroupRouteList {
 
       return true;
     } catch (error) {
-      this.showMessage(getGroupRouteErrorMessage(error));
+      this.showMessage(getRouteErrorMessage(error));
 
       return false;
     } finally {
@@ -177,7 +175,7 @@ class GroupRouteList {
 
       return true;
     } catch (error) {
-      this.showMessage(getGroupRouteErrorMessage(error));
+      this.showMessage(getRouteErrorMessage(error));
 
       return false;
     } finally {

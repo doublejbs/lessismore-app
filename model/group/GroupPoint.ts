@@ -1,5 +1,6 @@
 import Group from './Group';
-import { GroupPointData, toGroupDate } from './GroupData';
+import { toFirestoreDate } from '@/model/firebase/FirestoreDate';
+import { GroupPointData } from './GroupData';
 import GroupPointType from './GroupPointType';
 
 // 그룹 지도 포인트 (GRP-9, DM-29 `groups/{groupId}/points/{pointId}`).
@@ -27,7 +28,7 @@ class GroupPoint {
     this.description = data.description;
     this.authorId = data.authorId;
     this.authorName = data.authorName;
-    this.createdAt = toGroupDate(data.createdAt);
+    this.createdAt = toFirestoreDate(data.createdAt);
   }
 
   public getId() {

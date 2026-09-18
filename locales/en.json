@@ -27,6 +27,13 @@
       "weightDesc": "Heaviest",
       "weightAsc": "Lightest",
       "nameAsc": "Name"
+    },
+    "metaSeparator": " · ",
+    "route": {
+      "profileTitle": "Elevation profile",
+      "profilePeak": "Peak {{value}}m",
+      "profileHint": "Drag along the graph to see that spot on the map",
+      "elevation": "Ascent {{value}}m"
     }
   },
   "category": {
@@ -248,7 +255,23 @@
     },
     "dateFormat": "MMM YYYY",
     "dateShortFormat": "MMM D, YYYY",
-    "dateRangeSeparator": " – "
+    "dateRangeSeparator": " – ",
+    "route": {
+      "title": "Route",
+      "tileEmpty": "Add GPX",
+      "tileLabel": "Route {{subtitle}}",
+      "count_other": "{{count}}",
+      "add": "Add route",
+      "uploading": "Uploading",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this route?",
+      "empty": "No routes yet",
+      "loadFailed": "Failed to load routes",
+      "fromGroup": "Group {{name}}",
+      "toGroup": "Send to group",
+      "toGroupTitle": "Which group?",
+      "toGroupDone": "Sent to the group"
+    }
   },
   "bagDetail": {
     "activityConnect": "Connect activity record",

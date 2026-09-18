@@ -1,6 +1,6 @@
-# Firebase 계약 (커뮤니티 · 그룹)
+# Firebase 계약 (커뮤니티 · 그룹 · 배낭 코스)
 
-이 디렉터리는 DM-28(커뮤니티)·DM-29(그룹)의 Firestore·Storage 보안 규칙과 복합 인덱스 문서다. 앱에서 자동 배포하지 않으며, **콘솔 배포 전 사용자 확인 필요** 사항이다.
+이 디렉터리는 DM-28(커뮤니티)·DM-29(그룹)·DM-30(배낭 코스)의 Firestore·Storage 보안 규칙과 복합 인덱스 문서다. 앱에서 자동 배포하지 않으며, **콘솔 배포 전 사용자 확인 필요** 사항이다.
 
 ## 배포 대상 파일
 
@@ -12,10 +12,12 @@
 | `group-firestore.rules` | `groups/**`, `users/{uid}/groups/**` | DM-29, Group.md GRP-3·4·5·8·9·12 |
 | `group-storage.rules` | `/groups/{groupId}/routes/*.gpx` | DM-9, GRP-8 |
 | `group-firestore.indexes.json` | (비어 있음 — 아래 그룹 절 참고) | DM-29 인덱스 |
+| `bag-firestore.rules` | `bag/{bagId}/routes/**` | DM-30, BagDetail.md BD-11 |
+| `bag-storage.rules` | `/bags/{bagId}/routes/*.gpx` | DM-9, DM-30, BD-11 |
 
 **어떤 파일도 단독으로 배포하지 않는다.** 실제 배포는 `deployed/` 병합본 기준이며, 인덱스 배포는 파일에 없는 인덱스를 **삭제**하려 하므로 특히 병합본만 쓴다.
 
-2026-09-17 기준 `deployed/firestore.rules`·`deployed/storage.rules`에 **그룹 병합이 끝나 있다**(아래 "그룹 규칙 병합 시 주의"·"병합 기록" 참고). 원본 3종은 계약의 정본이고 병합본은 그 사본이다 — **한쪽만 고치지 않는다.**
+2026-09-18 기준 `deployed/firestore.rules`·`deployed/storage.rules`에 **배낭 코스 병합까지 끝나 있다**(아래 "배낭 코스" 절). 2026-09-17 기준 같은 파일에 **그룹 병합이 끝나 있다**(아래 "그룹 규칙 병합 시 주의"·"병합 기록" 참고). 원본 3종은 계약의 정본이고 병합본은 그 사본이다 — **한쪽만 고치지 않는다.**
 
 ## 커뮤니티
 
@@ -62,6 +64,118 @@
 - 2026-09-03 2차: 투표 변경 허용(CM-5 개정) 규칙을 같은 병합 방식으로 재배포(`deployed/firestore.rules` 갱신). Storage 규칙·인덱스는 변경 없음.
 - 2026-09-03 3차: 피드 정렬 인기순용 인덱스 2개(likeCount desc) 추가 배포(`deployed/firestore.indexes.json` 갱신, 총 16개 + overrides 3).
 - 2026-09-05 4차: 첨부 모델 규칙과 `community-posts` 인덱스 4개(`hasBagSnapshot`·`hasPoll`의 최신순·인기순)를 교체 배포했다. 규칙 배포 **전에** `scripts/migrate-community-attachments.mjs --apply`로 7개 문서를 백필하고 대상 0건을 확인했으며, 쓰기 전 백업은 `scripts/backup-community-posts-2026-09-05T00-53-28-310Z.json`이다. 이후 `deployed/firestore.rules`·`deployed/firestore.indexes.json`을 갱신했다.
+
+## 배낭 코스 (DM-30, BagDetail.md BD-11)
+
+배낭 코스는 앱에서 **공개 문서 아래에 비공개 하위 컬렉션을 두는 첫 사례**다.
+
+`bag/{bagId}` 문서는 `shared == true` 면 링크만 있으면 비로그인 누구나 읽는다(BD-7). 그런데 GPX 는 그 사람이 언제 어디를 지날지를 미터 단위로 담는다. 그래서 하위 `routes` 는 **소유자(`bag.userId`)만** 읽고 쓰며, 배낭 공유·박지 후기 첨부·커뮤니티 패킹 스냅샷 어디로도 따라가지 않는다(DM-30).
+
+판정 소스는 `bag/{bagId}.userId` **하나**다. Firestore 는 `get()`, Storage 는 `firestore.get()` 으로 같은 값을 본다 — 그룹이 `memberIds` 하나로 통일한 것과 같은 이유다.
+
+### 규칙 구조
+
+| 헬퍼 | 역할 |
+| --- | --- |
+| `isBagOwner()` | `bag/{bagId}.userId == request.auth.uid`. Firestore·Storage 양쪽에 같은 이름·같은 판정 |
+| `isValidBagRoutePayload()` | 그룹 `isValidRoutePayload()` 와 **같은 조건** + 허용 키 못박기. `authorId`·`authorName` 이 없는 것이 유일한 차이다(DM-30 — 배낭 코스는 소유자 한 사람의 것이라 작성자를 적지 않는다) |
+| `isBagGpxFile()` | Storage 파일명 `^[A-Za-z0-9_-]+\.gpx$` |
+
+값 검증 헬퍼(`isValidLatitude`·`isValidLongitude`·`maxRouteFileSize`)는 **그룹 절의 것을 그대로 쓴다** — 같은 값을 두 벌로 두지 않으며, 중복 정의는 컴파일 에러이기도 하다.
+
+`allow update: if false` 다. 코스는 이름 변경이 필요 없어 수정 경로를 두지 않는다(그룹 코스와 같다).
+
+### 배낭 규칙 병합 시 주의 (필수)
+
+**이 절의 병합은 2026-09-18에 적용을 마쳤다**(`deployed/firestore.rules`·`deployed/storage.rules`).
+
+병합 전 `bag` 은 맨 끝 전면 개방 절(`match /{document=**}`)에 걸려 있었다. Firestore 규칙은 여러 `match` 가 **OR** 로 합쳐지므로, 개방 절이 남아 있으면 `routes` 를 아무리 좁혀도 비로그인 누구나 읽을 수 있다. `users` 에 쓴 방법을 그대로 따른다 — **`bag` 을 통째로 개방에서 뺀 뒤 문서 자체는 다시 열고 하위 `routes` 만 닫는다.**
+
+```
+function isLockedCollection() {
+  return request.path[3] in [
+    'community-posts', 'community-post-likes', 'community-poll-votes',
+    'community-reports', 'groups', 'groupInvites', 'users', 'bag'
+  ];
+}
+
+// 배낭 문서 자체는 기존대로 열어 둔다 — shared 링크 공유가 이 개방에 얹혀 있다(BD-7).
+match /bag/{bagId} {
+  allow read, write: if true;
+}
+
+// 배낭 하위는 routes 만 빼고 기존대로 열어 둔다.
+match /bag/{bagId}/{subCollection}/{restOfPath=**} {
+  allow read, write: if subCollection != 'routes';
+}
+```
+
+- **`request.path.size()` 를 쓰면 안 된다** — 규칙 언어에 없는 함수라 `Function not found error: Name: [size]` 로 평가 전체가 에러가 되고 해당 경로가 전부 거부되는 회귀가 난다(2026-09-17 그룹 병합에서 실제로 겪었다).
+- **하위 개방 절을 빠뜨리지 않는다.** 지금 `bag` 에 다른 하위 컬렉션은 없지만, 개방에서 `bag` 을 뺀 이상 이 절이 없으면 나중에 생기는 하위 컬렉션이 소리 없이 전부 거부된다.
+- Storage `deployed/storage.rules` 도 같은 이유로 `bags/` 접두를 개방에서 뺀다.
+
+```
+match /{allPaths=**} {
+  allow read, write: if allPaths[0] != 'community'
+    && allPaths[0] != 'groups'
+    && allPaths[0] != 'bags';
+}
+```
+
+### 규칙으로 표현하지 못해 남긴 구멍
+
+1. **배낭당 코스 5개 상한을 규칙이 강제하지 못한다.** 규칙은 컬렉션 문서 수를 셀 수 없고, 그룹처럼 카운터를 같은 커밋에 묶으려면 `bag` 문서에 `routeCount` 를 새로 둬야 한다. `bag` 은 공유 링크로 공개되는 문서라 "이 사람이 코스를 몇 개 갖고 있다"가 함께 새고, 무엇보다 **배낭 코스는 소유자 한 사람의 것이라 상한을 넘겨도 피해가 자기 배낭 안에 갇힌다**(그룹은 여럿이 공유 예산을 쓰므로 카운터가 필요했다). 클라이언트가 세어서 막고, 상한은 `GroupLimits.GROUP_MAX_ROUTE_COUNT` 하나를 그룹과 함께 쓴다(DM-30 — 수치를 갈라 두지 않는다).
+2. **`bag` 문서 자체는 여전히 전면 개방이다.** 좁히는 것은 별도 보안 작업이다(DataModel §1 `[운영]`). 이 병합은 하위 `routes` 하나만 닫는다.
+3. **Storage 파일과 Firestore 문서의 동반 삭제는 클라이언트 몫이다.** 규칙은 둘을 묶지 못한다. 배낭 삭제 시의 연쇄 정리(하위 `routes` 문서 + Storage GPX)는 서버 트리거(`onBagDeleted`)가 맡는다(DM-30) — **아직 배포되지 않았다.**
+
+### 에뮬레이터 검증 (2026-09-18)
+
+하네스는 저장소에 넣지 않는다. 스크래치패드에서 Java 17 · Firestore 8095 · Storage 9296 으로 돌렸다.
+
+**Storage 에뮬레이터는 규칙을 전역으로 받는다**(Firestore 처럼 프로젝트별이 아니다). 병합본과 병합 전을 한 프로세스에서 같이 올리면 나중에 로드한 쪽이 앞의 것을 덮어쓰므로, **모드를 나눠 두 번 실행**하고 회귀 결과 문자열을 파일로 남겨 바깥에서 대조했다. 또 테스트 프로젝트 ID는 에뮬레이터 기동 프로젝트와 **같아야 한다** — Storage 규칙의 `firestore.get()` 교차 조회가 그 프로젝트의 Firestore 를 보기 때문에, 다르면 소유자 판정이 전부 거부된다.
+
+| 묶음 | 대상 | 건수 | 결과 |
+| --- | --- | --- | --- |
+| (a) 배낭 코스 | 병합본 Firestore — 소유자·타인·비인증·페이로드 | 28 | 통과 |
+| (a) 배낭 코스 | 병합본 Storage — GPX | 11 | 통과 |
+| (b) 회귀 | 병합본 Firestore + Storage (기존 개방·커뮤니티·그룹) | 29 | 통과 |
+| (b) 회귀 | **병합 전** 같은 하네스 | 29 | 통과 |
+
+핵심 시나리오 결과:
+
+| 시나리오 | 결과 |
+| --- | --- |
+| 소유자의 코스 읽기·목록·생성·삭제 | 허용 |
+| 소유자의 코스 수정(update) | 거부 |
+| 남의 코스 읽기·목록·쓰기·삭제 | 거부 |
+| **비인증이 `shared=true` 배낭의 코스 읽기·목록** | **거부** |
+| 로그인한 남이 `shared=true` 배낭의 코스 읽기 | 거부 |
+| 비인증이 `bag/{bagId}` 문서 읽기·쓰기 | **허용(회귀 없음)** |
+| 비인증이 `bag/{bagId}/misc/**`(routes 아닌 하위) 읽기·쓰기 | 허용 |
+| 페이로드: 5MB 초과·`fileSize` 0·남의 `storagePath`·이름 41자·빈 이름·`simplified` 1점·501점·위도 범위 밖·`authorId` 추가·임의 키 추가·음수 거리 | 모두 거부 |
+| 페이로드: 정확히 5MB · `elevationGain` 없는 코스 | 허용 |
+| Storage: 소유자 get·업로드·삭제 | 허용 |
+| Storage: 비인증 get · 남의 배낭 get/업로드/삭제 · 비 `.gpx` · `routes` 밖 경로 · 5MB 초과 · list | 모두 거부 |
+
+회귀 29건은 **병합 전 파일(`git show HEAD:...`)과 병합본을 같은 하네스로 돌려 결과 문자열이 글자까지 같음**(`diff` 무출력)을 대조해 확인했다. 즉 기존 컬렉션·경로의 허용·거부가 한 건도 달라지지 않았다.
+
+Storage 개방 경로의 `list` 는 **병합 전에도 거부된다**(`match /{allPaths=**}` 가 list 요청에서 `allPaths[0]` 을 묶지 못한다 — 위 그룹 절이 기록한 기존 경고와 같은 원인). 병합이 만든 문제가 아니라는 것을 병합 전/후 대조로 확인했다.
+
+규칙 파일은 에뮬레이터 로드로 컴파일을 확인했으며 **배포하지 않았다**.
+
+### 배낭 코스 병합 기록 (2026-09-18)
+
+- `deployed/firestore.rules` = 기존 병합본 + `bag-firestore.rules` 본문(`bag/{bagId}/routes/{routeId}`). 맨 끝 개방 절의 `isLockedCollection()` 에 `bag` 을 추가하고, `match /bag/{bagId}`(개방 유지) + `match /bag/{bagId}/{subCollection}/{restOfPath=**}`(`routes` 만 제외)로 갈라 열었다. 커뮤니티·그룹·기타 컬렉션의 허용 범위는 **한 글자도 바꾸지 않았다**.
+- `deployed/storage.rules` = 기존 병합본 + `bag-storage.rules` 본문. 개방 절을 `allPaths[0] != 'community' && != 'groups' && != 'bags'` 로 바꿨다.
+- `deployed/firestore.indexes.json` = **변경 없음**. `bag/{bagId}/routes` 는 `orderBy('createdAt')` 단일 필드 정렬 하나뿐이라 자동 인덱스로 충분하다. 코스 개수 확인은 같은 컬렉션의 count 집계라 인덱스가 따로 필요 없다.
+
+### 배낭 코스 배포 전 확인
+
+1. [ ] **규칙은 `deployed/` 병합본으로만** — `firebase deploy --only firestore:rules,storage`. 원본 `bag-firestore.rules`·`bag-storage.rules` 를 단독 배포하면 기존 컬렉션 규칙이 통째로 날아간다.
+2. [ ] **배포 직전 에뮬레이터 회귀 재실행** — 위 두 묶음을 병합본·병합 전으로 각각 돌려 실패 0 과 회귀 문자열 일치를 확인한다. 개방 범위를 실수로 좁히면 앱 전체가 죽는다.
+3. [ ] **마이그레이션 선행 불필요** — `bag/{bagId}/routes` 는 기존 문서가 없는 신규 컬렉션이다. `bag` 문서 자체의 규칙은 바뀌지 않으므로 기존 배낭에 영향이 없다.
+4. [ ] **배낭 삭제 정리 트리거(`onBagDeleted`)는 별도 배포다**(DM-30). 트리거가 없는 동안 배낭을 지우면 하위 `routes` 문서와 Storage GPX 가 남는다 — 규칙상 아무도 읽을 수 없는(소유자 판정에 쓰는 `bag` 문서가 사라졌다) 고아가 되므로 노출 위험은 없지만 용량이 남는다.
+5. [ ] **배포 후 확인** — 비인증으로 `shared=true` 배낭의 `routes` 읽기 거부, 같은 배낭 문서 읽기 허용을 콘솔 Rules 시뮬레이터로 한 번 더 본다.
 
 ## 그룹 (DM-29, Group.md GRP-1~12)
 

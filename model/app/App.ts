@@ -1,6 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 import Firebase from '../firebase/Firebase';
 import GearStore from '../store/GearStore';
+import BagRouteStore from '../store/BagRouteStore';
 import BagStore from '../store/BagStore';
 import SearchStore from '../search/SearchStore';
 import AlertManager from '../alert/AlertManager';
@@ -45,6 +46,8 @@ class App {
   private featurePopupManager: FeaturePopupManager | null = null;
   private communityStore: CommunityStore | null = null;
   private groupStore: GroupStore | null = null;
+  // 배낭 코스(BD-11). 배낭 문서와 접근 범위가 달라 BagStore와 따로 둔다 — BagRouteStore 주석 참고.
+  private bagRouteStore: BagRouteStore | null = null;
   private communitySearchStore: CommunitySearchStore | null = null;
 
   private gearPreviewStore: GearPreviewStore | null = null;
@@ -79,6 +82,7 @@ class App {
     this.replyStore = new ReplyStore(this.firebase);
     this.communityStore = new CommunityStore(this.firebase);
     this.groupStore = new GroupStore(this.firebase, bagStore);
+    this.bagRouteStore = new BagRouteStore(this.firebase);
     this.campSpotStore = new CampSpotStore(this.firebase);
     this.feedContentStore = new FeedContentStore(
       this.firebase,
@@ -141,6 +145,10 @@ class App {
 
   public getGroupStore() {
     return this.groupStore;
+  }
+
+  public getBagRouteStore() {
+    return this.bagRouteStore;
   }
 
   public getCommunitySearchStore() {

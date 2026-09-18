@@ -27,6 +27,13 @@
       "weightDesc": "무거운순",
       "weightAsc": "가벼운순",
       "nameAsc": "이름순"
+    },
+    "metaSeparator": " · ",
+    "route": {
+      "profileTitle": "고도 단면",
+      "profilePeak": "최고 {{value}}m",
+      "profileHint": "그래프를 손가락으로 훑으면 지도에 그 지점이 표시돼요",
+      "elevation": "상승 {{value}}m"
     }
   },
   "category": {
@@ -246,7 +253,23 @@
     },
     "dateFormat": "YYYY년 M월",
     "dateShortFormat": "YYYY.MM.DD",
-    "dateRangeSeparator": " ~ "
+    "dateRangeSeparator": " ~ ",
+    "route": {
+      "title": "코스",
+      "tileEmpty": "GPX 추가",
+      "tileLabel": "코스 {{subtitle}}",
+      "count_other": "{{count}}개",
+      "add": "코스 추가",
+      "uploading": "올리는 중",
+      "delete": "삭제",
+      "deleteConfirm": "이 코스를 지울까요?",
+      "empty": "아직 올린 코스가 없어요",
+      "loadFailed": "코스를 불러오지 못했어요",
+      "fromGroup": "그룹 {{name}}",
+      "toGroup": "그룹에 올리기",
+      "toGroupTitle": "어느 그룹에 올릴까요?",
+      "toGroupDone": "그룹에 올렸어요"
+    }
   },
   "bagDetail": {
     "activityConnect": "기록 연결하기",

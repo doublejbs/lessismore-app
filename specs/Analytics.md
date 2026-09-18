@@ -190,6 +190,8 @@
 | `click_group_map_open` | 그룹 지도 열기 | — |
 | `click_group_member_remove` | 방장이 멤버 내보내기 | — |
 | `click_group_leave` | 그룹 나가기 / 해산 | `role`: `owner` \| `member` |
+| `click_bag_route_upload` | 배낭 코스(GPX) 업로드 성공 (BD-11) | `distance`: m, `point_count` |
+| `click_bag_route_to_group` | 배낭 코스를 연결된 그룹에 복사 (BD-11) | — |
 | `click_community_report` | 신고 등록 성공 | `target`: `post` \| `comment` |
 
 - 커뮤니티 이벤트에는 게시글 ID, 작성자 ID·닉네임, 제목·본문, 투표 문구, 신고 상세를 보내지 않는다.

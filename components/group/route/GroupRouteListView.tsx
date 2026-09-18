@@ -1,9 +1,9 @@
 import { FC } from 'react';
 import { observer } from 'mobx-react-lite';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import PretendardText from '@/components/PretendardText';
-import { Acg, AcgLayout, AcgRow, AcgType } from '@/constants/DesignTokens';
+import RouteListView, {
+  RouteRow,
+  RouteRowAction,
+} from '@/components/route/RouteListView';
 import app from '@/model/app/App';
 import GroupRoute from '@/model/group/GroupRoute';
 import { getGroupPointAuthorLabel } from '@/model/group-point/GroupPointLabels';
@@ -21,10 +21,9 @@ interface Props {
 }
 
 /**
- * 코스 목록 (GRP-8).
- *
- * 행은 포인트 목록과 같은 문법이다 — 이름 16 medium + 메타 14 잉크 한 줄이고, 거리·고도 상승은
- * 배지가 아니라 메타 줄의 조각으로 둔다(HM-8). 숫자를 맨 앞에 둬 코스끼리 거리를 훑을 수 있게 한다.
+ * 그룹 코스 목록 (GRP-8). 행 자체는 배낭 코스(BD-11)와 공용인 `RouteListView`가 그리고,
+ * 여기서는 그룹 코스를 행 데이터로 옮기는 일만 한다 — 메타 줄에 **올린 사람**이 붙는 것이
+ * 배낭 코스와 다른 유일한 점이다(배낭 코스에는 작성자가 없다, DM-30).
  */
 const GroupRouteListView: FC<Props> = ({
   routes,
@@ -37,7 +36,7 @@ const GroupRouteListView: FC<Props> = ({
   const l10n = app.getL10n();
   const separator = l10n.t('group.detail.metaSeparator');
 
-  const renderRow = (route: GroupRoute, index: number) => {
+  const toRow = (route: GroupRoute): RouteRow => {
     const elevationGain = route.getElevationGain();
     const meta = [
       route.getDistanceText(),
@@ -55,106 +54,25 @@ const GroupRouteListView: FC<Props> = ({
       ),
     ].join(separator);
     const deletable = !!onDelete && (canDelete?.(route) ?? true);
-    const body = (
-      <View style={styles.rowBody}>
-        <PretendardText weight='medium' style={styles.title} numberOfLines={2}>
-          {route.getName()}
-        </PretendardText>
-        <PretendardText style={styles.meta} numberOfLines={1}>
-          {meta}
-        </PretendardText>
-      </View>
-    );
+    const actions: RouteRowAction[] = deletable
+      ? [
+          {
+            label: l10n.t('group.route.delete'),
+            onPress: () => onDelete?.(route),
+          },
+        ]
+      : [];
 
-    return (
-      <View
-        key={route.getId()}
-        style={[styles.row, index > 0 && styles.rowDivided]}
-      >
-        {onSelect ? (
-          <TouchableOpacity
-            style={styles.rowTouchable}
-            onPress={() => onSelect(route)}
-            activeOpacity={0.7}
-            accessibilityRole='button'
-            accessibilityLabel={`${route.getName()}${separator}${meta}`}
-          >
-            {body}
-            <Ionicons
-              name='chevron-forward'
-              size={16}
-              color={Acg.textSecondary}
-            />
-          </TouchableOpacity>
-        ) : (
-          body
-        )}
-        {deletable ? (
-          <View style={styles.actions}>
-            <TouchableOpacity
-              style={styles.action}
-              onPress={() => onDelete?.(route)}
-              disabled={disabled}
-              accessibilityRole='button'
-              accessibilityLabel={l10n.t('group.route.delete')}
-            >
-              <PretendardText style={styles.actionLabel}>
-                {l10n.t('group.route.delete')}
-              </PretendardText>
-            </TouchableOpacity>
-          </View>
-        ) : null}
-      </View>
-    );
+    return {
+      id: route.getId(),
+      title: route.getName(),
+      meta,
+      ...(onSelect ? { onSelect: () => onSelect(route) } : {}),
+      ...(actions.length > 0 ? { actions } : {}),
+    };
   };
 
-  return <View>{routes.map(renderRow)}</View>;
+  return <RouteListView rows={routes.map(toRow)} disabled={disabled} />;
 };
-
-const styles = StyleSheet.create({
-  row: {
-    minHeight: AcgRow.minHeight,
-    paddingVertical: AcgRow.paddingVertical,
-    justifyContent: 'center',
-    gap: 2,
-  },
-  rowDivided: {
-    borderTopWidth: 1,
-    borderTopColor: Acg.hairline,
-  },
-  rowTouchable: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: AcgLayout.chipGap,
-  },
-  rowBody: {
-    flex: 1,
-    gap: 2,
-  },
-  title: {
-    ...AcgType.rowTitle,
-    color: Acg.ink,
-  },
-  meta: {
-    ...AcgType.rowSubtitle,
-    color: Acg.ink,
-  },
-  actions: {
-    marginTop: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: AcgLayout.chipGap,
-  },
-  action: {
-    minHeight: 44,
-    minWidth: 44,
-    justifyContent: 'center',
-    paddingHorizontal: 6,
-  },
-  actionLabel: {
-    ...AcgType.control,
-    color: Acg.ink,
-  },
-});
 
 export default observer(GroupRouteListView);

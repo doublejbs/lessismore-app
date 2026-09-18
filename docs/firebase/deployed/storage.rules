@@ -58,11 +58,51 @@ service firebase.storage {
       allow list: if false;
     }
 
+
+    // ====================================================================
+    // 배낭 코스(GPX) — docs/firebase/bag-storage.rules 병합 (DM-9, DM-30, BD-11).
+    // 원본 파일이 계약의 정본이고 이 절은 그 사본이다. 한쪽만 고치지 않는다.
+    //
+    // 그룹 코스는 그룹원이 읽지만 배낭 코스는 **소유자 한 사람만** 읽는다.
+    // 판정 소스를 Firestore 와 똑같이 `bag/{bagId}.userId` 하나로 유지한다.
+    // ====================================================================
+
+    match /bags/{bagId}/routes/{fileName} {
+      function isBagOwner() {
+        return request.auth != null
+          && request.auth.uid ==
+            firestore.get(/databases/(default)/documents/bag/$(bagId)).data.userId;
+      }
+
+      function isBagGpxFile() {
+        return fileName.matches('^[A-Za-z0-9_-]+\\.gpx$');
+      }
+
+      // `read` 는 get 과 list 를 함께 여는 이름이므로 쓰지 않는다. 단건 다운로드만 연다.
+      allow get: if isBagOwner() && isBagGpxFile();
+
+      // 5MB 상한(DM-30). 삭제 요청에는 request.resource 가 없으므로 별도 규칙으로 나눈다.
+      allow create, update: if isBagOwner()
+        && isBagGpxFile()
+        && request.resource.size > 0
+        && request.resource.size <= 5 * 1024 * 1024;
+
+      allow delete: if isBagOwner() && isBagGpxFile();
+    }
+
+    // 경로 목록 조회는 어떤 경우에도 허용하지 않는다 — 배낭의 코스 목록은
+    // Firestore `bag/{bagId}/routes` 로만 읽는다.
+    match /bags/{allPaths=**} {
+      allow list: if false;
+    }
+
     // === 기존 규칙 유지(2026-09-03 병합, 2026-09-17 그룹 추가) ===
-    // community/ 와 groups/ 접두는 위 전용 규칙만 적용된다. Storage 규칙도 여러 match 가
+    // community/ · groups/ · bags/ 접두는 위 전용 규칙만 적용된다. Storage 규칙도 여러 match 가
     // OR 로 합쳐지므로 개방 절에 남아 있으면 전용 규칙이 아무 효력이 없다.
     match /{allPaths=**} {
-      allow read, write: if allPaths[0] != 'community' && allPaths[0] != 'groups';
+      allow read, write: if allPaths[0] != 'community'
+        && allPaths[0] != 'groups'
+        && allPaths[0] != 'bags';
     }
     match /{uid}/{allPaths=**} {
       allow read, write: if request.auth != null && request.auth.uid == uid;

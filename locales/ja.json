@@ -27,6 +27,13 @@
       "weightDesc": "重い順",
       "weightAsc": "軽い順",
       "nameAsc": "名前順"
+    },
+    "metaSeparator": " · ",
+    "route": {
+      "profileTitle": "標高グラフ",
+      "profilePeak": "最高{{value}}m",
+      "profileHint": "グラフをなぞるとその地点が地図に表示されます",
+      "elevation": "獲得標高{{value}}m"
     }
   },
   "category": {
@@ -246,7 +253,23 @@
     },
     "dateFormat": "YYYY年M月",
     "dateShortFormat": "YYYY/MM/DD",
-    "dateRangeSeparator": "～"
+    "dateRangeSeparator": "～",
+    "route": {
+      "title": "コース",
+      "tileEmpty": "GPXを追加",
+      "tileLabel": "コース {{subtitle}}",
+      "count_other": "{{count}}件",
+      "add": "コースを追加",
+      "uploading": "アップロード中",
+      "delete": "削除",
+      "deleteConfirm": "このコースを削除しますか？",
+      "empty": "まだコースがありません",
+      "loadFailed": "コースを読み込めませんでした",
+      "fromGroup": "グループ {{name}}",
+      "toGroup": "グループに送る",
+      "toGroupTitle": "どのグループに送りますか？",
+      "toGroupDone": "グループに送りました"
+    }
   },
   "bagDetail": {
     "activityConnect": "記録を連携",

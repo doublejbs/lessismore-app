@@ -28,6 +28,7 @@ import BagDetailBottomBar from './BagDetailBottomBar';
 import BagDetailMemoView from './BagDetailMemoView';
 import BagDetailDestinationView from './BagDetailDestinationView';
 import BagDetailActivityView from './BagDetailActivityView';
+import BagDetailRouteView from './BagDetailRouteView';
 import BagFilmCardButtonView from './BagFilmCardButtonView';
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import BagDetailSkeletonView from './BagDetailSkeletonView';
@@ -282,7 +283,9 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                     />
                     <BagDetailMemoView bagDetail={bagDetail} />
                     <BagDetailDestinationView bagDetail={bagDetail} />
+                    {/* 코스는 운동 기록 옆이다 — 갈 곳과 다녀온 것을 붙여 두고 라벨로 가른다(BD-11). */}
                     <BagDetailActivityView bagDetail={bagDetail} />
+                    <BagDetailRouteView bagDetail={bagDetail} />
                   </>
                 ) : (
                   <>
@@ -292,7 +295,9 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                     />
                     <BagDetailMemoView bagDetail={bagDetail} />
                     <BagDetailUselessDescriptionView bagDetail={bagDetail} />
+                    {/* 코스는 운동 기록 옆이다 — 갈 곳과 다녀온 것을 붙여 두고 라벨로 가른다(BD-11). */}
                     <BagDetailActivityView bagDetail={bagDetail} />
+                    <BagDetailRouteView bagDetail={bagDetail} />
                   </>
                 )}
               </View>

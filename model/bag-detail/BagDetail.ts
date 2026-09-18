@@ -48,6 +48,9 @@ class BagDetail {
   private memo: string = '';
   // 배낭에 연결된 운동 기록 요약(DM-22). 타일 부제 표시용이며 원본은 담지 않는다(HA-5).
   private activity: BagActivitySummary | null = null;
+  // 코스 타일 부제용 요약(BD-10·BD-11). 개수와 총 거리만 쓴다.
+  private routeCount = 0;
+  private routeDistance = 0;
   private readonly bagWeather: BagWeather;
   private categoryRefs: Map<string, any> = new Map();
   private scrollViewRef: any = null;
@@ -84,6 +87,15 @@ class BagDetail {
 
   public getActivity() {
     return this.activity;
+  }
+
+  public getRouteCount() {
+    return this.routeCount;
+  }
+
+  // 배낭에 담긴 코스의 총 거리(m).
+  public getRouteDistance() {
+    return this.routeDistance;
   }
 
   public async initialize() {
@@ -128,6 +140,31 @@ class BagDetail {
       this.endDate
     );
     void this.bagWeather.ensureFresh();
+    // 코스는 타일 부제에만 쓰는 부가 정보라 초기화를 막지 않는다(BD-11).
+    void this.loadRoutes();
+  }
+
+  /**
+   * 코스 요약 조회 (BD-11). 개수와 총 거리만 필요하지만 Firestore에 부분 조회가 없어
+   * 문서를 그대로 읽는다 — 배낭당 5개 상한이라 읽는 양이 정해져 있고, 화면을 막지 않도록
+   * 기다리지 않고 배경으로 돌린다. 실패해도 타일은 `GPX 추가`로 남는다.
+   */
+  private async loadRoutes() {
+    try {
+      const routes = await app.getBagRouteStore()!.getRoutes(this.id);
+
+      this.setRouteSummary(
+        routes.length,
+        routes.reduce((sum, route) => sum + route.getDistance(), 0)
+      );
+    } catch (error) {
+      console.warn('[BagDetail] 코스 요약 조회 실패', error); // l10n-ignore: 개발자 로그
+    }
+  }
+
+  private setRouteSummary(count: number, distance: number) {
+    this.routeCount = count;
+    this.routeDistance = distance;
   }
 
   private async loadPackingState() {

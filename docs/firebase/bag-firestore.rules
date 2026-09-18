@@ -1,0 +1,105 @@
+rules_version = '2';
+
+// 배낭 코스(GPX) Firestore 보안 규칙 (DM-30, BagDetail.md BD-11).
+//
+// 경로: bag/{bagId}/routes/{routeId}
+//
+// **이 컬렉션의 가장 중요한 계약**: `bag/{bagId}` 문서는 `shared == true`면 링크만 있으면
+// 비로그인 누구나 읽는 공개 문서다(BD-7). 그런데 GPX는 그 사람이 언제 어디를 지날지를
+// 미터 단위로 담는다. 그래서 하위 `routes`는 **소유자(`bag.userId`)만** 읽고 쓴다 —
+// 배낭 공유·박지 후기 첨부·커뮤니티 패킹 스냅샷 어디로도 따라가지 않는다(DM-30).
+//
+// 이 파일은 배낭 경로 전용이다. 배포는 docs/firebase/deployed/firestore.rules 병합본으로만
+// 하며, 병합 시 기존 전면 개방 절(`match /{document=**}`)에서 `bag`을 반드시 제외해야 한다
+// — 제외하지 않으면 Firestore 의 match 가 OR 로 합쳐져 아래 규칙이 아무 효력이 없고,
+// 사용자의 동선이 공유 링크를 타고 그대로 공개된다(README "배낭 규칙 병합 시 주의").
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 배낭 문서 자체는 **기존과 똑같이** 열어 둔다. 좁히는 것은 별도 보안 작업이다
+    // (DataModel §1 `[운영]`). 이 파일이 바꾸는 것은 하위 `routes` 하나뿐이다.
+    match /bag/{bagId} {
+      allow read, write: if true;
+    }
+
+    // 배낭 하위는 `routes` 만 빼고 기존대로 열어 둔다. 지금 `bag` 에 다른 하위 컬렉션은
+    // 없지만, 개방 절에서 `bag` 을 통째로 뺀 이상 이 절이 없으면 나중에 생기는 하위
+    // 컬렉션이 소리 없이 전부 거부된다.
+    match /bag/{bagId}/{subCollection}/{restOfPath=**} {
+      allow read, write: if subCollection != 'routes';
+    }
+
+    // --- bag/{bagId}/routes/{routeId} ------------------------------------
+
+    match /bag/{bagId}/routes/{routeId} {
+      // 소유자 판정 소스는 `bag.userId` **하나**다. Storage 규칙도 같은 값을 교차 조회한다.
+      function isBagOwner() {
+        return request.auth != null
+          && request.auth.uid ==
+            get(/databases/$(database)/documents/bag/$(bagId)).data.userId;
+      }
+
+      function isValidLatitude(value) {
+        return value is number && value >= -90 && value <= 90;
+      }
+
+      function isValidLongitude(value) {
+        return value is number && value >= -180 && value <= 180;
+      }
+
+      // 그룹 코스의 isValidRoutePayload 와 **같은 조건**이다(DM-30: 수치를 갈라 두지 않는다).
+      // 다른 점은 `authorId`·`authorName` 이 없다는 것뿐이다 — 배낭 코스는 소유자 한 사람의
+      // 것이라 작성자를 적을 이유가 없고, 키 목록으로 그것을 못박는다.
+      function isValidBagRoutePayload() {
+        let data = request.resource.data;
+
+        return data.keys().hasOnly([
+            'name', 'storagePath', 'fileSize', 'distance', 'elevationGain',
+            'pointCount', 'bounds', 'simplified', 'createdAt'
+          ])
+          && data.keys().hasAll([
+            'name', 'storagePath', 'fileSize', 'distance',
+            'pointCount', 'bounds', 'simplified', 'createdAt'
+          ])
+          && data.name is string
+          && data.name.size() >= 1
+          && data.name.size() <= 40
+          // 원본 GPX 는 Storage 에만 둔다. 경로를 문서 ID에 못박아 남의 파일을 가리키지 못하게 한다.
+          && data.storagePath == 'bags/' + bagId + '/routes/' + routeId + '.gpx'
+          && data.fileSize is int
+          && data.fileSize > 0
+          && data.fileSize <= 5 * 1024 * 1024
+          && data.distance is number
+          && data.distance >= 0
+          && (!('elevationGain' in data)
+            || (data.elevationGain is number && data.elevationGain >= 0))
+          && data.pointCount is int
+          && data.pointCount >= 0
+          && data.bounds is map
+          && data.bounds.keys().hasOnly(['minLat', 'maxLat', 'minLng', 'maxLng'])
+          && data.bounds.keys().hasAll(['minLat', 'maxLat', 'minLng', 'maxLng'])
+          && isValidLatitude(data.bounds.minLat)
+          && isValidLatitude(data.bounds.maxLat)
+          && isValidLongitude(data.bounds.minLng)
+          && isValidLongitude(data.bounds.maxLng)
+          // 축약 좌표 500점 상한. 원본 트랙포인트 전체는 Firestore 에 넣지 않는다 —
+          // 1MB 문서 한도와 렌더 성능 때문이다.
+          && data.simplified is list
+          && data.simplified.size() >= 2
+          && data.simplified.size() <= 500;
+      }
+
+      // 소유자만 읽는다. 목록(list)도 같은 조건이다 — 화면이 코스 목록을 조회해 그린다.
+      // **`shared == true` 여부를 보지 않는다**: 공유된 배낭이라도 코스는 따라가지 않는다(DM-30).
+      allow read: if isBagOwner();
+
+      allow create: if isBagOwner() && isValidBagRoutePayload();
+
+      // 코스는 이름 변경이 필요 없으므로 수정 경로를 두지 않는다(그룹 코스와 같다).
+      allow update: if false;
+
+      allow delete: if isBagOwner();
+    }
+  }
+}

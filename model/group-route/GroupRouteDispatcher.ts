@@ -1,9 +1,9 @@
 import app from '@/model/app/App';
-import { GroupRouteDraft } from '@/model/group/GroupData';
+import { RouteDraft } from '@/model/route/RouteData';
 import GroupRoute from '@/model/group/GroupRoute';
-import GroupValidator from '@/model/group/GroupValidator';
+import RouteValidator from '@/model/route/RouteValidator';
 import GroupStore from '@/model/store/GroupStore';
-import GroupRouteUpload from './GroupRouteUpload';
+import RouteUpload from '@/model/route/RouteUpload';
 
 /**
  * 코스(GRP-8)가 쓰는 데이터 접근. Firestore 문서와 Storage 원본을 **한 벌로** 다룬다 —
@@ -13,13 +13,13 @@ class GroupRouteDispatcher {
   public static new() {
     return new GroupRouteDispatcher(
       app.getGroupStore()!,
-      GroupRouteUpload.from(app.getFirebase())
+      RouteUpload.from(app.getFirebase())
     );
   }
 
   private constructor(
     private readonly groupStore: GroupStore,
-    private readonly upload: GroupRouteUpload
+    private readonly upload: RouteUpload
   ) {}
 
   public getRoutes(groupId: string): Promise<GroupRoute[]> {
@@ -38,10 +38,10 @@ class GroupRouteDispatcher {
    */
   public async addRoute(
     groupId: string,
-    draft: GroupRouteDraft,
+    draft: RouteDraft,
     localUri: string
   ): Promise<string> {
-    GroupValidator.validateRoute(draft);
+    RouteValidator.validateRoute(draft);
 
     const routeId = this.groupStore.createRouteId(groupId);
     const storagePath = this.groupStore.getRouteStoragePath(groupId, routeId);

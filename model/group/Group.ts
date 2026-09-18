@@ -1,5 +1,6 @@
 import { getGroupInviteUrl } from '@/constants/WebLinks';
-import { GroupData, GroupIndexData, toGroupDate } from './GroupData';
+import { toFirestoreDate } from '@/model/firebase/FirestoreDate';
+import { GroupData, GroupIndexData } from './GroupData';
 import { GROUP_MAX_MEMBER_COUNT } from './GroupLimits';
 
 // 그룹 = 여행 1건 (GRP-2, DM-29 `groups/{groupId}`).
@@ -60,7 +61,7 @@ class Group {
     this.destinationName = data.destinationName;
     this.meetingNote = data.meetingNote;
     this.inviteEnabled = data.inviteEnabled;
-    this.createdAt = toGroupDate(data.createdAt);
+    this.createdAt = toFirestoreDate(data.createdAt);
     this.summary = data.summary === true;
     this.myBagLinked = data.hasMyBag === true;
   }

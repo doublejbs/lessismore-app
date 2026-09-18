@@ -1,3 +1,4 @@
+import { RouteData } from '@/model/route/RouteData';
 import GroupMemberRole from './GroupMemberRole';
 import GroupPointType from './GroupPointType';
 
@@ -74,34 +75,11 @@ export interface GroupPointData {
   updatedAt: Date;
 }
 
-export interface GroupRouteBounds {
-  minLat: number;
-  maxLat: number;
-  minLng: number;
-  maxLng: number;
-}
-
-export interface GroupRouteCoordinate {
-  lat: number;
-  lng: number;
-  // 고도(m). 고도 그래프가 이 값을 그대로 쓴다(GRP-8, DM-29 `simplified`).
-  // GPX에 고도가 없거나 이 기능 이전에 올라간 코스에는 키 자체가 없다.
-  ele?: number;
-}
-
-export interface GroupRouteData {
-  id: string;
-  name: string;
-  storagePath: string;
-  fileSize: number;
-  distance: number;
-  elevationGain?: number;
-  pointCount: number;
-  bounds: GroupRouteBounds;
-  simplified: GroupRouteCoordinate[];
+// 그룹 코스(DM-29). 공통 필드는 `RouteData`(DM-29·DM-30 공용)에 있고 여기에 작성자만 더한다 —
+// 그룹은 여럿이 올리므로 누가 올렸는지가 필요하다(배낭 코스에는 없다, DM-30).
+export interface GroupRouteData extends RouteData {
   authorId: string;
   authorName: string;
-  createdAt: Date;
 }
 
 // users/{uid}/groups/{groupId} — 목록 조회용 역인덱스(DM-29).
@@ -156,43 +134,3 @@ export interface GroupPointPatch {
   title?: string;
   description?: string | null;
 }
-
-// GPX 파싱 결과. Storage 업로드 **전에** `GroupValidator.validateRoute`로 검증할 수 있게
-// 업로드가 결정하는 값(routeId·storagePath)을 뺀 모양을 따로 둔다(GRP-8).
-export interface GroupRouteDraft {
-  name: string;
-  fileSize: number;
-  distance: number;
-  elevationGain?: number;
-  pointCount: number;
-  bounds: GroupRouteBounds;
-  simplified: GroupRouteCoordinate[];
-}
-
-// GPX 파싱·Storage 업로드는 T7(GroupRouteUploader)이 맡고, 스토어는 그 결과만 Firestore에 쓴다.
-export interface GroupRouteInput extends GroupRouteDraft {
-  routeId: string;
-  storagePath: string;
-}
-
-// Firestore Timestamp · Date · 숫자 어느 모양으로 와도 Date로 정규화한다.
-export const toGroupDate = (value: unknown): Date => {
-  if (value instanceof Date) {
-    return value;
-  }
-
-  if (
-    typeof value === 'object' &&
-    value !== null &&
-    'toDate' in value &&
-    typeof value.toDate === 'function'
-  ) {
-    return value.toDate() as Date;
-  }
-
-  if (typeof value === 'number' || typeof value === 'string') {
-    return new Date(value);
-  }
-
-  return new Date(0);
-};

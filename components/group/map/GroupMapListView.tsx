@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import GroupPointListView from '@/components/group/point/GroupPointListView';
-import GroupRouteElevationChartView from '@/components/group/route/GroupRouteElevationChartView';
+import RouteElevationChartView from '@/components/route/RouteElevationChartView';
 import GroupRouteListView from '@/components/group/route/GroupRouteListView';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
@@ -72,7 +72,7 @@ const GroupMapListView: FC<Props> = ({
             {/* 고도가 없는 코스는 그래프 자리를 아예 비운다(GRP-8). */}
             {selectedProfile ? (
               <View style={styles.chart}>
-                <GroupRouteElevationChartView
+                <RouteElevationChartView
                   key={selectedRoute?.getId()}
                   profile={selectedProfile}
                 />

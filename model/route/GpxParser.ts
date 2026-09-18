@@ -1,25 +1,22 @@
 import { getDistanceInMeters } from '@/model/bag-destination/GeoDistance';
-import {
-  GroupRouteBounds,
-  GroupRouteCoordinate,
-} from '@/model/group/GroupData';
+import { RouteBounds, RouteCoordinate } from '@/model/route/RouteData';
 import {
   GROUP_MAX_LATITUDE,
   GROUP_MAX_LONGITUDE,
   GROUP_ROUTE_MAX_SIMPLIFIED_POINTS,
   GROUP_ROUTE_MIN_SIMPLIFIED_POINTS,
 } from '@/model/group/GroupLimits';
-import GroupValidator from '@/model/group/GroupValidator';
-import GpxParseError from './GpxParseError';
-import GpxParseErrorType from './GpxParseErrorType';
+import RouteValidator from './RouteValidator';
+import GpxParseError from '@/model/route/GpxParseError';
+import GpxParseErrorType from '@/model/route/GpxParseErrorType';
 
-// 파싱이 끝난 GPX 한 벌 (GRP-8). 그대로 `GroupRouteDraft`를 채우는 데 쓴다.
+// 파싱이 끝난 GPX 한 벌 (GRP-8). 그대로 `RouteDraft`를 채우는 데 쓴다.
 export interface GpxParseResult {
   // `<trk><name>` → `<rte><name>` → `<metadata><name>` 순으로 찾은 값. 없으면 빈 문자열이고,
   // 그때는 호출자가 파일명을 쓴다.
   name: string;
   // 지도 렌더용 축약 좌표(500점 이하).
-  simplified: GroupRouteCoordinate[];
+  simplified: RouteCoordinate[];
   // 총 거리(m). 원본 트랙포인트 전부를 이어 잰 값이다.
   distance: number;
   // 고도 상승(m). 상승분만 더한다. 고도가 하나도 기록되지 않은 파일은 `null`이고,
@@ -27,7 +24,7 @@ export interface GpxParseResult {
   elevationGain: number | null;
   // 원본 트랙포인트 수.
   pointCount: number;
-  bounds: GroupRouteBounds;
+  bounds: RouteBounds;
 }
 
 interface GpxTrackPoint {
@@ -127,16 +124,16 @@ class GpxParser {
   /**
    * 파싱 전에 거른다 — 5MB를 읽어 들이고 나서 거절하면 그만큼이 헛일이다.
    *
-   * 판정은 `GroupValidator`와 공유하고(같은 상한을 두 곳에 두지 않는다) 에러만 이 단계의 것을 던진다.
+   * 판정은 `RouteValidator`와 공유하고(같은 상한을 두 곳에 두지 않는다) 에러만 이 단계의 것을 던진다.
    * 크기를 재지 못한 파일(선택기가 크기를 주지 않는 `content://` 등)은 **크기 미상**이라
    * `Invalid`로 보낸다 — 작은 파일에 "5MB까지 올릴 수 있어요"라고 하면 사용자가 할 수 있는 일이 없다.
    */
   public static validateFileSize(fileSize: number) {
-    if (!GroupValidator.isKnownRouteFileSize(fileSize)) {
+    if (!RouteValidator.isKnownRouteFileSize(fileSize)) {
       throw new GpxParseError(GpxParseErrorType.Invalid);
     }
 
-    if (!GroupValidator.isValidRouteFileSize(fileSize)) {
+    if (!RouteValidator.isValidRouteFileSize(fileSize)) {
       throw new GpxParseError(GpxParseErrorType.TooLarge);
     }
   }
@@ -269,8 +266,8 @@ class GpxParser {
     return measured ? gain : null;
   }
 
-  private static measureBounds(points: GpxTrackPoint[]): GroupRouteBounds {
-    const bounds: GroupRouteBounds = {
+  private static measureBounds(points: GpxTrackPoint[]): RouteBounds {
+    const bounds: RouteBounds = {
       minLat: points[0].latitude,
       maxLat: points[0].latitude,
       minLng: points[0].longitude,
@@ -296,7 +293,7 @@ class GpxParser {
    * 오차를 미리 못 정하는 이유는 같은 500점이라도 100km 종주와 3km 둘레길이 요구하는 값이
    * 몇백 배 다르기 때문이다.
    */
-  private static simplify(points: GpxTrackPoint[]): GroupRouteCoordinate[] {
+  private static simplify(points: GpxTrackPoint[]): RouteCoordinate[] {
     return GpxParser.keepIndices(points).map(index =>
       GpxParser.toSimplifiedCoordinate(points[index])
     );
@@ -334,9 +331,7 @@ class GpxParser {
    * 축약 좌표 한 점. 고도가 기록되지 않은 점은 **키 자체를 생략한다** —
    * `exactOptionalPropertyTypes`가 켜져 있고, 그래프도 키의 유무로 "고도 없음"을 읽는다.
    */
-  private static toSimplifiedCoordinate(
-    point: GpxTrackPoint
-  ): GroupRouteCoordinate {
+  private static toSimplifiedCoordinate(point: GpxTrackPoint): RouteCoordinate {
     return {
       lat: point.latitude,
       lng: point.longitude,

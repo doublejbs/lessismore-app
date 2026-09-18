@@ -18,7 +18,7 @@ const CORE_SIZE = 12;
  * 생김새를 쓴다 — 흰 테두리 위 잉크 점이다. 손가락이 그래프 위에 있는 동안에만 떠 있으므로
  * 캡션·탭 동작을 두지 않는다.
  */
-const GroupRouteScrubMarkerView = memo<Props>(({ latitude, longitude }) => {
+const RouteScrubMarkerView = memo<Props>(({ latitude, longitude }) => {
   return (
     <NaverMapMarkerOverlay
       latitude={latitude}
@@ -37,7 +37,7 @@ const GroupRouteScrubMarkerView = memo<Props>(({ latitude, longitude }) => {
   );
 });
 
-GroupRouteScrubMarkerView.displayName = 'GroupRouteScrubMarkerView';
+RouteScrubMarkerView.displayName = 'RouteScrubMarkerView';
 
 const styles = StyleSheet.create({
   marker: {
@@ -58,4 +58,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GroupRouteScrubMarkerView;
+export default RouteScrubMarkerView;

@@ -1,4 +1,4 @@
-import GpxParseErrorType from './GpxParseErrorType';
+import GpxParseErrorType from '@/model/route/GpxParseErrorType';
 
 // GPX 읽기 단계가 던지는 오류 (GRP-8). 사유만 싣고 문구는 모른다.
 class GpxParseError extends Error {

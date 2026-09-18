@@ -17,6 +17,8 @@ import {
   where,
   writeBatch,
 } from 'firebase/firestore';
+import { toFirestoreDate } from '../firebase/FirestoreDate';
+import { RouteCoordinate, RouteInput } from '../route/RouteData';
 import Firebase from '../firebase/Firebase';
 import BagStore from './BagStore';
 import Group from '../group/Group';
@@ -32,10 +34,7 @@ import {
   GroupPointData,
   GroupPointInput,
   GroupPointPatch,
-  GroupRouteCoordinate,
   GroupRouteData,
-  GroupRouteInput,
-  toGroupDate,
 } from '../group/GroupData';
 import GroupError from '../group/GroupError';
 import {
@@ -52,6 +51,7 @@ import GroupPointType from '../group/GroupPointType';
 import GroupRoute from '../group/GroupRoute';
 import GroupValidationError from '../group/GroupValidationError';
 import GroupValidator from '../group/GroupValidator';
+import RouteValidator from '../route/RouteValidator';
 
 /**
  * 그룹 데이터 CRUD (GRP-1~GRP-9, DM-29).
@@ -539,6 +539,29 @@ class GroupStore {
   }
 
   /**
+   * 이 배낭을 연결한 그룹 목록 (BD-11 `그룹에 올리기` · 연결 그룹 코스).
+   * `syncBagSnapshots`와 **같은 쿼리**(역인덱스의 `bagId`)를 쓴다 — 배낭이 어느 그룹에 물려
+   * 있는지를 아는 방법을 두 개 두지 않는다. 돌려주는 `Group`은 역인덱스 요약본이다(DM-29).
+   */
+  public async getGroupsByBag(bagId: string): Promise<Group[]> {
+    if (!bagId) {
+      return [];
+    }
+
+    const userId = this.requireUserId();
+    const snapshot = await getDocs(
+      query(
+        collection(this.getStore(), 'users', userId, 'groups'),
+        where('bagId', '==', bagId)
+      )
+    );
+
+    return snapshot.docs.map(item =>
+      Group.fromIndex(this.toIndexDataFromDoc(item.id, item.data()), userId)
+    );
+  }
+
+  /**
    * 배낭 편집·정보 수정 뒤에 따라붙는 **배경** 동기화 (GRP-5 갱신 시점 ①②).
    * 사용자 조작을 막지 않도록 기다리지 않고, 실패해도 그 조작의 결과를 되돌리지 않는다 —
    * 배낭 화면들이 같은 모양을 각자 적어 두지 않게 여기에 둔다.
@@ -790,16 +813,16 @@ class GroupStore {
    */
   public async createRoute(
     groupId: string,
-    input: GroupRouteInput
+    input: RouteInput
   ): Promise<string> {
     const userId = this.requireUserId();
 
     // 보안 규칙 isValidRoutePayload 와 같은 조건으로 미리 거른다 — 업로드는 이미 끝난 뒤라
     // 여기서 거부되면 회수 경로 없는 고아 GPX가 남는다(GRP-8). 업로더도 업로드 전에 같은 것을 부른다.
-    GroupValidator.validateRoute(input);
+    RouteValidator.validateRoute(input);
 
     const authorName = this.firebase.getNickname();
-    const name = GroupValidator.toRouteName(input.name);
+    const name = RouteValidator.toRouteName(input.name);
     // 축약 좌표는 파서가 500점 이하로 줄여 넘기지만, 1MB 문서 한도를 지키는 마지막 방어선을 둔다.
     const simplified = input.simplified
       .slice(0, GROUP_ROUTE_MAX_SIMPLIFIED_POINTS)
@@ -1050,8 +1073,8 @@ class GroupStore {
       inviteEnabled: data.inviteEnabled !== false,
       pointCount: Number(data.pointCount) || 0,
       routeCount: Number(data.routeCount) || 0,
-      createdAt: toGroupDate(data.createdAt),
-      updatedAt: toGroupDate(data.updatedAt),
+      createdAt: toFirestoreDate(data.createdAt),
+      updatedAt: toFirestoreDate(data.updatedAt),
     };
   }
 
@@ -1073,7 +1096,7 @@ class GroupStore {
         : {}),
       hasBag: data.hasBag === true,
       ...(data.bagId ? { bagId: data.bagId as string } : {}),
-      joinedAt: toGroupDate(data.joinedAt),
+      joinedAt: toFirestoreDate(data.joinedAt),
     };
   }
 
@@ -1086,12 +1109,12 @@ class GroupStore {
           ? GroupMemberRole.Owner
           : GroupMemberRole.Member,
       ...(data.bagId ? { bagId: data.bagId as string } : {}),
-      joinedAt: toGroupDate(data.joinedAt),
+      joinedAt: toFirestoreDate(data.joinedAt),
     };
   }
 
   // Firestore 문서의 좌표 한 점. 배열 원소는 어떤 모양으로도 올 수 있으므로 값마다 다시 본다.
-  private toCoordinate(value: unknown): GroupRouteCoordinate {
+  private toCoordinate(value: unknown): RouteCoordinate {
     const coordinate = this.isRecord(value) ? value : {};
     const elevation = Number(coordinate.ele);
 
@@ -1124,8 +1147,8 @@ class GroupStore {
         : {}),
       authorId: data.authorId ?? '',
       authorName: data.authorName ?? '',
-      createdAt: toGroupDate(data.createdAt),
-      updatedAt: toGroupDate(data.updatedAt),
+      createdAt: toFirestoreDate(data.createdAt),
+      updatedAt: toFirestoreDate(data.updatedAt),
     };
   }
 
@@ -1162,7 +1185,7 @@ class GroupStore {
       simplified: simplified.map(coordinate => this.toCoordinate(coordinate)),
       authorId: data.authorId ?? '',
       authorName: data.authorName ?? '',
-      createdAt: toGroupDate(data.createdAt),
+      createdAt: toFirestoreDate(data.createdAt),
     };
   }
 }

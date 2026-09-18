@@ -1,8 +1,8 @@
 import { getDistanceInMeters } from '@/model/bag-destination/GeoDistance';
-import { GroupRouteCoordinate } from '@/model/group/GroupData';
+import { RouteCoordinate } from '@/model/route/RouteData';
 
 // 고도 단면의 한 표본. 그래프의 한 점이자, 지도 마커가 설 좌표다(GRP-8).
-export interface GroupRouteElevationSample {
+export interface RouteElevationSample {
   // 단면 시작점부터의 누적 거리(m).
   distance: number;
   // 해발 고도(m).
@@ -11,8 +11,8 @@ export interface GroupRouteElevationSample {
   longitude: number;
 }
 
-export interface GroupRouteElevationProfile {
-  samples: GroupRouteElevationSample[];
+export interface RouteElevationProfile {
+  samples: RouteElevationSample[];
   // 단면 전체 길이(m). 마지막 표본의 누적 거리다.
   totalDistance: number;
   minElevation: number;
@@ -33,10 +33,10 @@ const MIN_SAMPLE_COUNT = 2;
  *
  * 한 번 만들면 값이 바뀌지 않는다 — 훑는 동안 다시 만들지 않도록 호출자가 코스 단위로 잡아 둔다.
  */
-export const buildGroupRouteElevationProfile = (
-  coordinates: readonly GroupRouteCoordinate[]
-): GroupRouteElevationProfile | null => {
-  const samples: GroupRouteElevationSample[] = [];
+export const buildRouteElevationProfile = (
+  coordinates: readonly RouteCoordinate[]
+): RouteElevationProfile | null => {
+  const samples: RouteElevationSample[] = [];
   let distance = 0;
   let minElevation = Number.POSITIVE_INFINITY;
   let maxElevation = Number.NEGATIVE_INFINITY;
@@ -96,10 +96,10 @@ export const buildGroupRouteElevationProfile = (
  * 거리 기준 이분 탐색이다 — 표본 간격이 균등하지 않아(축약이 직선 구간의 점을 버린다)
  * 인덱스를 비율로 잡으면 손가락 위치와 지도 마커가 어긋난다.
  */
-export const findGroupRouteElevationSample = (
-  profile: GroupRouteElevationProfile,
+export const findRouteElevationSample = (
+  profile: RouteElevationProfile,
   ratio: number
-): GroupRouteElevationSample => {
+): RouteElevationSample => {
   const { samples, totalDistance } = profile;
   const clamped = Math.min(1, Math.max(0, ratio));
 

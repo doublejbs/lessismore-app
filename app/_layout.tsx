@@ -154,6 +154,9 @@ const RootLayout = () => {
           <Stack.Screen name='group/[id]/edit' />
           <Stack.Screen name='group/[id]/member/[uid]' />
           <Stack.Screen name='group/[id]/map' />
+          {/* 배낭 코스(BD-11) — 지도·목록·고도 그래프. 기본 푸시이고 iOS 투명 헤더는
+              화면이 Stack.Screen으로 지정한다(그룹 지도와 같은 관례). */}
+          <Stack.Screen name='bag/[id]/route' />
           <Stack.Screen
             name='custom'
             options={{

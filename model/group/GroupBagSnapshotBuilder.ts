@@ -7,11 +7,11 @@ import {
   GROUP_BAG_SNAPSHOT_MAX_GEAR_COUNT,
   GROUP_BAG_SNAPSHOT_NAME_MAX_LENGTH,
 } from './GroupLimits';
+import { toFirestoreDate } from '@/model/firebase/FirestoreDate';
 import {
   GroupBagSnapshot,
   GroupBagSnapshotContent,
   GroupBagSnapshotGear,
-  toGroupDate,
 } from './GroupData';
 
 /**
@@ -101,7 +101,7 @@ class GroupBagSnapshotBuilder {
       totalWeight: base.totalWeight,
       itemCount: base.itemCount,
       gears: base.gears.map(gear => this.toSnapshotGear(gear)),
-      syncedAt: toGroupDate(data.syncedAt),
+      syncedAt: toFirestoreDate(data.syncedAt),
     };
 
     if (base.startDate) {
