@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AlertView from '@/components/alert/AlertView';
 import PretendardText from '@/components/PretendardText';
@@ -164,8 +165,11 @@ const BagRouteView: FC<Props> = ({ bagRouteList }) => {
     );
   };
 
+  // 앱에 전역 `GestureHandlerRootView`가 없다 — 화면마다 필요할 때 직접 감싼다
+  // (BagDetailView·GroupMapCanvasView도 같다). 고도 그래프 훑기가 GestureDetector를
+  // 쓰므로 이 화면도 감싸야 한다.
   return (
-    <View style={styles.root}>
+    <GestureHandlerRootView style={styles.root}>
       <Stack.Screen
         options={{
           headerShown: IS_IOS,
@@ -214,7 +218,7 @@ const BagRouteView: FC<Props> = ({ bagRouteList }) => {
       />
       <ToastView toastManager={app.getToastManager()!} bottom={100} />
       <AlertView alertManager={app.getAlertManager()!} />
-    </View>
+    </GestureHandlerRootView>
   );
 };
 
