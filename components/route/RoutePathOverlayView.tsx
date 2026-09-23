@@ -1,5 +1,6 @@
 import { FC } from 'react';
 import { NaverMapPathOverlay } from '@mj-studio/react-native-naver-map';
+import { observer } from 'mobx-react-lite';
 import { RouteDisplay } from '@/model/route/RouteDisplay';
 
 interface Props {
@@ -29,6 +30,8 @@ const MIN_PATH_COORDS = 2;
  * 그룹 지도와 배낭 코스 화면이 **같은 선**을 그린다 — 선 굵기·색·강조 규칙을 두 곳에 두면
  * 한쪽만 고쳐질 때 같은 코스가 화면에 따라 다르게 보인다.
  * `NaverMapView`의 자식으로 둔다(마커 레이어와 같은 방식).
+ *
+ * observer다 — 좌표는 **지금 보는 방향** 순서라(GRP-8 뒤집기) 기기 설정이 바뀌면 다시 그린다.
  */
 const RoutePathOverlayView: FC<Props> = ({ routes, selectedRouteId }) => {
   return (
@@ -61,4 +64,4 @@ const RoutePathOverlayView: FC<Props> = ({ routes, selectedRouteId }) => {
   );
 };
 
-export default RoutePathOverlayView;
+export default observer(RoutePathOverlayView);

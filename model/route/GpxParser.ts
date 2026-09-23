@@ -6,6 +6,10 @@ import {
   GROUP_ROUTE_MAX_SIMPLIFIED_POINTS,
   GROUP_ROUTE_MIN_SIMPLIFIED_POINTS,
 } from '@/model/group/GroupLimits';
+import {
+  measureElevationGain,
+  measureElevationLoss,
+} from '@/model/route/RouteElevation';
 import RouteValidator from './RouteValidator';
 import GpxParseError from '@/model/route/GpxParseError';
 import GpxParseErrorType from '@/model/route/GpxParseErrorType';
@@ -22,6 +26,9 @@ export interface GpxParseResult {
   // 고도 상승(m). 상승분만 더한다. 고도가 하나도 기록되지 않은 파일은 `null`이고,
   // 그때는 "0m 상승"이 아니라 고도 칸 자체를 감춘다.
   elevationGain: number | null;
+  // 고도 하강(m). 상승과 같은 3m 히스테리시스로 잰다 — 코스를 뒤집어 볼 때의 상승이 이 값이다.
+  // 고도가 없으면 `null`이다(GRP-8, DM-29·DM-30 `elevationLoss`).
+  elevationLoss: number | null;
   // 원본 트랙포인트 수.
   pointCount: number;
   bounds: RouteBounds;
@@ -55,12 +62,6 @@ const NAMED_ENTITIES: Record<string, string> = {
   quot: '"',
   apos: "'",
 };
-
-/**
- * 고도 상승 히스테리시스(m). GPS 고도는 제자리에서도 ±1~2m 흔들려, 차이를 그대로 더하면
- * 평지 코스도 수백 m를 오른 것으로 나온다. 이 폭을 넘게 올라간 구간만 상승으로 센다.
- */
-const ELEVATION_NOISE_THRESHOLD_METERS = 3;
 
 // 위도 1도의 거리. 축약의 평면 근사에만 쓰므로 상수 하나면 충분하다.
 const METERS_PER_LATITUDE_DEGREE = 111320;
@@ -155,11 +156,14 @@ class GpxParser {
       throw new GpxParseError(GpxParseErrorType.NoTrack);
     }
 
+    const elevations = points.map(point => point.elevation);
+
     return {
       name: GpxParser.readName(xml),
       simplified: GpxParser.simplify(points),
       distance: GpxParser.measureDistance(points),
-      elevationGain: GpxParser.measureElevationGain(points),
+      elevationGain: measureElevationGain(elevations),
+      elevationLoss: measureElevationLoss(elevations),
       pointCount: points.length,
       bounds: GpxParser.measureBounds(points),
     };
@@ -228,42 +232,6 @@ class GpxParser {
     }
 
     return distance;
-  }
-
-  private static measureElevationGain(points: GpxTrackPoint[]): number | null {
-    let gain = 0;
-    let measured = false;
-    let reference: number | null = null;
-
-    for (const point of points) {
-      if (point.elevation === null) {
-        continue;
-      }
-
-      measured = true;
-
-      if (reference === null) {
-        reference = point.elevation;
-
-        continue;
-      }
-
-      const delta = point.elevation - reference;
-
-      if (delta >= ELEVATION_NOISE_THRESHOLD_METERS) {
-        gain += delta;
-        reference = point.elevation;
-
-        continue;
-      }
-
-      // 내려간 구간은 새 바닥이 된다 — 다음 상승은 이 지점부터 잰다.
-      if (delta < 0) {
-        reference = point.elevation;
-      }
-    }
-
-    return measured ? gain : null;
   }
 
   private static measureBounds(points: GpxTrackPoint[]): RouteBounds {

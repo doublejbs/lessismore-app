@@ -1006,7 +1006,9 @@
       "notShared": "This bag is no longer shared."
     },
     "location": {
-      "failed": "We couldn't find your location. Please try again later."
+      "failed": "We couldn't find your location. Please try again later.",
+      "permissionDenied": "Location access is turned off. Allow it in Settings.",
+      "openSettings": "Open Settings"
     }
   },
   "home": {
@@ -1487,6 +1489,12 @@
     "profileTitle": "Elevation profile",
     "profilePeak": "Peak {{value}}m",
     "profileHint": "Drag along the graph to see that spot on the map",
-    "profileScrubHint": "Drag the graph to locate a spot"
+    "profileScrubHint": "Drag the graph to locate a spot",
+    "reverse": "Reverse direction",
+    "restoreDirection": "Show original direction",
+    "reverseOf": "Reverse {{name}}",
+    "restoreDirectionOf": "Show {{name}} in original direction",
+    "reversed": "Reversed",
+    "myLocation": "My location"
   }
 }

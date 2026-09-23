@@ -994,7 +994,9 @@
       "notShared": "このバックパックは共有されていません。"
     },
     "location": {
-      "failed": "現在地を確認できませんでした。しばらくしてからもう一度お試しください。"
+      "failed": "現在地を確認できませんでした。しばらくしてからもう一度お試しください。",
+      "permissionDenied": "位置情報へのアクセスがオフになっています。設定で許可してください。",
+      "openSettings": "設定を開く"
     }
   },
   "home": {
@@ -1464,6 +1466,12 @@
     "profileTitle": "標高グラフ",
     "profilePeak": "最高{{value}}m",
     "profileHint": "グラフをなぞるとその地点が地図に表示されます",
-    "profileScrubHint": "グラフをなぞって地図で位置を確認"
+    "profileScrubHint": "グラフをなぞって地図で位置を確認",
+    "reverse": "向きを反転",
+    "restoreDirection": "元の向きで表示",
+    "reverseOf": "{{name}}の向きを反転",
+    "restoreDirectionOf": "{{name}}を元の向きで表示",
+    "reversed": "逆方向",
+    "myLocation": "現在地"
   }
 }

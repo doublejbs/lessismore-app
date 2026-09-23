@@ -84,6 +84,13 @@ class RouteValidator {
       throw new GroupError(GroupValidationError.RouteParseFailed);
     }
 
+    if (
+      draft.elevationLoss !== undefined &&
+      !RouteValidator.isNonNegativeNumber(draft.elevationLoss)
+    ) {
+      throw new GroupError(GroupValidationError.RouteParseFailed);
+    }
+
     if (!RouteValidator.isValidBounds(draft.bounds)) {
       throw new GroupError(GroupValidationError.RouteParseFailed);
     }

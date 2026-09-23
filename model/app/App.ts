@@ -23,6 +23,7 @@ import CommunityStore from '../store/CommunityStore';
 import GroupStore from '../store/GroupStore';
 import L10n from '../l10n/L10n';
 import CommunitySearchStore from '../search/CommunitySearchStore';
+import RouteDirectionStore from '../route/RouteDirectionStore';
 
 class App {
   private readonly firebase = new Firebase();
@@ -81,8 +82,18 @@ class App {
     this.logInAlertManager = LogInAlertManager.new(this.firebase);
     this.replyStore = new ReplyStore(this.firebase);
     this.communityStore = new CommunityStore(this.firebase);
-    this.groupStore = new GroupStore(this.firebase, bagStore);
-    this.bagRouteStore = new BagRouteStore(this.firebase);
+    // 코스 뒤집기(GRP-8·BD-11) — 서버가 아니라 기기에 저장하는 보기 설정. 그룹·배낭 코스가
+    // 함께 쓰므로 두 스토어에 같은 인스턴스를 넘긴다(코스 모델이 만들어질 때 주입된다).
+    const routeDirectionStore = RouteDirectionStore.new();
+
+    // 기기 저장소 복원은 화면을 막지 않는다 — 복원 전에 그려진 코스도 observable이라 곧 따라간다.
+    void routeDirectionStore.initialize();
+    this.groupStore = new GroupStore(
+      this.firebase,
+      bagStore,
+      routeDirectionStore
+    );
+    this.bagRouteStore = new BagRouteStore(this.firebase, routeDirectionStore);
     this.campSpotStore = new CampSpotStore(this.firebase);
     this.feedContentStore = new FeedContentStore(
       this.firebase,

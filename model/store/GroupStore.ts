@@ -49,6 +49,7 @@ import GroupMemberRole from '../group/GroupMemberRole';
 import GroupPoint from '../group/GroupPoint';
 import GroupPointType from '../group/GroupPointType';
 import GroupRoute from '../group/GroupRoute';
+import RouteDirectionStore from '../route/RouteDirectionStore';
 import GroupValidationError from '../group/GroupValidationError';
 import GroupValidator from '../group/GroupValidator';
 import RouteValidator from '../route/RouteValidator';
@@ -71,7 +72,9 @@ import RouteValidator from '../route/RouteValidator';
 class GroupStore {
   public constructor(
     private readonly firebase: Firebase,
-    private readonly bagStore: BagStore
+    private readonly bagStore: BagStore,
+    // 코스 뒤집기(GRP-8)는 기기 설정이다. 코스 모델이 방향을 읽을 수 있게 만들 때 넘긴다.
+    private readonly routeDirections: RouteDirectionStore | null = null
   ) {}
 
   private createGroupId() {
@@ -803,7 +806,10 @@ class GroupStore {
     );
 
     return snapshot.docs.map(item =>
-      GroupRoute.from(this.toRouteData(item.id, item.data()))
+      GroupRoute.from(
+        this.toRouteData(item.id, item.data()),
+        this.routeDirections
+      )
     );
   }
 
@@ -869,6 +875,11 @@ class GroupStore {
         routeData.elevationGain = input.elevationGain;
       }
 
+      // 하강 합(GRP-8 뒤집기). 고도 없는 GPX엔 키를 넣지 않는다 — 규칙도 옵셔널로 받는다(DM-29).
+      if (input.elevationLoss !== undefined) {
+        routeData.elevationLoss = input.elevationLoss;
+      }
+
       transaction.set(this.routeRef(groupId, input.routeId), routeData);
       transaction.update(this.groupRef(groupId), {
         routeCount: increment(1),
@@ -905,7 +916,8 @@ class GroupStore {
         groupSnapshot.data()
       );
       const route = GroupRoute.from(
-        this.toRouteData(routeSnapshot.id, routeSnapshot.data())
+        this.toRouteData(routeSnapshot.id, routeSnapshot.data()),
+        this.routeDirections
       );
 
       this.assertMember(groupData, userId);
@@ -1174,6 +1186,10 @@ class GroupStore {
       distance: Number(data.distance) || 0,
       ...(data.elevationGain !== undefined && data.elevationGain !== null
         ? { elevationGain: Number(data.elevationGain) || 0 }
+        : {}),
+      // 2026-09-23 이전 코스엔 없다 — 없으면 키를 비워 두고, 뒤집어 볼 때 축약 좌표로 잰다(GRP-8).
+      ...(data.elevationLoss !== undefined && data.elevationLoss !== null
+        ? { elevationLoss: Number(data.elevationLoss) || 0 }
         : {}),
       pointCount: Number(data.pointCount) || 0,
       bounds: {

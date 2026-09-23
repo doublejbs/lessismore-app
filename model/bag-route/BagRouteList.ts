@@ -229,6 +229,10 @@ class BagRouteList {
         ...(parsed.elevationGain !== null
           ? { elevationGain: parsed.elevationGain }
           : {}),
+        // 하강도 같은 규칙이다 — 뒤집어 볼 때의 상승이 이 값이다(GRP-8).
+        ...(parsed.elevationLoss !== null
+          ? { elevationLoss: parsed.elevationLoss }
+          : {}),
       };
 
       const routeId = await this.dispatcher.addRoute(

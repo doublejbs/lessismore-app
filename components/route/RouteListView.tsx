@@ -68,7 +68,7 @@ const RouteListView: FC<Props> = ({ rows, selectedId, disabled }) => {
    * 무엇과 구분되는지 말하지 않는 장식이 된다(지도 화면이 코스 칩을 감추는 판정과 같다).
    */
   const showIndicator = !!selectedId && rows.length > 1;
-  // 액션이 하나도 없는 목록(웹 지도 대체 화면·연결 그룹 코스)에는 메뉴 시트를 달지 않는다.
+  // 액션이 하나도 없는 목록에는 메뉴 시트를 달지 않는다.
   const hasActions = rows.some(row => !!row.actions?.length);
 
   const handleCloseMenu = useCallback(() => {
@@ -130,7 +130,8 @@ const RouteListView: FC<Props> = ({ rows, selectedId, disabled }) => {
             {body}
           </View>
         )}
-        {/* 액션이 없는 행(그룹의 남의 코스·연결 그룹에서 온 코스)에는 `⋯`를 그리지 않는다. */}
+        {/* 액션이 없는 행에는 `⋯`를 그리지 않는다. 코스 목록은 방향 뒤집기가 모든 행에 있어
+          (보기 설정이라 권한과 무관하다, GRP-8) 남이 올린 코스·연결 그룹 코스에도 `⋯`가 선다. */}
         {row.actions && row.actions.length > 0 ? (
           <TouchableOpacity
             style={styles.menuButton}

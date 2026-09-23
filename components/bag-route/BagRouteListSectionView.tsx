@@ -7,6 +7,10 @@ import RouteListView, {
   RouteRow,
   RouteRowAction,
 } from '@/components/route/RouteListView';
+import {
+  createRouteDirectionAction,
+  getRouteMetaParts,
+} from '@/components/route/RouteRowParts';
 import { Acg, AcgLayout, AcgType, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import BagRoute from '@/model/bag-route/BagRoute';
@@ -25,7 +29,7 @@ interface Props {
  * 배낭 코스 목록 + 추가 액션 (BD-11).
  *
  * 행은 그룹 코스와 공용(`RouteListView`)이다. 연결된 그룹에서 온 코스는 메타 줄 끝에 출처를
- * 달고 **액션을 주지 않는다** — 지우거나 고치는 일은 그룹 화면이 한다.
+ * 달고 **방향 뒤집기만** 준다 — 지우거나 고치는 일은 그룹 화면이 한다(뒤집기는 이 기기의 보기 설정이다).
  * 출처를 배지가 아니라 메타 조각으로 두는 이유는 HM-8이다(면 없이 헤어라인으로만 가르는
  * 목록에서 배지는 유일한 예외 면이 되고, 값 하나 때문에 행마다 작은 사각형이 생긴다).
  */
@@ -44,21 +48,14 @@ const BagRouteListSectionView: FC<Props> = ({
   const submitting = bagRouteList.isSubmitting();
 
   const toRow = (entry: BagRouteEntry): RouteRow => {
-    const elevationGain = entry.route.getElevationGain();
     const meta = [
-      entry.route.getDistanceText(),
-      ...(elevationGain === undefined
-        ? []
-        : [
-            l10n.t('route.elevation', {
-              value: Math.round(elevationGain),
-            }),
-          ]),
+      ...getRouteMetaParts(entry.route),
       ...(entry.groupName
         ? [l10n.t('bag.route.fromGroup', { name: entry.groupName })]
         : []),
     ].join(separator);
-    const actions: RouteRowAction[] = [];
+    // 뒤집기는 보기 설정이라 **모든 행**에 있다 — 연결 그룹에서 온 읽기 전용 코스와 웹에서도(GRP-8).
+    const actions: RouteRowAction[] = [createRouteDirectionAction(entry.route)];
 
     // 웹은 보기 전용이다(APP-5, BD-11) — 파일 선택기가 없어 추가가 불가능한 화면에서
     // 삭제만 여는 것은 균형이 맞지 않는다. `canAdd()`가 그 경계를 그대로 쓴다.
@@ -86,7 +83,7 @@ const BagRouteListSectionView: FC<Props> = ({
       title: entry.route.getName(),
       meta,
       onSelect: () => onSelect(entry),
-      ...(actions.length > 0 ? { actions } : {}),
+      actions,
     };
   };
 

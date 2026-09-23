@@ -25,6 +25,75 @@ export interface RouteElevationProfile {
 const MIN_SAMPLE_COUNT = 2;
 
 /**
+ * 고도 상승 히스테리시스(m). GPS 고도는 제자리에서도 ±1~2m 흔들려, 차이를 그대로 더하면
+ * 평지 코스도 수백 m를 오른 것으로 나온다. 이 폭을 넘게 올라간 구간만 상승으로 센다.
+ */
+const ELEVATION_NOISE_THRESHOLD_METERS = 3;
+
+/**
+ * 고도 상승 합(m) — 3m 히스테리시스 (GRP-8, BD-11).
+ *
+ * 파서(원본 트랙포인트 전부)와 기존 코스 폴백(축약 좌표 `ele`)이 **같은 함수**를 쓴다 —
+ * 두 곳에서 따로 세면 같은 코스의 상승이 화면에 따라 달라진다.
+ * 고도가 없는 점(`null`·`undefined`)은 건너뛴다. 고도가 하나도 없으면 `null`이고,
+ * 그때는 "0m 상승"이 아니라 고도 칸 자체를 감춘다.
+ */
+export const measureElevationGain = (
+  elevations: readonly (number | null | undefined)[]
+): number | null => {
+  let gain = 0;
+  let measured = false;
+  let reference: number | null = null;
+
+  for (const elevation of elevations) {
+    if (
+      elevation === null ||
+      elevation === undefined ||
+      !Number.isFinite(elevation)
+    ) {
+      continue;
+    }
+
+    measured = true;
+
+    if (reference === null) {
+      reference = elevation;
+
+      continue;
+    }
+
+    const delta = elevation - reference;
+
+    if (delta >= ELEVATION_NOISE_THRESHOLD_METERS) {
+      gain += delta;
+      reference = elevation;
+
+      continue;
+    }
+
+    // 내려간 구간은 새 바닥이 된다 — 다음 상승은 이 지점부터 잰다.
+    if (delta < 0) {
+      reference = elevation;
+    }
+  }
+
+  return measured ? gain : null;
+};
+
+/**
+ * 고도 하강 합(m) (GRP-8 코스 뒤집기, DM-29·DM-30 `elevationLoss`).
+ *
+ * **역순으로 잰 상승**으로 정의한다 — 상승과 같은 3m 히스테리시스를 그대로 쓰고, 뒤집어 볼 때의
+ * 상승이 이 값과 **정확히** 같아진다. 순방향으로 "내려간 폭"을 따로 세는 식은 히스테리시스가
+ * 시간 대칭이 아니라서 뒤집은 상승과 몇 m씩 어긋날 수 있다.
+ */
+export const measureElevationLoss = (
+  elevations: readonly (number | null | undefined)[]
+): number | null => {
+  return measureElevationGain([...elevations].reverse());
+};
+
+/**
  * 축약 좌표에서 고도 단면을 만든다 (GRP-8).
  *
  * 누적 거리는 **고도가 없는 점까지 포함해** 폴리라인을 따라 잰다 — 고도가 군데군데 빠진

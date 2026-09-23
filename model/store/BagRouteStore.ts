@@ -20,6 +20,7 @@ import {
 } from '../group/GroupLimits';
 import GroupValidationError from '../group/GroupValidationError';
 import { RouteCoordinate, RouteData, RouteInput } from '../route/RouteData';
+import RouteDirectionStore from '../route/RouteDirectionStore';
 import RouteValidator from '../route/RouteValidator';
 
 /**
@@ -35,7 +36,11 @@ import RouteValidator from '../route/RouteValidator';
  * (DM-30: 수치를 갈라 두면 사용자가 둘을 다르게 기억해야 한다).
  */
 class BagRouteStore {
-  public constructor(private readonly firebase: Firebase) {}
+  public constructor(
+    private readonly firebase: Firebase,
+    // 코스 뒤집기(GRP-8·BD-11)는 기기 설정이다. 코스 모델이 방향을 읽을 수 있게 만들 때 넘긴다.
+    private readonly routeDirections: RouteDirectionStore | null = null
+  ) {}
 
   // 코스는 Storage 경로에 routeId가 들어가므로 업로드 전에 id를 먼저 발급받는다(BD-11).
   public createRouteId(bagId: string) {
@@ -55,7 +60,10 @@ class BagRouteStore {
     );
 
     return snapshot.docs.map(item =>
-      BagRoute.from(this.toRouteData(item.id, item.data()))
+      BagRoute.from(
+        this.toRouteData(item.id, item.data()),
+        this.routeDirections
+      )
     );
   }
 
@@ -109,6 +117,11 @@ class BagRouteStore {
       routeData.elevationGain = input.elevationGain;
     }
 
+    // 하강 합(GRP-8 뒤집기). 고도 없는 GPX엔 키를 넣지 않는다 — 규칙도 옵셔널로 받는다(DM-29·DM-30).
+    if (input.elevationLoss !== undefined) {
+      routeData.elevationLoss = input.elevationLoss;
+    }
+
     await setDoc(this.routeRef(bagId, input.routeId), routeData);
 
     return input.routeId;
@@ -156,6 +169,10 @@ class BagRouteStore {
       distance: Number(data.distance) || 0,
       ...(data.elevationGain !== undefined && data.elevationGain !== null
         ? { elevationGain: Number(data.elevationGain) || 0 }
+        : {}),
+      // 2026-09-23 이전 코스엔 없다 — 없으면 키를 비워 두고, 뒤집어 볼 때 축약 좌표로 잰다(GRP-8).
+      ...(data.elevationLoss !== undefined && data.elevationLoss !== null
+        ? { elevationLoss: Number(data.elevationLoss) || 0 }
         : {}),
       pointCount: Number(data.pointCount) || 0,
       bounds: {

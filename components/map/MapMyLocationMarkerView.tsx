@@ -7,13 +7,14 @@ interface Props {
   longitude: number;
 }
 
-// 내 위치 파란 점(CS-1). 네이티브 위치 오버레이(setLocationTrackingMode)는 이 라이브러리에서
+// 내 위치 파란 점(CS-1). 박지 지도·그룹 지도(GRP-10)·배낭 코스 지도(BD-11)가 함께 쓴다.
+// 네이티브 위치 오버레이(setLocationTrackingMode)는 이 라이브러리에서
 // 줌 스케일에 따라 점이 실제 좌표에서 드리프트하는 버그가 있어, 박지 마커(CampSiteMarkerView)와
 // 동일한 지오 앵커 NaverMapMarkerOverlay로 직접 렌더한다 — 마커 경로는 줌에 정확히 고정된다.
 // 위치 표시 파란색은 지도 컨벤션 의미색이라 토큰이 아닌 하드코딩을 허용한다(마커 유형색과 동일 예외).
 const MY_LOCATION_BLUE = '#2D8CFF';
 
-const CampSiteMyLocationMarkerView: FC<Props> = ({ latitude, longitude }) => {
+const MapMyLocationMarkerView: FC<Props> = ({ latitude, longitude }) => {
   return (
     <NaverMapMarkerOverlay
       latitude={latitude}
@@ -64,4 +65,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CampSiteMyLocationMarkerView;
+export default MapMyLocationMarkerView;

@@ -26,6 +26,8 @@ export interface RouteDraft {
   fileSize: number;
   distance: number;
   elevationGain?: number;
+  // 하강 합(m). 코스를 뒤집어 볼 때의 상승이다(GRP-8). 고도 없는 GPX와 2026-09-23 이전 코스엔 없다.
+  elevationLoss?: number;
   pointCount: number;
   bounds: RouteBounds;
   simplified: RouteCoordinate[];

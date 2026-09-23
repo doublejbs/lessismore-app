@@ -333,3 +333,11 @@ Storage 에뮬레이터 로그에 뜨는 `storage.rules line [65] ... Variable  
 6. [ ] **마이그레이션 선행 불필요** — 그룹은 기존 문서가 없는 신규 컬렉션이라 §8의 "마이그레이션 → 대상 0건 → 규칙 배포" 순서가 해당하지 않는다.
 7. [ ] **배포 후 확인** — 비인증으로 `groups/{id}` 읽기 거부, 인증 비멤버 `get` 허용·하위 컬렉션 거부, 비인증 `groupInvites/{id}` 읽기 허용을 콘솔 Rules 시뮬레이터로 한 번 더 본다.
 8. [ ] **롤백 경로** — 문제가 나면 `deployed/backup-2026-09-03-*.rules`가 아니라 **직전 병합본**(이 커밋 이전 `deployed/*.rules`)으로 되돌린다. 백업 파일은 커뮤니티 이전의 전면 개방본이라 되돌리면 커뮤니티 규칙까지 사라진다.
+
+## 배포 기록 (2026-09-23)
+
+- `deployed/firestore.rules`·`deployed/storage.rules` 배포. 이번에 함께 올라간 것:
+  - **배낭 코스 잠금**(DM-30) — `bag`을 전면 개방에서 빼고 문서 자체는 다시 열되 하위 `routes`와 Storage `bags/`만 소유자로 닫았다. 공유를 켠 배낭의 코스가 비로그인에 읽히던 구멍이 닫혔다.
+  - 그룹·배낭 코스 create 허용 키에 `elevationLoss?` 추가(코스 뒤집기의 상승 값, GRP-8). 이게 없으면 새 코드의 코스 업로드가 permission-denied로 깨진다.
+- 배포 직후 프로덕션 비인증 검증 13건 통과: `gear`·`gear-rank`·`bag` 문서·`users`·`users/{uid}/gears` 개방 유지 / `groups`·`users/{uid}/groups`·`groupInvites` 목록 차단 / `groupInvites` get 허용 / `bag/{id}/routes` 읽기·쓰기 차단 / Storage `bags/` GPX 읽기 차단.
+- 롤백본: 직전 배포본은 커밋 `3b13621`의 `deployed/*.rules`다.

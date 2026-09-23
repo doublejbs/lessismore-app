@@ -37,6 +37,13 @@ import GroupMapMarkersView, { GroupMapViewport } from './GroupMapMarkersView';
 import GroupPointCalloutView from './GroupPointCalloutView';
 import GroupPointFilterChipsView from './GroupPointFilterChipsView';
 import RouteScrubMarkerView from '@/components/route/RouteScrubMarkerView';
+import RouteEndpointMarkersView from '@/components/route/RouteEndpointMarkersView';
+import MapControlButtonView from '@/components/map/MapControlButtonView';
+import MapMyLocationMarkerView from '@/components/map/MapMyLocationMarkerView';
+import {
+  MapCoordinate,
+  useMapCurrentLocation,
+} from '@/hooks/useMapCurrentLocation';
 
 interface Props {
   groupMap: GroupMap;
@@ -101,7 +108,6 @@ const GroupMapCanvasView: FC<Props> = ({
   });
   const zoomRef = useRef(deltaToZoom(0.2));
   const mountedRef = useRef(true);
-  const [locationGranted, setLocationGranted] = useState(false);
   const [viewport, setViewport] = useState<GroupMapViewport | null>(null);
   const [longPressAt, setLongPressAt] = useState<{
     x: number;
@@ -231,23 +237,25 @@ const GroupMapCanvasView: FC<Props> = ({
     }
   }, [campSpot, groupMap, moveCamera]);
 
-  // 위치 권한은 현재 위치 버튼 노출 판단에만 쓴다 — 지도 진입에서 새로 묻지 않는다
-  // (포인트 추가는 롱프레스로 가능하므로 권한이 없어도 화면이 동작해야 한다, GRP-9 엣지 케이스).
-  useEffect(() => {
-    const checkPermission = async () => {
-      try {
-        const { status } = await Location.getForegroundPermissionsAsync();
-
-        if (mountedRef.current) {
-          setLocationGranted(status === 'granted');
-        }
-      } catch {
-        return;
-      }
-    };
-
-    void checkPermission();
-  }, []);
+  /**
+   * 현재 위치 — 박지 지도·배낭 코스 지도와 같은 공용 훅(CS-1 규칙: 포커스 동안 구독 + 폴백 사슬).
+   * 지도 진입에서 권한을 새로 묻지 않는다(포인트 추가는 롱프레스로 가능하므로 권한이 없어도 화면이
+   * 동작해야 한다, GRP-9 엣지 케이스). 권한 여부는 버튼 노출과 내 위치 점 판단에 쓴다.
+   */
+  const moveToCoordinate = useCallback(
+    (coordinate: MapCoordinate) => {
+      moveCamera(coordinate.latitude, coordinate.longitude, deltaToZoom(0.05));
+    },
+    [moveCamera]
+  );
+  const {
+    granted: locationGranted,
+    currentLocation,
+    moveToCurrentLocation,
+  } = useMapCurrentLocation({
+    moveCamera: moveToCoordinate,
+    logTag: 'GroupMap',
+  });
 
   // 데이터가 늦게 도착해도 한 번은 맞춘다.
   useEffect(() => {
@@ -426,24 +434,6 @@ const GroupMapCanvasView: FC<Props> = ({
     [groupMap]
   );
 
-  const handleMoveToCurrentLocation = useCallback(async () => {
-    try {
-      const lastKnown = await Location.getLastKnownPositionAsync();
-
-      if (!lastKnown || !mountedRef.current) {
-        return;
-      }
-
-      moveCamera(
-        lastKnown.coords.latitude,
-        lastKnown.coords.longitude,
-        deltaToZoom(0.05)
-      );
-    } catch (error) {
-      console.warn('[GroupMap] 현재 위치 이동 실패', error); // l10n-ignore: 개발자 로그
-    }
-  }, [moveCamera]);
-
   const handleTapPoint = useCallback(
     (point: GroupPoint) => {
       groupMap.focusPoint(point.getId());
@@ -522,12 +512,23 @@ const GroupMapCanvasView: FC<Props> = ({
                 </NaverMapMarkerOverlay>
               ) : null}
 
+              {/* 선택한 코스의 시작·끝 — 옅게 그린 코스엔 달지 않는다(지도가 마커로 덮이지 않게). */}
+              <RouteEndpointMarkersView route={selectedRoute} />
+
               <GroupMapMarkersView
                 pointList={pointList}
                 viewport={viewport}
                 selectedPointId={groupMap.getFocusedPointId()}
                 onTapPoint={handleTapPoint}
               />
+
+              {/* 내 위치 점 — 권한이 있을 때만(CS-1과 같은 지오 앵커 마커). */}
+              {currentLocation ? (
+                <MapMyLocationMarkerView
+                  latitude={currentLocation.latitude}
+                  longitude={currentLocation.longitude}
+                />
+              ) : null}
 
               {/* 고도 그래프를 훑는 동안만 뜨는 위치 마커(GRP-8). */}
               {scrubSample ? (
@@ -553,22 +554,35 @@ const GroupMapCanvasView: FC<Props> = ({
           </View>
         )}
 
-        {/* 현재 위치 버튼 — 권한이 있을 때만 노출한다(GRP-9 엣지 케이스).
-          조준 모드에서도 남긴다: 내 자리로 지도를 옮겨 그 부근을 겨누는 것이 흔한 경로다. */}
-        {locationGranted ? (
+        {/* 우측 지도 컨트롤 — 위에서부터 방향 뒤집기, 현재 위치.
+          방향 뒤집기(GRP-8): 네이티브 지도는 코스를 목록이 아니라 칩으로 고르므로 `⋯` 메뉴가 없다 —
+          코스를 뒤집는 진입을 지도에 둔다. 조준 모드에서는 걷는다(확정 말고 누를 것을 두지 않는다).
+          현재 위치: 권한이 있을 때만 노출한다(GRP-9 엣지 케이스). 조준 모드에서도 남긴다 —
+          내 자리로 지도를 옮겨 그 부근을 겨누는 것이 흔한 경로다. */}
+        {(selectedRoute && !isAiming) || locationGranted ? (
           <View
-            style={[styles.locateWrapper, { bottom: overlayBottomInset + 120 }]}
+            style={[styles.controlStack, { bottom: overlayBottomInset + 120 }]}
             pointerEvents='box-none'
           >
-            <TouchableOpacity
-              style={styles.locateButton}
-              onPress={() => void handleMoveToCurrentLocation()}
-              activeOpacity={0.8}
-              accessibilityRole='button'
-              accessibilityLabel={l10n.t('group.map.currentLocation')}
-            >
-              <Ionicons name='locate' size={22} color={Acg.ink} />
-            </TouchableOpacity>
+            {selectedRoute && !isAiming ? (
+              <MapControlButtonView
+                icon='swap-vertical'
+                accessibilityLabel={l10n.t(
+                  selectedRoute.isReversed()
+                    ? 'route.restoreDirectionOf'
+                    : 'route.reverseOf',
+                  { name: selectedRoute.getName() }
+                )}
+                onPress={() => selectedRoute.toggleReversed()}
+              />
+            ) : null}
+            {locationGranted ? (
+              <MapControlButtonView
+                icon='locate'
+                accessibilityLabel={l10n.t('group.map.currentLocation')}
+                onPress={() => void moveToCurrentLocation()}
+              />
+            ) : null}
           </View>
         ) : null}
 
@@ -672,7 +686,8 @@ const GroupMapCanvasView: FC<Props> = ({
       {showProfile && elevationProfile ? (
         <RouteElevationChartView
           // 코스를 바꾸면 그래프를 새로 마운트해 이전 코스의 커서가 남지 않게 한다.
-          key={selectedRoute?.getId()}
+          // 방향을 뒤집어도 새로 마운트한다 — 단면이 바뀌므로 커서가 옛 단면 자리에 남지 않게.
+          key={`${selectedRoute?.getId() ?? ''}:${selectedRoute?.isReversed() ? 'r' : 'f'}`}
           profile={elevationProfile}
           // 축 거리는 목록 행과 같은 원본 거리로 읽힌다(GRP-8).
           {...(selectedRoute
@@ -708,22 +723,12 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: AcgLayout.screenPadding,
   },
-  locateWrapper: {
+  // 지도 위 원형 컨트롤 세로 스택(우측 16 — 배낭 코스 지도와 같은 자리 규칙).
+  controlStack: {
     position: 'absolute',
     right: 16,
     alignItems: 'flex-end',
-  },
-  // 원형 아이콘 버튼은 지도 위에서 불투명이어야 아이콘이 지형에 묻히지 않는다.
-  locateButton: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: Acg.paper,
-    borderWidth: 1,
-    borderColor: Acg.hairline,
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: AcgShadow.card,
+    gap: 8,
   },
   bottomOverlay: {
     position: 'absolute',

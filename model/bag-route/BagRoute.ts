@@ -1,10 +1,9 @@
 import { RouteData, RouteDraft } from '@/model/route/RouteData';
 import { RouteDisplay } from '@/model/route/RouteDisplay';
-import {
-  buildRouteElevationProfile,
-  RouteElevationProfile,
-} from '@/model/route/RouteElevation';
+import { RouteElevationProfile } from '@/model/route/RouteElevation';
 import { formatRouteDistance } from '@/model/route/RouteFormat';
+import RouteDirectionStore from '@/model/route/RouteDirectionStore';
+import RouteGeometry from '@/model/route/RouteGeometry';
 
 /**
  * 배낭 코스(GPX) 한 건 (BD-11, DM-30 `bag/{bagId}/routes/{routeId}`).
@@ -19,21 +18,31 @@ class BagRoute implements RouteDisplay {
   private readonly storagePath: string;
   private readonly fileSize: number;
   private readonly distance: number;
+  // 저장된 상승 그대로(원래 방향). 다시 저장할 때(`toDraft`) 쓴다 — 화면은 `geometry`를 읽는다.
   private readonly elevationGain: number | undefined;
   private readonly pointCount: number;
   private readonly bounds: RouteData['bounds'];
-  private readonly simplified: RouteData['simplified'];
   private readonly createdAt: Date;
-  // 고도 단면은 좌표 500점을 훑어 만든다 — 그래프를 훑는 동안 매 프레임 다시 만들지 않도록
-  // 처음 물었을 때 한 번 만들어 들고 있는다(BD-11). 좌표가 불변이라 값도 불변이다.
-  private elevationProfile: RouteElevationProfile | null = null;
-  private elevationProfileBuilt = false;
+  /**
+   * 방향에 따라 바뀌는 값(좌표 순서·고도 단면·상승) — 그룹 코스와 같은 구현을 쓴다(GRP-8 뒤집기).
+   * 고도 단면은 방향별로 한 번만 만들어 들고 있는다 — 그래프를 훑는 동안 매 프레임 다시 만들지 않게.
+   */
+  private readonly geometry: RouteGeometry;
 
-  public static from(data: RouteData) {
-    return new BagRoute(data);
+  /**
+   * `directions`는 기기에 저장한 뒤집기 설정이다. 없으면(테스트·앱 초기화 전) 항상 원래 방향이다.
+   */
+  public static from(
+    data: RouteData,
+    directions: RouteDirectionStore | null = null
+  ) {
+    return new BagRoute(data, directions);
   }
 
-  public constructor(data: RouteData) {
+  public constructor(
+    data: RouteData,
+    directions: RouteDirectionStore | null = null
+  ) {
     this.id = data.id;
     this.name = data.name;
     this.storagePath = data.storagePath;
@@ -42,8 +51,16 @@ class BagRoute implements RouteDisplay {
     this.elevationGain = data.elevationGain;
     this.pointCount = data.pointCount;
     this.bounds = data.bounds;
-    // 지도가 카메라를 움직일 때마다 읽으므로 복사하지 않고 그대로 들고 있는다(읽기 전용).
-    this.simplified = data.simplified;
+    // 지도가 카메라를 움직일 때마다 읽으므로 복사하지 않고 그대로 넘긴다(읽기 전용).
+    this.geometry = RouteGeometry.from(
+      {
+        directionKey: data.storagePath || `bags/?/routes/${data.id}`,
+        simplified: data.simplified,
+        elevationGain: data.elevationGain,
+        elevationLoss: data.elevationLoss,
+      },
+      directions
+    );
     this.createdAt = data.createdAt;
   }
 
@@ -63,12 +80,26 @@ class BagRoute implements RouteDisplay {
     return this.distance;
   }
 
-  public getElevationGain() {
-    return this.elevationGain;
+  public getDirectionKey() {
+    return this.geometry.getDirectionKey();
   }
 
+  public isReversed() {
+    return this.geometry.isReversed();
+  }
+
+  public toggleReversed() {
+    this.geometry.toggleReversed();
+  }
+
+  // 지금 보는 방향의 상승. 뒤집혔으면 원래의 하강이다(GRP-8).
+  public getElevationGain() {
+    return this.geometry.getElevationGain();
+  }
+
+  // 지금 보는 방향 순서의 축약 좌표(읽기 전용).
   public getSimplified() {
-    return this.simplified;
+    return this.geometry.getSimplified();
   }
 
   public getCreatedAt() {
@@ -82,18 +113,23 @@ class BagRoute implements RouteDisplay {
   /**
    * 이 코스를 그대로 다시 저장할 수 있는 모양 (BD-11 `그룹에 올리기`).
    * 원본 GPX를 다시 파싱하지 않는다 — 저장된 값이 곧 파싱 결과다.
+   * **저장된 방향 그대로** 옮긴다 — 뒤집기는 이 기기의 보기 설정이라 그룹 멤버에게 따라가지 않는다(GRP-8).
    */
   public toDraft(): RouteDraft {
+    // 옛 코스(하강 미저장)는 축약 좌표로 잰 폴백 값을 싣는다 — 그룹 쪽에서 다시 잴 필요가 없다.
+    const elevationLoss = this.geometry.getElevationLoss();
+
     return {
       name: this.name,
       fileSize: this.fileSize,
       distance: this.distance,
       pointCount: this.pointCount,
       bounds: { ...this.bounds },
-      simplified: this.simplified,
+      simplified: this.geometry.getStoredSimplified(),
       ...(this.elevationGain === undefined
         ? {}
         : { elevationGain: this.elevationGain }),
+      ...(elevationLoss === undefined ? {} : { elevationLoss }),
     };
   }
 
@@ -102,12 +138,7 @@ class BagRoute implements RouteDisplay {
    * 그때 화면은 그래프를 그리지 않고 자리도 비운다.
    */
   public getElevationProfile(): RouteElevationProfile | null {
-    if (!this.elevationProfileBuilt) {
-      this.elevationProfileBuilt = true;
-      this.elevationProfile = buildRouteElevationProfile(this.simplified);
-    }
-
-    return this.elevationProfile;
+    return this.geometry.getElevationProfile();
   }
 }
 

@@ -149,7 +149,8 @@ const BagRouteView: FC<Props> = ({ bagRouteList }) => {
           {/* 웹에는 따라 움직일 지도가 없으므로 훑기 제스처를 달지 않는다(GRP-8과 같은 판단). */}
           {profile ? (
             <RouteElevationChartView
-              key={selected?.key ?? ''}
+              // 방향을 뒤집으면 단면이 바뀌므로 새로 마운트한다(GRP-8).
+              key={`${selected?.key ?? ''}:${selected?.route.isReversed() ? 'r' : 'f'}`}
               profile={profile}
               {...(selected
                 ? { displayDistance: selected.route.getDistance() }

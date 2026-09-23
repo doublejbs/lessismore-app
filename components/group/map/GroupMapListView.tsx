@@ -74,7 +74,8 @@ const GroupMapListView: FC<Props> = ({
             {selectedProfile ? (
               <View style={styles.chart}>
                 <RouteElevationChartView
-                  key={selectedRoute?.getId()}
+                  // 방향을 뒤집으면 단면이 바뀌므로 새로 마운트한다(GRP-8).
+                  key={`${selectedRoute?.getId() ?? ''}:${selectedRoute?.isReversed() ? 'r' : 'f'}`}
                   profile={selectedProfile}
                   {...(selectedRoute
                     ? { displayDistance: selectedRoute.getDistance() }

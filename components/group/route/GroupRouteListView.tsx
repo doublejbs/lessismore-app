@@ -4,6 +4,10 @@ import RouteListView, {
   RouteRow,
   RouteRowAction,
 } from '@/components/route/RouteListView';
+import {
+  createRouteDirectionAction,
+  getRouteMetaParts,
+} from '@/components/route/RouteRowParts';
 import app from '@/model/app/App';
 import GroupRoute from '@/model/group/GroupRoute';
 import { getGroupPointAuthorLabel } from '@/model/group-point/GroupPointLabels';
@@ -43,16 +47,8 @@ const GroupRouteListView: FC<Props> = ({
   const separator = l10n.t('group.detail.metaSeparator');
 
   const toRow = (route: GroupRoute): RouteRow => {
-    const elevationGain = route.getElevationGain();
     const meta = [
-      route.getDistanceText(),
-      ...(elevationGain === undefined
-        ? []
-        : [
-            l10n.t('route.elevation', {
-              value: Math.round(elevationGain),
-            }),
-          ]),
+      ...getRouteMetaParts(route),
       getGroupPointAuthorLabel(
         route.getAuthorId(),
         route.getAuthorName(),
@@ -60,22 +56,27 @@ const GroupRouteListView: FC<Props> = ({
       ),
     ].join(separator);
     const deletable = !!onDelete && (canDelete?.(route) ?? true);
-    const actions: RouteRowAction[] = deletable
-      ? [
-          {
-            icon: 'trash-outline',
-            label: l10n.t('route.delete'),
-            onPress: () => onDelete?.(route),
-          },
-        ]
-      : [];
+    // 뒤집기는 보기 설정이라 **모든 행**에 있다 — 남이 올린 코스도 누구나 뒤집어 본다(GRP-8).
+    // 삭제는 올린 사람·방장에게만, 파괴적 액션이라 메뉴 맨 아래다.
+    const actions: RouteRowAction[] = [
+      createRouteDirectionAction(route),
+      ...(deletable
+        ? [
+            {
+              icon: 'trash-outline' as const,
+              label: l10n.t('route.delete'),
+              onPress: () => onDelete?.(route),
+            },
+          ]
+        : []),
+    ];
 
     return {
       id: route.getId(),
       title: route.getName(),
       meta,
       ...(onSelect ? { onSelect: () => onSelect(route) } : {}),
-      ...(actions.length > 0 ? { actions } : {}),
+      actions,
     };
   };
 
