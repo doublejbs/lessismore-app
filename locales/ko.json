@@ -1469,6 +1469,9 @@
       "uploading": "올리는 중"
     },
     "link": {
+      "replaceConfirm": "이 그룹에는 이미 {{bag}}을(를) 연결해 두었어요. 이 배낭으로 바꿀까요?",
+      "replace": "바꾸기",
+      "otherBag": "다른 배낭",
       "moveConfirm": "{{from}}에서 빼고 이 그룹으로 옮길까요?",
       "move": "옮기기",
       "nameSeparator": ", ",

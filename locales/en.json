@@ -1493,6 +1493,9 @@
       "uploading": "Uploading"
     },
     "link": {
+      "replaceConfirm": "You already linked {{bag}} to this group. Switch to this bag?",
+      "replace": "Switch",
+      "otherBag": "another bag",
       "moveConfirm": "Remove this bag from {{from}} and move it to this group?",
       "move": "Move",
       "nameSeparator": ", ",

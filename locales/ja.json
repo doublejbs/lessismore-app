@@ -1469,6 +1469,9 @@
       "uploading": "アップロード中"
     },
     "link": {
+      "replaceConfirm": "このグループにはすでに{{bag}}を連携しています。このバックパックに切り替えますか？",
+      "replace": "切り替える",
+      "otherBag": "別のバックパック",
       "moveConfirm": "{{from}}から外して、このグループに移しますか？",
       "move": "移す",
       "nameSeparator": "、",

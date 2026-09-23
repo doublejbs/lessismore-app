@@ -253,6 +253,7 @@ class BagDetail implements BagScheduleWriter {
         location: this.bagWeather.getLocation(),
       },
       writer: this,
+      confirmReplace: true,
       onLinked: () => {
         app.getAnalyticsManager()?.logClick('bag_group_link');
       },

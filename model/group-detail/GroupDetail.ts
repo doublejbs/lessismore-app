@@ -198,6 +198,7 @@ class GroupDetail {
         location: bag.getLocation(),
       },
       writer: StoredBagScheduleWriter.of(bag.getID()),
+      confirmReplace: false,
       onLinked: () => {
         app
           .getAnalyticsManager()

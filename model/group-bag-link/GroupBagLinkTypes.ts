@@ -32,6 +32,12 @@ export interface GroupBagLinkRequest {
   group: Group;
   subject: GroupBagLinkSubject;
   writer: BagScheduleWriter;
+  /**
+   * 그 그룹에 내가 이미 **다른** 배낭을 연결해 두었으면 바꿀지 묻는다(GRP-5).
+   * 배낭 상세(`⋯` → 그룹에 연결)만 true다 — 그룹 상세의 배낭 선택 시트는 연결된 배낭이 이미 보이는 자리라 묻지 않는다.
+   * 판단은 `group.getMyBagId()`(역인덱스 요약본)로 한다.
+   */
+  confirmReplace: boolean;
   // 연결이 성공했을 때(분석 이벤트 등). 연결을 부른 화면마다 다르다.
   onLinked: () => void;
   // 연결 상태가 바뀌었을 수 있을 때 — 성공·실패 모두 부른다. 화면은 다시 읽어 실제 상태를 그린다.

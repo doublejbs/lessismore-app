@@ -19,6 +19,8 @@ import {
  * 배낭 ↔ 그룹 연결 흐름 (GRP-5 · BD-1).
  *
  * 그룹 상세(배낭 선택 시트)와 배낭 상세(`⋯` → 그룹에 연결)가 **이 한 곳**을 거친다.
+ * 0. **한 그룹 = 내 배낭 하나**: 배낭 상세에서 연결할 때 그 그룹에 내가 이미 다른 배낭을 연결해 두었으면
+ *    바꿀지 묻는다(`confirmReplace`). 그룹 상세는 연결된 배낭이 보이는 자리라 묻지 않는다.
  * 1. **한 배낭 = 한 그룹**: 이 배낭이 다른 그룹에 연결돼 있으면 옮길지 묻고, 옮기면 기존 연결을 해제한 뒤 연결한다.
  *    보안 규칙은 여러 문서를 가로질러 검사하지 못하므로 이 제약은 클라이언트가 지킨다.
  * 2. **일정 맞춤**: 연결한 뒤 배낭 기간(또는 등록 박지 여행지)이 그룹과 다르면 `그룹 일정으로 맞출까요?`를
@@ -53,6 +55,64 @@ class GroupBagLinkFlow {
       return;
     }
 
+    const replacedBagId = this.getReplacedBagId(request);
+
+    if (!replacedBagId) {
+      await this.confirmMove(request, others);
+
+      return;
+    }
+
+    const l10n = app.getL10n();
+    const bagName = await this.getBagName(replacedBagId);
+
+    // 교체 → 옮기기 → 일정 맞춤 순서. 확인 콜백 안에서 다음 알럿을 띄우면 AlertManager가 새 알럿을 유지한다.
+    app.getAlertManager()?.show({
+      message: l10n.t('group.link.replaceConfirm', {
+        bag: bagName ?? l10n.t('group.link.otherBag'),
+      }),
+      confirmText: l10n.t('group.link.replace'),
+      cancelText: l10n.t('common.cancel'),
+      onConfirm: async () => {
+        await this.confirmMove(request, others);
+      },
+    });
+  }
+
+  /**
+   * 그 그룹에 내가 이미 연결해 둔 **다른** 배낭 ID (GRP-5). 묻지 않는 진입이거나, 없거나, 같은 배낭이면 null.
+   * 배낭 상세의 그룹은 `getMyGroups()` 요약본이라 역인덱스의 `bagId`를 이미 들고 있다 — 추가 조회가 없다.
+   */
+  private getReplacedBagId(request: GroupBagLinkRequest): string | null {
+    if (!request.confirmReplace) {
+      return null;
+    }
+
+    const bagId = request.group.getMyBagId();
+
+    if (!bagId || bagId === request.subject.bagId) {
+      return null;
+    }
+
+    return bagId;
+  }
+
+  // 교체 알럿에 넣을 이름. 못 읽으면 null — 호출자가 `다른 배낭`으로 대신한다.
+  private async getBagName(bagId: string): Promise<string | null> {
+    this.setBusy(true);
+
+    try {
+      return await this.dispatcher.getBagName(bagId);
+    } catch (error) {
+      console.warn('[GroupBagLinkFlow] bag name load failed', error); // l10n-ignore: 개발자 로그
+
+      return null;
+    } finally {
+      this.setBusy(false);
+    }
+  }
+
+  private async confirmMove(request: GroupBagLinkRequest, others: Group[]) {
     if (others.length === 0) {
       await this.link(request, []);
 
