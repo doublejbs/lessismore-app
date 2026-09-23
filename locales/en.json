@@ -1449,7 +1449,7 @@
     "map": {
       "title": "Group map",
       "loadFailed": "Couldn't load the map",
-      "addPoint": "Add point here",
+      "addPoint": "Add point",
       "addPointHint": "Shows a crosshair at the center of the map so you can aim. You can also long-press the map.",
       "pointFull": "Point limit reached",
       "currentLocation": "Current location",

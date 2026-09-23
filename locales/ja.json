@@ -1426,7 +1426,7 @@
     "map": {
       "title": "グループ地図",
       "loadFailed": "地図を読み込めませんでした",
-      "addPoint": "ここにポイントを追加",
+      "addPoint": "ポイントを追加",
       "addPointHint": "地図の中心に照準マーカーを表示して位置を合わせます。地図を長押ししても追加できます",
       "pointFull": "ポイントがいっぱいです",
       "currentLocation": "現在地",

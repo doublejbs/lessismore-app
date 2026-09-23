@@ -1426,7 +1426,7 @@
     "map": {
       "title": "그룹 지도",
       "loadFailed": "지도를 불러오지 못했어요",
-      "addPoint": "여기에 포인트 추가",
+      "addPoint": "포인트 추가",
       "addPointHint": "지도 가운데에 조준 마커를 띄워 위치를 고르게 해요. 지도를 길게 눌러도 돼요",
       "pointFull": "포인트가 가득 찼어요",
       "currentLocation": "현재 위치",
