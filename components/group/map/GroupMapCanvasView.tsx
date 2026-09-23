@@ -30,6 +30,8 @@ import {
 import app from '@/model/app/App';
 import GroupPoint from '@/model/group/GroupPoint';
 import GroupMap from '@/model/group-map/GroupMap';
+import { getRouteFitRegion } from '@/model/route/RouteCamera';
+import { RouteBounds } from '@/model/route/RouteData';
 import { RouteElevationSample } from '@/model/route/RouteElevation';
 import { deltaToZoom } from '@/model/map/MapZoom';
 import GroupMapAimMarkerView from './GroupMapAimMarkerView';
@@ -64,12 +66,6 @@ const KOREA_CAMERA: Camera = {
   zoom: deltaToZoom(4.8),
 };
 
-/** 경계 상자가 화면 가장자리에 붙지 않도록 주는 여유 배율. */
-const CAMERA_PADDING_RATIO = 1.3;
-
-/** 최소 표시 범위(도). 포인트가 하나뿐이면 상자가 0이라 최대 줌으로 붙어 버린다. */
-const MIN_REGION_DELTA = 0.004;
-
 const SPOT_PIN_WIDTH = 30;
 const SPOT_PIN_HEIGHT = 40;
 
@@ -102,6 +98,10 @@ const GroupMapCanvasView: FC<Props> = ({
   const mapRef = useRef<NaverMapViewRef>(null);
   const mapReadyRef = useRef(false);
   const didFitRef = useRef(false);
+  // 처리한 마지막 코스 선택 요청(`GroupMap.focusRoute`)의 `seq`.
+  const handledFocusSeqRef = useRef(0);
+  // 지금 손가락이 고도 그래프 위에 있는지. 이때는 선택이 바뀌어도 카메라를 옮기지 않는다(GRP-8).
+  const scrubbingRef = useRef(false);
   const cameraRef = useRef<{ latitude: number; longitude: number }>({
     latitude: KOREA_CAMERA.latitude,
     longitude: KOREA_CAMERA.longitude,
@@ -131,6 +131,8 @@ const GroupMapCanvasView: FC<Props> = ({
   const campSpot = groupMap.getCampSpot();
   const selectedRouteId = groupMap.getSelectedRouteId();
   const selectedPoint = groupMap.getFocusedPoint();
+  const routeFocusRequest = groupMap.getRouteFocusRequest();
+  const initialized = groupMap.isInitialized();
   // 코스가 하나뿐이면 선택 없이도 그 코스가 주인공이다(GRP-10 강조 규칙과 같은 판정).
   const selectedRoute =
     routes.length === 1
@@ -162,6 +164,17 @@ const GroupMapCanvasView: FC<Props> = ({
     []
   );
 
+  const fitBounds = useCallback((bounds: RouteBounds) => {
+    if (!mountedRef.current || !mapReadyRef.current || !mapRef.current) {
+      return;
+    }
+
+    mapRef.current.animateRegionTo({
+      ...getRouteFitRegion(bounds),
+      duration: 500,
+    });
+  }, []);
+
   /**
    * 최초 카메라 (GRP-10): 코스·포인트를 모두 담는 상자 → 없으면 박지 위치 →
    * 박지도 없으면 현재 위치 순으로 간다. 셋 다 없으면 남한 전역에 머문다.
@@ -179,25 +192,7 @@ const GroupMapCanvasView: FC<Props> = ({
 
     if (bounds) {
       didFitRef.current = true;
-
-      const latitudeDelta = Math.max(
-        (bounds.maxLatitude - bounds.minLatitude) * CAMERA_PADDING_RATIO,
-        MIN_REGION_DELTA
-      );
-      const longitudeDelta = Math.max(
-        (bounds.maxLongitude - bounds.minLongitude) * CAMERA_PADDING_RATIO,
-        MIN_REGION_DELTA
-      );
-
-      mapRef.current?.animateRegionTo({
-        latitude:
-          (bounds.minLatitude + bounds.maxLatitude) / 2 - latitudeDelta / 2,
-        longitude:
-          (bounds.minLongitude + bounds.maxLongitude) / 2 - longitudeDelta / 2,
-        latitudeDelta,
-        longitudeDelta,
-        duration: 500,
-      });
+      fitBounds(bounds);
 
       return;
     }
@@ -235,7 +230,61 @@ const GroupMapCanvasView: FC<Props> = ({
     } catch (error) {
       console.warn('[GroupMap] 초기 카메라 위치 조회 실패', error); // l10n-ignore: 개발자 로그
     }
-  }, [campSpot, groupMap, moveCamera]);
+  }, [campSpot, fitBounds, groupMap, moveCamera]);
+
+  /**
+   * 고른 코스로 카메라를 옮긴다 (GRP-8) — 코스 칩, 상세 코스 행에서 넘어온 핸드오프.
+   * 최초 맞춤과 달리 **고를 때마다** 옮긴다(같은 코스를 다시 골라도 `seq`가 올라간다).
+   * 지도가 준비되지 않았거나 코스가 아직 안 읽혔으면 요청을 남겨 두고 준비된 뒤 한 번 맞춘다.
+   * 조회가 끝났는데 그 코스가 없으면(지워진 코스) 요청을 버리고 최초 맞춤에 맡긴다.
+   * 요청을 처리해 카메라를 옮겼으면 `true`다.
+   */
+  const fitFocusedRoute = useCallback(() => {
+    const request = groupMap.getRouteFocusRequest();
+
+    if (
+      !request ||
+      request.seq === handledFocusSeqRef.current ||
+      !mapReadyRef.current ||
+      !groupMap.isInitialized()
+    ) {
+      return false;
+    }
+
+    handledFocusSeqRef.current = request.seq;
+
+    // 훑는 중에 바뀐 선택은 카메라를 옮기지 않는다 — 손가락 아래 그래프와 지도가 어긋난다.
+    // 선택이 바뀌면 그래프가 새로 마운트되어 이 훑기는 끝난다(남은 마커는 코스가 달라 저절로 걷힌다).
+    if (scrubbingRef.current) {
+      scrubbingRef.current = false;
+
+      return false;
+    }
+
+    const route = groupMap
+      .getRoutes()
+      .find(item => item.getId() === request.routeId);
+    const bounds = route?.getBounds() ?? null;
+
+    if (!bounds) {
+      return false;
+    }
+
+    // 명시적 선택이 카메라를 정했으므로 늦게 온 데이터가 최초 맞춤으로 되돌리지 않게 한다.
+    didFitRef.current = true;
+    fitBounds(bounds);
+
+    return true;
+  }, [fitBounds, groupMap]);
+
+  // 고른 코스가 있으면 그쪽이 먼저다 — 최초 맞춤이 뒤따라 전체 상자로 되돌리지 않게.
+  const syncCamera = useCallback(() => {
+    if (fitFocusedRoute()) {
+      return;
+    }
+
+    void fitInitialCamera();
+  }, [fitFocusedRoute, fitInitialCamera]);
 
   /**
    * 현재 위치 — 박지 지도·배낭 코스 지도와 같은 공용 훅(CS-1 규칙: 포커스 동안 구독 + 폴백 사슬).
@@ -257,10 +306,10 @@ const GroupMapCanvasView: FC<Props> = ({
     logTag: 'GroupMap',
   });
 
-  // 데이터가 늦게 도착해도 한 번은 맞춘다.
+  // 데이터가 늦게 도착해도 한 번은 맞춘다. 코스를 고를 때마다(같은 코스를 다시 골라도) 그 코스로 옮긴다.
   useEffect(() => {
-    void fitInitialCamera();
-  }, [fitInitialCamera, routes, campSpot]);
+    syncCamera();
+  }, [syncCamera, initialized, routes, campSpot, routeFocusRequest]);
 
   // 목록에서 넘어온 포인트로 카메라를 옮긴다(GRP-9).
   // 포인트가 아직 안 읽혔을 수 있으므로 개수를 의존성에 실어, 로드가 끝난 뒤 한 번 더 돈다.
@@ -296,8 +345,8 @@ const GroupMapCanvasView: FC<Props> = ({
           }
     );
 
-    void fitInitialCamera();
-  }, [fitInitialCamera]);
+    syncCamera();
+  }, [syncCamera]);
 
   const handleCameraChanged = useCallback((camera: Camera) => {
     if (!mountedRef.current) {
@@ -416,6 +465,8 @@ const GroupMapCanvasView: FC<Props> = ({
   const handleScrub = useCallback(
     (sample: RouteElevationSample | null) => {
       const routeId = groupMap.getSelectedRouteId() ?? '';
+
+      scrubbingRef.current = !!sample;
 
       // 같은 표본이면 이전 객체를 그대로 돌려준다 — 한 번 훑는 동안 들어오는 수십 번의
       // 이벤트가 그대로 렌더가 되면 지도 마커가 프레임마다 네이티브로 다시 동기화된다.
@@ -653,7 +704,7 @@ const GroupMapCanvasView: FC<Props> = ({
                       tone='acgSolid'
                       variant='secondary'
                       selected={route.getId() === selectedRouteId}
-                      onPress={() => groupMap.selectRoute(route.getId())}
+                      onPress={() => groupMap.focusRoute(route.getId())}
                     />
                   ))}
                 </View>

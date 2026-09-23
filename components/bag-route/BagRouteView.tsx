@@ -61,7 +61,7 @@ const BagRouteView: FC<Props> = ({ bagRouteList }) => {
 
   const handleSelect = useCallback(
     (entry: BagRouteEntry) => {
-      bagRouteList.selectEntry(entry.key);
+      bagRouteList.focusEntry(entry.key);
     },
     [bagRouteList]
   );

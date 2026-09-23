@@ -8,6 +8,7 @@ import GroupRoute from '@/model/group/GroupRoute';
 import GroupValidationError from '@/model/group/GroupValidationError';
 import { GROUP_MAX_ROUTE_COUNT } from '@/model/group/GroupLimits';
 import GpxParser from '@/model/route/GpxParser';
+import { mergeRouteBounds } from '@/model/route/RouteCamera';
 import { RouteBounds, RouteDraft } from '@/model/route/RouteData';
 import { getRouteErrorMessage } from '@/model/route/RouteErrorMessage';
 import RoutePicker from '@/model/route/RoutePicker';
@@ -20,6 +21,15 @@ const GPX_EXTENSION_PATTERN = /\.gpx$/i;
 interface LinkedGroupRoute {
   groupName: string;
   route: GroupRoute;
+}
+
+/**
+ * 목록에서 코스를 **고른** 요청 (BD-11). 지도가 이 요청마다 카메라를 그 코스로 옮긴다.
+ * `seq`가 고를 때마다 올라가 이미 선택된 코스를 다시 골라도 새 요청이 된다.
+ */
+export interface BagRouteFocusRequest {
+  key: string;
+  seq: number;
 }
 
 /**
@@ -36,6 +46,7 @@ class BagRouteList {
   private groupRoutes: LinkedGroupRoute[] = [];
   private linkedGroups: Group[] = [];
   private selectedKey: string | null = null;
+  private focusRequest: BagRouteFocusRequest | null = null;
   private loading = false;
   private initialized = false;
   private submitting = false;
@@ -100,6 +111,19 @@ class BagRouteList {
     this.selectedKey = key;
   }
 
+  /**
+   * 사용자가 목록에서 코스를 고른다 (BD-11). 선택에 더해 카메라 맞춤 요청을 남긴다 — 로드 후
+   * 자동 선택·코스 추가 후 선택(`selectEntry`)은 카메라를 옮기지 않는다.
+   */
+  public focusEntry(key: string): void {
+    this.selectedKey = key;
+    this.focusRequest = { key, seq: (this.focusRequest?.seq ?? 0) + 1 };
+  }
+
+  public getFocusRequest(): BagRouteFocusRequest | null {
+    return this.focusRequest;
+  }
+
   public getSelectedEntry(): BagRouteEntry | null {
     const entries = this.getEntries();
 
@@ -120,26 +144,9 @@ class BagRouteList {
    * 코스가 하나도 없으면 `null`이고, 그때 지도는 남한 전역에 머문다.
    */
   public getContentBounds(): RouteBounds | null {
-    const latitudes: number[] = [];
-    const longitudes: number[] = [];
-
-    this.getEntries().forEach(entry => {
-      entry.route.getSimplified().forEach(coordinate => {
-        latitudes.push(coordinate.lat);
-        longitudes.push(coordinate.lng);
-      });
-    });
-
-    if (latitudes.length === 0) {
-      return null;
-    }
-
-    return {
-      minLat: Math.min(...latitudes),
-      maxLat: Math.max(...latitudes),
-      minLng: Math.min(...longitudes),
-      maxLng: Math.max(...longitudes),
-    };
+    return mergeRouteBounds(
+      this.getEntries().map(entry => entry.route.getBounds())
+    );
   }
 
   public getLinkedGroups(): Group[] {

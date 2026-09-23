@@ -1,4 +1,5 @@
-import { RouteCoordinate } from './RouteData';
+import { measureRouteBounds } from './RouteCamera';
+import { RouteBounds, RouteCoordinate } from './RouteData';
 import RouteDirectionStore from './RouteDirectionStore';
 import {
   buildRouteElevationProfile,
@@ -33,6 +34,7 @@ class RouteGeometry {
   private reversedSimplified: RouteCoordinate[] | null = null;
   private readonly profiles = new Map<boolean, RouteElevationProfile | null>();
   private fallbackLoss: number | null | undefined = undefined;
+  private bounds: RouteBounds | null | undefined = undefined;
 
   public static from(
     input: RouteGeometryInput,
@@ -81,6 +83,19 @@ class RouteGeometry {
     }
 
     return this.reversedSimplified;
+  }
+
+  /**
+   * 코스 전체의 경계 상자 — 코스를 고를 때 카메라를 맞춘다(GRP-8, BD-11). **저장된 순서의 축약
+   * 좌표**로 재므로 뒤집어도 같은 상자다. 문서의 `bounds`(원본 트랙 기준) 대신 이것을 쓰는 이유는
+   * 지도에 그리는 선이 축약 좌표이기 때문이다 — 그린 선과 맞춘 상자가 어긋나지 않는다.
+   */
+  public getBounds(): RouteBounds | null {
+    if (this.bounds === undefined) {
+      this.bounds = measureRouteBounds(this.simplified);
+    }
+
+    return this.bounds;
   }
 
   /**

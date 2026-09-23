@@ -92,6 +92,11 @@ class GroupRoute implements RouteDisplay {
     return this.geometry.getSimplified();
   }
 
+  // 코스를 고를 때 카메라를 맞추는 상자(GRP-8, BD-11). 방향과 무관하다.
+  public getBounds() {
+    return this.geometry.getBounds();
+  }
+
   public getAuthorId() {
     return this.authorId;
   }

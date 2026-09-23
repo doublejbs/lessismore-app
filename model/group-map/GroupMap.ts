@@ -4,14 +4,20 @@ import Group from '@/model/group/Group';
 import GroupPoint from '@/model/group/GroupPoint';
 import GroupRoute from '@/model/group/GroupRoute';
 import GroupPointList from '@/model/group-point/GroupPointList';
+import {
+  measureRouteBounds,
+  mergeRouteBounds,
+} from '@/model/route/RouteCamera';
+import { RouteBounds } from '@/model/route/RouteData';
 import GroupMapDispatcher from './GroupMapDispatcher';
 
-// 코스·포인트를 모두 담는 경계 상자. 최초 카메라를 맞출 때 쓴다(GRP-10).
-export interface GroupMapBounds {
-  minLatitude: number;
-  maxLatitude: number;
-  minLongitude: number;
-  maxLongitude: number;
+/**
+ * 코스를 **고른** 요청 (GRP-8). 지도가 이 요청마다 카메라를 그 코스로 옮긴다.
+ * `seq`가 고를 때마다 올라가 이미 선택된 코스를 다시 골라도 새 요청이 된다.
+ */
+export interface GroupRouteFocusRequest {
+  routeId: string;
+  seq: number;
 }
 
 /**
@@ -25,6 +31,7 @@ class GroupMap {
   private routes: GroupRoute[] = [];
   private campSpot: CampSpot | null = null;
   private selectedRouteId: string | null = null;
+  private routeFocusRequest: GroupRouteFocusRequest | null = null;
   private focusedPointId: string | null = null;
   private loading = false;
   private initialized = false;
@@ -97,6 +104,22 @@ class GroupMap {
     this.selectedRouteId = routeId;
   }
 
+  /**
+   * 사용자가 코스를 고른다 — 지도의 코스 칩, 상세 코스 행에서 넘어온 핸드오프 (GRP-8).
+   * 선택에 더해 카메라 맞춤 요청을 남긴다. 로드 후 자동 선택은 카메라를 옮기지 않는다.
+   */
+  public focusRoute(routeId: string): void {
+    this.selectedRouteId = routeId;
+    this.routeFocusRequest = {
+      routeId,
+      seq: (this.routeFocusRequest?.seq ?? 0) + 1,
+    };
+  }
+
+  public getRouteFocusRequest(): GroupRouteFocusRequest | null {
+    return this.routeFocusRequest;
+  }
+
   public getFocusedPointId(): string | null {
     return this.focusedPointId;
   }
@@ -141,32 +164,16 @@ class GroupMap {
    * 코스·포인트를 모두 담는 경계 상자 (GRP-10). 둘 다 없으면 `null`이고,
    * 그때 화면은 박지 위치 → 현재 위치 순으로 폴백한다.
    */
-  public getContentBounds(): GroupMapBounds | null {
-    const latitudes: number[] = [];
-    const longitudes: number[] = [];
-
-    this.routes.forEach(route => {
-      route.getSimplified().forEach(coordinate => {
-        latitudes.push(coordinate.lat);
-        longitudes.push(coordinate.lng);
-      });
-    });
-
-    this.pointList.getPoints().forEach(point => {
-      latitudes.push(point.getLatitude());
-      longitudes.push(point.getLongitude());
-    });
-
-    if (latitudes.length === 0 || longitudes.length === 0) {
-      return null;
-    }
-
-    return {
-      minLatitude: Math.min(...latitudes),
-      maxLatitude: Math.max(...latitudes),
-      minLongitude: Math.min(...longitudes),
-      maxLongitude: Math.max(...longitudes),
-    };
+  public getContentBounds(): RouteBounds | null {
+    return mergeRouteBounds([
+      ...this.routes.map(route => route.getBounds()),
+      measureRouteBounds(
+        this.pointList.getPoints().map(point => ({
+          lat: point.getLatitude(),
+          lng: point.getLongitude(),
+        }))
+      ),
+    ]);
   }
 
   private async load(quiet: boolean) {

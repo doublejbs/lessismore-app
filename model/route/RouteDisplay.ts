@@ -1,5 +1,5 @@
 import { RouteElevationProfile } from './RouteElevation';
-import { RouteCoordinate } from './RouteData';
+import { RouteBounds, RouteCoordinate } from './RouteData';
 
 /**
  * 화면이 코스를 그리는 데 필요한 것 전부 (GRP-8, BD-11).
@@ -24,6 +24,8 @@ export interface RouteDisplay {
    * 읽으므로 사본을 만들지 않는다 — 읽기 전용으로만 쓴다.
    */
   getSimplified(): RouteCoordinate[];
+  // 코스 전체의 경계 상자. 방향과 무관하다(뒤집어도 같다). 좌표가 없으면 `null`이다.
+  getBounds(): RouteBounds | null;
   /**
    * 원본 트랙 거리(m). 축약 좌표로 다시 잰 단면 거리(`RouteElevationProfile.totalDistance`)와
    * 달리 목록 행이 읽는 값이라, 고도 그래프의 거리 표시도 이 값을 기준으로 환산한다(GRP-8).

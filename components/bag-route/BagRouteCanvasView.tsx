@@ -20,6 +20,8 @@ import {
 import app from '@/model/app/App';
 import BagRouteList from '@/model/bag-route/BagRouteList';
 import { deltaToZoom } from '@/model/map/MapZoom';
+import { getRouteFitRegion } from '@/model/route/RouteCamera';
+import { RouteBounds } from '@/model/route/RouteData';
 import { RouteElevationSample } from '@/model/route/RouteElevation';
 
 interface Props {
@@ -32,12 +34,6 @@ const KOREA_CAMERA: Camera = {
   longitude: 127.9,
   zoom: deltaToZoom(4.8),
 };
-
-/** 경계 상자가 화면 가장자리에 붙지 않도록 주는 여유 배율. */
-const CAMERA_PADDING_RATIO = 1.3;
-
-/** 최소 표시 범위(도). 아주 짧은 코스는 상자가 0에 가까워 최대 줌으로 붙어 버린다. */
-const MIN_REGION_DELTA = 0.004;
 
 /** `내 위치`로 옮길 때의 표시 범위(도) — 그룹 지도의 현재 위치 버튼과 같은 값. */
 const CURRENT_LOCATION_DELTA = 0.05;
@@ -62,6 +58,10 @@ const BagRouteCanvasView: FC<Props> = ({ bagRouteList }) => {
   const mapRef = useRef<NaverMapViewRef>(null);
   const mapReadyRef = useRef(false);
   const didFitRef = useRef(false);
+  // 처리한 마지막 코스 선택 요청(`BagRouteList.focusEntry`)의 `seq`.
+  const handledFocusSeqRef = useRef(0);
+  // 지금 손가락이 고도 그래프 위에 있는지. 이때는 선택이 바뀌어도 카메라를 옮기지 않는다(GRP-8).
+  const scrubbingRef = useRef(false);
   const mountedRef = useRef(true);
   /**
    * 고도 그래프에서 훑고 있는 지점. 손을 떼면 `null`이 되어 마커가 사라진다.
@@ -77,6 +77,7 @@ const BagRouteCanvasView: FC<Props> = ({ bagRouteList }) => {
   const selected = bagRouteList.getSelectedEntry();
   const selectedKey = bagRouteList.getSelectedKey();
   const selectedRoute = selected?.route ?? null;
+  const focusRequest = bagRouteList.getFocusRequest();
 
   /**
    * 내 위치 (BD-11) — 그룹 지도·박지 지도와 같은 공용 훅이다. 진입에서 권한을 묻지 않고,
@@ -112,6 +113,13 @@ const BagRouteCanvasView: FC<Props> = ({ bagRouteList }) => {
     };
   }, []);
 
+  const fitBounds = useCallback((bounds: RouteBounds) => {
+    mapRef.current?.animateRegionTo({
+      ...getRouteFitRegion(bounds),
+      duration: 500,
+    });
+  }, []);
+
   // 최초 카메라 — 목록의 코스를 모두 담는 상자에 맞춘다(BD-11). 코스가 없으면 그대로 둔다.
   const fitInitialCamera = useCallback(() => {
     if (didFitRef.current || !mapReadyRef.current) {
@@ -125,34 +133,70 @@ const BagRouteCanvasView: FC<Props> = ({ bagRouteList }) => {
     }
 
     didFitRef.current = true;
+    fitBounds(bounds);
+  }, [bagRouteList, fitBounds]);
 
-    const latitudeDelta = Math.max(
-      (bounds.maxLat - bounds.minLat) * CAMERA_PADDING_RATIO,
-      MIN_REGION_DELTA
-    );
-    const longitudeDelta = Math.max(
-      (bounds.maxLng - bounds.minLng) * CAMERA_PADDING_RATIO,
-      MIN_REGION_DELTA
-    );
+  /**
+   * 목록에서 고른 코스로 카메라를 옮긴다(BD-11). 최초 맞춤과 달리 **고를 때마다** 옮긴다 —
+   * 같은 코스를 다시 골라도(`seq`가 올라간다). 지도가 아직 준비되지 않았으면 요청을 남겨 두고
+   * 준비된 뒤 한 번 맞춘다. 요청을 처리했으면 `true`다.
+   */
+  const fitFocusedRoute = useCallback(() => {
+    const request = bagRouteList.getFocusRequest();
 
-    mapRef.current?.animateRegionTo({
-      latitude: (bounds.minLat + bounds.maxLat) / 2 - latitudeDelta / 2,
-      longitude: (bounds.minLng + bounds.maxLng) / 2 - longitudeDelta / 2,
-      latitudeDelta,
-      longitudeDelta,
-      duration: 500,
-    });
-  }, [bagRouteList]);
+    if (
+      !request ||
+      request.seq === handledFocusSeqRef.current ||
+      !mapReadyRef.current
+    ) {
+      return false;
+    }
+
+    handledFocusSeqRef.current = request.seq;
+
+    // 훑는 중에 바뀐 선택은 카메라를 옮기지 않는다 — 손가락 아래 그래프와 지도가 어긋난다(GRP-8).
+    // 선택이 바뀌면 그래프가 새로 마운트되어 이 훑기는 끝난다(남은 마커는 키가 달라 저절로 걷힌다).
+    if (scrubbingRef.current) {
+      scrubbingRef.current = false;
+
+      return false;
+    }
+
+    const entry = bagRouteList
+      .getEntries()
+      .find(item => item.key === request.key);
+    const bounds = entry?.route.getBounds() ?? null;
+
+    if (!bounds) {
+      return false;
+    }
+
+    // 명시적 선택이 카메라를 정했으므로 늦게 온 데이터가 최초 맞춤으로 되돌리지 않게 한다.
+    didFitRef.current = true;
+    fitBounds(bounds);
+
+    return true;
+  }, [bagRouteList, fitBounds]);
 
   const handleMapInitialized = useCallback(() => {
     mapReadyRef.current = true;
+
+    if (fitFocusedRoute()) {
+      return;
+    }
+
     fitInitialCamera();
-  }, [fitInitialCamera]);
+  }, [fitFocusedRoute, fitInitialCamera]);
 
   // 데이터가 늦게 도착해도 한 번은 맞춘다.
   useEffect(() => {
     fitInitialCamera();
   }, [fitInitialCamera, entries.length]);
+
+  // 목록 행을 누를 때마다(같은 코스를 다시 눌러도) 그 코스로 옮긴다.
+  useEffect(() => {
+    fitFocusedRoute();
+  }, [fitFocusedRoute, focusRequest]);
 
   /**
    * 그래프 훑기 (GRP-8과 같은 규칙). **카메라는 건드리지 않는다** — 손가락 아래에서 지도가
@@ -162,6 +206,7 @@ const BagRouteCanvasView: FC<Props> = ({ bagRouteList }) => {
     (sample: RouteElevationSample | null) => {
       const key = bagRouteList.getSelectedKey() ?? '';
 
+      scrubbingRef.current = !!sample;
       setScrub(previous => {
         if (!sample) {
           return null;
