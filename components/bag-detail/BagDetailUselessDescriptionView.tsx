@@ -5,7 +5,8 @@ import { observer } from 'mobx-react-lite';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgRadius, AcgType, Color } from '@/constants/DesignTokens';
+import { AcgType, Color } from '@/constants/DesignTokens';
+import tileStyles from './BagDetailActionTileStyles';
 
 interface Props {
   bagDetail: BagDetail;
@@ -44,27 +45,47 @@ const BagDetailUselessDescriptionView: FC<Props> = ({
     </View>
   ) : (
     <PretendardText
-      style={[styles.subtitle, { color: subFg }]}
+      style={[tileStyles.subtitle, { color: subFg }]}
       numberOfLines={1}
     >
       {subtitle}
     </PretendardText>
   );
 
-  // 강조여도 48% 그리드 세로 카드는 그대로 두고 배경/전경색만 검정으로 바꾼다.
+  /**
+   * 강조는 **검정 전체 폭 가로 카드**다(BD-10) — 아이콘·라벨이 좌측, 값이 우측이고 높이가
+   * 줄어든다. 글자 크기·색은 회색 타일과 같다: 바뀌는 것은 폭과 배치뿐이다.
+   */
+  const icon = <Ionicons name='trending-down-outline' size={22} color={fg} />;
+  const titleNode = (
+    <PretendardText style={[tileStyles.title, { color: fg }]} weight='medium'>
+      {app.getL10n().t('bagDetail.useless.title')}
+    </PretendardText>
+  );
+
   return (
     <TouchableOpacity
-      style={[styles.tile, emphasized && styles.tileEmphasized]}
+      style={[tileStyles.tile, emphasized && tileStyles.tileEmphasized]}
       onPress={handlePressUseless}
       activeOpacity={0.7}
     >
-      <Ionicons name='trending-down-outline' size={22} color={fg} />
-      <View style={styles.textWrap}>
-        <PretendardText style={[styles.title, { color: fg }]} weight='medium'>
-          {app.getL10n().t('bagDetail.useless.title')}
-        </PretendardText>
-        {weightBlock}
-      </View>
+      {emphasized ? (
+        <>
+          <View style={tileStyles.emphasizedLead}>
+            {icon}
+            {titleNode}
+          </View>
+          <View style={tileStyles.emphasizedValue}>{weightBlock}</View>
+        </>
+      ) : (
+        <>
+          {icon}
+          <View style={tileStyles.textWrap}>
+            {titleNode}
+            {weightBlock}
+          </View>
+        </>
+      )}
     </TouchableOpacity>
   );
 };
@@ -72,31 +93,6 @@ const BagDetailUselessDescriptionView: FC<Props> = ({
 const EMPHASIZED_SUB = '#B9B9B9';
 
 const styles = StyleSheet.create({
-  tile: {
-    width: '48%',
-    minHeight: 92,
-    /**
-     * 순백 지면 위 연회색 면(2026-08-11) — 지면이 흰색이 되면서 흰 종이 면은 보이지 않고
-     * 그림자만 남았다. 그림자를 걷고 채움으로 면을 만든다(탐색 셀과 같은 규칙).
-     * 강조 타일만 잉크 면이다 — 라임은 하단 주 액션 하나뿐이다.
-     */
-    backgroundColor: Acg.controlFill,
-    borderRadius: AcgRadius.thumb,
-    padding: 14,
-    justifyContent: 'space-between',
-  },
-  tileEmphasized: {
-    backgroundColor: Acg.ink,
-  },
-  textWrap: {
-    gap: 2,
-  },
-  title: {
-    ...AcgType.rowSubtitle,
-  },
-  subtitle: {
-    ...AcgType.meta,
-  },
   weightRow: {
     flexDirection: 'row',
     alignItems: 'baseline',

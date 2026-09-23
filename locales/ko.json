@@ -28,13 +28,7 @@
       "weightAsc": "가벼운순",
       "nameAsc": "이름순"
     },
-    "metaSeparator": " · ",
-    "route": {
-      "profileTitle": "고도 단면",
-      "profilePeak": "최고 {{value}}m",
-      "profileHint": "그래프를 손가락으로 훑으면 지도에 그 지점이 표시돼요",
-      "elevation": "상승 {{value}}m"
-    }
+    "metaSeparator": " · "
   },
   "category": {
     "all": "전체",
@@ -261,8 +255,6 @@
       "count_other": "{{count}}개",
       "add": "코스 추가",
       "uploading": "올리는 중",
-      "delete": "삭제",
-      "deleteConfirm": "이 코스를 지울까요?",
       "empty": "아직 올린 코스가 없어요",
       "loadFailed": "코스를 불러오지 못했어요",
       "fromGroup": "그룹 {{name}}",
@@ -1461,13 +1453,17 @@
     },
     "route": {
       "add": "코스 추가",
-      "uploading": "올리는 중",
-      "delete": "삭제",
-      "deleteConfirm": "이 코스를 지울까요?",
-      "elevation": "상승 {{value}}m",
-      "profileTitle": "고도 단면",
-      "profilePeak": "최고 {{value}}m",
-      "profileHint": "그래프를 손가락으로 훑으면 지도에 그 지점이 표시돼요"
+      "uploading": "올리는 중"
     }
+  },
+  "route": {
+    "menu": "{{name}} 메뉴",
+    "delete": "삭제",
+    "deleteConfirm": "{{name}}을(를) 삭제할까요? 올린 GPX 원본 파일도 함께 사라져요.",
+    "elevation": "상승 {{value}}m",
+    "profileTitle": "고도 단면",
+    "profilePeak": "최고 {{value}}m",
+    "profileHint": "그래프를 손가락으로 훑으면 지도에 그 지점이 표시돼요",
+    "profileScrubHint": "그래프를 훑어 지도에서 위치 보기"
   }
 }

@@ -674,6 +674,10 @@ const GroupMapCanvasView: FC<Props> = ({
           // 코스를 바꾸면 그래프를 새로 마운트해 이전 코스의 커서가 남지 않게 한다.
           key={selectedRoute?.getId()}
           profile={elevationProfile}
+          // 축 거리는 목록 행과 같은 원본 거리로 읽힌다(GRP-8).
+          {...(selectedRoute
+            ? { displayDistance: selectedRoute.getDistance() }
+            : {})}
           onScrub={handleScrub}
           bottomInset={insets.bottom + 12}
         />

@@ -68,6 +68,7 @@ const GroupMapListView: FC<Props> = ({
               routes={routes}
               memberIds={memberIds}
               onSelect={route => groupMap.selectRoute(route.getId())}
+              selectedRouteId={selectedRoute?.getId() ?? null}
             />
             {/* 고도가 없는 코스는 그래프 자리를 아예 비운다(GRP-8). */}
             {selectedProfile ? (
@@ -75,6 +76,9 @@ const GroupMapListView: FC<Props> = ({
                 <RouteElevationChartView
                   key={selectedRoute?.getId()}
                   profile={selectedProfile}
+                  {...(selectedRoute
+                    ? { displayDistance: selectedRoute.getDistance() }
+                    : {})}
                 />
               </View>
             ) : null}

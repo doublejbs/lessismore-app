@@ -77,6 +77,11 @@ class GroupRoute implements RouteDisplay {
     return this.createdAt;
   }
 
+  // 원본 트랙 거리(m). 고도 그래프가 축약 거리를 이 값으로 환산해 표시한다(GRP-8).
+  public getDistance() {
+    return this.distance;
+  }
+
   public getDistanceText() {
     return formatRouteDistance(this.distance);
   }

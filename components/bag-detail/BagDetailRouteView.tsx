@@ -1,13 +1,14 @@
 import { FC } from 'react';
-import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Platform, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgRadius, AcgType, Color } from '@/constants/DesignTokens';
+import { Color } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import { formatRouteDistance } from '@/model/route/RouteFormat';
+import tileStyles from './BagDetailActionTileStyles';
 
 interface Props {
   bagDetail: BagDetail;
@@ -45,22 +46,22 @@ const BagDetailRouteView: FC<Props> = ({ bagDetail }) => {
 
   return (
     <TouchableOpacity
-      style={styles.tile}
+      style={tileStyles.tile}
       onPress={handlePress}
       activeOpacity={0.7}
       accessibilityRole='button'
       accessibilityLabel={l10n.t('bag.route.tileLabel', { subtitle })}
     >
       <Ionicons name='trail-sign-outline' size={24} color={Color.textPrimary} />
-      <View style={styles.textWrap}>
+      <View style={tileStyles.textWrap}>
         <PretendardText
-          style={styles.title}
+          style={tileStyles.title}
           weight='semibold'
           numberOfLines={1}
         >
           {l10n.t('bag.route.title')}
         </PretendardText>
-        <PretendardText style={styles.subtitle} numberOfLines={1}>
+        <PretendardText style={tileStyles.subtitle} numberOfLines={1}>
           {subtitle}
         </PretendardText>
       </View>
@@ -68,27 +69,5 @@ const BagDetailRouteView: FC<Props> = ({ bagDetail }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  tile: {
-    width: '48%',
-    minHeight: 92,
-    // 순백 지면 위 연회색 면 + 모서리 12, 그림자 없음(HM-8 · BD-10).
-    backgroundColor: Acg.controlFill,
-    borderRadius: AcgRadius.thumb,
-    padding: 14,
-    justifyContent: 'space-between',
-  },
-  textWrap: {
-    gap: 2,
-  },
-  title: {
-    ...AcgType.rowSubtitle,
-    color: Acg.ink,
-  },
-  subtitle: {
-    ...AcgType.meta,
-    color: Acg.textMuted,
-  },
-});
 
 export default observer(BagDetailRouteView);

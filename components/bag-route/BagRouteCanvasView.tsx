@@ -173,6 +173,10 @@ const BagRouteCanvasView: FC<Props> = ({ bagRouteList }) => {
           // 코스를 바꾸면 그래프를 새로 마운트해 이전 코스의 커서가 남지 않게 한다.
           key={selectedKey ?? ''}
           profile={profile}
+          // 축 거리는 목록 행과 같은 원본 거리로 읽힌다(BD-11).
+          {...(selected
+            ? { displayDistance: selected.route.getDistance() }
+            : {})}
           onScrub={handleScrub}
         />
       ) : null}

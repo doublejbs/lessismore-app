@@ -14,6 +14,11 @@ interface Props {
   memberIds: readonly string[];
   // 행 탭 — 그룹 지도에서 해당 코스를 강조한다(GRP-8). 없으면 행이 눌리지 않는다.
   onSelect?: ((route: GroupRoute) => void) | undefined;
+  /**
+   * 지금 지도·그래프에 반영된 코스(GRP-8). 지도 화면처럼 선택이 그 자리에 남는 목록만 넘긴다 —
+   * 그룹 상세의 코스 섹션은 행을 누르면 지도로 넘어가므로 선택 상태가 없다.
+   */
+  selectedRouteId?: string | null | undefined;
   // 삭제는 올린 사람과 방장에게만 노출한다. 판정은 화면이 내려준다.
   onDelete?: ((route: GroupRoute) => void) | undefined;
   canDelete?: ((route: GroupRoute) => boolean) | undefined;
@@ -29,6 +34,7 @@ const GroupRouteListView: FC<Props> = ({
   routes,
   memberIds,
   onSelect,
+  selectedRouteId,
   onDelete,
   canDelete,
   disabled,
@@ -43,7 +49,7 @@ const GroupRouteListView: FC<Props> = ({
       ...(elevationGain === undefined
         ? []
         : [
-            l10n.t('group.route.elevation', {
+            l10n.t('route.elevation', {
               value: Math.round(elevationGain),
             }),
           ]),
@@ -57,7 +63,8 @@ const GroupRouteListView: FC<Props> = ({
     const actions: RouteRowAction[] = deletable
       ? [
           {
-            label: l10n.t('group.route.delete'),
+            icon: 'trash-outline',
+            label: l10n.t('route.delete'),
             onPress: () => onDelete?.(route),
           },
         ]
@@ -72,7 +79,13 @@ const GroupRouteListView: FC<Props> = ({
     };
   };
 
-  return <RouteListView rows={routes.map(toRow)} disabled={disabled} />;
+  return (
+    <RouteListView
+      rows={routes.map(toRow)}
+      selectedId={selectedRouteId}
+      disabled={disabled}
+    />
+  );
 };
 
 export default observer(GroupRouteListView);

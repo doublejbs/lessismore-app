@@ -22,6 +22,13 @@ interface Props {
    * 웹은 지도가 목록으로 대체되어 따라 움직일 마커가 없다(GRP-8 · APP-5).
    */
   onScrub?: ((sample: RouteElevationSample | null) => void) | undefined;
+  /**
+   * 목록 행이 쓰는 **원본 트랙 거리**(m). 단면은 축약 좌표(최대 500점)로 다시 잰 값이라
+   * 원본보다 늘 짧다 — 목록에 `31.5km`, 축에 `31.0km`가 나란히 서면 한 코스의 숫자가 둘로
+   * 보인다. 그래서 **표시만** 이 값을 기준으로 환산한다(GRP-8 · BD-11, 2026-09-18 사용자 결정).
+   * 넘기지 않으면 축약 거리를 그대로 쓴다.
+   */
+  displayDistance?: number | undefined;
   // 지도 화면처럼 그래프가 화면 맨 아래에 놓일 때 세이프에어리어를 여기서 비운다.
   bottomInset?: number | undefined;
 }
@@ -58,6 +65,7 @@ const PROFILE_FILL = 'rgba(47, 107, 255, 0.14)';
 const RouteElevationChartView: FC<Props> = ({
   profile,
   onScrub,
+  displayDistance,
   bottomInset,
 }) => {
   const l10n = app.getL10n();
@@ -149,14 +157,29 @@ const RouteElevationChartView: FC<Props> = ({
   }, [profile, width]);
 
   const peak = profile.samples[profile.peakIndex];
+  /**
+   * 축약 거리를 원본 거리로 옮기는 배율. 내부 계산(표본 탐색·x 좌표)은 축약 거리를 그대로
+   * 쓰고 **표시만** 환산한다 — 표본의 거리 값을 건드리면 손가락 위치와 지도 마커가 어긋난다.
+   * 총 거리가 0(같은 자리를 맴도는 트랙)이면 나누지 않는다.
+   */
+  const distanceScale =
+    displayDistance !== undefined && profile.totalDistance > 0
+      ? displayDistance / profile.totalDistance
+      : 1;
+  const totalDisplayDistance = profile.totalDistance * distanceScale;
+  /**
+   * 그래프 아래 한 줄. 훑는 중에는 **거리·고도**를, 아닐 때는 훑을 수 있다는 안내를 읽힌다 —
+   * 같은 자리를 두 용도로 써서 안내가 공간을 더 먹지 않는다. 웹은 훑기가 없으므로 비운다.
+   */
   const readout = cursor
     ? [
-        formatRouteDistance(cursor.distance, profile.totalDistance),
+        formatRouteDistance(
+          cursor.distance * distanceScale,
+          totalDisplayDistance
+        ),
         formatRouteAltitude(cursor.elevation),
       ].join(l10n.t('common.metaSeparator'))
-    : l10n.t('common.route.profilePeak', {
-        value: Math.round(profile.maxElevation),
-      });
+    : null;
 
   const chart = (
     <View
@@ -164,9 +187,9 @@ const RouteElevationChartView: FC<Props> = ({
       onLayout={handleLayout}
       accessible
       accessibilityRole='image'
-      accessibilityLabel={l10n.t('common.route.profileTitle')}
+      accessibilityLabel={l10n.t('route.profileTitle')}
       {...(interactive
-        ? { accessibilityHint: l10n.t('common.route.profileHint') }
+        ? { accessibilityHint: l10n.t('route.profileHint') }
         : {})}
     >
       {geometry ? (
@@ -215,10 +238,12 @@ const RouteElevationChartView: FC<Props> = ({
     <View style={[styles.container, { paddingBottom: bottomInset ?? 12 }]}>
       <View style={styles.header}>
         <PretendardText weight='semibold' style={styles.title}>
-          {l10n.t('common.route.profileTitle')}
+          {l10n.t('route.profileTitle')}
         </PretendardText>
         <PretendardText style={styles.readout} numberOfLines={1}>
-          {readout}
+          {l10n.t('route.profilePeak', {
+            value: Math.round(profile.maxElevation),
+          })}
         </PretendardText>
       </View>
       {interactive ? (
@@ -226,12 +251,21 @@ const RouteElevationChartView: FC<Props> = ({
       ) : (
         chart
       )}
+      {/* 훑기가 없는 웹에는 안내도 수치도 띄우지 않는다 — 줄 자체를 그리지 않는다(APP-5). */}
+      {interactive ? (
+        <PretendardText
+          style={[styles.hint, !!cursor && styles.hintActive]}
+          numberOfLines={1}
+        >
+          {readout ?? l10n.t('route.profileScrubHint')}
+        </PretendardText>
+      ) : null}
       <View style={styles.axis}>
         <PretendardText style={styles.axisText}>
-          {formatRouteDistance(0, profile.totalDistance)}
+          {formatRouteDistance(0, totalDisplayDistance)}
         </PretendardText>
         <PretendardText style={styles.axisText}>
-          {formatRouteDistance(profile.totalDistance)}
+          {formatRouteDistance(totalDisplayDistance)}
         </PretendardText>
       </View>
     </View>
@@ -262,6 +296,18 @@ const styles = StyleSheet.create({
   },
   chart: {
     height: CHART_HEIGHT,
+  },
+  /**
+   * 훑을 수 있다는 유일한 시각 단서다(그전에는 `accessibilityHint`에만 있었다). 훑는 동안
+   * 같은 자리가 거리·고도를 읽으므로 줄 수가 늘지 않는다 — 글자만 뮤트에서 잉크로 바뀐다.
+   */
+  hint: {
+    ...AcgType.meta,
+    color: Acg.textMuted,
+    textAlign: 'center',
+  },
+  hintActive: {
+    color: Acg.ink,
   },
   axis: {
     flexDirection: 'row',

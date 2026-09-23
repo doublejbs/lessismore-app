@@ -69,8 +69,9 @@ const GroupDetailRouteSectionView: FC<Props> = ({ detail }) => {
 
   const handleDelete = (route: GroupRoute) => {
     app.getAlertManager()?.show({
-      message: l10n.t('group.route.deleteConfirm'),
-      confirmText: l10n.t('group.route.delete'),
+      // 지우는 대상과 함께 사라지는 것(Storage 원본)을 문구에 담는다 — 되돌릴 수 없다.
+      message: l10n.t('route.deleteConfirm', { name: route.getName() }),
+      confirmText: l10n.t('route.delete'),
       cancelText: l10n.t('common.cancel'),
       destructive: true,
       onConfirm: async () => {

@@ -6,7 +6,8 @@ import { useRouter } from 'expo-router';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgRadius, AcgType, Color } from '@/constants/DesignTokens';
+import { AcgType, Color } from '@/constants/DesignTokens';
+import tileStyles from './BagDetailActionTileStyles';
 
 interface Props {
   bagDetail: BagDetail;
@@ -24,7 +25,7 @@ const BagDetailMemoView: FC<Props> = ({ bagDetail }) => {
 
   return (
     <TouchableOpacity
-      style={styles.tile}
+      style={tileStyles.tile}
       onPress={handlePressMemo}
       activeOpacity={0.7}
     >
@@ -44,11 +45,11 @@ const BagDetailMemoView: FC<Props> = ({ bagDetail }) => {
           {memo}
         </PretendardText>
       ) : (
-        <View style={styles.textWrap}>
-          <PretendardText style={styles.title} weight='medium'>
+        <View style={tileStyles.textWrap}>
+          <PretendardText style={tileStyles.title} weight='medium'>
             {app.getL10n().t('bag.memo.title')}
           </PretendardText>
-          <PretendardText style={styles.subtitle} numberOfLines={1}>
+          <PretendardText style={tileStyles.subtitle} numberOfLines={1}>
             {app.getL10n().t('bag.memo.write')}
           </PretendardText>
         </View>
@@ -58,30 +59,6 @@ const BagDetailMemoView: FC<Props> = ({ bagDetail }) => {
 };
 
 const styles = StyleSheet.create({
-  tile: {
-    width: '48%',
-    minHeight: 92,
-    /**
-     * 순백 지면 위 연회색 면(2026-08-11) — 지면이 흰색이 되면서 흰 종이 면은 보이지 않고
-     * 그림자만 남았다. 그림자를 걷고 채움으로 면을 만든다(탐색 셀과 같은 규칙).
-     * 강조 타일만 잉크 면이다 — 라임은 하단 주 액션 하나뿐이다.
-     */
-    backgroundColor: Acg.controlFill,
-    borderRadius: AcgRadius.thumb,
-    padding: 14,
-    justifyContent: 'space-between',
-  },
-  textWrap: {
-    gap: 2,
-  },
-  title: {
-    ...AcgType.rowSubtitle,
-    color: Acg.ink,
-  },
-  subtitle: {
-    ...AcgType.meta,
-    color: Acg.textMuted,
-  },
   memoContent: {
     ...AcgType.sectionSubtitle,
     color: Color.textPrimary,

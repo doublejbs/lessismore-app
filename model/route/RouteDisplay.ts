@@ -13,6 +13,11 @@ export interface RouteDisplay {
   getName(): string;
   // 축약 좌표. 지도가 렌더마다 읽으므로 사본을 만들지 않는다 — 읽기 전용으로만 쓴다.
   getSimplified(): RouteCoordinate[];
+  /**
+   * 원본 트랙 거리(m). 축약 좌표로 다시 잰 단면 거리(`RouteElevationProfile.totalDistance`)와
+   * 달리 목록 행이 읽는 값이라, 고도 그래프의 거리 표시도 이 값을 기준으로 환산한다(GRP-8).
+   */
+  getDistance(): number;
   getDistanceText(): string;
   // 고도 상승(m). GPX에 고도가 없으면 `undefined`다.
   getElevationGain(): number | undefined;

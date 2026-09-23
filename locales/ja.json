@@ -28,13 +28,7 @@
       "weightAsc": "軽い順",
       "nameAsc": "名前順"
     },
-    "metaSeparator": " · ",
-    "route": {
-      "profileTitle": "標高グラフ",
-      "profilePeak": "最高{{value}}m",
-      "profileHint": "グラフをなぞるとその地点が地図に表示されます",
-      "elevation": "獲得標高{{value}}m"
-    }
+    "metaSeparator": " · "
   },
   "category": {
     "all": "すべて",
@@ -261,8 +255,6 @@
       "count_other": "{{count}}件",
       "add": "コースを追加",
       "uploading": "アップロード中",
-      "delete": "削除",
-      "deleteConfirm": "このコースを削除しますか？",
       "empty": "まだコースがありません",
       "loadFailed": "コースを読み込めませんでした",
       "fromGroup": "グループ {{name}}",
@@ -1461,13 +1453,17 @@
     },
     "route": {
       "add": "コースを追加",
-      "uploading": "アップロード中",
-      "delete": "削除",
-      "deleteConfirm": "このコースを削除しますか？",
-      "elevation": "獲得標高{{value}}m",
-      "profileTitle": "標高グラフ",
-      "profilePeak": "最高{{value}}m",
-      "profileHint": "グラフをなぞるとその地点が地図に表示されます"
+      "uploading": "アップロード中"
     }
+  },
+  "route": {
+    "menu": "{{name}}のメニュー",
+    "delete": "削除",
+    "deleteConfirm": "{{name}}を削除しますか？アップロードしたGPXファイルも一緒に消えます。",
+    "elevation": "獲得標高{{value}}m",
+    "profileTitle": "標高グラフ",
+    "profilePeak": "最高{{value}}m",
+    "profileHint": "グラフをなぞるとその地点が地図に表示されます",
+    "profileScrubHint": "グラフをなぞって地図で位置を確認"
   }
 }

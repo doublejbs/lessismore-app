@@ -28,13 +28,7 @@
       "weightAsc": "Lightest",
       "nameAsc": "Name"
     },
-    "metaSeparator": " · ",
-    "route": {
-      "profileTitle": "Elevation profile",
-      "profilePeak": "Peak {{value}}m",
-      "profileHint": "Drag along the graph to see that spot on the map",
-      "elevation": "Ascent {{value}}m"
-    }
+    "metaSeparator": " · "
   },
   "category": {
     "all": "All",
@@ -263,8 +257,6 @@
       "count_other": "{{count}}",
       "add": "Add route",
       "uploading": "Uploading",
-      "delete": "Delete",
-      "deleteConfirm": "Delete this route?",
       "empty": "No routes yet",
       "loadFailed": "Failed to load routes",
       "fromGroup": "Group {{name}}",
@@ -1484,13 +1476,17 @@
     },
     "route": {
       "add": "Add route",
-      "uploading": "Uploading",
-      "delete": "Delete",
-      "deleteConfirm": "Delete this route?",
-      "elevation": "Ascent {{value}}m",
-      "profileTitle": "Elevation profile",
-      "profilePeak": "Peak {{value}}m",
-      "profileHint": "Drag along the graph to see that spot on the map"
+      "uploading": "Uploading"
     }
+  },
+  "route": {
+    "menu": "{{name}} menu",
+    "delete": "Delete",
+    "deleteConfirm": "Delete {{name}}? The uploaded GPX file will be removed too.",
+    "elevation": "Ascent {{value}}m",
+    "profileTitle": "Elevation profile",
+    "profilePeak": "Peak {{value}}m",
+    "profileHint": "Drag along the graph to see that spot on the map",
+    "profileScrubHint": "Drag the graph to locate a spot"
   }
 }

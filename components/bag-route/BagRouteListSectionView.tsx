@@ -50,7 +50,7 @@ const BagRouteListSectionView: FC<Props> = ({
       ...(elevationGain === undefined
         ? []
         : [
-            l10n.t('common.route.elevation', {
+            l10n.t('route.elevation', {
               value: Math.round(elevationGain),
             }),
           ]),
@@ -67,13 +67,16 @@ const BagRouteListSectionView: FC<Props> = ({
 
       if (bagRouteList.canUploadToGroup()) {
         actions.push({
+          icon: 'people-outline',
           label: l10n.t('bag.route.toGroup'),
           onPress: () => onUploadToGroup(route),
         });
       }
 
+      // 파괴적 액션은 메뉴 맨 아래다(BD-1 `⋯` 메뉴와 같은 순서).
       actions.push({
-        label: l10n.t('bag.route.delete'),
+        icon: 'trash-outline',
+        label: l10n.t('route.delete'),
         onPress: () => onDelete(route),
       });
     }
@@ -99,7 +102,11 @@ const BagRouteListSectionView: FC<Props> = ({
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
         >
-          <RouteListView rows={entries.map(toRow)} disabled={submitting} />
+          <RouteListView
+            rows={entries.map(toRow)}
+            selectedId={bagRouteList.getSelectedKey()}
+            disabled={submitting}
+          />
         </ScrollView>
       )}
 
