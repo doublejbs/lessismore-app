@@ -844,6 +844,7 @@
 | `fileSize` | number | 바이트, 5MB 이하 |
 | `distance` | number | m |
 | `elevationGain` | number? | m |
+| `elevationLoss` | number? | m, 하강 합. 코스를 뒤집어 볼 때의 상승 값이다(GRP-8). **옵셔널** — 2026-09-23 이전 코스엔 없다 |
 | `pointCount` | number | 원본 트랙포인트 수 |
 | `bounds` | map | `{ minLat, maxLat, minLng, maxLng }` |
 | `simplified` | array | 지도 렌더용 축약 좌표 `{ lat, lng, ele? }`, **2~500점**. 최소 2점은 규칙과 클라이언트 검증이 함께 강제한다 — 점이 하나뿐인 GPX는 선이 되지 않아 `코스를 읽지 못했어요`로 거절한다. `ele`(m)는 고도 그래프가 쓰며 GPX에 고도가 없으면 키를 생략한다. 규칙은 리스트 길이만 보므로 원소 키가 늘어도 계약이 깨지지 않는다 |
@@ -865,6 +866,7 @@
 | `fileSize` | number | 바이트, 5MB 이하 |
 | `distance` | number | m |
 | `elevationGain` | number? | m. GPX에 고도가 없으면 키 생략 |
+| `elevationLoss` | number? | m, 하강 합. 코스를 뒤집어 볼 때의 상승 값이다(GRP-8). GPX에 고도가 없으면 키 생략. **옵셔널** — 2026-09-23 이전 코스엔 없다 |
 | `pointCount` | number | 원본 트랙포인트 수 |
 | `bounds` | object | `{ minLat, maxLat, minLng, maxLng }` |
 | `simplified` | array | `{ lat, lng, ele? }`, 2~500점 |
