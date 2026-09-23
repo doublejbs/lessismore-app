@@ -261,6 +261,16 @@
       "toGroup": "グループに送る",
       "toGroupTitle": "どのグループに送りますか？",
       "toGroupDone": "グループに送りました"
+    },
+    "group": {
+      "members_other": "メンバー{{count}}人",
+      "rowLabel": "{{name}}グループ、{{members}}",
+      "linkMenu": "グループに連携",
+      "unlinkMenu": "グループ連携を解除",
+      "sheetTitle": "連携するグループ",
+      "empty": "参加中のグループがありません",
+      "unlinkConfirm": "{{name}}からこのバックパックを外しますか？",
+      "unlink": "連携を解除"
     }
   },
   "bagDetail": {
@@ -1378,7 +1388,8 @@
       "goBack": "戻る",
       "leftMember": "（退出したメンバー）",
       "withdrawnUser": "（退会したユーザー）",
-      "openMap": "地図"
+      "openMap": "地図",
+      "bagLinkedTo": "{{name}}に連携中"
     },
     "member": {
       "mine": "自分のバックパック",
@@ -1456,6 +1467,17 @@
     "route": {
       "add": "コースを追加",
       "uploading": "アップロード中"
+    },
+    "link": {
+      "moveConfirm": "{{from}}から外して、このグループに移しますか？",
+      "move": "移す",
+      "nameSeparator": "、",
+      "syncDates": "グループの日程に合わせますか？\n期間 {{range}}",
+      "syncPlace": "グループの日程に合わせますか？\n目的地 {{place}}",
+      "syncDatesAndPlace": "グループの日程に合わせますか？\n期間 {{range}} · 目的地 {{place}}",
+      "syncConfirm": "合わせる",
+      "syncSkip": "そのまま",
+      "synced": "グループの日程に合わせました"
     }
   },
   "route": {

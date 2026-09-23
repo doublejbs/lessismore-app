@@ -261,6 +261,16 @@
       "toGroup": "그룹에 올리기",
       "toGroupTitle": "어느 그룹에 올릴까요?",
       "toGroupDone": "그룹에 올렸어요"
+    },
+    "group": {
+      "members_other": "멤버 {{count}}명",
+      "rowLabel": "{{name}} 그룹, {{members}}",
+      "linkMenu": "그룹에 연결",
+      "unlinkMenu": "그룹 연결 해제",
+      "sheetTitle": "연결할 그룹",
+      "empty": "참여한 그룹이 없어요",
+      "unlinkConfirm": "{{name}}에서 이 배낭을 뺄까요?",
+      "unlink": "연결 해제"
     }
   },
   "bagDetail": {
@@ -1378,7 +1388,8 @@
       "goBack": "돌아가기",
       "leftMember": "(나간 멤버)",
       "withdrawnUser": "(탈퇴한 사용자)",
-      "openMap": "지도"
+      "openMap": "지도",
+      "bagLinkedTo": "{{name}}에 연결됨"
     },
     "member": {
       "mine": "내 배낭",
@@ -1456,6 +1467,17 @@
     "route": {
       "add": "코스 추가",
       "uploading": "올리는 중"
+    },
+    "link": {
+      "moveConfirm": "{{from}}에서 빼고 이 그룹으로 옮길까요?",
+      "move": "옮기기",
+      "nameSeparator": ", ",
+      "syncDates": "그룹 일정으로 맞출까요?\n기간 {{range}}",
+      "syncPlace": "그룹 일정으로 맞출까요?\n여행지 {{place}}",
+      "syncDatesAndPlace": "그룹 일정으로 맞출까요?\n기간 {{range}} · 여행지 {{place}}",
+      "syncConfirm": "맞추기",
+      "syncSkip": "그대로 두기",
+      "synced": "그룹 일정으로 맞췄어요"
     }
   },
   "route": {

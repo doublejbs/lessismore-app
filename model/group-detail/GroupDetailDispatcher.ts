@@ -40,12 +40,12 @@ class GroupDetailDispatcher {
     return this.campSpotStore.getSpot(campSpotId);
   }
 
-  public getMyBags(): Promise<BagItem[]> {
-    return this.bagStore.getList();
+  public getMyGroups(): Promise<Group[]> {
+    return this.groupStore.getMyGroups();
   }
 
-  public linkBag(groupId: string, bagId: string): Promise<void> {
-    return this.groupStore.linkBag(groupId, bagId);
+  public getMyBags(): Promise<BagItem[]> {
+    return this.bagStore.getList();
   }
 
   public unlinkBag(groupId: string): Promise<void> {

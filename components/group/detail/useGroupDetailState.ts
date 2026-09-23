@@ -1,10 +1,14 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import app from '@/model/app/App';
 import BagItem from '@/model/bag/BagItem';
 import GroupDetail from '@/model/group-detail/GroupDetail';
 import GroupMember from '@/model/group/GroupMember';
+
+// Android 시트는 투명 Modal이라 닫히는 중에 알럿을 띄워도 겹치지 않는다. iOS pageSheet·웹은 다 내려간 뒤에 잇는다.
+const WAITS_SHEET_DISMISS = Platform.OS !== 'android';
 
 interface MenuItem {
   readonly icon: keyof typeof Ionicons.glyphMap;
@@ -28,6 +32,8 @@ const useGroupDetailState = (detail: GroupDetail) => {
   const [memberMenuTarget, setMemberMenuTarget] = useState<GroupMember | null>(
     null
   );
+  // 시트에서 고른 배낭. 연결 흐름은 옮기기·일정 맞춤 알럿을 띄울 수 있어 시트가 다 내려간 뒤 시작한다(GRP-5).
+  const pendingBagRef = useRef<BagItem | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -59,7 +65,24 @@ const useGroupDetailState = (detail: GroupDetail) => {
 
   const handleSelectBag = (bag: BagItem) => {
     setIsBagSheetVisible(false);
+
+    if (WAITS_SHEET_DISMISS) {
+      pendingBagRef.current = bag;
+
+      return;
+    }
+
     void detail.linkBag(bag);
+  };
+
+  const handleBagSheetDismissed = () => {
+    const bag = pendingBagRef.current;
+
+    pendingBagRef.current = null;
+
+    if (bag) {
+      void detail.linkBag(bag);
+    }
   };
 
   const handleUnlinkBag = () => {
@@ -205,6 +228,7 @@ const useGroupDetailState = (detail: GroupDetail) => {
     handleOpenBagSheet,
     handleCloseBagSheet,
     handleSelectBag,
+    handleBagSheetDismissed,
     handleUnlinkBag,
   };
 };

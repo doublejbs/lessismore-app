@@ -124,6 +124,15 @@ class BagItem {
     return this.endDate.format('YYYY.MM.DD');
   }
 
+  // 여행 기간 원본 값. 그룹 연결 시 기간이 그룹과 같은지 비교한다(GRP-5). 날짜가 없는 레거시 문서면 null.
+  public getTripStart(): Dayjs | null {
+    return this.startDate.isValid() ? this.startDate : null;
+  }
+
+  public getTripEnd(): Dayjs | null {
+    return this.endDate.isValid() ? this.endDate : null;
+  }
+
   // 담긴 장비 수. 홈 카드가 패킹 진행을 개수로 보여준다(HM-1).
   public getGearCount(): number {
     return this.gears.length;

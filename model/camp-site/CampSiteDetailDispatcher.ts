@@ -1,10 +1,8 @@
-import dayjs from 'dayjs';
 import app from '../app/App';
 import CampSpotStore from '../store/CampSpotStore';
 import BagStore from '../store/BagStore';
 import CampReviewStore from '../store/CampReviewStore';
 import BagItem from '../bag/BagItem';
-import BagWeather from '../bag/BagWeather';
 import reviewSearchService from '../review/ReviewSearchService';
 import { buildRequiredTokens } from '../review/ReviewRelevance';
 import { CampSpot } from './CampSpotTypes';
@@ -15,6 +13,7 @@ import {
 } from '../review/ReviewTypes';
 import { CampReview, CampReviewSummary } from '../camp-review/CampReviewTypes';
 import { BagLocation } from '../bag-destination/BagLocation';
+import { saveBagDestination } from '../bag-destination/BagDestinationSave';
 
 // 박지 상세(CampSite CS-3/CS-5/CS-8)의 데이터 접근을 캡슐화한다.
 class CampSiteDetailDispatcher {
@@ -110,27 +109,12 @@ class CampSiteDetailDispatcher {
     return this.bagStore.getList();
   }
 
-  // 배낭 여행지로 저장(CS-5 → DST-6). 좌표 변경 시 날씨 캐시 제거까지 스토어가 한 번의 쓰기로 처리하고,
-  // 저장 직후 그 배낭의 현재 여행 기간 날씨를 조회·저장한다 — 배낭을 열지 않아도 새 여행지 날씨가 준비된다.
-  // 날씨 조회 실패는 여행지 저장과 분리해 호출자가 안내할 수 있도록 결과로 돌려준다(DST-6).
+  // 배낭 여행지로 저장(CS-5 → DST-6). 저장·날씨 조회 순서는 공용 경로가 정한다(그룹 일정 맞춤과 같은 경로).
   public async setBagDestination(
     bagId: string,
     location: BagLocation
   ): Promise<{ weatherFailed: boolean }> {
-    const { startDate, endDate } = await this.bagStore.getBagWeatherData(bagId);
-    const bagWeather = BagWeather.of(bagId, this.bagStore);
-
-    // 여행 기간만 주입한다 — 저장 전 위치·날씨는 updateLocation이 스토어 응답으로 덮는다.
-    bagWeather.hydrate(
-      null,
-      null,
-      startDate ? dayjs(startDate) : dayjs(),
-      endDate ? dayjs(endDate) : dayjs()
-    );
-
-    await bagWeather.updateLocation(location);
-
-    return { weatherFailed: bagWeather.hasError() };
+    return saveBagDestination(this.bagStore, bagId, location);
   }
 }
 

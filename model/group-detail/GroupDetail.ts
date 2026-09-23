@@ -7,6 +7,8 @@ import { GroupBagSnapshot } from '@/model/group/GroupData';
 import GroupMember from '@/model/group/GroupMember';
 import GroupMemberRole from '@/model/group/GroupMemberRole';
 import { getGroupErrorMessage } from '@/model/group-error/GroupErrorMessage';
+import GroupBagLinkFlow from '@/model/group-bag-link/GroupBagLinkFlow';
+import StoredBagScheduleWriter from '@/model/group-bag-link/StoredBagScheduleWriter';
 import GroupDetailDispatcher from './GroupDetailDispatcher';
 
 /**
@@ -22,6 +24,8 @@ class GroupDetail {
   private memberBags: GroupBagSnapshot[] = [];
   private campSpot: CampSpot | null = null;
   private myBags: BagItem[] = [];
+  // 배낭 선택 시트의 `{그룹 이름}에 연결됨` 조각(GRP-5 한 배낭 = 한 그룹). 배낭 ID → 다른 그룹 이름들.
+  private otherGroupNamesByBag: Map<string, string[]> = new Map();
   private loading = false;
   private initialized = false;
   private submitting = false;
@@ -30,12 +34,13 @@ class GroupDetail {
   private notMember = false;
 
   public static from(dispatcher: GroupDetailDispatcher, groupId: string) {
-    return new GroupDetail(dispatcher, groupId);
+    return new GroupDetail(dispatcher, groupId, GroupBagLinkFlow.new());
   }
 
   private constructor(
     private readonly dispatcher: GroupDetailDispatcher,
-    private readonly groupId: string
+    private readonly groupId: string,
+    private readonly linkFlow: GroupBagLinkFlow
   ) {
     makeAutoObservable(this);
   }
@@ -119,8 +124,9 @@ class GroupDetail {
     return this.initialized;
   }
 
+  // 연결 흐름(옮기기·일정 맞춤)이 도는 동안에도 연결·해제 버튼을 막는다.
   public isSubmitting(): boolean {
-    return this.submitting;
+    return this.submitting || this.linkFlow.isBusy();
   }
 
   public getError(): Error | null {
@@ -139,37 +145,66 @@ class GroupDetail {
    * 배낭 선택 시트용 목록. 시트를 열 때마다 다시 읽어 방금 만든 배낭도 보이게 한다.
    * 화면이 `void`로 부르므로 실패를 여기서 잡는다 — 놓치면 unhandled rejection이 나고
    * 시트는 조회 실패인데도 "배낭이 없어요"로 열린다.
+   * 다른 그룹 연결 표시는 부가 정보라 따로 잡는다 — 실패해도 목록은 연다(옮기기 확인은 연결 흐름이 다시 본다).
    */
   public async loadMyBags(): Promise<void> {
     try {
-      const bags = await this.dispatcher.getMyBags();
+      const [bags, otherGroupNamesByBag] = await Promise.all([
+        this.dispatcher.getMyBags(),
+        this.loadOtherGroupNamesByBag(),
+      ]);
 
       runInAction(() => {
         this.myBags = bags;
+        this.otherGroupNamesByBag = otherGroupNamesByBag;
       });
     } catch (error) {
       this.showError(error);
     }
   }
 
+  // 배낭 선택 시트 메타 줄 조각 — 이 배낭이 **다른** 그룹에 연결돼 있으면 `{그룹 이름}에 연결됨`(GRP-5).
+  public getBagLinkNote(bag: BagItem): string | null {
+    const names = this.otherGroupNamesByBag.get(bag.getID());
+
+    if (!names || names.length === 0) {
+      return null;
+    }
+
+    const l10n = app.getL10n();
+
+    return l10n.t('group.detail.bagLinkedTo', {
+      name: names.join(l10n.t('group.link.nameSeparator')),
+    });
+  }
+
+  /**
+   * 내 배낭 연결 (GRP-5). 한 그룹 제약(옮기기 확인)과 일정 맞춤 확인은 배낭 상세와 같은
+   * 연결 흐름이 맡는다. 이 화면에는 배낭 모델이 없어 일정은 저장 경로로 쓴다.
+   */
   public async linkBag(bag: BagItem): Promise<void> {
-    if (this.submitting) {
+    const group = this.group;
+
+    if (this.isSubmitting() || !group) {
       return;
     }
 
-    this.setSubmitting(true);
-
-    try {
-      await this.dispatcher.linkBag(this.groupId, bag.getID());
-      app
-        .getAnalyticsManager()
-        ?.logClick('group_bag_link', { item_count: bag.getGearCount() });
-      await this.load(true);
-    } catch (error) {
-      this.showError(error);
-    } finally {
-      this.setSubmitting(false);
-    }
+    await this.linkFlow.start({
+      group,
+      subject: {
+        bagId: bag.getID(),
+        startDate: bag.getTripStart(),
+        endDate: bag.getTripEnd(),
+        location: bag.getLocation(),
+      },
+      writer: StoredBagScheduleWriter.of(bag.getID()),
+      onLinked: () => {
+        app
+          .getAnalyticsManager()
+          ?.logClick('group_bag_link', { item_count: bag.getGearCount() });
+      },
+      onChanged: () => this.load(true),
+    });
   }
 
   public async unlinkBag(): Promise<void> {
@@ -338,6 +373,29 @@ class GroupDetail {
         this.initialized = true;
       });
     }
+  }
+
+  // 역인덱스 1회 조회로 배낭 → 연결된 다른 그룹 이름을 만든다(배낭마다 조회하지 않는다).
+  private async loadOtherGroupNamesByBag(): Promise<Map<string, string[]>> {
+    const result = new Map<string, string[]>();
+
+    try {
+      const groups = await this.dispatcher.getMyGroups();
+
+      groups.forEach(group => {
+        const bagId = group.getMyBagId();
+
+        if (!bagId || group.getId() === this.groupId) {
+          return;
+        }
+
+        result.set(bagId, [...(result.get(bagId) ?? []), group.getName()]);
+      });
+    } catch (error) {
+      console.warn('[GroupDetail] linked groups load failed', error); // l10n-ignore: 개발자 로그
+    }
+
+    return result;
   }
 
   private async syncMyBagSnapshot() {

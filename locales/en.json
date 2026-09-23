@@ -263,6 +263,17 @@
       "toGroup": "Send to group",
       "toGroupTitle": "Which group?",
       "toGroupDone": "Sent to the group"
+    },
+    "group": {
+      "members_one": "{{count}} member",
+      "members_other": "{{count}} members",
+      "rowLabel": "{{name}} group, {{members}}",
+      "linkMenu": "Link to group",
+      "unlinkMenu": "Unlink from group",
+      "sheetTitle": "Choose a group",
+      "empty": "You haven't joined any groups",
+      "unlinkConfirm": "Remove this bag from {{name}}?",
+      "unlink": "Unlink"
     }
   },
   "bagDetail": {
@@ -1397,7 +1408,8 @@
       "goBack": "Go back",
       "leftMember": "(Left the group)",
       "withdrawnUser": "(Deleted account)",
-      "openMap": "Map"
+      "openMap": "Map",
+      "bagLinkedTo": "Linked to {{name}}"
     },
     "member": {
       "mine": "My bag",
@@ -1479,6 +1491,17 @@
     "route": {
       "add": "Add route",
       "uploading": "Uploading"
+    },
+    "link": {
+      "moveConfirm": "Remove this bag from {{from}} and move it to this group?",
+      "move": "Move",
+      "nameSeparator": ", ",
+      "syncDates": "Match the group's schedule?\nDates {{range}}",
+      "syncPlace": "Match the group's schedule?\nDestination {{place}}",
+      "syncDatesAndPlace": "Match the group's schedule?\nDates {{range}} · Destination {{place}}",
+      "syncConfirm": "Match",
+      "syncSkip": "Keep as is",
+      "synced": "Matched to the group's schedule"
     }
   },
   "route": {

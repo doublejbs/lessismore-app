@@ -12,6 +12,9 @@ class AlertManager {
   // 되돌릴 수 없는 액션(내보내기·삭제)일 때 확인 버튼을 경고색으로 그린다.
   private destructive = false;
   private onConfirm: () => Promise<void> = async () => {};
+  // show() 호출마다 올린다. 확인 콜백 안에서 다음 알럿을 띄우면(연결 → 일정 맞춤 확인, GRP-5)
+  // 콜백이 끝난 뒤의 hide()가 **새 알럿**을 닫아 버리므로, 그사이 새 알럿이 떴으면 닫지 않는다.
+  private generation = 0;
 
   private constructor() {
     makeAutoObservable(this);
@@ -35,6 +38,7 @@ class AlertManager {
     this.setCancelText(cancelText ?? '');
     this.setDestructive(destructive === true);
     this.setOnConfirm(onConfirm);
+    this.generation += 1;
     this.setVisible(true);
   }
 
@@ -51,8 +55,13 @@ class AlertManager {
   }
 
   public async confirm() {
+    const generation = this.generation;
+
     await this.onConfirm();
-    this.hide();
+
+    if (generation === this.generation) {
+      this.hide();
+    }
   }
 
   private setMessage(text: string) {

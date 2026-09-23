@@ -19,6 +19,7 @@ class Group {
   private readonly createdAt: Date;
   private readonly summary: boolean;
   private readonly myBagLinked: boolean;
+  private readonly myBagId: string | undefined;
 
   public static from(data: GroupData) {
     return new Group(data);
@@ -46,6 +47,7 @@ class Group {
       updatedAt: data.joinedAt,
       summary: true,
       hasMyBag: data.hasBag,
+      ...(data.bagId ? { myBagId: data.bagId } : {}),
     });
   }
 
@@ -64,6 +66,7 @@ class Group {
     this.createdAt = toFirestoreDate(data.createdAt);
     this.summary = data.summary === true;
     this.myBagLinked = data.hasMyBag === true;
+    this.myBagId = data.myBagId;
   }
 
   public getId() {
@@ -142,6 +145,11 @@ class Group {
   // 역인덱스가 들고 있는 "내 배낭 연결 여부". 그룹 문서로 만든 인스턴스는 항상 false다.
   public hasMyBag() {
     return this.myBagLinked;
+  }
+
+  // 역인덱스가 들고 있는 "내가 연결한 배낭 ID"(GRP-5). 그룹 문서로 만든 인스턴스는 항상 undefined다.
+  public getMyBagId() {
+    return this.myBagId;
   }
 
   public getInviteUrl() {

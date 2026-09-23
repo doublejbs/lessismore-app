@@ -25,6 +25,8 @@ export interface GroupData {
   summary?: boolean;
   // 역인덱스가 들고 있는 "내 배낭 연결 여부"(GRP-1 목록 행). 그룹 문서에는 없는 값이다.
   hasMyBag?: boolean;
+  // 역인덱스가 들고 있는 "내가 연결한 배낭 ID"(GRP-5 한 배낭 = 한 그룹). 그룹 문서에는 없는 값이다.
+  myBagId?: string;
 }
 
 export interface GroupMemberData {

@@ -190,6 +190,9 @@
 | `click_group_map_open` | 그룹 지도 열기 | — |
 | `click_group_member_remove` | 방장이 멤버 내보내기 | — |
 | `click_group_leave` | 그룹 나가기 / 해산 | `role`: `owner` \| `member` |
+| `click_bag_group_link` | 배낭 상세 `⋯` → 그룹에 연결 성공 (BD-1) | — |
+| `click_bag_group_unlink` | 배낭 상세 `⋯` → 그룹 연결 해제 (BD-1) | — |
+| `click_bag_group_sync_schedule` | 연결 뒤 `그룹 일정으로 맞출까요?` 수락 (GRP-5, 그룹·배낭 양쪽) | `destination`: boolean (여행지도 박지로 맞췄는지) |
 | `click_bag_route_upload` | 배낭 코스(GPX) 업로드 성공 (BD-11) | `distance`: m, `point_count` |
 | `click_bag_route_to_group` | 배낭 코스를 연결된 그룹에 복사 (BD-11) | — |
 | `click_community_report` | 신고 등록 성공 | `target`: `post` \| `comment` |

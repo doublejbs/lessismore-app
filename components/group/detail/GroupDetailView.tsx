@@ -56,6 +56,7 @@ const GroupDetailView: FC<Props> = ({ detail }) => {
     handleOpenBagSheet,
     handleCloseBagSheet,
     handleSelectBag,
+    handleBagSheetDismissed,
     handleUnlinkBag,
   } = useGroupDetailState(detail);
   const group = detail.getGroup();
@@ -185,6 +186,8 @@ const GroupDetailView: FC<Props> = ({ detail }) => {
         onClose={handleCloseBagSheet}
         onSelect={handleSelectBag}
         onCreateNew={handleCloseBagSheet}
+        getBagNote={bag => detail.getBagLinkNote(bag)}
+        onDismissed={handleBagSheetDismissed}
       />
       <ToastView toastManager={app.getToastManager()!} bottom={100} />
       <AlertView alertManager={app.getAlertManager()!} />

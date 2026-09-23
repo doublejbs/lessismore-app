@@ -20,6 +20,7 @@ import { Acg, AcgLayout, Color } from '@/constants/DesignTokens';
 import BagDetailCategoryView from './BagDetailCategoryView';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import BagDetailDateView from './BagDetailDateView';
+import BagDetailGroupView from './BagDetailGroupView';
 import BagDetailFiltersView from './BagDetailFiltersView';
 import BagDetailNameView from './BagDetailNameView';
 import BagDetailUselessDescriptionView from './BagDetailUselessDescriptionView';
@@ -43,6 +44,7 @@ import AlertView from '@/components/alert/AlertView';
 import app from '@/model/app/App';
 import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
 import { setBagShareContext } from '@/model/bag-detail/BagShareHandoff';
+import { formatGroupDateRange } from '@/model/group-format/GroupFormat';
 
 interface Props {
   bagDetail: BagDetail;
@@ -89,6 +91,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
   // Android 커스텀 헤더 높이 — 오버레이를 헤더 바로 아래에 놓기 위한 측정값(iOS는 쓰지 않는다).
   const [androidHeaderHeight, setAndroidHeaderHeight] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
+  const [showGroupSheet, setShowGroupSheet] = useState(false);
 
   // 필터 고정을 **오버레이로** 처리한다(BD-2). RN `stickyHeaderIndices`를 쓰지 않는 이유:
   // iOS는 sticky가 인셋을 몰라 투명 헤더 뒤(화면 최상단)에 붙어 가려지고, Android는 sticky 뷰를
@@ -172,6 +175,56 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
         },
       })
     );
+  };
+
+  // `⋯` → 그룹에 연결 (BD-1). 메뉴 시트가 다 닫힌 뒤 불린다(BottomMenuModalView가 닫힘 뒤에 실행).
+  const handleLinkGroup = () => {
+    if (!app.getFirebase().isLoggedIn()) {
+      app.getLogInAlertManager()?.show();
+
+      return;
+    }
+
+    void (async () => {
+      if (await bagDetail.loadLinkableGroups()) {
+        setShowGroupSheet(true);
+      }
+    })();
+  };
+
+  const handleUnlinkGroup = () => {
+    bagDetail.confirmUnlinkGroup();
+  };
+
+  // 그룹 목록 시트도 닫힘 애니메이션이 끝난 뒤 항목 동작을 부른다 — 이어지는 옮기기·일정 맞춤 알럿이 겹치지 않는다.
+  const getGroupSheetItems = () => {
+    const l10n = app.getL10n();
+
+    return bagDetail.getLinkableGroups().map(group => ({
+      icon: 'people-outline' as const,
+      text: group.getName(),
+      subtitle: `${formatGroupDateRange(group.getStartDate(), group.getEndDate())}${l10n.t('common.metaSeparator')}${l10n.t('bag.group.members', { count: group.getMemberCount() })}`,
+      onPress: () => {
+        void bagDetail.linkToGroup(group);
+      },
+    }));
+  };
+
+  // 삭제가 맨 아래에 남도록 그룹 항목은 그 위에 둔다(BD-1).
+  const getGroupMenuItem = () => {
+    if (bagDetail.getLinkedGroup()) {
+      return {
+        icon: 'people-outline' as const,
+        text: app.getL10n().t('bag.group.unlinkMenu'),
+        onPress: handleUnlinkGroup,
+      };
+    }
+
+    return {
+      icon: 'people-outline' as const,
+      text: app.getL10n().t('bag.group.linkMenu'),
+      onPress: handleLinkGroup,
+    };
   };
 
   const handleDelete = () => {
@@ -272,6 +325,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               <View style={styles.infoSection}>
                 <BagDetailNameView bagDetail={bagDetail} />
                 <BagDetailDateView bagDetail={bagDetail} />
+                <BagDetailGroupView bagDetail={bagDetail} />
               </View>
               <BagDetailSummaryView bagDetail={bagDetail} />
               <View style={styles.actionsGrid}>
@@ -373,12 +427,20 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                 text: app.getL10n().t('bagDetail.shareSaveTemplate'),
                 onPress: handleSaveTemplate,
               },
+              getGroupMenuItem(),
               {
                 icon: 'trash-outline',
                 text: app.getL10n().t('common.delete'),
                 onPress: handleDelete,
               },
             ]}
+          />
+          <BottomMenuModalView
+            visible={showGroupSheet}
+            onClose={() => setShowGroupSheet(false)}
+            title={app.getL10n().t('bag.group.sheetTitle')}
+            emptyText={app.getL10n().t('bag.group.empty')}
+            menuItems={getGroupSheetItems()}
           />
           <ToastView toastManager={app.getToastManager()!} bottom={100} />
           {/* 이 화면은 `Layout`을 쓰지 않아 알럿을 그리는 뷰가 없다 — 직접 얹는다.
