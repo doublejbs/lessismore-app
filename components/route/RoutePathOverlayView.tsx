@@ -7,6 +7,12 @@ interface Props {
   routes: readonly RouteDisplay[];
   // 굵게 그릴 코스. 코스가 하나뿐이면 선택 없이도 그 코스가 주인공이다(GRP-10).
   selectedRouteId: string | null;
+  /**
+   * 모든 코스를 선택된 굵기로 그린다 — 그룹 상세 지도 밴드처럼 선택 개념이 없는 보기 전용
+   * 지도에서 쓴다(GRP-7). 옅게 그린 선은 "고르지 않은 코스"라는 뜻인데, 고를 수 없는 곳에서는
+   * 그 구분이 말하는 것이 없다.
+   */
+  uniform?: boolean;
 }
 
 /**
@@ -33,7 +39,11 @@ const MIN_PATH_COORDS = 2;
  *
  * observer다 — 좌표는 **지금 보는 방향** 순서라(GRP-8 뒤집기) 기기 설정이 바뀌면 다시 그린다.
  */
-const RoutePathOverlayView: FC<Props> = ({ routes, selectedRouteId }) => {
+const RoutePathOverlayView: FC<Props> = ({
+  routes,
+  selectedRouteId,
+  uniform = false,
+}) => {
   return (
     <>
       {routes.map(route => {
@@ -47,7 +57,7 @@ const RoutePathOverlayView: FC<Props> = ({ routes, selectedRouteId }) => {
         }
 
         const isSelected =
-          routes.length === 1 || route.getId() === selectedRouteId;
+          uniform || routes.length === 1 || route.getId() === selectedRouteId;
 
         return (
           <NaverMapPathOverlay

@@ -10,9 +10,10 @@ import {
 } from '@/model/map/StaticMapUrl';
 import SnapshotMapBandVariant from './SnapshotMapBandVariant';
 
-const MAP_BAND_HEIGHT = 110;
+// 그룹 상세의 코스 지도 밴드(GRP-7)가 같은 높이·간격을 쓴다 — 박지 밴드와 번갈아 서는 자리다.
+export const MAP_BAND_HEIGHT = 110;
 // 홀로 놓인 밴드와 아래 제목 사이 간격.
-const STANDALONE_BOTTOM_GAP = 12;
+export const STANDALONE_BOTTOM_GAP = 12;
 // 핀 꼭지점을 지도 중심에 맞추는 보정(핀 폭 30 · 높이 40 기준).
 const PIN_OFFSET_X = -15;
 const PIN_OFFSET_Y = -40;

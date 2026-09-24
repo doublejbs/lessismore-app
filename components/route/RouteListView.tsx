@@ -48,7 +48,9 @@ const INDICATOR_COLUMN = 11;
  * 예외 면이 되고, 값 하나 때문에 행마다 작은 사각형이 생긴다.
  *
  * 행의 액션은 **`⋯` → 메뉴 시트 → (파괴적이면) 확인 알럿** 문법이다(멤버 내보내기 GRP-4와
- * 같은 문법). 코스 삭제는 Firestore 문서와 Storage 원본을 함께 지우므로, 맨 텍스트 `삭제`를
+ * 같은 문법). `⋯`가 있는 행에는 셰브론을 그리지 않는다 — 행 끝의 누를 곳은 하나다(GRP-11).
+ * 셰브론은 액션 없이 행 탭만 있는 행(= 이동)에만 선다.
+ * 코스 삭제는 Firestore 문서와 Storage 원본을 함께 지우므로, 맨 텍스트 `삭제`를
  * 행에 늘어놓으면 되돌릴 수 없는 액션이 눌러도 되는 라벨처럼 읽힌다.
  *
  * 이 컴포넌트는 모델을 모른다 — 그룹 코스와 배낭 코스, 그리고 배낭 화면에 섞여 들어오는
@@ -89,6 +91,12 @@ const RouteListView: FC<Props> = ({ rows, selectedId, disabled }) => {
 
   const renderRow = (row: RouteRow, index: number) => {
     const selected = showIndicator && row.id === selectedId;
+    /**
+     * 행 오른쪽 끝의 누를 곳은 하나다(GRP-11) — `⋯`가 서는 행에는 셰브론을 두지 않는다.
+     * 셰브론과 `⋯`를 나란히 두면 두 개의 누를 곳이 붙어 어느 쪽이 행 탭인지 읽히지 않는다.
+     * 행 탭(지도 이동·선택)은 그대로 살아 있다.
+     */
+    const hasRowActions = !!row.actions && row.actions.length > 0;
     const body = (
       <View style={styles.rowBody}>
         <PretendardText weight='medium' style={styles.title} numberOfLines={2}>
@@ -118,11 +126,13 @@ const RouteListView: FC<Props> = ({ rows, selectedId, disabled }) => {
           >
             {lead}
             {body}
-            <Ionicons
-              name='chevron-forward'
-              size={16}
-              color={Acg.textSecondary}
-            />
+            {hasRowActions ? null : (
+              <Ionicons
+                name='chevron-forward'
+                size={16}
+                color={Acg.textSecondary}
+              />
+            )}
           </TouchableOpacity>
         ) : (
           <View style={styles.rowTouchable}>
@@ -132,7 +142,7 @@ const RouteListView: FC<Props> = ({ rows, selectedId, disabled }) => {
         )}
         {/* 액션이 없는 행에는 `⋯`를 그리지 않는다. 코스 목록은 방향 뒤집기가 모든 행에 있어
           (보기 설정이라 권한과 무관하다, GRP-8) 남이 올린 코스·연결 그룹 코스에도 `⋯`가 선다. */}
-        {row.actions && row.actions.length > 0 ? (
+        {hasRowActions ? (
           <TouchableOpacity
             style={styles.menuButton}
             onPress={() => {

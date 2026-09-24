@@ -14,8 +14,9 @@ import { formatBagSnapshotWeightInKilograms } from '@/model/bag-snapshot/BagSnap
 
 interface Props {
   detail: GroupDetail;
+  // 내 행의 `연결` — 아직 배낭을 잇지 않았을 때 바로 서는 단일 액션이다.
   onSelectBag: () => void;
-  onUnlinkBag: () => void;
+  // 행의 `⋯` — 내 행은 배낭 변경·해제, 방장이 보는 다른 멤버 행은 내보내기(GRP-11).
   onOpenMemberMenu: (member: GroupMember) => void;
 }
 
@@ -25,12 +26,17 @@ interface Props {
  * 방장을 맨 위에 두고 그다음은 참여 순서다(정렬은 `GroupStore.getMembers`가 보장한다).
  * 행 문법은 HM-8 — 이름 16 medium + 메타 14 잉크 한 줄이고 배지·칩을 행 안에 두지 않는다.
  *
- * 행 오른쪽 `⋯`는 **방장이 볼 때, 자기 자신이 아닌 행에만** 나온다(GRP-4 내보내기).
+ * 행 오른쪽 끝의 누를 곳은 **하나**다(GRP-11):
+ * - 내 행 + 배낭 연결됨 → `⋯`(배낭 변경·해제). 해제는 확인 알럿을 거친다.
+ * - 내 행 + 미연결 → `연결` 텍스트 액션. 할 일이 하나뿐인 행에 메뉴를 두면 한 번 더 누르게 된다.
+ * - 방장이 보는 다른 멤버 행 → `⋯`(내보내기, GRP-4). 내보내기는 자기 자신에게 걸리지 않으므로
+ *   내 행에서 두 메뉴가 겹치는 일은 없다.
+ * - 그 밖의 행은 액션이 없다.
+ * 행 탭(연결된 배낭 보기)은 `⋯`와 별개로 살아 있다.
  */
 const GroupMemberBagListView: FC<Props> = ({
   detail,
   onSelectBag,
-  onUnlinkBag,
   onOpenMemberMenu,
 }) => {
   const router = useRouter();
@@ -78,83 +84,81 @@ const GroupMemberBagListView: FC<Props> = ({
       </View>
     );
 
-    // 방장만, 자기 자신이 아닌 행에만 ⋯를 둔다(GRP-4). 멤버에게는 아예 그리지 않는다.
+    // 방장만, 자기 자신이 아닌 행에만 내보내기를 둔다(GRP-4). 멤버에게는 아예 그리지 않는다.
     const canRemove = detail.isOwner() && !isMine && !member.isOwner();
+    // 내 행의 배낭 메뉴(변경·해제)는 연결된 배낭이 있을 때만이다.
+    const hasMenu = canRemove || (isMine && !!snapshot);
+    const menuLabel = isMine
+      ? l10n.t('group.detail.bagMenu')
+      : l10n.t('group.member.menu', { nickname: member.getNickname() });
+
+    const renderTrailing = () => {
+      if (hasMenu) {
+        return (
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={() => onOpenMemberMenu(member)}
+            disabled={detail.isSubmitting()}
+            accessibilityRole='button'
+            accessibilityLabel={menuLabel}
+            accessibilityState={{ disabled: detail.isSubmitting() }}
+          >
+            <Ionicons
+              name='ellipsis-horizontal'
+              size={20}
+              color={Acg.textSecondary}
+            />
+          </TouchableOpacity>
+        );
+      }
+
+      if (isMine) {
+        return (
+          <TouchableOpacity
+            style={styles.action}
+            onPress={onSelectBag}
+            disabled={detail.isSubmitting()}
+            accessibilityRole='button'
+            accessibilityLabel={l10n.t('group.detail.linkBag')}
+            accessibilityState={{ disabled: detail.isSubmitting() }}
+          >
+            <PretendardText style={styles.actionLabel}>
+              {l10n.t('group.detail.linkBag')}
+            </PretendardText>
+          </TouchableOpacity>
+        );
+      }
+
+      return null;
+    };
 
     return (
       <View
         key={member.getUid()}
         style={[styles.row, index > 0 && styles.rowDivided]}
       >
-        <View style={styles.rowMain}>
-          {snapshot ? (
-            <TouchableOpacity
-              style={styles.rowTouchable}
-              onPress={() => handleOpenMemberBag(member)}
-              activeOpacity={0.7}
-              accessibilityRole='button'
-              accessibilityLabel={`${member.getNickname()}${separator}${snapshot.name}`}
-            >
-              {body}
+        {snapshot ? (
+          <TouchableOpacity
+            style={styles.rowTouchable}
+            onPress={() => handleOpenMemberBag(member)}
+            activeOpacity={0.7}
+            accessibilityRole='button'
+            accessibilityLabel={`${member.getNickname()}${separator}${snapshot.name}`}
+          >
+            {body}
+            {/* 행 끝의 누를 곳은 하나다 — `⋯`가 서는 행에는 셰브론을 두지 않는다(GRP-11). */}
+            {hasMenu ? null : (
               <Ionicons
                 name='chevron-forward'
                 size={16}
                 color={Acg.textSecondary}
               />
-            </TouchableOpacity>
-          ) : (
-            body
-          )}
-          {canRemove ? (
-            <TouchableOpacity
-              style={styles.menuButton}
-              onPress={() => onOpenMemberMenu(member)}
-              disabled={detail.isSubmitting()}
-              accessibilityRole='button'
-              accessibilityLabel={l10n.t('group.member.menu', {
-                nickname: member.getNickname(),
-              })}
-            >
-              <Ionicons
-                name='ellipsis-horizontal'
-                size={20}
-                color={Acg.textSecondary}
-              />
-            </TouchableOpacity>
-          ) : null}
-        </View>
-        {isMine ? (
-          <View style={styles.actions}>
-            <TouchableOpacity
-              style={styles.action}
-              onPress={onSelectBag}
-              disabled={detail.isSubmitting()}
-              accessibilityRole='button'
-              accessibilityLabel={l10n.t(
-                snapshot ? 'group.detail.changeBag' : 'group.detail.linkBag'
-              )}
-            >
-              <PretendardText style={styles.actionLabel}>
-                {l10n.t(
-                  snapshot ? 'group.detail.changeBag' : 'group.detail.linkBag'
-                )}
-              </PretendardText>
-            </TouchableOpacity>
-            {snapshot ? (
-              <TouchableOpacity
-                style={styles.action}
-                onPress={onUnlinkBag}
-                disabled={detail.isSubmitting()}
-                accessibilityRole='button'
-                accessibilityLabel={l10n.t('group.detail.unlinkBag')}
-              >
-                <PretendardText style={styles.actionLabel}>
-                  {l10n.t('group.detail.unlinkBag')}
-                </PretendardText>
-              </TouchableOpacity>
-            ) : null}
-          </View>
-        ) : null}
+            )}
+          </TouchableOpacity>
+        ) : (
+          body
+        )}
+        {renderTrailing()}
       </View>
     );
   };
@@ -174,16 +178,12 @@ const styles = StyleSheet.create({
   row: {
     minHeight: AcgRow.minHeight,
     paddingVertical: AcgRow.paddingVertical,
-    justifyContent: 'center',
-    gap: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   rowDivided: {
     borderTopWidth: 1,
     borderTopColor: Acg.hairline,
-  },
-  rowMain: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   rowTouchable: {
     flex: 1,
@@ -212,12 +212,6 @@ const styles = StyleSheet.create({
   metaNumber: {
     ...AcgType.rowSubtitle,
     color: Acg.ink,
-  },
-  actions: {
-    marginTop: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: AcgLayout.chipGap,
   },
   action: {
     minHeight: 44,

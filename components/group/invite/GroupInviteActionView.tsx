@@ -7,11 +7,14 @@ import app from '@/model/app/App';
 import Group from '@/model/group/Group';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgType, Radius } from '@/constants/DesignTokens';
+import GroupInviteActionTone from './GroupInviteActionTone';
 
 interface Props {
   group: Group;
   // 기본값은 그룹의 초대 잠금 상태다(GRP-3). 화면이 더 좁은 조건을 걸고 싶을 때만 넘긴다.
   disabled?: boolean;
+  // 버튼이 놓이는 바탕. 기본은 흰 지면 위다(하단 초대 섹션).
+  tone?: GroupInviteActionTone;
 }
 
 /**
@@ -21,7 +24,11 @@ interface Props {
  * 링크를 다시 조립하면 웹 랜딩과의 경로 계약이 갈라진다.
  * 라임(주 액션)을 쓰지 않는다 — 이 컨트롤이 놓이는 화면의 주 액션은 따로 있다(HM-8).
  */
-const GroupInviteActionView: FC<Props> = ({ group, disabled }) => {
+const GroupInviteActionView: FC<Props> = ({
+  group,
+  disabled,
+  tone = GroupInviteActionTone.OnPaper,
+}) => {
   const [isCopying, setIsCopying] = useState(false);
   const l10n = app.getL10n();
   const isDisabled = disabled ?? !group.getInviteEnabled();
@@ -54,7 +61,11 @@ const GroupInviteActionView: FC<Props> = ({ group, disabled }) => {
 
   return (
     <TouchableOpacity
-      style={[styles.action, isDisabled && styles.actionDisabled]}
+      style={[
+        styles.action,
+        tone === GroupInviteActionTone.OnSurface && styles.actionOnSurface,
+        isDisabled && styles.actionDisabled,
+      ]}
       onPress={() => void handleCopy()}
       activeOpacity={0.7}
       disabled={isDisabled || isCopying}
@@ -88,6 +99,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
     paddingVertical: 12,
+  },
+  actionOnSurface: {
+    backgroundColor: Acg.paper,
   },
   actionDisabled: {
     opacity: 0.6,

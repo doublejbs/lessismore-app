@@ -23,6 +23,7 @@ import GroupDetailInviteSectionView from './GroupDetailInviteSectionView';
 import GroupDetailPointSectionView from './GroupDetailPointSectionView';
 import GroupDetailRouteSectionView from './GroupDetailRouteSectionView';
 import GroupDetailSkeletonView from './GroupDetailSkeletonView';
+import GroupDetailSoloInviteView from './GroupDetailSoloInviteView';
 import GroupMemberBagListView from './GroupMemberBagListView';
 import useGroupDetailState from './useGroupDetailState';
 
@@ -35,14 +36,17 @@ const NATIVE_HEADER_HEIGHT = 44;
 const CONTENT_BOTTOM_PADDING = 40;
 
 /**
- * 그룹 상세 (GRP-4 · GRP-5 · GRP-7).
- * 섹션 순서는 헤더 → 멤버·배낭 → 코스 → 포인트 → 초대다.
+ * 그룹 상세 (GRP-4 · GRP-5 · GRP-7 · GRP-11).
+ * 섹션 순서는 헤더(지도 밴드·수치 줄) → [혼자면 초대 카드] → 멤버·배낭 → 코스 → 포인트 → [둘 이상이면 초대]다.
+ * 초대 자리는 **둘 중 하나만** 그린다(GRP-11) — 혼자인 그룹의 할 일은 초대라 위로 올린다.
  * iOS는 네이티브 투명 헤더, Android는 커스텀 헤더를 쓴다(GRP-11, LG-1).
  */
 const GroupDetailView: FC<Props> = ({ detail }) => {
   const insets = useSafeAreaInsets();
   const l10n = app.getL10n();
   const {
+    routeList,
+    pointList,
     isMenuVisible,
     isBagSheetVisible,
     isMemberMenuVisible,
@@ -57,7 +61,6 @@ const GroupDetailView: FC<Props> = ({ detail }) => {
     handleCloseBagSheet,
     handleSelectBag,
     handleBagSheetDismissed,
-    handleUnlinkBag,
   } = useGroupDetailState(detail);
   const group = detail.getGroup();
 
@@ -111,6 +114,9 @@ const GroupDetailView: FC<Props> = ({ detail }) => {
         );
       }
       case !!group: {
+        // 멤버가 방장 혼자인 그룹(GRP-11). 멤버 목록을 못 읽었으면 그룹 문서의 인원으로 본다.
+        const isSolo = detail.getMemberCount() <= 1;
+
         return (
           <ScrollView
             contentContainerStyle={[
@@ -120,16 +126,26 @@ const GroupDetailView: FC<Props> = ({ detail }) => {
             contentInsetAdjustmentBehavior='never'
             showsVerticalScrollIndicator={false}
           >
-            <GroupDetailHeaderView detail={detail} />
+            <GroupDetailHeaderView
+              detail={detail}
+              routeList={routeList}
+              pointList={pointList}
+            />
+            {isSolo ? <GroupDetailSoloInviteView group={group} /> : null}
             <GroupMemberBagListView
               detail={detail}
               onSelectBag={handleOpenBagSheet}
-              onUnlinkBag={handleUnlinkBag}
               onOpenMemberMenu={openMemberMenu}
             />
-            <GroupDetailRouteSectionView detail={detail} />
-            <GroupDetailPointSectionView detail={detail} />
-            {group ? <GroupDetailInviteSectionView group={group} /> : null}
+            <GroupDetailRouteSectionView
+              detail={detail}
+              routeList={routeList}
+            />
+            <GroupDetailPointSectionView
+              detail={detail}
+              pointList={pointList}
+            />
+            {isSolo ? null : <GroupDetailInviteSectionView group={group} />}
           </ScrollView>
         );
       }
@@ -169,7 +185,7 @@ const GroupDetailView: FC<Props> = ({ detail }) => {
         onClose={closeMenu}
         menuItems={getMenuItems()}
       />
-      {/* 멤버 행 ⋯ — 방장이 내보낼 멤버를 고른 뒤 뜨는 메뉴다(GRP-4). */}
+      {/* 멤버 행 ⋯ — 내 행이면 배낭 변경·해제(GRP-11), 방장이 고른 다른 멤버면 내보내기(GRP-4). */}
       <BottomMenuModalView
         visible={isMemberMenuVisible}
         onClose={closeMemberMenu}

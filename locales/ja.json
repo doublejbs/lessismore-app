@@ -1353,7 +1353,7 @@
       "metaSeparator": " · ",
       "summaryMembers_other": "メンバー{{count}}人",
       "summaryBags_other": "バックパック{{count}}個",
-      "summaryWeight": "合計{{weight}}kg",
+      "totalWeightLabel": "合計重量",
       "membersTitle": "仲間のバックパック",
       "ownerLabel": "管理者",
       "bagNotLinked": "バックパック未連携",
@@ -1361,6 +1361,7 @@
       "linkBag": "連携",
       "changeBag": "変更",
       "unlinkBag": "解除",
+      "bagMenu": "自分のバックパック連携を管理",
       "unlinkConfirm": "連携したバックパックを解除しますか？",
       "bagSheetSubtitle": "仲間に見せるバックパックを選んでください",
       "bagSheetEmpty": "先にバックパックを作成してください",
@@ -1372,6 +1373,7 @@
       "pointsLoadFailed": "ポイントを読み込めませんでした",
       "inviteTitle": "招待",
       "inviteDescription": "リンクを受け取った人だけが参加できます",
+      "soloTitle": "まだ一人です",
       "menu": "その他",
       "editGroup": "グループ情報を編集",
       "lockInvite": "招待リンクを締め切る",
@@ -1389,6 +1391,8 @@
       "leftMember": "（退出したメンバー）",
       "withdrawnUser": "（退会したユーザー）",
       "openMap": "地図",
+      "viewAllPoints_other": "すべて{{count}}件",
+      "openMapBand": "グループマップを開く",
       "bagLinkedTo": "{{name}}に連携中"
     },
     "member": {

@@ -1353,7 +1353,7 @@
       "metaSeparator": " · ",
       "summaryMembers_other": "멤버 {{count}}명",
       "summaryBags_other": "배낭 {{count}}개",
-      "summaryWeight": "합계 {{weight}}kg",
+      "totalWeightLabel": "합계 무게",
       "membersTitle": "일행 배낭",
       "ownerLabel": "방장",
       "bagNotLinked": "배낭 미연결",
@@ -1361,6 +1361,7 @@
       "linkBag": "연결",
       "changeBag": "변경",
       "unlinkBag": "해제",
+      "bagMenu": "내 배낭 연결 관리",
       "unlinkConfirm": "연결한 배낭을 해제할까요?",
       "bagSheetSubtitle": "일행에게 보여줄 배낭을 고르세요",
       "bagSheetEmpty": "먼저 배낭을 만들어주세요",
@@ -1372,6 +1373,7 @@
       "pointsLoadFailed": "포인트를 불러오지 못했어요",
       "inviteTitle": "초대",
       "inviteDescription": "링크를 받은 사람만 참여할 수 있어요",
+      "soloTitle": "아직 혼자예요",
       "menu": "더 보기",
       "editGroup": "그룹 정보 수정",
       "lockInvite": "초대 링크 잠금",
@@ -1389,6 +1391,8 @@
       "leftMember": "(나간 멤버)",
       "withdrawnUser": "(탈퇴한 사용자)",
       "openMap": "지도",
+      "viewAllPoints_other": "전체 {{count}}개",
+      "openMapBand": "그룹 지도 열기",
       "bagLinkedTo": "{{name}}에 연결됨"
     },
     "member": {

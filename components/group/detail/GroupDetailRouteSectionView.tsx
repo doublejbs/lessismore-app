@@ -1,13 +1,7 @@
-import { FC, useCallback, useState } from 'react';
+import { FC } from 'react';
 import { observer } from 'mobx-react-lite';
-import {
-  ActivityIndicator,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { useFocusEffect, useRouter } from 'expo-router';
-import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
+import { StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import GroupRouteListView from '@/components/group/route/GroupRouteListView';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
@@ -17,12 +11,14 @@ import GroupValidationError from '@/model/group/GroupValidationError';
 import GroupDetail from '@/model/group-detail/GroupDetail';
 import { getGroupValidationMessage } from '@/model/group-error/GroupErrorMessage';
 import { setPendingGroupRoute } from '@/model/group-map/GroupMapHandoff';
-import GroupRouteDispatcher from '@/model/group-route/GroupRouteDispatcher';
 import GroupRouteList from '@/model/group-route/GroupRouteList';
 import GroupSectionErrorView from './GroupSectionErrorView';
+import GroupSectionHeaderView from './GroupSectionHeaderView';
 
 interface Props {
   detail: GroupDetail;
+  // 상단 지도 밴드(GRP-7)와 같은 목록을 쓴다 — 조회·포커스 갱신은 `useGroupDetailState`가 맡는다.
+  routeList: GroupRouteList;
 }
 
 /**
@@ -30,33 +26,16 @@ interface Props {
  *
  * `코스 추가`가 파일 선택 → 파싱 → 업로드까지 한 흐름으로 끝낸다(모델이 맡는다). 행을 누르면
  * 그룹 지도에서 그 코스를 강조한다 — 포인트 섹션이 지도로 넘기는 방식과 같은 핸드오프다.
+ * 행 끝에는 `⋯`만 선다(방향 뒤집기·삭제는 메뉴 안, GRP-11). `코스 추가`는 이 자리에서 끝나는
+ * 액션이라 셰브론 없는 텍스트 액션이다(섹션 머리 문법 — `GroupSectionHeaderView`).
  * 상한(5개)에 닿으면 액션을 막고 그 자리에 이유를 적는다. 눌리지 않는 버튼만 두면 사용자가
  * 왜 안 되는지 알 수 없다(HIG).
  */
-const GroupDetailRouteSectionView: FC<Props> = ({ detail }) => {
+const GroupDetailRouteSectionView: FC<Props> = ({ detail, routeList }) => {
   const router = useRouter();
   const l10n = app.getL10n();
   const groupId = detail.getGroupId();
-  const [routeList] = useState(() =>
-    GroupRouteList.from(GroupRouteDispatcher.new(), groupId)
-  );
   const group = detail.getGroup();
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!groupId) {
-        return;
-      }
-
-      if (routeList.isInitialized()) {
-        void routeList.refresh(true);
-
-        return;
-      }
-
-      void routeList.initialize();
-    }, [groupId, routeList])
-  );
 
   const handleAdd = () => {
     void routeList.addRoute();
@@ -121,35 +100,19 @@ const GroupDetailRouteSectionView: FC<Props> = ({ detail }) => {
 
   return (
     <View style={styles.section}>
-      <View style={styles.header}>
-        <View style={styles.headerTitle}>
-          <AcgSectionHeaderView title={l10n.t('group.detail.routesTitle')} />
-        </View>
-        {canAdd ? (
-          <TouchableOpacity
-            style={styles.addAction}
-            onPress={handleAdd}
-            disabled={isFull || isSubmitting}
-            accessibilityRole='button'
-            accessibilityState={{ disabled: isFull || isSubmitting }}
-            accessibilityLabel={l10n.t('group.route.add')}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator size='small' color={Acg.textMuted} />
-            ) : null}
-            <PretendardText
-              style={[
-                styles.addActionLabel,
-                (isFull || isSubmitting) && styles.addActionDisabled,
-              ]}
-            >
-              {isSubmitting
+      <GroupSectionHeaderView
+        title={l10n.t('group.detail.routesTitle')}
+        {...(canAdd
+          ? {
+              actionLabel: isSubmitting
                 ? l10n.t('group.route.uploading')
-                : l10n.t('group.route.add')}
-            </PretendardText>
-          </TouchableOpacity>
-        ) : null}
-      </View>
+                : l10n.t('group.route.add'),
+              onPressAction: handleAdd,
+              actionDisabled: isFull || isSubmitting,
+              actionBusy: isSubmitting,
+            }
+          : {})}
+      />
       {isFull ? (
         <PretendardText style={styles.notice}>
           {getGroupValidationMessage(GroupValidationError.RouteLimitExceeded)}
@@ -163,30 +126,6 @@ const GroupDetailRouteSectionView: FC<Props> = ({ detail }) => {
 const styles = StyleSheet.create({
   section: {
     marginTop: AcgLayout.section,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  headerTitle: {
-    flex: 1,
-  },
-  addAction: {
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: AcgLayout.chipGap,
-    paddingHorizontal: 6,
-    marginTop: -10,
-  },
-  addActionLabel: {
-    ...AcgType.control,
-    color: Acg.ink,
-  },
-  addActionDisabled: {
-    color: Acg.textMuted,
   },
   notice: {
     ...AcgType.meta,

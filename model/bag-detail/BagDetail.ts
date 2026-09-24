@@ -12,6 +12,7 @@ import BagDetailFilterManager from '@/model/bag-detail/BagDetailFilterManager';
 import PackingButtonState from '@/model/bag-detail/PackingButtonState';
 import { ImperativeRouter } from 'expo-router';
 import BagWeather from '@/model/bag/BagWeather';
+import { getPhaseLabel } from '@/model/bag/TripPhaseHelper';
 import { BagActivitySummary } from '@/model/bag/BagActivitySummary';
 import { setBagInfoEditContext } from '@/model/bag-detail/BagInfoEditHandoff';
 import { getBagShareUrl } from '@/constants/WebLinks';
@@ -455,20 +456,9 @@ class BagDetail implements BagScheduleWriter {
     return 'ongoing';
   }
 
-  // 날짜 부제에 붙일 상황 라벨(D-day / 여행 중 / 지난 여행).
+  // 날짜 부제에 붙일 상황 라벨(D-day / 여행 중 / 지난 여행). 그룹 상세 헤더(GRP-11)와 같은 단일 소스다.
   public getPhaseLabel(): string {
-    const today = dayjs().startOf('day');
-    const phase = this.getTripPhase();
-    if (phase === 'before') {
-      const d = this.startDate.startOf('day').diff(today, 'day');
-      return d === 0
-        ? app.getL10n().t('bagDetail.todayDeparture')
-        : app.getL10n().t('bagDetail.dDay', { count: d });
-    }
-    if (phase === 'ongoing') {
-      return app.getL10n().t('bagDetail.ongoing');
-    }
-    return app.getL10n().t('bagDetail.pastTrip');
+    return getPhaseLabel(this.startDate, this.endDate);
   }
 
   private setGears(value: Gear[]) {

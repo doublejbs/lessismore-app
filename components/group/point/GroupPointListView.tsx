@@ -24,6 +24,11 @@ interface Props {
   // 수정·삭제는 작성자 또는 방장에게만 노출한다(GRP-4). 둘 다 없으면 ⋯ 자체를 그리지 않는다.
   onEdit?: ((point: GroupPoint) => void) | undefined;
   onDelete?: ((point: GroupPoint) => void) | undefined;
+  /**
+   * 있으면 **최근 등록한 N개만** 최신순으로 그린다(GRP-11 그룹 상세 맛보기). 목록은 등록순
+   * (`createdAt` 오름차순)으로 오므로 끝에서 N개를 뒤집는다. 없으면 전체를 등록순으로 그린다.
+   */
+  recentLimit?: number | undefined;
 }
 
 /**
@@ -40,11 +45,15 @@ const GroupPointListView: FC<Props> = ({
   onSelect,
   onEdit,
   onDelete,
+  recentLimit,
 }) => {
   const l10n = app.getL10n();
   const separator = l10n.t('group.detail.metaSeparator');
   const memberIds = group?.getMemberIds() ?? [];
-  const points = pointList.getVisiblePoints();
+  const visiblePoints = pointList.getVisiblePoints();
+  const points = recentLimit
+    ? visiblePoints.slice(-recentLimit).reverse()
+    : visiblePoints;
 
   const renderRow = (point: GroupPoint, index: number) => {
     const canEdit = point.canEdit(userId, group);
