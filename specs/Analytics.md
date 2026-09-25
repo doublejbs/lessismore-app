@@ -55,7 +55,7 @@
 
 | 이벤트 | 트리거 | 파라미터 |
 | --- | --- | --- |
-| `click_bag_add` | 배낭 탭 `배낭 추가` 버튼 | — |
+| `click_bag_add` | 배낭 탭 `여행 추가` 버튼 | — |
 | `click_bag_create_confirm` | 생성 모달 확인 (성공 시) | — |
 | `click_bag_copy` | 복사 진입 (목록 행 아이콘 / 추가 바텀시트 / 상세 헤더) | `source`: `list` \| `add_sheet` \| `detail` |
 | `click_bag_copy_confirm` | 복사 모달 확정 (성공 시) | `source`: 위와 동일 |

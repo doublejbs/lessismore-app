@@ -132,7 +132,7 @@
       "reauthCancelledMessage": "再認証がキャンセルされました。退会するには再認証が必要です。",
       "warningTitle": "⚠️ 注意事項",
       "warningMain": "退会するとすべてのデータが削除されます。",
-      "bags": "保存したすべてのバックパック情報",
+      "bags": "保存したすべての旅行情報",
       "gears": "保存したすべてのギア情報",
       "settings": "個人設定と記録",
       "warningFooter": "削除したデータは復元できません。",
@@ -187,18 +187,18 @@
     }
   },
   "bag": {
-    "add": "バックパックを追加",
-    "nameLabel": "バックパック名",
-    "namePlaceholder": "バックパック名を入力してください",
+    "add": "旅行を追加",
+    "nameLabel": "旅行名",
+    "namePlaceholder": "旅行名を入力してください",
     "copy": "コピー",
     "saveTemplate": "テンプレートとして保存",
     "delete": "削除",
     "packingCompleteSuffix": " · パッキング完了",
     "packingProgress": " · パッキング {{percent}}%",
-    "menu": "バックパックメニュー",
-    "label": "バックパック",
-    "count_other": "{{count}}個のバックパック",
-    "empty": "バックパックがありません",
+    "menu": "旅行メニュー",
+    "label": "旅行",
+    "count_other": "{{count}}件の旅行",
+    "empty": "旅行がありません",
     "memo": {
       "title": "メモ",
       "back": "戻る",
@@ -218,18 +218,18 @@
       "nameLabel": "テンプレート名",
       "namePlaceholder": "テンプレート名を入力してください",
       "emptyTitle": "保存したテンプレートがありません",
-      "emptySubtitle": "バックパックカードの⋯メニューから保存できます",
+      "emptySubtitle": "旅行カードの⋯メニューから保存できます",
       "deleteConfirm": "{{name}}のテンプレートを削除しますか？",
       "menu": "テンプレートメニュー",
       "count_other": "{{count}}個のテンプレート"
     },
-    "nameRequired": "バックパック名を入力してください",
-    "addFailed": "バックパックの追加中に問題が発生しました。もう一度お試しください。",
-    "emptyTitle": "バックパックがまだありません",
-    "emptySubtitle": "最初のバックパックがここに表示されます",
+    "nameRequired": "旅行名を入力してください",
+    "addFailed": "旅行の追加中に問題が発生しました。もう一度お試しください。",
+    "emptyTitle": "旅行がまだありません",
+    "emptySubtitle": "最初の旅行がここに表示されます",
     "added": "バックパックに追加しました。",
     "view": "バックパックを見る",
-    "deleteConfirm": "{{name}}のバックパックを削除しますか？",
+    "deleteConfirm": "{{name}}の旅行を削除しますか？",
     "templateDeleteFailed": "テンプレートの削除中に問題が発生しました。もう一度お試しください。",
     "calendar": {
       "weekdays": [
@@ -290,7 +290,7 @@
     "gearDelete": "{{name}}を削除",
     "gearUnused": "未使用",
     "usageRate": "使用率 {{rate}}%",
-    "nameEdit": "バックパック情報を編集",
+    "nameEdit": "旅行情報を編集",
     "totalWeight": "総重量",
     "gearCount_other": "ギア{{count}}個",
     "summary": {
@@ -313,8 +313,8 @@
       "beforeSubtitle": "旅行後の記録",
       "weightSuffix": "減ります"
     },
-    "deleteConfirm": "{{name}}のバックパックを削除しますか？",
-    "menu": "バックパックメニュー",
+    "deleteConfirm": "{{name}}の旅行を削除しますか？",
+    "menu": "旅行メニュー",
     "back": "戻る",
     "copy": "コピー",
     "share": "共有",
@@ -330,7 +330,7 @@
   },
   "bagTemplate": {
     "editGear": "ギアを編集",
-    "createBag": "バックパックを作成",
+    "createBag": "旅行を作成",
     "nameEdit": "名前を編集",
     "totalWeight": "総重量",
     "gearCount_other": "ギア{{count}}個",
@@ -639,10 +639,10 @@
       "helinox": "Helinox"
     },
     "addToBag": {
-      "newBagName": "新しいバックパック",
+      "newBagName": "新しい旅行",
       "titleAdded": "倉庫に追加しました。",
       "titleQuestion": "バックパックにも追加しますか？",
-      "newBag": "新しいバックパックに追加",
+      "newBag": "新しい旅行に追加",
       "alreadyInBag": "このバックパックに入っています",
       "close": "閉じる"
     },
@@ -692,11 +692,11 @@
   },
   "campSite": {
     "bagSelect": {
-      "title": "バックパックを選択",
+      "title": "旅行を選択",
       "subtitle": "{{name}}を目的地に設定",
-      "create": "新しいバックパックを作成",
-      "empty": "まだバックパックがありません。作成して目的地を設定してください。",
-      "myBags": "マイバックパック",
+      "create": "新しい旅行を作成",
+      "empty": "まだ旅行がありません。作成して目的地を設定してください。",
+      "myBags": "自分の旅行",
       "close": "閉じる",
       "changeConfirm": "目的地を{{from}}から{{to}}に変更しますか？",
       "changed": "目的地を設定しました。",
@@ -711,7 +711,7 @@
       "share": "共有",
       "naverMap": "Naverマップ",
       "moveToSpot": "場所に移動",
-      "setDestination": "バックパックの目的地に設定",
+      "setDestination": "旅行の目的地に設定",
       "loadFailedTitle": "お知らせ",
       "loadFailedMessage": "キャンプ場の情報を読み込めませんでした。",
       "favoriteFailed": "しばらくしてからもう一度お試しください",
@@ -902,13 +902,13 @@
       "home": "ホーム",
       "browse": "探す",
       "map": "地図",
-      "bag": "バックパック",
+      "bag": "旅行",
       "info": "マイページ",
       "community": "コミュニティ"
     },
     "bagForm": {
       "dateRequired": "日付を選択してください",
-      "nameRequired": "バックパック名を入力してください"
+      "nameRequired": "旅行名を入力してください"
     },
     "bagAddOptions": {
       "create": "新しく作成",
@@ -928,24 +928,24 @@
       "suffix": "コピー"
     },
     "bagInfoEdit": {
-      "title": "バックパック情報を編集",
+      "title": "旅行情報を編集",
       "failed": "変更を保存できませんでした。もう一度お試しください。"
     },
     "bagNew": {
-      "title": "新しいバックパック",
-      "failed": "バックパックを追加できませんでした。もう一度お試しください。",
+      "title": "新しい旅行",
+      "failed": "旅行を追加できませんでした。もう一度お試しください。",
       "locationSaveFailedTitle": "目的地を保存できませんでした",
-      "locationSaveFailed": "バックパックは作成しましたが、目的地を保存できませんでした。",
+      "locationSaveFailed": "旅行は作成しましたが、目的地を保存できませんでした。",
       "weatherFailedTitle": "天気を読み込めませんでした",
       "weatherFailed": "目的地は保存しました。目的地画面からもう一度お試しください。"
     },
     "templateCreate": {
-      "title": "バックパックを作成",
+      "title": "旅行を作成",
       "confirm": "作成",
       "notFound": "テンプレートが見つかりません。",
       "loadFailed": "テンプレートを読み込めませんでした。",
-      "completed": "バックパックを作成しました。",
-      "failed": "バックパックを作成できませんでした。もう一度お試しください。"
+      "completed": "旅行を作成しました。",
+      "failed": "旅行を作成できませんでした。もう一度お試しください。"
     },
     "templateSave": {
       "title": "テンプレートとして保存",
@@ -1016,11 +1016,11 @@
     "totalWeight": "総重量",
     "forecast": "予報",
     "packing": "パッキング",
-    "viewBag": "バックパックを見る",
-    "viewBagAccessibility": "{{name}}のバックパックを見る",
+    "viewBag": "旅行を見る",
+    "viewBagAccessibility": "{{name}}の旅行を見る",
     "emptyTripTitle": "まだ旅行の予定がありません",
     "emptyTripSubtitle": "今週末の1泊旅行を作りませんか？",
-    "createBag": "新しいバックパックを作成",
+    "createBag": "新しい旅行を作成",
     "warehouse": "マイ倉庫",
     "recentGear": "最近追加したギア",
     "viewAllWarehouse": "すべて見る",
@@ -1028,7 +1028,7 @@
     "emptyWarehouseSubtitle": "ギアを追加してみましょう",
     "addFirstGear": "最初のギアを追加",
     "gearDetail": "{{name}}の詳細",
-    "bagDetail": "{{name}}のバックパック詳細",
+    "bagDetail": "{{name}}の旅行詳細",
     "recommendedTitle": "uselessが選んだキャンプ場",
     "viewOnMap": "{{name}}、{{type}}、{{region}}、地図で見る",
     "login": "ログイン",
@@ -1041,7 +1041,7 @@
     "unlinked": "運動記録の連携を解除しました。",
     "unlinkFailed": "連携を解除できませんでした。",
     "introTitle": "ヘルスケアの運動記録を読み込みます",
-    "introDescription": "最近の運動記録を選び、バックパックに連携します。以下の項目だけを読み取り、ヘルスケアへの書き込みやサーバーへの保存は行いません。",
+    "introDescription": "最近の運動記録を選び、旅行に連携します。以下の項目だけを読み取り、ヘルスケアへの書き込みやサーバーへの保存は行いません。",
     "readItems": [
       "運動の種類・時間・距離",
       "移動ルートと上昇高度",

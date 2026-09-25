@@ -132,7 +132,7 @@
       "reauthCancelledMessage": "재인증이 취소되었습니다. 회원 탈퇴를 진행하려면 재인증이 필요합니다.",
       "warningTitle": "⚠️ 주의사항",
       "warningMain": "회원 탈퇴 시 모든 데이터가 삭제됩니다.",
-      "bags": "저장된 모든 배낭 정보",
+      "bags": "저장된 모든 여행 정보",
       "gears": "저장된 모든 장비 정보",
       "settings": "개인 설정 및 기록",
       "warningFooter": "삭제된 데이터는 복구할 수 없습니다.",
@@ -187,18 +187,18 @@
     }
   },
   "bag": {
-    "add": "배낭 추가",
-    "nameLabel": "배낭 이름",
-    "namePlaceholder": "배낭 이름을 입력해주세요",
+    "add": "여행 추가",
+    "nameLabel": "여행 이름",
+    "namePlaceholder": "여행 이름을 입력해주세요",
     "copy": "복사",
     "saveTemplate": "템플릿으로 저장",
     "delete": "삭제",
     "packingCompleteSuffix": " · 패킹 완료",
     "packingProgress": " · 패킹 {{percent}}%",
-    "menu": "배낭 메뉴",
-    "label": "배낭",
-    "count_other": "배낭 {{count}}개",
-    "empty": "배낭이 없어요",
+    "menu": "여행 메뉴",
+    "label": "여행",
+    "count_other": "여행 {{count}}개",
+    "empty": "여행이 없어요",
     "memo": {
       "title": "메모",
       "back": "뒤로가기",
@@ -218,18 +218,18 @@
       "nameLabel": "템플릿 이름",
       "namePlaceholder": "템플릿 이름을 입력해주세요",
       "emptyTitle": "저장한 템플릿이 없어요",
-      "emptySubtitle": "배낭 카드의 ⋯ 메뉴에서 템플릿으로 저장할 수 있어요",
+      "emptySubtitle": "여행 카드의 ⋯ 메뉴에서 템플릿으로 저장할 수 있어요",
       "deleteConfirm": "{{name}} 템플릿을 삭제할까요?",
       "menu": "템플릿 메뉴",
       "count_other": "템플릿 {{count}}개"
     },
-    "nameRequired": "배낭 이름을 입력해주세요",
-    "addFailed": "배낭 추가 중 문제가 발생했습니다. 다시 시도해주세요.",
-    "emptyTitle": "아직 만든 배낭이 없어요",
-    "emptySubtitle": "첫 배낭을 만들면 여기에 쌓여요",
+    "nameRequired": "여행 이름을 입력해주세요",
+    "addFailed": "여행 추가 중 문제가 발생했습니다. 다시 시도해주세요.",
+    "emptyTitle": "아직 만든 여행이 없어요",
+    "emptySubtitle": "첫 여행을 만들면 여기에 쌓여요",
     "added": "배낭에 추가됐습니다.",
     "view": "배낭 보기",
-    "deleteConfirm": "{{name}} 배낭을 삭제할까요?",
+    "deleteConfirm": "{{name}} 여행을 삭제할까요?",
     "templateDeleteFailed": "템플릿 삭제 중 문제가 발생했습니다. 다시 시도해주세요.",
     "calendar": {
       "weekdays": [
@@ -290,7 +290,7 @@
     "gearDelete": "{{name}} 삭제",
     "gearUnused": "사용 안 함",
     "usageRate": "사용률 {{rate}}%",
-    "nameEdit": "배낭 정보 수정",
+    "nameEdit": "여행 정보 수정",
     "totalWeight": "총 무게",
     "gearCount_other": "장비 {{count}}개",
     "summary": {
@@ -313,8 +313,8 @@
       "beforeSubtitle": "여행 후 기록",
       "weightSuffix": "로 줄어요"
     },
-    "deleteConfirm": "{{name}} 배낭을 삭제할까요?",
-    "menu": "배낭 메뉴",
+    "deleteConfirm": "{{name}} 여행을 삭제할까요?",
+    "menu": "여행 메뉴",
     "back": "뒤로가기",
     "copy": "복사",
     "share": "공유",
@@ -330,7 +330,7 @@
   },
   "bagTemplate": {
     "editGear": "장비 편집",
-    "createBag": "배낭 만들기",
+    "createBag": "여행 만들기",
     "nameEdit": "이름 수정",
     "totalWeight": "총 무게",
     "gearCount_other": "장비 {{count}}개",
@@ -639,10 +639,10 @@
       "helinox": "헬리녹스"
     },
     "addToBag": {
-      "newBagName": "새 배낭",
+      "newBagName": "새 여행",
       "titleAdded": "창고에 추가됐습니다.",
       "titleQuestion": "배낭에도 추가할까요?",
-      "newBag": "새 배낭에 추가",
+      "newBag": "새 여행에 추가",
       "alreadyInBag": "이미 이 배낭에 있는 제품",
       "close": "닫기"
     },
@@ -692,11 +692,11 @@
   },
   "campSite": {
     "bagSelect": {
-      "title": "배낭 선택",
+      "title": "여행 선택",
       "subtitle": "{{name}}을(를) 여행지로 설정해요",
-      "create": "새 배낭 만들기",
-      "empty": "아직 배낭이 없어요. 새 배낭을 만들어 여행지를 설정하세요.",
-      "myBags": "내 배낭",
+      "create": "새 여행 만들기",
+      "empty": "아직 여행이 없어요. 새 여행을 만들어 여행지를 설정하세요.",
+      "myBags": "내 여행",
       "close": "닫기",
       "changeConfirm": "{{from}}에서 {{to}}으로(으로) 변경할까요?",
       "changed": "여행지로 설정했어요.",
@@ -711,7 +711,7 @@
       "share": "공유",
       "naverMap": "네이버 지도",
       "moveToSpot": "위치로 이동",
-      "setDestination": "배낭 여행지로 설정",
+      "setDestination": "여행지로 설정",
       "loadFailedTitle": "알림",
       "loadFailedMessage": "박지 정보를 불러오지 못했어요.",
       "favoriteFailed": "잠시 후 다시 시도해주세요",
@@ -902,13 +902,13 @@
       "home": "홈",
       "browse": "탐색",
       "map": "지도",
-      "bag": "배낭",
+      "bag": "여행",
       "info": "내 정보",
       "community": "커뮤니티"
     },
     "bagForm": {
       "dateRequired": "날짜를 선택해주세요",
-      "nameRequired": "배낭 이름을 입력해주세요"
+      "nameRequired": "여행 이름을 입력해주세요"
     },
     "bagAddOptions": {
       "create": "새로 만들기",
@@ -928,24 +928,24 @@
       "suffix": "복사본"
     },
     "bagInfoEdit": {
-      "title": "배낭 정보 수정",
+      "title": "여행 정보 수정",
       "failed": "수정에 실패했습니다. 다시 시도해주세요."
     },
     "bagNew": {
-      "title": "새 배낭",
-      "failed": "배낭 추가 중 문제가 발생했습니다. 다시 시도해주세요.",
+      "title": "새 여행",
+      "failed": "여행 추가 중 문제가 발생했습니다. 다시 시도해주세요.",
       "locationSaveFailedTitle": "여행지 저장 실패",
-      "locationSaveFailed": "배낭은 만들었지만 여행지를 저장하지 못했어요.",
+      "locationSaveFailed": "여행은 만들었지만 여행지를 저장하지 못했어요.",
       "weatherFailedTitle": "날씨를 불러오지 못했어요",
       "weatherFailed": "여행지는 저장했어요. 여행지 화면에서 다시 시도할 수 있어요."
     },
     "templateCreate": {
-      "title": "배낭 만들기",
+      "title": "여행 만들기",
       "confirm": "만들기",
       "notFound": "템플릿을 찾을 수 없습니다.",
       "loadFailed": "템플릿을 불러오지 못했습니다.",
-      "completed": "배낭이 만들어졌습니다",
-      "failed": "배낭 생성 중 문제가 발생했습니다. 다시 시도해주세요."
+      "completed": "여행이 만들어졌습니다",
+      "failed": "여행 생성 중 문제가 발생했습니다. 다시 시도해주세요."
     },
     "templateSave": {
       "title": "템플릿으로 저장",
@@ -1016,11 +1016,11 @@
     "totalWeight": "총 무게",
     "forecast": "예보",
     "packing": "패킹",
-    "viewBag": "배낭 보기",
-    "viewBagAccessibility": "{{name}} 배낭 보기",
+    "viewBag": "여행 보기",
+    "viewBagAccessibility": "{{name}} 여행 보기",
     "emptyTripTitle": "아직 계획한 여행이 없어요",
     "emptyTripSubtitle": "이번 주말 1박으로 하나 만들어 둘까요?",
-    "createBag": "새 배낭 만들기",
+    "createBag": "새 여행 만들기",
     "warehouse": "내 창고",
     "recentGear": "최근 담은 장비",
     "viewAllWarehouse": "전체 보기",
@@ -1028,7 +1028,7 @@
     "emptyWarehouseSubtitle": "가진 장비를 하나씩 담아보세요",
     "addFirstGear": "첫 장비 담기",
     "gearDetail": "{{name}} 상세",
-    "bagDetail": "{{name}} 배낭 상세",
+    "bagDetail": "{{name}} 여행 상세",
     "recommendedTitle": "useless가 고른 박지",
     "viewOnMap": "{{name}}, {{type}}, {{region}}, 지도에서 보기",
     "login": "로그인",
@@ -1041,7 +1041,7 @@
     "unlinked": "운동 기록 연결을 해제했습니다.",
     "unlinkFailed": "연결 해제에 실패했습니다.",
     "introTitle": "건강 앱의 운동 기록을 가져옵니다",
-    "introDescription": "최근 운동 기록을 골라 배낭에 연결합니다. 아래 항목만 읽고, 건강 앱에 쓰거나 서버에 저장하지 않습니다.",
+    "introDescription": "최근 운동 기록을 골라 여행에 연결합니다. 아래 항목만 읽고, 건강 앱에 쓰거나 서버에 저장하지 않습니다.",
     "readItems": [
       "운동 기록(종류·시간·거리)",
       "이동 경로와 상승고도",
