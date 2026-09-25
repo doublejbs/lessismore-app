@@ -20,8 +20,6 @@ import GroupDetail from '@/model/group-detail/GroupDetail';
 import GroupStateView from '@/components/group/GroupStateView';
 import GroupDetailHeaderView from './GroupDetailHeaderView';
 import GroupDetailInviteSectionView from './GroupDetailInviteSectionView';
-import GroupDetailPointSectionView from './GroupDetailPointSectionView';
-import GroupDetailRouteSectionView from './GroupDetailRouteSectionView';
 import GroupDetailSkeletonView from './GroupDetailSkeletonView';
 import GroupDetailSoloInviteView from './GroupDetailSoloInviteView';
 import GroupMemberBagListView from './GroupMemberBagListView';
@@ -37,7 +35,9 @@ const CONTENT_BOTTOM_PADDING = 40;
 
 /**
  * 그룹 상세 (GRP-4 · GRP-5 · GRP-7 · GRP-11).
- * 섹션 순서는 헤더(지도 밴드·수치 줄) → [혼자면 초대 카드] → 멤버·배낭 → 코스 → 포인트 → [둘 이상이면 초대]다.
+ * 섹션 순서는 헤더(지도 밴드·개수 줄·수치 줄) → [혼자면 초대 카드] → 일행 배낭 → [둘 이상이면 초대]다.
+ * 코스·지도 포인트 섹션은 두지 않는다(GRP-7) — 추가·목록·수정·삭제는 모두 그룹 지도가 맡고,
+ * 상세는 지도 밴드와 개수 줄로 그 입구만 둔다.
  * 초대 자리는 **둘 중 하나만** 그린다(GRP-11) — 혼자인 그룹의 할 일은 초대라 위로 올린다.
  * iOS는 네이티브 투명 헤더, Android는 커스텀 헤더를 쓴다(GRP-11, LG-1).
  */
@@ -136,14 +136,6 @@ const GroupDetailView: FC<Props> = ({ detail }) => {
               detail={detail}
               onSelectBag={handleOpenBagSheet}
               onOpenMemberMenu={openMemberMenu}
-            />
-            <GroupDetailRouteSectionView
-              detail={detail}
-              routeList={routeList}
-            />
-            <GroupDetailPointSectionView
-              detail={detail}
-              pointList={pointList}
             />
             {isSolo ? null : <GroupDetailInviteSectionView group={group} />}
           </ScrollView>

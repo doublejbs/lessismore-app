@@ -12,8 +12,8 @@ import GroupPointDispatcher from './GroupPointDispatcher';
 /**
  * 지도 포인트 목록 모델 (GRP-9).
  *
- * 그룹 상세의 포인트 섹션과 그룹 지도가 **같은 모델**을 쓴다 — 두 화면이 각자 조회·상한
- * 판정을 두면 같은 데이터에 다른 규칙이 붙는다. 유형 필터도 여기 싣는다(GRP-10).
+ * 그룹 상세의 지도 밴드·개수 줄(GRP-7)과 그룹 지도가 **같은 모델**을 쓴다 — 두 화면이 각자
+ * 조회·상한 판정을 두면 같은 데이터에 다른 규칙이 붙는다. 유형 필터도 여기 싣는다(GRP-10).
  */
 class GroupPointList {
   private points: GroupPoint[] = [];

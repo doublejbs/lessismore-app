@@ -20,6 +20,8 @@ import GroupMapListView from './GroupMapListView';
 import GroupPointCreateSheetView, {
   GroupPointDraft,
 } from './GroupPointCreateSheetView';
+import GroupRouteListSheetView from './GroupRouteListSheetView';
+import useGroupMapRouteState from './useGroupMapRouteState';
 
 interface Props {
   groupMap: GroupMap;
@@ -38,7 +40,8 @@ const HEADER_HEIGHT = 52;
  * 그룹 지도 (GRP-9 · GRP-10).
  *
  * 네이티브는 네이버 지도를, 웹은 코스·포인트 목록을 보여준다(APP-5 — 웹은 지도 탭 자체가
- * 없다). 포인트 등록·수정 시트는 두 경로가 함께 쓴다.
+ * 없다). 포인트 등록·수정 시트는 두 경로가 함께 쓴다. 코스 목록 시트는 지도에서만 뜬다 —
+ * 웹 목록은 코스 행이 이미 화면에 있다.
  * iOS는 네이티브 투명 헤더, Android는 커스텀 헤더다(GRP-11, LG-1).
  */
 const GroupMapView: FC<Props> = ({ groupMap }) => {
@@ -55,6 +58,17 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
   const [sheetKey, setSheetKey] = useState(0);
   const pointList = groupMap.getPointList();
   const group = groupMap.getGroup();
+  const {
+    isRouteSheetVisible,
+    isAddingRoute,
+    isUploadingRoute,
+    handleOpenRouteSheet,
+    handleCloseRouteSheet,
+    handleSelectRoute,
+    handleDeleteRoute,
+    handleRouteSheetDismissed,
+    handleAddRoute,
+  } = useGroupMapRouteState(groupMap);
 
   useEffect(() => {
     if (loggedRef.current) {
@@ -206,6 +220,7 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
             groupMap={groupMap}
             onRequestEdit={handleRequestEdit}
             onRequestDelete={handleRequestDelete}
+            onRequestDeleteRoute={handleDeleteRoute}
           />
         );
       }
@@ -216,6 +231,10 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
             onRequestCreate={handleRequestCreate}
             onRequestEdit={handleRequestEdit}
             onRequestDelete={handleRequestDelete}
+            onOpenRouteList={handleOpenRouteSheet}
+            onAddRoute={() => void handleAddRoute()}
+            isAddingRoute={isAddingRoute}
+            isUploadingRoute={isUploadingRoute}
             // Android는 커스텀 헤더가 레이아웃을 차지해 지도 영역이 이미 그 아래에서
             // 시작한다 — 칩은 지도 위쪽에 살짝 띄우기만 한다. iOS는 투명 헤더라 직접 비운다.
             topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
@@ -266,6 +285,16 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
         onClose={handleCloseSheet}
         onSubmit={draft => void handleSubmit(draft)}
       />
+      {IS_WEB ? null : (
+        <GroupRouteListSheetView
+          visible={isRouteSheetVisible}
+          groupMap={groupMap}
+          onSelect={handleSelectRoute}
+          onDelete={handleDeleteRoute}
+          onClose={handleCloseRouteSheet}
+          onDismissed={handleRouteSheetDismissed}
+        />
+      )}
       <ToastView toastManager={app.getToastManager()!} bottom={100} />
       <AlertView alertManager={app.getAlertManager()!} />
     </View>

@@ -16,11 +16,11 @@ interface Props {
   routes: GroupRoute[];
   // 작성자 표시 파생에 쓰는 현재 멤버 목록(GRP-4).
   memberIds: readonly string[];
-  // 행 탭 — 그룹 지도에서 해당 코스를 강조한다(GRP-8). 없으면 행이 눌리지 않는다.
+  // 행 탭 — 그 코스를 골라 지도에서 강조한다(GRP-8 · GRP-10). 없으면 행이 눌리지 않는다.
   onSelect?: ((route: GroupRoute) => void) | undefined;
   /**
-   * 지금 지도·그래프에 반영된 코스(GRP-8). 지도 화면처럼 선택이 그 자리에 남는 목록만 넘긴다 —
-   * 그룹 상세의 코스 섹션은 행을 누르면 지도로 넘어가므로 선택 상태가 없다.
+   * 지금 지도·그래프에 반영된 코스(GRP-8). 그룹 지도의 코스 목록 시트·웹 목록처럼 선택이
+   * 그 자리에 남는 목록만 넘긴다.
    */
   selectedRouteId?: string | null | undefined;
   // 삭제는 올린 사람과 방장에게만 노출한다. 판정은 화면이 내려준다.

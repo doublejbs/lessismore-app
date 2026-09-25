@@ -28,7 +28,7 @@ interface Props {
   rows: readonly RouteRow[];
   /**
    * 지금 지도·그래프에 반영된 행(GRP-8 · BD-11). 넘기지 않으면 선택 표식을 그리지 않는다 —
-   * 그룹 상세의 코스 섹션처럼 행을 누르면 다른 화면으로 넘어가는 목록에는 선택 상태가 없다.
+   * 행을 누르면 다른 화면으로 넘어가는 목록에는 선택 상태가 없다.
    */
   selectedId?: string | null | undefined;
   disabled?: boolean | undefined;
@@ -67,7 +67,7 @@ const RouteListView: FC<Props> = ({ rows, selectedId, disabled }) => {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   /**
    * 코스가 하나뿐이면 표식을 그리지 않는다 — 고를 것이 없는 목록에서 선택 표식은
-   * 무엇과 구분되는지 말하지 않는 장식이 된다(지도 화면이 코스 칩을 감추는 판정과 같다).
+   * 무엇과 구분되는지 말하지 않는 장식이 된다.
    */
   const showIndicator = !!selectedId && rows.length > 1;
   // 액션이 하나도 없는 목록에는 메뉴 시트를 달지 않는다.

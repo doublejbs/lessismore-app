@@ -1366,10 +1366,8 @@
       "bagSheetEmpty": "먼저 배낭을 만들어주세요",
       "routesTitle": "코스",
       "routesEmpty": "아직 올라온 코스가 없어요",
-      "routesLoadFailed": "코스를 불러오지 못했어요",
       "pointsTitle": "지도 포인트",
       "pointsEmpty": "아직 등록된 포인트가 없어요",
-      "pointsLoadFailed": "포인트를 불러오지 못했어요",
       "inviteTitle": "초대",
       "inviteDescription": "링크를 받은 사람만 참여할 수 있어요",
       "soloTitle": "아직 혼자예요",
@@ -1389,9 +1387,10 @@
       "goBack": "돌아가기",
       "leftMember": "(나간 멤버)",
       "withdrawnUser": "(탈퇴한 사용자)",
-      "openMap": "지도",
-      "viewAllPoints_other": "전체 {{count}}개",
       "openMapBand": "그룹 지도 열기",
+      "emptyBand": "지도에서 코스·포인트를 추가해 보세요",
+      "routeCount_other": "코스 {{count}}",
+      "pointCount_other": "포인트 {{count}}",
       "bagLinkedTo": "{{name}}에 연결됨"
     },
     "member": {
@@ -1446,7 +1445,9 @@
       "currentLocation": "현재 위치",
       "webNotice": "웹에서는 지도를 볼 수 없어요. 코스와 포인트를 목록으로 보여드려요",
       "aimHint": "지도를 움직여 추가할 위치를 맞춰요",
-      "aimConfirm": "이 위치에 추가"
+      "aimConfirm": "이 위치에 추가",
+      "routeFull": "코스가 가득 찼어요",
+      "openRouteList": "코스 목록 열기"
     },
     "point": {
       "title": "포인트 등록",
@@ -1497,8 +1498,6 @@
     "profileScrubHint": "그래프를 훑어 지도에서 위치 보기",
     "reverse": "방향 뒤집기",
     "restoreDirection": "원래 방향으로 보기",
-    "reverseOf": "{{name}} 방향 뒤집기",
-    "restoreDirectionOf": "{{name}} 원래 방향으로 보기",
     "reversed": "역방향",
     "myLocation": "내 위치"
   }

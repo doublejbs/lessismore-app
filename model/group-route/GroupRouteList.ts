@@ -17,8 +17,10 @@ const GPX_EXTENSION_PATTERN = /\.gpx$/i;
 /**
  * 코스 목록 모델 (GRP-8).
  *
- * 그룹 상세의 코스 섹션이 쓴다. 파일 선택 → 파싱 → 업로드 → 목록 갱신이 한 흐름이라
- * 화면은 `addRoute()` 하나만 부르고 진행 상태는 `isSubmitting()`으로 본다.
+ * 그룹 지도가 쓴다(GRP-10) — 지도 선·고도 그래프·코스 목록 시트·`코스 추가`가 **이 목록 하나**를
+ * 본다(`GroupMap`이 들고 있다). 그룹 상세의 지도 밴드도 같은 모델로 따로 읽는다(GRP-7).
+ * 파일 선택 → 파싱 → 업로드 → 목록 갱신이 한 흐름이라 화면은 `addRoute()` 하나만 부르고
+ * 진행 상태는 `isSubmitting()`으로 본다.
  */
 class GroupRouteList {
   private routes: GroupRoute[] = [];
@@ -99,11 +101,12 @@ class GroupRouteList {
 
   /**
    * 코스 추가 — 파일 선택 → 용량 검사 → 파싱 → 업로드 → Firestore → 목록 갱신 (GRP-8).
-   * 선택을 취소하면 아무 안내 없이 끝난다.
+   * 선택을 취소하면 아무 안내 없이 끝난다. 올린 코스의 ID를 돌려준다(실패·취소면 `null`) —
+   * 지도가 방금 올린 코스를 골라 카메라를 옮긴다.
    */
-  public async addRoute(): Promise<boolean> {
+  public async addRoute(): Promise<string | null> {
     if (this.submitting) {
-      return false;
+      return null;
     }
 
     if (this.isFull()) {
@@ -113,14 +116,14 @@ class GroupRouteList {
         )
       );
 
-      return false;
+      return null;
     }
 
     try {
       const picked = await RoutePicker.pick();
 
       if (!picked) {
-        return false;
+        return null;
       }
 
       this.setSubmitting(true);
@@ -149,18 +152,23 @@ class GroupRouteList {
           : {}),
       };
 
-      await this.dispatcher.addRoute(this.groupId, draft, picked.uri);
+      const routeId = await this.dispatcher.addRoute(
+        this.groupId,
+        draft,
+        picked.uri
+      );
+
       app.getAnalyticsManager()?.logClick('group_route_upload', {
         distance: Math.round(parsed.distance),
         point_count: parsed.pointCount,
       });
       await this.load(true);
 
-      return true;
+      return routeId;
     } catch (error) {
       this.showMessage(getRouteErrorMessage(error));
 
-      return false;
+      return null;
     } finally {
       this.setSubmitting(false);
     }

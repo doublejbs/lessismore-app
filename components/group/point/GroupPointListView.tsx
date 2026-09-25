@@ -1,7 +1,6 @@
 import { FC } from 'react';
 import { observer } from 'mobx-react-lite';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgRow, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
@@ -19,22 +18,15 @@ interface Props {
   pointList: GroupPointList;
   group: Group | null;
   userId: string;
-  // 행 탭 — 지도에서 해당 포인트로 카메라를 옮긴다(GRP-9). 없으면 행이 눌리지 않는다.
-  onSelect?: ((point: GroupPoint) => void) | undefined;
   // 수정·삭제는 작성자 또는 방장에게만 노출한다(GRP-4). 둘 다 없으면 ⋯ 자체를 그리지 않는다.
   onEdit?: ((point: GroupPoint) => void) | undefined;
   onDelete?: ((point: GroupPoint) => void) | undefined;
-  /**
-   * 있으면 **최근 등록한 N개만** 최신순으로 그린다(GRP-11 그룹 상세 맛보기). 목록은 등록순
-   * (`createdAt` 오름차순)으로 오므로 끝에서 N개를 뒤집는다. 없으면 전체를 등록순으로 그린다.
-   */
-  recentLimit?: number | undefined;
 }
 
 /**
  * 지도 포인트 목록 (GRP-9).
  *
- * 그룹 상세의 포인트 섹션과 웹의 지도 대체 화면이 같은 행 문법을 쓴다 — 이름 16 medium +
+ * 웹의 지도 대체 화면(`GroupMapListView`)이 쓴다. 행 문법은 이름 16 medium +
  * 메타 14 잉크 한 줄이고, 유형은 배지가 아니라 메타 줄의 조각이다(HM-8). 유형 색은 지도
  * 마커와 같은 값이라 행 앞 도트가 범례를 겸한다.
  */
@@ -42,18 +34,13 @@ const GroupPointListView: FC<Props> = ({
   pointList,
   group,
   userId,
-  onSelect,
   onEdit,
   onDelete,
-  recentLimit,
 }) => {
   const l10n = app.getL10n();
   const separator = l10n.t('group.detail.metaSeparator');
   const memberIds = group?.getMemberIds() ?? [];
-  const visiblePoints = pointList.getVisiblePoints();
-  const points = recentLimit
-    ? visiblePoints.slice(-recentLimit).reverse()
-    : visiblePoints;
+  const points = pointList.getVisiblePoints();
 
   const renderRow = (point: GroupPoint, index: number) => {
     const canEdit = point.canEdit(userId, group);
@@ -101,26 +88,7 @@ const GroupPointListView: FC<Props> = ({
         key={point.getId()}
         style={[styles.row, index > 0 && styles.rowDivided]}
       >
-        <View style={styles.rowInner}>
-          {onSelect ? (
-            <TouchableOpacity
-              style={styles.rowTouchable}
-              onPress={() => onSelect(point)}
-              activeOpacity={0.7}
-              accessibilityRole='button'
-              accessibilityLabel={`${point.getTitle()}${separator}${meta}`}
-            >
-              {body}
-              <Ionicons
-                name='chevron-forward'
-                size={16}
-                color={Acg.textSecondary}
-              />
-            </TouchableOpacity>
-          ) : (
-            body
-          )}
-        </View>
+        <View style={styles.rowInner}>{body}</View>
         {hasMenu ? (
           <View style={styles.actions}>
             {onEdit ? (
@@ -171,11 +139,6 @@ const styles = StyleSheet.create({
   },
   rowInner: {
     justifyContent: 'center',
-  },
-  rowTouchable: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: AcgLayout.chipGap,
   },
   rowBody: {
     flex: 1,

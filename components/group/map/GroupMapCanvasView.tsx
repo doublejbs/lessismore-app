@@ -1,5 +1,10 @@
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {
   Camera,
   NaverMapMarkerOverlay,
@@ -15,8 +20,6 @@ import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import CategoryChipView from '@/components/browse/CategoryChipView';
-import RouteElevationChartView from '@/components/route/RouteElevationChartView';
 import RoutePathOverlayView from '@/components/route/RoutePathOverlayView';
 import PretendardText from '@/components/PretendardText';
 import SpotPinView from '@/components/camp-site/SpotPinView';
@@ -29,6 +32,8 @@ import {
 } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import GroupPoint from '@/model/group/GroupPoint';
+import GroupValidationError from '@/model/group/GroupValidationError';
+import { getGroupValidationMessage } from '@/model/group-error/GroupErrorMessage';
 import GroupMap from '@/model/group-map/GroupMap';
 import { getRouteFitRegion } from '@/model/route/RouteCamera';
 import { RouteBounds } from '@/model/route/RouteData';
@@ -36,6 +41,7 @@ import { RouteElevationSample } from '@/model/route/RouteElevation';
 import { deltaToZoom } from '@/model/map/MapZoom';
 import GroupMapAimMarkerView from './GroupMapAimMarkerView';
 import GroupMapMarkersView, { GroupMapViewport } from './GroupMapMarkersView';
+import GroupMapRoutePanelView from './GroupMapRoutePanelView';
 import GroupPointCalloutView from './GroupPointCalloutView';
 import GroupPointFilterChipsView from './GroupPointFilterChipsView';
 import RouteScrubMarkerView from '@/components/route/RouteScrubMarkerView';
@@ -55,6 +61,13 @@ interface Props {
   }) => void;
   onRequestEdit: (point: GroupPoint) => void;
   onRequestDelete: (point: GroupPoint) => void;
+  // 고도 그래프 머리 줄 → 코스 목록 시트(GRP-10). 시트는 화면(`GroupMapView`)이 그린다.
+  onOpenRouteList: () => void;
+  // `코스 추가` — GPX 선택 → 업로드(GRP-8). 흐름은 `useGroupMapRouteState`가 잇는다.
+  onAddRoute: () => void;
+  // `코스 추가`로 시작한 작업이 진행 중인지(파일 선택 포함) / 그중 업로드 단계인지.
+  isAddingRoute: boolean;
+  isUploadingRoute: boolean;
   // Android 커스텀 헤더 높이만큼 상단 오버레이를 내린다(iOS는 투명 헤더라 세이프에어리어로 충분).
   topInset: number;
 }
@@ -85,12 +98,20 @@ const SPOT_PIN_HEIGHT = 40;
  *
  * **고도 그래프**는 지도 아래에 둔다(GRP-8). 지도 위에 얹으면 훑는 동안 손가락과 그래프가
  * 지도를 가려 "이 오르막이 어디인가"를 볼 수 없다 — 이 기능이 존재하는 이유가 사라진다.
+ * 그래프 머리에는 선택 코스 `이름 · 거리 · 상승 ›`가 서고, 누르면 코스 목록 시트가 뜬다(GRP-10 —
+ * 코스 칩을 대신한다). 방향 뒤집기·삭제는 그 시트의 행 `⋯`에 있다.
+ *
+ * **추가 버튼 두 개**(GRP-10): `코스 추가`(흰 보조 알약) + `포인트 추가`(라임 — 화면당 하나, HM-8).
  */
 const GroupMapCanvasView: FC<Props> = ({
   groupMap,
   onRequestCreate,
   onRequestEdit,
   onRequestDelete,
+  onOpenRouteList,
+  onAddRoute,
+  isAddingRoute,
+  isUploadingRoute,
   topInset,
 }) => {
   const l10n = app.getL10n();
@@ -116,7 +137,7 @@ const GroupMapCanvasView: FC<Props> = ({
     y: number;
     seq: number;
   } | null>(null);
-  // 포인트 추가 조준 모드 (GRP-9). 이 동안에는 필터 칩·정보 카드·코스 칩을 걷어 조준을 가리지 않는다.
+  // 포인트 추가 조준 모드 (GRP-9). 이 동안에는 필터 칩·정보 카드·추가 버튼·코스 패널을 걷어 조준을 가리지 않는다.
   const [isAiming, setIsAiming] = useState(false);
   /**
    * 고도 그래프에서 훑고 있는 지점 (GRP-8). 손을 떼면 `null`이 되어 마커가 사라진다.
@@ -129,17 +150,15 @@ const GroupMapCanvasView: FC<Props> = ({
   } | null>(null);
   const handledLongPressRef = useRef(0);
   const pointList = groupMap.getPointList();
+  const routeList = groupMap.getRouteList();
   const routes = groupMap.getRoutes();
   const campSpot = groupMap.getCampSpot();
   const selectedRouteId = groupMap.getSelectedRouteId();
   const selectedPoint = groupMap.getFocusedPoint();
   const routeFocusRequest = groupMap.getRouteFocusRequest();
   const initialized = groupMap.isInitialized();
-  // 코스가 하나뿐이면 선택 없이도 그 코스가 주인공이다(GRP-10 강조 규칙과 같은 판정).
-  const selectedRoute =
-    routes.length === 1
-      ? routes[0]
-      : (routes.find(route => route.getId() === selectedRouteId) ?? null);
+  // 고른 코스가 없거나 지워졌으면 첫 코스다(GRP-10 강조 규칙 — `GroupMap.getSelectedRouteId`).
+  const selectedRoute = groupMap.getSelectedRoute();
 
   useEffect(() => {
     mountedRef.current = true;
@@ -235,7 +254,7 @@ const GroupMapCanvasView: FC<Props> = ({
   }, [campSpot, fitBounds, groupMap, moveCamera]);
 
   /**
-   * 고른 코스로 카메라를 옮긴다 (GRP-8) — 코스 칩, 상세 코스 행에서 넘어온 핸드오프.
+   * 고른 코스로 카메라를 옮긴다 (GRP-8) — 코스 목록 시트의 행, 방금 올린 코스.
    * 최초 맞춤과 달리 **고를 때마다** 옮긴다(같은 코스를 다시 골라도 `seq`가 올라간다).
    * 지도가 준비되지 않았거나 코스가 아직 안 읽혔으면 요청을 남겨 두고 준비된 뒤 한 번 맞춘다.
    * 조회가 끝났는데 그 코스가 없으면(지워진 코스) 요청을 버리고 최초 맞춤에 맡긴다.
@@ -280,9 +299,9 @@ const GroupMapCanvasView: FC<Props> = ({
   }, [fitBounds, groupMap]);
 
   /**
-   * 목록(그룹 상세)에서 찍고 들어온 포인트로 카메라를 옮긴다(GRP-9).
+   * 초점을 준 포인트로 카메라를 옮긴다(GRP-9) — 마커 탭 등 `GroupMap.focusPoint`.
    *
-   * 지도 화면이 열리자마자 초점이 먼저 들어오므로 **지도가 준비되기 전이거나 포인트를 아직
+   * 초점이 지도 준비보다 먼저 들어올 수 있으므로 **지도가 준비되기 전이거나 포인트를 아직
    * 읽지 않았으면 기다린다**(`true`를 돌려 최초 맞춤이 먼저 카메라를 가져가지 못하게 한다).
    * 예전에는 이 시점에 카메라 이동이 무시되면서도 '맞춤 완료' 표시만 켜져, 포인트로도 전체
    * 상자로도 가지 않고 기본 위치에 머물렀다. 준비된 뒤 `syncCamera`가 다시 부르면 그때 옮긴다.
@@ -312,14 +331,14 @@ const GroupMapCanvasView: FC<Props> = ({
     }
 
     handledPointIdRef.current = pointId;
-    // 목록에서 찍어 들어온 포인트는 최초 맞춤이 덮어쓰지 않게 한다.
+    // 초점을 준 포인트는 최초 맞춤이 덮어쓰지 않게 한다.
     didFitRef.current = true;
     moveCamera(point.getLatitude(), point.getLongitude(), deltaToZoom(0.02));
 
     return true;
   }, [groupMap, moveCamera, pointList]);
 
-  // 카메라 결정 순서: 찍고 들어온 포인트 → 고른 코스 → 최초 맞춤(전체 상자).
+  // 카메라 결정 순서: 초점 포인트 → 고른 코스 → 최초 맞춤(전체 상자).
   // 앞의 것이 정했으면 뒤의 것이 되돌리지 않는다.
   const syncCamera = useCallback(() => {
     if (fitFocusedPoint()) {
@@ -533,14 +552,30 @@ const GroupMapCanvasView: FC<Props> = ({
   }, [groupMap]);
 
   const isFull = pointList.isFull();
-  const elevationProfile = selectedRoute?.getElevationProfile() ?? null;
+  const isRouteFull = routeList.isFull();
+  const canAddRoute = routeList.canAdd();
   /**
-   * 고도가 없는 코스는 그래프 자리를 아예 비운다 — 빈 틀은 "데이터를 못 불러왔다"로 읽힌다(GRP-8).
-   * 조준 모드에서도 접는다: 지도를 넓히고, 확정 버튼 말고 누를 것을 두지 않는다(GRP-9).
+   * 코스 패널(머리 줄 + 고도 그래프)은 코스가 있으면 선다 — 고도 없는 코스도 머리 줄은 있다(GRP-10).
+   * 조준 모드에서는 접는다: 지도를 넓히고, 확정 버튼 말고 누를 것을 두지 않는다(GRP-9).
    */
-  const showProfile = !!elevationProfile && !isAiming;
-  // 그래프가 화면 아래를 차지하면 세이프에어리어는 그래프가 비운다 — 오버레이는 지도 안에 남는다.
-  const overlayBottomInset = showProfile ? 0 : insets.bottom;
+  const showRoutePanel = !!selectedRoute && !isAiming;
+
+  // `코스 추가` 라벨 — 업로드 중엔 `올리는 중`, 상한이면 막힌 이유를 라벨 자리에 적는다(포인트와 같은 문법).
+  const getAddRouteLabelKey = () => {
+    if (isUploadingRoute) {
+      return 'group.route.uploading';
+    }
+
+    if (isRouteFull) {
+      return 'group.map.routeFull';
+    }
+
+    return 'group.route.add';
+  };
+
+  const showProfile = showRoutePanel && !!selectedRoute?.getElevationProfile();
+  // 패널이 화면 아래를 차지하면 세이프에어리어는 패널이 비운다 — 오버레이는 지도 안에 남는다.
+  const overlayBottomInset = showRoutePanel ? 0 : insets.bottom;
   // 그래프가 걷힌 뒤(조준 모드·코스 교체)에는 남은 표본을 그리지 않는다.
   const scrubSample =
     showProfile && scrub?.routeId === (selectedRouteId ?? '')
@@ -640,35 +675,19 @@ const GroupMapCanvasView: FC<Props> = ({
           </View>
         )}
 
-        {/* 우측 지도 컨트롤 — 위에서부터 방향 뒤집기, 현재 위치.
-          방향 뒤집기(GRP-8): 네이티브 지도는 코스를 목록이 아니라 칩으로 고르므로 `⋯` 메뉴가 없다 —
-          코스를 뒤집는 진입을 지도에 둔다. 조준 모드에서는 걷는다(확정 말고 누를 것을 두지 않는다).
-          현재 위치: 권한이 있을 때만 노출한다(GRP-9 엣지 케이스). 조준 모드에서도 남긴다 —
-          내 자리로 지도를 옮겨 그 부근을 겨누는 것이 흔한 경로다. */}
-        {(selectedRoute && !isAiming) || locationGranted ? (
+        {/* 우측 지도 컨트롤 — 현재 위치. 권한이 있을 때만 노출한다(GRP-9 엣지 케이스).
+          조준 모드에서도 남긴다 — 내 자리로 지도를 옮겨 그 부근을 겨누는 것이 흔한 경로다.
+          방향 뒤집기는 코스 목록 시트의 행 `⋯`에 있다(GRP-10) — 같은 일을 두 곳에 두지 않는다. */}
+        {locationGranted ? (
           <View
             style={[styles.controlStack, { bottom: overlayBottomInset + 120 }]}
             pointerEvents='box-none'
           >
-            {selectedRoute && !isAiming ? (
-              <MapControlButtonView
-                icon='swap-vertical'
-                accessibilityLabel={l10n.t(
-                  selectedRoute.isReversed()
-                    ? 'route.restoreDirectionOf'
-                    : 'route.reverseOf',
-                  { name: selectedRoute.getName() }
-                )}
-                onPress={() => selectedRoute.toggleReversed()}
-              />
-            ) : null}
-            {locationGranted ? (
-              <MapControlButtonView
-                icon='locate'
-                accessibilityLabel={l10n.t('group.map.currentLocation')}
-                onPress={() => void moveToCurrentLocation()}
-              />
-            ) : null}
+            <MapControlButtonView
+              icon='locate'
+              accessibilityLabel={l10n.t('group.map.currentLocation')}
+              onPress={() => void moveToCurrentLocation()}
+            />
           </View>
         ) : null}
 
@@ -679,7 +698,7 @@ const GroupMapCanvasView: FC<Props> = ({
           ]}
           pointerEvents='box-none'
         >
-          {/* 조준 모드에서는 정보 카드·코스 칩을 걷어 조준을 가리지 않는다(GRP-9). */}
+          {/* 조준 모드에서는 정보 카드·추가 버튼 둘을 걷어 조준을 가리지 않는다(GRP-9 · GRP-10). */}
           {isAiming ? (
             <>
               <View style={styles.aimHint}>
@@ -729,58 +748,76 @@ const GroupMapCanvasView: FC<Props> = ({
                 />
               ) : null}
 
-              {/* 코스가 여럿일 때만 선택 칩을 둔다 — 하나뿐이면 고를 것이 없다(GRP-10). */}
-              {routes.length > 1 ? (
-                <View style={styles.routeRow}>
-                  {routes.map(route => (
-                    <CategoryChipView
-                      key={route.getId()}
-                      label={route.getName()}
-                      tone='acgSolid'
-                      variant='secondary'
-                      selected={route.getId() === selectedRouteId}
-                      onPress={() => groupMap.focusRoute(route.getId())}
-                    />
-                  ))}
-                </View>
-              ) : null}
-
-              {/* 화면의 주 액션 하나 — 라임은 여기에만 쓴다(HM-8). */}
-              <TouchableOpacity
-                style={[styles.addButton, isFull && styles.addButtonDisabled]}
-                onPress={handleStartAiming}
-                disabled={isFull || pointList.isSubmitting()}
-                activeOpacity={0.8}
-                accessibilityRole='button'
-                accessibilityLabel={l10n.t('group.map.addPoint')}
-                accessibilityHint={l10n.t('group.map.addPointHint')}
-                accessibilityState={{ disabled: isFull }}
-              >
-                <Ionicons name='add' size={20} color={Acg.ink} />
-                <PretendardText weight='semibold' style={styles.addLabel}>
-                  {l10n.t(
-                    isFull ? 'group.map.pointFull' : 'group.map.addPoint'
-                  )}
-                </PretendardText>
-              </TouchableOpacity>
+              {/* 추가 버튼 두 개(GRP-10) — 나란히, 같은 높이. 라임은 `포인트 추가` 하나다(HM-8). */}
+              <View style={styles.addActions}>
+                {canAddRoute ? (
+                  <TouchableOpacity
+                    style={[
+                      styles.secondaryButton,
+                      isRouteFull && styles.addButtonDisabled,
+                    ]}
+                    onPress={onAddRoute}
+                    disabled={
+                      isRouteFull || isAddingRoute || routeList.isSubmitting()
+                    }
+                    activeOpacity={0.8}
+                    accessibilityRole='button'
+                    accessibilityLabel={l10n.t(
+                      isRouteFull ? 'group.map.routeFull' : 'group.route.add'
+                    )}
+                    // 상한이면 막힌 이유를 함께 읽는다 — 눌리지 않는 버튼만 두면 왜 안 되는지 모른다(HIG).
+                    {...(isRouteFull
+                      ? {
+                          accessibilityHint: getGroupValidationMessage(
+                            GroupValidationError.RouteLimitExceeded
+                          ),
+                        }
+                      : {})}
+                    accessibilityState={{
+                      disabled: isRouteFull || isAddingRoute,
+                      busy: isUploadingRoute,
+                    }}
+                  >
+                    {isUploadingRoute ? (
+                      <ActivityIndicator size='small' color={Acg.ink} />
+                    ) : (
+                      <Ionicons name='add' size={20} color={Acg.ink} />
+                    )}
+                    <PretendardText weight='semibold' style={styles.addLabel}>
+                      {l10n.t(getAddRouteLabelKey())}
+                    </PretendardText>
+                  </TouchableOpacity>
+                ) : null}
+                <TouchableOpacity
+                  style={[styles.addButton, isFull && styles.addButtonDisabled]}
+                  onPress={handleStartAiming}
+                  disabled={isFull || pointList.isSubmitting()}
+                  activeOpacity={0.8}
+                  accessibilityRole='button'
+                  accessibilityLabel={l10n.t('group.map.addPoint')}
+                  accessibilityHint={l10n.t('group.map.addPointHint')}
+                  accessibilityState={{ disabled: isFull }}
+                >
+                  <Ionicons name='add' size={20} color={Acg.ink} />
+                  <PretendardText weight='semibold' style={styles.addLabel}>
+                    {l10n.t(
+                      isFull ? 'group.map.pointFull' : 'group.map.addPoint'
+                    )}
+                  </PretendardText>
+                </TouchableOpacity>
+              </View>
             </>
           )}
         </View>
       </View>
 
-      {/* 고도 그래프는 지도 **아래**다 — 지도를 가리면 훑는 동안 위치를 못 본다(GRP-8). */}
-      {showProfile && elevationProfile ? (
-        <RouteElevationChartView
-          // 코스를 바꾸면 그래프를 새로 마운트해 이전 코스의 커서가 남지 않게 한다.
-          // 방향을 뒤집어도 새로 마운트한다 — 단면이 바뀌므로 커서가 옛 단면 자리에 남지 않게.
-          key={`${selectedRoute?.getId() ?? ''}:${selectedRoute?.isReversed() ? 'r' : 'f'}`}
-          profile={elevationProfile}
-          // 축 거리는 목록 행과 같은 원본 거리로 읽힌다(GRP-8).
-          {...(selectedRoute
-            ? { displayDistance: selectedRoute.getDistance() }
-            : {})}
+      {/* 코스 패널(머리 줄 + 고도 그래프)은 지도 **아래**다 — 지도를 가리면 훑는 동안 위치를 못 본다(GRP-8). */}
+      {showRoutePanel && selectedRoute ? (
+        <GroupMapRoutePanelView
+          route={selectedRoute}
+          onOpenList={onOpenRouteList}
           onScrub={handleScrub}
-          bottomInset={insets.bottom + 12}
+          bottomInset={insets.bottom}
         />
       ) : null}
     </GestureHandlerRootView>
@@ -824,11 +861,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: AcgLayout.screenPadding,
     gap: 12,
   },
-  routeRow: {
+  addActions: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     flexWrap: 'wrap',
-    gap: AcgLayout.chipGap,
+    gap: 8,
   },
   addButton: {
     alignSelf: 'center',
@@ -845,6 +883,19 @@ const styles = StyleSheet.create({
   },
   addButtonDisabled: {
     opacity: 0.5,
+  },
+  // `코스 추가` — 흰 보조 알약. 라임 주 액션과 같은 높이·모양이고 면 색만 갈린다(GRP-10).
+  secondaryButton: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: Radius.pill,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.card,
   },
   addLabel: {
     ...AcgType.control,

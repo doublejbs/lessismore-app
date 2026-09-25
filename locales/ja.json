@@ -1366,10 +1366,8 @@
       "bagSheetEmpty": "先にバックパックを作成してください",
       "routesTitle": "コース",
       "routesEmpty": "まだコースがありません",
-      "routesLoadFailed": "コースを読み込めませんでした",
       "pointsTitle": "地図ポイント",
       "pointsEmpty": "まだポイントがありません",
-      "pointsLoadFailed": "ポイントを読み込めませんでした",
       "inviteTitle": "招待",
       "inviteDescription": "リンクを受け取った人だけが参加できます",
       "soloTitle": "まだ一人です",
@@ -1389,9 +1387,10 @@
       "goBack": "戻る",
       "leftMember": "（退出したメンバー）",
       "withdrawnUser": "（退会したユーザー）",
-      "openMap": "地図",
-      "viewAllPoints_other": "すべて{{count}}件",
       "openMapBand": "グループマップを開く",
+      "emptyBand": "地図でコース・ポイントを追加してみましょう",
+      "routeCount_other": "コース{{count}}",
+      "pointCount_other": "ポイント{{count}}",
       "bagLinkedTo": "{{name}}に連携中"
     },
     "member": {
@@ -1446,7 +1445,9 @@
       "currentLocation": "現在地",
       "webNotice": "ウェブでは地図を表示できないため、コースとポイントを一覧で表示します",
       "aimHint": "地図を動かして追加する位置を合わせます",
-      "aimConfirm": "この位置に追加"
+      "aimConfirm": "この位置に追加",
+      "routeFull": "コースがいっぱいです",
+      "openRouteList": "コース一覧を開く"
     },
     "point": {
       "title": "ポイント登録",
@@ -1497,8 +1498,6 @@
     "profileScrubHint": "グラフをなぞって地図で位置を確認",
     "reverse": "向きを反転",
     "restoreDirection": "元の向きで表示",
-    "reverseOf": "{{name}}の向きを反転",
-    "restoreDirectionOf": "{{name}}を元の向きで表示",
     "reversed": "逆方向",
     "myLocation": "現在地"
   }

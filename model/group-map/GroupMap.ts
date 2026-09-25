@@ -4,6 +4,7 @@ import Group from '@/model/group/Group';
 import GroupPoint from '@/model/group/GroupPoint';
 import GroupRoute from '@/model/group/GroupRoute';
 import GroupPointList from '@/model/group-point/GroupPointList';
+import GroupRouteList from '@/model/group-route/GroupRouteList';
 import {
   measureRouteBounds,
   mergeRouteBounds,
@@ -23,12 +24,12 @@ export interface GroupRouteFocusRequest {
 /**
  * 그룹 지도 화면 모델 (GRP-9 · GRP-10).
  *
- * 그룹 문서 · 코스 · 연결된 박지를 읽고, 포인트는 `GroupPointList`에 위임한다 —
- * 상세 화면의 포인트 섹션과 같은 모델을 써야 조회·상한 규칙이 갈리지 않는다.
+ * 그룹 문서 · 연결된 박지를 읽고, 포인트는 `GroupPointList`에, 코스는 `GroupRouteList`에
+ * 위임한다. 코스 목록은 **하나**다 — 지도 선·고도 그래프·코스 목록 시트·`코스 추가` 업로드가
+ * 모두 이 목록을 봐서, 올리거나 지운 코스가 세 곳에 한꺼번에 반영된다(GRP-10).
  */
 class GroupMap {
   private group: Group | null = null;
-  private routes: GroupRoute[] = [];
   private campSpot: CampSpot | null = null;
   private selectedRouteId: string | null = null;
   private routeFocusRequest: GroupRouteFocusRequest | null = null;
@@ -42,14 +43,16 @@ class GroupMap {
   public static from(
     dispatcher: GroupMapDispatcher,
     pointList: GroupPointList,
+    routeList: GroupRouteList,
     groupId: string
   ) {
-    return new GroupMap(dispatcher, pointList, groupId);
+    return new GroupMap(dispatcher, pointList, routeList, groupId);
   }
 
   private constructor(
     private readonly dispatcher: GroupMapDispatcher,
     private readonly pointList: GroupPointList,
+    private readonly routeList: GroupRouteList,
     private readonly groupId: string
   ) {
     makeAutoObservable(this);
@@ -79,8 +82,12 @@ class GroupMap {
     return this.pointList;
   }
 
+  public getRouteList(): GroupRouteList {
+    return this.routeList;
+  }
+
   public getRoutes(): GroupRoute[] {
-    return this.routes;
+    return this.routeList.getRoutes();
   }
 
   public getCampSpot(): CampSpot | null {
@@ -96,8 +103,30 @@ class GroupMap {
     return this.group?.getMemberIds() ?? [];
   }
 
+  /**
+   * 굵게 그릴 코스(GRP-10). 고른 코스가 없거나 목록에서 사라졌으면(지워짐) **첫 코스**다 —
+   * 저장값이 아니라 목록에서 매번 읽는다. `코스 추가`·삭제는 `GroupRouteList`가 목록을 다시 읽으므로,
+   * 선택을 저장값으로 두면 그때마다 되돌리는 처리를 목록 쪽에도 둬야 한다.
+   */
   public getSelectedRouteId(): string | null {
-    return this.selectedRouteId;
+    const routes = this.routeList.getRoutes();
+
+    if (routes.some(route => route.getId() === this.selectedRouteId)) {
+      return this.selectedRouteId;
+    }
+
+    return routes[0]?.getId() ?? null;
+  }
+
+  // 머리 줄·그래프·시작끝 마커가 가리키는 코스. 코스가 없으면 `null`이다.
+  public getSelectedRoute(): GroupRoute | null {
+    const selectedRouteId = this.getSelectedRouteId();
+
+    return (
+      this.routeList
+        .getRoutes()
+        .find(route => route.getId() === selectedRouteId) ?? null
+    );
   }
 
   public selectRoute(routeId: string | null): void {
@@ -105,8 +134,8 @@ class GroupMap {
   }
 
   /**
-   * 사용자가 코스를 고른다 — 지도의 코스 칩, 상세 코스 행에서 넘어온 핸드오프 (GRP-8).
-   * 선택에 더해 카메라 맞춤 요청을 남긴다. 로드 후 자동 선택은 카메라를 옮기지 않는다.
+   * 사용자가 코스를 고른다 — 코스 목록 시트의 행, 방금 올린 코스 (GRP-8 · GRP-10).
+   * 선택에 더해 카메라 맞춤 요청을 남긴다. 첫 코스 자동 선택은 카메라를 옮기지 않는다.
    */
   public focusRoute(routeId: string): void {
     this.selectedRouteId = routeId;
@@ -166,7 +195,7 @@ class GroupMap {
    */
   public getContentBounds(): RouteBounds | null {
     return mergeRouteBounds([
-      ...this.routes.map(route => route.getBounds()),
+      ...this.routeList.getRoutes().map(route => route.getBounds()),
       measureRouteBounds(
         this.pointList.getPoints().map(point => ({
           lat: point.getLatitude(),
@@ -207,33 +236,26 @@ class GroupMap {
       }
 
       const campSpotId = group.getCampSpotId();
-      const [routes, campSpot] = await Promise.all([
-        this.dispatcher.getRoutes(this.groupId),
+      const [campSpot] = await Promise.all([
         campSpotId
           ? this.dispatcher.getCampSpot(campSpotId)
           : Promise.resolve(null),
+        this.routeList.refresh(quiet),
         this.pointList.refresh(quiet),
       ]);
+      // 코스 목록은 실패를 스스로 삼킨다. 코스를 못 읽은 지도를 정상처럼 보이지 않게,
+      // 목록이 한곳이던 때와 같이 화면 전체의 조회 실패로 올린다.
+      const routeError = this.routeList.getError();
+
+      if (routeError) {
+        throw routeError;
+      }
 
       runInAction(() => {
         this.group = group;
-        this.routes = routes;
         this.campSpot = campSpot;
         this.notFound = false;
         this.notMember = false;
-
-        // 코스가 여럿이면 하나를 굵게 그린다(GRP-10). 선택이 없거나 지워진 코스를
-        // 가리키고 있으면 첫 코스로 되돌린다.
-        if (
-          routes.length > 0 &&
-          !routes.some(route => route.getId() === this.selectedRouteId)
-        ) {
-          this.selectedRouteId = routes[0].getId();
-        }
-
-        if (routes.length === 0) {
-          this.selectedRouteId = null;
-        }
       });
     } catch (error) {
       this.setError(error as Error);

@@ -16,16 +16,18 @@ import { getGroupContentBounds } from '@/model/group-detail/GroupDetailMapBand';
 import { formatGroupDateRange } from '@/model/group-format/GroupFormat';
 import GroupPointList from '@/model/group-point/GroupPointList';
 import GroupRouteList from '@/model/group-route/GroupRouteList';
+import GroupDetailContentCountView from './GroupDetailContentCountView';
+import GroupDetailEmptyBandView from './GroupDetailEmptyBandView';
 import GroupDetailMapBandView from './GroupDetailMapBandView';
 import GroupDetailStatsView from './GroupDetailStatsView';
 
 const ACTIVE_SPOT_STATUS = 'active';
-// 지도가 없는 웹(APP-5)에는 밴드를 그리지 않는다(GRP-7).
+// 지도가 없는 웹(APP-5)에는 밴드를 그리지 않는다(GRP-7). 개수 줄이 그룹 지도(목록)로 가는 입구다.
 const IS_WEB = Platform.OS === 'web';
 
 interface Props {
   detail: GroupDetail;
-  // 상단 지도 밴드가 그리는 목록 — 아래 코스·포인트 섹션과 같은 인스턴스다.
+  // 상단 지도 밴드·개수 줄이 그리는 목록. 조회·포커스 갱신은 `useGroupDetailState`가 맡는다.
   routeList: GroupRouteList;
   pointList: GroupPointList;
 }
@@ -33,13 +35,17 @@ interface Props {
 /**
  * 그룹 상세 헤더 (GRP-4 · GRP-7 · GRP-11).
  *
- * 이름 → 기간 + D-day → 여행지 → 수치 줄(합계 무게) 순이다(GRP-11 시각 위계).
+ * 지도 밴드 → 개수 줄 → 이름 → 기간 + D-day → 여행지 → 멤버·배낭 수 순이다(GRP-11 시각 위계).
  *
  * **상단 지도 밴드**(GRP-7) 우선순위: 코스·포인트가 있으면 코스 선 + 포인트 지도
  * (`GroupDetailMapBandView`) → 없고 등록 박지면 박지 정적 밴드(커뮤니티 패킹 스냅샷과 같은
- * Static Map 단일 소스) → 둘 다 없으면 없음. 자유 위치는 좌표를 저장하지 않으므로 이름만 적는다
- * (GRP-2 공개 원칙). 코스·포인트를 다 읽기 전에는 어느 밴드도 고르지 않는다 — 박지 밴드를
+ * Static Map 단일 소스) → 둘 다 없으면 **빈 밴드**(`GroupDetailEmptyBandView` — 코스·포인트를
+ * 처음 추가할 입구). 자유 위치는 좌표를 저장하지 않으므로 이름만 적는다(GRP-2 공개 원칙).
+ * 코스·포인트를 다 읽기 전에는 어느 밴드도, 개수 줄도 고르지 않는다 — 빈 밴드나 박지 밴드를
  * 먼저 그렸다가 코스 지도로 갈아 끼우면 같은 자리가 한 번 깜빡인다.
+ *
+ * **개수 줄**(`코스 N · 포인트 N ›`)은 빈 밴드가 서는 빈 그룹에서는 그리지 않는다(빈 밴드가 같은
+ * 말을 한다). 웹은 밴드가 없어 개수 줄이 유일한 입구라 빈 그룹이어도 그린다.
  */
 const GroupDetailHeaderView: FC<Props> = ({ detail, routeList, pointList }) => {
   const router = useRouter();
@@ -70,36 +76,61 @@ const GroupDetailHeaderView: FC<Props> = ({ detail, routeList, pointList }) => {
     });
   };
 
+  const isContentLoaded = routeList.isInitialized() && pointList.isInitialized();
+  const routes = routeList.getRoutes();
+  const points = pointList.getPoints();
+  const hasContent = !!getGroupContentBounds(routes, points);
+  const activeSpot = campSpot?.status === ACTIVE_SPOT_STATUS ? campSpot : null;
+  // 빈 밴드가 서는 자리(네이티브 · 코스·포인트·등록 박지가 모두 없음).
+  const showsEmptyBand = !IS_WEB && isContentLoaded && !hasContent && !activeSpot;
+
   const renderBand = () => {
-    if (IS_WEB || !routeList.isInitialized() || !pointList.isInitialized()) {
+    if (IS_WEB || !isContentLoaded) {
       return null;
     }
 
-    const routes = routeList.getRoutes();
-    const points = pointList.getPoints();
-
-    if (getGroupContentBounds(routes, points)) {
+    if (hasContent) {
       return (
         <GroupDetailMapBandView
           routes={routes}
           points={points}
-          campSpot={campSpot?.status === ACTIVE_SPOT_STATUS ? campSpot : null}
+          campSpot={activeSpot}
           onPress={openMap}
         />
       );
     }
 
-    if (campSpot?.status === ACTIVE_SPOT_STATUS) {
+    if (activeSpot) {
       return (
         <SnapshotMapBandView
-          latitude={campSpot.location.latitude}
-          longitude={campSpot.location.longitude}
+          latitude={activeSpot.location.latitude}
+          longitude={activeSpot.location.longitude}
           variant={SnapshotMapBandVariant.Standalone}
         />
       );
     }
 
-    return null;
+    return <GroupDetailEmptyBandView onPress={openMap} />;
+  };
+
+  /**
+   * 개수 줄. 박지 밴드만 있는 그룹(코스·포인트 0)에도 그린다 — 박지 밴드는 누를 수 없는 정적
+   * 이미지라(URL을 못 만들면 아예 없다) 이 줄이 없으면 그룹 지도로 갈 길이 사라진다.
+   */
+  const renderCount = () => {
+    if (!isContentLoaded || showsEmptyBand) {
+      return null;
+    }
+
+    return (
+      <GroupDetailContentCountView
+        routeCount={routeList.getCount()}
+        pointCount={pointList.getCount()}
+        // 박지 밴드는 이미지를 못 그리면 자리째 없어지므로, 늘 그려지는 코스 지도 밴드에만 붙인다.
+        attachedToBand={!IS_WEB && hasContent}
+        onPress={openMap}
+      />
+    );
   };
 
   const renderDestination = () => {
@@ -138,6 +169,7 @@ const GroupDetailHeaderView: FC<Props> = ({ detail, routeList, pointList }) => {
   return (
     <View style={styles.container}>
       {renderBand()}
+      {renderCount()}
       <PretendardText weight='semibold' style={styles.name}>
         {group.getName()}
       </PretendardText>

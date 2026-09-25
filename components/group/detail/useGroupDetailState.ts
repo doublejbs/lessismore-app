@@ -41,8 +41,9 @@ const useGroupDetailState = (detail: GroupDetail) => {
   const pendingBagRef = useRef<BagItem | null>(null);
 
   /**
-   * 코스·포인트 목록은 섹션이 아니라 화면이 들고 있다 — 상단 지도 밴드(GRP-7)와 두 섹션이
-   * **같은 목록**을 그린다. 섹션마다 따로 읽으면 밴드와 목록이 서로 다른 시점의 데이터를 보인다.
+   * 코스·포인트 목록은 상단 지도 밴드와 그 아래 개수 줄(GRP-7)이 함께 쓴다 — 상세에 코스·포인트
+   * 섹션은 없고(2026-09-25) 관리는 그룹 지도가 한다. 밴드의 빈 밴드 판정이 두 목록을 다 읽은 뒤에만
+   * 서므로 화면이 둘을 함께 들고 포커스마다 다시 읽는다.
    */
   const groupId = detail.getGroupId();
   const [routeList] = useState(() =>
