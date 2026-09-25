@@ -1353,7 +1353,6 @@
       "metaSeparator": " · ",
       "summaryMembers_other": "メンバー{{count}}人",
       "summaryBags_other": "バックパック{{count}}個",
-      "totalWeightLabel": "合計重量",
       "membersTitle": "仲間のバックパック",
       "ownerLabel": "管理者",
       "bagNotLinked": "バックパック未連携",

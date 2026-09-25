@@ -1372,7 +1372,6 @@
       "summaryMembers_other": "{{count}} members",
       "summaryBags_one": "{{count}} bag",
       "summaryBags_other": "{{count}} bags",
-      "totalWeightLabel": "Total weight",
       "membersTitle": "Crew bags",
       "ownerLabel": "Owner",
       "bagNotLinked": "No bag linked",

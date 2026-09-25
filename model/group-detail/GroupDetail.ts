@@ -100,16 +100,9 @@ class GroupDetail {
     return this.isOwner() ? GroupMemberRole.Owner : GroupMemberRole.Member;
   }
 
-  // 일행 합계 (GRP-5): 멤버 수 · 연결된 배낭 수 · 총 무게 합.
+  // 일행 요약 (GRP-5): 멤버 수 · 연결된 배낭 수.
   public getLinkedBagCount(): number {
     return this.memberBags.length;
-  }
-
-  public getTotalWeight(): number {
-    return this.memberBags.reduce(
-      (total, snapshot) => total + snapshot.totalWeight,
-      0
-    );
   }
 
   public getMemberCount(): number {

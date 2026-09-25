@@ -1353,7 +1353,6 @@
       "metaSeparator": " · ",
       "summaryMembers_other": "멤버 {{count}}명",
       "summaryBags_other": "배낭 {{count}}개",
-      "totalWeightLabel": "합계 무게",
       "membersTitle": "일행 배낭",
       "ownerLabel": "방장",
       "bagNotLinked": "배낭 미연결",
