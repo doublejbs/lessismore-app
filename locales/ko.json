@@ -269,7 +269,7 @@
       "unlinkMenu": "그룹 연결 해제",
       "sheetTitle": "연결할 그룹",
       "empty": "참여한 그룹이 없어요",
-      "unlinkConfirm": "{{name}}에서 이 배낭을 뺄까요?",
+      "unlinkConfirm": "{{name}}에서 이 여행을 뺄까요?",
       "unlink": "연결 해제"
     }
   },
@@ -913,15 +913,15 @@
     "bagAddOptions": {
       "create": "새로 만들기",
       "createSubtitle": "빈 배낭으로 시작해요",
-      "copy": "기존 배낭 복사하기",
-      "copySubtitle": "이전 배낭을 그대로 가져와요",
+      "copy": "기존 여행에서 배낭 가져오기",
+      "copySubtitle": "이전 여행의 장비 구성을 그대로 가져와요",
       "template": "템플릿으로 만들기",
       "templateSubtitle": "저장한 구성으로 시작해요"
     },
     "bagCopy": {
       "title": "배낭 복사",
-      "sourceTitle": "복사할 배낭 선택",
-      "sourceEmpty": "복사할 배낭이 없어요",
+      "sourceTitle": "배낭을 가져올 여행 선택",
+      "sourceEmpty": "배낭을 가져올 여행이 없어요",
       "confirm": "복사",
       "completed": "복사됐습니다",
       "failed": "배낭 복사 중 문제가 발생했습니다. 다시 시도해주세요.",
@@ -1126,7 +1126,7 @@
       },
       "bag": {
         "sheetSubtitle": "첨부할 배낭을 선택해주세요",
-        "empty": "먼저 배낭을 만들어주세요",
+        "empty": "먼저 여행을 만들어주세요",
         "previewDate": "여행 날짜: {{date}}",
         "previewDestination": "여행지: {{name}}",
         "previewWeight": "총 무게: {{weight}}kg",

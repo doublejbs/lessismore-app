@@ -269,7 +269,7 @@
       "unlinkMenu": "グループ連携を解除",
       "sheetTitle": "連携するグループ",
       "empty": "参加中のグループがありません",
-      "unlinkConfirm": "{{name}}からこのバックパックを外しますか？",
+      "unlinkConfirm": "{{name}}からこの旅行を外しますか？",
       "unlink": "連携を解除"
     }
   },
@@ -913,15 +913,15 @@
     "bagAddOptions": {
       "create": "新しく作成",
       "createSubtitle": "空のバックパックから始める",
-      "copy": "既存のバックパックをコピー",
-      "copySubtitle": "以前のバックパックをそのまま使う",
+      "copy": "以前の旅行のバックパックを使う",
+      "copySubtitle": "以前の旅行の装備をそのまま使います",
       "template": "テンプレートから作成",
       "templateSubtitle": "保存した構成から始める"
     },
     "bagCopy": {
       "title": "バックパックをコピー",
-      "sourceTitle": "コピーするバックパックを選択",
-      "sourceEmpty": "コピーできるバックパックがありません",
+      "sourceTitle": "バックパックを使う旅行を選択",
+      "sourceEmpty": "バックパックを使える旅行がありません",
       "confirm": "コピー",
       "completed": "コピーしました",
       "failed": "バックパックをコピーできませんでした。もう一度お試しください。",
@@ -1126,7 +1126,7 @@
       },
       "bag": {
         "sheetSubtitle": "添付するバックパックを選択してください",
-        "empty": "先にバックパックを作成してください",
+        "empty": "先に旅行を作成してください",
         "previewDate": "旅行日程: {{date}}",
         "previewDestination": "行き先: {{name}}",
         "previewWeight": "総重量: {{weight}}kg",

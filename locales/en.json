@@ -272,7 +272,7 @@
       "unlinkMenu": "Unlink from group",
       "sheetTitle": "Choose a group",
       "empty": "You haven't joined any groups",
-      "unlinkConfirm": "Remove this bag from {{name}}?",
+      "unlinkConfirm": "Remove this trip from {{name}}?",
       "unlink": "Unlink"
     }
   },
@@ -926,15 +926,15 @@
     "bagAddOptions": {
       "create": "Create a new trip",
       "createSubtitle": "Start with an empty bag",
-      "copy": "Copy an existing bag",
-      "copySubtitle": "Bring over a previous bag",
+      "copy": "Use a bag from a past trip",
+      "copySubtitle": "Bring over the gear from a previous trip",
       "template": "Create from a template",
       "templateSubtitle": "Start with a saved setup"
     },
     "bagCopy": {
       "title": "Copy bag",
-      "sourceTitle": "Choose a bag to copy",
-      "sourceEmpty": "No bags to copy",
+      "sourceTitle": "Choose a trip to take the bag from",
+      "sourceEmpty": "No trips to take a bag from",
       "confirm": "Copy",
       "completed": "Copied.",
       "failed": "Couldn't copy the bag. Please try again.",
@@ -1141,7 +1141,7 @@
       },
       "bag": {
         "sheetSubtitle": "Choose a pack to attach",
-        "empty": "Create a pack first",
+        "empty": "Create a trip first",
         "previewDate": "Trip dates: {{date}}",
         "previewDestination": "Destination: {{name}}",
         "previewWeight": "Total weight: {{weight}}kg",
