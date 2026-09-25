@@ -100,6 +100,8 @@ const GroupMapCanvasView: FC<Props> = ({
   const didFitRef = useRef(false);
   // 처리한 마지막 코스 선택 요청(`GroupMap.focusRoute`)의 `seq`.
   const handledFocusSeqRef = useRef(0);
+  // 목록에서 넘어온 포인트 초점을 처리했는지. 같은 포인트로 카메라를 두 번 옮기지 않는다.
+  const handledPointIdRef = useRef<string | null>(null);
   // 지금 손가락이 고도 그래프 위에 있는지. 이때는 선택이 바뀌어도 카메라를 옮기지 않는다(GRP-8).
   const scrubbingRef = useRef(false);
   const cameraRef = useRef<{ latitude: number; longitude: number }>({
@@ -277,14 +279,59 @@ const GroupMapCanvasView: FC<Props> = ({
     return true;
   }, [fitBounds, groupMap]);
 
-  // 고른 코스가 있으면 그쪽이 먼저다 — 최초 맞춤이 뒤따라 전체 상자로 되돌리지 않게.
+  /**
+   * 목록(그룹 상세)에서 찍고 들어온 포인트로 카메라를 옮긴다(GRP-9).
+   *
+   * 지도 화면이 열리자마자 초점이 먼저 들어오므로 **지도가 준비되기 전이거나 포인트를 아직
+   * 읽지 않았으면 기다린다**(`true`를 돌려 최초 맞춤이 먼저 카메라를 가져가지 못하게 한다).
+   * 예전에는 이 시점에 카메라 이동이 무시되면서도 '맞춤 완료' 표시만 켜져, 포인트로도 전체
+   * 상자로도 가지 않고 기본 위치에 머물렀다. 준비된 뒤 `syncCamera`가 다시 부르면 그때 옮긴다.
+   * 읽기가 끝났는데 포인트가 없으면(그새 지워짐) 포기하고 최초 맞춤에 넘긴다.
+   */
+  const fitFocusedPoint = useCallback(() => {
+    const pointId = groupMap.getFocusedPointId();
+
+    if (!pointId || handledPointIdRef.current === pointId) {
+      return false;
+    }
+
+    if (!pointList.isInitialized()) {
+      return true;
+    }
+
+    const point = pointList.getPointById(pointId);
+
+    if (!point) {
+      handledPointIdRef.current = pointId;
+
+      return false;
+    }
+
+    if (!mapReadyRef.current) {
+      return true;
+    }
+
+    handledPointIdRef.current = pointId;
+    // 목록에서 찍어 들어온 포인트는 최초 맞춤이 덮어쓰지 않게 한다.
+    didFitRef.current = true;
+    moveCamera(point.getLatitude(), point.getLongitude(), deltaToZoom(0.02));
+
+    return true;
+  }, [groupMap, moveCamera, pointList]);
+
+  // 카메라 결정 순서: 찍고 들어온 포인트 → 고른 코스 → 최초 맞춤(전체 상자).
+  // 앞의 것이 정했으면 뒤의 것이 되돌리지 않는다.
   const syncCamera = useCallback(() => {
+    if (fitFocusedPoint()) {
+      return;
+    }
+
     if (fitFocusedRoute()) {
       return;
     }
 
     void fitInitialCamera();
-  }, [fitFocusedRoute, fitInitialCamera]);
+  }, [fitFocusedPoint, fitFocusedRoute, fitInitialCamera]);
 
   /**
    * 현재 위치 — 박지 지도·배낭 코스 지도와 같은 공용 훅(CS-1 규칙: 포커스 동안 구독 + 폴백 사슬).
@@ -311,26 +358,14 @@ const GroupMapCanvasView: FC<Props> = ({
     syncCamera();
   }, [syncCamera, initialized, routes, campSpot, routeFocusRequest]);
 
-  // 목록에서 넘어온 포인트로 카메라를 옮긴다(GRP-9).
-  // 포인트가 아직 안 읽혔을 수 있으므로 개수를 의존성에 실어, 로드가 끝난 뒤 한 번 더 돈다.
+  // 포인트 초점이 바뀌거나(마커 탭 포함) 포인트 읽기가 끝나면 카메라 결정을 다시 돈다(GRP-9).
   const focusedPointId = groupMap.getFocusedPointId();
   const pointCount = pointList.getCount();
+  const pointsInitialized = pointList.isInitialized();
 
   useEffect(() => {
-    if (!focusedPointId) {
-      return;
-    }
-
-    const point = pointList.getPointById(focusedPointId);
-
-    if (!point) {
-      return;
-    }
-
-    // 목록에서 찍어 들어온 포인트는 최초 fit이 덮어쓰지 않게 한다.
-    didFitRef.current = true;
-    moveCamera(point.getLatitude(), point.getLongitude(), deltaToZoom(0.02));
-  }, [focusedPointId, moveCamera, pointCount, pointList]);
+    syncCamera();
+  }, [syncCamera, focusedPointId, pointCount, pointsInitialized]);
 
   const handleMapInitialized = useCallback(() => {
     mapReadyRef.current = true;
