@@ -30,6 +30,7 @@
 | [Feed.md](Feed.md) | `FD` | 장비 피드 — 개인화 둘러보기(탐색 탭) + 카테고리·브랜드 필터 |
 | [Community.md](Community.md) | `CM` | 커뮤니티 탭 — 질문 / 패킹 후기 / 투표 / 공개 사진 / 댓글·신고 `[제안]` |
 | [Group.md](Group.md) | `GRP` | 그룹 — 여행 1건을 함께 준비 / 배낭 서로 보기 / 박지·코스(GPX) / 지도 포인트 `[제안]` |
+| [Ads.md](Ads.md) | `AD` | 광고 — 탐색·커뮤니티 피드 사이 AdMob 네이티브 광고 / 동의(UMP·ATT) `[제안]` |
 | [Weather.md](Weather.md) | `WT` | 배낭 여행지 좌표 기반 기간 예보 |
 | [CampSite.md](CampSite.md) | `CS` | 박지 지도 — 지도 탭 / 박지 정보 / 규제 고지 `[기획]` |
 | [Home.md](Home.md) | `HM` | 홈 대시보드 — 다가오는 일정 / 창고 미리보기 / 홈 피드 섹션(새 박지·새 장비·읽을거리 `[기획]`) |
