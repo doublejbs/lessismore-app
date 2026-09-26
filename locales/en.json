@@ -113,7 +113,8 @@
     "policy": {
       "title": "Terms and policies",
       "privacy": "Privacy policy",
-      "terms": "Terms of service"
+      "terms": "Terms of service",
+      "adPrivacyOptions": "Ad privacy settings"
     },
     "footer": {
       "deleteAccount": "Delete account",
@@ -1526,5 +1527,8 @@
     "restoreDirection": "Show original direction",
     "reversed": "Reversed",
     "myLocation": "My location"
+  },
+  "ad": {
+    "label": "Ad"
   }
 }

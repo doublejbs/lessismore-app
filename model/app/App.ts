@@ -24,10 +24,16 @@ import GroupStore from '../store/GroupStore';
 import L10n from '../l10n/L10n';
 import CommunitySearchStore from '../search/CommunitySearchStore';
 import RouteDirectionStore from '../route/RouteDirectionStore';
+import AdService from '../ads/AdService';
 
 class App {
   private readonly firebase = new Firebase();
   private readonly l10n = new L10n();
+  // AD-3·AD-5: 광고 동의·요청. 생성만 해 두고 동의 흐름은 피드에 처음 들어갈 때 흐른다.
+  // 웹은 Metro가 `AdService.web.ts`(광고 SDK 없음)를 고른다(AD-4).
+  private readonly adService = AdService.new(status => {
+    this.analyticsManager?.logClick('ad_consent', { status });
+  });
   private gearStore: GearStore | null = null;
   private bagStore: BagStore | null = null;
   private bagTemplateStore: BagTemplateStore | null = null;
@@ -120,6 +126,10 @@ class App {
 
   public getFirebase() {
     return this.firebase;
+  }
+
+  public getAdService() {
+    return this.adService;
   }
 
   public getL10n() {

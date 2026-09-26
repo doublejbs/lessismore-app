@@ -142,6 +142,7 @@
 | `click_feed_ranking` | 피드 하단 `인기 순위` 버튼 → 인기 순위 화면 (FD-3) | — |
 | `click_feed_refresh` | 피드 pull-to-refresh (FD-4) | — |
 | `click_feed_fine_filter` | 피드 2차(세분) 카테고리 칩 (FD-3) | `category`: 세분 카테고리 값 \| `all` |
+| `click_ad_consent` | 광고 동의 흐름(UMP → iOS ATT → SDK 초기화) 완료 — 탐색·커뮤니티 피드 첫 진입 시 앱 수명 동안 1회 (AD-3·AD-5). 광고 노출·클릭은 AdMob이 집계하므로 따로 남기지 않는다 | `status`: `granted` \| `tracking_denied` \| `blocked` \| `error` |
 | `click_readyshot_layout` | [폐기] 레디샷 기능 제거로 더 이상 발생하지 않음 | `type`: `grid` \| `collage` |
 | `click_readyshot_share` | [폐기] 레디샷 기능 제거로 더 이상 발생하지 않음 | — |
 | `click_login` | 로그인 버튼 (AU-1) | `provider`: `google` \| `apple` \| `email` |

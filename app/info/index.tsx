@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -51,6 +51,9 @@ const InfoView: FC = () => {
   const isLoggedIn = firebase.isLoggedIn();
   const nickname = firebase.getNickname();
   const logInAlertManager = app.getLogInAlertManager();
+  const adService = app.getAdService();
+  // AD-3: UMP가 개인정보 옵션 재진입을 요구하는 지역에서만 입구를 보인다.
+  const isAdPrivacyOptionsVisible = adService.isPrivacyOptionsRequired();
   const forestHeight = screenWidth / FOREST_ASPECT_RATIO;
   const scrollBottomPadding =
     forestHeight +
@@ -104,6 +107,10 @@ const InfoView: FC = () => {
     router.push('/info/policy?tab=privacy');
   };
 
+  const handleOpenAdPrivacyOptions = () => {
+    void adService.showPrivacyOptions();
+  };
+
   const handleOpenTerms = () => {
     router.push('/info/policy?tab=terms');
   };
@@ -140,6 +147,10 @@ const InfoView: FC = () => {
   const handleBack = () => {
     router.back();
   };
+
+  useEffect(() => {
+    void adService.refreshPrivacyOptions();
+  }, [adService]);
 
   return (
     <Layout
@@ -338,6 +349,25 @@ const InfoView: FC = () => {
               color={Color.iconMuted}
             />
           </TouchableOpacity>
+
+          {/* AD-3: 광고 동의를 다시 고치는 입구. UMP가 요구하지 않는 지역에서는 숨긴다. */}
+          {isAdPrivacyOptionsVisible ? (
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleOpenAdPrivacyOptions}
+              activeOpacity={0.7}
+              accessibilityRole='button'
+            >
+              <PretendardText weight='semibold' style={styles.buttonText}>
+                {l10n.t('info.policy.adPrivacyOptions')}
+              </PretendardText>
+              <Ionicons
+                name='chevron-forward'
+                size={18}
+                color={Color.iconMuted}
+              />
+            </TouchableOpacity>
+          ) : null}
 
           {/* 가입 시 동의를 받으면서(AU-3) 나중에 볼 경로가 없었다. */}
           <TouchableOpacity

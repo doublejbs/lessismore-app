@@ -113,7 +113,8 @@
     "policy": {
       "title": "規約とポリシー",
       "privacy": "プライバシーポリシー",
-      "terms": "利用規約"
+      "terms": "利用規約",
+      "adPrivacyOptions": "広告のプライバシー設定"
     },
     "footer": {
       "deleteAccount": "退会する",
@@ -1500,5 +1501,8 @@
     "restoreDirection": "元の向きで表示",
     "reversed": "逆方向",
     "myLocation": "現在地"
+  },
+  "ad": {
+    "label": "広告"
   }
 }

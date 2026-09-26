@@ -34,6 +34,11 @@ import OrderType from '@/model/order/OrderType';
 import CommunityFeedCardView from './CommunityFeedCardView';
 import CommunityFeedSkeletonView from './CommunityFeedSkeletonView';
 import app from '@/model/app/App';
+import AdPlacement from '@/model/ads/AdPlacement';
+import AdListEntryKind from '@/model/ads/AdListEntryKind';
+import { AdListEntry } from '@/model/ads/AdListEntry';
+import CommunityAdCardView from '@/components/ads/CommunityAdCardView';
+import useAdSlotListState from '@/components/ads/useAdSlotListState';
 
 interface Props {
   feed: CommunityFeed;
@@ -54,6 +59,17 @@ const CommunityView: FC<Props> = ({ feed }) => {
   const error = feed.getError();
   const writeButtonBottom = getFloatingActionBottom(insets.bottom);
   const listBottomPadding = getFloatingActionListBottomPadding(insets.bottom);
+  // AD-1: 게시글 사이 광고 자리. 받은 광고만 끼운다.
+  const { slotList, viewabilityConfig, handleViewableItemsChanged } =
+    useAdSlotListState({
+      placement: AdPlacement.Community,
+      itemCount: posts.length,
+      columnCount: 1,
+      enabled: true,
+    });
+  // 같은 항목·같은 광고면 같은 배열이다(`AdSlotList.getEntries` 캐시) — FlatList `data`가 렌더마다
+  // 바뀌지 않는다. 광고가 오면 observer가 다시 그려 새 배열을 받는다.
+  const entries = slotList.getEntries(posts);
 
   useFocusEffect(
     useCallback(() => {
@@ -248,8 +264,24 @@ const CommunityView: FC<Props> = ({ feed }) => {
     return <View style={styles.footerSpace} />;
   };
 
-  const renderItem = ({ item }: ListRenderItemInfo<CommunityPost>) => {
-    return <CommunityFeedCardView post={item} />;
+  const renderItem = ({
+    item: entry,
+  }: ListRenderItemInfo<AdListEntry<CommunityPost>>) => {
+    if (entry.kind === AdListEntryKind.Ad) {
+      const nativeAd = slotList.getAd(entry.slotIndex);
+
+      return nativeAd ? <CommunityAdCardView nativeAd={nativeAd} /> : null;
+    }
+
+    return <CommunityFeedCardView post={entry.item} />;
+  };
+
+  const keyExtractor = (entry: AdListEntry<CommunityPost>) => {
+    if (entry.kind === AdListEntryKind.Ad) {
+      return `ad-${entry.slotIndex}`;
+    }
+
+    return entry.item.getId();
   };
 
   const showSkeleton =
@@ -293,9 +325,11 @@ const CommunityView: FC<Props> = ({ feed }) => {
         </ScrollView>
       ) : (
         <FlatList
-          data={posts}
+          data={entries}
           renderItem={renderItem}
-          keyExtractor={item => item.getId()}
+          keyExtractor={keyExtractor}
+          viewabilityConfig={viewabilityConfig}
+          onViewableItemsChanged={handleViewableItemsChanged}
           contentContainerStyle={[
             styles.listContent,
             { paddingBottom: listBottomPadding },

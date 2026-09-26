@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   ListRenderItemInfo,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,6 +23,11 @@ import FeedFilterBarView from './FeedFilterBarView';
 import FeedRankingButtonView from './FeedRankingButtonView';
 import FeedGridCellView from './FeedGridCellView';
 import app from '@/model/app/App';
+import AdPlacement from '@/model/ads/AdPlacement';
+import AdListEntryKind from '@/model/ads/AdListEntryKind';
+import { AdListEntry } from '@/model/ads/AdListEntry';
+import FeedAdCellView from '@/components/ads/FeedAdCellView';
+import useAdSlotListState from '@/components/ads/useAdSlotListState';
 
 const END_REACHED_THRESHOLD = 0.3;
 
@@ -30,6 +36,8 @@ const FEED_ROW_GAP = 24;
 
 // 열 사이 간격. 셀 안 텍스트가 이웃 셀과 붙어 읽히지 않을 만큼만 둔다.
 const FEED_COLUMN_GAP = 16;
+
+const FEED_COLUMN_COUNT = 2;
 
 interface Props {
   bag: Bag;
@@ -45,6 +53,7 @@ interface Props {
 const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
   const [feed] = useState(() => externalFeed ?? Feed.new(router));
   const [isInitialLoadSettled, setIsInitialLoadSettled] = useState(false);
   const ownsFeed = !externalFeed;
@@ -84,6 +93,24 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   const isLoading = feed.isLoading();
   const isRefreshing = feed.isRefreshing();
   const isEmpty = feed.isEmpty();
+  // AD-1: 광고는 탐색 피드에만 둔다 — 장비 추가 검색(담기 도구)으로 쓰일 때는 두지 않는다.
+  const { slotList, viewabilityConfig, handleViewableItemsChanged } =
+    useAdSlotListState({
+      placement: AdPlacement.Feed,
+      itemCount: items.length,
+      columnCount: FEED_COLUMN_COUNT,
+      enabled: !gearAddContext,
+    });
+  // 같은 항목·같은 광고면 같은 배열이다(`AdSlotList.getEntries` 캐시) — FlatList `data`가 렌더마다
+  // 바뀌지 않는다. 광고가 오면 observer가 다시 그려 새 배열을 받는다.
+  const entries = slotList.getEntries(items);
+  // 칸 폭을 한 열로 고정한다. 광고가 끼면 칸 수의 홀짝이 바뀌어, `flex: 1`만으로는 마지막 줄에
+  // 홀로 남은 셀이 화면 폭 전체로 늘어난다.
+  const cellWidth =
+    (windowWidth -
+      AcgLayout.screenPadding * 2 -
+      FEED_COLUMN_GAP * (FEED_COLUMN_COUNT - 1)) /
+    FEED_COLUMN_COUNT;
 
   const handleEndReached = useCallback(() => {
     feed.loadMore();
@@ -95,20 +122,38 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   }, [feed]);
 
   const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<Gear>) => {
+    ({ item: entry }: ListRenderItemInfo<AdListEntry<Gear>>) => {
+      if (entry.kind === AdListEntryKind.Ad) {
+        const nativeAd = slotList.getAd(entry.slotIndex);
+
+        return (
+          <View style={[styles.cellSlot, { maxWidth: cellWidth }]}>
+            {nativeAd ? <FeedAdCellView nativeAd={nativeAd} /> : null}
+          </View>
+        );
+      }
+
       return (
-        <FeedGridCellView
-          gear={item}
-          actions={feed}
-          bag={bag}
-          gearAddContext={gearAddContext}
-        />
+        <View style={[styles.cellSlot, { maxWidth: cellWidth }]}>
+          <FeedGridCellView
+            gear={entry.item}
+            actions={feed}
+            bag={bag}
+            gearAddContext={gearAddContext}
+          />
+        </View>
       );
     },
-    [feed, bag, gearAddContext]
+    [feed, bag, gearAddContext, slotList, cellWidth]
   );
 
-  const keyExtractor = useCallback((gear: Gear) => gear.getId(), []);
+  const keyExtractor = useCallback((entry: AdListEntry<Gear>) => {
+    if (entry.kind === AdListEntryKind.Ad) {
+      return `ad-${entry.slotIndex}`;
+    }
+
+    return entry.item.getId();
+  }, []);
 
   const renderFooter = useCallback(() => {
     if (isEmpty) {
@@ -159,10 +204,12 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
     <View style={styles.container}>
       <FeedFilterBarView feed={feed} />
       <FlatList
-        data={items}
+        data={entries}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        numColumns={2}
+        numColumns={FEED_COLUMN_COUNT}
+        viewabilityConfig={viewabilityConfig}
+        onViewableItemsChanged={handleViewableItemsChanged}
         columnWrapperStyle={styles.columnWrapper}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
@@ -199,6 +246,10 @@ const styles = StyleSheet.create({
   columnWrapper: {
     gap: FEED_COLUMN_GAP,
     marginBottom: FEED_ROW_GAP,
+  },
+  // 셀 하나의 칸. 같은 행 두 칸은 부모 stretch로 높이가 같아진다.
+  cellSlot: {
+    flex: 1,
   },
   skeletonContainer: {
     flex: 1,

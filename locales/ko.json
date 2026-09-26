@@ -113,7 +113,8 @@
     "policy": {
       "title": "약관 및 정책",
       "privacy": "개인정보 처리방침",
-      "terms": "이용약관"
+      "terms": "이용약관",
+      "adPrivacyOptions": "광고 개인정보 설정"
     },
     "footer": {
       "deleteAccount": "탈퇴하기",
@@ -1500,5 +1501,8 @@
     "restoreDirection": "원래 방향으로 보기",
     "reversed": "역방향",
     "myLocation": "내 위치"
+  },
+  "ad": {
+    "label": "광고"
   }
 }
