@@ -130,8 +130,8 @@
       [
         "react-native-google-mobile-ads",
         {
-          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
-          "iosAppId": "ca-app-pub-3940256099942544~1458002511",
+          "androidAppId": "ca-app-pub-1953089301592534~4582339884",
+          "iosAppId": "ca-app-pub-1953089301592534~3702989595",
           "delayAppMeasurementInit": true,
           "skAdNetworkItems": [
             "cstr6suwn9.skadnetwork",
@@ -210,8 +210,8 @@
     }
   },
   "react-native-google-mobile-ads": {
-    "android_app_id": "ca-app-pub-3940256099942544~3347511713",
-    "ios_app_id": "ca-app-pub-3940256099942544~1458002511",
+    "android_app_id": "ca-app-pub-1953089301592534~4582339884",
+    "ios_app_id": "ca-app-pub-1953089301592534~3702989595",
     "delay_app_measurement_init": true
   }
 }
