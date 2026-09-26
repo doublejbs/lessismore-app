@@ -73,7 +73,7 @@ Google AdMob **네이티브 광고**를 남의 콘텐츠를 훑어보는 두 목
 - AdMob 콘솔에서 GDPR 동의 메시지와 IDFA 설명 메시지를 켠다.
 - **App Store 개인정보 라벨**: 광고 식별자·사용 데이터를 "추적에 사용"으로 신고.
 - **Google Play 데이터 보안 양식**: 기기 식별자(광고 ID) 수집·공유를 신고.
-- 개인정보 처리방침(`constants/LegalTexts.ts`)에 광고 식별자 수집과 제3자(Google) 제공을 추가 — 법적 문서라 문구는 사용자가 확정한다.
+- ~~개인정보 처리방침에 광고 식별자 수집과 제3자(Google) 제공 추가~~ — 2026-09-27 반영(제4조의2·제6조 제4호). 앱(`constants/LegalTexts.ts`)과 웹(`lessismore` 레포 `src/policy/PrivacyPolicyText.ts`, `/privacy`) 두 곳을 같이 고친다.
 - `app-ads.txt`를 개발자 웹사이트에 게시(AdMob 권장). 웹 호스팅(`lessismore` 레포)의 루트에 둔다.
 
 ## 4. 데이터
