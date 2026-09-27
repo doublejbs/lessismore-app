@@ -14,13 +14,9 @@ const ToastView: FC<Props> = ({ toastManager, bottom }) => {
   const message = toastManager.getMessage();
   const isVisible = toastManager.isVisible();
   const buttonText = toastManager.getButtonText();
-  const onButtonPress = toastManager.getOnButtonPress();
 
   const handleButtonPress = () => {
-    if (onButtonPress) {
-      onButtonPress();
-    }
-    toastManager.hide();
+    toastManager.pressButton();
   };
 
   if (isVisible) {

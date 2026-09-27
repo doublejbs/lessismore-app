@@ -42,6 +42,10 @@ class AdService implements AdServiceContract {
     return false;
   }
 
+  public isConsentFlowActive() {
+    return false;
+  }
+
   public markTrackingPromptShown() {}
 
   public acceptTrackingPrompt() {}

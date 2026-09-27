@@ -91,6 +91,9 @@ class AdService implements AdServiceContract {
   private initialized = false;
   private privacyOptionsRequired = false;
   private trackingPromptVisible = false;
+  // 동의 창(UMP 폼·추적 안내 시트·ATT·개인정보 옵션 폼)이 떠 있을 수 있는 동안 true. 다른 안내(SUB-9)가
+  // 동의 창 위에 겹쳐 뜨지 않게 한다.
+  private consentFlowActive = false;
   // 안내 시트가 끝나기를(`계속` 뒤 완전히 내려감, 또는 띄우지 못함) 기다리는 쪽. 어느 쪽이든 다음은 ATT다.
   private resolveTrackingPrompt: (() => void) | null = null;
   private trackingPromptShown = false;
@@ -175,6 +178,10 @@ class AdService implements AdServiceContract {
 
   public isTrackingPromptVisible() {
     return this.trackingPromptVisible;
+  }
+
+  public isConsentFlowActive() {
+    return this.consentFlowActive || this.trackingPromptVisible;
   }
 
   public markTrackingPromptShown() {
@@ -271,6 +278,8 @@ class AdService implements AdServiceContract {
       return;
     }
 
+    this.setConsentFlowActive(true);
+
     try {
       const info = await sdk.AdsConsent.showPrivacyOptionsForm();
 
@@ -285,6 +294,8 @@ class AdService implements AdServiceContract {
       }
     } catch {
       // 폼을 띄우지 못해도 설정 화면은 그대로 둔다.
+    } finally {
+      this.setConsentFlowActive(false);
     }
   }
 
@@ -302,12 +313,21 @@ class AdService implements AdServiceContract {
       return false;
     }
 
-    // 홈의 조용한 준비가 진행 중이면 먼저 끝나기를 기다린다 — UMP 갱신·SDK 초기화를 겹쳐 돌리지 않는다.
-    if (this.silentPreparing) {
-      await this.silentPreparing;
-    }
+    // 기다리는 동안에도 동의 흐름으로 친다 — 곧 동의 창이 뜰 수 있다(SUB-9 안내 시트가 끼어들지 않게).
+    this.setConsentFlowActive(true);
 
-    const status = await this.resolveConsent(sdk);
+    let status: AdConsentStatus;
+
+    try {
+      // 홈의 조용한 준비가 진행 중이면 먼저 끝나기를 기다린다 — UMP 갱신·SDK 초기화를 겹쳐 돌리지 않는다.
+      if (this.silentPreparing) {
+        await this.silentPreparing;
+      }
+
+      status = await this.resolveConsent(sdk);
+    } finally {
+      this.setConsentFlowActive(false);
+    }
 
     this.onConsentResolved(status);
 
@@ -385,6 +405,10 @@ class AdService implements AdServiceContract {
 
   private setCanRequestAds(canRequestAds: boolean) {
     this.canRequestAds = canRequestAds;
+  }
+
+  private setConsentFlowActive(consentFlowActive: boolean) {
+    this.consentFlowActive = consentFlowActive;
   }
 
   private async resolveConsent(sdk: GoogleMobileAds): Promise<AdConsentStatus> {

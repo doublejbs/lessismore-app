@@ -26,6 +26,9 @@ import CommunitySearchStore from '../search/CommunitySearchStore';
 import RouteDirectionStore from '../route/RouteDirectionStore';
 import AdService from '../ads/AdService';
 import SubscriptionStore from '../subscription/SubscriptionStore';
+import SubscriptionNudge from '../subscription/SubscriptionNudge';
+import SubscriptionEntryPoint from '../subscription/SubscriptionEntryPoint';
+import { openSubscription } from '../subscription/OpenSubscription';
 
 class App {
   private readonly firebase = new Firebase();
@@ -60,6 +63,8 @@ class App {
   // 배낭 코스(BD-11). 배낭 문서와 접근 범위가 달라 BagStore와 따로 둔다 — BagRouteStore 주석 참고.
   private bagRouteStore: BagRouteStore | null = null;
   private communitySearchStore: CommunitySearchStore | null = null;
+  // SUB-9: 광고 누적 노출 뒤 한 번 뜨는 구독 안내 시트. 분석 매니저가 생긴 뒤 만든다.
+  private subscriptionNudge: SubscriptionNudge | null = null;
 
   private gearPreviewStore: GearPreviewStore | null = null;
   private initialized = false;
@@ -126,6 +131,16 @@ class App {
     // config/featurePopup 실시간 구독을 시작한다(닫음 목록 로드 후 구독, 웹 포함). 실패는 조용히 통과(FP-2).
     void this.featurePopupManager.initialize();
     this.gearPreviewStore = GearPreviewStore.new(this.gearStore);
+    this.subscriptionNudge = SubscriptionNudge.new(
+      this.subscriptionStore,
+      this.adService,
+      () => {
+        openSubscription(SubscriptionEntryPoint.Nudge);
+      },
+      action => {
+        this.analyticsManager?.logClick('subscription_nudge', { action });
+      }
+    );
     this.setInitialized(true);
     this.initializing = false;
   }
@@ -140,6 +155,10 @@ class App {
 
   public getSubscriptionStore() {
     return this.subscriptionStore;
+  }
+
+  public getSubscriptionNudge() {
+    return this.subscriptionNudge;
   }
 
   public getL10n() {

@@ -1558,6 +1558,11 @@
     "restoreSuccess": "Subscription restored",
     "restoreNone": "No subscription to restore",
     "restoreError": "Couldn't restore purchases. Please try again later.",
-    "withdrawalNotice": "Deleting your account doesn't cancel your subscription. Please cancel it in your store settings first."
+    "withdrawalNotice": "Deleting your account doesn't cancel your subscription. Please cancel it in your store settings first.",
+    "adCardLink": "Go ad-free",
+    "nudgeBody": "Tired of ads? Remove every ad in the app for {{price}} a month.",
+    "nudgeBodyNoPrice": "Tired of ads? Subscribe to remove every ad in the app.",
+    "nudgeExplore": "Learn about the subscription",
+    "nudgeNotNow": "No thanks"
   }
 }

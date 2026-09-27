@@ -22,6 +22,8 @@ import InfoFooterView from '@/components/info/InfoFooterView';
 import InfoFooterBackgroundView from '@/components/info/InfoFooterBackgroundView';
 import PretendardText from '@/components/PretendardText';
 import AppLanguage from '@/model/l10n/AppLanguage';
+import { openSubscription } from '@/model/subscription/OpenSubscription';
+import SubscriptionEntryPoint from '@/model/subscription/SubscriptionEntryPoint';
 import {
   Acg,
   AcgLayout,
@@ -93,18 +95,9 @@ const InfoView: FC = () => {
     router.push('/info/notification');
   };
 
-  // SUB-3: 구매는 로그인한 사용자만 한다 — 비로그인이면 로그인으로 보낸다.
+  // SUB-3: 구매는 로그인한 사용자만 한다 — 비로그인이면 로그인으로 보낸다(`openSubscription`).
   const handleOpenSubscription = () => {
-    if (!isLoggedIn) {
-      logInAlertManager?.show();
-
-      return;
-    }
-
-    app.getAnalyticsManager()?.logClick('subscription_open', {
-      from: 'settings',
-    });
-    router.push('/subscription');
+    openSubscription(SubscriptionEntryPoint.Settings);
   };
 
   const handleOpenMyPosts = () => {

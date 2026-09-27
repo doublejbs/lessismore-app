@@ -12,6 +12,7 @@ import {
 } from '@/constants/DesignTokens';
 import { loadGoogleMobileAds } from '@/model/ads/GoogleMobileAdsModule';
 import app from '@/model/app/App';
+import useAdImpressionTracking from './useAdImpressionTracking';
 
 // 네이티브 광고 미디어는 120×120 이상이어야 한다(AdMob 네이티브 정책). 셀 폭(~164) 전체에 높이 120 —
 // 이 이상 키우면 이웃 장비 셀(최소 150)이 그만큼 늘어나 가운데가 빈다.
@@ -47,6 +48,8 @@ const FeedAdCellView: FC<Props> = ({ nativeAd }) => {
   const sdk = loadGoogleMobileAds();
   const l10n = app.getL10n();
   const [integralSize, setIntegralSize] = useState<IntegralSize | null>(null);
+
+  useAdImpressionTracking(nativeAd, sdk !== null);
 
   // iOS 네이티브 광고 검사기는 광고 뷰 크기에 소수점이 있으면 에셋이 12pt 안쪽에 있어도
   // `Advertiser assets outside native ad view`로 판정한다(react-native-google-mobile-ads #700).

@@ -22,6 +22,9 @@ export interface AdServiceContract {
   // AD-3 2: 추적 안내 시트를 띄울지. 루트의 시트 호스트가 관찰한다. 시트는 닫을 수 없다 —
   // `계속`이 유일한 출구이고 항상 ATT로 이어진다.
   isTrackingPromptVisible(): boolean;
+  // AD-3·SUB-9: 동의 흐름(UMP → 추적 안내 시트 → ATT)이나 개인정보 옵션 폼이 진행 중인지.
+  // 한 번 뜨는 구독 안내가 동의 창과 겹치지 않게 본다.
+  isConsentFlowActive(): boolean;
   // 시트 호스트의 Modal이 실제로 화면에 떴다(`onShow`). 정해진 시간 안에 오지 않으면 시트 없이
   // 바로 ATT를 요청한다.
   markTrackingPromptShown(): void;

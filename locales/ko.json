@@ -1532,6 +1532,11 @@
     "restoreSuccess": "구독을 복원했어요",
     "restoreNone": "복원할 구독이 없어요",
     "restoreError": "구매를 복원하지 못했어요. 잠시 후 다시 시도해 주세요.",
-    "withdrawalNotice": "구독은 탈퇴해도 해지되지 않아요. 스토어 설정에서 먼저 해지해 주세요."
+    "withdrawalNotice": "구독은 탈퇴해도 해지되지 않아요. 스토어 설정에서 먼저 해지해 주세요.",
+    "adCardLink": "광고 없이 보기",
+    "nudgeBody": "광고가 불편하세요? 월 {{price}}에 앱의 모든 광고를 없앨 수 있어요.",
+    "nudgeBodyNoPrice": "광고가 불편하세요? 구독하면 앱의 모든 광고를 없앨 수 있어요.",
+    "nudgeExplore": "구독 알아보기",
+    "nudgeNotNow": "괜찮아요"
   }
 }

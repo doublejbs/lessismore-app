@@ -10,9 +10,12 @@ class ToastManager {
   private message = '';
   private buttonText?: string | undefined;
   private onButtonPress?: (() => void) | undefined;
+  private hideTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   private constructor() {
-    makeAutoObservable(this);
+    makeAutoObservable<ToastManager, 'hideTimeoutId'>(this, {
+      hideTimeoutId: false,
+    });
   }
 
   public show({
@@ -29,6 +32,8 @@ class ToastManager {
       ToastAndroid.show(message, ToastAndroid.SHORT);
     } else {
       // 웹이나 다른 플랫폼에서는 커스텀 토스트 사용
+      // 떠 있던 토스트의 남은 타이머가 새 토스트를 일찍 내리지 않게 끊는다.
+      this.clearHideTimeout();
       this.setMessage(message);
       this.setButtonText(buttonText);
       this.setOnButtonPress(onButtonPress);
@@ -37,10 +42,19 @@ class ToastManager {
       // 액션 버튼이 있으면 사용자가 눌러야 하므로 노출 시간을 늘린다(3초 → 5초).
       const duration = buttonText ? 5000 : 3000;
 
-      setTimeout(() => {
+      this.hideTimeoutId = setTimeout(() => {
+        this.hideTimeoutId = null;
         this.hide();
       }, duration);
     }
+  }
+
+  // 토스트의 동작 버튼. 먼저 내리고 콜백을 부른다 — 콜백이 새 토스트를 띄워도 곧바로 지워지지 않게.
+  public pressButton() {
+    const onButtonPress = this.onButtonPress;
+
+    this.hide();
+    onButtonPress?.();
   }
 
   // Android에서 긴 토스트 표시
@@ -62,6 +76,7 @@ class ToastManager {
   }
 
   public hide() {
+    this.clearHideTimeout();
     this.setVisible(false);
     this.setButtonText(undefined);
     this.setOnButtonPress(undefined);
@@ -95,8 +110,11 @@ class ToastManager {
     this.onButtonPress = callback;
   }
 
-  public getOnButtonPress() {
-    return this.onButtonPress;
+  private clearHideTimeout() {
+    if (this.hideTimeoutId !== null) {
+      clearTimeout(this.hideTimeoutId);
+      this.hideTimeoutId = null;
+    }
   }
 }
 

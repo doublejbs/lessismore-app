@@ -12,6 +12,7 @@ import {
 } from '@/constants/DesignTokens';
 import { loadGoogleMobileAds } from '@/model/ads/GoogleMobileAdsModule';
 import app from '@/model/app/App';
+import useAdImpressionTracking from './useAdImpressionTracking';
 
 // 게시글 카드(`CommunityFeedCardView`)와 같은 문법 — 안쪽 여백 `AcgLayout.communityCardPadding`,
 // 줄 간격 `AcgLayout.chipGap`. 미디어 틀은 폭을 카드에 맞춰 늘이고 높이는 고정한다 — `aspectRatio`를
@@ -40,6 +41,8 @@ interface Props {
 const CommunityAdCardView: FC<Props> = ({ nativeAd }) => {
   const sdk = loadGoogleMobileAds();
   const l10n = app.getL10n();
+
+  useAdImpressionTracking(nativeAd, sdk !== null);
 
   if (!sdk) {
     return null;

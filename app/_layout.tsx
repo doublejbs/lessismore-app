@@ -20,6 +20,7 @@ import ForceUpdateGateView from '@/components/app-update/ForceUpdateGateView';
 import AnnouncementSheetView from '@/components/announcement/AnnouncementSheetView';
 import FeaturePopupSheetView from '@/components/feature-popup/FeaturePopupSheetView';
 import AdTrackingPromptSheetView from '@/components/ads/AdTrackingPromptSheetView';
+import SubscriptionNudgeSheetView from '@/components/subscription/SubscriptionNudgeSheetView';
 import { Acg } from '@/constants/DesignTokens';
 
 // 네이티브 스플래시를 폰트 로드 후 직접 내려, 초기화(Firebase) 동안 React 스플래시
@@ -420,6 +421,9 @@ const RootLayout = () => {
         {/* 추적 안내 시트(AD-3 2) — iOS ATT 앞에 광고 서비스가 띄운다. 모달이라 모든 탭·화면 위에 뜨고,
             강제 업데이트 게이트가 떠 있으면 스스로 뜨지 않는다. 웹·Android는 띄울 일이 없다. */}
         <AdTrackingPromptSheetView />
+        {/* 구독 안내 시트(SUB-9) — 광고 누적 노출 뒤 한 번. 모달이라 모든 탭·화면 위에 뜨고, 게이트·공지·
+            신기능 팝업·추적 안내 시트·동의 흐름이 떠 있으면 스스로 뜨지 않는다. 웹은 띄울 일이 없다. */}
+        <SubscriptionNudgeSheetView />
         {/* 강제 업데이트 게이트(APP-7) — 스플래시 이후 최상위에서 다른 모든 것 위에 렌더한다.
             로그인·약관·라우팅과 무관하게 needsUpdate면 전체 화면을 덮는다(absolute fill). */}
         <ForceUpdateGateView />

@@ -4,7 +4,7 @@
 | --- | --- |
 | 상태 | proposed (2026-09-27 기획) |
 | ID 프리픽스 | `SUB` |
-| 주요 코드 | `[제안]` 모델 `model/subscription/`: `SubscriptionStore.ts`(상태·구매·복원·계정 연결), `PurchasesModule.ts`·`PurchasesModule.web.ts`(네이티브 모듈 `RNPurchases` 가드·웹 스텁), `RevenueCatKeys.ts`(공개 SDK 키), `SubscriptionConstants.ts`, `SubscriptionGateContract.ts`, `PurchaseResult.ts`, `RestoreResult.ts`, `SubscriptionOfferingStatus.ts` · 광고 `model/ads/AdService.ts`·`AdService.web.ts`·`AdServiceContract.ts`·`AdSlotList.ts`, `components/ads/useAdSlotListState.ts`·`useSingleAdSlotState.ts` · 화면 `app/subscription/index.tsx` → `components/subscription/SubscriptionWrapper.tsx` → `SubscriptionView.tsx`(`SubscriptionOfferView.tsx`·`SubscriptionActiveView.tsx`·`SubscriptionRestoreButtonView.tsx`·`useSubscriptionState.ts`), `app/_layout.tsx`(시트 등록) · 설정 `app/info/index.tsx` · 탈퇴 `app/info/delete/index.tsx` · 앱 `model/app/App.ts` · 서버 `lessismore` 레포 `functions/subscription.js` |
+| 주요 코드 | `[제안]` 모델 `model/subscription/`: `SubscriptionStore.ts`(상태·구매·복원·계정 연결), `PurchasesModule.ts`·`PurchasesModule.web.ts`(네이티브 모듈 `RNPurchases` 가드·웹 스텁), `RevenueCatKeys.ts`(공개 SDK 키), `SubscriptionConstants.ts`, `SubscriptionGateContract.ts`, `PurchaseResult.ts`, `RestoreResult.ts`, `SubscriptionOfferingStatus.ts` · 진입점(SUB-9) `model/subscription/OpenSubscription.ts`(설정·광고 링크·안내가 함께 쓰는 구독 화면 열기), `SubscriptionEntryPoint.ts`(`from` 값), `SubscriptionNudge.ts`(누적 노출·한 번 뜨는 안내 시트 요청), `SubscriptionNudgeAction.ts`, `components/subscription/SubscriptionNudgeSheetView.tsx`(안내 시트 호스트, `app/_layout.tsx` 최상위), `components/ads/SingleAdSlotView.tsx`(광고 아래 링크), `components/ads/useAdImpressionTracking.ts`(`CommunityAdCardView.tsx`·`FeedAdCellView.tsx`가 노출을 센다) · 광고 `model/ads/AdService.ts`(`isConsentFlowActive`)·`AdService.web.ts`·`AdServiceContract.ts`·`AdSlotList.ts`, `components/ads/useAdSlotListState.ts`·`useSingleAdSlotState.ts` · 화면 `app/subscription/index.tsx` → `components/subscription/SubscriptionWrapper.tsx` → `SubscriptionView.tsx`(`SubscriptionOfferView.tsx`·`SubscriptionActiveView.tsx`·`SubscriptionRestoreButtonView.tsx`·`useSubscriptionState.ts`), `app/_layout.tsx`(시트 등록) · 설정 `app/info/index.tsx` · 탈퇴 `app/info/delete/index.tsx` · 앱 `model/app/App.ts` · 서버 `lessismore` 레포 `functions/subscription.js` |
 | 관련 스펙 | [Ads.md](Ads.md), [DataModel.md](DataModel.md) DM-31, [Auth.md](Auth.md)(탈퇴·처리방침), [Analytics.md](Analytics.md) |
 
 ## 1. 개요
@@ -98,17 +98,19 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 - **공통 조건**: 구독 기능이 켜져 있고(키·네이티브 모듈 있음, 웹 아님) **미구독**일 때만 보인다. 누르면 구독 화면(SUB-2)을 연다 — 로그인하지 않았으면 로그인부터(SUB-3).
 - **한 장짜리 광고 아래 링크**: 홈·장비 상세의 광고 카드([Ads.md](Ads.md) AD-1) **바로 아래, 광고 뷰 바깥**에 오른쪽 정렬 글자 링크 `광고 없이 보기 ›` 한 줄(메타 글자 `AcgType.meta` · 잉크 · 셰브론, 터치 영역 44pt). 광고를 받지 못해 자리가 접히면 링크도 없다.
   - 광고 뷰(`NativeAdView`) 안에 넣지 않는다 — 광고 요소와 겹치거나 광고 클릭으로 오인되면 AdMob 정책 위반이다. 탐색·검색 그리드와 커뮤니티 피드의 목록 사이 광고에는 두지 않는다(목록 흐름을 끊지 않게).
-- **한 번 뜨는 안내**: 광고가 화면에 **누적 20번** 그려진 뒤(자리 5곳 합산, 기기에 기록) 광고가 있는 화면에서 **딱 한 번** 아래쪽 안내를 띄운다.
-  - 문구 `광고가 불편하세요? 월 {가격}에 광고 없이 쓸 수 있어요` · 동작 `보기`. 가격을 아직 모르면 `광고가 불편하세요? 구독하면 광고 없이 쓸 수 있어요`.
-  - 몇 초 뒤 저절로 사라지고, 닫아도·눌러도 **다시 뜨지 않는다**(기기에 기록). 동의 흐름(UMP·추적 안내 시트·ATT)이 떠 있는 동안에는 띄우지 않는다.
-  - 모양은 앱의 토스트 문법(`app.getToastManager()`)에 동작 하나를 더한 것. 라임을 쓰지 않는다(화면의 주 액션이 아니다).
+- **한 번 뜨는 안내 시트**: 광고가 **누적 20번** 그려진 뒤(자리 5곳 합산, 기기에 기록) 광고가 있는 화면에서 **딱 한 번** 바텀 시트를 띄운다(2026-09-27 사용자 결정 — 토스트는 몇 초 만에 사라져 가격·버튼을 읽기 어렵다).
+  - 그려진 = 광고 뷰가 마운트된 시점(화면 밖에 미리 그려진 목록 셀 포함). 같은 광고 객체는 한 번만 센다.
+  - 구성: 제목 `광고 없이 쓰기` · 본문 `광고가 불편하세요? 월 {가격}에 앱의 모든 광고를 없앨 수 있어요.`(가격을 모르면 `광고가 불편하세요? 구독하면 앱의 모든 광고를 없앨 수 있어요.`) · 주 액션 `구독 알아보기`(라임 — 이 시트의 유일한 주 액션, HM-8) → 시트를 닫고 구독 화면(SUB-2) · 보조 `괜찮아요`(글자 버튼) → 닫기.
+  - **닫을 수 있다**: 스와이프·바깥 탭·`괜찮아요`·안드로이드 뒤로가기(추적 안내 시트와 달리 권한 요청 앞 단계가 아니다).
+  - 한 번 띄우면(어떻게 닫든) **다시 뜨지 않는다**(띄우는 순간 기기에 기록). 동의 흐름(UMP·추적 안내 시트·ATT)이나 다른 시트·모달이 떠 있으면 띄우지 않고 다음 광고 때 다시 확인한다.
+  - 시트 문법·타입·토큰은 HM-8(추적 안내 시트와 같은 모양). `PretendardText`, 44pt 터치 타깃.
 
 ### SUB-8 측정 `[제안]`
 
 **수용 기준**
 
 - `logClick('subscription_open', { from })` — 구독 화면 진입(`from`: `settings` | `ad_card` | `nudge`).
-- `logClick('subscription_nudge', { action })` — 한 번 뜨는 안내(SUB-9) 결과(`action`: `shown` | `open` | `dismiss`).
+- `logClick('subscription_nudge', { action })` — 한 번 뜨는 안내 시트(SUB-9) 결과(`action`: `shown` | `open` | `dismiss`).
 - `logClick('subscription_purchase', { result })` — `result`: `success` | `cancelled` | `pending` | `error`. `pending`은 결제 승인 대기(iOS Ask to Buy·안드로이드 보류 결제)다 — 알럿 `결제 승인을 기다리고 있어요. 승인되면 광고가 사라져요.`를 띄우고, 승인되면 권한 리스너가 광고를 끈다.
 - `logClick('subscription_restore', { result })` — `result`: `restored` | `none` | `error`.
 - 매출·구독자 수는 RevenueCat 대시보드와 DM-31이 소스다. Analytics에 금액을 남기지 않는다.

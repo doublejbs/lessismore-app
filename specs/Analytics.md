@@ -143,7 +143,8 @@
 | `click_feed_refresh` | 피드 pull-to-refresh (FD-4) | — |
 | `click_feed_fine_filter` | 피드 2차(세분) 카테고리 칩 (FD-3) | `category`: 세분 카테고리 값 \| `all` |
 | `click_ad_consent` | 광고 동의 흐름(UMP → iOS 추적 안내 시트 → iOS ATT → SDK 초기화) 완료 — 동의 흐름을 시작하는 광고 자리(탐색·커뮤니티 피드·검색 결과·장비 상세) 첫 포커스 시 앱 수명 동안 1회. 홈은 동의 흐름을 시작하지 않아 남기지 않는다 (AD-3·AD-5). 광고 노출·클릭은 AdMob이 집계하므로 따로 남기지 않는다 | `status`: `granted` \| `tracking_denied`(iOS 추적 거부·제한, 또는 앱이 활성 상태로 돌아오지 않아 ATT를 띄우지 못함) \| `blocked` \| `error`. 추적 안내 시트는 닫을 수 없어 항상 ATT로 이어지므로 시트 단계의 값은 따로 없다 |
-| `click_subscription_open` | 설정(정보 탭) `광고 제거` 행 → 구독 시트 진입(로그인 사용자만 — 비로그인은 로그인으로 보내고 남기지 않는다) ([Subscription.md](Subscription.md) SUB-8) | `from`: `settings` |
+| `click_subscription_open` | 구독 시트 진입(로그인 사용자만 — 비로그인은 로그인으로 보내고 남기지 않는다) — 설정(정보 탭) `광고 제거` 행, 한 장짜리 광고(홈·장비 상세) 아래 `광고 없이 보기` 링크, 한 번 뜨는 안내 시트의 `구독 알아보기` ([Subscription.md](Subscription.md) SUB-8·SUB-9) | `from`: `settings` \| `ad_card` \| `nudge` |
+| `click_subscription_nudge` | 광고 누적 노출(자리 5곳 합산 20번) 뒤 한 번 뜨는 구독 안내 시트의 결과 — 기기당 한 번만 뜨므로 `shown`(시트가 실제로 뜬 순간) 뒤에 `open`·`dismiss` 중 하나가 따른다 (SUB-8·SUB-9) | `action`: `shown` \| `open`(`구독 알아보기` — 시트가 내려간 뒤 `click_subscription_open` `from: nudge`, 비로그인이면 로그인) \| `dismiss`(`괜찮아요`·스와이프·바깥 탭·안드로이드 뒤로가기) |
 | `click_subscription_purchase` | 구독 시트 `구독하기` 결과(스토어 창이 닫힌 뒤) (SUB-2·SUB-8). 금액은 남기지 않는다 | `result`: `success` \| `cancelled` \| `pending`(결제 승인 대기 — iOS Ask to Buy·안드로이드 보류 결제) \| `error` |
 | `click_subscription_restore` | 구독 시트 `구매 복원` 결과 (SUB-5·SUB-8) | `result`: `restored` \| `none` \| `error` |
 | `click_readyshot_layout` | [폐기] 레디샷 기능 제거로 더 이상 발생하지 않음 | `type`: `grid` \| `collage` |
