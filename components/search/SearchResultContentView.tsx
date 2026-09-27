@@ -77,11 +77,14 @@ const SearchResultContentView: FC<Props> = ({
   const entries = slotList.getEntries(result);
   // 칸 폭을 한 열로 고정한다(FeedView와 같은 셈). 광고가 끼면 칸 수의 홀짝이 바뀌어 마지막 줄에
   // 홀로 남은 셀이 화면 폭 전체로 늘어날 수 있다. 좌우 여백은 부모(`SearchResultView`)가 두른다.
-  const cellWidth =
+  // 정수로 내린다 — 광고 셀 폭에 소수점이 남으면 AdMob 검사기가 "광고 요소가 광고 뷰 밖"으로
+  // 판정한다(react-native-google-mobile-ads #700). 두 칸이 `flex: 1`로 나눠도 이 상한에 걸려 정수 폭이 된다.
+  const cellWidth = Math.floor(
     (windowWidth -
       AcgLayout.screenPadding * 2 -
       COLUMN_GAP * (COLUMN_COUNT - 1)) /
-    COLUMN_COUNT;
+      COLUMN_COUNT
+  );
 
   // iOS는 결과 리스트가 탭바 뒤로 흐르므로(edge-to-edge) 마지막 셀이 가리지 않게 탭바 영역만큼 더한다.
   const listBottomPadding =

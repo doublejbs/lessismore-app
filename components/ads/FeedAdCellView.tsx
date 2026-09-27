@@ -1,5 +1,5 @@
-import { FC } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { FC, useCallback, useState } from 'react';
+import { LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import type { NativeAd } from 'react-native-google-mobile-ads';
 import PretendardText from '@/components/PretendardText';
 import {
@@ -31,6 +31,11 @@ interface Props {
   nativeAd: NativeAd;
 }
 
+interface IntegralSize {
+  width: number;
+  height: number;
+}
+
 // AD-2: 탐색 피드 그리드의 네이티브 광고 셀. 피드 셀과 같은 연회색 면 하나에
 // 미디어(면 위쪽 띠) / 제목 / [`광고`·광고주 · 행동 유도]를 담는다.
 // 셀 높이를 이웃 장비 셀에 가깝게 두려고 줄을 줄였다 — 미디어는 정책 최소 높이(120)의 띠로 두고
@@ -41,6 +46,33 @@ interface Props {
 const FeedAdCellView: FC<Props> = ({ nativeAd }) => {
   const sdk = loadGoogleMobileAds();
   const l10n = app.getL10n();
+  const [integralSize, setIntegralSize] = useState<IntegralSize | null>(null);
+
+  // iOS 네이티브 광고 검사기는 광고 뷰 크기에 소수점이 있으면 에셋이 12pt 안쪽에 있어도
+  // `Advertiser assets outside native ad view`로 판정한다(react-native-google-mobile-ads #700).
+  // 그리드 셀 폭은 `(화면 폭 - 여백) / 2`라 393pt 폭 기기에서 164.5가 되고, 높이도 이웃 셀에 맞춰
+  // 늘어나며 소수가 된다 — 폭은 내림(칸 밖으로 넘치지 않게), 높이는 올림(내용이 잘리지 않게)으로
+  // 정수에 맞춘다. 높이는 `minHeight`로만 두어 이웃 셀이 커지면 다시 늘어나 재측정된다.
+  const handleLayout = useCallback((event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    const nextWidth = Math.floor(width);
+    const nextHeight = Math.ceil(height);
+
+    setIntegralSize(current => {
+      if (current) {
+        const isSame =
+          current.width === nextWidth && current.height === nextHeight;
+
+        return isSame ? current : { width: nextWidth, height: nextHeight };
+      }
+
+      if (width === nextWidth && height === nextHeight) {
+        return null;
+      }
+
+      return { width: nextWidth, height: nextHeight };
+    });
+  }, []);
 
   if (!sdk) {
     return null;
@@ -50,8 +82,19 @@ const FeedAdCellView: FC<Props> = ({ nativeAd }) => {
   const advertiser = nativeAd.advertiser;
   const callToAction = nativeAd.callToAction;
 
+  const integralSizeStyle = integralSize
+    ? { width: integralSize.width, minHeight: integralSize.height }
+    : null;
+
+  // SDK는 에셋을 마운트 때 한 번만 등록한다 — 광고가 바뀌면 광고 뷰째 다시 붙여 새 에셋 뷰를 등록한다
+  // (떼어진 옛 뷰가 등록된 채 남으면 광고 뷰 밖의 에셋으로 잡힌다).
   return (
-    <NativeAdView nativeAd={nativeAd} style={styles.cell}>
+    <NativeAdView
+      key={nativeAd.responseId}
+      nativeAd={nativeAd}
+      style={[styles.cell, integralSizeStyle]}
+      onLayout={handleLayout}
+    >
       <View style={styles.face}>
         {/* 미디어를 면 모서리에 붙이면 안드로이드에서 모서리가 잘리지 않고, `contain` 이미지가 한쪽으로
             쏠린다 — 흰 액자 안에 가운데로 둔다(피드 셀의 흰 담기 버튼과 같은 층). */}
@@ -116,8 +159,10 @@ const FeedAdCellView: FC<Props> = ({ nativeAd }) => {
 };
 
 const styles = StyleSheet.create({
+  // 칸 높이(이웃 셀에 맞춰 늘어난 행)를 채운다. `flex: 1`(기준 0)이 아니라 `flexGrow`라
+  // 정수 보정 `minHeight`가 기준 크기로 먹는다.
   cell: {
-    flex: 1,
+    flexGrow: 1,
   },
   // 피드 셀(`FeedGridCellView`)의 면과 같은 채움·모서리.
   face: {

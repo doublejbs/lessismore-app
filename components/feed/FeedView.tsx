@@ -106,11 +106,14 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   const entries = slotList.getEntries(items);
   // 칸 폭을 한 열로 고정한다. 광고가 끼면 칸 수의 홀짝이 바뀌어, `flex: 1`만으로는 마지막 줄에
   // 홀로 남은 셀이 화면 폭 전체로 늘어난다.
-  const cellWidth =
+  // 정수로 내린다 — 광고 셀 폭에 소수점이 남으면 AdMob 검사기가 "광고 요소가 광고 뷰 밖"으로
+  // 판정한다(react-native-google-mobile-ads #700). 두 칸이 `flex: 1`로 나눠도 이 상한에 걸려 정수 폭이 된다.
+  const cellWidth = Math.floor(
     (windowWidth -
       AcgLayout.screenPadding * 2 -
       FEED_COLUMN_GAP * (FEED_COLUMN_COUNT - 1)) /
-    FEED_COLUMN_COUNT;
+      FEED_COLUMN_COUNT
+  );
 
   const handleEndReached = useCallback(() => {
     feed.loadMore();
@@ -182,7 +185,8 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   // 최초 로딩(초기화 전 또는 데이터 없이 로딩 중)에는 행 골격 스켈레톤으로 화면을 채운다.
   // isInitialized가 초기 렌더에서 false이므로, 로드가 빨라도 스켈레톤이 먼저 보인다.
   const showSkeleton =
-    (!isInitialLoadSettled || !isInitialized || isLoading) && items.length === 0;
+    (!isInitialLoadSettled || !isInitialized || isLoading) &&
+    items.length === 0;
   const showRankingButton =
     isInitialLoadSettled && !isLoading && items.length > 0 && !gearAddContext;
 
