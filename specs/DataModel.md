@@ -100,6 +100,7 @@
 | `groups/{groupId}/points/{pointId}` | 그룹 지도 포인트 (DM-29) `[제안]` | 그룹 지도 |
 | `groups/{groupId}/routes/{routeId}` | 그룹 코스(GPX) 요약 (DM-29) `[제안]` | 그룹 지도·코스 목록 |
 | `users/{uid}/groups/{groupId}` | 내가 속한 그룹 역인덱스 (DM-29) `[제안]` | 그룹 목록 조회 |
+| `subscriptions/{uid}` | 광고 제거 구독 서버 기록, 웹훅 함수만 씀 (DM-31) `[제안]` | 운영·통계 ([Subscription.md](Subscription.md)) |
 | `config/app` | 앱 원격 설정 (강제 업데이트 최소 버전) | 강제 업데이트 게이트 (AppLifecycle APP-7) |
 | `config/announcement` | 인앱 텍스트 공지 (원격 배너) | 공지 시트 (Announcement AN) |
 | `config/featurePopup` | 신기능 안내 팝업 (원격 온보딩) | 신기능 팝업 (FeaturePopup FP) |
@@ -944,6 +945,31 @@
 
 현재 배포된 규칙은 커뮤니티 4개 컬렉션을 제외한 나머지가 전면 개방(`allow read, write: if !isCommunityCollection()`)이다. `groups/*`는 신규라 처음부터 멤버십 기반으로 잠글 수 있지만, `bag`·`users`가 열려 있는 한 "그룹원만 본다"는 약속은 앱 화면 안에서만 성립한다. 그룹 출시와 별개로 기존 컬렉션을 좁히는 작업이 필요하다.
 
+
+### DM-31 구독 `subscriptions/{uid}` `[제안]`
+
+광고 제거 구독의 **서버 기록**([Subscription.md](Subscription.md) SUB-6). RevenueCat 웹훅을 받는 Cloud Function(`revenuecatWebhook`)만 쓴다. 앱의 광고 판단은 이 문서가 아니라 RevenueCat SDK가 소스다(SUB-4) — 이 문서는 운영·통계용이다.
+
+문서 id = Firebase uid(= RevenueCat `app_user_id`). 사용자 문서(`users/{uid}`)에 두지 않는 이유: `users/{uid}`는 본인 클라이언트가 쓰는 문서라, 구독 필드만 쓰기 금지로 가르는 규칙이 번거롭고 실수하기 쉽다. 컬렉션을 갈라 **클라이언트 쓰기 전면 금지**로 둔다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `active` | boolean | `no_ads` 권한이 지금 살아 있는지 |
+| `productId` | string | `useless_no_ads_monthly` |
+| `store` | string | `app_store` \| `play_store` (RevenueCat `store` 값 소문자) |
+| `environment` | string | `production` \| `sandbox` — 통계에서 샌드박스를 거른다 |
+| `willRenew` | boolean | 해지 예약이면 `false` |
+| `billingIssue` | boolean | 결제 실패 유예 중 |
+| `expiresAt` | Timestamp \| null | 현재 기간 만료 시각 |
+| `originalPurchasedAt` | Timestamp | 첫 구매 시각 |
+| `lastEventType` | string | 마지막으로 반영한 RevenueCat 이벤트 타입 |
+| `lastEventId` | string | 멱등 처리용 |
+| `lastEventAt` | Timestamp | 이벤트 시각(`event_timestamp_ms`) — 이보다 오래된 이벤트는 무시 |
+| `updatedAt` | Timestamp | 서버 시각 |
+
+- **보안 규칙(콘솔 관리)**: 읽기는 `request.auth.uid == uid`(본인)만, **쓰기는 전면 금지**(Admin SDK인 함수만 쓴다). 운영 화면이 생기면 그때 읽기를 넓힌다.
+- 삭제: 회원 탈퇴 정리 함수가 지운다(SUB-7).
+- 인덱스: 없음(단건 조회·콘솔 조회만). 통계 쿼리가 생기면 `active`·`environment` 복합 인덱스를 추가한다.
 
 ## 4. Storage 경로 (DM-9)
 
