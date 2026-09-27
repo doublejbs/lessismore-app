@@ -1529,6 +1529,11 @@
     "myLocation": "My location"
   },
   "ad": {
-    "label": "Ad"
+    "label": "Ad",
+    "trackingPrompt": {
+      "title": "About personalized ads",
+      "body": "We'd like to show you outdoor ads you might be interested in. You can keep using the app as usual even if you don't allow it on the next screen.",
+      "continue": "Continue"
+    }
   }
 }

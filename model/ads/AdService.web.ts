@@ -17,6 +17,10 @@ class AdService implements AdServiceContract {
     return false;
   }
 
+  public async prepareIfConsentedBefore(): Promise<boolean> {
+    return false;
+  }
+
   public async loadNativeAd(): Promise<NativeAd | null> {
     return null;
   }
@@ -28,6 +32,19 @@ class AdService implements AdServiceContract {
   public async refreshPrivacyOptions() {}
 
   public async showPrivacyOptions() {}
+
+  // AD-3 2: 추적 안내 시트는 iOS 전용이다 — 웹에서는 뜨지 않는다.
+  public isTrackingPromptVisible() {
+    return false;
+  }
+
+  public markTrackingPromptShown() {}
+
+  public acceptTrackingPrompt() {}
+
+  public completeTrackingPrompt() {}
+
+  public skipTrackingPrompt() {}
 }
 
 export default AdService;

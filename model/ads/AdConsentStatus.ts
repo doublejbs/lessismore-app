@@ -2,7 +2,8 @@
 enum AdConsentStatus {
   // 광고를 요청할 수 있고 iOS 추적도 허용됐다(Android는 ATT가 없어 이 값).
   Granted = 'granted',
-  // 광고는 요청할 수 있지만 iOS 추적을 거부했다 — 비맞춤 광고가 나간다.
+  // 광고는 요청할 수 있지만 iOS 추적이 허용되지 않았다(거부·제한, 또는 앱이 활성 상태로 돌아오지 않아
+  // ATT를 띄우지 못함) — 비맞춤 광고가 나간다.
   TrackingDenied = 'tracking_denied',
   // UMP가 광고 요청을 허락하지 않았다 — 광고를 요청하지 않는다.
   Blocked = 'blocked',

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ViewToken } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import AdSlotList from '@/model/ads/AdSlotList';
@@ -17,6 +17,9 @@ interface Params {
   columnCount: number;
   // 광고를 두지 않는 쓰임(장비 검색 담기 등, AD-1)에서는 동의 흐름도 광고 요청도 하지 않는다.
   enabled: boolean;
+  // 목록 내용이 통째로 바뀌는 열쇠(검색 결과의 검색어). 바뀌면 접힌 자리·보이는 범위를 되돌린다
+  // (`AdSlotList.reset`) — 지난 목록에서 접힌 자리가 새 목록에서도 접힌 채 남지 않게.
+  resetKey?: string | undefined;
 }
 
 // AD-1·AD-3·AD-5: 목록 화면 하나의 광고 자리 상태. 화면에 처음 포커스될 때 동의 흐름을 태우고
@@ -27,6 +30,7 @@ const useAdSlotListState = ({
   itemCount,
   columnCount,
   enabled,
+  resetKey,
 }: Params) => {
   const [slotList] = useState(() =>
     AdSlotList.from(placement, app.getAdService(), columnCount)
@@ -56,6 +60,18 @@ const useAdSlotListState = ({
   useEffect(() => {
     slotList.setItemCount(itemCount);
   }, [slotList, itemCount]);
+
+  // 첫 렌더에는 되돌릴 것이 없다 — 열쇠가 바뀔 때만 되돌린다.
+  const lastResetKeyRef = useRef(resetKey);
+
+  useEffect(() => {
+    if (lastResetKeyRef.current === resetKey) {
+      return;
+    }
+
+    lastResetKeyRef.current = resetKey;
+    slotList.reset();
+  }, [slotList, resetKey]);
 
   // FlatList는 이 콜백이 렌더마다 바뀌는 것을 허용하지 않는다 — 한 번만 만든다.
   const [handleViewableItemsChanged] = useState(

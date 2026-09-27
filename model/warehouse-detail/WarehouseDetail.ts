@@ -101,6 +101,8 @@ class WarehouseDetail {
   private showAddToBagModal = false;
   // GE-8: 배낭 장비 추가 검색에서 상세로 들어온 경우의 대상 배낭. 있으면 담기 버튼이 그 배낭에 바로 담는다.
   private bagContextId: string | null = null;
+  // AD-1: 창고 담기 검색(/search, `GearAddMode.Warehouse`)에서 상세로 들어왔는지. 담기 흐름이라 광고를 두지 않는다.
+  private gearAddFlow = false;
   private coupangUrl: string | undefined = undefined;
   // 브랜드 공식몰 링크(GD-5). 쿠팡과 같은 카탈로그 문서에서 함께 읽는다.
   private productUrl: string | undefined = undefined;
@@ -789,6 +791,27 @@ class WarehouseDetail {
 
   public isBagContext() {
     return this.bagContextId !== null;
+  }
+
+  public setGearAddFlow(isGearAddFlow: boolean) {
+    this.gearAddFlow = isGearAddFlow;
+  }
+
+  // 장비 추가 검색(/search)에서 연 상세인지 — 창고 담기·배낭 담기 모두.
+  public isGearAddFlow() {
+    return this.gearAddFlow || this.isBagContext();
+  }
+
+  // AD-1: 광고는 카탈로그 장비를 둘러볼 때만 둔다 — 내 창고 장비(내 정보)·커스텀 장비와 담기 흐름(도구)에는
+  // 없다. 보는 중에 창고에 담으면 `isAdded`가 바뀌어 광고를 해제하고 자리를 접는다.
+  public shouldShowAd() {
+    const gear = this.gear;
+
+    if (!gear) {
+      return false;
+    }
+
+    return !gear.isAdded() && !gear.getIsCustom() && !this.isGearAddFlow();
   }
 
   public isInBagContextBag() {

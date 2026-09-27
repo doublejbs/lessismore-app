@@ -5,6 +5,8 @@ import {
   StyleSheet,
   Platform,
   TouchableOpacity,
+  StyleProp,
+  ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -22,6 +24,9 @@ import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import Home from '@/model/home/Home';
 import app from '@/model/app/App';
 import { selectTripPlan } from '@/model/home/HomeTripPlan';
+import AdPlacement from '@/model/ads/AdPlacement';
+import SingleAdSlotView from '@/components/ads/SingleAdSlotView';
+import useSingleAdSlotState from '@/components/ads/useSingleAdSlotState';
 
 interface Props {
   home: Home;
@@ -31,6 +36,9 @@ interface Props {
 const IOS_EDGES = ['top', 'left', 'right'] as const;
 
 const LOGIN_CTA_HEIGHT = 48;
+
+// 홈 섹션 사이 간격 — `HomeRecommendedSpotsView`·`HomeWarehousePreviewView`의 아래 여백과 같은 값.
+const HOME_SECTION_GAP = 26;
 
 const HomeView: FC<Props> = ({ home }) => {
   const router = useRouter();
@@ -42,6 +50,21 @@ const HomeView: FC<Props> = ({ home }) => {
    * 포커스마다 새로 잡는다(HM-6). 상태로 들고 있어야 다시 렌더된다.
    */
   const [today, setToday] = useState(() => dayjs());
+
+  // AD-1: 홈 맨 아래 한 장(추천 박지 다음). 자리는 화면 맨 위에서 한 번 만든다 — 로그인·비로그인 분기나
+  // 스켈레톤을 오가도 광고를 다시 요청하지 않는다. AD-3: 앱을 켜면 바로 나오는 화면이라 동의 흐름을
+  // 시작하지 않는다 — 다른 자리에서 동의를 마친 적이 있을 때만 요청한다.
+  const { slot: adSlot } = useSingleAdSlotState({
+    placement: AdPlacement.Home,
+    startsConsentFlow: false,
+    enabled: true,
+  });
+
+  // 플로팅 탭바 아래로 콘텐츠가 흐르므로 시안대로 130을 비운다(ACG).
+  const bottomSpacerHeight = Platform.select({
+    ios: insets.bottom + AcgLayout.scrollBottom,
+    default: AcgLayout.scrollBottom,
+  });
 
   const handleLogin = () => {
     app.getLogInAlertManager()?.show();
@@ -55,6 +78,11 @@ const HomeView: FC<Props> = ({ home }) => {
     return (
       <HomeRecommendedSpotsView recommendations={home.getRecommendedSpots()} />
     );
+  };
+
+  // 좌우 여백은 `Layout`이 이미 홈 섹션과 같은 `AcgLayout.screenPadding`으로 두른다.
+  const renderAd = (style: StyleProp<ViewStyle>) => {
+    return <SingleAdSlotView slot={adSlot} enabled={true} style={style} />;
   };
 
   useFocusEffect(
@@ -98,6 +126,8 @@ const HomeView: FC<Props> = ({ home }) => {
             </TouchableOpacity>
           </View>
           {renderRecommendations()}
+          {/* 비로그인 화면은 하단 여백 없이 주 액션을 가운데 두므로, 광고가 있을 때만 탭바 몫을 비운다. */}
+          {renderAd([styles.adSlot, { marginBottom: bottomSpacerHeight }])}
         </ScrollView>
       );
     }
@@ -111,15 +141,8 @@ const HomeView: FC<Props> = ({ home }) => {
         <HomeUpcomingTripView plan={selectTripPlan(home.getBags(), today)} />
         <HomeWarehousePreviewView gears={home.getGears()} />
         {renderRecommendations()}
-        <View
-          style={{
-            // 플로팅 탭바 아래로 콘텐츠가 흐르므로 시안대로 130을 비운다(ACG).
-            height: Platform.select({
-              ios: insets.bottom + AcgLayout.scrollBottom,
-              default: AcgLayout.scrollBottom,
-            }),
-          }}
-        />
+        {renderAd(styles.adSlot)}
+        <View style={{ height: bottomSpacerHeight }} />
       </ScrollView>
     );
   };
@@ -202,6 +225,10 @@ const styles = StyleSheet.create({
   loginCtaText: {
     ...AcgType.control,
     color: Acg.paper,
+  },
+  // 홈 섹션(추천 박지·창고 미리보기)과 같은 아래 간격.
+  adSlot: {
+    marginBottom: HOME_SECTION_GAP,
   },
 });
 

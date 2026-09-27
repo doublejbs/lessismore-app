@@ -35,6 +35,8 @@ class AdSlotList {
 
   private readonly ads = new Map<number, NativeAd>();
   private readonly requestedSlots = new Set<number>();
+  // 요청했지만 접힌 자리(채울 광고 없음·늦게 와서 버림). `reset` 때 다시 요청할 수 있게 따로 든다.
+  private readonly collapsedSlots = new Set<number>();
   // 받은 광고가 바뀔 때마다 오른다 — `getEntries` 캐시가 광고 도착을 알아보는 열쇠.
   private adsVersion = 0;
   private entriesCache: EntriesCache | null = null;
@@ -54,6 +56,7 @@ class AdSlotList {
       AdSlotList,
       | 'ads'
       | 'requestedSlots'
+      | 'collapsedSlots'
       | 'entriesCache'
       | 'lastVisibleOrdinal'
       | 'itemCount'
@@ -66,6 +69,7 @@ class AdSlotList {
     >(this, {
       ads: observable.shallow,
       requestedSlots: false,
+      collapsedSlots: false,
       entriesCache: false,
       lastVisibleOrdinal: false,
       itemCount: false,
@@ -139,6 +143,20 @@ class AdSlotList {
     return this.ads.get(slotIndex) ?? null;
   }
 
+  // 같은 화면에서 목록 내용이 통째로 바뀔 때(검색어 변경). 새 목록은 처음부터 다시 보므로 접힌 자리를
+  // 다시 요청할 수 있게 하고 보이는 범위를 처음으로 되돌린다 — 지난 목록에서 접힌 자리가 새 목록에서도
+  // 접힌 채 남지 않게. 받은 광고는 같은 순번 자리에 그대로 쓴다(자리는 항목 순번으로만 정해지고, 새 목록이
+  // 처음부터 그려지므로 보던 항목이 밀리지 않는다). 받는 중인 요청은 새 목록 기준으로 끼울지 정한다.
+  public reset() {
+    this.collapsedSlots.forEach(slotIndex => {
+      this.requestedSlots.delete(slotIndex);
+    });
+    this.collapsedSlots.clear();
+    this.lastVisibleOrdinal = 0;
+    this.entriesCache = null;
+    this.requestNearbySlots();
+  }
+
   // 목록이 사라질 때(언마운트·광고를 끄는 쓰임으로 바뀜) 받은 광고를 모두 해제한다.
   // 목록에서 먼저 빼고(관찰 맵 비움 → 광고 셀이 내려감) 다음 틱에 해제한다 — 광고 뷰가 아직
   // 붙어 있는 채로 네이티브 광고를 해제하지 않게 한다.
@@ -151,6 +169,7 @@ class AdSlotList {
     this.ads.clear();
     this.adsVersion += 1;
     this.requestedSlots.clear();
+    this.collapsedSlots.clear();
 
     setTimeout(() => {
       ads.forEach(ad => ad.destroy());
@@ -183,6 +202,8 @@ class AdSlotList {
     const ad = await this.adService.loadNativeAd(this.placement);
 
     if (!ad) {
+      this.markCollapsed(slotIndex);
+
       return;
     }
 
@@ -193,12 +214,26 @@ class AdSlotList {
       getAdSlotPosition(slotIndex) > this.lastVisibleOrdinal - this.columnCount;
 
     if (this.disposed || !isBelowViewport || this.ads.has(slotIndex)) {
+      // 아직 붙은 적 없는 광고라 바로 해제해도 된다.
       ad.destroy();
+
+      if (!this.disposed && !this.ads.has(slotIndex)) {
+        this.markCollapsed(slotIndex);
+      }
 
       return;
     }
 
     this.setAd(slotIndex, ad);
+  }
+
+  private markCollapsed(slotIndex: number) {
+    // 해제 뒤 도착한 응답은 새 수명의 자리를 건드리지 않는다.
+    if (this.disposed) {
+      return;
+    }
+
+    this.collapsedSlots.add(slotIndex);
   }
 
   private setAd(slotIndex: number, ad: NativeAd) {

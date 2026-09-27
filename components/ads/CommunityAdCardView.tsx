@@ -13,9 +13,11 @@ import {
 import { loadGoogleMobileAds } from '@/model/ads/GoogleMobileAdsModule';
 import app from '@/model/app/App';
 
-// 게시글 카드(`CommunityFeedCardView`)와 같은 치수 — 대표 이미지 높이 160, 안쪽 여백
-// `AcgLayout.communityCardPadding`, 줄 간격 `AcgLayout.chipGap`.
-const MEDIA_HEIGHT = 160;
+// 게시글 카드(`CommunityFeedCardView`)와 같은 문법 — 안쪽 여백 `AcgLayout.communityCardPadding`,
+// 줄 간격 `AcgLayout.chipGap`. 미디어 틀은 폭을 카드에 맞춰 늘이고 높이는 고정한다 — `aspectRatio`를
+// 쓰면 안드로이드에서 네이티브 미디어 뷰가 높이부터 풀려 틀이 카드보다 좁아졌다. 높이는 폰 폭 카드에서
+// 대략 16:9이고 구글 네이티브 미디어 최소 크기(120)를 넘는다.
+const MEDIA_HEIGHT = 180;
 
 // 작성자·시간 두 줄 사이, 본문과 아래 줄 사이의 틈. 게시글 카드와 같은 값이고 맞는 간격 토큰이 없다.
 const META_LINE_GAP = 2;
@@ -32,7 +34,7 @@ interface Props {
   nativeAd: NativeAd;
 }
 
-// AD-2: 커뮤니티 피드의 네이티브 광고 카드. 게시글 카드와 같은 문법 —
+// AD-2: 커뮤니티 피드·홈·장비 상세의 네이티브 광고 카드. 게시글 카드와 같은 문법 —
 // 미디어(대표 이미지 자리) / 광고주(작성자 자리) · `광고`(시간 자리) / 제목 / 설명 / 행동 유도.
 // 설명·행동 유도는 광고에 있을 때만 그린다. 에셋은 전부 SDK 뷰에 등록한다.
 const CommunityAdCardView: FC<Props> = ({ nativeAd }) => {
@@ -51,7 +53,12 @@ const CommunityAdCardView: FC<Props> = ({ nativeAd }) => {
   return (
     <NativeAdView nativeAd={nativeAd}>
       <View style={styles.card}>
-        <NativeMediaView style={styles.media} resizeMode='cover' />
+        {/* 미디어는 흰 틀 안에 가운데로 담는다(FeedAdCellView와 같은 처리). 안드로이드 네이티브 미디어 뷰는
+            카드의 모서리 잘라내기를 받지 않아, 카드에 바로 붙이면 contain 이미지가 왼쪽으로 붙고 카드의
+            둥근 모서리 밖으로 비어져 나온다 — 모서리를 가진 틀로 한 번 더 감싸 잘라낸다. */}
+        <View style={styles.mediaFrame}>
+          <NativeMediaView style={styles.media} resizeMode='contain' />
+        </View>
 
         <View style={styles.content}>
           <View style={styles.meta}>
@@ -121,9 +128,21 @@ const styles = StyleSheet.create({
     borderRadius: AcgRadius.thumb,
     backgroundColor: Acg.controlFill,
   },
+  // 좌우 여백은 아래 글자 블록과 같은 카드 안쪽 여백 — 액자와 제목의 시작선이 맞는다.
+  mediaFrame: {
+    alignSelf: 'stretch',
+    height: MEDIA_HEIGHT,
+    marginTop: AcgLayout.communityCardPadding,
+    marginHorizontal: AcgLayout.communityCardPadding,
+    overflow: 'hidden',
+    borderRadius: AcgRadius.chip,
+    backgroundColor: Acg.paper,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   media: {
     width: '100%',
-    height: MEDIA_HEIGHT,
+    height: '100%',
   },
   content: {
     gap: AcgLayout.chipGap,

@@ -4,7 +4,7 @@
 | --- | --- |
 | 상태 | proposed (2026-09-26 기획) |
 | ID 프리픽스 | `AD` |
-| 주요 코드 | `[제안]` `model/ads/`, `components/ads/`, `components/feed/FeedView.tsx`, `components/community/feed/CommunityView.tsx` |
+| 주요 코드 | `[제안]` `model/ads/`(`AdService.ts`·`SingleAdSlot.ts`·`AdSlotList.ts`·`AdUnitIds.ts` 등), `components/ads/`(`FeedAdCellView.tsx`·`CommunityAdCardView.tsx`·`SingleAdSlotView.tsx`·`useSingleAdSlotState.ts`·`useAdSlotListState.ts`·`AdTrackingPromptSheetView.tsx`), `components/feed/FeedView.tsx`, `components/community/feed/CommunityView.tsx`, `components/search/SearchResultContentView.tsx`, `components/warehouse-detail/WarehouseDetailView.tsx`, `components/home/HomeView.tsx`, `app/_layout.tsx`(안내 시트 호스트) |
 | 관련 스펙 | [Home.md](Home.md) HM-8(시각 문법), [Feed.md](Feed.md), [Community.md](Community.md), [Analytics.md](Analytics.md), [AppLifecycle.md](AppLifecycle.md) APP-5, [Auth.md](Auth.md)(개인정보 처리방침) |
 
 ## 1. 개요
@@ -29,7 +29,7 @@ Google AdMob **네이티브 광고**를 남의 콘텐츠를 훑어보는 두 목
   | **장비 상세** — 카탈로그 장비만 | `GearDetail` | 한 장. 스크롤 맨 끝(리뷰 섹션 다음, 하단 여백 앞) — 구매(쿠팡) 링크보다 아래 |
   | **홈** 맨 아래 | `Home` | 한 장. 스크롤 맨 끝(추천 박지 다음, 하단 여백 앞) — 로그인·비로그인 모두 |
 
-- 장비 상세는 **내 창고에 있는 장비(`gear.isAdded()`)와 담기 흐름(`isBagContext()`)에서는 광고를 두지 않는다** — 내 정보를 보는 화면이고, 담기는 도구 흐름이다. 한 장짜리 자리(장비 상세·홈)는 커뮤니티 게시글 카드 문법(`CommunityAdCardView`)을 쓴다.
+- 장비 상세는 **내 창고에 있는 장비(`gear.isAdded()`)·커스텀 장비와 담기 흐름(배낭 담기 `isBagContext()`와 창고 담기 검색 `/search`에서 연 상세 모두)에서는 광고를 두지 않는다** — 내 정보를 보는 화면이고, 담기는 도구 흐름이다. 한 장짜리 자리(장비 상세·홈)는 커뮤니티 게시글 카드 문법(`CommunityAdCardView`)을 쓴다.
 - 검색 결과도 **담기 검색(`gearAddContext`가 있을 때)에서는 두지 않는다.**
 - **두지 않는 곳**: 창고·여행 상세·패킹·그룹(내 정보를 다루는 도구 화면), 담기 흐름(담기 검색·담기 장비 상세), 커뮤니티 게시글 상세, 지도(떠 있는 요소가 이미 많다), 로그인·약관·설정·온보딩.
 - 빈도(목록 사이 자리): 목록의 **첫 광고는 6번째 항목 뒤**, 이후 **10개마다 하나**. 한 화면에 광고가 둘 이상 동시에 보이지 않게 한다. 수치는 `model/ads/`의 상수 한 곳에 둔다.
@@ -56,7 +56,8 @@ Google AdMob **네이티브 광고**를 남의 콘텐츠를 훑어보는 두 목
   2. **추적 안내 시트**(iOS만, 2026-09-27 추가 `[제안]`): ATT 시스템 팝업 바로 앞에 **앱 디자인의 시트**를 한 번 띄운다. AdMob 콘솔의 IDFA 설명 메시지(구글 디자인)는 **게시 중지**하고 이 시트가 대신한다.
      - 제목 `맞춤 광고 안내` · 본문 `관심 있을 만한 아웃도어 광고를 보여드리려고 해요. 다음 화면에서 허용하지 않아도 앱은 그대로 쓸 수 있어요.` · 버튼 하나 `계속`(라임, 화면의 주 액션). 시트 문법·타입은 HM-8.
      - **허용을 유도하거나 보상을 걸지 않는다**(App Store 심사 가이드라인 5.1.2) — `허용`/`거부` 두 버튼을 두지 않고 중립적인 `계속` 하나만 둔다. 결정은 이어지는 시스템 팝업에서 한다.
-     - `계속` → ATT 시스템 팝업. 시트를 닫으면(스와이프·바깥 탭) 이번에는 ATT를 묻지 않고 비맞춤 광고로 진행한다. 다음 앱 실행에서 광고 화면에 처음 포커스될 때 한 번 더 띄우고, 두 번 닫으면 더 묻지 않는다(기기에 기록).
+     - **시트는 닫을 수 없다**(스와이프·바깥 탭·닫기 버튼·안드로이드 뒤로가기 없음) — `계속`이 유일한 출구이고 **항상 ATT 시스템 팝업으로 이어진다.** 사전 안내를 닫아 시스템 요청을 건너뛰게 하면 App Store 심사(5.1.1)에서 반려될 수 있다(2026-09-27 결정). 허용 여부는 시스템 팝업에서만 고른다.
+     - 시트가 화면에 뜨지 못하면(다른 모달이 떠 있는 등) 기다리지 않고 **시트 없이 바로 ATT를 요청한다** — 동의 흐름이 멈춰 광고가 전부 막히면 안 된다. ATT는 앱이 활성 상태일 때만 요청하고, 시트가 완전히 내려간 뒤 띄운다.
      - 이미 ATT를 결정한 사용자(허용·거부·제한)에게는 띄우지 않는다.
      - GDPR 동의 메시지(1)는 인증된 동의 도구여야 해서 UMP를 그대로 쓴다 — 모양은 AdMob 콘솔 메시지 편집(색·글꼴·로고)으로만 맞춘다.
   3. **iOS 앱 추적 투명성(ATT)**: 안내 시트의 `계속` 다음에 한 번 띄운다. 거부하면 비맞춤 광고가 나간다.
@@ -86,7 +87,7 @@ Google AdMob **네이티브 광고**를 남의 콘텐츠를 훑어보는 두 목
 
 ## 3. 출시 전 준비 (사용자가 직접)
 
-- AdMob 계정·앱 등록(iOS·Android, 번들 `com.doublejbs.useless`), 광고 단위 4개 발급, 결제 정보.
+- AdMob 계정·앱 등록(iOS·Android, 번들 `com.doublejbs.useless`), 광고 단위 10개 발급(5자리 × iOS·Android, 2026-09-27 발급 완료), 결제 정보.
 - AdMob 콘솔에서 GDPR 동의 메시지와 IDFA 설명 메시지를 켠다.
 - **App Store 개인정보 라벨**: 광고 식별자·사용 데이터를 "추적에 사용"으로 신고.
 - **Google Play 데이터 보안 양식**: 기기 식별자(광고 ID) 수집·공유를 신고.

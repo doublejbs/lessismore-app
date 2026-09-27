@@ -16,7 +16,7 @@ const TEST_NATIVE_AD_UNIT_IDS = {
   android: 'ca-app-pub-3940256099942544/2247696110',
 };
 
-// 실제 광고 단위(자리 × 플랫폼 = 4개). 값이 비면 그 자리는 프로덕션에서 광고를 요청하지 않는다.
+// 실제 광고 단위(자리 × 플랫폼 = 10개). 값이 비면 그 자리는 프로덕션에서 광고를 요청하지 않는다(AD-4).
 const PRODUCTION_AD_UNIT_IDS: Record<AdPlacement, { ios: string; android: string }> = {
   [AdPlacement.Feed]: {
     ios: 'ca-app-pub-1953089301592534/7090727306',
@@ -25,6 +25,19 @@ const PRODUCTION_AD_UNIT_IDS: Record<AdPlacement, { ios: string; android: string
   [AdPlacement.Community]: {
     ios: 'ca-app-pub-1953089301592534/3937864633',
     android: 'ca-app-pub-1953089301592534/3151482290',
+  },
+  // 2026-09-27 추가 자리(검색 결과·장비 상세·홈) — 같은 날 광고 단위 발급 완료.
+  [AdPlacement.Search]: {
+    ios: 'ca-app-pub-1953089301592534/9718558944',
+    android: 'ca-app-pub-1953089301592534/8701914185',
+  },
+  [AdPlacement.GearDetail]: {
+    ios: 'ca-app-pub-1953089301592534/8405477271',
+    android: 'ca-app-pub-1953089301592534/4298625580',
+  },
+  [AdPlacement.Home]: {
+    ios: 'ca-app-pub-1953089301592534/7092395609',
+    android: 'ca-app-pub-1953089301592534/9160070029',
   },
 };
 

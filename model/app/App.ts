@@ -29,7 +29,7 @@ import AdService from '../ads/AdService';
 class App {
   private readonly firebase = new Firebase();
   private readonly l10n = new L10n();
-  // AD-3·AD-5: 광고 동의·요청. 생성만 해 두고 동의 흐름은 피드에 처음 들어갈 때 흐른다.
+  // AD-3·AD-5: 광고 동의·요청. 생성만 해 두고 동의 흐름은 광고 자리(홈 제외)에 처음 포커스될 때 흐른다.
   // 웹은 Metro가 `AdService.web.ts`(광고 SDK 없음)를 고른다(AD-4).
   private readonly adService = AdService.new(status => {
     this.analyticsManager?.logClick('ad_consent', { status });

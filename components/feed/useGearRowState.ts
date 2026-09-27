@@ -47,10 +47,19 @@ const useGearRowState = ({ gear, actions, bag, gearAddContext }: Params) => {
 
     // GE-8 배낭 컨텍스트: 상세에서도 그 배낭에 담도록 bagId를 넘긴다.
     if (bagCtxId) {
-      router.push(`/gear-detail/${gear.getId()}?bagId=${bagCtxId}`);
-    } else {
-      actions.goToGearDetail(gear);
+      router.push(`/gear-detail/${gear.getId()}?bagId=${bagCtxId}&addFlow=1`);
+
+      return;
     }
+
+    // AD-1: 창고 담기 검색에서 연 상세는 담기 흐름이라 광고를 두지 않는다 — 상세가 알 수 있게 표시를 넘긴다.
+    if (gearAddContext) {
+      router.push(`/gear-detail/${gear.getId()}?addFlow=1`);
+
+      return;
+    }
+
+    actions.goToGearDetail(gear);
   };
 
   const handleAddPress = async (e: GestureResponderEvent) => {

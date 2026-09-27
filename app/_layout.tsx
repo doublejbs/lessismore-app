@@ -19,6 +19,7 @@ import { observer } from 'mobx-react-lite';
 import ForceUpdateGateView from '@/components/app-update/ForceUpdateGateView';
 import AnnouncementSheetView from '@/components/announcement/AnnouncementSheetView';
 import FeaturePopupSheetView from '@/components/feature-popup/FeaturePopupSheetView';
+import AdTrackingPromptSheetView from '@/components/ads/AdTrackingPromptSheetView';
 import { Acg } from '@/constants/DesignTokens';
 
 // 네이티브 스플래시를 폰트 로드 후 직접 내려, 초기화(Firebase) 동안 React 스플래시
@@ -404,6 +405,9 @@ const RootLayout = () => {
             공지 시트와 마찬가지로 needsUpdate면 스스로 뜨지 않아 게이트가 최상위를 유지한다.
             공지 시트는 이 팝업이 뜰 조건이면 스스로 숨는다(FP-6 우선순위). */}
         <FeaturePopupSheetView />
+        {/* 추적 안내 시트(AD-3 2) — iOS ATT 앞에 광고 서비스가 띄운다. 모달이라 모든 탭·화면 위에 뜨고,
+            강제 업데이트 게이트가 떠 있으면 스스로 뜨지 않는다. 웹·Android는 띄울 일이 없다. */}
+        <AdTrackingPromptSheetView />
         {/* 강제 업데이트 게이트(APP-7) — 스플래시 이후 최상위에서 다른 모든 것 위에 렌더한다.
             로그인·약관·라우팅과 무관하게 needsUpdate면 전체 화면을 덮는다(absolute fill). */}
         <ForceUpdateGateView />

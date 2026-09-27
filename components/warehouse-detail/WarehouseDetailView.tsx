@@ -31,6 +31,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SearchGearAddToBagModalView from '../search/SearchGearAddToBagModalView';
 import Bag from '@/model/bag/Bag';
 import app from '@/model/app/App';
+import AdPlacement from '@/model/ads/AdPlacement';
+import SingleAdSlotView from '@/components/ads/SingleAdSlotView';
+import useSingleAdSlotState from '@/components/ads/useSingleAdSlotState';
 
 interface Props {
   warehouseDetail: WarehouseDetail;
@@ -64,6 +67,13 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
   const [showHeaderTitle, setShowHeaderTitle] = useState(false);
   const insets = useSafeAreaInsets();
   const infoHeightRef = useRef(0);
+  // AD-1: 카탈로그 장비를 둘러볼 때만 스크롤 맨 끝에 한 장(내 창고·커스텀 장비·담기 흐름 제외).
+  const showAd = warehouseDetail.shouldShowAd();
+  const { slot: adSlot } = useSingleAdSlotState({
+    placement: AdPlacement.GearDetail,
+    startsConsentFlow: true,
+    enabled: showAd,
+  });
 
   const handlePressClose = () => {
     warehouseDetail.close();
@@ -278,6 +288,12 @@ const WarehouseDetailView: FC<Props> = ({ warehouseDetail }) => {
                 />
               </>
             )}
+            {/* AD-1: 스크롤 맨 끝 한 장 — 리뷰 섹션 다음, 구매 링크보다 아래. */}
+            <SingleAdSlotView
+              slot={adSlot}
+              enabled={showAd}
+              style={styles.adSlot}
+            />
             <View style={styles.bottomSpacing} />
           </ScrollView>
 
@@ -399,6 +415,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flexDirection: 'column',
+  },
+  // 섹션(`WarehouseDetailSectionView`)과 같은 좌우 여백·아래 간격.
+  adSlot: {
+    marginHorizontal: AcgLayout.screenPadding,
+    marginBottom: AcgLayout.section,
   },
   bottomSpacing: {
     height: 100,

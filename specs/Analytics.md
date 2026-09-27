@@ -142,7 +142,7 @@
 | `click_feed_ranking` | 피드 하단 `인기 순위` 버튼 → 인기 순위 화면 (FD-3) | — |
 | `click_feed_refresh` | 피드 pull-to-refresh (FD-4) | — |
 | `click_feed_fine_filter` | 피드 2차(세분) 카테고리 칩 (FD-3) | `category`: 세분 카테고리 값 \| `all` |
-| `click_ad_consent` | 광고 동의 흐름(UMP → iOS ATT → SDK 초기화) 완료 — 탐색·커뮤니티 피드 첫 진입 시 앱 수명 동안 1회 (AD-3·AD-5). 광고 노출·클릭은 AdMob이 집계하므로 따로 남기지 않는다 | `status`: `granted` \| `tracking_denied` \| `blocked` \| `error` |
+| `click_ad_consent` | 광고 동의 흐름(UMP → iOS 추적 안내 시트 → iOS ATT → SDK 초기화) 완료 — 동의 흐름을 시작하는 광고 자리(탐색·커뮤니티 피드·검색 결과·장비 상세) 첫 포커스 시 앱 수명 동안 1회. 홈은 동의 흐름을 시작하지 않아 남기지 않는다 (AD-3·AD-5). 광고 노출·클릭은 AdMob이 집계하므로 따로 남기지 않는다 | `status`: `granted` \| `tracking_denied`(iOS 추적 거부·제한, 또는 앱이 활성 상태로 돌아오지 않아 ATT를 띄우지 못함) \| `blocked` \| `error`. 추적 안내 시트는 닫을 수 없어 항상 ATT로 이어지므로 시트 단계의 값은 따로 없다 |
 | `click_readyshot_layout` | [폐기] 레디샷 기능 제거로 더 이상 발생하지 않음 | `type`: `grid` \| `collage` |
 | `click_readyshot_share` | [폐기] 레디샷 기능 제거로 더 이상 발생하지 않음 | — |
 | `click_login` | 로그인 버튼 (AU-1) | `provider`: `google` \| `apple` \| `email` |
