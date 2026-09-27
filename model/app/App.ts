@@ -25,15 +25,19 @@ import L10n from '../l10n/L10n';
 import CommunitySearchStore from '../search/CommunitySearchStore';
 import RouteDirectionStore from '../route/RouteDirectionStore';
 import AdService from '../ads/AdService';
+import SubscriptionStore from '../subscription/SubscriptionStore';
 
 class App {
   private readonly firebase = new Firebase();
   private readonly l10n = new L10n();
+  // SUB-3·SUB-4: 광고 제거 구독 상태. SDK 설정은 Firebase 초기화 뒤(로그인 uid를 알고 나서) 한다.
+  // 광고 서비스가 이 상태를 보고 구독자에게는 광고·동의 흐름을 시작하지 않는다.
+  private readonly subscriptionStore = SubscriptionStore.new(this.firebase);
   // AD-3·AD-5: 광고 동의·요청. 생성만 해 두고 동의 흐름은 광고 자리(홈 제외)에 처음 포커스될 때 흐른다.
   // 웹은 Metro가 `AdService.web.ts`(광고 SDK 없음)를 고른다(AD-4).
   private readonly adService = AdService.new(status => {
     this.analyticsManager?.logClick('ad_consent', { status });
-  });
+  }, this.subscriptionStore);
   private gearStore: GearStore | null = null;
   private bagStore: BagStore | null = null;
   private bagTemplateStore: BagTemplateStore | null = null;
@@ -76,6 +80,8 @@ class App {
 
     await this.l10n.initialize();
     await this.firebase.initialize();
+    // 구독 상태 확인은 앱 시작을 막지 않는다 — 광고 쪽이 `waitUntilResolved`로 짧게 기다린다(SUB-4).
+    void this.subscriptionStore.initialize();
     const bagStore = new BagStore(this.firebase);
 
     this.gearStore = new GearStore(this.firebase);
@@ -130,6 +136,10 @@ class App {
 
   public getAdService() {
     return this.adService;
+  }
+
+  public getSubscriptionStore() {
+    return this.subscriptionStore;
   }
 
   public getL10n() {

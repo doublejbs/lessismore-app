@@ -75,6 +75,7 @@
     "react-native-google-mobile-ads": "^17.2.0",
     "react-native-health-connect": "^3.5.3",
     "react-native-image-colors": "^2.5.1",
+    "react-native-purchases": "^10.10.2",
     "react-native-reanimated": "4.5.0",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",

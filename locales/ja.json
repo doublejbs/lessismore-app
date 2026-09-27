@@ -1509,5 +1509,29 @@
       "body": "興味を持っていただけそうなアウトドア広告を表示したいと考えています。次の画面で許可しなくても、アプリはこれまでどおりご利用いただけます。",
       "continue": "続ける"
     }
+  },
+  "subscription": {
+    "settingsRow": "広告を削除",
+    "settingsRowSubscribed": "広告削除を購読中",
+    "title": "広告なしで使う",
+    "benefit": "アプリのすべての広告を非表示にします",
+    "price": "月額 {{price}}",
+    "priceError": "商品情報を読み込めませんでした",
+    "subscribe": "購読する",
+    "purchasing": "購入処理中",
+    "restore": "購入を復元",
+    "autoRenewNotice": "サブスクリプションは毎月自動で更新されます。現在の期間が終わる24時間前までにストアの設定から解約できます。お支払いは購入確定時にストアのアカウントに請求されます。",
+    "subscribedTitle": "広告削除を購読中",
+    "nextRenewal": "次回更新日 {{date}}",
+    "activeUntil": "{{date}}まで利用可能",
+    "manage": "サブスクリプションを管理",
+    "dateFormat": "YYYY年M月D日",
+    "purchaseSuccess": "すべての広告を非表示にしました",
+    "purchaseError": "購入できませんでした。しばらくしてからもう一度お試しください。",
+    "purchasePending": "お支払いの承認を待っています。承認されると広告が消えます。",
+    "restoreSuccess": "サブスクリプションを復元しました",
+    "restoreNone": "復元できるサブスクリプションがありません",
+    "restoreError": "購入を復元できませんでした。しばらくしてからもう一度お試しください。",
+    "withdrawalNotice": "退会してもサブスクリプションは解約されません。先にストアの設定から解約してください。"
   }
 }

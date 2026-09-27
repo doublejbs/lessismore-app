@@ -1535,5 +1535,29 @@
       "body": "We'd like to show you outdoor ads you might be interested in. You can keep using the app as usual even if you don't allow it on the next screen.",
       "continue": "Continue"
     }
+  },
+  "subscription": {
+    "settingsRow": "Remove ads",
+    "settingsRowSubscribed": "Ad-free subscription active",
+    "title": "Go ad-free",
+    "benefit": "Removes every ad in the app",
+    "price": "{{price}} / month",
+    "priceError": "Couldn't load subscription details",
+    "subscribe": "Subscribe",
+    "purchasing": "Purchase in progress",
+    "restore": "Restore purchases",
+    "autoRenewNotice": "Your subscription renews automatically every month. You can cancel in your store settings up to 24 hours before the current period ends. Payment is charged to your store account when you confirm the purchase.",
+    "subscribedTitle": "Ad-free subscription active",
+    "nextRenewal": "Renews on {{date}}",
+    "activeUntil": "Active until {{date}}",
+    "manage": "Manage subscription",
+    "dateFormat": "MMM D, YYYY",
+    "purchaseSuccess": "All ads removed",
+    "purchaseError": "Couldn't complete the purchase. Please try again later.",
+    "purchasePending": "Your payment is awaiting approval. Ads will disappear once it's approved.",
+    "restoreSuccess": "Subscription restored",
+    "restoreNone": "No subscription to restore",
+    "restoreError": "Couldn't restore purchases. Please try again later.",
+    "withdrawalNotice": "Deleting your account doesn't cancel your subscription. Please cancel it in your store settings first."
   }
 }

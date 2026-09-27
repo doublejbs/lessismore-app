@@ -4,7 +4,7 @@
 | --- | --- |
 | 상태 | proposed (2026-09-27 기획) |
 | ID 프리픽스 | `SUB` |
-| 주요 코드 | `[제안]` `model/subscription/`, `components/subscription/`, `app/subscription/`, `lessismore` 레포 `functions/subscription.js` |
+| 주요 코드 | `[제안]` 모델 `model/subscription/`: `SubscriptionStore.ts`(상태·구매·복원·계정 연결), `PurchasesModule.ts`·`PurchasesModule.web.ts`(네이티브 모듈 `RNPurchases` 가드·웹 스텁), `RevenueCatKeys.ts`(공개 SDK 키), `SubscriptionConstants.ts`, `SubscriptionGateContract.ts`, `PurchaseResult.ts`, `RestoreResult.ts`, `SubscriptionOfferingStatus.ts` · 광고 `model/ads/AdService.ts`·`AdService.web.ts`·`AdServiceContract.ts`·`AdSlotList.ts`, `components/ads/useAdSlotListState.ts`·`useSingleAdSlotState.ts` · 화면 `app/subscription/index.tsx` → `components/subscription/SubscriptionWrapper.tsx` → `SubscriptionView.tsx`(`SubscriptionOfferView.tsx`·`SubscriptionActiveView.tsx`·`SubscriptionRestoreButtonView.tsx`·`useSubscriptionState.ts`), `app/_layout.tsx`(시트 등록) · 설정 `app/info/index.tsx` · 탈퇴 `app/info/delete/index.tsx` · 앱 `model/app/App.ts` · 서버 `lessismore` 레포 `functions/subscription.js` |
 | 관련 스펙 | [Ads.md](Ads.md), [DataModel.md](DataModel.md) DM-31, [Auth.md](Auth.md)(탈퇴·처리방침), [Analytics.md](Analytics.md) |
 
 ## 1. 개요
@@ -61,6 +61,7 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 - 구독 중이면 `AdService`가 **광고를 요청하지 않고**, UMP·추적 안내 시트·ATT도 띄우지 않는다(AD-3의 동의 흐름을 시작하지 않는다). 이미 받은 광고는 해제하고 자리를 접는다.
 - 구독 상태를 알기 전(앱 시작 직후 SDK 응답 전)에는 광고를 요청하지 않는다 — 구독자에게 광고가 한 번 번쩍이지 않게. SDK는 마지막 상태를 기기에 캐시하므로 대기는 짧다. SDK가 실패하면(모듈 없음·네트워크) **미구독으로 본다**(광고는 AD-5대로 언제나 없어도 되는 요소라, 반대로 막히는 쪽이 더 나쁘다).
 - 상태 변화(갱신·만료·환불)는 `addCustomerInfoUpdateListener`로 받아 즉시 반영한다. 앱이 포그라운드로 돌아올 때 한 번 갱신한다.
+- 구독 중이면 설정의 `광고 개인정보 설정` 행(AD-3 재진입 입구)을 숨긴다 — 광고가 없으니 고칠 동의도 없다. 구독이 끝나면 AD-3 규칙대로 다시 보인다.
 
 ### SUB-5 구매 복원·관리 `[제안]`
 
@@ -76,7 +77,8 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 - `lessismore` 레포에 HTTPS 함수 `revenuecatWebhook`(asia-northeast3)을 둔다. RevenueCat 대시보드의 웹훅 URL로 등록한다.
 - **인증**: RevenueCat 웹훅 설정의 Authorization 헤더 값과 함수 시크릿(`REVENUECAT_WEBHOOK_AUTH`, Secret Manager — 레포에 두지 않는다)이 일치할 때만 처리한다. 불일치 → 401.
 - 이벤트의 `app_user_id`가 uid다. 익명 ID(`$RCAnonymousID:`)면 무시(200).
-- 처리 이벤트: `INITIAL_PURCHASE`·`RENEWAL`·`UNCANCELLATION`·`PRODUCT_CHANGE` → 활성, `CANCELLATION` → 활성 유지 + 해지 예약(`willRenew=false`, 환불로 인한 취소면 즉시 비활성), `EXPIRATION` → 비활성, `BILLING_ISSUE` → 활성 유지 + `billingIssue=true`, `TRANSFER` → 이전 uid 비활성·새 uid 활성. 그 밖의 이벤트는 200으로 무시.
+- 처리 이벤트: `INITIAL_PURCHASE`·`RENEWAL`·`UNCANCELLATION`·`PRODUCT_CHANGE` → 활성, `CANCELLATION` → 활성 유지 + 해지 예약(`willRenew=false`, 환불로 인한 취소면 즉시 비활성), `EXPIRATION` → 비활성, `BILLING_ISSUE` → 활성 유지 + `billingIssue=true`, `TRANSFER` → 이전 uid 비활성·새 uid 활성, `SUBSCRIPTION_EXTENDED`(스토어가 기간을 늘려 줌) → 활성 + 새 만료 시각. `TEST` 등 그 밖의 이벤트는 200으로 무시.
+- **탈퇴한 계정**: Firebase Auth에 없는 uid의 이벤트는 쓰지 않고 200(탈퇴 뒤 늦게 온 이벤트가 문서를 되살리지 않게, SUB-7).
 - **멱등·순서**: 같은 `event.id`를 두 번 받아도 결과가 같다. 이벤트 시각(`event_timestamp_ms`)이 문서의 `lastEventAt`보다 오래되면 무시한다(재전송·순서 뒤바뀜).
 - 쓰기는 DM-31 `subscriptions/{uid}`에만 한다. 처리에 성공하면 200, 일시 오류면 5xx(RevenueCat이 재시도한다).
 
@@ -92,7 +94,7 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 **수용 기준**
 
 - `logClick('subscription_open', { from })` — 구독 화면 진입(`from`: `settings`).
-- `logClick('subscription_purchase', { result })` — `result`: `success` | `cancelled` | `error`.
+- `logClick('subscription_purchase', { result })` — `result`: `success` | `cancelled` | `pending` | `error`. `pending`은 결제 승인 대기(iOS Ask to Buy·안드로이드 보류 결제)다 — 알럿 `결제 승인을 기다리고 있어요. 승인되면 광고가 사라져요.`를 띄우고, 승인되면 권한 리스너가 광고를 끈다.
 - `logClick('subscription_restore', { result })` — `result`: `restored` | `none` | `error`.
 - 매출·구독자 수는 RevenueCat 대시보드와 DM-31이 소스다. Analytics에 금액을 남기지 않는다.
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ViewToken } from 'react-native';
 import { useFocusEffect } from 'expo-router';
+import { reaction } from 'mobx';
 import AdSlotList from '@/model/ads/AdSlotList';
 import AdPlacement from '@/model/ads/AdPlacement';
 import { AdListEntry } from '@/model/ads/AdListEntry';
@@ -55,6 +56,42 @@ const useAdSlotListState = ({
     return () => {
       slotList.dispose();
     };
+  }, [slotList, enabled]);
+
+  // 화면이 포커스돼 있는지 — 구독이 끝났을 때 보고 있는 화면이면 바로 다시 시작한다.
+  const isFocusedRef = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      isFocusedRef.current = true;
+
+      return () => {
+        isFocusedRef.current = false;
+      };
+    }, [])
+  );
+
+  // SUB-4: 광고 제거를 구독하면 받은 광고를 해제하고 자리를 접는다. 구독이 끝나거나 로그아웃하면
+  // 보고 있는 화면은 바로, 아니면 다음 포커스에 다시 시작한다(`start`가 구독 중이면 요청하지 않는다).
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    return reaction(
+      () => app.getSubscriptionStore().isSubscribed(),
+      isSubscribed => {
+        if (isSubscribed) {
+          slotList.dispose();
+
+          return;
+        }
+
+        if (isFocusedRef.current) {
+          void slotList.start();
+        }
+      }
+    );
   }, [slotList, enabled]);
 
   useEffect(() => {

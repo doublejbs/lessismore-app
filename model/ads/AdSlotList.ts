@@ -83,7 +83,9 @@ class AdSlotList {
   }
 
   // AD-3: 이 목록 화면에 처음 포커스될 때 동의 흐름을 태운다(앱 수명 동안 한 번, 결과는 서비스가
-  // 캐시). 한 번 시작하면 다시 포커스돼도 그대로다 — `dispose` 뒤에만 다시 시작한다.
+  // 캐시). 광고를 요청할 수 있게 시작하면 다시 포커스돼도 그대로다 — `dispose` 뒤에만 다시 시작한다.
+  // 요청할 수 없으면(구독 중·동의 없음, SUB-4) 시작하지 않은 것으로 되돌려 다음 포커스에 다시 묻는다 —
+  // 구독이 끝나거나 로그아웃하면 탭 목록에도 광고가 돌아온다.
   public async start() {
     if (this.started) {
       return;
@@ -95,7 +97,13 @@ class AdSlotList {
 
     const canRequestAds = await this.adService.prepare();
 
-    if (this.disposed || !canRequestAds) {
+    if (this.disposed) {
+      return;
+    }
+
+    if (!canRequestAds) {
+      this.started = false;
+
       return;
     }
 

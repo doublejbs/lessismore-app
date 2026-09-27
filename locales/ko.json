@@ -1509,5 +1509,29 @@
       "body": "관심 있을 만한 아웃도어 광고를 보여드리려고 해요. 다음 화면에서 허용하지 않아도 앱은 그대로 쓸 수 있어요.",
       "continue": "계속"
     }
+  },
+  "subscription": {
+    "settingsRow": "광고 제거",
+    "settingsRowSubscribed": "광고 제거 구독 중",
+    "title": "광고 없이 쓰기",
+    "benefit": "앱의 모든 광고를 없애요",
+    "price": "월 {{price}}",
+    "priceError": "상품 정보를 불러오지 못했어요",
+    "subscribe": "구독하기",
+    "purchasing": "구매 진행 중",
+    "restore": "구매 복원",
+    "autoRenewNotice": "구독은 매월 자동으로 갱신되며, 현재 기간이 끝나기 24시간 전까지 스토어 설정에서 해지할 수 있어요. 결제는 구매 확인 시 스토어 계정으로 청구돼요.",
+    "subscribedTitle": "광고 제거 구독 중",
+    "nextRenewal": "다음 갱신일 {{date}}",
+    "activeUntil": "{{date}}까지 이용",
+    "manage": "구독 관리",
+    "dateFormat": "YYYY년 M월 D일",
+    "purchaseSuccess": "광고를 모두 없앴어요",
+    "purchaseError": "구매하지 못했어요. 잠시 후 다시 시도해 주세요.",
+    "purchasePending": "결제 승인을 기다리고 있어요. 승인되면 광고가 사라져요.",
+    "restoreSuccess": "구독을 복원했어요",
+    "restoreNone": "복원할 구독이 없어요",
+    "restoreError": "구매를 복원하지 못했어요. 잠시 후 다시 시도해 주세요.",
+    "withdrawalNotice": "구독은 탈퇴해도 해지되지 않아요. 스토어 설정에서 먼저 해지해 주세요."
   }
 }

@@ -321,6 +321,18 @@ const RootLayout = () => {
               contentStyle: { backgroundColor: Acg.paper },
             }}
           />
+          {/* 광고 제거 구독 시트(SUB-2) — 배낭 추가 시트와 같은 formSheet 얼개(내용 높이만큼). */}
+          <Stack.Screen
+            name='subscription/index'
+            options={{
+              headerShown: false,
+              presentation: 'formSheet',
+              sheetAllowedDetents: 'fitToContents',
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 20,
+              contentStyle: { backgroundColor: Acg.paper },
+            }}
+          />
           <Stack.Screen
             name='bag-share'
             options={{

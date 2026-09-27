@@ -8,7 +8,7 @@ export type AdConsentListener = (status: AdConsentStatus) => void;
 // 웹 번들은 광고 SDK를 싣지 않는다(AD-4).
 export interface AdServiceContract {
   // AD-3: 동의 흐름(UMP → 추적 안내 시트 → ATT → SDK 초기화)을 앱 수명 동안 한 번만 흘린다.
-  // 광고를 요청할 수 있으면 true.
+  // 광고를 요청할 수 있으면 true. SUB-4: 광고 제거 구독자면 흐름을 시작하지 않고 false.
   prepare(): Promise<boolean>;
   // AD-3: 동의 흐름을 시작하지 않는 자리(홈)용. 이번 실행이나 이전 실행에서 동의 흐름을 마친 적이
   // 있을 때만 창(UMP 폼·안내 시트·ATT) 없이 SDK를 준비한다. 광고를 요청할 수 있으면 true.

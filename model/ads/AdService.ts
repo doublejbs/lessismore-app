@@ -2,6 +2,7 @@ import { makeAutoObservable, runInAction } from 'mobx';
 import { AppState, NativeEventSubscription, Platform } from 'react-native';
 import type { AdsConsentInfo, NativeAd } from 'react-native-google-mobile-ads';
 import LocalStorageManager from '@/model/storage/LocalStorageManager';
+import { SubscriptionGateContract } from '@/model/subscription/SubscriptionGateContract';
 import AdConsentStatus from './AdConsentStatus';
 import AdPlacement from './AdPlacement';
 import { AdConsentListener, AdServiceContract } from './AdServiceContract';
@@ -71,9 +72,15 @@ const waitForActiveAppState = (timeoutMs: number) => {
 // 순서: UMP 동의 정보 갱신 → 필요하면 UMP 폼 → (iOS, ATT 미결정이면) 추적 안내 시트 → iOS ATT
 // → `canRequestAds`면 SDK 초기화. 홈은 동의 흐름을 시작하지 않고 `prepareIfConsentedBefore()`로
 // 이전에 마친 동의만 이어 쓴다. 어느 단계가 실패해도 목록은 광고 없이 보인다 — 광고는 언제나 없어도 되는 요소다.
+//
+// SUB-4: 광고 제거 구독자에게는 동의 흐름을 시작하지 않고 광고도 요청하지 않는다. 구독 상태를 알기 전에는
+// (앱 시작 직후) 짧게 기다린다 — 구독자에게 광고가 한 번 번쩍이지 않게.
 class AdService implements AdServiceContract {
-  public static new(onConsentResolved: AdConsentListener) {
-    return new AdService(onConsentResolved);
+  public static new(
+    onConsentResolved: AdConsentListener,
+    subscription: SubscriptionGateContract
+  ) {
+    return new AdService(onConsentResolved, subscription);
   }
 
   private preparing: Promise<boolean> | null = null;
@@ -89,7 +96,10 @@ class AdService implements AdServiceContract {
   private trackingPromptShown = false;
   private trackingPromptTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
-  private constructor(private readonly onConsentResolved: AdConsentListener) {
+  private constructor(
+    private readonly onConsentResolved: AdConsentListener,
+    private readonly subscription: SubscriptionGateContract
+  ) {
     makeAutoObservable<
       AdService,
       | 'preparing'
@@ -100,6 +110,7 @@ class AdService implements AdServiceContract {
       | 'trackingPromptShown'
       | 'trackingPromptTimeoutId'
       | 'onConsentResolved'
+      | 'subscription'
     >(this, {
       preparing: false,
       silentPreparing: false,
@@ -109,10 +120,16 @@ class AdService implements AdServiceContract {
       trackingPromptShown: false,
       trackingPromptTimeoutId: false,
       onConsentResolved: false,
+      subscription: false,
     });
   }
 
-  public prepare(): Promise<boolean> {
+  // 구독자는 동의 흐름을 태우지 않는다. 결과를 캐시하지 않으므로 구독이 끝나면 다음 자리에서 흐른다.
+  public async prepare(): Promise<boolean> {
+    if (!(await this.isAdAllowed())) {
+      return false;
+    }
+
     if (!this.preparing) {
       this.preparing = this.runConsentFlow();
     }
@@ -124,6 +141,10 @@ class AdService implements AdServiceContract {
   // 아니면 이전 실행에서 마친 기록이 있을 때만 창 없이 동의 정보를 갱신해 SDK를 준비한다.
   // 기록이 없으면 결과를 캐시하지 않는다 — 이번 실행 중에 다른 자리에서 동의를 마치면 다음 포커스에 붙는다.
   public async prepareIfConsentedBefore(): Promise<boolean> {
+    if (!(await this.isAdAllowed())) {
+      return false;
+    }
+
     if (this.preparing) {
       return this.preparing;
     }
@@ -193,14 +214,28 @@ class AdService implements AdServiceContract {
     const sdk = loadGoogleMobileAds();
     const adUnitId = getAdUnitId(placement);
 
-    if (!sdk || !adUnitId || !this.canRequestAds) {
+    if (
+      !sdk ||
+      !adUnitId ||
+      !this.canRequestAds ||
+      this.subscription.isSubscribed()
+    ) {
       return null;
     }
 
     try {
-      return await sdk.NativeAd.createForAdRequest(adUnitId, {
+      const ad = await sdk.NativeAd.createForAdRequest(adUnitId, {
         aspectRatio: sdk.NativeMediaAspectRatio.LANDSCAPE,
       });
+
+      // 받는 사이 구독했으면 붙이지 않고 해제한다(SUB-4).
+      if (this.subscription.isSubscribed()) {
+        ad.destroy();
+
+        return null;
+      }
+
+      return ad;
     } catch {
       // 채울 광고 없음·네트워크 오류 — 자리를 접는다(AD-1).
       return null;
@@ -251,6 +286,13 @@ class AdService implements AdServiceContract {
     } catch {
       // 폼을 띄우지 못해도 설정 화면은 그대로 둔다.
     }
+  }
+
+  // SUB-4: 구독 상태를 알 때까지(짧게) 기다린 뒤, 구독 중이 아니면 광고를 둘 수 있다.
+  private async isAdAllowed(): Promise<boolean> {
+    await this.subscription.waitUntilResolved();
+
+    return !this.subscription.isSubscribed();
   }
 
   private async runConsentFlow(): Promise<boolean> {
