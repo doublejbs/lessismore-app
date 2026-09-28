@@ -34,7 +34,7 @@ app/gear-detail/[id]/index.tsx → WarehouseDetailWrapper → WarehouseDetailVie
 | 지면 | 순백(`Acg.paper`) | 앱 공통 |
 | 섹션 머리 | **18 semibold 잉크**(`AcgType.sectionTitle`), 지면 위 — 면 안에 넣지 않는다. 우측 요약(평점 등) 동반 가능 | 홈·탐색과 같은 층. 이전에는 16(rowTitle)이라 행 제목과 층이 겹쳤다 |
 | 면 | `Acg.controlFill` + **`AcgRadius.thumb`(12)**, 그림자 없음 | HM-8 공통. 이전에는 각진 면(radius 0, ACG 세대) |
-| 주 액션 | **라임 알약**(`Acg.lime`, radius = 높이/2, 글자 잉크 semibold) — 하단 바의 `내 창고에 추가하기`/`이 배낭에 담기`. **화면당 라임 하나**는 이 버튼의 몫 | 홈 `배낭 보기` CTA와 같은 문법. 이전에는 각진 잉크 면이라 옛 문법의 마지막 잔재였다 |
+| 주 액션 | **라임 알약**(`Acg.lime`, radius = 높이/2, 글자 잉크 semibold) — 하단 바의 `내 창고에 추가하기`/`이 배낭에 담기`. **화면당 라임 하나**는 이 버튼의 몫 | 홈 `여행 보기` CTA와 같은 문법. 이전에는 각진 잉크 면이라 옛 문법의 마지막 잔재였다 |
 | 최저가 링크 행 | 면 문법을 따른다(radius 12) | 위 `면` 참고 |
 | 수치 | 무게 `displayMedium`(GD-1), 사용 지표 `displaySmall`(GD-9) — 콘덴스드 | HM-8 타입 스케일 |
 

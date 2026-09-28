@@ -7,10 +7,8 @@ import { Href, useRouter } from 'expo-router';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
-import {
-  formatCommunityWeight,
-  getCommunityRelativeTime,
-} from '@/model/community/CommunityFormat';
+import { formatBagSnapshotWeightInKilograms } from '@/model/bag-snapshot/BagSnapshotFormat';
+import { getCommunityRelativeTime } from '@/model/community/CommunityFormat';
 import CommunityPost from '@/model/community/CommunityPost';
 import { COMMUNITY_POST_PREVIEW_MAX_LENGTH } from '@/model/community/CommunityLimits';
 import app from '@/model/app/App';
@@ -61,7 +59,7 @@ const CommunityFeedCardView: FC<Props> = ({ post, onPress }) => {
           <PretendardText style={styles.extraMeta} numberOfLines={1}>
             {l10n.t('community.feed.bagMeta', {
               name: snapshot.name,
-              weight: formatCommunityWeight(snapshot.totalWeight),
+              weight: formatBagSnapshotWeightInKilograms(snapshot.totalWeight),
               count: snapshot.itemCount,
             })}
           </PretendardText>

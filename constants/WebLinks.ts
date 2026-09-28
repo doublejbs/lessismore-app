@@ -18,3 +18,8 @@ export const getBagShareUrl = (bagId: string) => {
   // (인코딩을 새로 넣으면 이미 공유된 링크와 형태가 달라진다).
   return `${WEB_BASE_URL}/bag-share/${bagId}`;
 };
+
+// 그룹 초대 링크(GRP-3). groupId 자체가 초대 비밀이라 별도 토큰을 붙이지 않는다.
+export const getGroupInviteUrl = (groupId: string) => {
+  return `${WEB_BASE_URL}/group/${encodeURIComponent(groupId)}`;
+};

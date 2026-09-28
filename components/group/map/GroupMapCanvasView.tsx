@@ -1,0 +1,945 @@
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {
+  Camera,
+  NaverMapMarkerOverlay,
+  NaverMapView,
+  NaverMapViewRef,
+} from '@mj-studio/react-native-naver-map';
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
+import * as Location from 'expo-location';
+import { Ionicons } from '@expo/vector-icons';
+import { observer } from 'mobx-react-lite';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import RoutePathOverlayView from '@/components/route/RoutePathOverlayView';
+import PretendardText from '@/components/PretendardText';
+import SpotPinView from '@/components/camp-site/SpotPinView';
+import {
+  Acg,
+  AcgLayout,
+  AcgShadow,
+  AcgType,
+  Radius,
+} from '@/constants/DesignTokens';
+import app from '@/model/app/App';
+import GroupPoint from '@/model/group/GroupPoint';
+import GroupValidationError from '@/model/group/GroupValidationError';
+import { getGroupValidationMessage } from '@/model/group-error/GroupErrorMessage';
+import GroupMap from '@/model/group-map/GroupMap';
+import { getRouteFitRegion } from '@/model/route/RouteCamera';
+import { RouteBounds } from '@/model/route/RouteData';
+import { RouteElevationSample } from '@/model/route/RouteElevation';
+import { deltaToZoom } from '@/model/map/MapZoom';
+import GroupMapAimMarkerView from './GroupMapAimMarkerView';
+import GroupMapMarkersView, { GroupMapViewport } from './GroupMapMarkersView';
+import GroupMapRoutePanelView from './GroupMapRoutePanelView';
+import GroupPointCalloutView from './GroupPointCalloutView';
+import GroupPointFilterChipsView from './GroupPointFilterChipsView';
+import RouteScrubMarkerView from '@/components/route/RouteScrubMarkerView';
+import RouteEndpointMarkersView from '@/components/route/RouteEndpointMarkersView';
+import MapControlButtonView from '@/components/map/MapControlButtonView';
+import MapMyLocationMarkerView from '@/components/map/MapMyLocationMarkerView';
+import {
+  MapCoordinate,
+  useMapCurrentLocation,
+} from '@/hooks/useMapCurrentLocation';
+
+interface Props {
+  groupMap: GroupMap;
+  onRequestCreate: (coordinate: {
+    latitude: number;
+    longitude: number;
+  }) => void;
+  onRequestEdit: (point: GroupPoint) => void;
+  onRequestDelete: (point: GroupPoint) => void;
+  // 고도 그래프 머리 줄 → 코스 목록 시트(GRP-10). 시트는 화면(`GroupMapView`)이 그린다.
+  onOpenRouteList: () => void;
+  // `코스 추가` — GPX 선택 → 업로드(GRP-8). 흐름은 `useGroupMapRouteState`가 잇는다.
+  onAddRoute: () => void;
+  // `코스 추가`로 시작한 작업이 진행 중인지(파일 선택 포함) / 그중 업로드 단계인지.
+  isAddingRoute: boolean;
+  isUploadingRoute: boolean;
+  // Android 커스텀 헤더 높이만큼 상단 오버레이를 내린다(iOS는 투명 헤더라 세이프에어리어로 충분).
+  topInset: number;
+}
+
+/** 남한 전역이 보이는 폴백 카메라(코스·포인트·박지·현재 위치가 모두 없을 때). */
+const KOREA_CAMERA: Camera = {
+  latitude: 36.2,
+  longitude: 127.9,
+  zoom: deltaToZoom(4.8),
+};
+
+const SPOT_PIN_WIDTH = 30;
+const SPOT_PIN_HEIGHT = 40;
+
+/**
+ * 그룹 지도 (GRP-9 · GRP-10) — 네이티브 전용 본문.
+ *
+ * 코스 폴리라인 · 포인트 마커 · 연결된 박지 마커를 한 화면에 그린다. 지도 구성과 마커 성능
+ * 처리(뷰포트 안만 렌더, 캡션 충돌 숨김)는 박지 지도(CS-1·CS-2)를 따른다.
+ *
+ * **롱프레스**: `@mj-studio/react-native-naver-map@2.9.0`에는 지도 롱프레스 콜백이 없다
+ * (`onTapMap`뿐이다 — `lib/typescript/module/src/component/NaverMapView.d.ts`). 그래서 지도를
+ * `GestureDetector`로 감싸 `Gesture.LongPress()`로 화면 좌표를 받고, 지도 ref의 공식 API
+ * `screenToCoordinate({ screenX, screenY })`로 위경도를 얻는다. 롱프레스는 발견하기 어렵고
+ * 접근성 보조기술로 쓰기 어려워, 같은 일을 하는 **`여기에 포인트 추가` 알약**을 함께 둔다.
+ * 알약은 바로 시트를 열지 않고 **조준 모드**로 들어간다 — 화면 정중앙에 조준 마커를 띄워
+ * 어디에 찍히는지 눈으로 확인시킨 뒤 확정을 받는다(GRP-9).
+ *
+ * **고도 그래프**는 지도 아래에 둔다(GRP-8). 지도 위에 얹으면 훑는 동안 손가락과 그래프가
+ * 지도를 가려 "이 오르막이 어디인가"를 볼 수 없다 — 이 기능이 존재하는 이유가 사라진다.
+ * 그래프 머리에는 선택 코스 `이름 · 거리 · 상승 ›`가 서고, 누르면 코스 목록 시트가 뜬다(GRP-10 —
+ * 코스 칩을 대신한다). 방향 뒤집기·삭제는 그 시트의 행 `⋯`에 있다.
+ *
+ * **추가 버튼 두 개**(GRP-10): `코스 추가`(흰 보조 알약) + `포인트 추가`(라임 — 화면당 하나, HM-8).
+ */
+const GroupMapCanvasView: FC<Props> = ({
+  groupMap,
+  onRequestCreate,
+  onRequestEdit,
+  onRequestDelete,
+  onOpenRouteList,
+  onAddRoute,
+  isAddingRoute,
+  isUploadingRoute,
+  topInset,
+}) => {
+  const l10n = app.getL10n();
+  const insets = useSafeAreaInsets();
+  const mapRef = useRef<NaverMapViewRef>(null);
+  const mapReadyRef = useRef(false);
+  const didFitRef = useRef(false);
+  // 처리한 마지막 코스 선택 요청(`GroupMap.focusRoute`)의 `seq`.
+  const handledFocusSeqRef = useRef(0);
+  // 목록에서 넘어온 포인트 초점을 처리했는지. 같은 포인트로 카메라를 두 번 옮기지 않는다.
+  const handledPointIdRef = useRef<string | null>(null);
+  // 지금 손가락이 고도 그래프 위에 있는지. 이때는 선택이 바뀌어도 카메라를 옮기지 않는다(GRP-8).
+  const scrubbingRef = useRef(false);
+  const cameraRef = useRef<{ latitude: number; longitude: number }>({
+    latitude: KOREA_CAMERA.latitude,
+    longitude: KOREA_CAMERA.longitude,
+  });
+  const zoomRef = useRef(deltaToZoom(0.2));
+  const mountedRef = useRef(true);
+  const [viewport, setViewport] = useState<GroupMapViewport | null>(null);
+  const [longPressAt, setLongPressAt] = useState<{
+    x: number;
+    y: number;
+    seq: number;
+  } | null>(null);
+  // 포인트 추가 조준 모드 (GRP-9). 이 동안에는 필터 칩·정보 카드·추가 버튼·코스 패널을 걷어 조준을 가리지 않는다.
+  const [isAiming, setIsAiming] = useState(false);
+  /**
+   * 고도 그래프에서 훑고 있는 지점 (GRP-8). 손을 떼면 `null`이 되어 마커가 사라진다.
+   * **어느 코스의 지점인지 함께 들고 있는다** — 코스를 바꾸면 그래프는 새로 마운트되지만
+   * 손을 뗐다고 알려 줄 길이 없어, 태그가 없으면 지난 코스의 마커가 지도에 남는다.
+   */
+  const [scrub, setScrub] = useState<{
+    routeId: string;
+    sample: RouteElevationSample;
+  } | null>(null);
+  const handledLongPressRef = useRef(0);
+  const pointList = groupMap.getPointList();
+  const routeList = groupMap.getRouteList();
+  const routes = groupMap.getRoutes();
+  const campSpot = groupMap.getCampSpot();
+  const selectedRouteId = groupMap.getSelectedRouteId();
+  const selectedPoint = groupMap.getFocusedPoint();
+  const routeFocusRequest = groupMap.getRouteFocusRequest();
+  const initialized = groupMap.isInitialized();
+  // 고른 코스가 없거나 지워졌으면 첫 코스다(GRP-10 강조 규칙 — `GroupMap.getSelectedRouteId`).
+  const selectedRoute = groupMap.getSelectedRoute();
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+      mapReadyRef.current = false;
+    };
+  }, []);
+
+  const moveCamera = useCallback(
+    (latitude: number, longitude: number, zoom: number) => {
+      if (!mountedRef.current || !mapReadyRef.current || !mapRef.current) {
+        return;
+      }
+
+      mapRef.current.animateCameraTo({
+        latitude,
+        longitude,
+        zoom,
+        duration: 500,
+      });
+    },
+    []
+  );
+
+  const fitBounds = useCallback((bounds: RouteBounds) => {
+    if (!mountedRef.current || !mapReadyRef.current || !mapRef.current) {
+      return;
+    }
+
+    mapRef.current.animateRegionTo({
+      ...getRouteFitRegion(bounds),
+      duration: 500,
+    });
+  }, []);
+
+  /**
+   * 최초 카메라 (GRP-10): 코스·포인트를 모두 담는 상자 → 없으면 박지 위치 →
+   * 박지도 없으면 현재 위치 순으로 간다. 셋 다 없으면 남한 전역에 머문다.
+   */
+  const fitInitialCamera = useCallback(async () => {
+    if (
+      didFitRef.current ||
+      !mapReadyRef.current ||
+      !groupMap.isInitialized()
+    ) {
+      return;
+    }
+
+    const bounds = groupMap.getContentBounds();
+
+    if (bounds) {
+      didFitRef.current = true;
+      fitBounds(bounds);
+
+      return;
+    }
+
+    if (campSpot) {
+      didFitRef.current = true;
+      moveCamera(
+        campSpot.location.latitude,
+        campSpot.location.longitude,
+        deltaToZoom(0.05)
+      );
+
+      return;
+    }
+
+    try {
+      const { status } = await Location.getForegroundPermissionsAsync();
+
+      if (status !== 'granted') {
+        return;
+      }
+
+      const lastKnown = await Location.getLastKnownPositionAsync();
+
+      if (!lastKnown || !mountedRef.current || didFitRef.current) {
+        return;
+      }
+
+      didFitRef.current = true;
+      moveCamera(
+        lastKnown.coords.latitude,
+        lastKnown.coords.longitude,
+        deltaToZoom(0.2)
+      );
+    } catch (error) {
+      console.warn('[GroupMap] 초기 카메라 위치 조회 실패', error); // l10n-ignore: 개발자 로그
+    }
+  }, [campSpot, fitBounds, groupMap, moveCamera]);
+
+  /**
+   * 고른 코스로 카메라를 옮긴다 (GRP-8) — 코스 목록 시트의 행, 방금 올린 코스.
+   * 최초 맞춤과 달리 **고를 때마다** 옮긴다(같은 코스를 다시 골라도 `seq`가 올라간다).
+   * 지도가 준비되지 않았거나 코스가 아직 안 읽혔으면 요청을 남겨 두고 준비된 뒤 한 번 맞춘다.
+   * 조회가 끝났는데 그 코스가 없으면(지워진 코스) 요청을 버리고 최초 맞춤에 맡긴다.
+   * 요청을 처리해 카메라를 옮겼으면 `true`다.
+   */
+  const fitFocusedRoute = useCallback(() => {
+    const request = groupMap.getRouteFocusRequest();
+
+    if (
+      !request ||
+      request.seq === handledFocusSeqRef.current ||
+      !mapReadyRef.current ||
+      !groupMap.isInitialized()
+    ) {
+      return false;
+    }
+
+    handledFocusSeqRef.current = request.seq;
+
+    // 훑는 중에 바뀐 선택은 카메라를 옮기지 않는다 — 손가락 아래 그래프와 지도가 어긋난다.
+    // 선택이 바뀌면 그래프가 새로 마운트되어 이 훑기는 끝난다(남은 마커는 코스가 달라 저절로 걷힌다).
+    if (scrubbingRef.current) {
+      scrubbingRef.current = false;
+
+      return false;
+    }
+
+    const route = groupMap
+      .getRoutes()
+      .find(item => item.getId() === request.routeId);
+    const bounds = route?.getBounds() ?? null;
+
+    if (!bounds) {
+      return false;
+    }
+
+    // 명시적 선택이 카메라를 정했으므로 늦게 온 데이터가 최초 맞춤으로 되돌리지 않게 한다.
+    didFitRef.current = true;
+    fitBounds(bounds);
+
+    return true;
+  }, [fitBounds, groupMap]);
+
+  /**
+   * 초점을 준 포인트로 카메라를 옮긴다(GRP-9) — 마커 탭 등 `GroupMap.focusPoint`.
+   *
+   * 초점이 지도 준비보다 먼저 들어올 수 있으므로 **지도가 준비되기 전이거나 포인트를 아직
+   * 읽지 않았으면 기다린다**(`true`를 돌려 최초 맞춤이 먼저 카메라를 가져가지 못하게 한다).
+   * 예전에는 이 시점에 카메라 이동이 무시되면서도 '맞춤 완료' 표시만 켜져, 포인트로도 전체
+   * 상자로도 가지 않고 기본 위치에 머물렀다. 준비된 뒤 `syncCamera`가 다시 부르면 그때 옮긴다.
+   * 읽기가 끝났는데 포인트가 없으면(그새 지워짐) 포기하고 최초 맞춤에 넘긴다.
+   */
+  const fitFocusedPoint = useCallback(() => {
+    const pointId = groupMap.getFocusedPointId();
+
+    if (!pointId || handledPointIdRef.current === pointId) {
+      return false;
+    }
+
+    if (!pointList.isInitialized()) {
+      return true;
+    }
+
+    const point = pointList.getPointById(pointId);
+
+    if (!point) {
+      handledPointIdRef.current = pointId;
+
+      return false;
+    }
+
+    if (!mapReadyRef.current) {
+      return true;
+    }
+
+    handledPointIdRef.current = pointId;
+    // 초점을 준 포인트는 최초 맞춤이 덮어쓰지 않게 한다.
+    didFitRef.current = true;
+    moveCamera(point.getLatitude(), point.getLongitude(), deltaToZoom(0.02));
+
+    return true;
+  }, [groupMap, moveCamera, pointList]);
+
+  // 카메라 결정 순서: 초점 포인트 → 고른 코스 → 최초 맞춤(전체 상자).
+  // 앞의 것이 정했으면 뒤의 것이 되돌리지 않는다.
+  const syncCamera = useCallback(() => {
+    if (fitFocusedPoint()) {
+      return;
+    }
+
+    if (fitFocusedRoute()) {
+      return;
+    }
+
+    void fitInitialCamera();
+  }, [fitFocusedPoint, fitFocusedRoute, fitInitialCamera]);
+
+  /**
+   * 현재 위치 — 박지 지도·배낭 코스 지도와 같은 공용 훅(CS-1 규칙: 포커스 동안 구독 + 폴백 사슬).
+   * 지도 진입에서 권한을 새로 묻지 않는다(포인트 추가는 롱프레스로 가능하므로 권한이 없어도 화면이
+   * 동작해야 한다, GRP-9 엣지 케이스). 권한 여부는 버튼 노출과 내 위치 점 판단에 쓴다.
+   */
+  const moveToCoordinate = useCallback(
+    (coordinate: MapCoordinate) => {
+      moveCamera(coordinate.latitude, coordinate.longitude, deltaToZoom(0.05));
+    },
+    [moveCamera]
+  );
+  const {
+    granted: locationGranted,
+    currentLocation,
+    moveToCurrentLocation,
+  } = useMapCurrentLocation({
+    moveCamera: moveToCoordinate,
+    logTag: 'GroupMap',
+  });
+
+  // 데이터가 늦게 도착해도 한 번은 맞춘다. 코스를 고를 때마다(같은 코스를 다시 골라도) 그 코스로 옮긴다.
+  useEffect(() => {
+    syncCamera();
+  }, [syncCamera, initialized, routes, campSpot, routeFocusRequest]);
+
+  // 포인트 초점이 바뀌거나(마커 탭 포함) 포인트 읽기가 끝나면 카메라 결정을 다시 돈다(GRP-9).
+  const focusedPointId = groupMap.getFocusedPointId();
+  const pointCount = pointList.getCount();
+  const pointsInitialized = pointList.isInitialized();
+
+  useEffect(() => {
+    syncCamera();
+  }, [syncCamera, focusedPointId, pointCount, pointsInitialized]);
+
+  const handleMapInitialized = useCallback(() => {
+    mapReadyRef.current = true;
+
+    setViewport(prev =>
+      prev
+        ? prev
+        : {
+            latitude: KOREA_CAMERA.latitude,
+            longitude: KOREA_CAMERA.longitude,
+            zoom: KOREA_CAMERA.zoom ?? 0,
+          }
+    );
+
+    syncCamera();
+  }, [syncCamera]);
+
+  const handleCameraChanged = useCallback((camera: Camera) => {
+    if (!mountedRef.current) {
+      return;
+    }
+
+    const zoom = camera.zoom ?? 0;
+
+    zoomRef.current = zoom;
+    cameraRef.current = {
+      latitude: camera.latitude,
+      longitude: camera.longitude,
+    };
+
+    // 중심 0.05°·줌 0.25 단위 양자화 — 동일 값이면 마커 레이어가 리렌더되지 않는다.
+    const quantized = {
+      latitude: Math.round(camera.latitude / 0.05) * 0.05,
+      longitude: Math.round(camera.longitude / 0.05) * 0.05,
+      zoom: Math.round(zoom / 0.25) * 0.25,
+    };
+
+    setViewport(prev =>
+      prev &&
+      prev.latitude === quantized.latitude &&
+      prev.longitude === quantized.longitude &&
+      prev.zoom === quantized.zoom
+        ? prev
+        : quantized
+    );
+  }, []);
+
+  const handleLongPress = useCallback(
+    async (x: number, y: number) => {
+      const map = mapRef.current;
+
+      if (!map || !mapReadyRef.current) {
+        return;
+      }
+
+      try {
+        const coordinate = await map.screenToCoordinate({
+          screenX: x,
+          screenY: y,
+        });
+
+        if (!coordinate?.isValid || !mountedRef.current) {
+          return;
+        }
+
+        onRequestCreate({
+          latitude: coordinate.latitude,
+          longitude: coordinate.longitude,
+        });
+      } catch (error) {
+        console.warn('[GroupMap] 롱프레스 좌표 변환 실패', error); // l10n-ignore: 개발자 로그
+      }
+    },
+    [onRequestCreate]
+  );
+
+  /**
+   * 롱프레스는 좌표만 상태로 올리고, 지도 ref를 읽는 변환은 아래 이펙트가 맡는다 —
+   * 렌더 중 만들어지는 제스처 콜백이 ref를 직접 붙들지 않게 하려는 분리다.
+   * `seq`가 누를 때마다 올라가 같은 지점을 다시 눌러도 이펙트가 다시 돈다.
+   */
+  const longPressGesture = useMemo(
+    () =>
+      Gesture.LongPress()
+        // 조준 모드에서는 끈다 — 확정을 기다리는 중에 다른 좌표로 시트가 열리면 모드가 꼬인다.
+        .enabled(!isAiming)
+        .minDuration(450)
+        .maxDistance(24)
+        .runOnJS(true)
+        .onStart(event => {
+          setLongPressAt(previous => ({
+            x: event.x,
+            y: event.y,
+            seq: (previous?.seq ?? 0) + 1,
+          }));
+        }),
+    [isAiming]
+  );
+
+  useEffect(() => {
+    if (!longPressAt || handledLongPressRef.current === longPressAt.seq) {
+      return;
+    }
+
+    handledLongPressRef.current = longPressAt.seq;
+    void handleLongPress(longPressAt.x, longPressAt.y);
+  }, [handleLongPress, longPressAt]);
+
+  /**
+   * 롱프레스의 접근 가능한 대안 (GRP-9). 바로 시트를 열지 않고 **조준 모드**에 들어간다 —
+   * 시트가 먼저 뜨면 어느 지점이 잡혔는지 확인할 방법이 없다.
+   */
+  const handleStartAiming = useCallback(() => {
+    groupMap.focusPoint(null);
+    setIsAiming(true);
+  }, [groupMap]);
+
+  const handleCancelAiming = useCallback(() => {
+    setIsAiming(false);
+  }, []);
+
+  // 조준 마커는 화면 정중앙에 고정돼 있고, 그 자리가 곧 카메라 중심이다.
+  const handleConfirmAiming = useCallback(() => {
+    setIsAiming(false);
+    onRequestCreate({ ...cameraRef.current });
+  }, [onRequestCreate]);
+
+  /**
+   * 그래프 훑기 (GRP-8). **카메라는 건드리지 않는다** — 손가락 아래에서 지도가 움직이면
+   * 그래프의 x와 지도 위 지점이 매 프레임 어긋나 위치를 읽을 수 없다. 마커만 옮긴다.
+   */
+  const handleScrub = useCallback(
+    (sample: RouteElevationSample | null) => {
+      const routeId = groupMap.getSelectedRouteId() ?? '';
+
+      scrubbingRef.current = !!sample;
+
+      // 같은 표본이면 이전 객체를 그대로 돌려준다 — 한 번 훑는 동안 들어오는 수십 번의
+      // 이벤트가 그대로 렌더가 되면 지도 마커가 프레임마다 네이티브로 다시 동기화된다.
+      setScrub(previous => {
+        if (!sample) {
+          return null;
+        }
+
+        if (previous?.sample === sample && previous.routeId === routeId) {
+          return previous;
+        }
+
+        return { routeId, sample };
+      });
+    },
+    [groupMap]
+  );
+
+  const handleTapPoint = useCallback(
+    (point: GroupPoint) => {
+      groupMap.focusPoint(point.getId());
+      moveCamera(point.getLatitude(), point.getLongitude(), zoomRef.current);
+    },
+    [groupMap, moveCamera]
+  );
+
+  const handleTapMap = useCallback(() => {
+    groupMap.focusPoint(null);
+  }, [groupMap]);
+
+  const isFull = pointList.isFull();
+  const isRouteFull = routeList.isFull();
+  const canAddRoute = routeList.canAdd();
+  /**
+   * 코스 패널(머리 줄 + 고도 그래프)은 코스가 있으면 선다 — 고도 없는 코스도 머리 줄은 있다(GRP-10).
+   * 조준 모드에서는 접는다: 지도를 넓히고, 확정 버튼 말고 누를 것을 두지 않는다(GRP-9).
+   */
+  const showRoutePanel = !!selectedRoute && !isAiming;
+
+  // `코스 추가` 라벨 — 업로드 중엔 `올리는 중`, 상한이면 막힌 이유를 라벨 자리에 적는다(포인트와 같은 문법).
+  const getAddRouteLabelKey = () => {
+    if (isUploadingRoute) {
+      return 'group.route.uploading';
+    }
+
+    if (isRouteFull) {
+      return 'group.map.routeFull';
+    }
+
+    return 'group.route.add';
+  };
+
+  const showProfile = showRoutePanel && !!selectedRoute?.getElevationProfile();
+  // 패널이 화면 아래를 차지하면 세이프에어리어는 패널이 비운다 — 오버레이는 지도 안에 남는다.
+  const overlayBottomInset = showRoutePanel ? 0 : insets.bottom;
+  // 그래프가 걷힌 뒤(조준 모드·코스 교체)에는 남은 표본을 그리지 않는다.
+  const scrubSample =
+    showProfile && scrub?.routeId === (selectedRouteId ?? '')
+      ? scrub.sample
+      : null;
+
+  return (
+    <GestureHandlerRootView style={styles.root}>
+      <View style={styles.mapSection}>
+        <GestureDetector gesture={longPressGesture}>
+          <View style={styles.mapArea}>
+            <NaverMapView
+              ref={mapRef}
+              style={StyleSheet.absoluteFill}
+              initialCamera={KOREA_CAMERA}
+              isShowLocationButton={false}
+              isShowZoomControls={false}
+              isShowScaleBar={false}
+              onInitialized={handleMapInitialized}
+              onTapMap={handleTapMap}
+              onCameraChanged={handleCameraChanged}
+            >
+              {/* 코스 폴리라인 — 선택한 코스를 굵게, 나머지를 옅게(GRP-10).
+                배낭 코스 화면(BD-11)과 같은 선을 쓴다. */}
+              <RoutePathOverlayView
+                routes={routes}
+                selectedRouteId={selectedRouteId}
+              />
+
+              {/* 연결된 박지 마커 — 앱 공통 핀(끝점이 좌표에 닿는다). */}
+              {campSpot ? (
+                <NaverMapMarkerOverlay
+                  latitude={campSpot.location.latitude}
+                  longitude={campSpot.location.longitude}
+                  anchor={{ x: 0.5, y: 1 }}
+                  width={SPOT_PIN_WIDTH}
+                  height={SPOT_PIN_HEIGHT}
+                  caption={{
+                    text: campSpot.name,
+                    align: 'Top',
+                    textSize: 12,
+                    color: Acg.ink,
+                    haloColor: Acg.paper,
+                    offset: 4,
+                  }}
+                  isHideCollidedSymbols
+                >
+                  <View
+                    key={campSpot.id}
+                    collapsable={false}
+                    style={styles.spotPin}
+                  >
+                    <SpotPinView width={SPOT_PIN_WIDTH} />
+                  </View>
+                </NaverMapMarkerOverlay>
+              ) : null}
+
+              {/* 선택한 코스의 시작·끝 — 옅게 그린 코스엔 달지 않는다(지도가 마커로 덮이지 않게). */}
+              <RouteEndpointMarkersView route={selectedRoute} />
+
+              <GroupMapMarkersView
+                pointList={pointList}
+                viewport={viewport}
+                selectedPointId={groupMap.getFocusedPointId()}
+                onTapPoint={handleTapPoint}
+              />
+
+              {/* 내 위치 점 — 권한이 있을 때만(CS-1과 같은 지오 앵커 마커). */}
+              {currentLocation ? (
+                <MapMyLocationMarkerView
+                  latitude={currentLocation.latitude}
+                  longitude={currentLocation.longitude}
+                />
+              ) : null}
+
+              {/* 고도 그래프를 훑는 동안만 뜨는 위치 마커(GRP-8). */}
+              {scrubSample ? (
+                <RouteScrubMarkerView
+                  latitude={scrubSample.latitude}
+                  longitude={scrubSample.longitude}
+                />
+              ) : null}
+            </NaverMapView>
+          </View>
+        </GestureDetector>
+
+        {/* 조준 마커는 지도 좌표가 아니라 화면에 고정된다(GRP-9). */}
+        {isAiming ? <GroupMapAimMarkerView /> : null}
+
+        {/* 상단 오버레이 — 유형 필터 칩(GRP-10). 조준 모드에서는 걷는다. */}
+        {isAiming ? null : (
+          <View
+            style={[styles.topOverlay, { top: topInset }]}
+            pointerEvents='box-none'
+          >
+            <GroupPointFilterChipsView pointList={pointList} onMap />
+          </View>
+        )}
+
+        {/* 우측 지도 컨트롤 — 현재 위치. 권한이 있을 때만 노출한다(GRP-9 엣지 케이스).
+          조준 모드에서도 남긴다 — 내 자리로 지도를 옮겨 그 부근을 겨누는 것이 흔한 경로다.
+          방향 뒤집기는 코스 목록 시트의 행 `⋯`에 있다(GRP-10) — 같은 일을 두 곳에 두지 않는다. */}
+        {locationGranted ? (
+          <View
+            style={[styles.controlStack, { bottom: overlayBottomInset + 120 }]}
+            pointerEvents='box-none'
+          >
+            <MapControlButtonView
+              icon='locate'
+              accessibilityLabel={l10n.t('group.map.currentLocation')}
+              onPress={() => void moveToCurrentLocation()}
+            />
+          </View>
+        ) : null}
+
+        <View
+          style={[
+            styles.bottomOverlay,
+            { paddingBottom: overlayBottomInset + 16 },
+          ]}
+          pointerEvents='box-none'
+        >
+          {/* 조준 모드에서는 정보 카드·추가 버튼 둘을 걷어 조준을 가리지 않는다(GRP-9 · GRP-10). */}
+          {isAiming ? (
+            <>
+              <View style={styles.aimHint}>
+                <PretendardText style={styles.aimHintLabel} numberOfLines={2}>
+                  {l10n.t('group.map.aimHint')}
+                </PretendardText>
+              </View>
+              <View style={styles.aimActions}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={handleCancelAiming}
+                  activeOpacity={0.8}
+                  accessibilityRole='button'
+                  accessibilityLabel={l10n.t('common.cancel')}
+                >
+                  <PretendardText style={styles.cancelLabel}>
+                    {l10n.t('common.cancel')}
+                  </PretendardText>
+                </TouchableOpacity>
+                {/* 조준 모드의 주 액션 하나 — 라임은 여기에만 쓴다(HM-8). */}
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={handleConfirmAiming}
+                  disabled={pointList.isSubmitting()}
+                  activeOpacity={0.8}
+                  accessibilityRole='button'
+                  accessibilityLabel={l10n.t('group.map.aimConfirm')}
+                >
+                  <Ionicons name='checkmark' size={20} color={Acg.ink} />
+                  <PretendardText weight='semibold' style={styles.addLabel}>
+                    {l10n.t('group.map.aimConfirm')}
+                  </PretendardText>
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <>
+              {selectedPoint ? (
+                <GroupPointCalloutView
+                  point={selectedPoint}
+                  memberIds={groupMap.getMemberIds()}
+                  canEdit={groupMap.canEditPoint(selectedPoint)}
+                  disabled={pointList.isSubmitting()}
+                  onEdit={() => onRequestEdit(selectedPoint)}
+                  onDelete={() => onRequestDelete(selectedPoint)}
+                  onClose={handleTapMap}
+                />
+              ) : null}
+
+              {/* 추가 버튼 두 개(GRP-10) — 나란히, 같은 높이. 라임은 `포인트 추가` 하나다(HM-8). */}
+              <View style={styles.addActions}>
+                {canAddRoute ? (
+                  <TouchableOpacity
+                    style={[
+                      styles.secondaryButton,
+                      isRouteFull && styles.addButtonDisabled,
+                    ]}
+                    onPress={onAddRoute}
+                    disabled={
+                      isRouteFull || isAddingRoute || routeList.isSubmitting()
+                    }
+                    activeOpacity={0.8}
+                    accessibilityRole='button'
+                    accessibilityLabel={l10n.t(
+                      isRouteFull ? 'group.map.routeFull' : 'group.route.add'
+                    )}
+                    // 상한이면 막힌 이유를 함께 읽는다 — 눌리지 않는 버튼만 두면 왜 안 되는지 모른다(HIG).
+                    {...(isRouteFull
+                      ? {
+                          accessibilityHint: getGroupValidationMessage(
+                            GroupValidationError.RouteLimitExceeded
+                          ),
+                        }
+                      : {})}
+                    accessibilityState={{
+                      disabled: isRouteFull || isAddingRoute,
+                      busy: isUploadingRoute,
+                    }}
+                  >
+                    {isUploadingRoute ? (
+                      <ActivityIndicator size='small' color={Acg.ink} />
+                    ) : (
+                      <Ionicons name='add' size={20} color={Acg.ink} />
+                    )}
+                    <PretendardText weight='semibold' style={styles.addLabel}>
+                      {l10n.t(getAddRouteLabelKey())}
+                    </PretendardText>
+                  </TouchableOpacity>
+                ) : null}
+                <TouchableOpacity
+                  style={[styles.addButton, isFull && styles.addButtonDisabled]}
+                  onPress={handleStartAiming}
+                  disabled={isFull || pointList.isSubmitting()}
+                  activeOpacity={0.8}
+                  accessibilityRole='button'
+                  accessibilityLabel={l10n.t('group.map.addPoint')}
+                  accessibilityHint={l10n.t('group.map.addPointHint')}
+                  accessibilityState={{ disabled: isFull }}
+                >
+                  <Ionicons name='add' size={20} color={Acg.ink} />
+                  <PretendardText weight='semibold' style={styles.addLabel}>
+                    {l10n.t(
+                      isFull ? 'group.map.pointFull' : 'group.map.addPoint'
+                    )}
+                  </PretendardText>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+        </View>
+      </View>
+
+      {/* 코스 패널(머리 줄 + 고도 그래프)은 지도 **아래**다 — 지도를 가리면 훑는 동안 위치를 못 본다(GRP-8). */}
+      {showRoutePanel && selectedRoute ? (
+        <GroupMapRoutePanelView
+          route={selectedRoute}
+          onOpenList={onOpenRouteList}
+          onScrub={handleScrub}
+          bottomInset={insets.bottom}
+        />
+      ) : null}
+    </GestureHandlerRootView>
+  );
+};
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: Acg.bg,
+  },
+  // 지도와 그 위 오버레이가 사는 칸. 고도 그래프는 이 칸 **밖**(아래)에 붙는다(GRP-8).
+  mapSection: {
+    flex: 1,
+  },
+  mapArea: {
+    flex: 1,
+  },
+  spotPin: {
+    width: SPOT_PIN_WIDTH,
+    height: SPOT_PIN_HEIGHT,
+  },
+  topOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    paddingHorizontal: AcgLayout.screenPadding,
+  },
+  // 지도 위 원형 컨트롤 세로 스택(우측 16 — 배낭 코스 지도와 같은 자리 규칙).
+  controlStack: {
+    position: 'absolute',
+    right: 16,
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  bottomOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: AcgLayout.screenPadding,
+    gap: 12,
+  },
+  addActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  addButton: {
+    alignSelf: 'center',
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: Radius.pill,
+    backgroundColor: Acg.lime,
+    boxShadow: AcgShadow.card,
+  },
+  addButtonDisabled: {
+    opacity: 0.5,
+  },
+  // `코스 추가` — 흰 보조 알약. 라임 주 액션과 같은 높이·모양이고 면 색만 갈린다(GRP-10).
+  secondaryButton: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: Radius.pill,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.card,
+  },
+  addLabel: {
+    ...AcgType.control,
+    color: Acg.ink,
+  },
+  aimActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  // 안내는 지도 위에 뜨므로 불투명 알약에 담는다 — 지형 위 맨 글자는 읽히지 않는다.
+  aimHint: {
+    alignSelf: 'center',
+    maxWidth: '100%',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: Radius.pill,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.chip,
+  },
+  aimHintLabel: {
+    ...AcgType.meta,
+    color: Acg.textSecondary,
+    textAlign: 'center',
+  },
+  // 취소는 액션이 아니라 되돌리기다 — 면을 채우지 않고 주 액션과 무게를 갈라 둔다.
+  cancelButton: {
+    minHeight: 48,
+    minWidth: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: Radius.pill,
+    backgroundColor: Acg.paper,
+    borderWidth: 1,
+    borderColor: Acg.hairline,
+    boxShadow: AcgShadow.card,
+  },
+  cancelLabel: {
+    ...AcgType.control,
+    color: Acg.ink,
+  },
+});
+
+export default observer(GroupMapCanvasView);

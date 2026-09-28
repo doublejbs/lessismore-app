@@ -3,5 +3,6 @@
   "NSPhotoLibraryAddUsageDescription": "This app accesses your photo library to save shared images.",
   "NSCameraUsageDescription": "This app uses the camera to take photos of your gear.",
   "NSLocationWhenInUseUsageDescription": "Your location is used to load the current position of your trip destination.",
-  "NSHealthShareUsageDescription": "Reads workouts recorded during your trip (distance, elevation, route) to show them in your backpack. Data stays on your device and is never sent to our servers."
+  "NSHealthShareUsageDescription": "Reads workouts recorded during your trip (distance, elevation, route) to show them in your backpack. Data stays on your device and is never sent to our servers.",
+  "NSUserTrackingUsageDescription": "Used to show you outdoor ads you might be interested in. You can keep using the app as usual even if you don't allow it."
 }

@@ -1,0 +1,48 @@
+rules_version = '2';
+
+// 배낭 코스(GPX) 원본 Storage 보안 규칙 (DM-9, DM-30, BD-11).
+//
+// 경로: bags/{bagId}/routes/{routeId}.gpx
+//
+// 그룹 코스(/groups/**)는 그룹원이 읽지만 배낭 코스는 **소유자 한 사람만** 읽는다.
+// Storage 규칙에서 Firestore 를 교차 조회할 수 있으므로 판정 소스를 Firestore 와 똑같이
+// `bag/{bagId}.userId` 하나로 유지한다(DM-30).
+//
+// 이 파일은 배낭 경로 전용이다. 배포는 docs/firebase/deployed/storage.rules 병합본으로만
+// 하며, 병합 시 기존 `/{allPaths=**}` 개방 절에서 `bags/` 접두를 제외해야 한다
+// (docs/firebase/README.md "배낭 규칙 병합 시 주의" 참고).
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    match /bags/{bagId}/routes/{fileName} {
+      function isBagOwner() {
+        return request.auth != null
+          && request.auth.uid ==
+            firestore.get(/databases/(default)/documents/bag/$(bagId)).data.userId;
+      }
+
+      function isGpxFile() {
+        return fileName.matches('^[A-Za-z0-9_-]+\\.gpx$');
+      }
+
+      // `read` 는 get 과 list 를 함께 여는 이름이므로 쓰지 않는다. 단건 다운로드만 연다.
+      allow get: if isBagOwner() && isGpxFile();
+
+      // 5MB 상한(DM-30). 삭제 요청에는 request.resource 가 없으므로 별도 규칙으로 나눈다.
+      allow create, update: if isBagOwner()
+        && isGpxFile()
+        && request.resource.size > 0
+        && request.resource.size <= 5 * 1024 * 1024;
+
+      // 코스를 지우면 Firestore 문서와 Storage 파일을 함께 지운다(BD-11).
+      allow delete: if isBagOwner() && isGpxFile();
+    }
+
+    // 경로 목록 조회는 어떤 경우에도 허용하지 않는다 — 배낭의 코스 목록은
+    // Firestore `bag/{bagId}/routes` 로만 읽는다.
+    match /bags/{allPaths=**} {
+      allow list: if false;
+    }
+  }
+}

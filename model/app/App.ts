@@ -1,6 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 import Firebase from '../firebase/Firebase';
 import GearStore from '../store/GearStore';
+import BagRouteStore from '../store/BagRouteStore';
 import BagStore from '../store/BagStore';
 import SearchStore from '../search/SearchStore';
 import AlertManager from '../alert/AlertManager';
@@ -19,12 +20,27 @@ import GearPreviewStore from '../gear-preview/GearPreviewStore';
 import BagTemplateStore from '../store/BagTemplateStore';
 import FeedContentStore from '../store/FeedContentStore';
 import CommunityStore from '../store/CommunityStore';
+import GroupStore from '../store/GroupStore';
 import L10n from '../l10n/L10n';
 import CommunitySearchStore from '../search/CommunitySearchStore';
+import RouteDirectionStore from '../route/RouteDirectionStore';
+import AdService from '../ads/AdService';
+import SubscriptionStore from '../subscription/SubscriptionStore';
+import SubscriptionNudge from '../subscription/SubscriptionNudge';
+import SubscriptionEntryPoint from '../subscription/SubscriptionEntryPoint';
+import { openSubscription } from '../subscription/OpenSubscription';
 
 class App {
   private readonly firebase = new Firebase();
   private readonly l10n = new L10n();
+  // SUB-3·SUB-4: 광고 제거 구독 상태. SDK 설정은 Firebase 초기화 뒤(로그인 uid를 알고 나서) 한다.
+  // 광고 서비스가 이 상태를 보고 구독자에게는 광고·동의 흐름을 시작하지 않는다.
+  private readonly subscriptionStore = SubscriptionStore.new(this.firebase);
+  // AD-3·AD-5: 광고 동의·요청. 생성만 해 두고 동의 흐름은 광고 자리(홈 제외)에 처음 포커스될 때 흐른다.
+  // 웹은 Metro가 `AdService.web.ts`(광고 SDK 없음)를 고른다(AD-4).
+  private readonly adService = AdService.new(status => {
+    this.analyticsManager?.logClick('ad_consent', { status });
+  }, this.subscriptionStore);
   private gearStore: GearStore | null = null;
   private bagStore: BagStore | null = null;
   private bagTemplateStore: BagTemplateStore | null = null;
@@ -43,7 +59,12 @@ class App {
   private forceUpdateManager: ForceUpdateManager | null = null;
   private featurePopupManager: FeaturePopupManager | null = null;
   private communityStore: CommunityStore | null = null;
+  private groupStore: GroupStore | null = null;
+  // 배낭 코스(BD-11). 배낭 문서와 접근 범위가 달라 BagStore와 따로 둔다 — BagRouteStore 주석 참고.
+  private bagRouteStore: BagRouteStore | null = null;
   private communitySearchStore: CommunitySearchStore | null = null;
+  // SUB-9: 광고 누적 노출 뒤 한 번 뜨는 구독 안내 시트. 분석 매니저가 생긴 뒤 만든다.
+  private subscriptionNudge: SubscriptionNudge | null = null;
 
   private gearPreviewStore: GearPreviewStore | null = null;
   private initialized = false;
@@ -64,8 +85,12 @@ class App {
 
     await this.l10n.initialize();
     await this.firebase.initialize();
+    // 구독 상태 확인은 앱 시작을 막지 않는다 — 광고 쪽이 `waitUntilResolved`로 짧게 기다린다(SUB-4).
+    void this.subscriptionStore.initialize();
+    const bagStore = new BagStore(this.firebase);
+
     this.gearStore = new GearStore(this.firebase);
-    this.setBagStore(new BagStore(this.firebase));
+    this.setBagStore(bagStore);
     this.bagTemplateStore = new BagTemplateStore(this.firebase, this.gearStore);
     this.searchStore = new SearchStore(this.firebase);
     this.communitySearchStore = new CommunitySearchStore();
@@ -74,6 +99,18 @@ class App {
     this.logInAlertManager = LogInAlertManager.new(this.firebase);
     this.replyStore = new ReplyStore(this.firebase);
     this.communityStore = new CommunityStore(this.firebase);
+    // 코스 뒤집기(GRP-8·BD-11) — 서버가 아니라 기기에 저장하는 보기 설정. 그룹·배낭 코스가
+    // 함께 쓰므로 두 스토어에 같은 인스턴스를 넘긴다(코스 모델이 만들어질 때 주입된다).
+    const routeDirectionStore = RouteDirectionStore.new();
+
+    // 기기 저장소 복원은 화면을 막지 않는다 — 복원 전에 그려진 코스도 observable이라 곧 따라간다.
+    void routeDirectionStore.initialize();
+    this.groupStore = new GroupStore(
+      this.firebase,
+      bagStore,
+      routeDirectionStore
+    );
+    this.bagRouteStore = new BagRouteStore(this.firebase, routeDirectionStore);
     this.campSpotStore = new CampSpotStore(this.firebase);
     this.feedContentStore = new FeedContentStore(
       this.firebase,
@@ -94,12 +131,34 @@ class App {
     // config/featurePopup 실시간 구독을 시작한다(닫음 목록 로드 후 구독, 웹 포함). 실패는 조용히 통과(FP-2).
     void this.featurePopupManager.initialize();
     this.gearPreviewStore = GearPreviewStore.new(this.gearStore);
+    this.subscriptionNudge = SubscriptionNudge.new(
+      this.subscriptionStore,
+      this.adService,
+      () => {
+        openSubscription(SubscriptionEntryPoint.Nudge);
+      },
+      action => {
+        this.analyticsManager?.logClick('subscription_nudge', { action });
+      }
+    );
     this.setInitialized(true);
     this.initializing = false;
   }
 
   public getFirebase() {
     return this.firebase;
+  }
+
+  public getAdService() {
+    return this.adService;
+  }
+
+  public getSubscriptionStore() {
+    return this.subscriptionStore;
+  }
+
+  public getSubscriptionNudge() {
+    return this.subscriptionNudge;
   }
 
   public getL10n() {
@@ -132,6 +191,14 @@ class App {
 
   public getCommunityStore() {
     return this.communityStore;
+  }
+
+  public getGroupStore() {
+    return this.groupStore;
+  }
+
+  public getBagRouteStore() {
+    return this.bagRouteStore;
   }
 
   public getCommunitySearchStore() {

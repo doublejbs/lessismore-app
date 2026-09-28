@@ -12,11 +12,19 @@ import BagDetailFilterManager from '@/model/bag-detail/BagDetailFilterManager';
 import PackingButtonState from '@/model/bag-detail/PackingButtonState';
 import { ImperativeRouter } from 'expo-router';
 import BagWeather from '@/model/bag/BagWeather';
+import { getPhaseLabel } from '@/model/bag/TripPhaseHelper';
 import { BagActivitySummary } from '@/model/bag/BagActivitySummary';
 import { setBagInfoEditContext } from '@/model/bag-detail/BagInfoEditHandoff';
 import { getBagShareUrl } from '@/constants/WebLinks';
+import Group from '@/model/group/Group';
+import GroupBagLinkFlow from '@/model/group-bag-link/GroupBagLinkFlow';
+import {
+  BagScheduleChange,
+  BagScheduleWriter,
+} from '@/model/group-bag-link/GroupBagLinkTypes';
+import { getGroupErrorMessage } from '@/model/group-error/GroupErrorMessage';
 
-class BagDetail {
+class BagDetail implements BagScheduleWriter {
   public static readonly ORDER_KEY = 'bag';
 
   public static from(router: ImperativeRouter, id: string) {
@@ -27,7 +35,8 @@ class BagDetail {
       app.getGearStore()!,
       BagDetailFilterManager.from(),
       Order.new(BagDetail.ORDER_KEY),
-      app.getFirebase()
+      app.getFirebase(),
+      GroupBagLinkFlow.new()
     );
   }
 
@@ -48,6 +57,9 @@ class BagDetail {
   private memo: string = '';
   // 배낭에 연결된 운동 기록 요약(DM-22). 타일 부제 표시용이며 원본은 담지 않는다(HA-5).
   private activity: BagActivitySummary | null = null;
+  // 코스 타일 부제용 요약(BD-10·BD-11). 개수와 총 거리만 쓴다.
+  private routeCount = 0;
+  private routeDistance = 0;
   private readonly bagWeather: BagWeather;
   private categoryRefs: Map<string, any> = new Map();
   private scrollViewRef: any = null;
@@ -60,6 +72,10 @@ class BagDetail {
   private packedCount = 0;
   private packingCompleted = false;
   private packingStarted = false;
+  // 헤더 그룹 한 줄(BD-1). 이 배낭이 연결된 그룹 — 여럿이면(2026-09-23 이전 연결) 출발일이 가장 가까운 하나.
+  private linkedGroup: Group | null = null;
+  // `⋯` → 그룹에 연결 시트의 목록(진행 중·예정 그룹).
+  private linkableGroups: Group[] = [];
 
   private constructor(
     private readonly router: ImperativeRouter,
@@ -68,7 +84,8 @@ class BagDetail {
     private readonly gearStore: GearStore,
     private readonly filterManager: BagDetailFilterManager,
     private readonly order: Order,
-    private readonly firebase: Firebase
+    private readonly firebase: Firebase,
+    private readonly linkFlow: GroupBagLinkFlow
   ) {
     this.bagWeather = BagWeather.of(id, bagStore);
     makeAutoObservable(this);
@@ -84,6 +101,15 @@ class BagDetail {
 
   public getActivity() {
     return this.activity;
+  }
+
+  public getRouteCount() {
+    return this.routeCount;
+  }
+
+  // 배낭에 담긴 코스의 총 거리(m).
+  public getRouteDistance() {
+    return this.routeDistance;
   }
 
   public async initialize() {
@@ -128,6 +154,182 @@ class BagDetail {
       this.endDate
     );
     void this.bagWeather.ensureFresh();
+    // 코스는 타일 부제에만 쓰는 부가 정보라 초기화를 막지 않는다(BD-11).
+    void this.loadRoutes();
+    // 그룹 한 줄도 부가 정보다. 화면에 돌아올 때마다(initialize) 다시 읽어 그룹에서 바꾼 연결을 반영한다.
+    void this.loadLinkedGroup();
+  }
+
+  /**
+   * 헤더 그룹 한 줄 (BD-1). 역인덱스(`users/{uid}/groups`)를 `bagId`로 찾는다 — 그룹 문서를 읽지 않는다.
+   * 실패하면 줄을 그리지 않는다(혼자 가는 배낭의 헤더와 같다).
+   */
+  public async loadLinkedGroup(): Promise<void> {
+    if (!this.firebase.isLoggedIn()) {
+      this.setLinkedGroup(null);
+
+      return;
+    }
+
+    try {
+      const groups = (await app.getGroupStore()?.getGroupsByBag(this.id)) ?? [];
+
+      this.setLinkedGroup(this.pickNearestGroup(groups));
+    } catch (error) {
+      console.warn('[BagDetail] 연결 그룹 조회 실패', error); // l10n-ignore: 개발자 로그
+    }
+  }
+
+  // 출발일이 오늘과 가장 가까운 그룹(GRP-5 — 한 배낭 = 한 그룹 결정 이전의 다중 연결).
+  private pickNearestGroup(groups: Group[]): Group | null {
+    const today = dayjs().startOf('day');
+    const distance = (group: Group) =>
+      Math.abs(dayjs(group.getStartDate()).startOf('day').diff(today, 'day'));
+
+    return (
+      [...groups].sort((a, b) => {
+        const diff = distance(a) - distance(b);
+
+        if (diff !== 0) {
+          return diff;
+        }
+
+        return a.getStartDate().localeCompare(b.getStartDate());
+      })[0] ?? null
+    );
+  }
+
+  private setLinkedGroup(value: Group | null) {
+    this.linkedGroup = value;
+  }
+
+  public getLinkedGroup() {
+    return this.linkedGroup;
+  }
+
+  public goToLinkedGroup() {
+    const group = this.linkedGroup;
+
+    if (!group) {
+      return;
+    }
+
+    this.router.push({ pathname: '/group/[id]', params: { id: group.getId() } });
+  }
+
+  /**
+   * `⋯` → 그룹에 연결 시트 목록 (BD-1). 진행 중·예정 그룹만 — 지난 그룹은 뺀다.
+   * 성공하면 true(목록이 비어도 true — 시트가 `참여한 그룹이 없어요`를 보여준다).
+   */
+  public async loadLinkableGroups(): Promise<boolean> {
+    try {
+      const groups = (await app.getGroupStore()?.getMyGroups()) ?? [];
+
+      this.setLinkableGroups(groups.filter(group => !group.isPast()));
+
+      return true;
+    } catch (error) {
+      app.getToastManager()?.showSimple(getGroupErrorMessage(error));
+
+      return false;
+    }
+  }
+
+  private setLinkableGroups(value: Group[]) {
+    this.linkableGroups = value;
+  }
+
+  public getLinkableGroups() {
+    return this.linkableGroups;
+  }
+
+  // 배낭 쪽에서 그룹에 연결 (BD-1). 한 그룹 제약·일정 맞춤 확인은 그룹 상세와 같은 흐름을 거친다(GRP-5).
+  public async linkToGroup(group: Group): Promise<void> {
+    await this.linkFlow.start({
+      group,
+      subject: {
+        bagId: this.id,
+        startDate: this.startDate,
+        endDate: this.endDate,
+        location: this.bagWeather.getLocation(),
+      },
+      writer: this,
+      confirmReplace: true,
+      onLinked: () => {
+        app.getAnalyticsManager()?.logClick('bag_group_link');
+      },
+      onChanged: () => this.loadLinkedGroup(),
+    });
+  }
+
+  // 그룹 연결 해제 (BD-1). 스냅샷이 사라지는 동작이라 destructive 확인을 거친다.
+  public confirmUnlinkGroup() {
+    const group = this.linkedGroup;
+
+    if (!group) {
+      return;
+    }
+
+    const l10n = app.getL10n();
+
+    app.getAlertManager()?.show({
+      message: l10n.t('bag.group.unlinkConfirm', { name: group.getName() }),
+      confirmText: l10n.t('bag.group.unlink'),
+      cancelText: l10n.t('common.cancel'),
+      destructive: true,
+      onConfirm: async () => {
+        await this.unlinkGroup(group);
+      },
+    });
+  }
+
+  private async unlinkGroup(group: Group) {
+    try {
+      await app.getGroupStore()!.unlinkBag(group.getId());
+      app.getAnalyticsManager()?.logClick('bag_group_unlink');
+    } catch (error) {
+      app.getToastManager()?.showSimple(getGroupErrorMessage(error));
+    }
+
+    await this.loadLinkedGroup();
+  }
+
+  /**
+   * 그룹 일정으로 맞추기 (GRP-5). 새 쓰기 경로를 만들지 않는다 — 기간은 배낭 정보 수정의
+   * `updateDates`(상태·날씨 기간까지 함께 맞춘다), 여행지는 여행지 허브와 같은 `BagWeather.updateLocation`(DST-6).
+   * 기간을 먼저 써서 여행지 날씨가 바뀐 기간으로 조회되게 한다.
+   */
+  public async applySchedule(change: BagScheduleChange): Promise<void> {
+    if (change.dates) {
+      await this.updateDates(change.dates.startDate, change.dates.endDate);
+    }
+
+    if (change.location) {
+      await this.bagWeather.updateLocation(change.location);
+    }
+  }
+
+  /**
+   * 코스 요약 조회 (BD-11). 개수와 총 거리만 필요하지만 Firestore에 부분 조회가 없어
+   * 문서를 그대로 읽는다 — 배낭당 5개 상한이라 읽는 양이 정해져 있고, 화면을 막지 않도록
+   * 기다리지 않고 배경으로 돌린다. 실패해도 타일은 `GPX 추가`로 남는다.
+   */
+  private async loadRoutes() {
+    try {
+      const routes = await app.getBagRouteStore()!.getRoutes(this.id);
+
+      this.setRouteSummary(
+        routes.length,
+        routes.reduce((sum, route) => sum + route.getDistance(), 0)
+      );
+    } catch (error) {
+      console.warn('[BagDetail] 코스 요약 조회 실패', error); // l10n-ignore: 개발자 로그
+    }
+  }
+
+  private setRouteSummary(count: number, distance: number) {
+    this.routeCount = count;
+    this.routeDistance = distance;
   }
 
   private async loadPackingState() {
@@ -254,20 +456,9 @@ class BagDetail {
     return 'ongoing';
   }
 
-  // 날짜 부제에 붙일 상황 라벨(D-day / 여행 중 / 지난 여행).
+  // 날짜 부제에 붙일 상황 라벨(D-day / 여행 중 / 지난 여행). 그룹 상세 헤더(GRP-11)와 같은 단일 소스다.
   public getPhaseLabel(): string {
-    const today = dayjs().startOf('day');
-    const phase = this.getTripPhase();
-    if (phase === 'before') {
-      const d = this.startDate.startOf('day').diff(today, 'day');
-      return d === 0
-        ? app.getL10n().t('bagDetail.todayDeparture')
-        : app.getL10n().t('bagDetail.dDay', { count: d });
-    }
-    if (phase === 'ongoing') {
-      return app.getL10n().t('bagDetail.ongoing');
-    }
-    return app.getL10n().t('bagDetail.pastTrip');
+    return getPhaseLabel(this.startDate, this.endDate);
   }
 
   private setGears(value: Gear[]) {
@@ -694,6 +885,9 @@ class BagDetail {
             endDate.toISOString()
           );
         }
+
+        // 이 배낭을 연결한 그룹의 공개 스냅샷을 다시 쓴다 (GRP-5 갱신 시점 ② 배낭 정보 수정).
+        app.getGroupStore()?.syncBagSnapshotsInBackground(this.id);
       },
     });
 

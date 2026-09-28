@@ -7,7 +7,7 @@ import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import type BagItem from '@/model/bag/BagItem';
 import CommunityWrite from '@/model/community-write/CommunityWrite';
 import app from '@/model/app/App';
-import { formatCommunityWeight } from '@/model/community/CommunityFormat';
+import { formatBagSnapshotWeightInKilograms } from '@/model/bag-snapshot/BagSnapshotFormat';
 
 interface Props {
   write: CommunityWrite;
@@ -76,13 +76,13 @@ const CommunityWriteBagSelectView = ({
     ? l10n.t('community.write.bag.selected', {
         name: selectedBag.getName(),
         date: selectedBag.getDate(),
-        weight: formatCommunityWeight(selectedBag.getWeightGram()),
+        weight: formatBagSnapshotWeightInKilograms(selectedBag.getWeightGram()),
       })
     : snapshot
       ? l10n.t('community.write.bag.selected', {
           name: snapshot.name,
           date: snapshotDate,
-          weight: formatCommunityWeight(snapshot.totalWeight),
+          weight: formatBagSnapshotWeightInKilograms(snapshot.totalWeight),
         })
       : '';
 
@@ -155,7 +155,7 @@ const CommunityWriteBagSelectView = ({
           )}
           <PretendardText style={styles.previewText}>
             {l10n.t('community.write.bag.previewWeight', {
-              weight: formatCommunityWeight(snapshot.totalWeight),
+              weight: formatBagSnapshotWeightInKilograms(snapshot.totalWeight),
             })}
           </PretendardText>
           <PretendardText style={styles.previewText}>

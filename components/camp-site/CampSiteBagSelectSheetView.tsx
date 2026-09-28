@@ -32,6 +32,11 @@ interface Props {
   subtitleOverride?: string;
   // 있으면 배낭이 없을 때 표시할 문구를 이 값으로 대체한다.
   emptyText?: string;
+  // 있으면 기간 메타 줄 뒤에 ` · `로 붙일 조각을 돌려준다(그룹 연결 GRP-5 `{그룹 이름}에 연결됨`).
+  getBagNote?: (bag: BagItem) => string | null;
+  // iOS pageSheet가 **완전히 내려간 뒤** 불린다. 시트를 닫고 곧바로 알럿을 띄우면 내려가는 시트와
+  // 겹쳐 알럿이 뜨지 않으므로, 선택 뒤 알럿이 이어지는 화면(그룹 상세)이 여기서 이어 간다.
+  onDismissed?: () => void;
 }
 
 // CS-5: 박지를 여행지로 설정할 배낭을 고르는 시트. iOS 네이티브 pageSheet 프레젠테이션.
@@ -45,6 +50,8 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
   hideCreateNew = false,
   subtitleOverride,
   emptyText,
+  getBagNote,
+  onDismissed,
 }) => {
   const l10n = app.getL10n();
   const insets = useSafeAreaInsets();
@@ -58,6 +65,11 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
 
   const handleSelect = (bag: BagItem) => {
     onSelect(bag);
+  };
+
+  const handleDismiss = () => {
+    onClose();
+    onDismissed?.();
   };
 
   // 시트 본문(헤더 + 목록). iOS는 pageSheet 전체, Android는 하단 바텀시트에 담는다.
@@ -124,6 +136,7 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
 
             {sortedBags.map(bag => {
               const locationName = bag.getLocationName();
+              const note = getBagNote?.(bag) ?? null;
 
               return (
                 <TouchableOpacity
@@ -141,7 +154,9 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
                       {bag.getName()}
                     </PretendardText>
                     <PretendardText style={styles.rowDate}>
-                      {bag.getDate()}
+                      {note
+                        ? `${bag.getDate()}${l10n.t('common.metaSeparator')}${note}`
+                        : bag.getDate()}
                     </PretendardText>
                     {/* 이미 여행지가 설정된 배낭 — 덮어쓰기 전에 인지하도록 표시(디자인 리뷰). */}
                     {locationName && (
@@ -202,7 +217,7 @@ const CampSiteBagSelectSheetView: FC<Props> = ({
       animationType={isReduceMotionEnabled ? 'fade' : 'slide'}
       presentationStyle='pageSheet'
       onRequestClose={onClose}
-      onDismiss={onClose}
+      onDismiss={handleDismiss}
     >
       <View style={styles.sheet}>{sheetContent}</View>
     </Modal>

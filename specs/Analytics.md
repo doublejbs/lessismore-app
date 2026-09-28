@@ -55,7 +55,7 @@
 
 | 이벤트 | 트리거 | 파라미터 |
 | --- | --- | --- |
-| `click_bag_add` | 배낭 탭 `배낭 추가` 버튼 | — |
+| `click_bag_add` | 배낭 탭 `여행 추가` 버튼 | — |
 | `click_bag_create_confirm` | 생성 모달 확인 (성공 시) | — |
 | `click_bag_copy` | 복사 진입 (목록 행 아이콘 / 추가 바텀시트 / 상세 헤더) | `source`: `list` \| `add_sheet` \| `detail` |
 | `click_bag_copy_confirm` | 복사 모달 확정 (성공 시) | `source`: 위와 동일 |
@@ -142,6 +142,11 @@
 | `click_feed_ranking` | 피드 하단 `인기 순위` 버튼 → 인기 순위 화면 (FD-3) | — |
 | `click_feed_refresh` | 피드 pull-to-refresh (FD-4) | — |
 | `click_feed_fine_filter` | 피드 2차(세분) 카테고리 칩 (FD-3) | `category`: 세분 카테고리 값 \| `all` |
+| `click_ad_consent` | 광고 동의 흐름(UMP → iOS 추적 안내 시트 → iOS ATT → SDK 초기화) 완료 — 동의 흐름을 시작하는 광고 자리(탐색·커뮤니티 피드·검색 결과·장비 상세) 첫 포커스 시 앱 수명 동안 1회. 홈은 동의 흐름을 시작하지 않아 남기지 않는다 (AD-3·AD-5). 광고 노출·클릭은 AdMob이 집계하므로 따로 남기지 않는다 | `status`: `granted` \| `tracking_denied`(iOS 추적 거부·제한, 또는 앱이 활성 상태로 돌아오지 않아 ATT를 띄우지 못함) \| `blocked` \| `error`. 추적 안내 시트는 닫을 수 없어 항상 ATT로 이어지므로 시트 단계의 값은 따로 없다 |
+| `click_subscription_open` | 구독 시트 진입(로그인 사용자만 — 비로그인은 로그인으로 보내고 남기지 않는다) — 설정(정보 탭) `광고 제거` 행, 한 장짜리 광고(홈·장비 상세) 아래 `광고 없이 보기` 링크, 한 번 뜨는 안내 시트의 `구독 알아보기` ([Subscription.md](Subscription.md) SUB-8·SUB-9) | `from`: `settings` \| `ad_card` \| `nudge` |
+| `click_subscription_nudge` | 광고 누적 노출(자리 5곳 합산 20번) 뒤 한 번 뜨는 구독 안내 시트의 결과 — 기기당 한 번만 뜨므로 `shown`(시트가 실제로 뜬 순간) 뒤에 `open`·`dismiss` 중 하나가 따른다 (SUB-8·SUB-9) | `action`: `shown` \| `open`(`구독 알아보기` — 시트가 내려간 뒤 `click_subscription_open` `from: nudge`, 비로그인이면 로그인) \| `dismiss`(`괜찮아요`·스와이프·바깥 탭·안드로이드 뒤로가기) |
+| `click_subscription_purchase` | 구독 시트 `구독하기` 결과(스토어 창이 닫힌 뒤) (SUB-2·SUB-8). 금액은 남기지 않는다 | `result`: `success` \| `cancelled` \| `pending`(결제 승인 대기 — iOS Ask to Buy·안드로이드 보류 결제) \| `error` |
+| `click_subscription_restore` | 구독 시트 `구매 복원` 결과 (SUB-5·SUB-8) | `result`: `restored` \| `none` \| `error` |
 | `click_readyshot_layout` | [폐기] 레디샷 기능 제거로 더 이상 발생하지 않음 | `type`: `grid` \| `collage` |
 | `click_readyshot_share` | [폐기] 레디샷 기능 제거로 더 이상 발생하지 않음 | — |
 | `click_login` | 로그인 버튼 (AU-1) | `provider`: `google` \| `apple` \| `email` |
@@ -179,6 +184,22 @@
 | `click_community_search` | 커뮤니티 제목 행 검색 아이콘 탭 | — |
 | `click_community_search_result` | 검색 결과 카드 → 상세 진입 | `has_packing`, `has_poll`: boolean, `query_length`: 질의 길이 |
 | `click_community_snapshot_gear` | 패킹 스냅샷 장비 행 → 장비 상세 이동(카탈로그 장비만) | `gear_id` (2026-09-05) |
+| `click_group_create` | 그룹 만들기 완료 | `has_destination`: boolean |
+| `click_group_invite_copy` | 초대 링크 복사 | — |
+| `click_group_join` | 초대 수락(참여 완료) | `member_count`: 참여 후 인원 |
+| `click_group_open` | 그룹 목록 → 상세 진입 | — |
+| `click_group_bag_link` | 그룹에 내 배낭 연결 | `item_count`: 장비 수 |
+| `click_group_member_bag` | 멤버 배낭 상세 진입 | — |
+| `click_group_route_upload` | 코스(GPX) 업로드 성공 | `distance`: m, `point_count` |
+| `click_group_point_create` | 지도 포인트 등록 | `type`: `water` \| `shelter` \| `caution` \| `note` |
+| `click_group_map_open` | 그룹 지도 열기 | — |
+| `click_group_member_remove` | 방장이 멤버 내보내기 | — |
+| `click_group_leave` | 그룹 나가기 / 해산 | `role`: `owner` \| `member` |
+| `click_bag_group_link` | 배낭 상세 `⋯` → 그룹에 연결 성공 (BD-1) | — |
+| `click_bag_group_unlink` | 배낭 상세 `⋯` → 그룹 연결 해제 (BD-1) | — |
+| `click_bag_group_sync_schedule` | 연결 뒤 `그룹 일정으로 맞출까요?` 수락 (GRP-5, 그룹·배낭 양쪽) | `destination`: boolean (여행지도 박지로 맞췄는지) |
+| `click_bag_route_upload` | 배낭 코스(GPX) 업로드 성공 (BD-11) | `distance`: m, `point_count` |
+| `click_bag_route_to_group` | 배낭 코스를 연결된 그룹에 복사 (BD-11) | — |
 | `click_community_report` | 신고 등록 성공 | `target`: `post` \| `comment` |
 
 - 커뮤니티 이벤트에는 게시글 ID, 작성자 ID·닉네임, 제목·본문, 투표 문구, 신고 상세를 보내지 않는다.

@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -22,6 +22,8 @@ import InfoFooterView from '@/components/info/InfoFooterView';
 import InfoFooterBackgroundView from '@/components/info/InfoFooterBackgroundView';
 import PretendardText from '@/components/PretendardText';
 import AppLanguage from '@/model/l10n/AppLanguage';
+import { openSubscription } from '@/model/subscription/OpenSubscription';
+import SubscriptionEntryPoint from '@/model/subscription/SubscriptionEntryPoint';
 import {
   Acg,
   AcgLayout,
@@ -51,6 +53,17 @@ const InfoView: FC = () => {
   const isLoggedIn = firebase.isLoggedIn();
   const nickname = firebase.getNickname();
   const logInAlertManager = app.getLogInAlertManager();
+  const adService = app.getAdService();
+  const subscriptionStore = app.getSubscriptionStore();
+  // AD-3: UMP가 개인정보 옵션 재진입을 요구하는 지역에서만 입구를 보인다.
+  // 광고 제거 구독자에게는 광고가 없으니 광고 동의 입구도 두지 않는다(SUB-4).
+  const isAdPrivacyOptionsVisible =
+    adService.isPrivacyOptionsRequired() && !subscriptionStore.isSubscribed();
+  // SUB §2·§5: 웹·공개 키 없음·구매 모듈 없는 옛 바이너리에서는 행을 두지 않는다.
+  const isSubscriptionRowVisible = subscriptionStore.isAvailable();
+  const subscriptionRowLabel = subscriptionStore.isSubscribed()
+    ? l10n.t('subscription.settingsRowSubscribed')
+    : l10n.t('subscription.settingsRow');
   const forestHeight = screenWidth / FOREST_ASPECT_RATIO;
   const scrollBottomPadding =
     forestHeight +
@@ -82,6 +95,11 @@ const InfoView: FC = () => {
     router.push('/info/notification');
   };
 
+  // SUB-3: 구매는 로그인한 사용자만 한다 — 비로그인이면 로그인으로 보낸다(`openSubscription`).
+  const handleOpenSubscription = () => {
+    openSubscription(SubscriptionEntryPoint.Settings);
+  };
+
   const handleOpenMyPosts = () => {
     app.getAnalyticsManager()?.logClick('click_info_my_posts');
     router.push('/community/mine');
@@ -102,6 +120,10 @@ const InfoView: FC = () => {
 
   const handleOpenPrivacyPolicy = () => {
     router.push('/info/policy?tab=privacy');
+  };
+
+  const handleOpenAdPrivacyOptions = () => {
+    void adService.showPrivacyOptions();
   };
 
   const handleOpenTerms = () => {
@@ -140,6 +162,10 @@ const InfoView: FC = () => {
   const handleBack = () => {
     router.back();
   };
+
+  useEffect(() => {
+    void adService.refreshPrivacyOptions();
+  }, [adService]);
 
   return (
     <Layout
@@ -285,6 +311,25 @@ const InfoView: FC = () => {
             />
           </TouchableOpacity>
 
+          {/* SUB §2: 광고 제거 구독. 구독 중이면 같은 행이 관리 상태로 들어간다. */}
+          {isSubscriptionRowVisible ? (
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleOpenSubscription}
+              activeOpacity={0.7}
+              accessibilityRole='button'
+            >
+              <PretendardText weight='semibold' style={styles.buttonText}>
+                {subscriptionRowLabel}
+              </PretendardText>
+              <Ionicons
+                name='chevron-forward'
+                size={18}
+                color={Color.iconMuted}
+              />
+            </TouchableOpacity>
+          ) : null}
+
           <TouchableOpacity
             style={styles.button}
             onPress={handleOpenLanguageSettings}
@@ -338,6 +383,25 @@ const InfoView: FC = () => {
               color={Color.iconMuted}
             />
           </TouchableOpacity>
+
+          {/* AD-3: 광고 동의를 다시 고치는 입구. UMP가 요구하지 않는 지역에서는 숨긴다. */}
+          {isAdPrivacyOptionsVisible ? (
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleOpenAdPrivacyOptions}
+              activeOpacity={0.7}
+              accessibilityRole='button'
+            >
+              <PretendardText weight='semibold' style={styles.buttonText}>
+                {l10n.t('info.policy.adPrivacyOptions')}
+              </PretendardText>
+              <Ionicons
+                name='chevron-forward'
+                size={18}
+                color={Color.iconMuted}
+              />
+            </TouchableOpacity>
+          ) : null}
 
           {/* 가입 시 동의를 받으면서(AU-3) 나중에 볼 경로가 없었다. */}
           <TouchableOpacity

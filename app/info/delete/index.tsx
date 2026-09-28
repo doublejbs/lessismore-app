@@ -1,4 +1,12 @@
-import { View, StyleSheet, Pressable, Alert, ScrollView } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  Alert,
+  AlertButton,
+  Linking,
+  ScrollView,
+} from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import Layout from '@/components/Layout';
@@ -19,58 +27,71 @@ const DeleteInfoView = () => {
   const handleConfirm = async () => {
     if (isDeleting) return;
 
-    Alert.alert(
-      l10n.t('info.deleteAccount.title'),
-      l10n.t('info.deleteAccount.confirmMessage'),
-      [
-        {
-          text: l10n.t('common.cancel'),
-          style: 'cancel',
-        },
-        {
-          text: l10n.t('common.confirm'),
-          style: 'destructive',
-          onPress: async () => {
-            app.getAnalyticsManager()?.logClick('withdraw');
-            setIsDeleting(true);
-
-            try {
-              await app.getFirebase().deleteUserAccount();
-              Alert.alert(
-                l10n.t('info.deleteAccount.completedTitle'),
-                l10n.t('info.deleteAccount.completedMessage'),
-                [
-                  {
-                    text: l10n.t('common.confirm'),
-                    onPress: () => {
-                      router.replace('/');
-                    },
-                  },
-                ]
+    // SUB-7: 스토어 구독은 앱이 해지할 수 없다 — 구독 중이면 안내 한 줄과 `구독 관리`를 더한다.
+    const subscriptionStore = app.getSubscriptionStore();
+    const isSubscribed = subscriptionStore.isSubscribed();
+    const confirmMessage = isSubscribed
+      ? `${l10n.t('info.deleteAccount.confirmMessage')}\n\n${l10n.t('subscription.withdrawalNotice')}`
+      : l10n.t('info.deleteAccount.confirmMessage');
+    const manageSubscriptionButtons: AlertButton[] = isSubscribed
+      ? [
+          {
+            text: l10n.t('subscription.manage'),
+            onPress: () => {
+              void Linking.openURL(
+                subscriptionStore.getManageSubscriptionsUrl()
               );
-            } catch (error: any) {
-              console.error('회원 탈퇴 실패:', error); // l10n-ignore: console 개발자 로그
-              let errorMessage = l10n.t('info.deleteAccount.failedMessage');
-
-              if (
-                error?.code === 'auth/popup-closed-by-user' ||
-                error?.code === '12501'
-              ) {
-                errorMessage = l10n.t(
-                  'info.deleteAccount.reauthCancelledMessage'
-                );
-              }
-
-              Alert.alert(
-                l10n.t('info.deleteAccount.failedTitle'),
-                errorMessage
-              );
-              setIsDeleting(false);
-            }
+            },
           },
+        ]
+      : [];
+
+    Alert.alert(l10n.t('info.deleteAccount.title'), confirmMessage, [
+      {
+        text: l10n.t('common.cancel'),
+        style: 'cancel',
+      },
+      ...manageSubscriptionButtons,
+      {
+        text: l10n.t('common.confirm'),
+        style: 'destructive',
+        onPress: async () => {
+          app.getAnalyticsManager()?.logClick('withdraw');
+          setIsDeleting(true);
+
+          try {
+            await app.getFirebase().deleteUserAccount();
+            Alert.alert(
+              l10n.t('info.deleteAccount.completedTitle'),
+              l10n.t('info.deleteAccount.completedMessage'),
+              [
+                {
+                  text: l10n.t('common.confirm'),
+                  onPress: () => {
+                    router.replace('/');
+                  },
+                },
+              ]
+            );
+          } catch (error: any) {
+            console.error('회원 탈퇴 실패:', error); // l10n-ignore: console 개발자 로그
+            let errorMessage = l10n.t('info.deleteAccount.failedMessage');
+
+            if (
+              error?.code === 'auth/popup-closed-by-user' ||
+              error?.code === '12501'
+            ) {
+              errorMessage = l10n.t(
+                'info.deleteAccount.reauthCancelledMessage'
+              );
+            }
+
+            Alert.alert(l10n.t('info.deleteAccount.failedTitle'), errorMessage);
+            setIsDeleting(false);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (

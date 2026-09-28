@@ -18,15 +18,27 @@ interface MenuItem {
   readonly icon: keyof typeof Ionicons.glyphMap;
   readonly text: string;
   readonly onPress: () => void;
+  // 있으면 항목 이름 아래 메타 한 줄(HM-8). 고르는 목록(배낭 → 그룹 연결 BD-1)에서 쓴다.
+  readonly subtitle?: string;
 }
 
 interface Props {
   readonly visible: boolean;
   readonly onClose: () => void;
   readonly menuItems: MenuItem[];
+  // 있으면 항목 위에 시트 제목을 둔다(고르는 목록일 때 무엇을 고르는지).
+  readonly title?: string;
+  // 있으면 항목이 없을 때 이 문구만 보여준다.
+  readonly emptyText?: string;
 }
 
-const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
+const BottomMenuModalView: FC<Props> = ({
+  visible,
+  onClose,
+  menuItems,
+  title,
+  emptyText,
+}) => {
   const [mounted, setMounted] = useState(visible);
   const [fadeAnim] = useState(() => new Animated.Value(0));
   const [slideAnim] = useState(() => new Animated.Value(300));
@@ -97,21 +109,50 @@ const BottomMenuModalView: FC<Props> = ({ visible, onClose, menuItems }) => {
             },
           ]}
         >
+          {title ? (
+            <PretendardText style={styles.title} weight='semibold'>
+              {title}
+            </PretendardText>
+          ) : null}
           <View style={styles.menuSection}>
+            {menuItems.length === 0 && emptyText ? (
+              <PretendardText style={styles.emptyText}>{emptyText}</PretendardText>
+            ) : null}
             {menuItems.map((item, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.menuItem}
                 onPress={() => handleMenuItemPress(item.onPress)}
+                {...(item.subtitle
+                  ? {
+                      accessibilityRole: 'button' as const,
+                      accessibilityLabel: `${item.text}, ${item.subtitle}`,
+                    }
+                  : {})}
               >
                 <Ionicons
                   name={item.icon}
                   size={20}
                   color={Color.textPrimary}
                 />
-                <PretendardText style={styles.menuItemText}>
-                  {item.text}
-                </PretendardText>
+                {item.subtitle ? (
+                  <View style={styles.menuItemTextGroup}>
+                    <PretendardText
+                      style={styles.menuItemName}
+                      weight='medium'
+                      numberOfLines={2}
+                    >
+                      {item.text}
+                    </PretendardText>
+                    <PretendardText style={styles.menuItemSubtitle}>
+                      {item.subtitle}
+                    </PretendardText>
+                  </View>
+                ) : (
+                  <PretendardText style={styles.menuItemText}>
+                    {item.text}
+                  </PretendardText>
+                )}
               </TouchableOpacity>
             ))}
           </View>
@@ -162,6 +203,31 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   menuItemText: {
+    ...AcgType.rowSubtitle,
+    color: Color.textPrimary,
+  },
+  title: {
+    ...AcgType.sectionTitle,
+    color: Color.textPrimary,
+    paddingHorizontal: 30,
+    paddingBottom: 8,
+  },
+  emptyText: {
+    ...AcgType.rowSubtitle,
+    color: Color.textSecondary,
+    paddingVertical: 20,
+    textAlign: 'center',
+  },
+  menuItemTextGroup: {
+    flex: 1,
+    gap: 2,
+  },
+  // 고르는 목록의 행 = 이름 16 medium + 메타 14 잉크(HM-8). 기간·인원은 정보라 회색으로 두지 않는다.
+  menuItemName: {
+    ...AcgType.rowTitle,
+    color: Color.textPrimary,
+  },
+  menuItemSubtitle: {
     ...AcgType.rowSubtitle,
     color: Color.textPrimary,
   },

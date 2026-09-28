@@ -1,31 +1,7 @@
-import { FC, useEffect, useState } from 'react';
+import { FC } from 'react';
 import { Animated, View, StyleSheet } from 'react-native';
 import { Acg, AcgRow, AcgType } from '@/constants/DesignTokens';
-
-const useBreathingOpacity = () => {
-  const [opacity] = useState(() => new Animated.Value(0.3));
-
-  useEffect(() => {
-    const animate = () => {
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 0.7,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 0.3,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ]).start(() => animate());
-    };
-
-    animate();
-  }, [opacity]);
-
-  return opacity;
-};
+import useBreathingOpacity from '@/hooks/useBreathingOpacity';
 
 const BagTemplateListSkeletonView: FC = () => {
   const opacity = useBreathingOpacity();

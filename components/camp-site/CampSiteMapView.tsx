@@ -30,7 +30,7 @@ import { setCampSiteFavoritesSheet } from '@/model/camp-site/CampSiteFavoritesHa
 import CampSiteMapMarkersView, {
   CampSiteMapViewport,
 } from './CampSiteMapMarkersView';
-import CampSiteMyLocationMarkerView from './CampSiteMyLocationMarkerView';
+import MapMyLocationMarkerView from '@/components/map/MapMyLocationMarkerView';
 import CampSiteSelectedPulseView from './CampSiteSelectedPulseView';
 import CampSiteMapTopOverlayView from './CampSiteMapTopOverlayView';
 import CampSiteMapBottomOverlayView from './CampSiteMapBottomOverlayView';
@@ -83,7 +83,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   const mapRef = useRef<NaverMapViewRef>(null);
   const [locationGranted, setLocationGranted] = useState(false);
   // 내 위치 파란 점 좌표. 네이티브 위치 오버레이는 줌 드리프트 버그가 있어 쓰지 않고,
-  // 이 좌표를 지오 앵커 마커(CampSiteMyLocationMarkerView)로 직접 렌더한다(CS-1).
+  // 이 좌표를 지오 앵커 마커(MapMyLocationMarkerView)로 직접 렌더한다(CS-1).
   const [currentLocation, setCurrentLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -916,7 +916,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         />
         {/* 내 위치 파란 점 — 네이티브 위치 오버레이의 줌 드리프트를 피해 지오 앵커 마커로 렌더한다(CS-1). */}
         {locationGranted && currentLocation ? (
-          <CampSiteMyLocationMarkerView
+          <MapMyLocationMarkerView
             latitude={currentLocation.latitude}
             longitude={currentLocation.longitude}
           />

@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 import { observer } from 'mobx-react-lite';
+import BagSnapshotGearListView from '@/components/bag-snapshot/BagSnapshotGearListView';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgType } from '@/constants/DesignTokens';
 import CommunityPost from '@/model/community/CommunityPost';
@@ -9,7 +11,6 @@ import CommunityDetail from '@/model/community-detail/CommunityDetail';
 import { getCommunityRelativeTime } from '@/model/community/CommunityFormat';
 import app from '@/model/app/App';
 import CommunityDetailBagSnapshotView from './CommunityDetailBagSnapshotView';
-import CommunityDetailBagGearListView from './CommunityDetailBagGearListView';
 import CommunityDetailPollView from './CommunityDetailPollView';
 import CommunityDetailPostActionsView from './CommunityDetailPostActionsView';
 
@@ -20,6 +21,7 @@ interface Props {
 }
 
 const CommunityDetailPostHeaderView = observer(({ post, detail, width }: Props) => {
+  const router = useRouter();
   const [failedImages, setFailedImages] = useState<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = post.getImages().filter(image => !failedImages.includes(image.id));
@@ -69,7 +71,25 @@ const CommunityDetailPostHeaderView = observer(({ post, detail, width }: Props) 
       {post.hasBagSnapshot() && bagSnapshot ? (
         <>
           <CommunityDetailBagSnapshotView snapshot={bagSnapshot} detail={detail} />
-          <CommunityDetailBagGearListView snapshot={bagSnapshot} />
+          {/* 장비 목록은 그룹 일행 배낭과 같은 공용 뷰다 — 문구·분석 이벤트만 이 화면 것을 쓴다. */}
+          <BagSnapshotGearListView
+            gears={bagSnapshot.gears}
+            gearUnitText={app.getL10n().t('community.detail.snapshotSectionGearUnit')}
+            weightUnitText={app
+              .getL10n()
+              .t('community.detail.snapshotSectionWeightUnit')}
+            separatorText={app
+              .getL10n()
+              .t('community.detail.snapshotSectionSeparator')}
+            onSelectGear={gearId => {
+              app
+                .getAnalyticsManager()
+                ?.logClick('click_community_snapshot_gear', {
+                  gear_id: gearId,
+                });
+              router.push(`/gear-detail/${gearId}`);
+            }}
+          />
         </>
       ) : null}
       {post.hasPoll() && <CommunityDetailPollView post={post} detail={detail} />}

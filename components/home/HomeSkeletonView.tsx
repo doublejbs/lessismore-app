@@ -1,6 +1,7 @@
-import { FC, useEffect, useState } from 'react';
+import { FC } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import { Acg, AcgRadius, AcgRow, AcgType } from '@/constants/DesignTokens';
+import useBreathingOpacity from '@/hooks/useBreathingOpacity';
 
 /**
  * 홈 로딩 스켈레톤(HM-6).
@@ -15,32 +16,6 @@ const PREVIEW_ROWS = 4;
 const STAT_GAP = 2;
 const STAT_BLOCK_HEIGHT =
   AcgType.meta.lineHeight + STAT_GAP + AcgType.displaySmall.lineHeight;
-
-const useBreathingOpacity = () => {
-  // `useRef(...).current`를 렌더 중 읽으면 react-hooks 규칙에 걸린다 — 초기화 함수로 1회만 만든다.
-  const [opacity] = useState(() => new Animated.Value(0.3));
-
-  useEffect(() => {
-    const animate = () => {
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 0.7,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 0.3,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ]).start(() => animate());
-    };
-
-    animate();
-  }, [opacity]);
-
-  return opacity;
-};
 
 const HomeSkeletonView: FC = () => {
   const opacity = useBreathingOpacity();

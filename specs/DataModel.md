@@ -94,6 +94,13 @@
 | `community-post-likes/{userId}_{postId}` | 커뮤니티 게시글 좋아요 (DM-28) `[제안]` | 커뮤니티 피드·상세 |
 | `community-poll-votes/{postId}_{userId}` | 커뮤니티 투표, 게시글·계정당 한 문서 (DM-28) `[제안]` | 커뮤니티 투표 |
 | `community-reports/{reportId}` | 커뮤니티 게시글·댓글 신고 (DM-28) `[제안]` | 신고·Firebase 콘솔 처리 |
+| `groups/{groupId}` | 그룹 = 여행 1건 (DM-29) `[제안]` | 그룹 목록·상세 |
+| `groups/{groupId}/members/{uid}` | 그룹 멤버, 계정당 한 문서 (DM-29) `[제안]` | 멤버 목록 |
+| `groups/{groupId}/bags/{uid}` | 멤버 배낭 공개 스냅샷 (DM-29) `[제안]` | 멤버 배낭 열람 |
+| `groups/{groupId}/points/{pointId}` | 그룹 지도 포인트 (DM-29) `[제안]` | 그룹 지도 |
+| `groups/{groupId}/routes/{routeId}` | 그룹 코스(GPX) 요약 (DM-29) `[제안]` | 그룹 지도·코스 목록 |
+| `users/{uid}/groups/{groupId}` | 내가 속한 그룹 역인덱스 (DM-29) `[제안]` | 그룹 목록 조회 |
+| `subscriptions/{uid}` | 광고 제거 구독 서버 기록, 웹훅 함수만 씀 (DM-31) `[제안]` | 운영·통계 ([Subscription.md](Subscription.md)) |
 | `config/app` | 앱 원격 설정 (강제 업데이트 최소 버전) | 강제 업데이트 게이트 (AppLifecycle APP-7) |
 | `config/announcement` | 인앱 텍스트 공지 (원격 배너) | 공지 시트 (Announcement AN) |
 | `config/featurePopup` | 신기능 안내 팝업 (원격 온보딩) | 신기능 팝업 (FeaturePopup FP) |
@@ -193,6 +200,8 @@
 - 사용자 직접 등록(`CustomGearCategory`)은 기존 11개 그룹 키를 그대로 저장한다(세분 선택 UI 없음).
 
 ### DM-5 `bag/{bagId}`
+
+화면 용어는 **여행**이다([Bag.md](Bag.md) §1 용어). 데이터·코드 이름은 `bag` 그대로 둔다.
 
 | 필드 | 타입 | 비고 |
 | --- | --- | --- |
@@ -763,6 +772,205 @@
 - Storage 공개·쓰기 계약은 DM-9를 따른다. 객체 목록 조회는 허용하지 않는다.
 - 회원 탈퇴·게시글 삭제의 연쇄 정리는 [Community.md](Community.md) CM-9·CM-12를 따른다. 탈퇴자 투표 정리(`onCommunityUserDeleted`)는 투표 문서 `optionIds` 배열의 각 선택지 `voteCount -1`, `totalVoteCount -1`(참여자 1명분)로 보정하며 레거시 `optionId` 문자열도 원소 하나로 읽는다(2026-09-10 — 서버가 `optionId`만 읽어 배열 문서의 카운터가 빠지지 않던 불일치 수정).
 
+### DM-29 그룹 `[제안]`
+
+그룹은 **여행 1건**이며([Group.md](Group.md) GRP-2), 앱에서 처음으로 **특정 사용자 집합에게만 보이는 데이터**를 도입한다. 기존 가시성은 `공개`(커뮤니티·박지 카탈로그), `본인만`(`users/*`), `링크를 아는 사람 전부`(`bag.shared`) 세 가지뿐이었다.
+
+#### `groups/{groupId}`
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `name` | string | trim 후 2~40자 |
+| `startDate` / `endDate` | string | `YYYY-MM-DD`. 시작 ≤ 종료, 최대 30일 |
+| `ownerId` | string | 방장 uid. 변경 불가(위임 없음) |
+| `memberIds` | string[] | **보안 규칙의 멤버십 판정 소스**. 최대 20. `members` 하위 문서와 항상 일치 |
+| `memberCount` | number | `memberIds.size()`와 일치하는 캐시 |
+| `campSpotId` | string? | 등록 박지(DM-17) 참조. 자유 위치는 키 없음 |
+| `destinationName` | string? | 여행지 표시 이름. **자유 위치의 좌표는 저장하지 않는다** |
+| `meetingNote` | string? | 집합 안내 한 줄, 최대 200자. 좌표를 갖지 않는다 |
+| `inviteEnabled` | boolean | 초대 링크 잠금. 기본 `true` |
+| `pointCount` / `routeCount` | number | 하위 문서 수 캐시, 기본 0 |
+| `createdAt` / `updatedAt` | timestamp | 서버 시각 |
+
+- **`groupId` 자체가 초대 비밀이다.** Firestore 자동 생성 20자 ID를 쓰고 별도 토큰을 두지 않는다(GRP-3). 문서 읽기는 인증 사용자면 허용하되, 하위 컬렉션은 멤버만 읽는다 — 초대 화면에서 이름·기간·멤버 수를 보여주려면 비멤버도 그룹 문서를 읽어야 한다.
+- 참여는 `memberIds`에 **자기 uid 하나만** 추가하는 update로 처리한다. 규칙이 `affectedKeys`를 `memberIds`·`memberCount`·`updatedAt`으로 제한하고, 추가 원소가 `request.auth.uid`인지, 크기가 정확히 1 늘었는지, 상한 20을 넘지 않는지 검증한다. Cloud Function 없이 규칙만으로 성립한다.
+
+#### `groups/{groupId}/members/{uid}`
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `uid` | string | 문서 ID와 동일. 계정당 한 문서가 구조적으로 보장된다 |
+| `nickname` | string | 참여 시점 닉네임 스냅샷. 닉네임은 유니크하지 않다(DM-2) |
+| `role` | string | string enum `GroupMemberRole`: `owner` / `member` |
+| `bagId` | string? | 연결한 배낭. 해제하면 키 제거 |
+| `joinedAt` | timestamp | 참여 시각 |
+
+#### `groups/{groupId}/bags/{uid}` — 멤버 배낭 공개 스냅샷
+
+문서 ID가 uid라 멤버당 하나로 고정된다. 스키마는 **DM-28 `bagSnapshot`과 같은 계약**을 쓴다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `bagId` | string | 원본 배낭 ID. 그룹원은 이 ID로 `bag/{bagId}`를 읽지 않는다 |
+| `name` | string | 배낭 이름 |
+| `startDate` / `endDate` | string? | `YYYY-MM-DD` |
+| `destinationName` | string? | 여행지 표시 이름 |
+| `totalWeight` | number | g |
+| `itemCount` | number | 장비 수 |
+| `gears` | array | `{ gearId?, company, name, weight, category }` — DM-28과 동일 |
+| `syncedAt` | timestamp | 마지막 동기화 시각. 화면에 노출해 신선도를 알린다 |
+
+- **담지 않는 것: 메모, 정확한 좌표, 이동 경로, 건강·활동 기록(DM-22), 개인 장비 `imageUrl`, 사용자 정의 장비 문서 ID.** DM-28의 제외 목록과 같다.
+- **원본을 따라간다.** 커뮤니티 스냅샷은 불변 복사본이지만 그룹 스냅샷은 배낭이 바뀌면 다시 쓴다(GRP-5). 갱신은 클라이언트가 쓰기 시점에 수행하며 실시간 구독이 아니다.
+- `bag` 문서에 그룹원 읽기 권한을 주지 않는 이유는 배낭이 메모·좌표·건강 기록을 함께 담기 때문이다. 공개 범위를 **데이터 모양으로 고정**해 규칙을 그룹 컬렉션 안에서 닫는다.
+- 빌더는 `CommunityBagSnapshotBuilder`를 재사용하거나 같은 계약의 그룹 전용 빌더를 둔다. 제외 목록이 두 곳으로 갈라지지 않게 한 곳에서 파생한다.
+
+#### `groups/{groupId}/points/{pointId}` — 지도 포인트
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `type` | string | string enum `GroupPointType`: `water` / `shelter` / `caution` / `note` |
+| `latitude` / `longitude` | number | WGS84 |
+| `title` | string | 1~40자 |
+| `description` | string? | 최대 200자 |
+| `authorId` / `authorName` | string | 작성자 uid와 닉네임 스냅샷 |
+| `createdAt` / `updatedAt` | timestamp | 서버 시각 |
+
+- 그룹당 50개 상한. 좌표는 **그룹 안에서만** 보이며 공개 박지 카탈로그(`camp-spot`)에 기여하지 않는다(DM-17은 운영자 큐레이션 전용).
+
+#### `groups/{groupId}/routes/{routeId}` — 코스(GPX)
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `name` | string | 파일명 또는 `<trk><name>`, 최대 40자 |
+| `storagePath` | string | `groups/{groupId}/routes/{routeId}.gpx` |
+| `fileSize` | number | 바이트, 5MB 이하 |
+| `distance` | number | m |
+| `elevationGain` | number? | m |
+| `elevationLoss` | number? | m, 하강 합. 코스를 뒤집어 볼 때의 상승 값이다(GRP-8). **옵셔널** — 2026-09-23 이전 코스엔 없다 |
+| `pointCount` | number | 원본 트랙포인트 수 |
+| `bounds` | map | `{ minLat, maxLat, minLng, maxLng }` |
+| `simplified` | array | 지도 렌더용 축약 좌표 `{ lat, lng, ele? }`, **2~500점**. 최소 2점은 규칙과 클라이언트 검증이 함께 강제한다 — 점이 하나뿐인 GPX는 선이 되지 않아 `코스를 읽지 못했어요`로 거절한다. `ele`(m)는 고도 그래프가 쓰며 GPX에 고도가 없으면 키를 생략한다. 규칙은 리스트 길이만 보므로 원소 키가 늘어도 계약이 깨지지 않는다 |
+| `authorId` / `authorName` | string | 올린 사람 |
+| `createdAt` | timestamp | 서버 시각 |
+
+- **원본 트랙포인트 전체를 Firestore에 넣지 않는다.** 1MB 문서 한도와 렌더 성능 때문이며, 원본은 Storage 파일로만 보관한다.
+- 그룹당 5개 상한.
+- [HealthActivity.md](HealthActivity.md) HA-5가 금지하는 것은 **기기 건강 허브에서 읽은 개인 이동 기록**의 서버 저장이다. 그룹 코스는 사용자가 일행에게 보여주려고 올리는 계획 경로이므로 별개다. 건강 기록 경로를 그룹 코스로 옮기는 경로는 두지 않는다.
+
+### DM-30 배낭 코스 `bag/{bagId}/routes/{routeId}` `[제안]`
+
+배낭에 붙이는 계획 경로(GPX). 그룹 코스(DM-29 `groups/{groupId}/routes`)와 **필드 구조가 같고 사는 곳만 다르다** — 같은 파서·같은 그래프·같은 목록 행을 쓴다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `name` | string | 1~40자. 파일명 또는 `<trk><name>`에서 오며 초과분은 자른다 |
+| `storagePath` | string | `bags/{bagId}/routes/{routeId}.gpx` |
+| `fileSize` | number | 바이트, 5MB 이하 |
+| `distance` | number | m |
+| `elevationGain` | number? | m. GPX에 고도가 없으면 키 생략 |
+| `elevationLoss` | number? | m, 하강 합. 코스를 뒤집어 볼 때의 상승 값이다(GRP-8). GPX에 고도가 없으면 키 생략. **옵셔널** — 2026-09-23 이전 코스엔 없다 |
+| `pointCount` | number | 원본 트랙포인트 수 |
+| `bounds` | object | `{ minLat, maxLat, minLng, maxLng }` |
+| `simplified` | array | `{ lat, lng, ele? }`, 2~500점 |
+| `createdAt` | timestamp | |
+
+- 배낭당 **5개**, 파일 **5MB** — 그룹과 같은 상한이다. 수치를 갈라 두면 사용자가 둘을 다르게 기억해야 한다.
+- `authorId`·`authorName`은 **두지 않는다.** 배낭 코스는 소유자 한 사람의 것이라 작성자를 적을 이유가 없다(그룹 코스는 여럿이 올리므로 필요하다).
+
+#### 접근 범위 — 이 컬렉션의 가장 중요한 계약
+
+**`bag/{bagId}` 문서는 `shared == true`면 비로그인 공개 문서다**([BagDetail.md](BagDetail.md) BD-7). 그런데 GPX는 그 사람이 언제 어디를 지날지를 미터 단위로 담는다.
+
+- `bag/{bagId}/routes`는 **소유자(`bag.userId`)만 읽고 쓴다.** 배낭 공유·박지 후기 첨부·커뮤니티 패킹 스냅샷 어디로도 따라가지 않는다.
+- 현재 배포 규칙은 `bag`이 전면 개방 절에 걸려 있다. `users`와 같은 방식으로 **`bag`을 개방에서 뺀 뒤 문서 자체는 다시 열고 하위 `routes`만 닫는다**(병합 방법은 `docs/firebase/README.md`).
+- Storage `bags/{bagId}/routes/`도 같다. 소유자 판정은 `firestore.get(/databases/(default)/documents/bag/$(bagId)).data.userId`로 한다.
+- 배낭 스냅샷(DM-28·DM-29)의 제외 목록에 **코스를 명시적으로 더한다.** 스냅샷 빌더가 `bag` 문서만 읽고 하위 컬렉션을 읽지 않으므로 구조적으로도 새지 않지만, 계약은 적어 둔다.
+
+#### 생명주기
+
+- **배낭 복사(BAG-4·BD-8) 시 코스를 복사하지 않는다.** 패킹 기록을 복사하지 않는 것과 같은 이유이고, Storage 파일까지 복제하면 사용자가 인지하지 못한 채 용량이 는다.
+- **배낭 삭제 시** 하위 `routes` 문서와 Storage 파일을 서버가 정리한다(`onBagDeleted` 트리거). 클라이언트는 배낭 문서만 지운다.
+- 코스를 그룹에 올리면 `groups/{gid}/routes`로 **복사된다**(GRP-8). 원본을 지워도 그룹 코스는 남는다.
+
+#### `groupInvites/{groupId}` — 초대 공개 요약 (서버가 유지한다)
+
+초대 링크를 연 웹 랜딩이 읽는 **유일한 공개 문서**다. 그룹 문서는 로그인한 사용자만 읽을 수 있고 웹 랜딩은 비인증이므로, 초대 화면에 필요한 값만 따로 복제한다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `name` | string | 그룹 이름 |
+| `startDate` / `endDate` | string | `YYYY-MM-DD` |
+| `destinationName` | string? | 여행지 표시 이름 |
+| `memberCount` | number | 정원 안내용 |
+| `inviteEnabled` | boolean | 잠금 안내용 |
+| `updatedAt` | timestamp | 미러 갱신 시각 |
+
+- **여기에 담지 않는 것: `meetingNote`, `memberIds`, `ownerId`, `campSpotId`, `pointCount`, `routeCount`.** 집합 메모는 여러 사람이 실제로 언제 어디서 모이는지를 담고, 링크는 전달될 수 있다 — 초대 단계에서 보여줄 이유가 없는데 노출 범위만 가장 넓다. 초대 화면에 필요한 값만 복제한다는 것이 이 컬렉션의 규칙이다.
+- **클라이언트는 이 컬렉션에 쓰지 못한다.** `groups/{groupId}` 쓰기 트리거가 미러를 만들고 갱신하며, 그룹 문서가 지워지면 함께 지운다. 클라이언트 쓰기를 열면 잠금·정원 표시를 위조할 수 있고, 무엇보다 미러가 원본과 갈라진다.
+- 읽기는 **비인증 허용**이다. `groupId` 자체가 초대 비밀이라는 전제는 그룹 문서와 같다.
+- 미러는 결과적 일관성이다 — 그룹을 만든 직후 아주 잠깐 문서가 없을 수 있다. 웹 랜딩은 그 경우 그룹 정보 없이 `앱에서 열기`만 있는 축소 형태로 떨어진다(GRP-3).
+
+#### `users/{uid}/groups/{groupId}` — 역인덱스
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `name` / `startDate` / `endDate` | string | 목록 표시용 스냅샷 |
+| `role` | string | `owner` / `member` |
+| `joinedAt` | timestamp | 참여 시각 |
+| `ownerId` | string | 방장 표시·권한 판정 |
+| `memberCount` | number | 목록 행의 `멤버 N명` |
+| `campSpotId` | string? | 박지 연결 여부 |
+| `destinationName` | string? | 목록 행의 여행지 |
+| `hasBag` | boolean | 내 배낭 연결 여부 |
+| `bagId` | string? | 연결한 배낭 ID. 배낭이 바뀌었을 때 **어느 그룹 스냅샷을 다시 써야 하는지**를 그룹 문서를 읽지 않고 알기 위한 값이다(GRP-5 갱신 시점 ①②) |
+
+- `groups`를 `array-contains memberIds` 로 직접 쿼리할 수도 있지만, 본인 문서 하위를 읽는 편이 규칙이 단순하고 목록 조회에 그룹 문서 읽기가 필요 없다. 그룹 이름·기간이 바뀌면 방장 쓰기 시점에 멤버 전원의 역인덱스를 갱신해야 하므로 **서버 작업으로 처리한다**.
+- 역인덱스는 GRP-1 목록 행이 요구하는 값(여행지·멤버 수·배낭 연결 여부)을 전부 담는다 — 목록을 그리려고 그룹 문서를 N번 읽지 않는다는 것이 이 컬렉션의 존재 이유다. `hasBag`은 본인만 쓰는 값이라 클라이언트가 배낭 연결·해제 시 함께 갱신한다.
+- 역인덱스로 만든 `Group`은 **요약본**이다: `memberIds`에는 조회자 본인만 들어가고 `pointCount`/`routeCount`는 0, `inviteEnabled`는 true다. 화면은 요약본과 상세를 구분해 다뤄야 하며, 멤버 목록·포인트·코스가 필요하면 그룹 문서를 다시 읽는다.
+
+#### 인덱스
+
+- `users/{uid}/groups` 는 `startDate` 정렬과 `bagId` 동등 조회(배낭이 바뀌었을 때 갱신할 그룹을 고른다)를 쓴다. 둘 다 단일 필드라 자동 인덱스로 충분하다.
+- `groups/{groupId}/points` 는 `createdAt` 정렬, `routes` 도 `createdAt` 정렬. 복합 인덱스는 필요 없다.
+
+#### 서버 작업
+
+- 그룹 해산·멤버 탈퇴·회원 탈퇴의 연쇄 정리와 역인덱스 갱신은 커뮤니티와 같은 위치(별도 레포 `lessismore`의 `functions/`, 리전 `asia-northeast3`)에 둔다.
+- 필요한 트리거: 그룹 문서 삭제 시 하위 컬렉션·Storage GPX·**전 멤버 역인덱스**·**초대 미러** 정리, 그룹 정보 수정 시 멤버 역인덱스 갱신, `memberIds` 변경 시 역인덱스 생성·삭제, **`groups/{groupId}` 쓰기 시 `groupInvites/{groupId}` 미러 유지**, Auth 삭제 시 소속 그룹 정리(방장이면 해산).
+- **`memberIds`가 바뀌면 멤버 전원의 역인덱스 `memberCount`를 다시 쓴다.** 클라이언트는 남의 문서를 못 쓰므로 참여·탈퇴·내보내기 때 본인 것만 갱신되고, 그대로 두면 다른 멤버의 목록 행에 `멤버 N명`이 낡은 값으로 굳는다. 같은 트리거에서 이름·기간·여행지 변경분과 함께 배포한다.
+- 해산은 **그룹 문서를 즉시 지운다**(소프트 삭제를 두지 않는다). onDelete 트리거는 삭제 직전 스냅샷으로 `memberIds`를 읽을 수 있으므로 **전 멤버의 역인덱스 삭제**를 같은 트리거에서 처리한다 — 이것이 빠지면 남은 멤버의 목록에 해산된 그룹이 유령으로 남는다. 하위 문서 삭제는 본래 멱등이라 별도 가드 필드를 두지 않는다(규칙은 예방 차원에서 `deletedCleanedAt` 쓰기를 계속 막는다).
+
+#### 선행 보안 작업
+
+현재 배포된 규칙은 커뮤니티 4개 컬렉션을 제외한 나머지가 전면 개방(`allow read, write: if !isCommunityCollection()`)이다. `groups/*`는 신규라 처음부터 멤버십 기반으로 잠글 수 있지만, `bag`·`users`가 열려 있는 한 "그룹원만 본다"는 약속은 앱 화면 안에서만 성립한다. 그룹 출시와 별개로 기존 컬렉션을 좁히는 작업이 필요하다.
+
+
+### DM-31 구독 `subscriptions/{uid}` `[제안]`
+
+광고 제거 구독의 **서버 기록**([Subscription.md](Subscription.md) SUB-6). RevenueCat 웹훅을 받는 Cloud Function(`revenuecatWebhook`)만 쓴다. 앱의 광고 판단은 이 문서가 아니라 RevenueCat SDK가 소스다(SUB-4) — 이 문서는 운영·통계용이다.
+
+문서 id = Firebase uid(= RevenueCat `app_user_id`). 사용자 문서(`users/{uid}`)에 두지 않는 이유: `users/{uid}`는 본인 클라이언트가 쓰는 문서라, 구독 필드만 쓰기 금지로 가르는 규칙이 번거롭고 실수하기 쉽다. 컬렉션을 갈라 **클라이언트 쓰기 전면 금지**로 둔다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `active` | boolean | `no_ads` 권한이 지금 살아 있는지 |
+| `productId` | string | `useless_no_ads_monthly` |
+| `store` | string | `app_store` \| `play_store` (RevenueCat `store` 값 소문자) |
+| `environment` | string | `production` \| `sandbox` — 통계에서 샌드박스를 거른다 |
+| `willRenew` | boolean | 해지 예약이면 `false` |
+| `billingIssue` | boolean | 결제 실패 유예 중 |
+| `expiresAt` | Timestamp \| null | 현재 기간 만료 시각 |
+| `originalPurchasedAt` | Timestamp | 첫 구매 시각 |
+| `lastEventType` | string | 마지막으로 반영한 RevenueCat 이벤트 타입 |
+| `lastEventId` | string | 멱등 처리용 |
+| `lastEventAt` | Timestamp | 이벤트 시각(`event_timestamp_ms`) — 이보다 오래된 이벤트는 무시 |
+| `updatedAt` | Timestamp | 서버 시각 |
+
+- **보안 규칙(콘솔 관리)**: 읽기는 `request.auth.uid == uid`(본인)만, **쓰기는 전면 금지**(Admin SDK인 함수만 쓴다). 운영 화면이 생기면 그때 읽기를 넓힌다.
+- 삭제: 회원 탈퇴 정리 함수가 지운다(SUB-7).
+- 인덱스: 없음(단건 조회·콘솔 조회만). 통계 쿼리가 생기면 `active`·`environment` 복합 인덱스를 추가한다.
+
 ## 4. Storage 경로 (DM-9)
 
 | 경로 패턴 | 용도 | 상태 |
@@ -771,6 +979,7 @@
 | `/gears/{fileName}` | 크롤 파이프라인이 적재한 카탈로그 이미지 | 보존, 앱은 읽지 않음 (§1) |
 | `/gears/{gearId}/{imageId}` | 장비 공유 이미지 갤러리 | **폐기** (DM-8, 재도입 안 함) |
 | `/community/{userId}/{postId}/{imageId}.jpg` | 공개 커뮤니티 게시글 사진 (DM-28, CM-6) | `[제안]` |
+| `/groups/{groupId}/routes/{routeId}.gpx` | 그룹 코스 GPX 원본 (DM-29, GRP-8) | `[제안]` |
 
 - 업로드는 **본인 경로(`/{userId}/`)에만** 쓴다. 파일명은 충돌하지 않게 생성하고, 업로드 후 받은 다운로드 URL을 `users/{uid}/gears/{id}.imageUrl`에 저장한다(DM-3).
 - 이미지를 **교체·삭제할 때 이전 Storage 파일도 함께 지운다** — 참조가 끊긴 파일이 쌓이면 용량만 늘고 회수 경로가 없다(현재 819개 중 상당수가 이미 그런 상태일 수 있다).

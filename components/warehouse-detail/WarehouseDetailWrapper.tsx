@@ -18,9 +18,15 @@ const WarehouseDetailWrapper: FC<Props> = ({}) => {
   const [warehouseDetail] = useState(() =>
     WarehouseDetail.new(navigate, WarehouseDispatcher.new())
   );
-  const { id = '', bagId } = useLocalSearchParams<{
+  const {
+    id = '',
+    bagId,
+    addFlow,
+  } = useLocalSearchParams<{
     id: string;
     bagId?: string;
+    // AD-1: 장비 추가 검색(/search)에서 열었으면 '1'(`useGearRowState`가 붙인다).
+    addFlow?: string;
   }>();
   const initialized = warehouseDetail.isInitialized();
 
@@ -30,8 +36,9 @@ const WarehouseDetailWrapper: FC<Props> = ({}) => {
       warehouseDetail.setBagContext(bagId);
     }
 
+    warehouseDetail.setGearAddFlow(addFlow === '1');
     warehouseDetail.initialize(id);
-  }, [id, bagId]);
+  }, [id, bagId, addFlow]);
 
   // 사용 여부 기록(`/useless/{id}`)·배낭 편집·리뷰 작성에서 돌아오면 기록도 여행 목록도
   // 바뀌어 있을 수 있어 통째로 다시 읽는다. 첫 진입에서는 위 initialize가 이미 읽으므로

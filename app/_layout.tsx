@@ -19,6 +19,8 @@ import { observer } from 'mobx-react-lite';
 import ForceUpdateGateView from '@/components/app-update/ForceUpdateGateView';
 import AnnouncementSheetView from '@/components/announcement/AnnouncementSheetView';
 import FeaturePopupSheetView from '@/components/feature-popup/FeaturePopupSheetView';
+import AdTrackingPromptSheetView from '@/components/ads/AdTrackingPromptSheetView';
+import SubscriptionNudgeSheetView from '@/components/subscription/SubscriptionNudgeSheetView';
 import { Acg } from '@/constants/DesignTokens';
 
 // 네이티브 스플래시를 폰트 로드 후 직접 내려, 초기화(Firebase) 동안 React 스플래시
@@ -146,6 +148,17 @@ const RootLayout = () => {
           <Stack.Screen name='community/[id]/edit' />
           <Stack.Screen name='community/mine' />
           <Stack.Screen name='community/search' />
+          {/* 그룹(GRP-1~GRP-10) — 전부 기본 푸시다. 시트로 띄우는 화면은 없고,
+              iOS 투명 헤더는 각 화면이 Stack.Screen으로 지정한다(커뮤니티와 같은 관례). */}
+          <Stack.Screen name='group/new' />
+          <Stack.Screen name='group/join' />
+          <Stack.Screen name='group/[id]' />
+          <Stack.Screen name='group/[id]/edit' />
+          <Stack.Screen name='group/[id]/member/[uid]' />
+          <Stack.Screen name='group/[id]/map' />
+          {/* 배낭 코스(BD-11) — 지도·목록·고도 그래프. 기본 푸시이고 iOS 투명 헤더는
+              화면이 Stack.Screen으로 지정한다(그룹 지도와 같은 관례). */}
+          <Stack.Screen name='bag/[id]/route' />
           <Stack.Screen
             name='custom'
             options={{
@@ -309,6 +322,18 @@ const RootLayout = () => {
               contentStyle: { backgroundColor: Acg.paper },
             }}
           />
+          {/* 광고 제거 구독 시트(SUB-2) — 배낭 추가 시트와 같은 formSheet 얼개(내용 높이만큼). */}
+          <Stack.Screen
+            name='subscription/index'
+            options={{
+              headerShown: false,
+              presentation: 'formSheet',
+              sheetAllowedDetents: 'fitToContents',
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 20,
+              contentStyle: { backgroundColor: Acg.paper },
+            }}
+          />
           <Stack.Screen
             name='bag-share'
             options={{
@@ -393,6 +418,12 @@ const RootLayout = () => {
             공지 시트와 마찬가지로 needsUpdate면 스스로 뜨지 않아 게이트가 최상위를 유지한다.
             공지 시트는 이 팝업이 뜰 조건이면 스스로 숨는다(FP-6 우선순위). */}
         <FeaturePopupSheetView />
+        {/* 추적 안내 시트(AD-3 2) — iOS ATT 앞에 광고 서비스가 띄운다. 모달이라 모든 탭·화면 위에 뜨고,
+            강제 업데이트 게이트가 떠 있으면 스스로 뜨지 않는다. 웹·Android는 띄울 일이 없다. */}
+        <AdTrackingPromptSheetView />
+        {/* 구독 안내 시트(SUB-9) — 광고 누적 노출 뒤 한 번. 모달이라 모든 탭·화면 위에 뜨고, 게이트·공지·
+            신기능 팝업·추적 안내 시트·동의 흐름이 떠 있으면 스스로 뜨지 않는다. 웹은 띄울 일이 없다. */}
+        <SubscriptionNudgeSheetView />
         {/* 강제 업데이트 게이트(APP-7) — 스플래시 이후 최상위에서 다른 모든 것 위에 렌더한다.
             로그인·약관·라우팅과 무관하게 needsUpdate면 전체 화면을 덮는다(absolute fill). */}
         <ForceUpdateGateView />
