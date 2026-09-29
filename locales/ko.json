@@ -1493,6 +1493,18 @@
     "delete": "삭제",
     "deleteConfirm": "{{name}}을(를) 삭제할까요? 올린 GPX 원본 파일도 함께 사라져요.",
     "elevation": "상승 {{value}}m",
+    "endpoint": {
+      "start": "출발",
+      "end": "도착",
+      "addressLoading": "주소 확인 중…",
+      "elevation": "고도 {{value}}m",
+      "separator": " · ",
+      "directions": "길찾기",
+      "copyCoordinate": "좌표 복사",
+      "copied": "좌표를 복사했어요",
+      "close": "닫기",
+      "destinationName": "{{name}} {{endpoint}}"
+    },
     "profileTitle": "고도 단면",
     "profilePeak": "최고 {{value}}m",
     "profileHint": "그래프를 손가락으로 훑으면 지도에 그 지점이 표시돼요",
