@@ -15,6 +15,20 @@ import {
   formatRouteDistance,
 } from '@/model/route/RouteFormat';
 
+/**
+ * 고른 지도 포인트가 코스 위에서 놓인 자리 (GRP-8 포인트 → 고도 그래프 표시).
+ * 훑기 커서와 모양을 가른다 — 포인트 유형색 점 + 점선 세로선으로 계속 남는다.
+ */
+export interface RouteElevationPointMarker {
+  // 단면 가로축 기준 거리(m, `RouteElevationSample.distance`와 같은 축약 거리).
+  distance: number;
+  elevation: number;
+  // 포인트 유형색(GRP-9). 데이터 시각화 색이라 토큰 예외다.
+  color: string;
+  // 그래프 위에 적는 한 줄 — `{포인트 제목} · 12.3km · 고도 1,234m`.
+  label: string;
+}
+
 interface Props {
   profile: RouteElevationProfile;
   /**
@@ -31,6 +45,8 @@ interface Props {
   displayDistance?: number | undefined;
   // 지도 화면처럼 그래프가 화면 맨 아래에 놓일 때 세이프에어리어를 여기서 비운다.
   bottomInset?: number | undefined;
+  // 고른 포인트 표시. 없거나 코스에서 500m보다 멀면 넘기지 않는다(GRP-8).
+  pointMarker?: RouteElevationPointMarker | null | undefined;
 }
 
 const CHART_HEIGHT = 96;
@@ -40,6 +56,9 @@ const LINE_WIDTH = 2;
 const CURSOR_WIDTH = 1.5;
 const PEAK_RADIUS = 3;
 const CURSOR_RADIUS = 4.5;
+const POINT_MARKER_RADIUS = 4.5;
+const POINT_MARKER_DASH = '3 3';
+const POINT_LABEL_DOT = 8;
 
 /**
  * 단면 색. 데이터 시각화 색이라 토큰 예외로 하드코딩한다(CLAUDE.md).
@@ -67,6 +86,7 @@ const RouteElevationChartView: FC<Props> = ({
   onScrub,
   displayDistance,
   bottomInset,
+  pointMarker,
 }) => {
   const l10n = app.getL10n();
   const [width, setWidth] = useState(0);
@@ -209,6 +229,28 @@ const RouteElevationChartView: FC<Props> = ({
             r={PEAK_RADIUS}
             fill={PROFILE_COLOR}
           />
+          {/* 포인트 표시는 훑기 커서 **아래**에 그린다 — 훑는 동안 커서가 위에 겹쳐 보인다(GRP-8). */}
+          {pointMarker ? (
+            <>
+              <Line
+                x1={geometry.toX(pointMarker.distance)}
+                y1={0}
+                x2={geometry.toX(pointMarker.distance)}
+                y2={CHART_HEIGHT}
+                stroke={pointMarker.color}
+                strokeWidth={CURSOR_WIDTH}
+                strokeDasharray={POINT_MARKER_DASH}
+              />
+              <Circle
+                cx={geometry.toX(pointMarker.distance)}
+                cy={geometry.toY(pointMarker.elevation)}
+                r={POINT_MARKER_RADIUS}
+                fill={pointMarker.color}
+                stroke={Acg.paper}
+                strokeWidth={LINE_WIDTH}
+              />
+            </>
+          ) : null}
           {cursor ? (
             <>
               <Line
@@ -246,6 +288,20 @@ const RouteElevationChartView: FC<Props> = ({
           })}
         </PretendardText>
       </View>
+      {/* 제목이 먼저다 — 여러 포인트 중 어느 것인지가 숫자보다 먼저 읽혀야 한다(GRP-8). */}
+      {pointMarker ? (
+        <View style={styles.pointLabel}>
+          <View
+            style={[
+              styles.pointLabelDot,
+              { backgroundColor: pointMarker.color },
+            ]}
+          />
+          <PretendardText style={styles.pointLabelText} numberOfLines={1}>
+            {pointMarker.label}
+          </PretendardText>
+        </View>
+      ) : null}
       {interactive ? (
         <GestureDetector gesture={scrubGesture}>{chart}</GestureDetector>
       ) : (
@@ -296,6 +352,21 @@ const styles = StyleSheet.create({
   },
   chart: {
     height: CHART_HEIGHT,
+  },
+  pointLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: AcgLayout.chipGap,
+  },
+  pointLabelDot: {
+    width: POINT_LABEL_DOT,
+    height: POINT_LABEL_DOT,
+    borderRadius: POINT_LABEL_DOT / 2,
+  },
+  pointLabelText: {
+    ...AcgType.rowSubtitle,
+    color: Acg.ink,
+    flexShrink: 1,
   },
   /**
    * 훑을 수 있다는 유일한 시각 단서다(그전에는 `accessibilityHint`에만 있었다). 훑는 동안

@@ -1534,6 +1534,8 @@
     "profilePeak": "Peak {{value}}m",
     "profileHint": "Drag along the graph to see that spot on the map",
     "profileScrubHint": "Drag the graph to locate a spot",
+    "pointOnRoute": "{{distance}} along route",
+    "pointElevation": "Elevation {{value}}m",
     "reverse": "Reverse direction",
     "restoreDirection": "Show original direction",
     "reversed": "Reversed",

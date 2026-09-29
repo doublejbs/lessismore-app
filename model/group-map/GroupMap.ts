@@ -138,6 +138,11 @@ class GroupMap {
    * 선택에 더해 카메라 맞춤 요청을 남긴다. 첫 코스 자동 선택은 카메라를 옮기지 않는다.
    */
   public focusRoute(routeId: string): void {
+    // 다른 코스를 고르면 포인트 선택을 푼다 — 그래프의 포인트 표시가 옛 코스 기준으로 남지 않게(GRP-8).
+    if (routeId !== this.getSelectedRouteId()) {
+      this.focusedPointId = null;
+    }
+
     this.selectedRouteId = routeId;
     this.routeFocusRequest = {
       routeId,

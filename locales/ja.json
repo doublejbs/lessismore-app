@@ -1508,6 +1508,8 @@
     "profilePeak": "最高{{value}}m",
     "profileHint": "グラフをなぞるとその地点が地図に表示されます",
     "profileScrubHint": "グラフをなぞって地図で位置を確認",
+    "pointOnRoute": "コース{{distance}}地点",
+    "pointElevation": "標高 {{value}}m",
     "reverse": "向きを反転",
     "restoreDirection": "元の向きで表示",
     "reversed": "逆方向",

@@ -43,6 +43,7 @@ import GroupMapAimMarkerView from './GroupMapAimMarkerView';
 import GroupMapMarkersView, { GroupMapViewport } from './GroupMapMarkersView';
 import GroupMapRoutePanelView from './GroupMapRoutePanelView';
 import GroupPointCalloutView from './GroupPointCalloutView';
+import useGroupPointRouteMark from './useGroupPointRouteMark';
 import GroupPointFilterChipsView from './GroupPointFilterChipsView';
 import RouteScrubMarkerView from '@/components/route/RouteScrubMarkerView';
 import RouteEndpointMarkersView from '@/components/route/RouteEndpointMarkersView';
@@ -161,6 +162,8 @@ const GroupMapCanvasView: FC<Props> = ({
   const initialized = groupMap.isInitialized();
   // 고른 코스가 없거나 지워졌으면 첫 코스다(GRP-10 강조 규칙 — `GroupMap.getSelectedRouteId`).
   const selectedRoute = groupMap.getSelectedRoute();
+  // 고른 포인트가 선택된 코스의 어디쯤인지 — 그래프 표시와 카드 메타 줄(GRP-8).
+  const pointRouteMark = useGroupPointRouteMark(selectedRoute, selectedPoint);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -793,6 +796,7 @@ const GroupMapCanvasView: FC<Props> = ({
                   point={selectedPoint}
                   memberIds={groupMap.getMemberIds()}
                   canEdit={groupMap.canEditPoint(selectedPoint)}
+                  routeMeta={pointRouteMark?.calloutMeta ?? null}
                   disabled={pointList.isSubmitting()}
                   onEdit={() => onRequestEdit(selectedPoint)}
                   onDelete={() => onRequestDelete(selectedPoint)}
@@ -879,6 +883,7 @@ const GroupMapCanvasView: FC<Props> = ({
           route={selectedRoute}
           onOpenList={onOpenRouteList}
           onScrub={handleScrub}
+          pointMarker={pointRouteMark?.chartMarker ?? null}
           bottomInset={insets.bottom}
         />
       ) : null}
