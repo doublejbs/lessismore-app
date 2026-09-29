@@ -36,7 +36,7 @@ import GroupValidationError from '@/model/group/GroupValidationError';
 import { getGroupValidationMessage } from '@/model/group-error/GroupErrorMessage';
 import GroupMap from '@/model/group-map/GroupMap';
 import { getRouteFitRegion } from '@/model/route/RouteCamera';
-import { RouteBounds } from '@/model/route/RouteData';
+import { RouteBounds, RouteCoordinate } from '@/model/route/RouteData';
 import { RouteElevationSample } from '@/model/route/RouteElevation';
 import { deltaToZoom } from '@/model/map/MapZoom';
 import GroupMapAimMarkerView from './GroupMapAimMarkerView';
@@ -46,6 +46,8 @@ import GroupPointCalloutView from './GroupPointCalloutView';
 import GroupPointFilterChipsView from './GroupPointFilterChipsView';
 import RouteScrubMarkerView from '@/components/route/RouteScrubMarkerView';
 import RouteEndpointMarkersView from '@/components/route/RouteEndpointMarkersView';
+import RouteEndpointCalloutView from '@/components/route/RouteEndpointCalloutView';
+import { useRouteEndpointState } from '@/components/route/useRouteEndpointState';
 import MapControlButtonView from '@/components/map/MapControlButtonView';
 import MapMyLocationMarkerView from '@/components/map/MapMyLocationMarkerView';
 import {
@@ -184,6 +186,49 @@ const GroupMapCanvasView: FC<Props> = ({
     },
     []
   );
+
+  // 출발·도착 마커 탭 → 위치 정보 카드(GRP-8). 포인트 카드와 동시에 뜨지 않는다.
+  // 카드 위 빈 자리에 끝점을 둔다(`pivot`) — 가운데로 옮기면 누른 마커가 카드 밑에 숨는다.
+  const handleMoveToEndpoint = useCallback(
+    (coordinate: RouteCoordinate, pivot: { x: number; y: number }) => {
+      if (!mountedRef.current || !mapReadyRef.current || !mapRef.current) {
+        return;
+      }
+
+      mapRef.current.animateCameraTo({
+        latitude: coordinate.lat,
+        longitude: coordinate.lng,
+        zoom: zoomRef.current,
+        pivot,
+        duration: 500,
+      });
+    },
+    []
+  );
+  const handleSelectEndpoint = useCallback(() => {
+    groupMap.focusPoint(null);
+  }, [groupMap]);
+  const {
+    endpointInfo,
+    endpoint,
+    handleTapEndpoint,
+    handleCloseEndpoint,
+    handleMapLayout,
+    handleTopOverlayLayout,
+    handleBottomOverlayLayout,
+  } = useRouteEndpointState({
+    route: selectedRoute,
+    moveCamera: handleMoveToEndpoint,
+    onSelect: handleSelectEndpoint,
+  });
+  const hasFocusedPoint = !!groupMap.getFocusedPointId();
+
+  // 포인트에 초점이 가면(마커 탭·목록) 끝점 카드를 닫는다.
+  useEffect(() => {
+    if (hasFocusedPoint) {
+      handleCloseEndpoint();
+    }
+  }, [handleCloseEndpoint, hasFocusedPoint]);
 
   const fitBounds = useCallback((bounds: RouteBounds) => {
     if (!mountedRef.current || !mapReadyRef.current || !mapRef.current) {
@@ -499,8 +544,9 @@ const GroupMapCanvasView: FC<Props> = ({
    */
   const handleStartAiming = useCallback(() => {
     groupMap.focusPoint(null);
+    handleCloseEndpoint();
     setIsAiming(true);
-  }, [groupMap]);
+  }, [groupMap, handleCloseEndpoint]);
 
   const handleCancelAiming = useCallback(() => {
     setIsAiming(false);
@@ -549,7 +595,8 @@ const GroupMapCanvasView: FC<Props> = ({
 
   const handleTapMap = useCallback(() => {
     groupMap.focusPoint(null);
-  }, [groupMap]);
+    handleCloseEndpoint();
+  }, [groupMap, handleCloseEndpoint]);
 
   const isFull = pointList.isFull();
   const isRouteFull = routeList.isFull();
@@ -586,7 +633,7 @@ const GroupMapCanvasView: FC<Props> = ({
     <GestureHandlerRootView style={styles.root}>
       <View style={styles.mapSection}>
         <GestureDetector gesture={longPressGesture}>
-          <View style={styles.mapArea}>
+          <View style={styles.mapArea} onLayout={handleMapLayout}>
             <NaverMapView
               ref={mapRef}
               style={StyleSheet.absoluteFill}
@@ -634,7 +681,10 @@ const GroupMapCanvasView: FC<Props> = ({
               ) : null}
 
               {/* 선택한 코스의 시작·끝 — 옅게 그린 코스엔 달지 않는다(지도가 마커로 덮이지 않게). */}
-              <RouteEndpointMarkersView route={selectedRoute} />
+              <RouteEndpointMarkersView
+                route={selectedRoute}
+                onTapEndpoint={handleTapEndpoint}
+              />
 
               <GroupMapMarkersView
                 pointList={pointList}
@@ -670,6 +720,7 @@ const GroupMapCanvasView: FC<Props> = ({
           <View
             style={[styles.topOverlay, { top: topInset }]}
             pointerEvents='box-none'
+            onLayout={handleTopOverlayLayout}
           >
             <GroupPointFilterChipsView pointList={pointList} onMap />
           </View>
@@ -697,6 +748,7 @@ const GroupMapCanvasView: FC<Props> = ({
             { paddingBottom: overlayBottomInset + 16 },
           ]}
           pointerEvents='box-none'
+          onLayout={handleBottomOverlayLayout}
         >
           {/* 조준 모드에서는 정보 카드·추가 버튼 둘을 걷어 조준을 가리지 않는다(GRP-9 · GRP-10). */}
           {isAiming ? (
@@ -745,6 +797,16 @@ const GroupMapCanvasView: FC<Props> = ({
                   onEdit={() => onRequestEdit(selectedPoint)}
                   onDelete={() => onRequestDelete(selectedPoint)}
                   onClose={handleTapMap}
+                />
+              ) : null}
+
+              {/* 코스 출발·도착 위치 정보 카드(GRP-8) — 포인트 카드와 같은 자리, 둘 중 하나만 뜬다. */}
+              {endpoint && selectedRoute && !selectedPoint ? (
+                <RouteEndpointCalloutView
+                  endpointInfo={endpointInfo}
+                  endpoint={endpoint}
+                  routeName={selectedRoute.getName()}
+                  onClose={handleCloseEndpoint}
                 />
               ) : null}
 

@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { NaverMapMarkerOverlay } from '@mj-studio/react-native-naver-map';
 import { observer } from 'mobx-react-lite';
 import { RouteDisplay } from '@/model/route/RouteDisplay';
+import RouteEndpointKind from '@/model/route/RouteEndpointKind';
 import AppLanguage from '@/model/l10n/AppLanguage';
 import app from '@/model/app/App';
 
@@ -11,6 +12,8 @@ interface Props {
    * 마커를 달면 코스 수 × 2개의 마커가 지도를 덮고, 어느 끝이 어느 선의 것인지도 읽히지 않는다.
    */
   route: RouteDisplay | null;
+  // 마커를 누르면 그 끝점의 위치 정보 카드를 띄운다(GRP-8). 없으면 누를 수 없는 표식이다.
+  onTapEndpoint?: (kind: RouteEndpointKind) => void;
 }
 
 interface EndpointLabelImage {
@@ -81,7 +84,7 @@ const LABEL_ANCHOR = { x: 0.5, y: 1 };
  * 조준 마커(빈 원 + 조준선), 내 위치(파란 점) — 그래서 두 끝점은 원이 아닌 말풍선이다.
  * 라임은 쓰지 않는다(화면의 주 액션 `포인트 추가`가 라임이다, HM-8).
  */
-const RouteEndpointMarkersView: FC<Props> = ({ route }) => {
+const RouteEndpointMarkersView: FC<Props> = ({ route, onTapEndpoint }) => {
   const coordinates = route?.getSimplified() ?? [];
 
   if (!route || coordinates.length < 2) {
@@ -106,6 +109,9 @@ const RouteEndpointMarkersView: FC<Props> = ({ route }) => {
         image={labels.end.source}
         // 폴리라인 위, 훑기 마커(2)·포인트 아래. 순환 코스라 두 끝이 겹치면 시작이 위다.
         zIndex={1}
+        {...(onTapEndpoint
+          ? { onTap: () => onTapEndpoint(RouteEndpointKind.End) }
+          : {})}
       />
       <NaverMapMarkerOverlay
         key={`${keyPrefix}:start`}
@@ -116,6 +122,9 @@ const RouteEndpointMarkersView: FC<Props> = ({ route }) => {
         height={labels.start.height}
         image={labels.start.source}
         zIndex={1}
+        {...(onTapEndpoint
+          ? { onTap: () => onTapEndpoint(RouteEndpointKind.Start) }
+          : {})}
       />
     </>
   );

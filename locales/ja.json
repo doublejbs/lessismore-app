@@ -1492,6 +1492,18 @@
     "delete": "削除",
     "deleteConfirm": "{{name}}を削除しますか？アップロードしたGPXファイルも一緒に消えます。",
     "elevation": "獲得標高{{value}}m",
+    "endpoint": {
+      "start": "出発",
+      "end": "到着",
+      "addressLoading": "住所を確認中…",
+      "elevation": "標高 {{value}}m",
+      "separator": " · ",
+      "directions": "経路",
+      "copyCoordinate": "座標をコピー",
+      "copied": "座標をコピーしました",
+      "close": "閉じる",
+      "destinationName": "{{name}} {{endpoint}}"
+    },
     "profileTitle": "標高グラフ",
     "profilePeak": "最高{{value}}m",
     "profileHint": "グラフをなぞるとその地点が地図に表示されます",

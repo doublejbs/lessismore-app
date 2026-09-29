@@ -1518,6 +1518,18 @@
     "delete": "Delete",
     "deleteConfirm": "Delete {{name}}? The uploaded GPX file will be removed too.",
     "elevation": "Ascent {{value}}m",
+    "endpoint": {
+      "start": "Start",
+      "end": "Finish",
+      "addressLoading": "Finding address…",
+      "elevation": "Elevation {{value}}m",
+      "separator": " · ",
+      "directions": "Directions",
+      "copyCoordinate": "Copy coordinates",
+      "copied": "Coordinates copied",
+      "close": "Close",
+      "destinationName": "{{name}} {{endpoint}}"
+    },
     "profileTitle": "Elevation profile",
     "profilePeak": "Peak {{value}}m",
     "profileHint": "Drag along the graph to see that spot on the map",
