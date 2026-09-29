@@ -3,7 +3,9 @@ import { observer } from 'mobx-react-lite';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import RouteElevationChartView from '@/components/route/RouteElevationChartView';
+import RouteElevationChartView, {
+  RouteElevationPointMarker,
+} from '@/components/route/RouteElevationChartView';
 import { getRouteMetaParts } from '@/components/route/RouteRowParts';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
@@ -15,6 +17,8 @@ interface Props {
   // 머리 줄 탭 → 코스 목록 시트. 코스가 하나여도 연다 — 뒤집기·삭제가 시트 `⋯`에만 있다(GRP-10).
   onOpenList: () => void;
   onScrub: (sample: RouteElevationSample | null) => void;
+  // 고른 포인트가 이 코스 위에 있으면 그래프에 찍는다(GRP-8).
+  pointMarker: RouteElevationPointMarker | null;
   // 이 패널이 화면 맨 아래에 붙으므로 세이프에어리어를 여기서 비운다.
   bottomInset: number;
 }
@@ -36,6 +40,7 @@ const GroupMapRoutePanelView: FC<Props> = ({
   route,
   onOpenList,
   onScrub,
+  pointMarker,
   bottomInset,
 }) => {
   const l10n = app.getL10n();
@@ -76,6 +81,7 @@ const GroupMapRoutePanelView: FC<Props> = ({
           // 축 거리는 목록 행과 같은 원본 거리로 읽힌다(GRP-8).
           displayDistance={route.getDistance()}
           onScrub={onScrub}
+          pointMarker={pointMarker}
           bottomInset={bottomInset + PANEL_BOTTOM_GAP}
         />
       ) : (

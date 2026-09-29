@@ -1509,6 +1509,8 @@
     "profilePeak": "최고 {{value}}m",
     "profileHint": "그래프를 손가락으로 훑으면 지도에 그 지점이 표시돼요",
     "profileScrubHint": "그래프를 훑어 지도에서 위치 보기",
+    "pointOnRoute": "코스 {{distance}} 지점",
+    "pointElevation": "고도 {{value}}m",
     "reverse": "방향 뒤집기",
     "restoreDirection": "원래 방향으로 보기",
     "reversed": "역방향",
