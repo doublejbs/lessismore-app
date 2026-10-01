@@ -1492,6 +1492,9 @@
     "menu": "{{name}}のメニュー",
     "delete": "削除",
     "deleteConfirm": "{{name}}を削除しますか？アップロードしたGPXファイルも一緒に消えます。",
+    "export": "GPXを書き出す",
+    "exporting": "GPXを取得中…",
+    "exportFailed": "GPXを取得できませんでした",
     "elevation": "獲得標高{{value}}m",
     "endpoint": {
       "start": "出発",

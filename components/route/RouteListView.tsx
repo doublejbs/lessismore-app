@@ -11,7 +11,14 @@ export interface RouteRowAction {
   icon: keyof typeof Ionicons.glyphMap;
   // 메뉴 항목 라벨. 행마다 다른 문구를 주면 VoiceOver가 대상을 구분하지 못한다.
   label: string;
+  // 메뉴 시트가 내려간 뒤 불린다(`prepare`가 있으면 그것이 끝난 뒤).
   onPress: () => void;
+  /**
+   * 있으면 메뉴 시트를 띄운 채 먼저 끝낸다 — 그동안 항목 자리에 `preparingLabel` 진행 표시가 선다
+   * (GPX 내보내기 GRP-8: 받는 동안 시트가 닫히지 않는다).
+   */
+  prepare?: (() => Promise<void>) | undefined;
+  preparingLabel?: string | undefined;
 }
 
 export interface RouteRow {
@@ -86,6 +93,10 @@ const RouteListView: FC<Props> = ({ rows, selectedId, disabled }) => {
       icon: action.icon,
       text: action.label,
       onPress: action.onPress,
+      ...(action.prepare ? { prepare: action.prepare } : {}),
+      ...(action.preparingLabel
+        ? { preparingText: action.preparingLabel }
+        : {}),
     }));
   };
 

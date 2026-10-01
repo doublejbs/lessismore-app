@@ -1518,6 +1518,9 @@
     "menu": "{{name}} menu",
     "delete": "Delete",
     "deleteConfirm": "Delete {{name}}? The uploaded GPX file will be removed too.",
+    "export": "Export GPX",
+    "exporting": "Downloading GPX…",
+    "exportFailed": "Couldn't download the GPX",
     "elevation": "Ascent {{value}}m",
     "endpoint": {
       "start": "Start",
