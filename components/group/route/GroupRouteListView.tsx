@@ -6,6 +6,7 @@ import RouteListView, {
 } from '@/components/route/RouteListView';
 import {
   createRouteDirectionAction,
+  createRouteExportAction,
   getRouteMetaParts,
 } from '@/components/route/RouteRowParts';
 import app from '@/model/app/App';
@@ -57,9 +58,11 @@ const GroupRouteListView: FC<Props> = ({
     ].join(separator);
     const deletable = !!onDelete && (canDelete?.(route) ?? true);
     // 뒤집기는 보기 설정이라 **모든 행**에 있다 — 남이 올린 코스도 누구나 뒤집어 본다(GRP-8).
-    // 삭제는 올린 사람·방장에게만, 파괴적 액션이라 메뉴 맨 아래다.
+    // GPX 내보내기도 그룹원 누구나다. 삭제는 올린 사람·방장에게만, 파괴적 액션이라 메뉴 맨 아래다.
+    const exportAction = createRouteExportAction(route);
     const actions: RouteRowAction[] = [
       createRouteDirectionAction(route),
+      ...(exportAction ? [exportAction] : []),
       ...(deletable
         ? [
             {

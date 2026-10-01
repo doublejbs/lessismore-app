@@ -9,6 +9,7 @@ import RouteListView, {
 } from '@/components/route/RouteListView';
 import {
   createRouteDirectionAction,
+  createRouteExportAction,
   getRouteMetaParts,
 } from '@/components/route/RouteRowParts';
 import { Acg, AcgLayout, AcgType, Radius } from '@/constants/DesignTokens';
@@ -56,6 +57,12 @@ const BagRouteListSectionView: FC<Props> = ({
     ].join(separator);
     // 뒤집기는 보기 설정이라 **모든 행**에 있다 — 연결 그룹에서 온 읽기 전용 코스와 웹에서도(GRP-8).
     const actions: RouteRowAction[] = [createRouteDirectionAction(entry.route)];
+    // GPX 내보내기도 모든 행이다 — 연결 그룹 코스는 그룹원이라, 내 배낭 코스는 소유자라 받는다(GRP-8).
+    const exportAction = createRouteExportAction(entry.route);
+
+    if (exportAction) {
+      actions.push(exportAction);
+    }
 
     // 웹은 보기 전용이다(APP-5, BD-11) — 파일 선택기가 없어 추가가 불가능한 화면에서
     // 삭제만 여는 것은 균형이 맞지 않는다. `canAdd()`가 그 경계를 그대로 쓴다.

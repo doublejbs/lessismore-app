@@ -1491,6 +1491,9 @@
     "menu": "{{name}} 메뉴",
     "delete": "삭제",
     "deleteConfirm": "{{name}}을(를) 삭제할까요? 올린 GPX 원본 파일도 함께 사라져요.",
+    "export": "GPX 내보내기",
+    "exporting": "GPX 받는 중…",
+    "exportFailed": "GPX를 받지 못했어요",
     "elevation": "상승 {{value}}m",
     "endpoint": {
       "start": "출발",
