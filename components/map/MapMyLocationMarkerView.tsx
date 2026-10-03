@@ -23,7 +23,8 @@ interface Props {
 // 방향 부채꼴은 **PNG 이미지 마커**다. 커스텀 View 마커는 네이버 지도가 스냅숏으로 굳혀 그리므로
 // (코스 끝점 마커에서 글리프가 빠진 이유 — RouteEndpointMarkersView) View transform 회전은 갱신이
 // 보장되지 않는다. 이미지 마커는 `angle`을 네이티브가 직접 돌린다. `isFlatEnabled`로 지도에 눕혀
-// 각도가 **지도(진북) 기준**이 되게 한다 — 지도가 방향 모드로 돌아도 부채꼴은 실제 방위를 가리킨다.
+// 각도가 **지도(진북) 기준**이 되게 한다 — 지도가 방향 모드로 돌거나, 따라가기가 풀려 돌아간 채로
+// 남아도 부채꼴은 실제 방위를 가리킨다(화면 기준으로 보정하지 않는다).
 // 이미지는 위(북)를 향한 부채꼴이고 꼭짓점이 정중앙이다(88pt, 1x/2x/3x, `assets/images/map/`).
 const HEADING_CONE_SIZE = 88;
 const HEADING_CONE = require('@/assets/images/map/my-location-heading.png');

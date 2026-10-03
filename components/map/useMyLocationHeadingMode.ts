@@ -30,7 +30,10 @@ interface MyLocationHeadingMode {
   // 내 위치 점 좌표. 권한이 없거나 아직 모르면 `null`.
   currentLocation: MapCoordinate | null;
   mode: MyLocationMode;
-  // 방향 모드에서 부채꼴을 그릴 방향. 방향 모드가 아니거나 아직 나침반 값이 없으면 `null`.
+  /**
+   * 파란 점에 부채꼴을 그릴 방향. 부채꼴이 켜져 있으면(②로 켜고 ③으로 끌 때까지 — 손으로 지도를 움직여
+   * 따라가기가 풀려도 유지) 나침반 값을 준다. 부채꼴이 꺼져 있거나 아직 나침반 값이 없으면 `null`.
+   */
   heading: CompassHeading | null;
   /**
    * 지도에 넘길 제어 카메라(`NaverMapView`의 `camera` prop). 방향 모드를 한 번도 쓰지 않았으면
@@ -43,13 +46,13 @@ interface MyLocationHeadingMode {
   cameraAnimationDuration: number;
   // `내 위치` 버튼. ① 내 위치로 → ② 방향 모드 → ③ 끄기(북쪽 위로)를 돈다.
   handlePressMyLocation: () => Promise<void>;
-  // `NaverMapView`의 `onCameraChanged`에 연결한다. 손이나 지도 나침반 컨트롤로 움직이면 따라가기를 푼다.
+  // `NaverMapView`의 `onCameraChanged`에 연결한다. 손이나 지도 나침반 컨트롤로 움직이면 따라가기를 푼다(부채꼴은 유지).
   handleCameraChanged: (
     camera: Camera & { reason: CameraChangeReason }
   ) => void;
   /**
    * 화면이 카메라를 직접 옮기기 전에 부른다(코스 맞춤·끝점·포인트 이동). 따라가기를 풀어
-   * 다음 나침반 값이 카메라를 내 위치로 되돌려 놓지 않게 한다. 지도 회전은 그대로 둔다.
+   * 다음 나침반 값이 카메라를 내 위치로 되돌려 놓지 않게 한다. 지도 회전과 부채꼴은 그대로 둔다.
    */
   releaseFollow: () => void;
 }
@@ -86,10 +89,16 @@ interface CameraSnapshot {
  *   구조체(위경도·줌 0)를 받는데, 라이브러리의 유효성 검사는 -123123123만 무효로 보므로 0을 유효한
  *   카메라로 적용해 **지도가 0°,0°(대서양)로 튄다**(2026-10-03 실기기 — 방향 모드 중 드래그하면 이상한
  *   곳으로 이동). 안드로이드는 null을 무시해 재현되지 않는다. `RNCNaverMapView.mm` `updateProps` 참고.
- * - 나침반 구독은 **방향 모드 + 화면 포커스 + 앱 활성**일 때만 연다(배터리). 백그라운드에서 돌아오거나
- *   화면에 다시 포커스되면 방향 모드가 그대로면 다시 연다.
- * - 방향 모드 중 손으로 지도를 움직이면(`reason === 'Gesture'`) 따라가기를 풀고 ① 상태(`Off`)로
- *   돌아간다. 부채꼴도 뗀다. 회전은 그대로 둔다 — 북쪽 위로 되돌리는 것은 ③(버튼)만 한다.
+ * - **카메라 따라가기와 부채꼴은 따로 간다.** 따라가기(내 위치 고정 + 지도 회전)는 `mode === Heading`
+ *   동안만이고, 부채꼴(`isHeadingShown`)은 ②로 켜서 ③으로 끌 때까지 남는다(애플·네이버 지도와 같다).
+ * - 방향 모드 중 손으로 지도를 움직이면(`reason === 'Gesture'`) 따라가기만 풀고 ① 상태(`Off`)로
+ *   돌아간다. **부채꼴과 나침반 구독은 유지한다** — 손을 떼도 내가 바라보는 방향은 계속 보인다.
+ *   회전도 그대로 둔다 — 북쪽 위로 되돌리고 부채꼴을 떼는 것은 ③(버튼)만 한다. 그 뒤 버튼은
+ *   ① 내 위치로(부채꼴 유지) → ② 방향 모드 → ③ 끄기를 그대로 돈다.
+ * - 따라가지 않는 동안 나침반 값은 **부채꼴만 다시 그린다** — 카메라 방위는 `followCamera`(방향 모드)만
+ *   나침반을 쓴다. 부채꼴은 지도에 눕힌(flat) 마커라 지도가 돌아간 채로 남아도 진북 기준 방향을 가리킨다.
+ * - 나침반 구독은 **(방향 모드 또는 부채꼴 켜짐) + 화면 포커스 + 앱 활성**일 때만 연다(배터리).
+ *   백그라운드에서 돌아오거나 화면에 다시 포커스되면 부채꼴이 그대로면 다시 연다.
  */
 export const useMyLocationHeadingMode = ({
   moveCamera,
@@ -100,6 +109,8 @@ export const useMyLocationHeadingMode = ({
     useMapCurrentLocation({ moveCamera, logTag });
   const [mode, setMode] = useState(MyLocationMode.Off);
   const [heading, setHeading] = useState<CompassHeading | null>(null);
+  // 부채꼴이 켜져 있는지. ②에서 켜고 ③에서만 끈다 — 따라가기가 풀려도(손 이동) 남는다.
+  const [isHeadingShown, setIsHeadingShown] = useState(false);
   // 방향 모드에 들어간 순간의 줌·방위. 줌은 방향 모드 동안 고정이다(손으로 바꾸면 모드가 풀린다).
   const [followBase, setFollowBase] = useState<{
     zoom: number;
@@ -223,9 +234,11 @@ export const useMyLocationHeadingMode = ({
     [flushHeading]
   );
 
-  // 나침반 구독 — 방향 모드 + 포커스 + 앱 활성일 때만(BD-11 배터리).
+  // 나침반 구독 — (방향 모드 또는 부채꼴 켜짐) + 포커스 + 앱 활성일 때만(BD-11 배터리).
   const isHeadingActive =
-    mode === MyLocationMode.Heading && isFocused && isAppActive;
+    (mode === MyLocationMode.Heading || isHeadingShown) &&
+    isFocused &&
+    isAppActive;
 
   useEffect(() => {
     if (!isHeadingActive) {
@@ -273,37 +286,53 @@ export const useMyLocationHeadingMode = ({
     }
   }, []);
 
+  // 따라가기만 푼다 — 부채꼴·나침반 구독(`heading`·`appliedHeadingRef`)은 그대로 둔다.
   const releaseFollow = useCallback(() => {
     // 방향 모드가 아니면(이미 얼어 있거나 한 번도 안 썼으면) 같은 값이라 리렌더도 없다.
     freezeEmittedCamera();
     setMode(previous =>
       previous === MyLocationMode.Off ? previous : MyLocationMode.Off
     );
-    setHeading(previous => (previous ? null : previous));
     setFollowBase(previous => (previous ? null : previous));
-    appliedHeadingRef.current = null;
-    clearThrottle();
-  }, [clearThrottle, freezeEmittedCamera]);
+  }, [freezeEmittedCamera]);
 
   const enterHeading = useCallback(() => {
     const last = lastCameraRef.current;
+    const lastBearing = last?.bearing ?? 0;
+    const applied = appliedHeadingRef.current;
 
-    appliedHeadingRef.current = null;
     lastAppliedAtRef.current = 0;
+
+    // 부채꼴이 이미 켜져 있으면(손 이동 뒤 다시 ②) 방향을 지금 지도 방위 근처의 연속값으로 옮겨 둔다 —
+    // 쌓인 연속값(예 725°)을 그대로 카메라에 넘기면 지도가 여러 바퀴 돌 수 있다. 접은 방향은 같다.
+    if (applied) {
+      const rebased: CompassHeading = {
+        bearing: lastBearing + getShortestDelta(lastBearing, applied.bearing),
+        isLowAccuracy: applied.isLowAccuracy,
+      };
+
+      appliedHeadingRef.current = rebased;
+      setHeading(rebased);
+    }
+
     setFollowBase({
       zoom: last?.zoom ?? fallbackZoom,
-      bearing: last?.bearing ?? 0,
+      bearing: lastBearing,
     });
-    setHeading(null);
+    setIsHeadingShown(true);
     setMode(MyLocationMode.Heading);
   }, [fallbackZoom]);
 
-  // ③ 방향 모드 끄기 — 지도를 북쪽 위로 되돌리고 부채꼴을 뗀다.
+  // ③ 방향 모드 끄기 — 지도를 북쪽 위로 되돌리고 부채꼴을 뗀다(나침반 구독도 멈춘다).
   const resetBearing = useCallback(() => {
     const last = lastCameraRef.current;
     const center = last ?? currentLocation;
 
     releaseFollow();
+    setIsHeadingShown(false);
+    setHeading(null);
+    appliedHeadingRef.current = null;
+    clearThrottle();
 
     if (!center) {
       return;
@@ -317,7 +346,7 @@ export const useMyLocationHeadingMode = ({
       tilt: 0,
       bearing: 0,
     });
-  }, [currentLocation, fallbackZoom, releaseFollow]);
+  }, [clearThrottle, currentLocation, fallbackZoom, releaseFollow]);
 
   const handlePressMyLocation = useCallback(async () => {
     if (mode === MyLocationMode.Heading) {
@@ -365,6 +394,8 @@ export const useMyLocationHeadingMode = ({
     [fallbackZoom, releaseFollow]
   );
 
+  // 카메라 방위에 나침반을 쓰는 곳은 여기(방향 모드)뿐이다. 따라가지 않는 동안에는 `frozenCamera`가
+  // 그대로라 나침반 값이 바뀌어도 카메라는 움직이지 않고 부채꼴만 다시 그린다.
   const followCamera: Camera | undefined =
     mode === MyLocationMode.Heading && currentLocation && followBase
       ? {
@@ -386,7 +417,7 @@ export const useMyLocationHeadingMode = ({
     granted,
     currentLocation,
     mode,
-    heading: mode === MyLocationMode.Heading ? heading : null,
+    heading: isHeadingShown ? heading : null,
     camera,
     cameraAnimationDuration: CAMERA_ANIMATION_DURATION,
     handlePressMyLocation,
