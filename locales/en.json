@@ -1019,7 +1019,9 @@
     "location": {
       "failed": "We couldn't find your location. Please try again later.",
       "permissionDenied": "Location access is turned off. Allow it in Settings.",
-      "openSettings": "Open Settings"
+      "openSettings": "Open Settings",
+      "showHeading": "Show heading",
+      "hideHeading": "Turn off heading"
     }
   },
   "home": {
