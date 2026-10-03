@@ -33,9 +33,10 @@ interface MyLocationHeadingMode {
   // 방향 모드에서 부채꼴을 그릴 방향. 방향 모드가 아니거나 아직 나침반 값이 없으면 `null`.
   heading: CompassHeading | null;
   /**
-   * 지도에 넘길 제어 카메라(`NaverMapView`의 `camera` prop). 방향 모드 동안 내 위치·방위를
-   * 따라가고, 방향 모드를 끌 때 북쪽 위로 되돌리는 동안만 값이 있다. 나머지 때는 `undefined`라
-   * 화면의 다른 카메라 이동(`animateCameraTo` 등)을 막지 않는다.
+   * 지도에 넘길 제어 카메라(`NaverMapView`의 `camera` prop). 방향 모드를 한 번도 쓰지 않았으면
+   * `undefined`다. 방향 모드 동안 내 위치·방위를 따라가고, 모드가 끝나면 **마지막 값 그대로 얼려 둔다**
+   * (같은 값이면 네이티브로 다시 보내지 않으므로 손·`animateCameraTo`의 이동을 막지 않는다).
+   * **한 번 값을 넘긴 뒤에는 `undefined`로 되돌리지 않는다** — 아래 훅 주석 참고.
    */
   camera: Camera | undefined;
   // `NaverMapView`의 `animationDuration` — `camera` prop 변경에만 적용된다.
@@ -62,8 +63,6 @@ const MIN_UPDATE_INTERVAL = 100;
  * 이어지게 한다 — 끊긴 계단이 아니라 부드럽게 따라가는 회전으로 보인다.
  */
 const CAMERA_ANIMATION_DURATION = 250;
-/** 방향 모드를 끄며 북쪽 위로 돌린 뒤 제어 카메라를 놓을 때까지(ms). 애니메이션보다 길게 둔다. */
-const RESET_RELEASE_DELAY = 400;
 
 interface CameraSnapshot {
   latitude: number;
@@ -79,9 +78,14 @@ interface CameraSnapshot {
  * - **회전은 `camera` prop으로 한다.** `@mj-studio/react-native-naver-map@2.9.0`의
  *   `animateCameraTo`는 방위(bearing)를 받지 않는다(네이티브 명령에 인자가 없다). 반면 `camera`
  *   prop은 위경도·줌·기울기·방위를 모두 받고 `animationDuration`으로 애니메이션한다 — 네이티브
- *   변경 없이(OTA로) 쓸 수 있는 유일한 회전 경로다. 그래서 방향 모드 동안만 제어 카메라를 켜고,
- *   끝나면 `undefined`로 놓아 화면의 기존 `animateCameraTo`/`animateRegionTo`가 그대로 동작하게 한다.
- *   (`camera` prop은 줌이 없으면 10으로 채워지므로 줌을 항상 함께 넘긴다.)
+ *   변경 없이(OTA로) 쓸 수 있는 유일한 회전 경로다. 방향 모드 동안 이 prop으로 따라가고, 모드가
+ *   끝나면 **마지막으로 넘긴 값을 그대로 얼려 둔다.** 값이 바뀌지 않으면 네이티브로 다시 보내지 않으므로
+ *   (JS 프롭 diff·iOS `isCameraEqual`) 손 제스처와 화면의 `animateCameraTo`/`animateRegionTo`가 그대로
+ *   동작한다. (`camera` prop은 줌이 없으면 10으로 채워지므로 줌을 항상 함께 넘긴다.)
+ * - **한 번 넘긴 `camera`를 `undefined`로 되돌리지 말 것.** iOS(Fabric)는 prop이 빠지면 코드젠 기본
+ *   구조체(위경도·줌 0)를 받는데, 라이브러리의 유효성 검사는 -123123123만 무효로 보므로 0을 유효한
+ *   카메라로 적용해 **지도가 0°,0°(대서양)로 튄다**(2026-10-03 실기기 — 방향 모드 중 드래그하면 이상한
+ *   곳으로 이동). 안드로이드는 null을 무시해 재현되지 않는다. `RNCNaverMapView.mm` `updateProps` 참고.
  * - 나침반 구독은 **방향 모드 + 화면 포커스 + 앱 활성**일 때만 연다(배터리). 백그라운드에서 돌아오거나
  *   화면에 다시 포커스되면 방향 모드가 그대로면 다시 연다.
  * - 방향 모드 중 손으로 지도를 움직이면(`reason === 'Gesture'`) 따라가기를 풀고 ① 상태(`Off`)로
@@ -101,8 +105,10 @@ export const useMyLocationHeadingMode = ({
     zoom: number;
     bearing: number;
   } | null>(null);
-  // 방향 모드를 끄며 북쪽 위로 돌리는 동안의 제어 카메라.
-  const [resetCamera, setResetCamera] = useState<Camera | null>(null);
+  // 방향 모드가 아닐 때 넘기는 얼린 카메라 — 마지막으로 넘긴 값(따라가기를 푼 순간) 또는 ③의 북쪽 위 카메라.
+  const [frozenCamera, setFrozenCamera] = useState<Camera | null>(null);
+  // 마지막 커밋에서 지도에 넘긴 `camera` prop. 따라가기를 풀 때 이 값을 그대로 얼린다.
+  const emittedCameraRef = useRef<Camera | null>(null);
   const [isAppActive, setIsAppActive] = useState(
     AppState.currentState === 'active'
   );
@@ -117,7 +123,6 @@ export const useMyLocationHeadingMode = ({
   } | null>(null);
   const lastAppliedAtRef = useRef(0);
   const throttleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -128,10 +133,6 @@ export const useMyLocationHeadingMode = ({
 
       if (throttleTimerRef.current) {
         clearTimeout(throttleTimerRef.current);
-      }
-
-      if (resetTimerRef.current) {
-        clearTimeout(resetTimerRef.current);
       }
     };
   }, []);
@@ -153,15 +154,6 @@ export const useMyLocationHeadingMode = ({
     }
 
     pendingHeadingRef.current = null;
-  }, []);
-
-  const clearResetCamera = useCallback(() => {
-    if (resetTimerRef.current) {
-      clearTimeout(resetTimerRef.current);
-      resetTimerRef.current = null;
-    }
-
-    setResetCamera(null);
   }, []);
 
   // 쌓인 나침반 값을 지도에 반영한다. 3° 미만 변화는 버린다(정확도 단계가 바뀐 경우는 반영 — 부채꼴 모양이 바뀐다).
@@ -269,15 +261,21 @@ export const useMyLocationHeadingMode = ({
     };
   }, [clearThrottle, handleHeading, isHeadingActive, logTag]);
 
-  const leaveHeading = useCallback(() => {
-    setMode(MyLocationMode.Off);
-    setHeading(null);
-    setFollowBase(null);
-    appliedHeadingRef.current = null;
-    clearThrottle();
-  }, [clearThrottle]);
+  /**
+   * 지금 지도에 넘겨 둔 `camera` prop을 그대로 얼린다. 값이 같으면 네이티브로 다시 보내지 않으므로
+   * 지도는 손·애니메이션이 둔 자리에 그대로 머문다(따라가기만 끊긴다).
+   */
+  const freezeEmittedCamera = useCallback(() => {
+    const emitted = emittedCameraRef.current;
+
+    if (emitted) {
+      setFrozenCamera(emitted);
+    }
+  }, []);
 
   const releaseFollow = useCallback(() => {
+    // 방향 모드가 아니면(이미 얼어 있거나 한 번도 안 썼으면) 같은 값이라 리렌더도 없다.
+    freezeEmittedCamera();
     setMode(previous =>
       previous === MyLocationMode.Off ? previous : MyLocationMode.Off
     );
@@ -285,16 +283,11 @@ export const useMyLocationHeadingMode = ({
     setFollowBase(previous => (previous ? null : previous));
     appliedHeadingRef.current = null;
     clearThrottle();
-
-    if (resetTimerRef.current) {
-      clearResetCamera();
-    }
-  }, [clearResetCamera, clearThrottle]);
+  }, [clearThrottle, freezeEmittedCamera]);
 
   const enterHeading = useCallback(() => {
     const last = lastCameraRef.current;
 
-    clearResetCamera();
     appliedHeadingRef.current = null;
     lastAppliedAtRef.current = 0;
     setFollowBase({
@@ -303,35 +296,28 @@ export const useMyLocationHeadingMode = ({
     });
     setHeading(null);
     setMode(MyLocationMode.Heading);
-  }, [clearResetCamera, fallbackZoom]);
+  }, [fallbackZoom]);
 
   // ③ 방향 모드 끄기 — 지도를 북쪽 위로 되돌리고 부채꼴을 뗀다.
   const resetBearing = useCallback(() => {
     const last = lastCameraRef.current;
     const center = last ?? currentLocation;
 
-    leaveHeading();
+    releaseFollow();
 
     if (!center) {
       return;
     }
 
-    clearResetCamera();
-    setResetCamera({
+    // 이 값은 계속 얼려 둔다 — `undefined`로 놓지 않는다(훅 주석: iOS가 0°,0°로 이동한다).
+    setFrozenCamera({
       latitude: center.latitude,
       longitude: center.longitude,
       zoom: last?.zoom ?? fallbackZoom,
       tilt: 0,
       bearing: 0,
     });
-    resetTimerRef.current = setTimeout(() => {
-      resetTimerRef.current = null;
-
-      if (mountedRef.current) {
-        setResetCamera(null);
-      }
-    }, RESET_RELEASE_DELAY);
-  }, [clearResetCamera, currentLocation, fallbackZoom, leaveHeading]);
+  }, [currentLocation, fallbackZoom, releaseFollow]);
 
   const handlePressMyLocation = useCallback(async () => {
     if (mode === MyLocationMode.Heading) {
@@ -389,13 +375,19 @@ export const useMyLocationHeadingMode = ({
           bearing: heading?.bearing ?? followBase.bearing,
         }
       : undefined;
+  const camera = followCamera ?? frozenCamera ?? undefined;
+
+  // 커밋된 `camera` prop을 기억한다 — 따라가기를 풀 때 이 값을 그대로 얼린다(`freezeEmittedCamera`).
+  useEffect(() => {
+    emittedCameraRef.current = camera ?? null;
+  }, [camera]);
 
   return {
     granted,
     currentLocation,
     mode,
     heading: mode === MyLocationMode.Heading ? heading : null,
-    camera: followCamera ?? resetCamera ?? undefined,
+    camera,
     cameraAnimationDuration: CAMERA_ANIMATION_DURATION,
     handlePressMyLocation,
     handleCameraChanged,
