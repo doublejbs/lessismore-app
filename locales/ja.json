@@ -1007,7 +1007,9 @@
     "location": {
       "failed": "現在地を確認できませんでした。しばらくしてからもう一度お試しください。",
       "permissionDenied": "位置情報へのアクセスがオフになっています。設定で許可してください。",
-      "openSettings": "設定を開く"
+      "openSettings": "設定を開く",
+      "showHeading": "向きを表示",
+      "hideHeading": "向きの表示をオフ"
     }
   },
   "home": {
