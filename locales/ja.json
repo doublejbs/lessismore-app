@@ -108,6 +108,8 @@
       "name": "商号",
       "representative": "代表者",
       "registrationNumber": "事業者登録番号",
+      "mailOrderNumber": "通信販売業申告番号",
+      "address": "事業所所在地",
       "email": "メールアドレス"
     },
     "policy": {

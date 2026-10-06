@@ -108,6 +108,8 @@
       "name": "Business name",
       "representative": "Representative",
       "registrationNumber": "Business registration number",
+      "mailOrderNumber": "Mail-order business registration no.",
+      "address": "Business address",
       "email": "Email"
     },
     "policy": {

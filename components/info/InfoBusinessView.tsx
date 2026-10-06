@@ -15,13 +15,17 @@ import { observer } from 'mobx-react-lite';
 /**
  * 사업자 정보 표시 항목(AU-4). 전자상거래법 제10조 사업자 신원 정보.
  *
- * **사업장 소재지·통신판매업 신고번호·생년월일은 넣지 않는다** — 각각의 근거는 스펙에 있다.
- * 통신판매업 신고를 하면 영업소 소재지가 표시 의무가 되므로 그때 주소 항목을 추가한다.
+ * **생년월일은 넣지 않는다** — 근거는 스펙에 있다.
  */
 const BUSINESS_INFO: { label: string; value: string }[] = [
   { label: 'info.business.name', value: '마그마' }, // l10n-ignore: 사업자 상호 고유명
   { label: 'info.business.representative', value: '장하림' }, // l10n-ignore: 사업자 대표자 고유명
   { label: 'info.business.registrationNumber', value: '167-58-00828' },
+  { label: 'info.business.mailOrderNumber', value: '제2026-성남분당B-0915호' }, // l10n-ignore: 신고번호 고유값
+  {
+    label: 'info.business.address',
+    value: '경기도 성남시 분당구 백현로 206, 410동 704호 (정자동, 한솔마을)', // l10n-ignore: 사업장 주소
+  },
   { label: 'info.business.email', value: 'doublejbs@naver.com' },
 ];
 
