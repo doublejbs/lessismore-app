@@ -2,12 +2,14 @@ import { makeAutoObservable } from 'mobx';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import Firebase from '../firebase/Firebase';
 import ConsumableCategory from '../consumable/ConsumableCategory';
+import ConsumableMerchant from '../consumable/ConsumableMerchant';
 import { ConsumableProduct } from '../consumable/ConsumableProduct';
 import ConsumableSurface from '../consumable/ConsumableSurface';
 
 const COLLECTION_NAME = 'consumable-product';
 const CATEGORIES = new Set<string>(Object.values(ConsumableCategory));
 const SURFACES = new Set<string>(Object.values(ConsumableSurface));
+const MERCHANTS = new Set<string>(Object.values(ConsumableMerchant));
 
 // 운영자 큐레이션 소모품 조회·공유 (Consumables CP-1, DataModel DM-32).
 // 배낭 상세·홈·커뮤니티 세 자리가 이 싱글톤 결과 하나를 함께 읽는다 — 자리마다 따로 조회하지 않는다.
@@ -113,9 +115,17 @@ class ConsumableStore {
     data: Record<string, unknown>
   ): ConsumableProduct | null {
     const name = ConsumableStore.getTrimmedString(data.name);
-    const coupangUrl = ConsumableStore.getTrimmedString(data.coupangUrl);
+    const linkUrl = ConsumableStore.getTrimmedString(data.linkUrl);
+    const merchant = ConsumableStore.getTrimmedString(data.merchant);
 
-    if (!name || !coupangUrl || !coupangUrl.startsWith('https://')) {
+    // 쇼핑몰을 모르면 출처 표기·고지를 맞게 붙일 수 없으므로 문서를 버린다.
+    if (
+      !name ||
+      !linkUrl ||
+      !linkUrl.startsWith('https://') ||
+      !merchant ||
+      !MERCHANTS.has(merchant)
+    ) {
       return null;
     }
 
@@ -136,7 +146,8 @@ class ConsumableStore {
         category && CATEGORIES.has(category)
           ? (category as ConsumableCategory)
           : ConsumableCategory.Etc,
-      coupangUrl,
+      merchant: merchant as ConsumableMerchant,
+      linkUrl,
       // ATS가 막는 HTTP 이미지는 밴드로 들이지 않는다 — 아이콘 폴백(CP-2).
       ...(imageUrl?.startsWith('https://') ? { imageUrl } : {}),
       productId: ConsumableStore.getTrimmedString(data.productId) ?? id,

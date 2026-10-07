@@ -45,6 +45,8 @@ import app from '@/model/app/App';
 import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
 import { setBagShareContext } from '@/model/bag-detail/BagShareHandoff';
 import { formatGroupDateRange } from '@/model/group-format/GroupFormat';
+import ConsumableCarouselSectionView from '@/components/consumable/ConsumableCarouselSectionView';
+import ConsumableSurface from '@/model/consumable/ConsumableSurface';
 
 interface Props {
   bagDetail: BagDetail;
@@ -117,6 +119,11 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
       bagDetail.initialize();
     }, [bagDetail])
   );
+
+  // 소모품은 세션당 1회 조회다(CP-1) — 이미 읽었으면 같은 Promise라 다시 부르지 않는다.
+  useEffect(() => {
+    app.getConsumableStore()?.load();
+  }, []);
 
   useLayoutEffect(() => {
     if (initialized && scrollViewRef.current) {
@@ -355,6 +362,21 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                   </>
                 )}
               </View>
+              {/* 출발 전·여행 중에만(CP-4 / BD-12). 이 화면은 본인 배낭 전용이다 —
+                  공유 배낭(shared-bag)·그룹 멤버 배낭(GroupMemberBagView)은 다른 화면이라 해당 없다. */}
+              {bagDetail.getTripPhase() !== 'after' && (
+                <View style={styles.consumableSection}>
+                  <ConsumableCarouselSectionView
+                    title={app.getL10n().t('consumable.bagDetailTitle')}
+                    products={
+                      app
+                        .getConsumableStore()
+                        ?.getForSurface(ConsumableSurface.BagDetail) ?? []
+                    }
+                    source='bag_detail'
+                  />
+                </View>
+              )}
               <View style={styles.separator} />
               <View
                 style={styles.gearHeader}
@@ -519,6 +541,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: AcgLayout.screenPadding,
     marginTop: 12,
     marginBottom: 8,
+  },
+  // 캐러셀이 좌우 패딩 바깥까지 흐르도록(-24) 부모가 화면 패딩을 준다(CP-4).
+  consumableSection: {
+    paddingHorizontal: AcgLayout.screenPadding,
+    marginTop: 24,
   },
   // 지면이 구분을 맡으므로 띠는 색 없이 간격만 낸다(ACG).
   separator: {

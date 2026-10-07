@@ -22,6 +22,8 @@ import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import Home from '@/model/home/Home';
 import app from '@/model/app/App';
 import { selectTripPlan } from '@/model/home/HomeTripPlan';
+import ConsumableCarouselSectionView from '@/components/consumable/ConsumableCarouselSectionView';
+import ConsumableSurface from '@/model/consumable/ConsumableSurface';
 
 interface Props {
   home: Home;
@@ -51,9 +53,21 @@ const HomeView: FC<Props> = ({ home }) => {
     router.push('/info');
   };
 
+  // 추천 박지 아래가 마지막 콘텐츠 섹션(챙겨갈 소모품, CP-5 / HM-16)이다 — 비로그인 홈에도 같다.
+  // 로딩 중 자리를 잡지 않는다: 0개(조회 전·실패 포함)면 섹션이 아예 그려지지 않는다.
   const renderRecommendations = () => {
     return (
-      <HomeRecommendedSpotsView recommendations={home.getRecommendedSpots()} />
+      <>
+        <HomeRecommendedSpotsView recommendations={home.getRecommendedSpots()} />
+        <ConsumableCarouselSectionView
+          title={app.getL10n().t('consumable.homeTitle')}
+          products={
+            app.getConsumableStore()?.getForSurface(ConsumableSurface.Home) ??
+            []
+          }
+          source='home'
+        />
+      </>
     );
   };
 
@@ -63,6 +77,11 @@ const HomeView: FC<Props> = ({ home }) => {
       home.load();
     }, [home])
   );
+
+  // 소모품은 세션당 1회 조회다(CP-1). 홈 로딩과 독립이라 홈 렌더를 막지 않는다.
+  useEffect(() => {
+    app.getConsumableStore()?.load();
+  }, []);
 
   // 로그인 상태 reaction을 들고 있으므로 언마운트 시 정리한다.
   useEffect(() => {

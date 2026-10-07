@@ -7,7 +7,7 @@ import { ConsumableProduct } from '@/model/consumable/ConsumableProduct';
 import { CONSUMABLE_COMMUNITY_CARD_ITEMS } from '@/model/consumable/ConsumableSlotConstants';
 import app from '@/model/app/App';
 import ConsumableCardView from './ConsumableCardView';
-import CoupangDisclaimerView from './CoupangDisclaimerView';
+import CommerceDisclaimerView from './CommerceDisclaimerView';
 
 interface Props {
   // 이 카드에 보일 상품(호출하는 쪽이 순환해 ≤3개로 잘라 넘긴다, CP-6)
@@ -34,6 +34,7 @@ const CommunityConsumableCardView: FC<Props> = ({
   }
 
   const visibleProducts = products.slice(0, CONSUMABLE_COMMUNITY_CARD_ITEMS);
+  const merchants = visibleProducts.map(product => product.merchant);
 
   return (
     <View style={styles.card}>
@@ -69,7 +70,7 @@ const CommunityConsumableCardView: FC<Props> = ({
           <View key={`empty-${index}`} style={styles.emptyColumn} />
         ))}
       </View>
-      <CoupangDisclaimerView />
+      <CommerceDisclaimerView merchants={merchants} />
     </View>
   );
 };

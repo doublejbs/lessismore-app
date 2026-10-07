@@ -1548,14 +1548,17 @@
     "myLocation": "My location"
   },
   "commerce": {
-    "coupangDisclaimer": "As a Coupang Partners activity, we receive a commission."
+    "coupangDisclaimer": "As a Coupang Partners activity, we receive a commission.",
+    "naverConnectDisclaimer": "As part of Naver Shopping Connect, we may receive a commission on sales."
   },
   "consumable": {
-    "viewOnCoupang": "View on Coupang",
-    "source": "Coupang",
+    "source": {
+      "coupang": "Coupang",
+      "naver": "Naver Shopping"
+    },
     "bagDetailTitle": "Before you go",
     "homeTitle": "Consumables to pack",
-    "communityLabel": "Coupang Partners",
-    "accessibilityOpen": "View {{name}} on Coupang"
+    "communityLabel": "Affiliate picks",
+    "accessibilityOpen": "View {{name}} on {{merchant}}"
   }
 }

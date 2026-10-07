@@ -5,7 +5,8 @@ import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
 import WarehouseDetailBrandPreviewView from './WarehouseDetailBrandPreviewView';
-import CoupangDisclaimerView from '@/components/consumable/CoupangDisclaimerView';
+import CommerceDisclaimerView from '@/components/consumable/CommerceDisclaimerView';
+import ConsumableMerchant from '@/model/consumable/ConsumableMerchant';
 import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import { getBrandLinkLabel } from '../../model/gear/GearBrandLink';
 import app from '@/model/app/App';
@@ -13,6 +14,9 @@ import app from '@/model/app/App';
 interface Props {
   warehouseDetail: WarehouseDetail;
 }
+
+// 장비 상세 구매 행은 쿠팡 링크뿐이다(GD-5).
+const COUPANG_ONLY = [ConsumableMerchant.Coupang];
 
 /**
  * 외부 링크 섹션(GD-5) — 브랜드 공식몰 · 쿠팡 파트너스.
@@ -81,7 +85,7 @@ const WarehouseDetailPurchaseView: FC<Props> = ({ warehouseDetail }) => {
           {renderLink(app.getL10n().t('gearDetail.lowestPrice'), () =>
             warehouseDetail.openCoupangUrl()
           )}
-          <CoupangDisclaimerView />
+          <CommerceDisclaimerView merchants={COUPANG_ONLY} />
         </View>
       ) : null}
     </View>

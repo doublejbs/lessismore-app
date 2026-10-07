@@ -1,5 +1,6 @@
 // 소모품 큐레이션 (Consumables.md CP-7, DataModel.md DM-32·DM-3·DM-12).
-//   scripts/consumables.csv 를 읽어 consumable-product/{productId} 를 갱신한다.
+//   scripts/consumables.csv 를 읽어 consumable-product/{docId} 를 갱신한다.
+//   docId 는 쿠팡이면 productId, 네이버 쇼핑 커넥트면 `naver-<상품번호>`(못 읽으면 linkUrl sha1 앞 12자리).
 //   --gear 모드는 카탈로그 gear/{id} 중 coupangUrl 이 있는 문서에 coupangImageUrl 을 채운다(CP-8).
 //
 //   쓰기 경로: consumable-product 는 "읽기 공개 · 쓰기 admin 전용" 규칙이 목표라 클라이언트 SDK 로는
@@ -9,11 +10,14 @@
 //   실행:
 //     node scripts/curate-consumables.mjs [csv경로]                 DRY-RUN(쓰기·파트너스 API 호출 없음)
 //     node scripts/curate-consumables.mjs [csv경로] --apply         백업 → 이미지 없는 상품만 API 조회 → 쓰기
-//     node scripts/curate-consumables.mjs --apply --no-api          파트너스 API 없이 쓰기(imageUrl 비워 둠)
-//     node scripts/curate-consumables.mjs --apply --refresh-image <productId>   지정 상품 이미지 강제 재조회
+//     node scripts/curate-consumables.mjs --apply --no-api          파트너스 API 없이 쓰기(CSV imageUrl 열만 씀)
+//     node scripts/curate-consumables.mjs --apply --refresh-image <docId>   지정 쿠팡 상품 이미지 강제 재조회
 //     node scripts/curate-consumables.mjs --gear [--apply] [--no-api] [--refresh-image <gearId>]
 //
-//   CSV 열: name,pitch,category,coupangUrl,surfaces,order,published (surfaces 는 `;` 구분)
+//   CSV 열: name,pitch,category,merchant,linkUrl,imageUrl,surfaces,order,published (surfaces 는 `;` 구분)
+//     merchant: coupang | naver
+//     imageUrl: https 쇼핑몰 CDN URL. 값이 있는 행은 그대로 쓰고 파트너스 API 를 부르지 않는다.
+//               네이버 행은 필수다 — 네이버 행은 쿠팡 API 를 절대 부르지 않는다.
 //   기본 CSV 경로: scripts/consumables.csv (gitignore — 예시는 scripts/consumables.example.csv)
 //
 //   쿠팡 파트너스 키는 사용자의 다른 서비스와 공유한다(분당 100회, 경고 3회 누적 시 이용 제한).
@@ -22,7 +26,7 @@
 //   - rCode 비정상·HTTP 403/429·한도 메시지면 즉시 호출을 멈추고(재시도 없음) 처리/남은 건수를 보고,
 //     이미 계획된 쓰기는 이미지 없이 마저 기록한 뒤 exit 2 — 다시 돌리면 남은 것부터 이어진다.
 //   - 키는 출력·로그·백업에 남기지 않는다.
-import { createHmac } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 
@@ -45,15 +49,23 @@ const SHORT_LINK_FETCH_INTERVAL_MS = 300;
 const IPHONE_SAFARI_UA =
   'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
 const PRODUCT_ID_PATTERN = /productId(?:=|%3D|%253D)(\d+)/;
+// 네이버 상품 URL(스마트스토어·브랜드스토어 /products/<번호>, 쇼핑 nvMid·productNo 파라미터)의 숫자 상품번호.
+const NAVER_PRODUCT_NO_PATTERNS = [/\/products\/(\d+)/, /[?&](?:nvMid|productNo|nv_mid)=(\d+)/];
+const NAVER_DOC_PREFIX = 'naver-';
+const NAVER_HASH_LENGTH = 12;
 
 // model/consumable/ConsumableCategory.ts · ConsumableSurface.ts 와 같은 값(DM-32).
 const CATEGORY_VALUES = ['fuel', 'hygiene', 'toiletry', 'etc'];
 const SURFACE_VALUES = ['home', 'bagDetail', 'community'];
-const CSV_COLUMNS = ['name', 'pitch', 'category', 'coupangUrl', 'surfaces', 'order', 'published'];
+// model/consumable/ConsumableMerchant.ts 와 같은 값(DM-32).
+const MERCHANT_COUPANG = 'coupang';
+const MERCHANT_NAVER = 'naver';
+const MERCHANT_VALUES = [MERCHANT_COUPANG, MERCHANT_NAVER];
+const CSV_COLUMNS = ['name', 'pitch', 'category', 'merchant', 'linkUrl', 'imageUrl', 'surfaces', 'order', 'published'];
 // 가격 주장 금지(CP-1) — pitch 에 이 패턴이 있으면 행을 쓰지 않는다.
 const PRICE_CLAIM_PATTERN = /최저가|\d[\d,]*\s*원/;
 // diff 비교 대상(updatedAt 제외).
-const CONSUMABLE_FIELDS = ['name', 'pitch', 'category', 'coupangUrl', 'productId', 'surfaces', 'order', 'published'];
+const CONSUMABLE_FIELDS = ['name', 'pitch', 'category', 'merchant', 'linkUrl', 'productId', 'surfaces', 'order', 'published'];
 
 const EXIT_QUOTA_ABORT = 2;
 
@@ -302,6 +314,43 @@ const resolveProductId = async shortUrl => {
   return match?.[1] ?? null;
 };
 
+// --- 네이버 상품번호 (링크·리다이렉트 결과, API 안 씀) ---------------------------
+
+const matchNaverProductNo = url => {
+  for (const pattern of NAVER_PRODUCT_NO_PATTERNS) {
+    const match = url.match(pattern);
+
+    if (match) {
+      return match[1];
+    }
+  }
+
+  return null;
+};
+
+// linkUrl 에서 바로 못 읽으면 리다이렉트를 따라가 최종 URL 에서 읽는다. 끝내 못 읽으면 linkUrl sha1 앞 12자리.
+// 실패해도 행을 버리지 않는다 — 같은 linkUrl 이면 같은 id 라 재실행해도 문서가 늘지 않는다.
+const resolveNaverDocKey = async linkUrl => {
+  const direct = matchNaverProductNo(linkUrl);
+
+  if (direct) {
+    return { productId: direct, fetched: false };
+  }
+
+  try {
+    const res = await fetch(linkUrl, { headers: { 'User-Agent': IPHONE_SAFARI_UA }, redirect: 'follow' });
+    const redirected = matchNaverProductNo(res.url);
+
+    if (redirected) {
+      return { productId: redirected, fetched: true };
+    }
+  } catch {
+    // 아래 해시로 떨어진다.
+  }
+
+  return { productId: createHash('sha1').update(linkUrl).digest('hex').slice(0, NAVER_HASH_LENGTH), fetched: true };
+};
+
 // --- 쿠팡 파트너스 products/search ------------------------------------------
 
 const loadCoupangKeys = () => {
@@ -445,8 +494,16 @@ const readCsvRows = () => {
 
 // 행 검증 → { value, error }
 const validateRow = row => {
-  if (isEmpty(row.name) || isEmpty(row.pitch) || isEmpty(row.coupangUrl)) {
-    return { error: 'name / pitch / coupangUrl 은 필수' };
+  if (isEmpty(row.name) || isEmpty(row.pitch) || isEmpty(row.linkUrl)) {
+    return { error: 'name / pitch / linkUrl 은 필수' };
+  }
+
+  if (!MERCHANT_VALUES.includes(row.merchant)) {
+    return { error: `merchant 는 ${MERCHANT_VALUES.join('|')} 중 하나 (받은 값: ${row.merchant || '빈 값'})` };
+  }
+
+  if (!row.linkUrl.startsWith('https://')) {
+    return { error: `linkUrl 은 https:// 로 시작해야 한다 (받은 값: ${row.linkUrl})` };
   }
 
   if (!CATEGORY_VALUES.includes(row.category)) {
@@ -479,15 +536,29 @@ const validateRow = row => {
     return { error: '이름·소개에 가격 주장(최저가·금액)을 넣지 않는다(CP-1)' };
   }
 
+  const csvImageUrl = row.imageUrl ?? '';
+
+  // ATS 가 막는 http 이미지는 앱이 버리므로(ConsumableStore) 여기서부터 받지 않는다.
+  if (!isEmpty(csvImageUrl) && !csvImageUrl.startsWith('https://')) {
+    return { error: `imageUrl 은 https:// 로 시작해야 한다 (받은 값: ${csvImageUrl})` };
+  }
+
+  // 네이버 상품은 이미지 API 경로가 없다 — CSV 가 유일한 이미지 출처다.
+  if (row.merchant === MERCHANT_NAVER && isEmpty(csvImageUrl)) {
+    return { error: 'merchant naver 행은 imageUrl 이 필수 (쿠팡 API 를 부르지 않는다)' };
+  }
+
   return {
     value: {
       name: row.name,
       pitch: row.pitch,
       category: row.category,
-      coupangUrl: row.coupangUrl,
+      merchant: row.merchant,
+      linkUrl: row.linkUrl,
       surfaces: [...new Set(surfaces)],
       order,
       published: publishedRaw !== 'false',
+      ...(isEmpty(csvImageUrl) ? {} : { imageUrl: csvImageUrl }),
     },
   };
 };
@@ -498,7 +569,7 @@ const runConsumables = async token => {
   const rows = readCsvRows();
   const existingDocs = await listCollection(token, COLLECTION);
   const existingById = new Map(existingDocs.map(d => [d.id, d.data]));
-  const existingIdByUrl = new Map(existingDocs.map(d => [d.data.coupangUrl, d.id]));
+  const existingIdByUrl = new Map(existingDocs.map(d => [d.data.linkUrl, d.id]));
 
   console.log(`CSV 행: ${rows.length}개 / 기존 ${COLLECTION} 문서: ${existingDocs.length}개`);
 
@@ -514,56 +585,76 @@ const runConsumables = async token => {
       continue;
     }
 
-    // 같은 단축 링크를 이미 쓴 문서가 있으면 다시 받지 않는다.
-    let productId = existingIdByUrl.get(value.coupangUrl) ?? null;
+    // 같은 링크를 이미 쓴 문서가 있으면 다시 받지 않는다(문서 id = docId, productId 필드는 숫자 부분).
+    const existingDocId = existingIdByUrl.get(value.linkUrl) ?? null;
+    let docId = existingDocId;
+    let productId = existingDocId ? (existingById.get(existingDocId)?.productId ?? null) : null;
 
-    if (!productId) {
+    if (!docId || !productId) {
       if (fetchedLinkCount > 0) {
         await sleep(SHORT_LINK_FETCH_INTERVAL_MS);
       }
 
       fetchedLinkCount += 1;
 
-      try {
-        productId = await resolveProductId(value.coupangUrl);
-      } catch (e) {
-        skipped.push(`${row.lineNo}행 ${value.name}: 단축 링크 조회 실패 (${e.message})`);
-        continue;
+      if (value.merchant === MERCHANT_NAVER) {
+        productId = (await resolveNaverDocKey(value.linkUrl)).productId;
+        docId = `${NAVER_DOC_PREFIX}${productId}`;
+      } else {
+        try {
+          productId = await resolveProductId(value.linkUrl);
+        } catch (e) {
+          skipped.push(`${row.lineNo}행 ${value.name}: 단축 링크 조회 실패 (${e.message})`);
+          continue;
+        }
+
+        docId = productId;
       }
     }
 
     if (!productId) {
-      skipped.push(`${row.lineNo}행 ${value.name}: 단축 링크에서 productId 를 찾지 못함 (${value.coupangUrl})`);
+      skipped.push(`${row.lineNo}행 ${value.name}: 단축 링크에서 productId 를 찾지 못함 (${value.linkUrl})`);
       continue;
     }
 
-    if (targets.has(productId)) {
-      skipped.push(`${row.lineNo}행 ${value.name}: productId ${productId} 가 ${targets.get(productId).lineNo}행과 중복`);
+    if (targets.has(docId)) {
+      skipped.push(`${row.lineNo}행 ${value.name}: 문서 id ${docId} 가 ${targets.get(docId).lineNo}행과 중복`);
       continue;
     }
 
-    targets.set(productId, { ...value, productId, lineNo: row.lineNo });
+    targets.set(docId, { ...value, productId, lineNo: row.lineNo });
   }
 
   // 계획 수립
   const plan = [];
 
-  for (const [productId, target] of targets) {
+  for (const [docId, target] of targets) {
     const { lineNo: _lineNo, ...next } = target;
-    const prev = existingById.get(productId);
+    const prev = existingById.get(docId);
     const changedFields = CONSUMABLE_FIELDS.filter(f => !prev || !sameValue(prev[f], next[f]));
-    const needsImage = isEmpty(prev?.imageUrl) || refreshImageIds.has(productId);
+    // CSV 가 imageUrl 을 직접 주면 그 값을 쓰고 API 를 부르지 않는다(--refresh-image 도 무시).
+    // 쿠팡 API 는 쿠팡 상품만 부른다 — 네이버 행은 검증에서 imageUrl 이 필수라 여기 오지 않지만 한 번 더 막는다.
+    const hasCsvImage = !isEmpty(next.imageUrl);
+
+    if (hasCsvImage && (!prev || !sameValue(prev.imageUrl, next.imageUrl))) {
+      changedFields.push('imageUrl');
+    }
+
+    const needsImage =
+      next.merchant === MERCHANT_COUPANG &&
+      !hasCsvImage &&
+      (isEmpty(prev?.imageUrl) || refreshImageIds.has(docId));
 
     if (!prev) {
-      plan.push({ kind: 'create', productId, next, changedFields, needsImage });
+      plan.push({ kind: 'create', docId, next, changedFields, needsImage });
     } else if (changedFields.length > 0 || needsImage) {
-      plan.push({ kind: 'update', productId, next, changedFields, needsImage });
+      plan.push({ kind: 'update', docId, next, changedFields, needsImage });
     }
   }
 
   const unpublish = existingDocs
     .filter(d => !targets.has(d.id) && d.data.published !== false)
-    .map(d => ({ kind: 'unpublish', productId: d.id, name: d.data.name }));
+    .map(d => ({ kind: 'unpublish', docId: d.id, name: d.data.name }));
 
   const unchangedCount = targets.size - plan.length;
   const imageTargets = plan.filter(p => p.needsImage);
@@ -578,13 +669,13 @@ const runConsumables = async token => {
   plan.forEach(p => {
     const tag = p.kind === 'create' ? '+ 생성' : '~ 갱신';
     const detail = p.kind === 'update' && p.changedFields.length > 0 ? ` [${p.changedFields.join(', ')}]` : '';
-    const image = p.needsImage ? ' (이미지 조회 대상)' : '';
+    const image = p.needsImage ? ' (이미지 조회 대상)' : !isEmpty(p.next.imageUrl) ? ' (CSV imageUrl)' : '';
 
     console.log(
-      `  ${tag} ${p.productId} ${p.next.name} — ${p.next.category} · ${p.next.surfaces.join(';') || '(자리 없음)'} · order ${p.next.order} · published ${p.next.published}${detail}${image}`
+      `  ${tag} ${p.docId} ${p.next.name} — ${p.next.merchant} · ${p.next.category} · ${p.next.surfaces.join(';') || '(자리 없음)'} · order ${p.next.order} · published ${p.next.published}${detail}${image}`
     );
   });
-  unpublish.forEach(u => console.log(`  - 내림 ${u.productId} ${u.name} (CSV 에 없음 → published:false, 삭제하지 않음)`));
+  unpublish.forEach(u => console.log(`  - 내림 ${u.docId} ${u.name} (CSV 에 없음 → published:false, 삭제하지 않음)`));
   console.log(
     `\n요약: 생성 ${plan.filter(p => p.kind === 'create').length} / 갱신 ${plan.filter(p => p.kind === 'update').length} / 내림 ${unpublish.length} / 변경 없음 ${unchangedCount} / 건너뜀 ${skipped.length}`
   );
@@ -612,7 +703,7 @@ const runConsumables = async token => {
   if (!NO_API && imageTargets.length > 0) {
     console.log(`\n쿠팡 파트너스 이미지 조회 (${imageTargets.length}건, ${COUPANG_CALL_INTERVAL_MS}ms 간격):`);
     imageResult = await fetchImagesSerially(
-      imageTargets.map(p => ({ key: p.productId, keyword: p.next.name, productId: p.productId }))
+      imageTargets.map(p => ({ key: p.docId, keyword: p.next.name, productId: p.next.productId }))
     );
   }
 
@@ -621,25 +712,26 @@ const runConsumables = async token => {
   for (const p of plan) {
     const data = { ...p.next, updatedAt: now };
 
+    // CSV imageUrl 은 next 에 이미 들어 있다. API 는 CSV imageUrl 이 없는 행만 조회했으므로 덮어쓸 일이 없다.
     // 조회에 성공한 경우에만 imageUrl 을 쓴다 — 조회하지 않았거나 일치 항목이 없으면 기존 값을 건드리지 않는다.
-    if (imageResult.images.get(p.productId)) {
-      data.imageUrl = imageResult.images.get(p.productId);
+    if (imageResult.images.get(p.docId)) {
+      data.imageUrl = imageResult.images.get(p.docId);
     }
 
-    await patchDocument(token, `${COLLECTION}/${p.productId}`, data);
-    console.log(`  ★ ${p.kind === 'create' ? '생성' : '갱신'} ${p.productId} ${p.next.name}${data.imageUrl ? ' + imageUrl' : ''}`);
+    await patchDocument(token, `${COLLECTION}/${p.docId}`, data);
+    console.log(`  ★ ${p.kind === 'create' ? '생성' : '갱신'} ${p.docId} ${p.next.name}${data.imageUrl ? ' + imageUrl' : ''}`);
   }
 
   for (const u of unpublish) {
-    await patchDocument(token, `${COLLECTION}/${u.productId}`, { published: false, updatedAt: now });
-    console.log(`  ★ 내림 ${u.productId} ${u.name}`);
+    await patchDocument(token, `${COLLECTION}/${u.docId}`, { published: false, updatedAt: now });
+    console.log(`  ★ 내림 ${u.docId} ${u.name}`);
   }
 
-  const noMatch = imageTargets.filter(p => imageResult.images.has(p.productId) && !imageResult.images.get(p.productId));
+  const noMatch = imageTargets.filter(p => imageResult.images.has(p.docId) && !imageResult.images.get(p.docId));
 
   if (noMatch.length > 0) {
     console.log(`\n이미지 일치 항목 없음 ${noMatch.length}건(imageUrl 비워 둠 — 카드는 아이콘 폴백):`);
-    noMatch.forEach(p => console.log(`  ${p.productId} ${p.next.name}`));
+    noMatch.forEach(p => console.log(`  ${p.docId} ${p.next.name}`));
   }
 
   console.log(`\n★ 완료: 쓰기 ${plan.length + unpublish.length}건`);

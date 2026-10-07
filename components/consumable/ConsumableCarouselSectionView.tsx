@@ -6,7 +6,7 @@ import ConsumableCardVariant from '@/model/consumable/ConsumableCardVariant';
 import { ConsumableProduct } from '@/model/consumable/ConsumableProduct';
 import { CONSUMABLE_CAROUSEL_MAX } from '@/model/consumable/ConsumableSlotConstants';
 import ConsumableCardView, { CONSUMABLE_CARD_WIDTH } from './ConsumableCardView';
-import CoupangDisclaimerView from './CoupangDisclaimerView';
+import CommerceDisclaimerView from './CommerceDisclaimerView';
 
 interface Props {
   title: string;
@@ -54,7 +54,11 @@ const ConsumableCarouselSectionView: FC<Props> = ({ title, products, source }) =
         style={styles.carousel}
         contentContainerStyle={styles.carouselContent}
       />
-      <CoupangDisclaimerView style={styles.disclaimer} />
+      {/* 실제로 보이는 상품의 쇼핑몰마다 고지 한 줄(CP-3). */}
+      <CommerceDisclaimerView
+        merchants={visibleProducts.map(product => product.merchant)}
+        style={styles.disclaimer}
+      />
     </View>
   );
 };

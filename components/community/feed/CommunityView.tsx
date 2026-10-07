@@ -34,6 +34,13 @@ import OrderType from '@/model/order/OrderType';
 import CommunityFeedCardView from './CommunityFeedCardView';
 import CommunityFeedSkeletonView from './CommunityFeedSkeletonView';
 import app from '@/model/app/App';
+import CommunityConsumableCardView from '@/components/consumable/CommunityConsumableCardView';
+import ConsumableCommunityRowKind from '@/model/consumable/ConsumableCommunityRowKind';
+import {
+  buildConsumableCommunityRows,
+  ConsumableCommunityRow,
+} from '@/model/consumable/ConsumableCommunitySlots';
+import ConsumableSurface from '@/model/consumable/ConsumableSurface';
 
 interface Props {
   feed: CommunityFeed;
@@ -54,6 +61,12 @@ const CommunityView: FC<Props> = ({ feed }) => {
   const error = feed.getError();
   const writeButtonBottom = getFloatingActionBottom(insets.bottom);
   const listBottomPadding = getFloatingActionListBottomPadding(insets.bottom);
+  // 게시글 10개마다 소모품 카드 한 장(CP-6 / CM-15). 필터·정렬을 바꾸면 posts가 새로 시작돼 처음부터 센다.
+  // 게시글 0개(빈 상태·조회 오류)면 카드가 끼지 않아 ListEmptyComponent가 그대로 뜬다.
+  const rows = buildConsumableCommunityRows(
+    posts,
+    app.getConsumableStore()?.getForSurface(ConsumableSurface.Community) ?? []
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -62,6 +75,11 @@ const CommunityView: FC<Props> = ({ feed }) => {
       }
     }, [feed])
   );
+
+  // 소모품은 세션당 1회 조회다(CP-1). 피드 로딩과 독립이라 목록을 막지 않는다.
+  useEffect(() => {
+    app.getConsumableStore()?.load();
+  }, []);
 
   useEffect(() => {
     if (!error) {
@@ -248,8 +266,22 @@ const CommunityView: FC<Props> = ({ feed }) => {
     return <View style={styles.footerSpace} />;
   };
 
-  const renderItem = ({ item }: ListRenderItemInfo<CommunityPost>) => {
-    return <CommunityFeedCardView post={item} />;
+  const renderItem = ({
+    item,
+  }: ListRenderItemInfo<ConsumableCommunityRow<CommunityPost>>) => {
+    if (item.kind === ConsumableCommunityRowKind.Consumable) {
+      return <CommunityConsumableCardView products={item.products} />;
+    }
+
+    return <CommunityFeedCardView post={item.post} />;
+  };
+
+  const getRowKey = (item: ConsumableCommunityRow<CommunityPost>) => {
+    if (item.kind === ConsumableCommunityRowKind.Consumable) {
+      return `consumable-slot-${item.slot}`;
+    }
+
+    return item.post.getId();
   };
 
   const showSkeleton =
@@ -293,9 +325,9 @@ const CommunityView: FC<Props> = ({ feed }) => {
         </ScrollView>
       ) : (
         <FlatList
-          data={posts}
+          data={rows}
           renderItem={renderItem}
-          keyExtractor={item => item.getId()}
+          keyExtractor={getRowKey}
           contentContainerStyle={[
             styles.listContent,
             { paddingBottom: listBottomPadding },

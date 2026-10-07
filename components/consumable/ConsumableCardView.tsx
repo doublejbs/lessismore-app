@@ -13,6 +13,7 @@ import PretendardText from '@/components/PretendardText';
 import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import ConsumableCardVariant from '@/model/consumable/ConsumableCardVariant';
 import { ConsumableProduct } from '@/model/consumable/ConsumableProduct';
+import { CONSUMABLE_MERCHANT_SOURCE_KEY } from '@/model/consumable/ConsumableMerchantText';
 import app from '@/model/app/App';
 
 interface Props {
@@ -34,7 +35,7 @@ const MAX_FONT_SIZE_MULTIPLIER = 1.5;
 /**
  * 소모품 카드(CP-2). 세 자리(배낭 상세·홈·커뮤니티)가 이 컴포넌트 하나를 쓴다.
  *
- * - 상단 흰 밴드 + `contain` — 쿠팡 상품 이미지는 대부분 흰 배경이라 letterbox가 이어진다.
+ * - 상단 흰 밴드 + `contain` — 쇼핑몰 상품 이미지는 대부분 흰 배경이라 letterbox가 이어진다.
  *   이미지가 없거나 실패하면 같은 크기 밴드에 아이콘으로 떨어진다(카드 높이 유지).
  * - 라임·셰브론·그림자를 두지 않는다 — 카드 전체가 눌리는 면이다.
  * - Compact는 커뮤니티 카드 면(`controlFill`) 위에 놓여 면을 `paper`로 바꾸고 한 줄 소개를 뺀다.
@@ -44,15 +45,19 @@ const ConsumableCardView: FC<Props> = ({ product, variant, source, style }) => {
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const isCompact = variant === ConsumableCardVariant.Compact;
   const showImage = Boolean(product.imageUrl) && failedImageUrl !== product.imageUrl;
+  const merchantLabel = app
+    .getL10n()
+    .t(CONSUMABLE_MERCHANT_SOURCE_KEY[product.merchant]);
 
   // 애널리틱스를 먼저 보내고 연다(CP-3). 인앱 브라우저로 감싸지 않는다 — 유니버설 링크로
-  // 쿠팡 앱에 넘어가야 수수료 귀속이 성립한다. 열기 실패는 조용히 무시한다.
+  // 쇼핑몰 앱(쿠팡·네이버)에 넘어가야 수수료 귀속이 성립한다. 열기 실패는 조용히 무시한다.
   const handlePress = () => {
     app.getAnalyticsManager()?.logClick('consumable_product', {
       source,
       product_id: product.id,
+      merchant: product.merchant,
     });
-    Linking.openURL(product.coupangUrl).catch(() => {});
+    Linking.openURL(product.linkUrl).catch(() => {});
   };
 
   const handleImageError = () => {
@@ -71,7 +76,10 @@ const ConsumableCardView: FC<Props> = ({ product, variant, source, style }) => {
       accessibilityRole='link'
       accessibilityLabel={app
         .getL10n()
-        .t('consumable.accessibilityOpen', { name: product.name })}
+        .t('consumable.accessibilityOpen', {
+          name: product.name,
+          merchant: merchantLabel,
+        })}
     >
       <View style={isCompact ? styles.bandCompact : styles.bandRegular}>
         {showImage ? (
@@ -115,7 +123,7 @@ const ConsumableCardView: FC<Props> = ({ product, variant, source, style }) => {
           numberOfLines={1}
           maxFontSizeMultiplier={MAX_FONT_SIZE_MULTIPLIER}
         >
-          {app.getL10n().t('consumable.source')}
+          {merchantLabel}
         </PretendardText>
       </View>
     </Pressable>

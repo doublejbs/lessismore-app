@@ -1522,14 +1522,17 @@
     "myLocation": "내 위치"
   },
   "commerce": {
-    "coupangDisclaimer": "쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."
+    "coupangDisclaimer": "쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.",
+    "naverConnectDisclaimer": "네이버 쇼핑 커넥트 활동의 일환으로, 판매 발생 시 수수료를 제공받습니다."
   },
   "consumable": {
-    "viewOnCoupang": "쿠팡에서 보기",
-    "source": "쿠팡",
+    "source": {
+      "coupang": "쿠팡",
+      "naver": "네이버쇼핑"
+    },
     "bagDetailTitle": "출발 전 소모품",
     "homeTitle": "챙겨갈 소모품",
-    "communityLabel": "쿠팡 파트너스",
-    "accessibilityOpen": "{{name}} 쿠팡에서 보기"
+    "communityLabel": "제휴 상품",
+    "accessibilityOpen": "{{name}} {{merchant}}에서 보기"
   }
 }
