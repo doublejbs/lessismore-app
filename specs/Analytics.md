@@ -204,6 +204,16 @@
 
 - 커뮤니티 이벤트에는 게시글 ID, 작성자 ID·닉네임, 제목·본문, 투표 문구, 신고 상세를 보내지 않는다.
 
+**소모품 추천** ([Consumables.md](Consumables.md)) `[제안]`
+
+| 이벤트 | 트리거 | 파라미터 |
+| --- | --- | --- |
+| `click_consumable_product` | 소모품 카드 탭 → 쿠팡 링크 열기 직전 (CP-3) | `source`: `home` \| `bag_detail` \| `community`, `product_id`: `consumable-product` 문서 id(= 쿠팡 상품 id, 사용자 식별 정보 아님 — `click_community_snapshot_gear`의 `gear_id`와 같은 성격) |
+
+- 소모품은 노출(impression) 이벤트를 보내지 않는다. 목록 화면이 없어 `더 보기` 이벤트도 없다(CP-3).
+- 장비 상세 쿠팡 행 썸네일(GD-5b)은 기존 `click_gear_purchase`(`source: coupang`)를 그대로 쓴다.
+
+
 - 이벤트 이름은 snake_case, `click_` 접두(표준 `search` 제외), 40자 이내 (GA4 제한).
 - 파라미터 값은 식별자가 아닌 열거형 문자열/불리언만 쓴다. `search_term`은 사용자 입력이지만 검색어 자체가 지표 대상이므로 허용 (개인정보 입력란 아님).
 

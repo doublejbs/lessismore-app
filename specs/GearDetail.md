@@ -5,7 +5,7 @@
 | 상태 | as-built (2026-07-11 코드 기준) · **2026-07-28 개정(as-built)**: 장비 이미지 미제공([DataModel.md](DataModel.md) §1) — GD-4 폐기, GD-1 텍스트 우선 레이아웃 · **2026-08-12 개정(as-built)**: HM-8 시각 문법 정렬(GD-0) — 섹션 머리 18 semibold · 면 radius 12 · 주 액션 라임 알약 |
 | ID 프리픽스 | `GD` |
 | 주요 코드 | `app/gear-detail/[id]/`, `components/warehouse-detail/`, `model/warehouse-detail/WarehouseDetail.ts` |
-| 관련 스펙 | [DataModel.md](DataModel.md), [Reply.md](Reply.md), [Warehouse.md](Warehouse.md), [Search.md](Search.md) |
+| 관련 스펙 | [DataModel.md](DataModel.md), [Reply.md](Reply.md), [Warehouse.md](Warehouse.md), [Search.md](Search.md), [Consumables.md](Consumables.md) |
 
 ## 1. 개요
 
@@ -168,6 +168,7 @@ GD-2의 배낭별 행을 **여행 카드**로 강화한다. 배낭 문서에 이
   - **브랜드 행: 인앱 브라우저**(`expo-web-browser`의 `openBrowserAsync`). 제품 정보를 확인하고 앱으로 돌아오는 동선이라 앱을 떠나게 할 이유가 없다. 시트를 닫으면 장비 상세로 복귀한다.
   - **쿠팡 행: `Linking.openURL` 유지.** 파트너스 링크(`link.coupang.com/a/...`)는 유니버설 링크라 쿠팡 앱이 깔려 있으면 앱으로 넘어간다 — 인앱 브라우저로 감싸면 그 전환이 막혀 파트너스 수수료 귀속에 불리하다.
 - 쿠팡 행 바로 아래에 수수료 고지 문구(`쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.`)를 상시(숨김/접힘 없이) 표시한다.
+  - `[제안]` 고지는 소모품 카드와 공용 뷰(`CoupangDisclaimerView`)로 그리고, 문구 키는 `gearDetail.coupangDisclaimer`에서 공용 키 `commerce.coupangDisclaimer`로 옮긴다([Consumables.md](Consumables.md) CP-3, 2026-10-07).
 - 고지 문구는 상시 노출을 유지하되 링크보다 시각 위계를 낮춘다(fontSize 11, `textSecondary`) — 법적 고지가 링크 본문보다 무거워 보이지 않게.
 
 ### GD-5a 브랜드 링크 미리보기 카드
@@ -200,6 +201,7 @@ GD-2의 배낭별 행을 **여행 카드**로 강화한다. 배낭 문서에 이
   - 단 라벨이 이미 도메인인 경우(공식몰이 아닐 때)는 **도메인 줄을 생략한다** — 같은 문자열이 두 번 나오면 지저분하다.
 - 카드 전체가 하나의 터치 타깃이며 동작은 기존 브랜드 행과 같다(`click_gear_purchase` `source: brand` → 인앱 브라우저).
 - 쿠팡 행은 카드로 바꾸지 않는다 — 파트너스 고지가 딸려 구조가 다르고 27건(0.1%)뿐이라 통일할 실익이 없다.
+  - `[이력]` 이 문장은 **GD-5b(2026-10-07 `[제안]`)로 대체된다** — 소모품 카드([Consumables.md](Consumables.md) CP-2)가 같은 쿠팡 썸네일 카드 문법을 세 화면에 들이면서, 장비 상세의 쿠팡 행만 텍스트로 남기면 같은 쿠팡 링크가 화면마다 다른 모양이 된다. 파트너스 고지는 GD-5b에서도 행 아래에 그대로 딸린다.
 
 **검증 체크리스트**
 
@@ -212,6 +214,23 @@ GD-2의 배낭별 행을 **여행 카드**로 강화한다. 배낭 문서에 이
 - [ ] 섹션 소제목 `공식 링크`가 스펙·리뷰와 같은 위계로 보인다 (GD-5)
 - [ ] 웹에서 → 수집은 안 하지만 이미 채워진 장비는 이미지가 보인다 (GD-5a)
 - [ ] 카드가 우리 Storage `imageUrl`을 **절대** 렌더하지 않는다 (GD-5a)
+
+### GD-5b 쿠팡 행 썸네일 `[제안]`
+
+**2026-10-07 결정.** 쿠팡 행에 쿠팡 상품 썸네일을 붙여 소모품 카드와 같은 카드 문법으로 그린다. 정본은 [Consumables.md](Consumables.md) **CP-8**(표시)·**CP-7**(수집), 이미지 경계는 [DataModel.md](DataModel.md) §1 쿠팡 파트너스 상품 이미지 행이다.
+
+**수용 기준**
+
+- `gear/{id}.coupangImageUrl`([DataModel.md](DataModel.md) DM-3)이 있으면 쿠팡 행을 흰 밴드(`contain`) + 텍스트 줄(`쿠팡에서 최저가 보기`) + 메타 `쿠팡`의 카드로 낸다. 없거나 로드에 실패하면 지금의 텍스트 행으로 떨어진다.
+- 동작(`click_gear_purchase` `source: coupang` → `Linking.openURL`)·자리(GD-5 보유 여부 분기)·파트너스 고지(행 바로 아래 상시)는 GD-5 그대로다.
+- 값은 앱이 수집하지 않는다 — 운영 스크립트가 기존 27건에 채운다(GD-5a의 "처음 열 때 수집"과 다르다. 파트너스 API 한도를 클라이언트 조회수에 묶지 않기 위해서다).
+- 이 이미지는 쿠팡 행에서만 쓴다. 장비 행·피드 셀의 썸네일로 쓰지 않는다([DataModel.md](DataModel.md) §1 경계).
+
+**검증 체크리스트**
+
+- [ ] `coupangImageUrl`이 있는 장비 → 쿠팡 행이 썸네일 카드, 바로 아래 고지 (GD-5b)
+- [ ] 값이 없거나 URL을 깨뜨린 장비 → 기존 텍스트 행, 빈 밴드·깨진 이미지 없음 (GD-5b)
+- [ ] 카드 탭 → 쿠팡 앱 전환(인앱 브라우저 아님) (GD-5b)
 
 ### GD-6 외부 후기 (네이버 블로그·유튜브)
 

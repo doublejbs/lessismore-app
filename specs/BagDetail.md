@@ -5,7 +5,7 @@
 | 상태 | as-built (2026-07-15 여행지 통합 반영) |
 | ID 프리픽스 | `BD` |
 | 주요 코드 | `app/bag/[id]/`, `app/useless/[id]/`, `components/bag-detail/`, `components/bag-edit/`, `components/bag-useless/`, `model/bag-detail/`, `model/bag-edit/`, `model/bag-useless/`, `model/store/BagStore.ts` |
-| 관련 스펙 | [DataModel.md](DataModel.md), [Bag.md](Bag.md), [BagTemplate.md](BagTemplate.md), [BagShare.md](BagShare.md), [BagDestination.md](BagDestination.md), [HealthActivity.md](HealthActivity.md), [GearEdit.md](GearEdit.md), [Packing.md](Packing.md), [Weather.md](Weather.md) |
+| 관련 스펙 | [DataModel.md](DataModel.md), [Bag.md](Bag.md), [BagTemplate.md](BagTemplate.md), [BagShare.md](BagShare.md), [BagDestination.md](BagDestination.md), [HealthActivity.md](HealthActivity.md), [GearEdit.md](GearEdit.md), [Packing.md](Packing.md), [Weather.md](Weather.md), [Consumables.md](Consumables.md) |
 
 ## 1. 개요
 
@@ -28,7 +28,7 @@
 
 ### BD-1 상세 기본 표시
 
-화면 구성(위→아래): **정체성 헤더**(이름·기간·총무게·무게 분해) → **액션 그리드**(BD-10) → 구분선 → **장비 목록**(sticky 필터 BD-2) → **하단 액션 바**(BD-9).
+화면 구성(위→아래): **정체성 헤더**(이름·기간·총무게·무게 분해) → **액션 그리드**(BD-10) → **출발 전 소모품**(BD-12, `[제안]` — 출발 전·여행 중만) → 구분선 → **장비 목록**(sticky 필터 BD-2) → **하단 액션 바**(BD-9).
 
 **수용 기준**
 
@@ -215,9 +215,21 @@
 - 코스 뒤집기·시작/끝 마커는 GRP-8과 같다(뒤집기는 기기에만 저장).
 - **내 위치**: 코스 화면 지도에 사용자의 현재 위치를 표시하고, 누르면 현재 위치로 카메라를 옮기는 `내 위치` 버튼을 둔다. 코스를 따라 걸으며 지금 어디쯤인지 보려는 것이다. 위치 권한이 없으면 표시하지 않고, 버튼을 누르면 권한을 요청한다. 권한을 거부했으면 설정으로 안내한다. 그룹 지도와 박지 지도의 현재 위치 처리를 그대로 쓴다. 웹에는 지도가 없으므로 해당 없다.
 
+### BD-12 출발 전 소모품 `[제안]`
+
+출발을 앞둔 사용자는 배낭 상세에서 운영자가 고른 소모품(이소가스·물티슈 등)을 쿠팡 링크 카드로 본다(2026-10-07 사용자 결정). 정본은 [Consumables.md](Consumables.md) **CP-4**이고 카드·열기·고지는 CP-2·CP-3이다.
+
+**수용 기준**
+
+- 섹션 `출발 전 소모품`을 **BD-10 액션 그리드 바로 아래, 장비 목록 위**에 둔다(BD-1 화면 구성).
+- 여행 상태(`getTripPhase`)가 `출발 전`·`여행 중`일 때만 보이고, `지난 여행`이면 섹션·고지 모두 렌더하지 않는다(2026-10-07 사용자 결정).
+- 상품이 0개이거나 조회에 실패하면 섹션을 렌더하지 않는다. 조회가 상세 렌더(스켈레톤 → 본문)를 막지 않는다.
+- 본인 배낭 상세에만 둔다 — 공유 배낭(BD-7)·그룹 멤버 배낭 열람에는 두지 않는다.
+- 라임을 쓰지 않는다 — 이 화면의 라임은 하단 `장비 추가` 하나다(BD-9).
+
 ## 4. 데이터
 
-- [DataModel.md](DataModel.md) DM-5(`bag`), DM-3(`used`/`useless`/`bags`), DM-11(트랜잭션 규칙), DM-15(`BagLocation`/`WeatherSnapshot`), **DM-30(`bag/{bagId}/routes` 코스)**. 여행지 동작은 [BagDestination.md](BagDestination.md).
+- [DataModel.md](DataModel.md) DM-5(`bag`), DM-3(`used`/`useless`/`bags`), DM-11(트랜잭션 규칙), DM-15(`BagLocation`/`WeatherSnapshot`), **DM-30(`bag/{bagId}/routes` 코스)**, DM-32(`consumable-product` 소모품, BD-12 — 읽기만). 여행지 동작은 [BagDestination.md](BagDestination.md).
 
 ## 5. 플랫폼 분기
 
@@ -268,6 +280,10 @@
 - [ ] 메뉴 `삭제` 다이얼로그에서 취소 → 아무 변화 없이 상세 화면 유지
 - [ ] 비로그인 → 메뉴 `복사`/`템플릿으로 저장` 탭 시 시트가 닫히고 로그인 모달
 - [ ] VoiceOver: 헤더에서 `필름 카드 만들기` 다음에 `여행 메뉴` 버튼이 읽히고, 시트 안 5항목이 각각 읽힘
+- [ ] `[제안]` 출발 전·여행 중 배낭: 액션 그리드 바로 아래·장비 목록 위에 `출발 전 소모품` 캐러셀 + 파트너스 고지 (BD-12)
+- [ ] `[제안]` 지난 여행 배낭: 소모품 섹션·고지 모두 없음, 날짜를 지난 날짜로 고치면 섹션이 사라짐 (BD-12)
+- [ ] `[제안]` 공유 배낭 열람에는 소모품 섹션이 없음 (BD-12)
+- [ ] `[제안]` 소모품 조회 실패(비행기 모드 후 진입)에도 상세 본문이 정상 표시되고 섹션만 빠짐 (BD-12)
 - [ ] 편집 화면: 검색(이름/브랜드) 동작, 담기/빼기 원형 체크(담김 검정·안 담김 빈 원), 하단 `완료` → 상세로 복귀, 토글 변경사항 반영 (상세 `장비 추가` 경유·생성/복사 직행 두 경로 모두)
 
 ## 8. 미해결 질문

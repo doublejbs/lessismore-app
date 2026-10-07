@@ -5,7 +5,7 @@
 | 상태 | **구현 후 검증 대기** — 기존 홈 구성에 상단 히어로 그래픽(HM-9)을 추가했으며, 실행 화면 QA가 필요함. **홈 추천 섹션(HM-11·HM-14)은 `[기획]`** (2026-08-14 기획, 2026-08-15 운영자 추천 2섹션으로 확정, **2026-08-17 추천 박지 1섹션으로 축소** — 장비 HM-12·읽을거리 HM-13은 `[폐기]`) |
 | ID 프리픽스 | `HM` |
 | 주요 코드 | `app/(tabs)/index.tsx`(홈 탭), `app/warehouse/index.tsx`(창고 푸시 라우트), `components/home/`, `model/home/` |
-| 관련 스펙 | [Bag.md](Bag.md), [BagDetail.md](BagDetail.md), [Packing.md](Packing.md), [Weather.md](Weather.md), [Warehouse.md](Warehouse.md), [Notification.md](Notification.md), [Analytics.md](Analytics.md), [CampSite.md](CampSite.md), [Feed.md](Feed.md), [GearDetail.md](GearDetail.md), [DataModel.md](DataModel.md) |
+| 관련 스펙 | [Bag.md](Bag.md), [BagDetail.md](BagDetail.md), [Packing.md](Packing.md), [Weather.md](Weather.md), [Warehouse.md](Warehouse.md), [Notification.md](Notification.md), [Analytics.md](Analytics.md), [CampSite.md](CampSite.md), [Feed.md](Feed.md), [GearDetail.md](GearDetail.md), [DataModel.md](DataModel.md), [Consumables.md](Consumables.md) |
 
 ## 1. 개요
 
@@ -313,6 +313,7 @@ HomeView
 1. 히어로 + 다가오는 일정 (HM-9 / HM-1)
 2. 창고 미리보기 (HM-4)
 3. **`useless가 고른 박지` (HM-11)** — 최대 5 (가로 카드 캐러셀)
+4. **`챙겨갈 소모품` (HM-16)** `[제안]` — 최대 10 (가로 진열 캐러셀, 2026-10-07 사용자 결정)
 
 기존 구성(내 여행 → 내 장비)이 먼저고, 추천 섹션은 그 아래다 — 홈 상단은 "다음에 할 일"이라는 기존 위계(HM-1이 최상단)를 바꾸지 않는다. 추천은 **박지 한 섹션뿐**이라 추천 안의 순서 문제는 소멸했다(2026-08-17, HM-12 폐기). 노출 개수는 5로 확정(2026-08-17 — 근거는 HM-11).
 
@@ -336,6 +337,18 @@ HomeView
 - 44×44pt 터치 영역, `accessibilityRole='button'`, 접근성 라벨 `내 정보`를 제공한다.
 - 홈의 화면 제목·히어로·일정 카드와 겹치지 않고 세이프에어리어 안에 배치한다.
 - `/info`에서 돌아오면 홈의 스크롤·로딩·선택 상태를 유지한다.
+
+### HM-16 챙겨갈 소모품 `[제안]`
+
+사용자는 홈 최하단에서 운영자가 고른 소모품을 쿠팡 링크 카드로 훑는다(2026-10-07 사용자 결정). 정본은 [Consumables.md](Consumables.md) **CP-5**이고 카드·열기·고지는 CP-2·CP-3이다.
+
+**수용 기준**
+
+- 섹션 `챙겨갈 소모품`(부제 없음)을 HM-11 `useless가 고른 박지` **아래, 홈의 마지막 콘텐츠 섹션**으로 둔다(HM-14 4번).
+- 비로그인 홈에도 노출한다. 로딩 중 자리를 잡지 않고(스켈레톤 없음) 조회가 끝나면 붙는다. 당겨서 새로고침(HM-6)에 포함한다. 0개·조회 실패 → 섹션 머리까지 렌더하지 않는다(HM-14).
+- 최대 10개, 폭 152 카드의 가로 진열 캐러셀(인디케이터 없음). HM-11의 "홈 캐러셀 = HM-1 문법" 관례와 다른 근거는 CP-4에 있다 — 한 장씩 소개받는 카드가 아니라 여럿을 훑는 진열대다.
+- 캐러셀 바로 아래 쿠팡 파트너스 고지를 상시 표시한다(CP-3).
+- 라임을 쓰지 않는다 — 홈의 라임은 HM-1 CTA 하나다(HM-8).
 
 ## 4. 데이터
 
@@ -495,6 +508,14 @@ HomeView
 - [ ] 당겨서 새로고침 시 추천 섹션이 재조회된다
 - [ ] 비로그인 홈에 추천 섹션이 노출되고, 로그인 알약이 주 액션으로 유지된다
 - [ ] VoiceOver에서 카드가 하나의 버튼으로 `{이름}, {유형}, {지역}, 지도에서 보기`로 읽힌다
+
+**`[제안]` 챙겨갈 소모품 (HM-16, 구현 시 검증):**
+
+- [ ] `useless가 고른 박지` 아래 마지막 섹션으로 `챙겨갈 소모품` 캐러셀과 그 아래 파트너스 고지가 보인다
+- [ ] 비로그인 홈에도 보이고, 로그인 알약이 주 액션으로 유지된다
+- [ ] 당겨서 새로고침 후 운영자가 내린 상품이 사라진다
+- [ ] 상품 0개·조회 실패면 섹션 머리·고지까지 렌더되지 않고 나머지 홈은 그대로다
+- [ ] 홈에 라임이 HM-1 CTA 하나뿐이다
 
 ## 8. 미해결 질문
 

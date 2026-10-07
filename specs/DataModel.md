@@ -28,11 +28,13 @@
 | --- | --- | --- |
 | **카탈로그 크롤 이미지** (`gear/{id}.imageUrl`) | **계속 미표시** | 브랜드 저작물 |
 | **브랜드 링크 미리보기 이미지** (`gear/{id}.productImageUrl`) | **허용 — 브랜드 링크 미리보기 카드에서만** (2026-08-09 추가, 아래 경계 참고) | 사본을 두지 않고 브랜드 CDN이 직접 전송, 권리자가 `og:image`로 렌더를 유도 |
+| **쿠팡 파트너스 상품 이미지** (`consumable-product/{id}.imageUrl`, `gear/{id}.coupangImageUrl`) `[제안]` | **허용 — 소모품 카드([Consumables.md](Consumables.md) CP-2)와 장비 상세 쿠팡 행([GearDetail.md](GearDetail.md) GD-5b)에서만** (2026-10-07 추가, 아래 경계 참고) | 사본을 두지 않고 쿠팡 CDN이 직접 전송, 파트너스 API가 홍보용으로 제공하는 상품 이미지 |
 | **사용자 업로드** (`users/{uid}/gears/{id}.imageUrl`) | **허용 — 업로더 본인 화면에만** | 본인 저작물, 재유포 경로 없음 |
 | **공유 갤러리** (DM-8, 한 장비의 사진을 모든 사용자에게) | **폐기 유지 — 재도입하지 않는다** | UGC 재유포 경로 그 자체 |
 
 - **`[2026-08-09 추가]` 브랜드 미리보기 예외의 경계**: 이 예외는 **브랜드 링크 미리보기 카드([GearDetail.md](GearDetail.md) GD-5a) 한 곳에만** 적용된다. 장비 행·피드 카드·검색 결과 등 다른 표면으로 넓히지 않는다 — 넓히는 순간 "링크의 미리보기"라는 성격을 잃고 카탈로그 이미지 복귀가 된다. 예외를 성립시키는 조건은 셋이고 하나라도 빠지면 예외가 아니다: ① 사본을 두지 않고 **브랜드 CDN URL로 직접 렌더**, ② 그 브랜드 페이지로 가는 **링크에 부속**, ③ **출처 도메인 노출**. `imageUrl`(우리 Storage 사본)로 대체하는 것은 ①을 깨므로 금지한다.
   - 참고로 두 이미지는 **같은 파일**이다(백컨트리 시에스타 4P 실측 양쪽 208,890 B). 화면에 보이는 사진이 같아도 위 세 조건이 성립하느냐가 갈림선이다.
+- **`[2026-10-07 추가]` `[제안]` 쿠팡 파트너스 상품 이미지 예외의 경계**: 브랜드 미리보기와 **같은 세 조건**을 요구한다 — ① 우리 Storage에 사본을 두지 않고 **쿠팡 CDN URL로 직접 렌더**, ② 그 상품의 **파트너스 링크에 부착**(카드 전체가 링크), ③ **출처 `쿠팡` 노출**(카드 메타 줄). 적용 표면은 소모품 카드([Consumables.md](Consumables.md) CP-2 — 배낭 상세·홈·커뮤니티 세 자리)와 장비 상세 쿠팡 행([GearDetail.md](GearDetail.md) GD-5b) **두 종류뿐**이다. 장비 행·피드 셀·검색 결과로 넓히지 않는다 — 특히 `gear/{id}.coupangImageUrl`을 장비 목록의 썸네일로 쓰면 "링크의 미리보기"가 아니라 카탈로그 이미지 복귀가 된다. 쿠팡 정책상 앱 내 썸네일 사용 가능 여부는 미확인이다([Consumables.md](Consumables.md) §8 b).
 - **비공개 원칙**: 사용자 업로드 이미지는 **로그인한 업로더 본인의 화면에만** 나타난다. 공유 배낭 링크([BagDetail.md](BagDetail.md) BD-7)·박지 후기 첨부 배낭([CampSite.md](CampSite.md) CS-8)·배낭 공유 이미지([BagShare.md](BagShare.md)) 등 **제3자가 보는 표면에서는 렌더하지 않는다.** 이 원칙이 깨지면 2026-07-28에 우려한 재유입 경로가 그대로 열린다.
   - 앱 안에서는 **조회 단계에서 막는다** — 제3자가 여는 경로(`BagStore.getSharedBag`)는 사용자 문서를 읽으면서도 소유자용 정규화를 쓰지 않아 `imageUrl`이 애초에 실리지 않는다. 뷰에서 거르면 화면이 늘 때마다 빠뜨릴 수 있다.
   - ~~**`[미해결]` 앱 밖 표면**: 공유 링크(`{WEB_BASE_URL}/bag-share/{bagId}`)를 실제로 여는 웹 랜딩은 **별도 레포**(`lessismore`)이고 Firestore를 직접 읽는다. 이 앱의 조회 차단이 거기엔 적용되지 않으므로, **그쪽에서도 장비 `imageUrl`을 렌더하지 않는지 확인해야 비공개 원칙이 완성된다.** 2026-07-28 제거 작업의 잔여 항목으로도 남아 있었다.~~ **해소(2026-08-14)**: 웹 레포(`lessismore`)를 확인해 장비 `imageUrl`을 렌더하던 표면인 장비 공유 랜딩(`/gear-share/:id`)에서 렌더를 제거했다(웹 레포 커밋 4068e33 — `GearShareView`·`GearShare` 모델에서 제거, 앱 상세 문법 정합 + '앱으로 보기' 딥링크 추가와 함께). 이로써 앱 밖 웹 랜딩도 장비 `imageUrl`을 렌더하지 않아 비공개 원칙이 앱 안팎에서 완성됐다([GearDetail.md](GearDetail.md) GD-7 웹 랜딩 서술 참고).
@@ -89,6 +91,7 @@
 | `gear-comments/{gearId}/comments/{parentId}/comments/{replyId}` | 답글 (중첩 서브컬렉션) | `ReplyStore` |
 | `comment-likes/{userId}_{commentId}` | 댓글 좋아요 (복합 키 문서) | `ReplyStore` |
 | `feed-content/{contentId}` | 운영자 작성 콘텐츠 — 홈 추천 큐레이션 (DM-27) `[기획]` | 홈 `useless가 고른 박지` ([Home.md](Home.md) HM-11) |
+| `consumable-product/{productId}` | 운영자 큐레이션 소모품 — 쿠팡 파트너스 링크 카드 (DM-32) `[제안]` | 배낭 상세·홈·커뮤니티 소모품 자리 ([Consumables.md](Consumables.md)) |
 | `community-posts/{postId}` | 커뮤니티 게시글(패킹·투표 선택 첨부) (DM-28) `[제안]` | 커뮤니티 피드·상세 |
 | `community-posts/{postId}/comments/{commentId}` | 커뮤니티 댓글·한 단계 답글 (DM-28) `[제안]` | 커뮤니티 상세 |
 | `community-post-likes/{userId}_{postId}` | 커뮤니티 게시글 좋아요 (DM-28) `[제안]` | 커뮤니티 피드·상세 |
@@ -152,6 +155,8 @@
 | `coupangUrl` | string | 옵셔널. 쿠팡 파트너스 최저가 구입 링크. 카탈로그 `gear/{id}`에만 두는 상품 속성 — 사용자 사본엔 복사 안 함 (GD-5). **실데이터 27건(0.1%)** |
 | `productUrl` | string | 옵셔널. **브랜드 공식몰 상품 페이지 링크**(크롤 파이프라인 기록). `coupangUrl`과 같은 규칙 — 카탈로그에만 두고 사용자 사본엔 복사하지 않는다 (GD-5). **실데이터 37,576건(90.8%)** 으로 커버리지가 쿠팡보다 훨씬 넓다 |
 | `productImageUrl` | string | 옵셔널. `productUrl` 페이지의 **`og:image` 절대 URL**(브랜드 CDN). 미리보기 카드(GD-5a) 전용이며 **이 필드만 렌더한다** — 같은 사진이라도 `imageUrl`을 대신 쓰면 안 된다(§1 경계). **백필로 미리 모으지 않는다** — 그 장비를 처음 연 네이티브 클라이언트가 og를 한 번 읽어 채운다(GD-5a). 웹은 CORS로 수집을 못 하지만 채워진 값은 그대로 읽는다 |
+
+| `coupangImageUrl` | string | 옵셔널 `[제안]`. `coupangUrl` 상품의 **쿠팡 CDN 상품 이미지 URL**(파트너스 API `products/search`의 `productImage`). 장비 상세 쿠팡 행 썸네일([GearDetail.md](GearDetail.md) GD-5b) 전용이며 다른 표면에 쓰지 않는다(§1 경계). 앱은 읽기만 하고 운영 스크립트(`scripts/curate-consumables.mjs --gear`, [Consumables.md](Consumables.md) CP-7)가 `coupangUrl`이 있는 카탈로그 문서(27건)에 채운다. 사용자 사본엔 복사하지 않는다 |
 
 커버리지는 2026-08-08 전수 스캔(총 41,400건) 기준. **두 링크를 함께 가진 문서는 0건**이다 — `coupangUrl`이 붙은 27건은 크롤 이전에 수동 등록된 문서라 `productUrl`·`specs`·`groupId`가 아예 없다. 즉 GD-5의 두 행이 동시에 보이는 경우는 현재 데이터엔 없지만, 앞으로 생길 수 있으므로 구현은 두 행 모두를 다룬다.
 
@@ -971,6 +976,29 @@
 - 삭제: 회원 탈퇴 정리 함수가 지운다(SUB-7).
 - 인덱스: 없음(단건 조회·콘솔 조회만). 통계 쿼리가 생기면 `active`·`environment` 복합 인덱스를 추가한다.
 
+### DM-32 소모품 추천 `consumable-product/{id}` `[제안]`
+
+[Consumables.md](Consumables.md)의 운영자 큐레이션 소모품(이소가스·물티슈 등). 카드 하나 = 문서 하나이고, 앱은 읽기만 한다. **문서 id는 쿠팡 `productId`** 다 — 같은 상품을 두 번 올리지 않게 하고, 재큐레이션 때 기존 문서를 찾는 키가 된다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `name` | string | 카드 이름(두 줄까지). 운영자 입력 |
+| `pitch` | string | 한 줄 소개. 운영자 입력. 가격·`최저가` 같은 가격 주장을 넣지 않는다(CP-1) |
+| `category` | string | string enum `ConsumableCategory`(`model/consumable/ConsumableCategory.ts`): `fuel`(연료 — 이소가스 등) \| `hygiene`(위생 — 물티슈·샤워티슈 등) \| `toiletry`(화장실 — 휴지·마이비데 등) \| `etc`. 지금은 운영 분류용이며 화면에 노출하지 않는다 |
+| `coupangUrl` | string | 쿠팡 파트너스 단축 링크(`link.coupang.com/a/...`). 카드 탭 도착지 |
+| `imageUrl` | string? | 쿠팡 CDN 상품 이미지 URL(파트너스 API `productImage`). 없으면 카드가 아이콘으로 폴백한다(CP-2). §1 쿠팡 파트너스 상품 이미지 경계 |
+| `productId` | string | 쿠팡 상품 id — 문서 id와 같은 값(재큐레이션·이미지 매칭용, CP-7) |
+| `surfaces` | string[] | 노출 자리 — string enum `ConsumableSurface`(`model/consumable/ConsumableSurface.ts`): `home` \| `bagDetail` \| `community`. 비어 있으면 어디에도 나오지 않는다 |
+| `order` | number | 노출 순서(오름차순). 동률은 문서 id 오름차순 |
+| `published` | boolean | 노출 여부. 클라이언트는 `true`만 읽는다 — 스크립트는 CSV에서 빠진 상품을 지우지 않고 `false`로 내린다 |
+| `updatedAt` | timestamp | 스크립트가 마지막으로 쓴 시각 |
+
+- **가격 필드를 두지 않는다**(CP-1, 2026-10-07 사용자 결정).
+- **조회**: `where('published', '==', true)` 하나로 세션당 한 번 읽고, `surfaces` 포함 여부·`order` 정렬은 클라이언트에서 한다 — `published` 등치 + `order` 정렬을 서버에 함께 걸면 복합 색인이 필요하다(DM-27과 같은 판단). 문서 수가 수십 개 규모라 전부 받아도 부담이 없다.
+- **보안 규칙(콘솔 관리)**: 읽기 공개(비로그인 홈·커뮤니티 노출의 전제) + **쓰기 admin(운영자) 전용**이 목표다. 규칙 배포는 사용자 작업이며 현재 상태는 미확인이다. 레포의 배포 규칙 스냅샷(`docs/firebase/deployed/firestore.rules`)은 잠금 목록 밖 컬렉션을 전면 개방하므로, **규칙을 추가하지 않으면 누구나 `coupangUrl`을 바꿔치기할 수 있다** — 구현 전 선행 작업이다(§8, [Consumables.md](Consumables.md) §8 a).
+- **쓰기 경로**: 운영 스크립트 `scripts/curate-consumables.mjs`만 쓴다(CP-7, DM-12). 앱은 쓰지 않는다.
+- 인덱스: 없음(단일 필드 자동 색인만).
+
 ## 4. Storage 경로 (DM-9)
 
 | 경로 패턴 | 용도 | 상태 |
@@ -1062,6 +1090,7 @@ ID 배열로 문서를 모아 읽는 경로는 모두 Firestore `in` 절의 **�
 - `/gear`·`/gear-rank`는 보안 규칙상 미인증 쓰기가 허용된다. **변경 전 반드시 백업 JSON을 먼저 저장**한다 (`scripts/backup-*.json` 관례).
 - Hot Updater OTA 백엔드는 별도 프로젝트 `useless-ota` — 그 admin 키로는 앱 Firestore에 쓸 수 없다.
 - **추천 카드 사진 후보 제안** `[기획]` `scripts/suggest-feed-content-image.mjs` — TourAPI KorService2로 박지 이름·좌표에 맞는 **`Type1` 이미지 후보를 조회해 목록으로 출력**한다(`searchKeyword2` → `detailImage2` → 이미지 단위 `Type1` 필터 → 거리 검증). **Firestore에 쓰지 않는다** — `feed-content` 쓰기는 admin 전용이고 채택은 사람이 CMS에서 한다(DM-27). 키는 저장소 루트 `.env`의 **`TOUR_API_KEY`**(`EXPO_PUBLIC_` 접두사 금지 — 번들에 인라인된다). 규칙은 [CampSite.md](CampSite.md) CS-10.
+- **소모품 큐레이션** `[제안]` `scripts/curate-consumables.mjs` — `scripts/consumables.csv`를 읽어 `consumable-product`(DM-32)를 갱신하고, `--gear` 모드로 `gear/{id}.coupangImageUrl`(DM-3)을 채운다. 단축 링크 HTML에서 `productId`를 읽고, 쿠팡 파트너스 `products/search`는 **이미지가 없는 상품에만 상품당 한 번**(2초 간격, 403·한도 메시지 시 즉시 중단) 호출한다. 키는 iCloud `claude/coupang-partners.env`에서 읽고 저장소에 두지 않는다 — **사용자의 다른 서비스와 공유하는 키**라 호출을 최소로 둔다. 백업 JSON 우선·`--apply` opt-in. 규칙은 [Consumables.md](Consumables.md) CP-7.
 - **`/camp-spot`은 기본 보안 규칙상 클라이언트 쓰기가 막혀 있다** — 시드·백필 스크립트는 `permission-denied`를 잡아 콘솔에서 규칙을 임시 허용하라는 안내를 내고 정상 종료한다(`seed-camp-spots.mjs`·`backfill-camp-spot-city.mjs` 관례). 적재 후 규칙을 원복한다.
 
 ## 8. 미해결 질문
@@ -1070,6 +1099,7 @@ ID 배열로 문서를 모아 읽는 경로는 모두 Firestore `in` 절의 **�
 - **`feed-content`(DM-27) 보안 규칙 배포 확인** — 읽기 공개는 **확정**(2026-08-15 사용자 확정)이나, 규칙은 콘솔 관리라 실제 배포된 규칙이 그와 일치하는지 이 레포에서 확인 불가. 쓰기 admin(운영자) 전용 구성과 웹 CMS(AdminView)가 어떤 인증으로 쓰기를 할지(admin SDK 경유 서버·특정 uid 허용 등)를 구현 전 확인 필요 — [Home.md](Home.md) HM-11·HM-12.
 - **추천 카드 사진(DM-27) 재검증 주기 미정** `[기획]` — URL 직접 참조라 원본이 사라지거나 핫링크가 막히면 밴드가 조용히 폴백된다(화면은 정상이지만 사진이 사라진다). 실패율은 Storage 사본 승격 조건(DM-17 ③, 5%)의 기준값이므로 **언제·어떻게 재검증할지**(수동 재실행 vs 주기 배치, HEAD 샘플링 범위)를 정해야 한다. 고캠핑 스냅샷 갱신 주기가 미정인 것과 같은 성격의 운영 항목이다([CampSite.md](CampSite.md) §8).
 - **레거시 `camp-spot.imageUrl`의 라이선스 유형 미확인** `[기획]` — 고캠핑 `firstImageUrl`·큐레이션 수동 입력으로 이미 들어간 값들은 **이미지 단위 `cpyrhtDivCd`를 확인한 적이 없다**(고캠핑 `basedList` 응답에는 그 필드 자체가 없다). 박지 상세가 이 값을 계속 렌더하고 있으므로 **표시 조건을 어떻게 걸지가 미해결**이다 — 유형 미확인 값을 계속 보여줄지, 확인된 것만 남길지, 전수 확인이 가능한지(건수 실측 필요). 상세는 크롭하지 않으므로 변경금지(`Type3`)여도 표시 자체는 성립할 수 있어, 카드(크롭)와 같은 기준을 그대로 적용할 필요는 없다 — 결정 전까지 **현행 표시를 유지**한다([CampSite.md](CampSite.md) CS-10).
+- **`consumable-product`(DM-32) 쓰기 잠금** `[제안]` — 배포 규칙 스냅샷의 전면 개방 절에 걸리면 누구나 파트너스 링크를 바꿔치기할 수 있다. 잠금 규칙 배포와 스크립트의 쓰기 인증 방식(운영자 uid 허용·적재 시 임시 허용 등)을 구현 전에 정한다([Consumables.md](Consumables.md) §8 a).
 - **커뮤니티 신고만 제공하는 심사 위험** `[제안]` — 사용자 결정으로 자동 필터·사전 검수·사용자 차단·별도 운영 도구를 MVP에서 제외했다. 신고는 Firebase 콘솔에서 수동 처리한다. Apple App Review Guideline 1.2의 필터링·차단 요구와 차이가 있어 iOS 심사 보완 가능성이 있으며, 필요 시 [Community.md](Community.md) CM-10을 먼저 개정한다.
 - **커뮤니티 Storage 규칙 배포** `[제안]` — 이 레포에는 Storage 규칙 파일이 없고 기존 루트 규칙의 미인증 목록 허용 이력이 있다(§1). 개인 장비 경로는 소유자 전용, 커뮤니티 경로는 게시 상태 기반 공개 읽기로 분리한 실제 콘솔 규칙을 구현 전에 확인해야 한다.
 - ~~**`camp-spot`(DM-17) 등록 시각 필드 부재** — 홈 새로운 박지 섹션의 "최근 등록순"에 쓸 필드가 없다(`updatedAt`은 재시드마다 갱신). `createdAt` 추가·백필 여부 미확정.~~ — **자동 소스 폐기로 해소(2026-08-15)**: 홈 섹션이 운영자 추천(`feed-content`, [Home.md](Home.md) HM-11)으로 전환돼 정렬은 `publishedAt`이 담당한다. `camp-spot`에 등록 시각 필드를 더할 이유가 없어졌다.

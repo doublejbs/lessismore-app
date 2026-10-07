@@ -68,7 +68,7 @@ app/info/index.tsx (정보 탭)
 
 - 리소스는 `locales/ko.json` · `locales/en.json` · `locales/ja.json` 3개 파일. **ko.json이 단일 소스**다 — 키 추가·삭제·의미 변경은 ko.json에서 시작하고 en/ja가 따라간다.
 - **네임스페이스는 분할하지 않는다**(언어당 1파일, i18next 기본 네임스페이스 하나). 전체 키가 수천 개 규모이고 어차피 전부 번들에 실리므로 lazy load 이득이 없다. 파일이 커져 관리가 힘들어지면 그때 도메인별 파일 분할 + 빌드 시 병합을 검토한다(분할해도 런타임 네임스페이스는 하나로 유지).
-- 키 네이밍: **`<도메인>.<화면·기능>.<의미>`** 소문자 camelCase, 도메인 접두는 스펙 도메인과 정합시킨다 — `common.`(확인/취소/저장 등 공용), `warehouse.` `gearEdit.` `gearDetail.` `reply.` `bag.` `bagDetail.` `bagTemplate.` `packing.` `bagShare.` `bagDestination.` `search.` `feed.` `auth.` `info.` `campSite.` `weather.` `home.` `community.` `health.` `notification.` `app.`(초기화·OTA·탭). 예: `bag.delete.confirm`, `common.cancel`.
+- 키 네이밍: **`<도메인>.<화면·기능>.<의미>`** 소문자 camelCase, 도메인 접두는 스펙 도메인과 정합시킨다 — `common.`(확인/취소/저장 등 공용), `warehouse.` `gearEdit.` `gearDetail.` `reply.` `bag.` `bagDetail.` `bagTemplate.` `packing.` `bagShare.` `bagDestination.` `search.` `feed.` `auth.` `info.` `campSite.` `weather.` `home.` `community.` `health.` `notification.` `app.`(초기화·OTA·탭) · `[제안]` `commerce.`(여러 도메인이 공유하는 커머스·제휴 고지) `consumable.`(소모품 추천, [Consumables.md](Consumables.md)). 예: `bag.delete.confirm`, `common.cancel`.
 - 값의 의미가 "무엇"인지 키가 말하게 한다 — `bag.delete.confirm`(O), `bag.text1`(X). 같은 문구라도 맥락이 다르면 키를 분리한다(나중에 한쪽만 바뀔 수 있다).
 - **번역 프로세스**: en/ja 초벌은 코디네이터(LLM)가 작성하고 **사용자가 검수 후 확정**한다. 미검수 상태로 릴리스하지 않는다.
 - JSON에는 주석을 둘 수 없으므로, **문구에 근거가 있는 키**(예: 스토어 심사 지적으로 확정된 `계속` 류 문구, 법적 고지 문구)는 이 문서 §4의 "문구 근거 표"에 키↔근거로 기록하고 커밋 메시지에 연결한다.
@@ -255,6 +255,7 @@ app/info/index.tsx (정보 탭)
 | `app.announcement.*`·`app.featurePopup.*` | 전역 오버레이의 닫기·상세·보류 액션은 화면의 동작을 그대로 설명하는 접근성 라벨과 버튼 문구를 공유한다. |
 | `app.bag*`·`app.template*` | 배낭·템플릿 폼의 검증, 성공·실패 피드백은 사용자가 다음 행동을 알 수 있도록 기존 공통 오류·확인 어휘와 결합한다. |
 | `app.reviewWrite.*`·`app.gearAdd.*` | 후기 작성과 장비 추가는 입력 영역의 목적과 선택적 입력 여부를 명시해 언어별 어순을 번역 문장 단위로 보장한다. |
+| `commerce.coupangDisclaimer` `[제안]` | 쿠팡 파트너스 운영정책의 **수수료 고지 의무** 문구다. 링크가 있는 모든 자리(장비 상세 GD-5, 소모품 CP-3)가 같은 키를 읽는다 — 법적 고지는 한 곳에서만 바뀌어야 한다. 2026-10-07 `gearDetail.coupangDisclaimer`에서 이동([Consumables.md](Consumables.md) CP-3). 문구를 줄이거나 의역하지 않는다(en/ja 포함). |
 | `reply.errors.*` | 댓글 저장 계층에서 사용자에게 전달되는 검증 오류도 Alert에 원문으로 노출되지 않도록 번역 키를 사용한다. |
 
 ## 5. 플랫폼 분기
