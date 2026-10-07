@@ -523,7 +523,6 @@
     "declutterWithoutWeight": "Not used on the last 3 trips",
     "blogReviews": "Blog · YouTube reviews",
     "officialLinks": "Official links",
-    "coupangDisclaimer": "As a Coupang Partners activity, we receive a commission.",
     "moreReviews": "See more reviews",
     "firstReview": "Write the first review",
     "reviewCount": "({{count}} reviews)",
@@ -1547,5 +1546,16 @@
     "restoreDirection": "Show original direction",
     "reversed": "Reversed",
     "myLocation": "My location"
+  },
+  "commerce": {
+    "coupangDisclaimer": "As a Coupang Partners activity, we receive a commission."
+  },
+  "consumable": {
+    "viewOnCoupang": "View on Coupang",
+    "source": "Coupang",
+    "bagDetailTitle": "Before you go",
+    "homeTitle": "Consumables to pack",
+    "communityLabel": "Coupang Partners",
+    "accessibilityOpen": "View {{name}} on Coupang"
   }
 }

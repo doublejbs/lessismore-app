@@ -5,6 +5,7 @@ import { observer } from 'mobx-react-lite';
 import WarehouseDetail from '../../model/warehouse-detail/WarehouseDetail';
 import PretendardText from '../PretendardText';
 import WarehouseDetailBrandPreviewView from './WarehouseDetailBrandPreviewView';
+import CoupangDisclaimerView from '@/components/consumable/CoupangDisclaimerView';
 import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import { getBrandLinkLabel } from '../../model/gear/GearBrandLink';
 import app from '@/model/app/App';
@@ -80,9 +81,7 @@ const WarehouseDetailPurchaseView: FC<Props> = ({ warehouseDetail }) => {
           {renderLink(app.getL10n().t('gearDetail.lowestPrice'), () =>
             warehouseDetail.openCoupangUrl()
           )}
-          <PretendardText style={styles.disclaimerText}>
-            {app.getL10n().t('gearDetail.coupangDisclaimer')}
-          </PretendardText>
+          <CoupangDisclaimerView />
         </View>
       ) : null}
     </View>
@@ -125,11 +124,6 @@ const styles = StyleSheet.create({
   linkText: {
     ...AcgType.control,
     color: Acg.ink,
-  },
-  // 고지는 조용히 둔다 — 면 밖, 좌측 정렬.
-  disclaimerText: {
-    ...AcgType.meta,
-    color: Acg.textMuted,
   },
 });
 

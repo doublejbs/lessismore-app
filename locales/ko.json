@@ -515,7 +515,6 @@
     "declutterWithoutWeight": "최근 3번의 여행에서 쓰지 않았어요",
     "blogReviews": "블로그·유튜브 후기",
     "officialLinks": "공식 링크",
-    "coupangDisclaimer": "쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.",
     "moreReviews": "더 많은 의견 보기",
     "firstReview": "첫번째 리뷰 남기기",
     "reviewCount": "(리뷰 {{count}})",
@@ -1521,5 +1520,16 @@
     "restoreDirection": "원래 방향으로 보기",
     "reversed": "역방향",
     "myLocation": "내 위치"
+  },
+  "commerce": {
+    "coupangDisclaimer": "쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."
+  },
+  "consumable": {
+    "viewOnCoupang": "쿠팡에서 보기",
+    "source": "쿠팡",
+    "bagDetailTitle": "출발 전 소모품",
+    "homeTitle": "챙겨갈 소모품",
+    "communityLabel": "쿠팡 파트너스",
+    "accessibilityOpen": "{{name}} 쿠팡에서 보기"
   }
 }

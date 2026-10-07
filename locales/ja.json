@@ -515,7 +515,6 @@
     "declutterWithoutWeight": "最近3回の旅行で未使用",
     "blogReviews": "ブログ・YouTubeのレビュー",
     "officialLinks": "公式リンク",
-    "coupangDisclaimer": "Coupangパートナーズ活動の一環として、所定の手数料を受け取ります。",
     "moreReviews": "もっとレビューを見る",
     "firstReview": "最初のレビューを書く",
     "reviewCount": "({{count}}件のレビュー)",
@@ -1521,5 +1520,16 @@
     "restoreDirection": "元の向きで表示",
     "reversed": "逆方向",
     "myLocation": "現在地"
+  },
+  "commerce": {
+    "coupangDisclaimer": "Coupangパートナーズ活動の一環として、所定の手数料を受け取ります。"
+  },
+  "consumable": {
+    "viewOnCoupang": "クーパンで見る",
+    "source": "クーパン",
+    "bagDetailTitle": "出発前の消耗品",
+    "homeTitle": "持っていく消耗品",
+    "communityLabel": "クーパンパートナーズ",
+    "accessibilityOpen": "{{name}}をクーパンで見る"
   }
 }
