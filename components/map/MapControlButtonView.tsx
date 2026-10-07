@@ -9,6 +9,8 @@ interface Props {
   accessibilityLabel: string;
   onPress: () => void;
   disabled?: boolean | undefined;
+  // 아이콘 색. 기본은 잉크 — 켜진 상태를 알릴 때만 바꾼다(방향 모드의 파랑, BD-11).
+  iconColor?: string | undefined;
 }
 
 const BUTTON_SIZE = 46;
@@ -25,6 +27,7 @@ const MapControlButtonView: FC<Props> = ({
   accessibilityLabel,
   onPress,
   disabled,
+  iconColor,
 }) => {
   return (
     <TouchableOpacity
@@ -36,7 +39,7 @@ const MapControlButtonView: FC<Props> = ({
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled: !!disabled }}
     >
-      <Ionicons name={icon} size={22} color={Acg.ink} />
+      <Ionicons name={icon} size={22} color={iconColor ?? Acg.ink} />
     </TouchableOpacity>
   );
 };

@@ -45,6 +45,9 @@ import app from '@/model/app/App';
 import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
 import { setBagShareContext } from '@/model/bag-detail/BagShareHandoff';
 import { formatGroupDateRange } from '@/model/group-format/GroupFormat';
+import ConsumableCarouselSectionView from '@/components/consumable/ConsumableCarouselSectionView';
+import ConsumableAnalyticsSource from '@/model/consumable/ConsumableAnalyticsSource';
+import ConsumableSurface from '@/model/consumable/ConsumableSurface';
 
 interface Props {
   bagDetail: BagDetail;
@@ -117,6 +120,11 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
       bagDetail.initialize();
     }, [bagDetail])
   );
+
+  // 소모품은 세션당 1회 조회다(CP-1) — 이미 읽었으면 같은 Promise라 다시 부르지 않는다.
+  useEffect(() => {
+    app.getConsumableStore()?.load();
+  }, []);
 
   useLayoutEffect(() => {
     if (initialized && scrollViewRef.current) {
@@ -278,6 +286,13 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
 
   if (initialized) {
     const gears = bagDetail.getGears();
+    // 0개면 섹션 여백(marginTop)까지 그리지 않도록 래퍼 바깥에서 먼저 고른다(CP-1).
+    const bagConsumables =
+      app.getConsumableStore()?.getForSurface(ConsumableSurface.BagDetail) ??
+      [];
+    // 출발 전·여행 중이고 상품이 있을 때만 장비 목록 아래에 둔다(CP-4 / BD-12).
+    const showConsumables =
+      bagDetail.getTripPhase() !== 'after' && bagConsumables.length > 0;
 
     return (
       <GestureHandlerRootView style={styles.container}>
@@ -382,9 +397,24 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                       onRefReady={handleCategoryRefReady}
                     />
                   ))}
-                  <View style={styles.dummy} />
+                  {/* 마지막 카테고리도 필터 탭으로 상단까지 올릴 수 있게 꼬리 여백을 둔다.
+                      소모품 섹션이 있으면 그 섹션이 꼬리 여백을 대신한다. */}
+                  {!showConsumables && <View style={styles.dummy} />}
                 </View>
               </View>
+              {/* 화면 맨 끝 — 장비 목록 아래(CP-4 / BD-12, 2026-10-07 사용자 결정).
+                  이 화면은 본인 배낭 전용이다 — 공유 배낭(shared-bag)·그룹 멤버 배낭
+                  (GroupMemberBagView)은 다른 화면이라 해당 없다. 하단 바(BD-9)는 ScrollView
+                  아래 형제라 scrollContent의 paddingBottom만큼 고지가 바 위에 온전히 보인다. */}
+              {showConsumables && (
+                <View style={styles.consumableSection}>
+                  <ConsumableCarouselSectionView
+                    title={app.getL10n().t('consumable.bagDetailTitle')}
+                    products={bagConsumables}
+                    source={ConsumableAnalyticsSource.BagDetail}
+                  />
+                </View>
+              )}
             </ScrollView>
             {/* sticky 대체 오버레이 — 필터를 헤더 '아래'에 고정 표시한다(양 플랫폼 공용).
                 iOS: SafeAreaView가 top 인셋을 소비하지 않는 구조라 화면 최상단(top: 0)부터
@@ -519,6 +549,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: AcgLayout.screenPadding,
     marginTop: 12,
     marginBottom: 8,
+  },
+  // 캐러셀이 좌우 패딩 바깥까지 흐르도록(-24) 부모가 화면 패딩을 준다(CP-4).
+  // 위 여백은 장비 목록의 paddingBottom(80)이 이미 낸다 — 여기서 더하지 않는다.
+  consumableSection: {
+    paddingHorizontal: AcgLayout.screenPadding,
   },
   // 지면이 구분을 맡으므로 띠는 색 없이 간격만 낸다(ACG).
   separator: {

@@ -1,6 +1,10 @@
 import { RouteRowAction } from '@/components/route/RouteListView';
 import app from '@/model/app/App';
 import { RouteDisplay } from '@/model/route/RouteDisplay';
+import RouteExport, {
+  RouteExportFile,
+  RouteExportTarget,
+} from '@/model/route/RouteExport';
 
 /**
  * 코스 행 메타의 앞부분 (GRP-8, BD-11) — 그룹 코스 목록과 배낭 코스 목록이 같은 조각을 쓴다.
@@ -39,5 +43,37 @@ export const createRouteDirectionAction = (
       route.isReversed() ? 'route.restoreDirection' : 'route.reverse'
     ),
     onPress: () => route.toggleReversed(),
+  };
+};
+
+/**
+ * `⋯` 메뉴의 `GPX 내보내기` 항목 (GRP-8 `GPX 내려받기`, BD-11). 뒤집기처럼 **모든 행**에 둔다 —
+ * 받을 수 있는지는 Storage 규칙이 가른다(그룹 코스는 그룹원 누구나, 배낭 코스는 소유자). 웹에는
+ * 두지 않는다(APP-5). 뒤집기와 무관하게 원본 방향 그대로 내보낸다.
+ *
+ * 받는 동안은 메뉴 시트를 띄운 채 진행 표시를 두고(`prepare`), 시트가 내려간 뒤 공유 시트나
+ * 실패 토스트를 연다(`onPress`) — 모달 위에서는 토스트가 가려진다.
+ */
+export const createRouteExportAction = (
+  route: RouteExportTarget
+): RouteRowAction | null => {
+  if (!RouteExport.isSupported()) {
+    return null;
+  }
+
+  const l10n = app.getL10n();
+  const routeExport = RouteExport.new();
+  let file: RouteExportFile = null;
+
+  return {
+    icon: 'download-outline',
+    label: l10n.t('route.export'),
+    preparingLabel: l10n.t('route.exporting'),
+    prepare: async () => {
+      file = await routeExport.download(route);
+    },
+    onPress: () => {
+      void routeExport.share(file);
+    },
   };
 };

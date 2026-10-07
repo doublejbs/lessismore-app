@@ -116,7 +116,8 @@ const useAdSlotListState = ({
       ({
         viewableItems,
       }: {
-        viewableItems: ViewToken<AdListEntry<unknown>>[];
+        // 광고 칸이 아닌 칸(소모품 카드 등)도 같은 뜻의 `ordinal`을 들고 있으면 함께 받는다.
+        viewableItems: ViewToken<Pick<AdListEntry<unknown>, 'ordinal'>>[];
       }) => {
         const ordinals = viewableItems
           .map(token => token.item?.ordinal)

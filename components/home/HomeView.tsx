@@ -27,6 +27,9 @@ import { selectTripPlan } from '@/model/home/HomeTripPlan';
 import AdPlacement from '@/model/ads/AdPlacement';
 import SingleAdSlotView from '@/components/ads/SingleAdSlotView';
 import useSingleAdSlotState from '@/components/ads/useSingleAdSlotState';
+import ConsumableCarouselSectionView from '@/components/consumable/ConsumableCarouselSectionView';
+import ConsumableAnalyticsSource from '@/model/consumable/ConsumableAnalyticsSource';
+import ConsumableSurface from '@/model/consumable/ConsumableSurface';
 
 interface Props {
   home: Home;
@@ -74,10 +77,27 @@ const HomeView: FC<Props> = ({ home }) => {
     router.push('/info');
   };
 
+  // 추천 박지 아래가 마지막 콘텐츠 섹션(챙겨갈 소모품, CP-5 / HM-16)이다 — 비로그인 홈에도 같다.
+  // 로딩 중 자리를 잡지 않는다: 0개(조회 전·실패 포함)면 섹션이 아예 그려지지 않는다.
   const renderRecommendations = () => {
     return (
-      <HomeRecommendedSpotsView recommendations={home.getRecommendedSpots()} />
+      <>
+        <HomeRecommendedSpotsView recommendations={home.getRecommendedSpots()} />
+        <ConsumableCarouselSectionView
+          title={app.getL10n().t('consumable.homeTitle')}
+          products={
+            app.getConsumableStore()?.getForSurface(ConsumableSurface.Home) ??
+            []
+          }
+          source={ConsumableAnalyticsSource.Home}
+        />
+      </>
     );
+  };
+
+  // 마지막 섹션(소모품 고지·광고)이 탭바에 가리지 않게 로그인 여부와 무관하게 둔다.
+  const renderBottomSpacer = () => {
+    return <View style={{ height: bottomSpacerHeight }} />;
   };
 
   // 좌우 여백은 `Layout`이 이미 홈 섹션과 같은 `AcgLayout.screenPadding`으로 두른다.
@@ -91,6 +111,11 @@ const HomeView: FC<Props> = ({ home }) => {
       home.load();
     }, [home])
   );
+
+  // 소모품은 세션당 1회 조회다(CP-1). 홈 로딩과 독립이라 홈 렌더를 막지 않는다.
+  useEffect(() => {
+    app.getConsumableStore()?.load();
+  }, []);
 
   // 로그인 상태 reaction을 들고 있으므로 언마운트 시 정리한다.
   useEffect(() => {
@@ -126,8 +151,8 @@ const HomeView: FC<Props> = ({ home }) => {
             </TouchableOpacity>
           </View>
           {renderRecommendations()}
-          {/* 비로그인 화면은 하단 여백 없이 주 액션을 가운데 두므로, 광고가 있을 때만 탭바 몫을 비운다. */}
-          {renderAd([styles.adSlot, { marginBottom: bottomSpacerHeight }])}
+          {renderAd(styles.adSlot)}
+          {renderBottomSpacer()}
         </ScrollView>
       );
     }
@@ -142,7 +167,7 @@ const HomeView: FC<Props> = ({ home }) => {
         <HomeWarehousePreviewView gears={home.getGears()} />
         {renderRecommendations()}
         {renderAd(styles.adSlot)}
-        <View style={{ height: bottomSpacerHeight }} />
+        {renderBottomSpacer()}
       </ScrollView>
     );
   };

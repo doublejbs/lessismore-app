@@ -11,6 +11,8 @@ import { RouteBounds, RouteCoordinate } from './RouteData';
 export interface RouteDisplay {
   getId(): string;
   getName(): string;
+  // Storage의 원본 GPX 경로(DM-29·DM-30). GPX 내보내기가 원본을 그대로 받는다(GRP-8).
+  getStoragePath(): string;
   /**
    * 기기에 저장하는 뒤집기 여부의 키(GRP-8). 코스 문서의 `storagePath`라 그룹 코스와 배낭 코스가
    * 한 목록에 섞여도 겹치지 않는다(`RouteDirectionStore`).

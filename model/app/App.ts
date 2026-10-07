@@ -19,6 +19,7 @@ import FeaturePopupManager from '../feature-popup/FeaturePopupManager';
 import GearPreviewStore from '../gear-preview/GearPreviewStore';
 import BagTemplateStore from '../store/BagTemplateStore';
 import FeedContentStore from '../store/FeedContentStore';
+import ConsumableStore from '../store/ConsumableStore';
 import CommunityStore from '../store/CommunityStore';
 import GroupStore from '../store/GroupStore';
 import L10n from '../l10n/L10n';
@@ -45,6 +46,7 @@ class App {
   private bagStore: BagStore | null = null;
   private bagTemplateStore: BagTemplateStore | null = null;
   private feedContentStore: FeedContentStore | null = null;
+  private consumableStore: ConsumableStore | null = null;
   private searchStore: SearchStore | null = null;
   private alertManager: AlertManager | null = null;
   private logInAlertManager: LogInAlertManager | null = null;
@@ -116,6 +118,8 @@ class App {
       this.firebase,
       this.campSpotStore
     );
+    // 소모품 추천(CP-1) — 세 자리가 공유한다. 조회는 각 자리가 load()로 시작한다(세션당 1회).
+    this.consumableStore = new ConsumableStore(this.firebase);
     this.campReviewStore = new CampReviewStore(this.firebase);
     this.campFavoriteStore = new CampFavoriteStore(this.firebase);
     this.analyticsManager = AnalyticsManager.new();
@@ -211,6 +215,10 @@ class App {
 
   public getFeedContentStore() {
     return this.feedContentStore;
+  }
+
+  public getConsumableStore() {
+    return this.consumableStore;
   }
 
   public getCampReviewStore() {

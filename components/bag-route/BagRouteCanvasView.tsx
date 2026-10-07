@@ -10,18 +10,18 @@ import RouteElevationChartView from '@/components/route/RouteElevationChartView'
 import RoutePathOverlayView from '@/components/route/RoutePathOverlayView';
 import RouteScrubMarkerView from '@/components/route/RouteScrubMarkerView';
 import RouteEndpointMarkersView from '@/components/route/RouteEndpointMarkersView';
-import MapControlButtonView from '@/components/map/MapControlButtonView';
+import RouteEndpointCalloutView from '@/components/route/RouteEndpointCalloutView';
+import { useRouteEndpointState } from '@/components/route/useRouteEndpointState';
+import MapMyLocationButtonView from '@/components/map/MapMyLocationButtonView';
 import MapMyLocationMarkerView from '@/components/map/MapMyLocationMarkerView';
-import { Acg } from '@/constants/DesignTokens';
-import {
-  MapCoordinate,
-  useMapCurrentLocation,
-} from '@/hooks/useMapCurrentLocation';
+import { useMyLocationHeadingMode } from '@/components/map/useMyLocationHeadingMode';
+import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import { MapCoordinate } from '@/hooks/useMapCurrentLocation';
 import app from '@/model/app/App';
 import BagRouteList from '@/model/bag-route/BagRouteList';
 import { deltaToZoom } from '@/model/map/MapZoom';
 import { getRouteFitRegion } from '@/model/route/RouteCamera';
-import { RouteBounds } from '@/model/route/RouteData';
+import { RouteBounds, RouteCoordinate } from '@/model/route/RouteData';
 import { RouteElevationSample } from '@/model/route/RouteElevation';
 
 interface Props {
@@ -83,6 +83,7 @@ const BagRouteCanvasView: FC<Props> = ({ bagRouteList }) => {
    * 내 위치 (BD-11) — 그룹 지도·박지 지도와 같은 공용 훅이다. 진입에서 권한을 묻지 않고,
    * 권한이 없으면 점을 그리지 않는다. 버튼은 항상 보이고 누르면 권한을 요청한다 — 코스를 따라
    * 걸으며 "지금 어디쯤인가"를 보려고 들어온 화면이라 첫 요청 자리가 필요하다.
+   * 버튼을 다시 누르면 방향 모드(지도 회전 + 방향 부채꼴), 한 번 더 누르면 끈다(그룹 지도와 같다).
    */
   const moveToCoordinate = useCallback((coordinate: MapCoordinate) => {
     if (!mountedRef.current || !mapReadyRef.current) {
@@ -99,9 +100,53 @@ const BagRouteCanvasView: FC<Props> = ({ bagRouteList }) => {
       duration: 500,
     });
   }, []);
-  const { currentLocation, moveToCurrentLocation } = useMapCurrentLocation({
+  const {
+    currentLocation,
+    mode: myLocationMode,
+    heading,
+    camera: followCamera,
+    cameraAnimationDuration,
+    handlePressMyLocation,
+    handleCameraChanged,
+    releaseFollow,
+  } = useMyLocationHeadingMode({
     moveCamera: moveToCoordinate,
     logTag: 'BagRoute',
+    fallbackZoom: deltaToZoom(CURRENT_LOCATION_DELTA),
+  });
+
+  /**
+   * 출발·도착 마커 탭 → 위치 정보 카드(GRP-8, 그룹 지도와 같다). 카메라는 그 점으로 옮기되
+   * 줌은 그대로 둔다 — `animateCameraTo`에 줌을 주지 않으면 지금 줌을 유지한다.
+   */
+  const handleMoveToEndpoint = useCallback(
+    (coordinate: RouteCoordinate, pivot: { x: number; y: number }) => {
+      if (!mountedRef.current || !mapReadyRef.current) {
+        return;
+      }
+
+      didFitRef.current = true;
+      // 방향 모드의 따라가기를 먼저 푼다 — 다음 나침반 값이 카메라를 내 위치로 되돌리지 않게.
+      releaseFollow();
+      mapRef.current?.animateCameraTo({
+        latitude: coordinate.lat,
+        longitude: coordinate.lng,
+        pivot,
+        duration: 500,
+      });
+    },
+    [releaseFollow]
+  );
+  const {
+    endpointInfo,
+    endpoint,
+    handleTapEndpoint,
+    handleCloseEndpoint,
+    handleMapLayout,
+    handleBottomOverlayLayout,
+  } = useRouteEndpointState({
+    route: selectedRoute,
+    moveCamera: handleMoveToEndpoint,
   });
 
   useEffect(() => {
@@ -113,12 +158,17 @@ const BagRouteCanvasView: FC<Props> = ({ bagRouteList }) => {
     };
   }, []);
 
-  const fitBounds = useCallback((bounds: RouteBounds) => {
-    mapRef.current?.animateRegionTo({
-      ...getRouteFitRegion(bounds),
-      duration: 500,
-    });
-  }, []);
+  const fitBounds = useCallback(
+    (bounds: RouteBounds) => {
+      // 코스로 옮기면 방향 모드의 따라가기를 푼다(손으로 옮긴 것과 같다 — BD-11).
+      releaseFollow();
+      mapRef.current?.animateRegionTo({
+        ...getRouteFitRegion(bounds),
+        duration: 500,
+      });
+    },
+    [releaseFollow]
+  );
 
   // 최초 카메라 — 목록의 코스를 모두 담는 상자에 맞춘다(BD-11). 코스가 없으면 그대로 둔다.
   const fitInitialCamera = useCallback(() => {
@@ -231,7 +281,7 @@ const BagRouteCanvasView: FC<Props> = ({ bagRouteList }) => {
 
   return (
     <View style={styles.root}>
-      <View style={styles.mapArea}>
+      <View style={styles.mapArea} onLayout={handleMapLayout}>
         <NaverMapView
           ref={mapRef}
           style={StyleSheet.absoluteFill}
@@ -240,17 +290,26 @@ const BagRouteCanvasView: FC<Props> = ({ bagRouteList }) => {
           isShowZoomControls={false}
           isShowScaleBar={false}
           onInitialized={handleMapInitialized}
+          onTapMap={handleCloseEndpoint}
+          onCameraChanged={handleCameraChanged}
+          // 방향 모드(BD-11)에서만 값이 있는 제어 카메라 — 내 위치를 따라가며 지도를 돌린다.
+          {...(followCamera ? { camera: followCamera } : {})}
+          animationDuration={cameraAnimationDuration}
         >
           <RoutePathOverlayView
             routes={routes}
             selectedRouteId={selectedRoute?.getId() ?? null}
           />
           {/* 선택한 코스의 시작·끝(GRP-8과 같은 규칙) — 옅게 그린 코스엔 달지 않는다. */}
-          <RouteEndpointMarkersView route={selectedRoute} />
+          <RouteEndpointMarkersView
+            route={selectedRoute}
+            onTapEndpoint={handleTapEndpoint}
+          />
           {currentLocation ? (
             <MapMyLocationMarkerView
               latitude={currentLocation.latitude}
               longitude={currentLocation.longitude}
+              heading={heading}
             />
           ) : null}
           {/* 고도 그래프를 훑는 동안만 뜨는 위치 마커. */}
@@ -262,13 +321,32 @@ const BagRouteCanvasView: FC<Props> = ({ bagRouteList }) => {
           ) : null}
         </NaverMapView>
 
-        {/* 내 위치 버튼 — 그룹 지도의 현재 위치 버튼과 같은 모양·같은 우측 16 자리(BD-11). */}
-        <View style={styles.controlStack} pointerEvents='box-none'>
-          <MapControlButtonView
-            icon='locate'
-            accessibilityLabel={app.getL10n().t('route.myLocation')}
-            onPress={() => void moveToCurrentLocation()}
-          />
+        {/* 지도 아래쪽 오버레이 — 내 위치 버튼 밑에 끝점 카드가 붙는다(버튼을 가리지 않게 한 칸에 쌓는다). */}
+        <View
+          style={styles.bottomOverlay}
+          pointerEvents='box-none'
+          onLayout={handleBottomOverlayLayout}
+        >
+          {/* 내 위치 버튼 — 그룹 지도의 현재 위치 버튼과 같은 모양·같은 우측 16 자리(BD-11).
+            누를 때마다 내 위치로 → 방향 모드 → 끄기를 돈다. */}
+          <View style={styles.controlStack} pointerEvents='box-none'>
+            <MapMyLocationButtonView
+              mode={myLocationMode}
+              locateLabel={app.getL10n().t('route.myLocation')}
+              onPress={() => void handlePressMyLocation()}
+            />
+          </View>
+          {/* 코스 출발·도착 위치 정보 카드(GRP-8) — 그룹 지도의 포인트 카드와 같은 자리. */}
+          {endpoint && selectedRoute ? (
+            <View style={styles.callout}>
+              <RouteEndpointCalloutView
+                endpointInfo={endpointInfo}
+                endpoint={endpoint}
+                routeName={selectedRoute.getName()}
+                onClose={handleCloseEndpoint}
+              />
+            </View>
+          ) : null}
         </View>
       </View>
 
@@ -299,12 +377,21 @@ const styles = StyleSheet.create({
   mapArea: {
     flex: 1,
   },
-  controlStack: {
+  bottomOverlay: {
     position: 'absolute',
-    right: 16,
+    left: 0,
+    right: 0,
     bottom: CONTROL_BOTTOM_OFFSET,
+    gap: 12,
+  },
+  controlStack: {
+    alignSelf: 'flex-end',
+    marginRight: 16,
     alignItems: 'flex-end',
     gap: 8,
+  },
+  callout: {
+    paddingHorizontal: AcgLayout.screenPadding,
   },
 });
 

@@ -524,7 +524,6 @@
     "declutterWithoutWeight": "Not used on the last 3 trips",
     "blogReviews": "Blog · YouTube reviews",
     "officialLinks": "Official links",
-    "coupangDisclaimer": "As a Coupang Partners activity, we receive a commission.",
     "moreReviews": "See more reviews",
     "firstReview": "Write the first review",
     "reviewCount": "({{count}} reviews)",
@@ -1022,7 +1021,9 @@
     "location": {
       "failed": "We couldn't find your location. Please try again later.",
       "permissionDenied": "Location access is turned off. Allow it in Settings.",
-      "openSettings": "Open Settings"
+      "openSettings": "Open Settings",
+      "showHeading": "Show heading",
+      "hideHeading": "Turn off heading"
     }
   },
   "home": {
@@ -1528,7 +1529,24 @@
     "reverse": "Reverse direction",
     "restoreDirection": "Show original direction",
     "reversed": "Reversed",
-    "myLocation": "My location"
+    "myLocation": "My location",
+    "export": "Export GPX",
+    "exporting": "Downloading GPX…",
+    "exportFailed": "Couldn't download the GPX",
+    "endpoint": {
+      "start": "Start",
+      "end": "Finish",
+      "addressLoading": "Finding address…",
+      "elevation": "Elevation {{value}}m",
+      "separator": " · ",
+      "directions": "Directions",
+      "copyCoordinate": "Copy coordinates",
+      "copied": "Coordinates copied",
+      "close": "Close",
+      "destinationName": "{{name}} {{endpoint}}"
+    },
+    "pointOnRoute": "{{distance}} along route",
+    "pointElevation": "Elevation {{value}}m"
   },
   "ad": {
     "label": "Ad",
@@ -1566,5 +1584,20 @@
     "nudgeBodyNoPrice": "Tired of ads? Subscribe to remove every ad in the app.",
     "nudgeExplore": "Learn about the subscription",
     "nudgeNotNow": "No thanks"
+  },
+  "commerce": {
+    "coupangDisclaimer": "As a Coupang Partners activity, we receive a commission.",
+    "naverConnectDisclaimer": "As part of Naver Shopping Connect, we may receive a commission on sales."
+  },
+  "consumable": {
+    "source": {
+      "coupang": "Coupang",
+      "naver": "Naver Shopping"
+    },
+    "bagDetailTitle": "Before you go",
+    "homeTitle": "Consumables to pack",
+    "communityTitle": "Consumables to pack",
+    "communityLabel": "Affiliate picks",
+    "accessibilityOpen": "View {{name}} on {{merchant}}"
   }
 }

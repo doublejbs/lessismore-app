@@ -24,6 +24,8 @@ interface Props {
   memberIds: readonly string[];
   // 수정·삭제 권한(작성자 또는 방장)이 있을 때만 액션을 그린다(GRP-4).
   canEdit: boolean;
+  // 선택된 코스 위 위치 — `코스 12.3km 지점 · 고도 1,234m`. 코스에서 500m 밖이면 `null`이다(GRP-8).
+  routeMeta: string | null;
   disabled: boolean;
   onEdit: () => void;
   onDelete: () => void;
@@ -38,6 +40,7 @@ const GroupPointCalloutView: FC<Props> = ({
   point,
   memberIds,
   canEdit,
+  routeMeta,
   disabled,
   onEdit,
   onDelete,
@@ -80,6 +83,11 @@ const GroupPointCalloutView: FC<Props> = ({
       <PretendardText style={styles.meta} numberOfLines={1}>
         {meta}
       </PretendardText>
+      {routeMeta ? (
+        <PretendardText style={styles.meta} numberOfLines={1}>
+          {routeMeta}
+        </PretendardText>
+      ) : null}
       {description ? (
         <PretendardText style={styles.description} numberOfLines={3}>
           {description}

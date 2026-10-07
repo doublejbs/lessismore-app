@@ -516,7 +516,6 @@
     "declutterWithoutWeight": "最近3回の旅行で未使用",
     "blogReviews": "ブログ・YouTubeのレビュー",
     "officialLinks": "公式リンク",
-    "coupangDisclaimer": "Coupangパートナーズ活動の一環として、所定の手数料を受け取ります。",
     "moreReviews": "もっとレビューを見る",
     "firstReview": "最初のレビューを書く",
     "reviewCount": "({{count}}件のレビュー)",
@@ -1009,7 +1008,9 @@
     "location": {
       "failed": "現在地を確認できませんでした。しばらくしてからもう一度お試しください。",
       "permissionDenied": "位置情報へのアクセスがオフになっています。設定で許可してください。",
-      "openSettings": "設定を開く"
+      "openSettings": "設定を開く",
+      "showHeading": "向きを表示",
+      "hideHeading": "向きの表示をオフ"
     }
   },
   "home": {
@@ -1502,7 +1503,24 @@
     "reverse": "向きを反転",
     "restoreDirection": "元の向きで表示",
     "reversed": "逆方向",
-    "myLocation": "現在地"
+    "myLocation": "現在地",
+    "export": "GPXを書き出す",
+    "exporting": "GPXを取得中…",
+    "exportFailed": "GPXを取得できませんでした",
+    "endpoint": {
+      "start": "出発",
+      "end": "到着",
+      "addressLoading": "住所を確認中…",
+      "elevation": "標高 {{value}}m",
+      "separator": " · ",
+      "directions": "経路",
+      "copyCoordinate": "座標をコピー",
+      "copied": "座標をコピーしました",
+      "close": "閉じる",
+      "destinationName": "{{name}} {{endpoint}}"
+    },
+    "pointOnRoute": "コース{{distance}}地点",
+    "pointElevation": "標高 {{value}}m"
   },
   "ad": {
     "label": "広告",
@@ -1540,5 +1558,20 @@
     "nudgeBodyNoPrice": "広告が気になりますか？購読するとアプリのすべての広告をなくせます。",
     "nudgeExplore": "サブスクリプションを見る",
     "nudgeNotNow": "今はしない"
+  },
+  "commerce": {
+    "coupangDisclaimer": "Coupangパートナーズ活動の一環として、所定の手数料を受け取ります。",
+    "naverConnectDisclaimer": "NAVERショッピングコネクトの活動の一環として、販売時に手数料を受け取ります。"
+  },
+  "consumable": {
+    "source": {
+      "coupang": "Coupang",
+      "naver": "NAVERショッピング"
+    },
+    "bagDetailTitle": "出発前の消耗品",
+    "homeTitle": "持っていく消耗品",
+    "communityTitle": "持っていく消耗品",
+    "communityLabel": "提携商品",
+    "accessibilityOpen": "{{name}}を{{merchant}}で見る"
   }
 }

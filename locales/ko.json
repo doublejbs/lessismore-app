@@ -516,7 +516,6 @@
     "declutterWithoutWeight": "최근 3번의 여행에서 쓰지 않았어요",
     "blogReviews": "블로그·유튜브 후기",
     "officialLinks": "공식 링크",
-    "coupangDisclaimer": "쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.",
     "moreReviews": "더 많은 의견 보기",
     "firstReview": "첫번째 리뷰 남기기",
     "reviewCount": "(리뷰 {{count}})",
@@ -1009,7 +1008,9 @@
     "location": {
       "failed": "현재 위치를 확인할 수 없어요. 잠시 후 다시 시도해 주세요.",
       "permissionDenied": "위치 권한이 꺼져 있어요. 설정에서 위치 접근을 허용해 주세요.",
-      "openSettings": "설정 열기"
+      "openSettings": "설정 열기",
+      "showHeading": "방향 보기",
+      "hideHeading": "방향 끄기"
     }
   },
   "home": {
@@ -1502,7 +1503,24 @@
     "reverse": "방향 뒤집기",
     "restoreDirection": "원래 방향으로 보기",
     "reversed": "역방향",
-    "myLocation": "내 위치"
+    "myLocation": "내 위치",
+    "export": "GPX 내보내기",
+    "exporting": "GPX 받는 중…",
+    "exportFailed": "GPX를 받지 못했어요",
+    "endpoint": {
+      "start": "출발",
+      "end": "도착",
+      "addressLoading": "주소 확인 중…",
+      "elevation": "고도 {{value}}m",
+      "separator": " · ",
+      "directions": "길찾기",
+      "copyCoordinate": "좌표 복사",
+      "copied": "좌표를 복사했어요",
+      "close": "닫기",
+      "destinationName": "{{name}} {{endpoint}}"
+    },
+    "pointOnRoute": "코스 {{distance}} 지점",
+    "pointElevation": "고도 {{value}}m"
   },
   "ad": {
     "label": "광고",
@@ -1540,5 +1558,20 @@
     "nudgeBodyNoPrice": "광고가 불편하세요? 구독하면 앱의 모든 광고를 없앨 수 있어요.",
     "nudgeExplore": "구독 알아보기",
     "nudgeNotNow": "괜찮아요"
+  },
+  "commerce": {
+    "coupangDisclaimer": "쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.",
+    "naverConnectDisclaimer": "네이버 쇼핑 커넥트 활동의 일환으로, 판매 발생 시 수수료를 제공받습니다."
+  },
+  "consumable": {
+    "source": {
+      "coupang": "쿠팡",
+      "naver": "네이버쇼핑"
+    },
+    "bagDetailTitle": "출발 전 소모품",
+    "homeTitle": "챙겨갈 소모품",
+    "communityTitle": "챙겨갈 소모품",
+    "communityLabel": "제휴 상품",
+    "accessibilityOpen": "{{name}} {{merchant}}에서 보기"
   }
 }
