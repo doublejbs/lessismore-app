@@ -70,3 +70,8 @@ scripts/backup-community-poll-votes-*.json
 
 # Firebase 서비스 계정 키(OTA admin 등) — 절대 커밋 금지 (2026-09-04 노출 사고 후 추가)
 *-firebase-adminsdk-*.json
+
+# 소모품 큐레이션 입력·백업(CP-7) — 실제 파트너스 링크가 담겨 로컬에만 둔다. 예시는 scripts/consumables.example.csv
+scripts/consumables.csv
+scripts/backup-consumable-product-*.json
+scripts/backup-gear-coupangimage-*.json
