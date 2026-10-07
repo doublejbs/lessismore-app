@@ -341,3 +341,12 @@ Storage 에뮬레이터 로그에 뜨는 `storage.rules line [65] ... Variable  
   - 그룹·배낭 코스 create 허용 키에 `elevationLoss?` 추가(코스 뒤집기의 상승 값, GRP-8). 이게 없으면 새 코드의 코스 업로드가 permission-denied로 깨진다.
 - 배포 직후 프로덕션 비인증 검증 13건 통과: `gear`·`gear-rank`·`bag` 문서·`users`·`users/{uid}/gears` 개방 유지 / `groups`·`users/{uid}/groups`·`groupInvites` 목록 차단 / `groupInvites` get 허용 / `bag/{id}/routes` 읽기·쓰기 차단 / Storage `bags/` GPX 읽기 차단.
 - 롤백본: 직전 배포본은 커밋 `3b13621`의 `deployed/*.rules`다.
+
+## 배포 기록 (2026-10-07) — 소모품 `consumable-product` 잠금 (DM-32, Consumables.md CP-1·CP-7)
+
+- 라이브 룰셋 `c8ba0be2-fa58-46b8-acc8-04ca8a255476`. `deployed/firestore.rules`는 배포 후 소스를 그대로 옮긴 것이다.
+- 변경 두 가지:
+  - `isLockedCollection()` 목록에 `'consumable-product'` 추가 — 개방 절(`match /{document=**}`)에서 뺀다. match 는 OR 로 합쳐지므로 이걸 빼지 않으면 아래 전용 규칙이 효력이 없다.
+  - `match /consumable-product/{productId} { allow read: if true; allow write: if false; }` — 읽기 공개(비로그인 홈·커뮤니티 노출), 클라이언트 쓰기 전면 금지. 열어 두면 누구나 `coupangUrl`을 자기 파트너스 링크로 바꿔치기할 수 있다.
+- 쓰기 경로: `scripts/curate-consumables.mjs`가 firebase CLI 로그인(프로젝트 owner) OAuth 토큰으로 Firestore REST 에 쓴다. IAM 인증 요청은 보안 규칙을 거치지 않으므로 `write: if false`와 충돌하지 않는다.
+- **`feed-content`(DM-27)는 여전히 잠금 목록 밖이다** — 개방 절 `allow read, write: if !isLockedCollection()`에 걸려 **비로그인 누구나 쓰기·삭제가 가능**하다. 다만 웹 CMS(`lessismore` 레포 `src/feed/FeedContentTabView.tsx`)가 클라이언트 SDK `setDoc`/`addDoc`/`deleteDoc`으로 쓰고 있어, 같은 방식(`write: if false`)으로 잠그면 CMS 가 깨진다. 잠그려면 운영자 uid 허용 규칙 또는 CMS 쓰기 경로 변경이 먼저다(DataModel.md §8).
