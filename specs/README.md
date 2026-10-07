@@ -37,7 +37,7 @@
 | [Home.md](Home.md) | `HM` | 홈 대시보드 — 다가오는 일정 / 창고 미리보기 / 홈 피드 섹션(새 박지·새 장비·읽을거리 `[기획]`) |
 | [HealthActivity.md](HealthActivity.md) | `HA` | 운동 기록 — 배낭 여행의 실측(거리·경로) 을 HealthKit·Health Connect에서 읽어 표시 `[기획]` |
 | [Localization.md](Localization.md) | `L10N` | 다국어(i18n) — ko·en·ja UI 문구, 언어 설정, 일본어 폰트 전략 `[기획]` |
-| [Consumables.md](Consumables.md) | `CP` | 소모품 추천 — 운영자 큐레이션 소모품을 쿠팡 파트너스 링크로 노출(홈·배낭 상세·커뮤니티) `[제안]` |
+| [Consumables.md](Consumables.md) | `CP` | 소모품 추천 — 운영자 큐레이션 소모품을 제휴 링크(쿠팡 파트너스·네이버 쇼핑 커넥트)로 노출(홈·배낭 상세·커뮤니티) `[제안]` |
 
 신규 도메인 스펙은 [Template.md](Template.md)를 복사해서 시작한다.
 

@@ -208,7 +208,7 @@
 
 | 이벤트 | 트리거 | 파라미터 |
 | --- | --- | --- |
-| `click_consumable_product` | 소모품 카드 탭 → 쿠팡 링크 열기 직전 (CP-3) | `source`: `home` \| `bag_detail` \| `community`, `product_id`: `consumable-product` 문서 id(= 쿠팡 상품 id, 사용자 식별 정보 아님 — `click_community_snapshot_gear`의 `gear_id`와 같은 성격) |
+| `click_consumable_product` | 소모품 카드 탭 → 제휴 링크 열기 직전 (CP-3) | `source`: `home` \| `bag_detail` \| `community`, `merchant`: `coupang` \| `naver`(`ConsumableMerchant`, DM-32), `product_id`: `consumable-product` 문서 id(쿠팡 상품 id 또는 `naver-<channelProductNo>`, 사용자 식별 정보 아님 — `click_community_snapshot_gear`의 `gear_id`와 같은 성격) |
 
 - 소모품은 노출(impression) 이벤트를 보내지 않는다. 목록 화면이 없어 `더 보기` 이벤트도 없다(CP-3).
 - 장비 상세 쿠팡 행 썸네일(GD-5b)은 기존 `click_gear_purchase`(`source: coupang`)를 그대로 쓴다.
