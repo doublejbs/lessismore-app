@@ -1532,6 +1532,7 @@
     },
     "bagDetailTitle": "출발 전 소모품",
     "homeTitle": "챙겨갈 소모품",
+    "communityTitle": "챙겨갈 소모품",
     "communityLabel": "제휴 상품",
     "accessibilityOpen": "{{name}} {{merchant}}에서 보기"
   }

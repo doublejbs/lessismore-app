@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { FlatList, ListRenderItem, StyleSheet, View } from 'react-native';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import { AcgLayout } from '@/constants/DesignTokens';
+import ConsumableAnalyticsSource from '@/model/consumable/ConsumableAnalyticsSource';
 import ConsumableCardVariant from '@/model/consumable/ConsumableCardVariant';
 import { ConsumableProduct } from '@/model/consumable/ConsumableProduct';
 import { CONSUMABLE_CAROUSEL_MAX } from '@/model/consumable/ConsumableSlotConstants';
@@ -11,8 +12,8 @@ import CommerceDisclaimerView from './CommerceDisclaimerView';
 interface Props {
   title: string;
   products: ConsumableProduct[];
-  // 애널리틱스 `source`(AN-3): 'home' | 'bag_detail'
-  source: string;
+  // 애널리틱스 `source`(AN-3)
+  source: ConsumableAnalyticsSource;
 }
 
 const CARD_GAP = 10;

@@ -1532,6 +1532,7 @@
     },
     "bagDetailTitle": "出発前の消耗品",
     "homeTitle": "持っていく消耗品",
+    "communityTitle": "持っていく消耗品",
     "communityLabel": "提携商品",
     "accessibilityOpen": "{{name}}を{{merchant}}で見る"
   }

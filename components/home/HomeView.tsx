@@ -23,6 +23,7 @@ import Home from '@/model/home/Home';
 import app from '@/model/app/App';
 import { selectTripPlan } from '@/model/home/HomeTripPlan';
 import ConsumableCarouselSectionView from '@/components/consumable/ConsumableCarouselSectionView';
+import ConsumableAnalyticsSource from '@/model/consumable/ConsumableAnalyticsSource';
 import ConsumableSurface from '@/model/consumable/ConsumableSurface';
 
 interface Props {
@@ -65,9 +66,24 @@ const HomeView: FC<Props> = ({ home }) => {
             app.getConsumableStore()?.getForSurface(ConsumableSurface.Home) ??
             []
           }
-          source='home'
+          source={ConsumableAnalyticsSource.Home}
         />
       </>
+    );
+  };
+
+  // 플로팅 탭바 아래로 콘텐츠가 흐르므로 시안대로 130을 비운다(ACG).
+  // 마지막 섹션(소모품 고지)이 탭바에 가리지 않게 로그인 여부와 무관하게 둔다.
+  const renderBottomSpacer = () => {
+    return (
+      <View
+        style={{
+          height: Platform.select({
+            ios: insets.bottom + AcgLayout.scrollBottom,
+            default: AcgLayout.scrollBottom,
+          }),
+        }}
+      />
     );
   };
 
@@ -117,6 +133,7 @@ const HomeView: FC<Props> = ({ home }) => {
             </TouchableOpacity>
           </View>
           {renderRecommendations()}
+          {renderBottomSpacer()}
         </ScrollView>
       );
     }
@@ -130,15 +147,7 @@ const HomeView: FC<Props> = ({ home }) => {
         <HomeUpcomingTripView plan={selectTripPlan(home.getBags(), today)} />
         <HomeWarehousePreviewView gears={home.getGears()} />
         {renderRecommendations()}
-        <View
-          style={{
-            // 플로팅 탭바 아래로 콘텐츠가 흐르므로 시안대로 130을 비운다(ACG).
-            height: Platform.select({
-              ios: insets.bottom + AcgLayout.scrollBottom,
-              default: AcgLayout.scrollBottom,
-            }),
-          }}
-        />
+        {renderBottomSpacer()}
       </ScrollView>
     );
   };

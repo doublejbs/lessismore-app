@@ -46,6 +46,7 @@ import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
 import { setBagShareContext } from '@/model/bag-detail/BagShareHandoff';
 import { formatGroupDateRange } from '@/model/group-format/GroupFormat';
 import ConsumableCarouselSectionView from '@/components/consumable/ConsumableCarouselSectionView';
+import ConsumableAnalyticsSource from '@/model/consumable/ConsumableAnalyticsSource';
 import ConsumableSurface from '@/model/consumable/ConsumableSurface';
 
 interface Props {
@@ -285,6 +286,10 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
 
   if (initialized) {
     const gears = bagDetail.getGears();
+    // 0개면 섹션 여백(marginTop)까지 그리지 않도록 래퍼 바깥에서 먼저 고른다(CP-1).
+    const bagConsumables =
+      app.getConsumableStore()?.getForSurface(ConsumableSurface.BagDetail) ??
+      [];
 
     return (
       <GestureHandlerRootView style={styles.container}>
@@ -364,16 +369,12 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               </View>
               {/* 출발 전·여행 중에만(CP-4 / BD-12). 이 화면은 본인 배낭 전용이다 —
                   공유 배낭(shared-bag)·그룹 멤버 배낭(GroupMemberBagView)은 다른 화면이라 해당 없다. */}
-              {bagDetail.getTripPhase() !== 'after' && (
+              {bagDetail.getTripPhase() !== 'after' && bagConsumables.length > 0 && (
                 <View style={styles.consumableSection}>
                   <ConsumableCarouselSectionView
                     title={app.getL10n().t('consumable.bagDetailTitle')}
-                    products={
-                      app
-                        .getConsumableStore()
-                        ?.getForSurface(ConsumableSurface.BagDetail) ?? []
-                    }
-                    source='bag_detail'
+                    products={bagConsumables}
+                    source={ConsumableAnalyticsSource.BagDetail}
                   />
                 </View>
               )}

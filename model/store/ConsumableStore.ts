@@ -65,13 +65,22 @@ class ConsumableStore {
       return;
     }
 
+    // 실패를 세션 내내 캐시하지 않는다 — 다음 load() 호출(다음 화면 마운트)에서 한 번 다시 읽는다.
+    // 여기서 재시도 루프를 돌지 않으므로 호출 횟수는 화면 마운트 횟수를 넘지 않는다.
+    if (products === null) {
+      this.loadPromise = null;
+      this.setLoaded(true);
+
+      return;
+    }
+
     this.setProducts(products);
     this.setLoaded(true);
   }
 
   // published 등치 하나만 서버에 건다 — order 정렬까지 걸면 복합 색인이 필요하다(DM-32).
-  // 실패는 화면을 막지 않도록 빈 목록으로 숨기고 개발자 로그만 남긴다(CP-1).
-  private async readPublished(): Promise<ConsumableProduct[]> {
+  // 실패는 화면을 막지 않도록 null을 돌려 기존 목록을 유지하고 개발자 로그만 남긴다(CP-1).
+  private async readPublished(): Promise<ConsumableProduct[] | null> {
     try {
       const snapshot = await getDocs(
         query(
@@ -92,7 +101,7 @@ class ConsumableStore {
     } catch (error) {
       console.warn('소모품 조회 실패:', error); // l10n-ignore: 개발자 로그
 
-      return [];
+      return null;
     }
   }
 

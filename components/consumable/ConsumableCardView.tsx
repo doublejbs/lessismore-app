@@ -11,6 +11,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
+import ConsumableAnalyticsSource from '@/model/consumable/ConsumableAnalyticsSource';
 import ConsumableCardVariant from '@/model/consumable/ConsumableCardVariant';
 import { ConsumableProduct } from '@/model/consumable/ConsumableProduct';
 import { CONSUMABLE_MERCHANT_SOURCE_KEY } from '@/model/consumable/ConsumableMerchantText';
@@ -19,8 +20,8 @@ import app from '@/model/app/App';
 interface Props {
   product: ConsumableProduct;
   variant: ConsumableCardVariant;
-  // 애널리틱스 `source` 파라미터(AN-3): 'home' | 'bag_detail' | 'community'
-  source: string;
+  // 애널리틱스 `source` 파라미터(AN-3)
+  source: ConsumableAnalyticsSource;
   style?: StyleProp<ViewStyle>;
 }
 

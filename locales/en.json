@@ -1558,6 +1558,7 @@
     },
     "bagDetailTitle": "Before you go",
     "homeTitle": "Consumables to pack",
+    "communityTitle": "Consumables to pack",
     "communityLabel": "Affiliate picks",
     "accessibilityOpen": "View {{name}} on {{merchant}}"
   }

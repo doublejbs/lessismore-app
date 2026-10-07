@@ -12,11 +12,13 @@
 //     node scripts/curate-consumables.mjs [csv경로] --apply         백업 → 이미지 없는 상품만 API 조회 → 쓰기
 //     node scripts/curate-consumables.mjs --apply --no-api          파트너스 API 없이 쓰기(CSV imageUrl 열만 씀)
 //     node scripts/curate-consumables.mjs --apply --refresh-image <docId>   지정 쿠팡 상품 이미지 강제 재조회
+//     node scripts/curate-consumables.mjs --apply --force           건너뛴 행이 있어도 쓰기(그 행의 기존 문서는 내려간다)
 //     node scripts/curate-consumables.mjs --gear [--apply] [--no-api] [--refresh-image <gearId>]
 //
 //   CSV 열: name,pitch,category,merchant,linkUrl,imageUrl,surfaces,order,published (surfaces 는 `;` 구분)
 //     merchant: coupang | naver
 //     imageUrl: https 쇼핑몰 CDN URL. 값이 있는 행은 그대로 쓰고 파트너스 API 를 부르지 않는다.
+//               호스트는 쇼핑몰별로 검사한다 — 쿠팡 *.coupangcdn.com, 네이버 shop-phinf/shopping-phinf.pstatic.net.
 //               네이버 행은 필수다 — 네이버 행은 쿠팡 API 를 절대 부르지 않는다.
 //   기본 CSV 경로: scripts/consumables.csv (gitignore — 예시는 scripts/consumables.example.csv)
 //
@@ -34,7 +36,9 @@ const PROJECT_ID = 'lessismore-7e070';
 const FIRESTORE_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 const COLLECTION = 'consumable-product';
 
-// firebase-tools 의 공개 OAuth 클라이언트 상수(CLI 소스에 공개된 값이라 비밀이 아니다).
+// firebase-tools 의 공개 OAuth 클라이언트 상수다 — firebase-tools 오픈소스에 그대로 들어 있는
+// "설치형 앱" 클라이언트라 비밀이 아니다. 이 값만으로는 아무 권한도 없고, 실제 권한은 사용자의
+// `firebase login` refresh token 에서 온다(그 토큰은 출력·로그·백업에 남기지 않는다).
 const FIREBASE_CLI_CLIENT_ID = '563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com';
 const FIREBASE_CLI_CLIENT_SECRET = 'j9iVZfS8kkCEFUPaAeJV0sAi';
 const FIREBASE_TOOLS_CONFIG = `${homedir()}/.config/configstore/firebase-tools.json`;
@@ -50,9 +54,19 @@ const IPHONE_SAFARI_UA =
   'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
 const PRODUCT_ID_PATTERN = /productId(?:=|%3D|%253D)(\d+)/;
 // 네이버 상품 URL(스마트스토어·브랜드스토어 /products/<번호>, 쇼핑 nvMid·productNo 파라미터)의 숫자 상품번호.
-const NAVER_PRODUCT_NO_PATTERNS = [/\/products\/(\d+)/, /[?&](?:nvMid|productNo|nv_mid)=(\d+)/];
+// 쇼핑 커넥트 링크가 리다이렉트로 넘기는 channelProductNo 가 스토어 상품번호라 가장 먼저 본다.
+const NAVER_PRODUCT_NO_PATTERNS = [
+  /[?&]channelProductNo=(\d+)/,
+  /\/products\/(\d+)/,
+  /[?&](?:nvMid|productNo|nv_mid)=(\d+)/,
+];
 const NAVER_DOC_PREFIX = 'naver-';
 const NAVER_HASH_LENGTH = 12;
+// 쇼핑몰별로 허용하는 상품 이미지 CDN 호스트(CP-2). 다른 호스트는 행을 건너뛴다.
+const IMAGE_HOST_RULES = {
+  coupang: hostname => hostname.endsWith('.coupangcdn.com'),
+  naver: hostname => ['shop-phinf.pstatic.net', 'shopping-phinf.pstatic.net'].includes(hostname),
+};
 
 // model/consumable/ConsumableCategory.ts · ConsumableSurface.ts 와 같은 값(DM-32).
 const CATEGORY_VALUES = ['fuel', 'hygiene', 'toiletry', 'etc'];
@@ -75,6 +89,7 @@ const argv = process.argv.slice(2);
 const APPLY = argv.includes('--apply');
 const NO_API = argv.includes('--no-api');
 const GEAR_MODE = argv.includes('--gear');
+const FORCE = argv.includes('--force');
 
 const refreshImageIds = new Set();
 
@@ -348,7 +363,12 @@ const resolveNaverDocKey = async linkUrl => {
     // 아래 해시로 떨어진다.
   }
 
-  return { productId: createHash('sha1').update(linkUrl).digest('hex').slice(0, NAVER_HASH_LENGTH), fetched: true };
+  // 해시는 문서 id 용일 뿐 상품번호가 아니므로 productId 는 비워 둔다(호출하는 쪽이 보고한다).
+  return {
+    productId: '',
+    docKey: createHash('sha1').update(linkUrl).digest('hex').slice(0, NAVER_HASH_LENGTH),
+    fetched: true,
+  };
 };
 
 // --- 쿠팡 파트너스 products/search ------------------------------------------
@@ -543,6 +563,22 @@ const validateRow = row => {
     return { error: `imageUrl 은 https:// 로 시작해야 한다 (받은 값: ${csvImageUrl})` };
   }
 
+  if (!isEmpty(csvImageUrl)) {
+    let hostname = '';
+
+    try {
+      hostname = new URL(csvImageUrl).hostname;
+    } catch {
+      return { error: `imageUrl 을 URL 로 읽지 못함 (받은 값: ${csvImageUrl})` };
+    }
+
+    const isAllowedHost = IMAGE_HOST_RULES[row.merchant];
+
+    if (!isAllowedHost || !isAllowedHost(hostname)) {
+      return { error: `imageUrl 호스트 ${hostname} 는 ${row.merchant} 상품 이미지 CDN 이 아니다` };
+    }
+  }
+
   // 네이버 상품은 이미지 API 경로가 없다 — CSV 가 유일한 이미지 출처다.
   if (row.merchant === MERCHANT_NAVER && isEmpty(csvImageUrl)) {
     return { error: 'merchant naver 행은 imageUrl 이 필수 (쿠팡 API 를 부르지 않는다)' };
@@ -574,6 +610,7 @@ const runConsumables = async token => {
   console.log(`CSV 행: ${rows.length}개 / 기존 ${COLLECTION} 문서: ${existingDocs.length}개`);
 
   const skipped = [];
+  const hashFallbacks = [];
   const targets = new Map();
   let fetchedLinkCount = 0;
 
@@ -589,8 +626,15 @@ const runConsumables = async token => {
     const existingDocId = existingIdByUrl.get(value.linkUrl) ?? null;
     let docId = existingDocId;
     let productId = existingDocId ? (existingById.get(existingDocId)?.productId ?? null) : null;
+    // 해시로 떨어진 네이버 문서는 productId 가 빈 값이다 — 다시 조회해도 같은 결과라 그대로 쓴다.
+    const isKnownNaverHashDoc =
+      value.merchant === MERCHANT_NAVER && Boolean(docId?.startsWith(NAVER_DOC_PREFIX)) && productId === '';
 
-    if (!docId || !productId) {
+    if (isKnownNaverHashDoc) {
+      hashFallbacks.push(`${row.lineNo}행 ${value.name}: ${docId} (기존 해시 문서)`);
+    }
+
+    if (!isKnownNaverHashDoc && (!docId || !productId)) {
       if (fetchedLinkCount > 0) {
         await sleep(SHORT_LINK_FETCH_INTERVAL_MS);
       }
@@ -598,8 +642,14 @@ const runConsumables = async token => {
       fetchedLinkCount += 1;
 
       if (value.merchant === MERCHANT_NAVER) {
-        productId = (await resolveNaverDocKey(value.linkUrl)).productId;
-        docId = `${NAVER_DOC_PREFIX}${productId}`;
+        const naverKey = await resolveNaverDocKey(value.linkUrl);
+
+        productId = naverKey.productId;
+        docId = `${NAVER_DOC_PREFIX}${naverKey.docKey ?? naverKey.productId}`;
+
+        if (naverKey.docKey) {
+          hashFallbacks.push(`${row.lineNo}행 ${value.name}: ${docId} (상품번호를 못 읽어 linkUrl 해시, productId 빈 값)`);
+        }
       } else {
         try {
           productId = await resolveProductId(value.linkUrl);
@@ -612,7 +662,7 @@ const runConsumables = async token => {
       }
     }
 
-    if (!productId) {
+    if (!productId && value.merchant !== MERCHANT_NAVER) {
       skipped.push(`${row.lineNo}행 ${value.name}: 단축 링크에서 productId 를 찾지 못함 (${value.linkUrl})`);
       continue;
     }
@@ -665,6 +715,11 @@ const runConsumables = async token => {
     skipped.forEach(s => console.log(`  ${s}`));
   }
 
+  if (hashFallbacks.length > 0) {
+    console.log(`\n⚠ 네이버 상품번호를 못 읽은 행 ${hashFallbacks.length}개(문서 id = naver-<linkUrl 해시>):`);
+    hashFallbacks.forEach(s => console.log(`  ${s}`));
+  }
+
   console.log('\n계획:');
   plan.forEach(p => {
     const tag = p.kind === 'create' ? '+ 생성' : '~ 갱신';
@@ -685,6 +740,16 @@ const runConsumables = async token => {
     console.log('\nDRY-RUN 완료 — Firestore 쓰기·파트너스 API 호출 없음. 실제 쓰려면 --apply 를 붙이세요.');
 
     return 0;
+  }
+
+  // 건너뛴 행의 기존 문서는 targets 에 없어 '내림'으로 잡힌다 — 검증 실수로 조용히 내려가지 않게 멈춘다.
+  if (skipped.length > 0 && !FORCE) {
+    console.log(
+      `\n중단 — 건너뛴 행 ${skipped.length}개가 있어 쓰지 않았습니다. 그 행에 해당하는 기존 문서가 '내림'으로 처리될 수 있습니다.`
+    );
+    console.log('CSV 를 고친 뒤 다시 실행하거나, 의도한 것이면 --force 를 붙이세요.');
+
+    return 1;
   }
 
   if (plan.length === 0 && unpublish.length === 0) {

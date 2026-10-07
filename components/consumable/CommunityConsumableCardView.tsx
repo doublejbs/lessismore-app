@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgRadius, AcgType } from '@/constants/DesignTokens';
+import ConsumableAnalyticsSource from '@/model/consumable/ConsumableAnalyticsSource';
 import ConsumableCardVariant from '@/model/consumable/ConsumableCardVariant';
 import { ConsumableProduct } from '@/model/consumable/ConsumableProduct';
 import { CONSUMABLE_COMMUNITY_CARD_ITEMS } from '@/model/consumable/ConsumableSlotConstants';
@@ -13,7 +14,7 @@ interface Props {
   // 이 카드에 보일 상품(호출하는 쪽이 순환해 ≤3개로 잘라 넘긴다, CP-6)
   products: ConsumableProduct[];
   // 애널리틱스 `source`(AN-3)
-  source?: string;
+  source?: ConsumableAnalyticsSource;
 }
 
 const CARD_PADDING = 16;
@@ -27,7 +28,7 @@ const MAX_FONT_SIZE_MULTIPLIER = 1.5;
  */
 const CommunityConsumableCardView: FC<Props> = ({
   products,
-  source = 'community',
+  source = ConsumableAnalyticsSource.Community,
 }) => {
   if (products.length === 0) {
     return null;
@@ -52,7 +53,7 @@ const CommunityConsumableCardView: FC<Props> = ({
         numberOfLines={2}
         maxFontSizeMultiplier={MAX_FONT_SIZE_MULTIPLIER}
       >
-        {app.getL10n().t('consumable.homeTitle')}
+        {app.getL10n().t('consumable.communityTitle')}
       </PretendardText>
       <View style={styles.row}>
         {visibleProducts.map(product => (
