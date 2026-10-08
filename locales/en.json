@@ -180,12 +180,17 @@
     "title": "Notification settings",
     "packing": "Trip packing reminders",
     "useless": "Gear-use reminders",
+    "reengage": "Trip suggestions",
     "notice": "Announcements",
     "reminder": {
       "packingTitle": "Your trip to {{name}} is tomorrow!",
       "packingBody": "Check your packing list",
       "uselessTitle": "How was your trip to {{name}}?",
-      "uselessBody": "Review the gear you used."
+      "uselessBody": "Review the gear you used.",
+      "nextTripTitle": "Ready to plan your next backpacking trip?",
+      "nextTripBody": "Start a new trip with the same gear as your last one",
+      "weekendCampTitle": "Where to this weekend?",
+      "weekendCampBody": "Find a campsite near you on the map"
     }
   },
   "bag": {

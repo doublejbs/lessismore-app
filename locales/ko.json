@@ -180,12 +180,17 @@
     "title": "알림 설정",
     "packing": "여행 패킹 알림",
     "useless": "사용 여부 기록 알림",
+    "reengage": "여행 추천 알림",
     "notice": "공지 알림",
     "reminder": {
       "packingTitle": "{{name}} 여행 하루 전!",
       "packingBody": "패킹을 확인해 보세요",
       "uselessTitle": "{{name}} 여행 잘 다녀오셨나요?",
-      "uselessBody": "사용한 장비를 확인해 보세요."
+      "uselessBody": "사용한 장비를 확인해 보세요.",
+      "nextTripTitle": "다음 백패킹 계획해 볼까요?",
+      "nextTripBody": "지난 여행 장비 그대로 새 여행을 만들 수 있어요",
+      "weekendCampTitle": "이번 주말 어디로 갈까요?",
+      "weekendCampBody": "가까운 박지를 지도에서 찾아보세요"
     }
   },
   "bag": {
