@@ -89,6 +89,13 @@ class OnboardingTripManager {
       return loggedIn
         ? await this.checkLoggedIn(key, draft)
         : await this.checkGuest(draft);
+    } catch (error) {
+      // 예상 못 한 실패는 이번 세션엔 띄우지 않고 판정을 끝낸다 — 팝업 차단(APP-10)·시작 시 권한 요청(OB-8)이
+      // 판정 대기에 묶여 남지 않게 한다. 기록은 남기지 않으므로 다음 실행에 다시 판정한다.
+      console.warn('첫 여행 가이드 판정 실패', error); // l10n-ignore: console 개발자 로그
+      this.resolve(key);
+
+      return OnboardingTripEntry.None;
     } finally {
       this.setChecking(false);
     }
