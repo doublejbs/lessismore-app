@@ -34,7 +34,7 @@
 | [Subscription.md](Subscription.md) | `SUB` | 광고 제거 월 구독 — RevenueCat 인앱 구독 / 웹훅 → Firestore 서버 기록 `[제안]` |
 | [Weather.md](Weather.md) | `WT` | 배낭 여행지 좌표 기반 기간 예보 |
 | [CampSite.md](CampSite.md) | `CS` | 박지 지도 — 지도 탭 / 박지 정보 / 규제 고지 `[기획]` |
-| [Home.md](Home.md) | `HM` | 홈 대시보드 — 다가오는 일정 / 창고 미리보기 / 홈 피드 섹션(새 박지·새 장비·읽을거리 `[기획]`) |
+| [Home.md](Home.md) | `HM` | 홈 대시보드 — 다가오는 일정 / 창고 미리보기 / 추천 박지 `useless가 고른 박지`(`[기획]`, 주간 자동 교체 `[제안]` — 함수는 웹 레포) |
 | [HealthActivity.md](HealthActivity.md) | `HA` | 운동 기록 — 배낭 여행의 실측(거리·경로) 을 HealthKit·Health Connect에서 읽어 표시 `[기획]` |
 | [Localization.md](Localization.md) | `L10N` | 다국어(i18n) — ko·en·ja UI 문구, 언어 설정, 일본어 폰트 전략 `[기획]` |
 
