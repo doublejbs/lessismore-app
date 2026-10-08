@@ -200,6 +200,14 @@ class BagEdit {
     this.router.push(`/gear-add-options?bagId=${this.id}`);
   }
 
+  /**
+   * SR-11 검색 결과 없음 `직접 추가`의 배낭 대상. 템플릿 편집이면 배낭이 아니므로 없다 —
+   * 창고에만 등록하고 돌아와 목록에서 토글로 담는다(`/custom/bag-gear`는 배낭 문서를 쓴다).
+   */
+  public getCustomAddBagId() {
+    return this.templateStore ? undefined : this.id;
+  }
+
   private setWarehouseGears(gears: Gear[]) {
     this.warehouseGears = gears;
   }

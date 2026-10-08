@@ -658,6 +658,11 @@
       "close": "閉じる"
     },
     "resultEmpty": "検索結果がありません",
+    "emptyCustomAdd": {
+      "title": "「{{query}}」の検索結果がありません",
+      "subtitle": "探している装備がなければ、直接追加してみましょう",
+      "button": "直接追加"
+    },
     "rank": {
       "title": "人気ギアランキング",
       "empty": "登録されたギアがありません",

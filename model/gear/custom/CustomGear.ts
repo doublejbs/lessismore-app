@@ -11,7 +11,8 @@ import Warehouse from '@/model/warehouse/Warehouse';
 import BagDetail from '@/model/bag-detail/BagDetail';
 
 class CustomGear extends AbstractGearEdit {
-  public static new(navigate: ImperativeRouter) {
+  // `name`: 검색 결과 없음 `직접 추가`(SR-11)가 넘기는 제품명 프리필. 선택 시트 진입은 빈 값.
+  public static new(navigate: ImperativeRouter, name = '') {
     return new CustomGear(
       navigate,
       app.getGearStore()!,
@@ -20,7 +21,7 @@ class CustomGear extends AbstractGearEdit {
       Order.new(Warehouse.ORDER_KEY),
       Order.new(BagDetail.ORDER_KEY),
       CustomGearCategory.new().selectFirst(),
-      '',
+      name.trim(),
       '',
       '',
       ''
