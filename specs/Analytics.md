@@ -57,7 +57,7 @@
 | --- | --- | --- |
 | `click_bag_add` | 배낭 탭 `여행 추가` 버튼 | — |
 | `click_bag_create_confirm` | 생성 모달 확인 (성공 시) | — |
-| `click_bag_copy` | 복사 진입 (목록 행 아이콘 / 추가 바텀시트 / 상세 헤더) | `source`: `list` \| `add_sheet` \| `detail` |
+| `click_bag_copy` | 복사 진입 (목록 행 아이콘 / 추가 바텀시트 / 상세 헤더 / 다음 여행 알림 NT-7) | `source`: `list` \| `add_sheet` \| `detail` \| `notification` |
 | `click_bag_copy_confirm` | 복사 모달 확정 (성공 시) | `source`: 위와 동일 |
 | `click_bag_delete` | 목록 행 삭제 → 다이얼로그에서 `삭제` 확정 | — |
 | `click_bag_item` | 배낭 행 클릭 (상세 진입) | — |
@@ -199,7 +199,13 @@
 
 - 커뮤니티 이벤트에는 게시글 ID, 작성자 ID·닉네임, 제목·본문, 투표 문구, 신고 상세를 보내지 않는다.
 
-- 이벤트 이름은 snake_case, `click_` 접두(표준 `search` 제외), 40자 이내 (GA4 제한).
+**알림** ([Notification.md](Notification.md)) `[제안]`
+
+| 이벤트 | 트리거 | 파라미터 |
+| --- | --- | --- |
+| `notification_open` | 로컬·원격 알림을 탭해 앱 진입 (NT-10). 클릭이 아니라 `logEvent`로 보내므로 위 `logClick` 대조 목록에는 나오지 않는다 | `type`: `packing` \| `useless` \| `next_trip` \| `weekend_camp` \| `notice` \| `unknown` |
+
+- 이벤트 이름은 snake_case, `click_` 접두(표준 `search`·알림 `notification_open` 제외), 40자 이내 (GA4 제한).
 - 파라미터 값은 식별자가 아닌 열거형 문자열/불리언만 쓴다. `search_term`은 사용자 입력이지만 검색어 자체가 지표 대상이므로 허용 (개인정보 입력란 아님).
 
 ## 4. 데이터

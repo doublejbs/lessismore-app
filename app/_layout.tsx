@@ -14,7 +14,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import app from '@/model/app/App';
 import { useEffect } from 'react';
 import SplashLoadingView from '@/components/ui/SplashLoadingView';
-import { View, Text, Platform, Image } from 'react-native';
+import { View, Text, Platform, Image, AppState } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import ForceUpdateGateView from '@/components/app-update/ForceUpdateGateView';
 import AnnouncementSheetView from '@/components/announcement/AnnouncementSheetView';
@@ -102,6 +102,27 @@ const RootLayout = () => {
     // 초기화 완료 후 알림 권한 요청·리스너 등록을 1회 수행한다. (웹은 no-op)
     void app.getNotificationManager()?.initialize();
   }, [isInitialized]);
+
+  useEffect(() => {
+    if (!isInitialized) {
+      return;
+    }
+
+    // 재방문 리마인더(NT-7·NT-8)를 앱 시작·로그인 변화·포그라운드 복귀마다 멱등 동기화한다(NT-9). 웹은 no-op.
+    const notificationManager = app.getNotificationManager();
+
+    notificationManager?.requestReengagementSync();
+
+    const subscription = AppState.addEventListener('change', nextState => {
+      if (nextState === 'active') {
+        notificationManager?.requestReengagementSync();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isInitialized, isLoggedIn]);
 
   useEffect(() => {
     if (!isInitialized) {

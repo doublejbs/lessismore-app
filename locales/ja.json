@@ -180,12 +180,17 @@
     "title": "通知設定",
     "packing": "旅行のパッキング通知",
     "useless": "ギアの使用記録通知",
+    "reengage": "旅行のおすすめ通知",
     "notice": "お知らせ通知",
     "reminder": {
       "packingTitle": "{{name}}への旅行は明日です！",
       "packingBody": "パッキングを確認しましょう",
       "uselessTitle": "{{name}}への旅行はいかがでしたか？",
-      "uselessBody": "使用したギアを確認しましょう。"
+      "uselessBody": "使用したギアを確認しましょう。",
+      "nextTripTitle": "次のバックパッキングを計画しませんか？",
+      "nextTripBody": "前回の旅行のギアそのままで新しい旅行を作れます",
+      "weekendCampTitle": "今週末はどこへ行きますか？",
+      "weekendCampBody": "近くのキャンプ場をマップで探してみましょう"
     }
   },
   "bag": {

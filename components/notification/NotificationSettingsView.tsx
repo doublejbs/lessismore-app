@@ -13,9 +13,10 @@ import Layout from '@/components/Layout';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgType, Color } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
+import NotificationType from '@/model/notification/NotificationType';
 import { observer } from 'mobx-react-lite';
 
-type ToggleKey = 'packing' | 'useless' | 'notice';
+type ToggleKey = 'packing' | 'useless' | 'reengage' | 'notice';
 
 type ToggleRow = {
   key: ToggleKey;
@@ -25,6 +26,7 @@ type ToggleRow = {
 const TOGGLE_ROWS: ToggleRow[] = [
   { key: 'packing', labelKey: 'notification.packing' },
   { key: 'useless', labelKey: 'notification.useless' },
+  { key: 'reengage', labelKey: 'notification.reengage' },
   { key: 'notice', labelKey: 'notification.notice' },
 ];
 
@@ -45,6 +47,7 @@ const NotificationSettingsView: FC = () => {
       notificationManager?.getSettings() ?? {
         packing: true,
         useless: true,
+        reengage: true,
         notice: true,
       }
   );
@@ -64,9 +67,26 @@ const NotificationSettingsView: FC = () => {
       await notificationManager.setPackingEnabled(value);
     } else if (key === 'useless') {
       await notificationManager.setUselessEnabled(value);
+    } else if (key === 'reengage') {
+      await notificationManager.setReengageEnabled(value);
     } else {
       await notificationManager.setNoticeEnabled(value);
     }
+  };
+
+  // 개발 빌드 전용(NT-9) — 재방문 리마인더를 10초 뒤 발송해 실기기에서 문구·딥링크를 확인한다.
+  const handlePressDevNextTrip = () => {
+    void notificationManager?.debugFireReengagement(NotificationType.NextTrip);
+  };
+
+  const handlePressDevWeekend = () => {
+    void notificationManager?.debugFireReengagement(
+      NotificationType.WeekendCamp
+    );
+  };
+
+  const handlePressDevLog = () => {
+    void notificationManager?.debugLogReengagement();
   };
 
   return (
@@ -139,6 +159,38 @@ const NotificationSettingsView: FC = () => {
             />
           </View>
         ))}
+
+        {__DEV__ && (
+          <View style={styles.devSection}>
+            <TouchableOpacity
+              onPress={handlePressDevNextTrip}
+              style={styles.devButton}
+              accessibilityRole='button'
+            >
+              <PretendardText style={styles.devLabel}>
+                DEV · next-trip reminder in 10s
+              </PretendardText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handlePressDevWeekend}
+              style={styles.devButton}
+              accessibilityRole='button'
+            >
+              <PretendardText style={styles.devLabel}>
+                DEV · weekend-camp reminder in 10s
+              </PretendardText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handlePressDevLog}
+              style={styles.devButton}
+              accessibilityRole='button'
+            >
+              <PretendardText style={styles.devLabel}>
+                DEV · sync + log reengagement schedule
+              </PretendardText>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </Layout>
   );
@@ -179,6 +231,19 @@ const styles = StyleSheet.create({
   rowLabel: {
     ...AcgType.rowTitle,
     color: Acg.ink,
+  },
+  devSection: {
+    marginTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: Acg.hairline,
+  },
+  devButton: {
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  devLabel: {
+    ...AcgType.meta,
+    color: Color.textSecondary,
   },
 });
 

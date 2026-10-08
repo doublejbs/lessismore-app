@@ -44,16 +44,25 @@ class BagStore {
     order: OrderType = OrderType.StartDateDesc
   ): Promise<BagItem[]> {
     try {
-      const bagIDs = (
-        await getDoc(doc(this.getStore(), 'users', this.firebase.getUserId()))
-      ).data()?.['bags'];
-
-      return (await this.getBags(bagIDs)).sort(getBagComparator(order));
+      return await this.getListOrThrow(order);
     } catch (e) {
       console.log(e);
 
       return [];
     }
+  }
+
+  // 조회 실패를 빈 목록과 구분해야 하는 호출부용(NT-9 재방문 리마인더 동기화) — 실패 시 throw한다.
+  public async getListOrThrow(
+    order: OrderType = OrderType.StartDateDesc
+  ): Promise<BagItem[]> {
+    // 배낭을 만든 적 없는 사용자 문서에는 bags 필드가 없다 — 조회 실패가 아니라 빈 목록이다.
+    const bagIDs: string[] =
+      (
+        await getDoc(doc(this.getStore(), 'users', this.firebase.getUserId()))
+      ).data()?.['bags'] ?? [];
+
+    return (await this.getBags(bagIDs)).sort(getBagComparator(order));
   }
 
   public async getSharedBag(id: string, filters: GearFilter[]) {
