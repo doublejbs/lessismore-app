@@ -328,7 +328,12 @@
     "todayDeparture": "今日出発",
     "dDay": "D-{{count}}",
     "ongoing": "旅行中",
-    "pastTrip": "過去の旅行"
+    "pastTrip": "過去の旅行",
+    "emptyTitle": "ギアを入れて重さを確認しましょう",
+    "emptyBodyWarehouse": "倉庫のギアを選んで入れると、総重量とカテゴリ別の割合がすぐに分かります。",
+    "emptyBodySearch": "倉庫はまだ空です。ギアを検索して、この旅行に直接入れましょう。",
+    "emptyAddFromWarehouse": "倉庫から入れる",
+    "emptyAddFromSearch": "ギアを探して入れる"
   },
   "bagTemplate": {
     "editGear": "ギアを編集",

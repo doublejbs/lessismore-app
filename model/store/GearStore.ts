@@ -1,4 +1,11 @@
-import { collection, doc, getDoc, getDocs, query } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  query,
+} from 'firebase/firestore';
 import Firebase from '../firebase/Firebase';
 import Gear, { toGearExtra, toOwnerGearExtra } from '../gear/Gear';
 import { getGroupMembers } from '../gear/GearCategoryGroups';
@@ -224,6 +231,22 @@ class GearStore {
     } else {
       return false;
     }
+  }
+
+  // 창고에 장비가 하나라도 있는지(BD-13) — 1건만 읽어 존재만 본다.
+  public async hasAnyGear(): Promise<boolean> {
+    if (!this.getUserId()) {
+      return false;
+    }
+
+    const snapshot = await getDocs(
+      query(
+        collection(this.getStore(), 'users', this.getUserId(), 'gears'),
+        limit(1)
+      )
+    );
+
+    return !snapshot.empty;
   }
 
   public async getList(

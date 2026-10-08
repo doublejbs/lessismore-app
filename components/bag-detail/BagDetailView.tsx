@@ -26,6 +26,7 @@ import BagDetailNameView from './BagDetailNameView';
 import BagDetailUselessDescriptionView from './BagDetailUselessDescriptionView';
 import BagDetailSummaryView from './BagDetailSummaryView';
 import BagDetailBottomBar from './BagDetailBottomBar';
+import BagDetailEmptyView from './BagDetailEmptyView';
 import BagDetailMemoView from './BagDetailMemoView';
 import BagDetailDestinationView from './BagDetailDestinationView';
 import BagDetailActivityView from './BagDetailActivityView';
@@ -386,8 +387,10 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               </View>
               <View style={styles.gearListContainer}>
                 <View style={styles.gearList}>
-                  {/* 빈 배낭에 안내 면을 두지 않는다(2026-08-13 사용자 결정) —
-                      하단 바의 `장비 추가`가 이미 화면에 있어 빈 목록이 스스로 설명된다. */}
+                  {/* 빈 배낭 안내(BD-13, 2026-10-08 사용자 결정 — 2026-08-13 "안내 면 없음"을 뒤집음). */}
+                  {bagDetail.isEmpty() && (
+                    <BagDetailEmptyView bagDetail={bagDetail} />
+                  )}
                   {bagDetail.getGearsByCategory().map(({ category, gears }) => (
                     <BagDetailCategoryView
                       key={category.getFilter()}

@@ -66,7 +66,8 @@
 | `click_bag_share` | 상세 공유 버튼 (BD-7) | — |
 | `click_bag_info_edit` | 상세 이름·날짜 행 클릭 (수정 모달, BD-1) | — |
 | `click_bag_chart_toggle` | [폐기] 상세 무게 차트 접이식이 요약 영역 상시 표시로 대체(BD-3 재설계)되어 더 이상 발생하지 않음 | `expanded`: boolean |
-| `click_bag_edit` | 상세 `수정하기` 버튼 | — |
+| `click_bag_edit` | 상세 하단 바 `장비 추가` 버튼(옛 라벨 `수정하기`, BD-9). 장비가 1개 이상인 배낭에서만 — 빈 배낭은 `click_bag_empty_add` | — |
+| `click_bag_empty_add` | `[제안]` 빈 배낭(장비 0개) 상세 하단 바 주 액션 (BD-13). 이때 `click_bag_edit`는 보내지 않는다 — 2.0.1 OTA 이전과 비교할 때는 `click_bag_edit` + `click_bag_empty_add(source=warehouse)`를 합산 | `source`: `warehouse`(창고에서 담기 → 편집) \| `search`(창고 비어 있음 → 검색 모달) \| `template`(예약 — 기존 배낭에 템플릿 적용 흐름이 생기면) |
 | `click_bag_edit_confirm` | 편집 화면 하단 `확인` 버튼 | — |
 | `click_gear_toggle` | 편집 화면 장비 담기/빼기 토글 (BD-4) | `added`: boolean |
 | `click_bag_useless` | 상세 `사용 여부 기록하고…` 행 | — |
