@@ -678,7 +678,7 @@
 - **함수 조회는 단일 필드 equality만 쓴다** — 대기열은 `where('rotationState','==','queued')`, 발행분은 `where('published','==',true)`로 받고 `type` 필터·`queueOrder`/`publishedAt` 정렬은 코드에서 한다. 대상이 수십 건 규모라 복합 색인을 만들 이유가 없다(앱 조회가 복합 색인을 피한 것과 같은 판단).
 - 가드·발행·내림·실행 기록은 **한 트랜잭션**에서 쓴다 — 중간에 실패하면 전부 롤백되어 재시도가 처음부터 다시 판단한다. 대기열이 비어도 가드는 기록한다(그 주는 처리 완료로 본다 — 같은 주 안에서 운영자가 대기열을 채워도 즉시 발행되지 않고 다음 회차에 나간다).
 - **보안 규칙**: 두 경로 모두 클라이언트 규칙을 열지 않는다(기본 거부). 함수는 admin SDK라 규칙을 거치지 않는다.
-- **대기열 적재**는 웹 레포 `scripts/queue-feed-content.mjs`가 한다(DRY-RUN 기본, `--apply`로 쓰기, 쓰기 전 `feed-content` 전체 백업). 적재 문서는 `published: false`, `rotationState: 'queued'`, `queueOrder`, `type`·`title`·`summary`·`relatedSpotId`를 갖고 **`publishedAt`·사진 필드는 비운다**(사진 없는 카드가 정상 상태 — HM-11).
+- **대기열 적재**는 웹 레포 `scripts/queue-feed-content.mjs`가 한다(DRY-RUN 기본, `--apply`로 쓰기, 쓰기 전 `feed-content` 전체 백업). 적재 문서는 `published: false`, `rotationState: 'queued'`, `queueOrder`, `type`·`title`·`summary`·`relatedSpotId`를 갖고 **`publishedAt`·사진 필드는 비운다**(사진 없는 카드가 정상 상태 — HM-11). 문서 ID는 `rot-{relatedSpotId}`로 고정해 재실행해도 중복 생성되지 않고(이미 있으면 덮어쓰지 않는다), 이미 `feed-content`에 있는 박지·비활성 `camp-spot`은 건너뛴다.
 
 ### DM-28 커뮤니티 `[제안]`
 
