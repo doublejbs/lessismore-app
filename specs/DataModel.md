@@ -104,6 +104,8 @@
 | `config/app` | 앱 원격 설정 (강제 업데이트 최소 버전) | 강제 업데이트 게이트 (AppLifecycle APP-7) |
 | `config/announcement` | 인앱 텍스트 공지 (원격 배너) | 공지 시트 (Announcement AN) |
 | `config/featurePopup` | 신기능 안내 팝업 (원격 온보딩) | 신기능 팝업 (FeaturePopup FP) |
+| `config/feedRotation` | 추천 박지 주간 교체 멱등 가드 — 함수 전용 (DM-27) `[제안]` | 스케줄 함수 `rotateFeedContent`(웹 레포) |
+| `feed-rotation-runs/{weekId}` | 추천 박지 주간 교체 실행 기록 — 함수 전용 (DM-27) `[제안]` | 운영 확인 |
 
 ## 3. 문서 스키마
 
@@ -600,8 +602,8 @@
 | `summary` | string | 운영자 요약 (홈 카드 본문 — 콘텐츠의 전부. 카드에서 2줄로 클램프한다, HM-11) |
 | `relatedSpotId` | string? | `type == 'spot_intro'`면 **필수** — `camp-spot/{spotId}`(DM-17) 참조. 카드 탭의 도착지(지도 탭 박지 상세) |
 | `relatedGearId` | string? | **`[폐기]`** — `gear_intro` 전용 필드였다(`gear/{gearId}`, DM-3 참조). 앱은 더 이상 읽지 않는다 |
-| `publishedAt` | string | ISO 8601 — 발행 시각. 목록 정렬 기준(내림차순) |
-| `published` | boolean | 발행 여부. **클라이언트는 `true`만 조회**한다 — `false`는 CMS의 초안 |
+| `publishedAt` | string? | ISO 8601 — 발행 시각. 목록 정렬 기준(내림차순). **발행된 적 있는 문서에만 있다** — 주간 교체 대기 문서(`rotationState: 'queued'`)에는 없다(아래 "주간 자동 교체") |
+| `published` | boolean | 발행 여부. **클라이언트는 `true`만 조회**한다 — `false`는 CMS의 초안·주간 교체 대기·내림 문서 |
 
 **`gear_intro` `[폐기]` (2026-08-17)** — 홈 추천 장비 섹션(HM-12) 폐기로 이 유형을 읽는 화면이 없어졌다.
 
@@ -639,6 +641,44 @@
   - **구봉도는 예외 경로의 실례다** — 이름이 같은 항목(`구봉도`·`구봉도 낙조전망대`)이 전부 `Type3`라 탈락했고, 실제 낙조 코스의 일부인 **개미허리아치교**를 사람이 판단해 채택했다. 스크립트가 자동으로 할 수 없는 판단이고(CS-10 근접 폴백 폐기), 그래서 채택은 사람 몫이다.
   - **하화도는 "한 항목 안에서 이미지마다 유형이 갈린다"는 실례다**(2026-08-17 실측 정정) — 채택한 사진은 `하화도 꽃섬길`(`contentid` `2381140`)의 **`firstimage`(`3018735`)이고 이것이 `Type1`** 인데, **같은 `contentid`의 `detailImage2` 갤러리 10장은 전부 `Type3`** 다. 다른 항목에서 나온 것이 아니라 **같은 항목의 다른 이미지**다. 그래서 후보를 항목 단위로 통과·탈락시킬 수 없고, **채택하는 그 이미지의 `cpyrhtDivCd`를 그때그때 확인**해야 한다(위 ② ★).
 - **보안 규칙(콘솔 관리)**: **읽기 공개 확정**(2026-08-15 사용자 확정 — 비로그인 홈 노출의 전제, HM-14) + **쓰기는 admin(운영자) 전용**. 규칙 파일이 이 레포에 없어 실제 규칙 배포·구성 확인은 미해결이고, 클라이언트 SDK에는 admin 개념이 없어(웹 CMS의 쓰기 인증 방식 포함) **구현 전에 확인해야 한다** — §8 미해결 질문.
+
+**주간 자동 교체 (2026-10-08 사용자 결정)** `[제안]`
+
+추천 박지를 **매주 스케줄 함수가 자동으로 바꾼다.** 운영자는 콘텐츠를 **대기열(queue)** 에 미리 쌓아 두고, 함수가 정해진 시각에 대기열 앞쪽을 발행하고 오래된 발행분을 내린다. 사용자(운영자)는 **첫 대기열 묶음만 검토**하고 이후 교체는 사람 손을 거치지 않는다.
+
+- **앱 조회는 바꾸지 않는다.** 앱은 지금처럼 `orderBy('publishedAt','desc').limit(50)` + 클라이언트 `published === true && type === 'spot_intro'` 필터 + 5개 제한으로 읽는다. 함수는 **`published`를 뒤집고 `publishedAt`을 쓰는 것만으로** 홈 노출을 바꾼다 — 앱 릴리스·OTA가 필요 없다.
+- 교체 규칙·시각·운영 지침은 [Home.md](Home.md) HM-11 "주간 교체"가 정본이다. 함수 구현은 **별도 레포(lessismore 웹) `functions/`의 `rotateFeedContent`** 이다.
+
+대기열 필드 (`spot_intro` 문서에 더한다 — 셋 다 옵셔널, 앱은 읽지 않는다):
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `rotationState` | string? | string enum `FeedRotationState`: `queued`(발행 대기) / `live`(함수가 발행함) / `retired`(함수가 내림). **값이 없으면 수동 관리 문서**(CMS·기존 스크립트가 쓴 것)다 |
+| `queueOrder` | number? | 대기열 순서 — **작은 값이 먼저 발행**된다. `queued`일 때만 의미가 있다. 사이에 끼워 넣을 수 있게 10 간격(10, 20, 30…)으로 매긴다. 같은 값이면 문서 ID 오름차순 |
+| `retiredAt` | string? | ISO 8601 — 함수가 내린 시각. 감사·재발행 판단용 |
+
+- **`scheduledFor`(발행 예정일)는 두지 않는다.** 순서는 `queueOrder`가, 시각은 주간 주기가 정하므로 날짜를 문서마다 박으면 두 값이 어긋날 자리만 생긴다(대기열이 비거나 함수가 한 주 멈추면 예정일이 전부 틀어진다). "몇째 주에 나갈지"는 대기열 순서 × 주 2개로 계산해 검토표에 적는다.
+- **대기 문서(`queued`)에는 `publishedAt`을 쓰지 않는다.** Firestore `orderBy`는 정렬 필드가 없는 문서를 결과에서 빼므로, 대기열이 아무리 길어도 앱 조회의 `limit(50)` 창을 차지하지 않는다. 함수가 발행할 때 처음 쓴다. → 위 기본 표의 `publishedAt`은 "발행된 적 있는 문서에만 있다"로 읽는다.
+- **`publishedAt`은 계속 ISO 8601 string이다** — 함수도 Firestore timestamp가 아니라 `new Date().toISOString()` 문자열을 쓴다. 타입이 섞이면 Firestore 정렬이 타입 순서(timestamp < string)로 갈라져 최신순이 깨진다.
+- **같은 회차에 발행하는 두 건**은 `publishedAt`을 1초 간격으로 쓴다 — `queueOrder`가 작은 쪽이 더 최신(=캐러셀 앞)이다.
+- **내림 대상은 `rotationState`와 무관하게 발행 중인 모든 `spot_intro`** 다. 기존 수동 발행분(2026-08-17 3건)도 최신 5개 밖으로 밀리면 함수가 `published: false` + `rotationState: 'retired'`로 내린다 — 상한 5를 수동·자동 구분 없이 지키기 위해서다. `gear_intro`(`[폐기]`)는 건드리지 않는다.
+- 내린 문서는 지우지 않는다(`publishedAt` 유지). 다시 내보내려면 `rotationState: 'queued'` + 새 `queueOrder`를 주고 `published: false`인 채로 두면 된다 — 함수가 발행할 때 `publishedAt`을 새로 쓴다.
+
+**`config/feedRotation`** (함수 전용 — admin SDK만 쓴다, 앱은 읽지 않는다):
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `lastRunWeekId` | string | 마지막으로 **처리 완료한** 회차의 ISO 주 ID(KST 기준, 예 `2026-W42`). **멱등 가드** — 같은 주에 재시도·중복 실행이 와도 다시 발행하지 않는다 |
+| `lastRunAt` | string | ISO 8601 — 마지막 처리 시각 |
+| `lastPublishedIds` / `lastRetiredIds` | string[] | 마지막 회차에 발행·내린 문서 ID |
+| `queueRemaining` | number | 마지막 회차 처리 후 남은 대기 건수 — 보충 시점 판단용(HM-11) |
+
+**`feed-rotation-runs/{weekId}`** (함수 전용 실행 기록, 회차당 한 문서): `weekId`·`ranAt`·`status`(`published` / `queue_empty`)·`publishedIds`·`retiredIds`·`queueRemaining`. 대기열이 비어 아무것도 하지 않은 회차도 `queue_empty`로 남긴다.
+
+- **함수 조회는 단일 필드 equality만 쓴다** — 대기열은 `where('rotationState','==','queued')`, 발행분은 `where('published','==',true)`로 받고 `type` 필터·`queueOrder`/`publishedAt` 정렬은 코드에서 한다. 대상이 수십 건 규모라 복합 색인을 만들 이유가 없다(앱 조회가 복합 색인을 피한 것과 같은 판단).
+- 가드·발행·내림·실행 기록은 **한 트랜잭션**에서 쓴다 — 중간에 실패하면 전부 롤백되어 재시도가 처음부터 다시 판단한다. 대기열이 비어도 가드는 기록한다(그 주는 처리 완료로 본다 — 같은 주 안에서 운영자가 대기열을 채워도 즉시 발행되지 않고 다음 회차에 나간다).
+- **보안 규칙**: 두 경로 모두 클라이언트 규칙을 열지 않는다(기본 거부). 함수는 admin SDK라 규칙을 거치지 않는다.
+- **대기열 적재**는 웹 레포 `scripts/queue-feed-content.mjs`가 한다(DRY-RUN 기본, `--apply`로 쓰기, 쓰기 전 `feed-content` 전체 백업). 적재 문서는 `published: false`, `rotationState: 'queued'`, `queueOrder`, `type`·`title`·`summary`·`relatedSpotId`를 갖고 **`publishedAt`·사진 필드는 비운다**(사진 없는 카드가 정상 상태 — HM-11). 문서 ID는 `rot-{relatedSpotId}`로 고정해 재실행해도 중복 생성되지 않고(이미 있으면 덮어쓰지 않는다), 이미 `feed-content`에 있는 박지·비활성 `camp-spot`은 건너뛴다.
 
 ### DM-28 커뮤니티 `[제안]`
 
@@ -1062,6 +1102,7 @@ ID 배열로 문서를 모아 읽는 경로는 모두 Firestore `in` 절의 **�
 - `/gear`·`/gear-rank`는 보안 규칙상 미인증 쓰기가 허용된다. **변경 전 반드시 백업 JSON을 먼저 저장**한다 (`scripts/backup-*.json` 관례).
 - Hot Updater OTA 백엔드는 별도 프로젝트 `useless-ota` — 그 admin 키로는 앱 Firestore에 쓸 수 없다.
 - **추천 카드 사진 후보 제안** `[기획]` `scripts/suggest-feed-content-image.mjs` — TourAPI KorService2로 박지 이름·좌표에 맞는 **`Type1` 이미지 후보를 조회해 목록으로 출력**한다(`searchKeyword2` → `detailImage2` → 이미지 단위 `Type1` 필터 → 거리 검증). **Firestore에 쓰지 않는다** — `feed-content` 쓰기는 admin 전용이고 채택은 사람이 CMS에서 한다(DM-27). 키는 저장소 루트 `.env`의 **`TOUR_API_KEY`**(`EXPO_PUBLIC_` 접두사 금지 — 번들에 인라인된다). 규칙은 [CampSite.md](CampSite.md) CS-10.
+- **추천 박지 대기열 적재** `[제안]` — 웹 레포 `scripts/queue-feed-content.mjs`가 검토를 마친 `pool.json`을 `feed-content`에 `published: false` + `rotationState: 'queued'`로 넣는다. `feed-content` 쓰기는 admin 전용이라 클라이언트 SDK가 아니라 **firebase-tools 소유자 OAuth 토큰 + Firestore REST**로 쓴다. DRY-RUN이 기본이고 `--apply`에서만 쓰며, 쓰기 전 `feed-content` 전체를 백업 JSON으로 저장한다. 발행·내림은 스크립트가 아니라 스케줄 함수 몫이다(DM-27 "주간 자동 교체").
 - **`/camp-spot`은 기본 보안 규칙상 클라이언트 쓰기가 막혀 있다** — 시드·백필 스크립트는 `permission-denied`를 잡아 콘솔에서 규칙을 임시 허용하라는 안내를 내고 정상 종료한다(`seed-camp-spots.mjs`·`backfill-camp-spot-city.mjs` 관례). 적재 후 규칙을 원복한다.
 
 ## 8. 미해결 질문
