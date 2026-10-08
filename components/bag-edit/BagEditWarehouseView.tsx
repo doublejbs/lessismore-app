@@ -1,17 +1,24 @@
 import { FC } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import BagEdit from '../../model/bag-edit/BagEdit';
 import BagEditWarehouseGearView from './BagEditWarehouseGearView';
-import PretendardText from '@/components/PretendardText';
-import { Acg, AcgType } from '@/constants/DesignTokens';
-import app from '@/model/app/App';
+import SearchEmptyCustomAddView from '@/components/search/SearchEmptyCustomAddView';
+import useSearchEmptyCustomAdd from '@/components/search/useSearchEmptyCustomAdd';
+import SearchEmptySource from '@/model/search/SearchEmptySource';
+import SearchEmptyButtonVariant from '@/model/search/SearchEmptyButtonVariant';
 
 interface Props {
   bagEdit: BagEdit;
 }
 
 const BagEditWarehouseView: FC<Props> = ({ bagEdit }) => {
+  // SR-11: 저장 시 창고 + 이 배낭에 담는다(템플릿 편집이면 창고만).
+  const handlePressCustomAdd = useSearchEmptyCustomAdd({
+    source: SearchEmptySource.Bag,
+    bagId: bagEdit.getCustomAddBagId(),
+  });
+
   const renderGearItem = ({ item }: { item: any }) => {
     return <BagEditWarehouseGearView gear={item} bagEdit={bagEdit} />;
   };
@@ -27,12 +34,13 @@ const BagEditWarehouseView: FC<Props> = ({ bagEdit }) => {
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
       ListEmptyComponent={
+        // SR-11: 하단 `완료`가 이 화면의 주 액션이라 보조 알약으로 둔다.
         bagEdit.getQuery().trim() ? (
-          <View style={styles.empty}>
-            <PretendardText style={styles.emptyText}>
-              {app.getL10n().t('warehouse.noSearchResults')}
-            </PretendardText>
-          </View>
+          <SearchEmptyCustomAddView
+            query={bagEdit.getQuery()}
+            variant={SearchEmptyButtonVariant.Secondary}
+            onPressAdd={handlePressCustomAdd}
+          />
         ) : null
       }
     />
@@ -49,16 +57,6 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     gap: 8,
     flexGrow: 1,
-  },
-  empty: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyText: {
-    ...AcgType.rowSubtitle,
-    color: Acg.textMuted,
   },
 });
 
