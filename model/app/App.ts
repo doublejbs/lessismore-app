@@ -25,6 +25,7 @@ import GroupStore from '../store/GroupStore';
 import L10n from '../l10n/L10n';
 import CommunitySearchStore from '../search/CommunitySearchStore';
 import RouteDirectionStore from '../route/RouteDirectionStore';
+import OnboardingTripManager from '../onboarding/OnboardingTripManager';
 
 class App {
   private readonly firebase = new Firebase();
@@ -47,6 +48,7 @@ class App {
   private announcementManager: AnnouncementManager | null = null;
   private forceUpdateManager: ForceUpdateManager | null = null;
   private featurePopupManager: FeaturePopupManager | null = null;
+  private onboardingTripManager: OnboardingTripManager | null = null;
   private communityStore: CommunityStore | null = null;
   private groupStore: GroupStore | null = null;
   // 배낭 코스(BD-11). 배낭 문서와 접근 범위가 달라 BagStore와 따로 둔다 — BagRouteStore 주석 참고.
@@ -120,6 +122,11 @@ class App {
     // config/featurePopup 실시간 구독을 시작한다(닫음 목록 로드 후 구독, 웹 포함). 실패는 조용히 통과(FP-2).
     void this.featurePopupManager.initialize();
     this.gearPreviewStore = GearPreviewStore.new(this.gearStore);
+    // 첫 여행 만들기 가이드(OB-1) — 판정은 레이아웃이 탭 도착 시 부른다.
+    this.onboardingTripManager = OnboardingTripManager.new(
+      this.firebase,
+      bagStore
+    );
     this.setInitialized(true);
     this.initializing = false;
   }
@@ -234,6 +241,10 @@ class App {
 
   public getFeaturePopupManager() {
     return this.featurePopupManager;
+  }
+
+  public getOnboardingTripManager() {
+    return this.onboardingTripManager;
   }
 
   public getGearPreviewStore() {

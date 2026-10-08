@@ -65,6 +65,17 @@ class BagStore {
     return (await this.getBags(bagIDs)).sort(getBagComparator(order));
   }
 
+  // 내 여행 개수(첫 여행 가이드 대상 판정, OB-1). 사용자 문서 1건만 읽는다 — 조회 실패는 throw해
+  // 호출측이 "0개"로 오인하지 않게 한다.
+  public async getBagCountOrThrow(): Promise<number> {
+    const bagIDs: unknown =
+      (
+        await getDoc(doc(this.getStore(), 'users', this.firebase.getUserId()))
+      ).data()?.['bags'];
+
+    return Array.isArray(bagIDs) ? bagIDs.length : 0;
+  }
+
   public async getSharedBag(id: string, filters: GearFilter[]) {
     const bag = await getDoc(doc(this.getStore(), 'bag', id));
     if (bag.exists()) {
