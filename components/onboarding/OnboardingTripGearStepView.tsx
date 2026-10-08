@@ -1,154 +1,163 @@
-import { FC, ReactNode } from 'react';
+import { FC } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
-  SectionList,
   TouchableOpacity,
   View,
   StyleSheet,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
-import {
-  Acg,
-  AcgLayout,
-  AcgRadius,
-  AcgRow,
-  AcgType,
-} from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgRadius, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
-import Gear from '@/model/gear/Gear';
 import GearFilter from '@/model/gear/GearFilter';
-import { getGearFilterName } from '@/model/gear/GearFilterName';
 import OnboardingTrip, {
-  OnboardingTripGearSection,
   REQUIRED_GEAR_GROUPS,
 } from '@/model/onboarding/OnboardingTrip';
 import OnboardingTripGearMode from '@/model/onboarding/OnboardingTripGearMode';
+import OnboardingTripGearSource from '@/model/onboarding/OnboardingTripGearSource';
 import OnboardingTripStepTitleView from './OnboardingTripStepTitleView';
 import OnboardingTripGearRowView from './OnboardingTripGearRowView';
+import OnboardingTripPopularCategoryView from './OnboardingTripPopularCategoryView';
 
 interface Props {
   trip: OnboardingTrip;
   onOpenSearch: (group: GearFilter) => void;
+  onOpenCustomAdd: (group: GearFilter) => void;
 }
 
-// 3단계 — 어떤 장비를 챙기세요?(OB-6). 창고 상태로 정한 모드에 따라 체크리스트 / 필수 장비 검색.
-const OnboardingTripGearStepView: FC<Props> = ({ trip, onOpenSearch }) => {
+// 요약 줄이 ScrollView 자식 중 몇 번째인지 — 스크롤해도 위에 붙는다(OB-6 sticky).
+const SUMMARY_INDEX = 1;
+
+// 3단계 — 어떤 장비를 챙기세요?(OB-6). 창고가 있으면 체크리스트 + 인기 구획, 비어 있으면 인기 구획만.
+const OnboardingTripGearStepView: FC<Props> = ({
+  trip,
+  onOpenSearch,
+  onOpenCustomAdd,
+}) => {
   const l10n = app.getL10n();
   const mode = trip.getGearMode();
-  const subtitle =
-    mode === OnboardingTripGearMode.Warehouse
-      ? l10n.t('onboarding.gear.subtitleWarehouse')
-      : l10n.t('onboarding.gear.subtitleSearch');
-
-  const header = (
-    <View>
-      <OnboardingTripStepTitleView
-        title={l10n.t('onboarding.gear.title')}
-        subtitle={mode === null ? '' : subtitle}
-      />
-      <OnboardingTripGearSummaryView trip={trip} />
-    </View>
-  );
-
-  if (mode === null) {
-    return (
-      <View style={styles.content}>
-        {header}
-        {trip.hasGearError() ? (
-          <OnboardingTripGearErrorView trip={trip} />
-        ) : (
-          <ActivityIndicator style={styles.loading} color={Acg.ink} />
-        )}
-      </View>
-    );
-  }
+  let subtitle = '';
 
   if (mode === OnboardingTripGearMode.Warehouse) {
-    return (
-      <SectionList<Gear, OnboardingTripGearSection>
-        sections={trip.getGearSections()}
-        keyExtractor={gear => gear.getId()}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        stickySectionHeadersEnabled={false}
-        ListHeaderComponent={header}
-        renderSectionHeader={({ section }) => (
-          <View style={styles.sectionHeader}>
-            <AcgSectionHeaderView
-              title={section.title}
-              subtitle={l10n.t('onboarding.gear.sectionCount', {
-                count: section.data.length,
-              })}
-            />
-          </View>
-        )}
-        renderItem={({ item, index }) => (
-          <OnboardingTripGearRowView
-            trip={trip}
-            gear={item}
-            divided={index > 0}
-          />
-        )}
-      />
-    );
+    subtitle = l10n.t('onboarding.gear.subtitleWarehouse');
+  } else if (mode === OnboardingTripGearMode.Popular) {
+    subtitle = l10n.t('onboarding.gear.subtitlePopular');
   }
 
-  const otherGears = trip.getOtherGears();
+  const renderPopularSection = (standalone: boolean) =>
+    REQUIRED_GEAR_GROUPS.map(group => (
+      <OnboardingTripPopularCategoryView
+        key={group}
+        trip={trip}
+        group={group}
+        standalone={standalone}
+        onOpenSearch={onOpenSearch}
+        onOpenCustomAdd={onOpenCustomAdd}
+      />
+    ));
+
+  const renderBody = () => {
+    if (mode === null) {
+      return trip.hasGearError() ? (
+        <OnboardingTripGearErrorView trip={trip} />
+      ) : (
+        <ActivityIndicator style={styles.loading} color={Acg.ink} />
+      );
+    }
+
+    if (mode === OnboardingTripGearMode.Warehouse) {
+      return (
+        <View>
+          {trip.getGearSections().map((section, sectionIndex) => (
+            <View
+              key={section.group}
+              style={sectionIndex > 0 ? styles.section : undefined}
+            >
+              <AcgSectionHeaderView
+                title={section.title}
+                subtitle={l10n.t('onboarding.gear.sectionCount', {
+                  count: section.data.length,
+                })}
+              />
+              {section.data.map((gear, index) => (
+                <OnboardingTripGearRowView
+                  key={gear.getId()}
+                  trip={trip}
+                  gear={gear}
+                  divided={index > 0}
+                  source={OnboardingTripGearSource.Warehouse}
+                />
+              ))}
+            </View>
+          ))}
+          <View style={styles.popularSection}>
+            <AcgSectionHeaderView
+              title={l10n.t('onboarding.gear.popularTitle')}
+            />
+            {renderPopularSection(false)}
+          </View>
+        </View>
+      );
+    }
+
+    const otherGears = trip.getOtherGears();
+
+    return (
+      <View>
+        {renderPopularSection(true)}
+        {otherGears.length > 0 ? (
+          <View style={styles.popularSection}>
+            <AcgSectionHeaderView
+              title={l10n.t('onboarding.gear.otherTitle')}
+            />
+            {otherGears.map((gear, index) => (
+              <OnboardingTripGearRowView
+                key={gear.getId()}
+                trip={trip}
+                gear={gear}
+                divided={index > 0}
+                source={OnboardingTripGearSource.Warehouse}
+              />
+            ))}
+          </View>
+        ) : null}
+      </View>
+    );
+  };
 
   return (
     <ScrollView
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
+      stickyHeaderIndices={[SUMMARY_INDEX]}
     >
-      {header}
-      <View style={styles.requiredList}>
-        {REQUIRED_GEAR_GROUPS.map(group => (
-          <OnboardingTripRequiredCategoryView
-            key={group}
-            trip={trip}
-            group={group}
-            onOpenSearch={onOpenSearch}
-          />
-        ))}
-      </View>
-      {otherGears.length > 0 ? (
-        <View style={styles.sectionHeader}>
-          <AcgSectionHeaderView title={l10n.t('onboarding.gear.otherTitle')} />
-          {otherGears.map((gear, index) => (
-            <OnboardingTripGearRowView
-              key={gear.getId()}
-              trip={trip}
-              gear={gear}
-              divided={index > 0}
-            />
-          ))}
-        </View>
-      ) : null}
+      <OnboardingTripStepTitleView
+        title={l10n.t('onboarding.gear.title')}
+        subtitle={subtitle}
+      />
+      <OnboardingTripGearSummaryView trip={trip} />
+      {renderBody()}
     </ScrollView>
   );
 };
 
-// 선택 수 · 총 무게 요약(선택 0이면 숨김). 숫자만 콘덴스드.
+// 담은 수 · 총 무게 요약(OB-6). 0개여도 자리를 지켜 담는 순간 목록이 밀리지 않는다. 숫자만 콘덴스드.
 const OnboardingTripGearSummaryView: FC<{ trip: OnboardingTrip }> = observer(
   ({ trip }) => {
     const count = trip.getSelectedCount();
 
-    if (count === 0) {
-      return null;
-    }
-
     return (
-      <PretendardText style={styles.summary}>
-        {app.getL10n().t('onboarding.gear.summary', { count })}
-        <AcgDisplayText style={styles.summaryNumber}>
-          {`${trip.getTotalWeightKg()}kg`}
-        </AcgDisplayText>
-      </PretendardText>
+      <View style={styles.summaryBar} accessibilityLiveRegion='polite'>
+        <PretendardText style={styles.summary}>
+          {app.getL10n().t('onboarding.gear.summary', { count })}
+          <AcgDisplayText style={styles.summaryNumber}>
+            {`${trip.getTotalWeightKg()}kg`}
+          </AcgDisplayText>
+        </PretendardText>
+      </View>
     );
   }
 );
@@ -179,68 +188,6 @@ const OnboardingTripGearErrorView: FC<{ trip: OnboardingTrip }> = observer(
   }
 );
 
-interface RequiredCategoryProps {
-  trip: OnboardingTrip;
-  group: GearFilter;
-  onOpenSearch: (group: GearFilter) => void;
-}
-
-// 필수 카테고리 행 — 카테고리명 + 담은 장비 요약 + 셰브론. 아래에 담은 장비 체크 행(OB-6).
-const OnboardingTripRequiredCategoryView: FC<RequiredCategoryProps> = observer(
-  ({ trip, group, onOpenSearch }) => {
-    const l10n = app.getL10n();
-    const gears = trip.getGearsInGroup(group);
-    const category = getGearFilterName(group);
-    const status =
-      gears.length === 0
-        ? l10n.t('onboarding.gear.searchToAdd')
-        : gears.length === 1
-          ? gears[0].getDisplayName()
-          : l10n.t('onboarding.gear.addedSummary', {
-              name: gears[0].getDisplayName(),
-              count: gears.length - 1,
-            });
-    let rows: ReactNode = null;
-
-    if (gears.length > 0) {
-      rows = gears.map((gear, index) => (
-        <OnboardingTripGearRowView
-          key={gear.getId()}
-          trip={trip}
-          gear={gear}
-          divided={index > 0}
-        />
-      ));
-    }
-
-    return (
-      <View>
-        <TouchableOpacity
-          style={styles.categoryRow}
-          onPress={() => onOpenSearch(group)}
-          activeOpacity={0.7}
-          accessibilityRole='button'
-          accessibilityLabel={l10n.t('onboarding.gear.categoryAccessibility', {
-            category,
-            status,
-          })}
-        >
-          <View style={styles.categoryText}>
-            <PretendardText weight='medium' style={styles.categoryTitle}>
-              {category}
-            </PretendardText>
-            <PretendardText style={styles.categoryMeta} numberOfLines={1}>
-              {status}
-            </PretendardText>
-          </View>
-          <Ionicons name='chevron-forward' size={18} color={Acg.textMuted} />
-        </TouchableOpacity>
-        {rows}
-      </View>
-    );
-  }
-);
-
 const styles = StyleSheet.create({
   content: {
     paddingHorizontal: AcgLayout.screenPadding,
@@ -250,44 +197,32 @@ const styles = StyleSheet.create({
   loading: {
     marginTop: 24,
   },
+  // 스크롤해도 위에 붙는 요약 줄 — 순백 면이라 아래 목록이 그 밑으로 지나간다. 좌우를 화면 끝까지
+  // 펴고 아래 헤어라인으로 목록과 가른다(그림자 없음, HM-8).
+  summaryBar: {
+    marginHorizontal: -AcgLayout.screenPadding,
+    paddingHorizontal: AcgLayout.screenPadding,
+    paddingVertical: 10,
+    // 제목 묶음의 아래 여백(24)을 줄여 부제와 붙여 읽히게 한다.
+    marginTop: -12,
+    marginBottom: 16,
+    backgroundColor: Acg.paper,
+    borderBottomWidth: 1,
+    borderBottomColor: Acg.hairline,
+  },
   summary: {
     ...AcgType.rowSubtitle,
     color: Acg.ink,
-    marginTop: -12,
-    marginBottom: 16,
   },
   summaryNumber: {
     ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
-  sectionHeader: {
+  section: {
     marginTop: 20,
   },
-  requiredList: {
-    gap: 12,
-  },
-  categoryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    minHeight: AcgRow.minHeight,
-    paddingVertical: AcgRow.paddingVertical,
-    paddingHorizontal: 16,
-    backgroundColor: Acg.controlFill,
-    borderRadius: AcgRadius.thumb,
-  },
-  categoryText: {
-    flex: 1,
-    minWidth: 0,
-    gap: 2,
-  },
-  categoryTitle: {
-    ...AcgType.rowTitle,
-    color: Acg.ink,
-  },
-  categoryMeta: {
-    ...AcgType.rowSubtitle,
-    color: Acg.ink,
+  popularSection: {
+    marginTop: 32,
   },
   error: {
     gap: 12,

@@ -1609,16 +1609,18 @@
     "gear": {
       "title": "What gear are you bringing?",
       "subtitleWarehouse": "Pick gear from your warehouse for this trip",
-      "subtitleSearch": "Start with the backpacking essentials. Gear you add is saved to your warehouse too",
-      "summary": "{{count}} items · ",
-      "searchToAdd": "Search to add",
-      "addedSummary": "{{name}} and {{count}} more",
+      "summary": "{{count}} picked · ",
       "otherTitle": "Other gear you added",
       "loadFailed": "Couldn't load your gear",
-      "categoryAccessibility": "{{category}}, {{status}}",
       "sectionCount": "{{count}} items",
-      "summary_one": "{{count}} item · ",
-      "sectionCount_one": "{{count}} item"
+      "summary_one": "{{count}} picked · ",
+      "sectionCount_one": "{{count}} item",
+      "subtitlePopular": "Start with gear other backpackers use most. It is saved to your warehouse when the trip is created",
+      "popularTitle": "Pick from popular gear",
+      "findMore": "Find other {{category}}",
+      "customAdd": "Add manually",
+      "addAccessibility": "Add {{name}}",
+      "removeAccessibility": "Remove {{name}}"
     },
     "done": {
       "title": "Your trip is ready",
