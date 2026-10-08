@@ -167,7 +167,7 @@ class CommunityDetail {
         this.post.applyLikeCountDelta(liked ? 1 : -1);
         this.post.applyLikeCountDelta(optimistic ? -1 : 1);
       }
-      app.getAnalyticsManager()?.logClick('click_community_like', { liked });
+      app.getAnalyticsManager()?.logClick('community_like', { liked });
     } catch {
       this.setLiked(previous);
       this.post.applyLikeCountDelta(optimistic ? -1 : 1);
@@ -215,7 +215,7 @@ class CommunityDetail {
         : poll.allowMultiple
           ? selected ? 'remove' : 'add'
           : 'switch';
-      app.getAnalyticsManager()?.logClick('click_community_vote', {
+      app.getAnalyticsManager()?.logClick('community_vote', {
         multiple: poll.allowMultiple,
         action,
       });
@@ -340,7 +340,7 @@ class CommunityDetail {
       const depth = this.replyTarget ? 1 : 0;
       this.setDraft('');
       this.setReplyTarget(null);
-      app.getAnalyticsManager()?.logClick('click_community_comment_submit', {
+      app.getAnalyticsManager()?.logClick('community_comment_submit', {
         depth: depth === 1 ? 'reply' : 'comment',
       });
     } catch {
@@ -470,7 +470,7 @@ class CommunityDetail {
       app.getToastManager()?.show({
         message: app.getL10n().t('community.report.done'),
       });
-      app.getAnalyticsManager()?.logClick('click_community_report', {
+      app.getAnalyticsManager()?.logClick('community_report', {
         target: target.targetType,
       });
     } catch {

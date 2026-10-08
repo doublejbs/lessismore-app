@@ -106,6 +106,8 @@ class App {
     this.campReviewStore = new CampReviewStore(this.firebase);
     this.campFavoriteStore = new CampFavoriteStore(this.firebase);
     this.analyticsManager = AnalyticsManager.new();
+    // 개발·테스트 빌드 수집 제외 + 채널·OTA 번들 사용자 속성(AN-4/AN-6). 다른 전송보다 먼저 판정한다.
+    this.analyticsManager.initialize();
     // Firebase 초기화 중 첫 로그인 확인 때는 analyticsManager가 아직 없어 태깅이 누락되므로,
     // 생성 직후 현재 로그인 사용자로 내부 태그를 1회 반영한다(이후 로그인/로그아웃은 Firebase가 처리).
     this.analyticsManager.identifyUser(this.firebase.getUserId() || null);

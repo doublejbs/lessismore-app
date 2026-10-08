@@ -112,7 +112,7 @@ const CommunityView: FC<Props> = ({ feed }) => {
       return;
     }
 
-    app.getAnalyticsManager()?.logClick('click_community_write');
+    app.getAnalyticsManager()?.logClick('community_write');
     router.push('/community/write');
   };
 
@@ -136,7 +136,7 @@ const CommunityView: FC<Props> = ({ feed }) => {
   );
 
   const handleMyPosts = useCallback(() => {
-    app.getAnalyticsManager()?.logClick('click_community_my_posts');
+    app.getAnalyticsManager()?.logClick('community_my_posts');
     router.push('/community/mine');
   }, [router]);
 
