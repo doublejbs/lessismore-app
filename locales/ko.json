@@ -1615,11 +1615,35 @@
       "partialFailedTitle": "여행은 만들었지만 일부를 저장하지 못했어요",
       "partialFailed": "여행에서 여행지와 장비를 다시 확인해 주세요.",
       "loginAndCreate": "로그인하고 여행 만들기",
-      "later": "나중에 할게요"
+      "later": "나중에 할게요",
+      "gearListTitle": "챙길 장비 {{count}}개",
+      "gearMore": "외 {{count}}개",
+      "noGear": "담은 장비가 없어요. 여행에서 언제든 담을 수 있어요"
     },
     "trip": {
       "nameWithPlace": "{{place}} 백패킹",
       "defaultName": "첫 백패킹"
     }
+  },
+  "welcome": {
+    "title": "필요한 장비만, 배낭은 가볍게",
+    "logoLabel": "useless",
+    "values": {
+      "weight": {
+        "title": "장비 무게를 한눈에 정리",
+        "subtitle": "담으면 배낭 무게가 바로 계산돼요"
+      },
+      "weather": {
+        "title": "여행마다 배낭·날씨를 함께",
+        "subtitle": "여행지를 정하면 그 기간 날씨를 보여 드려요"
+      },
+      "reminder": {
+        "title": "출발 하루 전 패킹 알림",
+        "subtitle": "빠뜨린 장비 없이 떠나요"
+      }
+    },
+    "start": "다음 백패킹 준비하기",
+    "browse": "먼저 둘러볼게요",
+    "login": "이미 계정이 있어요 · 로그인"
   }
 }
