@@ -30,6 +30,7 @@ import SubscriptionStore from '../subscription/SubscriptionStore';
 import SubscriptionNudge from '../subscription/SubscriptionNudge';
 import SubscriptionEntryPoint from '../subscription/SubscriptionEntryPoint';
 import { openSubscription } from '../subscription/OpenSubscription';
+import OnboardingTripManager from '../onboarding/OnboardingTripManager';
 
 class App {
   private readonly firebase = new Firebase();
@@ -60,6 +61,7 @@ class App {
   private announcementManager: AnnouncementManager | null = null;
   private forceUpdateManager: ForceUpdateManager | null = null;
   private featurePopupManager: FeaturePopupManager | null = null;
+  private onboardingTripManager: OnboardingTripManager | null = null;
   private communityStore: CommunityStore | null = null;
   private groupStore: GroupStore | null = null;
   // 배낭 코스(BD-11). 배낭 문서와 접근 범위가 달라 BagStore와 따로 둔다 — BagRouteStore 주석 참고.
@@ -123,6 +125,8 @@ class App {
     this.campReviewStore = new CampReviewStore(this.firebase);
     this.campFavoriteStore = new CampFavoriteStore(this.firebase);
     this.analyticsManager = AnalyticsManager.new();
+    // 개발·테스트 빌드 수집 제외 + 채널·OTA 번들 사용자 속성(AN-4/AN-6). 다른 전송보다 먼저 판정한다.
+    this.analyticsManager.initialize();
     // Firebase 초기화 중 첫 로그인 확인 때는 analyticsManager가 아직 없어 태깅이 누락되므로,
     // 생성 직후 현재 로그인 사용자로 내부 태그를 1회 반영한다(이후 로그인/로그아웃은 Firebase가 처리).
     this.analyticsManager.identifyUser(this.firebase.getUserId() || null);
@@ -144,6 +148,11 @@ class App {
       action => {
         this.analyticsManager?.logClick('subscription_nudge', { action });
       }
+    );
+    // 첫 여행 만들기 가이드(OB-1) — 판정은 레이아웃이 탭 도착 시 부른다.
+    this.onboardingTripManager = OnboardingTripManager.new(
+      this.firebase,
+      bagStore
     );
     this.setInitialized(true);
     this.initializing = false;
@@ -271,6 +280,10 @@ class App {
 
   public getFeaturePopupManager() {
     return this.featurePopupManager;
+  }
+
+  public getOnboardingTripManager() {
+    return this.onboardingTripManager;
   }
 
   public getGearPreviewStore() {

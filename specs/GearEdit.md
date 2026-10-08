@@ -17,8 +17,8 @@
 | 라우트 | 도메인 객체 | 진입 |
 | --- | --- | --- |
 | `gear-add-options` | (formSheet) | 창고·배낭 편집의 "장비 추가" — 검색/직접 선택(GE-8) |
-| `/custom` | `CustomGear` | 선택 시트 `직접 입력`(창고 컨텍스트) |
-| `/custom/bag-gear/[bagId]` | `CustomGearForBag` | 선택 시트 `직접 입력`(배낭 컨텍스트) — 저장 후 해당 배낭에 자동 추가 |
+| `/custom`(+`?name=`·`?category=`) | `CustomGear` | 선택 시트 `직접 입력`(창고 컨텍스트) · 검색 결과 없음 `직접 추가`([Search.md](Search.md) SR-11 `[제안]`) · 첫 여행 가이드 `직접 추가`([Onboarding.md](Onboarding.md) OB-6) |
+| `/custom/bag-gear/[bagId]`(+`?name=`) | `CustomGearForBag` | 선택 시트 `직접 입력`(배낭 컨텍스트) · 배낭 검색 결과 없음 `직접 추가`(SR-11) — 저장 후 해당 배낭에 자동 추가 |
 | `/search`(+`?bagId=`) | `SearchWarehouse` | 선택 시트 `검색으로 추가` — 카탈로그 검색 모달(GE-8, [Search.md](Search.md)) |
 | `/gear-edit/[id]` | `GearEdit` | 창고 행 메뉴 `수정하기`, 배낭 상세 장비 메뉴 |
 
@@ -110,6 +110,8 @@ WCAG 1.1.1(Non-text Content)·4.1.2(Name/Role/Value)·2.5.5(Target Size 44×44) 
   - 컨텍스트: 창고는 파라미터 없음, 배낭 편집은 `bagId`를 넘긴다.
   - 항목 선택 시 시트를 다음 화면으로 **`replace`** 한다(중간 탭 리로드 노출 방지, BAG-2와 동일).
 - **`직접 입력` 분기**: 창고 → `/custom`, 배낭 → `/custom/bag-gear/{bagId}`(기존 수동 폼, GE-1/GE-3).
+  - **`name` 프리필 파라미터** `[제안]`: 두 라우트 모두 `?name=`을 받으면 제품명을 그 값(trim)으로 채운 채 연다. 검색 결과 없음의 `직접 추가`([Search.md](Search.md) SR-11)가 검색어를 넘긴다. 선택 시트 `직접 입력`은 넘기지 않는다(빈 폼). 저장·닫기 동작은 그대로(GE-3/GE-6 — `router.back()`으로 연 화면에 돌아감).
+  - **`category` 프리필 파라미터** `[제안]`(2026-10-08): `/custom`이 `?category={GearFilter 그룹 키}`를 받으면 카테고리 칩을 그 값으로 선택한 채 연다(모르는 값이면 첫 칩). 첫 여행 가이드 3단계의 `직접 추가`([Onboarding.md](Onboarding.md) OB-6)가 넘긴다.
   - 수동 폼 상단에 **핸들바 + [타이틀 `장비 추가` · 우상단 닫기(×)] 헤더**를 둔다(2026-07-31). 같은 시트에서 갈라지는 검색 모달과 핸들바 얼개를 공유한다 — 두 화면 다 `presentation: 'modal'`(pageSheet)이라 OS 그래버가 없어 핸들바를 직접 그린다. 단 ×는 수동 폼에만 있다(하단 확인 버튼이 주 액션이라 "적용하지 않고 나가는 길"이 필요; 검색 모달은 목록형이라 × 없음 — [Search.md](Search.md) SR-10).
   - iOS 네이티브 투명 헤더(LG-1 전환분)와 Android 커스텀 back 헤더를 이 공통 헤더로 대체한다. 전 플랫폼 동일 — 두 진입이 나란한데 헤더만 갈리면 같은 시트에서 갈라진 화면으로 안 읽힌다.
 - **`검색으로 추가` 분기**: 컨텍스트에 따라 갈린다.

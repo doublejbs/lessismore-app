@@ -2,16 +2,19 @@ import { observer } from 'mobx-react-lite';
 import { FC, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import PretendardText from '@/components/PretendardText';
-import { AcgLayout, AcgType, Color } from '@/constants/DesignTokens';
+import { AcgLayout } from '@/constants/DesignTokens';
 import SearchWarehouse from '@/model/search/SearchWarehouse';
 import Bag from '@/model/bag/Bag';
 import { GearAddContext } from '@/model/gear/GearAddContext';
+import GearAddMode from '@/model/gear/GearAddMode';
+import SearchEmptySource from '@/model/search/SearchEmptySource';
+import SearchEmptyButtonVariant from '@/model/search/SearchEmptyButtonVariant';
 import Feed from '@/model/feed/Feed';
 import FeedView from '../feed/FeedView';
 import FeedFilterBarView from '../feed/FeedFilterBarView';
 import SearchResultContentView from './SearchResultContentView';
-import app from '@/model/app/App';
+import SearchEmptyCustomAddView from './SearchEmptyCustomAddView';
+import useSearchEmptyCustomAdd from './useSearchEmptyCustomAdd';
 
 interface Props {
   searchWarehouse: SearchWarehouse;
@@ -20,6 +23,21 @@ interface Props {
   gearAddContext?: GearAddContext | undefined;
   children?: React.ReactNode;
 }
+
+const getCustomAddOptions = (gearAddContext: GearAddContext | undefined) => {
+  switch (gearAddContext?.mode) {
+    case GearAddMode.Bag: {
+      return { source: SearchEmptySource.Bag, bagId: gearAddContext.bagId };
+    }
+    case GearAddMode.Warehouse:
+    case GearAddMode.Pick: {
+      return { source: SearchEmptySource.Warehouse };
+    }
+    default: {
+      return { source: SearchEmptySource.Feed };
+    }
+  }
+};
 
 const SearchResultView: FC<Props> = ({
   searchWarehouse,
@@ -32,7 +50,10 @@ const SearchResultView: FC<Props> = ({
   const isEmpty = searchWarehouse.isEmpty();
   const canLoadMore = searchWarehouse.canLoadMore();
   const result = searchWarehouse.getResult();
-  const l10n = app.getL10n();
+  // SR-11: 컨텍스트 미지정 = 탐색 탭, Warehouse = `/search` 폴백, Bag = `/search?bagId=`.
+  const handlePressCustomAdd = useSearchEmptyCustomAdd(
+    getCustomAddOptions(gearAddContext)
+  );
 
   /**
    * SR-1: 화면 포커스 복귀 시 현재 키워드로 재검색해 보유 배지를 맞춘다.
@@ -71,12 +92,18 @@ const SearchResultView: FC<Props> = ({
       // 빈 상태 문구는 **검색이 끝난 뒤에만** 띄운다(`isSettled`) — 디바운스 대기 중이거나
       // 요청이 진행 중일 때의 빈 결과는 "없다"는 뜻이 아니다.
       case isEmpty && searchWarehouse.isSettled(): {
+        // SR-11: 검색어가 있으면 피드(`인기 순위` 라임 포함)가 내려가 있어 빈 상태 버튼이
+        // 이 화면의 유일한 액션이다 — 라임 주 액션으로 둔다.
         return (
-          <View style={styles.emptyContainer}>
-            <PretendardText style={styles.emptyText}>
-              {l10n.t('search.resultEmpty')}
-            </PretendardText>
-          </View>
+          <SearchEmptyCustomAddView
+            query={keyword}
+            variant={SearchEmptyButtonVariant.Primary}
+            onPressAdd={
+              gearAddContext?.mode === GearAddMode.Pick
+                ? undefined
+                : handlePressCustomAdd
+            }
+          />
         );
       }
       default: {
@@ -113,16 +140,6 @@ const styles = StyleSheet.create({
     flex: 1,
     // 피드 그리드와 같은 값(FD-2) — 검색어를 넣는 순간 좌우 여백이 달라지면 목록이 흔들린다.
     paddingHorizontal: AcgLayout.screenPadding,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 200,
-  },
-  emptyText: {
-    ...AcgType.rowSubtitle,
-    color: Color.textSecondary,
-    textAlign: 'center',
   },
   flatListContent: {
     flexGrow: 1,

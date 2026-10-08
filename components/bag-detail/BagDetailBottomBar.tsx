@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
 import PackingButtonState from '@/model/bag-detail/PackingButtonState';
+import EmptyBagAddSource from '@/model/bag-detail/EmptyBagAddSource';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 
@@ -26,11 +27,35 @@ const getPackingLabel = (bagDetail: BagDetail): string => {
   }
 };
 
+// 빈 배낭이면 주 액션 라벨이 어디서 담는지를 말한다(BD-13).
+const getPrimaryLabel = (bagDetail: BagDetail): string => {
+  if (!bagDetail.isEmpty()) {
+    return app.getL10n().t('bagDetail.addGear');
+  }
+
+  if (bagDetail.getEmptyAddSource() === EmptyBagAddSource.Search) {
+    return app.getL10n().t('bagDetail.emptyAddFromSearch');
+  }
+
+  return app.getL10n().t('bagDetail.emptyAddFromWarehouse');
+};
+
 // 하단 고정 액션 바: (패킹 보조) + 장비 편집(주). 플로팅 버튼이 리스트를 가리던 문제 해소.
 const BagDetailBottomBar: FC<Props> = ({ bagDetail }) => {
   const showPacking = bagDetail.shouldShowPackingButton();
 
-  const handleEdit = () => {
+  const primaryLabel = getPrimaryLabel(bagDetail);
+
+  const handlePressPrimary = () => {
+    if (bagDetail.isEmpty()) {
+      app.getAnalyticsManager()?.logClick('bag_empty_add', {
+        source: bagDetail.getEmptyAddSource(),
+      });
+      bagDetail.goToEmptyAdd();
+
+      return;
+    }
+
     app.getAnalyticsManager()?.logClick('bag_edit');
     bagDetail.goToEdit();
   };
@@ -53,12 +78,13 @@ const BagDetailBottomBar: FC<Props> = ({ bagDetail }) => {
         )}
         <TouchableOpacity
           style={styles.primary}
-          onPress={handleEdit}
+          onPress={handlePressPrimary}
           activeOpacity={0.8}
           accessibilityRole='button'
+          accessibilityLabel={primaryLabel}
         >
           <PretendardText style={styles.primaryText} weight='semibold'>
-              {app.getL10n().t('bagDetail.addGear')}
+            {primaryLabel}
           </PretendardText>
         </TouchableOpacity>
       </View>

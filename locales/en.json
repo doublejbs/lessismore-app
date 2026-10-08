@@ -181,12 +181,17 @@
     "title": "Notification settings",
     "packing": "Trip packing reminders",
     "useless": "Gear-use reminders",
+    "reengage": "Trip suggestions",
     "notice": "Announcements",
     "reminder": {
       "packingTitle": "Your trip to {{name}} is tomorrow!",
       "packingBody": "Check your packing list",
       "uselessTitle": "How was your trip to {{name}}?",
-      "uselessBody": "Review the gear you used."
+      "uselessBody": "Review the gear you used.",
+      "nextTripTitle": "Ready to plan your next backpacking trip?",
+      "nextTripBody": "Start a new trip with the same gear as your last one",
+      "weekendCampTitle": "Where to this weekend?",
+      "weekendCampBody": "Find a campsite near you on the map"
     }
   },
   "bag": {
@@ -333,7 +338,12 @@
     "todayDeparture": "Departing today",
     "dDay": "D-{{count}}",
     "ongoing": "Traveling",
-    "pastTrip": "Past trip"
+    "pastTrip": "Past trip",
+    "emptyTitle": "Pack gear to see your weight",
+    "emptyBodyWarehouse": "Pick gear from your warehouse to see the total weight and category breakdown right away.",
+    "emptyBodySearch": "Your warehouse is still empty. Search for gear and add it straight to this trip.",
+    "emptyAddFromWarehouse": "Add from warehouse",
+    "emptyAddFromSearch": "Find gear to add"
   },
   "bagTemplate": {
     "editGear": "Edit gear",
@@ -657,6 +667,12 @@
       "close": "Close"
     },
     "resultEmpty": "No search results",
+    "emptyCustomAdd": {
+      "title": "No results for '{{query}}'",
+      "subtitle": "Can't find your gear? Add it yourself",
+      "button": "Add manually",
+      "subtitleNoAdd": "Try a different search term"
+    },
     "rank": {
       "title": "Popular gear",
       "empty": "No gear has been added yet",
@@ -1049,7 +1065,13 @@
     "recommendedTitle": "Campsites picked by useless",
     "viewOnMap": "{{name}}, {{type}}, {{region}}, view on map",
     "login": "Sign in",
-    "profileButton": "My account"
+    "profileButton": "My account",
+    "signedOut": {
+      "title": "Only the gear you need, a lighter pack",
+      "subtitle": "Sort out your gear weight and get ready for your next backpacking trip",
+      "firstTrip": "Plan your first trip",
+      "loginLink": "Already have an account · Sign in"
+    }
   },
   "health": {
     "title": "Activity record",
@@ -1599,5 +1621,95 @@
     "communityTitle": "Consumables to pack",
     "communityLabel": "Affiliate picks",
     "accessibilityOpen": "View {{name}} on {{merchant}}"
+  },
+  "onboarding": {
+    "header": {
+      "back": "Previous step",
+      "close": "Close guide",
+      "progress": "Step {{current}} of {{total}}"
+    },
+    "closeConfirm": {
+      "title": "Close the guide?",
+      "message": "Your trip won't be created from what you've picked so far.",
+      "continue": "Keep going",
+      "close": "Close"
+    },
+    "next": "Next",
+    "skip": "Skip",
+    "date": {
+      "title": "When are you going?",
+      "subtitle": "Set dates and we'll remind you to pack the day before",
+      "undecided": "Not decided yet"
+    },
+    "destination": {
+      "title": "Where are you going?",
+      "subtitle": "Set a destination to see the weather for your trip",
+      "placeholder": "Choose a destination",
+      "placeholderMeta": "Search campsites · Pick on the map",
+      "campSite": "Campsite",
+      "freeLocation": "Custom location",
+      "pick": "Choose destination",
+      "accessibility": "Destination, {{name}}"
+    },
+    "gear": {
+      "title": "What gear are you bringing?",
+      "subtitleWarehouse": "Pick gear from your warehouse for this trip",
+      "summary": "{{count}} picked · ",
+      "otherTitle": "Other gear you added",
+      "loadFailed": "Couldn't load your gear",
+      "sectionCount": "{{count}} items",
+      "summary_one": "{{count}} picked · ",
+      "sectionCount_one": "{{count}} item",
+      "subtitlePopular": "Start with gear other backpackers use most. It is saved to your warehouse when the trip is created",
+      "popularTitle": "Pick from popular gear",
+      "findMore": "Find other {{category}}",
+      "customAdd": "Add manually",
+      "addAccessibility": "Add {{name}}",
+      "removeAccessibility": "Remove {{name}}"
+    },
+    "done": {
+      "title": "Your trip is ready",
+      "renameHint": "You can change the name and dates anytime in the trip",
+      "reminder": "We'll remind you to pack the day before you leave",
+      "reminderUndecided": "We set the dates to this weekend for now. Change them and we'll remind you based on the new dates",
+      "tentativeDates": "{{dates}} (tentative)",
+      "createWithNotification": "Get reminders and create trip",
+      "create": "Create trip",
+      "createWithoutNotification": "Create without reminders",
+      "createFailedTitle": "Couldn't create your trip",
+      "createFailed": "Please try again in a moment.",
+      "partialFailedTitle": "Your trip was created, but some details weren't saved",
+      "partialFailed": "Please check the destination and gear in your trip.",
+      "loginAndCreate": "Sign in and create trip",
+      "later": "Maybe later",
+      "gearListTitle": "Gear to pack: {{count}}",
+      "gearMore": "+{{count}} more",
+      "noGear": "No gear yet. You can add gear to the trip anytime"
+    },
+    "trip": {
+      "nameWithPlace": "{{place}} backpacking",
+      "defaultName": "My first backpacking trip"
+    }
+  },
+  "welcome": {
+    "title": "Only the gear you need, a lighter pack",
+    "logoLabel": "useless",
+    "values": {
+      "weight": {
+        "title": "See your gear weight at a glance",
+        "subtitle": "Your pack weight adds up as you pack"
+      },
+      "weather": {
+        "title": "Pack and weather for every trip",
+        "subtitle": "Pick a destination to see the forecast for your dates"
+      },
+      "reminder": {
+        "title": "Packing reminder the day before",
+        "subtitle": "Head out without forgetting anything"
+      }
+    },
+    "start": "Get ready for your next trip",
+    "browse": "Look around first",
+    "login": "Already have an account · Sign in"
   }
 }

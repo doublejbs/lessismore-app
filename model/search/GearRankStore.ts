@@ -27,7 +27,14 @@ export interface GearRankData {
   companyKorean: string;
   nameKorean: string;
   extra: GearExtra;
+  // 카탈로그(`gear`) 문서를 찾았는지 — false면 ID만 남은 행이다.
+  found: boolean;
+  // 카탈로그 문서의 세분 카테고리(`category`는 순위 문서의 그룹 키다). 창고 등록에 쓴다.
+  catalogCategory: string;
 }
+
+// SR-4 인기 순위 화면이 읽는 개수.
+const DEFAULT_RANK_LIMIT = 10;
 
 class GearRankStore {
   public constructor(private readonly firebase: Firebase) {}
@@ -36,93 +43,138 @@ class GearRankStore {
     category: GearFilter = GearFilter.All
   ): Promise<GearRankData[]> {
     try {
-      const rankQuery =
-        category === GearFilter.All
-          ? query(
-              collection(this.firebase.getStore(), 'gear-rank'),
-              orderBy('count', 'desc'),
-              limit(10)
-            )
-          : query(
-              collection(this.firebase.getStore(), 'gear-rank'),
-              where('category', '==', category),
-              orderBy('count', 'desc'),
-              limit(10)
-            );
-
-      const snapshot = await getDocs(rankQuery);
-
-      // gearId 목록 수집
-      const gearIds = snapshot.docs.map(d => d.data().id);
-
-      if (gearIds.length === 0) {
-        return [];
-      }
-
-      // 한 번에 모든 gear 문서 가져오기
-      const gearsQuery = query(
-        collection(this.firebase.getStore(), 'gear'),
-        where(documentId(), 'in', gearIds)
-      );
-      const gearsSnapshot = await getDocs(gearsQuery);
-
-      // Map으로 변환하여 O(1) 조회
-      const gearsMap = new Map(gearsSnapshot.docs.map(d => [d.id, d.data()]));
-
-      // gear-rank 데이터와 함께 실제 장비 정보도 가져오기
-      const data: GearRankData[] = [];
-
-      for (const rankDoc of snapshot.docs) {
-        const rankData = rankDoc.data();
-        const gearId = rankData.id;
-        const gearData = gearsMap.get(gearId);
-
-        if (gearData) {
-          data.push({
-            id: gearId,
-            name: gearData.name || gearId,
-            company: gearData.company || '',
-            weight: gearData.weight || '',
-            count: rankData.count,
-            category: rankData.category,
-            updatedAt: rankData.updatedAt?.toDate() || new Date(),
-            useless: gearData.useless || [],
-            used: gearData.used || [],
-            bags: gearData.bags || [],
-            createDate: Date.now(),
-            color: gearData.color || '',
-            companyKorean: gearData.companyKorean || '',
-            nameKorean: gearData.nameKorean || '',
-            // 인기 장비는 카탈로그(`gear`) 문서라 imageUrl은 크롤 이미지다 — 읽지 않는다(DataModel §1).
-            extra: toGearExtra(gearData),
-          });
-        } else {
-          // gears에 없으면 ID만 표시
-          data.push({
-            id: gearId,
-            name: gearId,
-            company: '',
-            weight: '',
-            count: rankData.count,
-            category: rankData.category,
-            updatedAt: rankData.updatedAt?.toDate() || new Date(),
-            useless: [],
-            used: [],
-            bags: [],
-            createDate: Date.now(),
-            color: '',
-            companyKorean: '',
-            nameKorean: '',
-            extra: {},
-          });
-        }
-      }
-
-      return data;
+      return await this.fetchRanking(category, DEFAULT_RANK_LIMIT);
     } catch (error) {
       console.error('Error loading gear ranking:', error);
       return [];
     }
+  }
+
+  /**
+   * 첫 여행 가이드 3단계 인기 장비(OB-6). SR-4와 같은 쿼리를 `max`개로 읽고,
+   * 카탈로그 문서가 없는 순위(ID만 남은 행)는 뺀다. 실패는 throw — 호출측이 조용히 숨긴다.
+   */
+  public async loadTopGears(
+    category: GearFilter,
+    max: number
+  ): Promise<Gear[]> {
+    const data = await this.fetchRanking(category, max);
+
+    return data
+      .filter(item => item.found)
+      .map(
+        item =>
+          new Gear(
+            item.id,
+            item.name,
+            item.company,
+            String(item.weight ?? ''),
+            false,
+            false,
+            item.catalogCategory,
+            item.useless,
+            item.used,
+            item.bags,
+            item.createDate,
+            item.color,
+            item.companyKorean,
+            item.nameKorean,
+            item.extra
+          )
+      );
+  }
+
+  private async fetchRanking(
+    category: GearFilter,
+    max: number
+  ): Promise<GearRankData[]> {
+    const rankQuery =
+      category === GearFilter.All
+        ? query(
+            collection(this.firebase.getStore(), 'gear-rank'),
+            orderBy('count', 'desc'),
+            limit(max)
+          )
+        : query(
+            collection(this.firebase.getStore(), 'gear-rank'),
+            where('category', '==', category),
+            orderBy('count', 'desc'),
+            limit(max)
+          );
+
+    const snapshot = await getDocs(rankQuery);
+
+    // gearId 목록 수집
+    const gearIds = snapshot.docs.map(d => d.data().id);
+
+    if (gearIds.length === 0) {
+      return [];
+    }
+
+    // 한 번에 모든 gear 문서 가져오기
+    const gearsQuery = query(
+      collection(this.firebase.getStore(), 'gear'),
+      where(documentId(), 'in', gearIds)
+    );
+    const gearsSnapshot = await getDocs(gearsQuery);
+
+    // Map으로 변환하여 O(1) 조회
+    const gearsMap = new Map(gearsSnapshot.docs.map(d => [d.id, d.data()]));
+
+    // gear-rank 데이터와 함께 실제 장비 정보도 가져오기
+    const data: GearRankData[] = [];
+
+    for (const rankDoc of snapshot.docs) {
+      const rankData = rankDoc.data();
+      const gearId = rankData.id;
+      const gearData = gearsMap.get(gearId);
+
+      if (gearData) {
+        data.push({
+          id: gearId,
+          name: gearData.name || gearId,
+          company: gearData.company || '',
+          weight: gearData.weight || '',
+          count: rankData.count,
+          category: rankData.category,
+          updatedAt: rankData.updatedAt?.toDate() || new Date(),
+          useless: gearData.useless || [],
+          used: gearData.used || [],
+          bags: gearData.bags || [],
+          createDate: Date.now(),
+          color: gearData.color || '',
+          companyKorean: gearData.companyKorean || '',
+          nameKorean: gearData.nameKorean || '',
+          // 인기 장비는 카탈로그(`gear`) 문서라 imageUrl은 크롤 이미지다 — 읽지 않는다(DataModel §1).
+          extra: toGearExtra(gearData),
+          found: true,
+          catalogCategory: gearData.category || rankData.category,
+        });
+      } else {
+        // gears에 없으면 ID만 표시
+        data.push({
+          id: gearId,
+          name: gearId,
+          company: '',
+          weight: '',
+          count: rankData.count,
+          category: rankData.category,
+          updatedAt: rankData.updatedAt?.toDate() || new Date(),
+          useless: [],
+          used: [],
+          bags: [],
+          createDate: Date.now(),
+          color: '',
+          companyKorean: '',
+          nameKorean: '',
+          extra: {},
+          found: false,
+          catalogCategory: rankData.category,
+        });
+      }
+    }
+
+    return data;
   }
 
   public async loadRankingAsGears(

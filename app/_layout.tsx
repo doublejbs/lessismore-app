@@ -14,7 +14,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import app from '@/model/app/App';
 import { useEffect } from 'react';
 import SplashLoadingView from '@/components/ui/SplashLoadingView';
-import { View, Text, Platform, Image } from 'react-native';
+import { View, Text, Platform, Image, AppState } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import ForceUpdateGateView from '@/components/app-update/ForceUpdateGateView';
 import AnnouncementSheetView from '@/components/announcement/AnnouncementSheetView';
@@ -22,6 +22,7 @@ import FeaturePopupSheetView from '@/components/feature-popup/FeaturePopupSheetV
 import AdTrackingPromptSheetView from '@/components/ads/AdTrackingPromptSheetView';
 import SubscriptionNudgeSheetView from '@/components/subscription/SubscriptionNudgeSheetView';
 import { Acg } from '@/constants/DesignTokens';
+import OnboardingTripEntry from '@/model/onboarding/OnboardingTripEntry';
 
 // 네이티브 스플래시를 폰트 로드 후 직접 내려, 초기화(Firebase) 동안 React 스플래시
 // (SplashLoadingView — 하단 team magma 로고)가 보이게 한다. 자동 숨김을 막아둔다.
@@ -101,9 +102,99 @@ const RootLayout = () => {
       return;
     }
 
-    // 초기화 완료 후 알림 권한 요청·리스너 등록을 1회 수행한다. (웹은 no-op)
+    // 초기화 완료 후 알림 리스너 등록을 1회 수행한다(권한 요청은 아래 effect — NT-1·OB-8). (웹은 no-op)
     void app.getNotificationManager()?.initialize();
   }, [isInitialized]);
+
+  const onboardingTripManager = app.getOnboardingTripManager();
+  const forceUpdateManager = app.getForceUpdateManager();
+  // 게이트 판정이 끝난 뒤에만 가이드를 띄운다 — 게이트(APP-7) > 가이드(APP-10).
+  const isUpdateCheckResolved = forceUpdateManager?.isResolved() ?? false;
+  const needsUpdate = forceUpdateManager?.getNeedsUpdate() ?? false;
+  const isOnTabs = segments[0] === '(tabs)';
+
+  useEffect(() => {
+    if (
+      !isInitialized ||
+      (isLoggedIn && !hasAgreed) ||
+      !isOnTabs ||
+      !isUpdateCheckResolved ||
+      needsUpdate ||
+      !onboardingTripManager
+    ) {
+      return;
+    }
+
+    // 첫 여행 만들기 가이드(OB-1·OB-2) — 게이트 판정 뒤 탭에 처음 도착했을 때 판정해 1회 띄운다.
+    // 로그인·동의 사용자는 uid별(OB-1), 비로그인은 기기 단위 첫 실행(OB-11), 이어가기 초안이 있으면 그것 먼저(OB-12).
+    // 판정은 세션당 키(uid·비로그인)마다 1회라 탭 이동마다 다시 읽지 않는다.
+    // 이 기기 첫 판정이면 가이드 대신 환영 화면을 먼저 띄운다(OB-14·OB-15, 2026-10-08 옵션 A).
+    void onboardingTripManager.checkAndMarkPresented().then(entry => {
+      if (entry === OnboardingTripEntry.None) {
+        return;
+      }
+
+      // 가이드 완료 단계가 첫 알림 권한 질문이다 — 이번 세션 시작 시 요청은 건너뛴다(OB-8).
+      // 환영 화면에서도 권한을 묻지 않는다(OB-2).
+      app.getNotificationManager()?.skipLaunchPermission();
+      router.push(
+        entry === OnboardingTripEntry.Welcome ? '/welcome' : '/onboarding-trip'
+      );
+    });
+  }, [
+    isInitialized,
+    isLoggedIn,
+    hasAgreed,
+    isOnTabs,
+    isUpdateCheckResolved,
+    needsUpdate,
+    onboardingTripManager,
+    router,
+  ]);
+
+  const isOnboardingSettled =
+    onboardingTripManager?.isSettledForCurrentUser() ?? false;
+
+  useEffect(() => {
+    if (!isInitialized || !isLoggedIn || !hasAgreed || !isOnboardingSettled) {
+      return;
+    }
+
+    // 시작 시 알림 권한 요청(NT-1 개정) — 로그인·약관 동의·가이드 판정 뒤, 세션당 1회, 미결정일 때만.
+    // 가이드를 띄운 세션은 skipLaunchPermission()으로 이미 처리됐다.
+    if (onboardingTripManager?.wasPresentedThisSession()) {
+      return;
+    }
+
+    void app.getNotificationManager()?.requestPermissionAtLaunch();
+  }, [
+    isInitialized,
+    isLoggedIn,
+    hasAgreed,
+    isOnboardingSettled,
+    onboardingTripManager,
+  ]);
+
+  useEffect(() => {
+    if (!isInitialized) {
+      return;
+    }
+
+    // 재방문 리마인더(NT-7·NT-8)를 앱 시작·로그인 변화·포그라운드 복귀마다 멱등 동기화한다(NT-9). 웹은 no-op.
+    const notificationManager = app.getNotificationManager();
+
+    notificationManager?.requestReengagementSync();
+
+    const subscription = AppState.addEventListener('change', nextState => {
+      if (nextState === 'active') {
+        notificationManager?.requestReengagementSync();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isInitialized, isLoggedIn]);
 
   useEffect(() => {
     if (!isInitialized) {
@@ -240,6 +331,27 @@ const RootLayout = () => {
           {/* 공용 여행지 선택기(DST-3) — 풀스크린 모달 라우트. RN Modal이 아니라 라우트라
               이 위로 박지 상세(/camp-site/{'{id}'})·즐겨찾기(/camp-site-favorites) formSheet가
               그대로 스택돼 지도 탭과 동일한 디텐트(기본 40% + 높이 조절)를 쓴다. */}
+          {/* 첫 여행 만들기 가이드(OB-3) — 전체 화면. 입력이 쌓이는 화면이라 스와이프 닫기를 끈다
+              (닫기는 머리의 × 또는 안드로이드 하드웨어 뒤로 — 화면이 직접 처리). 이 위로 여행지
+              선택기(fullScreenModal)·장비 검색(modal)이 그대로 쌓인다. */}
+          <Stack.Screen
+            name='onboarding-trip'
+            options={{
+              headerShown: false,
+              presentation: 'fullScreenModal',
+              gestureEnabled: false,
+            }}
+          />
+          {/* 첫 실행 환영 화면(OB-14) — 가이드 앞의 한 장. 닫기는 `먼저 둘러볼게요`(·하드웨어 뒤로)라
+              스와이프 닫기를 끈다. `다음 백패킹 준비하기`는 이 화면을 가이드로 replace한다(OB-15). */}
+          <Stack.Screen
+            name='welcome'
+            options={{
+              headerShown: false,
+              presentation: 'fullScreenModal',
+              gestureEnabled: false,
+            }}
+          />
           <Stack.Screen
             name='bag-destination-picker'
             options={{

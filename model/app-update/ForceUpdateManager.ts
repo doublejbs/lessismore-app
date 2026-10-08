@@ -18,6 +18,9 @@ class ForceUpdateManager {
 
   private needsUpdate = false;
   private checked = false;
+  // 판정이 끝났는지(성공·실패·no-op 모두). 첫 여행 가이드는 이 뒤에 띄운다 — 게이트 대상이면
+  // 가이드(네이티브 모달)가 게이트를 덮지 않게 한다(APP-10).
+  private resolved = false;
 
   private constructor(private readonly firebase: Firebase) {
     makeAutoObservable(this);
@@ -31,6 +34,14 @@ class ForceUpdateManager {
 
     this.checked = true;
 
+    try {
+      await this.runCheck();
+    } finally {
+      this.setResolved(true);
+    }
+  }
+
+  private async runCheck() {
     // 웹은 스토어 개념이 없어 no-op.
     if (Platform.OS === 'web') {
       return;
@@ -128,6 +139,14 @@ class ForceUpdateManager {
 
   private setNeedsUpdate(value: boolean) {
     this.needsUpdate = value;
+  }
+
+  private setResolved(value: boolean) {
+    this.resolved = value;
+  }
+
+  public isResolved(): boolean {
+    return this.resolved;
   }
 
   public getNeedsUpdate(): boolean {

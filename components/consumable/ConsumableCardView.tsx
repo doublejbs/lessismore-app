@@ -32,6 +32,15 @@ const REGULAR_BODY_PADDING = 12;
 const COMPACT_BODY_PADDING = 8;
 const FALLBACK_ICON_SIZE = 28;
 const MAX_FONT_SIZE_MULTIPLIER = 1.5;
+const BODY_GAP = 4;
+// 이름 두 줄 + 한 줄 소개 두 줄 + 출처 한 줄을 늘 자리 잡는다 — 내용 길이가 달라도 캐러셀 카드의
+// 본문 높이·출처 위치가 들쭉날쭉하지 않다(CP-2). 큰 글자에서는 최소값보다 커진다(Dynamic Type).
+const REGULAR_BODY_MIN_HEIGHT =
+  REGULAR_BODY_PADDING * 2 +
+  AcgType.rowTitle.lineHeight * 2 +
+  AcgType.rowSubtitle.lineHeight * 2 +
+  AcgType.meta.lineHeight +
+  BODY_GAP * 2;
 
 /**
  * 소모품 카드(CP-2). 세 자리(배낭 상세·홈·커뮤니티)가 이 컴포넌트 하나를 쓴다.
@@ -112,7 +121,7 @@ const ConsumableCardView: FC<Props> = ({ product, variant, source, style }) => {
         {!isCompact && product.pitch ? (
           <PretendardText
             style={styles.pitch}
-            numberOfLines={1}
+            numberOfLines={2}
             maxFontSizeMultiplier={MAX_FONT_SIZE_MULTIPLIER}
           >
             {product.pitch}
@@ -167,8 +176,9 @@ const styles = StyleSheet.create({
   },
   bodyRegular: {
     flexGrow: 1,
-    gap: 4,
+    gap: BODY_GAP,
     padding: REGULAR_BODY_PADDING,
+    minHeight: REGULAR_BODY_MIN_HEIGHT,
   },
   // 3등분 폭이라 패딩을 줄여 이름 두 줄에 글자 폭을 돌려준다.
   bodyCompact: {
@@ -188,9 +198,11 @@ const styles = StyleSheet.create({
     ...AcgType.rowSubtitle,
     color: Acg.ink,
   },
+  // 출처는 본문 바닥에 붙인다 — 소개가 한 줄이든 두 줄이든 카드마다 같은 자리에 온다(CP-2).
   source: {
     ...AcgType.meta,
     color: Acg.textMuted,
+    marginTop: 'auto',
   },
 });
 

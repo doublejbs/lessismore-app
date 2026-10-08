@@ -529,7 +529,7 @@ class CommunityWrite {
       throw error;
     }
 
-    app.getAnalyticsManager()?.logClick('click_community_publish', {
+    app.getAnalyticsManager()?.logClick('community_publish', {
       has_packing: this.hasBagSnapshot(),
       has_poll: this.hasPoll(),
       image_count: this.imageSession.getUploadedInOrder().length,
