@@ -1615,11 +1615,35 @@
       "partialFailedTitle": "旅行は作成しましたが、一部を保存できませんでした",
       "partialFailed": "旅行画面で目的地と装備をもう一度確認してください。",
       "loginAndCreate": "ログインして旅行を作成",
-      "later": "あとで"
+      "later": "あとで",
+      "gearListTitle": "持っていく道具 {{count}}個",
+      "gearMore": "ほか{{count}}個",
+      "noGear": "道具はまだありません。旅行画面でいつでも追加できます"
     },
     "trip": {
       "nameWithPlace": "{{place}} バックパッキング",
       "defaultName": "はじめてのバックパッキング"
     }
+  },
+  "welcome": {
+    "title": "必要な道具だけ、ザックは軽く",
+    "logoLabel": "useless",
+    "values": {
+      "weight": {
+        "title": "道具の重さをひと目で整理",
+        "subtitle": "入れるとザックの重さがすぐ計算されます"
+      },
+      "weather": {
+        "title": "旅行ごとにザックと天気をまとめて",
+        "subtitle": "目的地を決めると期間中の天気をお見せします"
+      },
+      "reminder": {
+        "title": "出発前日にパッキングをお知らせ",
+        "subtitle": "忘れ物なく出発できます"
+      }
+    },
+    "start": "次のバックパッキングを準備する",
+    "browse": "まずは見てみる",
+    "login": "アカウントをお持ちの方 · ログイン"
   }
 }

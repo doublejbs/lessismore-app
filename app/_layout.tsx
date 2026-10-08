@@ -20,6 +20,7 @@ import ForceUpdateGateView from '@/components/app-update/ForceUpdateGateView';
 import AnnouncementSheetView from '@/components/announcement/AnnouncementSheetView';
 import FeaturePopupSheetView from '@/components/feature-popup/FeaturePopupSheetView';
 import { Acg } from '@/constants/DesignTokens';
+import OnboardingTripEntry from '@/model/onboarding/OnboardingTripEntry';
 
 // 네이티브 스플래시를 폰트 로드 후 직접 내려, 초기화(Firebase) 동안 React 스플래시
 // (SplashLoadingView — 하단 team magma 로고)가 보이게 한다. 자동 숨김을 막아둔다.
@@ -125,12 +126,18 @@ const RootLayout = () => {
     // 첫 여행 만들기 가이드(OB-1·OB-2) — 게이트 판정 뒤 탭에 처음 도착했을 때 판정해 1회 띄운다.
     // 로그인·동의 사용자는 uid별(OB-1), 비로그인은 기기 단위 첫 실행(OB-11), 이어가기 초안이 있으면 그것 먼저(OB-12).
     // 판정은 세션당 키(uid·비로그인)마다 1회라 탭 이동마다 다시 읽지 않는다.
-    void onboardingTripManager.checkAndMarkPresented().then(shouldPresent => {
-      if (shouldPresent) {
-        // 가이드 완료 단계가 첫 알림 권한 질문이다 — 이번 세션 시작 시 요청은 건너뛴다(OB-8).
-        app.getNotificationManager()?.skipLaunchPermission();
-        router.push('/onboarding-trip');
+    // 이 기기 첫 판정이면 가이드 대신 환영 화면을 먼저 띄운다(OB-14·OB-15, 2026-10-08 옵션 A).
+    void onboardingTripManager.checkAndMarkPresented().then(entry => {
+      if (entry === OnboardingTripEntry.None) {
+        return;
       }
+
+      // 가이드 완료 단계가 첫 알림 권한 질문이다 — 이번 세션 시작 시 요청은 건너뛴다(OB-8).
+      // 환영 화면에서도 권한을 묻지 않는다(OB-2).
+      app.getNotificationManager()?.skipLaunchPermission();
+      router.push(
+        entry === OnboardingTripEntry.Welcome ? '/welcome' : '/onboarding-trip'
+      );
     });
   }, [
     isInitialized,
@@ -327,6 +334,16 @@ const RootLayout = () => {
               선택기(fullScreenModal)·장비 검색(modal)이 그대로 쌓인다. */}
           <Stack.Screen
             name='onboarding-trip'
+            options={{
+              headerShown: false,
+              presentation: 'fullScreenModal',
+              gestureEnabled: false,
+            }}
+          />
+          {/* 첫 실행 환영 화면(OB-14) — 가이드 앞의 한 장. 닫기는 `먼저 둘러볼게요`(·하드웨어 뒤로)라
+              스와이프 닫기를 끈다. `다음 백패킹 준비하기`는 이 화면을 가이드로 replace한다(OB-15). */}
+          <Stack.Screen
+            name='welcome'
             options={{
               headerShown: false,
               presentation: 'fullScreenModal',

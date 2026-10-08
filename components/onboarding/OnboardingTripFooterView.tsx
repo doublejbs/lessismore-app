@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -17,6 +17,8 @@ interface Props {
   loading?: boolean;
   secondaryLabel?: string | undefined;
   onSecondary?: (() => void) | undefined;
+  // 보조 버튼 아래 작은 링크 자리(환영 화면의 로그인 링크, OB-14).
+  footnote?: ReactNode;
 }
 
 const PRIMARY_MIN_HEIGHT = 52;
@@ -30,6 +32,7 @@ const OnboardingTripFooterView: FC<Props> = ({
   loading = false,
   secondaryLabel,
   onSecondary,
+  footnote,
 }) => {
   const insets = useSafeAreaInsets();
   const disabled = primaryDisabled || loading;
@@ -75,6 +78,7 @@ const OnboardingTripFooterView: FC<Props> = ({
           </PretendardText>
         </TouchableOpacity>
       ) : null}
+      {footnote}
     </View>
   );
 };

@@ -3,6 +3,7 @@ import Firebase from '../firebase/Firebase';
 import BagStore from '../store/BagStore';
 import LocalStorageManager from '../storage/LocalStorageManager';
 import OnboardingTripStatus from './OnboardingTripStatus';
+import OnboardingTripEntry from './OnboardingTripEntry';
 import {
   OnboardingTripDraft,
   parseOnboardingTripDraft,
@@ -28,6 +29,7 @@ interface OnboardingTripRecord {
  * - 비로그인 대상 판정: 기기 기록 `onboarding-first-trip_device` 없음(OB-11).
  * - 로그인 이어가기: 초안 `onboarding-first-trip-draft`가 있으면 위 판정보다 먼저 가이드를 다시 연다(OB-12).
  * - 판정은 세션당 키(uid 또는 비로그인)마다 1회. 기록이 하나라도 있으면 다시 띄우지 않는다.
+ * - 이 기기 첫 판정(기기 기록 없음)이면 가이드 대신 환영 화면을 먼저 띄운다(OB-14·OB-15).
  * - 오버레이 우선순위(APP-10): 판정 전·가이드 표시 중에는 신기능 팝업·공지를 막는다.
  */
 class OnboardingTripManager {
@@ -43,6 +45,8 @@ class OnboardingTripManager {
   private presentedThisSession = false;
   // 지금 띄운 가이드가 기기 단위 기록을 갖는지(비로그인 첫 실행·이어가기, OB-11).
   private deviceScoped = false;
+  // 지금 떠 있는 것이 가이드 앞의 환영 화면인지(OB-14). 가이드로 넘어가면 false.
+  private welcomeShowing = false;
   // 이어가기로 연 가이드가 받아 갈 초안(OB-12). 가이드가 마운트 때 한 번 가져간다.
   private resumeDraft: OnboardingTripDraft | null = null;
 
@@ -57,19 +61,19 @@ class OnboardingTripManager {
   }
 
   /**
-   * 탭에 도착했을 때 레이아웃이 부른다. 대상이면 노출 기록(`presented`)을 먼저 남기고 `true`를 돌려준다
-   * — 호출측이 가이드 라우트를 띄운다. 도중에 앱이 종료돼도 다시 뜨지 않는다(OB-1·OB-11).
+   * 탭에 도착했을 때 레이아웃이 부른다. 대상이면 노출 기록(`presented`)을 먼저 남기고 띄울 화면을 돌려준다
+   * — 호출측이 환영 화면 또는 가이드 라우트를 띄운다. 도중에 앱이 종료돼도 다시 뜨지 않는다(OB-1·OB-11·OB-15).
    */
-  public async checkAndMarkPresented(): Promise<boolean> {
+  public async checkAndMarkPresented(): Promise<OnboardingTripEntry> {
     const loggedIn = this.firebase.isLoggedIn();
     const key = this.getCurrentKey();
 
     if (this.checking || this.resolvedKey === key) {
-      return false;
+      return OnboardingTripEntry.None;
     }
 
     if (loggedIn && (!key || !this.firebase.hasUserAgreedToTerms())) {
-      return false;
+      return OnboardingTripEntry.None;
     }
 
     this.setChecking(true);
@@ -79,7 +83,7 @@ class OnboardingTripManager {
 
       // 판정하는 동안 로그인 상태가 바뀌었으면 이 결과를 버린다 — 다음 탭 도착에서 새 키로 판정한다.
       if (this.getCurrentKey() !== key) {
-        return false;
+        return OnboardingTripEntry.None;
       }
 
       return loggedIn
@@ -93,7 +97,12 @@ class OnboardingTripManager {
   private async checkLoggedIn(
     uid: string,
     draft: OnboardingTripDraft | null
-  ): Promise<boolean> {
+  ): Promise<OnboardingTripEntry> {
+    // 기기 기록이 없으면 이 기기 첫 판정이다 — 가이드 앞에 환영 화면을 띄운다(OB-15).
+    const isFirstOnDevice = !(await LocalStorageManager.get<OnboardingTripRecord>(
+      DEVICE_STORAGE_KEY
+    ));
+
     // 이 기기에서 이미 앱을 쓴 사람 — 로그아웃해도 비로그인 첫 실행 가이드를 보지 않는다(OB-11).
     await this.markDeviceUsed();
 
@@ -103,16 +112,16 @@ class OnboardingTripManager {
         this.getStorageKey(uid),
         OnboardingTripStatus.Presented
       );
-      this.present(uid, draft, false);
+      this.present(uid, draft, false, false);
 
-      return true;
+      return OnboardingTripEntry.Guide;
     }
 
     // 같은 세션에 비로그인 가이드를 이미 띄웠으면 로그인 직후 다시 띄우지 않는다(기록도 남기지 않는다).
     if (this.presentedThisSession) {
       this.resolve(uid);
 
-      return false;
+      return OnboardingTripEntry.None;
     }
 
     const record = await LocalStorageManager.get<OnboardingTripRecord>(
@@ -122,7 +131,7 @@ class OnboardingTripManager {
     if (record) {
       this.resolve(uid);
 
-      return false;
+      return OnboardingTripEntry.None;
     }
 
     let bagCount: number;
@@ -134,11 +143,11 @@ class OnboardingTripManager {
       console.warn('첫 여행 가이드 대상 판정 실패', error); // l10n-ignore: console 개발자 로그
       this.resolve(uid);
 
-      return false;
+      return OnboardingTripEntry.None;
     }
 
     if (this.getCurrentKey() !== uid) {
-      return false;
+      return OnboardingTripEntry.None;
     }
 
     if (bagCount > 0) {
@@ -148,27 +157,29 @@ class OnboardingTripManager {
       );
       this.resolve(uid);
 
-      return false;
+      return OnboardingTripEntry.None;
     }
 
     await this.saveStatus(
       this.getStorageKey(uid),
       OnboardingTripStatus.Presented
     );
-    this.present(uid, null, false);
+    this.present(uid, null, false, isFirstOnDevice);
 
-    return true;
+    return isFirstOnDevice
+      ? OnboardingTripEntry.Welcome
+      : OnboardingTripEntry.Guide;
   }
 
   private async checkGuest(
     draft: OnboardingTripDraft | null
-  ): Promise<boolean> {
+  ): Promise<OnboardingTripEntry> {
     // 인증 전에 앱이 종료된 로그인 이어가기 — 완료 단계로 한 번만 다시 연다(OB-12).
     if (draft?.resumable) {
       await this.saveDraft({ ...draft, resumable: false });
-      this.present(GUEST_KEY, draft, true);
+      this.present(GUEST_KEY, draft, true, false);
 
-      return true;
+      return OnboardingTripEntry.Guide;
     }
 
     const record =
@@ -177,27 +188,55 @@ class OnboardingTripManager {
     if (record) {
       this.resolve(GUEST_KEY);
 
-      return false;
+      return OnboardingTripEntry.None;
     }
 
+    // 비로그인 첫 실행은 환영 화면부터 — 가이드는 환영 화면의 `다음 백패킹 준비하기`로 연다(OB-11·OB-15).
     await this.saveStatus(DEVICE_STORAGE_KEY, OnboardingTripStatus.Presented);
-    this.present(GUEST_KEY, null, true);
+    this.present(GUEST_KEY, null, true, true);
 
-    return true;
+    return OnboardingTripEntry.Welcome;
   }
 
   private present(
     key: string,
     draft: OnboardingTripDraft | null,
-    deviceScoped: boolean
+    deviceScoped: boolean,
+    welcome: boolean
   ) {
     runInAction(() => {
       this.resolvedKey = key;
       this.presentedThisSession = true;
       this.showing = true;
       this.deviceScoped = deviceScoped;
+      this.welcomeShowing = welcome;
       this.resumeDraft = draft;
     });
+  }
+
+  /**
+   * 환영 화면 `다음 백패킹 준비하기`(OB-15) — 같은 표시 상태로 가이드에 넘긴다. 기록·팝업 차단은 이어진다.
+   */
+  public startGuideFromWelcome(): void {
+    this.welcomeShowing = false;
+  }
+
+  /**
+   * 환영 화면에서 로그인 성공(OB-15). 기기 기록만 `dismissed`로 남기고 uid 기록은 남기지 않는다
+   * — 같은 세션에는 가이드를 다시 띄우지 않고(`presentedThisSession`), 여행 0개 계정은 다음 실행에 가이드를 본다.
+   */
+  public async finishWelcomeAfterLogin(): Promise<void> {
+    runInAction(() => {
+      this.showing = false;
+      this.welcomeShowing = false;
+      this.deviceScoped = false;
+    });
+
+    await this.saveStatus(DEVICE_STORAGE_KEY, OnboardingTripStatus.Dismissed);
+  }
+
+  public isWelcomeShowing(): boolean {
+    return this.welcomeShowing;
   }
 
   /**
@@ -209,7 +248,7 @@ class OnboardingTripManager {
       return false;
     }
 
-    this.present(this.getCurrentKey(), null, !this.firebase.isLoggedIn());
+    this.present(this.getCurrentKey(), null, !this.firebase.isLoggedIn(), false);
 
     return true;
   }
@@ -232,6 +271,7 @@ class OnboardingTripManager {
     runInAction(() => {
       this.showing = false;
       this.deviceScoped = false;
+      this.welcomeShowing = false;
 
       if (loggedIn && uid) {
         // 이 uid는 가이드를 거쳤다 — 같은 세션에 탭으로 돌아와도 다시 판정하지 않는다.
@@ -257,6 +297,7 @@ class OnboardingTripManager {
   public suspend(): void {
     this.showing = false;
     this.deviceScoped = false;
+    this.welcomeShowing = false;
   }
 
   public async saveDraft(draft: OnboardingTripDraft): Promise<void> {
@@ -318,7 +359,7 @@ class OnboardingTripManager {
     );
   }
 
-  // 이번 세션에 가이드를(로그인·비로그인 어느 쪽이든) 띄웠는지(OB-8).
+  // 이번 세션에 환영 화면·가이드를(로그인·비로그인 어느 쪽이든) 띄웠는지(OB-8).
   public wasPresentedThisSession(): boolean {
     return this.presentedThisSession;
   }

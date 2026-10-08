@@ -1643,11 +1643,35 @@
       "partialFailedTitle": "Your trip was created, but some details weren't saved",
       "partialFailed": "Please check the destination and gear in your trip.",
       "loginAndCreate": "Sign in and create trip",
-      "later": "Maybe later"
+      "later": "Maybe later",
+      "gearListTitle": "Gear to pack: {{count}}",
+      "gearMore": "+{{count}} more",
+      "noGear": "No gear yet. You can add gear to the trip anytime"
     },
     "trip": {
       "nameWithPlace": "{{place}} backpacking",
       "defaultName": "My first backpacking trip"
     }
+  },
+  "welcome": {
+    "title": "Only the gear you need, a lighter pack",
+    "logoLabel": "useless",
+    "values": {
+      "weight": {
+        "title": "See your gear weight at a glance",
+        "subtitle": "Your pack weight adds up as you pack"
+      },
+      "weather": {
+        "title": "Pack and weather for every trip",
+        "subtitle": "Pick a destination to see the forecast for your dates"
+      },
+      "reminder": {
+        "title": "Packing reminder the day before",
+        "subtitle": "Head out without forgetting anything"
+      }
+    },
+    "start": "Get ready for your next trip",
+    "browse": "Look around first",
+    "login": "Already have an account · Sign in"
   }
 }
