@@ -33,7 +33,7 @@ const CommunityFeedCardView: FC<Props> = ({ post, onPress }) => {
       return;
     }
 
-    app.getAnalyticsManager()?.logClick('click_community_post', {
+    app.getAnalyticsManager()?.logClick('community_post', {
       has_packing: post.hasBagSnapshot(),
       has_poll: post.hasPoll(),
     });

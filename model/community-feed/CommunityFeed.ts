@@ -61,7 +61,7 @@ class CommunityFeed {
 
   public async setFilter(filter: CommunityFeedFilter) {
     this.setFilterValue(filter);
-    app.getAnalyticsManager()?.logClick('click_community_filter', { filter });
+    app.getAnalyticsManager()?.logClick('community_filter', { filter });
     this.setLoading(true);
     await this.loadFirstPage();
   }
@@ -81,7 +81,7 @@ class CommunityFeed {
 
     this.order.setOrderOption(option);
     this.setSortValue(sort);
-    app.getAnalyticsManager()?.logClick('click_community_sort', { sort });
+    app.getAnalyticsManager()?.logClick('community_sort', { sort });
     this.setLoading(true);
     await this.loadFirstPage();
   }

@@ -84,7 +84,7 @@ const CommunityDetailPostHeaderView = observer(({ post, detail, width }: Props) 
             onSelectGear={gearId => {
               app
                 .getAnalyticsManager()
-                ?.logClick('click_community_snapshot_gear', {
+                ?.logClick('community_snapshot_gear', {
                   gear_id: gearId,
                 });
               router.push(`/gear-detail/${gearId}`);
