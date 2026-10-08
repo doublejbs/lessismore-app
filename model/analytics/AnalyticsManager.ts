@@ -1,5 +1,7 @@
 import { Platform } from 'react-native';
 import { isInternalUser } from './InternalUsers';
+import { isAnalyticsExcludedBuild } from './AnalyticsEnvironment';
+import { getAppVersionInfo } from '@/model/app/AppVersionInfo';
 
 type AnalyticsParams = Record<string, string | number | boolean>;
 
@@ -10,19 +12,49 @@ type FirebaseAnalytics = {
     screen_class: string;
   }) => Promise<void>;
   setUserProperty: (name: string, value: string | null) => Promise<void>;
+  setAnalyticsCollectionEnabled: (enabled: boolean) => Promise<void>;
 };
+
+const CLICK_PREFIX = 'click_';
 
 class AnalyticsManager {
   public static new() {
     return new AnalyticsManager();
   }
 
-  private readonly enabled = Platform.OS !== 'web';
+  private enabled = Platform.OS !== 'web';
   private currentScreen = '';
   private lastLoggedScreen = '';
   private analytics: FirebaseAnalytics | null = null;
 
   private constructor() {}
+
+  // App.initialize에서 1회 호출(AN-4/AN-6). 개발·테스트 빌드면 네이티브 수집을 끄고 이후 전송을
+  // 전부 no-op으로 만든다. 프로덕션은 수집을 명시적으로 켜(기본값과 동일) 같은 기기에서 개발 빌드가
+  // 남긴 영구 비활성 설정을 되돌리고, 채널·OTA 번들을 사용자 속성으로 붙인다.
+  public initialize() {
+    if (!this.enabled) {
+      return;
+    }
+
+    const { channel, bundleId } = getAppVersionInfo();
+    const excluded = isAnalyticsExcludedBuild(channel);
+
+    void this.send(analytics => analytics.setAnalyticsCollectionEnabled(!excluded));
+
+    if (excluded) {
+      this.enabled = false;
+
+      return;
+    }
+
+    void this.send(analytics =>
+      analytics.setUserProperty('app_channel', channel ?? 'unknown')
+    );
+    void this.send(analytics =>
+      analytics.setUserProperty('ota_bundle', bundleId ?? 'embedded')
+    );
+  }
 
   public setCurrentScreen(screen: string) {
     this.currentScreen = screen;
@@ -48,7 +80,7 @@ class AnalyticsManager {
       eventParams.screen = this.currentScreen;
     }
 
-    this.logEvent(`click_${element}`, eventParams);
+    this.logEvent(`${CLICK_PREFIX}${this.stripClickPrefix(element)}`, eventParams);
   }
 
   public logEvent(name: string, params?: AnalyticsParams) {
@@ -86,6 +118,19 @@ class AnalyticsManager {
     );
   }
 
+  // AN-5: 호출부가 접두를 붙여 넘기면 `click_click_*`가 되므로 한 번 떼고 보낸다.
+  private stripClickPrefix(element: string) {
+    if (!element.startsWith(CLICK_PREFIX)) {
+      return element;
+    }
+
+    if (__DEV__) {
+      console.warn(`AnalyticsManager.logClick에 click_ 접두 없이 넘기세요: ${element}`); // l10n-ignore: 개발자 로그
+    }
+
+    return element.slice(CLICK_PREFIX.length);
+  }
+
   private async send(action: (analytics: FirebaseAnalytics) => Promise<void>) {
     try {
       const analytics = this.getAnalytics();
@@ -101,7 +146,8 @@ class AnalyticsManager {
   }
 
   private getAnalytics(): FirebaseAnalytics | null {
-    if (!this.enabled) {
+    // enabled가 아니라 플랫폼으로 가른다 — 수집 제외(AN-4) 뒤에도 비활성 설정 전송은 나가야 한다.
+    if (Platform.OS === 'web') {
       return null;
     }
 

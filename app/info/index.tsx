@@ -101,7 +101,7 @@ const InfoView: FC = () => {
   };
 
   const handleOpenMyPosts = () => {
-    app.getAnalyticsManager()?.logClick('click_info_my_posts');
+    app.getAnalyticsManager()?.logClick('info_my_posts');
     router.push('/community/mine');
   };
 

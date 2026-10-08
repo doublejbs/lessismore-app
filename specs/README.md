@@ -36,6 +36,7 @@
 | [CampSite.md](CampSite.md) | `CS` | 박지 지도 — 지도 탭 / 박지 정보 / 규제 고지 `[기획]` |
 | [Home.md](Home.md) | `HM` | 홈 대시보드 — 다가오는 일정 / 창고 미리보기 / 추천 박지 `useless가 고른 박지`(`[기획]`, 주간 자동 교체 `[제안]` — 함수는 웹 레포) |
 | [HealthActivity.md](HealthActivity.md) | `HA` | 운동 기록 — 배낭 여행의 실측(거리·경로) 을 HealthKit·Health Connect에서 읽어 표시 `[기획]` |
+| [Onboarding.md](Onboarding.md) | `OB` | 첫 여행 만들기 가이드 — 여행 0개 사용자·비로그인 첫 실행에 1회, 날짜·여행지·장비·완료 4단계 + 로그인 이어가기 + 알림 권한 맥락 요청 `[제안]` |
 | [Localization.md](Localization.md) | `L10N` | 다국어(i18n) — ko·en·ja UI 문구, 언어 설정, 일본어 폰트 전략 `[기획]` |
 
 신규 도메인 스펙은 [Template.md](Template.md)를 복사해서 시작한다.

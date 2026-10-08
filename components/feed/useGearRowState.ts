@@ -38,11 +38,28 @@ const useGearRowState = ({ gear, actions, bag, gearAddContext }: Params) => {
   const bagCtxId =
     gearAddContext?.mode === GearAddMode.Bag ? gearAddContext.bagId : undefined;
   const isInThisBag = !!bagCtxId && gear.getData().bags.includes(bagCtxId);
+  // OB-13 담기 모드: 창고·배낭에 쓰지 않고 장비를 호출 화면(첫 여행 가이드)에 돌려준다.
+  const pick =
+    gearAddContext?.mode === GearAddMode.Pick ? gearAddContext.pick : undefined;
+  const isPickMode = !!pick;
+  const isPicked = !!pick && pick.isPicked(gear);
+
+  const pickAndClose = () => {
+    pick?.onPick(gear);
+    router.back();
+  };
 
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
   const handleCardPress = () => {
+    // 담기 모드는 셀 탭도 담기다 — 상세의 담기는 로그인이 필요해 가이드 흐름이 끊긴다(OB-13).
+    if (isPickMode) {
+      pickAndClose();
+
+      return;
+    }
+
     app.getAnalyticsManager()?.logClick('feed_card');
 
     // GE-8 배낭 컨텍스트: 상세에서도 그 배낭에 담도록 bagId를 넘긴다.
@@ -65,6 +82,13 @@ const useGearRowState = ({ gear, actions, bag, gearAddContext }: Params) => {
   const handleAddPress = async (e: GestureResponderEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (isPickMode) {
+      pickAndClose();
+
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -136,6 +160,8 @@ const useGearRowState = ({ gear, actions, bag, gearAddContext }: Params) => {
     isAdded,
     isInThisBag,
     bagCtxId,
+    isPickMode,
+    isPicked,
     loading,
     showModal,
     handleCardPress,

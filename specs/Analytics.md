@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | as-built (2026-07-29 코드 기준 — AN-3 표를 구현과 전수 대조해 동기화) |
+| 상태 | as-built (2026-07-29 코드 기준 — AN-3 표를 구현과 전수 대조해 동기화) · AN-4~AN-6 `[제안]` (2026-10-08, GA4 90일 점검 대응, 2.0.1 OTA) |
 | ID 프리픽스 | `AN` |
 | 주요 코드 | `model/analytics/`, `app/_layout.tsx`, 각 CTA 컴포넌트 |
 | 관련 스펙 | [AppLifecycle.md](AppLifecycle.md), [Bag.md](Bag.md), [BagDetail.md](BagDetail.md), [Warehouse.md](Warehouse.md), [Search.md](Search.md), [Community.md](Community.md) |
@@ -38,6 +38,7 @@
 - 라우트 변경 시마다 `logScreenView`를 1회 전송한다.
 - 화면 이름은 동적 세그먼트를 정규화한 라우트 패턴을 쓴다 (예: `/bag/abc123` → `bag/[id]`) — 문서 ID가 지표에 노출되지 않는다.
 - 같은 화면 연속 중복 전송은 하지 않는다.
+- **네이티브 자동 화면 보고와 공존한다** (2026-10-08 점검): GA4 화면 보고서의 `RNSScreen`·`RNSTabsScreenViewController`·`UIViewController`·`MainActivity`는 Firebase SDK의 자동 `screen_view`(네이티브 뷰 컨트롤러/액티비티 클래스명)다. 이 자동 보고는 네이티브 설정(iOS `Info.plist` `FirebaseAutomaticScreenReportingEnabled`, Android 매니페스트 `google_analytics_automatic_screen_reporting_enabled`, RNFirebase는 `firebase.json`의 `react-native.google_analytics_automatic_screen_reporting_enabled`)으로만 끌 수 있어 **JS(OTA)로는 못 끈다**. 그때까지 화면 지표는 수동 전송분만 보도록 GA4에서 `screen_class`/`firebase_screen`이 라우트 패턴(`bag/[id]` 등)인 행으로 필터한다. 다음 네이티브 빌드(2.0.2+)에서 자동 보고를 끈다 — 미해결 질문 참조.
 
 ### AN-3 CTA 클릭 이벤트
 
@@ -57,7 +58,7 @@
 | --- | --- | --- |
 | `click_bag_add` | 배낭 탭 `여행 추가` 버튼 | — |
 | `click_bag_create_confirm` | 생성 모달 확인 (성공 시) | — |
-| `click_bag_copy` | 복사 진입 (목록 행 아이콘 / 추가 바텀시트 / 상세 헤더) | `source`: `list` \| `add_sheet` \| `detail` |
+| `click_bag_copy` | 복사 진입 (목록 행 아이콘 / 추가 바텀시트 / 상세 헤더 / 다음 여행 알림 NT-7) | `source`: `list` \| `add_sheet` \| `detail` \| `notification` |
 | `click_bag_copy_confirm` | 복사 모달 확정 (성공 시) | `source`: 위와 동일 |
 | `click_bag_delete` | 목록 행 삭제 → 다이얼로그에서 `삭제` 확정 | — |
 | `click_bag_item` | 배낭 행 클릭 (상세 진입) | — |
@@ -65,7 +66,8 @@
 | `click_bag_share` | 상세 공유 버튼 (BD-7) | — |
 | `click_bag_info_edit` | 상세 이름·날짜 행 클릭 (수정 모달, BD-1) | — |
 | `click_bag_chart_toggle` | [폐기] 상세 무게 차트 접이식이 요약 영역 상시 표시로 대체(BD-3 재설계)되어 더 이상 발생하지 않음 | `expanded`: boolean |
-| `click_bag_edit` | 상세 `수정하기` 버튼 | — |
+| `click_bag_edit` | 상세 하단 바 `장비 추가` 버튼(옛 라벨 `수정하기`, BD-9). 장비가 1개 이상인 배낭에서만 — 빈 배낭은 `click_bag_empty_add` | — |
+| `click_bag_empty_add` | `[제안]` 빈 배낭(장비 0개) 상세 하단 바 주 액션 (BD-13). 이때 `click_bag_edit`는 보내지 않는다 — 2.0.1 OTA 이전과 비교할 때는 `click_bag_edit` + `click_bag_empty_add(source=warehouse)`를 합산 | `source`: `warehouse`(창고에서 담기 → 편집) \| `search`(창고 비어 있음 → 검색 모달) \| `template`(예약 — 기존 배낭에 템플릿 적용 흐름이 생기면) |
 | `click_bag_edit_confirm` | 편집 화면 하단 `확인` 버튼 | — |
 | `click_gear_toggle` | 편집 화면 장비 담기/빼기 토글 (BD-4) | `added`: boolean |
 | `click_bag_useless` | 상세 `사용 여부 기록하고…` 행 | — |
@@ -125,6 +127,7 @@
 | `search` (GA4 표준) | 검색 실행 (SR-1) | `search_term`: 검색어 |
 | `click_search_add` | 검색 결과에서 창고/배낭에 장비 추가 (SR-3) | `target`: `warehouse` \| `bag` |
 | `click_search_rank_item` | 인기 장비 순위 행 클릭 (SR-4) | — |
+| `click_search_empty_custom_add` | `[제안]` 검색 결과 없음 빈 상태의 `직접 추가` 탭 (SR-11). 비로그인으로 로그인 모달이 뜬 탭도 포함 | `source`: `feed` \| `warehouse` \| `bag` |
 | `click_browse_category` | [폐기] 탐색 홈(SR-6)이 피드로 대체되며 화면이 제거돼 더 이상 발생하지 않음 | `category`: 카테고리 값 |
 | `click_browse_brand_all` | [폐기] 위와 동일 — 브랜드 디렉토리로 가는 진입점이 코드에 없다(라우트만 잔존) | — |
 | `click_browse_brand_preview` | [폐기] 위와 동일 | — |
@@ -204,8 +207,70 @@
 
 - 커뮤니티 이벤트에는 게시글 ID, 작성자 ID·닉네임, 제목·본문, 투표 문구, 신고 상세를 보내지 않는다.
 
-- 이벤트 이름은 snake_case, `click_` 접두(표준 `search` 제외), 40자 이내 (GA4 제한).
+**온보딩 — 첫 여행 만들기 가이드** ([Onboarding.md](Onboarding.md) OB-9) `[제안]`
+
+| 이벤트 | 트리거 | 파라미터 |
+| --- | --- | --- |
+| `click_onboarding_trip_step` | 가이드 각 단계의 주 액션·보조 버튼. 1단계 `아직 미정이에요`는 `skip`, 2단계 미선택 상태의 `여행지 고르기`(선택기만 엶)는 보내지 않음, 4단계 주 액션은 `next`·`알림 없이 만들기`는 `skip` | `step`: `date` \| `destination` \| `gear` \| `done` \| `login`, `action`: `next` \| `skip`. `login`(2026-10-08, OB-11): 비로그인 완료 단계 `로그인하고 여행 만들기`=`next`, `나중에 할게요`=`skip`(이때 `done`은 보내지 않음) |
+| `click_onboarding_trip_complete` | 가이드로 여행 생성 성공(`BagStore.add` 성공 기준) | `has_dates`: boolean(미정이면 false), `has_destination`: boolean, `gear_count`: 정수, `notification`: `granted` \| `denied` \| `skipped` \| `already` \| `unavailable` |
+| `click_home_first_trip` | 비로그인 홈 히어로 `첫 여행 만들기`(HM-8, 2026-10-08) — 가이드를 로그인 전에 엶 | — |
+| `welcome_view` | 첫 실행 환영 화면이 뜸(OB-14, 2026-10-08) — 화면 마운트 때 1회. 라우트 `welcome` `screen_view`와 별개의 퍼널용 명시 이벤트 | `audience`: `guest`(비로그인 첫 실행) \| `member`(여행 0개 로그인 사용자) |
+| `click_welcome_start` | 환영 화면 `다음 백패킹 준비하기` → 가이드로 바꿈(OB-15) | — |
+| `click_welcome_browse` | 환영 화면 `먼저 둘러볼게요` 또는 안드로이드 하드웨어 뒤로 → 홈(OB-15) | — |
+| `click_welcome_login` | 환영 화면 `이미 계정이 있어요 · 로그인` → 로그인 모달(비로그인만, OB-15). 결과는 모달의 기존 `click_login` | — |
+| `click_onboarding_trip_login` | 가이드 완료 단계에서 연 로그인 모달의 결과(OB-12). 재실행·약관 뒤 이어 만들기는 다시 보내지 않음 | `result`: `success` \| `cancel` |
+| `click_onboarding_trip_dismiss` | 가이드 닫기 확정(× 또는 1단계 하드웨어 뒤로) | `step`: 닫은 단계(`date` \| `destination` \| `gear` \| `done`) |
+| `click_onboarding_trip_gear_pick` | 가이드 3단계에서 장비를 담음(선택 해제는 미전송). 검색·직접 추가는 돌아와 자동 선택될 때 장비마다 1회 | `source`: `popular` \| `warehouse` \| `search` \| `custom`, `category`: GearFilter 그룹 키 |
+
+- 가이드로 만든 여행은 `click_bag_create_confirm`을 보내지 않는다 — 생성 경로가 다르므로 `click_onboarding_trip_complete`로 구분한다. 전체 생성 수는 두 이벤트를 합산한다.
+
+**알림** ([Notification.md](Notification.md)) `[제안]`
+
+| 이벤트 | 트리거 | 파라미터 |
+| --- | --- | --- |
+| `notification_open` | 로컬·원격 알림을 탭해 앱 진입 (NT-10). 클릭이 아니라 `logEvent`로 보내므로 위 `logClick` 대조 목록에는 나오지 않는다 | `type`: `packing` \| `useless` \| `next_trip` \| `weekend_camp` \| `notice` \| `unknown` |
+
+- 이벤트 이름은 snake_case, `click_` 접두(표준 `search`·알림 `notification_open` 제외), 40자 이내 (GA4 제한).
+- **`click_` 접두는 `logClick`이 붙인다** — 호출부는 `logClick('community_post')`처럼 접두 없이 넘긴다. 위 표의 이벤트 이름은 전송되는 최종 이름이다 (AN-5). `logEvent`(예: `notification_open`)에는 접두를 붙이지 않는다.
 - 파라미터 값은 식별자가 아닌 열거형 문자열/불리언만 쓴다. `search_term`은 사용자 입력이지만 검색어 자체가 지표 대상이므로 허용 (개인정보 입력란 아님).
+
+### AN-4 개발·테스트 빌드 수집 제외 `[제안]`
+
+> 배경 (2026-10-08 GA4 90일 점검): 화면 `DevLauncherViewController`가 사용자 9명에 조회 5,408회로 잡히고, 평균 참여 시간이 1시간 57분으로 튀었다. 개발 클라이언트(expo-dev-client)를 띄워 둔 개발자 기기의 트래픽이 프로덕션 지표를 오염시킨 것이다. `is_internal`(AN-1)은 로그인한 내부 계정만 거르므로 비로그인·다른 계정으로 띄운 개발 빌드는 못 거른다.
+
+**수용 기준**
+
+- 앱 시작 시(`App.initialize` → `AnalyticsManager.initialize`) 실행 환경을 판정해, 아래 중 하나라도 해당하면 **수집 제외**로 본다.
+  - `__DEV__` (Metro 개발 번들)
+  - 개발 클라이언트 바이너리 — expo-dev-launcher의 디버그 전용 네이티브 모듈 `EXDevLauncher`가 있으면 개발 빌드다 (릴리스 바이너리엔 링크되지 않는다). `__DEV__`가 꺼진 번들을 개발 클라이언트로 띄운 경우까지 잡는다.
+  - Expo Go (`Constants.executionEnvironment === 'storeClient'`)
+  - Hot Updater 채널이 `production`이 아님 (예: `preview` 채널로 재서명한 검증용 빌드). 채널을 읽지 못하면(null) 제외하지 않는다 — 프로덕션 오판으로 수집이 끊기는 쪽이 더 나쁘다.
+- 수집 제외면 네이티브 SDK에 `setAnalyticsCollectionEnabled(false)`를 보내고 이후 JS의 이벤트·화면·사용자 속성 전송을 모두 no-op으로 한다. 프로덕션이면 `setAnalyticsCollectionEnabled(true)`를 보낸다 — 기본값과 같아 **프로덕션 동작은 그대로**이고, 같은 기기에서 개발 빌드가 남긴 영구 비활성 설정을 되돌린다(이 설정은 SDK가 앱 재실행 너머로 보존한다).
+- 한계: 이 판정은 JS가 뜬 뒤에 적용된다. 개발 빌드 **설치 후 첫 실행**에 JS 로드 전 네이티브가 자동 수집한 이벤트(`DevLauncherViewController` 화면 등)는 막지 못한다. 두 번째 실행부터는 보존된 비활성 설정으로 네이티브 자동 수집도 멈춘다.
+- 개발 중 GA4 DebugView로 이벤트를 검증해야 할 때는 `.env`에 `EXPO_PUBLIC_ANALYTICS_DEV_COLLECTION=1`을 두고 Metro를 재시작하면 제외를 건너뛴다 (프로덕션 번들에 이 값을 넣지 않는다).
+- 웹은 기존대로 전부 no-op이다.
+
+### AN-5 `click_` 접두 중복 방지 `[제안]`
+
+> 배경: GA4에 `click_click_community_post`가 잡혔다. 커뮤니티·내 정보 호출부 13곳이 `logClick('click_…')`처럼 접두를 붙여 넘겨 `logClick`이 한 번 더 붙였다.
+
+**수용 기준**
+
+- 호출부는 접두 없이 넘긴다 (`logClick('community_post')`). 기존 13곳을 고친다 — 전송 이름은 AN-3 표 그대로(`click_community_post` 등)가 된다.
+- `logClick`은 넘어온 이름이 이미 `click_`로 시작하면 한 번 떼고 보낸다(가드). `__DEV__`에서는 `console.warn`으로 호출부를 고치라고 알린다.
+- 기존에 `click_click_*`로 쌓인 데이터는 되돌리지 않는다 — GA4에서 두 이름을 합쳐 본다.
+
+### AN-6 앱·OTA 컨텍스트 사용자 속성 `[제안]`
+
+**수용 기준**
+
+- 앱 시작 시(수집 제외가 아닐 때) 사용자 속성 두 개를 설정한다. 값은 정보 탭 버전 푸터(AU-4)와 같은 출처(`getAppVersionInfo`)다.
+  - `app_channel` — Hot Updater 채널 (`production` 등). 읽지 못하면 `unknown`.
+  - `ota_bundle` — 현재 실행 중인 Hot Updater 번들 ID. 내장 번들(OTA 미적용)이면 `embedded`. GA4 사용자 속성 값 한도(36자)에 UUID(36자)가 그대로 들어가므로 자르지 않는다 — 자르면 같은 분에 연달아 배포한 iOS·Android 번들(UUIDv7 앞자리 = 시각)이 겹친다.
+- 개인 식별 정보가 아니다 (기기·사용자 단위가 아닌 배포 단위 값).
+- GA4 콘솔에서 두 속성을 사용자 범위 맞춤 측정기준으로 등록해야 보고서에 보인다 (운영 작업).
+
+> **운영 메모**: GA4 → BigQuery 내보내기 연결은 별도 운영 작업으로 진행 중이다 (코드 변경 없음). 연결되면 위 사용자 속성·`screen_class` 필터를 SQL로 다룬다.
 
 ## 4. 데이터
 
@@ -223,7 +288,7 @@
 
 - **비로그인**: 로그인 여부와 무관하게 수집한다 (개인 식별 정보 없음).
 - **전송 실패/오프라인**: SDK 큐잉에 맡기고 앱은 무시한다.
-- **개발 빌드**: `__DEV__`에서도 전송한다 (GA4 DebugView로 검증). 분리가 필요해지면 파라미터가 아닌 GA 데이터 스트림 차원에서 다룬다 — 미해결 질문 참조.
+- **개발 빌드**: 수집하지 않는다 (AN-4, 2026-10-08 변경 — 이전엔 `__DEV__`에서도 전송했다). DebugView 검증이 필요하면 `EXPO_PUBLIC_ANALYTICS_DEV_COLLECTION=1`로 켠다.
 
 ## 7. 수동 검증 체크리스트
 
@@ -233,8 +298,18 @@
 - [ ] 웹 빌드(`npm run web:export`)가 RNFirebase 때문에 깨지지 않고, 웹 런타임에서 클릭해도 에러 없음
 - [ ] 이벤트 파라미터에 문서 ID·이메일 등 식별 정보가 없음
 - [ ] `[제안]` 커뮤니티 작성·등록·상세·필터·좋아요·댓글·투표·신고 이벤트가 표의 이름·파라미터와 일치
+- [ ] (AN-4) 개발 클라이언트(`npm run ios`)로 띄우면 DebugView에 이벤트가 오지 않음 / `EXPO_PUBLIC_ANALYTICS_DEV_COLLECTION=1`로 재시작하면 옴
+- [ ] (AN-4) 프로덕션 채널 OTA 적용 후 실시간 보고서에 이벤트가 계속 들어옴 (수집이 끊기지 않음)
+- [ ] (AN-4) 배포 1~2주 뒤 GA4에서 `DevLauncherViewController` 화면 조회가 사라지고 평균 참여 시간이 정상 범위로 돌아옴
+- [ ] (AN-5) 커뮤니티 카드 탭 → `click_community_post` 1회 (`click_click_*` 아님). 아래 명령의 결과가 비어 있음
+  ```bash
+  grep -rnE "logClick\(\s*'click_" --include="*.ts" --include="*.tsx" app components model hooks
+  ```
+- [ ] (AN-6) DebugView 사용자 속성에 `app_channel=production`, `ota_bundle=<번들 UUID 또는 embedded>`가 보임
+- [ ] (AN-2) GA4 화면 보고서에서 `screen_class`가 라우트 패턴인 행만 필터해 보면 네이티브 클래스명 행이 빠짐
 
 ## 8. 미해결 질문
 
-- 개발/프로덕션 트래픽 분리(디버그 트래픽 필터) 필요 여부 — 초기에는 미분리.
+- ~~개발/프로덕션 트래픽 분리(디버그 트래픽 필터) 필요 여부~~ — AN-4로 해결 (2026-10-08).
+- 네이티브 자동 화면 보고 끄기 (AN-2) — `firebase.json`의 `react-native.google_analytics_automatic_screen_reporting_enabled: false`(네이티브 설정, OTA 불가)를 다음 바이너리(2.0.2+)에 넣을지. 같이 `analytics_auto_collection_enabled`는 건드리지 않는다(프로덕션 수집 유지). 개발 빌드 첫 실행 누수(AN-4 한계)도 네이티브에서 디버그 구성만 기본 비활성으로 두면 막을 수 있다.
 - 탭 전환(창고/탐색/배낭/정보)을 screen_view 외 별도 클릭 이벤트로도 볼지 — 초기에는 screen_view로 충분하다고 판단.

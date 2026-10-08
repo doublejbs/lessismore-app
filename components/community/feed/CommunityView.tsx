@@ -36,9 +36,15 @@ import CommunityFeedSkeletonView from './CommunityFeedSkeletonView';
 import app from '@/model/app/App';
 import AdPlacement from '@/model/ads/AdPlacement';
 import AdListEntryKind from '@/model/ads/AdListEntryKind';
-import { AdListEntry } from '@/model/ads/AdListEntry';
 import CommunityAdCardView from '@/components/ads/CommunityAdCardView';
 import useAdSlotListState from '@/components/ads/useAdSlotListState';
+import CommunityConsumableCardView from '@/components/consumable/CommunityConsumableCardView';
+import ConsumableCommunityRowKind from '@/model/consumable/ConsumableCommunityRowKind';
+import ConsumableSurface from '@/model/consumable/ConsumableSurface';
+import {
+  buildCommunityFeedRows,
+  CommunityFeedRow,
+} from '@/model/community-feed/CommunityFeedRows';
 
 interface Props {
   feed: CommunityFeed;
@@ -70,6 +76,14 @@ const CommunityView: FC<Props> = ({ feed }) => {
   // 같은 항목·같은 광고면 같은 배열이다(`AdSlotList.getEntries` 캐시) — FlatList `data`가 렌더마다
   // 바뀌지 않는다. 광고가 오면 observer가 다시 그려 새 배열을 받는다.
   const entries = slotList.getEntries(posts);
+  // 게시글 10개마다 소모품 카드 한 장(CP-6 / CM-15). 필터·정렬을 바꾸면 posts가 새로 시작돼 처음부터 센다.
+  // 게시글 0개(빈 상태·조회 오류)면 카드가 끼지 않아 ListEmptyComponent가 그대로 뜬다.
+  // 광고 자리와 소모품 자리는 둘 다 게시글 순번으로만 정해진다(서로의 칸을 세지 않는다).
+  const rows = buildCommunityFeedRows(
+    posts,
+    entries,
+    app.getConsumableStore()?.getForSurface(ConsumableSurface.Community) ?? []
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -78,6 +92,11 @@ const CommunityView: FC<Props> = ({ feed }) => {
       }
     }, [feed])
   );
+
+  // 소모품은 세션당 1회 조회다(CP-1). 피드 로딩과 독립이라 목록을 막지 않는다.
+  useEffect(() => {
+    app.getConsumableStore()?.load();
+  }, []);
 
   useEffect(() => {
     if (!error) {
@@ -110,7 +129,7 @@ const CommunityView: FC<Props> = ({ feed }) => {
       return;
     }
 
-    app.getAnalyticsManager()?.logClick('click_community_write');
+    app.getAnalyticsManager()?.logClick('community_write');
     router.push('/community/write');
   };
 
@@ -134,7 +153,7 @@ const CommunityView: FC<Props> = ({ feed }) => {
   );
 
   const handleMyPosts = useCallback(() => {
-    app.getAnalyticsManager()?.logClick('click_community_my_posts');
+    app.getAnalyticsManager()?.logClick('community_my_posts');
     router.push('/community/mine');
   }, [router]);
 
@@ -266,7 +285,11 @@ const CommunityView: FC<Props> = ({ feed }) => {
 
   const renderItem = ({
     item: entry,
-  }: ListRenderItemInfo<AdListEntry<CommunityPost>>) => {
+  }: ListRenderItemInfo<CommunityFeedRow<CommunityPost>>) => {
+    if (entry.kind === ConsumableCommunityRowKind.Consumable) {
+      return <CommunityConsumableCardView products={entry.products} />;
+    }
+
     if (entry.kind === AdListEntryKind.Ad) {
       const nativeAd = slotList.getAd(entry.slotIndex);
 
@@ -276,7 +299,11 @@ const CommunityView: FC<Props> = ({ feed }) => {
     return <CommunityFeedCardView post={entry.item} />;
   };
 
-  const keyExtractor = (entry: AdListEntry<CommunityPost>) => {
+  const keyExtractor = (entry: CommunityFeedRow<CommunityPost>) => {
+    if (entry.kind === ConsumableCommunityRowKind.Consumable) {
+      return `consumable-slot-${entry.slot}`;
+    }
+
     if (entry.kind === AdListEntryKind.Ad) {
       return `ad-${entry.slotIndex}`;
     }
@@ -325,7 +352,7 @@ const CommunityView: FC<Props> = ({ feed }) => {
         </ScrollView>
       ) : (
         <FlatList
-          data={entries}
+          data={rows}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           viewabilityConfig={viewabilityConfig}

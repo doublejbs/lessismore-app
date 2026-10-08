@@ -19,6 +19,7 @@ import HomeUpcomingTripView from '@/components/home/HomeUpcomingTripView';
 import HomeWarehousePreviewView from '@/components/home/HomeWarehousePreviewView';
 import HomeSkeletonView from '@/components/home/HomeSkeletonView';
 import HomeHeroBackgroundView from '@/components/home/HomeHeroBackgroundView';
+import HomeMountainBandView from '@/components/home/HomeMountainBandView';
 import HomeRecommendedSpotsView from '@/components/home/HomeRecommendedSpotsView';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import Home from '@/model/home/Home';
@@ -27,6 +28,9 @@ import { selectTripPlan } from '@/model/home/HomeTripPlan';
 import AdPlacement from '@/model/ads/AdPlacement';
 import SingleAdSlotView from '@/components/ads/SingleAdSlotView';
 import useSingleAdSlotState from '@/components/ads/useSingleAdSlotState';
+import ConsumableCarouselSectionView from '@/components/consumable/ConsumableCarouselSectionView';
+import ConsumableAnalyticsSource from '@/model/consumable/ConsumableAnalyticsSource';
+import ConsumableSurface from '@/model/consumable/ConsumableSurface';
 
 interface Props {
   home: Home;
@@ -35,7 +39,11 @@ interface Props {
 // iOS는 콘텐츠가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
 const IOS_EDGES = ['top', 'left', 'right'] as const;
 
-const LOGIN_CTA_HEIGHT = 48;
+const FIRST_TRIP_CTA_HEIGHT = 52;
+// 비로그인 히어로 아래 산 일러스트 띠 높이(HM-8 2026-10-08 — 글자 위가 아니라 버튼 묶음 아래에 둔다).
+const SIGNED_OUT_BAND_HEIGHT = 160;
+// 산 띠와 첫 섹션 사이(HM-8 비로그인 — 그림에 섹션 제목이 붙어 보이지 않게).
+const HERO_SECTION_GAP = 24;
 
 // 홈 섹션 사이 간격 — `HomeRecommendedSpotsView`·`HomeWarehousePreviewView`의 아래 여백과 같은 값.
 const HOME_SECTION_GAP = 26;
@@ -50,6 +58,7 @@ const HomeView: FC<Props> = ({ home }) => {
    * 포커스마다 새로 잡는다(HM-6). 상태로 들고 있어야 다시 렌더된다.
    */
   const [today, setToday] = useState(() => dayjs());
+  const l10n = app.getL10n();
 
   // AD-1: 홈 맨 아래 한 장(추천 박지 다음). 자리는 화면 맨 위에서 한 번 만든다 — 로그인·비로그인 분기나
   // 스켈레톤을 오가도 광고를 다시 요청하지 않는다. AD-3: 앱을 켜면 바로 나오는 화면이라 동의 흐름을
@@ -70,14 +79,44 @@ const HomeView: FC<Props> = ({ home }) => {
     app.getLogInAlertManager()?.show();
   };
 
+  // 비로그인 주 액션(HM-8, 2026-10-08) — 첫 여행 가이드를 로그인 전에 연다(Onboarding OB-11).
+  const handleStartFirstTrip = () => {
+    app.getAnalyticsManager()?.logClick('home_first_trip');
+
+    if (!app.getOnboardingTripManager()?.presentOnDemand()) {
+      return;
+    }
+
+    // 가이드 끝(로그인 뒤 이어 만들기)이 첫 알림 권한 질문이다 — 시작 시 요청은 건너뛴다(OB-8).
+    app.getNotificationManager()?.skipLaunchPermission();
+    router.push('/onboarding-trip');
+  };
+
   const handleOpenProfile = () => {
     router.push('/info');
   };
 
+  // 추천 박지 아래가 마지막 콘텐츠 섹션(챙겨갈 소모품, CP-5 / HM-16)이다 — 비로그인 홈에도 같다.
+  // 로딩 중 자리를 잡지 않는다: 0개(조회 전·실패 포함)면 섹션이 아예 그려지지 않는다.
   const renderRecommendations = () => {
     return (
-      <HomeRecommendedSpotsView recommendations={home.getRecommendedSpots()} />
+      <>
+        <HomeRecommendedSpotsView recommendations={home.getRecommendedSpots()} />
+        <ConsumableCarouselSectionView
+          title={app.getL10n().t('consumable.homeTitle')}
+          products={
+            app.getConsumableStore()?.getForSurface(ConsumableSurface.Home) ??
+            []
+          }
+          source={ConsumableAnalyticsSource.Home}
+        />
+      </>
     );
+  };
+
+  // 마지막 섹션(소모품 고지·광고)이 탭바에 가리지 않게 로그인 여부와 무관하게 둔다.
+  const renderBottomSpacer = () => {
+    return <View style={{ height: bottomSpacerHeight }} />;
   };
 
   // 좌우 여백은 `Layout`이 이미 홈 섹션과 같은 `AcgLayout.screenPadding`으로 두른다.
@@ -91,6 +130,11 @@ const HomeView: FC<Props> = ({ home }) => {
       home.load();
     }, [home])
   );
+
+  // 소모품은 세션당 1회 조회다(CP-1). 홈 로딩과 독립이라 홈 렌더를 막지 않는다.
+  useEffect(() => {
+    app.getConsumableStore()?.load();
+  }, []);
 
   // 로그인 상태 reaction을 들고 있으므로 언마운트 시 정리한다.
   useEffect(() => {
@@ -111,23 +155,49 @@ const HomeView: FC<Props> = ({ home }) => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* 문구 없이 버튼만 둔다(HM-8). 추천 콘텐츠는 주 액션 아래에 붙는다(HM-14). */}
-          <View style={styles.signedOut}>
-            <TouchableOpacity
-              style={styles.loginCta}
-              onPress={handleLogin}
-              activeOpacity={0.8}
-              accessibilityRole='button'
-              accessibilityLabel={app.getL10n().t('home.login')}
+          {/* 히어로(2026-10-08, HM-8): 한 줄 소개 + 부제 + 라임 `첫 여행 만들기` + 로그인 링크를 모두 흰 지면에
+              두고, 산 일러스트는 그 아래 띠로만 둔다 — 라임 산 위의 글자는 읽기 어려웠다(디자인 리뷰). */}
+          <View style={styles.signedOutHero}>
+            <PretendardText
+              weight='semibold'
+              style={styles.heroTitle}
+              accessibilityRole='header'
             >
-              <PretendardText weight='semibold' style={styles.loginCtaText}>
-                {app.getL10n().t('home.login')}
+              {l10n.t('home.signedOut.title')}
+            </PretendardText>
+            <PretendardText style={styles.heroSubtitle}>
+              {l10n.t('home.signedOut.subtitle')}
+            </PretendardText>
+            <TouchableOpacity
+              style={styles.firstTripCta}
+              onPress={handleStartFirstTrip}
+              activeOpacity={0.85}
+              accessibilityRole='button'
+              accessibilityLabel={l10n.t('home.signedOut.firstTrip')}
+            >
+              <PretendardText weight='semibold' style={styles.firstTripCtaText}>
+                {l10n.t('home.signedOut.firstTrip')}
+              </PretendardText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.loginLink}
+              onPress={handleLogin}
+              activeOpacity={0.7}
+              accessibilityRole='link'
+              accessibilityLabel={l10n.t('home.signedOut.loginLink')}
+            >
+              <PretendardText weight='medium' style={styles.loginLinkText}>
+                {l10n.t('home.signedOut.loginLink')}
               </PretendardText>
             </TouchableOpacity>
           </View>
+          <View style={styles.signedOutBand}>
+            {/* 홈 스크롤은 좌우 패딩 안쪽이라 띠도 콘텐츠 폭이다(밖으로 넓히면 잘린다). */}
+            <HomeMountainBandView height={SIGNED_OUT_BAND_HEIGHT} />
+          </View>
           {renderRecommendations()}
-          {/* 비로그인 화면은 하단 여백 없이 주 액션을 가운데 두므로, 광고가 있을 때만 탭바 몫을 비운다. */}
-          {renderAd([styles.adSlot, { marginBottom: bottomSpacerHeight }])}
+          {renderAd(styles.adSlot)}
+          {renderBottomSpacer()}
         </ScrollView>
       );
     }
@@ -142,7 +212,7 @@ const HomeView: FC<Props> = ({ home }) => {
         <HomeWarehousePreviewView gears={home.getGears()} />
         {renderRecommendations()}
         {renderAd(styles.adSlot)}
-        <View style={{ height: bottomSpacerHeight }} />
+        {renderBottomSpacer()}
       </ScrollView>
     );
   };
@@ -151,7 +221,8 @@ const HomeView: FC<Props> = ({ home }) => {
     <Layout
       edges={Platform.OS === 'ios' ? IOS_EDGES : undefined}
       paddingHorizontal={AcgLayout.screenPadding}
-      background={<HomeHeroBackgroundView />}
+      // 비로그인은 배경 히어로를 깔지 않는다 — 글자가 흰 지면에 놓이고 산 그림은 흐름 안의 띠다(HM-8).
+      background={isLoggedIn ? <HomeHeroBackgroundView /> : undefined}
     >
       {/* 한글이라 콘덴스드(Archivo Narrow) 대신 Pretendard를 쓴다 — 그 서체에는
           한글 글리프가 없어 글자가 깨진다. */}
@@ -210,21 +281,47 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
   },
-  signedOut: {
-    flex: 1,
-    alignItems: 'stretch',
-    justifyContent: 'center',
+  signedOutHero: {
+    paddingTop: 8,
   },
-  loginCta: {
-    minHeight: LOGIN_CTA_HEIGHT,
-    borderRadius: LOGIN_CTA_HEIGHT / 2,
+  signedOutBand: {
+    marginTop: 4,
+    marginBottom: HERO_SECTION_GAP,
+  },
+  heroTitle: {
+    ...AcgType.screenTitle,
+    color: Acg.ink,
+  },
+  // 흰 지면 위라 기본 회색(AA 4.5)이면 충분하다 — 번짐(textShadow)도 필요 없다.
+  heroSubtitle: {
+    ...AcgType.sectionSubtitle,
+    color: Acg.textMuted,
+    marginTop: 6,
+  },
+  // 이 화면의 라임은 이 버튼 하나다(HM-8). 알약 = 높이의 절반, Dynamic Type 대응 최소 높이.
+  firstTripCta: {
+    minHeight: FIRST_TRIP_CTA_HEIGHT,
+    borderRadius: FIRST_TRIP_CTA_HEIGHT / 2,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    marginTop: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Acg.ink,
+    backgroundColor: Acg.lime,
   },
-  loginCtaText: {
+  firstTripCtaText: {
     ...AcgType.control,
-    color: Acg.paper,
+    color: Acg.ink,
+  },
+  loginLink: {
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  loginLinkText: {
+    ...AcgType.control,
+    color: Acg.textMuted,
   },
   // 홈 섹션(추천 박지·창고 미리보기)과 같은 아래 간격.
   adSlot: {

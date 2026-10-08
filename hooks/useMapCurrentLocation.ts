@@ -23,7 +23,8 @@ interface MapCurrentLocation {
   // 내 위치 점 좌표(구독 값). 권한이 없거나 아직 한 번도 전달받지 못했으면 `null`.
   currentLocation: MapCoordinate | null;
   // `내 위치` 버튼. 권한이 없으면 여기서 요청하고, 거부된 상태면 설정으로 안내한다.
-  moveToCurrentLocation: () => Promise<void>;
+  // 카메라를 옮겼으면 `true`다(방향 모드가 다음 단계로 넘어갈지 정한다 — BD-11).
+  moveToCurrentLocation: () => Promise<boolean>;
 }
 
 const CAN_OPEN_SETTINGS = Platform.OS !== 'web';
@@ -195,14 +196,14 @@ export const useMapCurrentLocation = ({
     return requested.status === 'granted';
   }, [showSettingsGuide]);
 
-  const moveToCurrentLocation = useCallback(async () => {
+  const moveToCurrentLocation = useCallback(async (): Promise<boolean> => {
     try {
       if (!(await ensurePermission())) {
-        return;
+        return false;
       }
 
       if (!mountedRef.current) {
-        return;
+        return false;
       }
 
       setGranted(true);
@@ -213,7 +214,7 @@ export const useMapCurrentLocation = ({
       if (watched) {
         moveCamera(watched);
 
-        return;
+        return true;
       }
 
       // ② 캐시 — 새 fix를 기다리지 않고 즉시 반환된다.
@@ -222,7 +223,7 @@ export const useMapCurrentLocation = ({
       const position = lastKnown ?? (await getCurrentPositionWithinTimeout());
 
       if (!mountedRef.current) {
-        return;
+        return false;
       }
 
       if (!position) {
@@ -230,7 +231,7 @@ export const useMapCurrentLocation = ({
           .getToastManager()
           ?.show({ message: app.getL10n().t('app.location.failed') });
 
-        return;
+        return false;
       }
 
       const coordinate = {
@@ -240,11 +241,15 @@ export const useMapCurrentLocation = ({
 
       updateCurrentLocation(coordinate);
       moveCamera(coordinate);
+
+      return true;
     } catch (error) {
       console.warn(`[${logTag}] 현재 위치 이동 실패`, error); // l10n-ignore: 개발자 로그
       app
         .getToastManager()
         ?.show({ message: app.getL10n().t('app.location.failed') });
+
+      return false;
     }
   }, [ensurePermission, logTag, moveCamera, updateCurrentLocation]);
 

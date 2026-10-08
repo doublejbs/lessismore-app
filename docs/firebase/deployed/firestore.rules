@@ -1079,8 +1079,17 @@ service cloud.firestore {
     function isLockedCollection() {
       return request.path[3] in [
         'community-posts', 'community-post-likes', 'community-poll-votes',
-        'community-reports', 'groups', 'groupInvites', 'users', 'bag'
+        'community-reports', 'groups', 'groupInvites', 'users', 'bag',
+        'consumable-product'
       ];
+    }
+
+    // 소모품 추천(DM-32, Consumables CP-1) — 읽기는 공개(비로그인 홈·커뮤니티 노출),
+    // 쓰기는 클라이언트 전면 금지. 운영 스크립트는 프로젝트 소유자 OAuth로 REST에 쓰므로
+    // 규칙을 거치지 않는다. 열어 두면 누구나 coupangUrl을 자기 파트너스 링크로 바꿀 수 있다.
+    match /consumable-product/{productId} {
+      allow read: if true;
+      allow write: if false;
     }
 
     // users 문서 자체는 기존대로 열어 둔다.

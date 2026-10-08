@@ -366,6 +366,12 @@ class Feed implements GearRowActions {
     await this.setFilters(category, this.filterBrands, this.sort);
   }
 
+  // 첫 로드 전 1차 카테고리 초기값만 정한다(재조회 없음) — 검색 모달 `category` 파라미터(OB-6).
+  // initialize()의 첫 reload가 이 값으로 조회한다.
+  public presetCategory(category: string) {
+    this.setFilterValues(category, this.filterBrands, this.sort);
+  }
+
   // FD-3 2차(세분) 카테고리 선택 — 같은 키 재선택이면 그룹 전체(null)로 토글. 재조회로 facet 반영.
   public async selectFineCategory(key: string | null) {
     const next = key !== null && key === this.filterFineCategory ? null : key;

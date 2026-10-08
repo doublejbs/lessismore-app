@@ -181,12 +181,17 @@
     "title": "通知設定",
     "packing": "旅行のパッキング通知",
     "useless": "ギアの使用記録通知",
+    "reengage": "旅行のおすすめ通知",
     "notice": "お知らせ通知",
     "reminder": {
       "packingTitle": "{{name}}への旅行は明日です！",
       "packingBody": "パッキングを確認しましょう",
       "uselessTitle": "{{name}}への旅行はいかがでしたか？",
-      "uselessBody": "使用したギアを確認しましょう。"
+      "uselessBody": "使用したギアを確認しましょう。",
+      "nextTripTitle": "次のバックパッキングを計画しませんか？",
+      "nextTripBody": "前回の旅行のギアそのままで新しい旅行を作れます",
+      "weekendCampTitle": "今週末はどこへ行きますか？",
+      "weekendCampBody": "近くのキャンプ場をマップで探してみましょう"
     }
   },
   "bag": {
@@ -329,7 +334,12 @@
     "todayDeparture": "今日出発",
     "dDay": "D-{{count}}",
     "ongoing": "旅行中",
-    "pastTrip": "過去の旅行"
+    "pastTrip": "過去の旅行",
+    "emptyTitle": "ギアを入れて重さを確認しましょう",
+    "emptyBodyWarehouse": "倉庫のギアを選んで入れると、総重量とカテゴリ別の割合がすぐに分かります。",
+    "emptyBodySearch": "倉庫はまだ空です。ギアを検索して、この旅行に直接入れましょう。",
+    "emptyAddFromWarehouse": "倉庫から入れる",
+    "emptyAddFromSearch": "ギアを探して入れる"
   },
   "bagTemplate": {
     "editGear": "ギアを編集",
@@ -516,7 +526,6 @@
     "declutterWithoutWeight": "最近3回の旅行で未使用",
     "blogReviews": "ブログ・YouTubeのレビュー",
     "officialLinks": "公式リンク",
-    "coupangDisclaimer": "Coupangパートナーズ活動の一環として、所定の手数料を受け取ります。",
     "moreReviews": "もっとレビューを見る",
     "firstReview": "最初のレビューを書く",
     "reviewCount": "({{count}}件のレビュー)",
@@ -650,6 +659,12 @@
       "close": "閉じる"
     },
     "resultEmpty": "検索結果がありません",
+    "emptyCustomAdd": {
+      "title": "「{{query}}」の検索結果がありません",
+      "subtitle": "探している装備がなければ、直接追加してみましょう",
+      "button": "直接追加",
+      "subtitleNoAdd": "別のキーワードで探してみてください"
+    },
     "rank": {
       "title": "人気ギアランキング",
       "empty": "登録されたギアがありません",
@@ -1009,7 +1024,9 @@
     "location": {
       "failed": "現在地を確認できませんでした。しばらくしてからもう一度お試しください。",
       "permissionDenied": "位置情報へのアクセスがオフになっています。設定で許可してください。",
-      "openSettings": "設定を開く"
+      "openSettings": "設定を開く",
+      "showHeading": "向きを表示",
+      "hideHeading": "向きの表示をオフ"
     }
   },
   "home": {
@@ -1035,7 +1052,13 @@
     "recommendedTitle": "uselessが選んだキャンプ場",
     "viewOnMap": "{{name}}、{{type}}、{{region}}、地図で見る",
     "login": "ログイン",
-    "profileButton": "マイページ"
+    "profileButton": "マイページ",
+    "signedOut": {
+      "title": "必要な道具だけ、ザックは軽く",
+      "subtitle": "道具の重さを整理して、次のバックパッキングに備えましょう",
+      "firstTrip": "最初の旅行を作る",
+      "loginLink": "アカウントをお持ちの方 · ログイン"
+    }
   },
   "health": {
     "title": "運動記録",
@@ -1502,7 +1525,24 @@
     "reverse": "向きを反転",
     "restoreDirection": "元の向きで表示",
     "reversed": "逆方向",
-    "myLocation": "現在地"
+    "myLocation": "現在地",
+    "export": "GPXを書き出す",
+    "exporting": "GPXを取得中…",
+    "exportFailed": "GPXを取得できませんでした",
+    "endpoint": {
+      "start": "出発",
+      "end": "到着",
+      "addressLoading": "住所を確認中…",
+      "elevation": "標高 {{value}}m",
+      "separator": " · ",
+      "directions": "経路",
+      "copyCoordinate": "座標をコピー",
+      "copied": "座標をコピーしました",
+      "close": "閉じる",
+      "destinationName": "{{name}} {{endpoint}}"
+    },
+    "pointOnRoute": "コース{{distance}}地点",
+    "pointElevation": "標高 {{value}}m"
   },
   "ad": {
     "label": "広告",
@@ -1540,5 +1580,108 @@
     "nudgeBodyNoPrice": "広告が気になりますか？購読するとアプリのすべての広告をなくせます。",
     "nudgeExplore": "サブスクリプションを見る",
     "nudgeNotNow": "今はしない"
+  },
+  "commerce": {
+    "coupangDisclaimer": "Coupangパートナーズ活動の一環として、所定の手数料を受け取ります。",
+    "naverConnectDisclaimer": "NAVERショッピングコネクトの活動の一環として、販売時に手数料を受け取ります。"
+  },
+  "consumable": {
+    "source": {
+      "coupang": "Coupang",
+      "naver": "NAVERショッピング"
+    },
+    "bagDetailTitle": "出発前の消耗品",
+    "homeTitle": "持っていく消耗品",
+    "communityTitle": "持っていく消耗品",
+    "communityLabel": "提携商品",
+    "accessibilityOpen": "{{name}}を{{merchant}}で見る"
+  },
+  "onboarding": {
+    "header": {
+      "back": "前のステップ",
+      "close": "ガイドを閉じる",
+      "progress": "{{total}}ステップ中{{current}}ステップ目"
+    },
+    "closeConfirm": {
+      "title": "ガイドを閉じますか？",
+      "message": "ここまで選んだ内容で旅行は作成されません。",
+      "continue": "続ける",
+      "close": "閉じる"
+    },
+    "next": "次へ",
+    "skip": "スキップ",
+    "date": {
+      "title": "いつ行きますか？",
+      "subtitle": "日程を決めると、出発の前日にパッキングをお知らせします",
+      "undecided": "まだ決まっていません"
+    },
+    "destination": {
+      "title": "どこへ行きますか？",
+      "subtitle": "目的地を決めると、その期間の天気も表示します",
+      "placeholder": "目的地を選んでください",
+      "placeholderMeta": "キャンプ地を検索 · 地図で選ぶ",
+      "campSite": "キャンプ地",
+      "freeLocation": "自分で選んだ場所",
+      "pick": "目的地を選ぶ",
+      "accessibility": "目的地、{{name}}"
+    },
+    "gear": {
+      "title": "どの装備を持っていきますか？",
+      "subtitleWarehouse": "倉庫からこの旅行に持っていく装備を選んでください",
+      "summary": "{{count}}個選択 · ",
+      "otherTitle": "その他に追加した装備",
+      "loadFailed": "装備を読み込めませんでした",
+      "sectionCount": "{{count}}個",
+      "subtitlePopular": "よく使われている装備から選びましょう。旅行を作るときに倉庫にも保存されます",
+      "popularTitle": "人気の装備から選ぶ",
+      "findMore": "他の{{category}}を探す",
+      "customAdd": "直接追加",
+      "addAccessibility": "{{name}}を追加",
+      "removeAccessibility": "{{name}}を外す"
+    },
+    "done": {
+      "title": "旅行を作成する準備ができました",
+      "renameHint": "名前と日程は旅行画面でいつでも変更できます",
+      "reminder": "出発の前日にパッキングをお知らせします",
+      "reminderUndecided": "日程はひとまず今週末にしました。日程を変更すると、その日に合わせてお知らせします",
+      "tentativeDates": "{{dates}}（仮）",
+      "createWithNotification": "通知を受け取って旅行を作成",
+      "create": "旅行を作成",
+      "createWithoutNotification": "通知なしで作成",
+      "createFailedTitle": "旅行を作成できませんでした",
+      "createFailed": "しばらくしてからもう一度お試しください。",
+      "partialFailedTitle": "旅行は作成しましたが、一部を保存できませんでした",
+      "partialFailed": "旅行画面で目的地と装備をもう一度確認してください。",
+      "loginAndCreate": "ログインして旅行を作成",
+      "later": "あとで",
+      "gearListTitle": "持っていく道具 {{count}}個",
+      "gearMore": "ほか{{count}}個",
+      "noGear": "道具はまだありません。旅行画面でいつでも追加できます"
+    },
+    "trip": {
+      "nameWithPlace": "{{place}} バックパッキング",
+      "defaultName": "はじめてのバックパッキング"
+    }
+  },
+  "welcome": {
+    "title": "必要な道具だけ、ザックは軽く",
+    "logoLabel": "useless",
+    "values": {
+      "weight": {
+        "title": "道具の重さをひと目で整理",
+        "subtitle": "入れるとザックの重さがすぐ計算されます"
+      },
+      "weather": {
+        "title": "旅行ごとにザックと天気をまとめて",
+        "subtitle": "目的地を決めると期間中の天気をお見せします"
+      },
+      "reminder": {
+        "title": "出発前日にパッキングをお知らせ",
+        "subtitle": "忘れ物なく出発できます"
+      }
+    },
+    "start": "次のバックパッキングを準備する",
+    "browse": "まずは見てみる",
+    "login": "アカウントをお持ちの方 · ログイン"
   }
 }

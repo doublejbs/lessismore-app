@@ -1,6 +1,7 @@
 import app from '@/model/app/App';
 import GearStore from '@/model/store/GearStore';
 import Gear from '@/model/gear/Gear';
+import GearFilter from '@/model/gear/GearFilter';
 import CustomGearCategory from './CustomGearCategory';
 import Firebase from '@/model/firebase/Firebase';
 import LogInAlertManager from '@/model/login/LogInAlertManager';
@@ -11,7 +12,15 @@ import Warehouse from '@/model/warehouse/Warehouse';
 import BagDetail from '@/model/bag-detail/BagDetail';
 
 class CustomGear extends AbstractGearEdit {
-  public static new(navigate: ImperativeRouter) {
+  // `name`: 검색 결과 없음 `직접 추가`(SR-11)가 넘기는 제품명 프리필. 선택 시트 진입은 빈 값.
+  // `category`: 첫 여행 가이드 `직접 추가`(OB-6)가 넘기는 GearFilter 그룹 키 — 모르는 값이면 첫 칩.
+  public static new(navigate: ImperativeRouter, name = '', category = '') {
+    const gearCategory = CustomGearCategory.new().selectFirst();
+
+    if (category) {
+      gearCategory.selectFilterWith(category as GearFilter);
+    }
+
     return new CustomGear(
       navigate,
       app.getGearStore()!,
@@ -19,8 +28,8 @@ class CustomGear extends AbstractGearEdit {
       app.getLogInAlertManager()!,
       Order.new(Warehouse.ORDER_KEY),
       Order.new(BagDetail.ORDER_KEY),
-      CustomGearCategory.new().selectFirst(),
-      '',
+      gearCategory,
+      name.trim(),
       '',
       '',
       ''

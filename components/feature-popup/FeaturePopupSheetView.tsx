@@ -44,8 +44,12 @@ const FeaturePopupSheetView = () => {
   const shouldShow = manager?.shouldShow() ?? false;
   const needsUpdate = forceUpdateManager?.getNeedsUpdate() ?? false;
 
+  // 약관 미동의·첫 여행 가이드 판정 전·가이드 표시 중이면 띄우지 않는다(APP-10).
+  const blockedByOnboarding =
+    app.getOnboardingTripManager()?.isBlockingPopups() ?? false;
+
   // 강제 업데이트 게이트(APP-7)가 떠 있으면 팝업을 띄우지 않는다(FP-6 우선순위).
-  const visible = shouldShow && !needsUpdate;
+  const visible = shouldShow && !needsUpdate && !blockedByOnboarding;
 
   const title = manager?.getTitle() ?? '';
   const subtitle = manager?.getSubtitle() ?? null;

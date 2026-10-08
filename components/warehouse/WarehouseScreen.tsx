@@ -23,6 +23,10 @@ import WarehouseGearView from '@/components/warehouse/WarehouseGearView';
 import useGearAddAction from '@/components/warehouse/useGearAddAction';
 import WarehouseSkeletonView from '@/components/warehouse/WarehouseSkeletonView';
 import WarehouseUnusedButtonView from '@/components/warehouse/WarehouseUnusedButtonView';
+import SearchEmptyCustomAddView from '@/components/search/SearchEmptyCustomAddView';
+import useSearchEmptyCustomAdd from '@/components/search/useSearchEmptyCustomAdd';
+import SearchEmptySource from '@/model/search/SearchEmptySource';
+import SearchEmptyButtonVariant from '@/model/search/SearchEmptyButtonVariant';
 import app from '@/model/app/App';
 
 interface Props {
@@ -43,6 +47,9 @@ const IOS_EDGES = ['left', 'right', 'bottom'] as const;
 const WarehouseView: FC<Props> = ({ warehouse }) => {
   const router = useRouter();
   const handleAddGear = useGearAddAction();
+  const handlePressCustomAdd = useSearchEmptyCustomAdd({
+    source: SearchEmptySource.Warehouse,
+  });
   const gears = warehouse.getGears();
   const isEmpty = warehouse.isEmpty();
   const isLoading = warehouse.isLoading();
@@ -79,6 +86,15 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
           </PretendardText>
         </View>
       );
+    } else if (gears.length === 0 && warehouse.getQuery().trim()) {
+      // SR-11: 검색 0건 → 직접 추가. 이 화면의 라임은 `안 쓴 장비`(WH-2-1) 몫이라 보조 알약.
+      return (
+        <SearchEmptyCustomAddView
+          query={warehouse.getQuery()}
+          variant={SearchEmptyButtonVariant.Secondary}
+          onPressAdd={handlePressCustomAdd}
+        />
+      );
     } else if (gears.length === 0) {
       const selectedFilter = warehouse.getSelectedFilter();
 
@@ -87,11 +103,9 @@ const WarehouseView: FC<Props> = ({ warehouse }) => {
           <PretendardText style={styles.emptyText}>
             {/* 필터가 걸려 0건인 경우를 구분한다 — 전체가 빈 것(위 분기)과 원인이 다르다.
                 `안 쓴 장비` 0건은 이 화면의 경우가 아니다 — 전용 화면(WH-2-1)이 낸다. */}
-            {warehouse.getQuery().trim()
-              ? app.getL10n().t('warehouse.noSearchResults')
-              : app.getL10n().t('warehouse.noCategoryResults', {
-                  category: selectedFilter.getLabel(),
-                })}
+            {app.getL10n().t('warehouse.noCategoryResults', {
+              category: selectedFilter.getLabel(),
+            })}
           </PretendardText>
         </View>
       );

@@ -83,7 +83,11 @@ const AnnouncementSheetView = () => {
 
   // 강제 업데이트 게이트(APP-7)가 떠 있거나 신기능 팝업(FP)이 뜰 조건이면 공지 시트를 띄우지 않는다(FP-6 우선순위: 게이트 > FP > 공지).
   // 게이트는 일반 absolute View라 Modal이 그 위로 뜨므로, 표시 조건에서 배제해 게이트를 최상위로 유지한다.
-  const visible = shouldShow && !needsUpdate && !featurePopupVisible;
+  // 약관 미동의·첫 여행 가이드 판정 전·가이드 표시 중이면 띄우지 않는다(APP-10).
+  const blockedByOnboarding =
+    app.getOnboardingTripManager()?.isBlockingPopups() ?? false;
+  const visible =
+    shouldShow && !needsUpdate && !featurePopupVisible && !blockedByOnboarding;
 
   const message = manager?.getMessage() ?? '';
   const link = manager?.getLink() ?? null;
