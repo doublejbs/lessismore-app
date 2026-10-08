@@ -209,6 +209,7 @@
 | `click_onboarding_trip_step` | 가이드 각 단계의 주 액션·보조 버튼. 1단계 `아직 미정이에요`는 `skip`, 2단계 미선택 상태의 `여행지 고르기`(선택기만 엶)는 보내지 않음, 4단계 주 액션은 `next`·`알림 없이 만들기`는 `skip` | `step`: `date` \| `destination` \| `gear` \| `done`, `action`: `next` \| `skip` |
 | `click_onboarding_trip_complete` | 가이드로 여행 생성 성공(`BagStore.add` 성공 기준) | `has_dates`: boolean(미정이면 false), `has_destination`: boolean, `gear_count`: 정수, `notification`: `granted` \| `denied` \| `skipped` \| `already` \| `unavailable` |
 | `click_onboarding_trip_dismiss` | 가이드 닫기 확정(× 또는 1단계 하드웨어 뒤로) | `step`: 닫은 단계(`date` \| `destination` \| `gear` \| `done`) |
+| `click_onboarding_trip_gear_pick` | 가이드 3단계에서 장비를 담음(선택 해제는 미전송). 검색·직접 추가는 돌아와 자동 선택될 때 장비마다 1회 | `source`: `popular` \| `warehouse` \| `search` \| `custom`, `category`: GearFilter 그룹 키 |
 
 - 가이드로 만든 여행은 `click_bag_create_confirm`을 보내지 않는다 — 생성 경로가 다르므로 `click_onboarding_trip_complete`로 구분한다. 전체 생성 수는 두 이벤트를 합산한다.
 

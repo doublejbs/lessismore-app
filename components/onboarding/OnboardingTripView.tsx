@@ -40,6 +40,7 @@ const OnboardingTripView: FC<Props> = ({ trip }) => {
     handleSkip,
     handleOpenDestinationPicker,
     handleOpenGearSearch,
+    handleOpenCustomAdd,
     handleCreate,
   } = useOnboardingTripState(trip);
   const creating = trip.isCreating();
@@ -83,7 +84,9 @@ const OnboardingTripView: FC<Props> = ({ trip }) => {
               onPrimary: () => {
                 void handleCreate(true);
               },
-              secondaryLabel: l10n.t('onboarding.done.createWithoutNotification'),
+              secondaryLabel: l10n.t(
+                'onboarding.done.createWithoutNotification'
+              ),
               onSecondary: () => {
                 void handleCreate(false);
               },
@@ -115,6 +118,7 @@ const OnboardingTripView: FC<Props> = ({ trip }) => {
           <OnboardingTripGearStepView
             trip={trip}
             onOpenSearch={handleOpenGearSearch}
+            onOpenCustomAdd={handleOpenCustomAdd}
           />
         );
       default:

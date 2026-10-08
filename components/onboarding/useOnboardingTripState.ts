@@ -7,6 +7,7 @@ import { BagLocation } from '@/model/bag-destination/BagLocation';
 import { setBagDestinationPicker } from '@/model/bag-destination/BagDestinationPickerHandoff';
 import OnboardingTrip from '@/model/onboarding/OnboardingTrip';
 import OnboardingTripAction from '@/model/onboarding/OnboardingTripAction';
+import OnboardingTripGearSource from '@/model/onboarding/OnboardingTripGearSource';
 import OnboardingTripStatus from '@/model/onboarding/OnboardingTripStatus';
 import OnboardingTripStep from '@/model/onboarding/OnboardingTripStep';
 
@@ -92,11 +93,13 @@ const useOnboardingTripState = (trip: OnboardingTrip) => {
     };
   }, []);
 
-  // 3단계는 진입·포커스 복귀(검색 모달 닫힘)마다 창고를 다시 읽는다(OB-6).
+  // 3단계는 진입·포커스 복귀(검색·직접 추가 닫힘)마다 창고를 다시 읽는다(OB-6).
+  // 인기 장비는 첫 진입에 한 번만 읽는다(도메인이 캐시).
   useFocusEffect(
     useCallback(() => {
       if (step === OnboardingTripStep.Gear) {
         void trip.loadGears();
+        void trip.loadPopularGears();
       }
     }, [trip, step])
   );
@@ -126,12 +129,23 @@ const useOnboardingTripState = (trip: OnboardingTrip) => {
     router.push('/bag-destination-picker');
   }, [trip, router]);
 
-  // 필수 장비 검색(OB-6) — 창고 컨텍스트 검색 모달을 그 카테고리 필터로 연다.
+  // `다른 {카테고리} 찾기`(OB-6) — 창고 컨텍스트 검색 모달을 그 카테고리 필터로 연다.
   const handleOpenGearSearch = useCallback(
     (group: GearFilter) => {
+      trip.markPickSource(OnboardingTripGearSource.Search);
       router.push(`/search?category=${group}`);
     },
-    [router]
+    [trip, router]
+  );
+
+  // `직접 추가`(OB-6) — SR-11과 같은 수동 폼 라우트를 그 카테고리로 연다. 저장은 즉시 창고에 들어가고
+  // 돌아오면 자동 선택된다. 검색 결과 없음 계측(click_search_empty_custom_add)은 보내지 않는다.
+  const handleOpenCustomAdd = useCallback(
+    (group: GearFilter) => {
+      trip.markPickSource(OnboardingTripGearSource.Custom);
+      router.push({ pathname: '/custom', params: { category: group } });
+    },
+    [trip, router]
   );
 
   const handleCreate = useCallback(
@@ -172,6 +186,7 @@ const useOnboardingTripState = (trip: OnboardingTrip) => {
     handleSkip,
     handleOpenDestinationPicker,
     handleOpenGearSearch,
+    handleOpenCustomAdd,
     handleCreate,
   };
 };

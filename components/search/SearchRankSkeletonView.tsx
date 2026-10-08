@@ -4,6 +4,8 @@ import { Acg, AcgRow, AcgType } from '@/constants/DesignTokens';
 
 interface Props {
   count?: number;
+  // 순위 원을 그릴지. 순위 숫자가 없는 목록(첫 여행 가이드 인기 장비, OB-6)은 끈다.
+  showRank?: boolean;
 }
 
 /**
@@ -14,7 +16,10 @@ interface Props {
  * 뒤바뀌었다. 여기서는 순위 행(순위 원 + 이름 + 메타 + 우측 버튼)을 그대로 비춘다.
  * 치수는 `SearchTopKeywordsView`의 행 스타일과 같은 토큰(`AcgRow`·`AcgType`)에서 온다.
  */
-const SkeletonRow: FC<{ divided: boolean }> = ({ divided }) => {
+const SkeletonRow: FC<{ divided: boolean; showRank: boolean }> = ({
+  divided,
+  showRank,
+}) => {
   // `useRef(...).current`가 아니라 `useState` 초기화로 잡는다 — 렌더 중 ref 접근은
   // 린트(react-hooks/refs)가 막는다. 애니메이션 값은 마운트당 하나면 된다.
   const [opacity] = useState(() => new Animated.Value(1));
@@ -41,7 +46,9 @@ const SkeletonRow: FC<{ divided: boolean }> = ({ divided }) => {
   return (
     <View style={[styles.row, divided && styles.rowDivided]}>
       {/* 순위 원(28) */}
-      <Animated.View style={[styles.rankCircle, { opacity }]} />
+      {showRank ? (
+        <Animated.View style={[styles.rankCircle, { opacity }]} />
+      ) : null}
 
       {/* 이름 + 메타 한 줄 */}
       <View style={styles.info}>
@@ -55,11 +62,11 @@ const SkeletonRow: FC<{ divided: boolean }> = ({ divided }) => {
   );
 };
 
-const SearchRankSkeletonView: FC<Props> = ({ count = 10 }) => {
+const SearchRankSkeletonView: FC<Props> = ({ count = 10, showRank = true }) => {
   return (
     <View style={styles.container}>
       {Array.from({ length: count }, (_, index) => (
-        <SkeletonRow key={index} divided={index > 0} />
+        <SkeletonRow key={index} divided={index > 0} showRank={showRank} />
       ))}
     </View>
   );

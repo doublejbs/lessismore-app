@@ -1583,14 +1583,16 @@
     "gear": {
       "title": "どの装備を持っていきますか？",
       "subtitleWarehouse": "倉庫からこの旅行に持っていく装備を選んでください",
-      "subtitleSearch": "バックパッキングの必須装備から探して追加しましょう。追加した装備は倉庫にも保存されます",
-      "summary": "{{count}}個 · ",
-      "searchToAdd": "検索して追加",
-      "addedSummary": "{{name}} ほか{{count}}個",
+      "summary": "{{count}}個選択 · ",
       "otherTitle": "その他に追加した装備",
       "loadFailed": "装備を読み込めませんでした",
-      "categoryAccessibility": "{{category}}、{{status}}",
-      "sectionCount": "{{count}}個"
+      "sectionCount": "{{count}}個",
+      "subtitlePopular": "よく使われている装備から選びましょう。旅行を作るときに倉庫にも保存されます",
+      "popularTitle": "人気の装備から選ぶ",
+      "findMore": "他の{{category}}を探す",
+      "customAdd": "直接追加",
+      "addAccessibility": "{{name}}を追加",
+      "removeAccessibility": "{{name}}を外す"
     },
     "done": {
       "title": "旅行を作成する準備ができました",

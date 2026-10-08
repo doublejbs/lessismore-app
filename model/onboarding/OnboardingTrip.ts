@@ -6,6 +6,7 @@ import GearFilter from '../gear/GearFilter';
 import { getGroupForCategory } from '../gear/GearCategoryGroups';
 import { getGearFilterName } from '../gear/GearFilterName';
 import OrderType from '../order/OrderType';
+import GearRankStore from '../search/GearRankStore';
 import { BagLocation } from '../bag-destination/BagLocation';
 import { saveBagDestination } from '../bag-destination/BagDestinationSave';
 import { FALLBACK_LOCATION_NAME } from '../bag-destination/GeocodeService';
@@ -14,6 +15,7 @@ import NotificationPermissionStatus from '../notification/NotificationPermission
 import OnboardingTripStep from './OnboardingTripStep';
 import OnboardingTripAction from './OnboardingTripAction';
 import OnboardingTripGearMode from './OnboardingTripGearMode';
+import OnboardingTripGearSource from './OnboardingTripGearSource';
 import OnboardingTripPermission from './OnboardingTripPermission';
 import OnboardingTripStatus from './OnboardingTripStatus';
 
@@ -39,13 +41,17 @@ const GEAR_GROUP_ORDER: GearFilter[] = [
   GearFilter.Etc,
 ];
 
-// 창고가 비어 있을 때 검색으로 담게 하는 필수 카테고리(OB-6).
+// 인기 장비 구획의 필수 카테고리(OB-6).
 export const REQUIRED_GEAR_GROUPS: GearFilter[] = [
   GearFilter.Tent,
   GearFilter.SleepingBag,
   GearFilter.Mat,
   GearFilter.Backpack,
 ];
+
+// 카테고리마다 보여 줄 인기 장비 수와, 창고 보유분을 빼도 그만큼 남도록 읽는 수(OB-6).
+export const POPULAR_GEAR_COUNT = 5;
+const POPULAR_GEAR_FETCH = 8;
 
 export interface OnboardingTripGearSection {
   group: GearFilter;
@@ -88,6 +94,12 @@ class OnboardingTrip {
   // 3단계에 처음 들어왔을 때 창고에 있던 장비 — 이후 새로 들어온 장비를 자동 선택한다(OB-6).
   private knownGearIds: string[] | null = null;
   private selectedGearIds: string[] = [];
+  // 인기 장비(카테고리별, gear-rank) — 3단계 첫 진입에 한 번 읽고 세션 동안 캐시한다(OB-6).
+  private popularGears: Partial<Record<GearFilter, Gear[]>> = {};
+  private popularLoading = false;
+  private popularRequested = false;
+  // 검색·직접 추가를 열 때 남겨 두고, 돌아와 자동 선택한 장비의 계측 source로 쓴다(OB-9).
+  private pendingPickSource: OnboardingTripGearSource | null = null;
   private permissionStatus: NotificationPermissionStatus | null = null;
   private creating = false;
   // add 성공 후 보관 — 재시도해도 여행이 두 개 생기지 않는다(OB-7).
@@ -293,21 +305,115 @@ class OnboardingTrip {
       this.gearMode =
         gears.length > 0
           ? OnboardingTripGearMode.Warehouse
-          : OnboardingTripGearMode.Search;
+          : OnboardingTripGearMode.Popular;
     } else {
       const known = new Set(this.knownGearIds);
-      const added = ids.filter(id => !known.has(id));
+      const added = gears.filter(gear => !known.has(gear.getId()));
+      const source = this.pendingPickSource ?? OnboardingTripGearSource.Search;
 
-      // 검색으로 방금 창고에 담은 장비는 이 여행에도 담는다(OB-6).
-      this.selectedGearIds = [...this.selectedGearIds, ...added];
+      // 검색·직접 추가로 방금 창고에 담은 장비는 이 여행에도 담는다(OB-6).
+      // 인기 장비에서 이미 고른 장비면 같은 ID라 하나로 합친다.
+      added.forEach(gear => {
+        if (!this.selectedGearIds.includes(gear.getId())) {
+          this.selectedGearIds = [...this.selectedGearIds, gear.getId()];
+          this.logPick(gear, source);
+        }
+      });
       this.knownGearIds = ids;
     }
 
-    // 창고에서 사라진 장비는 선택에서도 뺀다.
-    const present = new Set(ids);
+    this.pendingPickSource = null;
+
+    // 창고에서 사라진 장비는 선택에서도 뺀다(인기 장비 선택은 창고와 무관하게 유지).
+    const present = new Set([...ids, ...this.getAllPopularGearIds()]);
 
     this.selectedGearIds = this.selectedGearIds.filter(id => present.has(id));
     this.warehouseGears = gears;
+  }
+
+  // 검색 모달·직접 추가를 열기 직전에 부른다 — 돌아와 자동 선택한 장비의 계측 source(OB-9).
+  public markPickSource(source: OnboardingTripGearSource): void {
+    this.pendingPickSource = source;
+  }
+
+  // ── 3단계: 인기 장비(OB-6) ────────────────────────────
+
+  // 첫 진입에 한 번만 읽는다. 카테고리마다 따로 받아 하나가 실패해도 나머지는 그린다.
+  public async loadPopularGears(): Promise<void> {
+    if (this.popularRequested) {
+      return;
+    }
+
+    this.popularRequested = true;
+    this.popularLoading = true;
+
+    const store = new GearRankStore(app.getFirebase());
+    const results = await Promise.allSettled(
+      REQUIRED_GEAR_GROUPS.map(group =>
+        store.loadTopGears(group, POPULAR_GEAR_FETCH)
+      )
+    );
+
+    runInAction(() => {
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          this.popularGears[REQUIRED_GEAR_GROUPS[index]] = result.value;
+        } else {
+          // 실패는 조용히 숨긴다 — 보조 액션(검색·직접 추가)은 그대로 남는다(OB-6).
+          console.warn('첫 여행 가이드 인기 장비 조회 실패', result.reason); // l10n-ignore: console 개발자 로그
+        }
+      });
+      this.popularLoading = false;
+    });
+  }
+
+  public isPopularLoading(): boolean {
+    return this.popularLoading;
+  }
+
+  // 창고에 이미 있는 장비는 빼고 앞에서 5개(OB-6).
+  public getPopularGears(group: GearFilter): Gear[] {
+    const owned = new Set(this.warehouseGears.map(gear => gear.getId()));
+
+    return (this.popularGears[group] ?? [])
+      .filter(gear => !owned.has(gear.getId()))
+      .slice(0, POPULAR_GEAR_COUNT);
+  }
+
+  private getAllPopularGears(): Gear[] {
+    return REQUIRED_GEAR_GROUPS.flatMap(
+      group => this.popularGears[group] ?? []
+    );
+  }
+
+  private getAllPopularGearIds(): string[] {
+    return this.getAllPopularGears().map(gear => gear.getId());
+  }
+
+  // 인기 장비에서 골랐고 아직 창고에 없는 장비 — 생성 때 창고에 등록한다(OB-7).
+  private getSelectedCatalogGears(): Gear[] {
+    const owned = new Set(this.warehouseGears.map(gear => gear.getId()));
+    const selected = new Set(this.selectedGearIds);
+    const seen = new Set<string>();
+
+    return this.getAllPopularGears().filter(gear => {
+      const id = gear.getId();
+
+      if (owned.has(id) || !selected.has(id) || seen.has(id)) {
+        return false;
+      }
+
+      seen.add(id);
+
+      return true;
+    });
+  }
+
+  private logPick(gear: Gear, source: OnboardingTripGearSource) {
+    app.getAnalyticsManager()?.logClick('onboarding_trip_gear_pick', {
+      source,
+      category: gear.getGroupCategory(),
+    });
   }
 
   public getWarehouseGears(): Gear[] {
@@ -341,18 +447,29 @@ class OnboardingTrip {
     return this.selectedGearIds.includes(gear.getId());
   }
 
-  public toggleGear(gear: Gear): void {
+  public toggleGear(gear: Gear, source: OnboardingTripGearSource): void {
     const id = gear.getId();
 
-    this.selectedGearIds = this.selectedGearIds.includes(id)
-      ? this.selectedGearIds.filter(selected => selected !== id)
-      : [...this.selectedGearIds, id];
+    if (this.selectedGearIds.includes(id)) {
+      this.selectedGearIds = this.selectedGearIds.filter(
+        selected => selected !== id
+      );
+
+      return;
+    }
+
+    this.selectedGearIds = [...this.selectedGearIds, id];
+    this.logPick(gear, source);
   }
 
+  // 창고 선택 + 인기 장비 선택(창고에 없는 것). 같은 장비는 창고 쪽 하나만.
   public getSelectedGears(): Gear[] {
     const selected = new Set(this.selectedGearIds);
 
-    return this.warehouseGears.filter(gear => selected.has(gear.getId()));
+    return [
+      ...this.warehouseGears.filter(gear => selected.has(gear.getId())),
+      ...this.getSelectedCatalogGears(),
+    ];
   }
 
   public getSelectedCount(): number {
@@ -455,7 +572,24 @@ class OnboardingTrip {
         }
       }
 
-      const gears = this.getSelectedGears();
+      const catalogGears = this.getSelectedCatalogGears();
+      let catalogRegistered = true;
+
+      // 인기 장비에서 고른 장비를 이제 창고에 넣는다 — 중간에 닫으면 아무것도 쓰지 않는다(OB-6·OB-7).
+      if (catalogGears.length > 0) {
+        try {
+          await app.getGearStore()?.register(catalogGears);
+        } catch (error) {
+          console.warn('첫 여행 가이드 인기 장비 창고 등록 실패', error); // l10n-ignore: console 개발자 로그
+          catalogRegistered = false;
+          partialFailure = true;
+        }
+      }
+
+      const catalogIds = new Set(catalogGears.map(gear => gear.getId()));
+      const gears = this.getSelectedGears().filter(
+        gear => catalogRegistered || !catalogIds.has(gear.getId())
+      );
 
       if (gears.length > 0) {
         try {
