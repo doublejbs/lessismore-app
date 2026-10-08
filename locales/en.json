@@ -669,7 +669,8 @@
     "emptyCustomAdd": {
       "title": "No results for '{{query}}'",
       "subtitle": "Can't find your gear? Add it yourself",
-      "button": "Add manually"
+      "button": "Add manually",
+      "subtitleNoAdd": "Try a different search term"
     },
     "rank": {
       "title": "Popular gear",
@@ -1063,7 +1064,13 @@
     "recommendedTitle": "Campsites picked by useless",
     "viewOnMap": "{{name}}, {{type}}, {{region}}, view on map",
     "login": "Sign in",
-    "profileButton": "My account"
+    "profileButton": "My account",
+    "signedOut": {
+      "title": "Only the gear you need, a lighter pack",
+      "subtitle": "Sort out your gear weight and get ready for your next backpacking trip",
+      "firstTrip": "Plan your first trip",
+      "loginLink": "Already have an account · Sign in"
+    }
   },
   "health": {
     "title": "Activity record",
@@ -1634,7 +1641,9 @@
       "createFailedTitle": "Couldn't create your trip",
       "createFailed": "Please try again in a moment.",
       "partialFailedTitle": "Your trip was created, but some details weren't saved",
-      "partialFailed": "Please check the destination and gear in your trip."
+      "partialFailed": "Please check the destination and gear in your trip.",
+      "loginAndCreate": "Sign in and create trip",
+      "later": "Maybe later"
     },
     "trip": {
       "nameWithPlace": "{{place}} backpacking",

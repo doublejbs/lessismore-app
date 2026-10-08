@@ -4,6 +4,8 @@ enum OnboardingTripStep {
   Destination = 'destination',
   Gear = 'gear',
   Done = 'done',
+  // 분석 전용 — 화면 단계가 아니다. 비로그인 완료 단계의 로그인 버튼 둘(OB-11, OB-9 `step: login`).
+  Login = 'login',
 }
 
 export default OnboardingTripStep;

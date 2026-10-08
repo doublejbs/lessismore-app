@@ -29,7 +29,8 @@ const getCustomAddOptions = (gearAddContext: GearAddContext | undefined) => {
     case GearAddMode.Bag: {
       return { source: SearchEmptySource.Bag, bagId: gearAddContext.bagId };
     }
-    case GearAddMode.Warehouse: {
+    case GearAddMode.Warehouse:
+    case GearAddMode.Pick: {
       return { source: SearchEmptySource.Warehouse };
     }
     default: {
@@ -97,7 +98,11 @@ const SearchResultView: FC<Props> = ({
           <SearchEmptyCustomAddView
             query={keyword}
             variant={SearchEmptyButtonVariant.Primary}
-            onPressAdd={handlePressCustomAdd}
+            onPressAdd={
+              gearAddContext?.mode === GearAddMode.Pick
+                ? undefined
+                : handlePressCustomAdd
+            }
           />
         );
       }

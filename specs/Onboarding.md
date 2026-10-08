@@ -4,12 +4,14 @@
 | --- | --- |
 | 상태 | proposed (2026-10-08 사용자 결정 — 2.0.1 OTA, JS 전용) |
 | ID 프리픽스 | `OB` |
-| 주요 코드 | `app/onboarding-trip.tsx`, `components/onboarding/`, `model/onboarding/`, `model/search/GearRankStore.ts`(인기 장비 OB-6), `app/_layout.tsx`(진입·권한 시점), `model/notification/NotificationManager.ts` |
-| 관련 스펙 | [Bag.md](Bag.md)(BAG-2), [Search.md](Search.md)(SR-4 인기 순위 소스·SR-11), [GearEdit.md](GearEdit.md)(GE-8), [BagDestination.md](BagDestination.md)(DST-3·DST-6), [BagDetail.md](BagDetail.md)(BD-13), [Notification.md](Notification.md)(NT-1·NT-2), [Analytics.md](Analytics.md), [AppLifecycle.md](AppLifecycle.md)(APP-6·APP-10), [FeaturePopup.md](FeaturePopup.md)(FP-6), [Auth.md](Auth.md)(AU-3) |
+| 주요 코드 | `app/onboarding-trip.tsx`, `components/onboarding/`, `model/onboarding/`, `model/search/GearRankStore.ts`(인기 장비 OB-6), `app/_layout.tsx`(진입·권한 시점), `model/notification/NotificationManager.ts`, `model/onboarding/OnboardingTripDraft.ts`(로그인 이어가기 초안 OB-12), `model/gear/GearPickHandoff.ts`(비로그인 검색 담기 OB-13) |
+| 관련 스펙 | [Bag.md](Bag.md)(BAG-2), [Search.md](Search.md)(SR-4 인기 순위 소스·SR-11), [GearEdit.md](GearEdit.md)(GE-8), [BagDestination.md](BagDestination.md)(DST-3·DST-6), [BagDetail.md](BagDetail.md)(BD-13), [Notification.md](Notification.md)(NT-1·NT-2), [Analytics.md](Analytics.md), [AppLifecycle.md](AppLifecycle.md)(APP-6·APP-10), [FeaturePopup.md](FeaturePopup.md)(FP-6), [Auth.md](Auth.md)(AU-1·AU-3·AU-10), [Home.md](Home.md)(비로그인 홈) |
 
 ## 1. 개요
 
 여행(배낭)이 하나도 없는 로그인 사용자에게 **첫 진입 때 한 번**, 날짜 → 여행지 → 장비 → 완료 네 단계로 첫 여행을 만들게 돕는다.
+
+> **2026-10-08 사용자 결정 — 가이드가 첫 실행 경험이다**: 이 기기에서 앱을 처음 여는 사용자에게는 **로그인 전에** 가이드를 먼저 보여 주고, 마지막 단계에서 로그인을 요청한다(`로그인하고 여행 만들기`). 로그인하면 고른 날짜·여행지·장비로 여행을 자동으로 만든다(OB-11·OB-12·OB-13). 이미 로그인해 쓰던 사용자(여행 0개)는 기존 동작(OB-1 uid별 1회) 그대로다.
 
 근거(2026-10-08 지표): 가입자 중 59%가 여행을 만들지만 그중 1/3은 장비를 담지 않고 떠난다. 두 번째 여행까지 가는 사용자는 15%다. 재방문 알림(D-1 패킹 NT-2, 다음 여행 NT-7, 주말 박지 NT-8)은 **날짜가 있는 여행**을 전제로 한다 — 첫 여행을 날짜·장비와 함께 만들어야 이후의 알림이 돌아간다.
 
@@ -18,14 +20,14 @@
 ## 2. 화면 및 진입
 
 ```
-app/_layout.tsx  ─(로그인·약관 완료 + 탭 첫 도착 + 대상 판정 OB-1)→ router.push('/onboarding-trip')
+app/_layout.tsx  ─(게이트 판정 후 탭 첫 도착 + 대상 판정 OB-1 / 비로그인 첫 실행 OB-11 / 이어가기 OB-12)→ router.push('/onboarding-trip')
 app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
   → components/onboarding/OnboardingTripWrapper.tsx   (OnboardingTrip.new() 1회 생성)
     → OnboardingTripView.tsx                           (머리: 뒤로·진행 표시·닫기 / 본문 / 하단 액션)
        ├─ OnboardingTripDateStepView.tsx         1/4 언제 가세요?
        ├─ OnboardingTripDestinationStepView.tsx  2/4 어디로 가세요?  → /bag-destination-picker (DST-3, 핸드오프)
        ├─ OnboardingTripGearStepView.tsx         3/4 어떤 장비를 챙기세요?  → 인기 장비(gear-rank) · /search?category=… · /custom?category=…
-       └─ OnboardingTripDoneStepView.tsx         4/4 완료 → 생성 → router.replace('/bag/{id}')
+       └─ OnboardingTripDoneStepView.tsx         4/4 완료 → (비로그인: 로그인 모달 OB-12) → 생성 → router.replace('/bag/{id}')
 ```
 
 - 전역 상태(대상 판정·노출 기록)는 `model/onboarding/OnboardingTripManager.ts`(`app.getOnboardingTripManager()`), 단계·입력·생성은 화면 도메인 `model/onboarding/OnboardingTrip.ts`가 가진다.
@@ -37,11 +39,12 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
 
 **수용 기준**
 
-- 대상 = **로그인 + 필수 약관 동의 완료(AU-3) + 여행 0개**인 사용자. 신규 가입자와 기존 사용자를 가리지 않는다. 비로그인 사용자는 대상이 아니다.
+- 대상 = **로그인 + 필수 약관 동의 완료(AU-3) + 여행 0개**인 사용자. 신규 가입자와 기존 사용자를 가리지 않는다. 비로그인 사용자는 이 절이 아니라 **기기 단위 첫 실행 규칙(OB-11)** 을 따른다(2026-10-08 개정 — 이전에는 비로그인은 대상이 아니었다).
 - 여행 개수는 노출 직전에 `users/{uid}.bags` 길이로 **새로 읽는다**(1회 읽기, `BagStore.getBagCountOrThrow`). 다른 기기·딥링크(박지 상세 `새 여행 만들기` 등)로 이미 여행을 만들었다면 이 읽기에서 걸러진다.
 - 노출 기록은 **기기 로컬 AsyncStorage**에 사용자별로 저장한다 — 키 `onboarding-first-trip_{uid}`, 값 `{ status, at }`(APP-6). `status`는 `presented`(띄움) · `dismissed`(닫음) · `completed`(만듦) · `not_needed`(판정 때 이미 여행 있음).
   - **기록이 하나라도 있으면 다시 띄우지 않는다.** 띄우는 순간 `presented`를 먼저 쓴다 — 도중에 앱이 종료돼도 다음 실행에 다시 뜨지 않는다(한 번만 노출).
   - 판정 때 여행이 1개 이상이면 `not_needed`를 남긴다 — 나중에 여행을 모두 지워 0개가 돼도 다시 띄우지 않는다("다른 방법으로 여행을 만든 적이 있으면 다시 보지 않는다").
+- 로그인 사용자로 판정을 마치면 기기 기록 `onboarding-first-trip_device`가 없을 때 `not_needed`를 남긴다 — 이 기기에서 이미 앱을 쓴 사람이라, 나중에 로그아웃해도 비로그인 첫 실행 가이드(OB-11)를 다시 보지 않는다.
 - 판정은 **세션당 uid마다 1회**다. 로그아웃 후 다른 계정으로 로그인하면 그 uid로 다시 판정한다(키가 uid별이라 서로 섞이지 않는다).
 - 여행 개수 읽기가 실패하면(오프라인 등) **이번 세션에는 띄우지 않고 기록도 남기지 않는다** — 다음 실행에 다시 판정한다. 빈 목록으로 오인해 여행이 있는 사용자에게 가이드를 띄우지 않는다.
 - 웹도 같다(아래 플랫폼 분기). 웹은 알림이 없어 완료 단계의 권한 요청만 빠진다.
@@ -50,7 +53,7 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
 
 **수용 기준**
 
-- 판정·노출은 초기화(APP-1) 이후, **로그인 + 약관 동의 상태로 메인 탭(`(tabs)`)에 처음 도착했을 때** 일어난다. 약관 화면(`/terms-agreement`)·딥링크로 연 다른 화면 위에서는 띄우지 않고, 그 사용자가 탭으로 돌아오면 그때 판정한다.
+- 판정·노출은 초기화(APP-1) 이후, **메인 탭(`(tabs)`)에 처음 도착했을 때** 일어난다 — 로그인 + 약관 동의 상태면 OB-1(uid별), 비로그인이면 OB-11(기기 단위), 로그인 이어가기 초안이 있으면 OB-12가 먼저다. 약관 화면(`/terms-agreement`)·딥링크로 연 다른 화면 위에서는 띄우지 않고, 그 사용자가 탭으로 돌아오면 그때 판정한다.
 - 우선순위(한 번에 하나만):
 
   ```
@@ -60,7 +63,7 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
   - 게이트는 absolute 전체 화면이지만 가이드는 네이티브 모달이라 게이트를 덮을 수 있다. 그래서 **게이트 판정이 끝난 뒤**(`ForceUpdateManager.isResolved()` — 성공·실패·웹 no-op 모두 true)에만 판정하고, 게이트 대상이면(`getNeedsUpdate()`) 띄우지 않는다.
   - 약관 미동의 로그인 사용자는 가이드 판정 자체를 하지 않는다(위 조건). **약관 화면에서는 신기능 팝업·공지도 띄우지 않는다**(`OnboardingTripManager.isBlockingPopups()` — 로그인 + 미동의면 true).
   - 신기능 팝업(FP-2)·공지(AN-2)는 **가이드 판정이 끝나기 전**(로그인·동의 사용자가 아직 탭에 도착하지 않았거나 판정 중)과 **가이드가 떠 있는 동안** 표시하지 않는다. 가이드를 닫거나 끝내면 다음 렌더에 원래 규칙대로 뜬다(공지·팝업의 닫음 정책은 그대로).
-  - 비로그인 사용자에게는 영향이 없다(팝업·공지 기존 동작 그대로).
+  - 비로그인 사용자도 **기기 단위 판정(OB-11)이 끝나기 전과 가이드가 떠 있는 동안** 팝업·공지를 막는다(2026-10-08 개정 — 첫 실행 가이드가 팝업에 가려지지 않게). 판정이 끝나 가이드를 띄우지 않았으면 기존 동작 그대로다.
 
 ### OB-3 단계 구조와 이탈 `[제안]`
 
@@ -103,6 +106,7 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
 
 **수용 기준**
 
+- 비로그인 사용자의 3단계는 OB-13(창고 없이 담기 — 검색 담기 모드, `직접 추가` 숨김)을 따른다.
 - 제목 `어떤 장비를 챙기세요?`. 이 단계에 처음 들어올 때 창고(`users/{uid}/gears`, 최근 추가순)를 읽고, 그 결과로 **모드를 한 번 정한다**(단계 안에서 모드가 바뀌지 않는다).
 - **상단 요약(고정)**: 제목 아래 한 줄 `{n}개 담음 · {총 무게}kg`. 목록을 스크롤해도 화면 위에 붙어 있다(sticky). 선택이 0이어도 `0개 담음 · 0.00kg`으로 자리를 지킨다(담는 순간 레이아웃이 밀리지 않는다). 총 무게 = 선택 장비(창고 + 인기) `weight`(g) 합 ÷ 1000, 소수 둘째 자리. 무게가 없는 장비는 0g으로 더한다(별도 표시 없음). 숫자 조각만 콘덴스드(`AcgDisplayText`).
 - **창고에 장비가 있으면 — 체크리스트 모드**
@@ -136,6 +140,7 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
 **수용 기준**
 
 - 제목 `여행을 만들 준비가 됐어요`.
+- 비로그인이면 주 액션·보조 버튼이 OB-11(`로그인하고 여행 만들기` / `나중에 할게요`)로 바뀌고, 생성은 로그인 뒤 OB-12가 이 절의 순서로 한다.
 - 요약 면(연회색 채움 + 모서리 12): 여행 이름(`AcgType.rowTitle` medium) + 메타 한 줄 `{총 무게}kg · {기간} · {여행지}`(없는 조각은 뺀다 — 숫자 맨 앞, HM-8). 기간은 BAG-1 표시 규칙, 미정이면 `{기간} (임시)`.
 - **여행 이름 자동**: 여행지가 있으면 `{여행지명} 백패킹`, 없으면(또는 여행지명이 역지오코딩 폴백 `선택한 위치`면) `첫 백패킹`. 이름은 만든 뒤 상세(BD-1)에서 고친다 — 이 화면에서 입력받지 않는다(BAG-2의 "생성 단계에서 묻지 않는다" 결정과 같다). 보조 문장 `이름과 날짜는 여행에서 언제든 바꿀 수 있어요`.
 - 안내 문장:
@@ -167,16 +172,19 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
 - 가이드에서 권한을 묻지 않고 끝낸 경우(`알림 없이 만들기`·닫기·도중 종료) 다음 콜드 스타트의 시작 시 요청(NT-1)이 그대로 적용된다 — 모든 사용자가 정확히 한 번은 질문을 받는다.
 - 가이드에서 허용하면 시작 시 요청이 하던 후속 처리(공지 토픽 `all` 구독 — 설정이 켜져 있으면, NT-9 동기화)를 그 자리에서 한다.
 - 웹은 no-op(완료 단계 문구가 `여행 만들기`로 바뀐다).
+- **비로그인 경로(OB-11·OB-12)**: 비로그인 가이드를 띄운 세션도 시작 시 요청을 건너뛴다(비로그인은 원래 시작 시 요청 대상이 아니다). 완료 단계에서는 묻지 않고, 로그인 뒤 이어 만들기 직전에 미결정이면 한 번 묻는다.
 
 ### OB-9 분석 `[제안]`
 
 **수용 기준** — [Analytics.md](Analytics.md) AN-3 `온보딩` 표가 정본이다.
 
-- `click_onboarding_trip_step` — 각 단계의 주 액션·보조 버튼. `step`: `date` \| `destination` \| `gear` \| `done`, `action`: `next` \| `skip`.
+- `click_onboarding_trip_step` — 각 단계의 주 액션·보조 버튼. `step`: `date` \| `destination` \| `gear` \| `done` \| `login`, `action`: `next` \| `skip`.
+  - `login`(2026-10-08 추가, OB-11): 비로그인 완료 단계의 `로그인하고 여행 만들기`는 `next`, `나중에 할게요`는 `skip`. 이 단계에서는 `done`을 보내지 않고, 로그인 뒤 이어 만들 때도 step 이벤트를 다시 보내지 않는다.
   - 1단계 `아직 미정이에요`는 `skip`, 2단계 미선택 상태의 `여행지 고르기`는 선택기만 열 뿐이라 보내지 않는다(선택 뒤의 `다음`이 `next`).
   - 4단계 주 액션은 `next`, `알림 없이 만들기`는 `skip`.
 - `click_onboarding_trip_complete` — 생성 성공(add 성공 기준). `has_dates`(boolean — 미정이면 false), `has_destination`(boolean), `gear_count`(정수), `notification`: `granted` \| `denied` \| `skipped`(묻지 않음) \| `already`(이미 결정됨) \| `unavailable`(웹).
-- `click_onboarding_trip_dismiss` — 닫기 확정. `step`: 닫은 단계.
+- `click_onboarding_trip_login` — 가이드에서 연 로그인 모달의 결과(OB-12). `result`: `success` \| `cancel`. 재실행·약관 화면 뒤의 이어 만들기는 다시 보내지 않는다.
+- `click_onboarding_trip_dismiss` — 닫기 확정. `step`: 닫은 단계. `나중에 할게요`는 보내지 않는다(`step: login, action: skip`이 그 신호다).
 - `click_onboarding_trip_gear_pick` — 3단계에서 장비를 **담을 때**(선택 해제는 보내지 않음). `source`: `popular`(인기 행 토글) \| `warehouse`(체크리스트 토글) \| `search`(검색 모달에서 등록 후 자동 선택) \| `custom`(직접 추가 저장 후 자동 선택), `category`: 장비의 1차 카테고리(GearFilter 그룹 키). 검색·직접 추가는 돌아와 자동 선택될 때 장비마다 한 번 보낸다.
 - 화면 조회는 라우트(`onboarding-trip`) `screen_view`로 자연 수집된다(AN-2).
 - 여행 이름·여행지명·장비 이름 같은 사용자 입력은 보내지 않는다.
@@ -191,10 +199,60 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
 - 아이콘 전용 컨트롤(뒤로·닫기)에 `accessibilityRole='button'` + `accessibilityLabel`. 단계 제목은 `accessibilityRole='header'`.
 - 문구는 존댓말, 짧게. 모든 UI 문구는 `onboarding.*` l10n 키(ko·en·ja 동수)로 둔다(L10N-3).
 
+### OB-11 비로그인 첫 실행 — 로그인 전 가이드 `[제안]`
+
+> **2026-10-08 사용자 결정**: 가이드가 첫 실행 경험이다. 이 기기에서 처음 앱을 연 사용자에게 로그인보다 먼저 가이드를 보여 주고, 마지막에 로그인을 요청한다.
+
+**수용 기준**
+
+- **비로그인 홈의 `첫 여행 만들기`**(Home HM-8, 2026-10-08)로도 연다 — 이 진입은 기기 기록과 무관하게 언제든 연다(`presentOnDemand()`). 닫거나 만들면 같은 규칙으로 기기 기록을 남긴다.
+- 대상 = **비로그인 + 기기 기록 `onboarding-first-trip_device` 없음**. 판정 시점은 OB-2와 같다 — 게이트 판정이 끝나고(`isResolved()`, 게이트 대상 아님) 메인 탭에 처음 도착했을 때, 세션당 1회.
+- 기록은 기기 단위 `onboarding-first-trip_device` = `{ status, at }`(OB-1과 같은 값 집합). 띄우는 순간 `presented`를 먼저 쓴다 — 도중에 앱이 종료돼도 다시 띄우지 않는다(한 번만). `나중에 할게요`·닫기 → `dismissed`, 로그인 후 생성 → `completed`. 기록이 하나라도 있으면 **다시 띄우지 않는다**(로그인 이어가기 OB-12의 재개는 예외).
+- 로그인 사용자로 판정한 기기에는 `not_needed`를 남긴다(OB-1) — 이미 앱을 쓴 사람이라 로그아웃해도 첫 실행 가이드를 보지 않는다.
+- **OTA로 업데이트한 기존 설치**: 기기 기록이 없으므로 그때 비로그인이면 **한 번 본다**(결정 — 진짜 첫 실행은 아니지만 비로그인 사용자는 여행을 가질 수 없어 대상과 같고, 설치 이력을 구분할 신호가 없다. 가장 단순한 규칙). 로그인 상태로 업데이트한 사용자는 OB-1로 판정되고 기기에는 `not_needed`가 남는다.
+- **1~3단계는 비로그인에서도 그대로 동작한다**:
+  - 1단계 날짜: 변경 없음.
+  - 2단계 여행지: 공용 선택기(DST-3)는 지도·장소 검색·박지 상세가 공개 읽기라 비로그인에서 동작한다. 로그인을 요구하는 것은 즐겨찾기 칩(CS-9)뿐이다(아래 엣지 케이스). 날씨는 생성 때 조회한다(DST-6).
+  - 3단계 장비: OB-13.
+- **4단계(완료) — 비로그인**: 요약 면·안내 문장은 OB-7 그대로. 주 액션(라임) `로그인하고 여행 만들기` → OB-12. 보조 버튼 `나중에 할게요` → 확인 없이 가이드를 닫고(고른 내용·초안 폐기, 기록 `dismissed`) 비로그인 홈으로 돌아간다. 알림 권한은 이 단계에서 묻지 않는다 — 로그인 뒤 이어 만들 때 묻는다(OB-12).
+- 뒤로·닫기 ×·하드웨어 뒤로는 OB-3 그대로(닫기 ×는 확인 알럿).
+
+### OB-12 로그인하고 이어 만들기 — 초안 보존 `[제안]`
+
+**수용 기준**
+
+- `로그인하고 여행 만들기` → 지금까지 고른 내용을 **초안**으로 기기에 저장한 뒤 기존 로그인 모달(AU-1 `LogInAlertManager.show()`)을 연다. 가이드 화면이 `LogInView`를 직접 렌더한다(fullScreenModal 위에 떠야 한다 — 검색 모달 `/search`와 같은 이유).
+- **초안** = AsyncStorage `onboarding-first-trip-draft`(기기 단위, APP-6). 값 `{ version: 1, savedAt, resumable, startDate, endDate, datesUndecided, location, catalogGears }` — 날짜는 `YYYY-MM-DD`, `location`은 BagLocation(DM-15와 같은 모양), `catalogGears`는 고른 카탈로그 장비의 카탈로그 데이터(인기 장비·검색 담기). **uid·이메일·이름 같은 개인 식별 정보는 넣지 않는다.** 저장한 지 24시간이 지난 초안은 버린다.
+- **로그인 성공 + 약관 동의가 끝난 계정**: 모달이 닫히면 가이드 안에서 바로 이어 만든다 — 권한 상태를 읽고 미결정이면 OS 권한을 묻고(OB-8 맥락 요청) → OB-7 생성 순서(add → 여행지 → 카탈로그 장비 창고 등록 → 담기) → 초안 삭제 · uid 기록·기기 기록 `completed` → 새 여행 상세(`router.replace('/bag/{id}')`). 생성 중 표시·연타 방지·부분 실패 처리는 OB-7 그대로.
+- **약관 동의가 필요한 신규 계정**: 레이아웃 가드(AU-3)가 `/terms-agreement`로 `replace`하면서 가이드가 내려간다. 이때 초안은 남기고 기록을 `dismissed`로 덮지 않는다. 동의 후 메인 탭에 도착하면 레이아웃이 초안을 발견해 가이드를 **완료 단계로 다시 열고 바로 이어 만든다**(OB-2 자리 — 신기능 팝업·공지보다 먼저).
+- **이미 여행이 있는 계정**: 그래도 이 여행을 만든다 — 사용자가 직접 고른 여행이다(결정). 이어 만들기는 OB-1의 여행 수 판정을 건너뛰고, 끝나면 uid 기록을 `completed`로 남긴다. 고른 카탈로그 장비가 이미 창고에 있으면 다시 등록하지 않는다(`GearStore.register`가 건너뜀 — `gear-rank` 중복 집계 없음).
+- **로그인 취소**(모달 닫기·Google/Apple 시트 취소): 완료 단계에 머문다(비로그인 버튼 그대로). 초안은 지운다 — 화면의 입력은 메모리에 그대로라 다시 누르면 다시 저장한다. 판정: 모달이 닫혔을 때 Firebase Auth 세션이 없으면 취소, 있으면 로그인 상태 전파(AU-7)를 기다린다.
+- **로그인 실패**(제공자 오류·이메일 불일치): 기존 알럿(AU-1) 후 모달이 열린 채 남는다. 사용자가 모달을 닫으면 취소와 같다.
+- **로그인 도중 앱 종료**(Apple/Google 인증 화면에서 종료 등):
+  - 인증이 끝난 뒤 종료됐다면 다음 실행은 로그인 상태다 → (필요하면 약관 →) 메인 탭 도착 시 초안으로 이어 만든다.
+  - 인증 전에 종료됐다면 다음 실행은 비로그인이다 → 메인 탭 도착 시 초안으로 가이드를 **완료 단계에서 한 번 다시 연다**(기기 기록이 있어도). 이때 초안의 `resumable`을 지워 또 종료돼도 반복해서 열지 않는다(다시 로그인을 누르면 다시 저장된다).
+- **생성 실패**(오프라인 등): OB-7 실패 알럿 후 완료 단계에 머문다(이제 로그인 상태 버튼). 초안은 생성 성공·닫기·`나중에 할게요`까지 남는다.
+- **계정 전환**: 초안에는 계정 정보가 없어, 초안이 살아 있는 동안 로그인한 계정이 이 여행을 받는다(24시간 안 — 수용). 로그아웃은 초안에 영향을 주지 않는다.
+- **알림 권한**: 비로그인 가이드를 띄운 세션은 시작 시 요청(NT-1)을 건너뛴다. 이어 만들 때 미결정이면 한 번 묻고, 결정돼 있으면 묻지 않는다(`requestPermissionIfUndetermined`) — 어떤 경로로도 두 번 묻지 않는다(OB-8). 약관 화면을 거쳐 다시 연 세션(다음 실행 포함)도 가이드를 띄우므로 시작 시 요청을 건너뛰고 이어 만들기에서 묻는다.
+
+### OB-13 비로그인 3단계 — 창고 없이 담기 `[제안]`
+
+**수용 기준**
+
+- 비로그인 사용자는 창고가 없다 — 창고를 읽지 않고 **인기 장비 모드**(OB-6)로 연다(읽기 실패 안내도 없다). 부제·인기 구획·요약은 OB-6 그대로.
+- `다른 {카테고리} 찾기` → 검색 모달 `/search?category={그룹 키}&pick=onboarding` — **담기 모드**(`GearAddMode.Pick`). 피드·검색 결과 셀의 `+`(와 셀 탭)는 창고에 쓰지 않고 그 카탈로그 장비를 가이드에 넘긴 뒤 모달을 닫는다(모듈 핸드오프 `GearPickHandoff`, DST-3 핸드오프와 같은 패턴). 이미 가이드에 담은 장비는 비파괴 체크 배지로 보인다. 검색 결과 없음의 `직접 추가` 버튼(SR-11)은 담기 모드에서 숨긴다(로그인이 필요한 수동 폼이다).
+- 넘겨받은 장비는 그 카테고리 아래(인기 행 위) **선택된 행**으로 보이고 요약에 더해진다(`click_onboarding_trip_gear_pick { source: search }`). 인기 행과 같은 장비면 하나로 합친다(같은 ID). 생성 때 인기 장비와 함께 창고에 등록하고 여행에 담는다(OB-7 2.5단계).
+- `직접 추가`는 **비로그인에서 숨긴다**(결정) — 수동 폼(GE-3)은 저장하는 순간 창고에 쓰므로 로그인이 필요하다. 이름·카테고리·무게만 초안으로 들고 있다 로그인 뒤 만드는 방법은 폼을 따로 만들어야 해 범위 밖이다. 로그인 뒤 여행 상세에서 추가하면 된다.
+- 로그인 사용자는 담기 모드를 쓰지 않는다(OB-6 창고 컨텍스트 그대로). 가이드 도중 로그인 상태가 되면(즐겨찾기 등 다른 경로) 그 뒤로 여는 검색·직접 추가는 로그인 사용자 동작을 따른다.
+
+
 ## 4. 데이터
 
 - Firestore 계약 변경 없음 — 생성은 BAG-2·DST-6·BD-4의 기존 쓰기를 그대로 쓴다([DataModel.md](DataModel.md) DM-5·DM-15).
 - 기기 로컬 AsyncStorage `onboarding-first-trip_{uid}` = `{ status: 'presented' | 'dismissed' | 'completed' | 'not_needed', at: ISO 문자열 }`(APP-6). 서버에 동기화하지 않는다.
+- 기기 로컬 AsyncStorage `onboarding-first-trip_device` = 같은 모양(OB-11 기기 단위 첫 실행 기록).
+- 기기 로컬 AsyncStorage `onboarding-first-trip-draft` = 로그인 이어가기 초안(OB-12). 개인 식별 정보 없음, 24시간 유효, 생성 성공·닫기·`나중에 할게요`·로그인 취소 때 지운다.
+- 검색 모달 `/search`에 선택 파라미터 `pick=onboarding` 추가 — 담기 모드(OB-13, `GearAddMode.Pick`). 창고·배낭에 쓰지 않는다.
 - 검색 모달 `/search`에 선택 파라미터 `category`(GearFilter 그룹 키) 추가 — 피드 1차 카테고리 초기값(OB-6). 다른 진입점은 영향 없음.
 - 수동 폼 `/custom`에 선택 파라미터 `category`(GearFilter 그룹 키) 추가 — 카테고리 칩 초기 선택(OB-6, GE-8). 알 수 없는 값이면 기본(첫 칩).
 - 인기 장비 읽기: `gear-rank` 카테고리별 `count desc limit 8` + `gear` `documentId in`(DM-6 — SR-4와 같은 쿼리·인덱스). 쓰기는 OB-7의 `GearStore.register`(DM-6 증가 규칙 그대로).
@@ -211,7 +269,9 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
 
 ## 6. 엣지 케이스
 
-- **비로그인**: 대상 아님. 로그인하고 약관까지 마친 뒤 탭에 도착하면 그때 판정한다.
+- **비로그인**: 이 기기 첫 실행이면 OB-11로 로그인 전에 가이드를 본다. 기기 기록이 있으면 보지 않고, 로그인하고 약관까지 마친 뒤 탭에 도착하면 OB-1로 판정한다(여행 0개 + uid 기록 없음이면 다음 세션에 한 번 더 볼 수 있다 — 계정 기준 1회. **같은 세션에 이미 비로그인 가이드를 띄웠으면 로그인 직후 다시 띄우지 않고 기록도 남기지 않는다**).
+- **비로그인 가이드 도중 다른 경로로 로그인**(여행지 선택기의 즐겨찾기 칩 등): 가이드는 로그인 상태로 이어지고 완료 단계는 로그인 사용자 버튼이 된다. 약관이 필요한 신규 계정이면 리다이렉트로 가이드가 내려가고(초안 없음) 동의 후 OB-1 판정으로 다시 볼 수 있다(수용).
+- **로그인 이어가기 엣지**(실패·취소·약관·계정 전환·도중 종료·오프라인): OB-12 수용 기준.
 - **오프라인**: 판정 읽기 실패 → 이번 세션 미노출·미기록. 생성 실패 → 알럿 후 머무름(OB-7). 창고 읽기 실패 → 3단계 다시 시도(OB-6).
 - **도중 중단·앱 종료**: 띄울 때 `presented`를 기록하므로 다시 뜨지 않는다. 중간 단계에서 Firestore에 쓰지 않으므로 반쯤 만든 여행이 남지 않는다. 검색으로 창고에 등록한 장비만 남는다(의도된 동작 — 사용자의 장비다).
 - **가이드가 뜬 사이 다른 경로로 여행을 만듦**: 가이드는 전체 화면 모달이라 다른 생성 경로에 닿을 수 없다. 딥링크(알림 탭 등)로 다른 화면이 위에 쌓여 그곳에서 여행을 만들어도, 가이드로 돌아와 완료하면 여행이 하나 더 생길 뿐 데이터는 깨지지 않는다(수용).
@@ -250,6 +310,16 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
 - [ ] GA4 DebugView(`EXPO_PUBLIC_ANALYTICS_DEV_COLLECTION=1`): 단계마다 `click_onboarding_trip_step`(step·action), 장비를 담을 때 `click_onboarding_trip_gear_pick`(source·category), 완료 시 `click_onboarding_trip_complete`, 닫기 시 `click_onboarding_trip_dismiss`.
 - [ ] 웹: 가이드가 뜨고 여행지(카카오 검색)·장비 검색·생성이 동작, 권한 문구 없음.
 
+- [ ] `[OB-11]` 앱 데이터 삭제 후 비로그인으로 실행 → 홈 도착 시 가이드가 뜬다(게이트 판정 뒤). 닫고 재실행 → 다시 뜨지 않음. 로그인 상태로 쓰던 기기에서 로그아웃 → 뜨지 않음.
+- [ ] `[OB-11]` 비로그인 가이드가 떠 있는 동안 신기능 팝업·공지가 뜨지 않는다.
+- [ ] `[OB-13]` 비로그인 3단계: 인기 장비 모드, `직접 추가` 버튼 없음. `다른 텐트 찾기` → 검색 모달에서 `+` → 모달이 닫히고 그 장비가 텐트 아래 선택된 행으로 보임. 창고(Firestore)에 쓰기 없음. 결과 없음 빈 상태에 `직접 추가` 버튼 없음.
+- [ ] `[OB-11]` 비로그인 4단계: `로그인하고 여행 만들기` + `나중에 할게요`. `나중에 할게요` → 비로그인 홈.
+- [ ] `[OB-12]` 기존 계정(약관 동의 완료)으로 로그인 → 권한 미결정이면 OS 권한 → 자동으로 여행 생성 → 여행 상세에 날짜·여행지·장비(창고에도 등록).
+- [ ] `[OB-12]` 신규 계정으로 로그인 → 약관 화면 → 동의 → 홈 도착 즉시 가이드가 완료 단계로 다시 열리며 자동 생성.
+- [ ] `[OB-12]` 로그인 모달 닫기 / Google 시트 취소 → 완료 단계에 머묾, `click_onboarding_trip_login { result: cancel }`.
+- [ ] `[OB-12]` Google 계정 선택 화면에서 앱 강제 종료 → 재실행(비로그인) → 가이드가 완료 단계로 한 번 다시 열림. 또 종료 → 다시 열리지 않음.
+- [ ] `[OB-12]` 여행이 이미 있는 계정으로 로그인 → 가이드 여행이 하나 더 만들어짐. 시작 시 권한 대화상자가 따로 뜨지 않음(두 번 묻지 않음).
+
 ## 8. 결정 사항 / 미해결 질문
 
 **결정됨 (2026-10-08 구현 시 판단)**
@@ -264,6 +334,14 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
 - 인기 행의 담기는 체크리스트와 같은 원형 토글이지만 비선택 모양이 `+`다 — 창고에 없는 장비라 "담기"(추가)로 읽혀야 한다.
 - `직접 추가`는 SR-11의 수동 폼 라우트(`/custom`)를 그대로 쓰되 `click_search_empty_custom_add`는 보내지 않는다(검색 결과 없음이 아니다) — 가이드 계측은 `click_onboarding_trip_gear_pick { source: custom }`.
 - 창고 비어 있음 모드의 검색은 **창고 컨텍스트**(배낭 담기 아님)다 — 여행이 아직 없어 배낭 컨텍스트(`bagId`)를 쓸 수 없다. 돌아와서 새 장비를 자동 선택해 같은 결과를 낸다.
+
+- **(2026-10-08 사용자 결정) 가이드는 첫 실행 경험** — 비로그인 첫 실행에 먼저 보여 주고 마지막에 로그인을 요청한다(OB-11·OB-12). 구현 판단:
+  - OTA로 업데이트한 비로그인 기존 설치도 한 번 본다(OB-11 — 구분 신호 없음, 가장 단순).
+  - 로그인 계정에 이미 여행이 있어도 가이드 여행을 만든다(OB-12 — 사용자가 직접 만든 여행).
+  - 비로그인 `직접 추가`는 숨긴다(OB-13 — 수동 폼이 로그인 필요, 초안 폼은 범위 밖).
+  - 검색은 담기 모드(`pick=onboarding`)로 창고에 쓰지 않고 장비만 돌려준다(OB-13).
+  - 초안은 기기 로컬·개인정보 없음·24시간 유효(OB-12). 인증 전 종료 시 완료 단계 재개는 1회만.
+  - `나중에 할게요`는 확인 알럿 없이 닫는다 — 완료 단계에서 명시적으로 고른 선택이다.
 
 **미해결**
 

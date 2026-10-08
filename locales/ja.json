@@ -661,7 +661,8 @@
     "emptyCustomAdd": {
       "title": "「{{query}}」の検索結果がありません",
       "subtitle": "探している装備がなければ、直接追加してみましょう",
-      "button": "直接追加"
+      "button": "直接追加",
+      "subtitleNoAdd": "別のキーワードで探してみてください"
     },
     "rank": {
       "title": "人気ギアランキング",
@@ -1050,7 +1051,13 @@
     "recommendedTitle": "uselessが選んだキャンプ場",
     "viewOnMap": "{{name}}、{{type}}、{{region}}、地図で見る",
     "login": "ログイン",
-    "profileButton": "マイページ"
+    "profileButton": "マイページ",
+    "signedOut": {
+      "title": "必要な道具だけ、ザックは軽く",
+      "subtitle": "道具の重さを整理して、次のバックパッキングに備えましょう",
+      "firstTrip": "最初の旅行を作る",
+      "loginLink": "アカウントをお持ちの方 · ログイン"
+    }
   },
   "health": {
     "title": "運動記録",
@@ -1606,7 +1613,9 @@
       "createFailedTitle": "旅行を作成できませんでした",
       "createFailed": "しばらくしてからもう一度お試しください。",
       "partialFailedTitle": "旅行は作成しましたが、一部を保存できませんでした",
-      "partialFailed": "旅行画面で目的地と装備をもう一度確認してください。"
+      "partialFailed": "旅行画面で目的地と装備をもう一度確認してください。",
+      "loginAndCreate": "ログインして旅行を作成",
+      "later": "あとで"
     },
     "trip": {
       "nameWithPlace": "{{place}} バックパッキング",

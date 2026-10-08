@@ -73,6 +73,7 @@ app/(tabs)/_layout.tsx → 현재 탭 5개: 홈(index) · 탐색(search) · 지�
 - 전역 오버레이(로그인 모달, Alert, Toast)는 `Layout.tsx`가 모든 화면에 깔아준다.
 - 로컬 저장(`LocalStorageManager`, AsyncStorage 기반)은 JSON 직렬화 래퍼이며 키는 `selectedOrderType_{key}`(정렬 선택)와 `appLanguage`(인앱 언어 오버라이드: `'ko' | 'en' | 'ja'`, 키가 없으면 시스템 따르기)다. [Localization.md](Localization.md) L10N-1.
   - `[제안]` `onboarding-first-trip_{uid}`(첫 여행 가이드 노출 기록 `{ status, at }`, [Onboarding.md](Onboarding.md) OB-1).
+  - `[제안]` `onboarding-first-trip_device`(기기 단위 첫 실행 가이드 기록 `{ status, at }`, OB-11) · `onboarding-first-trip-draft`(로그인 이어가기 초안 — 날짜·여행지·카탈로그 장비, 개인정보 없음, 24시간 유효, OB-12).
 
 ### APP-7 스토어 강제 업데이트 게이트 `[제안]`
 
@@ -148,8 +149,9 @@ app/(tabs)/_layout.tsx → 현재 탭 5개: 홈(index) · 탐색(search) · 지�
 **수용 기준**
 
 - 우선순위: `강제 업데이트 게이트(APP-7) > 약관 동의(AU-3) > 첫 여행 가이드(OB-2) > 신기능 팝업(FP-6) > 텍스트 공지(AN-2)`.
-- 신기능 팝업·공지 시트는 `OnboardingTripManager.isBlockingPopups()`가 true인 동안 표시하지 않는다 — 로그인 + 약관 미동의, 로그인·동의 사용자의 가이드 판정 전·판정 중, 가이드 표시 중. 비로그인 사용자에게는 false(기존 동작).
-- 알림 권한 시작 시 요청(NT-1)도 가이드 판정이 끝난 뒤에 한다(OB-8) — OS 대화상자가 가이드·약관 화면 위에 겹치지 않는다.
+- 신기능 팝업·공지 시트는 `OnboardingTripManager.isBlockingPopups()`가 true인 동안 표시하지 않는다 — 로그인 + 약관 미동의, 로그인·동의 사용자의 가이드 판정 전·판정 중, 가이드 표시 중. ~~비로그인 사용자에게는 false(기존 동작).~~ → 2026-10-08 개정: 비로그인 사용자도 **기기 단위 첫 실행 판정(OB-11) 전·판정 중과 가이드 표시 중**에는 true다(가이드가 로그인 전 첫 실행 경험이 됐다). 판정이 끝나 가이드를 띄우지 않으면 false.
+- 로그인 이어가기 초안(OB-12)이 있으면 탭 도착 때 그 재개가 첫 여행 가이드 자리를 차지한다(약관 동의 뒤 · 신기능 팝업 앞).
+- 알림 권한 시작 시 요청(NT-1)도 가이드 판정이 끝난 뒤에 한다(OB-8) — OS 대화상자가 가이드·약관 화면 위에 겹치지 않는다. 비로그인 가이드를 띄운 세션은 시작 시 요청을 건너뛰고, 로그인 뒤 이어 만들 때 한 번만 묻는다(OB-12).
 
 ## 4. 데이터
 

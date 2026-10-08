@@ -206,8 +206,10 @@
 
 | 이벤트 | 트리거 | 파라미터 |
 | --- | --- | --- |
-| `click_onboarding_trip_step` | 가이드 각 단계의 주 액션·보조 버튼. 1단계 `아직 미정이에요`는 `skip`, 2단계 미선택 상태의 `여행지 고르기`(선택기만 엶)는 보내지 않음, 4단계 주 액션은 `next`·`알림 없이 만들기`는 `skip` | `step`: `date` \| `destination` \| `gear` \| `done`, `action`: `next` \| `skip` |
+| `click_onboarding_trip_step` | 가이드 각 단계의 주 액션·보조 버튼. 1단계 `아직 미정이에요`는 `skip`, 2단계 미선택 상태의 `여행지 고르기`(선택기만 엶)는 보내지 않음, 4단계 주 액션은 `next`·`알림 없이 만들기`는 `skip` | `step`: `date` \| `destination` \| `gear` \| `done` \| `login`, `action`: `next` \| `skip`. `login`(2026-10-08, OB-11): 비로그인 완료 단계 `로그인하고 여행 만들기`=`next`, `나중에 할게요`=`skip`(이때 `done`은 보내지 않음) |
 | `click_onboarding_trip_complete` | 가이드로 여행 생성 성공(`BagStore.add` 성공 기준) | `has_dates`: boolean(미정이면 false), `has_destination`: boolean, `gear_count`: 정수, `notification`: `granted` \| `denied` \| `skipped` \| `already` \| `unavailable` |
+| `click_home_first_trip` | 비로그인 홈 히어로 `첫 여행 만들기`(HM-8, 2026-10-08) — 가이드를 로그인 전에 엶 | — |
+| `click_onboarding_trip_login` | 가이드 완료 단계에서 연 로그인 모달의 결과(OB-12). 재실행·약관 뒤 이어 만들기는 다시 보내지 않음 | `result`: `success` \| `cancel` |
 | `click_onboarding_trip_dismiss` | 가이드 닫기 확정(× 또는 1단계 하드웨어 뒤로) | `step`: 닫은 단계(`date` \| `destination` \| `gear` \| `done`) |
 | `click_onboarding_trip_gear_pick` | 가이드 3단계에서 장비를 담음(선택 해제는 미전송). 검색·직접 추가는 돌아와 자동 선택될 때 장비마다 1회 | `source`: `popular` \| `warehouse` \| `search` \| `custom`, `category`: GearFilter 그룹 키 |
 

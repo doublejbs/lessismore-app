@@ -661,7 +661,8 @@
     "emptyCustomAdd": {
       "title": "'{{query}}' 검색 결과가 없어요",
       "subtitle": "찾는 장비가 없으면 직접 추가해 보세요",
-      "button": "직접 추가"
+      "button": "직접 추가",
+      "subtitleNoAdd": "다른 검색어로 찾아보세요"
     },
     "rank": {
       "title": "인기 장비 순위",
@@ -1050,7 +1051,13 @@
     "recommendedTitle": "useless가 고른 박지",
     "viewOnMap": "{{name}}, {{type}}, {{region}}, 지도에서 보기",
     "login": "로그인",
-    "profileButton": "내 정보"
+    "profileButton": "내 정보",
+    "signedOut": {
+      "title": "필요한 장비만, 배낭은 가볍게",
+      "subtitle": "장비 무게를 정리하고 다음 백패킹을 준비해요",
+      "firstTrip": "첫 여행 만들기",
+      "loginLink": "이미 계정이 있어요 · 로그인"
+    }
   },
   "health": {
     "title": "운동 기록",
@@ -1606,7 +1613,9 @@
       "createFailedTitle": "여행을 만들지 못했어요",
       "createFailed": "잠시 후 다시 시도해 주세요.",
       "partialFailedTitle": "여행은 만들었지만 일부를 저장하지 못했어요",
-      "partialFailed": "여행에서 여행지와 장비를 다시 확인해 주세요."
+      "partialFailed": "여행에서 여행지와 장비를 다시 확인해 주세요.",
+      "loginAndCreate": "로그인하고 여행 만들기",
+      "later": "나중에 할게요"
     },
     "trip": {
       "nameWithPlace": "{{place}} 백패킹",

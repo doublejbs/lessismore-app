@@ -17,7 +17,7 @@
 | 경로 | 대상 | 비고 |
 | --- | --- | --- |
 | 탭 `탐색` (`app/(tabs)/search.tsx`) | 로그인 사용자 | `SearchPageView` |
-| `/search`(+`?bagId=`) | 로그인 사용자 | **장비 추가 `검색으로 추가`(GearEdit GE-8) 진입 모달**(`SearchWarehouseView` 재사용 — 검색어 없으면 둘러보기 피드, 입력 시 검색 결과). `bagId` 있으면 선택 시 그 배낭에 바로 담기(SR-3). 시트 UI 문법은 SR-10 |
+| `/search`(+`?bagId=`·`?pick=onboarding`) | 로그인 사용자 · 첫 여행 가이드 비로그인 담기 모드(`pick`, [Onboarding.md](Onboarding.md) OB-13 `[제안]` — `+`·셀 탭이 쓰기 없이 장비를 가이드에 돌려주고 닫힘, 결과 없음 `직접 추가` 숨김) | **장비 추가 `검색으로 추가`(GearEdit GE-8) 진입 모달**(`SearchWarehouseView` 재사용 — 검색어 없으면 둘러보기 피드, 입력 시 검색 결과). `bagId` 있으면 선택 시 그 배낭에 바로 담기(SR-3). 시트 UI 문법은 SR-10 |
 | `/browse?category=&brand=&sort=` | 전체 | 카테고리·브랜드 목록 + 정렬 (SR-7) |
 | `/brand-directory` | 전체 | 브랜드 디렉토리 인기순 (SR-8) |
 | `/popular-ranking` | 전체 | 인기 장비 순위 (SR-4, 피드 `인기 순위` 버튼으로 진입) |
