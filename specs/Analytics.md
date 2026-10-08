@@ -127,6 +127,7 @@
 | `search` (GA4 표준) | 검색 실행 (SR-1) | `search_term`: 검색어 |
 | `click_search_add` | 검색 결과에서 창고/배낭에 장비 추가 (SR-3) | `target`: `warehouse` \| `bag` |
 | `click_search_rank_item` | 인기 장비 순위 행 클릭 (SR-4) | — |
+| `click_search_empty_custom_add` | `[제안]` 검색 결과 없음 빈 상태의 `직접 추가` 탭 (SR-11). 비로그인으로 로그인 모달이 뜬 탭도 포함 | `source`: `feed` \| `warehouse` \| `bag` |
 | `click_browse_category` | [폐기] 탐색 홈(SR-6)이 피드로 대체되며 화면이 제거돼 더 이상 발생하지 않음 | `category`: 카테고리 값 |
 | `click_browse_brand_all` | [폐기] 위와 동일 — 브랜드 디렉토리로 가는 진입점이 코드에 없다(라우트만 잔존) | — |
 | `click_browse_brand_preview` | [폐기] 위와 동일 | — |

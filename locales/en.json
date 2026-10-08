@@ -666,6 +666,11 @@
       "close": "Close"
     },
     "resultEmpty": "No search results",
+    "emptyCustomAdd": {
+      "title": "No results for '{{query}}'",
+      "subtitle": "Can't find your gear? Add it yourself",
+      "button": "Add manually"
+    },
     "rank": {
       "title": "Popular gear",
       "empty": "No gear has been added yet",
