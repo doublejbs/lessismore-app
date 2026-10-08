@@ -10,6 +10,7 @@ import GearFilter from '@/model/gear/GearFilter';
 import WarehouseFilter from '@/model/warehouse/WarehouseFilter';
 import BagDetailFilterManager from '@/model/bag-detail/BagDetailFilterManager';
 import PackingButtonState from '@/model/bag-detail/PackingButtonState';
+import EmptyBagAddSource from '@/model/bag-detail/EmptyBagAddSource';
 import { ImperativeRouter } from 'expo-router';
 import BagWeather from '@/model/bag/BagWeather';
 import { getPhaseLabel } from '@/model/bag/TripPhaseHelper';
@@ -72,6 +73,8 @@ class BagDetail implements BagScheduleWriter {
   private packedCount = 0;
   private packingCompleted = false;
   private packingStarted = false;
+  // 빈 배낭일 때만 채운다(BD-13) — 창고도 비었으면 주 액션이 검색으로 간다.
+  private warehouseEmpty = false;
   // 헤더 그룹 한 줄(BD-1). 이 배낭이 연결된 그룹 — 여럿이면(2026-09-23 이전 연결) 출발일이 가장 가까운 하나.
   private linkedGroup: Group | null = null;
   // `⋯` → 그룹에 연결 시트의 목록(진행 중·예정 그룹).
@@ -137,6 +140,8 @@ class BagDetail implements BagScheduleWriter {
     this.setWeight(weight);
     this.setEditDate(editDate);
     this.setGears(gears);
+    // 라벨이 초기화 뒤에 바뀌어 튀지 않도록 첫 렌더 전에 기다린다. 빈 배낭에서만 1건 읽는다.
+    await this.loadWarehouseState();
     this.setStartDate(startDate);
     this.setEndDate(endDate);
     this.setShared(shared);
@@ -158,6 +163,50 @@ class BagDetail implements BagScheduleWriter {
     void this.loadRoutes();
     // 그룹 한 줄도 부가 정보다. 화면에 돌아올 때마다(initialize) 다시 읽어 그룹에서 바꾼 연결을 반영한다.
     void this.loadLinkedGroup();
+  }
+
+  private async loadWarehouseState() {
+    if (this.gears.length > 0) {
+      this.setWarehouseEmpty(false);
+
+      return;
+    }
+
+    try {
+      this.setWarehouseEmpty(!(await this.gearStore.hasAnyGear()));
+    } catch (error) {
+      // 실패하면 기존 동작(편집 화면)으로 둔다.
+      console.warn('[BagDetail] 창고 조회 실패', error); // l10n-ignore: 개발자 로그
+      this.setWarehouseEmpty(false);
+    }
+  }
+
+  private setWarehouseEmpty(value: boolean) {
+    this.warehouseEmpty = value;
+  }
+
+  // 담긴 장비가 없는 배낭(BD-13).
+  public isEmpty() {
+    return this.gears.length === 0;
+  }
+
+  public getEmptyAddSource(): EmptyBagAddSource {
+    if (this.warehouseEmpty) {
+      return EmptyBagAddSource.Search;
+    }
+
+    return EmptyBagAddSource.Warehouse;
+  }
+
+  // 빈 배낭의 주 액션 — 창고에 장비가 있으면 편집(BD-4), 없으면 이 배낭 컨텍스트의 검색 모달(GE-8).
+  public goToEmptyAdd() {
+    if (this.getEmptyAddSource() === EmptyBagAddSource.Search) {
+      this.router.push(`/search?bagId=${this.getId()}`);
+
+      return;
+    }
+
+    this.goToEdit();
   }
 
   /**

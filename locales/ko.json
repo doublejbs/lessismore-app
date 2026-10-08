@@ -328,7 +328,12 @@
     "todayDeparture": "오늘 출발",
     "dDay": "D-{{count}}",
     "ongoing": "여행 중",
-    "pastTrip": "지난 여행"
+    "pastTrip": "지난 여행",
+    "emptyTitle": "장비를 담아 무게를 확인해 보세요",
+    "emptyBodyWarehouse": "창고에 있는 장비를 골라 담으면 총 무게와 카테고리별 비중을 바로 볼 수 있어요.",
+    "emptyBodySearch": "창고가 아직 비어 있어요. 장비를 검색해 이 여행에 바로 담아 보세요.",
+    "emptyAddFromWarehouse": "창고에서 담기",
+    "emptyAddFromSearch": "장비 찾아 담기"
   },
   "bagTemplate": {
     "editGear": "장비 편집",

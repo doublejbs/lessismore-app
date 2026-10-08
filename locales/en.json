@@ -332,7 +332,12 @@
     "todayDeparture": "Departing today",
     "dDay": "D-{{count}}",
     "ongoing": "Traveling",
-    "pastTrip": "Past trip"
+    "pastTrip": "Past trip",
+    "emptyTitle": "Pack gear to see your weight",
+    "emptyBodyWarehouse": "Pick gear from your warehouse to see the total weight and category breakdown right away.",
+    "emptyBodySearch": "Your warehouse is still empty. Search for gear and add it straight to this trip.",
+    "emptyAddFromWarehouse": "Add from warehouse",
+    "emptyAddFromSearch": "Find gear to add"
   },
   "bagTemplate": {
     "editGear": "Edit gear",
