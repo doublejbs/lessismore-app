@@ -32,6 +32,8 @@ type NotificationResponse = {
       content: {
         data?: NotificationData;
       };
+      // 원격 푸시면 type이 'push'다(expo-notifications NotificationTrigger).
+      trigger?: { type?: string } | null;
     };
   };
 };
@@ -120,6 +122,8 @@ const REENGAGEMENT_SYNC_DEBOUNCE_MS = 800;
 
 const DEV_FIRE_DELAY_MS = 10 * 1000;
 
+const OPEN_LOG_DEDUPE_MS = 3 * 1000;
+
 class NotificationManager {
   public static new() {
     return new NotificationManager();
@@ -137,6 +141,7 @@ class NotificationManager {
   private reengagementSyncTimer: ReturnType<typeof setTimeout> | null = null;
   private reengagementSyncing = false;
   private reengagementSyncPending = false;
+  private lastOpenLoggedAt = 0;
 
   private constructor() {}
 
@@ -754,9 +759,7 @@ class NotificationManager {
     const latest = [...trips].sort((a, b) => b.endMs - a.endMs)[0];
 
     if (!latest) {
-      console.warn(
-        'NotificationManager DEV: 배낭이 없어 다음 여행 알림을 보낼 수 없음'
-      ); // l10n-ignore: console 개발자 로그
+      console.warn('NotificationManager DEV: 배낭이 없어 다음 여행 알림을 보낼 수 없음'); // l10n-ignore: console 개발자 로그
 
       return;
     }
@@ -956,7 +959,7 @@ class NotificationManager {
 
   // data.type 우선, 없으면(NT-10 이전 예약분) 식별자 접미사로 추정한다.
   private getTypeFromResponse(response: NotificationResponse): string {
-    const { identifier, content } = response.notification.request;
+    const { identifier, content, trigger } = response.notification.request;
     const type = content.data?.type;
 
     if (typeof type === 'string' && type) {
@@ -971,10 +974,26 @@ class NotificationManager {
       return NotificationType.Useless;
     }
 
+    // 원격 푸시를 expo 리스너가 받은 경우 — RNFirebase 경로와 같이 `notice`로 본다(NT-10).
+    if (trigger?.type === 'push') {
+      return NotificationType.Notice;
+    }
+
     return NotificationType.Unknown;
   }
 
+  // 한 번의 탭이 여러 경로로 들어올 수 있다 — 콜드 스타트에서 응답 리스너와
+  // getLastNotificationResponseAsync가 같은 응답을, 원격 푸시는 RNFirebase와 expo 리스너가
+  // 함께 받는다. NT-10의 "1회"를 지키려고 짧은 창 안의 두 번째 열기는 보내지 않는다
+  // (경로마다 유형 추정이 다를 수 있어 유형과 무관하게 묶는다).
   private logOpen(type: string) {
+    const now = Date.now();
+
+    if (now - this.lastOpenLoggedAt < OPEN_LOG_DEDUPE_MS) {
+      return;
+    }
+
+    this.lastOpenLoggedAt = now;
     app.getAnalyticsManager()?.logEvent('notification_open', { type });
   }
 

@@ -145,6 +145,7 @@
 - 사용자가 알림(로컬·원격)을 탭해 앱에 진입하면 `notification_open` 이벤트를 `type` 파라미터와 함께 1회 보낸다([Analytics.md](Analytics.md) AN-3 알림 표).
 - `type`: `packing`(NT-2) \| `useless`(NT-3) \| `next_trip`(NT-7) \| `weekend_camp`(NT-8) \| `notice`(NT-5 원격) \| `unknown`.
 - 로컬 알림은 예약 시 `data.type`을 싣는다. 이 기능 이전에 예약된 패킹·사용기록 알림은 식별자 접미사(`-packing`/`-useless`)로 유형을 추정한다. 원격 푸시는 페이로드 `type`이 있으면 쓰고 없으면 `notice`.
+- 한 번의 탭이 여러 경로로 들어와도 1회만 보낸다 — 콜드 스타트에서 응답 리스너와 `getLastNotificationResponseAsync`가 같은 응답을, 원격 푸시는 RNFirebase(`onNotificationOpenedApp`/`getInitialNotification`)와 expo 응답 리스너가 함께 받을 수 있다. 3초 안의 두 번째 열기는 유형과 무관하게 보내지 않는다. expo 리스너로 받은 원격 푸시(`trigger.type === 'push'`)에 `data.type`이 없으면 `notice`로 본다.
 
 ## 4. 데이터
 
