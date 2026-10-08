@@ -33,7 +33,11 @@ interface Props {
 // iOS는 콘텐츠가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
 const IOS_EDGES = ['top', 'left', 'right'] as const;
 
-const LOGIN_CTA_HEIGHT = 48;
+const FIRST_TRIP_CTA_HEIGHT = 52;
+// 헤더(위 12 + 버튼 44 + 아래 16) — 비로그인 히어로가 산 일러스트가 끝나는 지점까지 자리를 잡는 계산에 쓴다.
+const HEADER_HEIGHT = 72;
+// 히어로와 첫 섹션 사이(HM-8 비로그인 — 버튼에 섹션이 붙어 보이지 않게).
+const HERO_SECTION_GAP = 24;
 
 const HomeView: FC<Props> = ({ home }) => {
   const router = useRouter();
@@ -45,9 +49,23 @@ const HomeView: FC<Props> = ({ home }) => {
    * 포커스마다 새로 잡는다(HM-6). 상태로 들고 있어야 다시 렌더된다.
    */
   const [today, setToday] = useState(() => dayjs());
+  const l10n = app.getL10n();
 
   const handleLogin = () => {
     app.getLogInAlertManager()?.show();
+  };
+
+  // 비로그인 주 액션(HM-8, 2026-10-08) — 첫 여행 가이드를 로그인 전에 연다(Onboarding OB-11).
+  const handleStartFirstTrip = () => {
+    app.getAnalyticsManager()?.logClick('home_first_trip');
+
+    if (!app.getOnboardingTripManager()?.presentOnDemand()) {
+      return;
+    }
+
+    // 가이드 끝(로그인 뒤 이어 만들기)이 첫 알림 권한 질문이다 — 시작 시 요청은 건너뛴다(OB-8).
+    app.getNotificationManager()?.skipLaunchPermission();
+    router.push('/onboarding-trip');
   };
 
   const handleOpenProfile = () => {
@@ -118,17 +136,49 @@ const HomeView: FC<Props> = ({ home }) => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* 문구 없이 버튼만 둔다(HM-8). 추천 콘텐츠는 주 액션 아래에 붙는다(HM-14). */}
-          <View style={styles.signedOut}>
-            <TouchableOpacity
-              style={styles.loginCta}
-              onPress={handleLogin}
-              activeOpacity={0.8}
-              accessibilityRole='button'
-              accessibilityLabel={app.getL10n().t('home.login')}
+          {/* 히어로(2026-10-08, HM-8): 한 줄 소개 + 부제 + 라임 `첫 여행 만들기` + 로그인 링크.
+              산 일러스트가 끝나는 지점까지 자리를 잡아, 아래 섹션은 흰 지면에서 시작한다(HM-14). */}
+          <View
+            style={[
+              styles.signedOutHero,
+              {
+                minHeight: Math.max(
+                  0,
+                  AcgLayout.homeHeroHeight - insets.top - HEADER_HEIGHT
+                ),
+              },
+            ]}
+          >
+            <PretendardText
+              weight='semibold'
+              style={styles.heroTitle}
+              accessibilityRole='header'
             >
-              <PretendardText weight='semibold' style={styles.loginCtaText}>
-                {app.getL10n().t('home.login')}
+              {l10n.t('home.signedOut.title')}
+            </PretendardText>
+            <PretendardText style={styles.heroSubtitle}>
+              {l10n.t('home.signedOut.subtitle')}
+            </PretendardText>
+            <TouchableOpacity
+              style={styles.firstTripCta}
+              onPress={handleStartFirstTrip}
+              activeOpacity={0.85}
+              accessibilityRole='button'
+              accessibilityLabel={l10n.t('home.signedOut.firstTrip')}
+            >
+              <PretendardText weight='semibold' style={styles.firstTripCtaText}>
+                {l10n.t('home.signedOut.firstTrip')}
+              </PretendardText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.loginLink}
+              onPress={handleLogin}
+              activeOpacity={0.7}
+              accessibilityRole='link'
+              accessibilityLabel={l10n.t('home.signedOut.loginLink')}
+            >
+              <PretendardText weight='medium' style={styles.loginLinkText}>
+                {l10n.t('home.signedOut.loginLink')}
               </PretendardText>
             </TouchableOpacity>
           </View>
@@ -215,21 +265,52 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
   },
-  signedOut: {
-    flex: 1,
-    alignItems: 'stretch',
-    justifyContent: 'center',
+  signedOutHero: {
+    justifyContent: 'flex-end',
+    paddingTop: 8,
+    marginBottom: HERO_SECTION_GAP,
   },
-  loginCta: {
-    minHeight: LOGIN_CTA_HEIGHT,
-    borderRadius: LOGIN_CTA_HEIGHT / 2,
+  // 산 일러스트 위에 놓이는 글자라 지면색 번짐(halo)을 둘러 대비를 확보한다 — 면을 깔지 않는다(HM-8).
+  heroTitle: {
+    ...AcgType.screenTitle,
+    color: Acg.ink,
+    textShadowColor: Acg.paper,
+    textShadowRadius: 10,
+    textShadowOffset: { width: 0, height: 0 },
+  },
+  heroSubtitle: {
+    ...AcgType.sectionSubtitle,
+    // 일러스트 위라 한 단 진한 회색(AA 7.4)을 쓴다 — textMuted는 연두 그래픽 위에서 흐려진다.
+    color: Acg.textTertiary,
+    marginTop: 6,
+    textShadowColor: Acg.paper,
+    textShadowRadius: 10,
+    textShadowOffset: { width: 0, height: 0 },
+  },
+  // 이 화면의 라임은 이 버튼 하나다(HM-8). 알약 = 높이의 절반, Dynamic Type 대응 최소 높이.
+  firstTripCta: {
+    minHeight: FIRST_TRIP_CTA_HEIGHT,
+    borderRadius: FIRST_TRIP_CTA_HEIGHT / 2,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    marginTop: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Acg.ink,
+    backgroundColor: Acg.lime,
   },
-  loginCtaText: {
+  firstTripCtaText: {
     ...AcgType.control,
-    color: Acg.paper,
+    color: Acg.ink,
+  },
+  loginLink: {
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  loginLinkText: {
+    ...AcgType.control,
+    color: Acg.textMuted,
   },
 });
 

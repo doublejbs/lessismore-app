@@ -18,6 +18,13 @@ import OnboardingTripGearMode from './OnboardingTripGearMode';
 import OnboardingTripGearSource from './OnboardingTripGearSource';
 import OnboardingTripPermission from './OnboardingTripPermission';
 import OnboardingTripStatus from './OnboardingTripStatus';
+import OnboardingTripLoginResult from './OnboardingTripLoginResult';
+import {
+  ONBOARDING_TRIP_DRAFT_VERSION,
+  OnboardingTripDraft,
+  fromDraftGear,
+  toDraftGear,
+} from './OnboardingTripDraft';
 
 const STEPS: OnboardingTripStep[] = [
   OnboardingTripStep.Date,
@@ -65,6 +72,8 @@ export interface OnboardingTripCreateResult {
   partialFailure: boolean;
 }
 
+const DRAFT_DATE_FORMAT = 'YYYY-MM-DD';
+
 const parseWeight = (gear: Gear): number => {
   const weight = parseInt(gear.getWeight() || '0', 10);
 
@@ -78,8 +87,9 @@ const parseWeight = (gear: Gear): number => {
  * 건너뛰기·닫기·앱 종료 어느 경우에도 반쯤 만든 여행이 남지 않는다.
  */
 class OnboardingTrip {
-  public static new() {
-    return new OnboardingTrip();
+  // draft가 있으면 로그인 이어가기(OB-12) — 고른 내용을 되살려 완료 단계에서 연다.
+  public static new(draft: OnboardingTripDraft | null = null) {
+    return new OnboardingTrip(draft);
   }
 
   private step: OnboardingTripStep = OnboardingTripStep.Date;
@@ -98,15 +108,46 @@ class OnboardingTrip {
   private popularGears: Partial<Record<GearFilter, Gear[]>> = {};
   private popularLoading = false;
   private popularRequested = false;
+  // 비로그인 검색 담기 모드로 고른 카탈로그 장비(OB-13). 창고에 쓰지 않고 생성 때 등록한다.
+  private pickedGears: Gear[] = [];
   // 검색·직접 추가를 열 때 남겨 두고, 돌아와 자동 선택한 장비의 계측 source로 쓴다(OB-9).
   private pendingPickSource: OnboardingTripGearSource | null = null;
   private permissionStatus: NotificationPermissionStatus | null = null;
   private creating = false;
   // add 성공 후 보관 — 재시도해도 여행이 두 개 생기지 않는다(OB-7).
   private createdBagId: string | null = null;
+  // 로그인하고 여행 만들기(OB-12): 로그인 뒤 자동으로 만들 차례인지.
+  private awaitingLogin = false;
+  // 로그인 성공 계측을 이미 보냈는지 — 이어가기로 연 가이드는 다시 보내지 않는다(OB-9).
+  private loginLogged = false;
+  private autoCreateStarted = false;
 
-  private constructor() {
+  private constructor(draft: OnboardingTripDraft | null) {
     makeAutoObservable(this);
+
+    if (draft) {
+      this.restoreDraft(draft);
+    }
+  }
+
+  private restoreDraft(draft: OnboardingTripDraft): void {
+    this.startDate = draft.startDate ? dayjs(draft.startDate) : null;
+    this.endDate = draft.endDate ? dayjs(draft.endDate) : null;
+    this.datesUndecided = draft.datesUndecided;
+    this.location = draft.location;
+    this.pickedGears = draft.catalogGears.map(fromDraftGear);
+    this.selectedGearIds = this.pickedGears.map(gear => gear.getId());
+    this.step = OnboardingTripStep.Done;
+    // 로그인한 채로 다시 열었으면 바로 이어 만들고, 비로그인(인증 전 종료)이면 로그인 버튼부터 다시 누른다.
+    this.awaitingLogin = !this.isGuest();
+    this.loginLogged = true;
+  }
+
+  // ── 로그인 상태 ───────────────────────────────────────
+
+  // 비로그인 가이드인지(OB-11). 화면 분기(완료 단계 버튼·3단계 담기 모드)는 모두 이 값을 본다.
+  public isGuest(): boolean {
+    return !app.getFirebase().isLoggedIn();
   }
 
   // ── 단계 ──────────────────────────────────────────────
@@ -273,6 +314,13 @@ class OnboardingTrip {
       return;
     }
 
+    // 비로그인은 창고가 없다 — 읽지 않고 인기 장비 모드로 연다(OB-13).
+    if (this.isGuest()) {
+      this.applyLoadedGears([]);
+
+      return;
+    }
+
     this.gearLoading = true;
     this.gearError = false;
 
@@ -325,7 +373,10 @@ class OnboardingTrip {
     this.pendingPickSource = null;
 
     // 창고에서 사라진 장비는 선택에서도 뺀다(인기 장비 선택은 창고와 무관하게 유지).
-    const present = new Set([...ids, ...this.getAllPopularGearIds()]);
+    const present = new Set([
+      ...ids,
+      ...this.getAllCatalogGears().map(gear => gear.getId()),
+    ]);
 
     this.selectedGearIds = this.selectedGearIds.filter(id => present.has(id));
     this.warehouseGears = gears;
@@ -371,9 +422,11 @@ class OnboardingTrip {
     return this.popularLoading;
   }
 
-  // 창고에 이미 있는 장비는 빼고 앞에서 5개(OB-6).
+  // 창고에 이미 있거나 검색으로 담은 장비는 빼고 앞에서 5개(OB-6·OB-13).
   public getPopularGears(group: GearFilter): Gear[] {
-    const owned = new Set(this.warehouseGears.map(gear => gear.getId()));
+    const owned = new Set(
+      [...this.warehouseGears, ...this.pickedGears].map(gear => gear.getId())
+    );
 
     return (this.popularGears[group] ?? [])
       .filter(gear => !owned.has(gear.getId()))
@@ -386,8 +439,23 @@ class OnboardingTrip {
     );
   }
 
-  private getAllPopularGearIds(): string[] {
-    return this.getAllPopularGears().map(gear => gear.getId());
+  // 인기 장비 + 검색 담기로 고른 카탈로그 장비 — 생성 전까지 창고에 없는 장비들.
+  private getAllCatalogGears(): Gear[] {
+    return [...this.pickedGears, ...this.getAllPopularGears()];
+  }
+
+  // 비로그인 검색 담기 모드에서 고른 장비를 받는다(OB-13). 이미 고른 장비면 선택만 맞춘다.
+  public pickGear(gear: Gear): void {
+    const id = gear.getId();
+
+    if (!this.getAllCatalogGears().some(item => item.getId() === id)) {
+      this.pickedGears = [...this.pickedGears, gear];
+    }
+
+    if (!this.selectedGearIds.includes(id)) {
+      this.selectedGearIds = [...this.selectedGearIds, id];
+      this.logPick(gear, OnboardingTripGearSource.Search);
+    }
   }
 
   // 인기 장비에서 골랐고 아직 창고에 없는 장비 — 생성 때 창고에 등록한다(OB-7).
@@ -396,7 +464,7 @@ class OnboardingTrip {
     const selected = new Set(this.selectedGearIds);
     const seen = new Set<string>();
 
-    return this.getAllPopularGears().filter(gear => {
+    return this.getAllCatalogGears().filter(gear => {
       const id = gear.getId();
 
       if (owned.has(id) || !selected.has(id) || seen.has(id)) {
@@ -428,8 +496,9 @@ class OnboardingTrip {
     })).filter(section => section.data.length > 0);
   }
 
+  // 창고 장비 + 검색 담기로 고른 장비(OB-13) — 카테고리 아래 인기 행 위에 보인다.
   public getGearsInGroup(group: GearFilter): Gear[] {
-    return this.warehouseGears.filter(
+    return [...this.warehouseGears, ...this.pickedGears].filter(
       gear => getGroupForCategory(gear.getCategory()) === group
     );
   }
@@ -438,7 +507,7 @@ class OnboardingTrip {
   public getOtherGears(): Gear[] {
     const required = new Set<string>(REQUIRED_GEAR_GROUPS);
 
-    return this.warehouseGears.filter(
+    return [...this.warehouseGears, ...this.pickedGears].filter(
       gear => !required.has(getGroupForCategory(gear.getCategory()))
     );
   }
@@ -527,7 +596,8 @@ class OnboardingTrip {
    * 방금 허용한 권한으로 D-1 알림이 바로 예약된다. add가 실패하면 throw한다(호출측 알럿 후 머무름).
    */
   public async create(
-    askPermission: boolean
+    askPermission: boolean,
+    fromLogin = false
   ): Promise<OnboardingTripCreateResult | null> {
     const bagStore = app.getBagStore();
 
@@ -538,12 +608,15 @@ class OnboardingTrip {
     this.creating = true;
 
     try {
-      this.logStep(
-        OnboardingTripStep.Done,
-        askPermission || !this.canAskPermission()
-          ? OnboardingTripAction.Next
-          : OnboardingTripAction.Skip
-      );
+      // 로그인 뒤 이어 만들 때는 `step: login`을 이미 보냈다(OB-9).
+      if (!fromLogin) {
+        this.logStep(
+          OnboardingTripStep.Done,
+          askPermission || !this.canAskPermission()
+            ? OnboardingTripAction.Next
+            : OnboardingTripAction.Skip
+        );
+      }
 
       const permission = await this.resolvePermission(askPermission);
       let bagId = this.createdBagId;
@@ -610,6 +683,107 @@ class OnboardingTrip {
         this.creating = false;
       });
     }
+  }
+
+  // ── 로그인하고 여행 만들기(OB-11·OB-12) ─────────────────
+
+  public isAwaitingLogin(): boolean {
+    return this.awaitingLogin;
+  }
+
+  // 비로그인 완료 단계 주 액션 — 초안을 저장하고 로그인 모달을 연다.
+  public async requestLogin(): Promise<void> {
+    if (this.creating) {
+      return;
+    }
+
+    this.logStep(OnboardingTripStep.Login, OnboardingTripAction.Next);
+    this.awaitingLogin = true;
+    this.loginLogged = false;
+    this.autoCreateStarted = false;
+    await app.getOnboardingTripManager()?.saveDraft(this.toDraft());
+    app.getLogInAlertManager()?.show();
+  }
+
+  // 비로그인 완료 단계 보조 버튼 `나중에 할게요` — 확인 없이 닫는다. dismiss 계측은 보내지 않는다(OB-9).
+  public async later(): Promise<void> {
+    this.logStep(OnboardingTripStep.Login, OnboardingTripAction.Skip);
+    await app
+      .getOnboardingTripManager()
+      ?.finish(OnboardingTripStatus.Dismissed);
+  }
+
+  /**
+   * 로그인 모달이 닫혔을 때. Auth 세션이 없으면 취소 — 완료 단계에 머물고 초안을 지운다.
+   * 세션이 있으면 로그인 상태 전파(AU-7)를 기다린다(handleLoggedIn).
+   */
+  public async handleLoginClosed(): Promise<void> {
+    if (!this.awaitingLogin || app.getFirebase().isLoggedIn()) {
+      return;
+    }
+
+    if (app.getFirebase().getCurrentUser()) {
+      return;
+    }
+
+    this.awaitingLogin = false;
+    this.logLogin(OnboardingTripLoginResult.Cancel);
+    await app.getOnboardingTripManager()?.clearDraft();
+  }
+
+  public handleLoggedIn(): void {
+    if (!this.awaitingLogin || this.loginLogged) {
+      return;
+    }
+
+    this.logLogin(OnboardingTripLoginResult.Success);
+  }
+
+  // 로그인 + 약관 동의가 끝나면 이어 만든다(OB-12). 한 번만 시도한다.
+  public shouldAutoCreate(): boolean {
+    const firebase = app.getFirebase();
+
+    return (
+      this.awaitingLogin &&
+      !this.autoCreateStarted &&
+      !this.creating &&
+      firebase.isLoggedIn() &&
+      firebase.hasUserAgreedToTerms()
+    );
+  }
+
+  // 미결정이면 맥락 안에서 권한을 묻고(OB-8) 만든다. add 실패는 throw(호출측 알럿 후 머무름).
+  public async autoCreate(): Promise<OnboardingTripCreateResult | null> {
+    this.autoCreateStarted = true;
+
+    try {
+      await this.loadPermissionStatus();
+
+      return await this.create(this.canAskPermission(), true);
+    } finally {
+      runInAction(() => {
+        this.awaitingLogin = false;
+      });
+    }
+  }
+
+  private logLogin(result: OnboardingTripLoginResult) {
+    this.loginLogged = true;
+    app.getAnalyticsManager()?.logClick('onboarding_trip_login', { result });
+  }
+
+  // 로그인 왕복을 넘길 초안(OB-12) — 개인 식별 정보 없음.
+  public toDraft(): OnboardingTripDraft {
+    return {
+      version: ONBOARDING_TRIP_DRAFT_VERSION,
+      savedAt: new Date().toISOString(),
+      resumable: true,
+      startDate: this.startDate?.format(DRAFT_DATE_FORMAT) ?? null,
+      endDate: this.endDate?.format(DRAFT_DATE_FORMAT) ?? null,
+      datesUndecided: this.datesUndecided,
+      location: this.location,
+      catalogGears: this.getSelectedCatalogGears().map(toDraftGear),
+    };
   }
 
   private setCreatedBagId(id: string) {

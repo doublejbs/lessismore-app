@@ -33,10 +33,15 @@ class LogInAlertManager {
   }
 
   public async confirm() {
-    this.setLoading(true);
-    await this.firebase.logInWithGoogle();
-    this.setLoading(false);
-    this.hide();
+    try {
+      this.setLoading(true);
+      await this.firebase.logInWithGoogle();
+      this.setLoading(false);
+      this.hide();
+    } catch {
+      // 취소(계정 선택 시트 닫기)·실패는 조용히 버튼 상태로 되돌린다(AU-1) — 로딩이 남아 모달이 멈추지 않게.
+      this.setLoading(false);
+    }
   }
 
   public async loginWithEmail(email: string, password: string) {

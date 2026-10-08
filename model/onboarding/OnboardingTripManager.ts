@@ -3,8 +3,18 @@ import Firebase from '../firebase/Firebase';
 import BagStore from '../store/BagStore';
 import LocalStorageManager from '../storage/LocalStorageManager';
 import OnboardingTripStatus from './OnboardingTripStatus';
+import {
+  OnboardingTripDraft,
+  parseOnboardingTripDraft,
+} from './OnboardingTripDraft';
 
 const STORAGE_KEY_PREFIX = 'onboarding-first-trip_';
+// 기기 단위 첫 실행 기록(OB-11).
+const DEVICE_STORAGE_KEY = 'onboarding-first-trip_device';
+// 로그인 이어가기 초안(OB-12).
+const DRAFT_STORAGE_KEY = 'onboarding-first-trip-draft';
+// 비로그인 판정 키 — uid 자리에 둔다(로그인 사용자 uid는 비어 있지 않다).
+const GUEST_KEY = '';
 
 interface OnboardingTripRecord {
   status: OnboardingTripStatus;
@@ -12,10 +22,12 @@ interface OnboardingTripRecord {
 }
 
 /**
- * 첫 여행 만들기 가이드의 전역 상태(OB-1·OB-2).
+ * 첫 여행 만들기 가이드의 전역 상태(OB-1·OB-2·OB-11·OB-12).
  *
- * - 대상 판정: 로그인 + 약관 동의 + 여행 0개 + 이 기기에 노출 기록 없음. 판정은 세션당 uid마다 1회.
- * - 노출 기록: AsyncStorage `onboarding-first-trip_{uid}`(APP-6). 기록이 하나라도 있으면 다시 띄우지 않는다.
+ * - 로그인 대상 판정: 로그인 + 약관 동의 + 여행 0개 + 이 기기에 uid 기록 없음(OB-1).
+ * - 비로그인 대상 판정: 기기 기록 `onboarding-first-trip_device` 없음(OB-11).
+ * - 로그인 이어가기: 초안 `onboarding-first-trip-draft`가 있으면 위 판정보다 먼저 가이드를 다시 연다(OB-12).
+ * - 판정은 세션당 키(uid 또는 비로그인)마다 1회. 기록이 하나라도 있으면 다시 띄우지 않는다.
  * - 오버레이 우선순위(APP-10): 판정 전·가이드 표시 중에는 신기능 팝업·공지를 막는다.
  */
 class OnboardingTripManager {
@@ -23,12 +35,16 @@ class OnboardingTripManager {
     return new OnboardingTripManager(firebase, bagStore);
   }
 
-  // 판정을 마친 uid. 현재 uid와 다르면 아직 판정 전이다(재로그인 포함).
-  private resolvedUid: string | null = null;
+  // 판정을 마친 키(uid 또는 GUEST_KEY). 현재 키와 다르면 아직 판정 전이다(재로그인·로그아웃 포함).
+  private resolvedKey: string | null = null;
   private checking = false;
   private showing = false;
-  // 이번 세션에 가이드를 띄운 uid — 시작 시 알림 권한 요청을 건너뛸지 판단한다(OB-8).
-  private presentedUid: string | null = null;
+  // 이번 세션에 가이드를 띄웠는지 — 시작 시 알림 권한 요청을 건너뛸지, 같은 세션에 두 번 띄울지 판단한다(OB-8).
+  private presentedThisSession = false;
+  // 지금 띄운 가이드가 기기 단위 기록을 갖는지(비로그인 첫 실행·이어가기, OB-11).
+  private deviceScoped = false;
+  // 이어가기로 연 가이드가 받아 갈 초안(OB-12). 가이드가 마운트 때 한 번 가져간다.
+  private resumeDraft: OnboardingTripDraft | null = null;
 
   private constructor(
     private readonly firebase: Firebase,
@@ -42,135 +58,294 @@ class OnboardingTripManager {
 
   /**
    * 탭에 도착했을 때 레이아웃이 부른다. 대상이면 노출 기록(`presented`)을 먼저 남기고 `true`를 돌려준다
-   * — 호출측이 가이드 라우트를 띄운다. 도중에 앱이 종료돼도 다시 뜨지 않는다(OB-1).
+   * — 호출측이 가이드 라우트를 띄운다. 도중에 앱이 종료돼도 다시 뜨지 않는다(OB-1·OB-11).
    */
   public async checkAndMarkPresented(): Promise<boolean> {
-    const uid = this.firebase.getUserId();
+    const loggedIn = this.firebase.isLoggedIn();
+    const key = this.getCurrentKey();
 
-    if (
-      !uid ||
-      !this.firebase.isLoggedIn() ||
-      !this.firebase.hasUserAgreedToTerms() ||
-      this.checking ||
-      this.resolvedUid === uid
-    ) {
+    if (this.checking || this.resolvedKey === key) {
+      return false;
+    }
+
+    if (loggedIn && (!key || !this.firebase.hasUserAgreedToTerms())) {
       return false;
     }
 
     this.setChecking(true);
 
     try {
-      const record = await LocalStorageManager.get<OnboardingTripRecord>(
-        this.getStorageKey(uid)
-      );
+      const draft = await this.loadDraft();
 
-      if (record) {
-        this.resolve(uid);
-
+      // 판정하는 동안 로그인 상태가 바뀌었으면 이 결과를 버린다 — 다음 탭 도착에서 새 키로 판정한다.
+      if (this.getCurrentKey() !== key) {
         return false;
       }
 
-      let bagCount: number;
-
-      try {
-        bagCount = await this.bagStore.getBagCountOrThrow();
-      } catch (error) {
-        // 오프라인 등 — 0개로 오인하지 않는다. 이번 세션엔 띄우지 않고 기록도 남기지 않는다(OB-1).
-        console.warn('첫 여행 가이드 대상 판정 실패', error); // l10n-ignore: console 개발자 로그
-        this.resolve(uid);
-
-        return false;
-      }
-
-      // 판정하는 동안 계정이 바뀌었으면 이 결과를 버린다 — 다음 탭 도착에서 새 uid로 판정한다.
-      if (this.firebase.getUserId() !== uid) {
-        return false;
-      }
-
-      if (bagCount > 0) {
-        await this.saveStatus(uid, OnboardingTripStatus.NotNeeded);
-        this.resolve(uid);
-
-        return false;
-      }
-
-      await this.saveStatus(uid, OnboardingTripStatus.Presented);
-
-      runInAction(() => {
-        this.presentedUid = uid;
-        this.showing = true;
-        this.resolvedUid = uid;
-      });
-
-      return true;
+      return loggedIn
+        ? await this.checkLoggedIn(key, draft)
+        : await this.checkGuest(draft);
     } finally {
       this.setChecking(false);
     }
   }
 
-  public async finish(status: OnboardingTripStatus): Promise<void> {
-    const uid = this.firebase.getUserId();
+  private async checkLoggedIn(
+    uid: string,
+    draft: OnboardingTripDraft | null
+  ): Promise<boolean> {
+    // 이 기기에서 이미 앱을 쓴 사람 — 로그아웃해도 비로그인 첫 실행 가이드를 보지 않는다(OB-11).
+    await this.markDeviceUsed();
 
-    this.setShowing(false);
+    // 로그인 이어가기 — 계정에 여행이 있어도 사용자가 직접 고른 여행을 만든다(OB-12).
+    if (draft) {
+      await this.saveStatus(
+        this.getStorageKey(uid),
+        OnboardingTripStatus.Presented
+      );
+      this.present(uid, draft, false);
 
-    if (uid) {
-      await this.saveStatus(uid, status);
+      return true;
     }
-  }
 
-  // 신기능 팝업·공지를 막을지(APP-10). 비로그인 사용자에게는 영향이 없다.
-  public isBlockingPopups(): boolean {
-    if (!this.firebase.isLoggedIn()) {
+    // 같은 세션에 비로그인 가이드를 이미 띄웠으면 로그인 직후 다시 띄우지 않는다(기록도 남기지 않는다).
+    if (this.presentedThisSession) {
+      this.resolve(uid);
+
       return false;
     }
 
-    if (!this.firebase.hasUserAgreedToTerms()) {
+    const record = await LocalStorageManager.get<OnboardingTripRecord>(
+      this.getStorageKey(uid)
+    );
+
+    if (record) {
+      this.resolve(uid);
+
+      return false;
+    }
+
+    let bagCount: number;
+
+    try {
+      bagCount = await this.bagStore.getBagCountOrThrow();
+    } catch (error) {
+      // 오프라인 등 — 0개로 오인하지 않는다. 이번 세션엔 띄우지 않고 기록도 남기지 않는다(OB-1).
+      console.warn('첫 여행 가이드 대상 판정 실패', error); // l10n-ignore: console 개발자 로그
+      this.resolve(uid);
+
+      return false;
+    }
+
+    if (this.getCurrentKey() !== uid) {
+      return false;
+    }
+
+    if (bagCount > 0) {
+      await this.saveStatus(
+        this.getStorageKey(uid),
+        OnboardingTripStatus.NotNeeded
+      );
+      this.resolve(uid);
+
+      return false;
+    }
+
+    await this.saveStatus(
+      this.getStorageKey(uid),
+      OnboardingTripStatus.Presented
+    );
+    this.present(uid, null, false);
+
+    return true;
+  }
+
+  private async checkGuest(
+    draft: OnboardingTripDraft | null
+  ): Promise<boolean> {
+    // 인증 전에 앱이 종료된 로그인 이어가기 — 완료 단계로 한 번만 다시 연다(OB-12).
+    if (draft?.resumable) {
+      await this.saveDraft({ ...draft, resumable: false });
+      this.present(GUEST_KEY, draft, true);
+
       return true;
     }
 
-    if (this.resolvedUid !== this.firebase.getUserId()) {
+    const record =
+      await LocalStorageManager.get<OnboardingTripRecord>(DEVICE_STORAGE_KEY);
+
+    if (record) {
+      this.resolve(GUEST_KEY);
+
+      return false;
+    }
+
+    await this.saveStatus(DEVICE_STORAGE_KEY, OnboardingTripStatus.Presented);
+    this.present(GUEST_KEY, null, true);
+
+    return true;
+  }
+
+  private present(
+    key: string,
+    draft: OnboardingTripDraft | null,
+    deviceScoped: boolean
+  ) {
+    runInAction(() => {
+      this.resolvedKey = key;
+      this.presentedThisSession = true;
+      this.showing = true;
+      this.deviceScoped = deviceScoped;
+      this.resumeDraft = draft;
+    });
+  }
+
+  /**
+   * 비로그인 홈의 `첫 여행 만들기`(HM-8)로 가이드를 직접 연다 — 기기 기록과 무관하게 연다.
+   * 이미 떠 있으면 false(중복 push 방지).
+   */
+  public presentOnDemand(): boolean {
+    if (this.showing || this.checking) {
+      return false;
+    }
+
+    this.present(this.getCurrentKey(), null, !this.firebase.isLoggedIn());
+
+    return true;
+  }
+
+  // 가이드가 마운트 때 한 번 가져간다 — 이어가기가 아니면 null(OB-12).
+  public takeResumeDraft(): OnboardingTripDraft | null {
+    const draft = this.resumeDraft;
+
+    this.resumeDraft = null;
+
+    return draft;
+  }
+
+  // 가이드를 닫거나(dismissed) 만들었을 때(completed). 초안은 어느 쪽이든 지운다.
+  public async finish(status: OnboardingTripStatus): Promise<void> {
+    const loggedIn = this.firebase.isLoggedIn();
+    const uid = this.firebase.getUserId();
+    const deviceScoped = this.deviceScoped;
+
+    runInAction(() => {
+      this.showing = false;
+      this.deviceScoped = false;
+
+      if (loggedIn && uid) {
+        // 이 uid는 가이드를 거쳤다 — 같은 세션에 탭으로 돌아와도 다시 판정하지 않는다.
+        this.resolvedKey = uid;
+      }
+    });
+
+    await this.clearDraft();
+
+    if (loggedIn && uid) {
+      await this.saveStatus(this.getStorageKey(uid), status);
+    }
+
+    if (deviceScoped || loggedIn) {
+      await this.saveStatus(DEVICE_STORAGE_KEY, status);
+    }
+  }
+
+  /**
+   * 로그인 이어가기 도중 가이드가 내려감(약관 리다이렉트 등, OB-12). 기록을 남기지 않고 초안을 그대로 둔다
+   * — 탭에 다시 도착하면 초안으로 가이드를 다시 연다.
+   */
+  public suspend(): void {
+    this.showing = false;
+    this.deviceScoped = false;
+  }
+
+  public async saveDraft(draft: OnboardingTripDraft): Promise<void> {
+    await LocalStorageManager.set(DRAFT_STORAGE_KEY, draft);
+  }
+
+  public async clearDraft(): Promise<void> {
+    await LocalStorageManager.remove(DRAFT_STORAGE_KEY);
+  }
+
+  private async loadDraft(): Promise<OnboardingTripDraft | null> {
+    const stored = await LocalStorageManager.get<unknown>(DRAFT_STORAGE_KEY);
+
+    if (stored === null) {
+      return null;
+    }
+
+    const draft = parseOnboardingTripDraft(stored, Date.now());
+
+    if (!draft) {
+      // 형식이 다르거나 24시간이 지난 초안은 버린다.
+      await this.clearDraft();
+    }
+
+    return draft;
+  }
+
+  private async markDeviceUsed(): Promise<void> {
+    const record =
+      await LocalStorageManager.get<OnboardingTripRecord>(DEVICE_STORAGE_KEY);
+
+    if (!record) {
+      await this.saveStatus(DEVICE_STORAGE_KEY, OnboardingTripStatus.NotNeeded);
+    }
+  }
+
+  // 신기능 팝업·공지를 막을지(APP-10). 비로그인도 첫 실행 판정 전·가이드 표시 중에는 막는다(OB-11).
+  public isBlockingPopups(): boolean {
+    if (this.showing) {
       return true;
     }
 
-    return this.showing;
+    if (this.firebase.isLoggedIn() && !this.firebase.hasUserAgreedToTerms()) {
+      return true;
+    }
+
+    return this.resolvedKey !== this.getCurrentKey();
   }
 
   // 현재 uid의 판정이 끝났고 가이드가 떠 있지 않은지 — 시작 시 권한 요청 시점 판단용(OB-8).
   public isSettledForCurrentUser(): boolean {
     const uid = this.firebase.getUserId();
 
-    return !!uid && this.resolvedUid === uid && !this.showing;
+    return (
+      this.firebase.isLoggedIn() &&
+      !!uid &&
+      this.resolvedKey === uid &&
+      !this.showing
+    );
   }
 
+  // 이번 세션에 가이드를(로그인·비로그인 어느 쪽이든) 띄웠는지(OB-8).
   public wasPresentedThisSession(): boolean {
-    const uid = this.firebase.getUserId();
-
-    return !!uid && this.presentedUid === uid;
+    return this.presentedThisSession;
   }
 
   public isShowing(): boolean {
     return this.showing;
   }
 
-  private resolve(uid: string) {
-    this.resolvedUid = uid;
+  private getCurrentKey(): string {
+    return this.firebase.isLoggedIn() ? this.firebase.getUserId() : GUEST_KEY;
+  }
+
+  private resolve(key: string) {
+    this.resolvedKey = key;
   }
 
   private setChecking(value: boolean) {
     this.checking = value;
   }
 
-  private setShowing(value: boolean) {
-    this.showing = value;
-  }
-
-  private async saveStatus(uid: string, status: OnboardingTripStatus) {
+  private async saveStatus(storageKey: string, status: OnboardingTripStatus) {
     const record: OnboardingTripRecord = {
       status,
       at: new Date().toISOString(),
     };
 
-    await LocalStorageManager.set(this.getStorageKey(uid), record);
+    await LocalStorageManager.set(storageKey, record);
   }
 
   private getStorageKey(uid: string): string {

@@ -17,7 +17,7 @@ import OnboardingTripGearRowView from './OnboardingTripGearRowView';
 interface Props {
   trip: OnboardingTrip;
   group: GearFilter;
-  // 창고가 비어 있는 모드 — 섹션 머리를 크게 두고, 검색·직접 추가로 담은 창고 장비를 이 아래에 보인다.
+  // 창고가 비어 있는 모드 — 섹션 머리를 크게 두고, 검색·직접 추가로 담은 장비(비로그인은 검색 담기, OB-13)를 이 아래에 보인다.
   // 체크리스트 모드에서는 창고 장비가 위 체크리스트에 이미 있으므로 반복하지 않는다.
   standalone: boolean;
   onOpenSearch: (group: GearFilter) => void;
@@ -109,21 +109,24 @@ const OnboardingTripPopularCategoryView: FC<Props> = ({
             {findLabel}
           </PretendardText>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.action}
-          onPress={handleOpenCustomAdd}
-          activeOpacity={0.85}
-          accessibilityRole='button'
-          accessibilityLabel={customLabel}
-        >
-          <PretendardText
-            weight='semibold'
-            style={styles.actionLabel}
-            numberOfLines={1}
+        {/* 비로그인은 숨긴다 — 수동 폼은 저장 즉시 창고에 쓰므로 로그인이 필요하다(OB-13). */}
+        {trip.isGuest() ? null : (
+          <TouchableOpacity
+            style={styles.action}
+            onPress={handleOpenCustomAdd}
+            activeOpacity={0.85}
+            accessibilityRole='button'
+            accessibilityLabel={customLabel}
           >
-            {customLabel}
-          </PretendardText>
-        </TouchableOpacity>
+            <PretendardText
+              weight='semibold'
+              style={styles.actionLabel}
+              numberOfLines={1}
+            >
+              {customLabel}
+            </PretendardText>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

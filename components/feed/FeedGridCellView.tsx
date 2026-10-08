@@ -69,6 +69,8 @@ const FeedGridCellView: FC<Props> = ({
     isAdded,
     isInThisBag,
     bagCtxId,
+    isPickMode,
+    isPicked,
     loading,
     showModal,
     handleCardPress,
@@ -93,7 +95,16 @@ const FeedGridCellView: FC<Props> = ({
 
     // GE-8 배낭 컨텍스트: 이미 이 배낭에 담긴 장비는 비파괴 체크 배지(중복 담기 방지),
     // 그 외에는 담기(+) — 창고 보유 여부와 무관하게 제거 동작을 노출하지 않는다.
-    if (bagCtxId) {
+    // OB-13 담기 모드: 이미 가이드에 담은 장비는 비파괴 체크 배지, 그 외에는 담기(+).
+    if (isPickMode) {
+      if (isPicked) {
+        return (
+          <View style={[styles.cta, styles.ctaAdded]}>
+            <Ionicons name='checkmark' size={CTA_ICON_SIZE} color={Acg.lime} />
+          </View>
+        );
+      }
+    } else if (bagCtxId) {
       if (isInThisBag) {
         return (
           <View style={[styles.cta, styles.ctaAdded]}>
@@ -127,9 +138,11 @@ const FeedGridCellView: FC<Props> = ({
         activeOpacity={0.8}
         accessibilityRole='button'
         accessibilityLabel={l10n.t(
-          bagCtxId
-            ? 'feed.addToBagAccessibility'
-            : 'feed.addToWarehouseAccessibility',
+          isPickMode
+            ? 'onboarding.gear.addAccessibility'
+            : bagCtxId
+              ? 'feed.addToBagAccessibility'
+              : 'feed.addToWarehouseAccessibility',
           { name: gear.getDisplayName() }
         )}
       >

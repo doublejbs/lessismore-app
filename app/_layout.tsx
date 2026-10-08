@@ -113,8 +113,7 @@ const RootLayout = () => {
   useEffect(() => {
     if (
       !isInitialized ||
-      !isLoggedIn ||
-      !hasAgreed ||
+      (isLoggedIn && !hasAgreed) ||
       !isOnTabs ||
       !isUpdateCheckResolved ||
       needsUpdate ||
@@ -123,8 +122,9 @@ const RootLayout = () => {
       return;
     }
 
-    // 첫 여행 만들기 가이드(OB-1·OB-2) — 로그인·약관 동의 후 탭에 처음 도착했을 때 판정해 1회 띄운다.
-    // 판정은 세션당 uid마다 1회라 탭 이동마다 다시 읽지 않는다.
+    // 첫 여행 만들기 가이드(OB-1·OB-2) — 게이트 판정 뒤 탭에 처음 도착했을 때 판정해 1회 띄운다.
+    // 로그인·동의 사용자는 uid별(OB-1), 비로그인은 기기 단위 첫 실행(OB-11), 이어가기 초안이 있으면 그것 먼저(OB-12).
+    // 판정은 세션당 키(uid·비로그인)마다 1회라 탭 이동마다 다시 읽지 않는다.
     void onboardingTripManager.checkAndMarkPresented().then(shouldPresent => {
       if (shouldPresent) {
         // 가이드 완료 단계가 첫 알림 권한 질문이다 — 이번 세션 시작 시 요청은 건너뛴다(OB-8).

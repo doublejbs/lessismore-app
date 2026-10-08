@@ -8,7 +8,8 @@ import app from '@/model/app/App';
 interface Props {
   query: string;
   variant: SearchEmptyButtonVariant;
-  onPressAdd: (query: string) => void;
+  // 없으면 `직접 추가` 버튼을 숨긴다 — 첫 여행 가이드 비로그인 담기 모드(OB-13, 수동 폼은 로그인 필요).
+  onPressAdd?: ((query: string) => void) | undefined;
 }
 
 const BUTTON_MIN_HEIGHT = 44;
@@ -20,14 +21,18 @@ const BUTTON_MIN_HEIGHT = 44;
  * 같은 상황(찾는 장비가 없다)이 화면마다 다르게 읽힌다.
  * 버튼은 목록 안에 놓이는 컨트롤이라 그림자를 두지 않는다 — 그림자는 플로팅 알약 몫(HM-8).
  */
-const SearchEmptyCustomAddView: FC<Props> = ({ query, variant, onPressAdd }) => {
+const SearchEmptyCustomAddView: FC<Props> = ({
+  query,
+  variant,
+  onPressAdd,
+}) => {
   const l10n = app.getL10n();
   const trimmedQuery = query.trim();
   const isPrimary = variant === SearchEmptyButtonVariant.Primary;
   const buttonLabel = l10n.t('search.emptyCustomAdd.button');
 
   const handlePressAdd = () => {
-    onPressAdd(trimmedQuery);
+    onPressAdd?.(trimmedQuery);
   };
 
   return (
@@ -36,22 +41,28 @@ const SearchEmptyCustomAddView: FC<Props> = ({ query, variant, onPressAdd }) => 
         {l10n.t('search.emptyCustomAdd.title', { query: trimmedQuery })}
       </PretendardText>
       <PretendardText style={styles.subtitle}>
-        {l10n.t('search.emptyCustomAdd.subtitle')}
+        {l10n.t(
+          onPressAdd
+            ? 'search.emptyCustomAdd.subtitle'
+            : 'search.emptyCustomAdd.subtitleNoAdd'
+        )}
       </PretendardText>
-      <TouchableOpacity
-        style={[
-          styles.button,
-          isPrimary ? styles.primaryButton : styles.secondaryButton,
-        ]}
-        onPress={handlePressAdd}
-        activeOpacity={0.85}
-        accessibilityRole='button'
-        accessibilityLabel={buttonLabel}
-      >
-        <PretendardText style={styles.buttonLabel} weight='semibold'>
-          {buttonLabel}
-        </PretendardText>
-      </TouchableOpacity>
+      {onPressAdd ? (
+        <TouchableOpacity
+          style={[
+            styles.button,
+            isPrimary ? styles.primaryButton : styles.secondaryButton,
+          ]}
+          onPress={handlePressAdd}
+          activeOpacity={0.85}
+          accessibilityRole='button'
+          accessibilityLabel={buttonLabel}
+        >
+          <PretendardText style={styles.buttonLabel} weight='semibold'>
+            {buttonLabel}
+          </PretendardText>
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 };

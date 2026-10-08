@@ -6,6 +6,7 @@ import { Acg } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import OnboardingTrip from '@/model/onboarding/OnboardingTrip';
 import OnboardingTripStep from '@/model/onboarding/OnboardingTripStep';
+import LogInView from '@/components/login/LogInView';
 import OnboardingTripHeaderView from './OnboardingTripHeaderView';
 import OnboardingTripFooterView from './OnboardingTripFooterView';
 import OnboardingTripDateStepView from './OnboardingTripDateStepView';
@@ -42,6 +43,8 @@ const OnboardingTripView: FC<Props> = ({ trip }) => {
     handleOpenGearSearch,
     handleOpenCustomAdd,
     handleCreate,
+    handleLogin,
+    handleLater,
   } = useOnboardingTripState(trip);
   const creating = trip.isCreating();
 
@@ -78,6 +81,18 @@ const OnboardingTripView: FC<Props> = ({ trip }) => {
           onSecondary: handleSkip,
         };
       default:
+        // 비로그인 — 로그인하고 이어 만든다(OB-11·OB-12). 권한은 로그인 뒤에 묻는다.
+        if (trip.isGuest()) {
+          return {
+            primaryLabel: l10n.t('onboarding.done.loginAndCreate'),
+            onPrimary: handleLogin,
+            secondaryLabel: l10n.t('onboarding.done.later'),
+            onSecondary: () => {
+              void handleLater();
+            },
+          };
+        }
+
         return trip.canAskPermission()
           ? {
               primaryLabel: l10n.t('onboarding.done.createWithNotification'),
@@ -147,6 +162,8 @@ const OnboardingTripView: FC<Props> = ({ trip }) => {
         secondaryLabel={footer.secondaryLabel}
         onSecondary={footer.onSecondary}
       />
+      {/* fullScreenModal 위에 떠야 해서 화면이 직접 렌더한다(AU-10 — 검색 모달과 같은 이유). */}
+      <LogInView logInAlertManager={app.getLogInAlertManager()!} />
     </View>
   );
 };
