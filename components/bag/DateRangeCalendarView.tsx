@@ -14,6 +14,8 @@ interface Props {
   onStartDateChange: (date: dayjs.Dayjs) => void;
   onEndDateChange: (date: dayjs.Dayjs | null) => void;
   initialMonth?: dayjs.Dayjs;
+  // 항상 펼친 채로 둔다 — 캘린더가 화면의 유일한 입력인 곳(첫 여행 가이드 1단계, OB-4).
+  alwaysOpen?: boolean;
 }
 
 const DateRangeCalendarView: FC<Props> = ({
@@ -22,6 +24,7 @@ const DateRangeCalendarView: FC<Props> = ({
   onStartDateChange,
   onEndDateChange,
   initialMonth,
+  alwaysOpen = false,
 }) => {
   const [currentMonth, setCurrentMonth] = useState(
     initialMonth ? initialMonth.startOf('month') : dayjs().startOf('month')
@@ -31,7 +34,8 @@ const DateRangeCalendarView: FC<Props> = ({
    * 캘린더 펼침 상태(BAG-2). **기본은 접힘**이다 — 대다수는 기본 날짜(오늘~내일)를 그대로
    * 쓰는데 캘린더가 항상 펼쳐져 있으면 정작 먼저 손대는 이름 입력이 위로 밀린다.
    */
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpenState, setIsOpen] = useState(false);
+  const isOpen = alwaysOpen || isOpenState;
   const weekdays = app.getL10n().t('bag.calendar.weekdays', { returnObjects: true }) as unknown as string[];
 
   useEffect(() => {
@@ -60,6 +64,10 @@ const DateRangeCalendarView: FC<Props> = ({
   }, [currentMonth]);
 
   const handleToggle = () => {
+    if (alwaysOpen) {
+      return;
+    }
+
     setIsOpen(open => !open);
   };
 
@@ -139,6 +147,7 @@ const DateRangeCalendarView: FC<Props> = ({
         <TouchableOpacity
           style={styles.periodField}
           onPress={handleToggle}
+          disabled={alwaysOpen}
           activeOpacity={0.7}
           accessibilityRole='button'
           accessibilityState={{ expanded: isOpen }}
@@ -151,11 +160,13 @@ const DateRangeCalendarView: FC<Props> = ({
               ? `${startDate.format('YYYY.MM.DD')} – ${endDate.format('YYYY.MM.DD')}`
               : app.getL10n().t('bag.calendar.datePlaceholder')}
           </PretendardText>
-          <Ionicons
-            name={isOpen ? 'chevron-up' : 'chevron-down'}
-            size={18}
-            color={Color.textSecondary}
-          />
+          {alwaysOpen ? null : (
+            <Ionicons
+              name={isOpen ? 'chevron-up' : 'chevron-down'}
+              size={18}
+              color={Color.textSecondary}
+            />
+          )}
         </TouchableOpacity>
       </View>
 

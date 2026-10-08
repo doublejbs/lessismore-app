@@ -16,10 +16,22 @@ import GearAddMode from '@/model/gear/GearAddMode';
 // 탐색 탭과 동일하게 피드를 만들어 넘겨 검색 시에도 필터 바(카테고리·브랜드)를 유지·승계한다(SR-1).
 const SearchPage = () => {
   const router = useRouter();
-  const { bagId } = useLocalSearchParams<{ bagId?: string }>();
+  // category: 피드 1차 카테고리 초기값(첫 여행 가이드 필수 장비 검색, OB-6).
+  const { bagId, category } = useLocalSearchParams<{
+    bagId?: string;
+    category?: string;
+  }>();
   const [searchWarehouse] = useState(() => SearchWarehouse.new(router));
   const [bag] = useState(() => Bag.new());
-  const [feed] = useState(() => Feed.new(router));
+  const [feed] = useState(() => {
+    const created = Feed.new(router);
+
+    if (category) {
+      created.presetCategory(category);
+    }
+
+    return created;
+  });
 
   const gearAddContext: GearAddContext = bagId
     ? { mode: GearAddMode.Bag, bagId }

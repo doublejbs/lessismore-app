@@ -1571,5 +1571,67 @@
     "communityTitle": "Consumables to pack",
     "communityLabel": "Affiliate picks",
     "accessibilityOpen": "View {{name}} on {{merchant}}"
+  },
+  "onboarding": {
+    "header": {
+      "back": "Previous step",
+      "close": "Close guide",
+      "progress": "Step {{current}} of {{total}}"
+    },
+    "closeConfirm": {
+      "title": "Close the guide?",
+      "message": "Your trip won't be created from what you've picked so far.",
+      "continue": "Keep going",
+      "close": "Close"
+    },
+    "next": "Next",
+    "skip": "Skip",
+    "date": {
+      "title": "When are you going?",
+      "subtitle": "Set dates and we'll remind you to pack the day before",
+      "undecided": "Not decided yet"
+    },
+    "destination": {
+      "title": "Where are you going?",
+      "subtitle": "Set a destination to see the weather for your trip",
+      "placeholder": "Choose a destination",
+      "placeholderMeta": "Search campsites · Pick on the map",
+      "campSite": "Campsite",
+      "freeLocation": "Custom location",
+      "pick": "Choose destination",
+      "accessibility": "Destination, {{name}}"
+    },
+    "gear": {
+      "title": "What gear are you bringing?",
+      "subtitleWarehouse": "Pick gear from your warehouse for this trip",
+      "subtitleSearch": "Start with the backpacking essentials. Gear you add is saved to your warehouse too",
+      "summary": "{{count}} items · ",
+      "searchToAdd": "Search to add",
+      "addedSummary": "{{name}} and {{count}} more",
+      "otherTitle": "Other gear you added",
+      "loadFailed": "Couldn't load your gear",
+      "categoryAccessibility": "{{category}}, {{status}}",
+      "sectionCount": "{{count}} items",
+      "summary_one": "{{count}} item · ",
+      "sectionCount_one": "{{count}} item"
+    },
+    "done": {
+      "title": "Your trip is ready",
+      "renameHint": "You can change the name and dates anytime in the trip",
+      "reminder": "We'll remind you to pack the day before you leave",
+      "reminderUndecided": "We set the dates to this weekend for now. Change them and we'll remind you based on the new dates",
+      "tentativeDates": "{{dates}} (tentative)",
+      "createWithNotification": "Get reminders and create trip",
+      "create": "Create trip",
+      "createWithoutNotification": "Create without reminders",
+      "createFailedTitle": "Couldn't create your trip",
+      "createFailed": "Please try again in a moment.",
+      "partialFailedTitle": "Your trip was created, but some details weren't saved",
+      "partialFailed": "Please check the destination and gear in your trip."
+    },
+    "trip": {
+      "nameWithPlace": "{{place}} backpacking",
+      "defaultName": "My first backpacking trip"
+    }
   }
 }

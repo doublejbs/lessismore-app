@@ -97,6 +97,8 @@ Firestore 문서 하나(`config/featurePopup`)를 고치면 **앱을 열었을 �
 강제 업데이트 게이트(APP-7)  >  신기능 팝업(FP)  >  텍스트 공지 배너(AN)
 ```
 
+> `[제안]` 2026-10-08 확장([AppLifecycle.md](AppLifecycle.md) APP-10): `게이트 > 약관 동의 > 첫 여행 가이드(OB-2) > 신기능 팝업 > 텍스트 공지`. 신기능 팝업·공지 모두 `OnboardingTripManager.isBlockingPopups()`가 true면(약관 미동의·가이드 판정 전·가이드 표시 중) 표시하지 않는다.
+
 **수용 기준**
 
 - 신기능 팝업(FP-2)은 **강제 업데이트 게이트가 떠 있으면 표시하지 않는다**(`ForceUpdateManager.getNeedsUpdate()` 참조 — 공지 시트와 동일 방식).

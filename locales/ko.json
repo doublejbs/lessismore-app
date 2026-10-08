@@ -1545,5 +1545,65 @@
     "communityTitle": "챙겨갈 소모품",
     "communityLabel": "제휴 상품",
     "accessibilityOpen": "{{name}} {{merchant}}에서 보기"
+  },
+  "onboarding": {
+    "header": {
+      "back": "이전 단계",
+      "close": "가이드 닫기",
+      "progress": "{{total}}단계 중 {{current}}단계"
+    },
+    "closeConfirm": {
+      "title": "가이드를 닫을까요?",
+      "message": "지금까지 고른 내용으로 여행이 만들어지지 않아요.",
+      "continue": "계속하기",
+      "close": "닫기"
+    },
+    "next": "다음",
+    "skip": "건너뛰기",
+    "date": {
+      "title": "언제 가세요?",
+      "subtitle": "날짜를 정하면 출발 하루 전에 패킹을 알려 드려요",
+      "undecided": "아직 미정이에요"
+    },
+    "destination": {
+      "title": "어디로 가세요?",
+      "subtitle": "여행지를 정하면 그 기간 날씨를 함께 보여 드려요",
+      "placeholder": "여행지를 골라 주세요",
+      "placeholderMeta": "박지 검색 · 지도에서 고르기",
+      "campSite": "박지",
+      "freeLocation": "직접 고른 위치",
+      "pick": "여행지 고르기",
+      "accessibility": "여행지, {{name}}"
+    },
+    "gear": {
+      "title": "어떤 장비를 챙기세요?",
+      "subtitleWarehouse": "창고에서 이번 여행에 챙길 장비를 골라 주세요",
+      "subtitleSearch": "백패킹 필수 장비부터 찾아 담아 보세요. 고른 장비는 창고에도 저장돼요",
+      "summary": "{{count}}개 · ",
+      "searchToAdd": "검색해서 담기",
+      "addedSummary": "{{name}} 외 {{count}}개",
+      "otherTitle": "그 밖에 담은 장비",
+      "loadFailed": "장비를 불러오지 못했어요",
+      "categoryAccessibility": "{{category}}, {{status}}",
+      "sectionCount": "{{count}}개"
+    },
+    "done": {
+      "title": "여행을 만들 준비가 됐어요",
+      "renameHint": "이름과 날짜는 여행에서 언제든 바꿀 수 있어요",
+      "reminder": "출발 하루 전에 패킹을 알려 드릴게요",
+      "reminderUndecided": "날짜는 이번 주말로 잡아 뒀어요. 날짜를 바꾸면 그 날짜에 맞춰 알려 드릴게요",
+      "tentativeDates": "{{dates}} (임시)",
+      "createWithNotification": "알림 받고 여행 만들기",
+      "create": "여행 만들기",
+      "createWithoutNotification": "알림 없이 만들기",
+      "createFailedTitle": "여행을 만들지 못했어요",
+      "createFailed": "잠시 후 다시 시도해 주세요.",
+      "partialFailedTitle": "여행은 만들었지만 일부를 저장하지 못했어요",
+      "partialFailed": "여행에서 여행지와 장비를 다시 확인해 주세요."
+    },
+    "trip": {
+      "nameWithPlace": "{{place}} 백패킹",
+      "defaultName": "첫 백패킹"
+    }
   }
 }

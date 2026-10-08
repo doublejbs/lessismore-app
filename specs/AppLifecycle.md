@@ -72,6 +72,7 @@ app/(tabs)/_layout.tsx → 현재 탭 5개: 홈(index) · 탐색(search) · 지�
 - 모든 텍스트는 `PretendardText` 사용(weight: regular/medium/semibold/bold/extraBold, 기본색 #000000).
 - 전역 오버레이(로그인 모달, Alert, Toast)는 `Layout.tsx`가 모든 화면에 깔아준다.
 - 로컬 저장(`LocalStorageManager`, AsyncStorage 기반)은 JSON 직렬화 래퍼이며 키는 `selectedOrderType_{key}`(정렬 선택)와 `appLanguage`(인앱 언어 오버라이드: `'ko' | 'en' | 'ja'`, 키가 없으면 시스템 따르기)다. [Localization.md](Localization.md) L10N-1.
+  - `[제안]` `onboarding-first-trip_{uid}`(첫 여행 가이드 노출 기록 `{ status, at }`, [Onboarding.md](Onboarding.md) OB-1).
 
 ### APP-7 스토어 강제 업데이트 게이트 `[제안]`
 
@@ -139,6 +140,16 @@ app/(tabs)/_layout.tsx → 현재 탭 5개: 홈(index) · 탐색(search) · 지�
 - 웹은 지도 탭을 숨기므로 `홈 / 탐색 / 여행 / 커뮤니티` 네 개가 보인다.
 - 탭 전환으로 커뮤니티에 재진입하면 이전 피드 스크롤·필터를 유지한다. 탭을 다시 누르는 동작은 후속 정의 전까지 별도 새로고침으로 해석하지 않는다.
 - `/info`의 공개 URL은 유지된다. 라우트 그룹만 `(tabs)` 밖으로 이동하므로 기존 링크를 깨뜨리지 않는다.
+
+### APP-10 시작 오버레이 우선순위 `[제안]`
+
+앱 시작 직후 동시에 뜰 수 있는 화면·오버레이를 한 번에 하나만 보여 준다(2026-10-08, 첫 여행 가이드 도입).
+
+**수용 기준**
+
+- 우선순위: `강제 업데이트 게이트(APP-7) > 약관 동의(AU-3) > 첫 여행 가이드(OB-2) > 신기능 팝업(FP-6) > 텍스트 공지(AN-2)`.
+- 신기능 팝업·공지 시트는 `OnboardingTripManager.isBlockingPopups()`가 true인 동안 표시하지 않는다 — 로그인 + 약관 미동의, 로그인·동의 사용자의 가이드 판정 전·판정 중, 가이드 표시 중. 비로그인 사용자에게는 false(기존 동작).
+- 알림 권한 시작 시 요청(NT-1)도 가이드 판정이 끝난 뒤에 한다(OB-8) — OS 대화상자가 가이드·약관 화면 위에 겹치지 않는다.
 
 ## 4. 데이터
 

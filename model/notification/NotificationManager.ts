@@ -3,6 +3,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import { Platform } from 'react-native';
 import app from '../app/App';
 import NotificationType from './NotificationType';
+import NotificationPermissionStatus from './NotificationPermissionStatus';
 import {
   absorbDelivered,
   EMPTY_REENGAGEMENT_STATE,
@@ -55,6 +56,8 @@ type ExpoNotifications = {
   getPermissionsAsync: () => Promise<{
     granted: boolean;
     canAskAgain: boolean;
+    // expo-notifications PermissionStatus: 'granted' | 'denied' | 'undetermined'
+    status?: string;
   }>;
   requestPermissionsAsync: () => Promise<{ granted: boolean }>;
   scheduleNotificationAsync: (input: {
@@ -142,11 +145,28 @@ class NotificationManager {
   private reengagementSyncing = false;
   private reengagementSyncPending = false;
   private lastOpenLoggedAt = 0;
+  private initializePromise: Promise<void> | null = null;
+  // 시작 시 권한 요청(NT-1)은 세션당 1회 — 레이아웃 effect가 여러 번 불러도 한 번만 한다.
+  private launchPermissionHandled = false;
 
   private constructor() {}
 
-  public async initialize() {
-    if (!this.enabled || this.initialized) {
+  public initialize(): Promise<void> {
+    if (!this.enabled) {
+      return Promise.resolve();
+    }
+
+    if (!this.initializePromise) {
+      this.initializePromise = this.runInitialize();
+    }
+
+    return this.initializePromise;
+  }
+
+  // 리스너·핸들러 등록과 **이미 허용된 경우의** 후속 처리만 한다. 권한 요청은 하지 않는다 —
+  // 요청 시점은 레이아웃이 로그인·약관·첫 여행 가이드 판정을 확인한 뒤 정한다(NT-1, OB-8).
+  private async runInitialize() {
+    if (this.initialized) {
       return;
     }
 
@@ -184,16 +204,94 @@ class NotificationManager {
 
       this.setupRemoteMessaging(notifications);
 
-      const granted = await this.requestPermission();
+      const current = await notifications.getPermissionsAsync();
 
-      if (granted && this.settings.notice) {
-        await this.subscribeTopic(ALL_TOPIC);
+      if (current.granted) {
+        await this.handlePermissionGranted();
       }
-
-      // 첫 실행에서 방금 권한을 허용했을 수 있다 — 그 결과로 재방문 리마인더를 다시 맞춘다(NT-9).
-      this.requestReengagementSync();
     } catch (error) {
       console.warn('NotificationManager 초기화 실패', error); // l10n-ignore: console 개발자 로그
+    }
+  }
+
+  // 권한이 허용된 상태에서 할 후속 처리 — 공지 토픽 구독(설정 ON) + 재방문 리마인더 동기화(NT-5·NT-9).
+  private async handlePermissionGranted() {
+    if (this.settings.notice) {
+      await this.subscribeTopic(ALL_TOPIC);
+    }
+
+    this.requestReengagementSync();
+  }
+
+  // 시작 시 권한 요청(NT-1 개정, OB-8). 레이아웃이 로그인 + 약관 동의 + 첫 여행 가이드 판정 뒤에
+  // 부른다. 세션당 1회이고, 미결정일 때만 OS 대화상자를 띄운다.
+  public async requestPermissionAtLaunch(): Promise<void> {
+    if (!this.enabled || this.launchPermissionHandled) {
+      return;
+    }
+
+    this.launchPermissionHandled = true;
+    await this.initialize();
+    await this.requestPermissionIfUndetermined();
+  }
+
+  // 이번 세션의 시작 시 요청을 건너뛴다 — 첫 여행 가이드를 띄운 세션은 가이드 완료 단계가 첫 질문이다(OB-8).
+  public skipLaunchPermission(): void {
+    this.launchPermissionHandled = true;
+  }
+
+  // 맥락 요청(OB-7 `알림 받고 여행 만들기`)과 시작 시 요청이 같이 쓴다. 미결정이 아니면 묻지 않고
+  // 현재 상태를 돌려준다 — 어떤 경로로도 두 번 묻지 않는다(OB-8).
+  public async requestPermissionIfUndetermined(): Promise<NotificationPermissionStatus> {
+    const status = await this.getPermissionStatus();
+
+    if (status !== NotificationPermissionStatus.Undetermined) {
+      return status;
+    }
+
+    const granted = await this.requestPermission();
+
+    if (granted) {
+      await this.handlePermissionGranted();
+
+      return NotificationPermissionStatus.Granted;
+    }
+
+    return NotificationPermissionStatus.Denied;
+  }
+
+  public async getPermissionStatus(): Promise<NotificationPermissionStatus> {
+    if (!this.enabled) {
+      return NotificationPermissionStatus.Unavailable;
+    }
+
+    try {
+      const notifications = this.getNotifications();
+
+      if (!notifications) {
+        return NotificationPermissionStatus.Unavailable;
+      }
+
+      const current = await notifications.getPermissionsAsync();
+
+      if (current.granted) {
+        return NotificationPermissionStatus.Granted;
+      }
+
+      // status가 없는 구버전 응답은 canAskAgain으로 추정한다.
+      if (current.status === NotificationPermissionStatus.Undetermined) {
+        return NotificationPermissionStatus.Undetermined;
+      }
+
+      if (current.status === undefined && current.canAskAgain) {
+        return NotificationPermissionStatus.Undetermined;
+      }
+
+      return NotificationPermissionStatus.Denied;
+    } catch (error) {
+      console.warn('NotificationManager 권한 상태 조회 실패', error); // l10n-ignore: console 개발자 로그
+
+      return NotificationPermissionStatus.Unavailable;
     }
   }
 

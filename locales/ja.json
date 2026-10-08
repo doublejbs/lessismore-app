@@ -1545,5 +1545,65 @@
     "communityTitle": "持っていく消耗品",
     "communityLabel": "提携商品",
     "accessibilityOpen": "{{name}}を{{merchant}}で見る"
+  },
+  "onboarding": {
+    "header": {
+      "back": "前のステップ",
+      "close": "ガイドを閉じる",
+      "progress": "{{total}}ステップ中{{current}}ステップ目"
+    },
+    "closeConfirm": {
+      "title": "ガイドを閉じますか？",
+      "message": "ここまで選んだ内容で旅行は作成されません。",
+      "continue": "続ける",
+      "close": "閉じる"
+    },
+    "next": "次へ",
+    "skip": "スキップ",
+    "date": {
+      "title": "いつ行きますか？",
+      "subtitle": "日程を決めると、出発の前日にパッキングをお知らせします",
+      "undecided": "まだ決まっていません"
+    },
+    "destination": {
+      "title": "どこへ行きますか？",
+      "subtitle": "目的地を決めると、その期間の天気も表示します",
+      "placeholder": "目的地を選んでください",
+      "placeholderMeta": "キャンプ地を検索 · 地図で選ぶ",
+      "campSite": "キャンプ地",
+      "freeLocation": "自分で選んだ場所",
+      "pick": "目的地を選ぶ",
+      "accessibility": "目的地、{{name}}"
+    },
+    "gear": {
+      "title": "どの装備を持っていきますか？",
+      "subtitleWarehouse": "倉庫からこの旅行に持っていく装備を選んでください",
+      "subtitleSearch": "バックパッキングの必須装備から探して追加しましょう。追加した装備は倉庫にも保存されます",
+      "summary": "{{count}}個 · ",
+      "searchToAdd": "検索して追加",
+      "addedSummary": "{{name}} ほか{{count}}個",
+      "otherTitle": "その他に追加した装備",
+      "loadFailed": "装備を読み込めませんでした",
+      "categoryAccessibility": "{{category}}、{{status}}",
+      "sectionCount": "{{count}}個"
+    },
+    "done": {
+      "title": "旅行を作成する準備ができました",
+      "renameHint": "名前と日程は旅行画面でいつでも変更できます",
+      "reminder": "出発の前日にパッキングをお知らせします",
+      "reminderUndecided": "日程はひとまず今週末にしました。日程を変更すると、その日に合わせてお知らせします",
+      "tentativeDates": "{{dates}}（仮）",
+      "createWithNotification": "通知を受け取って旅行を作成",
+      "create": "旅行を作成",
+      "createWithoutNotification": "通知なしで作成",
+      "createFailedTitle": "旅行を作成できませんでした",
+      "createFailed": "しばらくしてからもう一度お試しください。",
+      "partialFailedTitle": "旅行は作成しましたが、一部を保存できませんでした",
+      "partialFailed": "旅行画面で目的地と装備をもう一度確認してください。"
+    },
+    "trip": {
+      "nameWithPlace": "{{place}} バックパッキング",
+      "defaultName": "はじめてのバックパッキング"
+    }
   }
 }
