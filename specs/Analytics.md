@@ -271,7 +271,7 @@
 
 **수용 기준**
 
-- 로그인 확인 시(`Firebase.checkLoggedIn`에서 `identifyUser(uid)`를 부르는 자리) Analytics `setUserId(uid)`를 함께 보낸다. 값은 **Firebase Auth UID 그대로**다(해시하지 않는다 — Firestore `users/{uid}`·BigQuery `firestore_export`와 조인하는 것이 목적이라 같은 값이어야 한다).
+- 로그인 확인 시 Analytics `setUserId(uid)`를 함께 보낸다 — `identifyUser(uid)`가 불리는 두 지점(`Firebase.checkLoggedIn`: 로그인 상태 변화, `App.initialize`: 콜드 스타트에서 analytics 매니저 생성 뒤 보강 호출) 모두 해당한다. 값은 **Firebase Auth UID 그대로**다(해시하지 않는다 — Firestore `users/{uid}`·BigQuery `firestore_export`와 조인하는 것이 목적이라 같은 값이어야 한다).
 - 로그아웃·탈퇴로 `clear()`가 돌면 `setUserId(null)`로 해제한다 — 기기 재사용 시 다음 사용자의 이벤트가 이전 계정에 붙지 않게 한다.
 - 호출은 기존 `identifyUser(uid | null)` 한 곳에 묶는다(내부 계정 속성과 같은 시점·같은 인자). 호출부를 늘리지 않는다.
 - 웹은 다른 메서드와 같이 no-op. 수집 제외 빌드(AN-4)에서는 보내지 않는다.
