@@ -28,7 +28,7 @@
 - `logScreenView(screenName)` — GA4 표준 `logScreenView`를 전송한다.
 - **웹에서는 모든 메서드가 no-op** — 호출부는 플랫폼을 신경 쓰지 않는다. RNFirebase 모듈은 네이티브에서만 로드한다(웹 번들에 포함 금지).
 - 전송 실패는 앱 동작에 영향을 주지 않는다 (fire-and-forget, 알럿/토스트 금지).
-- 이벤트·파라미터에 개인 식별 정보(이메일, 닉네임 등)를 넣지 않는다. `setUserId`는 사용하지 않는다.
+- 이벤트·파라미터에 개인 식별 정보(이메일, 닉네임 등)를 넣지 않는다. ~~`setUserId`는 사용하지 않는다.~~ → **Firebase Auth UID를 GA4 `user_id`로 보낸다**(AN-7, 2026-10-09 사용자 결정). UID는 이름·이메일 같은 개인정보가 아닌 앱 내부 가명 식별자이며, 개인정보 처리방침의 기기 식별자·분석 수집 항목 안이다. 이메일·닉네임 등 실제 개인정보는 여전히 금지다.
 - **내부(개발자) 트래픽 제외**: 로그인/로그아웃 시 `identifyUser(uid)`가 내부 UID 허용목록(`model/analytics/InternalUsers.ts`)을 확인해 사용자 속성 `is_internal`(`'true'`/`'false'`)을 설정한다. 수집은 그대로 두고 GA4/Firebase 대시보드에서 `is_internal=true`를 필터·제외해 지표를 분석한다. 로그아웃·일반 계정은 `'false'`로 되돌린다(기기 재사용 시 오태깅 방지). 앱 시작 시 `App.initialize`가 현재 로그인 사용자로 1회 반영하고, 이후 로그인/로그아웃은 `Firebase`가 처리한다.
 
 ### AN-2 화면 조회 자동 수집
@@ -270,6 +270,19 @@
 - 개인 식별 정보가 아니다 (기기·사용자 단위가 아닌 배포 단위 값).
 - GA4 콘솔에서 두 속성을 사용자 범위 맞춤 측정기준으로 등록해야 보고서에 보인다 (운영 작업).
 
+### AN-7 계정 단위 식별 (`user_id`) `[제안]`
+
+로그인한 사용자의 행동 로그를 계정 단위로 이을 수 있어야 한다. 기기 단위(`user_pseudo_id`)만으로는 재설치·기기 교체를 같은 사람으로 못 잇고, Firestore의 가입일·장비·배낭 데이터와 GA4 행동 로그를 사람 단위로 붙일 수 없다(2026-10-09 BigQuery 분석에서 32명 전원 `user_id` null 확인 — 이전 AN-1 결정에 따른 정상 동작이었다).
+
+**수용 기준**
+
+- 로그인 확인 시 Analytics `setUserId(uid)`를 함께 보낸다 — `identifyUser(uid)`가 불리는 두 지점(`Firebase.checkLoggedIn`: 로그인 상태 변화, `App.initialize`: 콜드 스타트에서 analytics 매니저 생성 뒤 보강 호출) 모두 해당한다. 값은 **Firebase Auth UID 그대로**다(해시하지 않는다 — Firestore `users/{uid}`·BigQuery `firestore_export`와 조인하는 것이 목적이라 같은 값이어야 한다).
+- 로그아웃·탈퇴로 `clear()`가 돌면 `setUserId(null)`로 해제한다 — 기기 재사용 시 다음 사용자의 이벤트가 이전 계정에 붙지 않게 한다.
+- 호출은 기존 `identifyUser(uid | null)` 한 곳에 묶는다(내부 계정 속성과 같은 시점·같은 인자). 호출부를 늘리지 않는다.
+- 웹은 다른 메서드와 같이 no-op. 수집 제외 빌드(AN-4)에서는 보내지 않는다.
+- `user_id`에는 UID 외 어떤 값도 넣지 않는다. 이벤트 파라미터·사용자 속성에 이메일·닉네임을 넣지 않는 원칙은 그대로다(AN-1).
+- BigQuery 내보내기에서 `user_id`가 채워지면 `firestore_export.users_raw_latest`의 `users/{uid}`와 조인해 코호트별 재방문을 계산한다. 적용 전 데이터(2026-10-09 이전)는 `user_id`가 비어 있으므로 기기 단위로만 본다.
+
 > **운영 메모**: GA4 → BigQuery 내보내기 연결은 별도 운영 작업으로 진행 중이다 (코드 변경 없음). 연결되면 위 사용자 속성·`screen_class` 필터를 SQL로 다룬다.
 
 ## 4. 데이터
@@ -306,6 +319,8 @@
   grep -rnE "logClick\(\s*'click_" --include="*.ts" --include="*.tsx" app components model hooks
   ```
 - [ ] (AN-6) DebugView 사용자 속성에 `app_channel=production`, `ota_bundle=<번들 UUID 또는 embedded>`가 보임
+- [ ] (AN-7) 로그인 후 DebugView 이벤트에 사용자 ID가 Firebase Auth UID로 보임; 로그아웃 뒤 이벤트에는 사용자 ID가 없음
+- [ ] (AN-7) 배포 다음 날 BigQuery `events_YYYYMMDD`에서 `user_id IS NOT NULL` 행이 생기고 `users_raw_latest`와 조인됨
 - [ ] (AN-2) GA4 화면 보고서에서 `screen_class`가 라우트 패턴인 행만 필터해 보면 네이티브 클래스명 행이 빠짐
 
 ## 8. 미해결 질문
