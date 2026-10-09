@@ -14,6 +14,7 @@ import app from '@/model/app/App';
 class SearchRank {
   private gears: Gear[] = [];
   private loading = false;
+  private hasLoadedOnce = false;
   private selectedCategory: GearFilter = GearFilter.All;
 
   public constructor(
@@ -34,20 +35,43 @@ class SearchRank {
     if (loading) {
       this.setLoading(true);
     }
+
     this.setSelectedCategory(category);
 
     try {
-      await this.loadRankingAsGears(category);
+      const gears = await this.gearRankStore.loadRankingAsGears(category);
+
+      // 카테고리를 빠르게 바꾸면 이전 요청이 나중에 끝날 수 있다 — 지금 선택과 다른 응답은 버린다(FD-6).
+      if (this.selectedCategory !== category) {
+        return;
+      }
+
+      this.setGears(gears);
     } catch (error) {
       console.error('Error in SearchRank.loadRanking:', error);
+
+      if (this.selectedCategory !== category) {
+        return;
+      }
+
       this.setGears([]);
     } finally {
-      this.setLoading(false);
+      if (this.selectedCategory === category) {
+        this.setLoaded();
+        this.setLoading(false);
+      }
     }
   }
 
+  // 담기·제거 뒤 같은 카테고리를 조용히 다시 읽는 경로(registerSingle/removeSingle)용.
   private async loadRankingAsGears(category: GearFilter) {
     const gears = await this.gearRankStore.loadRankingAsGears(category);
+
+    // 담는 사이 카테고리가 바뀌었으면 이전 카테고리 목록으로 덮어쓰지 않는다.
+    if (this.selectedCategory !== category) {
+      return;
+    }
+
     this.setGears(gears);
   }
 
@@ -66,6 +90,11 @@ class SearchRank {
   }
 
   @action
+  private setLoaded() {
+    this.hasLoadedOnce = true;
+  }
+
+  @action
   private setSelectedCategory(category: GearFilter) {
     this.selectedCategory = category;
   }
@@ -76,6 +105,11 @@ class SearchRank {
 
   public isLoading() {
     return this.loading;
+  }
+
+  // 한 번도 로드하지 않은 초기 상태를 로딩과 구분하지 않고 '아직 없음'으로 보이게 하기 위한 플래그(FD-6).
+  public hasLoaded() {
+    return this.hasLoadedOnce;
   }
 
   public getSelectedCategory() {

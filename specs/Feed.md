@@ -4,7 +4,7 @@
 | --- | --- |
 | 상태 | as-built (2026-07-07 구현) · **2026-07-28 개정(as-built)**: 장비 이미지 미제공([DataModel.md](DataModel.md) §1) — 텍스트 카드 개편(FD-2), 이미지 제외 규칙 삭제(FD-1) · **2026-08-11 개정(as-built)**: 레퍼런스 탐색 화면 이식 — 순백 지면 + 2열 그리드(FD-2, 정보를 면 하나에 담고 쿠팡 링크 제거), 칩 한 줄 + 정렬 줄(FD-3), 화면 문법 §9 |
 | ID 프리픽스 | `FD` |
-| 주요 코드 | `model/feed/`, `components/feed/`(`FeedView`·`FeedGridCellView`·`FeedChipView`·`useGearRowState`·`FeedFilterBarView`·`FeedFilterSheetView`·`FeedSkeletonView`·`FeedRankingButtonView`·`PopularRankingWrapper`), `components/search-page/SearchPageView.tsx`(탐색 탭 지면·검색 필드), `components/search/`(`SearchBarView`·`SearchInputView`·`SearchBarVariant`), `app/popular-ranking/`(인기 순위 라우트), `components/search/SearchTopKeywordsView.tsx`(인기 순위 화면 재사용), `components/search/SearchResultView.tsx`(키워드 빈 상태에서 피드 렌더) |
+| 주요 코드 | `model/feed/`, `components/feed/`(`FeedView`·`FeedGridCellView`·`FeedChipView`·`useGearRowState`·`FeedFilterBarView`·`FeedFilterSheetView`·`FeedSkeletonView`·`FeedRankingSectionView`·`useFeedRankingSectionState`·`PopularRankingWrapper`), `components/search-page/SearchPageView.tsx`(탐색 탭 지면·검색 필드), `components/search/`(`SearchBarView`·`SearchInputView`·`SearchBarVariant`), `app/popular-ranking/`(인기 순위 라우트), `components/search/SearchTopKeywordsView.tsx`(인기 순위 화면 재사용), `components/search/SearchResultView.tsx`(키워드 빈 상태에서 피드 렌더) |
 | 관련 스펙 | [Search.md](Search.md), [DataModel.md](DataModel.md), [GearDetail.md](GearDetail.md), [Analytics.md](Analytics.md) |
 
 ## 1. 개요
@@ -131,7 +131,7 @@
 - **행 문법은 SR-4 전용 화면과 같다**(한 컴포넌트를 공유한다 — `SearchRankRowView`로 추출): 순위 배지 + 이름 16 medium 두 줄 + 메타 `무게 · 브랜드` 14 잉크 + 우측 `창고에 추가`/보유 버튼. 상위 3위 배지는 **라임 채움 원 + 잉크 숫자**(SR-4의 라임 예외를 이 섹션에도 그대로 적용 — 순위의 정체성이라 같은 모양이어야 한 화면에서 두 곳이 같은 것임을 안다), 4~5위는 연회색 채움 원. 행 사이 헤어라인, 첫 행 위에는 두지 않는다.
 - **카테고리 승계**: 피드 칩 행에서 선택된 카테고리(`Feed.getFilterCategory()`)의 순위를 보여준다. `전체`·미선택이면 전체 순위. 섹션 머리 우측에 현재 카테고리 라벨을 메타(13, `textMuted`)로 적는다(`전체` / `텐트` …). 카테고리를 바꾸면 섹션도 같이 바뀐다(스켈레톤 → 새 순위). SR-4 화면의 8개 탭에 없는 카테고리(의류·전자기기·음식·기타)도 `gear-rank`에 `category` 값이 있으면 그대로 조회한다 — 결과가 비면 섹션을 **숨긴다**(빈 상태 문구를 두지 않는다. 피드 머리말이 "없어요"로 시작하면 피드가 비어 보인다).
 - **숨기는 경우**: ① 검색 승계 상태(검색어 입력·장비 추가 컨텍스트) ② **브랜드 필터가 하나라도 선택된 때** — 순위는 브랜드로 거르지 않으므로 칩 행과 섹션이 다른 말을 하게 된다 ③ 결과 0건 ④ 로드 실패(조용히 숨김, 토스트·알럿 없음). 정렬(`추천`·`인기순`·…)과는 무관하게 보인다 — 정렬은 피드 본체의 축이고 순위는 별도 소스(`gear-rank`)다.
-- **`전체 순위 보기 ›`**: 섹션 마지막 행(최소 높이 48, 17pt 잉크 + 셰브론, 누를 수 있음은 셰브론으로만 알린다). 탭 → 기존 `/popular-ranking?category=<GearFilter>`(SR-4, 카테고리 승계 규칙 그대로). 분석 이벤트는 기존 `click_feed_ranking`을 그대로 쓴다(진입 수단만 바뀐 것이라 추세가 끊기지 않게).
+- **`전체 순위 보기 ›`**: 섹션 마지막 행(최소 높이 48, 항목 이름 단 `AcgType.rowTitle` 16 medium 잉크 + 셰브론 — 타입 스케일에 17 단이 없어 스케일 안의 단을 쓴다, 누를 수 있음은 셰브론으로만 알린다). 탭 → 기존 `/popular-ranking?category=<GearFilter>`(SR-4, 카테고리 승계 규칙 그대로). 분석 이벤트는 기존 `click_feed_ranking`을 그대로 쓴다(진입 수단만 바뀐 것이라 추세가 끊기지 않게).
 - **플로팅 라임 `인기 순위` 버튼을 제거한다.** 이 탭의 라임은 이제 순위 1~3위 배지뿐이다. "라임은 화면당 주 액션 하나"(HM-8)에서 이 화면의 주 액션은 셀마다 있는 `담기`(흰 원)라 라임이 필요한 액션이 없고, 배지 라임은 SR-4 예외의 연장이다. 플로팅 버튼이 없어지면서 `insets.bottom` 정착 타이밍 문제(FD-2 마지막 항목)도 사라진다.
 - **로딩**: 섹션 자리에 순위 행 골격 스켈레톤 5개(`SearchRankSkeletonView count={5}`, SR-4와 같은 구조). 피드 최초 스켈레톤 중에는 섹션도 스켈레톤이다(둘이 한 덩어리로 뜬다). 순위 로드는 피드 로드와 **병렬**이고 서로 기다리지 않는다.
 - **담기·제거**: 행 버튼 동작은 SR-4와 같다(미보유 `+` → 창고 등록 + 배낭 담기 모달, 보유 체크 → 제거 확인 알럿, 비로그인 `+` → 로그인 모달). 상태 변경 후 섹션·피드 모두 스크롤 위치를 유지한다. 순위 섹션에서 담은 장비는 피드 그리드에서는 FD-1 제외 규칙(내 창고 장비 제외)에 따라 다음 재구성 때 빠진다 — 즉시 빼지 않는다(FD-2 "담기 후 전체 리로드 금지").

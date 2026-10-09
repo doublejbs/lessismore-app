@@ -706,7 +706,8 @@
     "brandDirectory": {
       "title": "Browse by brand"
     },
-    "ranking": "Popular gear",
+    "rankingTitle": "Popular ranking",
+    "rankingSeeAll": "See full ranking",
     "addedToBag": "Added to the bag.",
     "addedToWarehouse": "Added to the warehouse.",
     "removeFromWarehouseAccessibility": "Remove {{name}} from warehouse",

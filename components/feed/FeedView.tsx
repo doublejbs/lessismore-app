@@ -19,7 +19,9 @@ import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import FeedSkeletonView from './FeedSkeletonView';
 import FeedFilterBarView from './FeedFilterBarView';
-import FeedRankingButtonView from './FeedRankingButtonView';
+import FeedRankingSectionView from './FeedRankingSectionView';
+import useFeedRankingSectionState from './useFeedRankingSectionState';
+import SearchWarehouse from '@/model/search/SearchWarehouse';
 import FeedGridCellView from './FeedGridCellView';
 import app from '@/model/app/App';
 
@@ -33,6 +35,8 @@ const FEED_COLUMN_GAP = 16;
 
 interface Props {
   bag: Bag;
+  // FD-6: 피드 상단 인기 순위 섹션이 쓰는 순위 모델(`getSearchRank()`)의 소유자. 탐색 탭 수준에서 생성된다.
+  searchWarehouse: SearchWarehouse;
   // 탐색 탭이 검색 승계(FD-3)를 위해 상위에서 소유·공유하는 피드. 없으면 내부에서 생성한다.
   feed?: Feed;
   // GE-8: 장비 추가 검색 진입 시 담기 동작 컨텍스트(행으로 전달).
@@ -41,19 +45,25 @@ interface Props {
 
 // FD-2/FD-4: 장비 피드 본체. Feed 도메인 객체를 1회 생성·초기화하고 단일 컬럼 FlatList로 렌더한다.
 // 목록에는 면·테두리·그림자·구분선이 없다 — 순백 지면에 행이 직접 놓인다(레퍼런스).
-// FD-3: 상단 필터 바(칩 행 + 정렬 줄) 아래로 목록이 흐르고, 하단 플로팅 `인기 순위` 버튼을 absolute로 얹는다.
-const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
+// FD-3: 상단 필터 바(칩 행 + 정렬 줄) 아래로 목록이 흐른다.
+// FD-6: 목록 머리(ListHeaderComponent)에 인기 순위 섹션을 둔다(구 플로팅 `인기 순위` 버튼 대체).
+const FeedView: FC<Props> = ({
+  bag,
+  searchWarehouse,
+  feed: externalFeed,
+  gearAddContext,
+}) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [feed] = useState(() => externalFeed ?? Feed.new(router));
   const [isInitialLoadSettled, setIsInitialLoadSettled] = useState(false);
   const ownsFeed = !externalFeed;
-  // 플로팅 `인기 순위` 버튼(탭바 위 20pt, 높이 ~48)이 마지막 행을 가리지 않도록 리스트 하단 여백을 확보한다.
-  // iOS는 edge-to-edge라 탭바 영역(insets.bottom)까지 더한다. Android는 커스텀 탭이라 고정값.
+  // 플로팅 탭바가 마지막 행을 가리지 않도록 리스트 하단 여백을 확보한다(홈과 같은 기준).
+  // FD-6으로 플로팅 `인기 순위` 버튼이 사라져 버튼 몫을 따로 두지 않고 홈과 같은 `AcgLayout.scrollBottom`으로 통일한다.
   const listBottomPadding = Platform.select({
-    ios: insets.bottom + 90,
-    android: 120,
-    default: 150,
+    ios: insets.bottom + AcgLayout.scrollBottom,
+    android: AcgLayout.scrollBottom,
+    default: AcgLayout.scrollBottom,
   });
 
   useEffect(() => {
@@ -84,6 +94,11 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   const isLoading = feed.isLoading();
   const isRefreshing = feed.isRefreshing();
   const isEmpty = feed.isEmpty();
+  const ranking = useFeedRankingSectionState({
+    feed,
+    searchWarehouse,
+    gearAddContext,
+  });
 
   const handleEndReached = useCallback(() => {
     feed.loadMore();
@@ -138,17 +153,27 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
   // isInitialized가 초기 렌더에서 false이므로, 로드가 빨라도 스켈레톤이 먼저 보인다.
   const showSkeleton =
     (!isInitialLoadSettled || !isInitialized || isLoading) && items.length === 0;
-  const showRankingButton =
-    isInitialLoadSettled && !isLoading && items.length > 0 && !gearAddContext;
+
+  // FD-6: 순위 로드는 피드 로드와 병렬이고 서로 기다리지 않는다 — 섹션은 자기 로딩 상태를 그린다.
+  const rankingSection = ranking.isVisible ? (
+    <FeedRankingSectionView
+      feed={feed}
+      bag={bag}
+      searchRank={ranking.searchRank}
+      category={ranking.category}
+      gears={ranking.gears}
+      isRankingLoading={ranking.isRankingLoading}
+      rankingCount={ranking.rankingCount}
+    />
+  ) : null;
 
   if (showSkeleton) {
-    // 플로팅 `인기 순위` 버튼은 스켈레톤 위에 띄우지 않는다. 탭이 막 마운트된 첫 프레임에는
-    // 네이티브 탭바 몫이 반영되기 전이라 insets.bottom이 작게 잡혀 버튼이 탭바 뒤로 내려간다.
-    // 피드가 로드된 뒤(= inset 정착 후)에만 노출하면 위치가 정확하고, 로딩 위 CTA 겹침도 없다.
+    // FD-6: 최초 스켈레톤 중에도 순위 섹션을 같은 자리에 그려 둘이 한 덩어리로 뜨게 한다.
     return (
       <View style={styles.container}>
         <FeedFilterBarView feed={feed} />
         <View style={styles.skeletonContainer}>
+          {rankingSection}
           <FeedSkeletonView count={5} />
         </View>
       </View>
@@ -171,6 +196,7 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
         ]}
         onEndReached={handleEndReached}
         onEndReachedThreshold={END_REACHED_THRESHOLD}
+        ListHeaderComponent={rankingSection}
         ListEmptyComponent={renderEmpty}
         ListFooterComponent={renderFooter}
         refreshControl={
@@ -181,7 +207,6 @@ const FeedView: FC<Props> = ({ bag, feed: externalFeed, gearAddContext }) => {
           />
         }
       />
-      {showRankingButton && <FeedRankingButtonView feed={feed} />}
     </View>
   );
 };

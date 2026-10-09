@@ -698,7 +698,8 @@
     "brandDirectory": {
       "title": "브랜드별 탐색"
     },
-    "ranking": "인기 순위",
+    "rankingTitle": "인기 순위",
+    "rankingSeeAll": "전체 순위 보기",
     "addedToBag": "배낭에 담았어요.",
     "addedToWarehouse": "창고에 담았어요.",
     "removeFromWarehouseAccessibility": "{{name}} 창고에서 빼기",

@@ -698,7 +698,8 @@
     "brandDirectory": {
       "title": "ブランドから探す"
     },
-    "ranking": "人気ギアランキング",
+    "rankingTitle": "人気ランキング",
+    "rankingSeeAll": "ランキングをすべて見る",
     "addedToBag": "バックパックに入れました。",
     "addedToWarehouse": "倉庫に追加しました。",
     "removeFromWarehouseAccessibility": "{{name}}を倉庫から外す",
