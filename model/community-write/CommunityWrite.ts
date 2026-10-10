@@ -19,6 +19,7 @@ import {
   COMMUNITY_POLL_MIN_OPTIONS,
 } from '@/model/community/CommunityLimits';
 import type BagItem from '@/model/bag/BagItem';
+import type Gear from '@/model/gear/Gear';
 import CommunityImageSession from '@/model/community-image/CommunityImageSession';
 import CommunityImageError from '@/model/community-image/CommunityImageError';
 import CommunityImagePipelineError from '@/model/community-image/CommunityImagePipelineError';
@@ -63,6 +64,10 @@ class CommunityWrite {
   private pollChanged = false;
   private initialized = false;
   private reservedPostId = '';
+  // 여행 기록(CM-16)의 원본 배낭 id. 비어 있으면 일반 글이다.
+  private recordBagId = '';
+  // 수정 중인 글이 여행 기록이다 — 배낭 스냅샷과 사진 1장 이상을 지켜야 한다(CM-16).
+  private editingTripRecord = false;
 
   public constructor(
     mode: CommunityWriteMode,
@@ -138,6 +143,7 @@ class CommunityWrite {
     }
 
     this.setExistingPost(post);
+    this.setEditingTripRecord(post.isTripRecord());
     this.setTitleValue(post.getTitle());
     this.setBodyValue(post.getBody());
     this.setBagSnapshot(post.getBagSnapshot() ?? null);
@@ -274,7 +280,41 @@ class CommunityWrite {
     this.markDirty();
   }
 
+  /**
+   * 여행 기록(CM-16)으로 쓴다 — 이미 읽은 배낭·장비로 스냅샷을 만들고(CM-4 규칙 그대로)
+   * 게시 데이터에 `isTripRecord`·`recordBagId`를 붙인다. 사용자가 고르는 첨부가 아니라
+   * 더러움 표시(isDirty)를 올리지 않는다.
+   */
+  public attachTripRecord(bag: BagItem, gears: Gear[]) {
+    this.setSelectedBag(bag);
+    this.setBagSnapshot(CommunityBagSnapshotBuilder.build(bag, gears));
+    this.setBagChanged(true);
+    this.setRecordBagId(bag.getID());
+  }
+
+  public isTripRecord(): boolean {
+    return this.recordBagId !== '';
+  }
+
+  public isEditingTripRecord(): boolean {
+    return this.editingTripRecord;
+  }
+
+  // 여행 기록을 수정할 때는 배낭 스냅샷을 뗄 수 없다(CM-16).
+  public canRemoveBagSnapshot(): boolean {
+    return !this.editingTripRecord;
+  }
+
+  // 여행 기록을 수정할 때는 사진을 0장으로 줄일 수 없다(CM-16). 기록 시트는 게시 버튼이 막는다.
+  public canRemoveImage(): boolean {
+    return !this.editingTripRecord || this.imageSession.images.length > 1;
+  }
+
   public removeBagSnapshot() {
+    if (!this.canRemoveBagSnapshot()) {
+      return;
+    }
+
     this.setSelectedBag(null);
     this.setBagSnapshot(null);
     this.setBagChanged(true);
@@ -529,11 +569,15 @@ class CommunityWrite {
       throw error;
     }
 
-    app.getAnalyticsManager()?.logClick('community_publish', {
-      has_packing: this.hasBagSnapshot(),
-      has_poll: this.hasPoll(),
-      image_count: this.imageSession.getUploadedInOrder().length,
-    });
+    // 여행 기록은 기록 시트가 `trip_record_submit`을 따로 보낸다(CM-16) — 커뮤니티 글쓰기 지표와 섞지 않는다.
+    if (!this.isTripRecord()) {
+      app.getAnalyticsManager()?.logClick('community_publish', {
+        has_packing: this.hasBagSnapshot(),
+        has_poll: this.hasPoll(),
+        image_count: this.imageSession.getUploadedInOrder().length,
+      });
+    }
+
     this.setDirty(false);
 
     return postId;
@@ -582,6 +626,10 @@ class CommunityWrite {
 
     if (this.hasPoll()) {
       input.poll = this.buildPollInput();
+    }
+
+    if (this.recordBagId) {
+      input.recordBagId = this.recordBagId;
     }
 
     return input;
@@ -739,6 +787,10 @@ class CommunityWrite {
     this.existingPost = value;
   }
 
+  private setEditingTripRecord(value: boolean) {
+    this.editingTripRecord = value;
+  }
+
   private setBagChanged(value: boolean) {
     this.bagChanged = value;
   }
@@ -761,6 +813,10 @@ class CommunityWrite {
 
   private setReservedPostId(value: string) {
     this.reservedPostId = value;
+  }
+
+  private setRecordBagId(value: string) {
+    this.recordBagId = value;
   }
 
   private clearFieldErrors() {

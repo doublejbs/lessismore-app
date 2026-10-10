@@ -20,6 +20,7 @@ class CommunityPost {
   private readonly images: CommunityPostImage[];
   private readonly bagSnapshot: CommunityBagSnapshot | undefined;
   private poll: CommunityPoll | undefined;
+  private readonly tripRecord: boolean;
   private likeCount: number;
   private commentCount: number;
   private readonly createdAt: Date;
@@ -54,6 +55,7 @@ class CommunityPost {
             : {}),
         }
       : undefined;
+    this.tripRecord = data.isTripRecord === true;
     this.likeCount = data.likeCount;
     this.commentCount = data.commentCount;
     this.createdAt = toDate(data.createdAt);
@@ -116,6 +118,10 @@ class CommunityPost {
 
   public getUpdatedAt() {
     return this.updatedAt;
+  }
+
+  public isTripRecord() {
+    return this.tripRecord;
   }
 
   public hasBagSnapshot() {

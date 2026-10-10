@@ -13,6 +13,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Platform,
+  InteractionManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import BagDetail from '@/model/bag-detail/BagDetail';
@@ -32,6 +33,9 @@ import BagDetailDestinationView from './BagDetailDestinationView';
 import BagDetailActivityView from './BagDetailActivityView';
 import BagDetailRouteView from './BagDetailRouteView';
 import BagFilmCardButtonView from './BagFilmCardButtonView';
+import BagDetailTripRecordView from './BagDetailTripRecordView';
+import TripRecordDoneSheetView from '@/components/trip-record/TripRecordDoneSheetView';
+import TripRecordAfterAction from '@/model/trip-record/TripRecordAfterAction';
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import BagDetailSkeletonView from './BagDetailSkeletonView';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -61,6 +65,9 @@ const IS_IOS = Platform.OS === 'ios';
 const SAFE_AREA_EDGES: readonly Edge[] = IS_IOS
   ? ['left', 'right', 'bottom']
   : ['top', 'left', 'right', 'bottom'];
+
+// 기록 시트(formSheet)가 내려간 뒤 완료 카드 모달을 올린다 — 전환이 끝나는 신호가 늦으면 이 시간에 올린다.
+const TRIP_RECORD_DONE_FALLBACK_DELAY = 300;
 
 const BagDetailView: FC<Props> = ({ bagDetail }) => {
   const router = useRouter();
@@ -120,6 +127,52 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     useCallback(() => {
       bagDetail.initialize();
     }, [bagDetail])
+  );
+
+  // 여행 기록 시트에서 돌아오면 완료 카드를 띄운다(CM-16). 시트가 다 내려간 뒤 모달을 올려야
+  // iOS가 "dismiss 중 present"로 모달을 버리지 않는다.
+  const [showTripRecordDone, setShowTripRecordDone] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      // 포커스 시에는 엿보기만 한다 — 띄우기 전에 화면이 블러되면 핸드오프를 다음 포커스에 남긴다.
+      if (!bagDetail.hasPendingTripRecordDone()) {
+        return;
+      }
+
+      // 전환 종료(runAfterInteractions)와 대비 타이머 중 먼저 오는 쪽에서 한 번만 띄운다.
+      let shown = false;
+
+      const handleShow = () => {
+        if (shown) {
+          return;
+        }
+
+        shown = true;
+
+        if (!bagDetail.consumeTripRecordDone()) {
+          return;
+        }
+
+        setShowTripRecordDone(true);
+      };
+
+      const task = InteractionManager.runAfterInteractions(handleShow);
+      const timer = setTimeout(handleShow, TRIP_RECORD_DONE_FALLBACK_DELAY);
+
+      return () => {
+        task.cancel();
+        clearTimeout(timer);
+      };
+    }, [bagDetail])
+  );
+
+  const handleTripRecordAfter = useCallback(
+    (action: TripRecordAfterAction) => {
+      setShowTripRecordDone(false);
+      bagDetail.handleTripRecordAfter(action);
+    },
+    [bagDetail]
   );
 
   // 소모품은 세션당 1회 조회다(CP-1) — 이미 읽었으면 같은 Promise라 다시 부르지 않는다.
@@ -345,7 +398,18 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               </View>
               <BagDetailSummaryView bagDetail={bagDetail} />
               <View style={styles.actionsGrid}>
-                {bagDetail.getTripPhase() === 'after' ? (
+                {bagDetail.getTripPhase() === 'after' &&
+                bagDetail.shouldOfferTripRecord() ? (
+                  // 지난 여행 + 기록 없음 → `여행 기록 남기기`가 강조 카드(BD-10 2026-10-10 개정).
+                  <>
+                    <BagDetailTripRecordView bagDetail={bagDetail} />
+                    <BagDetailUselessDescriptionView bagDetail={bagDetail} />
+                    <BagDetailMemoView bagDetail={bagDetail} />
+                    <BagDetailDestinationView bagDetail={bagDetail} />
+                    <BagDetailActivityView bagDetail={bagDetail} />
+                    <BagDetailRouteView bagDetail={bagDetail} />
+                  </>
+                ) : bagDetail.getTripPhase() === 'after' ? (
                   <>
                     <BagDetailUselessDescriptionView
                       bagDetail={bagDetail}
@@ -441,6 +505,9 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
             )}
             <BagDetailBottomBar bagDetail={bagDetail} />
           </View>
+          {showTripRecordDone && bagDetail.getTripRecordDone() ? (
+            <TripRecordDoneSheetView onAction={handleTripRecordAfter} />
+          ) : null}
           <BottomMenuModalView
             visible={showMenu}
             onClose={() => setShowMenu(false)}

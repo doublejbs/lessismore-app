@@ -69,6 +69,8 @@ export interface CommunityPostData {
   images: CommunityPostImage[];
   bagSnapshot?: CommunityBagSnapshot;
   poll?: CommunityPoll;
+  // 여행 기록(CM-16) 글이면 true(DM-28 `isTripRecord`).
+  isTripRecord?: boolean;
   likeCount: number;
   commentCount: number;
   createdAt: Date;
@@ -99,6 +101,8 @@ export interface CommunityPostCreateInput {
   bagSnapshot?: CommunityBagSnapshot;
   poll?: CommunityPollInput;
   postId?: string;
+  // 여행 기록(CM-16)이면 원본 배낭 id. 있으면 `isTripRecord: true`와 함께 저장한다(DM-28).
+  recordBagId?: string;
 }
 
 export interface CommunityPollInputOption {

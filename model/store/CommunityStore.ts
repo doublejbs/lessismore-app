@@ -122,6 +122,105 @@ class CommunityStore {
     return this.toPostPage(visibleDocs, hasMore);
   }
 
+  /**
+   * 내 여행 기록 1건의 id(CM-16 배낭당 1개, DM-28 인덱스 ③).
+   * 보안 규칙이 `status == published` 읽기만 허용하므로 쿼리에도 같은 조건을 건다.
+   */
+  public async findMyTripRecordId(
+    userId: string,
+    bagId: string
+  ): Promise<string | null> {
+    const snapshot = await getDocs(
+      query(
+        collection(this.getStore(), 'community-posts'),
+        where('authorId', '==', userId),
+        where('recordBagId', '==', bagId),
+        where('status', '==', CommunityContentStatus.Published),
+        firestoreLimit(1)
+      )
+    );
+
+    return snapshot.docs[0]?.id ?? null;
+  }
+
+  /**
+   * 내가 기록을 남긴 배낭 id 목록(HM-17 `내 여행 기록하기` 판정).
+   * 등호 조건만이라 단일 필드 색인 병합으로 처리된다.
+   */
+  public async getMyTripRecordBagIds(userId: string): Promise<Set<string>> {
+    const snapshot = await getDocs(
+      query(
+        collection(this.getStore(), 'community-posts'),
+        where('authorId', '==', userId),
+        where('isTripRecord', '==', true),
+        where('status', '==', CommunityContentStatus.Published)
+      )
+    );
+    const bagIds = new Set<string>();
+
+    snapshot.docs.forEach(item => {
+      const bagId = item.data().recordBagId;
+
+      if (typeof bagId === 'string' && bagId) {
+        bagIds.add(bagId);
+      }
+    });
+
+    return bagIds;
+  }
+
+  // 최근 여행 기록(HM-17, DM-28 인덱스 ①).
+  public async getRecentTripRecords(limit: number): Promise<CommunityPost[]> {
+    const snapshot = await getDocs(
+      query(
+        collection(this.getStore(), 'community-posts'),
+        where('isTripRecord', '==', true),
+        where('status', '==', CommunityContentStatus.Published),
+        orderBy('createdAt', 'desc'),
+        firestoreLimit(limit)
+      )
+    );
+
+    return snapshot.docs.map(item =>
+      CommunityPost.from(this.toPostData(item.id, item.data()))
+    );
+  }
+
+  /**
+   * 한 박지의 여행 기록(CS-11 다녀온 기록, 커뮤니티 피드 `spot` 필터 — DM-28 인덱스 ②).
+   * 인덱스가 최신순 하나뿐이라 정렬은 항상 `createdAt desc`다.
+   */
+  public async getSpotTripRecordsPage(
+    spotId: string,
+    cursor: QueryDocumentSnapshot | null,
+    limit: number = COMMUNITY_PAGE_SIZE
+  ): Promise<{
+    posts: CommunityPost[];
+    cursor: QueryDocumentSnapshot | null;
+    hasMore: boolean;
+  }> {
+    let recordsQuery = query(
+      collection(this.getStore(), 'community-posts'),
+      where('isTripRecord', '==', true),
+      where('status', '==', CommunityContentStatus.Published),
+      where('bagSnapshot.campSpotId', '==', spotId),
+      orderBy('createdAt', 'desc'),
+      firestoreLimit(limit + 1)
+    );
+
+    if (cursor) {
+      recordsQuery = query(recordsQuery, startAfter(cursor));
+    }
+
+    const snapshot = await getDocs(recordsQuery);
+    const hasMore = snapshot.docs.length > limit;
+    const visibleDocs = hasMore
+      ? snapshot.docs.slice(0, limit)
+      : snapshot.docs;
+
+    return this.toPostPage(visibleDocs, hasMore);
+  }
+
   public async getPost(postId: string): Promise<CommunityPost | null> {
     const snapshot = await getDoc(
       doc(this.getStore(), 'community-posts', postId)
@@ -207,6 +306,12 @@ class CommunityStore {
 
     if (input.poll) {
       postData.poll = this.toPollData(input.poll);
+    }
+
+    // 여행 기록(CM-16·DM-28) — 일반 글에는 키 자체를 두지 않는다.
+    if (input.recordBagId) {
+      postData.isTripRecord = true;
+      postData.recordBagId = input.recordBagId;
     }
 
     await setDoc(
@@ -862,6 +967,7 @@ class CommunityStore {
         ? { bagSnapshot }
         : {}),
       ...(poll ? { poll } : {}),
+      ...(data.isTripRecord === true ? { isTripRecord: true } : {}),
       likeCount: data.likeCount ?? 0,
       commentCount: data.commentCount ?? 0,
       createdAt: toDate(data.createdAt),

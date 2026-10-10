@@ -22,6 +22,10 @@ import { CampReview, CampReviewSummary } from '../camp-review/CampReviewTypes';
 import { setCampReviewWrite } from '../camp-review/CampReviewWriteHandoff';
 import { setPendingBagLocation } from '../bag/PendingBagLocationHandoff';
 import { getCampShareUrl } from '@/constants/WebLinks';
+import CommunityPost from '../community/CommunityPost';
+
+// 다녀온 기록 카드 수(CS-11). 한 건 더 읽어 `전체 보기` 노출(5건 초과)을 판단한다.
+const TRIP_RECORD_LIMIT = 5;
 
 // 박지 상세 도메인 모델 (CampSite CS-3/CS-4/CS-5).
 // 3단 래퍼(라우트 → Wrapper → View) 중 상태·비즈니스 로직을 담당한다.
@@ -48,6 +52,8 @@ class CampSiteDetail {
   private reviewSummary: CampReviewSummary | null = null;
   private userReviews: CampReview[] = [];
   private myReview: CampReview | null = null;
+  private tripRecords: CommunityPost[] = [];
+  private hasMoreTripRecords = false;
 
   private constructor(
     private readonly router: ImperativeRouter,
@@ -78,6 +84,7 @@ class CampSiteDetail {
 
       void this.loadReviewContent(spot);
       void this.loadUserReviews(spot.id);
+      void this.loadTripRecords(spot.id);
     } catch (e) {
       console.error('박지 상세 로드 실패:', e); // l10n-ignore: 개발자 로그
       const l10n = app.getL10n();
@@ -253,6 +260,66 @@ class CampSiteDetail {
 
     await this.dispatcher.deleteReview(spot.id, this.firebase.getUserId());
     await this.loadUserReviews(spot.id);
+  }
+
+  // 다녀온 기록(CS-11). 비로그인도 읽는다. 실패는 조용히 숨긴다(섹션을 그리지 않는다).
+  private async loadTripRecords(spotId: string) {
+    try {
+      const page = await this.dispatcher.getTripRecords(spotId, TRIP_RECORD_LIMIT);
+
+      this.setTripRecords(page.posts, page.hasMore);
+    } catch (e) {
+      console.error('박지 여행 기록 조회 실패:', e); // l10n-ignore: 개발자 로그
+    }
+  }
+
+  private setTripRecords(posts: CommunityPost[], hasMore: boolean) {
+    this.tripRecords = posts;
+    this.hasMoreTripRecords = hasMore;
+  }
+
+  public getTripRecords() {
+    return this.tripRecords;
+  }
+
+  public getHasMoreTripRecords() {
+    return this.hasMoreTripRecords;
+  }
+
+  /**
+   * 기록 카드 탭(CS-11) → 게시글 상세. 시트(formSheet) 위에 일반 푸시를 쌓으면 부모 스크린
+   * 컨트롤러를 못 찾아 빈 화면이 되므로(공유 배낭 뷰어 주석, 2026-08-03) 시트는 상세로 교체한다.
+   */
+  public openTripRecord(post: CommunityPost, inSheet: boolean) {
+    this.analyticsManager?.logClick('camp_site_record');
+
+    const route = `/community/${post.getId()}` as const;
+
+    if (inSheet) {
+      this.router.replace(route);
+
+      return;
+    }
+
+    this.router.push(route);
+  }
+
+  /**
+   * `전체 보기`(CS-11) → 커뮤니티 피드를 이 박지로 거른 목록. 커뮤니티는 탭 화면이라 navigate가
+   * 루트 스택의 탭으로 돌아가며 그 위의 시트·페이지를 함께 내린다.
+   */
+  public openAllTripRecords() {
+    const spot = this.spot;
+
+    if (!spot) {
+      return;
+    }
+
+    this.analyticsManager?.logClick('camp_site_record_more');
+    this.router.navigate({
+      pathname: '/community',
+      params: { spot: spot.id, spotName: spot.name },
+    });
   }
 
   // 후기에 첨부된 배낭 탭(CS-8): 공유 배낭 화면으로 이동한다.

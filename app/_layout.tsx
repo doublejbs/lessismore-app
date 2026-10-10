@@ -216,6 +216,7 @@ const RootLayout = () => {
     const unsubscribe = app
       .getNotificationManager()
       ?.addResponseRouteListener(route => {
+        // 여행 기록 알림도 바로 연다 — 이미 기록이 있으면 시트가 사용 기록으로 보낸다(NT-3).
         router.push(route as never);
       });
 
@@ -469,6 +470,20 @@ const RootLayout = () => {
               sheetGrabberVisible: true,
               sheetCornerRadius: 20,
               contentStyle: { backgroundColor: '#FFFFFF' },
+            }}
+          />
+          {/* 여행 기록 시트(CM-16) — 후기 작성 시트와 같은 얼개. 게시 후에는 시트를 쌓지 않고
+              배낭 상세로 돌아가거나(배낭 상세 진입) 배낭 상세로 교체한다(알림·홈 진입). */}
+          <Stack.Screen
+            name='trip-record/[bagId]'
+            options={{
+              headerShown: false,
+              presentation: 'formSheet',
+              sheetAllowedDetents:
+                Platform.OS === 'android' ? [0.9] : 'fitToContents',
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 20,
+              contentStyle: { backgroundColor: Acg.paper },
             }}
           />
           {/* LG-1: reply 중첩 레이아웃(Stack)을 삭제하고 루트 스택으로 호이스팅 —
