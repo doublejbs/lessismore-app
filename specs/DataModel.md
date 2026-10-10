@@ -996,7 +996,7 @@
 | 필드 | 타입 | 비고 |
 | --- | --- | --- |
 | `active` | boolean | `premium` 권한(구 `no_ads` — [Subscription.md](Subscription.md) SUB-1 개정)이 지금 살아 있는지. 체험 중도 `true` |
-| `productId` | string | `useless_no_ads_monthly`(상품 ID는 유지 — 스토어에 이미 등록, SUB-1) |
+| `productId` | string | `useless_plus_monthly`(SUB-1 — 스토어에 구 ID가 이미 있으면 그 값) |
 | `store` | string | `app_store` \| `play_store` (RevenueCat `store` 값 소문자) |
 | `environment` | string | `production` \| `sandbox` — 통계에서 샌드박스를 거른다 |
 | `willRenew` | boolean | 해지 예약이면 `false` |

@@ -1,8 +1,8 @@
-# 구독 (광고 제거 + 오프라인 저장)
+# 구독 (여행 오프라인 저장)
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | proposed (2026-09-27 기획 · **2026-10-10 개정**: 혜택에 여행 오프라인 저장 추가, 7일 무료 체험, 권한 이름 `premium`) |
+| 상태 | proposed (2026-09-27 기획 · **2026-10-10 개정**: 혜택을 **여행 오프라인 저장 하나**로 — 광고는 당분간 넣지 않기로 해 광고 제거 혜택 제거, 7일 무료 체험, 권한 이름 `premium`) |
 | ID 프리픽스 | `SUB` |
 | 주요 코드 | `[제안]` 모델 `model/subscription/`: `SubscriptionStore.ts`(상태·구매·복원·계정 연결), `PurchasesModule.ts`·`PurchasesModule.web.ts`(네이티브 모듈 `RNPurchases` 가드·웹 스텁), `RevenueCatKeys.ts`(공개 SDK 키), `SubscriptionConstants.ts`, `SubscriptionGateContract.ts`, `PurchaseResult.ts`, `RestoreResult.ts`, `SubscriptionOfferingStatus.ts` · 진입점(SUB-9) `model/subscription/OpenSubscription.ts`(설정·광고 링크·안내가 함께 쓰는 구독 화면 열기), `SubscriptionEntryPoint.ts`(`from` 값), `SubscriptionNudge.ts`(누적 노출·한 번 뜨는 안내 시트 요청), `SubscriptionNudgeAction.ts`, `components/subscription/SubscriptionNudgeSheetView.tsx`(안내 시트 호스트, `app/_layout.tsx` 최상위), `components/ads/SingleAdSlotView.tsx`(광고 아래 링크), `components/ads/useAdImpressionTracking.ts`(`CommunityAdCardView.tsx`·`FeedAdCellView.tsx`가 노출을 센다) · 광고 `model/ads/AdService.ts`(`isConsentFlowActive`)·`AdService.web.ts`·`AdServiceContract.ts`·`AdSlotList.ts`, `components/ads/useAdSlotListState.ts`·`useSingleAdSlotState.ts` · 화면 `app/subscription/index.tsx` → `components/subscription/SubscriptionWrapper.tsx` → `SubscriptionView.tsx`(`SubscriptionOfferView.tsx`·`SubscriptionActiveView.tsx`·`SubscriptionRestoreButtonView.tsx`·`useSubscriptionState.ts`), `app/_layout.tsx`(시트 등록) · 설정 `app/info/index.tsx` · 탈퇴 `app/info/delete/index.tsx` · 앱 `model/app/App.ts` · 서버 `lessismore` 레포 `functions/subscription.js` |
 | 관련 스펙 | [Ads.md](Ads.md), [Offline.md](Offline.md), [DataModel.md](DataModel.md) DM-31, [Auth.md](Auth.md)(탈퇴·처리방침), [Analytics.md](Analytics.md) |
@@ -11,15 +11,14 @@
 
 월 구독 하나로 앱의 광고([Ads.md](Ads.md) AD-1의 다섯 자리)를 모두 끈다(2026-09-27 사용자 결정). 결제는 스토어 인앱 구독(Apple·Google)이고, 구매·갱신·검증은 **RevenueCat**이 맡는다. 앱은 RevenueCat SDK로 구독 여부를 바로 판단하고, 운영·통계용으로 **RevenueCat 웹훅 → 우리 Cloud Function → Firestore** 경로로 구독 상태를 서버에 남긴다(Firebase 확장은 쓰지 않는다).
 
-~~광고 제거 말고 다른 혜택은 두지 않는다.~~ → **2026-10-10 개정**: 혜택은 둘이다 — ① 광고 제거(AD-1) ② **여행 오프라인 저장**([Offline.md](Offline.md)). 상품은 그대로 월 구독 하나이고, **7일 무료 체험**으로 시작한다(SUB-10). 구독의 이름은 `useless 플러스` `[결정 필요 — 2026-10-10 제안값]`. 웹에는 광고도 오프라인 저장도 없으니 구독도 없다.
-
+**2026-10-10 개정 — 이 구독의 혜택은 여행 오프라인 저장([Offline.md](Offline.md)) 하나다.** 광고는 당분간 넣지 않기로 했으므로(2026-10-10 사용자 결정) 광고 제거는 혜택이 아니다. 위 개요의 "광고를 모두 끈다"는 `[이력]`이며, 광고가 다시 들어오면 그때 혜택으로 더한다(SUB-4·SUB-9 광고 쪽 항목은 `[보류]`). 상품은 월 구독 하나이고 **7일 무료 체험**으로 시작한다(SUB-10). 구독의 이름은 `useless 플러스`(2026-10-10 확정). 웹에는 오프라인 저장이 없으니 구독도 없다.
 ## 2. 화면 및 진입
 
 ```
 app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 화면, 시트형 모달)
 ```
 
-- 진입 경로: 설정(정보 탭) `광고 제거` 행(구독 중이면 `광고 제거 구독 중` → 관리 상태), 한 장짜리 광고 아래 링크, 한 번 뜨는 안내(SUB-9).
+- 진입 경로: 설정(정보 탭) `useless 플러스` 행(구독 중이면 `useless 플러스 구독 중` → 관리 상태), **배낭 상세 `오프라인` 타일 게이트**(SUB-11). ~~한 장짜리 광고 아래 링크, 한 번 뜨는 안내(SUB-9)~~ `[보류 — 광고 미도입]`.
 - 로그인하지 않은 사용자는 행을 누르면 로그인으로 보낸다(SUB-3).
 
 ## 3. 요구사항
@@ -28,8 +27,8 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 
 **수용 기준**
 
-- 상품은 **월 자동 갱신 구독 하나**다. 스토어 상품 ID `useless_no_ads_monthly`(iOS·Android 같은 값), iOS 구독 그룹 `광고 제거`.
-- RevenueCat 권한(entitlement) ~~`no_ads`~~ → **`premium`** 하나에 두 스토어 상품을 묶고(2026-10-10 개정 — 혜택이 둘이라 이름을 혜택 하나에 묶지 않는다. 아직 출시 전이라 RevenueCat 설정만 바꾸면 된다. 코드 상수 `NO_ADS_ENTITLEMENT_ID` → `PREMIUM_ENTITLEMENT_ID`), 오퍼링 `default`에 월 패키지를 둔다. 스토어 상품 ID `useless_no_ads_monthly`는 **유지**한다(스토어에 이미 등록된 ID를 바꾸면 심사·설정을 다시 밟는다. 표시 이름은 스토어에서 바꾼다).
+- 상품은 **월 자동 갱신 구독 하나**다. 스토어 상품 ID `useless_plus_monthly`(iOS·Android 같은 값, 아래 참고), iOS 구독 그룹 `useless 플러스`.
+- RevenueCat 권한(entitlement) ~~`no_ads`~~ → **`premium`** 하나에 두 스토어 상품을 묶고(2026-10-10 개정 — 혜택이 둘이라 이름을 혜택 하나에 묶지 않는다. 아직 출시 전이라 RevenueCat 설정만 바꾸면 된다. 코드 상수 `NO_ADS_ENTITLEMENT_ID` → `PREMIUM_ENTITLEMENT_ID`), 오퍼링 `default`에 월 패키지를 둔다. 스토어 상품 ID는 **`useless_plus_monthly`**로 둔다(광고 제거가 혜택이 아니므로 `no_ads` 이름을 쓰지 않는다. 스토어에 이미 `useless_no_ads_monthly`가 만들어져 있다면 그것을 그대로 쓰고 표시 이름만 바꾼다 — `[확인 필요: ASC·Play에 상품 생성 여부]`).
 - **가격은 스토어에서 정한다.** 앱은 가격을 하드코딩하지 않고 SDK가 준 현지화 가격 문자열을 그대로 쓴다.
 - ~~무료 체험·할인 오퍼는 두지 않는다.~~ → **7일 무료 체험을 둔다**(2026-10-10 사용자 결정, SUB-10). 스토어의 도입 오퍼(introductory offer, 무료 체험 7일)로 구성하며 할인 오퍼는 두지 않는다.
 
@@ -37,12 +36,12 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 
 **수용 기준**
 
-- 미구독: 제목 `useless 플러스`(이름 결정 전까지 임시) · **혜택 두 줄**(아이콘 + 한 줄: `앱의 모든 광고를 없애요` / `여행을 저장해 산에서도 코스·장비를 봐요`) · 가격 줄(체험 자격이 있으면 `7일 무료 체험 후 월 {가격}`, 없으면 `월 {가격}` — SUB-10) · 주 액션(체험 자격 있음 `7일 무료로 시작` / 없음 `구독하기`; 라임, 화면당 하나 — HM-8) · `구매 복원` · 자동 갱신 안내 · 이용약관·개인정보 처리방침 링크. 자동 갱신 안내 문구: `구독은 매월 자동으로 갱신되며, 현재 기간이 끝나기 24시간 전까지 스토어 설정에서 해지할 수 있어요. 결제는 구매 확인 시 스토어 계정으로 청구돼요.`
+- 미구독: 제목 `useless 플러스` · 혜택 설명(아이콘 + 두 줄: `여행을 저장해 데이터가 없는 산에서도 봐요` / `코스·내 위치·장비·날씨·박지 주의사항까지`) · 가격 줄(체험 자격이 있으면 `7일 무료 체험 후 월 {가격}`, 없으면 `월 {가격}` — SUB-10) · 주 액션(체험 자격 있음 `7일 무료로 시작` / 없음 `구독하기`; 라임, 화면당 하나 — HM-8) · `구매 복원` · 자동 갱신 안내 · 이용약관·개인정보 처리방침 링크. 자동 갱신 안내 문구: `구독은 매월 자동으로 갱신되며, 현재 기간이 끝나기 24시간 전까지 스토어 설정에서 해지할 수 있어요. 결제는 구매 확인 시 스토어 계정으로 청구돼요.`
   - 가격·기간·자동 갱신·해지 방법·약관 링크·구매 복원은 **App Store 심사 필수 표시**다(가이드라인 3.1.2). 빠뜨리지 않는다.
 - 구독 중: `useless 플러스 구독 중`(체험 중이면 `무료 체험 중 · {종료일}부터 월 {가격}`) · 다음 갱신일(또는 해지 예약 시 `{날짜}까지 이용`) · `구독 관리`(스토어 구독 관리 화면으로 이동) · `구매 복원`.
 - 상품을 불러오지 못하면(네트워크·스토어 오류) 가격 자리에 오류 한 줄 + `다시 시도`. 구독하기는 비활성.
 - 구매 진행 중에는 버튼을 막고 진행 표시. 사용자가 스토어 창에서 취소하면 아무 알림 없이 원래 화면.
-- 구매 성공 → 토스트(일반 `광고를 없애고 오프라인 저장을 켰어요` / 오프라인 진입점에서 왔으면 `오프라인 저장을 쓸 수 있어요`) → 화면 닫기. 광고는 즉시 사라지고(SUB-4), 오프라인 진입점에서 왔으면 **닫힌 뒤 바로 저장을 시작**한다(SUB-11).
+- 구매 성공 → 토스트 `오프라인 저장을 쓸 수 있어요` → 화면 닫기. 오프라인 진입점에서 왔으면 **닫힌 뒤 바로 저장을 시작**한다(SUB-11).
 - 시트 문법·타입·토큰은 HM-8. `PretendardText`, 44pt 터치 타깃, 아이콘 버튼 `accessibilityLabel`.
 
 ### SUB-3 계정 연결 `[제안]`
@@ -53,7 +52,9 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 - 로그인 직후 `Purchases.logIn(uid)`, 로그아웃 시 `Purchases.logOut()`. 앱 시작 시 이미 로그인돼 있으면 초기화와 함께 `logIn(uid)`.
 - RevenueCat 익명 사용자(`$RCAnonymousID:`)로 구매하는 경로를 만들지 않는다.
 
-### SUB-4 광고 끄기 `[제안]`
+### SUB-4 광고 끄기 `[보류 — 광고 미도입(2026-10-10)]`
+
+> 광고를 넣지 않기로 해 이 항목은 보류한다. 구독 판단 소스(아래 첫 항목)는 SUB-11 오프라인 게이트가 그대로 쓴다.
 
 **수용 기준**
 
@@ -89,7 +90,9 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 - 회원 탈퇴 시 `subscriptions/{uid}`를 지운다(기존 탈퇴 정리 함수와 같은 트리거에 추가).
 - **스토어 구독은 앱이 해지할 수 없다.** 구독 중인 사용자가 탈퇴하려 하면 탈퇴 확인 알럿에 `구독은 탈퇴해도 해지되지 않아요. 스토어 설정에서 먼저 해지해 주세요.` 한 줄과 `구독 관리` 동작을 더한다.
 
-### SUB-9 구독 진입점 `[제안]`
+### SUB-9 구독 진입점 `[보류 — 광고 미도입(2026-10-10)]`
+
+> 광고 아래 링크·누적 노출 안내 시트는 광고가 없으므로 보류한다. 현재 진입점은 설정 행과 오프라인 타일 게이트(SUB-11) 둘이다.
 
 설정 행 하나로는 구독이 있다는 걸 알기 어렵다(2026-09-27 사용자 결정). 광고를 보는 자리에서 조용히 알린다.
 
@@ -119,11 +122,11 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 
 **수용 기준**
 
-- 오프라인 저장([Offline.md](Offline.md) OF-2)의 **저장·갱신은 권한 `premium`이 살아 있을 때만** 한다(체험 포함). 읽기는 막지 않는다(OF-7).
+- 오프라인 저장([Offline.md](Offline.md) OF-2)의 **저장·갱신·열람 모두 권한 `premium`이 살아 있을 때만** 한다(체험 포함). 만료되면 저장본 열람도 잠긴다(OF-7, 2026-10-10 사용자 결정).
 - 미구독 상태에서 배낭 상세 `오프라인` 타일을 누르면 구독 화면(SUB-2)을 **오프라인 진입점 변형**으로 연다: 제목 아래 한 줄 `이 여행을 저장하면 산에서도 코스·장비·날씨를 볼 수 있어요`, 혜택 두 줄 중 오프라인 줄을 먼저 둔다. 로그인하지 않았으면 로그인부터(SUB-3). `SubscriptionEntryPoint`에 `Offline`을 더한다.
 - 구매(체험 시작) 성공 → 시트가 닫히면 **그 여행의 저장을 바로 시작**한다(OF-2) — 사용자가 하려던 일을 끝내 준다. 취소·실패면 아무 일도 없다.
-- 구독 중 타일은 게이트 없이 바로 저장한다. 구독이 끝난 뒤 `지금 갱신`은 같은 게이트를 지난다(OF-7).
-- SUB-9의 광고 쪽 진입점(링크·안내 시트)은 그대로이고, 안내 시트 본문은 혜택 둘로 바꾼다: `광고가 불편하세요? 월 {가격}에 광고를 없애고 여행을 오프라인에 저장할 수 있어요.` 체험 자격이 있으면 `7일은 무료예요.`를 덧붙인다.
+- 구독 중 타일은 게이트 없이 바로 저장한다. 구독이 끝나면 타일·여행 탭 배너·오프라인 상세 진입이 모두 같은 게이트로 보낸다(OF-7).
+- 설정(정보 탭) `useless 플러스` 행도 같은 구독 화면을 연다(일반 변형). 광고 쪽 진입점(SUB-9)은 보류.
 
 ### SUB-8 측정 `[제안]`
 

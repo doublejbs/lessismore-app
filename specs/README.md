@@ -31,7 +31,7 @@
 | [Community.md](Community.md) | `CM` | 커뮤니티 탭 — 질문 / 패킹 후기 / 투표 / 공개 사진 / 댓글·신고 `[제안]` |
 | [Group.md](Group.md) | `GRP` | 그룹 — 여행 1건을 함께 준비 / 배낭 서로 보기 / 박지·코스(GPX) / 지도 포인트 `[제안]` |
 | [Ads.md](Ads.md) | `AD` | 광고 — 탐색·커뮤니티 피드 사이 AdMob 네이티브 광고 / 동의(UMP·ATT) `[제안]` |
-| [Subscription.md](Subscription.md) | `SUB` | 월 구독(광고 제거 + 여행 오프라인 저장) — RevenueCat 인앱 구독 / 7일 무료 체험 / 웹훅 → Firestore 서버 기록 `[제안]` |
+| [Subscription.md](Subscription.md) | `SUB` | 월 구독 `useless 플러스`(혜택: 여행 오프라인 저장) — RevenueCat 인앱 구독 / 7일 무료 체험 / 웹훅 → Firestore 서버 기록 `[제안]` |
 | [Offline.md](Offline.md) | `OF` | 여행 오프라인 저장 — 스냅샷·오프라인 상세·코스 캔버스 / 구독 혜택 `[제안]` |
 | [Weather.md](Weather.md) | `WT` | 배낭 여행지 좌표 기반 기간 예보 |
 | [CampSite.md](CampSite.md) | `CS` | 박지 지도 — 지도 탭 / 박지 정보 / 규제 고지 `[기획]` |
