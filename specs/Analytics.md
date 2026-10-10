@@ -203,6 +203,11 @@
 | `click_bag_group_sync_schedule` | 연결 뒤 `그룹 일정으로 맞출까요?` 수락 (GRP-5, 그룹·배낭 양쪽) | `destination`: boolean (여행지도 박지로 맞췄는지) |
 | `click_bag_route_upload` | 배낭 코스(GPX) 업로드 성공 (BD-11) | `distance`: m, `point_count` |
 | `click_bag_route_to_group` | 배낭 코스를 연결된 그룹에 복사 (BD-11) | — |
+| `click_trip_record_open` | 여행 기록 시트 진입 ([Community.md](Community.md) CM-16) `[제안]` | `source`: `notification` \| `bag_detail` \| `home` |
+| `click_trip_record_submit` | 여행 기록 게시 성공 (CM-16) `[제안]` | `photo_count`, `has_body` |
+| `click_trip_record_after` | 기록 후 완료 카드 액션 (CM-16) `[제안]` | `action`: `useless` \| `view` \| `close` |
+| `click_home_trip_record` / `click_home_trip_record_write` / `click_home_trip_record_more` | 홈 최근 여행 기록 카드·기록하기·더 보기 ([Home.md](Home.md) HM-17) `[제안]` | — |
+| `click_camp_site_record` / `click_camp_site_record_more` | 박지 상세 다녀온 기록 카드·전체 보기 ([CampSite.md](CampSite.md) CS-11) `[제안]` | — |
 | `click_community_report` | 신고 등록 성공 | `target`: `post` \| `comment` |
 
 - 커뮤니티 이벤트에는 게시글 ID, 작성자 ID·닉네임, 제목·본문, 투표 문구, 신고 상세를 보내지 않는다.
@@ -228,7 +233,7 @@
 
 | 이벤트 | 트리거 | 파라미터 |
 | --- | --- | --- |
-| `notification_open` | 로컬·원격 알림을 탭해 앱 진입 (NT-10). 클릭이 아니라 `logEvent`로 보내므로 위 `logClick` 대조 목록에는 나오지 않는다 | `type`: `packing` \| `useless` \| `next_trip` \| `weekend_camp` \| `notice` \| `unknown` |
+| `notification_open` | 로컬·원격 알림을 탭해 앱 진입 (NT-10). 클릭이 아니라 `logEvent`로 보내므로 위 `logClick` 대조 목록에는 나오지 않는다 | `type`: `packing` \| `useless` \| `weekend_briefing`(NT-11) \| `next_trip` \| `weekend_camp` \| `notice` \| `unknown` |
 
 - 이벤트 이름은 snake_case, `click_` 접두(표준 `search`·알림 `notification_open` 제외), 40자 이내 (GA4 제한).
 - **`click_` 접두는 `logClick`이 붙인다** — 호출부는 `logClick('community_post')`처럼 접두 없이 넘긴다. 위 표의 이벤트 이름은 전송되는 최종 이름이다 (AN-5). `logEvent`(예: `notification_open`)에는 접두를 붙이지 않는다.
