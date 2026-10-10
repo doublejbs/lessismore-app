@@ -18,6 +18,11 @@ export const clearTripRecordDone = (): void => {
   pending = null;
 };
 
+// 소비하지 않고 이 배낭 것이 남아 있는지만 본다 — 카드를 실제로 띄울 때 take한다.
+export const peekTripRecordDone = (bagId: string): boolean => {
+  return pending !== null && pending.bagId === bagId;
+};
+
 // 다른 배낭 상세가 먼저 포커스되면 소비하지 않고 남겨 둔다.
 export const takeTripRecordDone = (bagId: string): TripRecordDone | null => {
   if (!pending || pending.bagId !== bagId) {

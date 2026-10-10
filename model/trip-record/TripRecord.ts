@@ -143,8 +143,13 @@ class TripRecord {
     return this.write.getImageSession().images.length > 0;
   }
 
+  // 사진 재시도 업로드도 바쁜 상태로 본다 — 닫기 정리(discard)가 올리는 중인 사진을 지우지 않게 한다.
   public isBusy(): boolean {
-    return this.checking || this.write.getIsSubmitting();
+    return (
+      this.checking ||
+      this.write.getIsSubmitting() ||
+      this.write.getImageSession().isUploading()
+    );
   }
 
   public canSubmit(): boolean {

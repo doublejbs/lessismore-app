@@ -135,7 +135,8 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
 
   useFocusEffect(
     useCallback(() => {
-      if (!bagDetail.consumeTripRecordDone()) {
+      // 포커스 시에는 엿보기만 한다 — 띄우기 전에 화면이 블러되면 핸드오프를 다음 포커스에 남긴다.
+      if (!bagDetail.hasPendingTripRecordDone()) {
         return;
       }
 
@@ -148,6 +149,11 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
         }
 
         shown = true;
+
+        if (!bagDetail.consumeTripRecordDone()) {
+          return;
+        }
+
         setShowTripRecordDone(true);
       };
 

@@ -29,6 +29,7 @@ import TripRecordDispatcher from '@/model/trip-record/TripRecordDispatcher';
 import TripRecordEntrySource from '@/model/trip-record/TripRecordEntrySource';
 import TripRecordAfterAction from '@/model/trip-record/TripRecordAfterAction';
 import {
+  peekTripRecordDone,
   takeTripRecordDone,
   TripRecordDone,
 } from '@/model/trip-record/TripRecordDoneHandoff';
@@ -578,7 +579,12 @@ class BagDetail implements BagScheduleWriter {
     );
   }
 
-  // 기록 시트가 넘긴 완료 카드를 받는다(포커스 시). 이 배낭 것만 소비한다.
+  // 기록 시트가 넘긴 완료 카드가 이 배낭 앞으로 남아 있는지 본다(소비하지 않는다).
+  public hasPendingTripRecordDone(): boolean {
+    return peekTripRecordDone(this.id);
+  }
+
+  // 기록 시트가 넘긴 완료 카드를 받는다(카드를 실제로 띄울 때). 이 배낭 것만 소비한다.
   public consumeTripRecordDone(): boolean {
     const done = takeTripRecordDone(this.id);
 

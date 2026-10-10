@@ -34,6 +34,8 @@ const CommunityWriteBagSelectView = ({
     : internalSheetVisible;
   const bags = write.getBags();
   const canRemove = write.canRemoveBagSnapshot();
+  // 여행 기록 수정 중에는 배낭을 바꿀 수 없다 — 떼기와 같은 사유(bagLocked)로 막는다(CM-16).
+  const canChange = !write.isEditingTripRecord();
 
   const setSheetVisible = (visible: boolean) => {
     if (!isControlled) {
@@ -102,11 +104,12 @@ const CommunityWriteBagSelectView = ({
             </View>
             <View style={styles.previewActions}>
               <TouchableOpacity
-                style={styles.textAction}
+                style={[styles.textAction, !canChange && styles.disabled]}
                 onPress={() => setSheetVisible(true)}
-                disabled={write.getIsSubmitting()}
+                disabled={write.getIsSubmitting() || !canChange}
                 accessibilityRole='button'
                 accessibilityLabel={l10n.t('community.write.attachments.change')}
+                accessibilityState={{ disabled: write.getIsSubmitting() || !canChange }}
               >
                 <PretendardText style={styles.textActionLabel}>
                   {l10n.t('community.write.attachments.change')}
