@@ -98,6 +98,7 @@
 | `groups/{groupId}/members/{uid}` | 그룹 멤버, 계정당 한 문서 (DM-29) `[제안]` | 멤버 목록 |
 | `groups/{groupId}/bags/{uid}` | 멤버 배낭 공개 스냅샷 (DM-29) `[제안]` | 멤버 배낭 열람 |
 | `groups/{groupId}/points/{pointId}` | 그룹 지도 포인트 (DM-29) `[제안]` | 그룹 지도 |
+| `bag/{bagId}/points/{pointId}` | 개인 여행 지도 포인트 (DM-33) `[제안]` | 배낭 코스 화면 ([BagDetail.md](BagDetail.md) BD-14) |
 | `groups/{groupId}/routes/{routeId}` | 그룹 코스(GPX) 요약 (DM-29) `[제안]` | 그룹 지도·코스 목록 |
 | `users/{uid}/groups/{groupId}` | 내가 속한 그룹 역인덱스 (DM-29) `[제안]` | 그룹 목록 조회 |
 | `config/app` | 앱 원격 설정 (강제 업데이트 최소 버전) | 강제 업데이트 게이트 (AppLifecycle APP-7) |
@@ -944,6 +945,24 @@
 
 현재 배포된 규칙은 커뮤니티 4개 컬렉션을 제외한 나머지가 전면 개방(`allow read, write: if !isCommunityCollection()`)이다. `groups/*`는 신규라 처음부터 멤버십 기반으로 잠글 수 있지만, `bag`·`users`가 열려 있는 한 "그룹원만 본다"는 약속은 앱 화면 안에서만 성립한다. 그룹 출시와 별개로 기존 컬렉션을 좁히는 작업이 필요하다.
 
+
+### DM-33 배낭 지도 포인트 `bag/{bagId}/points/{pointId}` `[제안]`
+
+개인 여행의 코스 화면에 찍는 지도 포인트([BagDetail.md](BagDetail.md) BD-14). 그룹 포인트(DM-29 `groups/{groupId}/points`)와 **필드 구조가 같고 사는 곳만 다르다** — 같은 유형 enum·입력 시트·마커를 쓴다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `type` | string | string enum `PointType`(기존 `GroupPointType`에서 이름만 바꿔 공유): `water` / `shelter` / `caution` / `note` |
+| `latitude` / `longitude` | number | WGS84 |
+| `title` | string | 1~40자 |
+| `description` | string? | 최대 200자, 없으면 키 생략 |
+| `createdAt` | timestamp | |
+| `updatedAt` | timestamp? | 수정 시 |
+
+- 배낭당 **50개**(그룹과 같은 상한). `authorId`·`authorName`은 **두지 않는다**(소유자 한 사람의 것 — DM-30 코스와 같은 이유).
+- **접근 범위는 DM-30 코스와 같다**: `bag/{bagId}/points`는 **소유자(`bag.userId`)만 읽고 쓴다.** 배낭 공유(`shared == true`)·박지 후기·커뮤니티 스냅샷·배낭 복사 어디로도 따라가지 않는다. 보안 규칙에서 `bag` 하위 개방 절(`subCollection != 'routes'`)을 **`routes`·`points` 둘 다 제외**로 고치고 `points` 전용 규칙(소유자 판정은 `get(/databases/(default)/documents/bag/$(bagId)).data.userId == request.auth.uid`)을 둔다. 규칙 배포는 Rules REST(운영 절차 — DM-27 참고).
+- 생명주기: 배낭 삭제 시 `onBagDeleted` 트리거가 `routes`와 함께 `points`도 정리한다(함수 수정 — 웹 레포). 배낭 복사는 포인트를 복사하지 않는다. 그룹에 코스를 올려도 포인트는 복사하지 않는다(BD-14).
+- 인덱스: `createdAt` 정렬만. 복합 인덱스 불필요.
 
 ## 4. Storage 경로 (DM-9)
 
