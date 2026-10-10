@@ -186,7 +186,7 @@
       "packingTitle": "{{name}}への旅行は明日です！",
       "packingBody": "パッキングを確認しましょう",
       "uselessTitle": "{{name}}への旅行はいかがでしたか？",
-      "uselessBody": "使用したギアを確認しましょう。",
+      "uselessBody": "写真1枚で今回の旅を記録しましょう",
       "nextTripTitle": "次のバックパッキングを計画しませんか？",
       "nextTripBody": "前回の旅行のギアそのままで新しい旅行を作れます",
       "weekendCampTitle": "今週末はどこへ行きますか？",
@@ -1208,6 +1208,10 @@
         "removePoll": "投票を削除",
         "pollTitle": "投票",
         "packingTitle": "パッキング"
+      },
+      "tripRecord": {
+        "bagLocked": "旅の記録からバッグは外せません",
+        "photoLocked": "旅の記録には写真が1枚以上必要です"
       }
     },
     "validation": {
@@ -1239,7 +1243,8 @@
       "sort": {
         "latest": "新着順",
         "popular": "人気順"
-      }
+      },
+      "spotChipRemove": "{{name}}のフィルターを解除"
     },
     "detail": {
       "back": "戻る",
@@ -1657,5 +1662,42 @@
     "start": "次のバックパッキングを準備する",
     "browse": "まずは見てみる",
     "login": "アカウントをお持ちの方 · ログイン"
+  },
+  "tripRecord": {
+    "title": "旅の記録",
+    "publicNotice": "コミュニティに公開されます",
+    "titleLabel": "ひとこと",
+    "titlePlaceholder": "今回の旅をひとことで",
+    "more": "もっと書く",
+    "bodyLabel": "内容（任意）",
+    "bodyPlaceholder": "残しておきたい話を書いてみましょう",
+    "submit": "記録を残す",
+    "photoRequired": "写真が1枚必要です",
+    "alreadyRecorded": "すでに記録した旅です",
+    "notEnded": "旅が終わると記録できます",
+    "unavailable": "旅の記録を開けません",
+    "closeAccessibility": "旅の記録を閉じる",
+    "done": {
+      "title": "旅を記録しました",
+      "subtitle": "使ったギアも確認しますか？使わなかったギアを記録すると次の荷物が軽くなります",
+      "useless": "使ったギアを確認する",
+      "view": "記録を見る"
+    },
+    "entry": {
+      "title": "旅の記録を残す",
+      "value": "写真1枚でOK"
+    },
+    "home": {
+      "title": "最近の旅の記録",
+      "write": "自分の旅を記録する",
+      "more": "もっと見る"
+    },
+    "campSite": {
+      "title": "行ってきた記録",
+      "more": "すべて見る"
+    },
+    "card": {
+      "accessibility": "{{title}}、{{meta}}、記録を見る"
+    }
   }
 }
