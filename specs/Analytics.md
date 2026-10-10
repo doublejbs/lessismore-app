@@ -203,6 +203,14 @@
 | `click_bag_group_sync_schedule` | 연결 뒤 `그룹 일정으로 맞출까요?` 수락 (GRP-5, 그룹·배낭 양쪽) | `destination`: boolean (여행지도 박지로 맞췄는지) |
 | `click_bag_route_upload` | 배낭 코스(GPX) 업로드 성공 (BD-11) | `distance`: m, `point_count` |
 | `click_bag_route_to_group` | 배낭 코스를 연결된 그룹에 복사 (BD-11) | — |
+| `click_bag_point_add` | 배낭 코스 화면에서 지도 포인트 등록 성공 (BD-14) `[제안]` | `type`, `via`: `long_press` \| `aim` |
+| `click_bag_point_delete` | 배낭 지도 포인트 삭제 (BD-14) `[제안]` | `type` |
+| `click_bag_point_select` | 배낭 지도 포인트 목록·마커 탭 (BD-14) `[제안]` | `type` |
+| `click_offline_save` | 오프라인 저장 시작 ([Offline.md](Offline.md) OF-2) `[제안]` | `source`: `tile` |
+| `offline_saved` | 오프라인 저장 성공 (OF-2, `logEvent`) `[제안]` | `bytes`, `route_count`, `point_count` |
+| `click_offline_refresh` / `click_offline_remove` | 오프라인 갱신 / 삭제 (OF-2) `[제안]` | — |
+| `offline_trip_open` / `offline_route_canvas_open` | 오프라인 상세·코스 캔버스 열람 (OF-5·OF-6, `logEvent`) `[제안]` | — |
+| `offline_packing_synced` | 오프라인 패킹 체크의 복귀 반영 성공 (OF-5, `logEvent`) `[제안]` | `count` |
 | `click_community_report` | 신고 등록 성공 | `target`: `post` \| `comment` |
 
 - 커뮤니티 이벤트에는 게시글 ID, 작성자 ID·닉네임, 제목·본문, 투표 문구, 신고 상세를 보내지 않는다.
