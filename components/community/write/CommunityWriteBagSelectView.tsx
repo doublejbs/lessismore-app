@@ -33,9 +33,6 @@ const CommunityWriteBagSelectView = ({
     ? controlledSheetVisible
     : internalSheetVisible;
   const bags = write.getBags();
-  const canRemove = write.canRemoveBagSnapshot();
-  // 여행 기록 수정 중에는 배낭을 바꿀 수 없다 — 떼기와 같은 사유(bagLocked)로 막는다(CM-16).
-  const canChange = !write.isEditingTripRecord();
 
   const setSheetVisible = (visible: boolean) => {
     if (!isControlled) {
@@ -104,24 +101,22 @@ const CommunityWriteBagSelectView = ({
             </View>
             <View style={styles.previewActions}>
               <TouchableOpacity
-                style={[styles.textAction, !canChange && styles.disabled]}
+                style={styles.textAction}
                 onPress={() => setSheetVisible(true)}
-                disabled={write.getIsSubmitting() || !canChange}
+                disabled={write.getIsSubmitting()}
                 accessibilityRole='button'
                 accessibilityLabel={l10n.t('community.write.attachments.change')}
-                accessibilityState={{ disabled: write.getIsSubmitting() || !canChange }}
               >
                 <PretendardText style={styles.textActionLabel}>
                   {l10n.t('community.write.attachments.change')}
                 </PretendardText>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.textAction, !canRemove && styles.disabled]}
+                style={styles.textAction}
                 onPress={onRemove}
-                disabled={write.getIsSubmitting() || !canRemove}
+                disabled={write.getIsSubmitting()}
                 accessibilityRole='button'
                 accessibilityLabel={l10n.t('community.write.attachments.remove')}
-                accessibilityState={{ disabled: write.getIsSubmitting() || !canRemove }}
               >
                 <PretendardText style={styles.textActionLabel}>
                   {l10n.t('community.write.attachments.remove')}
@@ -129,11 +124,6 @@ const CommunityWriteBagSelectView = ({
               </TouchableOpacity>
             </View>
           </View>
-          {!canRemove && (
-            <PretendardText style={styles.previewText}>
-              {l10n.t('community.write.tripRecord.bagLocked')}
-            </PretendardText>
-          )}
           <PretendardText style={styles.previewVisibility}>
             {l10n.t('community.write.bag.previewVisibility', {
               destination: snapshot.destinationName
@@ -257,9 +247,6 @@ const styles = StyleSheet.create({
     minWidth: 44,
     justifyContent: 'center',
     paddingHorizontal: 6,
-  },
-  disabled: {
-    opacity: 0.4,
   },
   textActionLabel: {
     ...AcgType.control,

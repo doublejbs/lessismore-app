@@ -135,13 +135,6 @@ const CommunityView: FC<Props> = ({ feed }) => {
     [feed]
   );
 
-  const spotId = feed.getSpotId();
-  const spotLabel = feed.getSpotName() || app.getL10n().t('tripRecord.campSite.title');
-
-  const handleClearSpot = useCallback(() => {
-    void feed.clearSpot();
-  }, [feed]);
-
   const handleMyPosts = useCallback(() => {
     app.getAnalyticsManager()?.logClick('community_my_posts');
     router.push('/community/mine');
@@ -179,25 +172,11 @@ const CommunityView: FC<Props> = ({ feed }) => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterContent}
         >
-          {/* 박지 필터(CS-11 `전체 보기`) — 선택 상태의 해제 가능 칩. 탭하면 풀린다. */}
-          {spotId ? (
-            <CategoryChipView
-              label={spotLabel}
-              selected={true}
-              onPress={handleClearSpot}
-              accessibilityLabel={app.getL10n().t('community.feed.spotChipRemove', {
-                name: spotLabel,
-              })}
-              trailingIcon={
-                <Ionicons name='close' size={14} color={Acg.paper} />
-              }
-            />
-          ) : null}
           {filters.map(item => (
             <CategoryChipView
               key={item.filter}
               label={app.getL10n().t(item.labelKey)}
-              selected={!spotId && feed.getFilter() === item.filter}
+              selected={feed.getFilter() === item.filter}
               onPress={() => handleFilter(item.filter)}
             />
           ))}
@@ -217,15 +196,12 @@ const CommunityView: FC<Props> = ({ feed }) => {
             />
           )}
         </ScrollView>
-        {/* 박지 필터는 최신순 하나로 읽어 정렬이 듣지 않는다 — 걸려 있는 동안 정렬을 숨긴다(CS-11). */}
-        {!spotId && (
-          <View style={styles.sortWrap}>
-            <OrderButtonView
-              order={feed.getOrder()}
-              onSelectOption={handleSort}
-            />
-          </View>
-        )}
+        <View style={styles.sortWrap}>
+          <OrderButtonView
+            order={feed.getOrder()}
+            onSelectOption={handleSort}
+          />
+        </View>
       </View>
     );
   };

@@ -1,5 +1,4 @@
 import { makeAutoObservable, reaction } from 'mobx';
-import { Platform } from 'react-native';
 import BagItem from '@/model/bag/BagItem';
 import Gear from '@/model/gear/Gear';
 import GearFilter from '@/model/gear/GearFilter';
@@ -10,12 +9,6 @@ import Firebase from '@/model/firebase/Firebase';
 import app from '@/model/app/App';
 import FeedContentStore from '@/model/store/FeedContentStore';
 import { RecommendedSpot } from '@/model/feed/FeedContentTypes';
-import CommunityStore from '@/model/store/CommunityStore';
-import CommunityPost from '@/model/community/CommunityPost';
-import { findLatestUnrecordedTrip } from '@/model/trip-record/TripRecordEligibility';
-
-// 홈 `최근 여행 기록` 카드 수(HM-17).
-const HOME_TRIP_RECORD_LIMIT = 5;
 
 /**
  * 홈 화면(HM)의 도메인 모델.
@@ -32,16 +25,12 @@ class Home {
       app.getGearStore()!,
       app.getFirebase(),
       app.getFeedContentStore()!,
-      app.getCommunityStore()!,
     );
   }
 
   private bags: BagItem[] = [];
   private gears: Gear[] = [];
   private recommendedSpots: RecommendedSpot[] = [];
-  private tripRecords: CommunityPost[] = [];
-  // 기록이 없는 가장 최근 끝난 내 여행(HM-17 `내 여행 기록하기`). 없거나 확인 전·실패면 null.
-  private unrecordedTrip: BagItem | null = null;
   // 첫 진입에는 스켈레톤이 보여야 하므로 true로 시작한다(HM-6).
   private loading = true;
   private readonly disposeLoginReaction: () => void;
@@ -50,8 +39,7 @@ class Home {
     private readonly bagStore: BagStore,
     private readonly gearStore: GearStore,
     private readonly firebase: Firebase,
-    private readonly feedContentStore: FeedContentStore,
-    private readonly communityStore: CommunityStore
+    private readonly feedContentStore: FeedContentStore
   ) {
     this.disposeLoginReaction = reaction(
       () => this.firebase.isLoggedIn(),
@@ -99,45 +87,9 @@ class Home {
   }
 
   private async loadRecommendations() {
-    const [spots, tripRecords, unrecordedTrip] = await Promise.all([
-      this.loadRecommendedSpots(),
-      this.loadTripRecords(),
-      this.loadUnrecordedTrip(),
-    ]);
+    const spots = await this.loadRecommendedSpots();
 
     this.setRecommendedSpots(spots);
-    this.setTripRecords(tripRecords);
-    this.setUnrecordedTrip(unrecordedTrip);
-  }
-
-  // 최근 여행 기록(HM-17). 읽기 공개라 비로그인 홈에도 보인다. 실패는 조용히 숨긴다.
-  private async loadTripRecords(): Promise<CommunityPost[]> {
-    try {
-      return await this.communityStore.getRecentTripRecords(HOME_TRIP_RECORD_LIMIT);
-    } catch (error) {
-      console.error('홈 여행 기록 조회 실패:', error); // l10n-ignore: 개발자 로그
-
-      return [];
-    }
-  }
-
-  // 웹은 기록 시트가 없어 진입점을 두지 않는다(CM-16 웹).
-  private async loadUnrecordedTrip(): Promise<BagItem | null> {
-    const userId = this.firebase.getUserId();
-
-    if (Platform.OS === 'web' || !this.firebase.isLoggedIn() || !userId) {
-      return null;
-    }
-
-    try {
-      const recordedBagIds = await this.communityStore.getMyTripRecordBagIds(userId);
-
-      return findLatestUnrecordedTrip(this.bags, recordedBagIds);
-    } catch (error) {
-      console.error('홈 내 여행 기록 확인 실패:', error); // l10n-ignore: 개발자 로그
-
-      return null;
-    }
   }
 
   private async loadRecommendedSpots(): Promise<RecommendedSpot[]> {
@@ -186,14 +138,6 @@ class Home {
     return this.recommendedSpots;
   }
 
-  public getTripRecords() {
-    return this.tripRecords;
-  }
-
-  public getUnrecordedTrip() {
-    return this.unrecordedTrip;
-  }
-
   public isLoading() {
     return this.loading;
   }
@@ -212,14 +156,6 @@ class Home {
 
   private setRecommendedSpots(value: RecommendedSpot[]) {
     this.recommendedSpots = value;
-  }
-
-  private setTripRecords(value: CommunityPost[]) {
-    this.tripRecords = value;
-  }
-
-  private setUnrecordedTrip(value: BagItem | null) {
-    this.unrecordedTrip = value;
   }
 
   private setLoading(value: boolean) {

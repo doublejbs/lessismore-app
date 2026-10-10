@@ -32,8 +32,6 @@ const CommunityWriteImagesView = ({ write }: Props) => {
   const imageSession = write.getImageSession();
   const total = imageSession.images.length;
   const canAdd = total < COMMUNITY_IMAGE_MAX_COUNT;
-  // 여행 기록을 수정할 때는 마지막 사진을 지울 수 없다(CM-16).
-  const canRemove = write.canRemoveImage();
 
   const handleAlbum = async () => {
     setSourceMenuVisible(false);
@@ -72,7 +70,7 @@ const CommunityWriteImagesView = ({ write }: Props) => {
   };
 
   const handleRemove = (localId: string) => {
-    if (write.getIsSubmitting() || !write.canRemoveImage()) {
+    if (write.getIsSubmitting()) {
       return;
     }
 
@@ -161,10 +159,9 @@ const CommunityWriteImagesView = ({ write }: Props) => {
               </View>
             )}
             <TouchableOpacity
-              style={[styles.deleteButton, !canRemove && styles.disabled]}
+              style={styles.deleteButton}
               onPress={() => handleRemove(image.localId)}
-              disabled={write.getIsSubmitting() || !canRemove}
-              accessibilityState={{ disabled: write.getIsSubmitting() || !canRemove }}
+              disabled={write.getIsSubmitting()}
               accessibilityLabel={l10n.t('community.write.image.remove', {
                 count: index + 1,
               })}
@@ -228,11 +225,6 @@ const CommunityWriteImagesView = ({ write }: Props) => {
           </TouchableOpacity>
         )}
       </View>
-      {!canRemove && (
-        <PretendardText style={styles.notice}>
-          {l10n.t('community.write.tripRecord.photoLocked')}
-        </PretendardText>
-      )}
       <PretendardText style={styles.notice}>
         {l10n.t('community.write.image.notice')}
       </PretendardText>
@@ -344,9 +336,6 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  disabled: {
-    opacity: 0.4,
   },
   smallButton: {
     width: 44,

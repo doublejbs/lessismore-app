@@ -24,15 +24,6 @@ import {
   BagScheduleWriter,
 } from '@/model/group-bag-link/GroupBagLinkTypes';
 import { getGroupErrorMessage } from '@/model/group-error/GroupErrorMessage';
-import { Platform } from 'react-native';
-import TripRecordDispatcher from '@/model/trip-record/TripRecordDispatcher';
-import TripRecordEntrySource from '@/model/trip-record/TripRecordEntrySource';
-import TripRecordAfterAction from '@/model/trip-record/TripRecordAfterAction';
-import {
-  peekTripRecordDone,
-  takeTripRecordDone,
-  TripRecordDone,
-} from '@/model/trip-record/TripRecordDoneHandoff';
 
 class BagDetail implements BagScheduleWriter {
   public static readonly ORDER_KEY = 'bag';
@@ -46,8 +37,7 @@ class BagDetail implements BagScheduleWriter {
       BagDetailFilterManager.from(),
       Order.new(BagDetail.ORDER_KEY),
       app.getFirebase(),
-      GroupBagLinkFlow.new(),
-      TripRecordDispatcher.new()
+      GroupBagLinkFlow.new()
     );
   }
 
@@ -91,11 +81,6 @@ class BagDetail implements BagScheduleWriter {
   private linkedGroup: Group | null = null;
   // `⋯` → 그룹에 연결 시트의 목록(진행 중·예정 그룹).
   private linkableGroups: Group[] = [];
-  // 이 배낭의 내 여행 기록 id(CM-16·BD-10). 확인 전·실패면 `tripRecordChecked`가 false다.
-  private tripRecordPostId: string | null = null;
-  private tripRecordChecked = false;
-  // 기록 게시 직후 띄우는 완료 카드(CM-16). 없으면 null.
-  private tripRecordDone: TripRecordDone | null = null;
 
   private constructor(
     private readonly router: ImperativeRouter,
@@ -105,8 +90,7 @@ class BagDetail implements BagScheduleWriter {
     private readonly filterManager: BagDetailFilterManager,
     private readonly order: Order,
     private readonly firebase: Firebase,
-    private readonly linkFlow: GroupBagLinkFlow,
-    private readonly tripRecordDispatcher: TripRecordDispatcher
+    private readonly linkFlow: GroupBagLinkFlow
   ) {
     this.bagWeather = BagWeather.of(id, bagStore);
     makeAutoObservable(this);
@@ -172,8 +156,6 @@ class BagDetail implements BagScheduleWriter {
     this.calculateUsedWeight();
     this.updateUselessChecked();
     await this.loadPackingState();
-    // 강조 카드(BD-10)가 첫 렌더 뒤에 바뀌어 튀지 않도록 기다린다. 지난 여행에서만 1건 읽는다.
-    await this.loadTripRecord();
     // 이미 읽은 배낭 데이터를 BagWeather에 주입하고(중복 읽기 방지),
     // 날씨는 부가정보라 초기화를 막지 않도록 비동기로만 신선도 갱신한다.
     this.bagWeather.hydrate(
@@ -534,93 +516,6 @@ class BagDetail implements BagScheduleWriter {
   // 베이스를 제외한 나머지(휴대품·소모품 등) 무게. kg 반올림.
   public getRestWeight() {
     return Math.round((this.getWeight() - this.getBaseWeight()) * 100) / 100;
-  }
-
-  /**
-   * 이 배낭의 내 여행 기록을 확인한다(BD-10 상황형 강조, DM-28 인덱스 ③). 포커스마다
-   * (initialize) 다시 읽어 기록 삭제·작성을 반영한다. 웹은 기록 시트가 없어 읽지 않는다.
-   */
-  private async loadTripRecord() {
-    if (Platform.OS === 'web' || this.getTripPhase() !== 'after') {
-      this.setTripRecordState(null, false);
-
-      return;
-    }
-
-    try {
-      const postId = await this.tripRecordDispatcher.findMyRecordId(this.id);
-
-      this.setTripRecordState(postId, true);
-    } catch (error) {
-      // 확인하지 못하면 기존 강조(`사용 기록`)를 유지한다 — 중복 기록 진입을 만들지 않는다.
-      console.error('여행 기록 확인 실패:', error); // l10n-ignore: 개발자 로그
-      this.setTripRecordState(null, false);
-    }
-  }
-
-  private setTripRecordState(postId: string | null, checked: boolean) {
-    this.tripRecordPostId = postId;
-    this.tripRecordChecked = checked;
-  }
-
-  // 지난 여행 강조 카드를 `여행 기록 남기기`로 둘지(BD-10 2026-10-10 개정).
-  public shouldOfferTripRecord(): boolean {
-    return (
-      this.getTripPhase() === 'after' &&
-      this.tripRecordChecked &&
-      this.tripRecordPostId === null
-    );
-  }
-
-  // 진입 측정은 시트가 연 뒤 `trip_record_open`(source: bag_detail)으로 보낸다(CM-16).
-  public goToTripRecord() {
-    this.router.push(
-      `/trip-record/${this.id}?entrySource=${TripRecordEntrySource.BagDetail}`
-    );
-  }
-
-  // 기록 시트가 넘긴 완료 카드가 이 배낭 앞으로 남아 있는지 본다(소비하지 않는다).
-  public hasPendingTripRecordDone(): boolean {
-    return peekTripRecordDone(this.id);
-  }
-
-  // 기록 시트가 넘긴 완료 카드를 받는다(카드를 실제로 띄울 때). 이 배낭 것만 소비한다.
-  public consumeTripRecordDone(): boolean {
-    const done = takeTripRecordDone(this.id);
-
-    if (!done) {
-      return false;
-    }
-
-    this.setTripRecordState(done.postId, true);
-    this.setTripRecordDone(done);
-
-    return true;
-  }
-
-  public getTripRecordDone() {
-    return this.tripRecordDone;
-  }
-
-  public handleTripRecordAfter(action: TripRecordAfterAction) {
-    const done = this.tripRecordDone;
-
-    this.setTripRecordDone(null);
-    app.getAnalyticsManager()?.logClick('trip_record_after', { action });
-
-    if (!done) {
-      return;
-    }
-
-    if (action === TripRecordAfterAction.Useless) {
-      this.goToUseless();
-    } else if (action === TripRecordAfterAction.View) {
-      this.router.push(`/community/${done.postId}`);
-    }
-  }
-
-  private setTripRecordDone(value: TripRecordDone | null) {
-    this.tripRecordDone = value;
   }
 
   // 여행 상태: 출발 전 / 여행 중 / 지난 여행.

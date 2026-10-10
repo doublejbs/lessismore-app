@@ -187,10 +187,7 @@ const CampSiteDetailView: FC<Props> = ({
               <CampSiteWeatherTabView campSiteWeather={campSiteWeather} />
             ) : null}
             {selectedTab === CampSiteDetailTab.Review ? (
-              <CampSiteReviewTabView
-                campSiteDetail={campSiteDetail}
-                inSheet={!isPage}
-              />
+              <CampSiteReviewTabView campSiteDetail={campSiteDetail} />
             ) : null}
           </View>
         </ScrollView>

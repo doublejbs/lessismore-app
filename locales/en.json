@@ -186,7 +186,7 @@
       "packingTitle": "Your trip to {{name}} is tomorrow!",
       "packingBody": "Check your packing list",
       "uselessTitle": "How was your trip to {{name}}?",
-      "uselessBody": "Record this trip with a single photo",
+      "uselessBody": "Review the gear you used.",
       "nextTripTitle": "Ready to plan your next backpacking trip?",
       "nextTripBody": "Start a new trip with the same gear as your last one",
       "weekendCampTitle": "Where to this weekend?",
@@ -1224,10 +1224,6 @@
         "removePoll": "Remove poll",
         "pollTitle": "Poll",
         "packingTitle": "Packing"
-      },
-      "tripRecord": {
-        "bagLocked": "Trip records must keep their bag",
-        "photoLocked": "Trip records need at least one photo"
       }
     },
     "validation": {
@@ -1259,8 +1255,7 @@
       "sort": {
         "latest": "Newest",
         "popular": "Most popular"
-      },
-      "spotChipRemove": "Remove {{name}} filter"
+      }
     },
     "detail": {
       "back": "Back",
@@ -1691,42 +1686,5 @@
     "start": "Get ready for your next trip",
     "browse": "Look around first",
     "login": "Already have an account · Sign in"
-  },
-  "tripRecord": {
-    "title": "Trip record",
-    "publicNotice": "This will be public in Community",
-    "titleLabel": "One line",
-    "titlePlaceholder": "Sum up this trip in one line",
-    "more": "Write more",
-    "bodyLabel": "Details (optional)",
-    "bodyPlaceholder": "Share what you want to remember",
-    "submit": "Save record",
-    "photoRequired": "Add one photo to continue",
-    "alreadyRecorded": "You already recorded this trip",
-    "notEnded": "You can record this trip after it ends",
-    "unavailable": "Unable to open the trip record",
-    "closeAccessibility": "Close trip record",
-    "done": {
-      "title": "Trip recorded",
-      "subtitle": "Check the gear you used too? Mark unused gear to pack lighter next time",
-      "useless": "Check gear you used",
-      "view": "View record"
-    },
-    "entry": {
-      "title": "Record this trip",
-      "value": "One photo is enough"
-    },
-    "home": {
-      "title": "Recent trip records",
-      "write": "Record my trip",
-      "more": "See more"
-    },
-    "campSite": {
-      "title": "Trip records",
-      "more": "See all"
-    },
-    "card": {
-      "accessibility": "{{title}}, {{meta}}, view record"
-    }
   }
 }

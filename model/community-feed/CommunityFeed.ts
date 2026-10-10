@@ -25,14 +25,6 @@ class CommunityFeed {
   private unsubscribeDeleted: (() => void) | null = null;
   private subscribedDeleted = false;
   private isQuietRefreshing = false;
-  // 박지 필터(CS-11 `전체 보기` → `/community?spot={id}`). 걸려 있으면 그 박지의 여행 기록만 보인다.
-  private spotId: string | null = null;
-  private spotName = '';
-  // 박지 필터를 걸기 직전의 첨부 필터·정렬 — 박지 칩을 해제하면 되돌린다.
-  private beforeSpot: {
-    filter: CommunityFeedFilter;
-    sort: CommunityFeedSort;
-  } | null = null;
 
   public static from(dispatcher: CommunityFeedDispatcher) {
     return new CommunityFeed(
@@ -67,92 +59,7 @@ class CommunityFeed {
     await this.loadFirstPage();
   }
 
-  /**
-   * 라우트 파라미터를 적용한다 — 홈 `더 보기`(HM-17)의 `filter`, 박지 상세 `전체 보기`(CS-11)의 `spot`.
-   * 바뀐 것이 없으면 다시 읽지 않는다. 초기화 전이면 값만 넣어 첫 조회가 그 조건으로 나가게 한다.
-   */
-  public async applyRouteParams(
-    filter: CommunityFeedFilter | null,
-    spotId: string | null,
-    spotName: string
-  ) {
-    // 파라미터가 비어 있으면(소비 후 지운 상태) 지금 조건을 유지한다.
-    let nextFilter = this.filter;
-    let nextSpotId = this.spotId;
-    let nextSpotName = this.spotName;
-
-    if (spotId) {
-      nextFilter = CommunityFeedFilter.All;
-      nextSpotId = spotId;
-      nextSpotName = spotName;
-    } else if (filter) {
-      nextFilter = filter;
-      nextSpotId = null;
-      nextSpotName = '';
-    }
-
-    if (nextFilter === this.filter && nextSpotId === this.spotId) {
-      return;
-    }
-
-    if (nextSpotId && !this.spotId) {
-      this.beforeSpot = { filter: this.filter, sort: this.sort };
-    } else if (!nextSpotId) {
-      this.beforeSpot = null;
-    }
-
-    this.setFilterValue(nextFilter);
-    this.setSpot(nextSpotId, nextSpotName);
-
-    if (!this.initialized) {
-      return;
-    }
-
-    this.setLoading(true);
-    await this.loadFirstPage();
-  }
-
-  public getSpotId() {
-    return this.spotId;
-  }
-
-  public getSpotName() {
-    return this.spotName;
-  }
-
-  // 박지 칩 라벨을 뒤늦게 채운다 — 그사이 다른 박지로 바뀌었으면 무시한다.
-  public setSpotName(spotId: string, name: string) {
-    if (this.spotId !== spotId) {
-      return;
-    }
-
-    this.spotName = name;
-  }
-
-  // 박지 칩의 해제(CS-11) — 전체 피드로 돌아간다.
-  public async clearSpot() {
-    if (!this.spotId) {
-      return;
-    }
-
-    const previous = this.beforeSpot;
-
-    this.beforeSpot = null;
-    this.setSpot(null, '');
-
-    if (previous) {
-      this.setFilterValue(previous.filter);
-      this.setSortValue(previous.sort);
-    }
-
-    this.setLoading(true);
-    await this.loadFirstPage();
-  }
-
   public async setFilter(filter: CommunityFeedFilter) {
-    // 첨부 필터를 고르면 박지 필터는 풀린다 — 둘을 함께 거는 조회 인덱스가 없다(DM-28 인덱스 ②).
-    this.beforeSpot = null;
-    this.setSpot(null, '');
     this.setFilterValue(filter);
     app.getAnalyticsManager()?.logClick('community_filter', { filter });
     this.setLoading(true);
@@ -197,8 +104,7 @@ class CommunityFeed {
       const page = await this.dispatcher.getPage(
         this.filter,
         this.sort,
-        this.cursor,
-        this.spotId
+        this.cursor
       );
 
       if (requestVersion !== this.requestVersion) {
@@ -296,12 +202,7 @@ class CommunityFeed {
     }
 
     try {
-      const page = await this.dispatcher.getPage(
-        this.filter,
-        this.sort,
-        null,
-        this.spotId
-      );
+      const page = await this.dispatcher.getPage(this.filter, this.sort, null);
 
       if (requestVersion !== this.requestVersion) {
         return;
@@ -322,11 +223,6 @@ class CommunityFeed {
         this.setLoading(false);
       }
     }
-  }
-
-  private setSpot(spotId: string | null, spotName: string) {
-    this.spotId = spotId;
-    this.spotName = spotName;
   }
 
   private setFilterValue(value: CommunityFeedFilter) {
@@ -390,11 +286,9 @@ class CommunityFeed {
       return;
     }
 
-    this.setUnsubscribeDeleted(
-      subscribeCommunityPostDeleted(postId => {
-        this.removePost(postId);
-      })
-    );
+    this.setUnsubscribeDeleted(subscribeCommunityPostDeleted((postId) => {
+      this.removePost(postId);
+    }));
     this.setSubscribedDeleted(true);
   }
 

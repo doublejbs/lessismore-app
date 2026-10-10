@@ -2,8 +2,6 @@ import app from '../app/App';
 import CampSpotStore from '../store/CampSpotStore';
 import BagStore from '../store/BagStore';
 import CampReviewStore from '../store/CampReviewStore';
-import CommunityStore from '../store/CommunityStore';
-import CommunityPost from '../community/CommunityPost';
 import BagItem from '../bag/BagItem';
 import reviewSearchService from '../review/ReviewSearchService';
 import { buildRequiredTokens } from '../review/ReviewRelevance';
@@ -23,16 +21,14 @@ class CampSiteDetailDispatcher {
     return new CampSiteDetailDispatcher(
       app.getCampSpotStore()!,
       app.getBagStore()!,
-      app.getCampReviewStore()!,
-      app.getCommunityStore()!
+      app.getCampReviewStore()!
     );
   }
 
   private constructor(
     private readonly campSpotStore: CampSpotStore,
     private readonly bagStore: BagStore,
-    private readonly campReviewStore: CampReviewStore,
-    private readonly communityStore: CommunityStore
+    private readonly campReviewStore: CampReviewStore
   ) {}
 
   public async getSpot(id: string): Promise<CampSpot | null> {
@@ -89,16 +85,6 @@ class CampSiteDetailDispatcher {
     spotId: string
   ): Promise<CampReviewSummary | null> {
     return this.campReviewStore.getSummary(spotId);
-  }
-
-  // 이 박지의 여행 기록(CS-11, DM-28 인덱스 ②) — 최신순 `limit`건과 더 있는지 여부.
-  public async getTripRecords(
-    spotId: string,
-    limit: number
-  ): Promise<{ posts: CommunityPost[]; hasMore: boolean }> {
-    const page = await this.communityStore.getSpotTripRecordsPage(spotId, null, limit);
-
-    return { posts: page.posts, hasMore: page.hasMore };
   }
 
   // 유저 후기 목록(CS-8) 조회 — 최신 수정순.

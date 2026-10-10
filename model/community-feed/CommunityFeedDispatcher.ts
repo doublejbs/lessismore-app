@@ -21,15 +21,8 @@ class CommunityFeedDispatcher {
   public async getPage(
     filter: CommunityFeedFilter,
     sort: CommunityFeedSort,
-    cursor: QueryDocumentSnapshot<DocumentData> | null,
-    spotId: string | null = null
+    cursor: QueryDocumentSnapshot<DocumentData> | null
   ): Promise<CommunityFeedPage> {
-    // 박지 필터(CS-11)는 그 박지의 여행 기록만 최신순으로 읽는다 — 인덱스 ②가 최신순 하나뿐이라
-    // 정렬 선택(인기순)은 이 조회에 적용하지 않는다.
-    if (spotId) {
-      return await this.store.getSpotTripRecordsPage(spotId, cursor);
-    }
-
     return await this.store.getFeedPage(filter, sort, cursor);
   }
 }

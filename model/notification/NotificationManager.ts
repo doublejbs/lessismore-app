@@ -17,7 +17,6 @@ import {
   ReengagementState,
   ReengagementTrip,
 } from './ReengagementPlanner';
-import TripRecordEntrySource from '@/model/trip-record/TripRecordEntrySource';
 
 type NotificationData = Record<string, unknown>;
 
@@ -563,11 +562,7 @@ class NotificationManager {
       app.getL10n().t('notification.reminder.uselessTitle', { name }),
       app.getL10n().t('notification.reminder.uselessBody'),
       date,
-      // 탭하면 여행 기록 시트(CM-16·NT-3 개정). 기록이 이미 있으면 탭 시점에 `/useless/{id}`로 바뀐다.
-      {
-        route: `/trip-record/${id}?entrySource=${TripRecordEntrySource.Notification}`,
-        type: NotificationType.Useless,
-      }
+      { route: `/useless/${id}`, type: NotificationType.Useless }
     );
   }
 

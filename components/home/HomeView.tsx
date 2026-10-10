@@ -19,7 +19,6 @@ import HomeSkeletonView from '@/components/home/HomeSkeletonView';
 import HomeHeroBackgroundView from '@/components/home/HomeHeroBackgroundView';
 import HomeMountainBandView from '@/components/home/HomeMountainBandView';
 import HomeRecommendedSpotsView from '@/components/home/HomeRecommendedSpotsView';
-import HomeTripRecordsSectionView from '@/components/home/HomeTripRecordsSectionView';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import Home from '@/model/home/Home';
 import app from '@/model/app/App';
@@ -80,11 +79,6 @@ const HomeView: FC<Props> = ({ home }) => {
     return (
       <>
         <HomeRecommendedSpotsView recommendations={home.getRecommendedSpots()} />
-        {/* 최근 여행 기록(HM-17) — 추천 박지 바로 아래. 0건이면 그리지 않는다. */}
-        <HomeTripRecordsSectionView
-          posts={home.getTripRecords()}
-          unrecordedTrip={home.getUnrecordedTrip()}
-        />
         <ConsumableCarouselSectionView
           title={app.getL10n().t('consumable.homeTitle')}
           products={

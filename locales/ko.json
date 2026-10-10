@@ -186,7 +186,7 @@
       "packingTitle": "{{name}} 여행 하루 전!",
       "packingBody": "패킹을 확인해 보세요",
       "uselessTitle": "{{name}} 여행 잘 다녀오셨나요?",
-      "uselessBody": "사진 한 장으로 이번 여행을 기록해 보세요",
+      "uselessBody": "사용한 장비를 확인해 보세요.",
       "nextTripTitle": "다음 백패킹 계획해 볼까요?",
       "nextTripBody": "지난 여행 장비 그대로 새 여행을 만들 수 있어요",
       "weekendCampTitle": "이번 주말 어디로 갈까요?",
@@ -1208,10 +1208,6 @@
         "removePoll": "투표 제거",
         "pollTitle": "투표",
         "packingTitle": "패킹"
-      },
-      "tripRecord": {
-        "bagLocked": "여행 기록은 배낭을 뗄 수 없어요",
-        "photoLocked": "여행 기록은 사진이 한 장 이상 있어야 해요"
       }
     },
     "validation": {
@@ -1243,8 +1239,7 @@
       "sort": {
         "latest": "최신순",
         "popular": "인기순"
-      },
-      "spotChipRemove": "{{name}} 필터 해제"
+      }
     },
     "detail": {
       "back": "뒤로",
@@ -1662,42 +1657,5 @@
     "start": "다음 백패킹 준비하기",
     "browse": "먼저 둘러볼게요",
     "login": "이미 계정이 있어요 · 로그인"
-  },
-  "tripRecord": {
-    "title": "여행 기록",
-    "publicNotice": "커뮤니티에 공개돼요",
-    "titleLabel": "한 줄",
-    "titlePlaceholder": "이번 여행을 한 줄로",
-    "more": "더 쓰기",
-    "bodyLabel": "내용 (선택)",
-    "bodyPlaceholder": "기억하고 싶은 이야기를 남겨 보세요",
-    "submit": "기록 남기기",
-    "photoRequired": "사진 한 장이 필요해요",
-    "alreadyRecorded": "이미 기록한 여행이에요",
-    "notEnded": "여행이 끝나면 기록할 수 있어요",
-    "unavailable": "여행 기록을 열 수 없어요",
-    "closeAccessibility": "여행 기록 닫기",
-    "done": {
-      "title": "여행을 기록했어요",
-      "subtitle": "사용한 장비도 확인해 볼까요? 쓰지 않은 장비를 표시해 두면 다음 배낭이 가벼워져요",
-      "useless": "사용한 장비 확인하기",
-      "view": "기록 보기"
-    },
-    "entry": {
-      "title": "여행 기록 남기기",
-      "value": "사진 한 장이면 돼요"
-    },
-    "home": {
-      "title": "최근 여행 기록",
-      "write": "내 여행 기록하기",
-      "more": "더 보기"
-    },
-    "campSite": {
-      "title": "다녀온 기록",
-      "more": "전체 보기"
-    },
-    "card": {
-      "accessibility": "{{title}}, {{meta}}, 기록 보기"
-    }
   }
 }

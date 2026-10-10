@@ -181,11 +181,6 @@ class CommunityImageSession {
     );
   }
 
-  // 업로드·재시도 중인 사진이 하나라도 있으면 true다(정규화 단계 포함).
-  public isUploading(): boolean {
-    return this.activeLocalIds.size > 0;
-  }
-
   public isAllUploaded(): boolean {
     return this.images.every(
       (image) => image.state === CommunityImageUploadState.Done
