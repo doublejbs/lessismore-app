@@ -655,8 +655,7 @@
 | `type` | string | string enum `CommunityPostType`. **새 글은 항상 `post`**(2026-09-05 첨부 모델). 레거시 값 `bag_review`/`poll`은 읽기 호환만 하며 필터·표시에 쓰지 않는다 |
 | `hasBagSnapshot` | boolean | 패킹 첨부 여부. `bagSnapshot` 존재와 항상 일치(규칙 검증). 필터 인덱스용 |
 | `hasPoll` | boolean | 투표 첨부 여부. `poll` 존재와 항상 일치(규칙 검증). 필터 인덱스용 |
-| `isTripRecord` | boolean? | **여행 기록**([Community.md](Community.md) CM-16)으로 작성된 글이면 `true`. 홈 `최근 여행 기록`·박지 상세 `다녀온 기록` 조회 키. 일반 글은 키 없음(2026-10-10) |
-| `recordBagId` | string? | `isTripRecord == true`일 때 원본 배낭 id — 배낭당 기록 1개 보장·`기록 보기` 이동용. 배낭 문서는 소유자만 읽으므로 id 노출 위험 없음 |
+| ~~`isTripRecord`~~ / ~~`recordBagId`~~ | — | 여행 기록(CM-16)용으로 2026-10-10 추가했다가 같은 날 폐기. 규칙에서 다시 제거했고 콘솔의 복합 인덱스 3개(isTripRecord…·authorId+recordBagId)는 남아 있어도 무해 — 정리 가능 |
 | `status` | string | string enum `CommunityContentStatus`: `published` / `hidden` / `deleted` |
 | `authorId` | string | Firebase Auth uid. 익명 게시 없음 |
 | `authorName` | string | 작성 시점 닉네임 스냅샷 |
@@ -937,7 +936,7 @@
 
 - `users/{uid}/groups` 는 `startDate` 정렬과 `bagId` 동등 조회(배낭이 바뀌었을 때 갱신할 그룹을 고른다)를 쓴다. 둘 다 단일 필드라 자동 인덱스로 충분하다.
 - `groups/{groupId}/points` 는 `createdAt` 정렬, `routes` 도 `createdAt` 정렬. 복합 인덱스는 필요 없다.
-- **여행 기록 조회 인덱스(CM-16·CS-11·HM-17)**: `community-posts` 복합 ① `isTripRecord ASC, status ASC, createdAt DESC`(홈) ② `isTripRecord ASC, status ASC, bagSnapshot.campSpotId ASC, createdAt DESC`(박지 상세) ③ `authorId ASC, recordBagId ASC`(배낭당 1개 확인). 콘솔에서 생성(에러 링크로).
+- ~~여행 기록 조회 인덱스(CM-16·CS-11·HM-17)~~ — CM-16 폐기(2026-10-10). 생성된 인덱스 3개는 미사용.
 
 #### 서버 작업
 

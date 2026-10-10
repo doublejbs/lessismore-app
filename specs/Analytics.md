@@ -201,11 +201,11 @@
 | `click_bag_point_add` | 배낭 코스 화면에서 지도 포인트 등록 성공 (BD-14) `[제안]` | `type`, `via`: `long_press` \| `aim` |
 | `click_bag_point_delete` | 배낭 지도 포인트 삭제 (BD-14) `[제안]` | `type` |
 | `click_bag_point_select` | 배낭 지도 포인트 목록·마커 탭 (BD-14) `[제안]` | `type` |
-| `click_trip_record_open` | 여행 기록 시트 진입 ([Community.md](Community.md) CM-16) `[제안]` | `source`: `notification` \| `bag_detail` \| `home` |
-| `click_trip_record_submit` | 여행 기록 게시 성공 (CM-16) `[제안]` | `photo_count`, `has_body` |
-| `click_trip_record_after` | 기록 후 완료 카드 액션 (CM-16) `[제안]` | `action`: `useless` \| `view` \| `close` |
-| `click_home_trip_record` / `click_home_trip_record_write` / `click_home_trip_record_more` | 홈 최근 여행 기록 카드·기록하기·더 보기 ([Home.md](Home.md) HM-17) `[제안]` | — |
-| `click_camp_site_record` / `click_camp_site_record_more` | 박지 상세 다녀온 기록 카드·전체 보기 ([CampSite.md](CampSite.md) CS-11) `[제안]` | — |
+| `click_trip_record_open` | 여행 기록 시트 진입 ([Community.md](Community.md) CM-16) `[폐기 2026-10-10]` | `source`: `notification` \| `bag_detail` \| `home` |
+| `click_trip_record_submit` | 여행 기록 게시 성공 (CM-16) `[폐기 2026-10-10]` | `photo_count`, `has_body` |
+| `click_trip_record_after` | 기록 후 완료 카드 액션 (CM-16) `[폐기 2026-10-10]` | `action`: `useless` \| `view` \| `close` |
+| `click_home_trip_record` / `click_home_trip_record_write` / `click_home_trip_record_more` | 홈 최근 여행 기록 카드·기록하기·더 보기 ([Home.md](Home.md) HM-17) `[폐기 2026-10-10]` | — |
+| `click_camp_site_record` / `click_camp_site_record_more` | 박지 상세 다녀온 기록 카드·전체 보기 ([CampSite.md](CampSite.md) CS-11) `[폐기 2026-10-10]` | — |
 | `click_community_report` | 신고 등록 성공 | `target`: `post` \| `comment` |
 
 - 커뮤니티 이벤트에는 게시글 ID, 작성자 ID·닉네임, 제목·본문, 투표 문구, 신고 상세를 보내지 않는다.
