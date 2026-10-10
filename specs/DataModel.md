@@ -99,6 +99,8 @@
 | `groups/{groupId}/bags/{uid}` | 멤버 배낭 공개 스냅샷 (DM-29) `[제안]` | 멤버 배낭 열람 |
 | `groups/{groupId}/points/{pointId}` | 그룹 지도 포인트 (DM-29) `[제안]` | 그룹 지도 |
 | `bag/{bagId}/points/{pointId}` | 개인 여행 지도 포인트 (DM-33) `[제안]` | 배낭 코스 화면 ([BagDetail.md](BagDetail.md) BD-14) |
+| `users/{uid}/push-tokens/{tokenId}` | 사용자 푸시 토큰 (DM-34) `[제안]` | 주말 날씨 브리핑 ([Notification.md](Notification.md) NT-11·NT-12) |
+| `config/weekendBriefing` · `weekend-briefing-runs/{weekId}` | 브리핑 설정·실행 기록 — 함수 전용 (DM-35) `[제안]` | 운영 확인 |
 | `groups/{groupId}/routes/{routeId}` | 그룹 코스(GPX) 요약 (DM-29) `[제안]` | 그룹 지도·코스 목록 |
 | `users/{uid}/groups/{groupId}` | 내가 속한 그룹 역인덱스 (DM-29) `[제안]` | 그룹 목록 조회 |
 | `config/app` | 앱 원격 설정 (강제 업데이트 최소 버전) | 강제 업데이트 게이트 (AppLifecycle APP-7) |
@@ -653,6 +655,8 @@
 | `type` | string | string enum `CommunityPostType`. **새 글은 항상 `post`**(2026-09-05 첨부 모델). 레거시 값 `bag_review`/`poll`은 읽기 호환만 하며 필터·표시에 쓰지 않는다 |
 | `hasBagSnapshot` | boolean | 패킹 첨부 여부. `bagSnapshot` 존재와 항상 일치(규칙 검증). 필터 인덱스용 |
 | `hasPoll` | boolean | 투표 첨부 여부. `poll` 존재와 항상 일치(규칙 검증). 필터 인덱스용 |
+| `isTripRecord` | boolean? | **여행 기록**([Community.md](Community.md) CM-16)으로 작성된 글이면 `true`. 홈 `최근 여행 기록`·박지 상세 `다녀온 기록` 조회 키. 일반 글은 키 없음(2026-10-10) |
+| `recordBagId` | string? | `isTripRecord == true`일 때 원본 배낭 id — 배낭당 기록 1개 보장·`기록 보기` 이동용. 배낭 문서는 소유자만 읽으므로 id 노출 위험 없음 |
 | `status` | string | string enum `CommunityContentStatus`: `published` / `hidden` / `deleted` |
 | `authorId` | string | Firebase Auth uid. 익명 게시 없음 |
 | `authorName` | string | 작성 시점 닉네임 스냅샷 |
@@ -933,6 +937,7 @@
 
 - `users/{uid}/groups` 는 `startDate` 정렬과 `bagId` 동등 조회(배낭이 바뀌었을 때 갱신할 그룹을 고른다)를 쓴다. 둘 다 단일 필드라 자동 인덱스로 충분하다.
 - `groups/{groupId}/points` 는 `createdAt` 정렬, `routes` 도 `createdAt` 정렬. 복합 인덱스는 필요 없다.
+- **여행 기록 조회 인덱스(CM-16·CS-11·HM-17)**: `community-posts` 복합 ① `isTripRecord ASC, status ASC, createdAt DESC`(홈) ② `isTripRecord ASC, status ASC, bagSnapshot.campSpotId ASC, createdAt DESC`(박지 상세) ③ `authorId ASC, recordBagId ASC`(배낭당 1개 확인). 콘솔에서 생성(에러 링크로).
 
 #### 서버 작업
 
@@ -963,6 +968,31 @@
 - **접근 범위는 DM-30 코스와 같다**: `bag/{bagId}/points`는 **소유자(`bag.userId`)만 읽고 쓴다.** 배낭 공유(`shared == true`)·박지 후기·커뮤니티 스냅샷·배낭 복사 어디로도 따라가지 않는다. 보안 규칙에서 `bag` 하위 개방 절(`subCollection != 'routes'`)을 **`routes`·`points` 둘 다 제외**로 고치고 `points` 전용 규칙(소유자 판정은 `get(/databases/(default)/documents/bag/$(bagId)).data.userId == request.auth.uid`)을 둔다. 규칙 배포는 Rules REST(운영 절차 — DM-27 참고).
 - 생명주기: 배낭 삭제 시 `onBagDeleted` 트리거가 `routes`와 함께 `points`도 정리한다(함수 수정 — 웹 레포). 배낭 복사는 포인트를 복사하지 않는다. 그룹에 코스를 올려도 포인트는 복사하지 않는다(BD-14).
 - 인덱스: `createdAt` 정렬만. 복합 인덱스 불필요.
+
+### DM-34 푸시 토큰 `users/{uid}/push-tokens/{tokenId}` `[제안]`
+
+사용자 단위 원격 푸시([Notification.md](Notification.md) NT-11·NT-12)를 위한 FCM 등록 토큰. 문서 id = 토큰 SHA-256 앞 32자(원문을 id로 두지 않는다).
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `token` | string | FCM 등록 토큰 원문 |
+| `platform` | string | `ios` / `android` |
+| `briefingEnabled` | boolean | 주말 날씨 브리핑 수신 가능(앱 토글 ON ∧ OS 권한 허용) |
+| `locale` | string? | 앱 언어(`ko`/`en`/`ja`) — 문구 선택용 |
+| `appVersion` | string? | 등록 시점 앱 버전 |
+| `updatedAt` | timestamp | |
+
+- **보안 규칙**: 본인(`request.auth.uid == uid`)만 읽고 쓴다. `users/{uid}/{subCollection}` 개방 절에 걸리면 **다른 로그인 사용자도 토큰을 읽을 수 있으므로** `groups`처럼 개방에서 빼고 전용 규칙을 둔다(Rules REST 배포).
+- 삭제: 로그아웃 시 클라이언트가 그 기기 문서를, 탈퇴 시 서버 정리 함수가 트리를 지운다(AU-8). 함수가 FCM 거절(`UNREGISTERED`) 토큰도 지운다(NT-11).
+- 인덱스: 컬렉션 그룹 쿼리 `push-tokens where briefingEnabled == true` — **컬렉션 그룹 단일 필드 인덱스**(`briefingEnabled`, COLLECTION_GROUP)를 콘솔에서 켠다.
+
+### DM-35 주말 브리핑 설정·실행 기록 `[제안]`
+
+**`config/weekendBriefing`**(함수 전용, 없으면 기본값): `enabled`(기본 true), `hourKst`(기본 18), `minuteKst`(기본 30 — 스케줄 자체는 함수 코드에 있고 이 값은 함수가 "지금 보낼 시각인가"를 확인하는 가드), `maxTargets`(기본 2000).
+
+**`weekend-briefing-runs/{weekId}`**(함수 전용, 회차당 1문서, `weekId`=`YYYY-Www`): `ranAt`·`targets`·`sent`·`skippedNoSpot`·`skippedNoWeather`·`failed`·`sentUids`(발송 uid 배열 — 멱등 재실행용, 2,000 상한 안이면 배열로 충분)·`spotWeatherCacheHits`.
+
+- 두 경로 모두 클라이언트 읽기·쓰기 금지(개방 절에서 명시적으로 제외 — DM-27 `config/feedRotation`·`feed-rotation-runs`와 같은 방식).
 
 ## 4. Storage 경로 (DM-9)
 
