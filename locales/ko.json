@@ -269,6 +269,17 @@
       "toGroupTitle": "어느 그룹에 올릴까요?",
       "toGroupDone": "그룹에 올렸어요"
     },
+    "point": {
+      "segmentRoutes": "코스",
+      "segmentPoints": "포인트",
+      "empty": "아직 찍은 포인트가 없어요. 지도를 길게 누르거나 포인트 추가로 찍어 보세요",
+      "emptyReadOnly": "아직 찍은 포인트가 없어요",
+      "emptyFiltered": "이 유형의 포인트가 없어요",
+      "descriptionPlaceholder": "나중에 볼 메모를 적어주세요",
+      "tileCount_other": "포인트 {{count}}",
+      "dateFormat": "MM.DD",
+      "loadFailed": "포인트를 불러오지 못했어요"
+    },
     "group": {
       "members_other": "멤버 {{count}}명",
       "rowLabel": "{{name}} 그룹, {{members}}",

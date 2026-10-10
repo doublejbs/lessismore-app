@@ -13,7 +13,7 @@ const RING_WIDTH = 2;
 const TICK_WIDTH = 2;
 
 /**
- * 포인트 추가 조준 마커 (GRP-9).
+ * 포인트 추가 조준 마커 (GRP-9 · BD-14). 그룹 지도와 배낭 코스 화면이 함께 쓴다.
  *
  * **지도 좌표에 붙이지 않는다** — 화면 정중앙에 고정되고 지도가 그 아래에서 움직인다.
  * 등록된 포인트 마커(유형 색이 채워진 원 + 아이콘)와 달리 **속이 빈 조준선**이라,
@@ -21,7 +21,7 @@ const TICK_WIDTH = 2;
  *
  * 추가 모드에서만 렌더하고, 탭을 먹지 않도록 부모가 `pointerEvents='none'`으로 감싼다.
  */
-const GroupMapAimMarkerView: FC = () => {
+const PointAimMarkerView: FC = () => {
   return (
     <View style={styles.root} pointerEvents='none'>
       <Svg width={MARKER_SIZE} height={MARKER_SIZE}>
@@ -93,4 +93,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GroupMapAimMarkerView;
+export default PointAimMarkerView;

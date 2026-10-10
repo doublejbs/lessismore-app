@@ -269,6 +269,17 @@
       "toGroupTitle": "どのグループに送りますか？",
       "toGroupDone": "グループに送りました"
     },
+    "point": {
+      "segmentRoutes": "コース",
+      "segmentPoints": "ポイント",
+      "empty": "まだポイントがありません。地図を長押しするか、ポイントを追加から登録してください",
+      "emptyReadOnly": "まだポイントがありません",
+      "emptyFiltered": "この種類のポイントはありません",
+      "descriptionPlaceholder": "あとで見返すメモを入力してください",
+      "tileCount_other": "ポイント {{count}}",
+      "dateFormat": "MM/DD",
+      "loadFailed": "ポイントを読み込めませんでした"
+    },
     "group": {
       "members_other": "メンバー{{count}}人",
       "rowLabel": "{{name}}グループ、{{members}}",

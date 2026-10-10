@@ -19,21 +19,21 @@ import SheetGrabberView from '@/components/ui/SheetGrabberView';
 import { Acg, AcgLayout, AcgType, Radius } from '@/constants/DesignTokens';
 import useSheetTransition from '@/hooks/useSheetTransition';
 import app from '@/model/app/App';
-import GroupPoint from '@/model/group/GroupPoint';
-import GroupPointType from '@/model/group/GroupPointType';
 import {
   GROUP_POINT_DESCRIPTION_MAX_LENGTH,
   GROUP_POINT_TITLE_MAX_LENGTH,
 } from '@/model/group/GroupLimits';
+import MapPoint from '@/model/point/MapPoint';
 import {
-  GROUP_POINT_TYPES,
-  getGroupPointTypeColor,
-  getGroupPointTypeLabel,
-} from '@/model/group-point/GroupPointLabels';
+  POINT_TYPES,
+  getPointTypeColor,
+  getPointTypeLabel,
+} from '@/model/point/PointLabels';
+import PointType from '@/model/point/PointType';
 
 // 시트가 화면에 올리는 값. 좌표는 지도가 들고 있으므로 담지 않는다.
-export interface GroupPointDraft {
-  type: GroupPointType;
+export interface PointDraft {
+  type: PointType;
   title: string;
   description: string;
 }
@@ -41,24 +41,27 @@ export interface GroupPointDraft {
 interface Props {
   visible: boolean;
   // 수정 대상. `null`이면 등록이다.
-  point: GroupPoint | null;
+  point: MapPoint | null;
+  // 설명 칸 안내 문구 — 그룹은 일행에게 남기는 말, 배낭은 나에게 남기는 메모라 화면이 정한다.
+  descriptionPlaceholder: string;
   submitting: boolean;
   onClose: () => void;
-  onSubmit: (draft: GroupPointDraft) => void;
+  onSubmit: (draft: PointDraft) => void;
 }
 
 const IS_ANDROID = Platform.OS === 'android';
 const SUBMIT_BUTTON_HEIGHT = 52;
 
 /**
- * 포인트 등록·수정 시트 (GRP-9).
+ * 포인트 등록·수정 시트 (GRP-9 · BD-14). 그룹 지도와 배낭 코스 화면이 함께 쓴다.
  *
  * 지도를 길게 눌러 좌표를 찍은 뒤 열린다. 입력은 유형(칩 4종) · 제목(필수 1~40자) ·
  * 설명(선택 최대 200자)이고, 시트 문법은 박지·커뮤니티 시트를 그대로 따른다(GRP-11).
  */
-const GroupPointCreateSheetView: FC<Props> = ({
+const PointCreateSheetView: FC<Props> = ({
   visible,
   point,
+  descriptionPlaceholder,
   submitting,
   onClose,
   onSubmit,
@@ -68,13 +71,11 @@ const GroupPointCreateSheetView: FC<Props> = ({
   const { isReduceMotionEnabled } = useSheetTransition();
   // 초기값은 마운트 시점에 한 번만 잡는다 — 화면이 시트를 열 때마다 `key`를 바꿔
   // 새로 마운트하므로, 닫았다 다시 열어도 앞선 입력이 남지 않는다(이펙트 안 setState 불필요).
-  const [type, setType] = useState<GroupPointType>(
-    point ? point.getType() : GroupPointType.Water
+  const [type, setType] = useState<PointType>(
+    point ? point.getType() : PointType.Water
   );
   const [title, setTitle] = useState(point ? point.getTitle() : '');
-  const [description, setDescription] = useState(
-    point?.getDescription() ?? ''
-  );
+  const [description, setDescription] = useState(point?.getDescription() ?? '');
 
   const isEditing = !!point;
   const canSubmit = title.trim().length > 0 && !submitting;
@@ -113,11 +114,11 @@ const GroupPointCreateSheetView: FC<Props> = ({
       >
         <GroupFormFieldView label={l10n.t('group.point.typeLabel')}>
           <View style={styles.chipRow}>
-            {GROUP_POINT_TYPES.map(value => (
+            {POINT_TYPES.map(value => (
               <CategoryChipView
                 key={value}
-                label={getGroupPointTypeLabel(value)}
-                dotColor={getGroupPointTypeColor(value)}
+                label={getPointTypeLabel(value)}
+                dotColor={getPointTypeColor(value)}
                 selected={type === value}
                 onPress={() => setType(value)}
               />
@@ -152,7 +153,7 @@ const GroupPointCreateSheetView: FC<Props> = ({
           <GroupTextFieldView
             value={description}
             onChangeText={setDescription}
-            placeholder={l10n.t('group.point.descriptionPlaceholder')}
+            placeholder={descriptionPlaceholder}
             maxLength={GROUP_POINT_DESCRIPTION_MAX_LENGTH}
             editable={!submitting}
             accessibilityLabel={l10n.t('group.point.descriptionLabel')}
@@ -300,4 +301,4 @@ const styles = StyleSheet.create({
   submitText: { ...AcgType.control, color: Acg.ink },
 });
 
-export default GroupPointCreateSheetView;
+export default PointCreateSheetView;

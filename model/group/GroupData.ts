@@ -1,6 +1,6 @@
 import { RouteData } from '@/model/route/RouteData';
 import GroupMemberRole from './GroupMemberRole';
-import GroupPointType from './GroupPointType';
+import PointType from '@/model/point/PointType';
 
 // DM-29 그룹 문서 스키마의 타입 표현.
 // `exactOptionalPropertyTypes`가 켜져 있으므로 옵셔널 필드는 값이 없으면 키를 생략한다.
@@ -66,7 +66,7 @@ export interface GroupBagSnapshot extends GroupBagSnapshotContent {
 
 export interface GroupPointData {
   id: string;
-  type: GroupPointType;
+  type: PointType;
   latitude: number;
   longitude: number;
   title: string;
@@ -124,7 +124,7 @@ export interface GroupPatch {
 }
 
 export interface GroupPointInput {
-  type: GroupPointType;
+  type: PointType;
   latitude: number;
   longitude: number;
   title: string;
@@ -132,7 +132,7 @@ export interface GroupPointInput {
 }
 
 export interface GroupPointPatch {
-  type?: GroupPointType;
+  type?: PointType;
   title?: string;
   description?: string | null;
 }

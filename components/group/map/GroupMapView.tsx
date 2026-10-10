@@ -17,9 +17,9 @@ import { getGroupValidationMessage } from '@/model/group-error/GroupErrorMessage
 import GroupMap from '@/model/group-map/GroupMap';
 import GroupMapCanvasView from './GroupMapCanvasView';
 import GroupMapListView from './GroupMapListView';
-import GroupPointCreateSheetView, {
-  GroupPointDraft,
-} from './GroupPointCreateSheetView';
+import PointCreateSheetView, {
+  PointDraft,
+} from '@/components/point/PointCreateSheetView';
 import GroupRouteListSheetView from './GroupRouteListSheetView';
 import useGroupMapRouteState from './useGroupMapRouteState';
 
@@ -147,7 +147,7 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
   }, []);
 
   const handleSubmit = useCallback(
-    async (draft: GroupPointDraft) => {
+    async (draft: PointDraft) => {
       if (editingPoint) {
         const saved = await pointList.updatePoint(editingPoint.getId(), {
           type: draft.type,
@@ -277,10 +277,11 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
       <View style={IS_WEB ? styles.paddedContent : styles.content}>
         {renderContent()}
       </View>
-      <GroupPointCreateSheetView
+      <PointCreateSheetView
         key={sheetKey}
         visible={isSheetVisible}
         point={editingPoint}
+        descriptionPlaceholder={l10n.t('group.point.descriptionPlaceholder')}
         submitting={pointList.isSubmitting()}
         onClose={handleCloseSheet}
         onSubmit={draft => void handleSubmit(draft)}

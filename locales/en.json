@@ -271,6 +271,18 @@
       "toGroupTitle": "Which group?",
       "toGroupDone": "Sent to the group"
     },
+    "point": {
+      "segmentRoutes": "Routes",
+      "segmentPoints": "Points",
+      "empty": "No points yet. Long-press the map or tap Add point",
+      "emptyReadOnly": "No points yet",
+      "emptyFiltered": "No points of this type",
+      "descriptionPlaceholder": "Add a note for later",
+      "tileCount_one": "{{count}} point",
+      "tileCount_other": "{{count}} points",
+      "dateFormat": "MMM D",
+      "loadFailed": "Couldn't load points"
+    },
     "group": {
       "members_one": "{{count}} member",
       "members_other": "{{count}} members",

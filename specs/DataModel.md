@@ -829,7 +829,7 @@
 
 | 필드 | 타입 | 비고 |
 | --- | --- | --- |
-| `type` | string | string enum `GroupPointType`: `water` / `shelter` / `caution` / `note` |
+| `type` | string | string enum `PointType` (2026-10-10 `components/point/`·`model/point/`로 공용화 — BD-14): `water` / `shelter` / `caution` / `note` |
 | `latitude` / `longitude` | number | WGS84 |
 | `title` | string | 1~40자 |
 | `description` | string? | 최대 200자 |

@@ -1,12 +1,13 @@
 import Group from './Group';
 import { toFirestoreDate } from '@/model/firebase/FirestoreDate';
 import { GroupPointData } from './GroupData';
-import GroupPointType from './GroupPointType';
+import MapPoint from '@/model/point/MapPoint';
+import PointType from '@/model/point/PointType';
 
 // 그룹 지도 포인트 (GRP-9, DM-29 `groups/{groupId}/points/{pointId}`).
-class GroupPoint {
+class GroupPoint implements MapPoint {
   private readonly id: string;
-  private readonly type: GroupPointType;
+  private readonly type: PointType;
   private readonly latitude: number;
   private readonly longitude: number;
   private readonly title: string;

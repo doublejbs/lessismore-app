@@ -25,10 +25,11 @@ const BagDetailRouteView: FC<Props> = ({ bagDetail }) => {
   const router = useRouter();
   const l10n = app.getL10n();
   const count = bagDetail.getRouteCount();
+  const pointCount = bagDetail.getPointCount();
 
-  // 웹은 파일 선택이 없어 코스를 올릴 수 없다 — 볼 것이 하나도 없으면 진입점 자체를
-  // 그리지 않는다(APP-5, BD-11). 네이티브는 비어 있어도 `GPX 추가`로 남긴다.
-  if (IS_WEB && count === 0) {
+  // 웹은 파일 선택·좌표 찍기가 없어 코스·포인트를 더할 수 없다 — 볼 것이 하나도 없으면 진입점
+  // 자체를 그리지 않는다(APP-5, BD-11 · BD-14). 네이티브는 비어 있어도 `GPX 추가`로 남긴다.
+  if (IS_WEB && count === 0 && pointCount === 0) {
     return null;
   }
 
@@ -36,13 +37,24 @@ const BagDetailRouteView: FC<Props> = ({ bagDetail }) => {
     router.push(`/bag/${bagDetail.getId()}/route`);
   };
 
-  const subtitle =
+  // `{n}개 · {총 거리} · 포인트 {m}` — 포인트가 0이면 그 조각을 뺀다(BD-14). 코스 없이 포인트만
+  // 있으면 `포인트 {m}`만 적는다(코스 없는 여행에도 포인트는 찍을 수 있다).
+  const routeParts =
     count === 0
-      ? l10n.t('bag.route.tileEmpty')
+      ? []
       : [
           l10n.t('bag.route.count', { count }),
           formatRouteDistance(bagDetail.getRouteDistance()),
-        ].join(l10n.t('common.metaSeparator'));
+        ];
+  const pointParts =
+    pointCount > 0
+      ? [l10n.t('bag.point.tileCount', { count: pointCount })]
+      : [];
+  const parts = [...routeParts, ...pointParts];
+  const subtitle =
+    parts.length === 0
+      ? l10n.t('bag.route.tileEmpty')
+      : parts.join(l10n.t('common.metaSeparator'));
 
   return (
     <TouchableOpacity
@@ -68,6 +80,5 @@ const BagDetailRouteView: FC<Props> = ({ bagDetail }) => {
     </TouchableOpacity>
   );
 };
-
 
 export default observer(BagDetailRouteView);

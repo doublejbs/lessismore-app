@@ -11,18 +11,17 @@ import {
   AcgType,
 } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
-import GroupPoint from '@/model/group/GroupPoint';
-import {
-  getGroupPointAuthorLabel,
-  getGroupPointDateText,
-  getGroupPointTypeColor,
-  getGroupPointTypeLabel,
-} from '@/model/group-point/GroupPointLabels';
+import MapPoint from '@/model/point/MapPoint';
+import { getPointTypeColor } from '@/model/point/PointLabels';
 
 interface Props {
-  point: GroupPoint;
-  memberIds: readonly string[];
-  // 수정·삭제 권한(작성자 또는 방장)이 있을 때만 액션을 그린다(GRP-4).
+  point: MapPoint;
+  /**
+   * 메타 한 줄 — 화면이 조립한다. 그룹 지도는 `유형 · 작성자 · 등록일`(GRP-9), 배낭 코스 화면은
+   * `유형 · 등록일`(작성자 없음)에 연결 그룹 포인트면 출처를 더한다(BD-14).
+   */
+  meta: string;
+  // 수정·삭제 권한이 있을 때만 액션을 그린다(그룹: 작성자 또는 방장 GRP-4, 배낭: 내 포인트 BD-14).
   canEdit: boolean;
   // 선택된 코스 위 위치 — `코스 12.3km 지점 · 고도 1,234m`. 코스에서 500m 밖이면 `null`이다(GRP-8).
   routeMeta: string | null;
@@ -33,12 +32,12 @@ interface Props {
 }
 
 /**
- * 선택한 포인트의 정보 카드 (GRP-9).
- * 지도 마커를 탭하면 뜨고, 작성자 닉네임·등록 시각과 (권한이 있으면) 수정·삭제를 담는다.
+ * 선택한 포인트의 정보 카드 (GRP-9 · BD-14). 그룹 지도와 배낭 코스 화면이 함께 쓴다.
+ * 지도 마커를 탭하면 뜨고, 메타 줄(유형·작성자·등록 시각 등)과 (권한이 있으면) 수정·삭제를 담는다.
  */
-const GroupPointCalloutView: FC<Props> = ({
+const PointCalloutView: FC<Props> = ({
   point,
-  memberIds,
+  meta,
   canEdit,
   routeMeta,
   disabled,
@@ -47,17 +46,7 @@ const GroupPointCalloutView: FC<Props> = ({
   onClose,
 }) => {
   const l10n = app.getL10n();
-  const separator = l10n.t('group.detail.metaSeparator');
   const description = point.getDescription();
-  const meta = [
-    getGroupPointTypeLabel(point.getType()),
-    getGroupPointAuthorLabel(
-      point.getAuthorId(),
-      point.getAuthorName(),
-      memberIds
-    ),
-    getGroupPointDateText(point.getCreatedAt()),
-  ].join(separator);
 
   return (
     <View style={styles.card}>
@@ -65,7 +54,7 @@ const GroupPointCalloutView: FC<Props> = ({
         <View
           style={[
             styles.dot,
-            { backgroundColor: getGroupPointTypeColor(point.getType()) },
+            { backgroundColor: getPointTypeColor(point.getType()) },
           ]}
         />
         <PretendardText weight='medium' style={styles.title} numberOfLines={2}>
@@ -181,4 +170,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default observer(GroupPointCalloutView);
+export default observer(PointCalloutView);

@@ -33,6 +33,9 @@ import {
 } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import GroupPoint from '@/model/group/GroupPoint';
+import { getGroupPointAuthorLabel } from '@/model/group-point/GroupPointLabels';
+import MapPoint from '@/model/point/MapPoint';
+import { getPointDateText, getPointTypeLabel } from '@/model/point/PointLabels';
 import GroupValidationError from '@/model/group/GroupValidationError';
 import { getGroupValidationMessage } from '@/model/group-error/GroupErrorMessage';
 import GroupMap from '@/model/group-map/GroupMap';
@@ -40,12 +43,14 @@ import { getRouteFitRegion } from '@/model/route/RouteCamera';
 import { RouteBounds, RouteCoordinate } from '@/model/route/RouteData';
 import { RouteElevationSample } from '@/model/route/RouteElevation';
 import { deltaToZoom } from '@/model/map/MapZoom';
-import GroupMapAimMarkerView from './GroupMapAimMarkerView';
-import GroupMapMarkersView, { GroupMapViewport } from './GroupMapMarkersView';
+import PointAimMarkerView from '@/components/point/PointAimMarkerView';
+import PointMarkersView, {
+  PointMapViewport,
+} from '@/components/point/PointMarkersView';
+import PointCalloutView from '@/components/point/PointCalloutView';
+import usePointRouteMark from '@/components/point/usePointRouteMark';
+import PointFilterChipsView from '@/components/point/PointFilterChipsView';
 import GroupMapRoutePanelView from './GroupMapRoutePanelView';
-import GroupPointCalloutView from './GroupPointCalloutView';
-import useGroupPointRouteMark from './useGroupPointRouteMark';
-import GroupPointFilterChipsView from './GroupPointFilterChipsView';
 import RouteScrubMarkerView from '@/components/route/RouteScrubMarkerView';
 import RouteEndpointMarkersView from '@/components/route/RouteEndpointMarkersView';
 import RouteEndpointCalloutView from '@/components/route/RouteEndpointCalloutView';
@@ -136,7 +141,7 @@ const GroupMapCanvasView: FC<Props> = ({
   });
   const zoomRef = useRef(deltaToZoom(0.2));
   const mountedRef = useRef(true);
-  const [viewport, setViewport] = useState<GroupMapViewport | null>(null);
+  const [viewport, setViewport] = useState<PointMapViewport | null>(null);
   const [longPressAt, setLongPressAt] = useState<{
     x: number;
     y: number;
@@ -165,7 +170,7 @@ const GroupMapCanvasView: FC<Props> = ({
   // 고른 코스가 없거나 지워졌으면 첫 코스다(GRP-10 강조 규칙 — `GroupMap.getSelectedRouteId`).
   const selectedRoute = groupMap.getSelectedRoute();
   // 고른 포인트가 선택된 코스의 어디쯤인지 — 그래프 표시와 카드 메타 줄(GRP-8).
-  const pointRouteMark = useGroupPointRouteMark(selectedRoute, selectedPoint);
+  const pointRouteMark = usePointRouteMark(selectedRoute, selectedPoint);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -621,7 +626,7 @@ const GroupMapCanvasView: FC<Props> = ({
   );
 
   const handleTapPoint = useCallback(
-    (point: GroupPoint) => {
+    (point: MapPoint) => {
       groupMap.focusPoint(point.getId());
       moveCamera(point.getLatitude(), point.getLongitude(), zoomRef.current);
     },
@@ -632,6 +637,18 @@ const GroupMapCanvasView: FC<Props> = ({
     groupMap.focusPoint(null);
     handleCloseEndpoint();
   }, [groupMap, handleCloseEndpoint]);
+
+  // 카드 메타 줄 — `유형 · 작성자 · 등록일`(GRP-9). 작성자는 그룹에만 있어 여기서 붙인다.
+  const getPointMeta = (point: GroupPoint) =>
+    [
+      getPointTypeLabel(point.getType()),
+      getGroupPointAuthorLabel(
+        point.getAuthorId(),
+        point.getAuthorName(),
+        groupMap.getMemberIds()
+      ),
+      getPointDateText(point.getCreatedAt()),
+    ].join(l10n.t('group.detail.metaSeparator'));
 
   const isFull = pointList.isFull();
   const isRouteFull = routeList.isFull();
@@ -724,8 +741,8 @@ const GroupMapCanvasView: FC<Props> = ({
                 onTapEndpoint={handleTapEndpoint}
               />
 
-              <GroupMapMarkersView
-                pointList={pointList}
+              <PointMarkersView
+                points={pointList.getVisiblePoints()}
                 viewport={viewport}
                 selectedPointId={groupMap.getFocusedPointId()}
                 onTapPoint={handleTapPoint}
@@ -752,7 +769,7 @@ const GroupMapCanvasView: FC<Props> = ({
         </GestureDetector>
 
         {/* 조준 마커는 지도 좌표가 아니라 화면에 고정된다(GRP-9). */}
-        {isAiming ? <GroupMapAimMarkerView /> : null}
+        {isAiming ? <PointAimMarkerView /> : null}
 
         {/* 상단 오버레이 — 유형 필터 칩(GRP-10). 조준 모드에서는 걷는다. */}
         {isAiming ? null : (
@@ -761,7 +778,11 @@ const GroupMapCanvasView: FC<Props> = ({
             pointerEvents='box-none'
             onLayout={handleTopOverlayLayout}
           >
-            <GroupPointFilterChipsView pointList={pointList} onMap />
+            <PointFilterChipsView
+              selectedType={pointList.getSelectedType()}
+              onSelectType={type => pointList.selectType(type)}
+              onMap
+            />
           </View>
         )}
 
@@ -828,9 +849,9 @@ const GroupMapCanvasView: FC<Props> = ({
           ) : (
             <>
               {selectedPoint ? (
-                <GroupPointCalloutView
+                <PointCalloutView
                   point={selectedPoint}
-                  memberIds={groupMap.getMemberIds()}
+                  meta={getPointMeta(selectedPoint)}
                   canEdit={groupMap.canEditPoint(selectedPoint)}
                   routeMeta={pointRouteMark?.calloutMeta ?? null}
                   disabled={pointList.isSubmitting()}

@@ -61,6 +61,8 @@ class BagDetail implements BagScheduleWriter {
   // 코스 타일 부제용 요약(BD-10·BD-11). 개수와 총 거리만 쓴다.
   private routeCount = 0;
   private routeDistance = 0;
+  // 코스 타일 부제의 지도 포인트 수(BD-14). 0이면 부제에서 뺀다.
+  private pointCount = 0;
   private readonly bagWeather: BagWeather;
   private categoryRefs: Map<string, any> = new Map();
   private scrollViewRef: any = null;
@@ -115,6 +117,10 @@ class BagDetail implements BagScheduleWriter {
     return this.routeDistance;
   }
 
+  public getPointCount() {
+    return this.pointCount;
+  }
+
   public async initialize() {
     this.order.initialize();
     await this.getData();
@@ -161,6 +167,7 @@ class BagDetail implements BagScheduleWriter {
     void this.bagWeather.ensureFresh();
     // 코스는 타일 부제에만 쓰는 부가 정보라 초기화를 막지 않는다(BD-11).
     void this.loadRoutes();
+    void this.loadPointCount();
     // 그룹 한 줄도 부가 정보다. 화면에 돌아올 때마다(initialize) 다시 읽어 그룹에서 바꾼 연결을 반영한다.
     void this.loadLinkedGroup();
   }
@@ -374,6 +381,24 @@ class BagDetail implements BagScheduleWriter {
     } catch (error) {
       console.warn('[BagDetail] 코스 요약 조회 실패', error); // l10n-ignore: 개발자 로그
     }
+  }
+
+  /**
+   * 지도 포인트 수 조회 (BD-14). 타일 부제의 `포인트 {m}` 조각에만 쓴다 — 문서를 읽지 않고 개수만
+   * 센다. 코스 요약과 같이 배경으로 돌리고, 실패하면 조각을 빼 둔다(부가 정보다).
+   */
+  private async loadPointCount() {
+    try {
+      const count = await app.getBagPointStore()!.getPointCount(this.id);
+
+      this.setPointCount(count);
+    } catch (error) {
+      console.warn('[BagDetail] 포인트 수 조회 실패', error); // l10n-ignore: 개발자 로그
+    }
+  }
+
+  private setPointCount(count: number) {
+    this.pointCount = count;
   }
 
   private setRouteSummary(count: number, distance: number) {
