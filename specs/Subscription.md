@@ -1,17 +1,17 @@
-# 광고 제거 구독
+# 구독 (광고 제거 + 오프라인 저장)
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | proposed (2026-09-27 기획) |
+| 상태 | proposed (2026-09-27 기획 · **2026-10-10 개정**: 혜택에 여행 오프라인 저장 추가, 7일 무료 체험, 권한 이름 `premium`) |
 | ID 프리픽스 | `SUB` |
 | 주요 코드 | `[제안]` 모델 `model/subscription/`: `SubscriptionStore.ts`(상태·구매·복원·계정 연결), `PurchasesModule.ts`·`PurchasesModule.web.ts`(네이티브 모듈 `RNPurchases` 가드·웹 스텁), `RevenueCatKeys.ts`(공개 SDK 키), `SubscriptionConstants.ts`, `SubscriptionGateContract.ts`, `PurchaseResult.ts`, `RestoreResult.ts`, `SubscriptionOfferingStatus.ts` · 진입점(SUB-9) `model/subscription/OpenSubscription.ts`(설정·광고 링크·안내가 함께 쓰는 구독 화면 열기), `SubscriptionEntryPoint.ts`(`from` 값), `SubscriptionNudge.ts`(누적 노출·한 번 뜨는 안내 시트 요청), `SubscriptionNudgeAction.ts`, `components/subscription/SubscriptionNudgeSheetView.tsx`(안내 시트 호스트, `app/_layout.tsx` 최상위), `components/ads/SingleAdSlotView.tsx`(광고 아래 링크), `components/ads/useAdImpressionTracking.ts`(`CommunityAdCardView.tsx`·`FeedAdCellView.tsx`가 노출을 센다) · 광고 `model/ads/AdService.ts`(`isConsentFlowActive`)·`AdService.web.ts`·`AdServiceContract.ts`·`AdSlotList.ts`, `components/ads/useAdSlotListState.ts`·`useSingleAdSlotState.ts` · 화면 `app/subscription/index.tsx` → `components/subscription/SubscriptionWrapper.tsx` → `SubscriptionView.tsx`(`SubscriptionOfferView.tsx`·`SubscriptionActiveView.tsx`·`SubscriptionRestoreButtonView.tsx`·`useSubscriptionState.ts`), `app/_layout.tsx`(시트 등록) · 설정 `app/info/index.tsx` · 탈퇴 `app/info/delete/index.tsx` · 앱 `model/app/App.ts` · 서버 `lessismore` 레포 `functions/subscription.js` |
-| 관련 스펙 | [Ads.md](Ads.md), [DataModel.md](DataModel.md) DM-31, [Auth.md](Auth.md)(탈퇴·처리방침), [Analytics.md](Analytics.md) |
+| 관련 스펙 | [Ads.md](Ads.md), [Offline.md](Offline.md), [DataModel.md](DataModel.md) DM-31, [Auth.md](Auth.md)(탈퇴·처리방침), [Analytics.md](Analytics.md) |
 
 ## 1. 개요
 
 월 구독 하나로 앱의 광고([Ads.md](Ads.md) AD-1의 다섯 자리)를 모두 끈다(2026-09-27 사용자 결정). 결제는 스토어 인앱 구독(Apple·Google)이고, 구매·갱신·검증은 **RevenueCat**이 맡는다. 앱은 RevenueCat SDK로 구독 여부를 바로 판단하고, 운영·통계용으로 **RevenueCat 웹훅 → 우리 Cloud Function → Firestore** 경로로 구독 상태를 서버에 남긴다(Firebase 확장은 쓰지 않는다).
 
-광고 제거 말고 다른 혜택은 두지 않는다. 웹에는 광고가 없으니 구독도 없다.
+~~광고 제거 말고 다른 혜택은 두지 않는다.~~ → **2026-10-10 개정**: 혜택은 둘이다 — ① 광고 제거(AD-1) ② **여행 오프라인 저장**([Offline.md](Offline.md)). 상품은 그대로 월 구독 하나이고, **7일 무료 체험**으로 시작한다(SUB-10). 구독의 이름은 `useless 플러스` `[결정 필요 — 2026-10-10 제안값]`. 웹에는 광고도 오프라인 저장도 없으니 구독도 없다.
 
 ## 2. 화면 및 진입
 
@@ -29,20 +29,20 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 **수용 기준**
 
 - 상품은 **월 자동 갱신 구독 하나**다. 스토어 상품 ID `useless_no_ads_monthly`(iOS·Android 같은 값), iOS 구독 그룹 `광고 제거`.
-- RevenueCat 권한(entitlement) `no_ads` 하나에 두 스토어 상품을 묶고, 오퍼링 `default`에 월 패키지를 둔다.
+- RevenueCat 권한(entitlement) ~~`no_ads`~~ → **`premium`** 하나에 두 스토어 상품을 묶고(2026-10-10 개정 — 혜택이 둘이라 이름을 혜택 하나에 묶지 않는다. 아직 출시 전이라 RevenueCat 설정만 바꾸면 된다. 코드 상수 `NO_ADS_ENTITLEMENT_ID` → `PREMIUM_ENTITLEMENT_ID`), 오퍼링 `default`에 월 패키지를 둔다. 스토어 상품 ID `useless_no_ads_monthly`는 **유지**한다(스토어에 이미 등록된 ID를 바꾸면 심사·설정을 다시 밟는다. 표시 이름은 스토어에서 바꾼다).
 - **가격은 스토어에서 정한다.** 앱은 가격을 하드코딩하지 않고 SDK가 준 현지화 가격 문자열을 그대로 쓴다.
-- 무료 체험·할인 오퍼는 두지 않는다(나중에 스토어·RevenueCat에서만 켜도 화면이 따라가게 SDK 값으로 그린다).
+- ~~무료 체험·할인 오퍼는 두지 않는다.~~ → **7일 무료 체험을 둔다**(2026-10-10 사용자 결정, SUB-10). 스토어의 도입 오퍼(introductory offer, 무료 체험 7일)로 구성하며 할인 오퍼는 두지 않는다.
 
 ### SUB-2 구독 화면 `[제안]`
 
 **수용 기준**
 
-- 미구독: 제목 `광고 없이 쓰기` · 혜택 한 줄(`앱의 모든 광고를 없애요`) · 가격 줄(`월 {가격}`) · 주 액션 `구독하기`(라임, 화면당 하나 — HM-8) · `구매 복원` · 자동 갱신 안내 · 이용약관·개인정보 처리방침 링크. 자동 갱신 안내 문구: `구독은 매월 자동으로 갱신되며, 현재 기간이 끝나기 24시간 전까지 스토어 설정에서 해지할 수 있어요. 결제는 구매 확인 시 스토어 계정으로 청구돼요.`
+- 미구독: 제목 `useless 플러스`(이름 결정 전까지 임시) · **혜택 두 줄**(아이콘 + 한 줄: `앱의 모든 광고를 없애요` / `여행을 저장해 산에서도 코스·장비를 봐요`) · 가격 줄(체험 자격이 있으면 `7일 무료 체험 후 월 {가격}`, 없으면 `월 {가격}` — SUB-10) · 주 액션(체험 자격 있음 `7일 무료로 시작` / 없음 `구독하기`; 라임, 화면당 하나 — HM-8) · `구매 복원` · 자동 갱신 안내 · 이용약관·개인정보 처리방침 링크. 자동 갱신 안내 문구: `구독은 매월 자동으로 갱신되며, 현재 기간이 끝나기 24시간 전까지 스토어 설정에서 해지할 수 있어요. 결제는 구매 확인 시 스토어 계정으로 청구돼요.`
   - 가격·기간·자동 갱신·해지 방법·약관 링크·구매 복원은 **App Store 심사 필수 표시**다(가이드라인 3.1.2). 빠뜨리지 않는다.
-- 구독 중: `광고 제거 구독 중` · 다음 갱신일(또는 해지 예약 시 `{날짜}까지 이용`) · `구독 관리`(스토어 구독 관리 화면으로 이동) · `구매 복원`.
+- 구독 중: `useless 플러스 구독 중`(체험 중이면 `무료 체험 중 · {종료일}부터 월 {가격}`) · 다음 갱신일(또는 해지 예약 시 `{날짜}까지 이용`) · `구독 관리`(스토어 구독 관리 화면으로 이동) · `구매 복원`.
 - 상품을 불러오지 못하면(네트워크·스토어 오류) 가격 자리에 오류 한 줄 + `다시 시도`. 구독하기는 비활성.
 - 구매 진행 중에는 버튼을 막고 진행 표시. 사용자가 스토어 창에서 취소하면 아무 알림 없이 원래 화면.
-- 구매 성공 → 토스트 `광고를 모두 없앴어요` → 화면 닫기. 광고는 즉시 사라진다(SUB-4).
+- 구매 성공 → 토스트(일반 `광고를 없애고 오프라인 저장을 켰어요` / 오프라인 진입점에서 왔으면 `오프라인 저장을 쓸 수 있어요`) → 화면 닫기. 광고는 즉시 사라지고(SUB-4), 오프라인 진입점에서 왔으면 **닫힌 뒤 바로 저장을 시작**한다(SUB-11).
 - 시트 문법·타입·토큰은 HM-8. `PretendardText`, 44pt 터치 타깃, 아이콘 버튼 `accessibilityLabel`.
 
 ### SUB-3 계정 연결 `[제안]`
@@ -57,7 +57,7 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 
 **수용 기준**
 
-- 앱의 구독 판단 소스는 **RevenueCat SDK의 `customerInfo.entitlements.active.no_ads`** 다. Firestore(DM-31)는 앱의 광고 판단에 쓰지 않는다(웹훅이 몇 초 늦어도 결제 직후 광고가 바로 꺼져야 한다).
+- 앱의 구독 판단 소스는 **RevenueCat SDK의 `customerInfo.entitlements.active.premium`**(구 `no_ads`) 다. 체험 중도 권한이 살아 있으므로 같은 판단이다. Firestore(DM-31)는 앱의 광고 판단에 쓰지 않는다(웹훅이 몇 초 늦어도 결제 직후 광고가 바로 꺼져야 한다).
 - 구독 중이면 `AdService`가 **광고를 요청하지 않고**, UMP·추적 안내 시트·ATT도 띄우지 않는다(AD-3의 동의 흐름을 시작하지 않는다). 이미 받은 광고는 해제하고 자리를 접는다.
 - 구독 상태를 알기 전(앱 시작 직후 SDK 응답 전)에는 광고를 요청하지 않는다 — 구독자에게 광고가 한 번 번쩍이지 않게. SDK는 마지막 상태를 기기에 캐시하므로 대기는 짧다. SDK가 실패하면(모듈 없음·네트워크) **미구독으로 본다**(광고는 AD-5대로 언제나 없어도 되는 요소라, 반대로 막히는 쪽이 더 나쁘다).
 - 상태 변화(갱신·만료·환불)는 `addCustomerInfoUpdateListener`로 받아 즉시 반영한다. 앱이 포그라운드로 돌아올 때 한 번 갱신한다.
@@ -104,6 +104,26 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
   - **닫을 수 있다**: 스와이프·바깥 탭·`괜찮아요`·안드로이드 뒤로가기(추적 안내 시트와 달리 권한 요청 앞 단계가 아니다).
   - 한 번 띄우면(어떻게 닫든) **다시 뜨지 않는다**(띄우는 순간 기기에 기록). 동의 흐름(UMP·추적 안내 시트·ATT)이나 다른 시트·모달이 떠 있으면 띄우지 않고 다음 광고 때 다시 확인한다.
   - 시트 문법·타입·토큰은 HM-8(추적 안내 시트와 같은 모양). `PretendardText`, 44pt 터치 타깃.
+
+### SUB-10 7일 무료 체험 `[제안]`
+
+**수용 기준**
+
+- 스토어 도입 오퍼로 **무료 체험 7일**을 구성한다(App Store Connect 구독 → 도입 혜택 → 무료 체험 1주 / Play Console 기본 요금제 → 무료 체험 7일). RevenueCat은 이를 패키지의 `introPrice`로 돌려주고, 체험 중 `entitlements.active.premium.periodType == 'TRIAL'`이다.
+- **자격**: 스토어 계정당 한 번이다(Apple ID·Google 계정 기준 — 앱이 아니라 스토어가 판단). 앱은 `Purchases.checkTrialOrIntroductoryPriceEligibility`로 자격을 묻고, 자격이 있으면 체험 문구·`7일 무료로 시작` 버튼, 없으면(이미 썼거나 판단 불가) `월 {가격}`·`구독하기`로 그린다. 자격 조회가 실패하면 **없는 쪽으로** 그린다(없다고 했는데 체험이 붙는 것은 괜찮고, 있다고 했는데 바로 결제되는 것은 안 된다).
+- 체험 시작도 **구매**다 — 로그인 필수(SUB-3), 스토어 결제 시트가 뜨고, 7일 뒤 자동으로 월 요금이 청구된다는 안내를 가격 줄 아래에 적는다: `체험 기간이 끝나면 월 {가격}이 자동으로 청구돼요. 체험 중 언제든 스토어 설정에서 해지할 수 있어요.`(심사 필수 표시 — 3.1.2).
+- 체험 중 해지하면 체험 종료일까지 권한이 유지된다(스토어 규칙) — 화면은 `{종료일}까지 이용`.
+- 서버 기록(DM-31)에 `isTrial`을 둔다(웹훅 `period_type`). 측정은 SUB-8의 `subscription_purchase_success`에 `is_trial` 파라미터를 더한다.
+
+### SUB-11 오프라인 저장 게이트 `[제안]`
+
+**수용 기준**
+
+- 오프라인 저장([Offline.md](Offline.md) OF-2)의 **저장·갱신은 권한 `premium`이 살아 있을 때만** 한다(체험 포함). 읽기는 막지 않는다(OF-7).
+- 미구독 상태에서 배낭 상세 `오프라인` 타일을 누르면 구독 화면(SUB-2)을 **오프라인 진입점 변형**으로 연다: 제목 아래 한 줄 `이 여행을 저장하면 산에서도 코스·장비·날씨를 볼 수 있어요`, 혜택 두 줄 중 오프라인 줄을 먼저 둔다. 로그인하지 않았으면 로그인부터(SUB-3). `SubscriptionEntryPoint`에 `Offline`을 더한다.
+- 구매(체험 시작) 성공 → 시트가 닫히면 **그 여행의 저장을 바로 시작**한다(OF-2) — 사용자가 하려던 일을 끝내 준다. 취소·실패면 아무 일도 없다.
+- 구독 중 타일은 게이트 없이 바로 저장한다. 구독이 끝난 뒤 `지금 갱신`은 같은 게이트를 지난다(OF-7).
+- SUB-9의 광고 쪽 진입점(링크·안내 시트)은 그대로이고, 안내 시트 본문은 혜택 둘로 바꾼다: `광고가 불편하세요? 월 {가격}에 광고를 없애고 여행을 오프라인에 저장할 수 있어요.` 체험 자격이 있으면 `7일은 무료예요.`를 덧붙인다.
 
 ### SUB-8 측정 `[제안]`
 

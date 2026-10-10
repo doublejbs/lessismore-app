@@ -98,6 +98,7 @@
 | `groups/{groupId}/members/{uid}` | 그룹 멤버, 계정당 한 문서 (DM-29) `[제안]` | 멤버 목록 |
 | `groups/{groupId}/bags/{uid}` | 멤버 배낭 공개 스냅샷 (DM-29) `[제안]` | 멤버 배낭 열람 |
 | `groups/{groupId}/points/{pointId}` | 그룹 지도 포인트 (DM-29) `[제안]` | 그룹 지도 |
+| `bag/{bagId}/points/{pointId}` | 개인 여행 지도 포인트 (DM-33) `[제안]` | 배낭 코스 화면 ([BagDetail.md](BagDetail.md) BD-14) |
 | `groups/{groupId}/routes/{routeId}` | 그룹 코스(GPX) 요약 (DM-29) `[제안]` | 그룹 지도·코스 목록 |
 | `users/{uid}/groups/{groupId}` | 내가 속한 그룹 역인덱스 (DM-29) `[제안]` | 그룹 목록 조회 |
 | `subscriptions/{uid}` | 광고 제거 구독 서버 기록, 웹훅 함수만 씀 (DM-31) `[제안]` | 운영·통계 ([Subscription.md](Subscription.md)) |
@@ -994,11 +995,12 @@
 
 | 필드 | 타입 | 비고 |
 | --- | --- | --- |
-| `active` | boolean | `no_ads` 권한이 지금 살아 있는지 |
-| `productId` | string | `useless_no_ads_monthly` |
+| `active` | boolean | `premium` 권한(구 `no_ads` — [Subscription.md](Subscription.md) SUB-1 개정)이 지금 살아 있는지. 체험 중도 `true` |
+| `productId` | string | `useless_no_ads_monthly`(상품 ID는 유지 — 스토어에 이미 등록, SUB-1) |
 | `store` | string | `app_store` \| `play_store` (RevenueCat `store` 값 소문자) |
 | `environment` | string | `production` \| `sandbox` — 통계에서 샌드박스를 거른다 |
 | `willRenew` | boolean | 해지 예약이면 `false` |
+| `isTrial` | boolean | 7일 무료 체험 기간 중(RevenueCat `period_type == TRIAL`) — SUB-10 |
 | `billingIssue` | boolean | 결제 실패 유예 중 |
 | `expiresAt` | Timestamp \| null | 현재 기간 만료 시각 |
 | `originalPurchasedAt` | Timestamp | 첫 구매 시각 |
@@ -1010,6 +1012,25 @@
 - **보안 규칙(콘솔 관리)**: 읽기는 `request.auth.uid == uid`(본인)만, **쓰기는 전면 금지**(Admin SDK인 함수만 쓴다). 운영 화면이 생기면 그때 읽기를 넓힌다.
 - 삭제: 회원 탈퇴 정리 함수가 지운다(SUB-7).
 - 인덱스: 없음(단건 조회·콘솔 조회만). 통계 쿼리가 생기면 `active`·`environment` 복합 인덱스를 추가한다.
+
+### DM-33 배낭 지도 포인트 `bag/{bagId}/points/{pointId}` `[제안]`
+
+개인 여행의 코스 화면에 찍는 지도 포인트([BagDetail.md](BagDetail.md) BD-14). 그룹 포인트(DM-29 `groups/{groupId}/points`)와 **필드 구조가 같고 사는 곳만 다르다** — 같은 유형 enum·입력 시트·마커를 쓴다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `type` | string | string enum `PointType`(기존 `GroupPointType`에서 이름만 바꿔 공유): `water` / `shelter` / `caution` / `note` |
+| `latitude` / `longitude` | number | WGS84 |
+| `title` | string | 1~40자 |
+| `description` | string? | 최대 200자, 없으면 키 생략 |
+| `createdAt` | timestamp | |
+| `updatedAt` | timestamp? | 수정 시 |
+
+- 배낭당 **50개**(그룹과 같은 상한). `authorId`·`authorName`은 **두지 않는다**(소유자 한 사람의 것 — DM-30 코스와 같은 이유).
+- **접근 범위는 DM-30 코스와 같다**: `bag/{bagId}/points`는 **소유자(`bag.userId`)만 읽고 쓴다.** 배낭 공유(`shared == true`)·박지 후기·커뮤니티 스냅샷·배낭 복사 어디로도 따라가지 않는다. 보안 규칙에서 `bag` 하위 개방 절(`subCollection != 'routes'`)을 **`routes`·`points` 둘 다 제외**로 고치고 `points` 전용 규칙(소유자 판정은 `get(/databases/(default)/documents/bag/$(bagId)).data.userId == request.auth.uid`)을 둔다. 규칙 배포는 Rules REST(운영 절차 — DM-27 참고).
+- 생명주기: 배낭 삭제 시 `onBagDeleted` 트리거가 `routes`와 함께 `points`도 정리한다(함수 수정 — 웹 레포). 배낭 복사는 포인트를 복사하지 않는다. 그룹에 코스를 올려도 포인트는 복사하지 않는다(BD-14).
+- 인덱스: `createdAt` 정렬만. 복합 인덱스 불필요.
+- 오프라인 저장([Offline.md](Offline.md) OF-1)은 이 컬렉션 전체를 스냅샷에 포함한다.
 
 ## 4. Storage 경로 (DM-9)
 
