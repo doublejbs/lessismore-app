@@ -4,6 +4,8 @@ enum NotificationType {
   Useless = 'useless',
   NextTrip = 'next_trip',
   WeekendCamp = 'weekend_camp',
+  // 주말 날씨 브리핑(NT-11 원격) — 서버 페이로드 data.type 값이다.
+  WeekendBriefing = 'weekend_briefing',
   Notice = 'notice',
   Unknown = 'unknown',
 }

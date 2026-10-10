@@ -182,17 +182,21 @@ const RootLayout = () => {
     const notificationManager = app.getNotificationManager();
 
     notificationManager?.requestReengagementSync();
+    // 로그인·약관 동의 직후·앱 시작에 이 기기 푸시 토큰을 등록한다(NT-12 ①). 비로그인·약관 미동의·권한 미허용은 매니저가 건너뛴다.
+    notificationManager?.registerPushToken();
 
     const subscription = AppState.addEventListener('change', nextState => {
       if (nextState === 'active') {
         notificationManager?.requestReengagementSync();
+        // 포그라운드 복귀 재확인은 하루 1회 상한(NT-12 ④).
+        notificationManager?.recheckPushTokenOnForeground();
       }
     });
 
     return () => {
       subscription.remove();
     };
-  }, [isInitialized, isLoggedIn]);
+  }, [isInitialized, isLoggedIn, hasAgreed]);
 
   useEffect(() => {
     if (!isInitialized) {
