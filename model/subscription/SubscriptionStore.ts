@@ -78,7 +78,6 @@ class SubscriptionStore implements SubscriptionGateContract {
       | 'monthlyPackage'
       | 'configured'
       | 'configureFailed'
-      | 'linkedUserId'
       | 'userSyncing'
       | 'resolveWaiters'
       | 'resolveTimeoutId'
@@ -87,7 +86,6 @@ class SubscriptionStore implements SubscriptionGateContract {
       monthlyPackage: observable.ref,
       configured: false,
       configureFailed: false,
-      linkedUserId: false,
       userSyncing: false,
       resolveWaiters: false,
       resolveTimeoutId: false,
@@ -120,7 +118,7 @@ class SubscriptionStore implements SubscriptionGateContract {
     }
 
     this.configured = true;
-    this.linkedUserId = userId;
+    this.setLinkedUserId(userId);
 
     sdk.default.addCustomerInfoUpdateListener(this.handleCustomerInfoUpdate);
 
@@ -146,6 +144,12 @@ class SubscriptionStore implements SubscriptionGateContract {
   // 설정 행을 숨기고 미구독으로 본다. 초기화 전에는 true(구독 상태를 기다린다).
   public isAvailable(): boolean {
     return this.getSdk() !== null && !this.configureFailed;
+  }
+
+  // SUB-3·OF-7: RevenueCat에 지금 연결된 uid(`Purchases.logIn`에 넘긴 값, '' = 익명). 오프라인 권한 기록이
+  // 이 값과 Firebase uid가 같을 때만 남긴다 — 계정 전환 중 앞 사람의 권한이 다음 사람 이름으로 남지 않게.
+  public getLinkedUserId(): string {
+    return this.linkedUserId;
   }
 
   public isResolved(): boolean {
@@ -500,7 +504,7 @@ class SubscriptionStore implements SubscriptionGateContract {
       try {
         const customerInfo = await sdk.default.logOut();
 
-        this.linkedUserId = '';
+        this.setLinkedUserId('');
 
         if (this.firebase.getUserId() !== '') {
           return;
@@ -509,7 +513,7 @@ class SubscriptionStore implements SubscriptionGateContract {
         this.applyCustomerInfo(customerInfo);
       } catch {
         // 이미 익명이면 SDK가 던진다 — 결과는 같다.
-        this.linkedUserId = '';
+        this.setLinkedUserId('');
       }
 
       return;
@@ -518,7 +522,7 @@ class SubscriptionStore implements SubscriptionGateContract {
     try {
       const { customerInfo } = await sdk.default.logIn(userId);
 
-      this.linkedUserId = userId;
+      this.setLinkedUserId(userId);
 
       // 연결하는 사이 다시 로그아웃·전환됐으면 뒤따르는 동기화가 상태를 정한다.
       if (this.firebase.getUserId() !== userId) {
@@ -553,6 +557,10 @@ class SubscriptionStore implements SubscriptionGateContract {
     }
 
     return this.linkedUserId === userId ? userId : '';
+  }
+
+  private setLinkedUserId(userId: string) {
+    this.linkedUserId = userId;
   }
 
   private isStillLinkedTo(userId: string): boolean {

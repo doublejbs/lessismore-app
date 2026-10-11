@@ -329,6 +329,9 @@ class Firebase {
     // 이 기기의 푸시 토큰 문서를 먼저 지운다 — 본인만 쓸 수 있는 문서라 signOut 뒤에는 지울 수 없다(NT-12).
     // 실패·지연은 조용히 넘기고 상한 시간 뒤 로그아웃을 진행한다.
     await app.getNotificationManager()?.unregisterPushToken();
+    // OF-5: 반영 안 된 오프라인 패킹 체크를 인증이 살아 있을 때 한 번 올려 본다(3초 상한, 실패하면 버린다).
+    // 저장본은 이어지는 `clear`가 지운다.
+    await app.getOfflineTripStore()?.syncPendingPackingBeforeLogout();
     await signOut(this.auth);
 
     // 네이티브 앱에서만 GoogleSignin 사용

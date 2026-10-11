@@ -7,7 +7,7 @@ const INITIAL_FETCH_TIMEOUT_MS = 1500;
 
 // Firestore가 "연결 없음"으로 실패할 때의 코드(`unavailable`)와 메시지 조각(JS SDK `client is offline`).
 const FIRESTORE_UNAVAILABLE_CODE = 'unavailable';
-const FIRESTORE_OFFLINE_MESSAGE = 'offline';
+const FIRESTORE_OFFLINE_MESSAGE = 'client is offline';
 
 interface NetInfoSnapshot {
   isConnected: boolean | null;

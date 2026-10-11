@@ -30,6 +30,11 @@ const BagDetailActivityView: FC<Props> = ({ bagDetail }) => {
   }
 
   const handlePress = () => {
+    // OF-5: 서버 데이터로 그리던 중 연결이 끊겼으면 운동 기록 연결로 가지 않는다.
+    if (!bagDetail.guardOnline()) {
+      return;
+    }
+
     app.getAnalyticsManager()?.logClick('activity');
 
     router.push(`/bag/${bagDetail.getId()}/activity`);

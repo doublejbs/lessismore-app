@@ -228,9 +228,8 @@ class BagDetail implements BagScheduleWriter {
         await this.getData();
         this.setSource(BagDetailSource.Server);
         this.networkStatus.markFirestoreSuccess();
-        // OF-2: 저장된 여행이면 온라인 진입마다 조용히 갱신한다. 구매하고 돌아왔으면 저장을 시작한다(SUB-11).
+        // OF-2: 저장된 여행이면 온라인 진입마다 조용히 갱신한다.
         this.offlineTrip.refreshSilently();
-        this.offlineTrip.resumePendingSave();
       } catch (error) {
         // OF-3: 연결 상태를 아직 모르는데 읽기가 연결 없음으로 실패했다 → 오프라인으로 보고 저장본을 연다.
         if (
@@ -279,9 +278,13 @@ class BagDetail implements BagScheduleWriter {
     this.setSource(BagDetailSource.Snapshot);
 
     if (!this.offlineOpenLogged) {
-      this.offlineOpenLogged = true;
+      this.setOfflineOpenLogged(true);
       app.getAnalyticsManager()?.logEvent('offline_trip_open');
     }
+  }
+
+  private setOfflineOpenLogged(value: boolean) {
+    this.offlineOpenLogged = value;
   }
 
   private applySnapshot(snapshot: OfflineTripSnapshotData) {
@@ -675,6 +678,16 @@ class BagDetail implements BagScheduleWriter {
   }
 
   public goToPacking() {
+    // OF-5: 오프라인 패킹은 열어 볼 수 있는 저장본에만 쓴다 — 저장본이 없거나 잠겼으면 열지 않는다.
+    if (
+      this.networkStatus.isOffline() &&
+      this.offlineTripStore?.getAccess(this.id) !== OfflineTripAccess.Available
+    ) {
+      app.getToastManager()?.showSimple(app.getL10n().t('offline.toast.onlineOnly'));
+
+      return;
+    }
+
     app.getAnalyticsManager()?.logClick('packing_start', {
       gear_count: this.gears.length,
       d_day: this.getDDay(),
@@ -789,6 +802,11 @@ class BagDetail implements BagScheduleWriter {
   }
 
   public async toggleUseless(gear: Gear) {
+    // OF-5: 사용 기록은 서버에 쓴다 — 연결이 없으면 막는다.
+    if (!this.guardOnline()) {
+      return;
+    }
+
     if (this.isUseless(gear)) {
       await this.setUseful(gear);
     } else {

@@ -8,10 +8,6 @@ import type NetworkStatus from './NetworkStatus';
 import { formatOfflineBytes, formatOfflineDate } from './OfflineFormat';
 import OfflineSaveError from './OfflineSaveError';
 import OfflineSaveErrorType from './OfflineSaveErrorType';
-import {
-  consumePendingOfflineSave,
-  setPendingOfflineSave,
-} from './OfflineSaveHandoff';
 import OfflineTripStatus from './OfflineTripStatus';
 import type OfflineTripStore from './OfflineTripStore';
 
@@ -20,7 +16,7 @@ import type OfflineTripStore from './OfflineTripStore';
  *
  * 탭 흐름:
  * - 오프라인 → 토스트 `온라인에서 저장할 수 있어요`.
- * - 권한 없음(미구독·만료) → 구독 화면(오프라인 진입점). 구매 후 돌아오면 바로 저장(SUB-11).
+ * - 권한 없음(미구독·만료) → 구독 화면(오프라인 진입점). 권한을 얻으면 `onEntitled`로 바로 저장(SUB-11).
  * - 미저장 + 권한 → 확인 없이 바로 저장(되돌릴 수 있는 동작이다).
  * - 저장됨 + 권한 → 바텀 메뉴(`지금 갱신` · `오프라인 저장 삭제`).
  */
@@ -153,12 +149,14 @@ class OfflineTrip {
     }
 
     if (!store.isEntitled()) {
-      // 구독 화면이 로그인부터 묻는다(SUB-3). 구매하고 돌아오면 이 여행을 바로 저장한다(SUB-11).
-      if (app.getFirebase().isLoggedIn()) {
-        setPendingOfflineSave(this.bagId);
-      }
-
-      openSubscription(SubscriptionEntryPoint.Offline);
+      // 구독 화면이 로그인부터 묻는다(SUB-3). 권한을 얻어 시트가 닫히면 이 여행을 바로 저장한다(SUB-11).
+      // `onEntitled`는 권한을 얻은 뒤에만 불리므로, 권한 판단이 아직 따라오지 못했어도 저장을 시작한다.
+      openSubscription(SubscriptionEntryPoint.Offline, {
+        onEntitled: () => {
+          app.getAnalyticsManager()?.logClick('offline_save', { source: 'tile' });
+          void this.save(true);
+        },
+      });
 
       return;
     }
@@ -195,35 +193,15 @@ class OfflineTrip {
     });
   }
 
-  // 상세가 포커스될 때 부른다 — 구독 화면에서 구매하고 돌아왔으면 저장을 바로 시작한다(SUB-11).
-  public resumePendingSave(): void {
-    if (!consumePendingOfflineSave(this.bagId)) {
-      return;
-    }
-
-    const store = this.store;
-
-    if (
-      !store ||
-      !store.isEntitled() ||
-      this.networkStatus.isOffline() ||
-      store.isSaved(this.bagId)
-    ) {
-      return;
-    }
-
-    app.getAnalyticsManager()?.logClick('offline_save', { source: 'tile' });
-    void this.save();
-  }
-
   // 온라인 상세 진입마다 조용히 갱신한다(OF-2). 실패는 알리지 않는다.
   public refreshSilently(): void {
     void this.store?.refreshSilently(this.bagId);
   }
 
-  private async save(): Promise<void> {
+  // `entitledByPurchase`: 구독 화면에서 방금 권한을 얻어 부른 저장(SUB-11) — 권한 판단을 건너뛴다.
+  private async save(entitledByPurchase = false): Promise<void> {
     try {
-      await this.store?.save(this.bagId);
+      await this.store?.save(this.bagId, { entitledByPurchase });
     } catch (error) {
       this.toastManager?.showSimple(
         OfflineTrip.getSaveErrorMessage(OfflineSaveError.typeOf(error))

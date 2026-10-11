@@ -41,6 +41,13 @@ const OfflineBannerView: FC<Props> = ({ locked }) => {
   }
 
   const handlePress = () => {
+    // 구독 화면은 연결이 있어야 연다 — 오프라인이면 토스트로 알린다(OF-7).
+    if (app.getNetworkStatus().isOffline()) {
+      app.getToastManager()?.showSimple(l10n.t('offline.toast.onlineOnly'));
+
+      return;
+    }
+
     openSubscription(SubscriptionEntryPoint.Offline);
   };
 

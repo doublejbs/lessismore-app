@@ -3,7 +3,7 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Acg, AcgLayout, Spacing } from '@/constants/DesignTokens';
-import { OFFLINE_ENTRY_POINT_VALUE } from '@/model/subscription/SubscriptionConstants';
+import SubscriptionEntryPoint from '@/model/subscription/SubscriptionEntryPoint';
 import SubscriptionStore from '@/model/subscription/SubscriptionStore';
 import SubscriptionActiveView from './SubscriptionActiveView';
 import SubscriptionOfferView from './SubscriptionOfferView';
@@ -21,7 +21,7 @@ interface Props {
 const SubscriptionView = ({ store }: Props) => {
   const insets = useSafeAreaInsets();
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const isOfflineEntry = from === OFFLINE_ENTRY_POINT_VALUE;
+  const isOfflineEntry = from === SubscriptionEntryPoint.Offline;
   const {
     formattedExpirationDate,
     handleSubscribe,

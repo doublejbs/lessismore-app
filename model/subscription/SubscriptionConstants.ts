@@ -9,10 +9,6 @@ export const PLUS_PRODUCT_ID = 'useless_plus_monthly';
 // SUB-10: 체험 중 권한의 `periodType`(RevenueCat `PERIOD_TYPE.TRIAL`).
 export const TRIAL_PERIOD_TYPE = 'TRIAL';
 
-// SUB-11: 오프라인 진입점의 `from` 값. `SubscriptionEntryPoint.Offline`과 같은 값이어야 한다 —
-// 구독 화면은 진입점을 라우트 파라미터 문자열로 읽어 변형을 고른다.
-export const OFFLINE_ENTRY_POINT_VALUE = 'offline';
-
 // SUB-9 `[보류 — 광고 미도입(2026-10-10)]`: 광고 쪽 구독 진입점(광고 아래 `광고 없이 보기` 링크·누적 노출 뒤
 // 한 번 뜨는 안내 시트). 광고가 혜택이 아니므로 끈다 — 코드는 남겨 두고, 광고가 다시 혜택이 되면 켠다.
 export const SUBSCRIPTION_AD_ENTRY_ENABLED = false;

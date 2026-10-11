@@ -97,6 +97,7 @@ class OfflineEntitlement {
         expiresAt: this.subscriptionStore.getExpirationDate(),
         online: this.networkStatus.isOnline(),
         userId: this.firebase.getUserId(),
+        linkedUserId: this.subscriptionStore.getLinkedUserId(),
       }),
       state => {
         this.record(state);
@@ -158,8 +159,10 @@ class OfflineEntitlement {
     expiresAt: string | null;
     online: boolean;
     userId: string;
+    linkedUserId: string;
   }) {
-    if (!state.userId) {
+    // 구독 상태가 지금 로그인한 계정의 것일 때만 남긴다(계정 전환 중 앞 계정의 권한이 섞이지 않게).
+    if (!state.userId || state.linkedUserId !== state.userId) {
       return;
     }
 

@@ -104,6 +104,11 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
     setIsMapUnavailable(true);
   }, []);
 
+  // 제한 시간을 넘겨 폴백했어도 지도가 뒤늦게 뜨면 지도로 돌아간다(OF-6).
+  const handleMapInitialized = useCallback(() => {
+    setIsMapUnavailable(false);
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       // 오프라인인데 저장본이 없으면 읽어 둔 코스를 그대로 둔다(다시 읽으면 빈 목록이 된다 — OF-6).
@@ -356,9 +361,39 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
       );
     }
 
+    // 지도는 `map` 키로 같은 자리에 둔다 — 폴백 중에도 (보이지 않게) 살려 두어 뒤늦은 초기화를 받는다.
+    const mapView = (
+      <View
+        key='map'
+        style={isMapUnavailable ? styles.hiddenMap : styles.content}
+        pointerEvents={isMapUnavailable ? 'none' : 'auto'}
+        accessibilityElementsHidden={isMapUnavailable}
+        importantForAccessibility={
+          isMapUnavailable ? 'no-hide-descendants' : 'auto'
+        }
+      >
+        <BagRouteCanvasView
+          bagRouteList={bagRouteList}
+          bagPointList={bagPointList}
+          onMapUnavailable={handleMapUnavailable}
+          onMapInitialized={handleMapInitialized}
+          isAiming={isAiming}
+          onStartAiming={handleStartAiming}
+          onCancelAiming={handleCancelAiming}
+          onRequestCreate={handleRequestCreate}
+          onRequestEdit={handleRequestEdit}
+          onRequestDelete={handleRequestDeletePoint}
+          // Android는 커스텀 헤더가 레이아웃을 차지해 지도가 이미 그 아래에서 시작한다 — 칩은
+          // 지도 위쪽에 살짝 띄우기만 한다. iOS는 투명 헤더라 직접 비운다(그룹 지도와 같다).
+          topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
+        />
+      </View>
+    );
+
     if (isOffline || isMapUnavailable) {
       return (
         <>
+          {isOffline ? null : mapView}
           <OfflineRouteCanvasView
             bagRouteList={bagRouteList}
             bagPointList={bagPointList}
@@ -376,20 +411,7 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
 
     return (
       <>
-        <BagRouteCanvasView
-          bagRouteList={bagRouteList}
-          bagPointList={bagPointList}
-          onMapUnavailable={handleMapUnavailable}
-          isAiming={isAiming}
-          onStartAiming={handleStartAiming}
-          onCancelAiming={handleCancelAiming}
-          onRequestCreate={handleRequestCreate}
-          onRequestEdit={handleRequestEdit}
-          onRequestDelete={handleRequestDeletePoint}
-          // Android는 커스텀 헤더가 레이아웃을 차지해 지도가 이미 그 아래에서 시작한다 — 칩은
-          // 지도 위쪽에 살짝 띄우기만 한다. iOS는 투명 헤더라 직접 비운다(그룹 지도와 같다).
-          topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
-        />
+        {mapView}
         {/* 조준 모드에서는 목록을 걷는다 — 지도를 넓히고, 확정 말고 누를 것을 두지 않는다(GRP-9). */}
         {isAiming ? null : renderList()}
       </>
@@ -488,6 +510,15 @@ const styles = StyleSheet.create({
   },
   // 지도는 풀블리드다 — 좌우 패딩을 주면 지면이 드러난다.
   content: { flex: 1 },
+  // 폴백 캔버스 뒤에서 지도를 살려 두는 자리 — 보이지 않고 터치·접근성에서도 빠진다.
+  hiddenMap: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    opacity: 0,
+  },
   webContent: { flex: 1, justifyContent: 'flex-end' },
   state: {
     flex: 1,

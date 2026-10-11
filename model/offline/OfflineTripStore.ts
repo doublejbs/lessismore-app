@@ -38,8 +38,17 @@ const MIN_FREE_DISK_BYTES = 20 * 1024 * 1024;
 // 조용한 자동 갱신(OF-2)의 최소 간격 — 상세에 다시 포커스될 때마다(패킹 화면에서 돌아올 때 등)
 // GPX까지 다시 받지 않게 한다. 사용자가 고친 내용은 그다음 진입에서 맞춰진다.
 const SILENT_REFRESH_INTERVAL_MS = 60 * 1000;
+// 로그아웃 직전 반영 안 된 패킹 체크를 서버에 올려 보는 최대 시간(OF-5). 넘기면 버리고 로그아웃한다.
+const LOGOUT_PACKING_SYNC_TIMEOUT_MS = 3000;
 // 디스크 부족을 알리는 오류 메시지 조각(iOS `NSFileWriteOutOfSpaceError`·안드로이드 `ENOSPC`).
 const DISK_FULL_PATTERNS = ['no space', 'enospc', 'out of space', 'disk full'];
+
+export interface OfflineSaveOptions {
+  // 구독 화면에서 방금 권한을 얻어 부른 저장(SUB-11 `onEntitled`). 권한 판단이 아직 따라오지 못했어도 저장한다.
+  entitledByPurchase?: boolean;
+}
+
+const noop = () => undefined;
 
 interface Dependencies {
   firebase: Firebase;
@@ -96,9 +105,13 @@ const toOfflineBagData = (data: DocumentData): OfflineBagData => {
  * 여행 오프라인 저장 (OF-1 ~ OF-5). 저장·갱신·삭제·목록·읽기와 오프라인 패킹의 서버 반영을 맡는다.
  *
  * - 파일: `offline/{bagId}/snapshot.json` + `offline/{bagId}/routes/{routeId}.gpx`, 목록은 매니페스트.
- * - **반쪽 저장본을 남기지 않는다**(OF-2): `offline/{bagId}.tmp/`에 다 쓴 뒤에만 이름을 바꿔 자리를
- *   차지한다. 갱신이 실패하면 기존 저장본이 그대로 남는다. 앱이 저장 중에 꺼지면 다음 시작 때
+ * - **반쪽 저장본을 남기지 않는다**(OF-2): `offline/{bagId}.tmp/`에 다 쓴 뒤에만 자리를 바꾼다 —
+ *   기존 저장본을 `{bagId}.old`로 비키고, tmp를 제자리로 옮긴 뒤 `.old`를 지운다(옮기다 실패하면
+ *   `.old`를 되돌린다). 앱이 저장 중에 꺼지면 다음 시작 때 `.old`만 남은 저장본을 되돌리고
  *   매니페스트에 없는 디렉터리를 지운다(§6).
+ * - **쓰기는 여행마다 한 줄로 선다**: 저장·갱신·패킹 쓰기·서버 반영·삭제가 같은 여행에서 겹치지 않는다.
+ *   전부 지우기(`removeAll`)는 모든 줄을 기다린 뒤 혼자 돌고, 그 전에 시작된 저장은 세대 값이 바뀌어
+ *   항목을 다시 넣지 않는다.
  * - 저장·갱신은 온라인 + 권한(OF-7)일 때만. 열람 판단은 `getAccess`.
  * - 오프라인 패킹 토글은 저장본에 즉시 쓰고 `pendingPacking`을 세운 뒤, 연결이 돌아오면 서버의
  *   `bag.packedGears`(+ `packingStartedAt`/`packingCompletedAt`)에 덮어쓴다(OF-5 — 마지막 토글 기준).
@@ -111,7 +124,12 @@ class OfflineTripStore {
   private entries: OfflineManifestEntry[] = [];
   private savingIds: string[] = [];
   private loaded = false;
-  private syncing = false;
+  private syncing: Promise<void> | null = null;
+  // 여행별 쓰기 줄(꼬리 프라미스 — 실패해도 거부되지 않는다)과 전부 지우기 줄.
+  private bagQueues = new Map<string, Promise<void>>();
+  private globalQueue: Promise<void> = Promise.resolve();
+  // `removeAll`마다 올린다 — 그 전에 들어온 저장은 끝나도 항목을 넣지 않는다.
+  private generation = 0;
   private readonly firebase: Firebase;
   private readonly bagStore: BagStore;
   private readonly bagRouteStore: BagRouteStore;
@@ -142,6 +160,9 @@ class OfflineTripStore {
       | 'networkStatus'
       | 'entitlement'
       | 'syncing'
+      | 'bagQueues'
+      | 'globalQueue'
+      | 'generation'
     >(this, {
       firebase: false,
       bagStore: false,
@@ -152,6 +173,9 @@ class OfflineTripStore {
       networkStatus: false,
       entitlement: false,
       syncing: false,
+      bagQueues: false,
+      globalQueue: false,
+      generation: false,
     });
   }
 
@@ -167,6 +191,12 @@ class OfflineTripStore {
     }
 
     const entries = await OfflineManifest.load();
+
+    // 갱신 도중 꺼져 `.old`만 남았으면 먼저 되돌린다(§6).
+    entries.forEach(entry => {
+      OfflineTripFiles.restoreBackupIfMissing(entry.bagId);
+    });
+
     // 지금 로그인한 사용자의 것만 남긴다 — 로그아웃 상태거나 다른 계정의 저장본은 지운다(OF-2).
     // 파일이 없는 항목(저장 중 종료 등)도 뺀다(§6).
     const userId = this.firebase.getUserId();
@@ -266,12 +296,35 @@ class OfflineTripStore {
    * 오프라인 패킹 체크가 아직 서버에 없으면 **먼저 반영한다** — 그러지 않으면 갱신이 서버의 옛 패킹
    * 상태로 저장본을 덮어 산에서 한 체크가 사라진다.
    */
-  public async save(bagId: string): Promise<OfflineManifestEntry> {
+  public async save(
+    bagId: string,
+    options: OfflineSaveOptions = {}
+  ): Promise<OfflineManifestEntry> {
+    if (this.isSaving(bagId)) {
+      throw new OfflineSaveError(OfflineSaveErrorType.Unknown);
+    }
+
+    const generation = this.generation;
+
+    return this.runForBag(bagId, () =>
+      this.saveNow(bagId, generation, options)
+    );
+  }
+
+  private async saveNow(
+    bagId: string,
+    generation: number,
+    options: OfflineSaveOptions
+  ): Promise<OfflineManifestEntry> {
+    if (generation !== this.generation) {
+      throw new OfflineSaveError(OfflineSaveErrorType.Unknown);
+    }
+
     if (!this.networkStatus.isOnline()) {
       throw new OfflineSaveError(OfflineSaveErrorType.Offline);
     }
 
-    if (!this.entitlement.isEntitled()) {
+    if (!options.entitledByPurchase && !this.entitlement.isEntitled()) {
       throw new OfflineSaveError(OfflineSaveErrorType.NotEntitled);
     }
 
@@ -300,7 +353,7 @@ class OfflineTripStore {
         await this.syncPacking(bagId);
       }
 
-      const entry = await this.writeSnapshot(bagId, tempDirectory);
+      const entry = await this.writeSnapshot(bagId, tempDirectory, generation);
 
       this.upsertEntry(entry);
       await OfflineManifest.save(this.entries);
@@ -315,6 +368,7 @@ class OfflineTripStore {
       console.warn('[OfflineTripStore] 오프라인 저장 실패', error); // l10n-ignore: 개발자 로그
       // 경로로 다시 만든다 — 이름을 바꾼 뒤의 객체는 새 자리(완성된 저장본)를 가리킬 수 있다.
       OfflineTripFiles.deleteQuietly(OfflineTripFiles.getTempDirectory(bagId));
+      await this.dropEntryIfFilesMissing(bagId);
 
       if (error instanceof OfflineSaveError) {
         throw error;
@@ -364,8 +418,13 @@ class OfflineTripStore {
   }
 
   public async remove(bagId: string): Promise<void> {
+    await this.runForBag(bagId, () => this.removeNow(bagId));
+  }
+
+  private async removeNow(bagId: string): Promise<void> {
     OfflineTripFiles.deleteQuietly(OfflineTripFiles.getTripDirectory(bagId));
     OfflineTripFiles.deleteQuietly(OfflineTripFiles.getTempDirectory(bagId));
+    OfflineTripFiles.deleteQuietly(OfflineTripFiles.getBackupDirectory(bagId));
 
     if (!this.entries.some(entry => entry.bagId === bagId)) {
       return;
@@ -383,11 +442,39 @@ class OfflineTripStore {
       return;
     }
 
-    OfflineTripFiles.deleteQuietly(OfflineTripFiles.getRoot());
-    runInAction(() => {
-      this.entries = [];
+    // 지금 진행 중이거나 줄 선 저장은 끝나도 항목을 다시 넣지 않는다.
+    this.generation += 1;
+
+    await this.runExclusive(async () => {
+      OfflineTripFiles.deleteQuietly(OfflineTripFiles.getRoot());
+      runInAction(() => {
+        this.entries = [];
+      });
+      await OfflineManifest.clear();
     });
-    await OfflineManifest.clear();
+  }
+
+  /**
+   * 로그아웃 직전(OF-5): 온라인이면 반영 안 된 패킹 체크를 서버에 올려 본다. 3초를 넘기거나 실패하면
+   * 버린다 — 로그아웃을 막지 않는다. 인증이 살아 있을 때(signOut 전) 불러야 한다.
+   */
+  public async syncPendingPackingBeforeLogout(): Promise<void> {
+    if (!this.isSupported() || !this.networkStatus.isOnline()) {
+      return;
+    }
+
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    const timeout = new Promise<void>(resolve => {
+      timeoutId = setTimeout(resolve, LOGOUT_PACKING_SYNC_TIMEOUT_MS);
+    });
+
+    try {
+      await Promise.race([this.syncPendingPacking().catch(noop), timeout]);
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    }
   }
 
   // 저장본을 읽는다(OF-5 · OF-6). 없거나 깨졌거나 남의 것이면 `null`.
@@ -430,6 +517,16 @@ class OfflineTripStore {
     packing: OfflinePackingState,
     pending: boolean
   ): Promise<boolean> {
+    return this.runForBag(bagId, () =>
+      this.updatePackingNow(bagId, packing, pending)
+    );
+  }
+
+  private async updatePackingNow(
+    bagId: string,
+    packing: OfflinePackingState,
+    pending: boolean
+  ): Promise<boolean> {
     const snapshot = await this.load(bagId);
 
     if (!snapshot) {
@@ -457,8 +554,13 @@ class OfflineTripStore {
       },
     };
 
+    const tripDirectory = OfflineTripFiles.getTripDirectory(bagId);
+    const previousSnapshotBytes =
+      OfflineTripFiles.getSnapshotFile(tripDirectory).size || 0;
+    let snapshotBytes = 0;
+
     try {
-      this.writeSnapshotFile(OfflineTripFiles.getTripDirectory(bagId), next);
+      snapshotBytes = this.writeSnapshotFile(tripDirectory, next);
     } catch (error) {
       console.warn('[OfflineTripStore] 패킹 저장본 쓰기 실패', error); // l10n-ignore: 개발자 로그
 
@@ -466,9 +568,14 @@ class OfflineTripStore {
     }
 
     const entry = this.getEntry(bagId);
+    // 저장본 크기가 바뀌었으니 목록의 크기(`저장됨 · 1.8MB`)도 맞춘다 — GPX 몫은 그대로다.
+    const bytes = Math.max(
+      0,
+      (entry?.bytes ?? 0) - previousSnapshotBytes + snapshotBytes
+    );
 
-    if (entry && entry.pendingPacking !== pending) {
-      this.upsertEntry({ ...entry, pendingPacking: pending });
+    if (entry && (entry.pendingPacking !== pending || entry.bytes !== bytes)) {
+      this.upsertEntry({ ...entry, pendingPacking: pending, bytes });
       await OfflineManifest.save(this.entries);
     }
 
@@ -480,7 +587,12 @@ class OfflineTripStore {
    * 온라인 진입에서 다시 시도한다. 한 건이라도 반영되면 `offline_packing_synced`(`count`)를 남긴다.
    */
   public async syncPendingPacking(): Promise<void> {
-    if (this.syncing || !this.networkStatus.isOnline()) {
+    // 이미 반영 중이면 그 반영을 함께 기다린다(로그아웃 직전 반영이 끝을 볼 수 있게).
+    if (this.syncing) {
+      return this.syncing;
+    }
+
+    if (!this.networkStatus.isOnline()) {
       return;
     }
 
@@ -490,21 +602,27 @@ class OfflineTripStore {
       return;
     }
 
-    this.syncing = true;
+    const run = this.syncPendingEntries(pending.map(entry => entry.bagId));
 
-    let count = 0;
+    this.syncing = run;
 
     try {
-      for (const entry of pending) {
-        try {
-          await this.syncPacking(entry.bagId);
-          count += 1;
-        } catch (error) {
-          console.warn('[OfflineTripStore] 패킹 서버 반영 실패', error); // l10n-ignore: 개발자 로그
-        }
-      }
+      await run;
     } finally {
-      this.syncing = false;
+      this.syncing = null;
+    }
+  }
+
+  private async syncPendingEntries(bagIds: string[]): Promise<void> {
+    let count = 0;
+
+    for (const bagId of bagIds) {
+      try {
+        await this.runForBag(bagId, () => this.syncPacking(bagId));
+        count += 1;
+      } catch (error) {
+        console.warn('[OfflineTripStore] 패킹 서버 반영 실패', error); // l10n-ignore: 개발자 로그
+      }
     }
 
     if (count > 0) {
@@ -537,7 +655,7 @@ class OfflineTripStore {
         : { removePackingCompletedAt: true }),
     });
 
-    await this.updatePacking(
+    await this.updatePackingNow(
       bagId,
       {
         packedGears,
@@ -550,7 +668,8 @@ class OfflineTripStore {
 
   private async writeSnapshot(
     bagId: string,
-    tempDirectory: Directory
+    tempDirectory: Directory,
+    generation: number
   ): Promise<OfflineManifestEntry> {
     const userId = this.firebase.getUserId();
     const source = await this.bagStore.getOfflineSource(bagId);
@@ -614,9 +733,13 @@ class OfflineTripStore {
 
     bytes += this.writeSnapshotFile(tempDirectory, snapshot);
 
+    // 받는 사이 로그아웃(`removeAll`)됐으면 자리를 차지하지 않는다.
+    if (generation !== this.generation) {
+      throw new OfflineSaveError(OfflineSaveErrorType.Unknown);
+    }
+
     // 다 쓴 뒤에만 자리를 바꾼다 — 그 전에 실패하면 기존 저장본이 남는다(OF-2).
-    OfflineTripFiles.deleteQuietly(OfflineTripFiles.getTripDirectory(bagId));
-    tempDirectory.rename(bagId);
+    OfflineTripFiles.replaceTripDirectory(bagId, tempDirectory);
 
     return {
       bagId,
@@ -689,6 +812,50 @@ class OfflineTripStore {
     } catch (error) {
       console.warn('[OfflineTripStore] 저장본 정리 실패', error); // l10n-ignore: 개발자 로그
     }
+  }
+
+  // 갱신 실패 뒤 저장본 자리가 비었으면(되돌리기도 실패) 매니페스트에서도 뺀다 — 열 수 없는 항목을 남기지 않는다.
+  private async dropEntryIfFilesMissing(bagId: string): Promise<void> {
+    const exists = OfflineTripFiles.getSnapshotFile(
+      OfflineTripFiles.getTripDirectory(bagId)
+    ).exists;
+
+    if (exists || !this.entries.some(entry => entry.bagId === bagId)) {
+      return;
+    }
+
+    runInAction(() => {
+      this.entries = this.entries.filter(entry => entry.bagId !== bagId);
+    });
+    await OfflineManifest.save(this.entries);
+  }
+
+  // 같은 여행의 쓰기를 한 줄로 세운다. 앞선 작업이 실패해도 다음 작업은 돈다. 전부 지우기가 끝난 뒤에 돈다.
+  private runForBag<T>(bagId: string, task: () => Promise<T>): Promise<T> {
+    const previous = this.bagQueues.get(bagId) ?? Promise.resolve();
+    const result = Promise.all([previous, this.globalQueue]).then(task);
+    const tail = result.then(noop, noop);
+
+    this.bagQueues.set(bagId, tail);
+    void tail.then(() => {
+      if (this.bagQueues.get(bagId) === tail) {
+        this.bagQueues.delete(bagId);
+      }
+    });
+
+    return result;
+  }
+
+  // 모든 여행의 줄이 빈 뒤 혼자 돈다(전부 지우기). 그동안 새로 들어온 쓰기는 이 작업 뒤로 선다.
+  private runExclusive<T>(task: () => Promise<T>): Promise<T> {
+    const result = Promise.all([
+      this.globalQueue,
+      ...this.bagQueues.values(),
+    ]).then(task);
+
+    this.globalQueue = result.then(noop, noop);
+
+    return result;
   }
 
   private upsertEntry(entry: OfflineManifestEntry) {

@@ -70,6 +70,8 @@ interface Props {
   topInset: number;
   // 지도가 제한 시간 안에 뜨지 않았다(키 오류·SDK 오류) — 화면이 코스 캔버스로 바꾼다(OF-6 폴백).
   onMapUnavailable?: () => void;
+  // 지도가 초기화됐다(늦게라도) — 폴백 캔버스를 걷고 지도로 돌아간다(OF-6).
+  onMapInitialized?: () => void;
 }
 
 /**
@@ -124,6 +126,7 @@ const BagRouteCanvasView: FC<Props> = ({
   onRequestDelete,
   topInset,
   onMapUnavailable,
+  onMapInitialized,
 }) => {
   const l10n = app.getL10n();
   const insets = useSafeAreaInsets();
@@ -456,7 +459,8 @@ const BagRouteCanvasView: FC<Props> = ({
           }
     );
     syncCamera();
-  }, [syncCamera]);
+    onMapInitialized?.();
+  }, [onMapInitialized, syncCamera]);
 
   const handleCameraChanged = useCallback(
     (camera: Camera & { reason: CameraChangeReason }) => {
