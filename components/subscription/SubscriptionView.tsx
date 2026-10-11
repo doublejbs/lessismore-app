@@ -1,8 +1,9 @@
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Acg, AcgLayout, Spacing } from '@/constants/DesignTokens';
+import { OFFLINE_ENTRY_POINT_VALUE } from '@/model/subscription/SubscriptionConstants';
 import SubscriptionStore from '@/model/subscription/SubscriptionStore';
 import SubscriptionActiveView from './SubscriptionActiveView';
 import SubscriptionOfferView from './SubscriptionOfferView';
@@ -16,8 +17,11 @@ interface Props {
 }
 
 // SUB-2: 구독 시트(formSheet, 내용 높이). 미구독이면 구독 안내, 구독 중이면 관리 상태를 그린다.
+// SUB-11: 진입점은 `from` 파라미터 문자열로 읽는다(`openSubscription`) — `offline`이면 오프라인 진입점 변형.
 const SubscriptionView = ({ store }: Props) => {
   const insets = useSafeAreaInsets();
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const isOfflineEntry = from === OFFLINE_ENTRY_POINT_VALUE;
   const {
     formattedExpirationDate,
     handleSubscribe,
@@ -44,6 +48,8 @@ const SubscriptionView = ({ store }: Props) => {
       return (
         <SubscriptionActiveView
           willRenew={store.willRenewSubscription()}
+          isTrial={store.isTrial()}
+          priceString={store.getPriceString()}
           formattedExpirationDate={formattedExpirationDate}
           isRestoring={store.isRestoring()}
           onManage={handleManage}
@@ -56,6 +62,8 @@ const SubscriptionView = ({ store }: Props) => {
       <SubscriptionOfferView
         offeringStatus={store.getOfferingStatus()}
         priceString={store.getPriceString()}
+        isTrialEligible={store.isTrialEligible()}
+        isOfflineEntry={isOfflineEntry}
         isPurchasing={store.isPurchasing()}
         isRestoring={store.isRestoring()}
         onSubscribe={handleSubscribe}

@@ -21,6 +21,7 @@ import AnnouncementSheetView from '@/components/announcement/AnnouncementSheetVi
 import FeaturePopupSheetView from '@/components/feature-popup/FeaturePopupSheetView';
 import AdTrackingPromptSheetView from '@/components/ads/AdTrackingPromptSheetView';
 import SubscriptionNudgeSheetView from '@/components/subscription/SubscriptionNudgeSheetView';
+import { SUBSCRIPTION_AD_ENTRY_ENABLED } from '@/model/subscription/SubscriptionConstants';
 import { Acg } from '@/constants/DesignTokens';
 import OnboardingTripEntry from '@/model/onboarding/OnboardingTripEntry';
 
@@ -438,7 +439,7 @@ const RootLayout = () => {
               contentStyle: { backgroundColor: Acg.paper },
             }}
           />
-          {/* 광고 제거 구독 시트(SUB-2) — 배낭 추가 시트와 같은 formSheet 얼개(내용 높이만큼). */}
+          {/* useless 플러스 구독 시트(SUB-2) — 배낭 추가 시트와 같은 formSheet 얼개(내용 높이만큼). */}
           <Stack.Screen
             name='subscription/index'
             options={{
@@ -538,8 +539,9 @@ const RootLayout = () => {
             강제 업데이트 게이트가 떠 있으면 스스로 뜨지 않는다. 웹·Android는 띄울 일이 없다. */}
         <AdTrackingPromptSheetView />
         {/* 구독 안내 시트(SUB-9) — 광고 누적 노출 뒤 한 번. 모달이라 모든 탭·화면 위에 뜨고, 게이트·공지·
-            신기능 팝업·추적 안내 시트·동의 흐름이 떠 있으면 스스로 뜨지 않는다. 웹은 띄울 일이 없다. */}
-        <SubscriptionNudgeSheetView />
+            신기능 팝업·추적 안내 시트·동의 흐름이 떠 있으면 스스로 뜨지 않는다. 웹은 띄울 일이 없다.
+            `[보류 — 광고 미도입]`: 광고가 혜택이 아니라 등록하지 않는다(SUBSCRIPTION_AD_ENTRY_ENABLED). */}
+        {SUBSCRIPTION_AD_ENTRY_ENABLED ? <SubscriptionNudgeSheetView /> : null}
         {/* 강제 업데이트 게이트(APP-7) — 스플래시 이후 최상위에서 다른 모든 것 위에 렌더한다.
             로그인·약관·라우팅과 무관하게 needsUpdate면 전체 화면을 덮는다(absolute fill). */}
         <ForceUpdateGateView />
