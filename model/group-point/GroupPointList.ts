@@ -2,7 +2,7 @@ import { makeAutoObservable, runInAction } from 'mobx';
 import app from '@/model/app/App';
 import GroupError from '@/model/group/GroupError';
 import GroupPoint from '@/model/group/GroupPoint';
-import GroupPointType from '@/model/group/GroupPointType';
+import PointType from '@/model/point/PointType';
 import GroupValidationError from '@/model/group/GroupValidationError';
 import { GroupPointInput, GroupPointPatch } from '@/model/group/GroupData';
 import { GROUP_MAX_POINT_COUNT } from '@/model/group/GroupLimits';
@@ -17,7 +17,7 @@ import GroupPointDispatcher from './GroupPointDispatcher';
  */
 class GroupPointList {
   private points: GroupPoint[] = [];
-  private selectedType: GroupPointType | null = null;
+  private selectedType: PointType | null = null;
   private loading = false;
   private initialized = false;
   private submitting = false;
@@ -67,11 +67,11 @@ class GroupPointList {
     return this.points.find(point => point.getId() === pointId) ?? null;
   }
 
-  public getSelectedType(): GroupPointType | null {
+  public getSelectedType(): PointType | null {
     return this.selectedType;
   }
 
-  public selectType(type: GroupPointType | null): void {
+  public selectType(type: PointType | null): void {
     this.selectedType = type;
   }
 

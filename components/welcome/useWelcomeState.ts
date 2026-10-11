@@ -49,14 +49,15 @@ const useWelcomeState = () => {
     router.replace('/onboarding-trip');
   }, [router]);
 
-  // `먼저 둘러볼게요`·하드웨어 뒤로 — 닫음으로 기록하고 홈으로.
-  const handleBrowse = useCallback(async () => {
+  // 안드로이드 하드웨어 뒤로 — 닫음으로 기록하고 홈으로. (`먼저 둘러볼게요` 버튼은 2026-10-11 제거 —
+  // 10/8~10/10 환영 화면 10명 중 5명이 눌렀고 여행 생성 0명, OB-14.)
+  const handleBack = useCallback(async () => {
     if (isLeaving.current) {
       return;
     }
 
     isLeaving.current = true;
-    app.getAnalyticsManager()?.logClick('welcome_browse');
+    app.getAnalyticsManager()?.logClick('welcome_back');
     await app
       .getOnboardingTripManager()
       ?.finish(OnboardingTripStatus.Dismissed);
@@ -94,7 +95,7 @@ const useWelcomeState = () => {
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
-        void handleBrowse();
+        void handleBack();
 
         return true;
       }
@@ -103,7 +104,7 @@ const useWelcomeState = () => {
     return () => {
       subscription.remove();
     };
-  }, [handleBrowse]);
+  }, [handleBack]);
 
   // 예기치 않게 내려가도(약관 리다이렉트·다른 경로의 pop) 팝업 차단이 남지 않게 한다(OB-15).
   useEffect(() => {
@@ -125,7 +126,6 @@ const useWelcomeState = () => {
   return {
     isGuest: audience === WelcomeAudience.Guest,
     handleStart,
-    handleBrowse,
     handleLogin,
   };
 };

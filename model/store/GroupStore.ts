@@ -47,7 +47,7 @@ import {
 import GroupMember from '../group/GroupMember';
 import GroupMemberRole from '../group/GroupMemberRole';
 import GroupPoint from '../group/GroupPoint';
-import GroupPointType from '../group/GroupPointType';
+import PointType from '../point/PointType';
 import GroupRoute from '../group/GroupRoute';
 import RouteDirectionStore from '../route/RouteDirectionStore';
 import GroupValidationError from '../group/GroupValidationError';
@@ -1164,12 +1164,12 @@ class GroupStore {
     };
   }
 
-  private toPointType(value: unknown): GroupPointType {
-    return this.isPointType(value) ? value : GroupPointType.Note;
+  private toPointType(value: unknown): PointType {
+    return this.isPointType(value) ? value : PointType.Note;
   }
 
-  private isPointType(value: unknown): value is GroupPointType {
-    return Object.values(GroupPointType).some(type => type === value);
+  private isPointType(value: unknown): value is PointType {
+    return Object.values(PointType).some(type => type === value);
   }
 
   private toRouteData(id: string, data: DocumentData): GroupRouteData {

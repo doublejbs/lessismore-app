@@ -98,6 +98,9 @@
 | `groups/{groupId}/members/{uid}` | 그룹 멤버, 계정당 한 문서 (DM-29) `[제안]` | 멤버 목록 |
 | `groups/{groupId}/bags/{uid}` | 멤버 배낭 공개 스냅샷 (DM-29) `[제안]` | 멤버 배낭 열람 |
 | `groups/{groupId}/points/{pointId}` | 그룹 지도 포인트 (DM-29) `[제안]` | 그룹 지도 |
+| `bag/{bagId}/points/{pointId}` | 개인 여행 지도 포인트 (DM-33) `[제안]` | 배낭 코스 화면 ([BagDetail.md](BagDetail.md) BD-14) |
+| `users/{uid}/push-tokens/{tokenId}` | 사용자 푸시 토큰 (DM-34) `[제안]` | 주말 날씨 브리핑 ([Notification.md](Notification.md) NT-11·NT-12) |
+| `config/weekendBriefing` · `weekend-briefing-runs/{weekId}` | 브리핑 설정·실행 기록 — 함수 전용 (DM-35) `[제안]` | 운영 확인 |
 | `groups/{groupId}/routes/{routeId}` | 그룹 코스(GPX) 요약 (DM-29) `[제안]` | 그룹 지도·코스 목록 |
 | `users/{uid}/groups/{groupId}` | 내가 속한 그룹 역인덱스 (DM-29) `[제안]` | 그룹 목록 조회 |
 | `subscriptions/{uid}` | 광고 제거 구독 서버 기록, 웹훅 함수만 씀 (DM-31) `[제안]` | 운영·통계 ([Subscription.md](Subscription.md)) |
@@ -693,6 +696,7 @@
 | `type` | string | string enum `CommunityPostType`. **새 글은 항상 `post`**(2026-09-05 첨부 모델). 레거시 값 `bag_review`/`poll`은 읽기 호환만 하며 필터·표시에 쓰지 않는다 |
 | `hasBagSnapshot` | boolean | 패킹 첨부 여부. `bagSnapshot` 존재와 항상 일치(규칙 검증). 필터 인덱스용 |
 | `hasPoll` | boolean | 투표 첨부 여부. `poll` 존재와 항상 일치(규칙 검증). 필터 인덱스용 |
+| ~~`isTripRecord`~~ / ~~`recordBagId`~~ | — | 여행 기록(CM-16)용으로 2026-10-10 추가했다가 같은 날 폐기. 규칙에서 다시 제거했고 콘솔의 복합 인덱스 3개(isTripRecord…·authorId+recordBagId)는 남아 있어도 무해 — 정리 가능 |
 | `status` | string | string enum `CommunityContentStatus`: `published` / `hidden` / `deleted` |
 | `authorId` | string | Firebase Auth uid. 익명 게시 없음 |
 | `authorName` | string | 작성 시점 닉네임 스냅샷 |
@@ -869,7 +873,7 @@
 
 | 필드 | 타입 | 비고 |
 | --- | --- | --- |
-| `type` | string | string enum `GroupPointType`: `water` / `shelter` / `caution` / `note` |
+| `type` | string | string enum `PointType` (2026-10-10 `components/point/`·`model/point/`로 공용화 — BD-14): `water` / `shelter` / `caution` / `note` |
 | `latitude` / `longitude` | number | WGS84 |
 | `title` | string | 1~40자 |
 | `description` | string? | 최대 200자 |
@@ -973,6 +977,7 @@
 
 - `users/{uid}/groups` 는 `startDate` 정렬과 `bagId` 동등 조회(배낭이 바뀌었을 때 갱신할 그룹을 고른다)를 쓴다. 둘 다 단일 필드라 자동 인덱스로 충분하다.
 - `groups/{groupId}/points` 는 `createdAt` 정렬, `routes` 도 `createdAt` 정렬. 복합 인덱스는 필요 없다.
+- ~~여행 기록 조회 인덱스(CM-16·CS-11·HM-17)~~ — CM-16 폐기(2026-10-10). 생성된 인덱스 3개는 미사용.
 
 #### 서버 작업
 
@@ -1010,6 +1015,48 @@
 - **보안 규칙(콘솔 관리)**: 읽기는 `request.auth.uid == uid`(본인)만, **쓰기는 전면 금지**(Admin SDK인 함수만 쓴다). 운영 화면이 생기면 그때 읽기를 넓힌다.
 - 삭제: 회원 탈퇴 정리 함수가 지운다(SUB-7).
 - 인덱스: 없음(단건 조회·콘솔 조회만). 통계 쿼리가 생기면 `active`·`environment` 복합 인덱스를 추가한다.
+### DM-33 배낭 지도 포인트 `bag/{bagId}/points/{pointId}` `[제안]`
+
+개인 여행의 코스 화면에 찍는 지도 포인트([BagDetail.md](BagDetail.md) BD-14). 그룹 포인트(DM-29 `groups/{groupId}/points`)와 **필드 구조가 같고 사는 곳만 다르다** — 같은 유형 enum·입력 시트·마커를 쓴다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `type` | string | string enum `PointType`(기존 `GroupPointType`에서 이름만 바꿔 공유): `water` / `shelter` / `caution` / `note` |
+| `latitude` / `longitude` | number | WGS84 |
+| `title` | string | 1~40자 |
+| `description` | string? | 최대 200자, 없으면 키 생략 |
+| `createdAt` | timestamp | |
+| `updatedAt` | timestamp? | 수정 시 |
+
+- 배낭당 **50개**(그룹과 같은 상한). `authorId`·`authorName`은 **두지 않는다**(소유자 한 사람의 것 — DM-30 코스와 같은 이유).
+- **접근 범위는 DM-30 코스와 같다**: `bag/{bagId}/points`는 **소유자(`bag.userId`)만 읽고 쓴다.** 배낭 공유(`shared == true`)·박지 후기·커뮤니티 스냅샷·배낭 복사 어디로도 따라가지 않는다. 보안 규칙에서 `bag` 하위 개방 절(`subCollection != 'routes'`)을 **`routes`·`points` 둘 다 제외**로 고치고 `points` 전용 규칙(소유자 판정은 `get(/databases/(default)/documents/bag/$(bagId)).data.userId == request.auth.uid`)을 둔다. 규칙 배포는 Rules REST(운영 절차 — DM-27 참고).
+- 생명주기: 배낭 삭제 시 `onBagDeleted` 트리거가 `routes`와 함께 `points`도 정리한다(함수 수정 — 웹 레포). 배낭 복사는 포인트를 복사하지 않는다. 그룹에 코스를 올려도 포인트는 복사하지 않는다(BD-14).
+- 인덱스: `createdAt` 정렬만. 복합 인덱스 불필요.
+
+### DM-34 푸시 토큰 `users/{uid}/push-tokens/{tokenId}` `[제안]`
+
+사용자 단위 원격 푸시([Notification.md](Notification.md) NT-11·NT-12)를 위한 FCM 등록 토큰. 문서 id = 토큰 SHA-256 앞 32자(원문을 id로 두지 않는다).
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `token` | string | FCM 등록 토큰 원문 |
+| `platform` | string | `ios` / `android` |
+| `briefingEnabled` | boolean | 주말 날씨 브리핑 수신 가능(앱 토글 ON ∧ OS 권한 허용) |
+| `locale` | string? | 앱 언어(`ko`/`en`/`ja`) — 문구 선택용 |
+| `appVersion` | string? | 등록 시점 앱 버전 |
+| `updatedAt` | timestamp | |
+
+- **보안 규칙**: 본인(`request.auth.uid == uid`)만 읽고 쓴다. `users/{uid}/{subCollection}` 개방 절에 걸리면 **다른 로그인 사용자도 토큰을 읽을 수 있으므로** `groups`처럼 개방에서 빼고 전용 규칙을 둔다(Rules REST 배포).
+- 삭제: 로그아웃 시 클라이언트가 그 기기 문서를, 탈퇴 시 서버 정리 함수가 트리를 지운다(AU-8). 함수가 FCM 거절(`UNREGISTERED`) 토큰도 지운다(NT-11).
+- 인덱스: 컬렉션 그룹 쿼리 `push-tokens where briefingEnabled == true` — **컬렉션 그룹 단일 필드 인덱스**(`briefingEnabled`, COLLECTION_GROUP)를 콘솔에서 켠다.
+
+### DM-35 주말 브리핑 설정·실행 기록 `[제안]`
+
+**`config/weekendBriefing`**(함수 전용, 없으면 기본값): `enabled`(기본 true — 킬 스위치), `maxTargets`(기본 2000). (시각 가드 `hourKst`/`minuteKst`는 2026-10-10 리뷰로 제거 — 스케줄은 함수 코드의 `every thursday 18:30` 하나다.)
+
+**`weekend-briefing-runs/{weekId}`**(함수 전용, 회차당 1문서, `weekId`=`YYYY-Www`): `ranAt`·`targets`·`sent`·`skippedNoSpot`·`skippedNoWeather`·`failed`·`sentUids`(발송 uid 배열 — 멱등 재실행용, 2,000 상한 안이면 배열로 충분)·`spotWeatherCacheHits`.
+
+- 두 경로 모두 클라이언트 읽기·쓰기 금지(개방 절에서 명시적으로 제외 — DM-27 `config/feedRotation`·`feed-rotation-runs`와 같은 방식).
 
 ## 4. Storage 경로 (DM-9)
 

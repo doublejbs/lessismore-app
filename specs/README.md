@@ -26,7 +26,7 @@
 | [AppLifecycle.md](AppLifecycle.md) | `APP` | 앱 초기화 / OTA / 전역 알림(Alert·Toast) / 탭 구조 |
 | [DataModel.md](DataModel.md) | `DM` | Firestore·Storage·Algolia 데이터 계약 (모든 스펙의 공통 참조) |
 | [Analytics.md](Analytics.md) | `AN` | 클릭 로그 지표 — Firebase Analytics 이벤트 수집 |
-| [Notification.md](Notification.md) | `NT` | 알림 — 로컬 리마인더(여행 D-1/사용기록) + 원격 푸시(수동 공지) |
+| [Notification.md](Notification.md) | `NT` | 알림 — 로컬 리마인더(여행 D-1/여행 기록) + 재방문 리마인더 + 원격 푸시(수동 공지 · **주말 날씨 브리핑 NT-11** `[제안]`) |
 | [Feed.md](Feed.md) | `FD` | 장비 피드 — 개인화 둘러보기(탐색 탭) + 카테고리·브랜드 필터 |
 | [Community.md](Community.md) | `CM` | 커뮤니티 탭 — 질문 / 패킹 후기 / 투표 / 공개 사진 / 댓글·신고 `[제안]` |
 | [Group.md](Group.md) | `GRP` | 그룹 — 여행 1건을 함께 준비 / 배낭 서로 보기 / 박지·코스(GPX) / 지도 포인트 `[제안]` |

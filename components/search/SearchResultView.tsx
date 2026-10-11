@@ -81,6 +81,7 @@ const SearchResultView: FC<Props> = ({
     return (
       <FeedView
         bag={bag}
+        searchWarehouse={searchWarehouse}
         {...(feed ? { feed } : {})}
         gearAddContext={gearAddContext}
       />

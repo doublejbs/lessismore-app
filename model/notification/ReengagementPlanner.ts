@@ -241,18 +241,18 @@ export const planWeekendCamp = (
   return fireAts;
 };
 
+// hasBriefingTarget: 브리핑 대상 박지(NT-11 ①~③ — 여행지 박지·즐겨찾기)가 있으면 목요일은 서버 브리핑이
+// 맡으므로 NT-8을 예약하지 않는다(2026-10-10 개정). 판단 자체는 호출자가 자기 데이터로 한다.
 export const planReengagement = (
   trips: ReengagementTrip[],
   state: ReengagementState,
-  now: number
+  now: number,
+  hasBriefingTarget: boolean
 ): ReengagementPlan => {
   const nextTrip = planNextTrip(trips, state, now);
-  const weekendFireAts = planWeekendCamp(
-    trips,
-    state,
-    nextTrip?.fireAt ?? null,
-    now
-  );
+  const weekendFireAts = hasBriefingTarget
+    ? []
+    : planWeekendCamp(trips, state, nextTrip?.fireAt ?? null, now);
 
   return { nextTrip, weekendFireAts };
 };

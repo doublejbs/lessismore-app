@@ -1,5 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 import { collection, deleteDoc, doc, getDocs, setDoc } from 'firebase/firestore';
+import app from '../app/App';
 import Firebase from '../firebase/Firebase';
 
 // 박지 즐겨찾기 상태·CRUD (CampSite CS-9, DataModel DM-21).
@@ -34,6 +35,12 @@ class CampFavoriteStore {
         'camp-favorites'
       )
     );
+
+    // 캐시에서 온 빈 결과는 '0곳'인지 알 수 없다 — throw해 NT-9가 동기화를 미루게 한다.
+    if (snapshot.metadata.fromCache && snapshot.empty) {
+      throw new Error('CampFavoriteStore 캐시 빈 결과 — 즐겨찾기 상태 미확인'); // l10n-ignore: 개발자 오류
+    }
+
     const ids = snapshot.docs.map(favoriteDoc => favoriteDoc.id);
 
     this.setFavoriteIds(new Set(ids));
@@ -77,6 +84,9 @@ class CampFavoriteStore {
 
       throw e;
     }
+
+    // 즐겨찾기 유무가 NT-8 대체 여부를 바꾼다 — 첫 즐겨찾기가 대기 중인 NT-8을 곧바로 취소하게(NT-9).
+    app.getNotificationManager()?.requestReengagementSync();
   }
 
   // 로그아웃 시 다른 사용자의 즐겨찾기가 남지 않도록 초기화한다(Firebase.clear에서 호출).

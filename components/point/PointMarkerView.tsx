@@ -3,17 +3,14 @@ import { StyleSheet, View } from 'react-native';
 import { NaverMapMarkerOverlay } from '@mj-studio/react-native-naver-map';
 import { Ionicons } from '@expo/vector-icons';
 import { Acg } from '@/constants/DesignTokens';
-import GroupPoint from '@/model/group/GroupPoint';
-import {
-  getGroupPointTypeColor,
-  getGroupPointTypeIcon,
-} from '@/model/group-point/GroupPointLabels';
+import MapPoint from '@/model/point/MapPoint';
+import { getPointTypeColor, getPointTypeIcon } from '@/model/point/PointLabels';
 
 interface Props {
-  point: GroupPoint;
+  point: MapPoint;
   selected: boolean;
   // 보기 전용 지도(상세 지도 밴드, GRP-7)에서는 탭 대상이 밴드 전체라 넘기지 않는다.
-  onTapPoint?: ((point: GroupPoint) => void) | undefined;
+  onTapPoint?: ((point: MapPoint) => void) | undefined;
   /**
    * 작은 지도용 마커 — 원을 줄이고 캡션을 뗀다(GRP-7 상세 지도 밴드). 높이 110pt 밴드에
    * 캡션까지 달면 포인트 몇 개로 지도가 글자에 덮인다. 이름은 누르고 들어간 그룹 지도가 보여준다.
@@ -29,15 +26,15 @@ const COMPACT_CIRCLE = 18;
 const COMPACT_ICON = 10;
 
 /**
- * 지도 포인트 마커 1개 (GRP-9).
+ * 지도 포인트 마커 1개 (GRP-9 · BD-14). 그룹 지도와 배낭 코스 화면이 함께 쓴다.
  *
  * 박지 마커(`CampSiteMarkerView`)와 같은 문법이다 — 유형 색 원 + 흰 테두리, 이름은 캡션으로
  * 위에 붙이고 겹치면 캡션만 숨긴다. 선택 마커는 캡션을 강제로 표시한다.
  * `memo`로 분리해 시트 오픈·칩 조작 때 마커 전체가 네이티브로 다시 동기화되지 않게 한다.
  */
-const GroupPointMarkerView = memo<Props>(
+const PointMarkerView = memo<Props>(
   ({ point, selected, onTapPoint, compact = false }) => {
-    const color = getGroupPointTypeColor(point.getType());
+    const color = getPointTypeColor(point.getType());
     const size = compact ? COMPACT_CIRCLE : selected ? SELECTED_CIRCLE : CIRCLE;
     const iconSize = compact ? COMPACT_ICON : selected ? 18 : 15;
     // 작은 마커는 탭을 받지 않으므로 히트 영역을 원 크기로 줄인다 — 44pt 캔버스가 지도 위에 겹친다.
@@ -88,7 +85,7 @@ const GroupPointMarkerView = memo<Props>(
             ]}
           >
             <Ionicons
-              name={getGroupPointTypeIcon(point.getType())}
+              name={getPointTypeIcon(point.getType())}
               size={iconSize}
               color={Acg.paper}
             />
@@ -99,7 +96,7 @@ const GroupPointMarkerView = memo<Props>(
   }
 );
 
-GroupPointMarkerView.displayName = 'GroupPointMarkerView';
+PointMarkerView.displayName = 'PointMarkerView';
 
 const styles = StyleSheet.create({
   hitArea: {
@@ -123,4 +120,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GroupPointMarkerView;
+export default PointMarkerView;
