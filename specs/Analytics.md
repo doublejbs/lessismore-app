@@ -219,7 +219,7 @@
 | `click_home_first_trip` | 비로그인 홈 히어로 `첫 여행 만들기`(HM-8, 2026-10-08) — 가이드를 로그인 전에 엶 | — |
 | `welcome_view` | 첫 실행 환영 화면이 뜸(OB-14, 2026-10-08) — 화면 마운트 때 1회. 라우트 `welcome` `screen_view`와 별개의 퍼널용 명시 이벤트 | `audience`: `guest`(비로그인 첫 실행) \| `member`(여행 0개 로그인 사용자) |
 | `click_welcome_start` | 환영 화면 `다음 백패킹 준비하기` → 가이드로 바꿈(OB-15) | — |
-| `click_welcome_browse` | 환영 화면 `먼저 둘러볼게요` 또는 안드로이드 하드웨어 뒤로 → 홈(OB-15) | — |
+| `click_welcome_back` | 환영 화면 안드로이드 하드웨어 뒤로 = 닫음 (OB-14; 구 `click_welcome_browse` 둘러보기 버튼은 2026-10-11 제거) | — |
 | `click_welcome_login` | 환영 화면 `이미 계정이 있어요 · 로그인` → 로그인 모달(비로그인만, OB-15). 결과는 모달의 기존 `click_login` | — |
 | `click_onboarding_trip_login` | 가이드 완료 단계에서 연 로그인 모달의 결과(OB-12). 재실행·약관 뒤 이어 만들기는 다시 보내지 않음 | `result`: `success` \| `cancel` |
 | `click_onboarding_trip_dismiss` | 가이드 닫기 확정(× 또는 1단계 하드웨어 뒤로) | `step`: 닫은 단계(`date` \| `destination` \| `gear` \| `done`) |

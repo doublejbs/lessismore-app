@@ -198,7 +198,7 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
 - `click_onboarding_trip_dismiss` — 닫기 확정. `step`: 닫은 단계. `나중에 할게요`는 보내지 않는다(`step: login, action: skip`이 그 신호다).
 - `click_onboarding_trip_gear_pick` — 3단계에서 장비를 **담을 때**(선택 해제는 보내지 않음). `source`: `popular`(인기 행 토글) \| `warehouse`(체크리스트 토글) \| `search`(검색 모달에서 등록 후 자동 선택) \| `custom`(직접 추가 저장 후 자동 선택), `category`: 장비의 1차 카테고리(GearFilter 그룹 키). 검색·직접 추가는 돌아와 자동 선택될 때 장비마다 한 번 보낸다.
 - 화면 조회는 라우트(`onboarding-trip`) `screen_view`로 자연 수집된다(AN-2).
-- **환영 화면**(OB-14, 2026-10-08): `welcome_view`(화면이 뜰 때 1회, `audience`: `guest` \| `member`) · `click_welcome_start` · `click_welcome_browse` · `click_welcome_login`. 라우트 `welcome`의 `screen_view`도 함께 수집된다 — `welcome_view`는 퍼널(뜸 → 시작 → 가이드 단계) 집계용 명시 이벤트다.
+- **환영 화면**(OB-14, 2026-10-08): `welcome_view`(화면이 뜰 때 1회, `audience`: `guest` \| `member`) · `click_welcome_start` · `click_welcome_back`(안드로이드 뒤로; 구 `click_welcome_browse`는 2026-10-11까지) · `click_welcome_login`. 라우트 `welcome`의 `screen_view`도 함께 수집된다 — `welcome_view`는 퍼널(뜸 → 시작 → 가이드 단계) 집계용 명시 이벤트다.
 - 여행 이름·여행지명·장비 이름 같은 사용자 입력은 보내지 않는다.
 
 ### OB-10 디자인·접근성 `[제안]`
@@ -264,7 +264,7 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
 
 **수용 기준**
 
-- 라우트 `app/welcome.tsx` — `fullScreenModal`, 머리 없음, iOS 스와이프 닫기 꺼짐(`gestureEnabled: false` — 닫기는 `먼저 둘러볼게요`). 배경 순백(`Acg.paper`), 좌우 패딩 24, 세이프에어리어는 루트 프로바이더 인셋(`useSafeAreaInsets`)으로 준다(OB-3과 같은 이유).
+- 라우트 `app/welcome.tsx` — `fullScreenModal`, 머리 없음, iOS 스와이프 닫기 꺼짐(`gestureEnabled: false` — 이 화면을 나가는 길은 주 액션·로그인 링크·안드로이드 하드웨어 뒤로뿐). 배경 순백(`Acg.paper`), 좌우 패딩 24, 세이프에어리어는 루트 프로바이더 인셋(`useSafeAreaInsets`)으로 준다(OB-3과 같은 이유).
 - **위에서 아래로**:
   1. **산 일러스트 띠** — 홈 히어로와 같은 그림(`assets/images/home-mountain.png`)을 화면 폭 가득(좌우 패딩 밖까지) 높이 200으로 깔고 아래를 지면색으로 녹인다(홈 히어로의 기존 하단 페이드와 같은 처리 — 새 그라데이션을 만들지 않는다). 상태바 영역까지 올라간다. 장식이라 접근성 트리에서 뺀다. **글자는 이 띠 위에 올리지 않는다** — 띠 아래 흰 지면에서 시작한다(가독성).
   2. **워드마크** — `assets/images/logo.png`(로그인 시트와 같은 이미지), 높이 24, 왼쪽 정렬. `accessibilityLabel='useless'`, `accessibilityRole='image'`.
@@ -275,10 +275,10 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
      | `scale-outline` | `장비 무게를 한눈에 정리` | `담으면 배낭 무게가 바로 계산돼요` |
      | `partly-sunny-outline` | `여행마다 배낭·날씨를 함께` | `여행지를 정하면 그 기간 날씨를 보여 드려요` |
      | `notifications-outline` | `출발 하루 전 패킹 알림` | `빠뜨린 장비 없이 떠나요` |
-  5. **하단(고정)** — 주 액션 라임 알약 `다음 백패킹 준비하기`(가이드 하단과 같은 컴포넌트·치수: 최소 높이 52, 잉크 글자, 그림자 없음). 이 화면의 라임은 이 버튼 하나다(HM-8). 그 아래 보조 텍스트 버튼 `먼저 둘러볼게요`(`AcgType.control`, `Acg.textMuted`, 최소 높이 44). **비로그인일 때만** 그 아래 작은 텍스트 링크 `이미 계정이 있어요 · 로그인`(`AcgType.meta`, `Acg.textMuted`, 최소 높이 44, `accessibilityRole='link'`).
+  5. **하단(고정)** — 주 액션 라임 알약 `다음 백패킹 준비하기`(가이드 하단과 같은 컴포넌트·치수: 최소 높이 52, 잉크 글자, 그림자 없음). 이 화면의 라임은 이 버튼 하나다(HM-8). ~~그 아래 보조 텍스트 버튼 `먼저 둘러볼게요`~~ → **제거(2026-10-11 사용자 결정)**: 10/8~10/10 환영 화면을 본 10명 중 5명이 둘러보기를 눌렀고 그중 여행 생성 0명·가입 1명(활동 없음)이었다. 가이드 1단계에 닫기가 있으므로 둘러볼 사람은 가이드를 닫으면 같은 비로그인 홈에 간다 — 버튼은 가이드를 보기 전 나가는 지름길일 뿐이었다. 효과 측정: 2주 뒤 환영→가이드 시작률과 1단계 닫기율(OB-9). **비로그인일 때만** 그 아래 작은 텍스트 링크 `이미 계정이 있어요 · 로그인`(`AcgType.meta`, `Acg.textMuted`, 최소 높이 44, `accessibilityRole='link'`).
 - 본문(일러스트~가치 3행)은 스크롤 영역이다 — 큰 글자(Dynamic Type)·작은 화면에서도 하단 버튼이 밀려 나가지 않는다.
 - 알림 권한을 묻지 않는다(OB-2·OB-8).
-- **안드로이드 하드웨어 뒤로** = `먼저 둘러볼게요`와 같다(계측은 `click_welcome_browse`).
+- **안드로이드 하드웨어 뒤로** = 닫음(`Dismissed`로 기록하고 비로그인 홈으로, 계측은 `click_welcome_back` — 2026-10-11 둘러보기 제거 전에는 `click_welcome_browse`).
 - 문구는 `welcome.*` l10n 키(ko·en·ja 동수, L10N-3).
 
 ### OB-15 환영 화면 — 진입·기록·로그인 연계 `[제안]`
@@ -378,7 +378,7 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
 - [ ] `[OB-15]` 환영 화면 `로그인` → 로그인 성공 → 홈(같은 세션에 가이드가 뜨지 않음). 여행 0개 계정이면 다음 실행에 가이드가 바로 뜸(환영 화면 없음).
 - [ ] `[OB-15]` 여행 0개 로그인 사용자가 2.0.1로 업데이트 → 환영 화면(로그인 링크 없음) → `다음 백패킹 준비하기` → 가이드.
 - [ ] `[OB-7]` 3단계에서 7개 이상 담고 4단계 → 요약 면에 `챙길 장비 {n}개` + 6행(이름 + `무게 · 브랜드`) + `외 {n-6}개`. 0개면 안내 한 줄.
-- [ ] `[OB-9]` GA4 DebugView: 환영 화면 `welcome_view`(audience), 버튼별 `click_welcome_start`·`click_welcome_browse`·`click_welcome_login`.
+- [ ] `[OB-9]` GA4 DebugView: 환영 화면 `welcome_view`(audience), `click_welcome_start`·`click_welcome_login`, 안드로이드 뒤로 `click_welcome_back`. 화면에 `먼저 둘러볼게요` 버튼이 없다.
 
 ## 8. 결정 사항 / 미해결 질문
 
