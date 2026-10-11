@@ -122,7 +122,11 @@ class OfflineEntitlement {
 
     const now = this.clock;
 
-    if (this.subscriptionStore.isSubscribed()) {
+    // 구독 상태가 지금 계정에 연결된 것일 때만 믿는다(계정 전환 중 앞 계정의 권한이 섞이지 않게).
+    if (
+      this.subscriptionStore.isSubscribed() &&
+      this.subscriptionStore.getLinkedUserId() === userId
+    ) {
       return OfflineEntitlement.isAlive(
         this.subscriptionStore.getExpirationDate(),
         now

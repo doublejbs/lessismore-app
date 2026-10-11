@@ -522,14 +522,17 @@ class SubscriptionStore implements SubscriptionGateContract {
     try {
       const { customerInfo } = await sdk.default.logIn(userId);
 
-      this.setLinkedUserId(userId);
+      // uid 연결과 새 계정의 권한 반영을 한 번에 — 반응이 앞 계정의 구독 상태와 새 uid를 함께 보지 않게 한다.
+      runInAction(() => {
+        this.setLinkedUserId(userId);
 
-      // 연결하는 사이 다시 로그아웃·전환됐으면 뒤따르는 동기화가 상태를 정한다.
-      if (this.firebase.getUserId() !== userId) {
-        return;
-      }
+        // 연결하는 사이 다시 로그아웃·전환됐으면 뒤따르는 동기화가 상태를 정한다.
+        if (this.firebase.getUserId() !== userId) {
+          return;
+        }
 
-      this.applyCustomerInfo(customerInfo);
+        this.applyCustomerInfo(customerInfo);
+      });
     } catch {
       // 연결에 실패하면 이 사용자의 구독을 알 수 없다 — 미구독으로 둔다(다음 uid 변경·재시작에 다시 시도).
       this.clearEntitlement();

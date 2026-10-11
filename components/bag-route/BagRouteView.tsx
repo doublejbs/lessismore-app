@@ -45,6 +45,8 @@ interface PointDraftTarget {
 const IS_IOS = Platform.OS === 'ios';
 const IS_WEB = Platform.OS === 'web';
 const HEADER_HEIGHT = 52;
+// 폴백(OF-6) 뒤 캔버스 뒤에 숨겨 둔 지도가 이 시간 안에 뜨지 않으면 내린다 — 계속 붙잡고 있지 않는다.
+const MAP_FALLBACK_UNMOUNT_MS = 30 * 1000;
 
 /**
  * 배낭 코스 (BD-11) — 지도 + 코스 목록 + 선택한 코스의 고도 그래프. 지도 포인트(BD-14)도 여기 산다.
@@ -71,6 +73,8 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
   const [sheetKey, setSheetKey] = useState(0);
   // 지도가 뜨지 않았다(OF-6 폴백) — 온라인이어도 코스 캔버스로 그린다.
   const [isMapUnavailable, setIsMapUnavailable] = useState(false);
+  // 폴백 뒤에도 끝내 뜨지 않아 숨긴 지도를 내렸다. 연결이 바뀌면 다시 붙여 한 번 더 기다린다.
+  const [isHiddenMapReleased, setIsHiddenMapReleased] = useState(false);
   const selected = bagRouteList.getSelectedEntry();
   // OF-6: 연결이 없으면 지도 대신 코스 캔버스다. 열 수 없는 저장본(미저장·잠김)이면 빈 상태다.
   const isOffline = app.getNetworkStatus().isOffline();
@@ -90,6 +94,7 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
     }
 
     wasOfflineRef.current = isOffline;
+    setIsHiddenMapReleased(false);
 
     // 저장본이 없으면 읽어 둔 서버 코스를 그대로 둔다 — 다시 읽으면 빈 목록이 된다.
     if (isOffline && !canUseSnapshot) {
@@ -99,6 +104,21 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
     void bagRouteList.refresh(true);
     void bagPointList.refresh(true);
   }, [bagPointList, bagRouteList, canUseSnapshot, isOffline]);
+
+  // 숨긴 지도가 `MAP_FALLBACK_UNMOUNT_MS` 안에 뜨지 않으면 내린다. 뜨거나 화면을 떠나면 타이머를 지운다.
+  useEffect(() => {
+    if (!isMapUnavailable || isOffline) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setIsHiddenMapReleased(true);
+    }, MAP_FALLBACK_UNMOUNT_MS);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [isMapUnavailable, isOffline]);
 
   const handleMapUnavailable = useCallback(() => {
     setIsMapUnavailable(true);
@@ -393,7 +413,7 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
     if (isOffline || isMapUnavailable) {
       return (
         <>
-          {isOffline ? null : mapView}
+          {isOffline || isHiddenMapReleased ? null : mapView}
           <OfflineRouteCanvasView
             bagRouteList={bagRouteList}
             bagPointList={bagPointList}

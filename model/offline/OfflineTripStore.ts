@@ -40,6 +40,11 @@ const MIN_FREE_DISK_BYTES = 20 * 1024 * 1024;
 const SILENT_REFRESH_INTERVAL_MS = 60 * 1000;
 // 로그아웃 직전 반영 안 된 패킹 체크를 서버에 올려 보는 최대 시간(OF-5). 넘기면 버리고 로그아웃한다.
 const LOGOUT_PACKING_SYNC_TIMEOUT_MS = 3000;
+// 전부 지우기(`removeAll`)가 진행 중인 여행별 작업을 기다리는 최대 시간. 넘기면 기다리지 않고 지운다 —
+// 늦게 끝난 저장은 세대 값이 바뀌어 항목을 다시 넣지 않는다.
+const OFFLINE_QUEUE_DRAIN_TIMEOUT_MS = 5000;
+// 반영 안 된 패킹 체크를 서버에 올리는 최대 시간. Firestore 쓰기가 멈춰도 여행별 줄이 막히지 않게 한다.
+const PACKING_SYNC_TIMEOUT_MS = 5000;
 // 디스크 부족을 알리는 오류 메시지 조각(iOS `NSFileWriteOutOfSpaceError`·안드로이드 `ENOSPC`).
 const DISK_FULL_PATTERNS = ['no space', 'enospc', 'out of space', 'disk full'];
 
@@ -49,6 +54,31 @@ export interface OfflineSaveOptions {
 }
 
 const noop = () => undefined;
+
+// `promise`가 `ms` 안에 끝나면(성공·실패 무관) `true`, 시간을 넘기면 `false`.
+const waitWithTimeout = async (
+  promise: Promise<unknown>,
+  ms: number
+): Promise<boolean> => {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  const timeout = new Promise<boolean>(resolve => {
+    timeoutId = setTimeout(() => resolve(false), ms);
+  });
+
+  try {
+    return await Promise.race([
+      promise.then(
+        () => true,
+        () => true
+      ),
+      timeout,
+    ]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
+};
 
 interface Dependencies {
   firebase: Firebase;
@@ -648,12 +678,20 @@ class OfflineTripStore {
 
     const { packedGears, packingStartedAt, packingCompletedAt } = snapshot.bag;
 
-    await this.bagStore.savePacking(bagId, packedGears, {
+    const saving = this.bagStore.savePacking(bagId, packedGears, {
       ...(packingStartedAt ? { packingStartedAt } : {}),
       ...(packingCompletedAt
         ? { packingCompletedAt }
         : { removePackingCompletedAt: true }),
     });
+    const finished = await waitWithTimeout(saving, PACKING_SYNC_TIMEOUT_MS);
+
+    if (!finished) {
+      throw new Error('packing sync timed out');
+    }
+
+    // 이미 끝났다 — 실패였으면 여기서 그대로 던진다.
+    await saving;
 
     await this.updatePackingNow(
       bagId,
@@ -847,11 +885,18 @@ class OfflineTripStore {
   }
 
   // 모든 여행의 줄이 빈 뒤 혼자 돈다(전부 지우기). 그동안 새로 들어온 쓰기는 이 작업 뒤로 선다.
+  // 여행별 작업이 멈춰도 `OFFLINE_QUEUE_DRAIN_TIMEOUT_MS`를 넘기면 기다리지 않고 돈다.
   private runExclusive<T>(task: () => Promise<T>): Promise<T> {
-    const result = Promise.all([
-      this.globalQueue,
-      ...this.bagQueues.values(),
-    ]).then(task);
+    const drain = Promise.all([this.globalQueue, ...this.bagQueues.values()]);
+    const result = waitWithTimeout(drain, OFFLINE_QUEUE_DRAIN_TIMEOUT_MS).then(
+      drained => {
+        if (!drained) {
+          console.warn('[OfflineTripStore] 여행 작업 대기 시간 초과'); // l10n-ignore: 개발자 로그
+        }
+
+        return task();
+      }
+    );
 
     this.globalQueue = result.then(noop, noop);
 
