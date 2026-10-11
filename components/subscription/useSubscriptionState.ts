@@ -1,16 +1,17 @@
-import { useCallback, useRef, useState } from 'react';
-import { Alert, Linking } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, InteractionManager, Linking } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import app from '@/model/app/App';
 import { takeEntitledCallback } from '@/model/subscription/OpenSubscription';
 import PurchaseResult from '@/model/subscription/PurchaseResult';
 import RestoreResult from '@/model/subscription/RestoreResult';
+import { SUBSCRIPTION_ENTITLED_FALLBACK_MS } from '@/model/subscription/SubscriptionConstants';
 import SubscriptionStore from '@/model/subscription/SubscriptionStore';
 
 // SUB-2·SUB-5·SUB-8: 구독 시트의 동작. 결과 알림은 시트를 닫은 뒤 토스트로 띄우고(시트 위에서는
 // 아래 화면의 토스트가 가려진다), 시트에 머무는 알림은 시스템 알럿을 쓴다.
-// SUB-11: 권한을 얻으면(구매·체험 시작·복원) 시트를 닫은 뒤 진입점이 넘긴 `onEntitled`를 부른다.
+// SUB-11: 권한을 얻으면(구매·체험 시작·복원) 시트를 닫고, 시트가 내려간 뒤 진입점이 넘긴 `onEntitled`를 부른다.
 const useSubscriptionState = (store: SubscriptionStore) => {
   const router = useRouter();
   const l10n = app.getL10n();
@@ -20,6 +21,27 @@ const useSubscriptionState = (store: SubscriptionStore) => {
   // 시트가 아직 떠 있는지. 진행 중에는 스와이프 닫기를 막지만(SubscriptionView), 그래도 사라졌으면
   // `router.back()`이 아래 화면을 닫지 않게 한다.
   const isFocusedRef = useRef(false);
+  // 시트가 내려간 뒤 부를 `onEntitled`. 시트를 닫는 같은 틱에 부르면 아래 화면이 아직 가려져 있어,
+  // 포커스를 잃거나 화면이 해제될 때(또는 안전판 타이머) 부른다.
+  const pendingEntitledRef = useRef<(() => void) | null>(null);
+  const fallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fallbackInteractionRef = useRef<{ cancel: () => void } | null>(null);
+
+  // 대기 중인 `onEntitled`를 한 번만 부르고 안전판을 거둔다.
+  const flushPendingEntitled = useCallback(() => {
+    if (fallbackTimeoutRef.current !== null) {
+      clearTimeout(fallbackTimeoutRef.current);
+      fallbackTimeoutRef.current = null;
+    }
+
+    fallbackInteractionRef.current?.cancel();
+    fallbackInteractionRef.current = null;
+
+    const pending = pendingEntitledRef.current;
+
+    pendingEntitledRef.current = null;
+    pending?.();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -27,9 +49,16 @@ const useSubscriptionState = (store: SubscriptionStore) => {
 
       return () => {
         isFocusedRef.current = false;
+        flushPendingEntitled();
       };
-    }, [])
+    }, [flushPendingEntitled])
   );
+
+  useEffect(() => {
+    return () => {
+      flushPendingEntitled();
+    };
+  }, [flushPendingEntitled]);
 
   const closeSheet = () => {
     if (isFocusedRef.current) {
@@ -51,7 +80,21 @@ const useSubscriptionState = (store: SubscriptionStore) => {
     }
 
     hasNotifiedEntitledRef.current = true;
-    onEntitled?.();
+
+    if (!onEntitled) {
+      return;
+    }
+
+    pendingEntitledRef.current = onEntitled;
+    fallbackTimeoutRef.current = setTimeout(() => {
+      fallbackTimeoutRef.current = null;
+      fallbackInteractionRef.current = InteractionManager.runAfterInteractions(
+        () => {
+          fallbackInteractionRef.current = null;
+          flushPendingEntitled();
+        }
+      );
+    }, SUBSCRIPTION_ENTITLED_FALLBACK_MS);
   };
 
   // SUB-3: 구매·복원은 로그인한 사용자만 한다. 설정 행이 먼저 막지만, 시트가 열린 채 로그아웃된 경우를

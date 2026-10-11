@@ -38,7 +38,7 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 
 - 미구독: 제목 `useless 플러스` · 혜택 설명(아이콘 + 두 줄: `여행을 저장해 데이터가 없는 산에서도 봐요` / `코스·내 위치·장비·날씨·박지 주의사항까지`) · 가격 줄(체험 자격이 있으면 `7일 무료 체험 후 월 {가격}`, 없으면 `월 {가격}` — SUB-10) · 주 액션(체험 자격 있음 `7일 무료로 시작` / 없음 `구독하기`; 라임, 화면당 하나 — HM-8) · `구매 복원` · 자동 갱신 안내 · 이용약관·개인정보 처리방침 링크. 자동 갱신 안내 문구: `구독은 매월 자동으로 갱신되며, 현재 기간이 끝나기 24시간 전까지 스토어 설정에서 해지할 수 있어요. 결제는 구매 확인 시 스토어 계정으로 청구돼요.`
   - 가격·기간·자동 갱신·해지 방법·약관 링크·구매 복원은 **App Store 심사 필수 표시**다(가이드라인 3.1.2). 빠뜨리지 않는다.
-- 구독 중: `useless 플러스 구독 중`(체험 중이면 `무료 체험 중 · {종료일}부터 월 {가격}`) · 다음 갱신일(또는 해지 예약 시 `{날짜}까지 이용`) · `구독 관리`(스토어 구독 관리 화면으로 이동) · `구매 복원`.
+- 구독 중: 제목 `useless 플러스 구독 중` · 날짜 줄은 다음 갱신일(체험 중이면 그 자리에 `무료 체험 중 · {종료일}부터 월 {가격}`)(또는 해지 예약 시 `{날짜}까지 이용`) · `구독 관리`(스토어 구독 관리 화면으로 이동) · `구매 복원`.
 - 상품을 불러오지 못하면(네트워크·스토어 오류) 가격 자리에 오류 한 줄 + `다시 시도`. 구독하기는 비활성.
 - 구매 진행 중에는 버튼을 막고 진행 표시. 사용자가 스토어 창에서 취소하면 아무 알림 없이 원래 화면.
 - 구매 성공 → 토스트 `오프라인 저장을 쓸 수 있어요` → 화면 닫기. 오프라인 진입점에서 왔으면 **닫힌 뒤 바로 저장을 시작**한다(SUB-11).
@@ -116,7 +116,7 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 - **자격**: 스토어 계정당 한 번이다(Apple ID·Google 계정 기준 — 앱이 아니라 스토어가 판단). 앱은 `Purchases.checkTrialOrIntroductoryPriceEligibility`로 자격을 묻고, 자격이 있으면 체험 문구·`7일 무료로 시작` 버튼, 없으면(이미 썼거나 판단 불가) `월 {가격}`·`구독하기`로 그린다. 자격 조회가 실패하면 **없는 쪽으로** 그린다(없다고 했는데 체험이 붙는 것은 괜찮고, 있다고 했는데 바로 결제되는 것은 안 된다). **Android는 `checkTrialOrIntroductoryPriceEligibility`가 항상 UNKNOWN을 돌려주므로**(2026-10-11 구현 확인) 상품의 `defaultOption.freePhase` 존재로 자격을 판단한다 — Play는 자격 있는 오퍼만 내려준다. iOS는 API 결과 + 도입가 0원일 때만 체험으로 본다.
 - 체험 시작도 **구매**다 — 로그인 필수(SUB-3), 스토어 결제 시트가 뜨고, 7일 뒤 자동으로 월 요금이 청구된다는 안내를 가격 줄 아래에 적는다: `체험 기간이 끝나면 월 {가격}이 자동으로 청구돼요. 체험 중 언제든 스토어 설정에서 해지할 수 있어요.`(심사 필수 표시 — 3.1.2).
 - 체험 중 해지하면 체험 종료일까지 권한이 유지된다(스토어 규칙) — 화면은 `{종료일}까지 이용`.
-- 서버 기록(DM-31)에 `isTrial`을 둔다(웹훅 `period_type`). 측정은 SUB-8의 `subscription_purchase_success`에 `is_trial` 파라미터를 더한다.
+- 서버 기록(DM-31)에 `isTrial`을 둔다(웹훅 `period_type`). 측정은 SUB-8의 `click_subscription_purchase`(`result=success`)에 `is_trial`(`'true'`/`'false'`) 파라미터를 더한다.
 
 ### SUB-11 오프라인 저장 게이트 `[제안]`
 
@@ -132,9 +132,9 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 
 **수용 기준**
 
-- `logClick('subscription_open', { from })` — 구독 화면 진입(`from`: `settings` | `ad_card` | `nudge`).
+- `logClick('subscription_open', { from })` — 구독 화면 진입(`from`: `settings` | `ad_card` | `nudge` | `offline` — 오프라인 타일 게이트 SUB-11; `ad_card`·`nudge`는 SUB-9 보류로 당분간 나오지 않는다).
 - `logClick('subscription_nudge', { action })` — 한 번 뜨는 안내 시트(SUB-9) 결과(`action`: `shown` | `open` | `dismiss`).
-- `logClick('subscription_purchase', { result })` — `result`: `success` | `cancelled` | `pending` | `error`. `pending`은 결제 승인 대기(iOS Ask to Buy·안드로이드 보류 결제)다 — 알럿 `결제 승인을 기다리고 있어요. 승인되면 광고가 사라져요.`를 띄우고, 승인되면 권한 리스너가 광고를 끈다.
+- `logClick('subscription_purchase', { result })` — `result`: `success` | `cancelled` | `pending` | `error`. `pending`은 결제 승인 대기(iOS Ask to Buy·안드로이드 보류 결제)다 — 알럿 `결제 승인을 기다리고 있어요. 승인되면 오프라인 저장을 쓸 수 있어요.`를 띄우고, 승인되면 권한 리스너가 광고를 끈다.
 - `logClick('subscription_restore', { result })` — `result`: `restored` | `none` | `error`.
 - 매출·구독자 수는 RevenueCat 대시보드와 DM-31이 소스다. Analytics에 금액을 남기지 않는다.
 

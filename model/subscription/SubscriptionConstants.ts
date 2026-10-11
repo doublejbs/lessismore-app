@@ -21,6 +21,10 @@ export const SUBSCRIPTION_AD_ENTRY_ENABLED = false;
 // 이후 구독으로 확인되면 리스너가 바로 반영한다.
 export const SUBSCRIPTION_RESOLVE_TIMEOUT_MS = 3000;
 
+// SUB-10: 상품을 받은 뒤 체험 자격 조회를 기다리는 최대 시간. 넘기면 자격을 모르는 것(`Unknown`)으로 보고
+// 체험 없는 문구로 가격 화면을 연다 — 조회가 멈춰도 로딩에 갇히지 않게.
+export const TRIAL_ELIGIBILITY_TIMEOUT_MS = 3000;
+
 // SUB-5: `구독 관리` — 스토어의 구독 관리 화면.
 export const IOS_MANAGE_SUBSCRIPTIONS_URL =
   'https://apps.apple.com/account/subscriptions';
@@ -40,3 +44,7 @@ export const SUBSCRIPTION_NUDGE_SHOW_TIMEOUT_MS = 1000;
 // SUB-9: `구독 알아보기` 뒤 시트가 다 내려갔다는 신호(iOS Modal `onDismiss`)가 이 안에 오지 않으면 그대로
 // 구독 화면을 연다 — 신호를 놓쳐도 이동이 멈추지 않게 하는 안전판이다(평소에는 신호가 먼저 온다).
 export const SUBSCRIPTION_NUDGE_OPEN_FALLBACK_MS = 800;
+
+// SUB-11: 권한을 얻어 시트를 닫은 뒤 시트가 이 안에 내려가지(화면 해제·포커스 잃음) 않으면, 진행 중인
+// 상호작용이 끝나는 대로 진입점의 `onEntitled`를 부른다 — 신호를 놓쳐도 이어지는 일이 멈추지 않게 하는 안전판.
+export const SUBSCRIPTION_ENTITLED_FALLBACK_MS = 800;

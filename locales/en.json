@@ -1605,7 +1605,7 @@
     "startTrial": "Start 7-day free trial",
     "purchasing": "Purchase in progress",
     "restore": "Restore purchases",
-    "trialNotice": "When the trial ends, {{price}} per month is charged automatically. You can cancel anytime during the trial in your store settings.",
+    "trialNotice": "When the trial ends, you will be charged {{price}} per month automatically. You can cancel anytime during the trial in your store settings.",
     "autoRenewNotice": "Your subscription renews automatically every month. You can cancel in your store settings up to 24 hours before the current period ends. Payment is charged to your store account when you confirm the purchase.",
     "subscribedTitle": "useless Plus active",
     "trialActive": "Free trial · {{price}} / month from {{date}}",

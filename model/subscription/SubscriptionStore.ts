@@ -15,6 +15,7 @@ import {
   IOS_MANAGE_SUBSCRIPTIONS_URL,
   PREMIUM_ENTITLEMENT_ID,
   SUBSCRIPTION_RESOLVE_TIMEOUT_MS,
+  TRIAL_ELIGIBILITY_TIMEOUT_MS,
   TRIAL_PERIOD_TYPE,
 } from './SubscriptionConstants';
 import { SubscriptionGateContract } from './SubscriptionGateContract';
@@ -257,7 +258,7 @@ class SubscriptionStore implements SubscriptionGateContract {
       const monthlyPackage =
         current?.monthly ?? current?.availablePackages[0] ?? null;
       const trialEligibility = monthlyPackage
-        ? await this.fetchTrialEligibility(sdk, monthlyPackage)
+        ? await this.fetchTrialEligibilityWithTimeout(sdk, monthlyPackage)
         : TrialEligibility.Unknown;
 
       runInAction(() => {
@@ -274,6 +275,32 @@ class SubscriptionStore implements SubscriptionGateContract {
     } catch {
       if (!hadPackage) {
         this.setOfferingStatus(SubscriptionOfferingStatus.Error);
+      }
+    }
+  }
+
+  // SUB-10: 체험 자격 조회가 `TRIAL_ELIGIBILITY_TIMEOUT_MS` 안에 끝나지 않으면 `Unknown`(체험 없는 문구)으로
+  // 보고 넘어간다 — 조회가 멈춰도 가격 화면이 로딩에 갇히지 않게.
+  private async fetchTrialEligibilityWithTimeout(
+    sdk: Purchases,
+    monthlyPackage: PurchasesPackage
+  ): Promise<TrialEligibility> {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const timeout = new Promise<TrialEligibility>((resolve) => {
+      timeoutId = setTimeout(() => {
+        resolve(TrialEligibility.Unknown);
+      }, TRIAL_ELIGIBILITY_TIMEOUT_MS);
+    });
+
+    try {
+      return await Promise.race([
+        this.fetchTrialEligibility(sdk, monthlyPackage),
+        timeout,
+      ]);
+    } finally {
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
       }
     }
   }
