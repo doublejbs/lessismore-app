@@ -87,6 +87,11 @@ class RouteExport {
       return null;
     }
 
+    // OF-6: 오프라인이면 저장해 둔 원본 GPX에서 내보낸다(받을 곳이 없다).
+    if (app.getNetworkStatus().isOffline()) {
+      return RouteExport.copyOfflineFile(target, storagePath);
+    }
+
     try {
       const url = await this.upload.getDownloadUrl(storagePath);
       const directory = RouteExport.prepareDirectory();
@@ -131,6 +136,31 @@ class RouteExport {
     } catch (error) {
       console.error('GPX 내보내기 공유 실패:', error); // l10n-ignore: 개발자 로그
       this.showFailure();
+    }
+  }
+
+  private static copyOfflineFile(
+    target: RouteExportTarget,
+    storagePath: string
+  ): RouteExportFile {
+    const source = app.getOfflineTripStore()?.findRouteFile(storagePath) ?? null;
+
+    if (!source) {
+      return null;
+    }
+
+    try {
+      const directory = RouteExport.prepareDirectory();
+      const name = RouteExport.toFileName(target.getName());
+      const file = new File(directory, name);
+
+      source.copySync(file);
+
+      return { uri: file.uri, name };
+    } catch (error) {
+      console.error('GPX 오프라인 내보내기 실패:', error); // l10n-ignore: 개발자 로그
+
+      return null;
     }
   }
 

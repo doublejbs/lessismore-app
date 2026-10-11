@@ -216,8 +216,9 @@ class BagPointList {
   }
 
   // 좌표를 찍을 지도가 없는 웹에서는 추가·수정·삭제를 열지 않는다(BD-14 — 웹은 읽기 전용).
+  // 오프라인에서는 포인트를 더하거나 고칠 수 없다(OF-6 — OF-5 편집 금지 규칙).
   public canEdit(): boolean {
-    return !IS_WEB;
+    return !IS_WEB && !app.getNetworkStatus().isOffline();
   }
 
   public isLoading(): boolean {

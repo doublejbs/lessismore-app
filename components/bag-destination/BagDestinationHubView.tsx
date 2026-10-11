@@ -19,6 +19,7 @@ import BagDestinationMapPreviewView from './BagDestinationMapPreviewView';
 import BagDestinationInfoView from './BagDestinationInfoView';
 import BagTripWeatherView from '@/components/weather/BagTripWeatherView';
 import useBagDestinationHubState from './useBagDestinationHubState';
+import CampSiteOverviewTabView from '@/components/camp-site/CampSiteOverviewTabView';
 import app from '@/model/app/App';
 
 interface Props {
@@ -44,6 +45,7 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
     location,
     linkedSpot,
     isMapSupported,
+    isOffline,
     handleOpenPicker,
     handleOpenSpotDetail,
     handleOpenDirections,
@@ -125,6 +127,13 @@ const BagDestinationHubView: FC<Props> = ({ bagWeather }) => {
             onOpenDirections={handleOpenDirections}
           />
 
+          {/* OF-5: 오프라인에서는 박지 상세를 열 수 없다 — 저장해 둔 주의사항(CS-4)·시설·접근 정보를 여기서 보여 준다. */}
+          {isOffline && linkedSpot ? (
+            <View style={styles.offlineSpot}>
+              <CampSiteOverviewTabView spot={linkedSpot} />
+            </View>
+          ) : null}
+
           <View style={styles.divider} />
 
           <View style={styles.periodSection}>
@@ -181,6 +190,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: Spacing.screenH,
     paddingBottom: 40,
+  },
+  offlineSpot: {
+    marginTop: 16,
   },
   divider: {
     height: 1,

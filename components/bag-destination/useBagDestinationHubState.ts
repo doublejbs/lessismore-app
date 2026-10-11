@@ -7,10 +7,24 @@ import BagWeather from '@/model/bag/BagWeather';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import { setBagDestinationPicker } from '@/model/bag-destination/BagDestinationPickerHandoff';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
+import OfflineTripAccess from '@/model/offline/OfflineTripAccess';
 
 interface Params {
   bagWeather: BagWeather;
 }
+
+// 오프라인 저장본의 여행지 박지(OF-1 — 주의사항 CS-4 포함). 열 수 없는 저장본이면 null.
+const loadOfflineSpot = async (bagId: string): Promise<CampSpot | null> => {
+  const store = app.getOfflineTripStore();
+
+  if (!store || store.getAccess(bagId) !== OfflineTripAccess.Available) {
+    return null;
+  }
+
+  const snapshot = await store.load(bagId);
+
+  return snapshot?.campSpot ?? null;
+};
 
 // 여행지 허브(DST-8) 화면 상태. 공용 선택기 열기·연결 박지 지연 조회·길찾기·상세 이동을 담당한다.
 // 박지 조회는 날씨와 독립적으로(비차단) 돌리고, 실패·삭제·비활성은 삼켜 상세 이동만 숨긴다(DST-7).
@@ -19,6 +33,9 @@ const useBagDestinationHubState = ({ bagWeather }: Params) => {
   const campSpotId = location?.campSpotId ?? null;
 
   const router = useRouter();
+  // OF-5: 오프라인이면 박지는 저장본에서, 지도 미리보기·선택기·박지 상세(서버)는 쓰지 않는다.
+  const isOffline = app.getNetworkStatus().isOffline();
+  const bagId = bagWeather.getBagId();
   // 연결 박지 스냅샷(유형색·유형·지역·상세 이동 가능 여부). null이면 자유 위치이거나 조회 불가 상태다.
   const [linkedSpot, setLinkedSpot] = useState<CampSpot | null>(null);
 
@@ -33,7 +50,9 @@ const useBagDestinationHubState = ({ bagWeather }: Params) => {
 
     const fetchSpot = async () => {
       try {
-        const spot = await app.getCampSpotStore()?.getSpot(campSpotId);
+        const spot = isOffline
+          ? await loadOfflineSpot(bagId)
+          : await app.getCampSpotStore()?.getSpot(campSpotId);
 
         if (cancelled) {
           return;
@@ -55,7 +74,7 @@ const useBagDestinationHubState = ({ bagWeather }: Params) => {
     return () => {
       cancelled = true;
     };
-  }, [campSpotId]);
+  }, [bagId, campSpotId, isOffline]);
 
   // 확정한 여행지 저장. 실패는 던져 선택기가 열린 채 재시도할 수 있게 한다(DST-6).
   const handleConfirmLocation = useCallback(
@@ -68,6 +87,12 @@ const useBagDestinationHubState = ({ bagWeather }: Params) => {
   // 공용 선택기(DST-3)는 RN Modal이 아니라 라우트다 — 현재 여행지와 저장 콜백을 모듈 레벨
   // 핸드오프에 실어 두고 풀스크린 모달 라우트를 push한다. 닫기는 선택기가 router.back()으로 한다.
   const handleOpenPicker = useCallback(() => {
+    if (app.getNetworkStatus().isOffline()) {
+      app.getToastManager()?.showSimple(app.getL10n().t('offline.toast.onlineOnly'));
+
+      return;
+    }
+
     setBagDestinationPicker({
       currentLocation: location,
       onConfirm: handleConfirmLocation,
@@ -81,6 +106,13 @@ const useBagDestinationHubState = ({ bagWeather }: Params) => {
   // 시트 라우트(/camp-site/{id})가 아니라 페이지 전용 라우트를 쓴다.
   const handleOpenSpotDetail = useCallback(() => {
     if (!campSpotId) {
+      return;
+    }
+
+    // 박지 상세는 서버에서 읽는다 — 오프라인이면 허브가 저장본의 주의사항·접근 정보를 대신 보여 준다(OF-5).
+    if (app.getNetworkStatus().isOffline()) {
+      app.getToastManager()?.showSimple(app.getL10n().t('offline.toast.onlineOnly'));
+
       return;
     }
 
@@ -115,7 +147,9 @@ const useBagDestinationHubState = ({ bagWeather }: Params) => {
     location,
     campSpotId,
     linkedSpot,
-    isMapSupported: Platform.OS !== 'web',
+    // 지도 미리보기는 타일을 받아야 한다 — 오프라인이면 그리지 않는다(OF-5).
+    isMapSupported: Platform.OS !== 'web' && !isOffline,
+    isOffline,
     handleOpenPicker,
     handleOpenSpotDetail,
     handleOpenDirections,

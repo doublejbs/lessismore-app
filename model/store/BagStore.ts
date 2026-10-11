@@ -278,6 +278,38 @@ class BagStore {
     };
   }
 
+  /**
+   * 오프라인 저장(OF-1)용 원본 — 배낭 문서와 담긴 장비 문서를 **그대로** 읽는다. 모델로 바꾸지 않는
+   * 이유는 스냅샷이 Firestore 문서를 직렬화해 두고 읽을 때 기존 팩토리로 되돌리기 때문이다(§4).
+   * 본인 배낭이 아니면(목록에 없음) `null`.
+   */
+  public async getOfflineSource(
+    id: string
+  ): Promise<{ bag: DocumentData; gears: GearData[] } | null> {
+    const [userSnapshot, bagSnapshot] = await Promise.all([
+      getDoc(doc(this.getStore(), 'users', this.getUserID())),
+      getDoc(doc(this.getStore(), 'bag', id)),
+    ]);
+    const bagIDs = userSnapshot.data()?.['bags'];
+    const bagData = bagSnapshot.data();
+
+    if (!Array.isArray(bagIDs) || !bagIDs.includes(id) || !bagData) {
+      return null;
+    }
+
+    const gearIDs: string[] = Array.isArray(bagData.gears) ? bagData.gears : [];
+    const gears = await this.getBagGears(this.getUserID(), gearIDs, [
+      GearFilter.All,
+    ]);
+
+    return { bag: bagData, gears };
+  }
+
+  // 오프라인 저장본(OF-5)의 장비 문서를 상세·패킹과 같은 Gear로 되돌린다(§4 — 오프라인용 모델을 따로 두지 않는다).
+  public toOwnedGearsFromData(gearDataList: GearData[]): Gear[] {
+    return this.toOwnedGears(gearDataList);
+  }
+
   // 본인 배낭의 장비 문서를 Gear로 바꾼다.
   // 본인이 보는 본인 배낭이라 본인이 올린 장비 사진을 읽는다(BD-1, GD-13).
   // 복사돼 남은 카탈로그 크롤 URL은 Storage 경로 판별에서 걸러진다(§1).
@@ -676,6 +708,8 @@ class BagStore {
       });
 
       void app.getNotificationManager()?.cancelBagReminders(id);
+      // 배낭을 지우면 오프라인 저장본(스냅샷·GPX·매니페스트 항목)도 함께 지운다(OF-2).
+      void app.getOfflineTripStore()?.remove(id);
     } catch (e) {
       console.error('배낭 삭제 중 오류 발생:', e); // l10n-ignore: 개발자 로그
       throw e;

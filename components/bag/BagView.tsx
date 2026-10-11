@@ -28,6 +28,7 @@ import { getBagTemplateComparator } from '@/model/order/BagTemplateComparators';
 import GroupList from '@/model/group-list/GroupList';
 import GroupListDispatcher from '@/model/group-list/GroupListDispatcher';
 import GroupListView from '@/components/group/list/GroupListView';
+import OfflineTripListView from '@/components/offline/OfflineTripListView';
 
 // iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
 const IOS_EDGES = ['top', 'left', 'right'] as const;
@@ -52,9 +53,18 @@ const BagView = () => {
   const isLoading = bag.isLoading();
   const bags = bag.getBags();
   const isEmpty = bag.isEmpty();
-  const isBagSegment = segment === BagViewSegment.Bags;
-  const isTemplateSegment = segment === BagViewSegment.Templates;
-  const isGroupSegment = segment === BagViewSegment.Groups;
+  // OF-4: 연결이 없으면(로그인 상태에서) 저장해 둔 여행만 보여 준다. 템플릿·그룹·추가·복사는 서버 동작이다.
+  const offlineTripStore = app.getOfflineTripStore();
+  const isOfflineList =
+    isLoggedIn &&
+    !!offlineTripStore &&
+    offlineTripStore.isSupported() &&
+    app.getNetworkStatus().isOffline();
+  // 오프라인에서는 배낭 세그먼트로 본다 — 템플릿·그룹은 서버에서 읽는다(OF-4). 고른 칩은 기억해 둔다.
+  const activeSegment = isOfflineList ? BagViewSegment.Bags : segment;
+  const isBagSegment = activeSegment === BagViewSegment.Bags;
+  const isTemplateSegment = activeSegment === BagViewSegment.Templates;
+  const isGroupSegment = activeSegment === BagViewSegment.Groups;
 
   const loadTemplates = useCallback(async () => {
     if (!isLoggedIn) {
@@ -83,6 +93,11 @@ const BagView = () => {
 
   useFocusEffect(
     useCallback(() => {
+      // 오프라인이면 서버 목록을 읽지 않는다 — 기다리다 실패하면 빈 목록이 된다(OF-4).
+      if (isOfflineList) {
+        return;
+      }
+
       void bag.getList();
       void loadTemplates();
 
@@ -91,8 +106,21 @@ const BagView = () => {
       if (isGroupSegment) {
         void groupList.initialize();
       }
-    }, [bag, groupList, isGroupSegment, loadTemplates])
+    }, [bag, groupList, isGroupSegment, isOfflineList, loadTemplates])
   );
+
+  // 템플릿·그룹 칩: 오프라인이면 열지 않고 알린다(OF-4).
+  const handleSelectSegment = (next: BagViewSegment) => {
+    if (isOfflineList && next !== BagViewSegment.Bags) {
+      app
+        .getToastManager()
+        ?.showSimple(app.getL10n().t('offline.toast.onlineToView'));
+
+      return;
+    }
+
+    setSegment(next);
+  };
 
   // Bag이 로그인 상태 reaction을 들고 있으므로 언마운트 시 정리한다.
   useEffect(() => {
@@ -126,20 +154,20 @@ const BagView = () => {
         <CategoryChipView
           label={app.getL10n().t('bag.label')}
           selected={isBagSegment}
-          onPress={() => setSegment(BagViewSegment.Bags)}
+          onPress={() => handleSelectSegment(BagViewSegment.Bags)}
         />
         <CategoryChipView
           label={app.getL10n().t('bag.template.label')}
           selected={isTemplateSegment}
-          onPress={() => setSegment(BagViewSegment.Templates)}
+          onPress={() => handleSelectSegment(BagViewSegment.Templates)}
         />
         <CategoryChipView
           label={app.getL10n().t('group.segment.label')}
           selected={isGroupSegment}
-          onPress={() => setSegment(BagViewSegment.Groups)}
+          onPress={() => handleSelectSegment(BagViewSegment.Groups)}
         />
       </View>
-      {isBagSegment && !isLoading && !isEmpty && (
+      {isBagSegment && !isLoading && !isEmpty && !isOfflineList && (
         <OrderButtonView
           order={bag.getOrder()}
           onSelectOption={handleSelectOrder}
@@ -159,6 +187,10 @@ const BagView = () => {
 
   // 제목은 빈 목록·로딩에서도 렌더한다 — 지금 어느 세그먼트인지 알리는 역할을 겸한다(BT-2).
   const renderHeaderTitle = () => {
+    if (isOfflineList) {
+      return app.getL10n().t('offline.list.title');
+    }
+
     if (isGroupSegment) {
       if (!groupList.getIsInitialized() || groupList.getIsLoading()) {
         return app.getL10n().t('group.segment.label');
@@ -249,6 +281,19 @@ const BagView = () => {
   };
 
   const renderContent = () => {
+    if (isOfflineList && offlineTripStore) {
+      return (
+        <OfflineTripListView
+          offlineTripStore={offlineTripStore}
+          bottomInset={Platform.select({
+            ios: insets.bottom + AcgLayout.scrollBottom,
+            android: AcgLayout.scrollBottom,
+            default: AcgLayout.scrollBottom,
+          })}
+        />
+      );
+    }
+
     if (isGroupSegment) {
       return <GroupListView groupList={groupList} />;
     }
@@ -324,7 +369,9 @@ const BagView = () => {
             반영되기 전이라 `insets.bottom`이 작게 잡혀 버튼이 **탭바 뒤로 내려간다.**
             목록이 온 뒤(= inset 정착 후)에 노출하면 위치가 정확하고, 로딩 위에 CTA가 겹치지도
             않는다 — 피드(FD-2)가 같은 이유로 같은 처리를 한다. */}
-        {!isLoading && isBagSegment && <BagAddView bag={bag} />}
+        {!isLoading && isBagSegment && !isOfflineList && (
+          <BagAddView bag={bag} />
+        )}
       </Layout>
     </GestureHandlerRootView>
   );

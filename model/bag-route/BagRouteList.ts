@@ -179,8 +179,9 @@ class BagRouteList {
   }
 
   // 파일 선택기가 없는 환경(웹)에서는 추가 액션 자체를 그리지 않는다(APP-5, BD-11).
+  // 오프라인에서도 추가·삭제·그룹에 올리기를 숨긴다(OF-6 — OF-5 편집 금지 규칙). 뒤집기·내보내기는 남는다.
   public canAdd(): boolean {
-    return RoutePicker.isSupported();
+    return RoutePicker.isSupported() && !app.getNetworkStatus().isOffline();
   }
 
   // 연결된 그룹이 없으면 `그룹에 올리기`를 노출하지 않는다(BD-11).

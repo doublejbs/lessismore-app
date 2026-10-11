@@ -1,4 +1,4 @@
-import { FC, useCallback, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,6 +26,10 @@ import BagRouteList from '@/model/bag-route/BagRouteList';
 import BagRouteSegment from '@/model/bag-route/BagRouteSegment';
 import BagRouteCanvasView, { BagPointCoordinate } from './BagRouteCanvasView';
 import BagRouteListSectionView from './BagRouteListSectionView';
+import OfflineRouteCanvasView from '@/components/offline/OfflineRouteCanvasView';
+import OfflineUnavailableView from '@/components/offline/OfflineUnavailableView';
+import OfflineCanvasReason from '@/model/offline/OfflineCanvasReason';
+import OfflineTripAccess from '@/model/offline/OfflineTripAccess';
 
 interface Props {
   bagRouteList: BagRouteList;
@@ -65,10 +69,55 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
   const [editingPoint, setEditingPoint] = useState<BagPoint | null>(null);
   // 시트를 열 때마다 올린다 — 시트가 이 값을 `key`로 받아 새로 마운트되면서 입력이 초기화된다.
   const [sheetKey, setSheetKey] = useState(0);
+  // 지도가 뜨지 않았다(OF-6 폴백) — 온라인이어도 코스 캔버스로 그린다.
+  const [isMapUnavailable, setIsMapUnavailable] = useState(false);
   const selected = bagRouteList.getSelectedEntry();
+  // OF-6: 연결이 없으면 지도 대신 코스 캔버스다. 열 수 없는 저장본(미저장·잠김)이면 빈 상태다.
+  const isOffline = app.getNetworkStatus().isOffline();
+  const offlineAccess =
+    app.getOfflineTripStore()?.getAccess(bagRouteList.getBagId()) ??
+    OfflineTripAccess.NotSaved;
+  const wasOfflineRef = useRef(isOffline);
+  // 온라인에서 연 화면이면 연결이 끊겨도 읽어 둔 코스를 캔버스로 계속 보여 준다(빈 상태로 바꾸지 않는다).
+  const [openedOnline] = useState(() => !isOffline);
+  const canUseSnapshot = offlineAccess === OfflineTripAccess.Available;
+
+  // OF-3 · OF-6: 연결이 바뀌면 목록을 다시 읽는다 — 돌아오면 서버 코스(그룹 코스 포함)로, 끊기면 저장본으로.
+  // 지도는 다시 마운트되며 코스 전체로 카메라를 맞춘다.
+  useEffect(() => {
+    if (wasOfflineRef.current === isOffline) {
+      return;
+    }
+
+    wasOfflineRef.current = isOffline;
+
+    // 저장본이 없으면 읽어 둔 서버 코스를 그대로 둔다 — 다시 읽으면 빈 목록이 된다.
+    if (isOffline && !canUseSnapshot) {
+      return;
+    }
+
+    void bagRouteList.refresh(true);
+    void bagPointList.refresh(true);
+  }, [bagPointList, bagRouteList, canUseSnapshot, isOffline]);
+
+  const handleMapUnavailable = useCallback(() => {
+    setIsMapUnavailable(true);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
+      // 오프라인인데 저장본이 없으면 읽어 둔 코스를 그대로 둔다(다시 읽으면 빈 목록이 된다 — OF-6).
+      const bagId = bagRouteList.getBagId();
+      const keepLoaded =
+        app.getNetworkStatus().isOffline() &&
+        app.getOfflineTripStore()?.getAccess(bagId) !==
+          OfflineTripAccess.Available &&
+        bagRouteList.isInitialized();
+
+      if (keepLoaded) {
+        return;
+      }
+
       if (bagRouteList.isInitialized()) {
         void bagRouteList.refresh(true);
       } else {
@@ -253,6 +302,11 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
   );
 
   const renderContent = () => {
+    // OF-7: 구독이 끝났거나 저장하지 않은 여행은 오프라인에서 열리지 않는다.
+    if (!IS_WEB && isOffline && !canUseSnapshot && !openedOnline) {
+      return <OfflineUnavailableView access={offlineAccess} />;
+    }
+
     if (!bagRouteList.isInitialized()) {
       return <LoadingView />;
     }
@@ -302,11 +356,30 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
       );
     }
 
+    if (isOffline || isMapUnavailable) {
+      return (
+        <>
+          <OfflineRouteCanvasView
+            bagRouteList={bagRouteList}
+            bagPointList={bagPointList}
+            reason={
+              isOffline
+                ? OfflineCanvasReason.Offline
+                : OfflineCanvasReason.MapUnavailable
+            }
+            topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
+          />
+          {renderList()}
+        </>
+      );
+    }
+
     return (
       <>
         <BagRouteCanvasView
           bagRouteList={bagRouteList}
           bagPointList={bagPointList}
+          onMapUnavailable={handleMapUnavailable}
           isAiming={isAiming}
           onStartAiming={handleStartAiming}
           onCancelAiming={handleCancelAiming}

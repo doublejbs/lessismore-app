@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, reaction } from 'mobx';
 import Firebase from '../firebase/Firebase';
 import GearStore from '../store/GearStore';
 import BagRouteStore from '../store/BagRouteStore';
@@ -32,8 +32,14 @@ import SubscriptionNudge from '../subscription/SubscriptionNudge';
 import SubscriptionEntryPoint from '../subscription/SubscriptionEntryPoint';
 import { openSubscription } from '../subscription/OpenSubscription';
 import OnboardingTripManager from '../onboarding/OnboardingTripManager';
+import NetworkStatus from '../offline/NetworkStatus';
+import OfflineEntitlement from '../offline/OfflineEntitlement';
+import OfflineTripStore from '../offline/OfflineTripStore';
 
 class App {
+  // OF-3: 연결 상태의 단일 소스. Firebase 로그인 확인이 오프라인이면 Firestore를 건너뛰어야 하므로
+  // Firebase보다 먼저 만들고 먼저 초기화한다.
+  private readonly networkStatus = NetworkStatus.new();
   private readonly firebase = new Firebase();
   private readonly l10n = new L10n();
   // SUB-3·SUB-4: 광고 제거 구독 상태. SDK 설정은 Firebase 초기화 뒤(로그인 uid를 알고 나서) 한다.
@@ -72,6 +78,9 @@ class App {
   private communitySearchStore: CommunitySearchStore | null = null;
   // SUB-9: 광고 누적 노출 뒤 한 번 뜨는 구독 안내 시트. 분석 매니저가 생긴 뒤 만든다.
   private subscriptionNudge: SubscriptionNudge | null = null;
+  // 오프라인 저장(OF-1 ~ OF-8)과 그 권한 판단(OF-7). 웹·옛 바이너리에서는 만들기만 하고 아무것도 하지 않는다.
+  private offlineEntitlement: OfflineEntitlement | null = null;
+  private offlineTripStore: OfflineTripStore | null = null;
 
   private gearPreviewStore: GearPreviewStore | null = null;
   private initialized = false;
@@ -91,6 +100,7 @@ class App {
     this.initializing = true;
 
     await this.l10n.initialize();
+    await this.networkStatus.initialize();
     await this.firebase.initialize();
     // 구독 상태 확인은 앱 시작을 막지 않는다 — 광고 쪽이 `waitUntilResolved`로 짧게 기다린다(SUB-4).
     void this.subscriptionStore.initialize();
@@ -158,8 +168,51 @@ class App {
       this.firebase,
       bagStore
     );
+    await this.initializeOffline(bagStore);
     this.setInitialized(true);
     this.initializing = false;
+  }
+
+  /**
+   * 오프라인 저장 (OF-1 · OF-7). 매니페스트는 상세가 처음 그려지기 전에 읽혀 있어야 한다 — 오프라인으로
+   * 시작한 앱이 저장본을 바로 열 수 있게 기다린다(AsyncStorage 한 번이라 짧다).
+   */
+  private async initializeOffline(bagStore: BagStore) {
+    const offlineEntitlement = OfflineEntitlement.new(
+      this.subscriptionStore,
+      this.networkStatus,
+      this.firebase
+    );
+    const offlineTripStore = OfflineTripStore.new({
+      firebase: this.firebase,
+      bagStore,
+      bagRouteStore: this.bagRouteStore!,
+      bagPointStore: this.bagPointStore!,
+      campSpotStore: this.campSpotStore!,
+      groupStore: this.groupStore!,
+      networkStatus: this.networkStatus,
+      entitlement: offlineEntitlement,
+    });
+
+    this.offlineEntitlement = offlineEntitlement;
+    this.offlineTripStore = offlineTripStore;
+
+    if (!this.networkStatus.isSupported()) {
+      return;
+    }
+
+    await offlineEntitlement.initialize();
+    await offlineTripStore.initialize();
+
+    // OF-3: 오프라인으로 시작해 로그인 확인을 건너뛰었으면, 연결이 돌아올 때 서버로 다시 확인한다.
+    reaction(
+      () => this.networkStatus.isOnline(),
+      online => {
+        if (online) {
+          void this.firebase.recheckAfterOffline();
+        }
+      }
+    );
   }
 
   public getFirebase() {
@@ -172,6 +225,18 @@ class App {
 
   public getSubscriptionStore() {
     return this.subscriptionStore;
+  }
+
+  public getNetworkStatus() {
+    return this.networkStatus;
+  }
+
+  public getOfflineTripStore() {
+    return this.offlineTripStore;
+  }
+
+  public getOfflineEntitlement() {
+    return this.offlineEntitlement;
   }
 
   public getSubscriptionNudge() {

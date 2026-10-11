@@ -27,7 +27,10 @@ const BagDetailDateView: FC<Props> = ({ bagDetail }) => {
       <PretendardText style={styles.dateText} numberOfLines={2}>
         {bagDetail.getDate()} · {bagDetail.getPhaseLabel()}
       </PretendardText>
-      <Ionicons name='pencil' size={12} color={Acg.textMuted} />
+      {/* 오프라인이면 고칠 수 없다 — 연필을 걷는다(OF-5). */}
+      {!bagDetail.isReadOnly() && (
+        <Ionicons name='pencil' size={12} color={Acg.textMuted} />
+      )}
     </TouchableOpacity>
   );
 };

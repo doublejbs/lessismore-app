@@ -6,6 +6,8 @@ enum SubscriptionEntryPoint {
   AdCard = 'ad_card',
   // 광고 누적 노출 뒤 한 번 뜨는 안내 시트의 `구독 알아보기`.
   Nudge = 'nudge',
+  // 배낭 상세 `오프라인` 타일 게이트(SUB-11 · OF-2). 구매에 성공하면 그 여행의 저장을 바로 시작한다.
+  Offline = 'offline',
 }
 
 export default SubscriptionEntryPoint;

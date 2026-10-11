@@ -1723,5 +1723,52 @@
     },
     "start": "Get ready for your next trip",
     "login": "Already have an account · Sign in"
+  },
+  "offline": {
+    "dateFormat": "MMM D",
+    "tile": {
+      "title": "Offline",
+      "unsaved": "Save offline",
+      "saving": "Saving…",
+      "saved": "Saved · {{size}} · updated {{date}}",
+      "needsUpgrade": "Needs an update",
+      "locked": "Saved · Subscribe to view again",
+      "label": "Offline {{subtitle}}"
+    },
+    "menu": {
+      "refresh": "Update now",
+      "remove": "Remove offline copy"
+    },
+    "removeConfirm": "Delete the saved offline data?",
+    "toast": {
+      "onlineToSave": "You can save this when you're online",
+      "onlineOnly": "You can do this when you're online",
+      "onlineToView": "You can view this when you're online",
+      "saveFailed": "Couldn't save for offline use",
+      "diskFull": "Couldn't save for offline use. Your device is out of storage",
+      "limit": "You have 10 saved trips. Delete a past trip and try again"
+    },
+    "band": "Offline · Saved {{date}}",
+    "banner": {
+      "offline": "You're offline · Only saved trips are available",
+      "locked": "Your subscription ended, so saved trips are locked · Restart useless Plus"
+    },
+    "list": {
+      "title": "Saved trips",
+      "empty": "No saved trips yet. When you're online, save a trip from the Offline tile on its detail page.",
+      "meta": "Saved · {{size}}"
+    },
+    "detail": {
+      "notSaved": "This trip isn't saved for offline use",
+      "locked": "Your subscription ended, so saved trips are locked",
+      "needsUpgrade": "This copy needs an update. Open the trip while online to update it"
+    },
+    "canvas": {
+      "offlineLine": "Offline · The map appears when you're connected",
+      "mapFailedLine": "Couldn't load the map · Showing routes only",
+      "groupHidden": "Group routes aren't available offline",
+      "north": "N",
+      "northLabel": "North"
+    }
   }
 }

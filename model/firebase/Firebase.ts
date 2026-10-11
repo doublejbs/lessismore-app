@@ -39,6 +39,10 @@ import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import app from '@/model/app/App';
+import LocalStorageManager from '@/model/storage/LocalStorageManager';
+
+// 약관에 동의한 마지막 uid(OF-3). 오프라인으로 시작해 사용자 문서를 읽지 못할 때 동의 여부를 이 값으로 정한다.
+const TERMS_AGREED_UID_KEY = 'auth.termsAgreedUid';
 
 class Firebase {
   private static readonly config = {
@@ -63,6 +67,8 @@ class Firebase {
   private idToken: string | null = null;
   private accessToken: string | null = null;
   private loginProvider: 'google' | 'apple' | 'email' | null = null;
+  // 오프라인으로 시작해 사용자 문서 확인을 건너뛰었다(OF-3). 연결이 돌아오면 `recheckAfterOffline`이 다시 확인한다.
+  private needsOnlineRecheck = false;
 
   public constructor() {
     makeAutoObservable(this);
@@ -132,6 +138,12 @@ class Firebase {
     app.getCampFavoriteStore()?.reset();
     // 토큰 문서 삭제는 인증이 살아 있을 때(logout·탈퇴 직전) 이미 했다 — 여기서는 등록기 상태만 비운다(NT-12).
     app.getNotificationManager()?.resetPushTokenRegistration();
+    // 로그아웃·탈퇴 시 저장된 오프라인 데이터를 모두 지운다 — 같은 기기에 다른 사람이 로그인해도
+    // 남의 여행이 보이지 않게(OF-2). 권한 기록·약관 동의 기록도 계정에 묶여 있어 함께 지운다(OF-7).
+    void app.getOfflineTripStore()?.removeAll();
+    void app.getOfflineEntitlement()?.clear();
+    void LocalStorageManager.remove(TERMS_AGREED_UID_KEY);
+    this.needsOnlineRecheck = false;
   }
 
   private async checkLoggedIn() {
@@ -144,13 +156,71 @@ class Firebase {
         app.getAnalyticsManager()?.identifyUser(user.uid);
         // 로그인 제공자 확인
         this.detectLoginProvider(user);
-        await this.initializeStore();
-        await this.checkTermsAgreement();
+
+        // OF-3: 연결이 없으면 사용자 문서를 읽지 않는다 — 기다리다 실패하면 로그인이 풀린 화면이 되어
+        // 저장해 둔 여행을 열 수 없다. 인증은 기기에 남아 있으므로 로그인 상태로 둔다.
+        if (app.getNetworkStatus().isOffline()) {
+          await this.restoreOfflineLogin(user.uid);
+
+          return;
+        }
+
+        try {
+          await this.initializeStore();
+          await this.checkTermsAgreement();
+          app.getNetworkStatus().markFirestoreSuccess();
+        } catch (error) {
+          // 연결 상태를 아직 모르는데(netinfo `null`) 첫 Firestore 읽기가 연결 없음으로 실패했다 → 오프라인(OF-3).
+          if (
+            app.getNetworkStatus().markFirestoreFailure(error) &&
+            app.getNetworkStatus().isOffline()
+          ) {
+            await this.restoreOfflineLogin(user.uid);
+
+            return;
+          }
+
+          throw error;
+        }
+
         this.setLoggedIn(true);
       }
     } catch (error) {
       console.error('checkLoggedIn error', error);
     }
+  }
+
+  // 오프라인 시작(OF-3) — 약관 동의는 마지막으로 확인한 uid 기록으로 정하고, 연결되면 다시 확인한다.
+  private async restoreOfflineLogin(userId: string) {
+    const agreedUserId = await LocalStorageManager.get<string>(
+      TERMS_AGREED_UID_KEY
+    );
+
+    this.setHasAgreedToTerms(agreedUserId === userId);
+    this.setNeedsOnlineRecheck(true);
+    this.setLoggedIn(true);
+  }
+
+  // 연결이 돌아왔을 때(OF-3) 오프라인 시작에서 건너뛴 사용자 문서 확인을 마저 한다. 실패하면 다음 복귀 때 다시.
+  public async recheckAfterOffline() {
+    if (!this.needsOnlineRecheck || !this.auth?.currentUser) {
+      return;
+    }
+
+    this.setNeedsOnlineRecheck(false);
+
+    try {
+      await this.initializeStore();
+      await this.checkTermsAgreement();
+      app.getNetworkStatus().markFirestoreSuccess();
+    } catch (error) {
+      console.warn('[Firebase] 온라인 복귀 후 사용자 확인 실패', error); // l10n-ignore: 개발자 로그
+      this.setNeedsOnlineRecheck(true);
+    }
+  }
+
+  private setNeedsOnlineRecheck(value: boolean) {
+    this.needsOnlineRecheck = value;
   }
 
   /**
@@ -369,6 +439,11 @@ class Firebase {
 
   private setHasAgreedToTerms(value: boolean) {
     this.hasAgreedToTerms = value;
+
+    // 오프라인 시작(OF-3)에서 쓸 수 있게 동의한 uid를 기기에 남긴다.
+    if (value && this.userId) {
+      void LocalStorageManager.set(TERMS_AGREED_UID_KEY, this.userId);
+    }
   }
 
   private setLoggedIn(value: boolean) {

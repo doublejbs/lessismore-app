@@ -8,6 +8,10 @@ import RouteUpload from '@/model/route/RouteUpload';
 import RouteValidator from '@/model/route/RouteValidator';
 import BagRouteStore from '@/model/store/BagRouteStore';
 import GroupStore from '@/model/store/GroupStore';
+import NetworkStatus from '@/model/offline/NetworkStatus';
+import OfflineTripAccess from '@/model/offline/OfflineTripAccess';
+import { fromOfflineRouteData } from '@/model/offline/OfflineTripSnapshot';
+import OfflineTripStore from '@/model/offline/OfflineTripStore';
 
 /**
  * 배낭 코스(BD-11)가 쓰는 데이터 접근. Firestore 문서와 Storage 원본을 **한 벌로** 다룬다 —
@@ -21,7 +25,9 @@ class BagRouteDispatcher {
       app.getBagRouteStore()!,
       app.getGroupStore()!,
       GroupRouteDispatcher.new(),
-      RouteUpload.from(app.getFirebase())
+      RouteUpload.from(app.getFirebase()),
+      app.getNetworkStatus(),
+      app.getOfflineTripStore()
     );
   }
 
@@ -29,15 +35,40 @@ class BagRouteDispatcher {
     private readonly bagRouteStore: BagRouteStore,
     private readonly groupStore: GroupStore,
     private readonly groupRouteDispatcher: GroupRouteDispatcher,
-    private readonly upload: RouteUpload
+    private readonly upload: RouteUpload,
+    private readonly networkStatus: NetworkStatus,
+    private readonly offlineTripStore: OfflineTripStore | null
   ) {}
 
-  public getRoutes(bagId: string): Promise<BagRoute[]> {
-    return this.bagRouteStore.getRoutes(bagId);
+  /**
+   * 코스 목록. 오프라인이면 저장본의 코스(DM-30 문서 그대로)를 같은 모델로 되돌린다(OF-6) — 축약 좌표·고도가
+   * 문서 안에 있어 캔버스·고도 그래프가 그대로 그려진다. 열 수 없는 저장본이면 빈 목록이다.
+   */
+  public async getRoutes(bagId: string): Promise<BagRoute[]> {
+    if (!this.networkStatus.isOffline()) {
+      return this.bagRouteStore.getRoutes(bagId);
+    }
+
+    const store = this.offlineTripStore;
+
+    if (!store || store.getAccess(bagId) !== OfflineTripAccess.Available) {
+      return [];
+    }
+
+    const snapshot = await store.load(bagId);
+
+    return (snapshot?.routes ?? []).map(route =>
+      this.bagRouteStore.toRoute(fromOfflineRouteData(route))
+    );
   }
 
   // 이 배낭을 연결한 그룹(BD-11). 없으면 `그룹에 올리기`와 그룹 코스 표시가 함께 사라진다.
-  public getLinkedGroups(bagId: string): Promise<Group[]> {
+  // 그룹 코스는 오프라인에 저장하지 않는다(OF-1) — 오프라인이면 연결 그룹이 없는 것으로 본다.
+  public async getLinkedGroups(bagId: string): Promise<Group[]> {
+    if (this.networkStatus.isOffline()) {
+      return [];
+    }
+
     return this.groupStore.getGroupsByBag(bagId);
   }
 

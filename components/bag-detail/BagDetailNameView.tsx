@@ -31,7 +31,10 @@ const BagDetailNameView: FC<Props> = ({ bagDetail }) => {
       >
         {bagDetail.getName()}
       </PretendardText>
-      <Ionicons name='pencil' size={15} color={Acg.textMuted} />
+      {/* 오프라인이면 고칠 수 없다 — 연필을 걷는다(OF-5). */}
+      {!bagDetail.isReadOnly() && (
+        <Ionicons name='pencil' size={15} color={Acg.textMuted} />
+      )}
     </TouchableOpacity>
   );
 };

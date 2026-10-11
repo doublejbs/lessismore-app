@@ -84,7 +84,14 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divided = false }) => {
   const router = useRouter();
   const swipeableRef = useRef<SwipeableMethods>(null);
 
+  const readOnly = bagDetail.isReadOnly();
+
   const handlePressGear = () => {
+    // 장비 상세는 서버에서 읽는다 — 오프라인이면 열지 않고 알린다(OF-5).
+    if (!bagDetail.guardOnline()) {
+      return;
+    }
+
     app.getAnalyticsManager()?.logClick('gear_item', { from: 'bag_detail' });
     router.push(`/gear-detail/${gear.getId()}`);
   };
@@ -111,6 +118,8 @@ const BagDetailGearView: FC<Props> = ({ gear, bagDetail, divided = false }) => {
       friction={2}
       rightThreshold={40}
       overshootRight={false}
+      // 오프라인에서는 장비를 뺄 수 없다 — 스와이프 자체를 끈다(OF-5).
+      enabled={!readOnly}
       renderRightActions={renderRightActions}
     >
       {/* 불투명 배경 — 스와이프 전환 중 뒤 액션색이 행 밑으로 비치지 않게 한다(BagItemView와 동일). */}
