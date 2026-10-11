@@ -7,12 +7,12 @@ import app from '@/model/app/App';
 import Group from '@/model/group/Group';
 import GroupPoint from '@/model/group/GroupPoint';
 import GroupPointList from '@/model/group-point/GroupPointList';
+import { getGroupPointAuthorLabel } from '@/model/group-point/GroupPointLabels';
 import {
-  getGroupPointAuthorLabel,
-  getGroupPointDateText,
-  getGroupPointTypeColor,
-  getGroupPointTypeLabel,
-} from '@/model/group-point/GroupPointLabels';
+  getPointDateText,
+  getPointTypeColor,
+  getPointTypeLabel,
+} from '@/model/point/PointLabels';
 
 interface Props {
   pointList: GroupPointList;
@@ -46,13 +46,13 @@ const GroupPointListView: FC<Props> = ({
     const canEdit = point.canEdit(userId, group);
     const hasMenu = canEdit && (!!onEdit || !!onDelete);
     const meta = [
-      getGroupPointTypeLabel(point.getType()),
+      getPointTypeLabel(point.getType()),
       getGroupPointAuthorLabel(
         point.getAuthorId(),
         point.getAuthorName(),
         memberIds
       ),
-      getGroupPointDateText(point.getCreatedAt()),
+      getPointDateText(point.getCreatedAt()),
     ].join(separator);
     const description = point.getDescription();
     const body = (
@@ -61,7 +61,7 @@ const GroupPointListView: FC<Props> = ({
           <View
             style={[
               styles.dot,
-              { backgroundColor: getGroupPointTypeColor(point.getType()) },
+              { backgroundColor: getPointTypeColor(point.getType()) },
             ]}
           />
           <PretendardText

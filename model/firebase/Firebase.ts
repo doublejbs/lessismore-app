@@ -130,6 +130,8 @@ class Firebase {
     app.getAnalyticsManager()?.identifyUser(null);
     // 다른 사용자로 재로그인 시 이전 사용자의 즐겨찾기가 남지 않도록 초기화한다(CS-9).
     app.getCampFavoriteStore()?.reset();
+    // 토큰 문서 삭제는 인증이 살아 있을 때(logout·탈퇴 직전) 이미 했다 — 여기서는 등록기 상태만 비운다(NT-12).
+    app.getNotificationManager()?.resetPushTokenRegistration();
   }
 
   private async checkLoggedIn() {
@@ -254,6 +256,9 @@ class Firebase {
   }
 
   public async logout() {
+    // 이 기기의 푸시 토큰 문서를 먼저 지운다 — 본인만 쓸 수 있는 문서라 signOut 뒤에는 지울 수 없다(NT-12).
+    // 실패·지연은 조용히 넘기고 상한 시간 뒤 로그아웃을 진행한다.
+    await app.getNotificationManager()?.unregisterPushToken();
     await signOut(this.auth);
 
     // 네이티브 앱에서만 GoogleSignin 사용
@@ -509,6 +514,9 @@ class Firebase {
       // 데이터 삭제 실패해도 계정 삭제는 진행
     }
 
+    // 이 기기의 푸시 토큰 문서 삭제 — 인증이 살아 있을 때만 가능하다(NT-12, 트리 정리는 서버 AU-8).
+    await app.getNotificationManager()?.unregisterPushToken();
+
     // Firebase Auth 계정 삭제
     await deleteUser(user);
 
@@ -553,6 +561,9 @@ class Firebase {
       console.error('사용자 데이터 삭제 실패:', error); // l10n-ignore: console 개발자 로그
       // 데이터 삭제 실패해도 계정 삭제는 진행
     }
+
+    // 이 기기의 푸시 토큰 문서 삭제 — 인증이 살아 있을 때만 가능하다(NT-12, 트리 정리는 서버 AU-8).
+    await app.getNotificationManager()?.unregisterPushToken();
 
     // Firebase Auth 계정 삭제
     await deleteUser(user);

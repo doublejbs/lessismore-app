@@ -11,7 +11,7 @@ import {
   STANDALONE_BOTTOM_GAP,
 } from '@/components/bag-snapshot/SnapshotMapBandView';
 import SpotPinView from '@/components/camp-site/SpotPinView';
-import GroupPointMarkerView from '@/components/group/map/GroupPointMarkerView';
+import PointMarkerView from '@/components/point/PointMarkerView';
 import RoutePathOverlayView from '@/components/route/RoutePathOverlayView';
 import { Acg, AcgRadius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
@@ -163,7 +163,7 @@ const GroupDetailMapBandView: FC<Props> = ({
             </NaverMapMarkerOverlay>
           ) : null}
           {points.map(point => (
-            <GroupPointMarkerView
+            <PointMarkerView
               key={point.getId()}
               point={point}
               selected={false}

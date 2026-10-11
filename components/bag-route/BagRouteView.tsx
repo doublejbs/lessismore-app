@@ -6,6 +6,9 @@ import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AlertView from '@/components/alert/AlertView';
+import PointCreateSheetView, {
+  PointDraft,
+} from '@/components/point/PointCreateSheetView';
 import PretendardText from '@/components/PretendardText';
 import RouteElevationChartView from '@/components/route/RouteElevationChartView';
 import ToastView from '@/components/toast/ToastView';
@@ -13,14 +16,26 @@ import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
 import LoadingView from '@/components/ui/LoadingView';
 import { Acg, AcgLayout, AcgType, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
+import BagPoint from '@/model/bag-point/BagPoint';
+import BagPointAddVia from '@/model/bag-point/BagPointAddVia';
+import { BagPointEntry } from '@/model/bag-point/BagPointEntry';
+import BagPointList from '@/model/bag-point/BagPointList';
 import BagRoute from '@/model/bag-route/BagRoute';
 import { BagRouteEntry } from '@/model/bag-route/BagRouteEntry';
 import BagRouteList from '@/model/bag-route/BagRouteList';
-import BagRouteCanvasView from './BagRouteCanvasView';
+import BagRouteSegment from '@/model/bag-route/BagRouteSegment';
+import BagRouteCanvasView, { BagPointCoordinate } from './BagRouteCanvasView';
 import BagRouteListSectionView from './BagRouteListSectionView';
 
 interface Props {
   bagRouteList: BagRouteList;
+  bagPointList: BagPointList;
+}
+
+// 입력 시트가 등록할 좌표와 그 좌표를 찍은 경로(측정 `via`).
+interface PointDraftTarget {
+  coordinate: BagPointCoordinate;
+  via: BagPointAddVia;
 }
 
 const IS_IOS = Platform.OS === 'ios';
@@ -28,31 +43,46 @@ const IS_WEB = Platform.OS === 'web';
 const HEADER_HEIGHT = 52;
 
 /**
- * 배낭 코스 (BD-11) — 지도 + 코스 목록 + 선택한 코스의 고도 그래프.
+ * 배낭 코스 (BD-11) — 지도 + 코스 목록 + 선택한 코스의 고도 그래프. 지도 포인트(BD-14)도 여기 산다.
  *
  * 지도·그래프·목록 행은 그룹 코스 화면(GRP-8·GRP-10)의 것을 그대로 쓴다. 웹은 지도가 없으므로
  * 목록과 그래프만 보여주는 **읽기 전용** 화면이 된다(APP-5) — 파일 선택기가 없어 추가가
  * 불가능한 화면에서 삭제만 여는 것은 균형이 맞지 않는다.
+ * 포인트도 웹에서는 목록으로만, 읽기 전용으로 보인다(BD-14).
  * iOS는 네이티브 투명 헤더, Android는 커스텀 헤더다(LG-1, 그룹 지도와 같은 관례).
  */
-const BagRouteView: FC<Props> = ({ bagRouteList }) => {
+const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
   const router = useRouter();
   const l10n = app.getL10n();
   const insets = useSafeAreaInsets();
   // 어느 코스를 그룹에 올릴지 고르는 중. 연결 그룹이 둘 이상일 때만 시트를 연다.
   const [groupPickTarget, setGroupPickTarget] = useState<BagRoute | null>(null);
+  const [segment, setSegment] = useState(BagRouteSegment.Routes);
+  // 포인트 추가 조준 모드(BD-14). 이 동안 아래 목록이 걷혀 지도를 넓히고 확정 말고 누를 것을 두지 않는다.
+  const [isAiming, setIsAiming] = useState(false);
+  const [isSheetVisible, setIsSheetVisible] = useState(false);
+  const [draftTarget, setDraftTarget] = useState<PointDraftTarget | null>(null);
+  const [editingPoint, setEditingPoint] = useState<BagPoint | null>(null);
+  // 시트를 열 때마다 올린다 — 시트가 이 값을 `key`로 받아 새로 마운트되면서 입력이 초기화된다.
+  const [sheetKey, setSheetKey] = useState(0);
   const selected = bagRouteList.getSelectedEntry();
 
   useFocusEffect(
     useCallback(() => {
       if (bagRouteList.isInitialized()) {
         void bagRouteList.refresh(true);
+      } else {
+        void bagRouteList.initialize();
+      }
+
+      if (bagPointList.isInitialized()) {
+        void bagPointList.refresh(true);
 
         return;
       }
 
-      void bagRouteList.initialize();
-    }, [bagRouteList])
+      void bagPointList.initialize();
+    }, [bagPointList, bagRouteList])
   );
 
   const handleBack = () => {
@@ -106,12 +136,118 @@ const BagRouteView: FC<Props> = ({ bagRouteList }) => {
     setGroupPickTarget(null);
   }, []);
 
+  const handleStartAiming = useCallback(() => {
+    setIsAiming(true);
+  }, []);
+
+  const handleCancelAiming = useCallback(() => {
+    setIsAiming(false);
+  }, []);
+
+  const handleRequestCreate = useCallback(
+    (coordinate: BagPointCoordinate, via: BagPointAddVia) => {
+      // 상한 50이면 입력을 받기 전에 막고 이유를 알린다(BD-14).
+      if (bagPointList.isFull()) {
+        app.getToastManager()?.showSimple(bagPointList.getLimitMessage());
+
+        return;
+      }
+
+      setEditingPoint(null);
+      setDraftTarget({ coordinate, via });
+      setSheetKey(value => value + 1);
+      setIsSheetVisible(true);
+    },
+    [bagPointList]
+  );
+
+  const handleRequestEdit = useCallback((point: BagPoint) => {
+    setDraftTarget(null);
+    setEditingPoint(point);
+    setSheetKey(value => value + 1);
+    setIsSheetVisible(true);
+  }, []);
+
+  const handleRequestDeletePoint = useCallback(
+    (point: BagPoint) => {
+      app.getAlertManager()?.show({
+        message: l10n.t('group.point.deleteConfirm'),
+        confirmText: l10n.t('group.point.delete'),
+        cancelText: l10n.t('common.cancel'),
+        destructive: true,
+        onConfirm: async () => {
+          await bagPointList.deletePoint(point);
+        },
+      });
+    },
+    [bagPointList, l10n]
+  );
+
+  // 목록 행 탭 → 지도가 그 포인트로 옮겨 가고 카드가 뜬다(BD-14).
+  const handleSelectPoint = useCallback(
+    (entry: BagPointEntry) => {
+      bagPointList.focusEntry(entry.key, true);
+    },
+    [bagPointList]
+  );
+
+  const handleCloseSheet = useCallback(() => {
+    setIsSheetVisible(false);
+    setDraftTarget(null);
+    setEditingPoint(null);
+  }, []);
+
+  const handleSubmitPoint = useCallback(
+    async (draft: PointDraft) => {
+      if (editingPoint) {
+        const saved = await bagPointList.updatePoint(editingPoint.getId(), {
+          type: draft.type,
+          title: draft.title,
+          description: draft.description || null,
+        });
+
+        if (saved) {
+          handleCloseSheet();
+        }
+
+        return;
+      }
+
+      if (!draftTarget) {
+        return;
+      }
+
+      const created = await bagPointList.createPoint(
+        {
+          type: draft.type,
+          latitude: draftTarget.coordinate.latitude,
+          longitude: draftTarget.coordinate.longitude,
+          title: draft.title,
+          ...(draft.description ? { description: draft.description } : {}),
+        },
+        draftTarget.via
+      );
+
+      if (created) {
+        handleCloseSheet();
+      }
+    },
+    [bagPointList, draftTarget, editingPoint, handleCloseSheet]
+  );
+
   const renderList = () => (
     <BagRouteListSectionView
       bagRouteList={bagRouteList}
+      bagPointList={bagPointList}
+      segment={segment}
+      onChangeSegment={setSegment}
       onSelect={handleSelect}
       onDelete={handleDelete}
       onUploadToGroup={handleUploadToGroup}
+      // 웹에는 옮겨 갈 지도가 없다 — 포인트 행은 읽기 전용이다(BD-14).
+      onSelectPoint={IS_WEB ? undefined : handleSelectPoint}
+      onEditPoint={handleRequestEdit}
+      onDeletePoint={handleRequestDeletePoint}
       bottomInset={insets.bottom + 12}
     />
   );
@@ -121,7 +257,11 @@ const BagRouteView: FC<Props> = ({ bagRouteList }) => {
       return <LoadingView />;
     }
 
-    if (bagRouteList.getError() && bagRouteList.isEmpty()) {
+    if (
+      bagRouteList.getError() &&
+      bagRouteList.isEmpty() &&
+      !bagPointList.hasAny()
+    ) {
       return (
         <View style={styles.state}>
           <PretendardText style={styles.stateTitle}>
@@ -164,8 +304,21 @@ const BagRouteView: FC<Props> = ({ bagRouteList }) => {
 
     return (
       <>
-        <BagRouteCanvasView bagRouteList={bagRouteList} />
-        {renderList()}
+        <BagRouteCanvasView
+          bagRouteList={bagRouteList}
+          bagPointList={bagPointList}
+          isAiming={isAiming}
+          onStartAiming={handleStartAiming}
+          onCancelAiming={handleCancelAiming}
+          onRequestCreate={handleRequestCreate}
+          onRequestEdit={handleRequestEdit}
+          onRequestDelete={handleRequestDeletePoint}
+          // Android는 커스텀 헤더가 레이아웃을 차지해 지도가 이미 그 아래에서 시작한다 — 칩은
+          // 지도 위쪽에 살짝 띄우기만 한다. iOS는 투명 헤더라 직접 비운다(그룹 지도와 같다).
+          topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
+        />
+        {/* 조준 모드에서는 목록을 걷는다 — 지도를 넓히고, 확정 말고 누를 것을 두지 않는다(GRP-9). */}
+        {isAiming ? null : renderList()}
       </>
     );
   };
@@ -221,6 +374,17 @@ const BagRouteView: FC<Props> = ({ bagRouteList }) => {
           },
         }))}
       />
+      {IS_WEB ? null : (
+        <PointCreateSheetView
+          key={sheetKey}
+          visible={isSheetVisible}
+          point={editingPoint}
+          descriptionPlaceholder={l10n.t('bag.point.descriptionPlaceholder')}
+          submitting={bagPointList.isSubmitting()}
+          onClose={handleCloseSheet}
+          onSubmit={draft => void handleSubmitPoint(draft)}
+        />
+      )}
       <ToastView toastManager={app.getToastManager()!} bottom={100} />
       <AlertView alertManager={app.getAlertManager()!} />
     </GestureHandlerRootView>

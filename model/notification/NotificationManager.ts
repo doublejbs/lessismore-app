@@ -2,8 +2,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs, { Dayjs } from 'dayjs';
 import { Platform } from 'react-native';
 import app from '../app/App';
+import { getAppVersionInfo } from '../app/AppVersionInfo';
+import PushTokenStore from '../store/PushTokenStore';
 import NotificationType from './NotificationType';
 import NotificationPermissionStatus from './NotificationPermissionStatus';
+import PushTokenPlatform from './PushTokenPlatform';
+import PushTokenRegistrar from './PushTokenRegistrar';
 import {
   absorbDelivered,
   EMPTY_REENGAGEMENT_STATE,
@@ -88,6 +92,14 @@ type FirebaseMessaging = {
     listener: (message: RemoteMessage) => void
   ) => Unsubscribe;
   getInitialNotification: () => Promise<RemoteMessage | null>;
+  getToken: () => Promise<string>;
+  onTokenRefresh: (listener: (token: string) => void) => Unsubscribe;
+};
+
+// NT-9 동기화 입력 — 여행 목록 + 브리핑 대상 박지 보유 여부(NT-8 생략 규칙).
+type ReengagementInput = {
+  trips: ReengagementTrip[];
+  hasBriefingTarget: boolean;
 };
 
 type ResponseRouteListener = (route: string) => void;
@@ -148,6 +160,7 @@ class NotificationManager {
   private initializePromise: Promise<void> | null = null;
   // 시작 시 권한 요청(NT-1)은 세션당 1회 — 레이아웃 effect가 여러 번 불러도 한 번만 한다.
   private launchPermissionHandled = false;
+  private pushTokenRegistrar: PushTokenRegistrar | null = null;
 
   private constructor() {}
 
@@ -203,6 +216,7 @@ class NotificationManager {
       }
 
       this.setupRemoteMessaging(notifications);
+      this.getPushTokenRegistrar()?.start();
 
       const current = await notifications.getPermissionsAsync();
 
@@ -221,6 +235,8 @@ class NotificationManager {
     }
 
     this.requestReengagementSync();
+    // 로그인 상태면 이 기기 토큰을 서버에 등록한다(NT-12 ①). 비로그인은 등록기가 건너뛴다.
+    void this.getPushTokenRegistrar()?.register();
   }
 
   // 시작 시 권한 요청(NT-1 개정, OB-8). 레이아웃이 로그인 + 약관 동의 + 첫 여행 가이드 판정 뒤에
@@ -600,6 +616,73 @@ class NotificationManager {
     await this.saveSettings();
 
     await this.syncReengagementReminders();
+    // 토큰 문서의 briefingEnabled가 이 토글을 미러한다(NT-12 ③).
+    await this.getPushTokenRegistrar()?.register();
+  }
+
+  /**
+   * 푸시 토큰 등록(NT-12). 로그인 상태 변화 직후에 부른다 — 비로그인·권한 미허용이면 아무것도 하지 않는다.
+   * 웹은 no-op.
+   */
+  public registerPushToken(): void {
+    void this.getPushTokenRegistrar()?.register();
+  }
+
+  // 포그라운드 복귀 시 하루 1회 상한으로 재확인한다(NT-12 ④). 웹은 no-op.
+  public recheckPushTokenOnForeground(): void {
+    void this.getPushTokenRegistrar()?.registerOnForeground();
+  }
+
+  // 로그아웃·탈퇴 직전(인증이 살아 있을 때) 이 기기의 토큰 문서를 지운다(NT-12 삭제). 실패는 조용히 넘긴다.
+  public async unregisterPushToken(): Promise<void> {
+    await this.getPushTokenRegistrar()?.unregisterCurrentDevice();
+  }
+
+  // 인증 상태가 비워진 뒤(Firebase.clear) 부른다 — 다음 로그인 사용자가 새로 등록할 수 있게.
+  public resetPushTokenRegistration(): void {
+    this.pushTokenRegistrar?.reset();
+  }
+
+  private getPushTokenRegistrar(): PushTokenRegistrar | null {
+    if (!this.enabled) {
+      return null;
+    }
+
+    if (this.pushTokenRegistrar) {
+      return this.pushTokenRegistrar;
+    }
+
+    const firebase = app.getFirebase();
+
+    this.pushTokenRegistrar = PushTokenRegistrar.from({
+      store: new PushTokenStore(firebase),
+      login: {
+        isLoggedIn: () => firebase.isLoggedIn(),
+        getUserId: () => firebase.getUserId(),
+        hasAgreedToTerms: () => firebase.hasUserAgreedToTerms(),
+      },
+      platform:
+        Platform.OS === 'ios'
+          ? PushTokenPlatform.Ios
+          : PushTokenPlatform.Android,
+      getMessaging: () => this.getMessaging(),
+      isPermissionGranted: async () =>
+        (await this.getPermissionStatus()) ===
+        NotificationPermissionStatus.Granted,
+      isBriefingToggleOn: async () => {
+        if (!this.settingsReady) {
+          void this.initialize();
+        }
+
+        await this.settingsReady;
+
+        return this.settings.reengage;
+      },
+      getLocale: () => app.getL10n().language,
+      getAppVersion: () => getAppVersionInfo().version || null,
+    });
+
+    return this.pushTokenRegistrar;
   }
 
   /**
@@ -671,14 +754,19 @@ class NotificationManager {
       return;
     }
 
-    const trips = await this.fetchReengagementTrips();
+    const input = await this.fetchReengagementInput();
 
     // 조회 실패(오프라인 등)는 빈 목록과 다르다 — 기존 예약을 그대로 두고 다음 동기화로 미룬다.
-    if (!trips) {
+    if (!input) {
       return;
     }
 
-    const plan = planReengagement(trips, state, now);
+    const plan = planReengagement(
+      input.trips,
+      state,
+      now,
+      input.hasBriefingTarget
+    );
 
     await this.applyReengagementPlan(plan);
     await this.saveReengagementState({
@@ -707,7 +795,7 @@ class NotificationManager {
     return permission.granted;
   }
 
-  private async fetchReengagementTrips(): Promise<ReengagementTrip[] | null> {
+  private async fetchReengagementInput(): Promise<ReengagementInput | null> {
     const bagStore = app.getBagStore();
 
     if (!bagStore) {
@@ -716,8 +804,7 @@ class NotificationManager {
 
     try {
       const bags = await bagStore.getListOrThrow();
-
-      return bags.flatMap(bag => {
+      const trips = bags.flatMap(bag => {
         const start = bag.getTripStart();
         const end = bag.getTripEnd();
 
@@ -734,11 +821,34 @@ class NotificationManager {
           },
         ];
       });
+      // NT-11 대상 박지(여행지 박지 ①③ 또는 즐겨찾기 ②)가 있으면 서버 브리핑이 목요일을 맡는다(NT-8 개정).
+      const hasCampSpotTrip = bags.some(bag => Boolean(bag.getCampSpotId()));
+      const hasBriefingTarget =
+        hasCampSpotTrip || (await this.fetchHasFavoriteSpot());
+
+      return { trips, hasBriefingTarget };
     } catch (error) {
       console.warn('NotificationManager 재방문 리마인더 배낭 조회 실패', error); // l10n-ignore: console 개발자 로그
 
       return null;
     }
+  }
+
+  // 즐겨찾기 조회 실패는 throw해 동기화를 미룬다 — 0곳으로 오인해 브리핑과 겹치는 NT-8을 잡지 않게.
+  private async fetchHasFavoriteSpot(): Promise<boolean> {
+    const favoriteStore = app.getCampFavoriteStore();
+
+    if (!favoriteStore) {
+      throw new Error('CampFavoriteStore not ready'); // l10n-ignore: 개발자 오류
+    }
+
+    await favoriteStore.load();
+
+    return favoriteStore.hasFavorites();
+  }
+
+  private async fetchReengagementTrips(): Promise<ReengagementTrip[] | null> {
+    return (await this.fetchReengagementInput())?.trips ?? null;
   }
 
   private async applyReengagementPlan(plan: ReengagementPlan): Promise<void> {
