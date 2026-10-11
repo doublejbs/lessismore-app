@@ -31,13 +31,14 @@ import SubscriptionStore from '../subscription/SubscriptionStore';
 import SubscriptionNudge from '../subscription/SubscriptionNudge';
 import SubscriptionEntryPoint from '../subscription/SubscriptionEntryPoint';
 import { openSubscription } from '../subscription/OpenSubscription';
+import { SUBSCRIPTION_AD_ENTRY_ENABLED } from '../subscription/SubscriptionConstants';
 import OnboardingTripManager from '../onboarding/OnboardingTripManager';
 
 class App {
   private readonly firebase = new Firebase();
   private readonly l10n = new L10n();
-  // SUB-3·SUB-4: 광고 제거 구독 상태. SDK 설정은 Firebase 초기화 뒤(로그인 uid를 알고 나서) 한다.
-  // 광고 서비스가 이 상태를 보고 구독자에게는 광고·동의 흐름을 시작하지 않는다.
+  // SUB-3·SUB-11: `useless 플러스` 구독 상태. SDK 설정은 Firebase 초기화 뒤(로그인 uid를 알고 나서) 한다.
+  // 오프라인 저장 게이트가 이 상태를 본다. 광고 서비스도 같은 상태를 받는다(SUB-4 `[보류]`).
   private readonly subscriptionStore = SubscriptionStore.new(this.firebase);
   // AD-3·AD-5: 광고 동의·요청. 생성만 해 두고 동의 흐름은 광고 자리(홈 제외)에 처음 포커스될 때 흐른다.
   // 웹은 Metro가 `AdService.web.ts`(광고 SDK 없음)를 고른다(AD-4).
@@ -71,6 +72,8 @@ class App {
   private bagPointStore: BagPointStore | null = null;
   private communitySearchStore: CommunitySearchStore | null = null;
   // SUB-9: 광고 누적 노출 뒤 한 번 뜨는 구독 안내 시트. 분석 매니저가 생긴 뒤 만든다.
+  // `[보류 — 광고 미도입]`: `SUBSCRIPTION_AD_ENTRY_ENABLED`가 꺼져 있으면 만들지 않는다(null — 노출을 세지도,
+  // 시트를 띄우지도 않는다).
   private subscriptionNudge: SubscriptionNudge | null = null;
 
   private gearPreviewStore: GearPreviewStore | null = null;
@@ -143,16 +146,19 @@ class App {
     // config/featurePopup 실시간 구독을 시작한다(닫음 목록 로드 후 구독, 웹 포함). 실패는 조용히 통과(FP-2).
     void this.featurePopupManager.initialize();
     this.gearPreviewStore = GearPreviewStore.new(this.gearStore);
-    this.subscriptionNudge = SubscriptionNudge.new(
-      this.subscriptionStore,
-      this.adService,
-      () => {
-        openSubscription(SubscriptionEntryPoint.Nudge);
-      },
-      action => {
-        this.analyticsManager?.logClick('subscription_nudge', { action });
-      }
-    );
+    if (SUBSCRIPTION_AD_ENTRY_ENABLED) {
+      this.subscriptionNudge = SubscriptionNudge.new(
+        this.subscriptionStore,
+        this.adService,
+        () => {
+          openSubscription(SubscriptionEntryPoint.Nudge);
+        },
+        action => {
+          this.analyticsManager?.logClick('subscription_nudge', { action });
+        }
+      );
+    }
+
     // 첫 여행 만들기 가이드(OB-1) — 판정은 레이아웃이 탭 도착 시 부른다.
     this.onboardingTripManager = OnboardingTripManager.new(
       this.firebase,

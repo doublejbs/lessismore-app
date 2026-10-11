@@ -1,16 +1,31 @@
-// SUB-1: RevenueCat 권한(entitlement). 이 권한이 살아 있으면 구독 중이다(SUB-4).
-export const NO_ADS_ENTITLEMENT_ID = 'no_ads';
+// SUB-1: RevenueCat 권한(entitlement). 이 권한이 살아 있으면(7일 무료 체험 포함) 구독 중이다 —
+// 오프라인 저장 게이트(SUB-11)가 이 판단을 쓴다. 구 `no_ads`(2026-10-10 개정).
+export const PREMIUM_ENTITLEMENT_ID = 'premium';
 
-// SUB-4: 앱 시작 직후 SDK가 구독 상태를 알려 주기를 기다리는 최대 시간. 넘기면 미구독으로 보고
-// 광고를 요청한다 — 이후 구독으로 확인되면 받은 광고를 해제하고 자리를 접는다.
+// SUB-1: 스토어 상품 ID(iOS·Android 같은 값). 가격·체험 자격은 SDK가 준 패키지에서 읽고, 이 값은
+// 안드로이드 구독 관리 주소(`sku=`)에 쓴다.
+export const PLUS_PRODUCT_ID = 'useless_plus_monthly';
+
+// SUB-10: 체험 중 권한의 `periodType`(RevenueCat `PERIOD_TYPE.TRIAL`).
+export const TRIAL_PERIOD_TYPE = 'TRIAL';
+
+// SUB-11: 오프라인 진입점의 `from` 값. `SubscriptionEntryPoint.Offline`과 같은 값이어야 한다 —
+// 구독 화면은 진입점을 라우트 파라미터 문자열로 읽어 변형을 고른다.
+export const OFFLINE_ENTRY_POINT_VALUE = 'offline';
+
+// SUB-9 `[보류 — 광고 미도입(2026-10-10)]`: 광고 쪽 구독 진입점(광고 아래 `광고 없이 보기` 링크·누적 노출 뒤
+// 한 번 뜨는 안내 시트). 광고가 혜택이 아니므로 끈다 — 코드는 남겨 두고, 광고가 다시 혜택이 되면 켠다.
+export const SUBSCRIPTION_AD_ENTRY_ENABLED = false;
+
+// SUB-4·SUB-11: 앱 시작 직후 SDK가 구독 상태를 알려 주기를 기다리는 최대 시간. 넘기면 미구독으로 본다 —
+// 이후 구독으로 확인되면 리스너가 바로 반영한다.
 export const SUBSCRIPTION_RESOLVE_TIMEOUT_MS = 3000;
 
 // SUB-5: `구독 관리` — 스토어의 구독 관리 화면.
 export const IOS_MANAGE_SUBSCRIPTIONS_URL =
   'https://apps.apple.com/account/subscriptions';
 
-export const ANDROID_MANAGE_SUBSCRIPTIONS_URL =
-  'https://play.google.com/store/account/subscriptions?package=com.doublejbs.useless&sku=useless_no_ads_monthly';
+export const ANDROID_MANAGE_SUBSCRIPTIONS_URL = `https://play.google.com/store/account/subscriptions?package=com.doublejbs.useless&sku=${PLUS_PRODUCT_ID}`;
 
 // SUB-9: 광고가 화면에 누적 이만큼 그려지면(자리 5곳 합산) 한 번 뜨는 안내 시트를 띄운다.
 export const SUBSCRIPTION_NUDGE_IMPRESSION_THRESHOLD = 20;

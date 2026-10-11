@@ -56,7 +56,7 @@ const InfoView: FC = () => {
   const adService = app.getAdService();
   const subscriptionStore = app.getSubscriptionStore();
   // AD-3: UMP가 개인정보 옵션 재진입을 요구하는 지역에서만 입구를 보인다.
-  // 광고 제거 구독자에게는 광고가 없으니 광고 동의 입구도 두지 않는다(SUB-4).
+  // 구독자에게는 광고 동의 입구도 두지 않는다(SUB-4 `[보류]` — 광고가 다시 들어오면 그대로 쓴다).
   const isAdPrivacyOptionsVisible =
     adService.isPrivacyOptionsRequired() && !subscriptionStore.isSubscribed();
   // SUB §2·§5: 웹·공개 키 없음·구매 모듈 없는 옛 바이너리에서는 행을 두지 않는다.
@@ -311,7 +311,7 @@ const InfoView: FC = () => {
             />
           </TouchableOpacity>
 
-          {/* SUB §2: 광고 제거 구독. 구독 중이면 같은 행이 관리 상태로 들어간다. */}
+          {/* SUB §2·AU-4: `useless 플러스` 구독. 구독 중이면 같은 행이 관리 상태로 들어간다. */}
           {isSubscriptionRowVisible ? (
             <TouchableOpacity
               style={styles.button}

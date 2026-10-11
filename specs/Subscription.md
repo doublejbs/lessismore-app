@@ -69,7 +69,7 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 **수용 기준**
 
 - `구매 복원` → `Purchases.restorePurchases()`. 권한이 살아나면 토스트 `구독을 복원했어요`, 없으면 알럿 `복원할 구독이 없어요`.
-- `구독 관리` → iOS `https://apps.apple.com/account/subscriptions`, Android Play 구독 관리(`https://play.google.com/store/account/subscriptions?package=com.doublejbs.useless&sku=useless_no_ads_monthly`).
+- `구독 관리` → iOS `https://apps.apple.com/account/subscriptions`, Android Play 구독 관리(`https://play.google.com/store/account/subscriptions?package=com.doublejbs.useless&sku=useless_plus_monthly`).
 
 ### SUB-6 서버 기록(웹훅) `[제안]`
 
@@ -113,7 +113,7 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 **수용 기준**
 
 - 스토어 도입 오퍼로 **무료 체험 7일**을 구성한다(App Store Connect 구독 → 도입 혜택 → 무료 체험 1주 / Play Console 기본 요금제 → 무료 체험 7일). RevenueCat은 이를 패키지의 `introPrice`로 돌려주고, 체험 중 `entitlements.active.premium.periodType == 'TRIAL'`이다.
-- **자격**: 스토어 계정당 한 번이다(Apple ID·Google 계정 기준 — 앱이 아니라 스토어가 판단). 앱은 `Purchases.checkTrialOrIntroductoryPriceEligibility`로 자격을 묻고, 자격이 있으면 체험 문구·`7일 무료로 시작` 버튼, 없으면(이미 썼거나 판단 불가) `월 {가격}`·`구독하기`로 그린다. 자격 조회가 실패하면 **없는 쪽으로** 그린다(없다고 했는데 체험이 붙는 것은 괜찮고, 있다고 했는데 바로 결제되는 것은 안 된다).
+- **자격**: 스토어 계정당 한 번이다(Apple ID·Google 계정 기준 — 앱이 아니라 스토어가 판단). 앱은 `Purchases.checkTrialOrIntroductoryPriceEligibility`로 자격을 묻고, 자격이 있으면 체험 문구·`7일 무료로 시작` 버튼, 없으면(이미 썼거나 판단 불가) `월 {가격}`·`구독하기`로 그린다. 자격 조회가 실패하면 **없는 쪽으로** 그린다(없다고 했는데 체험이 붙는 것은 괜찮고, 있다고 했는데 바로 결제되는 것은 안 된다). **Android는 `checkTrialOrIntroductoryPriceEligibility`가 항상 UNKNOWN을 돌려주므로**(2026-10-11 구현 확인) 상품의 `defaultOption.freePhase` 존재로 자격을 판단한다 — Play는 자격 있는 오퍼만 내려준다. iOS는 API 결과 + 도입가 0원일 때만 체험으로 본다.
 - 체험 시작도 **구매**다 — 로그인 필수(SUB-3), 스토어 결제 시트가 뜨고, 7일 뒤 자동으로 월 요금이 청구된다는 안내를 가격 줄 아래에 적는다: `체험 기간이 끝나면 월 {가격}이 자동으로 청구돼요. 체험 중 언제든 스토어 설정에서 해지할 수 있어요.`(심사 필수 표시 — 3.1.2).
 - 체험 중 해지하면 체험 종료일까지 권한이 유지된다(스토어 규칙) — 화면은 `{종료일}까지 이용`.
 - 서버 기록(DM-31)에 `isTrial`을 둔다(웹훅 `period_type`). 측정은 SUB-8의 `subscription_purchase_success`에 `is_trial` 파라미터를 더한다.
@@ -124,7 +124,7 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 
 - 오프라인 저장([Offline.md](Offline.md) OF-2)의 **저장·갱신·열람 모두 권한 `premium`이 살아 있을 때만** 한다(체험 포함). 만료되면 저장본 열람도 잠긴다(OF-7, 2026-10-10 사용자 결정).
 - 미구독 상태에서 배낭 상세 `오프라인` 타일을 누르면 구독 화면(SUB-2)을 **오프라인 진입점 변형**으로 연다: 제목 아래 한 줄 `이 여행을 저장하면 산에서도 코스·장비·날씨를 볼 수 있어요`, 혜택 두 줄 중 오프라인 줄을 먼저 둔다. 로그인하지 않았으면 로그인부터(SUB-3). `SubscriptionEntryPoint`에 `Offline`을 더한다.
-- 구매(체험 시작) 성공 → 시트가 닫히면 **그 여행의 저장을 바로 시작**한다(OF-2) — 사용자가 하려던 일을 끝내 준다. 취소·실패면 아무 일도 없다.
+- 구매(체험 시작) 성공 → 시트가 닫히면 **그 여행의 저장을 바로 시작**한다(OF-2) — 사용자가 하려던 일을 끝내 준다. 취소·실패면 아무 일도 없다. 구현: `openSubscription(SubscriptionEntryPoint.Offline, { onEntitled })` — 콜백은 구매·체험 시작·**복원** 성공으로 권한이 생겼을 때 시트가 닫힌 뒤 1회 호출되고, 시트가 권한 없이 닫히면 버려진다(2026-10-11).
 - 구독 중 타일은 게이트 없이 바로 저장한다. 구독이 끝나면 타일·여행 탭 배너·오프라인 상세 진입이 모두 같은 게이트로 보낸다(OF-7).
 - 설정(정보 탭) `useless 플러스` 행도 같은 구독 화면을 연다(일반 변형). 광고 쪽 진입점(SUB-9)은 보류.
 
@@ -151,9 +151,9 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 
 ## 6. 출시 전 준비 (사용자가 직접)
 
-- App Store Connect: 유료 앱 계약·세금·은행 정보, 구독 그룹 `광고 제거` + 상품 `useless_no_ads_monthly`(가격·현지화 이름·심사 스크린샷), App Store Server Notifications V2 URL을 RevenueCat이 안내하는 값으로.
-- Play Console: 결제 프로필, 구독 `useless_no_ads_monthly` + 기본 요금제(월 자동 갱신), 실시간 개발자 알림(Pub/Sub)을 RevenueCat 안내대로.
-- RevenueCat: 프로젝트·두 앱 등록(iOS는 App Store Connect API 키 인앱 구매용, Android는 Play 서비스 계정 JSON), entitlement `no_ads`, 오퍼링 `default`, 웹훅 URL·Authorization 값.
+- App Store Connect: 유료 앱 계약·세금·은행 정보, 구독 그룹 `useless 플러스` + 상품 `useless_plus_monthly`(가격·현지화 이름·심사 스크린샷) + **도입 혜택 무료 체험 1주**(SUB-10), App Store Server Notifications V2 URL을 RevenueCat이 안내하는 값으로.
+- Play Console: 결제 프로필, 구독 `useless_plus_monthly` + 기본 요금제(월 자동 갱신) + **신규 고객 무료 체험 7일 오퍼**(SUB-10), 실시간 개발자 알림(Pub/Sub)을 RevenueCat 안내대로.
+- RevenueCat: 프로젝트·두 앱 등록(iOS는 App Store Connect API 키 인앱 구매용, Android는 Play 서비스 계정 JSON), entitlement `premium`(두 스토어 상품 연결), 오퍼링 `default`(current, `$rc_monthly` 패키지), 웹훅 URL·Authorization 값.
 - 개인정보 처리방침: 결제 처리(Apple·Google·RevenueCat) 항목 추가. 이용약관: 구독·해지·환불 조항.
 - App Store 개인정보 라벨: `구매 내역`(앱 기능·분석, 사용자와 연결됨) 추가. Play 데이터 보안: `구매 기록` 추가.
 
