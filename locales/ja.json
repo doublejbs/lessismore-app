@@ -270,6 +270,17 @@
       "toGroupTitle": "どのグループに送りますか？",
       "toGroupDone": "グループに送りました"
     },
+    "point": {
+      "segmentRoutes": "コース",
+      "segmentPoints": "ポイント",
+      "empty": "まだポイントがありません。地図を長押しするか、ポイントを追加から登録してください",
+      "emptyReadOnly": "まだポイントがありません",
+      "emptyFiltered": "この種類のポイントはありません",
+      "descriptionPlaceholder": "あとで見返すメモを入力してください",
+      "tileCount_other": "ポイント {{count}}",
+      "dateFormat": "MM/DD",
+      "loadFailed": "ポイントを読み込めませんでした"
+    },
     "group": {
       "members_other": "メンバー{{count}}人",
       "rowLabel": "{{name}}グループ、{{members}}",
@@ -699,7 +710,8 @@
     "brandDirectory": {
       "title": "ブランドから探す"
     },
-    "ranking": "人気ギアランキング",
+    "rankingTitle": "人気ランキング",
+    "rankingSeeAll": "ランキングをすべて見る",
     "addedToBag": "バックパックに入れました。",
     "addedToWarehouse": "倉庫に追加しました。",
     "removeFromWarehouseAccessibility": "{{name}}を倉庫から外す",
@@ -1681,7 +1693,6 @@
       }
     },
     "start": "次のバックパッキングを準備する",
-    "browse": "まずは見てみる",
     "login": "アカウントをお持ちの方 · ログイン"
   }
 }

@@ -23,12 +23,12 @@ const BAND_HEIGHT = 200;
 const LOGO_HEIGHT = 24;
 const LOGO_WIDTH = Math.round((LOGO_HEIGHT * 4096) / 800);
 
-// 첫 실행 환영 화면(OB-14): 산 띠 → 워드마크 → 제목 → 가치 3행 / 하단 라임 1개 + 둘러보기 + 로그인 링크.
+// 첫 실행 환영 화면(OB-14): 산 띠 → 워드마크 → 제목 → 가치 3행 / 하단 라임 1개 + 로그인 링크(둘러보기는 2026-10-11 제거).
 const WelcomeView: FC = () => {
   const l10n = app.getL10n();
   // fullScreenModal 안에서는 네이티브 인셋이 첫 마운트에 0일 수 있어 루트 프로바이더 값을 쓴다(OB-3과 같은 이유).
   const insets = useSafeAreaInsets();
-  const { isGuest, handleStart, handleBrowse, handleLogin } =
+  const { isGuest, handleStart, handleLogin } =
     useWelcomeState();
 
   const loginLink = isGuest ? (
@@ -93,10 +93,6 @@ const WelcomeView: FC = () => {
       <OnboardingTripFooterView
         primaryLabel={l10n.t('welcome.start')}
         onPrimary={handleStart}
-        secondaryLabel={l10n.t('welcome.browse')}
-        onSecondary={() => {
-          void handleBrowse();
-        }}
         footnote={loginLink}
       />
       {/* fullScreenModal 위에 떠야 해서 화면이 직접 렌더한다(AU-10 — 가이드와 같은 이유). */}

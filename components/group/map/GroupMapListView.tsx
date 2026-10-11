@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import GroupPointListView from '@/components/group/point/GroupPointListView';
+import PointFilterChipsView from '@/components/point/PointFilterChipsView';
 import RouteElevationChartView from '@/components/route/RouteElevationChartView';
 import GroupRouteListView from '@/components/group/route/GroupRouteListView';
 import PretendardText from '@/components/PretendardText';
@@ -11,7 +12,6 @@ import app from '@/model/app/App';
 import GroupPoint from '@/model/group/GroupPoint';
 import GroupRoute from '@/model/group/GroupRoute';
 import GroupMap from '@/model/group-map/GroupMap';
-import GroupPointFilterChipsView from './GroupPointFilterChipsView';
 
 interface Props {
   groupMap: GroupMap;
@@ -97,7 +97,10 @@ const GroupMapListView: FC<Props> = ({
         <AcgSectionHeaderView title={l10n.t('group.detail.pointsTitle')} />
         {pointList.getCount() > 0 ? (
           <View style={styles.chips}>
-            <GroupPointFilterChipsView pointList={pointList} />
+            <PointFilterChipsView
+              selectedType={pointList.getSelectedType()}
+              onSelectType={type => pointList.selectType(type)}
+            />
           </View>
         ) : null}
         {pointList.getVisiblePoints().length === 0 ? (

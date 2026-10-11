@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import BagSnapshotGearListView from '@/components/bag-snapshot/BagSnapshotGearListView';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgType } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import CommunityPost from '@/model/community/CommunityPost';
 import CommunityDetail from '@/model/community-detail/CommunityDetail';
 import { getCommunityRelativeTime } from '@/model/community/CommunityFormat';
@@ -20,6 +20,9 @@ interface Props {
   width: number;
 }
 
+const MIN_FRAME_RATIO = 0.75; // 4:3
+const MAX_FRAME_RATIO = 1.25; // 5:4
+
 const CommunityDetailPostHeaderView = observer(({ post, detail, width }: Props) => {
   const router = useRouter();
   const [failedImages, setFailedImages] = useState<string[]>([]);
@@ -27,6 +30,14 @@ const CommunityDetailPostHeaderView = observer(({ post, detail, width }: Props) 
   const images = post.getImages().filter(image => !failedImages.includes(image.id));
   const relativeTime = getCommunityRelativeTime(post.getCreatedAt());
   const bagSnapshot = post.getBagSnapshot();
+
+  const pageWidth = Math.max(0, width - AcgLayout.screenPadding * 2);
+  const tallestRatio = images.reduce((max, image) => {
+    const ratio = image.height / Math.max(1, image.width);
+
+    return Number.isFinite(ratio) ? Math.max(max, ratio) : max;
+  }, 0);
+  const frameHeight = Math.round(pageWidth * Math.min(MAX_FRAME_RATIO, Math.max(MIN_FRAME_RATIO, tallestRatio)));
 
   return (
     <View style={styles.header}>
@@ -44,28 +55,36 @@ const CommunityDetailPostHeaderView = observer(({ post, detail, width }: Props) 
         <FlatList
           horizontal
           pagingEnabled={images.length > 1}
+          snapToInterval={pageWidth}
+          snapToAlignment='start'
+          decelerationRate='fast'
+          scrollEnabled={images.length > 1}
           data={images}
           keyExtractor={image => image.id}
           showsHorizontalScrollIndicator={false}
+          getItemLayout={(_, index) => ({ length: pageWidth, offset: pageWidth * index, index })}
+          style={{ width: pageWidth }}
           renderItem={({ item, index }) => (
             <Image
               source={item.url}
-              style={[styles.image, { width, height: Math.min(width * (item.height / Math.max(1, item.width)), 420) }]}
+              style={[styles.image, { width: pageWidth, height: frameHeight }]}
               contentFit='contain'
-              accessibilityLabel={app.getL10n().t('community.detail.photoLabel', { count: index + 1, total: post.getImages().length })}
+              accessibilityLabel={app.getL10n().t('community.detail.photoLabel', { count: index + 1, total: images.length })}
               onError={() => setFailedImages(current => current.includes(item.id) ? current : [...current, item.id])}
             />
           )}
           onMomentumScrollEnd={event => {
-            if (width > 0) {
-              setCurrentImageIndex(Math.round(event.nativeEvent.contentOffset.x / width));
+            if (pageWidth > 0) {
+              const index = Math.round(event.nativeEvent.contentOffset.x / pageWidth);
+
+              setCurrentImageIndex(Math.max(0, Math.min(index, images.length - 1)));
             }
           }}
         />
       )}
-      {post.getImages().length > 1 && images.length > 0 && (
+      {images.length > 1 && (
         <PretendardText style={styles.indicator}>
-          {`${Math.min(currentImageIndex + 1, images.length)}/${post.getImages().length}`}
+          {`${Math.min(currentImageIndex + 1, images.length)}/${images.length}`}
         </PretendardText>
       )}
       {post.hasBagSnapshot() && bagSnapshot ? (
