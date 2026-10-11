@@ -206,6 +206,11 @@
 | `click_bag_point_add` | 배낭 코스 화면에서 지도 포인트 등록 성공 (BD-14) `[제안]` | `type`, `via`: `long_press` \| `aim` |
 | `click_bag_point_delete` | 배낭 지도 포인트 삭제 (BD-14) `[제안]` | `type` |
 | `click_bag_point_select` | 배낭 지도 포인트 목록·마커 탭 (BD-14) `[제안]` | `type` |
+| `click_offline_save` | 오프라인 저장 시작 ([Offline.md](Offline.md) OF-2) `[제안]` | `source`: `tile` |
+| `offline_saved` | 오프라인 저장 성공 (OF-2, `logEvent`) `[제안]` | `bytes`, `route_count`, `point_count` |
+| `click_offline_refresh` / `click_offline_remove` | 오프라인 갱신 / 삭제 (OF-2) `[제안]` | — |
+| `offline_trip_open` / `offline_route_canvas_open` | 오프라인 상세·코스 캔버스 열람 (OF-5·OF-6, `logEvent`) `[제안]` | — |
+| `offline_packing_synced` | 오프라인 패킹 체크의 복귀 반영 성공 (OF-5, `logEvent`) `[제안]` | `count` |
 | `click_trip_record_open` | 여행 기록 시트 진입 ([Community.md](Community.md) CM-16) `[폐기 2026-10-10]` | `source`: `notification` \| `bag_detail` \| `home` |
 | `click_trip_record_submit` | 여행 기록 게시 성공 (CM-16) `[폐기 2026-10-10]` | `photo_count`, `has_body` |
 | `click_trip_record_after` | 기록 후 완료 카드 액션 (CM-16) `[폐기 2026-10-10]` | `action`: `useless` \| `view` \| `close` |

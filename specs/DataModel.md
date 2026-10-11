@@ -999,11 +999,12 @@
 
 | 필드 | 타입 | 비고 |
 | --- | --- | --- |
-| `active` | boolean | `no_ads` 권한이 지금 살아 있는지 |
-| `productId` | string | `useless_no_ads_monthly` |
+| `active` | boolean | `premium` 권한(구 `no_ads` — [Subscription.md](Subscription.md) SUB-1 개정)이 지금 살아 있는지. 체험 중도 `true` |
+| `productId` | string | `useless_plus_monthly`(SUB-1 — 스토어에 구 ID가 이미 있으면 그 값) |
 | `store` | string | `app_store` \| `play_store` (RevenueCat `store` 값 소문자) |
 | `environment` | string | `production` \| `sandbox` — 통계에서 샌드박스를 거른다 |
 | `willRenew` | boolean | 해지 예약이면 `false` |
+| `isTrial` | boolean | 7일 무료 체험 기간 중(RevenueCat `period_type == TRIAL`) — SUB-10 |
 | `billingIssue` | boolean | 결제 실패 유예 중 |
 | `expiresAt` | Timestamp \| null | 현재 기간 만료 시각 |
 | `originalPurchasedAt` | Timestamp | 첫 구매 시각 |
@@ -1032,6 +1033,7 @@
 - **접근 범위는 DM-30 코스와 같다**: `bag/{bagId}/points`는 **소유자(`bag.userId`)만 읽고 쓴다.** 배낭 공유(`shared == true`)·박지 후기·커뮤니티 스냅샷·배낭 복사 어디로도 따라가지 않는다. 보안 규칙에서 `bag` 하위 개방 절(`subCollection != 'routes'`)을 **`routes`·`points` 둘 다 제외**로 고치고 `points` 전용 규칙(소유자 판정은 `get(/databases/(default)/documents/bag/$(bagId)).data.userId == request.auth.uid`)을 둔다. 규칙 배포는 Rules REST(운영 절차 — DM-27 참고).
 - 생명주기: 배낭 삭제 시 `onBagDeleted` 트리거가 `routes`와 함께 `points`도 정리한다(함수 수정 — 웹 레포). 배낭 복사는 포인트를 복사하지 않는다. 그룹에 코스를 올려도 포인트는 복사하지 않는다(BD-14).
 - 인덱스: `createdAt` 정렬만. 복합 인덱스 불필요.
+- 오프라인 저장([Offline.md](Offline.md) OF-1)은 이 컬렉션 전체를 스냅샷에 포함한다.
 
 ### DM-34 푸시 토큰 `users/{uid}/push-tokens/{tokenId}` `[제안]`
 
@@ -1057,6 +1059,7 @@
 **`weekend-briefing-runs/{weekId}`**(함수 전용, 회차당 1문서, `weekId`=`YYYY-Www`): `ranAt`·`targets`·`sent`·`skippedNoSpot`·`skippedNoWeather`·`failed`·`sentUids`(발송 uid 배열 — 멱등 재실행용, 2,000 상한 안이면 배열로 충분)·`spotWeatherCacheHits`.
 
 - 두 경로 모두 클라이언트 읽기·쓰기 금지(개방 절에서 명시적으로 제외 — DM-27 `config/feedRotation`·`feed-rotation-runs`와 같은 방식).
+
 
 ## 4. Storage 경로 (DM-9)
 

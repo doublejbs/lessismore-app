@@ -5,7 +5,7 @@
 | 상태 | as-built (2026-07-15 여행지 통합 반영) |
 | ID 프리픽스 | `BD` |
 | 주요 코드 | `app/bag/[id]/`, `app/useless/[id]/`, `components/bag-detail/`, `components/bag-edit/`, `components/bag-useless/`, `model/bag-detail/`, `model/bag-edit/`, `model/bag-useless/`, `model/store/BagStore.ts` |
-| 관련 스펙 | [Group.md](Group.md), [DataModel.md](DataModel.md), [Bag.md](Bag.md), [BagTemplate.md](BagTemplate.md), [BagShare.md](BagShare.md), [BagDestination.md](BagDestination.md), [HealthActivity.md](HealthActivity.md), [GearEdit.md](GearEdit.md), [Packing.md](Packing.md), [Weather.md](Weather.md) |
+| 관련 스펙 | [Offline.md](Offline.md), [Group.md](Group.md), [DataModel.md](DataModel.md), [Bag.md](Bag.md), [BagTemplate.md](BagTemplate.md), [BagShare.md](BagShare.md), [BagDestination.md](BagDestination.md), [HealthActivity.md](HealthActivity.md), [GearEdit.md](GearEdit.md), [Packing.md](Packing.md), [Weather.md](Weather.md) |
 
 ## 1. 개요
 
@@ -188,7 +188,7 @@
 
 **수용 기준**
 
-- 요약 아래에 **2열 그리드**로 액션 타일을 둔다: 사용 기록(BD-5)·메모(BD-6)·여행지([BagDestination.md](BagDestination.md) DST-2)·**코스**(BD-11, 부제에 포인트 수 — BD-14)·운동 기록([HealthActivity.md](HealthActivity.md) HA-1 `[기획]` — 권한 없음·웹·미래 여행이면 렌더하지 않아 하나 줄 수 있다). 각 타일은 아이콘 + 제목 + 현재값 부제 구조이며, 면은 **`Acg.controlFill` + `AcgRadius.thumb`(12) + 그림자 없음**, 부제 글자는 `Acg.textMuted`다(강조 타일만 잉크 면 — 아래 상황형 강조). (레디샷 타일은 2026-07-12 제거, 기능 자체도 2026-07-21 제거)
+- 요약 아래에 **2열 그리드**로 액션 타일을 둔다: 사용 기록(BD-5)·메모(BD-6)·여행지([BagDestination.md](BagDestination.md) DST-2)·**코스**(BD-11, 부제에 포인트 수 — BD-14)·**오프라인**([Offline.md](Offline.md) OF-2 `[제안]`, 2.0.2 바이너리부터·웹 미노출)·운동 기록([HealthActivity.md](HealthActivity.md) HA-1 `[기획]` — 권한 없음·웹·미래 여행이면 렌더하지 않아 하나 줄 수 있다). 각 타일은 아이콘 + 제목 + 현재값 부제 구조이며, 면은 **`Acg.controlFill` + `AcgRadius.thumb`(12) + 그림자 없음**, 부제 글자는 `Acg.textMuted`다(강조 타일만 잉크 면 — 아래 상황형 강조). (레디샷 타일은 2026-07-12 제거, 기능 자체도 2026-07-21 제거)
   - `[이력]` 이 줄은 부제를 "회색 `surfaceMuted`"로 적고 있었다 — 구세대 토큰 이름 잔재였다. 실제 구현(`BagDetailMemoView`/`BagDetailActivityView`)이 이미 `Acg.controlFill` 면 + `Acg.textMuted` 글자라 **코드에 맞춰 스펙을 갱신했다**(2026-08-17). BD-1의 "액션 그리드 타일은 연회색 채움 + 모서리 12" 서술과 같은 값이다.
 - **상황형 강조**: 여행 상태에 따라 관련 타일 하나를 **검정(강조) 전체 폭 가로 카드로 최상단에 배치**한다 — `지난 여행`이면 `사용 기록`, `출발 전`·`여행 중`이면 `여행지`. (2026-10-10 `여행 기록 남기기` 강조 개정은 같은 날 폐기 — CM-16 폐기.) 강조 카드는 아이콘·라벨 좌측 + 값 우측의 가로 레이아웃(높이 축소). 나머지 2개는 그 아래 회색 2열(48%).
 - 사용 기록 타일 부제: 기록됨 → `{usedWeight}kg로 줄어요`, 미기록·지난 여행 → `줄어든 무게 확인`, 미기록·출발 전/중 → `여행 후 기록`.
@@ -203,7 +203,7 @@
 
 - 액션 그리드에 `코스` 타일을 둔다(BD-10). 부제는 없으면 `GPX 추가`, 있으면 `{n}개 · {총 거리}`. 탭하면 `/bag/{id}/route`로 이동한다.
   - **`운동 기록` 타일과 나란히 둔다.** 둘 다 지도를 보여주지만 성격이 반대다 — 코스는 **갈 곳**(사용자가 올린 계획 경로, 서버 저장), 운동 기록은 **다녀온 것**(기기 건강 허브에서 실시간으로 읽는 실제 이동, 서버에 저장하지 않는다 — [HealthActivity.md](HealthActivity.md) HA-5). 떨어뜨려 놓으면 둘 다 "지도 나오는 그것"이 되므로 붙여 두고 라벨로 가른다.
-- `/bag/{id}/route` 화면은 **지도 + 코스 목록 + 선택한 코스의 고도 그래프**로 구성한다. 지도 포인트(BD-14 `[제안]`)도 이 화면에 산다. 지도·그래프·행은 그룹 지도 화면(GRP-8·GRP-10)의 것을 그대로 쓴다.
+- `/bag/{id}/route` 화면은 **지도 + 코스 목록 + 선택한 코스의 고도 그래프**로 구성한다. 지도 포인트(BD-14 `[제안]`)도 이 화면에 산다. 오프라인이면 지도 자리에 코스 캔버스를 그린다([Offline.md](Offline.md) OF-6). 지도·그래프·행은 그룹 지도 화면(GRP-8·GRP-10)의 것을 그대로 쓴다.
 - 목록의 코스를 누르면 그 코스를 선택하고 **지도 카메라를 그 코스 전체가 들어오게 옮긴다.** 이미 선택된 코스를 다시 눌러도 옮긴다 — 지도를 이리저리 옮긴 뒤 코스로 돌아오는 방법이 된다. 그래프를 훑는 동안에는 카메라를 움직이지 않는다는 규칙(GRP-8)과는 별개다 — 훑기는 손가락이 그래프 위에 있을 때고, 이건 행을 누른 순간이다.
 - `.gpx`만 받는다. 파싱·축약·실패 사유는 GRP-8과 **같은 규칙**이다(5MB 상한, 트랙 없음·파싱 불가 구분, 이름 40자 절단, 축약 2~500점, 고도 없으면 그래프 없음).
 - 배낭당 **5개**까지. 상한에 닿으면 추가 액션을 막고 이유를 그 자리에 적는다.
