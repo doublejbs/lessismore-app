@@ -452,7 +452,32 @@ export const ROUTE_REPLAY_HTML: string = String.raw`<!doctype html>
       smoothedBearing = (smoothedBearing + diff * BEARING_SMOOTHING + 360) % 360;
     }
 
-    return { center: ahead, bearing: smoothedBearing, pitch: FOLLOW_PITCH, zoom: FOLLOW_ZOOM };
+    // 중심점의 지형 고도를 카메라에 함께 준다. 주지 않으면 MapLibre가 중심을 해발 0m로 두어, 오르막에서
+    // 산 위에 그려지는 마커가 매 프레임 조금씩 화면 위로 밀리다 사라진다(2026-10-12 실기기 지적 → 헤드리스
+    // 재현: 중심 투영 y 345→328px 드리프트, 고도를 넘기자 380px 고정). 과장(EXAGGERATION)이 곱해진 값이
+    // 그려지는 지면 높이이므로 그대로 넘긴다(되돌리지 않는다).
+    var aheadElevation = null;
+
+    try {
+      aheadElevation = map.queryTerrainElevation(ahead);
+    } catch (error) {
+      aheadElevation = null;
+    }
+
+    var camera = {
+      center: ahead,
+      bearing: smoothedBearing,
+      pitch: FOLLOW_PITCH,
+      zoom: FOLLOW_ZOOM,
+      // 하단 컨트롤 면만큼 아래를 비워 마커가 보이는 영역의 가운데 근처에 오게 한다.
+      padding: { top: 0, right: 0, left: 0, bottom: panel.offsetHeight }
+    };
+
+    if (typeof aheadElevation === "number") {
+      camera.elevation = aheadElevation;
+    }
+
+    return camera;
   };
 
   var panelPadding = function () {
@@ -543,13 +568,7 @@ export const ROUTE_REPLAY_HTML: string = String.raw`<!doctype html>
 
     var camera = followCamera(progress * totalDistance);
 
-    map.easeTo({
-      center: camera.center,
-      bearing: camera.bearing,
-      pitch: camera.pitch,
-      zoom: camera.zoom,
-      duration: FOLLOW_EASE_MS
-    });
+    map.easeTo(Object.assign({}, camera, { duration: FOLLOW_EASE_MS }));
     easingUntil = performance.now() + FOLLOW_EASE_MS;
   };
 
