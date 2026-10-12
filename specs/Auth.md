@@ -53,6 +53,8 @@ Firebase Auth 기반 인증(Google/Apple/Email), 약관 동의 강제, 정보 �
 
 ### AU-4 정보 탭
 
+> 2026-10-11: 구독 행 `useless 플러스`(구독 중이면 `useless 플러스 구독 중`) — 탭하면 구독 화면([Subscription.md](Subscription.md) SUB-2). 광고 제거 행은 광고 미도입으로 두지 않는다.
+
 **수용 기준**
 
 - **메뉴 목록은 [Home.md](Home.md) HM-8 목록 문법을 따른다**(2026-08-13 개정, as-built).

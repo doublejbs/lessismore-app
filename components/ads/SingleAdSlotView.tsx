@@ -13,6 +13,7 @@ import { Acg, AcgType } from '@/constants/DesignTokens';
 import SingleAdSlot from '@/model/ads/SingleAdSlot';
 import app from '@/model/app/App';
 import { openSubscription } from '@/model/subscription/OpenSubscription';
+import { SUBSCRIPTION_AD_ENTRY_ENABLED } from '@/model/subscription/SubscriptionConstants';
 import SubscriptionEntryPoint from '@/model/subscription/SubscriptionEntryPoint';
 import CommunityAdCardView from './CommunityAdCardView';
 
@@ -40,12 +41,15 @@ interface Props {
 // (`CommunityAdCardView`)으로 그린다. 받기 전·받지 못하면 아무것도 그리지 않는다(AD-1 자리 접기).
 // SUB-9: 광고 카드 바로 아래, **광고 뷰 바깥**에 `광고 없이 보기` 글자 링크를 둔다 — 광고 요소와 겹치거나
 // 광고 클릭으로 오인되지 않게(AdMob 정책). 구독 기능이 켜져 있고 미구독일 때만.
+// `[보류 — 광고 미도입]`: 광고 제거가 구독 혜택이 아니라 `SUBSCRIPTION_AD_ENTRY_ENABLED`가 켜질 때까지 그리지 않는다.
 const SingleAdSlotView: FC<Props> = ({ slot, enabled, style }) => {
   const nativeAd = slot.getAd();
   const subscriptionStore = app.getSubscriptionStore();
   const l10n = app.getL10n();
   const isSubscriptionLinkVisible =
-    subscriptionStore.isAvailable() && !subscriptionStore.isSubscribed();
+    SUBSCRIPTION_AD_ENTRY_ENABLED &&
+    subscriptionStore.isAvailable() &&
+    !subscriptionStore.isSubscribed();
 
   const handleOpenSubscription = () => {
     openSubscription(SubscriptionEntryPoint.AdCard);

@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, reaction } from 'mobx';
 import app from '@/model/app/App';
 import BagStore from '@/model/store/BagStore';
 import Firebase from '@/model/firebase/Firebase';
@@ -24,6 +24,13 @@ import {
   BagScheduleWriter,
 } from '@/model/group-bag-link/GroupBagLinkTypes';
 import { getGroupErrorMessage } from '@/model/group-error/GroupErrorMessage';
+import BagDetailSource from '@/model/bag-detail/BagDetailSource';
+import NetworkStatus from '@/model/offline/NetworkStatus';
+import OfflineTrip from '@/model/offline/OfflineTrip';
+import OfflineTripAccess from '@/model/offline/OfflineTripAccess';
+import OfflineTripStore from '@/model/offline/OfflineTripStore';
+import { OfflineTripSnapshotData } from '@/model/offline/OfflineTripSnapshot';
+import { formatOfflineDate } from '@/model/offline/OfflineFormat';
 
 class BagDetail implements BagScheduleWriter {
   public static readonly ORDER_KEY = 'bag';
@@ -37,7 +44,10 @@ class BagDetail implements BagScheduleWriter {
       BagDetailFilterManager.from(),
       Order.new(BagDetail.ORDER_KEY),
       app.getFirebase(),
-      GroupBagLinkFlow.new()
+      GroupBagLinkFlow.new(),
+      app.getNetworkStatus(),
+      app.getOfflineTripStore(),
+      OfflineTrip.from(id)
     );
   }
 
@@ -81,6 +91,14 @@ class BagDetail implements BagScheduleWriter {
   private linkedGroup: Group | null = null;
   // `⋯` → 그룹에 연결 시트의 목록(진행 중·예정 그룹).
   private linkableGroups: Group[] = [];
+  // OF-5: 지금 화면을 그린 데이터(서버·저장본·없음)와, 저장본으로 열 수 없을 때의 이유.
+  private source = BagDetailSource.Server;
+  private offlineAccess = OfflineTripAccess.Online;
+  // 저장본으로 그렸을 때 그 저장 시각(상단 띠 `오프라인 · 10.09 저장본`).
+  private snapshotSavedAt: string | null = null;
+  // 오프라인 상세 열람 측정(`offline_trip_open`)은 화면 한 번에 한 번만 남긴다 — 포커스마다 다시 그린다.
+  private offlineOpenLogged = false;
+  private disposeNetworkReaction: (() => void) | null = null;
 
   private constructor(
     private readonly router: ImperativeRouter,
@@ -90,10 +108,89 @@ class BagDetail implements BagScheduleWriter {
     private readonly filterManager: BagDetailFilterManager,
     private readonly order: Order,
     private readonly firebase: Firebase,
-    private readonly linkFlow: GroupBagLinkFlow
+    private readonly linkFlow: GroupBagLinkFlow,
+    private readonly networkStatus: NetworkStatus,
+    private readonly offlineTripStore: OfflineTripStore | null,
+    private readonly offlineTrip: OfflineTrip
   ) {
     this.bagWeather = BagWeather.of(id, bagStore);
-    makeAutoObservable(this);
+    makeAutoObservable<
+      BagDetail,
+      'networkStatus' | 'offlineTripStore' | 'disposeNetworkReaction'
+    >(this, {
+      networkStatus: false,
+      offlineTripStore: false,
+      disposeNetworkReaction: false,
+    });
+  }
+
+  /**
+   * OF-3: 연결이 바뀌면 상세를 다시 그린다 — 돌아오면 서버 데이터로, 끊기면 저장본으로. `initialized`를
+   * 그대로 둔 채 데이터만 바꿔 스켈레톤으로 돌아가지 않는다(스크롤 위치 유지). 래퍼가 마운트 동안 건다.
+   */
+  public startNetworkWatch(): void {
+    if (this.disposeNetworkReaction) {
+      return;
+    }
+
+    this.disposeNetworkReaction = reaction(
+      () => this.networkStatus.isOffline(),
+      () => {
+        if (this.initialized) {
+          void this.initialize();
+        }
+      }
+    );
+  }
+
+  public dispose(): void {
+    this.disposeNetworkReaction?.();
+    this.disposeNetworkReaction = null;
+  }
+
+  public getOfflineTrip() {
+    return this.offlineTrip;
+  }
+
+  public getSource() {
+    return this.source;
+  }
+
+  // 저장본으로 그린 상세인지(OF-5 상단 띠·액션 그리드 축소).
+  public isSnapshot() {
+    return this.source === BagDetailSource.Snapshot;
+  }
+
+  // 오프라인이라 열 저장본이 없다(OF-5 `이 여행은 저장되지 않았어요` · OF-7 잠김).
+  public isUnavailable() {
+    return this.source === BagDetailSource.Unavailable;
+  }
+
+  public getOfflineAccess() {
+    return this.offlineAccess;
+  }
+
+  // 상단 띠의 저장 날짜(`10.09`).
+  public getSnapshotDateLabel() {
+    return this.snapshotSavedAt ? formatOfflineDate(this.snapshotSavedAt) : '';
+  }
+
+  // 편집을 막아야 하는지(OF-5) — 연결이 없으면 장비·메모·여행지·공유·복사·추가를 막는다. 패킹은 예외다.
+  public isReadOnly() {
+    return this.networkStatus.isOffline();
+  }
+
+  /**
+   * 편집 동작 앞에 둔다(OF-5). 오프라인이면 토스트 `온라인에서 할 수 있어요`를 띄우고 false.
+   */
+  public guardOnline(): boolean {
+    if (!this.isReadOnly()) {
+      return true;
+    }
+
+    app.getToastManager()?.showSimple(app.getL10n().t('offline.toast.onlineOnly'));
+
+    return false;
   }
 
   public getBagWeather() {
@@ -123,9 +220,115 @@ class BagDetail implements BagScheduleWriter {
 
   public async initialize() {
     this.order.initialize();
-    await this.getData();
+
+    if (this.networkStatus.isOffline()) {
+      await this.loadSnapshot();
+    } else {
+      try {
+        await this.getData();
+        this.setSource(BagDetailSource.Server);
+        this.networkStatus.markFirestoreSuccess();
+        // OF-2: 저장된 여행이면 온라인 진입마다 조용히 갱신한다.
+        this.offlineTrip.refreshSilently();
+      } catch (error) {
+        // OF-3: 연결 상태를 아직 모르는데 읽기가 연결 없음으로 실패했다 → 오프라인으로 보고 저장본을 연다.
+        if (
+          this.networkStatus.markFirestoreFailure(error) &&
+          this.networkStatus.isOffline()
+        ) {
+          await this.loadSnapshot();
+        } else {
+          throw error;
+        }
+      }
+    }
+
     this.filterManager.selectFirstFilter();
     this.setInitialized(true);
+  }
+
+  /**
+   * 오프라인 상세 (OF-5). 저장본으로 요약·장비·메모·여행지·날씨·패킹·코스 요약을 그린다 — Firestore를
+   * 읽지 않는다. 열 수 없으면(미저장·구독 만료·갱신 필요) `Unavailable`로 두고 화면이 빈 상태를 그린다.
+   */
+  private async loadSnapshot() {
+    const access = this.offlineTripStore?.getAccess(this.id) ?? OfflineTripAccess.NotSaved;
+    const snapshot =
+      access === OfflineTripAccess.Available
+        ? await this.offlineTripStore?.load(this.id)
+        : null;
+
+    if (!snapshot) {
+      // 온라인에서 이미 서버 데이터로 그리고 있다가 연결이 끊겼으면 그 화면을 그대로 둔다(편집만 막힌다) —
+      // 보고 있던 장비 목록이 빈 상태로 바뀌면 안 된다. 처음부터 오프라인으로 열었을 때만 빈 상태다.
+      if (this.initialized && this.source === BagDetailSource.Server) {
+        return;
+      }
+
+      this.setOfflineAccess(
+        access === OfflineTripAccess.Available ? OfflineTripAccess.NotSaved : access
+      );
+      this.setSource(BagDetailSource.Unavailable);
+
+      return;
+    }
+
+    this.applySnapshot(snapshot);
+    this.setOfflineAccess(OfflineTripAccess.Available);
+    this.setSource(BagDetailSource.Snapshot);
+
+    if (!this.offlineOpenLogged) {
+      this.setOfflineOpenLogged(true);
+      app.getAnalyticsManager()?.logEvent('offline_trip_open');
+    }
+  }
+
+  private setOfflineOpenLogged(value: boolean) {
+    this.offlineOpenLogged = value;
+  }
+
+  private applySnapshot(snapshot: OfflineTripSnapshotData) {
+    const { bag } = snapshot;
+
+    this.setName(bag.name);
+    this.setWeight(bag.weight);
+    this.setEditDate(bag.editDate);
+    this.setGears(this.bagStore.toOwnedGearsFromData(snapshot.gears));
+    this.setWarehouseEmpty(false);
+    this.setStartDate(bag.startDate);
+    this.setEndDate(bag.endDate);
+    this.setShared(false);
+    this.setMemo(bag.memo || '');
+    this.setActivity(null);
+    this.calculateUsedWeight();
+    this.updateUselessChecked();
+    this.applyPackingState(bag);
+    // 날씨는 저장 시점의 스냅샷 그대로다 — 오프라인에서는 다시 조회하지 않는다.
+    this.bagWeather.hydrate(
+      bag.location,
+      bag.weather,
+      this.startDate,
+      this.endDate
+    );
+    this.setRouteSummary(
+      snapshot.routes.length,
+      snapshot.routes.reduce((sum, route) => sum + route.distance, 0)
+    );
+    this.setPointCount(snapshot.points.length);
+    this.setLinkedGroup(null);
+    this.setSnapshotSavedAt(snapshot.savedAt);
+  }
+
+  private setSource(value: BagDetailSource) {
+    this.source = value;
+  }
+
+  private setOfflineAccess(value: OfflineTripAccess) {
+    this.offlineAccess = value;
+  }
+
+  private setSnapshotSavedAt(value: string | null) {
+    this.snapshotSavedAt = value;
   }
 
   private async getData() {
@@ -207,6 +410,10 @@ class BagDetail implements BagScheduleWriter {
 
   // 빈 배낭의 주 액션 — 창고에 장비가 있으면 편집(BD-4), 없으면 이 배낭 컨텍스트의 검색 모달(GE-8).
   public goToEmptyAdd() {
+    if (!this.guardOnline()) {
+      return;
+    }
+
     if (this.getEmptyAddSource() === EmptyBagAddSource.Search) {
       this.router.push(`/search?bagId=${this.getId()}`);
 
@@ -265,6 +472,10 @@ class BagDetail implements BagScheduleWriter {
 
   public goToLinkedGroup() {
     const group = this.linkedGroup;
+
+    if (!this.guardOnline()) {
+      return;
+    }
 
     if (!group) {
       return;
@@ -407,9 +618,18 @@ class BagDetail implements BagScheduleWriter {
   }
 
   private async loadPackingState() {
-    const { packedGears, packingStartedAt, packingCompletedAt } =
-      await this.bagStore.getPackingState(this.id);
+    this.applyPackingState(await this.bagStore.getPackingState(this.id));
+  }
 
+  private applyPackingState({
+    packedGears,
+    packingStartedAt,
+    packingCompletedAt,
+  }: {
+    packedGears: string[];
+    packingStartedAt?: string | undefined;
+    packingCompletedAt?: string | undefined;
+  }) {
     // 진행률·완료 판정은 현재 로드된 장비 기준(stale ID 무시).
     const loadedPackedCount = this.gears.reduce(
       (acc, gear) => (packedGears.includes(gear.getId()) ? acc + 1 : acc),
@@ -458,6 +678,16 @@ class BagDetail implements BagScheduleWriter {
   }
 
   public goToPacking() {
+    // OF-5: 오프라인 패킹은 열어 볼 수 있는 저장본에만 쓴다 — 저장본이 없거나 잠겼으면 열지 않는다.
+    if (
+      this.networkStatus.isOffline() &&
+      this.offlineTripStore?.getAccess(this.id) !== OfflineTripAccess.Available
+    ) {
+      app.getToastManager()?.showSimple(app.getL10n().t('offline.toast.onlineOnly'));
+
+      return;
+    }
+
     app.getAnalyticsManager()?.logClick('packing_start', {
       gear_count: this.gears.length,
       d_day: this.getDDay(),
@@ -572,6 +802,11 @@ class BagDetail implements BagScheduleWriter {
   }
 
   public async toggleUseless(gear: Gear) {
+    // OF-5: 사용 기록은 서버에 쓴다 — 연결이 없으면 막는다.
+    if (!this.guardOnline()) {
+      return;
+    }
+
     if (this.isUseless(gear)) {
       await this.setUseful(gear);
     } else {
@@ -625,6 +860,10 @@ class BagDetail implements BagScheduleWriter {
    * 확인 버튼은 `확인`으로 둔다(2026-08-05 사용자 결정).
    */
   public async delete(gear: Gear) {
+    if (!this.guardOnline()) {
+      return;
+    }
+
     const name = gear.getDisplayName();
 
     app.getAlertManager()?.show({
@@ -938,6 +1177,10 @@ class BagDetail implements BagScheduleWriter {
   // 이름·기간 행 탭 → 배낭 정보 수정 formSheet(BD-1). 현재값·저장 콜백을
   // 모듈 핸드오프에 넣고 공용 formSheet 라우트로 위임한다.
   public openInfoEdit() {
+    if (!this.guardOnline()) {
+      return;
+    }
+
     app.getAnalyticsManager()?.logClick('bag_info_edit');
 
     setBagInfoEditContext({
@@ -987,14 +1230,26 @@ class BagDetail implements BagScheduleWriter {
   }
 
   public goToEdit() {
+    if (!this.guardOnline()) {
+      return;
+    }
+
     this.router.push(`/bag/${this.getId()}/edit`);
   }
 
   public goToEditGear(gear: Gear) {
+    if (!this.guardOnline()) {
+      return;
+    }
+
     this.router.push(`/gear-edit/${gear.getId()}`);
   }
 
   public goToUseless() {
+    if (!this.guardOnline()) {
+      return;
+    }
+
     this.router.push(`/useless/${this.getId()}`);
   }
 

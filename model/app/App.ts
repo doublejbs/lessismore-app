@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, reaction } from 'mobx';
 import Firebase from '../firebase/Firebase';
 import GearStore from '../store/GearStore';
 import BagRouteStore from '../store/BagRouteStore';
@@ -31,13 +31,20 @@ import SubscriptionStore from '../subscription/SubscriptionStore';
 import SubscriptionNudge from '../subscription/SubscriptionNudge';
 import SubscriptionEntryPoint from '../subscription/SubscriptionEntryPoint';
 import { openSubscription } from '../subscription/OpenSubscription';
+import { SUBSCRIPTION_AD_ENTRY_ENABLED } from '../subscription/SubscriptionConstants';
 import OnboardingTripManager from '../onboarding/OnboardingTripManager';
+import NetworkStatus from '../offline/NetworkStatus';
+import OfflineEntitlement from '../offline/OfflineEntitlement';
+import OfflineTripStore from '../offline/OfflineTripStore';
 
 class App {
+  // OF-3: 연결 상태의 단일 소스. Firebase 로그인 확인이 오프라인이면 Firestore를 건너뛰어야 하므로
+  // Firebase보다 먼저 만들고 먼저 초기화한다.
+  private readonly networkStatus = NetworkStatus.new();
   private readonly firebase = new Firebase();
   private readonly l10n = new L10n();
-  // SUB-3·SUB-4: 광고 제거 구독 상태. SDK 설정은 Firebase 초기화 뒤(로그인 uid를 알고 나서) 한다.
-  // 광고 서비스가 이 상태를 보고 구독자에게는 광고·동의 흐름을 시작하지 않는다.
+  // SUB-3·SUB-11: `useless 플러스` 구독 상태. SDK 설정은 Firebase 초기화 뒤(로그인 uid를 알고 나서) 한다.
+  // 오프라인 저장 게이트가 이 상태를 본다. 광고 서비스도 같은 상태를 받는다(SUB-4 `[보류]`).
   private readonly subscriptionStore = SubscriptionStore.new(this.firebase);
   // AD-3·AD-5: 광고 동의·요청. 생성만 해 두고 동의 흐름은 광고 자리(홈 제외)에 처음 포커스될 때 흐른다.
   // 웹은 Metro가 `AdService.web.ts`(광고 SDK 없음)를 고른다(AD-4).
@@ -71,7 +78,12 @@ class App {
   private bagPointStore: BagPointStore | null = null;
   private communitySearchStore: CommunitySearchStore | null = null;
   // SUB-9: 광고 누적 노출 뒤 한 번 뜨는 구독 안내 시트. 분석 매니저가 생긴 뒤 만든다.
+  // `[보류 — 광고 미도입]`: `SUBSCRIPTION_AD_ENTRY_ENABLED`가 꺼져 있으면 만들지 않는다(null — 노출을 세지도,
+  // 시트를 띄우지도 않는다).
   private subscriptionNudge: SubscriptionNudge | null = null;
+  // 오프라인 저장(OF-1 ~ OF-8)과 그 권한 판단(OF-7). 웹·옛 바이너리에서는 만들기만 하고 아무것도 하지 않는다.
+  private offlineEntitlement: OfflineEntitlement | null = null;
+  private offlineTripStore: OfflineTripStore | null = null;
 
   private gearPreviewStore: GearPreviewStore | null = null;
   private initialized = false;
@@ -91,6 +103,7 @@ class App {
     this.initializing = true;
 
     await this.l10n.initialize();
+    await this.networkStatus.initialize();
     await this.firebase.initialize();
     // 구독 상태 확인은 앱 시작을 막지 않는다 — 광고 쪽이 `waitUntilResolved`로 짧게 기다린다(SUB-4).
     void this.subscriptionStore.initialize();
@@ -143,23 +156,69 @@ class App {
     // config/featurePopup 실시간 구독을 시작한다(닫음 목록 로드 후 구독, 웹 포함). 실패는 조용히 통과(FP-2).
     void this.featurePopupManager.initialize();
     this.gearPreviewStore = GearPreviewStore.new(this.gearStore);
-    this.subscriptionNudge = SubscriptionNudge.new(
-      this.subscriptionStore,
-      this.adService,
-      () => {
-        openSubscription(SubscriptionEntryPoint.Nudge);
-      },
-      action => {
-        this.analyticsManager?.logClick('subscription_nudge', { action });
-      }
-    );
+    if (SUBSCRIPTION_AD_ENTRY_ENABLED) {
+      this.subscriptionNudge = SubscriptionNudge.new(
+        this.subscriptionStore,
+        this.adService,
+        () => {
+          openSubscription(SubscriptionEntryPoint.Nudge);
+        },
+        action => {
+          this.analyticsManager?.logClick('subscription_nudge', { action });
+        }
+      );
+    }
+
     // 첫 여행 만들기 가이드(OB-1) — 판정은 레이아웃이 탭 도착 시 부른다.
     this.onboardingTripManager = OnboardingTripManager.new(
       this.firebase,
       bagStore
     );
+    await this.initializeOffline(bagStore);
     this.setInitialized(true);
     this.initializing = false;
+  }
+
+  /**
+   * 오프라인 저장 (OF-1 · OF-7). 매니페스트는 상세가 처음 그려지기 전에 읽혀 있어야 한다 — 오프라인으로
+   * 시작한 앱이 저장본을 바로 열 수 있게 기다린다(AsyncStorage 한 번이라 짧다).
+   */
+  private async initializeOffline(bagStore: BagStore) {
+    const offlineEntitlement = OfflineEntitlement.new(
+      this.subscriptionStore,
+      this.networkStatus,
+      this.firebase
+    );
+    const offlineTripStore = OfflineTripStore.new({
+      firebase: this.firebase,
+      bagStore,
+      bagRouteStore: this.bagRouteStore!,
+      bagPointStore: this.bagPointStore!,
+      campSpotStore: this.campSpotStore!,
+      groupStore: this.groupStore!,
+      networkStatus: this.networkStatus,
+      entitlement: offlineEntitlement,
+    });
+
+    this.offlineEntitlement = offlineEntitlement;
+    this.offlineTripStore = offlineTripStore;
+
+    if (!this.networkStatus.isSupported()) {
+      return;
+    }
+
+    await offlineEntitlement.initialize();
+    await offlineTripStore.initialize();
+
+    // OF-3: 오프라인으로 시작해 로그인 확인을 건너뛰었으면, 연결이 돌아올 때 서버로 다시 확인한다.
+    reaction(
+      () => this.networkStatus.isOnline(),
+      online => {
+        if (online) {
+          void this.firebase.recheckAfterOffline();
+        }
+      }
+    );
   }
 
   public getFirebase() {
@@ -172,6 +231,18 @@ class App {
 
   public getSubscriptionStore() {
     return this.subscriptionStore;
+  }
+
+  public getNetworkStatus() {
+    return this.networkStatus;
+  }
+
+  public getOfflineTripStore() {
+    return this.offlineTripStore;
+  }
+
+  public getOfflineEntitlement() {
+    return this.offlineEntitlement;
   }
 
   public getSubscriptionNudge() {

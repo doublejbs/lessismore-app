@@ -46,7 +46,15 @@ const BagDetailBottomBar: FC<Props> = ({ bagDetail }) => {
 
   const primaryLabel = getPrimaryLabel(bagDetail);
 
+  // OF-5: 오프라인에서는 장비를 담을 수 없다 — 주 액션은 비활성으로 보이고, 누르면 이유를 알린다.
+  // 패킹(보조)은 오프라인에서도 그대로 쓴다.
+  const readOnly = bagDetail.isReadOnly();
+
   const handlePressPrimary = () => {
+    if (!bagDetail.guardOnline()) {
+      return;
+    }
+
     if (bagDetail.isEmpty()) {
       app.getAnalyticsManager()?.logClick('bag_empty_add', {
         source: bagDetail.getEmptyAddSource(),
@@ -77,11 +85,12 @@ const BagDetailBottomBar: FC<Props> = ({ bagDetail }) => {
           </TouchableOpacity>
         )}
         <TouchableOpacity
-          style={styles.primary}
+          style={[styles.primary, readOnly && styles.primaryDisabled]}
           onPress={handlePressPrimary}
           activeOpacity={0.8}
           accessibilityRole='button'
           accessibilityLabel={primaryLabel}
+          accessibilityState={{ disabled: readOnly }}
         >
           <PretendardText style={styles.primaryText} weight='semibold'>
             {primaryLabel}
@@ -132,6 +141,11 @@ const styles = StyleSheet.create({
   primaryText: {
     ...AcgType.control,
     color: Acg.ink,
+  },
+  // 오프라인 비활성(OF-5) — 라임을 걷고 연회색 면으로 낮춘다(눌러야 하는 것이 아니게 된다).
+  primaryDisabled: {
+    backgroundColor: Acg.controlFill,
+    opacity: 0.6,
   },
 });
 

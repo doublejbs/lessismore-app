@@ -1565,24 +1565,31 @@
     }
   },
   "subscription": {
-    "settingsRow": "広告を削除",
-    "settingsRowSubscribed": "広告削除を購読中",
-    "title": "広告なしで使う",
-    "benefit": "アプリのすべての広告を非表示にします",
+    "settingsRow": "useless プラス",
+    "settingsRowSubscribed": "useless プラスを購読中",
+    "title": "useless プラス",
+    "offlineEntryLead": "この旅行を保存すると、山でもコース・装備・天気を見られます",
+    "benefitOfflineTitle": "旅行を保存して、電波のない山でも見られます",
+    "benefitOfflineDetail": "コース・現在地・装備・天気・野営地の注意事項まで",
     "price": "月額 {{price}}",
+    "trialPrice": "7日間の無料体験後、月額 {{price}}",
     "priceError": "商品情報を読み込めませんでした",
     "subscribe": "購読する",
+    "startTrial": "7日間無料で始める",
     "purchasing": "購入処理中",
     "restore": "購入を復元",
+    "trialNotice": "体験期間が終わると月額{{price}}が自動で請求されます。体験中はいつでもストアの設定から解約できます。",
     "autoRenewNotice": "サブスクリプションは毎月自動で更新されます。現在の期間が終わる24時間前までにストアの設定から解約できます。お支払いは購入確定時にストアのアカウントに請求されます。",
-    "subscribedTitle": "広告削除を購読中",
+    "subscribedTitle": "useless プラスを購読中",
+    "trialActive": "無料体験中 · {{date}}から月額 {{price}}",
+    "trialActiveNoPrice": "無料体験中 · {{date}}から月額料金が請求されます",
     "nextRenewal": "次回更新日 {{date}}",
     "activeUntil": "{{date}}まで利用可能",
     "manage": "サブスクリプションを管理",
     "dateFormat": "YYYY年M月D日",
-    "purchaseSuccess": "すべての広告を非表示にしました",
+    "purchaseSuccess": "オフライン保存が使えるようになりました",
     "purchaseError": "購入できませんでした。しばらくしてからもう一度お試しください。",
-    "purchasePending": "お支払いの承認を待っています。承認されると広告が消えます。",
+    "purchasePending": "お支払いの承認を待っています。承認されるとオフライン保存が使えるようになります。",
     "restoreSuccess": "サブスクリプションを復元しました",
     "restoreNone": "復元できるサブスクリプションがありません",
     "restoreError": "購入を復元できませんでした。しばらくしてからもう一度お試しください。",
@@ -1694,5 +1701,52 @@
     },
     "start": "次のバックパッキングを準備する",
     "login": "アカウントをお持ちの方 · ログイン"
+  },
+  "offline": {
+    "dateFormat": "M/D",
+    "tile": {
+      "title": "オフライン",
+      "unsaved": "オフライン保存",
+      "saving": "保存中…",
+      "saved": "保存済み · {{size}} · {{date}} 更新",
+      "needsUpgrade": "更新が必要です",
+      "locked": "保存済み · 購読すると再び見られます",
+      "label": "オフライン {{subtitle}}"
+    },
+    "menu": {
+      "refresh": "今すぐ更新",
+      "remove": "オフライン保存を削除"
+    },
+    "removeConfirm": "保存したオフラインデータを削除しますか？",
+    "toast": {
+      "onlineToSave": "オンラインのときに保存できます",
+      "onlineOnly": "オンラインのときにできます",
+      "onlineToView": "オンラインのときに見られます",
+      "saveFailed": "オフライン保存に失敗しました",
+      "diskFull": "オフライン保存に失敗しました。空き容量が不足しています",
+      "limit": "保存した旅行が10件あります。過去の旅行を削除してからもう一度お試しください"
+    },
+    "band": "オフライン · {{date}} 保存版",
+    "banner": {
+      "offline": "オフラインです · 保存した旅行だけ見られます",
+      "locked": "購読が終了したため保存した旅行を見られません · useless プラスを再開"
+    },
+    "list": {
+      "title": "保存した旅行",
+      "empty": "保存した旅行はありません。オンラインのときに旅行詳細のオフラインタイルから保存できます。",
+      "meta": "保存済み · {{size}}"
+    },
+    "detail": {
+      "notSaved": "この旅行は保存されていません",
+      "locked": "購読が終了したため保存した旅行を見られません",
+      "needsUpgrade": "更新が必要です。オンラインでこの旅行を開くと更新されます"
+    },
+    "canvas": {
+      "offlineLine": "オフライン · 地図は接続すると表示されます",
+      "mapFailedLine": "地図を読み込めませんでした · コースのみ表示しています",
+      "groupHidden": "グループのコースはオフラインでは表示されません",
+      "north": "N",
+      "northLabel": "北"
+    }
   }
 }

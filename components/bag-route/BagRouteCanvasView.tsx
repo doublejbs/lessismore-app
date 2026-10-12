@@ -68,7 +68,17 @@ interface Props {
   onRequestDelete: (point: BagPoint) => void;
   // 상단 오버레이(유형 칩)를 헤더 아래로 내린다 — iOS 투명 헤더는 세이프에어리어 + 헤더, Android는 여백만.
   topInset: number;
+  // 지도가 제한 시간 안에 뜨지 않았다(키 오류·SDK 오류) — 화면이 코스 캔버스로 바꾼다(OF-6 폴백).
+  onMapUnavailable?: () => void;
+  // 지도가 초기화됐다(늦게라도) — 폴백 캔버스를 걷고 지도로 돌아간다(OF-6).
+  onMapInitialized?: () => void;
 }
+
+/**
+ * 지도 준비(`onInitialized`)를 기다리는 상한(ms). 넘기면 지도 SDK가 실패한 것으로 보고 캔버스로 바꾼다(OF-6).
+ * 라이브러리에 인증 실패 콜백이 없어 시간으로 판단한다 — 인증만 실패하고 초기화는 끝나는 경우는 잡지 못한다.
+ */
+const MAP_INIT_TIMEOUT_MS = 10000;
 
 /** 남한 전역이 보이는 폴백 카메라(코스·포인트가 하나도 없을 때). */
 const KOREA_CAMERA: Camera = {
@@ -115,6 +125,8 @@ const BagRouteCanvasView: FC<Props> = ({
   onRequestEdit,
   onRequestDelete,
   topInset,
+  onMapUnavailable,
+  onMapInitialized,
 }) => {
   const l10n = app.getL10n();
   const insets = useSafeAreaInsets();
@@ -256,6 +268,23 @@ const BagRouteCanvasView: FC<Props> = ({
       mapReadyRef.current = false;
     };
   }, []);
+
+  // OF-6 폴백: 지도가 뜨지 않으면 화면이 코스 캔버스로 바꾼다.
+  useEffect(() => {
+    if (!onMapUnavailable) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      if (mountedRef.current && !mapReadyRef.current) {
+        onMapUnavailable();
+      }
+    }, MAP_INIT_TIMEOUT_MS);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [onMapUnavailable]);
 
   const moveCamera = useCallback(
     (latitude: number, longitude: number, zoom: number) => {
@@ -430,7 +459,8 @@ const BagRouteCanvasView: FC<Props> = ({
           }
     );
     syncCamera();
-  }, [syncCamera]);
+    onMapInitialized?.();
+  }, [onMapInitialized, syncCamera]);
 
   const handleCameraChanged = useCallback(
     (camera: Camera & { reason: CameraChangeReason }) => {

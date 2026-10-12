@@ -35,13 +35,18 @@ class BagPointStore {
   public constructor(private readonly firebase: Firebase) {}
 
   public async getPoints(bagId: string): Promise<BagPoint[]> {
+    const points = await this.getPointDataList(bagId);
+
+    return points.map(point => BagPoint.from(point));
+  }
+
+  // 포인트 문서를 모델로 바꾸기 전 값 그대로(오프라인 저장 OF-1이 직렬화해 둔다).
+  public async getPointDataList(bagId: string): Promise<BagPointData[]> {
     const snapshot = await getDocs(
       query(this.pointsRef(bagId), orderBy('createdAt', 'asc'))
     );
 
-    return snapshot.docs.map(item =>
-      BagPoint.from(this.toPointData(item.id, item.data()))
-    );
+    return snapshot.docs.map(item => this.toPointData(item.id, item.data()));
   }
 
   // 배낭 상세 `코스` 타일 부제의 포인트 수(BD-14). 문서를 읽지 않고 개수만 센다.

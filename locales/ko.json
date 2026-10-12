@@ -1565,24 +1565,31 @@
     }
   },
   "subscription": {
-    "settingsRow": "광고 제거",
-    "settingsRowSubscribed": "광고 제거 구독 중",
-    "title": "광고 없이 쓰기",
-    "benefit": "앱의 모든 광고를 없애요",
+    "settingsRow": "useless 플러스",
+    "settingsRowSubscribed": "useless 플러스 구독 중",
+    "title": "useless 플러스",
+    "offlineEntryLead": "이 여행을 저장하면 산에서도 코스·장비·날씨를 볼 수 있어요",
+    "benefitOfflineTitle": "여행을 저장해 데이터가 없는 산에서도 봐요",
+    "benefitOfflineDetail": "코스·내 위치·장비·날씨·박지 주의사항까지",
     "price": "월 {{price}}",
+    "trialPrice": "7일 무료 체험 후 월 {{price}}",
     "priceError": "상품 정보를 불러오지 못했어요",
     "subscribe": "구독하기",
+    "startTrial": "7일 무료로 시작",
     "purchasing": "구매 진행 중",
     "restore": "구매 복원",
+    "trialNotice": "체험 기간이 끝나면 월 {{price}} 요금이 자동으로 청구돼요. 체험 중 언제든 스토어 설정에서 해지할 수 있어요.",
     "autoRenewNotice": "구독은 매월 자동으로 갱신되며, 현재 기간이 끝나기 24시간 전까지 스토어 설정에서 해지할 수 있어요. 결제는 구매 확인 시 스토어 계정으로 청구돼요.",
-    "subscribedTitle": "광고 제거 구독 중",
+    "subscribedTitle": "useless 플러스 구독 중",
+    "trialActive": "무료 체험 중 · {{date}}부터 월 {{price}}",
+    "trialActiveNoPrice": "무료 체험 중 · {{date}}부터 월 요금이 청구돼요",
     "nextRenewal": "다음 갱신일 {{date}}",
     "activeUntil": "{{date}}까지 이용",
     "manage": "구독 관리",
     "dateFormat": "YYYY년 M월 D일",
-    "purchaseSuccess": "광고를 모두 없앴어요",
+    "purchaseSuccess": "오프라인 저장을 쓸 수 있어요",
     "purchaseError": "구매하지 못했어요. 잠시 후 다시 시도해 주세요.",
-    "purchasePending": "결제 승인을 기다리고 있어요. 승인되면 광고가 사라져요.",
+    "purchasePending": "결제 승인을 기다리고 있어요. 승인되면 오프라인 저장을 쓸 수 있어요.",
     "restoreSuccess": "구독을 복원했어요",
     "restoreNone": "복원할 구독이 없어요",
     "restoreError": "구매를 복원하지 못했어요. 잠시 후 다시 시도해 주세요.",
@@ -1694,5 +1701,52 @@
     },
     "start": "다음 백패킹 준비하기",
     "login": "이미 계정이 있어요 · 로그인"
+  },
+  "offline": {
+    "dateFormat": "MM.DD",
+    "tile": {
+      "title": "오프라인",
+      "unsaved": "오프라인 저장",
+      "saving": "저장 중…",
+      "saved": "저장됨 · {{size}} · {{date}} 갱신",
+      "needsUpgrade": "갱신이 필요해요",
+      "locked": "저장됨 · 구독 후 다시 볼 수 있어요",
+      "label": "오프라인 {{subtitle}}"
+    },
+    "menu": {
+      "refresh": "지금 갱신",
+      "remove": "오프라인 저장 삭제"
+    },
+    "removeConfirm": "저장된 오프라인 데이터를 지울까요?",
+    "toast": {
+      "onlineToSave": "온라인에서 저장할 수 있어요",
+      "onlineOnly": "온라인에서 할 수 있어요",
+      "onlineToView": "온라인에서 볼 수 있어요",
+      "saveFailed": "오프라인 저장에 실패했어요",
+      "diskFull": "오프라인 저장에 실패했어요. 저장 공간이 부족해요",
+      "limit": "저장된 여행이 10개예요. 지난 여행을 삭제하고 다시 시도해 주세요"
+    },
+    "band": "오프라인 · {{date}} 저장본",
+    "banner": {
+      "offline": "오프라인이에요 · 저장해 둔 여행만 볼 수 있어요",
+      "locked": "구독이 끝나 저장된 여행을 볼 수 없어요 · useless 플러스 다시 시작"
+    },
+    "list": {
+      "title": "저장된 여행",
+      "empty": "저장해 둔 여행이 없어요. 온라인에서 여행 상세의 오프라인 타일로 저장할 수 있어요.",
+      "meta": "저장됨 · {{size}}"
+    },
+    "detail": {
+      "notSaved": "이 여행은 저장되지 않았어요",
+      "locked": "구독이 끝나 저장된 여행을 볼 수 없어요",
+      "needsUpgrade": "갱신이 필요해요. 온라인에서 이 여행을 열면 갱신돼요"
+    },
+    "canvas": {
+      "offlineLine": "오프라인 · 지도는 연결되면 보여요",
+      "mapFailedLine": "지도를 불러오지 못했어요 · 코스만 보여요",
+      "groupHidden": "그룹 코스는 오프라인에서 보이지 않아요",
+      "north": "N",
+      "northLabel": "북쪽"
+    }
   }
 }

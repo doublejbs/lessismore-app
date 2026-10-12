@@ -49,6 +49,10 @@ import { formatGroupDateRange } from '@/model/group-format/GroupFormat';
 import ConsumableCarouselSectionView from '@/components/consumable/ConsumableCarouselSectionView';
 import ConsumableAnalyticsSource from '@/model/consumable/ConsumableAnalyticsSource';
 import ConsumableSurface from '@/model/consumable/ConsumableSurface';
+import OfflineSaveTileView from '@/components/offline/OfflineSaveTileView';
+import OfflineSnapshotBandView from '@/components/offline/OfflineSnapshotBandView';
+import OfflineUnavailableView from '@/components/offline/OfflineUnavailableView';
+import OfflineMemoView from '@/components/offline/OfflineMemoView';
 
 interface Props {
   bagDetail: BagDetail;
@@ -248,18 +252,28 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
     });
   };
 
+  // `⋯` 메뉴 항목(복사·공유·템플릿·그룹·삭제)은 모두 서버에 쓰는 동작이다 — 오프라인이면 열지 않고 알린다(OF-5).
+  const handleOpenMenu = () => {
+    if (!bagDetail.guardOnline()) {
+      return;
+    }
+
+    setShowMenu(true);
+  };
+
   // 헤더 우측 액션(필름 카드·메뉴) — iOS 네이티브 headerRight와 Android/Web 커스텀 헤더가 공유한다.
   // 두 버튼 모두 44pt 박스를 사용해 HIG 터치 타깃을 보장한다.
+  // 오프라인이면 필름 카드(공유 이미지 만들기)를 숨긴다 — 공유는 온라인 동작이다(OF-5).
   const renderHeaderActions = () => (
     <View style={styles.headerActions}>
-      {Platform.OS !== 'web' && (
+      {Platform.OS !== 'web' && !bagDetail.isReadOnly() && (
         <View style={styles.headerIconBox}>
           <BagFilmCardButtonView bagDetail={bagDetail} />
         </View>
       )}
       <TouchableOpacity
         style={styles.headerIconBox}
-        onPress={() => setShowMenu(true)}
+        onPress={handleOpenMenu}
         activeOpacity={0.7}
         accessibilityRole='button'
         accessibilityLabel={app.getL10n().t('bagDetail.menu')}
@@ -280,10 +294,43 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
         headerTitle: '',
         headerBackButtonDisplayMode: 'minimal',
         // 스켈레톤 동안은 우측 액션을 숨긴다 — 초기화 전 복사/공유는 의미가 없다.
-        ...(initialized ? { headerRight: () => renderHeaderActions() } : {}),
+        ...(initialized && !bagDetail.isUnavailable()
+          ? { headerRight: () => renderHeaderActions() }
+          : {}),
       }}
     />
   );
+
+  // OF-5 · OF-7: 오프라인인데 열 저장본이 없다(미저장·구독 만료·갱신 필요) — 빈 상태만 그린다.
+  if (initialized && bagDetail.isUnavailable()) {
+    return (
+      <GestureHandlerRootView style={styles.container}>
+        {stackScreen}
+        <View style={styles.ground} />
+        <SafeAreaView style={styles.container} edges={SAFE_AREA_EDGES}>
+          {!IS_IOS && (
+            <View style={styles.header}>
+              <View style={styles.headerContent}>
+                <TouchableOpacity
+                  onPress={handlePressBack}
+                  hitSlop={12}
+                  accessibilityRole='button'
+                  accessibilityLabel={app.getL10n().t('bagDetail.back')}
+                >
+                  <Ionicons
+                    name='chevron-back'
+                    size={24}
+                    color={Color.textPrimary}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+          <OfflineUnavailableView access={bagDetail.getOfflineAccess()} />
+        </SafeAreaView>
+      </GestureHandlerRootView>
+    );
+  }
 
   if (initialized) {
     const gears = bagDetail.getGears();
@@ -292,8 +339,13 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
       app.getConsumableStore()?.getForSurface(ConsumableSurface.BagDetail) ??
       [];
     // 출발 전·여행 중이고 상품이 있을 때만 장비 목록 아래에 둔다(CP-4 / BD-12).
+    // 오프라인이면 상품 카드를 걷는다 — 이미지·구매 링크가 모두 연결을 쓴다(OF-5).
     const showConsumables =
-      bagDetail.getTripPhase() !== 'after' && bagConsumables.length > 0;
+      bagDetail.getTripPhase() !== 'after' &&
+      bagConsumables.length > 0 &&
+      !bagDetail.isReadOnly();
+    const isSnapshot = bagDetail.isSnapshot();
+    const offlineTrip = bagDetail.getOfflineTrip();
 
     return (
       <GestureHandlerRootView style={styles.container}>
@@ -339,13 +391,34 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
               showsVerticalScrollIndicator={false}
             >
               <View style={styles.infoSection}>
+                {/* OF-5: 저장본으로 그렸으면 화면 상단에 얇은 띠 `오프라인 · 10.09 저장본`. */}
+                {isSnapshot && (
+                  <View style={styles.offlineBand}>
+                    <OfflineSnapshotBandView
+                      label={app.getL10n().t('offline.band', {
+                        date: bagDetail.getSnapshotDateLabel(),
+                      })}
+                    />
+                  </View>
+                )}
                 <BagDetailNameView bagDetail={bagDetail} />
                 <BagDetailDateView bagDetail={bagDetail} />
                 <BagDetailGroupView bagDetail={bagDetail} />
               </View>
               <BagDetailSummaryView bagDetail={bagDetail} />
               <View style={styles.actionsGrid}>
-                {bagDetail.getTripPhase() === 'after' ? (
+                {isSnapshot ? (
+                  // OF-5: 오프라인 상세의 그리드는 `코스`·`여행지`·`오프라인`만 — 사용 기록·운동 기록은 숨긴다.
+                  // 메모는 누를 수 없는 읽기 전용 면으로 그 아래에 둔다.
+                  <>
+                    <BagDetailDestinationView bagDetail={bagDetail} />
+                    <BagDetailRouteView bagDetail={bagDetail} />
+                    <OfflineSaveTileView offlineTrip={offlineTrip} />
+                    {bagDetail.hasMemo() && (
+                      <OfflineMemoView memo={bagDetail.getMemo()} />
+                    )}
+                  </>
+                ) : bagDetail.getTripPhase() === 'after' ? (
                   <>
                     <BagDetailUselessDescriptionView
                       bagDetail={bagDetail}
@@ -356,6 +429,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                     {/* 코스는 운동 기록 옆이다 — 갈 곳과 다녀온 것을 붙여 두고 라벨로 가른다(BD-11). */}
                     <BagDetailActivityView bagDetail={bagDetail} />
                     <BagDetailRouteView bagDetail={bagDetail} />
+                    <OfflineSaveTileView offlineTrip={offlineTrip} />
                   </>
                 ) : (
                   <>
@@ -368,6 +442,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                     {/* 코스는 운동 기록 옆이다 — 갈 곳과 다녀온 것을 붙여 두고 라벨로 가른다(BD-11). */}
                     <BagDetailActivityView bagDetail={bagDetail} />
                     <BagDetailRouteView bagDetail={bagDetail} />
+                    <OfflineSaveTileView offlineTrip={offlineTrip} />
                   </>
                 )}
               </View>
@@ -543,6 +618,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     paddingTop: 8,
     paddingHorizontal: AcgLayout.screenPadding,
+  },
+  offlineBand: {
+    marginBottom: 8,
   },
   actionsGrid: {
     flexDirection: 'row',

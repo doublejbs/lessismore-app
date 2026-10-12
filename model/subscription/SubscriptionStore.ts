@@ -13,11 +13,14 @@ import RevenueCatKeys from './RevenueCatKeys';
 import {
   ANDROID_MANAGE_SUBSCRIPTIONS_URL,
   IOS_MANAGE_SUBSCRIPTIONS_URL,
-  NO_ADS_ENTITLEMENT_ID,
+  PREMIUM_ENTITLEMENT_ID,
   SUBSCRIPTION_RESOLVE_TIMEOUT_MS,
+  TRIAL_ELIGIBILITY_TIMEOUT_MS,
+  TRIAL_PERIOD_TYPE,
 } from './SubscriptionConstants';
 import { SubscriptionGateContract } from './SubscriptionGateContract';
 import SubscriptionOfferingStatus from './SubscriptionOfferingStatus';
+import TrialEligibility from './TrialEligibility';
 
 const APP_STATE_ACTIVE = 'active';
 
@@ -34,14 +37,15 @@ const getApiKey = (): string => {
 };
 
 /**
- * SUB-1~SUB-5: 광고 제거 구독 상태. `App`이 1개 만들어 앱 수명 동안 든다.
+ * SUB-1~SUB-5·SUB-10: `useless 플러스` 구독 상태. `App`이 1개 만들어 앱 수명 동안 든다.
  *
- * - 구독 판단 소스는 RevenueCat SDK의 `customerInfo.entitlements.active.no_ads`다(SUB-4).
- *   Firestore(DM-31)는 읽지 않는다.
+ * - 구독 판단 소스는 RevenueCat SDK의 `customerInfo.entitlements.active.premium`이다(체험 포함).
+ *   오프라인 저장 게이트(SUB-11)가 `isSubscribed()`로 이 판단을 쓴다. Firestore(DM-31)는 읽지 않는다.
+ * - 7일 무료 체험(SUB-10): 체험 중인지(`isTrial`)와 체험 자격(`getTrialEligibility`)을 함께 든다.
  * - 구독 기능은 **네이티브 + 공개 키 있음 + 네이티브 모듈 있음**일 때만 켜진다(`isAvailable`).
  *   꺼져 있으면 처음부터 "미구독으로 확정"이다.
  * - 계정 연결(SUB-3): 초기화 때 로그인 uid로 설정하고, 이후 Firebase uid가 바뀌면 `logIn`/`logOut`.
- * - SDK가 실패하면(네트워크·스토어) 미구독으로 확정한다 — 광고가 막히는 쪽이 더 나쁘다(SUB-4).
+ * - SDK가 실패하면(네트워크·스토어) 미구독으로 확정한다(SUB-4 — 오프라인 게이트는 구독 화면으로 보낸다).
  */
 class SubscriptionStore implements SubscriptionGateContract {
   public static new(firebase: Firebase) {
@@ -50,6 +54,9 @@ class SubscriptionStore implements SubscriptionGateContract {
 
   private resolved = false;
   private subscribed = false;
+  // SUB-10: 살아 있는 권한이 무료 체험 기간인지(`periodType == TRIAL`).
+  private trial = false;
+  private trialEligibility = TrialEligibility.Unknown;
   private willRenew = false;
   private expirationDate: string | null = null;
   private offeringStatus = SubscriptionOfferingStatus.Idle;
@@ -71,7 +78,6 @@ class SubscriptionStore implements SubscriptionGateContract {
       | 'monthlyPackage'
       | 'configured'
       | 'configureFailed'
-      | 'linkedUserId'
       | 'userSyncing'
       | 'resolveWaiters'
       | 'resolveTimeoutId'
@@ -80,7 +86,6 @@ class SubscriptionStore implements SubscriptionGateContract {
       monthlyPackage: observable.ref,
       configured: false,
       configureFailed: false,
-      linkedUserId: false,
       userSyncing: false,
       resolveWaiters: false,
       resolveTimeoutId: false,
@@ -113,7 +118,7 @@ class SubscriptionStore implements SubscriptionGateContract {
     }
 
     this.configured = true;
-    this.linkedUserId = userId;
+    this.setLinkedUserId(userId);
 
     sdk.default.addCustomerInfoUpdateListener(this.handleCustomerInfoUpdate);
 
@@ -141,12 +146,33 @@ class SubscriptionStore implements SubscriptionGateContract {
     return this.getSdk() !== null && !this.configureFailed;
   }
 
+  // SUB-3·OF-7: RevenueCat에 지금 연결된 uid(`Purchases.logIn`에 넘긴 값, '' = 익명). 오프라인 권한 기록이
+  // 이 값과 Firebase uid가 같을 때만 남긴다 — 계정 전환 중 앞 사람의 권한이 다음 사람 이름으로 남지 않게.
+  public getLinkedUserId(): string {
+    return this.linkedUserId;
+  }
+
   public isResolved(): boolean {
     return !this.isAvailable() || this.resolved;
   }
 
   public isSubscribed(): boolean {
     return this.isAvailable() && this.subscribed;
+  }
+
+  // SUB-10: 무료 체험 기간 중인지. 체험 중이면 `getExpirationDate()`가 체험 종료일이다.
+  public isTrial(): boolean {
+    return this.isSubscribed() && this.trial;
+  }
+
+  // SUB-10: 7일 무료 체험 자격. 상품을 불러올 때(`loadOffering`) 함께 조회한다 — 화면은 `Eligible`일 때만
+  // 체험 문구를 그리고, `Unknown`(조회 전·실패)은 `Ineligible`과 같이 그린다.
+  public getTrialEligibility(): TrialEligibility {
+    return this.trialEligibility;
+  }
+
+  public isTrialEligible(): boolean {
+    return this.trialEligibility === TrialEligibility.Eligible;
   }
 
   public willRenewSubscription(): boolean {
@@ -206,6 +232,8 @@ class SubscriptionStore implements SubscriptionGateContract {
   }
 
   // SUB-2: 구독 화면이 열릴 때 월 패키지를 불러온다. 불러오지 못하면 `Error`(가격 자리에 오류 + 다시 시도).
+  // SUB-10: 패키지를 받으면 체험 자격까지 조회한 뒤 `Ready`로 둔다 — 버튼 문구가 `구독하기` →
+  // `7일 무료로 시작`으로 뒤늦게 바뀌지 않게.
   public async loadOffering() {
     const sdk = this.getSdk();
 
@@ -233,6 +261,9 @@ class SubscriptionStore implements SubscriptionGateContract {
       const current = offerings.current;
       const monthlyPackage =
         current?.monthly ?? current?.availablePackages[0] ?? null;
+      const trialEligibility = monthlyPackage
+        ? await this.fetchTrialEligibilityWithTimeout(sdk, monthlyPackage)
+        : TrialEligibility.Unknown;
 
       runInAction(() => {
         if (!monthlyPackage && hadPackage) {
@@ -240,6 +271,7 @@ class SubscriptionStore implements SubscriptionGateContract {
         }
 
         this.monthlyPackage = monthlyPackage;
+        this.trialEligibility = trialEligibility;
         this.offeringStatus = monthlyPackage
           ? SubscriptionOfferingStatus.Ready
           : SubscriptionOfferingStatus.Error;
@@ -248,6 +280,76 @@ class SubscriptionStore implements SubscriptionGateContract {
       if (!hadPackage) {
         this.setOfferingStatus(SubscriptionOfferingStatus.Error);
       }
+    }
+  }
+
+  // SUB-10: 체험 자격 조회가 `TRIAL_ELIGIBILITY_TIMEOUT_MS` 안에 끝나지 않으면 `Unknown`(체험 없는 문구)으로
+  // 보고 넘어간다 — 조회가 멈춰도 가격 화면이 로딩에 갇히지 않게.
+  private async fetchTrialEligibilityWithTimeout(
+    sdk: Purchases,
+    monthlyPackage: PurchasesPackage
+  ): Promise<TrialEligibility> {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const timeout = new Promise<TrialEligibility>((resolve) => {
+      timeoutId = setTimeout(() => {
+        resolve(TrialEligibility.Unknown);
+      }, TRIAL_ELIGIBILITY_TIMEOUT_MS);
+    });
+
+    try {
+      return await Promise.race([
+        this.fetchTrialEligibility(sdk, monthlyPackage),
+        timeout,
+      ]);
+    } finally {
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
+    }
+  }
+
+  // SUB-10: 스토어에 체험 자격을 묻는다. 실패하면 `Unknown`(화면은 자격 없음으로 그린다).
+  // iOS는 RevenueCat이 판단해 준다. Android는 이 API가 언제나 `UNKNOWN`을 주는 대신 Play가 **자격 있는
+  // 오퍼만** 상품에 실어 보낸다 — 기본 옵션에 무료 단계(`freePhase`)가 있으면 자격이 있다.
+  private async fetchTrialEligibility(
+    sdk: Purchases,
+    monthlyPackage: PurchasesPackage
+  ): Promise<TrialEligibility> {
+    const product = monthlyPackage.product;
+
+    if (Platform.OS === 'android') {
+      return product.defaultOption?.freePhase
+        ? TrialEligibility.Eligible
+        : TrialEligibility.Ineligible;
+    }
+
+    try {
+      const eligibilities =
+        await sdk.default.checkTrialOrIntroductoryPriceEligibility([
+          product.identifier,
+        ]);
+      const status = eligibilities[product.identifier]?.status;
+
+      if (
+        status ===
+        sdk.INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_ELIGIBLE
+      ) {
+        // 도입 혜택이 체험(무료)이 아닌 할인이면 체험 문구를 쓰지 않는다(SUB-1 — 할인 오퍼는 두지 않는다).
+        return product.introPrice?.price === 0
+          ? TrialEligibility.Eligible
+          : TrialEligibility.Ineligible;
+      }
+
+      if (
+        status === sdk.INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_UNKNOWN
+      ) {
+        return TrialEligibility.Unknown;
+      }
+
+      return TrialEligibility.Ineligible;
+    } catch {
+      return TrialEligibility.Unknown;
     }
   }
 
@@ -402,7 +504,7 @@ class SubscriptionStore implements SubscriptionGateContract {
       try {
         const customerInfo = await sdk.default.logOut();
 
-        this.linkedUserId = '';
+        this.setLinkedUserId('');
 
         if (this.firebase.getUserId() !== '') {
           return;
@@ -411,7 +513,7 @@ class SubscriptionStore implements SubscriptionGateContract {
         this.applyCustomerInfo(customerInfo);
       } catch {
         // 이미 익명이면 SDK가 던진다 — 결과는 같다.
-        this.linkedUserId = '';
+        this.setLinkedUserId('');
       }
 
       return;
@@ -420,14 +522,17 @@ class SubscriptionStore implements SubscriptionGateContract {
     try {
       const { customerInfo } = await sdk.default.logIn(userId);
 
-      this.linkedUserId = userId;
+      // uid 연결과 새 계정의 권한 반영을 한 번에 — 반응이 앞 계정의 구독 상태와 새 uid를 함께 보지 않게 한다.
+      runInAction(() => {
+        this.setLinkedUserId(userId);
 
-      // 연결하는 사이 다시 로그아웃·전환됐으면 뒤따르는 동기화가 상태를 정한다.
-      if (this.firebase.getUserId() !== userId) {
-        return;
-      }
+        // 연결하는 사이 다시 로그아웃·전환됐으면 뒤따르는 동기화가 상태를 정한다.
+        if (this.firebase.getUserId() !== userId) {
+          return;
+        }
 
-      this.applyCustomerInfo(customerInfo);
+        this.applyCustomerInfo(customerInfo);
+      });
     } catch {
       // 연결에 실패하면 이 사용자의 구독을 알 수 없다 — 미구독으로 둔다(다음 uid 변경·재시작에 다시 시도).
       this.clearEntitlement();
@@ -457,15 +562,28 @@ class SubscriptionStore implements SubscriptionGateContract {
     return this.linkedUserId === userId ? userId : '';
   }
 
+  private setLinkedUserId(userId: string) {
+    this.linkedUserId = userId;
+  }
+
   private isStillLinkedTo(userId: string): boolean {
     return this.linkedUserId === userId && this.firebase.getUserId() === userId;
   }
 
   private applyCustomerInfo(customerInfo: CustomerInfo) {
     const entitlement =
-      customerInfo.entitlements.active[NO_ADS_ENTITLEMENT_ID] ?? null;
+      customerInfo.entitlements.active[PREMIUM_ENTITLEMENT_ID] ?? null;
+    const wasTrialEligible =
+      this.trialEligibility === TrialEligibility.Eligible;
 
     this.subscribed = entitlement !== null;
+    this.trial = entitlement?.periodType.toUpperCase() === TRIAL_PERIOD_TYPE;
+
+    // 체험을 시작했으면 이 계정의 자격은 끝났다 — 다음 조회 전까지 체험 문구를 다시 그리지 않는다.
+    if (this.trial && wasTrialEligible) {
+      this.trialEligibility = TrialEligibility.Ineligible;
+    }
+
     this.willRenew = entitlement?.willRenew ?? false;
     this.expirationDate = entitlement?.expirationDate ?? null;
     this.markResolved();
@@ -473,6 +591,7 @@ class SubscriptionStore implements SubscriptionGateContract {
 
   private clearEntitlement() {
     this.subscribed = false;
+    this.trial = false;
     this.willRenew = false;
     this.expirationDate = null;
   }

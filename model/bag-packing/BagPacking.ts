@@ -6,6 +6,10 @@ import BagStore from '@/model/store/BagStore';
 import Gear from '@/model/gear/Gear';
 import BagDetailFilterManager from '@/model/bag-detail/BagDetailFilterManager';
 import AnalyticsManager from '@/model/analytics/AnalyticsManager';
+import NetworkStatus from '@/model/offline/NetworkStatus';
+import OfflineTripAccess from '@/model/offline/OfflineTripAccess';
+import OfflineTripStore from '@/model/offline/OfflineTripStore';
+import { OfflinePackingState } from '@/model/offline/OfflineTripSnapshot';
 
 const SAVE_DEBOUNCE_MS = 800;
 
@@ -16,7 +20,9 @@ class BagPacking {
       id,
       app.getBagStore()!,
       BagDetailFilterManager.from(),
-      app.getAnalyticsManager()
+      app.getAnalyticsManager(),
+      app.getNetworkStatus(),
+      app.getOfflineTripStore()
     );
   }
 
@@ -37,9 +43,14 @@ class BagPacking {
     private readonly id: string,
     private readonly bagStore: BagStore,
     private readonly filterManager: BagDetailFilterManager,
-    private readonly analyticsManager: AnalyticsManager | null
+    private readonly analyticsManager: AnalyticsManager | null,
+    private readonly networkStatus: NetworkStatus,
+    private readonly offlineTripStore: OfflineTripStore | null
   ) {
-    makeAutoObservable(this);
+    makeAutoObservable<BagPacking, 'networkStatus' | 'offlineTripStore'>(
+      this,
+      { networkStatus: false, offlineTripStore: false }
+    );
   }
 
   public async initialize() {
@@ -49,6 +60,13 @@ class BagPacking {
   }
 
   private async loadBag() {
+    // OF-5: 오프라인이면 저장본으로 패킹한다 — 체크는 저장본에 쓰고 연결되면 서버에 반영한다.
+    if (this.networkStatus.isOffline()) {
+      await this.loadSnapshot();
+
+      return;
+    }
+
     const { name, weight, gears, startDate } =
       await this.bagStore.getBagWithAllFilter(this.id);
     const { packedGears, packingStartedAt, packingCompletedAt } =
@@ -63,6 +81,28 @@ class BagPacking {
     this.setPackingCompletedAt(packingCompletedAt);
   }
 
+  private async loadSnapshot() {
+    const store = this.offlineTripStore;
+    const snapshot =
+      store && store.getAccess(this.id) === OfflineTripAccess.Available
+        ? await store.load(this.id)
+        : null;
+
+    if (!store || !snapshot) {
+      return;
+    }
+
+    const { bag } = snapshot;
+
+    this.setName(bag.name);
+    this.setWeight(Number(bag.weight));
+    this.setGears(this.bagStore.toOwnedGearsFromData(snapshot.gears));
+    this.setStartDate(bag.startDate);
+    this.setPackedIds(new Set(bag.packedGears));
+    this.setPackingStartedAt(bag.packingStartedAt);
+    this.setPackingCompletedAt(bag.packingCompletedAt);
+  }
+
   // 패킹 기록이 없는 배낭(장비가 있는)에서 진입하면 최초 시작 시각을 기록한다.
   private async startPackingIfNeeded() {
     if (this.packingStartedAt || this.gears.length === 0) {
@@ -72,9 +112,53 @@ class BagPacking {
     const startedAt = new Date().toISOString();
 
     this.setPackingStartedAt(startedAt);
+
+    if (this.networkStatus.isOffline()) {
+      await this.saveOffline();
+
+      return;
+    }
+
     await this.bagStore.savePacking(this.id, this.getPackedIdsArray(), {
       packingStartedAt: startedAt,
     });
+  }
+
+  // 지금 패킹 상태(PK-2 필드 그대로) — 저장본에 쓰거나 서버 반영 후 저장본을 맞출 때 쓴다(OF-5).
+  private getPackingState(): OfflinePackingState {
+    return {
+      packedGears: this.getPackedIdsArray(),
+      ...(this.packingStartedAt
+        ? { packingStartedAt: this.packingStartedAt }
+        : {}),
+      ...(this.isComplete() && this.packingCompletedAt
+        ? { packingCompletedAt: this.packingCompletedAt }
+        : {}),
+    };
+  }
+
+  // 오프라인 토글을 저장본에 즉시 쓰고 서버 반영 대기로 둔다(OF-5 — 앱을 껐다 켜도 남는다).
+  private async saveOffline(): Promise<boolean> {
+    return (
+      (await this.offlineTripStore?.updatePacking(
+        this.id,
+        this.getPackingState(),
+        true
+      )) ?? false
+    );
+  }
+
+  // 온라인으로 서버에 쓴 뒤 저장본도 같은 상태로 맞춘다 — 다음 오프라인 진입에서 옛 체크가 보이지 않게.
+  private mirrorToSnapshot() {
+    if (!this.offlineTripStore?.isSaved(this.id)) {
+      return;
+    }
+
+    void this.offlineTripStore.updatePacking(
+      this.id,
+      this.getPackingState(),
+      false
+    );
   }
 
   private setName(value: string) {
@@ -281,6 +365,12 @@ class BagPacking {
 
     this.pendingSave = false;
 
+    if (this.networkStatus.isOffline()) {
+      await this.saveOffline();
+
+      return;
+    }
+
     try {
       if (this.isComplete()) {
         await this.bagStore.savePacking(this.id, this.getPackedIdsArray(), {
@@ -293,9 +383,12 @@ class BagPacking {
           removePackingCompletedAt: true,
         });
       }
+
+      this.mirrorToSnapshot();
     } catch (e) {
-      // 저장 실패는 앱 동작을 막지 않는다(오프라인 persistence로 재접속 시 동기화).
+      // 저장 실패는 앱 동작을 막지 않는다. 저장해 둔 여행이면 저장본에 쓰고 연결되면 반영한다(OF-5).
       console.warn('패킹 상태 저장 실패', e); // l10n-ignore: 개발자 로그
+      await this.saveOffline();
     }
   }
 
@@ -311,12 +404,20 @@ class BagPacking {
 
     this.pendingSave = false;
 
+    if (this.networkStatus.isOffline()) {
+      await this.saveOffline();
+
+      return;
+    }
+
     try {
       await this.bagStore.savePacking(this.id, [], {
         removePackingCompletedAt: true,
       });
+      this.mirrorToSnapshot();
     } catch (e) {
       console.warn('패킹 초기화 저장 실패', e); // l10n-ignore: 개발자 로그
+      await this.saveOffline();
     }
   }
 

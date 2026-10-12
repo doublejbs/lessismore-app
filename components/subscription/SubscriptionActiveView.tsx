@@ -14,6 +14,10 @@ const SECONDARY_BUTTON_HEIGHT = 48;
 
 interface Props {
   willRenew: boolean;
+  // SUB-10: 7일 무료 체험 기간 중이면 true — 날짜 줄이 체험 종료 뒤 첫 결제를 알린다.
+  isTrial: boolean;
+  // 체험 뒤 청구될 스토어 가격. 상품을 불러오지 못했으면 null(가격 없는 문구).
+  priceString: string | null;
   // 표시용으로 이미 현지화한 날짜. 만료가 없는 권한이면 null(날짜 줄을 그리지 않는다).
   formattedExpirationDate: string | null;
   isRestoring: boolean;
@@ -21,10 +25,13 @@ interface Props {
   onRestore: () => void;
 }
 
-// SUB-2 구독 중: `광고 제거 구독 중` · 다음 갱신일(해지 예약이면 `{날짜}까지 이용`) · 구독 관리 · 구매 복원.
+// SUB-2 구독 중: `useless 플러스 구독 중` · 다음 갱신일(해지 예약이면 `{날짜}까지 이용`) · 구독 관리 · 구매 복원.
+// SUB-10 체험 중: 날짜 줄이 `무료 체험 중 · {종료일}부터 월 {가격}`(해지 예약이면 `{종료일}까지 이용`).
 // 관리는 스토어로 나가는 보조 동작이라 라임을 쓰지 않는다(연회색 알약, HM-8).
 const SubscriptionActiveView = ({
   willRenew,
+  isTrial,
+  priceString,
   formattedExpirationDate,
   isRestoring,
   onManage,
@@ -33,6 +40,22 @@ const SubscriptionActiveView = ({
   const l10n = app.getL10n();
   const manageLabel = l10n.t('subscription.manage');
 
+  const getPeriodLabel = (date: string): string => {
+    if (!willRenew) {
+      return l10n.t('subscription.activeUntil', { date });
+    }
+
+    if (!isTrial) {
+      return l10n.t('subscription.nextRenewal', { date });
+    }
+
+    if (priceString) {
+      return l10n.t('subscription.trialActive', { date, price: priceString });
+    }
+
+    return l10n.t('subscription.trialActiveNoPrice', { date });
+  };
+
   const renderPeriod = () => {
     if (!formattedExpirationDate) {
       return null;
@@ -40,13 +63,7 @@ const SubscriptionActiveView = ({
 
     return (
       <PretendardText style={styles.period}>
-        {willRenew
-          ? l10n.t('subscription.nextRenewal', {
-              date: formattedExpirationDate,
-            })
-          : l10n.t('subscription.activeUntil', {
-              date: formattedExpirationDate,
-            })}
+        {getPeriodLabel(formattedExpirationDate)}
       </PretendardText>
     );
   };

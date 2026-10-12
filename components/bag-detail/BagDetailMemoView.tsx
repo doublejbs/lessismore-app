@@ -19,6 +19,11 @@ const BagDetailMemoView: FC<Props> = ({ bagDetail }) => {
   const memo = bagDetail.getMemo();
 
   const handlePressMemo = () => {
+    // OF-5: 서버 데이터로 그리던 중 연결이 끊겼으면 메모 편집으로 가지 않는다.
+    if (!bagDetail.guardOnline()) {
+      return;
+    }
+
     app.getAnalyticsManager()?.logClick('bag_memo');
     router.push(`/bag/${bagDetail.getId()}/memo`);
   };

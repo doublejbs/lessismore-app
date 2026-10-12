@@ -52,6 +52,13 @@ class BagRouteStore {
   }
 
   public async getRoutes(bagId: string): Promise<BagRoute[]> {
+    const routes = await this.getRouteDataList(bagId);
+
+    return routes.map(route => this.toRoute(route));
+  }
+
+  // 코스 문서를 모델로 바꾸기 전 값 그대로(오프라인 저장 OF-1이 직렬화해 둔다).
+  public async getRouteDataList(bagId: string): Promise<RouteData[]> {
     const snapshot = await getDocs(
       query(
         collection(this.getStore(), 'bag', bagId, 'routes'),
@@ -59,12 +66,12 @@ class BagRouteStore {
       )
     );
 
-    return snapshot.docs.map(item =>
-      BagRoute.from(
-        this.toRouteData(item.id, item.data()),
-        this.routeDirections
-      )
-    );
+    return snapshot.docs.map(item => this.toRouteData(item.id, item.data()));
+  }
+
+  // 저장본(OF-6)에서 되돌린 코스도 서버 코스와 같은 뒤집기 설정을 따른다.
+  public toRoute(data: RouteData): BagRoute {
+    return BagRoute.from(data, this.routeDirections);
   }
 
   /**

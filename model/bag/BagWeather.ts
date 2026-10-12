@@ -74,6 +74,10 @@ class BagWeather {
     return this.location;
   }
 
+  public getBagId() {
+    return this.bagId;
+  }
+
   public hasLocation() {
     return this.location !== null;
   }

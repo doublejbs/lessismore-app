@@ -59,6 +59,11 @@ const BagDetailDestinationView: FC<Props> = ({
     app.getAnalyticsManager()?.logClick('bag_weather');
 
     if (!location) {
+      // 여행지 지정은 서버에 쓰는 동작이다 — 오프라인이면 알린다(OF-5).
+      if (!bagDetail.guardOnline()) {
+        return;
+      }
+
       // 공용 선택기(DST-3)는 라우트라 저장 콜백을 모듈 레벨 핸드오프로 넘기고 push한다.
       setBagDestinationPicker({
         currentLocation: null,
