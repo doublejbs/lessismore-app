@@ -1,6 +1,8 @@
 import { FC, useMemo } from 'react';
+import type { LineLayerSpecification } from '@maplibre/maplibre-gl-style-spec';
 import { GeoJSONSource, Layer } from '@maplibre/maplibre-react-native';
 import { observer } from 'mobx-react-lite';
+import { ROUTE_CASING_COLOR } from '@/components/map/MapConstants';
 import { ROUTE_COLOR, ROUTE_DIM_COLOR } from '@/model/route/RouteColors';
 import { RouteDisplay } from '@/model/route/RouteDisplay';
 
@@ -26,7 +28,6 @@ export const ROUTE_CASING_LAYER_ID = 'app-routes-casing';
 const ROUTE_SOURCE_ID = 'app-routes';
 const ROUTE_LINE_LAYER_ID = 'app-routes-line';
 // 코스 선 색은 `RouteColors`(고도 그래프·리플레이와 같은 파랑). 선택 6 / 비선택 4, 흰 테두리.
-const ROUTE_OUTLINE_COLOR = '#FFFFFF';
 const ROUTE_WIDTH = 6;
 const ROUTE_DIM_WIDTH = 4;
 // 테두리 레이어 굵기 = 본선 + 양쪽 2pt.
@@ -34,6 +35,25 @@ const ROUTE_OUTLINE_WIDTH = 10;
 const ROUTE_DIM_OUTLINE_WIDTH = 6;
 // 경로선은 좌표가 2개 미만이면 그리지 않는다.
 const MIN_PATH_COORDS = 2;
+
+// 레이어 스타일은 모듈 상수다 — 렌더마다 새 객체를 넘기면 SDK가 네이티브로 다시 보낸다.
+const LINE_LAYOUT: NonNullable<LineLayerSpecification['layout']> = {
+  'line-cap': 'round',
+  'line-join': 'round',
+};
+const CASING_PAINT: NonNullable<LineLayerSpecification['paint']> = {
+  'line-color': ROUTE_CASING_COLOR,
+  'line-width': [
+    'case',
+    ['get', 'selected'],
+    ROUTE_OUTLINE_WIDTH,
+    ROUTE_DIM_OUTLINE_WIDTH,
+  ],
+};
+const LINE_PAINT: NonNullable<LineLayerSpecification['paint']> = {
+  'line-color': ['case', ['get', 'selected'], ROUTE_COLOR, ROUTE_DIM_COLOR],
+  'line-width': ['case', ['get', 'selected'], ROUTE_WIDTH, ROUTE_DIM_WIDTH],
+};
 
 /**
  * 코스 목록의 안정 키 — id·좌표 수·방향이 같으면 같은 선이다. 이 키로 GeoJSON 문자열을 memo해, 나침반·
@@ -99,36 +119,15 @@ const MapRoutePathLayersView: FC<Props> = ({
         id={ROUTE_CASING_LAYER_ID}
         type='line'
         {...(beforeId ? { beforeId } : {})}
-        layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-        paint={{
-          'line-color': ROUTE_OUTLINE_COLOR,
-          'line-width': [
-            'case',
-            ['get', 'selected'],
-            ROUTE_OUTLINE_WIDTH,
-            ROUTE_DIM_OUTLINE_WIDTH,
-          ],
-        }}
+        layout={LINE_LAYOUT}
+        paint={CASING_PAINT}
       />
       <Layer
         id={ROUTE_LINE_LAYER_ID}
         type='line'
         {...(beforeId ? { beforeId } : {})}
-        layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-        paint={{
-          'line-color': [
-            'case',
-            ['get', 'selected'],
-            ROUTE_COLOR,
-            ROUTE_DIM_COLOR,
-          ],
-          'line-width': [
-            'case',
-            ['get', 'selected'],
-            ROUTE_WIDTH,
-            ROUTE_DIM_WIDTH,
-          ],
-        }}
+        layout={LINE_LAYOUT}
+        paint={LINE_PAINT}
       />
     </GeoJSONSource>
   );

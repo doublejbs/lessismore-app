@@ -38,10 +38,14 @@ const hasNativeModule = (name: string): boolean => {
 const hasOfflineNativeModule = (): boolean =>
   hasNativeModule(OFFLINE_NATIVE_MODULE);
 
-const requireSdk = (): MapLibreSdk | null => {
+// SDK는 패키지를 직접 require하지 않고 `MapLibreSdk.ts`(정적 import)를 통해 싣는다 — 패키지 `exports`의
+// `require` 조건이 CommonJS 사본을 따로 실어 네이티브 뷰 이중 등록으로 죽기 때문이다(그 파일 주석 참고).
+type MapLibreSdkAccess = typeof import('./MapLibreSdk');
+
+const requireSdk = (): MapLibreSdkAccess | null => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    return require('@maplibre/maplibre-react-native') as MapLibreSdk;
+    return require('./MapLibreSdk') as MapLibreSdkAccess;
   } catch {
     return null;
   }
@@ -72,7 +76,7 @@ export const loadOfflineManager = (): MapLibreOfflineManager | null => {
     return offlineManager;
   }
 
-  offlineManager = requireSdk()?.OfflineManager ?? null;
+  offlineManager = requireSdk()?.getOfflineManager() ?? null;
 
   return offlineManager;
 };
@@ -93,7 +97,7 @@ export const loadStaticMapImageManager =
       return staticMapImageManager;
     }
 
-    staticMapImageManager = requireSdk()?.StaticMapImageManager ?? null;
+    staticMapImageManager = requireSdk()?.getStaticMapImageManager() ?? null;
 
     return staticMapImageManager;
   };

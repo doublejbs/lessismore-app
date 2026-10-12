@@ -1,5 +1,7 @@
 import { FC, useMemo } from 'react';
+import type { LineLayerSpecification } from '@maplibre/maplibre-gl-style-spec';
 import { GeoJSONSource, Layer } from '@maplibre/maplibre-react-native';
+import { ROUTE_CASING_COLOR } from '@/components/map/MapConstants';
 import { ROUTE_COLOR } from '@/model/route/RouteColors';
 
 export interface MapHealthRouteLine {
@@ -17,10 +19,23 @@ const SOURCE_ID = 'app-health-routes';
 const CASING_LAYER_ID = 'app-health-routes-casing';
 const LINE_LAYER_ID = 'app-health-routes-line';
 // 운동 기록 경로(HA-4) — 코스 화면과 같은 파랑, 굵기 5 + 흰 테두리 2.
-const OUTLINE_COLOR = '#FFFFFF';
 const LINE_WIDTH = 5;
 const OUTLINE_WIDTH = 2;
 const MIN_PATH_COORDS = 2;
+
+// 레이어 스타일은 모듈 상수다 — 렌더마다 새 객체를 넘기면 SDK가 네이티브로 다시 보낸다.
+const LINE_LAYOUT: NonNullable<LineLayerSpecification['layout']> = {
+  'line-cap': 'round',
+  'line-join': 'round',
+};
+const CASING_PAINT: NonNullable<LineLayerSpecification['paint']> = {
+  'line-color': ROUTE_CASING_COLOR,
+  'line-width': LINE_WIDTH + OUTLINE_WIDTH * 2,
+};
+const LINE_PAINT: NonNullable<LineLayerSpecification['paint']> = {
+  'line-color': ROUTE_COLOR,
+  'line-width': LINE_WIDTH,
+};
 
 /**
  * 운동 기록 GPS 경로 선 (MAP-2 · HA-4) — `GeoJSONSource` + 선 레이어 둘(흰 테두리 · 본선).
@@ -51,20 +66,14 @@ const MapHealthRouteLayersView: FC<Props> = ({ lines }) => {
       <Layer
         id={CASING_LAYER_ID}
         type='line'
-        layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-        paint={{
-          'line-color': OUTLINE_COLOR,
-          'line-width': LINE_WIDTH + OUTLINE_WIDTH * 2,
-        }}
+        layout={LINE_LAYOUT}
+        paint={CASING_PAINT}
       />
       <Layer
         id={LINE_LAYER_ID}
         type='line'
-        layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-        paint={{
-          'line-color': ROUTE_COLOR,
-          'line-width': LINE_WIDTH,
-        }}
+        layout={LINE_LAYOUT}
+        paint={LINE_PAINT}
       />
     </GeoJSONSource>
   );

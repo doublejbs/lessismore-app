@@ -20,7 +20,7 @@ export const KOREA_CAMERA = {
 // `내 위치`로 옮길 때 보이는 위도 스팬(도) — 배낭 코스 지도(BD-11)의 값.
 export const CURRENT_LOCATION_DELTA = 0.05;
 
-// 남서 모서리 + 스팬 영역(네이버 `animateRegionTo`가 받던 모양) → `[w, s, e, n]`.
+// 남서 모서리 + 스팬 영역(`RouteCameraRegion` — `[이력]` 네이버 `animateRegionTo`의 모양) → `[w, s, e, n]`.
 export const regionToLngLatBounds = (
   region: RouteCameraRegion
 ): LngLatBounds => [

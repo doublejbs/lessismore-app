@@ -37,8 +37,8 @@ const CAPTION_MAX_WIDTH = 140;
 const MARKER_OFFSET: [number, number] = [0, HIT_AREA / 2];
 
 /**
- * 지도 포인트 마커 1개 (MAP-2 · GRP-9 · BD-14 · OF-6). MapLibre `Marker`는 실제 RN 뷰라(네이버 마커처럼
- * 스냅숏으로 굳히지 않는다) 캡션을 `PretendardText`로 직접 그린다. 유형색은 `PointLabels` 단일 소스다.
+ * 지도 포인트 마커 1개 (MAP-2 · GRP-9 · BD-14 · OF-6). MapLibre `Marker`는 스냅숏이 아니라 실제 RN 뷰라
+ * 캡션을 `PretendardText`로 직접 그린다. 유형색은 `PointLabels` 단일 소스다.
  *
  * 유형색 원 + 흰 테두리 + 아이콘, 이름은 원 위 캡션(잉크 글자 + 흰 반투명 바탕 — 지도 위 가독성).
  * 선택 마커는 원을 키우고 잉크 테두리. `compact`는 캡션 없는 작은 원이다(가운데가 좌표).
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: Radius.pill,
-    // 지도 위 캡션 바탕 — 거의 불투명한 흰 면(네이버 캡션의 흰 halo 대신).
+    // 지도 위 캡션 바탕 — 거의 불투명한 흰 면(지형·라벨 위 가독성).
     backgroundColor: Acg.heroCardFill,
     overflow: 'hidden',
   },

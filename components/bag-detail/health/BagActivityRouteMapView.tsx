@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from 'react';
+import { FC, useCallback, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { StyleSheet, View } from 'react-native';
 import { Marker } from '@maplibre/maplibre-react-native';
@@ -14,7 +14,10 @@ import {
   regionToLngLatBounds,
 } from '@/model/map/MapCamera';
 import { sampleRouteCoordinates } from '@/model/route-replay/RouteReplayCoordinates';
-import { getRouteFitRegion, measureRouteBounds } from '@/model/route/RouteCamera';
+import {
+  getRouteFitRegion,
+  measureRouteBounds,
+} from '@/model/route/RouteCamera';
 import { RouteCoordinate } from '@/model/route/RouteData';
 
 interface Props {
@@ -78,23 +81,42 @@ const getInitialCamera = (
 // 경로가 없는 기록은 상위에서 이 컴포넌트를 렌더하지 않는다.
 //
 // 스크롤 뷰 안에 놓이므로 제스처는 모두 막는다(`interactive={false}`) — 지도 조작이 목적이 아니라
-// "어디를 걸었는지" 확인이 목적이고, 팬 제스처가 스크롤과 충돌하면 화면이 갇힌다.
+// "어디를 걸었는지" 확인이 목적이고, 팬 제스처가 스크롤과 충돌하면 화면이 갇힌다. 제스처를 꺼도 Android
+// 네이티브 지도가 터치를 먼저 잡으면 `ScrollView`가 세로 드래그를 못 가로채므로 지도를 `pointerEvents='none'`
+// 래퍼로 감싸 터치를 아예 받지 않게 한다(그룹 상세 밴드 GRP-7과 같은 이유).
+// 지도 데이터를 못 불러오면(`onLoadFailed`) 지도 칸을 숨긴다 — 빈 지면 칸은 "깨진 지도"로 읽힌다(MAP-6 측정).
 const BagActivityRouteMapView: FC<Props> = ({ routes }) => {
   const drawable = useMemo(() => toDrawableRoutes(routes), [routes]);
   const lines = useMemo(
     (): MapHealthRouteLine[] =>
       drawable.map(route => ({
         id: route.id,
-        coordinates: route.coordinates.map(
-          (coordinate): [number, number] => [coordinate.lng, coordinate.lat]
-        ),
+        coordinates: route.coordinates.map((coordinate): [number, number] => [
+          coordinate.lng,
+          coordinate.lat,
+        ]),
       })),
     [drawable]
   );
   // 지도를 붙일 때 한 번 정한다 — 연결된 운동은 이 화면 안에서 바뀌지 않는다.
   const [initialCamera] = useState(() => getInitialCamera(drawable));
+  const [isLoadFailed, setIsLoadFailed] = useState(false);
+  const loggedLoadFailureRef = useRef(false);
 
-  if (drawable.length === 0) {
+  const handleLoadFailed = useCallback(() => {
+    setIsLoadFailed(true);
+
+    if (loggedLoadFailureRef.current) {
+      return;
+    }
+
+    loggedLoadFailureRef.current = true;
+    app
+      .getAnalyticsManager()
+      ?.logEvent('map_load_failed', { screen: 'activity_route' });
+  }, []);
+
+  if (drawable.length === 0 || isLoadFailed) {
     return null;
   }
 
@@ -106,45 +128,51 @@ const BagActivityRouteMapView: FC<Props> = ({ routes }) => {
         count: drawable.length,
       })}
     >
-      <AppMapView
-        style={StyleSheet.absoluteFill}
-        {...(initialCamera ? { initialCamera } : {})}
-        interactive={false}
-        showCompass={false}
-      >
-        <MapHealthRouteLayersView lines={lines} />
-        {drawable.flatMap(route => {
-          const start = route.coordinates[0];
-          const end = route.coordinates[route.coordinates.length - 1];
+      <View style={StyleSheet.absoluteFill} pointerEvents='none'>
+        <AppMapView
+          style={StyleSheet.absoluteFill}
+          {...(initialCamera ? { initialCamera } : {})}
+          interactive={false}
+          showCompass={false}
+          onLoadFailed={handleLoadFailed}
+        >
+          <MapHealthRouteLayersView lines={lines} />
+          {drawable.flatMap(route => {
+            const start = route.coordinates[0];
+            const end = route.coordinates[route.coordinates.length - 1];
 
-          return [
-            <Marker
-              key={`${route.id}-start`}
-              id={`activity-route-${route.id}-start`}
-              lngLat={[start.lng, start.lat]}
-              anchor='center'
-            >
-              <View
-                collapsable={false}
-                pointerEvents='none'
-                style={[styles.marker, { backgroundColor: START_MARKER_COLOR }]}
-              />
-            </Marker>,
-            <Marker
-              key={`${route.id}-end`}
-              id={`activity-route-${route.id}-end`}
-              lngLat={[end.lng, end.lat]}
-              anchor='center'
-            >
-              <View
-                collapsable={false}
-                pointerEvents='none'
-                style={[styles.marker, { backgroundColor: END_MARKER_COLOR }]}
-              />
-            </Marker>,
-          ];
-        })}
-      </AppMapView>
+            return [
+              <Marker
+                key={`${route.id}-start`}
+                id={`activity-route-${route.id}-start`}
+                lngLat={[start.lng, start.lat]}
+                anchor='center'
+              >
+                <View
+                  collapsable={false}
+                  pointerEvents='none'
+                  style={[
+                    styles.marker,
+                    { backgroundColor: START_MARKER_COLOR },
+                  ]}
+                />
+              </Marker>,
+              <Marker
+                key={`${route.id}-end`}
+                id={`activity-route-${route.id}-end`}
+                lngLat={[end.lng, end.lat]}
+                anchor='center'
+              >
+                <View
+                  collapsable={false}
+                  pointerEvents='none'
+                  style={[styles.marker, { backgroundColor: END_MARKER_COLOR }]}
+                />
+              </Marker>,
+            ];
+          })}
+        </AppMapView>
+      </View>
     </View>
   );
 };

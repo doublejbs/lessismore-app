@@ -2,6 +2,7 @@ import {
   ReactNode,
   Ref,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -24,6 +25,10 @@ import {
   ViewPadding,
   ViewStateChangeEvent,
 } from '@maplibre/maplibre-react-native';
+import {
+  CAMERA_MOVE_DURATION,
+  NO_CAMERA_PADDING,
+} from '@/components/map/MapConstants';
 import { AcgLayout } from '@/constants/DesignTokens';
 import {
   boundsToLngLatBounds,
@@ -71,8 +76,15 @@ export interface AppMapFitBoundsOptions {
 export interface AppMapViewRef {
   animateTo(options: AppMapAnimateOptions): void;
   fitBounds(bounds: RouteBounds, options?: AppMapFitBoundsOptions): void;
-  // 네이버 `animateRegionTo` 대체 — 남서 모서리 + 스팬 영역을 여백 없이 맞춘다(`getRouteFitRegion`이 여유를 이미 넣는다).
-  fitRegion(region: RouteCameraRegion, duration?: number): void;
+  /**
+   * 남서 모서리 + 스팬 영역(`getRouteFitRegion`이 여유를 이미 넣는다)을 맞춘다. 여백 기본 0 — 상단 칩 줄처럼
+   * 지도를 덮는 오버레이가 있으면 `padding`으로 비운다. `duration` 기본 500ms, 0이면 즉시.
+   */
+  fitRegion(
+    region: RouteCameraRegion,
+    duration?: number,
+    padding?: ViewPadding
+  ): void;
   getCenter(): Promise<AppMapCoordinate | null>;
   screenToCoordinate(point: {
     x: number;
@@ -92,6 +104,11 @@ interface Props {
   showScaleBar?: boolean;
   // 좌하단 출처 표기(ODbL 의무)를 이만큼 올린다 — 카드·시트가 그 자리를 덮을 때(MAP-1).
   attributionBottomOffset?: number;
+  /**
+   * 지도 기본 출처 표기(ⓘ)를 보일지. 기본 true. **보기 전용 밴드만** 끈다 — 덮개 버튼 아래라 눌리지 않으므로
+   * 대신 `MapAttributionNoteView`(`© OpenStreetMap`)를 직접 얹는다(MAP-1 · MAP-3).
+   */
+  showAttribution?: boolean;
   // 상단 장식(나침반, 안드로이드 축척 막대)의 기준 위치(pt) — 투명 헤더·상단 안내 줄 아래로 내릴 때.
   ornamentTopOffset?: number;
   // 안드로이드 축척 막대의 위 위치(pt). 기본 `ornamentTopOffset`. 안드로이드는 라이브러리 제약으로 좌상단만 된다.
@@ -108,11 +125,12 @@ interface Props {
   ref?: Ref<AppMapViewRef>;
 }
 
-type CameraCommand = (camera: CameraRef) => void;
+type CameraCommand = (camera: CameraRef) => Promise<void>;
 
 const IS_ANDROID = Platform.OS === 'android';
 // `fitBounds` 기본 가장자리 여백(pt). 끝점 말풍선·포인트 마커가 잘리지 않게.
 const DEFAULT_FIT_PADDING = 40;
+
 // 지도 장식(MapLibre 기본)과 지도 가장자리 사이 여백.
 const ORNAMENT_MARGIN = 8;
 // 나침반의 오른쪽 여백(지도 위 컨트롤 — 내 위치 버튼과 같은 줄).
@@ -132,6 +150,16 @@ const toInitialViewState = (camera: AppMapInitialCamera): InitialViewState =>
         padding: toViewPadding(camera.padding ?? DEFAULT_FIT_PADDING),
       }
     : { center: [camera.longitude, camera.latitude], zoom: camera.zoom };
+
+// 0이면 애니메이션 없이 바로(SDK `jumpTo`와 같은 모양), 아니면 `ease`.
+const toAnimation = (duration: number | undefined) => {
+  // 기본값을 명시한다 — SDK `fitBounds` 기본은 2초 `fly`다.
+  const resolved = duration ?? CAMERA_MOVE_DURATION;
+
+  return resolved <= 0
+    ? { duration: 0, easing: undefined }
+    : { duration: resolved, easing: 'ease' as const };
+};
 
 const toCameraChange = (
   event: NativeSyntheticEvent<ViewStateChangeEvent>
@@ -163,7 +191,11 @@ const toCoordinate = (
  *
  * - `onCameraChanged`는 이동 시작·진행·끝마다 부른다. 손 조작(`userInteraction`)이면 `Gesture`, 아니면
  *   `Developer` — 방향 모드 훅(`useMyLocationHeadingMode`)이 손 조작 **시작 시점**에 따라가기를 풀어야 한다.
- * - ref의 카메라 명령은 `Camera`가 아직 붙지 않았으면 모아 두었다가 붙는 순간 차례로 실행한다.
+ * - ref의 카메라 명령은 **스타일 로드가 끝난 뒤**(`onDidFinishLoadingStyle`, 없으면 `onDidFinishLoadingMap`)에
+ *   실행한다. 그 전 명령은 모아 두었다가 로드가 끝나는 순간 차례로 실행한다 — Android 네이티브 `Camera`는 스타일
+ *   로드 뒤에야 지도에 붙어(SDK `MLRNMapView.addQueuedFeatures`) 그 전 명령은 조용히 버려진다. 이미 로드된 뒤의
+ *   명령은 즉시 실행한다. 명령 실패(`setStop`의 동기 예외·거부된 Promise)는 삼킨다 — 카메라 한 번 못 옮긴 것으로
+ *   화면이 죽지 않게. 언마운트 시 큐를 비운다.
  * - 이 파일은 MapLibre를 정적 import한다 — 옛 바이너리(MapLibre 없음) 방어는 화면 쪽 게이트
  *   (`isMapLibreAvailable`)가 맡는다. 웹은 `AppMapView.web.tsx`(지도 없음, APP-5).
  */
@@ -174,6 +206,7 @@ const AppMapView = ({
   showCompass = true,
   showScaleBar = false,
   attributionBottomOffset = 0,
+  showAttribution = true,
   ornamentTopOffset = ORNAMENT_MARGIN,
   androidScaleBarTopOffset,
   contentInset,
@@ -190,34 +223,67 @@ const AppMapView = ({
   const mapRef = useRef<MapRef>(null);
   const cameraRef = useRef<CameraRef | null>(null);
   const pendingCommandsRef = useRef<CameraCommand[]>([]);
+  // 스타일 로드가 끝났는지 — 끝나기 전 카메라 명령은 큐에 쌓는다(위 설명).
+  const isStyleLoadedRef = useRef(false);
   // 지도를 붙일 때 한 번만 읽는다 — 이후 바뀌어도 카메라를 옮기지 않는다(옮기는 것은 ref 명령).
   const [initialViewState] = useState<InitialViewState | null>(() =>
     initialCamera ? toInitialViewState(initialCamera) : null
   );
 
-  const runCameraCommand = useCallback((command: CameraCommand) => {
+  const executeCommand = useCallback(
+    (camera: CameraRef, command: CameraCommand) => {
+      try {
+        command(camera).catch(error => {
+          console.warn('[AppMapView] 카메라 명령 실패', error); // l10n-ignore: 개발자 로그
+        });
+      } catch (error) {
+        console.warn('[AppMapView] 카메라 명령 실패', error); // l10n-ignore: 개발자 로그
+      }
+    },
+    []
+  );
+
+  const flushCommands = useCallback(() => {
     const camera = cameraRef.current;
 
-    if (camera) {
-      command(camera);
-
-      return;
-    }
-
-    pendingCommandsRef.current.push(command);
-  }, []);
-
-  const handleCameraRef = useCallback((camera: CameraRef | null) => {
-    cameraRef.current = camera;
-
-    if (!camera || pendingCommandsRef.current.length === 0) {
+    if (!camera || !isStyleLoadedRef.current) {
       return;
     }
 
     const commands = pendingCommandsRef.current;
 
     pendingCommandsRef.current = [];
-    commands.forEach(command => command(camera));
+    commands.forEach(command => executeCommand(camera, command));
+  }, [executeCommand]);
+
+  const runCameraCommand = useCallback(
+    (command: CameraCommand) => {
+      const camera = cameraRef.current;
+
+      if (camera && isStyleLoadedRef.current) {
+        executeCommand(camera, command);
+
+        return;
+      }
+
+      pendingCommandsRef.current.push(command);
+    },
+    [executeCommand]
+  );
+
+  const handleCameraRef = useCallback(
+    (camera: CameraRef | null) => {
+      cameraRef.current = camera;
+      flushCommands();
+    },
+    [flushCommands]
+  );
+
+  useEffect(() => {
+    return () => {
+      pendingCommandsRef.current = [];
+      isStyleLoadedRef.current = false;
+    };
   }, []);
 
   useImperativeHandle(
@@ -225,30 +291,30 @@ const AppMapView = ({
     (): AppMapViewRef => ({
       animateTo: ({ latitude, longitude, zoom, bearing, duration, padding }) => {
         runCameraCommand(camera =>
-          camera.easeTo({
+          camera.setStop({
             center: [longitude, latitude],
             ...(zoom !== undefined ? { zoom } : {}),
             ...(bearing !== undefined ? { bearing } : {}),
-            ...(duration !== undefined ? { duration } : {}),
             ...(padding ? { padding } : {}),
+            ...toAnimation(duration),
           })
         );
       },
       fitBounds: (bounds, options) => {
         runCameraCommand(camera =>
-          camera.fitBounds(boundsToLngLatBounds(bounds), {
+          camera.setStop({
+            bounds: boundsToLngLatBounds(bounds),
             padding: toViewPadding(options?.padding ?? DEFAULT_FIT_PADDING),
-            ...(options?.duration !== undefined
-              ? { duration: options.duration }
-              : {}),
+            ...toAnimation(options?.duration),
           })
         );
       },
-      fitRegion: (region, duration) => {
+      fitRegion: (region, duration, padding) => {
         runCameraCommand(camera =>
-          camera.fitBounds(regionToLngLatBounds(region), {
-            padding: toViewPadding(0),
-            ...(duration !== undefined ? { duration } : {}),
+          camera.setStop({
+            bounds: regionToLngLatBounds(region),
+            padding: padding ?? NO_CAMERA_PADDING,
+            ...toAnimation(duration),
           })
         );
       },
@@ -295,9 +361,16 @@ const AppMapView = ({
     [onLongPress]
   );
 
+  const handleStyleLoaded = useCallback(() => {
+    isStyleLoadedRef.current = true;
+    flushCommands();
+  }, [flushCommands]);
+
   const handleDidFinishLoadingMap = useCallback(() => {
+    // 스타일 로드 알림을 못 받았어도 지도 로드가 끝났으면 스타일도 붙은 것이다.
+    handleStyleLoaded();
     onInitialized?.();
-  }, [onInitialized]);
+  }, [handleStyleLoaded, onInitialized]);
 
   const handleDidFailLoadingMap = useCallback(() => {
     onLoadFailed?.();
@@ -326,7 +399,7 @@ const AppMapView = ({
       ref={mapRef}
       style={[styles.map, style]}
       mapStyle={MAP_STYLE_URL}
-      attribution
+      attribution={showAttribution}
       attributionPosition={ornaments.attributionPosition}
       logo={false}
       compass={showCompass}
@@ -350,6 +423,7 @@ const AppMapView = ({
             onRegionDidChange: handleRegionChange,
           }
         : {})}
+      onDidFinishLoadingStyle={handleStyleLoaded}
       onDidFinishLoadingMap={handleDidFinishLoadingMap}
       onDidFailLoadingMap={handleDidFailLoadingMap}
     >

@@ -17,7 +17,8 @@ interface Params {
   /**
    * 누른 끝점으로 카메라를 옮긴다. 줌은 유지한다(포인트 탭과 같다, GRP-8).
    * `padding`은 카메라 이동의 위·아래 여백(pt)이다 — 좌표가 화면 가운데가 아니라 카드 **위** 빈 자리
-   * 가운데에 놓인다(네이버 `pivot`을 MapLibre `padding`으로 바꾼 것, MAP-2).
+   * 가운데에 놓인다(MapLibre 카메라 `padding`, MAP-2 — `[이력]` 네이버 `pivot` 대체). 이 여백은 Android 카메라에
+   * 남으므로 다른 이동은 `NO_CAMERA_PADDING`을 명시한다(`components/map/MapConstants.ts`).
    */
   moveCamera: (
     coordinate: RouteCoordinate,

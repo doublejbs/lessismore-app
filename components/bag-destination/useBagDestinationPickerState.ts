@@ -40,6 +40,8 @@ const SAME_PLACE_METERS = 100;
 // 미세하게 다른 카메라를 onCameraChanged로 되쏘는데, 정확 비교(===)면 그때마다 center가
 // 갱신돼 불필요한 리렌더가 늘어난다.
 const CENTER_SETTLE_METERS = 1;
+// 확정 때 지도가 화면이 보낸 목표에 이만큼 안으로 와 있으면 도착한 것으로 본다(m).
+const TARGET_ARRIVED_METERS = 1;
 // 카메라가 이만큼 멈춰 있어야 정착으로 보고 역지오코딩한다 — 진동이 지속되는 동안에는
 // 정착값이 갱신되지 않아 이펙트가 돌지 않는다(무한 루프 방지).
 const CAMERA_SETTLE_MS = 300;
@@ -171,8 +173,16 @@ const useBagDestinationPickerState = ({
 
   // 지도가 아직 붙기 전의 카메라 요청은 `AppMapView`가 모아 두었다가 붙는 순간 실행한다(rAF 대기·폴백 없음).
   // 지도가 아예 없을 때(origin 미정)는 `ensureOrigin`이 같은 좌표로 지도를 붙이므로 요청이 사라져도 된다.
+  // 화면이 마지막으로 보낸 카메라 목표(검색 결과·박지·현재 위치). 이징 도중 확정하면 중간 좌표가 아니라 이 좌표를
+  // 저장한다. 손으로 지도를 움직이면(`Gesture`) 지운다 — 그때부터는 핀 아래 좌표가 사용자가 고른 자리다.
+  const cameraTargetRef = useRef<Coordinate | null>(null);
+
   const animateCamera = useCallback(
     (target: Coordinate) => {
+      cameraTargetRef.current = {
+        latitude: target.latitude,
+        longitude: target.longitude,
+      };
       mapRef.current?.animateTo({
         latitude: target.latitude,
         longitude: target.longitude,
@@ -589,6 +599,7 @@ const useBagDestinationPickerState = ({
         return;
       }
 
+      cameraTargetRef.current = null;
       markUserInteraction();
 
       // 미세 변화는 무시해 center를 안정시킨다 — 무한 리렌더 방지(CENTER_SETTLE_METERS 주석 참고).
@@ -874,19 +885,28 @@ const useBagDestinationPickerState = ({
     [addressName, center]
   );
 
-  // 확정 순간 지도의 실제 중심 = 중앙 핀 좌표(DST-3). 카메라 이징 중이면 그 시점 값을 읽고, 그 자리에서
-  // 카메라를 멈춘다 — MapLibre SDK에는 애니메이션 취소가 없어 0ms 이동으로 대신한다(저장 좌표와 핀이 어긋나지 않게).
+  /**
+   * 확정 순간의 중앙 핀 좌표(DST-3).
+   * - 화면이 보낸 이동(검색 결과·박지·현재 위치)이 있으면 **그 목표 좌표**다. 이징이 아직 끝나지 않았으면 목표로
+   *   0ms 이동해 핀을 맞춘다 — 이동 중간 좌표를 저장하지 않는다(MapLibre SDK에는 애니메이션 취소가 없다).
+   * - 손으로 움직였으면(목표 없음) 지도의 실제 중심이다.
+   */
   const readMapCenter = useCallback(async (): Promise<Coordinate | null> => {
     const map = mapRef.current;
+    const target = cameraTargetRef.current;
 
     if (!map) {
-      return null;
+      return target;
     }
 
     const live = await map.getCenter();
 
-    if (live) {
-      map.animateTo({ ...live, duration: 0 });
+    if (target) {
+      if (!live || getDistanceInMeters(live, target) > TARGET_ARRIVED_METERS) {
+        map.animateTo({ ...target, zoom: PICKED_ZOOM, duration: 0 });
+      }
+
+      return target;
     }
 
     return live;

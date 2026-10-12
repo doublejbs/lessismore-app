@@ -4,7 +4,7 @@
 | --- | --- |
 | 상태 | proposed (2026-10-12 사용자 결정: "그래 지도 전체를 MapLibre로 바꾸자. 근데 지금 작업 다 2.0.2로 하자") |
 | ID 프리픽스 | `MAP` |
-| 주요 코드 | `[제안]` `components/map/`(`AppMapView` 공용 지도 뷰·`AppMapCamera`, `MapMyLocationMarkerView`, `MapMyLocationButtonView`, `useMyLocationHeadingMode`, `MapAttributionNoteView`), `components/route/`(코스 선·끝점·훑기 마커), `components/point/PointMarkerView`, `components/camp-site/CampSiteMapMarkersView`, `model/map/`(`MapStyle.ts` 스타일 URL·버전, `MapZoom.ts`, `StaticMapImage.ts` 정적 썸네일 생성·캐시, `MapCamera.ts` 카메라 유틸) |
+| 주요 코드 | `[제안]` `components/map/`(`AppMapView` 공용 지도 뷰·`AppMapCamera`, `MapMyLocationMarkerView`, `MapMyLocationButtonView`, `useMyLocationHeadingMode`, `MapAttributionNoteView`), `components/map/`의 `MapRoutePathLayersView`·`MapEndpointMarkersView`·`MapScrubMarkerView`·`MapPointMarker(s)View`·`CampSiteSpotsLayerView`·`MapHealthRouteLayersView`·`useStaticMapImage`, `model/map/`(`MapStyle.ts` 스타일 URL·버전, `MapZoom.ts`, `StaticMapImage.ts` 정적 썸네일 생성·캐시, `MapCamera.ts` 카메라 유틸) |
 | 관련 스펙 | [CampSite.md](CampSite.md) CS-1·CS-2, [BagDestination.md](BagDestination.md) DST-2·DST-3·DST-8, [BagDetail.md](BagDetail.md) BD-11·BD-14, [Group.md](Group.md) GRP-7·GRP-8·GRP-9·GRP-10, [HealthActivity.md](HealthActivity.md) HA-4, [Bag.md](Bag.md) BAG-1, [Community.md](Community.md)(패킹 스냅샷 지도 밴드), [Offline.md](Offline.md) OF-6, [RouteReplay.md](RouteReplay.md), [AppLifecycle.md](AppLifecycle.md) APP-5 |
 
 ## 1. 개요
@@ -51,11 +51,12 @@ app/(tabs)/bag · bag/[id] · bag/[id]/weather · 커뮤니티 스냅샷 → 정
 
 - **`AppMapView`**: MapLibre `Map` + `Camera`를 감싼 공용 뷰. 기본값 — `mapStyle` = `MAP_STYLE_URL`, 로고 끔, attribution 좌하단, 나침반 우상단(북쪽이면 숨김), **기울이기 끔**(`touchPitch={false}` — 네이티브 MapLibre는 3D 지형이 없다), 회전 허용, 축척 막대는 화면이 켠다. props: `initialCamera`(`center`+`zoom` 또는 `bounds`+`padding`), `onCameraChanged({latitude, longitude, zoom, bearing, reason: 'Gesture'|'Developer'})`(기존 네이버 콜백 모양을 유지해 `useMyLocationHeadingMode`가 그대로 동작), `onPress(coordinate)`, `onLongPress(coordinate)`(네이티브 롱프레스 — `Gesture.LongPress` + `screenToCoordinate` 우회 코드는 지운다), `interactive`(밴드용 false — 제스처 전부 끔), ref: `animateTo({latitude, longitude, zoom?, bearing?, duration})`, `fitBounds(bounds, padding, duration)`, `getCenter()`, `screenToCoordinate(point)`.
 - **`AppMapView` 안의 레이어는 세 가지 방식으로 그린다** — 데이터 성격에 따라 고른다:
-  1. **`GeoJSONSource` + `Layer`**(선·면·대량 점): 코스 선(`RoutePathLayersView` — 색 `RouteColors`, 선택 6/비선택 4, 흰 테두리), 등고선(OF-6), **박지 마커 수백 개**(CS-2 — `circle` 레이어 유형색 도트 18pt + 흰 2px 테두리, `symbol` 레이어 이름 캡션 `text-field`·`text-halo`, **충돌 숨김은 심볼 배치가 기본으로 한다**(`text-allow-overlap=false` — 네이버 `isHideCollidedCaptions`에 해당), 탭은 `onPress`로 `queryRenderedFeatures`). 뷰포트 밖 렌더 제외는 엔진이 알아서 한다 — CS-2의 "뷰포트 안만 렌더" 수동 필터는 뺀다.
+  1. **`GeoJSONSource` + `Layer`**(선·면·대량 점): 코스 선(`RoutePathLayersView` — 색 `RouteColors`, 선택 6/비선택 4, 흰 테두리), 등고선(OF-6), **박지 마커 수백 개**(CS-2 — `circle` 레이어 유형색 도트 18pt + 흰 2px 테두리, `symbol` 레이어 이름 캡션 `text-field`·`text-halo`, **충돌 숨김은 심볼 배치가 기본으로 한다**(`text-allow-overlap=false` — 네이버 `isHideCollidedCaptions`에 해당), 탭은 `GeoJSONSource.onPress`의 피처로 받는다(히트박스 44pt)). 뷰포트 밖 렌더 제외는 엔진이 알아서 한다 — CS-2의 "뷰포트 안만 렌더" 수동 필터는 뺀다.
   2. **`Marker`**(실제 RN 뷰, 수십 개 이하): 지도 포인트(`PointMarkerView` — 유형색 원 + 캡션 `PretendardText`), 선택 박지 핀(`SpotPinView`), 출발·도착 말풍선(`RouteEndpointMarkersView` — 이미지 그대로 써도 되고 뷰로 그려도 된다: **MapLibre 마커는 스냅숏이 아니라 실제 뷰**라 글리프 누락·회전 갱신 문제가 없다), 훑기 마커, **내 위치**(`MapMyLocationMarkerView` — 파란 점 + 방향 부채꼴 이미지를 `transform: rotate(heading − bearing)`로 화면 기준 보정), 조준 모드 중앙 핀.
   3. **RN 오버레이**(지도 위 절대 배치): 칩 줄·버튼·카드·펄스 링(CS-2 (A)) — 지금과 같다.
-- **`useMyLocationHeadingMode`·`MapMyLocationButtonView`** 는 그대로 쓴다(공급자 무관 훅). 방향 모드의 지도 회전은 `animateTo({bearing})`.
+- **`useMyLocationHeadingMode`·`MapMyLocationButtonView`** 는 그대로 쓴다(공급자 무관 훅). 훅이 `animateTo`를 받아 ① 이동 ② 따라가기(bearing) ③ 북쪽 되돌리기를 직접 처리하므로 화면은 호출만 한다. 끝점 카드 이동에 준 `padding`이 Android에서 다음 이동까지 남으므로 다른 이동에는 `padding 0`을 명시한다. 나침반·축척 막대·안내 줄은 상단 오버레이(칩·검색바) **아래**에 둔다.
 - **카메라 유틸**: `model/route/RouteCamera.ts`(`getRouteFitRegion`·`measureRouteBounds`·`mergeRouteBounds`)는 그대로 두고, `model/map/MapCamera.ts`에 `regionToLngLatBounds`(남서+스팬 → `[w,s,e,n]`), `boundsToLngLatBounds`, `KOREA_CAMERA`(세 화면에 복붙돼 있던 것을 하나로), `CURRENT_LOCATION_DELTA`, `MapCameraChangeReason` enum(`Gesture`·`Control`·`Developer` — 네이버 타입 의존 제거; MapLibre의 `userInteraction`은 `Gesture`, 나머지는 `Developer`)을 둔다. 네이버 `animateCameraTo`의 `pivot`(끝점을 카드 위 빈 자리에 놓기)은 MapLibre `padding`으로 바꾼다.
+- 카메라 명령은 **스타일 로드 완료 뒤**에 실행한다(그 전 명령은 Android 네이티브가 조용히 버린다 — 큐에 모아 둔다). `fitBounds`의 기본 duration은 500ms(0이면 즉시).
 - 지도 데이터 로드 실패(`onDidFailLoadingMap`): 지도 상단 한 줄 `지도 데이터를 불러오지 못했어요`(OF-6과 같은 문구·컴포넌트), 마커·오버레이는 그대로. 네이버 때의 "10초 안에 초기화 안 되면 캔버스 폴백"(OF-6 폴백) 개념은 사라진다 — 같은 지도라 폴백할 다른 지도가 없다.
 
 ### MAP-3 정적 지도 썸네일 `[제안]`
@@ -68,17 +69,18 @@ app/(tabs)/bag · bag/[id] · bag/[id]/weather · 커뮤니티 스냅샷 → 정
 - 쓰는 곳과 치수(기존 값 유지): 배낭 목록 카드 밴드(BAG-1 — 폭 = 화면 폭 − 48, 높이 110, 줌 13, `BagItemView`), 커뮤니티 패킹 스냅샷·박지만 있는 그룹 상세 밴드(`SnapshotMapBandView`, 110, 줌 13), 여행지 허브 미리보기(DST-8, `BagDestinationMapPreviewView`, 높이 180, 줌 14). DST-2 타일 썸네일은 스펙에만 있고 구현된 적이 없다(2026-10-12 조사) — 이번에도 넣지 않는다. 마커는 지금처럼 **이미지에 싣지 않고 앱 핀(`SpotPinView`)을 밴드 위에 오버레이**한다.
 - **출처 표기**: 정적 PNG에는 attribution이 박히지 않으므로 밴드 **우하단에 `© OpenStreetMap`**(메타 10pt, `Acg.textMuted`, 흰 반투명 바탕)을 얹는다 — ODbL은 지도가 보이는 곳에 출처가 보여야 한다. BAG-1의 "밴드 위에 글자를 얹지 않는다"는 네이버 약관 조항이었으므로 이 한 줄만 예외로 바꾼다.
 - NCP 약관 때문에 두었던 제약(결과 저장 금지·로고 자르기 금지·요청당 과금 주의)은 **모두 사라진다** — 기기 캐시에 저장해도 되고, 캐시는 앱 캐시 디렉터리라 OS가 비울 수 있다(없으면 다시 만든다). 서버(Firestore·Storage)에는 여전히 올리지 않는다(필요가 없다).
-- 그룹 상세 지도 밴드(GRP-7)는 코스 선·포인트를 그려야 해서 정적 PNG가 아니라 **비대화형 `AppMapView`(`interactive=false`) 1개**를 쓴다 — 한 화면에 하나라 비용 문제가 없다(네이버 때 "뷰 생성당 과금"이 이유였다). 운동 기록 경로(HA-4)도 같다.
+- 생성 중에는 밴드 자리를 스켈레톤 면으로 잡아 두고 이미지가 오면 페이드한다. 생성 실패·오프라인(캐시 없음)이면 밴드가 접힌다. 실패한 키는 세션 안에서 다시 시도하지 않고, 온라인으로 돌아오면 초기화한다. 오프라인에서는 빈 지면 PNG를 만들지 않는다(캐시만 본다). 생성 15초 상한.
+- 그룹 상세 지도 밴드(GRP-7)는 코스 선·포인트를 그려야 해서 정적 PNG가 아니라 **비대화형 `AppMapView`(`interactive=false`) 1개**를 쓴다. 밴드 전체가 탭 대상(덮개)이라 지도의 ⓘ 대신 우하단 `© OpenStreetMap` 라벨로 출처를 보인다 — 한 화면에 하나라 비용 문제가 없다(네이버 때 "뷰 생성당 과금"이 이유였다). 운동 기록 경로(HA-4)도 같다.
 
 ### MAP-4 화면별 전환 `[제안]`
 
 각 화면의 **동작 수용 기준은 해당 도메인 스펙이 그대로 유지**하고, 여기에는 공급자 전환으로 달라지는 점만 적는다.
 
 - **박지 지도(CS-1·CS-2)**: 마커 수백 개를 `GeoJSONSource`(circle + symbol 캡션)로 그린다. 선택 박지만 `Marker`(핀 + 캡션 강제 표시). 펄스 링·카메라 이징·시트·필터는 그대로. "뷰포트 밖 마커 미렌더" 수동 최적화와 `isHideCollidedSymbols`(지도 기본 POI 숨김) 우회는 뺀다 — 스타일의 POI 라벨과 마커 캡션이 겹치면 심볼 배치가 둘 중 하나를 숨긴다. 내 위치는 공용 마커.
-- **여행지 선택기(DST-3)**: 중앙 고정 핀은 RN 오버레이 그대로, 확정 좌표는 `getCenter()`. 박지 마커는 CS-2와 같은 레이어 컴포넌트를 공유. 포커스 해제 100m 판정은 `onCameraChanged`로 그대로.
+- **여행지 선택기(DST-3)**: 중앙 고정 핀은 RN 오버레이 그대로(MapLibre 모듈이 없는 옛 바이너리에서는 핀도 숨긴다). 확정 좌표는 `getCenter()` — 단 검색 결과·박지로 **이동 중**이면 네이버 `cancelAnimation` 대신 **이동 목표 좌표**로 0ms 이동한 뒤 그 목표를 저장한다(중간 좌표를 저장하지 않는다). 손으로 움직이면 목표 기억을 지운다. 박지 마커는 CS-2와 같은 레이어 컴포넌트를 공유. 포커스 해제 100m 판정은 `onCameraChanged`로 그대로.
 - **배낭 코스(BD-11·BD-14)**: 온라인 `BagRouteCanvasView`(네이버)와 오프라인 `OfflineRouteMapView`(MapLibre)를 **하나의 `BagRouteMapView`로 합친다.** 온라인이면 타일을 서버에서, 오프라인이면 팩에서 — 뷰는 같고 분기는 "편집 가능 여부(온라인 + 저장본 아님)"와 "상단 안내 줄"뿐이다. 등고선(저장본의 `contours.json`)은 **온라인에서도 저장본이 있으면 그린다**(같은 지도에서 지형 정보가 켜졌다 꺼졌다 하지 않게). 롱프레스 포인트 추가·조준 모드·`3D` 알약은 온라인에서만. OF-6의 "네이버 폴백" 문구·`OfflineMapReason.MapUnavailable`은 폐기한다.
 - **그룹 지도(GRP-10)**: 배낭 코스와 같은 레이어·마커 컴포넌트. 박지 마커는 `Marker`(연결 박지 1개).
-- **그룹 상세 밴드(GRP-7)·운동 기록(HA-4)**: 비대화형 `AppMapView` + 코스 선·마커, `fitBounds`.
+- **그룹 상세 밴드(GRP-7)·운동 기록(HA-4)**: 비대화형 `AppMapView` + 코스 선·마커, `fitBounds`. 지도 데이터 로드 실패 시 밴드를 숨기고 `map_load_failed`만 남긴다(빈 회색 밴드를 두지 않는다 — BAG-1과 같은 원칙). Android 세로 스크롤을 막지 않게 터치를 지도에 주지 않는다.
 - **정적 썸네일(BAG-1·DST-2·DST-8·스냅샷)**: MAP-3.
 - **3D 리플레이(RR)·오프라인 팩(OF)**: 변경 없음(이미 MapLibre).
 

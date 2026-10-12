@@ -1,14 +1,16 @@
 import { FC, useCallback, useMemo } from 'react';
-import { NativeSyntheticEvent, StyleSheet, View } from 'react-native';
+import { NativeSyntheticEvent } from 'react-native';
+import type {
+  CircleLayerSpecification,
+  SymbolLayerSpecification,
+} from '@maplibre/maplibre-gl-style-spec';
 import {
   GeoJSONSource,
   Layer,
-  Marker,
   PressEventWithFeatures,
 } from '@maplibre/maplibre-react-native';
-import PretendardText from '@/components/PretendardText';
-import SpotPinView from '@/components/camp-site/SpotPinView';
-import { Acg, Radius } from '@/constants/DesignTokens';
+import MapSpotPinMarkerView from '@/components/map/MapSpotPinMarkerView';
+import { Acg } from '@/constants/DesignTokens';
 import { getCampSiteTypeColor } from '@/model/camp-site/CampSiteLabels';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 
@@ -30,19 +32,35 @@ const CAPTION_HALO_WIDTH = 1.5;
 const CAPTION_OFFSET: [number, number] = [0, -1.2];
 // OpenFreeMap 글리프에 있는 폰트(스타일 `outdoor-v1.json` symbol 레이어와 같은 값). 한글은 기기 글꼴로 그린다.
 const CAPTION_FONT = ['Noto Sans Regular'];
-// 선택 핀(CS-2) — 30×40, 끝점이 좌표. 캡션은 강제 표시 13pt.
-const PIN_WIDTH = 30;
-const SELECTED_CAPTION_SIZE = 13;
-const SELECTED_CAPTION_LINE_HEIGHT = 17;
-const SELECTED_CAPTION_MAX_WIDTH = 160;
-const SELECTED_CAPTION_GAP = 2;
+
+// 레이어 스타일은 모듈 상수다 — 렌더마다 새 객체를 넘기면 SDK가 네이티브로 다시 보낸다.
+const DOT_PAINT: NonNullable<CircleLayerSpecification['paint']> = {
+  'circle-radius': DOT_RADIUS,
+  'circle-color': ['get', 'color'],
+  'circle-stroke-color': Acg.paper,
+  'circle-stroke-width': DOT_STROKE_WIDTH,
+};
+const CAPTION_LAYOUT: NonNullable<SymbolLayerSpecification['layout']> = {
+  'text-field': ['get', 'title'],
+  'text-size': CAPTION_SIZE,
+  'text-font': CAPTION_FONT,
+  'text-anchor': 'bottom',
+  'text-offset': CAPTION_OFFSET,
+  'text-allow-overlap': false,
+};
+const CAPTION_PAINT: NonNullable<SymbolLayerSpecification['paint']> = {
+  'text-color': Acg.ink,
+  'text-halo-color': Acg.paper,
+  'text-halo-width': CAPTION_HALO_WIDTH,
+};
 
 /**
  * 박지 마커 수백 개 (MAP-2 · MAP-4 · CS-2) — `GeoJSONSource` + `circle`(유형색 도트) + `symbol`(이름 캡션).
  *
- * - 캡션은 심볼 배치가 충돌을 가린다(`text-allow-overlap=false` + `text-optional` — 겹치면 **캡션만** 숨고
- *   점은 남는다; 네이버 `isHideCollidedCaptions`에 해당). 뷰포트 밖 렌더 제외는 엔진이 한다(수동 필터 없음).
- * - **선택 박지만 `Marker`**(라임 `SpotPinView` + 캡션 강제 표시). 선택이 바뀌어도 소스 데이터는 그대로 두고
+ * - 캡션은 심볼 배치가 충돌을 가린다(`text-allow-overlap=false` — 겹치면 **캡션만** 숨고 점은 남는다. 점은
+ *   `circle` 레이어라 충돌 판정에 들지 않는다; `[이력]` 네이버 `isHideCollidedCaptions`에 해당). 뷰포트 밖 렌더
+ *   제외는 엔진이 한다(수동 필터 없음).
+ * - **선택 박지만 `Marker`**(`MapSpotPinMarkerView` — 라임 핀 + 캡션 강제 표시, 버튼). 선택이 바뀌어도 소스 데이터는 그대로 두고
  *   레이어 `filter`로 선택 박지만 뺀다 — 수백 개 피처를 다시 보내지 않는다.
  * - 탭: `GeoJSONSource.onPress`(44pt 히트박스 안 피처) → `id`로 박지를 찾는다. 지도 `onPress`(선택 해제)로
  *   번지지 않게 `stopPropagation`한다.
@@ -104,11 +122,14 @@ const CampSiteSpotsLayerView: FC<Props> = ({
   const selectedSpot = selectedSpotId
     ? (spotsById.get(selectedSpotId) ?? null)
     : null;
-  const unselectedFilter: ['!=', ['get', string], string] = [
-    '!=',
-    ['get', 'id'],
-    selectedSpotId ?? '',
-  ];
+  const unselectedFilter = useMemo(
+    (): ['!=', ['get', string], string] => [
+      '!=',
+      ['get', 'id'],
+      selectedSpotId ?? '',
+    ],
+    [selectedSpotId]
+  );
 
   return (
     <>
@@ -121,82 +142,27 @@ const CampSiteSpotsLayerView: FC<Props> = ({
           id={DOT_LAYER_ID}
           type='circle'
           filter={unselectedFilter}
-          paint={{
-            'circle-radius': DOT_RADIUS,
-            'circle-color': ['get', 'color'],
-            'circle-stroke-color': Acg.paper,
-            'circle-stroke-width': DOT_STROKE_WIDTH,
-          }}
+          paint={DOT_PAINT}
         />
         <Layer
           id={CAPTION_LAYER_ID}
           type='symbol'
           filter={unselectedFilter}
-          layout={{
-            'text-field': ['get', 'title'],
-            'text-size': CAPTION_SIZE,
-            'text-font': CAPTION_FONT,
-            'text-anchor': 'bottom',
-            'text-offset': CAPTION_OFFSET,
-            'text-allow-overlap': false,
-            'text-optional': true,
-          }}
-          paint={{
-            'text-color': Acg.ink,
-            'text-halo-color': Acg.paper,
-            'text-halo-width': CAPTION_HALO_WIDTH,
-          }}
+          layout={CAPTION_LAYOUT}
+          paint={CAPTION_PAINT}
         />
       </GeoJSONSource>
       {selectedSpot ? (
-        <Marker
+        <MapSpotPinMarkerView
           key={selectedSpot.id}
-          id={`map-camp-spot-selected-${selectedSpot.id}`}
-          lngLat={[
-            selectedSpot.location.longitude,
-            selectedSpot.location.latitude,
-          ]}
-          anchor='bottom'
+          spot={selectedSpot}
+          idPrefix='map-camp-spot-selected'
+          selected
           {...(onPressSpot ? { onPress: () => onPressSpot(selectedSpot) } : {})}
-        >
-          <View
-            collapsable={false}
-            style={styles.selected}
-            accessible
-            accessibilityLabel={selectedSpot.name}
-            accessibilityState={{ selected: true }}
-          >
-            <PretendardText
-              weight='semibold'
-              style={styles.selectedCaption}
-              numberOfLines={1}
-            >
-              {selectedSpot.name}
-            </PretendardText>
-            <SpotPinView width={PIN_WIDTH} />
-          </View>
-        </Marker>
+        />
       ) : null}
     </>
   );
 };
-
-const styles = StyleSheet.create({
-  selected: {
-    alignItems: 'center',
-    gap: SELECTED_CAPTION_GAP,
-  },
-  selectedCaption: {
-    fontSize: SELECTED_CAPTION_SIZE,
-    lineHeight: SELECTED_CAPTION_LINE_HEIGHT,
-    color: Acg.ink,
-    maxWidth: SELECTED_CAPTION_MAX_WIDTH,
-    paddingHorizontal: 6,
-    borderRadius: Radius.pill,
-    // 지도 위 캡션 바탕 — 비선택 캡션의 흰 halo와 같은 역할의 흰 반투명 면.
-    backgroundColor: Acg.heroCardFill,
-    overflow: 'hidden',
-  },
-});
 
 export default CampSiteSpotsLayerView;

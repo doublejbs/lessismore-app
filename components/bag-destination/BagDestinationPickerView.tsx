@@ -1,6 +1,7 @@
 import { FC, useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Dimensions,
   LayoutChangeEvent,
   Platform,
   Pressable,
@@ -38,12 +39,13 @@ const FAVORITE_COLOR = '#FFD700';
 
 // 하단 패널 바깥 여백(styles.bottomPanel.margin) — 출처 표기를 패널 위로 올릴 때 쓴다.
 const BOTTOM_PANEL_MARGIN = 16;
-// 상단 헤더 카드와 지도 나침반·안내 줄 사이 여백.
+// 상단 헤더(안내 줄 포함)와 지도 나침반 사이 여백.
 const OVERLAY_GAP = 8;
+// 박지 상세·즐겨찾기 시트가 처음 뜨는 높이(화면 높이 비율) — `app/_layout.tsx`의 `sheetInitialDetentIndex` 단계(0.4).
+const SHEET_INITIAL_DETENT = 0.4;
 
-// 지도 본문은 MapLibre SDK를 최상위 import한다 — 옛 바이너리에서 import만으로 터지지 않게 싣는다(MAP-1).
-// 모듈 평가 때 한 번 정한다(바이너리가 실행 중에 바뀌지 않는다).
-const PickerMapView = createMapLibreViewLoader<
+// 지도 본문은 MapLibre SDK를 최상위 import한다 — 옛 바이너리에서 import만으로 터지지 않게 처음 쓸 때 싣는다(MAP-1).
+const loadPickerMapView = createMapLibreViewLoader<
   typeof BagDestinationPickerMapViewType
 >(
   'BagDestinationPickerMapView',
@@ -52,7 +54,7 @@ const PickerMapView = createMapLibreViewLoader<
     (require('./BagDestinationPickerMapView') as {
       default: typeof BagDestinationPickerMapViewType;
     }).default
-)();
+);
 
 interface Props {
   // 현재 저장된 여행지. 없으면 미설정 상태로 연다.
@@ -74,6 +76,8 @@ const BagDestinationPickerView: FC<Props> = observer(
     // 훅 값(모달 열기 전 확정)으로 패딩을 준다.
     const insets = useSafeAreaInsets();
     const mapRef = useRef<AppMapViewRef>(null);
+    // 지도 본문은 처음 마운트할 때 싣는다(MAP-1 "쓸 때 처음"). 상태로 고정해 렌더마다 같은 컴포넌트다.
+    const [PickerMapView] = useState(loadPickerMapView);
     const [campSiteMap] = useState(() => CampSiteMap.new());
     // 박지 시트(상세·즐겨찾기)가 떠 있는지. 떠 있는 동안 하단 자유 위치 UI를 숨긴다(DST-3).
     // 즐겨찾기까지 포함하는 이유: 작은 디텐트에선 하단 패널이 시트 위로 삐져나와 눌릴 수 있다.
@@ -271,11 +275,25 @@ const BagDestinationPickerView: FC<Props> = observer(
 
     const bottomPanelVisible = !sheetOpen && !focusedSpot;
     const ornamentTopOffset = Math.max(headerHeight, insets.top) + OVERLAY_GAP;
-    // 좌하단 출처 표기(ODbL)를 하단 패널 위로 올린다(MAP-1). 패널이 숨으면 세이프에어리어만.
-    const attributionBottomOffset =
-      bottomPanelVisible && bottomPanelHeight > 0
-        ? insets.bottom + BOTTOM_PANEL_MARGIN + bottomPanelHeight
-        : insets.bottom;
+    /**
+     * 좌하단 출처 표기(ODbL)를 하단 패널 위로 올린다(MAP-1). 박지 시트가 떠 있으면 시트 높이 위로(시트가 패널을
+     * 대신한다), 둘 다 없으면 세이프에어리어만.
+     */
+    const getAttributionBottomOffset = () => {
+      if (sheetOpen) {
+        return Math.max(
+          insets.bottom,
+          Math.round(Dimensions.get('window').height * SHEET_INITIAL_DETENT)
+        );
+      }
+
+      if (bottomPanelVisible && bottomPanelHeight > 0) {
+        return insets.bottom + BOTTOM_PANEL_MARGIN + bottomPanelHeight;
+      }
+
+      return insets.bottom;
+    };
+    const attributionBottomOffset = getAttributionBottomOffset();
     // 옛 바이너리(MapLibre 없음)면 지도 자리에 안내 한 줄 — 검색·장소 확정은 그대로 쓴다(MAP-1).
     const noticeLabel = !isMapSupported
       ? null
@@ -324,15 +342,6 @@ const BagDestinationPickerView: FC<Props> = observer(
             disabled={saving}
           />
         )}
-
-        {noticeLabel ? (
-          <View
-            style={[styles.notice, { top: ornamentTopOffset }]}
-            pointerEvents='none'
-          >
-            <MapNoticeLineView label={noticeLabel} />
-          </View>
-        ) : null}
 
         <View
           style={[styles.headerWrap, { paddingTop: insets.top }]}
@@ -408,6 +417,14 @@ const BagDestinationPickerView: FC<Props> = observer(
               onSelectPlace={handleSelectPlace}
             />
           )}
+
+          {/* 지도 상태 안내 한 줄(MAP-2) — 헤더 **안**에 둬 높이가 헤더에 들어가고, 나침반이 그 아래로 간다
+              (배낭 코스·그룹 지도와 같은 배치). */}
+          {noticeLabel ? (
+            <View style={styles.notice} pointerEvents='none'>
+              <MapNoticeLineView label={noticeLabel} />
+            </View>
+          ) : null}
         </View>
 
         {/* 박지 상세가 떠 있는 동안엔 하단 자유 위치 UI(주소 + `이 위치로 설정`)와 지도 컨트롤을
@@ -520,9 +537,8 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   notice: {
-    position: 'absolute',
-    left: Spacing.item,
-    right: Spacing.item,
+    marginHorizontal: Spacing.item,
+    marginTop: OVERLAY_GAP,
   },
   headerWrap: {
     position: 'absolute',

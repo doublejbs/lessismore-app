@@ -12,11 +12,18 @@ import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import AppMapView, {
+  AppMapAnimateOptions,
   AppMapCameraChange,
   AppMapCoordinate,
   AppMapInitialCamera,
   AppMapViewRef,
 } from '@/components/map/AppMapView';
+import {
+  CAMERA_MOVE_DURATION,
+  MAX_ZOOM,
+  NO_CAMERA_PADDING,
+  OVERLAY_GAP,
+} from '@/components/map/MapConstants';
 import MapEndpointMarkersView from '@/components/map/MapEndpointMarkersView';
 import MapMyLocationButtonView from '@/components/map/MapMyLocationButtonView';
 import MapMyLocationMarkerView from '@/components/map/MapMyLocationMarkerView';
@@ -47,7 +54,6 @@ import {
   Radius,
   Spacing,
 } from '@/constants/DesignTokens';
-import { MapCoordinate } from '@/hooks/useMapCurrentLocation';
 import app from '@/model/app/App';
 import BagPoint from '@/model/bag-point/BagPoint';
 import BagPointAddVia from '@/model/bag-point/BagPointAddVia';
@@ -55,9 +61,7 @@ import { BagPointCoordinate } from '@/model/bag-point/BagPointCoordinate';
 import { getBagPointMeta } from '@/model/bag-point/BagPointLabels';
 import BagPointList from '@/model/bag-point/BagPointList';
 import BagRouteList from '@/model/bag-route/BagRouteList';
-import MyLocationMode from '@/model/location/MyLocationMode';
 import {
-  CURRENT_LOCATION_DELTA,
   KOREA_CAMERA,
   lngLatBoundsToRouteBounds,
   regionToLngLatBounds,
@@ -110,12 +114,10 @@ interface MapSize {
   height: number;
 }
 
-const MAX_ZOOM = 18;
-const CAMERA_MOVE_DURATION = 500;
 /** 목록에서 포인트를 골랐을 때 적어도 이만큼 당겨 보는 범위(도) — 그룹 지도의 포인트 초점과 같은 값. */
 const POINT_FOCUS_ZOOM = deltaToZoom(0.02);
-/** `내 위치`로 옮길 때의 줌(약 0.05° 범위 — 그룹 지도와 같은 값). */
-const CURRENT_LOCATION_ZOOM = deltaToZoom(CURRENT_LOCATION_DELTA);
+/** 코스·포인트가 한 점뿐일 때(상자가 0) 그 점을 보는 줌 — 상자 맞춤은 최대 줌으로 붙어 버린다. */
+const SINGLE_POINT_ZOOM = 15;
 /**
  * 지도 컨트롤이 지도 아래 가장자리에서 떨어지는 거리. 이 화면은 그래프·목록·`코스 추가`가 지도
  * **밖** 아래에 있어 그룹 지도의 +120 대신 이 여백만 둔다.
@@ -123,14 +125,17 @@ const CURRENT_LOCATION_ZOOM = deltaToZoom(CURRENT_LOCATION_DELTA);
 const CONTROL_BOTTOM_OFFSET = 16;
 // 지도 가장자리와 지도 위 컨트롤 사이 여백(우측).
 const MAP_CONTROL_INSET = 16;
-// 상단 오버레이와 지도 장식(나침반·안드로이드 축척 막대) 사이 여백.
-const OVERLAY_GAP = 8;
 // 컨트롤 줄과 카드 사이 간격.
 const CARD_GAP = 12;
 // 마커를 누른 직후 지도 탭이 같이 오면(플랫폼에 따라 전파된다) 포커스를 풀지 않는다.
 const MARKER_PRESS_GUARD_MS = 400;
-// 부채꼴 회전을 다시 그릴 최소 방위 변화(도) — 지도를 돌리는 동안 매 프레임 리렌더하지 않게.
-const MIN_BEARING_DELTA = 1;
+/**
+ * 상자 맞춤의 위 여백 = 상단 오버레이 아래 끝 + 이 값(pt). 칩 줄이 지도 위를 덮으므로 그만큼 비우지 않으면
+ * 코스 북쪽 끝이 칩 밑에 숨는다.
+ */
+const FIT_TOP_GAP = 16;
+/** 칩 줄을 아직 재지 못했을 때(첫 카메라) 쓰는 높이(pt) — 칩의 최소 터치 높이. */
+const CHIP_ROW_HEIGHT_ESTIMATE = 44;
 /** 3D 리플레이 진입(RR-1)은 네이티브에만 있다(APP-5). 이 본문은 네이티브 전용이지만 명시해 둔다. */
 const CAN_OPEN_REPLAY = Platform.OS !== 'web';
 // `3D` 보조 알약의 아이콘-라벨 간격·좌우 패딩(세로 패딩은 `Spacing.item`).
@@ -146,10 +151,26 @@ const OFFLINE_MAP_OPEN_REASON = 'offline';
 const regionToBounds = (region: RouteCameraRegion): RouteBounds =>
   lngLatBoundsToRouteBounds(regionToLngLatBounds(region));
 
-const toFitCamera = (bounds: RouteBounds): AppMapInitialCamera => ({
-  bounds: regionToBounds(getRouteFitRegion(bounds)),
-  padding: 0,
-});
+const isSinglePoint = (bounds: RouteBounds): boolean =>
+  bounds.minLat === bounds.maxLat && bounds.minLng === bounds.maxLng;
+
+// 상자 맞춤의 여백 — 위만 상단 오버레이(칩 줄)를 비운다. 나머지는 `getRouteFitRegion`의 여유로 충분하다.
+const toFitPadding = (top: number) => ({ ...NO_CAMERA_PADDING, top });
+
+const toFitCamera = (
+  bounds: RouteBounds,
+  topPadding: number
+): AppMapInitialCamera =>
+  isSinglePoint(bounds)
+    ? {
+        latitude: bounds.minLat,
+        longitude: bounds.minLng,
+        zoom: SINGLE_POINT_ZOOM,
+      }
+    : {
+        bounds: regionToBounds(getRouteFitRegion(bounds)),
+        padding: toFitPadding(topPadding),
+      };
 
 /**
  * 배낭 코스 지도 (BD-11 · BD-14 · OF-6 · MAP-4) — 네이티브 전용 본문. 온라인·오프라인이 **같은 지도**다
@@ -200,14 +221,22 @@ const BagRouteMapView: FC<Props> = ({
    */
   const [initialCamera, setInitialCamera] =
     useState<AppMapInitialCamera | null>(null);
-  const [mapBearing, setMapBearing] = useState(0);
   const [isLoadFailed, setIsLoadFailed] = useState(false);
   const [contours, setContours] = useState<GeoJSON.FeatureCollection | null>(
     null
   );
   const [hasHiddenGroupContent, setHasHiddenGroupContent] = useState(false);
+  /**
+   * 오프라인일 때 이 여행의 저장본이 있는지 — 없으면(온라인으로 열었다가 끊김) "저장된 지도" 줄을 띄우지 않는다.
+   * `null`은 아직 모름(읽는 중) — 어느 줄도 띄우지 않는다.
+   */
+  const [hasSavedSnapshot, setHasSavedSnapshot] = useState<boolean | null>(
+    null
+  );
   // 상단 오버레이(안내 줄·유형 칩)의 아래 끝(pt, 지도 좌표계) — 나침반·안드로이드 축척 막대를 그 아래로 내린다.
   const [topOverlayBottom, setTopOverlayBottom] = useState(topInset);
+  // 위 값의 즉시 사본 — 카메라 맞춤 콜백이 참조를 고정한 채 읽는다.
+  const topOverlayBottomRef = useRef<number | null>(null);
   // 지도 아래쪽 카드(포인트·끝점·조준 안내)의 높이 — 출처 표기(라이선스 의무)를 그 위로 올린다. 없으면 0.
   const [cardSlotHeight, setCardSlotHeight] = useState(0);
   /**
@@ -251,30 +280,21 @@ const BagRouteMapView: FC<Props> = ({
    * 내 위치 (BD-11) — 그룹 지도·박지 지도와 같은 공용 훅이다. 진입에서 권한을 묻지 않고,
    * 권한이 없으면 점을 그리지 않는다. 버튼은 항상 보이고 누르면 권한을 요청한다 — 코스를 따라
    * 걸으며 "지금 어디쯤인가"를 보려고 들어온 화면이라 첫 요청 자리가 필요하다.
-   * 버튼을 다시 누르면 방향 모드(지도 회전 + 방향 부채꼴), 한 번 더 누르면 끈다(그룹 지도와 같다).
+   * 버튼을 다시 누르면 방향 모드(지도 회전 + 방향 부채꼴), 한 번 더 누르면 끈다(그룹 지도와 같다) —
+   * 내 위치로·따라가기·북쪽 되돌리기 카메라는 훅이 `animateTo`로 직접 옮긴다.
    */
-  const moveToCoordinate = useCallback((coordinate: MapCoordinate) => {
-    mapRef.current?.animateTo({
-      latitude: coordinate.latitude,
-      longitude: coordinate.longitude,
-      zoom: CURRENT_LOCATION_ZOOM,
-      duration: CAMERA_MOVE_DURATION,
-    });
+  const animateTo = useCallback((options: AppMapAnimateOptions) => {
+    mapRef.current?.animateTo(options);
   }, []);
   const {
     currentLocation,
     mode: myLocationMode,
     heading,
-    camera: followCamera,
-    cameraAnimationDuration,
+    mapBearing,
     handlePressMyLocation,
     handleCameraChanged: handleMyLocationCameraChanged,
     releaseFollow,
-  } = useMyLocationHeadingMode({
-    moveCamera: moveToCoordinate,
-    logTag: 'BagRoute',
-    fallbackZoom: CURRENT_LOCATION_ZOOM,
-  });
+  } = useMyLocationHeadingMode({ animateTo, logTag: 'BagRoute' });
 
   /**
    * 출발·도착 마커 탭 → 위치 정보 카드(GRP-8, 그룹 지도와 같다). 카메라는 그 점으로 옮기되 줌은 그대로 두고,
@@ -332,16 +352,43 @@ const BagRouteMapView: FC<Props> = ({
     }
   }, [handleCloseEndpoint, isAiming, isOffline, onCancelAiming]);
 
+  /**
+   * 상자 맞춤의 위 여백 — 상단 오버레이(안내 줄·칩 줄) 아래 끝 + 16. 첫 카메라 때는 칩 줄이 내용과 함께 막 떠서
+   * 아직 재지 못했을 수 있으므로 적어도 칩 한 줄은 어림해 둔다.
+   */
+  const getFitTopPadding = useCallback(
+    () =>
+      Math.max(
+        topOverlayBottomRef.current ?? 0,
+        topInset + CHIP_ROW_HEIGHT_ESTIMATE
+      ) + FIT_TOP_GAP,
+    [topInset]
+  );
+
   const fitBounds = useCallback(
     (bounds: RouteBounds) => {
       // 코스로 옮기면 방향 모드의 따라가기를 푼다(손으로 옮긴 것과 같다 — BD-11).
       releaseFollow();
+
+      if (isSinglePoint(bounds)) {
+        mapRef.current?.animateTo({
+          latitude: bounds.minLat,
+          longitude: bounds.minLng,
+          zoom: SINGLE_POINT_ZOOM,
+          duration: CAMERA_MOVE_DURATION,
+          padding: NO_CAMERA_PADDING,
+        });
+
+        return;
+      }
+
       mapRef.current?.fitRegion(
         getRouteFitRegion(bounds),
-        CAMERA_MOVE_DURATION
+        CAMERA_MOVE_DURATION,
+        toFitPadding(getFitTopPadding())
       );
     },
-    [releaseFollow]
+    [getFitTopPadding, releaseFollow]
   );
 
   /**
@@ -392,7 +439,7 @@ const BagRouteMapView: FC<Props> = ({
         ]);
 
       if (contentBounds) {
-        return toFitCamera(contentBounds);
+        return toFitCamera(contentBounds, getFitTopPadding());
       }
 
       const packBounds =
@@ -416,7 +463,14 @@ const BagRouteMapView: FC<Props> = ({
     return () => {
       cancelled = true;
     };
-  }, [bagId, bagPointList, bagRouteList, initialCamera, isContentReady]);
+  }, [
+    bagId,
+    bagPointList,
+    bagRouteList,
+    getFitTopPadding,
+    initialCamera,
+    isContentReady,
+  ]);
 
   /**
    * 목록에서 고른 코스로 카메라를 옮긴다(BD-11). **고를 때마다** 옮긴다 — 같은 코스를 다시 골라도(`seq`가
@@ -484,53 +538,9 @@ const BagRouteMapView: FC<Props> = ({
         ? { zoom: Math.max(currentZoom, POINT_FOCUS_ZOOM) }
         : {}),
       duration: CAMERA_MOVE_DURATION,
+      padding: NO_CAMERA_PADDING,
     });
   }, [bagPointList, initialCamera, pointFocusRequest, releaseFollow]);
-
-  // ② 방향 모드: 내 위치를 따라가며 바라보는 방향이 위로 오게 지도 bearing을 돌린다(BD-11).
-  const isFollowing = myLocationMode === MyLocationMode.Heading;
-  const followLatitude = isFollowing ? followCamera?.latitude : undefined;
-  const followLongitude = isFollowing ? followCamera?.longitude : undefined;
-  const followBearing = isFollowing ? followCamera?.bearing : undefined;
-  const isHeadingShown = heading !== null;
-  const wasHeadingShownRef = useRef(isHeadingShown);
-
-  useEffect(() => {
-    if (followLatitude === undefined || followLongitude === undefined) {
-      return;
-    }
-
-    mapRef.current?.animateTo({
-      latitude: followLatitude,
-      longitude: followLongitude,
-      bearing: followBearing ?? 0,
-      duration: cameraAnimationDuration,
-    });
-  }, [cameraAnimationDuration, followBearing, followLatitude, followLongitude]);
-
-  // ③ 방향 모드 끄기 — 부채꼴이 사라지는 순간 지도를 북쪽 위로 되돌린다.
-  useEffect(() => {
-    const wasShown = wasHeadingShownRef.current;
-
-    wasHeadingShownRef.current = isHeadingShown;
-
-    if (!wasShown || isHeadingShown) {
-      return;
-    }
-
-    const view = viewRef.current;
-
-    if (!view) {
-      return;
-    }
-
-    mapRef.current?.animateTo({
-      latitude: view.latitude,
-      longitude: view.longitude,
-      bearing: 0,
-      duration: CAMERA_MOVE_DURATION,
-    });
-  }, [isHeadingShown]);
 
   // OF-1: 연결 그룹의 코스·포인트는 저장하지 않는다 — 오프라인이고 그룹이 있었으면 그 사실을 한 줄로 알린다.
   useEffect(() => {
@@ -544,6 +554,7 @@ const BagRouteMapView: FC<Props> = ({
       const snapshot = await app.getOfflineTripStore()?.load(bagId);
 
       if (!cancelled) {
+        setHasSavedSnapshot(!!snapshot);
         setHasHiddenGroupContent((snapshot?.linkedGroupCount ?? 0) > 0);
       }
     };
@@ -594,9 +605,6 @@ const BagRouteMapView: FC<Props> = ({
       const { latitude, longitude, zoom, bearing } = change;
 
       viewRef.current = { latitude, longitude, zoom, bearing };
-      setMapBearing(previous =>
-        Math.abs(previous - bearing) < MIN_BEARING_DELTA ? previous : bearing
-      );
       handleMyLocationCameraChanged(change);
     },
     [handleMyLocationCameraChanged]
@@ -635,6 +643,7 @@ const BagRouteMapView: FC<Props> = ({
       const { y, height } = event.nativeEvent.layout;
       const bottom = y + height;
 
+      topOverlayBottomRef.current = bottom;
       setTopOverlayBottom(previous =>
         Math.abs(previous - bottom) < 1 ? previous : bottom
       );
@@ -974,11 +983,16 @@ const BagRouteMapView: FC<Props> = ({
           pointerEvents='box-none'
           onLayout={handleTopOverlayAreaLayout}
         >
-          {isLoadFailed ? (
-            <MapNoticeLineView label={l10n.t('map.loadFailed')} />
-          ) : null}
-          {isOffline && !isLoadFailed ? (
+          {/* 오프라인: 저장본이 있으면 "저장된 지도" 줄(로드 실패와 겹쳐도 남긴다), 없으면 "저장되지 않았어요" —
+            저장본 없이 끊긴 지도의 로드 실패는 이 줄이 이미 설명한다. */}
+          {isOffline && hasSavedSnapshot === true ? (
             <OfflineSnapshotBandView label={l10n.t('offline.map.offlineLine')} />
+          ) : null}
+          {isOffline && hasSavedSnapshot === false ? (
+            <MapNoticeLineView label={l10n.t('offline.detail.notSaved')} />
+          ) : null}
+          {isLoadFailed && (!isOffline || hasSavedSnapshot !== false) ? (
+            <MapNoticeLineView label={l10n.t('map.loadFailed')} />
           ) : null}
           {isOffline && hasHiddenGroupContent ? (
             <PretendardText style={styles.groupHidden}>

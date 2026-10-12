@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router/react-navigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
-import { Acg, AcgLayout } from '@/constants/DesignTokens';
+import { Acg } from '@/constants/DesignTokens';
 import { TAB_BAR_HEIGHT } from '@/constants/TabBar';
 import app from '@/model/app/App';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
@@ -27,7 +27,6 @@ import type {
   AppMapViewRef,
 } from '@/components/map/AppMapView';
 import { createMapLibreViewLoader } from '@/components/map/MapLibreViewLoader';
-import MapNoticeLineView from '@/components/map/MapNoticeLineView';
 import type CampSiteMapCanvasViewType from './CampSiteMapCanvasView';
 import {
   getCurrentPositionWithinTimeout,
@@ -68,8 +67,10 @@ interface CameraRegionTarget {
 // 검색 결과 맞춤이 이보다 넓으면 남한 전역 카메라(`KOREA_CAMERA`, 같은 스팬)에서 멈춘다.
 const KOREA_LATITUDE_DELTA = 4.8;
 
-// 상단 오버레이와 지도 나침반·안내 줄 사이 여백.
+// 상단 오버레이(안내 줄 포함)와 지도 나침반 사이 여백.
 const OVERLAY_GAP = 8;
+// 상세·즐겨찾기 시트가 처음 뜨는 높이(화면 높이 비율) — `app/_layout.tsx`의 `sheetInitialDetentIndex` 단계(0.4).
+const SHEET_INITIAL_DETENT = 0.4;
 
 // 지도 본문은 MapLibre SDK를 최상위 import한다 — 옛 바이너리에서 import만으로 터지지 않게 쓸 때 싣는다(MAP-1).
 const loadCanvasView = createMapLibreViewLoader<typeof CampSiteMapCanvasViewType>(
@@ -80,8 +81,6 @@ const loadCanvasView = createMapLibreViewLoader<typeof CampSiteMapCanvasViewType
       default: typeof CampSiteMapCanvasViewType;
     }).default
 );
-// 모듈 평가 때 한 번 싣는다(바이너리가 실행 중에 바뀌지 않는다) — 렌더 중에 컴포넌트를 고르지 않는다.
-const CanvasView = loadCanvasView();
 
 // 최초 진입 1회 규제 고지(CS-4) 표시 여부 저장 키.
 const NOTICE_STORAGE_KEY = 'campSiteNoticeShown';
@@ -93,6 +92,8 @@ const NOTICE_STORAGE_KEY = 'campSiteNoticeShown';
 // MobX 상태를 읽는 UI는 마커 레이어·상단(검색/칩) observer로 분리했다 —
 // 검색 타이핑·카메라 이동이 서로(특히 마커 레이어)를 리렌더하지 않게 하기 위함.
 const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
+  // 지도 본문은 처음 마운트할 때 싣는다(MAP-1 "쓸 때 처음"). 상태로 고정해 렌더마다 같은 컴포넌트다.
+  const [CanvasView] = useState(loadCanvasView);
   const router = useRouter();
   const mapRef = useRef<AppMapViewRef>(null);
   const [locationGranted, setLocationGranted] = useState(false);
@@ -756,6 +757,18 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   }, []);
 
   const ornamentTopOffset = Math.max(topOverlayHeight, insets.top) + OVERLAY_GAP;
+  /**
+   * 상세·즐겨찾기 시트가 떠 있으면(박지 선택 = 상세 시트, 즐겨찾기 전용 = 즐겨찾기 시트) 좌하단 출처 표기(ODbL)가
+   * 시트에 가리지 않게 시트 높이만큼 올린다(MAP-1). 시트를 끌어 올리면 지도 대부분이 가려지므로 처음 단계 기준이다.
+   */
+  const isSheetOpen =
+    campSiteMap.getSelectedSpot() !== null || campSiteMap.isFavoriteOnly();
+  const attributionBottomOffset = isSheetOpen
+    ? Math.max(
+        bottomClearance,
+        Math.round(Dimensions.get('window').height * SHEET_INITIAL_DETENT)
+      )
+    : bottomClearance;
   // 옛 바이너리(MapLibre 없음)면 지도 자리에 안내 한 줄만 두고 나머지 UI는 그대로 쓴다(MAP-1).
   const noticeLabel = !CanvasView
     ? app.getL10n().t('map.unsupportedBinary')
@@ -772,8 +785,8 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
           // 내 위치 파란 점 — 공용 마커(MapMyLocationMarkerView). 방향 모드가 없어 부채꼴은 없다(CS-1).
           currentLocation={locationGranted ? currentLocation : null}
           ornamentTopOffset={ornamentTopOffset}
-          // iOS 플로팅 탭바가 좌하단 출처 표기(ODbL)를 덮지 않게 올린다(MAP-1).
-          attributionBottomOffset={bottomClearance}
+          // iOS 플로팅 탭바·시트가 좌하단 출처 표기(ODbL)를 덮지 않게 올린다(MAP-1).
+          attributionBottomOffset={attributionBottomOffset}
           onTapSpot={handleMarkerTap}
           onPressMap={handleTapMap}
           onCameraChanged={handleCameraChanged}
@@ -791,16 +804,8 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         onSelectPlace={handleSelectPlace}
         onSubmitSearch={handleSubmitSearch}
         onLayout={handleTopOverlayLayout}
+        noticeLabel={noticeLabel}
       />
-
-      {noticeLabel ? (
-        <View
-          style={[styles.notice, { top: ornamentTopOffset }]}
-          pointerEvents='none'
-        >
-          <MapNoticeLineView label={noticeLabel} />
-        </View>
-      ) : null}
 
       <CampSiteMapBottomOverlayView
         bottomClearance={bottomClearance}
@@ -816,11 +821,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Acg.bg,
-  },
-  notice: {
-    position: 'absolute',
-    left: AcgLayout.screenPadding,
-    right: AcgLayout.screenPadding,
   },
 });
 
