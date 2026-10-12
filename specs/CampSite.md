@@ -11,7 +11,7 @@
 
 전국 백패킹 박지(공식 야영장·대피소·노지 박지)를 **지도 기반**으로 둘러보고 상세 정보를 확인하는 신규 탭.
 데이터는 공공 API(고캠핑·국립공원) 스냅샷 + 큐레이션 시드를 Firestore `/camp-spot`(DM-17)에 배치 적재하고,
-클라이언트는 Firestore만 읽는다. 지도는 **네이버 지도**(`@mj-studio/react-native-naver-map` v1 — 레거시 아키텍처용, 공식 네이티브 SDK 래퍼)를 사용한다.
+클라이언트는 Firestore만 읽는다. 지도는 **MapLibre + OpenFreeMap**([Map.md](Map.md) MAP-1, 2026-10-12 `[제안]`)이다. `[이력]` 그 전까지는 네이버 지도(`@mj-studio/react-native-naver-map`)였다.
 네이티브 SDK라 지도 엔진 변경은 새 바이너리에 묶인다. 과금: NCP Mobile Dynamic Map(지도 뷰 생성당 — 단가는 NCP 요금표).
 
 노지 야영은 국립공원·상수원보호구역 등에서 **불법**일 수 있다. 유형 배지와 주의·규제 고지(CS-4)가 이 기능의 신뢰성 핵심이다.
@@ -19,7 +19,7 @@
 ## 2. 화면 및 진입
 
 ```
-app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
+app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (공용 AppMapView — Map.md MAP-2)
   ├─ 검색 인풋 → 결과 드롭다운 (구간: 박지 / 지명)
   │              └─ 검색 실행(submit) → 드롭다운 닫기 + 이름 일치 마커만 필터 (CS-6)
   ├─ 유형 필터 칩 행 (전체/백패킹/대피소/캠핑장)
@@ -30,7 +30,7 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
 ```
 
 - 다섯 번째 탭 `지도` — iOS NativeTabs SF `map.fill`, Android JS 탭바 동일 순서. 탭 위치는 `여행` 앞(창고/탐색/지도/배낭/정보).
-- 웹은 네이버 지도 SDK 미지원이므로 탭 자체를 렌더하지 않는다.
+- 웹은 지도 SDK가 없으므로 탭 자체를 렌더하지 않는다(APP-5).
 
 
 ### 시각 문법 (2026-08-12 개정 as-built)
@@ -367,7 +367,7 @@ app/(tabs)/map.tsx → CampSiteMapWrapper → CampSiteMapView (네이버 지도)
 
 | 지점 | iOS | Android | Web |
 | --- | --- | --- | --- |
-| 지도 | 네이버 지도 (공식 SDK) | 네이버 지도 (공식 SDK) | 탭 미노출 |
+| 지도 | MapLibre + OpenFreeMap ([Map.md](Map.md)) | MapLibre + OpenFreeMap | 탭 미노출 |
 | 지도 열기 | `nmap://place` → 웹 폴백 | `nmap://place` → 웹 폴백 | — |
 | 탭 | NativeTabs `map.fill` | JS 탭바 drawable | — |
 
