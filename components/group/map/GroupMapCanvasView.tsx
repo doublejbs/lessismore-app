@@ -1,64 +1,71 @@
-import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  LayoutChangeEvent,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
-import {
-  Camera,
-  CameraChangeReason,
-  NaverMapMarkerOverlay,
-  NaverMapView,
-  NaverMapViewRef,
-} from '@mj-studio/react-native-naver-map';
-import {
-  Gesture,
-  GestureDetector,
-  GestureHandlerRootView,
-} from 'react-native-gesture-handler';
+import { Marker } from '@maplibre/maplibre-react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import RoutePathOverlayView from '@/components/route/RoutePathOverlayView';
 import PretendardText from '@/components/PretendardText';
 import SpotPinView from '@/components/camp-site/SpotPinView';
+import AppMapView, {
+  AppMapCameraChange,
+  AppMapCoordinate,
+  AppMapInitialCamera,
+  AppMapViewRef,
+} from '@/components/map/AppMapView';
+import MapEndpointMarkersView from '@/components/map/MapEndpointMarkersView';
+import MapMyLocationButtonView from '@/components/map/MapMyLocationButtonView';
+import MapMyLocationMarkerView from '@/components/map/MapMyLocationMarkerView';
+import MapNoticeLineView from '@/components/map/MapNoticeLineView';
+import MapPointMarkersView from '@/components/map/MapPointMarkersView';
+import MapRoutePathLayersView from '@/components/map/MapRoutePathLayersView';
+import MapScrubMarkerView from '@/components/map/MapScrubMarkerView';
+import { useMyLocationHeadingMode } from '@/components/map/useMyLocationHeadingMode';
+import PointAimMarkerView from '@/components/point/PointAimMarkerView';
+import PointCalloutView from '@/components/point/PointCalloutView';
+import PointFilterChipsView from '@/components/point/PointFilterChipsView';
+import usePointRouteMark from '@/components/point/usePointRouteMark';
+import RouteEndpointCalloutView from '@/components/route/RouteEndpointCalloutView';
+import {
+  RouteEndpointCameraPadding,
+  useRouteEndpointState,
+} from '@/components/route/useRouteEndpointState';
 import {
   Acg,
   AcgLayout,
   AcgShadow,
   AcgType,
   Radius,
+  Spacing,
 } from '@/constants/DesignTokens';
+import { MapCoordinate } from '@/hooks/useMapCurrentLocation';
 import app from '@/model/app/App';
 import GroupPoint from '@/model/group/GroupPoint';
-import { getGroupPointAuthorLabel } from '@/model/group-point/GroupPointLabels';
-import MapPoint from '@/model/point/MapPoint';
-import { getPointDateText, getPointTypeLabel } from '@/model/point/PointLabels';
 import GroupValidationError from '@/model/group/GroupValidationError';
 import { getGroupValidationMessage } from '@/model/group-error/GroupErrorMessage';
 import GroupMap from '@/model/group-map/GroupMap';
+import { getGroupPointAuthorLabel } from '@/model/group-point/GroupPointLabels';
+import MyLocationMode from '@/model/location/MyLocationMode';
+import {
+  CURRENT_LOCATION_DELTA,
+  KOREA_CAMERA,
+  lngLatBoundsToRouteBounds,
+  regionToLngLatBounds,
+} from '@/model/map/MapCamera';
+import { deltaToZoom } from '@/model/map/MapZoom';
+import MapPoint from '@/model/point/MapPoint';
+import { getPointDateText, getPointTypeLabel } from '@/model/point/PointLabels';
 import { getRouteFitRegion } from '@/model/route/RouteCamera';
 import { RouteBounds, RouteCoordinate } from '@/model/route/RouteData';
 import { RouteElevationSample } from '@/model/route/RouteElevation';
-import { deltaToZoom } from '@/model/map/MapZoom';
-import PointAimMarkerView from '@/components/point/PointAimMarkerView';
-import PointMarkersView, {
-  PointMapViewport,
-} from '@/components/point/PointMarkersView';
-import PointCalloutView from '@/components/point/PointCalloutView';
-import usePointRouteMark from '@/components/point/usePointRouteMark';
-import PointFilterChipsView from '@/components/point/PointFilterChipsView';
 import GroupMapRoutePanelView from './GroupMapRoutePanelView';
-import RouteScrubMarkerView from '@/components/route/RouteScrubMarkerView';
-import RouteEndpointMarkersView from '@/components/route/RouteEndpointMarkersView';
-import RouteEndpointCalloutView from '@/components/route/RouteEndpointCalloutView';
-import { useRouteEndpointState } from '@/components/route/useRouteEndpointState';
-import MapMyLocationButtonView from '@/components/map/MapMyLocationButtonView';
-import MapMyLocationMarkerView from '@/components/map/MapMyLocationMarkerView';
-import { useMyLocationHeadingMode } from '@/components/map/useMyLocationHeadingMode';
-import { MapCoordinate } from '@/hooks/useMapCurrentLocation';
 
 interface Props {
   groupMap: GroupMap;
@@ -79,32 +86,64 @@ interface Props {
   topInset: number;
 }
 
-/** 현재 위치로 옮길 때의 줌 — 약 0.05° 범위(배낭 코스 지도의 `내 위치`와 같은 값). */
-const CURRENT_LOCATION_ZOOM = deltaToZoom(0.05);
+interface ViewSnapshot {
+  latitude: number;
+  longitude: number;
+  zoom: number;
+  bearing: number;
+}
 
-/** 남한 전역이 보이는 폴백 카메라(코스·포인트·박지·현재 위치가 모두 없을 때). */
-const KOREA_CAMERA: Camera = {
-  latitude: 36.2,
-  longitude: 127.9,
-  zoom: deltaToZoom(4.8),
-};
+interface MapSize {
+  width: number;
+  height: number;
+}
+
+/** 현재 위치로 옮길 때의 줌 — 약 0.05° 범위(배낭 코스 지도의 `내 위치`와 같은 값). */
+const CURRENT_LOCATION_ZOOM = deltaToZoom(CURRENT_LOCATION_DELTA);
+/** 박지 위치로 처음 열 때의 줌(약 0.05° 범위). */
+const CAMP_SPOT_ZOOM = deltaToZoom(0.05);
+/** 내용이 없어 마지막 위치로 처음 열 때의 줌(약 0.2° 범위). */
+const LAST_LOCATION_ZOOM = deltaToZoom(0.2);
+/** 포인트에 초점을 줄 때의 줌(약 0.02° 범위). */
+const POINT_FOCUS_ZOOM = deltaToZoom(0.02);
+const CAMERA_MOVE_DURATION = 500;
+const MAX_ZOOM = 18;
 
 const SPOT_PIN_WIDTH = 30;
 const SPOT_PIN_HEIGHT = 40;
+// 박지 캡션 최대 폭(pt) — 긴 이름이 지도를 가로지르지 않게 한 줄로 자른다(포인트 캡션과 같은 값).
+const SPOT_CAPTION_MAX_WIDTH = 140;
+const SPOT_CAPTION_PADDING_H = 6;
+const SPOT_CAPTION_PADDING_V = 1;
+const SPOT_CAPTION_GAP = 2;
+// 상단 오버레이와 지도 장식(나침반·안드로이드 축척 막대) 사이 여백.
+const OVERLAY_GAP = 8;
+// 지도 위 우측 컨트롤이 하단 카드·추가 버튼 줄 위로 떠 있는 높이(네이버 시절과 같은 자리).
+const CONTROL_STACK_BOTTOM = 120;
+// 하단 오버레이의 바닥 여백.
+const BOTTOM_OVERLAY_PADDING = 16;
+// 마커를 누른 직후 지도 탭이 같이 오면(플랫폼에 따라 전파된다) 포커스를 풀지 않는다.
+const MARKER_PRESS_GUARD_MS = 400;
+// 부채꼴 회전을 다시 그릴 최소 방위 변화(도) — 지도를 돌리는 동안 매 프레임 리렌더하지 않게.
+const MIN_BEARING_DELTA = 1;
+
+const toFitCamera = (bounds: RouteBounds): AppMapInitialCamera => ({
+  bounds: lngLatBoundsToRouteBounds(
+    regionToLngLatBounds(getRouteFitRegion(bounds))
+  ),
+  padding: 0,
+});
 
 /**
- * 그룹 지도 (GRP-9 · GRP-10) — 네이티브 전용 본문.
+ * 그룹 지도 (GRP-9 · GRP-10 · MAP-4) — 네이티브 전용 본문. 지도는 앱 공용 `AppMapView`(MapLibre)다.
  *
- * 코스 폴리라인 · 포인트 마커 · 연결된 박지 마커를 한 화면에 그린다. 지도 구성과 마커 성능
- * 처리(뷰포트 안만 렌더, 캡션 충돌 숨김)는 박지 지도(CS-1·CS-2)를 따른다.
+ * 코스 선 · 포인트 마커 · 연결된 박지 핀을 한 화면에 그린다. 코스·끝점·포인트·훑기·내 위치는 배낭 코스
+ * 지도(BD-11 · BD-14)와 **같은 공용 레이어·마커**다(`components/map/`). 박지는 하나뿐이라 `Marker`(핀 + 캡션)다.
  *
- * **롱프레스**: `@mj-studio/react-native-naver-map@2.9.0`에는 지도 롱프레스 콜백이 없다
- * (`onTapMap`뿐이다 — `lib/typescript/module/src/component/NaverMapView.d.ts`). 그래서 지도를
- * `GestureDetector`로 감싸 `Gesture.LongPress()`로 화면 좌표를 받고, 지도 ref의 공식 API
- * `screenToCoordinate({ screenX, screenY })`로 위경도를 얻는다. 롱프레스는 발견하기 어렵고
- * 접근성 보조기술로 쓰기 어려워, 같은 일을 하는 **`여기에 포인트 추가` 알약**을 함께 둔다.
- * 알약은 바로 시트를 열지 않고 **조준 모드**로 들어간다 — 화면 정중앙에 조준 마커를 띄워
- * 어디에 찍히는지 눈으로 확인시킨 뒤 확정을 받는다(GRP-9).
+ * **롱프레스**: MapLibre의 네이티브 롱프레스(`onLongPress`)가 좌표를 바로 준다. 롱프레스는 발견하기 어렵고
+ * 접근성 보조기술로 쓰기 어려워, 같은 일을 하는 **`포인트 추가` 알약**을 함께 둔다. 알약은 바로 시트를 열지
+ * 않고 **조준 모드**로 들어간다 — 화면 정중앙에 조준 마커를 띄워 어디에 찍히는지 눈으로 확인시킨 뒤 확정을
+ * 받는다(GRP-9).
  *
  * **고도 그래프**는 지도 아래에 둔다(GRP-8). 지도 위에 얹으면 훑는 동안 손가락과 그래프가
  * 지도를 가려 "이 오르막이 어디인가"를 볼 수 없다 — 이 기능이 존재하는 이유가 사라진다.
@@ -126,27 +165,33 @@ const GroupMapCanvasView: FC<Props> = ({
 }) => {
   const l10n = app.getL10n();
   const insets = useSafeAreaInsets();
-  const mapRef = useRef<NaverMapViewRef>(null);
-  const mapReadyRef = useRef(false);
-  const didFitRef = useRef(false);
+  const mapRef = useRef<AppMapViewRef>(null);
+  const mountedRef = useRef(true);
   // 처리한 마지막 코스 선택 요청(`GroupMap.focusRoute`)의 `seq`.
   const handledFocusSeqRef = useRef(0);
-  // 목록에서 넘어온 포인트 초점을 처리했는지. 같은 포인트로 카메라를 두 번 옮기지 않는다.
+  // 초점 포인트를 처리했는지. 같은 포인트로 카메라를 두 번 옮기지 않는다.
   const handledPointIdRef = useRef<string | null>(null);
   // 지금 손가락이 고도 그래프 위에 있는지. 이때는 선택이 바뀌어도 카메라를 옮기지 않는다(GRP-8).
   const scrubbingRef = useRef(false);
-  const cameraRef = useRef<{ latitude: number; longitude: number }>({
-    latitude: KOREA_CAMERA.latitude,
-    longitude: KOREA_CAMERA.longitude,
-  });
-  const zoomRef = useRef(deltaToZoom(0.2));
-  const mountedRef = useRef(true);
-  const [viewport, setViewport] = useState<PointMapViewport | null>(null);
-  const [longPressAt, setLongPressAt] = useState<{
-    x: number;
-    y: number;
-    seq: number;
-  } | null>(null);
+  // 마지막으로 알려진 지도 상태 — ③의 북쪽 되돌리기·조준 확정 폴백에 쓴다.
+  const viewRef = useRef<ViewSnapshot | null>(null);
+  const mapSizeRef = useRef<MapSize | null>(null);
+  const markerPressedAtRef = useRef(0);
+  const loggedLoadFailureRef = useRef(false);
+  // 처음 카메라를 정하는 중(마지막 위치 조회 대기)인지 — 두 번 정하지 않는다.
+  const decidingInitialRef = useRef(false);
+  /**
+   * 지도를 붙일 때의 카메라. 그룹(코스·포인트·박지)을 읽은 뒤 한 번 정한다 — 정하기 전에는 지도를 붙이지 않아
+   * 처음부터 그 자리에서 그린다(남한 전역에서 날아오지 않는다). 그 뒤의 이동은 ref 명령이다.
+   */
+  const [initialCamera, setInitialCamera] =
+    useState<AppMapInitialCamera | null>(null);
+  const [mapBearing, setMapBearing] = useState(0);
+  const [isLoadFailed, setIsLoadFailed] = useState(false);
+  // 상단 오버레이(안내 줄·유형 칩)의 아래 끝(pt) — 나침반·안드로이드 축척 막대를 그 아래로 내린다.
+  const [topOverlayBottom, setTopOverlayBottom] = useState(topInset);
+  // 하단 오버레이(카드·추가 버튼)의 높이 — 출처 표기(라이선스 의무, MAP-1)를 그 위로 올린다.
+  const [bottomOverlayHeight, setBottomOverlayHeight] = useState(0);
   // 포인트 추가 조준 모드 (GRP-9). 이 동안에는 필터 칩·정보 카드·추가 버튼·코스 패널을 걷어 조준을 가리지 않는다.
   const [isAiming, setIsAiming] = useState(false);
   /**
@@ -158,15 +203,16 @@ const GroupMapCanvasView: FC<Props> = ({
     routeId: string;
     sample: RouteElevationSample;
   } | null>(null);
-  const handledLongPressRef = useRef(0);
   const pointList = groupMap.getPointList();
   const routeList = groupMap.getRouteList();
   const routes = groupMap.getRoutes();
   const campSpot = groupMap.getCampSpot();
   const selectedRouteId = groupMap.getSelectedRouteId();
   const selectedPoint = groupMap.getFocusedPoint();
+  const focusedPointId = groupMap.getFocusedPointId();
   const routeFocusRequest = groupMap.getRouteFocusRequest();
   const initialized = groupMap.isInitialized();
+  const pointsInitialized = pointList.isInitialized();
   // 고른 코스가 없거나 지워졌으면 첫 코스다(GRP-10 강조 규칙 — `GroupMap.getSelectedRouteId`).
   const selectedRoute = groupMap.getSelectedRoute();
   // 고른 포인트가 선택된 코스의 어디쯤인지 — 그래프 표시와 카드 메타 줄(GRP-8).
@@ -177,7 +223,6 @@ const GroupMapCanvasView: FC<Props> = ({
 
     return () => {
       mountedRef.current = false;
-      mapReadyRef.current = false;
     };
   }, []);
 
@@ -186,20 +231,13 @@ const GroupMapCanvasView: FC<Props> = ({
    * 지도 진입에서 권한을 새로 묻지 않는다(포인트 추가는 롱프레스로 가능하므로 권한이 없어도 화면이
    * 동작해야 한다, GRP-9 엣지 케이스). 권한 여부는 버튼 노출과 내 위치 점 판단에 쓴다.
    * 버튼을 다시 누르면 방향 모드(지도 회전 + 방향 부채꼴), 한 번 더 누르면 끈다(GRP-10 · BD-11).
-   *
-   * 아래 카메라 이동들(`moveCamera`·끝점·코스 맞춤)이 따라가기를 풀어야 하므로 그보다 먼저 둔다 —
-   * 그래서 내 위치 이동은 `moveCamera`를 거치지 않고 지도 ref를 직접 쓴다.
    */
   const moveToCoordinate = useCallback((coordinate: MapCoordinate) => {
-    if (!mountedRef.current || !mapReadyRef.current || !mapRef.current) {
-      return;
-    }
-
-    mapRef.current.animateCameraTo({
+    mapRef.current?.animateTo({
       latitude: coordinate.latitude,
       longitude: coordinate.longitude,
       zoom: CURRENT_LOCATION_ZOOM,
-      duration: 500,
+      duration: CAMERA_MOVE_DURATION,
     });
   }, []);
   const {
@@ -218,39 +256,30 @@ const GroupMapCanvasView: FC<Props> = ({
     fallbackZoom: CURRENT_LOCATION_ZOOM,
   });
 
+  // 화면이 카메라를 옮기면 방향 모드의 따라가기를 푼다 — 다음 나침반 값이 되돌리지 않게. 줌이 없으면 유지한다.
   const moveCamera = useCallback(
-    (latitude: number, longitude: number, zoom: number) => {
-      if (!mountedRef.current || !mapReadyRef.current || !mapRef.current) {
-        return;
-      }
-
-      // 화면이 카메라를 옮기면 방향 모드의 따라가기를 푼다 — 다음 나침반 값이 되돌리지 않게.
+    (latitude: number, longitude: number, zoom?: number) => {
       releaseFollow();
-      mapRef.current.animateCameraTo({
+      mapRef.current?.animateTo({
         latitude,
         longitude,
-        zoom,
-        duration: 500,
+        ...(zoom !== undefined ? { zoom } : {}),
+        duration: CAMERA_MOVE_DURATION,
       });
     },
     [releaseFollow]
   );
 
   // 출발·도착 마커 탭 → 위치 정보 카드(GRP-8). 포인트 카드와 동시에 뜨지 않는다.
-  // 카드 위 빈 자리에 끝점을 둔다(`pivot`) — 가운데로 옮기면 누른 마커가 카드 밑에 숨는다.
+  // 카드가 덮는 높이만큼 아래 여백(`padding`)을 줘 끝점을 카드 위 빈 자리에 둔다.
   const handleMoveToEndpoint = useCallback(
-    (coordinate: RouteCoordinate, pivot: { x: number; y: number }) => {
-      if (!mountedRef.current || !mapReadyRef.current || !mapRef.current) {
-        return;
-      }
-
+    (coordinate: RouteCoordinate, padding: RouteEndpointCameraPadding) => {
       releaseFollow();
-      mapRef.current.animateCameraTo({
+      mapRef.current?.animateTo({
         latitude: coordinate.lat,
         longitude: coordinate.lng,
-        zoom: zoomRef.current,
-        pivot,
-        duration: 500,
+        padding,
+        duration: CAMERA_MOVE_DURATION,
       });
     },
     [releaseFollow]
@@ -271,7 +300,7 @@ const GroupMapCanvasView: FC<Props> = ({
     moveCamera: handleMoveToEndpoint,
     onSelect: handleSelectEndpoint,
   });
-  const hasFocusedPoint = !!groupMap.getFocusedPointId();
+  const hasFocusedPoint = !!focusedPointId;
 
   // 포인트에 초점이 가면(마커 탭·목록) 끝점 카드를 닫는다.
   useEffect(() => {
@@ -282,301 +311,293 @@ const GroupMapCanvasView: FC<Props> = ({
 
   const fitBounds = useCallback(
     (bounds: RouteBounds) => {
-      if (!mountedRef.current || !mapReadyRef.current || !mapRef.current) {
-        return;
-      }
-
       releaseFollow();
-      mapRef.current.animateRegionTo({
-        ...getRouteFitRegion(bounds),
-        duration: 500,
-      });
+      mapRef.current?.fitRegion(
+        getRouteFitRegion(bounds),
+        CAMERA_MOVE_DURATION
+      );
     },
     [releaseFollow]
   );
 
   /**
-   * 최초 카메라 (GRP-10): 코스·포인트를 모두 담는 상자 → 없으면 박지 위치 →
-   * 박지도 없으면 현재 위치 순으로 간다. 셋 다 없으면 남한 전역에 머문다.
+   * 최초 카메라 (GRP-10): 아직 처리하지 않은 초점 포인트 → 고른 코스 → 코스·포인트를 모두 담는 상자 →
+   * 박지 위치 → 마지막 현재 위치 → 남한 전역. 초점 포인트가 있는데 포인트를 아직 읽지 않았으면 기다린다.
    */
-  const fitInitialCamera = useCallback(async () => {
-    if (
-      didFitRef.current ||
-      !mapReadyRef.current ||
-      !groupMap.isInitialized()
-    ) {
+  useEffect(() => {
+    if (initialCamera || decidingInitialRef.current || !initialized) {
       return;
     }
 
-    const bounds = groupMap.getContentBounds();
+    const pointId = groupMap.getFocusedPointId();
 
-    if (bounds) {
-      didFitRef.current = true;
-      fitBounds(bounds);
-
+    if (pointId && !pointList.isInitialized()) {
       return;
     }
 
-    if (campSpot) {
-      didFitRef.current = true;
-      moveCamera(
-        campSpot.location.latitude,
-        campSpot.location.longitude,
-        deltaToZoom(0.05)
-      );
+    decidingInitialRef.current = true;
 
-      return;
-    }
+    // 마지막 위치는 비동기로 읽는다 — 나머지 판단도 같은 흐름에 둔다.
+    const decideInitialCamera = async (): Promise<AppMapInitialCamera> => {
+      const routeRequest = groupMap.getRouteFocusRequest();
 
-    try {
-      const { status } = await Location.getForegroundPermissionsAsync();
+      handledFocusSeqRef.current = routeRequest?.seq ?? 0;
+      handledPointIdRef.current = pointId;
 
-      if (status !== 'granted') {
-        return;
+      const point = pointId ? pointList.getPointById(pointId) : null;
+
+      if (point) {
+        return {
+          latitude: point.getLatitude(),
+          longitude: point.getLongitude(),
+          zoom: POINT_FOCUS_ZOOM,
+        };
       }
 
-      const lastKnown = await Location.getLastKnownPositionAsync();
+      const routeBounds = routeRequest
+        ? (groupMap
+            .getRoutes()
+            .find(item => item.getId() === routeRequest.routeId)
+            ?.getBounds() ?? null)
+        : null;
+      const bounds = routeBounds ?? groupMap.getContentBounds();
 
-      if (!lastKnown || !mountedRef.current || didFitRef.current) {
-        return;
+      if (bounds) {
+        return toFitCamera(bounds);
       }
 
-      didFitRef.current = true;
-      moveCamera(
-        lastKnown.coords.latitude,
-        lastKnown.coords.longitude,
-        deltaToZoom(0.2)
-      );
-    } catch (error) {
-      console.warn('[GroupMap] 초기 카메라 위치 조회 실패', error); // l10n-ignore: 개발자 로그
-    }
-  }, [campSpot, fitBounds, groupMap, moveCamera]);
+      if (campSpot) {
+        return {
+          latitude: campSpot.location.latitude,
+          longitude: campSpot.location.longitude,
+          zoom: CAMP_SPOT_ZOOM,
+        };
+      }
+
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        const lastKnown =
+          status === 'granted'
+            ? await Location.getLastKnownPositionAsync()
+            : null;
+
+        if (lastKnown) {
+          return {
+            latitude: lastKnown.coords.latitude,
+            longitude: lastKnown.coords.longitude,
+            zoom: LAST_LOCATION_ZOOM,
+          };
+        }
+      } catch (error) {
+        console.warn('[GroupMap] 초기 카메라 위치 조회 실패', error); // l10n-ignore: 개발자 로그
+      }
+
+      return KOREA_CAMERA;
+    };
+
+    const applyInitialCamera = async () => {
+      const camera = await decideInitialCamera();
+
+      decidingInitialRef.current = false;
+
+      if (mountedRef.current) {
+        setInitialCamera(camera);
+      }
+    };
+
+    void applyInitialCamera();
+  }, [
+    campSpot,
+    groupMap,
+    initialCamera,
+    initialized,
+    pointList,
+    pointsInitialized,
+  ]);
 
   /**
    * 고른 코스로 카메라를 옮긴다 (GRP-8) — 코스 목록 시트의 행, 방금 올린 코스.
-   * 최초 맞춤과 달리 **고를 때마다** 옮긴다(같은 코스를 다시 골라도 `seq`가 올라간다).
-   * 지도가 준비되지 않았거나 코스가 아직 안 읽혔으면 요청을 남겨 두고 준비된 뒤 한 번 맞춘다.
-   * 조회가 끝났는데 그 코스가 없으면(지워진 코스) 요청을 버리고 최초 맞춤에 맡긴다.
-   * 요청을 처리해 카메라를 옮겼으면 `true`다.
+   * **고를 때마다** 옮긴다(같은 코스를 다시 골라도 `seq`가 올라간다). 지도를 붙이기 전의 요청은 최초 카메라가
+   * 맡는다. 코스가 아직 없으면(방금 올려 목록 갱신 전) 요청을 남겨 두고 코스가 들어오면 다시 본다.
    */
-  const fitFocusedRoute = useCallback(() => {
-    const request = groupMap.getRouteFocusRequest();
-
+  useEffect(() => {
     if (
-      !request ||
-      request.seq === handledFocusSeqRef.current ||
-      !mapReadyRef.current ||
-      !groupMap.isInitialized()
+      !initialCamera ||
+      !routeFocusRequest ||
+      routeFocusRequest.seq === handledFocusSeqRef.current
     ) {
-      return false;
+      return;
     }
 
-    handledFocusSeqRef.current = request.seq;
+    const route = routes.find(
+      item => item.getId() === routeFocusRequest.routeId
+    );
+    const bounds = route?.getBounds() ?? null;
+
+    if (!bounds && !groupMap.isInitialized()) {
+      return;
+    }
+
+    handledFocusSeqRef.current = routeFocusRequest.seq;
 
     // 훑는 중에 바뀐 선택은 카메라를 옮기지 않는다 — 손가락 아래 그래프와 지도가 어긋난다.
-    // 선택이 바뀌면 그래프가 새로 마운트되어 이 훑기는 끝난다(남은 마커는 코스가 달라 저절로 걷힌다).
     if (scrubbingRef.current) {
       scrubbingRef.current = false;
 
-      return false;
+      return;
     }
 
-    const route = groupMap
-      .getRoutes()
-      .find(item => item.getId() === request.routeId);
-    const bounds = route?.getBounds() ?? null;
-
-    if (!bounds) {
-      return false;
+    if (bounds) {
+      fitBounds(bounds);
     }
-
-    // 명시적 선택이 카메라를 정했으므로 늦게 온 데이터가 최초 맞춤으로 되돌리지 않게 한다.
-    didFitRef.current = true;
-    fitBounds(bounds);
-
-    return true;
-  }, [fitBounds, groupMap]);
+  }, [fitBounds, groupMap, initialCamera, routeFocusRequest, routes]);
 
   /**
-   * 초점을 준 포인트로 카메라를 옮긴다(GRP-9) — 마커 탭 등 `GroupMap.focusPoint`.
-   *
-   * 초점이 지도 준비보다 먼저 들어올 수 있으므로 **지도가 준비되기 전이거나 포인트를 아직
-   * 읽지 않았으면 기다린다**(`true`를 돌려 최초 맞춤이 먼저 카메라를 가져가지 못하게 한다).
-   * 예전에는 이 시점에 카메라 이동이 무시되면서도 '맞춤 완료' 표시만 켜져, 포인트로도 전체
-   * 상자로도 가지 않고 기본 위치에 머물렀다. 준비된 뒤 `syncCamera`가 다시 부르면 그때 옮긴다.
-   * 읽기가 끝났는데 포인트가 없으면(그새 지워짐) 포기하고 최초 맞춤에 넘긴다.
+   * 초점을 준 포인트로 카메라를 옮긴다(GRP-9) — 목록 등 `GroupMap.focusPoint`. 마커 탭은 탭 처리에서 줌을
+   * 유지한 채 옮기고 여기서는 건너뛴다. 포인트를 아직 읽지 않았으면 기다리고, 읽었는데 없으면(그새 지워짐) 버린다.
    */
-  const fitFocusedPoint = useCallback(() => {
-    const pointId = groupMap.getFocusedPointId();
-
-    if (!pointId || handledPointIdRef.current === pointId) {
-      return false;
-    }
-
-    if (!pointList.isInitialized()) {
-      return true;
-    }
-
-    const point = pointList.getPointById(pointId);
-
-    if (!point) {
-      handledPointIdRef.current = pointId;
-
-      return false;
-    }
-
-    if (!mapReadyRef.current) {
-      return true;
-    }
-
-    handledPointIdRef.current = pointId;
-    // 초점을 준 포인트는 최초 맞춤이 덮어쓰지 않게 한다.
-    didFitRef.current = true;
-    moveCamera(point.getLatitude(), point.getLongitude(), deltaToZoom(0.02));
-
-    return true;
-  }, [groupMap, moveCamera, pointList]);
-
-  // 카메라 결정 순서: 초점 포인트 → 고른 코스 → 최초 맞춤(전체 상자).
-  // 앞의 것이 정했으면 뒤의 것이 되돌리지 않는다.
-  const syncCamera = useCallback(() => {
-    if (fitFocusedPoint()) {
+  useEffect(() => {
+    if (
+      !initialCamera ||
+      !focusedPointId ||
+      handledPointIdRef.current === focusedPointId ||
+      !pointsInitialized
+    ) {
       return;
     }
 
-    if (fitFocusedRoute()) {
+    handledPointIdRef.current = focusedPointId;
+
+    const point = pointList.getPointById(focusedPointId);
+
+    if (point) {
+      moveCamera(point.getLatitude(), point.getLongitude(), POINT_FOCUS_ZOOM);
+    }
+  }, [focusedPointId, initialCamera, moveCamera, pointList, pointsInitialized]);
+
+  // ② 방향 모드: 내 위치를 따라가며 바라보는 방향이 위로 오게 지도 bearing을 돌린다(GRP-10 · BD-11).
+  const isFollowing = myLocationMode === MyLocationMode.Heading;
+  const followLatitude = isFollowing ? followCamera?.latitude : undefined;
+  const followLongitude = isFollowing ? followCamera?.longitude : undefined;
+  const followBearing = isFollowing ? followCamera?.bearing : undefined;
+  const isHeadingShown = heading !== null;
+  const wasHeadingShownRef = useRef(isHeadingShown);
+
+  useEffect(() => {
+    if (followLatitude === undefined || followLongitude === undefined) {
       return;
     }
 
-    void fitInitialCamera();
-  }, [fitFocusedPoint, fitFocusedRoute, fitInitialCamera]);
+    mapRef.current?.animateTo({
+      latitude: followLatitude,
+      longitude: followLongitude,
+      bearing: followBearing ?? 0,
+      duration: cameraAnimationDuration,
+    });
+  }, [cameraAnimationDuration, followBearing, followLatitude, followLongitude]);
 
-  // 데이터가 늦게 도착해도 한 번은 맞춘다. 코스를 고를 때마다(같은 코스를 다시 골라도) 그 코스로 옮긴다.
+  // ③ 방향 모드 끄기 — 부채꼴이 사라지는 순간 지도를 북쪽 위로 되돌린다.
   useEffect(() => {
-    syncCamera();
-  }, [syncCamera, initialized, routes, campSpot, routeFocusRequest]);
+    const wasShown = wasHeadingShownRef.current;
 
-  // 포인트 초점이 바뀌거나(마커 탭 포함) 포인트 읽기가 끝나면 카메라 결정을 다시 돈다(GRP-9).
-  const focusedPointId = groupMap.getFocusedPointId();
-  const pointCount = pointList.getCount();
-  const pointsInitialized = pointList.isInitialized();
+    wasHeadingShownRef.current = isHeadingShown;
 
-  useEffect(() => {
-    syncCamera();
-  }, [syncCamera, focusedPointId, pointCount, pointsInitialized]);
+    if (!wasShown || isHeadingShown) {
+      return;
+    }
 
-  const handleMapInitialized = useCallback(() => {
-    mapReadyRef.current = true;
+    const view = viewRef.current;
 
-    setViewport(prev =>
-      prev
-        ? prev
-        : {
-            latitude: KOREA_CAMERA.latitude,
-            longitude: KOREA_CAMERA.longitude,
-            zoom: KOREA_CAMERA.zoom ?? 0,
-          }
-    );
+    if (!view) {
+      return;
+    }
 
-    syncCamera();
-  }, [syncCamera]);
+    mapRef.current?.animateTo({
+      latitude: view.latitude,
+      longitude: view.longitude,
+      bearing: 0,
+      duration: CAMERA_MOVE_DURATION,
+    });
+  }, [isHeadingShown]);
 
-  const handleCameraChanged = useCallback(
-    (camera: Camera & { reason: CameraChangeReason }) => {
-      if (!mountedRef.current) {
-        return;
-      }
+  // 지도 이동 알림(시작·진행·끝). 손으로 움직이면(`Gesture`) 훅이 방향 모드의 따라가기를 푼다(GRP-10 · BD-11).
+  const handleMapCameraChanged = useCallback(
+    (change: AppMapCameraChange) => {
+      const { latitude, longitude, zoom, bearing } = change;
 
-      // 손으로 움직이면 방향 모드의 따라가기를 푼다(GRP-10 · BD-11).
-      handleMyLocationCameraChanged(camera);
-
-      const zoom = camera.zoom ?? 0;
-
-      zoomRef.current = zoom;
-      cameraRef.current = {
-        latitude: camera.latitude,
-        longitude: camera.longitude,
-      };
-
-      // 중심 0.05°·줌 0.25 단위 양자화 — 동일 값이면 마커 레이어가 리렌더되지 않는다.
-      const quantized = {
-        latitude: Math.round(camera.latitude / 0.05) * 0.05,
-        longitude: Math.round(camera.longitude / 0.05) * 0.05,
-        zoom: Math.round(zoom / 0.25) * 0.25,
-      };
-
-      setViewport(prev =>
-        prev &&
-        prev.latitude === quantized.latitude &&
-        prev.longitude === quantized.longitude &&
-        prev.zoom === quantized.zoom
-          ? prev
-          : quantized
+      viewRef.current = { latitude, longitude, zoom, bearing };
+      setMapBearing(previous =>
+        Math.abs(previous - bearing) < MIN_BEARING_DELTA ? previous : bearing
       );
+      handleMyLocationCameraChanged(change);
     },
     [handleMyLocationCameraChanged]
   );
 
-  const handleLongPress = useCallback(
-    async (x: number, y: number) => {
-      const map = mapRef.current;
+  // 지도 데이터 로드 실패(MAP-2) — 상단 한 줄. 마커·선은 그대로 그린다. 측정은 화면 수명당 한 번.
+  const handleLoadFailed = useCallback(() => {
+    setIsLoadFailed(true);
 
-      if (!map || !mapReadyRef.current) {
-        return;
-      }
-
-      try {
-        const coordinate = await map.screenToCoordinate({
-          screenX: x,
-          screenY: y,
-        });
-
-        if (!coordinate?.isValid || !mountedRef.current) {
-          return;
-        }
-
-        onRequestCreate({
-          latitude: coordinate.latitude,
-          longitude: coordinate.longitude,
-        });
-      } catch (error) {
-        console.warn('[GroupMap] 롱프레스 좌표 변환 실패', error); // l10n-ignore: 개발자 로그
-      }
-    },
-    [onRequestCreate]
-  );
-
-  /**
-   * 롱프레스는 좌표만 상태로 올리고, 지도 ref를 읽는 변환은 아래 이펙트가 맡는다 —
-   * 렌더 중 만들어지는 제스처 콜백이 ref를 직접 붙들지 않게 하려는 분리다.
-   * `seq`가 누를 때마다 올라가 같은 지점을 다시 눌러도 이펙트가 다시 돈다.
-   */
-  const longPressGesture = useMemo(
-    () =>
-      Gesture.LongPress()
-        // 조준 모드에서는 끈다 — 확정을 기다리는 중에 다른 좌표로 시트가 열리면 모드가 꼬인다.
-        .enabled(!isAiming)
-        .minDuration(450)
-        .maxDistance(24)
-        .runOnJS(true)
-        .onStart(event => {
-          setLongPressAt(previous => ({
-            x: event.x,
-            y: event.y,
-            seq: (previous?.seq ?? 0) + 1,
-          }));
-        }),
-    [isAiming]
-  );
-
-  useEffect(() => {
-    if (!longPressAt || handledLongPressRef.current === longPressAt.seq) {
+    if (loggedLoadFailureRef.current) {
       return;
     }
 
-    handledLongPressRef.current = longPressAt.seq;
-    void handleLongPress(longPressAt.x, longPressAt.y);
-  }, [handleLongPress, longPressAt]);
+    loggedLoadFailureRef.current = true;
+    app
+      .getAnalyticsManager()
+      ?.logEvent('map_load_failed', { screen: 'group_map' });
+  }, []);
+
+  const handleMapInitialized = useCallback(() => {
+    setIsLoadFailed(false);
+  }, []);
+
+  const handleMapAreaLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { width, height } = event.nativeEvent.layout;
+
+      mapSizeRef.current = { width, height };
+      handleMapLayout(event);
+    },
+    [handleMapLayout]
+  );
+
+  const handleTopOverlayAreaLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { y, height } = event.nativeEvent.layout;
+      const bottom = y + height;
+
+      setTopOverlayBottom(previous =>
+        Math.abs(previous - bottom) < 1 ? previous : bottom
+      );
+      handleTopOverlayLayout(event);
+    },
+    [handleTopOverlayLayout]
+  );
+
+  const handleBottomOverlayAreaLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+
+      setBottomOverlayHeight(previous =>
+        Math.abs(previous - height) < 1 ? previous : height
+      );
+      handleBottomOverlayLayout(event);
+    },
+    [handleBottomOverlayLayout]
+  );
+
+  // 길게 누르기 → 입력 시트(GRP-9). 지도의 네이티브 롱프레스라 좌표가 바로 온다. 조준 모드에서는 받지 않는다.
+  const handleLongPress = useCallback(
+    (coordinate: AppMapCoordinate) => {
+      if (isAiming) {
+        return;
+      }
+
+      onRequestCreate(coordinate);
+    },
+    [isAiming, onRequestCreate]
+  );
 
   /**
    * 롱프레스의 접근 가능한 대안 (GRP-9). 바로 시트를 열지 않고 **조준 모드**에 들어간다 —
@@ -592,10 +613,32 @@ const GroupMapCanvasView: FC<Props> = ({
     setIsAiming(false);
   }, []);
 
-  // 조준 마커는 화면 정중앙에 고정돼 있고, 그 자리가 곧 카메라 중심이다.
-  const handleConfirmAiming = useCallback(() => {
+  /**
+   * 조준 마커는 지도 칸 정중앙에 고정돼 있다 — 그 화면 점의 좌표를 읽는다(카메라 여백이 남아 있어도 마커
+   * 아래 좌표다). 못 읽으면 카메라 중심, 그것도 없으면 마지막으로 알려진 중심.
+   */
+  const handleConfirmAiming = useCallback(async () => {
+    const map = mapRef.current;
+    const size = mapSizeRef.current;
+    const atMarker =
+      map && size
+        ? await map.screenToCoordinate({
+            x: size.width / 2,
+            y: size.height / 2,
+          })
+        : null;
+    const coordinate =
+      atMarker ?? (map ? await map.getCenter() : null) ?? viewRef.current;
+
+    if (!mountedRef.current || !coordinate) {
+      return;
+    }
+
     setIsAiming(false);
-    onRequestCreate({ ...cameraRef.current });
+    onRequestCreate({
+      latitude: coordinate.latitude,
+      longitude: coordinate.longitude,
+    });
   }, [onRequestCreate]);
 
   /**
@@ -625,18 +668,37 @@ const GroupMapCanvasView: FC<Props> = ({
     [groupMap]
   );
 
+  // 마커 탭 — 지금 줌 그대로 그 포인트로 옮긴다(초점 이동 이펙트는 건너뛴다).
   const handleTapPoint = useCallback(
     (point: MapPoint) => {
+      markerPressedAtRef.current = Date.now();
+      handledPointIdRef.current = point.getId();
       groupMap.focusPoint(point.getId());
-      moveCamera(point.getLatitude(), point.getLongitude(), zoomRef.current);
+      moveCamera(point.getLatitude(), point.getLongitude());
     },
     [groupMap, moveCamera]
   );
 
-  const handleTapMap = useCallback(() => {
+  const handleTapEndpointMarker = useCallback(
+    (...args: Parameters<typeof handleTapEndpoint>) => {
+      markerPressedAtRef.current = Date.now();
+      handleTapEndpoint(...args);
+    },
+    [handleTapEndpoint]
+  );
+
+  const handleCloseCards = useCallback(() => {
     groupMap.focusPoint(null);
     handleCloseEndpoint();
   }, [groupMap, handleCloseEndpoint]);
+
+  const handlePressMap = useCallback(() => {
+    if (Date.now() - markerPressedAtRef.current < MARKER_PRESS_GUARD_MS) {
+      return;
+    }
+
+    handleCloseCards();
+  }, [handleCloseCards]);
 
   // 카드 메타 줄 — `유형 · 작성자 · 등록일`(GRP-9). 작성자는 그룹에만 있어 여기서 붙인다.
   const getPointMeta = (point: GroupPoint) =>
@@ -680,118 +742,128 @@ const GroupMapCanvasView: FC<Props> = ({
     showProfile && scrub?.routeId === (selectedRouteId ?? '')
       ? scrub.sample
       : null;
+  const ornamentTopOffset = Math.max(topInset, topOverlayBottom + OVERLAY_GAP);
 
   return (
     <GestureHandlerRootView style={styles.root}>
       <View style={styles.mapSection}>
-        <GestureDetector gesture={longPressGesture}>
-          <View style={styles.mapArea} onLayout={handleMapLayout}>
-            <NaverMapView
+        <View style={styles.mapArea} onLayout={handleMapAreaLayout}>
+          {initialCamera ? (
+            <AppMapView
               ref={mapRef}
-              style={StyleSheet.absoluteFill}
-              initialCamera={KOREA_CAMERA}
-              isShowLocationButton={false}
-              isShowZoomControls={false}
-              isShowScaleBar={false}
+              initialCamera={initialCamera}
+              showScaleBar
+              attributionBottomOffset={bottomOverlayHeight}
+              ornamentTopOffset={ornamentTopOffset}
+              maxZoom={MAX_ZOOM}
+              onPress={handlePressMap}
+              onLongPress={handleLongPress}
+              onCameraChanged={handleMapCameraChanged}
               onInitialized={handleMapInitialized}
-              onTapMap={handleTapMap}
-              onCameraChanged={handleCameraChanged}
-              // 방향 모드(GRP-10 · BD-11)에서만 값이 있는 제어 카메라 — 내 위치를 따라가며 지도를 돌린다.
-              {...(followCamera ? { camera: followCamera } : {})}
-              animationDuration={cameraAnimationDuration}
+              onLoadFailed={handleLoadFailed}
             >
-              {/* 코스 폴리라인 — 선택한 코스를 굵게, 나머지를 옅게(GRP-10).
-                배낭 코스 화면(BD-11)과 같은 선을 쓴다. */}
-              <RoutePathOverlayView
+              {/* 코스 선 — 선택한 코스를 굵게, 나머지를 옅게(GRP-10). 배낭 코스 화면(BD-11)과 같은 선이다. */}
+              <MapRoutePathLayersView
                 routes={routes}
                 selectedRouteId={selectedRouteId}
               />
 
-              {/* 연결된 박지 마커 — 앱 공통 핀(끝점이 좌표에 닿는다). */}
+              {/* 연결된 박지 핀 — 앱 공통 핀(끝점이 좌표에 닿는다) + 위 캡션. */}
               {campSpot ? (
-                <NaverMapMarkerOverlay
-                  latitude={campSpot.location.latitude}
-                  longitude={campSpot.location.longitude}
-                  anchor={{ x: 0.5, y: 1 }}
-                  width={SPOT_PIN_WIDTH}
-                  height={SPOT_PIN_HEIGHT}
-                  caption={{
-                    text: campSpot.name,
-                    align: 'Top',
-                    textSize: 12,
-                    color: Acg.ink,
-                    haloColor: Acg.paper,
-                    offset: 4,
-                  }}
-                  isHideCollidedSymbols
+                <Marker
+                  id={`group-map-spot-${campSpot.id}`}
+                  lngLat={[
+                    campSpot.location.longitude,
+                    campSpot.location.latitude,
+                  ]}
+                  anchor='bottom'
                 >
                   <View
-                    key={campSpot.id}
                     collapsable={false}
-                    style={styles.spotPin}
+                    pointerEvents='none'
+                    style={styles.spotMarker}
+                    accessible
+                    accessibilityLabel={campSpot.name}
                   >
-                    <SpotPinView width={SPOT_PIN_WIDTH} />
+                    <PretendardText
+                      weight='semibold'
+                      style={styles.spotCaption}
+                      numberOfLines={1}
+                    >
+                      {campSpot.name}
+                    </PretendardText>
+                    <View style={styles.spotPin}>
+                      <SpotPinView width={SPOT_PIN_WIDTH} />
+                    </View>
                   </View>
-                </NaverMapMarkerOverlay>
+                </Marker>
               ) : null}
 
               {/* 선택한 코스의 시작·끝 — 옅게 그린 코스엔 달지 않는다(지도가 마커로 덮이지 않게). */}
-              <RouteEndpointMarkersView
+              <MapEndpointMarkersView
                 route={selectedRoute}
-                onTapEndpoint={handleTapEndpoint}
+                onTapEndpoint={handleTapEndpointMarker}
               />
 
-              <PointMarkersView
+              <MapPointMarkersView
                 points={pointList.getVisiblePoints()}
-                viewport={viewport}
-                selectedPointId={groupMap.getFocusedPointId()}
+                selectedPointId={focusedPointId}
                 onTapPoint={handleTapPoint}
               />
 
-              {/* 내 위치 점 — 권한이 있을 때만(CS-1과 같은 지오 앵커 마커). */}
+              {/* 고도 그래프를 훑는 동안만 뜨는 위치 마커(GRP-8). */}
+              {scrubSample ? (
+                <MapScrubMarkerView
+                  latitude={scrubSample.latitude}
+                  longitude={scrubSample.longitude}
+                />
+              ) : null}
+
+              {/* 내 위치 점 — 권한이 있을 때만. */}
               {currentLocation ? (
                 <MapMyLocationMarkerView
                   latitude={currentLocation.latitude}
                   longitude={currentLocation.longitude}
                   heading={heading}
+                  mapBearing={mapBearing}
                 />
               ) : null}
-
-              {/* 고도 그래프를 훑는 동안만 뜨는 위치 마커(GRP-8). */}
-              {scrubSample ? (
-                <RouteScrubMarkerView
-                  latitude={scrubSample.latitude}
-                  longitude={scrubSample.longitude}
-                />
-              ) : null}
-            </NaverMapView>
-          </View>
-        </GestureDetector>
+            </AppMapView>
+          ) : null}
+        </View>
 
         {/* 조준 마커는 지도 좌표가 아니라 화면에 고정된다(GRP-9). */}
         {isAiming ? <PointAimMarkerView /> : null}
 
-        {/* 상단 오버레이 — 유형 필터 칩(GRP-10). 조준 모드에서는 걷는다. */}
-        {isAiming ? null : (
-          <View
-            style={[styles.topOverlay, { top: topInset }]}
-            pointerEvents='box-none'
-            onLayout={handleTopOverlayLayout}
-          >
-            <PointFilterChipsView
-              selectedType={pointList.getSelectedType()}
-              onSelectType={type => pointList.selectType(type)}
-              onMap
-            />
-          </View>
-        )}
+        {/* 상단 오버레이 — 로드 실패 한 줄 + 유형 필터 칩(GRP-10). 조준 모드에서는 칩을 걷는다. 나침반은 그 아래. */}
+        <View
+          style={[styles.topOverlay, { top: topInset }]}
+          pointerEvents='box-none'
+          onLayout={handleTopOverlayAreaLayout}
+        >
+          {isLoadFailed ? (
+            <MapNoticeLineView label={l10n.t('map.loadFailed')} />
+          ) : null}
+          {isAiming ? null : (
+            <View style={styles.chips}>
+              <PointFilterChipsView
+                selectedType={pointList.getSelectedType()}
+                onSelectType={type => pointList.selectType(type)}
+                onMap
+              />
+            </View>
+          )}
+        </View>
 
         {/* 우측 지도 컨트롤 — 현재 위치(누를 때마다 내 위치로 → 방향 모드 → 끄기). 권한이 있을 때만 노출한다(GRP-9 엣지 케이스).
           조준 모드에서도 남긴다 — 내 자리로 지도를 옮겨 그 부근을 겨누는 것이 흔한 경로다.
           방향 뒤집기는 코스 목록 시트의 행 `⋯`에 있다(GRP-10) — 같은 일을 두 곳에 두지 않는다. */}
         {locationGranted ? (
           <View
-            style={[styles.controlStack, { bottom: overlayBottomInset + 120 }]}
+            style={[
+              styles.controlStack,
+              { bottom: overlayBottomInset + CONTROL_STACK_BOTTOM },
+            ]}
             pointerEvents='box-none'
           >
             <MapMyLocationButtonView
@@ -805,10 +877,10 @@ const GroupMapCanvasView: FC<Props> = ({
         <View
           style={[
             styles.bottomOverlay,
-            { paddingBottom: overlayBottomInset + 16 },
+            { paddingBottom: overlayBottomInset + BOTTOM_OVERLAY_PADDING },
           ]}
           pointerEvents='box-none'
-          onLayout={handleBottomOverlayLayout}
+          onLayout={handleBottomOverlayAreaLayout}
         >
           {/* 조준 모드에서는 정보 카드·추가 버튼 둘을 걷어 조준을 가리지 않는다(GRP-9 · GRP-10). */}
           {isAiming ? (
@@ -833,7 +905,7 @@ const GroupMapCanvasView: FC<Props> = ({
                 {/* 조준 모드의 주 액션 하나 — 라임은 여기에만 쓴다(HM-8). */}
                 <TouchableOpacity
                   style={styles.addButton}
-                  onPress={handleConfirmAiming}
+                  onPress={() => void handleConfirmAiming()}
                   disabled={pointList.isSubmitting()}
                   activeOpacity={0.8}
                   accessibilityRole='button'
@@ -857,7 +929,7 @@ const GroupMapCanvasView: FC<Props> = ({
                   disabled={pointList.isSubmitting()}
                   onEdit={() => onRequestEdit(selectedPoint)}
                   onDelete={() => onRequestDelete(selectedPoint)}
-                  onClose={handleTapMap}
+                  onClose={handleCloseCards}
                 />
               ) : null}
 
@@ -956,9 +1028,28 @@ const styles = StyleSheet.create({
   // 지도와 그 위 오버레이가 사는 칸. 고도 그래프는 이 칸 **밖**(아래)에 붙는다(GRP-8).
   mapSection: {
     flex: 1,
+    overflow: 'hidden',
+    // 지도가 붙기 전 자리는 지면색.
+    backgroundColor: Acg.paper,
   },
   mapArea: {
     flex: 1,
+  },
+  // 박지 마커 — 캡션 위, 핀 아래. 핀 끝(아래 가운데)이 좌표다.
+  spotMarker: {
+    alignItems: 'center',
+    gap: SPOT_CAPTION_GAP,
+  },
+  // 지도 위 가독성 — 흰 반투명 바탕(포인트 캡션과 같은 면).
+  spotCaption: {
+    ...AcgType.meta,
+    color: Acg.ink,
+    maxWidth: SPOT_CAPTION_MAX_WIDTH,
+    paddingHorizontal: SPOT_CAPTION_PADDING_H,
+    paddingVertical: SPOT_CAPTION_PADDING_V,
+    borderRadius: Radius.pill,
+    backgroundColor: Acg.heroCardFill,
+    overflow: 'hidden',
   },
   spotPin: {
     width: SPOT_PIN_WIDTH,
@@ -969,6 +1060,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: AcgLayout.screenPadding,
+    gap: Spacing.item,
+    alignItems: 'flex-start',
+  },
+  // 칩 줄은 폭을 다 쓴다(가로 스크롤).
+  chips: {
+    alignSelf: 'stretch',
   },
   // 지도 위 원형 컨트롤 세로 스택(우측 16 — 배낭 코스 지도와 같은 자리 규칙).
   controlStack: {

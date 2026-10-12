@@ -1,5 +1,5 @@
 import { Acg } from '@/constants/DesignTokens';
-import { OFFLINE_MAP_STYLE_URL } from '@/model/offline/OfflineMapStyle';
+import { MAP_STYLE_URL } from '@/model/map/MapStyle';
 import { ROUTE_COLOR } from '@/model/route/RouteColors';
 
 /**
@@ -239,7 +239,7 @@ export const ROUTE_REPLAY_HTML: string = String.raw`<!doctype html>
 <script src="${MAPLIBRE_BASE_URL}/maplibre-gl.js" integrity="${MAPLIBRE_JS_INTEGRITY}" crossorigin="anonymous"></script>
 <script>
 (function () {
-  var STYLE_URL = "${OFFLINE_MAP_STYLE_URL}";
+  var STYLE_URL = "${MAP_STYLE_URL}";
   var ROUTE_COLOR = "${ROUTE_COLOR}";
   var EXAGGERATION = 1.3;
   var FOLLOW_PITCH = 58;

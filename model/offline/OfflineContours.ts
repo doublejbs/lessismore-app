@@ -7,7 +7,7 @@ import type {
 } from 'geojson';
 import UPNG from 'upng-js';
 import type { OfflineLngLatBounds } from './OfflineMapBounds';
-import { TERRAIN_TILE_URL_TEMPLATE } from './OfflineMapStyle';
+import { TERRAIN_TILE_URL_TEMPLATE } from '@/model/map/MapStyle';
 
 // 등고선 계산 (OF-6). 저장 시 한 번, 앱 안에서 순수 JS로 계산한다(서버 없음).
 

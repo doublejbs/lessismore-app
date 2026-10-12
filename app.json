@@ -2,7 +2,7 @@
   "expo": {
     "name": "useless",
     "slug": "lessismore-app",
-    "version": "2.0.3",
+    "version": "2.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "lessismoreapp",
@@ -55,10 +55,7 @@
           "android": {
             "compileSdkVersion": 36,
             "targetSdkVersion": 36,
-            "minSdkVersion": 26,
-            "extraMavenRepos": [
-              "https://repository.map.naver.com/archive/maven"
-            ]
+            "minSdkVersion": 26
           }
         }
       ],
@@ -89,12 +86,6 @@
         }
       ],
       [
-        "./plugins/WithNaverMapNcpKey.js",
-        {
-          "ncpKeyId": "4ct2o369jz"
-        }
-      ],
-      [
         "expo-location",
         {
           "locationWhenInUsePermission": "여행지의 현재 위치를 불러오기 위해 위치 정보를 사용합니다."
@@ -108,7 +99,6 @@
       ],
       "expo-font",
       "./plugins/WithPodfileModularHeaders.js",
-      "./plugins/WithBrotliDedupe.js",
       "./plugins/WithFirebaseMessagingNotificationColor.js",
       "@react-native-firebase/messaging",
       [

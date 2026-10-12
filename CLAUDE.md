@@ -36,6 +36,7 @@ npm run web:preview          # 웹 빌드 후 로컬에서 미리보기 (serve d
 > 2. **CocoaPods 인코딩** (Ruby 3.4 환경): `pod install`이 `Encoding::CompatibilityError`("CocoaPods requires UTF-8")로 죽으면 로케일을 붙여 실행 → `LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 npm run ios`.
 > 3. **stale `ios/` prebuild**: `ios/`는 gitignore(managed 워크플로우)라 새 클론엔 없고 `expo run:ios`가 자동 prebuild한다. 단, 옛 `ios/`가 남아 있으면 최신 네이티브 모듈이 빠져 런타임 크래시(예: `Cannot find native module 'ExpoPushTokenManager'`)가 날 수 있다 → `LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 npx expo prebuild -p ios --clean` 후 재빌드. (참고: expo-notifications pod 이름은 `EXNotifications`)
 > 4. 특정 시뮬레이터 지정: `npm run ios -- --device "iPhone 17 Pro"`. dev-client 딥링크: `exp+lessismore-app://expo-development-client/?url=http://localhost:8081`, 앱 스킴: `lessismoreapp://`.
+> 5. **RN 프리빌트 Maven 다운로드가 느리면**(`pod install`이 React Native 프리빌트 아티팩트를 Maven Central에서 내려받다 멈춤) 미러를 붙여 실행 → `ENTERPRISE_REPOSITORY=https://maven-central-asia.storage-download.googleapis.com/maven2 LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 npm run ios`.
 
 ## 스펙 주도 개발
 
@@ -86,6 +87,8 @@ npm run web:preview          # 웹 빌드 후 로컬에서 미리보기 (serve d
 - **Expo Router** 파일 기반 라우팅
 - **Firebase** (Auth, Firestore, Storage) + **Algolia** 검색
 - **Hot Updater** (네이티브 OTA 업데이트, 웹에서는 비활성)
+- **지도: MapLibre(`@maplibre/maplibre-react-native`) + OpenFreeMap 자체 스타일 `useless-outdoor`**(웹 레포 `public/map/outdoor-v{n}.json`) — 상세는 [specs/Map.md](specs/Map.md). 지도 화면은 공용 `components/map/*`(`AppMapView` 등)을 쓴다.
+  - **[이력]** 이전에는 네이버 지도(`@mj-studio/react-native-naver-map` + NCP 키 플러그인 + `patch-package`)였다. 2.0.2에서 제거했다(MAP-5) — 네이버 지도 앱 딥링크(`nmap://`·`map.naver.com`)와 네이버 검색 API는 지도 SDK가 아니라 남아 있다.
 - **TypeScript** strict 모드 — `noUnusedLocals`, `noUnusedParameters`, `exactOptionalPropertyTypes`, `experimentalDecorators` 모두 켜져 있음
 - 경로 별칭: `@/*` → 저장소 루트 (예: `import app from '@/model/app/App'`)
 
@@ -147,6 +150,7 @@ const MyComponent = observer(() => {
 - `app/_layout.tsx` — 웹은 HotUpdater 래핑을 건너뜀
 - `model/firebase/Firebase.ts` — 네이티브는 `getReactNativePersistence` + `GoogleSignin` 라이브러리, 웹은 `getAuth` + `signInWithPopup` (동적 import)
 - Apple 로그인은 iOS와 웹만 지원
+- 지도(MapLibre)는 iOS·Android만 — 웹은 지도 없음(`*.web.tsx`/`MapLibreModule.web.ts`가 빈 자리·안내로 대체, APP-5)
 
 ### Firebase 데이터 구조
 

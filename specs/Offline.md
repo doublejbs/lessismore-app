@@ -4,7 +4,7 @@
 | --- | --- |
 | 상태 | proposed (2026-10-10 기획 — 사용자 요청: "여행 오프라인 저장 기능 추가, 유료 구독·7일 무료 체험". **2026-10-12 개정** — 흰 캔버스 대신 **오프라인 지도**(MapLibre + OpenFreeMap + 지형 음영·등고선), 사용자 결정 "흰 바탕이면 의미가 없잖아") |
 | ID 프리픽스 | `OF` |
-| 주요 코드 | `[제안]` `model/offline/`(`OfflineTripStore.ts` 저장·갱신·삭제, `OfflineTripSnapshot.ts` 스냅샷 모델, `OfflineManifest.ts` 목록, `NetworkStatus.ts` 연결 상태, `OfflineMapPack.ts` 지도 타일 팩, `OfflineContours.ts` 등고선 계산, `OfflineMapStyle.ts` 스타일 URL), `components/offline/`(`OfflineSaveTileView` 액션 타일, `OfflineTripListView` 저장된 여행 목록, `OfflineRouteMapView` 오프라인 코스 지도), 배낭 상세·코스 화면의 오프라인 분기 |
+| 주요 코드 | `[제안]` `model/offline/`(`OfflineTripStore.ts` 저장·갱신·삭제, `OfflineTripSnapshot.ts` 스냅샷 모델, `OfflineManifest.ts` 목록, `NetworkStatus.ts` 연결 상태, `OfflineMapPack.ts` 지도 타일 팩, `OfflineContours.ts` 등고선 계산, `model/map/MapStyle.ts` 스타일 URL — Map.md), `components/offline/`(`OfflineSaveTileView` 액션 타일, `OfflineTripListView` 저장된 여행 목록, `OfflineMapContoursView` 등고선 레이어; 코스 지도는 온라인과 같은 `BagRouteMapView` — Map.md MAP-4), 배낭 상세·코스 화면의 오프라인 분기 |
 | 관련 스펙 | [Subscription.md](Subscription.md)(SUB-11 게이트·SUB-10 체험), [BagDetail.md](BagDetail.md)(BD-10 타일·BD-11 코스·BD-14 포인트), [RouteReplay.md](RouteReplay.md)(3D 코스 리플레이 — 같은 지도 데이터), [DataModel.md](DataModel.md)(DM-30·DM-33), [Weather.md](Weather.md), [CampSite.md](CampSite.md), [Analytics.md](Analytics.md) |
 
 ## 1. 개요
@@ -98,16 +98,16 @@ app/bag/[id]/route.tsx 오프라인 분기 ─ 네이버 지도 대신 OfflineRo
 
 **수용 기준**
 
-- 오프라인에서 `/bag/{id}/route`를 열면 **네이버 지도 대신 MapLibre 지도**(`OfflineRouteMapView`)를 그린다. 지도 스타일은 OpenFreeMap `liberty` 기반의 자체 스타일 **`useless-outdoor`**(웹 레포 `public/map/outdoor-v{n}.json`, Firebase Hosting `https://lessismore-7e070.web.app/map/outdoor-v{n}.json`)이고 다음을 담는다 — 라벨 **한국어 우선**(`name:ko`, 없으면 라틴+원어), **지형 음영**(AWS Terrain Tiles raster-dem + hillshade 레이어, 지면 위·도로 아래), 바탕은 지면색에 가깝게. 스타일을 바꾸면 **파일 이름의 버전을 올린다**(오프라인 팩이 스타일 URL에 묶여 있어 같은 URL의 내용을 바꾸면 옛 팩과 어긋난다).
+- 오프라인에서 `/bag/{id}/route`를 열면 온라인과 **같은 MapLibre 지도**(`BagRouteMapView` — 2026-10-12 온라인·오프라인 통합, [Map.md](Map.md) MAP-4)가 저장해 둔 타일 팩으로 그려진다. 편집 UI(롱프레스·조준·추가 알약·`3D`·끝점 카드)는 숨기고 유형 칩은 보여 준다. 지도 스타일은 OpenFreeMap `liberty` 기반의 자체 스타일 **`useless-outdoor`**(웹 레포 `public/map/outdoor-v{n}.json`, Firebase Hosting `https://lessismore-7e070.web.app/map/outdoor-v{n}.json`)이고 다음을 담는다 — 라벨 **한국어 우선**(`name:ko`, 없으면 라틴+원어), **지형 음영**(AWS Terrain Tiles raster-dem + hillshade 레이어, 지면 위·도로 아래), 바탕은 지면색에 가깝게. 스타일을 바꾸면 **파일 이름의 버전을 올린다**(오프라인 팩이 스타일 URL에 묶여 있어 같은 URL의 내용을 바꾸면 옛 팩과 어긋난다).
 - 지도 위에 그리는 것(지도와 같은 문법): 코스 폴리라인(선택 코스 굵게·나머지 옅게, 흰 테두리 — `RoutePathOverlayView`와 같은 색·굵기), **시작·끝 마커**(GRP-8 `출발`/`도착` 말풍선 이미지), 포인트 마커(유형색 원 + 이름 캡션, BD-14), 훑기 마커(고도 그래프 훑는 지점), **내 위치**(파란 점 + 방향 부채꼴 — BD-11 방향 모드와 같은 훅 `useMyLocationHeadingMode`), MapLibre 기본 **축척 막대**(iOS 좌하단 — Android는 라이브러리가 좌상단만 지원해 상단 안내 줄 아래)와 **나침반**(우상단, 북쪽이면 숨김). 마커는 MapLibre `Marker`(실제 뷰)라 네이버 마커의 스냅숏 제약(글리프 누락)이 없다. 포인트 카드가 떠 있는 동안에도 출처 표기가 가려지지 않게 자리를 비켜 준다.
 - **등고선**: 저장본의 `contours.json`을 GeoJSON 소스로 올려 20m 간격 선(옅은 갈색, 100m마다 굵게 + 고도 라벨 `1200` — 천 단위 쉼표 없음, 지도 라벨 관례)을 음영 위·코스 아래(지명 라벨보다 아래)에 그린다. 등고선은 저장 시 **줌 13 고도 타일(약 19m/px)** 에서 marching squares(`d3-contour`)로 계산한 것이라 국토지리정보원 지형도보다 뭉툭하다 — 정확한 고도는 고도 그래프가 답한다. 영역이 넓어 타일이 64장을 넘으면 줌을 한 단씩(10까지) 내리고, 고도차가 커서 임계값이 120개를 넘으면 간격을 50m로 넓힌다. 격자 테두리를 따라 생기는 가짜 선은 잘라 낸다. 등고선 파일이 없으면(계산 실패·구버전) 음영만 그린다.
 - 처음에는 코스·포인트 전체가 들어오게 맞추고(지도 뷰의 초기 카메라 `initialViewState`에 상자 + 여백 40 — 네이티브 뷰가 붙기 전이라 `fitBounds` 호출 대신 초기값으로 준다; 한 점뿐이면 그 점 중심 줌 15), 핀치·드래그·회전으로 움직인다. **기울이기(pitch)는 끈다** — 네이티브 MapLibre는 아직 3D 지형이 없어 기울이면 평면이 비스듬히 보일 뿐이다(3D는 RouteReplay.md). `내 위치` 버튼은 지도와 같은 세 상태(이동·방향 모드·끄기)를 돌고, 방향 모드에서는 지도 bearing이 바라보는 방향을 따라 돈다. 손으로 움직이면 따라가기만 풀리고 부채꼴은 남는다(BD-11과 같다).
 - 목록에서 코스를 고르면 그 코스 전체로(BD-11), 포인트를 고르면 그 포인트로 카메라를 옮긴다(BD-14). 훑는 중에는 옮기지 않는다(GRP-8).
 - 고도 그래프·훑기·포인트 탭 시 그래프 표시(GRP-8)는 **그대로 동작한다** — 축약 좌표에 고도가 들어 있다.
 - 코스 목록·뒤집기·GPX 내보내기(저장해 둔 원본 파일에서)는 동작한다. 추가·삭제·그룹에 올리기·길게 눌러 포인트 추가는 비활성(OF-5 규칙).
-- 지도 상단에 한 줄 `오프라인 · 저장된 지도예요`(저장 영역 밖은 타일이 없어 빈 지면으로 보인다 — 그 사실을 한 줄로 알린다). 연결 그룹이 있었으면 그 아래 `그룹 코스는 오프라인에서 보이지 않아요`. 연결이 돌아오면 같은 카메라(코스 전체)로 네이버 지도를 다시 그린다.
+- 지도 상단에 한 줄 `오프라인 · 저장된 지도예요`(저장 영역 밖은 타일이 없어 빈 지면으로 보인다 — 그 사실을 한 줄로 알린다). 연결 그룹이 있었으면 그 아래 `그룹 코스는 오프라인에서 보이지 않아요`. 연결이 돌아오면 지도는 그대로 두고(다시 마운트하지 않는다) 안내 줄이 사라지고 편집 UI가 돌아온다. 등고선은 저장본이 있으면 **온라인에서도** 그린다.
 - 지도 왼쪽 아래에 **출처 표기 버튼**(MapLibre 기본 attribution — 누르면 OpenFreeMap·OpenMapTiles·OpenStreetMap·AWS Terrain Tiles 출처가 뜬다). 숨기지 않는다 — 라이선스 의무다.
-- 온라인에서도 네이버 지도 로드가 실패하면(10초 안에 지도가 초기화되지 않을 때 — 키·SDK 오류를 직접 감지하지는 않는다) 같은 `OfflineRouteMapView`를 **폴백**으로 쓴다. 온라인이면 타일을 서버에서 받으므로 저장하지 않은 여행도 지도가 보인다 — 이 뷰는 오프라인 전용이 아니라 "네이버 지도가 없을 때의 코스 지도"다. 상단 한 줄은 `지도를 불러오지 못했어요 · 대체 지도예요`.
+- `[폐기 2026-10-12]` 네이버 지도 10초 초기화 폴백 — 온라인 코스 화면도 같은 MapLibre 뷰(`BagRouteMapView`, [Map.md](Map.md) MAP-4)가 되어 폴백할 다른 지도가 없다. 지도 데이터 로드 실패는 상단 한 줄 `지도 데이터를 불러오지 못했어요`(공용 `map.loadFailed`) + `map_load_failed`로 처리한다.
 - 저장 영역 밖으로 옮기면 타일이 없어 **지면색만** 보인다(MapLibre 기본 동작). 앱이 따로 막지 않는다 — 등고선·코스·내 위치는 영역과 무관하게 그려진다.
 
 ### OF-7 구독과의 관계 `[제안]`
@@ -122,7 +122,7 @@ app/bag/[id]/route.tsx 오프라인 분기 ─ 네이버 지도 대신 OfflineRo
 
 ### OF-8 측정 `[제안]`
 
-[Analytics.md](Analytics.md) AN-3 표에 추가: `click_offline_save`(저장 시작, `source`: `tile`), `offline_saved`(성공, `bytes`·`map_bytes`·`route_count`·`point_count`·`has_contours`), `click_offline_refresh`, `click_offline_remove`, `offline_trip_open`(오프라인 상세 열람), `offline_route_map_open`(`reason`: `offline` | `map_unavailable` — 2026-10-12 `offline_route_canvas_open`에서 개명), `offline_packing_synced`(복귀 반영 성공, `count`). 게이트 노출·전환은 SUB-8이 센다(`entry_point: offline`).
+[Analytics.md](Analytics.md) AN-3 표에 추가: `click_offline_save`(저장 시작, `source`: `tile`), `offline_saved`(성공, `bytes`·`map_bytes`·`route_count`·`point_count`·`has_contours`), `click_offline_refresh`, `click_offline_remove`, `offline_trip_open`(오프라인 상세 열람), `offline_route_map_open`(`reason`: `offline` — 2026-10-12 `offline_route_canvas_open`에서 개명, `map_unavailable` 값은 네이버 폴백과 함께 폐기), `offline_packing_synced`(복귀 반영 성공, `count`). 게이트 노출·전환은 SUB-8이 센다(`entry_point: offline`).
 
 ## 4. 데이터
 
@@ -157,7 +157,7 @@ app/bag/[id]/route.tsx 오프라인 분기 ─ 네이버 지도 대신 OfflineRo
 - [ ] 구독(체험) 중 타일 탭 → `저장 중…` → `지도 저장 중 · n%` → `저장됨 · 용량 · 시각`; 비행기 모드 → 여행 탭 배너 + 저장된 여행만 → 상세 열림(장비·무게·날씨·메모·주의사항)
 - [ ] 비행기 모드에서 코스 화면 → **지도 타일(등산로·지명 한국어)·지형 음영·등고선·코스·출발/도착·포인트·내 위치·축척·나침반**이 보인다, 고도 그래프 훑기 동작, 추가·삭제·길게 누르기 비활성, 상단 `오프라인 · 저장된 지도예요`
 - [ ] 저장 영역 밖으로 드래그 → 지면색만, 코스·등고선은 유지; 출처 버튼 탭 → OpenFreeMap·OpenStreetMap·AWS 표기
-- [ ] 온라인에서 네이버 지도 키를 일부러 깨뜨림(또는 10초 지연) → 대체 지도(온라인 타일)로 폴백, 상단 `지도를 불러오지 못했어요 · 대체 지도예요`
+- [ ] 온라인 ↔ 비행기 모드 전환 시 같은 지도가 유지되고 안내 줄·편집 UI만 바뀜; 저장본이 있으면 온라인에서도 등고선 표시
 - [ ] 비행기 모드에서 패킹 체크 토글 → 앱 재시작 후 유지 → 연결 복귀 후 서버 반영(다른 기기에서 확인)
 - [ ] 미구독 타일 탭 → 구독 화면(오프라인 문구, `7일 무료로 시작`); 구독 만료 후(샌드박스 만료) 비행기 모드에서 저장본이 열리지 않고 배너가 구독 유도로 바뀜; 재구독 시 즉시 다시 열림
 - [ ] 저장 10개 상한, 삭제 확인 알럿, 로그아웃 시 전부 삭제, 웹에서 타일 없음

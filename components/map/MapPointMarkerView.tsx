@@ -14,43 +14,88 @@ import {
 interface Props {
   point: MapPoint;
   selected: boolean;
-  onPress: (point: MapPoint) => void;
+  // 보기 전용 지도(상세 지도 밴드, GRP-7)에서는 탭 대상이 밴드 전체라 넘기지 않는다.
+  onTapPoint?: ((point: MapPoint) => void) | undefined;
+  /**
+   * 작은 지도용 마커 — 원을 줄이고 캡션을 뗀다(GRP-7 상세 지도 밴드). 높이 110pt 밴드에 캡션까지 달면
+   * 포인트 몇 개로 지도가 글자에 덮인다. 이름은 누르고 들어간 그룹 지도가 보여준다.
+   */
+  compact?: boolean;
 }
 
-// 지도 포인트 마커(PointMarkerView)와 같은 치수 — 유형색 원 + 흰 테두리, 선택은 크게 + 잉크 테두리.
+// 작은 마커도 잘 눌리도록 원(28pt)보다 넉넉한 탭 영역을 잡는다(HIG 44pt).
 const HIT_AREA = 44;
 const CIRCLE = 28;
 const SELECTED_CIRCLE = 34;
+const ICON = 15;
+const SELECTED_ICON = 18;
+const COMPACT_CIRCLE = 18;
+const COMPACT_ICON = 10;
 // 캡션 최대 폭(pt). 긴 이름이 지도를 가로지르지 않게 한 줄로 자른다.
 const CAPTION_MAX_WIDTH = 140;
 // 원(히트 영역)의 가운데가 좌표에 오게 한다 — 마커는 아래 가운데를 좌표에 두고 히트 영역 반만큼 내린다.
 const MARKER_OFFSET: [number, number] = [0, HIT_AREA / 2];
 
 /**
- * 오프라인 코스 지도의 포인트 마커 (OF-6 · BD-14). MapLibre `Marker`는 실제 RN 뷰라(네이버 마커처럼
+ * 지도 포인트 마커 1개 (MAP-2 · GRP-9 · BD-14 · OF-6). MapLibre `Marker`는 실제 RN 뷰라(네이버 마커처럼
  * 스냅숏으로 굳히지 않는다) 캡션을 `PretendardText`로 직접 그린다. 유형색은 `PointLabels` 단일 소스다.
  *
- * 생김새는 네이버 지도의 `PointMarkerView`와 같다 — 유형색 원 + 흰 테두리 + 아이콘, 이름은 원 위 캡션
- * (잉크 글자 + 흰 바탕 — 네이버 캡션의 흰 halo를 대신한다). 선택 마커는 원을 키우고 잉크 테두리.
+ * 유형색 원 + 흰 테두리 + 아이콘, 이름은 원 위 캡션(잉크 글자 + 흰 반투명 바탕 — 지도 위 가독성).
+ * 선택 마커는 원을 키우고 잉크 테두리. `compact`는 캡션 없는 작은 원이다(가운데가 좌표).
  */
-const OfflineMapPointMarkerView = memo<Props>(
-  ({ point, selected, onPress }) => {
+const MapPointMarkerView = memo<Props>(
+  ({ point, selected, onTapPoint, compact = false }) => {
     const color = getPointTypeColor(point.getType());
+    const pressProps = onTapPoint ? { onPress: () => onTapPoint(point) } : {};
+
+    if (compact) {
+      return (
+        <Marker
+          id={`map-point-${point.getId()}`}
+          lngLat={[point.getLongitude(), point.getLatitude()]}
+          anchor='center'
+          {...pressProps}
+        >
+          <View
+            collapsable={false}
+            style={[
+              styles.circle,
+              styles.circleCompact,
+              {
+                width: COMPACT_CIRCLE,
+                height: COMPACT_CIRCLE,
+                borderRadius: COMPACT_CIRCLE / 2,
+                backgroundColor: color,
+              },
+            ]}
+            accessible
+            accessibilityLabel={`${getPointTypeLabel(point.getType())} ${point.getTitle()}`}
+          >
+            <Ionicons
+              name={getPointTypeIcon(point.getType())}
+              size={COMPACT_ICON}
+              color={Acg.paper}
+            />
+          </View>
+        </Marker>
+      );
+    }
+
     const size = selected ? SELECTED_CIRCLE : CIRCLE;
 
     return (
       <Marker
-        id={`offline-point-${point.getId()}`}
+        id={`map-point-${point.getId()}`}
         lngLat={[point.getLongitude(), point.getLatitude()]}
         anchor='bottom'
         offset={MARKER_OFFSET}
-        onPress={() => onPress(point)}
+        {...pressProps}
       >
         <View
           collapsable={false}
           style={styles.container}
           accessible
-          accessibilityRole='button'
+          {...(onTapPoint ? { accessibilityRole: 'button' as const } : {})}
           accessibilityLabel={`${getPointTypeLabel(point.getType())} ${point.getTitle()}`}
           accessibilityState={{ selected }}
         >
@@ -76,7 +121,7 @@ const OfflineMapPointMarkerView = memo<Props>(
             >
               <Ionicons
                 name={getPointTypeIcon(point.getType())}
-                size={selected ? 18 : 15}
+                size={selected ? SELECTED_ICON : ICON}
                 color={Acg.paper}
               />
             </View>
@@ -87,7 +132,7 @@ const OfflineMapPointMarkerView = memo<Props>(
   }
 );
 
-OfflineMapPointMarkerView.displayName = 'OfflineMapPointMarkerView';
+MapPointMarkerView.displayName = 'MapPointMarkerView';
 
 const styles = StyleSheet.create({
   container: {
@@ -116,10 +161,13 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Acg.paper,
   },
+  circleCompact: {
+    borderWidth: 1.5,
+  },
   circleSelected: {
     borderWidth: 3,
     borderColor: Acg.ink,
   },
 });
 
-export default OfflineMapPointMarkerView;
+export default MapPointMarkerView;

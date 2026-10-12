@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import {
   ActivityIndicator,
+  LayoutChangeEvent,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -36,6 +37,8 @@ interface Props {
   onSelectResult: (spot: CampSpot) => void;
   onSelectPlace: (place: GeocodeResult) => void;
   onSubmitSearch: () => void;
+  // 오버레이 높이 변화 — 부모가 지도 나침반·안내 줄을 오버레이 아래로 내린다(MAP-2).
+  onLayout?: (event: LayoutChangeEvent) => void;
 }
 
 // 검색 필드 높이·아이콘 — 탐색 탭 필드와 같은 값.
@@ -46,7 +49,7 @@ const SEARCH_ICON_SIZE = 20;
 // 지도 상단 오버레이(CS-2/CS-6): 검색 인풋/드롭다운 + 유형 필터 칩 + 로드 실패 배너 + 로딩.
 // 지도 화면에서 분리된 observer라 검색 타이핑·필터 선택이 마커 레이어를 리렌더하지 않는다.
 const CampSiteMapTopOverlayView: FC<Props> = observer(
-  ({ campSiteMap, onSelectResult, onSelectPlace, onSubmitSearch }) => {
+  ({ campSiteMap, onSelectResult, onSelectPlace, onSubmitSearch, onLayout }) => {
     const l10n = app.getL10n();
     const query = campSiteMap.getQuery();
     const submittedSearchQuery = campSiteMap.getSubmittedSearchQuery();
@@ -82,6 +85,7 @@ const CampSiteMapTopOverlayView: FC<Props> = observer(
           edges={['top']}
           style={styles.topOverlay}
           pointerEvents='box-none'
+          {...(onLayout ? { onLayout } : {})}
         >
           {/* 박지 검색(CS-6) — 탐색 탭 검색 필드와 같은 형태(돋보기 + 연회색 채움 + 모서리 12).
               지도 위라 채움만 불투명 흰 면 + 그림자로 지형·라벨과 분리한다. */}

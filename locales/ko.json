@@ -1759,10 +1759,11 @@
     },
     "map": {
       "offlineLine": "오프라인 · 저장된 지도예요",
-      "fallbackLine": "지도를 불러오지 못했어요 · 대체 지도예요",
-      "groupHidden": "그룹 코스는 오프라인에서 보이지 않아요",
-      "loadFailed": "지도 데이터를 불러오지 못했어요",
-      "unsupportedBinary": "이 버전에서는 오프라인 지도를 볼 수 없어요 · 앱을 업데이트해 주세요"
+      "groupHidden": "그룹 코스는 오프라인에서 보이지 않아요"
     }
+  },
+  "map": {
+    "loadFailed": "지도 데이터를 불러오지 못했어요",
+    "unsupportedBinary": "이 버전에서는 지도를 볼 수 없어요 · 앱을 업데이트해 주세요"
   }
 }

@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
 import SnapshotMapBandVariant from '@/components/bag-snapshot/SnapshotMapBandVariant';
 import SnapshotMapBandView from '@/components/bag-snapshot/SnapshotMapBandView';
+import { createMapLibreViewLoader } from '@/components/map/MapLibreViewLoader';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
@@ -18,12 +19,24 @@ import GroupPointList from '@/model/group-point/GroupPointList';
 import GroupRouteList from '@/model/group-route/GroupRouteList';
 import GroupDetailContentCountView from './GroupDetailContentCountView';
 import GroupDetailEmptyBandView from './GroupDetailEmptyBandView';
-import GroupDetailMapBandView from './GroupDetailMapBandView';
+import type GroupDetailMapBandViewType from './GroupDetailMapBandView';
 import GroupDetailStatsView from './GroupDetailStatsView';
 
 const ACTIVE_SPOT_STATUS = 'active';
 // 지도가 없는 웹(APP-5)에는 밴드를 그리지 않는다(GRP-7). 개수 줄이 그룹 지도(목록)로 가는 입구다.
 const IS_WEB = Platform.OS === 'web';
+
+// 지도 밴드는 MapLibre SDK를 최상위 import한다 — 옛 바이너리에서 import만으로 터지지 않게 쓸 때 싣는다(MAP-1).
+const loadMapBandView = createMapLibreViewLoader<
+  typeof GroupDetailMapBandViewType
+>(
+  'GroupDetailMapBandView',
+  () =>
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    (require('./GroupDetailMapBandView') as {
+      default: typeof GroupDetailMapBandViewType;
+    }).default
+);
 
 interface Props {
   detail: GroupDetail;
@@ -89,7 +102,14 @@ const GroupDetailHeaderView: FC<Props> = ({ detail, routeList, pointList }) => {
       return null;
     }
 
+    // 옛 바이너리(MapLibre 없음)면 밴드 없이 둔다 — 개수 줄이 그룹 지도로 가는 입구다.
+    const GroupDetailMapBandView = hasContent ? loadMapBandView() : null;
+
     if (hasContent) {
+      if (!GroupDetailMapBandView) {
+        return null;
+      }
+
       return (
         <GroupDetailMapBandView
           routes={routes}

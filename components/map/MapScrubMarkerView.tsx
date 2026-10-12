@@ -12,13 +12,12 @@ const MARKER_SIZE = 26;
 const CORE_SIZE = 12;
 
 /**
- * 고도 그래프를 훑는 동안 코스 위를 따라 움직이는 마커 (OF-6 · GRP-8). 네이버 지도의
- * `RouteScrubMarkerView`와 같은 생김새 — 흰 원 + 잉크 테두리 + 잉크 점. 손가락이 그래프 위에
- * 있는 동안에만 떠 있으므로 탭 동작이 없다.
+ * 고도 그래프를 훑는 동안 코스 위를 따라 움직이는 마커 (MAP-2 · GRP-8 · OF-6) — 흰 원 + 잉크 테두리 + 잉크 점.
+ * 손가락이 그래프 위에 있는 동안에만 떠 있으므로 탭 동작이 없다.
  */
-const OfflineMapScrubMarkerView = memo<Props>(({ latitude, longitude }) => {
+const MapScrubMarkerView = memo<Props>(({ latitude, longitude }) => {
   return (
-    <Marker id='offline-scrub' lngLat={[longitude, latitude]} anchor='center'>
+    <Marker id='map-scrub' lngLat={[longitude, latitude]} anchor='center'>
       <View collapsable={false} pointerEvents='none' style={styles.marker}>
         <View style={styles.core} />
       </View>
@@ -26,7 +25,7 @@ const OfflineMapScrubMarkerView = memo<Props>(({ latitude, longitude }) => {
   );
 });
 
-OfflineMapScrubMarkerView.displayName = 'OfflineMapScrubMarkerView';
+MapScrubMarkerView.displayName = 'MapScrubMarkerView';
 
 const styles = StyleSheet.create({
   marker: {
@@ -47,4 +46,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default OfflineMapScrubMarkerView;
+export default MapScrubMarkerView;

@@ -1788,10 +1788,11 @@
     },
     "map": {
       "offlineLine": "Offline · Showing your saved map",
-      "fallbackLine": "Couldn't load the map · Showing a backup map",
-      "groupHidden": "Group routes aren't available offline",
-      "loadFailed": "Couldn't load map data",
-      "unsupportedBinary": "Offline maps aren't available in this version · Please update the app"
+      "groupHidden": "Group routes aren't available offline"
     }
+  },
+  "map": {
+    "loadFailed": "Couldn't load map data",
+    "unsupportedBinary": "Maps aren't available in this version · Please update the app"
   }
 }

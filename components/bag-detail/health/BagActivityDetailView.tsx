@@ -27,7 +27,8 @@ import {
   ROUTE_REPLAY_MIN_COORDINATES,
 } from '@/model/route-replay/RouteReplayCoordinates';
 import RouteReplaySource from '@/model/route-replay/RouteReplaySource';
-import BagActivityRouteMapView from './BagActivityRouteMapView';
+import { createMapLibreViewLoader } from '@/components/map/MapLibreViewLoader';
+import type BagActivityRouteMapViewType from './BagActivityRouteMapView';
 import BagActivitySummaryView from './BagActivitySummaryView';
 import BagActivityWorkoutDetailView from './BagActivityWorkoutDetailView';
 
@@ -37,6 +38,19 @@ interface Props {
 
 // 3D 리플레이 진입(RR-1)은 네이티브에만 있다(APP-5).
 const CAN_OPEN_REPLAY = Platform.OS !== 'web';
+
+// 경로 지도는 MapLibre SDK를 최상위 import한다 — 옛 바이너리에서 import만으로 터지지 않게 쓸 때 싣는다(MAP-1).
+// 옛 바이너리(MapLibre 없음)와 웹(지도 없음)에서는 `null`이라 지도 자리를 비운다.
+const loadRouteMapView = createMapLibreViewLoader<
+  typeof BagActivityRouteMapViewType
+>(
+  'BagActivityRouteMapView',
+  () =>
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    (require('./BagActivityRouteMapView') as {
+      default: typeof BagActivityRouteMapViewType;
+    }).default
+);
 // `3D 리플레이` 보조 알약의 아이콘-라벨 간격·좌우 패딩(세로 패딩은 `Spacing.item`).
 const REPLAY_PILL_ICON_GAP = 6;
 const REPLAY_PILL_PADDING_H = 16;
@@ -50,6 +64,7 @@ const BagActivityDetailView: FC<Props> = ({ bagActivity }) => {
   const status = bagActivity.getDetailStatus();
   const details = bagActivity.getDetails();
   const routes = bagActivity.getRoutes();
+  const BagActivityRouteMapView = loadRouteMapView();
   const saving = bagActivity.isSaving();
   const router = useRouter();
   // 모든 운동의 경로를 시간순으로 이은 한 줄(RR-1). 수천 점을 정렬하므로 운동 상세가 바뀔 때만 다시
@@ -135,7 +150,9 @@ const BagActivityDetailView: FC<Props> = ({ bagActivity }) => {
         {/* 경로가 없으면 지도만 빼고 넘어간다. 예전에는 이유를 문장으로 알렸는데,
             서드파티 동기화 기록에는 경로가 거의 없어 대부분의 사용자에게 늘 뜨는
             안내가 됐다 — 고칠 수 없는 사실을 매번 알리는 셈이었다(2026-08-05 사용자 결정). */}
-        {routes.length > 0 ? <BagActivityRouteMapView routes={routes} /> : null}
+        {routes.length > 0 && BagActivityRouteMapView ? (
+          <BagActivityRouteMapView routes={routes} />
+        ) : null}
         {/* 지도 밴드 바로 아래 보조 알약(RR-1) — 지도 위가 아니라 그림자 없는 연회색 면이다. */}
         {canOpenReplay ? (
           <TouchableOpacity

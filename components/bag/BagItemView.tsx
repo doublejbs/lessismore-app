@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from 'react';
+import { FC, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import {
   View,
@@ -23,11 +23,14 @@ import {
   AcgType,
 } from '@/constants/DesignTokens';
 import SpotPinView from '@/components/camp-site/SpotPinView';
+import MapAttributionNoteView from '@/components/map/MapAttributionNoteView';
+import useStaticMapImage from '@/components/map/useStaticMapImage';
+import StaticMapImageStatus from '@/components/map/StaticMapImageStatus';
 import {
   BAG_CARD_MAP_LEVEL,
-  buildStaticMapUrl,
-  STATIC_MAP_REFERER,
-} from '@/model/map/StaticMapUrl';
+  STATIC_MAP_FADE_DURATION,
+  STATIC_MAP_LOADING_FILL,
+} from '@/components/map/StaticMapBand';
 
 /**
  * 지도 밴드 높이(BAG-1). 카드 폭 전체를 쓰는 가로로 긴 띠다 — 정사각 썸네일로 만들면 카드
@@ -76,37 +79,42 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
   const { width: windowWidth } = useWindowDimensions();
   const [showMenu, setShowMenu] = useState(false);
   /**
-   * 로드에 실패한 URL. 실패 플래그를 boolean으로 두면 URL이 바뀌어도(화면 회전 → 폭 변경)
-   * 실패 상태가 남는다 — URL을 담아 두면 새 URL에서 자연히 한 번 더 시도한다.
+   * 표시에 실패한 썸네일 URI(캐시 파일이 그 사이 OS에 지워진 경우 등). URI를 담아 두면 요청이
+   * 바뀌어(화면 회전 → 폭 변경) 새 URI가 오면 자연히 한 번 더 그린다.
    */
-  const [failedMapUrl, setFailedMapUrl] = useState<string | null>(null);
+  const [failedMapUri, setFailedMapUri] = useState<string | null>(null);
 
   const location = bagItem.getLocation();
-  // 카드 폭 = 화면 폭 − 좌우 화면 패딩. 요청 w/h를 표시 박스와 같은 비율로 잡아야 응답
-  // 이미지의 네이버 로고·저작권 고지가 크롭되지 않는다(BAG-1 저작권 제약).
+  // 카드 폭 = 화면 폭 − 좌우 화면 패딩. 썸네일을 표시 박스와 같은 비율(pt)로 만들어 `cover`에 크롭이 없다.
   const cardWidth = windowWidth - AcgLayout.screenPadding * 2;
-  const mapUrl = useMemo(() => {
-    if (!location) {
-      return null;
-    }
-
-    return buildStaticMapUrl({
-      latitude: location.latitude,
-      longitude: location.longitude,
-      widthPx: cardWidth,
-      heightPx: MAP_BAND_HEIGHT,
-      level: BAG_CARD_MAP_LEVEL,
-      // 마커는 이미지에 싣지 않는다 — NCP 기본 핀은 앱 마커와 다르고 커스텀 아이콘
-      // 파라미터는 렌더되지 않는다(2026-08-13 실측). 앱 핀(SpotPinView)을 위에 얹는다.
-      withMarker: false,
-    });
-  }, [location, cardWidth]);
+  /**
+   * 기기에서 MapLibre로 렌더한 정적 썸네일(MAP-3). 마커는 이미지에 싣지 않고 앱 핀(SpotPinView)을
+   * 위에 얹는다.
+   */
+  const mapImage = useStaticMapImage(
+    location
+      ? {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          zoom: BAG_CARD_MAP_LEVEL,
+          width: cardWidth,
+          height: MAP_BAND_HEIGHT,
+        }
+      : null
+  );
+  const mapUri =
+    mapImage.status === StaticMapImageStatus.Ready &&
+    mapImage.uri !== failedMapUri
+      ? mapImage.uri
+      : null;
 
   /**
-   * 밴드를 그릴지. URL을 못 만든 경우(키 미설정·좌표 이상)와 로드 실패를 **같은 폴백**으로
-   * 수렴시킨다 — 빈 회색 밴드나 깨진 이미지 아이콘을 남기지 않는다(BAG-1).
+   * 밴드를 그릴지. 생성 중에는 스켈레톤 면으로 자리를 잡아 두고(이미지가 오면 페이드), 여행지 없음·
+   * 생성 실패·표시 실패는 **같은 폴백**(밴드 없는 카드)으로 수렴한다 — 빈 회색 밴드나 깨진 이미지
+   * 아이콘을 남기지 않는다(BAG-1).
    */
-  const showMapBand = mapUrl !== null && mapUrl !== failedMapUrl;
+  const showMapBand =
+    mapImage.status === StaticMapImageStatus.Loading || mapUri !== null;
 
   const handleClick = () => {
     app.getAnalyticsManager()?.logClick('bag_item');
@@ -114,7 +122,7 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
   };
 
   const handleMapError = () => {
-    setFailedMapUrl(mapUrl);
+    setFailedMapUri(mapUri);
   };
 
   const handleClickMenu = () => {
@@ -199,10 +207,9 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
     <>
       <View style={styles.card}>
         {/*
-          지도 밴드(BAG-1). 이미지 위에 글자·그라디언트를 얹지 않는다 — 응답 이미지에 박힌
-          네이버 로고·저작권 고지를 가리는 것이 NCP 약관 위반이다. 서버에 저장하지 않고
-          `expo-image`의 기기 캐시만 쓴다. 탭은 본문과 같이 상세로 가고, 접근성 트리에서는
-          빠진다(여행지명은 본문 라벨에 실려 있다).
+          지도 밴드(BAG-1 · MAP-3). 이미지 위에 얹는 글자는 출처 표기 한 줄(`© OpenStreetMap`,
+          ODbL)뿐이다. 썸네일은 기기 캐시 파일이고 서버에 올리지 않는다. 탭은 본문과 같이 상세로
+          가고, 접근성 트리에서는 빠진다(여행지명은 본문 라벨에 실려 있다).
         */}
         {showMapBand ? (
           <TouchableOpacity
@@ -211,20 +218,25 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
             activeOpacity={0.7}
             accessible={false}
           >
-            <Image
-              // Referer가 없으면 401(NCP 등록 도메인 검사) — StaticMapUrl.ts 참고.
-              source={{ uri: mapUrl, headers: { Referer: STATIC_MAP_REFERER } }}
-              style={StyleSheet.absoluteFill}
-              contentFit='cover'
-              cachePolicy='memory-disk'
-              transition={160}
-              onError={handleMapError}
-              accessible={false}
-            />
-            {/* 앱 공통 박지 핀 — 끝점이 여행지 좌표(이미지 중심)에 닿게 앵커한다. */}
-            <View style={styles.pinOverlay} pointerEvents='none'>
-              <SpotPinView />
-            </View>
+            {mapUri !== null ? (
+              <>
+                <Image
+                  // 로컬 `file://`이라 expo-image 디스크 캐시는 겹치기만 한다.
+                  source={{ uri: mapUri }}
+                  style={StyleSheet.absoluteFill}
+                  contentFit='cover'
+                  cachePolicy='none'
+                  transition={STATIC_MAP_FADE_DURATION}
+                  onError={handleMapError}
+                  accessible={false}
+                />
+                {/* 앱 공통 박지 핀 — 끝점이 여행지 좌표(이미지 중심)에 닿게 앵커한다. */}
+                <View style={styles.pinOverlay} pointerEvents='none'>
+                  <SpotPinView />
+                </View>
+                <MapAttributionNoteView />
+              </>
+            ) : null}
           </TouchableOpacity>
         ) : null}
 
@@ -308,10 +320,12 @@ const styles = StyleSheet.create({
     borderRadius: AcgRadius.thumb,
     overflow: 'hidden',
   },
-  // 폭은 카드를 꽉 채운다 — 요청 w/h와 같은 비율이라 `cover`로도 크롭이 생기지 않는다.
+  // 폭은 카드를 꽉 채운다 — 썸네일과 같은 비율이라 `cover`로도 크롭이 생기지 않는다.
+  // 바탕은 로딩 면 — 이미지가 그 위로 페이드한다.
   mapBand: {
     width: '100%',
     height: MAP_BAND_HEIGHT,
+    backgroundColor: STATIC_MAP_LOADING_FILL,
   },
   // 핀 폭 30·높이 40 — 끝점(하단 중앙)이 밴드 중심에 오도록 절반 폭/전체 높이만큼 당긴다.
   pinOverlay: {

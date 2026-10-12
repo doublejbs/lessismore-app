@@ -10,7 +10,7 @@ interface Props {
 
 // CS-2 선택 강조 펄스(A). 마커 탭 시 카메라 이징(B)이 선택 박지를 화면 중앙으로 옮기므로,
 // 화면 중앙 고정 오버레이로 두면 좌표 투영 없이 마커와 정렬된다. 선택 변경 시 몇 번 퍼졌다 사라진다.
-// 네이버 커스텀 뷰 마커는 정적 비트맵이라 프레임 애니메이션이 안 되므로, 이 RN 오버레이가 시선을 유도한다.
+// 마커는 심볼 레이어(`CampSiteSpotsLayerView`)라 프레임 애니메이션을 싣지 않으므로, 이 RN 오버레이가 시선을 유도한다.
 const RING_SIZE = 22;
 const PULSE_DURATION = 1100;
 const PULSE_ITERATIONS = 3;

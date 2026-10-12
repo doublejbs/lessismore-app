@@ -13,12 +13,12 @@ export interface EndpointLabelSet {
 }
 
 /**
- * `출발`·`도착` 말풍선 라벨 (GRP-8). 네이버 지도(`RouteEndpointMarkersView`)와 오프라인 지도
- * (`OfflineMapEndpointMarkersView`)가 같은 표를 쓴다.
+ * `출발`·`도착` 말풍선 라벨 (GRP-8). 앱 공용 끝점 마커(`MapEndpointMarkersView`)가 쓴다.
  *
- * 커스텀 View 마커는 네이버 지도가 스냅숏으로 굳히면서 글자·아이콘 글꼴이 빠진 채 도형만 남았다
+ * `[이력]` 네이버 지도 시절 커스텀 View 마커는 스냅숏으로 굳으면서 글자·아이콘 글꼴이 빠진 채 도형만 남았다
  * (2026-09-29 실기기) — 그래서 **글자를 도형으로 구운 PNG**를 마커 이미지로 쓴다(Pretendard SemiBold,
- * 1x/2x/3x, `assets/images/route/`). 앱 언어마다 한 벌이다. 꼬리 끝이 좌표를 가리키므로 anchor는 아래 가운데다.
+ * 1x/2x/3x, `assets/images/route/`). MapLibre 마커는 실제 뷰라 그 제약이 없지만 이미지를 그대로 쓴다.
+ * 앱 언어마다 한 벌이다. 꼬리 끝이 좌표를 가리키므로 anchor는 아래 가운데다.
  */
 export const ROUTE_ENDPOINT_LABELS: Record<AppLanguage, EndpointLabelSet> = {
   [AppLanguage.Korean]: {

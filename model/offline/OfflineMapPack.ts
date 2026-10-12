@@ -1,11 +1,11 @@
 import { Platform } from 'react-native';
 import type { OfflineLngLatBounds } from './OfflineMapBounds';
 import { isOfflineLngLatBounds } from './OfflineMapBounds';
-import { loadOfflineManager, MapLibreOfflineManager } from './OfflineMapModule';
 import {
-  OFFLINE_MAP_STYLE_URL,
-  OFFLINE_MAP_STYLE_VERSION,
-} from './OfflineMapStyle';
+  loadOfflineManager,
+  MapLibreOfflineManager,
+} from '@/model/map/MapLibreModule';
+import { MAP_STYLE_URL, MAP_STYLE_VERSION } from '@/model/map/MapStyle';
 
 // 팩 줌 범위(OF-1). 타일 수 상한에 걸리면 줌 상한을 한 단씩(최저 12) 내린다(§6).
 const PACK_MIN_ZOOM = 9;
@@ -359,14 +359,14 @@ class OfflineMapPack {
       manager
         .createPack(
           {
-            mapStyle: OFFLINE_MAP_STYLE_URL,
+            mapStyle: MAP_STYLE_URL,
             bounds: request.bounds,
             minZoom: PACK_MIN_ZOOM,
             maxZoom: request.maxZoom,
             metadata: {
               bagId: request.bagId,
               ownerId: request.ownerId,
-              styleVersion: OFFLINE_MAP_STYLE_VERSION,
+              styleVersion: MAP_STYLE_VERSION,
             },
           },
           (pack, status) => {

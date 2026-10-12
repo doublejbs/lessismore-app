@@ -1,11 +1,6 @@
 /* eslint-disable react-hooks/refs, react-hooks/set-state-in-effect */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Keyboard } from 'react-native';
-import {
-  Camera,
-  CameraChangeReason,
-  NaverMapViewRef,
-} from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import { GeocodeResult } from '@/model/bag-destination/GeocodeResult';
@@ -20,7 +15,11 @@ import {
 } from '@/model/bag-destination/GeoDistance';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
-import { CampSiteMapViewport } from '@/components/camp-site/CampSiteMapMarkersView';
+import type {
+  AppMapCameraChange,
+  AppMapViewRef,
+} from '@/components/map/AppMapView';
+import MapCameraChangeReason from '@/model/map/MapCameraChangeReason';
 import { deltaToZoom } from '@/model/map/MapZoom';
 import {
   getCurrentPositionWithinTimeout,
@@ -50,7 +49,8 @@ const CAMERA_SETTLE_MS = 300;
 const LOCATION_WATCH_DISTANCE_INTERVAL_METERS = 10;
 
 const REVERSE_GEOCODE_DEBOUNCE_MS = 500;
-const MAP_READY_FALLBACK_MAX_FRAMES = 3;
+// 박지·장소·현재 위치로 옮기는 카메라 이징 시간.
+const CAMERA_ANIMATION_MS = 400;
 
 // 이미 허용된 권한만 확인한다 — 선택기를 여는 것만으로 권한을 새로 요청하지 않는다(DST-3).
 // 초기 카메라 시드는 **캐시만** 쓴다(DST-3). 여기서 새 fix를 기다리면 안드로이드 정지
@@ -92,11 +92,12 @@ interface Params {
   onDone: (() => void) | undefined;
   campSiteMap: CampSiteMap;
   isMapSupported: boolean;
-  mapRef: React.RefObject<NaverMapViewRef | null>;
+  mapRef: React.RefObject<AppMapViewRef | null>;
 }
 
-interface PendingCameraTarget extends Coordinate {
-  visibleGeneration: number;
+// 지도를 붙일 때의 카메라(중심 + 줌).
+interface PickerCamera extends Coordinate {
+  zoom: number;
 }
 
 // 공용 여행지 선택기(DST-3/DST-4)의 상태·핸들러. 뷰는 조립만 담당한다.
@@ -113,14 +114,13 @@ const useBagDestinationPickerState = ({
 }: Params) => {
   // 지도는 origin이 정해진 뒤에만 마운트한다 — initialCamera를 한 번만 확정해
   // 카메라 재적용으로 인한 이동 루프를 막는다.
-  const [origin, setOrigin] = useState<Camera | null>(null);
+  const [origin, setOrigin] = useState<PickerCamera | null>(null);
   const [center, setCenter] = useState<Coordinate>(SEOUL_CITY_HALL);
   // 카메라가 멈춘 뒤에만 갱신되는 정착 중심(정착 전엔 null). 역지오코딩 이펙트는 center가
   // 아니라 이 값에 반응한다 — center는 네이티브 지도가 리렌더마다 미세하게 다른 값을 되쏴
   // 진동하는데, 그 진동에 이펙트가 반응하면 setState→리렌더→재발화 무한 루프가 되기 때문이다.
   // 이펙트가 안 돌면 리렌더도 없어 재발화가 멎고, 그때 정착값이 갱신돼 주소를 조회한다.
   const [settledCenter, setSettledCenter] = useState<Coordinate | null>(null);
-  const [viewport, setViewport] = useState<CampSiteMapViewport | null>(null);
   // 박지 확정(handleConfirmSpot) 경로에서만 잠깐 채워지는 확정 대상. 선택 모드가 없어져
   // 평소에는 항상 null이고, 하단 확정 버튼은 언제나 지도 중심(자유 위치)을 저장한다(DST-3).
   const [selectedCampLocation, setSelectedCampLocation] =
@@ -148,11 +148,6 @@ const useBagDestinationPickerState = ({
   const visibleRef = useRef(visible);
   const userInteractionRef = useRef(0);
   const savingRef = useRef(false);
-  const mapReadyRef = useRef(false);
-  const mapReadyGenerationRef = useRef<number | null>(null);
-  const pendingCameraTargetRef = useRef<PendingCameraTarget | null>(null);
-  const pendingCameraFrameRef = useRef<number | null>(null);
-  const mapReadyFallbackFrameRef = useRef<number | null>(null);
   // 선택기가 열려 있는 동안 유지하는 위치 구독과 그 최신 좌표(DST-3).
   // 좌표를 state가 아니라 ref에 두는 이유 — 이 값은 현재 위치 버튼 핸들러만 읽는데,
   // state로 두면 위치가 갱신될 때마다 지도·하단 패널까지 리렌더된다(카메라도 따라가지 않는다).
@@ -174,91 +169,19 @@ const useBagDestinationPickerState = ({
 
   const mapGeneration = visibleGenerationRef.current;
 
-  const cancelMapReadyFallback = useCallback(() => {
-    if (mapReadyFallbackFrameRef.current !== null) {
-      cancelAnimationFrame(mapReadyFallbackFrameRef.current);
-      mapReadyFallbackFrameRef.current = null;
-    }
-  }, []);
-
-  const resetMapCommandState = useCallback(() => {
-    if (pendingCameraFrameRef.current !== null) {
-      cancelAnimationFrame(pendingCameraFrameRef.current);
-      pendingCameraFrameRef.current = null;
-    }
-
-    cancelMapReadyFallback();
-    mapReadyRef.current = false;
-    mapReadyGenerationRef.current = null;
-    pendingCameraTargetRef.current = null;
-  }, [cancelMapReadyFallback]);
-
+  // 지도가 아직 붙기 전의 카메라 요청은 `AppMapView`가 모아 두었다가 붙는 순간 실행한다(rAF 대기·폴백 없음).
+  // 지도가 아예 없을 때(origin 미정)는 `ensureOrigin`이 같은 좌표로 지도를 붙이므로 요청이 사라져도 된다.
   const animateCamera = useCallback(
     (target: Coordinate) => {
-      mapRef.current?.animateCameraTo({
+      mapRef.current?.animateTo({
         latitude: target.latitude,
         longitude: target.longitude,
         zoom: PICKED_ZOOM,
-        duration: 400,
+        duration: CAMERA_ANIMATION_MS,
       });
     },
     [mapRef]
   );
-
-  const schedulePendingCamera = useCallback(
-    (visibleGeneration: number) => {
-      const pending = pendingCameraTargetRef.current;
-
-      if (
-        !pending ||
-        pending.visibleGeneration !== visibleGeneration ||
-        pendingCameraFrameRef.current !== null
-      ) {
-        return;
-      }
-
-      pendingCameraFrameRef.current = requestAnimationFrame(() => {
-        pendingCameraFrameRef.current = null;
-
-        const pending = pendingCameraTargetRef.current;
-
-        if (!pending || pending.visibleGeneration !== visibleGeneration) {
-          return;
-        }
-
-        if (
-          !mountedRef.current ||
-          savingRef.current ||
-          !visibleRef.current ||
-          visibleGenerationRef.current !== visibleGeneration ||
-          !mapReadyRef.current ||
-          mapReadyGenerationRef.current !== visibleGeneration ||
-          !mapRef.current
-        ) {
-          return;
-        }
-
-        pendingCameraTargetRef.current = null;
-        animateCamera(pending);
-      });
-    },
-    [animateCamera, mapRef]
-  );
-
-  const handleMapInitialized = useCallback(() => {
-    if (
-      !mountedRef.current ||
-      !visibleRef.current ||
-      visibleGenerationRef.current !== mapGeneration
-    ) {
-      return;
-    }
-
-    cancelMapReadyFallback();
-    mapReadyRef.current = true;
-    mapReadyGenerationRef.current = mapGeneration;
-    schedulePendingCamera(mapGeneration);
-  }, [cancelMapReadyFallback, mapGeneration, schedulePendingCamera]);
 
   const markUserInteraction = useCallback((): number => {
     userInteractionRef.current += 1;
@@ -357,7 +280,6 @@ const useBagDestinationPickerState = ({
     const camera = { ...target, zoom: PICKED_ZOOM };
 
     setOrigin(prev => prev ?? camera);
-    setViewport(prev => prev ?? camera);
   }, []);
 
   // ref를 동기적으로 갱신한다 — 확정 흐름(buildLocation)이 리렌더를 기다리지 않고
@@ -393,9 +315,8 @@ const useBagDestinationPickerState = ({
 
     return () => {
       mountedRef.current = false;
-      resetMapCommandState();
     };
-  }, [resetMapCommandState]);
+  }, []);
 
   useEffect(() => {
     if (visible && !saving) {
@@ -407,12 +328,10 @@ const useBagDestinationPickerState = ({
   useEffect(() => {
     const visibleGeneration = mapGeneration;
 
-    resetMapCommandState();
     userInteractionRef.current = 0;
 
     if (!visible) {
       setOrigin(null);
-      setViewport(null);
       setLocating(false);
 
       return;
@@ -440,7 +359,6 @@ const useBagDestinationPickerState = ({
         setCenter(start);
         setAddressName(saved.name);
         setOrigin({ ...start, zoom: PICKED_ZOOM });
-        setViewport({ ...start, zoom: PICKED_ZOOM });
 
         return;
       }
@@ -466,21 +384,18 @@ const useBagDestinationPickerState = ({
 
       setCenter(start);
       setOrigin({ ...start, zoom });
-      setViewport({ ...start, zoom });
     };
 
     void prepare();
 
     return () => {
       cancelled = true;
-      resetMapCommandState();
     };
   }, [
     visible,
     isMapSupported,
     isCurrentInteraction,
     mapGeneration,
-    resetMapCommandState,
     selectCampLocation,
   ]);
 
@@ -519,72 +434,6 @@ const useBagDestinationPickerState = ({
       stopLocationWatch();
     };
   }, [visible, isMapSupported, startLocationWatch, stopLocationWatch]);
-
-  // iOS legacy architecture에서 onInitialized가 유실돼도, 지도 ref 커밋 뒤
-  // 프로그램 카메라 명령을 실행할 수 있도록 짧게 readiness를 확인한다.
-  useEffect(() => {
-    const visibleGeneration = mapGeneration;
-
-    if (
-      !visible ||
-      !origin ||
-      saving ||
-      (mapReadyRef.current &&
-        mapReadyGenerationRef.current === visibleGeneration)
-    ) {
-      cancelMapReadyFallback();
-
-      return;
-    }
-
-    let cancelled = false;
-    let attempts = 0;
-
-    const checkMapReady = () => {
-      mapReadyFallbackFrameRef.current = requestAnimationFrame(() => {
-        mapReadyFallbackFrameRef.current = null;
-
-        if (
-          cancelled ||
-          !mountedRef.current ||
-          savingRef.current ||
-          !visibleRef.current ||
-          visibleGenerationRef.current !== visibleGeneration
-        ) {
-          return;
-        }
-
-        if (mapRef.current) {
-          mapReadyRef.current = true;
-          mapReadyGenerationRef.current = visibleGeneration;
-          schedulePendingCamera(visibleGeneration);
-
-          return;
-        }
-
-        attempts += 1;
-
-        if (attempts < MAP_READY_FALLBACK_MAX_FRAMES) {
-          checkMapReady();
-        }
-      });
-    };
-
-    checkMapReady();
-
-    return () => {
-      cancelled = true;
-      cancelMapReadyFallback();
-    };
-  }, [
-    cancelMapReadyFallback,
-    mapGeneration,
-    mapRef,
-    origin,
-    saving,
-    schedulePendingCamera,
-    visible,
-  ]);
 
   // 지도 중심 주소를 미리 본다(하단 패널은 언제나 자유 위치, DST-3).
   // 박지 확정 중(selectedCampLocation)에만 잠깐 건너뛴다.
@@ -720,89 +569,55 @@ const useBagDestinationPickerState = ({
         return;
       }
 
-      const visibleGeneration = visibleGenerationRef.current;
-
-      pendingCameraTargetRef.current = {
-        ...target,
-        visibleGeneration,
-      };
-
-      if (
-        mapReadyRef.current &&
-        mapReadyGenerationRef.current === visibleGeneration
-      ) {
-        schedulePendingCamera(visibleGeneration);
-      }
+      animateCamera(target);
     },
-    [schedulePendingCamera]
+    [animateCamera]
   );
 
   const handleCameraChanged = useCallback(
-    (camera: Camera & { reason: CameraChangeReason }) => {
+    (change: AppMapCameraChange) => {
       if (savingRef.current) {
         return;
       }
 
       const next = {
-        latitude: camera.latitude,
-        longitude: camera.longitude,
+        latitude: change.latitude,
+        longitude: change.longitude,
       };
 
-      if (camera.reason === 'Gesture') {
-        if (pendingCameraFrameRef.current !== null) {
-          cancelAnimationFrame(pendingCameraFrameRef.current);
-          pendingCameraFrameRef.current = null;
-        }
-
-        pendingCameraTargetRef.current = null;
-        markUserInteraction();
-
-        // 미세 변화는 무시해 center를 안정시킨다 — 무한 리렌더 방지(CENTER_SETTLE_METERS 주석 참고).
-        setCenter(prev =>
-          getDistanceInMeters(prev, next) < CENTER_SETTLE_METERS ? prev : next
-        );
-
-        // 포커스한 박지에서 제스처로 충분히 벗어나면 자유 위치로 되돌린다(DST-3) — 하단
-        // `이 위치로 설정` 패널이 다시 나타난다. 검색 결과 이동 등 Developer 애니메이션으로는
-        // 풀리지 않는다(그건 여전히 그 박지를 보고 있는 것).
-        const focused = focusedSpotRef.current;
-
-        if (
-          focused &&
-          getDistanceInMeters(focused.location, next) > SPOT_RELEASE_METERS
-        ) {
-          knownRef.current = null;
-          setAddressName('');
-          focusSpot(null);
-        }
+      if (change.reason !== MapCameraChangeReason.Gesture) {
+        return;
       }
 
-      // 중심 0.05°·줌 0.25 단위 양자화 — 값이 같으면 마커 레이어가 리렌더되지 않는다.
-      const quantized = {
-        latitude: Math.round(next.latitude / 0.05) * 0.05,
-        longitude: Math.round(next.longitude / 0.05) * 0.05,
-        zoom: Math.round((camera.zoom ?? 0) / 0.25) * 0.25,
-      };
+      markUserInteraction();
 
-      setViewport(prev =>
-        prev &&
-        prev.latitude === quantized.latitude &&
-        prev.longitude === quantized.longitude &&
-        prev.zoom === quantized.zoom
-          ? prev
-          : quantized
+      // 미세 변화는 무시해 center를 안정시킨다 — 무한 리렌더 방지(CENTER_SETTLE_METERS 주석 참고).
+      setCenter(prev =>
+        getDistanceInMeters(prev, next) < CENTER_SETTLE_METERS ? prev : next
       );
+
+      // 포커스한 박지에서 제스처로 충분히 벗어나면 자유 위치로 되돌린다(DST-3) — 하단
+      // `이 위치로 설정` 패널이 다시 나타난다. 검색 결과 이동 등 Developer 애니메이션으로는
+      // 풀리지 않는다(그건 여전히 그 박지를 보고 있는 것).
+      const focused = focusedSpotRef.current;
+
+      if (
+        focused &&
+        getDistanceInMeters(focused.location, next) > SPOT_RELEASE_METERS
+      ) {
+        knownRef.current = null;
+        setAddressName('');
+        focusSpot(null);
+      }
 
       // 알려진 이름에서 충분히 멀어지면 그 이름을 버리고 다시 역지오코딩하게 한다.
       // 확정 대상(selectedCampLocation) 해제 분기는 없다 — 선택 모드가 폐지돼 끌어서 풀
       // 선택 자체가 없다(DST-3). 위에서 푸는 건 표시 전용 포커스뿐이다.
-      if (camera.reason === 'Gesture') {
-        const known = knownRef.current;
+      const known = knownRef.current;
 
-        if (!known || getDistanceInMeters(known, next) > SAME_PLACE_METERS) {
-          knownRef.current = null;
-          setAddressName('');
-        }
+      if (!known || getDistanceInMeters(known, next) > SAME_PLACE_METERS) {
+        knownRef.current = null;
+        setAddressName('');
       }
     },
     [focusSpot, markUserInteraction]
@@ -1026,31 +841,56 @@ const useBagDestinationPickerState = ({
   ]);
 
   // 확정할 여행지. 박지 모드는 참조 + 이름·좌표 스냅샷, 자유 위치는 참조 없이 저장한다(DST-1).
-  const buildLocation = useCallback(async (): Promise<BagLocation> => {
-    const campLocation = selectedCampLocationRef.current;
+  // target = 확정 순간 지도의 실제 중심(없으면 마지막 정착 중심). 미리 본 주소가 그 근처의 것이면 그대로 쓴다.
+  const buildLocation = useCallback(
+    async (target: Coordinate): Promise<BagLocation> => {
+      const campLocation = selectedCampLocationRef.current;
 
-    if (campLocation) {
-      return campLocation;
+      if (campLocation) {
+        return campLocation;
+      }
+
+      if (
+        addressName &&
+        getDistanceInMeters(target, center) <= SAME_PLACE_METERS
+      ) {
+        return { name: addressName, ...target };
+      }
+
+      // 주소를 아직/끝내 못 찾았어도 확정은 막지 않는다(DST-3).
+      try {
+        const name = await geocodeService.reverseGeocode(
+          target.latitude,
+          target.longitude
+        );
+
+        return { name: name || FALLBACK_LOCATION_NAME, ...target };
+      } catch (error) {
+        console.error('역지오코딩 실패:', error); // l10n-ignore: 개발자 로그
+
+        return { name: FALLBACK_LOCATION_NAME, ...target };
+      }
+    },
+    [addressName, center]
+  );
+
+  // 확정 순간 지도의 실제 중심 = 중앙 핀 좌표(DST-3). 카메라 이징 중이면 그 시점 값을 읽고, 그 자리에서
+  // 카메라를 멈춘다 — MapLibre SDK에는 애니메이션 취소가 없어 0ms 이동으로 대신한다(저장 좌표와 핀이 어긋나지 않게).
+  const readMapCenter = useCallback(async (): Promise<Coordinate | null> => {
+    const map = mapRef.current;
+
+    if (!map) {
+      return null;
     }
 
-    if (addressName) {
-      return { name: addressName, ...center };
+    const live = await map.getCenter();
+
+    if (live) {
+      map.animateTo({ ...live, duration: 0 });
     }
 
-    // 주소를 아직/끝내 못 찾았어도 확정은 막지 않는다(DST-3).
-    try {
-      const name = await geocodeService.reverseGeocode(
-        center.latitude,
-        center.longitude
-      );
-
-      return { name: name || FALLBACK_LOCATION_NAME, ...center };
-    } catch (error) {
-      console.error('역지오코딩 실패:', error); // l10n-ignore: 개발자 로그
-
-      return { name: FALLBACK_LOCATION_NAME, ...center };
-    }
-  }, [addressName, center]);
+    return live;
+  }, [mapRef]);
 
   const handleConfirm = useCallback(async () => {
     // 첫 저장이 끝나기 전 추가 탭은 무시한다(DST-6).
@@ -1065,32 +905,23 @@ const useBagDestinationPickerState = ({
     }
 
     savingRef.current = true;
-
-    cancelMapReadyFallback();
-
-    if (pendingCameraFrameRef.current !== null) {
-      cancelAnimationFrame(pendingCameraFrameRef.current);
-      pendingCameraFrameRef.current = null;
-    }
-
-    if (
-      visibleRef.current &&
-      mapReadyRef.current &&
-      mapReadyGenerationRef.current === visibleGeneration
-    ) {
-      mapRef.current?.cancelAnimation();
-    }
-
     setSaving(true);
-
-    let completed = false;
 
     try {
       if (!isCurrentVisibleGeneration(visibleGeneration)) {
         return;
       }
 
-      const location = await buildLocation();
+      // 박지 확정(selectedCampLocation)은 지도 중심을 쓰지 않는다.
+      const mapCenter = selectedCampLocationRef.current
+        ? null
+        : await readMapCenter();
+
+      if (!isCurrentVisibleGeneration(visibleGeneration)) {
+        return;
+      }
+
+      const location = await buildLocation(mapCenter ?? center);
 
       if (!isCurrentVisibleGeneration(visibleGeneration)) {
         return;
@@ -1104,7 +935,6 @@ const useBagDestinationPickerState = ({
 
       onDone?.();
       onClose();
-      completed = true;
     } catch (error) {
       if (!isCurrentVisibleGeneration(visibleGeneration)) {
         return;
@@ -1119,21 +949,16 @@ const useBagDestinationPickerState = ({
       if (mountedRef.current) {
         setSaving(false);
       }
-
-      if (!completed && isCurrentVisibleGeneration(visibleGeneration)) {
-        schedulePendingCamera(visibleGeneration);
-      }
     }
   }, [
     buildLocation,
-    cancelMapReadyFallback,
+    center,
     isCurrentVisibleGeneration,
-    mapRef,
     onClose,
     onConfirm,
     onDone,
     origin,
-    schedulePendingCamera,
+    readMapCenter,
   ]);
 
   // 박지 상세 시트의 `배낭 여행지로 설정`(DST-3) — 그 박지를 곧바로 확정 저장한다.
@@ -1160,7 +985,6 @@ const useBagDestinationPickerState = ({
 
   return {
     origin,
-    viewport,
     focusedSpot,
     addressName,
     resolving,
@@ -1171,7 +995,6 @@ const useBagDestinationPickerState = ({
     placeResults: visiblePlaceResults,
     searchingPlaces,
     resultsVisible,
-    handleMapInitialized,
     handleCameraChanged,
     handleFocusSpot,
     handleConfirmSpot,

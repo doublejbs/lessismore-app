@@ -15,7 +15,8 @@ import GroupPoint from '@/model/group/GroupPoint';
 import GroupValidationError from '@/model/group/GroupValidationError';
 import { getGroupValidationMessage } from '@/model/group-error/GroupErrorMessage';
 import GroupMap from '@/model/group-map/GroupMap';
-import GroupMapCanvasView from './GroupMapCanvasView';
+import { createMapLibreViewLoader } from '@/components/map/MapLibreViewLoader';
+import type GroupMapCanvasViewType from './GroupMapCanvasView';
 import GroupMapListView from './GroupMapListView';
 import PointCreateSheetView, {
   PointDraft,
@@ -36,10 +37,20 @@ const IS_IOS = Platform.OS === 'ios';
 const IS_WEB = Platform.OS === 'web';
 const HEADER_HEIGHT = 52;
 
+// 지도 본문은 MapLibre SDK를 최상위 import한다 — 옛 바이너리에서 import만으로 터지지 않게 쓸 때 싣는다(MAP-1).
+const loadCanvasView = createMapLibreViewLoader<typeof GroupMapCanvasViewType>(
+  'GroupMapCanvasView',
+  () =>
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    (require('./GroupMapCanvasView') as {
+      default: typeof GroupMapCanvasViewType;
+    }).default
+);
+
 /**
  * 그룹 지도 (GRP-9 · GRP-10).
  *
- * 네이티브는 네이버 지도를, 웹은 코스·포인트 목록을 보여준다(APP-5 — 웹은 지도 탭 자체가
+ * 네이티브는 앱 공용 지도(MapLibre)를, 웹은 코스·포인트 목록을 보여준다(APP-5 — 웹은 지도 탭 자체가
  * 없다). 포인트 등록·수정 시트는 두 경로가 함께 쓴다. 코스 목록 시트는 지도에서만 뜬다 —
  * 웹 목록은 코스 행이 이미 화면에 있다.
  * iOS는 네이티브 투명 헤더, Android는 커스텀 헤더다(GRP-11, LG-1).
@@ -225,6 +236,19 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
         );
       }
       default: {
+        const GroupMapCanvasView = loadCanvasView();
+
+        // 옛 바이너리(MapLibre 없음 — OTA가 잘못 나간 경우의 안전망): 지도 자리에 업데이트 안내.
+        if (!GroupMapCanvasView) {
+          return (
+            <GroupStateView
+              title={l10n.t('map.unsupportedBinary')}
+              actionLabel={l10n.t('group.detail.goBack')}
+              onPress={handleBack}
+            />
+          );
+        }
+
         return (
           <GroupMapCanvasView
             groupMap={groupMap}

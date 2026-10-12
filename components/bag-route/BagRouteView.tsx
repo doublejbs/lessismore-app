@@ -18,17 +18,16 @@ import { Acg, AcgLayout, AcgType, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import BagPoint from '@/model/bag-point/BagPoint';
 import BagPointAddVia from '@/model/bag-point/BagPointAddVia';
+import { BagPointCoordinate } from '@/model/bag-point/BagPointCoordinate';
 import { BagPointEntry } from '@/model/bag-point/BagPointEntry';
 import BagPointList from '@/model/bag-point/BagPointList';
 import BagRoute from '@/model/bag-route/BagRoute';
 import { BagRouteEntry } from '@/model/bag-route/BagRouteEntry';
 import BagRouteList from '@/model/bag-route/BagRouteList';
 import BagRouteSegment from '@/model/bag-route/BagRouteSegment';
-import BagRouteCanvasView, { BagPointCoordinate } from './BagRouteCanvasView';
 import BagRouteListSectionView from './BagRouteListSectionView';
-import OfflineRouteMapGateView from '@/components/offline/OfflineRouteMapGateView';
+import BagRouteMapGateView from './BagRouteMapGateView';
 import OfflineUnavailableView from '@/components/offline/OfflineUnavailableView';
-import OfflineMapReason from '@/model/offline/OfflineMapReason';
 import OfflineTripAccess from '@/model/offline/OfflineTripAccess';
 
 interface Props {
@@ -45,11 +44,11 @@ interface PointDraftTarget {
 const IS_IOS = Platform.OS === 'ios';
 const IS_WEB = Platform.OS === 'web';
 const HEADER_HEIGHT = 52;
-// 폴백(OF-6) 지도 뒤에 숨겨 둔 지도가 이 시간 안에 뜨지 않으면 내린다 — 계속 붙잡고 있지 않는다.
-const MAP_FALLBACK_UNMOUNT_MS = 30 * 1000;
 
 /**
  * 배낭 코스 (BD-11) — 지도 + 코스 목록 + 선택한 코스의 고도 그래프. 지도 포인트(BD-14)도 여기 산다.
+ * 지도는 온라인·오프라인 모두 같은 `BagRouteMapView`(MapLibre)다 — 오프라인이면 타일이 저장해 둔 팩에서 오고
+ * 편집 UI만 걷힌다(OF-6 · MAP-4).
  *
  * 지도·그래프·목록 행은 그룹 코스 화면(GRP-8·GRP-10)의 것을 그대로 쓴다. 웹은 지도가 없으므로
  * 목록과 그래프만 보여주는 **읽기 전용** 화면이 된다(APP-5) — 파일 선택기가 없어 추가가
@@ -71,12 +70,8 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
   const [editingPoint, setEditingPoint] = useState<BagPoint | null>(null);
   // 시트를 열 때마다 올린다 — 시트가 이 값을 `key`로 받아 새로 마운트되면서 입력이 초기화된다.
   const [sheetKey, setSheetKey] = useState(0);
-  // 지도가 뜨지 않았다(OF-6 폴백) — 온라인이어도 MapLibre 코스 지도로 그린다.
-  const [isMapUnavailable, setIsMapUnavailable] = useState(false);
-  // 폴백 뒤에도 끝내 뜨지 않아 숨긴 지도를 내렸다. 연결이 바뀌면 다시 붙여 한 번 더 기다린다.
-  const [isHiddenMapReleased, setIsHiddenMapReleased] = useState(false);
   const selected = bagRouteList.getSelectedEntry();
-  // OF-6: 연결이 없으면 네이버 지도 대신 MapLibre 오프라인 지도다. 열 수 없는 저장본(미저장·잠김)이면 빈 상태다.
+  // OF-6: 연결이 없으면 같은 지도가 저장해 둔 팩에서 뜬다. 열 수 없는 저장본(미저장·잠김)이면 빈 상태다.
   const isOffline = app.getNetworkStatus().isOffline();
   const offlineAccess =
     app.getOfflineTripStore()?.getAccess(bagRouteList.getBagId()) ??
@@ -87,14 +82,13 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
   const canUseSnapshot = offlineAccess === OfflineTripAccess.Available;
 
   // OF-3 · OF-6: 연결이 바뀌면 목록을 다시 읽는다 — 돌아오면 서버 코스(그룹 코스 포함)로, 끊기면 저장본으로.
-  // 지도는 다시 마운트되며 코스 전체로 카메라를 맞춘다.
+  // 지도는 그대로 두고(같은 지도다) 편집 UI·상단 안내 줄만 바뀐다.
   useEffect(() => {
     if (wasOfflineRef.current === isOffline) {
       return;
     }
 
     wasOfflineRef.current = isOffline;
-    setIsHiddenMapReleased(false);
 
     // 저장본이 없으면 읽어 둔 서버 코스를 그대로 둔다 — 다시 읽으면 빈 목록이 된다.
     if (isOffline && !canUseSnapshot) {
@@ -104,30 +98,6 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
     void bagRouteList.refresh(true);
     void bagPointList.refresh(true);
   }, [bagPointList, bagRouteList, canUseSnapshot, isOffline]);
-
-  // 숨긴 지도가 `MAP_FALLBACK_UNMOUNT_MS` 안에 뜨지 않으면 내린다. 뜨거나 화면을 떠나면 타이머를 지운다.
-  useEffect(() => {
-    if (!isMapUnavailable || isOffline) {
-      return;
-    }
-
-    const timeoutId = setTimeout(() => {
-      setIsHiddenMapReleased(true);
-    }, MAP_FALLBACK_UNMOUNT_MS);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [isMapUnavailable, isOffline]);
-
-  const handleMapUnavailable = useCallback(() => {
-    setIsMapUnavailable(true);
-  }, []);
-
-  // 제한 시간을 넘겨 폴백했어도 지도가 뒤늦게 뜨면 지도로 돌아간다(OF-6).
-  const handleMapInitialized = useCallback(() => {
-    setIsMapUnavailable(false);
-  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -381,22 +351,12 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
       );
     }
 
-    // 지도는 `map` 키로 같은 자리에 둔다 — 폴백 중에도 (보이지 않게) 살려 두어 뒤늦은 초기화를 받는다.
-    const mapView = (
-      <View
-        key='map'
-        style={isMapUnavailable ? styles.hiddenMap : styles.content}
-        pointerEvents={isMapUnavailable ? 'none' : 'auto'}
-        accessibilityElementsHidden={isMapUnavailable}
-        importantForAccessibility={
-          isMapUnavailable ? 'no-hide-descendants' : 'auto'
-        }
-      >
-        <BagRouteCanvasView
+    return (
+      <>
+        <BagRouteMapGateView
           bagRouteList={bagRouteList}
           bagPointList={bagPointList}
-          onMapUnavailable={handleMapUnavailable}
-          onMapInitialized={handleMapInitialized}
+          isOffline={isOffline}
           isAiming={isAiming}
           onStartAiming={handleStartAiming}
           onCancelAiming={handleCancelAiming}
@@ -407,31 +367,6 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
           // 지도 위쪽에 살짝 띄우기만 한다. iOS는 투명 헤더라 직접 비운다(그룹 지도와 같다).
           topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
         />
-      </View>
-    );
-
-    if (isOffline || isMapUnavailable) {
-      return (
-        <>
-          {isOffline || isHiddenMapReleased ? null : mapView}
-          <OfflineRouteMapGateView
-            bagRouteList={bagRouteList}
-            bagPointList={bagPointList}
-            reason={
-              isOffline
-                ? OfflineMapReason.Offline
-                : OfflineMapReason.MapUnavailable
-            }
-            topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
-          />
-          {renderList()}
-        </>
-      );
-    }
-
-    return (
-      <>
-        {mapView}
         {/* 조준 모드에서는 목록을 걷는다 — 지도를 넓히고, 확정 말고 누를 것을 두지 않는다(GRP-9). */}
         {isAiming ? null : renderList()}
       </>
@@ -530,15 +465,6 @@ const styles = StyleSheet.create({
   },
   // 지도는 풀블리드다 — 좌우 패딩을 주면 지면이 드러난다.
   content: { flex: 1 },
-  // 폴백 지도 뒤에서 지도를 살려 두는 자리 — 보이지 않고 터치·접근성에서도 빠진다.
-  hiddenMap: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    opacity: 0,
-  },
   webContent: { flex: 1, justifyContent: 'flex-end' },
   state: {
     flex: 1,
