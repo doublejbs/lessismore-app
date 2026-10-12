@@ -207,9 +207,12 @@
 | `click_bag_point_delete` | 배낭 지도 포인트 삭제 (BD-14) `[제안]` | `type` |
 | `click_bag_point_select` | 배낭 지도 포인트 목록·마커 탭 (BD-14) `[제안]` | `type` |
 | `click_offline_save` | 오프라인 저장 시작 ([Offline.md](Offline.md) OF-2) `[제안]` | `source`: `tile` |
-| `offline_saved` | 오프라인 저장 성공 (OF-2, `logEvent`) `[제안]` | `bytes`, `route_count`, `point_count` |
+| `offline_saved` | 오프라인 저장 성공 (OF-2, `logEvent`) `[제안]` | `bytes`, `map_bytes`, `route_count`, `point_count`, `has_contours` |
 | `click_offline_refresh` / `click_offline_remove` | 오프라인 갱신 / 삭제 (OF-2) `[제안]` | — |
-| `offline_trip_open` / `offline_route_canvas_open` | 오프라인 상세·코스 캔버스 열람 (OF-5·OF-6, `logEvent`) `[제안]` | — |
+| `offline_trip_open` | 오프라인 상세 열람 (OF-5, `logEvent`) `[제안]` | — |
+| `offline_route_map_open` | 오프라인 코스 지도 열람 (OF-6, `logEvent`) `[제안]` — 2026-10-12 `offline_route_canvas_open`에서 개명 | `reason`: `offline` \| `map_unavailable` |
+| `click_route_replay_open` | 3D 코스 리플레이 진입 ([RouteReplay.md](RouteReplay.md) RR-1) `[제안]` | `source`: `route` \| `activity`, `point_count`, `distance_m` |
+| `route_replay_ready` / `route_replay_play` / `route_replay_finished` / `route_replay_failed` | 리플레이 준비·재생·완료·실패 (RR-4, `logEvent`) `[제안]` | `load_ms` / `speed` / — / `reason`: `timeout` \| `web_error` \| `http_error` |
 | `offline_packing_synced` | 오프라인 패킹 체크의 복귀 반영 성공 (OF-5, `logEvent`) `[제안]` | `count` |
 | `click_trip_record_open` | 여행 기록 시트 진입 ([Community.md](Community.md) CM-16) `[폐기 2026-10-10]` | `source`: `notification` \| `bag_detail` \| `home` |
 | `click_trip_record_submit` | 여행 기록 게시 성공 (CM-16) `[폐기 2026-10-10]` | `photo_count`, `has_body` |
