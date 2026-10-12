@@ -259,6 +259,7 @@
     "route": {
       "title": "コース",
       "tileEmpty": "GPXを追加",
+      "sheetHandle": "リストの高さを調整",
       "tileLabel": "コース {{subtitle}}",
       "count_other": "{{count}}件",
       "add": "コースを追加",
@@ -1724,6 +1725,8 @@
       "unsaved": "オフライン保存",
       "saving": "保存中…",
       "savingMap": "地図を保存中 · {{percent}}%",
+      "refreshing": "オフライン更新中…",
+      "refreshingMap": "地図更新中 · {{percent}}%",
       "saved": "保存済み · {{size}} · {{date}} 更新",
       "needsUpgrade": "更新が必要です",
       "locked": "保存済み · 購読すると再び見られます",

@@ -261,6 +261,7 @@
     "route": {
       "title": "Route",
       "tileEmpty": "Add GPX",
+      "sheetHandle": "Adjust list height",
       "tileLabel": "Route {{subtitle}}",
       "count_other": "{{count}}",
       "add": "Add route",
@@ -1753,6 +1754,8 @@
       "unsaved": "Save offline",
       "saving": "Saving…",
       "savingMap": "Saving map · {{percent}}%",
+      "refreshing": "Refreshing offline…",
+      "refreshingMap": "Refreshing map · {{percent}}%",
       "saved": "Saved · {{size}} · updated {{date}}",
       "needsUpgrade": "Needs an update",
       "locked": "Saved · Subscribe to view again",

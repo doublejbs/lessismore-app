@@ -66,7 +66,7 @@ app/route-replay.tsx ─ RouteReplayWrapper ─ RouteReplayView (헤더 + 웹뷰
 
 ## 4. 데이터
 
-- 서버 변경 없음. 스토어는 메모리뿐이다(`RouteReplayStore`: `open(request)` · `getRequest()` · `clear()`). 화면을 닫으면 비운다.
+- 서버 변경 없음. 스토어는 메모리뿐이다(`RouteReplayStore`: `open(request)` · `getRequest()` · `clear()`). 화면 언마운트에서 비우지 **않는다** — 모달 전환 중 래퍼가 다시 마운트되면 빈 상태가 뜬다(2026-10-12 TestFlight 실측). 다음 `open`이 덮어쓴다.
 - 지도 스타일·고도 타일은 [Offline.md](Offline.md) §4의 것과 같다. 웹뷰 문서는 앱 번들 안의 문자열이라 서버에 없다. `maplibre-gl`은 cdnjs(`https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/{version}/maplibre-gl.js`·`.css`)에서 받고 버전을 문서에 고정한다.
 
 ## 5. 플랫폼 분기

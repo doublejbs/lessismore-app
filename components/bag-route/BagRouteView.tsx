@@ -27,6 +27,7 @@ import BagRouteList from '@/model/bag-route/BagRouteList';
 import BagRouteSegment from '@/model/bag-route/BagRouteSegment';
 import BagRouteListSectionView from './BagRouteListSectionView';
 import BagRouteMapGateView from './BagRouteMapGateView';
+import BagRouteSegmentChipsView from './BagRouteSegmentChipsView';
 import OfflineUnavailableView from '@/components/offline/OfflineUnavailableView';
 import OfflineTripAccess from '@/model/offline/OfflineTripAccess';
 
@@ -279,7 +280,10 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
     [bagPointList, draftTarget, editingPoint, handleCloseSheet]
   );
 
-  const renderList = () => (
+  const listBottomInset = insets.bottom + 12;
+
+  // `fillHeight`: 네이티브 지도 화면의 바텀 시트 안(BD-11) — 시트 높이를 채우고 세그먼트 줄은 시트 머리가 그린다.
+  const renderList = (fillHeight: boolean) => (
     <BagRouteListSectionView
       bagRouteList={bagRouteList}
       bagPointList={bagPointList}
@@ -292,7 +296,8 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
       onSelectPoint={IS_WEB ? undefined : handleSelectPoint}
       onEditPoint={handleRequestEdit}
       onDeletePoint={handleRequestDeletePoint}
-      bottomInset={insets.bottom + 12}
+      bottomInset={listBottomInset}
+      fillHeight={fillHeight}
     />
   );
 
@@ -346,30 +351,35 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
                 : {})}
             />
           ) : null}
-          {renderList()}
+          {renderList(false)}
         </View>
       );
     }
 
+    // 지도가 화면을 다 쓰고 그래프·세그먼트·목록은 지도 위 바텀 시트다(BD-11). 조준 모드에서는 시트가 내려간다.
     return (
-      <>
-        <BagRouteMapGateView
-          bagRouteList={bagRouteList}
-          bagPointList={bagPointList}
-          isOffline={isOffline}
-          isAiming={isAiming}
-          onStartAiming={handleStartAiming}
-          onCancelAiming={handleCancelAiming}
-          onRequestCreate={handleRequestCreate}
-          onRequestEdit={handleRequestEdit}
-          onRequestDelete={handleRequestDeletePoint}
-          // Android는 커스텀 헤더가 레이아웃을 차지해 지도가 이미 그 아래에서 시작한다 — 칩은
-          // 지도 위쪽에 살짝 띄우기만 한다. iOS는 투명 헤더라 직접 비운다(그룹 지도와 같다).
-          topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
-        />
-        {/* 조준 모드에서는 목록을 걷는다 — 지도를 넓히고, 확정 말고 누를 것을 두지 않는다(GRP-9). */}
-        {isAiming ? null : renderList()}
-      </>
+      <BagRouteMapGateView
+        bagRouteList={bagRouteList}
+        bagPointList={bagPointList}
+        isOffline={isOffline}
+        isAiming={isAiming}
+        onStartAiming={handleStartAiming}
+        onCancelAiming={handleCancelAiming}
+        onRequestCreate={handleRequestCreate}
+        onRequestEdit={handleRequestEdit}
+        onRequestDelete={handleRequestDeletePoint}
+        // Android는 커스텀 헤더가 레이아웃을 차지해 지도가 이미 그 아래에서 시작한다 — 칩은
+        // 지도 위쪽에 살짝 띄우기만 한다. iOS는 투명 헤더라 직접 비운다(그룹 지도와 같다).
+        topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
+        listHeader={
+          <BagRouteSegmentChipsView
+            segment={segment}
+            onChangeSegment={setSegment}
+          />
+        }
+        listContent={renderList(true)}
+        listBottomInset={listBottomInset}
+      />
     );
   };
 

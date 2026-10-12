@@ -69,6 +69,9 @@ export interface OfflineSaveOptions {
   // 새 영역이 이미 받은 지도 팩 안에 들어오면 팩·등고선을 다시 받지 않는다(OF-2 — 조용한 자동 갱신만).
   // 명시적 저장·`지금 갱신`은 늘 다시 받는다.
   reuseMapPack?: boolean;
+  // 상세 진입 때 도는 자동 갱신(OF-2) — 타일 부제가 `저장 중…`이 아니라 `오프라인 갱신 중…`으로 보인다.
+  // 사용자는 저장을 누른 적이 없으므로 "저장이 시작됐다"로 읽히면 안 된다(2026-10-12 실기기 지적 → 사용자 결정 "타일에 표시").
+  autoRefresh?: boolean;
 }
 
 // 지도 팩·등고선 단계의 결과(저장본에 적는 값).
@@ -181,6 +184,8 @@ class OfflineTripStore {
 
   private entries: OfflineManifestEntry[] = [];
   private savingIds: string[] = [];
+  // 자동 갱신으로 저장 중인 여행 — 타일이 `오프라인 갱신 중…`으로 보여 준다(`isAutoRefreshing`).
+  private autoRefreshingIds: string[] = [];
   // 지도 팩을 받는 중인 여행의 진행률(0~100, OF-2 `지도 저장 중 · {n}%`).
   private savingProgress = new Map<string, number>();
   private loaded = false;
@@ -330,6 +335,11 @@ class OfflineTripStore {
     return this.savingIds.includes(bagId);
   }
 
+  // 지금 도는 저장이 상세 진입 자동 갱신(OF-2)인가 — 타일 부제가 `저장 중…`과 `오프라인 갱신 중…`을 가른다.
+  public isAutoRefreshing(bagId: string): boolean {
+    return this.isSaving(bagId) && this.autoRefreshingIds.includes(bagId);
+  }
+
   // 지도 팩을 받는 중이면 진행률(0~100), 아니면 `null`(OF-2 타일 부제).
   public getSavingProgress(bagId: string): number | null {
     return this.savingProgress.get(bagId) ?? null;
@@ -422,6 +432,7 @@ class OfflineTripStore {
     }
 
     this.setSaving(bagId, true);
+    this.setAutoRefreshing(bagId, options.autoRefresh === true);
 
     const tempDirectory = OfflineTripFiles.getTempDirectory(bagId);
     const controller = new AbortController();
@@ -512,7 +523,7 @@ class OfflineTripStore {
     }
 
     try {
-      await this.save(bagId, { reuseMapPack: true });
+      await this.save(bagId, { reuseMapPack: true, autoRefresh: true });
     } catch {
       // OF-2: 조용한 갱신은 실패해도 알리지 않는다 — 기존 저장본이 남는다.
     }
@@ -1047,10 +1058,13 @@ class OfflineTripStore {
 
     const packBounds = await OfflineMapPack.getBounds(bagId).catch(() => null);
 
+    // 영역 비교는 **저장본에 적어 둔 영역**(같은 계산식의 결과)과 한다 — 네이티브가 돌려주는 팩 bounds는
+    // 부동소수 반올림이 섞여 그대로 비교하면 매번 "벗어남"이 되어 상세를 열 때마다 팩을 다시 받았다
+    // (2026-10-12 실기기 지적). 팩이 실제로 있는지(`packBounds`)만 함께 본다.
     if (
       !packBounds ||
       !previous.mapBounds ||
-      !isLngLatBoundsInside(contentMapBounds, packBounds)
+      !isLngLatBoundsInside(contentMapBounds, previous.mapBounds)
     ) {
       return null;
     }
@@ -1267,6 +1281,16 @@ class OfflineTripStore {
     const others = this.savingIds.filter(id => id !== bagId);
 
     this.savingIds = saving ? [...others, bagId] : others;
+
+    if (!saving) {
+      this.setAutoRefreshing(bagId, false);
+    }
+  }
+
+  private setAutoRefreshing(bagId: string, refreshing: boolean) {
+    const others = this.autoRefreshingIds.filter(id => id !== bagId);
+
+    this.autoRefreshingIds = refreshing ? [...others, bagId] : others;
   }
 }
 

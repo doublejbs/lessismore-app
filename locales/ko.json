@@ -259,6 +259,7 @@
     "route": {
       "title": "코스",
       "tileEmpty": "GPX 추가",
+      "sheetHandle": "목록 높이 조절",
       "tileLabel": "코스 {{subtitle}}",
       "count_other": "{{count}}개",
       "add": "코스 추가",
@@ -1724,6 +1725,8 @@
       "unsaved": "오프라인 저장",
       "saving": "저장 중…",
       "savingMap": "지도 저장 중 · {{percent}}%",
+      "refreshing": "오프라인 갱신 중…",
+      "refreshingMap": "지도 갱신 중 · {{percent}}%",
       "saved": "저장됨 · {{size}} · {{date}} 갱신",
       "needsUpgrade": "갱신이 필요해요",
       "locked": "저장됨 · 구독 후 다시 볼 수 있어요",

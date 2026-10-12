@@ -64,7 +64,10 @@ class OfflineTrip {
     }
 
     if (store.isSaving(this.bagId)) {
-      return OfflineTripStatus.Saving;
+      // 상세 진입 자동 갱신은 `오프라인 갱신 중…`으로 — 사용자가 누르지 않은 "저장"이 시작된 것처럼 읽히지 않게(OF-2).
+      return store.isAutoRefreshing(this.bagId)
+        ? OfflineTripStatus.Refreshing
+        : OfflineTripStatus.Saving;
     }
 
     if (!store.isSaved(this.bagId)) {
@@ -111,6 +114,13 @@ class OfflineTrip {
           ? l10n.t('offline.tile.saving')
           : l10n.t('offline.tile.savingMap', { percent });
       }
+      case OfflineTripStatus.Refreshing: {
+        const percent = this.store?.getSavingProgress(this.bagId) ?? null;
+
+        return percent === null
+          ? l10n.t('offline.tile.refreshing')
+          : l10n.t('offline.tile.refreshingMap', { percent });
+      }
       case OfflineTripStatus.Saved:
         return l10n.t('offline.tile.saved', {
           size: formatOfflineBytes(this.getBytes()),
@@ -150,7 +160,11 @@ class OfflineTrip {
 
     const status = this.getStatus();
 
-    if (status === OfflineTripStatus.Saving) {
+    // 저장·자동 갱신이 도는 동안은 탭을 받지 않는다(같은 여행의 저장이 겹치지 않게).
+    if (
+      status === OfflineTripStatus.Saving ||
+      status === OfflineTripStatus.Refreshing
+    ) {
       return;
     }
 

@@ -91,15 +91,18 @@ export const getOfflineMapBounds = (
 };
 
 // `inner`가 `outer` 안에 다 들어오는지(OF-2 자동 갱신 — 영역이 그대로면 팩을 다시 받지 않는다).
+// 영역 비교 허용 오차(도). 약 1m — 같은 좌표를 다시 계산하거나 네이티브를 거쳐 돌아온 값의 반올림 차이를 흡수한다.
+const BOUNDS_TOLERANCE_DEGREES = 0.00001;
+
 export const isLngLatBoundsInside = (
   inner: OfflineLngLatBounds,
   outer: OfflineLngLatBounds
 ): boolean => {
   return (
-    inner[0] >= outer[0] &&
-    inner[1] >= outer[1] &&
-    inner[2] <= outer[2] &&
-    inner[3] <= outer[3]
+    inner[0] >= outer[0] - BOUNDS_TOLERANCE_DEGREES &&
+    inner[1] >= outer[1] - BOUNDS_TOLERANCE_DEGREES &&
+    inner[2] <= outer[2] + BOUNDS_TOLERANCE_DEGREES &&
+    inner[3] <= outer[3] + BOUNDS_TOLERANCE_DEGREES
   );
 };
 

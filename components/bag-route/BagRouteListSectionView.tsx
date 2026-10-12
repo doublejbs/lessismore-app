@@ -1,8 +1,15 @@
-import { FC } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { FC, useContext } from 'react';
+import {
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
-import CategoryChipView from '@/components/browse/CategoryChipView';
 import PretendardText from '@/components/PretendardText';
 import PointListView, { PointRow } from '@/components/point/PointListView';
 import RouteListView, {
@@ -24,6 +31,8 @@ import BagRoute from '@/model/bag-route/BagRoute';
 import { BagRouteEntry } from '@/model/bag-route/BagRouteEntry';
 import BagRouteList from '@/model/bag-route/BagRouteList';
 import BagRouteSegment from '@/model/bag-route/BagRouteSegment';
+import BagRouteSegmentChipsView from './BagRouteSegmentChipsView';
+import BagRouteSheetContext from './BagRouteSheetContext';
 
 interface Props {
   bagRouteList: BagRouteList;
@@ -39,7 +48,17 @@ interface Props {
   onEditPoint: (point: BagPoint) => void;
   onDeletePoint: (point: BagPoint) => void;
   bottomInset: number;
+  /**
+   * 바텀 시트 안(BD-11, 네이티브 지도 화면)에 들어간다 — 목록이 시트 높이를 따라 남는 세로를 다 쓰고
+   * (`maxHeight 220` 고정을 푼다), 세그먼트 칩 줄은 시트 머리(손잡이와 함께 끄는 영역)가 그리므로 여기서 뺀다.
+   */
+  fillHeight?: boolean;
 }
+
+// 시트 안 목록 맨 위에서 이만큼(pt) 넘게 당겼다 놓으면 시트를 내린다 — 손이 살짝 미끄러진 것과 가른다.
+const PULL_DOWN_THRESHOLD = 48;
+// 맨 위를 넘겨 당기는 바운스(음수 오프셋)는 iOS에만 있다. 안드로이드는 오프셋이 0에 멈춰 당김을 읽을 수 없다.
+const CAN_DETECT_PULL = Platform.OS === 'ios';
 
 /**
  * 배낭 코스 목록 + 추가 액션 (BD-11) · 포인트 목록 (BD-14).
@@ -66,8 +85,11 @@ const BagRouteListSectionView: FC<Props> = ({
   onEditPoint,
   onDeletePoint,
   bottomInset,
+  fillHeight = false,
 }) => {
   const l10n = app.getL10n();
+  // 바텀 시트 안이면 시트가 건넨다(BD-11) — 목록 맨 위에서 아래로 당기면 시트가 한 단 내려간다.
+  const sheet = useContext(BagRouteSheetContext);
   const separator = l10n.t('common.metaSeparator');
   const entries = bagRouteList.getEntries();
   const isFull = bagRouteList.isFull();
@@ -149,24 +171,35 @@ const BagRouteListSectionView: FC<Props> = ({
     };
   };
 
-  const renderSegment = () => (
-    <View style={styles.segment}>
-      <CategoryChipView
-        label={l10n.t('bag.point.segmentRoutes')}
-        selected={segment === BagRouteSegment.Routes}
-        onPress={() => onChangeSegment(BagRouteSegment.Routes)}
-        accessibilityRole='tab'
-        accessibilityState={{ selected: segment === BagRouteSegment.Routes }}
-      />
-      <CategoryChipView
-        label={l10n.t('bag.point.segmentPoints')}
-        selected={segment === BagRouteSegment.Points}
-        onPress={() => onChangeSegment(BagRouteSegment.Points)}
-        accessibilityRole='tab'
-        accessibilityState={{ selected: segment === BagRouteSegment.Points }}
-      />
-    </View>
-  );
+  // 시트 안에서는 칩 줄을 시트 머리가 그린다(fillHeight).
+  const renderSegment = () =>
+    fillHeight ? null : (
+      <View style={styles.segment}>
+        <BagRouteSegmentChipsView
+          segment={segment}
+          onChangeSegment={onChangeSegment}
+        />
+      </View>
+    );
+
+  const handleScrollEndDrag = (
+    event: NativeSyntheticEvent<NativeScrollEvent>
+  ) => {
+    if (!sheet || !CAN_DETECT_PULL) {
+      return;
+    }
+
+    if (event.nativeEvent.contentOffset.y < -PULL_DOWN_THRESHOLD) {
+      sheet.onPullDownAtTop();
+    }
+  };
+
+  const listStyle = fillHeight ? styles.listFill : styles.list;
+  const sectionStyle = [
+    styles.section,
+    fillHeight && styles.sectionFill,
+    { paddingBottom: bottomInset },
+  ];
 
   // 빈 목록 문구 — 유형 칩에 걸려 비었는지, 정말 없는지(웹은 찍는 법 안내 없이) 가른다.
   const getPointEmptyKey = () => {
@@ -218,8 +251,9 @@ const BagRouteListSectionView: FC<Props> = ({
 
     return (
       <ScrollView
-        style={styles.list}
+        style={listStyle}
         showsVerticalScrollIndicator={false}
+        onScrollEndDrag={handleScrollEndDrag}
         contentContainerStyle={styles.listContent}
       >
         <PointListView
@@ -234,7 +268,7 @@ const BagRouteListSectionView: FC<Props> = ({
     const isPointFull = bagPointList.isFull();
 
     return (
-      <View style={[styles.section, { paddingBottom: bottomInset }]}>
+      <View style={sectionStyle}>
         {renderSegment()}
         {renderPointList()}
         {/* 상한에 닿으면 지도의 `포인트 추가`를 막고, 목록에도 **그 자리에** 이유를 적는다(BD-14). */}
@@ -248,7 +282,7 @@ const BagRouteListSectionView: FC<Props> = ({
   }
 
   return (
-    <View style={[styles.section, { paddingBottom: bottomInset }]}>
+    <View style={sectionStyle}>
       {renderSegment()}
       {entries.length === 0 ? (
         <PretendardText style={styles.empty}>
@@ -256,8 +290,9 @@ const BagRouteListSectionView: FC<Props> = ({
         </PretendardText>
       ) : (
         <ScrollView
-          style={styles.list}
+          style={listStyle}
           showsVerticalScrollIndicator={false}
+          onScrollEndDrag={handleScrollEndDrag}
           contentContainerStyle={styles.listContent}
         >
           <RouteListView
@@ -304,9 +339,6 @@ const BagRouteListSectionView: FC<Props> = ({
 
 const styles = StyleSheet.create({
   segment: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: AcgLayout.chipGap,
     paddingTop: 12,
   },
   section: {
@@ -316,9 +348,16 @@ const styles = StyleSheet.create({
     borderTopColor: Acg.hairline,
     gap: 8,
   },
+  // 시트 안에서는 시트 높이가 곧 목록 높이다 — 섹션이 남는 세로를 다 쓰고 목록이 그 안을 채운다.
+  sectionFill: {
+    flex: 1,
+  },
   // 지도가 남는 세로를 다 쓰도록 목록은 제 높이를 넘기지 않는다.
   list: {
     maxHeight: 220,
+  },
+  listFill: {
+    flex: 1,
   },
   listContent: {
     paddingBottom: 4,

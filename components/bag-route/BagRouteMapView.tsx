@@ -1,11 +1,26 @@
-import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   LayoutChangeEvent,
   Platform,
   StyleSheet,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
@@ -61,6 +76,7 @@ import { BagPointCoordinate } from '@/model/bag-point/BagPointCoordinate';
 import { getBagPointMeta } from '@/model/bag-point/BagPointLabels';
 import BagPointList from '@/model/bag-point/BagPointList';
 import BagRouteList from '@/model/bag-route/BagRouteList';
+import BagRouteSheetDetent from '@/model/bag-route/BagRouteSheetDetent';
 import {
   KOREA_CAMERA,
   lngLatBoundsToRouteBounds,
@@ -78,6 +94,14 @@ import {
 } from '@/model/route/RouteCamera';
 import { RouteBounds, RouteCoordinate } from '@/model/route/RouteData';
 import { RouteElevationSample } from '@/model/route/RouteElevation';
+import BagRouteBottomSheetView, {
+  BagRouteBottomSheetHandle,
+} from './BagRouteBottomSheetView';
+import {
+  getBagRouteSheetDetentHeight,
+  getBagRouteSheetDetents,
+  SHEET_HEADER_PADDING_BOTTOM,
+} from './BagRouteSheetLayout';
 
 interface Props {
   bagRouteList: BagRouteList;
@@ -100,6 +124,15 @@ interface Props {
   ) => void;
   onRequestEdit: (point: BagPoint) => void;
   onRequestDelete: (point: BagPoint) => void;
+  /**
+   * 바텀 시트(BD-11) 머리 — 손잡이와 함께 끄는 영역(`코스 | 포인트` 세그먼트 칩 줄). 지도 모듈이 없는 옛
+   * 바이너리(게이트 폴백)에서는 안내 줄 아래 그대로 세로로 쌓인다.
+   */
+  listHeader: ReactNode;
+  // 바텀 시트 본문의 목록(고도 그래프 아래). 시트 높이를 채우도록 그린다(`fillHeight`).
+  listContent: ReactNode;
+  // 목록 섹션 아래 여백(세이프에어리어 + 12) — 시트 단 높이 계산이 같은 값을 쓴다.
+  listBottomInset: number;
 }
 
 interface ViewSnapshot {
@@ -146,6 +179,14 @@ const NOTICE_PILL_PADDING_H = 10;
 const NOTICE_PILL_PADDING_V = 4;
 // `offline_route_map_open`의 `reason`(OF-8). 폴백(`map_unavailable`)은 2026-10-12 폐기 — 지금은 이 값 하나다.
 const OFFLINE_MAP_OPEN_REASON = 'offline';
+// 그래프를 아직 재지 못했을 때의 높이(pt) — 위 여백 + 머리 줄 + 그래프 96 + 안내 줄 + 축 줄.
+const GRAPH_HEIGHT_ESTIMATE = 184;
+
+/**
+ * 시트 단은 **세션 동안** 기억한다(BD-11) — 화면을 닫았다 다시 열어도 같은 단으로 뜬다. 기기에 저장하지는
+ * 않는다(앱을 다시 켜면 기본 단).
+ */
+let sessionSheetDetent = BagRouteSheetDetent.Half;
 
 // `getRouteFitRegion`(여유 배율·최소 범위가 들어간 영역)을 지도 초기 카메라 상자로 — 여백은 이미 들어 있다.
 const regionToBounds = (region: RouteCameraRegion): RouteBounds =>
@@ -154,12 +195,17 @@ const regionToBounds = (region: RouteCameraRegion): RouteBounds =>
 const isSinglePoint = (bounds: RouteBounds): boolean =>
   bounds.minLat === bounds.maxLat && bounds.minLng === bounds.maxLng;
 
-// 상자 맞춤의 여백 — 위만 상단 오버레이(칩 줄)를 비운다. 나머지는 `getRouteFitRegion`의 여유로 충분하다.
-const toFitPadding = (top: number) => ({ ...NO_CAMERA_PADDING, top });
+// 상자 맞춤의 여백 — 위는 상단 오버레이(칩 줄), 아래는 바텀 시트가 덮는 높이를 비운다.
+const toFitPadding = (top: number, bottom: number) => ({
+  ...NO_CAMERA_PADDING,
+  top,
+  bottom,
+});
 
 const toFitCamera = (
   bounds: RouteBounds,
-  topPadding: number
+  topPadding: number,
+  bottomPadding: number
 ): AppMapInitialCamera =>
   isSinglePoint(bounds)
     ? {
@@ -169,7 +215,7 @@ const toFitCamera = (
       }
     : {
         bounds: regionToBounds(getRouteFitRegion(bounds)),
-        padding: toFitPadding(topPadding),
+        padding: toFitPadding(topPadding, bottomPadding),
       };
 
 /**
@@ -185,8 +231,10 @@ const toFitCamera = (
  *   아래 `코스 추가` 하나다(HM-8). 조준 모드에서는 목록이 걷히므로 그때의 주 액션 `이 위치에 추가`가 라임이 된다.
  * - 카메라 순서: 초점 포인트 → 고른 코스 → 전체 상자(코스 + 포인트) → 저장해 둔 지도 팩 영역 → 남한 전역.
  *   처음 자리는 지도를 붙일 때의 초기 카메라로 준다(세계 지도에서 날아오지 않는다).
- * - 그래프는 지도 **아래**다. 지도 위에 얹으면 훑는 동안 손가락과 그래프가 지도를 가려
- *   "이 오르막이 어디인가"를 볼 수 없다 — 이 기능이 존재하는 이유가 사라진다(GRP-8).
+ * - 지도는 화면을 다 쓰고, 고도 그래프 + 세그먼트 + 목록은 지도 위에 얹힌 **바텀 시트**다(BD-11, 2026-10-12).
+ *   세 단(접힘·기본·펼침)으로 끌어 올린다. 그래프는 시트 맨 위(손잡이·세그먼트 아래)라 훑는 동안에도 손가락이
+ *   지도를 가리지 않는다(GRP-8). 접힘으로 내리면 그래프가 접혀 첫 행이 보인다. 출처 ⓘ·축척·우하단 컨트롤은 시트
+ *   위로 따라 올라오고(기본 단 높이까지), 카메라 맞춤은 시트가 덮는 아래를 비운다.
  */
 const BagRouteMapView: FC<Props> = ({
   bagRouteList,
@@ -199,10 +247,18 @@ const BagRouteMapView: FC<Props> = ({
   onRequestCreate,
   onRequestEdit,
   onRequestDelete,
+  listHeader,
+  listContent,
+  listBottomInset,
 }) => {
   const l10n = app.getL10n();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
+  const sheetRef = useRef<BagRouteBottomSheetHandle>(null);
+  // 시트가 얹히는 칸의 높이 — 재기 전에는 창 높이로 어림한다(첫 카메라가 시트 높이를 써야 한다).
+  const [rootHeight, setRootHeight] = useState(windowHeight);
+  const [graphHeight, setGraphHeight] = useState(GRAPH_HEIGHT_ESTIMATE);
   const mapRef = useRef<AppMapViewRef>(null);
   const mountedRef = useRef(true);
   // 마지막으로 알려진 지도 상태 — 줌 유지·③의 북쪽 되돌리기·조준 확정 폴백에 쓴다.
@@ -267,6 +323,43 @@ const BagRouteMapView: FC<Props> = ({
   // 고른 포인트가 선택된 코스의 어디쯤인지 — 그래프 표시와 카드 메타 줄(GRP-8 500m 규칙).
   const pointRouteMark = usePointRouteMark(selectedRoute, focusedPoint);
   const canEdit = !isOffline;
+  // 시트 단 높이(BD-11) — 고도가 없는 코스는 그래프 자리가 없다.
+  const hasSheetGraph = !!selected?.route.getElevationProfile();
+  const hasSheetFooter = bagRouteList.canAdd();
+  const detents = useMemo(
+    () =>
+      getBagRouteSheetDetents({
+        rootHeight,
+        topInset,
+        listBottomInset,
+        graphHeight: hasSheetGraph ? graphHeight : 0,
+        hasFooter: hasSheetFooter,
+      }),
+    [
+      graphHeight,
+      hasSheetFooter,
+      hasSheetGraph,
+      listBottomInset,
+      rootHeight,
+      topInset,
+    ]
+  );
+  const [initialSheetDetent] = useState(() => sessionSheetDetent);
+  const initialSheetHeight = getBagRouteSheetDetentHeight(
+    detents,
+    initialSheetDetent
+  );
+  // 시트 높이 — 공유 값은 매 프레임(컨트롤·그래프), 상태는 스로틀된 알림(출처 표기 — 네이티브 prop).
+  const sheetHeightValue = useSharedValue(initialSheetHeight);
+  const [sheetHeight, setSheetHeight] = useState(initialSheetHeight);
+  const sheetHeightRef = useRef(initialSheetHeight);
+  const detentsRef = useRef(detents);
+  const isAimingRef = useRef(isAiming);
+
+  useEffect(() => {
+    detentsRef.current = detents;
+    isAimingRef.current = isAiming;
+  }, [detents, isAiming]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -365,6 +458,24 @@ const BagRouteMapView: FC<Props> = ({
     [topInset]
   );
 
+  // 카메라 맞춤의 아래 여백 — 시트가 덮는 높이. 펼침이어도 기본 단 높이까지만 비운다(지도 칸이 남지 않는다).
+  const getFitBottomPadding = useCallback(
+    () =>
+      isAimingRef.current
+        ? 0
+        : Math.min(sheetHeightRef.current, detentsRef.current.half),
+    []
+  );
+
+  // 목록에서 고르면 그 자리를 지도에서 보여야 한다 — 펼침이면 기본 단으로 내린다(BD-11).
+  const lowerExpandedSheet = useCallback(() => {
+    const sheet = sheetRef.current;
+
+    if (sheet?.getDetent() === BagRouteSheetDetent.Expanded) {
+      sheet.snapTo(BagRouteSheetDetent.Half);
+    }
+  }, []);
+
   const fitBounds = useCallback(
     (bounds: RouteBounds) => {
       // 코스로 옮기면 방향 모드의 따라가기를 푼다(손으로 옮긴 것과 같다 — BD-11).
@@ -376,7 +487,7 @@ const BagRouteMapView: FC<Props> = ({
           longitude: bounds.minLng,
           zoom: SINGLE_POINT_ZOOM,
           duration: CAMERA_MOVE_DURATION,
-          padding: NO_CAMERA_PADDING,
+          padding: { ...NO_CAMERA_PADDING, bottom: getFitBottomPadding() },
         });
 
         return;
@@ -385,10 +496,10 @@ const BagRouteMapView: FC<Props> = ({
       mapRef.current?.fitRegion(
         getRouteFitRegion(bounds),
         CAMERA_MOVE_DURATION,
-        toFitPadding(getFitTopPadding())
+        toFitPadding(getFitTopPadding(), getFitBottomPadding())
       );
     },
-    [getFitTopPadding, releaseFollow]
+    [getFitBottomPadding, getFitTopPadding, releaseFollow]
   );
 
   /**
@@ -412,9 +523,7 @@ const BagRouteMapView: FC<Props> = ({
       handledFocusSeqRef.current = routeRequest?.seq ?? 0;
 
       const pointEntry = pointRequest
-        ? bagPointList
-            .getEntries()
-            .find(item => item.key === pointRequest.key)
+        ? bagPointList.getEntries().find(item => item.key === pointRequest.key)
         : null;
 
       if (pointEntry) {
@@ -439,7 +548,11 @@ const BagRouteMapView: FC<Props> = ({
         ]);
 
       if (contentBounds) {
-        return toFitCamera(contentBounds, getFitTopPadding());
+        return toFitCamera(
+          contentBounds,
+          getFitTopPadding(),
+          getFitBottomPadding()
+        );
       }
 
       const packBounds =
@@ -467,6 +580,7 @@ const BagRouteMapView: FC<Props> = ({
     bagId,
     bagPointList,
     bagRouteList,
+    getFitBottomPadding,
     getFitTopPadding,
     initialCamera,
     isContentReady,
@@ -486,6 +600,7 @@ const BagRouteMapView: FC<Props> = ({
     }
 
     handledFocusSeqRef.current = focusRequest.seq;
+    lowerExpandedSheet();
 
     // 훑는 중에 바뀐 선택은 카메라를 옮기지 않는다 — 손가락 아래 그래프와 지도가 어긋난다(GRP-8).
     // 선택이 바뀌면 그래프가 새로 마운트되어 이 훑기는 끝난다(남은 마커는 키가 달라 저절로 걷힌다).
@@ -504,7 +619,13 @@ const BagRouteMapView: FC<Props> = ({
     if (bounds) {
       fitBounds(bounds);
     }
-  }, [bagRouteList, fitBounds, focusRequest, initialCamera]);
+  }, [
+    bagRouteList,
+    fitBounds,
+    focusRequest,
+    initialCamera,
+    lowerExpandedSheet,
+  ]);
 
   /**
    * 고른 포인트로 카메라를 옮긴다(BD-14) — 마커 탭은 지금 줌 그대로, 목록 행 탭은 적어도 그 부근까지 당긴다.
@@ -530,6 +651,7 @@ const BagRouteMapView: FC<Props> = ({
 
     const currentZoom = viewRef.current?.zoom ?? POINT_FOCUS_ZOOM;
 
+    lowerExpandedSheet();
     releaseFollow();
     mapRef.current?.animateTo({
       latitude: entry.point.getLatitude(),
@@ -538,9 +660,16 @@ const BagRouteMapView: FC<Props> = ({
         ? { zoom: Math.max(currentZoom, POINT_FOCUS_ZOOM) }
         : {}),
       duration: CAMERA_MOVE_DURATION,
-      padding: NO_CAMERA_PADDING,
+      padding: { ...NO_CAMERA_PADDING, bottom: getFitBottomPadding() },
     });
-  }, [bagPointList, initialCamera, pointFocusRequest, releaseFollow]);
+  }, [
+    bagPointList,
+    getFitBottomPadding,
+    initialCamera,
+    lowerExpandedSheet,
+    pointFocusRequest,
+    releaseFollow,
+  ]);
 
   // OF-1: 연결 그룹의 코스·포인트는 저장하지 않는다 — 오프라인이고 그룹이 있었으면 그 사실을 한 줄로 알린다.
   useEffect(() => {
@@ -658,6 +787,37 @@ const BagRouteMapView: FC<Props> = ({
     setCardSlotHeight(previous =>
       Math.abs(previous - height) < 1 ? previous : height
     );
+  }, []);
+
+  const handleRootLayout = useCallback((event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+
+    setRootHeight(previous =>
+      Math.abs(previous - height) < 1 ? previous : height
+    );
+  }, []);
+
+  const handleGraphLayout = useCallback((event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+
+    if (height <= 0) {
+      return;
+    }
+
+    setGraphHeight(previous =>
+      Math.abs(previous - height) < 1 ? previous : height
+    );
+  }, []);
+
+  const handleSheetHeightChange = useCallback((height: number) => {
+    sheetHeightRef.current = height;
+    setSheetHeight(previous =>
+      Math.abs(previous - height) < 1 ? previous : height
+    );
+  }, []);
+
+  const handleSheetDetentChange = useCallback((detent: BagRouteSheetDetent) => {
+    sessionSheetDetent = detent;
   }, []);
 
   // 길게 누르기 → 입력 시트(BD-14). 지도의 네이티브 롱프레스라 좌표가 바로 온다. 조준 모드에서는 받지 않는다.
@@ -808,8 +968,13 @@ const BagRouteMapView: FC<Props> = ({
   // 코스도 포인트도 없으면 거를 것이 없다 — 칩 행을 숨긴다(BD-14).
   const showFilterChips =
     !isAiming && (entries.length > 0 || bagPointList.hasAny());
-  // 조준 모드에서는 아래 목록이 걷혀 이 지도가 화면 맨 아래까지 온다 — 세이프에어리어를 직접 비운다.
-  const bottomInset = isAiming ? insets.bottom : 0;
+  /**
+   * 지도 아래쪽에서 비울 높이 — 시트가 덮는 높이(펼침이어도 기본 단 높이까지 — 그 위로는 시트가 컨트롤을 덮는다).
+   * 조준 모드에서는 시트가 내려가 지도가 화면 맨 아래까지 온다 — 세이프에어리어만 비운다.
+   */
+  const bottomInset = isAiming
+    ? insets.bottom
+    : Math.min(sheetHeight, detents.half);
   const focusedBagPoint =
     focusedEntry?.owned && focusedEntry.point instanceof BagPoint
       ? focusedEntry.point
@@ -823,10 +988,31 @@ const BagRouteMapView: FC<Props> = ({
     selectedRoute.getSimplified().length >= ROUTE_REPLAY_MIN_COORDINATES;
   const showEndpointCard =
     canEdit && !!endpoint && !!markerRoute && !focusedEntry;
+  // 출처 ⓘ(라이선스 의무)·iOS 축척 막대 — 시트 위, 카드가 있으면 그 위로 올린다.
   const attributionBottomOffset =
     cardSlotHeight > 0
       ? CONTROL_BOTTOM_OFFSET + bottomInset + cardSlotHeight
-      : 0;
+      : bottomInset;
+  const sheetHalf = detents.half;
+  const sheetCollapsed = detents.collapsed;
+  const aimingBottom = insets.bottom;
+  // 우하단 컨트롤·카드 칸은 시트 위 끝을 매 프레임 따라간다(스로틀된 상태로 옮기면 끄는 동안 뒤처진다).
+  const bottomOverlayStyle = useAnimatedStyle(() => ({
+    bottom:
+      CONTROL_BOTTOM_OFFSET +
+      (isAiming ? aimingBottom : Math.min(sheetHeightValue.value, sheetHalf)),
+  }));
+  // 그래프는 접힘 ↔ 기본 사이에서 접혔다 펴진다 — 접힘에는 손잡이 + 세그먼트 + 첫 행만 보인다(BD-11).
+  const graphSlotStyle = useAnimatedStyle(() => {
+    const progress = interpolate(
+      sheetHeightValue.value,
+      [sheetCollapsed, sheetHalf],
+      [0, 1],
+      Extrapolation.CLAMP
+    );
+
+    return { height: graphHeight * progress, opacity: progress };
+  });
   const ornamentTopOffset = Math.max(topInset, topOverlayBottom + OVERLAY_GAP);
 
   const renderCard = () => {
@@ -914,9 +1100,9 @@ const BagRouteMapView: FC<Props> = ({
   };
 
   return (
-    <View style={styles.root}>
-      {/* 지도와 그 위 오버레이가 사는 칸. 고도 그래프는 이 칸 **밖**(아래)에 붙는다(GRP-8) —
-        조준 마커가 이 칸의 정중앙에 선다. */}
+    <View style={styles.root} onLayout={handleRootLayout}>
+      {/* 지도와 그 위 오버레이가 사는 칸 — 화면을 다 쓴다. 고도 그래프·목록은 그 위에 얹힌 바텀 시트다(BD-11).
+        조준 마커가 이 칸의 정중앙에 선다(조준 모드에서는 시트가 내려간다). */}
       <View style={styles.mapSection}>
         <View style={styles.mapArea} onLayout={handleMapAreaLayout}>
           {initialCamera ? (
@@ -986,7 +1172,9 @@ const BagRouteMapView: FC<Props> = ({
           {/* 오프라인: 저장본이 있으면 "저장된 지도" 줄(로드 실패와 겹쳐도 남긴다), 없으면 "저장되지 않았어요" —
             저장본 없이 끊긴 지도의 로드 실패는 이 줄이 이미 설명한다. */}
           {isOffline && hasSavedSnapshot === true ? (
-            <OfflineSnapshotBandView label={l10n.t('offline.map.offlineLine')} />
+            <OfflineSnapshotBandView
+              label={l10n.t('offline.map.offlineLine')}
+            />
           ) : null}
           {isOffline && hasSavedSnapshot === false ? (
             <MapNoticeLineView label={l10n.t('offline.detail.notSaved')} />
@@ -1011,11 +1199,8 @@ const BagRouteMapView: FC<Props> = ({
         </View>
 
         {/* 지도 아래쪽 오버레이 — 내 위치·포인트 추가 밑에 카드가 붙는다(버튼을 가리지 않게 한 칸에 쌓는다). */}
-        <View
-          style={[
-            styles.bottomOverlay,
-            { bottom: CONTROL_BOTTOM_OFFSET + bottomInset },
-          ]}
+        <Animated.View
+          style={[styles.bottomOverlay, bottomOverlayStyle]}
           pointerEvents='box-none'
           onLayout={handleBottomOverlayLayout}
         >
@@ -1074,25 +1259,43 @@ const BagRouteMapView: FC<Props> = ({
           <View pointerEvents='box-none' onLayout={handleCardSlotLayout}>
             {renderCard()}
           </View>
-        </View>
+        </Animated.View>
       </View>
 
-      {/* 고도가 없는 코스는 그래프 자리를 아예 비운다 — 빈 틀은 "데이터를 못 불러왔다"로 읽힌다. */}
-      {profile ? (
-        <RouteElevationChartView
-          // 코스를 바꾸면 그래프를 새로 마운트해 이전 코스의 커서가 남지 않게 한다.
-          // 방향을 뒤집어도 새로 마운트한다 — 단면이 바뀌므로 커서가 옛 단면 자리에 남지 않게.
-          key={`${selectedKey ?? ''}:${selectedRoute?.isReversed() ? 'r' : 'f'}`}
-          profile={profile}
-          // 축 거리는 목록 행과 같은 원본 거리로 읽힌다(BD-11).
-          {...(selected
-            ? { displayDistance: selected.route.getDistance() }
-            : {})}
-          onScrub={handleScrub}
-          // 고른 포인트의 코스 위 위치(GRP-8) — 500m 밖이면 표시하지 않는다.
-          pointMarker={pointRouteMark?.chartMarker ?? null}
-        />
-      ) : null}
+      {/* 하단 바텀 시트(BD-11) — 손잡이 + 세그먼트(끄는 영역) · 고도 그래프 · 목록. 조준 모드에서는 내려간다. */}
+      <BagRouteBottomSheetView
+        ref={sheetRef}
+        detents={detents}
+        initialDetent={initialSheetDetent}
+        animatedHeight={sheetHeightValue}
+        onHeightChange={handleSheetHeightChange}
+        onDetentChange={handleSheetDetentChange}
+        visible={!isAiming}
+        header={<View style={styles.sheetHeader}>{listHeader}</View>}
+      >
+        {/* 고도가 없는 코스는 그래프 자리를 아예 비운다 — 빈 틀은 "데이터를 못 불러왔다"로 읽힌다. */}
+        {profile ? (
+          <Animated.View style={[styles.graphSlot, graphSlotStyle]}>
+            {/* 칸이 접혀도 그래프는 제 높이로 그려 둔다(잘릴 뿐) — 그 높이가 기본 단 계산에 들어간다. */}
+            <View onLayout={handleGraphLayout}>
+              <RouteElevationChartView
+                // 코스를 바꾸면 그래프를 새로 마운트해 이전 코스의 커서가 남지 않게 한다.
+                // 방향을 뒤집어도 새로 마운트한다 — 단면이 바뀌므로 커서가 옛 단면 자리에 남지 않게.
+                key={`${selectedKey ?? ''}:${selectedRoute?.isReversed() ? 'r' : 'f'}`}
+                profile={profile}
+                // 축 거리는 목록 행과 같은 원본 거리로 읽힌다(BD-11).
+                {...(selected
+                  ? { displayDistance: selected.route.getDistance() }
+                  : {})}
+                onScrub={handleScrub}
+                // 고른 포인트의 코스 위 위치(GRP-8) — 500m 밖이면 표시하지 않는다.
+                pointMarker={pointRouteMark?.chartMarker ?? null}
+              />
+            </View>
+          </Animated.View>
+        ) : null}
+        {listContent}
+      </BagRouteBottomSheetView>
     </View>
   );
 };
@@ -1102,7 +1305,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Acg.bg,
   },
-  // 지도는 남는 세로를 다 쓴다 — 목록·그래프는 아래에서 제 높이만 가져간다.
+  // 지도는 화면을 다 쓴다 — 그래프·목록은 그 위에 얹힌 바텀 시트다(BD-11).
   mapSection: {
     flex: 1,
     overflow: 'hidden',
@@ -1139,6 +1342,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
+  },
+  // 시트 머리의 세그먼트 칩 줄 — 손잡이 바로 아래, 좌우는 화면 패딩.
+  sheetHeader: {
+    paddingHorizontal: AcgLayout.screenPadding,
+    paddingBottom: SHEET_HEADER_PADDING_BOTTOM,
+  },
+  // 접힘 ↔ 기본 사이에서 높이가 줄어드는 그래프 칸 — 넘치는 부분은 자른다.
+  graphSlot: {
+    overflow: 'hidden',
   },
   // 지도 위 원형 컨트롤 세로 스택(우측 16 — 그룹 지도와 같은 자리 규칙).
   controlStack: {

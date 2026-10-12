@@ -16,6 +16,13 @@ const CONTOUR_LABEL_HALO = '#FFFFFF';
 const CONTOUR_MINOR_WIDTH = 0.8;
 const CONTOUR_MAJOR_WIDTH = 1.4;
 const CONTOUR_LABEL_SIZE = 10;
+// 줌별 투명도 — 넓게 볼 때(줌 11 아래)는 20m 간격 선이 겹쳐 갈색 덩어리가 된다(2026-10-12 실기기 실측).
+// 100m 선은 줌 11부터, 20m 선은 줌 12.5부터 서서히 드러나고, 라벨은 줌 13부터다.
+const CONTOUR_MINOR_OPACITY: unknown[] = ['interpolate', ['linear'], ['zoom'], 12, 0, 13.5, 1];
+const CONTOUR_MAJOR_OPACITY: unknown[] = ['interpolate', ['linear'], ['zoom'], 10.5, 0, 12.5, 1];
+const CONTOUR_MINOR_MINZOOM = 12;
+const CONTOUR_MAJOR_MINZOOM = 10.5;
+const CONTOUR_LABEL_MINZOOM = 13;
 // OpenFreeMap 글리프에 있는 폰트(스타일 `outdoor-v1.json`의 symbol 레이어와 같은 값).
 const CONTOUR_LABEL_FONT = ['Noto Sans Regular'];
 
@@ -33,25 +40,30 @@ const OfflineMapContoursView: FC<Props> = ({ contours, beforeId }) => {
         id='offline-contours-minor'
         type='line'
         beforeId={beforeId}
+        minzoom={CONTOUR_MINOR_MINZOOM}
         paint={{
           'line-color': CONTOUR_MINOR_COLOR,
           'line-width': CONTOUR_MINOR_WIDTH,
+          'line-opacity': CONTOUR_MINOR_OPACITY as never,
         }}
       />
       <Layer
         id='offline-contours-major'
         type='line'
         beforeId={beforeId}
+        minzoom={CONTOUR_MAJOR_MINZOOM}
         filter={['==', ['get', 'major'], true]}
         paint={{
           'line-color': CONTOUR_MAJOR_COLOR,
           'line-width': CONTOUR_MAJOR_WIDTH,
+          'line-opacity': CONTOUR_MAJOR_OPACITY as never,
         }}
       />
       <Layer
         id='offline-contours-label'
         type='symbol'
         beforeId={beforeId}
+        minzoom={CONTOUR_LABEL_MINZOOM}
         filter={['==', ['get', 'major'], true]}
         layout={{
           'symbol-placement': 'line',
