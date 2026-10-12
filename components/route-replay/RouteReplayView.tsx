@@ -39,15 +39,16 @@ const RouteReplayView: FC<Props> = ({ request }) => {
     router.replace('/');
   }, [router]);
 
-  const renderCloseButton = () => {
+  // Android 커스텀 헤더의 뒤로가기 — 코스 화면과 같은 관례(LG-1). iOS는 네이티브 헤더의 뒤로 버튼이 맡는다.
+  const renderBackButton = () => {
     return (
       <TouchableOpacity
         style={styles.headerButton}
         onPress={handleClose}
         accessibilityRole='button'
-        accessibilityLabel={l10n.t('common.close')}
+        accessibilityLabel={l10n.t('common.back')}
       >
-        <Ionicons name='close' size={24} color={Acg.ink} />
+        <Ionicons name='chevron-back' size={24} color={Acg.ink} />
       </TouchableOpacity>
     );
   };
@@ -66,14 +67,13 @@ const RouteReplayView: FC<Props> = ({ request }) => {
         options={{
           headerShown: IS_IOS,
           headerTitle: title,
-          headerBackVisible: false,
+          headerBackButtonDisplayMode: 'minimal',
           headerShadowVisible: false,
-          headerRight: renderCloseButton,
         }}
       />
       {IS_IOS ? null : (
         <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-          <View style={styles.headerButton} />
+          {renderBackButton()}
           <PretendardText
             weight='semibold'
             style={styles.headerTitle}
@@ -81,7 +81,7 @@ const RouteReplayView: FC<Props> = ({ request }) => {
           >
             {title}
           </PretendardText>
-          {renderCloseButton()}
+          <View style={styles.headerButton} />
         </View>
       )}
       <View style={styles.content}>{renderBody()}</View>
