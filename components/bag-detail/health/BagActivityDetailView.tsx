@@ -1,17 +1,32 @@
-import { FC } from 'react';
+import { FC, useMemo } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import app from '@/model/app/App';
 import PretendardText from '@/components/PretendardText';
-import { AcgType, Color, Spacing } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgType,
+  Color,
+  Radius,
+  Spacing,
+} from '@/constants/DesignTokens';
 import BagActivity from '@/model/bag/BagActivity';
 import BagActivityDetailStatus from '@/model/bag/BagActivityDetailStatus';
+import {
+  buildActivityReplayCoordinates,
+  measureRouteCoordinates,
+  ROUTE_REPLAY_MIN_COORDINATES,
+} from '@/model/route-replay/RouteReplayCoordinates';
+import RouteReplaySource from '@/model/route-replay/RouteReplaySource';
 import BagActivityRouteMapView from './BagActivityRouteMapView';
 import BagActivitySummaryView from './BagActivitySummaryView';
 import BagActivityWorkoutDetailView from './BagActivityWorkoutDetailView';
@@ -19,6 +34,12 @@ import BagActivityWorkoutDetailView from './BagActivityWorkoutDetailView';
 interface Props {
   bagActivity: BagActivity;
 }
+
+// 3D 리플레이 진입(RR-1)은 네이티브에만 있다(APP-5).
+const CAN_OPEN_REPLAY = Platform.OS !== 'web';
+// `3D 리플레이` 보조 알약의 아이콘-라벨 간격·좌우 패딩(세로 패딩은 `Spacing.item`).
+const REPLAY_PILL_ICON_GAP = 6;
+const REPLAY_PILL_PADDING_H = 16;
 
 // 연결된 운동 기록의 상세(HA-4). 요약 → 경로 지도 → 운동별 추이 순으로 쌓는다.
 //
@@ -30,6 +51,42 @@ const BagActivityDetailView: FC<Props> = ({ bagActivity }) => {
   const details = bagActivity.getDetails();
   const routes = bagActivity.getRoutes();
   const saving = bagActivity.isSaving();
+  const router = useRouter();
+  // 모든 운동의 경로를 시간순으로 이은 한 줄(RR-1). 수천 점을 정렬하므로 운동 상세가 바뀔 때만 다시
+  // 만든다 — `getRoutes()`는 부를 때마다 새 배열이라 `details`(통째로 갈아 끼우는 값)에서 직접 꺼낸다.
+  const replayCoordinates = useMemo(
+    () =>
+      buildActivityReplayCoordinates(
+        details.flatMap(detail => (detail.route ? [detail.route] : []))
+      ),
+    [details]
+  );
+  const canOpenReplay =
+    CAN_OPEN_REPLAY && replayCoordinates.length >= ROUTE_REPLAY_MIN_COORDINATES;
+
+  // 3D 리플레이 열기(RR-1). 오프라인이면 열지 않고 알린다 — 웹뷰가 타일을 서버에서 받는다.
+  const handleOpenReplay = () => {
+    if (app.getNetworkStatus().isOffline()) {
+      app
+        .getToastManager()
+        ?.showSimple(app.getL10n().t('offline.toast.onlineToView'));
+
+      return;
+    }
+
+    app.getAnalyticsManager()?.logClick('route_replay_open', {
+      source: RouteReplaySource.Activity,
+      point_count: 0,
+      distance_m: Math.round(measureRouteCoordinates(replayCoordinates)),
+    });
+    app.getRouteReplayStore().open({
+      title: app.getL10n().t('routeReplay.activityTitle'),
+      source: RouteReplaySource.Activity,
+      coordinates: replayCoordinates,
+      points: [],
+    });
+    router.push('/route-replay');
+  };
 
   const handleRetry = () => {
     void bagActivity.retryDetail();
@@ -79,6 +136,21 @@ const BagActivityDetailView: FC<Props> = ({ bagActivity }) => {
             서드파티 동기화 기록에는 경로가 거의 없어 대부분의 사용자에게 늘 뜨는
             안내가 됐다 — 고칠 수 없는 사실을 매번 알리는 셈이었다(2026-08-05 사용자 결정). */}
         {routes.length > 0 ? <BagActivityRouteMapView routes={routes} /> : null}
+        {/* 지도 밴드 바로 아래 보조 알약(RR-1) — 지도 위가 아니라 그림자 없는 연회색 면이다. */}
+        {canOpenReplay ? (
+          <TouchableOpacity
+            style={styles.replayButton}
+            onPress={handleOpenReplay}
+            activeOpacity={0.8}
+            accessibilityRole='button'
+            accessibilityLabel={app.getL10n().t('routeReplay.openFromActivity')}
+          >
+            <Ionicons name='cube-outline' size={18} color={Acg.ink} />
+            <PretendardText weight='semibold' style={styles.replayLabel}>
+              {app.getL10n().t('routeReplay.openFromActivity')}
+            </PretendardText>
+          </TouchableOpacity>
+        ) : null}
         {details.map(detail => (
           <BagActivityWorkoutDetailView
             key={detail.workout.id}
@@ -141,6 +213,21 @@ const styles = StyleSheet.create({
     ...AcgType.body,
     color: Color.textSecondary,
     textAlign: 'center',
+  },
+  replayButton: {
+    minHeight: 44,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: REPLAY_PILL_ICON_GAP,
+    paddingHorizontal: REPLAY_PILL_PADDING_H,
+    paddingVertical: Spacing.item,
+    borderRadius: Radius.pill,
+    backgroundColor: Acg.controlFill,
+  },
+  replayLabel: {
+    ...AcgType.control,
+    color: Acg.ink,
   },
   // 화면의 다른 요소가 전부 좌측 정렬인데 이 버튼만 가운데라 축이 어긋났다
   // (2026-08-05 디자인 리뷰). 좌측으로 붙이고 좌우 패딩은 뺀다.

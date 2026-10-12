@@ -1,11 +1,12 @@
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import {
   Camera,
   CameraChangeReason,
   NaverMapView,
   NaverMapViewRef,
 } from '@mj-studio/react-native-naver-map';
+import { useRouter } from 'expo-router';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
@@ -33,6 +34,7 @@ import {
   AcgShadow,
   AcgType,
   Radius,
+  Spacing,
 } from '@/constants/DesignTokens';
 import { MapCoordinate } from '@/hooks/useMapCurrentLocation';
 import app from '@/model/app/App';
@@ -43,6 +45,9 @@ import BagRouteList from '@/model/bag-route/BagRouteList';
 import { deltaToZoom } from '@/model/map/MapZoom';
 import MapPoint from '@/model/point/MapPoint';
 import { getBagPointMeta } from '@/model/bag-point/BagPointLabels';
+import { getPointTypeColor } from '@/model/point/PointLabels';
+import { ROUTE_REPLAY_MIN_COORDINATES } from '@/model/route-replay/RouteReplayCoordinates';
+import RouteReplaySource from '@/model/route-replay/RouteReplaySource';
 import { getRouteFitRegion, mergeRouteBounds } from '@/model/route/RouteCamera';
 import { RouteBounds, RouteCoordinate } from '@/model/route/RouteData';
 import { RouteElevationSample } from '@/model/route/RouteElevation';
@@ -68,14 +73,14 @@ interface Props {
   onRequestDelete: (point: BagPoint) => void;
   // 상단 오버레이(유형 칩)를 헤더 아래로 내린다 — iOS 투명 헤더는 세이프에어리어 + 헤더, Android는 여백만.
   topInset: number;
-  // 지도가 제한 시간 안에 뜨지 않았다(키 오류·SDK 오류) — 화면이 코스 캔버스로 바꾼다(OF-6 폴백).
+  // 지도가 제한 시간 안에 뜨지 않았다(키 오류·SDK 오류) — 화면이 오프라인 지도로 바꾼다(OF-6 폴백).
   onMapUnavailable?: () => void;
-  // 지도가 초기화됐다(늦게라도) — 폴백 캔버스를 걷고 지도로 돌아간다(OF-6).
+  // 지도가 초기화됐다(늦게라도) — 폴백 지도를 걷고 지도로 돌아간다(OF-6).
   onMapInitialized?: () => void;
 }
 
 /**
- * 지도 준비(`onInitialized`)를 기다리는 상한(ms). 넘기면 지도 SDK가 실패한 것으로 보고 캔버스로 바꾼다(OF-6).
+ * 지도 준비(`onInitialized`)를 기다리는 상한(ms). 넘기면 지도 SDK가 실패한 것으로 보고 오프라인 지도로 바꾼다(OF-6).
  * 라이브러리에 인증 실패 콜백이 없어 시간으로 판단한다 — 인증만 실패하고 초기화는 끝나는 경우는 잡지 못한다.
  */
 const MAP_INIT_TIMEOUT_MS = 10000;
@@ -98,6 +103,12 @@ const POINT_FOCUS_DELTA = 0.02;
  * **밖** 아래에 있어 그룹 지도의 +120 대신 이 여백만 둔다.
  */
 const CONTROL_BOTTOM_OFFSET = 16;
+
+/** 3D 리플레이 진입(RR-1)은 네이티브에만 있다(APP-5). 이 본문은 네이티브 전용이지만 명시해 둔다. */
+const CAN_OPEN_REPLAY = Platform.OS !== 'web';
+// `3D` 보조 알약의 아이콘-라벨 간격·좌우 패딩(세로 패딩은 `Spacing.item`).
+const REPLAY_PILL_ICON_GAP = 6;
+const REPLAY_PILL_PADDING_H = 16;
 
 /**
  * 배낭 코스 지도 (BD-11 · BD-14) — 네이티브 전용 본문.
@@ -129,6 +140,7 @@ const BagRouteCanvasView: FC<Props> = ({
   onMapInitialized,
 }) => {
   const l10n = app.getL10n();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<NaverMapViewRef>(null);
   const mapReadyRef = useRef(false);
@@ -269,7 +281,7 @@ const BagRouteCanvasView: FC<Props> = ({
     };
   }, []);
 
-  // OF-6 폴백: 지도가 뜨지 않으면 화면이 코스 캔버스로 바꾼다.
+  // OF-6 폴백: 지도가 뜨지 않으면 화면이 오프라인 지도로 바꾼다.
   useEffect(() => {
     if (!onMapUnavailable) {
       return;
@@ -618,6 +630,45 @@ const BagRouteCanvasView: FC<Props> = ({
     handleCloseEndpoint();
   }, [bagPointList, handleCloseEndpoint]);
 
+  /**
+   * 3D 리플레이 열기(RR-1). 오프라인이면 열지 않고 알린다 — 웹뷰가 타일을 서버에서 받는다.
+   * 버튼은 비활성 모양으로 두지 않는다(연결이 돌아오면 바로 된다).
+   */
+  const handleOpenReplay = () => {
+    if (!selectedRoute) {
+      return;
+    }
+
+    if (app.getNetworkStatus().isOffline()) {
+      app
+        .getToastManager()
+        ?.showSimple(l10n.t('offline.toast.onlineToView'));
+
+      return;
+    }
+
+    const points = bagPointList.getVisiblePoints();
+
+    app.getAnalyticsManager()?.logClick('route_replay_open', {
+      source: RouteReplaySource.Route,
+      point_count: points.length,
+      distance_m: Math.round(selectedRoute.getDistance()),
+    });
+    app.getRouteReplayStore().open({
+      title: selectedRoute.getName(),
+      source: RouteReplaySource.Route,
+      coordinates: selectedRoute.getSimplified(),
+      points: points.map(point => ({
+        latitude: point.getLatitude(),
+        longitude: point.getLongitude(),
+        title: point.getTitle(),
+        type: point.getType(),
+        color: getPointTypeColor(point.getType()),
+      })),
+    });
+    router.push('/route-replay');
+  };
+
   const profile = isAiming
     ? null
     : (selected?.route.getElevationProfile() ?? null);
@@ -635,6 +686,12 @@ const BagRouteCanvasView: FC<Props> = ({
     focusedEntry?.owned && focusedEntry.point instanceof BagPoint
       ? focusedEntry.point
       : null;
+  // 선택 코스가 선이 될 때만 연다(RR-1·RR-3). 조준 모드에서는 이 컨트롤 줄 자체가 걷힌다.
+  const showReplayButton =
+    CAN_OPEN_REPLAY &&
+    !isAiming &&
+    !!selectedRoute &&
+    selectedRoute.getSimplified().length >= ROUTE_REPLAY_MIN_COORDINATES;
 
   return (
     <View style={styles.root}>
@@ -755,8 +812,23 @@ const BagRouteCanvasView: FC<Props> = ({
             </View>
           ) : (
             <>
-              {/* 우측 지도 컨트롤 — 내 위치(BD-11) + `포인트 추가` 보조 알약(BD-14). */}
+              {/* 우측 지도 컨트롤 — `3D`(RR-1) + 내 위치(BD-11) + `포인트 추가` 보조 알약(BD-14). */}
               <View style={styles.controlStack} pointerEvents='box-none'>
+                {/* `3D`는 라임이 아니다 — 이 화면의 주 액션은 `코스 추가` 하나다(HM-8). */}
+                {showReplayButton ? (
+                  <TouchableOpacity
+                    style={styles.replayButton}
+                    onPress={handleOpenReplay}
+                    activeOpacity={0.8}
+                    accessibilityRole='button'
+                    accessibilityLabel={l10n.t('routeReplay.openFromActivity')}
+                  >
+                    <Ionicons name='cube-outline' size={18} color={Acg.ink} />
+                    <PretendardText weight='semibold' style={styles.controlLabel}>
+                      {l10n.t('routeReplay.badge')}
+                    </PretendardText>
+                  </TouchableOpacity>
+                ) : null}
                 <MapMyLocationButtonView
                   mode={myLocationMode}
                   locateLabel={l10n.t('route.myLocation')}
@@ -889,6 +961,20 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 20,
     paddingVertical: 12,
+    borderRadius: Radius.pill,
+    backgroundColor: Acg.paper,
+    boxShadow: AcgShadow.card,
+  },
+  // `3D` — 지도 위 흰 보조 알약(`포인트 추가`와 같은 면·그림자, 라벨이 짧아 패딩만 좁다).
+  replayButton: {
+    minHeight: 44,
+    minWidth: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: REPLAY_PILL_ICON_GAP,
+    paddingHorizontal: REPLAY_PILL_PADDING_H,
+    paddingVertical: Spacing.item,
     borderRadius: Radius.pill,
     backgroundColor: Acg.paper,
     boxShadow: AcgShadow.card,

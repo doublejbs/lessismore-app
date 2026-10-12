@@ -5,6 +5,7 @@ import Svg, { Circle, Line, Path } from 'react-native-svg';
 import PretendardText from '@/components/PretendardText';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
+import { ROUTE_COLOR, ROUTE_PROFILE_FILL } from '@/model/route/RouteColors';
 import {
   findRouteElevationSample,
   RouteElevationProfile,
@@ -60,13 +61,9 @@ const POINT_MARKER_RADIUS = 4.5;
 const POINT_MARKER_DASH = '3 3';
 const POINT_LABEL_DOT = 8;
 
-/**
- * 단면 색. 데이터 시각화 색이라 토큰 예외로 하드코딩한다(CLAUDE.md).
- * 지도의 코스 폴리라인과 **같은 파랑**이다 — 그래프와 지도가 한 코스를 가리키므로 색이 갈리면
- * 훑는 동안 둘이 같은 것이라는 단서가 사라진다.
- */
-const PROFILE_COLOR = '#2F6BFF';
-const PROFILE_FILL = 'rgba(47, 107, 255, 0.14)';
+// 단면 색 — 지도의 코스 폴리라인과 같은 파랑(`RouteColors`).
+const PROFILE_COLOR = ROUTE_COLOR;
+const PROFILE_FILL = ROUTE_PROFILE_FILL;
 
 /**
  * 고도 단면 그래프 (GRP-8, BD-11). 그룹 지도와 배낭 코스 화면이 같은 그래프를 쓴다.

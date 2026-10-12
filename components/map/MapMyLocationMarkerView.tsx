@@ -1,7 +1,10 @@
 import { FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { NaverMapMarkerOverlay } from '@mj-studio/react-native-naver-map';
-import { MY_LOCATION_BLUE } from '@/components/map/MyLocationColor';
+import {
+  MY_LOCATION_BLUE,
+  MY_LOCATION_HALO,
+} from '@/components/map/MyLocationColor';
 import {
   CompassHeading,
   normalizeDegrees,
@@ -85,7 +88,7 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: 'rgba(45, 140, 255, 0.18)',
+    backgroundColor: MY_LOCATION_HALO,
   },
   // 흰 테두리 + 파란 코어 + 그림자로 지도 위에서 떠오르는 표준 현위치 점.
   dot: {

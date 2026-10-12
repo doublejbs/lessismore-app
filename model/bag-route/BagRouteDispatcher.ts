@@ -42,7 +42,7 @@ class BagRouteDispatcher {
 
   /**
    * 코스 목록. 오프라인이면 저장본의 코스(DM-30 문서 그대로)를 같은 모델로 되돌린다(OF-6) — 축약 좌표·고도가
-   * 문서 안에 있어 캔버스·고도 그래프가 그대로 그려진다. 열 수 없는 저장본이면 빈 목록이다.
+   * 문서 안에 있어 오프라인 지도·고도 그래프가 그대로 그려진다. 열 수 없는 저장본이면 빈 목록이다.
    */
   public async getRoutes(bagId: string): Promise<BagRoute[]> {
     if (!this.networkStatus.isOffline()) {

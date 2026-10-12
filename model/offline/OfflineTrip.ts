@@ -103,8 +103,14 @@ class OfflineTrip {
     const l10n = app.getL10n();
 
     switch (this.getStatus()) {
-      case OfflineTripStatus.Saving:
-        return l10n.t('offline.tile.saving');
+      case OfflineTripStatus.Saving: {
+        // 지도 팩을 받는 단계면 진행률을 보인다(OF-2 `지도 저장 중 · {n}%`).
+        const percent = this.store?.getSavingProgress(this.bagId) ?? null;
+
+        return percent === null
+          ? l10n.t('offline.tile.saving')
+          : l10n.t('offline.tile.savingMap', { percent });
+      }
       case OfflineTripStatus.Saved:
         return l10n.t('offline.tile.saved', {
           size: formatOfflineBytes(this.getBytes()),

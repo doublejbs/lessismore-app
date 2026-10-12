@@ -1702,12 +1702,28 @@
     "start": "次のバックパッキングを準備する",
     "login": "アカウントをお持ちの方 · ログイン"
   },
+  "routeReplay": {
+    "badge": "3D",
+    "openFromActivity": "3Dで見る",
+    "activityTitle": "運動記録",
+    "failed": "3D地図を読み込めませんでした",
+    "empty": "コース画面から3Dを開いてください",
+    "play": "再生",
+    "pause": "停止",
+    "fit": "全体を表示",
+    "speed": "×{{speed}}",
+    "speedHint": "再生速度",
+    "progress": "再生位置",
+    "start": "出発",
+    "end": "到着"
+  },
   "offline": {
     "dateFormat": "M/D",
     "tile": {
       "title": "オフライン",
       "unsaved": "オフライン保存",
       "saving": "保存中…",
+      "savingMap": "地図を保存中 · {{percent}}%",
       "saved": "保存済み · {{size}} · {{date}} 更新",
       "needsUpgrade": "更新が必要です",
       "locked": "保存済み · 購読すると再び見られます",
@@ -1741,12 +1757,12 @@
       "locked": "購読が終了したため保存した旅行を見られません",
       "needsUpgrade": "更新が必要です。オンラインでこの旅行を開くと更新されます"
     },
-    "canvas": {
-      "offlineLine": "オフライン · 地図は接続すると表示されます",
-      "mapFailedLine": "地図を読み込めませんでした · コースのみ表示しています",
+    "map": {
+      "offlineLine": "オフライン · 保存した地図です",
+      "fallbackLine": "地図を読み込めませんでした · 代替の地図です",
       "groupHidden": "グループのコースはオフラインでは表示されません",
-      "north": "N",
-      "northLabel": "北"
+      "loadFailed": "地図データを読み込めませんでした",
+      "unsupportedBinary": "このバージョンではオフライン地図を表示できません · アプリをアップデートしてください"
     }
   }
 }

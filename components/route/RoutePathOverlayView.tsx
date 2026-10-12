@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { NaverMapPathOverlay } from '@mj-studio/react-native-naver-map';
 import { observer } from 'mobx-react-lite';
+import { ROUTE_COLOR, ROUTE_DIM_COLOR } from '@/model/route/RouteColors';
 import { RouteDisplay } from '@/model/route/RouteDisplay';
 
 interface Props {
@@ -15,13 +16,7 @@ interface Props {
   uniform?: boolean;
 }
 
-/**
- * 코스 폴리라인 색. 데이터 시각화 색이라 토큰 예외로 하드코딩한다(CLAUDE.md).
- * 고도 그래프의 단면 색과 **같은 파랑**이다 — 그래프와 지도가 한 코스를 가리키므로
- * 색이 갈리면 훑는 동안 둘이 같은 것이라는 단서가 사라진다.
- */
-const ROUTE_COLOR = '#2F6BFF';
-const ROUTE_DIM_COLOR = 'rgba(47, 107, 255, 0.3)';
+// 코스 폴리라인 색은 `RouteColors`(고도 그래프·오프라인 지도·리플레이와 같은 파랑).
 const ROUTE_OUTLINE_COLOR = '#FFFFFF';
 const ROUTE_WIDTH = 6;
 const ROUTE_DIM_WIDTH = 4;

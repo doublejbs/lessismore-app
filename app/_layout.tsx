@@ -255,6 +255,13 @@ const RootLayout = () => {
           {/* 배낭 코스(BD-11) — 지도·목록·고도 그래프. 기본 푸시이고 iOS 투명 헤더는
               화면이 Stack.Screen으로 지정한다(그룹 지도와 같은 관례). */}
           <Stack.Screen name='bag/[id]/route' />
+          {/* 3D 코스 리플레이(RR-2) — 모달. iOS 네이티브 헤더(제목·닫기)는 화면이 Stack.Screen으로 지정한다. */}
+          <Stack.Screen
+            name='route-replay'
+            options={{
+              presentation: 'modal',
+            }}
+          />
           <Stack.Screen
             name='custom'
             options={{

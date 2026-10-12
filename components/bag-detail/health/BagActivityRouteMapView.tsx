@@ -12,13 +12,13 @@ import {
   HealthRoutePoint,
   HealthWorkoutRoute,
 } from '@/model/health/HealthTypes';
+import { ROUTE_COLOR } from '@/model/route/RouteColors';
 
 interface Props {
   routes: HealthWorkoutRoute[];
 }
 
-/** 폴리라인 색. 데이터 시각화 색이라 토큰 예외로 하드코딩한다(CLAUDE.md). */
-const ROUTE_COLOR = '#2F6BFF';
+// 폴리라인 색은 `RouteColors`(코스 화면과 같은 파랑).
 const ROUTE_OUTLINE_COLOR = '#FFFFFF';
 const ROUTE_WIDTH = 5;
 const ROUTE_OUTLINE_WIDTH = 2;

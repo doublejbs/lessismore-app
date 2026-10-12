@@ -3,6 +3,8 @@ import { Directory, File, Paths } from 'expo-file-system';
 // 기기 문서 디렉터리 아래 오프라인 저장 루트(OF-1 `offline/{bagId}/`).
 const ROOT_DIRECTORY = 'offline';
 const SNAPSHOT_FILE = 'snapshot.json';
+// 등고선 GeoJSON(OF-6 · §4).
+const CONTOURS_FILE = 'contours.json';
 const ROUTES_DIRECTORY = 'routes';
 const GPX_EXTENSION = '.gpx';
 // 저장 중인 임시 디렉터리 접미. 저장이 끝나야 이름을 바꿔 자리를 차지한다(반쪽 스냅샷 금지 — OF-2).
@@ -98,6 +100,10 @@ class OfflineTripFiles {
 
   public static getSnapshotFile(directory: Directory): File {
     return new File(directory, SNAPSHOT_FILE);
+  }
+
+  public static getContoursFile(directory: Directory): File {
+    return new File(directory, CONTOURS_FILE);
   }
 
   public static getRoutesDirectory(directory: Directory): Directory {

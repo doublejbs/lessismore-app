@@ -1731,12 +1731,28 @@
     "start": "Get ready for your next trip",
     "login": "Already have an account · Sign in"
   },
+  "routeReplay": {
+    "badge": "3D",
+    "openFromActivity": "View in 3D",
+    "activityTitle": "Workout",
+    "failed": "Couldn't load the 3D map",
+    "empty": "Open 3D from the route screen",
+    "play": "Play",
+    "pause": "Pause",
+    "fit": "Show all",
+    "speed": "×{{speed}}",
+    "speedHint": "Playback speed",
+    "progress": "Playback position",
+    "start": "Start",
+    "end": "Finish"
+  },
   "offline": {
     "dateFormat": "MMM D",
     "tile": {
       "title": "Offline",
       "unsaved": "Save offline",
       "saving": "Saving…",
+      "savingMap": "Saving map · {{percent}}%",
       "saved": "Saved · {{size}} · updated {{date}}",
       "needsUpgrade": "Needs an update",
       "locked": "Saved · Subscribe to view again",
@@ -1770,12 +1786,12 @@
       "locked": "Your subscription ended, so saved trips are locked",
       "needsUpgrade": "This copy needs an update. Open the trip while online to update it"
     },
-    "canvas": {
-      "offlineLine": "Offline · The map appears when you're connected",
-      "mapFailedLine": "Couldn't load the map · Showing routes only",
+    "map": {
+      "offlineLine": "Offline · Showing your saved map",
+      "fallbackLine": "Couldn't load the map · Showing a backup map",
       "groupHidden": "Group routes aren't available offline",
-      "north": "N",
-      "northLabel": "North"
+      "loadFailed": "Couldn't load map data",
+      "unsupportedBinary": "Offline maps aren't available in this version · Please update the app"
     }
   }
 }

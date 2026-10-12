@@ -26,9 +26,9 @@ import BagRouteList from '@/model/bag-route/BagRouteList';
 import BagRouteSegment from '@/model/bag-route/BagRouteSegment';
 import BagRouteCanvasView, { BagPointCoordinate } from './BagRouteCanvasView';
 import BagRouteListSectionView from './BagRouteListSectionView';
-import OfflineRouteCanvasView from '@/components/offline/OfflineRouteCanvasView';
+import OfflineRouteMapGateView from '@/components/offline/OfflineRouteMapGateView';
 import OfflineUnavailableView from '@/components/offline/OfflineUnavailableView';
-import OfflineCanvasReason from '@/model/offline/OfflineCanvasReason';
+import OfflineMapReason from '@/model/offline/OfflineMapReason';
 import OfflineTripAccess from '@/model/offline/OfflineTripAccess';
 
 interface Props {
@@ -45,7 +45,7 @@ interface PointDraftTarget {
 const IS_IOS = Platform.OS === 'ios';
 const IS_WEB = Platform.OS === 'web';
 const HEADER_HEIGHT = 52;
-// 폴백(OF-6) 뒤 캔버스 뒤에 숨겨 둔 지도가 이 시간 안에 뜨지 않으면 내린다 — 계속 붙잡고 있지 않는다.
+// 폴백(OF-6) 지도 뒤에 숨겨 둔 지도가 이 시간 안에 뜨지 않으면 내린다 — 계속 붙잡고 있지 않는다.
 const MAP_FALLBACK_UNMOUNT_MS = 30 * 1000;
 
 /**
@@ -71,18 +71,18 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
   const [editingPoint, setEditingPoint] = useState<BagPoint | null>(null);
   // 시트를 열 때마다 올린다 — 시트가 이 값을 `key`로 받아 새로 마운트되면서 입력이 초기화된다.
   const [sheetKey, setSheetKey] = useState(0);
-  // 지도가 뜨지 않았다(OF-6 폴백) — 온라인이어도 코스 캔버스로 그린다.
+  // 지도가 뜨지 않았다(OF-6 폴백) — 온라인이어도 MapLibre 코스 지도로 그린다.
   const [isMapUnavailable, setIsMapUnavailable] = useState(false);
   // 폴백 뒤에도 끝내 뜨지 않아 숨긴 지도를 내렸다. 연결이 바뀌면 다시 붙여 한 번 더 기다린다.
   const [isHiddenMapReleased, setIsHiddenMapReleased] = useState(false);
   const selected = bagRouteList.getSelectedEntry();
-  // OF-6: 연결이 없으면 지도 대신 코스 캔버스다. 열 수 없는 저장본(미저장·잠김)이면 빈 상태다.
+  // OF-6: 연결이 없으면 네이버 지도 대신 MapLibre 오프라인 지도다. 열 수 없는 저장본(미저장·잠김)이면 빈 상태다.
   const isOffline = app.getNetworkStatus().isOffline();
   const offlineAccess =
     app.getOfflineTripStore()?.getAccess(bagRouteList.getBagId()) ??
     OfflineTripAccess.NotSaved;
   const wasOfflineRef = useRef(isOffline);
-  // 온라인에서 연 화면이면 연결이 끊겨도 읽어 둔 코스를 캔버스로 계속 보여 준다(빈 상태로 바꾸지 않는다).
+  // 온라인에서 연 화면이면 연결이 끊겨도 읽어 둔 코스를 오프라인 지도로 계속 보여 준다(빈 상태로 바꾸지 않는다).
   const [openedOnline] = useState(() => !isOffline);
   const canUseSnapshot = offlineAccess === OfflineTripAccess.Available;
 
@@ -414,13 +414,13 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
       return (
         <>
           {isOffline || isHiddenMapReleased ? null : mapView}
-          <OfflineRouteCanvasView
+          <OfflineRouteMapGateView
             bagRouteList={bagRouteList}
             bagPointList={bagPointList}
             reason={
               isOffline
-                ? OfflineCanvasReason.Offline
-                : OfflineCanvasReason.MapUnavailable
+                ? OfflineMapReason.Offline
+                : OfflineMapReason.MapUnavailable
             }
             topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
           />
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
   },
   // 지도는 풀블리드다 — 좌우 패딩을 주면 지면이 드러난다.
   content: { flex: 1 },
-  // 폴백 캔버스 뒤에서 지도를 살려 두는 자리 — 보이지 않고 터치·접근성에서도 빠진다.
+  // 폴백 지도 뒤에서 지도를 살려 두는 자리 — 보이지 않고 터치·접근성에서도 빠진다.
   hiddenMap: {
     position: 'absolute',
     top: 0,

@@ -1702,12 +1702,28 @@
     "start": "다음 백패킹 준비하기",
     "login": "이미 계정이 있어요 · 로그인"
   },
+  "routeReplay": {
+    "badge": "3D",
+    "openFromActivity": "3D로 보기",
+    "activityTitle": "운동 기록",
+    "failed": "3D 지도를 불러오지 못했어요",
+    "empty": "코스 화면에서 3D를 열어 주세요",
+    "play": "재생",
+    "pause": "정지",
+    "fit": "전체 보기",
+    "speed": "×{{speed}}",
+    "speedHint": "재생 속도",
+    "progress": "재생 위치",
+    "start": "출발",
+    "end": "도착"
+  },
   "offline": {
     "dateFormat": "MM.DD",
     "tile": {
       "title": "오프라인",
       "unsaved": "오프라인 저장",
       "saving": "저장 중…",
+      "savingMap": "지도 저장 중 · {{percent}}%",
       "saved": "저장됨 · {{size}} · {{date}} 갱신",
       "needsUpgrade": "갱신이 필요해요",
       "locked": "저장됨 · 구독 후 다시 볼 수 있어요",
@@ -1741,12 +1757,12 @@
       "locked": "구독이 끝나 저장된 여행을 볼 수 없어요",
       "needsUpgrade": "갱신이 필요해요. 온라인에서 이 여행을 열면 갱신돼요"
     },
-    "canvas": {
-      "offlineLine": "오프라인 · 지도는 연결되면 보여요",
-      "mapFailedLine": "지도를 불러오지 못했어요 · 코스만 보여요",
+    "map": {
+      "offlineLine": "오프라인 · 저장된 지도예요",
+      "fallbackLine": "지도를 불러오지 못했어요 · 대체 지도예요",
       "groupHidden": "그룹 코스는 오프라인에서 보이지 않아요",
-      "north": "N",
-      "northLabel": "북쪽"
+      "loadFailed": "지도 데이터를 불러오지 못했어요",
+      "unsupportedBinary": "이 버전에서는 오프라인 지도를 볼 수 없어요 · 앱을 업데이트해 주세요"
     }
   }
 }

@@ -36,6 +36,7 @@ import OnboardingTripManager from '../onboarding/OnboardingTripManager';
 import NetworkStatus from '../offline/NetworkStatus';
 import OfflineEntitlement from '../offline/OfflineEntitlement';
 import OfflineTripStore from '../offline/OfflineTripStore';
+import RouteReplayStore from '../route-replay/RouteReplayStore';
 
 class App {
   // OF-3: 연결 상태의 단일 소스. Firebase 로그인 확인이 오프라인이면 Firestore를 건너뛰어야 하므로
@@ -43,6 +44,8 @@ class App {
   private readonly networkStatus = NetworkStatus.new();
   private readonly firebase = new Firebase();
   private readonly l10n = new L10n();
+  // 3D 코스 리플레이 진입 데이터(RR-1). 메모리뿐이고 의존성이 없어 초기화 전에도 쓸 수 있다.
+  private readonly routeReplayStore = RouteReplayStore.new();
   // SUB-3·SUB-11: `useless 플러스` 구독 상태. SDK 설정은 Firebase 초기화 뒤(로그인 uid를 알고 나서) 한다.
   // 오프라인 저장 게이트가 이 상태를 본다. 광고 서비스도 같은 상태를 받는다(SUB-4 `[보류]`).
   private readonly subscriptionStore = SubscriptionStore.new(this.firebase);
@@ -239,6 +242,10 @@ class App {
 
   public getOfflineTripStore() {
     return this.offlineTripStore;
+  }
+
+  public getRouteReplayStore() {
+    return this.routeReplayStore;
   }
 
   public getOfflineEntitlement() {
