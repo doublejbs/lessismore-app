@@ -445,7 +445,8 @@ service cloud.firestore {
         allow create: if isGroupMember(groupId)
           && request.resource.data.keys().hasOnly([
             'name', 'storagePath', 'fileSize', 'distance', 'elevationGain', 'elevationLoss',
-            'pointCount', 'bounds', 'simplified', 'authorId', 'authorName', 'createdAt'
+            'pointCount', 'bounds', 'simplified', 'authorId', 'authorName', 'createdAt',
+            'sourceBagId', 'sourceBagRouteId'
           ])
           && request.resource.data.keys().hasAll([
             'name', 'storagePath', 'fileSize', 'distance', 'pointCount',
@@ -454,6 +455,15 @@ service cloud.firestore {
           && request.resource.data.authorId == request.auth.uid
           && request.resource.data.authorName is string
           && request.resource.data.authorName.size() <= 40
+          // 배낭 코스를 복사한 흔적(DM-29 `sourceBagId`·`sourceBagRouteId`, 2026-10-13) — 둘은 함께 있거나 함께 없다.
+          && (('sourceBagId' in request.resource.data) == ('sourceBagRouteId' in request.resource.data))
+          && (!('sourceBagId' in request.resource.data)
+            || (request.resource.data.sourceBagId is string
+              && request.resource.data.sourceBagId.size() > 0
+              && request.resource.data.sourceBagId.size() <= 128
+              && request.resource.data.sourceBagRouteId is string
+              && request.resource.data.sourceBagRouteId.size() > 0
+              && request.resource.data.sourceBagRouteId.size() <= 128))
           && isValidRoutePayload()
           && routeCounterIncremented();
 

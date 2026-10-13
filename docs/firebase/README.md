@@ -350,3 +350,9 @@ Storage 에뮬레이터 로그에 뜨는 `storage.rules line [65] ... Variable  
   - `match /consumable-product/{productId} { allow read: if true; allow write: if false; }` — 읽기 공개(비로그인 홈·커뮤니티 노출), 클라이언트 쓰기 전면 금지. 열어 두면 누구나 `coupangUrl`을 자기 파트너스 링크로 바꿔치기할 수 있다.
 - 쓰기 경로: `scripts/curate-consumables.mjs`가 firebase CLI 로그인(프로젝트 owner) OAuth 토큰으로 Firestore REST 에 쓴다. IAM 인증 요청은 보안 규칙을 거치지 않으므로 `write: if false`와 충돌하지 않는다.
 - **`feed-content`(DM-27)는 여전히 잠금 목록 밖이다** — 개방 절 `allow read, write: if !isLockedCollection()`에 걸려 **비로그인 누구나 쓰기·삭제가 가능**하다. 다만 웹 CMS(`lessismore` 레포 `src/feed/FeedContentTabView.tsx`)가 클라이언트 SDK `setDoc`/`addDoc`/`deleteDoc`으로 쓰고 있어, 같은 방식(`write: if false`)으로 잠그면 CMS 가 깨진다. 잠그려면 운영자 uid 허용 규칙 또는 CMS 쓰기 경로 변경이 먼저다(DataModel.md §8).
+
+## 배포 기록 (2026-10-13) — 그룹 코스/포인트 출처 참조 `sourceBagId`·`sourceBagRouteId` (DM-29, Group.md GRP-8, BagDetail.md BD-11)
+
+- 라이브 룰셋 `4cf89a07-351e-495a-9a2f-3e49cc345dc0`(이전 `5d8b9044…`, 백업은 iCloud `claude/useless-content/firestore-rules-backup-2026-10-13-before-group-route-source.rules`). `deployed/firestore.rules`는 배포 후 소스를 그대로 옮긴 것이다(이전 저장본은 라이브와 98줄 어긋나 있었다 — 이번에 동기화).
+- 변경: 그룹 하위 코스·포인트 문서의 `hasOnly` 허용 키에 `sourceBagId`·`sourceBagRouteId`를 추가하고 둘 다 문자열(선택)로 검증한다. 여행 → 그룹으로 복사한 코스가 같은 출처임을 알 수 있어, 코스 상세·오프라인 저장이 내 코스와 그룹 코스를 중복 없이 합친다(BD-11). 앱 OTA(2.0.2)보다 **먼저** 배포해야 한다 — 규칙이 옛 상태면 `copyToGroup`이 거부된다.
+- 배포 방법: Rules REST(`firebaserules.googleapis.com/v1`)에 firebase CLI 로그인 토큰으로 `rulesets` POST → `releases/cloud.firestore` PATCH. **PATCH 의 `updateMask`는 쿼리 파라미터(`?updateMask=release.ruleset_name`)로 주면 400 INVALID_ARGUMENT 다** — 본문에 `{"release":{...},"updateMask":"rulesetName"}`으로 넣어야 한다.
