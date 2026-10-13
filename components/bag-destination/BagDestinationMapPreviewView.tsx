@@ -11,7 +11,6 @@ import { Radius, AcgLayout } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import SpotPinView from '@/components/camp-site/SpotPinView';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
-import MapAttributionNoteView from '@/components/map/MapAttributionNoteView';
 import useStaticMapImage from '@/components/map/useStaticMapImage';
 import StaticMapImageStatus from '@/components/map/StaticMapImageStatus';
 import {
@@ -101,8 +100,6 @@ const BagDestinationMapPreviewView: FC<Props> = ({ location, onPress }) => {
           <View style={styles.pinOverlay} pointerEvents='none'>
             <SpotPinView />
           </View>
-
-          <MapAttributionNoteView />
         </>
       ) : null}
 

@@ -23,7 +23,6 @@ import {
   AcgType,
 } from '@/constants/DesignTokens';
 import SpotPinView from '@/components/camp-site/SpotPinView';
-import MapAttributionNoteView from '@/components/map/MapAttributionNoteView';
 import useStaticMapImage from '@/components/map/useStaticMapImage';
 import StaticMapImageStatus from '@/components/map/StaticMapImageStatus';
 import {
@@ -207,8 +206,9 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
     <>
       <View style={styles.card}>
         {/*
-          지도 밴드(BAG-1 · MAP-3). 이미지 위에 얹는 글자는 출처 표기 한 줄(`© OpenStreetMap`,
-          ODbL)뿐이다. 썸네일은 기기 캐시 파일이고 서버에 올리지 않는다. 탭은 본문과 같이 상세로
+          지도 밴드(BAG-1 · MAP-3). 출처 표기(ODbL)는 MapLibre 스냅샷이 이미지 하단에 스스로 그린다 —
+          앱은 글자를 얹지 않고, 밴드가 이미지 하단을 자르지 않게 썸네일을 표시 박스와 같은 비율로 만든다.
+          썸네일은 기기 캐시 파일이고 서버에 올리지 않는다. 탭은 본문과 같이 상세로
           가고, 접근성 트리에서는 빠진다(여행지명은 본문 라벨에 실려 있다).
         */}
         {showMapBand ? (
@@ -234,7 +234,6 @@ const BagItemView: FC<Props> = ({ bagItem, bag }) => {
                 <View style={styles.pinOverlay} pointerEvents='none'>
                   <SpotPinView />
                 </View>
-                <MapAttributionNoteView />
               </>
             ) : null}
           </TouchableOpacity>

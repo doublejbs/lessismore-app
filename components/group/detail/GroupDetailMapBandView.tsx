@@ -9,7 +9,6 @@ import AppMapView, {
   AppMapInitialCamera,
   AppMapViewRef,
 } from '@/components/map/AppMapView';
-import MapAttributionNoteView from '@/components/map/MapAttributionNoteView';
 import MapPointMarkersView from '@/components/map/MapPointMarkersView';
 import MapRoutePathLayersView from '@/components/map/MapRoutePathLayersView';
 import MapSpotPinMarkerView from '@/components/map/MapSpotPinMarkerView';
@@ -60,8 +59,9 @@ const toInitialCamera = (region: RouteCameraRegion): AppMapInitialCamera => ({
  *   규칙). `map_load_failed`(screen `group_band`)를 남긴다(MAP-6).
  * - 코스는 선택 개념 없이 **전부 같은 굵기**다. 시작·끝 마커는 두지 않는다 — 코스 수 × 2개의
  *   마커가 110pt 밴드를 덮고, 방향은 그룹 지도에서 본다. 포인트는 캡션 없는 작은 마커다.
- * - 출처 표기: 지도 기본 ⓘ는 덮개 `Pressable` 아래라 눌리지 않으므로 끄고, 정적 썸네일과 같은
- *   `© OpenStreetMap`(`MapAttributionNoteView`)을 우하단에 얹는다(ODbL — 출처가 보이면 된다, MAP-1 · MAP-3).
+ * - 출처 표기: 지도 기본 attribution(좌하단 ⓘ)을 켜 둔다. 덮개 `Pressable` 아래라 눌리지는 않지만
+ *   보이기는 한다 — ODbL은 출처가 **보이면** 된다(MAP-1 · MAP-3). 라이브 지도라 정적 스냅샷처럼 문구가
+ *   이미지에 박히지 않으므로 끄면 출처가 사라진다.
  * - 밴드 자체는 콘텐츠 면이라 그림자가 없다(HM-8 — 그림자는 지도 **위에 뜨는** 요소의 몫이다).
  */
 const GroupDetailMapBandView: FC<Props> = ({
@@ -145,7 +145,6 @@ const GroupDetailMapBandView: FC<Props> = ({
         initialCamera={toInitialCamera(initialRegion)}
         interactive={false}
         showCompass={false}
-        showAttribution={false}
         onLoadFailed={handleLoadFailed}
       >
         <MapRoutePathLayersView
@@ -174,7 +173,6 @@ const GroupDetailMapBandView: FC<Props> = ({
         accessibilityRole='button'
         accessibilityLabel={l10n.t('group.detail.openMapBand')}
       />
-      <MapAttributionNoteView />
     </View>
   );
 };

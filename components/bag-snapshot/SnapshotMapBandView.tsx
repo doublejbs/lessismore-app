@@ -3,7 +3,6 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Image } from 'expo-image';
 import SpotPinView from '@/components/camp-site/SpotPinView';
 import { AcgLayout, AcgRadius } from '@/constants/DesignTokens';
-import MapAttributionNoteView from '@/components/map/MapAttributionNoteView';
 import useStaticMapImage from '@/components/map/useStaticMapImage';
 import StaticMapImageStatus from '@/components/map/StaticMapImageStatus';
 import {
@@ -88,7 +87,6 @@ const SnapshotMapBandView: FC<Props> = ({
           <View style={styles.pinOverlay} pointerEvents='none'>
             <SpotPinView />
           </View>
-          <MapAttributionNoteView />
         </>
       ) : null}
     </View>

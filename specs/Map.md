@@ -67,10 +67,10 @@ app/(tabs)/bag · bag/[id] · bag/[id]/weather · 커뮤니티 스냅샷 → 정
 
 - `model/map/StaticMapImage.ts`: `getStaticMapImage({ latitude, longitude, zoom, width, height }): Promise<string | null>` — `StaticMapImageManager.createImage({ mapStyle: MAP_STYLE_URL, center: [lng, lat], zoom, width, height(px, 기기 배율 반영), output: 'file', logo: false })`로 PNG 파일을 만들고 **캐시 디렉터리** `cache/map-thumbs/{styleVersion}-{lat5}-{lng5}-{zoom}-{w}x{h}.png`에 둔다. 있으면 바로 돌려주고, 생성은 **동시 2개까지**로 줄 세운다(목록 스크롤에서 수십 장이 한꺼번에 들어온다). 실패·오프라인(타일 못 받음)은 `null` → 호출 화면은 **밴드 없는 폴백**(지금과 같다 — BAG-1 "깨진 이미지·빈 회색 밴드를 남기지 않는다").
 - 쓰는 곳과 치수(기존 값 유지): 배낭 목록 카드 밴드(BAG-1 — 폭 = 화면 폭 − 48, 높이 110, 줌 13, `BagItemView`), 커뮤니티 패킹 스냅샷·박지만 있는 그룹 상세 밴드(`SnapshotMapBandView`, 110, 줌 13), 여행지 허브 미리보기(DST-8, `BagDestinationMapPreviewView`, 높이 180, 줌 14). DST-2 타일 썸네일은 스펙에만 있고 구현된 적이 없다(2026-10-12 조사) — 이번에도 넣지 않는다. 마커는 지금처럼 **이미지에 싣지 않고 앱 핀(`SpotPinView`)을 밴드 위에 오버레이**한다.
-- **출처 표기**: 정적 PNG에는 attribution이 박히지 않으므로 밴드 **우하단에 `© OpenStreetMap`**(메타 10pt, `Acg.textMuted`, 흰 반투명 바탕)을 얹는다 — ODbL은 지도가 보이는 곳에 출처가 보여야 한다. BAG-1의 "밴드 위에 글자를 얹지 않는다"는 네이버 약관 조항이었으므로 이 한 줄만 예외로 바꾼다.
+- **출처 표기**: MapLibre 정적 스냅샷에는 **스타일의 attribution 문구가 하단에 함께 그려진다**(2026-10-13 시뮬레이터 확인 — "OpenFreeMap © OpenMapTiles Data from OSM AWS Terrain Tiles"). 그래서 앱이 따로 `© OpenStreetMap` 라벨을 얹지 않는다(`[이력]` 처음엔 얹었다 — 중복). 밴드가 이미지 하단을 자르면 안 된다. BAG-1의 "밴드 위에 글자를 얹지 않는다"는 네이버 약관 조항이었으므로 이 한 줄만 예외로 바꾼다.
 - NCP 약관 때문에 두었던 제약(결과 저장 금지·로고 자르기 금지·요청당 과금 주의)은 **모두 사라진다** — 기기 캐시에 저장해도 되고, 캐시는 앱 캐시 디렉터리라 OS가 비울 수 있다(없으면 다시 만든다). 서버(Firestore·Storage)에는 여전히 올리지 않는다(필요가 없다).
 - 생성 중에는 밴드 자리를 스켈레톤 면으로 잡아 두고 이미지가 오면 페이드한다. 생성 실패·오프라인(캐시 없음)이면 밴드가 접힌다. 실패한 키는 세션 안에서 다시 시도하지 않고, 온라인으로 돌아오면 초기화한다. 오프라인에서는 빈 지면 PNG를 만들지 않는다(캐시만 본다). 생성 15초 상한.
-- 그룹 상세 지도 밴드(GRP-7)는 코스 선·포인트를 그려야 해서 정적 PNG가 아니라 **비대화형 `AppMapView`(`interactive=false`) 1개**를 쓴다. 밴드 전체가 탭 대상(덮개)이라 지도의 ⓘ 대신 우하단 `© OpenStreetMap` 라벨로 출처를 보인다 — 한 화면에 하나라 비용 문제가 없다(네이버 때 "뷰 생성당 과금"이 이유였다). 운동 기록 경로(HA-4)도 같다.
+- 그룹 상세 지도 밴드(GRP-7)는 코스 선·포인트를 그려야 해서 정적 PNG가 아니라 **비대화형 `AppMapView`(`interactive=false`) 1개**를 쓴다. 밴드 전체가 탭 대상(덮개)이라 지도의 ⓘ는 눌리지 않지만 **보이게 둔다**(라이선스는 '보임'이 핵심 — 2026-10-13 정정, `[이력]` 한때 별도 라벨로 대체) — 한 화면에 하나라 비용 문제가 없다(네이버 때 "뷰 생성당 과금"이 이유였다). 운동 기록 경로(HA-4)도 같다.
 
 ### MAP-4 화면별 전환 `[제안]`
 

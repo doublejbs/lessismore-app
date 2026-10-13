@@ -105,8 +105,8 @@ interface Props {
   // 좌하단 출처 표기(ODbL 의무)를 이만큼 올린다 — 카드·시트가 그 자리를 덮을 때(MAP-1).
   attributionBottomOffset?: number;
   /**
-   * 지도 기본 출처 표기(ⓘ)를 보일지. 기본 true. **보기 전용 밴드만** 끈다 — 덮개 버튼 아래라 눌리지 않으므로
-   * 대신 `MapAttributionNoteView`(`© OpenStreetMap`)를 직접 얹는다(MAP-1 · MAP-3).
+   * 지도 기본 출처 표기(ⓘ)를 보일지. 기본 true. 라이브 지도는 출처가 이것뿐이라(ODbL — MAP-1) 보기 전용
+   * 밴드도 켜 둔다 — 덮개 버튼 아래라 눌리지 않아도 보이면 된다(MAP-3).
    */
   showAttribution?: boolean;
   // 상단 장식(나침반, 안드로이드 축척 막대)의 기준 위치(pt) — 투명 헤더·상단 안내 줄 아래로 내릴 때.

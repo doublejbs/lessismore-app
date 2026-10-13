@@ -22,7 +22,7 @@ import SubscriptionFeatureListView from './SubscriptionFeatureListView';
 import SubscriptionHeroView from './SubscriptionHeroView';
 import SubscriptionLegalView from './SubscriptionLegalView';
 import SubscriptionTrialTimelineView from './SubscriptionTrialTimelineView';
-import useSubscriptionHeroCoordinate from './useSubscriptionHeroCoordinate';
+import useSubscriptionHeroContent from './useSubscriptionHeroContent';
 
 // HIG 최소 터치 타깃.
 const MIN_TOUCH_SIZE = 44;
@@ -73,7 +73,7 @@ const SubscriptionOfferView = ({
   onClose,
 }: Props) => {
   const l10n = app.getL10n();
-  const heroCoordinate = useSubscriptionHeroCoordinate();
+  const heroContent = useSubscriptionHeroContent();
   const [barHeight, setBarHeight] = useState(0);
   const isBusy = isPurchasing || isRestoring;
   const isPriceReady =
@@ -166,7 +166,7 @@ const SubscriptionOfferView = ({
         showsVerticalScrollIndicator={false}
       >
         <SubscriptionHeroView
-          coordinate={heroCoordinate}
+          content={heroContent}
           isCloseDisabled={isBusy}
           onClose={onClose}
         />

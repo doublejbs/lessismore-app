@@ -32,21 +32,29 @@ const hasDrawableLocation = (bag: BagItem): boolean => {
 };
 
 /**
- * SUB-2 히어로 지도 중심 — **다가오는 여행의 여행지**.
+ * SUB-2 히어로의 **다가오는 여행** — 여행지(`location`)가 있는 배낭 중 하나.
  *
  * 홈 다가오는 일정(HM-1 `selectTripPlan`)과 같은 순서로 고른다: 여행 중 > 임박 > 계획, 같은 등급이면
- * 시작일이 가까운 쪽. 여행지(`location`)가 있는 배낭만 후보로 두고, 끝난 여행(종료 직후)은 다가오는
- * 여행이 아니라 뺀다. 없으면 북한산.
+ * 시작일이 가까운 쪽. 여행지가 있는 배낭만 후보로 두고, 끝난 여행(종료 직후)은 다가오는 여행이 아니라
+ * 뺀다. 없으면 null. 히어로는 이 배낭의 코스를 그리고(코스가 있으면), 없으면 여행지에 예시 코스를 둔다.
  */
-export const selectHeroCoordinate = (
+export const selectHeroBag = (
   bags: BagItem[],
   today: Dayjs = dayjs()
-): SubscriptionHeroCoordinate => {
+): BagItem | null => {
   const { trips } = selectTripPlan(bags.filter(hasDrawableLocation), today);
   const upcoming = trips.find(
     entry => entry.stage !== HomeTripStage.JustFinished
   );
-  const location = upcoming?.bag.getLocation() ?? null;
+
+  return upcoming?.bag ?? null;
+};
+
+// SUB-2 히어로 지도 중심 — 다가오는 여행의 여행지, 없으면 북한산.
+export const getHeroCoordinate = (
+  bag: BagItem | null
+): SubscriptionHeroCoordinate => {
+  const location = bag?.getLocation() ?? null;
 
   if (!location) {
     return DEFAULT_HERO_COORDINATE;
