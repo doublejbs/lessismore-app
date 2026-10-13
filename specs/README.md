@@ -34,6 +34,7 @@
 | [Subscription.md](Subscription.md) | `SUB` | 월 구독 `useless 플러스`(혜택: 여행 오프라인 저장) — RevenueCat 인앱 구독 / 7일 무료 체험 / 웹훅 → Firestore 서버 기록 `[제안]` |
 | [Offline.md](Offline.md) | `OF` | 여행 오프라인 저장 — 스냅샷·오프라인 상세·**오프라인 코스 지도**(MapLibre + OpenFreeMap + 지형 음영·등고선) / 구독 혜택 `[제안]` |
 | [Map.md](Map.md) | `MAP` | 지도 공통 — 지도 공급자(MapLibre + OpenFreeMap, 네이버 지도 SDK 제거)·공용 지도 컴포넌트·정적 썸네일 `[제안]` |
+| [RouteDraw.md](RouteDraw.md) | `RD` | 코스 그리기 — 지도에서 점을 찍어 직선으로 잇고 지형 고도를 보강해 GPX 코스로 저장(배낭·그룹) `[제안]` |
 | [RouteReplay.md](RouteReplay.md) | `RR` | 3D 코스 리플레이 — 코스·운동 기록 경로를 3D 지형 위에서 재생(웹뷰 MapLibre GL JS, 온라인) `[제안]` |
 | [Weather.md](Weather.md) | `WT` | 배낭 여행지 좌표 기반 기간 예보 |
 | [CampSite.md](CampSite.md) | `CS` | 박지 지도 — 지도 탭 / 박지 정보 / 규제 고지 `[기획]` |

@@ -212,6 +212,7 @@
 | `offline_trip_open` | 오프라인 상세 열람 (OF-5, `logEvent`) `[제안]` | — |
 | `offline_route_map_open` | 오프라인 코스 지도 열람 (OF-6, `logEvent`) `[제안]` — 2026-10-12 `offline_route_canvas_open`에서 개명 | `reason`: `offline` |
 | `map_load_failed` | 지도 데이터(스타일·타일) 로드 실패 ([Map.md](Map.md) MAP-6, `logEvent`) `[제안]` | `screen` |
+| `click_route_draw_start` / `click_route_draw_save` / `click_route_draw_cancel` | 지도에서 코스 그리기 시작·저장·취소 ([RouteDraw.md](RouteDraw.md) RD-4) `[제안]` | `source`: `route` \| `group`; save: `point_count`, `sample_count`, `distance`, `has_elevation`; cancel: `point_count` |
 | `click_route_replay_open` | 3D 코스 리플레이 진입 ([RouteReplay.md](RouteReplay.md) RR-1) `[제안]` | `source`: `route` \| `group` \| `activity`, `point_count`, `distance_m` |
 | `route_replay_ready` / `route_replay_play` / `route_replay_finished` / `route_replay_failed` | 리플레이 준비·재생·완료·실패 (RR-4, `logEvent`) `[제안]` | `load_ms` / `speed` / — / `reason`: `timeout` \| `web_error` \| `http_error` |
 | `offline_packing_synced` | 오프라인 패킹 체크의 복귀 반영 성공 (OF-5, `logEvent`) `[제안]` | `count` |
