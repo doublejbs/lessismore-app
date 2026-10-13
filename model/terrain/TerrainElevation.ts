@@ -20,6 +20,36 @@ export const TERRAIN_SAMPLE_ZOOM = 13;
 // Terrarium 인코딩 오프셋(고도 = R×256 + G + B/256 − 32768).
 const TERRARIUM_OFFSET = 32768;
 const FETCH_CONCURRENCY = 4;
+// 코스 그리기 고도 보강(RD-3) — 타일 상한·가장 낮은 줌·동시에 받는 장수·전체 타임아웃.
+const MAX_SAMPLE_TILE_COUNT = 24;
+const MIN_SAMPLE_ZOOM = 10;
+const SAMPLE_FETCH_CONCURRENCY = 2;
+const TERRAIN_SAMPLE_TIMEOUT_MS = 10000;
+
+// 타일 한 장에서 읽을 좌표 — 결과 배열의 자리와 타일 RGBA 안의 바이트 오프셋.
+interface SampleTilePixel {
+  index: number;
+  offset: number;
+}
+
+interface SampleTile {
+  key: TerrainTileKey;
+  samples: SampleTilePixel[];
+}
+
+interface SamplePlan {
+  zoom: number;
+  tiles: SampleTile[];
+}
+
+const yieldToJs = () =>
+  new Promise<void>(resolve => {
+    setTimeout(resolve, 0);
+  });
+
+// 전역 픽셀 좌표를 정수 픽셀로(세계 가장자리 안으로 자른다).
+const clampPixel = (value: number, maxPixel: number) =>
+  Math.min(maxPixel, Math.max(0, Math.floor(value)));
 
 /**
  * 지형 고도 타일 (OF-6 · RD-3). AWS Terrain Tiles(Terrarium PNG)를 받아 `upng-js`로 디코딩하고 픽셀을 고도(m)로
@@ -154,9 +184,14 @@ class TerrainElevation {
   }
 
   /**
-   * 좌표마다 고도(m)를 읽는다 (RD-3). 타일은 키별로 한 번만 받고(선 하나가 보통 1~4장), 픽셀은 가장 가까운 값이다
-   * (보간 없음). **타일을 하나라도 못 받으면 `null`** — 호출자는 고도 없이 저장한다(일부만 고도가 있으면 그래프가
-   * 끊겨 읽힌다).
+   * 좌표마다 고도(m)를 읽는다 (RD-3). 픽셀은 가장 가까운 값이다(보간 없음).
+   *
+   * - 타일은 키별로 한 번만 받는다(선 하나가 보통 1~4장). 줌 13에서 `MAX_SAMPLE_TILE_COUNT`장을 넘으면(수십 km 직선)
+   *   한 단씩 줌을 낮춰 다시 세고, 줌 10까지 내려도 넘으면 `null`이다.
+   * - 타일마다 디코딩 직후 **필요한 픽셀 고도만 뽑고 RGBA 버퍼(장당 256KB)를 버린다** — 동시에 들고 있는 버퍼는
+   *   받는 동시성(`SAMPLE_FETCH_CONCURRENCY`)만큼뿐이다. 타일 사이마다 JS 스레드를 양보한다(저장 중에도 화면이 멈추지 않게).
+   * - 전체에 `TERRAIN_SAMPLE_TIMEOUT_MS` 타임아웃을 건다 — 넘으면 받는 중인 요청을 끊고 `null`.
+   * - **타일을 하나라도 못 받으면 `null`** — 호출자는 고도 없이 저장한다(일부만 고도가 있으면 그래프가 끊겨 읽힌다).
    */
   public static async sampleMany(
     coordinates: readonly TerrainCoordinate[],
@@ -166,69 +201,67 @@ class TerrainElevation {
       return [];
     }
 
-    const maxPixel = TerrainElevation.getWorldSize(zoom) - 1;
-    const pixels = coordinates.map(coordinate => ({
-      x: Math.min(
-        maxPixel,
-        Math.max(
-          0,
-          Math.floor(TerrainElevation.lngToPixelX(coordinate.longitude, zoom))
-        )
-      ),
-      y: Math.min(
-        maxPixel,
-        Math.max(
-          0,
-          Math.floor(TerrainElevation.latToPixelY(coordinate.latitude, zoom))
-        )
-      ),
-    }));
-    const toKeyId = (key: TerrainTileKey) => `${key.x}/${key.y}`;
-    const keysById = new Map<string, TerrainTileKey>();
+    const plan = TerrainElevation.planSamples(coordinates, zoom);
 
-    pixels.forEach(pixel => {
-      const key = {
-        x: Math.floor(pixel.x / TERRAIN_TILE_SIZE),
-        y: Math.floor(pixel.y / TERRAIN_TILE_SIZE),
-      };
+    if (!plan) {
+      console.warn(
+        '[TerrainElevation] 고도 타일이 너무 많아 고도를 읽지 않아요'
+      ); // l10n-ignore: 개발자 로그
 
-      keysById.set(toKeyId(key), key);
-    });
+      return null;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      controller.abort();
+    }, TERRAIN_SAMPLE_TIMEOUT_MS);
 
     try {
-      const keys = [...keysById.values()];
-      const tiles = await TerrainElevation.fetchTiles(keys, zoom);
-      const tilesById = new Map<string, Uint8Array>();
+      const elevations = new Array<number>(coordinates.length).fill(Number.NaN);
+      const tiles = plan.tiles;
+      let next = 0;
 
-      keys.forEach((key, index) => {
-        tilesById.set(toKeyId(key), tiles[index]);
-      });
+      const runWorker = async () => {
+        while (next < tiles.length && !controller.signal.aborted) {
+          const tile = tiles[next];
 
-      const elevations: number[] = [];
+          next += 1;
 
-      for (const pixel of pixels) {
-        const key = {
-          x: Math.floor(pixel.x / TERRAIN_TILE_SIZE),
-          y: Math.floor(pixel.y / TERRAIN_TILE_SIZE),
-        };
-        const rgba = tilesById.get(toKeyId(key));
+          const rgba = await TerrainElevation.fetchTileWithRetry(
+            tile.key,
+            plan.zoom,
+            controller.signal
+          );
 
-        if (!rgba) {
-          return null;
+          // 필요한 픽셀만 뽑는다 — 버퍼는 이 블록을 벗어나면 참조가 끊겨 GC가 거둔다.
+          tile.samples.forEach(sample => {
+            elevations[sample.index] = TerrainElevation.decodeElevation(
+              rgba,
+              sample.offset
+            );
+          });
+
+          await yieldToJs();
         }
+      };
 
-        const localX = pixel.x - key.x * TERRAIN_TILE_SIZE;
-        const localY = pixel.y - key.y * TERRAIN_TILE_SIZE;
-        const elevation = TerrainElevation.decodeElevation(
-          rgba,
-          (localY * TERRAIN_TILE_SIZE + localX) * 4
-        );
+      await Promise.all(
+        Array.from(
+          { length: Math.min(SAMPLE_FETCH_CONCURRENCY, tiles.length) },
+          () => runWorker()
+        )
+      );
 
+      if (controller.signal.aborted) {
+        console.warn('[TerrainElevation] 고도 타일 읽기 시간 초과'); // l10n-ignore: 개발자 로그
+
+        return null;
+      }
+
+      for (const elevation of elevations) {
         if (!Number.isFinite(elevation)) {
           return null;
         }
-
-        elevations.push(elevation);
       }
 
       return elevations;
@@ -236,7 +269,55 @@ class TerrainElevation {
       console.warn('[TerrainElevation] 고도 타일 읽기 실패', error); // l10n-ignore: 개발자 로그
 
       return null;
+    } finally {
+      clearTimeout(timer);
+      // 한 장이 실패해 전체를 `null`로 돌릴 때 남은 작업자가 나머지 타일을 계속 받지 않게 끊는다(정상 완료 뒤 불러도 해가 없다).
+      controller.abort();
     }
+  }
+
+  /**
+   * 좌표를 타일별로 묶는다 — 줌 `zoom`부터 타일이 상한 안에 들 때까지 한 단씩 낮춘다. 줌 10까지 넘으면 `null`.
+   */
+  private static planSamples(
+    coordinates: readonly TerrainCoordinate[],
+    zoom: number
+  ): SamplePlan | null {
+    for (let current = zoom; current >= MIN_SAMPLE_ZOOM; current -= 1) {
+      const maxPixel = TerrainElevation.getWorldSize(current) - 1;
+      const tilesById = new Map<string, SampleTile>();
+
+      coordinates.forEach((coordinate, index) => {
+        const x = clampPixel(
+          TerrainElevation.lngToPixelX(coordinate.longitude, current),
+          maxPixel
+        );
+        const y = clampPixel(
+          TerrainElevation.latToPixelY(coordinate.latitude, current),
+          maxPixel
+        );
+        const key = {
+          x: Math.floor(x / TERRAIN_TILE_SIZE),
+          y: Math.floor(y / TERRAIN_TILE_SIZE),
+        };
+        const id = `${key.x}/${key.y}`;
+        const tile = tilesById.get(id) ?? { key, samples: [] };
+        const localX = x - key.x * TERRAIN_TILE_SIZE;
+        const localY = y - key.y * TERRAIN_TILE_SIZE;
+
+        tile.samples.push({
+          index,
+          offset: (localY * TERRAIN_TILE_SIZE + localX) * 4,
+        });
+        tilesById.set(id, tile);
+      });
+
+      if (tilesById.size <= MAX_SAMPLE_TILE_COUNT) {
+        return { zoom: current, tiles: [...tilesById.values()] };
+      }
+    }
+
+    return null;
   }
 }
 

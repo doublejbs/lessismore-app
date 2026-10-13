@@ -165,7 +165,8 @@ class GroupRouteList {
   /**
    * 지도에서 그린 코스를 올린다 (RD-3). 파일은 이미 만들어져 있다 — 그 뒤는 가져오기와 **같은 경로**다
    * (디스패처 검증·업로드·상한 검사, `click_group_route_upload`, 목록 갱신). 올린 코스 id를 돌려준다(실패면 `null` —
-   * 가져오기와 같은 문구로 이미 알렸다).
+   * 가져오기와 같은 문구로 이미 알렸다). 고르고 카메라를 맞추는 일은 그리기 모드를 나간 뒤 화면이 한다
+   * (`RouteDrawHost.onSaved`).
    */
   public async addDrawnRoute(
     draft: RouteDraft,

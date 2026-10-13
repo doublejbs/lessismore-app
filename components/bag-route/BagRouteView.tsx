@@ -27,6 +27,7 @@ import BagPointList from '@/model/bag-point/BagPointList';
 import BagRoute from '@/model/bag-route/BagRoute';
 import { BagRouteEntry } from '@/model/bag-route/BagRouteEntry';
 import BagRouteList from '@/model/bag-route/BagRouteList';
+import BagRouteSelection from '@/model/bag-route/BagRouteSelection';
 import { isMapLibreAvailable } from '@/model/map/MapLibreModule';
 import RouteDraw from '@/model/route-draw/RouteDraw';
 import RouteDrawSource from '@/model/route-draw/RouteDrawSource';
@@ -84,11 +85,14 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
    * 저장은 가져오기와 같은 목록 경로(`addDrawnRoute`)를 탄다.
    */
   const [routeDraw] = useState(() =>
-    RouteDraw.from(
-      RouteDrawSource.Route,
-      (draft, localUri) => bagRouteList.addDrawnRoute(draft, localUri),
-      () => bagRouteList.getDrawDefaultName()
-    )
+    RouteDraw.from(RouteDrawSource.Route, {
+      submit: (draft, localUri) => bagRouteList.addDrawnRoute(draft, localUri),
+      // 모드를 나간 뒤 올린 코스를 골라 카메라를 맞춘다(가져오기와 달리 사용자가 만든 코스라 선택도 기억한다).
+      onSaved: routeId => {
+        bagRouteList.focusEntry(BagRouteSelection.toBagEntryKey(routeId));
+      },
+      resolveDefaultName: () => bagRouteList.getDrawDefaultName(),
+    })
   );
   const isDrawing = routeDraw.isActive();
   const handleCancelDrawing = useRouteDrawCancel(routeDraw, isDrawing);

@@ -7,6 +7,8 @@ interface Props {
   selectedPointId: string | null;
   onTapPoint?: ((point: MapPoint) => void) | undefined;
   compact?: boolean;
+  // `false`면 마커가 터치를 지도로 흘린다(코스 그리기 모드 RD-2 — `MapPointMarkerView.interactive`).
+  interactive?: boolean;
 }
 
 /**
@@ -18,6 +20,7 @@ const MapPointMarkersView: FC<Props> = ({
   selectedPointId,
   onTapPoint,
   compact = false,
+  interactive = true,
 }) => {
   return (
     <>
@@ -28,6 +31,7 @@ const MapPointMarkersView: FC<Props> = ({
           selected={point.getId() === selectedPointId}
           onTapPoint={onTapPoint}
           compact={compact}
+          interactive={interactive}
         />
       ))}
     </>

@@ -68,6 +68,8 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
   const [editingPoint, setEditingPoint] = useState<GroupPoint | null>(null);
   // 시트를 열 때마다 올린다 — 시트가 이 값을 `key`로 받아 새로 마운트되면서 입력이 초기화된다.
   const [sheetKey, setSheetKey] = useState(0);
+  // 포인트 추가 조준 모드(GRP-9). 화면이 들고 있다 — 코스 그리기(RD-2)와 동시에 켜지지 않게 그리기 시작 때 끈다.
+  const [isAiming, setIsAiming] = useState(false);
   const pointList = groupMap.getPointList();
   const group = groupMap.getGroup();
   const {
@@ -105,6 +107,20 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
       void groupMap.initialize();
     }, [groupMap])
   );
+
+  const handleStartAiming = useCallback(() => {
+    setIsAiming(true);
+  }, []);
+
+  const handleCancelAiming = useCallback(() => {
+    setIsAiming(false);
+  }, []);
+
+  // 그리기 모드에 들어간다(RD-1). 조준 모드와 동시에 켜지지 않는다(배낭 코스 화면과 같다).
+  const handleStartRouteDrawing = useCallback(() => {
+    setIsAiming(false);
+    handleStartDrawing();
+  }, [handleStartDrawing]);
 
   const handleBack = () => {
     router.back();
@@ -266,6 +282,9 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
             isUploadingRoute={isUploadingRoute}
             routeDraw={routeDraw}
             onCancelDrawing={handleCancelDrawing}
+            isAiming={isAiming}
+            onStartAiming={handleStartAiming}
+            onCancelAiming={handleCancelAiming}
             // Android는 커스텀 헤더가 레이아웃을 차지해 지도 영역이 이미 그 아래에서
             // 시작한다 — 칩은 지도 위쪽에 살짝 띄우기만 한다. iOS는 투명 헤더라 직접 비운다.
             topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
@@ -314,7 +333,7 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
         canDraw={!IS_WEB}
         onClose={handleCloseAddMenu}
         onImport={handleImportRoute}
-        onDraw={handleStartDrawing}
+        onDraw={handleStartRouteDrawing}
       />
       {IS_WEB ? null : (
         <RouteDrawNameSheetView

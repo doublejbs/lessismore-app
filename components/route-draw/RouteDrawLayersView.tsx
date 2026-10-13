@@ -1,5 +1,5 @@
 import { FC, useMemo } from 'react';
-import { Image, StyleSheet } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import type {
   CircleLayerSpecification,
   LineLayerSpecification,
@@ -124,16 +124,19 @@ const RouteDrawLayersView: FC<Props> = ({ routeDraw }) => {
           lngLat={[end.longitude, end.latitude]}
           anchor='bottom'
         >
-          <Image
-            source={labels.end.source}
-            style={[
-              styles.label,
-              { width: labels.end.width, height: labels.end.height },
-            ]}
-            accessible
-            accessibilityRole='image'
-            accessibilityLabel={l10n.t('route.endpoint.end')}
-          />
+          {/* 말풍선이 터치를 가로채지 않게 — 이 모드의 지도 탭은 전부 점 추가다(RD-2). */}
+          <View collapsable={false} pointerEvents='none'>
+            <Image
+              source={labels.end.source}
+              style={[
+                styles.label,
+                { width: labels.end.width, height: labels.end.height },
+              ]}
+              accessible
+              accessibilityRole='image'
+              accessibilityLabel={l10n.t('route.endpoint.end')}
+            />
+          </View>
         </Marker>
       ) : null}
       {start ? (
@@ -143,16 +146,19 @@ const RouteDrawLayersView: FC<Props> = ({ routeDraw }) => {
           lngLat={[start.longitude, start.latitude]}
           anchor='bottom'
         >
-          <Image
-            source={labels.start.source}
-            style={[
-              styles.label,
-              { width: labels.start.width, height: labels.start.height },
-            ]}
-            accessible
-            accessibilityRole='image'
-            accessibilityLabel={l10n.t('route.endpoint.start')}
-          />
+          {/* 말풍선이 터치를 가로채지 않게 — 이 모드의 지도 탭은 전부 점 추가다(RD-2). */}
+          <View collapsable={false} pointerEvents='none'>
+            <Image
+              source={labels.start.source}
+              style={[
+                styles.label,
+                { width: labels.start.width, height: labels.start.height },
+              ]}
+              accessible
+              accessibilityRole='image'
+              accessibilityLabel={l10n.t('route.endpoint.start')}
+            />
+          </View>
         </Marker>
       ) : null}
     </>

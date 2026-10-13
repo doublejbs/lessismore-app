@@ -55,6 +55,9 @@ import RouteSegmentChipsView from '@/components/route/RouteSegmentChipsView';
 import RouteDrawBarView from '@/components/route-draw/RouteDrawBarView';
 import RouteDrawLayersView from '@/components/route-draw/RouteDrawLayersView';
 import RouteDrawNoticeView from '@/components/route-draw/RouteDrawNoticeView';
+import useRouteDrawHostLayout, {
+  getRouteDrawHostBottomInset,
+} from '@/components/route-draw/useRouteDrawHostLayout';
 import {
   getRouteSheetDetentHeight,
   getRouteSheetDetents,
@@ -125,6 +128,13 @@ interface Props {
   routeDraw: RouteDraw;
   // 하단 바 `취소` — 확인 알럿(2점 이상)은 화면이 띄운다.
   onCancelDrawing: () => void;
+  /**
+   * 포인트 추가 조준 모드(GRP-9). 화면이 들고 있다(배낭 코스 화면과 같다) — 그리기를 시작할 때 화면이 조준을 끈다.
+   * 이 동안에는 필터 칩·정보 카드·`3D`·`포인트 추가`·시트를 걷어 조준을 가리지 않는다.
+   */
+  isAiming: boolean;
+  onStartAiming: () => void;
+  onCancelAiming: () => void;
   // Android 커스텀 헤더 높이만큼 상단 오버레이를 내린다(iOS는 투명 헤더라 세이프에어리어로 충분).
   topInset: number;
 }
@@ -227,6 +237,9 @@ const GroupMapCanvasView: FC<Props> = ({
   isUploadingRoute,
   routeDraw,
   onCancelDrawing,
+  isAiming,
+  onStartAiming,
+  onCancelAiming,
   topInset,
 }) => {
   const l10n = app.getL10n();
@@ -267,13 +280,10 @@ const GroupMapCanvasView: FC<Props> = ({
   const topOverlayBottomRef = useRef<number | null>(null);
   // 지도 아래쪽 카드(포인트·끝점·조준 안내)의 높이 — 출처 표기(라이선스 의무, MAP-1)를 그 위로 올린다. 없으면 0.
   const [cardSlotHeight, setCardSlotHeight] = useState(0);
-  // 포인트 추가 조준 모드 (GRP-9). 이 동안에는 필터 칩·정보 카드·`3D`·`포인트 추가`·시트를 걷어 조준을 가리지 않는다.
-  const [isAimingRequested, setIsAiming] = useState(false);
-  // 코스 그리기 하단 바 높이(RD-2) — 재기 전에는 0. 출처 ⓘ·`내 위치`를 그 위로 올린다.
-  const [drawBarHeight, setDrawBarHeight] = useState(0);
   const isDrawing = routeDraw.isActive();
-  // 두 모드는 동시에 켜지지 않는다 — 그리기가 이긴다(RD-2). `코스 추가`는 조준 중 걷히는 시트 안이라 실제로 겹치지 않는다.
-  const isAiming = isAimingRequested && !isDrawing;
+  // 코스 그리기 하단 바 높이·카메라 맞춤용 사본(RD-2) — 출처 ⓘ·`내 위치`를 바 위로 올린다.
+  const { drawBarHeight, handleDrawBarLayout, getDrawingBottomPadding } =
+    useRouteDrawHostLayout(isDrawing);
   /**
    * 고도 그래프에서 훑고 있는 지점 (GRP-8). 손을 떼면 `null`이 되어 마커가 사라진다.
    * **어느 코스의 지점인지 함께 들고 있는다** — 코스를 바꾸면 그래프는 새로 마운트되지만
@@ -330,15 +340,11 @@ const GroupMapCanvasView: FC<Props> = ({
   const sheetHeightRef = useRef(initialSheetHeight);
   const detentsRef = useRef(detents);
   const isAimingRef = useRef(isAiming);
-  const isDrawingRef = useRef(isDrawing);
-  const drawBarHeightRef = useRef(drawBarHeight);
 
   useEffect(() => {
     detentsRef.current = detents;
     isAimingRef.current = isAiming;
-    isDrawingRef.current = isDrawing;
-    drawBarHeightRef.current = drawBarHeight;
-  }, [detents, drawBarHeight, isAiming, isDrawing]);
+  }, [detents, isAiming]);
 
   /**
    * 상자 맞춤의 위 여백 — 상단 오버레이(안내 줄·칩 줄) 아래 끝 + 16. 첫 카메라 때는 칩 줄을 아직 재지 못했을 수
@@ -360,12 +366,11 @@ const GroupMapCanvasView: FC<Props> = ({
     }
 
     // 그리기 모드에서는 시트 대신 하단 바가 지도 아래를 덮는다(RD-2).
-    if (isDrawingRef.current) {
-      return drawBarHeightRef.current;
-    }
-
-    return Math.min(sheetHeightRef.current, detentsRef.current.half);
-  }, []);
+    return (
+      getDrawingBottomPadding() ??
+      Math.min(sheetHeightRef.current, detentsRef.current.half)
+    );
+  }, [getDrawingBottomPadding]);
 
   // 목록에서 고르면 그 자리를 지도에서 보여야 한다 — 펼침이면 기본 단으로 내린다(GRP-10).
   const lowerExpandedSheet = useCallback(() => {
@@ -741,14 +746,6 @@ const GroupMapCanvasView: FC<Props> = ({
     sessionSheetDetent = detent;
   }, []);
 
-  const handleDrawBarLayout = useCallback((event: LayoutChangeEvent) => {
-    const { height } = event.nativeEvent.layout;
-
-    setDrawBarHeight(previous =>
-      Math.abs(previous - height) < 1 ? previous : height
-    );
-  }, []);
-
   // 길게 누르기 → 입력 시트(GRP-9). 지도의 네이티브 롱프레스라 좌표가 바로 온다. 조준·그리기 모드에서는 받지 않는다
   // (그리기 중 포인트 추가가 섞이지 않게 — RD-2).
   const handleLongPress = useCallback(
@@ -769,12 +766,8 @@ const GroupMapCanvasView: FC<Props> = ({
   const handleStartAiming = useCallback(() => {
     groupMap.focusPoint(null);
     handleCloseEndpoint();
-    setIsAiming(true);
-  }, [groupMap, handleCloseEndpoint]);
-
-  const handleCancelAiming = useCallback(() => {
-    setIsAiming(false);
-  }, []);
+    onStartAiming();
+  }, [groupMap, handleCloseEndpoint, onStartAiming]);
 
   /**
    * 조준 마커는 지도 칸 정중앙에 고정돼 있다 — 그 화면 점의 좌표를 읽는다(카메라 여백이 남아 있어도 마커
@@ -797,12 +790,12 @@ const GroupMapCanvasView: FC<Props> = ({
       return;
     }
 
-    setIsAiming(false);
+    onCancelAiming();
     onRequestCreate({
       latitude: coordinate.latitude,
       longitude: coordinate.longitude,
     });
-  }, [onRequestCreate]);
+  }, [onCancelAiming, onRequestCreate]);
 
   /**
    * 그래프 훑기 (GRP-8). **카메라는 건드리지 않는다** — 손가락 아래에서 지도가 움직이면
@@ -966,18 +959,13 @@ const GroupMapCanvasView: FC<Props> = ({
    * 조준 모드에서는 시트가 내려가 지도가 화면 맨 아래까지 온다 — 세이프에어리어만 비운다.
    * 그리기 모드에서는 시트 자리에 하단 바가 선다 — 바 높이를 비운다(RD-2).
    */
-  const getBottomInset = () => {
-    if (isAiming) {
-      return insets.bottom;
-    }
-
-    if (isDrawing) {
-      return drawBarHeight;
-    }
-
-    return Math.min(sheetHeight, detents.half);
-  };
-  const bottomInset = getBottomInset();
+  const bottomInset = getRouteDrawHostBottomInset({
+    isAiming,
+    isDrawing,
+    safeAreaBottom: insets.bottom,
+    drawBarHeight,
+    sheetInset: Math.min(sheetHeight, detents.half),
+  });
   // 출처 ⓘ(라이선스 의무)·iOS 축척 막대 — 시트 위, 카드가 있으면 그 위로 올린다.
   const attributionBottomOffset =
     cardSlotHeight > 0
@@ -1033,7 +1021,7 @@ const GroupMapCanvasView: FC<Props> = ({
           <View style={styles.aimActions}>
             <TouchableOpacity
               style={styles.cancelButton}
-              onPress={handleCancelAiming}
+              onPress={onCancelAiming}
               activeOpacity={0.8}
               accessibilityRole='button'
               accessibilityLabel={l10n.t('common.cancel')}
@@ -1142,7 +1130,8 @@ const GroupMapCanvasView: FC<Props> = ({
               <MapPointMarkersView
                 points={pointList.getVisiblePoints()}
                 selectedPointId={focusedPointId}
-                onTapPoint={isDrawing ? undefined : handleTapPoint}
+                onTapPoint={handleTapPoint}
+                interactive={!isDrawing}
               />
 
               {isDrawing ? <RouteDrawLayersView routeDraw={routeDraw} /> : null}

@@ -25,25 +25,18 @@ const useGroupMapRouteState = (groupMap: GroupMap) => {
    * 올린 코스를 골라 카메라를 맞춘다(`focusRoute`). 기본 이름은 `{그룹 이름} 코스`.
    */
   const [routeDraw] = useState(() =>
-    RouteDraw.from(
-      RouteDrawSource.Group,
-      async (draft, localUri) => {
-        const routeId = await routeList.addDrawnRoute(draft, localUri);
-
-        if (!routeId) {
-          return false;
-        }
-
+    RouteDraw.from(RouteDrawSource.Group, {
+      submit: (draft, localUri) => routeList.addDrawnRoute(draft, localUri),
+      // 모드를 나간 뒤 올린 코스를 골라 카메라를 맞춘다(가져오기와 같다).
+      onSaved: routeId => {
         groupMap.focusRoute(routeId);
-
-        return true;
       },
-      async () => {
+      resolveDefaultName: async () => {
         const name = groupMap.getGroup()?.getName();
 
         return name ? l10n.t('routeDraw.defaultName', { name }) : '';
-      }
-    )
+      },
+    })
   );
   const isDrawing = routeDraw.isActive();
   const handleCancelDrawing = useRouteDrawCancel(routeDraw, isDrawing);
@@ -106,7 +99,7 @@ const useGroupMapRouteState = (groupMap: GroupMap) => {
     void handleAddRoute();
   }, [handleAddRoute]);
 
-  // 그리기 모드에 들어간다(RD-1). 조준 모드는 지도 본문이 함께 접는다.
+  // 그리기 모드에 들어간다(RD-1). 조준 모드는 화면(`GroupMapView`)이 먼저 끈다.
   const handleStartDrawing = useCallback(() => {
     routeDraw.start();
   }, [routeDraw]);

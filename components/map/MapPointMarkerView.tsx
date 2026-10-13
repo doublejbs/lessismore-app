@@ -21,6 +21,11 @@ interface Props {
    * 포인트 몇 개로 지도가 글자에 덮인다. 이름은 누르고 들어간 그룹 지도가 보여준다.
    */
   compact?: boolean;
+  /**
+   * `false`면 마커가 터치를 받지 않고 지도로 흘린다(`pointerEvents='none'`) — 코스 그리기 모드(RD-2): MapLibre `Marker`는
+   * 실제 RN 뷰라 `onPress`를 빼도 터치를 가로채, 마커 위 탭이 점 추가가 되지 않는다. 기본 `true`(지금 동작 그대로).
+   */
+  interactive?: boolean;
 }
 
 // 작은 마커도 잘 눌리도록 원(28pt)보다 넉넉한 탭 영역을 잡는다(HIG 44pt).
@@ -44,9 +49,11 @@ const MARKER_OFFSET: [number, number] = [0, HIT_AREA / 2];
  * 선택 마커는 원을 키우고 잉크 테두리. `compact`는 캡션 없는 작은 원이다(가운데가 좌표).
  */
 const MapPointMarkerView = memo<Props>(
-  ({ point, selected, onTapPoint, compact = false }) => {
+  ({ point, selected, onTapPoint, compact = false, interactive = true }) => {
     const color = getPointTypeColor(point.getType());
-    const pressProps = onTapPoint ? { onPress: () => onTapPoint(point) } : {};
+    const pressProps =
+      onTapPoint && interactive ? { onPress: () => onTapPoint(point) } : {};
+    const touchProps = interactive ? {} : { pointerEvents: 'none' as const };
 
     if (compact) {
       return (
@@ -58,6 +65,7 @@ const MapPointMarkerView = memo<Props>(
         >
           <View
             collapsable={false}
+            {...touchProps}
             style={[
               styles.circle,
               styles.circleCompact,
@@ -93,9 +101,12 @@ const MapPointMarkerView = memo<Props>(
       >
         <View
           collapsable={false}
+          {...touchProps}
           style={styles.container}
           accessible
-          {...(onTapPoint ? { accessibilityRole: 'button' as const } : {})}
+          {...(onTapPoint && interactive
+            ? { accessibilityRole: 'button' as const }
+            : {})}
           accessibilityLabel={`${getPointTypeLabel(point.getType())} ${point.getTitle()}`}
           accessibilityState={{ selected }}
         >

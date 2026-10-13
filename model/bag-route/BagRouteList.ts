@@ -272,35 +272,32 @@ class BagRouteList {
 
   /**
    * 지도에서 그린 코스를 올린다 (RD-3). 파일은 이미 만들어져 있다 — 그 뒤는 가져오기와 **같은 경로**다
-   * (디스패처 검증·업로드·상한 검사, `click_bag_route_upload`, 목록 갱신). 올린 코스를 골라 카메라를 맞춘다.
-   * 실패하면 가져오기와 같은 문구로 알리고 `false`(그리기 모드에 남는다).
+   * (디스패처 검증·업로드·상한 검사, `click_bag_route_upload`, 목록 갱신). 올린 코스 id를 돌려준다 — 고르고 카메라를
+   * 맞추는 일은 그리기 모드를 나간 뒤 화면이 한다(`RouteDrawHost.onSaved`). 실패하면 가져오기와 같은 문구로 알리고
+   * `null`(그리기 모드에 남는다).
    */
   public async addDrawnRoute(
     draft: RouteDraft,
     localUri: string
-  ): Promise<boolean> {
+  ): Promise<string | null> {
     if (this.submitting) {
-      return false;
+      return null;
     }
 
     if (this.isFull()) {
       this.showMessage(this.getLimitMessage());
 
-      return false;
+      return null;
     }
 
     this.setSubmitting(true);
 
     try {
-      const routeId = await this.submitDraft(draft, localUri);
-
-      this.focusEntry(BagRouteSelection.toBagEntryKey(routeId));
-
-      return true;
+      return await this.submitDraft(draft, localUri);
     } catch (error) {
       this.showMessage(getRouteErrorMessage(error));
 
-      return false;
+      return null;
     } finally {
       this.setSubmitting(false);
     }

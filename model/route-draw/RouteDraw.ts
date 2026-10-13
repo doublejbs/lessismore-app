@@ -2,6 +2,8 @@ import { Directory, File, Paths } from 'expo-file-system';
 import { makeAutoObservable, runInAction } from 'mobx';
 import app from '@/model/app/App';
 import { getDistanceInMeters } from '@/model/bag-destination/GeoDistance';
+import GroupError from '@/model/group/GroupError';
+import GroupValidationError from '@/model/group/GroupValidationError';
 import { measureRouteBounds } from '@/model/route/RouteCamera';
 import { RouteCoordinate, RouteDraft } from '@/model/route/RouteData';
 import {
@@ -18,16 +20,19 @@ import { sampleRouteDrawLine } from './RouteDrawSampler';
 import RouteDrawSource from './RouteDrawSource';
 
 /**
- * 만든 코스를 올리는 일 — 화면(배낭·그룹)이 정한다. 디스패처 호출·목록 갱신·선택·카메라 맞춤까지 맡고,
- * 실패하면 사유를 직접 토스트하고 `false`를 돌려준다(가져오기와 같은 문구 — RD-3).
+ * 화면(배낭·그룹)이 주입하는 일 (RD-3).
+ *
+ * - `submit`: 만든 코스를 올린다 — 디스패처 호출·목록 갱신까지 맡고 올린 코스 id를 돌려준다. 실패하면 사유를 직접
+ *   토스트하고(가져오기와 같은 문구) `null`.
+ * - `onSaved`: 저장이 끝나 **모드를 나간 뒤** 불린다 — 올린 코스를 골라 카메라를 맞춘다(배낭 `focusEntry`, 그룹
+ *   `focusRoute`). 모드를 먼저 나가야 카메라 맞춤이 하단 바가 아니라 다시 올라온 시트 높이를 비운다.
+ * - `resolveDefaultName`: 이름 입력 시트의 기본값(배낭 `{여행지} 코스`, 그룹 `{그룹} 코스`). 못 구하면 빈 문자열.
  */
-export type RouteDrawSubmitter = (
-  draft: RouteDraft,
-  localUri: string
-) => Promise<boolean>;
-
-// 이름 입력 시트의 기본값을 구한다(RD-3 — 배낭 `{여행지} 코스`, 그룹 `{그룹} 코스`). 던지지 않아야 한다.
-export type RouteDrawNameResolver = () => Promise<string>;
+export interface RouteDrawHost {
+  submit: (draft: RouteDraft, localUri: string) => Promise<string | null>;
+  onSaved: (routeId: string) => void;
+  resolveDefaultName: () => Promise<string>;
+}
 
 // 찍을 수 있는 점 상한(RD-2).
 export const ROUTE_DRAW_MAX_POINTS = 100;
@@ -55,26 +60,17 @@ class RouteDraw {
   // 모드에 들어갈 때마다 올린다 — 늦게 온 기본 이름이 다음 그리기에 섞이지 않게.
   private sessionSeq = 0;
 
-  public static from(
-    source: RouteDrawSource,
-    submitter: RouteDrawSubmitter,
-    resolveDefaultName: RouteDrawNameResolver
-  ) {
-    return new RouteDraw(source, submitter, resolveDefaultName);
+  public static from(source: RouteDrawSource, host: RouteDrawHost) {
+    return new RouteDraw(source, host);
   }
 
   private constructor(
     private readonly source: RouteDrawSource,
-    private readonly submitter: RouteDrawSubmitter,
-    private readonly resolveDefaultName: RouteDrawNameResolver
+    private readonly host: RouteDrawHost
   ) {
-    makeAutoObservable<
-      RouteDraw,
-      'source' | 'submitter' | 'resolveDefaultName' | 'sessionSeq'
-    >(this, {
+    makeAutoObservable<RouteDraw, 'source' | 'host' | 'sessionSeq'>(this, {
       source: false,
-      submitter: false,
-      resolveDefaultName: false,
+      host: false,
       sessionSeq: false,
     });
   }
@@ -260,7 +256,16 @@ class RouteDraw {
       const elevationLoss = measureElevationLoss(elevationValues);
       const bounds = measureRouteBounds(coordinates);
 
+      // 샘플이 2점 이상이라 생기지 않지만, 생기면 말없이 끝내지 않는다.
       if (!bounds) {
+        app
+          .getToastManager()
+          ?.showSimple(
+            getRouteErrorMessage(
+              new GroupError(GroupValidationError.RouteParseFailed)
+            )
+          );
+
         return false;
       }
 
@@ -287,9 +292,9 @@ class RouteDraw {
         ...(elevationLoss !== null ? { elevationLoss } : {}),
       };
       const pointCount = this.points.length;
-      const saved = await this.submitter(draft, file.uri);
+      const routeId = await this.host.submit(draft, file.uri);
 
-      if (!saved) {
+      if (!routeId) {
         return false;
       }
 
@@ -300,9 +305,17 @@ class RouteDraw {
         distance: Math.round(distance),
         has_elevation: hasElevation,
       });
+      // 모드를 먼저 나간 뒤 그 코스로 옮긴다(`RouteDrawHost.onSaved`).
       runInAction(() => {
         this.reset();
       });
+
+      // 업로드는 이미 끝났다 — 호스트의 후속 처리(선택·카메라)가 던져도 실패 토스트로 번지지 않게 따로 감싼다.
+      try {
+        this.host.onSaved(routeId);
+      } catch (error) {
+        console.warn('[RouteDraw] 저장 후 처리 실패', error); // l10n-ignore: 개발자 로그
+      }
 
       if (!hasElevation) {
         app
@@ -331,14 +344,15 @@ class RouteDraw {
     let name = '';
 
     try {
-      name = await this.resolveDefaultName();
+      name = await this.host.resolveDefaultName();
     } catch (error) {
       console.warn('[RouteDraw] 기본 이름 조회 실패', error); // l10n-ignore: 개발자 로그
     }
 
     runInAction(() => {
       if (seq === this.sessionSeq) {
-        this.defaultName = RouteValidator.toRouteName(name);
+        // 비었으면 그대로 둔다 — `toRouteName`은 빈 이름을 `GPX`로 채워 `그린 코스` 폴백을 가린다.
+        this.defaultName = name ? RouteValidator.toRouteName(name) : '';
       }
     });
   }

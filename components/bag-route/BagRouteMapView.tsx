@@ -60,6 +60,9 @@ import RouteEndpointCalloutView from '@/components/route/RouteEndpointCalloutVie
 import RouteDrawBarView from '@/components/route-draw/RouteDrawBarView';
 import RouteDrawLayersView from '@/components/route-draw/RouteDrawLayersView';
 import RouteDrawNoticeView from '@/components/route-draw/RouteDrawNoticeView';
+import useRouteDrawHostLayout, {
+  getRouteDrawHostBottomInset,
+} from '@/components/route-draw/useRouteDrawHostLayout';
 import {
   RouteEndpointCameraPadding,
   useRouteEndpointState,
@@ -304,9 +307,10 @@ const BagRouteMapView: FC<Props> = ({
   const topOverlayBottomRef = useRef<number | null>(null);
   // 지도 아래쪽 카드(포인트·끝점·조준 안내)의 높이 — 출처 표기(라이선스 의무)를 그 위로 올린다. 없으면 0.
   const [cardSlotHeight, setCardSlotHeight] = useState(0);
-  // 코스 그리기 하단 바 높이(RD-2) — 재기 전에는 0. 출처 ⓘ·`내 위치`를 그 위로 올린다.
-  const [drawBarHeight, setDrawBarHeight] = useState(0);
   const isDrawing = routeDraw.isActive();
+  // 코스 그리기 하단 바 높이·카메라 맞춤용 사본(RD-2) — 출처 ⓘ·`내 위치`를 바 위로 올린다.
+  const { drawBarHeight, handleDrawBarLayout, getDrawingBottomPadding } =
+    useRouteDrawHostLayout(isDrawing);
   /**
    * 고도 그래프에서 훑고 있는 지점. 손을 떼면 `null`이 되어 마커가 사라진다.
    * **어느 코스의 지점인지 함께 들고 있는다** — 코스를 바꾸면 그래프는 새로 마운트되지만
@@ -367,15 +371,11 @@ const BagRouteMapView: FC<Props> = ({
   const sheetHeightRef = useRef(initialSheetHeight);
   const detentsRef = useRef(detents);
   const isAimingRef = useRef(isAiming);
-  const isDrawingRef = useRef(isDrawing);
-  const drawBarHeightRef = useRef(drawBarHeight);
 
   useEffect(() => {
     detentsRef.current = detents;
     isAimingRef.current = isAiming;
-    isDrawingRef.current = isDrawing;
-    drawBarHeightRef.current = drawBarHeight;
-  }, [detents, drawBarHeight, isAiming, isDrawing]);
+  }, [detents, isAiming]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -491,12 +491,11 @@ const BagRouteMapView: FC<Props> = ({
     }
 
     // 그리기 모드에서는 시트 대신 하단 바가 지도 아래를 덮는다(RD-2).
-    if (isDrawingRef.current) {
-      return drawBarHeightRef.current;
-    }
-
-    return Math.min(sheetHeightRef.current, detentsRef.current.half);
-  }, []);
+    return (
+      getDrawingBottomPadding() ??
+      Math.min(sheetHeightRef.current, detentsRef.current.half)
+    );
+  }, [getDrawingBottomPadding]);
 
   // 목록에서 고르면 그 자리를 지도에서 보여야 한다 — 펼침이면 기본 단으로 내린다(BD-11).
   const lowerExpandedSheet = useCallback(() => {
@@ -850,14 +849,6 @@ const BagRouteMapView: FC<Props> = ({
     sessionSheetDetent = detent;
   }, []);
 
-  const handleDrawBarLayout = useCallback((event: LayoutChangeEvent) => {
-    const { height } = event.nativeEvent.layout;
-
-    setDrawBarHeight(previous =>
-      Math.abs(previous - height) < 1 ? previous : height
-    );
-  }, []);
-
   // 길게 누르기 → 입력 시트(BD-14). 지도의 네이티브 롱프레스라 좌표가 바로 온다. 조준·그리기 모드에서는 받지 않는다
   // (그리기 중 포인트 추가가 섞이지 않게 — RD-2).
   const handleLongPress = useCallback(
@@ -1024,18 +1015,13 @@ const BagRouteMapView: FC<Props> = ({
    * 조준 모드에서는 시트가 내려가 지도가 화면 맨 아래까지 온다 — 세이프에어리어만 비운다.
    * 그리기 모드에서는 시트 자리에 하단 바가 선다 — 바 높이를 비운다(RD-2).
    */
-  const getBottomInset = () => {
-    if (isAiming) {
-      return insets.bottom;
-    }
-
-    if (isDrawing) {
-      return drawBarHeight;
-    }
-
-    return Math.min(sheetHeight, detents.half);
-  };
-  const bottomInset = getBottomInset();
+  const bottomInset = getRouteDrawHostBottomInset({
+    isAiming,
+    isDrawing,
+    safeAreaBottom: insets.bottom,
+    drawBarHeight,
+    sheetInset: Math.min(sheetHeight, detents.half),
+  });
   const focusedBagPoint =
     focusedEntry?.owned && focusedEntry.point instanceof BagPoint
       ? focusedEntry.point
@@ -1218,7 +1204,8 @@ const BagRouteMapView: FC<Props> = ({
               <MapPointMarkersView
                 points={bagPointList.getVisiblePoints()}
                 selectedPointId={focusedPoint?.getId() ?? null}
-                onTapPoint={isDrawing ? undefined : handleTapPoint}
+                onTapPoint={handleTapPoint}
+                interactive={!isDrawing}
               />
               {/* 고도 그래프를 훑는 동안만 뜨는 위치 마커. */}
               {scrubSample ? (
