@@ -175,6 +175,22 @@ const useSubscriptionState = (store: SubscriptionStore) => {
     void Linking.openURL(store.getManageSubscriptionsUrl());
   };
 
+  // SUB-2 닫기 ×. 구매·복원 중에는 버튼이 막혀 있다. 알림 탭(NT-13)으로 앱을 처음 연 경우처럼 돌아갈
+  // 화면이 없으면 홈으로 보낸다.
+  const handleClose = () => {
+    if (store.isPurchasing() || store.isRestoring()) {
+      return;
+    }
+
+    if (router.canGoBack()) {
+      closeSheet();
+
+      return;
+    }
+
+    router.replace('/');
+  };
+
   const handleRetry = () => {
     void store.loadOffering();
   };
@@ -200,6 +216,7 @@ const useSubscriptionState = (store: SubscriptionStore) => {
     handleSubscribe,
     handleRestore,
     handleManage,
+    handleClose,
     handleRetry,
     handleOpenTerms,
     handleOpenPrivacyPolicy,

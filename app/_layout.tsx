@@ -442,15 +442,12 @@ const RootLayout = () => {
               contentStyle: { backgroundColor: Acg.paper },
             }}
           />
-          {/* useless 플러스 구독 시트(SUB-2) — 배낭 추가 시트와 같은 formSheet 얼개(내용 높이만큼). */}
+          {/* useless 플러스 구독 화면(SUB-2, 2026-10-13 개정) — 전체 화면 안내. 닫기는 화면의 닫기 ×. */}
           <Stack.Screen
             name='subscription/index'
             options={{
               headerShown: false,
-              presentation: 'formSheet',
-              sheetAllowedDetents: 'fitToContents',
-              sheetGrabberVisible: true,
-              sheetCornerRadius: 20,
+              presentation: 'fullScreenModal',
               contentStyle: { backgroundColor: Acg.paper },
             }}
           />
