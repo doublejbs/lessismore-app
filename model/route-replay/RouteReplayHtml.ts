@@ -439,7 +439,8 @@ export const ROUTE_REPLAY_HTML: string = String.raw`<!doctype html>
   };
 
   var followCamera = function (d) {
-    var ahead = locate(d + LOOK_AHEAD_M).lngLat;
+    var aheadSpot = locate(d + LOOK_AHEAD_M);
+    var ahead = aheadSpot.lngLat;
     var from = locate(Math.max(0, d - BEARING_WINDOW_M)).lngLat;
     var to = locate(d < BEARING_WINDOW_M ? Math.min(totalDistance, BEARING_WINDOW_M) : d).lngLat;
     var target = haversine(from, to) > 1 ? bearingBetween(from, to) : (smoothedBearing || 0);
@@ -462,6 +463,13 @@ export const ROUTE_REPLAY_HTML: string = String.raw`<!doctype html>
       aheadElevation = map.queryTerrainElevation(ahead);
     } catch (error) {
       aheadElevation = null;
+    }
+
+    // 재생을 누른 직후에는 그 지점의 지형 타일이 아직 없어 조회가 비는데, 그러면 카메라가 해발 0m로 먼저 갔다가
+    // 타일이 들어오는 순간 제자리로 튄다(2026-10-13 실기기 지적). 그때는 코스에 기록된 고도(GPX ele)에 과장을
+    // 곱해 쓴다 — 그려지는 지면 높이와 같은 단위다.
+    if (typeof aheadElevation !== "number" && aheadSpot.ele !== null) {
+      aheadElevation = aheadSpot.ele * EXAGGERATION;
     }
 
     var camera = {
