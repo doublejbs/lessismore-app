@@ -1849,7 +1849,12 @@
     "namePlaceholder": "Enter a route name",
     "nameCounter": "{{count}}/{{max}}",
     "close": "Close",
-    "gpxDescription": "A route drawn by tapping points on the map in useless · Connected with straight lines"
+    "gpxDescription": "A route drawn by tapping points on the map in useless · Connected with straight lines",
+    "searchPlaceholder": "Search places or mountains",
+    "searchLabel": "Search location",
+    "searchClear": "Clear search",
+    "searchEmpty": "No results found",
+    "searchPinLabel": "Searched location, {{name}}"
   },
   "map": {
     "loadFailed": "Couldn't load map data",

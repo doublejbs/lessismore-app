@@ -4,7 +4,7 @@
 | --- | --- |
 | 상태 | proposed (2026-10-13 기획 — 사용자 결정: "gpx 만드는 기능", "2단계(등산로 따라가기)는 필요 없고 그냥 지도에서 점 찍으면 될 거 같아") |
 | ID 프리픽스 | `RD` |
-| 주요 코드 | `[제안]` `model/route-draw/`(`RouteDraw.ts` 편집 상태·거리·저장 흐름, `RouteDrawPoint.ts`, `RouteDrawSource.ts` 진입처 enum, `RouteDrawGpxWriter.ts` GPX 문서 생성, `RouteDrawSampler.ts` 선분 보간) · `model/terrain/TerrainElevation.ts`(지형 타일에서 좌표 고도 읽기 — `OfflineContours`의 타일 받기·디코딩을 공용화) · `components/route-draw/`(`RouteDrawLayersView.tsx` 선·점 마커, `RouteDrawBarView.tsx` 하단 바, `RouteDrawNoticeView.tsx` 안내 줄, `RouteDrawNameSheetView.tsx` 이름 입력) · 진입 메뉴 `components/route/RouteAddMenuView.tsx` · 호스트: `components/bag-route/BagRouteMapView.tsx`·`BagRouteView.tsx`, `components/group/map/GroupMapCanvasView.tsx`·`GroupMapView.tsx` |
+| 주요 코드 | `[제안]` `model/route-draw/`(`RouteDraw.ts` 편집 상태·거리·저장 흐름, `RouteDrawPoint.ts`, `RouteDrawSource.ts` 진입처 enum, `RouteDrawGpxWriter.ts` GPX 문서 생성, `RouteDrawSampler.ts` 선분 보간) · `model/terrain/TerrainElevation.ts`(지형 타일에서 좌표 고도 읽기 — `OfflineContours`의 타일 받기·디코딩을 공용화) · `components/route-draw/`(`RouteDrawLayersView.tsx` 선·점 마커, `RouteDrawBarView.tsx` 하단 바, `RouteDrawNoticeView.tsx` 안내 줄, `RouteDrawNameSheetView.tsx` 이름 입력) · 위치 검색(RD-5): `model/route-draw/RouteDrawSearch.ts`(검색 상태) · `components/route-draw/`(`RouteDrawSearchView.tsx` 인풋, `RouteDrawSearchResultsView.tsx` 드롭다운, `RouteDrawSearchPinView.tsx` 임시 핀, `useRouteDrawSearchHost.ts` 호스트 연결) · 공용 핀 `components/map/MapPinCaptionMarkerView.tsx` · 진입 메뉴 `components/route/RouteAddMenuView.tsx` · 호스트: `components/bag-route/BagRouteMapView.tsx`·`BagRouteView.tsx`, `components/group/map/GroupMapCanvasView.tsx`·`GroupMapView.tsx` |
 | 관련 스펙 | [BagDetail.md](BagDetail.md)(BD-11 배낭 코스), [Group.md](Group.md)(GRP-8 코스·GRP-10 그룹 지도), [DataModel.md](DataModel.md)(DM-29·DM-30 — 데이터 계약 변경 없음), [Offline.md](Offline.md)(OF-6 지형 타일), [Map.md](Map.md)(MAP-2), [Analytics.md](Analytics.md) |
 
 ## 1. 개요
@@ -57,7 +57,7 @@
 - **행 탭 → 카메라만 옮긴다**(그 좌표, 줌 15, 애니메이션). **점은 찍지 않는다** — 점은 사용자가 지도를 눌러 찍는다. 결과 드롭다운과 키보드를 닫고 검색어는 유지한다. 그 자리에 **임시 핀**(회색 핀 + 장소명 캡션, 박지 핀 `MapSpotPinMarkerView` 문법·비대화형)을 띄운다 — 다음 검색 결과를 고르면 교체되고, 점을 찍거나 그리기 모드를 나가면 사라진다. 핀은 저장에 들어가지 않는다.
 - **결과가 열려 있는 동안 지도를 탭하면 결과·키보드만 닫고 점을 찍지 않는다**(닫으려는 탭이 점이 되지 않게 — DST-4의 같은 규칙). 지우기 ×는 검색어·결과·임시 핀을 모두 비운다.
 - 인풋에 포커스가 있는 동안 하단 바(RD-2)는 그대로다(키보드가 가려도 저장·취소는 키보드를 내린 뒤 누를 수 있다). 되돌리기·저장은 검색 상태와 무관하게 동작한다.
-- 카카오 키(`EXPO_PUBLIC_KAKAO_REST_KEY`)가 없는 빌드에서는 인풋을 그리지 않는다(여행지 선택기와 같은 조건).
+- 카카오 키(`EXPO_PUBLIC_KAKAO_REST_KEY`)가 없는 빌드에서는 인풋을 그리지 않는다 — 그리기 검색은 카카오가 유일한 원천이다(여행지 선택기는 박지 검색이 있어 키가 없어도 인풋을 숨기지 않는다).
 - 측정: `click_route_draw_search_select`(`source`) — 결과를 골라 이동했을 때.
 
 ### RD-3 저장 `[제안]`

@@ -17,6 +17,7 @@ import TerrainElevation from '@/model/terrain/TerrainElevation';
 import { writeRouteDrawGpx } from './RouteDrawGpxWriter';
 import { RouteDrawPoint } from './RouteDrawPoint';
 import { sampleRouteDrawLine } from './RouteDrawSampler';
+import RouteDrawSearch from './RouteDrawSearch';
 import RouteDrawSource from './RouteDrawSource';
 
 /**
@@ -59,6 +60,8 @@ class RouteDraw {
   private defaultName = '';
   // 모드에 들어갈 때마다 올린다 — 늦게 온 기본 이름이 다음 그리기에 섞이지 않게.
   private sessionSeq = 0;
+  // 위치 검색(RD-5) — 모드에 들어가고 나갈 때 함께 비운다.
+  private readonly search: RouteDrawSearch;
 
   public static from(source: RouteDrawSource, host: RouteDrawHost) {
     return new RouteDraw(source, host);
@@ -68,11 +71,20 @@ class RouteDraw {
     private readonly source: RouteDrawSource,
     private readonly host: RouteDrawHost
   ) {
-    makeAutoObservable<RouteDraw, 'source' | 'host' | 'sessionSeq'>(this, {
-      source: false,
-      host: false,
-      sessionSeq: false,
-    });
+    this.search = RouteDrawSearch.from(source);
+    makeAutoObservable<RouteDraw, 'source' | 'host' | 'sessionSeq' | 'search'>(
+      this,
+      {
+        source: false,
+        host: false,
+        sessionSeq: false,
+        search: false,
+      }
+    );
+  }
+
+  public getSearch(): RouteDrawSearch {
+    return this.search;
   }
 
   public isActive(): boolean {
@@ -149,6 +161,7 @@ class RouteDraw {
     this.saving = false;
     this.nameSheetVisible = false;
     this.defaultName = '';
+    this.search.clear();
     app.getAnalyticsManager()?.logClick('route_draw_start', {
       source: this.source,
     });
@@ -186,6 +199,8 @@ class RouteDraw {
       ...this.points,
       { latitude: point.latitude, longitude: point.longitude },
     ];
+    // 점을 찍으면 검색 임시 핀은 사라진다(RD-5).
+    this.search.clearPin();
   }
 
   public undo() {
@@ -361,6 +376,7 @@ class RouteDraw {
     this.active = false;
     this.points = [];
     this.nameSheetVisible = false;
+    this.search.clear();
   }
 
   private setSaving(value: boolean) {

@@ -16,6 +16,10 @@ export const GEOCODE_DEBOUNCE_MS = 400;
 // 주소를 찾지 못한 좌표(바다·산악 등)도 여행지로 확정할 수 있게 하는 폴백 이름(DST-3).
 export const FALLBACK_LOCATION_NAME = '선택한 위치'; // l10n-ignore: 지역 라벨(좌표 역지오코딩 폴백)
 
+// 카카오 키가 있는 빌드인지(RD-5). 그리기 검색은 카카오가 유일한 원천이라 키가 없으면 인풋을 숨긴다
+// (여행지 선택기는 박지 검색이 있어 숨기지 않는다).
+export const isGeocodeAvailable = (): boolean => !!KAKAO_REST_KEY;
+
 const getHeaders = () => {
   if (!KAKAO_REST_KEY) {
     throw new Error(

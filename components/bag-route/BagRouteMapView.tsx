@@ -60,9 +60,12 @@ import RouteEndpointCalloutView from '@/components/route/RouteEndpointCalloutVie
 import RouteDrawBarView from '@/components/route-draw/RouteDrawBarView';
 import RouteDrawLayersView from '@/components/route-draw/RouteDrawLayersView';
 import RouteDrawNoticeView from '@/components/route-draw/RouteDrawNoticeView';
+import RouteDrawSearchPinView from '@/components/route-draw/RouteDrawSearchPinView';
+import RouteDrawSearchView from '@/components/route-draw/RouteDrawSearchView';
 import useRouteDrawHostLayout, {
   getRouteDrawHostBottomInset,
 } from '@/components/route-draw/useRouteDrawHostLayout';
+import useRouteDrawSearchHost from '@/components/route-draw/useRouteDrawSearchHost';
 import {
   RouteEndpointCameraPadding,
   useRouteEndpointState,
@@ -404,6 +407,14 @@ const BagRouteMapView: FC<Props> = ({
     handleCameraChanged: handleMyLocationCameraChanged,
     releaseFollow,
   } = useMyLocationHeadingMode({ animateTo, logTag: 'BagRoute' });
+  // 그리기 모드 위치 검색(RD-5) — 결과 탭은 카메라만 옮기고, 결과가 열린 채 지도를 탭하면 닫기만 한다.
+  const { handleSelectSearchResult, handleDrawingMapPress } =
+    useRouteDrawSearchHost({
+      routeDraw,
+      mapRef,
+      releaseFollow,
+      getDrawingBottomPadding,
+    });
 
   /**
    * 출발·도착 마커 탭 → 위치 정보 카드(GRP-8, 그룹 지도와 같다). 카메라는 그 점으로 옮기되 줌은 그대로 두고,
@@ -943,11 +954,11 @@ const BagRouteMapView: FC<Props> = ({
     handleCloseEndpoint();
   }, [bagPointList, handleCloseEndpoint]);
 
-  // 그리기 모드에서는 지도 탭 = 점 추가(RD-2). 카메라는 움직이지 않는다.
+  // 그리기 모드에서는 지도 탭 = 점 추가(RD-2, 검색 결과가 열려 있으면 닫기만 — RD-5). 카메라는 움직이지 않는다.
   const handlePressMap = useCallback(
     (coordinate: AppMapCoordinate) => {
       if (isDrawing) {
-        routeDraw.addPoint(coordinate);
+        handleDrawingMapPress(coordinate);
 
         return;
       }
@@ -958,7 +969,7 @@ const BagRouteMapView: FC<Props> = ({
 
       handleCloseCards();
     },
-    [handleCloseCards, isDrawing, routeDraw]
+    [handleCloseCards, handleDrawingMapPress, isDrawing]
   );
 
   const handleTapEndpointMarker = useCallback(
@@ -1215,6 +1226,10 @@ const BagRouteMapView: FC<Props> = ({
                 />
               ) : null}
               {isDrawing ? <RouteDrawLayersView routeDraw={routeDraw} /> : null}
+              {/* 검색 결과로 옮긴 자리의 회색 임시 핀(RD-5) — 비대화형, 저장에 들어가지 않는다. */}
+              {isDrawing ? (
+                <RouteDrawSearchPinView search={routeDraw.getSearch()} />
+              ) : null}
               {currentLocation ? (
                 <MapMyLocationMarkerView
                   latitude={currentLocation.latitude}
@@ -1250,6 +1265,13 @@ const BagRouteMapView: FC<Props> = ({
             <MapNoticeLineView label={l10n.t('map.loadFailed')} />
           ) : null}
           {isDrawing ? <RouteDrawNoticeView routeDraw={routeDraw} /> : null}
+          {/* 안내 줄 아래 위치 검색(RD-5) — 오버레이가 길어지면 나침반·축척·맞춤 위 여백이 측정으로 따라 내려간다. */}
+          {isDrawing ? (
+            <RouteDrawSearchView
+              search={routeDraw.getSearch()}
+              onSelect={handleSelectSearchResult}
+            />
+          ) : null}
           {showFilterChips ? (
             <View style={styles.chips}>
               <PointFilterChipsView

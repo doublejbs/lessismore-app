@@ -1818,7 +1818,12 @@
     "namePlaceholder": "コース名を入力してください",
     "nameCounter": "{{count}}/{{max}}",
     "close": "閉じる",
-    "gpxDescription": "uselessで地図に点を打って作ったコース · 直線でつながっています"
+    "gpxDescription": "uselessで地図に点を打って作ったコース · 直線でつながっています",
+    "searchPlaceholder": "地名・山の名前で検索",
+    "searchLabel": "場所を検索",
+    "searchClear": "検索語を消去",
+    "searchEmpty": "検索結果がありません",
+    "searchPinLabel": "検索した場所、{{name}}"
   },
   "map": {
     "loadFailed": "地図データを読み込めませんでした",
