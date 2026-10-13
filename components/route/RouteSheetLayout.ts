@@ -1,8 +1,8 @@
 import { AcgRow } from '@/constants/DesignTokens';
-import BagRouteSheetDetent from '@/model/bag-route/BagRouteSheetDetent';
+import RouteSheetDetent from '@/model/route/RouteSheetDetent';
 
-// 배낭 코스 바텀 시트(BD-11)의 단별 높이(pt, 화면 아래 끝에서 시트 위 끝까지).
-export interface BagRouteSheetDetents {
+// 코스 화면(BD-11)·그룹 지도(GRP-10)가 함께 쓰는 바텀 시트의 단별 높이(pt, 화면 아래 끝에서 시트 위 끝까지).
+export interface RouteSheetDetents {
   collapsed: number;
   half: number;
   expanded: number;
@@ -35,19 +35,19 @@ const FOOTER_HEIGHT = 60;
 const EXPANDED_TOP_GAP = 16;
 
 /**
- * 세 단 높이 (BD-11).
+ * 세 단 높이 (BD-11 · GRP-10).
  * - 접힘 = 손잡이 + 세그먼트 칩 줄 + 첫 행 + (`코스 추가`) + 아래 여백
  * - 기본 = 접힘 + 고도 그래프(고도가 없으면 행 2개) — 지금까지의 고정 높이(그래프 + 행 + `코스 추가`)와 같다
  * - 펼침 = 지도 칸 높이 − (헤더 아래 끝 + 16)
  * 작은 화면에서 단이 겹치지 않게 서로 적어도 행 하나만큼은 벌린다.
  */
-export const getBagRouteSheetDetents = ({
+export const getRouteSheetDetents = ({
   rootHeight,
   topInset,
   listBottomInset,
   graphHeight,
   hasFooter,
-}: SheetLayoutInput): BagRouteSheetDetents => {
+}: SheetLayoutInput): RouteSheetDetents => {
   const collapsed =
     SHEET_HANDLE_HEIGHT +
     CHIP_ROW_HEIGHT +
@@ -69,15 +69,15 @@ export const getBagRouteSheetDetents = ({
   return { collapsed, half, expanded };
 };
 
-export const getBagRouteSheetDetentHeight = (
-  detents: BagRouteSheetDetents,
-  detent: BagRouteSheetDetent
+export const getRouteSheetDetentHeight = (
+  detents: RouteSheetDetents,
+  detent: RouteSheetDetent
 ): number => {
-  if (detent === BagRouteSheetDetent.Collapsed) {
+  if (detent === RouteSheetDetent.Collapsed) {
     return detents.collapsed;
   }
 
-  if (detent === BagRouteSheetDetent.Expanded) {
+  if (detent === RouteSheetDetent.Expanded) {
     return detents.expanded;
   }
 

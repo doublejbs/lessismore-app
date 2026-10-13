@@ -21,7 +21,6 @@ import GroupMapListView from './GroupMapListView';
 import PointCreateSheetView, {
   PointDraft,
 } from '@/components/point/PointCreateSheetView';
-import GroupRouteListSheetView from './GroupRouteListSheetView';
 import useGroupMapRouteState from './useGroupMapRouteState';
 
 interface Props {
@@ -51,8 +50,8 @@ const loadCanvasView = createMapLibreViewLoader<typeof GroupMapCanvasViewType>(
  * 그룹 지도 (GRP-9 · GRP-10).
  *
  * 네이티브는 앱 공용 지도(MapLibre)를, 웹은 코스·포인트 목록을 보여준다(APP-5 — 웹은 지도 탭 자체가
- * 없다). 포인트 등록·수정 시트는 두 경로가 함께 쓴다. 코스 목록 시트는 지도에서만 뜬다 —
- * 웹 목록은 코스 행이 이미 화면에 있다.
+ * 없다). 포인트 등록·수정 시트는 두 경로가 함께 쓴다. 코스·포인트 목록은 지도 위 바텀 시트
+ * (`GroupMapCanvasView`) 안에 있고, 웹은 같은 목록을 세로로 쌓는다.
  * iOS는 네이티브 투명 헤더, Android는 커스텀 헤더다(GRP-11, LG-1).
  */
 const GroupMapView: FC<Props> = ({ groupMap }) => {
@@ -70,14 +69,10 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
   const pointList = groupMap.getPointList();
   const group = groupMap.getGroup();
   const {
-    isRouteSheetVisible,
     isAddingRoute,
     isUploadingRoute,
-    handleOpenRouteSheet,
-    handleCloseRouteSheet,
     handleSelectRoute,
     handleDeleteRoute,
-    handleRouteSheetDismissed,
     handleAddRoute,
   } = useGroupMapRouteState(groupMap);
 
@@ -255,7 +250,8 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
             onRequestCreate={handleRequestCreate}
             onRequestEdit={handleRequestEdit}
             onRequestDelete={handleRequestDelete}
-            onOpenRouteList={handleOpenRouteSheet}
+            onSelectRoute={handleSelectRoute}
+            onRequestDeleteRoute={handleDeleteRoute}
             onAddRoute={() => void handleAddRoute()}
             isAddingRoute={isAddingRoute}
             isUploadingRoute={isUploadingRoute}
@@ -310,16 +306,6 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
         onClose={handleCloseSheet}
         onSubmit={draft => void handleSubmit(draft)}
       />
-      {IS_WEB ? null : (
-        <GroupRouteListSheetView
-          visible={isRouteSheetVisible}
-          groupMap={groupMap}
-          onSelect={handleSelectRoute}
-          onDelete={handleDeleteRoute}
-          onClose={handleCloseRouteSheet}
-          onDismissed={handleRouteSheetDismissed}
-        />
-      )}
       <ToastView toastManager={app.getToastManager()!} bottom={100} />
       <AlertView alertManager={app.getAlertManager()!} />
     </View>

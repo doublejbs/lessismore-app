@@ -20,7 +20,7 @@ interface Props {
   // 행 탭 — 그 코스를 골라 지도에서 강조한다(GRP-8 · GRP-10). 없으면 행이 눌리지 않는다.
   onSelect?: ((route: GroupRoute) => void) | undefined;
   /**
-   * 지금 지도·그래프에 반영된 코스(GRP-8). 그룹 지도의 코스 목록 시트·웹 목록처럼 선택이
+   * 지금 지도·그래프에 반영된 코스(GRP-8). 그룹 지도의 바텀 시트 목록·웹 목록처럼 선택이
    * 그 자리에 남는 목록만 넘긴다.
    */
   selectedRouteId?: string | null | undefined;

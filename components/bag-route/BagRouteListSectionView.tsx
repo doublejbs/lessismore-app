@@ -1,13 +1,5 @@
-import { FC, useContext } from 'react';
-import {
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { FC } from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
@@ -30,16 +22,16 @@ import BagPointList from '@/model/bag-point/BagPointList';
 import BagRoute from '@/model/bag-route/BagRoute';
 import { BagRouteEntry } from '@/model/bag-route/BagRouteEntry';
 import BagRouteList from '@/model/bag-route/BagRouteList';
-import BagRouteSegment from '@/model/bag-route/BagRouteSegment';
-import BagRouteSegmentChipsView from './BagRouteSegmentChipsView';
-import BagRouteSheetContext from './BagRouteSheetContext';
+import RouteListSegment from '@/model/route/RouteListSegment';
+import RouteSegmentChipsView from '@/components/route/RouteSegmentChipsView';
+import useRouteSheetPullDown from '@/components/route/useRouteSheetPullDown';
 
 interface Props {
   bagRouteList: BagRouteList;
   bagPointList: BagPointList;
   // `코스 | 포인트` 세그먼트(BD-14). 화면이 들고 있다.
-  segment: BagRouteSegment;
-  onChangeSegment: (segment: BagRouteSegment) => void;
+  segment: RouteListSegment;
+  onChangeSegment: (segment: RouteListSegment) => void;
   onSelect: (entry: BagRouteEntry) => void;
   onDelete: (route: BagRoute) => void;
   onUploadToGroup: (route: BagRoute) => void;
@@ -54,11 +46,6 @@ interface Props {
    */
   fillHeight?: boolean;
 }
-
-// 시트 안 목록 맨 위에서 이만큼(pt) 넘게 당겼다 놓으면 시트를 내린다 — 손이 살짝 미끄러진 것과 가른다.
-const PULL_DOWN_THRESHOLD = 48;
-// 맨 위를 넘겨 당기는 바운스(음수 오프셋)는 iOS에만 있다. 안드로이드는 오프셋이 0에 멈춰 당김을 읽을 수 없다.
-const CAN_DETECT_PULL = Platform.OS === 'ios';
 
 /**
  * 배낭 코스 목록 + 추가 액션 (BD-11) · 포인트 목록 (BD-14).
@@ -89,7 +76,7 @@ const BagRouteListSectionView: FC<Props> = ({
 }) => {
   const l10n = app.getL10n();
   // 바텀 시트 안이면 시트가 건넨다(BD-11) — 목록 맨 위에서 아래로 당기면 시트가 한 단 내려간다.
-  const sheet = useContext(BagRouteSheetContext);
+  const handleScrollEndDrag = useRouteSheetPullDown();
   const separator = l10n.t('common.metaSeparator');
   const entries = bagRouteList.getEntries();
   const isFull = bagRouteList.isFull();
@@ -177,24 +164,12 @@ const BagRouteListSectionView: FC<Props> = ({
   const renderSegment = () =>
     fillHeight ? null : (
       <View style={styles.segment}>
-        <BagRouteSegmentChipsView
+        <RouteSegmentChipsView
           segment={segment}
           onChangeSegment={onChangeSegment}
         />
       </View>
     );
-
-  const handleScrollEndDrag = (
-    event: NativeSyntheticEvent<NativeScrollEvent>
-  ) => {
-    if (!sheet || !CAN_DETECT_PULL) {
-      return;
-    }
-
-    if (event.nativeEvent.contentOffset.y < -PULL_DOWN_THRESHOLD) {
-      sheet.onPullDownAtTop();
-    }
-  };
 
   const listStyle = fillHeight ? styles.listFill : styles.list;
   const sectionStyle = [
@@ -266,7 +241,7 @@ const BagRouteListSectionView: FC<Props> = ({
     );
   };
 
-  if (segment === BagRouteSegment.Points) {
+  if (segment === RouteListSegment.Points) {
     const isPointFull = bagPointList.isFull();
 
     return (

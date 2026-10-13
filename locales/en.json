@@ -261,7 +261,6 @@
     "route": {
       "title": "Route",
       "tileEmpty": "Add GPX",
-      "sheetHandle": "Adjust list height",
       "tileLabel": "Route {{subtitle}}",
       "count_other": "{{count}}",
       "add": "Add route",
@@ -275,8 +274,6 @@
       "toGroupDone": "Sent to the group"
     },
     "point": {
-      "segmentRoutes": "Routes",
-      "segmentPoints": "Points",
       "empty": "No points yet. Long-press the map or tap Add point",
       "emptyReadOnly": "No points yet",
       "emptyFiltered": "No points of this type",
@@ -1519,9 +1516,7 @@
       "currentLocation": "Current location",
       "webNotice": "Maps are not available on the web, so courses and points are shown as a list.",
       "aimHint": "Move the map to aim at the spot you want",
-      "aimConfirm": "Add here",
-      "routeFull": "Route limit reached",
-      "openRouteList": "Open route list"
+      "aimConfirm": "Add here"
     },
     "point": {
       "title": "Add point",
@@ -1590,7 +1585,10 @@
       "destinationName": "{{name}} {{endpoint}}"
     },
     "pointOnRoute": "{{distance}} along route",
-    "pointElevation": "Elevation {{value}}m"
+    "pointElevation": "Elevation {{value}}m",
+    "sheetHandle": "Adjust list height",
+    "segmentRoutes": "Routes",
+    "segmentPoints": "Points"
   },
   "ad": {
     "label": "Ad",
@@ -1766,7 +1764,6 @@
   },
   "routeReplay": {
     "badge": "3D",
-    "openFromActivity": "View in 3D",
     "activityTitle": "Workout",
     "failed": "Couldn't load the 3D map",
     "empty": "Open 3D from the route screen",
@@ -1777,7 +1774,8 @@
     "speedHint": "Playback speed",
     "progress": "Playback position",
     "start": "Start",
-    "end": "Finish"
+    "end": "Finish",
+    "open": "View in 3D"
   },
   "offline": {
     "dateFormat": "MMM D",

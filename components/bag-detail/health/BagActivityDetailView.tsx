@@ -160,11 +160,11 @@ const BagActivityDetailView: FC<Props> = ({ bagActivity }) => {
             onPress={handleOpenReplay}
             activeOpacity={0.8}
             accessibilityRole='button'
-            accessibilityLabel={app.getL10n().t('routeReplay.openFromActivity')}
+            accessibilityLabel={app.getL10n().t('routeReplay.open')}
           >
             <Ionicons name='cube-outline' size={18} color={Acg.ink} />
             <PretendardText weight='semibold' style={styles.replayLabel}>
-              {app.getL10n().t('routeReplay.openFromActivity')}
+              {app.getL10n().t('routeReplay.open')}
             </PretendardText>
           </TouchableOpacity>
         ) : null}

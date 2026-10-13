@@ -20,48 +20,46 @@ import { scheduleOnRN } from 'react-native-worklets';
 import SheetGrabberView from '@/components/ui/SheetGrabberView';
 import { Acg, AcgShadow, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
-import BagRouteSheetDetent from '@/model/bag-route/BagRouteSheetDetent';
-import BagRouteSheetContext, {
-  BagRouteSheetContextValue,
-} from './BagRouteSheetContext';
+import RouteSheetDetent from '@/model/route/RouteSheetDetent';
+import RouteSheetContext, { RouteSheetContextValue } from './RouteSheetContext';
 import {
-  BagRouteSheetDetents,
-  getBagRouteSheetDetentHeight,
+  RouteSheetDetents,
+  getRouteSheetDetentHeight,
   SHEET_HANDLE_HEIGHT,
-} from './BagRouteSheetLayout';
+} from './RouteSheetLayout';
 
 // 바깥(지도 화면)이 시트를 움직일 때 쓰는 손잡이 — 목록에서 포인트·코스를 고르면 펼침을 기본으로 내린다.
-export interface BagRouteBottomSheetHandle {
-  snapTo: (detent: BagRouteSheetDetent) => void;
-  getDetent: () => BagRouteSheetDetent;
+export interface RouteBottomSheetHandle {
+  snapTo: (detent: RouteSheetDetent) => void;
+  getDetent: () => RouteSheetDetent;
 }
 
 interface Props {
   // 단별 높이(pt) — 부모가 지도 칸·그래프 높이로 계산해 넘긴다. 바뀌면 지금 단의 새 높이로 따라간다.
-  detents: BagRouteSheetDetents;
-  initialDetent: BagRouteSheetDetent;
+  detents: RouteSheetDetents;
+  initialDetent: RouteSheetDetent;
   /**
    * 시트 높이 알림 — 스냅이 끝났을 때와 끄는 동안(스로틀). 지도 출처 ⓘ·축척처럼 네이티브 prop으로만 옮길 수
    * 있는 것의 오프셋 갱신용이다. 매 프레임 따라가야 하는 것은 `animatedHeight`를 읽는다.
    */
   onHeightChange?: ((height: number) => void) | undefined;
   // 스냅이 끝나 단이 정해졌다 — 화면이 세션 동안 기억한다.
-  onDetentChange?: ((detent: BagRouteSheetDetent) => void) | undefined;
+  onDetentChange?: ((detent: RouteSheetDetent) => void) | undefined;
   // 시트 높이를 담을 공유 값(선택) — 부모가 지도 컨트롤·그래프를 같은 프레임에 따라 움직이려고 넘긴다.
   animatedHeight?: SharedValue<number> | undefined;
-  // false면 화면 밖으로 내린다(조준 모드 — BD-14).
+  // false면 화면 밖으로 내린다(조준 모드 — BD-14 · GRP-10).
   visible: boolean;
   // 손잡이 아래 끄는 영역(세그먼트 칩 줄 등). 손잡이와 함께 드래그된다.
   header?: ReactNode;
   // 고도 그래프 + 목록. 시트 높이에 맞춰 남는 세로를 채운다.
   children: ReactNode;
-  ref?: Ref<BagRouteBottomSheetHandle>;
+  ref?: Ref<RouteBottomSheetHandle>;
 }
 
 const DETENT_ORDER = [
-  BagRouteSheetDetent.Collapsed,
-  BagRouteSheetDetent.Half,
-  BagRouteSheetDetent.Expanded,
+  RouteSheetDetent.Collapsed,
+  RouteSheetDetent.Half,
+  RouteSheetDetent.Expanded,
 ];
 /**
  * 스냅 스프링 — 감쇠비 1 이상(40 / 2√320 ≈ 1.12)이라 단을 지나쳐 튀지 않는다. 그래도 손을 세게 튕기면 넘을 수
@@ -86,14 +84,15 @@ const HIDE_DURATION_MS = 220;
 const HIDDEN_EXTRA_OFFSET = 32;
 
 /**
- * 배낭 코스 화면의 하단 바텀 시트 (BD-11) — 고도 그래프 + `코스 | 포인트` 세그먼트 + 목록이 지도 위에 얹힌다.
+ * 코스 화면(BD-11)·그룹 지도(GRP-10)가 함께 쓰는 하단 바텀 시트 — 고도 그래프 + `코스 | 포인트` 세그먼트 +
+ * 목록이 지도 위에 얹힌다.
  * 손잡이·머리(세그먼트 줄)를 끌면 세 단(접힘 · 기본 · 펼침) 중 가장 가까운 단으로 스프링 스냅한다(속도 반영).
- * 목록 맨 위에서 아래로 당기면 한 단 내려간다(`BagRouteSheetContext`, iOS). 접근성: 손잡이가 조절 가능
+ * 목록 맨 위에서 아래로 당기면 한 단 내려간다(`RouteSheetContext`, iOS). 접근성: 손잡이가 조절 가능
  * 요소라 VoiceOver 위/아래 쓸기로 단을 옮긴다.
  *
  * 면은 순백 + 위 모서리 16이고, 지도 위에 떠 있으므로 그림자를 둔다(HM-8 — 그림자는 지도 위 요소에만).
  */
-const BagRouteBottomSheetView: FC<Props> = ({
+const RouteBottomSheetView: FC<Props> = ({
   detents,
   initialDetent,
   onHeightChange,
@@ -107,7 +106,7 @@ const BagRouteBottomSheetView: FC<Props> = ({
   const l10n = app.getL10n();
   const { collapsed, half, expanded } = detents;
   const ownHeight = useSharedValue(
-    getBagRouteSheetDetentHeight(detents, initialDetent)
+    getRouteSheetDetentHeight(detents, initialDetent)
   );
   const height = animatedHeight ?? ownHeight;
   const hiddenProgress = useSharedValue(visible ? 0 : 1);
@@ -125,7 +124,7 @@ const BagRouteBottomSheetView: FC<Props> = ({
   );
 
   const handleSettled = useCallback(
-    (detent: BagRouteSheetDetent, value: number) => {
+    (detent: RouteSheetDetent, value: number) => {
       onDetentChange?.(detent);
       onHeightChange?.(value);
     },
@@ -133,8 +132,8 @@ const BagRouteBottomSheetView: FC<Props> = ({
   );
 
   const snapTo = useCallback(
-    (detent: BagRouteSheetDetent) => {
-      const target = getBagRouteSheetDetentHeight(
+    (detent: RouteSheetDetent) => {
+      const target = getRouteSheetDetentHeight(
         { collapsed, half, expanded },
         detent
       );
@@ -272,12 +271,12 @@ const BagRouteBottomSheetView: FC<Props> = ({
     snapTo(DETENT_ORDER[nextIndex]);
   };
 
-  const contextValue = useMemo<BagRouteSheetContextValue>(
+  const contextValue = useMemo<RouteSheetContextValue>(
     () => ({
       // 펼침에서만 내린다 — 기본·접힘에서 목록을 당기는 것은 스크롤 바운스일 뿐이다.
       onPullDownAtTop: () => {
-        if (currentDetent.get() === BagRouteSheetDetent.Expanded) {
-          snapTo(BagRouteSheetDetent.Half);
+        if (currentDetent.get() === RouteSheetDetent.Expanded) {
+          snapTo(RouteSheetDetent.Half);
         }
       },
     }),
@@ -306,7 +305,7 @@ const BagRouteBottomSheetView: FC<Props> = ({
             style={styles.handle}
             accessible
             accessibilityRole='adjustable'
-            accessibilityLabel={l10n.t('bag.route.sheetHandle')}
+            accessibilityLabel={l10n.t('route.sheetHandle')}
             accessibilityActions={[
               { name: 'increment' },
               { name: 'decrement' },
@@ -319,9 +318,9 @@ const BagRouteBottomSheetView: FC<Props> = ({
         </View>
       </GestureDetector>
       <View style={styles.body}>
-        <BagRouteSheetContext.Provider value={contextValue}>
+        <RouteSheetContext.Provider value={contextValue}>
           {children}
-        </BagRouteSheetContext.Provider>
+        </RouteSheetContext.Provider>
       </View>
     </Animated.View>
   );
@@ -349,4 +348,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BagRouteBottomSheetView;
+export default RouteBottomSheetView;

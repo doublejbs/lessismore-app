@@ -259,7 +259,6 @@
     "route": {
       "title": "コース",
       "tileEmpty": "GPXを追加",
-      "sheetHandle": "リストの高さを調整",
       "tileLabel": "コース {{subtitle}}",
       "count_other": "{{count}}件",
       "add": "コースを追加",
@@ -273,8 +272,6 @@
       "toGroupDone": "グループに送りました"
     },
     "point": {
-      "segmentRoutes": "コース",
-      "segmentPoints": "ポイント",
       "empty": "まだポイントがありません。地図を長押しするか、ポイントを追加から登録してください",
       "emptyReadOnly": "まだポイントがありません",
       "emptyFiltered": "この種類のポイントはありません",
@@ -1490,9 +1487,7 @@
       "currentLocation": "現在地",
       "webNotice": "ウェブでは地図を表示できないため、コースとポイントを一覧で表示します",
       "aimHint": "地図を動かして追加する位置を合わせます",
-      "aimConfirm": "この位置に追加",
-      "routeFull": "コースがいっぱいです",
-      "openRouteList": "コース一覧を開く"
+      "aimConfirm": "この位置に追加"
     },
     "point": {
       "title": "ポイント登録",
@@ -1561,7 +1556,10 @@
       "destinationName": "{{name}} {{endpoint}}"
     },
     "pointOnRoute": "コース{{distance}}地点",
-    "pointElevation": "標高 {{value}}m"
+    "pointElevation": "標高 {{value}}m",
+    "sheetHandle": "リストの高さを調整",
+    "segmentRoutes": "コース",
+    "segmentPoints": "ポイント"
   },
   "ad": {
     "label": "広告",
@@ -1735,7 +1733,6 @@
   },
   "routeReplay": {
     "badge": "3D",
-    "openFromActivity": "3Dで見る",
     "activityTitle": "運動記録",
     "failed": "3D地図を読み込めませんでした",
     "empty": "コース画面から3Dを開いてください",
@@ -1746,7 +1743,8 @@
     "speedHint": "再生速度",
     "progress": "再生位置",
     "start": "出発",
-    "end": "到着"
+    "end": "到着",
+    "open": "3Dで見る"
   },
   "offline": {
     "dateFormat": "M/D",

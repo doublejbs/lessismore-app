@@ -24,10 +24,10 @@ import BagPointList from '@/model/bag-point/BagPointList';
 import BagRoute from '@/model/bag-route/BagRoute';
 import { BagRouteEntry } from '@/model/bag-route/BagRouteEntry';
 import BagRouteList from '@/model/bag-route/BagRouteList';
-import BagRouteSegment from '@/model/bag-route/BagRouteSegment';
+import RouteListSegment from '@/model/route/RouteListSegment';
 import BagRouteListSectionView from './BagRouteListSectionView';
 import BagRouteMapGateView from './BagRouteMapGateView';
-import BagRouteSegmentChipsView from './BagRouteSegmentChipsView';
+import RouteSegmentChipsView from '@/components/route/RouteSegmentChipsView';
 import OfflineUnavailableView from '@/components/offline/OfflineUnavailableView';
 import OfflineTripAccess from '@/model/offline/OfflineTripAccess';
 
@@ -63,7 +63,7 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
   const insets = useSafeAreaInsets();
   // 어느 코스를 그룹에 올릴지 고르는 중. 연결 그룹이 둘 이상일 때만 시트를 연다.
   const [groupPickTarget, setGroupPickTarget] = useState<BagRoute | null>(null);
-  const [segment, setSegment] = useState(BagRouteSegment.Routes);
+  const [segment, setSegment] = useState(RouteListSegment.Routes);
   // 포인트 추가 조준 모드(BD-14). 이 동안 아래 목록이 걷혀 지도를 넓히고 확정 말고 누를 것을 두지 않는다.
   const [isAiming, setIsAiming] = useState(false);
   const [isSheetVisible, setIsSheetVisible] = useState(false);
@@ -372,7 +372,7 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
         // 지도 위쪽에 살짝 띄우기만 한다. iOS는 투명 헤더라 직접 비운다(그룹 지도와 같다).
         topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
         listHeader={
-          <BagRouteSegmentChipsView
+          <RouteSegmentChipsView
             segment={segment}
             onChangeSegment={setSegment}
           />

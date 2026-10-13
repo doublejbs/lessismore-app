@@ -76,7 +76,7 @@ import { BagPointCoordinate } from '@/model/bag-point/BagPointCoordinate';
 import { getBagPointMeta } from '@/model/bag-point/BagPointLabels';
 import BagPointList from '@/model/bag-point/BagPointList';
 import BagRouteList from '@/model/bag-route/BagRouteList';
-import BagRouteSheetDetent from '@/model/bag-route/BagRouteSheetDetent';
+import RouteSheetDetent from '@/model/route/RouteSheetDetent';
 import {
   KOREA_CAMERA,
   lngLatBoundsToRouteBounds,
@@ -94,14 +94,14 @@ import {
 } from '@/model/route/RouteCamera';
 import { RouteBounds, RouteCoordinate } from '@/model/route/RouteData';
 import { RouteElevationSample } from '@/model/route/RouteElevation';
-import BagRouteBottomSheetView, {
-  BagRouteBottomSheetHandle,
-} from './BagRouteBottomSheetView';
+import RouteBottomSheetView, {
+  RouteBottomSheetHandle,
+} from '@/components/route/RouteBottomSheetView';
 import {
-  getBagRouteSheetDetentHeight,
-  getBagRouteSheetDetents,
+  getRouteSheetDetentHeight,
+  getRouteSheetDetents,
   SHEET_HEADER_PADDING_BOTTOM,
-} from './BagRouteSheetLayout';
+} from '@/components/route/RouteSheetLayout';
 
 interface Props {
   bagRouteList: BagRouteList;
@@ -152,8 +152,8 @@ const POINT_FOCUS_ZOOM = deltaToZoom(0.02);
 /** 코스·포인트가 한 점뿐일 때(상자가 0) 그 점을 보는 줌 — 상자 맞춤은 최대 줌으로 붙어 버린다. */
 const SINGLE_POINT_ZOOM = 15;
 /**
- * 지도 컨트롤이 지도 아래 가장자리에서 떨어지는 거리. 이 화면은 그래프·목록·`코스 추가`가 지도
- * **밖** 아래에 있어 그룹 지도의 +120 대신 이 여백만 둔다.
+ * 지도 컨트롤·카드가 바텀 시트 위 끝에서 떨어지는 거리. 그래프·목록·`코스 추가`는 지도 위에 얹힌 시트 안이라
+ * 컨트롤은 시트 위 끝을 따라가며 이 여백만 둔다(그룹 지도 GRP-10도 같다).
  */
 const CONTROL_BOTTOM_OFFSET = 16;
 // 지도 가장자리와 지도 위 컨트롤 사이 여백(우측).
@@ -183,7 +183,7 @@ const GRAPH_HEIGHT_ESTIMATE = 184;
  * 시트 단은 **세션 동안** 기억한다(BD-11) — 화면을 닫았다 다시 열어도 같은 단으로 뜬다. 기기에 저장하지는
  * 않는다(앱을 다시 켜면 기본 단).
  */
-let sessionSheetDetent = BagRouteSheetDetent.Half;
+let sessionSheetDetent = RouteSheetDetent.Half;
 
 // `getRouteFitRegion`(여유 배율·최소 범위가 들어간 영역)을 지도 초기 카메라 상자로 — 여백은 이미 들어 있다.
 const regionToBounds = (region: RouteCameraRegion): RouteBounds =>
@@ -252,7 +252,7 @@ const BagRouteMapView: FC<Props> = ({
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
-  const sheetRef = useRef<BagRouteBottomSheetHandle>(null);
+  const sheetRef = useRef<RouteBottomSheetHandle>(null);
   // 시트가 얹히는 칸의 높이 — 재기 전에는 창 높이로 어림한다(첫 카메라가 시트 높이를 써야 한다).
   const [rootHeight, setRootHeight] = useState(windowHeight);
   const [graphHeight, setGraphHeight] = useState(GRAPH_HEIGHT_ESTIMATE);
@@ -324,7 +324,7 @@ const BagRouteMapView: FC<Props> = ({
   const hasSheetFooter = bagRouteList.canAdd();
   const detents = useMemo(
     () =>
-      getBagRouteSheetDetents({
+      getRouteSheetDetents({
         rootHeight,
         topInset,
         listBottomInset,
@@ -341,7 +341,7 @@ const BagRouteMapView: FC<Props> = ({
     ]
   );
   const [initialSheetDetent] = useState(() => sessionSheetDetent);
-  const initialSheetHeight = getBagRouteSheetDetentHeight(
+  const initialSheetHeight = getRouteSheetDetentHeight(
     detents,
     initialSheetDetent
   );
@@ -467,8 +467,8 @@ const BagRouteMapView: FC<Props> = ({
   const lowerExpandedSheet = useCallback(() => {
     const sheet = sheetRef.current;
 
-    if (sheet?.getDetent() === BagRouteSheetDetent.Expanded) {
-      sheet.snapTo(BagRouteSheetDetent.Half);
+    if (sheet?.getDetent() === RouteSheetDetent.Expanded) {
+      sheet.snapTo(RouteSheetDetent.Half);
     }
   }, []);
 
@@ -811,7 +811,7 @@ const BagRouteMapView: FC<Props> = ({
     );
   }, []);
 
-  const handleSheetDetentChange = useCallback((detent: BagRouteSheetDetent) => {
+  const handleSheetDetentChange = useCallback((detent: RouteSheetDetent) => {
     sessionSheetDetent = detent;
   }, []);
 
@@ -1204,7 +1204,7 @@ const BagRouteMapView: FC<Props> = ({
                   onPress={handleOpenReplay}
                   activeOpacity={0.8}
                   accessibilityRole='button'
-                  accessibilityLabel={l10n.t('routeReplay.openFromActivity')}
+                  accessibilityLabel={l10n.t('routeReplay.open')}
                 >
                   <Ionicons name='cube-outline' size={18} color={Acg.ink} />
                   <PretendardText weight='semibold' style={styles.controlLabel}>
@@ -1253,7 +1253,7 @@ const BagRouteMapView: FC<Props> = ({
       </View>
 
       {/* 하단 바텀 시트(BD-11) — 손잡이 + 세그먼트(끄는 영역) · 고도 그래프 · 목록. 조준 모드에서는 내려간다. */}
-      <BagRouteBottomSheetView
+      <RouteBottomSheetView
         ref={sheetRef}
         detents={detents}
         initialDetent={initialSheetDetent}
@@ -1285,7 +1285,7 @@ const BagRouteMapView: FC<Props> = ({
           </Animated.View>
         ) : null}
         {listContent}
-      </BagRouteBottomSheetView>
+      </RouteBottomSheetView>
     </View>
   );
 };

@@ -12,7 +12,7 @@ import GroupMapView from './GroupMapView';
 /**
  * 그룹 지도 래퍼 — 도메인 객체를 1회 만들고 화면에 넘긴다(GRP-9 · GRP-10).
  * 코스 목록은 업로드·삭제까지 하는 `GroupRouteList` 하나를 지도 모델에 넘긴다 — 지도·그래프·
- * 코스 목록 시트·`코스 추가`가 같은 목록을 봐야 올린 코스가 세 곳에 곧바로 나타난다.
+ * 바텀 시트 목록·`코스 추가`가 같은 목록을 봐야 올린 코스가 세 곳에 곧바로 나타난다.
  */
 const GroupMapWrapper: FC = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
