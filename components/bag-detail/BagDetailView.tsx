@@ -403,9 +403,9 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                 )}
                 <BagDetailNameView bagDetail={bagDetail} />
                 <BagDetailDateView bagDetail={bagDetail} />
-                <BagDetailGroupView bagDetail={bagDetail} />
               </View>
               <BagDetailSummaryView bagDetail={bagDetail} />
+              <BagDetailGroupView bagDetail={bagDetail} />
               <View style={styles.actionsGrid}>
                 {isSnapshot ? (
                   // OF-5: 오프라인 상세의 그리드는 `코스`·`여행지`·`오프라인`만 — 사용 기록·운동 기록은 숨긴다.

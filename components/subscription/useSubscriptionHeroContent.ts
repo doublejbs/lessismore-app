@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import app from '@/model/app/App';
 import BagItem from '@/model/bag/BagItem';
+import BagRouteSelection from '@/model/bag-route/BagRouteSelection';
 import MapPoint from '@/model/point/MapPoint';
 import { RouteDisplay } from '@/model/route/RouteDisplay';
 import {
@@ -62,29 +63,48 @@ const loadBags = async (deadline: number): Promise<BagItem[]> => {
   return awaitUntil(bagStore.getList(), deadline, []);
 };
 
+interface HeroCourse {
+  routes: RouteDisplay[];
+  points: MapPoint[];
+  // 코스 화면에서 기억된 내 코스(BD-11 선택 기억). 그룹 코스를 골랐거나 기억이 없으면 `null`.
+  selectedRouteId: string | null;
+}
+
+const EMPTY_COURSE: HeroCourse = {
+  routes: [],
+  points: [],
+  selectedRouteId: null,
+};
+
 /**
  * 고른 여행의 코스·포인트 — 코스 화면과 같은 모델(`BagRouteStore.getRoutes` = `getRouteDataList` →
  * `BagRoute.from`, 뒤집기 설정 포함 / `BagPointStore.getPoints` = `getPointDataList` → `BagPoint.from`).
+ * 말풍선 코스는 코스 화면의 선택 기억(`BagRouteSelection`)을 따른다.
  */
 const loadCourse = async (
   bagId: string,
   deadline: number
-): Promise<{ routes: RouteDisplay[]; points: MapPoint[] }> => {
+): Promise<HeroCourse> => {
   const routeStore = app.getBagRouteStore();
   const pointStore = app.getBagPointStore();
 
   if (!routeStore) {
-    return { routes: [], points: [] };
+    return EMPTY_COURSE;
   }
 
-  const [routes, points] = await Promise.all([
+  const [routes, points, selectedKey] = await Promise.all([
     awaitUntil<RouteDisplay[]>(routeStore.getRoutes(bagId), deadline, []),
     pointStore
       ? awaitUntil<MapPoint[]>(pointStore.getPoints(bagId), deadline, [])
       : Promise.resolve<MapPoint[]>([]),
+    awaitUntil<string | null>(BagRouteSelection.load(bagId), deadline, null),
   ]);
 
-  return { routes, points };
+  return {
+    routes,
+    points,
+    selectedRouteId: BagRouteSelection.toBagRouteId(selectedKey),
+  };
 };
 
 /**
@@ -106,10 +126,17 @@ const useSubscriptionHeroContent = (): SubscriptionHeroContent | null => {
       const coordinate = getHeroCoordinate(bag);
       const course = bag
         ? await loadCourse(bag.getID(), deadline)
-        : { routes: [], points: [] };
+        : EMPTY_COURSE;
 
       if (isActive) {
-        setContent(toHeroContent(coordinate, course.routes, course.points));
+        setContent(
+          toHeroContent(
+            coordinate,
+            course.routes,
+            course.points,
+            course.selectedRouteId
+          )
+        );
       }
     };
 

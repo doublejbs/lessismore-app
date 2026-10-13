@@ -14,6 +14,7 @@ import type BagRouteStore from '@/model/store/BagRouteStore';
 import type BagStore from '@/model/store/BagStore';
 import type CampSpotStore from '@/model/store/CampSpotStore';
 import { GearData } from '@/model/store/GearStore';
+import type Group from '@/model/group/Group';
 import type GroupStore from '@/model/store/GroupStore';
 import { WeatherSnapshot } from '@/model/weather/WeatherTypes';
 import type NetworkStatus from './NetworkStatus';
@@ -37,10 +38,14 @@ import OfflineTripFiles from './OfflineTripFiles';
 import {
   OFFLINE_SNAPSHOT_SCHEMA_VERSION,
   OfflineBagData,
+  OfflineGroupPointData,
+  OfflineGroupRouteData,
   OfflinePackingState,
   OfflineTripSnapshotData,
   parseOfflineSnapshot,
   toOfflineCampSpotData,
+  toOfflineGroupPointData,
+  toOfflineGroupRouteData,
   toOfflinePointData,
   toOfflineRouteData,
   toPlain,
@@ -783,9 +788,12 @@ class OfflineTripStore {
     }
   }
 
-  // 저장해 둔 GPX 원본(OF-6 GPX 내보내기). 저장하지 않은 코스면 `null`.
+  // 저장해 둔 GPX 원본(OF-6 GPX 내보내기). 저장하지 않은 코스면 `null`. 그룹 코스는 저장된 여행에서 찾는다.
   public findRouteFile(storagePath: string): File | null {
-    return OfflineTripFiles.findRouteFileByStoragePath(storagePath);
+    return OfflineTripFiles.findRouteFileByStoragePath(
+      storagePath,
+      this.entries.map(entry => entry.bagId)
+    );
   }
 
   /**
@@ -847,15 +855,13 @@ class OfflineTripStore {
     }
 
     const bag = toOfflineBagData(source.bag);
-    const [routes, points, linkedGroupCount, campSpot] = await Promise.all([
+    const [routes, points, groupContent, campSpot] = await Promise.all([
       this.bagRouteStore.getRouteDataList(bagId),
       this.bagPointStore.getPointDataList(bagId),
-      this.groupStore
-        .getGroupsByBag(bagId)
-        .then(groups => groups.length)
-        .catch(() => 0),
+      this.loadGroupContent(bagId),
       this.loadCampSpot(bag.location),
     ]);
+    const { groupRoutes, groupPoints, linkedGroupCount } = groupContent;
 
     OfflineTripFiles.deleteQuietly(tempDirectory);
     tempDirectory.create({ intermediates: true, idempotent: true });
@@ -867,7 +873,8 @@ class OfflineTripStore {
     let bytes = 0;
 
     // 원본 GPX(내보내기·정밀 경로용, OF-1). 하나라도 못 받으면 저장 전체를 실패로 본다.
-    for (const route of routes) {
+    // 연결 그룹의 코스도 같은 자리(`routes/{routeId}.gpx`)에 받는다(OF-1 2026-10-13).
+    for (const route of [...routes, ...groupRoutes]) {
       if (!route.storagePath) {
         continue;
       }
@@ -885,10 +892,15 @@ class OfflineTripStore {
     }
 
     // 지도 팩 영역(OF-1): 코스·포인트 전체 상자를 넓힌 것. 없으면 여행지(박지·위치) 둘레.
+    // 연결 그룹의 코스·포인트도 영역에 넣는다(OF-1 2026-10-13) — 등고선도 같은 영역으로 계산된다.
     const contentBounds = mergeRouteBounds([
       ...routes.map(route => route.bounds ?? null),
+      ...groupRoutes.map(route => route.bounds ?? null),
       measureRouteBounds(
-        points.map(point => ({ lat: point.latitude, lng: point.longitude }))
+        [...points, ...groupPoints].map(point => ({
+          lat: point.latitude,
+          lng: point.longitude,
+        }))
       ),
     ]);
     const fallbackLocation = campSpot?.location ?? bag.location;
@@ -933,6 +945,8 @@ class OfflineTripStore {
       routes: routes.map(toOfflineRouteData),
       points: points.map(toOfflinePointData),
       campSpot,
+      groupRoutes,
+      groupPoints,
       linkedGroupCount,
       mapBounds: assets.mapBounds,
       hasContours: assets.hasContours,
@@ -1166,6 +1180,53 @@ class OfflineTripStore {
     file.write(JSON.stringify(snapshot));
 
     return file.size || 0;
+  }
+
+  /**
+   * 연결 그룹의 코스·포인트(OF-1 2026-10-13). 코스 화면(`BagRouteList`·`BagPointList`)과 같은 소스
+   * (`getGroupsByBag` → 그룹별 `routes`·`points`)를 읽는다. 온라인 화면처럼 그룹 조회가 실패하면 그 그룹만
+   * 빼고 계속한다 — 내보내진 그룹의 역인덱스가 남은 경우 등으로 내 여행 저장 전체를 막지 않는다.
+   */
+  private async loadGroupContent(bagId: string): Promise<{
+    groupRoutes: OfflineGroupRouteData[];
+    groupPoints: OfflineGroupPointData[];
+    linkedGroupCount: number;
+  }> {
+    const groups = await this.groupStore
+      .getGroupsByBag(bagId)
+      .catch((): Group[] => []);
+    const loaded = await Promise.all(
+      groups.map(async group => {
+        const groupId = group.getId();
+        const groupName = group.getName();
+
+        try {
+          const [routes, points] = await Promise.all([
+            this.groupStore.getRouteDataList(groupId),
+            this.groupStore.getPointDataList(groupId),
+          ]);
+
+          return {
+            routes: routes.map(route =>
+              toOfflineGroupRouteData(route, groupId, groupName)
+            ),
+            points: points.map(point =>
+              toOfflineGroupPointData(point, groupId, groupName)
+            ),
+          };
+        } catch (error) {
+          console.warn('[OfflineTripStore] 그룹 코스·포인트 조회 실패', error); // l10n-ignore: 개발자 로그
+
+          return { routes: [], points: [] };
+        }
+      })
+    );
+
+    return {
+      groupRoutes: loaded.flatMap(item => item.routes),
+      groupPoints: loaded.flatMap(item => item.points),
+      linkedGroupCount: groups.length,
+    };
   }
 
   // 여행지 박지(DM-17, CS-4 주의사항 포함). 삭제·비활성 박지는 박지로 취급하지 않는다(DST-7).

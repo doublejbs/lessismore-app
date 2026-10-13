@@ -267,6 +267,7 @@
       "empty": "아직 올린 코스가 없어요",
       "loadFailed": "코스를 불러오지 못했어요",
       "fromGroup": "그룹 {{name}}",
+      "sharedToGroup": "그룹에 공유됨",
       "toGroup": "그룹에 올리기",
       "toGroupTitle": "어느 그룹에 올릴까요?",
       "toGroupDone": "그룹에 올렸어요"
@@ -283,6 +284,11 @@
       "loadFailed": "포인트를 불러오지 못했어요"
     },
     "group": {
+      "routes_other": "코스 {{count}}",
+      "points_other": "포인트 {{count}}",
+      "cardLabel": "{{name}} 그룹, {{meta}}, 그룹 상세 보기",
+      "openMap": "그룹 지도",
+      "openBags": "일행 배낭",
       "members_other": "멤버 {{count}}명",
       "rowLabel": "{{name}} 그룹, {{members}}",
       "linkMenu": "그룹에 연결",
@@ -1785,8 +1791,7 @@
       "needsUpgrade": "갱신이 필요해요. 온라인에서 이 여행을 열면 갱신돼요"
     },
     "map": {
-      "offlineLine": "오프라인 · 저장된 지도예요",
-      "groupHidden": "그룹 코스는 오프라인에서 보이지 않아요"
+      "offlineLine": "오프라인 · 저장된 지도예요"
     }
   },
   "map": {

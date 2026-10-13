@@ -269,6 +269,7 @@
       "empty": "No routes yet",
       "loadFailed": "Failed to load routes",
       "fromGroup": "Group {{name}}",
+      "sharedToGroup": "Shared to group",
       "toGroup": "Send to group",
       "toGroupTitle": "Which group?",
       "toGroupDone": "Sent to the group"
@@ -286,6 +287,13 @@
       "loadFailed": "Couldn't load points"
     },
     "group": {
+      "routes_one": "{{count}} route",
+      "routes_other": "{{count}} routes",
+      "points_one": "{{count}} point",
+      "points_other": "{{count}} points",
+      "cardLabel": "{{name}} group, {{meta}}, view group details",
+      "openMap": "Group map",
+      "openBags": "Crew bags",
       "members_one": "{{count}} member",
       "members_other": "{{count}} members",
       "rowLabel": "{{name}} group, {{members}}",
@@ -1814,8 +1822,7 @@
       "needsUpgrade": "This copy needs an update. Open the trip while online to update it"
     },
     "map": {
-      "offlineLine": "Offline · Showing your saved map",
-      "groupHidden": "Group routes aren't available offline"
+      "offlineLine": "Offline · Showing your saved map"
     }
   },
   "map": {

@@ -174,9 +174,6 @@ const CAN_OPEN_REPLAY = Platform.OS !== 'web';
 // `3D` 보조 알약의 아이콘-라벨 간격·좌우 패딩(세로 패딩은 `Spacing.item`).
 const REPLAY_PILL_ICON_GAP = 6;
 const REPLAY_PILL_PADDING_H = 16;
-// 그룹 안내 알약의 안쪽 여백.
-const NOTICE_PILL_PADDING_H = 10;
-const NOTICE_PILL_PADDING_V = 4;
 // `offline_route_map_open`의 `reason`(OF-8). 폴백(`map_unavailable`)은 2026-10-12 폐기 — 지금은 이 값 하나다.
 const OFFLINE_MAP_OPEN_REASON = 'offline';
 // 그래프를 아직 재지 못했을 때의 높이(pt) — 위 여백 + 머리 줄 + 그래프 96 + 안내 줄 + 축 줄.
@@ -281,7 +278,6 @@ const BagRouteMapView: FC<Props> = ({
   const [contours, setContours] = useState<GeoJSON.FeatureCollection | null>(
     null
   );
-  const [hasHiddenGroupContent, setHasHiddenGroupContent] = useState(false);
   /**
    * 오프라인일 때 이 여행의 저장본이 있는지 — 없으면(온라인으로 열었다가 끊김) "저장된 지도" 줄을 띄우지 않는다.
    * `null`은 아직 모름(읽는 중) — 어느 줄도 띄우지 않는다.
@@ -671,7 +667,7 @@ const BagRouteMapView: FC<Props> = ({
     releaseFollow,
   ]);
 
-  // OF-1: 연결 그룹의 코스·포인트는 저장하지 않는다 — 오프라인이고 그룹이 있었으면 그 사실을 한 줄로 알린다.
+  // 오프라인이면 이 여행의 저장본이 있는지 읽는다 — 상단 안내 줄(저장된 지도 / 저장되지 않음)이 쓴다.
   useEffect(() => {
     if (!isOffline) {
       return;
@@ -679,16 +675,15 @@ const BagRouteMapView: FC<Props> = ({
 
     let cancelled = false;
 
-    const loadGroupFlag = async () => {
+    const loadSnapshotFlag = async () => {
       const snapshot = await app.getOfflineTripStore()?.load(bagId);
 
       if (!cancelled) {
         setHasSavedSnapshot(!!snapshot);
-        setHasHiddenGroupContent((snapshot?.linkedGroupCount ?? 0) > 0);
       }
     };
 
-    void loadGroupFlag();
+    void loadSnapshotFlag();
 
     return () => {
       cancelled = true;
@@ -1182,11 +1177,6 @@ const BagRouteMapView: FC<Props> = ({
           {isLoadFailed && (!isOffline || hasSavedSnapshot !== false) ? (
             <MapNoticeLineView label={l10n.t('map.loadFailed')} />
           ) : null}
-          {isOffline && hasHiddenGroupContent ? (
-            <PretendardText style={styles.groupHidden}>
-              {l10n.t('offline.map.groupHidden')}
-            </PretendardText>
-          ) : null}
           {showFilterChips ? (
             <View style={styles.chips}>
               <PointFilterChipsView
@@ -1326,17 +1316,6 @@ const styles = StyleSheet.create({
   // 칩 줄은 폭을 다 쓴다(가로 스크롤).
   chips: {
     alignSelf: 'stretch',
-  },
-  // 지도 위에 뜨는 안내라 불투명 알약에 담는다(조준 안내와 같은 이유).
-  groupHidden: {
-    ...AcgType.meta,
-    color: Acg.textSecondary,
-    paddingHorizontal: NOTICE_PILL_PADDING_H,
-    paddingVertical: NOTICE_PILL_PADDING_V,
-    borderRadius: Radius.pill,
-    backgroundColor: Acg.paper,
-    boxShadow: AcgShadow.chip,
-    overflow: 'hidden',
   },
   bottomOverlay: {
     position: 'absolute',

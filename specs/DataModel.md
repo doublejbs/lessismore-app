@@ -888,6 +888,7 @@
 | --- | --- | --- |
 | `name` | string | 파일명 또는 `<trk><name>`, 최대 40자 |
 | `storagePath` | string | `groups/{groupId}/routes/{routeId}.gpx` |
+| `sourceBagId` / `sourceBagRouteId` | string? | 배낭 코스를 `그룹에 올리기`로 복사했을 때의 원본(DM-30) 참조. 배낭 코스 화면이 **같은 코스를 두 번 보여 주지 않으려고** 쓴다([BagDetail.md](BagDetail.md) BD-11 중복 접기, 2026-10-13 `[제안]`). GPX를 직접 올린 그룹 코스엔 없다 |
 | `fileSize` | number | 바이트, 5MB 이하 |
 | `distance` | number | m |
 | `elevationGain` | number? | m |

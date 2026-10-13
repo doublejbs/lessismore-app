@@ -102,6 +102,8 @@ const BagRouteListSectionView: FC<Props> = ({
       ...(entry.groupName
         ? [l10n.t('bag.route.fromGroup', { name: entry.groupName })]
         : []),
+      // 내 코스를 연결 그룹에 올려 둔 경우 — 그 그룹 코스는 목록에서 접혔다(BD-11 중복 접기).
+      ...(entry.sharedToGroup ? [l10n.t('bag.route.sharedToGroup')] : []),
     ].join(separator);
     // 뒤집기는 보기 설정이라 **모든 행**에 있다 — 연결 그룹에서 온 읽기 전용 코스와 웹에서도(GRP-8).
     const actions: RouteRowAction[] = [createRouteDirectionAction(entry.route)];

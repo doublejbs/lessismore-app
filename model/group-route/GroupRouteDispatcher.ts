@@ -1,5 +1,6 @@
 import app from '@/model/app/App';
 import { RouteDraft } from '@/model/route/RouteData';
+import { GroupRouteSource } from '@/model/group/GroupData';
 import GroupRoute from '@/model/group/GroupRoute';
 import RouteValidator from '@/model/route/RouteValidator';
 import GroupStore from '@/model/store/GroupStore';
@@ -35,11 +36,14 @@ class GroupRouteDispatcher {
    * ① 규칙과 같은 조건으로 먼저 검증하고(안 하면 업로드만 성공하고 문서 쓰기가 거부돼
    * 회수 경로 없는 고아 GPX가 남는다) ② 문서 ID를 먼저 발급해 Storage 경로를 정한 뒤
    * ③ 원본을 올리고 ④ Firestore 문서를 쓴다. ④가 실패하면 ③을 되돌린다.
+   *
+   * `source`는 배낭 코스를 복사해 올릴 때의 원본 참조다(DM-29 — BD-11 중복 접기). 직접 올리면 없다.
    */
   public async addRoute(
     groupId: string,
     draft: RouteDraft,
-    localUri: string
+    localUri: string,
+    source: GroupRouteSource | null = null
   ): Promise<string> {
     RouteValidator.validateRoute(draft);
 
@@ -49,11 +53,15 @@ class GroupRouteDispatcher {
     await this.upload.upload(storagePath, localUri);
 
     try {
-      return await this.groupStore.createRoute(groupId, {
-        ...draft,
-        routeId,
-        storagePath,
-      });
+      return await this.groupStore.createRoute(
+        groupId,
+        {
+          ...draft,
+          routeId,
+          storagePath,
+        },
+        source
+      );
     } catch (error) {
       await this.rollback(storagePath);
 

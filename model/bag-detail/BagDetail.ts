@@ -424,8 +424,9 @@ class BagDetail implements BagScheduleWriter {
   }
 
   /**
-   * 헤더 그룹 한 줄 (BD-1). 역인덱스(`users/{uid}/groups`)를 `bagId`로 찾는다 — 그룹 문서를 읽지 않는다.
-   * 실패하면 줄을 그리지 않는다(혼자 가는 배낭의 헤더와 같다).
+   * 그룹 카드 (BD-1). 역인덱스(`users/{uid}/groups`)를 `bagId`로 찾아 카드를 먼저 그리고,
+   * 이어서 그룹 문서 1건을 읽어 코스·포인트 캐시 수(역인덱스에 없다)와 최신 멤버 수로 바꾼다.
+   * 역인덱스 조회가 실패하면 카드를 그리지 않는다(혼자 가는 배낭과 같다).
    */
   public async loadLinkedGroup(): Promise<void> {
     if (!this.firebase.isLoggedIn()) {
@@ -436,10 +437,29 @@ class BagDetail implements BagScheduleWriter {
 
     try {
       const groups = (await app.getGroupStore()?.getGroupsByBag(this.id)) ?? [];
+      const nearest = this.pickNearestGroup(groups);
 
-      this.setLinkedGroup(this.pickNearestGroup(groups));
+      this.setLinkedGroup(nearest);
+
+      if (nearest) {
+        await this.loadLinkedGroupDocument(nearest.getId());
+      }
     } catch (error) {
       console.warn('[BagDetail] 연결 그룹 조회 실패', error); // l10n-ignore: 개발자 로그
+    }
+  }
+
+  // 그룹 문서 읽기가 실패하면 요약본을 그대로 둔다 — 카드는 코스·포인트 조각만 빠진 채 남는다.
+  private async loadLinkedGroupDocument(groupId: string): Promise<void> {
+    try {
+      const group = await app.getGroupStore()?.getGroup(groupId);
+
+      // 읽는 사이 연결이 바뀌었으면(해제·다른 그룹) 덮어쓰지 않는다.
+      if (group && this.linkedGroup?.getId() === groupId) {
+        this.setLinkedGroup(group);
+      }
+    } catch (error) {
+      console.warn('[BagDetail] 연결 그룹 문서 조회 실패', error); // l10n-ignore: 개발자 로그
     }
   }
 
@@ -482,6 +502,24 @@ class BagDetail implements BagScheduleWriter {
     }
 
     this.router.push({ pathname: '/group/[id]', params: { id: group.getId() } });
+  }
+
+  // 그룹 카드의 `그룹 지도` 알약 (BD-1).
+  public goToLinkedGroupMap() {
+    const group = this.linkedGroup;
+
+    if (!this.guardOnline()) {
+      return;
+    }
+
+    if (!group) {
+      return;
+    }
+
+    this.router.push({
+      pathname: '/group/[id]/map',
+      params: { id: group.getId() },
+    });
   }
 
   /**

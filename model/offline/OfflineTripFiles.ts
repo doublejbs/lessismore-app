@@ -14,6 +14,9 @@ const BACKUP_SUFFIX = '.old';
 // 배낭 코스 원본 경로(DM-30 `bags/{bagId}/routes/{routeId}.gpx`). id는 경로 조각이 될 수 있는 글자만 받는다.
 const BAG_ROUTE_STORAGE_PATH =
   /^bags\/([A-Za-z0-9_-]+)\/routes\/([A-Za-z0-9_-]+)\.gpx$/;
+// 그룹 코스 원본 경로(DM-29 `groups/{groupId}/routes/{routeId}.gpx`). 연결 배낭의 저장본에 들어 있다(OF-1).
+const GROUP_ROUTE_STORAGE_PATH =
+  /^groups\/([A-Za-z0-9_-]+)\/routes\/([A-Za-z0-9_-]+)\.gpx$/;
 
 /**
  * 오프라인 저장 파일 경로 (OF-1 · §4). 경로 규칙을 한 곳에 둔다 — 저장·읽기·정리·GPX 내보내기가
@@ -114,17 +117,45 @@ class OfflineTripFiles {
     return new File(directory, ROUTES_DIRECTORY, `${routeId}${GPX_EXTENSION}`);
   }
 
-  // 코스 원본 경로 → 저장해 둔 GPX 파일(OF-6 GPX 내보내기). 저장하지 않았으면 `null`.
-  public static findRouteFileByStoragePath(storagePath: string): File | null {
-    const match = BAG_ROUTE_STORAGE_PATH.exec(storagePath);
+  /**
+   * 코스 원본 경로 → 저장해 둔 GPX 파일(OF-6 GPX 내보내기). 저장하지 않았으면 `null`.
+   * 그룹 코스(`groups/…`)는 경로에 배낭이 없어 저장된 여행(`savedBagIds`)의 `routes/{routeId}.gpx`를
+   * 차례로 본다(OF-1 2026-10-13 — 연결 배낭의 저장본에 들어 있다).
+   */
+  public static findRouteFileByStoragePath(
+    storagePath: string,
+    savedBagIds: string[] = []
+  ): File | null {
+    const bagMatch = BAG_ROUTE_STORAGE_PATH.exec(storagePath);
 
-    if (!match) {
+    if (bagMatch) {
+      return OfflineTripFiles.findExistingRouteFile(bagMatch[1], bagMatch[2]);
+    }
+
+    const groupMatch = GROUP_ROUTE_STORAGE_PATH.exec(storagePath);
+
+    if (!groupMatch) {
       return null;
     }
 
+    for (const bagId of savedBagIds) {
+      const file = OfflineTripFiles.findExistingRouteFile(bagId, groupMatch[2]);
+
+      if (file) {
+        return file;
+      }
+    }
+
+    return null;
+  }
+
+  private static findExistingRouteFile(
+    bagId: string,
+    routeId: string
+  ): File | null {
     const file = OfflineTripFiles.getRouteFile(
-      OfflineTripFiles.getTripDirectory(match[1]),
-      match[2]
+      OfflineTripFiles.getTripDirectory(bagId),
+      routeId
     );
 
     return file.exists ? file : null;

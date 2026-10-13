@@ -79,9 +79,19 @@ export interface GroupPointData {
 
 // 그룹 코스(DM-29). 공통 필드는 `RouteData`(DM-29·DM-30 공용)에 있고 여기에 작성자만 더한다 —
 // 그룹은 여럿이 올리므로 누가 올렸는지가 필요하다(배낭 코스에는 없다, DM-30).
-export interface GroupRouteData extends RouteData {
+export interface GroupRouteData extends RouteData, Partial<GroupRouteSource> {
   authorId: string;
   authorName: string;
+}
+
+/**
+ * 배낭 코스를 `그룹에 올리기`로 복사했을 때의 원본 참조(DM-29 `sourceBagId`·`sourceBagRouteId`).
+ * 배낭 코스 화면이 같은 코스를 두 번 보여 주지 않으려고 쓴다(BD-11 중복 접기). GPX를 직접 올린
+ * 그룹 코스엔 없다 — 둘은 항상 함께 있거나 함께 없다.
+ */
+export interface GroupRouteSource {
+  sourceBagId: string;
+  sourceBagRouteId: string;
 }
 
 // users/{uid}/groups/{groupId} — 목록 조회용 역인덱스(DM-29).

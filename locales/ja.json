@@ -267,6 +267,7 @@
       "empty": "まだコースがありません",
       "loadFailed": "コースを読み込めませんでした",
       "fromGroup": "グループ {{name}}",
+      "sharedToGroup": "グループに共有済み",
       "toGroup": "グループに送る",
       "toGroupTitle": "どのグループに送りますか？",
       "toGroupDone": "グループに送りました"
@@ -283,6 +284,11 @@
       "loadFailed": "ポイントを読み込めませんでした"
     },
     "group": {
+      "routes_other": "コース{{count}}",
+      "points_other": "ポイント{{count}}",
+      "cardLabel": "{{name}}グループ、{{meta}}、グループ詳細を見る",
+      "openMap": "グループマップ",
+      "openBags": "仲間のバックパック",
       "members_other": "メンバー{{count}}人",
       "rowLabel": "{{name}}グループ、{{members}}",
       "linkMenu": "グループに連携",
@@ -1785,8 +1791,7 @@
       "needsUpgrade": "更新が必要です。オンラインでこの旅行を開くと更新されます"
     },
     "map": {
-      "offlineLine": "オフライン · 保存した地図です",
-      "groupHidden": "グループのコースはオフラインでは表示されません"
+      "offlineLine": "オフライン · 保存した地図です"
     }
   },
   "map": {

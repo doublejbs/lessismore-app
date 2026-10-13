@@ -4,7 +4,6 @@ import BagRoute from '@/model/bag-route/BagRoute';
 import { BagRouteEntry } from '@/model/bag-route/BagRouteEntry';
 import Group from '@/model/group/Group';
 import GroupError from '@/model/group/GroupError';
-import GroupRoute from '@/model/group/GroupRoute';
 import GroupValidationError from '@/model/group/GroupValidationError';
 import { GROUP_MAX_ROUTE_COUNT } from '@/model/group/GroupLimits';
 import GpxParser from '@/model/route/GpxParser';
@@ -13,15 +12,10 @@ import { RouteBounds, RouteDraft } from '@/model/route/RouteData';
 import { getRouteErrorMessage } from '@/model/route/RouteErrorMessage';
 import RoutePicker from '@/model/route/RoutePicker';
 import RouteValidator from '@/model/route/RouteValidator';
-import BagRouteDispatcher from './BagRouteDispatcher';
+import BagRouteDispatcher, { LinkedGroupRoute } from './BagRouteDispatcher';
+import BagRouteSelection from './BagRouteSelection';
 
 const GPX_EXTENSION_PATTERN = /\.gpx$/i;
-
-// 연결 그룹에서 온 코스 한 건. 그룹 이름을 함께 들고 있어야 목록에 출처를 적을 수 있다.
-interface LinkedGroupRoute {
-  groupName: string;
-  route: GroupRoute;
-}
 
 /**
  * 목록에서 코스를 **고른** 요청 (BD-11). 지도가 이 요청마다 카메라를 그 코스로 옮긴다.
@@ -46,6 +40,8 @@ class BagRouteList {
   private groupRoutes: LinkedGroupRoute[] = [];
   private linkedGroups: Group[] = [];
   private selectedKey: string | null = null;
+  // 사용자가 마지막으로 고른 목록 키(BD-11 선택 기억). 초기화 때 기기에서 읽고, 고를 때마다 바뀐다.
+  private rememberedKey: string | null = null;
   private focusRequest: BagRouteFocusRequest | null = null;
   private loading = false;
   private initialized = false;
@@ -68,6 +64,11 @@ class BagRouteList {
       return;
     }
 
+    const rememberedKey = await BagRouteSelection.load(this.bagId);
+
+    runInAction(() => {
+      this.rememberedKey = rememberedKey;
+    });
     await this.load(false);
   }
 
@@ -86,20 +87,28 @@ class BagRouteList {
   /**
    * 목록 한 벌 — 내 코스가 먼저고 그 뒤가 연결 그룹 코스다 (BD-11).
    * 내가 손댈 수 있는 것을 위에 둔다.
+   *
+   * **중복 접기**(BD-11 2026-10-13): 이 배낭의 코스를 `그룹에 올리기`로 복사한 그룹 코스(`sourceBagRouteId`가
+   * 내 코스 id)는 빼고, 그 내 코스에 `sharedToGroup`을 붙인다. 원본을 지우면 그룹 코스가 다시 보인다.
    */
   public getEntries(): BagRouteEntry[] {
+    const sharedIds = this.getSharedRouteIds();
+
     return [
       ...this.routes.map(route => ({
-        key: `bag:${route.getId()}`,
+        key: BagRouteSelection.toBagEntryKey(route.getId()),
         route,
         owned: true,
+        ...(sharedIds.has(route.getId()) ? { sharedToGroup: true } : {}),
       })),
-      ...this.groupRoutes.map(item => ({
-        key: `group:${item.route.getId()}`,
-        route: item.route,
-        groupName: item.groupName,
-        owned: false,
-      })),
+      ...this.groupRoutes
+        .filter(item => !this.isFoldedGroupRoute(item, sharedIds))
+        .map(item => ({
+          key: BagRouteSelection.toGroupEntryKey(item.route.getId()),
+          route: item.route,
+          groupName: item.groupName,
+          owned: false,
+        })),
     ];
   }
 
@@ -118,6 +127,9 @@ class BagRouteList {
   public focusEntry(key: string): void {
     this.selectedKey = key;
     this.focusRequest = { key, seq: (this.focusRequest?.seq ?? 0) + 1 };
+    // 사용자가 고른 것만 기억한다(BD-11) — 다음에 열 때 이 코스가 선택돼 있다.
+    this.rememberedKey = key;
+    void BagRouteSelection.save(this.bagId, key);
   }
 
   public getFocusRequest(): BagRouteFocusRequest | null {
@@ -255,7 +267,7 @@ class BagRouteList {
       });
       await this.load(true);
       // 방금 올린 코스를 바로 보여준다 — 지도·그래프가 그 코스로 옮겨간다.
-      this.selectEntry(`bag:${routeId}`);
+      this.selectEntry(BagRouteSelection.toBagEntryKey(routeId));
 
       return true;
     } catch (error) {
@@ -303,7 +315,7 @@ class BagRouteList {
     this.setSubmitting(true);
 
     try {
-      await this.dispatcher.copyToGroup(groupId, route);
+      await this.dispatcher.copyToGroup(this.bagId, groupId, route);
       app.getAnalyticsManager()?.logClick('bag_route_to_group');
       this.showMessage(app.getL10n().t('bag.route.toGroupDone'));
       await this.load(true);
@@ -335,7 +347,10 @@ class BagRouteList {
           return [] as Group[];
         }),
       ]);
-      const groupRoutes = await this.loadGroupRoutes(linkedGroups);
+      const groupRoutes = await this.dispatcher.getLinkedGroupRoutes(
+        this.bagId,
+        linkedGroups
+      );
 
       runInAction(() => {
         this.routes = routes;
@@ -353,26 +368,70 @@ class BagRouteList {
     }
   }
 
-  private async loadGroupRoutes(groups: Group[]): Promise<LinkedGroupRoute[]> {
-    const loaded = await Promise.all(
-      groups.map(async group => {
-        try {
-          const routes = await this.dispatcher.getGroupRoutes(group.getId());
+  // 연결 그룹에 복사본이 있는 내 코스 id(BD-11 중복 접기). 원본 배낭이 이 배낭인 참조만 센다.
+  private getSharedRouteIds(): Set<string> {
+    const ownIds = new Set(this.routes.map(route => route.getId()));
+    const sharedIds = new Set<string>();
 
-          return routes.map(route => ({ groupName: group.getName(), route }));
-        } catch (error) {
-          // 내보내진 그룹의 역인덱스가 남아 있는 경우 등. 나머지 그룹을 막지 않는다.
-          console.warn('[BagRouteList] 그룹 코스 조회 실패', error); // l10n-ignore: 개발자 로그
+    this.groupRoutes.forEach(item => {
+      const sourceRouteId = item.route.getSourceBagRouteId();
 
-          return [] as LinkedGroupRoute[];
-        }
-      })
-    );
+      if (
+        sourceRouteId &&
+        item.route.getSourceBagId() === this.bagId &&
+        ownIds.has(sourceRouteId)
+      ) {
+        sharedIds.add(sourceRouteId);
+      }
+    });
 
-    return loaded.flat();
+    return sharedIds;
   }
 
-  // 선택이 없거나 사라진 코스를 가리키고 있으면 첫 코스로 되돌린다(그룹 지도와 같은 규칙).
+  private isFoldedGroupRoute(
+    item: LinkedGroupRoute,
+    sharedIds: Set<string>
+  ): boolean {
+    const sourceRouteId = item.route.getSourceBagRouteId();
+
+    return (
+      !!sourceRouteId &&
+      item.route.getSourceBagId() === this.bagId &&
+      sharedIds.has(sourceRouteId)
+    );
+  }
+
+  /**
+   * 기억된 키를 지금 목록의 키로 맞춘다. 그룹 복사본을 기억했는데 그 코스가 중복 접기로 빠졌으면
+   * 원본 내 코스를 가리킨다 — 같은 코스다.
+   */
+  private resolveRememberedKey(): string | null {
+    const key = this.rememberedKey;
+
+    if (!key) {
+      return null;
+    }
+
+    const folded = this.groupRoutes.find(
+      item => BagRouteSelection.toGroupEntryKey(item.route.getId()) === key
+    );
+    const sourceRouteId = folded?.route.getSourceBagRouteId();
+
+    if (
+      folded &&
+      sourceRouteId &&
+      this.isFoldedGroupRoute(folded, this.getSharedRouteIds())
+    ) {
+      return BagRouteSelection.toBagEntryKey(sourceRouteId);
+    }
+
+    return key;
+  }
+
+  /**
+   * 선택이 없거나 사라진 코스를 가리키고 있으면 되돌린다(BD-11 선택 기억): 기억된 코스가 목록에 있으면 그것,
+   * 없으면 첫 코스(내 코스가 앞이라 내 첫 코스, 없으면 그룹 첫 코스). 자동 선택은 기억하지 않는다.
+   */
   private syncSelection() {
     const entries = this.getEntries();
 
@@ -382,9 +441,15 @@ class BagRouteList {
       return;
     }
 
-    if (!entries.some(entry => entry.key === this.selectedKey)) {
-      this.selectedKey = entries[0].key;
+    if (entries.some(entry => entry.key === this.selectedKey)) {
+      return;
     }
+
+    const rememberedKey = this.resolveRememberedKey();
+
+    this.selectedKey = entries.some(entry => entry.key === rememberedKey)
+      ? rememberedKey
+      : entries[0].key;
   }
 
   private showMessage(message: string) {

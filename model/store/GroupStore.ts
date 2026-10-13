@@ -35,6 +35,7 @@ import {
   GroupPointInput,
   GroupPointPatch,
   GroupRouteData,
+  GroupRouteSource,
 } from '../group/GroupData';
 import GroupError from '../group/GroupError';
 import {
@@ -627,6 +628,13 @@ class GroupStore {
   }
 
   public async getPoints(groupId: string): Promise<GroupPoint[]> {
+    const points = await this.getPointDataList(groupId);
+
+    return points.map(point => GroupPoint.from(point));
+  }
+
+  // 포인트 문서 원본(DM-29). 오프라인 저장(OF-1)이 쓴다.
+  public async getPointDataList(groupId: string): Promise<GroupPointData[]> {
     const snapshot = await getDocs(
       query(
         collection(this.getStore(), 'groups', groupId, 'points'),
@@ -634,9 +642,7 @@ class GroupStore {
       )
     );
 
-    return snapshot.docs.map(item =>
-      GroupPoint.from(this.toPointData(item.id, item.data()))
-    );
+    return snapshot.docs.map(item => this.toPointData(item.id, item.data()));
   }
 
   // 포인트 추가 (GRP-9). 상한 검사와 `pointCount` 증가를 한 트랜잭션에서 처리한다.
@@ -798,6 +804,13 @@ class GroupStore {
   }
 
   public async getRoutes(groupId: string): Promise<GroupRoute[]> {
+    const routes = await this.getRouteDataList(groupId);
+
+    return routes.map(route => this.toRoute(route));
+  }
+
+  // 코스 문서 원본(DM-29). 오프라인 저장(OF-1)이 모델이 아니라 데이터를 그대로 담는다.
+  public async getRouteDataList(groupId: string): Promise<GroupRouteData[]> {
     const snapshot = await getDocs(
       query(
         collection(this.getStore(), 'groups', groupId, 'routes'),
@@ -805,12 +818,12 @@ class GroupStore {
       )
     );
 
-    return snapshot.docs.map(item =>
-      GroupRoute.from(
-        this.toRouteData(item.id, item.data()),
-        this.routeDirections
-      )
-    );
+    return snapshot.docs.map(item => this.toRouteData(item.id, item.data()));
+  }
+
+  // 데이터 → 모델. 오프라인 저장본에서 되돌릴 때도 같은 뒤집기 설정을 쓴다(OF-6).
+  public toRoute(data: GroupRouteData): GroupRoute {
+    return GroupRoute.from(data, this.routeDirections);
   }
 
   /**
@@ -819,7 +832,8 @@ class GroupStore {
    */
   public async createRoute(
     groupId: string,
-    input: RouteInput
+    input: RouteInput,
+    source: GroupRouteSource | null = null
   ): Promise<string> {
     const userId = this.requireUserId();
 
@@ -878,6 +892,12 @@ class GroupStore {
       // 하강 합(GRP-8 뒤집기). 고도 없는 GPX엔 키를 넣지 않는다 — 규칙도 옵셔널로 받는다(DM-29).
       if (input.elevationLoss !== undefined) {
         routeData.elevationLoss = input.elevationLoss;
+      }
+
+      // 배낭 코스에서 복사한 경우의 원본 참조(DM-29, BD-11 중복 접기). 직접 올린 코스엔 키가 없다.
+      if (source) {
+        routeData.sourceBagId = source.sourceBagId;
+        routeData.sourceBagRouteId = source.sourceBagRouteId;
       }
 
       transaction.set(this.routeRef(groupId, input.routeId), routeData);
@@ -1202,6 +1222,16 @@ class GroupStore {
       authorId: data.authorId ?? '',
       authorName: data.authorName ?? '',
       createdAt: toFirestoreDate(data.createdAt),
+      // 원본 참조는 둘 다 문자열일 때만 읽는다 — 반쪽 참조로는 중복을 판정할 수 없다(BD-11).
+      ...(typeof data.sourceBagId === 'string' &&
+      typeof data.sourceBagRouteId === 'string' &&
+      data.sourceBagId &&
+      data.sourceBagRouteId
+        ? {
+            sourceBagId: data.sourceBagId,
+            sourceBagRouteId: data.sourceBagRouteId,
+          }
+        : {}),
     };
   }
 }

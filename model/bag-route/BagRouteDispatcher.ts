@@ -10,8 +10,18 @@ import BagRouteStore from '@/model/store/BagRouteStore';
 import GroupStore from '@/model/store/GroupStore';
 import NetworkStatus from '@/model/offline/NetworkStatus';
 import OfflineTripAccess from '@/model/offline/OfflineTripAccess';
-import { fromOfflineRouteData } from '@/model/offline/OfflineTripSnapshot';
+import {
+  fromOfflineGroupRouteData,
+  fromOfflineRouteData,
+  OfflineTripSnapshotData,
+} from '@/model/offline/OfflineTripSnapshot';
 import OfflineTripStore from '@/model/offline/OfflineTripStore';
+
+// 연결 그룹에서 온 코스 한 건. 그룹 이름을 함께 들고 있어야 목록에 출처를 적을 수 있다(BD-11).
+export interface LinkedGroupRoute {
+  groupName: string;
+  route: GroupRoute;
+}
 
 /**
  * 배낭 코스(BD-11)가 쓰는 데이터 접근. Firestore 문서와 Storage 원본을 **한 벌로** 다룬다 —
@@ -49,21 +59,16 @@ class BagRouteDispatcher {
       return this.bagRouteStore.getRoutes(bagId);
     }
 
-    const store = this.offlineTripStore;
-
-    if (!store || store.getAccess(bagId) !== OfflineTripAccess.Available) {
-      return [];
-    }
-
-    const snapshot = await store.load(bagId);
+    const snapshot = await this.loadOfflineSnapshot(bagId);
 
     return (snapshot?.routes ?? []).map(route =>
       this.bagRouteStore.toRoute(fromOfflineRouteData(route))
     );
   }
 
-  // 이 배낭을 연결한 그룹(BD-11). 없으면 `그룹에 올리기`와 그룹 코스 표시가 함께 사라진다.
-  // 그룹 코스는 오프라인에 저장하지 않는다(OF-1) — 오프라인이면 연결 그룹이 없는 것으로 본다.
+  // 이 배낭을 연결한 그룹(BD-11). 없으면 `그룹에 올리기`가 사라진다.
+  // 오프라인이면 연결 그룹이 없는 것으로 본다 — 그룹에 올리기는 온라인 전용이고(OF-5), 그룹 코스는
+  // `getLinkedGroupRoutes`가 저장본에서 따로 읽는다.
   public async getLinkedGroups(bagId: string): Promise<Group[]> {
     if (this.networkStatus.isOffline()) {
       return [];
@@ -72,8 +77,40 @@ class BagRouteDispatcher {
     return this.groupStore.getGroupsByBag(bagId);
   }
 
-  public getGroupRoutes(groupId: string): Promise<GroupRoute[]> {
-    return this.groupStore.getRoutes(groupId);
+  /**
+   * 연결 그룹의 코스(읽기 전용, BD-11). 온라인이면 `groups`의 코스를 그룹마다 읽고(한 그룹이 실패해도
+   * 나머지는 보인다), 오프라인이면 저장본의 그룹 코스(OF-1 2026-10-13)를 같은 모델로 되돌린다 —
+   * 온라인과 같은 목록이 된다.
+   */
+  public async getLinkedGroupRoutes(
+    bagId: string,
+    groups: Group[]
+  ): Promise<LinkedGroupRoute[]> {
+    if (this.networkStatus.isOffline()) {
+      const snapshot = await this.loadOfflineSnapshot(bagId);
+
+      return (snapshot?.groupRoutes ?? []).map(route => ({
+        groupName: route.groupName,
+        route: this.groupStore.toRoute(fromOfflineGroupRouteData(route)),
+      }));
+    }
+
+    const loaded = await Promise.all(
+      groups.map(async group => {
+        try {
+          const routes = await this.groupStore.getRoutes(group.getId());
+
+          return routes.map(route => ({ groupName: group.getName(), route }));
+        } catch (error) {
+          // 내보내진 그룹의 역인덱스가 남아 있는 경우 등. 나머지 그룹을 막지 않는다.
+          console.warn('[BagRouteDispatcher] 그룹 코스 조회 실패', error); // l10n-ignore: 개발자 로그
+
+          return [] as LinkedGroupRoute[];
+        }
+      })
+    );
+
+    return loaded.flat();
   }
 
   /**
@@ -131,16 +168,35 @@ class BagRouteDispatcher {
    * 업로드 순서·상한 검사(그룹 5개)·고아 파일 회수는 **그룹 코스 등록 경로를 그대로 탄다** —
    * 그룹에 코스가 생기는 방법을 두 개 두지 않는다.
    */
-  public async copyToGroup(groupId: string, route: BagRoute): Promise<string> {
+  public async copyToGroup(
+    bagId: string,
+    groupId: string,
+    route: BagRoute
+  ): Promise<string> {
     const downloadUrl = await this.upload.getDownloadUrl(
       route.getStoragePath()
     );
 
+    // 복사본에 원본 참조를 적는다(DM-29) — 배낭 코스 화면이 같은 코스를 두 번 보여 주지 않게(BD-11).
     return this.groupRouteDispatcher.addRoute(
       groupId,
       route.toDraft(),
-      downloadUrl
+      downloadUrl,
+      { sourceBagId: bagId, sourceBagRouteId: route.getId() }
     );
+  }
+
+  // 열 수 있는 저장본(OF-6). 저장하지 않았거나 열 수 없으면(권한·구버전) `null` — 빈 목록이 된다.
+  private async loadOfflineSnapshot(
+    bagId: string
+  ): Promise<OfflineTripSnapshotData | null> {
+    const store = this.offlineTripStore;
+
+    if (!store || store.getAccess(bagId) !== OfflineTripAccess.Available) {
+      return null;
+    }
+
+    return store.load(bagId);
   }
 
   private async rollback(storagePath: string): Promise<void> {

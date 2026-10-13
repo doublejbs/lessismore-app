@@ -17,6 +17,9 @@ class GroupRoute implements RouteDisplay {
   private readonly authorId: string;
   private readonly authorName: string;
   private readonly createdAt: Date;
+  // 배낭 코스에서 복사해 온 코스면 그 원본(DM-29). 직접 올린 코스면 `null`.
+  private readonly sourceBagId: string | null;
+  private readonly sourceBagRouteId: string | null;
   /**
    * 방향에 따라 바뀌는 값(좌표 순서·고도 단면·상승) — 배낭 코스와 같은 구현을 쓴다(GRP-8 뒤집기).
    * 고도 단면은 방향별로 한 번만 만들어 들고 있는다 — 그래프를 훑는 동안 매 프레임 다시 만들지 않게.
@@ -55,6 +58,8 @@ class GroupRoute implements RouteDisplay {
     this.authorId = data.authorId;
     this.authorName = data.authorName;
     this.createdAt = toFirestoreDate(data.createdAt);
+    this.sourceBagId = data.sourceBagId ?? null;
+    this.sourceBagRouteId = data.sourceBagRouteId ?? null;
   }
 
   public getId() {
@@ -107,6 +112,15 @@ class GroupRoute implements RouteDisplay {
 
   public getCreatedAt() {
     return this.createdAt;
+  }
+
+  // 원본 배낭 코스(BD-11 중복 접기). `그룹에 올리기`로 복사한 코스에만 있다.
+  public getSourceBagId(): string | null {
+    return this.sourceBagId;
+  }
+
+  public getSourceBagRouteId(): string | null {
+    return this.sourceBagRouteId;
   }
 
   // 원본 트랙 거리(m). 고도 그래프가 축약 거리를 이 값으로 환산해 표시한다(GRP-8).
