@@ -255,17 +255,8 @@ class BagRouteList {
           : {}),
       };
 
-      const routeId = await this.dispatcher.addRoute(
-        this.bagId,
-        draft,
-        picked.uri
-      );
+      const routeId = await this.submitDraft(draft, picked.uri);
 
-      app.getAnalyticsManager()?.logClick('bag_route_upload', {
-        distance: Math.round(parsed.distance),
-        point_count: parsed.pointCount,
-      });
-      await this.load(true);
       // 방금 올린 코스를 바로 보여준다 — 지도·그래프가 그 코스로 옮겨간다.
       this.selectEntry(BagRouteSelection.toBagEntryKey(routeId));
 
@@ -277,6 +268,53 @@ class BagRouteList {
     } finally {
       this.setSubmitting(false);
     }
+  }
+
+  /**
+   * 지도에서 그린 코스를 올린다 (RD-3). 파일은 이미 만들어져 있다 — 그 뒤는 가져오기와 **같은 경로**다
+   * (디스패처 검증·업로드·상한 검사, `click_bag_route_upload`, 목록 갱신). 올린 코스를 골라 카메라를 맞춘다.
+   * 실패하면 가져오기와 같은 문구로 알리고 `false`(그리기 모드에 남는다).
+   */
+  public async addDrawnRoute(
+    draft: RouteDraft,
+    localUri: string
+  ): Promise<boolean> {
+    if (this.submitting) {
+      return false;
+    }
+
+    if (this.isFull()) {
+      this.showMessage(this.getLimitMessage());
+
+      return false;
+    }
+
+    this.setSubmitting(true);
+
+    try {
+      const routeId = await this.submitDraft(draft, localUri);
+
+      this.focusEntry(BagRouteSelection.toBagEntryKey(routeId));
+
+      return true;
+    } catch (error) {
+      this.showMessage(getRouteErrorMessage(error));
+
+      return false;
+    } finally {
+      this.setSubmitting(false);
+    }
+  }
+
+  /**
+   * 코스 그리기 이름 시트의 기본값 (RD-3) — `{여행지 이름} 코스`, 여행지가 없으면 `{배낭 이름} 코스`. 둘 다 못 읽으면
+   * 빈 문자열(그리기 모델이 `그린 코스`로 채운다).
+   */
+  public async getDrawDefaultName(): Promise<string> {
+    const naming = await this.dispatcher.getBagNaming(this.bagId);
+    const base = naming.locationName || naming.name;
+
+    return base ? app.getL10n().t('routeDraw.defaultName', { name: base }) : '';
   }
 
   public async deleteRoute(route: BagRoute): Promise<boolean> {
@@ -328,6 +366,19 @@ class BagRouteList {
     } finally {
       this.setSubmitting(false);
     }
+  }
+
+  // 올리기 + 측정 + 목록 갱신 — 가져오기(`addRoute`)와 그리기(`addDrawnRoute`)가 함께 쓴다. 올린 코스 id를 돌려준다.
+  private async submitDraft(draft: RouteDraft, localUri: string) {
+    const routeId = await this.dispatcher.addRoute(this.bagId, draft, localUri);
+
+    app.getAnalyticsManager()?.logClick('bag_route_upload', {
+      distance: Math.round(draft.distance),
+      point_count: draft.pointCount,
+    });
+    await this.load(true);
+
+    return routeId;
   }
 
   private async load(quiet: boolean) {

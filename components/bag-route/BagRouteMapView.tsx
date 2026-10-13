@@ -57,6 +57,9 @@ import PointFilterChipsView from '@/components/point/PointFilterChipsView';
 import usePointRouteMark from '@/components/point/usePointRouteMark';
 import RouteElevationChartView from '@/components/route/RouteElevationChartView';
 import RouteEndpointCalloutView from '@/components/route/RouteEndpointCalloutView';
+import RouteDrawBarView from '@/components/route-draw/RouteDrawBarView';
+import RouteDrawLayersView from '@/components/route-draw/RouteDrawLayersView';
+import RouteDrawNoticeView from '@/components/route-draw/RouteDrawNoticeView';
 import {
   RouteEndpointCameraPadding,
   useRouteEndpointState,
@@ -87,6 +90,7 @@ import MapPoint from '@/model/point/MapPoint';
 import { getPointTypeColor } from '@/model/point/PointLabels';
 import { ROUTE_REPLAY_MIN_COORDINATES } from '@/model/route-replay/RouteReplayCoordinates';
 import RouteReplaySource from '@/model/route-replay/RouteReplaySource';
+import RouteDraw from '@/model/route-draw/RouteDraw';
 import {
   getRouteFitRegion,
   mergeRouteBounds,
@@ -124,6 +128,13 @@ interface Props {
   ) => void;
   onRequestEdit: (point: BagPoint) => void;
   onRequestDelete: (point: BagPoint) => void;
+  /**
+   * 코스 그리기(RD-2). 화면이 들고 있다 — 모드 중(`isActive`)에는 시트·카드·칩·`3D`·`포인트 추가`를 걷고 지도 탭이
+   * 점 추가가 된다. `내 위치`만 남는다.
+   */
+  routeDraw: RouteDraw;
+  // 하단 바 `취소` — 확인 알럿(2점 이상)은 화면이 띄운다.
+  onCancelDrawing: () => void;
   /**
    * 바텀 시트(BD-11) 머리 — 손잡이와 함께 끄는 영역(`코스 | 포인트` 세그먼트 칩 줄). 지도 모듈이 없는 옛
    * 바이너리(게이트 폴백)에서는 안내 줄 아래 그대로 세로로 쌓인다.
@@ -244,6 +255,8 @@ const BagRouteMapView: FC<Props> = ({
   onRequestCreate,
   onRequestEdit,
   onRequestDelete,
+  routeDraw,
+  onCancelDrawing,
   listHeader,
   listContent,
   listBottomInset,
@@ -291,6 +304,9 @@ const BagRouteMapView: FC<Props> = ({
   const topOverlayBottomRef = useRef<number | null>(null);
   // 지도 아래쪽 카드(포인트·끝점·조준 안내)의 높이 — 출처 표기(라이선스 의무)를 그 위로 올린다. 없으면 0.
   const [cardSlotHeight, setCardSlotHeight] = useState(0);
+  // 코스 그리기 하단 바 높이(RD-2) — 재기 전에는 0. 출처 ⓘ·`내 위치`를 그 위로 올린다.
+  const [drawBarHeight, setDrawBarHeight] = useState(0);
+  const isDrawing = routeDraw.isActive();
   /**
    * 고도 그래프에서 훑고 있는 지점. 손을 떼면 `null`이 되어 마커가 사라진다.
    * **어느 코스의 지점인지 함께 들고 있는다** — 코스를 바꾸면 그래프는 새로 마운트되지만
@@ -351,11 +367,15 @@ const BagRouteMapView: FC<Props> = ({
   const sheetHeightRef = useRef(initialSheetHeight);
   const detentsRef = useRef(detents);
   const isAimingRef = useRef(isAiming);
+  const isDrawingRef = useRef(isDrawing);
+  const drawBarHeightRef = useRef(drawBarHeight);
 
   useEffect(() => {
     detentsRef.current = detents;
     isAimingRef.current = isAiming;
-  }, [detents, isAiming]);
+    isDrawingRef.current = isDrawing;
+    drawBarHeightRef.current = drawBarHeight;
+  }, [detents, drawBarHeight, isAiming, isDrawing]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -428,6 +448,16 @@ const BagRouteMapView: FC<Props> = ({
     }
   }, [handleCloseEndpoint, hasFocusedPoint]);
 
+  // 그리기 모드에 들어가면 카드를 걷는다 — 카드가 지도를 가리고, 이 모드에서는 고를 것이 없다(RD-2).
+  useEffect(() => {
+    if (!isDrawing) {
+      return;
+    }
+
+    bagPointList.clearFocus();
+    handleCloseEndpoint();
+  }, [bagPointList, handleCloseEndpoint, isDrawing]);
+
   // 연결이 끊기면 편집 흐름을 접는다 — 조준 모드·끝점 카드(역지오코딩이 서버를 쓴다)는 온라인에서만이다.
   useEffect(() => {
     if (!isOffline) {
@@ -455,13 +485,18 @@ const BagRouteMapView: FC<Props> = ({
   );
 
   // 카메라 맞춤의 아래 여백 — 시트가 덮는 높이. 펼침이어도 기본 단 높이까지만 비운다(지도 칸이 남지 않는다).
-  const getFitBottomPadding = useCallback(
-    () =>
-      isAimingRef.current
-        ? 0
-        : Math.min(sheetHeightRef.current, detentsRef.current.half),
-    []
-  );
+  const getFitBottomPadding = useCallback(() => {
+    if (isAimingRef.current) {
+      return 0;
+    }
+
+    // 그리기 모드에서는 시트 대신 하단 바가 지도 아래를 덮는다(RD-2).
+    if (isDrawingRef.current) {
+      return drawBarHeightRef.current;
+    }
+
+    return Math.min(sheetHeightRef.current, detentsRef.current.half);
+  }, []);
 
   // 목록에서 고르면 그 자리를 지도에서 보여야 한다 — 펼침이면 기본 단으로 내린다(BD-11).
   const lowerExpandedSheet = useCallback(() => {
@@ -815,16 +850,25 @@ const BagRouteMapView: FC<Props> = ({
     sessionSheetDetent = detent;
   }, []);
 
-  // 길게 누르기 → 입력 시트(BD-14). 지도의 네이티브 롱프레스라 좌표가 바로 온다. 조준 모드에서는 받지 않는다.
+  const handleDrawBarLayout = useCallback((event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+
+    setDrawBarHeight(previous =>
+      Math.abs(previous - height) < 1 ? previous : height
+    );
+  }, []);
+
+  // 길게 누르기 → 입력 시트(BD-14). 지도의 네이티브 롱프레스라 좌표가 바로 온다. 조준·그리기 모드에서는 받지 않는다
+  // (그리기 중 포인트 추가가 섞이지 않게 — RD-2).
   const handleLongPress = useCallback(
     (coordinate: AppMapCoordinate) => {
-      if (isAiming) {
+      if (isAiming || isDrawing) {
         return;
       }
 
       onRequestCreate(coordinate, BagPointAddVia.LongPress);
     },
-    [isAiming, onRequestCreate]
+    [isAiming, isDrawing, onRequestCreate]
   );
 
   // 조준 모드에 들어가면 카드를 걷는다 — 카드가 조준 마커를 가린다(GRP-9).
@@ -908,13 +952,23 @@ const BagRouteMapView: FC<Props> = ({
     handleCloseEndpoint();
   }, [bagPointList, handleCloseEndpoint]);
 
-  const handlePressMap = useCallback(() => {
-    if (Date.now() - markerPressedAtRef.current < MARKER_PRESS_GUARD_MS) {
-      return;
-    }
+  // 그리기 모드에서는 지도 탭 = 점 추가(RD-2). 카메라는 움직이지 않는다.
+  const handlePressMap = useCallback(
+    (coordinate: AppMapCoordinate) => {
+      if (isDrawing) {
+        routeDraw.addPoint(coordinate);
 
-    handleCloseCards();
-  }, [handleCloseCards]);
+        return;
+      }
+
+      if (Date.now() - markerPressedAtRef.current < MARKER_PRESS_GUARD_MS) {
+        return;
+      }
+
+      handleCloseCards();
+    },
+    [handleCloseCards, isDrawing, routeDraw]
+  );
 
   const handleTapEndpointMarker = useCallback(
     (...args: Parameters<typeof handleTapEndpoint>) => {
@@ -952,7 +1006,9 @@ const BagRouteMapView: FC<Props> = ({
     router.push('/route-replay');
   };
 
-  const profile = isAiming
+  // 조준·그리기 모드에서는 시트가 내려가 그래프도 걷힌다.
+  const isMapMode = isAiming || isDrawing;
+  const profile = isMapMode
     ? null
     : (selected?.route.getElevationProfile() ?? null);
   // 그래프가 걷힌 뒤(코스 교체·조준 모드)에는 남은 표본을 그리지 않는다.
@@ -962,14 +1018,24 @@ const BagRouteMapView: FC<Props> = ({
   const submitting = bagPointList.isSubmitting();
   // 코스도 포인트도 없으면 거를 것이 없다 — 칩 행을 숨긴다(BD-14).
   const showFilterChips =
-    !isAiming && (entries.length > 0 || bagPointList.hasAny());
+    !isMapMode && (entries.length > 0 || bagPointList.hasAny());
   /**
    * 지도 아래쪽에서 비울 높이 — 시트가 덮는 높이(펼침이어도 기본 단 높이까지 — 그 위로는 시트가 컨트롤을 덮는다).
    * 조준 모드에서는 시트가 내려가 지도가 화면 맨 아래까지 온다 — 세이프에어리어만 비운다.
+   * 그리기 모드에서는 시트 자리에 하단 바가 선다 — 바 높이를 비운다(RD-2).
    */
-  const bottomInset = isAiming
-    ? insets.bottom
-    : Math.min(sheetHeight, detents.half);
+  const getBottomInset = () => {
+    if (isAiming) {
+      return insets.bottom;
+    }
+
+    if (isDrawing) {
+      return drawBarHeight;
+    }
+
+    return Math.min(sheetHeight, detents.half);
+  };
+  const bottomInset = getBottomInset();
   const focusedBagPoint =
     focusedEntry?.owned && focusedEntry.point instanceof BagPoint
       ? focusedEntry.point
@@ -978,11 +1044,11 @@ const BagRouteMapView: FC<Props> = ({
   const showReplayButton =
     CAN_OPEN_REPLAY &&
     canEdit &&
-    !isAiming &&
+    !isMapMode &&
     !!selectedRoute &&
     selectedRoute.getSimplified().length >= ROUTE_REPLAY_MIN_COORDINATES;
   const showEndpointCard =
-    canEdit && !!endpoint && !!markerRoute && !focusedEntry;
+    canEdit && !isDrawing && !!endpoint && !!markerRoute && !focusedEntry;
   // 출처 ⓘ(라이선스 의무)·iOS 축척 막대 — 시트 위, 카드가 있으면 그 위로 올린다.
   const attributionBottomOffset =
     cardSlotHeight > 0
@@ -992,11 +1058,21 @@ const BagRouteMapView: FC<Props> = ({
   const sheetCollapsed = detents.collapsed;
   const aimingBottom = insets.bottom;
   // 우하단 컨트롤·카드 칸은 시트 위 끝을 매 프레임 따라간다(스로틀된 상태로 옮기면 끄는 동안 뒤처진다).
-  const bottomOverlayStyle = useAnimatedStyle(() => ({
-    bottom:
-      CONTROL_BOTTOM_OFFSET +
-      (isAiming ? aimingBottom : Math.min(sheetHeightValue.value, sheetHalf)),
-  }));
+  // 조준 모드는 세이프에어리어 위, 그리기 모드는 하단 바 위다.
+  const bottomOverlayStyle = useAnimatedStyle(() => {
+    if (isAiming) {
+      return { bottom: CONTROL_BOTTOM_OFFSET + aimingBottom };
+    }
+
+    if (isDrawing) {
+      return { bottom: CONTROL_BOTTOM_OFFSET + drawBarHeight };
+    }
+
+    return {
+      bottom:
+        CONTROL_BOTTOM_OFFSET + Math.min(sheetHeightValue.value, sheetHalf),
+    };
+  });
   // 그래프는 접힘 ↔ 기본 사이에서 접혔다 펴진다 — 접힘에는 손잡이 + 세그먼트 + 첫 행만 보인다(BD-11).
   const graphSlotStyle = useAnimatedStyle(() => {
     const progress = interpolate(
@@ -1011,6 +1087,11 @@ const BagRouteMapView: FC<Props> = ({
   const ornamentTopOffset = Math.max(topInset, topOverlayBottom + OVERLAY_GAP);
 
   const renderCard = () => {
+    // 그리기 모드에는 카드가 없다 — 하단 바가 이 모드의 액션을 다 갖는다(RD-2).
+    if (isDrawing) {
+      return null;
+    }
+
     if (isAiming) {
       return (
         <View style={styles.aimSection} pointerEvents='box-none'>
@@ -1114,9 +1195,11 @@ const BagRouteMapView: FC<Props> = ({
               onInitialized={handleMapInitialized}
               onLoadFailed={handleLoadFailed}
             >
+              {/* 그리기 모드에서는 기존 코스를 모두 옅게 — 그리는 선이 주인공이다(RD-2). */}
               <MapRoutePathLayersView
                 routes={routes}
                 selectedRouteId={selectedRoute?.getId() ?? null}
+                dimmed={isDrawing}
               />
               {/* 등고선은 코스 아래(코스 테두리 레이어 앞)에 끼운다. */}
               {contours ? (
@@ -1127,14 +1210,15 @@ const BagRouteMapView: FC<Props> = ({
               ) : null}
               {/* 선택한 코스의 시작·끝(GRP-8과 같은 규칙) — 옅게 그린 코스엔 달지 않는다. */}
               <MapEndpointMarkersView
-                route={markerRoute}
+                route={isDrawing ? null : markerRoute}
                 {...(canEdit ? { onTapEndpoint: handleTapEndpointMarker } : {})}
               />
               {/* 지도 포인트(BD-14) — 내 포인트와 연결 그룹 포인트를 같은 마커로 그린다. */}
+              {/* 그리기 모드에서도 포인트는 남는다(지나가게 그리는 참고) — 탭만 받지 않아 지도 탭(점 추가)으로 간다. */}
               <MapPointMarkersView
                 points={bagPointList.getVisiblePoints()}
                 selectedPointId={focusedPoint?.getId() ?? null}
-                onTapPoint={handleTapPoint}
+                onTapPoint={isDrawing ? undefined : handleTapPoint}
               />
               {/* 고도 그래프를 훑는 동안만 뜨는 위치 마커. */}
               {scrubSample ? (
@@ -1143,6 +1227,7 @@ const BagRouteMapView: FC<Props> = ({
                   longitude={scrubSample.longitude}
                 />
               ) : null}
+              {isDrawing ? <RouteDrawLayersView routeDraw={routeDraw} /> : null}
               {currentLocation ? (
                 <MapMyLocationMarkerView
                   latitude={currentLocation.latitude}
@@ -1177,6 +1262,7 @@ const BagRouteMapView: FC<Props> = ({
           {isLoadFailed && (!isOffline || hasSavedSnapshot !== false) ? (
             <MapNoticeLineView label={l10n.t('map.loadFailed')} />
           ) : null}
+          {isDrawing ? <RouteDrawNoticeView routeDraw={routeDraw} /> : null}
           {showFilterChips ? (
             <View style={styles.chips}>
               <PointFilterChipsView
@@ -1196,6 +1282,7 @@ const BagRouteMapView: FC<Props> = ({
         >
           {isAiming ? null : (
             // 우측 지도 컨트롤 — `3D`(RR-1) + 내 위치(BD-11) + `포인트 추가` 보조 알약(BD-14).
+            // 그리기 모드에서는 `내 위치`만 남긴다 — 지금 있는 자리에서 그리는 것이 흔하다(RD-2).
             <View style={styles.controlStack} pointerEvents='box-none'>
               {/* `3D`는 라임이 아니다 — 이 화면의 주 액션은 `코스 추가` 하나다(HM-8). */}
               {showReplayButton ? (
@@ -1217,7 +1304,7 @@ const BagRouteMapView: FC<Props> = ({
                 locateLabel={l10n.t('route.myLocation')}
                 onPress={() => void handlePressMyLocation()}
               />
-              {canEdit ? (
+              {canEdit && !isDrawing ? (
                 <TouchableOpacity
                   style={[styles.addPointButton, isFull && styles.disabled]}
                   onPress={handleStartAiming}
@@ -1260,7 +1347,7 @@ const BagRouteMapView: FC<Props> = ({
         animatedHeight={sheetHeightValue}
         onHeightChange={handleSheetHeightChange}
         onDetentChange={handleSheetDetentChange}
-        visible={!isAiming}
+        visible={!isMapMode}
         header={<View style={styles.sheetHeader}>{listHeader}</View>}
       >
         {/* 고도가 없는 코스는 그래프 자리를 아예 비운다 — 빈 틀은 "데이터를 못 불러왔다"로 읽힌다. */}
@@ -1286,6 +1373,15 @@ const BagRouteMapView: FC<Props> = ({
         ) : null}
         {listContent}
       </RouteBottomSheetView>
+
+      {/* 그리기 모드 하단 바(RD-2) — 시트 자리. */}
+      {isDrawing ? (
+        <RouteDrawBarView
+          routeDraw={routeDraw}
+          onCancel={onCancelDrawing}
+          onLayout={handleDrawBarLayout}
+        />
+      ) : null}
     </View>
   );
 };

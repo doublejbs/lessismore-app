@@ -52,16 +52,16 @@
 - `저장` → **이름 입력 시트**(포인트 입력 시트와 같은 문법, 1~40자, `RouteValidator.toRouteName` 절단). 기본값: 배낭이면 `{여행지 이름} 코스`(여행지가 없으면 `{배낭 이름} 코스`), 그룹이면 `{그룹 이름} 코스`. 같은 이름의 코스가 이미 있어도 막지 않는다(가져오기와 같다).
 - 확인하면 **진행 표시**(시트 버튼 `저장 중…`)와 함께 순서대로:
   1. **선분 보간** — 각 선분을 **약 100m 간격**으로 나눠 샘플 좌표를 만든다(끝점 포함). 전체 샘플이 **500점**을 넘으면 간격을 늘려 500점 이하로 맞춘다(DM-29·DM-30 `simplified` 상한과 같은 수). 찍은 점은 모두 샘플에 남긴다.
-  2. **고도 보강** — 샘플마다 지형 타일(Terrarium, OF-6과 같은 출처 `TERRAIN_TILE_URL_TEMPLATE`, **줌 13**)에서 고도를 읽어 `ele`에 넣는다. 타일은 키별로 한 번만 받아 캐시한다(선 하나가 보통 타일 1~4장). 픽셀은 가장 가까운 값(보간 없음 — 등고선 격자와 같은 정밀도면 충분하다). **타일을 하나라도 못 받으면 고도 없이 저장**하고 토스트 `고도를 읽지 못해 그래프 없이 저장했어요`(실패가 저장을 막지 않는다 — 코스 자체는 유효하다).
+  2. **고도 보강** — 샘플마다 지형 타일(Terrarium, OF-6과 같은 출처 `TERRAIN_TILE_URL_TEMPLATE`, **줌 13**)에서 고도를 읽어 `ele`에 넣는다. 타일은 키별로 한 번만 받고, 디코딩 직후 필요한 픽셀만 뽑고 버퍼는 버린다(선 하나가 보통 타일 1~4장). 타일 수가 상한(24장)을 넘으면 줌을 낮춰 다시 세고, 줌 10에서도 넘으면 고도 없이 간다. **전체 10초 타임아웃** — 넘으면 중단하고 고도 없이 저장한다(산에서 망이 불안정해도 `저장 중…`이 끝나지 않는 일이 없어야 한다). 픽셀은 가장 가까운 값(보간 없음 — 등고선 격자와 같은 정밀도면 충분하다). **타일을 하나라도 못 받으면 고도 없이 저장**하고 토스트 `고도를 읽지 못해 그래프 없이 저장했어요`(실패가 저장을 막지 않는다 — 코스 자체는 유효하다).
   3. 상승·하강은 샘플의 `ele`로 `measureElevationGain`/`measureElevationLoss`(그래프가 쓰는 같은 함수). 고도가 없으면 키를 생략한다(DM-30 규칙).
   4. **GPX 생성** — `<gpx version="1.1" creator="useless">` + `<metadata><time>` + `<trk><name>{이름}</name><desc>useless에서 지도에 점을 찍어 만든 코스 · 직선으로 이어졌어요</desc><trkseg>` + 샘플마다 `<trkpt lat lon><ele>`. 좌표는 소수 6자리, 고도는 정수 m. XML 특수문자는 이스케이프한다. 파일은 `expo-file-system` 캐시 디렉토리에 `{이름}.gpx`로 쓴다(이름의 파일 금지 문자는 `_`).
   5. `RouteDraft` = `{ name, fileSize(생성 파일 바이트), distance(샘플 직선 합), pointCount(샘플 수), bounds, simplified(샘플 — 500점 이하라 그대로), elevationGain?, elevationLoss? }` → **기존 `addRoute` 디스패처**(배낭 `BagRouteDispatcher.addRoute(bagId, draft, uri)`, 그룹 `GroupRouteDispatcher.addRoute(groupId, draft, uri)`)로 올린다. 검증·Storage 업로드·Firestore 쓰기·고아 회수·상한 검사 모두 가져오기와 **같은 코드**다 — 데이터 계약(DM-29·DM-30)과 보안 규칙은 바뀌지 않는다.
-- 성공하면 모드를 나가고 가져오기와 같이 **그 코스를 선택해 카메라를 맞춘다**(배낭 `selectEntry`, 그룹 `focusRoute`). 토스트는 없다(화면이 바뀌는 것이 응답이다). 실패하면 가져오기와 같은 문구(`getRouteErrorMessage`)로 토스트하고 **모드에 남는다**(찍은 점이 사라지지 않는다 — 다시 저장할 수 있다).
+- 성공하면 **모드를 먼저 나간 뒤** 그 코스를 선택해 카메라를 맞춘다(배낭 `focusEntry` — 선택이 기기에 기억되는 부수효과 포함(BD-11 선택 기억), 그룹 `focusRoute`). 모드를 나간 뒤에 맞춰야 카메라 아래 여백이 하단 바가 아니라 시트 기준으로 계산된다. 토스트는 없다(화면이 바뀌는 것이 응답이다). 실패하면 가져오기와 같은 문구(`getRouteErrorMessage`)로 토스트하고 **모드에 남는다**(찍은 점이 사라지지 않는다 — 다시 저장할 수 있다).
 - 캐시 파일은 업로드가 끝나면 지운다(성공·실패 모두).
 
 ### RD-4 측정 `[제안]`
 
-[Analytics.md](Analytics.md) AN-3 표에 추가: `click_route_draw_start`(`source`: `route` | `group`), `click_route_draw_save`(`source`, `point_count` 찍은 점, `sample_count`, `distance` m, `has_elevation`), `click_route_draw_cancel`(`source`, `point_count`). 저장이 끝나면 기존 `click_bag_route_upload`/`click_group_route_upload`도 그대로 난다(코스가 하나 늘었다는 사실은 같다) — 두 이벤트를 합산하지 않도록 대시보드에서 `draw_save`는 "그리기로 만든 비율"로만 읽는다.
+[Analytics.md](Analytics.md) AN-3 표에 추가: `click_route_draw_start`(`source`: `route` | `group`), `click_route_draw_save`(**저장 성공 시**; `source`, `point_count` 찍은 점, `sample_count`, `distance` m, `has_elevation`), `click_route_draw_cancel`(`source`, `point_count`). 저장이 끝나면 기존 `click_bag_route_upload`/`click_group_route_upload`도 그대로 난다(코스가 하나 늘었다는 사실은 같다) — 두 이벤트를 합산하지 않도록 대시보드에서 `draw_save`는 "그리기로 만든 비율"로만 읽는다.
 
 ## 4. 데이터
 
@@ -79,7 +79,8 @@
 - 상한(배낭·그룹 5개)에 도달한 채 그리기 모드에 있다가(다른 기기에서 추가) 저장 → 디스패처가 거절 → 토스트 `코스는 5개까지…` → 모드에 남는다.
 - 찍은 점이 100개(상한)이고 선분이 길어 샘플이 500을 넘음 → 간격을 늘려 맞춘다(찍은 점은 모두 유지).
 - 매우 긴 선분(수십 km 직선) → 100m 간격 샘플이 수백 개가 되어 500 상한에 걸림 → 간격 자동 확대. 그래프는 성기게 그려진다.
-- 지도 탭이 마커(포인트·박지 핀) 위에서 일어남 → 그리기 모드에서는 마커 탭 핸들러를 끄므로 지도 탭으로 들어와 점이 찍힌다.
+- 지도 탭이 마커(포인트·박지 핀·출발/도착 말풍선) 위에서 일어남 → 그리기 모드에서는 마커 뷰가 터치를 받지 않게(`pointerEvents='none'`) 두어 지도 탭으로 들어와 점이 찍힌다(핸들러만 빼면 네이티브 마커 뷰가 터치를 먹는다).
+- 저장 중(`저장 중…`) 화면을 떠남(iOS 스와이프 뒤로가기) → 업로드는 끝까지 진행돼 코스가 저장된다. 떠난 화면의 토스트·선택은 보이지 않는다. 막지 않는다.
 
 ## 7. 수동 검증 체크리스트
 

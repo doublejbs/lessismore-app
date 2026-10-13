@@ -1792,6 +1792,34 @@
       "offlineLine": "オフライン · 保存した地図です"
     }
   },
+  "routeDraw": {
+    "menuTitle": "コースを追加",
+    "menuImport": "GPXファイルを読み込む",
+    "menuImportMeta": "ほかのアプリで作ったコース",
+    "menuDraw": "地図で描く",
+    "menuDrawMeta": "点を打って直線でつなぎます",
+    "noticeEmpty": "地図をタップして点を打ちましょう · 直線でつながります",
+    "noticeContinue": "続けてタップしてつなげましょう · 保存は2点から",
+    "pointUnit": "点",
+    "metaLabel": "{{count}}点、距離 {{distance}}",
+    "undo": "元に戻す",
+    "undoHint": "最後に打った点を消します",
+    "save": "保存",
+    "saving": "保存中…",
+    "saveHint": "保存は2点からできます",
+    "discardConfirm": "描いていたコースを破棄しますか?",
+    "discard": "破棄",
+    "pointLimit": "点は{{max}}個まで打てます",
+    "elevationFailed": "標高を読み取れなかったため、グラフなしで保存しました",
+    "defaultName": "{{name}} コース",
+    "fallbackName": "描いたコース",
+    "nameTitle": "コース名",
+    "nameLabel": "名前",
+    "namePlaceholder": "コース名を入力してください",
+    "nameCounter": "{{count}}/{{max}}",
+    "close": "閉じる",
+    "gpxDescription": "uselessで地図に点を打って作ったコース · 直線でつながっています"
+  },
   "map": {
     "loadFailed": "地図データを読み込めませんでした",
     "unsupportedBinary": "このバージョンでは地図を表示できません · アプリをアップデートしてください"

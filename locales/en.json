@@ -1823,6 +1823,34 @@
       "offlineLine": "Offline · Showing your saved map"
     }
   },
+  "routeDraw": {
+    "menuTitle": "Add route",
+    "menuImport": "Import GPX file",
+    "menuImportMeta": "A route made in another app",
+    "menuDraw": "Draw on map",
+    "menuDrawMeta": "Tap points to connect them with straight lines",
+    "noticeEmpty": "Tap the map to add points · They connect in straight lines",
+    "noticeContinue": "Keep tapping to continue · Save from 2 points",
+    "pointUnit": " pts",
+    "metaLabel": "{{count}} points, distance {{distance}}",
+    "undo": "Undo",
+    "undoHint": "Removes the last point",
+    "save": "Save",
+    "saving": "Saving…",
+    "saveHint": "You can save once you have 2 points",
+    "discardConfirm": "Discard the route you're drawing?",
+    "discard": "Discard",
+    "pointLimit": "You can add up to {{max}} points",
+    "elevationFailed": "Couldn't read elevation, so it was saved without a profile",
+    "defaultName": "{{name}} route",
+    "fallbackName": "Drawn route",
+    "nameTitle": "Route name",
+    "nameLabel": "Name",
+    "namePlaceholder": "Enter a route name",
+    "nameCounter": "{{count}}/{{max}}",
+    "close": "Close",
+    "gpxDescription": "A route drawn by tapping points on the map in useless · Connected with straight lines"
+  },
   "map": {
     "loadFailed": "Couldn't load map data",
     "unsupportedBinary": "Maps aren't available in this version · Please update the app"

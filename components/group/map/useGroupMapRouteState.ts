@@ -2,19 +2,51 @@ import { useCallback, useState } from 'react';
 import app from '@/model/app/App';
 import GroupRoute from '@/model/group/GroupRoute';
 import GroupMap from '@/model/group-map/GroupMap';
+import RouteDraw from '@/model/route-draw/RouteDraw';
+import RouteDrawSource from '@/model/route-draw/RouteDrawSource';
+import useRouteDrawCancel from '@/components/route-draw/useRouteDrawCancel';
 
 /**
- * 그룹 지도의 코스 고르기·관리 상태 (GRP-8 · GRP-10).
+ * 그룹 지도의 코스 고르기·관리 상태 (GRP-8 · GRP-10 · RD-1).
  *
- * 행 선택(카메라 이동 요청), `⋯` 삭제(확인 알럿), `코스 추가`(GPX 업로드)를 한곳에 모은다.
- * 업로드·삭제 자체는 `GroupRouteList`가 맡고 여기서는 흐름만 잇는다. 코스 목록은 지도 위 바텀 시트
- * 안에 있어(모달이 아니다) 삭제 확인을 바로 띄운다.
+ * 행 선택(카메라 이동 요청), `⋯` 삭제(확인 알럿), `코스 추가` 메뉴(GPX 가져오기 | 지도에서 그리기)를 한곳에 모은다.
+ * 업로드·삭제 자체는 `GroupRouteList`가, 그리기 편집·저장 흐름은 `RouteDraw`가 맡고 여기서는 흐름만 잇는다. 코스
+ * 목록은 지도 위 바텀 시트 안에 있어(모달이 아니다) 삭제 확인을 바로 띄운다.
  */
 const useGroupMapRouteState = (groupMap: GroupMap) => {
   const l10n = app.getL10n();
   const routeList = groupMap.getRouteList();
   // `코스 추가`로 시작한 작업인지. 목록의 `submitting`은 삭제에도 켜져 `올리는 중`과 갈라 읽는다.
   const [isAddingRoute, setIsAddingRoute] = useState(false);
+  // `코스 추가` 메뉴(RD-1).
+  const [isAddMenuVisible, setIsAddMenuVisible] = useState(false);
+  /**
+   * 코스 그리기(RD-2 · RD-3) — 화면 수명 동안 하나. 저장은 가져오기와 같은 목록 경로(`addDrawnRoute`)를 타고,
+   * 올린 코스를 골라 카메라를 맞춘다(`focusRoute`). 기본 이름은 `{그룹 이름} 코스`.
+   */
+  const [routeDraw] = useState(() =>
+    RouteDraw.from(
+      RouteDrawSource.Group,
+      async (draft, localUri) => {
+        const routeId = await routeList.addDrawnRoute(draft, localUri);
+
+        if (!routeId) {
+          return false;
+        }
+
+        groupMap.focusRoute(routeId);
+
+        return true;
+      },
+      async () => {
+        const name = groupMap.getGroup()?.getName();
+
+        return name ? l10n.t('routeDraw.defaultName', { name }) : '';
+      }
+    )
+  );
+  const isDrawing = routeDraw.isActive();
+  const handleCancelDrawing = useRouteDrawCancel(routeDraw, isDrawing);
 
   // 행 탭 — 그 코스를 고르고 카메라를 옮긴다(이미 고른 코스여도 옮긴다, GRP-8).
   const handleSelectRoute = useCallback(
@@ -42,7 +74,7 @@ const useGroupMapRouteState = (groupMap: GroupMap) => {
   );
 
   /**
-   * `코스 추가` — 파일 선택 → 파싱 → 업로드(GRP-8 규칙 그대로, `GroupRouteList.addRoute`).
+   * `GPX 파일 가져오기` — 파일 선택 → 파싱 → 업로드(GRP-8 규칙 그대로, `GroupRouteList.addRoute`).
    * 실패 사유는 목록 모델이 토스트로 알린다. 올린 코스를 골라 카메라를 옮긴다 — 방금 올린 것이
    * 지도·그래프·시트 목록에 곧바로 보인다.
    */
@@ -60,12 +92,46 @@ const useGroupMapRouteState = (groupMap: GroupMap) => {
     }
   }, [groupMap, routeList]);
 
+  // 시트 푸터 `코스 추가` → 메뉴(RD-1). 상한이면 버튼이 이미 막혀 있다.
+  const handleOpenAddMenu = useCallback(() => {
+    setIsAddMenuVisible(true);
+  }, []);
+
+  const handleCloseAddMenu = useCallback(() => {
+    setIsAddMenuVisible(false);
+  }, []);
+
+  // 메뉴 항목은 시트가 다 내려간 뒤 불린다(`BottomMenuModalView` 관례) — 파일 선택기·모드 전환이 시트와 겹치지 않는다.
+  const handleImportRoute = useCallback(() => {
+    void handleAddRoute();
+  }, [handleAddRoute]);
+
+  // 그리기 모드에 들어간다(RD-1). 조준 모드는 지도 본문이 함께 접는다.
+  const handleStartDrawing = useCallback(() => {
+    routeDraw.start();
+  }, [routeDraw]);
+
+  const handleSubmitDrawnRoute = useCallback(
+    (name: string) => {
+      void routeDraw.save(name);
+    },
+    [routeDraw]
+  );
+
   return {
     isAddingRoute,
     isUploadingRoute: isAddingRoute && routeList.isSubmitting(),
+    isAddMenuVisible,
+    routeDraw,
     handleSelectRoute,
     handleDeleteRoute,
     handleAddRoute,
+    handleOpenAddMenu,
+    handleCloseAddMenu,
+    handleImportRoute,
+    handleStartDrawing,
+    handleCancelDrawing,
+    handleSubmitDrawnRoute,
   };
 };
 

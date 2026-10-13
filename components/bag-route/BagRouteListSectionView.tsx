@@ -39,6 +39,8 @@ interface Props {
   onSelectPoint?: ((entry: BagPointEntry) => void) | undefined;
   onEditPoint: (point: BagPoint) => void;
   onDeletePoint: (point: BagPoint) => void;
+  // 목록 아래 `코스 추가` → 메뉴(가져오기 | 지도에서 그리기, RD-1). 화면이 메뉴를 띄운다.
+  onAddRoute: () => void;
   bottomInset: number;
   /**
    * 바텀 시트 안(BD-11, 네이티브 지도 화면)에 들어간다 — 목록이 시트 높이를 따라 남는 세로를 다 쓰고
@@ -71,6 +73,7 @@ const BagRouteListSectionView: FC<Props> = ({
   onSelectPoint,
   onEditPoint,
   onDeletePoint,
+  onAddRoute,
   bottomInset,
   fillHeight = false,
 }) => {
@@ -296,7 +299,7 @@ const BagRouteListSectionView: FC<Props> = ({
               styles.addButton,
               (isFull || submitting) && styles.disabled,
             ]}
-            onPress={() => void bagRouteList.addRoute()}
+            onPress={onAddRoute}
             disabled={isFull || submitting}
             activeOpacity={0.8}
             accessibilityRole='button'

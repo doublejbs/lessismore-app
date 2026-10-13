@@ -1792,6 +1792,34 @@
       "offlineLine": "오프라인 · 저장된 지도예요"
     }
   },
+  "routeDraw": {
+    "menuTitle": "코스 추가",
+    "menuImport": "GPX 파일 가져오기",
+    "menuImportMeta": "다른 앱에서 만든 코스",
+    "menuDraw": "지도에서 그리기",
+    "menuDrawMeta": "점을 찍어 직선으로 이어요",
+    "noticeEmpty": "지도를 눌러 점을 찍으세요 · 직선으로 이어져요",
+    "noticeContinue": "계속 눌러 이어 가세요 · 저장은 2점부터",
+    "pointUnit": "점",
+    "metaLabel": "{{count}}점, 거리 {{distance}}",
+    "undo": "되돌리기",
+    "undoHint": "마지막으로 찍은 점을 지워요",
+    "save": "저장",
+    "saving": "저장 중…",
+    "saveHint": "저장은 점 2개부터 할 수 있어요",
+    "discardConfirm": "그리던 코스를 버릴까요?",
+    "discard": "버리기",
+    "pointLimit": "점은 {{max}}개까지 찍을 수 있어요",
+    "elevationFailed": "고도를 읽지 못해 그래프 없이 저장했어요",
+    "defaultName": "{{name}} 코스",
+    "fallbackName": "그린 코스",
+    "nameTitle": "코스 이름",
+    "nameLabel": "이름",
+    "namePlaceholder": "코스 이름을 입력하세요",
+    "nameCounter": "{{count}}/{{max}}",
+    "close": "닫기",
+    "gpxDescription": "useless에서 지도에 점을 찍어 만든 코스 · 직선으로 이어졌어요"
+  },
   "map": {
     "loadFailed": "지도 데이터를 불러오지 못했어요",
     "unsupportedBinary": "이 버전에서는 지도를 볼 수 없어요 · 앱을 업데이트해 주세요"

@@ -5,9 +5,11 @@ import type {
   MultiLineString,
   Position,
 } from 'geojson';
-import UPNG from 'upng-js';
 import type { OfflineLngLatBounds } from './OfflineMapBounds';
-import { TERRAIN_TILE_URL_TEMPLATE } from '@/model/map/MapStyle';
+import TerrainElevation, {
+  TERRAIN_TILE_SIZE,
+  TerrainTileKey,
+} from '@/model/terrain/TerrainElevation';
 
 // 등고선 계산 (OF-6). 저장 시 한 번, 앱 안에서 순수 JS로 계산한다(서버 없음).
 
@@ -27,11 +29,6 @@ interface BuildOptions {
   signal?: AbortSignal;
 }
 
-interface TileKey {
-  x: number;
-  y: number;
-}
-
 interface PixelRange {
   minX: number;
   minY: number;
@@ -43,8 +40,6 @@ interface PixelRange {
 const CONTOUR_TILE_ZOOM = 13;
 const MIN_CONTOUR_TILE_ZOOM = 10;
 const MAX_TILE_COUNT = 64;
-const TILE_SIZE = 256;
-const FETCH_CONCURRENCY = 4;
 // 등고선 간격(m). 임계값이 너무 많으면(높이 차가 큰 영역) 넓은 간격으로 바꾼다.
 const CONTOUR_INTERVAL = 20;
 const WIDE_CONTOUR_INTERVAL = 50;
@@ -56,36 +51,18 @@ const DEFAULT_THIN_STEP = 2;
 const HEAVY_THIN_STEP = 4;
 const MAX_TOTAL_POINTS = 200000;
 const COORDINATE_PRECISION = 1e5;
-// Terrarium 인코딩 오프셋(고도 = R×256 + G + B/256 − 32768).
-const TERRARIUM_OFFSET = 32768;
 
 const yieldToJs = () =>
   new Promise<void>(resolve => {
     setTimeout(resolve, 0);
   });
 
-const getWorldSize = (zoom: number) => TILE_SIZE * 2 ** zoom;
-
-// 웹 메르카토르: 경위도 → 줌 `zoom`의 전역 픽셀 좌표.
-const lngToPixelX = (lng: number, zoom: number) =>
-  ((lng + 180) / 360) * getWorldSize(zoom);
-
-const latToPixelY = (lat: number, zoom: number) => {
-  const sin = Math.sin((lat * Math.PI) / 180);
-
-  return (
-    (0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)) * getWorldSize(zoom)
-  );
-};
-
-const pixelXToLng = (x: number, zoom: number) =>
-  (x / getWorldSize(zoom)) * 360 - 180;
-
-const pixelYToLat = (y: number, zoom: number) => {
-  const n = Math.PI * (1 - (2 * y) / getWorldSize(zoom));
-
-  return (Math.atan(Math.sinh(n)) * 180) / Math.PI;
-};
+// 타일 받기·디코딩·좌표 변환은 코스 그리기(RD-3)와 공용이다(`TerrainElevation`).
+const TILE_SIZE = TERRAIN_TILE_SIZE;
+const lngToPixelX = TerrainElevation.lngToPixelX;
+const latToPixelY = TerrainElevation.latToPixelY;
+const pixelXToLng = TerrainElevation.pixelXToLng;
+const pixelYToLat = TerrainElevation.pixelYToLat;
 
 const round = (value: number) =>
   Math.round(value * COORDINATE_PRECISION) / COORDINATE_PRECISION;
@@ -109,7 +86,7 @@ const getPixelRange = (
   };
 };
 
-const getTileKeys = (range: PixelRange, zoom: number): TileKey[] => {
+const getTileKeys = (range: PixelRange, zoom: number): TerrainTileKey[] => {
   const maxTile = 2 ** zoom - 1;
   const minTileX = Math.max(0, Math.floor(range.minX / TILE_SIZE));
   const maxTileX = Math.min(
@@ -121,7 +98,7 @@ const getTileKeys = (range: PixelRange, zoom: number): TileKey[] => {
     maxTile,
     Math.floor((range.minY + range.height - 1) / TILE_SIZE)
   );
-  const keys: TileKey[] = [];
+  const keys: TerrainTileKey[] = [];
 
   for (let y = minTileY; y <= maxTileY; y += 1) {
     for (let x = minTileX; x <= maxTileX; x += 1) {
@@ -132,87 +109,10 @@ const getTileKeys = (range: PixelRange, zoom: number): TileKey[] => {
   return keys;
 };
 
-const getTileUrl = (key: TileKey, zoom: number) =>
-  TERRAIN_TILE_URL_TEMPLATE.replace('{z}', String(zoom))
-    .replace('{x}', String(key.x))
-    .replace('{y}', String(key.y));
-
-// 고도 타일 한 장 → RGBA 바이트. 실패하면 던진다.
-const fetchTile = async (
-  key: TileKey,
-  zoom: number,
-  signal: AbortSignal | undefined
-): Promise<Uint8Array> => {
-  const response = await fetch(getTileUrl(key, zoom), signal ? { signal } : {});
-
-  if (!response.ok) {
-    throw new Error(`terrain tile ${response.status}`);
-  }
-
-  const image = UPNG.decode(await response.arrayBuffer());
-
-  if (image.width !== TILE_SIZE || image.height !== TILE_SIZE) {
-    throw new Error('terrain tile size mismatch');
-  }
-
-  const frame = UPNG.toRGBA8(image)[0];
-
-  if (!frame) {
-    throw new Error('terrain tile decode failed');
-  }
-
-  return new Uint8Array(frame);
-};
-
-// 실패하면 한 번 더 받아 본다. 그래도 실패하면 던진다.
-const fetchTileWithRetry = async (
-  key: TileKey,
-  zoom: number,
-  signal: AbortSignal | undefined
-): Promise<Uint8Array> => {
-  try {
-    return await fetchTile(key, zoom, signal);
-  } catch (error) {
-    if (signal?.aborted) {
-      throw error;
-    }
-
-    return fetchTile(key, zoom, signal);
-  }
-};
-
-// 타일들을 동시에 `FETCH_CONCURRENCY`장까지 받는다. 한 장이라도 끝내 실패하면 던진다.
-const fetchTiles = async (
-  keys: TileKey[],
-  zoom: number,
-  signal: AbortSignal | undefined
-): Promise<Uint8Array[]> => {
-  const results: Uint8Array[] = new Array(keys.length);
-  let next = 0;
-
-  const runWorker = async () => {
-    while (next < keys.length) {
-      const index = next;
-
-      next += 1;
-      results[index] = await fetchTileWithRetry(keys[index], zoom, signal);
-    }
-  };
-
-  const workers = Array.from(
-    { length: Math.min(FETCH_CONCURRENCY, keys.length) },
-    () => runWorker()
-  );
-
-  await Promise.all(workers);
-
-  return results;
-};
-
 // 받은 타일을 영역 크기의 고도 격자 하나로 잇는다(행 우선, 위 → 아래). 메모리를 아끼려고 `Float32Array`
 // (고도 m — 32비트 정밀도로 충분하다).
 const buildGrid = (
-  keys: TileKey[],
+  keys: TerrainTileKey[],
   tiles: Uint8Array[],
   range: PixelRange
 ): Float32Array => {
@@ -235,10 +135,7 @@ const buildGrid = (
         const offset = (tileRow + (globalX - tileOriginX)) * 4;
 
         values[gridRow + (globalX - range.minX)] =
-          rgba[offset] * 256 +
-          rgba[offset + 1] +
-          rgba[offset + 2] / 256 -
-          TERRARIUM_OFFSET;
+          TerrainElevation.decodeElevation(rgba, offset);
       }
     }
   });
@@ -398,7 +295,7 @@ const toFeatures = (
 // 타일 수가 상한 안에 드는 가장 높은 줌. 끝까지 넘으면 `null`.
 const pickZoom = (
   bounds: OfflineLngLatBounds
-): { zoom: number; range: PixelRange; keys: TileKey[] } | null => {
+): { zoom: number; range: PixelRange; keys: TerrainTileKey[] } | null => {
   for (let zoom = CONTOUR_TILE_ZOOM; zoom >= MIN_CONTOUR_TILE_ZOOM; zoom -= 1) {
     const range = getPixelRange(bounds, zoom);
     const keys = getTileKeys(range, zoom);
@@ -432,7 +329,11 @@ export const buildOfflineContours = async (
     }
 
     const { zoom, range, keys } = picked;
-    let tiles: Uint8Array[] | null = await fetchTiles(keys, zoom, signal);
+    let tiles: Uint8Array[] | null = await TerrainElevation.fetchTiles(
+      keys,
+      zoom,
+      signal
+    );
 
     if (signal?.aborted) {
       return null;

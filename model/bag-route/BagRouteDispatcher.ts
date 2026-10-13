@@ -7,6 +7,7 @@ import { RouteDraft } from '@/model/route/RouteData';
 import RouteUpload from '@/model/route/RouteUpload';
 import RouteValidator from '@/model/route/RouteValidator';
 import BagRouteStore from '@/model/store/BagRouteStore';
+import BagStore from '@/model/store/BagStore';
 import GroupStore from '@/model/store/GroupStore';
 import NetworkStatus from '@/model/offline/NetworkStatus';
 import OfflineTripAccess from '@/model/offline/OfflineTripAccess';
@@ -33,6 +34,7 @@ class BagRouteDispatcher {
   public static new() {
     return new BagRouteDispatcher(
       app.getBagRouteStore()!,
+      app.getBagStore()!,
       app.getGroupStore()!,
       GroupRouteDispatcher.new(),
       RouteUpload.from(app.getFirebase()),
@@ -43,6 +45,7 @@ class BagRouteDispatcher {
 
   private constructor(
     private readonly bagRouteStore: BagRouteStore,
+    private readonly bagStore: BagStore,
     private readonly groupStore: GroupStore,
     private readonly groupRouteDispatcher: GroupRouteDispatcher,
     private readonly upload: RouteUpload,
@@ -111,6 +114,22 @@ class BagRouteDispatcher {
     );
 
     return loaded.flat();
+  }
+
+  /**
+   * 코스 그리기 이름 시트의 기본값 재료(RD-3) — 배낭 이름·여행지 이름. 못 읽으면 둘 다 `null`이다(기본 이름은
+   * 부가 정보라 그리기를 막지 않는다).
+   */
+  public async getBagNaming(
+    bagId: string
+  ): Promise<{ name: string | null; locationName: string | null }> {
+    try {
+      return await this.bagStore.getBagNaming(bagId);
+    } catch (error) {
+      console.warn('[BagRouteDispatcher] 배낭 이름 조회 실패', error); // l10n-ignore: 개발자 로그
+
+      return { name: null, locationName: null };
+    }
   }
 
   /**

@@ -15,6 +15,10 @@ interface Props {
    * 옅게 그린 선은 "고르지 않은 코스"라는 뜻인데, 고를 수 없는 곳에서는 그 구분이 말하는 것이 없다.
    */
   uniform?: boolean;
+  /**
+   * 모든 코스를 옅게 그린다 — 코스 그리기 모드(RD-2): 그리는 선이 주인공이라 선택 코스·하나뿐인 코스도 옅다.
+   */
+  dimmed?: boolean;
   // 코스 선을 이 레이어 아래에 끼운다(예: 박지 점 레이어). 없으면 맨 위에 붙는다.
   beforeId?: string;
 }
@@ -79,6 +83,7 @@ const MapRoutePathLayersView: FC<Props> = ({
   routes,
   selectedRouteId,
   uniform = false,
+  dimmed = false,
   beforeId,
 }) => {
   const routesKey = getRoutesKey(routes);
@@ -91,7 +96,8 @@ const MapRoutePathLayersView: FC<Props> = ({
           .getSimplified()
           .map(coordinate => [coordinate.lng, coordinate.lat]);
         const selected =
-          uniform || routes.length === 1 || route.getId() === selectedRouteId;
+          !dimmed &&
+          (uniform || routes.length === 1 || route.getId() === selectedRouteId);
 
         return { id: route.getId(), coordinates, selected };
       })
@@ -111,7 +117,7 @@ const MapRoutePathLayersView: FC<Props> = ({
 
     return JSON.stringify(collection);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 키가 같으면 같은 선이다(키에 id·좌표 수·방향 포함).
-  }, [routesKey, selectedRouteId, uniform]);
+  }, [dimmed, routesKey, selectedRouteId, uniform]);
 
   return (
     <GeoJSONSource id={ROUTE_SOURCE_ID} data={data}>

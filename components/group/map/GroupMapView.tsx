@@ -21,6 +21,8 @@ import GroupMapListView from './GroupMapListView';
 import PointCreateSheetView, {
   PointDraft,
 } from '@/components/point/PointCreateSheetView';
+import RouteAddMenuView from '@/components/route/RouteAddMenuView';
+import RouteDrawNameSheetView from '@/components/route-draw/RouteDrawNameSheetView';
 import useGroupMapRouteState from './useGroupMapRouteState';
 
 interface Props {
@@ -71,9 +73,16 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
   const {
     isAddingRoute,
     isUploadingRoute,
+    isAddMenuVisible,
+    routeDraw,
     handleSelectRoute,
     handleDeleteRoute,
-    handleAddRoute,
+    handleOpenAddMenu,
+    handleCloseAddMenu,
+    handleImportRoute,
+    handleStartDrawing,
+    handleCancelDrawing,
+    handleSubmitDrawnRoute,
   } = useGroupMapRouteState(groupMap);
 
   useEffect(() => {
@@ -252,9 +261,11 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
             onRequestDelete={handleRequestDelete}
             onSelectRoute={handleSelectRoute}
             onRequestDeleteRoute={handleDeleteRoute}
-            onAddRoute={() => void handleAddRoute()}
+            onAddRoute={handleOpenAddMenu}
             isAddingRoute={isAddingRoute}
             isUploadingRoute={isUploadingRoute}
+            routeDraw={routeDraw}
+            onCancelDrawing={handleCancelDrawing}
             // Android는 커스텀 헤더가 레이아웃을 차지해 지도 영역이 이미 그 아래에서
             // 시작한다 — 칩은 지도 위쪽에 살짝 띄우기만 한다. iOS는 투명 헤더라 직접 비운다.
             topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
@@ -297,6 +308,24 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
       <View style={IS_WEB ? styles.paddedContent : styles.content}>
         {renderContent()}
       </View>
+      {/* 메뉴는 지도 본문이 있을 때만 열린다(`코스 추가`가 지도 위 시트 안에 있다) — 그리기도 그 지도에서 한다. */}
+      <RouteAddMenuView
+        visible={isAddMenuVisible}
+        canDraw={!IS_WEB}
+        onClose={handleCloseAddMenu}
+        onImport={handleImportRoute}
+        onDraw={handleStartDrawing}
+      />
+      {IS_WEB ? null : (
+        <RouteDrawNameSheetView
+          key={`route-draw-name-${routeDraw.getNameSheetKey()}`}
+          visible={routeDraw.isNameSheetVisible()}
+          defaultName={routeDraw.getDefaultName()}
+          submitting={routeDraw.isSaving()}
+          onClose={() => routeDraw.closeNameSheet()}
+          onSubmit={handleSubmitDrawnRoute}
+        />
+      )}
       <PointCreateSheetView
         key={sheetKey}
         visible={isSheetVisible}

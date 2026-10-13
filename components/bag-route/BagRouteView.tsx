@@ -10,7 +10,10 @@ import PointCreateSheetView, {
   PointDraft,
 } from '@/components/point/PointCreateSheetView';
 import PretendardText from '@/components/PretendardText';
+import RouteAddMenuView from '@/components/route/RouteAddMenuView';
 import RouteElevationChartView from '@/components/route/RouteElevationChartView';
+import RouteDrawNameSheetView from '@/components/route-draw/RouteDrawNameSheetView';
+import useRouteDrawCancel from '@/components/route-draw/useRouteDrawCancel';
 import ToastView from '@/components/toast/ToastView';
 import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
 import LoadingView from '@/components/ui/LoadingView';
@@ -24,6 +27,9 @@ import BagPointList from '@/model/bag-point/BagPointList';
 import BagRoute from '@/model/bag-route/BagRoute';
 import { BagRouteEntry } from '@/model/bag-route/BagRouteEntry';
 import BagRouteList from '@/model/bag-route/BagRouteList';
+import { isMapLibreAvailable } from '@/model/map/MapLibreModule';
+import RouteDraw from '@/model/route-draw/RouteDraw';
+import RouteDrawSource from '@/model/route-draw/RouteDrawSource';
 import RouteListSegment from '@/model/route/RouteListSegment';
 import BagRouteListSectionView from './BagRouteListSectionView';
 import BagRouteMapGateView from './BagRouteMapGateView';
@@ -71,6 +77,21 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
   const [editingPoint, setEditingPoint] = useState<BagPoint | null>(null);
   // 시트를 열 때마다 올린다 — 시트가 이 값을 `key`로 받아 새로 마운트되면서 입력이 초기화된다.
   const [sheetKey, setSheetKey] = useState(0);
+  // `코스 추가` 메뉴(RD-1) — 가져오기 | 지도에서 그리기.
+  const [isAddMenuVisible, setIsAddMenuVisible] = useState(false);
+  /**
+   * 코스 그리기(RD-2 · RD-3) — 화면 수명 동안 하나. 화면을 떠나면 그리던 점과 함께 버려진다(기기 저장 없음).
+   * 저장은 가져오기와 같은 목록 경로(`addDrawnRoute`)를 탄다.
+   */
+  const [routeDraw] = useState(() =>
+    RouteDraw.from(
+      RouteDrawSource.Route,
+      (draft, localUri) => bagRouteList.addDrawnRoute(draft, localUri),
+      () => bagRouteList.getDrawDefaultName()
+    )
+  );
+  const isDrawing = routeDraw.isActive();
+  const handleCancelDrawing = useRouteDrawCancel(routeDraw, isDrawing);
   const selected = bagRouteList.getSelectedEntry();
   // OF-6: 연결이 없으면 같은 지도가 저장해 둔 팩에서 뜬다. 열 수 없는 저장본(미저장·잠김)이면 빈 상태다.
   const isOffline = app.getNetworkStatus().isOffline();
@@ -189,6 +210,33 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
     setIsAiming(false);
   }, []);
 
+  // 시트 푸터 `코스 추가` → 메뉴(RD-1). 상한·웹·오프라인이면 버튼이 이미 막혀 있다.
+  const handleOpenAddMenu = useCallback(() => {
+    setIsAddMenuVisible(true);
+  }, []);
+
+  const handleCloseAddMenu = useCallback(() => {
+    setIsAddMenuVisible(false);
+  }, []);
+
+  // 메뉴 항목은 시트가 다 내려간 뒤 불린다(`BottomMenuModalView` 관례) — 파일 선택기가 시트 위에 겹치지 않는다.
+  const handleImportRoute = useCallback(() => {
+    void bagRouteList.addRoute();
+  }, [bagRouteList]);
+
+  // 그리기 모드에 들어간다(RD-1). 조준 모드와 동시에 켜지지 않는다.
+  const handleStartDrawing = useCallback(() => {
+    setIsAiming(false);
+    routeDraw.start();
+  }, [routeDraw]);
+
+  const handleSubmitDrawnRoute = useCallback(
+    (name: string) => {
+      void routeDraw.save(name);
+    },
+    [routeDraw]
+  );
+
   const handleRequestCreate = useCallback(
     (coordinate: BagPointCoordinate, via: BagPointAddVia) => {
       // 상한 50이면 입력을 받기 전에 막고 이유를 알린다(BD-14).
@@ -296,6 +344,7 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
       onSelectPoint={IS_WEB ? undefined : handleSelectPoint}
       onEditPoint={handleRequestEdit}
       onDeletePoint={handleRequestDeletePoint}
+      onAddRoute={handleOpenAddMenu}
       bottomInset={listBottomInset}
       fillHeight={fillHeight}
     />
@@ -368,6 +417,8 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
         onRequestCreate={handleRequestCreate}
         onRequestEdit={handleRequestEdit}
         onRequestDelete={handleRequestDeletePoint}
+        routeDraw={routeDraw}
+        onCancelDrawing={handleCancelDrawing}
         // Android는 커스텀 헤더가 레이아웃을 차지해 지도가 이미 그 아래에서 시작한다 — 칩은
         // 지도 위쪽에 살짝 띄우기만 한다. iOS는 투명 헤더라 직접 비운다(그룹 지도와 같다).
         topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
@@ -434,6 +485,24 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
           },
         }))}
       />
+      <RouteAddMenuView
+        visible={isAddMenuVisible}
+        // 지도가 없는 옛 바이너리(MAP-1)에서는 그릴 수 없다 — 가져오기만 남는다.
+        canDraw={!IS_WEB && isMapLibreAvailable()}
+        onClose={handleCloseAddMenu}
+        onImport={handleImportRoute}
+        onDraw={handleStartDrawing}
+      />
+      {IS_WEB ? null : (
+        <RouteDrawNameSheetView
+          key={`route-draw-name-${routeDraw.getNameSheetKey()}`}
+          visible={routeDraw.isNameSheetVisible()}
+          defaultName={routeDraw.getDefaultName()}
+          submitting={routeDraw.isSaving()}
+          onClose={() => routeDraw.closeNameSheet()}
+          onSubmit={handleSubmitDrawnRoute}
+        />
+      )}
       {IS_WEB ? null : (
         <PointCreateSheetView
           key={sheetKey}

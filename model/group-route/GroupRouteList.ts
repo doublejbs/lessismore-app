@@ -152,19 +152,43 @@ class GroupRouteList {
           : {}),
       };
 
-      const routeId = await this.dispatcher.addRoute(
-        this.groupId,
-        draft,
-        picked.uri
+      return await this.submitDraft(draft, picked.uri);
+    } catch (error) {
+      this.showMessage(getRouteErrorMessage(error));
+
+      return null;
+    } finally {
+      this.setSubmitting(false);
+    }
+  }
+
+  /**
+   * 지도에서 그린 코스를 올린다 (RD-3). 파일은 이미 만들어져 있다 — 그 뒤는 가져오기와 **같은 경로**다
+   * (디스패처 검증·업로드·상한 검사, `click_group_route_upload`, 목록 갱신). 올린 코스 id를 돌려준다(실패면 `null` —
+   * 가져오기와 같은 문구로 이미 알렸다).
+   */
+  public async addDrawnRoute(
+    draft: RouteDraft,
+    localUri: string
+  ): Promise<string | null> {
+    if (this.submitting) {
+      return null;
+    }
+
+    if (this.isFull()) {
+      this.showMessage(
+        getRouteErrorMessage(
+          new GroupError(GroupValidationError.RouteLimitExceeded)
+        )
       );
 
-      app.getAnalyticsManager()?.logClick('group_route_upload', {
-        distance: Math.round(parsed.distance),
-        point_count: parsed.pointCount,
-      });
-      await this.load(true);
+      return null;
+    }
 
-      return routeId;
+    this.setSubmitting(true);
+
+    try {
+      return await this.submitDraft(draft, localUri);
     } catch (error) {
       this.showMessage(getRouteErrorMessage(error));
 
@@ -193,6 +217,23 @@ class GroupRouteList {
     } finally {
       this.setSubmitting(false);
     }
+  }
+
+  // 올리기 + 측정 + 목록 갱신 — 가져오기(`addRoute`)와 그리기(`addDrawnRoute`)가 함께 쓴다. 올린 코스 id를 돌려준다.
+  private async submitDraft(draft: RouteDraft, localUri: string) {
+    const routeId = await this.dispatcher.addRoute(
+      this.groupId,
+      draft,
+      localUri
+    );
+
+    app.getAnalyticsManager()?.logClick('group_route_upload', {
+      distance: Math.round(draft.distance),
+      point_count: draft.pointCount,
+    });
+    await this.load(true);
+
+    return routeId;
   }
 
   private async load(quiet: boolean) {
