@@ -5,7 +5,7 @@
 | 상태 | proposed (2026-10-12 기획 — 사용자 요청: "3D로 표시되면 좋겠는데", "나중에 기록 따라서 3D에 경로 보여주는 기능도 생각하고 있거든", "maplibre로 일단 2까지 구현해서 보여줘") |
 | ID 프리픽스 | `RR` |
 | 주요 코드 | `[제안]` `app/route-replay.tsx`(라우트), `components/route-replay/`(`RouteReplayWrapper`·`RouteReplayView`·`RouteReplayWebView`), `model/route-replay/`(`RouteReplayStore.ts` 열 코스 전달, `RouteReplayHtml.ts` 웹뷰 문서, `RouteReplayMessage.ts` 메시지 타입, `RouteReplaySource.ts` 진입처 enum) |
-| 관련 스펙 | [BagDetail.md](BagDetail.md)(BD-11 코스 화면 진입점), [HealthActivity.md](HealthActivity.md)(HA-4 운동 기록 진입점), [Offline.md](Offline.md)(OF-6 — 같은 지도 스타일·고도 데이터), [Analytics.md](Analytics.md), [AppLifecycle.md](AppLifecycle.md)(APP-5 웹) |
+| 관련 스펙 | [BagDetail.md](BagDetail.md)(BD-11 코스 화면 진입점), [Group.md](Group.md)(GRP-10 그룹 지도 진입점), [HealthActivity.md](HealthActivity.md)(HA-4 운동 기록 진입점), [Offline.md](Offline.md)(OF-6 — 같은 지도 스타일·고도 데이터), [Analytics.md](Analytics.md), [AppLifecycle.md](AppLifecycle.md)(APP-5 웹) |
 
 ## 1. 개요
 
@@ -20,6 +20,7 @@
 ```text
 app/bag/[id]/route.tsx (코스 화면, BD-11) ─ 지도 우상단 보조 알약 `3D` → RouteReplayStore.open(코스) → /route-replay   (RR-1)
 app/bag/[id]/activity (운동 기록 상세, HA-4) ─ 경로 지도 아래 보조 알약 `3D로 보기` → /route-replay            (RR-1)
+app/group/[id]/map.tsx (그룹 지도, GRP-10) ─ 지도 우하단 컨트롤 맨 위 보조 알약 `3D` → RouteReplayStore.open(그룹 코스) → /route-replay (RR-1)
 app/route-replay.tsx ─ RouteReplayWrapper ─ RouteReplayView (헤더 + 웹뷰 + 상태)                                (RR-2)
 ```
 
@@ -32,6 +33,7 @@ app/route-replay.tsx ─ RouteReplayWrapper ─ RouteReplayView (헤더 + 웹뷰
 **수용 기준**
 
 - **코스 화면**(BD-11, 네이티브·온라인일 때): 지도 **우하단 컨트롤 줄의 맨 위, `내 위치` 버튼 바로 위**에 보조 알약 **`3D`**(아이콘 `cube-outline` + 라벨, 흰 면·잉크 글자 — 라임이 아니다, 이 화면의 주 액션은 `코스 추가`. 상단은 포인트 유형 칩 줄이 차지해 두지 않는다). **선택된 코스가 있을 때만** 보인다(코스가 없으면 보여 줄 것이 없다). 탭하면 선택 코스의 축약 좌표(`simplified`, 고도 포함)·이름·**지도에 지금 보이는 포인트**(유형 필터 적용, 그룹 포인트 포함 — 지도와 같은 것을 3D에서 본다)를 스토어에 담고 `/route-replay`를 연다. 조준 모드(BD-14)·오프라인 지도(OF-6)에서는 숨긴다. 접근성 라벨은 `3D로 보기`.
+- **그룹 지도**(GRP-10, 2026-10-13 `[제안]`): 코스 화면과 **같은 자리·같은 알약**(우하단 컨트롤 스택 맨 위, `내 위치` 위). 선택된 그룹 코스의 축약 좌표·이름·지도에 보이는 그룹 포인트(유형 필터 적용)를 담는다. 조준 모드에서는 숨긴다. `source`는 `group`.
 - **운동 기록 상세**(HA-4): 경로 지도 밴드 바로 아래 보조 알약 **`3D로 보기`**. 경로가 있는 운동만(없으면 지도도 버튼도 없다). 운동이 여러 개면 **모든 경로를 시간순으로 이어** 한 리플레이로 넘긴다(1박 2일이 날짜별로 나뉜 기록이 흔하다 — HA-3). 고도는 `altitudeMeters`가 있으면 쓰고 없으면 지형 위에 그대로 올린다.
 - **오프라인이면** 두 버튼 모두 탭 시 토스트 `온라인에서 볼 수 있어요`(OF-5와 같은 문구) — 버튼은 보이되 비활성 모양이 아니다(연결이 돌아오면 바로 된다).
 - 웹에는 진입점이 없다(APP-5).
@@ -62,7 +64,7 @@ app/route-replay.tsx ─ RouteReplayWrapper ─ RouteReplayView (헤더 + 웹뷰
 
 ### RR-4 측정 `[제안]`
 
-[Analytics.md](Analytics.md) AN-3 표에 추가: `click_route_replay_open`(`source`: `route` | `activity`, `point_count`, `distance_m`), `route_replay_ready`(`logEvent`, `load_ms`), `route_replay_play`(`logEvent`, `speed`), `route_replay_finished`(`logEvent`), `route_replay_failed`(`logEvent`, `reason`: `timeout` | `web_error` | `http_error`).
+[Analytics.md](Analytics.md) AN-3 표에 추가: `click_route_replay_open`(`source`: `route` | `group` | `activity`, `point_count`, `distance_m`), `route_replay_ready`(`logEvent`, `load_ms`), `route_replay_play`(`logEvent`, `speed`), `route_replay_finished`(`logEvent`), `route_replay_failed`(`logEvent`, `reason`: `timeout` | `web_error` | `http_error`).
 
 ## 4. 데이터
 
@@ -97,4 +99,4 @@ app/route-replay.tsx ─ RouteReplayWrapper ─ RouteReplayView (헤더 + 웹뷰
 - **네이티브 MapLibre 3D 지형 출시 시** 이 화면을 네이티브로 옮겨 오프라인 지도(OF-6)와 합친다 — 그때 웹뷰 문서는 폐기. 출시 시점 미정(2026-10 기준 개발 중).
 - 리플레이를 **영상·GIF로 내보내기**(SNS 공유 — BagShare와 연결) — 웹뷰 캔버스 캡처가 필요해 후속.
 - 운동 기록의 **시간 축 재생**(실제 걸린 시간 비율로 느리고 빠르게) — 지금은 거리 기준 등속.
-- 그룹 코스(GRP-8)에도 진입점을 둘지 — 그룹 지도 화면에 같은 알약을 두면 된다(후속).
+- ~~그룹 코스(GRP-8)에도 진입점을 둘지~~ → 2026-10-13 그룹 지도에 같은 알약을 뒀다(RR-1).
