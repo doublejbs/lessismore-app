@@ -62,6 +62,8 @@ class Firebase {
   private store!: Firestore;
   // 개인 장비 사진 업로드에 쓰는 Storage (DM-9, GD-13).
   private storage!: FirebaseStorage;
+  // 호출형 함수(등산로 따라 잇기 RD-6 등)가 같은 앱·같은 로그인으로 부르도록 노출한다. 초기화 전에는 `null`.
+  private firebaseApp: FirebaseApp | null = null;
   private hasAgreedToTerms = false;
   private loggedIn = false;
   private idToken: string | null = null;
@@ -76,6 +78,8 @@ class Firebase {
 
   public async initialize() {
     const fireBaseApp = initializeApp(Firebase.config);
+
+    this.firebaseApp = fireBaseApp;
 
     // 네이티브 앱에서만 Google Sign-in 설정
     if (Platform.OS === 'ios' || Platform.OS === 'android') {
@@ -430,6 +434,10 @@ class Firebase {
 
   public getStorage() {
     return this.storage;
+  }
+
+  public getFirebaseApp(): FirebaseApp | null {
+    return this.firebaseApp;
   }
 
   private setUserId(value: string) {

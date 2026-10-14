@@ -14,10 +14,13 @@ interface Props {
  */
 const RouteDrawNoticeView: FC<Props> = ({ routeDraw }) => {
   const l10n = app.getL10n();
+  // 첫 안내는 지금 연결 방식(등산로 따라 / 직선 — RD-6)을 말한다. 토글을 바꾸면 바로 바뀐다.
+  const getEmptyKey = () =>
+    routeDraw.isTrailEnabled()
+      ? 'routeDraw.noticeEmptyTrail'
+      : 'routeDraw.noticeEmpty';
   const label = l10n.t(
-    routeDraw.getPointCount() === 0
-      ? 'routeDraw.noticeEmpty'
-      : 'routeDraw.noticeContinue'
+    routeDraw.getPointCount() === 0 ? getEmptyKey() : 'routeDraw.noticeContinue'
   );
 
   return <MapNoticeLineView label={label} />;

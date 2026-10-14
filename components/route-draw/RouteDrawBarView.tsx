@@ -20,6 +20,7 @@ import {
 import app from '@/model/app/App';
 import RouteDraw from '@/model/route-draw/RouteDraw';
 import { formatRouteDistance } from '@/model/route/RouteFormat';
+import RouteDrawTrailToggleView from './RouteDrawTrailToggleView';
 
 interface Props {
   routeDraw: RouteDraw;
@@ -37,8 +38,11 @@ const ACTION_GAP = 8;
 /**
  * 그리기 모드 하단 바 (RD-2) — 바텀 시트 자리. 순백 면 + 위 헤어라인 + 세이프에어리어.
  *
- * 왼쪽은 메타 한 줄 `{n}점 · {거리}`(숫자 조각만 콘덴스드 — HM-8 메타 줄), 오른쪽은 `되돌리기`(아이콘) · `취소`(흰 알약) ·
- * **`저장`**(라임 알약 — 이 모드의 주 액션 하나, 서로 다른 점 2개부터). 상승은 저장 때 계산하므로 적지 않는다.
+ * 위 왼쪽에 `등산로 따라` 토글 칩(RD-6). 아래 줄 왼쪽은 메타 한 줄 `{n}점 · {거리}`(숫자 조각만 콘덴스드 — HM-8
+ * 메타 줄), 오른쪽은 `되돌리기`(아이콘) · `취소`(흰 알약) · **`저장`**(라임 알약 — 이 모드의 주 액션 하나, 서로 다른 점
+ * 2개부터·길 찾는 중이 아닐 때). 상승은 저장 때 계산하므로 적지 않는다. 길 찾는 중이면 메타 끝에 `길 찾는 중…`을 붙인다.
+ *
+ * 토글 칩을 바 **안** 첫 줄에 둔다 — 바 높이(`onLayout`)에 함께 들어가 출처 ⓘ·`내 위치`가 칩 위로 올라간다.
  */
 const RouteDrawBarView: FC<Props> = ({ routeDraw, onCancel, onLayout }) => {
   const l10n = app.getL10n();
@@ -48,73 +52,87 @@ const RouteDrawBarView: FC<Props> = ({ routeDraw, onCancel, onLayout }) => {
   const canUndo = routeDraw.canUndo();
   const canSave = routeDraw.canSave();
   const saving = routeDraw.isSaving();
+  const routing = routeDraw.isRouting();
+  const metaLabel = l10n.t('routeDraw.metaLabel', { count, distance });
+  // 저장이 막힌 이유 — 길을 찾는 중이면 그것이 먼저다(점이 2개여도 막힌다).
+  const saveHint = l10n.t(
+    routing ? 'routeDraw.saveHintRouting' : 'routeDraw.saveHint'
+  );
 
   return (
     <View
       style={[styles.bar, { paddingBottom: insets.bottom + Spacing.item }]}
       onLayout={onLayout}
     >
-      <View
-        style={styles.meta}
-        accessible
-        accessibilityRole='text'
-        accessibilityLabel={l10n.t('routeDraw.metaLabel', { count, distance })}
-      >
-        {/* 숫자를 맨 앞에 두고 숫자 조각만 콘덴스드로 갈아 끼운다(HM-8). */}
-        <PretendardText style={styles.metaText} numberOfLines={1}>
-          <AcgDisplayText style={styles.metaNumber}>
-            {String(count)}
-          </AcgDisplayText>
-          {l10n.t('routeDraw.pointUnit')}
-          {l10n.t('common.metaSeparator')}
-          <AcgDisplayText style={styles.metaNumber}>{distance}</AcgDisplayText>
-        </PretendardText>
-      </View>
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={[styles.iconButton, !canUndo && styles.disabled]}
-          onPress={() => routeDraw.undo()}
-          disabled={!canUndo}
-          activeOpacity={0.8}
-          accessibilityRole='button'
-          accessibilityLabel={l10n.t('routeDraw.undo')}
-          accessibilityHint={l10n.t('routeDraw.undoHint')}
-          accessibilityState={{ disabled: !canUndo }}
+      <RouteDrawTrailToggleView routeDraw={routeDraw} />
+      <View style={styles.row}>
+        <View
+          style={styles.meta}
+          accessible
+          accessibilityRole='text'
+          accessibilityLabel={
+            routing ? `${metaLabel}, ${l10n.t('routeDraw.routing')}` : metaLabel
+          }
         >
-          <Ionicons name='arrow-undo-outline' size={22} color={Acg.ink} />
-        </TouchableOpacity>
-        {/* 취소는 되돌아가기다 — 면을 채우지 않고 주 액션과 무게를 가른다(조준 모드와 같다). */}
-        <TouchableOpacity
-          style={[styles.cancelButton, saving && styles.disabled]}
-          onPress={onCancel}
-          disabled={saving}
-          activeOpacity={0.8}
-          accessibilityRole='button'
-          accessibilityLabel={l10n.t('common.cancel')}
-          accessibilityState={{ disabled: saving }}
-        >
-          <PretendardText style={styles.controlLabel}>
-            {l10n.t('common.cancel')}
+          {/* 숫자를 맨 앞에 두고 숫자 조각만 콘덴스드로 갈아 끼운다(HM-8). */}
+          <PretendardText style={styles.metaText} numberOfLines={1}>
+            <AcgDisplayText style={styles.metaNumber}>
+              {String(count)}
+            </AcgDisplayText>
+            {l10n.t('routeDraw.pointUnit')}
+            {l10n.t('common.metaSeparator')}
+            <AcgDisplayText style={styles.metaNumber}>
+              {distance}
+            </AcgDisplayText>
+            {routing
+              ? `${l10n.t('common.metaSeparator')}${l10n.t('routeDraw.routing')}`
+              : null}
           </PretendardText>
-        </TouchableOpacity>
-        {/* 이 모드의 주 액션 하나 — 시트·`포인트 추가`가 걷힌 동안 라임은 여기에만 쓴다(HM-8). */}
-        <TouchableOpacity
-          style={[styles.saveButton, !canSave && styles.disabled]}
-          onPress={() => routeDraw.requestSave()}
-          disabled={!canSave}
-          activeOpacity={0.8}
-          accessibilityRole='button'
-          accessibilityLabel={l10n.t('routeDraw.save')}
-          // 막혀 있으면 이유를 함께 읽는다 — 눌리지 않는 버튼만 두면 왜 안 되는지 모른다(HIG).
-          {...(canSave
-            ? {}
-            : { accessibilityHint: l10n.t('routeDraw.saveHint') })}
-          accessibilityState={{ disabled: !canSave, busy: saving }}
-        >
-          <PretendardText weight='semibold' style={styles.controlLabel}>
-            {l10n.t(saving ? 'routeDraw.saving' : 'routeDraw.save')}
-          </PretendardText>
-        </TouchableOpacity>
+        </View>
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={[styles.iconButton, !canUndo && styles.disabled]}
+            onPress={() => routeDraw.undo()}
+            disabled={!canUndo}
+            activeOpacity={0.8}
+            accessibilityRole='button'
+            accessibilityLabel={l10n.t('routeDraw.undo')}
+            accessibilityHint={l10n.t('routeDraw.undoHint')}
+            accessibilityState={{ disabled: !canUndo }}
+          >
+            <Ionicons name='arrow-undo-outline' size={22} color={Acg.ink} />
+          </TouchableOpacity>
+          {/* 취소는 되돌아가기다 — 면을 채우지 않고 주 액션과 무게를 가른다(조준 모드와 같다). */}
+          <TouchableOpacity
+            style={[styles.cancelButton, saving && styles.disabled]}
+            onPress={onCancel}
+            disabled={saving}
+            activeOpacity={0.8}
+            accessibilityRole='button'
+            accessibilityLabel={l10n.t('common.cancel')}
+            accessibilityState={{ disabled: saving }}
+          >
+            <PretendardText style={styles.controlLabel}>
+              {l10n.t('common.cancel')}
+            </PretendardText>
+          </TouchableOpacity>
+          {/* 이 모드의 주 액션 하나 — 시트·`포인트 추가`가 걷힌 동안 라임은 여기에만 쓴다(HM-8). */}
+          <TouchableOpacity
+            style={[styles.saveButton, !canSave && styles.disabled]}
+            onPress={() => routeDraw.requestSave()}
+            disabled={!canSave}
+            activeOpacity={0.8}
+            accessibilityRole='button'
+            accessibilityLabel={l10n.t('routeDraw.save')}
+            // 막혀 있으면 이유를 함께 읽는다 — 눌리지 않는 버튼만 두면 왜 안 되는지 모른다(HIG).
+            {...(canSave ? {} : { accessibilityHint: saveHint })}
+            accessibilityState={{ disabled: !canSave, busy: saving }}
+          >
+            <PretendardText weight='semibold' style={styles.controlLabel}>
+              {l10n.t(saving ? 'routeDraw.saving' : 'routeDraw.save')}
+            </PretendardText>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -126,14 +144,17 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: ACTION_GAP,
     paddingTop: Spacing.item,
     paddingHorizontal: AcgLayout.screenPadding,
     backgroundColor: Acg.paper,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Acg.hairline,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: ACTION_GAP,
   },
   meta: {
     flex: 1,

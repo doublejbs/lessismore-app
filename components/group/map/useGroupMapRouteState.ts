@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import app from '@/model/app/App';
 import GroupRoute from '@/model/group/GroupRoute';
 import GroupMap from '@/model/group-map/GroupMap';
@@ -38,6 +38,10 @@ const useGroupMapRouteState = (groupMap: GroupMap) => {
       },
     })
   );
+
+  // 화면을 떠나면 대기 중인 길 찾기를 끊는다 — 버린 구간의 토스트·측정이 다른 화면에 나가지 않게(RD-6).
+  useEffect(() => () => routeDraw.dispose(), [routeDraw]);
+
   const isDrawing = routeDraw.isActive();
   const handleCancelDrawing = useRouteDrawCancel(routeDraw, isDrawing);
 
