@@ -896,6 +896,7 @@
 | `pointCount` | number | 원본 트랙포인트 수 |
 | `bounds` | map | `{ minLat, maxLat, minLng, maxLng }` |
 | `simplified` | array | 지도 렌더용 축약 좌표 `{ lat, lng, ele? }`, **2~500점**. 최소 2점은 규칙과 클라이언트 검증이 함께 강제한다 — 점이 하나뿐인 GPX는 선이 되지 않아 `코스를 읽지 못했어요`로 거절한다. `ele`(m)는 고도 그래프가 쓰며 GPX에 고도가 없으면 키를 생략한다. 규칙은 리스트 길이만 보므로 원소 키가 늘어도 계약이 깨지지 않는다 |
+| `source` / `drawnPoints` / `updatedAt` | string? / array? / timestamp? | 배낭 코스(DM-30)와 같다 — 그린 코스 표시·찍은 점·수정 시각(RouteDraw RD-7, 2026-10-14) |
 | `authorId` / `authorName` | string | 올린 사람 |
 | `createdAt` | timestamp | 서버 시각 |
 
@@ -918,6 +919,9 @@
 | `pointCount` | number | 원본 트랙포인트 수 |
 | `bounds` | object | `{ minLat, maxLat, minLng, maxLng }` |
 | `simplified` | array | `{ lat, lng, ele? }`, 2~500점 |
+| `source` | string? | `'drawn'` = 지도에서 그린 코스(RouteDraw RD-1·RD-7, 2026-10-14). 없으면 GPX 가져오기 |
+| `drawnPoints` | array? | 그린 코스의 찍은 점 `{ lat, lng }`, 2~100개 — 수정(RD-7)에서 다시 연다. `source == 'drawn'`일 때만 |
+| `updatedAt` | timestamp? | 그린 코스를 수정했을 때(RD-7) |
 | `createdAt` | timestamp | |
 
 - 배낭당 **5개**, 파일 **5MB** — 그룹과 같은 상한이다. 수치를 갈라 두면 사용자가 둘을 다르게 기억해야 한다.
@@ -1137,6 +1141,20 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 **양방향 참조 불변식**: `gear.bags[]` ↔ `bag.gears[]`는 항상 쌍으로 갱신되어야 한다. `bag.weight`는 담긴 장비 `weight` 합과 일치해야 한다.
 
 **문서 갱신은 모르는 필드를 지우지 않는다**: 장비 수정(`GearStore.update`)은 `Gear.getData()`가 만든 페이로드로 문서를 쓰는데, **전체 덮어쓰기(`setDoc` 무옵션)를 쓰면 페이로드에 없는 필드가 전부 사라진다.** 실제로 이 경로로 `imageUrl`이 유실될 뻔했다(§1). 크롤 파이프라인이 넣는 `specs`·`groupId`·`colorKorean`·`sizeKorean`처럼 앱이 모델에 담지 않는 필드도 같은 위험에 있다. **부분 갱신(`setDoc(..., { merge: true })` 또는 `updateDoc`)을 쓴다** — 모델이 아는 필드만 갱신하고 나머지는 건드리지 않는다.
+
+### DM-36 코스 그리기 무료 기록 `route-draw-quota/{uid}` `[제안]`
+
+무료 사용자의 **평생 1회** 코스 그리기([RouteDraw.md](RouteDraw.md) RD-8). 문서 id = uid.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `freeRoute` | map | `{ kind: 'bag' \| 'group', parentId, routeId }` — 무료로 그린 그 코스. 이 코스만 무료로 계속 수정할 수 있다 |
+| `claimedAt` | timestamp | 서버 시각 |
+
+- **쓰기는 함수만**(`claimFreeRouteDraw`, Admin SDK). 클라이언트 쓰기 전면 금지 — `users/{uid}`는 규칙상 열려 있어 횟수를 두면 되돌릴 수 있다. 읽기는 본인만. `isLockedCollection()`에 추가.
+- `confirmed` | boolean — 그 코스 문서가 실제로 만들어졌는지. 함수 트리거(`onDrawnRouteCreated`, `bag/{bagId}/routes/{routeId}`·`groups/{groupId}/routes/{routeId}` 생성 시 `source == 'drawn'`이고 작성자의 기록과 같으면 `true`)가 세운다.
+- `claimFreeRouteDraw` 규칙: 기록이 없으면 새로 정한다. 같은 코스(`kind`·`parentId`·`routeId`)를 다시 요청하면 그대로 통과(재시도). **`confirmed == false`이면 다른 코스로 다시 정할 수 있다**(업로드가 실패해 코스가 생기지 않은 경우). `confirmed == true`면 거절 — 그 뒤로 코스를 지워도 다시 정하지 않는다(지우고 다시 그리기 방지).
+- 회원 탈퇴 시 정리(구독 정리 함수와 같은 자리).
 
 ### DM-25 `in` 쿼리 30개 상한
 
