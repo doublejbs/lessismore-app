@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | proposed (2026-10-13 기획 — 사용자 결정: "gpx 만드는 기능", "2단계(등산로 따라가기)는 필요 없고 그냥 지도에서 점 찍으면 될 거 같아") |
+| 상태 | proposed (2026-10-13 기획 — 사용자 결정: "gpx 만드는 기능", "2단계(등산로 따라가기)는 필요 없고 그냥 지도에서 점 찍으면 될 거 같아" · 2026-10-14 개정: 등산로 따라 잇기 RD-6 "진행해") |
 | ID 프리픽스 | `RD` |
 | 주요 코드 | `[제안]` `model/route-draw/`(`RouteDraw.ts` 편집 상태·거리·저장 흐름, `RouteDrawPoint.ts`, `RouteDrawSource.ts` 진입처 enum, `RouteDrawGpxWriter.ts` GPX 문서 생성, `RouteDrawSampler.ts` 선분 보간) · `model/terrain/TerrainElevation.ts`(지형 타일에서 좌표 고도 읽기 — `OfflineContours`의 타일 받기·디코딩을 공용화) · `components/route-draw/`(`RouteDrawLayersView.tsx` 선·점 마커, `RouteDrawBarView.tsx` 하단 바, `RouteDrawNoticeView.tsx` 안내 줄, `RouteDrawNameSheetView.tsx` 이름 입력) · 위치 검색(RD-5): `model/route-draw/RouteDrawSearch.ts`(검색 상태) · `components/route-draw/`(`RouteDrawSearchView.tsx` 인풋, `RouteDrawSearchResultsView.tsx` 드롭다운, `RouteDrawSearchPinView.tsx` 임시 핀, `useRouteDrawSearchHost.ts` 호스트 연결) · 공용 핀 `components/map/MapPinCaptionMarkerView.tsx` · 진입 메뉴 `components/route/RouteAddMenuView.tsx` · 호스트: `components/bag-route/BagRouteMapView.tsx`·`BagRouteView.tsx`, `components/group/map/GroupMapCanvasView.tsx`·`GroupMapView.tsx` |
 | 관련 스펙 | [BagDetail.md](BagDetail.md)(BD-11 배낭 코스), [Group.md](Group.md)(GRP-8 코스·GRP-10 그룹 지도), [DataModel.md](DataModel.md)(DM-29·DM-30 — 데이터 계약 변경 없음), [Offline.md](Offline.md)(OF-6 지형 타일), [Map.md](Map.md)(MAP-2), [Analytics.md](Analytics.md) |
@@ -11,7 +11,7 @@
 
 지금 코스는 **다른 앱에서 만든 GPX를 가져오는 것**만 된다. 처음 쓰는 사람에게는 이것이 가장 큰 벽이다 — GPX가 뭔지 모르고, 만들 도구도 없다. 이 기능은 **지도를 눌러 점을 찍고 직선으로 이어** 코스를 만든다. 만든 코스는 가져온 GPX와 **똑같은 코스**다(같은 데이터 계약·같은 Storage 원본·같은 고도 그래프·3D·그룹 공유·오프라인 저장).
 
-**범위**: 점 찍기 → 직선 연결 → 지형 타일로 고도 보강 → 이름 → 저장(배낭 코스·그룹 코스). **제외**(2026-10-13 사용자 결정): 등산로를 따라 자동으로 잇기(라우팅 서버), 점 드래그 이동, 기존 코스 편집, 웹.
+**범위**: 점 찍기 → 직선 또는 **등산로 따라** 연결(RD-6) → 지형 타일로 고도 보강 → 이름 → 저장(배낭 코스·그룹 코스). **제외**: 점 드래그 이동, 기존 코스 편집, 웹, 오프라인 길 따라 잇기. `[이력]` 2026-10-13에는 등산로 따라가기를 제외했다가 2026-10-14 RD-6으로 넣었다.
 
 ## 2. 화면 및 진입
 
@@ -60,6 +60,26 @@
 - 카카오 키(`EXPO_PUBLIC_KAKAO_REST_KEY`)가 없는 빌드에서는 인풋을 그리지 않는다 — 그리기 검색은 카카오가 유일한 원천이다(여행지 선택기는 박지 검색이 있어 키가 없어도 인풋을 숨기지 않는다).
 - 측정: `click_route_draw_search_select`(`source`) — 결과를 골라 이동했을 때.
 
+### RD-6 등산로 따라 잇기 `[제안]`
+
+점과 점을 직선 대신 **실제 등산로를 따라** 잇는다(2026-10-14 사용자 결정 — 엔진은 BRouter 자체 호스팅, 토글 기본 켬). 직선은 능선·계곡을 가로질러 실제 길과 다르고 거리·상승이 작게 나온다.
+
+**수용 기준**
+
+- 하단 바(RD-2) 위 왼쪽에 토글 칩 **`등산로 따라`**(아이콘 `trail-sign-outline`, 칩 문법 — 켬 = 잉크 채움, 끔 = 연회색; 라임 아님). **기본 켬**, 세션 동안 기억(기기 저장 안 함). 접근성 `accessibilityRole='switch'` + 상태.
+- 켬일 때 새 점을 찍으면 **직전 점 → 새 점 구간**을 라우팅 함수(§4 `routeTrail`)에 요청한다. 응답 전까지 그 구간은 **점선 회색 직선**으로 그리고 하단 메타에 `길 찾는 중…`. 응답이 오면 길 좌표로 바꾼다.
+  - 길을 못 찾음(`found: false`)·실패·**8초 초과**·오프라인 → 그 구간은 **직선**으로 확정하고 토스트 `이 구간은 길을 찾지 못해 직선으로 이었어요`(같은 세션에서 3회 이상 연속이면 `길 정보가 없는 지역이에요 · 등산로 따라를 꺼 보세요`로 한 번만).
+  - 두 점 사이 직선이 **20km 초과**면 요청하지 않고 직선(라우팅이 의미 없는 거리이고 서버 부하를 막는다).
+  - 요청은 **찍은 순서대로 하나씩** 처리한다(빨리 연달아 찍어도 구간 순서가 꼬이지 않게). 대기 중 구간이 있어도 점은 계속 찍을 수 있다.
+- 끔일 때는 지금처럼 직선. 토글을 바꿔도 **이미 그린 구간은 그대로**다(다음 구간부터 적용).
+- **모델은 구간 목록**이다: 찍은 점 `n`개 → 구간 `n−1`개, 각 구간 = `{ mode: 'trail' | 'straight', coordinates, pending }`. 선은 구간 좌표를 이어 그린다. 길 따라 구간은 기존 코스 선 문법, 직선 구간도 같은 선(완료 후 구분하지 않는다 — 저장 데이터에 모드를 남기지 않는다).
+- **되돌리기** = 마지막 점과 그 점으로 들어온 구간을 함께 지운다(대기 중이면 요청 결과를 버린다).
+- 하단 메타 거리 = 구간 좌표 길이 합(길 따라면 실제 길 거리).
+- 저장(RD-3) 변경: 선분 보간(①)은 **구간 좌표 전체**를 대상으로 하고, 고도(②)는 길 따라 구간 좌표에 서버가 준 `ele`가 있으면 그대로 쓰고 **직선 구간 샘플만** 지형 타일로 채운다. 대기 중 구간이 있으면 `저장`을 비활성(`길 찾는 중…`).
+- 그리기 모드에 들어가면 함수에 **깨우기 요청**(`warmup: true`)을 한 번 보낸다 — 서버 콜드 스타트(수 초)를 첫 점 전에 치른다. 결과는 무시한다.
+- GPX `<desc>` 끝에 길 따라 구간이 하나라도 있으면 ` · 경로 데이터 © OpenStreetMap 기여자, BRouter`를 덧붙인다(ODbL 출처 표기).
+- 측정: `click_route_draw_save`에 `trail_segment_count`, `straight_segment_count` 추가. `route_trail_fail`(`logEvent`, `reason`: `not_found` | `timeout` | `error` | `offline` | `too_far`).
+
 ### RD-3 저장 `[제안]`
 
 **수용 기준**
@@ -79,6 +99,21 @@
 [Analytics.md](Analytics.md) AN-3 표에 추가: `click_route_draw_start`(`source`: `route` | `group`), `click_route_draw_search_select`(`source` — RD-5 검색 결과로 이동), `click_route_draw_save`(**저장 성공 시**; `source`, `point_count` 찍은 점, `sample_count`, `distance` m, `has_elevation`), `click_route_draw_cancel`(`source`, `point_count`). 저장이 끝나면 기존 `click_bag_route_upload`/`click_group_route_upload`도 그대로 난다(코스가 하나 늘었다는 사실은 같다) — 두 이벤트를 합산하지 않도록 대시보드에서 `draw_save`는 "그리기로 만든 비율"로만 읽는다.
 
 ## 4. 데이터
+
+**라우팅 서버(RD-6)** — Firestore·Storage 계약은 그대로다.
+
+```text
+앱 ─ httpsCallable('routeTrail', { from:{lat,lng}, to:{lat,lng} } | { warmup:true })
+      └▶ Cloud Function routeTrail (asia-northeast3, 로그인 필수, uid당 분당 60·일 2,000회)
+           └▶ Cloud Run `brouter` (asia-northeast3, 비공개 — 함수 서비스 계정만 invoker, 최소 인스턴스 0, 메모리 2GiB)
+                 GET /brouter?lonlats={lng},{lat}|{lng},{lat}&profile=hiking-mountain&alternativeidx=0&format=geojson
+```
+
+- 응답(함수 → 앱): `{ found: true, coordinates: [{lat,lng,ele}], distance(m), ascent(m) }` 또는 `{ found: false }`. 좌표는 소수 6자리, 최대 2,000점(넘으면 함수가 균등 샘플링).
+- **데이터**: BRouter가 매주 배포하는 세그먼트 타일 중 한국을 덮는 4장(`E120_N35`·`E125_N30`·`E125_N35`·`E130_N35`, 약 100MB)을 이미지에 굽는다. 갱신은 **월 1회** 이미지 재빌드(웹 레포 `infra/brouter/` 스크립트) — 등산로는 자주 바뀌지 않는다. 엔진은 BRouter 릴리스(현재 1.7.10)를 고정한다.
+- 비용: Cloud Run 최소 0이면 무료 한도 안, Artifact Registry 이미지 ~0.3GB.
+- 출처·라이선스: BRouter MIT, 데이터 ODbL(OpenStreetMap) — 지도 출처 ⓘ와 GPX `<desc>`에 표기(RD-6).
+
 
 - **서버·보안 규칙 변경 없음.** 그린 코스는 DM-29·DM-30 문서 + Storage GPX 원본으로 저장되며 가져온 코스와 구분하는 필드를 두지 않는다(2026-10-13 — "직접 그림" 표시는 §8 후속). GPX `<desc>`에만 출처를 남긴다.
 - 지형 타일은 OF-6과 같은 공급자(AWS Terrain Tiles, 무료·키 없음). 저장 한 번에 타일 1~4장(각 ~100KB) — 비용 영향 없음.
@@ -103,6 +138,7 @@
 - [ ] `지도에서 그리기` → 시트·3D·포인트 추가·칩이 사라지고 안내 줄 + 하단 바(0점 · 0m, 저장 비활성)
 - [ ] 지도 탭마다 점·선이 늘고 메타가 `n점 · 거리`로 갱신, 첫 점 `출발`·마지막 `도착` 말풍선, 되돌리기로 마지막 점 제거
 - [ ] 그리기 모드 상단 검색: 2자 입력 → 드롭다운(장소명·주소) → 행 탭 → 카메라 이동 + 회색 임시 핀, 점은 안 찍힘, 검색어 유지. 결과 열린 채 지도 탭 → 닫히기만(점 없음). 점을 찍으면 임시 핀 사라짐. × → 모두 비움
+- [ ] `등산로 따라`(기본 켬): 북한산 우이동 근처 → 백운대 근처를 찍으면 점선 회색 → 길을 따라 굽은 선으로 바뀜, 거리가 직선보다 길게 표시. 길 없는 바다·논 한가운데 찍으면 직선 + 토스트. 끄면 다음 구간부터 직선. 되돌리기는 구간째로. 길 찾는 중엔 저장 비활성. 비행기 모드 → 직선 + 토스트
 - [ ] 2점부터 `저장` 활성 → 이름 시트(기본 `{여행지} 코스`) → 저장 중 → 모드 종료 + 새 코스 선택·카메라 맞춤, 목록 행·고도 그래프·3D가 가져온 코스와 같이 동작
 - [ ] 비행기 모드에서 저장 → 고도 없이 저장 토스트 또는 업로드 실패 토스트(모드 유지)
 - [ ] 취소(2점 이상) → 확인 알럿 → 버리기 → 원래 화면 복귀, 기존 코스 선명도 복원
@@ -113,7 +149,8 @@
 ## 8. 미해결 질문
 
 - **검색에 등록 박지 통합**(DST-4·CS-6처럼 `등록된 박지` 먼저) — 박지 모델 의존이 늘어 1단계에서 뺐다. 그리기 사용 데이터를 보고 추가.
-- **등산로 따라가기(스냅 라우팅)** — 2026-10-13 사용자 결정으로 제외. 1단계 사용 데이터(어디를 그리는지)를 본 뒤 재검토.
+- ~~등산로 따라가기(스냅 라우팅)~~ → 2026-10-14 사용자 결정으로 **RD-6**(BRouter 자체 호스팅, 기본 켬).
+- **오프라인 길 따라 잇기** — 라우팅 데이터를 기기에 내려받아야 해 보류(타일 100MB).
 - **점 드래그 이동·중간 삽입** — MapLibre RN의 드래그 마커 안정성을 확인한 뒤 후속.
 - **"직접 그림" 표시**(목록 메타 조각 + 그룹 공유 시 따라감) — DM-29·DM-30에 `source` 필드와 규칙 변경이 필요해 보류. 지금은 GPX `<desc>`에만 남는다.
 - **그리던 점 임시 저장**(앱을 나갔다 와도 유지) — 요구가 보이면 `AsyncStorage`로.
