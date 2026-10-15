@@ -34,7 +34,6 @@ import {
   OVERLAY_GAP,
 } from '@/components/map/MapConstants';
 import MapEndpointMarkersView from '@/components/map/MapEndpointMarkersView';
-import MapControlButtonView from '@/components/map/MapControlButtonView';
 import MapMyLocationButtonView from '@/components/map/MapMyLocationButtonView';
 import MapMyLocationMarkerView from '@/components/map/MapMyLocationMarkerView';
 import MapNoticeLineView from '@/components/map/MapNoticeLineView';
@@ -1280,20 +1279,15 @@ const GroupMapCanvasView: FC<Props> = ({
               ) : null}
               {/* `포인트 추가` — 라임, 화면당 하나(HM-8). 롱프레스의 접근 가능한 대안으로 조준 모드에 들어간다.
                 그리기 모드에서도 걷는다 — 그때의 라임은 하단 바 `저장`이다(RD-2). 시트에 코스 빈 상태 카드가
-                보이는 동안에는 카드의 `지도에서 그리기`가 라임이라 `내 위치`와 같은 원형 아이콘 버튼으로 줄인다
-                (RD-9 #1 — 배낭 코스 화면과 같다). */}
-              {!isMapMode && isRouteEmptyCardVisible ? (
-                <MapControlButtonView
-                  icon='add'
-                  accessibilityLabel={addPointLabel}
-                  accessibilityHint={addPointHint}
-                  onPress={handleStartAiming}
-                  disabled={isFull || submitting}
-                />
-              ) : null}
-              {!isMapMode && !isRouteEmptyCardVisible ? (
+                보이는 동안에는 카드의 `지도에서 그리기`가 라임이라, 라벨은 그대로 두고 **흰 보조 알약**으로 내린다
+                (RD-9 #1, 2026-10-15 디자인 리뷰 — `+` 원형 아이콘은 무엇인지 읽히지 않았다). */}
+              {!isMapMode ? (
                 <TouchableOpacity
-                  style={[styles.addButton, isFull && styles.disabled]}
+                  style={[
+                    styles.addButton,
+                    isRouteEmptyCardVisible && styles.addButtonSecondary,
+                    isFull && styles.disabled,
+                  ]}
                   onPress={handleStartAiming}
                   disabled={isFull || submitting}
                   activeOpacity={0.8}
@@ -1450,6 +1444,10 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     backgroundColor: Acg.lime,
     boxShadow: AcgShadow.card,
+  },
+  // 빈 상태 카드가 라임을 가진 동안 — 같은 알약을 흰 면으로(라임 화면당 하나, HM-8).
+  addButtonSecondary: {
+    backgroundColor: Acg.paper,
   },
   // `3D` — 지도 위 흰 보조 알약(배낭 코스 화면과 같은 면·그림자).
   replayButton: {
