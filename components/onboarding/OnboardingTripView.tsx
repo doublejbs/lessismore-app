@@ -9,7 +9,6 @@ import OnboardingTripStep from '@/model/onboarding/OnboardingTripStep';
 import LogInView from '@/components/login/LogInView';
 import OnboardingTripHeaderView from './OnboardingTripHeaderView';
 import OnboardingTripFooterView from './OnboardingTripFooterView';
-import OnboardingTripDateStepView from './OnboardingTripDateStepView';
 import OnboardingTripDestinationStepView from './OnboardingTripDestinationStepView';
 import OnboardingTripGearStepView from './OnboardingTripGearStepView';
 import OnboardingTripDoneStepView from './OnboardingTripDoneStepView';
@@ -50,15 +49,6 @@ const OnboardingTripView: FC<Props> = ({ trip }) => {
 
   const getFooter = (): FooterConfig => {
     switch (step) {
-      case OnboardingTripStep.Date:
-        return {
-          primaryLabel: l10n.t('onboarding.next'),
-          onPrimary: handleNext,
-          primaryDisabled: !trip.hasDateRange(),
-          // 날짜는 필수라 건너뛰기 = 미정이다 — 같은 결과의 버튼을 둘 두지 않는다(OB-4).
-          secondaryLabel: l10n.t('onboarding.date.undecided'),
-          onSecondary: handleSkip,
-        };
       case OnboardingTripStep.Destination:
         return trip.getLocation()
           ? {
@@ -119,8 +109,6 @@ const OnboardingTripView: FC<Props> = ({ trip }) => {
 
   const renderStep = () => {
     switch (step) {
-      case OnboardingTripStep.Date:
-        return <OnboardingTripDateStepView trip={trip} />;
       case OnboardingTripStep.Destination:
         return (
           <OnboardingTripDestinationStepView

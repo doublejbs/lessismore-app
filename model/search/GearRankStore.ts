@@ -51,7 +51,7 @@ class GearRankStore {
   }
 
   /**
-   * 첫 여행 가이드 3단계 인기 장비(OB-6). SR-4와 같은 쿼리를 `max`개로 읽고,
+   * 첫 여행 가이드 2단계 인기 장비(OB-6). SR-4와 같은 쿼리를 `max`개로 읽고,
    * 카탈로그 문서가 없는 순위(ID만 남은 행)는 뺀다. 실패는 throw — 호출측이 조용히 숨긴다.
    */
   public async loadTopGears(

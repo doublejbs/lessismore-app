@@ -16,7 +16,7 @@ interface Props {
 
 const BUTTON_SIZE = 44;
 
-// 가이드 머리(OB-3): 왼쪽 뒤로(2~4단계) · 가운데 진행 막대 · 오른쪽 닫기 ×.
+// 가이드 머리(OB-3): 왼쪽 뒤로(2~3단계) · 가운데 진행 막대 · 오른쪽 닫기 ×.
 const OnboardingTripHeaderView: FC<Props> = ({
   stepIndex,
   stepCount,

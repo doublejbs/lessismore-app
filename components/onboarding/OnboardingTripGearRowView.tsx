@@ -17,7 +17,7 @@ interface Props {
   source: OnboardingTripGearSource;
 }
 
-// 3단계 장비 행(OB-6) — 창고 행(WH-1, 이름 두 줄 + `무게 · 브랜드` 메타) + 우측 원형 토글.
+// 2단계 장비 행(OB-6) — 창고 행(WH-1, 이름 두 줄 + `무게 · 브랜드` 메타) + 우측 원형 토글.
 // 창고 장비는 체크 배지(편집 화면 BD-4와 같은 모양), 인기 장비는 비선택이 `+`다 — 창고에 없는
 // 장비라 "담기"(추가)로 읽혀야 한다. 행 전체가 토글 대상이라 터치 영역은 행 높이(72) 그대로다.
 const OnboardingTripGearRowView: FC<Props> = ({
