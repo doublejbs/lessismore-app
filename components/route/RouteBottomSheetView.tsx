@@ -262,18 +262,29 @@ const RouteBottomSheetView: FC<Props> = ({
 
   // 접근성: 위로 쓸기(increment) = 한 단 올리기, 아래로 쓸기(decrement) = 한 단 내리기.
   const handleAccessibilityAction = (event: AccessibilityActionEvent) => {
-    const index = DETENT_ORDER.indexOf(currentDetent.get());
-    const step = event.nativeEvent.actionName === 'increment' ? 1 : -1;
-    const nextIndex = Math.min(
-      Math.max(index + step, 0),
-      DETENT_ORDER.length - 1
+    // 기본 단이 접힘과 같은 높이면(빈 상태 카드 — RD-9 #1) 접힘을 건너뛴다 — 같은 높이 단 사이에서 쓸기가 헛돌고
+    // 단 기억이 접힘으로 남지 않게(끌기의 같은 보정과 같다).
+    const order =
+      Math.abs(half - collapsed) < 1
+        ? DETENT_ORDER.filter(detent => detent !== RouteSheetDetent.Collapsed)
+        : DETENT_ORDER;
+    const current = currentDetent.get();
+    const index = Math.max(
+      order.indexOf(
+        current === RouteSheetDetent.Collapsed && order !== DETENT_ORDER
+          ? RouteSheetDetent.Half
+          : current
+      ),
+      0
     );
+    const step = event.nativeEvent.actionName === 'increment' ? 1 : -1;
+    const nextIndex = Math.min(Math.max(index + step, 0), order.length - 1);
 
     if (nextIndex === index) {
       return;
     }
 
-    snapTo(DETENT_ORDER[nextIndex]);
+    snapTo(order[nextIndex]);
   };
 
   const contextValue = useMemo<RouteSheetContextValue>(

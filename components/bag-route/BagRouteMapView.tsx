@@ -1090,6 +1090,9 @@ const BagRouteMapView: FC<Props> = ({
    */
   const destinationPin =
     isEmptyContent && !isDrawing ? bagRouteList.getDrawStartFocus() : null;
+  // `포인트 추가`를 원형 아이콘으로 줄이는 기준은 빈 상태 카드가 보일 때다(RD-9 #1) — 그룹 지도와 같은 기준. 카드의 라임
+  // `지도에서 그리기`가 주 액션이 되는 동안만 줄인다(포인트가 있어도 코스가 없으면 카드가 선다).
+  const isAddPointCompact = bagRouteList.shouldShowEmptyCard();
   const addPointLabel = l10n.t(
     isFull ? 'group.map.pointFull' : 'group.map.addPoint'
   );
@@ -1406,7 +1409,7 @@ const BagRouteMapView: FC<Props> = ({
               />
               {/* 빈 상태에서는 원형 아이콘 버튼으로 줄인다 — 시트 빈 상태 카드의 라임 `지도에서 그리기`와 시선을 다투지
                 않게(RD-9 #1). 그 밖에는 흰 보조 알약. */}
-              {canEdit && !isDrawing && isEmptyContent ? (
+              {canEdit && !isDrawing && isAddPointCompact ? (
                 <MapControlButtonView
                   icon='add'
                   accessibilityLabel={addPointLabel}
@@ -1415,7 +1418,7 @@ const BagRouteMapView: FC<Props> = ({
                   disabled={isFull || submitting}
                 />
               ) : null}
-              {canEdit && !isDrawing && !isEmptyContent ? (
+              {canEdit && !isDrawing && !isAddPointCompact ? (
                 <TouchableOpacity
                   style={[styles.addPointButton, isFull && styles.disabled]}
                   onPress={handleStartAiming}

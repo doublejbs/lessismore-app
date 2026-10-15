@@ -83,7 +83,7 @@ const RouteEmptyCardView: FC<Props> = ({
               accessibilityLabel={meta ? `${drawLabel}, ${meta}` : drawLabel}
               accessibilityState={{ disabled }}
             >
-              <Ionicons name='create-outline' size={20} color={Acg.ink} />
+              <Ionicons name='create-outline' size={18} color={Acg.ink} />
               <PretendardText weight='semibold' style={styles.buttonLabel}>
                 {drawLabel}
               </PretendardText>
@@ -97,7 +97,7 @@ const RouteEmptyCardView: FC<Props> = ({
               accessibilityLabel={importLabel}
               accessibilityState={{ disabled, busy: isUploading }}
             >
-              <Ionicons name='document-outline' size={20} color={Acg.ink} />
+              <Ionicons name='document-outline' size={18} color={Acg.ink} />
               <PretendardText weight='semibold' style={styles.buttonLabel}>
                 {importLabel}
               </PretendardText>
@@ -125,9 +125,12 @@ const PILL = {
   alignItems: 'center',
   justifyContent: 'center',
   gap: 6,
-  paddingHorizontal: 20,
+  // 393pt 폭 카드 안(313pt)에 두 알약이 한 줄로 들어가게 좌우 패딩을 14로 둔다(2026-10-15 리뷰 — 20이면 줄바꿈됐다).
+  paddingHorizontal: 14,
   paddingVertical: 12,
   borderRadius: Radius.pill,
+  // 한 줄에 서면 남는 폭을 나눠 가져 두 알약 폭이 맞는다. 줄바꿈되면 각자 한 줄을 다 쓴다.
+  flexGrow: 1,
 } as const;
 
 const styles = StyleSheet.create({
