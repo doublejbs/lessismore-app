@@ -31,6 +31,8 @@ interface Props {
   onSelectRoute: (route: GroupRoute) => void;
   // 코스 행 `⋯` → 삭제(올린 사람·방장만). 확인 알럿은 화면이 띄운다.
   onDeleteRoute: (route: GroupRoute) => void;
+  // 코스 행 `⋯` → `코스 수정`(RD-7). 올린 사람의 그린 코스에만 선다.
+  onEditRoute: (route: GroupRoute) => void;
   // `코스 추가` — GPX 선택 → 업로드(GRP-8).
   onAddRoute: () => void;
   // `코스 추가`로 시작한 작업이 진행 중인지(파일 선택 포함) / 그중 업로드 단계인지.
@@ -60,6 +62,7 @@ const GroupMapSheetListView: FC<Props> = ({
   segment,
   onSelectRoute,
   onDeleteRoute,
+  onEditRoute,
   onAddRoute,
   isAddingRoute,
   isUploadingRoute,
@@ -211,6 +214,8 @@ const GroupMapSheetListView: FC<Props> = ({
           onSelect={onSelectRoute}
           onDelete={onDeleteRoute}
           canDelete={route => routeList.canDelete(route, group)}
+          onEdit={onEditRoute}
+          canEdit={route => routeList.canRedraw(route)}
           disabled={routeList.isSubmitting()}
         />
       </ScrollView>

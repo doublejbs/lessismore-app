@@ -1152,7 +1152,7 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 | `claimedAt` | timestamp | 서버 시각 |
 
 - **쓰기는 함수만**(`claimFreeRouteDraw`, Admin SDK). 클라이언트 쓰기 전면 금지 — `users/{uid}`는 규칙상 열려 있어 횟수를 두면 되돌릴 수 있다. 읽기는 본인만. `isLockedCollection()`에 추가.
-- `confirmed` | boolean — 그 코스 문서가 실제로 만들어졌는지. 함수 트리거(`onDrawnRouteCreated`, `bag/{bagId}/routes/{routeId}`·`groups/{groupId}/routes/{routeId}` 생성 시 `source == 'drawn'`이고 작성자의 기록과 같으면 `true`)가 세운다.
+- `confirmed` | boolean — 그 코스 문서가 실제로 만들어졌는지. 함수 트리거(`onDrawnBagRouteCreated`·`onDrawnGroupRouteCreated`, `bag/{bagId}/routes/{routeId}`·`groups/{groupId}/routes/{routeId}` 생성 시 `source == 'drawn'`이고 작성자의 기록과 같으면 `true`)가 세운다.
 - `claimFreeRouteDraw` 규칙: 기록이 없으면 새로 정한다. 같은 코스(`kind`·`parentId`·`routeId`)를 다시 요청하면 그대로 통과(재시도). **`confirmed == false`이면 다른 코스로 다시 정할 수 있다**(업로드가 실패해 코스가 생기지 않은 경우). `confirmed == true`면 거절 — 그 뒤로 코스를 지워도 다시 정하지 않는다(지우고 다시 그리기 방지).
 - 회원 탈퇴 시 정리(구독 정리 함수와 같은 자리).
 

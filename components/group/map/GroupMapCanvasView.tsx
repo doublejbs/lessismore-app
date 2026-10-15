@@ -119,6 +119,8 @@ interface Props {
   onSelectRoute: (route: GroupRoute) => void;
   // 시트 코스 행 `⋯` → 삭제(올린 사람·방장만). 확인 알럿은 화면이 띄운다 — 시트가 모달이 아니라 곧바로 뜬다.
   onRequestDeleteRoute: (route: GroupRoute) => void;
+  // 시트 코스 행 `⋯` → `코스 수정`(RD-7 — 올린 사람의 그린 코스). 권한 게이트(RD-8)는 그리기 모델이 본다.
+  onRequestEditRoute: (route: GroupRoute) => void;
   // 시트 목록 아래 `코스 추가` → 메뉴(GPX 가져오기 | 지도에서 그리기, RD-1). 흐름은 `useGroupMapRouteState`가 잇는다.
   onAddRoute: () => void;
   // `코스 추가`로 시작한 작업이 진행 중인지(파일 선택 포함) / 그중 업로드 단계인지.
@@ -235,6 +237,7 @@ const GroupMapCanvasView: FC<Props> = ({
   onRequestDelete,
   onSelectRoute,
   onRequestDeleteRoute,
+  onRequestEditRoute,
   onAddRoute,
   isAddingRoute,
   isUploadingRoute,
@@ -1317,6 +1320,7 @@ const GroupMapCanvasView: FC<Props> = ({
           // 고르기는 화면이 잇는다(`focusRoute`). 카메라 이동·시트 내림은 코스 초점 이펙트가 맡는다.
           onSelectRoute={onSelectRoute}
           onDeleteRoute={onRequestDeleteRoute}
+          onEditRoute={onRequestEditRoute}
           onAddRoute={onAddRoute}
           isAddingRoute={isAddingRoute}
           isUploadingRoute={isUploadingRoute}

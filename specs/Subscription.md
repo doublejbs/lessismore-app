@@ -144,13 +144,15 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 
 - 코스 그리기([RouteDraw.md](RouteDraw.md) RD-8)는 플러스 혜택이다. 무료 사용자는 평생 1개를 그리고 그 코스를 계속 수정할 수 있다.
 - 새로 그리기·다른 그린 코스 수정을 누르면 구독 화면을 **코스 그리기 진입점 변형**으로 연다: 제목 아래 한 줄 `코스를 몇 번이든 그리고 고칠 수 있어요`, 기능 행에서 `코스 그리기`를 맨 위로. `SubscriptionEntryPoint`에 `RouteDraw`를 더한다. 권한을 얻어 닫히면 그리던 일(그리기 시작·수정 시작)을 바로 이어 간다(SUB-11과 같은 `onEntitled`).
+- 구매 성공 토스트는 진입점에 맞춘다: 코스 그리기 진입이면 `코스를 마음껏 그릴 수 있어요`(오프라인 진입은 기존 `오프라인 저장을 쓸 수 있어요`, 설정 진입은 `useless 플러스를 시작했어요`).
+- 측정 `from`에 `route_draw` 추가(SUB-8).
 - 페이월 기능 설명(SUB-2 ⑥)에 행 추가: `코스 그리기` / `지도에 점을 찍으면 등산로를 따라 코스가 이어져요`(아이콘 `create-outline`). 4행 → 5행.
 
 ### SUB-8 측정 `[제안]`
 
 **수용 기준**
 
-- `logClick('subscription_open', { from })` — 구독 화면 진입(`from`: `settings` | `ad_card` | `nudge` | `offline` — 오프라인 타일 게이트 SUB-11; `ad_card`·`nudge`는 SUB-9 보류로 당분간 나오지 않는다).
+- `logClick('subscription_open', { from })` — 구독 화면 진입(`from`: `settings` | `ad_card` | `nudge` | `offline` | `route_draw` — 오프라인 타일 게이트 SUB-11, 코스 그리기 게이트 SUB-12; `ad_card`·`nudge`는 SUB-9 보류로 당분간 나오지 않는다).
 - `logClick('subscription_nudge', { action })` — 한 번 뜨는 안내 시트(SUB-9) 결과(`action`: `shown` | `open` | `dismiss`).
 - `logClick('subscription_purchase', { result })` — `result`: `success` | `cancelled` | `pending` | `error`. `pending`은 결제 승인 대기(iOS Ask to Buy·안드로이드 보류 결제)다 — 알럿 `결제 승인을 기다리고 있어요. 승인되면 오프라인 저장을 쓸 수 있어요.`를 띄우고, 승인되면 권한 리스너가 광고를 끈다.
 - `logClick('subscription_restore', { result })` — `result`: `restored` | `none` | `error`.

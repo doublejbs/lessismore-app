@@ -2,6 +2,8 @@ import { RouteElevationProfile } from '@/model/route/RouteElevation';
 import { formatRouteDistance } from '@/model/route/RouteFormat';
 import RouteDirectionStore from '@/model/route/RouteDirectionStore';
 import RouteGeometry from '@/model/route/RouteGeometry';
+import { RouteCoordinate, RouteDrawnPoint } from '@/model/route/RouteData';
+import RouteSource from '@/model/route/RouteSource';
 import Group from './Group';
 import { toFirestoreDate } from '@/model/firebase/FirestoreDate';
 import { RouteDisplay } from '@/model/route/RouteDisplay';
@@ -20,6 +22,9 @@ class GroupRoute implements RouteDisplay {
   // 배낭 코스에서 복사해 온 코스면 그 원본(DM-29). 직접 올린 코스면 `null`.
   private readonly sourceBagId: string | null;
   private readonly sourceBagRouteId: string | null;
+  // 그린 코스면 `Drawn`, 가져온 코스면 `null`(RouteDraw RD-7).
+  private readonly source: RouteSource | null;
+  private readonly drawnPoints: readonly RouteDrawnPoint[];
   /**
    * 방향에 따라 바뀌는 값(좌표 순서·고도 단면·상승) — 배낭 코스와 같은 구현을 쓴다(GRP-8 뒤집기).
    * 고도 단면은 방향별로 한 번만 만들어 들고 있는다 — 그래프를 훑는 동안 매 프레임 다시 만들지 않게.
@@ -60,6 +65,8 @@ class GroupRoute implements RouteDisplay {
     this.createdAt = toFirestoreDate(data.createdAt);
     this.sourceBagId = data.sourceBagId ?? null;
     this.sourceBagRouteId = data.sourceBagRouteId ?? null;
+    this.source = data.source ?? null;
+    this.drawnPoints = data.drawnPoints ?? [];
   }
 
   public getId() {
@@ -114,6 +121,21 @@ class GroupRoute implements RouteDisplay {
     return this.createdAt;
   }
 
+  // 지도에서 그린 코스인지(DM-29·DM-30 `source == 'drawn'`, RouteDraw RD-7). 그린 코스만 수정할 수 있다.
+  public isDrawn(): boolean {
+    return this.source === RouteSource.Drawn;
+  }
+
+  // 그린 코스의 찍은 점(수정 모드가 다시 연다, RD-7). 가져온 코스·찍은 점이 없는 문서면 빈 배열이다.
+  public getDrawnPoints(): readonly RouteDrawnPoint[] {
+    return this.drawnPoints;
+  }
+
+  // 저장된 방향 그대로의 축약 좌표(뒤집기와 무관) — 수정 모드가 찍은 점 위치로 잘라 구간을 되살린다(RD-7).
+  public getStoredSimplified(): RouteCoordinate[] {
+    return this.geometry.getStoredSimplified();
+  }
+
   // 원본 배낭 코스(BD-11 중복 접기). `그룹에 올리기`로 복사한 코스에만 있다.
   public getSourceBagId(): string | null {
     return this.sourceBagId;
@@ -138,6 +160,11 @@ class GroupRoute implements RouteDisplay {
    */
   public getElevationProfile(): RouteElevationProfile | null {
     return this.geometry.getElevationProfile();
+  }
+
+  // 그린 코스를 고칠 수 있는 사람 — **올린 사람만**(RD-7, 방장은 지우기만 한다). 권한(RD-8)은 따로 본다.
+  public canRedraw(uid: string) {
+    return !!uid && this.isDrawn() && this.authorId === uid;
   }
 
   // 올린 사람과 방장만 지울 수 있다(GRP-4, GRP-8).

@@ -1627,7 +1627,12 @@
     "cancelAnytime": "いつでも解約できます",
     "trialReminderTitle": "useless プラスの無料体験は2日後に終わります",
     "trialReminderBody": "{{date}}から月額{{price}}が請求されます。続けない場合は、ストアの設定から解約してください。",
-    "trialReminderBodyNoPrice": "{{date}}から月額料金が請求されます。続けない場合は、ストアの設定から解約してください。"
+    "trialReminderBodyNoPrice": "{{date}}から月額料金が請求されます。続けない場合は、ストアの設定から解約してください。",
+    "routeDrawEntryLead": "コースを何度でも描いて直せます",
+    "feature5Title": "コースを描く",
+    "feature5Detail": "地図に点を打つと登山道に沿ってコースがつながります",
+    "purchaseSuccessRouteDraw": "コースを思いきり描けます",
+    "purchaseSuccessGeneral": "useless プラスを始めました"
   },
   "commerce": {
     "coupangDisclaimer": "Coupangパートナーズ活動の一環として、所定の手数料を受け取ります。",
@@ -1831,7 +1836,17 @@
     "saveHintRouting": "道が見つかると保存できます",
     "trailFailed": "この区間は道が見つからず直線でつなぎました",
     "trailUnavailable": "道の情報がない地域です · 「登山道に沿う」をオフにしてみてください",
-    "gpxTrailAttribution": " · 経路データ © OpenStreetMap 寄稿者, BRouter"
+    "gpxTrailAttribution": " · 経路データ © OpenStreetMap 寄稿者, BRouter",
+    "menuDrawMetaFree": "最初のコースは無料です",
+    "menuDrawMetaPlus": "useless プラス",
+    "onlineToCheck": "オンラインで確認できます",
+    "editRoute": "コースを編集",
+    "noticeEdit": "コース編集中 · 最後に点を足すか元に戻しましょう",
+    "discardEditConfirm": "編集した内容を破棄しますか?",
+    "trailNotEntitled": "「登山道に沿う」はuseless プラスの機能です",
+    "claimFailed": "今は保存できませんでした。しばらくしてからもう一度お試しください。",
+    "editUnavailable": "このコースは編集できません",
+    "saveHintNoChanges": "変更すると保存できます"
   },
   "map": {
     "loadFailed": "地図データを読み込めませんでした",

@@ -54,10 +54,19 @@ const RouteDrawBarView: FC<Props> = ({ routeDraw, onCancel, onLayout }) => {
   const saving = routeDraw.isSaving();
   const routing = routeDraw.isRouting();
   const metaLabel = l10n.t('routeDraw.metaLabel', { count, distance });
-  // 저장이 막힌 이유 — 길을 찾는 중이면 그것이 먼저다(점이 2개여도 막힌다).
-  const saveHint = l10n.t(
-    routing ? 'routeDraw.saveHintRouting' : 'routeDraw.saveHint'
-  );
+  // 저장이 막힌 이유 — 길을 찾는 중이면 그것이 먼저다(점이 2개여도 막힌다). 수정(RD-7)은 바뀐 것이 없으면 막힌다.
+  const getSaveHintKey = () => {
+    if (routing) {
+      return 'routeDraw.saveHintRouting';
+    }
+
+    if (routeDraw.isEditing() && !routeDraw.hasChanges()) {
+      return 'routeDraw.saveHintNoChanges';
+    }
+
+    return 'routeDraw.saveHint';
+  };
+  const saveHint = l10n.t(getSaveHintKey());
 
   return (
     <View

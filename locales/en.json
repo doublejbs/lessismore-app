@@ -1656,7 +1656,12 @@
     "cancelAnytime": "Cancel anytime",
     "trialReminderTitle": "Your useless Plus free trial ends in 2 days",
     "trialReminderBody": "You'll be charged {{price}} / month from {{date}}. To stop, cancel in your store settings.",
-    "trialReminderBodyNoPrice": "Monthly billing starts {{date}}. To stop, cancel in your store settings."
+    "trialReminderBodyNoPrice": "Monthly billing starts {{date}}. To stop, cancel in your store settings.",
+    "routeDrawEntryLead": "Draw and edit as many routes as you like",
+    "feature5Title": "Draw routes",
+    "feature5Detail": "Tap points on the map and your route follows the hiking trails",
+    "purchaseSuccessRouteDraw": "You can draw as many routes as you like",
+    "purchaseSuccessGeneral": "You've started useless Plus"
   },
   "commerce": {
     "coupangDisclaimer": "As a Coupang Partners activity, we receive a commission.",
@@ -1862,7 +1867,17 @@
     "saveHintRouting": "You can save once the trail is found",
     "trailFailed": "Couldn't find a trail for this segment, so it's a straight line",
     "trailUnavailable": "No trail data in this area · Try turning off Follow trails",
-    "gpxTrailAttribution": " · Route data © OpenStreetMap contributors, BRouter"
+    "gpxTrailAttribution": " · Route data © OpenStreetMap contributors, BRouter",
+    "menuDrawMetaFree": "Your first route is free",
+    "menuDrawMetaPlus": "useless Plus",
+    "onlineToCheck": "You can check this when you're online",
+    "editRoute": "Edit route",
+    "noticeEdit": "Editing route · Add points at the end or undo",
+    "discardEditConfirm": "Discard your changes?",
+    "trailNotEntitled": "Follow trails is a useless Plus feature",
+    "claimFailed": "Couldn't save right now. Please try again in a moment.",
+    "editUnavailable": "This route can't be edited",
+    "saveHintNoChanges": "You can save once you make a change"
   },
   "map": {
     "loadFailed": "Couldn't load map data",

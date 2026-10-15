@@ -10,7 +10,7 @@ interface Props {
 
 /**
  * 그리기 모드 상단 안내 줄 (RD-2) — 지도 상단 안내 한 줄(`MapNoticeLineView`) 문법 그대로. 첫 점을 찍으면
- * "어떻게 이어 가는지·언제 저장되는지"로 바뀐다.
+ * "어떻게 이어 가는지·언제 저장되는지"로 바뀐다. 그린 코스 수정(RD-7)은 `코스 수정 중 · …`으로 시작한다.
  */
 const RouteDrawNoticeView: FC<Props> = ({ routeDraw }) => {
   const l10n = app.getL10n();
@@ -19,9 +19,17 @@ const RouteDrawNoticeView: FC<Props> = ({ routeDraw }) => {
     routeDraw.isTrailEnabled()
       ? 'routeDraw.noticeEmptyTrail'
       : 'routeDraw.noticeEmpty';
-  const label = l10n.t(
-    routeDraw.getPointCount() === 0 ? getEmptyKey() : 'routeDraw.noticeContinue'
-  );
+  const getKey = () => {
+    // 수정을 연 직전(RD-7) — 무엇을 할 수 있는지 먼저 말한다. 바꾸기 시작하면 이어 그리기 안내로 돌아간다.
+    if (routeDraw.isEditing() && !routeDraw.hasChanges()) {
+      return 'routeDraw.noticeEdit';
+    }
+
+    return routeDraw.getPointCount() === 0
+      ? getEmptyKey()
+      : 'routeDraw.noticeContinue';
+  };
+  const label = l10n.t(getKey());
 
   return <MapNoticeLineView label={label} />;
 };

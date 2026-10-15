@@ -7,12 +7,29 @@ import { takeEntitledCallback } from '@/model/subscription/OpenSubscription';
 import PurchaseResult from '@/model/subscription/PurchaseResult';
 import RestoreResult from '@/model/subscription/RestoreResult';
 import { SUBSCRIPTION_ENTITLED_FALLBACK_MS } from '@/model/subscription/SubscriptionConstants';
+import SubscriptionEntryPoint from '@/model/subscription/SubscriptionEntryPoint';
 import SubscriptionStore from '@/model/subscription/SubscriptionStore';
+
+// SUB-12: 구매 성공 토스트는 진입점에 맞춘다 — 사용자가 하려던 일을 말한다. 그 밖의 진입(설정 등)은 일반 문구.
+const getPurchaseSuccessKey = (from: string | undefined) => {
+  if (from === SubscriptionEntryPoint.RouteDraw) {
+    return 'subscription.purchaseSuccessRouteDraw';
+  }
+
+  if (from === SubscriptionEntryPoint.Offline) {
+    return 'subscription.purchaseSuccess';
+  }
+
+  return 'subscription.purchaseSuccessGeneral';
+};
 
 // SUB-2·SUB-5·SUB-8: 구독 시트의 동작. 결과 알림은 시트를 닫은 뒤 토스트로 띄우고(시트 위에서는
 // 아래 화면의 토스트가 가려진다), 시트에 머무는 알림은 시스템 알럿을 쓴다.
 // SUB-11: 권한을 얻으면(구매·체험 시작·복원) 시트를 닫고, 시트가 내려간 뒤 진입점이 넘긴 `onEntitled`를 부른다.
-const useSubscriptionState = (store: SubscriptionStore) => {
+const useSubscriptionState = (
+  store: SubscriptionStore,
+  from: string | undefined
+) => {
   const router = useRouter();
   const l10n = app.getL10n();
   // 이 화면을 연 `openSubscription`의 완료 콜백. 열릴 때 한 번 꺼내 든다 — 권한 없이 닫히면 함께 버려진다.
@@ -129,7 +146,7 @@ const useSubscriptionState = (store: SubscriptionStore) => {
       );
 
     if (result === PurchaseResult.Success) {
-      closeAsEntitled(l10n.t('subscription.purchaseSuccess'));
+      closeAsEntitled(l10n.t(getPurchaseSuccessKey(from)));
 
       return;
     }

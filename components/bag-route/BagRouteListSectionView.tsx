@@ -35,6 +35,8 @@ interface Props {
   onSelect: (entry: BagRouteEntry) => void;
   onDelete: (route: BagRoute) => void;
   onUploadToGroup: (route: BagRoute) => void;
+  // 그린 코스 `⋯` → `코스 수정`(RD-7). 그릴 수 없는 환경(웹·옛 바이너리)에서는 넘기지 않는다.
+  onEditRoute?: ((route: BagRoute) => void) | undefined;
   // 포인트 행 탭 → 지도가 그 포인트로 + 카드(BD-14). 웹(지도 없음)에서는 넘기지 않는다.
   onSelectPoint?: ((entry: BagPointEntry) => void) | undefined;
   onEditPoint: (point: BagPoint) => void;
@@ -70,6 +72,7 @@ const BagRouteListSectionView: FC<Props> = ({
   onSelect,
   onDelete,
   onUploadToGroup,
+  onEditRoute,
   onSelectPoint,
   onEditPoint,
   onDeletePoint,
@@ -97,6 +100,23 @@ const BagRouteListSectionView: FC<Props> = ({
     ].join(separator);
     // 뒤집기는 보기 설정이라 **모든 행**에 있다 — 연결 그룹에서 온 읽기 전용 코스와 웹에서도(GRP-8).
     const actions: RouteRowAction[] = [createRouteDirectionAction(entry.route)];
+    const editableRoute =
+      onEditRoute &&
+      canAdd &&
+      entry.owned &&
+      entry.route instanceof BagRoute &&
+      entry.route.isDrawn()
+        ? entry.route
+        : null;
+
+    // 그린 코스 수정(RD-7) — 뒤집기 다음·삭제 위. 내 배낭의 그린 코스에만 둔다(권한 RD-8은 누를 때 본다).
+    if (editableRoute && onEditRoute) {
+      actions.push({
+        icon: 'create-outline',
+        label: l10n.t('routeDraw.editRoute'),
+        onPress: () => onEditRoute(editableRoute),
+      });
+    }
     // GPX 내보내기도 모든 행이다 — 연결 그룹 코스는 그룹원이라, 내 배낭 코스는 소유자라 받는다(GRP-8).
     const exportAction = createRouteExportAction(entry.route);
 

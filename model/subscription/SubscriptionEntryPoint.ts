@@ -8,6 +8,9 @@ enum SubscriptionEntryPoint {
   Nudge = 'nudge',
   // 배낭 상세 `오프라인` 타일 게이트(SUB-11 · OF-2). 구매에 성공하면 그 여행의 저장을 바로 시작한다.
   Offline = 'offline',
+  // 코스 그리기 게이트(SUB-12 · RouteDraw RD-8) — 새로 그리기·무료 코스가 아닌 그린 코스 수정·길 따라 거절.
+  // 권한을 얻으면 하려던 일(그리기 시작·수정 시작)을 바로 잇는다.
+  RouteDraw = 'route_draw',
 }
 
 export default SubscriptionEntryPoint;

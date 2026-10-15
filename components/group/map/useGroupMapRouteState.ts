@@ -4,6 +4,7 @@ import GroupRoute from '@/model/group/GroupRoute';
 import GroupMap from '@/model/group-map/GroupMap';
 import RouteDraw from '@/model/route-draw/RouteDraw';
 import RouteDrawSource from '@/model/route-draw/RouteDrawSource';
+import RouteDrawTargetKind from '@/model/route-draw/RouteDrawTargetKind';
 import useRouteDrawCancel from '@/components/route-draw/useRouteDrawCancel';
 
 /**
@@ -26,7 +27,18 @@ const useGroupMapRouteState = (groupMap: GroupMap) => {
    */
   const [routeDraw] = useState(() =>
     RouteDraw.from(RouteDrawSource.Group, {
-      submit: (draft, localUri) => routeList.addDrawnRoute(draft, localUri),
+      parent: {
+        kind: RouteDrawTargetKind.Group,
+        parentId: routeList.getGroupId(),
+      },
+      // 상한 등 저장 전 검사(RD-8) — 무료 1회 기록 전에 본다.
+      canSubmit: () => routeList.getDrawSubmitBlockReason(),
+      createRouteId: () => routeList.createRouteId(),
+      submit: (draft, localUri, routeId) =>
+        routeList.addDrawnRoute(draft, localUri, routeId),
+      // 그린 코스 수정(RD-7) — 같은 문서·같은 Storage 경로를 덮어쓴다.
+      update: (routeId, draft, localUri) =>
+        routeList.updateDrawnRoute(routeId, draft, localUri),
       // 모드를 나간 뒤 올린 코스를 골라 카메라를 맞춘다(가져오기와 같다).
       onSaved: routeId => {
         groupMap.focusRoute(routeId);
@@ -103,10 +115,18 @@ const useGroupMapRouteState = (groupMap: GroupMap) => {
     void handleAddRoute();
   }, [handleAddRoute]);
 
-  // 그리기 모드에 들어간다(RD-1). 조준 모드는 화면(`GroupMapView`)이 먼저 끈다.
+  // 그리기 모드에 들어간다(RD-1). 조준 모드는 화면(`GroupMapView`)이 먼저 끈다. 무료 1회를 썼으면 구독 화면이 먼저 뜬다(RD-8).
   const handleStartDrawing = useCallback(() => {
-    routeDraw.start();
+    routeDraw.requestStart();
   }, [routeDraw]);
+
+  // 코스 행 `⋯` → `코스 수정`(RD-7, 올린 사람의 그린 코스). 권한이 없으면 구독 화면이 먼저 뜬다(RD-8).
+  const handleEditRoute = useCallback(
+    (route: GroupRoute) => {
+      routeDraw.requestEdit(route);
+    },
+    [routeDraw]
+  );
 
   const handleSubmitDrawnRoute = useCallback(
     (name: string) => {
@@ -122,6 +142,7 @@ const useGroupMapRouteState = (groupMap: GroupMap) => {
     routeDraw,
     handleSelectRoute,
     handleDeleteRoute,
+    handleEditRoute,
     handleAddRoute,
     handleOpenAddMenu,
     handleCloseAddMenu,

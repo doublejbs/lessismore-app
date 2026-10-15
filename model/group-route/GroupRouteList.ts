@@ -166,11 +166,12 @@ class GroupRouteList {
    * 지도에서 그린 코스를 올린다 (RD-3). 파일은 이미 만들어져 있다 — 그 뒤는 가져오기와 **같은 경로**다
    * (디스패처 검증·업로드·상한 검사, `click_group_route_upload`, 목록 갱신). 올린 코스 id를 돌려준다(실패면 `null` —
    * 가져오기와 같은 문구로 이미 알렸다). 고르고 카메라를 맞추는 일은 그리기 모드를 나간 뒤 화면이 한다
-   * (`RouteDrawHost.onSaved`).
+   * (`RouteDrawHost.onSaved`). `routeId`는 그리기가 미리 발급한 id다(무료 1회를 그 id로 정했다 — RD-8).
    */
   public async addDrawnRoute(
     draft: RouteDraft,
-    localUri: string
+    localUri: string,
+    routeId: string
   ): Promise<string | null> {
     if (this.submitting) {
       return null;
@@ -189,7 +190,60 @@ class GroupRouteList {
     this.setSubmitting(true);
 
     try {
-      return await this.submitDraft(draft, localUri);
+      return await this.submitDraft(draft, localUri, routeId);
+    } catch (error) {
+      this.showMessage(getRouteErrorMessage(error));
+
+      return null;
+    } finally {
+      this.setSubmitting(false);
+    }
+  }
+
+  /**
+   * 그린 코스를 올릴 수 있는지 미리 본다(RD-8 저장 전 검사) — 막히면 사유 문구, 통과면 `null`. `addDrawnRoute`가
+   * 같은 조건으로 거절하므로, 무료 1회 기록 전에 이것을 먼저 보게 한다.
+   */
+  public getDrawSubmitBlockReason(): string | null {
+    if (this.isFull()) {
+      return getRouteErrorMessage(
+        new GroupError(GroupValidationError.RouteLimitExceeded)
+      );
+    }
+
+    return null;
+  }
+
+  // 새로 그릴 코스의 문서 id(RD-8 — 무료 1회를 업로드 전에 이 id로 정한다).
+  public createRouteId(): string {
+    return this.dispatcher.createRouteId(this.groupId);
+  }
+
+  // 그린 코스를 고칠 수 있는 사람인지 — 올린 사람만(RD-7). 권한(RD-8)은 그리기 모델이 따로 본다.
+  public canRedraw(route: GroupRoute): boolean {
+    return this.canAdd() && route.canRedraw(this.getUserId());
+  }
+
+  /**
+   * 그린 코스를 고친 것을 올린다 (RD-7) — 같은 문서·같은 Storage 경로를 덮어쓴다. 상한은 보지 않는다(개수가 그대로다).
+   * 코스가 하나 늘지 않았으므로 `click_group_route_upload`는 남기지 않는다. 실패하면 같은 문구로 알리고 `null`.
+   */
+  public async updateDrawnRoute(
+    routeId: string,
+    draft: RouteDraft,
+    localUri: string
+  ): Promise<string | null> {
+    if (this.submitting) {
+      return null;
+    }
+
+    this.setSubmitting(true);
+
+    try {
+      await this.dispatcher.updateRoute(this.groupId, routeId, draft, localUri);
+      await this.load(true);
+
+      return routeId;
     } catch (error) {
       this.showMessage(getRouteErrorMessage(error));
 
@@ -221,11 +275,17 @@ class GroupRouteList {
   }
 
   // 올리기 + 측정 + 목록 갱신 — 가져오기(`addRoute`)와 그리기(`addDrawnRoute`)가 함께 쓴다. 올린 코스 id를 돌려준다.
-  private async submitDraft(draft: RouteDraft, localUri: string) {
+  private async submitDraft(
+    draft: RouteDraft,
+    localUri: string,
+    presetRouteId: string | null = null
+  ) {
     const routeId = await this.dispatcher.addRoute(
       this.groupId,
       draft,
-      localUri
+      localUri,
+      null,
+      presetRouteId
     );
 
     app.getAnalyticsManager()?.logClick('group_route_upload', {

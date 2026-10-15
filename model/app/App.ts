@@ -1,4 +1,5 @@
 import { makeAutoObservable, reaction } from 'mobx';
+import { Platform } from 'react-native';
 import Firebase from '../firebase/Firebase';
 import GearStore from '../store/GearStore';
 import BagRouteStore from '../store/BagRouteStore';
@@ -37,6 +38,7 @@ import NetworkStatus from '../offline/NetworkStatus';
 import OfflineEntitlement from '../offline/OfflineEntitlement';
 import OfflineTripStore from '../offline/OfflineTripStore';
 import RouteReplayStore from '../route-replay/RouteReplayStore';
+import RouteDrawEntitlement from '../route-draw/RouteDrawEntitlement';
 
 class App {
   // OF-3: 연결 상태의 단일 소스. Firebase 로그인 확인이 오프라인이면 Firestore를 건너뛰어야 하므로
@@ -87,6 +89,8 @@ class App {
   // 오프라인 저장(OF-1 ~ OF-8)과 그 권한 판단(OF-7). 웹·옛 바이너리에서는 만들기만 하고 아무것도 하지 않는다.
   private offlineEntitlement: OfflineEntitlement | null = null;
   private offlineTripStore: OfflineTripStore | null = null;
+  // 코스 그리기 권한(RD-8 · SUB-12) — 플러스 판단은 오프라인 저장 게이트와 같은 `offlineEntitlement`를 쓴다.
+  private routeDrawEntitlement: RouteDrawEntitlement | null = null;
 
   private gearPreviewStore: GearPreviewStore | null = null;
   private initialized = false;
@@ -178,6 +182,7 @@ class App {
       bagStore
     );
     await this.initializeOffline(bagStore);
+    this.initializeRouteDraw();
     this.setInitialized(true);
     this.initializing = false;
   }
@@ -224,8 +229,29 @@ class App {
     );
   }
 
+  // 코스 그리기 무료 기록(DM-36)을 로그인 계정마다 구독한다. 웹은 그리기가 없어(APP-5) 구독하지 않는다.
+  private initializeRouteDraw() {
+    const entitlement = RouteDrawEntitlement.new(
+      this.firebase,
+      this.networkStatus,
+      () => this.offlineEntitlement
+    );
+
+    this.routeDrawEntitlement = entitlement;
+
+    if (Platform.OS === 'web') {
+      return;
+    }
+
+    entitlement.start();
+  }
+
   public getFirebase() {
     return this.firebase;
+  }
+
+  public getRouteDrawEntitlement() {
+    return this.routeDrawEntitlement;
   }
 
   public getAdService() {

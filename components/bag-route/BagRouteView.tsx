@@ -31,6 +31,7 @@ import BagRouteSelection from '@/model/bag-route/BagRouteSelection';
 import { isMapLibreAvailable } from '@/model/map/MapLibreModule';
 import RouteDraw from '@/model/route-draw/RouteDraw';
 import RouteDrawSource from '@/model/route-draw/RouteDrawSource';
+import RouteDrawTargetKind from '@/model/route-draw/RouteDrawTargetKind';
 import RouteListSegment from '@/model/route/RouteListSegment';
 import BagRouteListSectionView from './BagRouteListSectionView';
 import BagRouteMapGateView from './BagRouteMapGateView';
@@ -82,11 +83,21 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
   const [isAddMenuVisible, setIsAddMenuVisible] = useState(false);
   /**
    * 코스 그리기(RD-2 · RD-3) — 화면 수명 동안 하나. 화면을 떠나면 그리던 점과 함께 버려진다(기기 저장 없음).
-   * 저장은 가져오기와 같은 목록 경로(`addDrawnRoute`)를 탄다.
+   * 저장은 가져오기와 같은 목록 경로(`addDrawnRoute`)를, 그린 코스 수정(RD-7)은 같은 문서 덮어쓰기(`updateDrawnRoute`)를 탄다.
    */
   const [routeDraw] = useState(() =>
     RouteDraw.from(RouteDrawSource.Route, {
-      submit: (draft, localUri) => bagRouteList.addDrawnRoute(draft, localUri),
+      parent: {
+        kind: RouteDrawTargetKind.Bag,
+        parentId: bagRouteList.getBagId(),
+      },
+      // 상한 등 저장 전 검사(RD-8) — 무료 1회 기록 전에 본다.
+      canSubmit: () => bagRouteList.getDrawSubmitBlockReason(),
+      createRouteId: () => bagRouteList.createRouteId(),
+      submit: (draft, localUri, routeId) =>
+        bagRouteList.addDrawnRoute(draft, localUri, routeId),
+      update: (routeId, draft, localUri) =>
+        bagRouteList.updateDrawnRoute(routeId, draft, localUri),
       // 모드를 나간 뒤 올린 코스를 골라 카메라를 맞춘다(가져오기와 달리 사용자가 만든 코스라 선택도 기억한다).
       onSaved: routeId => {
         bagRouteList.focusEntry(BagRouteSelection.toBagEntryKey(routeId));
@@ -232,11 +243,23 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
     void bagRouteList.addRoute();
   }, [bagRouteList]);
 
-  // 그리기 모드에 들어간다(RD-1). 조준 모드와 동시에 켜지지 않는다.
+  // 그리기 모드에 들어간다(RD-1). 조준 모드와 동시에 켜지지 않는다. 무료 1회를 썼으면 구독 화면이 먼저 뜬다(RD-8).
   const handleStartDrawing = useCallback(() => {
     setIsAiming(false);
-    routeDraw.start();
+    routeDraw.requestStart();
   }, [routeDraw]);
+
+  // 코스 행 `⋯` → `코스 수정`(RD-7). 권한이 없으면 구독 화면이 먼저 뜬다(RD-8).
+  const handleEditRoute = useCallback(
+    (route: BagRoute) => {
+      setIsAiming(false);
+      routeDraw.requestEdit(route);
+    },
+    [routeDraw]
+  );
+
+  // 지도가 없는 옛 바이너리(MAP-1)·웹에서는 그릴 수 없다 — 가져오기만 남고 `코스 수정`도 없다.
+  const canDraw = !IS_WEB && isMapLibreAvailable();
 
   const handleSubmitDrawnRoute = useCallback(
     (name: string) => {
@@ -348,6 +371,7 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
       onSelect={handleSelect}
       onDelete={handleDelete}
       onUploadToGroup={handleUploadToGroup}
+      onEditRoute={canDraw ? handleEditRoute : undefined}
       // 웹에는 옮겨 갈 지도가 없다 — 포인트 행은 읽기 전용이다(BD-14).
       onSelectPoint={IS_WEB ? undefined : handleSelectPoint}
       onEditPoint={handleRequestEdit}
@@ -495,8 +519,7 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
       />
       <RouteAddMenuView
         visible={isAddMenuVisible}
-        // 지도가 없는 옛 바이너리(MAP-1)에서는 그릴 수 없다 — 가져오기만 남는다.
-        canDraw={!IS_WEB && isMapLibreAvailable()}
+        canDraw={canDraw}
         onClose={handleCloseAddMenu}
         onImport={handleImportRoute}
         onDraw={handleStartDrawing}

@@ -23,6 +23,7 @@ import PointCreateSheetView, {
 } from '@/components/point/PointCreateSheetView';
 import RouteAddMenuView from '@/components/route/RouteAddMenuView';
 import RouteDrawNameSheetView from '@/components/route-draw/RouteDrawNameSheetView';
+import GroupRoute from '@/model/group/GroupRoute';
 import useGroupMapRouteState from './useGroupMapRouteState';
 
 interface Props {
@@ -79,6 +80,7 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
     routeDraw,
     handleSelectRoute,
     handleDeleteRoute,
+    handleEditRoute,
     handleOpenAddMenu,
     handleCloseAddMenu,
     handleImportRoute,
@@ -121,6 +123,15 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
     setIsAiming(false);
     handleStartDrawing();
   }, [handleStartDrawing]);
+
+  // 코스 행 `⋯` → `코스 수정`(RD-7). 그리기 시작과 같이 조준 모드를 먼저 끈다.
+  const handleEditRouteDrawing = useCallback(
+    (route: GroupRoute) => {
+      setIsAiming(false);
+      handleEditRoute(route);
+    },
+    [handleEditRoute]
+  );
 
   const handleBack = () => {
     router.back();
@@ -277,6 +288,7 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
             onRequestDelete={handleRequestDelete}
             onSelectRoute={handleSelectRoute}
             onRequestDeleteRoute={handleDeleteRoute}
+            onRequestEditRoute={handleEditRouteDrawing}
             onAddRoute={handleOpenAddMenu}
             isAddingRoute={isAddingRoute}
             isUploadingRoute={isUploadingRoute}

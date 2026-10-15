@@ -85,7 +85,8 @@ const sampleSegment = (
 const samplePath = (
   segments: readonly (readonly RouteCoordinate[])[],
   lengths: readonly (readonly number[])[],
-  interval: number
+  interval: number,
+  verbatim: readonly boolean[]
 ): RouteCoordinate[] => {
   const samples: RouteCoordinate[] = [copyCoordinate(segments[0][0])];
 
@@ -96,6 +97,15 @@ const samplePath = (
     // 구간 경계(찍은 점)는 한 번만 넣는다 — 앞 구간 끝에 고도가 없고 이 구간 첫 좌표(길 좌표)에 있으면 그 값을 쓴다.
     if (last.ele === undefined && first.ele !== undefined) {
       samples[samples.length - 1] = { ...last, ele: first.ele };
+    }
+
+    // 이미 저장 샘플인 구간(수정 모드에서 되살린 구간 — RD-7)은 다시 고르지 않고 그대로 잇는다.
+    if (verbatim[index]) {
+      coordinates.slice(1).forEach(coordinate => {
+        samples.push(copyCoordinate(coordinate));
+      });
+
+      return;
     }
 
     sampleSegment(coordinates, lengths[index], interval, samples);
@@ -111,11 +121,18 @@ const samplePath = (
  * - 찍은 점(구간 경계)은 **모두** 샘플에 남는다.
  * - 전체가 500점(DM-29·DM-30 `simplified` 상한)을 넘으면 간격을 늘려 500점 이하로 맞춘다.
  * - 길 좌표의 `ele`는 그대로 옮긴다. 고도가 없는 샘플(직선 구간)은 부르는 쪽이 지형 타일로 채운다.
+ * - `verbatim[i]`가 참인 구간은 **이미 저장 샘플**이다(수정 모드에서 되살린 구간 — RD-7). 다시 고르면 저장할 때마다
+ *   선이 성겨지므로 좌표를 그대로 잇는다. 그래도 500점을 넘으면 모든 구간을 다시 고른다(상한이 먼저다).
  */
 export const sampleRouteDrawPath = (
-  segments: readonly (readonly RouteCoordinate[])[]
+  segments: readonly (readonly RouteCoordinate[])[],
+  verbatim: readonly boolean[] = []
 ): RouteCoordinate[] => {
-  const usable = segments.filter(coordinates => coordinates.length >= 2);
+  const usableIndexes = segments
+    .map((coordinates, index) => (coordinates.length >= 2 ? index : -1))
+    .filter(index => index >= 0);
+  const usable = usableIndexes.map(index => segments[index]);
+  const usableVerbatim = usableIndexes.map(index => !!verbatim[index]);
 
   if (usable.length === 0) {
     return segments.length > 0 && segments[0].length > 0
@@ -137,7 +154,19 @@ export const sampleRouteDrawPath = (
     ROUTE_DRAW_SAMPLE_INTERVAL_METERS,
     total / GROUP_ROUTE_MAX_SIMPLIFIED_POINTS
   );
-  let samples = samplePath(usable, lengths, interval);
+  let samples: RouteCoordinate[] = [];
+
+  if (usableVerbatim.some(Boolean)) {
+    samples = samplePath(usable, lengths, interval, usableVerbatim);
+
+    if (samples.length <= GROUP_ROUTE_MAX_SIMPLIFIED_POINTS) {
+      return samples;
+    }
+  }
+
+  const none = usable.map(() => false);
+
+  samples = samplePath(usable, lengths, interval, none);
   let step = 0;
 
   while (
@@ -146,7 +175,7 @@ export const sampleRouteDrawPath = (
   ) {
     interval *= INTERVAL_GROWTH;
     step += 1;
-    samples = samplePath(usable, lengths, interval);
+    samples = samplePath(usable, lengths, interval, none);
   }
 
   return samples;

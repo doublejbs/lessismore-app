@@ -24,14 +24,25 @@ interface Feature {
   detail: string;
 }
 
+interface Props {
+  // SUB-12: 코스 그리기 진입점 변형이면 `코스 그리기` 행을 맨 위로 올린다.
+  routeDrawFirst?: boolean;
+}
+
 /**
- * SUB-2 ⑥ 기능 설명 4행 — 썸네일 64 + 제목(항목 이름 단) + 설명(메타 줄 단, 두 줄까지 감싼다).
+ * SUB-2 ⑥ 기능 설명 5행(SUB-12 `코스 그리기` 추가, 2026-10-14) — 썸네일 64 + 제목(항목 이름 단) + 설명(메타 줄 단, 두 줄까지 감싼다).
  * HM-8 행 문법: 면 없이 헤어라인으로 가르고 첫 행에는 선을 두지 않는다. 썸네일은 토큰 면 위 아이콘이다
  * (사진·가짜 지도는 쓰지 않는다).
  */
-const SubscriptionFeatureListView = () => {
+const SubscriptionFeatureListView = ({ routeDrawFirst = false }: Props) => {
   const l10n = app.getL10n();
-  const features: Feature[] = [
+  const routeDrawFeature: Feature = {
+    key: 'route-draw',
+    icon: 'create-outline',
+    title: l10n.t('subscription.feature5Title'),
+    detail: l10n.t('subscription.feature5Detail'),
+  };
+  const baseFeatures: Feature[] = [
     {
       key: 'save',
       icon: 'cloud-download-outline',
@@ -57,6 +68,9 @@ const SubscriptionFeatureListView = () => {
       detail: l10n.t('subscription.feature4Detail'),
     },
   ];
+  const features = routeDrawFirst
+    ? [routeDrawFeature, ...baseFeatures]
+    : [...baseFeatures, routeDrawFeature];
 
   return (
     <View>

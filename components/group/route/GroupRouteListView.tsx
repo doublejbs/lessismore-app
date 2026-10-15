@@ -27,6 +27,9 @@ interface Props {
   // 삭제는 올린 사람과 방장에게만 노출한다. 판정은 화면이 내려준다.
   onDelete?: ((route: GroupRoute) => void) | undefined;
   canDelete?: ((route: GroupRoute) => boolean) | undefined;
+  // `코스 수정`(RD-7)은 올린 사람의 그린 코스에만 노출한다. 지도에서 그릴 수 있는 목록만 넘긴다.
+  onEdit?: ((route: GroupRoute) => void) | undefined;
+  canEdit?: ((route: GroupRoute) => boolean) | undefined;
   disabled?: boolean | undefined;
 }
 
@@ -42,6 +45,8 @@ const GroupRouteListView: FC<Props> = ({
   selectedRouteId,
   onDelete,
   canDelete,
+  onEdit,
+  canEdit,
   disabled,
 }) => {
   const l10n = app.getL10n();
@@ -57,18 +62,29 @@ const GroupRouteListView: FC<Props> = ({
       ),
     ].join(separator);
     const deletable = !!onDelete && (canDelete?.(route) ?? true);
+    const editable = !!onEdit && (canEdit?.(route) ?? false);
     // 뒤집기는 보기 설정이라 **모든 행**에 있다 — 남이 올린 코스도 누구나 뒤집어 본다(GRP-8).
     // GPX 내보내기도 그룹원 누구나다. 삭제는 올린 사람·방장에게만, 파괴적 액션이라 메뉴 맨 아래다.
     const exportAction = createRouteExportAction(route);
+    // 그린 코스 수정(RD-7)은 뒤집기 다음·삭제 위다.
     const actions: RouteRowAction[] = [
       createRouteDirectionAction(route),
+      ...(editable
+        ? [
+            {
+              icon: 'create-outline' as const,
+              label: l10n.t('routeDraw.editRoute'),
+              onPress: () => onEdit(route),
+            },
+          ]
+        : []),
       ...(exportAction ? [exportAction] : []),
       ...(deletable
         ? [
             {
               icon: 'trash-outline' as const,
               label: l10n.t('route.delete'),
-              onPress: () => onDelete?.(route),
+              onPress: () => onDelete(route),
             },
           ]
         : []),

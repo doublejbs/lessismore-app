@@ -56,7 +56,8 @@ service cloud.firestore {
 
         return data.keys().hasOnly([
             'name', 'storagePath', 'fileSize', 'distance', 'elevationGain', 'elevationLoss',
-            'pointCount', 'bounds', 'simplified', 'createdAt'
+            'pointCount', 'bounds', 'simplified', 'createdAt',
+            'source', 'drawnPoints', 'updatedAt'
           ])
           && data.keys().hasAll([
             'name', 'storagePath', 'fileSize', 'distance',
@@ -90,7 +91,16 @@ service cloud.firestore {
           // 1MB 문서 한도와 렌더 성능 때문이다.
           && data.simplified is list
           && data.simplified.size() >= 2
-          && data.simplified.size() <= 500;
+          && data.simplified.size() <= 500
+          // 그린 코스(RouteDraw RD-7·RD-8, DM-29·DM-30 2026-10-14). `source` 는 'drawn' 하나뿐이고(없으면 GPX
+          // 가져오기), 찍은 점 `drawnPoints`(2~100점)는 그린 코스에만 둔다. `updatedAt` 은 수정한 서버 시각이다.
+          && (!('source' in data) || data.source == 'drawn')
+          && (!('drawnPoints' in data)
+            || ('source' in data
+              && data.drawnPoints is list
+              && data.drawnPoints.size() >= 2
+              && data.drawnPoints.size() <= 100))
+          && (!('updatedAt' in data) || data.updatedAt is timestamp);
       }
 
       // 소유자만 읽는다. 목록(list)도 같은 조건이다 — 화면이 코스 목록을 조회해 그린다.
@@ -99,8 +109,16 @@ service cloud.firestore {
 
       allow create: if isBagOwner() && isValidBagRoutePayload();
 
-      // 코스는 이름 변경이 필요 없으므로 수정 경로를 두지 않는다(그룹 코스와 같다).
-      allow update: if false;
+      // 수정은 **그린 코스만**(RouteDraw RD-7) — 소유자가 같은 문서를 덮어쓴다. 가져온 GPX(`source` 없음)는
+      // 원본 파일이 따로 있어 수정하지 않는다. `source`·`storagePath`·`createdAt` 은 바꾸지 못하고
+      // `updatedAt` 은 이 요청의 서버 시각이어야 한다(클라이언트는 serverTimestamp()로 쓴다).
+      allow update: if isBagOwner()
+        && isValidBagRoutePayload()
+        && resource.data.get('source', null) == 'drawn'
+        && request.resource.data.source == 'drawn'
+        && request.resource.data.storagePath == resource.data.storagePath
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
 
       allow delete: if isBagOwner();
     }

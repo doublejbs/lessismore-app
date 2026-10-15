@@ -51,6 +51,11 @@ import GroupPoint from '../group/GroupPoint';
 import PointType from '../point/PointType';
 import GroupRoute from '../group/GroupRoute';
 import RouteDirectionStore from '../route/RouteDirectionStore';
+import {
+  toRouteDrawnFields,
+  toRouteDrawnPayload,
+  toRouteUpdatePayload,
+} from '../route/RouteDocument';
 import GroupValidationError from '../group/GroupValidationError';
 import GroupValidator from '../group/GroupValidator';
 import RouteValidator from '../route/RouteValidator';
@@ -882,6 +887,8 @@ class GroupStore {
         simplified,
         authorId: userId,
         authorName,
+        // 그린 코스면 `source`·찍은 점(RouteDraw RD-7). 가져온 코스엔 키가 없다.
+        ...toRouteDrawnPayload(input),
         createdAt: serverTimestamp(),
       };
 
@@ -906,6 +913,27 @@ class GroupStore {
         updatedAt: serverTimestamp(),
       });
     });
+
+    return input.routeId;
+  }
+
+  /**
+   * 그린 코스 수정 (RouteDraw RD-7). **같은 문서를 덮어쓴다** — `storagePath`·`createdAt`·작성자·복사 원본 참조는
+   * 그대로 두고(보내지 않는다) `updatedAt`을 서버 시각으로 쓴다. 개수가 바뀌지 않으므로 그룹 문서(`routeCount`)는
+   * 건드리지 않는다. 보안 규칙이 그린 코스(`source == 'drawn'`)·**올린 사람만** 받는다 — 방장이라도 남의 코스는
+   * 고치지 않는다. Storage 원본은 호출자가 같은 경로에 먼저 다시 올린다.
+   */
+  public async updateRoute(
+    groupId: string,
+    input: RouteInput
+  ): Promise<string> {
+    this.requireUserId();
+    RouteValidator.validateRoute(input);
+
+    await updateDoc(
+      this.routeRef(groupId, input.routeId),
+      toRouteUpdatePayload(input)
+    );
 
     return input.routeId;
   }
@@ -1222,6 +1250,8 @@ class GroupStore {
       authorId: data.authorId ?? '',
       authorName: data.authorName ?? '',
       createdAt: toFirestoreDate(data.createdAt),
+      // 그린 코스면 `source`·찍은 점·수정 시각(RouteDraw RD-7).
+      ...toRouteDrawnFields(data),
       // 원본 참조는 둘 다 문자열일 때만 읽는다 — 반쪽 참조로는 중복을 판정할 수 없다(BD-11).
       ...(typeof data.sourceBagId === 'string' &&
       typeof data.sourceBagRouteId === 'string' &&

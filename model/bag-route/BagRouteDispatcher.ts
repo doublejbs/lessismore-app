@@ -4,6 +4,7 @@ import Group from '@/model/group/Group';
 import GroupRoute from '@/model/group/GroupRoute';
 import GroupRouteDispatcher from '@/model/group-route/GroupRouteDispatcher';
 import { RouteDraft } from '@/model/route/RouteData';
+import RouteDrawTargetKind from '@/model/route-draw/RouteDrawTargetKind';
 import RouteUpload from '@/model/route/RouteUpload';
 import RouteValidator from '@/model/route/RouteValidator';
 import BagRouteStore from '@/model/store/BagRouteStore';
@@ -132,20 +133,28 @@ class BagRouteDispatcher {
     }
   }
 
+  // 코스 문서 id를 미리 발급한다 — 코스 그리기의 무료 1회(RD-8)가 업로드 전에 그 id로 기록을 정한다.
+  public createRouteId(bagId: string): string {
+    return this.bagRouteStore.createRouteId(bagId);
+  }
+
   /**
    * 코스 등록. 순서가 계약이다(그룹 코스 GRP-8과 같다) —
    * ① 규칙과 같은 조건으로 먼저 검증하고(안 하면 업로드만 성공하고 문서 쓰기가 거부돼
    * 회수 경로 없는 고아 GPX가 남는다) ② 문서 ID를 먼저 발급해 Storage 경로를 정한 뒤
    * ③ 원본을 올리고 ④ Firestore 문서를 쓴다. ④가 실패하면 ③을 되돌린다.
+   *
+   * `routeId`를 넘기면 그 id로 올린다(코스 그리기 무료 1회 — 미리 발급해 기록을 정한 id, RD-8). 없으면 새로 발급한다.
    */
   public async addRoute(
     bagId: string,
     draft: RouteDraft,
-    localUri: string
+    localUri: string,
+    presetRouteId: string | null = null
   ): Promise<string> {
     RouteValidator.validateRoute(draft);
 
-    const routeId = this.bagRouteStore.createRouteId(bagId);
+    const routeId = presetRouteId ?? this.bagRouteStore.createRouteId(bagId);
     const storagePath = this.bagRouteStore.getRouteStoragePath(bagId, routeId);
 
     await this.upload.upload(storagePath, localUri);
@@ -158,6 +167,42 @@ class BagRouteDispatcher {
       });
     } catch (error) {
       await this.rollback(storagePath);
+
+      throw error;
+    }
+  }
+
+  /**
+   * 그린 코스 수정 (RouteDraw RD-7). **같은 문서·같은 Storage 경로를 덮어쓴다.** 순서는 등록과 같다(검증 → 원본 →
+   * 문서). 다만 수정은 원본을 지우지 않는다 — 덮어쓰기 전에 이전 원본을 받아 두고, 문서 쓰기가 실패하면 그것을 다시
+   * 올려 **이전 파일·문서가 함께 남게** 한다. 이전 원본을 못 받으면 덮어쓰지 않고 실패로 끝낸다.
+   */
+  public async updateRoute(
+    bagId: string,
+    routeId: string,
+    draft: RouteDraft,
+    localUri: string
+  ): Promise<string> {
+    RouteValidator.validateRoute(draft);
+
+    const storagePath = this.bagRouteStore.getRouteStoragePath(bagId, routeId);
+    const previous = await this.upload.downloadBlob(storagePath);
+
+    // 이전 원본을 못 받으면 덮어쓰지 않는다 — 문서 쓰기가 실패했을 때 되돌릴 것이 없어 파일·문서가 어긋난다.
+    if (!previous) {
+      throw new Error('Previous route GPX could not be downloaded');
+    }
+
+    await this.upload.upload(storagePath, localUri);
+
+    try {
+      return await this.bagRouteStore.updateRoute(bagId, {
+        ...draft,
+        routeId,
+        storagePath,
+      });
+    } catch (error) {
+      await this.restore(storagePath, previous);
 
       throw error;
     }
@@ -216,6 +261,18 @@ class BagRouteDispatcher {
     }
 
     return store.load(bagId);
+  }
+
+  // 문서 쓰기가 실패해 이전 원본을 다시 올린다. 이것마저 실패하면 파일·문서가 어긋난 채 남으므로 측정으로 남긴다.
+  private async restore(storagePath: string, previous: Blob) {
+    try {
+      await this.upload.uploadBlob(storagePath, previous);
+    } catch (error) {
+      console.warn('배낭 코스 원본 되돌리기 실패:', error); // l10n-ignore: 개발자 로그
+      app.getAnalyticsManager()?.logEvent('route_update_restore_failed', {
+        kind: RouteDrawTargetKind.Bag,
+      });
+    }
   }
 
   private async rollback(storagePath: string): Promise<void> {

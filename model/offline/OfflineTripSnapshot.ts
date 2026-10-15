@@ -45,8 +45,10 @@ export interface OfflineBagData extends OfflinePackingState {
 }
 
 // 코스(DM-30) — `createdAt`만 ISO 문자열이다(Timestamp → ISO, §4).
-export type OfflineRouteData = Omit<RouteData, 'createdAt'> & {
+export type OfflineRouteData = Omit<RouteData, 'createdAt' | 'updatedAt'> & {
   createdAt: string;
+  // 그린 코스 수정 시각(RD-7). 시각은 ISO 문자열이다.
+  updatedAt?: string;
 };
 
 // 지도 포인트(DM-33) — 시각만 ISO 문자열이다.
@@ -168,16 +170,26 @@ export const toPlain = (value: unknown): Plain | undefined => {
 };
 
 export const toOfflineRouteData = (route: RouteData): OfflineRouteData => {
-  const { createdAt, ...rest } = route;
+  const { createdAt, updatedAt, ...rest } = route;
 
   return {
-    ...(toPlain(rest) as unknown as Omit<OfflineRouteData, 'createdAt'>),
+    ...(toPlain(rest) as unknown as Omit<
+      OfflineRouteData,
+      'createdAt' | 'updatedAt'
+    >),
     createdAt: createdAt.toISOString(),
+    ...(updatedAt ? { updatedAt: updatedAt.toISOString() } : {}),
   };
 };
 
 export const fromOfflineRouteData = (route: OfflineRouteData): RouteData => {
-  return { ...route, createdAt: new Date(route.createdAt) };
+  const { createdAt, updatedAt, ...rest } = route;
+
+  return {
+    ...rest,
+    createdAt: new Date(createdAt),
+    ...(updatedAt ? { updatedAt: new Date(updatedAt) } : {}),
+  };
 };
 
 export const toOfflinePointData = (point: BagPointData): OfflinePointData => {
@@ -230,8 +242,13 @@ export const fromOfflineGroupRouteData = (
 
   // 올린 사람은 저장하지 않았다 — 코스 화면은 작성자를 보여 주지 않는다(편집도 막혀 있다).
   return {
-    ...rest,
-    createdAt: new Date(rest.createdAt),
+    ...fromOfflineRouteData(rest),
+    ...(rest.sourceBagId && rest.sourceBagRouteId
+      ? {
+          sourceBagId: rest.sourceBagId,
+          sourceBagRouteId: rest.sourceBagRouteId,
+        }
+      : {}),
     authorId: '',
     authorName: '',
   };

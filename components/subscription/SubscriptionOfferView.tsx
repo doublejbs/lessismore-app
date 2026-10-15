@@ -39,6 +39,8 @@ interface Props {
   isTrialEligible: boolean;
   // SUB-11: 오프라인 타일 게이트에서 열었는지 — 제목 아래 안내 한 줄을 더한다.
   isOfflineEntry: boolean;
+  // SUB-12: 코스 그리기 게이트에서 열었는지 — 제목 아래 안내 한 줄 + 기능 행 `코스 그리기`를 맨 위로.
+  isRouteDrawEntry: boolean;
   isPurchasing: boolean;
   isRestoring: boolean;
   onSubscribe: () => void;
@@ -51,7 +53,7 @@ interface Props {
 
 /**
  * SUB-2 미구독 — 전체 화면 안내(2026-10-13 개정). 세로 스크롤에 ① 히어로 ② 배지 ③ 제목 두 줄 ④ 가격 줄
- * ⑤ 체험 카드(자격 없으면 한 줄) ⑥ 기능 4행 ⑦ 심사 필수 표시를 쌓고, 하단 고정 바에 주 액션(라임 —
+ * ⑤ 체험 카드(자격 없으면 한 줄) ⑥ 기능 5행 ⑦ 심사 필수 표시를 쌓고, 하단 고정 바에 주 액션(라임 —
  * 화면에 하나)을 둔다. 스크롤 콘텐츠 하단 패딩은 바 높이만큼이다.
  *
  * - SUB-10: 제목·가격·체험 카드·버튼 문구가 체험 자격으로 갈린다. 상품·자격을 받기 전에는 제목과 체험
@@ -63,6 +65,7 @@ const SubscriptionOfferView = ({
   priceString,
   isTrialEligible,
   isOfflineEntry,
+  isRouteDrawEntry,
   isPurchasing,
   isRestoring,
   onSubscribe,
@@ -195,6 +198,12 @@ const SubscriptionOfferView = ({
             </PretendardText>
           ) : null}
 
+          {isRouteDrawEntry ? (
+            <PretendardText style={styles.lead}>
+              {l10n.t('subscription.routeDrawEntryLead')}
+            </PretendardText>
+          ) : null}
+
           <View style={styles.priceSlot}>{renderPrice()}</View>
 
           {renderTrialNotice()}
@@ -207,7 +216,7 @@ const SubscriptionOfferView = ({
           </View>
 
           <View style={styles.features}>
-            <SubscriptionFeatureListView />
+            <SubscriptionFeatureListView routeDrawFirst={isRouteDrawEntry} />
           </View>
 
           <View style={styles.legal}>

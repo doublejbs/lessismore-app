@@ -2,6 +2,7 @@ import { Functions, getFunctions, httpsCallable } from 'firebase/functions';
 import app from '@/model/app/App';
 import { getDistanceInMeters } from '@/model/bag-destination/GeoDistance';
 import { RouteCoordinate } from '@/model/route/RouteData';
+import { RouteDrawTarget } from '@/model/route-draw/RouteDrawTarget';
 import RouteTrailFailReason from './RouteTrailFailReason';
 import { RouteTrailResult } from './RouteTrailResult';
 
@@ -21,8 +22,13 @@ interface RouteTrailPoint {
   longitude: number;
 }
 
+// `editing`: 그린 코스를 고치는 중이면 그 코스(RD-8) — 무료 사용자가 무료로 그린 코스를 고칠 때 서버가 길을 찾아 준다.
 type RouteTrailRequest =
-  | { from: { lat: number; lng: number }; to: { lat: number; lng: number } }
+  | {
+      from: { lat: number; lng: number };
+      to: { lat: number; lng: number };
+      editing?: RouteDrawTarget;
+    }
   | { warmup: true };
 
 const isFiniteNumber = (value: unknown): value is number =>
@@ -36,6 +42,10 @@ const toFailReason = (reason: unknown): RouteTrailFailReason => {
 
   if (reason === RouteTrailFailReason.TooFar) {
     return RouteTrailFailReason.TooFar;
+  }
+
+  if (reason === RouteTrailFailReason.NotEntitled) {
+    return RouteTrailFailReason.NotEntitled;
   }
 
   return RouteTrailFailReason.Error;
@@ -107,9 +117,14 @@ class RouteTrailService {
 
   private constructor() {}
 
+  /**
+   * 두 점 사이 길을 찾는다(RD-6). `editing`은 그린 코스를 고치는 중일 때의 그 코스다(RD-8) — 서버가 무료 코스
+   * 수정인지 판단하는 데 쓴다.
+   */
   public async route(
     from: RouteTrailPoint,
-    to: RouteTrailPoint
+    to: RouteTrailPoint,
+    editing: RouteDrawTarget | null = null
   ): Promise<RouteTrailResult> {
     if (app.getNetworkStatus().isOffline()) {
       return { ok: false, reason: RouteTrailFailReason.Offline };
@@ -119,7 +134,7 @@ class RouteTrailService {
       return { ok: false, reason: RouteTrailFailReason.TooFar };
     }
 
-    return RouteTrailService.withTimeout(this.request(from, to));
+    return RouteTrailService.withTimeout(this.request(from, to, editing));
   }
 
   // 그리기 모드에 들어갈 때 한 번 — 서버 콜드 스타트를 첫 점 전에 치른다. 결과·실패 모두 무시한다(RD-6).
@@ -142,7 +157,8 @@ class RouteTrailService {
 
   private async request(
     from: RouteTrailPoint,
-    to: RouteTrailPoint
+    to: RouteTrailPoint,
+    editing: RouteDrawTarget | null
   ): Promise<RouteTrailResult> {
     const callable = this.getCallable(CALLABLE_TIMEOUT_MS);
 
@@ -154,6 +170,15 @@ class RouteTrailService {
       const response = await callable({
         from: { lat: from.latitude, lng: from.longitude },
         to: { lat: to.latitude, lng: to.longitude },
+        ...(editing
+          ? {
+              editing: {
+                kind: editing.kind,
+                parentId: editing.parentId,
+                routeId: editing.routeId,
+              },
+            }
+          : {}),
       });
 
       return toResult(response.data);

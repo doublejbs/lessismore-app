@@ -10,6 +10,8 @@ enum RouteTrailFailReason {
   Offline = 'offline',
   // 직선 거리가 20km를 넘어 요청하지 않았다.
   TooFar = 'too_far',
+  // 서버가 권한 없음으로 거절했다(RD-8 — 플러스 아님·무료 1회 사용·수정 대상이 무료 코스 아님). 구독 화면으로 보낸다.
+  NotEntitled = 'not_entitled',
 }
 
 export default RouteTrailFailReason;

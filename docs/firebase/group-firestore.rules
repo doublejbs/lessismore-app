@@ -428,7 +428,16 @@ service cloud.firestore {
             // 1MB 문서 한도와 렌더 성능 때문이다.
             && data.simplified is list
             && data.simplified.size() >= 2
-            && data.simplified.size() <= 500;
+            && data.simplified.size() <= 500
+            // 그린 코스(RouteDraw RD-7·RD-8, DM-29·DM-30 2026-10-14). `source` 는 'drawn' 하나뿐이고(없으면 GPX
+            // 가져오기), 찍은 점 `drawnPoints`(2~100점)는 그린 코스에만 둔다. `updatedAt` 은 수정한 서버 시각이다.
+            && (!('source' in data) || data.source == 'drawn')
+            && (!('drawnPoints' in data)
+              || ('source' in data
+                && data.drawnPoints is list
+                && data.drawnPoints.size() >= 2
+                && data.drawnPoints.size() <= 100))
+            && (!('updatedAt' in data) || data.updatedAt is timestamp);
         }
 
         // 그룹당 5개 상한(GRP-8). 포인트와 같은 배치 결합으로 강제한다.
@@ -446,7 +455,7 @@ service cloud.firestore {
           && request.resource.data.keys().hasOnly([
             'name', 'storagePath', 'fileSize', 'distance', 'elevationGain', 'elevationLoss',
             'pointCount', 'bounds', 'simplified', 'authorId', 'authorName', 'createdAt',
-            'sourceBagId', 'sourceBagRouteId'
+            'sourceBagId', 'sourceBagRouteId', 'source', 'drawnPoints', 'updatedAt'
           ])
           && request.resource.data.keys().hasAll([
             'name', 'storagePath', 'fileSize', 'distance', 'pointCount',
@@ -467,8 +476,26 @@ service cloud.firestore {
           && isValidRoutePayload()
           && routeCounterIncremented();
 
-        // 코스는 이름 변경이 필요 없으므로 수정 경로를 두지 않는다(GRP-8).
-        allow update: if false;
+        // 수정은 **그린 코스만**(RouteDraw RD-7), **올린 사람만** 한다 — 방장도 남의 코스는 지우기만 한다.
+        // 개수가 바뀌지 않으므로 카운터 조건(`routeCounterIncremented`)은 두지 않는다(그룹 문서를 함께 쓰지 않는다).
+        // 작성자·복사 원본 참조·`source`·`storagePath`·`createdAt` 은 그대로여야 하고 `updatedAt` 은 이 요청의 서버 시각이다.
+        allow update: if isGroupMember(groupId)
+          && resource.data.authorId == request.auth.uid
+          && request.resource.data.keys().hasOnly([
+            'name', 'storagePath', 'fileSize', 'distance', 'elevationGain', 'elevationLoss',
+            'pointCount', 'bounds', 'simplified', 'authorId', 'authorName', 'createdAt',
+            'sourceBagId', 'sourceBagRouteId', 'source', 'drawnPoints', 'updatedAt'
+          ])
+          && request.resource.data.authorId == resource.data.authorId
+          && request.resource.data.authorName == resource.data.authorName
+          && request.resource.data.get('sourceBagId', null) == resource.data.get('sourceBagId', null)
+          && request.resource.data.get('sourceBagRouteId', null) == resource.data.get('sourceBagRouteId', null)
+          && resource.data.get('source', null) == 'drawn'
+          && request.resource.data.source == 'drawn'
+          && request.resource.data.storagePath == resource.data.storagePath
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.updatedAt == request.time
+          && isValidRoutePayload();
 
         allow delete: if isGroupMember(groupId)
           && (resource.data.authorId == request.auth.uid || isGroupOwner(groupId))
