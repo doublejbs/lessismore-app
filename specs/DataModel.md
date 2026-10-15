@@ -1003,13 +1003,13 @@
 **규칙**
 
 - `bag/{bagId}`
-  - 주인 = `resource.data.userId == auth.uid`. `userId`가 없는 옛 문서는 `users/{auth.uid}.bags`에 그 ID가 있으면 주인으로 본다(2026-10-15 주인이 확인되는 21건은 `userId`를 채웠다 — 남은 14건은 어느 사용자 목록에도 없는 고아 문서다).
+  - 주인 = `resource.data.userId == auth.uid` **하나로만** 판정한다. `userId`가 없는 옛 문서는 2026-10-15 주인이 확인되는 21건에 `userId`를 채웠고, 남은 14건(어느 사용자 목록에도 없는 고아)은 공유된 것이 아니면 아무도 열 수 없다. 사용자 문서의 `bags` 목록으로 주인을 대신 판정하지 않는다 — 누구나 자기 `bags`에 남의 ID를 넣을 수 있어 고아 문서를 가로챌 수 있다.
   - `get`: 문서가 없거나, 주인이거나, `shared == true` 또는 `reviewShared == true`(비로그인 공유 링크 BD-7·CS-8).
   - `list`: 주인 문서만.
   - `create`: 로그인 + `userId == auth.uid`.
-  - `update`: 주인 + `userId`를 남으로 바꾸지 않는다(비어 있던 값을 본인으로 채우는 것만 허용 — `updateShared`·`updateReviewShared`가 채운다).
+  - `update`: 주인 + 바뀐 뒤에도 `userId == auth.uid`(`updateShared`·`updateReviewShared`가 같은 값을 다시 쓴다).
   - `delete`: 문서가 없거나 주인(회원 탈퇴 일괄 삭제에 지운 ID가 섞여도 통과).
-- `users/{userId}`: 읽기·쓰기 모두 본인만(`list` 금지). 갱신은 바뀌는 키만 검사한다(`termsAgreed`·`privacyAgreed`·`marketingAgreed`·`personalInfoAgreed`·`over14Agreed`·`smsAgreed`·`agreedAt`·`createdAt`·`nickname`·`bags`). 하위 컬렉션(`gears`·`push-tokens` 등) 규칙은 그대로다 — 비로그인 공유 배낭이 `users/{owner}/gears`를 읽는다.
+- `users/{userId}`: 읽기·쓰기 모두 본인만(`list` 금지). 갱신은 바뀌는 키만 검사한다(`termsAgreed`·`privacyAgreed`·`marketingAgreed`·`personalInfoAgreed`·`over14Agreed`·`smsAgreed`·`agreedAt`·`createdAt`·`nickname`·`bags`). 하위 컬렉션(`groups`·`push-tokens` 제외 — 각자 규칙이 있다)은 **읽기는 그대로 열고 쓰기는 본인만** 한다 — 비로그인 공유 배낭이 `users/{owner}/gears`를 읽고, 앱·웹의 하위 컬렉션 쓰기는 모두 본인 uid다(2026-10-15 조사).
 
 **앱 선행 변경 — 배낭 목록은 문서마다 읽는다**
 
