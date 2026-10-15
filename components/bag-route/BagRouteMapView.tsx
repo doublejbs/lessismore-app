@@ -21,6 +21,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
@@ -39,10 +40,12 @@ import {
   NO_CAMERA_PADDING,
   OVERLAY_GAP,
 } from '@/components/map/MapConstants';
+import MapControlButtonView from '@/components/map/MapControlButtonView';
 import MapEndpointMarkersView from '@/components/map/MapEndpointMarkersView';
 import MapMyLocationButtonView from '@/components/map/MapMyLocationButtonView';
 import MapMyLocationMarkerView from '@/components/map/MapMyLocationMarkerView';
 import MapNoticeLineView from '@/components/map/MapNoticeLineView';
+import MapPinCaptionMarkerView from '@/components/map/MapPinCaptionMarkerView';
 import MapPointMarkersView from '@/components/map/MapPointMarkersView';
 import MapRoutePathLayersView, {
   ROUTE_CASING_LAYER_ID,
@@ -169,6 +172,12 @@ interface MapSize {
 
 /** 목록에서 포인트를 골랐을 때 적어도 이만큼 당겨 보는 범위(도) — 그룹 지도의 포인트 초점과 같은 값. */
 const POINT_FOCUS_ZOOM = deltaToZoom(0.02);
+/** 코스·포인트가 없어 여행지로 처음 열 때의 줌(BD-11 첫 카메라) — 들머리 둘레의 산줄기가 함께 들어온다. */
+const DESTINATION_ZOOM = 12;
+/** 여행지도 없어 마지막 현재 위치로 처음 열 때의 줌(BD-11) — 여행지보다 한 단 넓다(지난 위치는 어림이다). */
+const LAST_LOCATION_ZOOM = 11;
+/** 첫 카메라가 여행지를 기다리는 최대 시간(ms) — 그리기 시작(RD-9 #2)과 같은 값. */
+const DESTINATION_WAIT_MS = 1500;
 /** 코스·포인트가 한 점뿐일 때(상자가 0) 그 점을 보는 줌 — 상자 맞춤은 최대 줌으로 붙어 버린다. */
 const SINGLE_POINT_ZOOM = 15;
 /**
@@ -246,7 +255,8 @@ const toFitCamera = (
  * - **추가 경로 둘**(GRP-9와 같다, 온라인에서만): 지도 **길게 누르기**(MapLibre 네이티브 롱프레스) → 입력 시트,
  *   우하단 `포인트 추가` 보조 알약 → **조준 모드**. `포인트 추가`는 라임이 아니다 — 이 화면의 주 액션(라임)은 목록
  *   아래 `코스 추가` 하나다(HM-8). 조준 모드에서는 목록이 걷히므로 그때의 주 액션 `이 위치에 추가`가 라임이 된다.
- * - 카메라 순서: 초점 포인트 → 고른 코스 → 전체 상자(코스 + 포인트) → 저장해 둔 지도 팩 영역 → 남한 전역.
+ * - 카메라 순서: 초점 포인트 → 고른 코스 → 전체 상자(코스 + 포인트) → 저장해 둔 지도 팩 영역 → 여행지(줌 12 +
+ *   여행지 핀) → 마지막 현재 위치(권한이 이미 있을 때, 줌 11) → 남한 전역.
  *   처음 자리는 지도를 붙일 때의 초기 카메라로 준다(세계 지도에서 날아오지 않는다).
  * - 지도는 화면을 다 쓰고, 고도 그래프 + 세그먼트 + 목록은 지도 위에 얹힌 **바텀 시트**다(BD-11, 2026-10-12).
  *   세 단(접힘·기본·펼침)으로 끌어 올린다. 그래프는 시트 맨 위(손잡이·세그먼트 아래)라 훑는 동안에도 손가락이
@@ -558,7 +568,8 @@ const BagRouteMapView: FC<Props> = ({
   /**
    * 최초 카메라 — 코스와 포인트가 **둘 다 읽힌 뒤** 한 번 정한다(먼저 온 쪽에 맞추면 늦게 온 쪽이 화면 밖에
    * 남는다). 순서: 아직 처리하지 않은 포인트 초점 → 고른 코스 → 전체 상자 → 저장해 둔 지도 팩 영역(코스·
-   * 포인트가 없는 저장본, OF-1) → 남한 전역.
+   * 포인트가 없는 저장본, OF-1) → 여행지(줌 12, 최대 1.5초 기다린다) → 마지막 현재 위치(권한이 이미 있을 때만 —
+   * 묻지 않는다, 줌 11) → 남한 전역. 오프라인이면 여행지·현재 위치를 보지 않는다(팩 영역 → 남한 전역 그대로).
    */
   useEffect(() => {
     if (initialCamera || !isContentReady) {
@@ -611,9 +622,45 @@ const BagRouteMapView: FC<Props> = ({
       const packBounds =
         (await app.getOfflineTripStore()?.getMapBounds(bagId)) ?? null;
 
-      return packBounds
-        ? { bounds: lngLatBoundsToRouteBounds(packBounds), padding: 0 }
-        : KOREA_CAMERA;
+      if (packBounds) {
+        return { bounds: lngLatBoundsToRouteBounds(packBounds), padding: 0 };
+      }
+
+      if (isOffline) {
+        return KOREA_CAMERA;
+      }
+
+      await bagRouteList.waitForDestination(DESTINATION_WAIT_MS);
+
+      const destination = bagRouteList.getDrawStartFocus();
+
+      if (destination) {
+        return {
+          latitude: destination.latitude,
+          longitude: destination.longitude,
+          zoom: DESTINATION_ZOOM,
+        };
+      }
+
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        const lastKnown =
+          status === 'granted'
+            ? await Location.getLastKnownPositionAsync()
+            : null;
+
+        if (lastKnown) {
+          return {
+            latitude: lastKnown.coords.latitude,
+            longitude: lastKnown.coords.longitude,
+            zoom: LAST_LOCATION_ZOOM,
+          };
+        }
+      } catch (error) {
+        console.warn('[BagRoute] 초기 카메라 위치 조회 실패', error); // l10n-ignore: 개발자 로그
+      }
+
+      return KOREA_CAMERA;
     };
 
     const applyInitialCamera = async () => {
@@ -637,6 +684,7 @@ const BagRouteMapView: FC<Props> = ({
     getFitTopPadding,
     initialCamera,
     isContentReady,
+    isOffline,
   ]);
 
   /**
@@ -1033,6 +1081,22 @@ const BagRouteMapView: FC<Props> = ({
   // 코스도 포인트도 없으면 거를 것이 없다 — 칩 행을 숨긴다(BD-14).
   const showFilterChips =
     !isMapMode && (entries.length > 0 || bagPointList.hasAny());
+  // 코스도 포인트도 없는 빈 상태(RD-9 #1) — 여행지 핀을 띄우고 `포인트 추가`를 원형 아이콘 버튼으로 줄인다.
+  const isEmptyContent =
+    isContentReady && entries.length === 0 && !bagPointList.hasAny();
+  /**
+   * 여행지 핀(BD-11 첫 카메라) — 빈 상태에서 "이 지도가 어디인지"를 말한다. 그리기 시작 핀(RD-9 #2)과 같은 회색 이름
+   * 캡션 핀이고 비대화형이다(터치는 지도로). 그리기 모드에서는 그리기 쪽 임시 핀이 같은 자리에 서므로 걷는다.
+   */
+  const destinationPin =
+    isEmptyContent && !isDrawing ? bagRouteList.getDrawStartFocus() : null;
+  const addPointLabel = l10n.t(
+    isFull ? 'group.map.pointFull' : 'group.map.addPoint'
+  );
+  // 상한이면 막힌 이유를 함께 읽는다 — 눌리지 않는 버튼만 두면 왜 안 되는지 모른다(HIG).
+  const addPointHint = isFull
+    ? bagPointList.getLimitMessage()
+    : l10n.t('group.map.addPointHint');
   /**
    * 지도 아래쪽에서 비울 높이 — 시트가 덮는 높이(펼침이어도 기본 단 높이까지 — 그 위로는 시트가 컨트롤을 덮는다).
    * 조준 모드에서는 시트가 내려가 지도가 화면 맨 아래까지 온다 — 세이프에어리어만 비운다.
@@ -1238,6 +1302,21 @@ const BagRouteMapView: FC<Props> = ({
                 />
               ) : null}
               {isDrawing ? <RouteDrawLayersView routeDraw={routeDraw} /> : null}
+              {destinationPin ? (
+                <MapPinCaptionMarkerView
+                  key={`bag-route-destination-pin-${destinationPin.latitude},${destinationPin.longitude}`}
+                  markerId={`bag-route-destination-pin-${destinationPin.latitude},${destinationPin.longitude}`}
+                  name={destinationPin.name}
+                  latitude={destinationPin.latitude}
+                  longitude={destinationPin.longitude}
+                  accessibilityLabel={l10n.t('routeDraw.destinationPinLabel', {
+                    name: destinationPin.name,
+                  })}
+                  fill={Acg.textSecondary}
+                  stroke={Acg.paper}
+                  dot={Acg.paper}
+                />
+              ) : null}
               {/* 검색 결과로 옮긴 자리의 회색 임시 핀(RD-5) — 비대화형, 저장에 들어가지 않는다. */}
               {isDrawing ? (
                 <RouteDrawSearchPinView search={routeDraw.getSearch()} />
@@ -1325,29 +1404,31 @@ const BagRouteMapView: FC<Props> = ({
                 locateLabel={l10n.t('route.myLocation')}
                 onPress={() => void handlePressMyLocation()}
               />
-              {canEdit && !isDrawing ? (
+              {/* 빈 상태에서는 원형 아이콘 버튼으로 줄인다 — 시트 빈 상태 카드의 라임 `지도에서 그리기`와 시선을 다투지
+                않게(RD-9 #1). 그 밖에는 흰 보조 알약. */}
+              {canEdit && !isDrawing && isEmptyContent ? (
+                <MapControlButtonView
+                  icon='add'
+                  accessibilityLabel={addPointLabel}
+                  accessibilityHint={addPointHint}
+                  onPress={handleStartAiming}
+                  disabled={isFull || submitting}
+                />
+              ) : null}
+              {canEdit && !isDrawing && !isEmptyContent ? (
                 <TouchableOpacity
                   style={[styles.addPointButton, isFull && styles.disabled]}
                   onPress={handleStartAiming}
                   disabled={isFull || submitting}
                   activeOpacity={0.8}
                   accessibilityRole='button'
-                  accessibilityLabel={l10n.t(
-                    isFull ? 'group.map.pointFull' : 'group.map.addPoint'
-                  )}
-                  // 상한이면 막힌 이유를 함께 읽는다 — 눌리지 않는 버튼만 두면 왜 안 되는지 모른다(HIG).
-                  accessibilityHint={
-                    isFull
-                      ? bagPointList.getLimitMessage()
-                      : l10n.t('group.map.addPointHint')
-                  }
+                  accessibilityLabel={addPointLabel}
+                  accessibilityHint={addPointHint}
                   accessibilityState={{ disabled: isFull || submitting }}
                 >
                   <Ionicons name='add' size={20} color={Acg.ink} />
                   <PretendardText weight='semibold' style={styles.controlLabel}>
-                    {l10n.t(
-                      isFull ? 'group.map.pointFull' : 'group.map.addPoint'
-                    )}
+                    {addPointLabel}
                   </PretendardText>
                 </TouchableOpacity>
               ) : null}

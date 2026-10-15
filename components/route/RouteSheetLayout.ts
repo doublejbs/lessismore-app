@@ -39,17 +39,19 @@ const SECTION_BORDER = 1;
 // `코스 추가` 줄 = 섹션 간격 8 + 줄 위 여백 4 + 버튼 48.
 const FOOTER_HEIGHT = 60;
 /**
- * 빈 상태 카드(`RouteEmptyCardView`) 높이 어림 — 재기 전(첫 프레임) 값. 위 여백 12 + 안쪽 여백 16·4 + 제목 24 + 4 +
- * 설명 두 줄 42 + 14 + 라임 버튼 48 + 6 + 권한 한 줄 18 + 14 + 텍스트 버튼 44. 잰 뒤에는 실제 높이(Dynamic Type 반영)다.
+ * 빈 상태 카드(`RouteEmptyCardView`) 높이 어림 — 재기 전(첫 프레임) 값. 위 여백 12 + 안쪽 여백 16·16 + 제목 24 + 4 +
+ * 설명 두 줄 42 + 14 + 알약 줄 48(라임·흰 알약 나란히) + 8 + 권한 한 줄 18. 잰 뒤에는 실제 높이(Dynamic Type 반영 —
+ * 알약이 세로로 쌓이면 그만큼 자란다)다.
  */
-export const ROUTE_EMPTY_CARD_HEIGHT_ESTIMATE = 246;
+export const ROUTE_EMPTY_CARD_HEIGHT_ESTIMATE = 202;
 // 펼침의 위 끝과 헤더 사이 — 지도가 한 줄 남아 "지도 위에 얹힌 시트"로 읽힌다.
 const EXPANDED_TOP_GAP = 16;
 
 /**
  * 세 단 높이 (BD-11 · GRP-10).
  * - 접힘 = 손잡이 + 세그먼트 칩 줄 + 첫 행 + (`코스 추가`) + 아래 여백
- * - 기본 = 접힘 + 고도 그래프(고도가 없으면 행 2개) — 지금까지의 고정 높이(그래프 + 행 + `코스 추가`)와 같다
+ * - 기본 = 접힘 + 고도 그래프(고도가 없으면 행 2개) — 지금까지의 고정 높이(그래프 + 행 + `코스 추가`)와 같다.
+ *   빈 상태 카드가 서면 기본 = 접힘이다(RD-9 #1) — 카드가 이미 다 들어간 높이라, 더 올리면 카드 아래 흰 면만 남는다.
  * - 펼침 = 지도 칸 높이 − (헤더 아래 끝 + 16)
  * 작은 화면에서 단이 겹치지 않게 서로 적어도 행 하나만큼은 벌린다.
  */
@@ -77,9 +79,13 @@ export const getRouteSheetDetents = ({
     rootHeight - (topInset + EXPANDED_TOP_GAP),
     collapsed + AcgRow.minHeight * 2
   );
-  // 빈 상태 카드는 접힘에서 이미 다 보인다 — 기본 단은 행 하나만큼만 더 올린다(아래 최소 간격).
-  const halfContent =
-    graphHeight > 0 ? graphHeight : hasEmptyCard ? 0 : AcgRow.minHeight * 2;
+  // 빈 상태 카드는 접힘에서 이미 다 보인다 — 기본 단을 카드 높이에 맞춘다(카드 아래 흰 면을 남기지 않는다, RD-9 #1).
+  // 그래프도 없다(코스 0개). 펼침은 위에서 접힘과 행 두 개 이상 벌려 두었다.
+  if (hasEmptyCard) {
+    return { collapsed, half: collapsed, expanded };
+  }
+
+  const halfContent = graphHeight > 0 ? graphHeight : AcgRow.minHeight * 2;
   const half = Math.min(
     Math.max(collapsed + halfContent, collapsed + AcgRow.minHeight),
     expanded - AcgRow.minHeight

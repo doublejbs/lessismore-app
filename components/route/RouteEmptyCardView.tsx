@@ -8,7 +8,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgRadius, AcgType, Radius } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgLayout,
+  AcgRadius,
+  AcgType,
+  Radius,
+} from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import { getRouteDrawEntitlementMetaKey } from '@/model/route-draw/RouteDrawEntitlementMeta';
 
@@ -27,8 +33,9 @@ interface Props {
 /**
  * 코스 0개 빈 상태 카드 (RD-9 #1) — 배낭 코스 화면(BD-11)과 그룹 지도(GRP-10) 시트의 `코스` 세그먼트가 같은 것을 쓴다.
  *
- * 제목 + 설명 + 라임 `지도에서 그리기`(아래 권한 한 줄 — RD-8, `코스 추가` 메뉴와 같은 판단) + 보조 텍스트 버튼
- * `GPX 파일 가져오기`. 메뉴를 거치지 않고 바로 그리기·가져오기로 간다. 라임은 이 카드가 보이는 동안 그 화면의 주
+ * 제목(섹션 제목 단) + 설명 + 라임 `지도에서 그리기`와 흰 보조 알약 `GPX 가져오기`를 같은 높이로 나란히(폭이 모자라거나
+ * 큰 글자면 줄바꿈해 세로로 쌓인다) + 그 아래 권한 한 줄(RD-8, `코스 추가` 메뉴와 같은 판단). 메뉴를 거치지 않고 바로
+ * 그리기·가져오기로 간다. 라임은 이 카드가 보이는 동안 그 화면의 주
  * 액션이다 — 같은 화면의 다른 라임(배낭 시트 푸터 `코스 추가` · 그룹 `포인트 추가`)은 호출부가 그동안 걷거나 흰
  * 보조로 내린다(HM-8 라임은 화면당 하나).
  *
@@ -47,7 +54,7 @@ const RouteEmptyCardView: FC<Props> = ({
   const drawLabel = l10n.t('routeDraw.menuDraw');
   const meta = metaKey ? l10n.t(metaKey) : null;
   const importLabel = l10n.t(
-    isUploading ? 'bag.route.uploading' : 'routeDraw.menuImport'
+    isUploading ? 'bag.route.uploading' : 'routeDraw.emptyCardImport'
   );
 
   const handleLayout = (event: LayoutChangeEvent) => {
@@ -65,21 +72,37 @@ const RouteEmptyCardView: FC<Props> = ({
             {l10n.t('routeDraw.emptyCardDescription')}
           </PretendardText>
         </View>
-        <View style={styles.primaryWrap}>
-          <TouchableOpacity
-            style={[styles.drawButton, disabled && styles.disabled]}
-            onPress={onDraw}
-            disabled={disabled}
-            activeOpacity={0.8}
-            accessibilityRole='button'
-            accessibilityLabel={meta ? `${drawLabel}, ${meta}` : drawLabel}
-            accessibilityState={{ disabled }}
-          >
-            <Ionicons name='create-outline' size={20} color={Acg.ink} />
-            <PretendardText weight='semibold' style={styles.drawLabel}>
-              {drawLabel}
-            </PretendardText>
-          </TouchableOpacity>
+        <View style={styles.actionsWrap}>
+          <View style={styles.actions}>
+            <TouchableOpacity
+              style={[styles.drawButton, disabled && styles.disabled]}
+              onPress={onDraw}
+              disabled={disabled}
+              activeOpacity={0.8}
+              accessibilityRole='button'
+              accessibilityLabel={meta ? `${drawLabel}, ${meta}` : drawLabel}
+              accessibilityState={{ disabled }}
+            >
+              <Ionicons name='create-outline' size={20} color={Acg.ink} />
+              <PretendardText weight='semibold' style={styles.buttonLabel}>
+                {drawLabel}
+              </PretendardText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.importButton, disabled && styles.disabled]}
+              onPress={onImport}
+              disabled={disabled}
+              activeOpacity={0.8}
+              accessibilityRole='button'
+              accessibilityLabel={importLabel}
+              accessibilityState={{ disabled, busy: isUploading }}
+            >
+              <Ionicons name='document-outline' size={20} color={Acg.ink} />
+              <PretendardText weight='semibold' style={styles.buttonLabel}>
+                {importLabel}
+              </PretendardText>
+            </TouchableOpacity>
+          </View>
           {meta ? (
             <PretendardText
               style={styles.meta}
@@ -90,24 +113,22 @@ const RouteEmptyCardView: FC<Props> = ({
             </PretendardText>
           ) : null}
         </View>
-        <TouchableOpacity
-          style={[styles.importButton, disabled && styles.disabled]}
-          onPress={onImport}
-          disabled={disabled}
-          activeOpacity={0.7}
-          accessibilityRole='button'
-          accessibilityLabel={importLabel}
-          accessibilityState={{ disabled, busy: isUploading }}
-        >
-          <Ionicons name='document-outline' size={18} color={Acg.ink} />
-          <PretendardText weight='medium' style={styles.importLabel}>
-            {importLabel}
-          </PretendardText>
-        </TouchableOpacity>
       </View>
     </View>
   );
 };
+
+// 라임·흰 알약이 같은 높이·패딩을 쓴다(Dynamic Type — 고정 높이 대신 minHeight + 세로 패딩).
+const PILL = {
+  minHeight: 48,
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 6,
+  paddingHorizontal: 20,
+  paddingVertical: 12,
+  borderRadius: Radius.pill,
+} as const;
 
 const styles = StyleSheet.create({
   // 위 여백까지 한 번에 잰다(시트 단 계산이 이 높이를 그대로 쓴다).
@@ -116,7 +137,6 @@ const styles = StyleSheet.create({
   },
   card: {
     padding: 16,
-    paddingBottom: 4,
     gap: 14,
     borderRadius: AcgRadius.thumb,
     backgroundColor: Acg.controlFill,
@@ -132,23 +152,28 @@ const styles = StyleSheet.create({
     ...AcgType.body,
     color: Acg.textMuted,
   },
-  primaryWrap: {
-    alignItems: 'flex-start',
-    gap: 6,
+  actionsWrap: {
+    gap: 8,
+  },
+  // 두 알약을 가로로 — 폭이 모자라거나 큰 글자면 줄바꿈해 세로로 쌓인다.
+  actions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: AcgLayout.chipGap + 2,
   },
   // 이 화면의 주 액션 — 라임 알약(HM-8). 글자는 잉크다.
   drawButton: {
-    minHeight: 48,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: Radius.pill,
+    ...PILL,
     backgroundColor: Acg.lime,
   },
-  drawLabel: {
+  // 보조 액션 — 흰 알약. 연회색 카드 면 위라 헤어라인 테두리로 면을 가른다(콘텐츠 면 위라 그림자 없음).
+  importButton: {
+    ...PILL,
+    backgroundColor: Acg.paper,
+    borderWidth: 1,
+    borderColor: Acg.hairline,
+  },
+  buttonLabel: {
     ...AcgType.control,
     color: Acg.ink,
   },
@@ -156,19 +181,6 @@ const styles = StyleSheet.create({
     ...AcgType.meta,
     color: Acg.textMuted,
     paddingLeft: 4,
-  },
-  // 보조 액션 — 면 없는 텍스트 버튼(44pt 터치, HIG).
-  importButton: {
-    alignSelf: 'flex-start',
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingRight: 8,
-  },
-  importLabel: {
-    ...AcgType.control,
-    color: Acg.ink,
   },
   disabled: {
     opacity: 0.5,

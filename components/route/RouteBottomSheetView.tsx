@@ -222,6 +222,11 @@ const RouteBottomSheetView: FC<Props> = ({
             }
           }
 
+          // 접힘과 기본이 같은 높이면(빈 상태 카드, RD-9 #1) 기본으로 읽는다 — 세션 단 기억이 접힘으로 바뀌지 않게.
+          if (index === 0 && half === collapsed) {
+            index = 1;
+          }
+
           const target = candidates[index];
           const detent = DETENT_ORDER[index];
 

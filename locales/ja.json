@@ -1835,6 +1835,7 @@
     "searchClear": "検索語を消去",
     "searchEmpty": "検索結果がありません",
     "searchPinLabel": "検索した場所、{{name}}",
+    "destinationPinLabel": "目的地、{{name}}",
     "trailToggle": "登山道に沿う",
     "trailToggleHint": "オンにすると次の区間から登山道に沿ってつなぎます",
     "routing": "道を検索中…",
@@ -1855,6 +1856,7 @@
     "emptyCardTitleBag": "この旅のコースを描いてみましょう",
     "emptyCardTitleGroup": "グループのコースを描いてみましょう",
     "emptyCardDescription": "地図に点を打つと登山道に沿ってつながります",
+    "emptyCardImport": "GPXを読み込む",
     "searchStartHint": "どこから描くか検索してみましょう"
   },
   "map": {

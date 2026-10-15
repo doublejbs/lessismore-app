@@ -1835,6 +1835,7 @@
     "searchClear": "검색어 지우기",
     "searchEmpty": "검색 결과가 없어요",
     "searchPinLabel": "검색한 위치, {{name}}",
+    "destinationPinLabel": "여행지, {{name}}",
     "trailToggle": "등산로 따라",
     "trailToggleHint": "켜면 다음 구간부터 등산로를 따라 이어요",
     "routing": "길 찾는 중…",
@@ -1855,6 +1856,7 @@
     "emptyCardTitleBag": "이 여행의 코스를 그려 보세요",
     "emptyCardTitleGroup": "그룹 코스를 그려 보세요",
     "emptyCardDescription": "지도에 점을 찍으면 등산로를 따라 이어져요",
+    "emptyCardImport": "GPX 가져오기",
     "searchStartHint": "어디서부터 그릴지 검색해 보세요"
   },
   "map": {

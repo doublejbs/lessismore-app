@@ -1867,6 +1867,7 @@
     "searchClear": "Clear search",
     "searchEmpty": "No results found",
     "searchPinLabel": "Searched location, {{name}}",
+    "destinationPinLabel": "Destination, {{name}}",
     "trailToggle": "Follow trails",
     "trailToggleHint": "When on, new segments follow hiking trails",
     "routing": "Finding trail…",
@@ -1887,6 +1888,7 @@
     "emptyCardTitleBag": "Draw a route for this trip",
     "emptyCardTitleGroup": "Draw a route for your group",
     "emptyCardDescription": "Tap points on the map and they’ll follow the trails",
+    "emptyCardImport": "Import GPX",
     "searchStartHint": "Search for where to start drawing"
   },
   "map": {

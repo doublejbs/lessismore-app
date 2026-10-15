@@ -34,6 +34,7 @@ import {
   OVERLAY_GAP,
 } from '@/components/map/MapConstants';
 import MapEndpointMarkersView from '@/components/map/MapEndpointMarkersView';
+import MapControlButtonView from '@/components/map/MapControlButtonView';
 import MapMyLocationButtonView from '@/components/map/MapMyLocationButtonView';
 import MapMyLocationMarkerView from '@/components/map/MapMyLocationMarkerView';
 import MapNoticeLineView from '@/components/map/MapNoticeLineView';
@@ -330,7 +331,7 @@ const GroupMapCanvasView: FC<Props> = ({
   /**
    * 코스 0개 빈 상태 카드(RD-9 #1). 시트 단 높이는 세그먼트와 무관하게 이 값으로 잡는다(칩을 바꿀 때 시트가 튀지
    * 않게). 카드가 **보이는** 동안(`코스` 세그먼트)에는 카드의 `지도에서 그리기`가 이 화면의 라임이고, 컨트롤 스택
-   * `포인트 추가`는 흰 보조 알약으로 내린다(HM-8 — 같은 화면에 라임 둘 금지).
+   * `포인트 추가`는 원형 아이콘 버튼으로 줄인다(HM-8 — 같은 화면에 라임 둘 금지).
    */
   const hasRouteEmptyCard = groupMap.shouldShowRouteEmptyCard();
   const isRouteEmptyCardVisible =
@@ -983,6 +984,13 @@ const GroupMapCanvasView: FC<Props> = ({
 
   const isFull = pointList.isFull();
   const submitting = pointList.isSubmitting();
+  const addPointLabel = l10n.t(
+    isFull ? 'group.map.pointFull' : 'group.map.addPoint'
+  );
+  // 상한이면 막힌 이유를 함께 읽는다 — 눌리지 않는 버튼만 두면 왜 안 되는지 모른다(HIG).
+  const addPointHint = isFull
+    ? getGroupValidationMessage(GroupValidationError.PointLimitExceeded)
+    : l10n.t('group.map.addPointHint');
   // 조준·그리기 모드에서는 시트가 내려가 그래프도 걷힌다(GRP-9 · RD-2).
   const isMapMode = isAiming || isDrawing;
   const profile = isMapMode
@@ -1272,39 +1280,34 @@ const GroupMapCanvasView: FC<Props> = ({
               ) : null}
               {/* `포인트 추가` — 라임, 화면당 하나(HM-8). 롱프레스의 접근 가능한 대안으로 조준 모드에 들어간다.
                 그리기 모드에서도 걷는다 — 그때의 라임은 하단 바 `저장`이다(RD-2). 시트에 코스 빈 상태 카드가
-                보이는 동안에는 카드의 `지도에서 그리기`가 라임이라 흰 보조 알약으로 내린다(RD-9 #1). */}
-              {isMapMode ? null : (
+                보이는 동안에는 카드의 `지도에서 그리기`가 라임이라 `내 위치`와 같은 원형 아이콘 버튼으로 줄인다
+                (RD-9 #1 — 배낭 코스 화면과 같다). */}
+              {!isMapMode && isRouteEmptyCardVisible ? (
+                <MapControlButtonView
+                  icon='add'
+                  accessibilityLabel={addPointLabel}
+                  accessibilityHint={addPointHint}
+                  onPress={handleStartAiming}
+                  disabled={isFull || submitting}
+                />
+              ) : null}
+              {!isMapMode && !isRouteEmptyCardVisible ? (
                 <TouchableOpacity
-                  style={[
-                    styles.addButton,
-                    isRouteEmptyCardVisible && styles.addButtonSecondary,
-                    isFull && styles.disabled,
-                  ]}
+                  style={[styles.addButton, isFull && styles.disabled]}
                   onPress={handleStartAiming}
                   disabled={isFull || submitting}
                   activeOpacity={0.8}
                   accessibilityRole='button'
-                  accessibilityLabel={l10n.t(
-                    isFull ? 'group.map.pointFull' : 'group.map.addPoint'
-                  )}
-                  // 상한이면 막힌 이유를 함께 읽는다 — 눌리지 않는 버튼만 두면 왜 안 되는지 모른다(HIG).
-                  accessibilityHint={
-                    isFull
-                      ? getGroupValidationMessage(
-                          GroupValidationError.PointLimitExceeded
-                        )
-                      : l10n.t('group.map.addPointHint')
-                  }
+                  accessibilityLabel={addPointLabel}
+                  accessibilityHint={addPointHint}
                   accessibilityState={{ disabled: isFull || submitting }}
                 >
                   <Ionicons name='add' size={20} color={Acg.ink} />
                   <PretendardText weight='semibold' style={styles.controlLabel}>
-                    {l10n.t(
-                      isFull ? 'group.map.pointFull' : 'group.map.addPoint'
-                    )}
+                    {addPointLabel}
                   </PretendardText>
                 </TouchableOpacity>
-              )}
+              ) : null}
             </View>
           ) : null}
           {/* 카드 칸 — 높이를 재서 출처 표기를 그 위로 올린다(라이선스 의무, MAP-1). */}
@@ -1447,10 +1450,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     backgroundColor: Acg.lime,
     boxShadow: AcgShadow.card,
-  },
-  // 코스 빈 상태 카드가 보이는 동안의 `포인트 추가` — `3D`와 같은 흰 보조 알약(지도 위라 그림자는 남긴다).
-  addButtonSecondary: {
-    backgroundColor: Acg.paper,
   },
   // `3D` — 지도 위 흰 보조 알약(배낭 코스 화면과 같은 면·그림자).
   replayButton: {
