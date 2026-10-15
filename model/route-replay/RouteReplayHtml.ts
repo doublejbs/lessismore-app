@@ -672,6 +672,33 @@ export const ROUTE_REPLAY_HTML: string = String.raw`<!doctype html>
     return element;
   };
 
+  var applySatellite = function (satellite) {
+    if (!satellite || typeof satellite !== "object" || typeof satellite.tiles !== "string" || !satellite.sourceId || !satellite.layerId) {
+      return;
+    }
+
+    try {
+      map.addSource(satellite.sourceId, {
+        type: "raster",
+        tiles: [satellite.tiles],
+        tileSize: satellite.tileSize || 256,
+        maxzoom: satellite.maxzoom || 19,
+        attribution: satellite.attribution || ""
+      });
+      map.addLayer(
+        { id: satellite.layerId, type: "raster", source: satellite.sourceId },
+        satellite.beforeId && map.getLayer(satellite.beforeId) ? satellite.beforeId : undefined
+      );
+      (satellite.hiddenLayerIds || []).forEach(function (id) {
+        if (map.getLayer(id)) {
+          map.setLayoutProperty(id, "visibility", "none");
+        }
+      });
+    } catch (error) {
+      console.warn("[RouteReplay] satellite", error && error.message ? error.message : error);
+    }
+  };
+
   var applyLoad = function (message) {
     if (loaded || !ready) {
       return;
@@ -710,6 +737,9 @@ export const ROUTE_REPLAY_HTML: string = String.raw`<!doctype html>
       north = Math.max(north, c[1]);
     });
     bounds = [[west, south], [east, north]];
+
+    // 위성(RR-2 · MAP-7) — 코스보다 먼저 끼워 코스·마커가 위에 온다. 실패해도 일반 지도로 계속 그린다(RR-3).
+    applySatellite(message.satellite);
 
     map.addSource("replay-route", {
       type: "geojson",

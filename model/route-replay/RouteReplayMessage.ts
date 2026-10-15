@@ -34,6 +34,21 @@ export interface RouteReplayLabels {
   speeds: RouteReplaySpeedOption[];
 }
 
+/**
+ * 위성 래스터(RR-2 · MAP-7) — 앱 지도와 같은 Esri 타일을 같은 자리(`beforeId` 아래)에 끼우고 `hiddenLayerIds`를 끈다.
+ * 값은 `SatelliteBasemap.ts`에서 온다.
+ */
+export interface RouteReplaySatellitePayload {
+  sourceId: string;
+  layerId: string;
+  tiles: string;
+  tileSize: number;
+  maxzoom: number;
+  attribution: string;
+  beforeId: string;
+  hiddenLayerIds: string[];
+}
+
 /** RN → 웹. 웹이 `ready`를 보낸 뒤 1회. */
 export interface RouteReplayLoadMessage {
   type: RouteReplayMessageType.Load;
@@ -41,6 +56,8 @@ export interface RouteReplayLoadMessage {
   coordinates: RouteReplayLngLat[];
   points: RouteReplayPointPayload[];
   labels: RouteReplayLabels;
+  // 여는 순간 지도 종류가 위성일 때만. 일반이면 `null`.
+  satellite: RouteReplaySatellitePayload | null;
 }
 
 export interface RouteReplayReadyMessage {

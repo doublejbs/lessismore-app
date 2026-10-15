@@ -1,11 +1,22 @@
 import { getDistanceInMeters } from '@/model/bag-destination/GeoDistance';
 import { HealthWorkoutRoute } from '@/model/health/HealthTypes';
+import {
+  getSatelliteTileUrlTemplate,
+  SATELLITE_ATTRIBUTION,
+  SATELLITE_BEFORE_LAYER_ID,
+  SATELLITE_HIDDEN_LAYERS,
+  SATELLITE_LAYER_ID,
+  SATELLITE_MAX_ZOOM,
+  SATELLITE_SOURCE_ID,
+  SATELLITE_TILE_SIZE,
+} from '@/model/map/SatelliteBasemap';
 import { RouteCoordinate } from '@/model/route/RouteData';
 import RouteReplayMessageType from './RouteReplayMessageType';
 import {
   RouteReplayLabels,
   RouteReplayLngLat,
   RouteReplayLoadMessage,
+  RouteReplaySatellitePayload,
 } from './RouteReplayMessage';
 import { RouteReplayRequest } from './RouteReplayRequest';
 
@@ -96,10 +107,24 @@ const toLngLat = (coordinate: RouteCoordinate): RouteReplayLngLat => {
     : [coordinate.lng, coordinate.lat];
 };
 
+/** 위성 래스터 값(RR-2 · MAP-7) — 앱 지도의 위성 보기와 같은 타일·자리·끌 레이어. */
+export const buildRouteReplaySatellitePayload =
+  (): RouteReplaySatellitePayload => ({
+    sourceId: SATELLITE_SOURCE_ID,
+    layerId: SATELLITE_LAYER_ID,
+    tiles: getSatelliteTileUrlTemplate(),
+    tileSize: SATELLITE_TILE_SIZE,
+    maxzoom: SATELLITE_MAX_ZOOM,
+    attribution: SATELLITE_ATTRIBUTION,
+    beforeId: SATELLITE_BEFORE_LAYER_ID,
+    hiddenLayerIds: SATELLITE_HIDDEN_LAYERS.map(layer => layer.id),
+  });
+
 /** 스토어의 진입 데이터를 웹뷰 `load` 메시지로 바꾼다(좌표 500점 축약 포함). */
 export const buildRouteReplayLoadMessage = (
   request: RouteReplayRequest,
-  labels: RouteReplayLabels
+  labels: RouteReplayLabels,
+  satellite: RouteReplaySatellitePayload | null
 ): RouteReplayLoadMessage => {
   return {
     type: RouteReplayMessageType.Load,
@@ -113,5 +138,6 @@ export const buildRouteReplayLoadMessage = (
       color: point.color,
     })),
     labels,
+    satellite,
   };
 };

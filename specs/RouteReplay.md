@@ -48,8 +48,9 @@ app/route-replay.tsx ─ RouteReplayWrapper ─ RouteReplayView (헤더 + 웹뷰
 - **자동 비행**: 문서가 준비되면 경로 전체가 보이게 맞춘 뒤(기울기 0 → 55°로 2초에 걸쳐), 재생을 누르면 카메라가 경로를 **따라간다** — 중심은 진행 지점 조금 앞, 방향은 진행 방향(짧은 창 평균으로 떨림 제거), 기울기 55~60°, 줌 약 14.5. **카메라 중심의 지형 고도를 매 프레임 함께 준다**(`elevation`) — 주지 않으면 MapLibre가 중심을 해발 0m로 두어 오르막에서 마커가 화면 위로 밀려 사라진다(2026-10-12 실기기 지적). 하단 컨트롤 면 높이만큼 아래 `padding`을 줘 마커가 보이는 영역 가운데 근처에 오게 한다. 전체 재생 시간은 **거리 1km당 4초**(최소 20초·최대 120초), 배속 ×1·×2·×4. 끝에 닿으면 멈추고 다시 전체 보기로 돌아간다.
 - **컨트롤**(문서 안, 하단 안전영역 위, 반투명 흰 면 + 모서리 12): 재생/정지(라임 알약 — 이 화면의 주 액션), 진행 바(드래그로 이동, 진행 지점의 고도 `1,204m` · 누적 거리 `3.2km` 표시), 배속 칩, `전체 보기`(카메라 리셋). 글꼴은 시스템 산세리프(웹뷰에 Pretendard를 싣지 않는다 — 네트워크 글꼴 로드 없이 바로 뜨는 쪽이 낫다).
 - **제스처**: 재생 중이 아닐 때 드래그·핀치·회전·기울이기 전부 허용. 재생 중 사용자가 지도를 만지면 **재생은 계속하되 카메라 따라가기만 풀린다**(한 번 더 재생을 누르면 다시 따라간다) — 방향 모드의 "손으로 움직이면 따라가기만 풀림"(BD-11)과 같은 규칙.
-- **메시지**: RN → 웹 `postMessage({ type: 'load', title, coordinates: [[lng, lat, ele?]], points: [{ lng, lat, title, type, color }] })`는 웹이 `ready`를 보낸 뒤 1회. 웹 → RN `ready` · `error(message)` · `play` · `finished`. 타입은 `RouteReplayMessage.ts`에 둔다.
-- **출처 표기**는 MapLibre GL JS 기본 attribution(우하단 ⓘ)을 그대로 둔다(OF-6과 같은 의무).
+- **메시지**: RN → 웹 `postMessage({ type: 'load', title, coordinates: [[lng, lat, ele?]], points: [{ lng, lat, title, type, color }], satellite })`는 웹이 `ready`를 보낸 뒤 1회. 웹 → RN `ready` · `error(message)` · `play` · `finished`. 타입은 `RouteReplayMessage.ts`에 둔다.
+- **위성**(2026-10-15, [Map.md](Map.md) MAP-7): 여는 순간 지도 종류가 위성이면 `load` 메시지에 `satellite`(타일 주소 템플릿·타일 크기·최대 줌·출처 문구·끼울 자리 레이어 id·끌 레이어 id 목록)를 함께 넘기고, 웹은 코스·마커를 그리기 전에 래스터 소스·레이어를 끼우고 그 레이어들을 끈다. 일반이면 `satellite: null`. 위성 타일 실패는 다른 타일과 같이 실패가 아니다(RR-3).
+- **출처 표기**는 MapLibre GL JS 기본 attribution(우하단 ⓘ)을 그대로 둔다(OF-6과 같은 의무). 위성이면 Esri 표준 출처 문구가 소스 출처로 함께 뜬다.
 
 ### RR-3 상태 `[제안]`
 

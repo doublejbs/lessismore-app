@@ -5,7 +5,11 @@ import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTyp
 import LoadingView from '@/components/ui/LoadingView';
 import { Acg } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
-import { buildRouteReplayLoadMessage } from '@/model/route-replay/RouteReplayCoordinates';
+import MapLayer from '@/model/map/MapLayer';
+import {
+  buildRouteReplayLoadMessage,
+  buildRouteReplaySatellitePayload,
+} from '@/model/route-replay/RouteReplayCoordinates';
 import RouteReplayFailReason from '@/model/route-replay/RouteReplayFailReason';
 import {
   ROUTE_REPLAY_BASE_URL,
@@ -66,24 +70,33 @@ const RouteReplayWebView: FC<Props> = ({ request }) => {
   const startedAtRef = useRef(0);
   // 한 시도에서 실패·준비를 한 번만 처리한다(타임아웃과 늦은 `ready`가 겹칠 수 있다).
   const settledRef = useRef(false);
+  // 여는 순간의 지도 종류를 따른다(RR-2 · MAP-7) — 3D 화면 안에는 전환이 없어 첫 렌더에 한 번 읽는다.
+  // 게이트·오프라인·한도 폴백은 `getLayer()`가 이미 가른다.
+  const [isSatellite] = useState(
+    () => app.getMapLayerStore()?.getLayer() === MapLayer.Satellite
+  );
   const loadMessage = useMemo(
     () =>
       JSON.stringify(
-        buildRouteReplayLoadMessage(request, {
-          start: l10n.t('routeReplay.start'),
-          end: l10n.t('routeReplay.end'),
-          play: l10n.t('routeReplay.play'),
-          pause: l10n.t('routeReplay.pause'),
-          fit: l10n.t('routeReplay.fit'),
-          speedHint: l10n.t('routeReplay.speedHint'),
-          progress: l10n.t('routeReplay.progress'),
-          speeds: SPEED_OPTIONS.map(value => ({
-            value,
-            label: l10n.t('routeReplay.speed', { speed: value }),
-          })),
-        })
+        buildRouteReplayLoadMessage(
+          request,
+          {
+            start: l10n.t('routeReplay.start'),
+            end: l10n.t('routeReplay.end'),
+            play: l10n.t('routeReplay.play'),
+            pause: l10n.t('routeReplay.pause'),
+            fit: l10n.t('routeReplay.fit'),
+            speedHint: l10n.t('routeReplay.speedHint'),
+            progress: l10n.t('routeReplay.progress'),
+            speeds: SPEED_OPTIONS.map(value => ({
+              value,
+              label: l10n.t('routeReplay.speed', { speed: value }),
+            })),
+          },
+          isSatellite ? buildRouteReplaySatellitePayload() : null
+        )
       ),
-    [l10n, request]
+    [isSatellite, l10n, request]
   );
 
   const fail = useCallback((reason: RouteReplayFailReason, detail = '') => {
