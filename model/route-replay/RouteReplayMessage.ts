@@ -56,7 +56,14 @@ export interface RouteReplayLoadMessage {
   coordinates: RouteReplayLngLat[];
   points: RouteReplayPointPayload[];
   labels: RouteReplayLabels;
-  // 여는 순간 지도 종류가 위성일 때만. 일반이면 `null`.
+  // 보내는 순간 지도 종류가 위성일 때만. 일반이면 `null`.
+  satellite: RouteReplaySatellitePayload | null;
+}
+
+/** RN → 웹. `load` 뒤 지도 종류가 바뀔 때마다 — 문서를 다시 띄우지 않고 위성만 넣고 뺀다. */
+export interface RouteReplayLayerMessage {
+  type: RouteReplayMessageType.Layer;
+  // 위성이면 payload, 일반이면 `null`.
   satellite: RouteReplaySatellitePayload | null;
 }
 

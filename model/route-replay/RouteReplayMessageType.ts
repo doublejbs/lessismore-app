@@ -2,6 +2,7 @@
 enum RouteReplayMessageType {
   // RN → 웹
   Load = 'load',
+  Layer = 'layer',
   // 웹 → RN
   Ready = 'ready',
   Error = 'error',

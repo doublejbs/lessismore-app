@@ -1,11 +1,14 @@
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { reaction } from 'mobx';
 import { Linking, StyleSheet, View } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
+import MapLayerControlView from '@/components/map/MapLayerControlView';
 import LoadingView from '@/components/ui/LoadingView';
 import { Acg } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import MapLayer from '@/model/map/MapLayer';
+import MapLayerScreen from '@/model/map/MapLayerScreen';
 import {
   buildRouteReplayLoadMessage,
   buildRouteReplaySatellitePayload,
@@ -15,7 +18,12 @@ import {
   ROUTE_REPLAY_BASE_URL,
   ROUTE_REPLAY_HTML,
 } from '@/model/route-replay/RouteReplayHtml';
-import { parseRouteReplayWebMessage } from '@/model/route-replay/RouteReplayMessage';
+import {
+  RouteReplayLayerMessage,
+  RouteReplayLoadMessage,
+  RouteReplaySatellitePayload,
+  parseRouteReplayWebMessage,
+} from '@/model/route-replay/RouteReplayMessage';
 import RouteReplayMessageType from '@/model/route-replay/RouteReplayMessageType';
 import { RouteReplayRequest } from '@/model/route-replay/RouteReplayRequest';
 import RouteReplayStatus from '@/model/route-replay/RouteReplayStatus';
@@ -31,12 +39,27 @@ const READY_TIMEOUT_MS = 15000;
 /** 배속 칩(RR-2). */
 const SPEED_OPTIONS = [1, 2, 4];
 
+/** 지도 종류 버튼 자리 — 헤더(세이프에어리어) 아래·우측 16(RR-2, 다른 지도 화면과 같은 규칙). */
+const MAP_CONTROL_INSET = 16;
+
 /** 웹뷰 안에서 열어도 되는 주소의 머리 — 최초 문서(`about:blank`·`baseUrl` 자신)와 같은 호스트. */
 const IN_WEBVIEW_URL_PREFIXES = ['about:', `${ROUTE_REPLAY_BASE_URL}/`];
 
 const isInWebViewUrl = (url: string): boolean =>
   url === ROUTE_REPLAY_BASE_URL ||
   IN_WEBVIEW_URL_PREFIXES.some(prefix => url.startsWith(prefix));
+
+/**
+ * 지금 지도 종류의 위성 값(RR-2 · MAP-7) — 위성이 아니면 `null`.
+ * 게이트·오프라인·한도 폴백은 `getLayer()`가 이미 가른다.
+ */
+const isSatelliteLayer = (): boolean =>
+  app.getMapLayerStore()?.getLayer() === MapLayer.Satellite;
+
+const getSatellitePayload = (
+  isSatellite: boolean
+): RouteReplaySatellitePayload | null =>
+  isSatellite ? buildRouteReplaySatellitePayload() : null;
 
 /**
  * 웹뷰가 문서를 떠나지 않게 한다 — 출처 표기(OpenFreeMap·OSM 등) 링크는 시스템 브라우저로 연다.
@@ -70,33 +93,29 @@ const RouteReplayWebView: FC<Props> = ({ request }) => {
   const startedAtRef = useRef(0);
   // 한 시도에서 실패·준비를 한 번만 처리한다(타임아웃과 늦은 `ready`가 겹칠 수 있다).
   const settledRef = useRef(false);
-  // 여는 순간의 지도 종류를 따른다(RR-2 · MAP-7) — 3D 화면 안에는 전환이 없어 첫 렌더에 한 번 읽는다.
-  // 게이트·오프라인·한도 폴백은 `getLayer()`가 이미 가른다.
-  const [isSatellite] = useState(
-    () => app.getMapLayerStore()?.getLayer() === MapLayer.Satellite
-  );
-  const loadMessage = useMemo(
+  // 이 시도에서 `load`를 보냈는지 — 그 뒤에만 지도 종류 전환을 `layer`로 보낸다.
+  const loadedRef = useRef(false);
+  // 위성 값은 비워 둔다 — `load`를 보내는 순간의 지도 종류로 채운다(준비 전에 바꿔도 그 값이 간다).
+  const baseLoadMessage = useMemo<RouteReplayLoadMessage>(
     () =>
-      JSON.stringify(
-        buildRouteReplayLoadMessage(
-          request,
-          {
-            start: l10n.t('routeReplay.start'),
-            end: l10n.t('routeReplay.end'),
-            play: l10n.t('routeReplay.play'),
-            pause: l10n.t('routeReplay.pause'),
-            fit: l10n.t('routeReplay.fit'),
-            speedHint: l10n.t('routeReplay.speedHint'),
-            progress: l10n.t('routeReplay.progress'),
-            speeds: SPEED_OPTIONS.map(value => ({
-              value,
-              label: l10n.t('routeReplay.speed', { speed: value }),
-            })),
-          },
-          isSatellite ? buildRouteReplaySatellitePayload() : null
-        )
+      buildRouteReplayLoadMessage(
+        request,
+        {
+          start: l10n.t('routeReplay.start'),
+          end: l10n.t('routeReplay.end'),
+          play: l10n.t('routeReplay.play'),
+          pause: l10n.t('routeReplay.pause'),
+          fit: l10n.t('routeReplay.fit'),
+          speedHint: l10n.t('routeReplay.speedHint'),
+          progress: l10n.t('routeReplay.progress'),
+          speeds: SPEED_OPTIONS.map(value => ({
+            value,
+            label: l10n.t('routeReplay.speed', { speed: value }),
+          })),
+        },
+        null
       ),
-    [isSatellite, l10n, request]
+    [l10n, request]
   );
 
   const fail = useCallback((reason: RouteReplayFailReason, detail = '') => {
@@ -116,6 +135,7 @@ const RouteReplayWebView: FC<Props> = ({ request }) => {
   useEffect(() => {
     startedAtRef.current = Date.now();
     settledRef.current = false;
+    loadedRef.current = false;
 
     const timeoutId = setTimeout(() => {
       fail(RouteReplayFailReason.Timeout);
@@ -125,6 +145,22 @@ const RouteReplayWebView: FC<Props> = ({ request }) => {
       clearTimeout(timeoutId);
     };
   }, [attempt, fail]);
+
+  // 보는 중 지도 종류가 바뀌면(RR-2) 문서를 다시 띄우지 않고 위성만 넣고 뺀다 — 재생·카메라는 그대로다.
+  useEffect(() => {
+    return reaction(isSatelliteLayer, isSatellite => {
+      if (!loadedRef.current) {
+        return;
+      }
+
+      const message: RouteReplayLayerMessage = {
+        type: RouteReplayMessageType.Layer,
+        satellite: getSatellitePayload(isSatellite),
+      };
+
+      webViewRef.current?.postMessage(JSON.stringify(message));
+    });
+  }, []);
 
   const handleMessage = useCallback(
     (event: WebViewMessageEvent) => {
@@ -145,7 +181,13 @@ const RouteReplayWebView: FC<Props> = ({ request }) => {
           app.getAnalyticsManager()?.logEvent('route_replay_ready', {
             load_ms: Date.now() - startedAtRef.current,
           });
-          webViewRef.current?.postMessage(loadMessage);
+          webViewRef.current?.postMessage(
+            JSON.stringify({
+              ...baseLoadMessage,
+              satellite: getSatellitePayload(isSatelliteLayer()),
+            })
+          );
+          loadedRef.current = true;
 
           return;
         }
@@ -170,7 +212,7 @@ const RouteReplayWebView: FC<Props> = ({ request }) => {
         }
       }
     },
-    [fail, loadMessage]
+    [baseLoadMessage, fail]
   );
 
   const handleError = useCallback(() => {
@@ -223,6 +265,12 @@ const RouteReplayWebView: FC<Props> = ({ request }) => {
           <LoadingView />
         </View>
       ) : null}
+      {/* 지도 종류(RR-2 · MAP-7) — 우측 위. 아래 패널·출처 표기(우측 아래)와 겹치지 않는다. */}
+      {status === RouteReplayStatus.Ready ? (
+        <View style={styles.mapControl} pointerEvents='box-none'>
+          <MapLayerControlView screen={MapLayerScreen.RouteReplay} />
+        </View>
+      ) : null}
     </View>
   );
 };
@@ -239,6 +287,11 @@ const styles = StyleSheet.create({
   loading: {
     ...StyleSheet.absoluteFill,
     backgroundColor: Acg.paper,
+  },
+  mapControl: {
+    position: 'absolute',
+    top: MAP_CONTROL_INSET,
+    right: MAP_CONTROL_INSET,
   },
 });
 

@@ -672,12 +672,52 @@ export const ROUTE_REPLAY_HTML: string = String.raw`<!doctype html>
     return element;
   };
 
-  var applySatellite = function (satellite) {
-    if (!satellite || typeof satellite !== "object" || typeof satellite.tiles !== "string" || !satellite.sourceId || !satellite.layerId) {
+  // 지금 끼워 둔 위성(RR-2 · MAP-7) — 빼낼 때 같은 id를 지우고, 끈 레이어를 원래 보임 값으로 되돌린다.
+  var satelliteState = null;
+
+  var isSatellitePayload = function (satellite) {
+    return !!satellite && typeof satellite === "object" && typeof satellite.tiles === "string" && !!satellite.sourceId && !!satellite.layerId;
+  };
+
+  var removeSatellite = function () {
+    if (!satelliteState) {
       return;
     }
 
-    try {
+    var state = satelliteState;
+
+    satelliteState = null;
+
+    if (map.getLayer(state.layerId)) {
+      map.removeLayer(state.layerId);
+    }
+
+    if (map.getSource(state.sourceId)) {
+      map.removeSource(state.sourceId);
+    }
+
+    state.hidden.forEach(function (entry) {
+      if (map.getLayer(entry.id)) {
+        map.setLayoutProperty(entry.id, "visibility", entry.visibility);
+      }
+    });
+  };
+
+  var addSatellite = function (satellite) {
+    if (satelliteState || map.getLayer(satellite.layerId)) {
+      return;
+    }
+
+    // 스타일의 기준 레이어가 없으면 코스 밑에 둔다 — 위성이 코스·마커를 덮지 않게.
+    var beforeId;
+
+    if (satellite.beforeId && map.getLayer(satellite.beforeId)) {
+      beforeId = satellite.beforeId;
+    } else if (map.getLayer("replay-route-casing")) {
+      beforeId = "replay-route-casing";
+    }
+
+    if (!map.getSource(satellite.sourceId)) {
       map.addSource(satellite.sourceId, {
         type: "raster",
         tiles: [satellite.tiles],
@@ -685,15 +725,34 @@ export const ROUTE_REPLAY_HTML: string = String.raw`<!doctype html>
         maxzoom: satellite.maxzoom || 19,
         attribution: satellite.attribution || ""
       });
-      map.addLayer(
-        { id: satellite.layerId, type: "raster", source: satellite.sourceId },
-        satellite.beforeId && map.getLayer(satellite.beforeId) ? satellite.beforeId : undefined
-      );
-      (satellite.hiddenLayerIds || []).forEach(function (id) {
-        if (map.getLayer(id)) {
-          map.setLayoutProperty(id, "visibility", "none");
-        }
-      });
+    }
+
+    map.addLayer({ id: satellite.layerId, type: "raster", source: satellite.sourceId }, beforeId);
+
+    var hidden = [];
+
+    (satellite.hiddenLayerIds || []).forEach(function (id) {
+      if (!map.getLayer(id)) {
+        return;
+      }
+
+      var visibility = map.getLayoutProperty(id, "visibility");
+
+      hidden.push({ id: id, visibility: visibility === "none" ? "none" : "visible" });
+      map.setLayoutProperty(id, "visibility", "none");
+    });
+
+    satelliteState = { sourceId: satellite.sourceId, layerId: satellite.layerId, hidden: hidden };
+  };
+
+  // 위성을 끼우거나(payload) 빼낸다(null). 같은 상태로 다시 불러도 그대로다. 실패해도 지도는 계속 그린다(RR-3).
+  var setSatellite = function (satellite) {
+    try {
+      if (isSatellitePayload(satellite)) {
+        addSatellite(satellite);
+      } else {
+        removeSatellite();
+      }
     } catch (error) {
       console.warn("[RouteReplay] satellite", error && error.message ? error.message : error);
     }
@@ -739,7 +798,7 @@ export const ROUTE_REPLAY_HTML: string = String.raw`<!doctype html>
     bounds = [[west, south], [east, north]];
 
     // 위성(RR-2 · MAP-7) — 코스보다 먼저 끼워 코스·마커가 위에 온다. 실패해도 일반 지도로 계속 그린다(RR-3).
-    applySatellite(message.satellite);
+    setSatellite(message.satellite);
 
     map.addSource("replay-route", {
       type: "geojson",
@@ -822,6 +881,15 @@ export const ROUTE_REPLAY_HTML: string = String.raw`<!doctype html>
         applyLoad(message);
       } catch (error) {
         fail("load:" + (error && error.message ? error.message : "unknown"));
+      }
+
+      return;
+    }
+
+    // 지도 종류 전환(RR-2) — 문서를 다시 띄우지 않고 위성만 넣고 뺀다. "load" 전이면 버린다("load"가 지금 값을 싣는다).
+    if (message && message.type === "layer") {
+      if (loaded) {
+        setSatellite(message.satellite);
       }
     }
   };

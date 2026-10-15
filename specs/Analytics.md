@@ -214,7 +214,7 @@
 | `map_load_failed` | 지도 데이터(스타일·타일) 로드 실패 ([Map.md](Map.md) MAP-6, `logEvent`) `[제안]` | `screen` |
 | `click_route_draw_start`(`entry`: `menu` \| `empty_card` \| `highlight` — RD-9) / `click_route_draw_save` / `click_route_draw_cancel` / `click_route_draw_search_select` | 지도에서 코스 그리기 시작·저장(성공 시)·취소·검색 결과로 이동 ([RouteDraw.md](RouteDraw.md) RD-4·RD-5) `[제안]` | `source`: `route` \| `group`; save: `point_count`, `sample_count`, `distance`, `has_elevation`; cancel: `point_count`; save에 `trail_segment_count`·`straight_segment_count`·`restored_segment_count`(수정으로 되살린 구간), `mode`: `new` \| `edit` |
 | `click_route_draw_edit_start` | 그린 코스 수정 시작 ([RouteDraw.md](RouteDraw.md) RD-7) `[제안]` | `source`: `route` \| `group`. 저장은 `click_route_draw_save`의 `mode`: `new` \| `edit` |
-| `click_map_layer` | 지도 종류 전환 ([Map.md](Map.md) MAP-7) `[제안]` — `logClick`이 `screen`을 현재 화면 이름으로 덮어써서 **`logEvent('click_map_layer', …)`로 직접 보낸다** | `layer`: `standard` \| `satellite`, `screen`: `bag_route` \| `group_map` \| `camp_map`, `entitled`: boolean |
+| `click_map_layer` | 지도 종류 전환 ([Map.md](Map.md) MAP-7) `[제안]` — `logClick`이 `screen`을 현재 화면 이름으로 덮어써서 **`logEvent('click_map_layer', …)`로 직접 보낸다** | `layer`: `standard` \| `satellite`, `screen`: `bag_route` \| `group_map` \| `camp_map` \| `route_replay`, `entitled`: boolean |
 | `map_satellite_unavailable` | 위성 타일 권한 오류로 일반 지도로 되돌림(MAP-7 한도 폴백, `logEvent`) `[제안]` | `status` |
 | `click_bag_route_highlight` | 여행 상세 강조 카드 `코스 그리기` 탭 ([RouteDraw.md](RouteDraw.md) RD-9 #4) `[제안]` | — |
 | `route_update_restore_failed` | 그린 코스 수정 저장이 실패해 이전 GPX를 되돌리려다 그것도 실패 ([RouteDraw.md](RouteDraw.md) RD-7, `logEvent`) `[제안]` | `kind`: `bag` \| `group` |

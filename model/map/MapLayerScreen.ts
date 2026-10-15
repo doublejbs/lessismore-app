@@ -6,6 +6,8 @@ enum MapLayerScreen {
   GroupMap = 'group_map',
   // 박지 지도(CS-1).
   CampMap = 'camp_map',
+  // 3D 리플레이(RR-2).
+  RouteReplay = 'route_replay',
 }
 
 export default MapLayerScreen;
