@@ -90,6 +90,22 @@ class GroupMap {
     return this.routeList.getRoutes();
   }
 
+  /**
+   * 코스 0개 빈 상태 카드(RD-9 #1)를 세울지 — 시트 단 높이·카드 표시·`포인트 추가` 라임 내림이 이 하나를 본다.
+   * 추가할 수 있고(파일 선택기), 그룹·코스를 다 읽었고, 코스 조회 실패가 아니고, 코스가 0개일 때.
+   */
+  public shouldShowRouteEmptyCard(): boolean {
+    const routeList = this.routeList;
+
+    return (
+      routeList.canAdd() &&
+      this.initialized &&
+      routeList.isInitialized() &&
+      !routeList.getError() &&
+      routeList.getRoutes().length === 0
+    );
+  }
+
   public getCampSpot(): CampSpot | null {
     return this.campSpot;
   }

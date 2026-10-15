@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import GroupRouteListView from '@/components/group/route/GroupRouteListView';
 import PointListView, { PointRow } from '@/components/point/PointListView';
 import PretendardText from '@/components/PretendardText';
+import RouteEmptyCardView from '@/components/route/RouteEmptyCardView';
 import useRouteSheetPullDown from '@/components/route/useRouteSheetPullDown';
 import { Acg, AcgLayout, AcgType, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
@@ -35,6 +36,16 @@ interface Props {
   onEditRoute: (route: GroupRoute) => void;
   // `코스 추가` — GPX 선택 → 업로드(GRP-8).
   onAddRoute: () => void;
+  /**
+   * 코스 0개 빈 상태 카드(RD-9 #1)를 세울지 — 판단은 지도 본문이 한다(같은 값으로 `포인트 추가`를 흰 보조로 내린다).
+   * 세우면 빈 문구·푸터 `코스 추가` 대신 카드다.
+   */
+  showsEmptyCard: boolean;
+  // 빈 상태 카드 `지도에서 그리기` / `GPX 파일 가져오기` — 메뉴를 거치지 않는다.
+  onStartDrawing: () => void;
+  onImportRoute: () => void;
+  // 빈 상태 카드 높이를 잰다 — 시트 접힘 단이 카드를 다 담게.
+  onEmptyCardMeasure: (height: number) => void;
   // `코스 추가`로 시작한 작업이 진행 중인지(파일 선택 포함) / 그중 업로드 단계인지.
   isAddingRoute: boolean;
   isUploadingRoute: boolean;
@@ -64,6 +75,10 @@ const GroupMapSheetListView: FC<Props> = ({
   onDeleteRoute,
   onEditRoute,
   onAddRoute,
+  showsEmptyCard,
+  onStartDrawing,
+  onImportRoute,
+  onEmptyCardMeasure,
   isAddingRoute,
   isUploadingRoute,
   onSelectPoint,
@@ -239,6 +254,22 @@ const GroupMapSheetListView: FC<Props> = ({
   const isRouteFull = routeList.isFull();
   const isAddDisabled =
     isRouteFull || isAddingRoute || routeList.isSubmitting();
+
+  // 코스 0개 — 빈 문구·푸터 대신 빈 상태 카드(RD-9 #1). 카드의 `지도에서 그리기`가 라임이다(그동안 `포인트 추가`는 흰 보조).
+  if (showsEmptyCard) {
+    return (
+      <View style={sectionStyle}>
+        <RouteEmptyCardView
+          title={l10n.t('routeDraw.emptyCardTitleGroup')}
+          onDraw={onStartDrawing}
+          onImport={onImportRoute}
+          isUploading={isUploadingRoute}
+          disabled={isAddingRoute || routeList.isSubmitting()}
+          onMeasure={onEmptyCardMeasure}
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={sectionStyle}>

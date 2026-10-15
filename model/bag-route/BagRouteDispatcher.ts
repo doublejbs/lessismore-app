@@ -1,4 +1,5 @@
 import app from '@/model/app/App';
+import { BagLocation } from '@/model/bag-destination/BagLocation';
 import BagRoute from '@/model/bag-route/BagRoute';
 import Group from '@/model/group/Group';
 import GroupRoute from '@/model/group/GroupRoute';
@@ -18,6 +19,13 @@ import {
   OfflineTripSnapshotData,
 } from '@/model/offline/OfflineTripSnapshot';
 import OfflineTripStore from '@/model/offline/OfflineTripStore';
+
+// 배낭 이름·여행지(RD-3 기본 이름 · RD-9 #2 시작 카메라). 못 읽으면 모두 `null`.
+export interface BagRouteNaming {
+  name: string | null;
+  locationName: string | null;
+  location: BagLocation | null;
+}
 
 // 연결 그룹에서 온 코스 한 건. 그룹 이름을 함께 들고 있어야 목록에 출처를 적을 수 있다(BD-11).
 export interface LinkedGroupRoute {
@@ -118,18 +126,16 @@ class BagRouteDispatcher {
   }
 
   /**
-   * 코스 그리기 이름 시트의 기본값 재료(RD-3) — 배낭 이름·여행지 이름. 못 읽으면 둘 다 `null`이다(기본 이름은
-   * 부가 정보라 그리기를 막지 않는다).
+   * 코스 그리기 이름 시트의 기본값 재료(RD-3) — 배낭 이름·여행지 이름 — 와 시작 카메라의 여행지(RD-9 #2, DM-15).
+   * 못 읽으면 모두 `null`이다(부가 정보라 그리기를 막지 않는다).
    */
-  public async getBagNaming(
-    bagId: string
-  ): Promise<{ name: string | null; locationName: string | null }> {
+  public async getBagNaming(bagId: string): Promise<BagRouteNaming> {
     try {
       return await this.bagStore.getBagNaming(bagId);
     } catch (error) {
       console.warn('[BagRouteDispatcher] 배낭 이름 조회 실패', error); // l10n-ignore: 개발자 로그
 
-      return { name: null, locationName: null };
+      return { name: null, locationName: null, location: null };
     }
   }
 

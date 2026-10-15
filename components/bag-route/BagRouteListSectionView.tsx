@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
 import PointListView, { PointRow } from '@/components/point/PointListView';
+import RouteEmptyCardView from '@/components/route/RouteEmptyCardView';
 import RouteListView, {
   RouteRow,
   RouteRowAction,
@@ -43,6 +44,15 @@ interface Props {
   onDeletePoint: (point: BagPoint) => void;
   // 목록 아래 `코스 추가` → 메뉴(가져오기 | 지도에서 그리기, RD-1). 화면이 메뉴를 띄운다.
   onAddRoute: () => void;
+  /**
+   * 코스 0개 빈 상태 카드(RD-9 #1)의 `지도에서 그리기` — 메뉴를 거치지 않고 바로 그리기(권한 게이트 포함).
+   * 그릴 수 없는 환경(웹·옛 바이너리)에서는 넘기지 않는다 — 그때는 빈 문구 + 푸터 `코스 추가`(가져오기만)다.
+   */
+  onStartDrawing?: (() => void) | undefined;
+  // 빈 상태 카드의 `GPX 파일 가져오기` — 메뉴 없이 바로 파일 선택기.
+  onImportRoute: () => void;
+  // 빈 상태 카드 높이를 잰다 — 시트 접힘 단이 카드를 다 담게(RD-9 #1).
+  onEmptyCardMeasure?: ((height: number) => void) | undefined;
   bottomInset: number;
   /**
    * 바텀 시트 안(BD-11, 네이티브 지도 화면)에 들어간다 — 목록이 시트 높이를 따라 남는 세로를 다 쓰고
@@ -77,6 +87,9 @@ const BagRouteListSectionView: FC<Props> = ({
   onEditPoint,
   onDeletePoint,
   onAddRoute,
+  onStartDrawing,
+  onImportRoute,
+  onEmptyCardMeasure,
   bottomInset,
   fillHeight = false,
 }) => {
@@ -277,6 +290,29 @@ const BagRouteListSectionView: FC<Props> = ({
             {bagPointList.getLimitMessage()}
           </PretendardText>
         ) : null}
+      </View>
+    );
+  }
+
+  /**
+   * 코스 0개(내 코스 + 연결 그룹 코스)이고 추가할 수 있으면 빈 문구·푸터 대신 빈 상태 카드다(RD-9 #1). 카드의
+   * `지도에서 그리기`가 이 화면의 라임이라 그동안 푸터 `코스 추가`(라임)는 걷는다(HM-8 — 같은 화면에 라임 둘 금지).
+   * 첫 조회 전·조회 실패는 카드를 세우지 않는다(아직 없는지 모른다).
+   */
+  const showsEmptyCard = !!onStartDrawing && bagRouteList.shouldShowEmptyCard();
+
+  if (showsEmptyCard) {
+    return (
+      <View style={sectionStyle}>
+        {renderSegment()}
+        <RouteEmptyCardView
+          title={l10n.t('routeDraw.emptyCardTitleBag')}
+          onDraw={onStartDrawing}
+          onImport={onImportRoute}
+          isUploading={submitting}
+          disabled={submitting}
+          onMeasure={onEmptyCardMeasure}
+        />
       </View>
     );
   }

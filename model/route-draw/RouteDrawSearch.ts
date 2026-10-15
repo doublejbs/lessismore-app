@@ -29,6 +29,8 @@ class RouteDrawSearch {
   private searching = false;
   private resultsOpen = false;
   private pin: RouteDrawSearchPin | null = null;
+  // 여행지 없이 새로 그리기에 들어왔을 때 인풋이 시작 안내를 보인다(RD-9 #2). 점을 찍으면 걷힌다.
+  private startHint = false;
   // 검색 요청마다 올린다 — 늦게 온 응답이 새 검색어의 결과를 덮지 않게.
   private requestSeq = 0;
   private timer: ReturnType<typeof setTimeout> | null = null;
@@ -58,6 +60,26 @@ class RouteDrawSearch {
 
   public getPin(): RouteDrawSearchPin | null {
     return this.pin;
+  }
+
+  public isStartHintVisible(): boolean {
+    return this.startHint;
+  }
+
+  public showStartHint() {
+    this.startHint = true;
+  }
+
+  public clearStartHint() {
+    this.startHint = false;
+  }
+
+  /**
+   * 여행지 핀(RD-9 #2) — 검색 임시 핀과 같은 자리·같은 모양이다(비대화형, 저장에 들어가지 않는다). 검색으로 고른
+   * 것이 아니라 측정(`route_draw_search_select`)은 남기지 않는다. 점을 찍거나 다른 결과를 고르면 바뀐다.
+   */
+  public showPin(pin: RouteDrawSearchPin) {
+    this.pin = pin;
   }
 
   // 검색어가 2자 이상이고 닫지 않았을 때만 드롭다운을 연다.
@@ -126,6 +148,7 @@ class RouteDrawSearch {
     this.searching = false;
     this.resultsOpen = false;
     this.pin = null;
+    this.startHint = false;
   }
 
   private hasQuery(): boolean {

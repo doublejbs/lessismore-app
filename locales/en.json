@@ -271,7 +271,13 @@
       "sharedToGroup": "Shared to group",
       "toGroup": "Send to group",
       "toGroupTitle": "Which group?",
-      "toGroupDone": "Sent to the group"
+      "toGroupDone": "Sent to the group",
+      "tileDraw": "Draw a route",
+      "highlightLabel": "Draw a route",
+      "highlightValue": "Follows the trails",
+      "cardCount_one": "{{count}} route",
+      "cardCount_other": "{{count}} routes",
+      "cardLabel": "Route {{name}}, {{meta}}"
     },
     "point": {
       "empty": "No points yet. Long-press the map or tap Add point",
@@ -1877,7 +1883,11 @@
     "trailNotEntitled": "Follow trails is a useless Plus feature",
     "claimFailed": "Couldn't save right now. Please try again in a moment.",
     "editUnavailable": "This route can't be edited",
-    "saveHintNoChanges": "You can save once you make a change"
+    "saveHintNoChanges": "You can save once you make a change",
+    "emptyCardTitleBag": "Draw a route for this trip",
+    "emptyCardTitleGroup": "Draw a route for your group",
+    "emptyCardDescription": "Tap points on the map and they’ll follow the trails",
+    "searchStartHint": "Search for where to start drawing"
   },
   "map": {
     "loadFailed": "Couldn't load map data",

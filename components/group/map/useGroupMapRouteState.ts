@@ -3,6 +3,7 @@ import app from '@/model/app/App';
 import GroupRoute from '@/model/group/GroupRoute';
 import GroupMap from '@/model/group-map/GroupMap';
 import RouteDraw from '@/model/route-draw/RouteDraw';
+import RouteDrawEntry from '@/model/route-draw/RouteDrawEntry';
 import RouteDrawSource from '@/model/route-draw/RouteDrawSource';
 import RouteDrawTargetKind from '@/model/route-draw/RouteDrawTargetKind';
 import useRouteDrawCancel from '@/components/route-draw/useRouteDrawCancel';
@@ -47,6 +48,24 @@ const useGroupMapRouteState = (groupMap: GroupMap) => {
         const name = groupMap.getGroup()?.getName();
 
         return name ? l10n.t('routeDraw.defaultName', { name }) : '';
+      },
+      /**
+       * 새로 그리기 시작 카메라(RD-9 #2) — 그룹 여행지 박지. 박지 핀은 지도에 이미 있어 핀을 하나 더 띄우지 않는다.
+       * 자유 위치 여행지는 좌표를 저장하지 않아(GRP-2) 옮길 곳이 없다 — 검색 안내로 간다.
+       */
+      resolveStartFocus: () => {
+        const campSpot = groupMap.getCampSpot();
+
+        if (!campSpot) {
+          return null;
+        }
+
+        return {
+          latitude: campSpot.location.latitude,
+          longitude: campSpot.location.longitude,
+          name: campSpot.name,
+          showPin: false,
+        };
       },
     })
   );
@@ -117,7 +136,12 @@ const useGroupMapRouteState = (groupMap: GroupMap) => {
 
   // 그리기 모드에 들어간다(RD-1). 조준 모드는 화면(`GroupMapView`)이 먼저 끈다. 무료 1회를 썼으면 구독 화면이 먼저 뜬다(RD-8).
   const handleStartDrawing = useCallback(() => {
-    routeDraw.requestStart();
+    routeDraw.requestStart(RouteDrawEntry.Menu);
+  }, [routeDraw]);
+
+  // 빈 상태 카드 `지도에서 그리기`(RD-9 #1) — 메뉴 없이 바로. 권한 게이트는 같다.
+  const handleStartDrawingFromCard = useCallback(() => {
+    routeDraw.requestStart(RouteDrawEntry.EmptyCard);
   }, [routeDraw]);
 
   // 코스 행 `⋯` → `코스 수정`(RD-7, 올린 사람의 그린 코스). 권한이 없으면 구독 화면이 먼저 뜬다(RD-8).
@@ -148,6 +172,7 @@ const useGroupMapRouteState = (groupMap: GroupMap) => {
     handleCloseAddMenu,
     handleImportRoute,
     handleStartDrawing,
+    handleStartDrawingFromCard,
     handleCancelDrawing,
     handleSubmitDrawnRoute,
   };

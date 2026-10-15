@@ -1,5 +1,6 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import app from '@/model/app/App';
+import { BagLocation } from '@/model/bag-destination/BagLocation';
 import BagRoute from '@/model/bag-route/BagRoute';
 import { BagRouteEntry } from '@/model/bag-route/BagRouteEntry';
 import Group from '@/model/group/Group';
@@ -12,10 +13,19 @@ import { RouteBounds, RouteDraft } from '@/model/route/RouteData';
 import { getRouteErrorMessage } from '@/model/route/RouteErrorMessage';
 import RoutePicker from '@/model/route/RoutePicker';
 import RouteValidator from '@/model/route/RouteValidator';
-import BagRouteDispatcher, { LinkedGroupRoute } from './BagRouteDispatcher';
+import { RouteDrawStartFocus } from '@/model/route-draw/RouteDrawStartFocus';
+import BagRouteDispatcher, {
+  BagRouteNaming,
+  LinkedGroupRoute,
+} from './BagRouteDispatcher';
 import BagRouteSelection from './BagRouteSelection';
 
 const GPX_EXTENSION_PATTERN = /\.gpx$/i;
+
+// 다시 읽을 때 선택을 기억에서 새로 정한다(`reload`) — 기기에서 먼저 읽어 둔 기억된 목록 키.
+interface BagRouteSelectionReset {
+  rememberedKey: string | null;
+}
 
 /**
  * 목록에서 코스를 **고른** 요청 (BD-11). 지도가 이 요청마다 카메라를 그 코스로 옮긴다.
@@ -47,6 +57,15 @@ class BagRouteList {
   private initialized = false;
   private submitting = false;
   private error: Error | null = null;
+  // 여행지(DM-15) — 새로 그리기 시작 카메라가 쓴다(RD-9 #2). 화면을 열 때 한 번 읽는다.
+  private destination: BagLocation | null = null;
+  /**
+   * 배낭 이름·여행지 읽기(RD-3 · RD-9 #2) — 화면 수명 동안 한 번만 읽고 같은 Promise를 나눠 쓴다(시작 카메라·이름
+   * 시트 기본값이 같은 문서를 두 번 읽지 않게).
+   */
+  private namingPromise: Promise<BagRouteNaming> | null = null;
+  // 목록 읽기 순번 — 겹친 읽기 중 **마지막 요청**의 결과만 반영한다(늦게 온 앞 요청이 덮지 않게).
+  private loadSeq = 0;
 
   public static from(dispatcher: BagRouteDispatcher, bagId: string) {
     return new BagRouteList(dispatcher, bagId);
@@ -56,7 +75,10 @@ class BagRouteList {
     private readonly dispatcher: BagRouteDispatcher,
     private readonly bagId: string
   ) {
-    makeAutoObservable(this);
+    makeAutoObservable<BagRouteList, 'namingPromise' | 'loadSeq'>(this, {
+      namingPromise: false,
+      loadSeq: false,
+    });
   }
 
   public async initialize(): Promise<void> {
@@ -69,11 +91,81 @@ class BagRouteList {
     runInAction(() => {
       this.rememberedKey = rememberedKey;
     });
+    // 여행지는 그리기 시작 카메라에만 쓰는 부가 정보라 목록을 기다리게 하지 않는다.
+    void this.loadDestination();
     await this.load(false);
   }
 
   public async refresh(quiet = false): Promise<void> {
     await this.load(quiet);
+  }
+
+  /**
+   * 다른 화면(코스 화면)에서 고른 코스를 따라 다시 읽는다 — 여행 상세 코스 카드(RD-9 #5)처럼 이 목록을 **보기만** 하는
+   * 곳이 쓴다. 선택 기억(BD-11)을 기기에서 **먼저** 다시 읽어 두고, 선택을 비우고 다시 정하는 일은 목록 결과를 반영하는
+   * **같은 액션** 안에서 한다 — 읽는 동안에는 이전 선택이 그대로라 화면(코스 카드)이 비었다 차지 않는다(기억된 코스가
+   * 있으면 그것, 없으면 첫 코스).
+   *
+   * `linkedGroups`: 호출자가 이미 읽고 있는 연결 그룹 목록(여행 상세의 그룹 한 줄과 같은 조회) — 넘기면 다시 읽지 않는다.
+   */
+  public async reload(linkedGroups?: Promise<Group[]>): Promise<void> {
+    const rememberedKey = await BagRouteSelection.load(this.bagId);
+
+    await this.load(true, linkedGroups, { rememberedKey });
+  }
+
+  /**
+   * 코스 0개 빈 상태 카드(RD-9 #1)를 세울지 — 시트 단 높이와 카드 표시가 이 하나를 본다. 추가할 수 있고(온라인·파일
+   * 선택기), 첫 조회가 끝났고, 조회 실패가 아니고, 코스(내 코스 + 연결 그룹 코스)가 0개일 때. 그릴 수 있는지(지도
+   * 모듈)는 화면이 따로 본다.
+   */
+  public shouldShowEmptyCard(): boolean {
+    return this.canAdd() && this.initialized && !this.error && this.isEmpty();
+  }
+
+  /**
+   * 여행지를 아직 읽는 중이면 최대 `timeoutMs`까지 기다린다(RD-9 #2) — 화면을 열자마자 그리기를 눌러도 시작 카메라가
+   * 여행지로 가게. 넘기면 그대로 돌아간다(그때는 검색 안내).
+   */
+  public async waitForDestination(timeoutMs: number): Promise<void> {
+    const pending = this.namingPromise;
+
+    if (!pending) {
+      return;
+    }
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    try {
+      await Promise.race([
+        pending,
+        new Promise<void>(resolve => {
+          timer = setTimeout(resolve, timeoutMs);
+        }),
+      ]);
+    } finally {
+      if (timer !== null) {
+        clearTimeout(timer);
+      }
+    }
+  }
+
+  /**
+   * 새로 그리기 시작 카메라(RD-9 #2) — 여행지가 있으면 그 좌표와 이름(여행지 핀 캡션). 아직 못 읽었거나 없으면 `null`.
+   */
+  public getDrawStartFocus(): RouteDrawStartFocus | null {
+    const destination = this.destination;
+
+    if (!destination) {
+      return null;
+    }
+
+    return {
+      latitude: destination.latitude,
+      longitude: destination.longitude,
+      name: destination.name,
+      showPin: true,
+    };
   }
 
   public getBagId(): string {
@@ -357,7 +449,7 @@ class BagRouteList {
    * 빈 문자열(그리기 모델이 `그린 코스`로 채운다).
    */
   public async getDrawDefaultName(): Promise<string> {
-    const naming = await this.dispatcher.getBagNaming(this.bagId);
+    const naming = await this.getNaming();
     const base = naming.locationName || naming.name;
 
     return base ? app.getL10n().t('routeDraw.defaultName', { name: base }) : '';
@@ -436,18 +528,30 @@ class BagRouteList {
     return routeId;
   }
 
-  private async load(quiet: boolean) {
+  /**
+   * 목록 읽기. 오류는 **새 결과가 올 때** 바꾼다 — 다시 읽는 동안 이전 오류를 비우면 그 사이 "코스 0개"로 읽혀 빈 상태·
+   * `코스` 강조(RD-9)가 잠깐 선다. `reset`이 있으면 결과를 반영하는 같은 액션 안에서 기억을 바꾸고 선택을 새로 정한다.
+   */
+  private async load(
+    quiet: boolean,
+    linkedGroupsSource?: Promise<Group[]>,
+    reset?: BagRouteSelectionReset
+  ) {
+    this.loadSeq += 1;
+
+    const seq = this.loadSeq;
+
     if (!quiet) {
       this.setLoading(true);
     }
-
-    this.setError(null);
 
     try {
       const [routes, linkedGroups] = await Promise.all([
         this.dispatcher.getRoutes(this.bagId),
         // 연결 그룹 조회가 실패해도 내 코스는 보여야 한다 — 그룹 쪽은 부가 정보다.
-        this.dispatcher.getLinkedGroups(this.bagId).catch(error => {
+        (
+          linkedGroupsSource ?? this.dispatcher.getLinkedGroups(this.bagId)
+        ).catch(error => {
           console.warn('[BagRouteList] 연결 그룹 조회 실패', error); // l10n-ignore: 개발자 로그
 
           return [] as Group[];
@@ -458,19 +562,35 @@ class BagRouteList {
         linkedGroups
       );
 
+      // 그사이 더 새 읽기가 시작됐으면 이 결과는 버린다.
+      if (seq !== this.loadSeq) {
+        return;
+      }
+
       runInAction(() => {
         this.routes = routes;
         this.linkedGroups = linkedGroups;
         this.groupRoutes = groupRoutes;
+        this.error = null;
+
+        if (reset) {
+          this.rememberedKey = reset.rememberedKey;
+          this.selectedKey = null;
+        }
+
         this.syncSelection();
       });
     } catch (error) {
-      this.setError(error as Error);
+      if (seq === this.loadSeq) {
+        this.setError(error as Error);
+      }
     } finally {
-      runInAction(() => {
-        this.loading = false;
-        this.initialized = true;
-      });
+      if (seq === this.loadSeq) {
+        runInAction(() => {
+          this.loading = false;
+          this.initialized = true;
+        });
+      }
     }
   }
 
@@ -556,6 +676,33 @@ class BagRouteList {
     this.selectedKey = entries.some(entry => entry.key === rememberedKey)
       ? rememberedKey
       : entries[0].key;
+  }
+
+  // 온라인에서만 읽는다 — 오프라인에서는 그리기 자체가 없다(RD §5).
+  private async loadDestination() {
+    if (app.getNetworkStatus().isOffline()) {
+      return;
+    }
+
+    const naming = await this.getNaming();
+    const location = naming.location;
+    const isValid =
+      !!location &&
+      Number.isFinite(location.latitude) &&
+      Number.isFinite(location.longitude);
+
+    runInAction(() => {
+      this.destination = isValid ? location : null;
+    });
+  }
+
+  // 배낭 이름·여행지 — 처음 부를 때 읽고 그 Promise를 나눠 쓴다(실패는 디스패처가 `null`들로 돌려준다).
+  private getNaming(): Promise<BagRouteNaming> {
+    if (!this.namingPromise) {
+      this.namingPromise = this.dispatcher.getBagNaming(this.bagId);
+    }
+
+    return this.namingPromise;
   }
 
   private showMessage(message: string) {

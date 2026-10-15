@@ -61,9 +61,11 @@ import useRouteDrawHostLayout, {
   getRouteDrawHostBottomInset,
 } from '@/components/route-draw/useRouteDrawHostLayout';
 import useRouteDrawSearchHost from '@/components/route-draw/useRouteDrawSearchHost';
+import useRouteDrawStartCamera from '@/components/route-draw/useRouteDrawStartCamera';
 import {
   getRouteSheetDetentHeight,
   getRouteSheetDetents,
+  ROUTE_EMPTY_CARD_HEIGHT_ESTIMATE,
   SHEET_HEADER_PADDING_BOTTOM,
 } from '@/components/route/RouteSheetLayout';
 import {
@@ -123,6 +125,9 @@ interface Props {
   onRequestEditRoute: (route: GroupRoute) => void;
   // 시트 목록 아래 `코스 추가` → 메뉴(GPX 가져오기 | 지도에서 그리기, RD-1). 흐름은 `useGroupMapRouteState`가 잇는다.
   onAddRoute: () => void;
+  // 코스 0개 빈 상태 카드(RD-9 #1)의 `지도에서 그리기` / `GPX 파일 가져오기` — 메뉴를 거치지 않는다.
+  onStartDrawingFromEmpty: () => void;
+  onImportRoute: () => void;
   // `코스 추가`로 시작한 작업이 진행 중인지(파일 선택 포함) / 그중 업로드 단계인지.
   isAddingRoute: boolean;
   isUploadingRoute: boolean;
@@ -239,6 +244,8 @@ const GroupMapCanvasView: FC<Props> = ({
   onRequestDeleteRoute,
   onRequestEditRoute,
   onAddRoute,
+  onStartDrawingFromEmpty,
+  onImportRoute,
   isAddingRoute,
   isUploadingRoute,
   routeDraw,
@@ -256,6 +263,10 @@ const GroupMapCanvasView: FC<Props> = ({
   // 시트가 얹히는 칸의 높이 — 재기 전에는 창 높이로 어림한다(첫 카메라가 시트 높이를 써야 한다).
   const [rootHeight, setRootHeight] = useState(windowHeight);
   const [graphHeight, setGraphHeight] = useState(GRAPH_HEIGHT_ESTIMATE);
+  // 잰 빈 상태 카드 높이(RD-9 #1) — 시트 접힘 단 계산에 넘긴다.
+  const [emptyCardHeight, setEmptyCardHeight] = useState(
+    ROUTE_EMPTY_CARD_HEIGHT_ESTIMATE
+  );
   // 시트 머리의 `코스 | 포인트` 세그먼트(GRP-10).
   const [segment, setSegment] = useState(RouteListSegment.Routes);
   const mapRef = useRef<AppMapViewRef>(null);
@@ -316,6 +327,14 @@ const GroupMapCanvasView: FC<Props> = ({
   // 시트 단 높이(GRP-10 · BD-11) — 고도가 없는 코스는 그래프 자리가 없다.
   const hasSheetGraph = !!selectedRoute?.getElevationProfile();
   const hasSheetFooter = routeList.canAdd();
+  /**
+   * 코스 0개 빈 상태 카드(RD-9 #1). 시트 단 높이는 세그먼트와 무관하게 이 값으로 잡는다(칩을 바꿀 때 시트가 튀지
+   * 않게). 카드가 **보이는** 동안(`코스` 세그먼트)에는 카드의 `지도에서 그리기`가 이 화면의 라임이고, 컨트롤 스택
+   * `포인트 추가`는 흰 보조 알약으로 내린다(HM-8 — 같은 화면에 라임 둘 금지).
+   */
+  const hasRouteEmptyCard = groupMap.shouldShowRouteEmptyCard();
+  const isRouteEmptyCardVisible =
+    hasRouteEmptyCard && segment === RouteListSegment.Routes;
   const listBottomInset = insets.bottom + LIST_BOTTOM_EXTRA;
   const detents = useMemo(
     () =>
@@ -325,9 +344,13 @@ const GroupMapCanvasView: FC<Props> = ({
         listBottomInset,
         graphHeight: hasSheetGraph ? graphHeight : 0,
         hasFooter: hasSheetFooter,
+        hasEmptyCard: hasRouteEmptyCard,
+        emptyCardHeight,
       }),
     [
+      emptyCardHeight,
       graphHeight,
+      hasRouteEmptyCard,
       hasSheetFooter,
       hasSheetGraph,
       listBottomInset,
@@ -423,6 +446,14 @@ const GroupMapCanvasView: FC<Props> = ({
       releaseFollow,
       getDrawingBottomPadding,
     });
+  // 빈 상태 카드 높이 — 1pt 미만 흔들림은 무시한다(단이 다시 계산되며 시트가 떨리지 않게).
+  const handleEmptyCardMeasure = useCallback((height: number) => {
+    setEmptyCardHeight(previous =>
+      Math.abs(previous - height) < 1 ? previous : height
+    );
+  }, []);
+  // 새로 그리기 시작 카메라(RD-9 #2) — 그룹 박지가 있으면 줌 13으로 옮긴다(하단 바 높이를 잰 뒤).
+  useRouteDrawStartCamera({ routeDraw, mapRef, releaseFollow, drawBarHeight });
 
   /**
    * 화면이 카메라를 옮기면 방향 모드의 따라가기를 푼다 — 다음 나침반 값이 되돌리지 않게. 줌이 없으면 유지한다.
@@ -1240,10 +1271,15 @@ const GroupMapCanvasView: FC<Props> = ({
                 />
               ) : null}
               {/* `포인트 추가` — 라임, 화면당 하나(HM-8). 롱프레스의 접근 가능한 대안으로 조준 모드에 들어간다.
-                그리기 모드에서도 걷는다 — 그때의 라임은 하단 바 `저장`이다(RD-2). */}
+                그리기 모드에서도 걷는다 — 그때의 라임은 하단 바 `저장`이다(RD-2). 시트에 코스 빈 상태 카드가
+                보이는 동안에는 카드의 `지도에서 그리기`가 라임이라 흰 보조 알약으로 내린다(RD-9 #1). */}
               {isMapMode ? null : (
                 <TouchableOpacity
-                  style={[styles.addButton, isFull && styles.disabled]}
+                  style={[
+                    styles.addButton,
+                    isRouteEmptyCardVisible && styles.addButtonSecondary,
+                    isFull && styles.disabled,
+                  ]}
                   onPress={handleStartAiming}
                   disabled={isFull || submitting}
                   activeOpacity={0.8}
@@ -1322,6 +1358,10 @@ const GroupMapCanvasView: FC<Props> = ({
           onDeleteRoute={onRequestDeleteRoute}
           onEditRoute={onRequestEditRoute}
           onAddRoute={onAddRoute}
+          showsEmptyCard={isRouteEmptyCardVisible}
+          onStartDrawing={onStartDrawingFromEmpty}
+          onImportRoute={onImportRoute}
+          onEmptyCardMeasure={handleEmptyCardMeasure}
           isAddingRoute={isAddingRoute}
           isUploadingRoute={isUploadingRoute}
           onSelectPoint={handleSelectPoint}
@@ -1407,6 +1447,10 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     backgroundColor: Acg.lime,
     boxShadow: AcgShadow.card,
+  },
+  // 코스 빈 상태 카드가 보이는 동안의 `포인트 추가` — `3D`와 같은 흰 보조 알약(지도 위라 그림자는 남긴다).
+  addButtonSecondary: {
+    backgroundColor: Acg.paper,
   },
   // `3D` — 지도 위 흰 보조 알약(배낭 코스 화면과 같은 면·그림자).
   replayButton: {

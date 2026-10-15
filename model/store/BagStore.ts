@@ -859,6 +859,8 @@ class BagStore {
     return {
       name: data?.name ?? null,
       locationName: data?.location?.name ?? null,
+      // 코스 그리기 시작 카메라(RD-9 #2)가 여행지 좌표를 쓴다.
+      location: data?.location ?? null,
     };
   }
 

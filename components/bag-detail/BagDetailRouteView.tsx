@@ -7,6 +7,7 @@ import PretendardText from '@/components/PretendardText';
 import { Color } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import BagDetail from '@/model/bag-detail/BagDetail';
+import { isMapLibreAvailable } from '@/model/map/MapLibreModule';
 import { formatRouteDistance } from '@/model/route/RouteFormat';
 import tileStyles from './BagDetailActionTileStyles';
 
@@ -15,6 +16,8 @@ interface Props {
 }
 
 const IS_WEB = Platform.OS === 'web';
+// 코스 그리기(RD-1)는 지도가 있는 네이티브에만 있다(APP-5).
+const CAN_DRAW = !IS_WEB;
 
 /**
  * 배낭 상세의 코스 타일 (BD-10 · BD-11). 액션 그리드에서 **운동 기록 타일과 나란히** 둔다 —
@@ -51,9 +54,13 @@ const BagDetailRouteView: FC<Props> = ({ bagDetail }) => {
       ? [l10n.t('bag.point.tileCount', { count: pointCount })]
       : [];
   const parts = [...routeParts, ...pointParts];
+  // 비었으면 할 일을 말한다 — 그릴 수 있으면 `코스 그리기`(RD-9 #3), 웹·옛 바이너리는 가져오기만 있어 `GPX 추가`.
+  // 오프라인 저장본 화면(OF-5)은 그대로 둔다.
+  const canDraw = CAN_DRAW && isMapLibreAvailable() && !bagDetail.isSnapshot();
+  const emptyKey = canDraw ? 'bag.route.tileDraw' : 'bag.route.tileEmpty';
   const subtitle =
     parts.length === 0
-      ? l10n.t('bag.route.tileEmpty')
+      ? l10n.t(emptyKey)
       : parts.join(l10n.t('common.metaSeparator'));
 
   return (

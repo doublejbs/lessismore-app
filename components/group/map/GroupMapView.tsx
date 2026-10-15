@@ -85,6 +85,7 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
     handleCloseAddMenu,
     handleImportRoute,
     handleStartDrawing,
+    handleStartDrawingFromCard,
     handleCancelDrawing,
     handleSubmitDrawnRoute,
   } = useGroupMapRouteState(groupMap);
@@ -123,6 +124,12 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
     setIsAiming(false);
     handleStartDrawing();
   }, [handleStartDrawing]);
+
+  // 빈 상태 카드 `지도에서 그리기`(RD-9 #1) — 메뉴 없이 바로. 조준 모드는 먼저 끈다.
+  const handleStartRouteDrawingFromCard = useCallback(() => {
+    setIsAiming(false);
+    handleStartDrawingFromCard();
+  }, [handleStartDrawingFromCard]);
 
   // 코스 행 `⋯` → `코스 수정`(RD-7). 그리기 시작과 같이 조준 모드를 먼저 끈다.
   const handleEditRouteDrawing = useCallback(
@@ -290,6 +297,8 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
             onRequestDeleteRoute={handleDeleteRoute}
             onRequestEditRoute={handleEditRouteDrawing}
             onAddRoute={handleOpenAddMenu}
+            onStartDrawingFromEmpty={handleStartRouteDrawingFromCard}
+            onImportRoute={handleImportRoute}
             isAddingRoute={isAddingRoute}
             isUploadingRoute={isUploadingRoute}
             routeDraw={routeDraw}

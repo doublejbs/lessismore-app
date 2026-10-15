@@ -269,7 +269,12 @@
       "sharedToGroup": "グループに共有済み",
       "toGroup": "グループに送る",
       "toGroupTitle": "どのグループに送りますか？",
-      "toGroupDone": "グループに送りました"
+      "toGroupDone": "グループに送りました",
+      "tileDraw": "コースを描く",
+      "highlightLabel": "コースを描く",
+      "highlightValue": "登山道に沿ってつながります",
+      "cardCount_other": "コース {{count}}",
+      "cardLabel": "コース {{name}}、{{meta}}"
     },
     "point": {
       "empty": "まだポイントがありません。地図を長押しするか、ポイントを追加から登録してください",
@@ -1846,7 +1851,11 @@
     "trailNotEntitled": "「登山道に沿う」はuseless プラスの機能です",
     "claimFailed": "今は保存できませんでした。しばらくしてからもう一度お試しください。",
     "editUnavailable": "このコースは編集できません",
-    "saveHintNoChanges": "変更すると保存できます"
+    "saveHintNoChanges": "変更すると保存できます",
+    "emptyCardTitleBag": "この旅のコースを描いてみましょう",
+    "emptyCardTitleGroup": "グループのコースを描いてみましょう",
+    "emptyCardDescription": "地図に点を打つと登山道に沿ってつながります",
+    "searchStartHint": "どこから描くか検索してみましょう"
   },
   "map": {
     "loadFailed": "地図データを読み込めませんでした",

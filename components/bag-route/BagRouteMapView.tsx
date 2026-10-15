@@ -66,6 +66,7 @@ import useRouteDrawHostLayout, {
   getRouteDrawHostBottomInset,
 } from '@/components/route-draw/useRouteDrawHostLayout';
 import useRouteDrawSearchHost from '@/components/route-draw/useRouteDrawSearchHost';
+import useRouteDrawStartCamera from '@/components/route-draw/useRouteDrawStartCamera';
 import {
   RouteEndpointCameraPadding,
   useRouteEndpointState,
@@ -150,6 +151,8 @@ interface Props {
   listContent: ReactNode;
   // 목록 섹션 아래 여백(세이프에어리어 + 12) — 시트 단 높이 계산이 같은 값을 쓴다.
   listBottomInset: number;
+  // 잰 빈 상태 카드 높이(RD-9 #1) — 접힘 단이 카드를 다 담는다. 재기 전에는 어림값.
+  emptyCardHeight: number;
 }
 
 interface ViewSnapshot {
@@ -266,6 +269,7 @@ const BagRouteMapView: FC<Props> = ({
   listHeader,
   listContent,
   listBottomInset,
+  emptyCardHeight,
 }) => {
   const l10n = app.getL10n();
   const router = useRouter();
@@ -345,6 +349,8 @@ const BagRouteMapView: FC<Props> = ({
   // 시트 단 높이(BD-11) — 고도가 없는 코스는 그래프 자리가 없다.
   const hasSheetGraph = !!selected?.route.getElevationProfile();
   const hasSheetFooter = bagRouteList.canAdd();
+  // 코스 0개 빈 상태 카드(RD-9 #1) — 목록과 같은 판단(이 본문이 그려지면 그릴 수 있다).
+  const hasSheetEmptyCard = bagRouteList.shouldShowEmptyCard();
   const detents = useMemo(
     () =>
       getRouteSheetDetents({
@@ -353,9 +359,13 @@ const BagRouteMapView: FC<Props> = ({
         listBottomInset,
         graphHeight: hasSheetGraph ? graphHeight : 0,
         hasFooter: hasSheetFooter,
+        hasEmptyCard: hasSheetEmptyCard,
+        emptyCardHeight,
       }),
     [
+      emptyCardHeight,
       graphHeight,
+      hasSheetEmptyCard,
       hasSheetFooter,
       hasSheetGraph,
       listBottomInset,
@@ -415,6 +425,8 @@ const BagRouteMapView: FC<Props> = ({
       releaseFollow,
       getDrawingBottomPadding,
     });
+  // 새로 그리기 시작 카메라(RD-9 #2) — 여행지가 있으면 줌 13으로 옮긴다(하단 바 높이를 잰 뒤).
+  useRouteDrawStartCamera({ routeDraw, mapRef, releaseFollow, drawBarHeight });
 
   /**
    * 출발·도착 마커 탭 → 위치 정보 카드(GRP-8, 그룹 지도와 같다). 카메라는 그 점으로 옮기되 줌은 그대로 두고,

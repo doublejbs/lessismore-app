@@ -33,6 +33,7 @@ const INPUT_GAP = 8;
 const RouteDrawSearchView: FC<Props> = ({ search, onSelect }) => {
   const l10n = app.getL10n();
   const query = search.getQuery();
+  const hasStartHint = search.isStartHintVisible();
 
   if (!isGeocodeAvailable()) {
     return null;
@@ -63,8 +64,15 @@ const RouteDrawSearchView: FC<Props> = ({ search, onSelect }) => {
             styles.searchInput,
             query.length === 0 && styles.searchInputTrailing,
           ]}
-          placeholder={l10n.t('routeDraw.searchPlaceholder')}
-          placeholderTextColor={Acg.textMuted}
+          // 여행지 없이 새로 그리기에 들어왔으면 어디서부터 그릴지 묻는다 — 잉크에 가까운 회색으로 한 단 세운다(RD-9 #2).
+          placeholder={l10n.t(
+            hasStartHint
+              ? 'routeDraw.searchStartHint'
+              : 'routeDraw.searchPlaceholder'
+          )}
+          placeholderTextColor={
+            hasStartHint ? Acg.textSecondary : Acg.textMuted
+          }
           value={query}
           onChangeText={handleChangeQuery}
           onFocus={handleFocus}

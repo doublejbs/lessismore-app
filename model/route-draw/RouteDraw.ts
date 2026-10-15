@@ -22,6 +22,7 @@ import SubscriptionEntryPoint from '@/model/subscription/SubscriptionEntryPoint'
 import TerrainElevation from '@/model/terrain/TerrainElevation';
 import RouteDrawClaimResult from './RouteDrawClaimResult';
 import { RouteDrawEditableRoute } from './RouteDrawEditableRoute';
+import RouteDrawEntry from './RouteDrawEntry';
 import { writeRouteDrawGpx } from './RouteDrawGpxWriter';
 import RouteDrawMode from './RouteDrawMode';
 import { RouteDrawPoint } from './RouteDrawPoint';
@@ -31,6 +32,10 @@ import RouteDrawSearch from './RouteDrawSearch';
 import { RouteDrawSegment } from './RouteDrawSegment';
 import RouteDrawSegmentMode from './RouteDrawSegmentMode';
 import RouteDrawSource from './RouteDrawSource';
+import {
+  RouteDrawStartCamera,
+  RouteDrawStartFocus,
+} from './RouteDrawStartFocus';
 import { RouteDrawParent, RouteDrawTarget } from './RouteDrawTarget';
 
 /**
@@ -46,6 +51,8 @@ import { RouteDrawParent, RouteDrawTarget } from './RouteDrawTarget';
  * - `onSaved`: 저장이 끝나 **모드를 나간 뒤** 불린다 — 올린 코스를 골라 카메라를 맞춘다(배낭 `focusEntry`, 그룹
  *   `focusRoute`). 모드를 먼저 나가야 카메라 맞춤이 하단 바가 아니라 다시 올라온 시트 높이를 비운다.
  * - `resolveDefaultName`: 이름 입력 시트의 기본값(배낭 `{여행지} 코스`, 그룹 `{그룹} 코스`). 못 구하면 빈 문자열.
+ * - `resolveStartFocus`: 새로 그리기를 시작할 때 카메라를 옮길 여행지(RD-9 #2 — 배낭 여행지, 그룹 박지). 없으면 `null`이고
+ *   그때는 위치 검색 인풋이 `어디서부터 그릴지 검색해 보세요`로 안내한다.
  */
 export interface RouteDrawHost {
   parent: RouteDrawParent;
@@ -63,6 +70,7 @@ export interface RouteDrawHost {
   ) => Promise<string | null>;
   onSaved: (routeId: string) => void;
   resolveDefaultName: () => Promise<string>;
+  resolveStartFocus?: () => RouteDrawStartFocus | null;
 }
 
 // 찍을 수 있는 점 상한(RD-2).
@@ -214,6 +222,9 @@ class RouteDraw {
   private sessionSeq = 0;
   // 위치 검색(RD-5) — 모드에 들어가고 나갈 때 함께 비운다.
   private readonly search: RouteDrawSearch;
+  // 새로 그리기 시작 카메라(RD-9 #2) — 지도가 받아 한 번 옮긴다. 모드를 나가면 비운다.
+  private startCamera: RouteDrawStartCamera | null = null;
+  private startCameraSeq = 0;
 
   public static from(source: RouteDrawSource, host: RouteDrawHost) {
     return new RouteDraw(source, host);
@@ -236,6 +247,7 @@ class RouteDraw {
       | 'trailService'
       | 'trailFailureStreak'
       | 'trailCancels'
+      | 'startCameraSeq'
     >(this, {
       source: false,
       host: false,
@@ -247,6 +259,7 @@ class RouteDraw {
       trailService: false,
       trailFailureStreak: false,
       trailCancels: false,
+      startCameraSeq: false,
     });
   }
 
@@ -256,6 +269,11 @@ class RouteDraw {
 
   public isActive(): boolean {
     return this.active;
+  }
+
+  // 새로 그리기에 들어갈 때 옮길 카메라(RD-9 #2). 여행지가 없거나 수정 모드면 `null`.
+  public getStartCamera(): RouteDrawStartCamera | null {
+    return this.startCamera;
   }
 
   public isSaving(): boolean {
@@ -364,12 +382,13 @@ class RouteDraw {
   /**
    * `지도에서 그리기`(RD-1 · RD-8). 그릴 수 있으면 바로 모드에 들어가고, 무료 1회를 썼으면 구독 화면(코스 그리기
    * 진입점 변형, SUB-12)을 연다 — 권한을 얻어 닫히면 그리기를 바로 시작한다. 권한을 못 읽었으면(오프라인 등) 안내만 한다.
+   * `entry`는 측정용 진입 경로다(RD-9 — 빈 상태 카드·메뉴·강조 카드).
    */
-  public requestStart() {
+  public requestStart(entry = RouteDrawEntry.Menu) {
     const entitlement = app.getRouteDrawEntitlement();
 
     if (entitlement?.canDrawNew()) {
-      this.start();
+      this.start(false, entry);
 
       return;
     }
@@ -389,7 +408,7 @@ class RouteDraw {
           return;
         }
 
-        this.start(true);
+        this.start(true, entry);
       },
     });
   }
@@ -435,10 +454,12 @@ class RouteDraw {
    * 그리기 모드에 들어간다(RD-1). 기본 이름은 뒤에서 구해 둔다 — 이름 시트를 열 때 이미 있게. 권한 게이트는
    * `requestStart`가 본다 — `entitledByPurchase`는 구독 화면에서 권한을 얻고 들어왔다는 뜻이다(무료 1회를 쓰지 않는다).
    */
-  public start(entitledByPurchase = false) {
+  public start(entitledByPurchase = false, entry = RouteDrawEntry.Menu) {
     this.enter(RouteDrawMode.New, entitledByPurchase);
+    this.applyStartFocus();
     app.getAnalyticsManager()?.logClick('route_draw_start', {
       source: this.source,
+      entry,
     });
     void this.loadDefaultName(this.sessionSeq);
   }
@@ -538,8 +559,9 @@ class RouteDraw {
     };
 
     this.points = [...this.points, next];
-    // 점을 찍으면 검색 임시 핀은 사라진다(RD-5).
+    // 점을 찍으면 검색 임시 핀(여행지 핀 포함)과 시작 안내는 사라진다(RD-5 · RD-9 #2).
     this.search.clearPin();
+    this.search.clearStartHint();
 
     if (last) {
       this.addSegment(last, next);
@@ -1094,6 +1116,7 @@ class RouteDraw {
     this.nameSheetVisible = false;
     this.defaultName = '';
     this.search.clear();
+    this.startCamera = null;
     // 서버 콜드 스타트를 첫 점 전에 치른다(RD-6). 꺼져 있어도 보낸다 — 켜는 순간 이미 깨어 있게.
     this.trailService.warmup();
   }
@@ -1112,6 +1135,36 @@ class RouteDraw {
     this.trailQueue = Promise.resolve();
     this.nameSheetVisible = false;
     this.search.clear();
+    this.startCamera = null;
+  }
+
+  /**
+   * 점 0개로 새로 그리기에 들어갈 때 "어디서부터 그리지?"를 없앤다(RD-9 #2). 여행지가 있으면 카메라 요청을 남기고
+   * (지도가 줌 13으로 옮긴다) 필요하면 여행지 핀을 띄운다. 없으면 위치 검색 인풋이 시작 안내를 보인다.
+   */
+  private applyStartFocus() {
+    const focus = this.host.resolveStartFocus?.() ?? null;
+
+    if (!focus) {
+      this.search.showStartHint();
+
+      return;
+    }
+
+    this.startCameraSeq += 1;
+    this.startCamera = {
+      latitude: focus.latitude,
+      longitude: focus.longitude,
+      seq: this.startCameraSeq,
+    };
+
+    if (focus.showPin) {
+      this.search.showPin({
+        latitude: focus.latitude,
+        longitude: focus.longitude,
+        name: focus.name,
+      });
+    }
   }
 
   private setSaving(value: boolean) {

@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { observer } from 'mobx-react-lite';
 import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
 import app from '@/model/app/App';
+import { getRouteDrawEntitlementMetaKey } from '@/model/route-draw/RouteDrawEntitlementMeta';
 
 interface Props {
   visible: boolean;
@@ -30,17 +31,9 @@ const RouteAddMenuView: FC<Props> = ({
   onDraw,
 }) => {
   const l10n = app.getL10n();
-  const entitlement = app.getRouteDrawEntitlement();
-
-  const getDrawMetaKey = () => {
-    if (!entitlement || entitlement.isPlus() || !entitlement.isLoaded()) {
-      return 'routeDraw.menuDrawMeta';
-    }
-
-    return entitlement.hasUsedFree()
-      ? 'routeDraw.menuDrawMetaPlus'
-      : 'routeDraw.menuDrawMetaFree';
-  };
+  // 권한을 말할 것이 없으면(플러스·못 읽음) 기본 설명 그대로다.
+  const drawMetaKey =
+    getRouteDrawEntitlementMetaKey() ?? 'routeDraw.menuDrawMeta';
 
   return (
     <BottomMenuModalView
@@ -59,7 +52,7 @@ const RouteAddMenuView: FC<Props> = ({
               {
                 icon: 'create-outline' as const,
                 text: l10n.t('routeDraw.menuDraw'),
-                subtitle: l10n.t(getDrawMetaKey()),
+                subtitle: l10n.t(drawMetaKey),
                 onPress: onDraw,
               },
             ]

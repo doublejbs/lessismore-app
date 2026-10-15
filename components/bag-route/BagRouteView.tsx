@@ -11,6 +11,7 @@ import PointCreateSheetView, {
 } from '@/components/point/PointCreateSheetView';
 import PretendardText from '@/components/PretendardText';
 import RouteAddMenuView from '@/components/route/RouteAddMenuView';
+import { ROUTE_EMPTY_CARD_HEIGHT_ESTIMATE } from '@/components/route/RouteSheetLayout';
 import RouteElevationChartView from '@/components/route/RouteElevationChartView';
 import RouteDrawNameSheetView from '@/components/route-draw/RouteDrawNameSheetView';
 import useRouteDrawCancel from '@/components/route-draw/useRouteDrawCancel';
@@ -30,6 +31,7 @@ import BagRouteList from '@/model/bag-route/BagRouteList';
 import BagRouteSelection from '@/model/bag-route/BagRouteSelection';
 import { isMapLibreAvailable } from '@/model/map/MapLibreModule';
 import RouteDraw from '@/model/route-draw/RouteDraw';
+import RouteDrawEntry from '@/model/route-draw/RouteDrawEntry';
 import RouteDrawSource from '@/model/route-draw/RouteDrawSource';
 import RouteDrawTargetKind from '@/model/route-draw/RouteDrawTargetKind';
 import RouteListSegment from '@/model/route/RouteListSegment';
@@ -42,6 +44,11 @@ import OfflineTripAccess from '@/model/offline/OfflineTripAccess';
 interface Props {
   bagRouteList: BagRouteList;
   bagPointList: BagPointList;
+  /**
+   * 여행 상세 상황형 강조 `코스`(RD-9 #4)를 눌러 왔는지. 그때 빈 상태 카드에서 시작한 **첫** 그리기를 측정에서
+   * `entry: highlight`로 남긴다(강조 카드 → 빈 상태 카드 → 그리기 퍼널). 그리기를 자동으로 시작하지는 않는다.
+   */
+  fromHighlight?: boolean;
 }
 
 // 입력 시트가 등록할 좌표와 그 좌표를 찍은 경로(측정 `via`).
@@ -53,6 +60,8 @@ interface PointDraftTarget {
 const IS_IOS = Platform.OS === 'ios';
 const IS_WEB = Platform.OS === 'web';
 const HEADER_HEIGHT = 52;
+// 그리기를 누른 순간 여행지를 아직 읽는 중이면 이만큼까지 기다린다(ms, RD-9 #2).
+const DESTINATION_WAIT_MS = 1500;
 
 /**
  * 배낭 코스 (BD-11) — 지도 + 코스 목록 + 선택한 코스의 고도 그래프. 지도 포인트(BD-14)도 여기 산다.
@@ -65,7 +74,11 @@ const HEADER_HEIGHT = 52;
  * 포인트도 웹에서는 목록으로만, 읽기 전용으로 보인다(BD-14).
  * iOS는 네이티브 투명 헤더, Android는 커스텀 헤더다(LG-1, 그룹 지도와 같은 관례).
  */
-const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
+const BagRouteView: FC<Props> = ({
+  bagRouteList,
+  bagPointList,
+  fromHighlight = false,
+}) => {
   const router = useRouter();
   const l10n = app.getL10n();
   const insets = useSafeAreaInsets();
@@ -79,6 +92,10 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
   const [editingPoint, setEditingPoint] = useState<BagPoint | null>(null);
   // 시트를 열 때마다 올린다 — 시트가 이 값을 `key`로 받아 새로 마운트되면서 입력이 초기화된다.
   const [sheetKey, setSheetKey] = useState(0);
+  // 잰 빈 상태 카드 높이(RD-9 #1) — 시트 접힘 단 계산에 넘긴다.
+  const [emptyCardHeight, setEmptyCardHeight] = useState(
+    ROUTE_EMPTY_CARD_HEIGHT_ESTIMATE
+  );
   // `코스 추가` 메뉴(RD-1) — 가져오기 | 지도에서 그리기.
   const [isAddMenuVisible, setIsAddMenuVisible] = useState(false);
   /**
@@ -103,14 +120,37 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
         bagRouteList.focusEntry(BagRouteSelection.toBagEntryKey(routeId));
       },
       resolveDefaultName: () => bagRouteList.getDrawDefaultName(),
+      // 새로 그리기 시작 카메라 — 여행지가 있으면 그리로 옮기고 여행지 핀을 띄운다(RD-9 #2).
+      resolveStartFocus: () => bagRouteList.getDrawStartFocus(),
     })
   );
+  // 강조 카드에서 온 뒤 빈 상태 카드로 시작한 첫 그리기만 `highlight`로 센다(RD-9 측정).
+  const highlightEntryPendingRef = useRef(fromHighlight);
 
   // 화면을 떠나면 대기 중인 길 찾기를 끊는다 — 버린 구간의 토스트·측정이 다른 화면에 나가지 않게(RD-6).
   useEffect(() => () => routeDraw.dispose(), [routeDraw]);
 
   const isDrawing = routeDraw.isActive();
   const handleCancelDrawing = useRouteDrawCancel(routeDraw, isDrawing);
+  // 그리기를 시작하는 중(여행지 대기) — 두 번 눌러 모드에 두 번 들어가지 않게.
+  const startingDrawRef = useRef(false);
+  // 화면이 붙어 있는지 — 여행지를 기다리는 사이 떠났으면 그리기(구독 화면 포함)를 열지 않는다.
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  // 새로 그리기가 실제로 시작되면 강조 카드 표시를 소모한다 — 권한 미로딩·구독 화면 취소로 못 들어갔으면 남긴다.
+  useEffect(() => {
+    if (isDrawing && !routeDraw.isEditing()) {
+      highlightEntryPendingRef.current = false;
+    }
+  }, [isDrawing, routeDraw]);
   const selected = bagRouteList.getSelectedEntry();
   // OF-6: 연결이 없으면 같은 지도가 저장해 둔 팩에서 뜬다. 열 수 없는 저장본(미저장·잠김)이면 빈 상태다.
   const isOffline = app.getNetworkStatus().isOffline();
@@ -244,10 +284,45 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
   }, [bagRouteList]);
 
   // 그리기 모드에 들어간다(RD-1). 조준 모드와 동시에 켜지지 않는다. 무료 1회를 썼으면 구독 화면이 먼저 뜬다(RD-8).
+  // 여행지를 아직 읽는 중이면 잠깐(최대 1.5초) 기다렸다가 시작한다 — 시작 카메라가 여행지로 가게(RD-9 #2).
+  const startDrawing = useCallback(
+    async (entry: RouteDrawEntry) => {
+      if (startingDrawRef.current) {
+        return;
+      }
+
+      startingDrawRef.current = true;
+      setIsAiming(false);
+
+      try {
+        await bagRouteList.waitForDestination(DESTINATION_WAIT_MS);
+
+        // 기다리는 사이 화면을 떠났으면(뒤로 가기) 아무것도 열지 않는다.
+        if (!mountedRef.current) {
+          return;
+        }
+
+        routeDraw.requestStart(entry);
+      } finally {
+        startingDrawRef.current = false;
+      }
+    },
+    [bagRouteList, routeDraw]
+  );
+
   const handleStartDrawing = useCallback(() => {
-    setIsAiming(false);
-    routeDraw.requestStart();
-  }, [routeDraw]);
+    void startDrawing(RouteDrawEntry.Menu);
+  }, [startDrawing]);
+
+  // 빈 상태 카드 `지도에서 그리기`(RD-9 #1) — 메뉴 없이 바로. 권한 게이트는 `requestStart`가 같게 본다.
+  // 강조 카드에서 왔다는 표시는 그리기가 실제로 시작될 때 소모한다(아래 이펙트) — 구독 화면을 닫으면 남는다.
+  const handleStartDrawingFromCard = useCallback(() => {
+    void startDrawing(
+      highlightEntryPendingRef.current
+        ? RouteDrawEntry.Highlight
+        : RouteDrawEntry.EmptyCard
+    );
+  }, [startDrawing]);
 
   // 코스 행 `⋯` → `코스 수정`(RD-7). 권한이 없으면 구독 화면이 먼저 뜬다(RD-8).
   const handleEditRoute = useCallback(
@@ -361,6 +436,13 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
 
   const listBottomInset = insets.bottom + 12;
 
+  // 1pt 미만 흔들림은 무시한다 — 단 높이가 다시 계산되며 시트가 떨리지 않게.
+  const handleEmptyCardMeasure = useCallback((height: number) => {
+    setEmptyCardHeight(previous =>
+      Math.abs(previous - height) < 1 ? previous : height
+    );
+  }, []);
+
   // `fillHeight`: 네이티브 지도 화면의 바텀 시트 안(BD-11) — 시트 높이를 채우고 세그먼트 줄은 시트 머리가 그린다.
   const renderList = (fillHeight: boolean) => (
     <BagRouteListSectionView
@@ -377,6 +459,9 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
       onEditPoint={handleRequestEdit}
       onDeletePoint={handleRequestDeletePoint}
       onAddRoute={handleOpenAddMenu}
+      onStartDrawing={canDraw ? handleStartDrawingFromCard : undefined}
+      onImportRoute={handleImportRoute}
+      onEmptyCardMeasure={handleEmptyCardMeasure}
       bottomInset={listBottomInset}
       fillHeight={fillHeight}
     />
@@ -462,6 +547,7 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
         }
         listContent={renderList(true)}
         listBottomInset={listBottomInset}
+        emptyCardHeight={emptyCardHeight}
       />
     );
   };

@@ -31,6 +31,8 @@ import BagDetailMemoView from './BagDetailMemoView';
 import BagDetailDestinationView from './BagDetailDestinationView';
 import BagDetailActivityView from './BagDetailActivityView';
 import BagDetailRouteView from './BagDetailRouteView';
+import BagDetailRouteCardView from './BagDetailRouteCardView';
+import BagDetailRouteHighlightView from './BagDetailRouteHighlightView';
 import BagFilmCardButtonView from './BagFilmCardButtonView';
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import BagDetailSkeletonView from './BagDetailSkeletonView';
@@ -53,6 +55,7 @@ import OfflineSaveTileView from '@/components/offline/OfflineSaveTileView';
 import OfflineSnapshotBandView from '@/components/offline/OfflineSnapshotBandView';
 import OfflineUnavailableView from '@/components/offline/OfflineUnavailableView';
 import OfflineMemoView from '@/components/offline/OfflineMemoView';
+import { isMapLibreAvailable } from '@/model/map/MapLibreModule';
 
 interface Props {
   bagDetail: BagDetail;
@@ -65,6 +68,8 @@ const IS_IOS = Platform.OS === 'ios';
 const SAFE_AREA_EDGES: readonly Edge[] = IS_IOS
   ? ['left', 'right', 'bottom']
   : ['top', 'left', 'right', 'bottom'];
+// 코스 그리기(RD-1)·코스 카드 지도·3D(RD-9 #4·#5)는 지도가 있는 네이티브에만 있다(APP-5).
+const IS_NATIVE = Platform.OS !== 'web';
 
 const BagDetailView: FC<Props> = ({ bagDetail }) => {
   const router = useRouter();
@@ -346,6 +351,25 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
       !bagDetail.isReadOnly();
     const isSnapshot = bagDetail.isSnapshot();
     const offlineTrip = bagDetail.getOfflineTrip();
+    /**
+     * 코스 노출(RD-9 #4·#5). 코스(내 코스 + 연결 그룹 코스)를 다 읽기 전, 조회가 실패했을 때, 오프라인 읽기 전용일 때는
+     * 지금까지의 그리드(여행지 강조 + 코스 타일)로 둔다 — 읽기 전·실패를 0개로 보고 강조를 바꾸면 틀린 다음 할 일을
+     * 말하게 되고, 오프라인에서는 그리기·3D가 열리지 않는다.
+     * - 코스가 있으면(네이티브) 그리드의 `코스` 타일을 빼고 그리드 아래 전체 폭 코스 카드(#5). 웹은 지도·3D가 없어 타일 그대로.
+     * - 출발 전·여행 중이고 여행지 있음 + 코스 없음 + 그릴 수 있음이면 강조를 `코스`로(#4) — 여행지는 회색 타일로 남는다.
+     */
+    const canDecideRoute =
+      IS_NATIVE &&
+      bagDetail.isRoutesLoaded() &&
+      !bagDetail.hasRouteError() &&
+      !bagDetail.isReadOnly();
+    const routeCount = bagDetail.getRouteCount();
+    const showRouteCard = canDecideRoute && routeCount > 0;
+    const emphasizeRoute =
+      canDecideRoute &&
+      isMapLibreAvailable() &&
+      routeCount === 0 &&
+      !!bagDetail.getBagWeather().getLocation();
 
     return (
       <GestureHandlerRootView style={styles.container}>
@@ -426,26 +450,42 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                     />
                     <BagDetailMemoView bagDetail={bagDetail} />
                     <BagDetailDestinationView bagDetail={bagDetail} />
-                    {/* 코스는 운동 기록 옆이다 — 갈 곳과 다녀온 것을 붙여 두고 라벨로 가른다(BD-11). */}
+                    {/* 코스는 운동 기록 옆이다 — 갈 곳과 다녀온 것을 붙여 두고 라벨로 가른다(BD-11).
+                        코스가 있으면 타일 대신 그리드 아래 코스 카드다(RD-9 #5). */}
                     <BagDetailActivityView bagDetail={bagDetail} />
-                    <BagDetailRouteView bagDetail={bagDetail} />
+                    {showRouteCard ? null : (
+                      <BagDetailRouteView bagDetail={bagDetail} />
+                    )}
                     <OfflineSaveTileView offlineTrip={offlineTrip} />
                   </>
                 ) : (
                   <>
+                    {/* 다음 할 일을 강조한다(BD-10 2026-10-15) — 여행지가 있고 코스가 없으면 `코스`, 아니면 `여행지`. */}
+                    {emphasizeRoute ? (
+                      <BagDetailRouteHighlightView bagDetail={bagDetail} />
+                    ) : null}
                     <BagDetailDestinationView
                       bagDetail={bagDetail}
-                      emphasized
+                      emphasized={!emphasizeRoute}
                     />
                     <BagDetailMemoView bagDetail={bagDetail} />
                     <BagDetailUselessDescriptionView bagDetail={bagDetail} />
-                    {/* 코스는 운동 기록 옆이다 — 갈 곳과 다녀온 것을 붙여 두고 라벨로 가른다(BD-11). */}
+                    {/* 코스는 운동 기록 옆이다 — 갈 곳과 다녀온 것을 붙여 두고 라벨로 가른다(BD-11).
+                        `코스` 강조 중이면 강조 카드가, 코스가 있으면 그리드 아래 코스 카드가 타일을 대신한다. */}
                     <BagDetailActivityView bagDetail={bagDetail} />
-                    <BagDetailRouteView bagDetail={bagDetail} />
+                    {showRouteCard || emphasizeRoute ? null : (
+                      <BagDetailRouteView bagDetail={bagDetail} />
+                    )}
                     <OfflineSaveTileView offlineTrip={offlineTrip} />
                   </>
                 )}
               </View>
+              {/* 코스 카드(RD-9 #5) — 그리드 아래 전체 폭. 오프라인 저장본 화면(OF-5)은 그리드 그대로다. */}
+              {!isSnapshot && showRouteCard ? (
+                <View style={styles.routeCard}>
+                  <BagDetailRouteCardView bagDetail={bagDetail} />
+                </View>
+              ) : null}
               <View style={styles.separator} />
               <View
                 style={styles.gearHeader}
@@ -629,6 +669,12 @@ const styles = StyleSheet.create({
     rowGap: 10,
     paddingHorizontal: AcgLayout.screenPadding,
     marginTop: 12,
+    marginBottom: 8,
+  },
+  // 그리드 아래 코스 카드 — 그리드와 같은 좌우 패딩, 타일 행 간격(10)만큼 띄운다.
+  routeCard: {
+    paddingHorizontal: AcgLayout.screenPadding,
+    marginTop: 2,
     marginBottom: 8,
   },
   // 캐러셀이 좌우 패딩 바깥까지 흐르도록(-24) 부모가 화면 패딩을 준다(CP-4).

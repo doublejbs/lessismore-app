@@ -19,6 +19,13 @@ interface SheetLayoutInput {
   graphHeight: number;
   // 목록 아래 `코스 추가`가 서는지(웹·상한과 무관하게 추가 가능한 화면이면 선다).
   hasFooter: boolean;
+  /**
+   * 코스 0개 빈 상태 카드(RD-9 #1, `RouteEmptyCardView`)가 서는지. 서면 첫 행·`코스 추가` 대신 카드 높이를 접힘에
+   * 넣는다 — 접힘에서 카드의 주 액션이 잘리지 않게. 생략하면 `false`.
+   */
+  hasEmptyCard?: boolean;
+  // 잰 카드 높이(위 여백 포함, `RouteEmptyCardView` `onMeasure`). 재기 전에는 어림값이다.
+  emptyCardHeight?: number;
 }
 
 /** 손잡이 줄 높이 — 그래버(40×4)를 가운데 두고 위아래로 끌 자리를 준다. 칩 줄과 합쳐 끄는 영역은 44pt를 넘는다. */
@@ -31,6 +38,11 @@ const CHIP_ROW_HEIGHT = 36;
 const SECTION_BORDER = 1;
 // `코스 추가` 줄 = 섹션 간격 8 + 줄 위 여백 4 + 버튼 48.
 const FOOTER_HEIGHT = 60;
+/**
+ * 빈 상태 카드(`RouteEmptyCardView`) 높이 어림 — 재기 전(첫 프레임) 값. 위 여백 12 + 안쪽 여백 16·4 + 제목 24 + 4 +
+ * 설명 두 줄 42 + 14 + 라임 버튼 48 + 6 + 권한 한 줄 18 + 14 + 텍스트 버튼 44. 잰 뒤에는 실제 높이(Dynamic Type 반영)다.
+ */
+export const ROUTE_EMPTY_CARD_HEIGHT_ESTIMATE = 246;
 // 펼침의 위 끝과 헤더 사이 — 지도가 한 줄 남아 "지도 위에 얹힌 시트"로 읽힌다.
 const EXPANDED_TOP_GAP = 16;
 
@@ -47,20 +59,27 @@ export const getRouteSheetDetents = ({
   listBottomInset,
   graphHeight,
   hasFooter,
+  hasEmptyCard = false,
+  emptyCardHeight = ROUTE_EMPTY_CARD_HEIGHT_ESTIMATE,
 }: SheetLayoutInput): RouteSheetDetents => {
+  // 빈 상태 카드가 서면 첫 행·`코스 추가` 줄 대신 카드다(카드가 보이는 동안 푸터는 걷힌다).
+  const body = hasEmptyCard
+    ? emptyCardHeight
+    : AcgRow.minHeight + (hasFooter ? FOOTER_HEIGHT : 0);
   const collapsed =
     SHEET_HANDLE_HEIGHT +
     CHIP_ROW_HEIGHT +
     SHEET_HEADER_PADDING_BOTTOM +
     SECTION_BORDER +
-    AcgRow.minHeight +
-    (hasFooter ? FOOTER_HEIGHT : 0) +
+    body +
     listBottomInset;
   const expanded = Math.max(
     rootHeight - (topInset + EXPANDED_TOP_GAP),
     collapsed + AcgRow.minHeight * 2
   );
-  const halfContent = graphHeight > 0 ? graphHeight : AcgRow.minHeight * 2;
+  // 빈 상태 카드는 접힘에서 이미 다 보인다 — 기본 단은 행 하나만큼만 더 올린다(아래 최소 간격).
+  const halfContent =
+    graphHeight > 0 ? graphHeight : hasEmptyCard ? 0 : AcgRow.minHeight * 2;
   const half = Math.min(
     Math.max(collapsed + halfContent, collapsed + AcgRow.minHeight),
     expanded - AcgRow.minHeight
