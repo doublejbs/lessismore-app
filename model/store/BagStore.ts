@@ -449,14 +449,6 @@ class BagStore {
     );
   }
 
-  private convertToArray(data: QuerySnapshot<DocumentData, DocumentData>) {
-    const result: BagItem[] = [];
-    data.forEach(doc => {
-      result.push(this.toBagItem(doc.id, doc.data()));
-    });
-    return result;
-  }
-
   private toBagItem(id: string, data: DocumentData): BagItem {
     const {
       name,
@@ -765,17 +757,26 @@ class BagStore {
     return this.firebase.getUserId();
   }
 
-  public async getBags(bagIDs: string[]) {
-    if (bagIDs.length) {
-      const snapshots = await this.getDocsByIDs(
-        collection(this.getStore(), 'bag'),
-        bagIDs
-      );
-
-      return snapshots.flatMap(snapshot => this.convertToArray(snapshot));
-    } else {
+  // 배낭은 `in` 쿼리가 아니라 문서마다 getDoc으로 병렬 조회한다(DM-37).
+  // 주인 조건이 걸린 list 규칙은 문서마다 평가돼서, 없는 ID가 하나라도 섞이거나 한 쿼리의
+  // 문서 접근이 20을 넘으면 쿼리 전체가 거부된다. getDoc은 문서 하나씩 판정되므로 둘 다 해당하지 않는다.
+  // 없는 문서는 건너뛰고, 그 밖의 실패(권한 거부 등)는 기존 쿼리처럼 호출 전체를 reject한다.
+  // 결과는 입력 ID 순서를 따른다 — 정렬은 호출측이 한다(getListOrThrow의 getBagComparator).
+  public async getBags(bagIDs: string[]): Promise<BagItem[]> {
+    if (!bagIDs.length) {
       return [];
     }
+
+    // 기존 `in` 쿼리처럼 같은 ID가 두 번 들어 있어도 배낭은 한 번만 나오게 한다.
+    const uniqueBagIDs = Array.from(new Set(bagIDs));
+
+    const snapshots = await Promise.all(
+      uniqueBagIDs.map(bagID => getDoc(doc(this.getStore(), 'bag', bagID)))
+    );
+
+    return snapshots.flatMap(snapshot =>
+      snapshot.exists() ? [this.toBagItem(snapshot.id, snapshot.data())] : []
+    );
   }
 
   public async updateBagsWeight(bags: string[], weightDiff: number) {

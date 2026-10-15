@@ -996,6 +996,32 @@
 현재 배포된 규칙은 커뮤니티 4개 컬렉션을 제외한 나머지가 전면 개방(`allow read, write: if !isCommunityCollection()`)이다. `groups/*`는 신규라 처음부터 멤버십 기반으로 잠글 수 있지만, `bag`·`users`가 열려 있는 한 "그룹원만 본다"는 약속은 앱 화면 안에서만 성립한다. 그룹 출시와 별개로 기존 컬렉션을 좁히는 작업이 필요하다.
 
 
+### DM-37 `bag`·`users` 접근 좁히기 `[제안]` (2026-10-15)
+
+> 사용자 결정 — "쓰기 규칙 먼저 정리해줘". 지금 `bag/{bagId}`·`users/{userId}`는 `allow read, write: if true`라 누구나 남의 배낭·사용자 문서를 고치거나 지울 수 있다(DM-29 "선행 보안 작업"). 클라이언트 조사(앱 2.0.1·2.0.2, 웹) 결과 정상 경로의 쓰기는 **전부 본인 문서**다.
+
+**규칙**
+
+- `bag/{bagId}`
+  - 주인 = `resource.data.userId == auth.uid`. `userId`가 없는 옛 문서는 `users/{auth.uid}.bags`에 그 ID가 있으면 주인으로 본다(2026-10-15 주인이 확인되는 21건은 `userId`를 채웠다 — 남은 14건은 어느 사용자 목록에도 없는 고아 문서다).
+  - `get`: 문서가 없거나, 주인이거나, `shared == true` 또는 `reviewShared == true`(비로그인 공유 링크 BD-7·CS-8).
+  - `list`: 주인 문서만.
+  - `create`: 로그인 + `userId == auth.uid`.
+  - `update`: 주인 + `userId`를 남으로 바꾸지 않는다(비어 있던 값을 본인으로 채우는 것만 허용 — `updateShared`·`updateReviewShared`가 채운다).
+  - `delete`: 문서가 없거나 주인(회원 탈퇴 일괄 삭제에 지운 ID가 섞여도 통과).
+- `users/{userId}`: 읽기·쓰기 모두 본인만(`list` 금지). 갱신은 바뀌는 키만 검사한다(`termsAgreed`·`privacyAgreed`·`marketingAgreed`·`personalInfoAgreed`·`over14Agreed`·`smsAgreed`·`agreedAt`·`createdAt`·`nickname`·`bags`). 하위 컬렉션(`gears`·`push-tokens` 등) 규칙은 그대로다 — 비로그인 공유 배낭이 `users/{owner}/gears`를 읽는다.
+
+**앱 선행 변경 — 배낭 목록은 문서마다 읽는다**
+
+- `BagStore.getBags(ids)`는 `where('__name__', 'in', 30개 청크)` 쿼리 대신 **ID마다 `getDoc`을 병렬로** 부르고, 없는 문서는 건너뛴다. 결과 순서·모양은 기존과 같다.
+- 이유(에뮬레이터 실측, 2026-10-15): 주인 조건이 걸린 `list`는 문서마다 규칙을 평가하는데 ① 없는 ID가 하나라도 섞이면 **쿼리 전체가 거부**되고 ② 한 쿼리에서 문서 접근이 20을 넘으면 거부된다(배낭 20개 이상 사용자 2명, 최대 47개 — 운영 한도는 더 낮을 수 있다). `getDoc`은 문서 하나씩 판정되어 둘 다 해당하지 않는다.
+- 배포 순서: 앱 변경(2.0.1 OTA · 2.0.2 빌드 116) → 규칙 배포. 규칙이 먼저 나가면 위 두 경우의 사용자는 배낭 탭·홈·알림 동기화가 빈다.
+
+**깨지는 것(감수)**
+
+- 웹 `/celebrate`의 사용자 수 집계(`users` 전체 count, 비로그인) — 이미 실패 시 임의 숫자로 떨어진다. 실제 값이 필요하면 함수가 공개 문서(`config/stats`)에 쓴다(후속).
+- `scripts/migrate-gear-rank.ts`(비인증 클라이언트로 `users` 전체 조회) — 일회성 스크립트, 다시 쓸 일이 있으면 소유자 OAuth로 바꾼다.
+
 ### DM-31 구독 `subscriptions/{uid}` `[제안]`
 
 광고 제거 구독의 **서버 기록**([Subscription.md](Subscription.md) SUB-6). RevenueCat 웹훅을 받는 Cloud Function(`revenuecatWebhook`)만 쓴다. 앱의 광고 판단은 이 문서가 아니라 RevenueCat SDK가 소스다(SUB-4) — 이 문서는 운영·통계용이다.
