@@ -60,6 +60,9 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 - **구매는 로그인한 사용자만** 한다. 구독이 Firebase 계정(uid)에 묶여야 기기 변경·재설치·다른 플랫폼 로그인 후에도 이어지고, 웹훅이 uid로 Firestore에 쓸 수 있다.
 - 로그인 직후 `Purchases.logIn(uid)`, 로그아웃 시 `Purchases.logOut()`. 앱 시작 시 이미 로그인돼 있으면 초기화와 함께 `logIn(uid)`.
 - RevenueCat 익명 사용자(`$RCAnonymousID:`)로 구매하는 경로를 만들지 않는다.
+- **구독은 처음 구매한 uid에 묶어 둔다** — RevenueCat 프로젝트 설정 *Transferring purchases seen on multiple App User IDs* = **`Keep with original App User ID`**(샌드박스도 같은 규칙, 별도 동작 끔). 기본값 `Transfer to new App User ID`로 되돌리지 않는다(2026-10-15 변경).
+  - 근거: 기본값에서는 로그아웃해 있는 동안 SDK가 영수증을 동기화하면 구독이 익명 ID로 옮겨 가고, 원래 계정으로 다시 로그인해도 미구독으로 보였다(TestFlight 116에서 재현, 구매 복원으로만 회복).
+  - 결과: 같은 Apple 계정으로 **다른 useless 계정**에서 구매 복원하면 거절된다(구독 하나를 계정 여럿이 나눠 쓰지 않게 — 의도된 동작). 지금은 일반 복원 실패 문구(`subscription.restoreError`)가 뜬다 `[제안: 2.0.3에서 '다른 계정에 연결된 구독' 안내로 구분]`.
 
 ### SUB-4 광고 끄기 `[보류 — 광고 미도입(2026-10-10)]`
 
