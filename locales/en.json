@@ -1369,7 +1369,7 @@
       "submit": "Create a group",
       "created": "Group created. Copy the invite link to bring your crew in",
       "discardConfirm": "Discard what you have entered?",
-      "discard": "Discard",
+      "discard": "Don't Save",
       "keepWriting": "Keep editing"
     },
     "invite": {
@@ -1850,7 +1850,7 @@
     "save": "Save",
     "saving": "Saving…",
     "saveHint": "You can save once you have 2 points",
-    "discardConfirm": "Discard the route you're drawing?",
+    "discardConfirm": "Leave without saving this route?",
     "discard": "Discard",
     "pointLimit": "You can add up to {{max}} points",
     "elevationFailed": "Couldn't read elevation, so it was saved without a profile",
@@ -1880,7 +1880,7 @@
     "onlineToCheck": "You can check this when you're online",
     "editRoute": "Edit route",
     "noticeEdit": "Editing route · Add points at the end or undo",
-    "discardEditConfirm": "Discard your changes?",
+    "discardEditConfirm": "Leave without saving your changes?",
     "trailNotEntitled": "Follow trails is a useless Plus feature",
     "claimFailed": "Couldn't save right now. Please try again in a moment.",
     "editUnavailable": "This route can't be edited",
