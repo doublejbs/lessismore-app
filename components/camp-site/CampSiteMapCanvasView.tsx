@@ -8,6 +8,7 @@ import MapMyLocationMarkerView from '@/components/map/MapMyLocationMarkerView';
 import CampSiteMap from '@/model/camp-site/CampSiteMap';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import { KOREA_CAMERA } from '@/model/map/MapCamera';
+import MapLayer from '@/model/map/MapLayer';
 import CampSiteMapMarkersView from './CampSiteMapMarkersView';
 
 interface Props {
@@ -16,6 +17,8 @@ interface Props {
   currentLocation: { latitude: number; longitude: number } | null;
   ornamentTopOffset: number;
   attributionBottomOffset: number;
+  // 지도 종류(MAP-7).
+  mapLayer: MapLayer;
   onTapSpot: (spot: CampSpot) => void;
   onPressMap: () => void;
   onCameraChanged: (change: AppMapCameraChange) => void;
@@ -36,6 +39,7 @@ const CampSiteMapCanvasView: FC<Props> = ({
   currentLocation,
   ornamentTopOffset,
   attributionBottomOffset,
+  mapLayer,
   onTapSpot,
   onPressMap,
   onCameraChanged,
@@ -50,6 +54,7 @@ const CampSiteMapCanvasView: FC<Props> = ({
       initialCamera={KOREA_CAMERA}
       ornamentTopOffset={ornamentTopOffset}
       attributionBottomOffset={attributionBottomOffset}
+      mapLayer={mapLayer}
       onInitialized={onInitialized}
       onLoadFailed={onLoadFailed}
       onPress={onPressMap}

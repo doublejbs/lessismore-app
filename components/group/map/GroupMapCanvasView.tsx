@@ -34,6 +34,7 @@ import {
   OVERLAY_GAP,
 } from '@/components/map/MapConstants';
 import MapEndpointMarkersView from '@/components/map/MapEndpointMarkersView';
+import MapLayerControlView from '@/components/map/MapLayerControlView';
 import MapMyLocationButtonView from '@/components/map/MapMyLocationButtonView';
 import MapMyLocationMarkerView from '@/components/map/MapMyLocationMarkerView';
 import MapNoticeLineView from '@/components/map/MapNoticeLineView';
@@ -92,6 +93,8 @@ import {
   lngLatBoundsToRouteBounds,
   regionToLngLatBounds,
 } from '@/model/map/MapCamera';
+import MapLayer from '@/model/map/MapLayer';
+import MapLayerScreen from '@/model/map/MapLayerScreen';
 import { deltaToZoom } from '@/model/map/MapZoom';
 import MapPoint from '@/model/point/MapPoint';
 import {
@@ -1004,8 +1007,12 @@ const GroupMapCanvasView: FC<Props> = ({
     !isMapMode &&
     !!selectedRoute &&
     selectedRoute.getSimplified().length >= ROUTE_REPLAY_MIN_COORDINATES;
-  // 조준·그리기 모드 중에는 `내 위치`만 남는다(GRP-10 · RD-2) — 권한이 없으면 그것도 없다.
-  const showControlStack = !isMapMode || locationGranted;
+  // 지도 종류(MAP-7) — 키가 든 빌드에서만 버튼이 있다. 위성이면 코스 테두리를 한 단 굵게.
+  const mapLayerStore = app.getMapLayerStore();
+  const mapLayer = mapLayerStore?.getLayer() ?? MapLayer.Standard;
+  const showLayerControl = mapLayerStore?.isAvailable() ?? false;
+  // 조준·그리기 모드 중에는 `내 위치`와 지도 종류만 남는다(GRP-10 · RD-2 · MAP-7) — 둘 다 없으면 스택도 없다.
+  const showControlStack = !isMapMode || locationGranted || showLayerControl;
   /**
    * 지도 아래쪽에서 비울 높이 — 시트가 덮는 높이(펼침이어도 기본 단 높이까지 — 그 위로는 시트가 컨트롤을 덮는다).
    * 조준 모드에서는 시트가 내려가 지도가 화면 맨 아래까지 온다 — 세이프에어리어만 비운다.
@@ -1149,6 +1156,7 @@ const GroupMapCanvasView: FC<Props> = ({
               attributionBottomOffset={attributionBottomOffset}
               ornamentTopOffset={ornamentTopOffset}
               maxZoom={MAX_ZOOM}
+              mapLayer={mapLayer}
               onPress={handlePressMap}
               onLongPress={handleLongPress}
               onCameraChanged={handleMapCameraChanged}
@@ -1161,6 +1169,7 @@ const GroupMapCanvasView: FC<Props> = ({
                 selectedRouteId={selectedRouteId}
                 // 그리기 모드에서는 기존 코스를 모두 옅게 — 그리는 선이 주인공이다(RD-2).
                 dimmed={isDrawing}
+                emphasizeCasing={mapLayer === MapLayer.Satellite}
               />
 
               {/* 연결된 박지 핀 — 앱 공통 핀(끝점이 좌표에 닿는다) + 위 캡션. */}
@@ -1251,7 +1260,7 @@ const GroupMapCanvasView: FC<Props> = ({
           onLayout={handleBottomOverlayLayout}
         >
           {showControlStack ? (
-            // 우측 지도 컨트롤 — `3D`(RR-1) → 내 위치 → `포인트 추가`(GRP-10). 방향 뒤집기는 시트 코스 행 `⋯`에 있다.
+            // 우측 지도 컨트롤 — `3D`(RR-1) → 내 위치 → `포인트 추가`(GRP-10) → 지도 종류(MAP-7). 방향 뒤집기는 시트 코스 행 `⋯`에 있다.
             <View style={styles.controlStack} pointerEvents='box-none'>
               {/* `3D`는 라임이 아니다 — 이 화면의 주 액션은 `포인트 추가` 하나다(HM-8). */}
               {showReplayButton ? (
@@ -1302,6 +1311,8 @@ const GroupMapCanvasView: FC<Props> = ({
                   </PretendardText>
                 </TouchableOpacity>
               ) : null}
+              {/* 지도 종류(MAP-7) — 스택 맨 아래. 조준·그리기 모드에서도 남긴다(위성 위에서 겨누기·그리기). */}
+              <MapLayerControlView screen={MapLayerScreen.GroupMap} />
             </View>
           ) : null}
           {/* 카드 칸 — 높이를 재서 출처 표기를 그 위로 올린다(라이선스 의무, MAP-1). */}

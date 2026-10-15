@@ -10,10 +10,14 @@ import { SUBSCRIPTION_ENTITLED_FALLBACK_MS } from '@/model/subscription/Subscrip
 import SubscriptionEntryPoint from '@/model/subscription/SubscriptionEntryPoint';
 import SubscriptionStore from '@/model/subscription/SubscriptionStore';
 
-// SUB-12: 구매 성공 토스트는 진입점에 맞춘다 — 사용자가 하려던 일을 말한다. 그 밖의 진입(설정 등)은 일반 문구.
+// SUB-12·SUB-13: 구매 성공 토스트는 진입점에 맞춘다 — 사용자가 하려던 일을 말한다. 그 밖의 진입(설정 등)은 일반 문구.
 const getPurchaseSuccessKey = (from: string | undefined) => {
   if (from === SubscriptionEntryPoint.RouteDraw) {
     return 'subscription.purchaseSuccessRouteDraw';
+  }
+
+  if (from === SubscriptionEntryPoint.Satellite) {
+    return 'subscription.purchaseSuccessSatellite';
   }
 
   if (from === SubscriptionEntryPoint.Offline) {

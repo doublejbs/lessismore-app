@@ -20,13 +20,15 @@ interface Props {
 // SUB-2: 구독 화면(전체 화면 모달, 2026-10-13 개정). 미구독이면 전체 화면 안내(히어로 + 하단 고정 바),
 // 구독 중이면 히어로 없이 상단 닫기 × + 관리 상태를 그린다.
 // SUB-11: 진입점은 `from` 파라미터 문자열로 읽는다(`openSubscription`) — `offline`이면 오프라인 진입점 변형,
-// `route_draw`면 코스 그리기 진입점 변형(SUB-12).
+// `route_draw`면 코스 그리기 진입점 변형(SUB-12), `satellite`면 위성 보기 진입점 변형(SUB-13).
 const SubscriptionView = ({ store }: Props) => {
   const insets = useSafeAreaInsets();
   const { from } = useLocalSearchParams<{ from?: string }>();
   const isOfflineEntry = from === SubscriptionEntryPoint.Offline;
   // SUB-12: 코스 그리기 게이트에서 열었으면 코스 그리기 진입점 변형(안내 한 줄 + 기능 행 `코스 그리기`를 맨 위로).
   const isRouteDrawEntry = from === SubscriptionEntryPoint.RouteDraw;
+  // SUB-13: 지도 종류 메뉴의 `위성`에서 열었으면 위성 진입점 변형(안내 한 줄 + 기능 행 `위성 지도`를 맨 위로).
+  const isSatelliteEntry = from === SubscriptionEntryPoint.Satellite;
   const {
     formattedExpirationDate,
     handleSubscribe,
@@ -97,6 +99,7 @@ const SubscriptionView = ({ store }: Props) => {
         isTrialEligible={store.isTrialEligible()}
         isOfflineEntry={isOfflineEntry}
         isRouteDrawEntry={isRouteDrawEntry}
+        isSatelliteEntry={isSatelliteEntry}
         isPurchasing={store.isPurchasing()}
         isRestoring={store.isRestoring()}
         onSubscribe={handleSubscribe}

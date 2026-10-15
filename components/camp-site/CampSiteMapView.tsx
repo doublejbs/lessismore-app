@@ -22,6 +22,7 @@ import LocalStorageManager from '@/model/storage/LocalStorageManager';
 import { deltaToZoom } from '@/model/map/MapZoom';
 import { KOREA_CAMERA } from '@/model/map/MapCamera';
 import MapCameraChangeReason from '@/model/map/MapCameraChangeReason';
+import MapLayer from '@/model/map/MapLayer';
 import type {
   AppMapCameraChange,
   AppMapViewRef,
@@ -787,6 +788,8 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
           ornamentTopOffset={ornamentTopOffset}
           // iOS 플로팅 탭바·시트가 좌하단 출처 표기(ODbL)를 덮지 않게 올린다(MAP-1).
           attributionBottomOffset={attributionBottomOffset}
+          // 지도 종류(MAP-7) — 전환 버튼은 하단 오버레이 스택 맨 아래.
+          mapLayer={app.getMapLayerStore()?.getLayer() ?? MapLayer.Standard}
           onTapSpot={handleMarkerTap}
           onPressMap={handleTapMap}
           onCameraChanged={handleCameraChanged}
@@ -810,6 +813,8 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       <CampSiteMapBottomOverlayView
         bottomClearance={bottomClearance}
         locationGranted={locationGranted}
+        // 지도를 그릴 수 있을 때만 지도 종류 버튼을 둔다(옛 바이너리는 지도 자리가 비어 있다).
+        showLayerControl={!!CanvasView}
         onMoveToCurrentLocation={handleMoveToCurrentLocation}
         onOpenFavorites={handleOpenFavorites}
       />

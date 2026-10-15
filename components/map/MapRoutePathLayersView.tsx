@@ -21,6 +21,8 @@ interface Props {
   dimmed?: boolean;
   // 코스 선을 이 레이어 아래에 끼운다(예: 박지 점 레이어). 없으면 맨 위에 붙는다.
   beforeId?: string;
+  // 흰 테두리를 1단 굵게 — 위성 위에서 선이 묻히지 않게(MAP-7).
+  emphasizeCasing?: boolean;
 }
 
 /**
@@ -37,6 +39,9 @@ const ROUTE_DIM_WIDTH = 4;
 // 테두리 레이어 굵기 = 본선 + 양쪽 2pt.
 const ROUTE_OUTLINE_WIDTH = 10;
 const ROUTE_DIM_OUTLINE_WIDTH = 6;
+// 위성 위 테두리(MAP-7) — 양쪽 1pt씩 더(한 단).
+const ROUTE_EMPHASIZED_OUTLINE_WIDTH = 12;
+const ROUTE_DIM_EMPHASIZED_OUTLINE_WIDTH = 8;
 // 경로선은 좌표가 2개 미만이면 그리지 않는다.
 const MIN_PATH_COORDS = 2;
 
@@ -52,6 +57,15 @@ const CASING_PAINT: NonNullable<LineLayerSpecification['paint']> = {
     ['get', 'selected'],
     ROUTE_OUTLINE_WIDTH,
     ROUTE_DIM_OUTLINE_WIDTH,
+  ],
+};
+const EMPHASIZED_CASING_PAINT: NonNullable<LineLayerSpecification['paint']> = {
+  'line-color': ROUTE_CASING_COLOR,
+  'line-width': [
+    'case',
+    ['get', 'selected'],
+    ROUTE_EMPHASIZED_OUTLINE_WIDTH,
+    ROUTE_DIM_EMPHASIZED_OUTLINE_WIDTH,
   ],
 };
 const LINE_PAINT: NonNullable<LineLayerSpecification['paint']> = {
@@ -85,6 +99,7 @@ const MapRoutePathLayersView: FC<Props> = ({
   uniform = false,
   dimmed = false,
   beforeId,
+  emphasizeCasing = false,
 }) => {
   const routesKey = getRoutesKey(routes);
 
@@ -126,7 +141,7 @@ const MapRoutePathLayersView: FC<Props> = ({
         type='line'
         {...(beforeId ? { beforeId } : {})}
         layout={LINE_LAYOUT}
-        paint={CASING_PAINT}
+        paint={emphasizeCasing ? EMPHASIZED_CASING_PAINT : CASING_PAINT}
       />
       <Layer
         id={ROUTE_LINE_LAYER_ID}

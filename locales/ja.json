@@ -1637,7 +1637,11 @@
     "feature5Title": "コースを描く",
     "feature5Detail": "地図に点を打つと登山道に沿ってコースがつながります",
     "purchaseSuccessRouteDraw": "コースを思いきり描けます",
-    "purchaseSuccessGeneral": "useless プラスを始めました"
+    "purchaseSuccessGeneral": "useless プラスを始めました",
+    "satelliteEntryLead": "衛星写真で尾根や道を直接確かめましょう",
+    "feature6Title": "衛星地図",
+    "feature6Detail": "衛星写真にコースを重ねて、尾根・岩場・林道を確認できます",
+    "purchaseSuccessSatellite": "衛星地図を表示できるようになりました"
   },
   "commerce": {
     "coupangDisclaimer": "Coupangパートナーズ活動の一環として、所定の手数料を受け取ります。",
@@ -1861,6 +1865,18 @@
   },
   "map": {
     "loadFailed": "地図データを読み込めませんでした",
-    "unsupportedBinary": "このバージョンでは地図を表示できません · アプリをアップデートしてください"
+    "unsupportedBinary": "このバージョンでは地図を表示できません · アプリをアップデートしてください",
+    "layer": {
+      "button": "地図の種類",
+      "title": "地図の種類",
+      "standard": "標準地図",
+      "satellite": "衛星",
+      "plusMeta": "useless プラス",
+      "offlineMeta": "オンラインで表示できます",
+      "unavailableMeta": "一時的に利用できません",
+      "selectedMeta": "使用中",
+      "unavailableToast": "現在、衛星地図を表示できません",
+      "probingMeta": "確認中…"
+    }
   }
 }

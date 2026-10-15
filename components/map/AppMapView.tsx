@@ -29,12 +29,14 @@ import {
   CAMERA_MOVE_DURATION,
   NO_CAMERA_PADDING,
 } from '@/components/map/MapConstants';
+import MapSatelliteLayersView from '@/components/map/MapSatelliteLayersView';
 import { AcgLayout } from '@/constants/DesignTokens';
 import {
   boundsToLngLatBounds,
   regionToLngLatBounds,
 } from '@/model/map/MapCamera';
 import MapCameraChangeReason from '@/model/map/MapCameraChangeReason';
+import MapLayer from '@/model/map/MapLayer';
 import { MAP_STYLE_URL } from '@/model/map/MapStyle';
 import { RouteCameraRegion } from '@/model/route/RouteCamera';
 import { RouteBounds } from '@/model/route/RouteData';
@@ -116,6 +118,11 @@ interface Props {
   contentInset?: ViewPadding;
   minZoom?: number;
   maxZoom?: number;
+  /**
+   * 지도 종류(MAP-7). 넘기면 위성 보기 레이어를 붙인다 — 지도 종류 전환이 있는 화면(배낭 코스·그룹 지도·박지 지도)만
+   * 넘긴다. 없으면 스타일 그대로다(밴드·썸네일·선택기 등).
+   */
+  mapLayer?: MapLayer;
   onInitialized?: () => void;
   onLoadFailed?: () => void;
   onCameraChanged?: (change: AppMapCameraChange) => void;
@@ -212,6 +219,7 @@ const AppMapView = ({
   contentInset,
   minZoom,
   maxZoom,
+  mapLayer,
   onInitialized,
   onLoadFailed,
   onCameraChanged,
@@ -433,6 +441,9 @@ const AppMapView = ({
         {...(maxZoom !== undefined ? { maxZoom } : {})}
         {...(initialViewState ? { initialViewState } : {})}
       />
+      {mapLayer !== undefined ? (
+        <MapSatelliteLayersView satellite={mapLayer === MapLayer.Satellite} />
+      ) : null}
       {children}
     </Map>
   );

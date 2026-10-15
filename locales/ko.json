@@ -1637,7 +1637,11 @@
     "feature5Title": "코스 그리기",
     "feature5Detail": "지도에 점을 찍으면 등산로를 따라 코스가 이어져요",
     "purchaseSuccessRouteDraw": "코스를 마음껏 그릴 수 있어요",
-    "purchaseSuccessGeneral": "useless 플러스를 시작했어요"
+    "purchaseSuccessGeneral": "useless 플러스를 시작했어요",
+    "satelliteEntryLead": "위성 사진으로 능선과 길을 직접 확인하세요",
+    "feature6Title": "위성 지도",
+    "feature6Detail": "위성 사진 위에 코스를 얹어 능선·바위·숲길을 확인해요",
+    "purchaseSuccessSatellite": "위성 지도를 볼 수 있어요"
   },
   "commerce": {
     "coupangDisclaimer": "쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.",
@@ -1861,6 +1865,18 @@
   },
   "map": {
     "loadFailed": "지도 데이터를 불러오지 못했어요",
-    "unsupportedBinary": "이 버전에서는 지도를 볼 수 없어요 · 앱을 업데이트해 주세요"
+    "unsupportedBinary": "이 버전에서는 지도를 볼 수 없어요 · 앱을 업데이트해 주세요",
+    "layer": {
+      "button": "지도 종류",
+      "title": "지도 종류",
+      "standard": "일반 지도",
+      "satellite": "위성",
+      "plusMeta": "useless 플러스",
+      "offlineMeta": "온라인에서 볼 수 있어요",
+      "unavailableMeta": "잠시 쓸 수 없어요",
+      "selectedMeta": "사용 중",
+      "unavailableToast": "위성 지도를 지금은 볼 수 없어요",
+      "probingMeta": "확인 중…"
+    }
   }
 }

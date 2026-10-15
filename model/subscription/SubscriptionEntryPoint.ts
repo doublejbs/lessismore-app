@@ -11,6 +11,8 @@ enum SubscriptionEntryPoint {
   // 코스 그리기 게이트(SUB-12 · RouteDraw RD-8) — 새로 그리기·무료 코스가 아닌 그린 코스 수정·길 따라 거절.
   // 권한을 얻으면 하려던 일(그리기 시작·수정 시작)을 바로 잇는다.
   RouteDraw = 'route_draw',
+  // 지도 종류 메뉴의 `위성`(SUB-13 · Map MAP-7). 권한을 얻으면 그 지도를 바로 위성으로 바꾼다.
+  Satellite = 'satellite',
 }
 
 export default SubscriptionEntryPoint;

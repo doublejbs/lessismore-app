@@ -39,6 +39,7 @@ import OfflineEntitlement from '../offline/OfflineEntitlement';
 import OfflineTripStore from '../offline/OfflineTripStore';
 import RouteReplayStore from '../route-replay/RouteReplayStore';
 import RouteDrawEntitlement from '../route-draw/RouteDrawEntitlement';
+import MapLayerStore from '../map/MapLayerStore';
 
 class App {
   // OF-3: 연결 상태의 단일 소스. Firebase 로그인 확인이 오프라인이면 Firestore를 건너뛰어야 하므로
@@ -91,6 +92,8 @@ class App {
   private offlineTripStore: OfflineTripStore | null = null;
   // 코스 그리기 권한(RD-8 · SUB-12) — 플러스 판단은 오프라인 저장 게이트와 같은 `offlineEntitlement`를 쓴다.
   private routeDrawEntitlement: RouteDrawEntitlement | null = null;
+  // 지도 종류(일반/위성, MAP-7 · SUB-13) — 플러스 판단은 같은 `offlineEntitlement`를 쓴다.
+  private mapLayerStore: MapLayerStore | null = null;
 
   private gearPreviewStore: GearPreviewStore | null = null;
   private initialized = false;
@@ -183,6 +186,7 @@ class App {
     );
     await this.initializeOffline(bagStore);
     this.initializeRouteDraw();
+    this.initializeMapLayer();
     this.setInitialized(true);
     this.initializing = false;
   }
@@ -244,6 +248,26 @@ class App {
     }
 
     entitlement.start();
+  }
+
+  // 지도 종류 기억 복원·세션 첫 위성 확인은 화면을 막지 않는다(복원 전에는 일반 지도). 키 없는 빌드·웹은 아무것도 안 한다.
+  private initializeMapLayer() {
+    const store = MapLayerStore.new({
+      networkStatus: this.networkStatus,
+      getPlusEntitlement: () => this.offlineEntitlement,
+      openPlus: onEntitled =>
+        openSubscription(SubscriptionEntryPoint.Satellite, { onEntitled }),
+      getToastManager: () => this.toastManager,
+      getAnalyticsManager: () => this.analyticsManager,
+      l10n: this.l10n,
+    });
+
+    this.mapLayerStore = store;
+    void store.initialize();
+  }
+
+  public getMapLayerStore() {
+    return this.mapLayerStore;
   }
 
   public getFirebase() {

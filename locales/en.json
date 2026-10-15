@@ -1667,7 +1667,11 @@
     "feature5Title": "Draw routes",
     "feature5Detail": "Tap points on the map and your route follows the hiking trails",
     "purchaseSuccessRouteDraw": "You can draw as many routes as you like",
-    "purchaseSuccessGeneral": "You've started useless Plus"
+    "purchaseSuccessGeneral": "You've started useless Plus",
+    "satelliteEntryLead": "See ridges and trails for yourself in satellite imagery",
+    "feature6Title": "Satellite map",
+    "feature6Detail": "Lay your route over satellite imagery to check ridges, rocks, and forest trails",
+    "purchaseSuccessSatellite": "Satellite map is now available"
   },
   "commerce": {
     "coupangDisclaimer": "As a Coupang Partners activity, we receive a commission.",
@@ -1893,6 +1897,18 @@
   },
   "map": {
     "loadFailed": "Couldn't load map data",
-    "unsupportedBinary": "Maps aren't available in this version · Please update the app"
+    "unsupportedBinary": "Maps aren't available in this version · Please update the app",
+    "layer": {
+      "button": "Map type",
+      "title": "Map type",
+      "standard": "Standard map",
+      "satellite": "Satellite",
+      "plusMeta": "useless Plus",
+      "offlineMeta": "Available online",
+      "unavailableMeta": "Temporarily unavailable",
+      "selectedMeta": "In use",
+      "unavailableToast": "Satellite map isn't available right now",
+      "probingMeta": "Checking…"
+    }
   }
 }

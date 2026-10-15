@@ -41,6 +41,7 @@ import {
   OVERLAY_GAP,
 } from '@/components/map/MapConstants';
 import MapEndpointMarkersView from '@/components/map/MapEndpointMarkersView';
+import MapLayerControlView from '@/components/map/MapLayerControlView';
 import MapMyLocationButtonView from '@/components/map/MapMyLocationButtonView';
 import MapMyLocationMarkerView from '@/components/map/MapMyLocationMarkerView';
 import MapNoticeLineView from '@/components/map/MapNoticeLineView';
@@ -52,6 +53,8 @@ import MapRoutePathLayersView, {
 import MapScrubMarkerView from '@/components/map/MapScrubMarkerView';
 import { useMyLocationHeadingMode } from '@/components/map/useMyLocationHeadingMode';
 import OfflineMapContoursView from '@/components/offline/OfflineMapContoursView';
+import MapLayer from '@/model/map/MapLayer';
+import MapLayerScreen from '@/model/map/MapLayerScreen';
 import OfflineSnapshotBandView from '@/components/offline/OfflineSnapshotBandView';
 import PointAimMarkerView from '@/components/point/PointAimMarkerView';
 import PointCalloutView from '@/components/point/PointCalloutView';
@@ -1157,6 +1160,9 @@ const BagRouteMapView: FC<Props> = ({
     return { height: graphHeight * progress, opacity: progress };
   });
   const ornamentTopOffset = Math.max(topInset, topOverlayBottom + OVERLAY_GAP);
+  // 지도 종류(MAP-7). 오프라인이면 스토어가 일반을 준다(위성은 온라인 전용 — 저장 팩 지도에 들지 않는다).
+  const mapLayer = app.getMapLayerStore()?.getLayer() ?? MapLayer.Standard;
+  const isSatellite = mapLayer === MapLayer.Satellite;
 
   const renderCard = () => {
     // 그리기 모드에는 카드가 없다 — 하단 바가 이 모드의 액션을 다 갖는다(RD-2).
@@ -1261,6 +1267,7 @@ const BagRouteMapView: FC<Props> = ({
               attributionBottomOffset={attributionBottomOffset}
               ornamentTopOffset={ornamentTopOffset}
               maxZoom={MAX_ZOOM}
+              mapLayer={mapLayer}
               onPress={handlePressMap}
               {...(canEdit ? { onLongPress: handleLongPress } : {})}
               onCameraChanged={handleMapCameraChanged}
@@ -1272,6 +1279,7 @@ const BagRouteMapView: FC<Props> = ({
                 routes={routes}
                 selectedRouteId={selectedRoute?.getId() ?? null}
                 dimmed={isDrawing}
+                emphasizeCasing={isSatellite}
               />
               {/* 등고선은 코스 아래(코스 테두리 레이어 앞)에 끼운다. */}
               {contours ? (
@@ -1379,50 +1387,55 @@ const BagRouteMapView: FC<Props> = ({
           pointerEvents='box-none'
           onLayout={handleBottomOverlayLayout}
         >
-          {isAiming ? null : (
-            // 우측 지도 컨트롤 — `3D`(RR-1) + 내 위치(BD-11) + `포인트 추가` 보조 알약(BD-14).
-            // 그리기 모드에서는 `내 위치`만 남긴다 — 지금 있는 자리에서 그리는 것이 흔하다(RD-2).
-            <View style={styles.controlStack} pointerEvents='box-none'>
-              {/* `3D`는 라임이 아니다 — 이 화면의 주 액션은 `코스 추가` 하나다(HM-8). */}
-              {showReplayButton ? (
-                <TouchableOpacity
-                  style={styles.replayButton}
-                  onPress={handleOpenReplay}
-                  activeOpacity={0.8}
-                  accessibilityRole='button'
-                  accessibilityLabel={l10n.t('routeReplay.open')}
-                >
-                  <Ionicons name='cube-outline' size={18} color={Acg.ink} />
-                  <PretendardText weight='semibold' style={styles.controlLabel}>
-                    {l10n.t('routeReplay.badge')}
-                  </PretendardText>
-                </TouchableOpacity>
-              ) : null}
+          {/* 우측 지도 컨트롤 — `3D`(RR-1) + 내 위치(BD-11) + `포인트 추가` 보조 알약(BD-14) + 지도 종류(MAP-7).
+            그리기 모드에서는 `내 위치`·지도 종류만 남긴다 — 지금 있는 자리에서 그리는 것이 흔하다(RD-2).
+            조준 모드에서는 지도 종류만 남긴다(위성 위에서 겨누기). */}
+          <View style={styles.controlStack} pointerEvents='box-none'>
+            {/* `3D`는 라임이 아니다 — 이 화면의 주 액션은 `코스 추가` 하나다(HM-8). */}
+            {showReplayButton ? (
+              <TouchableOpacity
+                style={styles.replayButton}
+                onPress={handleOpenReplay}
+                activeOpacity={0.8}
+                accessibilityRole='button'
+                accessibilityLabel={l10n.t('routeReplay.open')}
+              >
+                <Ionicons name='cube-outline' size={18} color={Acg.ink} />
+                <PretendardText weight='semibold' style={styles.controlLabel}>
+                  {l10n.t('routeReplay.badge')}
+                </PretendardText>
+              </TouchableOpacity>
+            ) : null}
+            {isAiming ? null : (
               <MapMyLocationButtonView
                 mode={myLocationMode}
                 locateLabel={l10n.t('route.myLocation')}
                 onPress={() => void handlePressMyLocation()}
               />
-              {/* `포인트 추가` — 흰 보조 알약(라벨 유지 — 2026-10-15 디자인 리뷰: `+`만으로는 무엇인지 읽히지 않았다). */}
-              {canEdit && !isDrawing ? (
-                <TouchableOpacity
-                  style={[styles.addPointButton, isFull && styles.disabled]}
-                  onPress={handleStartAiming}
-                  disabled={isFull || submitting}
-                  activeOpacity={0.8}
-                  accessibilityRole='button'
-                  accessibilityLabel={addPointLabel}
-                  accessibilityHint={addPointHint}
-                  accessibilityState={{ disabled: isFull || submitting }}
-                >
-                  <Ionicons name='add' size={20} color={Acg.ink} />
-                  <PretendardText weight='semibold' style={styles.controlLabel}>
-                    {addPointLabel}
-                  </PretendardText>
-                </TouchableOpacity>
-              ) : null}
-            </View>
-          )}
+            )}
+            {/* `포인트 추가` — 흰 보조 알약(라벨 유지 — 2026-10-15 디자인 리뷰: `+`만으로는 무엇인지 읽히지 않았다). */}
+            {canEdit && !isDrawing && !isAiming ? (
+              <TouchableOpacity
+                style={[styles.addPointButton, isFull && styles.disabled]}
+                onPress={handleStartAiming}
+                disabled={isFull || submitting}
+                activeOpacity={0.8}
+                accessibilityRole='button'
+                accessibilityLabel={addPointLabel}
+                accessibilityHint={addPointHint}
+                accessibilityState={{ disabled: isFull || submitting }}
+              >
+                <Ionicons name='add' size={20} color={Acg.ink} />
+                <PretendardText weight='semibold' style={styles.controlLabel}>
+                  {addPointLabel}
+                </PretendardText>
+              </TouchableOpacity>
+            ) : null}
+            {/* 지도 종류(MAP-7) — 스택 맨 아래. 오프라인 팩 지도에는 두지 않는다. */}
+            {isOffline ? null : (
+              <MapLayerControlView screen={MapLayerScreen.BagRoute} />
+            )}
+          </View>
           {/* 카드 칸 — 높이를 재서 출처 표기를 그 위로 올린다(라이선스 의무, MAP-1). */}
           <View pointerEvents='box-none' onLayout={handleCardSlotLayout}>
             {renderCard()}
