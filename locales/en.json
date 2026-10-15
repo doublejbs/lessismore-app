@@ -1611,11 +1611,6 @@
     },
     "next": "Next",
     "skip": "Skip",
-    "date": {
-      "title": "When are you going?",
-      "subtitle": "Set dates and we'll remind you to pack the day before",
-      "undecided": "Not decided yet"
-    },
     "destination": {
       "title": "Where are you going?",
       "subtitle": "Set a destination to see the weather for your trip",

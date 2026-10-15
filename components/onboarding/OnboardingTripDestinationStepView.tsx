@@ -19,7 +19,7 @@ interface Props {
   onOpenPicker: () => void;
 }
 
-// 2단계 — 어디로 가세요?(OB-5). 여행지 면 하나 — 탭하면 공용 선택기(DST-3)를 연다.
+// 1단계 — 어디로 가세요?(OB-5). 여행지 면 하나 — 탭하면 공용 선택기(DST-3)를 연다.
 const OnboardingTripDestinationStepView: FC<Props> = ({
   trip,
   onOpenPicker,

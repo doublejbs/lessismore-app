@@ -1,4 +1,4 @@
-// 3단계에서 장비를 담은 경로(OB-6, OB-9 `click_onboarding_trip_gear_pick.source`).
+// 2단계에서 장비를 담은 경로(OB-6, OB-9 `click_onboarding_trip_gear_pick.source`).
 enum OnboardingTripGearSource {
   // 인기 장비 행 토글(gear-rank).
   Popular = 'popular',

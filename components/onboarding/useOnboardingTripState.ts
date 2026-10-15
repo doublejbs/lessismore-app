@@ -62,7 +62,7 @@ const useOnboardingTripState = (trip: OnboardingTrip) => {
     trip.goBack();
   }, [trip]);
 
-  // 안드로이드 하드웨어 뒤로 — 2~4단계는 이전 단계, 1단계는 닫기(OB-3). 생성 중에는 무시한다.
+  // 안드로이드 하드웨어 뒤로 — 2~3단계는 이전 단계, 1단계는 닫기(OB-3). 생성 중에는 무시한다.
   useEffect(() => {
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
@@ -165,7 +165,7 @@ const useOnboardingTripState = (trip: OnboardingTrip) => {
     void handleCreateResult(() => trip.autoCreate());
   }, [trip, isLoggedIn, hasAgreed, awaitingLogin, handleCreateResult]);
 
-  // 3단계는 진입·포커스 복귀(검색·직접 추가 닫힘)마다 창고를 다시 읽는다(OB-6).
+  // 2단계는 진입·포커스 복귀(검색·직접 추가 닫힘)마다 창고를 다시 읽는다(OB-6).
   // 인기 장비는 첫 진입에 한 번만 읽는다(도메인이 캐시).
   useFocusEffect(
     useCallback(() => {
