@@ -11,7 +11,7 @@
 
 월 구독 하나로 앱의 광고([Ads.md](Ads.md) AD-1의 다섯 자리)를 모두 끈다(2026-09-27 사용자 결정). 결제는 스토어 인앱 구독(Apple·Google)이고, 구매·갱신·검증은 **RevenueCat**이 맡는다. 앱은 RevenueCat SDK로 구독 여부를 바로 판단하고, 운영·통계용으로 **RevenueCat 웹훅 → 우리 Cloud Function → Firestore** 경로로 구독 상태를 서버에 남긴다(Firebase 확장은 쓰지 않는다).
 
-**2026-10-14 개정 — 혜택은 오프라인 저장과 코스 그리기(무료 1개 초과분, SUB-12) 둘이다.** **2026-10-10 개정 — 이 구독의 혜택은 여행 오프라인 저장([Offline.md](Offline.md)) 하나다.** 광고는 당분간 넣지 않기로 했으므로(2026-10-10 사용자 결정) 광고 제거는 혜택이 아니다. 위 개요의 "광고를 모두 끈다"는 `[이력]`이며, 광고가 다시 들어오면 그때 혜택으로 더한다(SUB-4·SUB-9 광고 쪽 항목은 `[보류]`). 상품은 월 구독 하나이고 **7일 무료 체험**으로 시작한다(SUB-10). 구독의 이름은 `useless 플러스`(2026-10-10 확정). 웹에는 오프라인 저장이 없으니 구독도 없다.
+**2026-10-15 개정 — 혜택은 오프라인 저장, 코스 그리기(무료 1개 초과분, SUB-12), 위성 지도(SUB-13) 셋이다.** **2026-10-14 개정 — 혜택은 오프라인 저장과 코스 그리기(무료 1개 초과분, SUB-12) 둘이다.** **2026-10-10 개정 — 이 구독의 혜택은 여행 오프라인 저장([Offline.md](Offline.md)) 하나다.** 광고는 당분간 넣지 않기로 했으므로(2026-10-10 사용자 결정) 광고 제거는 혜택이 아니다. 위 개요의 "광고를 모두 끈다"는 `[이력]`이며, 광고가 다시 들어오면 그때 혜택으로 더한다(SUB-4·SUB-9 광고 쪽 항목은 `[보류]`). 상품은 월 구독 하나이고 **7일 무료 체험**으로 시작한다(SUB-10). 구독의 이름은 `useless 플러스`(2026-10-10 확정). 웹에는 오프라인 저장이 없으니 구독도 없다.
 ## 2. 화면 및 진입
 
 ```
@@ -148,11 +148,19 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 - 측정 `from`에 `route_draw` 추가(SUB-8).
 - 페이월 기능 설명(SUB-2 ⑥)에 행 추가: `코스 그리기` / `지도에 점을 찍으면 등산로를 따라 코스가 이어져요`(아이콘 `create-outline`). 4행 → 5행.
 
+### SUB-13 위성 보기 게이트 `[제안]`
+
+**수용 기준**
+
+- 위성 보기([Map.md](Map.md) MAP-7)는 플러스 혜택이다(무료 사용 없음). 미구독자가 지도 종류 메뉴에서 `위성`을 누르면 구독 화면을 **위성 진입점 변형**으로 연다: 제목 아래 한 줄 `위성 사진으로 능선과 길을 직접 확인하세요`, 기능 행에서 `위성 지도`를 맨 위로. `SubscriptionEntryPoint`에 `Satellite = 'satellite'`를 더한다. 권한을 얻어 닫히면 그 지도를 바로 위성으로 바꾼다(SUB-11과 같은 `onEntitled`). 구매 성공 토스트 `위성 지도를 볼 수 있어요`.
+- 페이월 기능 설명(SUB-2 ⑥)에 행 추가: `위성 지도` / `위성 사진 위에 코스를 얹어 능선·바위·숲길을 확인해요`(아이콘 `layers-outline`). 5행 → 6행.
+- 측정 `from`에 `satellite` 추가(SUB-8).
+
 ### SUB-8 측정 `[제안]`
 
 **수용 기준**
 
-- `logClick('subscription_open', { from })` — 구독 화면 진입(`from`: `settings` | `ad_card` | `nudge` | `offline` | `route_draw` — 오프라인 타일 게이트 SUB-11, 코스 그리기 게이트 SUB-12; `ad_card`·`nudge`는 SUB-9 보류로 당분간 나오지 않는다).
+- `logClick('subscription_open', { from })` — 구독 화면 진입(`from`: `settings` | `ad_card` | `nudge` | `offline` | `route_draw` | `satellite` — 오프라인 타일 게이트 SUB-11, 코스 그리기 게이트 SUB-12, 위성 보기 게이트 SUB-13; `ad_card`·`nudge`는 SUB-9 보류로 당분간 나오지 않는다).
 - `logClick('subscription_nudge', { action })` — 한 번 뜨는 안내 시트(SUB-9) 결과(`action`: `shown` | `open` | `dismiss`).
 - `logClick('subscription_purchase', { result })` — `result`: `success` | `cancelled` | `pending` | `error`. `pending`은 결제 승인 대기(iOS Ask to Buy·안드로이드 보류 결제)다 — 알럿 `결제 승인을 기다리고 있어요. 승인되면 오프라인 저장을 쓸 수 있어요.`를 띄우고, 승인되면 권한 리스너가 광고를 끈다.
 - `logClick('subscription_restore', { result })` — `result`: `restored` | `none` | `error`.
