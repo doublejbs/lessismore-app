@@ -39,6 +39,7 @@ import CommunityDetailSkeletonView from './CommunityDetailSkeletonView';
 import CommunityDetailCommentRowView from './CommunityDetailCommentRowView';
 import CommunityDetailPostHeaderView from './CommunityDetailPostHeaderView';
 import CommunityDetailCommentComposerView from './CommunityDetailCommentComposerView';
+import useCloseWhenAuthorBlocked from '@/hooks/useCloseWhenAuthorBlocked';
 import getCommunityReportMenuItems, { CommunityReportSheetTarget } from './CommunityDetailReportMenu';
 
 interface Props {
@@ -77,6 +78,9 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
   );
 
   const post = detail.getPost();
+
+  // CM-17: 글 작성자가 차단되면(이 메뉴든 댓글 행이든) 상세를 닫는다.
+  useCloseWhenAuthorBlocked(post?.getAuthorId(), '/(tabs)/community');
   const isOwner = Boolean(
     post && post.getAuthorId() === app.getFirebase().getUserId()
   );
@@ -234,7 +238,7 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
                       targetAuthorId: post.getAuthorId(),
                     }),
                 },
-                // CM-17: 남의 글이면 `신고` 다음 `{닉네임} 차단`. 작성자를 차단하면 상세를 닫는다.
+                // CM-17: 남의 글이면 `신고` 다음 `{닉네임} 차단`. 닫기는 `useCloseWhenAuthorBlocked`가 맡는다.
                 ...(post && canBlockAuthor(post.getAuthorId())
                   ? [
                       {
@@ -246,7 +250,6 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
                             name: post.getAuthorName(),
                             surface: BlockSurface.CommunityPost,
                             postId: post.getId(),
-                            onBlocked: () => router.back(),
                           }),
                       },
                     ]

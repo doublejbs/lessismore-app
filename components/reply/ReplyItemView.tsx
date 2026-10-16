@@ -16,7 +16,7 @@ import BlockSurface from '@/model/block/BlockSurface';
 import { canBlockAuthor, confirmUserBlock } from '@/model/block/UserBlockFlow';
 import CommunityReportReason from '@/model/community/CommunityReportReason';
 import CommunityReportTargetType from '@/model/community/CommunityReportTargetType';
-import { reportContent } from '@/model/report/ContentReportFlow';
+import { reportContent, requireReportLogin } from '@/model/report/ContentReportFlow';
 import StarRatingView from '../camp-site/StarRatingView';
 
 interface Props {
@@ -81,6 +81,10 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
   ];
 
   const handlePressReport = () => {
+    if (!requireReportLogin()) {
+      return;
+    }
+
     setShowReport(true);
   };
 
@@ -115,6 +119,23 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
         onReport: handlePressReport,
         onBlock: handlePressBlock,
       });
+
+  // CM-17: 차단한 사람의 리뷰는 남의 답글이 달렸을 때만 목록에 남는다(`Reply.getComments`) — 자리표시로
+  // 그리고, 누르면 답글 화면으로 간다(남의 답글을 숨기지 않는다).
+  if (app.getBlockedUserStore()?.isBlocked(comment.authorId)) {
+    return (
+      <TouchableOpacity
+        style={styles.container}
+        activeOpacity={0.7}
+        onPress={handlePress}
+        accessibilityRole='button'
+      >
+        <PretendardText style={styles.blockedText}>
+          {app.getL10n().t('moderation.block.blockedComment')}
+        </PretendardText>
+      </TouchableOpacity>
+    );
+  }
 
   return (
     <>
@@ -257,6 +278,10 @@ const styles = StyleSheet.create({
   content: {
     ...AcgType.body,
     color: Acg.ink,
+  },
+  blockedText: {
+    ...AcgType.body,
+    color: Acg.textMuted,
   },
   likeCount: {
     ...AcgType.rowSubtitle,

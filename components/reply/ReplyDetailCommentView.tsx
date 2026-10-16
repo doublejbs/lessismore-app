@@ -15,7 +15,7 @@ import BlockSurface from '@/model/block/BlockSurface';
 import { canBlockAuthor, confirmUserBlock } from '@/model/block/UserBlockFlow';
 import CommunityReportReason from '@/model/community/CommunityReportReason';
 import CommunityReportTargetType from '@/model/community/CommunityReportTargetType';
-import { reportContent } from '@/model/report/ContentReportFlow';
+import { reportContent, requireReportLogin } from '@/model/report/ContentReportFlow';
 import { useRouter } from 'expo-router';
 
 interface Props {
@@ -78,6 +78,10 @@ const ReplyDetailCommentView: FC<Props> = ({ comment, replyDetail }) => {
   ];
 
   const handlePressReport = () => {
+    if (!requireReportLogin()) {
+      return;
+    }
+
     setShowReport(true);
   };
 

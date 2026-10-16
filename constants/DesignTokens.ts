@@ -269,4 +269,19 @@ export const AcgLayout = {
   homeHeroHeight: 292,
   // 플로팅 탭바 아래로 콘텐츠가 흐르므로 스크롤 끝에 이만큼 비운다.
   scrollBottom: 130,
+  // 제목 바로 아래 설명 한 단락까지의 간격(알럿 제목 → 본문 등).
+  titleDescriptionGap: 8,
+  // 빈 상태·로딩 문구를 목록 자리 위에서 띄우는 거리.
+  emptyStateTop: 40,
+} as const;
+
+/**
+ * 행 안 보조 알약 버튼(예: 차단 해제 `해제`, CM-17). 높이의 절반이 모서리라 알약이 되고,
+ * 글자를 담으므로 고정 높이 대신 `minHeight + 세로 패딩`이다(Dynamic Type, HM-8).
+ */
+export const AcgPillButton = {
+  minHeight: 44,
+  paddingHorizontal: 16,
+  paddingVertical: 10,
+  borderRadius: 22,
 } as const;

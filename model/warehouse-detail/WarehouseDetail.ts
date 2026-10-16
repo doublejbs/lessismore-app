@@ -698,7 +698,11 @@ class WarehouseDetail {
 
   public async fetchReplies() {
     try {
-      const data = await this.replyStore.getLatestComment(this.id);
+      const blockedUserStore = app.getBlockedUserStore();
+      const data = await this.replyStore.getLatestComment(
+        this.id,
+        authorId => blockedUserStore?.isBlocked(authorId) ?? false
+      );
 
       if (data) {
         this.setReplies([

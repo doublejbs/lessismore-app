@@ -2,6 +2,7 @@ import { makeAutoObservable } from 'mobx';
 import CommunityPost from '@/model/community/CommunityPost';
 import app from '@/model/app/App';
 import { BLOCKED_AUTO_PAGE_LIMIT } from '@/model/block/BlockLimits';
+import { watchBlockedEmptyList } from '@/model/block/BlockedAutoPaging';
 import CommunitySearchDispatcher from './CommunitySearchDispatcher';
 
 class CommunitySearch {
@@ -55,6 +56,22 @@ class CommunitySearch {
     await this.loadNextPage(0);
   }
 
+  // CM-17: 보이는 결과가 차단 필터로 0이 되면 다음 페이지를 받는다. 돌려주는 함수로 멈춘다.
+  public watchBlockedEmpty() {
+    return watchBlockedEmptyList({
+      shouldLoad: () =>
+        this.getPosts().length === 0 &&
+        this.posts.length > 0 &&
+        this.hasMore &&
+        !this.isLoading &&
+        !this.isLoadingMore,
+      shouldReset: () => this.getPosts().length > 0 || this.posts.length === 0,
+      load: () => {
+        void this.loadNextPage(BLOCKED_AUTO_PAGE_LIMIT);
+      },
+    });
+  }
+
   private async loadNextPage(autoDepth: number) {
     if (
       this.isLoading ||
@@ -67,6 +84,7 @@ class CommunitySearch {
 
     const requestVersion = this.requestVersion;
     this.setLoadingMore(true);
+
     let pagePosts: CommunityPost[] = [];
 
     try {

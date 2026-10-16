@@ -17,6 +17,8 @@ class AlertManager {
   // show() 호출마다 올린다. 확인 콜백 안에서 다음 알럿을 띄우면(연결 → 일정 맞춤 확인, GRP-5)
   // 콜백이 끝난 뒤의 hide()가 **새 알럿**을 닫아 버리므로, 그사이 새 알럿이 떴으면 닫지 않는다.
   private generation = 0;
+  // 확인 콜백이 도는 동안 true — 연타로 같은 콜백이 두 번 돌지 않게 막는다(차단 확인 CM-17).
+  private confirming = false;
 
   private constructor() {
     makeAutoObservable(this);
@@ -60,13 +62,31 @@ class AlertManager {
   }
 
   public async confirm() {
+    if (this.confirming) {
+      return;
+    }
+
     const generation = this.generation;
 
-    await this.onConfirm();
+    this.setConfirming(true);
+
+    try {
+      await this.onConfirm();
+    } finally {
+      this.setConfirming(false);
+    }
 
     if (generation === this.generation) {
       this.hide();
     }
+  }
+
+  public isConfirming() {
+    return this.confirming;
+  }
+
+  private setConfirming(value: boolean) {
+    this.confirming = value;
   }
 
   private setMessage(text: string) {

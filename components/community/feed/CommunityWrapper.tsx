@@ -12,7 +12,10 @@ const CommunityWrapper: FC = () => {
   useEffect(() => {
     void feed.initialize();
 
+    const stopBlockedAutoPaging = feed.watchBlockedEmpty();
+
     return () => {
+      stopBlockedAutoPaging();
       feed.dispose();
     };
   }, [feed]);

@@ -777,7 +777,9 @@ class CommunityStore {
       throw new CommunityError(CommunityValidationError.ReportTargetInvalid);
     }
 
-    const reportId = `${reporterId}_${input.targetType}_${targetId}`;
+    const reportId = input.reportIdSuffix
+      ? `${reporterId}_${input.targetType}_${targetId}_${input.reportIdSuffix}`
+      : `${reporterId}_${input.targetType}_${targetId}`;
     const reportRef = doc(this.getStore(), 'community-reports', reportId);
 
     return await runTransaction(this.getStore(), async transaction => {
@@ -790,7 +792,8 @@ class CommunityStore {
       const reportData: Record<string, unknown> = {
         reporterId,
         targetType: input.targetType,
-        targetAuthorId: input.targetAuthorId,
+        // 옛 문서에 작성자가 비어 있을 수 있다 — Firestore는 undefined를 거부한다.
+        targetAuthorId: input.targetAuthorId ?? '',
         reason: input.reason,
         status: CommunityReportStatus.Open,
         createdAt: serverTimestamp(),
@@ -814,8 +817,9 @@ class CommunityStore {
     });
   }
 
-  // 신고 문서 ID의 대상 조각(DM-28). 게시글은 게시글 id, 사용자 차단은 차단 uid, 나머지(댓글·장비 댓글·
-  // 박지 후기)는 `commentId`다 — 박지 후기는 후기 문서 id가 작성자 uid라 `commentId`에 uid가 온다.
+  // 신고 문서 ID의 대상 조각(DM-28). 게시글은 게시글 id, 사용자 차단은 차단 uid, 댓글·장비 댓글은
+  // `commentId`(자동 생성 ID라 전역에서 겹치지 않는다)다. 박지 후기는 후기 문서 id가 작성자 uid라 박지마다
+  // 겹치므로 `{박지 id}_{작성자 uid}`로 쓴다 — uid만 쓰면 같은 사람의 다른 박지 후기 신고가 중복으로 묻힌다.
   private getReportTargetId(input: CommunityReportInput) {
     if (input.targetType === CommunityReportTargetType.Post) {
       return input.postId;
@@ -823,6 +827,12 @@ class CommunityStore {
 
     if (input.targetType === CommunityReportTargetType.User) {
       return input.targetAuthorId;
+    }
+
+    if (input.targetType === CommunityReportTargetType.CampReview) {
+      return input.postId && input.commentId
+        ? `${input.postId}_${input.commentId}`
+        : '';
     }
 
     return input.commentId ?? '';

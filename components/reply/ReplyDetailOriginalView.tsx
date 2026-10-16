@@ -15,7 +15,7 @@ import BlockSurface from '@/model/block/BlockSurface';
 import { canBlockAuthor, confirmUserBlock } from '@/model/block/UserBlockFlow';
 import CommunityReportReason from '@/model/community/CommunityReportReason';
 import CommunityReportTargetType from '@/model/community/CommunityReportTargetType';
-import { reportContent } from '@/model/report/ContentReportFlow';
+import { reportContent, requireReportLogin } from '@/model/report/ContentReportFlow';
 import { useRouter } from 'expo-router';
 
 interface Props {
@@ -73,6 +73,10 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
   ];
 
   const handlePressReport = () => {
+    if (!requireReportLogin()) {
+      return;
+    }
+
     setShowReport(true);
   };
 
@@ -90,7 +94,7 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
     });
   };
 
-  // 원 리뷰 작성자를 차단하면 이 화면의 주인공이 사라지므로 리뷰 목록으로 돌아간다(CM-17).
+  // 원 리뷰 작성자가 차단되면 화면을 닫는 일은 `ReplyDetailView`가 맡는다(CM-17).
   const handlePressBlock = () => {
     confirmUserBlock({
       uid: comment.authorId,
@@ -98,7 +102,6 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
       surface: BlockSurface.GearComment,
       postId: replyDetail.getGearId(),
       commentId: comment.id,
-      onBlocked: () => router.back(),
     });
   };
 
@@ -109,6 +112,19 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
         onReport: handlePressReport,
         onBlock: handlePressBlock,
       });
+
+  // CM-17: 원 리뷰 작성자를 차단했어도 남의 답글이 남아 있으면 화면을 닫지 않고 자리표시로 둔다.
+  if (app.getBlockedUserStore()?.isBlocked(comment.authorId)) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.content}>
+          <PretendardText style={styles.blockedText}>
+            {app.getL10n().t('moderation.block.blockedComment')}
+          </PretendardText>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <>
@@ -199,6 +215,10 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
 };
 
 const styles = StyleSheet.create({
+  blockedText: {
+    ...AcgType.body,
+    color: Acg.textMuted,
+  },
   // RP-7: 순백 지면 위 연회색 면 + 모서리 12, 그림자 없음 — 면 자체가 경계다.
   container: {
     flexDirection: 'column',

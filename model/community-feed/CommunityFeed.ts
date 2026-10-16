@@ -9,6 +9,7 @@ import Order from '@/model/order/Order';
 import OrderType from '@/model/order/OrderType';
 import { createCommunityFeedOrderOptions } from '@/model/order/CommunityFeedOrderOptions';
 import { BLOCKED_AUTO_PAGE_LIMIT } from '@/model/block/BlockLimits';
+import { watchBlockedEmptyList } from '@/model/block/BlockedAutoPaging';
 import CommunityFeedDispatcher from './CommunityFeedDispatcher';
 
 class CommunityFeed {
@@ -91,6 +92,24 @@ class CommunityFeed {
     await this.loadNextPage(0);
   }
 
+  // CM-17: 보이는 글이 차단 필터로 0이 되면 다음 페이지를 받는다. 돌려주는 함수로 멈춘다(래퍼 정리 시).
+  public watchBlockedEmpty() {
+    return watchBlockedEmptyList({
+      shouldLoad: () =>
+        this.getPosts().length === 0 &&
+        this.posts.length > 0 &&
+        this.hasMore &&
+        !this.isLoading &&
+        !this.isLoadingMore &&
+        !this.isRefreshing &&
+        !this.isQuietRefreshing,
+      shouldReset: () => this.getPosts().length > 0 || this.posts.length === 0,
+      load: () => {
+        void this.loadNextPage(BLOCKED_AUTO_PAGE_LIMIT);
+      },
+    });
+  }
+
   private async loadNextPage(autoDepth: number) {
     if (
       this.isLoading ||
@@ -104,6 +123,7 @@ class CommunityFeed {
 
     this.setLoadingMore(true);
     const requestVersion = this.requestVersion;
+
     let pagePosts: CommunityPost[] = [];
 
     try {

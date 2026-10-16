@@ -150,12 +150,15 @@ export interface CommunityReportInput {
   targetAuthorId: string;
   reason: CommunityReportReason;
   detail?: string;
+  // 같은 대상을 다시 알려야 할 때 문서 ID 끝에 붙인다(차단 → 해제 → 재차단 시 운영자 재알림, CM-17).
+  reportIdSuffix?: string;
 }
 
 export interface CommunityReportData {
   reporterId: string;
   targetType: CommunityReportTargetType;
-  targetPostId: string;
+  // 사용자 차단(`user`)은 차단한 자리를 모르면 비운다(DM-28).
+  targetPostId?: string;
   targetCommentId?: string;
   targetAuthorId: string;
   reason: CommunityReportReason;

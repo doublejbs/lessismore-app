@@ -94,13 +94,13 @@ const styles = StyleSheet.create({
     paddingBottom: AcgLayout.scrollBottom,
   },
   loading: {
-    marginTop: 40,
+    marginTop: AcgLayout.emptyStateTop,
   },
   emptyText: {
     ...AcgType.body,
     color: Acg.textMuted,
     textAlign: 'center',
-    marginTop: 40,
+    marginTop: AcgLayout.emptyStateTop,
   },
 });
 

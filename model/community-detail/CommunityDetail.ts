@@ -15,6 +15,7 @@ import { notifyCommunityPostDeleted } from '@/model/community/CommunityFeedInval
 import { COMMUNITY_COMMENT_MAX_LENGTH } from '@/model/community/CommunityLimits';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import { BLOCKED_AUTO_PAGE_LIMIT } from '@/model/block/BlockLimits';
+import { watchBlockedEmptyList } from '@/model/block/BlockedAutoPaging';
 import CommunityDetailDispatcher from './CommunityDetailDispatcher';
 
 export interface CommunityReplyTarget {
@@ -356,12 +357,29 @@ class CommunityDetail {
     await this.loadNextCommentsPage(0);
   }
 
+  // CM-17: 보이는 댓글이 차단 필터로 0이 되면 다음 페이지를 받는다. 돌려주는 함수로 멈춘다.
+  public watchBlockedEmpty() {
+    return watchBlockedEmptyList({
+      shouldLoad: () =>
+        this.getComments().length === 0 &&
+        this.comments.length > 0 &&
+        this.moreComments &&
+        !this.loading &&
+        !this.loadingComments,
+      shouldReset: () => this.getComments().length > 0 || this.comments.length === 0,
+      load: () => {
+        void this.loadNextCommentsPage(BLOCKED_AUTO_PAGE_LIMIT);
+      },
+    });
+  }
+
   private async loadNextCommentsPage(autoDepth: number) {
     if (this.loadingComments || !this.moreComments) {
       return;
     }
 
     this.setLoadingComments(true);
+
     let pageComments: CommunityComment[] = [];
 
     try {

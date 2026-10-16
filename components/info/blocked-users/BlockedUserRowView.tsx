@@ -3,7 +3,13 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgRow, AcgType } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgPillButton,
+  AcgRow,
+  AcgType,
+  Spacing,
+} from '@/constants/DesignTokens';
 import BlockedUser from '@/model/block/BlockedUser';
 import app from '@/model/app/App';
 
@@ -51,15 +57,13 @@ const BlockedUserRowView: FC<Props> = ({ user, isFirst, isUnblocking, onUnblock 
   );
 };
 
-const UNBLOCK_BUTTON_MIN_HEIGHT = 44;
-
 const styles = StyleSheet.create({
   row: {
     minHeight: AcgRow.minHeight,
     paddingVertical: AcgRow.paddingVertical,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: Spacing.item,
   },
   // 첫 행에는 헤어라인을 두지 않는다 — 제목 밑줄로 읽힌다(HM-8).
   rowDivider: {
@@ -80,10 +84,10 @@ const styles = StyleSheet.create({
   },
   // 액션은 알약(높이의 절반) — 선택지 칩과 형태로 갈린다(HM-8). 라임은 화면당 주 액션 하나라 쓰지 않는다.
   unblockButton: {
-    minHeight: UNBLOCK_BUTTON_MIN_HEIGHT,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: UNBLOCK_BUTTON_MIN_HEIGHT / 2,
+    minHeight: AcgPillButton.minHeight,
+    paddingHorizontal: AcgPillButton.paddingHorizontal,
+    paddingVertical: AcgPillButton.paddingVertical,
+    borderRadius: AcgPillButton.borderRadius,
     backgroundColor: Acg.controlFill,
     alignItems: 'center',
     justifyContent: 'center',

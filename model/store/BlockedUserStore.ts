@@ -12,6 +12,7 @@ import BlockedUser from '../block/BlockedUser';
 import BlockSurface from '../block/BlockSurface';
 import { toDate } from '../community/CommunityData';
 import CommunityReportReason from '../community/CommunityReportReason';
+import CommunityReportResult from '../community/CommunityReportResult';
 import CommunityReportTargetType from '../community/CommunityReportTargetType';
 import CommunityStore from './CommunityStore';
 
@@ -44,6 +45,13 @@ class BlockedUserStore {
   private users: BlockedUser[] = [];
   private loading = false;
   private loaded = false;
+  // 가장 최근 `load()` 요청 번호. 뒤처진 요청의 결과·`loading` 해제는 버린다.
+  private loadRequest = 0;
+  /**
+   * 마지막 `load()`가 시작된 뒤 이 기기에서 바꾼 차단(uid → 차단 정보, 해제는 null). 읽는 사이에
+   * 차단·해제하면 서버 결과가 그 변경을 덮어쓰므로, 결과를 쓸 때 이 변경을 다시 얹는다.
+   */
+  private localChanges = new Map<string, BlockedUser | null>();
 
   private constructor(
     private readonly firebase: Firebase,
@@ -69,6 +77,10 @@ class BlockedUserStore {
       return;
     }
 
+    const request = this.loadRequest + 1;
+
+    this.setLoadRequest(request);
+    this.clearLocalChanges();
     this.setLoading(true);
 
     try {
@@ -81,8 +93,8 @@ class BlockedUserStore {
         )
       );
 
-      // 읽는 사이 계정이 바뀌었으면 옛 계정 목록을 쓰지 않는다.
-      if (this.firebase.getUserId() !== userId) {
+      // 읽는 사이 계정이 바뀌었거나 더 새 요청이 있으면 이 결과를 쓰지 않는다.
+      if (this.firebase.getUserId() !== userId || request !== this.loadRequest) {
         return;
       }
 
@@ -96,12 +108,14 @@ class BlockedUserStore {
         };
       });
 
-      this.setUsers(this.sortByNewest(users));
+      this.setUsers(this.sortByNewest(this.applyLocalChanges(users)));
       this.setLoaded(true);
     } catch (error) {
       console.warn('차단 목록 조회 실패:', error); // l10n-ignore: 개발자 로그
     } finally {
-      this.setLoading(false);
+      if (request === this.loadRequest) {
+        this.setLoading(false);
+      }
     }
   }
 
@@ -125,14 +139,17 @@ class BlockedUserStore {
         input.uid
       ),
       {
-        blockedUserName: input.name,
+        blockedUserName: input.name ?? '',
         surface: input.surface,
         createdAt: serverTimestamp(),
       }
     );
 
+    const blockedUser = { uid: input.uid, name: input.name ?? '', createdAt: new Date() };
+
+    this.setLocalChange(input.uid, blockedUser);
     this.setUsers([
-      { uid: input.uid, name: input.name, createdAt: new Date() },
+      blockedUser,
       ...this.users.filter(user => user.uid !== input.uid),
     ]);
 
@@ -150,6 +167,7 @@ class BlockedUserStore {
       doc(this.firebase.getStore(), 'users', userId, BLOCKED_USERS_COLLECTION, uid)
     );
 
+    this.setLocalChange(uid, null);
     this.setUsers(this.users.filter(user => user.uid !== uid));
   }
 
@@ -190,8 +208,11 @@ class BlockedUserStore {
   }
 
   private async handleUserChanged(userId: string) {
+    this.setLoadRequest(this.loadRequest + 1);
+    this.clearLocalChanges();
     this.setUsers([]);
     this.setLoaded(false);
+    this.setLoading(false);
 
     if (!userId) {
       return;
@@ -200,18 +221,58 @@ class BlockedUserStore {
     await this.load();
   }
 
+  /**
+   * 운영자 알림. 같은 사람을 해제 후 다시 차단하면 결정적 ID(`{me}_user_{uid}`) 문서가 이미 있어
+   * 중복으로 묻히므로, 그때는 시각을 덧붙인 새 문서로 다시 알린다(CM-17). 접두는 그대로 `{me}_`라
+   * 보안 규칙을 통과한다.
+   */
   private async notifyOperator(input: BlockUserInput) {
+    const report = {
+      targetType: CommunityReportTargetType.User,
+      postId: input.postId ?? '',
+      targetAuthorId: input.uid,
+      reason: CommunityReportReason.Blocked,
+      ...(input.commentId ? { commentId: input.commentId } : {}),
+    };
+
     try {
-      await this.communityStore.report({
-        targetType: CommunityReportTargetType.User,
-        postId: input.postId ?? '',
-        targetAuthorId: input.uid,
-        reason: CommunityReportReason.Blocked,
-        ...(input.commentId ? { commentId: input.commentId } : {}),
-      });
+      const result = await this.communityStore.report(report);
+
+      if (result === CommunityReportResult.Duplicate) {
+        await this.communityStore.report({
+          ...report,
+          reportIdSuffix: String(Date.now()),
+        });
+      }
     } catch (error) {
       console.warn('차단 운영자 알림 실패:', error); // l10n-ignore: 개발자 로그
     }
+  }
+
+  private applyLocalChanges(users: BlockedUser[]) {
+    const merged = new Map(users.map(user => [user.uid, user]));
+
+    this.localChanges.forEach((change, uid) => {
+      if (change) {
+        merged.set(uid, change);
+      } else {
+        merged.delete(uid);
+      }
+    });
+
+    return [...merged.values()];
+  }
+
+  private setLocalChange(uid: string, change: BlockedUser | null) {
+    this.localChanges.set(uid, change);
+  }
+
+  private clearLocalChanges() {
+    this.localChanges.clear();
+  }
+
+  private setLoadRequest(value: number) {
+    this.loadRequest = value;
   }
 
   private sortByNewest(users: BlockedUser[]) {

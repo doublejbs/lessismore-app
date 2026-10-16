@@ -33,6 +33,9 @@ export const getBlockMenuText = (name: string) => {
 export const confirmUserBlock = (request: UserBlockRequest) => {
   const l10n = app.getL10n();
 
+  // 메뉴 탭 자체를 센다 — 로그인 모달로 빠지는 탭도 포함한다(AN-3).
+  app.getAnalyticsManager()?.logClick('block_user', { surface: request.surface });
+
   if (!app.getFirebase().isLoggedIn()) {
     app.getLogInAlertManager()?.show();
 
@@ -45,10 +48,10 @@ export const confirmUserBlock = (request: UserBlockRequest) => {
     return;
   }
 
-  app.getAnalyticsManager()?.logClick('block_user', { surface: request.surface });
-
   const { onBlocked, ...input } = request;
   const name = request.name || l10n.t('moderation.block.unknownUser');
+  // 확인 버튼 연타·알럿 재사용으로 저장·`onBlocked`(화면 닫기)가 두 번 돌지 않게 한 번만 받는다.
+  let handled = false;
 
   app.getAlertManager()?.show({
     message: l10n.t('moderation.block.confirmTitle', { name }),
@@ -57,11 +60,18 @@ export const confirmUserBlock = (request: UserBlockRequest) => {
     cancelText: l10n.t('common.cancel'),
     destructive: true,
     onConfirm: async () => {
+      if (handled) {
+        return;
+      }
+
+      handled = true;
+
       try {
         await store.block(input);
         app.getToastManager()?.show({ message: l10n.t('moderation.block.done') });
         onBlocked?.();
       } catch {
+        handled = false;
         app.getToastManager()?.show({ message: l10n.t('moderation.block.failed') });
       }
     },

@@ -796,6 +796,19 @@ class Firebase {
       operations.push(batch => batch.delete(likeDoc.ref));
     }
 
+    // users/{uid}/blocked-users 차단 목록 삭제(CM-17, DM-38). 실패해도 나머지 정리는 진행한다.
+    try {
+      const blockedSnapshot = await getDocs(
+        collection(store, 'users', userId, 'blocked-users')
+      );
+
+      for (const blockedDoc of blockedSnapshot.docs) {
+        operations.push(batch => batch.delete(blockedDoc.ref));
+      }
+    } catch (error) {
+      console.warn('차단 목록 삭제 조회 실패:', error); // l10n-ignore: 개발자 로그
+    }
+
     // users/{uid} 문서 삭제
     operations.push(batch => batch.delete(userDocRef));
 

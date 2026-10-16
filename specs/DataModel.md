@@ -795,7 +795,7 @@
 | `community-poll-votes/{postId}_{userId}` | `postId`, `userId`, `optionIds` (string[], 1개 이상; 단일 선택 투표는 항상 1개), `createdAt`, `updatedAt?` | 결정적 문서 ID로 계정당 한 문서. 생성 또는 `optionIds` 변경(update)과 선택지 카운트를 같은 트랜잭션에서 원자적으로 갱신하고, 삭제는 금지한다. **2026-09-05 `optionId`(string) → `optionIds`(배열)로 교체** — 기존 문서는 마이그레이션(`scripts/migrate-community-poll-votes.mjs`)으로 배열화한다. 변경 시 이전 선택지 `voteCount -1`·새 선택지 `+1`, `totalVoteCount`는 불변이다. `updatedAt`은 변경 시각(선택)이다. |
 | `community-reports/{reportId}` | `reporterId`, `targetType`, `targetPostId`, `targetCommentId?`, `targetAuthorId`, `reason`, `detail?`, `status`, `createdAt`, `resolvedAt?`, `resolvedBy?` | `targetType`: `post` / `comment` / `gear_comment` / `camp_review` / `user`; `reason`: `spam` / `harassment` / `sexual_violence` / `copyright` / `privacy` / `other` / `blocked`(`user` 전용, CM-17); `status`: `open` / `reviewing` / `actioned` / `dismissed`. 같은 `(reporterId, targetType, targetId)` 중복 생성 금지 |
 
-신고 문서 ID는 결정적으로 `{reporterId}_{targetType}_{targetId}`를 사용한다. 대상별 필드(2026-10-16): `gear_comment`는 `targetPostId`=장비 id·`targetCommentId`=댓글 id, `camp_review`는 `targetPostId`=박지 id·`targetCommentId`=작성자 uid(후기 문서 id), `user`는 `targetId`=차단 uid이고 `targetPostId`·`targetCommentId`에 차단한 자리(게시글·장비·박지 id와 댓글 id, 없으면 생략)를 남긴다. `targetAuthorId`는 모두 대상 작성자 uid다.
+신고 문서 ID는 결정적으로 `{reporterId}_{targetType}_{targetId}`를 사용한다. 대상별 `targetId`·필드(2026-10-16): `post`는 게시글 id. `comment`·`gear_comment`는 댓글 id(Firestore 자동 생성 ID라 장비가 달라도 겹치지 않는다) — `gear_comment`는 `targetPostId`=장비 id·`targetCommentId`=댓글 id. `camp_review`는 `targetId`=`{박지 id}_{작성자 uid}`(후기 문서 id가 작성자 uid라 uid만 쓰면 같은 사람의 다른 박지 후기 신고가 중복으로 묻힌다)이고 `targetPostId`=박지 id·`targetCommentId`=작성자 uid. `user`는 `targetId`=차단 uid이고 `targetPostId`·`targetCommentId`에 차단한 자리(게시글·장비·박지 id와 댓글 id, 없으면 생략)를 남긴다 — 해제 후 같은 사람을 다시 차단해 결정적 ID 문서가 이미 있으면 `{reporterId}_user_{uid}_{epoch ms}`로 새 문서를 만들어 운영자에게 다시 알린다. `targetAuthorId`는 모두 대상 작성자 uid다(없으면 빈 문자열).
 
 #### 조회·보안·인덱스
 
@@ -1194,7 +1194,7 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 | `createdAt` | timestamp | 서버 시각 |
 
 - 보안 규칙: 지금은 `users/{uid}/{subCollection}` 개방 절에 얹힌다(규칙 변경 없이 배포 가능). DM-37 규칙 정리 때 **본인만 읽고 쓰기**로 좁힌다 `[제안]`.
-- 회원 탈퇴 시 하위 컬렉션째 지운다(AU-8). 차단당한 사람이 탈퇴해도 문서는 남지만 콘텐츠가 없으니 영향 없다.
+- 회원 탈퇴 시 하위 컬렉션째 지운다(AU-8). 앱도 탈퇴 정리(`deleteUserData`)에서 best-effort로 지운다. 차단당한 사람이 탈퇴해도 문서는 남지만 콘텐츠가 없으니 영향 없다.
 
 ### DM-25 `in` 쿼리 30개 상한
 
