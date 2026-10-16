@@ -1905,5 +1905,29 @@
       "unavailableToast": "Satellite map isn't available right now",
       "probingMeta": "Checking…"
     }
+  },
+  "moderation": {
+    "report": "Report",
+    "more": "More",
+    "block": {
+      "menu": "Block {{name}}",
+      "action": "Block",
+      "confirmTitle": "Block {{name}}?",
+      "confirmMessage": "You won't see this user's posts, comments, or reviews anymore. Our team will be notified too.",
+      "confirm": "Block",
+      "done": "User blocked",
+      "failed": "Couldn't block this user",
+      "blockedComment": "Comment from a blocked user",
+      "unknownUser": "this user"
+    },
+    "blockedUsers": {
+      "title": "Blocked users",
+      "empty": "No blocked users",
+      "unblock": "Unblock",
+      "unblockAccessibility": "Unblock {{name}}",
+      "unblocked": "User unblocked",
+      "unblockFailed": "Couldn't unblock this user",
+      "loginRequired": "Log in to see the users you blocked"
+    }
   }
 }

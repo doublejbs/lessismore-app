@@ -9,9 +9,18 @@ import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 import StarRatingView from './StarRatingView';
 import { CampReview } from '@/model/camp-review/CampReviewTypes';
 import app from '@/model/app/App';
+import ReportReasonSheetView from '@/components/report/ReportReasonSheetView';
+import getModerationMenuItems from '@/components/report/ModerationMenuItems';
+import BlockSurface from '@/model/block/BlockSurface';
+import { canBlockAuthor, confirmUserBlock } from '@/model/block/UserBlockFlow';
+import CommunityReportReason from '@/model/community/CommunityReportReason';
+import CommunityReportTargetType from '@/model/community/CommunityReportTargetType';
+import { reportContent } from '@/model/report/ContentReportFlow';
 
 interface Props {
   review: CampReview;
+  // 신고·차단 대상 자리(CM-10·CM-17) — 박지 id.
+  spotId: string;
   isMine: boolean;
   onPressBag: (bagId: string) => void;
   onEdit?: () => void;
@@ -31,6 +40,7 @@ interface Props {
  */
 const CampUserReviewItemView: FC<Props> = ({
   review,
+  spotId,
   isMine,
   onPressBag,
   onEdit,
@@ -38,8 +48,11 @@ const CampUserReviewItemView: FC<Props> = ({
 }) => {
   const l10n = app.getL10n();
   const [showMenu, setShowMenu] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const dateLabel = dayjs(review.updatedAt).format('YYYY.MM.DD');
-  const hasMenu = isMine && Boolean(onEdit || onDelete);
+  // CM-10·CM-17: 남의 후기에는 `⋯` → `신고` / `{닉네임} 차단`.
+  const canModerate = !isMine && canBlockAuthor(review.authorId);
+  const hasMenu = (isMine && Boolean(onEdit || onDelete)) || canModerate;
 
   /**
    * 날짜·무게는 `·`로 잇는다 — 후기 작성 화면의 첨부 배낭 칩과 같은 문법이다.
@@ -73,7 +86,36 @@ const CampUserReviewItemView: FC<Props> = ({
     ]);
   };
 
-  const menuItems = [
+  const handlePressReport = () => {
+    setShowReport(true);
+  };
+
+  const handleCloseReport = () => {
+    setShowReport(false);
+  };
+
+  // 후기 문서 id가 작성자 uid라 `commentId`에 uid를 넣는다(DM-28 `camp_review`).
+  const handleSelectReportReason = (reason: CommunityReportReason) => {
+    void reportContent({
+      targetType: CommunityReportTargetType.CampReview,
+      postId: spotId,
+      commentId: review.authorId,
+      targetAuthorId: review.authorId,
+      reason,
+    });
+  };
+
+  const handlePressBlock = () => {
+    confirmUserBlock({
+      uid: review.authorId,
+      name: review.authorName,
+      surface: BlockSurface.CampReview,
+      postId: spotId,
+      commentId: review.authorId,
+    });
+  };
+
+  const ownerMenuItems = [
     ...(onEdit
       ? [
           {
@@ -93,6 +135,14 @@ const CampUserReviewItemView: FC<Props> = ({
         ]
       : []),
   ];
+
+  const menuItems = isMine
+    ? ownerMenuItems
+    : getModerationMenuItems({
+        authorName: review.authorName,
+        onReport: handlePressReport,
+        onBlock: handlePressBlock,
+      });
 
   return (
     <>
@@ -118,7 +168,9 @@ const CampUserReviewItemView: FC<Props> = ({
                 onPress={() => setShowMenu(true)}
                 activeOpacity={0.7}
                 accessibilityRole='button'
-                accessibilityLabel={l10n.t('campSite.review.more')}
+                accessibilityLabel={l10n.t(
+                  isMine ? 'campSite.review.more' : 'moderation.more'
+                )}
               >
                 <Ionicons
                   name='ellipsis-horizontal'
@@ -176,6 +228,11 @@ const CampUserReviewItemView: FC<Props> = ({
         visible={showMenu}
         onClose={() => setShowMenu(false)}
         menuItems={menuItems}
+      />
+      <ReportReasonSheetView
+        visible={showReport}
+        onClose={handleCloseReport}
+        onSelect={handleSelectReportReason}
       />
     </>
   );

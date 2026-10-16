@@ -1873,5 +1873,29 @@
       "unavailableToast": "위성 지도를 지금은 볼 수 없어요",
       "probingMeta": "확인 중…"
     }
+  },
+  "moderation": {
+    "report": "신고",
+    "more": "더 보기",
+    "block": {
+      "menu": "{{name}} 차단",
+      "action": "차단",
+      "confirmTitle": "{{name}} 님을 차단할까요?",
+      "confirmMessage": "이 사용자의 글·댓글·후기가 더 이상 보이지 않아요. 운영팀에도 알려져요.",
+      "confirm": "차단",
+      "done": "차단했어요",
+      "failed": "차단하지 못했어요",
+      "blockedComment": "차단한 사용자의 댓글이에요",
+      "unknownUser": "이 사용자"
+    },
+    "blockedUsers": {
+      "title": "차단한 사용자",
+      "empty": "차단한 사용자가 없어요",
+      "unblock": "해제",
+      "unblockAccessibility": "{{name}} 차단 해제",
+      "unblocked": "차단을 해제했어요",
+      "unblockFailed": "차단을 해제하지 못했어요",
+      "loginRequired": "로그인하면 차단한 사용자를 볼 수 있어요"
+    }
   }
 }

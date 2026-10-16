@@ -23,6 +23,7 @@ import BagTemplateStore from '../store/BagTemplateStore';
 import FeedContentStore from '../store/FeedContentStore';
 import ConsumableStore from '../store/ConsumableStore';
 import CommunityStore from '../store/CommunityStore';
+import BlockedUserStore from '../store/BlockedUserStore';
 import GroupStore from '../store/GroupStore';
 import L10n from '../l10n/L10n';
 import CommunitySearchStore from '../search/CommunitySearchStore';
@@ -77,6 +78,8 @@ class App {
   private featurePopupManager: FeaturePopupManager | null = null;
   private onboardingTripManager: OnboardingTripManager | null = null;
   private communityStore: CommunityStore | null = null;
+  // 사용자 차단 목록(CM-17). 로그인 uid를 따라 읽고 비우며, UGC 목록이 이 목록으로 작성자를 거른다.
+  private blockedUserStore: BlockedUserStore | null = null;
   private groupStore: GroupStore | null = null;
   // 배낭 코스(BD-11). 배낭 문서와 접근 범위가 달라 BagStore와 따로 둔다 — BagRouteStore 주석 참고.
   private bagRouteStore: BagRouteStore | null = null;
@@ -129,6 +132,11 @@ class App {
     this.logInAlertManager = LogInAlertManager.new(this.firebase);
     this.replyStore = new ReplyStore(this.firebase);
     this.communityStore = new CommunityStore(this.firebase);
+    this.blockedUserStore = BlockedUserStore.new(
+      this.firebase,
+      this.communityStore
+    );
+    this.blockedUserStore.initialize();
     // 코스 뒤집기(GRP-8·BD-11) — 서버가 아니라 기기에 저장하는 보기 설정. 그룹·배낭 코스가
     // 함께 쓰므로 두 스토어에 같은 인스턴스를 넘긴다(코스 모델이 만들어질 때 주입된다).
     const routeDirectionStore = RouteDirectionStore.new();
@@ -336,6 +344,10 @@ class App {
 
   public getCommunityStore() {
     return this.communityStore;
+  }
+
+  public getBlockedUserStore() {
+    return this.blockedUserStore;
   }
 
   public getGroupStore() {

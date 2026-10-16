@@ -24,6 +24,12 @@ import {
   AcgType,
 } from '@/constants/DesignTokens';
 import CommunityReportTargetType from '@/model/community/CommunityReportTargetType';
+import BlockSurface from '@/model/block/BlockSurface';
+import {
+  canBlockAuthor,
+  confirmUserBlock,
+  getBlockMenuText,
+} from '@/model/block/UserBlockFlow';
 import CommunityDetail, {
   CommunityReportTarget,
 } from '@/model/community-detail/CommunityDetail';
@@ -220,7 +226,7 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
             : [
                 {
                   icon: 'flag-outline',
-                  text: app.getL10n().t('community.report.title'),
+                  text: app.getL10n().t('moderation.report'),
                   onPress: () =>
                     post &&
                     openReport({
@@ -228,6 +234,23 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
                       targetAuthorId: post.getAuthorId(),
                     }),
                 },
+                // CM-17: 남의 글이면 `신고` 다음 `{닉네임} 차단`. 작성자를 차단하면 상세를 닫는다.
+                ...(post && canBlockAuthor(post.getAuthorId())
+                  ? [
+                      {
+                        icon: 'ban-outline' as const,
+                        text: getBlockMenuText(post.getAuthorName()),
+                        onPress: () =>
+                          confirmUserBlock({
+                            uid: post.getAuthorId(),
+                            name: post.getAuthorName(),
+                            surface: BlockSurface.CommunityPost,
+                            postId: post.getId(),
+                            onBlocked: () => router.back(),
+                          }),
+                      },
+                    ]
+                  : []),
               ]
         }
       />

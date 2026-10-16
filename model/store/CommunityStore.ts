@@ -767,14 +767,13 @@ class CommunityStore {
 
   public async report(input: CommunityReportInput): Promise<CommunityReportResult> {
     const reporterId = this.requireUserId();
-    const targetId =
-      input.targetType === CommunityReportTargetType.Comment
-        ? input.commentId
-        : input.postId;
+    const targetId = this.getReportTargetId(input);
 
-    if (!targetId ||
-      (input.targetType === CommunityReportTargetType.Comment &&
-        !input.commentId)) {
+    // 사용자 차단(`user`)만 차단한 자리를 모를 수 있어 게시글 id 없이도 받는다(DM-28).
+    if (
+      !targetId ||
+      (input.targetType !== CommunityReportTargetType.User && !input.postId)
+    ) {
       throw new CommunityError(CommunityValidationError.ReportTargetInvalid);
     }
 
@@ -791,17 +790,17 @@ class CommunityStore {
       const reportData: Record<string, unknown> = {
         reporterId,
         targetType: input.targetType,
-        targetPostId: input.postId,
         targetAuthorId: input.targetAuthorId,
         reason: input.reason,
         status: CommunityReportStatus.Open,
         createdAt: serverTimestamp(),
       };
 
-      if (
-        input.targetType === CommunityReportTargetType.Comment &&
-        input.commentId
-      ) {
+      if (input.postId) {
+        reportData.targetPostId = input.postId;
+      }
+
+      if (input.targetType !== CommunityReportTargetType.Post && input.commentId) {
         reportData.targetCommentId = input.commentId;
       }
 
@@ -813,6 +812,20 @@ class CommunityStore {
 
       return CommunityReportResult.Created;
     });
+  }
+
+  // 신고 문서 ID의 대상 조각(DM-28). 게시글은 게시글 id, 사용자 차단은 차단 uid, 나머지(댓글·장비 댓글·
+  // 박지 후기)는 `commentId`다 — 박지 후기는 후기 문서 id가 작성자 uid라 `commentId`에 uid가 온다.
+  private getReportTargetId(input: CommunityReportInput) {
+    if (input.targetType === CommunityReportTargetType.Post) {
+      return input.postId;
+    }
+
+    if (input.targetType === CommunityReportTargetType.User) {
+      return input.targetAuthorId;
+    }
+
+    return input.commentId ?? '';
   }
 
   private getStore() {

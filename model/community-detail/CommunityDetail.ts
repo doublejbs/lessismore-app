@@ -14,6 +14,7 @@ import CommunityPost from '@/model/community/CommunityPost';
 import { notifyCommunityPostDeleted } from '@/model/community/CommunityFeedInvalidation';
 import { COMMUNITY_COMMENT_MAX_LENGTH } from '@/model/community/CommunityLimits';
 import { CampSpot } from '@/model/camp-site/CampSpotTypes';
+import { BLOCKED_AUTO_PAGE_LIMIT } from '@/model/block/BlockLimits';
 import CommunityDetailDispatcher from './CommunityDetailDispatcher';
 
 export interface CommunityReplyTarget {
@@ -131,6 +132,7 @@ class CommunityDetail {
       this.setCommentsCursor(commentsResult.value.cursor);
       this.setHasMoreComments(commentsResult.value.hasMore);
       this.setNotFound(false);
+      void this.loadMoreIfAllBlocked(commentsResult.value.comments, 0);
     } catch {
       this.setError(true);
       this.showToast('community.detail.failed');
@@ -351,17 +353,23 @@ class CommunityDetail {
   }
 
   public async loadMoreComments() {
+    await this.loadNextCommentsPage(0);
+  }
+
+  private async loadNextCommentsPage(autoDepth: number) {
     if (this.loadingComments || !this.moreComments) {
       return;
     }
 
     this.setLoadingComments(true);
+    let pageComments: CommunityComment[] = [];
 
     try {
       const page = await this.dispatcher.getCommentsPage(
         this.postId,
         this.commentsCursor
       );
+      pageComments = page.comments;
       this.setComments(this.sortComments([...this.comments, ...page.comments]));
       this.setCommentsCursor(page.cursor);
       this.setHasMoreComments(page.hasMore);
@@ -370,6 +378,25 @@ class CommunityDetail {
     } finally {
       this.setLoadingComments(false);
     }
+
+    await this.loadMoreIfAllBlocked(pageComments, autoDepth);
+  }
+
+  // CM-17: 받은 한 페이지가 전부 차단한 사람 것이면 화면에 늘어난 게 없으니 다음 페이지를 이어 받는다.
+  // 연쇄는 `BLOCKED_AUTO_PAGE_LIMIT`번까지만 — 차단한 사람이 댓글을 도배해도 무한히 읽지 않는다.
+  private async loadMoreIfAllBlocked(pageComments: CommunityComment[], autoDepth: number) {
+    const blockedUserStore = app.getBlockedUserStore();
+
+    if (
+      pageComments.length === 0 ||
+      !this.moreComments ||
+      autoDepth >= BLOCKED_AUTO_PAGE_LIMIT ||
+      !pageComments.every(comment => blockedUserStore?.isBlocked(comment.getAuthorId()))
+    ) {
+      return;
+    }
+
+    await this.loadNextCommentsPage(autoDepth + 1);
   }
 
   public startReply(comment: CommunityComment) {
@@ -518,20 +545,35 @@ class CommunityDetail {
     return this.myVoteOptionIds;
   }
 
+  /**
+   * 화면에 그릴 댓글. 삭제 자리표시는 답글이 남은 경우에만 둔다(CM-9).
+   * 차단한 사람(CM-17)의 답글은 빼고, 그 사람의 댓글은 남의 답글이 달렸을 때만 자리표시로 남긴다 —
+   * 차단 목록이 observable이라 차단 순간 다시 계산된다.
+   */
   public getComments() {
+    const blockedUserStore = app.getBlockedUserStore();
+    const isBlocked = (comment: CommunityComment) =>
+      blockedUserStore?.isBlocked(comment.getAuthorId()) ?? false;
+    const comments = this.comments.filter(
+      comment => !(comment.isReply() && isBlocked(comment))
+    );
     const replyParentIds = new Set(
-      this.comments
+      comments
         .filter(comment => comment.isReply())
         .map(comment => comment.getParentId())
     );
 
-    return this.comments.filter(comment => {
-      if (!comment.isDeletedPlaceholder()) {
+    return comments.filter(comment => {
+      if (!comment.isDeletedPlaceholder() && !isBlocked(comment)) {
         return true;
       }
 
       return replyParentIds.has(comment.getId());
     });
+  }
+
+  public getPostId() {
+    return this.postId;
   }
 
   public hasMoreCommentsPage() {

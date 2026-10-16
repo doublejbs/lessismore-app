@@ -19,6 +19,7 @@ interface Props {
 const AlertView: FC<Props> = ({ alertManager }) => {
   const isVisible = alertManager.isVisible();
   const message = alertManager.getMessage();
+  const description = alertManager.getDescription();
   const confirmText = alertManager.getConfirmText();
 
   const handleClickCancel = (e: GestureResponderEvent) => {
@@ -46,9 +47,17 @@ const AlertView: FC<Props> = ({ alertManager }) => {
     >
       <View style={styles.overlay}>
         <View style={styles.alertContainer}>
-          <PretendardText weight='bold' style={styles.messageText}>
+          <PretendardText
+            weight='bold'
+            style={[styles.messageText, description !== '' && styles.messageWithDescription]}
+          >
             {message}
           </PretendardText>
+          {description !== '' ? (
+            <PretendardText style={styles.descriptionText}>
+              {description}
+            </PretendardText>
+          ) : null}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.cancelButton}
@@ -94,6 +103,14 @@ const styles = StyleSheet.create({
     ...AcgType.screenTitle,
     marginBottom: 24,
     color: Color.textPrimary,
+  },
+  messageWithDescription: {
+    marginBottom: 8,
+  },
+  descriptionText: {
+    ...AcgType.body,
+    marginBottom: 24,
+    color: Color.textSecondary,
   },
   buttonContainer: {
     flexDirection: 'row',

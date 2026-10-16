@@ -8,6 +8,8 @@ import CommunityDetail, { CommunityReportTarget } from '@/model/community-detail
 import CommunityReportTargetType from '@/model/community/CommunityReportTargetType';
 import { getCommunityRelativeTime } from '@/model/community/CommunityFormat';
 import app from '@/model/app/App';
+import BlockSurface from '@/model/block/BlockSurface';
+import { canBlockAuthor, confirmUserBlock } from '@/model/block/UserBlockFlow';
 
 interface Props {
   comment: CommunityComment;
@@ -19,6 +21,29 @@ const CommunityDetailCommentRowView = observer(({ comment, detail, onReport }: P
   const isOwn = comment.getAuthorId() === app.getFirebase().getUserId();
   const deleted = comment.isDeletedPlaceholder();
   const withdrawn = comment.getDeletedReason() === CommunityCommentDeletedReason.Withdrawal;
+  // CM-17: 차단한 사람의 댓글은 남의 답글이 달린 경우에만 목록에 남는다(`getComments`) — 자리표시로 그린다.
+  const blocked = app.getBlockedUserStore()?.isBlocked(comment.getAuthorId()) ?? false;
+  const canBlock = canBlockAuthor(comment.getAuthorId());
+
+  const handlePressBlock = () => {
+    confirmUserBlock({
+      uid: comment.getAuthorId(),
+      name: comment.getAuthorName(),
+      surface: BlockSurface.CommunityComment,
+      postId: detail.getPostId(),
+      commentId: comment.getId(),
+    });
+  };
+
+  if (blocked && !deleted) {
+    return (
+      <View style={[styles.row, comment.isReply() && styles.replyRow]}>
+        <PretendardText style={styles.deleted}>
+          {app.getL10n().t('moderation.block.blockedComment')}
+        </PretendardText>
+      </View>
+    );
+  }
 
   if (deleted) {
     return (
@@ -72,9 +97,20 @@ const CommunityDetailCommentRowView = observer(({ comment, detail, onReport }: P
             onPress={() => onReport({ targetType: CommunityReportTargetType.Comment, targetAuthorId: comment.getAuthorId(), commentId: comment.getId() })}
             accessibilityRole='button'
           >
-            <PretendardText style={styles.actionText}>{app.getL10n().t('community.report.title')}</PretendardText>
+            <PretendardText style={styles.actionText}>{app.getL10n().t('moderation.report')}</PretendardText>
           </TouchableOpacity>
         )}
+        {/* CM-17: 남의 댓글·답글이면 `신고` 다음 차단. 이름이 길 수 있어 글자는 `차단`, 읽기는 `{닉네임} 차단`. */}
+        {!isOwn && canBlock ? (
+          <TouchableOpacity
+            style={styles.action}
+            onPress={handlePressBlock}
+            accessibilityRole='button'
+            accessibilityLabel={app.getL10n().t('moderation.block.menu', { name: comment.getAuthorName() })}
+          >
+            <PretendardText style={styles.actionText}>{app.getL10n().t('moderation.block.action')}</PretendardText>
+          </TouchableOpacity>
+        ) : null}
       </View>
     </View>
   );

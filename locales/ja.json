@@ -1873,5 +1873,29 @@
       "unavailableToast": "現在、衛星地図を表示できません",
       "probingMeta": "確認中…"
     }
+  },
+  "moderation": {
+    "report": "通報",
+    "more": "その他",
+    "block": {
+      "menu": "{{name}}をブロック",
+      "action": "ブロック",
+      "confirmTitle": "{{name}}さんをブロックしますか?",
+      "confirmMessage": "このユーザーの投稿・コメント・レビューが表示されなくなります。運営チームにも通知されます。",
+      "confirm": "ブロック",
+      "done": "ブロックしました",
+      "failed": "ブロックできませんでした",
+      "blockedComment": "ブロックしたユーザーのコメントです",
+      "unknownUser": "このユーザー"
+    },
+    "blockedUsers": {
+      "title": "ブロックしたユーザー",
+      "empty": "ブロックしたユーザーはいません",
+      "unblock": "解除",
+      "unblockAccessibility": "{{name}}のブロックを解除",
+      "unblocked": "ブロックを解除しました",
+      "unblockFailed": "ブロックを解除できませんでした",
+      "loginRequired": "ログインするとブロックしたユーザーを確認できます"
+    }
   }
 }

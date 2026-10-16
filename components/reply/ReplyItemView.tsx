@@ -10,6 +10,13 @@ import { FC, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import app from '@/model/app/App';
 import BottomMenuModalView from '../ui/BottomMenuModalView';
+import ReportReasonSheetView from '../report/ReportReasonSheetView';
+import getModerationMenuItems from '../report/ModerationMenuItems';
+import BlockSurface from '@/model/block/BlockSurface';
+import { canBlockAuthor, confirmUserBlock } from '@/model/block/UserBlockFlow';
+import CommunityReportReason from '@/model/community/CommunityReportReason';
+import CommunityReportTargetType from '@/model/community/CommunityReportTargetType';
+import { reportContent } from '@/model/report/ContentReportFlow';
 import StarRatingView from '../camp-site/StarRatingView';
 
 interface Props {
@@ -24,9 +31,12 @@ const LIKED_COLOR = '#FF6B6B';
 const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const isLiked = reply.isCommentLiked(comment.id);
   const currentUserId = app.getFirebase().getUserId();
   const isMyComment = comment.authorId === currentUserId;
+  // CM-10·CM-17: 남의 리뷰·답글에는 `⋯` → `신고` / `{닉네임} 차단`.
+  const canModerate = !isMyComment && canBlockAuthor(comment.authorId);
 
   const handlePress = () => {
     router.push(`/reply/${gearId}/${comment.id}`);
@@ -57,7 +67,7 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
     reply.showDeleteConfirm(comment.id);
   };
 
-  const menuItems = [
+  const ownerMenuItems = [
     {
       icon: 'pencil' as const,
       text: app.getL10n().t('reply.edit'),
@@ -69,6 +79,42 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
       onPress: handlePressDelete,
     },
   ];
+
+  const handlePressReport = () => {
+    setShowReport(true);
+  };
+
+  const handleCloseReport = () => {
+    setShowReport(false);
+  };
+
+  const handleSelectReportReason = (reason: CommunityReportReason) => {
+    void reportContent({
+      targetType: CommunityReportTargetType.GearComment,
+      postId: gearId,
+      commentId: comment.id,
+      targetAuthorId: comment.authorId,
+      reason,
+    });
+  };
+
+  const handlePressBlock = () => {
+    confirmUserBlock({
+      uid: comment.authorId,
+      name: comment.authorName,
+      surface: BlockSurface.GearComment,
+      postId: gearId,
+      commentId: comment.id,
+    });
+  };
+
+  const menuItems = isMyComment
+    ? ownerMenuItems
+    : getModerationMenuItems({
+        authorName: comment.authorName,
+        onReport: handlePressReport,
+        onBlock: handlePressBlock,
+      });
 
   return (
     <>
@@ -89,12 +135,14 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
               {isMyComment ? ` · ${app.getL10n().t('reply.myReview')}` : ''}
             </PretendardText>
           </View>
-          {isMyComment && (
+          {(isMyComment || canModerate) && (
             <TouchableOpacity
               onPress={handlePressMore}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               accessibilityRole='button'
-              accessibilityLabel={app.getL10n().t('reply.reviewManage')}
+              accessibilityLabel={app.getL10n().t(
+                isMyComment ? 'reply.reviewManage' : 'moderation.more'
+              )}
             >
               <Ionicons
                 name='ellipsis-horizontal'
@@ -154,6 +202,11 @@ const ReplyItemView: FC<Props> = ({ gearId, comment, reply }) => {
         visible={showMenu}
         onClose={handleCloseMenu}
         menuItems={menuItems}
+      />
+      <ReportReasonSheetView
+        visible={showReport}
+        onClose={handleCloseReport}
+        onSelect={handleSelectReportReason}
       />
     </>
   );

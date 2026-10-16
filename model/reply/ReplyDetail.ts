@@ -85,8 +85,18 @@ class ReplyDetail {
     return this.originalComment;
   }
 
+  // 차단한 사람(CM-17)의 답글을 뺀 목록.
   public getReplies() {
-    return this.replies;
+    return this.visibleReplies;
+  }
+
+  private get visibleReplies() {
+    return (
+      app.getBlockedUserStore()?.filterVisible(
+        this.replies,
+        reply => reply.authorId
+      ) ?? this.replies
+    );
   }
 
   public async createReply(content: string) {

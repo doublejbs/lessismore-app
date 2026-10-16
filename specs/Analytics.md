@@ -227,7 +227,9 @@
 | `click_trip_record_after` | 기록 후 완료 카드 액션 (CM-16) `[폐기 2026-10-10]` | `action`: `useless` \| `view` \| `close` |
 | `click_home_trip_record` / `click_home_trip_record_write` / `click_home_trip_record_more` | 홈 최근 여행 기록 카드·기록하기·더 보기 ([Home.md](Home.md) HM-17) `[폐기 2026-10-10]` | — |
 | `click_camp_site_record` / `click_camp_site_record_more` | 박지 상세 다녀온 기록 카드·전체 보기 ([CampSite.md](CampSite.md) CS-11) `[폐기 2026-10-10]` | — |
-| `click_community_report` | 신고 등록 성공 | `target`: `post` \| `comment` |
+| `click_community_report` | 신고 등록 성공(장비·배낭 댓글·박지 후기 포함, CM-10) | `target`: `post` \| `comment` \| `gear_comment` \| `camp_review` |
+| `click_block_user` | `{닉네임} 차단` 메뉴 탭 — 확인 알럿 전 ([Community.md](Community.md) CM-17) `[제안]` | `surface`: `community_post` \| `community_comment` \| `gear_comment` \| `camp_review` |
+| `unblock_user` | 차단한 사용자 화면에서 해제 성공 (CM-17, `logEvent`) `[제안]` | — |
 
 - 커뮤니티 이벤트에는 게시글 ID, 작성자 ID·닉네임, 제목·본문, 투표 문구, 신고 상세를 보내지 않는다.
 

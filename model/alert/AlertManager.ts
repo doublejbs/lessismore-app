@@ -7,6 +7,8 @@ class AlertManager {
 
   private visible = false;
   private message = '';
+  // 있으면 제목(`message`) 아래 설명 한 단락을 둔다(차단 확인 CM-17).
+  private description = '';
   private confirmText = '';
   private cancelText = '';
   // 되돌릴 수 없는 액션(내보내기·삭제)일 때 확인 버튼을 경고색으로 그린다.
@@ -26,14 +28,17 @@ class AlertManager {
     onConfirm,
     cancelText,
     destructive,
+    description,
   }: {
     message: string;
+    description?: string;
     confirmText: string;
     onConfirm: () => Promise<void>;
     cancelText?: string;
     destructive?: boolean;
   }) {
     this.setMessage(message);
+    this.setDescription(description ?? '');
     this.setConfirmText(confirmText);
     this.setCancelText(cancelText ?? '');
     this.setDestructive(destructive === true);
@@ -74,6 +79,14 @@ class AlertManager {
 
   public getMessage() {
     return this.message;
+  }
+
+  private setDescription(text: string) {
+    this.description = text;
+  }
+
+  public getDescription() {
+    return this.description;
   }
 
   public getConfirmText() {

@@ -94,8 +94,18 @@ class Reply {
     this.comments = comments;
   }
 
+  // 차단한 사람(CM-17)의 리뷰를 뺀 목록. 차단 목록이 observable이라 차단 순간 다시 계산된다.
   public getComments() {
-    return this.comments;
+    return this.visibleComments;
+  }
+
+  private get visibleComments() {
+    return (
+      app.getBlockedUserStore()?.filterVisible(
+        this.comments,
+        comment => comment.authorId
+      ) ?? this.comments
+    );
   }
 
   public getCount() {
