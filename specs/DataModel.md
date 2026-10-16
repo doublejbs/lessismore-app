@@ -99,6 +99,7 @@
 | `groups/{groupId}/bags/{uid}` | 멤버 배낭 공개 스냅샷 (DM-29) `[제안]` | 멤버 배낭 열람 |
 | `groups/{groupId}/points/{pointId}` | 그룹 지도 포인트 (DM-29) `[제안]` | 그룹 지도 |
 | `bag/{bagId}/points/{pointId}` | 개인 여행 지도 포인트 (DM-33) `[제안]` | 배낭 코스 화면 ([BagDetail.md](BagDetail.md) BD-14) |
+| `users/{uid}/blocked-users/{blockedUid}` | 내가 차단한 사용자 (DM-38) `[제안]` | UGC 목록 필터·차단 해제 ([Community.md](Community.md) CM-17) |
 | `users/{uid}/push-tokens/{tokenId}` | 사용자 푸시 토큰 (DM-34) `[제안]` | 주말 날씨 브리핑 ([Notification.md](Notification.md) NT-11·NT-12) |
 | `config/weekendBriefing` · `weekend-briefing-runs/{weekId}` | 브리핑 설정·실행 기록 — 함수 전용 (DM-35) `[제안]` | 운영 확인 |
 | `groups/{groupId}/routes/{routeId}` | 그룹 코스(GPX) 요약 (DM-29) `[제안]` | 그룹 지도·코스 목록 |
@@ -792,9 +793,9 @@
 | --- | --- | --- |
 | `community-post-likes/{userId}_{postId}` | `userId`, `postId`, `createdAt` | 문서 존재가 좋아요 상태. 생성·삭제와 게시글 `likeCount`를 원자적으로 갱신 |
 | `community-poll-votes/{postId}_{userId}` | `postId`, `userId`, `optionIds` (string[], 1개 이상; 단일 선택 투표는 항상 1개), `createdAt`, `updatedAt?` | 결정적 문서 ID로 계정당 한 문서. 생성 또는 `optionIds` 변경(update)과 선택지 카운트를 같은 트랜잭션에서 원자적으로 갱신하고, 삭제는 금지한다. **2026-09-05 `optionId`(string) → `optionIds`(배열)로 교체** — 기존 문서는 마이그레이션(`scripts/migrate-community-poll-votes.mjs`)으로 배열화한다. 변경 시 이전 선택지 `voteCount -1`·새 선택지 `+1`, `totalVoteCount`는 불변이다. `updatedAt`은 변경 시각(선택)이다. |
-| `community-reports/{reportId}` | `reporterId`, `targetType`, `targetPostId`, `targetCommentId?`, `targetAuthorId`, `reason`, `detail?`, `status`, `createdAt`, `resolvedAt?`, `resolvedBy?` | `targetType`: `post` / `comment`; `reason`: `spam` / `harassment` / `sexual_violence` / `copyright` / `privacy` / `other`; `status`: `open` / `reviewing` / `actioned` / `dismissed`. 같은 `(reporterId, targetType, targetId)` 중복 생성 금지 |
+| `community-reports/{reportId}` | `reporterId`, `targetType`, `targetPostId`, `targetCommentId?`, `targetAuthorId`, `reason`, `detail?`, `status`, `createdAt`, `resolvedAt?`, `resolvedBy?` | `targetType`: `post` / `comment` / `gear_comment` / `camp_review` / `user`; `reason`: `spam` / `harassment` / `sexual_violence` / `copyright` / `privacy` / `other` / `blocked`(`user` 전용, CM-17); `status`: `open` / `reviewing` / `actioned` / `dismissed`. 같은 `(reporterId, targetType, targetId)` 중복 생성 금지 |
 
-신고 문서 ID는 결정적으로 `{reporterId}_{targetType}_{targetId}`를 사용한다.
+신고 문서 ID는 결정적으로 `{reporterId}_{targetType}_{targetId}`를 사용한다. 대상별 필드(2026-10-16): `gear_comment`는 `targetPostId`=장비 id·`targetCommentId`=댓글 id, `camp_review`는 `targetPostId`=박지 id·`targetCommentId`=작성자 uid(후기 문서 id), `user`는 `targetId`=차단 uid이고 `targetPostId`·`targetCommentId`에 차단한 자리(게시글·장비·박지 id와 댓글 id, 없으면 생략)를 남긴다. `targetAuthorId`는 모두 대상 작성자 uid다.
 
 #### 조회·보안·인덱스
 
@@ -1181,6 +1182,19 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 - `confirmed` | boolean — 그 코스 문서가 실제로 만들어졌는지. 함수 트리거(`onDrawnBagRouteCreated`·`onDrawnGroupRouteCreated`, `bag/{bagId}/routes/{routeId}`·`groups/{groupId}/routes/{routeId}` 생성 시 `source == 'drawn'`이고 작성자의 기록과 같으면 `true`)가 세운다.
 - `claimFreeRouteDraw` 규칙: 기록이 없으면 새로 정한다. 같은 코스(`kind`·`parentId`·`routeId`)를 다시 요청하면 그대로 통과(재시도). **`confirmed == false`이면 다른 코스로 다시 정할 수 있다**(업로드가 실패해 코스가 생기지 않은 경우). `confirmed == true`면 거절 — 그 뒤로 코스를 지워도 다시 정하지 않는다(지우고 다시 그리기 방지).
 - 회원 탈퇴 시 정리(구독 정리 함수와 같은 자리).
+
+### DM-38 `users/{uid}/blocked-users/{blockedUid}` `[제안 2026-10-16]`
+
+내가 차단한 사용자 한 명당 한 문서([Community.md](Community.md) CM-17). 문서 ID = 차단한 사용자 uid.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `blockedUserName` | string | 차단 당시 닉네임(해제 목록 표시용, 갱신하지 않음) |
+| `surface` | string | `community_post` / `community_comment` / `gear_comment` / `camp_review` |
+| `createdAt` | timestamp | 서버 시각 |
+
+- 보안 규칙: 지금은 `users/{uid}/{subCollection}` 개방 절에 얹힌다(규칙 변경 없이 배포 가능). DM-37 규칙 정리 때 **본인만 읽고 쓰기**로 좁힌다 `[제안]`.
+- 회원 탈퇴 시 하위 컬렉션째 지운다(AU-8). 차단당한 사람이 탈퇴해도 문서는 남지만 콘텐츠가 없으니 영향 없다.
 
 ### DM-25 `in` 쿼리 30개 상한
 
