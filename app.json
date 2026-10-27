@@ -118,6 +118,7 @@
       "./plugins/WithHealthConnectPermissions.js",
       "./plugins/WithHealthConnectMainActivity.js",
       "./plugins/WithLintExtraTranslationDisabled.js",
+      "./plugins/WithBrotliDedupe.js",
       [
         "react-native-google-mobile-ads",
         {
