@@ -266,13 +266,17 @@
       "empty": "아직 올린 코스가 없어요",
       "loadFailed": "코스를 불러오지 못했어요",
       "fromGroup": "그룹 {{name}}",
+      "sharedToGroup": "그룹에 공유됨",
       "toGroup": "그룹에 올리기",
       "toGroupTitle": "어느 그룹에 올릴까요?",
-      "toGroupDone": "그룹에 올렸어요"
+      "toGroupDone": "그룹에 올렸어요",
+      "tileDraw": "코스 그리기",
+      "highlightLabel": "코스 그리기",
+      "highlightValue": "등산로를 따라 이어져요",
+      "cardCount_other": "코스 {{count}}",
+      "cardLabel": "코스 {{name}}, {{meta}}"
     },
     "point": {
-      "segmentRoutes": "코스",
-      "segmentPoints": "포인트",
       "empty": "아직 찍은 포인트가 없어요. 지도를 길게 누르거나 포인트 추가로 찍어 보세요",
       "emptyReadOnly": "아직 찍은 포인트가 없어요",
       "emptyFiltered": "이 유형의 포인트가 없어요",
@@ -282,6 +286,11 @@
       "loadFailed": "포인트를 불러오지 못했어요"
     },
     "group": {
+      "routes_other": "코스 {{count}}",
+      "points_other": "포인트 {{count}}",
+      "cardLabel": "{{name}} 그룹, {{meta}}, 그룹 상세 보기",
+      "openMap": "그룹 지도",
+      "openBags": "일행 배낭",
       "members_other": "멤버 {{count}}명",
       "rowLabel": "{{name}} 그룹, {{members}}",
       "linkMenu": "그룹에 연결",
@@ -1483,9 +1492,7 @@
       "currentLocation": "현재 위치",
       "webNotice": "웹에서는 지도를 볼 수 없어요. 코스와 포인트를 목록으로 보여드려요",
       "aimHint": "지도를 움직여 추가할 위치를 맞춰요",
-      "aimConfirm": "이 위치에 추가",
-      "routeFull": "코스가 가득 찼어요",
-      "openRouteList": "코스 목록 열기"
+      "aimConfirm": "이 위치에 추가"
     },
     "point": {
       "title": "포인트 등록",
@@ -1554,7 +1561,10 @@
       "destinationName": "{{name}} {{endpoint}}"
     },
     "pointOnRoute": "코스 {{distance}} 지점",
-    "pointElevation": "고도 {{value}}m"
+    "pointElevation": "고도 {{value}}m",
+    "sheetHandle": "목록 높이 조절",
+    "segmentRoutes": "코스",
+    "segmentPoints": "포인트"
   },
   "ad": {
     "label": "광고",
@@ -1598,7 +1608,40 @@
     "nudgeBody": "광고가 불편하세요? 월 {{price}}에 앱의 모든 광고를 없앨 수 있어요.",
     "nudgeBodyNoPrice": "광고가 불편하세요? 구독하면 앱의 모든 광고를 없앨 수 있어요.",
     "nudgeExplore": "구독 알아보기",
-    "nudgeNotNow": "괜찮아요"
+    "nudgeNotNow": "괜찮아요",
+    "heroBadge": "useless 플러스",
+    "headlineTrial1": "산에 가세요?",
+    "headlineTrial2": "첫 7일은 무료예요.",
+    "headlineNoTrial1": "산에서는 데이터가 끊겨요.",
+    "headlineNoTrial2": "useless 플러스로 미리 챙기세요.",
+    "priceTrialLead": "7일 무료, 그다음 월 {{price}}",
+    "trialCardTitle": "체험은 이렇게 진행돼요",
+    "trialToday": "오늘: 모든 기능이 열려요",
+    "trialDay5": "5일째: 체험 종료 알림을 보내 드려요",
+    "trialDay7": "7일째: 월 {{price}}이 결제돼요",
+    "trialDay7NoPrice": "7일째: 월 요금이 결제돼요",
+    "noTrialLine": "구독하면 바로 쓸 수 있어요",
+    "feature1Title": "여행을 통째로 저장",
+    "feature1Detail": "코스·장비·날씨·박지 주의사항을 기기에 담아 데이터 없이도 열어요",
+    "feature2Title": "오프라인 지도",
+    "feature2Detail": "등고선·지형 음영이 든 지도를 저장해 산에서도 내 위치를 봐요",
+    "feature3Title": "산에서 패킹 체크",
+    "feature3Detail": "오프라인에서 체크한 내용은 연결되면 자동으로 반영돼요",
+    "feature4Title": "지도 포인트",
+    "feature4Detail": "물보급·쉼터·주의 구간을 코스 위에 찍어 두고 오프라인에서도 봐요",
+    "cancelAnytime": "언제든 해지할 수 있어요",
+    "trialReminderTitle": "useless 플러스 무료 체험이 이틀 뒤 끝나요",
+    "trialReminderBody": "{{date}}부터 월 {{price}}이 결제돼요. 계속 쓰지 않으려면 스토어 설정에서 해지해 주세요.",
+    "trialReminderBodyNoPrice": "{{date}}부터 월 요금이 결제돼요. 계속 쓰지 않으려면 스토어 설정에서 해지해 주세요.",
+    "routeDrawEntryLead": "코스를 몇 번이든 그리고 고칠 수 있어요",
+    "feature5Title": "코스 그리기",
+    "feature5Detail": "지도에 점을 찍으면 등산로를 따라 코스가 이어져요",
+    "purchaseSuccessRouteDraw": "코스를 마음껏 그릴 수 있어요",
+    "purchaseSuccessGeneral": "useless 플러스를 시작했어요",
+    "satelliteEntryLead": "위성 사진으로 능선과 길을 직접 확인하세요",
+    "feature6Title": "위성 지도",
+    "feature6Detail": "위성 사진 위에 코스를 얹어 능선·바위·숲길을 확인해요",
+    "purchaseSuccessSatellite": "위성 지도를 볼 수 있어요"
   },
   "commerce": {
     "coupangDisclaimer": "쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.",
@@ -1629,11 +1672,6 @@
     },
     "next": "다음",
     "skip": "건너뛰기",
-    "date": {
-      "title": "언제 가세요?",
-      "subtitle": "날짜를 정하면 출발 하루 전에 패킹을 알려 드려요",
-      "undecided": "아직 미정이에요"
-    },
     "destination": {
       "title": "어디로 가세요?",
       "subtitle": "여행지를 정하면 그 기간 날씨를 함께 보여 드려요",
@@ -1702,12 +1740,30 @@
     "start": "다음 백패킹 준비하기",
     "login": "이미 계정이 있어요 · 로그인"
   },
+  "routeReplay": {
+    "badge": "3D",
+    "activityTitle": "운동 기록",
+    "failed": "3D 지도를 불러오지 못했어요",
+    "empty": "코스 화면에서 3D를 열어 주세요",
+    "play": "재생",
+    "pause": "정지",
+    "fit": "전체 보기",
+    "speed": "×{{speed}}",
+    "speedHint": "재생 속도",
+    "progress": "재생 위치",
+    "start": "출발",
+    "end": "도착",
+    "open": "3D로 보기"
+  },
   "offline": {
     "dateFormat": "MM.DD",
     "tile": {
       "title": "오프라인",
       "unsaved": "오프라인 저장",
       "saving": "저장 중…",
+      "savingMap": "지도 저장 중 · {{percent}}%",
+      "refreshing": "오프라인 갱신 중…",
+      "refreshingMap": "지도 갱신 중 · {{percent}}%",
       "saved": "저장됨 · {{size}} · {{date}} 갱신",
       "needsUpgrade": "갱신이 필요해요",
       "locked": "저장됨 · 구독 후 다시 볼 수 있어요",
@@ -1741,12 +1797,105 @@
       "locked": "구독이 끝나 저장된 여행을 볼 수 없어요",
       "needsUpgrade": "갱신이 필요해요. 온라인에서 이 여행을 열면 갱신돼요"
     },
-    "canvas": {
-      "offlineLine": "오프라인 · 지도는 연결되면 보여요",
-      "mapFailedLine": "지도를 불러오지 못했어요 · 코스만 보여요",
-      "groupHidden": "그룹 코스는 오프라인에서 보이지 않아요",
-      "north": "N",
-      "northLabel": "북쪽"
+    "map": {
+      "offlineLine": "오프라인 · 저장된 지도예요"
+    }
+  },
+  "routeDraw": {
+    "menuTitle": "코스 추가",
+    "menuImport": "GPX 파일 가져오기",
+    "menuImportMeta": "다른 앱에서 만든 코스",
+    "menuDraw": "지도에서 그리기",
+    "menuDrawMeta": "점을 찍어 등산로나 직선으로 이어요",
+    "noticeEmpty": "지도를 눌러 점을 찍으세요 · 직선으로 이어져요",
+    "noticeEmptyTrail": "지도를 눌러 점을 찍으세요 · 등산로를 따라 이어져요",
+    "noticeContinue": "계속 눌러 이어 가세요 · 저장은 2점부터",
+    "pointUnit": "점",
+    "metaLabel": "{{count}}점, 거리 {{distance}}",
+    "undo": "되돌리기",
+    "undoHint": "마지막으로 찍은 점을 지워요",
+    "save": "저장",
+    "saving": "저장 중…",
+    "saveHint": "저장은 점 2개부터 할 수 있어요",
+    "discardConfirm": "코스를 저장하지 않고 나갈까요?",
+    "discard": "저장 안 함",
+    "pointLimit": "점은 {{max}}개까지 찍을 수 있어요",
+    "elevationFailed": "고도를 읽지 못해 그래프 없이 저장했어요",
+    "defaultName": "{{name}} 코스",
+    "fallbackName": "그린 코스",
+    "nameTitle": "코스 이름",
+    "nameLabel": "이름",
+    "namePlaceholder": "코스 이름을 입력하세요",
+    "nameCounter": "{{count}}/{{max}}",
+    "close": "닫기",
+    "gpxDescription": "useless에서 지도에 점을 찍어 만든 코스",
+    "searchPlaceholder": "지명·산 이름 검색",
+    "searchLabel": "위치 검색",
+    "searchClear": "검색어 지우기",
+    "searchEmpty": "검색 결과가 없어요",
+    "searchPinLabel": "검색한 위치, {{name}}",
+    "destinationPinLabel": "여행지, {{name}}",
+    "trailToggle": "등산로 따라",
+    "trailToggleHint": "켜면 다음 구간부터 등산로를 따라 이어요",
+    "routing": "길 찾는 중…",
+    "saveHintRouting": "길을 다 찾으면 저장할 수 있어요",
+    "trailFailed": "이 구간은 길을 찾지 못해 직선으로 이었어요",
+    "trailUnavailable": "길 정보가 없는 지역이에요 · 등산로 따라를 꺼 보세요",
+    "gpxTrailAttribution": " · 경로 데이터 © OpenStreetMap 기여자, BRouter",
+    "menuDrawMetaFree": "첫 코스는 무료예요",
+    "menuDrawMetaPlus": "useless 플러스",
+    "onlineToCheck": "온라인에서 확인할 수 있어요",
+    "editRoute": "코스 수정",
+    "noticeEdit": "코스 수정 중 · 끝에 점을 더하거나 되돌리세요",
+    "discardEditConfirm": "수정한 내용을 저장하지 않고 나갈까요?",
+    "trailNotEntitled": "등산로 따라는 useless 플러스 기능이에요",
+    "claimFailed": "지금은 저장하지 못했어요. 잠시 후 다시 시도해 주세요.",
+    "editUnavailable": "이 코스는 수정할 수 없어요",
+    "saveHintNoChanges": "바꾼 것이 있으면 저장할 수 있어요",
+    "emptyCardTitleBag": "이 여행의 코스를 그려 보세요",
+    "emptyCardTitleGroup": "그룹 코스를 그려 보세요",
+    "emptyCardDescription": "지도에 점을 찍으면 등산로를 따라 이어져요",
+    "emptyCardImport": "GPX 가져오기",
+    "searchStartHint": "어디서부터 그릴지 검색해 보세요"
+  },
+  "map": {
+    "loadFailed": "지도 데이터를 불러오지 못했어요",
+    "unsupportedBinary": "이 버전에서는 지도를 볼 수 없어요 · 앱을 업데이트해 주세요",
+    "layer": {
+      "button": "지도 종류",
+      "title": "지도 종류",
+      "standard": "일반 지도",
+      "satellite": "위성",
+      "plusMeta": "useless 플러스",
+      "offlineMeta": "온라인에서 볼 수 있어요",
+      "unavailableMeta": "잠시 쓸 수 없어요",
+      "selectedMeta": "사용 중",
+      "unavailableToast": "위성 지도를 지금은 볼 수 없어요",
+      "probingMeta": "확인 중…"
+    }
+  },
+  "moderation": {
+    "report": "신고",
+    "more": "더 보기",
+    "block": {
+      "menu": "{{name}} 차단",
+      "action": "차단",
+      "confirmTitle": "{{name}} 님을 차단할까요?",
+      "confirmMessage": "이 사용자의 글·댓글·후기가 더 이상 보이지 않아요. 운영팀에도 알려져요.",
+      "confirm": "차단",
+      "done": "차단했어요",
+      "failed": "차단하지 못했어요",
+      "blockedComment": "차단한 사용자의 댓글이에요",
+      "unknownUser": "이 사용자"
+    },
+    "blockedUsers": {
+      "title": "차단한 사용자",
+      "empty": "차단한 사용자가 없어요",
+      "unblock": "해제",
+      "unblockAccessibility": "{{name}} 차단 해제",
+      "unblocked": "차단을 해제했어요",
+      "unblockFailed": "차단을 해제하지 못했어요",
+      "loginRequired": "로그인하면 차단한 사용자를 볼 수 있어요"
     }
   }
 }

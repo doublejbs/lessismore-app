@@ -28,6 +28,10 @@ interface MenuItem {
    */
   readonly prepare?: () => Promise<void>;
   readonly preparingText?: string;
+  // 지금 고른 항목(지도 종류 MAP-7) — 오른쪽에 체크 표시, 보조 기술에는 `selected`로 읽힌다.
+  readonly selected?: boolean;
+  // 누를 수 없는 항목 — 흐리게 두고 누름을 받지 않는다. 막힌 이유는 `subtitle`로 말한다(HIG).
+  readonly disabled?: boolean;
 }
 
 interface Props {
@@ -156,25 +160,31 @@ const BottomMenuModalView: FC<Props> = ({
             ) : null}
             {menuItems.map((item, index) => {
               const preparing = preparingIndex === index;
+              const itemDisabled = !!item.disabled;
+              const itemSelected = !!item.selected;
+              const hasItemState = isPreparing || itemDisabled || itemSelected;
 
               return (
                 <TouchableOpacity
                   key={index}
                   style={[
                     styles.menuItem,
-                    isPreparing && !preparing && styles.disabled,
+                    ((isPreparing && !preparing) || itemDisabled) &&
+                      styles.disabled,
                   ]}
                   onPress={() => void handleMenuItemPress(item, index)}
-                  disabled={isPreparing}
+                  disabled={isPreparing || itemDisabled}
+                  accessibilityRole='button'
                   {...(item.subtitle
-                    ? {
-                        accessibilityRole: 'button' as const,
-                        accessibilityLabel: `${item.text}, ${item.subtitle}`,
-                      }
+                    ? { accessibilityLabel: `${item.text}, ${item.subtitle}` }
                     : {})}
-                  {...(isPreparing
+                  {...(hasItemState
                     ? {
-                        accessibilityState: { disabled: true, busy: preparing },
+                        accessibilityState: {
+                          disabled: isPreparing || itemDisabled,
+                          busy: preparing,
+                          selected: itemSelected,
+                        },
                       }
                     : {})}
                 >
@@ -213,6 +223,14 @@ const BottomMenuModalView: FC<Props> = ({
                       {item.text}
                     </PretendardText>
                   )}
+                  {itemSelected && !preparing ? (
+                    <Ionicons
+                      name='checkmark'
+                      size={20}
+                      color={Color.textPrimary}
+                      style={styles.menuItemCheck}
+                    />
+                  ) : null}
                 </TouchableOpacity>
               );
             })}
@@ -274,6 +292,10 @@ const styles = StyleSheet.create({
   },
   disabled: {
     opacity: 0.5,
+  },
+  // 선택 체크는 행 오른쪽 끝(라벨이 한 줄이든 두 줄이든 같은 자리).
+  menuItemCheck: {
+    marginLeft: 'auto',
   },
   menuItemText: {
     ...AcgType.rowSubtitle,

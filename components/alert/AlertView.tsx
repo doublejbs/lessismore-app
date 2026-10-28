@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import AlertManager from '@/model/alert/AlertManager';
 import PretendardText from '@/components/PretendardText';
-import { Acg, AcgType, Color, Radius } from '@/constants/DesignTokens';
+import { Acg, AcgLayout, AcgType, Color, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 interface Props {
@@ -19,6 +19,7 @@ interface Props {
 const AlertView: FC<Props> = ({ alertManager }) => {
   const isVisible = alertManager.isVisible();
   const message = alertManager.getMessage();
+  const description = alertManager.getDescription();
   const confirmText = alertManager.getConfirmText();
 
   const handleClickCancel = (e: GestureResponderEvent) => {
@@ -46,9 +47,17 @@ const AlertView: FC<Props> = ({ alertManager }) => {
     >
       <View style={styles.overlay}>
         <View style={styles.alertContainer}>
-          <PretendardText weight='bold' style={styles.messageText}>
+          <PretendardText
+            weight='bold'
+            style={[styles.messageText, description !== '' && styles.messageWithDescription]}
+          >
             {message}
           </PretendardText>
+          {description !== '' ? (
+            <PretendardText style={styles.descriptionText}>
+              {description}
+            </PretendardText>
+          ) : null}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.cancelButton}
@@ -62,8 +71,11 @@ const AlertView: FC<Props> = ({ alertManager }) => {
               style={[
                 styles.confirmButton,
                 alertManager.isDestructive() && styles.destructiveButton,
+                alertManager.isConfirming() && styles.confirmButtonPending,
               ]}
               onPress={handleClickConfirm}
+              disabled={alertManager.isConfirming()}
+              accessibilityState={{ disabled: alertManager.isConfirming() }}
             >
               <PretendardText weight='medium' style={styles.confirmButtonText}>
                 {confirmText}
@@ -95,6 +107,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     color: Color.textPrimary,
   },
+  messageWithDescription: {
+    marginBottom: AcgLayout.titleDescriptionGap,
+  },
+  descriptionText: {
+    ...AcgType.body,
+    marginBottom: 24,
+    color: Color.textSecondary,
+  },
   buttonContainer: {
     flexDirection: 'row',
     gap: 12,
@@ -123,6 +143,9 @@ const styles = StyleSheet.create({
   // 되돌릴 수 없는 액션의 확인 면. 삭제·경고 red는 의미색이라 토큰 예외다(HM-8).
   destructiveButton: {
     backgroundColor: Acg.error,
+  },
+  confirmButtonPending: {
+    opacity: 0.6,
   },
   confirmButtonText: {
     ...AcgType.control,

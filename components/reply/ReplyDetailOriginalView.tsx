@@ -9,6 +9,13 @@ import { FC, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import app from '@/model/app/App';
 import BottomMenuModalView from '../ui/BottomMenuModalView';
+import ReportReasonSheetView from '../report/ReportReasonSheetView';
+import getModerationMenuItems from '../report/ModerationMenuItems';
+import BlockSurface from '@/model/block/BlockSurface';
+import { canBlockAuthor, confirmUserBlock } from '@/model/block/UserBlockFlow';
+import CommunityReportReason from '@/model/community/CommunityReportReason';
+import CommunityReportTargetType from '@/model/community/CommunityReportTargetType';
+import { reportContent, requireReportLogin } from '@/model/report/ContentReportFlow';
 import { useRouter } from 'expo-router';
 
 interface Props {
@@ -22,9 +29,12 @@ const LIKED_COLOR = '#FF6B6B';
 const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const isLiked = replyDetail.isCommentLiked(comment.id);
   const currentUserId = app.getFirebase().getUserId();
   const isMyComment = comment.authorId === currentUserId;
+  // CM-10·CM-17: 남의 리뷰에는 `⋯` → `신고` / `{닉네임} 차단`.
+  const canModerate = !isMyComment && canBlockAuthor(comment.authorId);
 
   const handleLikePress = () => {
     app.getAnalyticsManager()?.logClick('reply_like', { liked: !isLiked });
@@ -49,7 +59,7 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
     replyDetail.showDeleteConfirm(comment.id);
   };
 
-  const menuItems = [
+  const ownerMenuItems = [
     {
       icon: 'pencil' as const,
       text: app.getL10n().t('reply.edit'),
@@ -61,6 +71,60 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
       onPress: handlePressDelete,
     },
   ];
+
+  const handlePressReport = () => {
+    if (!requireReportLogin()) {
+      return;
+    }
+
+    setShowReport(true);
+  };
+
+  const handleCloseReport = () => {
+    setShowReport(false);
+  };
+
+  const handleSelectReportReason = (reason: CommunityReportReason) => {
+    void reportContent({
+      targetType: CommunityReportTargetType.GearComment,
+      postId: replyDetail.getGearId(),
+      commentId: comment.id,
+      targetAuthorId: comment.authorId,
+      reason,
+    });
+  };
+
+  // 원 리뷰 작성자가 차단되면 화면을 닫는 일은 `ReplyDetailView`가 맡는다(CM-17).
+  const handlePressBlock = () => {
+    confirmUserBlock({
+      uid: comment.authorId,
+      name: comment.authorName,
+      surface: BlockSurface.GearComment,
+      postId: replyDetail.getGearId(),
+      commentId: comment.id,
+    });
+  };
+
+  const menuItems = isMyComment
+    ? ownerMenuItems
+    : getModerationMenuItems({
+        authorName: comment.authorName,
+        onReport: handlePressReport,
+        onBlock: handlePressBlock,
+      });
+
+  // CM-17: 원 리뷰 작성자를 차단했어도 남의 답글이 남아 있으면 화면을 닫지 않고 자리표시로 둔다.
+  if (app.getBlockedUserStore()?.isBlocked(comment.authorId)) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.content}>
+          <PretendardText style={styles.blockedText}>
+            {app.getL10n().t('moderation.block.blockedComment')}
+          </PretendardText>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <>
@@ -77,12 +141,14 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
                 {isMyComment ? ` · ${app.getL10n().t('reply.myReview')}` : ''}
               </PretendardText>
             </View>
-            {isMyComment && (
+            {(isMyComment || canModerate) && (
               <TouchableOpacity
                 onPress={handlePressMore}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 accessibilityRole='button'
-                accessibilityLabel={app.getL10n().t('reply.reviewManage')}
+                accessibilityLabel={app.getL10n().t(
+                  isMyComment ? 'reply.reviewManage' : 'moderation.more'
+                )}
               >
                 <Ionicons
                   name='ellipsis-horizontal'
@@ -139,11 +205,20 @@ const ReplyDetailOriginalView: FC<Props> = ({ comment, replyDetail }) => {
         onClose={handleCloseMenu}
         menuItems={menuItems}
       />
+      <ReportReasonSheetView
+        visible={showReport}
+        onClose={handleCloseReport}
+        onSelect={handleSelectReportReason}
+      />
     </>
   );
 };
 
 const styles = StyleSheet.create({
+  blockedText: {
+    ...AcgType.body,
+    color: Acg.textMuted,
+  },
   // RP-7: 순백 지면 위 연회색 면 + 모서리 12, 그림자 없음 — 면 자체가 경계다.
   container: {
     flexDirection: 'column',

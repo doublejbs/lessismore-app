@@ -15,8 +15,10 @@ export interface OfflineManifestEntry {
   name: string;
   startDate: string;
   endDate: string;
-  // 스냅샷 + GPX 원본의 합(바이트).
+  // 스냅샷 + GPX 원본 + 등고선 + 지도 팩의 합(바이트). 타일 부제·목록이 보여 주는 값이다.
   bytes: number;
+  // 그중 지도 팩 몫(바이트, OF-1). 팩이 없으면 0.
+  mapBytes: number;
   savedAt: string;
   schemaVersion: number;
   // 오프라인 패킹 토글이 서버에 아직 반영되지 않았다(OF-5).
@@ -56,6 +58,7 @@ class OfflineManifest {
       startDate: typeof entry.startDate === 'string' ? entry.startDate : '',
       endDate: typeof entry.endDate === 'string' ? entry.endDate : '',
       bytes: Number(entry.bytes) || 0,
+      mapBytes: Number(entry.mapBytes) || 0,
       pendingPacking: entry.pendingPacking === true,
       routeCount: Number(entry.routeCount) || 0,
       pointCount: Number(entry.pointCount) || 0,

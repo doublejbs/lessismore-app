@@ -1,9 +1,15 @@
-import { RouteData, RouteDraft } from '@/model/route/RouteData';
+import {
+  RouteCoordinate,
+  RouteData,
+  RouteDraft,
+  RouteDrawnPoint,
+} from '@/model/route/RouteData';
 import { RouteDisplay } from '@/model/route/RouteDisplay';
 import { RouteElevationProfile } from '@/model/route/RouteElevation';
 import { formatRouteDistance } from '@/model/route/RouteFormat';
 import RouteDirectionStore from '@/model/route/RouteDirectionStore';
 import RouteGeometry from '@/model/route/RouteGeometry';
+import RouteSource from '@/model/route/RouteSource';
 
 /**
  * 배낭 코스(GPX) 한 건 (BD-11, DM-30 `bag/{bagId}/routes/{routeId}`).
@@ -23,6 +29,9 @@ class BagRoute implements RouteDisplay {
   private readonly pointCount: number;
   private readonly bounds: RouteData['bounds'];
   private readonly createdAt: Date;
+  // 그린 코스면 `Drawn`, 가져온 코스면 `null`(RouteDraw RD-7).
+  private readonly source: RouteSource | null;
+  private readonly drawnPoints: readonly RouteDrawnPoint[];
   /**
    * 방향에 따라 바뀌는 값(좌표 순서·고도 단면·상승) — 그룹 코스와 같은 구현을 쓴다(GRP-8 뒤집기).
    * 고도 단면은 방향별로 한 번만 만들어 들고 있는다 — 그래프를 훑는 동안 매 프레임 다시 만들지 않게.
@@ -62,6 +71,8 @@ class BagRoute implements RouteDisplay {
       directions
     );
     this.createdAt = data.createdAt;
+    this.source = data.source ?? null;
+    this.drawnPoints = data.drawnPoints ?? [];
   }
 
   public getId() {
@@ -111,6 +122,21 @@ class BagRoute implements RouteDisplay {
     return this.createdAt;
   }
 
+  // 지도에서 그린 코스인지(DM-29·DM-30 `source == 'drawn'`, RouteDraw RD-7). 그린 코스만 수정할 수 있다.
+  public isDrawn(): boolean {
+    return this.source === RouteSource.Drawn;
+  }
+
+  // 그린 코스의 찍은 점(수정 모드가 다시 연다, RD-7). 가져온 코스·찍은 점이 없는 문서면 빈 배열이다.
+  public getDrawnPoints(): readonly RouteDrawnPoint[] {
+    return this.drawnPoints;
+  }
+
+  // 저장된 방향 그대로의 축약 좌표(뒤집기와 무관) — 수정 모드가 찍은 점 위치로 잘라 구간을 되살린다(RD-7).
+  public getStoredSimplified(): RouteCoordinate[] {
+    return this.geometry.getStoredSimplified();
+  }
+
   public getDistanceText() {
     return formatRouteDistance(this.distance);
   }
@@ -119,6 +145,8 @@ class BagRoute implements RouteDisplay {
    * 이 코스를 그대로 다시 저장할 수 있는 모양 (BD-11 `그룹에 올리기`).
    * 원본 GPX를 다시 파싱하지 않는다 — 저장된 값이 곧 파싱 결과다.
    * **저장된 방향 그대로** 옮긴다 — 뒤집기는 이 기기의 보기 설정이라 그룹 멤버에게 따라가지 않는다(GRP-8).
+   * 그린 코스 표시(`source`·찍은 점)는 옮기지 않는다 — 그룹 사본은 복사본이라 원본 수정을 따라가지 않고(RD-7),
+   * 사본을 다시 그리기로 고치는 경로를 두지 않는다(무료 1회 RD-8은 원본 코스 하나에만 묶인다).
    */
   public toDraft(): RouteDraft {
     // 옛 코스(하강 미저장)는 축약 좌표로 잰 폴백 값을 싣는다 — 그룹 쪽에서 다시 잴 필요가 없다.

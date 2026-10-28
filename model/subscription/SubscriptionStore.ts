@@ -21,6 +21,7 @@ import {
 import { SubscriptionGateContract } from './SubscriptionGateContract';
 import SubscriptionOfferingStatus from './SubscriptionOfferingStatus';
 import TrialEligibility from './TrialEligibility';
+import { cancelTrialReminder, scheduleTrialReminder } from './TrialReminder';
 
 const APP_STATE_ACTIVE = 'active';
 
@@ -71,6 +72,8 @@ class SubscriptionStore implements SubscriptionGateContract {
   private userSyncing: Promise<void> | null = null;
   private resolveWaiters: (() => void)[] = [];
   private resolveTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  // SUB-10·NT-13: 이 세션에서 본 체험 종료 알림 상태. null = 아직 모른다(세션 시작 — 앞 세션의 예약을 그대로 둔다).
+  private trialReminderScheduled: boolean | null = null;
 
   private constructor(private readonly firebase: Firebase) {
     makeAutoObservable<
@@ -81,6 +84,7 @@ class SubscriptionStore implements SubscriptionGateContract {
       | 'userSyncing'
       | 'resolveWaiters'
       | 'resolveTimeoutId'
+      | 'trialReminderScheduled'
       | 'firebase'
     >(this, {
       monthlyPackage: observable.ref,
@@ -89,6 +93,7 @@ class SubscriptionStore implements SubscriptionGateContract {
       userSyncing: false,
       resolveWaiters: false,
       resolveTimeoutId: false,
+      trialReminderScheduled: false,
       firebase: false,
     });
   }
@@ -587,6 +592,48 @@ class SubscriptionStore implements SubscriptionGateContract {
     this.willRenew = entitlement?.willRenew ?? false;
     this.expirationDate = entitlement?.expirationDate ?? null;
     this.markResolved();
+    this.syncTrialReminder();
+  }
+
+  /**
+   * SUB-10·NT-13: 체험 종료 알림을 권한 상태에 맞춘다. 구매(체험 시작) 성공과 `customerInfo` 리스너가
+   * 모두 `applyCustomerInfo`를 지나므로 여기 한 곳에서 맞춘다.
+   *
+   * - 체험 중 + 자동 갱신 예정 → 예약(같은 식별자라 다시 불러도 1건). 이 세션에서 체험이 **새로** 생겼을 때만
+   *   예약한다 — 세션 시작 때 이미 체험 중이면 앞 세션이 가격까지 넣어 둔 예약을 가격 없는 문구로 덮지 않는다.
+   * - 그 밖(유료 전환·만료·환불·체험 중 해지) → 취소.
+   * - 로그아웃 상태는 판단하지 않는다 — 앱 로그아웃은 스토어 체험을 끝내지 않는다(결제는 그대로 온다).
+   */
+  private syncTrialReminder() {
+    if (!this.firebase.isLoggedIn()) {
+      return;
+    }
+
+    const expirationDate = this.expirationDate;
+    const shouldRemind =
+      this.trial && this.willRenew && expirationDate !== null;
+
+    if (!shouldRemind) {
+      if (this.trialReminderScheduled !== false) {
+        this.trialReminderScheduled = false;
+        void cancelTrialReminder();
+      }
+
+      return;
+    }
+
+    if (this.trialReminderScheduled === null) {
+      this.trialReminderScheduled = true;
+
+      return;
+    }
+
+    if (this.trialReminderScheduled) {
+      return;
+    }
+
+    this.trialReminderScheduled = true;
+    void scheduleTrialReminder(new Date(expirationDate), this.getPriceString());
   }
 
   private clearEntitlement() {

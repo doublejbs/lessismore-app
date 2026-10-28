@@ -35,6 +35,7 @@ import {
   GroupPointInput,
   GroupPointPatch,
   GroupRouteData,
+  GroupRouteSource,
 } from '../group/GroupData';
 import GroupError from '../group/GroupError';
 import {
@@ -50,6 +51,11 @@ import GroupPoint from '../group/GroupPoint';
 import PointType from '../point/PointType';
 import GroupRoute from '../group/GroupRoute';
 import RouteDirectionStore from '../route/RouteDirectionStore';
+import {
+  toRouteDrawnFields,
+  toRouteDrawnPayload,
+  toRouteUpdatePayload,
+} from '../route/RouteDocument';
 import GroupValidationError from '../group/GroupValidationError';
 import GroupValidator from '../group/GroupValidator';
 import RouteValidator from '../route/RouteValidator';
@@ -627,6 +633,13 @@ class GroupStore {
   }
 
   public async getPoints(groupId: string): Promise<GroupPoint[]> {
+    const points = await this.getPointDataList(groupId);
+
+    return points.map(point => GroupPoint.from(point));
+  }
+
+  // 포인트 문서 원본(DM-29). 오프라인 저장(OF-1)이 쓴다.
+  public async getPointDataList(groupId: string): Promise<GroupPointData[]> {
     const snapshot = await getDocs(
       query(
         collection(this.getStore(), 'groups', groupId, 'points'),
@@ -634,9 +647,7 @@ class GroupStore {
       )
     );
 
-    return snapshot.docs.map(item =>
-      GroupPoint.from(this.toPointData(item.id, item.data()))
-    );
+    return snapshot.docs.map(item => this.toPointData(item.id, item.data()));
   }
 
   // 포인트 추가 (GRP-9). 상한 검사와 `pointCount` 증가를 한 트랜잭션에서 처리한다.
@@ -798,6 +809,13 @@ class GroupStore {
   }
 
   public async getRoutes(groupId: string): Promise<GroupRoute[]> {
+    const routes = await this.getRouteDataList(groupId);
+
+    return routes.map(route => this.toRoute(route));
+  }
+
+  // 코스 문서 원본(DM-29). 오프라인 저장(OF-1)이 모델이 아니라 데이터를 그대로 담는다.
+  public async getRouteDataList(groupId: string): Promise<GroupRouteData[]> {
     const snapshot = await getDocs(
       query(
         collection(this.getStore(), 'groups', groupId, 'routes'),
@@ -805,12 +823,12 @@ class GroupStore {
       )
     );
 
-    return snapshot.docs.map(item =>
-      GroupRoute.from(
-        this.toRouteData(item.id, item.data()),
-        this.routeDirections
-      )
-    );
+    return snapshot.docs.map(item => this.toRouteData(item.id, item.data()));
+  }
+
+  // 데이터 → 모델. 오프라인 저장본에서 되돌릴 때도 같은 뒤집기 설정을 쓴다(OF-6).
+  public toRoute(data: GroupRouteData): GroupRoute {
+    return GroupRoute.from(data, this.routeDirections);
   }
 
   /**
@@ -819,7 +837,8 @@ class GroupStore {
    */
   public async createRoute(
     groupId: string,
-    input: RouteInput
+    input: RouteInput,
+    source: GroupRouteSource | null = null
   ): Promise<string> {
     const userId = this.requireUserId();
 
@@ -868,6 +887,8 @@ class GroupStore {
         simplified,
         authorId: userId,
         authorName,
+        // 그린 코스면 `source`·찍은 점(RouteDraw RD-7). 가져온 코스엔 키가 없다.
+        ...toRouteDrawnPayload(input),
         createdAt: serverTimestamp(),
       };
 
@@ -880,12 +901,39 @@ class GroupStore {
         routeData.elevationLoss = input.elevationLoss;
       }
 
+      // 배낭 코스에서 복사한 경우의 원본 참조(DM-29, BD-11 중복 접기). 직접 올린 코스엔 키가 없다.
+      if (source) {
+        routeData.sourceBagId = source.sourceBagId;
+        routeData.sourceBagRouteId = source.sourceBagRouteId;
+      }
+
       transaction.set(this.routeRef(groupId, input.routeId), routeData);
       transaction.update(this.groupRef(groupId), {
         routeCount: increment(1),
         updatedAt: serverTimestamp(),
       });
     });
+
+    return input.routeId;
+  }
+
+  /**
+   * 그린 코스 수정 (RouteDraw RD-7). **같은 문서를 덮어쓴다** — `storagePath`·`createdAt`·작성자·복사 원본 참조는
+   * 그대로 두고(보내지 않는다) `updatedAt`을 서버 시각으로 쓴다. 개수가 바뀌지 않으므로 그룹 문서(`routeCount`)는
+   * 건드리지 않는다. 보안 규칙이 그린 코스(`source == 'drawn'`)·**올린 사람만** 받는다 — 방장이라도 남의 코스는
+   * 고치지 않는다. Storage 원본은 호출자가 같은 경로에 먼저 다시 올린다.
+   */
+  public async updateRoute(
+    groupId: string,
+    input: RouteInput
+  ): Promise<string> {
+    this.requireUserId();
+    RouteValidator.validateRoute(input);
+
+    await updateDoc(
+      this.routeRef(groupId, input.routeId),
+      toRouteUpdatePayload(input)
+    );
 
     return input.routeId;
   }
@@ -1202,6 +1250,18 @@ class GroupStore {
       authorId: data.authorId ?? '',
       authorName: data.authorName ?? '',
       createdAt: toFirestoreDate(data.createdAt),
+      // 그린 코스면 `source`·찍은 점·수정 시각(RouteDraw RD-7).
+      ...toRouteDrawnFields(data),
+      // 원본 참조는 둘 다 문자열일 때만 읽는다 — 반쪽 참조로는 중복을 판정할 수 없다(BD-11).
+      ...(typeof data.sourceBagId === 'string' &&
+      typeof data.sourceBagRouteId === 'string' &&
+      data.sourceBagId &&
+      data.sourceBagRouteId
+        ? {
+            sourceBagId: data.sourceBagId,
+            sourceBagRouteId: data.sourceBagRouteId,
+          }
+        : {}),
     };
   }
 }

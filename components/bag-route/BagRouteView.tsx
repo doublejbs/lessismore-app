@@ -10,7 +10,11 @@ import PointCreateSheetView, {
   PointDraft,
 } from '@/components/point/PointCreateSheetView';
 import PretendardText from '@/components/PretendardText';
+import RouteAddMenuView from '@/components/route/RouteAddMenuView';
+import { ROUTE_EMPTY_CARD_HEIGHT_ESTIMATE } from '@/components/route/RouteSheetLayout';
 import RouteElevationChartView from '@/components/route/RouteElevationChartView';
+import RouteDrawNameSheetView from '@/components/route-draw/RouteDrawNameSheetView';
+import useRouteDrawCancel from '@/components/route-draw/useRouteDrawCancel';
 import ToastView from '@/components/toast/ToastView';
 import BottomMenuModalView from '@/components/ui/BottomMenuModalView';
 import LoadingView from '@/components/ui/LoadingView';
@@ -18,22 +22,33 @@ import { Acg, AcgLayout, AcgType, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import BagPoint from '@/model/bag-point/BagPoint';
 import BagPointAddVia from '@/model/bag-point/BagPointAddVia';
+import { BagPointCoordinate } from '@/model/bag-point/BagPointCoordinate';
 import { BagPointEntry } from '@/model/bag-point/BagPointEntry';
 import BagPointList from '@/model/bag-point/BagPointList';
 import BagRoute from '@/model/bag-route/BagRoute';
 import { BagRouteEntry } from '@/model/bag-route/BagRouteEntry';
 import BagRouteList from '@/model/bag-route/BagRouteList';
-import BagRouteSegment from '@/model/bag-route/BagRouteSegment';
-import BagRouteCanvasView, { BagPointCoordinate } from './BagRouteCanvasView';
+import BagRouteSelection from '@/model/bag-route/BagRouteSelection';
+import { isMapLibreAvailable } from '@/model/map/MapLibreModule';
+import RouteDraw from '@/model/route-draw/RouteDraw';
+import RouteDrawEntry from '@/model/route-draw/RouteDrawEntry';
+import RouteDrawSource from '@/model/route-draw/RouteDrawSource';
+import RouteDrawTargetKind from '@/model/route-draw/RouteDrawTargetKind';
+import RouteListSegment from '@/model/route/RouteListSegment';
 import BagRouteListSectionView from './BagRouteListSectionView';
-import OfflineRouteCanvasView from '@/components/offline/OfflineRouteCanvasView';
+import BagRouteMapGateView from './BagRouteMapGateView';
+import RouteSegmentChipsView from '@/components/route/RouteSegmentChipsView';
 import OfflineUnavailableView from '@/components/offline/OfflineUnavailableView';
-import OfflineCanvasReason from '@/model/offline/OfflineCanvasReason';
 import OfflineTripAccess from '@/model/offline/OfflineTripAccess';
 
 interface Props {
   bagRouteList: BagRouteList;
   bagPointList: BagPointList;
+  /**
+   * 여행 상세 상황형 강조 `코스`(RD-9 #4)를 눌러 왔는지. 그때 빈 상태 카드에서 시작한 **첫** 그리기를 측정에서
+   * `entry: highlight`로 남긴다(강조 카드 → 빈 상태 카드 → 그리기 퍼널). 그리기를 자동으로 시작하지는 않는다.
+   */
+  fromHighlight?: boolean;
 }
 
 // 입력 시트가 등록할 좌표와 그 좌표를 찍은 경로(측정 `via`).
@@ -45,11 +60,13 @@ interface PointDraftTarget {
 const IS_IOS = Platform.OS === 'ios';
 const IS_WEB = Platform.OS === 'web';
 const HEADER_HEIGHT = 52;
-// 폴백(OF-6) 뒤 캔버스 뒤에 숨겨 둔 지도가 이 시간 안에 뜨지 않으면 내린다 — 계속 붙잡고 있지 않는다.
-const MAP_FALLBACK_UNMOUNT_MS = 30 * 1000;
+// 그리기를 누른 순간 여행지를 아직 읽는 중이면 이만큼까지 기다린다(ms, RD-9 #2).
+const DESTINATION_WAIT_MS = 1500;
 
 /**
  * 배낭 코스 (BD-11) — 지도 + 코스 목록 + 선택한 코스의 고도 그래프. 지도 포인트(BD-14)도 여기 산다.
+ * 지도는 온라인·오프라인 모두 같은 `BagRouteMapView`(MapLibre)다 — 오프라인이면 타일이 저장해 둔 팩에서 오고
+ * 편집 UI만 걷힌다(OF-6 · MAP-4).
  *
  * 지도·그래프·목록 행은 그룹 코스 화면(GRP-8·GRP-10)의 것을 그대로 쓴다. 웹은 지도가 없으므로
  * 목록과 그래프만 보여주는 **읽기 전용** 화면이 된다(APP-5) — 파일 선택기가 없어 추가가
@@ -57,13 +74,17 @@ const MAP_FALLBACK_UNMOUNT_MS = 30 * 1000;
  * 포인트도 웹에서는 목록으로만, 읽기 전용으로 보인다(BD-14).
  * iOS는 네이티브 투명 헤더, Android는 커스텀 헤더다(LG-1, 그룹 지도와 같은 관례).
  */
-const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
+const BagRouteView: FC<Props> = ({
+  bagRouteList,
+  bagPointList,
+  fromHighlight = false,
+}) => {
   const router = useRouter();
   const l10n = app.getL10n();
   const insets = useSafeAreaInsets();
   // 어느 코스를 그룹에 올릴지 고르는 중. 연결 그룹이 둘 이상일 때만 시트를 연다.
   const [groupPickTarget, setGroupPickTarget] = useState<BagRoute | null>(null);
-  const [segment, setSegment] = useState(BagRouteSegment.Routes);
+  const [segment, setSegment] = useState(RouteListSegment.Routes);
   // 포인트 추가 조준 모드(BD-14). 이 동안 아래 목록이 걷혀 지도를 넓히고 확정 말고 누를 것을 두지 않는다.
   const [isAiming, setIsAiming] = useState(false);
   const [isSheetVisible, setIsSheetVisible] = useState(false);
@@ -71,30 +92,84 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
   const [editingPoint, setEditingPoint] = useState<BagPoint | null>(null);
   // 시트를 열 때마다 올린다 — 시트가 이 값을 `key`로 받아 새로 마운트되면서 입력이 초기화된다.
   const [sheetKey, setSheetKey] = useState(0);
-  // 지도가 뜨지 않았다(OF-6 폴백) — 온라인이어도 코스 캔버스로 그린다.
-  const [isMapUnavailable, setIsMapUnavailable] = useState(false);
-  // 폴백 뒤에도 끝내 뜨지 않아 숨긴 지도를 내렸다. 연결이 바뀌면 다시 붙여 한 번 더 기다린다.
-  const [isHiddenMapReleased, setIsHiddenMapReleased] = useState(false);
+  // 잰 빈 상태 카드 높이(RD-9 #1) — 시트 접힘 단 계산에 넘긴다.
+  const [emptyCardHeight, setEmptyCardHeight] = useState(
+    ROUTE_EMPTY_CARD_HEIGHT_ESTIMATE
+  );
+  // `코스 추가` 메뉴(RD-1) — 가져오기 | 지도에서 그리기.
+  const [isAddMenuVisible, setIsAddMenuVisible] = useState(false);
+  /**
+   * 코스 그리기(RD-2 · RD-3) — 화면 수명 동안 하나. 화면을 떠나면 그리던 점과 함께 버려진다(기기 저장 없음).
+   * 저장은 가져오기와 같은 목록 경로(`addDrawnRoute`)를, 그린 코스 수정(RD-7)은 같은 문서 덮어쓰기(`updateDrawnRoute`)를 탄다.
+   */
+  const [routeDraw] = useState(() =>
+    RouteDraw.from(RouteDrawSource.Route, {
+      parent: {
+        kind: RouteDrawTargetKind.Bag,
+        parentId: bagRouteList.getBagId(),
+      },
+      // 상한 등 저장 전 검사(RD-8) — 무료 1회 기록 전에 본다.
+      canSubmit: () => bagRouteList.getDrawSubmitBlockReason(),
+      createRouteId: () => bagRouteList.createRouteId(),
+      submit: (draft, localUri, routeId) =>
+        bagRouteList.addDrawnRoute(draft, localUri, routeId),
+      update: (routeId, draft, localUri) =>
+        bagRouteList.updateDrawnRoute(routeId, draft, localUri),
+      // 모드를 나간 뒤 올린 코스를 골라 카메라를 맞춘다(가져오기와 달리 사용자가 만든 코스라 선택도 기억한다).
+      onSaved: routeId => {
+        bagRouteList.focusEntry(BagRouteSelection.toBagEntryKey(routeId));
+      },
+      resolveDefaultName: () => bagRouteList.getDrawDefaultName(),
+      // 새로 그리기 시작 카메라 — 여행지가 있으면 그리로 옮기고 여행지 핀을 띄운다(RD-9 #2).
+      resolveStartFocus: () => bagRouteList.getDrawStartFocus(),
+    })
+  );
+  // 강조 카드에서 온 뒤 빈 상태 카드로 시작한 첫 그리기만 `highlight`로 센다(RD-9 측정).
+  const highlightEntryPendingRef = useRef(fromHighlight);
+
+  // 화면을 떠나면 대기 중인 길 찾기를 끊는다 — 버린 구간의 토스트·측정이 다른 화면에 나가지 않게(RD-6).
+  useEffect(() => () => routeDraw.dispose(), [routeDraw]);
+
+  const isDrawing = routeDraw.isActive();
+  const handleCancelDrawing = useRouteDrawCancel(routeDraw, isDrawing);
+  // 그리기를 시작하는 중(여행지 대기) — 두 번 눌러 모드에 두 번 들어가지 않게.
+  const startingDrawRef = useRef(false);
+  // 화면이 붙어 있는지 — 여행지를 기다리는 사이 떠났으면 그리기(구독 화면 포함)를 열지 않는다.
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  // 새로 그리기가 실제로 시작되면 강조 카드 표시를 소모한다 — 권한 미로딩·구독 화면 취소로 못 들어갔으면 남긴다.
+  useEffect(() => {
+    if (isDrawing && !routeDraw.isEditing()) {
+      highlightEntryPendingRef.current = false;
+    }
+  }, [isDrawing, routeDraw]);
   const selected = bagRouteList.getSelectedEntry();
-  // OF-6: 연결이 없으면 지도 대신 코스 캔버스다. 열 수 없는 저장본(미저장·잠김)이면 빈 상태다.
+  // OF-6: 연결이 없으면 같은 지도가 저장해 둔 팩에서 뜬다. 열 수 없는 저장본(미저장·잠김)이면 빈 상태다.
   const isOffline = app.getNetworkStatus().isOffline();
   const offlineAccess =
     app.getOfflineTripStore()?.getAccess(bagRouteList.getBagId()) ??
     OfflineTripAccess.NotSaved;
   const wasOfflineRef = useRef(isOffline);
-  // 온라인에서 연 화면이면 연결이 끊겨도 읽어 둔 코스를 캔버스로 계속 보여 준다(빈 상태로 바꾸지 않는다).
+  // 온라인에서 연 화면이면 연결이 끊겨도 읽어 둔 코스를 오프라인 지도로 계속 보여 준다(빈 상태로 바꾸지 않는다).
   const [openedOnline] = useState(() => !isOffline);
   const canUseSnapshot = offlineAccess === OfflineTripAccess.Available;
 
   // OF-3 · OF-6: 연결이 바뀌면 목록을 다시 읽는다 — 돌아오면 서버 코스(그룹 코스 포함)로, 끊기면 저장본으로.
-  // 지도는 다시 마운트되며 코스 전체로 카메라를 맞춘다.
+  // 지도는 그대로 두고(같은 지도다) 편집 UI·상단 안내 줄만 바뀐다.
   useEffect(() => {
     if (wasOfflineRef.current === isOffline) {
       return;
     }
 
     wasOfflineRef.current = isOffline;
-    setIsHiddenMapReleased(false);
 
     // 저장본이 없으면 읽어 둔 서버 코스를 그대로 둔다 — 다시 읽으면 빈 목록이 된다.
     if (isOffline && !canUseSnapshot) {
@@ -104,30 +179,6 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
     void bagRouteList.refresh(true);
     void bagPointList.refresh(true);
   }, [bagPointList, bagRouteList, canUseSnapshot, isOffline]);
-
-  // 숨긴 지도가 `MAP_FALLBACK_UNMOUNT_MS` 안에 뜨지 않으면 내린다. 뜨거나 화면을 떠나면 타이머를 지운다.
-  useEffect(() => {
-    if (!isMapUnavailable || isOffline) {
-      return;
-    }
-
-    const timeoutId = setTimeout(() => {
-      setIsHiddenMapReleased(true);
-    }, MAP_FALLBACK_UNMOUNT_MS);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [isMapUnavailable, isOffline]);
-
-  const handleMapUnavailable = useCallback(() => {
-    setIsMapUnavailable(true);
-  }, []);
-
-  // 제한 시간을 넘겨 폴백했어도 지도가 뒤늦게 뜨면 지도로 돌아간다(OF-6).
-  const handleMapInitialized = useCallback(() => {
-    setIsMapUnavailable(false);
-  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -217,6 +268,80 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
   const handleCancelAiming = useCallback(() => {
     setIsAiming(false);
   }, []);
+
+  // 시트 푸터 `코스 추가` → 메뉴(RD-1). 상한·웹·오프라인이면 버튼이 이미 막혀 있다.
+  const handleOpenAddMenu = useCallback(() => {
+    setIsAddMenuVisible(true);
+  }, []);
+
+  const handleCloseAddMenu = useCallback(() => {
+    setIsAddMenuVisible(false);
+  }, []);
+
+  // 메뉴 항목은 시트가 다 내려간 뒤 불린다(`BottomMenuModalView` 관례) — 파일 선택기가 시트 위에 겹치지 않는다.
+  const handleImportRoute = useCallback(() => {
+    void bagRouteList.addRoute();
+  }, [bagRouteList]);
+
+  // 그리기 모드에 들어간다(RD-1). 조준 모드와 동시에 켜지지 않는다. 무료 1회를 썼으면 구독 화면이 먼저 뜬다(RD-8).
+  // 여행지를 아직 읽는 중이면 잠깐(최대 1.5초) 기다렸다가 시작한다 — 시작 카메라가 여행지로 가게(RD-9 #2).
+  const startDrawing = useCallback(
+    async (entry: RouteDrawEntry) => {
+      if (startingDrawRef.current) {
+        return;
+      }
+
+      startingDrawRef.current = true;
+      setIsAiming(false);
+
+      try {
+        await bagRouteList.waitForDestination(DESTINATION_WAIT_MS);
+
+        // 기다리는 사이 화면을 떠났으면(뒤로 가기) 아무것도 열지 않는다.
+        if (!mountedRef.current) {
+          return;
+        }
+
+        routeDraw.requestStart(entry);
+      } finally {
+        startingDrawRef.current = false;
+      }
+    },
+    [bagRouteList, routeDraw]
+  );
+
+  const handleStartDrawing = useCallback(() => {
+    void startDrawing(RouteDrawEntry.Menu);
+  }, [startDrawing]);
+
+  // 빈 상태 카드 `지도에서 그리기`(RD-9 #1) — 메뉴 없이 바로. 권한 게이트는 `requestStart`가 같게 본다.
+  // 강조 카드에서 왔다는 표시는 그리기가 실제로 시작될 때 소모한다(아래 이펙트) — 구독 화면을 닫으면 남는다.
+  const handleStartDrawingFromCard = useCallback(() => {
+    void startDrawing(
+      highlightEntryPendingRef.current
+        ? RouteDrawEntry.Highlight
+        : RouteDrawEntry.EmptyCard
+    );
+  }, [startDrawing]);
+
+  // 코스 행 `⋯` → `코스 수정`(RD-7). 권한이 없으면 구독 화면이 먼저 뜬다(RD-8).
+  const handleEditRoute = useCallback(
+    (route: BagRoute) => {
+      setIsAiming(false);
+      routeDraw.requestEdit(route);
+    },
+    [routeDraw]
+  );
+
+  // 지도가 없는 옛 바이너리(MAP-1)·웹에서는 그릴 수 없다 — 가져오기만 남고 `코스 수정`도 없다.
+  const canDraw = !IS_WEB && isMapLibreAvailable();
+
+  const handleSubmitDrawnRoute = useCallback(
+    (name: string) => {
+      void routeDraw.save(name);
+    },
+    [routeDraw]
+  );
 
   const handleRequestCreate = useCallback(
     (coordinate: BagPointCoordinate, via: BagPointAddVia) => {
@@ -309,7 +434,17 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
     [bagPointList, draftTarget, editingPoint, handleCloseSheet]
   );
 
-  const renderList = () => (
+  const listBottomInset = insets.bottom + 12;
+
+  // 1pt 미만 흔들림은 무시한다 — 단 높이가 다시 계산되며 시트가 떨리지 않게.
+  const handleEmptyCardMeasure = useCallback((height: number) => {
+    setEmptyCardHeight(previous =>
+      Math.abs(previous - height) < 1 ? previous : height
+    );
+  }, []);
+
+  // `fillHeight`: 네이티브 지도 화면의 바텀 시트 안(BD-11) — 시트 높이를 채우고 세그먼트 줄은 시트 머리가 그린다.
+  const renderList = (fillHeight: boolean) => (
     <BagRouteListSectionView
       bagRouteList={bagRouteList}
       bagPointList={bagPointList}
@@ -318,11 +453,17 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
       onSelect={handleSelect}
       onDelete={handleDelete}
       onUploadToGroup={handleUploadToGroup}
+      onEditRoute={canDraw ? handleEditRoute : undefined}
       // 웹에는 옮겨 갈 지도가 없다 — 포인트 행은 읽기 전용이다(BD-14).
       onSelectPoint={IS_WEB ? undefined : handleSelectPoint}
       onEditPoint={handleRequestEdit}
       onDeletePoint={handleRequestDeletePoint}
-      bottomInset={insets.bottom + 12}
+      onAddRoute={handleOpenAddMenu}
+      onStartDrawing={canDraw ? handleStartDrawingFromCard : undefined}
+      onImportRoute={handleImportRoute}
+      onEmptyCardMeasure={handleEmptyCardMeasure}
+      bottomInset={listBottomInset}
+      fillHeight={fillHeight}
     />
   );
 
@@ -376,65 +517,38 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
                 : {})}
             />
           ) : null}
-          {renderList()}
+          {renderList(false)}
         </View>
       );
     }
 
-    // 지도는 `map` 키로 같은 자리에 둔다 — 폴백 중에도 (보이지 않게) 살려 두어 뒤늦은 초기화를 받는다.
-    const mapView = (
-      <View
-        key='map'
-        style={isMapUnavailable ? styles.hiddenMap : styles.content}
-        pointerEvents={isMapUnavailable ? 'none' : 'auto'}
-        accessibilityElementsHidden={isMapUnavailable}
-        importantForAccessibility={
-          isMapUnavailable ? 'no-hide-descendants' : 'auto'
-        }
-      >
-        <BagRouteCanvasView
-          bagRouteList={bagRouteList}
-          bagPointList={bagPointList}
-          onMapUnavailable={handleMapUnavailable}
-          onMapInitialized={handleMapInitialized}
-          isAiming={isAiming}
-          onStartAiming={handleStartAiming}
-          onCancelAiming={handleCancelAiming}
-          onRequestCreate={handleRequestCreate}
-          onRequestEdit={handleRequestEdit}
-          onRequestDelete={handleRequestDeletePoint}
-          // Android는 커스텀 헤더가 레이아웃을 차지해 지도가 이미 그 아래에서 시작한다 — 칩은
-          // 지도 위쪽에 살짝 띄우기만 한다. iOS는 투명 헤더라 직접 비운다(그룹 지도와 같다).
-          topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
-        />
-      </View>
-    );
-
-    if (isOffline || isMapUnavailable) {
-      return (
-        <>
-          {isOffline || isHiddenMapReleased ? null : mapView}
-          <OfflineRouteCanvasView
-            bagRouteList={bagRouteList}
-            bagPointList={bagPointList}
-            reason={
-              isOffline
-                ? OfflineCanvasReason.Offline
-                : OfflineCanvasReason.MapUnavailable
-            }
-            topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
-          />
-          {renderList()}
-        </>
-      );
-    }
-
+    // 지도가 화면을 다 쓰고 그래프·세그먼트·목록은 지도 위 바텀 시트다(BD-11). 조준 모드에서는 시트가 내려간다.
     return (
-      <>
-        {mapView}
-        {/* 조준 모드에서는 목록을 걷는다 — 지도를 넓히고, 확정 말고 누를 것을 두지 않는다(GRP-9). */}
-        {isAiming ? null : renderList()}
-      </>
+      <BagRouteMapGateView
+        bagRouteList={bagRouteList}
+        bagPointList={bagPointList}
+        isOffline={isOffline}
+        isAiming={isAiming}
+        onStartAiming={handleStartAiming}
+        onCancelAiming={handleCancelAiming}
+        onRequestCreate={handleRequestCreate}
+        onRequestEdit={handleRequestEdit}
+        onRequestDelete={handleRequestDeletePoint}
+        routeDraw={routeDraw}
+        onCancelDrawing={handleCancelDrawing}
+        // Android는 커스텀 헤더가 레이아웃을 차지해 지도가 이미 그 아래에서 시작한다 — 칩은
+        // 지도 위쪽에 살짝 띄우기만 한다. iOS는 투명 헤더라 직접 비운다(그룹 지도와 같다).
+        topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
+        listHeader={
+          <RouteSegmentChipsView
+            segment={segment}
+            onChangeSegment={setSegment}
+          />
+        }
+        listContent={renderList(true)}
+        listBottomInset={listBottomInset}
+        emptyCardHeight={emptyCardHeight}
+      />
     );
   };
 
@@ -489,6 +603,23 @@ const BagRouteView: FC<Props> = ({ bagRouteList, bagPointList }) => {
           },
         }))}
       />
+      <RouteAddMenuView
+        visible={isAddMenuVisible}
+        canDraw={canDraw}
+        onClose={handleCloseAddMenu}
+        onImport={handleImportRoute}
+        onDraw={handleStartDrawing}
+      />
+      {IS_WEB ? null : (
+        <RouteDrawNameSheetView
+          key={`route-draw-name-${routeDraw.getNameSheetKey()}`}
+          visible={routeDraw.isNameSheetVisible()}
+          defaultName={routeDraw.getDefaultName()}
+          submitting={routeDraw.isSaving()}
+          onClose={() => routeDraw.closeNameSheet()}
+          onSubmit={handleSubmitDrawnRoute}
+        />
+      )}
       {IS_WEB ? null : (
         <PointCreateSheetView
           key={sheetKey}
@@ -530,15 +661,6 @@ const styles = StyleSheet.create({
   },
   // 지도는 풀블리드다 — 좌우 패딩을 주면 지면이 드러난다.
   content: { flex: 1 },
-  // 폴백 캔버스 뒤에서 지도를 살려 두는 자리 — 보이지 않고 터치·접근성에서도 빠진다.
-  hiddenMap: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    opacity: 0,
-  },
   webContent: { flex: 1, justifyContent: 'flex-end' },
   state: {
     flex: 1,

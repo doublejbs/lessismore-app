@@ -17,10 +17,34 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 배낭 문서 자체는 **기존과 똑같이** 열어 둔다. 좁히는 것은 별도 보안 작업이다
-    // (DataModel §1 `[운영]`). 이 파일이 바꾸는 것은 하위 `routes` 하나뿐이다.
+    // 배낭 문서 자체(DM-37, 2026-10-15). 주인 판정은 `userId` 필드 **하나**다.
+    // `userId` 가 없는 옛 문서 중 주인이 확인되는 21건은 2026-10-15 에 채웠다. 남은 14건은 어느
+    // 사용자 목록에도 없는 고아라 주인이 없다 — `users/{uid}.bags` 로 주인을 추정하면 누구나 자기
+    // 목록에 남의 고아 ID를 넣어 가로챌 수 있으므로 목록 판정은 두지 않는다(공유 중이면 읽기만 된다).
+    // - get: 문서가 없거나(없는 ID 조회·탈퇴 일괄 삭제 전 확인) 주인이거나, 공유 링크 공개
+    //   (`shared`·`reviewShared`, 비로그인 BD-7·CS-8).
+    // - list: 주인 문서만. 앱은 쿼리 대신 ID마다 getDoc 으로 읽는다(DM-37 앱 선행 변경) —
+    //   목록 쿼리는 없는 ID가 하나라도 섞이면 전체가 거부되기 때문이다.
+    // - create: 로그인 + 본인 userId. update: 주인 + userId 를 남으로 바꾸지 않는다.
+    // - delete: 문서가 없거나 주인(회원 탈퇴 일괄 삭제에 지운 ID가 섞여도 통과).
+    // 병합본(deployed/firestore.rules)은 최상위 signedIn() 을 쓰고, 이 원본은 같은 판정을 풀어 쓴다.
     match /bag/{bagId} {
-      allow read, write: if true;
+      function isBagDocOwner() {
+        return request.auth != null && resource.data.get('userId', null) == request.auth.uid;
+      }
+
+      function isBagDocPublic() {
+        return resource.data.get('shared', false) == true
+          || resource.data.get('reviewShared', false) == true;
+      }
+
+      allow get: if resource == null || isBagDocOwner() || isBagDocPublic();
+      allow list: if isBagDocOwner();
+      allow create: if request.auth != null
+        && request.resource.data.get('userId', null) == request.auth.uid;
+      allow update: if isBagDocOwner()
+        && request.resource.data.get('userId', null) == request.auth.uid;
+      allow delete: if resource == null || isBagDocOwner();
     }
 
     // 배낭 하위는 `routes` 만 빼고 기존대로 열어 둔다. 지금 `bag` 에 다른 하위 컬렉션은
@@ -56,7 +80,8 @@ service cloud.firestore {
 
         return data.keys().hasOnly([
             'name', 'storagePath', 'fileSize', 'distance', 'elevationGain', 'elevationLoss',
-            'pointCount', 'bounds', 'simplified', 'createdAt'
+            'pointCount', 'bounds', 'simplified', 'createdAt',
+            'source', 'drawnPoints', 'updatedAt'
           ])
           && data.keys().hasAll([
             'name', 'storagePath', 'fileSize', 'distance',
@@ -90,7 +115,16 @@ service cloud.firestore {
           // 1MB 문서 한도와 렌더 성능 때문이다.
           && data.simplified is list
           && data.simplified.size() >= 2
-          && data.simplified.size() <= 500;
+          && data.simplified.size() <= 500
+          // 그린 코스(RouteDraw RD-7·RD-8, DM-29·DM-30 2026-10-14). `source` 는 'drawn' 하나뿐이고(없으면 GPX
+          // 가져오기), 찍은 점 `drawnPoints`(2~100점)는 그린 코스에만 둔다. `updatedAt` 은 수정한 서버 시각이다.
+          && (!('source' in data) || data.source == 'drawn')
+          && (!('drawnPoints' in data)
+            || ('source' in data
+              && data.drawnPoints is list
+              && data.drawnPoints.size() >= 2
+              && data.drawnPoints.size() <= 100))
+          && (!('updatedAt' in data) || data.updatedAt is timestamp);
       }
 
       // 소유자만 읽는다. 목록(list)도 같은 조건이다 — 화면이 코스 목록을 조회해 그린다.
@@ -99,8 +133,16 @@ service cloud.firestore {
 
       allow create: if isBagOwner() && isValidBagRoutePayload();
 
-      // 코스는 이름 변경이 필요 없으므로 수정 경로를 두지 않는다(그룹 코스와 같다).
-      allow update: if false;
+      // 수정은 **그린 코스만**(RouteDraw RD-7) — 소유자가 같은 문서를 덮어쓴다. 가져온 GPX(`source` 없음)는
+      // 원본 파일이 따로 있어 수정하지 않는다. `source`·`storagePath`·`createdAt` 은 바꾸지 못하고
+      // `updatedAt` 은 이 요청의 서버 시각이어야 한다(클라이언트는 serverTimestamp()로 쓴다).
+      allow update: if isBagOwner()
+        && isValidBagRoutePayload()
+        && resource.data.get('source', null) == 'drawn'
+        && request.resource.data.source == 'drawn'
+        && request.resource.data.storagePath == resource.data.storagePath
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
 
       allow delete: if isBagOwner();
     }

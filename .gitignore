@@ -75,3 +75,7 @@ scripts/backup-community-poll-votes-*.json
 scripts/consumables.csv
 scripts/backup-consumable-product-*.json
 scripts/backup-gear-coupangimage-*.json
+
+# EAS 로컬 자격증명(서명 인증서·프로파일·비밀번호) — 절대 커밋하지 않는다
+credentials.json
+.eas-local/

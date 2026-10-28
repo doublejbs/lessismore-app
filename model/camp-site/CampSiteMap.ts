@@ -102,7 +102,13 @@ class CampSiteMap {
 
   // 제출된 이름 검색·유형·태그·즐겨찾기 필터(AND)를 적용한 표시 대상 마커 목록.
   // 태그 필터 선택 시 태그 미부여 spot은 제외된다(CS-2).
+  // 같은 배열 참조를 돌려준다(computed 캐시) — 마커 레이어가 선택만 바뀐 리렌더에서 박지 수백 개를
+  // GeoJSON으로 다시 직렬화하지 않게 한다(MAP-4).
   public getVisibleSpots(): CampSpot[] {
+    return this.visibleSpots;
+  }
+
+  private get visibleSpots(): CampSpot[] {
     return this.spots.filter(spot => {
       if (
         this.submittedSearchQuery.length > 0 &&
@@ -198,27 +204,6 @@ class CampSiteMap {
     return this.spots.filter(
       spot => spot.name.replace(/\s+/g, '').toLowerCase() === normalized
     );
-  }
-
-  // 유형 필터 적용 후 화면 영역(region) 안에 있는 spots(CS-2).
-  // 줌인 상태 마커는 전체가 아니라 이 목록만 그린다 — 전량(400+)을 네이티브 마커로
-  // 올리면 커스텀 뷰 캡처·캡션 충돌 계산이 무거워 탭 반응이 눈에 띄게 느려진다.
-  public getSpotsInRegion(region: {
-    minLatitude: number;
-    maxLatitude: number;
-    minLongitude: number;
-    maxLongitude: number;
-  }): CampSpot[] {
-    return this.getVisibleSpots().filter(spot => {
-      const { latitude, longitude } = spot.location;
-
-      return (
-        latitude >= region.minLatitude &&
-        latitude <= region.maxLatitude &&
-        longitude >= region.minLongitude &&
-        longitude <= region.maxLongitude
-      );
-    });
   }
 
   // 문서 id로 활성 박지 1건(DST-3 — 저장된 여행지의 박지 링크 복원).

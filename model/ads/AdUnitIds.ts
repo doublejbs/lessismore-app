@@ -43,6 +43,11 @@ const PRODUCTION_AD_UNIT_IDS: Record<AdPlacement, { ios: string; android: string
 
 const PRODUCTION_CHANNEL = 'production';
 
+// 광고 전체 스위치(SUB-9 보류, 2026-10-15 사용자 결정 — 2.0.2는 광고 없이 출시). 꺼져 있으면 어느 자리도
+// 광고를 요청하지 않고, 동의(UMP·ATT)도 묻지 않는다(`hasAnyAdUnit`). 바이너리에 ATT 문구가 없으므로
+// (app.json에서 expo-tracking-transparency 제거) 다시 켤 때는 그 플러그인을 되살린 새 빌드가 필요하다.
+const ADS_ENABLED = false;
+
 // 실제·테스트 ID를 가르는 한 곳. 개발 빌드(`__DEV__`)이거나 OTA 채널이 production이 아니면
 // (프리뷰 채널 검증 빌드 등) 테스트 광고를 쓴다.
 export const isAdTestEnvironment = (): boolean => {
@@ -54,6 +59,10 @@ export const isAdTestEnvironment = (): boolean => {
 };
 
 export const getAdUnitId = (placement: AdPlacement): string | null => {
+  if (!ADS_ENABLED) {
+    return null;
+  }
+
   if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
     return null;
   }

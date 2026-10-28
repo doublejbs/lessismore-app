@@ -94,8 +94,26 @@ class Reply {
     this.comments = comments;
   }
 
+  /**
+   * 차단한 사람(CM-17)의 리뷰를 뺀 목록. 차단 목록이 observable이라 차단 순간 다시 계산된다.
+   * 목록에는 답글이 없고 `replyCount`만 있으므로, 답글이 달린 리뷰는 남의 답글을 숨기지 않게 남겨 두고
+   * 행이 `차단한 사용자의 댓글이에요` 자리표시로 그린다(ReplyItemView).
+   */
   public getComments() {
-    return this.comments;
+    return this.visibleComments;
+  }
+
+  private get visibleComments() {
+    const blockedUserStore = app.getBlockedUserStore();
+
+    if (!blockedUserStore) {
+      return this.comments;
+    }
+
+    return this.comments.filter(
+      comment =>
+        !blockedUserStore.isBlocked(comment.authorId) || comment.replyCount > 0
+    );
   }
 
   public getCount() {

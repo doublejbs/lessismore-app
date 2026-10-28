@@ -15,12 +15,15 @@ import GroupPoint from '@/model/group/GroupPoint';
 import GroupValidationError from '@/model/group/GroupValidationError';
 import { getGroupValidationMessage } from '@/model/group-error/GroupErrorMessage';
 import GroupMap from '@/model/group-map/GroupMap';
-import GroupMapCanvasView from './GroupMapCanvasView';
+import { createMapLibreViewLoader } from '@/components/map/MapLibreViewLoader';
+import type GroupMapCanvasViewType from './GroupMapCanvasView';
 import GroupMapListView from './GroupMapListView';
 import PointCreateSheetView, {
   PointDraft,
 } from '@/components/point/PointCreateSheetView';
-import GroupRouteListSheetView from './GroupRouteListSheetView';
+import RouteAddMenuView from '@/components/route/RouteAddMenuView';
+import RouteDrawNameSheetView from '@/components/route-draw/RouteDrawNameSheetView';
+import GroupRoute from '@/model/group/GroupRoute';
 import useGroupMapRouteState from './useGroupMapRouteState';
 
 interface Props {
@@ -36,12 +39,22 @@ const IS_IOS = Platform.OS === 'ios';
 const IS_WEB = Platform.OS === 'web';
 const HEADER_HEIGHT = 52;
 
+// 지도 본문은 MapLibre SDK를 최상위 import한다 — 옛 바이너리에서 import만으로 터지지 않게 쓸 때 싣는다(MAP-1).
+const loadCanvasView = createMapLibreViewLoader<typeof GroupMapCanvasViewType>(
+  'GroupMapCanvasView',
+  () =>
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    (require('./GroupMapCanvasView') as {
+      default: typeof GroupMapCanvasViewType;
+    }).default
+);
+
 /**
  * 그룹 지도 (GRP-9 · GRP-10).
  *
- * 네이티브는 네이버 지도를, 웹은 코스·포인트 목록을 보여준다(APP-5 — 웹은 지도 탭 자체가
- * 없다). 포인트 등록·수정 시트는 두 경로가 함께 쓴다. 코스 목록 시트는 지도에서만 뜬다 —
- * 웹 목록은 코스 행이 이미 화면에 있다.
+ * 네이티브는 앱 공용 지도(MapLibre)를, 웹은 코스·포인트 목록을 보여준다(APP-5 — 웹은 지도 탭 자체가
+ * 없다). 포인트 등록·수정 시트는 두 경로가 함께 쓴다. 코스·포인트 목록은 지도 위 바텀 시트
+ * (`GroupMapCanvasView`) 안에 있고, 웹은 같은 목록을 세로로 쌓는다.
  * iOS는 네이티브 투명 헤더, Android는 커스텀 헤더다(GRP-11, LG-1).
  */
 const GroupMapView: FC<Props> = ({ groupMap }) => {
@@ -56,18 +69,25 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
   const [editingPoint, setEditingPoint] = useState<GroupPoint | null>(null);
   // 시트를 열 때마다 올린다 — 시트가 이 값을 `key`로 받아 새로 마운트되면서 입력이 초기화된다.
   const [sheetKey, setSheetKey] = useState(0);
+  // 포인트 추가 조준 모드(GRP-9). 화면이 들고 있다 — 코스 그리기(RD-2)와 동시에 켜지지 않게 그리기 시작 때 끈다.
+  const [isAiming, setIsAiming] = useState(false);
   const pointList = groupMap.getPointList();
   const group = groupMap.getGroup();
   const {
-    isRouteSheetVisible,
     isAddingRoute,
     isUploadingRoute,
-    handleOpenRouteSheet,
-    handleCloseRouteSheet,
+    isAddMenuVisible,
+    routeDraw,
     handleSelectRoute,
     handleDeleteRoute,
-    handleRouteSheetDismissed,
-    handleAddRoute,
+    handleEditRoute,
+    handleOpenAddMenu,
+    handleCloseAddMenu,
+    handleImportRoute,
+    handleStartDrawing,
+    handleStartDrawingFromCard,
+    handleCancelDrawing,
+    handleSubmitDrawnRoute,
   } = useGroupMapRouteState(groupMap);
 
   useEffect(() => {
@@ -89,6 +109,35 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
 
       void groupMap.initialize();
     }, [groupMap])
+  );
+
+  const handleStartAiming = useCallback(() => {
+    setIsAiming(true);
+  }, []);
+
+  const handleCancelAiming = useCallback(() => {
+    setIsAiming(false);
+  }, []);
+
+  // 그리기 모드에 들어간다(RD-1). 조준 모드와 동시에 켜지지 않는다(배낭 코스 화면과 같다).
+  const handleStartRouteDrawing = useCallback(() => {
+    setIsAiming(false);
+    handleStartDrawing();
+  }, [handleStartDrawing]);
+
+  // 빈 상태 카드 `지도에서 그리기`(RD-9 #1) — 메뉴 없이 바로. 조준 모드는 먼저 끈다.
+  const handleStartRouteDrawingFromCard = useCallback(() => {
+    setIsAiming(false);
+    handleStartDrawingFromCard();
+  }, [handleStartDrawingFromCard]);
+
+  // 코스 행 `⋯` → `코스 수정`(RD-7). 그리기 시작과 같이 조준 모드를 먼저 끈다.
+  const handleEditRouteDrawing = useCallback(
+    (route: GroupRoute) => {
+      setIsAiming(false);
+      handleEditRoute(route);
+    },
+    [handleEditRoute]
   );
 
   const handleBack = () => {
@@ -225,16 +274,38 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
         );
       }
       default: {
+        const GroupMapCanvasView = loadCanvasView();
+
+        // 옛 바이너리(MapLibre 없음 — OTA가 잘못 나간 경우의 안전망): 지도 자리에 업데이트 안내.
+        if (!GroupMapCanvasView) {
+          return (
+            <GroupStateView
+              title={l10n.t('map.unsupportedBinary')}
+              actionLabel={l10n.t('group.detail.goBack')}
+              onPress={handleBack}
+            />
+          );
+        }
+
         return (
           <GroupMapCanvasView
             groupMap={groupMap}
             onRequestCreate={handleRequestCreate}
             onRequestEdit={handleRequestEdit}
             onRequestDelete={handleRequestDelete}
-            onOpenRouteList={handleOpenRouteSheet}
-            onAddRoute={() => void handleAddRoute()}
+            onSelectRoute={handleSelectRoute}
+            onRequestDeleteRoute={handleDeleteRoute}
+            onRequestEditRoute={handleEditRouteDrawing}
+            onAddRoute={handleOpenAddMenu}
+            onStartDrawingFromEmpty={handleStartRouteDrawingFromCard}
+            onImportRoute={handleImportRoute}
             isAddingRoute={isAddingRoute}
             isUploadingRoute={isUploadingRoute}
+            routeDraw={routeDraw}
+            onCancelDrawing={handleCancelDrawing}
+            isAiming={isAiming}
+            onStartAiming={handleStartAiming}
+            onCancelAiming={handleCancelAiming}
             // Android는 커스텀 헤더가 레이아웃을 차지해 지도 영역이 이미 그 아래에서
             // 시작한다 — 칩은 지도 위쪽에 살짝 띄우기만 한다. iOS는 투명 헤더라 직접 비운다.
             topInset={IS_IOS ? insets.top + HEADER_HEIGHT : 12}
@@ -277,6 +348,24 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
       <View style={IS_WEB ? styles.paddedContent : styles.content}>
         {renderContent()}
       </View>
+      {/* 메뉴는 지도 본문이 있을 때만 열린다(`코스 추가`가 지도 위 시트 안에 있다) — 그리기도 그 지도에서 한다. */}
+      <RouteAddMenuView
+        visible={isAddMenuVisible}
+        canDraw={!IS_WEB}
+        onClose={handleCloseAddMenu}
+        onImport={handleImportRoute}
+        onDraw={handleStartRouteDrawing}
+      />
+      {IS_WEB ? null : (
+        <RouteDrawNameSheetView
+          key={`route-draw-name-${routeDraw.getNameSheetKey()}`}
+          visible={routeDraw.isNameSheetVisible()}
+          defaultName={routeDraw.getDefaultName()}
+          submitting={routeDraw.isSaving()}
+          onClose={() => routeDraw.closeNameSheet()}
+          onSubmit={handleSubmitDrawnRoute}
+        />
+      )}
       <PointCreateSheetView
         key={sheetKey}
         visible={isSheetVisible}
@@ -286,16 +375,6 @@ const GroupMapView: FC<Props> = ({ groupMap }) => {
         onClose={handleCloseSheet}
         onSubmit={draft => void handleSubmit(draft)}
       />
-      {IS_WEB ? null : (
-        <GroupRouteListSheetView
-          visible={isRouteSheetVisible}
-          groupMap={groupMap}
-          onSelect={handleSelectRoute}
-          onDelete={handleDeleteRoute}
-          onClose={handleCloseRouteSheet}
-          onDismissed={handleRouteSheetDismissed}
-        />
-      )}
       <ToastView toastManager={app.getToastManager()!} bottom={100} />
       <AlertView alertManager={app.getAlertManager()!} />
     </View>

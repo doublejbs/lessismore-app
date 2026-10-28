@@ -31,6 +31,9 @@ import OfflineTripAccess from '@/model/offline/OfflineTripAccess';
 import OfflineTripStore from '@/model/offline/OfflineTripStore';
 import { OfflineTripSnapshotData } from '@/model/offline/OfflineTripSnapshot';
 import { formatOfflineDate } from '@/model/offline/OfflineFormat';
+import { BagRouteEntry } from '@/model/bag-route/BagRouteEntry';
+import BagRouteDispatcher from '@/model/bag-route/BagRouteDispatcher';
+import BagRouteList from '@/model/bag-route/BagRouteList';
 
 class BagDetail implements BagScheduleWriter {
   public static readonly ORDER_KEY = 'bag';
@@ -47,7 +50,8 @@ class BagDetail implements BagScheduleWriter {
       GroupBagLinkFlow.new(),
       app.getNetworkStatus(),
       app.getOfflineTripStore(),
-      OfflineTrip.from(id)
+      OfflineTrip.from(id),
+      BagRouteList.from(BagRouteDispatcher.new(), id)
     );
   }
 
@@ -68,9 +72,11 @@ class BagDetail implements BagScheduleWriter {
   private memo: string = '';
   // 배낭에 연결된 운동 기록 요약(DM-22). 타일 부제 표시용이며 원본은 담지 않는다(HA-5).
   private activity: BagActivitySummary | null = null;
-  // 코스 타일 부제용 요약(BD-10·BD-11). 개수와 총 거리만 쓴다.
+  // 저장본(OF-5)으로 그릴 때의 코스 요약(BD-10·BD-11). 온라인은 `routeList`가 센다.
   private routeCount = 0;
   private routeDistance = 0;
+  // 지금 읽고 있는 코스 조회 — 겹친 요청(마운트·네트워크 감시·포커스)은 이것을 함께 기다린다. 끝나면 비운다.
+  private routesLoading: Promise<void> | null = null;
   // 코스 타일 부제의 지도 포인트 수(BD-14). 0이면 부제에서 뺀다.
   private pointCount = 0;
   private readonly bagWeather: BagWeather;
@@ -111,16 +117,27 @@ class BagDetail implements BagScheduleWriter {
     private readonly linkFlow: GroupBagLinkFlow,
     private readonly networkStatus: NetworkStatus,
     private readonly offlineTripStore: OfflineTripStore | null,
-    private readonly offlineTrip: OfflineTrip
+    private readonly offlineTrip: OfflineTrip,
+    /**
+     * 코스 목록(BD-11) — 코스 화면과 **같은 모델**이라 연결 그룹 코스·중복 접기·선택 기억(`bagRoute.selected.{bagId}`)이
+     * 같은 규칙이다. 여행 상세는 보기만 한다(코스 카드·상황형 강조 — RD-9 #4·#5).
+     */
+    private readonly routeList: BagRouteList
   ) {
     this.bagWeather = BagWeather.of(id, bagStore);
     makeAutoObservable<
       BagDetail,
-      'networkStatus' | 'offlineTripStore' | 'disposeNetworkReaction'
+      | 'networkStatus'
+      | 'offlineTripStore'
+      | 'disposeNetworkReaction'
+      | 'routeList'
+      | 'routesLoading'
     >(this, {
       networkStatus: false,
       offlineTripStore: false,
       disposeNetworkReaction: false,
+      routeList: false,
+      routesLoading: false,
     });
   }
 
@@ -205,13 +222,48 @@ class BagDetail implements BagScheduleWriter {
     return this.activity;
   }
 
+  /**
+   * 코스 수(BD-10·BD-11) — 온라인은 내 코스 + 연결 그룹 코스(중복 접기 반영, 코스 화면 목록과 같은 수), 저장본은
+   * 저장해 둔 내 코스 수다. 저장본은 바꾸지 않는다(OF-5) — 오프라인 상세는 그리드가 그대로고 코스 카드·강조를 쓰지
+   * 않으며, 타일 부제는 저장본이 담은 범위(내 코스)를 그대로 센다.
+   */
   public getRouteCount() {
-    return this.routeCount;
+    if (this.isSnapshot()) {
+      return this.routeCount;
+    }
+
+    return this.routeList.getEntries().length;
   }
 
-  // 배낭에 담긴 코스의 총 거리(m).
+  // 코스 총 거리(m) — 세는 범위는 `getRouteCount`와 같다.
   public getRouteDistance() {
-    return this.routeDistance;
+    if (this.isSnapshot()) {
+      return this.routeDistance;
+    }
+
+    return this.routeList
+      .getEntries()
+      .reduce((sum, entry) => sum + entry.route.getDistance(), 0);
+  }
+
+  /**
+   * 코스를 한 번이라도 다 읽었는지(RD-9 #4·#5) — 읽기 전에는 지금까지의 그리드(여행지 강조 + 코스 타일)로 둔다.
+   * 목록 모델의 첫 조회 완료가 기준이다(저장본은 이미 담겨 있다). 다시 읽는 동안에는 이전 결과·오류가 그대로다.
+   */
+  public isRoutesLoaded() {
+    return this.isSnapshot() || this.routeList.isInitialized();
+  }
+
+  /**
+   * 코스 카드(RD-9 #5)의 대표 코스 — 코스 화면에서 고른 코스(BD-11 선택 기억), 없으면 첫 코스. 코스 화면과 같은
+   * 판단(`BagRouteList` 선택 규칙)이다. 코스가 없으면 `null`.
+   */
+  public getRepresentativeRoute(): BagRouteEntry | null {
+    return (
+      this.routeList.getSelectedEntry() ??
+      this.routeList.getEntries()[0] ??
+      null
+    );
   }
 
   public getPointCount() {
@@ -368,11 +420,14 @@ class BagDetail implements BagScheduleWriter {
       this.endDate
     );
     void this.bagWeather.ensureFresh();
-    // 코스는 타일 부제에만 쓰는 부가 정보라 초기화를 막지 않는다(BD-11).
-    void this.loadRoutes();
+    // 연결 그룹 목록은 한 번만 읽어 그룹 한 줄과 코스(연결 그룹 코스)가 나눠 쓴다.
+    const linkedGroups = this.fetchLinkedGroups();
+
+    // 코스는 부가 정보라 초기화를 막지 않는다(BD-11 · RD-9 #4·#5).
+    void this.loadRoutes(linkedGroups);
     void this.loadPointCount();
     // 그룹 한 줄도 부가 정보다. 화면에 돌아올 때마다(initialize) 다시 읽어 그룹에서 바꾼 연결을 반영한다.
-    void this.loadLinkedGroup();
+    void this.loadLinkedGroup(linkedGroups);
   }
 
   private async loadWarehouseState() {
@@ -424,10 +479,17 @@ class BagDetail implements BagScheduleWriter {
   }
 
   /**
-   * 헤더 그룹 한 줄 (BD-1). 역인덱스(`users/{uid}/groups`)를 `bagId`로 찾는다 — 그룹 문서를 읽지 않는다.
-   * 실패하면 줄을 그리지 않는다(혼자 가는 배낭의 헤더와 같다).
+   * 그룹 카드 (BD-1). 역인덱스(`users/{uid}/groups`)를 `bagId`로 찾아 카드를 먼저 그리고,
+   * 이어서 그룹 문서 1건을 읽어 코스·포인트 캐시 수(역인덱스에 없다)와 최신 멤버 수로 바꾼다.
+   * 역인덱스 조회가 실패하면 카드를 그리지 않는다(혼자 가는 배낭과 같다).
    */
-  public async loadLinkedGroup(): Promise<void> {
+  /**
+   * `linkedGroups`: 이미 읽고 있는 연결 그룹 목록(`fetchLinkedGroups` — 코스 조회와 나눠 쓴다). 없으면 새로 읽는다.
+   * 목록 조회가 실패하면(`null`) 그룹 한 줄을 그대로 둔다.
+   */
+  public async loadLinkedGroup(
+    linkedGroups: Promise<Group[] | null> = this.fetchLinkedGroups()
+  ): Promise<void> {
     if (!this.firebase.isLoggedIn()) {
       this.setLinkedGroup(null);
 
@@ -435,11 +497,50 @@ class BagDetail implements BagScheduleWriter {
     }
 
     try {
-      const groups = (await app.getGroupStore()?.getGroupsByBag(this.id)) ?? [];
+      const groups = await linkedGroups;
 
-      this.setLinkedGroup(this.pickNearestGroup(groups));
+      if (!groups) {
+        return;
+      }
+
+      const nearest = this.pickNearestGroup(groups);
+
+      this.setLinkedGroup(nearest);
+
+      if (nearest) {
+        await this.loadLinkedGroupDocument(nearest.getId());
+      }
     } catch (error) {
       console.warn('[BagDetail] 연결 그룹 조회 실패', error); // l10n-ignore: 개발자 로그
+    }
+  }
+
+  // 이 배낭을 연결한 그룹 목록. 비로그인이면 빈 목록, 조회 실패면 `null`(그룹 한 줄은 그대로, 코스는 그룹 없이).
+  private async fetchLinkedGroups(): Promise<Group[] | null> {
+    if (!this.firebase.isLoggedIn()) {
+      return [];
+    }
+
+    try {
+      return (await app.getGroupStore()?.getGroupsByBag(this.id)) ?? [];
+    } catch (error) {
+      console.warn('[BagDetail] 연결 그룹 조회 실패', error); // l10n-ignore: 개발자 로그
+
+      return null;
+    }
+  }
+
+  // 그룹 문서 읽기가 실패하면 요약본을 그대로 둔다 — 카드는 코스·포인트 조각만 빠진 채 남는다.
+  private async loadLinkedGroupDocument(groupId: string): Promise<void> {
+    try {
+      const group = await app.getGroupStore()?.getGroup(groupId);
+
+      // 읽는 사이 연결이 바뀌었으면(해제·다른 그룹) 덮어쓰지 않는다.
+      if (group && this.linkedGroup?.getId() === groupId) {
+        this.setLinkedGroup(group);
+      }
+    } catch (error) {
+      console.warn('[BagDetail] 연결 그룹 문서 조회 실패', error); // l10n-ignore: 개발자 로그
     }
   }
 
@@ -482,6 +583,24 @@ class BagDetail implements BagScheduleWriter {
     }
 
     this.router.push({ pathname: '/group/[id]', params: { id: group.getId() } });
+  }
+
+  // 그룹 카드의 `그룹 지도` 알약 (BD-1).
+  public goToLinkedGroupMap() {
+    const group = this.linkedGroup;
+
+    if (!this.guardOnline()) {
+      return;
+    }
+
+    if (!group) {
+      return;
+    }
+
+    this.router.push({
+      pathname: '/group/[id]/map',
+      params: { id: group.getId() },
+    });
   }
 
   /**
@@ -577,22 +696,40 @@ class BagDetail implements BagScheduleWriter {
   }
 
   /**
-   * 코스 요약 조회 (BD-11). 개수와 총 거리만 필요하지만 Firestore에 부분 조회가 없어
-   * 문서를 그대로 읽는다 — 배낭당 5개 상한이라 읽는 양이 정해져 있고, 화면을 막지 않도록
-   * 기다리지 않고 배경으로 돌린다. 실패해도 타일은 `GPX 추가`로 남는다.
+   * 코스 조회 (BD-11 · RD-9 #4·#5). 코스 화면과 같은 목록 모델로 내 코스 + 연결 그룹 코스를 읽는다 — 코스 카드가
+   * 대표 코스의 선(축약 좌표)·이름·거리·상승을 그리므로 문서를 그대로 읽는다(배낭·그룹당 5개 상한이라 읽는 양이
+   * 정해져 있다). 화면을 막지 않도록 기다리지 않고 배경으로 돌리고, 포커스마다 다시 읽어 코스 화면에서 고른 코스를
+   * 따라간다. 실패하면 목록 모델이 오류를 들고 있고(`hasRouteError`) 화면은 강조·코스 카드를 고르지 않는다.
+   *
+   * 이미 읽는 중이면 그 조회를 함께 기다린다 — 마운트·네트워크 감시가 겹쳐 같은 순간에 두 번 읽지 않게(시간으로
+   * 건너뛰지 않는다 — 포커스 복귀·장비 변경 뒤에는 늘 다시 읽는다). 연결 그룹 목록은 그룹 한 줄과 같은 조회 결과를
+   * 받는다(실패면 그룹 없이 내 코스만).
    */
-  private async loadRoutes() {
-    try {
-      const routes = await app.getBagRouteStore()!.getRoutes(this.id);
-
-      this.setRouteSummary(
-        routes.length,
-        routes.reduce((sum, route) => sum + route.getDistance(), 0)
-      );
-    } catch (error) {
-      console.warn('[BagDetail] 코스 요약 조회 실패', error); // l10n-ignore: 개발자 로그
+  private loadRoutes(linkedGroups: Promise<Group[] | null>): Promise<void> {
+    if (this.routesLoading) {
+      return this.routesLoading;
     }
+
+    const loading = (async () => {
+      try {
+        await this.routeList.reload(linkedGroups.then(groups => groups ?? []));
+      } catch (error) {
+        console.warn('[BagDetail] 코스 조회 실패', error); // l10n-ignore: 개발자 로그
+      } finally {
+        this.routesLoading = null;
+      }
+    })();
+
+    this.routesLoading = loading;
+
+    return loading;
   }
+
+  // 코스 조회가 실패했는지 — 실패면 0개로 보고 `코스` 강조·코스 카드를 고르지 않는다(RD-9 #4·#5).
+  public hasRouteError() {
+    return !this.isSnapshot() && !!this.routeList.getError();
+  }
+
 
   /**
    * 지도 포인트 수 조회 (BD-14). 타일 부제의 `포인트 {m}` 조각에만 쓴다 — 문서를 읽지 않고 개수만

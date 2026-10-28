@@ -1,0 +1,155 @@
+# 지도 공통 (지도 공급자·공용 컴포넌트)
+
+| 항목 | 내용 |
+| --- | --- |
+| 상태 | proposed (2026-10-12 사용자 결정: "그래 지도 전체를 MapLibre로 바꾸자. 근데 지금 작업 다 2.0.2로 하자") |
+| ID 프리픽스 | `MAP` |
+| 주요 코드 | `[제안]` `components/map/`(`AppMapView` 공용 지도 뷰·`AppMapCamera`, `MapMyLocationMarkerView`, `MapMyLocationButtonView`, `useMyLocationHeadingMode`, `MapAttributionNoteView`), `components/map/`의 `MapRoutePathLayersView`·`MapEndpointMarkersView`·`MapScrubMarkerView`·`MapPointMarker(s)View`·`CampSiteSpotsLayerView`·`MapHealthRouteLayersView`·`useStaticMapImage`, `model/map/`(`MapStyle.ts` 스타일 URL·버전, `MapZoom.ts`, `StaticMapImage.ts` 정적 썸네일 생성·캐시, `MapCamera.ts` 카메라 유틸) |
+| 관련 스펙 | [CampSite.md](CampSite.md) CS-1·CS-2, [BagDestination.md](BagDestination.md) DST-2·DST-3·DST-8, [BagDetail.md](BagDetail.md) BD-11·BD-14, [Group.md](Group.md) GRP-7·GRP-8·GRP-9·GRP-10, [HealthActivity.md](HealthActivity.md) HA-4, [Bag.md](Bag.md) BAG-1, [Community.md](Community.md)(패킹 스냅샷 지도 밴드), [Offline.md](Offline.md) OF-6, [RouteReplay.md](RouteReplay.md), [AppLifecycle.md](AppLifecycle.md) APP-5 |
+
+## 1. 개요
+
+앱의 모든 지도가 **하나의 공급자·하나의 스타일**을 쓴다 — **MapLibre**(오픈소스 지도 엔진, `@maplibre/maplibre-react-native` 11.x) 위에 **OpenFreeMap** 벡터 타일(OpenStreetMap 데이터, 무료, 키 없음, 오프라인 내려받기 허용) + **AWS Terrain Tiles** 지형 음영을 얹은 자체 스타일 **`useless-outdoor`** 다. 2026-10-12 이전까지 온라인 지도는 네이버 지도 SDK(`@mj-studio/react-native-naver-map`), 목록 썸네일은 NCP Static Map API였다.
+
+**왜 바꾸나.** 오프라인 지도(OF-6)를 MapLibre로 만들면서 온라인 네이버·오프라인 MapLibre 두 벌이 생겼다 — 등고선·음영·한국어 라벨이 오프라인에서만 보이고, 비행기 모드 전환 때 지도가 통째로 바뀐다. 네이버 SDK는 오프라인 타일을 지원하지 않고, 정적 지도는 요청당 과금에 결과 저장 금지 약관이 있으며, NCP 키 만료·401 같은 운영 이슈가 있었다([[naver-map-integration]]). 한 공급자로 묶으면 코드 한 벌, 비용 0, 약관 문제 없음, 그리고 3D 리플레이(RouteReplay)·오프라인 팩과 같은 데이터를 나눠 쓴다.
+
+**잃는 것.** 한국 안 건물·상호·도로 정밀도는 네이버가 낫다. 등산 앱이라 치명적이지 않지만 여행지 선택·박지 주변 편의시설에서 체감될 수 있다(§8). 외부 **길찾기**는 계속 네이버 지도 **앱**으로 연다(`nmap://` 딥링크 — SDK가 아니라 앱 간 링크라 영향 없다, CS-3·GRP-7).
+
+**범위**: 지도 탭(박지), 여행지 선택기, 배낭 코스(온라인·오프라인 통합), 그룹 지도, 그룹 상세 지도 밴드, 운동 기록 경로, 배낭 목록·여행지 타일·허브·스냅샷의 정적 썸네일, 공용 마커·내 위치·카메라. **제외**: 웹(지도 없음, APP-5 그대로), 네이버 지도 **앱** 딥링크, 카카오·네이버 **검색 API**(장소 검색·블로그 후기 — 지도 SDK와 무관).
+
+## 2. 화면 및 진입
+
+지도를 그리는 화면과 그 스펙(진입은 각 도메인 스펙이 정한다):
+
+```text
+app/(tabs)/map.tsx            → CampSiteMapView          (CS-1·CS-2)   박지 지도
+app/bag-destination-picker    → BagDestinationPickerView (DST-3)       여행지 선택기(중앙 핀 + 박지 마커)
+app/bag/[id]/route            → BagRouteMapView          (BD-11·BD-14) 배낭 코스 — 온라인·오프라인 같은 뷰(OF-6)
+app/group/[id]/map            → GroupMapCanvasView       (GRP-10)      그룹 지도
+app/group/[id]                → GroupDetailMapBandView   (GRP-7)       상세 상단 지도 밴드(비대화형 지도)
+app/bag/[id]/activity         → BagActivityRouteMapView  (HA-4)        운동 기록 경로
+app/(tabs)/bag · bag/[id] · bag/[id]/weather · 커뮤니티 스냅샷 → 정적 썸네일(MAP-3)
+```
+
+## 3. 요구사항
+
+### MAP-1 공급자와 스타일 `[제안]`
+
+**수용 기준**
+
+- 모든 지도 뷰는 스타일 **`useless-outdoor`**(`model/map/MapStyle.ts`의 `MAP_STYLE_URL` = `https://lessismore-7e070.web.app/map/outdoor-v{n}.json`, `MAP_STYLE_VERSION`)를 쓴다. 오프라인 팩(OF-6)·3D 리플레이(RR-2)·정적 썸네일(MAP-3)도 같은 URL이다 — 스타일이 하나라 화면마다 지도 생김새가 같다.
+- 스타일 내용: OpenFreeMap `liberty` 기반, 라벨 **한국어 우선**(`name:ko` → 라틴+원어), **지형 음영**(hillshade, 지면 위·수로·도로 아래), 바탕 `#fbfaf8`. 생성 스크립트는 웹 레포(`scripts/`)에 두고 결과 JSON을 `public/map/`에 커밋해 Firebase Hosting으로 서빙한다. **내용을 바꾸면 파일명 버전을 올린다**(오프라인 팩이 URL에 묶인다 — OF-6).
+- **출처 표기**(ODbL 의무): 대화형 지도는 MapLibre 기본 attribution 버튼(좌하단 ⓘ — OpenFreeMap · © OpenMapTiles · © OpenStreetMap contributors · AWS Terrain Tiles)을 **숨기지 않는다**. 카드·시트가 그 자리를 덮으면 위치를 비켜 준다(OF-6과 같은 규칙). MapLibre 로고는 의무가 아니라 끈다.
+- **키·과금 없음.** `.env`의 NCP 키(`EXPO_PUBLIC_NCP_STATIC_MAP_KEY_ID`)와 `app.json`의 네이버 플러그인·메이븐 저장소는 제거한다(MAP-6).
+- 줌 체계: MapLibre와 네이버 SDK 모두 512px 타일 기준 웹 메르카토르라 **기존 줌 값(`MapZoom.ts` `deltaToZoom`, `KOREA_CAMERA`, 동네 줌 13 등)을 그대로 쓴다.**
+
+### MAP-2 공용 지도 컴포넌트 `[제안]`
+
+지도 화면마다 MapLibre를 직접 다루지 않고 `components/map/`의 공용 뷰를 쓴다. 한 곳에서 고치면 전 화면이 따라온다.
+
+**수용 기준**
+
+- **`AppMapView`**: MapLibre `Map` + `Camera`를 감싼 공용 뷰. 기본값 — `mapStyle` = `MAP_STYLE_URL`, 로고 끔, attribution 좌하단, 나침반 우상단(북쪽이면 숨김), **기울이기 끔**(`touchPitch={false}` — 네이티브 MapLibre는 3D 지형이 없다), 회전 허용, 축척 막대는 화면이 켠다. props: `initialCamera`(`center`+`zoom` 또는 `bounds`+`padding`), `onCameraChanged({latitude, longitude, zoom, bearing, reason: 'Gesture'|'Developer'})`(기존 네이버 콜백 모양을 유지해 `useMyLocationHeadingMode`가 그대로 동작), `onPress(coordinate)`, `onLongPress(coordinate)`(네이티브 롱프레스 — `Gesture.LongPress` + `screenToCoordinate` 우회 코드는 지운다), `interactive`(밴드용 false — 제스처 전부 끔), ref: `animateTo({latitude, longitude, zoom?, bearing?, duration})`, `fitBounds(bounds, padding, duration)`, `getCenter()`, `screenToCoordinate(point)`.
+- **`AppMapView` 안의 레이어는 세 가지 방식으로 그린다** — 데이터 성격에 따라 고른다:
+  1. **`GeoJSONSource` + `Layer`**(선·면·대량 점): 코스 선(`RoutePathLayersView` — 색 `RouteColors`, 선택 6/비선택 4, 흰 테두리), 등고선(OF-6), **박지 마커 수백 개**(CS-2 — `circle` 레이어 유형색 도트 18pt + 흰 2px 테두리, `symbol` 레이어 이름 캡션 `text-field`·`text-halo`, **충돌 숨김은 심볼 배치가 기본으로 한다**(`text-allow-overlap=false` — 네이버 `isHideCollidedCaptions`에 해당), 탭은 `GeoJSONSource.onPress`의 피처로 받는다(히트박스 44pt)). 뷰포트 밖 렌더 제외는 엔진이 알아서 한다 — CS-2의 "뷰포트 안만 렌더" 수동 필터는 뺀다.
+  2. **`Marker`**(실제 RN 뷰, 수십 개 이하): 지도 포인트(`PointMarkerView` — 유형색 원 + 캡션 `PretendardText`), 선택 박지 핀(`SpotPinView`), 출발·도착 말풍선(`RouteEndpointMarkersView` — 이미지 그대로 써도 되고 뷰로 그려도 된다: **MapLibre 마커는 스냅숏이 아니라 실제 뷰**라 글리프 누락·회전 갱신 문제가 없다), 훑기 마커, **내 위치**(`MapMyLocationMarkerView` — 파란 점 + 방향 부채꼴 이미지를 `transform: rotate(heading − bearing)`로 화면 기준 보정), 조준 모드 중앙 핀.
+  3. **RN 오버레이**(지도 위 절대 배치): 칩 줄·버튼·카드·펄스 링(CS-2 (A)) — 지금과 같다.
+- **`useMyLocationHeadingMode`·`MapMyLocationButtonView`** 는 그대로 쓴다(공급자 무관 훅). 훅이 `animateTo`를 받아 ① 이동 ② 따라가기(bearing) ③ 북쪽 되돌리기를 직접 처리하므로 화면은 호출만 한다. 끝점 카드 이동에 준 `padding`이 Android에서 다음 이동까지 남으므로 다른 이동에는 `padding 0`을 명시한다. 나침반·축척 막대·안내 줄은 상단 오버레이(칩·검색바) **아래**에 둔다.
+- **카메라 유틸**: `model/route/RouteCamera.ts`(`getRouteFitRegion`·`measureRouteBounds`·`mergeRouteBounds`)는 그대로 두고, `model/map/MapCamera.ts`에 `regionToLngLatBounds`(남서+스팬 → `[w,s,e,n]`), `boundsToLngLatBounds`, `KOREA_CAMERA`(세 화면에 복붙돼 있던 것을 하나로), `CURRENT_LOCATION_DELTA`, `MapCameraChangeReason` enum(`Gesture`·`Control`·`Developer` — 네이버 타입 의존 제거; MapLibre의 `userInteraction`은 `Gesture`, 나머지는 `Developer`)을 둔다. 네이버 `animateCameraTo`의 `pivot`(끝점을 카드 위 빈 자리에 놓기)은 MapLibre `padding`으로 바꾼다.
+- 카메라 명령은 **스타일 로드 완료 뒤**에 실행한다(그 전 명령은 Android 네이티브가 조용히 버린다 — 큐에 모아 둔다). `fitBounds`의 기본 duration은 500ms(0이면 즉시).
+- 지도 데이터 로드 실패(`onDidFailLoadingMap`): 지도 상단 한 줄 `지도 데이터를 불러오지 못했어요`(OF-6과 같은 문구·컴포넌트), 마커·오버레이는 그대로. 네이버 때의 "10초 안에 초기화 안 되면 캔버스 폴백"(OF-6 폴백) 개념은 사라진다 — 같은 지도라 폴백할 다른 지도가 없다.
+
+### MAP-3 정적 지도 썸네일 `[제안]`
+
+목록·타일·밴드의 지도 이미지는 NCP Static Map URL 대신 **기기에서 MapLibre로 렌더한 PNG**를 쓴다.
+
+**수용 기준**
+
+- `model/map/StaticMapImage.ts`: `getStaticMapImage({ latitude, longitude, zoom, width, height }): Promise<string | null>` — `StaticMapImageManager.createImage({ mapStyle: MAP_STYLE_URL, center: [lng, lat], zoom, width, height(px, 기기 배율 반영), output: 'file', logo: false })`로 PNG 파일을 만들고 **캐시 디렉터리** `cache/map-thumbs/{styleVersion}-{lat5}-{lng5}-{zoom}-{w}x{h}.png`에 둔다. 있으면 바로 돌려주고, 생성은 **동시 2개까지**로 줄 세운다(목록 스크롤에서 수십 장이 한꺼번에 들어온다). 실패·오프라인(타일 못 받음)은 `null` → 호출 화면은 **밴드 없는 폴백**(지금과 같다 — BAG-1 "깨진 이미지·빈 회색 밴드를 남기지 않는다").
+- 쓰는 곳과 치수(기존 값 유지): 배낭 목록 카드 밴드(BAG-1 — 폭 = 화면 폭 − 48, 높이 110, 줌 13, `BagItemView`), 커뮤니티 패킹 스냅샷·박지만 있는 그룹 상세 밴드(`SnapshotMapBandView`, 110, 줌 13), 여행지 허브 미리보기(DST-8, `BagDestinationMapPreviewView`, 높이 180, 줌 14). DST-2 타일 썸네일은 스펙에만 있고 구현된 적이 없다(2026-10-12 조사) — 이번에도 넣지 않는다. 마커는 지금처럼 **이미지에 싣지 않고 앱 핀(`SpotPinView`)을 밴드 위에 오버레이**한다.
+- **출처 표기**: MapLibre 정적 스냅샷에는 **스타일의 attribution 문구가 하단에 함께 그려진다**(2026-10-13 시뮬레이터 확인 — "OpenFreeMap © OpenMapTiles Data from OSM AWS Terrain Tiles"). 그래서 앱이 따로 `© OpenStreetMap` 라벨을 얹지 않는다(`[이력]` 처음엔 얹었다 — 중복). 밴드가 이미지 하단을 자르면 안 된다. BAG-1의 "밴드 위에 글자를 얹지 않는다"는 네이버 약관 조항이었으므로 이 한 줄만 예외로 바꾼다.
+- NCP 약관 때문에 두었던 제약(결과 저장 금지·로고 자르기 금지·요청당 과금 주의)은 **모두 사라진다** — 기기 캐시에 저장해도 되고, 캐시는 앱 캐시 디렉터리라 OS가 비울 수 있다(없으면 다시 만든다). 서버(Firestore·Storage)에는 여전히 올리지 않는다(필요가 없다).
+- 생성 중에는 밴드 자리를 스켈레톤 면으로 잡아 두고 이미지가 오면 페이드한다. 생성 실패·오프라인(캐시 없음)이면 밴드가 접힌다. 실패한 키는 세션 안에서 다시 시도하지 않고, 온라인으로 돌아오면 초기화한다. 오프라인에서는 빈 지면 PNG를 만들지 않는다(캐시만 본다). 생성 15초 상한.
+- 그룹 상세 지도 밴드(GRP-7)는 코스 선·포인트를 그려야 해서 정적 PNG가 아니라 **비대화형 `AppMapView`(`interactive=false`) 1개**를 쓴다. 밴드 전체가 탭 대상(덮개)이라 지도의 ⓘ는 눌리지 않지만 **보이게 둔다**(라이선스는 '보임'이 핵심 — 2026-10-13 정정, `[이력]` 한때 별도 라벨로 대체) — 한 화면에 하나라 비용 문제가 없다(네이버 때 "뷰 생성당 과금"이 이유였다). 운동 기록 경로(HA-4)도 같다.
+
+### MAP-4 화면별 전환 `[제안]`
+
+각 화면의 **동작 수용 기준은 해당 도메인 스펙이 그대로 유지**하고, 여기에는 공급자 전환으로 달라지는 점만 적는다.
+
+- **박지 지도(CS-1·CS-2)**: 마커 수백 개를 `GeoJSONSource`(circle + symbol 캡션)로 그린다. 선택 박지만 `Marker`(핀 + 캡션 강제 표시). 펄스 링·카메라 이징·시트·필터는 그대로. "뷰포트 밖 마커 미렌더" 수동 최적화와 `isHideCollidedSymbols`(지도 기본 POI 숨김) 우회는 뺀다 — 스타일의 POI 라벨과 마커 캡션이 겹치면 심볼 배치가 둘 중 하나를 숨긴다. 내 위치는 공용 마커.
+- **여행지 선택기(DST-3)**: 중앙 고정 핀은 RN 오버레이 그대로(MapLibre 모듈이 없는 옛 바이너리에서는 핀도 숨긴다). 확정 좌표는 `getCenter()` — 단 검색 결과·박지로 **이동 중**이면 네이버 `cancelAnimation` 대신 **이동 목표 좌표**로 0ms 이동한 뒤 그 목표를 저장한다(중간 좌표를 저장하지 않는다). 손으로 움직이면 목표 기억을 지운다. 박지 마커는 CS-2와 같은 레이어 컴포넌트를 공유. 포커스 해제 100m 판정은 `onCameraChanged`로 그대로.
+- **배낭 코스(BD-11·BD-14)**: 온라인 `BagRouteCanvasView`(네이버)와 오프라인 `OfflineRouteMapView`(MapLibre)를 **하나의 `BagRouteMapView`로 합친다.** 온라인이면 타일을 서버에서, 오프라인이면 팩에서 — 뷰는 같고 분기는 "편집 가능 여부(온라인 + 저장본 아님)"와 "상단 안내 줄"뿐이다. 등고선(저장본의 `contours.json`)은 **온라인에서도 저장본이 있으면 그린다**(같은 지도에서 지형 정보가 켜졌다 꺼졌다 하지 않게). 롱프레스 포인트 추가·조준 모드·`3D` 알약은 온라인에서만. OF-6의 "네이버 폴백" 문구·`OfflineMapReason.MapUnavailable`은 폐기한다.
+- **그룹 지도(GRP-10)**: 배낭 코스와 같은 레이어·마커 컴포넌트. 박지 마커는 `Marker`(연결 박지 1개).
+- **그룹 상세 밴드(GRP-7)·운동 기록(HA-4)**: 비대화형 `AppMapView` + 코스 선·마커, `fitBounds`. 지도 데이터 로드 실패 시 밴드를 숨기고 `map_load_failed`만 남긴다(빈 회색 밴드를 두지 않는다 — BAG-1과 같은 원칙). Android 세로 스크롤을 막지 않게 터치를 지도에 주지 않는다.
+- **정적 썸네일(BAG-1·DST-2·DST-8·스냅샷)**: MAP-3.
+- **3D 리플레이(RR)·오프라인 팩(OF)**: 변경 없음(이미 MapLibre).
+
+### MAP-5 제거 `[제안]`
+
+**수용 기준**
+
+- 의존성 `@mj-studio/react-native-naver-map` 제거, `patch-package`(`patches/`는 이미 없다 — `postinstall`과 devDependency도 제거), `plugins/WithNaverMapNcpKey.js`·`plugins/WithBrotliDedupe.js`(네이버 SDK가 끌어오던 `org.brotli:dec` 충돌 우회 — SDK가 빠지면 필요 없다) 제거, `app.json`의 두 플러그인과 `extraMavenRepos`의 네이버 저장소 제거, `model/map/StaticMapUrl.ts`와 네이버 전용 마커·경로 컴포넌트(`RoutePathOverlayView`·`RouteEndpointMarkersView`·`RouteScrubMarkerView`·`PointMarkerView`·`CampSiteMarkerView`의 네이버 버전) 제거, `.env`·EAS 환경 변수 `EXPO_PUBLIC_NCP_STATIC_MAP_KEY_ID` 제거(EAS `production` 환경에도 있으면 함께). 네이버 우회 코드(`isUseTextureViewAndroid`, 10초 초기화 폴백, 스냅숏 글리프 누락 때문의 PNG 라벨 강제, 방향 모드의 `camera` prop 얼리기)도 함께 걷는다.
+- `CLAUDE.md`의 네이버 지도 서술(기술 스택·플랫폼 분기·`naver-map-integration` 메모리 참조)을 MapLibre로 고친다. 스펙의 "네이버 지도" 표현은 각 도메인 스펙에서 `[이력]`으로 남기고 현재 서술을 MapLibre로 바꾼다.
+- NCP 콘솔의 Maps 상품·키는 **사용자가 해지**한다(이 스펙 범위 밖 — §8).
+
+### MAP-7 위성 보기 `[제안]`
+
+지도 화면에서 **위성 영상**으로 바꿔 본다 — 능선·바위·임도·숲길이 눈으로 보여 코스 그리기·박지 확인에 쓴다. **useless 플러스 혜택**이다(2026-10-15 사용자 결정 — "위성보기는 유료로"). 공급자는 **Esri World Imagery**(ArcGIS Location Platform)다.
+
+**공급자 결정 근거(2026-10-15)**: 브이월드 항공사진이 한국 산에서는 더 선명하지만, 이용약관 제20조 ③항("운영기관의 사전 승낙 없이 … 어떠한 영리행위도 할 수 없으며")과 FAQ("상업적 용도로 이용할 경우 반드시 사전에 문의")에 따라 유료 기능에는 사전 승낙이 필요하다 — 승낙 문의는 보내 두고(승낙 시 한국만 브이월드로 교체 검토, §8), 상업 배포가 명시적으로 허용되는 Esri로 시작한다. Esri는 계정당 **월 200만 타일 무료**, 결제 수단을 등록하지 않으면(pay-as-you-go 꺼짐) 한도를 넘어도 **과금되지 않고 그 결제 주기 동안 서비스가 멈춘다** — 앱은 아래 폴백으로 대응한다. 결제 수단은 등록하지 않는다(운영 결정).
+
+**수용 기준**
+
+- **진입**: 코스 화면(BD-11)·그룹 지도(GRP-10)·박지 지도(CS-1)의 우측 지도 컨트롤 스택 맨 아래에 **`지도 | 위성` 전환 버튼**(원형 아이콘 `layers-outline`, `내 위치`와 같은 크기 — 누르면 작은 메뉴: `일반 지도` · `위성`(플러스가 아니면 자물쇠 아이콘 + 메타 `useless 플러스`)). 지도 위 요소라 그림자. 접근성 라벨 `지도 종류`.
+- **권한**: 플러스(체험 포함)면 바로 바꾼다. 아니면 `위성`을 누를 때 구독 화면을 **위성 진입점 변형**(`SubscriptionEntryPoint.Satellite`, SUB-13)으로 열고, 권한을 얻으면 바로 위성으로 바꾼다. 구독이 끝나면 다음 지도 표시부터 일반 지도로 돌아간다.
+- **표시**: 위성 래스터 타일(`https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?token={key}`, 256px, 최대 줌 19) 위에 **도로·지명 라벨과 등산로 선**을 얹는다(OpenFreeMap 스타일의 라벨·길 레이어만 남긴 `useless-outdoor` 위성 변형 — 지형 음영·면 채움은 끈다). 코스 선·포인트·끝점·내 위치·등고선(OF-6)은 그대로 위에 그린다. 코스 선은 위성 위에서 묻히지 않게 흰 테두리를 1단 굵게(기존 선 문법 + 테두리 강조).
+- **기억**: 마지막 선택(일반/위성)을 기기에 기억한다(`AsyncStorage` `map.layer`) — 화면 공통. 플러스가 아니면 기억 값이 위성이어도 일반으로 연다.
+- **출처 표시**(라이선스 의무): 위성일 때 지도 출처 ⓘ에 `Esri, Maxar, Earthstar Geographics, and the GIS User Community`(Esri 표준 문구)를 OpenStreetMap·OpenFreeMap과 함께 표시한다.
+- **오프라인**: 위성은 **온라인 전용**이다. 오프라인이면 세 화면 모두 기억 값과 무관하게 일반 지도로 그린다(위성 레이어는 면 채움·음영을 끄므로, 타일 없이 켜 두면 흰 바탕만 남는다). 오프라인 저장(OF-1)에 위성 타일을 넣지 않는다(Esri 약관상 전용 SDK 외 타일 보관 제한, 용량). 오프라인이면 전환 메뉴의 `위성`을 비활성 + 메타 `온라인에서 볼 수 있어요`, 위성으로 보던 중 끊기면 받은 타일만 남고 새 영역은 비어 보인다(지도는 그대로 동작).
+- **한도 폴백**: 위성을 켜기 직전과 세션의 첫 위성 표시 전에 **타일 1장을 미리 받아 확인**한다(MapLibre가 타일 실패를 앱에 알려 주지 않기 때문 — 2026-10-15 구현 확인). 권한 오류(HTTP 401·403·498·499 또는 Esri 오류 응답)면 자동으로 일반 지도로 돌아가고 토스트 `위성 지도를 지금은 볼 수 없어요`를 앱 세션에 한 번 띄운다. 그 세션 동안 `위성`은 비활성 + 메타 `잠시 쓸 수 없어요`. 측정 `map_satellite_unavailable`(`logEvent`, `status`). 네트워크 실패·시간 초과는 권한 오류로 보지 않고 다음 표시 때 다시 확인한다. **보는 도중 한도가 소진되면 감지하지 못한다**(새 영역 타일이 비어 보인다 — 다음 세션 확인에서 잡힌다). 확인 중에는 메뉴 `위성`에 메타 `확인 중…`.
+- **키**: Esri API 키는 **베이스맵(위성 타일) 조회 권한만** 준 키를 쓰고, 앱 빌드 환경변수 `EXPO_PUBLIC_ESRI_BASEMAP_KEY`(EAS 환경 변수 + 로컬 `.env`)로 주입한다 — 코드·저장소에 넣지 않는다. 키가 없는 빌드는 전환 버튼을 그리지 않는다. 키를 바꿔야 하면 OTA로 교체한다.
+- **측정**: `click_map_layer`(`layer`: `standard` | `satellite`, `screen`: `bag_route` | `group_map` | `camp_map` | `route_replay`, `entitled`: boolean).
+- **3D 리플레이(RR-2)**: 리플레이를 여는 순간의 지도 종류(`MapLayerStore.getLayer()`)를 따른다(2026-10-15 사용자 지적 — "3d에서 위성 화면 안보이네"). 위성이면 웹뷰의 MapLibre GL JS 스타일에 같은 Esri 래스터를 같은 자리(`tunnel_motorway_link_casing` 아래)에 끼우고 같은 레이어를 끈다 — 위성 사진이 3D 지형 위에 입혀진다. 게이트·오프라인·한도 폴백은 위 규칙 그대로다(`getLayer()`가 이미 가른다). 3D 화면에도 **같은 전환 버튼**(`MapLayerControlView`)을 지도 우상단에 둔다(2026-10-15 사용자 요청 — "3d 화면에도 위성 전환 버튼 넣어줘") — 메뉴·게이트·확인·기억이 지도 화면과 같고, 고르면 웹뷰를 다시 띄우지 않고 그 자리에서 바꾼다(재생·카메라 유지). 3D에서 고른 값도 기억되어 지도 화면에 그대로 이어진다.
+
+### MAP-6 측정 `[제안]`
+
+새 이벤트 없음. 지도 로드 실패는 `map_load_failed`(`logEvent`, `screen`) 하나만 더한다 — 공급자를 바꾼 뒤 타일 서버 장애를 알 수 있어야 한다. [Analytics.md](Analytics.md) AN-3 표에 추가.
+
+## 4. 데이터
+
+- 서버 변경 없음. 스타일 JSON은 웹 레포 `public/map/outdoor-v{n}.json`(Firebase Hosting). 정적 썸네일 캐시는 기기 캐시 디렉터리(MAP-3).
+- 데이터 출처·라이선스: OpenFreeMap(OpenMapTiles 스키마, OpenStreetMap ODbL — 출처 표기 의무), AWS Terrain Tiles(Mapzen Terrarium, 공개 데이터). 둘 다 키·과금이 없다. 스프라이트·글리프는 OpenFreeMap 것을 쓴다.
+
+## 5. 플랫폼 분기
+
+- iOS·Android 동일. Android는 MapLibre `opengl` 변형(플러그인 기본). 웹은 지도 없음(APP-5 — 변화 없음).
+- 바이너리: **2.0.2 재빌드**(TestFlight 빌드 112 이후)부터. MapLibre 없이 구운 TestFlight 빌드 111·2.0.1 이하에 이 코드를 OTA로 보내면 **모든 지도 화면이 비게 되므로 보내지 않는다**(OF §6의 게이트는 코스 화면만 막는다). 배포 전 `git log <라이브 바이너리 커밋>..HEAD -- package.json app.json`으로 네이티브 변경을 확인하는 기존 규칙(CLAUDE.md) 그대로.
+
+## 6. 엣지 케이스
+
+- **오프라인에서 지도 화면 진입**(저장본 아님): 타일이 없어 지면색만 보인다. 마커·선·내 위치는 그려진다. 네이버 때는 지도가 아예 빈 회색이었으므로 나빠지지 않는다.
+- **스타일 서버(Firebase Hosting) 장애**: 지도 데이터 로드 실패 한 줄(MAP-2) + `map_load_failed`. 스타일을 앱 번들에 동봉하는 폴백은 §8.
+- **OpenFreeMap 장애·정책 변경**: 단일 무료 공급자 의존이다(§8). 스타일 JSON의 소스 URL만 바꾸면 되므로 공급자 교체는 **스타일 버전 올림 + 호스팅 재배포**로 끝난다(앱 OTA 불필요).
+- **정적 썸네일 생성 중 화면 이탈**: 결과를 캐시에만 쓰고 화면 갱신은 하지 않는다(다음 진입 때 즉시).
+- **마커 수백 개 + 캡션**: 심볼 레이어라 네이티브가 배치한다. 탭은 `queryRenderedFeatures`로 가장 가까운 피처 하나.
+
+## 7. 수동 검증 체크리스트
+
+- [ ] 지도 탭: 박지 도트·캡션·유형색·필터·선택 핀·펄스·시트·내 위치·현재 위치 버튼 동작, 한국어 지명, 음영, 출처 ⓘ
+- [ ] 여행지 선택기: 중앙 핀 좌표 확정, 박지 마커 탭 → 상세 시트, 검색 결과 이동, 100m 이동 시 포커스 해제
+- [ ] 배낭 코스(온라인): 코스 선·출발/도착·포인트·롱프레스 추가·조준 모드·`3D`·방향 모드; 저장본이 있으면 등고선; 비행기 모드 → 같은 지도가 팩에서 뜨고 편집만 막힘
+- [ ] 그룹 지도·그룹 상세 밴드·운동 기록 경로가 같은 지도 문법으로 보임
+- [ ] 배낭 목록 카드 밴드·여행지 타일·허브 미리보기·스냅샷 밴드: 썸네일 생성·캐시(두 번째 진입 즉시)·`© OpenStreetMap` 표기·오프라인 폴백(밴드 없음)
+- [ ] `grep -rn "naver-map\|ntruss\|NCP_STATIC" .` 결과 없음(검색 API·`nmap://` 딥링크 제외), 앱 용량 변화 기록
+- [ ] Android 실기기: 지도 렌더·마커 탭·회전
+
+## 8. 미해결 질문
+
+- **브이월드 항공사진(한국)** — 사전 승낙 문의 중(2026-10-15). 승낙되면 한국 범위만 브이월드 `Satellite`(+`Hybrid`)로 바꾸고 해외는 Esri 유지(MAP-7).
+
+
+- **한국 POI 정밀도**: OSM은 상호·건물이 네이버보다 성글다. 여행지 선택은 카카오 장소 검색이 좌표를 주므로 지도는 배경일 뿐이지만, 박지 주변 편의시설 확인 용도는 약해진다. 실사용 반응을 본다.
+- **단일 무료 공급자 의존**: OpenFreeMap이 멈추면 모든 지도가 멈춘다. 대안(MapTiler 유료, 자체 호스팅 PMTiles)은 스타일 소스 URL 교체로 가능 — 장애 시 절차를 문서화할지.
+- **스타일 JSON 동봉**: Firebase Hosting 장애에 대비해 앱 번들에 스타일을 함께 두고 URL 실패 시 쓰는 폴백. 오프라인 팩의 스타일 URL 일치 조건과 충돌하므로 보류.
+- **NCP 상품 해지 시점**: 2.0.2 재빌드가 스토어에 깔린 뒤 옛 바이너리(2.0.1 이하) 사용자가 남아 있는 동안은 네이버 키를 살려 둬야 한다 — 2.0.0 미만 강제 업데이트 게이트처럼 최소 버전을 2.0.2로 올린 뒤 해지.
+- **정적 썸네일 출처 표기 크기**(10pt)가 HIG 가독성 기준(최소 11pt 권장)과 어긋난다 — 디자인 리뷰에서 결정.

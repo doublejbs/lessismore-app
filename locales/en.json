@@ -268,13 +268,18 @@
       "empty": "No routes yet",
       "loadFailed": "Failed to load routes",
       "fromGroup": "Group {{name}}",
+      "sharedToGroup": "Shared to group",
       "toGroup": "Send to group",
       "toGroupTitle": "Which group?",
-      "toGroupDone": "Sent to the group"
+      "toGroupDone": "Sent to the group",
+      "tileDraw": "Draw a route",
+      "highlightLabel": "Draw a route",
+      "highlightValue": "Follows the trails",
+      "cardCount_one": "{{count}} route",
+      "cardCount_other": "{{count}} routes",
+      "cardLabel": "Route {{name}}, {{meta}}"
     },
     "point": {
-      "segmentRoutes": "Routes",
-      "segmentPoints": "Points",
       "empty": "No points yet. Long-press the map or tap Add point",
       "emptyReadOnly": "No points yet",
       "emptyFiltered": "No points of this type",
@@ -285,6 +290,13 @@
       "loadFailed": "Couldn't load points"
     },
     "group": {
+      "routes_one": "{{count}} route",
+      "routes_other": "{{count}} routes",
+      "points_one": "{{count}} point",
+      "points_other": "{{count}} points",
+      "cardLabel": "{{name}} group, {{meta}}, view group details",
+      "openMap": "Group map",
+      "openBags": "Crew bags",
       "members_one": "{{count}} member",
       "members_other": "{{count}} members",
       "rowLabel": "{{name}} group, {{members}}",
@@ -1357,7 +1369,7 @@
       "submit": "Create a group",
       "created": "Group created. Copy the invite link to bring your crew in",
       "discardConfirm": "Discard what you have entered?",
-      "discard": "Discard",
+      "discard": "Don't Save",
       "keepWriting": "Keep editing"
     },
     "invite": {
@@ -1510,9 +1522,7 @@
       "currentLocation": "Current location",
       "webNotice": "Maps are not available on the web, so courses and points are shown as a list.",
       "aimHint": "Move the map to aim at the spot you want",
-      "aimConfirm": "Add here",
-      "routeFull": "Route limit reached",
-      "openRouteList": "Open route list"
+      "aimConfirm": "Add here"
     },
     "point": {
       "title": "Add point",
@@ -1581,7 +1591,10 @@
       "destinationName": "{{name}} {{endpoint}}"
     },
     "pointOnRoute": "{{distance}} along route",
-    "pointElevation": "Elevation {{value}}m"
+    "pointElevation": "Elevation {{value}}m",
+    "sheetHandle": "Adjust list height",
+    "segmentRoutes": "Routes",
+    "segmentPoints": "Points"
   },
   "ad": {
     "label": "Ad",
@@ -1625,7 +1638,40 @@
     "nudgeBody": "Tired of ads? Remove every ad in the app for {{price}} a month.",
     "nudgeBodyNoPrice": "Tired of ads? Subscribe to remove every ad in the app.",
     "nudgeExplore": "Learn about the subscription",
-    "nudgeNotNow": "No thanks"
+    "nudgeNotNow": "No thanks",
+    "heroBadge": "useless Plus",
+    "headlineTrial1": "Heading to the mountains?",
+    "headlineTrial2": "Your first 7 days are free.",
+    "headlineNoTrial1": "Signal drops in the mountains.",
+    "headlineNoTrial2": "Get ready with useless Plus.",
+    "priceTrialLead": "7 days free, then {{price}} / month",
+    "trialCardTitle": "How your free trial works",
+    "trialToday": "Today: Every feature unlocks",
+    "trialDay5": "Day 5: We'll remind you the trial is ending",
+    "trialDay7": "Day 7: You'll be charged {{price}} / month",
+    "trialDay7NoPrice": "Day 7: Your monthly billing starts",
+    "noTrialLine": "Start using it as soon as you subscribe",
+    "feature1Title": "Save the whole trip",
+    "feature1Detail": "Keep the route, gear, weather, and campsite notes on your device and open them without data",
+    "feature2Title": "Offline maps",
+    "feature2Detail": "Save maps with contour lines and terrain shading to see your location in the mountains",
+    "feature3Title": "Packing checks on the trail",
+    "feature3Detail": "Items you check offline sync automatically once you're back online",
+    "feature4Title": "Map points",
+    "feature4Detail": "Pin water sources, shelters, and caution areas on the route and see them offline",
+    "cancelAnytime": "Cancel anytime",
+    "trialReminderTitle": "Your useless Plus free trial ends in 2 days",
+    "trialReminderBody": "You'll be charged {{price}} / month from {{date}}. To stop, cancel in your store settings.",
+    "trialReminderBodyNoPrice": "Monthly billing starts {{date}}. To stop, cancel in your store settings.",
+    "routeDrawEntryLead": "Draw and edit as many routes as you like",
+    "feature5Title": "Draw routes",
+    "feature5Detail": "Tap points on the map and your route follows the hiking trails",
+    "purchaseSuccessRouteDraw": "You can draw as many routes as you like",
+    "purchaseSuccessGeneral": "You've started useless Plus",
+    "satelliteEntryLead": "See ridges and trails for yourself in satellite imagery",
+    "feature6Title": "Satellite map",
+    "feature6Detail": "Lay your route over satellite imagery to check ridges, rocks, and forest trails",
+    "purchaseSuccessSatellite": "Satellite map is now available"
   },
   "commerce": {
     "coupangDisclaimer": "As a Coupang Partners activity, we receive a commission.",
@@ -1656,11 +1702,6 @@
     },
     "next": "Next",
     "skip": "Skip",
-    "date": {
-      "title": "When are you going?",
-      "subtitle": "Set dates and we'll remind you to pack the day before",
-      "undecided": "Not decided yet"
-    },
     "destination": {
       "title": "Where are you going?",
       "subtitle": "Set a destination to see the weather for your trip",
@@ -1731,12 +1772,30 @@
     "start": "Get ready for your next trip",
     "login": "Already have an account · Sign in"
   },
+  "routeReplay": {
+    "badge": "3D",
+    "activityTitle": "Workout",
+    "failed": "Couldn't load the 3D map",
+    "empty": "Open 3D from the route screen",
+    "play": "Play",
+    "pause": "Pause",
+    "fit": "Show all",
+    "speed": "×{{speed}}",
+    "speedHint": "Playback speed",
+    "progress": "Playback position",
+    "start": "Start",
+    "end": "Finish",
+    "open": "View in 3D"
+  },
   "offline": {
     "dateFormat": "MMM D",
     "tile": {
       "title": "Offline",
       "unsaved": "Save offline",
       "saving": "Saving…",
+      "savingMap": "Saving map · {{percent}}%",
+      "refreshing": "Refreshing offline…",
+      "refreshingMap": "Refreshing map · {{percent}}%",
       "saved": "Saved · {{size}} · updated {{date}}",
       "needsUpgrade": "Needs an update",
       "locked": "Saved · Subscribe to view again",
@@ -1770,12 +1829,105 @@
       "locked": "Your subscription ended, so saved trips are locked",
       "needsUpgrade": "This copy needs an update. Open the trip while online to update it"
     },
-    "canvas": {
-      "offlineLine": "Offline · The map appears when you're connected",
-      "mapFailedLine": "Couldn't load the map · Showing routes only",
-      "groupHidden": "Group routes aren't available offline",
-      "north": "N",
-      "northLabel": "North"
+    "map": {
+      "offlineLine": "Offline · Showing your saved map"
+    }
+  },
+  "routeDraw": {
+    "menuTitle": "Add route",
+    "menuImport": "Import GPX file",
+    "menuImportMeta": "A route made in another app",
+    "menuDraw": "Draw on map",
+    "menuDrawMeta": "Tap points to connect them along trails or in straight lines",
+    "noticeEmpty": "Tap the map to add points · They connect in straight lines",
+    "noticeEmptyTrail": "Tap the map to add points · They follow the trails",
+    "noticeContinue": "Keep tapping to continue · Save from 2 points",
+    "pointUnit": " pts",
+    "metaLabel": "{{count}} points, distance {{distance}}",
+    "undo": "Undo",
+    "undoHint": "Removes the last point",
+    "save": "Save",
+    "saving": "Saving…",
+    "saveHint": "You can save once you have 2 points",
+    "discardConfirm": "Leave without saving this route?",
+    "discard": "Discard",
+    "pointLimit": "You can add up to {{max}} points",
+    "elevationFailed": "Couldn't read elevation, so it was saved without a profile",
+    "defaultName": "{{name}} route",
+    "fallbackName": "Drawn route",
+    "nameTitle": "Route name",
+    "nameLabel": "Name",
+    "namePlaceholder": "Enter a route name",
+    "nameCounter": "{{count}}/{{max}}",
+    "close": "Close",
+    "gpxDescription": "A route drawn by tapping points on the map in useless",
+    "searchPlaceholder": "Search places or mountains",
+    "searchLabel": "Search location",
+    "searchClear": "Clear search",
+    "searchEmpty": "No results found",
+    "searchPinLabel": "Searched location, {{name}}",
+    "destinationPinLabel": "Destination, {{name}}",
+    "trailToggle": "Follow trails",
+    "trailToggleHint": "When on, new segments follow hiking trails",
+    "routing": "Finding trail…",
+    "saveHintRouting": "You can save once the trail is found",
+    "trailFailed": "Couldn't find a trail for this segment, so it's a straight line",
+    "trailUnavailable": "No trail data in this area · Try turning off Follow trails",
+    "gpxTrailAttribution": " · Route data © OpenStreetMap contributors, BRouter",
+    "menuDrawMetaFree": "Your first route is free",
+    "menuDrawMetaPlus": "useless Plus",
+    "onlineToCheck": "You can check this when you're online",
+    "editRoute": "Edit route",
+    "noticeEdit": "Editing route · Add points at the end or undo",
+    "discardEditConfirm": "Leave without saving your changes?",
+    "trailNotEntitled": "Follow trails is a useless Plus feature",
+    "claimFailed": "Couldn't save right now. Please try again in a moment.",
+    "editUnavailable": "This route can't be edited",
+    "saveHintNoChanges": "You can save once you make a change",
+    "emptyCardTitleBag": "Draw a route for this trip",
+    "emptyCardTitleGroup": "Draw a route for your group",
+    "emptyCardDescription": "Tap points on the map and they’ll follow the trails",
+    "emptyCardImport": "Import GPX",
+    "searchStartHint": "Search for where to start drawing"
+  },
+  "map": {
+    "loadFailed": "Couldn't load map data",
+    "unsupportedBinary": "Maps aren't available in this version · Please update the app",
+    "layer": {
+      "button": "Map type",
+      "title": "Map type",
+      "standard": "Standard map",
+      "satellite": "Satellite",
+      "plusMeta": "useless Plus",
+      "offlineMeta": "Available online",
+      "unavailableMeta": "Temporarily unavailable",
+      "selectedMeta": "In use",
+      "unavailableToast": "Satellite map isn't available right now",
+      "probingMeta": "Checking…"
+    }
+  },
+  "moderation": {
+    "report": "Report",
+    "more": "More",
+    "block": {
+      "menu": "Block {{name}}",
+      "action": "Block",
+      "confirmTitle": "Block {{name}}?",
+      "confirmMessage": "You won't see this user's posts, comments, or reviews anymore. Our team will be notified too.",
+      "confirm": "Block",
+      "done": "User blocked",
+      "failed": "Couldn't block this user",
+      "blockedComment": "Comment from a blocked user",
+      "unknownUser": "this user"
+    },
+    "blockedUsers": {
+      "title": "Blocked users",
+      "empty": "No blocked users",
+      "unblock": "Unblock",
+      "unblockAccessibility": "Unblock {{name}}",
+      "unblocked": "User unblocked",
+      "unblockFailed": "Couldn't unblock this user",
+      "loginRequired": "Log in to see the users you blocked"
     }
   }
 }

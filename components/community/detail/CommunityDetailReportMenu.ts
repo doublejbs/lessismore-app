@@ -1,6 +1,5 @@
 import CommunityDetail, { CommunityReportTarget } from '@/model/community-detail/CommunityDetail';
-import CommunityReportReason from '@/model/community/CommunityReportReason';
-import app from '@/model/app/App';
+import getReportReasonMenuItems from '@/components/report/ReportReasonMenuItems';
 
 export interface CommunityReportSheetTarget {
   target: CommunityReportTarget;
@@ -15,23 +14,10 @@ const getCommunityReportMenuItems = (
     return [];
   }
 
-  const reasons: [CommunityReportReason, string][] = [
-    [CommunityReportReason.Spam, 'spam'],
-    [CommunityReportReason.Harassment, 'harassment'],
-    [CommunityReportReason.SexualViolence, 'sexualViolence'],
-    [CommunityReportReason.Copyright, 'copyright'],
-    [CommunityReportReason.Privacy, 'privacy'],
-    [CommunityReportReason.Other, 'other'],
-  ];
-
-  return reasons.map(([reason, key]) => ({
-    icon: 'flag-outline' as const,
-    text: app.getL10n().t(`community.report.${key}`),
-    onPress: () => {
-      close();
-      setTimeout(() => void detail.report(target.target, reason), 0);
-    },
-  }));
+  return getReportReasonMenuItems(reason => {
+    close();
+    setTimeout(() => void detail.report(target.target, reason), 0);
+  });
 };
 
 export default getCommunityReportMenuItems;

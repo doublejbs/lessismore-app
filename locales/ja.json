@@ -266,13 +266,17 @@
       "empty": "まだコースがありません",
       "loadFailed": "コースを読み込めませんでした",
       "fromGroup": "グループ {{name}}",
+      "sharedToGroup": "グループに共有済み",
       "toGroup": "グループに送る",
       "toGroupTitle": "どのグループに送りますか？",
-      "toGroupDone": "グループに送りました"
+      "toGroupDone": "グループに送りました",
+      "tileDraw": "コースを描く",
+      "highlightLabel": "コースを描く",
+      "highlightValue": "登山道に沿ってつながります",
+      "cardCount_other": "コース {{count}}",
+      "cardLabel": "コース {{name}}、{{meta}}"
     },
     "point": {
-      "segmentRoutes": "コース",
-      "segmentPoints": "ポイント",
       "empty": "まだポイントがありません。地図を長押しするか、ポイントを追加から登録してください",
       "emptyReadOnly": "まだポイントがありません",
       "emptyFiltered": "この種類のポイントはありません",
@@ -282,6 +286,11 @@
       "loadFailed": "ポイントを読み込めませんでした"
     },
     "group": {
+      "routes_other": "コース{{count}}",
+      "points_other": "ポイント{{count}}",
+      "cardLabel": "{{name}}グループ、{{meta}}、グループ詳細を見る",
+      "openMap": "グループマップ",
+      "openBags": "仲間のバックパック",
       "members_other": "メンバー{{count}}人",
       "rowLabel": "{{name}}グループ、{{members}}",
       "linkMenu": "グループに連携",
@@ -1483,9 +1492,7 @@
       "currentLocation": "現在地",
       "webNotice": "ウェブでは地図を表示できないため、コースとポイントを一覧で表示します",
       "aimHint": "地図を動かして追加する位置を合わせます",
-      "aimConfirm": "この位置に追加",
-      "routeFull": "コースがいっぱいです",
-      "openRouteList": "コース一覧を開く"
+      "aimConfirm": "この位置に追加"
     },
     "point": {
       "title": "ポイント登録",
@@ -1554,7 +1561,10 @@
       "destinationName": "{{name}} {{endpoint}}"
     },
     "pointOnRoute": "コース{{distance}}地点",
-    "pointElevation": "標高 {{value}}m"
+    "pointElevation": "標高 {{value}}m",
+    "sheetHandle": "リストの高さを調整",
+    "segmentRoutes": "コース",
+    "segmentPoints": "ポイント"
   },
   "ad": {
     "label": "広告",
@@ -1598,7 +1608,40 @@
     "nudgeBody": "広告が気になりますか？月額{{price}}でアプリのすべての広告をなくせます。",
     "nudgeBodyNoPrice": "広告が気になりますか？購読するとアプリのすべての広告をなくせます。",
     "nudgeExplore": "サブスクリプションを見る",
-    "nudgeNotNow": "今はしない"
+    "nudgeNotNow": "今はしない",
+    "heroBadge": "useless プラス",
+    "headlineTrial1": "山へ行きますか？",
+    "headlineTrial2": "最初の7日間は無料です。",
+    "headlineNoTrial1": "山では電波が途切れます。",
+    "headlineNoTrial2": "useless プラスで備えましょう。",
+    "priceTrialLead": "7日間無料、その後は月額 {{price}}",
+    "trialCardTitle": "無料体験の流れ",
+    "trialToday": "今日：すべての機能が使えます",
+    "trialDay5": "5日目：体験終了のお知らせを送ります",
+    "trialDay7": "7日目：月額{{price}}が請求されます",
+    "trialDay7NoPrice": "7日目：月額料金が請求されます",
+    "noTrialLine": "購読するとすぐに使えます",
+    "feature1Title": "旅行をまるごと保存",
+    "feature1Detail": "コース・装備・天気・野営地の注意事項を端末に保存し、電波がなくても開けます",
+    "feature2Title": "オフライン地図",
+    "feature2Detail": "等高線と地形の陰影が入った地図を保存し、山でも現在地を確認できます",
+    "feature3Title": "山でパッキングチェック",
+    "feature3Detail": "オフラインでチェックした内容は、接続すると自動で反映されます",
+    "feature4Title": "地図ポイント",
+    "feature4Detail": "給水・休憩所・注意区間をコース上に記しておき、オフラインでも見られます",
+    "cancelAnytime": "いつでも解約できます",
+    "trialReminderTitle": "useless プラスの無料体験は2日後に終わります",
+    "trialReminderBody": "{{date}}から月額{{price}}が請求されます。続けない場合は、ストアの設定から解約してください。",
+    "trialReminderBodyNoPrice": "{{date}}から月額料金が請求されます。続けない場合は、ストアの設定から解約してください。",
+    "routeDrawEntryLead": "コースを何度でも描いて直せます",
+    "feature5Title": "コースを描く",
+    "feature5Detail": "地図に点を打つと登山道に沿ってコースがつながります",
+    "purchaseSuccessRouteDraw": "コースを思いきり描けます",
+    "purchaseSuccessGeneral": "useless プラスを始めました",
+    "satelliteEntryLead": "衛星写真で尾根や道を直接確かめましょう",
+    "feature6Title": "衛星地図",
+    "feature6Detail": "衛星写真にコースを重ねて、尾根・岩場・林道を確認できます",
+    "purchaseSuccessSatellite": "衛星地図を表示できるようになりました"
   },
   "commerce": {
     "coupangDisclaimer": "Coupangパートナーズ活動の一環として、所定の手数料を受け取ります。",
@@ -1629,11 +1672,6 @@
     },
     "next": "次へ",
     "skip": "スキップ",
-    "date": {
-      "title": "いつ行きますか？",
-      "subtitle": "日程を決めると、出発の前日にパッキングをお知らせします",
-      "undecided": "まだ決まっていません"
-    },
     "destination": {
       "title": "どこへ行きますか？",
       "subtitle": "目的地を決めると、その期間の天気も表示します",
@@ -1702,12 +1740,30 @@
     "start": "次のバックパッキングを準備する",
     "login": "アカウントをお持ちの方 · ログイン"
   },
+  "routeReplay": {
+    "badge": "3D",
+    "activityTitle": "運動記録",
+    "failed": "3D地図を読み込めませんでした",
+    "empty": "コース画面から3Dを開いてください",
+    "play": "再生",
+    "pause": "停止",
+    "fit": "全体を表示",
+    "speed": "×{{speed}}",
+    "speedHint": "再生速度",
+    "progress": "再生位置",
+    "start": "出発",
+    "end": "到着",
+    "open": "3Dで見る"
+  },
   "offline": {
     "dateFormat": "M/D",
     "tile": {
       "title": "オフライン",
       "unsaved": "オフライン保存",
       "saving": "保存中…",
+      "savingMap": "地図を保存中 · {{percent}}%",
+      "refreshing": "オフライン更新中…",
+      "refreshingMap": "地図更新中 · {{percent}}%",
       "saved": "保存済み · {{size}} · {{date}} 更新",
       "needsUpgrade": "更新が必要です",
       "locked": "保存済み · 購読すると再び見られます",
@@ -1741,12 +1797,105 @@
       "locked": "購読が終了したため保存した旅行を見られません",
       "needsUpgrade": "更新が必要です。オンラインでこの旅行を開くと更新されます"
     },
-    "canvas": {
-      "offlineLine": "オフライン · 地図は接続すると表示されます",
-      "mapFailedLine": "地図を読み込めませんでした · コースのみ表示しています",
-      "groupHidden": "グループのコースはオフラインでは表示されません",
-      "north": "N",
-      "northLabel": "北"
+    "map": {
+      "offlineLine": "オフライン · 保存した地図です"
+    }
+  },
+  "routeDraw": {
+    "menuTitle": "コースを追加",
+    "menuImport": "GPXファイルを読み込む",
+    "menuImportMeta": "ほかのアプリで作ったコース",
+    "menuDraw": "地図で描く",
+    "menuDrawMeta": "点を打って登山道か直線でつなぎます",
+    "noticeEmpty": "地図をタップして点を打ちましょう · 直線でつながります",
+    "noticeEmptyTrail": "地図をタップして点を打ちましょう · 登山道に沿ってつながります",
+    "noticeContinue": "続けてタップしてつなげましょう · 保存は2点から",
+    "pointUnit": "点",
+    "metaLabel": "{{count}}点、距離 {{distance}}",
+    "undo": "元に戻す",
+    "undoHint": "最後に打った点を消します",
+    "save": "保存",
+    "saving": "保存中…",
+    "saveHint": "保存は2点からできます",
+    "discardConfirm": "コースを保存せずに終了しますか?",
+    "discard": "保存しない",
+    "pointLimit": "点は{{max}}個まで打てます",
+    "elevationFailed": "標高を読み取れなかったため、グラフなしで保存しました",
+    "defaultName": "{{name}} コース",
+    "fallbackName": "描いたコース",
+    "nameTitle": "コース名",
+    "nameLabel": "名前",
+    "namePlaceholder": "コース名を入力してください",
+    "nameCounter": "{{count}}/{{max}}",
+    "close": "閉じる",
+    "gpxDescription": "uselessで地図に点を打って作ったコース",
+    "searchPlaceholder": "地名・山の名前で検索",
+    "searchLabel": "場所を検索",
+    "searchClear": "検索語を消去",
+    "searchEmpty": "検索結果がありません",
+    "searchPinLabel": "検索した場所、{{name}}",
+    "destinationPinLabel": "目的地、{{name}}",
+    "trailToggle": "登山道に沿う",
+    "trailToggleHint": "オンにすると次の区間から登山道に沿ってつなぎます",
+    "routing": "道を検索中…",
+    "saveHintRouting": "道が見つかると保存できます",
+    "trailFailed": "この区間は道が見つからず直線でつなぎました",
+    "trailUnavailable": "道の情報がない地域です · 「登山道に沿う」をオフにしてみてください",
+    "gpxTrailAttribution": " · 経路データ © OpenStreetMap 寄稿者, BRouter",
+    "menuDrawMetaFree": "最初のコースは無料です",
+    "menuDrawMetaPlus": "useless プラス",
+    "onlineToCheck": "オンラインで確認できます",
+    "editRoute": "コースを編集",
+    "noticeEdit": "コース編集中 · 最後に点を足すか元に戻しましょう",
+    "discardEditConfirm": "編集内容を保存せずに終了しますか?",
+    "trailNotEntitled": "「登山道に沿う」はuseless プラスの機能です",
+    "claimFailed": "今は保存できませんでした。しばらくしてからもう一度お試しください。",
+    "editUnavailable": "このコースは編集できません",
+    "saveHintNoChanges": "変更すると保存できます",
+    "emptyCardTitleBag": "この旅のコースを描いてみましょう",
+    "emptyCardTitleGroup": "グループのコースを描いてみましょう",
+    "emptyCardDescription": "地図に点を打つと登山道に沿ってつながります",
+    "emptyCardImport": "GPXを読み込む",
+    "searchStartHint": "どこから描くか検索してみましょう"
+  },
+  "map": {
+    "loadFailed": "地図データを読み込めませんでした",
+    "unsupportedBinary": "このバージョンでは地図を表示できません · アプリをアップデートしてください",
+    "layer": {
+      "button": "地図の種類",
+      "title": "地図の種類",
+      "standard": "標準地図",
+      "satellite": "衛星",
+      "plusMeta": "useless プラス",
+      "offlineMeta": "オンラインで表示できます",
+      "unavailableMeta": "一時的に利用できません",
+      "selectedMeta": "使用中",
+      "unavailableToast": "現在、衛星地図を表示できません",
+      "probingMeta": "確認中…"
+    }
+  },
+  "moderation": {
+    "report": "通報",
+    "more": "その他",
+    "block": {
+      "menu": "{{name}}をブロック",
+      "action": "ブロック",
+      "confirmTitle": "{{name}}さんをブロックしますか?",
+      "confirmMessage": "このユーザーの投稿・コメント・レビューが表示されなくなります。運営チームにも通知されます。",
+      "confirm": "ブロック",
+      "done": "ブロックしました",
+      "failed": "ブロックできませんでした",
+      "blockedComment": "ブロックしたユーザーのコメントです",
+      "unknownUser": "このユーザー"
+    },
+    "blockedUsers": {
+      "title": "ブロックしたユーザー",
+      "empty": "ブロックしたユーザーはいません",
+      "unblock": "解除",
+      "unblockAccessibility": "{{name}}のブロックを解除",
+      "unblocked": "ブロックを解除しました",
+      "unblockFailed": "ブロックを解除できませんでした",
+      "loginRequired": "ログインするとブロックしたユーザーを確認できます"
     }
   }
 }

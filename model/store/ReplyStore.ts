@@ -663,7 +663,11 @@ class ReplyStore {
    * 그 문구가 그대로 떴다. `where('isDeleted','==',false)`는 복합 색인이 필요한 데다
    * 필드가 없는 옛 문서가 통째로 빠지므로, 몇 건 받아 와 코드에서 고른다.
    */
-  public async getLatestComment(gearId: string): Promise<Comment | null> {
+  // `isExcludedAuthor`: 차단한 사람(CM-17)의 리뷰도 건너뛰고 받아 온 몇 건 중 다음 것을 고른다.
+  public async getLatestComment(
+    gearId: string,
+    isExcludedAuthor: (authorId: string) => boolean = () => false
+  ): Promise<Comment | null> {
     const commentsRef = collection(
       this.getStore(),
       'gear-comments',
@@ -678,7 +682,9 @@ class ReplyStore {
 
     const snapshot = await getDocs(q);
 
-    const doc = snapshot.docs.find(item => !item.data().isDeleted);
+    const doc = snapshot.docs.find(
+      item => !item.data().isDeleted && !isExcludedAuthor(item.data().authorId)
+    );
 
     if (!doc) {
       return null;

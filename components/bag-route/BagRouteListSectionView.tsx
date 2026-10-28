@@ -2,9 +2,9 @@ import { FC } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
-import CategoryChipView from '@/components/browse/CategoryChipView';
 import PretendardText from '@/components/PretendardText';
 import PointListView, { PointRow } from '@/components/point/PointListView';
+import RouteEmptyCardView from '@/components/route/RouteEmptyCardView';
 import RouteListView, {
   RouteRow,
   RouteRowAction,
@@ -23,22 +23,42 @@ import BagPointList from '@/model/bag-point/BagPointList';
 import BagRoute from '@/model/bag-route/BagRoute';
 import { BagRouteEntry } from '@/model/bag-route/BagRouteEntry';
 import BagRouteList from '@/model/bag-route/BagRouteList';
-import BagRouteSegment from '@/model/bag-route/BagRouteSegment';
+import RouteListSegment from '@/model/route/RouteListSegment';
+import RouteSegmentChipsView from '@/components/route/RouteSegmentChipsView';
+import useRouteSheetPullDown from '@/components/route/useRouteSheetPullDown';
 
 interface Props {
   bagRouteList: BagRouteList;
   bagPointList: BagPointList;
   // `코스 | 포인트` 세그먼트(BD-14). 화면이 들고 있다.
-  segment: BagRouteSegment;
-  onChangeSegment: (segment: BagRouteSegment) => void;
+  segment: RouteListSegment;
+  onChangeSegment: (segment: RouteListSegment) => void;
   onSelect: (entry: BagRouteEntry) => void;
   onDelete: (route: BagRoute) => void;
   onUploadToGroup: (route: BagRoute) => void;
+  // 그린 코스 `⋯` → `코스 수정`(RD-7). 그릴 수 없는 환경(웹·옛 바이너리)에서는 넘기지 않는다.
+  onEditRoute?: ((route: BagRoute) => void) | undefined;
   // 포인트 행 탭 → 지도가 그 포인트로 + 카드(BD-14). 웹(지도 없음)에서는 넘기지 않는다.
   onSelectPoint?: ((entry: BagPointEntry) => void) | undefined;
   onEditPoint: (point: BagPoint) => void;
   onDeletePoint: (point: BagPoint) => void;
+  // 목록 아래 `코스 추가` → 메뉴(가져오기 | 지도에서 그리기, RD-1). 화면이 메뉴를 띄운다.
+  onAddRoute: () => void;
+  /**
+   * 코스 0개 빈 상태 카드(RD-9 #1)의 `지도에서 그리기` — 메뉴를 거치지 않고 바로 그리기(권한 게이트 포함).
+   * 그릴 수 없는 환경(웹·옛 바이너리)에서는 넘기지 않는다 — 그때는 빈 문구 + 푸터 `코스 추가`(가져오기만)다.
+   */
+  onStartDrawing?: (() => void) | undefined;
+  // 빈 상태 카드의 `GPX 파일 가져오기` — 메뉴 없이 바로 파일 선택기.
+  onImportRoute: () => void;
+  // 빈 상태 카드 높이를 잰다 — 시트 접힘 단이 카드를 다 담게(RD-9 #1).
+  onEmptyCardMeasure?: ((height: number) => void) | undefined;
   bottomInset: number;
+  /**
+   * 바텀 시트 안(BD-11, 네이티브 지도 화면)에 들어간다 — 목록이 시트 높이를 따라 남는 세로를 다 쓰고
+   * (`maxHeight 220` 고정을 푼다), 세그먼트 칩 줄은 시트 머리(손잡이와 함께 끄는 영역)가 그리므로 여기서 뺀다.
+   */
+  fillHeight?: boolean;
 }
 
 /**
@@ -62,12 +82,20 @@ const BagRouteListSectionView: FC<Props> = ({
   onSelect,
   onDelete,
   onUploadToGroup,
+  onEditRoute,
   onSelectPoint,
   onEditPoint,
   onDeletePoint,
+  onAddRoute,
+  onStartDrawing,
+  onImportRoute,
+  onEmptyCardMeasure,
   bottomInset,
+  fillHeight = false,
 }) => {
   const l10n = app.getL10n();
+  // 바텀 시트 안이면 시트가 건넨다(BD-11) — 목록 맨 위에서 아래로 당기면 시트가 한 단 내려간다.
+  const handleScrollEndDrag = useRouteSheetPullDown();
   const separator = l10n.t('common.metaSeparator');
   const entries = bagRouteList.getEntries();
   const isFull = bagRouteList.isFull();
@@ -80,9 +108,28 @@ const BagRouteListSectionView: FC<Props> = ({
       ...(entry.groupName
         ? [l10n.t('bag.route.fromGroup', { name: entry.groupName })]
         : []),
+      // 내 코스를 연결 그룹에 올려 둔 경우 — 그 그룹 코스는 목록에서 접혔다(BD-11 중복 접기).
+      ...(entry.sharedToGroup ? [l10n.t('bag.route.sharedToGroup')] : []),
     ].join(separator);
     // 뒤집기는 보기 설정이라 **모든 행**에 있다 — 연결 그룹에서 온 읽기 전용 코스와 웹에서도(GRP-8).
     const actions: RouteRowAction[] = [createRouteDirectionAction(entry.route)];
+    const editableRoute =
+      onEditRoute &&
+      canAdd &&
+      entry.owned &&
+      entry.route instanceof BagRoute &&
+      entry.route.isDrawn()
+        ? entry.route
+        : null;
+
+    // 그린 코스 수정(RD-7) — 뒤집기 다음·삭제 위. 내 배낭의 그린 코스에만 둔다(권한 RD-8은 누를 때 본다).
+    if (editableRoute && onEditRoute) {
+      actions.push({
+        icon: 'create-outline',
+        label: l10n.t('routeDraw.editRoute'),
+        onPress: () => onEditRoute(editableRoute),
+      });
+    }
     // GPX 내보내기도 모든 행이다 — 연결 그룹 코스는 그룹원이라, 내 배낭 코스는 소유자라 받는다(GRP-8).
     const exportAction = createRouteExportAction(entry.route);
 
@@ -149,24 +196,23 @@ const BagRouteListSectionView: FC<Props> = ({
     };
   };
 
-  const renderSegment = () => (
-    <View style={styles.segment}>
-      <CategoryChipView
-        label={l10n.t('bag.point.segmentRoutes')}
-        selected={segment === BagRouteSegment.Routes}
-        onPress={() => onChangeSegment(BagRouteSegment.Routes)}
-        accessibilityRole='tab'
-        accessibilityState={{ selected: segment === BagRouteSegment.Routes }}
-      />
-      <CategoryChipView
-        label={l10n.t('bag.point.segmentPoints')}
-        selected={segment === BagRouteSegment.Points}
-        onPress={() => onChangeSegment(BagRouteSegment.Points)}
-        accessibilityRole='tab'
-        accessibilityState={{ selected: segment === BagRouteSegment.Points }}
-      />
-    </View>
-  );
+  // 시트 안에서는 칩 줄을 시트 머리가 그린다(fillHeight).
+  const renderSegment = () =>
+    fillHeight ? null : (
+      <View style={styles.segment}>
+        <RouteSegmentChipsView
+          segment={segment}
+          onChangeSegment={onChangeSegment}
+        />
+      </View>
+    );
+
+  const listStyle = fillHeight ? styles.listFill : styles.list;
+  const sectionStyle = [
+    styles.section,
+    fillHeight && styles.sectionFill,
+    { paddingBottom: bottomInset },
+  ];
 
   // 빈 목록 문구 — 유형 칩에 걸려 비었는지, 정말 없는지(웹은 찍는 법 안내 없이) 가른다.
   const getPointEmptyKey = () => {
@@ -218,8 +264,9 @@ const BagRouteListSectionView: FC<Props> = ({
 
     return (
       <ScrollView
-        style={styles.list}
+        style={listStyle}
         showsVerticalScrollIndicator={false}
+        onScrollEndDrag={handleScrollEndDrag}
         contentContainerStyle={styles.listContent}
       >
         <PointListView
@@ -230,11 +277,11 @@ const BagRouteListSectionView: FC<Props> = ({
     );
   };
 
-  if (segment === BagRouteSegment.Points) {
+  if (segment === RouteListSegment.Points) {
     const isPointFull = bagPointList.isFull();
 
     return (
-      <View style={[styles.section, { paddingBottom: bottomInset }]}>
+      <View style={sectionStyle}>
         {renderSegment()}
         {renderPointList()}
         {/* 상한에 닿으면 지도의 `포인트 추가`를 막고, 목록에도 **그 자리에** 이유를 적는다(BD-14). */}
@@ -247,8 +294,31 @@ const BagRouteListSectionView: FC<Props> = ({
     );
   }
 
+  /**
+   * 코스 0개(내 코스 + 연결 그룹 코스)이고 추가할 수 있으면 빈 문구·푸터 대신 빈 상태 카드다(RD-9 #1). 카드의
+   * `지도에서 그리기`가 이 화면의 라임이라 그동안 푸터 `코스 추가`(라임)는 걷는다(HM-8 — 같은 화면에 라임 둘 금지).
+   * 첫 조회 전·조회 실패는 카드를 세우지 않는다(아직 없는지 모른다).
+   */
+  const showsEmptyCard = !!onStartDrawing && bagRouteList.shouldShowEmptyCard();
+
+  if (showsEmptyCard) {
+    return (
+      <View style={sectionStyle}>
+        {renderSegment()}
+        <RouteEmptyCardView
+          title={l10n.t('routeDraw.emptyCardTitleBag')}
+          onDraw={onStartDrawing}
+          onImport={onImportRoute}
+          isUploading={submitting}
+          disabled={submitting}
+          onMeasure={onEmptyCardMeasure}
+        />
+      </View>
+    );
+  }
+
   return (
-    <View style={[styles.section, { paddingBottom: bottomInset }]}>
+    <View style={sectionStyle}>
       {renderSegment()}
       {entries.length === 0 ? (
         <PretendardText style={styles.empty}>
@@ -256,8 +326,9 @@ const BagRouteListSectionView: FC<Props> = ({
         </PretendardText>
       ) : (
         <ScrollView
-          style={styles.list}
+          style={listStyle}
           showsVerticalScrollIndicator={false}
+          onScrollEndDrag={handleScrollEndDrag}
           contentContainerStyle={styles.listContent}
         >
           <RouteListView
@@ -284,7 +355,7 @@ const BagRouteListSectionView: FC<Props> = ({
               styles.addButton,
               (isFull || submitting) && styles.disabled,
             ]}
-            onPress={() => void bagRouteList.addRoute()}
+            onPress={onAddRoute}
             disabled={isFull || submitting}
             activeOpacity={0.8}
             accessibilityRole='button'
@@ -304,9 +375,6 @@ const BagRouteListSectionView: FC<Props> = ({
 
 const styles = StyleSheet.create({
   segment: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: AcgLayout.chipGap,
     paddingTop: 12,
   },
   section: {
@@ -316,9 +384,16 @@ const styles = StyleSheet.create({
     borderTopColor: Acg.hairline,
     gap: 8,
   },
+  // 시트 안에서는 시트 높이가 곧 목록 높이다 — 섹션이 남는 세로를 다 쓰고 목록이 그 안을 채운다.
+  sectionFill: {
+    flex: 1,
+  },
   // 지도가 남는 세로를 다 쓰도록 목록은 제 높이를 넘기지 않는다.
   list: {
     maxHeight: 220,
+  },
+  listFill: {
+    flex: 1,
   },
   listContent: {
     paddingBottom: 4,

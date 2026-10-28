@@ -181,6 +181,10 @@
 - **측정**: 서버는 실행 문서에 `targets`·`sent`·`skippedNoSpot`·`skippedNoWeather`·`failed`를 적는다. 앱은 탭 시 `notification_open` `type=weekend_briefing`(NT-10에 값 추가).
 - **웹**: 해당 없음(웹은 푸시 토큰이 없다).
 
+### NT-13 구독 체험 종료 리마인더 (로컬) `[제안]`
+
+체험 5일째 오전 9시에 로컬 알림 1건 — 규칙·문구·취소 조건은 [Subscription.md](Subscription.md) SUB-10 "체험 종료 알림"이 정본이다. 식별자 `subscription-trial-reminder` 하나로 예약·취소한다(중복 예약 없음). 탭 → `/subscription`. 지표는 NT-10의 `notification_open`에 `type: 'trial_reminder'`(기존 라우팅·지표가 `data.type`을 읽는다).
+
 ### NT-12 푸시 토큰 등록 `[제안]`
 
 서버가 사용자 단위로 푸시를 보내려면 토큰이 서버에 있어야 한다. 지금은 토픽 `all` 구독만 있고 토큰을 저장하지 않는다(NT-5). 이 항목이 그 틈을 메운다.

@@ -7,6 +7,8 @@ class AlertManager {
 
   private visible = false;
   private message = '';
+  // 있으면 제목(`message`) 아래 설명 한 단락을 둔다(차단 확인 CM-17).
+  private description = '';
   private confirmText = '';
   private cancelText = '';
   // 되돌릴 수 없는 액션(내보내기·삭제)일 때 확인 버튼을 경고색으로 그린다.
@@ -15,6 +17,8 @@ class AlertManager {
   // show() 호출마다 올린다. 확인 콜백 안에서 다음 알럿을 띄우면(연결 → 일정 맞춤 확인, GRP-5)
   // 콜백이 끝난 뒤의 hide()가 **새 알럿**을 닫아 버리므로, 그사이 새 알럿이 떴으면 닫지 않는다.
   private generation = 0;
+  // 확인 콜백이 도는 동안 true — 연타로 같은 콜백이 두 번 돌지 않게 막는다(차단 확인 CM-17).
+  private confirming = false;
 
   private constructor() {
     makeAutoObservable(this);
@@ -26,14 +30,17 @@ class AlertManager {
     onConfirm,
     cancelText,
     destructive,
+    description,
   }: {
     message: string;
+    description?: string;
     confirmText: string;
     onConfirm: () => Promise<void>;
     cancelText?: string;
     destructive?: boolean;
   }) {
     this.setMessage(message);
+    this.setDescription(description ?? '');
     this.setConfirmText(confirmText);
     this.setCancelText(cancelText ?? '');
     this.setDestructive(destructive === true);
@@ -55,13 +62,31 @@ class AlertManager {
   }
 
   public async confirm() {
+    if (this.confirming) {
+      return;
+    }
+
     const generation = this.generation;
 
-    await this.onConfirm();
+    this.setConfirming(true);
+
+    try {
+      await this.onConfirm();
+    } finally {
+      this.setConfirming(false);
+    }
 
     if (generation === this.generation) {
       this.hide();
     }
+  }
+
+  public isConfirming() {
+    return this.confirming;
+  }
+
+  private setConfirming(value: boolean) {
+    this.confirming = value;
   }
 
   private setMessage(text: string) {
@@ -74,6 +99,14 @@ class AlertManager {
 
   public getMessage() {
     return this.message;
+  }
+
+  private setDescription(text: string) {
+    this.description = text;
+  }
+
+  public getDescription() {
+    return this.description;
   }
 
   public getConfirmText() {

@@ -99,6 +99,7 @@
 | `groups/{groupId}/bags/{uid}` | 멤버 배낭 공개 스냅샷 (DM-29) `[제안]` | 멤버 배낭 열람 |
 | `groups/{groupId}/points/{pointId}` | 그룹 지도 포인트 (DM-29) `[제안]` | 그룹 지도 |
 | `bag/{bagId}/points/{pointId}` | 개인 여행 지도 포인트 (DM-33) `[제안]` | 배낭 코스 화면 ([BagDetail.md](BagDetail.md) BD-14) |
+| `users/{uid}/blocked-users/{blockedUid}` | 내가 차단한 사용자 (DM-38) `[제안]` | UGC 목록 필터·차단 해제 ([Community.md](Community.md) CM-17) |
 | `users/{uid}/push-tokens/{tokenId}` | 사용자 푸시 토큰 (DM-34) `[제안]` | 주말 날씨 브리핑 ([Notification.md](Notification.md) NT-11·NT-12) |
 | `config/weekendBriefing` · `weekend-briefing-runs/{weekId}` | 브리핑 설정·실행 기록 — 함수 전용 (DM-35) `[제안]` | 운영 확인 |
 | `groups/{groupId}/routes/{routeId}` | 그룹 코스(GPX) 요약 (DM-29) `[제안]` | 그룹 지도·코스 목록 |
@@ -792,9 +793,9 @@
 | --- | --- | --- |
 | `community-post-likes/{userId}_{postId}` | `userId`, `postId`, `createdAt` | 문서 존재가 좋아요 상태. 생성·삭제와 게시글 `likeCount`를 원자적으로 갱신 |
 | `community-poll-votes/{postId}_{userId}` | `postId`, `userId`, `optionIds` (string[], 1개 이상; 단일 선택 투표는 항상 1개), `createdAt`, `updatedAt?` | 결정적 문서 ID로 계정당 한 문서. 생성 또는 `optionIds` 변경(update)과 선택지 카운트를 같은 트랜잭션에서 원자적으로 갱신하고, 삭제는 금지한다. **2026-09-05 `optionId`(string) → `optionIds`(배열)로 교체** — 기존 문서는 마이그레이션(`scripts/migrate-community-poll-votes.mjs`)으로 배열화한다. 변경 시 이전 선택지 `voteCount -1`·새 선택지 `+1`, `totalVoteCount`는 불변이다. `updatedAt`은 변경 시각(선택)이다. |
-| `community-reports/{reportId}` | `reporterId`, `targetType`, `targetPostId`, `targetCommentId?`, `targetAuthorId`, `reason`, `detail?`, `status`, `createdAt`, `resolvedAt?`, `resolvedBy?` | `targetType`: `post` / `comment`; `reason`: `spam` / `harassment` / `sexual_violence` / `copyright` / `privacy` / `other`; `status`: `open` / `reviewing` / `actioned` / `dismissed`. 같은 `(reporterId, targetType, targetId)` 중복 생성 금지 |
+| `community-reports/{reportId}` | `reporterId`, `targetType`, `targetPostId`, `targetCommentId?`, `targetAuthorId`, `reason`, `detail?`, `status`, `createdAt`, `resolvedAt?`, `resolvedBy?` | `targetType`: `post` / `comment` / `gear_comment` / `camp_review` / `user`; `reason`: `spam` / `harassment` / `sexual_violence` / `copyright` / `privacy` / `other` / `blocked`(`user` 전용, CM-17); `status`: `open` / `reviewing` / `actioned` / `dismissed`. 같은 `(reporterId, targetType, targetId)` 중복 생성 금지 |
 
-신고 문서 ID는 결정적으로 `{reporterId}_{targetType}_{targetId}`를 사용한다.
+신고 문서 ID는 결정적으로 `{reporterId}_{targetType}_{targetId}`를 사용한다. 대상별 `targetId`·필드(2026-10-16): `post`는 게시글 id. `comment`·`gear_comment`는 댓글 id(Firestore 자동 생성 ID라 장비가 달라도 겹치지 않는다) — `gear_comment`는 `targetPostId`=장비 id·`targetCommentId`=댓글 id. `camp_review`는 `targetId`=`{박지 id}_{작성자 uid}`(후기 문서 id가 작성자 uid라 uid만 쓰면 같은 사람의 다른 박지 후기 신고가 중복으로 묻힌다)이고 `targetPostId`=박지 id·`targetCommentId`=작성자 uid. `user`는 `targetId`=차단 uid이고 `targetPostId`·`targetCommentId`에 차단한 자리(게시글·장비·박지 id와 댓글 id, 없으면 생략)를 남긴다 — 해제 후 같은 사람을 다시 차단해 결정적 ID 문서가 이미 있으면 `{reporterId}_user_{uid}_{epoch ms}`로 새 문서를 만들어 운영자에게 다시 알린다. `targetAuthorId`는 모두 대상 작성자 uid다(없으면 빈 문자열).
 
 #### 조회·보안·인덱스
 
@@ -888,6 +889,7 @@
 | --- | --- | --- |
 | `name` | string | 파일명 또는 `<trk><name>`, 최대 40자 |
 | `storagePath` | string | `groups/{groupId}/routes/{routeId}.gpx` |
+| `sourceBagId` / `sourceBagRouteId` | string? | 배낭 코스를 `그룹에 올리기`로 복사했을 때의 원본(DM-30) 참조. 배낭 코스 화면이 **같은 코스를 두 번 보여 주지 않으려고** 쓴다([BagDetail.md](BagDetail.md) BD-11 중복 접기, 2026-10-13 `[제안]`). GPX를 직접 올린 그룹 코스엔 없다 |
 | `fileSize` | number | 바이트, 5MB 이하 |
 | `distance` | number | m |
 | `elevationGain` | number? | m |
@@ -895,6 +897,7 @@
 | `pointCount` | number | 원본 트랙포인트 수 |
 | `bounds` | map | `{ minLat, maxLat, minLng, maxLng }` |
 | `simplified` | array | 지도 렌더용 축약 좌표 `{ lat, lng, ele? }`, **2~500점**. 최소 2점은 규칙과 클라이언트 검증이 함께 강제한다 — 점이 하나뿐인 GPX는 선이 되지 않아 `코스를 읽지 못했어요`로 거절한다. `ele`(m)는 고도 그래프가 쓰며 GPX에 고도가 없으면 키를 생략한다. 규칙은 리스트 길이만 보므로 원소 키가 늘어도 계약이 깨지지 않는다 |
+| `source` / `drawnPoints` / `updatedAt` | string? / array? / timestamp? | 배낭 코스(DM-30)와 같다 — 그린 코스 표시·찍은 점·수정 시각(RouteDraw RD-7, 2026-10-14) |
 | `authorId` / `authorName` | string | 올린 사람 |
 | `createdAt` | timestamp | 서버 시각 |
 
@@ -917,6 +920,9 @@
 | `pointCount` | number | 원본 트랙포인트 수 |
 | `bounds` | object | `{ minLat, maxLat, minLng, maxLng }` |
 | `simplified` | array | `{ lat, lng, ele? }`, 2~500점 |
+| `source` | string? | `'drawn'` = 지도에서 그린 코스(RouteDraw RD-1·RD-7, 2026-10-14). 없으면 GPX 가져오기 |
+| `drawnPoints` | array? | 그린 코스의 찍은 점 `{ lat, lng }`, 2~100개 — 수정(RD-7)에서 다시 연다. `source == 'drawn'`일 때만 |
+| `updatedAt` | timestamp? | 그린 코스를 수정했을 때(RD-7) |
 | `createdAt` | timestamp | |
 
 - 배낭당 **5개**, 파일 **5MB** — 그룹과 같은 상한이다. 수치를 갈라 두면 사용자가 둘을 다르게 기억해야 한다.
@@ -990,6 +996,32 @@
 
 현재 배포된 규칙은 커뮤니티 4개 컬렉션을 제외한 나머지가 전면 개방(`allow read, write: if !isCommunityCollection()`)이다. `groups/*`는 신규라 처음부터 멤버십 기반으로 잠글 수 있지만, `bag`·`users`가 열려 있는 한 "그룹원만 본다"는 약속은 앱 화면 안에서만 성립한다. 그룹 출시와 별개로 기존 컬렉션을 좁히는 작업이 필요하다.
 
+
+### DM-37 `bag`·`users` 접근 좁히기 `[제안]` (2026-10-15)
+
+> 사용자 결정 — "쓰기 규칙 먼저 정리해줘". 지금 `bag/{bagId}`·`users/{userId}`는 `allow read, write: if true`라 누구나 남의 배낭·사용자 문서를 고치거나 지울 수 있다(DM-29 "선행 보안 작업"). 클라이언트 조사(앱 2.0.1·2.0.2, 웹) 결과 정상 경로의 쓰기는 **전부 본인 문서**다.
+
+**규칙**
+
+- `bag/{bagId}`
+  - 주인 = `resource.data.userId == auth.uid` **하나로만** 판정한다. `userId`가 없는 옛 문서는 2026-10-15 주인이 확인되는 21건에 `userId`를 채웠고, 남은 14건(어느 사용자 목록에도 없는 고아)은 공유된 것이 아니면 아무도 열 수 없다. 사용자 문서의 `bags` 목록으로 주인을 대신 판정하지 않는다 — 누구나 자기 `bags`에 남의 ID를 넣을 수 있어 고아 문서를 가로챌 수 있다.
+  - `get`: 문서가 없거나, 주인이거나, `shared == true` 또는 `reviewShared == true`(비로그인 공유 링크 BD-7·CS-8).
+  - `list`: 주인 문서만.
+  - `create`: 로그인 + `userId == auth.uid`.
+  - `update`: 주인 + 바뀐 뒤에도 `userId == auth.uid`(`updateShared`·`updateReviewShared`가 같은 값을 다시 쓴다).
+  - `delete`: 문서가 없거나 주인(회원 탈퇴 일괄 삭제에 지운 ID가 섞여도 통과).
+- `users/{userId}`: 읽기·쓰기 모두 본인만(`list` 금지). 갱신은 바뀌는 키만 검사한다(`termsAgreed`·`privacyAgreed`·`marketingAgreed`·`personalInfoAgreed`·`over14Agreed`·`smsAgreed`·`agreedAt`·`createdAt`·`nickname`·`bags`). 하위 컬렉션(`groups`·`push-tokens` 제외 — 각자 규칙이 있다)은 **읽기는 그대로 열고 쓰기는 본인만** 한다 — 비로그인 공유 배낭이 `users/{owner}/gears`를 읽고, 앱·웹의 하위 컬렉션 쓰기는 모두 본인 uid다(2026-10-15 조사).
+
+**앱 선행 변경 — 배낭 목록은 문서마다 읽는다**
+
+- `BagStore.getBags(ids)`는 `where('__name__', 'in', 30개 청크)` 쿼리 대신 **ID마다 `getDoc`을 병렬로** 부르고, 없는 문서는 건너뛴다. 결과 순서·모양은 기존과 같다.
+- 이유(에뮬레이터 실측, 2026-10-15): 주인 조건이 걸린 `list`는 문서마다 규칙을 평가하는데 ① 없는 ID가 하나라도 섞이면 **쿼리 전체가 거부**되고 ② 한 쿼리에서 문서 접근이 20을 넘으면 거부된다(배낭 20개 이상 사용자 2명, 최대 47개 — 운영 한도는 더 낮을 수 있다). `getDoc`은 문서 하나씩 판정되어 둘 다 해당하지 않는다.
+- 배포 순서: 앱 변경(2.0.1 OTA · 2.0.2 빌드 116) → 규칙 배포. 규칙이 먼저 나가면 위 두 경우의 사용자는 배낭 탭·홈·알림 동기화가 빈다.
+
+**깨지는 것(감수)**
+
+- 웹 `/celebrate`의 사용자 수 집계(`users` 전체 count, 비로그인) — 이미 실패 시 임의 숫자로 떨어진다. 실제 값이 필요하면 함수가 공개 문서(`config/stats`)에 쓴다(후속).
+- `scripts/migrate-gear-rank.ts`(비인증 클라이언트로 `users` 전체 조회) — 일회성 스크립트, 다시 쓸 일이 있으면 소유자 OAuth로 바꾼다.
 
 ### DM-31 구독 `subscriptions/{uid}` `[제안]`
 
@@ -1136,6 +1168,33 @@ hit → `Gear` 변환 시 `useless: []`, `used: []`, `bags: []`, `createDate: Da
 **양방향 참조 불변식**: `gear.bags[]` ↔ `bag.gears[]`는 항상 쌍으로 갱신되어야 한다. `bag.weight`는 담긴 장비 `weight` 합과 일치해야 한다.
 
 **문서 갱신은 모르는 필드를 지우지 않는다**: 장비 수정(`GearStore.update`)은 `Gear.getData()`가 만든 페이로드로 문서를 쓰는데, **전체 덮어쓰기(`setDoc` 무옵션)를 쓰면 페이로드에 없는 필드가 전부 사라진다.** 실제로 이 경로로 `imageUrl`이 유실될 뻔했다(§1). 크롤 파이프라인이 넣는 `specs`·`groupId`·`colorKorean`·`sizeKorean`처럼 앱이 모델에 담지 않는 필드도 같은 위험에 있다. **부분 갱신(`setDoc(..., { merge: true })` 또는 `updateDoc`)을 쓴다** — 모델이 아는 필드만 갱신하고 나머지는 건드리지 않는다.
+
+### DM-36 코스 그리기 무료 기록 `route-draw-quota/{uid}` `[제안]`
+
+무료 사용자의 **평생 1회** 코스 그리기([RouteDraw.md](RouteDraw.md) RD-8). 문서 id = uid.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `freeRoute` | map | `{ kind: 'bag' \| 'group', parentId, routeId }` — 무료로 그린 그 코스. 이 코스만 무료로 계속 수정할 수 있다 |
+| `claimedAt` | timestamp | 서버 시각 |
+
+- **쓰기는 함수만**(`claimFreeRouteDraw`, Admin SDK). 클라이언트 쓰기 전면 금지 — `users/{uid}`는 규칙상 열려 있어 횟수를 두면 되돌릴 수 있다. 읽기는 본인만. `isLockedCollection()`에 추가.
+- `confirmed` | boolean — 그 코스 문서가 실제로 만들어졌는지. 함수 트리거(`onDrawnBagRouteCreated`·`onDrawnGroupRouteCreated`, `bag/{bagId}/routes/{routeId}`·`groups/{groupId}/routes/{routeId}` 생성 시 `source == 'drawn'`이고 작성자의 기록과 같으면 `true`)가 세운다.
+- `claimFreeRouteDraw` 규칙: 기록이 없으면 새로 정한다. 같은 코스(`kind`·`parentId`·`routeId`)를 다시 요청하면 그대로 통과(재시도). **`confirmed == false`이면 다른 코스로 다시 정할 수 있다**(업로드가 실패해 코스가 생기지 않은 경우). `confirmed == true`면 거절 — 그 뒤로 코스를 지워도 다시 정하지 않는다(지우고 다시 그리기 방지).
+- 회원 탈퇴 시 정리(구독 정리 함수와 같은 자리).
+
+### DM-38 `users/{uid}/blocked-users/{blockedUid}` `[제안 2026-10-16]`
+
+내가 차단한 사용자 한 명당 한 문서([Community.md](Community.md) CM-17). 문서 ID = 차단한 사용자 uid.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `blockedUserName` | string | 차단 당시 닉네임(해제 목록 표시용, 갱신하지 않음) |
+| `surface` | string | `community_post` / `community_comment` / `gear_comment` / `camp_review` |
+| `createdAt` | timestamp | 서버 시각 |
+
+- 보안 규칙: 지금은 `users/{uid}/{subCollection}` 개방 절에 얹힌다(규칙 변경 없이 배포 가능). DM-37 규칙 정리 때 **본인만 읽고 쓰기**로 좁힌다 `[제안]`.
+- 회원 탈퇴 시 하위 컬렉션째 지운다(AU-8). 앱도 탈퇴 정리(`deleteUserData`)에서 best-effort로 지운다. 차단당한 사람이 탈퇴해도 문서는 남지만 콘텐츠가 없으니 영향 없다.
 
 ### DM-25 `in` 쿼리 30개 상한
 

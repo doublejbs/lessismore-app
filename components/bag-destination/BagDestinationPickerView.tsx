@@ -1,6 +1,8 @@
 import { FC, useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Dimensions,
+  LayoutChangeEvent,
   Platform,
   Pressable,
   StyleSheet,
@@ -8,10 +10,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {
-  NaverMapView,
-  NaverMapViewRef,
-} from '@mj-studio/react-native-naver-map';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'expo-router';
@@ -28,13 +26,35 @@ import {
   setCampSiteDetailSheet,
 } from '@/model/camp-site/CampSiteDetailSheetHandoff';
 import { setCampSiteFavoritesSheet } from '@/model/camp-site/CampSiteFavoritesHandoff';
-import CampSiteMapMarkersView from '@/components/camp-site/CampSiteMapMarkersView';
+import type { AppMapViewRef } from '@/components/map/AppMapView';
+import { createMapLibreViewLoader } from '@/components/map/MapLibreViewLoader';
+import MapNoticeLineView from '@/components/map/MapNoticeLineView';
+import type BagDestinationPickerMapViewType from './BagDestinationPickerMapView';
 import CampSiteFilterChipsView from '@/components/camp-site/CampSiteFilterChipsView';
 import BagDestinationSearchResultsView from './BagDestinationSearchResultsView';
 import useBagDestinationPickerState from './useBagDestinationPickerState';
 
 // 즐겨찾기 상징 노랑 — 마커 캠핑장색과 동일한 시맨틱 리터럴(CS-9). 지도 탭 오버레이와 동일.
 const FAVORITE_COLOR = '#FFD700';
+
+// 하단 패널 바깥 여백(styles.bottomPanel.margin) — 출처 표기를 패널 위로 올릴 때 쓴다.
+const BOTTOM_PANEL_MARGIN = 16;
+// 상단 헤더(안내 줄 포함)와 지도 나침반 사이 여백.
+const OVERLAY_GAP = 8;
+// 박지 상세·즐겨찾기 시트가 처음 뜨는 높이(화면 높이 비율) — `app/_layout.tsx`의 `sheetInitialDetentIndex` 단계(0.4).
+const SHEET_INITIAL_DETENT = 0.4;
+
+// 지도 본문은 MapLibre SDK를 최상위 import한다 — 옛 바이너리에서 import만으로 터지지 않게 처음 쓸 때 싣는다(MAP-1).
+const loadPickerMapView = createMapLibreViewLoader<
+  typeof BagDestinationPickerMapViewType
+>(
+  'BagDestinationPickerMapView',
+  () =>
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    (require('./BagDestinationPickerMapView') as {
+      default: typeof BagDestinationPickerMapViewType;
+    }).default
+);
 
 interface Props {
   // 현재 저장된 여행지. 없으면 미설정 상태로 연다.
@@ -55,7 +75,9 @@ const BagDestinationPickerView: FC<Props> = observer(
     // 갱신을 못 받아(초기 진입 시 다이나믹 아일랜드 겹침), 루트 프로바이더의
     // 훅 값(모달 열기 전 확정)으로 패딩을 준다.
     const insets = useSafeAreaInsets();
-    const mapRef = useRef<NaverMapViewRef>(null);
+    const mapRef = useRef<AppMapViewRef>(null);
+    // 지도 본문은 처음 마운트할 때 싣는다(MAP-1 "쓸 때 처음"). 상태로 고정해 렌더마다 같은 컴포넌트다.
+    const [PickerMapView] = useState(loadPickerMapView);
     const [campSiteMap] = useState(() => CampSiteMap.new());
     // 박지 시트(상세·즐겨찾기)가 떠 있는지. 떠 있는 동안 하단 자유 위치 UI를 숨긴다(DST-3).
     // 즐겨찾기까지 포함하는 이유: 작은 디텐트에선 하단 패널이 시트 위로 삐져나와 눌릴 수 있다.
@@ -63,6 +85,12 @@ const BagDestinationPickerView: FC<Props> = observer(
     // 웹은 네이티브 지도 SDK를 못 써서 지도 탭(CS-1)과 같은 방식으로 렌더만 건너뛴다.
     // 카카오 장소 검색으로 고른 좌표는 그대로 확정할 수 있어 기존 웹 동작이 유지된다.
     const isMapSupported = Platform.OS !== 'web';
+    // 지도 데이터(스타일·타일) 로드 실패 — 상단 한 줄(MAP-2). 핀·패널·검색은 그대로 쓴다.
+    const [mapLoadFailed, setMapLoadFailed] = useState(false);
+    const mapLoadFailedLoggedRef = useRef(false);
+    // 상단 헤더(검색·칩·결과)와 하단 패널 높이 — 나침반·안내 줄·출처 표기를 그 바깥으로 비킨다.
+    const [headerHeight, setHeaderHeight] = useState(0);
+    const [bottomPanelHeight, setBottomPanelHeight] = useState(0);
 
     // 라우트는 마운트=표시라 상태 훅에는 항상 visible=true를 넘긴다.
     // 상세 시트가 떠 있는 채로 확정되면(상세 CTA 경로) 시트와 선택기를 **한 번의 dismiss로 함께** 닫는다.
@@ -79,7 +107,6 @@ const BagDestinationPickerView: FC<Props> = observer(
 
     const {
       origin,
-      viewport,
       focusedSpot,
       addressName,
       resolving,
@@ -90,7 +117,6 @@ const BagDestinationPickerView: FC<Props> = observer(
       placeResults,
       searchingPlaces,
       resultsVisible,
-      handleMapInitialized,
       handleCameraChanged,
       handleFocusSpot,
       handleConfirmSpot,
@@ -217,41 +243,88 @@ const BagDestinationPickerView: FC<Props> = observer(
       router.push('/camp-site-favorites');
     }, [campSiteMap, handleTapFavorite, router]);
 
+    const handleMapInitialized = useCallback(() => {
+      setMapLoadFailed(false);
+    }, []);
+
+    const handleMapLoadFailed = useCallback(() => {
+      setMapLoadFailed(true);
+
+      // 재시도마다 여러 번 오지 않게 한 번만 남긴다(MAP-6).
+      if (mapLoadFailedLoggedRef.current) {
+        return;
+      }
+
+      mapLoadFailedLoggedRef.current = true;
+      app.getAnalyticsManager()?.logEvent('map_load_failed', {
+        screen: 'bag_destination_picker',
+      });
+    }, []);
+
+    const handleHeaderLayout = useCallback((event: LayoutChangeEvent) => {
+      const height = Math.round(event.nativeEvent.layout.height);
+
+      setHeaderHeight(prev => (prev === height ? prev : height));
+    }, []);
+
+    const handleBottomPanelLayout = useCallback((event: LayoutChangeEvent) => {
+      const height = Math.round(event.nativeEvent.layout.height);
+
+      setBottomPanelHeight(prev => (prev === height ? prev : height));
+    }, []);
+
+    const bottomPanelVisible = !sheetOpen && !focusedSpot;
+    const ornamentTopOffset = Math.max(headerHeight, insets.top) + OVERLAY_GAP;
+    /**
+     * 좌하단 출처 표기(ODbL)를 하단 패널 위로 올린다(MAP-1). 박지 시트가 떠 있으면 시트 높이 위로(시트가 패널을
+     * 대신한다), 둘 다 없으면 세이프에어리어만.
+     */
+    const getAttributionBottomOffset = () => {
+      if (sheetOpen) {
+        return Math.max(
+          insets.bottom,
+          Math.round(Dimensions.get('window').height * SHEET_INITIAL_DETENT)
+        );
+      }
+
+      if (bottomPanelVisible && bottomPanelHeight > 0) {
+        return insets.bottom + BOTTOM_PANEL_MARGIN + bottomPanelHeight;
+      }
+
+      return insets.bottom;
+    };
+    const attributionBottomOffset = getAttributionBottomOffset();
+    // 옛 바이너리(MapLibre 없음)면 지도 자리에 안내 한 줄 — 검색·장소 확정은 그대로 쓴다(MAP-1).
+    const noticeLabel = !isMapSupported
+      ? null
+      : !PickerMapView
+        ? app.getL10n().t('map.unsupportedBinary')
+        : mapLoadFailed
+          ? app.getL10n().t('map.loadFailed')
+          : null;
+
     return (
       <View style={styles.container}>
         {/* 초기 중심이 정해진 뒤에만 지도를 올려 initialCamera를 한 번만 확정한다. */}
-        {isMapSupported && origin && (
-          <NaverMapView
+        {isMapSupported && origin && PickerMapView ? (
+          <PickerMapView
             ref={mapRef}
-            style={StyleSheet.absoluteFill}
-            initialCamera={origin}
-            // 기본 줌 버튼/스케일바/현위치 버튼은 이 화면 UI 톤과 달라 숨긴다.
-            isShowLocationButton={false}
-            isShowZoomControls={false}
-            isShowScaleBar={false}
-            isScrollGesturesEnabled={!saving}
-            isZoomGesturesEnabled={!saving}
-            isTiltGesturesEnabled={!saving}
-            isRotateGesturesEnabled={!saving}
-            isStopGesturesEnabled={!saving}
-            onInitialized={handleMapInitialized}
-            onTapMap={handleTapMap}
+            campSiteMap={campSiteMap}
+            origin={origin}
+            interactive={!saving}
+            focusedSpotId={focusedSpot?.id ?? null}
+            ornamentTopOffset={ornamentTopOffset}
+            attributionBottomOffset={attributionBottomOffset}
+            onTapSpot={handleTapSpot}
+            onPressMap={handleTapMap}
             onCameraChanged={handleCameraChanged}
-          >
-            <CampSiteMapMarkersView
-              campSiteMap={campSiteMap}
-              viewport={viewport}
-              // 확정 대상 선택 상태는 없다(DST-3) — 강조는 **지금 들여다보는 박지**에만 준다.
-              // 배낭에 저장된 박지를 폴백으로 강조하지 않는 이유: 저장 상태는 "선택 중"이
-              // 아닌데도 마커가 계속 선택된 것처럼 보여, 포커스 해제 후에도 강조가 남는다.
-              selectedSpotId={focusedSpot?.id ?? null}
-              onTapSpot={handleTapSpot}
-            />
-          </NaverMapView>
-        )}
+            onInitialized={handleMapInitialized}
+            onLoadFailed={handleMapLoadFailed}
+          />
+        ) : null}
 
         {/* 중앙 고정 핀 — 자유 위치 UI의 일부라 박지 상세가 떠 있는 동안엔 함께 숨긴다(DST-3). */}
-        {isMapSupported && !sheetOpen && !focusedSpot && (
+        {isMapSupported && PickerMapView && bottomPanelVisible && (
           <View style={styles.centerPin} pointerEvents='none'>
             {/* 앱 공통 라임 핀(2026-08-13 사용자 결정) — 지도 탭 선택 마커·배낭 카드
                 밴드와 같은 SpotPinView 단일 소스. 잉크 Ionicons 핀은 걷었다. */}
@@ -270,7 +343,10 @@ const BagDestinationPickerView: FC<Props> = observer(
           />
         )}
 
-        <View style={[styles.headerWrap, { paddingTop: insets.top }]}>
+        <View
+          style={[styles.headerWrap, { paddingTop: insets.top }]}
+          onLayout={handleHeaderLayout}
+        >
           <View style={styles.headerCard}>
             <View style={styles.headerRow}>
               <TouchableOpacity
@@ -341,12 +417,20 @@ const BagDestinationPickerView: FC<Props> = observer(
               onSelectPlace={handleSelectPlace}
             />
           )}
+
+          {/* 지도 상태 안내 한 줄(MAP-2) — 헤더 **안**에 둬 높이가 헤더에 들어가고, 나침반이 그 아래로 간다
+              (배낭 코스·그룹 지도와 같은 배치). */}
+          {noticeLabel ? (
+            <View style={styles.notice} pointerEvents='none'>
+              <MapNoticeLineView label={noticeLabel} />
+            </View>
+          ) : null}
         </View>
 
         {/* 박지 상세가 떠 있는 동안엔 하단 자유 위치 UI(주소 + `이 위치로 설정`)와 지도 컨트롤을
             아예 감춘다 — 박지를 고르는 맥락에서 `이 위치로 설정`이 같이 보이면 주 액션이 둘로
             갈라지고(HIG: 화면당 주 액션 1개), 작은 디텐트에선 시트 아래로 비어져 나온다(DST-3). */}
-        {!sheetOpen && !focusedSpot && (
+        {bottomPanelVisible && (
           <View style={[styles.bottomWrap, { paddingBottom: insets.bottom }]}>
             {isMapSupported && (
               <View style={styles.locateRow}>
@@ -388,7 +472,7 @@ const BagDestinationPickerView: FC<Props> = observer(
             )}
 
             {/* 하단 패널은 언제나 자유 위치 하나뿐이다(DST-3) — 박지는 상세 시트에서 확정한다. */}
-            <View style={styles.bottomPanel}>
+            <View style={styles.bottomPanel} onLayout={handleBottomPanelLayout}>
               <View style={styles.infoRow}>
                 <Ionicons
                   name='location-outline'
@@ -451,6 +535,10 @@ const styles = StyleSheet.create({
   // 핀 끝(하단)이 지도 중심에 오도록 위로 들어올린다.
   pinIcon: {
     marginBottom: 40,
+  },
+  notice: {
+    marginHorizontal: Spacing.item,
+    marginTop: OVERLAY_GAP,
   },
   headerWrap: {
     position: 'absolute',
@@ -533,7 +621,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   bottomPanel: {
-    margin: 16,
+    margin: BOTTOM_PANEL_MARGIN,
     padding: 16,
     borderRadius: Radius.modal,
     backgroundColor: Color.background,
