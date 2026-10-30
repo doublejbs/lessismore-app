@@ -107,6 +107,7 @@ WCAG 1.1.1(Non-text Content)·4.1.2(Name/Role/Value)·2.5.5(Target Size 44×44) 
 **수용 기준**
 
 - **선택 시트 `gear-add-options`**: `bag-add-options`(BAG-2)와 동일한 네이티브 formSheet(그래버·드래그 닫기·`fitToContents`·radius 20). 두 행 — **`검색으로 추가`**(돋보기 아이콘) / **`직접 입력`**(연필/＋ 아이콘). 각 행에 보조 설명(예: `카탈로그에서 찾아 담기` / `제품 정보를 직접 입력`).
+  - `[제안]` **배낭 컨텍스트에만 세 번째 행 `AI 추천으로 채우기`**(아이콘 `sparkles`, 보조 설명 `날씨·창고를 보고 골라 줘요`)를 둔다([Assistant.md](Assistant.md) §2 진입 2, 2026-10-30). 선택 시 `/ai-gear-fill?bagId={bagId}`로 `replace`. 창고 컨텍스트에는 두지 않는다(추천 근거인 날짜·여행지가 없다). 분석 `click_ai_gear_fill_open(from=gear_add)`.
   - 컨텍스트: 창고는 파라미터 없음, 배낭 편집은 `bagId`를 넘긴다.
   - 항목 선택 시 시트를 다음 화면으로 **`replace`** 한다(중간 탭 리로드 노출 방지, BAG-2와 동일).
 - **`직접 입력` 분기**: 창고 → `/custom`, 배낭 → `/custom/bag-gear/{bagId}`(기존 수동 폼, GE-1/GE-3).
