@@ -39,6 +39,7 @@
 | [HealthActivity.md](HealthActivity.md) | `HA` | 운동 기록 — 배낭 여행의 실측(거리·경로) 을 HealthKit·Health Connect에서 읽어 표시 `[기획]` |
 | [Onboarding.md](Onboarding.md) | `OB` | 첫 여행 만들기 가이드 — 여행 0개 사용자·비로그인 첫 실행에 1회, 날짜·여행지·장비·완료 4단계 + 로그인 이어가기 + 알림 권한 맥락 요청 `[제안]` |
 | [Localization.md](Localization.md) | `L10N` | 다국어(i18n) — ko·en·ja UI 문구, 언어 설정, 일본어 폰트 전략 `[기획]` |
+| [Assistant.md](Assistant.md) | `AS` | AI로 여행 계획하기 — 대화로 코스·박지·날씨·장비를 정해 여행 생성. 모델은 Cloud Function(웹 레포, 공급자 교체형)에서, 읽기 도구는 서버·쓰기는 앱이 확인 후 적용 `[제안]` |
 
 신규 도메인 스펙은 [Template.md](Template.md)를 복사해서 시작한다.
 

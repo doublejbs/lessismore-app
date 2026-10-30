@@ -946,7 +946,9 @@
       "copy": "以前の旅行のバックパックを使う",
       "copySubtitle": "以前の旅行の装備をそのまま使います",
       "template": "テンプレートから作成",
-      "templateSubtitle": "保存した構成から始める"
+      "templateSubtitle": "保存した構成から始める",
+      "assistant": "AIで計画する",
+      "assistantSubtitle": "会話でコース・キャンプ地・装備までそろえて旅行を作ります"
     },
     "bagCopy": {
       "title": "バックパックをコピー",
@@ -1747,6 +1749,109 @@
       "groupHidden": "グループのコースはオフラインでは表示されません",
       "north": "N",
       "northLabel": "北"
+    }
+  },
+  "assistant": {
+    "title": "AIで計画する",
+    "newChat": "新しい会話",
+    "newChatConfirm": "この会話を消して新しく始めますか?",
+    "newChatConfirmButton": "新しく始める",
+    "target": {
+      "new": "新しい旅行",
+      "a11y": "計画対象: {{target}}"
+    },
+    "greeting": {
+      "title": "どこへ出かけましょうか?",
+      "body": "日程と山を教えてくれれば、コース・キャンプ地・天気・装備までそろえて旅行を作ります。"
+    },
+    "suggestion": {
+      "nextWeekendJirisan": "来週末1泊の智異山コースを教えて",
+      "beginner": "初心者向けの1泊をおすすめして",
+      "nearbyWild": "今週末、近くの野営地でおすすめは?",
+      "traverse": "2泊3日の縦走を準備して"
+    },
+    "composer": {
+      "placeholder": "いつ、どこへ行きたいですか?",
+      "send": "送信",
+      "remaining_other": "今日あと{{count}}回",
+      "pendingNotice": "先に上の変更案を適用するかスキップしてください"
+    },
+    "status": {
+      "thinking": "計画を立てています…"
+    },
+    "message": {
+      "notSent": "送信できませんでした"
+    },
+    "error": {
+      "network": "接続が不安定です。しばらくしてからもう一度お試しください",
+      "generic": "問題が発生しました。もう一度お試しください",
+      "resend": "再送信"
+    },
+    "block": {
+      "offline": "インターネットに接続するとアシスタントを使えます",
+      "limit": "今日の会話回数を使い切りました。明日また計画してみてください",
+      "turnLimit": "会話が長くなりました。新しい会話を始めてください",
+      "providerChanged": "アシスタントが更新されました。新しい会話を始めてください"
+    },
+    "action": {
+      "title": {
+        "createTrip": "旅行を作成",
+        "addGears": "装備を追加",
+        "removeGears": "装備を外す",
+        "updateTripInfo": "旅行情報を変更",
+        "setDestination": "目的地を設定",
+        "updateMemo": "メモを保存"
+      },
+      "apply": "適用",
+      "skip": "スキップ",
+      "applyA11y": "{{title}}を適用",
+      "skipA11y": "{{title}}をスキップ",
+      "status": {
+        "applied": "適用済み",
+        "appliedWithNote": "適用済み — {{note}}",
+        "skipped": "スキップ済み",
+        "failed": "失敗 — {{reason}}",
+        "applying": "適用中…"
+      },
+      "viewTrip": "旅行を見る",
+      "note": {
+        "gearsFailed_other": "装備{{count}}件失敗",
+        "partialFailed": "一部の項目が失敗"
+      },
+      "failure": {
+        "noTrip": "まだ旅行がありません",
+        "dateOrder": "終了日が開始日より前です",
+        "invalid": "内容が正しくありません",
+        "notFound": "対象が見つかりません",
+        "save": "保存できませんでした",
+        "unknown": "対応していない変更です"
+      },
+      "line": {
+        "name": "名前",
+        "period": "期間",
+        "startDate": "開始日",
+        "endDate": "終了日",
+        "destination": "目的地",
+        "gears_other": "装備{{count}}件",
+        "memo": "メモ"
+      },
+      "gearItem": "· {{name}}",
+      "gearWithSource": "{{name}}({{source}})",
+      "source": {
+        "warehouse": "倉庫",
+        "catalog": "カタログ"
+      }
+    },
+    "intro": {
+      "message": "アシスタントがキャンプ地・天気・装備の情報を読んで旅行を提案します。旅行は「適用」を押したときだけ作成されます。会話内容はAI処理のため{{provider}}に送信されます。",
+      "start": "始める",
+      "later": "あとで",
+      "provider": {
+        "default": "AIプロバイダー(GoogleまたはAnthropic)"
+      }
+    },
+    "entry": {
+      "cta": "AIで計画する"
     }
   }
 }

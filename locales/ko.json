@@ -946,7 +946,9 @@
       "copy": "기존 여행에서 배낭 가져오기",
       "copySubtitle": "이전 여행의 장비 구성을 그대로 가져와요",
       "template": "템플릿으로 만들기",
-      "templateSubtitle": "저장한 구성으로 시작해요"
+      "templateSubtitle": "저장한 구성으로 시작해요",
+      "assistant": "AI로 계획하기",
+      "assistantSubtitle": "대화로 코스·박지·장비까지 챙겨 여행을 만들어요"
     },
     "bagCopy": {
       "title": "배낭 복사",
@@ -1747,6 +1749,109 @@
       "groupHidden": "그룹 코스는 오프라인에서 보이지 않아요",
       "north": "N",
       "northLabel": "북쪽"
+    }
+  },
+  "assistant": {
+    "title": "AI로 계획하기",
+    "newChat": "새 대화",
+    "newChatConfirm": "지금 대화를 지우고 새로 시작할까요?",
+    "newChatConfirmButton": "새로 시작",
+    "target": {
+      "new": "새 여행",
+      "a11y": "계획 대상: {{target}}"
+    },
+    "greeting": {
+      "title": "어디로 떠나 볼까요?",
+      "body": "날짜와 산을 말해 주면 코스·박지·날씨·장비까지 챙겨 여행을 만들어 드려요."
+    },
+    "suggestion": {
+      "nextWeekendJirisan": "다음 주말 1박 지리산 코스 알려줘",
+      "beginner": "초보자도 갈 만한 1박 추천해줘",
+      "nearbyWild": "이번 주말 가까운 노지 어디가 좋아?",
+      "traverse": "2박 3일 종주 준비해줘"
+    },
+    "composer": {
+      "placeholder": "어디로, 언제 떠나고 싶으세요?",
+      "send": "보내기",
+      "remaining_other": "오늘 {{count}}회 남음",
+      "pendingNotice": "먼저 위 변경안을 적용하거나 건너뛰어 주세요"
+    },
+    "status": {
+      "thinking": "계획을 세우는 중…"
+    },
+    "message": {
+      "notSent": "보내지 못함"
+    },
+    "error": {
+      "network": "연결이 불안정해요. 잠시 후 다시 시도해 주세요",
+      "generic": "문제가 생겼어요. 다시 시도해 주세요",
+      "resend": "다시 보내기"
+    },
+    "block": {
+      "offline": "인터넷에 연결되면 도우미를 쓸 수 있어요",
+      "limit": "오늘 대화를 다 썼어요. 내일 다시 계획해 보세요",
+      "turnLimit": "대화가 길어졌어요. 새 대화를 시작해 주세요",
+      "providerChanged": "도우미가 업데이트됐어요. 새 대화를 시작해 주세요"
+    },
+    "action": {
+      "title": {
+        "createTrip": "여행 만들기",
+        "addGears": "장비 담기",
+        "removeGears": "장비 빼기",
+        "updateTripInfo": "여행 정보 변경",
+        "setDestination": "여행지 설정",
+        "updateMemo": "메모 저장"
+      },
+      "apply": "적용",
+      "skip": "건너뛰기",
+      "applyA11y": "{{title}} 적용",
+      "skipA11y": "{{title}} 건너뛰기",
+      "status": {
+        "applied": "적용됨",
+        "appliedWithNote": "적용됨 — {{note}}",
+        "skipped": "건너뜀",
+        "failed": "실패 — {{reason}}",
+        "applying": "적용하는 중…"
+      },
+      "viewTrip": "여행 보기",
+      "note": {
+        "gearsFailed_other": "장비 {{count}}개 실패",
+        "partialFailed": "일부 항목 실패"
+      },
+      "failure": {
+        "noTrip": "아직 여행이 없어요",
+        "dateOrder": "종료일이 시작일보다 빨라요",
+        "invalid": "내용이 올바르지 않아요",
+        "notFound": "대상을 찾지 못했어요",
+        "save": "저장하지 못했어요",
+        "unknown": "지원하지 않는 변경이에요"
+      },
+      "line": {
+        "name": "이름",
+        "period": "기간",
+        "startDate": "시작일",
+        "endDate": "종료일",
+        "destination": "여행지",
+        "gears_other": "장비 {{count}}개",
+        "memo": "메모"
+      },
+      "gearItem": "· {{name}}",
+      "gearWithSource": "{{name}} ({{source}})",
+      "source": {
+        "warehouse": "창고",
+        "catalog": "카탈로그"
+      }
+    },
+    "intro": {
+      "message": "도우미가 박지·날씨·장비 정보를 읽어 여행을 제안해요. 여행은 적용을 눌러야 만들어져요. 대화 내용은 AI 처리를 위해 {{provider}}에 전달돼요.",
+      "start": "시작하기",
+      "later": "나중에",
+      "provider": {
+        "default": "AI 공급자(Google 또는 Anthropic)"
+      }
+    },
+    "entry": {
+      "cta": "AI로 계획하기"
     }
   }
 }

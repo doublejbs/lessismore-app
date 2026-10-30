@@ -268,6 +268,15 @@ const RootLayout = () => {
               presentation: 'modal',
             }}
           />
+          {/* AI로 계획하기(AS-3·§2) — pageSheet 모달. OS 그래버가 없어 화면이 SheetGrabberView + 닫기 ×를 그린다. */}
+          <Stack.Screen
+            name='assistant'
+            options={{
+              headerShown: false,
+              presentation: 'modal',
+              contentStyle: { backgroundColor: Acg.paper },
+            }}
+          />
           <Stack.Screen
             name='bag-add-options'
             options={{

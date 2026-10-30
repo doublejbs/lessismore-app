@@ -109,6 +109,7 @@
 | `config/featurePopup` | 신기능 안내 팝업 (원격 온보딩) | 신기능 팝업 (FeaturePopup FP) |
 | `config/feedRotation` | 추천 박지 주간 교체 멱등 가드 — 함수 전용 (DM-27) `[제안]` | 스케줄 함수 `rotateFeedContent`(웹 레포) |
 | `feed-rotation-runs/{weekId}` | 추천 박지 주간 교체 실행 기록 — 함수 전용 (DM-27) `[제안]` | 운영 확인 |
+| `assistant-usage/{uid}` | 여행 도우미 하루 사용 횟수 — 함수 `tripAssistant` 전용 (DM-39) `[제안]` | 한도 판정 ([Assistant.md](Assistant.md) AS-9) |
 
 ## 3. 문서 스키마
 
@@ -1060,6 +1061,23 @@
 
 - 두 경로 모두 클라이언트 읽기·쓰기 금지(개방 절에서 명시적으로 제외 — DM-27 `config/feedRotation`·`feed-rotation-runs`와 같은 방식).
 
+
+### DM-39 여행 도우미 사용량 `assistant-usage/{uid}` `[제안]`
+
+여행 도우미([Assistant.md](Assistant.md) AS-9)의 **하루 사용 횟수 카운터**. Cloud Function `tripAssistant`(웹 레포)만 Admin SDK로 쓴다. 대화 내용은 어디에도 저장하지 않는다(AS-7·AS-10) — 이 문서는 숫자뿐이다.
+
+문서 id = Firebase uid.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `day` | string | `YYYY-MM-DD`(**서버 KST 시각** 기준 — 앱이 보내는 `today`는 쓰지 않는다). 저장된 날과 다르면 두 카운터를 0으로 보고 새로 센다 |
+| `count` | number | 그날 사용자 발화(`userText`) 수. **입력 검증을 통과한 뒤**, 모델 호출 전에 트랜잭션으로 +1. 한도 20(AS-9) |
+| `toolTurnCount` | number | 그날 쓰기 결과 이어 보내기(`toolResults`) 요청 수. 같은 트랜잭션으로 +1, 한도 60 — 조작한 기록으로 이 경로만 반복하는 남용 방지(AS-9) |
+| `updatedAt` | Timestamp | 서버 시각 |
+
+- **보안 규칙(콘솔 관리)**: 클라이언트 **읽기·쓰기 전면 금지**. 남은 횟수는 함수 응답 `remaining`으로만 전달한다.
+- 삭제: 회원 탈퇴 정리 함수(SUB-7과 같은 자리)가 지운다. 인덱스 없음.
+- 한도 수치(v1 모든 사용자 20회/일, 구독 연계는 SUB-14 보류)는 함수 상수다. 원격 변경이 필요해지면 `config/app`(DM-13)에 필드를 더한다.
 
 ## 4. Storage 경로 (DM-9)
 

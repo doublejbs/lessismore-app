@@ -13,6 +13,7 @@ import PretendardText from '@/components/PretendardText';
 import OrderButtonView from '@/components/order/OrderButtonView';
 import OrderOption from '@/model/order/OrderOption';
 import { useFocusEffect } from 'expo-router/react-navigation';
+import { useRouter } from 'expo-router';
 import Layout from '../Layout';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
@@ -29,6 +30,9 @@ import GroupList from '@/model/group-list/GroupList';
 import GroupListDispatcher from '@/model/group-list/GroupListDispatcher';
 import GroupListView from '@/components/group/list/GroupListView';
 import OfflineTripListView from '@/components/offline/OfflineTripListView';
+import FloatingPillButton from '@/components/FloatingPillButton';
+import AssistantSparkleIconView from '@/components/assistant/AssistantSparkleIconView';
+import AssistantEntrySource from '@/model/assistant/AssistantEntrySource';
 
 // iOS는 리스트가 탭바 뒤로 흐르도록(edge-to-edge) 하단 세이프에어리어를 뺀다.
 const IOS_EDGES = ['top', 'left', 'right'] as const;
@@ -49,6 +53,7 @@ const BagView = () => {
     GroupList.from(GroupListDispatcher.new())
   );
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const isLoggedIn = app.getFirebase().isLoggedIn();
   const isLoading = bag.isLoading();
   const bags = bag.getBags();
@@ -128,6 +133,20 @@ const BagView = () => {
       bag.dispose();
     };
   }, [bag]);
+
+  // 빈 목록의 보조 진입 `AI로 계획하기`(AS §2 진입 2). 비로그인은 `여행 추가`처럼 로그인부터 연다.
+  const handlePressAssistant = () => {
+    if (!app.getFirebase()?.isLoggedIn()) {
+      app.getLogInAlertManager()?.show();
+
+      return;
+    }
+
+    app
+      .getAnalyticsManager()
+      ?.logClick('assistant_open', { from: AssistantEntrySource.BagEmpty });
+    router.push('/assistant');
+  };
 
   const handleSelectOrder = (option: OrderOption) => {
     app
@@ -243,6 +262,14 @@ const BagView = () => {
             <PretendardText style={styles.emptySubtitle}>
               {app.getL10n().t('bag.emptySubtitle')}
             </PretendardText>
+            {/* 보조 알약 — 라임은 화면의 주 액션 `여행 추가` 하나다(AS §2). */}
+            <FloatingPillButton
+              label={app.getL10n().t('assistant.entry.cta')}
+              onPress={handlePressAssistant}
+              variant='secondary'
+              leadingIcon={<AssistantSparkleIconView size={18} color={Acg.ink} />}
+              style={styles.emptyAssistantButton}
+            />
           </View>
         );
       }
@@ -422,6 +449,12 @@ const styles = StyleSheet.create({
   emptySubtitle: {
     ...AcgType.rowSubtitle,
     color: Acg.textMuted,
+  },
+  // 빈 목록 안의 보조 알약 — 떠 있는 버튼이 아니라 그림자를 뺀다.
+  emptyAssistantButton: {
+    alignSelf: 'flex-start',
+    marginTop: AcgLayout.section,
+    boxShadow: 'none',
   },
   // 화면 제목만 남긴 행이다. 정렬 드롭다운은 세그먼트 칩 행 우측에 둔다(BAG-6).
   headerContainer: {
