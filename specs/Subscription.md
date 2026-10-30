@@ -128,11 +128,23 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 - 구독 중 타일은 게이트 없이 바로 저장한다. 구독이 끝나면 타일·여행 탭 배너·오프라인 상세 진입이 모두 같은 게이트로 보낸다(OF-7).
 - 설정(정보 탭) `useless 플러스` 행도 같은 구독 화면을 연다(일반 변형). 광고 쪽 진입점(SUB-9)은 보류.
 
+### SUB-14 여행 도우미 한도 게이트 `[보류 — v1은 구독 미연동(2026-10-30)]`
+
+v1의 `AI로 계획하기`([Assistant.md](Assistant.md) AS-9)는 모든 사용자에게 **하루 20회**로 같고 구독과 연결하지 않는다. 사용 지표를 본 뒤 아래 안을 다시 꺼낸다.
+
+**보류된 안**
+
+- 무료 사용자 **하루 5회**, 권한 `premium`(체험 포함) 하루 100회(남용 상한). 판정은 **서버**(함수 `tripAssistant`)가 `subscriptions/{uid}.active`(DM-31)로 한다 — 앱의 RevenueCat 상태를 서버에 보내지 않는다.
+- 무료 한도가 끝나면 도우미 화면 입력 바 자리에 한도 카드(`오늘 무료 대화를 다 썼어요`)를 두고, `useless 플러스 알아보기`는 구독 화면(SUB-2)을 **도우미 진입점 변형**으로 연다: 제목 아래 한 줄 `플러스는 하루 종일 도우미와 여행을 준비할 수 있어요`. `SubscriptionEntryPoint`에 `Assistant = 'assistant'`를 더한다.
+- `openSubscription(SubscriptionEntryPoint.Assistant, { onEntitled })` — 구매·체험 시작·복원으로 권한이 생기면 시트가 닫힌 뒤 **막혔던 메시지를 자동으로 보낸다**(SUB-11과 같은 "하려던 일을 끝내 준다" 규칙). 권한 없이 닫히면 한도 카드 그대로.
+- 웹은 구독 화면이 없으므로(§5) 한도 카드에 버튼 대신 `모바일 앱에서 useless 플러스를 구독하면 더 쓸 수 있어요` 한 줄.
+- 도우미를 구독 **혜택으로 공식화할지**(SUB-2 혜택 줄·스토어 설명 반영)는 사용자 결정 대기([Assistant.md](Assistant.md) §8). 결정 전까지 SUB-2 문구는 바꾸지 않는다.
+
 ### SUB-8 측정 `[제안]`
 
 **수용 기준**
 
-- `logClick('subscription_open', { from })` — 구독 화면 진입(`from`: `settings` | `ad_card` | `nudge` | `offline` — 오프라인 타일 게이트 SUB-11; `ad_card`·`nudge`는 SUB-9 보류로 당분간 나오지 않는다).
+- `logClick('subscription_open', { from })` — 구독 화면 진입(`from`: `settings` | `ad_card` | `nudge` | `offline` — 오프라인 타일 게이트 SUB-11 | `assistant` — 여행 도우미 한도 게이트 SUB-14 `[제안]`; `ad_card`·`nudge`는 SUB-9 보류로 당분간 나오지 않는다).
 - `logClick('subscription_nudge', { action })` — 한 번 뜨는 안내 시트(SUB-9) 결과(`action`: `shown` | `open` | `dismiss`).
 - `logClick('subscription_purchase', { result })` — `result`: `success` | `cancelled` | `pending` | `error`. `pending`은 결제 승인 대기(iOS Ask to Buy·안드로이드 보류 결제)다 — 알럿 `결제 승인을 기다리고 있어요. 승인되면 오프라인 저장을 쓸 수 있어요.`를 띄우고, 승인되면 권한 리스너가 광고를 끈다.
 - `logClick('subscription_restore', { result })` — `result`: `restored` | `none` | `error`.
