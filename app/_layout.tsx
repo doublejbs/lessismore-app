@@ -268,6 +268,14 @@ const RootLayout = () => {
               presentation: 'modal',
             }}
           />
+          {/* AI 장비 자동 채우기(AS-14) — pageSheet. OS 그래버가 없어 화면이 공용 그래버 + ×를 그린다. */}
+          <Stack.Screen
+            name='ai-gear-fill'
+            options={{
+              headerShown: false,
+              presentation: 'modal',
+            }}
+          />
           <Stack.Screen
             name='bag-add-options'
             options={{

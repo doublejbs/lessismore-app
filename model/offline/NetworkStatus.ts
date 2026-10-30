@@ -90,6 +90,15 @@ class NetworkStatus {
   }
 
   /**
+   * 기기 연결 자체가 없는지(`isConnected === false` — 비행기 모드·셀룰러 끔)만 본다. AI 액션(AS-8)은
+   * 이 값으로만 호출을 막는다 — 도달 가능성(`isInternetReachable`)이나 Firestore 실패 추정으로
+   * 막으면, 잘못된 판정 때문에 호출 자체를 못 하게 된다. 연결이 있는데 실패하면 에러로 보여 준다.
+   */
+  public isDisconnected(): boolean {
+    return this.connected === false;
+  }
+
+  /**
    * Firestore 읽기 실패를 알린다(OF-3 "null이면서 Firestore 첫 읽기 실패"). 연결 없음 오류일 때만
    * 표시하고 true를 돌려준다 — 권한 오류 같은 다른 실패로 오프라인 화면이 뜨면 안 된다.
    */

@@ -270,3 +270,7 @@ export const AcgLayout = {
   // 플로팅 탭바 아래로 콘텐츠가 흐르므로 스크롤 끝에 이만큼 비운다.
   scrollBottom: 130,
 } as const;
+
+// 스켈레톤 셰이딩 — 면·글자 토큰이 아니라 로딩 표시라 토큰 예외지만, 값은 한 곳에 둔다.
+// (검색 스켈레톤 `SearchSkeletonView`도 같은 값 '#E8E8E8'을 쓴다 — 그 파일은 기존 lint 오류가 있어 건드리지 않았다.)
+export const SKELETON_SHADE = '#E8E8E8';

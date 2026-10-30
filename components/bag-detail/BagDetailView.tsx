@@ -27,6 +27,7 @@ import BagDetailUselessDescriptionView from './BagDetailUselessDescriptionView';
 import BagDetailSummaryView from './BagDetailSummaryView';
 import BagDetailBottomBar from './BagDetailBottomBar';
 import BagDetailEmptyView from './BagDetailEmptyView';
+import BagDetailAiFillView from './BagDetailAiFillView';
 import BagDetailMemoView from './BagDetailMemoView';
 import BagDetailDestinationView from './BagDetailDestinationView';
 import BagDetailActivityView from './BagDetailActivityView';
@@ -464,7 +465,11 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                 <View style={styles.gearList}>
                   {/* 빈 배낭 안내(BD-13, 2026-10-08 사용자 결정 — 2026-08-13 "안내 면 없음"을 뒤집음). */}
                   {bagDetail.isEmpty() && (
-                    <BagDetailEmptyView bagDetail={bagDetail} />
+                    <View style={styles.emptyBlock}>
+                      <BagDetailEmptyView bagDetail={bagDetail} />
+                      {/* 블록 아래 보조 알약 — AI 장비 자동 채우기(BD-13, AS §2 진입 1). */}
+                      <BagDetailAiFillView bagDetail={bagDetail} />
+                    </View>
                   )}
                   {bagDetail.getGearsByCategory().map(({ category, gears }) => (
                     <BagDetailCategoryView
@@ -664,6 +669,10 @@ const styles = StyleSheet.create({
   gearListContainer: {
     alignItems: 'center',
     paddingHorizontal: AcgLayout.screenPadding,
+  },
+  // 빈 배낭 안내 블록과 그 아래 보조 알약(BD-13).
+  emptyBlock: {
+    gap: 12,
   },
   gearList: {
     width: '100%',

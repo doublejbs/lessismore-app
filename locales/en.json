@@ -355,7 +355,8 @@
     "emptyBodyWarehouse": "Pick gear from your warehouse to see the total weight and category breakdown right away.",
     "emptyBodySearch": "Your warehouse is still empty. Search for gear and add it straight to this trip.",
     "emptyAddFromWarehouse": "Add from warehouse",
-    "emptyAddFromSearch": "Find gear to add"
+    "emptyAddFromSearch": "Find gear to add",
+    "aiFill": "Fill with AI"
   },
   "bagTemplate": {
     "editGear": "Edit gear",
@@ -1021,7 +1022,9 @@
       "search": "Add from search",
       "searchSubtitle": "Find it in the catalog",
       "custom": "Enter manually",
-      "customSubtitle": "Enter product details yourself"
+      "customSubtitle": "Enter product details yourself",
+      "ai": "Fill with AI picks",
+      "aiSubtitle": "Picked for your weather and gear"
     },
     "announcement": {
       "close": "Close announcement",
@@ -1777,5 +1780,38 @@
       "north": "N",
       "northLabel": "North"
     }
+  },
+  "aiGearFill": {
+    "title": "AI gear picks",
+    "loading": "Checking the weather and your gear…",
+    "notice": "Your trip details and gear are sent to an AI provider to make picks",
+    "noticeDismiss": "Dismiss notice",
+    "pastTrip": "This trip has ended",
+    "essential": "Essentials",
+    "recommended": "Recommended",
+    "sectionCount": "{{count}} items",
+    "sectionCount_one": "{{count}} item",
+    "sourceWarehouse": "My gear",
+    "sourceCatalog": "Catalog",
+    "rowAccessibility": "{{name}}, {{weight}}, {{reason}}",
+    "rowAccessibilityNoWeight": "{{name}}, {{reason}}",
+    "notesAccessibility": "Notes",
+    "selectedSummary": "{{count}} selected · +{{kg}}kg",
+    "apply": "Add",
+    "applyFailed": "Couldn't add. Please try again",
+    "retry": "Pick again",
+    "remaining": "{{count}} left today",
+    "catalogNotice": "Catalog gear is also saved to your gear",
+    "applied": "Added {{count}} items",
+    "applied_one": "Added {{count}} item",
+    "appliedPartial": " · couldn't add {{count}}",
+    "errorNetwork": "Connection is unstable. Please try again shortly",
+    "errorLimit": "You've used today's AI picks. Try again tomorrow",
+    "errorRefused": "Couldn't make picks",
+    "errorGeneric": "Something went wrong. Please try again",
+    "errorOffline": "Connect to the internet to get picks",
+    "errorRetry": "Try again",
+    "searchAdd": "Add from search",
+    "empty": "Couldn't find gear to pick"
   }
 }

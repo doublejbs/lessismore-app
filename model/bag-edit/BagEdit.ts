@@ -10,6 +10,7 @@ import { makeAutoObservable, reaction } from 'mobx';
 import OrderType from '../order/OrderType';
 import WarehouseFilter from '../warehouse/WarehouseFilter';
 import BagTemplateStore from '../store/BagTemplateStore';
+import GearAddContextType from '../gear/GearAddContextType';
 
 class BagEdit {
   private static readonly ORDER_KEY = 'bag';
@@ -197,6 +198,16 @@ class BagEdit {
 
   public showCustom() {
     // GE-8: 검색/직접 선택 시트로 진입(이 배낭 컨텍스트 — bagId 전달).
+    // 템플릿 편집이면 `context=template`을 덧붙인다 — 시트가 배낭 전용 행(AI 추천, AS §2)을 숨긴다.
+    // 기존 두 행은 지금처럼 bagId 자리의 id로 이어간다.
+    if (this.templateStore) {
+      this.router.push(
+        `/gear-add-options?bagId=${this.id}&context=${GearAddContextType.Template}`
+      );
+
+      return;
+    }
+
     this.router.push(`/gear-add-options?bagId=${this.id}`);
   }
 

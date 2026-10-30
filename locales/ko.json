@@ -350,7 +350,8 @@
     "emptyBodyWarehouse": "창고에 있는 장비를 골라 담으면 총 무게와 카테고리별 비중을 바로 볼 수 있어요.",
     "emptyBodySearch": "창고가 아직 비어 있어요. 장비를 검색해 이 여행에 바로 담아 보세요.",
     "emptyAddFromWarehouse": "창고에서 담기",
-    "emptyAddFromSearch": "장비 찾아 담기"
+    "emptyAddFromSearch": "장비 찾아 담기",
+    "aiFill": "AI로 채우기"
   },
   "bagTemplate": {
     "editGear": "장비 편집",
@@ -1007,7 +1008,9 @@
       "search": "검색으로 추가",
       "searchSubtitle": "카탈로그에서 찾아 담아요",
       "custom": "직접 입력",
-      "customSubtitle": "제품 정보를 직접 입력해요"
+      "customSubtitle": "제품 정보를 직접 입력해요",
+      "ai": "AI 추천으로 채우기",
+      "aiSubtitle": "날씨·창고를 보고 골라 줘요"
     },
     "announcement": {
       "close": "공지 닫기",
@@ -1748,5 +1751,36 @@
       "north": "N",
       "northLabel": "북쪽"
     }
+  },
+  "aiGearFill": {
+    "title": "AI 추천 장비",
+    "loading": "날씨와 창고를 보고 있어요…",
+    "notice": "여행 정보와 창고를 AI 공급자에 보내 추천을 만들어요",
+    "noticeDismiss": "안내 닫기",
+    "pastTrip": "지난 여행이에요",
+    "essential": "필수",
+    "recommended": "추천",
+    "sectionCount": "{{count}}개",
+    "sourceWarehouse": "창고",
+    "sourceCatalog": "카탈로그",
+    "rowAccessibility": "{{name}}, {{weight}}, {{reason}}",
+    "rowAccessibilityNoWeight": "{{name}}, {{reason}}",
+    "notesAccessibility": "참고",
+    "selectedSummary": "{{count}}개 선택 · +{{kg}}kg",
+    "apply": "담기",
+    "applyFailed": "담지 못했어요. 다시 시도해 주세요",
+    "retry": "다시 추천",
+    "remaining": "오늘 {{count}}회 남음",
+    "catalogNotice": "카탈로그 장비는 창고에도 저장돼요",
+    "applied": "장비 {{count}}개를 담았어요",
+    "appliedPartial": " · {{count}}개는 담지 못했어요",
+    "errorNetwork": "연결이 불안정해요. 잠시 후 다시 시도해 주세요",
+    "errorLimit": "오늘 AI 추천을 다 썼어요. 내일 다시 해 보세요",
+    "errorRefused": "추천을 만들지 못했어요",
+    "errorGeneric": "문제가 생겼어요. 다시 시도해 주세요",
+    "errorOffline": "인터넷에 연결되면 추천받을 수 있어요",
+    "errorRetry": "다시 시도",
+    "searchAdd": "검색으로 추가",
+    "empty": "추천할 장비를 찾지 못했어요"
   }
 }
