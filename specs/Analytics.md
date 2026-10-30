@@ -237,6 +237,18 @@
 
 - 가이드로 만든 여행은 `click_bag_create_confirm`을 보내지 않는다 — 생성 경로가 다르므로 `click_onboarding_trip_complete`로 구분한다. 전체 생성 수는 두 이벤트를 합산한다.
 
+**여행 도우미** ([Assistant.md](Assistant.md) AS-11) `[제안]`
+
+| 이벤트 | 트리거 | 파라미터 |
+| --- | --- | --- |
+| `click_assistant_open` | `AI로 계획하기` 화면 진입 | `from`: `bag_add`(`여행 추가` 시트 첫 항목) \| `bag_empty`(배낭 0개 빈 상태 보조 알약) |
+| `click_assistant_send` | 사용자 발화 전송(쓰기 결과 자동 이어 보내기는 제외) | `kind`: `text` \| `suggestion`(제안 칩), `turn`: 이 대화에서 몇 번째 발화인지(1부터) |
+| `click_assistant_apply` | 적용 카드 처리 | `tool`: `create_trip` \| `add_gears` \| `remove_gears` \| `update_trip_info` \| `set_destination` \| `update_memo`, `result`: `applied` \| `skipped` \| `error` |
+| `click_assistant_view_trip` | 생성 카드의 `여행 보기` → 배낭 상세 | — |
+| `click_assistant_limit` | 하루 한도 카드 노출 | `action`: `shown` |
+
+대화 내용·토큰 수는 보내지 않는다(AS-10). 구독 연계(SUB-14)는 보류라 `click_subscription_open(from=assistant)`은 당분간 나오지 않는다.
+
 **알림** ([Notification.md](Notification.md)) `[제안]`
 
 | 이벤트 | 트리거 | 파라미터 |
