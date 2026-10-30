@@ -51,11 +51,12 @@ app/assistant.tsx  →  AssistantWrapper  →  AssistantScreen
 - 호출은 **인증 필수**(`request.auth` 없으면 `unauthenticated`).
 - 도구는 두 종류다.
   - **읽기 도구**(AS-4) — 함수 안에서 Admin SDK·외부 API로 실행하고 모델 루프를 **서버에서 계속** 돈다(한 턴에 읽기 최대 8회, 넘으면 실행 대신 오류 결과를 돌려줘 모델이 마무리하게 한다 — 기록 짝을 깨지 않기 위해).
-  - **쓰기 도구**(AS-5) — 모델이 호출하면 함수는 **실행하지 않고 그 턴을 끝내** `pendingActions`로 앱에 돌려준다. 앱이 적용 카드로 확인받고 **기존 스토어**로 실행한 뒤 결과를 `toolResults`로 다음 요청에 실어 보낸다. 읽기와 쓰기가 한 응답에 섞이면 읽기는 서버가 먼저 끝내고 쓰기만 남긴다.
-- 함수는 **상태를 저장하지 않는다**. 대화 기록은 앱이 공급자 원형(`MessageParam[]` 또는 Gemini `Content[]`)으로 들고(AS-7) 매 요청에 보낸다. 함수는 요청마다 `appended`(이번 턴에 기록에 **그대로 덧붙일** 메시지 배열 — 공급자 원형)와 `display`(앱이 그릴 `{role, text, actions}`)를 돌려주고, 앱은 `appended`를 가공 없이 뒤에 붙인다(**append-only**). 기록 안을 앱이 해석하지 않으므로 공급자를 바꿔도 앱 코드는 같다. 공급자가 바뀌면 진행 중 대화는 새로 시작한다(기록 원형이 다르다).
-- 요청: `{ provider, history, userText?, toolResults?, locale: 'ko'|'en'|'ja', today: 'YYYY-MM-DD', context: { bagId?: string } }`. `userText`와 `toolResults`는 둘 중 하나만. `context.bagId`는 생성 뒤 후속 수정에 쓴다(없으면 "여행 없음").
-- 응답(스트리밍 청크, AS-8): `{type:'status', tool}` · `{type:'text_delta', text}` · 마지막 `{appended, display, pendingActions, remaining, stopReason}`.
-- 입력 검증: `history` 직렬화 200KB, `userText` 2,000자, 메시지 수 80 초과면 `invalid-argument`. 모델이 거절(`refusal`/안전 차단)하면 `이 요청은 도와드리기 어려워요. 여행 계획에 대해 물어봐 주세요.`를 텍스트로 돌려준다.
+  - **쓰기 도구**(AS-5) — 모델이 호출하면 함수는 **실행하지 않고 그 턴을 끝내** `pendingActions`로 앱에 돌려준다. 앱이 적용 카드로 확인받고 **기존 스토어**로 실행한 뒤 결과를 `toolResults`로 다음 요청에 실어 보낸다. 읽기와 쓰기가 한 응답에 섞이면 **읽기는 다음 요청에서**(앱의 쓰기 결과와 함께) 실행한다 — 무상태 서버가 기록 짝을 깨지 않는 유일한 방법이고, 앱은 차이를 느끼지 않는다. 한 요청의 모델 호출은 최대 12회(넘으면 `internal`).
+- 함수는 **상태를 저장하지 않는다**. 대화 기록은 앱이 공급자 원형(`MessageParam[]` 또는 Gemini `Content[]`)으로 들고(AS-7) 매 요청에 보낸다. 함수는 요청마다 `appended`(이번 턴에 기록에 **그대로 덧붙일** 메시지 배열 — 공급자 원형)와 `text`(앱이 그릴 도우미 텍스트)를 돌려주고, 앱은 `appended`를 가공 없이 뒤에 붙인다(**append-only**). 기록 안을 앱이 해석하지 않으므로 공급자를 바꿔도 앱 코드는 같다. 공급자가 바뀌면 진행 중 대화는 새로 시작한다(기록 원형이 다르다 — `failed-precondition`).
+- 요청: `{ provider?, history, userText?, toolResults?: [{id?, name, content, isError}], locale: 'ko'|'en'|'ja', today: 'YYYY-MM-DD', context: { bagId?: string } }`. `provider`는 직전 응답에서 받은 값(첫 요청은 생략, 기록이 있는데 빠지거나 다르면 `failed-precondition`). `userText`와 `toolResults`는 둘 중 하나만. `context.bagId`는 생성 뒤 후속 수정에 쓴다(없으면 "여행 없음").
+- 응답: `{ provider, model, appended, text, pendingActions: [{id, name, input}], remaining, stopReason: 'end'|'tool_use'|'refusal'|'max_tokens' }`. 스트리밍 요청이면 그 전에 청크 `{type:'status', tool}` · `{type:'text_delta', text}`가 먼저 온다(AS-8). `pendingActions[].id`는 공급자 id가 없으면(Gemini) 서버가 `call_{순번}`을 발급하고, 다음 요청의 `toolResults`는 **직전 모델 메시지의 함수 호출과 id 또는 순서·이름으로** 짝을 맞춘다(불일치면 `invalid-argument`).
+- 오류 코드(`HttpsError`): `unauthenticated` · `invalid-argument` · `resource-exhausted`(`details.remaining: 0`) · `failed-precondition`(공급자 불일치) · `permission-denied`(`context.bagId`가 내 여행이 아님) · `not-found`(그 여행 없음) · `unavailable`(공급자 429/5xx 재시도 뒤, 또는 함수 마감 임박) · `internal`.
+- 입력 검증: 요청 전체(`history`+`toolResults`+`userText`) 직렬화 200KB, `toolResults` 20개·각 8KB, `userText` 2,000자, 메시지 80개 초과면 `invalid-argument`. `history`는 role을 확인하고 **금지 목록**(이미지·문서·`inlineData`·`fileData` 블록, `cache_control`)이 있으면 거부한다(AS-10 사진 미전송, 비용) — 허용 목록 방식은 공급자가 새 블록 타입을 응답에 섞을 때 우리 기록이 거부돼 대화가 깨지므로 쓰지 않는다(2026-10-30 재리뷰). 모델이 거절(`refusal`/안전 차단)하면 `이 요청은 도와드리기 어려워요. 여행 계획에 대해 물어봐 주세요.`를 텍스트로 돌려준다.
 - 서버가 Firestore에 **쓰는 문서는 사용량 카운터(DM-39) 하나**뿐이다.
 
 ### AS-2 대화 진행 — 계획 순서 `[제안]`
@@ -77,7 +78,7 @@ app/assistant.tsx  →  AssistantWrapper  →  AssistantScreen
 - **대상 줄**(상단 고정): 생성 전 `새 여행`, 생성 뒤 `{이름} · {기간}`.
 - **제안 칩**(대화가 비어 있을 때만, 가로 스크롤, 최소 높이 48): `다음 주말 1박 지리산 코스 알려줘` · `초보자도 갈 만한 1박 추천해줘` · `이번 주말 가까운 노지 어디가 좋아?` · `2박 3일 종주 준비해줘`. 누르면 그 문장을 그대로 보낸다.
 - **입력 바**: 여러 줄 `TextInput`(`fontFamily` Pretendard 직접 지정 — BD-6과 같은 이유), 우측 보내기 아이콘 버튼(44pt, `accessibilityLabel='보내기'`), 빈 입력·응답 중엔 비활성. 키보드 회피는 커뮤니티 댓글 입력과 같은 방식. 위에 `오늘 {n}회 남음`(AS-9).
-- **적용 카드**(AS-5): 도우미 말풍선 아래 변경안마다 한 장. 제목(도구별 고정) + 모델의 한 줄 `summary` + 항목 줄 + 버튼 `적용`(라임 알약 — 보이는 카드 중 **가장 아래 미결 카드에만** 라임, 나머지는 잉크 테두리 보조 알약) / `건너뛰기`. 처리되면 버튼 자리가 상태 줄(`적용됨` / `건너뜀` / `실패 — {사유}`)로 바뀐다. `여행 만들기` 카드는 적용 뒤 상태 줄 옆에 **`여행 보기`** 링크 → `/bag/{id}`로 `router.replace`(도우미를 닫고 상세로).
+- **적용 카드**(AS-5): 도우미 말풍선 아래 변경안마다 한 장. 면은 `Acg.controlFill` + 모서리 12(그림자·테두리 없음 — HM-8 문법). 제목(도구별 고정) + 모델의 한 줄 `summary` + 항목 줄(**메모·장비는 자르지 않고 전부** 보여 준다 — 적용 전에 다 봐야 한다) + 버튼 `적용`(라임 알약) / `건너뛰기`(잉크 테두리 보조 알약). 라임은 화면에 하나 — **그 턴의 미결 카드 중 위쪽부터**(`create_trip`이 항상 먼저) 주고, 앞 카드가 처리되기 전에는 뒤 카드의 버튼을 비활성으로 둔다. 처리되면 버튼 자리가 상태 줄(`적용됨` / `건너뜀` / `실패 — {사유}`)로 바뀐다. `여행 만들기` 카드는 적용 뒤 상태 줄 옆에 **`여행 보기`** 링크 → `/bag/{id}`로 `router.replace`(도우미를 닫고 상세로).
 - 모든 미결 카드가 처리되면 **자동으로** 결과를 서버에 보내 대화를 잇는다. 처리 중엔 입력 바를 잠근다.
 - 응답 대기: 도우미 말풍선 자리에 점 세 개, 읽기 도구 실행 중엔 그 아래 상태 줄(`박지를 찾는 중…` · `날씨를 확인하는 중…` · `창고를 보는 중…` · `장비를 찾는 중…` · `최신 정보를 검색하는 중…`). 텍스트는 받는 대로 덧붙인다(AS-8).
 - 헤더 좌측 `새 대화`(텍스트 버튼) — 확인 알럿 뒤 기록을 비운다. 우상단 닫기 ×.
@@ -98,15 +99,15 @@ app/assistant.tsx  →  AssistantWrapper  →  AssistantScreen
 
 - 이름은 `nameKorean || name`, 브랜드는 `companyKorean || company`([DataModel.md](DataModel.md) DM-3). 그룹은 `GearCategoryGroups`와 같은 매핑으로 세분 키를 1차 그룹으로 접는다.
 - **웹 검색**은 공급자 서버 도구로 붙인다(Anthropic `web_search`, Gemini `googleSearch`) — 턴당 3회. **Gemini 무료 등급은 검색이 429로 막히므로** 첫 429에서 검색을 끄고 재시도한다(공급자 안에서 처리, 앱은 모른다).
-- 첫 요청의 사용자 메시지 앞에 서버가 `[오늘] {today} ({요일}) · 언어: {locale}`과, `context.bagId`가 있으면 `[여행 현황]`(`get_trip` 결과)을 텍스트 블록으로 넣는다. 이 블록은 `appended`에 포함돼 기록에 남는다. 시스템 프롬프트는 캐시를 위해 **불변**이다(AS-12).
+- 첫 요청의 사용자 메시지 앞에 서버가 `[오늘] {today} ({요일}) · 언어: {locale}`, **`[달력]`(오늘부터 21일의 `날짜 요일` 표 — 작은 모델이 요일을 잘못 세는 것을 막기 위해, 2026-10-30 구현 중 추가)**, `context.bagId`가 있으면 `[여행 현황]`(`get_trip` 결과)을 텍스트 블록으로 넣는다. 이 블록은 `appended`에 포함돼 기록에 남는다. 시스템 프롬프트는 캐시를 위해 **불변**이다(AS-12).
 
 ### AS-5 쓰기 도구 (앱 적용) `[제안]`
 
-모델은 변경을 **반드시 이 도구들로** 제안한다. 각 입력에 사용자에게 보여 줄 한국어 한 줄 `summary`(≤60자)가 필수다. 앱의 적용은 **기존 스토어 메서드**만 쓴다.
+모델은 변경을 **반드시 이 도구들로** 제안한다. 각 입력에 사용자에게 보여 줄 한 줄 `summary`(≤60자, **사용자 언어** — `locale`을 따른다)가 필수다. 앱의 적용은 **기존 스토어 메서드**만 쓴다.
 
 | 도구 | 입력 | 앱 적용 | `tool_result` |
 | --- | --- | --- | --- |
-| **`create_trip`** | `name`, `startDate`, `endDate`, `campSpotId?`, `campSpotName?`, `memo?`(≤500자), `gears?: [{gearId, source: 'warehouse'\|'catalog', name}]`(≤15), `summary` | ① `BagStore.add(name, start, end)` → `bagId` ② `campSpotId`가 있으면 `camp-spot/{id}` 읽어 `BagLocation`(`campSpotId` 포함) 구성 → `BagStore.updateLocation`(DST-6) ③ `memo` → `BagStore.updateMemo` ④ `gears`: `catalog`는 `GearStore.getCatalogGear` → 창고 등록(SR-3와 같은 사본 규칙 — `coupangUrl`·`productUrl` 복사 안 함) → `BagStore.addGear`; `warehouse`는 `BagStore.addGear`. 종료일 < 시작일이면 적용 전 거부. ①이 성공하고 ②~④ 중 일부가 실패해도 여행은 남기고 실패 항목을 결과에 적는다 | `{status:'applied', bagId, name, location?, gearsApplied[], gearsSkipped[], failed[], totalWeightG}` |
+| **`create_trip`** | `name`, `startDate`, `endDate`, `campSpotId?`, `campSpotName?`, `memo?`(≤500자), `gears?: [{gearId, source: 'warehouse'\|'catalog', name}]`(≤15), `summary` | 첫 여행 가이드(OB-7)와 같은 경로: ① `BagStore.add(name, start, end)` → `bagId` ② `campSpotId`가 있으면 `camp-spot/{id}` 읽어 `BagLocation`(`campSpotId` 포함) 구성 → `saveBagDestination`(DST-6 — 날씨까지 조회·저장) ③ `memo` → `BagStore.updateMemo` ④ `gears`: `catalog`는 `GearStore.getCatalogGear` → `GearStore.register`(SR-3와 같은 사본 규칙 — `coupangUrl`·`productUrl` 복사 안 함) → **등록 여부를 `getUserGear`로 확인**(`register`는 실패를 삼킨다) → `warehouse` 장비와 함께 `BagStore.save(bagId, gears, [], gears)`. 종료일 < 시작일이면 적용 전 거부. ①이 성공하고 ②~④ 중 일부가 실패해도 여행은 남기고 실패 항목을 결과에 적는다 | `{status:'applied', bagId, name, location?, gearsApplied[], gearsSkipped[], failed[], totalWeightG}` |
 | `add_gears` | `items`(≤10), `summary` | 생성된 여행에만. `source`별로 위 ④와 같다. 이미 담긴 장비는 건너뛴다 | `{status, applied[], skipped[], totalWeightG}` |
 | `remove_gears` | `gearIds`(≤10), `names`, `summary` | `BagStore.save`의 제거 경로(BD-4와 같은 트랜잭션) | `{status, removed, totalWeightG}` |
 | `update_trip_info` | `name?`, `startDate?`, `endDate?`, `summary` | `BagStore.updateName` / `updateDates` | `{status, name, startDate, endDate}` |
@@ -117,7 +118,7 @@ app/assistant.tsx  →  AssistantWrapper  →  AssistantScreen
 
 - 생성 전에는 `create_trip`만 의미가 있다. 여행이 없는데 다른 쓰기 도구가 오면 앱은 카드 없이 `{status:'error', message:'아직 여행이 없어요'}`를 돌려준다.
 - 한 턴에 쓰기가 여럿이면 카드도 여럿, 순서대로. `적용` → 스토어 호출 → `{status:'applied'}`/`{status:'error', message}`(+`is_error`), `건너뛰기` → `{status:'skipped', reason:'사용자가 건너뜀'}`.
-- `create_trip` 적용 성공 → 대상 줄이 그 여행으로 바뀌고(`context.bagId` 설정) 카드에 `여행 보기`. 사용자가 상세로 가면 기존 `initialize()`가 생성 결과(장비·여행지)를 읽고, 여행지가 있으면 기존 흐름대로 날씨를 조회한다([Weather.md](Weather.md)).
+- `create_trip` 적용 성공 → 대상 줄이 그 여행으로 바뀌고(`context.bagId` 설정) 카드에 `여행 보기`. 여행지 저장은 온보딩과 같은 `saveBagDestination`을 쓰므로 **날씨도 그 자리에서 조회·저장된다**([Weather.md](Weather.md) — 첫 여행 가이드 OB-7과 같은 경로). 사용자가 상세로 가면 기존 `initialize()`가 생성 결과(장비·여행지·날씨)를 읽는다.
 - 미결 카드가 있는 동안 새 메시지는 막고 안내(`먼저 위 변경안을 적용하거나 건너뛰어 주세요`). 화면을 닫으면 미결 카드는 버린다(다음에 열면 새 대화).
 - **자동 적용 없음**(v1). "만들어 줘"라고 명시해도 카드 탭 한 번을 거친다 — 생성은 되돌리기 번거로운 쓰기라 확인이 맞다.
 
@@ -141,14 +142,14 @@ app/assistant.tsx  →  AssistantWrapper  →  AssistantScreen
 
 ### AS-8 스트리밍·로딩·에러 `[제안]`
 
-- 함수는 `onCall` 스트리밍(`request.acceptsStreaming` → `response.sendChunk`)으로 상태·텍스트 델타를 보내고, 앱은 `httpsCallable(functions, 'tripAssistant').stream()`(`firebase/functions`, 리전 `asia-northeast3`)으로 받는다. 스트리밍을 못 받는 환경은 최종 데이터만으로 같은 화면을 그린다. **Gemini 공급자는 v1에서 비스트리밍**(함수 호출 부분 집계가 복잡) — 텍스트가 한 번에 온다. 상태 줄은 양쪽 다 보낸다.
+- 함수는 `onCall` 스트리밍(`request.acceptsStreaming` → `response.sendChunk`)으로 상태·텍스트 델타를 보낼 수 있고, 비스트리밍 호출에도 같은 최종 데이터를 돌려준다. **앱 v1은 비스트리밍 `httpsCallable()`로 부른다**(React Native의 전역 `fetch`가 응답 본문 스트리밍을 지원하지 않아 `.stream()`이 보장되지 않는다 — `expo/fetch`로 바꿔 스트리밍을 켜는 것은 후속). 그래서 대기 중 상태 줄은 `계획을 세우는 중…` 하나이고, 텍스트는 턴이 끝날 때 한 번에 그린다. Gemini 공급자는 서버 쪽도 비스트리밍이다.
 - 함수 `timeoutSeconds: 120`, `memory: '512MiB'`, `maxInstances: 10`. 모델 요청 타임아웃 90초.
 - 에러 표시: 네트워크·`unavailable` → `연결이 불안정해요. 잠시 후 다시 시도해 주세요` + `다시 보내기`; `resource-exhausted` → 한도 카드(AS-9); 그 외 → `문제가 생겼어요. 다시 시도해 주세요`. 이전 기록은 유지.
 - 공급자 429(분당 한도)는 함수가 안내된 시간(최대 30초)까지 최대 3회 기다렸다 재시도한 뒤 `unavailable`로 매핑한다.
 
 ### AS-9 사용량 한도 `[제안 — 수치 결정 대기]`
 
-- 한도는 **사용자 발화 기준 하루(KST) 횟수**, v1 **20회/일**(모든 사용자 동일, 구독 미연동). 쓰기 결과 이어 보내기는 세지 않는다. 카운터는 `assistant-usage/{uid}`(DM-39)에 모델 호출 **전** 트랜잭션으로 +1.
+- 한도는 **사용자 발화 기준 하루(KST, 서버 시각) 횟수**, v1 **20회/일**(모든 사용자 동일, 구독 미연동). 카운터는 `assistant-usage/{uid}`(DM-39)에 입력 검증을 통과한 뒤, 모델 호출 **전** 트랜잭션으로 +1. 쓰기 결과 이어 보내기(`toolResults`)는 이 한도에 세지 않되, **별도 카운터 `toolTurnCount` 60회/일**로 막는다 — 기록은 앱이 들고 오므로 조작한 기록으로 `toolResults` 경로만 반복해 모델을 공짜로 부르는 것을 막기 위해서다(2026-10-30 리뷰).
 - 응답 `remaining`으로 입력 바 위 `오늘 {n}회 남음`. 0이면 입력 바 대신 한도 카드 `오늘 대화를 다 썼어요. 내일 다시 계획해 보세요`. 구독 연계(SUB-14)는 보류 — 지표를 보고 결정.
 - 한도 초과 요청은 서버가 `resource-exhausted`로 거절하고 모델을 호출하지 않는다.
 
@@ -157,7 +158,7 @@ app/assistant.tsx  →  AssistantWrapper  →  AssistantScreen
 - 공급자(Anthropic 또는 Google)로 가는 데이터: 사용자 입력, 날짜, 박지 검색 결과, 날씨, 창고·카탈로그 장비 이름/무게, 생성 뒤엔 여행 현황. **보내지 않는 것**: uid, 이메일, 닉네임, 푸시 토큰, 구독 정보, 다른 사용자 데이터, 사진.
 - 서버 로그에 대화 내용을 남기지 않는다(도구 이름·길이·에러 코드·토큰 수만). 대화를 저장하는 컬렉션은 없다.
 - **개인정보 처리방침에 "AI 도우미 처리 위탁"** 항목(수탁자: 선택한 공급자 — Anthropic PBC 또는 Google LLC, 미국 · 대화 내용과 여행 정보 · 서비스 제공 목적)을 출시 전에 추가한다 — 사용자 작업. Gemini API **무료 등급은 입력 데이터가 모델 개선에 쓰일 수 있으므로 실서비스에는 유료 등급 키만 쓴다.**
-- 첫 진입 1회 안내 시트: `도우미가 박지·날씨·장비 정보를 읽어 여행을 제안해요. 여행은 적용을 눌러야 만들어져요. 대화 내용은 AI 처리를 위해 {공급자}에 전달돼요.` + `시작하기`. 다시 보지 않음은 기기(`AsyncStorage`).
+- 첫 진입 1회 안내 **알럿**(공용 `AlertManager`): `도우미가 박지·날씨·장비 정보를 읽어 여행을 제안해요. 여행은 적용을 눌러야 만들어져요. 대화 내용은 AI 처리를 위해 AI 공급자(Google 또는 Anthropic)에 전달돼요.` + `시작하기` / `나중에`. `시작하기`를 눌렀을 때만 다시 보지 않음(기기 `AsyncStorage` 키 `assistant_intro_seen_v1`)을 저장하고, `나중에`는 다음 진입에 다시 띄운다. 공급자가 확정되면 문구의 괄호를 그 이름으로 바꾼다.
 
 ### AS-11 측정 `[제안]`
 
@@ -176,7 +177,7 @@ app/assistant.tsx  →  AssistantWrapper  →  AssistantScreen
   - Gemini `gemini-3.6-flash` — 무료 등급으로 3턴 대본 성공(도구 순서·박지 근거·예보 반영·장비 10개 생성). 무료 등급은 **하루 20요청**(턴당 3~5요청)이라 실서비스 불가 → 유료 등급 필요. 검색 그라운딩은 유료에서만. 2.5 세대는 신규 사용자에게 종료.
   - Anthropic `claude-haiku-4-5`(입력 $1/출력 $5 per 1M) → 품질 부족하면 `claude-sonnet-5-5`($2/$10). 키 미발급 상태라 미실측.
   - 함수는 둘 다 지원하고 환경값으로 고른다(AS-1). **출시 공급자·모델은 사용자 결정.**
-- Anthropic: thinking 기본(adaptive), `output_config.effort: 'low'`, `max_tokens: 4096`, 강제 `tool_choice` 미사용, `fallbacks: 'default'`(beta `server-side-fallback-2026-07-01`), `system`·`tools`에 `cache_control`(가변 값은 사용자 메시지에만).
+- Anthropic: `max_tokens: 4096`, 강제 `tool_choice` 미사용, 도구 `strict: true`(strict가 받지 않는 키워드는 제거), `system`·`tools`·**마지막 사용자 메시지**에 `cache_control`(가변 값은 사용자 메시지에만, breakpoint 4개 이하). **모델이 `claude-haiku-4-5`면 thinking·`fallbacks`를 넣지 않는다**(둘 다 미지원). Opus/Sonnet 5.x면 thinking 생략(adaptive 기본) + `fallbacks: 'default'`(beta `server-side-fallback-2026-07-01`). 재시도는 SDK 기본(최대 3회)을 함수 마감 안에서만.
 - Gemini: `maxOutputTokens: 8192`(**생각 토큰이 출력 한도에 포함**되므로 2048이면 잘린다 — 실측), 429는 안내 시간만큼 대기 후 재시도.
 - 읽기 반복 상한 8회. 함수 로그에 `usage`(입력·출력·캐시)를 남겨 2주 뒤 한도·모델을 재조정한다.
 
@@ -191,7 +192,7 @@ app/assistant.tsx  →  AssistantWrapper  →  AssistantScreen
 
 | 지점 | iOS | Android | Web |
 | --- | --- | --- | --- |
-| 호출 | `httpsCallable().stream()` | 동일 | 동일 |
+| 호출 | `httpsCallable()` 비스트리밍(AS-8) | 동일 | 동일 |
 | 네이티브 모듈 | 없음 — **OTA 가능**(2.0.2 바이너리) | 동일 | — |
 | 키보드 회피 | 커뮤니티 입력과 동일 | 동일 | 브라우저 기본 |
 | 아이콘 | SF Symbol `sparkles` | Ionicons `sparkles-outline` | Ionicons |

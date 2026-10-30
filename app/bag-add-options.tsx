@@ -8,22 +8,35 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { AcgType, Color, Radius } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import { createQuickBag } from '@/model/bag/QuickBagDefaults';
+import AssistantEntrySource from '@/model/assistant/AssistantEntrySource';
+import BagAddOptionType from '@/model/bag/BagAddOptionType';
+import AssistantSparkleIconView from '@/components/assistant/AssistantSparkleIconView';
 
-// BAG-2: 배낭 추가 진입 시트 — iOS/Android 네이티브 formSheet(react-native-screens)로 표시.
+// BAG-2: 배낭 추가 진입 시트(첫 행 `AI로 계획하기` — AS §2 진입 1) — iOS/Android 네이티브 formSheet(react-native-screens)로 표시.
 // 그래버·드래그 닫기는 OS 레벨. 항목 선택 시 시트를 먼저 닫고, 브리지로 다음 모달을 연다.
 const BagAddOptionsScreen = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const select = async (type: 'create' | 'copy' | 'template') => {
-    if (type === 'copy') {
+  const select = async (type: BagAddOptionType) => {
+    // AI로 계획하기(AS-2 진입 1) — 시트를 도우미 화면으로 교체한다.
+    if (type === BagAddOptionType.Assistant) {
+      app
+        .getAnalyticsManager()
+        ?.logClick('assistant_open', { from: AssistantEntrySource.BagAdd });
+      router.replace('/assistant');
+
+      return;
+    }
+
+    if (type === BagAddOptionType.Copy) {
       // 탭으로 돌아가지 않고 다음 시트로 바로 교체 (중간 탭 리로드 노출 방지).
       router.replace('/bag-copy-source');
 
       return;
     }
 
-    if (type === 'template') {
+    if (type === BagAddOptionType.Template) {
       router.replace('/bag-template-source');
 
       return;
@@ -49,7 +62,28 @@ const BagAddOptionsScreen = () => {
 
       <TouchableOpacity
         style={styles.row}
-        onPress={() => select('create')}
+        onPress={() => select(BagAddOptionType.Assistant)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.iconTile}>
+          <AssistantSparkleIconView size={20} color={Color.textPrimary} />
+        </View>
+        <View style={styles.rowTextWrap}>
+          <PretendardText style={styles.rowTitle} weight='semibold'>
+            {app.getL10n().t('app.bagAddOptions.assistant')}
+          </PretendardText>
+          <PretendardText style={styles.rowSubtitle}>
+            {app.getL10n().t('app.bagAddOptions.assistantSubtitle')}
+          </PretendardText>
+        </View>
+        <Ionicons name='chevron-forward' size={18} color={Color.iconMuted} />
+      </TouchableOpacity>
+
+      <View style={styles.divider} />
+
+      <TouchableOpacity
+        style={styles.row}
+        onPress={() => select(BagAddOptionType.Create)}
         activeOpacity={0.7}
       >
         <View style={styles.iconTile}>
@@ -70,7 +104,7 @@ const BagAddOptionsScreen = () => {
 
       <TouchableOpacity
         style={styles.row}
-        onPress={() => select('copy')}
+        onPress={() => select(BagAddOptionType.Copy)}
         activeOpacity={0.7}
       >
         <View style={styles.iconTile}>
@@ -91,7 +125,7 @@ const BagAddOptionsScreen = () => {
 
       <TouchableOpacity
         style={styles.row}
-        onPress={() => select('template')}
+        onPress={() => select(BagAddOptionType.Template)}
         activeOpacity={0.7}
       >
         <View style={styles.iconTile}>

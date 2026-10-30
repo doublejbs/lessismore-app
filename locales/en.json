@@ -960,7 +960,9 @@
       "copy": "Use a bag from a past trip",
       "copySubtitle": "Bring over the gear from a previous trip",
       "template": "Create from a template",
-      "templateSubtitle": "Start with a saved setup"
+      "templateSubtitle": "Start with a saved setup",
+      "assistant": "Plan with AI",
+      "assistantSubtitle": "Chat to build a trip with route, campsite and gear"
     },
     "bagCopy": {
       "title": "Copy bag",
@@ -1776,6 +1778,112 @@
       "groupHidden": "Group routes aren't available offline",
       "north": "N",
       "northLabel": "North"
+    }
+  },
+  "assistant": {
+    "title": "Plan with AI",
+    "newChat": "New chat",
+    "newChatConfirm": "Clear this chat and start over?",
+    "newChatConfirmButton": "Start over",
+    "target": {
+      "new": "New trip",
+      "a11y": "Planning: {{target}}"
+    },
+    "greeting": {
+      "title": "Where are you headed?",
+      "body": "Tell me when and which mountain, and I'll put together the route, campsite, weather and gear into a trip."
+    },
+    "suggestion": {
+      "nextWeekendJirisan": "Suggest a 1-night Jirisan route for next weekend",
+      "beginner": "Recommend an easy 1-night trip for beginners",
+      "nearbyWild": "Any good wild campsites nearby this weekend?",
+      "traverse": "Help me prepare a 3-day ridge traverse"
+    },
+    "composer": {
+      "placeholder": "Where and when do you want to go?",
+      "send": "Send",
+      "remaining_one": "{{count}} message left today",
+      "remaining_other": "{{count}} messages left today",
+      "pendingNotice": "Apply or skip the changes above first"
+    },
+    "status": {
+      "thinking": "Planning…"
+    },
+    "message": {
+      "notSent": "Not sent"
+    },
+    "error": {
+      "network": "Connection is unstable. Please try again in a moment.",
+      "generic": "Something went wrong. Please try again.",
+      "resend": "Resend"
+    },
+    "block": {
+      "offline": "The assistant is available when you are online",
+      "limit": "You've used today's chats. Plan again tomorrow.",
+      "turnLimit": "This chat has gotten long. Please start a new chat.",
+      "providerChanged": "The assistant was updated. Please start a new chat."
+    },
+    "action": {
+      "title": {
+        "createTrip": "Create trip",
+        "addGears": "Add gear",
+        "removeGears": "Remove gear",
+        "updateTripInfo": "Update trip info",
+        "setDestination": "Set destination",
+        "updateMemo": "Save memo"
+      },
+      "apply": "Apply",
+      "skip": "Skip",
+      "applyA11y": "Apply {{title}}",
+      "skipA11y": "Skip {{title}}",
+      "status": {
+        "applied": "Applied",
+        "appliedWithNote": "Applied — {{note}}",
+        "skipped": "Skipped",
+        "failed": "Failed — {{reason}}",
+        "applying": "Applying…"
+      },
+      "viewTrip": "View trip",
+      "note": {
+        "gearsFailed_one": "{{count}} gear item failed",
+        "gearsFailed_other": "{{count}} gear items failed",
+        "partialFailed": "Some items failed"
+      },
+      "failure": {
+        "noTrip": "There is no trip yet",
+        "dateOrder": "End date is before the start date",
+        "invalid": "The details are invalid",
+        "notFound": "Couldn't find the target",
+        "save": "Couldn't save",
+        "unknown": "This change is not supported"
+      },
+      "line": {
+        "name": "Name",
+        "period": "Dates",
+        "startDate": "Start",
+        "endDate": "End",
+        "destination": "Destination",
+        "gears_one": "{{count}} gear item",
+        "gears_other": "{{count}} gear items",
+        "memo": "Memo"
+      },
+      "gearItem": "· {{name}}",
+      "gearWithSource": "{{name}} ({{source}})",
+      "source": {
+        "warehouse": "Warehouse",
+        "catalog": "Catalog"
+      }
+    },
+    "intro": {
+      "message": "The assistant reads campsite, weather and gear info to suggest a trip. A trip is only created when you tap Apply. Your conversation is sent to {{provider}} for AI processing.",
+      "start": "Get started",
+      "later": "Later",
+      "provider": {
+        "default": "an AI provider (Google or Anthropic)"
+      }
+    },
+    "entry": {
+      "cta": "Plan with AI"
     }
   }
 }
