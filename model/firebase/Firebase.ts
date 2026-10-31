@@ -432,6 +432,11 @@ class Firebase {
     return this.storage;
   }
 
+  // 초기화된 Firebase 앱 인스턴스 — Cloud Functions 호출(AS-1 `tripAssistant`)처럼 앱 단위로 붙는 SDK가 쓴다.
+  public getApp(): FirebaseApp {
+    return this.store.app;
+  }
+
   private setUserId(value: string) {
     this.userId = value;
   }

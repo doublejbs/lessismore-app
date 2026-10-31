@@ -350,7 +350,8 @@
     "emptyBodyWarehouse": "倉庫のギアを選んで入れると、総重量とカテゴリ別の割合がすぐに分かります。",
     "emptyBodySearch": "倉庫はまだ空です。ギアを検索して、この旅行に直接入れましょう。",
     "emptyAddFromWarehouse": "倉庫から入れる",
-    "emptyAddFromSearch": "ギアを探して入れる"
+    "emptyAddFromSearch": "ギアを探して入れる",
+    "aiFill": "AIで追加"
   },
   "bagTemplate": {
     "editGear": "ギアを編集",
@@ -1007,7 +1008,9 @@
       "search": "検索から追加",
       "searchSubtitle": "カタログから探して追加",
       "custom": "手動で入力",
-      "customSubtitle": "製品情報を入力"
+      "customSubtitle": "製品情報を入力",
+      "ai": "AIのおすすめで追加",
+      "aiSubtitle": "天気と手持ちの装備から選びます"
     },
     "announcement": {
       "close": "お知らせを閉じる",
@@ -1748,5 +1751,33 @@
       "north": "N",
       "northLabel": "北"
     }
+  },
+  "aiGearFill": {
+    "title": "AIおすすめ装備",
+    "loading": "天気と装備を確認しています…",
+    "pastTrip": "終了した旅行です",
+    "essential": "必須",
+    "recommended": "おすすめ",
+    "sectionCount": "{{count}}個",
+    "rowAccessibility": "{{name}}、{{weight}}、{{reason}}",
+    "rowAccessibilityNoWeight": "{{name}}、{{reason}}",
+    "notesAccessibility": "参考",
+    "missing": "倉庫にありません：{{groups}}",
+    "selectedSummary": "{{count}}個選択 · +{{kg}}kg",
+    "apply": "追加",
+    "applyFailed": "追加できませんでした。もう一度お試しください",
+    "retry": "もう一度おすすめ",
+    "remaining": "今日はあと{{count}}回",
+    "applied": "装備を{{count}}個追加しました",
+    "appliedPartial": " · {{count}}個は追加できませんでした",
+    "errorNetwork": "接続が不安定です。しばらくしてからもう一度お試しください",
+    "errorLimit": "今日のAIおすすめを使い切りました。明日もう一度お試しください",
+    "errorRefused": "おすすめを作成できませんでした",
+    "errorGeneric": "問題が発生しました。もう一度お試しください",
+    "errorOffline": "インターネットに接続するとおすすめを受け取れます",
+    "errorRetry": "再試行",
+    "searchAdd": "検索で追加",
+    "empty": "おすすめできる装備が見つかりませんでした",
+    "emptyWarehouse": "倉庫に装備がありません。まず検索で装備を追加してください"
   }
 }

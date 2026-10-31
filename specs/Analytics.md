@@ -237,6 +237,18 @@
 
 - 가이드로 만든 여행은 `click_bag_create_confirm`을 보내지 않는다 — 생성 경로가 다르므로 `click_onboarding_trip_complete`로 구분한다. 전체 생성 수는 두 이벤트를 합산한다.
 
+**AI 액션 — 장비 자동 채우기** ([Assistant.md](Assistant.md) AS-11) `[제안]`
+
+| 이벤트 | 트리거 | 파라미터 |
+| --- | --- | --- |
+| `click_ai_gear_fill_open` | `AI 추천 장비` 시트 진입 | `from`: `empty_bag`(빈 배낭 상세 보조 알약 BD-13) \| `gear_add`(장비 추가 시트 행 GE-8) |
+| `click_ai_gear_fill_result` | 추천 결과 도착 | `items`, `essential`, `missing`(창고에 없는 필수 그룹 수), `ms` |
+| `click_ai_gear_fill_error` | 추천 실패 | `kind`: `network` \| `limit` \| `refused` \| `generic` |
+| `click_ai_gear_fill_apply` | `담기` | `selected`, `total`, `failed` |
+| `click_ai_gear_fill_retry` | `다시 추천` | — |
+
+추천 내용·토큰 수는 보내지 않는다(AS-10). 대화형 이벤트 `click_assistant_*`(open·send·apply·view_trip·limit)는 **보류**(2026-10-30 — 진입이 없어 당분간 나오지 않는다). 구독 연계(SUB-14)도 보류.
+
 **알림** ([Notification.md](Notification.md)) `[제안]`
 
 | 이벤트 | 트리거 | 파라미터 |
