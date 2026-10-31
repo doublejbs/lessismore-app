@@ -1,8 +1,13 @@
 import { FC, useEffect, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import PretendardText from '@/components/PretendardText';
-import { SKELETON_SHADE } from '@/constants/DesignTokens';
-import { Acg, AcgLayout, AcgRow, AcgType } from '@/constants/DesignTokens';
+import {
+  Acg,
+  AcgLayout,
+  AcgRow,
+  AcgType,
+  SKELETON_SHADE,
+} from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 
 const SKELETON_ROWS = 6;
