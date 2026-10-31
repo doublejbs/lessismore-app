@@ -1755,8 +1755,6 @@
   "aiGearFill": {
     "title": "AIおすすめ装備",
     "loading": "天気と装備を確認しています…",
-    "notice": "旅行情報・装備・過去の旅行をAIプロバイダーに送っておすすめを作成します",
-    "noticeDismiss": "お知らせを閉じる",
     "pastTrip": "終了した旅行です",
     "essential": "必須",
     "recommended": "おすすめ",

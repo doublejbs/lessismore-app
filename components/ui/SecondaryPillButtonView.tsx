@@ -8,6 +8,10 @@ interface Props {
   onPress: () => void;
   leadingIcon?: ReactNode;
   accessibilityLabel?: string;
+  // 누를 수 없음 — 테두리·글자를 `textMuted`로. 아이콘 색은 호출 측이 맞춘다.
+  disabled?: boolean;
+  // 가운데 정렬 대신 좌측에 붙는 작은 알약(하단 바의 보조 줄 등).
+  compact?: boolean;
 }
 
 const MIN_HEIGHT = 44;
@@ -22,17 +26,28 @@ const SecondaryPillButtonView: FC<Props> = ({
   onPress,
   leadingIcon,
   accessibilityLabel,
+  disabled = false,
+  compact = false,
 }) => {
   return (
     <TouchableOpacity
-      style={styles.pill}
+      style={[
+        styles.pill,
+        compact && styles.pillCompact,
+        disabled && styles.pillDisabled,
+      ]}
       onPress={onPress}
+      disabled={disabled}
       activeOpacity={0.7}
       accessibilityRole='button'
       accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ disabled }}
     >
       {leadingIcon}
-      <PretendardText style={styles.label} weight='semibold'>
+      <PretendardText
+        style={[styles.label, disabled && styles.labelDisabled]}
+        weight='semibold'
+      >
         {label}
       </PretendardText>
     </TouchableOpacity>
@@ -54,9 +69,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
   },
+  pillCompact: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 16,
+  },
+  pillDisabled: {
+    borderColor: Acg.textMuted,
+  },
   label: {
     ...AcgType.control,
     color: Acg.ink,
+  },
+  labelDisabled: {
+    color: Acg.textMuted,
   },
 });
 

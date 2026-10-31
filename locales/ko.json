@@ -1755,8 +1755,6 @@
   "aiGearFill": {
     "title": "AI 추천 장비",
     "loading": "날씨와 창고를 보고 있어요…",
-    "notice": "여행 정보·창고·지난 여행을 AI 공급자에 보내 추천을 만들어요",
-    "noticeDismiss": "안내 닫기",
     "pastTrip": "지난 여행이에요",
     "essential": "필수",
     "recommended": "추천",

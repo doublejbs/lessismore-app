@@ -7,23 +7,17 @@ import { Acg, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import AiGearFill from '@/model/ai-gear-fill/AiGearFill';
 import AiGearFillItem from '@/model/ai-gear-fill/AiGearFillItem';
-import AiGearFillNoticeView from './AiGearFillNoticeView';
 import AiGearFillNotesView from './AiGearFillNotesView';
 import AiGearFillMissingView from './AiGearFillMissingView';
 import AiGearFillRowView from './AiGearFillRowView';
 
 interface Props {
   aiGearFill: AiGearFill;
-  onDismissNotice: () => void;
   onSearch: () => void;
 }
 
-// 결과(AS-14): 첫 사용 안내 → 대상 줄 → 근거 한 줄 → `필수`/`추천` 섹션 → 창고에 없는 필수 줄 → 참고.
-const AiGearFillResultView: FC<Props> = ({
-  aiGearFill,
-  onDismissNotice,
-  onSearch,
-}) => {
+// 결과(AS-14): 대상 줄 → 근거 한 줄 → `필수`/`추천` 섹션 → 창고에 없는 필수 줄 → 참고.
+const AiGearFillResultView: FC<Props> = ({ aiGearFill, onSearch }) => {
   const l10n = app.getL10n();
   const tripLine = [aiGearFill.getTripName(), aiGearFill.getTripPeriod()]
     .filter(Boolean)
@@ -63,9 +57,6 @@ const AiGearFillResultView: FC<Props> = ({
   return (
     <View style={styles.container}>
       <View style={styles.intro}>
-        {aiGearFill.isNoticeVisible() ? (
-          <AiGearFillNoticeView onDismiss={onDismissNotice} />
-        ) : null}
         {tripLine ? (
           <PretendardText style={styles.trip} numberOfLines={1}>
             {tripLine}

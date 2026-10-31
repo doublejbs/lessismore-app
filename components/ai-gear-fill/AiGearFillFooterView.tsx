@@ -6,9 +6,11 @@ import {
   View,
 } from 'react-native';
 import { observer } from 'mobx-react-lite';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PretendardText from '@/components/PretendardText';
 import AcgDisplayText from '@/components/acg/AcgDisplayText';
+import SecondaryPillButtonView from '@/components/ui/SecondaryPillButtonView';
 import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import AiGearFill from '@/model/ai-gear-fill/AiGearFill';
@@ -36,7 +38,7 @@ const renderWithCondensedNumbers = (text: string) =>
 
 /**
  * 하단 고정 바(AS-14·AS-15): 좌 `{n}개 선택 · +{kg}kg`, 우 라임 알약 `담기`(화면의 라임은 이것 하나).
- * 그 아래 작은 줄 `다시 추천` · `오늘 {n}회 남음`. 저장 실패면 바 위에 실패 문구(선택 유지).
+ * 그 아래 줄 좌측 보조 알약 `다시 추천`(남은 횟수 0이면 비활성), 옆에 메타 `오늘 {n}회 남음`. 저장 실패면 바 위에 실패 문구(선택 유지).
  * 창고가 비어 있으면(AS-15) `다시 추천`을 그리지 않는다.
  */
 const AiGearFillFooterView: FC<Props> = ({ aiGearFill, onApply, onRetry }) => {
@@ -100,30 +102,24 @@ const AiGearFillFooterView: FC<Props> = ({ aiGearFill, onApply, onRetry }) => {
 
       <View style={styles.subRow}>
         {retryVisible ? (
-          <TouchableOpacity
-            style={styles.retry}
+          <SecondaryPillButtonView
+            label={l10n.t('aiGearFill.retry')}
             onPress={onRetry}
+            compact
             disabled={retryDisabled}
-            accessibilityRole='button'
-            accessibilityState={{ disabled: retryDisabled }}
-          >
-            <PretendardText
-              weight='medium'
-              style={[styles.subText, retryDisabled && styles.subTextDisabled]}
-            >
-              {l10n.t('aiGearFill.retry')}
-            </PretendardText>
-          </TouchableOpacity>
+            leadingIcon={
+              <Ionicons
+                name='refresh'
+                size={16}
+                color={retryDisabled ? Acg.textMuted : Acg.ink}
+              />
+            }
+          />
         ) : null}
         {remaining !== null ? (
-          <>
-            {retryVisible ? (
-              <PretendardText style={styles.subText}>·</PretendardText>
-            ) : null}
-            <PretendardText style={styles.subText}>
-              {l10n.t('aiGearFill.remaining', { count: remaining })}
-            </PretendardText>
-          </>
+          <PretendardText style={styles.subText}>
+            {l10n.t('aiGearFill.remaining', { count: remaining })}
+          </PretendardText>
         ) : null}
       </View>
     </View>
@@ -138,7 +134,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Acg.hairline,
     backgroundColor: Acg.paper,
-    gap: 8,
+    gap: 10,
   },
   error: {
     ...AcgType.meta,
@@ -180,20 +176,11 @@ const styles = StyleSheet.create({
   subRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-  },
-  retry: {
-    minHeight: 44,
-    justifyContent: 'center',
+    gap: 12,
   },
   subText: {
     ...AcgType.meta,
     color: Acg.textMuted,
-  },
-  // 남은 횟수 0 — 회색 글자에 반투명을 더해 누를 수 없음을 구분한다.
-  subTextDisabled: {
-    color: Acg.textMuted,
-    opacity: 0.5,
   },
 });
 

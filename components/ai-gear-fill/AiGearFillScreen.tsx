@@ -28,14 +28,8 @@ interface Props {
 // 그래서 시트 안에 프로바이더를 하나 더 두어 **이 화면 뷰 기준** inset을 받는다(프레임이 바뀌면 갱신된다).
 const AiGearFillScreenContent: FC<Props> = observer(({ aiGearFill }) => {
   const insets = useSafeAreaInsets();
-  const {
-    handleClose,
-    handleApply,
-    handleRetry,
-    handleReload,
-    handleSearch,
-    handleDismissNotice,
-  } = useAiGearFillScreenState(aiGearFill);
+  const { handleClose, handleApply, handleRetry, handleReload, handleSearch } =
+    useAiGearFillScreenState(aiGearFill);
   const phase = aiGearFill.getPhase();
 
   const renderBody = () => {
@@ -67,11 +61,7 @@ const AiGearFillScreenContent: FC<Props> = observer(({ aiGearFill }) => {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
       >
-        <AiGearFillResultView
-          aiGearFill={aiGearFill}
-          onDismissNotice={handleDismissNotice}
-          onSearch={handleSearch}
-        />
+        <AiGearFillResultView aiGearFill={aiGearFill} onSearch={handleSearch} />
       </ScrollView>
     );
   };

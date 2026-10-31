@@ -1784,8 +1784,6 @@
   "aiGearFill": {
     "title": "AI gear picks",
     "loading": "Checking the weather and your gear…",
-    "notice": "Your trip details, gear, and past trips are sent to an AI provider to make picks",
-    "noticeDismiss": "Dismiss notice",
     "pastTrip": "This trip has ended",
     "essential": "Essentials",
     "recommended": "Recommended",

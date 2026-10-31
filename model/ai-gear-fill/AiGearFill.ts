@@ -4,7 +4,6 @@ import dayjs from 'dayjs';
 import app from '../app/App';
 import GearFilter from '../gear/GearFilter';
 import NetworkStatus from '../offline/NetworkStatus';
-import LocalStorageManager from '../storage/LocalStorageManager';
 import AiGearFillApi, {
   AiGearFillResultData,
   AiGearFillTripData,
@@ -14,8 +13,6 @@ import AiGearFillErrorKind from './AiGearFillErrorKind';
 import AiGearFillItem from './AiGearFillItem';
 import AiGearFillPhase from './AiGearFillPhase';
 
-// 첫 사용 안내 한 줄(AS-10)을 닫았는지 — 모든 AI 액션이 같이 쓰는 기기 키.
-const NOTICE_STORAGE_KEY = 'ai_action_notice_seen_v1';
 const TODAY_FORMAT = 'YYYY-MM-DD';
 // `missingGroups`로 올 수 있는 필수 4종 그룹(DM-4 1차 그룹 키) — 이 순서로 보여 준다(AS-13).
 const ESSENTIAL_GROUPS: GearFilter[] = [
@@ -55,7 +52,6 @@ class AiGearFill {
   private remaining: number | null = null;
   private applying = false;
   private applyFailed = false;
-  private noticeVisible = false;
   // 응답 순서 가드 — 닫힌 뒤나 재호출 뒤에 늦게 온 응답이 화면을 덮지 않게 한다.
   private requestSeq = 0;
   // 시트가 이미 닫혔는지(×·스와이프) — 담기 완료 뒤 `router.back()`이 한 화면 더 뒤로 가지 않게 한다.
@@ -72,27 +68,6 @@ class AiGearFill {
       requestSeq: false,
       disposed: false,
     });
-  }
-
-  // ── 첫 사용 안내(AS-10) ─────────────────
-
-  public async initializeNotice(): Promise<void> {
-    // 저장소를 못 읽으면(null) 안내를 보여 준다 — 데이터 처리 안내는 빠뜨리는 쪽이 더 나쁘다.
-    const seen = await LocalStorageManager.get<boolean>(NOTICE_STORAGE_KEY);
-
-    runInAction(() => {
-      this.noticeVisible = seen !== true;
-    });
-  }
-
-  public isNoticeVisible() {
-    return this.noticeVisible;
-  }
-
-  public async dismissNotice(): Promise<void> {
-    this.noticeVisible = false;
-    // 저장 실패는 다음 진입에 안내가 한 번 더 보일 뿐이다.
-    await LocalStorageManager.set(NOTICE_STORAGE_KEY, true);
   }
 
   // ── 호출(AS-8) ─────────────────
