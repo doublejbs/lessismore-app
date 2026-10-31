@@ -54,7 +54,12 @@ const AiGearFillScreenContent: FC<Props> = observer(({ aiGearFill }) => {
     }
 
     if (phase === AiGearFillPhase.Empty) {
-      return <AiGearFillEmptyView onSearch={handleSearch} />;
+      return (
+        <AiGearFillEmptyView
+          warehouseEmpty={aiGearFill.isWarehouseEmpty()}
+          onSearch={handleSearch}
+        />
+      );
     }
 
     return (
@@ -65,6 +70,7 @@ const AiGearFillScreenContent: FC<Props> = observer(({ aiGearFill }) => {
         <AiGearFillResultView
           aiGearFill={aiGearFill}
           onDismissNotice={handleDismissNotice}
+          onSearch={handleSearch}
         />
       </ScrollView>
     );

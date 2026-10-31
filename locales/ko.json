@@ -1755,23 +1755,21 @@
   "aiGearFill": {
     "title": "AI 추천 장비",
     "loading": "날씨와 창고를 보고 있어요…",
-    "notice": "여행 정보와 창고를 AI 공급자에 보내 추천을 만들어요",
+    "notice": "여행 정보·창고·지난 여행을 AI 공급자에 보내 추천을 만들어요",
     "noticeDismiss": "안내 닫기",
     "pastTrip": "지난 여행이에요",
     "essential": "필수",
     "recommended": "추천",
     "sectionCount": "{{count}}개",
-    "sourceWarehouse": "창고",
-    "sourceCatalog": "카탈로그",
     "rowAccessibility": "{{name}}, {{weight}}, {{reason}}",
     "rowAccessibilityNoWeight": "{{name}}, {{reason}}",
     "notesAccessibility": "참고",
+    "missing": "창고에 없어요: {{groups}}",
     "selectedSummary": "{{count}}개 선택 · +{{kg}}kg",
     "apply": "담기",
     "applyFailed": "담지 못했어요. 다시 시도해 주세요",
     "retry": "다시 추천",
     "remaining": "오늘 {{count}}회 남음",
-    "catalogNotice": "카탈로그 장비는 창고에도 저장돼요",
     "applied": "장비 {{count}}개를 담았어요",
     "appliedPartial": " · {{count}}개는 담지 못했어요",
     "errorNetwork": "연결이 불안정해요. 잠시 후 다시 시도해 주세요",
@@ -1781,6 +1779,7 @@
     "errorOffline": "인터넷에 연결되면 추천받을 수 있어요",
     "errorRetry": "다시 시도",
     "searchAdd": "검색으로 추가",
-    "empty": "추천할 장비를 찾지 못했어요"
+    "empty": "추천할 장비를 찾지 못했어요",
+    "emptyWarehouse": "창고에 장비가 없어요. 먼저 검색으로 장비를 추가해 주세요"
   }
 }

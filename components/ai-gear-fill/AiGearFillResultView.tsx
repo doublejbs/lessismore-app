@@ -9,15 +9,21 @@ import AiGearFill from '@/model/ai-gear-fill/AiGearFill';
 import AiGearFillItem from '@/model/ai-gear-fill/AiGearFillItem';
 import AiGearFillNoticeView from './AiGearFillNoticeView';
 import AiGearFillNotesView from './AiGearFillNotesView';
+import AiGearFillMissingView from './AiGearFillMissingView';
 import AiGearFillRowView from './AiGearFillRowView';
 
 interface Props {
   aiGearFill: AiGearFill;
   onDismissNotice: () => void;
+  onSearch: () => void;
 }
 
-// 결과(AS-14): 첫 사용 안내 → 대상 줄 → 근거 한 줄 → `필수`/`추천` 섹션 → 참고.
-const AiGearFillResultView: FC<Props> = ({ aiGearFill, onDismissNotice }) => {
+// 결과(AS-14): 첫 사용 안내 → 대상 줄 → 근거 한 줄 → `필수`/`추천` 섹션 → 창고에 없는 필수 줄 → 참고.
+const AiGearFillResultView: FC<Props> = ({
+  aiGearFill,
+  onDismissNotice,
+  onSearch,
+}) => {
   const l10n = app.getL10n();
   const tripLine = [aiGearFill.getTripName(), aiGearFill.getTripPeriod()]
     .filter(Boolean)
@@ -79,6 +85,10 @@ const AiGearFillResultView: FC<Props> = ({ aiGearFill, onDismissNotice }) => {
         'aiGearFill.recommended',
         aiGearFill.getRecommendedItems()
       )}
+      <AiGearFillMissingView
+        groups={aiGearFill.getMissingGroups()}
+        onPress={onSearch}
+      />
       <AiGearFillNotesView notes={aiGearFill.getNotes()} />
     </View>
   );

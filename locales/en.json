@@ -1784,24 +1784,22 @@
   "aiGearFill": {
     "title": "AI gear picks",
     "loading": "Checking the weather and your gear…",
-    "notice": "Your trip details and gear are sent to an AI provider to make picks",
+    "notice": "Your trip details, gear, and past trips are sent to an AI provider to make picks",
     "noticeDismiss": "Dismiss notice",
     "pastTrip": "This trip has ended",
     "essential": "Essentials",
     "recommended": "Recommended",
     "sectionCount": "{{count}} items",
     "sectionCount_one": "{{count}} item",
-    "sourceWarehouse": "My gear",
-    "sourceCatalog": "Catalog",
     "rowAccessibility": "{{name}}, {{weight}}, {{reason}}",
     "rowAccessibilityNoWeight": "{{name}}, {{reason}}",
     "notesAccessibility": "Notes",
+    "missing": "Not in your gear: {{groups}}",
     "selectedSummary": "{{count}} selected · +{{kg}}kg",
     "apply": "Add",
     "applyFailed": "Couldn't add. Please try again",
     "retry": "Pick again",
     "remaining": "{{count}} left today",
-    "catalogNotice": "Catalog gear is also saved to your gear",
     "applied": "Added {{count}} items",
     "applied_one": "Added {{count}} item",
     "appliedPartial": " · couldn't add {{count}}",
@@ -1812,6 +1810,7 @@
     "errorOffline": "Connect to the internet to get picks",
     "errorRetry": "Try again",
     "searchAdd": "Add from search",
-    "empty": "Couldn't find gear to pick"
+    "empty": "Couldn't find gear to pick",
+    "emptyWarehouse": "You have no gear yet. Add gear from search first"
   }
 }

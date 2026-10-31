@@ -18,11 +18,11 @@ interface Props {
 const BADGE_SIZE = 28;
 
 /**
- * 추천 장비 행(AS-14) — 창고 행 문법(WH-1 `GearView`: 이름 + `무게 · 브랜드`)에 출처(`창고`/`카탈로그`)를
- * 메타 마지막 조각(회색)으로 붙이고, 둘째 줄 이유(1줄 말줄임) + 우측 원형 체크 배지(BD-4·OB-6과 같은 모양).
+ * 추천 장비 행(AS-14) — 창고 행 문법(WH-1 `GearView`: 이름 + `무게 · 브랜드`) + 둘째 줄 이유(1줄 말줄임)
+ * + 우측 원형 체크 배지(BD-4·OB-6과 같은 모양). 전부 창고 장비라 출처 조각은 두지 않는다(2026-10-31).
  * 행 안에 배지·칩을 두지 않는다(HM-8).
- * 추천 장비는 아직 `Gear`가 아니라(카탈로그 장비는 담을 때 등록한다) `GearView`를 그대로 쓰지 않고
- * 같은 값으로 그린다. 행 전체가 토글이다.
+ * 추천 장비는 서버 응답 값이라 `Gear`가 아니다 — `GearView`를 그대로 쓰지 않고 같은 값으로 그린다.
+ * 행 전체가 토글이다.
  */
 const AiGearFillRowView: FC<Props> = ({ aiGearFill, item, divided }) => {
   const l10n = app.getL10n();
@@ -32,9 +32,6 @@ const AiGearFillRowView: FC<Props> = ({ aiGearFill, item, divided }) => {
   const brand = item.getBrand();
   const reason = item.getReason();
   const separator = l10n.t('common.metaSeparator');
-  const sourceLabel = item.isCatalog()
-    ? l10n.t('aiGearFill.sourceCatalog')
-    : l10n.t('aiGearFill.sourceWarehouse');
   const accessibilityLabel = weightLabel
     ? l10n.t('aiGearFill.rowAccessibility', {
         name: item.getName(),
@@ -57,7 +54,7 @@ const AiGearFillRowView: FC<Props> = ({ aiGearFill, item, divided }) => {
       activeOpacity={0.7}
       accessibilityRole='checkbox'
       accessibilityState={{ checked }}
-      accessibilityLabel={`${accessibilityLabel}, ${sourceLabel}`}
+      accessibilityLabel={accessibilityLabel}
     >
       <View style={styles.text}>
         <PretendardText style={styles.name} weight='medium' numberOfLines={2}>
@@ -69,8 +66,6 @@ const AiGearFillRowView: FC<Props> = ({ aiGearFill, item, divided }) => {
           ) : null}
           {weightLabel && brand ? separator : null}
           {brand}
-          {weightLabel || brand ? separator : null}
-          <PretendardText style={styles.source}>{sourceLabel}</PretendardText>
         </PretendardText>
         {reason ? (
           <PretendardText style={styles.reason} numberOfLines={1}>
@@ -112,10 +107,6 @@ const styles = StyleSheet.create({
   meta: {
     ...AcgType.rowSubtitle,
     color: Acg.ink,
-  },
-  source: {
-    ...AcgType.rowSubtitle,
-    color: Acg.textMuted,
   },
   reason: {
     ...AcgType.meta,

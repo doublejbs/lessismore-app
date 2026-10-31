@@ -2,6 +2,7 @@ import { makeAutoObservable, runInAction } from 'mobx';
 import { ImperativeRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import app from '../app/App';
+import GearFilter from '../gear/GearFilter';
 import NetworkStatus from '../offline/NetworkStatus';
 import LocalStorageManager from '../storage/LocalStorageManager';
 import AiGearFillApi, {
@@ -16,6 +17,13 @@ import AiGearFillPhase from './AiGearFillPhase';
 // 첫 사용 안내 한 줄(AS-10)을 닫았는지 — 모든 AI 액션이 같이 쓰는 기기 키.
 const NOTICE_STORAGE_KEY = 'ai_action_notice_seen_v1';
 const TODAY_FORMAT = 'YYYY-MM-DD';
+// `missingGroups`로 올 수 있는 필수 4종 그룹(DM-4 1차 그룹 키) — 이 순서로 보여 준다(AS-13).
+const ESSENTIAL_GROUPS: GearFilter[] = [
+  GearFilter.Tent,
+  GearFilter.SleepingBag,
+  GearFilter.Mat,
+  GearFilter.Backpack,
+];
 
 /**
  * AI 장비 자동 채우기 시트(AS-8·AS-13~15)의 도메인 객체. 시트를 열 때 1회 만든다.
@@ -42,6 +50,8 @@ class AiGearFill {
   private headline = '';
   private notes: string[] = [];
   private trip: AiGearFillTripData | null = null;
+  private missingGroups: GearFilter[] = [];
+  private warehouseEmpty = false;
   private remaining: number | null = null;
   private applying = false;
   private applyFailed = false;
@@ -149,8 +159,9 @@ class AiGearFill {
     await this.load();
   }
 
+  // 창고가 비어 있으면(AS-15) 다시 불러도 결과가 같다 — 모델을 부르지 않았으므로 막는다.
   public canRetry() {
-    return !this.applying && this.remaining !== 0;
+    return !this.applying && this.remaining !== 0 && !this.warehouseEmpty;
   }
 
   // 시트가 마운트될 때(개발 중 Fast Refresh로 effect가 다시 돌 때 포함) 닫힘 표시를 되돌린다.
@@ -165,7 +176,7 @@ class AiGearFill {
   }
 
   private applyResult(result: AiGearFillResultData, elapsedMs: number) {
-    const { headline, notes, trip } = result;
+    const { headline, notes, trip, missingGroups } = result;
     const rawItems = Array.isArray(result.items) ? result.items : [];
     const seen = new Set<string>();
     const items: AiGearFillItem[] = [];
@@ -187,6 +198,11 @@ class AiGearFill {
         )
       : [];
     this.trip = trip ?? null;
+    // 두 새 필드는 옛 서버가 보내지 않을 수 있다 — 없으면 []/false. 필수 4종 밖의 키는 버리고 순서를 고정한다.
+    this.missingGroups = Array.isArray(missingGroups)
+      ? ESSENTIAL_GROUPS.filter(group => missingGroups.includes(group))
+      : [];
+    this.warehouseEmpty = result.warehouseEmpty === true;
     this.items = items;
     this.selectedIds = new Set(items.map(item => item.getGearId()));
     this.phase =
@@ -195,7 +211,7 @@ class AiGearFill {
     app.getAnalyticsManager()?.logClick('ai_gear_fill_result', {
       items: items.length,
       essential: items.filter(item => item.isEssential()).length,
-      catalog: items.filter(item => item.isCatalog()).length,
+      missing: this.missingGroups.length,
       ms: elapsedMs,
     });
   }
@@ -229,6 +245,16 @@ class AiGearFill {
 
   public getRemaining() {
     return this.remaining;
+  }
+
+  // 창고에 없는 필수 그룹(AS-14 `창고에 없어요` 줄) — DM-4 1차 그룹, 텐트·침낭·매트·배낭 순.
+  public getMissingGroups() {
+    return this.missingGroups;
+  }
+
+  // 창고가 비어 서버가 모델을 부르지 않았다(AS-15 빈 상태 문구·`다시 추천` 숨김).
+  public isWarehouseEmpty() {
+    return this.warehouseEmpty;
   }
 
   public getEssentialItems() {
@@ -315,10 +341,6 @@ class AiGearFill {
     return (grams / 1000).toFixed(2);
   }
 
-  public hasSelectedCatalog() {
-    return this.getSelectedItems().some(item => item.isCatalog());
-  }
-
   // ── 적용(AS-5·AS-15) ─────────────────
 
   public isApplying() {
@@ -345,7 +367,6 @@ class AiGearFill {
       app.getAnalyticsManager()?.logClick('ai_gear_fill_apply', {
         selected: selected.length,
         total: this.items.length,
-        catalog: selected.filter(item => item.isCatalog()).length,
         failed,
       });
 
@@ -389,7 +410,7 @@ class AiGearFill {
     this.router.back();
   }
 
-  // 결과 0개·거절 → 이 배낭 컨텍스트의 검색 모달로 교체(AS-8·AS-15, GE-8).
+  // 결과 0개·거절·창고에 없는 필수 줄 → 이 배낭 컨텍스트의 검색 모달로 교체(AS-8·AS-15, GE-8).
   public goToSearch() {
     this.router.replace(`/search?bagId=${this.bagId}`);
   }

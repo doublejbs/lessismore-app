@@ -39,6 +39,10 @@ export interface AiGearFillResultData {
   items: AiGearFillItemData[];
   notes: string[];
   trip: AiGearFillTripData;
+  // 필수 4종 중 창고에도 배낭에도 없는 그룹 키(AS-13, 서버 계산). 옛 서버는 보내지 않을 수 있다.
+  missingGroups?: string[];
+  // 창고가 비어 서버가 모델을 부르지 않았는지(AS-15·§6). 옛 서버는 보내지 않을 수 있다.
+  warehouseEmpty?: boolean;
 }
 
 export interface AiGearFillResponse {

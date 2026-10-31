@@ -1755,23 +1755,21 @@
   "aiGearFill": {
     "title": "AIおすすめ装備",
     "loading": "天気と装備を確認しています…",
-    "notice": "旅行情報と装備をAIプロバイダーに送っておすすめを作成します",
+    "notice": "旅行情報・装備・過去の旅行をAIプロバイダーに送っておすすめを作成します",
     "noticeDismiss": "お知らせを閉じる",
     "pastTrip": "終了した旅行です",
     "essential": "必須",
     "recommended": "おすすめ",
     "sectionCount": "{{count}}個",
-    "sourceWarehouse": "倉庫",
-    "sourceCatalog": "カタログ",
     "rowAccessibility": "{{name}}、{{weight}}、{{reason}}",
     "rowAccessibilityNoWeight": "{{name}}、{{reason}}",
     "notesAccessibility": "参考",
+    "missing": "倉庫にありません：{{groups}}",
     "selectedSummary": "{{count}}個選択 · +{{kg}}kg",
     "apply": "追加",
     "applyFailed": "追加できませんでした。もう一度お試しください",
     "retry": "もう一度おすすめ",
     "remaining": "今日はあと{{count}}回",
-    "catalogNotice": "カタログの装備は倉庫にも保存されます",
     "applied": "装備を{{count}}個追加しました",
     "appliedPartial": " · {{count}}個は追加できませんでした",
     "errorNetwork": "接続が不安定です。しばらくしてからもう一度お試しください",
@@ -1781,6 +1779,7 @@
     "errorOffline": "インターネットに接続するとおすすめを受け取れます",
     "errorRetry": "再試行",
     "searchAdd": "検索で追加",
-    "empty": "おすすめできる装備が見つかりませんでした"
+    "empty": "おすすめできる装備が見つかりませんでした",
+    "emptyWarehouse": "倉庫に装備がありません。まず検索で装備を追加してください"
   }
 }

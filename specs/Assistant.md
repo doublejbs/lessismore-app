@@ -85,8 +85,9 @@ app/ai-gear-fill.tsx (?bagId=)  →  AiGearFillWrapper  →  AiGearFillScreen
 
 - 이름 `nameKorean || name`, 브랜드 `companyKorean || company`, 그룹은 DM-4 1차 그룹. 도구 결과에 uid·이메일·닉네임을 넣지 않는다.
 - 첫 메시지 접두: `[오늘] {today} ({요일}) · 언어: {locale}`, `[달력]`(오늘부터 21일), `[여행 현황]`(JSON), **`[창고]`**(이 여행에 안 담긴 창고 장비 전체 — id·이름·브랜드·무게·그룹·**`trips`(지난 여행에 담긴 횟수)**, 가벼운 순), **`[이전 여행]`**(아래). 시스템 프롬프트는 불변(캐시).
-- **`[이전 여행]`**: 사용자의 배낭(`users/{uid}.bags` → `bag` 문서, DM-25 청크 조회) 중 **종료일(KST)이 오늘보다 앞서고 장비가 1개 이상**인 것을 종료일 내림차순으로 **최근 5건**. 각 항목은 이름·기간(KST)·여행지 이름(없으면 생략)·날씨 요약(`bag.weather.daily`가 있으면 최저기온·강수 여부 한 줄)·**장비 id 목록**(패킹을 완료했으면 `packedGears`, 아니면 `gears` — 창고에 아직 있는 id만, 60개까지)이다. 현재 배낭·장비 0개 배낭·템플릿은 제외한다. `trips` 횟수는 5건이 아니라 **읽은 지난 여행 전체**로 센다(최대 100건). 지난 여행이 없으면 블록을 넣지 않는다.
-- **창고가 비어 있으면 모델을 부르지 않는다** — 서버가 빈 결과(`items: []`, `warehouseEmpty: true`)를 바로 돌려주고 한도(AS-9)도 차감하지 않는다.
+- **`[이전 여행]`**: 사용자의 배낭(`users/{uid}.bags` → `bag` 문서, DM-25 청크 조회) 중 **종료일(KST)이 오늘보다 앞서고 장비가 1개 이상**인 것을 종료일 내림차순으로 **최근 5건**(창고에 남은 장비 id가 하나도 없는 여행은 블록에서 빼고 다음 여행으로 — `trips` 집계에는 포함). 각 항목은 이름·기간(KST)·여행지 이름(없으면 생략)·날씨 요약(`bag.weather.daily`에 그 여행 기간 안 날짜가 있으면 최저기온·강수 여부 한 줄, 없으면 생략 — 기간 밖 캐시로 대체하지 않는다)·**장비 id 목록**(패킹을 완료했으면 `packedGears`, 아니면 `gears` — 창고에 아직 있는 id만, 60개까지)이다. 현재 배낭·장비 0개 배낭·템플릿은 제외한다. `trips` 횟수는 5건이 아니라 **읽은 지난 여행 전체**로 센다(최대 100건). 지난 여행이 없으면 블록을 넣지 않는다.
+- **이 배낭에 안 담긴 창고 장비가 0개면 모델을 부르지 않는다** — 서버가 빈 결과(`items: []`)를 바로 돌려주고 한도(AS-9)도 차감하지 않는다. `warehouseEmpty`는 **창고 자체가 비었을 때만** `true`(AS-15 문구 분기용), 창고 장비가 전부 이미 담긴 경우는 `false`다. 한도를 이미 다 쓴 사용자는 창고·지난 여행을 읽기 전에 거절한다.
+- `[창고]`는 가벼운 순이되 **필수 4종 그룹 항목을 먼저** 넣고 나머지를 200개까지 채운다(무거운 텐트·배낭이 상한에 잘리지 않게). 초과분은 잘린 그룹별 개수를 안내해 모델이 `list_warehouse(category)`로 읽게 한다.
 
 ### AS-5 적용은 앱이 — `gear_fill` 적용 경로 `[제안 · 개정]`
 
@@ -133,8 +134,8 @@ app/ai-gear-fill.tsx (?bagId=)  →  AiGearFillWrapper  →  AiGearFillScreen
 [Analytics.md](Analytics.md) AN-3 표.
 
 - `click_ai_gear_fill_open` — 시트 진입(`from`: `empty_bag`(BD-13 알약) | `gear_add`(GE-8 시트 행))
-- `click_ai_gear_fill_result` — 결과 도착(`items`, `essential`, `catalog`(카탈로그 출신 수), `ms`) / 실패는 `click_ai_gear_fill_error`(`kind`: `network` | `limit` | `refused` | `generic`)
-- `click_ai_gear_fill_apply` — `담기`(`selected`, `total`, `catalog`, `failed`)
+- `click_ai_gear_fill_result` — 결과 도착(`items`, `essential`, `missing`(창고에 없는 필수 그룹 수), `ms`) / 실패는 `click_ai_gear_fill_error`(`kind`: `network` | `limit` | `refused` | `generic`)
+- `click_ai_gear_fill_apply` — `담기`(`selected`, `total`, `failed`)
 - `click_ai_gear_fill_retry` — `다시 추천`
 - 대화형 이벤트 `click_assistant_*`는 보류(진입 없음).
 
@@ -154,7 +155,7 @@ propose_gear({
   items: [{
     gearId: string,
     source: 'warehouse',          // v1은 창고만(2026-10-31). 'catalog'는 예비
-    name: string, brand: string, weightG: number, group: string,   // 도구 결과 그대로
+    name: string, group: string,  // 모델은 확인용으로 id·이름·그룹만 보낸다(2026-10-31 — brand·weightG는 토큰 절약을 위해 스키마에서 뺐고, 서버가 창고 값으로 채워 result에 넣는다)
     priority: 'essential' | 'recommended',
     reason: string               // ≤40자. 예: "최저 -8°, 한계온도 -10° 침낭"
   }],                            // ≤40, essential 먼저, 필수 4종 그룹은 1개

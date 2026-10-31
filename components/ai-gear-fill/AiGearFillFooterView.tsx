@@ -36,8 +36,8 @@ const renderWithCondensedNumbers = (text: string) =>
 
 /**
  * 하단 고정 바(AS-14·AS-15): 좌 `{n}개 선택 · +{kg}kg`, 우 라임 알약 `담기`(화면의 라임은 이것 하나).
- * 그 아래 작은 줄 `다시 추천` · `오늘 {n}회 남음`. 카탈로그 장비를 고르면 바 위에 창고 저장 안내(§6),
- * 저장 실패면 바 위에 실패 문구(선택 유지).
+ * 그 아래 작은 줄 `다시 추천` · `오늘 {n}회 남음`. 저장 실패면 바 위에 실패 문구(선택 유지).
+ * 창고가 비어 있으면(AS-15) `다시 추천`을 그리지 않는다.
  */
 const AiGearFillFooterView: FC<Props> = ({ aiGearFill, onApply, onRetry }) => {
   const insets = useSafeAreaInsets();
@@ -47,6 +47,7 @@ const AiGearFillFooterView: FC<Props> = ({ aiGearFill, onApply, onRetry }) => {
   const applyDisabled = count === 0 || applying;
   const remaining = aiGearFill.getRemaining();
   const retryDisabled = !aiGearFill.canRetry();
+  const retryVisible = !aiGearFill.isWarehouseEmpty();
   const summary = l10n.t('aiGearFill.selectedSummary', {
     count,
     kg: aiGearFill.getSelectedWeightKg(),
@@ -60,10 +61,6 @@ const AiGearFillFooterView: FC<Props> = ({ aiGearFill, onApply, onRetry }) => {
       {aiGearFill.hasApplyFailed() ? (
         <PretendardText style={styles.error} accessibilityRole='alert'>
           {l10n.t('aiGearFill.applyFailed')}
-        </PretendardText>
-      ) : aiGearFill.hasSelectedCatalog() ? (
-        <PretendardText style={styles.notice}>
-          {l10n.t('aiGearFill.catalogNotice')}
         </PretendardText>
       ) : null}
 
@@ -102,23 +99,27 @@ const AiGearFillFooterView: FC<Props> = ({ aiGearFill, onApply, onRetry }) => {
       </View>
 
       <View style={styles.subRow}>
-        <TouchableOpacity
-          style={styles.retry}
-          onPress={onRetry}
-          disabled={retryDisabled}
-          accessibilityRole='button'
-          accessibilityState={{ disabled: retryDisabled }}
-        >
-          <PretendardText
-            weight='medium'
-            style={[styles.subText, retryDisabled && styles.subTextDisabled]}
+        {retryVisible ? (
+          <TouchableOpacity
+            style={styles.retry}
+            onPress={onRetry}
+            disabled={retryDisabled}
+            accessibilityRole='button'
+            accessibilityState={{ disabled: retryDisabled }}
           >
-            {l10n.t('aiGearFill.retry')}
-          </PretendardText>
-        </TouchableOpacity>
+            <PretendardText
+              weight='medium'
+              style={[styles.subText, retryDisabled && styles.subTextDisabled]}
+            >
+              {l10n.t('aiGearFill.retry')}
+            </PretendardText>
+          </TouchableOpacity>
+        ) : null}
         {remaining !== null ? (
           <>
-            <PretendardText style={styles.subText}>·</PretendardText>
+            {retryVisible ? (
+              <PretendardText style={styles.subText}>·</PretendardText>
+            ) : null}
             <PretendardText style={styles.subText}>
               {l10n.t('aiGearFill.remaining', { count: remaining })}
             </PretendardText>
@@ -138,10 +139,6 @@ const styles = StyleSheet.create({
     borderTopColor: Acg.hairline,
     backgroundColor: Acg.paper,
     gap: 8,
-  },
-  notice: {
-    ...AcgType.meta,
-    color: Acg.textMuted,
   },
   error: {
     ...AcgType.meta,
