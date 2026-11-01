@@ -4,6 +4,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import app from '@/model/app/App';
 import GearFilter from '@/model/gear/GearFilter';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
+import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import { setBagDestinationPicker } from '@/model/bag-destination/BagDestinationPickerHandoff';
 import Gear from '@/model/gear/Gear';
 import { setGearPick } from '@/model/gear/GearPickHandoff';
@@ -176,6 +177,11 @@ const useOnboardingTripState = (trip: OnboardingTrip) => {
     }, [trip, step])
   );
 
+  // 2단계 `요즘 많이 가는 박지` 칩은 가이드가 열릴 때 1회 읽는다(OB-5). 도착하면 면 아래에 붙는다.
+  useEffect(() => {
+    void trip.loadDestinationChips();
+  }, [trip]);
+
   useEffect(() => {
     if (step === OnboardingTripStep.Done) {
       void trip.loadPermissionStatus();
@@ -200,6 +206,14 @@ const useOnboardingTripState = (trip: OnboardingTrip) => {
     });
     router.push('/bag-destination-picker');
   }, [trip, router]);
+
+  // 2단계 박지 칩(OB-5) — 가이드 상태에만 담고, 선택된 칩을 다시 누르면 해제한다.
+  const handleToggleDestinationChip = useCallback(
+    (spot: CampSpot, position: number) => {
+      trip.toggleDestinationChip(spot, position);
+    },
+    [trip]
+  );
 
   // `다른 {카테고리} 찾기`(OB-6) — 창고 컨텍스트 검색 모달을 그 카테고리 필터로 연다.
   // 비로그인은 담기 모드(OB-13) — 창고에 쓰지 않고 고른 장비를 가이드로 돌려받는다.
@@ -257,6 +271,7 @@ const useOnboardingTripState = (trip: OnboardingTrip) => {
     handleNext,
     handleSkip,
     handleOpenDestinationPicker,
+    handleToggleDestinationChip,
     handleOpenGearSearch,
     handleOpenCustomAdd,
     handleCreate,

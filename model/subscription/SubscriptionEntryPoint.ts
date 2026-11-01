@@ -13,6 +13,8 @@ enum SubscriptionEntryPoint {
   RouteDraw = 'route_draw',
   // 지도 종류 메뉴의 `위성`(SUB-13 · Map MAP-7). 권한을 얻으면 그 지도를 바로 위성으로 바꾼다.
   Satellite = 'satellite',
+  // 라우트 파라미터가 없을 때 결과 이벤트용(SUB-8).
+  Unknown = 'unknown',
 }
 
 export default SubscriptionEntryPoint;

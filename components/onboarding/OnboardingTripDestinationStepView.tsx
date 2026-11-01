@@ -3,26 +3,32 @@ import { ScrollView, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import PretendardText from '@/components/PretendardText';
+import CategoryChipView from '@/components/browse/CategoryChipView';
 import {
   Acg,
   AcgLayout,
   AcgRadius,
   AcgRow,
   AcgType,
+  Spacing,
 } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
+import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import OnboardingTrip from '@/model/onboarding/OnboardingTrip';
 import OnboardingTripStepTitleView from './OnboardingTripStepTitleView';
 
 interface Props {
   trip: OnboardingTrip;
   onOpenPicker: () => void;
+  onToggleChip: (spot: CampSpot, position: number) => void;
 }
 
 // 1단계 — 어디로 가세요?(OB-5). 여행지 면 하나 — 탭하면 공용 선택기(DST-3)를 연다.
+// 면 아래 `요즘 많이 가는 박지` 칩 — 목록이 비면 구획을 그리지 않는다.
 const OnboardingTripDestinationStepView: FC<Props> = ({
   trip,
   onOpenPicker,
+  onToggleChip,
 }) => {
   const l10n = app.getL10n();
   const location = trip.getLocation();
@@ -34,6 +40,7 @@ const OnboardingTripDestinationStepView: FC<Props> = ({
       ? l10n.t('onboarding.destination.campSite')
       : l10n.t('onboarding.destination.freeLocation')
     : l10n.t('onboarding.destination.placeholderMeta');
+  const chips = trip.getDestinationChips();
 
   return (
     <ScrollView
@@ -72,6 +79,29 @@ const OnboardingTripDestinationStepView: FC<Props> = ({
         </View>
         <Ionicons name='chevron-forward' size={18} color={Acg.textMuted} />
       </TouchableOpacity>
+      {chips.length > 0 && (
+        <View style={styles.chipSection}>
+          <PretendardText style={styles.chipLabel}>
+            {l10n.t('onboarding.destination.popularLabel')}
+          </PretendardText>
+          <View style={styles.chips}>
+            {chips.map((spot, position) => (
+              <View key={spot.id} style={styles.chipItem}>
+                <CategoryChipView
+                  label={spot.name}
+                  selected={trip.isDestinationChipSelected(spot)}
+                  numberOfLines={1}
+                  onPress={() => onToggleChip(spot, position)}
+                  accessibilityLabel={l10n.t(
+                    'onboarding.destination.popularChipAccessibility',
+                    { name: spot.name, region: spot.city || spot.region }
+                  )}
+                />
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
     </ScrollView>
   );
 };
@@ -104,6 +134,23 @@ const styles = StyleSheet.create({
   meta: {
     ...AcgType.rowSubtitle,
     color: Acg.textMuted,
+  },
+  chipSection: {
+    marginTop: Spacing.section,
+    gap: 10,
+  },
+  chipLabel: {
+    ...AcgType.meta,
+    color: Acg.textMuted,
+  },
+  chips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: AcgLayout.chipGap,
+  },
+  // 긴 박지명이 줄 폭을 넘지 않게 — 넘치면 칩 안에서 말줄임한다.
+  chipItem: {
+    maxWidth: '100%',
   },
 });
 

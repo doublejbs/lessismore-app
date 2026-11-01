@@ -73,7 +73,7 @@ class CampSiteDetail {
       }
 
       this.setSpot(spot);
-      this.analyticsManager?.logClick('camp_site');
+      this.analyticsManager?.logClick('camp_site', { spot_id: spot.id });
       this.setInitialized(true);
 
       void this.loadReviewContent(spot);

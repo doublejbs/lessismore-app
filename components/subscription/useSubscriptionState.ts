@@ -36,6 +36,7 @@ const useSubscriptionState = (
 ) => {
   const router = useRouter();
   const l10n = app.getL10n();
+  const fromValue = from ?? SubscriptionEntryPoint.Unknown;
   // 이 화면을 연 `openSubscription`의 완료 콜백. 열릴 때 한 번 꺼내 든다 — 권한 없이 닫히면 함께 버려진다.
   const [onEntitled] = useState(() => takeEntitledCallback());
   const hasNotifiedEntitledRef = useRef(false);
@@ -145,8 +146,8 @@ const useSubscriptionState = (
       ?.logClick(
         'subscription_purchase',
         result === PurchaseResult.Success
-          ? { result, is_trial: String(store.isTrial()) }
-          : { result }
+          ? { result, is_trial: String(store.isTrial()), from: fromValue }
+          : { result, from: fromValue }
       );
 
     if (result === PurchaseResult.Success) {
@@ -175,7 +176,9 @@ const useSubscriptionState = (
 
     const result = await store.restore();
 
-    app.getAnalyticsManager()?.logClick('subscription_restore', { result });
+    app
+      .getAnalyticsManager()
+      ?.logClick('subscription_restore', { result, from: fromValue });
 
     if (result === RestoreResult.Restored) {
       closeAsEntitled(l10n.t('subscription.restoreSuccess'));

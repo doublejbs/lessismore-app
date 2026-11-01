@@ -1680,7 +1680,9 @@
       "campSite": "キャンプ地",
       "freeLocation": "自分で選んだ場所",
       "pick": "目的地を選ぶ",
-      "accessibility": "目的地、{{name}}"
+      "accessibility": "目的地、{{name}}",
+      "popularLabel": "最近人気のキャンプ地",
+      "popularChipAccessibility": "{{name}}、{{region}}"
     },
     "gear": {
       "title": "どの装備を持っていきますか？",
