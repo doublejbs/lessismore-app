@@ -201,10 +201,10 @@
 
 **수용 기준**
 
-- iOS에서 `NotificationManager.initialize()`가 권한 상태를 읽어 **`undetermined`이면 `requestPermissionsAsync({ ios: { allowProvisional: true } })`** 를 바로 부른다 — 대화상자가 뜨지 않고 상태가 임시 허용(`ios.status === IosAuthorizationStatus.PROVISIONAL`, `granted: true`)이 된다. 로그인·약관과 무관하게 첫 실행에 한다(비로그인도). 이미 허용·거부·임시 허용이면 아무것도 하지 않는다. 안드로이드·웹은 no-op.
-- **상태 모델**: `NotificationPermissionStatus`에 `Provisional`을 더한다. 상태 조회(`getPermissionStatus()`)는 `granted`이면서 `ios.status === PROVISIONAL`이면 `Provisional`, 그 외 `granted`는 `Granted`.
+- iOS에서 `NotificationManager.initialize()`가 권한 상태를 읽어 **`undetermined`이면 `requestPermissionsAsync({ ios: { allowAlert: true, allowBadge: true, allowSound: true, allowProvisional: true } })`** 를 바로 부른다(옵션을 주면 기본값과 합쳐지지 않으므로 alert·badge·sound를 함께 넘긴다) — 대화상자가 뜨지 않고 상태가 임시 허용이 된다. **expo-notifications 57의 임시 허용 응답은 `{ status: 'undetermined', granted: false, canAskAgain: true, ios: { status: IosAuthorizationStatus.PROVISIONAL(3) } }`** 다(네이티브 `ExpoNotificationsPermissionsRequester`가 `.authorized`만 granted로 본다) — `granted`로는 구분할 수 없고 `ios.status`로만 안다. 로그인·약관과 무관하게 첫 실행에 한다(비로그인도). 이미 허용·거부·임시 허용이면 아무것도 하지 않는다. 안드로이드·웹은 no-op.
+- **상태 모델**: `NotificationPermissionStatus`에 `Provisional`을 더한다. 상태 조회(`getPermissionStatus()`)는 `granted` 값과 무관하게 **`ios.status === PROVISIONAL`이면 먼저 `Provisional`**, 그다음 `granted`면 `Granted`, 나머지는 기존 판정. 초기화의 임시 허용 요청도 이 판정으로 '이미 임시 허용'을 가려 반복 호출하지 않는다.
 - **맥락 요청은 그대로 한 번 한다**: `requestPermissionIfUndetermined()`와 OB-7의 '미결정' 판정은 **`Undetermined` 또는 `Provisional`** 일 때 요청한다. 임시 허용 상태에서 옵션 없는 `requestPermissionsAsync()`를 부르면 iOS가 **진짜 대화상자**를 띄운다 — 허용 → 완전 허용, 거부 → 거부(오늘과 같다). `Granted`(완전 허용)·`Denied`면 지금처럼 묻지 않는다.
-- **예약·발송은 임시 허용도 허용으로 본다**: 로컬 예약(NT-2·3·7·8·9), 토픽 구독(NT-5), 토큰 등록(NT-12 — `briefingEnabled`도 같은 규칙)이 `granted`를 그대로 쓴다. 임시 허용 사용자에게 알림은 조용히(알림 센터만) 도달한다 — 0보다 낫고, 첫 알림의 `계속 받기`가 승격 경로다.
+- **예약·발송은 임시 허용도 허용으로 본다**: 로컬 예약(NT-2·3·7·8·9), 토픽 구독(NT-5), 토큰 등록(NT-12 — `briefingEnabled`도 같은 규칙), 재방문 예약 판정(`canScheduleReengagement`)은 **`Granted` 또는 `Provisional`** 을 허용으로 본다(응답의 `granted`는 임시 허용에서 false라 그대로 쓰면 안 된다). 임시 허용 사용자에게 알림은 조용히(알림 센터만) 도달한다 — 0보다 낫고, 첫 알림의 `계속 받기`가 승격 경로다.
 - 설정 화면(NT-6) 문구·토글은 바꾸지 않는다. 임시 허용 상태를 따로 표시하지 않는다(사용자에게는 "아직 허용 전"이 맞다 — 대화상자를 본 적 없다).
 - **측정**: `click_onboarding_trip_complete.notification` 값은 그대로(임시 허용이면 묻기 때문에 `granted`/`denied`가 남는다). 효과는 서버 `users/*/push-tokens` 문서 수(가입자 대비)로 본다 — 배포 전 34/668.
 - 모듈 인터페이스: `NotificationManager`의 로컬 타입에 `requestPermissionsAsync(options?)`와 `getPermissionsAsync().ios?.status`를 더한다(expo-notifications 57 — `IosAuthorizationStatus.PROVISIONAL = 3`, `IosNotificationPermissionsRequest.allowProvisional`).

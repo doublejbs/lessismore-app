@@ -1,9 +1,8 @@
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Acg, AcgLayout, Spacing } from '@/constants/DesignTokens';
-import SubscriptionEntryPoint from '@/model/subscription/SubscriptionEntryPoint';
 import SubscriptionStore from '@/model/subscription/SubscriptionStore';
 import SubscriptionActiveView from './SubscriptionActiveView';
 import SubscriptionOfferView from './SubscriptionOfferView';
@@ -20,8 +19,6 @@ interface Props {
 // SUB-11: 진입점은 `from` 파라미터 문자열로 읽는다(`openSubscription`) — `offline`이면 오프라인 진입점 변형.
 const SubscriptionView = ({ store }: Props) => {
   const insets = useSafeAreaInsets();
-  const { from } = useLocalSearchParams<{ from?: string }>();
-  const isOfflineEntry = from === SubscriptionEntryPoint.Offline;
   const {
     formattedExpirationDate,
     handleSubscribe,
@@ -30,6 +27,7 @@ const SubscriptionView = ({ store }: Props) => {
     handleRetry,
     handleOpenTerms,
     handleOpenPrivacyPolicy,
+    isOfflineEntry,
   } = useSubscriptionState(store);
   // 구매·복원 중에는 시트를 스와이프로 닫지 못하게 한다 — 결과가 온 뒤 닫힌 시트 대신 아래 화면이
   // 닫히지 않게(SUB-2 진행 중 버튼 막기와 같은 이유).

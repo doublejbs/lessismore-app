@@ -19,10 +19,15 @@ import OnboardingTripGearSource from './OnboardingTripGearSource';
 import OnboardingTripPermission from './OnboardingTripPermission';
 import OnboardingTripStatus from './OnboardingTripStatus';
 import OnboardingTripLoginResult from './OnboardingTripLoginResult';
+import OnboardingDestinationChips from './OnboardingDestinationChips';
+import OnboardingDestinationSource from './OnboardingDestinationSource';
+import OnboardingDestinationChipAction from './OnboardingDestinationChipAction';
+import { CampSpot } from '../camp-site/CampSpotTypes';
 import {
   ONBOARDING_TRIP_DRAFT_VERSION,
   OnboardingTripDraft,
   fromDraftGear,
+  resolveDraftDestinationSource,
   toDraftGear,
 } from './OnboardingTripDraft';
 
@@ -97,6 +102,14 @@ class OnboardingTrip {
   private endDate: Dayjs | null = null;
   private datesUndecided = false;
   private location: BagLocation | null = null;
+  // 여행지가 들어온 경로 — 완료 계측 destination_source(OB-5·OB-9).
+  private destinationSource: OnboardingDestinationSource =
+    OnboardingDestinationSource.None;
+  // 2단계 `요즘 많이 가는 박지` 칩(OB-5) — 가이드가 열릴 때 1회 읽고 세션 동안 유지한다.
+  private readonly destinationChips = OnboardingDestinationChips.from(
+    app.getFirebase(),
+    app.getCampSpotStore()
+  );
   private gearMode: OnboardingTripGearMode | null = null;
   private gearLoading = false;
   private gearError = false;
@@ -123,7 +136,10 @@ class OnboardingTrip {
   private autoCreateStarted = false;
 
   private constructor(draft: OnboardingTripDraft | null) {
-    makeAutoObservable(this);
+    // 칩 목록은 자체 observable을 가진 클래스 인스턴스 참조라 감싸지 않는다.
+    makeAutoObservable<OnboardingTrip, 'destinationChips'>(this, {
+      destinationChips: false,
+    });
 
     if (draft) {
       this.restoreDraft(draft);
@@ -135,6 +151,7 @@ class OnboardingTrip {
     this.endDate = draft.endDate ? dayjs(draft.endDate) : null;
     this.datesUndecided = draft.datesUndecided;
     this.location = draft.location;
+    this.destinationSource = resolveDraftDestinationSource(draft);
     this.pickedGears = draft.catalogGears.map(fromDraftGear);
     this.selectedGearIds = this.pickedGears.map(gear => gear.getId());
     this.step = OnboardingTripStep.Done;
@@ -216,7 +233,7 @@ class OnboardingTrip {
       this.endDate = null;
       this.datesUndecided = true;
     } else if (step === OnboardingTripStep.Destination) {
-      this.location = null;
+      this.clearLocation();
     } else if (step === OnboardingTripStep.Gear) {
       this.selectedGearIds = [];
     }
@@ -290,6 +307,52 @@ class OnboardingTrip {
   // 선택기(DST-3) onConfirm — 여행이 아직 없으므로 가이드 상태에만 담는다(OB-5).
   public setLocation(location: BagLocation): void {
     this.location = location;
+    this.destinationSource = OnboardingDestinationSource.Picker;
+  }
+
+  private clearLocation(): void {
+    this.location = null;
+    this.destinationSource = OnboardingDestinationSource.None;
+  }
+
+  // ── 2단계: 요즘 많이 가는 박지 칩(OB-5) ────────────────
+
+  public async loadDestinationChips(): Promise<void> {
+    await this.destinationChips.load();
+  }
+
+  // active 박지 최대 8개. 비어 있으면 화면은 구획을 그리지 않는다.
+  public getDestinationChips(): CampSpot[] {
+    return this.destinationChips.getSpots();
+  }
+
+  // 칩 선택 표시는 별도 상태 없이 현재 여행지의 박지 참조로 판단한다(OB-5).
+  public isDestinationChipSelected(spot: CampSpot): boolean {
+    return this.location?.campSpotId === spot.id;
+  }
+
+  // 칩 탭 — 가이드 상태에만 담는다(Firestore 쓰기 없음). 선택된 칩을 다시 누르면 해제한다.
+  public toggleDestinationChip(spot: CampSpot, position: number): void {
+    const selected = this.isDestinationChipSelected(spot);
+
+    if (selected) {
+      this.clearLocation();
+    } else {
+      this.location = {
+        name: spot.name,
+        latitude: spot.location.latitude,
+        longitude: spot.location.longitude,
+        campSpotId: spot.id,
+      };
+      this.destinationSource = OnboardingDestinationSource.Chip;
+    }
+
+    app.getAnalyticsManager()?.logClick('onboarding_trip_destination_chip', {
+      action: selected
+        ? OnboardingDestinationChipAction.Clear
+        : OnboardingDestinationChipAction.Select,
+      position,
+    });
   }
 
   // ── 3단계: 장비 ───────────────────────────────────────
@@ -583,8 +646,12 @@ class OnboardingTrip {
     });
   }
 
+  // iOS 임시 허용(NT-13)은 대화상자를 본 적 없는 상태라 미결정과 같이 묻는다(OB-7).
   public canAskPermission(): boolean {
-    return this.permissionStatus === NotificationPermissionStatus.Undetermined;
+    return (
+      this.permissionStatus === NotificationPermissionStatus.Undetermined ||
+      this.permissionStatus === NotificationPermissionStatus.Provisional
+    );
   }
 
   public isCreating(): boolean {
@@ -631,6 +698,9 @@ class OnboardingTrip {
           has_destination: this.location !== null,
           gear_count: this.getSelectedCount(),
           notification: permission,
+          destination_source: this.location
+            ? this.destinationSource
+            : OnboardingDestinationSource.None,
         });
       }
 
@@ -782,6 +852,9 @@ class OnboardingTrip {
       endDate: this.endDate?.format(DRAFT_DATE_FORMAT) ?? null,
       datesUndecided: this.datesUndecided,
       location: this.location,
+      destinationSource: this.location
+        ? this.destinationSource
+        : OnboardingDestinationSource.None,
       catalogGears: this.getSelectedCatalogGears().map(toDraftGear),
     };
   }

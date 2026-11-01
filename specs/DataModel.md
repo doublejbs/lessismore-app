@@ -1067,7 +1067,7 @@
 
 | 필드 | 타입 | 비고 |
 | --- | --- | --- |
-| `spotIds` | string[] | `camp-spot/{id}`(DM-17) 참조, 배열 순서 = 표시 순서. 최대 12개(앱은 `status === 'active'`인 것 중 앞 8개만 그린다 — 비활성·삭제분 여유) |
+| `spotIds` | string[] | `camp-spot/{id}`(DM-17) 참조, 배열 순서 = 표시 순서. 최대 12개(앱은 중복 id를 제거하고 앞 12개만 읽어 `status === 'active'`인 것 중 앞 8개만 그린다 — 비활성·삭제분 여유) |
 | `updatedAt` | timestamp | 마지막 수정 |
 | `note` | string? | 운영 메모(선정 이유·계절). 앱은 읽지 않는다 |
 

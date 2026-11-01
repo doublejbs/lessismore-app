@@ -242,7 +242,7 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
 **수용 기준**
 
 - `로그인하고 여행 만들기` → 지금까지 고른 내용을 **초안**으로 기기에 저장한 뒤 기존 로그인 모달(AU-1 `LogInAlertManager.show()`)을 연다. 가이드 화면이 `LogInView`를 직접 렌더한다(fullScreenModal 위에 떠야 한다 — 검색 모달 `/search`와 같은 이유).
-- **초안** = AsyncStorage `onboarding-first-trip-draft`(기기 단위, APP-6). 값 `{ version: 1, savedAt, resumable, startDate, endDate, datesUndecided, location, catalogGears }` — 날짜는 `YYYY-MM-DD`, `location`은 BagLocation(DM-15와 같은 모양), `catalogGears`는 고른 카탈로그 장비의 카탈로그 데이터(인기 장비·검색 담기). **uid·이메일·이름 같은 개인 식별 정보는 넣지 않는다.** 저장한 지 24시간이 지난 초안은 버린다.
+- **초안** = AsyncStorage `onboarding-first-trip-draft`(기기 단위, APP-6). 값 `{ version: 1, savedAt, resumable, startDate, endDate, datesUndecided, location, destinationSource?, catalogGears }` — `[제안 2026-11-01]` `destinationSource`는 여행지 경로(`chip`·`picker`·`none`, OB-9 `destination_source`용; 없는 옛 초안은 여행지가 있으면 `picker`로 본다, 버전은 올리지 않는다), 날짜는 `YYYY-MM-DD`, `location`은 BagLocation(DM-15와 같은 모양), `catalogGears`는 고른 카탈로그 장비의 카탈로그 데이터(인기 장비·검색 담기). **uid·이메일·이름 같은 개인 식별 정보는 넣지 않는다.** 저장한 지 24시간이 지난 초안은 버린다.
 - **로그인 성공 + 약관 동의가 끝난 계정**: 모달이 닫히면 가이드 안에서 바로 이어 만든다 — 권한 상태를 읽고 미결정이면 OS 권한을 묻고(OB-8 맥락 요청) → OB-7 생성 순서(add → 여행지 → 카탈로그 장비 창고 등록 → 담기) → 초안 삭제 · uid 기록·기기 기록 `completed` → 새 여행 상세(`router.replace('/bag/{id}')`). 생성 중 표시·연타 방지·부분 실패 처리는 OB-7 그대로.
 - **약관 동의가 필요한 신규 계정**: 레이아웃 가드(AU-3)가 `/terms-agreement`로 `replace`하면서 가이드가 내려간다. 이때 초안은 남기고 기록을 `dismissed`로 덮지 않는다. 동의 후 메인 탭에 도착하면 레이아웃이 초안을 발견해 가이드를 **완료 단계로 다시 열고 바로 이어 만든다**(OB-2 자리 — 신기능 팝업·공지보다 먼저).
 - **이미 여행이 있는 계정**: 그래도 이 여행을 만든다 — 사용자가 직접 고른 여행이다(결정). 이어 만들기는 OB-1의 여행 수 판정을 건너뛰고, 끝나면 uid 기록을 `completed`로 남긴다. 고른 카탈로그 장비가 이미 창고에 있으면 다시 등록하지 않는다(`GearStore.register`가 건너뜀 — `gear-rank` 중복 집계 없음).
