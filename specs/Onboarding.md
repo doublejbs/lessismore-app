@@ -109,6 +109,12 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
 - 주 액션 문구는 미선택이면 `여행지 고르기`(선택기 열기), 선택됨이면 `다음`.
 - 날씨는 생성 시 기존 저장 경로(DST-6 `saveBagDestination`)가 자동으로 조회·저장한다. 날씨 조회 실패는 생성을 막지 않는다(DST-6 — 상세 여행지 화면에서 다시 시도).
 - 보조 버튼 `건너뛰기` → 여행지 없이 다음 단계.
+- `[제안 2026-11-01]` **`요즘 많이 가는 박지` 칩** — 여행지 면 아래에 박지 칩 묶음을 둔다. 근거: 10/24~30 가이드 닫기 16명 중 13명이 이 단계(빈 면 하나)에서 나갔고, 여행지를 고른 사람 8명 대 건너뛴 사람 16명이었다. 선택기를 열기 전에 "고를 것"이 보여야 한다.
+  - 구획: 라벨 `요즘 많이 가는 박지`(`AcgType.meta`, `Acg.textMuted`) + 줄바꿈 칩 묶음(`CategoryChipView` 기본 톤 — 연회색 채움, 선택은 잉크 채움, 간격 `AcgLayout.chipGap`). 칩 라벨은 박지명만(한 줄). 지역은 `accessibilityLabel`에 `{박지명}, {시군구 또는 시도}`로 넣는다. **최대 8개.**
+  - 소스: `config/onboarding-destinations`([DataModel.md](DataModel.md) DM-36) `spotIds` 순서대로 `camp-spot`을 읽어(`CampSpotStore.getSpot`, 병렬) `status === 'active'`인 것만 남긴다. 가이드가 열릴 때 1회 읽고 세션 동안 유지한다. 비로그인도 읽는다(`config/*`·`camp-spot` 공개 읽기). 문서가 없거나 비었거나 읽기에 실패했거나 남은 박지가 0개면 구획을 그리지 않는다(현재 화면 그대로). 로딩 중에도 빈 자리를 두지 않는다 — 칩은 도착하면 면 아래에 붙는다.
+  - 탭: `setLocation({ name, latitude, longitude, campSpotId })`로 **가이드 상태에만** 담는다(Firestore 쓰기 없음 — 선택기 `onConfirm`과 같은 경로). 면이 선택 상태(`{박지명}` + 메타 `박지`)가 되고 주 액션이 `다음`으로 바뀐다. 선택된 칩을 다시 탭하면 해제(여행지 없음). 칩의 선택 표시는 별도 상태가 아니라 **현재 여행지의 `campSpotId`와 같은지**로 그린다 — 선택기에서 같은 박지를 골라도 칩이 켜지고, 자유 위치를 고르면 모두 꺼진다.
+  - 날씨·저장은 바뀌지 않는다 — 생성 때 OB-7 2단계 `saveBagDestination`이 그대로 처리한다.
+  - 운영: 목록은 운영자가 고른다(초기 8곳은 DM-36). 자동 선정(여행지 사용 빈도·박지 상세 조회 수)은 데이터가 쌓이면 바꾼다 — 그 집계를 위해 `click_camp_site`에 `spot_id`를 더한다([Analytics.md](Analytics.md) AN-3).
 
 ### OB-6 3단계 — 어떤 장비를 챙기세요? `[제안]`
 
@@ -158,7 +164,7 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
   - 날짜를 고른 경우 `출발 하루 전에 패킹을 알려 드릴게요` (NT-2).
   - 미정(OB-4)이면 `날짜는 이번 주말로 잡아 뒀어요. 날짜를 바꾸면 그 날짜에 맞춰 알려 드릴게요`.
 - **주 액션**(라임):
-  - 알림 권한이 **미결정**(네이티브 `getPermissionsAsync().status === 'undetermined'`)이면 `알림 받고 여행 만들기` → OS 권한 요청(OB-8) → 결과와 무관하게 생성.
+  - 알림 권한이 **미결정**(네이티브 `getPermissionsAsync().status === 'undetermined'`) **또는 iOS 임시 허용(provisional — [Notification.md](Notification.md) NT-13, 사용자가 대화상자를 아직 본 적 없는 상태)** 이면 `알림 받고 여행 만들기` → OS 권한 요청(OB-8) → 결과와 무관하게 생성.
   - 이미 허용·거부됐거나 웹이면 `여행 만들기` → 바로 생성. **이미 결정된 권한은 다시 묻지 않는다.**
 - 보조 버튼 `알림 없이 만들기`(권한 미결정일 때만) → 권한을 묻지 않고 생성.
 - **생성은 이 단계의 버튼을 누를 때 한 번에 한다**(중간 단계에서는 Firestore에 아무것도 쓰지 않는다) — 건너뛰기·닫기·앱 종료 어느 경우에도 반쯤 만든 여행이 남지 않는다.
@@ -179,7 +185,7 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
 **수용 기준**
 
 - 앱 시작 시 일괄 요청(NT-1)은 **로그인 + 약관 동의 + 가이드 판정이 끝난 뒤**에만 일어나고, **이번 세션에 가이드를 띄웠으면 건너뛴다** — 가이드 사용자는 완료 단계에서 처음 묻는다.
-- 두 경로 모두 OS 상태가 **미결정(`undetermined`)일 때만** 권한 대화상자를 띄운다. 허용·거부가 이미 정해졌으면 묻지 않는다(안드로이드 13+에서 한 번 거부해도 `canAskAgain`이 true라 다시 뜨던 것을 막는다) — **어떤 사용자도 두 번 묻지 않는다.**
+- 두 경로 모두 OS 상태가 **미결정(`undetermined`)일 때만** 권한 대화상자를 띄운다(`[제안 2026-11-01]` iOS 임시 허용 상태도 미결정으로 본다 — NT-13, 사용자는 대화상자를 아직 보지 않았다). 허용·거부가 이미 정해졌으면 묻지 않는다(안드로이드 13+에서 한 번 거부해도 `canAskAgain`이 true라 다시 뜨던 것을 막는다) — **어떤 사용자도 두 번 묻지 않는다.**
 - 가이드에서 권한을 묻지 않고 끝낸 경우(`알림 없이 만들기`·닫기·도중 종료) 다음 콜드 스타트의 시작 시 요청(NT-1)이 그대로 적용된다 — 모든 사용자가 정확히 한 번은 질문을 받는다.
 - 가이드에서 허용하면 시작 시 요청이 하던 후속 처리(공지 토픽 `all` 구독 — 설정이 켜져 있으면, NT-9 동기화)를 그 자리에서 한다.
 - 웹은 no-op(완료 단계 문구가 `여행 만들기`로 바뀐다).
@@ -193,10 +199,11 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
   - `login`(2026-10-08 추가, OB-11): 비로그인 완료 단계의 `로그인하고 여행 만들기`는 `next`, `나중에 할게요`는 `skip`. 이 단계에서는 `done`을 보내지 않고, 로그인 뒤 이어 만들 때도 step 이벤트를 다시 보내지 않는다.
   - 1단계 `아직 미정이에요`는 `skip`, 2단계 미선택 상태의 `여행지 고르기`는 선택기만 열 뿐이라 보내지 않는다(선택 뒤의 `다음`이 `next`).
   - 4단계 주 액션은 `next`, `알림 없이 만들기`는 `skip`.
-- `click_onboarding_trip_complete` — 생성 성공(add 성공 기준). `has_dates`(boolean — 미정이면 false), `has_destination`(boolean), `gear_count`(정수), `notification`: `granted` \| `denied` \| `skipped`(묻지 않음) \| `already`(이미 결정됨) \| `unavailable`(웹).
+- `click_onboarding_trip_complete` — 생성 성공(add 성공 기준). `has_dates`(boolean — 미정이면 false), `has_destination`(boolean), `gear_count`(정수), `notification`: `granted` \| `denied` \| `skipped`(묻지 않음) \| `already`(이미 결정됨) \| `unavailable`(웹), `[제안 2026-11-01]` `destination_source`: `chip`(OB-5 칩) \| `picker`(선택기) \| `none`.
 - `click_onboarding_trip_login` — 가이드에서 연 로그인 모달의 결과(OB-12). `result`: `success` \| `cancel`. 재실행·약관 화면 뒤의 이어 만들기는 다시 보내지 않는다.
 - `click_onboarding_trip_dismiss` — 닫기 확정. `step`: 닫은 단계. `나중에 할게요`는 보내지 않는다(`step: login, action: skip`이 그 신호다).
 - `click_onboarding_trip_gear_pick` — 3단계에서 장비를 **담을 때**(선택 해제는 보내지 않음). `source`: `popular`(인기 행 토글) \| `warehouse`(체크리스트 토글) \| `search`(검색 모달에서 등록 후 자동 선택) \| `custom`(직접 추가 저장 후 자동 선택), `category`: 장비의 1차 카테고리(GearFilter 그룹 키). 검색·직접 추가는 돌아와 자동 선택될 때 장비마다 한 번 보낸다.
+- `[제안 2026-11-01]` `click_onboarding_trip_destination_chip` — 2단계 `요즘 많이 가는 박지` 칩 탭(OB-5). `action`: `select` \| `clear`, `position`: 칩 순서(0부터). 박지명·박지 id는 보내지 않는다(목록은 `config` 문서로 추적된다).
 - 화면 조회는 라우트(`onboarding-trip`) `screen_view`로 자연 수집된다(AN-2).
 - **환영 화면**(OB-14, 2026-10-08): `welcome_view`(화면이 뜰 때 1회, `audience`: `guest` \| `member`) · `click_welcome_start` · `click_welcome_back`(안드로이드 뒤로; 구 `click_welcome_browse`는 2026-10-11까지) · `click_welcome_login`. 라우트 `welcome`의 `screen_view`도 함께 수집된다 — `welcome_view`는 퍼널(뜸 → 시작 → 가이드 단계) 집계용 명시 이벤트다.
 - 여행 이름·여행지명·장비 이름 같은 사용자 입력은 보내지 않는다.
@@ -309,6 +316,7 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
 - 검색 모달 `/search`에 선택 파라미터 `category`(GearFilter 그룹 키) 추가 — 피드 1차 카테고리 초기값(OB-6). 다른 진입점은 영향 없음.
 - 수동 폼 `/custom`에 선택 파라미터 `category`(GearFilter 그룹 키) 추가 — 카테고리 칩 초기 선택(OB-6, GE-8). 알 수 없는 값이면 기본(첫 칩).
 - 인기 장비 읽기: `gear-rank` 카테고리별 `count desc limit 8` + `gear` `documentId in`(DM-6 — SR-4와 같은 쿼리·인덱스). 쓰기는 OB-7의 `GearStore.register`(DM-6 증가 규칙 그대로).
+- `[제안 2026-11-01]` 인기 박지 칩 읽기(OB-5): `config/onboarding-destinations`(DM-36) 1회 + `camp-spot/{id}` 최대 12회(`getSpot` 병렬, 실패한 것은 뺀다). 쓰기 없음.
 
 ## 5. 플랫폼 분기
 
@@ -348,6 +356,7 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
 - [ ] 강제 업데이트 게이트 대상 버전에서는 가이드가 뜨지 않는다.
 - [ ] 1단계: 종료일까지 골라야 `다음`이 켜짐 / `아직 미정이에요` → 4단계에 `(임시)` 기간과 이번 주말 안내.
 - [ ] 2단계: 선택기에서 자유 위치·박지(상세 시트 CTA 포함) 선택 → 이 단계로 돌아와 이름 표시, 주 액션이 `다음`으로 바뀜. Firestore에 쓰기 없음.
+- [ ] `[제안]` 2단계: 면 아래 `요즘 많이 가는 박지` 칩 ≤8개 → 칩 탭 → 면에 박지명·메타 `박지`, 주 액션 `다음`, 칩 잉크 채움 → 다시 탭 → 해제. 선택기에서 같은 박지 → 칩 켜짐, 자유 위치 → 전부 꺼짐. `config/onboarding-destinations`를 비우면 구획이 사라짐(비로그인 포함). 완료 이벤트 `destination_source=chip`.
 - [ ] 3단계(창고 없음): 텐트·침낭·매트·배낭마다 인기 장비 5행(이름 + `무게 · 브랜드`), 로딩 중 스켈레톤 5행 → 행이 같은 자리에 그려짐. 토글하면 상단 요약 `{n}개 담음 · {kg}kg`이 바로 바뀌고 스크롤해도 요약이 위에 붙어 있음.
 - [ ] 3단계 `다른 텐트 찾기` → 검색 모달이 텐트 필터로 열림 → 등록 후 돌아오면 그 장비가 텐트 아래 체크된 창고 행으로 보임. `직접 추가` → 수동 폼이 텐트 카테고리로 열림 → 저장 후 돌아오면 체크됨.
 - [ ] 3단계(창고 있음): 카테고리별 체크리스트가 먼저, 그 아래 `인기 장비에서 담기` 구획. 이미 가진 장비는 인기 행에 나오지 않음.
@@ -409,6 +418,7 @@ app/onboarding-trip.tsx (fullScreenModal, 제스처 닫기 없음)
   - 환영 화면에서 로그인하면 그 세션에는 가이드를 띄우지 않고 uid 기록도 남기지 않는다 — 한 세션에 두 번 시작을 묻지 않되, 여행 0개 계정은 다음 실행에 가이드를 본다.
   - `먼저 둘러볼게요`는 `dismissed` — 자동으로 다시 띄우지 않는다. 홈 `첫 여행 만들기`가 다시 여는 길이다.
 - **(2026-10-08 디자인 리뷰) 완료 단계 요약 면에 담은 장비 목록**(최대 6행 + `외 n개`) — 가운데가 비어 보였고, 무엇을 만드는지 확인할 근거가 된다.
+- **(2026-11-01 사용자 결정) 2단계에 `요즘 많이 가는 박지` 칩**(OB-5) — 날짜 단계를 뺀 뒤 첫 단계가 된 여행지에서 닫기가 그대로 옮겨왔다(10/24~30 닫기 16명 중 13명). 소스는 운영 문서(DM-36) 8곳 — 박지에 연결된 배낭이 23건뿐이라 사용 빈도로 순위를 만들 수 없고, `click_camp_site`에 박지 id가 없어 조회 수도 쓸 수 없었다. 자동 선정은 `spot_id` 수집 뒤 데이터가 쌓이면.
 
 **미해결**
 

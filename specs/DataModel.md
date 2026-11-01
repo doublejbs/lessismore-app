@@ -107,6 +107,7 @@
 | `config/app` | 앱 원격 설정 (강제 업데이트 최소 버전) | 강제 업데이트 게이트 (AppLifecycle APP-7) |
 | `config/announcement` | 인앱 텍스트 공지 (원격 배너) | 공지 시트 (Announcement AN) |
 | `config/featurePopup` | 신기능 안내 팝업 (원격 온보딩) | 신기능 팝업 (FeaturePopup FP) |
+| `config/onboarding-destinations` | 첫 여행 가이드 2단계 `요즘 많이 가는 박지` 칩 목록 (DM-36) `[제안]` | 첫 여행 가이드 ([Onboarding.md](Onboarding.md) OB-5) |
 | `config/feedRotation` | 추천 박지 주간 교체 멱등 가드 — 함수 전용 (DM-27) `[제안]` | 스케줄 함수 `rotateFeedContent`(웹 레포) |
 | `feed-rotation-runs/{weekId}` | 추천 박지 주간 교체 실행 기록 — 함수 전용 (DM-27) `[제안]` | 운영 확인 |
 
@@ -1059,6 +1060,21 @@
 **`weekend-briefing-runs/{weekId}`**(함수 전용, 회차당 1문서, `weekId`=`YYYY-Www`): `ranAt`·`targets`·`sent`·`skippedNoSpot`·`skippedNoWeather`·`failed`·`sentUids`(발송 uid 배열 — 멱등 재실행용, 2,000 상한 안이면 배열로 충분)·`spotWeatherCacheHits`.
 
 - 두 경로 모두 클라이언트 읽기·쓰기 금지(개방 절에서 명시적으로 제외 — DM-27 `config/feedRotation`·`feed-rotation-runs`와 같은 방식).
+
+### DM-36 `config/onboarding-destinations` `[제안 2026-11-01]`
+
+첫 여행 가이드 2단계의 `요즘 많이 가는 박지` 칩 목록([Onboarding.md](Onboarding.md) OB-5). 운영자가 고른 박지 id의 **순서 있는 목록** 한 문서다.
+
+| 필드 | 타입 | 비고 |
+| --- | --- | --- |
+| `spotIds` | string[] | `camp-spot/{id}`(DM-17) 참조, 배열 순서 = 표시 순서. 최대 12개(앱은 `status === 'active'`인 것 중 앞 8개만 그린다 — 비활성·삭제분 여유) |
+| `updatedAt` | timestamp | 마지막 수정 |
+| `note` | string? | 운영 메모(선정 이유·계절). 앱은 읽지 않는다 |
+
+- **읽기**: 로그인 이전(비로그인 가이드 OB-11)에도 읽으므로 미인증 공개 읽기 — `config/app`과 같은 정책(2026-11-01 확인: 배포 규칙이 `config/*` 미인증 읽기를 허용한다 — 없는 문서 조회가 403이 아니라 404). 박지 본문은 `camp-spot` 공개 읽기 그대로. 규칙 변경 없음.
+- **쓰기**: Firebase 콘솔 또는 운영 스크립트(`scripts/`, 클라이언트 SDK + 콘솔 로그인 계정). 클라이언트는 쓰지 않는다.
+- **선정 기준(운영)**: 최근 4주 여행지로 많이 쓰인 박지 + 계절(11~2월은 대피소·눈 명소 우선). 문서가 없거나 `spotIds`가 비면 앱은 구획을 숨긴다 — 킬 스위치를 겸한다. 자동 선정은 `click_camp_site.spot_id`(AN-3)가 쌓인 뒤 검토.
+- **초기값(2026-11-01 제안 — 웹 백패킹 추천 기사·커뮤니티에서 반복 언급되는 박지를 `camp-spot` 등록분과 대조, 11월 시즌 우선)**: 선자령 `eCwfMtOW0Had75GJRQUt` · 굴업도 개머리언덕 `g1vAXSt5e0pQ8UYSBaZu` · 민둥산 `OhwXUCKhxAbE4w9PIqsn` · 덕적도 서포리해변 `F0Ea3ityeebBmquySnBF` · 장봉도 가막머리 `bA1mhnUbtVUnDt9M6Rlb` · 비양도 `L61F6BGdM4JkaehpJqmM` · 소백산 제2연화봉대피소 `sjUCd2VeWhTjY6MP9M44` · 강천섬캠핑장 `LPGjHbjpheAjNDWvZoLd`. 후보(교체용): 간월재 억새평원 `OWi56uzThY7TKvmfk4xf` · 천관산 억새평원 `oWdLxHiNnTbQmhegTHyH` · 승봉도 `ZsJve8L0s2l8PeeLusyN`. 억새 박지(민둥산)는 11월 중순 이후 겨울 박지(태백산·덕유산 향적봉대피소 `8N1ihSu1paC4AtlN6SoW` 등)로 교체한다.
 
 
 ## 4. Storage 경로 (DM-9)

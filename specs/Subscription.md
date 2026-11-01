@@ -134,8 +134,8 @@ app/subscription/index.tsx → SubscriptionWrapper → SubscriptionView (구독 
 
 - `logClick('subscription_open', { from })` — 구독 화면 진입(`from`: `settings` | `ad_card` | `nudge` | `offline` — 오프라인 타일 게이트 SUB-11; `ad_card`·`nudge`는 SUB-9 보류로 당분간 나오지 않는다).
 - `logClick('subscription_nudge', { action })` — 한 번 뜨는 안내 시트(SUB-9) 결과(`action`: `shown` | `open` | `dismiss`).
-- `logClick('subscription_purchase', { result })` — `result`: `success` | `cancelled` | `pending` | `error`. `pending`은 결제 승인 대기(iOS Ask to Buy·안드로이드 보류 결제)다 — 알럿 `결제 승인을 기다리고 있어요. 승인되면 오프라인 저장을 쓸 수 있어요.`를 띄우고, 승인되면 권한 리스너가 광고를 끈다.
-- `logClick('subscription_restore', { result })` — `result`: `restored` | `none` | `error`.
+- `logClick('subscription_purchase', { result, from })` — `result`: `success` | `cancelled` | `pending` | `error`. `[제안 2026-11-01]` `from` = 시트를 연 진입점(라우트 파라미터 `from`, `subscription_open`과 같은 값 — PR #161의 `satellite` 포함; 없으면 `unknown`). 근거: 10/24~30 `subscription_open` 5명(오프라인 2·위성 2·설정 3)에 `subscription_purchase` 0건 — 어느 진입점이 체험까지 가는지 보려면 결과 이벤트에도 진입점이 있어야 한다. `pending`은 결제 승인 대기(iOS Ask to Buy·안드로이드 보류 결제)다 — 알럿 `결제 승인을 기다리고 있어요. 승인되면 오프라인 저장을 쓸 수 있어요.`를 띄우고, 승인되면 권한 리스너가 광고를 끈다.
+- `logClick('subscription_restore', { result, from })` — `result`: `restored` | `none` | `error`. `from`은 위와 같다 `[제안 2026-11-01]`.
 - 매출·구독자 수는 RevenueCat 대시보드와 DM-31이 소스다. Analytics에 금액을 남기지 않는다.
 
 ## 4. 데이터

@@ -40,6 +40,7 @@
   - 두 경로 모두 OS 상태가 **미결정(`undetermined`)일 때만** 대화상자를 띄운다. 안드로이드 13+는 한 번 거부해도 `canAskAgain`이 true라 매 실행 다시 떴는데, 이제 결정된 권한은 묻지 않는다 — "1회 요청"을 코드가 지킨다.
   - 비로그인 사용자는 시작 시 요청을 받지 않는다(로그인·동의 후 첫 실행/탭 도착 때 받는다). 그동안 원격 공지(NT-5)는 권한이 없어 표시되지 않는다(수용).
   - `[제안]` 비로그인 첫 실행 가이드(OB-11)를 띄운 세션은 로그인 뒤에도 시작 시 요청을 건너뛰고, 가이드가 로그인 뒤 이어 만들기 직전에 미결정이면 한 번 묻는다(OB-12). 약관 화면을 거쳐 가이드를 다시 연 세션도 같다.
+- `[제안 2026-11-01]` iOS는 위 요청과 별개로 **첫 초기화 때 임시 허용(provisional)을 대화상자 없이 받아 둔다**(NT-13). 임시 허용 상태는 이 절의 '미결정'으로 취급해 맥락 요청은 그대로 한 번 한다 — 대화상자는 여전히 한 번이다.
 - 권한 거부 시: 로컬 예약·원격 수신을 시도하지 않고 조용히 통과(앱 동작에 영향 없음, 알럿 강제 금지).
 - 포그라운드 알림 표시 핸들러를 설정한다(앱이 열려 있어도 배너 표시).
 - 알림 예약/전송 관련 실패는 fire-and-forget으로 무시(콘솔 경고만).
@@ -194,6 +195,20 @@
 - **비로그인**은 등록하지 않는다(NT-5 토픽 공지만 받는다).
 - 토큰은 개인정보 처리방침의 "기기 식별자·푸시 알림" 항목 안이다(AU-4 처리방침, 2026-10 개정분에 이미 명시). 다른 사용자가 읽을 수 없다(규칙: 본인만 읽고 쓴다, DM-34).
 
+### NT-13 iOS 임시 허용(provisional) — 묻지 않고 조용한 알림 `[제안 2026-11-01]`
+
+배경: 2026-10-31 기준 푸시 토큰이 668명 중 34명(5%)뿐이다. 권한 대화상자를 보기 전에 떠나는 사용자가 대부분이라 재방문 알림(NT-2·7·8·11)이 닿을 길이 없다. iOS에는 **대화상자 없이** 알림을 조용히 보내는 권한 단계(provisional authorization, iOS 12+)가 있다 — 알림 센터에만 쌓이고 배너·소리·잠금화면·배지는 없으며, 첫 알림에 `계속 받기 / 끄기`가 붙는다. 사용자가 `계속 받기 → 눈에 띄게 표시`를 고르면 완전 허용이 된다. **안드로이드 13+에는 이런 단계가 없다**(런타임 권한 — 묻지 않고 켤 수 없다). 안드로이드 12 이하는 설치 때부터 허용이다.
+
+**수용 기준**
+
+- iOS에서 `NotificationManager.initialize()`가 권한 상태를 읽어 **`undetermined`이면 `requestPermissionsAsync({ ios: { allowProvisional: true } })`** 를 바로 부른다 — 대화상자가 뜨지 않고 상태가 임시 허용(`ios.status === IosAuthorizationStatus.PROVISIONAL`, `granted: true`)이 된다. 로그인·약관과 무관하게 첫 실행에 한다(비로그인도). 이미 허용·거부·임시 허용이면 아무것도 하지 않는다. 안드로이드·웹은 no-op.
+- **상태 모델**: `NotificationPermissionStatus`에 `Provisional`을 더한다. 상태 조회(`getPermissionStatus()`)는 `granted`이면서 `ios.status === PROVISIONAL`이면 `Provisional`, 그 외 `granted`는 `Granted`.
+- **맥락 요청은 그대로 한 번 한다**: `requestPermissionIfUndetermined()`와 OB-7의 '미결정' 판정은 **`Undetermined` 또는 `Provisional`** 일 때 요청한다. 임시 허용 상태에서 옵션 없는 `requestPermissionsAsync()`를 부르면 iOS가 **진짜 대화상자**를 띄운다 — 허용 → 완전 허용, 거부 → 거부(오늘과 같다). `Granted`(완전 허용)·`Denied`면 지금처럼 묻지 않는다.
+- **예약·발송은 임시 허용도 허용으로 본다**: 로컬 예약(NT-2·3·7·8·9), 토픽 구독(NT-5), 토큰 등록(NT-12 — `briefingEnabled`도 같은 규칙)이 `granted`를 그대로 쓴다. 임시 허용 사용자에게 알림은 조용히(알림 센터만) 도달한다 — 0보다 낫고, 첫 알림의 `계속 받기`가 승격 경로다.
+- 설정 화면(NT-6) 문구·토글은 바꾸지 않는다. 임시 허용 상태를 따로 표시하지 않는다(사용자에게는 "아직 허용 전"이 맞다 — 대화상자를 본 적 없다).
+- **측정**: `click_onboarding_trip_complete.notification` 값은 그대로(임시 허용이면 묻기 때문에 `granted`/`denied`가 남는다). 효과는 서버 `users/*/push-tokens` 문서 수(가입자 대비)로 본다 — 배포 전 34/668.
+- 모듈 인터페이스: `NotificationManager`의 로컬 타입에 `requestPermissionsAsync(options?)`와 `getPermissionsAsync().ios?.status`를 더한다(expo-notifications 57 — `IosAuthorizationStatus.PROVISIONAL = 3`, `IosNotificationPermissionsRequest.allowProvisional`).
+
 ## 4. 데이터
 
 - 로컬 리마인더(NT-2·NT-3): **저장 없음**(식별자 규칙으로 관리).
@@ -208,7 +223,7 @@
 | 로컬 알림 | expo-notifications | expo-notifications | no-op |
 | 원격 푸시 | RNFirebase messaging + **APNs 키 필요** | RNFirebase messaging (google-services.json) | no-op |
 | 모듈 로드 | 네이티브 정적 | 네이티브 정적 | 웹 번들에서 제외(동적 require 분기) |
-| 권한 | `expo-notifications` 권한 API | Android 13+ POST_NOTIFICATIONS 런타임 권한 | — |
+| 권한 | `expo-notifications` 권한 API + `[제안]` 첫 실행 임시 허용(NT-13) | Android 13+ POST_NOTIFICATIONS 런타임 권한(임시 단계 없음) | — |
 
 ## 6. 엣지 케이스
 
@@ -248,6 +263,7 @@
 - [ ] (NT-12) 로그인·권한 허용 후 `users/{uid}/push-tokens`에 문서 1건(`briefingEnabled: true`); `여행 추천 알림` OFF → `false`로 갱신; 로그아웃 → 문서 삭제
 - [ ] (NT-11) 즐겨찾기 1곳인 테스트 계정에 함수 수동 실행 → 목요일 문구 형식의 푸시 수신, 탭 → 해당 박지 상세, `notification_open type=weekend_briefing`
 - [ ] (NT-11) 14일 내 여행이 있는 계정 → `D-n {박지명}` 문구, 탭 → 배낭 상세; 박지 없는 계정은 미발송·NT-8 로컬 알림은 예약됨
+- [ ] `[제안]` (NT-13) iOS 새 설치 첫 실행 → 대화상자 없음, 설정 앱 > 알림에 `조용히 전달` 표시, 로그인 후 `users/{uid}/push-tokens` 등록 → 가이드 완료 `알림 받고 여행 만들기` → 진짜 대화상자 1회 → 허용 시 `눈에 띄게 표시`, 거부 시 거부. 이후 어떤 경로로도 다시 묻지 않음. 안드로이드는 변화 없음
 
 ## 8. 결정 사항 / 미해결 질문
 
@@ -263,6 +279,7 @@
 - 사용자별 알림 설정(NT-6): 범위 **포함**.
 - 로컬 리마인더 기기 종속(재설치 시 소실): **known issue로 수용**, 서버 동기화 안 함.
 
+- `[제안]` (NT-13, 2026-11-01 사용자 질문 "권한을 묻지 않고 그냥 허용으로 할 수 없나") 완전 허용은 불가하다 — iOS·안드로이드 13+ 모두 대화상자가 필수. iOS만 **임시 허용**으로 묻지 않고 조용히 보내고, 맥락 요청 1회는 유지한다. 안드로이드는 현행.
 - 재방문 리마인더(NT-7·NT-8, 2026-10-08 `[제안]`): 서버 없이 **로컬 예약만**으로 구현(2.0.1 OTA, 신규 네이티브 의존성 없음). 다음 여행 = 마지막 여행 종료 +10일 19:00, 주말 박지 = 목요일 19:00·14일 1회·무응답 3회 정지. 비로그인 사용자는 대상에서 제외. 설정 토글은 둘을 묶어 `여행 추천 알림` 1개.
 
 **미해결**
