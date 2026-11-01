@@ -40,6 +40,7 @@ const OnboardingTripView: FC<Props> = ({ trip }) => {
     handleNext,
     handleSkip,
     handleOpenDestinationPicker,
+    handleToggleDestinationChip,
     handleOpenGearSearch,
     handleOpenCustomAdd,
     handleCreate,
@@ -126,6 +127,7 @@ const OnboardingTripView: FC<Props> = ({ trip }) => {
           <OnboardingTripDestinationStepView
             trip={trip}
             onOpenPicker={handleOpenDestinationPicker}
+            onToggleChip={handleToggleDestinationChip}
           />
         );
       case OnboardingTripStep.Gear:

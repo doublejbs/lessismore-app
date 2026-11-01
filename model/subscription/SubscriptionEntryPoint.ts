@@ -8,6 +8,8 @@ enum SubscriptionEntryPoint {
   Nudge = 'nudge',
   // 배낭 상세 `오프라인` 타일 게이트(SUB-11 · OF-2). 구매에 성공하면 그 여행의 저장을 바로 시작한다.
   Offline = 'offline',
+  // 라우트 파라미터가 없을 때 결과 이벤트용(SUB-8).
+  Unknown = 'unknown',
 }
 
 export default SubscriptionEntryPoint;

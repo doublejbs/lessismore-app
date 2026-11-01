@@ -1669,7 +1669,9 @@
       "campSite": "Campsite",
       "freeLocation": "Custom location",
       "pick": "Choose destination",
-      "accessibility": "Destination, {{name}}"
+      "accessibility": "Destination, {{name}}",
+      "popularLabel": "Popular campsites lately",
+      "popularChipAccessibility": "{{name}}, {{region}}"
     },
     "gear": {
       "title": "What gear are you bringing?",

@@ -62,8 +62,17 @@ type ExpoNotifications = {
     canAskAgain: boolean;
     // expo-notifications PermissionStatus: 'granted' | 'denied' | 'undetermined'
     status?: string;
+    // iOS 전용 — IosAuthorizationStatus 숫자 값(NT-13 임시 허용 판정)
+    ios?: { status?: number };
   }>;
-  requestPermissionsAsync: () => Promise<{ granted: boolean }>;
+  requestPermissionsAsync: (options?: {
+    ios?: {
+      allowAlert?: boolean;
+      allowBadge?: boolean;
+      allowSound?: boolean;
+      allowProvisional?: boolean;
+    };
+  }) => Promise<{ granted: boolean; ios?: { status?: number } }>;
   scheduleNotificationAsync: (input: {
     identifier?: string;
     content: { title: string; body: string; data?: NotificationData };
@@ -105,6 +114,13 @@ type ReengagementInput = {
 type ResponseRouteListener = (route: string) => void;
 
 const ALL_TOPIC = 'all';
+
+// expo-notifications 57 `IosAuthorizationStatus.PROVISIONAL`(build/NotificationPermissions.types.d.ts).
+// 모듈을 네이티브에서만 동적 로드하므로 enum을 import하지 않고 값을 둔다(NT-13).
+// 주의: 57.0.6 iOS 네이티브(ExpoNotificationsPermissionsRequester.swift)는 `.authorized`만 granted로 보고
+// 임시 허용은 `{ status: 'undetermined', granted: false, ios: { status: 3 } }`로 돌려준다 —
+// 임시 허용 판정은 반드시 `ios.status`로 한다.
+const IOS_AUTHORIZATION_STATUS_PROVISIONAL = 3;
 
 const SETTINGS_STORAGE_KEY = 'notification-settings';
 
@@ -176,8 +192,9 @@ class NotificationManager {
     return this.initializePromise;
   }
 
-  // 리스너·핸들러 등록과 **이미 허용된 경우의** 후속 처리만 한다. 권한 요청은 하지 않는다 —
+  // 리스너·핸들러 등록과 **이미 허용된 경우의** 후속 처리만 한다. 대화상자를 띄우는 권한 요청은 하지 않는다 —
   // 요청 시점은 레이아웃이 로그인·약관·첫 여행 가이드 판정을 확인한 뒤 정한다(NT-1, OB-8).
+  // 예외: iOS 미결정이면 대화상자 없는 임시 허용만 받아 둔다(NT-13).
   private async runInitialize() {
     if (this.initialized) {
       return;
@@ -220,12 +237,74 @@ class NotificationManager {
 
       const current = await notifications.getPermissionsAsync();
 
-      if (current.granted) {
+      // 임시 허용도 예약·토픽·토큰 등록에는 허용으로 본다(NT-13) — 다시 요청하지 않는다.
+      if (current.granted || this.isProvisional(current)) {
+        await this.handlePermissionGranted();
+
+        return;
+      }
+
+      // iOS 첫 실행: 대화상자 없이 임시 허용을 받아 둔다(NT-13). 결과 허용이면 위와 같은 후속 처리.
+      const provisionalGranted = await this.requestProvisionalIfUndetermined(
+        notifications,
+        current
+      );
+
+      if (provisionalGranted) {
         await this.handlePermissionGranted();
       }
     } catch (error) {
       console.warn('NotificationManager 초기화 실패', error); // l10n-ignore: console 개발자 로그
     }
+  }
+
+  // iOS에서 권한이 미결정일 때만 임시 허용(provisional)을 요청한다 — 대화상자가 뜨지 않는다(NT-13).
+  // 이미 허용·거부·임시 허용이거나 안드로이드면 아무것도 하지 않는다. 실패는 경고만 남기고 삼킨다.
+  private async requestProvisionalIfUndetermined(
+    notifications: ExpoNotifications,
+    current: { granted: boolean; status?: string; ios?: { status?: number } }
+  ): Promise<boolean> {
+    if (
+      Platform.OS !== 'ios' ||
+      current.granted ||
+      this.isProvisional(current)
+    ) {
+      return false;
+    }
+
+    if (current.status !== NotificationPermissionStatus.Undetermined) {
+      return false;
+    }
+
+    try {
+      // 옵션을 주면 기본값(alert·badge·sound)과 합쳐지지 않으므로 함께 넘긴다 — 임시 허용 승격 시 쓰일 옵션이다.
+      const requested = await notifications.requestPermissionsAsync({
+        ios: {
+          allowAlert: true,
+          allowBadge: true,
+          allowSound: true,
+          allowProvisional: true,
+        },
+      });
+
+      return this.isProvisional(requested) || requested.granted;
+    } catch (error) {
+      console.warn('NotificationManager 임시 허용 요청 실패', error); // l10n-ignore: console 개발자 로그
+
+      return false;
+    }
+  }
+
+  private isProvisional(permission: { ios?: { status?: number } }): boolean {
+    return permission.ios?.status === IOS_AUTHORIZATION_STATUS_PROVISIONAL;
+  }
+
+  // 예약·토픽·토큰 등록 기준의 '허용' — 임시 허용도 허용으로 본다(NT-13).
+  private isGrantedStatus(status: NotificationPermissionStatus): boolean {
+    return (
+      status === NotificationPermissionStatus.Granted ||
+      status === NotificationPermissionStatus.Provisional
+    );
   }
 
   // 권한이 허용된 상태에서 할 후속 처리 — 공지 토픽 구독(설정 ON) + 재방문 리마인더 동기화(NT-5·NT-9).
@@ -240,7 +319,7 @@ class NotificationManager {
   }
 
   // 시작 시 권한 요청(NT-1 개정, OB-8). 레이아웃이 로그인 + 약관 동의 + 첫 여행 가이드 판정 뒤에
-  // 부른다. 세션당 1회이고, 미결정일 때만 OS 대화상자를 띄운다.
+  // 부른다. 세션당 1회이고, 미결정(iOS 임시 허용 포함, NT-13)일 때만 OS 대화상자를 띄운다.
   public async requestPermissionAtLaunch(): Promise<void> {
     if (!this.enabled || this.launchPermissionHandled) {
       return;
@@ -258,10 +337,14 @@ class NotificationManager {
 
   // 맥락 요청(OB-7 `알림 받고 여행 만들기`)과 시작 시 요청이 같이 쓴다. 미결정이 아니면 묻지 않고
   // 현재 상태를 돌려준다 — 어떤 경로로도 두 번 묻지 않는다(OB-8).
+  // iOS 임시 허용(NT-13)은 대화상자를 본 적 없는 상태라 미결정으로 보고 진짜 대화상자를 한 번 띄운다.
   public async requestPermissionIfUndetermined(): Promise<NotificationPermissionStatus> {
     const status = await this.getPermissionStatus();
 
-    if (status !== NotificationPermissionStatus.Undetermined) {
+    if (
+      status !== NotificationPermissionStatus.Undetermined &&
+      status !== NotificationPermissionStatus.Provisional
+    ) {
       return status;
     }
 
@@ -273,7 +356,12 @@ class NotificationManager {
       return NotificationPermissionStatus.Granted;
     }
 
-    return NotificationPermissionStatus.Denied;
+    // 요청 뒤에도 임시 허용이 남아 있으면(대화상자가 뜨지 않은 경우 등) 거부로 꾸미지 않고 그대로 돌려준다.
+    const after = await this.getPermissionStatus();
+
+    return after === NotificationPermissionStatus.Provisional
+      ? NotificationPermissionStatus.Provisional
+      : NotificationPermissionStatus.Denied;
   }
 
   public async getPermissionStatus(): Promise<NotificationPermissionStatus> {
@@ -289,6 +377,11 @@ class NotificationManager {
       }
 
       const current = await notifications.getPermissionsAsync();
+
+      // 임시 허용은 granted:false·status:'undetermined'로 오므로 granted보다 먼저 본다(NT-13).
+      if (this.isProvisional(current)) {
+        return NotificationPermissionStatus.Provisional;
+      }
 
       if (current.granted) {
         return NotificationPermissionStatus.Granted;
@@ -400,11 +493,14 @@ class NotificationManager {
 
       const current = await notifications.getPermissionsAsync();
 
-      if (current.granted) {
+      const provisional = this.isProvisional(current);
+
+      // 임시 허용(NT-13)은 옵션 없이 다시 요청해야 진짜 대화상자가 뜬다(granted:false로 온다).
+      if (current.granted && !provisional) {
         return true;
       }
 
-      if (!current.canAskAgain) {
+      if (!provisional && !current.canAskAgain) {
         return false;
       }
 
@@ -666,9 +762,9 @@ class NotificationManager {
           ? PushTokenPlatform.Ios
           : PushTokenPlatform.Android,
       getMessaging: () => this.getMessaging(),
+      // 토큰 등록은 임시 허용도 허용으로 본다(NT-13).
       isPermissionGranted: async () =>
-        (await this.getPermissionStatus()) ===
-        NotificationPermissionStatus.Granted,
+        this.isGrantedStatus(await this.getPermissionStatus()),
       isBriefingToggleOn: async () => {
         if (!this.settingsReady) {
           void this.initialize();
@@ -784,15 +880,8 @@ class NotificationManager {
       return false;
     }
 
-    const notifications = this.getNotifications();
-
-    if (!notifications) {
-      return false;
-    }
-
-    const permission = await notifications.getPermissionsAsync();
-
-    return permission.granted;
+    // 모듈 부재는 Unavailable로 판정된다. 임시 허용도 허용으로 본다(NT-13) — 실제 응답은 granted:false라 상태 판정으로 본다.
+    return this.isGrantedStatus(await this.getPermissionStatus());
   }
 
   private async fetchReengagementInput(): Promise<ReengagementInput | null> {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, InteractionManager, Linking } from 'react-native';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import app from '@/model/app/App';
 import { takeEntitledCallback } from '@/model/subscription/OpenSubscription';
@@ -8,6 +8,7 @@ import PurchaseResult from '@/model/subscription/PurchaseResult';
 import RestoreResult from '@/model/subscription/RestoreResult';
 import { SUBSCRIPTION_ENTITLED_FALLBACK_MS } from '@/model/subscription/SubscriptionConstants';
 import SubscriptionStore from '@/model/subscription/SubscriptionStore';
+import SubscriptionEntryPoint from '@/model/subscription/SubscriptionEntryPoint';
 
 // SUB-2·SUB-5·SUB-8: 구독 시트의 동작. 결과 알림은 시트를 닫은 뒤 토스트로 띄우고(시트 위에서는
 // 아래 화면의 토스트가 가려진다), 시트에 머무는 알림은 시스템 알럿을 쓴다.
@@ -15,6 +16,9 @@ import SubscriptionStore from '@/model/subscription/SubscriptionStore';
 const useSubscriptionState = (store: SubscriptionStore) => {
   const router = useRouter();
   const l10n = app.getL10n();
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const fromValue = from ?? SubscriptionEntryPoint.Unknown;
+  const isOfflineEntry = fromValue === SubscriptionEntryPoint.Offline;
   // 이 화면을 연 `openSubscription`의 완료 콜백. 열릴 때 한 번 꺼내 든다 — 권한 없이 닫히면 함께 버려진다.
   const [onEntitled] = useState(() => takeEntitledCallback());
   const hasNotifiedEntitledRef = useRef(false);
@@ -124,8 +128,8 @@ const useSubscriptionState = (store: SubscriptionStore) => {
       ?.logClick(
         'subscription_purchase',
         result === PurchaseResult.Success
-          ? { result, is_trial: String(store.isTrial()) }
-          : { result }
+          ? { result, is_trial: String(store.isTrial()), from: fromValue }
+          : { result, from: fromValue }
       );
 
     if (result === PurchaseResult.Success) {
@@ -154,7 +158,9 @@ const useSubscriptionState = (store: SubscriptionStore) => {
 
     const result = await store.restore();
 
-    app.getAnalyticsManager()?.logClick('subscription_restore', { result });
+    app
+      .getAnalyticsManager()
+      ?.logClick('subscription_restore', { result, from: fromValue });
 
     if (result === RestoreResult.Restored) {
       closeAsEntitled(l10n.t('subscription.restoreSuccess'));
@@ -203,6 +209,7 @@ const useSubscriptionState = (store: SubscriptionStore) => {
     handleRetry,
     handleOpenTerms,
     handleOpenPrivacyPolicy,
+    isOfflineEntry,
   };
 };
 

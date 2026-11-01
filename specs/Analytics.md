@@ -148,8 +148,8 @@
 | `click_ad_consent` | 광고 동의 흐름(UMP → iOS 추적 안내 시트 → iOS ATT → SDK 초기화) 완료 — 동의 흐름을 시작하는 광고 자리(탐색·커뮤니티 피드·검색 결과·장비 상세) 첫 포커스 시 앱 수명 동안 1회. 홈은 동의 흐름을 시작하지 않아 남기지 않는다 (AD-3·AD-5). 광고 노출·클릭은 AdMob이 집계하므로 따로 남기지 않는다 | `status`: `granted` \| `tracking_denied`(iOS 추적 거부·제한, 또는 앱이 활성 상태로 돌아오지 않아 ATT를 띄우지 못함) \| `blocked` \| `error`. 추적 안내 시트는 닫을 수 없어 항상 ATT로 이어지므로 시트 단계의 값은 따로 없다 |
 | `click_subscription_open` | 구독 시트 진입(로그인 사용자만 — 비로그인은 로그인으로 보내고 남기지 않는다) — 설정(정보 탭) `광고 제거` 행, 한 장짜리 광고(홈·장비 상세) 아래 `광고 없이 보기` 링크, 한 번 뜨는 안내 시트의 `구독 알아보기` ([Subscription.md](Subscription.md) SUB-8·SUB-9) | `from`: `settings` \| `ad_card` \| `nudge` \| `offline`(배낭 상세 오프라인 타일 게이트, SUB-11) |
 | `click_subscription_nudge` | 광고 누적 노출(자리 5곳 합산 20번) 뒤 한 번 뜨는 구독 안내 시트의 결과 — 기기당 한 번만 뜨므로 `shown`(시트가 실제로 뜬 순간) 뒤에 `open`·`dismiss` 중 하나가 따른다 (SUB-8·SUB-9) | `action`: `shown` \| `open`(`구독 알아보기` — 시트가 내려간 뒤 `click_subscription_open` `from: nudge`, 비로그인이면 로그인) \| `dismiss`(`괜찮아요`·스와이프·바깥 탭·안드로이드 뒤로가기) |
-| `click_subscription_purchase` | 구독 시트 `구독하기`/`7일 무료로 시작` 결과(스토어 창이 닫힌 뒤) (SUB-2·SUB-8·SUB-10). 금액은 남기지 않는다 | `result`: `success` \| `cancelled` \| `pending`(결제 승인 대기 — iOS Ask to Buy·안드로이드 보류 결제) \| `error`; 성공 시 `is_trial`: `'true'` \| `'false'` |
-| `click_subscription_restore` | 구독 시트 `구매 복원` 결과 (SUB-5·SUB-8) | `result`: `restored` \| `none` \| `error` |
+| `click_subscription_purchase` | 구독 시트 `구독하기`/`7일 무료로 시작` 결과(스토어 창이 닫힌 뒤) (SUB-2·SUB-8·SUB-10). 금액은 남기지 않는다 | `result`: `success` \| `cancelled` \| `pending`(결제 승인 대기 — iOS Ask to Buy·안드로이드 보류 결제) \| `error`; 성공 시 `is_trial`: `'true'` \| `'false'`; `from`: 시트를 연 진입점(`click_subscription_open`의 `from`과 같은 값 — 라우트 파라미터, 없으면 `unknown`) `[제안 2026-11-01]` |
+| `click_subscription_restore` | 구독 시트 `구매 복원` 결과 (SUB-5·SUB-8) | `result`: `restored` \| `none` \| `error`; `from`: 위와 같음 `[제안 2026-11-01]` |
 | `click_readyshot_layout` | [폐기] 레디샷 기능 제거로 더 이상 발생하지 않음 | `type`: `grid` \| `collage` |
 | `click_readyshot_share` | [폐기] 레디샷 기능 제거로 더 이상 발생하지 않음 | — |
 | `click_login` | 로그인 버튼 (AU-1) | `provider`: `google` \| `apple` \| `email` |
@@ -161,7 +161,7 @@
 
 | 이벤트 | 트리거 | 파라미터 |
 | --- | --- | --- |
-| `click_camp_site` | 박지 상세 진입 (CS-3) | — |
+| `click_camp_site` | 박지 상세 진입 (CS-3) | `spot_id`: 박지 문서 id(`camp-spot/{id}` — 카탈로그 식별자, 사용자 입력 아님) `[제안 2026-11-01]` — 인기 박지 집계용(Onboarding OB-5·DM-36 선정 근거) |
 | `click_camp_site_directions` | 박지 상세 `길찾기` 버튼 (CS-3) | — |
 | `click_camp_site_share` | 박지 상세 공유 (CS-3) | — |
 | `click_camp_site_favorite` | 박지 즐겨찾기 **추가** (CS-9) — 해제는 보내지 않는다 | — |
@@ -225,7 +225,7 @@
 | 이벤트 | 트리거 | 파라미터 |
 | --- | --- | --- |
 | `click_onboarding_trip_step` | 가이드 각 단계의 주 액션·보조 버튼. 1단계 `아직 미정이에요`는 `skip`, 2단계 미선택 상태의 `여행지 고르기`(선택기만 엶)는 보내지 않음, 4단계 주 액션은 `next`·`알림 없이 만들기`는 `skip` | `step`: `date` \| `destination` \| `gear` \| `done` \| `login`, `action`: `next` \| `skip`. `login`(2026-10-08, OB-11): 비로그인 완료 단계 `로그인하고 여행 만들기`=`next`, `나중에 할게요`=`skip`(이때 `done`은 보내지 않음) |
-| `click_onboarding_trip_complete` | 가이드로 여행 생성 성공(`BagStore.add` 성공 기준) | `has_dates`: boolean(미정이면 false), `has_destination`: boolean, `gear_count`: 정수, `notification`: `granted` \| `denied` \| `skipped` \| `already` \| `unavailable` |
+| `click_onboarding_trip_complete` | 가이드로 여행 생성 성공(`BagStore.add` 성공 기준) | `has_dates`: boolean(미정이면 false), `has_destination`: boolean, `gear_count`: 정수, `notification`: `granted` \| `denied` \| `skipped` \| `already` \| `unavailable`, `destination_source`: `chip` \| `picker` \| `none`(`[제안 2026-11-01]` OB-5 칩) |
 | `click_home_first_trip` | 비로그인 홈 히어로 `첫 여행 만들기`(HM-8, 2026-10-08) — 가이드를 로그인 전에 엶 | — |
 | `welcome_view` | 첫 실행 환영 화면이 뜸(OB-14, 2026-10-08) — 화면 마운트 때 1회. 라우트 `welcome` `screen_view`와 별개의 퍼널용 명시 이벤트 | `audience`: `guest`(비로그인 첫 실행) \| `member`(여행 0개 로그인 사용자) |
 | `click_welcome_start` | 환영 화면 `다음 백패킹 준비하기` → 가이드로 바꿈(OB-15) | — |
@@ -234,6 +234,7 @@
 | `click_onboarding_trip_login` | 가이드 완료 단계에서 연 로그인 모달의 결과(OB-12). 재실행·약관 뒤 이어 만들기는 다시 보내지 않음 | `result`: `success` \| `cancel` |
 | `click_onboarding_trip_dismiss` | 가이드 닫기 확정(× 또는 1단계 하드웨어 뒤로) | `step`: 닫은 단계(`date` \| `destination` \| `gear` \| `done`) |
 | `click_onboarding_trip_gear_pick` | 가이드 3단계에서 장비를 담음(선택 해제는 미전송). 검색·직접 추가는 돌아와 자동 선택될 때 장비마다 1회 | `source`: `popular` \| `warehouse` \| `search` \| `custom`, `category`: GearFilter 그룹 키 |
+| `click_onboarding_trip_destination_chip` | 가이드 2단계 `요즘 많이 가는 박지` 칩 탭(OB-5) `[제안 2026-11-01]`. 박지명·id는 보내지 않음 | `action`: `select` \| `clear`, `position`: 칩 순서(0부터) |
 
 - 가이드로 만든 여행은 `click_bag_create_confirm`을 보내지 않는다 — 생성 경로가 다르므로 `click_onboarding_trip_complete`로 구분한다. 전체 생성 수는 두 이벤트를 합산한다.
 
