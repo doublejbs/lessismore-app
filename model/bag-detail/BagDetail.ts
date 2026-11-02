@@ -98,11 +98,16 @@ class BagDetail implements BagScheduleWriter {
   private packingStarted = false;
   // 빈 배낭일 때만 채운다(BD-13) — 창고도 비었으면 주 액션이 검색으로 간다.
   private warehouseEmpty = false;
-  // 헤더 그룹 한 줄(BD-1). 이 배낭이 연결된 그룹 — 여럿이면(2026-09-23 이전 연결) 출발일이 가장 가까운 하나.
+  // 그룹 카드(BD-1). 이 배낭이 연결된 그룹 — 여럿이면(2026-09-23 이전 연결) 출발일이 가장 가까운 하나.
   private linkedGroup: Group | null = null;
-  // 연결 그룹 조회가 한 번이라도 끝났는지. 끝나기 전에 일행 초대 한 줄(GRP-13)이 잠깐 보였다 사라지지 않게 한다.
+  // 연결 그룹 조회가 한 번이라도 끝났는지. 끝나기 전에 일행 초대 카드(GRP-13)가 잠깐 보였다 사라지지 않게 한다.
   private linkedGroupLoaded = false;
-  // 일행 초대 한 줄 노출 측정은 상세 진입당 1회다(GRP-13) — 포커스마다 다시 그려도 다시 남기지 않는다.
+  // 연결 그룹을 다시 읽는 중인지. 그동안 초대 카드는 그대로 보이되 눌러도 무시한다 — 그룹을 만들고 돌아온
+  // 직후 다시 눌러 그룹이 둘 생기지 않게(BD-1 · GRP-13).
+  private linkedGroupReloading = false;
+  // 연결 그룹 읽기 순번. 포커스마다 다시 읽어 요청이 겹칠 수 있다 — 늦게 끝난 옛 요청이 새 결과를 덮지 않게 한다.
+  private linkedGroupRequestId = 0;
+  // 일행 초대 카드 노출 측정은 상세 진입당 1회다(GRP-13) — 포커스마다 다시 그려도 다시 남기지 않는다.
   private groupInviteShownLogged = false;
   // `⋯` → 그룹에 연결 시트의 목록(진행 중·예정 그룹).
   private linkableGroups: Group[] = [];
@@ -141,7 +146,9 @@ class BagDetail implements BagScheduleWriter {
       | 'disposeNetworkReaction'
       | 'routeList'
       | 'routesLoading'
+      | 'linkedGroupRequestId'
     >(this, {
+      linkedGroupRequestId: false,
       networkStatus: false,
       offlineTripStore: false,
       disposeNetworkReaction: false,
@@ -396,7 +403,7 @@ class BagDetail implements BagScheduleWriter {
   private async getData() {
     // 그룹 카드도 부가 정보다. 화면에 돌아올 때마다(initialize) 다시 읽어 그룹에서 바꾼 연결을 반영한다.
     // 연결 그룹 목록은 한 번만 읽어 그룹 카드와 코스(연결 그룹 코스)가 나눠 쓴다. 다른 읽기를 기다리지 않고
-    // 먼저 띄운다 — 그룹을 만들고 돌아왔을 때 일행 초대 한 줄이 그룹 카드로 빨리 바뀌게(GRP-13).
+    // 먼저 띄운다 — 그룹을 만들고 돌아왔을 때 일행 초대 카드가 그룹 카드로 빨리 바뀌게(GRP-13).
     const linkedGroups = this.fetchLinkedGroups();
 
     void this.loadLinkedGroup(linkedGroups);
@@ -498,39 +505,58 @@ class BagDetail implements BagScheduleWriter {
    */
   /**
    * `linkedGroups`: 이미 읽고 있는 연결 그룹 목록(`fetchLinkedGroups` — 코스 조회와 나눠 쓴다). 없으면 새로 읽는다.
-   * 목록 조회가 실패하면(`null`) 그룹 한 줄을 그대로 둔다.
+   * 목록 조회가 실패하면(`null`) 그룹 카드를 그대로 둔다.
    */
   public async loadLinkedGroup(
     linkedGroups: Promise<Group[] | null> = this.fetchLinkedGroups()
   ): Promise<void> {
+    const requestId = ++this.linkedGroupRequestId;
+
     if (!this.firebase.isLoggedIn()) {
       this.setLinkedGroup(null);
+      this.setLinkedGroupReloading(false);
 
       return;
     }
 
+    this.setLinkedGroupReloading(true);
+
+    // 연결 여부를 확인하지 못하면 초대 카드는 그대로 두되 누름 가드를 풀지 않는다 — 이미 연결됐을 수 있는데
+    // 눌러 그룹이 둘 생기면 안 된다(GRP-13). 다음에 읽기가 성공하면 풀린다.
+    let confirmed = false;
+
     try {
       const groups = await linkedGroups;
 
-      if (!groups) {
+      if (!groups || requestId !== this.linkedGroupRequestId) {
         return;
       }
 
       const nearest = this.pickNearestGroup(groups);
 
       this.setLinkedGroup(nearest);
-      // 역인덱스로 연결 여부가 정해졌다 — 일행 초대 한 줄(GRP-13)은 그룹 문서 읽기를 기다리지 않는다.
+      // 역인덱스로 연결 여부가 정해졌다 — 일행 초대 카드(GRP-13)는 그룹 문서 읽기를 기다리지 않는다.
       this.setLinkedGroupLoaded(true);
+      confirmed = true;
 
       if (nearest) {
-        await this.loadLinkedGroupDocument(nearest.getId());
+        await this.loadLinkedGroupDocument(nearest.getId(), requestId);
       }
     } catch (error) {
       console.warn('[BagDetail] 연결 그룹 조회 실패', error); // l10n-ignore: 개발자 로그
+    } finally {
+      // 더 새 요청이 진행 중이면 가드는 그 요청이 정한다.
+      if (confirmed && requestId === this.linkedGroupRequestId) {
+        this.setLinkedGroupReloading(false);
+      }
     }
   }
 
-  // 이 배낭을 연결한 그룹 목록. 비로그인이면 빈 목록, 조회 실패면 `null`(그룹 한 줄은 그대로, 코스는 그룹 없이).
+  private setLinkedGroupReloading(value: boolean) {
+    this.linkedGroupReloading = value;
+  }
+
+  // 이 배낭을 연결한 그룹 목록. 비로그인이면 빈 목록, 조회 실패면 `null`(그룹 카드는 그대로, 코스는 그룹 없이).
   private async fetchLinkedGroups(): Promise<Group[] | null> {
     if (!this.firebase.isLoggedIn()) {
       return [];
@@ -546,12 +572,19 @@ class BagDetail implements BagScheduleWriter {
   }
 
   // 그룹 문서 읽기가 실패하면 요약본을 그대로 둔다 — 카드는 코스·포인트 조각만 빠진 채 남는다.
-  private async loadLinkedGroupDocument(groupId: string): Promise<void> {
+  private async loadLinkedGroupDocument(
+    groupId: string,
+    requestId: number
+  ): Promise<void> {
     try {
       const group = await app.getGroupStore()?.getGroup(groupId);
 
-      // 읽는 사이 연결이 바뀌었으면(해제·다른 그룹) 덮어쓰지 않는다.
-      if (group && this.linkedGroup?.getId() === groupId) {
+      // 읽는 사이 연결이 바뀌었거나(해제·다른 그룹) 더 새 요청이 시작됐으면 덮어쓰지 않는다.
+      if (
+        group &&
+        requestId === this.linkedGroupRequestId &&
+        this.linkedGroup?.getId() === groupId
+      ) {
         this.setLinkedGroup(group);
       }
     } catch (error) {
@@ -591,7 +624,7 @@ class BagDetail implements BagScheduleWriter {
   }
 
   /**
-   * 헤더 일행 초대 한 줄 (BD-1 · GRP-13). 본인 배낭 · 연결 그룹 없음(조회 완료) · 종료일이 오늘 이후 · 온라인.
+   * 일행 초대 카드 (BD-1 · GRP-13). 본인 배낭 · 연결 그룹 없음(조회 완료) · 종료일(없으면 시작일)이 오늘 이후 · 온라인.
    * 이 화면은 본인 배낭만 연다(`getBag`이 사용자 배낭 목록으로 막는다 — 남의 배낭은 shared-bag 화면).
    */
   public canShowGroupInvite(): boolean {
@@ -635,6 +668,11 @@ class BagDetail implements BagScheduleWriter {
 
   // 같은 배낭으로 그룹 만들기를 연다 — 만들면 이 배낭이 새 그룹에 자동으로 연결된다(GRP-13).
   public goToGroupInvite() {
+    // 연결 그룹을 다시 읽는 중이면 무시한다 — 방금 만든 그룹이 곧 카드로 바뀔 수 있다(GRP-13).
+    if (this.linkedGroupReloading) {
+      return;
+    }
+
     if (!this.guardOnline()) {
       return;
     }
@@ -644,8 +682,7 @@ class BagDetail implements BagScheduleWriter {
       ?.logClick('bag_group_invite_prompt', {
         action: GroupInvitePromptAction.Open,
       });
-    // 돌아왔을 때 연결 그룹을 다시 읽기 전까지 초대 카드를 숨긴다 — 다시 눌러 그룹이 둘 생기지 않게.
-    this.setLinkedGroupLoaded(false);
+    // 누를 때 카드를 숨기지 않는다 — 넘어가는 동안 카드가 사라지면 튄다(BD-1). 중복은 위 가드가 막는다.
     this.router.push({ pathname: '/group/new', params: { bagId: this.id } });
   }
 
@@ -780,7 +817,7 @@ class BagDetail implements BagScheduleWriter {
    * 따라간다. 실패하면 목록 모델이 오류를 들고 있고(`hasRouteError`) 화면은 강조·코스 카드를 고르지 않는다.
    *
    * 이미 읽는 중이면 그 조회를 함께 기다린다 — 마운트·네트워크 감시가 겹쳐 같은 순간에 두 번 읽지 않게(시간으로
-   * 건너뛰지 않는다 — 포커스 복귀·장비 변경 뒤에는 늘 다시 읽는다). 연결 그룹 목록은 그룹 한 줄과 같은 조회 결과를
+   * 건너뛰지 않는다 — 포커스 복귀·장비 변경 뒤에는 늘 다시 읽는다). 연결 그룹 목록은 그룹 카드와 같은 조회 결과를
    * 받는다(실패면 그룹 없이 내 코스만).
    */
   private loadRoutes(linkedGroups: Promise<Group[] | null>): Promise<void> {

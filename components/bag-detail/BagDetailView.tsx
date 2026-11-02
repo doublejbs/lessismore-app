@@ -430,7 +430,7 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                 <BagDetailDateView bagDetail={bagDetail} />
               </View>
               <BagDetailSummaryView bagDetail={bagDetail} />
-              {/* BD-1: 같은 자리에 그룹 카드 또는 일행 초대 한 줄(GRP-13). 둘 다 스스로 그릴지 정한다. */}
+              {/* BD-1: 같은 자리에 그룹 카드 또는 일행 초대 카드(GRP-13). 둘 다 스스로 그릴지 정한다. */}
               <BagDetailGroupView bagDetail={bagDetail} />
               <BagDetailGroupInviteView bagDetail={bagDetail} />
               <View style={styles.actionsGrid}>
