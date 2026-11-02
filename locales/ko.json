@@ -298,7 +298,10 @@
       "sheetTitle": "연결할 그룹",
       "empty": "참여한 그룹이 없어요",
       "unlinkConfirm": "{{name}}에서 이 여행을 뺄까요?",
-      "unlink": "연결 해제"
+      "unlink": "연결 해제",
+      "inviteTitle": "같이 가는 사람이 있나요?",
+      "inviteMeta": "일행과 배낭·코스를 함께 봐요",
+      "inviteAction": "초대하기"
     }
   },
   "bagDetail": {
@@ -1349,7 +1352,8 @@
       "created": "그룹을 만들었어요. 초대 링크를 복사해 일행을 불러보세요",
       "discardConfirm": "작성 중인 내용을 지울까요?",
       "discard": "그만두기",
-      "keepWriting": "계속 작성"
+      "keepWriting": "계속 작성",
+      "bagLinkFailed": "배낭은 연결하지 못했어요. 배낭 ⋯에서 다시 연결해 주세요"
     },
     "invite": {
       "copy": "초대 링크 복사",

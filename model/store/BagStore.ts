@@ -246,6 +246,25 @@ class BagStore {
   }
 
   /**
+   * 본인 배낭 문서 원본. 사용자 문서의 배낭 목록과 배낭 문서를 병렬로 읽고, 목록에 없거나 문서가 없으면
+   * 알럿 없이 `null` — 아래 본인 배낭 읽기들이 함께 쓴다.
+   */
+  private async readOwnedBagData(id: string): Promise<DocumentData | null> {
+    const [userSnapshot, bagSnapshot] = await Promise.all([
+      getDoc(doc(this.getStore(), 'users', this.getUserID())),
+      getDoc(doc(this.getStore(), 'bag', id)),
+    ]);
+    const bagIDs = userSnapshot.data()?.['bags'];
+    const bagData = bagSnapshot.data();
+
+    if (!Array.isArray(bagIDs) || !bagIDs.includes(id) || !bagData) {
+      return null;
+    }
+
+    return bagData;
+  }
+
+  /**
    * 배낭 1건과 담긴 장비를 함께 읽는다 (그룹 배낭 스냅샷 빌드용, GRP-5).
    *
    * `getBag`과 두 가지가 다르다.
@@ -256,14 +275,9 @@ class BagStore {
   public async getOwnedBagWithGears(
     id: string
   ): Promise<{ bag: BagItem; gears: Gear[] } | null> {
-    const [userSnapshot, bagSnapshot] = await Promise.all([
-      getDoc(doc(this.getStore(), 'users', this.getUserID())),
-      getDoc(doc(this.getStore(), 'bag', id)),
-    ]);
-    const bagIDs = userSnapshot.data()?.['bags'];
-    const bagData = bagSnapshot.data();
+    const bagData = await this.readOwnedBagData(id);
 
-    if (!Array.isArray(bagIDs) || !bagIDs.includes(id) || !bagData) {
+    if (!bagData) {
       return null;
     }
 
@@ -279,6 +293,20 @@ class BagStore {
   }
 
   /**
+   * 배낭 문서 1건만 읽는다 (그룹 만들기 미리 채우기, GRP-13). 장비는 읽지 않는다.
+   * `getBag`과 달리 본인 배낭이 아니면 알럿 없이 `null` — 호출측이 빈 폼으로 연다.
+   */
+  public async getOwnedBag(id: string): Promise<BagItem | null> {
+    const bagData = await this.readOwnedBagData(id);
+
+    if (!bagData) {
+      return null;
+    }
+
+    return this.toBagItem(id, bagData);
+  }
+
+  /**
    * 오프라인 저장(OF-1)용 원본 — 배낭 문서와 담긴 장비 문서를 **그대로** 읽는다. 모델로 바꾸지 않는
    * 이유는 스냅샷이 Firestore 문서를 직렬화해 두고 읽을 때 기존 팩토리로 되돌리기 때문이다(§4).
    * 본인 배낭이 아니면(목록에 없음) `null`.
@@ -286,14 +314,9 @@ class BagStore {
   public async getOfflineSource(
     id: string
   ): Promise<{ bag: DocumentData; gears: GearData[] } | null> {
-    const [userSnapshot, bagSnapshot] = await Promise.all([
-      getDoc(doc(this.getStore(), 'users', this.getUserID())),
-      getDoc(doc(this.getStore(), 'bag', id)),
-    ]);
-    const bagIDs = userSnapshot.data()?.['bags'];
-    const bagData = bagSnapshot.data();
+    const bagData = await this.readOwnedBagData(id);
 
-    if (!Array.isArray(bagIDs) || !bagIDs.includes(id) || !bagData) {
+    if (!bagData) {
       return null;
     }
 

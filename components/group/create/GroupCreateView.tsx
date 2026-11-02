@@ -17,29 +17,19 @@ import PretendardText from '@/components/PretendardText';
 import AlertView from '@/components/alert/AlertView';
 import LogInView from '@/components/login/LogInView';
 import ToastView from '@/components/toast/ToastView';
-import DateRangeCalendarView from '@/components/bag/DateRangeCalendarView';
-import GroupDestinationFieldView from '@/components/group/form/GroupDestinationFieldView';
-import GroupFormFieldView from '@/components/group/form/GroupFormFieldView';
-import GroupTextFieldView from '@/components/group/form/GroupTextFieldView';
-import { Acg, AcgLayout, AcgType, Radius } from '@/constants/DesignTokens';
+import LoadingView from '@/components/ui/LoadingView';
+import { Acg, AcgLayout, AcgType } from '@/constants/DesignTokens';
 import { setBagDestinationPicker } from '@/model/bag-destination/BagDestinationPickerHandoff';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import GroupCreate from '@/model/group-create/GroupCreate';
 import GroupCreateField from '@/model/group-create/GroupCreateField';
-import {
-  getGroupErrorMessage,
-  getGroupValidationMessage,
-} from '@/model/group-error/GroupErrorMessage';
-import { GROUP_NAME_MAX_LENGTH } from '@/model/group/GroupLimits';
+import { getGroupErrorMessage } from '@/model/group-error/GroupErrorMessage';
+import GroupCreateFormView from './GroupCreateFormView';
 
 interface Props {
   groupCreate: GroupCreate;
 }
 
-const SUBMIT_BUTTON_HEIGHT = 48;
-const BOTTOM_BAR_TOP_PADDING = 8;
-const CONTENT_BOTTOM_EXTRA = 24;
-const NATIVE_HEADER_HEIGHT = 44;
 const IS_IOS = Platform.OS === 'ios';
 
 /**
@@ -63,10 +53,6 @@ const GroupCreateView: FC<Props> = ({ groupCreate }) => {
   const [dateFieldY, setDateFieldY] = useState(0);
   const l10n = app.getL10n();
   const isSubmitting = groupCreate.getIsSubmitting();
-  const bottomInset = Math.max(insets.bottom, 12);
-  const contentBottomPadding =
-    SUBMIT_BUTTON_HEIGHT + BOTTOM_BAR_TOP_PADDING + bottomInset + CONTENT_BOTTOM_EXTRA;
-  const destinationName = groupCreate.getDestinationName();
   const shouldPreventRemove = groupCreate.getIsDirty() || isSubmitting;
 
   usePreventRemove(shouldPreventRemove, ({ data }) => {
@@ -94,16 +80,6 @@ const GroupCreateView: FC<Props> = ({ groupCreate }) => {
     });
   });
 
-  const getErrorText = (field: GroupCreateField): string | null => {
-    const error = groupCreate.getFieldError(field);
-
-    if (!error) {
-      return null;
-    }
-
-    return getGroupValidationMessage(error);
-  };
-
   const handleOpenDestination = () => {
     setBagDestinationPicker({
       currentLocation: groupCreate.getDestination(),
@@ -122,6 +98,7 @@ const GroupCreateView: FC<Props> = ({ groupCreate }) => {
 
       app.getAnalyticsManager()?.logClick('group_create', {
         has_destination: groupCreate.hasDestination(),
+        from: groupCreate.getEntryPoint(),
       });
       completedRef.current = true;
       // 만들기 화면을 스택에 남기지 않는다 — 뒤로 가면 빈 폼이 아니라 목록으로 돌아가야 한다.
@@ -130,6 +107,11 @@ const GroupCreateView: FC<Props> = ({ groupCreate }) => {
       app.getToastManager()?.showLong({
         message: l10n.t('group.create.created'),
       });
+
+      // GRP-13: 자동 연결이 안 됐어도 그룹은 남긴다 — 초대 안내 뒤에 이어서 배낭 쪽 재연결을 알린다.
+      if (groupCreate.hasBagLinkFailed()) {
+        app.getToastManager()?.enqueue(l10n.t('group.create.bagLinkFailed'));
+      }
     } catch (error) {
       const field = groupCreate.getFirstErrorField();
 
@@ -183,79 +165,20 @@ const GroupCreateView: FC<Props> = ({ groupCreate }) => {
             <View style={styles.headerSpacer} />
           </View>
         )}
-        <ScrollView
-          ref={scrollRef}
-          style={styles.scroll}
-          contentContainerStyle={[
-            styles.content,
-            IS_IOS && {
-              paddingTop: insets.top + NATIVE_HEADER_HEIGHT + AcgLayout.screenPadding,
-            },
-            { paddingBottom: contentBottomPadding },
-          ]}
-          contentInsetAdjustmentBehavior='never'
-          keyboardShouldPersistTaps='handled'
-          showsVerticalScrollIndicator={false}
-        >
-          <View onLayout={event => setNameFieldY(event.nativeEvent.layout.y)}>
-            <GroupFormFieldView
-              label={l10n.t('group.create.nameLabel')}
-              counterText={l10n.t('group.create.counter', {
-                count: groupCreate.getName().length,
-                max: GROUP_NAME_MAX_LENGTH,
-              })}
-              errorText={getErrorText(GroupCreateField.Name)}
-            >
-              <GroupTextFieldView
-                value={groupCreate.getName()}
-                onChangeText={value => groupCreate.setName(value)}
-                placeholder={l10n.t('group.create.namePlaceholder')}
-                maxLength={GROUP_NAME_MAX_LENGTH}
-                editable={!isSubmitting}
-                accessibilityLabel={l10n.t('group.create.nameLabel')}
-              />
-            </GroupFormFieldView>
-          </View>
-          <View onLayout={event => setDateFieldY(event.nativeEvent.layout.y)}>
-            {/* 날짜 UI는 배낭 생성·편집과 같은 범위 선택기를 그대로 쓴다(새 달력을 만들지 않는다). */}
-            <DateRangeCalendarView
-              startDate={groupCreate.getStartDate()}
-              endDate={groupCreate.getEndDate()}
-              onStartDateChange={date => groupCreate.setStartDate(date)}
-              onEndDateChange={date => groupCreate.setEndDate(date)}
-            />
-            {getErrorText(GroupCreateField.Date) ? (
-              <PretendardText style={styles.error}>
-                {getErrorText(GroupCreateField.Date)}
-              </PretendardText>
-            ) : null}
-          </View>
-          <GroupFormFieldView label={l10n.t('group.create.destinationLabel')}>
-            <GroupDestinationFieldView
-              destinationName={destinationName}
-              placeholder={l10n.t('group.create.destinationPlaceholder')}
-              selectLabel={l10n.t('group.create.destinationSelect')}
-              clearLabel={l10n.t('group.create.destinationClear')}
-              disabled={isSubmitting}
-              onPress={handleOpenDestination}
-              onClear={() => groupCreate.clearDestination()}
-            />
-          </GroupFormFieldView>
-        </ScrollView>
-        <View style={[styles.bottomBar, { paddingBottom: bottomInset }]}>
-          <TouchableOpacity
-            style={[styles.submitButton, isSubmitting && styles.submitDisabled]}
-            onPress={() => void handleSubmit()}
-            disabled={isSubmitting}
-            accessibilityRole='button'
-            accessibilityLabel={l10n.t('group.create.submit')}
-            accessibilityState={{ disabled: isSubmitting }}
-          >
-            <PretendardText style={styles.submitText} weight='semibold'>
-              {l10n.t('group.create.submit')}
-            </PretendardText>
-          </TouchableOpacity>
-        </View>
+        {/* GRP-13: 배낭 값을 다 읽은 뒤에 폼을 그린다 — `DateRangeCalendarView`가 `initialMonth`를 마운트 때만 읽어,
+            미리 채운 시작 달로 열리려면 값이 정해진 다음에 마운트돼야 한다. */}
+        {groupCreate.getIsPrefilling() ? (
+          <LoadingView />
+        ) : (
+          <GroupCreateFormView
+            groupCreate={groupCreate}
+            scrollRef={scrollRef}
+            onNameFieldLayout={setNameFieldY}
+            onDateFieldLayout={setDateFieldY}
+            onOpenDestination={handleOpenDestination}
+            onSubmit={() => void handleSubmit()}
+          />
+        )}
       </KeyboardAvoidingView>
       <LogInView logInAlertManager={app.getLogInAlertManager()!} />
       <AlertView alertManager={app.getAlertManager()!} />
@@ -293,41 +216,6 @@ const styles = StyleSheet.create({
   },
   title: {
     ...AcgType.screenTitle,
-    color: Acg.ink,
-  },
-  scroll: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: AcgLayout.screenPadding,
-    paddingTop: AcgLayout.screenPadding,
-    gap: 24,
-  },
-  error: {
-    ...AcgType.meta,
-    color: Acg.error,
-    marginTop: 8,
-  },
-  bottomBar: {
-    paddingHorizontal: AcgLayout.screenPadding,
-    paddingTop: BOTTOM_BAR_TOP_PADDING,
-    backgroundColor: Acg.paper,
-  },
-  submitButton: {
-    width: '100%',
-    minHeight: SUBMIT_BUTTON_HEIGHT,
-    borderRadius: Radius.pill,
-    backgroundColor: Acg.lime,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-  },
-  submitDisabled: {
-    opacity: 0.5,
-  },
-  submitText: {
-    ...AcgType.control,
     color: Acg.ink,
   },
 });

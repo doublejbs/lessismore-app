@@ -21,6 +21,7 @@ import BagDetailCategoryView from './BagDetailCategoryView';
 import AcgSectionHeaderView from '@/components/acg/AcgSectionHeaderView';
 import BagDetailDateView from './BagDetailDateView';
 import BagDetailGroupView from './BagDetailGroupView';
+import BagDetailGroupInviteView from './BagDetailGroupInviteView';
 import BagDetailFiltersView from './BagDetailFiltersView';
 import BagDetailNameView from './BagDetailNameView';
 import BagDetailUselessDescriptionView from './BagDetailUselessDescriptionView';
@@ -429,7 +430,9 @@ const BagDetailView: FC<Props> = ({ bagDetail }) => {
                 <BagDetailDateView bagDetail={bagDetail} />
               </View>
               <BagDetailSummaryView bagDetail={bagDetail} />
+              {/* BD-1: 같은 자리에 그룹 카드 또는 일행 초대 한 줄(GRP-13). 둘 다 스스로 그릴지 정한다. */}
               <BagDetailGroupView bagDetail={bagDetail} />
+              <BagDetailGroupInviteView bagDetail={bagDetail} />
               <View style={styles.actionsGrid}>
                 {isSnapshot ? (
                   // OF-5: 오프라인 상세의 그리드는 `코스`·`여행지`·`오프라인`만 — 사용 기록·운동 기록은 숨긴다.

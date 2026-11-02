@@ -188,7 +188,7 @@
 | `click_community_search_result` | 검색 결과 카드 → 상세 진입 | `has_packing`, `has_poll`: boolean, `query_length`: 질의 길이 |
 | `click_community_snapshot_gear` | 패킹 스냅샷 장비 행 → 장비 상세 이동(카탈로그 장비만) | `gear_id` (2026-09-05) |
 | `click_group_create` | 그룹 만들기 완료 | `has_destination`: boolean, `from`: `group_list` \| `bag_detail`(GRP-13, 2026-11-02) |
-| `click_bag_group_invite_prompt` | 배낭 상세 헤더 일행 초대 한 줄 (BD-1·GRP-13, 2026-11-02) `[제안]` — 노출은 상세 진입당 1회 | `action`: `shown` \| `open` |
+| `click_bag_group_invite_prompt` | 배낭 상세 일행 초대 카드 (BD-1·GRP-13, 2026-11-02) `[제안]` — 노출은 상세 진입당 1회 | `action`: `shown` \| `open` |
 | `click_bag_segment` | 배낭 탭 세그먼트 전환 (2026-11-02) `[제안]` — 같은 세그먼트를 다시 누르면 남기지 않는다. 그룹 세그먼트를 몇 명이 여는지 보려는 것(screen_view로는 안 잡힌다) | `segment`: `bags` \| `templates` \| `groups` |
 | `click_group_invite_copy` | 초대 링크 복사 | — |
 | `click_group_join` | 초대 수락(참여 완료) | `member_count`: 참여 후 인원 |

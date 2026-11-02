@@ -305,7 +305,10 @@
       "sheetTitle": "Choose a group",
       "empty": "You haven't joined any groups",
       "unlinkConfirm": "Remove this trip from {{name}}?",
-      "unlink": "Unlink"
+      "unlink": "Unlink",
+      "inviteTitle": "Going with someone?",
+      "inviteMeta": "Share packs and routes with your crew",
+      "inviteAction": "Invite"
     }
   },
   "bagDetail": {
@@ -1370,7 +1373,8 @@
       "created": "Group created. Copy the invite link to bring your crew in",
       "discardConfirm": "Discard what you have entered?",
       "discard": "Don't Save",
-      "keepWriting": "Keep editing"
+      "keepWriting": "Keep editing",
+      "bagLinkFailed": "Couldn't link your trip. Link it again from the trip's ⋯ menu"
     },
     "invite": {
       "copy": "Copy invite link",

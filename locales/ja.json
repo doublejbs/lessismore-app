@@ -298,7 +298,10 @@
       "sheetTitle": "連携するグループ",
       "empty": "参加中のグループがありません",
       "unlinkConfirm": "{{name}}からこの旅行を外しますか？",
-      "unlink": "連携を解除"
+      "unlink": "連携を解除",
+      "inviteTitle": "一緒に行く人はいますか？",
+      "inviteMeta": "仲間と装備・コースを一緒に見られます",
+      "inviteAction": "招待する"
     }
   },
   "bagDetail": {
@@ -1349,7 +1352,8 @@
       "created": "グループを作成しました。招待リンクをコピーして仲間を誘いましょう",
       "discardConfirm": "入力中の内容を破棄しますか？",
       "discard": "やめる",
-      "keepWriting": "続ける"
+      "keepWriting": "続ける",
+      "bagLinkFailed": "旅行を連携できませんでした。旅行の⋯からもう一度連携してください"
     },
     "invite": {
       "copy": "招待リンクをコピー",

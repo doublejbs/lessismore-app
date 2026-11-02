@@ -13,7 +13,9 @@ import PackingButtonState from '@/model/bag-detail/PackingButtonState';
 import EmptyBagAddSource from '@/model/bag-detail/EmptyBagAddSource';
 import { ImperativeRouter } from 'expo-router';
 import BagWeather from '@/model/bag/BagWeather';
-import { getPhaseLabel } from '@/model/bag/TripPhaseHelper';
+import { getPhaseLabel, getTripPhase } from '@/model/bag/TripPhaseHelper';
+import TripPhase from '@/model/bag/TripPhase';
+import GroupInvitePromptAction from '@/model/bag-detail/GroupInvitePromptAction';
 import { BagActivitySummary } from '@/model/bag/BagActivitySummary';
 import { setBagInfoEditContext } from '@/model/bag-detail/BagInfoEditHandoff';
 import { getBagShareUrl } from '@/constants/WebLinks';
@@ -68,6 +70,9 @@ class BagDetail implements BagScheduleWriter {
   private loading = false;
   private startDate = dayjs();
   private endDate = dayjs();
+  // 배낭 문서에 시작일·종료일이 실제로 저장돼 있는지. 없으면 `dayjs(undefined)`가 오늘이 돼 버려 따로 든다(GRP-13).
+  private hasStoredStartDate = false;
+  private hasStoredEndDate = false;
   private shared = false;
   private memo: string = '';
   // 배낭에 연결된 운동 기록 요약(DM-22). 타일 부제 표시용이며 원본은 담지 않는다(HA-5).
@@ -95,6 +100,10 @@ class BagDetail implements BagScheduleWriter {
   private warehouseEmpty = false;
   // 헤더 그룹 한 줄(BD-1). 이 배낭이 연결된 그룹 — 여럿이면(2026-09-23 이전 연결) 출발일이 가장 가까운 하나.
   private linkedGroup: Group | null = null;
+  // 연결 그룹 조회가 한 번이라도 끝났는지. 끝나기 전에 일행 초대 한 줄(GRP-13)이 잠깐 보였다 사라지지 않게 한다.
+  private linkedGroupLoaded = false;
+  // 일행 초대 한 줄 노출 측정은 상세 진입당 1회다(GRP-13) — 포커스마다 다시 그려도 다시 남기지 않는다.
+  private groupInviteShownLogged = false;
   // `⋯` → 그룹에 연결 시트의 목록(진행 중·예정 그룹).
   private linkableGroups: Group[] = [];
   // OF-5: 지금 화면을 그린 데이터(서버·저장본·없음)와, 저장본으로 열 수 없을 때의 이유.
@@ -349,6 +358,7 @@ class BagDetail implements BagScheduleWriter {
     this.setWarehouseEmpty(false);
     this.setStartDate(bag.startDate);
     this.setEndDate(bag.endDate);
+    this.setStoredDates(bag.startDate, bag.endDate);
     this.setShared(false);
     this.setMemo(bag.memo || '');
     this.setActivity(null);
@@ -384,6 +394,13 @@ class BagDetail implements BagScheduleWriter {
   }
 
   private async getData() {
+    // 그룹 카드도 부가 정보다. 화면에 돌아올 때마다(initialize) 다시 읽어 그룹에서 바꾼 연결을 반영한다.
+    // 연결 그룹 목록은 한 번만 읽어 그룹 카드와 코스(연결 그룹 코스)가 나눠 쓴다. 다른 읽기를 기다리지 않고
+    // 먼저 띄운다 — 그룹을 만들고 돌아왔을 때 일행 초대 한 줄이 그룹 카드로 빨리 바뀌게(GRP-13).
+    const linkedGroups = this.fetchLinkedGroups();
+
+    void this.loadLinkedGroup(linkedGroups);
+
     const {
       name,
       weight,
@@ -405,6 +422,7 @@ class BagDetail implements BagScheduleWriter {
     await this.loadWarehouseState();
     this.setStartDate(startDate);
     this.setEndDate(endDate);
+    this.setStoredDates(startDate, endDate);
     this.setShared(shared);
     this.setMemo(memo || '');
     this.setActivity(activity);
@@ -420,14 +438,9 @@ class BagDetail implements BagScheduleWriter {
       this.endDate
     );
     void this.bagWeather.ensureFresh();
-    // 연결 그룹 목록은 한 번만 읽어 그룹 한 줄과 코스(연결 그룹 코스)가 나눠 쓴다.
-    const linkedGroups = this.fetchLinkedGroups();
-
     // 코스는 부가 정보라 초기화를 막지 않는다(BD-11 · RD-9 #4·#5).
     void this.loadRoutes(linkedGroups);
     void this.loadPointCount();
-    // 그룹 한 줄도 부가 정보다. 화면에 돌아올 때마다(initialize) 다시 읽어 그룹에서 바꾼 연결을 반영한다.
-    void this.loadLinkedGroup(linkedGroups);
   }
 
   private async loadWarehouseState() {
@@ -506,6 +519,8 @@ class BagDetail implements BagScheduleWriter {
       const nearest = this.pickNearestGroup(groups);
 
       this.setLinkedGroup(nearest);
+      // 역인덱스로 연결 여부가 정해졌다 — 일행 초대 한 줄(GRP-13)은 그룹 문서 읽기를 기다리지 않는다.
+      this.setLinkedGroupLoaded(true);
 
       if (nearest) {
         await this.loadLinkedGroupDocument(nearest.getId());
@@ -569,6 +584,69 @@ class BagDetail implements BagScheduleWriter {
 
   public getLinkedGroup() {
     return this.linkedGroup;
+  }
+
+  private setLinkedGroupLoaded(value: boolean) {
+    this.linkedGroupLoaded = value;
+  }
+
+  /**
+   * 헤더 일행 초대 한 줄 (BD-1 · GRP-13). 본인 배낭 · 연결 그룹 없음(조회 완료) · 종료일이 오늘 이후 · 온라인.
+   * 이 화면은 본인 배낭만 연다(`getBag`이 사용자 배낭 목록으로 막는다 — 남의 배낭은 shared-bag 화면).
+   */
+  public canShowGroupInvite(): boolean {
+    if (!this.firebase.isLoggedIn() || this.networkStatus.isOffline()) {
+      return false;
+    }
+
+    if (!this.linkedGroupLoaded || this.linkedGroup) {
+      return false;
+    }
+
+    // 시작일이 없는 배낭은 지난 여행인지 알 수 없어 그리지 않는다.
+    if (!this.hasStoredStartDate) {
+      return false;
+    }
+
+    // 종료일이 없으면 시작일로 본다 — 그룹 만들기 미리 채우기(`end ?? start`)와 같은 규칙.
+    const end = this.hasStoredEndDate ? this.endDate : this.startDate;
+
+    return getTripPhase(this.startDate, end) !== TripPhase.After;
+  }
+
+  private setStoredDates(startDate: string | undefined, endDate: string | undefined) {
+    this.hasStoredStartDate = Boolean(startDate);
+    this.hasStoredEndDate = Boolean(endDate);
+  }
+
+  // 노출 측정 (GRP-13). 화면이 줄을 처음 그릴 때 부른다.
+  public logGroupInviteShown() {
+    if (this.groupInviteShownLogged) {
+      return;
+    }
+
+    this.groupInviteShownLogged = true;
+    app
+      .getAnalyticsManager()
+      ?.logClick('bag_group_invite_prompt', {
+        action: GroupInvitePromptAction.Shown,
+      });
+  }
+
+  // 같은 배낭으로 그룹 만들기를 연다 — 만들면 이 배낭이 새 그룹에 자동으로 연결된다(GRP-13).
+  public goToGroupInvite() {
+    if (!this.guardOnline()) {
+      return;
+    }
+
+    app
+      .getAnalyticsManager()
+      ?.logClick('bag_group_invite_prompt', {
+        action: GroupInvitePromptAction.Open,
+      });
+    // 돌아왔을 때 연결 그룹을 다시 읽기 전까지 초대 카드를 숨긴다 — 다시 눌러 그룹이 둘 생기지 않게.
+    this.setLinkedGroupLoaded(false);
+    this.router.push({ pathname: '/group/new', params: { bagId: this.id } });
   }
 
   public goToLinkedGroup() {
