@@ -14,7 +14,8 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import app from '@/model/app/App';
 import { useEffect } from 'react';
 import SplashLoadingView from '@/components/ui/SplashLoadingView';
-import { View, Text, Platform, Image, AppState } from 'react-native';
+import HotUpdaterFallbackView from '@/components/ui/HotUpdaterFallbackView';
+import { Platform, AppState } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import ForceUpdateGateView from '@/components/app-update/ForceUpdateGateView';
 import AnnouncementSheetView from '@/components/announcement/AnnouncementSheetView';
@@ -563,41 +564,7 @@ const createAppComponent = () => {
       requestHeaders: {
         // if you want to use the request headers, you can add them here
       },
-      fallbackComponent: ({
-        progress,
-        status,
-      }: {
-        progress: number;
-        status: string;
-      }) => (
-        <View
-          style={{
-            flex: 1,
-            padding: 20,
-            borderRadius: 10,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: '#151515',
-          }}
-        >
-          <Image
-            source={require('../assets/images/splash-icon.png')}
-            style={{ width: 200, height: 200 }}
-            resizeMode='contain'
-          />
-          <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
-            {status === 'UPDATING'
-              ? '업데이트 중...' // l10n-ignore: L10n 초기화 전 HotUpdater 폴백 화면
-              : '업데이트 확인 중...' // l10n-ignore: L10n 초기화 전 HotUpdater 폴백 화면
-            }
-          </Text>
-          {progress > 0 ? (
-            <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
-              {Math.round(progress * 100)}%
-            </Text>
-          ) : null}
-        </View>
-      ),
+      fallbackComponent: HotUpdaterFallbackView,
     })(observer(RootLayout));
   }
 };
