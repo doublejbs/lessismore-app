@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 상태 | proposed (2026-09-26 기획) |
+| 상태 | **꺼짐** (2026-10-15 — 2.0.2는 광고 없이 출시. `AdUnitIds.ts` `ADS_ENABLED = false`, app.json에서 `expo-tracking-transparency` 제거로 ATT 문구 없음. 다시 켜려면 플러그인을 되살린 새 빌드 + 개인정보 라벨 추적 신고) · proposed (2026-09-26 기획) |
 | ID 프리픽스 | `AD` |
 | 주요 코드 | `[제안]` `model/ads/`(`AdService.ts`·`SingleAdSlot.ts`·`AdSlotList.ts`·`AdUnitIds.ts` 등), `components/ads/`(`FeedAdCellView.tsx`·`CommunityAdCardView.tsx`·`SingleAdSlotView.tsx`·`useSingleAdSlotState.ts`·`useAdSlotListState.ts`·`AdTrackingPromptSheetView.tsx`), `components/feed/FeedView.tsx`, `components/community/feed/CommunityView.tsx`, `components/search/SearchResultContentView.tsx`, `components/warehouse-detail/WarehouseDetailView.tsx`, `components/home/HomeView.tsx`, `app/_layout.tsx`(안내 시트 호스트) |
 | 관련 스펙 | [Home.md](Home.md) HM-8(시각 문법), [Feed.md](Feed.md), [Community.md](Community.md), [Analytics.md](Analytics.md), [AppLifecycle.md](AppLifecycle.md) APP-5, [Auth.md](Auth.md)(개인정보 처리방침) |

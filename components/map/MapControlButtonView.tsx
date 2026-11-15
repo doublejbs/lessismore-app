@@ -7,6 +7,8 @@ interface Props {
   icon: keyof typeof Ionicons.glyphMap;
   // 아이콘 전용 컨트롤이라 반드시 넘긴다(HIG).
   accessibilityLabel: string;
+  // 누르면 일어날 일·막힌 이유(HIG). 없으면 읽지 않는다.
+  accessibilityHint?: string | undefined;
   onPress: () => void;
   disabled?: boolean | undefined;
   // 아이콘 색. 기본은 잉크 — 켜진 상태를 알릴 때만 바꾼다(방향 모드의 파랑, BD-11).
@@ -16,7 +18,7 @@ interface Props {
 const BUTTON_SIZE = 46;
 
 /**
- * 지도 위 원형 아이콘 버튼 (GRP-10 현재 위치 · BD-11 내 위치 · GRP-8 방향 뒤집기).
+ * 지도 위 원형 아이콘 버튼 (GRP-10 현재 위치 · BD-11 내 위치 · GRP-8 방향 뒤집기 · RD-9 #1 빈 상태 `포인트 추가`).
  *
  * 그룹 지도의 현재 위치 버튼 모양 그대로다 — 46pt 원(44pt 터치 타깃 이상), 불투명 흰 면 +
  * 헤어라인 테두리, 지도 위 요소라 그림자를 둔다(HM-8). 라임을 쓰지 않는다 — 라임은 화면의
@@ -25,6 +27,7 @@ const BUTTON_SIZE = 46;
 const MapControlButtonView: FC<Props> = ({
   icon,
   accessibilityLabel,
+  accessibilityHint,
   onPress,
   disabled,
   iconColor,
@@ -37,6 +40,7 @@ const MapControlButtonView: FC<Props> = ({
       activeOpacity={0.8}
       accessibilityRole='button'
       accessibilityLabel={accessibilityLabel}
+      {...(accessibilityHint ? { accessibilityHint } : {})}
       accessibilityState={{ disabled: !!disabled }}
     >
       <Ionicons name={icon} size={22} color={iconColor ?? Acg.ink} />

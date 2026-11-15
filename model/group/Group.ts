@@ -16,6 +16,8 @@ class Group {
   private readonly destinationName: string | undefined;
   private readonly meetingNote: string | undefined;
   private readonly inviteEnabled: boolean;
+  private readonly pointCount: number;
+  private readonly routeCount: number;
   private readonly createdAt: Date;
   private readonly summary: boolean;
   private readonly myBagLinked: boolean;
@@ -63,6 +65,8 @@ class Group {
     this.destinationName = data.destinationName;
     this.meetingNote = data.meetingNote;
     this.inviteEnabled = data.inviteEnabled;
+    this.pointCount = data.pointCount;
+    this.routeCount = data.routeCount;
     this.createdAt = toFirestoreDate(data.createdAt);
     this.summary = data.summary === true;
     this.myBagLinked = data.hasMyBag === true;
@@ -92,6 +96,15 @@ class Group {
 
   public getMemberCount() {
     return this.memberCount;
+  }
+
+  // 그룹 문서의 캐시 수(DM-29). 요약본(`isSummary()`)은 항상 0이다.
+  public getPointCount() {
+    return this.pointCount;
+  }
+
+  public getRouteCount() {
+    return this.routeCount;
   }
 
   public getCampSpotId() {

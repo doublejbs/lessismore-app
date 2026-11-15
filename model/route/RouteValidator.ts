@@ -10,6 +10,10 @@ import {
 } from '@/model/group/GroupLimits';
 import { RouteBounds, RouteDraft } from './RouteData';
 
+// 찍은 점 하한·상한(DM-29·DM-30 `drawnPoints` 2~100 — 보안 규칙과 같은 수, RouteDraw RD-2 점 상한).
+export const ROUTE_MIN_DRAWN_POINTS = 2;
+export const ROUTE_MAX_DRAWN_POINTS = 100;
+
 /**
  * 코스(GPX) 입력 검증 — **그룹 코스(GRP-8)와 배낭 코스(BD-11)가 같은 것을 쓴다.**
  * 상한값도 `GroupLimits` 하나를 그대로 본다(DM-30: "수치를 갈라 두면 사용자가 둘을 다르게
@@ -92,6 +96,14 @@ class RouteValidator {
     }
 
     if (!RouteValidator.isValidBounds(draft.bounds)) {
+      throw new GroupError(GroupValidationError.RouteParseFailed);
+    }
+
+    // 찍은 점 100개 초과는 규칙이 거부한다 — 업로드 전에 막는다(그리기 상한이 100이라 정상 경로엔 없다, 방어).
+    if (
+      draft.drawnPoints &&
+      draft.drawnPoints.length > ROUTE_MAX_DRAWN_POINTS
+    ) {
       throw new GroupError(GroupValidationError.RouteParseFailed);
     }
   }

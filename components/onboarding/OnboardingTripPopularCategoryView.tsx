@@ -27,7 +27,7 @@ interface Props {
 const ACTION_MIN_HEIGHT = 44;
 
 /**
- * 3단계 인기 구획의 카테고리 하나(OB-6): 머리 → (창고 장비) → 인기 장비 상위 5개 → 보조 액션 둘.
+ * 2단계 인기 구획의 카테고리 하나(OB-6): 머리 → (창고 장비) → 인기 장비 상위 5개 → 보조 액션 둘.
  * 로딩 중에는 같은 높이의 스켈레톤 5행, 실패·빈 결과면 인기 행만 조용히 숨긴다.
  */
 const OnboardingTripPopularCategoryView: FC<Props> = ({

@@ -25,7 +25,7 @@ export interface GroupRouteFocusRequest {
  * 그룹 지도 화면 모델 (GRP-9 · GRP-10).
  *
  * 그룹 문서 · 연결된 박지를 읽고, 포인트는 `GroupPointList`에, 코스는 `GroupRouteList`에
- * 위임한다. 코스 목록은 **하나**다 — 지도 선·고도 그래프·코스 목록 시트·`코스 추가` 업로드가
+ * 위임한다. 코스 목록은 **하나**다 — 지도 선·고도 그래프·바텀 시트 목록·`코스 추가` 업로드가
  * 모두 이 목록을 봐서, 올리거나 지운 코스가 세 곳에 한꺼번에 반영된다(GRP-10).
  */
 class GroupMap {
@@ -90,6 +90,22 @@ class GroupMap {
     return this.routeList.getRoutes();
   }
 
+  /**
+   * 코스 0개 빈 상태 카드(RD-9 #1)를 세울지 — 시트 단 높이·카드 표시·`포인트 추가` 라임 내림이 이 하나를 본다.
+   * 추가할 수 있고(파일 선택기), 그룹·코스를 다 읽었고, 코스 조회 실패가 아니고, 코스가 0개일 때.
+   */
+  public shouldShowRouteEmptyCard(): boolean {
+    const routeList = this.routeList;
+
+    return (
+      routeList.canAdd() &&
+      this.initialized &&
+      routeList.isInitialized() &&
+      !routeList.getError() &&
+      routeList.getRoutes().length === 0
+    );
+  }
+
   public getCampSpot(): CampSpot | null {
     return this.campSpot;
   }
@@ -118,7 +134,7 @@ class GroupMap {
     return routes[0]?.getId() ?? null;
   }
 
-  // 머리 줄·그래프·시작끝 마커가 가리키는 코스. 코스가 없으면 `null`이다.
+  // 시트의 고도 그래프·시작끝 마커·`3D`가 가리키는 코스. 코스가 없으면 `null`이다.
   public getSelectedRoute(): GroupRoute | null {
     const selectedRouteId = this.getSelectedRouteId();
 
@@ -134,7 +150,7 @@ class GroupMap {
   }
 
   /**
-   * 사용자가 코스를 고른다 — 코스 목록 시트의 행, 방금 올린 코스 (GRP-8 · GRP-10).
+   * 사용자가 코스를 고른다 — 바텀 시트의 코스 행, 방금 올린 코스 (GRP-8 · GRP-10).
    * 선택에 더해 카메라 맞춤 요청을 남긴다. 첫 코스 자동 선택은 카메라를 옮기지 않는다.
    */
   public focusRoute(routeId: string): void {

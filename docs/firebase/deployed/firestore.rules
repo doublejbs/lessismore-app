@@ -876,7 +876,16 @@ service cloud.firestore {
             // 1MB 문서 한도와 렌더 성능 때문이다.
             && data.simplified is list
             && data.simplified.size() >= 2
-            && data.simplified.size() <= 500;
+            && data.simplified.size() <= 500
+            // 그린 코스(RouteDraw RD-7·RD-8, DM-29·DM-30 2026-10-14). `source` 는 'drawn' 하나뿐이고(없으면 GPX
+            // 가져오기), 찍은 점 `drawnPoints`(2~100점)는 그린 코스에만 둔다. `updatedAt` 은 수정한 서버 시각이다.
+            && (!('source' in data) || data.source == 'drawn')
+            && (!('drawnPoints' in data)
+              || ('source' in data
+                && data.drawnPoints is list
+                && data.drawnPoints.size() >= 2
+                && data.drawnPoints.size() <= 100))
+            && (!('updatedAt' in data) || data.updatedAt is timestamp);
         }
 
         // 그룹당 5개 상한(GRP-8). 포인트와 같은 배치 결합으로 강제한다.
@@ -893,7 +902,8 @@ service cloud.firestore {
         allow create: if isGroupMember(groupId)
           && request.resource.data.keys().hasOnly([
             'name', 'storagePath', 'fileSize', 'distance', 'elevationGain', 'elevationLoss',
-            'pointCount', 'bounds', 'simplified', 'authorId', 'authorName', 'createdAt'
+            'pointCount', 'bounds', 'simplified', 'authorId', 'authorName', 'createdAt',
+            'sourceBagId', 'sourceBagRouteId', 'source', 'drawnPoints', 'updatedAt'
           ])
           && request.resource.data.keys().hasAll([
             'name', 'storagePath', 'fileSize', 'distance', 'pointCount',
@@ -902,11 +912,38 @@ service cloud.firestore {
           && request.resource.data.authorId == request.auth.uid
           && request.resource.data.authorName is string
           && request.resource.data.authorName.size() <= 40
+          // 배낭 코스를 복사한 흔적(DM-29 `sourceBagId`·`sourceBagRouteId`, 2026-10-13) — 둘은 함께 있거나 함께 없다.
+          && (('sourceBagId' in request.resource.data) == ('sourceBagRouteId' in request.resource.data))
+          && (!('sourceBagId' in request.resource.data)
+            || (request.resource.data.sourceBagId is string
+              && request.resource.data.sourceBagId.size() > 0
+              && request.resource.data.sourceBagId.size() <= 128
+              && request.resource.data.sourceBagRouteId is string
+              && request.resource.data.sourceBagRouteId.size() > 0
+              && request.resource.data.sourceBagRouteId.size() <= 128))
           && isValidRoutePayload()
           && routeCounterIncremented();
 
-        // 코스는 이름 변경이 필요 없으므로 수정 경로를 두지 않는다(GRP-8).
-        allow update: if false;
+        // 수정은 **그린 코스만**(RouteDraw RD-7), **올린 사람만** 한다 — 방장도 남의 코스는 지우기만 한다.
+        // 개수가 바뀌지 않으므로 카운터 조건(`routeCounterIncremented`)은 두지 않는다(그룹 문서를 함께 쓰지 않는다).
+        // 작성자·복사 원본 참조·`source`·`storagePath`·`createdAt` 은 그대로여야 하고 `updatedAt` 은 이 요청의 서버 시각이다.
+        allow update: if isGroupMember(groupId)
+          && resource.data.authorId == request.auth.uid
+          && request.resource.data.keys().hasOnly([
+            'name', 'storagePath', 'fileSize', 'distance', 'elevationGain', 'elevationLoss',
+            'pointCount', 'bounds', 'simplified', 'authorId', 'authorName', 'createdAt',
+            'sourceBagId', 'sourceBagRouteId', 'source', 'drawnPoints', 'updatedAt'
+          ])
+          && request.resource.data.authorId == resource.data.authorId
+          && request.resource.data.authorName == resource.data.authorName
+          && request.resource.data.get('sourceBagId', null) == resource.data.get('sourceBagId', null)
+          && request.resource.data.get('sourceBagRouteId', null) == resource.data.get('sourceBagRouteId', null)
+          && resource.data.get('source', null) == 'drawn'
+          && request.resource.data.source == 'drawn'
+          && request.resource.data.storagePath == resource.data.storagePath
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.updatedAt == request.time
+          && isValidRoutePayload();
 
         allow delete: if isGroupMember(groupId)
           && (resource.data.authorId == request.auth.uid || isGroupOwner(groupId))
@@ -994,8 +1031,8 @@ service cloud.firestore {
     // 그래서 하위 `routes` 는 **소유자(`bag.userId`)만** 읽고 쓴다 — 배낭 공유·박지 후기
     // 첨부·커뮤니티 패킹 스냅샷 어디로도 따라가지 않는다(DM-30).
     //
-    // 아래 개방 절(`isLockedCollection`)에서 `bag` 을 뺀 뒤 배낭 문서와 나머지 하위를
-    // 다시 열어 두었다. 빼지 않으면 match 가 OR 로 합쳐져 이 절이 아무 효력이 없다.
+    // 아래 개방 절(`isLockedCollection`)에서 `bag` 을 뺀 뒤 배낭 문서(DM-37 주인·공개 규칙)와
+    // 나머지 하위를 따로 정의했다. 빼지 않으면 match 가 OR 로 합쳐져 이 절이 아무 효력이 없다.
     // 값 검증 헬퍼(isValidLatitude·isValidLongitude·maxRouteFileSize)는 그룹 절의 것을
     // 그대로 쓴다 — 같은 값을 두 벌로 두지 않는다(중복 정의는 컴파일 에러이기도 하다).
     // ====================================================================
@@ -1016,7 +1053,8 @@ service cloud.firestore {
 
         return data.keys().hasOnly([
             'name', 'storagePath', 'fileSize', 'distance', 'elevationGain', 'elevationLoss',
-            'pointCount', 'bounds', 'simplified', 'createdAt'
+            'pointCount', 'bounds', 'simplified', 'createdAt',
+            'source', 'drawnPoints', 'updatedAt'
           ])
           && data.keys().hasAll([
             'name', 'storagePath', 'fileSize', 'distance',
@@ -1049,7 +1087,16 @@ service cloud.firestore {
           // 축약 좌표 500점 상한. 원본 트랙포인트 전체는 Firestore 에 넣지 않는다.
           && data.simplified is list
           && data.simplified.size() >= 2
-          && data.simplified.size() <= 500;
+          && data.simplified.size() <= 500
+          // 그린 코스(RouteDraw RD-7·RD-8, DM-29·DM-30 2026-10-14). `source` 는 'drawn' 하나뿐이고(없으면 GPX
+          // 가져오기), 찍은 점 `drawnPoints`(2~100점)는 그린 코스에만 둔다. `updatedAt` 은 수정한 서버 시각이다.
+          && (!('source' in data) || data.source == 'drawn')
+          && (!('drawnPoints' in data)
+            || ('source' in data
+              && data.drawnPoints is list
+              && data.drawnPoints.size() >= 2
+              && data.drawnPoints.size() <= 100))
+          && (!('updatedAt' in data) || data.updatedAt is timestamp);
       }
 
       // 소유자만 읽는다. 목록(list)도 같은 조건이다 — 화면이 코스 목록을 조회해 그린다.
@@ -1058,8 +1105,16 @@ service cloud.firestore {
 
       allow create: if isBagOwner() && isValidBagRoutePayload();
 
-      // 코스는 이름 변경이 필요 없으므로 수정 경로를 두지 않는다(그룹 코스와 같다).
-      allow update: if false;
+      // 수정은 **그린 코스만**(RouteDraw RD-7) — 소유자가 같은 문서를 덮어쓴다. 가져온 GPX(`source` 없음)는
+      // 원본 파일이 따로 있어 수정하지 않는다. `source`·`storagePath`·`createdAt` 은 바꾸지 못하고
+      // `updatedAt` 은 이 요청의 서버 시각이어야 한다(클라이언트는 serverTimestamp()로 쓴다).
+      allow update: if isBagOwner()
+        && isValidBagRoutePayload()
+        && resource.data.get('source', null) == 'drawn'
+        && request.resource.data.source == 'drawn'
+        && request.resource.data.storagePath == resource.data.storagePath
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
 
       allow delete: if isBagOwner();
     }
@@ -1080,8 +1135,34 @@ service cloud.firestore {
       return request.path[3] in [
         'community-posts', 'community-post-likes', 'community-poll-votes',
         'community-reports', 'groups', 'groupInvites', 'users', 'bag',
-        'consumable-product'
+        'consumable-product', 'feed-content', 'feed-rotation-runs', 'weekend-briefing-runs',
+        'route-draw-quota'
       ];
+    }
+
+    // 추천 박지 주간 교체 멱등 가드(DM-27) — 함수 전용. config 의 다른 문서는 열어 둔 채
+    // 이 문서만 개방 절에서 뺀다. request.path[4] 인덱싱은 config 컬렉션 list 요청에서
+    // 범위를 벗어나 에러가 나므로 문자열 비교로 판정한다.
+    function isFunctionOnlyDoc() {
+      return string(request.path).matches('^/databases/[^/]+/documents/config/(feedRotation|weekendBriefing)$');
+    }
+
+    // 홈 추천 큐레이션(DM-27, HM-11) — 읽기 공개(비로그인 홈), 쓰기는 웹 CMS 운영자만.
+    // 목록은 웹 레포 src/common/AllowedUids.ts 의 ALLOWED_UIDS 와 같게 유지한다.
+    // 예약 함수(admin SDK)와 대기열 적재 스크립트(소유자 OAuth REST)는 규칙을 거치지 않는다.
+    function isFeedAdmin() {
+      return request.auth != null
+        && request.auth.uid in ['M3yk9SzrGZN3veiyd2SE6LmTrsk1', 'KkmaLpxPYLbmJKGkSTLMuMcD5l82'];
+    }
+
+    match /feed-content/{contentId} {
+      allow read: if true;
+      allow write: if isFeedAdmin();
+    }
+
+    // 추천 박지 주간 교체 실행 기록(DM-27) — 함수 전용.
+    match /feed-rotation-runs/{runId} {
+      allow read, write: if false;
     }
 
     // 소모품 추천(DM-32, Consumables CP-1) — 읽기는 공개(비로그인 홈·커뮤니티 노출),
@@ -1092,30 +1173,149 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // users 문서 자체는 기존대로 열어 둔다.
+    // 코스 그리기 무료 기록(DM-36, RouteDraw RD-8) — 평생 1회. 쓰기는 함수(`claimFreeRouteDraw`·
+    // `onDrawnBagRouteCreated`·`onDrawnGroupRouteCreated`, Admin SDK)만 한다. 클라이언트 쓰기를 열어 두면 클라이언트가 기록을 지워 무료 1회를
+    // 되살린다. 읽기는 본인만(앱이 권한 판단에 쓴다). 개방 절에서도 뺐다(`isLockedCollection`).
+    match /route-draw-quota/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // users 문서 자체(DM-37, 2026-10-15) — 읽기·쓰기 모두 본인만, 목록 금지.
+    // 정상 경로의 쓰기(약관 동의·닉네임·배낭 목록 arrayUnion/arrayRemove·회원 탈퇴 삭제)는 전부
+    // 본인 문서다. 갱신은 **바뀌는 키만** 허용 목록으로 검사한다 — 옛 문서에 목록 밖 키가 남아
+    // 있어도 그 키를 건드리지 않는 갱신은 통과한다. 생성은 전체 키를 검사한다.
+    // 커뮤니티 글·댓글 규칙의 get(users/{auth.uid}).nickname 교차 조회는 규칙 내부 get()이라
+    // 이 읽기 규칙의 영향을 받지 않는다.
     match /users/{userId} {
-      allow read, write: if true;
+      function userDocKeys() {
+        return [
+          'termsAgreed', 'privacyAgreed', 'marketingAgreed', 'personalInfoAgreed',
+          'over14Agreed', 'smsAgreed', 'agreedAt', 'createdAt', 'nickname', 'bags'
+        ];
+      }
+
+      function isValidNickname(data) {
+        return data.nickname is string
+          && data.nickname.size() >= 1
+          && data.nickname.size() <= 100;
+      }
+
+      allow get: if isOwner(userId);
+      allow list: if false;
+
+      allow create: if isOwner(userId)
+        && request.resource.data.keys().hasOnly(userDocKeys())
+        && (!('nickname' in request.resource.data) || isValidNickname(request.resource.data))
+        && (!('bags' in request.resource.data) || request.resource.data.bags is list);
+
+      allow update: if isOwner(userId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(userDocKeys())
+        && (!('nickname' in request.resource.data.diff(resource.data).affectedKeys())
+          || isValidNickname(request.resource.data))
+        && (!('bags' in request.resource.data) || request.resource.data.bags is list);
+
+      allow delete: if isOwner(userId);
     }
 
-    // users 하위는 groups 만 빼고 기존대로 열어 둔다(users/{uid}/gears 등).
+    // 푸시 토큰(DM-34, Notification NT-12) — 본인만 읽고 쓴다. 개방 절에 두면 다른 로그인 사용자가
+    // 남의 FCM 토큰을 읽을 수 있다. 서버(함수)는 admin SDK라 규칙을 거치지 않는다.
+    match /users/{userId}/push-tokens/{tokenId} {
+      allow read, write: if signedIn() && request.auth.uid == userId;
+    }
+
+    // users 하위(gears·bagTemplates·camp-favorites 등)는 groups·push-tokens 만 빼고 다룬다(DM-37).
+    // 읽기는 열어 둔다 — 비로그인 공유 배낭 화면이 users/{owner}/gears 를 읽는다(BD-7).
+    // 쓰기는 본인만 — 앱·웹의 쓰기는 전부 호출자 본인 uid 경로다(2026-10-15 확인).
     match /users/{userId}/{subCollection}/{restOfPath=**} {
-      allow read, write: if subCollection != 'groups';
+      allow read: if subCollection != 'groups' && subCollection != 'push-tokens';
+      allow write: if subCollection != 'groups' && subCollection != 'push-tokens'
+        && isOwner(userId);
     }
 
-    // 배낭 문서 자체는 기존대로 열어 둔다 — `shared == true` 링크 공유가 이 개방에 얹혀 있다(BD-7).
+    // 배낭 문서 자체(DM-37, 2026-10-15). 주인 판정은 `userId` 필드 **하나**다.
+    // `userId` 가 없는 옛 문서 중 주인이 확인되는 21건은 2026-10-15 에 채웠다. 남은 14건은 어느
+    // 사용자 목록에도 없는 고아라 주인이 없다 — `users/{uid}.bags` 로 주인을 추정하면 누구나 자기
+    // 목록에 남의 고아 ID를 넣어 가로챌 수 있으므로 목록 판정은 두지 않는다(공유 중이면 읽기만 된다).
+    // - get: 문서가 없거나(없는 ID 조회·탈퇴 일괄 삭제 전 확인) 주인이거나, 공유 링크 공개
+    //   (`shared`·`reviewShared`, 비로그인 BD-7·CS-8).
+    // - list: 주인 문서만. 앱은 쿼리 대신 ID마다 getDoc 으로 읽는다(DM-37 앱 선행 변경) —
+    //   목록 쿼리는 없는 ID가 하나라도 섞이면 전체가 거부되기 때문이다.
+    // - create: 로그인 + 본인 userId. update: 주인 + userId 를 남으로 바꾸지 않는다.
+    // - delete: 문서가 없거나 주인(회원 탈퇴 일괄 삭제에 지운 ID가 섞여도 통과).
     match /bag/{bagId} {
-      allow read, write: if true;
+      function isBagDocOwner() {
+        return signedIn() && resource.data.get('userId', null) == request.auth.uid;
+      }
+
+      function isBagDocPublic() {
+        return resource.data.get('shared', false) == true
+          || resource.data.get('reviewShared', false) == true;
+      }
+
+      allow get: if resource == null || isBagDocOwner() || isBagDocPublic();
+      allow list: if isBagDocOwner();
+      allow create: if signedIn() && request.resource.data.get('userId', null) == request.auth.uid;
+      allow update: if isBagDocOwner()
+        && request.resource.data.get('userId', null) == request.auth.uid;
+      allow delete: if resource == null || isBagDocOwner();
     }
 
     // 배낭 하위는 routes 만 빼고 기존대로 열어 둔다. 지금 다른 하위 컬렉션은 없지만,
     // 개방 절에서 bag 을 통째로 뺀 이상 이 절이 없으면 나중에 생기는 하위 컬렉션이
     // 소리 없이 전부 거부된다.
+    // 개인 여행 지도 포인트(DM-33, BagDetail BD-14) — 코스(DM-30)와 같은 접근 범위: 소유자만 읽고 쓴다.
+    // `shared == true` 공유 배낭이라도 포인트는 따라가지 않는다. 그룹 포인트와 필드가 같되
+    // `authorId`·`authorName` 이 없다(소유자 한 사람의 것).
+    match /bag/{bagId}/points/{pointId} {
+      function isBagPointOwner() {
+        return signedIn()
+          && request.auth.uid ==
+            get(/databases/$(database)/documents/bag/$(bagId)).data.userId;
+      }
+
+      function isValidBagPointPayload() {
+        let data = request.resource.data;
+
+        return data.type in ['water', 'shelter', 'caution', 'note']
+          && isValidLatitude(data.latitude)
+          && isValidLongitude(data.longitude)
+          && data.title is string
+          && data.title.size() >= 1
+          && data.title.size() <= 40
+          && (!('description' in data)
+            || (data.description is string && data.description.size() <= 200));
+      }
+
+      allow read: if isBagPointOwner();
+
+      allow create: if isBagPointOwner()
+        && request.resource.data.keys().hasOnly([
+          'type', 'latitude', 'longitude', 'title', 'description', 'createdAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'type', 'latitude', 'longitude', 'title', 'createdAt'
+        ])
+        && isValidBagPointPayload();
+
+      // 수정은 유형·좌표·제목·설명만. createdAt 은 못 바꾸고 updatedAt 을 함께 쓴다.
+      allow update: if isBagPointOwner()
+        && request.resource.data.keys().hasOnly([
+          'type', 'latitude', 'longitude', 'title', 'description', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.createdAt == resource.data.createdAt
+        && isValidBagPointPayload();
+
+      allow delete: if isBagPointOwner();
+    }
+
+    // 배낭 하위는 routes·points 만 빼고 기존대로 열어 둔다.
     match /bag/{bagId}/{subCollection}/{restOfPath=**} {
-      allow read, write: if subCollection != 'routes';
+      allow read, write: if subCollection != 'routes' && subCollection != 'points';
     }
 
     match /{document=**} {
-      allow read, write: if !isLockedCollection();
+      allow read, write: if !isLockedCollection() && !isFunctionOnlyDoc();
     }
 }
 }

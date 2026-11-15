@@ -120,6 +120,12 @@ class OfflineEntitlement {
       return false;
     }
 
+    // 개발 빌드 전용 스위치 — 시뮬레이터에는 샌드박스 결제가 없어 오프라인 저장·지도를 확인할 길이 없다.
+    // `__DEV__`가 아닌 번들에서는 이 분기가 통째로 빠진다(Hermes 상수 폴딩). 릴리스 동작과 무관하다.
+    if (__DEV__ && process.env.EXPO_PUBLIC_DEV_OFFLINE_ENTITLED === '1') {
+      return true;
+    }
+
     const now = this.clock;
 
     // 구독 상태가 지금 계정에 연결된 것일 때만 믿는다(계정 전환 중 앞 계정의 권한이 섞이지 않게).

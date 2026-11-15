@@ -10,7 +10,10 @@ const CommunitySearchWrapper = () => {
   );
 
   useEffect(() => {
+    const stopBlockedAutoPaging = search.watchBlockedEmpty();
+
     return () => {
+      stopBlockedAutoPaging();
       search.dispose();
     };
   }, [search]);

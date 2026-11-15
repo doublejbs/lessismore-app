@@ -1,11 +1,12 @@
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
-import { Dimensions, Keyboard, Platform, StyleSheet, View } from 'react-native';
 import {
-  NaverMapView,
-  NaverMapViewRef,
-  Camera,
-  CameraChangeReason,
-} from '@mj-studio/react-native-naver-map';
+  Dimensions,
+  Keyboard,
+  LayoutChangeEvent,
+  Platform,
+  StyleSheet,
+  View,
+} from 'react-native';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router/react-navigation';
@@ -19,6 +20,15 @@ import { CampSpot } from '@/model/camp-site/CampSpotTypes';
 import { GeocodeResult } from '@/model/bag-destination/GeocodeResult';
 import LocalStorageManager from '@/model/storage/LocalStorageManager';
 import { deltaToZoom } from '@/model/map/MapZoom';
+import { KOREA_CAMERA } from '@/model/map/MapCamera';
+import MapCameraChangeReason from '@/model/map/MapCameraChangeReason';
+import MapLayer from '@/model/map/MapLayer';
+import type {
+  AppMapCameraChange,
+  AppMapViewRef,
+} from '@/components/map/AppMapView';
+import { createMapLibreViewLoader } from '@/components/map/MapLibreViewLoader';
+import type CampSiteMapCanvasViewType from './CampSiteMapCanvasView';
 import {
   getCurrentPositionWithinTimeout,
 } from '@/model/location/CurrentLocation';
@@ -27,10 +37,6 @@ import {
   setCampSiteDetailSheet,
 } from '@/model/camp-site/CampSiteDetailSheetHandoff';
 import { setCampSiteFavoritesSheet } from '@/model/camp-site/CampSiteFavoritesHandoff';
-import CampSiteMapMarkersView, {
-  CampSiteMapViewport,
-} from './CampSiteMapMarkersView';
-import MapMyLocationMarkerView from '@/components/map/MapMyLocationMarkerView';
 import CampSiteSelectedPulseView from './CampSiteSelectedPulseView';
 import CampSiteMapTopOverlayView from './CampSiteMapTopOverlayView';
 import CampSiteMapBottomOverlayView from './CampSiteMapBottomOverlayView';
@@ -59,15 +65,23 @@ interface CameraRegionTarget {
   duration: number;
 }
 
-// 남한 전역이 보이는 폴백 카메라(위치 권한 거부/미결정 시).
-// 중심=남한 중앙, 줌=기존 latitudeDelta 4.8 등가(iPhone 세로 ~850dp 기준 zoom ≈ 8).
-const KOREA_CAMERA: Camera = {
-  latitude: 36.2,
-  longitude: 127.9,
-  zoom: deltaToZoom(4.8),
-};
-
+// 검색 결과 맞춤이 이보다 넓으면 남한 전역 카메라(`KOREA_CAMERA`, 같은 스팬)에서 멈춘다.
 const KOREA_LATITUDE_DELTA = 4.8;
+
+// 상단 오버레이(안내 줄 포함)와 지도 나침반 사이 여백.
+const OVERLAY_GAP = 8;
+// 상세·즐겨찾기 시트가 처음 뜨는 높이(화면 높이 비율) — `app/_layout.tsx`의 `sheetInitialDetentIndex` 단계(0.4).
+const SHEET_INITIAL_DETENT = 0.4;
+
+// 지도 본문은 MapLibre SDK를 최상위 import한다 — 옛 바이너리에서 import만으로 터지지 않게 쓸 때 싣는다(MAP-1).
+const loadCanvasView = createMapLibreViewLoader<typeof CampSiteMapCanvasViewType>(
+  'CampSiteMapCanvasView',
+  () =>
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    (require('./CampSiteMapCanvasView') as {
+      default: typeof CampSiteMapCanvasViewType;
+    }).default
+);
 
 // 최초 진입 1회 규제 고지(CS-4) 표시 여부 저장 키.
 const NOTICE_STORAGE_KEY = 'campSiteNoticeShown';
@@ -79,8 +93,10 @@ const NOTICE_STORAGE_KEY = 'campSiteNoticeShown';
 // MobX 상태를 읽는 UI는 마커 레이어·상단(검색/칩) observer로 분리했다 —
 // 검색 타이핑·카메라 이동이 서로(특히 마커 레이어)를 리렌더하지 않게 하기 위함.
 const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
+  // 지도 본문은 처음 마운트할 때 싣는다(MAP-1 "쓸 때 처음"). 상태로 고정해 렌더마다 같은 컴포넌트다.
+  const [CanvasView] = useState(loadCanvasView);
   const router = useRouter();
-  const mapRef = useRef<NaverMapViewRef>(null);
+  const mapRef = useRef<AppMapViewRef>(null);
   const [locationGranted, setLocationGranted] = useState(false);
   // 내 위치 파란 점 좌표. 네이티브 위치 오버레이는 줌 드리프트 버그가 있어 쓰지 않고,
   // 이 좌표를 지오 앵커 마커(MapMyLocationMarkerView)로 직접 렌더한다(CS-1).
@@ -107,23 +123,19 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   // 사용자가 직접(제스처로) 지도를 움직였는지. 뒤늦게 도착한 초기 위치가
   // 사용자의 조작을 덮어쓰지 않게 하는 가드(CS-1).
   const userMovedCameraRef = useRef(false);
-  // 지도 초기화 완료 여부 — 대기 중이던 카메라 이동을 초기화 후에만 flush한다.
-  const mapReadyRef = useRef(false);
-  const pendingCameraTargetRef = useRef<CameraTarget | null>(null);
-  const pendingCameraRegionRef = useRef<CameraRegionTarget | null>(null);
-  const pendingCameraFrameRef = useRef<number | null>(null);
   // 현재 줌(마커 탭 시 줌은 유지한 채 그 박지를 중앙으로 이징하기 위함).
   const zoomRef = useRef<number>(deltaToZoom(0.2));
   const spotsLoading = campSiteMap.isLoading();
   const insets = useSafeAreaInsets();
+  // 지도 데이터(스타일·타일) 로드 실패 — 상단 한 줄(MAP-2). 마커·오버레이는 그대로 둔다.
+  const [mapLoadFailed, setMapLoadFailed] = useState(false);
+  const mapLoadFailedLoggedRef = useRef(false);
+  // 상단 오버레이(검색·칩) 높이 — 나침반·안내 줄을 그 아래로 내린다. 측정 전엔 세이프에어리어만.
+  const [topOverlayHeight, setTopOverlayHeight] = useState(0);
 
   // 하단 플로팅 요소(현재 위치 버튼)가 iOS 플로팅 탭바에 가리지 않게 하는 여유.
   const bottomClearance =
     Platform.OS === 'ios' ? insets.bottom + TAB_BAR_HEIGHT : 0;
-
-  // 마커 레이어용 뷰포트. onCameraChanged는 이동 중 연속 발화하므로
-  // 값을 양자화해 실질 변화가 있을 때만 리렌더되게 한다.
-  const [viewport, setViewport] = useState<CampSiteMapViewport | null>(null);
 
   // 파란 점 좌표를 state와 ref에 함께 반영한다(ref는 버튼 핸들러가 읽는 최신 값).
   const updateCurrentLocation = useCallback(
@@ -199,108 +211,30 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     [updateCurrentLocation]
   );
 
-  const flushPendingCamera = useCallback(() => {
-    if (
-      pendingCameraFrameRef.current !== null ||
-      (!pendingCameraTargetRef.current && !pendingCameraRegionRef.current)
-    ) {
+  // 지도가 아직 붙기 전의 카메라 요청은 `AppMapView`가 모아 두었다가 붙는 순간 실행한다.
+  const moveCamera = useCallback((target: CameraTarget) => {
+    if (!mountedRef.current) {
       return;
     }
 
-    pendingCameraFrameRef.current = requestAnimationFrame(() => {
-      pendingCameraFrameRef.current = null;
-
-      if (!mountedRef.current || !mapReadyRef.current || !mapRef.current) {
-        return;
-      }
-
-      const target = pendingCameraTargetRef.current;
-      const region = pendingCameraRegionRef.current;
-
-      if (!target && !region) {
-        return;
-      }
-
-      pendingCameraTargetRef.current = null;
-      pendingCameraRegionRef.current = null;
-
-      if (target) {
-        mapRef.current.animateCameraTo(target);
-      } else if (region) {
-        mapRef.current.animateRegionTo(region);
-      }
-    });
+    mapRef.current?.animateTo(target);
   }, []);
 
-  const moveCamera = useCallback(
-    (target: CameraTarget) => {
-      if (!mountedRef.current) {
-        return;
-      }
+  const moveCameraToRegion = useCallback((region: CameraRegionTarget) => {
+    if (!mountedRef.current) {
+      return;
+    }
 
-      if (
-        !mapReadyRef.current ||
-        !mapRef.current ||
-        pendingCameraFrameRef.current !== null
-      ) {
-        pendingCameraTargetRef.current = target;
-        pendingCameraRegionRef.current = null;
+    const { duration, ...target } = region;
 
-        if (mapReadyRef.current) {
-          flushPendingCamera();
-        }
-
-        return;
-      }
-
-      pendingCameraTargetRef.current = null;
-      pendingCameraRegionRef.current = null;
-      mapRef.current.animateCameraTo(target);
-    },
-    [flushPendingCamera]
-  );
-
-  const moveCameraToRegion = useCallback(
-    (region: CameraRegionTarget) => {
-      if (!mountedRef.current) {
-        return;
-      }
-
-      if (
-        !mapReadyRef.current ||
-        !mapRef.current ||
-        pendingCameraFrameRef.current !== null
-      ) {
-        pendingCameraTargetRef.current = null;
-        pendingCameraRegionRef.current = region;
-
-        if (mapReadyRef.current) {
-          flushPendingCamera();
-        }
-
-        return;
-      }
-
-      pendingCameraTargetRef.current = null;
-      pendingCameraRegionRef.current = null;
-      mapRef.current.animateRegionTo(region);
-    },
-    [flushPendingCamera]
-  );
+    mapRef.current?.fitRegion(target, duration);
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;
 
     return () => {
       mountedRef.current = false;
-      mapReadyRef.current = false;
-      pendingCameraTargetRef.current = null;
-      pendingCameraRegionRef.current = null;
-
-      if (pendingCameraFrameRef.current !== null) {
-        cancelAnimationFrame(pendingCameraFrameRef.current);
-        pendingCameraFrameRef.current = null;
-      }
 
       // 포커스 상태에서 언마운트되면 useFocusEffect 정리가 돌지만, 포커스를 잃은 뒤
       // 언마운트되는 경로까지 포함해 구독이 반드시 닫히도록 여기서도 해제한다(멱등).
@@ -694,7 +628,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
       moveCamera({
         latitude: KOREA_CAMERA.latitude,
         longitude: KOREA_CAMERA.longitude,
-        zoom: KOREA_CAMERA.zoom ?? 0,
+        zoom: KOREA_CAMERA.zoom,
         duration: 700,
       });
 
@@ -714,7 +648,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     });
   }, [campSiteMap, moveCamera, moveCameraToRegion]);
 
-  // 마커 탭 콜백 — memo된 마커(CampSiteMarkerView)가 리렌더를 건너뛸 수 있게 참조를 고정한다.
+  // 마커 탭 콜백 — 마커 레이어(observer)가 리렌더를 건너뛸 수 있게 참조를 고정한다.
   const handleMarkerTap = useCallback(
     (spot: CampSpot) => {
       openDetail(spot);
@@ -776,7 +710,7 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
   }, [campSiteMap, handleOpenFavoriteDetail, router]);
 
   // 지도 빈 곳 터치 → 마커 선택 해제 + 키보드 dismiss(드롭다운 blur로 닫힘, CS-6).
-  // 네이버는 마커 onTap과 지도 onTapMap이 분리돼 있어 별도 경합 방어가 필요 없다.
+  // 박지 탭은 레이어(`GeoJSONSource.onPress`)·선택 핀(`Marker`)이 받아 지도 onPress로 번지지 않는다.
   const handleTapMap = useCallback(() => {
     campSiteMap.selectSpot(null);
 
@@ -785,143 +719,84 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
     Keyboard.dismiss();
   }, [campSiteMap]);
 
-  const handleCameraChanged = useCallback(
-    (camera: Camera & { reason: CameraChangeReason }) => {
-      if (!mountedRef.current) {
-        return;
-      }
-
-      // 제스처로 움직인 순간부터는 초기 위치 조회 결과가 카메라를 덮어쓰지 않게 한다(CS-1).
-      // 우리가 부른 animateCameraTo는 reason이 'Developer'라 이 가드에 걸리지 않는다.
-      if (camera.reason === 'Gesture') {
-        userMovedCameraRef.current = true;
-      }
-
-      const zoom = camera.zoom ?? 0;
-      zoomRef.current = zoom;
-
-      // 중심 0.05°·줌 0.25 단위 양자화 — 동일 값이면 React가 리렌더를 생략한다.
-      const quantized = {
-        latitude: Math.round(camera.latitude / 0.05) * 0.05,
-        longitude: Math.round(camera.longitude / 0.05) * 0.05,
-        zoom: Math.round(zoom / 0.25) * 0.25,
-      };
-
-      setViewport(prev =>
-        prev &&
-        prev.latitude === quantized.latitude &&
-        prev.longitude === quantized.longitude &&
-        prev.zoom === quantized.zoom
-          ? prev
-          : quantized
-      );
-    },
-    []
-  );
-
-  // 첫 onCameraChanged 이전에도 마커가 보이도록 초기 뷰포트를 시드한다.
-  // 실제 지도 화면 모서리 좌표(screenToCoordinate)로 복원하는 이유:
-  // 화면 재마운트 시 네이티브 지도는 이전 카메라를 유지할 수 있어,
-  // initialCamera(전국)로 시드하면 실제 화면과 다른 영역의 마커를 계산하게 된다.
-  const handleMapInitialized = useCallback(() => {
-    if (!mountedRef.current || !mapRef.current) {
+  const handleCameraChanged = useCallback((change: AppMapCameraChange) => {
+    if (!mountedRef.current) {
       return;
     }
 
-    const initializedMap = mapRef.current;
+    // 제스처로 움직인 순간부터는 초기 위치 조회 결과가 카메라를 덮어쓰지 않게 한다(CS-1).
+    // 우리가 부른 animateTo는 reason이 Developer라 이 가드에 걸리지 않는다.
+    if (change.reason === MapCameraChangeReason.Gesture) {
+      userMovedCameraRef.current = true;
+    }
 
-    mapReadyRef.current = true;
-    flushPendingCamera();
+    zoomRef.current = change.zoom;
+  }, []);
 
-    const seedViewportFromMap = async () => {
-      const isMapActive = () =>
-        mountedRef.current &&
-        mapReadyRef.current &&
-        mapRef.current === initializedMap;
+  const handleMapInitialized = useCallback(() => {
+    setMapLoadFailed(false);
+  }, []);
 
-      try {
-        const { width, height } = Dimensions.get('window');
-        const topLeft = await initializedMap.screenToCoordinate({
-          screenX: 0,
-          screenY: 0,
-        });
+  const handleMapLoadFailed = useCallback(() => {
+    setMapLoadFailed(true);
 
-        if (!isMapActive()) {
-          return;
-        }
+    // 같은 화면에서 재시도마다 여러 번 오지 않게 한 번만 남긴다(MAP-6).
+    if (mapLoadFailedLoggedRef.current) {
+      return;
+    }
 
-        const bottomRight = await initializedMap.screenToCoordinate({
-          screenX: width,
-          screenY: height,
-        });
+    mapLoadFailedLoggedRef.current = true;
+    app.getAnalyticsManager()?.logEvent('map_load_failed', {
+      screen: 'camp_site',
+    });
+  }, []);
 
-        if (!isMapActive()) {
-          return;
-        }
+  const handleTopOverlayLayout = useCallback((event: LayoutChangeEvent) => {
+    const height = Math.round(event.nativeEvent.layout.height);
 
-        if (topLeft?.isValid && bottomRight?.isValid) {
-          const latSpan = Math.abs(topLeft.latitude - bottomRight.latitude);
-          const zoom = deltaToZoom(latSpan);
+    setTopOverlayHeight(prev => (prev === height ? prev : height));
+  }, []);
 
-          setViewport(prev =>
-            prev
-              ? prev
-              : {
-                  latitude: (topLeft.latitude + bottomRight.latitude) / 2,
-                  longitude: (topLeft.longitude + bottomRight.longitude) / 2,
-                  zoom,
-                }
-          );
-
-          return;
-        }
-
-        // 프로젝션이 아직 준비 전이면 초기 카메라(전국)로 폴백 — 이후 onCameraChanged가 보정한다.
-        setViewport(prev =>
-          prev
-            ? prev
-            : {
-                latitude: KOREA_CAMERA.latitude,
-                longitude: KOREA_CAMERA.longitude,
-                zoom: KOREA_CAMERA.zoom ?? 0,
-              }
-        );
-      } catch {
-        return;
-      }
-    };
-
-    void seedViewportFromMap();
-  }, [flushPendingCamera]);
+  const ornamentTopOffset = Math.max(topOverlayHeight, insets.top) + OVERLAY_GAP;
+  /**
+   * 상세·즐겨찾기 시트가 떠 있으면(박지 선택 = 상세 시트, 즐겨찾기 전용 = 즐겨찾기 시트) 좌하단 출처 표기(ODbL)가
+   * 시트에 가리지 않게 시트 높이만큼 올린다(MAP-1). 시트를 끌어 올리면 지도 대부분이 가려지므로 처음 단계 기준이다.
+   */
+  const isSheetOpen =
+    campSiteMap.getSelectedSpot() !== null || campSiteMap.isFavoriteOnly();
+  const attributionBottomOffset = isSheetOpen
+    ? Math.max(
+        bottomClearance,
+        Math.round(Dimensions.get('window').height * SHEET_INITIAL_DETENT)
+      )
+    : bottomClearance;
+  // 옛 바이너리(MapLibre 없음)면 지도 자리에 안내 한 줄만 두고 나머지 UI는 그대로 쓴다(MAP-1).
+  const noticeLabel = !CanvasView
+    ? app.getL10n().t('map.unsupportedBinary')
+    : mapLoadFailed
+      ? app.getL10n().t('map.loadFailed')
+      : null;
 
   return (
     <View style={styles.container}>
-      <NaverMapView
-        ref={mapRef}
-        style={StyleSheet.absoluteFill}
-        initialCamera={KOREA_CAMERA}
-        // 네이버 기본 현위치 버튼은 자체 버튼과 중복이라 숨긴다.
-        isShowLocationButton={false}
-        // 기본 줌 버튼/스케일바는 기존 지도 UI 톤(핀치 줌만)과 달라 숨긴다.
-        isShowZoomControls={false}
-        isShowScaleBar={false}
-        onInitialized={handleMapInitialized}
-        onTapMap={handleTapMap}
-        onCameraChanged={handleCameraChanged}
-      >
-        <CampSiteMapMarkersView
+      {CanvasView ? (
+        <CanvasView
+          ref={mapRef}
           campSiteMap={campSiteMap}
-          viewport={viewport}
+          // 내 위치 파란 점 — 공용 마커(MapMyLocationMarkerView). 방향 모드가 없어 부채꼴은 없다(CS-1).
+          currentLocation={locationGranted ? currentLocation : null}
+          ornamentTopOffset={ornamentTopOffset}
+          // iOS 플로팅 탭바·시트가 좌하단 출처 표기(ODbL)를 덮지 않게 올린다(MAP-1).
+          attributionBottomOffset={attributionBottomOffset}
+          // 지도 종류(MAP-7) — 전환 버튼은 하단 오버레이 스택 맨 아래.
+          mapLayer={app.getMapLayerStore()?.getLayer() ?? MapLayer.Standard}
           onTapSpot={handleMarkerTap}
+          onPressMap={handleTapMap}
+          onCameraChanged={handleCameraChanged}
+          onInitialized={handleMapInitialized}
+          onLoadFailed={handleMapLoadFailed}
         />
-        {/* 내 위치 파란 점 — 네이티브 위치 오버레이의 줌 드리프트를 피해 지오 앵커 마커로 렌더한다(CS-1). */}
-        {locationGranted && currentLocation ? (
-          <MapMyLocationMarkerView
-            latitude={currentLocation.latitude}
-            longitude={currentLocation.longitude}
-          />
-        ) : null}
-      </NaverMapView>
+      ) : null}
 
       {/* A: 선택 박지 강조 펄스(화면 중앙 = 카메라 이징이 옮긴 위치). pointerEvents none. */}
       <CampSiteSelectedPulseView campSiteMap={campSiteMap} />
@@ -931,11 +806,15 @@ const CampSiteMapView: FC<Props> = ({ campSiteMap }) => {
         onSelectResult={handleSelectResult}
         onSelectPlace={handleSelectPlace}
         onSubmitSearch={handleSubmitSearch}
+        onLayout={handleTopOverlayLayout}
+        noticeLabel={noticeLabel}
       />
 
       <CampSiteMapBottomOverlayView
         bottomClearance={bottomClearance}
         locationGranted={locationGranted}
+        // 지도를 그릴 수 있을 때만 지도 종류 버튼을 둔다(옛 바이너리는 지도 자리가 비어 있다).
+        showLayerControl={!!CanvasView}
         onMoveToCurrentLocation={handleMoveToCurrentLocation}
         onOpenFavorites={handleOpenFavorites}
       />

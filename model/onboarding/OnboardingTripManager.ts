@@ -371,6 +371,11 @@ class OnboardingTripManager {
     return this.presentedThisSession;
   }
 
+  // 현재 키(uid 또는 비로그인)의 판정이 끝났는지 — 앱 평가 요청이 판정 끝을 기다린다(APP-11).
+  public isResolvedForCurrentKey(): boolean {
+    return this.resolvedKey === this.getCurrentKey();
+  }
+
   public isShowing(): boolean {
     return this.showing;
   }

@@ -246,6 +246,25 @@ class BagStore {
   }
 
   /**
+   * 본인 배낭 문서 원본. 사용자 문서의 배낭 목록과 배낭 문서를 병렬로 읽고, 목록에 없거나 문서가 없으면
+   * 알럿 없이 `null` — 아래 본인 배낭 읽기들이 함께 쓴다.
+   */
+  private async readOwnedBagData(id: string): Promise<DocumentData | null> {
+    const [userSnapshot, bagSnapshot] = await Promise.all([
+      getDoc(doc(this.getStore(), 'users', this.getUserID())),
+      getDoc(doc(this.getStore(), 'bag', id)),
+    ]);
+    const bagIDs = userSnapshot.data()?.['bags'];
+    const bagData = bagSnapshot.data();
+
+    if (!Array.isArray(bagIDs) || !bagIDs.includes(id) || !bagData) {
+      return null;
+    }
+
+    return bagData;
+  }
+
+  /**
    * 배낭 1건과 담긴 장비를 함께 읽는다 (그룹 배낭 스냅샷 빌드용, GRP-5).
    *
    * `getBag`과 두 가지가 다르다.
@@ -256,14 +275,9 @@ class BagStore {
   public async getOwnedBagWithGears(
     id: string
   ): Promise<{ bag: BagItem; gears: Gear[] } | null> {
-    const [userSnapshot, bagSnapshot] = await Promise.all([
-      getDoc(doc(this.getStore(), 'users', this.getUserID())),
-      getDoc(doc(this.getStore(), 'bag', id)),
-    ]);
-    const bagIDs = userSnapshot.data()?.['bags'];
-    const bagData = bagSnapshot.data();
+    const bagData = await this.readOwnedBagData(id);
 
-    if (!Array.isArray(bagIDs) || !bagIDs.includes(id) || !bagData) {
+    if (!bagData) {
       return null;
     }
 
@@ -279,6 +293,20 @@ class BagStore {
   }
 
   /**
+   * 배낭 문서 1건만 읽는다 (그룹 만들기 미리 채우기, GRP-13). 장비는 읽지 않는다.
+   * `getBag`과 달리 본인 배낭이 아니면 알럿 없이 `null` — 호출측이 빈 폼으로 연다.
+   */
+  public async getOwnedBag(id: string): Promise<BagItem | null> {
+    const bagData = await this.readOwnedBagData(id);
+
+    if (!bagData) {
+      return null;
+    }
+
+    return this.toBagItem(id, bagData);
+  }
+
+  /**
    * 오프라인 저장(OF-1)용 원본 — 배낭 문서와 담긴 장비 문서를 **그대로** 읽는다. 모델로 바꾸지 않는
    * 이유는 스냅샷이 Firestore 문서를 직렬화해 두고 읽을 때 기존 팩토리로 되돌리기 때문이다(§4).
    * 본인 배낭이 아니면(목록에 없음) `null`.
@@ -286,14 +314,9 @@ class BagStore {
   public async getOfflineSource(
     id: string
   ): Promise<{ bag: DocumentData; gears: GearData[] } | null> {
-    const [userSnapshot, bagSnapshot] = await Promise.all([
-      getDoc(doc(this.getStore(), 'users', this.getUserID())),
-      getDoc(doc(this.getStore(), 'bag', id)),
-    ]);
-    const bagIDs = userSnapshot.data()?.['bags'];
-    const bagData = bagSnapshot.data();
+    const bagData = await this.readOwnedBagData(id);
 
-    if (!Array.isArray(bagIDs) || !bagIDs.includes(id) || !bagData) {
+    if (!bagData) {
       return null;
     }
 
@@ -447,14 +470,6 @@ class BagStore {
         getDocs(query(collectionRef, where('__name__', 'in', chunk)))
       )
     );
-  }
-
-  private convertToArray(data: QuerySnapshot<DocumentData, DocumentData>) {
-    const result: BagItem[] = [];
-    data.forEach(doc => {
-      result.push(this.toBagItem(doc.id, doc.data()));
-    });
-    return result;
   }
 
   private toBagItem(id: string, data: DocumentData): BagItem {
@@ -765,17 +780,26 @@ class BagStore {
     return this.firebase.getUserId();
   }
 
-  public async getBags(bagIDs: string[]) {
-    if (bagIDs.length) {
-      const snapshots = await this.getDocsByIDs(
-        collection(this.getStore(), 'bag'),
-        bagIDs
-      );
-
-      return snapshots.flatMap(snapshot => this.convertToArray(snapshot));
-    } else {
+  // 배낭은 `in` 쿼리가 아니라 문서마다 getDoc으로 병렬 조회한다(DM-37).
+  // 주인 조건이 걸린 list 규칙은 문서마다 평가돼서, 없는 ID가 하나라도 섞이거나 한 쿼리의
+  // 문서 접근이 20을 넘으면 쿼리 전체가 거부된다. getDoc은 문서 하나씩 판정되므로 둘 다 해당하지 않는다.
+  // 없는 문서는 건너뛰고, 그 밖의 실패(권한 거부 등)는 기존 쿼리처럼 호출 전체를 reject한다.
+  // 결과는 입력 ID 순서를 따른다 — 정렬은 호출측이 한다(getListOrThrow의 getBagComparator).
+  public async getBags(bagIDs: string[]): Promise<BagItem[]> {
+    if (!bagIDs.length) {
       return [];
     }
+
+    // 기존 `in` 쿼리처럼 같은 ID가 두 번 들어 있어도 배낭은 한 번만 나오게 한다.
+    const uniqueBagIDs = Array.from(new Set(bagIDs));
+
+    const snapshots = await Promise.all(
+      uniqueBagIDs.map(bagID => getDoc(doc(this.getStore(), 'bag', bagID)))
+    );
+
+    return snapshots.flatMap(snapshot =>
+      snapshot.exists() ? [this.toBagItem(snapshot.id, snapshot.data())] : []
+    );
   }
 
   public async updateBagsWeight(bags: string[], weightDiff: number) {
@@ -848,6 +872,19 @@ class BagStore {
       endDate: data?.endDate ?? null,
       location: data?.location ?? null,
       weather: data?.weather ?? null,
+    };
+  }
+
+  // 코스 그리기 기본 이름(RouteDraw RD-3)용 경량 조회 — 배낭 이름과 여행지 이름만 읽는다.
+  public async getBagNaming(id: string) {
+    const data = (await getDoc(doc(this.getStore(), 'bag', id))).data() as
+      { name?: string; location?: BagLocation } | undefined;
+
+    return {
+      name: data?.name ?? null,
+      locationName: data?.location?.name ?? null,
+      // 코스 그리기 시작 카메라(RD-9 #2)가 여행지 좌표를 쓴다.
+      location: data?.location ?? null,
     };
   }
 

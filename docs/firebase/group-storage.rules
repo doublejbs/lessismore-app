@@ -29,11 +29,26 @@ service firebase.storage {
       // `read` 는 get 과 list 를 함께 여는 이름이므로 쓰지 않는다. 단건 다운로드만 연다.
       allow get: if isGroupMember() && isGpxFile();
 
+      function isValidGpxUpload() {
+        return isGpxFile()
+          && request.resource.size > 0
+          && request.resource.size <= 5 * 1024 * 1024;
+      }
+
+      // 이 파일의 코스 문서(파일명 = `{routeId}.gpx`). isGpxFile 이 점 하나만 허용하므로 첫 조각이 routeId 다.
+      function routeDocPath() {
+        return /databases/(default)/documents/groups/$(groupId)/routes/$(fileName.split('\\.')[0]);
+      }
+
       // 5MB 상한(GRP-8). 삭제 요청에는 request.resource 가 없으므로 별도 규칙으로 나눈다.
-      allow create, update: if isGroupMember()
-        && isGpxFile()
-        && request.resource.size > 0
-        && request.resource.size <= 5 * 1024 * 1024;
+      allow create: if isGroupMember() && isValidGpxUpload();
+
+      // 덮어쓰기(그린 코스 수정 RouteDraw RD-7)는 **올린 사람만**. 코스 문서가 아직 없으면(같은 id로 다시 올리는
+      // 재시도 — 앞선 업로드의 파일만 남고 문서는 안 생긴 상태) 새로 올리는 것과 같으므로 그룹원이면 된다.
+      allow update: if isGroupMember()
+        && isValidGpxUpload()
+        && (!firestore.exists(routeDocPath())
+          || firestore.get(routeDocPath()).data.authorId == request.auth.uid);
 
       // 코스를 지우면 Firestore 문서와 Storage 파일을 함께 지운다(GRP-8).
       // 올린 사람인지 방장인지는 Firestore 규칙이 판정하고, 여기서는 그룹원인지만 본다 —

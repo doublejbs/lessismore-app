@@ -73,7 +73,7 @@ class CampSiteDetail {
       }
 
       this.setSpot(spot);
-      this.analyticsManager?.logClick('camp_site');
+      this.analyticsManager?.logClick('camp_site', { spot_id: spot.id });
       this.setInitialized(true);
 
       void this.loadReviewContent(spot);
@@ -201,8 +201,18 @@ class CampSiteDetail {
     this.userReviews = value;
   }
 
+  // 차단한 사람(CM-17)의 후기를 뺀 목록. 별점 요약(`getReviewSummary`)은 서버 집계 그대로 둔다.
   public getUserReviews() {
-    return this.userReviews;
+    return this.visibleUserReviews;
+  }
+
+  private get visibleUserReviews() {
+    return (
+      app.getBlockedUserStore()?.filterVisible(
+        this.userReviews,
+        review => review.authorId
+      ) ?? this.userReviews
+    );
   }
 
   private setMyReview(value: CampReview | null) {

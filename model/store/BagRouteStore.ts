@@ -9,6 +9,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  updateDoc,
 } from 'firebase/firestore';
 import BagRoute from '../bag-route/BagRoute';
 import Firebase from '../firebase/Firebase';
@@ -21,6 +22,11 @@ import {
 import GroupValidationError from '../group/GroupValidationError';
 import { RouteCoordinate, RouteData, RouteInput } from '../route/RouteData';
 import RouteDirectionStore from '../route/RouteDirectionStore';
+import {
+  toRouteDrawnFields,
+  toRouteDrawnPayload,
+  toRouteUpdatePayload,
+} from '../route/RouteDocument';
 import RouteValidator from '../route/RouteValidator';
 
 /**
@@ -117,6 +123,8 @@ class BagRouteStore {
             ? { ele: coordinate.ele }
             : {}),
         })),
+      // 그린 코스면 `source`·찍은 점(RouteDraw RD-7). 가져온 코스엔 키가 없다.
+      ...toRouteDrawnPayload(input),
       createdAt: serverTimestamp(),
     };
 
@@ -130,6 +138,23 @@ class BagRouteStore {
     }
 
     await setDoc(this.routeRef(bagId, input.routeId), routeData);
+
+    return input.routeId;
+  }
+
+  /**
+   * 그린 코스 수정 (RouteDraw RD-7). **같은 문서를 덮어쓴다** — `storagePath`·`createdAt`은 그대로 두고(보내지 않는다)
+   * `updatedAt`을 서버 시각으로 쓴다. Storage 원본은 호출자가 같은 경로에 먼저 다시 올린다. 보안 규칙이 그린 코스
+   * (`source == 'drawn'`)·소유자만 받는다. 상한 검사는 하지 않는다 — 개수가 바뀌지 않는다.
+   */
+  public async updateRoute(bagId: string, input: RouteInput): Promise<string> {
+    this.requireUserId();
+    RouteValidator.validateRoute(input);
+
+    await updateDoc(
+      this.routeRef(bagId, input.routeId),
+      toRouteUpdatePayload(input)
+    );
 
     return input.routeId;
   }
@@ -190,6 +215,8 @@ class BagRouteStore {
       },
       simplified: simplified.map(coordinate => this.toCoordinate(coordinate)),
       createdAt: toFirestoreDate(data.createdAt),
+      // 그린 코스면 `source`·찍은 점·수정 시각(RouteDraw RD-7).
+      ...toRouteDrawnFields(data),
     };
   }
 

@@ -16,6 +16,7 @@ import { useRef } from 'react';
 import { Acg, AcgLayout, Spacing } from '@/constants/DesignTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import app from '@/model/app/App';
+import useCloseWhenAuthorBlocked from '@/hooks/useCloseWhenAuthorBlocked';
 
 interface Props {
   replyDetail: ReplyDetail;
@@ -35,6 +36,14 @@ const ReplyDetailView = ({ replyDetail, originalComment }: Props) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // CM-17: 원 리뷰 작성자가 차단되면(원 리뷰 메뉴든 답글 행이든) 리뷰 목록으로 돌아간다. 남의 답글이
+  // 남아 있으면 닫지 않고 원 리뷰 자리를 `차단한 사용자의 댓글이에요`로 둔다(ReplyDetailOriginalView).
+  useCloseWhenAuthorBlocked(
+    replyDetail.getOriginalComment()?.authorId,
+    `/reply/${replyDetail.getGearId()}`,
+    replyDetail.getReplies().length > 0
+  );
 
   const handlePressBack = () => {
     router.back();

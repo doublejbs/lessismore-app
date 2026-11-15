@@ -14,4 +14,7 @@ export interface BagRouteEntry {
   groupName?: string;
   // 내 배낭 코스인지 — 삭제·`그룹에 올리기`는 내 코스에만 있다.
   owned: boolean;
+  // 내 코스를 연결 그룹에 올려 둔 복사본이 있는지(BD-11 중복 접기). 그 그룹 코스는 목록에서 빠지고
+  // 이 행 메타에 `그룹에 공유됨`이 붙는다. 없으면 키가 없다.
+  sharedToGroup?: boolean;
 }

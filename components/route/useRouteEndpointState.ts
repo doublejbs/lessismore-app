@@ -12,26 +12,43 @@ import RouteEndpointInfo, {
 import RouteEndpointKind from '@/model/route/RouteEndpointKind';
 
 interface Params {
-  // 마커를 단 코스 — 화면이 지금 강조하는 코스 하나다(`RouteEndpointMarkersView`와 같은 값).
+  // 마커를 단 코스 — 화면이 지금 강조하는 코스 하나다(`MapEndpointMarkersView`와 같은 값).
   route: RouteDisplay | null;
   /**
    * 누른 끝점으로 카메라를 옮긴다. 줌은 유지한다(포인트 탭과 같다, GRP-8).
-   * `pivot`은 좌표가 놓일 지도 안의 비율 위치(0~1)다 — 화면 가운데가 아니라 카드 **위** 빈 자리다.
+   * `padding`은 카메라 이동의 위·아래 여백(pt)이다 — 좌표가 화면 가운데가 아니라 카드 **위** 빈 자리
+   * 가운데에 놓인다(MapLibre 카메라 `padding`, MAP-2 — `[이력]` 네이버 `pivot` 대체). 이 여백은 Android 카메라에
+   * 남으므로 다른 이동은 `NO_CAMERA_PADDING`을 명시한다(`components/map/MapConstants.ts`).
    */
   moveCamera: (
     coordinate: RouteCoordinate,
-    pivot: { x: number; y: number }
+    padding: RouteEndpointCameraPadding
   ) => void;
   // 끝점을 고를 때 다른 카드(그룹 지도의 포인트 카드)를 닫는다 — 둘은 동시에 뜨지 않는다.
   onSelect?: () => void;
 }
 
+// 끝점으로 옮길 때의 카메라 여백(pt). 위는 상단 오버레이, 아래는 카드·버튼이 덮는 높이다.
+export interface RouteEndpointCameraPadding {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+const NO_PADDING: RouteEndpointCameraPadding = {
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+};
+
 // 카드가 자리를 잡을 때까지 기다리는 최대 시간. 레이아웃 이벤트가 오지 않아도(카드 높이가 같을 때) 옮긴다.
 const CAMERA_MOVE_FALLBACK_MS = 300;
-// 말풍선 마커 높이(pt, `RouteEndpointMarkersView`). 꼬리 끝이 좌표라 말풍선은 좌표 위로 선다.
+// 말풍선 마커 높이(pt, `MapEndpointMarkersView`). 꼬리 끝이 좌표라 말풍선은 좌표 위로 선다.
 const MARKER_HEIGHT = 36;
-const PIVOT_MIN = 0.1;
-const PIVOT_MAX = 0.9;
+// 여백을 다 빼고도 남겨 둘 지도 높이(pt) — 여백이 지도보다 크면 SDK가 잘라 내 위치가 엉뚱해진다.
+const MIN_VISIBLE_HEIGHT = 48;
 
 /**
  * 코스 출발·도착 마커 탭 → 위치 정보 카드 (GRP-8). 그룹 지도와 배낭 코스 화면이 같이 쓴다.
@@ -80,20 +97,23 @@ export const useRouteEndpointState = ({
     const visibleBottom = visibleBottomRef.current ?? mapHeight;
 
     if (mapHeight <= 0 || visibleBottom <= visibleTop) {
-      moveCamera(coordinate, { x: 0.5, y: 0.5 });
+      moveCamera(coordinate, NO_PADDING);
 
       return;
     }
 
-    // 말풍선 가운데가 빈 자리 가운데에 오게 좌표(꼬리 끝)를 반 마커만큼 내린다.
-    const targetY =
-      visibleTop + (visibleBottom - visibleTop) / 2 + MARKER_HEIGHT / 2;
-    const pivotY = Math.min(
-      PIVOT_MAX,
-      Math.max(PIVOT_MIN, targetY / mapHeight)
-    );
+    // 여백 안쪽 가운데가 좌표 자리다. 말풍선 가운데가 빈 자리 가운데에 오게 위 여백에 마커 높이를
+    // 더한다(좌표 = 꼬리 끝이 반 마커만큼 내려간다).
+    const top = visibleTop + MARKER_HEIGHT;
+    const bottom = Math.max(0, mapHeight - visibleBottom);
 
-    moveCamera(coordinate, { x: 0.5, y: pivotY });
+    if (mapHeight - top - bottom < MIN_VISIBLE_HEIGHT) {
+      moveCamera(coordinate, NO_PADDING);
+
+      return;
+    }
+
+    moveCamera(coordinate, { ...NO_PADDING, top, bottom });
   }, [moveCamera]);
 
   useEffect(() => {

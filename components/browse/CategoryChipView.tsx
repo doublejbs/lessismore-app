@@ -21,6 +21,8 @@ interface Props {
   accessibilityRole?: AccessibilityRole;
   accessibilityState?: AccessibilityState;
   disabled?: boolean;
+  // 라벨 줄 수 제한 — 지정하면 넘치는 라벨을 말줄임한다(예: 박지명 칩, 한 줄).
+  numberOfLines?: number;
   // 'primary'(기본): 큰 아웃라인 칩, 선택 시 검정 채움.
   // 'secondary': 2차(세분) 필터용 — 한 단계 작고 연한 톤(선택 시 연회색 채움)으로 1차와 위계 구분.
   variant?: 'primary' | 'secondary';
@@ -52,6 +54,7 @@ const CategoryChipView = forwardRef<View, Props>(
       accessibilityRole = 'button',
       accessibilityState,
       disabled = false,
+      numberOfLines,
       variant = 'primary',
       tone = 'default',
     },
@@ -103,8 +106,10 @@ const CategoryChipView = forwardRef<View, Props>(
           )}
           <PretendardText
             weight='medium'
+            {...(numberOfLines !== undefined && { numberOfLines })}
             style={[
               styles.chipText,
+              numberOfLines !== undefined && styles.chipTextShrink,
               isSecondary && styles.chipTextSecondary,
               isSecondary
                 ? selected
@@ -210,6 +215,9 @@ const styles = StyleSheet.create({
   },
   chipText: {
     ...AcgType.control,
+  },
+  chipTextShrink: {
+    flexShrink: 1,
   },
   chipTextSecondary: {
     ...AcgType.meta,

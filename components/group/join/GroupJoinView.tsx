@@ -46,11 +46,14 @@ const GroupJoinView: FC<Props> = ({ groupJoin, groupId }) => {
   const status = groupJoin.getStatus();
   const group = groupJoin.getGroup();
   const isJoining = groupJoin.getIsJoining();
+  const canGoBack = router.canGoBack();
   const messageKey = MESSAGE_KEY_BY_STATUS[status];
+
   // 기간 표기는 목록·상세와 같은 단일 소스를 쓴다(로케일마다 형식이 다르다).
   const dateText = group
     ? formatGroupDateRange(group.getStartDate(), group.getEndDate())
     : '';
+
   const destinationName = group?.getDestinationName();
   const metaParts = group
     ? [
@@ -106,25 +109,43 @@ const GroupJoinView: FC<Props> = ({ groupJoin, groupId }) => {
     router.replace('/(tabs)/bag');
   };
 
+  const headerOptions = {
+    headerShown: IS_IOS,
+    headerTransparent: true,
+    headerTitle: l10n.t('group.join.title'),
+    headerBackButtonDisplayMode: 'minimal' as const,
+    ...(IS_IOS && !canGoBack && {
+      headerLeft: () => (
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={handleBack}
+          accessibilityRole='button'
+          accessibilityLabel={l10n.t('common.close')}
+        >
+          <Ionicons name='close' size={24} color={Acg.ink} />
+        </TouchableOpacity>
+      ),
+    }),
+  };
+
   return (
     <View style={styles.root}>
-      <Stack.Screen
-        options={{
-          headerShown: IS_IOS,
-          headerTransparent: true,
-          headerTitle: l10n.t('group.join.title'),
-          headerBackButtonDisplayMode: 'minimal',
-        }}
-      />
+      <Stack.Screen options={headerOptions} />
       {!IS_IOS && (
         <View style={[styles.header, { paddingTop: insets.top }]}>
           <TouchableOpacity
             style={styles.backButton}
             onPress={handleBack}
             accessibilityRole='button'
-            accessibilityLabel={l10n.t('common.back')}
+            accessibilityLabel={
+              canGoBack ? l10n.t('common.back') : l10n.t('common.close')
+            }
           >
-            <Ionicons name='chevron-back' size={24} color={Acg.ink} />
+            <Ionicons
+              name={canGoBack ? 'chevron-back' : 'close'}
+              size={24}
+              color={Acg.ink}
+            />
           </TouchableOpacity>
           <View style={styles.headerTitle}>
             <PretendardText style={styles.title} weight='semibold'>
@@ -230,22 +251,17 @@ const GroupJoinView: FC<Props> = ({ groupJoin, groupId }) => {
                 </PretendardText>
               </TouchableOpacity>
             )}
-            {(status === GroupJoinStatus.NotFound ||
-              status === GroupJoinStatus.InvalidLink ||
-              status === GroupJoinStatus.Full ||
-              status === GroupJoinStatus.InviteDisabled) && (
-              <TouchableOpacity
-                style={styles.secondaryButton}
-                onPress={handleBack}
-                activeOpacity={0.7}
-                accessibilityRole='button'
-                accessibilityLabel={l10n.t('group.join.back')}
-              >
-                <PretendardText style={styles.secondaryText} weight='semibold'>
-                  {l10n.t('group.join.back')}
-                </PretendardText>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={handleBack}
+              activeOpacity={0.7}
+              accessibilityRole='button'
+              accessibilityLabel={l10n.t('group.join.back')}
+            >
+              <PretendardText style={styles.secondaryText} weight='semibold'>
+                {l10n.t('group.join.back')}
+              </PretendardText>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -271,6 +287,12 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     justifyContent: 'center',
+  },
+  closeButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
     flex: 1,

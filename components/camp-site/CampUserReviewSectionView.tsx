@@ -21,6 +21,7 @@ const CampUserReviewSectionView: FC<Props> = ({ campSiteDetail }) => {
   const reviews = campSiteDetail.getUserReviews();
   const myReview = campSiteDetail.getMyReview();
   const myUid = campSiteDetail.getMyUserId();
+  const spotId = campSiteDetail.getSpot()?.id ?? '';
 
   const handlePressWrite = () => {
     campSiteDetail.openWriteReview();
@@ -92,6 +93,7 @@ const CampUserReviewSectionView: FC<Props> = ({ campSiteDetail }) => {
           {myReview ? (
             <CampUserReviewItemView
               review={myReview}
+              spotId={spotId}
               isMine
               onPressBag={handlePressBag}
               onEdit={handleEditMine}
@@ -102,6 +104,7 @@ const CampUserReviewSectionView: FC<Props> = ({ campSiteDetail }) => {
             <CampUserReviewItemView
               key={review.authorId}
               review={review}
+              spotId={spotId}
               isMine={review.authorId === myUid}
               onPressBag={handlePressBag}
             />

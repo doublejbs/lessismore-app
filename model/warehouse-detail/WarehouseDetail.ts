@@ -698,11 +698,20 @@ class WarehouseDetail {
 
   public async fetchReplies() {
     try {
-      const data = await this.replyStore.getLatestComment(this.id);
+      const blockedUserStore = app.getBlockedUserStore();
+      const data = await this.replyStore.getLatestComment(
+        this.id,
+        authorId => blockedUserStore?.isBlocked(authorId) ?? false
+      );
 
       if (data) {
         this.setReplies([
-          ReplyItem.new(data.id, data.content, dayjs(data.createdAt)),
+          ReplyItem.new(
+            data.id,
+            data.content,
+            dayjs(data.createdAt),
+            data.authorId
+          ),
         ]);
       }
     } catch (error) {
@@ -743,12 +752,21 @@ class WarehouseDetail {
     this.replies = value;
   }
 
+  // 차단한 사람(CM-17)의 리뷰는 미리보기에서도 뺀다.
   public getReplies() {
-    return this.replies;
+    return this.visibleReplies;
+  }
+
+  private get visibleReplies() {
+    return (
+      app.getBlockedUserStore()?.filterVisible(this.replies, reply =>
+        reply.getAuthorId()
+      ) ?? this.replies
+    );
   }
 
   public hasReplies() {
-    return this.replies.length > 0;
+    return this.getReplies().length > 0;
   }
 
   public replyCount() {

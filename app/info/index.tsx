@@ -105,6 +105,10 @@ const InfoView: FC = () => {
     router.push('/community/mine');
   };
 
+  const handleOpenBlockedUsers = () => {
+    router.push('/info/blocked-users' as never);
+  };
+
   const handleOpenLanguageSettings = () => {
     router.push('/info/language' as never);
   };
@@ -366,6 +370,25 @@ const InfoView: FC = () => {
               color={Color.iconMuted}
             />
           </TouchableOpacity>
+
+          {/* CM-17: 차단한 사용자 목록·해제. 정책 행 묶음 앞에 둔다(AU-4). */}
+          {isLoggedIn ? (
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleOpenBlockedUsers}
+              activeOpacity={0.7}
+              accessibilityRole='button'
+            >
+              <PretendardText weight='semibold' style={styles.buttonText}>
+                {l10n.t('moderation.blockedUsers.title')}
+              </PretendardText>
+              <Ionicons
+                name='chevron-forward'
+                size={18}
+                color={Color.iconMuted}
+              />
+            </TouchableOpacity>
+          ) : null}
 
           {/* 전문은 별도 화면이 맡는다(AU-4) — 인라인 아코디언은 스크롤이 수천 pt로 늘어났다. */}
           <TouchableOpacity

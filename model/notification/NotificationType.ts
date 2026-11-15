@@ -6,6 +6,8 @@ enum NotificationType {
   WeekendCamp = 'weekend_camp',
   // 주말 날씨 브리핑(NT-11 원격) — 서버 페이로드 data.type 값이다.
   WeekendBriefing = 'weekend_briefing',
+  // 구독 체험 종료 리마인더(NT-13 로컬, SUB-10).
+  TrialReminder = 'trial_reminder',
   Notice = 'notice',
   Unknown = 'unknown',
 }

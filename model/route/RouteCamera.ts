@@ -76,16 +76,20 @@ export const mergeRouteBounds = (
 
 /**
  * 상자가 여백을 두고 화면에 들어오는 카메라 영역. 여유 배율만큼 넓힌 만큼 남서 모서리도 같이
- * 밀어 중심을 상자 중심에 유지한다.
+ * 밀어 중심을 상자 중심에 유지한다. `minDelta`는 최소 표시 범위(도)다 — 운동 기록 경로(HA-4)는
+ * 한 자리에서 맴돈 기록도 그 부근(약 100m)까지 당겨 보도록 더 작은 하한을 준다.
  */
-export const getRouteFitRegion = (bounds: RouteBounds): RouteCameraRegion => {
+export const getRouteFitRegion = (
+  bounds: RouteBounds,
+  minDelta: number = MIN_REGION_DELTA
+): RouteCameraRegion => {
   const latitudeDelta = Math.max(
     (bounds.maxLat - bounds.minLat) * CAMERA_PADDING_RATIO,
-    MIN_REGION_DELTA
+    minDelta
   );
   const longitudeDelta = Math.max(
     (bounds.maxLng - bounds.minLng) * CAMERA_PADDING_RATIO,
-    MIN_REGION_DELTA
+    minDelta
   );
 
   return {

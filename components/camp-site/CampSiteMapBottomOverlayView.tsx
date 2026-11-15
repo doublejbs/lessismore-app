@@ -2,8 +2,10 @@ import { FC } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
+import MapLayerControlView from '@/components/map/MapLayerControlView';
 import { Acg, AcgShadow } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
+import MapLayerScreen from '@/model/map/MapLayerScreen';
 
 // 즐겨찾기 상징 노랑 — 마커 캠핑장색과 동일한 시맨틱 리터럴(CS-9).
 const FAVORITE_COLOR = '#FFD700';
@@ -12,16 +14,19 @@ interface Props {
   // 하단 플로팅 요소가 iOS 플로팅 탭바에 가리지 않게 하는 여유(부모가 계산).
   bottomClearance: number;
   locationGranted: boolean;
+  // 지도 종류 버튼(MAP-7)을 둘지 — 지도를 그릴 수 있을 때만.
+  showLayerControl: boolean;
   onMoveToCurrentLocation: () => void;
   // 즐겨찾기 목록 시트 열기(CS-9) — 로그인 가드는 호출자가 처리한다.
   onOpenFavorites: () => void;
 }
 
-// 지도 하단 오버레이(CS-2/CS-9): 즐겨찾기 버튼 + 현재 위치 버튼(우하단 세로 스택).
+// 지도 하단 오버레이(CS-2/CS-9 · MAP-7): 즐겨찾기 버튼 + 현재 위치 버튼 + 지도 종류(우하단 세로 스택, 맨 아래).
 // 즐겨찾기 버튼은 현재 위치 버튼 위에 두고 항상 노출한다(위치 권한과 무관).
 const CampSiteMapBottomOverlayView: FC<Props> = ({
   bottomClearance,
   locationGranted,
+  showLayerControl,
   onMoveToCurrentLocation,
   onOpenFavorites,
 }) => {
@@ -57,6 +62,11 @@ const CampSiteMapBottomOverlayView: FC<Props> = ({
         >
           <Ionicons name='locate' size={22} color={Acg.ink} />
         </TouchableOpacity>
+      ) : null}
+
+      {/* 지도 종류(MAP-7) — 스택 맨 아래. */}
+      {showLayerControl ? (
+        <MapLayerControlView screen={MapLayerScreen.CampMap} />
       ) : null}
     </View>
   );

@@ -1,6 +1,9 @@
 import { makeAutoObservable } from 'mobx';
 import { Platform, ToastAndroid } from 'react-native';
 
+const DEFAULT_DURATION_MS = 3000;
+const BUTTON_DURATION_MS = 5000;
+
 class ToastManager {
   public static new() {
     return new ToastManager();
@@ -11,11 +14,34 @@ class ToastManager {
   private buttonText?: string | undefined;
   private onButtonPress?: (() => void) | undefined;
   private hideTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  // 떠 있는 토스트가 내려간 뒤 띄울 메시지(`enqueue`). 새 토스트가 앞의 것을 덮지 않게 줄을 세운다.
+  private queue: string[] = [];
 
   private constructor() {
-    makeAutoObservable<ToastManager, 'hideTimeoutId'>(this, {
+    makeAutoObservable<ToastManager, 'hideTimeoutId' | 'queue'>(this, {
       hideTimeoutId: false,
+      queue: false,
     });
+  }
+
+  /**
+   * 지금 떠 있는 토스트가 내려간 뒤 이어서 띄운다. 떠 있는 것이 없으면 바로 띄운다.
+   * Android 네이티브 토스트는 스스로 줄을 세우므로 그대로 넘긴다.
+   */
+  public enqueue(message: string) {
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(message, ToastAndroid.SHORT);
+
+      return;
+    }
+
+    if (!this.visible) {
+      this.show({ message });
+
+      return;
+    }
+
+    this.queue.push(message);
   }
 
   public show({
@@ -40,7 +66,7 @@ class ToastManager {
       this.setVisible(true);
 
       // 액션 버튼이 있으면 사용자가 눌러야 하므로 노출 시간을 늘린다(3초 → 5초).
-      const duration = buttonText ? 5000 : 3000;
+      const duration = buttonText ? BUTTON_DURATION_MS : DEFAULT_DURATION_MS;
 
       this.hideTimeoutId = setTimeout(() => {
         this.hideTimeoutId = null;
@@ -53,8 +79,13 @@ class ToastManager {
   public pressButton() {
     const onButtonPress = this.onButtonPress;
 
-    this.hide();
+    this.dismiss();
     onButtonPress?.();
+
+    // 콜백이 새 토스트를 띄우지 않았으면 줄 선 것을 잇는다.
+    if (!this.visible) {
+      this.showNextQueued();
+    }
   }
 
   // Android에서 긴 토스트 표시
@@ -75,7 +106,24 @@ class ToastManager {
     }
   }
 
+  // 토스트가 내려가면 바로 다음 것을 띄운다 — 줄 선 메시지가 한참 뒤 엉뚱한 화면에서 뜨지 않게.
+  private showNextQueued() {
+    const next = this.queue.shift();
+
+    if (next === undefined) {
+      return;
+    }
+
+    this.show({ message: next });
+  }
+
   public hide() {
+    this.dismiss();
+    this.showNextQueued();
+  }
+
+  // 큐를 건드리지 않고 지금 토스트만 내린다.
+  private dismiss() {
     this.clearHideTimeout();
     this.setVisible(false);
     this.setButtonText(undefined);

@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import {
   ActivityIndicator,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -11,28 +13,36 @@ import {
   AcgLayout,
   AcgRadius,
   AcgType,
-  Radius,
   Spacing,
 } from '@/constants/DesignTokens';
 import app from '@/model/app/App';
 import SubscriptionOfferingStatus from '@/model/subscription/SubscriptionOfferingStatus';
-import SubscriptionRestoreButtonView from './SubscriptionRestoreButtonView';
+import SubscriptionCtaBarView from './SubscriptionCtaBarView';
+import SubscriptionFeatureListView from './SubscriptionFeatureListView';
+import SubscriptionHeroView from './SubscriptionHeroView';
+import SubscriptionLegalView from './SubscriptionLegalView';
+import SubscriptionTrialTimelineView from './SubscriptionTrialTimelineView';
+import useSubscriptionHeroContent from './useSubscriptionHeroContent';
 
-const PRIMARY_BUTTON_HEIGHT = 48;
 // HIG 최소 터치 타깃.
 const MIN_TOUCH_SIZE = 44;
 
-// 혜택 아이콘 타일(연회색 면 + 모서리 12, HM-8)과 아이콘 크기.
-const BENEFIT_ICON_TILE_SIZE = 40;
-const BENEFIT_ICON_SIZE = 22;
+// 배지(연회색 칩) 치수.
+const BADGE_ICON_SIZE = 14;
+const BADGE_PADDING_H = 12;
+const BADGE_PADDING_V = 6;
 
 interface Props {
   offeringStatus: SubscriptionOfferingStatus;
   priceString: string | null;
   // SUB-10: 체험 자격이 확인됐을 때만 true. 모르거나 조회에 실패하면 false(자격 없음으로 그린다).
   isTrialEligible: boolean;
-  // SUB-11: 오프라인 타일 게이트에서 열었는지 — 제목 아래 안내 한 줄을 더하고 오프라인 혜택을 맨 앞에 둔다.
+  // SUB-11: 오프라인 타일 게이트에서 열었는지 — 제목 아래 안내 한 줄을 더한다.
   isOfflineEntry: boolean;
+  // SUB-12: 코스 그리기 게이트에서 열었는지 — 제목 아래 안내 한 줄 + 기능 행 `코스 그리기`를 맨 위로.
+  isRouteDrawEntry: boolean;
+  // SUB-13: 지도 종류 메뉴의 `위성`에서 열었는지 — 제목 아래 안내 한 줄 + 기능 행 `위성 지도`를 맨 위로.
+  isSatelliteEntry: boolean;
   isPurchasing: boolean;
   isRestoring: boolean;
   onSubscribe: () => void;
@@ -40,19 +50,25 @@ interface Props {
   onRetry: () => void;
   onOpenTerms: () => void;
   onOpenPrivacyPolicy: () => void;
+  onClose: () => void;
 }
 
-// SUB-2 미구독: 제목 `useless 플러스` · 혜택(아이콘 + 두 줄) · 가격 줄(SDK 현지화 값) · 주 액션(라임, 화면의
-// 주 액션 하나) · 구매 복원 · (체험이면 체험 안내) · 자동 갱신 안내 · 약관 링크. 가격·기간·자동 갱신·해지
-// 방법·약관 링크·구매 복원은 App Store 심사 필수 표시다(3.1.2) — 빠뜨리지 않는다.
-// SUB-10: 체험 자격이 있으면 `7일 무료 체험 후 월 {가격}`·`7일 무료로 시작`, 없으면 `월 {가격}`·`구독하기`.
-// SUB-11: 오프라인 진입점 변형은 제목 아래 안내 한 줄을 더한다. 혜택은 지금 오프라인 저장 하나라 오프라인
-// 줄이 언제나 맨 앞이다 — 혜택을 더하면 오프라인 진입점에서는 오프라인 줄을 맨 앞에 둔다.
+/**
+ * SUB-2 미구독 — 전체 화면 안내(2026-10-13 개정). 세로 스크롤에 ① 히어로 ② 배지 ③ 제목 두 줄 ④ 가격 줄
+ * ⑤ 체험 카드(자격 없으면 한 줄) ⑥ 기능 6행 ⑦ 심사 필수 표시를 쌓고, 하단 고정 바에 주 액션(라임 —
+ * 화면에 하나)을 둔다. 스크롤 콘텐츠 하단 패딩은 바 높이만큼이다.
+ *
+ * - SUB-10: 제목·가격·체험 카드·버튼 문구가 체험 자격으로 갈린다. 상품·자격을 받기 전에는 제목과 체험
+ *   카드 자리를 비워 둔다 — `구독하기` 문구가 `7일 무료로 시작`으로 뒤늦게 바뀌어 보이지 않게.
+ * - 가격·기간·자동 갱신·해지 방법·약관 링크·구매 복원은 App Store 심사 필수 표시다(3.1.2).
+ */
 const SubscriptionOfferView = ({
   offeringStatus,
   priceString,
   isTrialEligible,
   isOfflineEntry,
+  isRouteDrawEntry,
+  isSatelliteEntry,
   isPurchasing,
   isRestoring,
   onSubscribe,
@@ -60,15 +76,25 @@ const SubscriptionOfferView = ({
   onRetry,
   onOpenTerms,
   onOpenPrivacyPolicy,
+  onClose,
 }: Props) => {
   const l10n = app.getL10n();
+  const heroContent = useSubscriptionHeroContent();
+  const [barHeight, setBarHeight] = useState(0);
   const isBusy = isPurchasing || isRestoring;
   const isPriceReady =
     offeringStatus === SubscriptionOfferingStatus.Ready && priceString !== null;
+  // 상품(가격·체험 자격)을 받았거나 실패가 확정됐는지. 그 전에는 자격에 따라 갈리는 자리를 비워 둔다.
+  const isOfferSettled =
+    offeringStatus === SubscriptionOfferingStatus.Ready ||
+    offeringStatus === SubscriptionOfferingStatus.Error;
   const canSubscribe = isPriceReady && !isBusy;
   const subscribeLabel = isTrialEligible
     ? l10n.t('subscription.startTrial')
     : l10n.t('subscription.subscribe');
+  const headline = isTrialEligible
+    ? `${l10n.t('subscription.headlineTrial1')}\n${l10n.t('subscription.headlineTrial2')}`
+    : `${l10n.t('subscription.headlineNoTrial1')}\n${l10n.t('subscription.headlineNoTrial2')}`;
 
   const renderPrice = () => {
     if (offeringStatus === SubscriptionOfferingStatus.Error) {
@@ -92,18 +118,14 @@ const SubscriptionOfferView = ({
       );
     }
 
-    if (offeringStatus !== SubscriptionOfferingStatus.Ready || !priceString) {
-      return (
-        <View style={styles.priceLoading}>
-          <ActivityIndicator color={Acg.ink} />
-        </View>
-      );
+    if (!isPriceReady) {
+      return <ActivityIndicator color={Acg.ink} />;
     }
 
     return (
-      <PretendardText weight='semibold' style={styles.price}>
+      <PretendardText weight='medium' style={styles.price}>
         {isTrialEligible
-          ? l10n.t('subscription.trialPrice', { price: priceString })
+          ? l10n.t('subscription.priceTrialLead', { price: priceString })
           : l10n.t('subscription.price', { price: priceString })}
       </PretendardText>
     );
@@ -122,170 +144,176 @@ const SubscriptionOfferView = ({
     );
   };
 
+  // SUB-2 ⑤: 체험 자격이 있으면 체험 카드, 없으면 한 줄.
+  const renderPlan = () => {
+    if (isTrialEligible) {
+      return <SubscriptionTrialTimelineView priceString={priceString} />;
+    }
+
+    return (
+      <PretendardText style={styles.noTrialLine}>
+        {l10n.t('subscription.noTrialLine')}
+      </PretendardText>
+    );
+  };
+
+  const settledVisibility = isOfferSettled ? null : styles.pending;
+  const settledA11yProps = isOfferSettled
+    ? {}
+    : {
+        accessibilityElementsHidden: true,
+        importantForAccessibility: 'no-hide-descendants' as const,
+      };
+
   return (
-    <View>
-      <PretendardText
-        weight='semibold'
-        style={styles.title}
-        accessibilityRole='header'
+    <View style={styles.container}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: barHeight + Spacing.section }}
+        showsVerticalScrollIndicator={false}
       >
-        {l10n.t('subscription.title')}
-      </PretendardText>
-
-      {isOfflineEntry ? (
-        <PretendardText style={styles.lead}>
-          {l10n.t('subscription.offlineEntryLead')}
-        </PretendardText>
-      ) : null}
-
-      <View style={styles.benefitRow}>
-        <View style={styles.benefitIconTile}>
-          <Ionicons
-            name='cloud-download-outline'
-            size={BENEFIT_ICON_SIZE}
-            color={Acg.ink}
-          />
-        </View>
-        <View style={styles.benefitTextColumn}>
-          <PretendardText weight='medium' style={styles.benefitTitle}>
-            {l10n.t('subscription.benefitOfflineTitle')}
-          </PretendardText>
-          <PretendardText style={styles.benefitDetail}>
-            {l10n.t('subscription.benefitOfflineDetail')}
-          </PretendardText>
-        </View>
-      </View>
-
-      <View style={styles.priceSlot}>{renderPrice()}</View>
-
-      {renderTrialNotice()}
-
-      {/* 화면의 주 액션 — 라임 알약 + 잉크 글자(HM-8). */}
-      <TouchableOpacity
-        style={[
-          styles.primaryButton,
-          !canSubscribe && !isPurchasing && styles.primaryButtonDisabled,
-        ]}
-        onPress={onSubscribe}
-        disabled={!canSubscribe}
-        activeOpacity={0.85}
-        accessibilityRole='button'
-        accessibilityLabel={
-          isPurchasing ? l10n.t('subscription.purchasing') : subscribeLabel
-        }
-        accessibilityState={{ disabled: !canSubscribe, busy: isPurchasing }}
-      >
-        {isPurchasing ? (
-          <ActivityIndicator color={Acg.ink} />
-        ) : (
-          <PretendardText
-            weight='semibold'
-            style={[
-              styles.primaryLabel,
-              !canSubscribe && styles.primaryLabelDisabled,
-            ]}
-          >
-            {subscribeLabel}
-          </PretendardText>
-        )}
-      </TouchableOpacity>
-
-      <View style={styles.restoreSlot}>
-        <SubscriptionRestoreButtonView
-          isRestoring={isRestoring}
-          disabled={isPurchasing}
-          onRestore={onRestore}
+        <SubscriptionHeroView
+          content={heroContent}
+          isCloseDisabled={isBusy}
+          onClose={onClose}
         />
-      </View>
 
-      <PretendardText style={styles.notice}>
-        {l10n.t('subscription.autoRenewNotice')}
-      </PretendardText>
+        <View style={styles.content}>
+          <View style={styles.badge}>
+            <Ionicons name='sparkles' size={BADGE_ICON_SIZE} color={Acg.ink} />
+            <PretendardText weight='semibold' style={styles.badgeLabel}>
+              {l10n.t('subscription.heroBadge')}
+            </PretendardText>
+          </View>
 
-      <View style={styles.links}>
-        <TouchableOpacity
-          style={styles.linkButton}
-          onPress={onOpenTerms}
-          activeOpacity={0.7}
-          accessibilityRole='link'
-        >
-          <PretendardText style={styles.linkLabel}>
-            {l10n.t('info.policy.terms')}
-          </PretendardText>
-        </TouchableOpacity>
-        <PretendardText style={styles.linkSeparator}>
-          {l10n.t('common.metaSeparator')}
-        </PretendardText>
-        <TouchableOpacity
-          style={styles.linkButton}
-          onPress={onOpenPrivacyPolicy}
-          activeOpacity={0.7}
-          accessibilityRole='link'
-        >
-          <PretendardText style={styles.linkLabel}>
-            {l10n.t('info.policy.privacy')}
-          </PretendardText>
-        </TouchableOpacity>
-      </View>
+          <View style={settledVisibility} {...settledA11yProps}>
+            <PretendardText
+              weight='semibold'
+              style={styles.headline}
+              accessibilityRole='header'
+            >
+              {headline}
+            </PretendardText>
+          </View>
+
+          {isOfflineEntry ? (
+            <PretendardText style={styles.lead}>
+              {l10n.t('subscription.offlineEntryLead')}
+            </PretendardText>
+          ) : null}
+
+          {isRouteDrawEntry ? (
+            <PretendardText style={styles.lead}>
+              {l10n.t('subscription.routeDrawEntryLead')}
+            </PretendardText>
+          ) : null}
+
+          {isSatelliteEntry ? (
+            <PretendardText style={styles.lead}>
+              {l10n.t('subscription.satelliteEntryLead')}
+            </PretendardText>
+          ) : null}
+
+          <View style={styles.priceSlot}>{renderPrice()}</View>
+
+          {renderTrialNotice()}
+
+          <View
+            style={[styles.planSlot, settledVisibility]}
+            {...settledA11yProps}
+          >
+            {renderPlan()}
+          </View>
+
+          <View style={styles.features}>
+            <SubscriptionFeatureListView
+              routeDrawFirst={isRouteDrawEntry}
+              satelliteFirst={isSatelliteEntry}
+            />
+          </View>
+
+          <View style={styles.legal}>
+            <SubscriptionLegalView
+              isPurchasing={isPurchasing}
+              isRestoring={isRestoring}
+              onRestore={onRestore}
+              onOpenTerms={onOpenTerms}
+              onOpenPrivacyPolicy={onOpenPrivacyPolicy}
+            />
+          </View>
+        </View>
+      </ScrollView>
+
+      <SubscriptionCtaBarView
+        label={subscribeLabel}
+        canSubscribe={canSubscribe}
+        isPurchasing={isPurchasing}
+        onSubscribe={onSubscribe}
+        onHeightChange={setBarHeight}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  title: {
+  container: {
+    flex: 1,
+    backgroundColor: Acg.paper,
+  },
+  content: {
+    paddingHorizontal: AcgLayout.screenPadding,
+    paddingTop: Spacing.item,
+  },
+  badge: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    columnGap: Spacing.item / 2,
+    paddingHorizontal: BADGE_PADDING_H,
+    paddingVertical: BADGE_PADDING_V,
+    borderRadius: AcgRadius.chip,
+    backgroundColor: Acg.controlFill,
+  },
+  badgeLabel: {
+    ...AcgType.meta,
+    color: Acg.ink,
+  },
+  headline: {
     ...AcgType.screenTitle,
     color: Acg.ink,
+    textAlign: 'center',
+    marginTop: Spacing.item,
+  },
+  // 상품을 받기 전 — 자리는 지키고 보이지 않게(레이아웃이 뒤늦게 밀리지 않게).
+  pending: {
+    opacity: 0,
   },
   lead: {
     ...AcgType.body,
     color: Acg.ink,
+    textAlign: 'center',
     marginTop: Spacing.item,
   },
-  benefitRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    columnGap: Spacing.item,
-    marginTop: Spacing.section,
-  },
-  benefitIconTile: {
-    width: BENEFIT_ICON_TILE_SIZE,
-    height: BENEFIT_ICON_TILE_SIZE,
-    borderRadius: AcgRadius.thumb,
-    backgroundColor: Acg.controlFill,
+  // 가격·오류·불러오는 중이 같은 높이를 차지해 아래가 튀지 않게 한다.
+  priceSlot: {
+    marginTop: Spacing.item,
+    minHeight: MIN_TOUCH_SIZE,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  benefitTextColumn: {
-    flex: 1,
-  },
-  benefitTitle: {
+  price: {
     ...AcgType.rowTitle,
     color: Acg.ink,
-  },
-  benefitDetail: {
-    ...AcgType.rowSubtitle,
-    color: Acg.ink,
-  },
-  // 가격·오류·불러오는 중이 같은 높이를 차지해 시트 높이가 튀지 않게 한다.
-  priceSlot: {
-    marginTop: Spacing.section,
-    minHeight: MIN_TOUCH_SIZE,
-    justifyContent: 'center',
-  },
-  price: {
-    ...AcgType.sectionTitle,
-    color: Acg.ink,
+    textAlign: 'center',
   },
   trialNotice: {
     ...AcgType.meta,
-    color: Acg.ink,
-  },
-  priceLoading: {
-    alignItems: 'flex-start',
+    color: Acg.textSecondary,
+    textAlign: 'center',
   },
   priceErrorRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     flexWrap: 'wrap',
     columnGap: Spacing.item,
   },
@@ -303,53 +331,19 @@ const styles = StyleSheet.create({
     color: Acg.ink,
     textDecorationLine: 'underline',
   },
-  primaryButton: {
-    marginTop: Spacing.item,
-    minHeight: PRIMARY_BUTTON_HEIGHT,
-    borderRadius: Radius.pill,
-    backgroundColor: Acg.lime,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: AcgLayout.screenPadding,
-    paddingVertical: (PRIMARY_BUTTON_HEIGHT - AcgType.control.lineHeight) / 2,
+  planSlot: {
+    marginTop: Spacing.section,
   },
-  // 상품을 불러오지 못했을 때(SUB-2) — 라임을 거두고 연회색 면으로 누를 수 없음을 보인다.
-  primaryButtonDisabled: {
-    backgroundColor: Acg.controlFill,
-  },
-  primaryLabel: {
-    ...AcgType.control,
+  noTrialLine: {
+    ...AcgType.rowSubtitle,
     color: Acg.ink,
+    textAlign: 'center',
   },
-  primaryLabelDisabled: {
-    color: Acg.textMuted,
+  features: {
+    marginTop: Spacing.section,
   },
-  restoreSlot: {
-    marginTop: Spacing.item / 2,
-  },
-  notice: {
-    ...AcgType.meta,
-    color: Acg.textSecondary,
-    marginTop: Spacing.item,
-  },
-  links: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    marginTop: Spacing.item / 2,
-  },
-  linkButton: {
-    minHeight: MIN_TOUCH_SIZE,
-    justifyContent: 'center',
-  },
-  linkLabel: {
-    ...AcgType.meta,
-    color: Acg.ink,
-    textDecorationLine: 'underline',
-  },
-  linkSeparator: {
-    ...AcgType.meta,
-    color: Acg.textSecondary,
+  legal: {
+    marginTop: Spacing.section,
   },
 });
 

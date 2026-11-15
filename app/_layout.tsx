@@ -14,7 +14,8 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import app from '@/model/app/App';
 import { useEffect } from 'react';
 import SplashLoadingView from '@/components/ui/SplashLoadingView';
-import { View, Text, Platform, Image, AppState } from 'react-native';
+import HotUpdaterFallbackView from '@/components/ui/HotUpdaterFallbackView';
+import { Platform, AppState } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import ForceUpdateGateView from '@/components/app-update/ForceUpdateGateView';
 import AnnouncementSheetView from '@/components/announcement/AnnouncementSheetView';
@@ -255,6 +256,9 @@ const RootLayout = () => {
           {/* 배낭 코스(BD-11) — 지도·목록·고도 그래프. 기본 푸시이고 iOS 투명 헤더는
               화면이 Stack.Screen으로 지정한다(그룹 지도와 같은 관례). */}
           <Stack.Screen name='bag/[id]/route' />
+          {/* 3D 코스 리플레이(RR-2) — 코스 화면에서 **푸시되는 페이지**(2026-10-12 사용자 결정: 시트가 아니라 새 페이지).
+              iOS 네이티브 헤더(제목·뒤로)는 화면이 Stack.Screen으로 지정한다. */}
+          <Stack.Screen name='route-replay' />
           <Stack.Screen
             name='custom'
             options={{
@@ -439,15 +443,12 @@ const RootLayout = () => {
               contentStyle: { backgroundColor: Acg.paper },
             }}
           />
-          {/* useless 플러스 구독 시트(SUB-2) — 배낭 추가 시트와 같은 formSheet 얼개(내용 높이만큼). */}
+          {/* useless 플러스 구독 화면(SUB-2, 2026-10-13 개정) — 전체 화면 안내. 닫기는 화면의 닫기 ×. */}
           <Stack.Screen
             name='subscription/index'
             options={{
               headerShown: false,
-              presentation: 'formSheet',
-              sheetAllowedDetents: 'fitToContents',
-              sheetGrabberVisible: true,
-              sheetCornerRadius: 20,
+              presentation: 'fullScreenModal',
               contentStyle: { backgroundColor: Acg.paper },
             }}
           />
@@ -563,41 +564,7 @@ const createAppComponent = () => {
       requestHeaders: {
         // if you want to use the request headers, you can add them here
       },
-      fallbackComponent: ({
-        progress,
-        status,
-      }: {
-        progress: number;
-        status: string;
-      }) => (
-        <View
-          style={{
-            flex: 1,
-            padding: 20,
-            borderRadius: 10,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: '#151515',
-          }}
-        >
-          <Image
-            source={require('../assets/images/splash-icon.png')}
-            style={{ width: 200, height: 200 }}
-            resizeMode='contain'
-          />
-          <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
-            {status === 'UPDATING'
-              ? '업데이트 중...' // l10n-ignore: L10n 초기화 전 HotUpdater 폴백 화면
-              : '업데이트 확인 중...' // l10n-ignore: L10n 초기화 전 HotUpdater 폴백 화면
-            }
-          </Text>
-          {progress > 0 ? (
-            <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
-              {Math.round(progress * 100)}%
-            </Text>
-          ) : null}
-        </View>
-      ),
+      fallbackComponent: HotUpdaterFallbackView,
     })(observer(RootLayout));
   }
 };

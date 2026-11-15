@@ -119,6 +119,11 @@ const BagView = () => {
       return;
     }
 
+    // 같은 세그먼트를 다시 누르면 남기지 않는다 — 그룹 세그먼트를 몇 명이 여는지 본다(Analytics).
+    if (next !== activeSegment) {
+      app.getAnalyticsManager()?.logClick('bag_segment', { segment: next });
+    }
+
     setSegment(next);
   };
 

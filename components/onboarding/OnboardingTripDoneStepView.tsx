@@ -23,7 +23,7 @@ interface Props {
 // 요약 면에 보여 줄 장비 행 수 — 넘으면 `외 {n}개`(OB-7).
 const MAX_GEAR_ROWS = 6;
 
-// 4단계 — 완료(OB-7). 만들 여행의 요약(이름 + `무게 · 기간 · 여행지` + 담은 장비)과 알림 안내.
+// 3단계 — 완료(OB-7). 만들 여행의 요약(이름 + `무게 · 기간 · 여행지` + 담은 장비)과 알림 안내.
 const OnboardingTripDoneStepView: FC<Props> = ({ trip }) => {
   const l10n = app.getL10n();
   const location = trip.getLocation();
@@ -38,7 +38,7 @@ const OnboardingTripDoneStepView: FC<Props> = ({ trip }) => {
   const visibleGears = selectedGears.slice(0, MAX_GEAR_ROWS);
   const hiddenCount = selectedGears.length - visibleGears.length;
 
-  // 3단계에서 고른 장비(OB-7, 2026-10-08 디자인 리뷰) — 창고 행 문법 그대로, 보기 전용.
+  // 2단계에서 고른 장비(OB-7, 2026-10-08 디자인 리뷰) — 창고 행 문법 그대로, 보기 전용.
   const renderGears = () => {
     if (selectedGears.length === 0) {
       return (

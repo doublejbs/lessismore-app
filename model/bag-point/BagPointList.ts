@@ -6,7 +6,6 @@ import BagPointAddVia from '@/model/bag-point/BagPointAddVia';
 import { BagPointEntry } from '@/model/bag-point/BagPointEntry';
 import Group from '@/model/group/Group';
 import GroupError from '@/model/group/GroupError';
-import GroupPoint from '@/model/group/GroupPoint';
 import GroupValidationError from '@/model/group/GroupValidationError';
 import { GROUP_MAX_POINT_COUNT } from '@/model/group/GroupLimits';
 import { getGroupErrorMessage } from '@/model/group-error/GroupErrorMessage';
@@ -15,14 +14,7 @@ import { PointInput, PointPatch } from '@/model/point/PointData';
 import PointType from '@/model/point/PointType';
 import { measureRouteBounds } from '@/model/route/RouteCamera';
 import { RouteBounds } from '@/model/route/RouteData';
-import BagPointDispatcher from './BagPointDispatcher';
-
-// 연결 그룹에서 온 포인트 한 건. 그룹 이름을 함께 들고 있어야 카드·목록에 출처를 적을 수 있다.
-interface LinkedGroupPoint {
-  groupId: string;
-  groupName: string;
-  point: GroupPoint;
-}
+import BagPointDispatcher, { LinkedGroupPoint } from './BagPointDispatcher';
 
 /**
  * 포인트에 초점을 준 요청 (BD-14). 지도가 이 요청마다 카메라를 그 포인트로 옮긴다.
@@ -338,7 +330,10 @@ class BagPointList {
           return [] as Group[];
         }),
       ]);
-      const groupPoints = await this.loadGroupPoints(linkedGroups);
+      const groupPoints = await this.dispatcher.getLinkedGroupPoints(
+        this.bagId,
+        linkedGroups
+      );
 
       runInAction(() => {
         this.points = points;
@@ -353,29 +348,6 @@ class BagPointList {
         this.initialized = true;
       });
     }
-  }
-
-  private async loadGroupPoints(groups: Group[]): Promise<LinkedGroupPoint[]> {
-    const loaded = await Promise.all(
-      groups.map(async group => {
-        try {
-          const points = await this.dispatcher.getGroupPoints(group.getId());
-
-          return points.map(point => ({
-            groupId: group.getId(),
-            groupName: group.getName(),
-            point,
-          }));
-        } catch (error) {
-          // 내보내진 그룹의 역인덱스가 남아 있는 경우 등. 나머지 그룹을 막지 않는다.
-          console.warn('[BagPointList] 그룹 포인트 조회 실패', error); // l10n-ignore: 개발자 로그
-
-          return [] as LinkedGroupPoint[];
-        }
-      })
-    );
-
-    return loaded.flat();
   }
 
   // 초점이 사라진 포인트(지워짐)를 가리키면 푼다 — 카드가 빈 대상을 붙들지 않게.

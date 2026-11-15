@@ -31,7 +31,7 @@ interface Props {
 // 요약 줄이 ScrollView 자식 중 몇 번째인지 — 스크롤해도 위에 붙는다(OB-6 sticky).
 const SUMMARY_INDEX = 1;
 
-// 3단계 — 어떤 장비를 챙기세요?(OB-6). 창고가 있으면 체크리스트 + 인기 구획, 비어 있으면 인기 구획만.
+// 2단계 — 어떤 장비를 챙기세요?(OB-6). 창고가 있으면 체크리스트 + 인기 구획, 비어 있으면 인기 구획만.
 const OnboardingTripGearStepView: FC<Props> = ({
   trip,
   onOpenSearch,

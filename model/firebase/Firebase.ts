@@ -62,6 +62,8 @@ class Firebase {
   private store!: Firestore;
   // 개인 장비 사진 업로드에 쓰는 Storage (DM-9, GD-13).
   private storage!: FirebaseStorage;
+  // 호출형 함수(등산로 따라 잇기 RD-6 등)가 같은 앱·같은 로그인으로 부르도록 노출한다. 초기화 전에는 `null`.
+  private firebaseApp: FirebaseApp | null = null;
   private hasAgreedToTerms = false;
   private loggedIn = false;
   private idToken: string | null = null;
@@ -76,6 +78,8 @@ class Firebase {
 
   public async initialize() {
     const fireBaseApp = initializeApp(Firebase.config);
+
+    this.firebaseApp = fireBaseApp;
 
     // 네이티브 앱에서만 Google Sign-in 설정
     if (Platform.OS === 'ios' || Platform.OS === 'android') {
@@ -432,6 +436,10 @@ class Firebase {
     return this.storage;
   }
 
+  public getFirebaseApp(): FirebaseApp | null {
+    return this.firebaseApp;
+  }
+
   private setUserId(value: string) {
     this.userId = value;
   }
@@ -786,6 +794,19 @@ class Firebase {
 
     for (const likeDoc of likesSnapshot.docs) {
       operations.push(batch => batch.delete(likeDoc.ref));
+    }
+
+    // users/{uid}/blocked-users 차단 목록 삭제(CM-17, DM-38). 실패해도 나머지 정리는 진행한다.
+    try {
+      const blockedSnapshot = await getDocs(
+        collection(store, 'users', userId, 'blocked-users')
+      );
+
+      for (const blockedDoc of blockedSnapshot.docs) {
+        operations.push(batch => batch.delete(blockedDoc.ref));
+      }
+    } catch (error) {
+      console.warn('차단 목록 삭제 조회 실패:', error); // l10n-ignore: 개발자 로그
     }
 
     // users/{uid} 문서 삭제

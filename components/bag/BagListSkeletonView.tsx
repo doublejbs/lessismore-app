@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import { Acg, AcgRadius, AcgRow, AcgType } from '@/constants/DesignTokens';
 import useBreathingOpacity from '@/hooks/useBreathingOpacity';
+import { STATIC_MAP_LOADING_FILL } from '@/components/map/StaticMapBand';
 
 /**
  * 배낭 목록 로딩 스켈레톤(BAG-1).
@@ -32,9 +33,10 @@ const SKELETON_BAR = '#E3E3E3';
 
 /**
  * 지도 밴드 자리. 카드 폭을 통째로 채우는 면이라 막대와 같은 값이면 카드가 위아래로 갈린 것처럼
- * 보이지 않는다 — 막대보다 한 단 더 진하게 두어 "여기에 이미지가 들어온다"를 알린다.
+ * 보이지 않는다 — 막대보다 한 단 더 진하게 두어 "여기에 이미지가 들어온다"를 알린다. 실제 카드가
+ * 썸네일을 기다리는 동안의 면(MAP-3)과 같은 값이라 스켈레톤 → 카드 전환에 색이 튀지 않는다.
  */
-const SKELETON_BAND = '#DCDCDC';
+const SKELETON_BAND = STATIC_MAP_LOADING_FILL;
 
 // 배낭 카드: 지도 밴드 자리 + 이름 + 메타 한 줄. 실제 카드(BagItemView)와 같은 배치다.
 const SkeletonCard: FC = () => {

@@ -4,6 +4,8 @@
 //
 // `exactOptionalPropertyTypes`가 켜져 있으므로 옵셔널 필드는 값이 없으면 키를 생략한다.
 
+import RouteSource from './RouteSource';
+
 export interface RouteBounds {
   minLat: number;
   maxLat: number;
@@ -19,6 +21,9 @@ export interface RouteCoordinate {
   ele?: number;
 }
 
+// 그린 코스의 찍은 점 한 개(DM-29·DM-30 `drawnPoints` — 고도 없이 `{ lat, lng }`).
+export type RouteDrawnPoint = Pick<RouteCoordinate, 'lat' | 'lng'>;
+
 // GPX 파싱 결과. Storage 업로드 **전에** `RouteValidator.validateRoute`로 검증할 수 있게
 // 업로드가 결정하는 값(routeId·storagePath)을 뺀 모양을 따로 둔다(GRP-8, BD-11).
 export interface RouteDraft {
@@ -31,6 +36,10 @@ export interface RouteDraft {
   pointCount: number;
   bounds: RouteBounds;
   simplified: RouteCoordinate[];
+  // 지도에서 그린 코스면 `Drawn`(RouteDraw RD-7). GPX 가져오기는 키가 없다.
+  source?: RouteSource;
+  // 그린 코스의 찍은 점(2~100개) — 수정(RD-7)에서 다시 연다. `source`가 있을 때만 있다.
+  drawnPoints?: RouteDrawnPoint[];
 }
 
 // 파싱·업로드가 끝난 뒤 스토어가 Firestore에 쓰는 모양. 스토어는 이 값만 보고 문서를 만든다.
@@ -48,4 +57,6 @@ export interface RouteData extends RouteDraft {
   id: string;
   storagePath: string;
   createdAt: Date;
+  // 그린 코스를 수정한 시각(RD-7). 수정한 적 없으면 키가 없다.
+  updatedAt?: Date;
 }

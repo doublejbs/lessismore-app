@@ -19,21 +19,26 @@ import OnboardingTripGearSource from './OnboardingTripGearSource';
 import OnboardingTripPermission from './OnboardingTripPermission';
 import OnboardingTripStatus from './OnboardingTripStatus';
 import OnboardingTripLoginResult from './OnboardingTripLoginResult';
+import OnboardingDestinationChips from './OnboardingDestinationChips';
+import OnboardingDestinationSource from './OnboardingDestinationSource';
+import OnboardingDestinationChipAction from './OnboardingDestinationChipAction';
+import { CampSpot } from '../camp-site/CampSpotTypes';
 import {
   ONBOARDING_TRIP_DRAFT_VERSION,
   OnboardingTripDraft,
   fromDraftGear,
+  resolveDraftDestinationSource,
   toDraftGear,
 } from './OnboardingTripDraft';
 
+// 날짜는 묻지 않는다(2026-10-15, OB-4 [폐기]) — 여행지 → 장비 → 완료.
 const STEPS: OnboardingTripStep[] = [
-  OnboardingTripStep.Date,
   OnboardingTripStep.Destination,
   OnboardingTripStep.Gear,
   OnboardingTripStep.Done,
 ];
 
-// 3단계 체크리스트 섹션 순서 — 백패킹 필수 4종을 먼저 둔다(OB-6).
+// 2단계 체크리스트 섹션 순서 — 백패킹 필수 4종을 먼저 둔다(OB-6).
 const GEAR_GROUP_ORDER: GearFilter[] = [
   GearFilter.Tent,
   GearFilter.SleepingBag,
@@ -92,19 +97,28 @@ class OnboardingTrip {
     return new OnboardingTrip(draft);
   }
 
-  private step: OnboardingTripStep = OnboardingTripStep.Date;
+  private step: OnboardingTripStep = OnboardingTripStep.Destination;
+  // 날짜는 가이드에서 묻지 않는다(OB-4 [폐기]). 옛 로그인 이어가기 초안(OB-12)의 날짜만 되살린다.
   private startDate: Dayjs | null = null;
   private endDate: Dayjs | null = null;
-  private datesUndecided = false;
+  private datesUndecided = true;
   private location: BagLocation | null = null;
+  // 여행지가 들어온 경로 — 완료 계측 destination_source(OB-5·OB-9).
+  private destinationSource: OnboardingDestinationSource =
+    OnboardingDestinationSource.None;
+  // 2단계 `요즘 많이 가는 박지` 칩(OB-5) — 가이드가 열릴 때 1회 읽고 세션 동안 유지한다.
+  private readonly destinationChips = OnboardingDestinationChips.from(
+    app.getFirebase(),
+    app.getCampSpotStore()
+  );
   private gearMode: OnboardingTripGearMode | null = null;
   private gearLoading = false;
   private gearError = false;
   private warehouseGears: Gear[] = [];
-  // 3단계에 처음 들어왔을 때 창고에 있던 장비 — 이후 새로 들어온 장비를 자동 선택한다(OB-6).
+  // 2단계에 처음 들어왔을 때 창고에 있던 장비 — 이후 새로 들어온 장비를 자동 선택한다(OB-6).
   private knownGearIds: string[] | null = null;
   private selectedGearIds: string[] = [];
-  // 인기 장비(카테고리별, gear-rank) — 3단계 첫 진입에 한 번 읽고 세션 동안 캐시한다(OB-6).
+  // 인기 장비(카테고리별, gear-rank) — 2단계 첫 진입에 한 번 읽고 세션 동안 캐시한다(OB-6).
   private popularGears: Partial<Record<GearFilter, Gear[]>> = {};
   private popularLoading = false;
   private popularRequested = false;
@@ -123,7 +137,10 @@ class OnboardingTrip {
   private autoCreateStarted = false;
 
   private constructor(draft: OnboardingTripDraft | null) {
-    makeAutoObservable(this);
+    // 칩 목록은 자체 observable을 가진 클래스 인스턴스 참조라 감싸지 않는다.
+    makeAutoObservable<OnboardingTrip, 'destinationChips'>(this, {
+      destinationChips: false,
+    });
 
     if (draft) {
       this.restoreDraft(draft);
@@ -135,6 +152,7 @@ class OnboardingTrip {
     this.endDate = draft.endDate ? dayjs(draft.endDate) : null;
     this.datesUndecided = draft.datesUndecided;
     this.location = draft.location;
+    this.destinationSource = resolveDraftDestinationSource(draft);
     this.pickedGears = draft.catalogGears.map(fromDraftGear);
     this.selectedGearIds = this.pickedGears.map(gear => gear.getId());
     this.step = OnboardingTripStep.Done;
@@ -145,7 +163,7 @@ class OnboardingTrip {
 
   // ── 로그인 상태 ───────────────────────────────────────
 
-  // 비로그인 가이드인지(OB-11). 화면 분기(완료 단계 버튼·3단계 담기 모드)는 모두 이 값을 본다.
+  // 비로그인 가이드인지(OB-11). 화면 분기(완료 단계 버튼·2단계 담기 모드)는 모두 이 값을 본다.
   public isGuest(): boolean {
     return !app.getFirebase().isLoggedIn();
   }
@@ -176,7 +194,7 @@ class OnboardingTrip {
     this.step = STEPS[this.getStepIndex() - 1];
   }
 
-  // 주 액션·보조 버튼으로 다음 단계로 간다(1~3단계). 분석 이벤트는 여기서만 보낸다(OB-9).
+  // 주 액션·보조 버튼으로 다음 단계로 간다(1~2단계). 분석 이벤트는 여기서만 보낸다(OB-9).
   public advance(action: OnboardingTripAction): void {
     const current = this.step;
 
@@ -192,13 +210,9 @@ class OnboardingTrip {
     this.step = STEPS[this.getStepIndex() + 1];
   }
 
-  // 1단계에서 아무것도 고르지 않았으면 확인 없이 닫는다(OB-3).
+  // 1단계(여행지)에서 아무것도 고르지 않았으면 확인 없이 닫는다(OB-3).
   public hasProgress(): boolean {
-    return (
-      this.getStepIndex() > 0 ||
-      this.startDate !== null ||
-      this.endDate !== null
-    );
+    return this.getStepIndex() > 0 || this.location !== null;
   }
 
   public async dismiss(): Promise<void> {
@@ -211,12 +225,8 @@ class OnboardingTrip {
   }
 
   private applySkip(step: OnboardingTripStep): void {
-    if (step === OnboardingTripStep.Date) {
-      this.startDate = null;
-      this.endDate = null;
-      this.datesUndecided = true;
-    } else if (step === OnboardingTripStep.Destination) {
-      this.location = null;
+    if (step === OnboardingTripStep.Destination) {
+      this.clearLocation();
     } else if (step === OnboardingTripStep.Gear) {
       this.selectedGearIds = [];
     }
@@ -228,35 +238,16 @@ class OnboardingTrip {
       ?.logClick('onboarding_trip_step', { step, action });
   }
 
-  // ── 1단계: 날짜 ───────────────────────────────────────
+  // ── 날짜(묻지 않음, OB-4 [폐기]) ──────────────────────
 
-  public getStartDate(): Dayjs | null {
-    return this.startDate;
-  }
-
-  public getEndDate(): Dayjs | null {
-    return this.endDate;
-  }
-
-  public setStartDate(date: Dayjs): void {
-    this.startDate = date;
-    this.datesUndecided = false;
-  }
-
-  public setEndDate(date: Dayjs | null): void {
-    this.endDate = date;
-    this.datesUndecided = false;
-  }
-
-  public hasDateRange(): boolean {
-    return this.startDate !== null && this.endDate !== null;
-  }
-
+  // 옛 초안에서 되살린 날짜가 없으면 항상 미정이다.
   public isDatesUndecided(): boolean {
-    return this.datesUndecided || !this.hasDateRange();
+    return (
+      this.datesUndecided || this.startDate === null || this.endDate === null
+    );
   }
 
-  // 날짜는 필수라 미정이면 즉시 생성 기본값(다가오는 주말 1박)을 쓴다(OB-4, BAG-2).
+  // 날짜는 필수라 미정이면 즉시 생성 기본값(다가오는 주말 1박)을 쓴다(OB-4 [폐기], BAG-2).
   public getEffectiveDates(): { startDate: Dayjs; endDate: Dayjs } {
     if (this.startDate && this.endDate && !this.datesUndecided) {
       return { startDate: this.startDate, endDate: this.endDate };
@@ -281,7 +272,7 @@ class OnboardingTrip {
     return dates;
   }
 
-  // ── 2단계: 여행지 ─────────────────────────────────────
+  // ── 1단계: 여행지 ─────────────────────────────────────
 
   public getLocation(): BagLocation | null {
     return this.location;
@@ -290,9 +281,55 @@ class OnboardingTrip {
   // 선택기(DST-3) onConfirm — 여행이 아직 없으므로 가이드 상태에만 담는다(OB-5).
   public setLocation(location: BagLocation): void {
     this.location = location;
+    this.destinationSource = OnboardingDestinationSource.Picker;
   }
 
-  // ── 3단계: 장비 ───────────────────────────────────────
+  private clearLocation(): void {
+    this.location = null;
+    this.destinationSource = OnboardingDestinationSource.None;
+  }
+
+  // ── 2단계: 요즘 많이 가는 박지 칩(OB-5) ────────────────
+
+  public async loadDestinationChips(): Promise<void> {
+    await this.destinationChips.load();
+  }
+
+  // active 박지 최대 8개. 비어 있으면 화면은 구획을 그리지 않는다.
+  public getDestinationChips(): CampSpot[] {
+    return this.destinationChips.getSpots();
+  }
+
+  // 칩 선택 표시는 별도 상태 없이 현재 여행지의 박지 참조로 판단한다(OB-5).
+  public isDestinationChipSelected(spot: CampSpot): boolean {
+    return this.location?.campSpotId === spot.id;
+  }
+
+  // 칩 탭 — 가이드 상태에만 담는다(Firestore 쓰기 없음). 선택된 칩을 다시 누르면 해제한다.
+  public toggleDestinationChip(spot: CampSpot, position: number): void {
+    const selected = this.isDestinationChipSelected(spot);
+
+    if (selected) {
+      this.clearLocation();
+    } else {
+      this.location = {
+        name: spot.name,
+        latitude: spot.location.latitude,
+        longitude: spot.location.longitude,
+        campSpotId: spot.id,
+      };
+      this.destinationSource = OnboardingDestinationSource.Chip;
+    }
+
+    app.getAnalyticsManager()?.logClick('onboarding_trip_destination_chip', {
+      action: selected
+        ? OnboardingDestinationChipAction.Clear
+        : OnboardingDestinationChipAction.Select,
+      position,
+    });
+  }
+
+  // ── 2단계: 장비 ───────────────────────────────────────
 
   public getGearMode(): OnboardingTripGearMode | null {
     return this.gearMode;
@@ -306,7 +343,7 @@ class OnboardingTrip {
     return this.gearError;
   }
 
-  // 3단계 진입·포커스 복귀마다 창고를 다시 읽는다. 모드는 첫 성공 때 한 번 정한다(OB-6).
+  // 2단계 진입·포커스 복귀마다 창고를 다시 읽는다. 모드는 첫 성공 때 한 번 정한다(OB-6).
   public async loadGears(): Promise<void> {
     const gearStore = app.getGearStore();
 
@@ -387,7 +424,7 @@ class OnboardingTrip {
     this.pendingPickSource = source;
   }
 
-  // ── 3단계: 인기 장비(OB-6) ────────────────────────────
+  // ── 2단계: 인기 장비(OB-6) ────────────────────────────
 
   // 첫 진입에 한 번만 읽는다. 카테고리마다 따로 받아 하나가 실패해도 나머지는 그린다.
   public async loadPopularGears(): Promise<void> {
@@ -554,7 +591,7 @@ class OnboardingTrip {
     return (grams / 1000).toFixed(2);
   }
 
-  // ── 4단계: 완료 ───────────────────────────────────────
+  // ── 3단계: 완료 ───────────────────────────────────────
 
   // 여행지가 있으면 `{여행지명} 백패킹`, 없거나 역지오코딩 폴백이면 `첫 백패킹`(OB-7).
   public getTripName(): string {
@@ -583,8 +620,12 @@ class OnboardingTrip {
     });
   }
 
+  // iOS 임시 허용(NT-13)은 대화상자를 본 적 없는 상태라 미결정과 같이 묻는다(OB-7).
   public canAskPermission(): boolean {
-    return this.permissionStatus === NotificationPermissionStatus.Undetermined;
+    return (
+      this.permissionStatus === NotificationPermissionStatus.Undetermined ||
+      this.permissionStatus === NotificationPermissionStatus.Provisional
+    );
   }
 
   public isCreating(): boolean {
@@ -631,6 +672,9 @@ class OnboardingTrip {
           has_destination: this.location !== null,
           gear_count: this.getSelectedCount(),
           notification: permission,
+          destination_source: this.location
+            ? this.destinationSource
+            : OnboardingDestinationSource.None,
         });
       }
 
@@ -782,6 +826,9 @@ class OnboardingTrip {
       endDate: this.endDate?.format(DRAFT_DATE_FORMAT) ?? null,
       datesUndecided: this.datesUndecided,
       location: this.location,
+      destinationSource: this.location
+        ? this.destinationSource
+        : OnboardingDestinationSource.None,
       catalogGears: this.getSelectedCatalogGears().map(toDraftGear),
     };
   }

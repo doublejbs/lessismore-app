@@ -9,6 +9,7 @@ import Firebase from '@/model/firebase/Firebase';
 import app from '@/model/app/App';
 import FeedContentStore from '@/model/store/FeedContentStore';
 import { RecommendedSpot } from '@/model/feed/FeedContentTypes';
+import StoreReviewManager from '@/model/store-review/StoreReviewManager';
 
 /**
  * 홈 화면(HM)의 도메인 모델.
@@ -25,6 +26,7 @@ class Home {
       app.getGearStore()!,
       app.getFirebase(),
       app.getFeedContentStore()!,
+      app.getStoreReviewManager()
     );
   }
 
@@ -39,7 +41,8 @@ class Home {
     private readonly bagStore: BagStore,
     private readonly gearStore: GearStore,
     private readonly firebase: Firebase,
-    private readonly feedContentStore: FeedContentStore
+    private readonly feedContentStore: FeedContentStore,
+    private readonly storeReviewManager: StoreReviewManager | null
   ) {
     this.disposeLoginReaction = reaction(
       () => this.firebase.isLoggedIn(),
@@ -81,6 +84,11 @@ class Home {
     }
 
     this.setLoading(false);
+
+    // 앱 평가 요청(APP-11) — 로딩이 끝난 배낭으로 판정만 하고 홈 렌더는 막지 않는다.
+    if (this.firebase.isLoggedIn()) {
+      void this.storeReviewManager?.maybeRequest(this.bags);
+    }
 
     // 추천은 기존 홈 콘텐츠의 렌더를 막지 않고 각 섹션별로 조용히 붙는다(HM-14).
     void this.loadRecommendations();

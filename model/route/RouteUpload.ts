@@ -47,6 +47,29 @@ class RouteUpload {
     return getDownloadURL(ref(this.firebase.getStorage(), storagePath));
   }
 
+  /**
+   * 올려 둔 원본 바이트 (RouteDraw RD-7 수정). 같은 경로를 덮어쓰기 전에 받아 두고, 문서 쓰기가 실패하면 이것을
+   * 다시 올려 **이전 파일·문서가 함께 남게** 한다. 받지 못하면 `null`이다(되돌릴 원본 없이 진행한다).
+   */
+  public async downloadBlob(storagePath: string): Promise<Blob | null> {
+    try {
+      return await RouteUpload.fetchBlob(
+        await this.getDownloadUrl(storagePath)
+      );
+    } catch (error) {
+      console.warn('[RouteUpload] 원본 받기 실패', error); // l10n-ignore: 개발자 로그
+
+      return null;
+    }
+  }
+
+  // 받아 둔 바이트를 그대로 올린다(수정 실패 시 원본 되돌리기).
+  public async uploadBlob(storagePath: string, blob: Blob): Promise<void> {
+    await uploadBytes(ref(this.firebase.getStorage(), storagePath), blob, {
+      contentType: GPX_CONTENT_TYPE,
+    });
+  }
+
   // 이미 없는 파일을 지우는 것은 실패가 아니다 — 회수 경로에서도 같은 판단을 쓴다.
   public async delete(storagePath: string): Promise<void> {
     try {

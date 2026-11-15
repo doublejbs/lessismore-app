@@ -4,15 +4,31 @@ import { Directory, File } from 'expo-file-system';
 import app from '@/model/app/App';
 import { BagLocation } from '@/model/bag-destination/BagLocation';
 import type Firebase from '@/model/firebase/Firebase';
+import {
+  measureRouteBounds,
+  mergeRouteBounds,
+} from '@/model/route/RouteCamera';
 import RouteUpload from '@/model/route/RouteUpload';
 import type BagPointStore from '@/model/store/BagPointStore';
 import type BagRouteStore from '@/model/store/BagRouteStore';
 import type BagStore from '@/model/store/BagStore';
 import type CampSpotStore from '@/model/store/CampSpotStore';
 import { GearData } from '@/model/store/GearStore';
+import type Group from '@/model/group/Group';
 import type GroupStore from '@/model/store/GroupStore';
 import { WeatherSnapshot } from '@/model/weather/WeatherTypes';
 import type NetworkStatus from './NetworkStatus';
+import {
+  buildOfflineContours,
+  isOfflineContourCollection,
+  OfflineContourCollection,
+} from './OfflineContours';
+import {
+  getOfflineMapBounds,
+  isLngLatBoundsInside,
+  OfflineLngLatBounds,
+} from './OfflineMapBounds';
+import OfflineMapPack, { OfflineMapPackAbortError } from './OfflineMapPack';
 import type OfflineEntitlement from './OfflineEntitlement';
 import OfflineManifest, { OfflineManifestEntry } from './OfflineManifest';
 import OfflineSaveError from './OfflineSaveError';
@@ -22,10 +38,14 @@ import OfflineTripFiles from './OfflineTripFiles';
 import {
   OFFLINE_SNAPSHOT_SCHEMA_VERSION,
   OfflineBagData,
+  OfflineGroupPointData,
+  OfflineGroupRouteData,
   OfflinePackingState,
   OfflineTripSnapshotData,
   parseOfflineSnapshot,
   toOfflineCampSpotData,
+  toOfflineGroupPointData,
+  toOfflineGroupRouteData,
   toOfflinePointData,
   toOfflineRouteData,
   toPlain,
@@ -51,6 +71,22 @@ const DISK_FULL_PATTERNS = ['no space', 'enospc', 'out of space', 'disk full'];
 export interface OfflineSaveOptions {
   // 구독 화면에서 방금 권한을 얻어 부른 저장(SUB-11 `onEntitled`). 권한 판단이 아직 따라오지 못했어도 저장한다.
   entitledByPurchase?: boolean;
+  // 새 영역이 이미 받은 지도 팩 안에 들어오면 팩·등고선을 다시 받지 않는다(OF-2 — 조용한 자동 갱신만).
+  // 명시적 저장·`지금 갱신`은 늘 다시 받는다.
+  reuseMapPack?: boolean;
+  // 상세 진입 때 도는 자동 갱신(OF-2) — 타일 부제가 `저장 중…`이 아니라 `오프라인 갱신 중…`으로 보인다.
+  // 사용자는 저장을 누른 적이 없으므로 "저장이 시작됐다"로 읽히면 안 된다(2026-10-12 실기기 지적 → 사용자 결정 "타일에 표시").
+  autoRefresh?: boolean;
+}
+
+// 지도 팩·등고선 단계의 결과(저장본에 적는 값).
+interface OfflineMapAssets {
+  mapBounds: OfflineLngLatBounds | null;
+  hasContours: boolean;
+  contourBytes: number;
+  mapBytes: number;
+  // 이번에 새로 받은 팩 id. 저장본이 자리를 잡으면 옛 팩을 지우고, 실패하면 이 팩을 지운다.
+  newPackId: string | null;
 }
 
 const noop = () => undefined;
@@ -153,6 +189,10 @@ class OfflineTripStore {
 
   private entries: OfflineManifestEntry[] = [];
   private savingIds: string[] = [];
+  // 자동 갱신으로 저장 중인 여행 — 타일이 `오프라인 갱신 중…`으로 보여 준다(`isAutoRefreshing`).
+  private autoRefreshingIds: string[] = [];
+  // 지도 팩을 받는 중인 여행의 진행률(0~100, OF-2 `지도 저장 중 · {n}%`).
+  private savingProgress = new Map<string, number>();
   private loaded = false;
   private syncing: Promise<void> | null = null;
   // 여행별 쓰기 줄(꼬리 프라미스 — 실패해도 거부되지 않는다)과 전부 지우기 줄.
@@ -160,6 +200,8 @@ class OfflineTripStore {
   private globalQueue: Promise<void> = Promise.resolve();
   // `removeAll`마다 올린다 — 그 전에 들어온 저장은 끝나도 항목을 넣지 않는다.
   private generation = 0;
+  // 진행 중인 저장의 중단 스위치. `removeAll`(로그아웃)이 모두 끊는다 — 받던 등고선·지도 팩이 멈춘다.
+  private saveControllers = new Set<AbortController>();
   private readonly firebase: Firebase;
   private readonly bagStore: BagStore;
   private readonly bagRouteStore: BagRouteStore;
@@ -193,6 +235,7 @@ class OfflineTripStore {
       | 'bagQueues'
       | 'globalQueue'
       | 'generation'
+      | 'saveControllers'
     >(this, {
       firebase: false,
       bagStore: false,
@@ -206,10 +249,11 @@ class OfflineTripStore {
       bagQueues: false,
       globalQueue: false,
       generation: false,
+      saveControllers: false,
     });
   }
 
-  // 오프라인 저장을 쓸 수 있는 환경인지(네이티브 + 연결 감지 모듈). 웹은 타일·배너·캔버스가 없다(§5).
+  // 오프라인 저장을 쓸 수 있는 환경인지(네이티브 + 연결 감지 모듈). 웹은 타일·배너·오프라인 지도가 없다(§5).
   public isSupported(): boolean {
     return this.networkStatus.isSupported();
   }
@@ -250,6 +294,14 @@ class OfflineTripStore {
 
     this.removeOrphanDirectories();
 
+    // §6: 매니페스트에 없는 지도 팩(받다 만 팩·지운 저장본의 팩)도 같은 자리에서 지운다. 전부 지우기 줄에
+    // 세워 이 정리가 끝나기 전에 새 저장이 팩을 만들지 않게 한다(새 팩이 고아로 지워지지 않게).
+    const keepBagIds = valid.map(entry => entry.bagId);
+
+    void this.runExclusive(() =>
+      OfflineMapPack.removeOrphans(keepBagIds).catch(noop)
+    );
+
     // OF-5: 연결이 돌아오면(또는 앱이 온라인으로 시작하면) 오프라인 패킹 체크를 서버에 반영한다.
     reaction(
       () => this.networkStatus.isOnline() && this.firebase.isLoggedIn(),
@@ -286,6 +338,16 @@ class OfflineTripStore {
 
   public isSaving(bagId: string): boolean {
     return this.savingIds.includes(bagId);
+  }
+
+  // 지금 도는 저장이 상세 진입 자동 갱신(OF-2)인가 — 타일 부제가 `저장 중…`과 `오프라인 갱신 중…`을 가른다.
+  public isAutoRefreshing(bagId: string): boolean {
+    return this.isSaving(bagId) && this.autoRefreshingIds.includes(bagId);
+  }
+
+  // 지도 팩을 받는 중이면 진행률(0~100), 아니면 `null`(OF-2 타일 부제).
+  public getSavingProgress(bagId: string): number | null {
+    return this.savingProgress.get(bagId) ?? null;
   }
 
   public needsUpgrade(bagId: string): boolean {
@@ -375,15 +437,34 @@ class OfflineTripStore {
     }
 
     this.setSaving(bagId, true);
+    this.setAutoRefreshing(bagId, options.autoRefresh === true);
 
     const tempDirectory = OfflineTripFiles.getTempDirectory(bagId);
+    const controller = new AbortController();
+    // 저장 중 연결이 끊기면 받던 등고선·지도 팩을 바로 멈춘다(끝까지 기다려 봐야 실패한다).
+    const disposeOfflineWatch = reaction(
+      () => this.networkStatus.isOffline(),
+      offline => {
+        if (offline) {
+          controller.abort();
+        }
+      }
+    );
+
+    this.saveControllers.add(controller);
 
     try {
       if (existing?.pendingPacking) {
         await this.syncPacking(bagId);
       }
 
-      const entry = await this.writeSnapshot(bagId, tempDirectory, generation);
+      const { entry, hasContours } = await this.writeSnapshot(
+        bagId,
+        tempDirectory,
+        generation,
+        options,
+        controller.signal
+      );
 
       this.upsertEntry(entry);
       await OfflineManifest.save(this.entries);
@@ -391,6 +472,8 @@ class OfflineTripStore {
         bytes: entry.bytes,
         route_count: entry.routeCount,
         point_count: entry.pointCount,
+        map_bytes: entry.mapBytes,
+        has_contours: hasContours,
       });
 
       return entry;
@@ -410,13 +493,17 @@ class OfflineTripStore {
           : OfflineSaveErrorType.Unknown
       );
     } finally {
+      disposeOfflineWatch();
+      this.saveControllers.delete(controller);
       this.setSaving(bagId, false);
+      this.setSavingProgress(bagId, null);
     }
   }
 
   /**
    * 조용한 자동 갱신 (OF-2). 저장된 여행의 상세를 온라인에서 열 때 부른다. 실패는 알리지 않는다.
-   * 방금 저장·갱신했으면(1분 안) 건너뛴다.
+   * 방금 저장·갱신했으면(1분 안) 건너뛴다. 코스·포인트 영역이 이미 받은 지도 팩 안이면 팩·등고선을
+   * 다시 받지 않는다(OF-2).
    */
   public async refreshSilently(bagId: string): Promise<void> {
     const entry = this.getEntry(bagId);
@@ -441,7 +528,7 @@ class OfflineTripStore {
     }
 
     try {
-      await this.save(bagId);
+      await this.save(bagId, { reuseMapPack: true, autoRefresh: true });
     } catch {
       // OF-2: 조용한 갱신은 실패해도 알리지 않는다 — 기존 저장본이 남는다.
     }
@@ -455,6 +542,8 @@ class OfflineTripStore {
     OfflineTripFiles.deleteQuietly(OfflineTripFiles.getTripDirectory(bagId));
     OfflineTripFiles.deleteQuietly(OfflineTripFiles.getTempDirectory(bagId));
     OfflineTripFiles.deleteQuietly(OfflineTripFiles.getBackupDirectory(bagId));
+    // 지도 팩도 함께 지운다(OF-2). 실패는 개발자 로그로 남고, 남은 팩은 다음 초기화의 고아 정리가 지운다.
+    await OfflineMapPack.remove(bagId).catch(noop);
 
     if (!this.entries.some(entry => entry.bagId === bagId)) {
       return;
@@ -472,11 +561,16 @@ class OfflineTripStore {
       return;
     }
 
-    // 지금 진행 중이거나 줄 선 저장은 끝나도 항목을 다시 넣지 않는다.
+    // 지금 진행 중이거나 줄 선 저장은 끝나도 항목을 다시 넣지 않는다. 받던 등고선·지도 팩은 끊는다 —
+    // 받는 Promise가 거부되어 여행별 줄이 비므로 아래 대기가 시간 초과까지 늘어지지 않는다.
     this.generation += 1;
+    this.saveControllers.forEach(controller => controller.abort());
+    this.saveControllers.clear();
 
     await this.runExclusive(async () => {
       OfflineTripFiles.deleteQuietly(OfflineTripFiles.getRoot());
+      // 지도 팩 포함(OF-2). 실패해도 로그아웃을 막지 않는다 — 다음 초기화의 고아 정리가 지운다.
+      await OfflineMapPack.removeAll().catch(noop);
       runInAction(() => {
         this.entries = [];
       });
@@ -536,6 +630,40 @@ class OfflineTripStore {
 
       return null;
     }
+  }
+
+  // 저장본의 등고선(OF-6). 없거나(계산 실패·구버전) 깨졌으면 `null` — 지도는 음영만 그린다.
+  public async loadContours(
+    bagId: string
+  ): Promise<OfflineContourCollection | null> {
+    if (!this.getEntry(bagId)) {
+      return null;
+    }
+
+    try {
+      const file = OfflineTripFiles.getContoursFile(
+        OfflineTripFiles.getTripDirectory(bagId)
+      );
+
+      if (!file.exists) {
+        return null;
+      }
+
+      const data: unknown = JSON.parse(await file.text());
+
+      return isOfflineContourCollection(data) ? data : null;
+    } catch (error) {
+      console.warn('[OfflineTripStore] 등고선 읽기 실패', error); // l10n-ignore: 개발자 로그
+
+      return null;
+    }
+  }
+
+  // 저장본의 지도 팩 영역 `[west, south, east, north]`(OF-1). 저장하지 않았거나 팩이 없으면 `null`.
+  public async getMapBounds(
+    bagId: string
+  ): Promise<OfflineLngLatBounds | null> {
+    return (await this.load(bagId))?.mapBounds ?? null;
   }
 
   /**
@@ -660,9 +788,12 @@ class OfflineTripStore {
     }
   }
 
-  // 저장해 둔 GPX 원본(OF-6 GPX 내보내기). 저장하지 않은 코스면 `null`.
+  // 저장해 둔 GPX 원본(OF-6 GPX 내보내기). 저장하지 않은 코스면 `null`. 그룹 코스는 저장된 여행에서 찾는다.
   public findRouteFile(storagePath: string): File | null {
-    return OfflineTripFiles.findRouteFileByStoragePath(storagePath);
+    return OfflineTripFiles.findRouteFileByStoragePath(
+      storagePath,
+      this.entries.map(entry => entry.bagId)
+    );
   }
 
   /**
@@ -704,11 +835,18 @@ class OfflineTripStore {
     );
   }
 
+  /**
+   * 저장본 한 벌을 쓴다 (OF-1 · OF-2). 순서: 스냅샷 원료·GPX → 영역 → 등고선 → 스냅샷 → **지도 팩** →
+   * 디렉터리 교체. 팩은 `bagId` 메타데이터로 찾으므로 디렉터리와 독립이라 교체 **전에** 받는다 — 팩을
+   * 못 받으면 던져서 임시 디렉터리만 지우면 된다(지도 없는 저장본을 남기지 않는다, 기존 저장본은 그대로).
+   */
   private async writeSnapshot(
     bagId: string,
     tempDirectory: Directory,
-    generation: number
-  ): Promise<OfflineManifestEntry> {
+    generation: number,
+    options: OfflineSaveOptions,
+    signal: AbortSignal
+  ): Promise<{ entry: OfflineManifestEntry; hasContours: boolean }> {
     const userId = this.firebase.getUserId();
     const source = await this.bagStore.getOfflineSource(bagId);
 
@@ -717,15 +855,13 @@ class OfflineTripStore {
     }
 
     const bag = toOfflineBagData(source.bag);
-    const [routes, points, linkedGroupCount, campSpot] = await Promise.all([
+    const [routes, points, groupContent, campSpot] = await Promise.all([
       this.bagRouteStore.getRouteDataList(bagId),
       this.bagPointStore.getPointDataList(bagId),
-      this.groupStore
-        .getGroupsByBag(bagId)
-        .then(groups => groups.length)
-        .catch(() => 0),
+      this.loadGroupContent(bagId),
       this.loadCampSpot(bag.location),
     ]);
+    const { groupRoutes, groupPoints, linkedGroupCount } = groupContent;
 
     OfflineTripFiles.deleteQuietly(tempDirectory);
     tempDirectory.create({ intermediates: true, idempotent: true });
@@ -737,7 +873,8 @@ class OfflineTripStore {
     let bytes = 0;
 
     // 원본 GPX(내보내기·정밀 경로용, OF-1). 하나라도 못 받으면 저장 전체를 실패로 본다.
-    for (const route of routes) {
+    // 연결 그룹의 코스도 같은 자리(`routes/{routeId}.gpx`)에 받는다(OF-1 2026-10-13).
+    for (const route of [...routes, ...groupRoutes]) {
       if (!route.storagePath) {
         continue;
       }
@@ -754,6 +891,48 @@ class OfflineTripStore {
       bytes += file.size || 0;
     }
 
+    // 지도 팩 영역(OF-1): 코스·포인트 전체 상자를 넓힌 것. 없으면 여행지(박지·위치) 둘레.
+    // 연결 그룹의 코스·포인트도 영역에 넣는다(OF-1 2026-10-13) — 등고선도 같은 영역으로 계산된다.
+    const contentBounds = mergeRouteBounds([
+      ...routes.map(route => route.bounds ?? null),
+      ...groupRoutes.map(route => route.bounds ?? null),
+      measureRouteBounds(
+        [...points, ...groupPoints].map(point => ({
+          lat: point.latitude,
+          lng: point.longitude,
+        }))
+      ),
+    ]);
+    const fallbackLocation = campSpot?.location ?? bag.location;
+    const contentMapBounds = getOfflineMapBounds(
+      contentBounds,
+      fallbackLocation
+        ? { lat: fallbackLocation.latitude, lng: fallbackLocation.longitude }
+        : null
+    );
+    // 등고선·지도 팩(무거운 단계) 전에 로그아웃·연결 끊김을 확인한다.
+    this.assertCanContinue(generation, signal);
+
+    const reusable = options.reuseMapPack
+      ? await this.findReusableMapAssets(
+          bagId,
+          contentMapBounds,
+          tempDirectory,
+          signal
+        )
+      : null;
+    const assets: OfflineMapAssets = reusable ?? {
+      mapBounds: contentMapBounds,
+      ...(await this.writeContours(contentMapBounds, tempDirectory, signal)),
+      mapBytes: 0,
+      newPackId: null,
+    };
+
+    // 등고선 계산이 중단돼 `null`이 됐으면 등고선 없는 저장본을 남기지 않는다.
+    this.assertCanContinue(generation, signal);
+
+    bytes += assets.contourBytes;
+
     const savedAt = new Date().toISOString();
     const snapshot: OfflineTripSnapshotData = {
       schemaVersion: OFFLINE_SNAPSHOT_SCHEMA_VERSION,
@@ -766,32 +945,225 @@ class OfflineTripStore {
       routes: routes.map(toOfflineRouteData),
       points: points.map(toOfflinePointData),
       campSpot,
+      groupRoutes,
+      groupPoints,
       linkedGroupCount,
+      mapBounds: assets.mapBounds,
+      hasContours: assets.hasContours,
     };
 
     bytes += this.writeSnapshotFile(tempDirectory, snapshot);
 
-    // 받는 사이 로그아웃(`removeAll`)됐으면 자리를 차지하지 않는다.
-    if (generation !== this.generation) {
-      throw new OfflineSaveError(OfflineSaveErrorType.Unknown);
+    // 지도 팩(OF-2 `지도 저장 중 · {n}%`). 끝내 못 받으면 저장 전체가 실패한다 — 받던 팩은 지워지고
+    // 기존 저장본(과 그 팩)은 그대로 남는다.
+    if (!reusable && assets.mapBounds) {
+      this.assertCanContinue(generation, signal);
+      this.setSavingProgress(bagId, 0);
+
+      try {
+        const pack = await OfflineMapPack.download(
+          bagId,
+          userId,
+          assets.mapBounds,
+          percentage => {
+            this.setSavingProgress(bagId, percentage);
+          },
+          signal
+        );
+
+        assets.mapBytes = pack.bytes;
+        assets.newPackId = pack.packId;
+      } catch (error) {
+        throw new OfflineSaveError(
+          error instanceof OfflineMapPackAbortError &&
+            this.networkStatus.isOffline()
+            ? OfflineSaveErrorType.Offline
+            : OfflineSaveErrorType.Unknown
+        );
+      }
     }
 
-    // 다 쓴 뒤에만 자리를 바꾼다 — 그 전에 실패하면 기존 저장본이 남는다(OF-2).
-    OfflineTripFiles.replaceTripDirectory(bagId, tempDirectory);
+    bytes += assets.mapBytes;
 
-    return {
+    try {
+      // 받는 사이 로그아웃(`removeAll`)됐으면 자리를 차지하지 않는다.
+      if (generation !== this.generation) {
+        throw new OfflineSaveError(OfflineSaveErrorType.Unknown);
+      }
+
+      // 다 쓴 뒤에만 자리를 바꾼다 — 그 전에 실패하면 기존 저장본이 남는다(OF-2).
+      OfflineTripFiles.replaceTripDirectory(bagId, tempDirectory);
+    } catch (error) {
+      if (assets.newPackId) {
+        await OfflineMapPack.removePack(assets.newPackId).catch(noop);
+      }
+
+      throw error;
+    }
+
+    // 새 저장본이 자리를 잡았으니 옛 팩(·받다 만 팩)을 지운다. 실패해도 저장은 성공이다.
+    if (assets.newPackId) {
+      await OfflineMapPack.removeExcept(bagId, assets.newPackId).catch(noop);
+    } else if (!assets.mapBounds) {
+      // 영역이 없어 팩 없이 저장했다 — 예전에 받은 팩이 남아 있으면 지운다.
+      await OfflineMapPack.remove(bagId).catch(noop);
+    }
+
+    const entry: OfflineManifestEntry = {
       bagId,
       ownerId: userId,
       name: bag.name,
       startDate: bag.startDate,
       endDate: bag.endDate,
       bytes,
+      mapBytes: assets.mapBytes,
       savedAt,
       schemaVersion: OFFLINE_SNAPSHOT_SCHEMA_VERSION,
       pendingPacking: false,
       routeCount: routes.length,
       pointCount: points.length,
     };
+
+    return { entry, hasContours: assets.hasContours };
+  }
+
+  // 로그아웃(`removeAll` — 세대 값 변경)·중단(연결 끊김)이면 저장을 끝낸다.
+  private assertCanContinue(generation: number, signal: AbortSignal) {
+    if (generation !== this.generation) {
+      throw new OfflineSaveError(OfflineSaveErrorType.Unknown);
+    }
+
+    if (signal.aborted) {
+      throw new OfflineSaveError(
+        this.networkStatus.isOffline()
+          ? OfflineSaveErrorType.Offline
+          : OfflineSaveErrorType.Unknown
+      );
+    }
+  }
+
+  /**
+   * 조용한 자동 갱신(OF-2)에서 지도 팩을 다시 쓸 수 있으면 그 값을 돌려준다 — 새 영역이 기존 팩 영역 안에
+   * 들어오고(또는 둘 다 없음), 기존 저장본이 지금 스키마일 때. 등고선도 기존 파일을 임시 디렉터리로 옮겨
+   * 다시 계산하지 않는다(팩 영역 기준으로 계산한 것이다). 다시 쓸 수 없으면 `null`.
+   */
+  private async findReusableMapAssets(
+    bagId: string,
+    contentMapBounds: OfflineLngLatBounds | null,
+    tempDirectory: Directory,
+    signal: AbortSignal
+  ): Promise<OfflineMapAssets | null> {
+    const entry = this.getEntry(bagId);
+
+    if (!entry || OfflineManifest.needsUpgrade(entry)) {
+      return null;
+    }
+
+    const previous = await this.load(bagId);
+
+    if (!previous) {
+      return null;
+    }
+
+    if (!contentMapBounds) {
+      // 영역이 없으면 팩도 필요 없다 — 기존 팩은 저장 뒤 지운다(새로 받을 것이 없다).
+      return null;
+    }
+
+    const packBounds = await OfflineMapPack.getBounds(bagId).catch(() => null);
+
+    // 영역 비교는 **저장본에 적어 둔 영역**(같은 계산식의 결과)과 한다 — 네이티브가 돌려주는 팩 bounds는
+    // 부동소수 반올림이 섞여 그대로 비교하면 매번 "벗어남"이 되어 상세를 열 때마다 팩을 다시 받았다
+    // (2026-10-12 실기기 지적). 팩이 실제로 있는지(`packBounds`)만 함께 본다.
+    if (
+      !packBounds ||
+      !previous.mapBounds ||
+      !isLngLatBoundsInside(contentMapBounds, previous.mapBounds)
+    ) {
+      return null;
+    }
+
+    let hasContours = false;
+    let contourBytes = 0;
+
+    try {
+      const contours = OfflineTripFiles.getContoursFile(
+        OfflineTripFiles.getTripDirectory(bagId)
+      );
+
+      if (previous.hasContours && contours.exists) {
+        const target = OfflineTripFiles.getContoursFile(tempDirectory);
+
+        contours.copy(target);
+        hasContours = true;
+        contourBytes = target.size || 0;
+      }
+    } catch (error) {
+      console.warn('[OfflineTripStore] 등고선 복사 실패', error); // l10n-ignore: 개발자 로그
+    }
+
+    if (!hasContours) {
+      const written = await this.writeContours(
+        previous.mapBounds,
+        tempDirectory,
+        signal
+      );
+
+      hasContours = written.hasContours;
+      contourBytes = written.contourBytes;
+    }
+
+    return {
+      mapBounds: previous.mapBounds,
+      hasContours,
+      contourBytes,
+      mapBytes: entry.mapBytes,
+      newPackId: null,
+    };
+  }
+
+  // 등고선을 계산해 `contours.json`으로 쓴다(OF-6). 실패해도 저장을 막지 않는다 — 파일 없이 `false`.
+  private async writeContours(
+    mapBounds: OfflineLngLatBounds | null,
+    directory: Directory,
+    signal: AbortSignal
+  ): Promise<{ hasContours: boolean; contourBytes: number }> {
+    if (!mapBounds) {
+      return { hasContours: false, contourBytes: 0 };
+    }
+
+    const contours = await buildOfflineContours(mapBounds, { signal });
+
+    if (!contours) {
+      return { hasContours: false, contourBytes: 0 };
+    }
+
+    try {
+      const file = OfflineTripFiles.getContoursFile(directory);
+
+      if (!file.exists) {
+        file.create({ intermediates: true });
+      }
+
+      file.write(JSON.stringify(contours));
+
+      return { hasContours: true, contourBytes: file.size || 0 };
+    } catch (error) {
+      // 디스크 부족이면 이어지는 쓰기도 실패해 저장 전체가 `저장 공간이 부족해요`로 끝난다.
+      console.warn('[OfflineTripStore] 등고선 쓰기 실패', error); // l10n-ignore: 개발자 로그
+
+      try {
+        const file = OfflineTripFiles.getContoursFile(directory);
+
+        if (file.exists) {
+          file.delete();
+        }
+      } catch {
+        // 반쯤 쓴 파일이 남아도 `hasContours: false`라 읽지 않는다.
+      }
+
+      return { hasContours: false, contourBytes: 0 };
+    }
   }
 
   // 스냅샷 파일을 쓰고 크기(바이트)를 돌려준다.
@@ -808,6 +1180,53 @@ class OfflineTripStore {
     file.write(JSON.stringify(snapshot));
 
     return file.size || 0;
+  }
+
+  /**
+   * 연결 그룹의 코스·포인트(OF-1 2026-10-13). 코스 화면(`BagRouteList`·`BagPointList`)과 같은 소스
+   * (`getGroupsByBag` → 그룹별 `routes`·`points`)를 읽는다. 온라인 화면처럼 그룹 조회가 실패하면 그 그룹만
+   * 빼고 계속한다 — 내보내진 그룹의 역인덱스가 남은 경우 등으로 내 여행 저장 전체를 막지 않는다.
+   */
+  private async loadGroupContent(bagId: string): Promise<{
+    groupRoutes: OfflineGroupRouteData[];
+    groupPoints: OfflineGroupPointData[];
+    linkedGroupCount: number;
+  }> {
+    const groups = await this.groupStore
+      .getGroupsByBag(bagId)
+      .catch((): Group[] => []);
+    const loaded = await Promise.all(
+      groups.map(async group => {
+        const groupId = group.getId();
+        const groupName = group.getName();
+
+        try {
+          const [routes, points] = await Promise.all([
+            this.groupStore.getRouteDataList(groupId),
+            this.groupStore.getPointDataList(groupId),
+          ]);
+
+          return {
+            routes: routes.map(route =>
+              toOfflineGroupRouteData(route, groupId, groupName)
+            ),
+            points: points.map(point =>
+              toOfflineGroupPointData(point, groupId, groupName)
+            ),
+          };
+        } catch (error) {
+          console.warn('[OfflineTripStore] 그룹 코스·포인트 조회 실패', error); // l10n-ignore: 개발자 로그
+
+          return { routes: [], points: [] };
+        }
+      })
+    );
+
+    return {
+      groupRoutes: loaded.flatMap(item => item.routes),
+      groupPoints: loaded.flatMap(item => item.points),
+      linkedGroupCount: groups.length,
+    };
   }
 
   // 여행지 박지(DM-17, CS-4 주의사항 포함). 삭제·비활성 박지는 박지로 취급하지 않는다(DST-7).
@@ -909,10 +1328,30 @@ class OfflineTripStore {
     this.entries = [...others, entry];
   }
 
+  private setSavingProgress(bagId: string, percentage: number | null) {
+    if (percentage === null) {
+      this.savingProgress.delete(bagId);
+
+      return;
+    }
+
+    this.savingProgress.set(bagId, Math.round(percentage));
+  }
+
   private setSaving(bagId: string, saving: boolean) {
     const others = this.savingIds.filter(id => id !== bagId);
 
     this.savingIds = saving ? [...others, bagId] : others;
+
+    if (!saving) {
+      this.setAutoRefreshing(bagId, false);
+    }
+  }
+
+  private setAutoRefreshing(bagId: string, refreshing: boolean) {
+    const others = this.autoRefreshingIds.filter(id => id !== bagId);
+
+    this.autoRefreshingIds = refreshing ? [...others, bagId] : others;
   }
 }
 

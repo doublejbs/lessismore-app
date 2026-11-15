@@ -31,6 +31,7 @@ import BagActivityDetailView from './BagActivityDetailView';
 import BagActivityEmptyView from './BagActivityEmptyView';
 import BagActivityIntroView from './BagActivityIntroView';
 import BagActivityWorkoutItemView from './BagActivityWorkoutItemView';
+import ToastView from '@/components/toast/ToastView';
 import app from '@/model/app/App';
 
 interface Props {
@@ -299,6 +300,8 @@ const BagActivityView: FC<Props> = ({ bagActivity }) => {
           </TouchableOpacity>
         </View>
       )}
+      {/* `3D로 보기`의 오프라인 안내(RR-1)가 뜨는 자리. */}
+      <ToastView toastManager={app.getToastManager()!} bottom={100} />
     </View>
   );
 };

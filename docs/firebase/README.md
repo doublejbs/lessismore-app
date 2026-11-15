@@ -12,7 +12,7 @@
 | `group-firestore.rules` | `groups/**`, `users/{uid}/groups/**` | DM-29, Group.md GRP-3·4·5·8·9·12 |
 | `group-storage.rules` | `/groups/{groupId}/routes/*.gpx` | DM-9, GRP-8 |
 | `group-firestore.indexes.json` | (비어 있음 — 아래 그룹 절 참고) | DM-29 인덱스 |
-| `bag-firestore.rules` | `bag/{bagId}/routes/**` | DM-30, BagDetail.md BD-11 |
+| `bag-firestore.rules` | `bag/{bagId}`(DM-37), `bag/{bagId}/routes/**` | DM-30·DM-37, BagDetail.md BD-11 |
 | `bag-storage.rules` | `/bags/{bagId}/routes/*.gpx` | DM-9, DM-30, BD-11 |
 
 **어떤 파일도 단독으로 배포하지 않는다.** 실제 배포는 `deployed/` 병합본 기준이며, 인덱스 배포는 파일에 없는 인덱스를 **삭제**하려 하므로 특히 병합본만 쓴다.
@@ -125,7 +125,7 @@ match /{allPaths=**} {
 ### 규칙으로 표현하지 못해 남긴 구멍
 
 1. **배낭당 코스 5개 상한을 규칙이 강제하지 못한다.** 규칙은 컬렉션 문서 수를 셀 수 없고, 그룹처럼 카운터를 같은 커밋에 묶으려면 `bag` 문서에 `routeCount` 를 새로 둬야 한다. `bag` 은 공유 링크로 공개되는 문서라 "이 사람이 코스를 몇 개 갖고 있다"가 함께 새고, 무엇보다 **배낭 코스는 소유자 한 사람의 것이라 상한을 넘겨도 피해가 자기 배낭 안에 갇힌다**(그룹은 여럿이 공유 예산을 쓰므로 카운터가 필요했다). 클라이언트가 세어서 막고, 상한은 `GroupLimits.GROUP_MAX_ROUTE_COUNT` 하나를 그룹과 함께 쓴다(DM-30 — 수치를 갈라 두지 않는다).
-2. **`bag` 문서 자체는 여전히 전면 개방이다.** 좁히는 것은 별도 보안 작업이다(DataModel §1 `[운영]`). 이 병합은 하위 `routes` 하나만 닫는다.
+2. **`bag` 문서 자체는 여전히 전면 개방이다.** 좁히는 것은 별도 보안 작업이다(DataModel §1 `[운영]`). 이 병합은 하위 `routes` 하나만 닫는다. → 2026-10-15 DM-37 병합으로 좁혔다(아래 "병합 기록 (2026-10-15)").
 3. **Storage 파일과 Firestore 문서의 동반 삭제는 클라이언트 몫이다.** 규칙은 둘을 묶지 못한다. 배낭 삭제 시의 연쇄 정리(하위 `routes` 문서 + Storage GPX)는 서버 트리거(`onBagDeleted`)가 맡는다(DM-30) — **아직 배포되지 않았다.**
 
 ### 에뮬레이터 검증 (2026-09-18)
@@ -350,3 +350,25 @@ Storage 에뮬레이터 로그에 뜨는 `storage.rules line [65] ... Variable  
   - `match /consumable-product/{productId} { allow read: if true; allow write: if false; }` — 읽기 공개(비로그인 홈·커뮤니티 노출), 클라이언트 쓰기 전면 금지. 열어 두면 누구나 `coupangUrl`을 자기 파트너스 링크로 바꿔치기할 수 있다.
 - 쓰기 경로: `scripts/curate-consumables.mjs`가 firebase CLI 로그인(프로젝트 owner) OAuth 토큰으로 Firestore REST 에 쓴다. IAM 인증 요청은 보안 규칙을 거치지 않으므로 `write: if false`와 충돌하지 않는다.
 - **`feed-content`(DM-27)는 여전히 잠금 목록 밖이다** — 개방 절 `allow read, write: if !isLockedCollection()`에 걸려 **비로그인 누구나 쓰기·삭제가 가능**하다. 다만 웹 CMS(`lessismore` 레포 `src/feed/FeedContentTabView.tsx`)가 클라이언트 SDK `setDoc`/`addDoc`/`deleteDoc`으로 쓰고 있어, 같은 방식(`write: if false`)으로 잠그면 CMS 가 깨진다. 잠그려면 운영자 uid 허용 규칙 또는 CMS 쓰기 경로 변경이 먼저다(DataModel.md §8).
+
+## 배포 기록 (2026-10-13) — 그룹 코스/포인트 출처 참조 `sourceBagId`·`sourceBagRouteId` (DM-29, Group.md GRP-8, BagDetail.md BD-11)
+
+- 라이브 룰셋 `4cf89a07-351e-495a-9a2f-3e49cc345dc0`(이전 `5d8b9044…`, 백업은 iCloud `claude/useless-content/firestore-rules-backup-2026-10-13-before-group-route-source.rules`). `deployed/firestore.rules`는 배포 후 소스를 그대로 옮긴 것이다(이전 저장본은 라이브와 98줄 어긋나 있었다 — 이번에 동기화).
+- 변경: 그룹 하위 코스·포인트 문서의 `hasOnly` 허용 키에 `sourceBagId`·`sourceBagRouteId`를 추가하고 둘 다 문자열(선택)로 검증한다. 여행 → 그룹으로 복사한 코스가 같은 출처임을 알 수 있어, 코스 상세·오프라인 저장이 내 코스와 그룹 코스를 중복 없이 합친다(BD-11). 앱 OTA(2.0.2)보다 **먼저** 배포해야 한다 — 규칙이 옛 상태면 `copyToGroup`이 거부된다.
+- 배포 방법: Rules REST(`firebaserules.googleapis.com/v1`)에 firebase CLI 로그인 토큰으로 `rulesets` POST → `releases/cloud.firestore` PATCH. **PATCH 의 `updateMask`는 쿼리 파라미터(`?updateMask=release.ruleset_name`)로 주면 400 INVALID_ARGUMENT 다** — 본문에 `{"release":{...},"updateMask":"rulesetName"}`으로 넣어야 한다.
+
+## 병합 기록 (2026-10-15) — `bag`·`users` 접근 좁히기 (DM-37) — **미배포**
+
+- `deployed/firestore.rules`(병합본)과 `bag-firestore.rules`(원본)의 `match /bag/{bagId}`를 같은 규칙으로 바꿨다. **아직 배포하지 않았다** — 라이브는 여전히 직전 룰셋 `4cf89a07…`(전면 개방)이다.
+- 변경 세 가지:
+  - `bag/{bagId}` — 주인 = `userId` 필드 **하나**. `get`: 문서 없음 · 주인 · `shared`/`reviewShared` 공개. `list`: 주인만. `create`: 로그인 + 본인 `userId`. `update`: 주인 + `userId`가 본인 그대로. `delete`: 문서 없음 · 주인.
+    - DM-37 초안의 "`userId`가 없으면 `users/{auth.uid}.bags`에 있으면 주인" 판정은 **뺐다**. `users`가 본인 쓰기 전용이 되어도 자기 `bags`에는 아무 ID나 넣을 수 있어, 어느 목록에도 없는 고아 14건을 누구나 가로챌 수 있기 때문이다. 주인이 확인되는 옛 문서 21건은 `userId`를 채워 두었으므로 정상 사용자 영향은 없다. 남은 `userId` 없는 문서는 공유 중일 때 읽기만 되고 아무도 고치거나 지울 수 없다.
+  - `users/{userId}` — `get`·`create`·`update`·`delete` 본인만, `list` 금지. `create`는 전체 키, `update`는 **바뀌는 키만** 허용 목록(`termsAgreed`·`privacyAgreed`·`marketingAgreed`·`personalInfoAgreed`·`over14Agreed`·`smsAgreed`·`agreedAt`·`createdAt`·`nickname`·`bags`)으로 검사한다 — 옛 문서에 목록 밖 키가 남아 있어도 그 키를 건드리지 않으면 통과한다. `nickname`은 1~100자 문자열, `bags`는 리스트.
+  - `users/{userId}/{subCollection}/**`(`groups`·`push-tokens` 제외) — 읽기는 공개 유지(비로그인 공유 배낭이 `users/{owner}/gears`를 읽는다), **쓰기는 본인만**. 앱·웹의 하위 컬렉션 쓰기는 전부 호출자 본인 uid 경로다.
+- 다른 규칙 영향: 커뮤니티 글·댓글 생성 규칙의 `get(users/{auth.uid}).nickname`은 규칙 내부 `get()`이라 읽기 규칙을 타지 않는다. `bag/{bagId}/routes`·`points`의 `get(bag/{bagId}).data.userId`도 같다.
+- **배포 순서 (지킬 것)**:
+  1. 앱 변경 — `BagStore.getBags`를 ID마다 `getDoc` 병렬로 바꾼 코드: 2.0.1 OTA `78ab571`(2026-10-15 배포 완료) · 2.0.2 빌드 116. 규칙이 먼저 나가면 옛 쿼리(`__name__ in`)를 쓰는 앱은 없는 ID가 섞이거나 배낭이 20개를 넘을 때 배낭 탭·홈·알림 동기화가 빈다.
+  2. 옛 문서 `userId` 채우기 — 완료(2026-10-15, 21건).
+  3. 규칙 배포 — `deployed/firestore.rules`로만. 방법은 위 2026-10-13 기록(Rules REST)과 같다.
+- 깨지는 것(감수, DM-37): 웹 `/celebrate`의 비로그인 `users` count(이미 실패 시 임의 숫자로 떨어진다), `scripts/migrate-gear-rank.ts`(비인증으로 `users` 전체 조회 — 다시 쓰면 소유자 OAuth로).
+- 에뮬레이터 검증(2026-10-15, 저장소 밖 스크래치 하네스, Firestore 8181): 병합본 사본으로 **87건 전부 통과** — `bag` 32 · `users` 28 · `users` 하위 15 · 앱 흐름 10(`add`·`copy`·`save` 트랜잭션·`delete`·회원 탈퇴 일괄 삭제·비로그인 공유 배낭 보기·템플릿 배치) · 개방 컬렉션 회귀 표본 2. 주요 결과: 없는 ID가 섞인 32+개 배낭의 `getDoc` 병렬 읽기 허용, `userId` 없는 옛 문서는 주인도 거부(의도), 남의 `users` 문서·하위 쓰기 거부, 비로그인의 공유 배낭 + 주인 `gears` 읽기 허용. 원본 `bag-firestore.rules`도 단독 로드로 컴파일 확인.

@@ -24,6 +24,12 @@ import {
   AcgType,
 } from '@/constants/DesignTokens';
 import CommunityReportTargetType from '@/model/community/CommunityReportTargetType';
+import BlockSurface from '@/model/block/BlockSurface';
+import {
+  canBlockAuthor,
+  confirmUserBlock,
+  getBlockMenuText,
+} from '@/model/block/UserBlockFlow';
 import CommunityDetail, {
   CommunityReportTarget,
 } from '@/model/community-detail/CommunityDetail';
@@ -33,6 +39,7 @@ import CommunityDetailSkeletonView from './CommunityDetailSkeletonView';
 import CommunityDetailCommentRowView from './CommunityDetailCommentRowView';
 import CommunityDetailPostHeaderView from './CommunityDetailPostHeaderView';
 import CommunityDetailCommentComposerView from './CommunityDetailCommentComposerView';
+import useCloseWhenAuthorBlocked from '@/hooks/useCloseWhenAuthorBlocked';
 import getCommunityReportMenuItems, { CommunityReportSheetTarget } from './CommunityDetailReportMenu';
 
 interface Props {
@@ -71,6 +78,9 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
   );
 
   const post = detail.getPost();
+
+  // CM-17: 글 작성자가 차단되면(이 메뉴든 댓글 행이든) 상세를 닫는다.
+  useCloseWhenAuthorBlocked(post?.getAuthorId(), '/(tabs)/community');
   const isOwner = Boolean(
     post && post.getAuthorId() === app.getFirebase().getUserId()
   );
@@ -220,7 +230,7 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
             : [
                 {
                   icon: 'flag-outline',
-                  text: app.getL10n().t('community.report.title'),
+                  text: app.getL10n().t('moderation.report'),
                   onPress: () =>
                     post &&
                     openReport({
@@ -228,6 +238,22 @@ const CommunityDetailView: FC<Props> = ({ detail }) => {
                       targetAuthorId: post.getAuthorId(),
                     }),
                 },
+                // CM-17: 남의 글이면 `신고` 다음 `{닉네임} 차단`. 닫기는 `useCloseWhenAuthorBlocked`가 맡는다.
+                ...(post && canBlockAuthor(post.getAuthorId())
+                  ? [
+                      {
+                        icon: 'ban-outline' as const,
+                        text: getBlockMenuText(post.getAuthorName()),
+                        onPress: () =>
+                          confirmUserBlock({
+                            uid: post.getAuthorId(),
+                            name: post.getAuthorName(),
+                            surface: BlockSurface.CommunityPost,
+                            postId: post.getId(),
+                          }),
+                      },
+                    ]
+                  : []),
               ]
         }
       />

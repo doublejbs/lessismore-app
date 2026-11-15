@@ -14,7 +14,7 @@ interface Props {
   onStartDateChange: (date: dayjs.Dayjs) => void;
   onEndDateChange: (date: dayjs.Dayjs | null) => void;
   initialMonth?: dayjs.Dayjs;
-  // 항상 펼친 채로 둔다 — 캘린더가 화면의 유일한 입력인 곳(첫 여행 가이드 1단계, OB-4).
+  // 항상 펼친 채로 둔다 — 캘린더가 화면의 유일한 입력인 곳. 첫 여행 가이드 날짜 단계(OB-4 [폐기])가 쓰던 옵션으로 지금은 호출처가 없다.
   alwaysOpen?: boolean;
 }
 

@@ -1,5 +1,6 @@
 import { BagLocation } from '../bag-destination/BagLocation';
 import Gear, { toGearExtra } from '../gear/Gear';
+import OnboardingDestinationSource from './OnboardingDestinationSource';
 
 export const ONBOARDING_TRIP_DRAFT_VERSION = 1;
 
@@ -37,6 +38,9 @@ export interface OnboardingTripDraft {
   endDate: string | null;
   datesUndecided: boolean;
   location: BagLocation | null;
+  // 여행지가 들어온 경로(OB-5·OB-9 destination_source). 이 필드 이전의 옛 초안엔 없다 —
+  // 읽을 때는 resolveDraftDestinationSource로 폴백한다(버전은 올리지 않는다).
+  destinationSource?: OnboardingDestinationSource;
   catalogGears: OnboardingTripDraftGear[];
 }
 
@@ -78,6 +82,32 @@ export const fromDraftGear = (data: OnboardingTripDraftGear): Gear => {
     data.nameKorean,
     toGearExtra(data)
   );
+};
+
+const DESTINATION_SOURCES = new Set<string>(
+  Object.values(OnboardingDestinationSource)
+);
+
+// 초안의 여행지 경로 — 필드가 없거나(옛 초안) 알 수 없는 값이면 여행지 유무로 폴백한다.
+// 여행지가 없으면 저장된 값과 상관없이 none이다.
+export const resolveDraftDestinationSource = (
+  draft: OnboardingTripDraft
+): OnboardingDestinationSource => {
+  if (!draft.location) {
+    return OnboardingDestinationSource.None;
+  }
+
+  const source = draft.destinationSource;
+
+  if (
+    typeof source === 'string' &&
+    DESTINATION_SOURCES.has(source) &&
+    source !== OnboardingDestinationSource.None
+  ) {
+    return source;
+  }
+
+  return OnboardingDestinationSource.Picker;
 };
 
 // 저장된 값을 검증한다 — 버전이 다르거나 유효 시간이 지났으면 버린다(null).

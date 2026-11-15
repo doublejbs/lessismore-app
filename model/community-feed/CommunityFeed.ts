@@ -8,6 +8,8 @@ import { subscribeCommunityPostDeleted } from '@/model/community/CommunityFeedIn
 import Order from '@/model/order/Order';
 import OrderType from '@/model/order/OrderType';
 import { createCommunityFeedOrderOptions } from '@/model/order/CommunityFeedOrderOptions';
+import { BLOCKED_AUTO_PAGE_LIMIT } from '@/model/block/BlockLimits';
+import { watchBlockedEmptyList } from '@/model/block/BlockedAutoPaging';
 import CommunityFeedDispatcher from './CommunityFeedDispatcher';
 
 class CommunityFeed {
@@ -87,6 +89,28 @@ class CommunityFeed {
   }
 
   public async loadMore() {
+    await this.loadNextPage(0);
+  }
+
+  // CM-17: 보이는 글이 차단 필터로 0이 되면 다음 페이지를 받는다. 돌려주는 함수로 멈춘다(래퍼 정리 시).
+  public watchBlockedEmpty() {
+    return watchBlockedEmptyList({
+      shouldLoad: () =>
+        this.getPosts().length === 0 &&
+        this.posts.length > 0 &&
+        this.hasMore &&
+        !this.isLoading &&
+        !this.isLoadingMore &&
+        !this.isRefreshing &&
+        !this.isQuietRefreshing,
+      shouldReset: () => this.getPosts().length > 0 || this.posts.length === 0,
+      load: () => {
+        void this.loadNextPage(BLOCKED_AUTO_PAGE_LIMIT);
+      },
+    });
+  }
+
+  private async loadNextPage(autoDepth: number) {
     if (
       this.isLoading ||
       this.isLoadingMore ||
@@ -100,6 +124,8 @@ class CommunityFeed {
     this.setLoadingMore(true);
     const requestVersion = this.requestVersion;
 
+    let pagePosts: CommunityPost[] = [];
+
     try {
       const page = await this.dispatcher.getPage(
         this.filter,
@@ -111,6 +137,7 @@ class CommunityFeed {
         return;
       }
 
+      pagePosts = page.posts;
       this.setPosts([...this.posts, ...page.posts]);
       this.setCursor(page.cursor);
       this.setHasMore(page.hasMore);
@@ -124,6 +151,24 @@ class CommunityFeed {
     } finally {
       this.setLoadingMore(false);
     }
+
+    await this.loadMoreIfAllBlocked(pagePosts, autoDepth);
+  }
+
+  // CM-17: 받은 한 페이지가 전부 차단한 사람 글이면 다음 페이지를 이어 받는다(연쇄 상한 있음).
+  private async loadMoreIfAllBlocked(pagePosts: CommunityPost[], autoDepth: number) {
+    const blockedUserStore = app.getBlockedUserStore();
+
+    if (
+      pagePosts.length === 0 ||
+      !this.hasMore ||
+      autoDepth >= BLOCKED_AUTO_PAGE_LIMIT ||
+      !pagePosts.every(post => blockedUserStore?.isBlocked(post.getAuthorId()))
+    ) {
+      return;
+    }
+
+    await this.loadNextPage(autoDepth + 1);
   }
 
   public async refresh(quiet = false) {
@@ -169,8 +214,17 @@ class CommunityFeed {
     return this.initialized;
   }
 
+  // 차단한 사람(CM-17)의 글을 뺀 목록. 계산값이라 차단 목록이 바뀌면 다시 계산되고, 그 전에는 같은 배열이다.
   public getPosts() {
-    return this.posts;
+    return this.visiblePosts;
+  }
+
+  private get visiblePosts() {
+    return (
+      app.getBlockedUserStore()?.filterVisible(this.posts, post =>
+        post.getAuthorId()
+      ) ?? this.posts
+    );
   }
 
   public getHasMore() {
@@ -201,6 +255,8 @@ class CommunityFeed {
       this.setCursor(null);
     }
 
+    let pagePosts: CommunityPost[] = [];
+
     try {
       const page = await this.dispatcher.getPage(this.filter, this.sort, null);
 
@@ -208,6 +264,7 @@ class CommunityFeed {
         return;
       }
 
+      pagePosts = page.posts;
       this.setPosts(page.posts);
       this.setCursor(page.cursor);
       this.setHasMore(page.hasMore);
@@ -222,6 +279,10 @@ class CommunityFeed {
       if (requestVersion === this.requestVersion && !quiet) {
         this.setLoading(false);
       }
+    }
+
+    if (!quiet) {
+      await this.loadMoreIfAllBlocked(pagePosts, 0);
     }
   }
 

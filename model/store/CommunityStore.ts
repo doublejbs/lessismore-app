@@ -767,18 +767,19 @@ class CommunityStore {
 
   public async report(input: CommunityReportInput): Promise<CommunityReportResult> {
     const reporterId = this.requireUserId();
-    const targetId =
-      input.targetType === CommunityReportTargetType.Comment
-        ? input.commentId
-        : input.postId;
+    const targetId = this.getReportTargetId(input);
 
-    if (!targetId ||
-      (input.targetType === CommunityReportTargetType.Comment &&
-        !input.commentId)) {
+    // 사용자 차단(`user`)만 차단한 자리를 모를 수 있어 게시글 id 없이도 받는다(DM-28).
+    if (
+      !targetId ||
+      (input.targetType !== CommunityReportTargetType.User && !input.postId)
+    ) {
       throw new CommunityError(CommunityValidationError.ReportTargetInvalid);
     }
 
-    const reportId = `${reporterId}_${input.targetType}_${targetId}`;
+    const reportId = input.reportIdSuffix
+      ? `${reporterId}_${input.targetType}_${targetId}_${input.reportIdSuffix}`
+      : `${reporterId}_${input.targetType}_${targetId}`;
     const reportRef = doc(this.getStore(), 'community-reports', reportId);
 
     return await runTransaction(this.getStore(), async transaction => {
@@ -791,17 +792,18 @@ class CommunityStore {
       const reportData: Record<string, unknown> = {
         reporterId,
         targetType: input.targetType,
-        targetPostId: input.postId,
-        targetAuthorId: input.targetAuthorId,
+        // 옛 문서에 작성자가 비어 있을 수 있다 — Firestore는 undefined를 거부한다.
+        targetAuthorId: input.targetAuthorId ?? '',
         reason: input.reason,
         status: CommunityReportStatus.Open,
         createdAt: serverTimestamp(),
       };
 
-      if (
-        input.targetType === CommunityReportTargetType.Comment &&
-        input.commentId
-      ) {
+      if (input.postId) {
+        reportData.targetPostId = input.postId;
+      }
+
+      if (input.targetType !== CommunityReportTargetType.Post && input.commentId) {
         reportData.targetCommentId = input.commentId;
       }
 
@@ -813,6 +815,27 @@ class CommunityStore {
 
       return CommunityReportResult.Created;
     });
+  }
+
+  // 신고 문서 ID의 대상 조각(DM-28). 게시글은 게시글 id, 사용자 차단은 차단 uid, 댓글·장비 댓글은
+  // `commentId`(자동 생성 ID라 전역에서 겹치지 않는다)다. 박지 후기는 후기 문서 id가 작성자 uid라 박지마다
+  // 겹치므로 `{박지 id}_{작성자 uid}`로 쓴다 — uid만 쓰면 같은 사람의 다른 박지 후기 신고가 중복으로 묻힌다.
+  private getReportTargetId(input: CommunityReportInput) {
+    if (input.targetType === CommunityReportTargetType.Post) {
+      return input.postId;
+    }
+
+    if (input.targetType === CommunityReportTargetType.User) {
+      return input.targetAuthorId;
+    }
+
+    if (input.targetType === CommunityReportTargetType.CampReview) {
+      return input.postId && input.commentId
+        ? `${input.postId}_${input.commentId}`
+        : '';
+    }
+
+    return input.commentId ?? '';
   }
 
   private getStore() {

@@ -36,7 +36,7 @@ const TAG_LABEL_KEY: Record<CampSiteTag, string> = {
 
 /**
  * 유형별 마커 색 — 백패킹=퍼플, 대피소=초록, 캠핑장=골드.
- * 지도 마커(CampSiteMarkerView)와 유형 필터 칩의 색 도트(범례)가 함께 쓴다.
+ * 지도 마커 레이어(CampSiteSpotsLayerView)와 유형 필터 칩의 색 도트(범례)가 함께 쓴다.
  *
  * 백패킹은 내 위치 마커의 파랑(`#2D8CFF`)과 혼동되지 않도록 퍼플(`#7C3AED`)을 쓴다
  * (2026-08-14 사용자 결정). 지도 배경의 도로·수계와 앱 라임 액센트와도 구분되는 값이다.
