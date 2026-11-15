@@ -41,6 +41,7 @@ import OfflineTripStore from '../offline/OfflineTripStore';
 import RouteReplayStore from '../route-replay/RouteReplayStore';
 import RouteDrawEntitlement from '../route-draw/RouteDrawEntitlement';
 import MapLayerStore from '../map/MapLayerStore';
+import StoreReviewManager from '../store-review/StoreReviewManager';
 
 class App {
   // OF-3: 연결 상태의 단일 소스. Firebase 로그인 확인이 오프라인이면 Firestore를 건너뛰어야 하므로
@@ -77,6 +78,8 @@ class App {
   private forceUpdateManager: ForceUpdateManager | null = null;
   private featurePopupManager: FeaturePopupManager | null = null;
   private onboardingTripManager: OnboardingTripManager | null = null;
+  // 앱 평가 요청(APP-11). 시작 오버레이 매니저들을 모두 본 뒤 요청하므로 그것들보다 나중에 만든다.
+  private storeReviewManager: StoreReviewManager | null = null;
   private communityStore: CommunityStore | null = null;
   // 사용자 차단 목록(CM-17). 로그인 uid를 따라 읽고 비우며, UGC 목록이 이 목록으로 작성자를 거른다.
   private blockedUserStore: BlockedUserStore | null = null;
@@ -192,6 +195,16 @@ class App {
       this.firebase,
       bagStore
     );
+    this.storeReviewManager = StoreReviewManager.new({
+      firebase: this.firebase,
+      analyticsManager: this.analyticsManager,
+      forceUpdateManager: this.forceUpdateManager,
+      onboardingTripManager: this.onboardingTripManager,
+      featurePopupManager: this.featurePopupManager,
+      announcementManager: this.announcementManager,
+      notificationManager: this.notificationManager,
+      adService: this.adService,
+    });
     await this.initializeOffline(bagStore);
     this.initializeRouteDraw();
     this.initializeMapLayer();
@@ -432,6 +445,10 @@ class App {
 
   public getOnboardingTripManager() {
     return this.onboardingTripManager;
+  }
+
+  public getStoreReviewManager() {
+    return this.storeReviewManager;
   }
 
   public getGearPreviewStore() {

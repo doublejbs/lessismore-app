@@ -35,6 +35,8 @@ class AnnouncementManager {
   // '하루동안 보지않기'로 24시간 숨긴 공지. 기기 로컬에 저장한다(AN-4).
   private dayDismissed: DayDismissed | null = null;
   private unsubscribe: (() => void) | null = null;
+  // 첫 스냅샷(또는 구독 실패)을 받아 표시 판정이 끝났는지 — 앱 평가 요청이 판정 전에 끼어들지 않게 본다(APP-11).
+  private resolved = false;
 
   private constructor(private readonly firebase: Firebase) {
     makeAutoObservable(this);
@@ -178,6 +180,10 @@ class AnnouncementManager {
     return true;
   }
 
+  public isResolved(): boolean {
+    return this.resolved;
+  }
+
   public getMessage(): string {
     return this.announcement?.message ?? '';
   }
@@ -231,6 +237,7 @@ class AnnouncementManager {
 
   private setAnnouncement(value: AnnouncementData | null) {
     this.announcement = value;
+    this.resolved = true;
   }
 
   private setSessionDismissedId(value: string | null) {

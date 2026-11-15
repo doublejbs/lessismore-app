@@ -210,6 +210,7 @@
 | `click_bag_point_select` | 배낭 지도 포인트 목록·마커 탭 (BD-14) `[제안]` | `type` |
 | `click_offline_save` | 오프라인 저장 시작 ([Offline.md](Offline.md) OF-2) `[제안]` | `source`: `tile` |
 | `offline_saved` | 오프라인 저장 성공 (OF-2, `logEvent`) `[제안]` | `bytes`, `map_bytes`, `route_count`, `point_count`, `has_contours` |
+| `store_review_request` | 여행 종료 직후 홈 진입에서 OS 평가 창을 요청함 (APP-11, `logEvent`) `[제안]`. 실제 노출 여부·별점은 알 수 없음 | — |
 | `click_offline_refresh` / `click_offline_remove` | 오프라인 갱신 / 삭제 (OF-2) `[제안]` | — |
 | `offline_trip_open` | 오프라인 상세 열람 (OF-5, `logEvent`) `[제안]` | — |
 | `offline_route_map_open` | 오프라인 코스 지도 열람 (OF-6, `logEvent`) `[제안]` — 2026-10-12 `offline_route_canvas_open`에서 개명 | `reason`: `offline` |

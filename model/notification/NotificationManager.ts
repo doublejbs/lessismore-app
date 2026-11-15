@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs, { Dayjs } from 'dayjs';
+import { observable, runInAction } from 'mobx';
 import { Platform } from 'react-native';
 import app from '../app/App';
 import { getAppVersionInfo } from '../app/AppVersionInfo';
@@ -175,7 +176,10 @@ class NotificationManager {
   private lastOpenLoggedAt = 0;
   private initializePromise: Promise<void> | null = null;
   // 시작 시 권한 요청(NT-1)은 세션당 1회 — 레이아웃 effect가 여러 번 불러도 한 번만 한다.
-  private launchPermissionHandled = false;
+  // 앱 평가 요청(APP-11)이 겹치지 않게 관찰하므로 observable 상자로 둔다(클래스 자체는 MobX가 아니다).
+  private readonly launchPermissionHandled = observable.box(false);
+  // 시작 시 권한 요청(NT-1)이 시작돼 끝나기 전인지 — OS 대화상자가 떠 있을 수 있는 구간(APP-11).
+  private readonly launchPermissionRequesting = observable.box(false);
   private pushTokenRegistrar: PushTokenRegistrar | null = null;
 
   private constructor() {}
@@ -321,18 +325,43 @@ class NotificationManager {
   // 시작 시 권한 요청(NT-1 개정, OB-8). 레이아웃이 로그인 + 약관 동의 + 첫 여행 가이드 판정 뒤에
   // 부른다. 세션당 1회이고, 미결정(iOS 임시 허용 포함, NT-13)일 때만 OS 대화상자를 띄운다.
   public async requestPermissionAtLaunch(): Promise<void> {
-    if (!this.enabled || this.launchPermissionHandled) {
+    if (!this.enabled || this.launchPermissionHandled.get()) {
       return;
     }
 
-    this.launchPermissionHandled = true;
-    await this.initialize();
-    await this.requestPermissionIfUndetermined();
+    runInAction(() => {
+      this.launchPermissionHandled.set(true);
+      this.launchPermissionRequesting.set(true);
+    });
+
+    try {
+      await this.initialize();
+      await this.requestPermissionIfUndetermined();
+    } finally {
+      runInAction(() => {
+        this.launchPermissionRequesting.set(false);
+      });
+    }
   }
 
   // 이번 세션의 시작 시 요청을 건너뛴다 — 첫 여행 가이드를 띄운 세션은 가이드 완료 단계가 첫 질문이다(OB-8).
   public skipLaunchPermission(): void {
-    this.launchPermissionHandled = true;
+    runInAction(() => {
+      this.launchPermissionHandled.set(true);
+    });
+  }
+
+  // 시작 시 권한 요청이 진행 중인지(APP-11 겹침 방지).
+  public isLaunchPermissionRequesting(): boolean {
+    return this.launchPermissionRequesting.get();
+  }
+
+  // 이번 세션의 시작 시 권한 처리(요청 또는 건너뜀)가 끝났는지(APP-11 판정 대기).
+  public isLaunchPermissionSettled(): boolean {
+    return (
+      this.launchPermissionHandled.get() &&
+      !this.launchPermissionRequesting.get()
+    );
   }
 
   // 맥락 요청(OB-7 `알림 받고 여행 만들기`)과 시작 시 요청이 같이 쓴다. 미결정이 아니면 묻지 않고

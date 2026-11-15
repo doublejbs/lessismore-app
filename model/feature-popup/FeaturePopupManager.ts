@@ -45,6 +45,8 @@ class FeaturePopupManager {
   // '닫기'로 영구 숨긴 팝업 id 목록. 기기 로컬(AsyncStorage)에 저장한다(FP-5).
   private dismissedIds: string[] = [];
   private unsubscribe: (() => void) | null = null;
+  // 첫 스냅샷(또는 구독 실패)을 받아 표시 판정이 끝났는지 — 앱 평가 요청이 판정 전에 끼어들지 않게 본다(APP-11).
+  private resolved = false;
 
   private constructor(private readonly firebase: Firebase) {
     makeAutoObservable(this);
@@ -308,6 +310,10 @@ class FeaturePopupManager {
     return this.popup?.showSkip !== false;
   }
 
+  public isResolved(): boolean {
+    return this.resolved;
+  }
+
   // 강제(차단) 모드 여부(FP-7).
   public isForced(): boolean {
     return this.popup?.forced ?? false;
@@ -315,6 +321,7 @@ class FeaturePopupManager {
 
   private setPopup(value: FeaturePopupData | null) {
     this.popup = value;
+    this.resolved = true;
   }
 
   private setDismissedIds(value: string[]) {
